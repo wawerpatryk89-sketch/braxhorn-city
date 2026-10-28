@@ -64,6 +64,13 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
   - przyczyna świecących postaci: odbicie otoczenia (envMapIntensity) 0.9–1.0 przy 0.3 na ścianach, a Brax/Nyxa miały metalness 0.6. Teraz 0.35 i metalness 0.15; ludzie z Mixamo też 0.35 (`people.mats`);
   - cieplejsze światło ogólne, słabsze reflektory, nasycenie 1.2 w siłowni.
 
+## Kierunek zaproponowany 28.10 (czeka na decyzję użytkownika)
+
+- Pełne „Wysoka” jak na komputerze zamulało na telefonie. Tymczasowo na telefonie: 1.5× piksela + MSAA 4×, 4 reflektory, 1 światło punktowe, cienie 1024.
+- Propozycja: zostać w przeglądarce, ale robić jak gry mobilne. Walki w 2,5D na małych arenach (podziemia, ringi) z kamerą z boku i upieczonym światłem, siłownia jako baza z upieczonym światłem, miasto mniejsze i prostsze (tylko przejścia). Docelowy poziom to porządna gra niezależna.
+- Unity/Godot odradzone przy tym celu: aplikacja zamiast linku, na iPhone'a potrzebny Mac i konto Apple, praca w edytorze po stronie użytkownika.
+- Plan upieczenia światła w siłowni: offline (harness), na wierzchołkach po teselacji co około 0,5 m; promienie do lamp i AO na prostopadłościanach z BVH; zapis Float16 w pliku; statyczne materiały na MeshBasic × kolor wierzchołka; na żywo tylko postacie (pole lamp, hemi, key) i cień gracza (nakładka ShadowMaterial). Zaułek zostaje na żywo (dzień i noc).
+
 ## Jakość na telefonie (28.10, 13:30)
 
 - „Wysoka” na telefonie = to samo co na komputerze: wygładzanie krawędzi MSAA 4×, cienie 2048, 6 reflektorów, 2 światła punktowe, pełny blask, do 2× piksela. Na telefonach wyłączone są tylko lustro podłogi i smugi światła. „Średnia”: MSAA 2×, do 1.5× piksela. Dynamiczna rozdzielczość dalej obniża piksel, gdy telefon nie wyrabia.
