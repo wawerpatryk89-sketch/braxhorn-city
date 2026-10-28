@@ -42,6 +42,8 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 - **Stary magazyn** (abandoned warehouse): trzeci rewir, szef Księgowy. Materiały spec-gloss przerobione na metal-rough skryptem `dev/tools/sg2mr.py` (three.js r160 nie czyta spec-gloss).
 - **Klub Złoty Róg** (model gym_3desain): czwarty rewir, jasny fitness klub, szef Trener.
 - Fasady po stronie siłowni: wypukłości okien (normal mapy), jaśniejsze witryny, gzymsy, markizy, klimatyzatory, schody przeciwpożarowe; słońce świeci na witryny.
+- Kamera walki: przy przeciwniku w promieniu 6 m kamera ustawia się w poprzek walki od otwartej strony (ulica, magazyn, klub).
+- Patrole Czerwonego Rogu w dzień na ulicy.
 - Obraz: rozdzielczość dopasowuje się sama (1.0–2.0× piksela, cel ~50 kl/s), słabszy blask i mgła.
 
 ## Fabuła (story.js)
@@ -63,7 +65,11 @@ Grywalne postacie: **Brax** (siła, specjal: kolano/łokieć) i **Nyxa** (szybko
 - Oktagon UFC, drewniany stół, ulica (road avenue), latarnia, słupy, low-poly ludzie, dziewczyna (bez riga).
 - Loga BRAXHORN NUTRITION (szerokie, okrągłe, plakat z minotaurem, minimalny znak byka).
 
-## Do zrobienia (wersja 2)
+## Do zrobienia
+
+- Kolejne rewiry ze skanów: skatepark Southbank, Seven Stars Brick Lane, Crouch End (trzeba wyciąć czarną „skorupę” skanów `trimScan`).
+
+## Do zrobienia (wersja 2, stare)
 
 - Przechodnie z Mixamo (chodzą po chodnikach, uciekają przed bójką) + ćwiczący na siłowni (animacje z `dev/anims/gym`) + gangsterzy w dzień.
 - Willa głównej postaci (skany: smoking room + billiards room, garaż z Lamborghini), sklep z ulepszeniami za pieniądze.
