@@ -879,6 +879,7 @@ async function boot() {
     ui.loading(false);
     // clean up the street
     for (const z of [...G.zombies]) despawn(z); G.zombies = [];
+    for (const a of [...actors]) if (a.thug) despawn(a);
     G.chapter = 'crypt';
     if (G.street) G.street.group.visible = false; gym.root.visible = false; c.group.visible = true;
     if (G.traffic) G.traffic.enabled = false;
@@ -1235,6 +1236,17 @@ async function boot() {
       const alive = G.zombies.filter(z => !z.dead).length;
       if (night && !G.boss && G.zT < 0 && alive < (isTouch ? 2 : 3)) { G.zT = rand(14, 24); spawnZombie(); }
       if (!night) for (const z of G.zombies) if (!z.dead) { z.dead = true; z.fadeT = 2.5; z.stopOverlays(0.2); }
+      // daytime: small patrols of the Red Horn gang walk up the street
+      G.patrolT = (G.patrolT ?? 45) - dt;
+      const thugsOut = actors.some(a => a.thug && !a.dead);
+      if (!night && !G.boss && !thugsOut && G.patrolT < 0 && !G.spawningPatrol) {
+        G.patrolT = rand(70, 110); G.spawningPatrol = true;
+        const side = player.pos.x > 20 ? -1 : 1, x = Math.max(ST.x0 + 2, Math.min(ST.x1 - 3, player.pos.x + side * rand(14, 20)));
+        const pool = ['Ch06_nonPBR', 'Ch08_nonPBR', 'Ch13_nonPBR', 'Ch17_nonPBR', 'Ch18_nonPBR', 'Ch27_nonPBR', 'Ch37_nonPBR', 'Ch38_nonPBR', 'Remy'];
+        const n = Math.random() < 0.5 ? 2 : 3;
+        Promise.all(Array.from({ length: n }, (_, i) => spawnThug(pool[Math.floor(Math.random() * pool.length)], { pos: [x + i * 1.2 * side, 0.15, ST.near + 1.2 + i * 0.9], heading: side > 0 ? -Math.PI / 2 : Math.PI / 2, hp: 50, size: rand(0.94, 1.03), dmg: 0.7, aggro: 0.7, label: 'Czerwony Róg' })))
+          .then(() => ui.banner('', 'Patrol Czerwonego Rogu idzie w twoją stronę.', 2.2)).catch(e => console.warn(e)).finally(() => { G.spawningPatrol = false; });
+      }
       // briefcase jobs
       G.caseCd = (G.caseCd ?? 30) - dt;
       if (!G.caseJob && G.caseCd < 0) startCaseJob();
