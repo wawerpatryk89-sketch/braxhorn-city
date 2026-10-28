@@ -1,0 +1,80 @@
+name: Export original Braxhorn gym to Unity GLB
+
+on:
+  push:
+    branches: [codex/city-unity-gym-port-20261029]
+    paths:
+      - 'dev/tools/unity-gym-export.html'
+      - 'dev/tools/export-gym-for-unity.mjs'
+      - '.github/workflows/city-unity-gym-export.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-unity-gym-export-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  export:
+    name: Original geometry, textures, baked colours, collisions
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout current Braxhorn City game (no edits)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          lfs: true
+          persist-credentials: false
+
+      - name: Install Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - name: Install browser used only for source extraction
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Host the existing built browser game locally
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/braxhorn-http.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8765/public/index.html > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/braxhorn-http.log
+          exit 1
+
+      - name: Extract original gym without modifying production
+        run: node dev/tools/export-gym-for-unity.mjs ./unity-city/Source
+
+      - name: Validate GLB binary and export inventory
+        run: |
+          python3 - <<'PY'
+          import json, struct
+          from pathlib import Path
+          root = Path("unity-city/Source")
+          payload = (root / "braxhorn-original-gym.glb").read_bytes()
+          assert payload[:4] == b"glTF", "not a glTF binary"
+          version, length = struct.unpack_from("<II", payload, 4)
+          assert version == 2, "incorrect glTF version"
+          assert length == len(payload), "GLB file truncated"
+          data = json.loads((root / "gym-manifest.json").read_text())
+          assert data["bakedLight"] is True
+          assert data["meshes"] > 20 and data["vertices"] > 500
+          assert data["collisions"]["boxes"]
+          assert data["spawnAndEntrances"]["gym_start"]
+          print("SOURCE_EXPORT_PASS", data["meshes"], data["triangles"], len(payload))
+          PY
+
+      - name: Upload actual original gym extraction — NOT a game build
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: braxhorn-city-original-gym-${{ github.sha }}
+          path: unity-city/Source/
+          if-no-files-found: warn
+          retention-days: 3
