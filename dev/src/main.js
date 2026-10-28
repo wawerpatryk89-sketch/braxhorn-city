@@ -4,7 +4,7 @@ import { clone as cloneSkinned } from '../three/examples/jsm/utils/SkeletonUtils
 import { EffectComposer } from '../three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from '../three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from '../three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from '../three/examples/jsm/postprocessing/OutputPass.js';
+import { GradePass } from './grade.js';
 import { World } from './world.js';
 import { buildGym, HALL, RING, DOOR, ALLEY } from './gym.js';
 import { createWetFloor } from './floor.js';
@@ -19,6 +19,7 @@ import { buildStreet, ST, prepareCar, CARS } from './street.js';
 import { Traffic } from './traffic.js';
 import { buildCrypt, CRYPT } from './crypt.js';
 import { People } from './people.js';
+import { buildVilla, VILLA } from './villa.js';
 import { HEROES, PROLOGUE, CHAPTERS, BOSSES, CRYPT_BOSSES, ZOMBIE, ENDING, HINTS } from './story.js';
 
 const $ = (id) => document.getElementById(id);
@@ -98,7 +99,7 @@ async function boot() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b0f1a);
   scene.fog = new THREE.FogExp2(0x0a0807, 0.011);
-  const camera = new THREE.PerspectiveCamera(55, view.w() / view.h(), 0.1, 260);
+  const camera = new THREE.PerspectiveCamera(55, view.w() / view.h(), 0.1, 420);
   camera.layers.enable(2); camera.layers.enable(3);
   const world = new World();
   loadMsg('Buduję siłownię…');
@@ -124,12 +125,12 @@ async function boot() {
   const GYM_HEMI = { sky: new THREE.Color(0xc4a888), ground: new THREE.Color(0x2a221b), i: 1.3 }, GYM_KEY = { c: new THREE.Color(0xfff0dc), i: 2.0 };
 
   // ---------------- characters ----------------
-  const chars = {};
+  const chars = {}, charMats = [];
   function loadChar(k) {
     if (!chars[k]) chars[k] = (async () => {
       const [g, map, nrm, orm] = await Promise.all([A.loadRig(`chars/${k}.glb.gz`), A.loadTex(`tex/${k}_color.webp`, true), A.loadTex(`tex/${k}_normal.webp`, false), A.loadTex(`tex/${k}_orm.webp`, false)]);
       const mat = addLampField(new THREE.MeshStandardMaterial({ map, normalMap: nrm, roughnessMap: orm, metalnessMap: orm, metalness: 0.6, roughness: 1, envMapIntensity: 0.9 }), 'lit');
-      g.scene.traverse(o => { if (o.isSkinnedMesh) o.material = mat; });
+      g.scene.traverse(o => { if (o.isSkinnedMesh) o.material = mat; }); charMats.push(mat);
       return { scene: g.scene, clips: g.animations, mat, used: 0 };
     })();
     return chars[k];
@@ -160,7 +161,7 @@ async function boot() {
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.42, 0.45, 0.95);
   bloom.enabled = Q.bloom > 0; composer.addPass(bloom);
-  composer.addPass(new OutputPass());
+  const grade = new GradePass(); composer.addPass(grade);
   function resize() {
     applyOrientation(landscape, isTouch);
     const w = view.w(), h = view.h();
@@ -169,6 +170,7 @@ async function boot() {
     const pr = renderer.getPixelRatio();
     bloom.setSize(Math.round(w * pr * Math.max(0.25, Q.bloom) * 0.5), Math.round(h * pr * Math.max(0.25, Q.bloom) * 0.5));
     floor.setSize(w * pr, h * pr);
+    env.stars.material.uniforms.px.value = pr;
   }
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', () => setTimeout(resize, 250));
@@ -188,6 +190,34 @@ async function boot() {
   const ui = new UI({ isTouch, quality: QUALITY, qKey, sound, moves: MOVE_LIST });
   const people = new People({ scene, world, A });
   const save = { money: store.get('money', 0), best: store.get('best', 0) };
+  const upg = Object.assign({ hp: 0, dmg: 0, armor: 0, shakes: 1 }, store.get('upg', {}));
+  const SHOP = [
+    { id: 'shakes', name: 'Shake BRAXHORN', desc: 'Leczy 60% zdrowia w walce (przycisk SHAKE / klawisz B).', price: 150, max: 9 },
+    { id: 'hp', name: 'Białko BRAXHORN', desc: '+15 do maksymalnego zdrowia.', price: 400, max: 5 },
+    { id: 'dmg', name: 'Kreatyna BRAXHORN', desc: '+8% siły ciosów.', price: 500, max: 5 },
+    { id: 'armor', name: 'Ochraniacze', desc: '−8% obrażeń, które dostajesz.', price: 500, max: 5 },
+    { id: 'bat', name: 'Kolczasta pałka', desc: 'Nowa pałka do ręki (16 uderzeń).', price: 250, max: 1 },
+  ];
+  function applyUpgrades() {
+    if (!player || !G.hero) return;
+    const frac = player.hp / player.maxHp;
+    player.maxHp = G.hero.hp + 15 * upg.hp; player.hp = Math.min(player.maxHp, Math.max(1, frac * player.maxHp));
+    player.dmgMul = G.hero.dmg * (1 + 0.08 * upg.dmg); player.armor = 1 - 0.08 * upg.armor;
+    ui.shakes(upg.shakes); updateBars();
+  }
+  function buy(id) {
+    const it = SHOP.find(i => i.id === id); if (!it) return false;
+    if (G.money < it.price) { ui.banner('', 'Za mało pieniędzy.', 1.4); return false; }
+    if (id === 'bat') { if (G.bat) { ui.banner('', 'Masz już pałkę.', 1.4); return false; } if (!G.batModel) return false; equipBat(); }
+    else { if ((upg[id] || 0) >= it.max) { ui.banner('', 'Masz już maksimum.', 1.4); return false; } upg[id] = (upg[id] || 0) + 1; store.set('upg', upg); }
+    addMoney(-it.price); sound.play('cash', { gain: 0.6 }); applyUpgrades(); return true;
+  }
+  function useShake() {
+    if (!player || upg.shakes <= 0 || player.hp >= player.maxHp - 1) return;
+    upg.shakes--; store.set('upg', upg); player.hp = Math.min(player.maxHp, player.hp + player.maxHp * 0.6); updateBars(); ui.shakes(upg.shakes);
+    ui.banner('', 'Shake BRAXHORN: +60% zdrowia', 1.4); sound.play('cash', { gain: 0.3, rate: 0.7 });
+  }
+  ui.onBuy = (id) => { const ok = buy(id); ui.shop(true, SHOP, upg, G.money); return ok; };
   const G = { mode: 'title', chapter: 'gym', hero: null, money: save.money, bossIdx: 0, boss: null, lock: null, street: null, crypt: null, traffic: null, zombies: [], pickups: [], caseJob: null, bat: null, cryptStage: 0, hintT: 0, nightWas: null, kills: 0, specialIdx: 0 };
   ui.money(G.money);
 
@@ -215,7 +245,7 @@ async function boot() {
     const k = e.key.toLowerCase();
     if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
     keys.add(k); if (e.repeat) return;
-    const map = { ' ': 'jump', j: 'punch', k: 'kick', l: 'combo', u: 'kicks', e: 'throw', t: 'taunt', g: 'dance', r: 'warmup', v: 'cam', m: 'moves', q: 'iso-left', h: 'help', f: 'hook', x: 'dodge', o: 'act', i: 'special', n: 'timefast', '1': 'view-model', '2': 'view-wire', '3': 'view-bones', enter: 'enter' };
+    const map = { escape: 'menu', p: 'menu', ' ': 'jump', j: 'punch', k: 'kick', l: 'combo', u: 'kicks', e: 'throw', t: 'taunt', g: 'dance', r: 'warmup', v: 'cam', m: 'moves', q: 'iso-left', h: 'help', f: 'hook', x: 'dodge', o: 'act', i: 'special', b: 'shake', n: 'timefast', '1': 'view-model', '2': 'view-wire', '3': 'view-bones', enter: 'enter' };
     if (map[k]) press(map[k]);
     sound.unlock();
   });
@@ -233,6 +263,7 @@ async function boot() {
     try { const r = (el.requestFullscreen || el.webkitRequestFullscreen); if (r && !(d.fullscreenElement || d.webkitFullscreenElement)) { const p = r.call(el, { navigationUI: 'hide' }); if (p && p.then) p.then(() => { try { screen.orientation.lock('landscape').catch(() => { }); } catch { } setTimeout(resize, 300); }).catch(() => { }); } } catch { }
   }
   ui.showTitle(true);
+  if (isIOS && !(navigator.standalone || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches)) $('iosHint').hidden = false;
   $('loader').classList.add('done');
   ui.onTitle = async () => {
     goFullscreen(); sound.unlock();
@@ -255,6 +286,7 @@ async function boot() {
     partner.pos.set(RING.x, 0, RING.z - 1.0); partner.y = RING.h; partner.heading = 0; partner.setIdle('Boxing');
     cam.target.set(player.pos.x, 1.6, player.pos.z); cam.yaw = Math.PI; cam.snap = true;
     ui.setHero(G.hero, HEROES[otherKey]);
+    applyUpgrades();
     window.__mg.player = player; window.__mg.partner = partner;
     G.mode = 'story';
     await ui.story(PROLOGUE);
@@ -277,7 +309,8 @@ async function boot() {
       const models = {};
       await Promise.all(carKeys.map(async k => { try { models[k] = prepareCar(k, await A.loadGLTF(k + '.glb')); } catch (e) { console.warn('car', k, e); } }));
       // a few parked cars
-      const parked = [['car_zuk', -18, ST.road0 + 0.95, Math.PI / 2], ['car_gmc', 46, ST.road1 - 0.95, -Math.PI / 2], ['car_mus', -33, ST.road1 - 0.95, -Math.PI / 2], ['car_dia', -47.5, ST.near + 2.0, 0.6], ['car_mar', -47.5, ST.far - 1.2, 2.6]];
+      G.myCar = { x: -10.5, z: ST.road0 + 0.95 };
+      const parked = [['car_rev', G.myCar.x, G.myCar.z, Math.PI / 2], ['car_zuk', -24, ST.road0 + 0.95, Math.PI / 2], ['car_gmc', 46, ST.road1 - 0.95, -Math.PI / 2], ['car_mus', -33, ST.road1 - 0.95, -Math.PI / 2], ['car_dia', -47.5, ST.near + 2.0, 0.6], ['car_mar', -47.5, ST.far - 1.2, 2.6]];
       for (const [k, x, z, ry] of parked) {
         if (!models[k]) continue;
         const o = models[k].clone(); o.position.set(x, k === 'car_dia' || k === 'car_mar' ? 0.15 : 0, z); o.rotation.y = ry; st.group.add(o);
@@ -286,7 +319,7 @@ async function boot() {
         world.box(x - hw, x + hw, z - hd, z + hd, 1.4, -1, 'car');
         if (models[k].userData.def.police) st.lampSources.push({ pos: new THREE.Vector3(x, 1.9, z), col: new THREE.Color(1, 0, 0), r: 9, kind: 'flash', phase: Math.random() * 3 });
       }
-      G.traffic = new Traffic({ scene: st.group, models, sound });
+      G.traffic = new Traffic({ scene: st.group, models, sound }); G.traffic.camPos = camera.position;
       // pickups: the barbed bat in the alley
       const batG = await A.loadGLTF('bat.glb'); G.batModel = batG.scene; G.batModel.traverse(o => { if (o.isMesh) { addLampField(o.material, 'lit'); o.castShadow = true; } });
       spawnBatPickup(new THREE.Vector3(ALLEY.x0 + 2.2, 0, ALLEY.z1 - 2.6));
@@ -304,6 +337,45 @@ async function boot() {
     if (cryptPromise) return cryptPromise;
     cryptPromise = (async () => { const c = await buildCrypt({ scene, world, A, font: fontStack, logos }); loadChar('mino'); loadChar('demon'); G.crypt = c; return c; })();
     return cryptPromise;
+  }
+
+  let villaPromise = null;
+  function loadVilla() {
+    if (villaPromise) return villaPromise;
+    villaPromise = (async () => { const v = await buildVilla({ scene, world, A, onStatus: (m) => ui.loading(true, m) }); G.villa = v; return v; })();
+    return villaPromise;
+  }
+  async function goVilla() {
+    if (G.travelling) return; G.travelling = true;
+    await ui.fade(true); ui.loading(true, 'Jadę do willi…');
+    const v = await loadVilla(); ui.loading(false);
+    for (const z of [...G.zombies]) despawn(z); G.zombies = [];
+    if (G.boss) { despawn(G.boss); G.boss = null; G.lock = null; ui.boss(null); G.spawningBoss = false; }
+    G.prevChapter = G.chapter; G.chapter = 'villa';
+    if (G.street) G.street.group.visible = false; gym.root.visible = false; if (G.crypt) G.crypt.group.visible = false;
+    if (G.traffic) G.traffic.enabled = false;
+    v.group.visible = true; v.region.off = false; env.sky.visible = true;
+    if (partner) { partner.root.visible = false; partner.col.top = -10; }
+    player.pos.set(v.spawn.x, 0, v.spawn.z); player.y = world.groundAt(v.spawn.x, v.spawn.z, v.spawn.y + 1.0); player.vy = 0; player.onGround = true; player.backToLoco(0);
+    cam.target.set(player.pos.x, player.y + 1.6, player.pos.z); cam.yaw = 0; cam.pitch = 0.3; cam.snap = true;
+    sound.setRoom('street'); sound.loop('city', 0); sound.playMusic('street');
+    ui.objective('Twoja willa. Kanapa: odpoczynek. Laptop w kuchni: sklep. Porsche: powrót do miasta.');
+    await ui.fade(false); ui.banner('WILLA', 'Dom ' + G.hero.name + (G.hero.key === 'nyxa' ? 'y' : 'a'), 2.4);
+    G.travelling = false;
+  }
+  async function leaveVilla() {
+    if (G.travelling) return; G.travelling = true;
+    await ui.fade(true);
+    G.villa.group.visible = false; G.villa.region.off = true;
+    G.chapter = 'street'; G.street.group.visible = true; gym.root.visible = true; if (G.traffic) G.traffic.enabled = true;
+    player.pos.set(G.myCar.x + 1.5, 0, ST.near + 1.8); player.y = 0.15; player.vy = 0; player.backToLoco(0);
+    cam.target.set(player.pos.x, 1.7, player.pos.z); cam.snap = true;
+    ui.objective(G.cryptOpen ? HINTS.crypt : HINTS.street);
+    await ui.fade(false); G.travelling = false;
+  }
+  async function rest() {
+    await ui.fade(true); env.setHour(env.hour + 6); player.hp = player.maxHp; updateBars(); await new Promise(r => setTimeout(r, 400)); await ui.fade(false);
+    ui.banner('', 'Wypoczęty. Minęło 6 godzin.', 2);
   }
 
   // ---------------- pickups: cash, briefcase, bat ----------------
@@ -647,7 +719,7 @@ async function boot() {
   function pickCase() { const c = G.caseJob; c.state = 'carried'; c.obj.userData.halo.visible = false; player.attach(c.obj, 'mixamorigLeftHand'); c.obj.scale.setScalar(1 / (SCALE * player.k)); c.obj.position.set(0, 12, 0); c.obj.rotation.set(0, 0, Math.PI / 2); G.carry = true; ui.objective(HINTS.case); sound.play('cash', { gain: 0.4 }); }
   function dropCase() { const c = G.caseJob; if (!c || c.state !== 'carried') return; c.obj.parent.remove(c.obj); c.obj.scale.setScalar(1); c.obj.rotation.set(0, 0, 0); c.obj.position.set(player.pos.x + 0.6, 0.15, player.pos.z); c.obj.userData.halo.visible = true; scene.add(c.obj); c.state = 'lying'; G.carry = false; }
   function deliverCase() { const c = G.caseJob; c.obj.parent.remove(c.obj); G.caseJob = null; G.carry = false; addMoney(500); ui.banner('DOSTARCZONE!', '+$500 za walizkę', 2.4); sound.play('cash', { gain: 0.7 }); ui.objective(G.chapter === 'street' ? HINTS.street : ''); G.caseCd = 50; }
-  function addMoney(v) { G.money += v; store.set('money', G.money); ui.money(G.money, v); }
+  function addMoney(v) { G.money += v; store.set('money', G.money); ui.money(G.money, v > 0 ? v : 0); }
 
   // ---------------- crypt ----------------
   async function enterCrypt() {
@@ -700,9 +772,17 @@ async function boot() {
     if (G.mode === 'play' && cam.mode === '3d' && performance.now() - cam.lastManual > 3500) {
       let want = null;
       if (G.chapter === 'street' && player.pos.z > ST.near - 0.5) want = -Math.PI / 2 - 0.72;
-      if (want !== null) { cam.yaw += angDiff(cam.yaw, want) * Math.min(1, dt * 0.8); cam.pitch += (0.32 - cam.pitch) * Math.min(1, dt * 0.8); }
+      // crypt: look across the fight (perpendicular to the player-boss line), from the side nearer the cage centre
+      if (G.chapter === 'crypt' && G.boss && G.crypt) {
+        const ax = G.boss.pos.x - player.pos.x, az = G.boss.pos.z - player.pos.z, al = Math.hypot(ax, az) || 1, O = G.crypt.origin;
+        const mx = (G.boss.pos.x + player.pos.x) / 2, mz = (G.boss.pos.z + player.pos.z) / 2;
+        const n1 = [-az / al, ax / al], n2 = [az / al, -ax / al];
+        const d1 = Math.hypot(mx + n1[0] * 4 - O.x, mz + n1[1] * 4 - O.z), d2 = Math.hypot(mx + n2[0] * 4 - O.x, mz + n2[1] * 4 - O.z);
+        const n = d1 < d2 ? n1 : n2; want = Math.atan2(n[0], n[1]);
+      }
+      if (want !== null) { cam.yaw += angDiff(cam.yaw, want) * Math.min(1, dt * (G.chapter === 'crypt' ? 1.6 : 0.8)); if (G.chapter !== 'crypt') cam.pitch += (0.32 - cam.pitch) * Math.min(1, dt * 0.8); }
     }
-    if (G.mode === 'play' && G.chapter === 'crypt' && cam.mode === '3d') { cam.pitch += (Math.max(cam.pitch, 0.62) - cam.pitch) * Math.min(1, dt * 3); cam.dist += (Math.max(cam.dist, 6.8) - cam.dist) * Math.min(1, dt * 3);
+    if (G.mode === 'play' && G.chapter === 'crypt' && cam.mode === '3d') { cam.pitch += (Math.max(cam.pitch, 0.86) - cam.pitch) * Math.min(1, dt * 3); cam.dist += (Math.max(cam.dist, 6.4) - cam.dist) * Math.min(1, dt * 3);
     }
     let yaw, pitch, dist, fov;
     if (cam.mode === '3d' || G.mode !== 'play') { yaw = cam.yaw; pitch = cam.pitch; dist = cam.dist; fov = G.mode === 'select' ? 42 : 55; }
@@ -722,7 +802,16 @@ async function boot() {
       }
       const indoor = o.z < HALL.maxZ && G.chapter === 'gym';
       if (indoor && dir.y > 0) k = Math.min(k, (HALL.height - 0.7 - o.y) / dir.y);
-      if (G.chapter === 'crypt' && dir.y > 0) k = Math.min(k, (6.9 - o.y) / dir.y);
+      if (G.chapter === 'crypt' && dir.y > 0) k = Math.min(k, (8.8 - o.y) / dir.y);
+      if (G.chapter === 'villa' && G.villa) {
+        const col = G.villa.col, L = dir.length(), steps = Math.ceil(L / 0.2);
+        for (let i = 2; i <= steps; i++) {
+          const t = i / steps, px = o.x + dir.x * t, py = o.y + dir.y * t, pz = o.z + dir.z * t, ci = col.idx(px, pz);
+          if (ci >= 0 && col.walls[ci] && col.walls[ci].some(w => w[0] < py + 0.3 && w[1] > py - 0.3)) { k = Math.min(k, Math.max(0.08, (i - 1.5) / steps)); break; }
+        }
+        const ci = col.idx(o.x, o.z), fl = ci >= 0 ? col.floors[ci] : null;
+        if (fl && dir.y > 0) for (const h of fl) if (h > o.y + 0.15 && h < o.y + 4) k = Math.min(k, Math.max(0.08, (h - 0.35 - o.y) / dir.y));
+      }
       k = Math.max(0.12, k); camPos.copy(o).addScaledVector(dir, k);
       const d = k * dir.length(); if (d < 2.4) camPos.y += (2.4 - d) * 0.85;
       camPos.y = Math.max(0.35, camPos.y);
@@ -743,7 +832,7 @@ async function boot() {
   function updateLighting(dt, t) {
     const o = env.update(dt);
     let target = 0;
-    if (player && G.mode === 'play') { if (G.chapter === 'crypt') target = 2; else if (player.pos.z > ALLEY.z1 - 1) target = 1; else if (player.pos.z > HALL.maxZ + 0.4) target = 0.6; }
+    if (player && G.mode === 'play') { if (G.chapter === 'crypt') target = 2; else if (G.chapter === 'villa' || player.pos.z > ALLEY.z1 - 1) target = 1; else if (player.pos.z > HALL.maxZ + 0.4) target = 0.6; }
     else target = 0;
     const crypt = target === 2;
     if (!crypt) outF += ((target) - outF) * Math.min(1, dt * 2.5);
@@ -761,6 +850,9 @@ async function boot() {
       lampU.uAmb.value.copy(env.amb);
       renderer.toneMappingExposure = 1.12 * (1 - k) + (1.0 + 0.15 * o.night) * k;
     }
+    // reflections of the (bright) gym capture on skin/clothes: dim them outdoors at night and in the crypt
+    const envK = crypt ? 0.3 : 0.9 * (1 - outF) + (0.32 + 0.58 * o.day) * outF;
+    for (const m of charMats) m.envMapIntensity = envK;
     // key light: follows the player; outdoors it comes from the sun/moon
     const ph = player ? player.hipsWorld() : cam.target;
     if (outF > 0.5 && !crypt) { const d = o.elev > -2 ? env.sunDir : env.moonDir; key.position.set(ph.x + d.x * 30, Math.max(8, d.y * 30), ph.z + d.z * 30); }
@@ -779,11 +871,12 @@ async function boot() {
       if (G.traffic) for (const s of G.traffic.lampSources) add(s, s.w);
     }
     if (G.crypt && G.crypt.group.visible) for (const s of G.crypt.lampSources) add(s, 1);
+    if (G.villa && G.villa.group.visible) for (const s of G.villa.lampSources) add(s, s.kind === 'pool' ? 0.4 + 0.6 * o.lamps : o.lamps);
     lampTmp.sort((a, b) => b[0] - a[0]);
     for (let i = 0; i < LAMP_N; i++) {
       const e = lampTmp[i];
-      if (e) { lampU.lampPos.value[i].set(e[1].pos.x, e[1].pos.y, e[1].pos.z, e[1].r); lampU.lampCol.value[i].set(e[1].col.r * e[2], e[1].col.g * e[2], e[1].col.b * e[2]); }
-      else { lampU.lampPos.value[i].set(0, -500, 0, 1); lampU.lampCol.value[i].set(0, 0, 0); }
+      if (e) { const s = e[1]; lampU.lampPos.value[i].set(s.pos.x, s.pos.y, s.pos.z, s.r); lampU.lampCol.value[i].set(s.col.r * e[2], s.col.g * e[2], s.col.b * e[2]); if (s.dir) lampU.lampDir.value[i].set(s.dir.x, s.dir.y, s.dir.z, s.cos); else lampU.lampDir.value[i].w = -2; }
+      else { lampU.lampPos.value[i].set(0, -500, 0, 1); lampU.lampCol.value[i].set(0, 0, 0); lampU.lampDir.value[i].w = -2; }
     }
     return o;
   }
@@ -824,6 +917,14 @@ async function boot() {
     if (G.chapter === 'gym' || player.pos.z < ALLEY.z1 + 0.5) { const d = nearDoor(); if (d && player.state === 'loco') return { label: 'DRZWI', fn: useDoor }; }
     for (const p of G.pickups) if (p.kind === 'bat' && !G.bat && Math.hypot(p.obj.position.x - player.pos.x, p.obj.position.z - player.pos.z) < 1.4) return { label: 'WEŹ', fn: () => { scene.remove(p.obj); G.pickups.splice(G.pickups.indexOf(p), 1); equipBat(); sound.play('block', { gain: 0.5 }); ui.banner('', 'Masz kolczastą pałkę! CIOS = zamach.', 2); } };
     if (G.caseJob && G.caseJob.state === 'lying' && G.caseJob.obj.parent === scene && Math.hypot(G.caseJob.obj.position.x - player.pos.x, G.caseJob.obj.position.z - player.pos.z) < 1.3) return { label: 'WEŹ', fn: pickCase };
+    if (G.chapter === 'villa' && G.villa) {
+      const v = G.villa, d = (p) => Math.hypot(player.pos.x - p.x, player.pos.z - p.z);
+      if (d(v.car) < 4) return { label: 'DO MIASTA', fn: leaveVilla };
+      if (d(v.shop) < 2.5) return { label: 'SKLEP', fn: () => ui.shop(true, SHOP, upg, G.money) };
+      if (d(v.sofa) < 2.8) return { label: 'ODPOCZNIJ', fn: rest };
+      return null;
+    }
+    if (G.chapter === 'street' && G.myCar && Math.hypot(player.pos.x - G.myCar.x, player.pos.z - G.myCar.z) < 3.4 && !G.boss) return { label: 'DO WILLI', fn: goVilla };
     if (G.chapter === 'street' && Math.hypot(player.pos.x - ST.door.x, player.pos.z - ST.door.z) < 2.2) {
       if (G.cryptOpen) return { label: 'WEJDŹ', fn: enterCrypt };
       return { label: 'ZAMKNIĘTE', fn: () => ui.banner('', 'Drzwi pilnuje Kafar. Najpierw pokonaj bossów na ulicy.', 2) };
@@ -838,6 +939,32 @@ async function boot() {
   ui.score && ui.score({ ko: 0, bag: 0 });
   let wasStreet = false;
 
+  // ---------------- pause menu (all the settings live here, the HUD stays clean) ----------------
+  let menuOpen = false;
+  function openMenu() {
+    if (menuOpen || G.mode !== 'play' || G.travelling) return;
+    menuOpen = true; keys.clear(); joy.active = false; joy.x = joy.y = 0; held.block = false;
+    if (player) { player.input.mag = 0; player.input.block = false; }
+    ui.showPause(true, isTouch ? '' : 'Esc lub P: powrót do gry');
+  }
+  function closeMenu() { if (!menuOpen) return; menuOpen = false; ui.showPause(false); clock.getDelta(); }
+  function menuAction(a) {
+    if (a === 'menu') { if (menuOpen) closeMenu(); else openMenu(); }
+    else if (a === 'resume') closeMenu();
+    else if (a === 'cam') { cam.mode = cam.mode === '3d' ? '25d' : '3d'; store.set('cam', cam.mode); ui.setCam(cam.mode); }
+    else if (a === 'iso-left') { if (cam.mode === '25d') cam.isoYaw += Math.PI / 2; }
+    else if (a === 'moves') ui.toggleMoves();
+    else if (a === 'help') ui.toggleKeys();
+    else if (a === 'timefast') { env.fast = env.fast > 1 ? 1 : 30; ui.setTimeFast(env.fast > 1); }
+    else if (a.startsWith('q-')) { applyQuality(a.slice(2)); ui.setQuality(a.slice(2)); if (menuOpen) render(); }
+    else if (a === 'orient') { landscape = !(view.rotated || view.w() > view.h()); store.set('land', landscape); resize(); ui.setOrient(view.w() > view.h()); }
+    else if (a === 'fullscreen') goFullscreen();
+    else if (a === 'sound') { sound.toggle(); store.set('sound', sound.on); ui.setSound(sound.on); }
+    else return false;
+    return true;
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) openMenu(); });
+
   function tick(dtIn) {
     let dt = Math.min(dtIn, 1 / 20); const realDt = dt;
     if (slowT > 0) { slowT -= dt; timeScale = 0.35; } else timeScale += (1 - timeScale) * Math.min(1, dt * 4);
@@ -848,7 +975,8 @@ async function boot() {
     while (actions.length) {
       const a = actions.shift();
       if (a === 'enter' && G.mode === 'title') { ui.onTitle(); continue; }
-      if (!playing) { if (a === 'sound') { sound.toggle(); store.set('sound', sound.on); ui.setSound(sound.on); } continue; }
+      if (menuAction(a)) continue;
+      if (!playing) continue;
       if (a === 'jump') { if (!G.carry) player.jump(); }
       else if (a === 'punch') { if (G.bat) playerAttack(['bat1', 'bat2', 'bat3'][stats.punchAlt++ % 3]); else playerAttack(stats.punchAlt++ % 3 === 2 ? 'hook' : 'jab'); }
       else if (a === 'hook') playerAttack('hook');
@@ -861,15 +989,7 @@ async function boot() {
       else if (a === 'throw') { const v = throwTarget(); if (v) startThrow(v); else ui.banner('', 'Podejdź bliżej przeciwnika, żeby rzucić.', 1.4); }
       else if (['taunt', 'warmup', 'shadow', 'guard', 'idle', 'stepf', 'stepb', 'stepl', 'breakdance'].includes(a)) { player.faceTarget = null; if (player.state === 'emote' && player.lastMove === a) player.backToLoco(0.3); else player.doMove(a, { force: player.state === 'emote' }); }
       else if (a === 'dance') { player.doMove(stats.danceAlt++ % 2 ? 'dance2' : 'dance', { force: player.state === 'emote' }); }
-      else if (a === 'cam') { cam.mode = cam.mode === '3d' ? '25d' : '3d'; store.set('cam', cam.mode); ui.setCam(cam.mode); }
-      else if (a === 'iso-left') { if (cam.mode === '25d') cam.isoYaw += Math.PI / 2; }
-      else if (a === 'moves') ui.toggleMoves();
-      else if (a === 'help') ui.toggleKeys();
-      else if (a === 'timefast') { env.fast = env.fast > 1 ? 1 : 30; ui.setTimeFast(env.fast > 1); }
-      else if (a.startsWith('q-')) { applyQuality(a.slice(2)); ui.setQuality(a.slice(2)); }
-      else if (a === 'orient') { landscape = !(view.rotated || view.w() > view.h()); store.set('land', landscape); resize(); ui.setOrient(view.w() > view.h()); }
-      else if (a === 'fullscreen') goFullscreen();
-      else if (a === 'sound') { sound.toggle(); store.set('sound', sound.on); ui.setSound(sound.on); }
+      else if (a === 'shake') useShake();
     }
 
     const o = updateLighting(realDt, tAll);
@@ -924,7 +1044,7 @@ async function boot() {
     for (const a of actors) { const h = a.hipsWorld(); a.blob.visible = a.root.visible; a.blob.position.set(h.x, world.groundAt(h.x, h.z, a.y + 0.1) + 0.012, h.z); a.blob.scale.setScalar(1 + Math.max(0, a.y - world.groundAt(a.pos.x, a.pos.z, a.y)) * 0.4); }
 
     // street systems
-    if (G.street && G.chapter !== 'crypt') {
+    if (G.street && G.chapter !== 'crypt' && G.chapter !== 'villa') {
       G.street.update(dt, o, tAll);
       if (G.traffic) G.traffic.update(dt, actors.filter(a => a.root.visible), o, (f, car, dir) => {
         if (f.state === 'ko' || f.state === 'down') return;
@@ -937,7 +1057,8 @@ async function boot() {
       }, tAll);
     }
     if (G.crypt && G.chapter === 'crypt') G.crypt.update(dt, tAll);
-    if (people.list.length && G.chapter !== 'crypt') {
+    if (G.villa && G.chapter === 'villa') G.villa.update(dt, o, tAll);
+    if (people.list.length && G.chapter !== 'crypt' && G.chapter !== 'villa') {
       const threats = [];
       for (const a of actors) if (a.team === 'enemy' && !a.dead && a.root.visible) threats.push({ x: a.pos.x, z: a.pos.z, r: 8 });
       if (player && (player.state === 'attack' || G.boss)) threats.push({ x: player.pos.x, z: player.pos.z, r: 6 });
@@ -976,6 +1097,8 @@ async function boot() {
       if (nc) sound.loop('engine', Math.max(0, 1 - nc.d / 25) * 0.7 * outside, 0.6 + nc.car.v / 14); else sound.loop('engine', 0);
       const pol = G.traffic && G.chapter === 'street' ? G.traffic.cars.find(c => c.siren) : null;
       sound.loop('siren', pol ? Math.max(0, 1 - Math.hypot(pol.x - player.pos.x, pol.z - player.pos.z) / 60) * 0.35 : 0);
+      const tr = G.street && G.chapter === 'street' && G.street.train;
+      sound.loop('train', tr && tr.obj.visible ? Math.max(0, 1 - Math.hypot(G.street.viaduct.X0 + 4.8 - player.pos.x, tr.z + 30 - player.pos.z) / 110) * 0.8 : 0, 0.9);
     }
 
     if (stats.comboT > 0) { stats.comboT -= dt; if (stats.comboT <= 0) { stats.combo = 0; ui.combo(0); } }
@@ -983,7 +1106,7 @@ async function boot() {
     if (partner && partner.state === 'loco' && partner.hp < partner.maxHp && player && !inRing(player)) { partner.hp = Math.min(partner.maxHp, partner.hp + dt * 6); updateBars(); }
     if (playing) {
       const c = contextAction(); ui.action(c ? c.label : null);
-      ui.throwReady(!!throwTarget());
+      ui.throwReady(!!throwTarget()); ui.shakeNeeded(player.hp < player.maxHp * 0.7);
       ui.clock(env.clock, o.night > 0.5);
       if (!G.boss) ui.showOpp(G.chapter === 'gym' && (flat(player, partner) < 10 || inRing(player)));
       if (G.chapter === 'gym' && !G.sparHint && inRing(player)) { G.sparHint = true; ui.banner('SPARING', isTouch ? 'CIOS, KOP, SPECJAL i RZUT po prawej' : 'J cios · K kop · I specjal · E rzut', 2.4); sound.bell(1); }
@@ -994,7 +1117,14 @@ async function boot() {
     ui.tick(realDt);
   }
   const jv = new THREE.Vector3();
+  let hurtT = 0;
+  ui.flash = () => { hurtT = 1; };
   function render() {
+    env.sky.position.copy(camera.position);
+    const gu = grade.uniforms; gu.uTime.value = tAll;
+    const low = player && G.mode === 'play' && player.hp < player.maxHp * 0.3 ? 0.35 + 0.15 * Math.sin(tAll * 6) : 0;
+    hurtT = Math.max(0, hurtT - 0.045); gu.uHurt.value = Math.max(low, hurtT * 0.9);
+    gu.uVig.value = G.chapter === 'crypt' ? 0.55 : 0.42;
     if (floorReflect && G.chapter !== 'crypt' && (!player || player.pos.z < ALLEY.z1 + 6)) floor.update(renderer, scene, camera);
     composer.render();
   }
@@ -1002,14 +1132,15 @@ async function boot() {
   function frame() {
     requestAnimationFrame(frame);
     const d = clock.getDelta(); if (paused) return;
+    if (menuOpen) { while (actions.length) menuAction(actions.shift()); return; }
     try { tick(d); render(); }
     catch (e) { frameErrors++; if (frameErrors === 1 || frameErrors === 60) { console.error(e); ui.banner('Błąd', String(e && e.message || e).slice(0, 140), 20); } }
   }
   window.__mg = {
-    G, env, world, actors, progs: () => renderer.info.programs, get player() { return player; }, get cam() { return cam; }, camera, sound,
+    THREE, A, G, env, world, actors, scene, renderer, progs: () => renderer.info.programs, get player() { return player; }, get cam() { return cam; }, camera, sound,
     sim(sec, ks = []) { ks.forEach(k => keys.add(k)); for (let i = 0; i < Math.round(sec * 60); i++) tick(1 / 60); ks.forEach(k => keys.delete(k)); },
-    render, act: (a) => actions.push(a), pause(v) { paused = v; }, joy,
-    start: (k) => startGame(k), title: () => ui.onTitle(), loadStreet, loadCrypt, enterCrypt, spawnZombie, setHour: (h) => env.setHour(h),
+    render, act: (a) => actions.push(a), pause(v) { paused = v; }, joy, openMenu, closeMenu,
+    start: (k) => startGame(k), title: () => ui.onTitle(), goVilla, leaveVilla, loadVilla, buy, upg, loadStreet, loadCrypt, enterCrypt, spawnZombie, setHour: (h) => env.setHour(h),
     tp(x, z) { player.pos.set(x, 0, z); cam.snap = true; },
   };
   ui.setSound(sound.on); ui.setQuality(qKey); ui.setCam(cam.mode); ui.setOrient(view.w() > view.h());

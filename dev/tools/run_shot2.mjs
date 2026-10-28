@@ -1,0 +1,11 @@
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+import fs from 'fs';
+const [url, prefix, viewsJson, optsJson] = process.argv.slice(2);
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--js-flags=--max-old-space-size=6000'] });
+const page = await browser.newPage();
+page.on('pageerror', e => console.error('[pageerror]', e.message));
+await page.goto('http://127.0.0.1:8765/tools/shot2.html'); await page.waitForFunction(() => window.ready);
+const r = await page.evaluate(([u, v, o]) => window.shots(u, v, o), [url, JSON.parse(viewsJson || '[{"type":"top"},{"type":"persp","az":0.7,"el":0.5}]'), JSON.parse(optsJson || '{}')]);
+console.log(JSON.stringify({ box: r.box, tris: r.tris }));
+r.out.forEach((d, i) => fs.writeFileSync(`${prefix}_${i}.jpg`, Buffer.from(d.split(',')[1], 'base64')));
+await browser.close();

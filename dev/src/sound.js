@@ -166,6 +166,15 @@ const BANK = {
     const n = 4000; for (let i = 0; i < n; i++) { const a = i / n; b[i] = b[i] * a + b[b.length - n + i] * (1 - a); }
     return norm(b.subarray(0, b.length - n).slice(), 0.5);
   })()],
+  train: () => [(() => {
+    const len = 4, b = mk(len); let br = 0, br2 = 0;
+    for (let i = 0; i < b.length; i++) { br = br * 0.997 + white() * 0.05; br2 = br2 * 0.95 + white() * 0.08; b[i] = br * 2.2 + br2 * 0.35; }
+    filt(b, 'lp', 300);
+    for (const t0 of [0.1, 0.32, 1.1, 1.32, 2.1, 2.32, 3.1, 3.32]) { mixInto(b, filt(noiseBurst(0.12, 0.001, 0.025), 'bp', 380, 1.3), 0.9, t0); mixInto(b, tone(0.15, 95, 60, 0.001, 0.04), 0.7, t0); }
+    mixInto(b, partials(4, 1720, [1, 1.013], [3, 3], [0.03, 0.02]), 1);
+    const n = 3000; for (let i = 0; i < n; i++) { const a = i / n; b[i] = b[i] * a + b[b.length - n + i] * (1 - a); }
+    return norm(b.subarray(0, b.length - n).slice(), 0.7);
+  })()],
   crowd: () => [(() => {
     const len = 6, b = mk(len);
     for (let v = 0; v < 26; v++) { const s = voiced(0.5 + rand() * 1.2, 110 + rand() * 160, { formants: [[500 + rand() * 500, 4], [1200 + rand() * 600, 6]], breath: 0.6, a: 0.1, d: 0.4 + rand() * 0.4, drop: 0.95 }); mixInto(b, s, 0.15, rand() * (len - 1.8)); }

@@ -13,13 +13,15 @@ export class UI {
     document.body.classList.toggle('touch', isTouch);
     this.bannerT = 0; this.keysT = 0; this.sayT = 0; this.moneyShown = 0;
     const act = (id, a) => { const el = $(id); if (el) el.addEventListener('click', (e) => { e.preventDefault(); this.onAction(a); el.blur(); }); };
-    act('bCam', 'cam'); act('bMoves', 'moves'); act('bSnd', 'sound'); act('bIso', 'iso-left'); act('bOrient', 'orient'); act('bFull', 'fullscreen'); act('bTime', 'timefast');
+    act('bCam', 'cam'); act('bMoves', 'moves'); act('bSnd', 'sound'); act('bIso', 'iso-left'); act('bOrient', 'orient'); act('bFull', 'fullscreen'); act('bTime', 'timefast'); act('bMenu', 'menu'); act('bResume', 'resume');
+    $('pause').addEventListener('click', (e) => { if (e.target.id === 'pause') this.onAction('resume'); });
     const d = document; if (d.fullscreenEnabled || d.webkitFullscreenEnabled) $('bFull').hidden = false;
     if (isTouch && !(d.fullscreenEnabled || d.webkitFullscreenEnabled)) $('bOrient').hidden = false;
     $('bQual').addEventListener('click', () => { const ks = Object.keys(this.quality); const n = ks[(ks.indexOf(this.qKey) + 1) % ks.length]; this.onAction('q-' + n); });
     $('movesClose').addEventListener('click', () => this.toggleMoves(false));
     $('moves').addEventListener('click', (e) => { if (e.target.id === 'moves') this.toggleMoves(false); });
     $('btnPlay').addEventListener('click', () => this.onTitle());
+    $('shopClose').addEventListener('click', () => this.shop(false));
     const list = $('movesList');
     for (const [group, items] of moves) {
       const sec = document.createElement('section');
@@ -45,7 +47,7 @@ export class UI {
       const up = () => b.classList.remove('down');
       b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up);
     }
-    if (!isTouch) { this.keysT = 16; if (window.innerHeight < 640) $('keys').classList.add('min'); }
+    if (!isTouch) { this.keysT = 9; if (window.innerHeight < 640) $('keys').classList.add('min'); }
   }
 
   initPointer() {
@@ -115,16 +117,24 @@ export class UI {
   }
 
   // ---------- HUD ----------
-  setHero(h, partner) { $('meName').textContent = h.name; $('oppName').textContent = partner.name; $('oppTag').textContent = 'Sparing'; document.body.classList.add('playing'); $('padSpecial').textContent = h.key === 'nyxa' ? 'MARTELO' : 'KOLANO'; }
-  hp(which, f) { const el = $(which === 'me' ? 'hpMe' : 'hpOpp'); el.style.width = (Math.max(0, Math.min(1, f)) * 100).toFixed(1) + '%'; el.parentElement.classList.toggle('low', f < 0.3); }
+  setHero(h, partner) { $('meName').textContent = h.name; $('meTag').textContent = h.title || ''; this.partner = partner.name; $('oppName').textContent = partner.name; $('oppTag').textContent = 'Sparing'; document.body.classList.add('playing'); $('padSpecial').textContent = h.key === 'nyxa' ? 'MARTELO' : 'KOLANO'; }
+  hp(which, f) {
+    const k = which === 'me' ? 'Me' : 'Opp', el = $('hp' + k), gh = $('hp' + k + 'Ghost'), w = (Math.max(0, Math.min(1, f)) * 100).toFixed(1) + '%';
+    const prev = this['hp' + k] ?? 1; this['hp' + k] = f;
+    if (el.style.width === w) return;
+    el.style.width = w;
+    if (gh) { if (f >= prev) { gh.style.transition = 'none'; gh.style.width = w; void gh.offsetWidth; gh.style.transition = ''; } else gh.style.width = w; }
+    el.parentElement.classList.toggle('low', which === 'me' && f < 0.3);
+  }
   bossHp(f) { this.hp('opp', f); }
   boss(name, title) {
     const card = $('oppCard');
-    if (name) { $('oppName').textContent = name; $('oppTag').textContent = title; card.classList.add('boss'); card.classList.remove('dim'); }
-    else { card.classList.remove('boss'); card.classList.add('dim'); }
+    if (name) { $('oppName').textContent = name; $('oppTag').textContent = title; card.classList.add('boss', 'on'); }
+    else { card.classList.remove('boss', 'on'); if (this.partner) { $('oppName').textContent = this.partner; $('oppTag').textContent = 'Sparing'; } }
     this.bossOn = !!name;
   }
-  showOpp(v) { if (!this.bossOn) $('oppCard').classList.toggle('dim', !v); }
+  showOpp(v) { if (!this.bossOn) $('oppCard').classList.toggle('on', !!v); }
+  showPause(v, hint = '') { $('pause').hidden = !v; document.body.classList.toggle('menu', v); $('pauseHint').textContent = hint; if (!v) this.toggleMoves(false); }
   money(v, delta) {
     $('money').textContent = '$' + Math.round(v).toLocaleString('pl-PL');
     if (delta) { const p = $('moneyPop'); p.textContent = '+$' + Math.round(delta); p.classList.remove('on'); void p.offsetWidth; p.classList.add('on'); }
@@ -133,6 +143,20 @@ export class UI {
   setTimeFast(v) { $('bTime').classList.toggle('main', v); $('bTime').innerHTML = v ? lbl('Czas ×30', '×30') : lbl('Przyspiesz czas', 'Czas'); }
   objective(t) { const el = $('objective'); el.textContent = t || ''; el.classList.toggle('on', !!t); this.objT = t ? 10 : 0; }
   say(name, text, dur = 3) { const el = $('say'); el.querySelector('b').textContent = name; el.querySelector('b').hidden = !name; el.querySelector('span').textContent = text; el.classList.add('on'); this.sayT = dur; }
+  shakes(n) { this.nShakes = n; const s = $('shakeBadge'); s.hidden = !(n > 0); s.textContent = 'SHAKE ×' + n; const b = $('padShake'); if (b) b.textContent = 'SHAKE'; }
+  shakeNeeded(v) { const b = $('padShake'); if (b) b.hidden = !(v && this.nShakes > 0); }
+  shop(open, items, upg, money) {
+    const el = $('shop'); el.hidden = !open; if (!open) return;
+    $('shopMoney').textContent = '$' + Math.round(money).toLocaleString('pl-PL');
+    const list = $('shopList'); list.innerHTML = '';
+    for (const it of items) {
+      const lvl = it.id === 'bat' ? '' : `<span class="lvl">${upg[it.id] || 0}/${it.max}</span>`;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'item';
+      b.innerHTML = `<b>${it.name}</b>${lvl}<p>${it.desc}</p><span class="price">$${it.price}</span>`;
+      b.addEventListener('click', () => this.onBuy && this.onBuy(it.id));
+      list.appendChild(b);
+    }
+  }
   weapon(name, n) { const el = $('weapon'); el.hidden = !name; if (name) el.textContent = `${name} · ${n}`; }
   action(label) { const b = $('btnAct'); if (b) { b.hidden = !label; if (label) b.textContent = label; } const h = $('actHint'); if (h) { h.classList.toggle('on', !!label && !this.isTouch); if (label) h.innerHTML = `<kbd>O</kbd> ${label.toLowerCase()}`; } }
   combo(n) {
@@ -140,7 +164,7 @@ export class UI {
     if (n < 2) { el.classList.remove('on'); return; }
     el.querySelector('b').textContent = n; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('on', 'pop');
   }
-  flash() { const el = $('hurt'); el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); }
+  flash() { }
   banner(title, sub, dur = 2.6) {
     const el = $('banner'); el.querySelector('strong').textContent = title || ''; el.querySelector('span').textContent = sub || '';
     el.classList.toggle('notitle', !title); el.classList.add('on'); this.bannerT = dur;

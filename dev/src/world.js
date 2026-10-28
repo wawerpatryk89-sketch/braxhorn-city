@@ -3,14 +3,18 @@
 export const STEP_UP = 0.36;
 
 export class World {
-  constructor() { this.boxes = []; this.circles = []; this.dynamic = []; }
+  constructor() { this.boxes = []; this.circles = []; this.dynamic = []; this.regions = []; }
+  // mesh-derived collision for a rectangular area (villa, scanned arenas)
+  addRegion(minX, maxX, minZ, maxZ, col) { const r = { minX, maxX, minZ, maxZ, col }; this.regions.push(r); return r; }
+  regionAt(x, z) { for (const r of this.regions) if (!r.off && x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ) return r; return null; }
   box(minX, maxX, minZ, maxZ, top, bottom = 0, tag = '') { const b = { minX, maxX, minZ, maxZ, top, bottom, tag }; this.boxes.push(b); return b; }
   boxC(cx, cz, w, d, top, bottom = 0, tag = '') { return this.box(cx - w / 2, cx + w / 2, cz - d / 2, cz + d / 2, top, bottom, tag); }
   circle(x, z, r, top, bottom = 0, tag = '') { const c = { x, z, r, top, bottom, tag }; this.circles.push(c); return c; }
 
   // highest walkable surface under (x,z) that is reachable from height y
   groundAt(x, z, y, r = 0) {
-    let g = 0;
+    const reg = this.regionAt(x, z);
+    let g = reg ? Math.max(-100, reg.col.groundAt(x, z, y)) : 0;
     for (const b of this.boxes) {
       if (b.top > y + STEP_UP || b.bottom > y + 0.05) continue;
       if (x >= b.minX - r * 0.3 && x <= b.maxX + r * 0.3 && z >= b.minZ - r * 0.3 && z <= b.maxZ + r * 0.3) g = Math.max(g, b.top);
@@ -25,6 +29,8 @@ export class World {
   // push a circle (pos.x,pos.z, radius r, vertical span [y, y+h]) out of obstacles. Returns true if hit anything.
   resolve(pos, r, y, h, ignore, ignore2) {
     let hit = false;
+    const reg = this.regionAt(pos.x, pos.z);
+    if (reg && reg.col.resolve(pos, r, y, h)) hit = true;
     const blocks = (o) => o.top > y + STEP_UP && o.bottom < y + h;
     for (const b of this.boxes) {
       if (!blocks(b)) continue;

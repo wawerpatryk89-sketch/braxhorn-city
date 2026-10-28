@@ -1,0 +1,26 @@
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); R.setSize(800, 500); R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(R.domElement);
+window.shots = async (url, views) => {
+  const isFbx = url.toLowerCase().endsWith('.fbx');
+  const root = isFbx ? await new FBXLoader().loadAsync(url) : (await new GLTFLoader().loadAsync(url)).scene;
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x404850);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 2.2)); const d = new THREE.DirectionalLight(0xffffff, 2.5); d.position.set(3, 5, 2); scene.add(d);
+  scene.add(root); root.updateMatrixWorld(true);
+  const b = new THREE.Box3().setFromObject(root), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
+  const rad = s.length() / 2; const cam = new THREE.PerspectiveCamera(45, 1.6, rad / 200, rad * 20);
+  await new Promise(r => setTimeout(r, 1500));
+  const out = [];
+  for (const [az, el, k] of views) {
+    const dir = new THREE.Vector3(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el));
+    cam.position.copy(c).addScaledVector(dir, rad * (k || 1.6)); cam.lookAt(c); R.render(scene, cam);
+    out.push(R.domElement.toDataURL('image/jpeg', 0.8));
+  }
+  return { box: [b.min.toArray(), b.max.toArray()].map(a => a.map(v => +v.toFixed(2))), out };
+};
+window.ready = true;
+</script>

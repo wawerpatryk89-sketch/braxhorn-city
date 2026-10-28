@@ -33,8 +33,11 @@ meta = json.load(open(f'{W}/build2/clips.json'))
 keep = ('rm', 'traj', 'start', 'duration', 'stride', 'phase')
 out = {k: ({kk: v[kk] for kk in keep if kk in v} if not k.startswith('__') else v) for k, v in meta.items()}
 json.dump(out, open(f'{AS}/chars/clips.json', 'w'), separators=(',', ':'))
+UNUSED = {'city.glb', 'girl.glb', 'people.glb', 'poles.glb', 'table.glb'}
+for f in os.listdir(AS):
+    if f in UNUSED: os.remove(f'{AS}/{f}')
 for f in os.listdir(f'{W}/assets/src'):
-    if f.endswith('.glb') and not f.startswith('test'): shutil.copy(f'{W}/assets/src/{f}', f'{AS}/{f}')
+    if f.endswith('.glb') and not f.startswith('test') and f not in UNUSED: shutil.copy(f'{W}/assets/src/{f}', f'{AS}/{f}')
 os.makedirs(f'{AS}/people', exist_ok=True)
 for f in os.listdir(f'{W}/assets/people'):
     if f.endswith('.glb') or f.endswith('.json.gz'): shutil.copy(f'{W}/assets/people/{f}', f'{AS}/people/{f}')
@@ -42,6 +45,7 @@ for f in ('wide', 'badge', 'poster', 'mark'):
     src = f'{W}/logos/{f}_t.webp'
     if f == 'poster': Image.open(f'{W}/logos/poster.png').convert('RGB').resize((720, int(720 * 2556 / 1179)), Image.LANCZOS).save(f'{AS}/logo/poster.webp', quality=86)
     else: shutil.copy(src, f'{AS}/logo/{f}.webp')
+shutil.copy(f'{W}/logos/wide_a.webp', f'{AS}/logo/wide_a.webp')
 badge = Image.open(f'{W}/logos/badge.png').convert('RGB')
 badge.resize((192, 192), Image.LANCZOS).save(f'{D}/icon-192.png')
 badge.resize((512, 512), Image.LANCZOS).save(f'{D}/icon-512.png')

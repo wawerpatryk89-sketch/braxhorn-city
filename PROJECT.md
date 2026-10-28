@@ -16,10 +16,22 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 | `public/assets/tex/` | tekstury postaci (`_color`, `_normal`, `_orm`, WebP) |
 | `public/assets/*.glb` | skany ulicy/krypty, auta, latarnie, pałka (KTX2 + meshopt, zrobione `gltfpack`) |
 | `public/assets/logo/` | loga BRAXHORN (szerokie, okrągłe, plakat z minotaurem, znak byka) |
-| `dev/src/` | kod gry (moduły ES): `main.js` (rozgrywka), `fighter.js`, `street.js`, `traffic.js`, `crypt.js`, `env.js` (dzień/noc + „lamp field”), `sound.js` (syntezowane dźwięki i muzyka), `ui.js`, `story.js`, `gym.js`, `template.html` |
+| `dev/src/` | kod gry (moduły ES): `main.js` (rozgrywka), `fighter.js`, `street.js` (ulica, wiadukt, pociąg), `outer.js` (dalsze miasto), `traffic.js`, `crypt.js`, `villa.js`, `meshcol.js` (kolizje z modelu), `people.js` (przechodnie Mixamo), `env.js` (dzień/noc + „lamp field” z reflektorami), `grade.js` (filtr obrazu), `sound.js` (syntezowane dźwięki i muzyka), `ui.js`, `story.js`, `gym.js`, `template.html` |
 | `dev/tools/` | potok konwersji: `pipeline.js` + `convert.html` (FBX → retarget → GLB w przeglądarce, uruchamiane przez `run_js.mjs`/Playwright), `build_web.py` (buduje `dist/`), `pack.sh` (gltfpack), `play2.mjs` (testy w Playwright) |
 | `dev/anims/` | oryginalne animacje Mixamo (FBX): `brax/`, `extra/`, `extra2/`, `gym/` (Clean And Jerk, Snatch, Sumo High Pull, Back Squat, Reloading) |
 | `dev/logos/` | oryginalne PNG logotypów |
+
+## Co nowego (28.10)
+
+- Ulica ciągnie się dalej w obie strony (proceduralne kamienice z oświetlonymi oknami w nocy, wieżowce na horyzoncie), zamiast doklejonych modeli miasta, które stały na jezdni.
+- Wiadukt kolejowy z cegły (łuk nad ulicą, ślepe łuki, drzwi KRYPTA) zamiast skanu mostu, który sypał „odłamkami” w powietrzu. Po wiadukcie co jakiś czas jedzie pociąg (z dźwiękiem).
+- Światła aut: prawdziwe pozycje reflektorów i tylnych lamp z modeli, małe flary zależne od kąta patrzenia, reflektor oświetla jezdnię i ludzi (stożek w „lamp field”), czerwone światła z tyłu (mocniejsze przy hamowaniu).
+- Niebo: gwiazdy jako punkty, chmury z tekstury (koniec z kreskami/artefaktami na Androidzie), noc mniej niebieska.
+- HUD premium: karta gracza z paskiem życia (z „duchem” obrażeń), kasą i zegarem; pasek bossa na środku tylko w walce; jeden przycisk pauzy. Wszystkie ustawienia (kamera, jakość, dźwięk, czas, pełny ekran, ruchy) są w menu pauzy. Gra pauzuje się sama po wyjściu z karty.
+- Końcowy filtr obrazu: tonemapping + lekka korekcja kolorów, winieta, ziarno, czerwony brzeg ekranu przy obrażeniach.
+- Krypta: wycięte sklepienie i kolumny w środku klatki (kamera widzi walkę z góry), kamera ustawia się w poprzek walki.
+- Willa: spokojniejsze światło w nocy.
+- Logo z przezroczystym tłem (`wide_a.webp`) na ekranie tytułowym, pauzie i w loaderze; na iPhonie podpowiedź „Do ekranu początkowego” (jedyny sposób na pełny ekran w Safari).
 
 ## Fabuła (story.js)
 

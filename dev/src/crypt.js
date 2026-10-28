@@ -30,7 +30,9 @@ export async function buildCrypt({ scene, world, A, font, logos }) {
   // ---- scan ----
   const g = await A.loadGLTF('crypt.glb');
   const root = g.scene;
-  A.trimScan(root, { shell: 0.3 });
+  // drop the vault above ~3.6 m: the camera looks down into the cage from above and would see the backs of the ribs
+  A.trimScan(root, { shell: 0.3, keep: new THREE.Box3(new THREE.Vector3(-1e9, -1e9, -1e9), new THREE.Vector3(1e9, 1.8 + 3.6, 1e9)),
+    drop: [new THREE.Box3(new THREE.Vector3(3.9 - 5.6, 1.8 + 0.15, 1.5 - 5.6), new THREE.Vector3(3.9 + 5.6, 1e9, 1.5 + 5.6))] }); // and the columns inside the cage
   const inner = new THREE.Group(); inner.add(root); inner.rotation.y = 0.098;
   const ref = new THREE.Vector3(3.9, 1.8, 1.5).applyMatrix4(new THREE.Matrix4().makeRotationY(0.098));
   inner.position.copy(ref).negate();
@@ -39,7 +41,7 @@ export async function buildCrypt({ scene, world, A, font, logos }) {
   out.scan = outer;
   // dark vault ceiling so it reads as underground
   const ceil = new THREE.Mesh(new THREE.PlaneGeometry(70, 60), new THREE.MeshBasicMaterial({ color: 0x050505 }));
-  ceil.rotation.x = Math.PI / 2; ceil.position.set(O.x, 7.2, O.z); G.add(ceil);
+  ceil.rotation.x = Math.PI / 2; ceil.position.set(O.x, 9.4, O.z); G.add(ceil);
   // ---- octagon ----
   const og = await A.loadGLTF('oct.glb');
   const oct = og.scene; const ob = new THREE.Box3().setFromObject(oct), os = ob.getSize(new THREE.Vector3()), oc = ob.getCenter(new THREE.Vector3());
@@ -66,7 +68,7 @@ export async function buildCrypt({ scene, world, A, font, logos }) {
   out.lampSources.push({ pos: new THREE.Vector3(O.x, CRYPT.floor + 2.3, O.z), col: new THREE.Color(0x8bff3a).multiplyScalar(0.22), r: 7, kind: 'neon' });
   // spotlights from above
   for (const [dx, dz] of [[-3, -3], [3, -3], [-3, 3], [3, 3]]) {
-    const s = new THREE.SpotLight(0xfff2e0, 260, 16, 0.55, 0.5, 1.3); s.position.set(O.x + dx * 1.4, 6.8, O.z + dz * 1.4); s.target.position.set(O.x + dx * 0.25, CRYPT.floor, O.z + dz * 0.25);
+    const s = new THREE.SpotLight(0xfff2e0, 95, 16, 0.55, 0.55, 1.3); s.position.set(O.x + dx * 1.4, 6.8, O.z + dz * 1.4); s.target.position.set(O.x + dx * 0.25, CRYPT.floor, O.z + dz * 0.25);
     G.add(s, s.target); out.spots.push(s);
     const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 0.4, 12), new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8, roughness: 0.4 })); lamp.position.copy(s.position); G.add(lamp);
     const disc = new THREE.Mesh(new THREE.CircleGeometry(0.3, 16), new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.96, 0.9).multiplyScalar(6) })); disc.rotation.x = Math.PI / 2; disc.position.copy(s.position).y -= 0.21; G.add(disc);

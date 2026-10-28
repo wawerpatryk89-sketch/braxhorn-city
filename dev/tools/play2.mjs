@@ -18,7 +18,7 @@ for (const s of steps.steps) {
     if (s.wait) await page.waitForFunction(s.wait, null, { timeout: (s.timeout || 120) * 1000 });
     if (s.click) await page.click(s.click, { timeout: 20000 });
     if (s.pause !== undefined) await page.evaluate((v) => window.__mg.pause(v), s.pause);
-    if (s.eval) { const r = await page.evaluate(s.eval); if (r !== undefined) logs.push('eval ' + JSON.stringify(r).slice(0, 600)); }
+    if (s.eval) { const r = await page.evaluate(s.eval); if (r !== undefined) logs.push('eval ' + JSON.stringify(r).slice(0, 6000)); }
     if (s.sleep) await page.waitForTimeout(s.sleep);
     if (s.sim) await page.evaluate(([sec, ks]) => window.__mg.sim(sec, ks), [s.sim, s.keys || []]);
     if (s.shot) { await page.evaluate(() => { window.__mg.pause(true); window.__mg.render(); }); await page.screenshot({ timeout: 120000, path: `${OUT}/${s.shot}.jpg`, quality: 70, type: 'jpeg' }); if (s.unpause) await page.evaluate(() => window.__mg.pause(false)); logs.push('shot ' + s.shot + ' @' + ((Date.now() - t0) / 1000).toFixed(1) + 's'); }

@@ -2,7 +2,6 @@
 // standing in the lane (most of the time), honk, and knock down anyone they hit at speed.
 import * as THREE from 'three';
 import { ST } from './street.js';
-import * as TX from './textures.js';
 
 function pathEB() { // from the cross street (north) turning left into the eastbound lane
   const c = new THREE.CurvePath();
@@ -31,7 +30,7 @@ export class Traffic {
     this.scene = scene; this.models = models; this.sound = sound;
     this.paths = [sample(pathEB()), sample(pathWB())];
     this.cars = []; this.spawnT = [1.0, 3.5]; this.lampSources = [];
-    this.halo = TX.radial('rgba(255,255,255,1)', 'rgba(255,255,255,0)');
+    this.flare = flareTex(); this.camPos = new THREE.Vector3();
     this.enabled = true;
     const keys = Object.keys(models);
     this.civil = keys.filter(k => !models[k].userData.def.police);
@@ -45,14 +44,14 @@ export class Traffic {
     const obj = src.clone(); this.scene.add(obj);
     const size = src.userData.size;
     const sp = 9 + Math.random() * 5;
-    // night lights
-    const mk = (color, s) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.halo, color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); sp.scale.setScalar(s); sp.renderOrder = 6; obj.add(sp); return sp; };
-    const hl = [-1, 1].map(sx => { const s = mk(new THREE.Color(1, 0.95, 0.85), 1.1); s.position.set(sx * size.x * 0.36, size.y * 0.42, size.z / 2 + 0.05); return s; });
-    const tl = [-1, 1].map(sx => { const s = mk(new THREE.Color(1, 0.08, 0.05), 0.7); s.position.set(sx * size.x * 0.38, size.y * 0.48, -size.z / 2 - 0.05); return s; });
-    const beam = new THREE.Mesh(new THREE.PlaneGeometry(size.x * 1.1, 9).rotateX(Math.PI / 2).translate(0, 0.03, size.z / 2 + 4.5), new THREE.MeshBasicMaterial({ map: beamTex(), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, color: new THREE.Color(0.5, 0.48, 0.4) }));
-    beam.renderOrder = 4; obj.add(beam);
-    const car = { obj, key, path: this.paths[pi], pi, s: 0, v: sp, cruise: sp, size, hl, tl, beam, police: src.userData.def.police, honkT: 0, brakeChance: Math.random() < 0.85, id: this.n++, siren: src.userData.def.police && Math.random() < 0.6 };
-    car.lamp = { pos: new THREE.Vector3(), col: new THREE.Color(1, 0.92, 0.78), r: 10, kind: 'car', dyn: true, w: 1 };
+    // night lights: small flares at the real lamp positions + a headlight spot and a red tail glow in the lamp field
+    const A = src.userData.anchors;
+    const mk = (color, s, p) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.flare, color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0 })); sp.scale.setScalar(s); sp.renderOrder = 6; sp.position.copy(p); obj.add(sp); return sp; };
+    const hl = A.hl.map(p => mk(new THREE.Color(1, 0.94, 0.82), 0.95, p));
+    const tl = A.tl.map(p => mk(new THREE.Color(1, 0.06, 0.03), 0.55, p));
+    const car = { obj, key, path: this.paths[pi], pi, s: 0, v: sp, cruise: sp, size, hl, tl, police: src.userData.def.police, honkT: 0, brakeChance: Math.random() < 0.85, id: this.n++, siren: src.userData.def.police && Math.random() < 0.6, hlY: (A.hl[0].y + A.hl[1].y) / 2, front: Math.max(A.hl[0].z, size.z / 2) };
+    car.lamp = { pos: new THREE.Vector3(), dir: new THREE.Vector3(), cos: 0.8, col: new THREE.Color(1, 0.93, 0.8).multiplyScalar(4.2), r: 24, kind: 'car', dyn: true, w: 1 };
+    car.tail = { pos: new THREE.Vector3(), col: new THREE.Color(1, 0.05, 0.02).multiplyScalar(0.9), r: 4.2, kind: 'tail', dyn: true, w: 1 };
     car.flash = car.police ? { pos: new THREE.Vector3(), col: new THREE.Color(1, 0, 0), r: 9, kind: 'flash', dyn: true, w: 1 } : null;
     this.cars.push(car);
     this.place(car);
@@ -63,7 +62,8 @@ export class Traffic {
     car.x = x; car.z = z; car.h = h;
     car.obj.position.set(x, 0, z); car.obj.rotation.y = h;
     car.fx = Math.sin(h); car.fz = Math.cos(h);
-    car.lamp.pos.set(x + car.fx * (car.size.z / 2 + 4.5), 0.9, z + car.fz * (car.size.z / 2 + 4.5));
+    car.lamp.pos.set(x + car.fx * (car.front - 0.3), car.hlY + 0.05, z + car.fz * (car.front - 0.3)); car.lamp.dir.set(car.fx, -0.13, car.fz).normalize();
+    car.tail.pos.set(x - car.fx * (car.size.z / 2 + 0.6), 0.6, z - car.fz * (car.size.z / 2 + 0.6));
     if (car.flash) car.flash.pos.set(x, car.size.y + 0.6, z);
   }
   // fighters: [{pos, y, radius, state, ...}], onHit(fighter, car, dir)
@@ -109,27 +109,33 @@ export class Traffic {
         }
       }
       // lights
-      for (const s of car.hl) s.material.opacity = 0.15 + 0.85 * night;
-      for (const s of car.tl) s.material.opacity = 0.2 + 0.8 * night;
-      car.beam.visible = night > 0.1; car.beam.material.opacity = night;
-      car.lamp.w = night;
+      // flares: bright when seen from the front (head) / behind (tail), almost nothing side-on
+      const cdx = this.camPos.x - car.x, cdz = this.camPos.z - car.z, cl = Math.hypot(cdx, cdz) || 1, facing = (cdx * car.fx + cdz * car.fz) / cl;
+      const lit = Math.max(night, 0.0), braking = car.v < car.cruise - 1 && car.v > 0.1 ? 1 : 0;
+      for (const s of car.hl) { s.material.opacity = lit * (0.12 + 0.88 * Math.pow(Math.max(0, facing), 1.5)); s.scale.setScalar(0.5 + 0.9 * Math.max(0, facing)); }
+      for (const s of car.tl) { s.material.opacity = (0.35 + 0.65 * lit) * (braking ? 1 : 0.55) * (0.15 + 0.85 * Math.pow(Math.max(0, -facing), 1.2)); s.scale.setScalar(0.35 + 0.35 * Math.max(0, -facing) + braking * 0.15); }
+      car.lamp.w = night; car.tail.w = night * (braking ? 1.6 : 0.8);
       if (car.flash) { const ph = Math.floor(t * 6 + car.id) % 2; car.flash.col.setRGB(ph ? 1.6 : 0, 0, ph ? 0 : 2.0); car.flash.w = 1; }
     }
     // retire cars at the end of the path
     this.cars = this.cars.filter(c => { if (c.s >= c.path.L - 0.5) { this.scene.remove(c.obj); return false; } return true; });
     this.lampSources.length = 0;
-    for (const c of this.cars) { if (night > 0.05) this.lampSources.push(c.lamp); if (c.flash) this.lampSources.push(c.flash); }
+    for (const c of this.cars) { if (night > 0.05) this.lampSources.push(c.lamp, c.tail); if (c.flash) this.lampSources.push(c.flash); }
   }
   // the closest car for the engine sound
   nearest(x, z) { let best = null, bd = 1e9; for (const c of this.cars) { const d = Math.hypot(c.x - x, c.z - z); if (d < bd) { bd = d; best = c; } } return best ? { car: best, d: bd } : null; }
   clear() { for (const c of this.cars) this.scene.remove(c.obj); this.cars = []; }
 }
 
-let _beam = null;
-function beamTex() {
-  if (_beam) return _beam;
-  const c = document.createElement('canvas'); c.width = 64; c.height = 256; const x = c.getContext('2d');
-  const g = x.createLinearGradient(0, 256, 0, 0); g.addColorStop(0, 'rgba(255,255,255,0.9)'); g.addColorStop(1, 'rgba(255,255,255,0)');
-  x.fillStyle = g; x.beginPath(); x.moveTo(24, 256); x.lineTo(40, 256); x.lineTo(64, 0); x.lineTo(0, 0); x.fill();
-  const t = new THREE.CanvasTexture(c); _beam = t; return t;
+let _flare = null;
+function flareTex() {
+  if (_flare) return _flare;
+  const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+  const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  for (const [o, a] of [[0, 1], [0.07, 0.95], [0.16, 0.42], [0.32, 0.12], [0.6, 0.03], [1, 0]]) g.addColorStop(o, `rgba(255,255,255,${a})`);
+  x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  // faint horizontal streak
+  const h = x.createLinearGradient(0, 0, 128, 0); h.addColorStop(0, 'rgba(255,255,255,0)'); h.addColorStop(0.5, 'rgba(255,255,255,0.35)'); h.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = h; x.fillRect(0, 62, 128, 4);
+  _flare = new THREE.CanvasTexture(c); return _flare;
 }
