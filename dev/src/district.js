@@ -237,7 +237,7 @@ export async function buildDistrict({ scene, world, A, font, logos, street }) {
   box(Q.x0, XW, Q.z0, 60, SW, -1, 'walk'); box(Q.x0, Q.x1, 60, Q.z1, SW, -1, 'walk');
   // kerb line where the street meets the promenade, coping stones along the water
   B.box(mats.coping, Q.x0, Q.x0 + 0.6, SW, SW + 0.12, Q.z0, Q.z1, { uv: 1 });
-  B.box(mats.quayWall, Q.x0 - 0.05, Q.x0 + 0.02, D.waterY - 2, SW, Q.z0, Q.z1, { uv: 3, ud: { bakeCell: 1.5 } });
+  B.box(mats.quayWall, Q.x0 - 0.05, Q.x0 + 0.02, D.waterY - 2, SW, Q.z0, Q.z1, { uv: 3, ud: { bakeCell: 4 } });
   // railing along the edge (gap for the pier); collision is taller than the rail so nobody jumps into the sea
   {
     const rail = (z0, z1) => {
@@ -299,7 +299,7 @@ export async function buildDistrict({ scene, world, A, font, logos, street }) {
   // harbour store (north part of the quay; closed roller doors), fence + stacked containers beyond it
   {
     const x0 = XW, x1 = -52, z0 = Q.z0, z1 = ST.near, h = 11;
-    B.box(mats.brickDark, x0, x1, 0, h, z0, z1, { uv: 3, ud: { bakeCell: 1.5 } });
+    B.box(mats.brickDark, x0, x1, 0, h, z0, z1, { uv: 3, ud: { bakeCell: 3 } });
     B.box(mats.roof, x0 - 0.2, x1, h, h + 0.4, z0 - 0.2, z1 + 0.2, { uv: null });
     box(x0, x1, z0, z1, h, -1, 'bldg');
     for (const z of [0.5, 9.5]) { B.box(mats.contGrey, x0 - 0.06, x0, 0, 4.2, z - 2.4, z + 2.4, { uv: 1, uvv: 4.2 }); B.box(mats.iron, x0 - 0.2, x0, 4.2, 4.5, z - 2.6, z + 2.6, { uv: null }); }
@@ -343,7 +343,7 @@ export async function buildDistrict({ scene, world, A, font, logos, street }) {
     const w = b.x1 - b.x0, z1 = b.z1 || bz;
     const ft = facadeTextures(w, b.h, b.s, null);
     const fm = M({ map: ft.map, roughness: 0.82 });
-    const cell = { bakeCell: 1.2 };
+    const cell = { bakeCell: 2.4 };
     if (b.brama) {
       const { x0: px0, x1: px1, h: ph } = D.brama;
       B.box(sideMat, b.x0, px0, 0, b.h, fz + 0.02, z1, { uv: 3, ud: cell }); B.box(sideMat, px1, b.x1, 0, b.h, fz + 0.02, z1, { uv: 3, ud: cell });
@@ -456,7 +456,7 @@ export async function buildDistrict({ scene, world, A, font, logos, street }) {
       { pc: Mi, x: 27, z: 98, ry: Math.PI / 2 },
     ];
     for (const b of blocks) {
-      place(G, b.pc, b.x, b.z, b.ry, 0, { bakeCell: 2.5 });
+      place(G, b.pc, b.x, b.z, b.ry, 0, { bakeCell: 5 });
       const [a, b2, c, d, h] = footprint(b.pc, b.x, b.z, b.ry); world.box(a, b2, c, d, h, -1, 'block');
       b.fp = [a, b2, c, d];
     }
@@ -474,7 +474,7 @@ export async function buildDistrict({ scene, world, A, font, logos, street }) {
     world.box(dx - 1.4, dx + 1.4, dz - 1.4, dz, SW + 0.15, -1, 'step');
     const ds = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.35), M({ map: CT.signBoard(font, 'KLATKA B', { fg: '#e9e6dc', bg: '#2a3a4a', size: 120 }) })); ds.position.set(dx, SW + 2.35, dz - 0.07); ds.rotation.y = Math.PI; G.add(ds);
     // skyline: blocks behind the near side and beyond the viaduct (no gameplay, just closes the horizon)
-    for (const [pc, x, z, ry] of [[T, -40, -42, 0], [Mi, -2, -46, 0.08], [T, 36, -44, -0.05], [Mi, 92, -10, Math.PI / 2], [T, 118, 70, Math.PI / 2], [Mi, -30, 150, 0]]) place(G, pc, x, z, ry, 0, { bakeCell: 4 });
+    for (const [pc, x, z, ry] of [[T, -40, -42, 0], [Mi, -2, -46, 0.08], [T, 36, -44, -0.05], [Mi, 92, -10, Math.PI / 2], [T, 118, 70, Math.PI / 2], [Mi, -30, 150, 0]]) place(G, pc, x, z, ry, 0, { bakeCell: 10 });
   }
 
   // ================= CLOSED ROAD TO THE FOREST (south end of the quay) =================

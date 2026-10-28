@@ -406,9 +406,9 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
     }
     const eg = new THREE.ExtrudeGeometry(shape, { depth: X1 - X0, bevelEnabled: false, curveSegments: 1 });
     eg.rotateY(Math.PI / 2); eg.translate(X0, 0, 0);
-    const via = new THREE.Mesh(eg, vMat); via.receiveShadow = true; via.userData.bakeCell = 2; G.add(via);
+    const via = new THREE.Mesh(eg, vMat); via.receiveShadow = true; via.userData.bakeCell = 4; G.add(via);
     const inf = mergeGeometries(infills.flatMap(g => { const a = g.clone().rotateY(Math.PI / 2).translate(X0 + 0.7, 0, 0), b2 = g.clone().rotateY(Math.PI / 2).translate(X1 - 0.7, 0, 0); return [a, b2]; }));
-    const infM = new THREE.Mesh(inf, infillMat); infM.userData.bakeCell = 2; G.add(infM);
+    const infM = new THREE.Mesh(inf, infillMat); infM.userData.bakeCell = 4; G.add(infM);
     const dark = new THREE.MeshStandardMaterial({ color: 0x2c2a28, roughness: 0.9 });
     const steel = new THREE.MeshStandardMaterial({ color: 0x55585c, roughness: 0.55 });
     const deck = [];
@@ -417,7 +417,7 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
     for (const dx of [-0.72, 0.72]) deck.push(new THREE.BoxGeometry(0.08, 0.14, 680).translate((X0 + X1) / 2 + dx, H + 0.22, -40));
     const masts = [];
     for (let z = -300; z < 380; z += 30) { masts.push(new THREE.BoxGeometry(0.22, 6.2, 0.22).translate(X0 + 0.6, H + 3.1, z), new THREE.BoxGeometry(X1 - X0 - 1, 0.16, 0.16).translate((X0 + X1) / 2, H + 5.6, z)); }
-    const dm = new THREE.Mesh(mergeGeometries(deck.slice(0, 3)), dark); dm.userData.bakeCell = 2; G.add(dm);
+    const dm = new THREE.Mesh(mergeGeometries(deck.slice(0, 3)), dark); dm.userData.bakeCell = 6; G.add(dm);
     G.add(new THREE.Mesh(mergeGeometries([...deck.slice(3), ...masts]), steel));
     const wire = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 680).translate((X0 + X1) / 2, H + 5.2, -40), steel); G.add(wire);
     out.viaduct = { X0, X1, H, HS, RV, PW };

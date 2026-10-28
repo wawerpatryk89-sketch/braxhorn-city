@@ -337,7 +337,7 @@ async function boot() {
     sound.setRoom('gym');
     // gym members, then stream the street in the background
     people.populateGym(isTouch ? 5 : 7).catch(e => console.warn('gym people', e));
-    loadStreet().catch(e => console.error(e));
+    // the city is not built while you train: it loads behind a loading screen when you step out of the gym door
   }
 
   // ---------------- street ----------------
@@ -353,7 +353,7 @@ async function boot() {
       // outdoor floors take a top-down light texture (crisp sun shadows); walls, props and rooms take per-vertex light
       cityGround = []; for (const r of [st.group, dist.interiors.group]) r.traverse(o => { if (o.isMesh && o.userData.ground && !o.userData.bakeIndoor && !o.userData.noBake) cityGround.push(o); });
       for (const m of cityGround) { setLightmapUV(m); m.userData.noBake = true; }
-      cityBakeList = [...prepareBake(st.group, 1.6), ...prepareBake(dist.interiors.group, 0.6)]; T('tessellate ' + cityBakeList.reduce((a, m) => a + m.geometry.attributes.position.count, 0) + ' ground ' + cityGround.length);
+      cityBakeList = [...prepareBake(st.group, 2.4), ...prepareBake(dist.interiors.group, 0.8)]; T('tessellate ' + cityBakeList.reduce((a, m) => a + m.geometry.attributes.position.count, 0) + ' ground ' + cityGround.length);
       try { const [raw, gr] = await Promise.all([A.loadBin(CITY_BAKE), A.loadBin(CITY_GROUND)]); cityBaked = !!applyBake(cityBakeList, new Uint16Array(raw.slice().buffer), CITY_GAIN) && !!applyGroundMap(cityGround, gr, { scale: 2, gain: CITY_GAIN }); } catch (e) { console.warn('city bake not loaded', e); }
       T('bake applied ' + cityBaked);
       if (cityBaked) {
@@ -1311,6 +1311,10 @@ async function boot() {
       const near = actors.some(a2 => foes(player, a2) && !a2.dead && flat(player, a2) < 5);
       player.setIdle(near ? 'Boxing' : 'Idle');
       // chapter transitions
+      if (G.chapter === 'gym' && !G.street && player.pos.z > HALL.maxZ + 0.7) {
+        if (!G.waitStreet) { G.waitStreet = true; ui.loading(true, 'Ładuję miasto…'); setTimeout(() => loadStreet().then(() => { ui.loading(false); G.waitStreet = false; }).catch(e => { console.error(e); ui.loading(false); G.waitStreet = false; }), 60); }
+        player.pos.z = Math.min(player.pos.z, HALL.maxZ + 0.9);
+      }
       if (G.chapter === 'gym' && player.pos.z > ALLEY.z1 - 0.2) {
         if (!G.street) { if (!G.waitStreet) { G.waitStreet = true; ui.loading(true, 'Ładuję ulicę…'); loadStreet().then(() => { ui.loading(false); G.waitStreet = false; }); } player.pos.z = ALLEY.z1 - 0.3; }
         else { G.chapter = 'street'; if (!G.streetShown) { G.streetShown = true; ui.chapter(CHAPTERS.street); } if (!G.explore) ui.objective(G.cryptOpen ? HINTS.crypt : HINTS.street); sound.setRoom('street'); partner.root.visible = false; partner.col.top = -10; G.caseCd = 25; }
