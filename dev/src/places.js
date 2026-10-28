@@ -27,6 +27,16 @@ export const PLACES = {
       intro: 'To moja galeria. A ty będziesz moim nowym muralem.', outro: 'Farba… wszędzie farba…' },
     waves: [['Ch38_nonPBR', 'Ch39_nonPBR'], ['Arissa', 'Lola_B_Styperek', 'Ch06_nonPBR'], ['Kachujin_G_Rosales', 'Ch17_nonPBR', 'Ch37_nonPBR']],
   },
+  warehouse: {
+    key: 'warehouse', file: 'warehouse.glb', title: 'Stary magazyn', sub: 'Opuszczona hala na obrzeżach. Tu Czerwony Róg trzyma kasę.', lit: true,
+    at: [700, 0, -700], rotY: 0, mood: 'indoor', room: 'gym',
+    play: [-13.6, 18.6, -12.3, -0.3], spawn: [-11.5, -6.3], exit: [-12.8, -6.3], face: Math.PI / 2,
+    gang: [[0, -6], [3, -4], [6, -8], [9, -5], [12, -7]],
+    lamps: { from: -10, to: 16, every: 6.5, y: 4.0, col: [1.0, 0.86, 0.66], k: 1.6, r: 8, axis: 'x', at: -6.3 },
+    reward: 1300, boss: { name: 'Księgowy', title: 'Skarbnik Czerwonego Rogu', person: 'Ch16_nonPBR', hp: 290, size: 1.12, dmg: 1.1, moves: ['jab', 'hook', 'kick', 'kicks', 'elbow', 'knee'], reward: 600,
+      intro: 'Każdy dolar w tej hali jest policzony. Ty też zaraz będziesz.', outro: 'Rachunek… się nie zgadza…' },
+    waves: [['Ch12_nonPBR', 'Ch22_nonPBR'], ['Ch26_nonPBR', 'Ch31_nonPBR', 'Ch47_nonPBR'], ['Big_Vegas', 'The_Boss', 'Remy']],
+  },
 };
 
 export async function buildPlace(def, { scene, world, A, onStatus }) {
@@ -36,7 +46,7 @@ export async function buildPlace(def, { scene, world, A, onStatus }) {
   const root = g.scene;
   const holder = new THREE.Group(); holder.add(root); holder.rotation.y = def.rotY; holder.position.set(...def.at); G.add(holder);
   holder.updateMatrixWorld(true);
-  root.traverse(o => { if (o.isMesh) { addLampField(o.material, 'baked'); o.layers.set(3); } });
+  root.traverse(o => { if (o.isMesh) { addLampField(o.material, def.lit ? 'lit' : 'baked'); o.layers.set(3); if (def.lit) { o.receiveShadow = true; } } });
   const L = (x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(holder.matrixWorld);
   out.L = L;
   onStatus && onStatus('Liczę kolizje…');
@@ -64,7 +74,7 @@ export async function buildPlace(def, { scene, world, A, onStatus }) {
   const lm = def.lamps;
   const cx = (x0 + x1) / 2;
   for (let z = lm.from; z <= lm.to; z += lm.every) {
-    const f = floorAt(cx, z);
+    const f = lm.axis === 'x' ? floorAt(z, lm.at) : floorAt(cx, z);
     const p = new THREE.Vector3(f.x, f.y + lm.y, f.z);
     out.lampSources.push({ pos: p, col: new THREE.Color(...lm.col).multiplyScalar(lm.k), r: lm.r, kind: 'place' });
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, color: new THREE.Color(...lm.col), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));

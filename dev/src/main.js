@@ -148,6 +148,7 @@ async function boot() {
     f.pos.set(pos[0], 0, pos[2]); f.y = pos[1] || 0; f.heading = heading;
     scene.add(f.root); f.root.position.y = f.y; f.root.rotation.y = heading;
     const b = new THREE.Mesh(new THREE.PlaneGeometry(1.6 * size, 1.6 * size).rotateX(-Math.PI / 2), blobMat); b.renderOrder = 2; scene.add(b); f.blob = b;
+    f.update(1 / 60);
     actors.push(f);
     return f;
   }
@@ -782,6 +783,7 @@ async function boot() {
     scene.add(f.root); f.root.position.y = f.y; f.root.rotation.y = heading;
     const b = new THREE.Mesh(new THREE.PlaneGeometry(1.6 * size, 1.6 * size).rotateX(-Math.PI / 2), blobMat); b.renderOrder = 2; scene.add(b); f.blob = b;
     f.def = { moves, aggro, name: label }; f.dmgMul = dmg; f.noRefill = true; f.setIdle('Boxing');
+    f.update(1 / 60); // pose before the first render (no T-pose flash)
     actors.push(f);
     return f;
   }

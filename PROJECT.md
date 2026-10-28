@@ -39,6 +39,8 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 - **Mapa miasta**: przy swoim aucie (ulica, willa, wejście do rewiru) akcja **JEDŹ** otwiera mapę: Ulica, Willa, **Tunel Futatsugoya**, **Zaułek Freemana**.
 - **Rewiry**: trzy fale gangu Czerwonego Rogu (ludzie z Mixamo bijący się animacjami Braxa), potem szef rewiru (Szczur w tunelu, Szpachla z pałką w zaułku). Za zdobycie nagroda; kolejne wizyty: gang wraca, mniejsza nagroda.
 - Skany tunelu i zaułka spakowane z `-slb` (bez szpar po upraszczaniu siatki).
+- **Stary magazyn** (abandoned warehouse): trzeci rewir, szef Księgowy. Materiały spec-gloss przerobione na metal-rough skryptem `dev/tools/sg2mr.py` (three.js r160 nie czyta spec-gloss).
+- Obraz: rozdzielczość dopasowuje się sama (1.0–2.0× piksela, cel ~50 kl/s), słabszy blask i mgła.
 
 ## Fabuła (story.js)
 

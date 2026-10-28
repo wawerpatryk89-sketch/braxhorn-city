@@ -54,6 +54,7 @@ export class People {
     p.runSpeed = rd.stride * (T.hipsY / rd.rest) * s / rd.d;
     if (mode === 'walk') { p.cur = act('Walking'); p.cur.play(); p.cur.time = Math.random() * wd.d; p.speed = p.walkSpeed; }
     else { p.cur = act(clip); p.cur.play(); p.cur.time = Math.random() * this.clipData[clip].d; }
+    mixer.update(0);
     if (prop === 'barbell') p.prop = makeBarbell(this.scene);
     this.list.push(p);
     return p;
