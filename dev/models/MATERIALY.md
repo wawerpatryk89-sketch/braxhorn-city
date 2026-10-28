@@ -38,3 +38,12 @@ Oryginały są tylko w załącznikach czatu. Jeśli trzeba spakować inaczej (np
 
 Nie dotarło: **Southwark Borough Control Bunker** (zamiast modelu przyszedł plik z błędem „Too many requests” ze Sketchfaba).
 Duplikaty pominięte: drugi `suburban_house`, drugi `modern_house_with_interior`, `modern_house_villa_1`, `neighbourhood_city_modular_lowpoly_1`, `palm_tree_pack_lowpoly_1`.
+
+## Osiedle — nowe dostawy
+
+- `dev/osiedle/assets/`: oryginały kasyna, komisariatu, klubu, stołu blackjack, ruletki i zestawu pokerowego; autorstwo i licencje w `manifest.json`.
+- `dev/source-assets/people-packs/`: paczki HCG Law Enforcement i Low Poly People, sprawdzone ZIP-y; bez integracji NPC.
+- `dev/source-assets/hospital/Hospital_assets.zip`: oryginał; wyeksportowano łóżko, krzesło i wózek z dopasowanymi teksturami. Cztery łóżka, trzy krzesła i wózek w budynku szpitala. Własna architektura i wyposażenie uzupełniające w `civic.js`.
+- Płatna paczka 14 NPC odłożona; nie kupowano.
+
+- Park: 7 drzew złożonych z elementów Verdant Trail, 17 krzewów i 6 kamieni z tej samej paczki. Oryginały i opis brakujących tekstur w `dev/source-assets/verdant-trail/README.md`.

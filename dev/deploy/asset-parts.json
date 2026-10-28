@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "path": "dev/osiedle/assets/gameready_casino_scene.glb",
+      "sha": "026acf844b8e36ca23db73349d22ffd1d13708c1",
+      "size": 32202056,
+      "parts": [
+        {
+          "path": "dev/deploy/parts/026acf844b8e36ca23db73349d22ffd1d13708c1-000.part",
+          "sha": "028b217e567c06b5787841042e667866832b97b0",
+          "size": 9437184,
+          "offset": 0
+        },
+        {
+          "path": "dev/deploy/parts/026acf844b8e36ca23db73349d22ffd1d13708c1-001.part",
+          "sha": "2c54624aa2c813791340f868d03f92b1a3a8e7eb",
+          "size": 9437184,
+          "offset": 9437184
+        },
+        {
+          "path": "dev/deploy/parts/026acf844b8e36ca23db73349d22ffd1d13708c1-002.part",
+          "sha": "afa8a24b097176d18a20e87eb8d7e855029a18b6",
+          "size": 9437184,
+          "offset": 18874368
+        },
+        {
+          "path": "dev/deploy/parts/026acf844b8e36ca23db73349d22ffd1d13708c1-003.part",
+          "sha": "9b92ca71a646245abef3512e2e11b68a553fd69d",
+          "size": 3890504,
+          "offset": 28311552
+        }
+      ]
+    },
+    {
+      "path": "dev/osiedle/assets/hospital_bed.glb",
+      "sha": "8c55971e4f52e8f0477d1322a11967535f37e7a2",
+      "size": 11521828,
+      "parts": [
+        {
+          "path": "dev/deploy/parts/8c55971e4f52e8f0477d1322a11967535f37e7a2-000.part",
+          "sha": "a751e45384d994fd4f7df4b3e38be25fafc8b0f5",
+          "size": 9437184,
+          "offset": 0
+        },
+        {
+          "path": "dev/deploy/parts/8c55971e4f52e8f0477d1322a11967535f37e7a2-001.part",
+          "sha": "98e14c41e6dc31a2ac36e261a62ff269797d1bbe",
+          "size": 2084644,
+          "offset": 9437184
+        }
+      ]
+    },
+    {
+      "path": "dev/osiedle/assets/hospital_chair.glb",
+      "sha": "24e4fce10f5bf2aae07f42e9d5263255d27e2494",
+      "size": 23409496,
+      "parts": [
+        {
+          "path": "dev/deploy/parts/24e4fce10f5bf2aae07f42e9d5263255d27e2494-000.part",
+          "sha": "fa1d37428c62ff8aead1a9641835182babbf786b",
+          "size": 9437184,
+          "offset": 0
+        },
+        {
+          "path": "dev/deploy/parts/24e4fce10f5bf2aae07f42e9d5263255d27e2494-001.part",
+          "sha": "d2060ec8d7642bffda631750f5fa494431fa6b3a",
+          "size": 9437184,
+          "offset": 9437184
+        },
+        {
+          "path": "dev/deploy/parts/24e4fce10f5bf2aae07f42e9d5263255d27e2494-002.part",
+          "sha": "74a0efb6d54a0ee887d7221565adb1811dcd7e44",
+          "size": 4535128,
+          "offset": 18874368
+        }
+      ]
+    },
+    {
+      "path": "dev/osiedle/assets/nightclub.glb",
+      "sha": "d68e69b7395790f62b89f7e6b95931724a6edd32",
+      "size": 18932796,
+      "parts": [
+        {
+          "path": "dev/deploy/parts/d68e69b7395790f62b89f7e6b95931724a6edd32-000.part",
+          "sha": "36d776883e5926a6deaa853ca73b1aeedb3b3b50",
+          "size": 9437184,
+          "offset": 0
+        },
+        {
+          "path": "dev/deploy/parts/d68e69b7395790f62b89f7e6b95931724a6edd32-001.part",
+          "sha": "01f1cf4395326f34808e4aad89ef86dc5da95c52",
+          "size": 9437184,
+          "offset": 9437184
+        },
+        {
+          "path": "dev/deploy/parts/d68e69b7395790f62b89f7e6b95931724a6edd32-002.part",
+          "sha": "b25053bf4597c15ade213f29d0bad60fe2aaedb9",
+          "size": 58428,
+          "offset": 18874368
+        }
+      ]
+    },
+    {
+      "path": "dev/osiedle/assets/park_tree.glb",
+      "sha": "7fb48faf2608c0f018f97e0305c054710269e12a",
+      "size": 37242944,
+      "parts": [
+        {
+          "path": "dev/deploy/parts/7fb48faf2608c0f018f97e0305c054710269e12a-000.part",
+          "sha": "c36a7cfb0f3823881014c03c19f088366b2a04ff",
+          "size": 9437184,
+          "offset": 0
+        },
+        {
+          "path": "dev/deploy/parts/7fb48faf2608c0f018f97e0305c054710269e12a-001.part",
+          "sha": "3a29d705e5b54d59f101940b5ba9a557bbc7a9b7",
+          "size": 9437184,
+          "offset": 9437184
+        },
+        {
+          "path": "dev/deploy/parts/7fb48faf2608c0f018f97e0305c054710269e12a-002.part",
+          "sha": "172d83835194c1c3d9b4607f990be2d3c0ff10eb",
+          "size": 9437184,
+          "offset": 18874368
+        },
+        {
+          "path": "dev/deploy/parts/7fb48faf2608c0f018f97e0305c054710269e12a-003.part",
+          "sha": "6532a529072ea046aafd6eece080a1c9f3dbd174",
+          "size": 8931392,
+          "offset": 28311552
+        }
+      ]
+    },
+    {
+      "path": "dev/osiedle/assets/policestation.glb",
+      "sha": "76424b79f300193e6c92c4b7d3067929406bfd80",
+      "size": 24723244,
+      "parts": [
+        {
+          "path": "dev/deploy/parts/76424b79f300193e6c92c4b7d3067929406bfd80-000.part",
+          "sha": "8f461cbd5d46e014f846e328ca4cf01ddd1a11f5",
+          "size": 9437184,
+          "offset": 0
+        },
+        {
+          "path": "dev/deploy/parts/76424b79f300193e6c92c4b7d3067929406bfd80-001.part",
+          "sha": "8924a684373633abcd01ff758b7d7e42c0b4c26e",
+          "size": 9437184,
+          "offset": 9437184
+        },
+        {
+          "path": "dev/deploy/parts/76424b79f300193e6c92c4b7d3067929406bfd80-002.part",
+          "sha": "57f7ea562a0bf7024d357cedbf24e68b3bc566a0",
+          "size": 5848876,
+          "offset": 18874368
+        }
+      ]
+    },
+    {
+      "path": "dev/osiedle/assets/stylized_poker_table_-_game_asset.glb",
+      "sha": "3d8a301cb198b587f8d0652a8d425089ff9790a0",
+      "size": 34558208,
+      "parts": [
+        {
+          "path": "dev/deploy/parts/3d8a301cb198b587f8d0652a8d425089ff9790a0-000.part",
+          "sha": "0ba6c6d943a0b2532e4c29dc8fe0014f117fd55e",
+          "size": 9437184,
+          "offset": 0
+        },
+        {
+          "path": "dev/deploy/parts/3d8a301cb198b587f8d0652a8d425089ff9790a0-001.part",
+          "sha": "37442ffda314cf2caef761c036beed1f4f2e5d19",
+          "size": 9437184,
+          "offset": 9437184
+        },
+        {
+          "path": "dev/deploy/parts/3d8a301cb198b587f8d0652a8d425089ff9790a0-002.part",
+          "sha": "7ad79ad710e9cbdddc7ec4142d5bd81621f79eae",
+          "size": 9437184,
+          "offset": 18874368
+        },
+        {
+          "path": "dev/deploy/parts/3d8a301cb198b587f8d0652a8d425089ff9790a0-003.part",
+          "sha": "264ae82d66f1ed00da64b70eadbee4c26caa9464",
+          "size": 6246656,
+          "offset": 28311552
+        }
+      ]
+    },
+    {
+      "path": "public/osiedle/assets/gameready_casino_scene.glb",
+      "sha": "e4251c62be31dbe43fc63bedae082bb7b75900f5",
+      "size": 32202092,
+      "parts": [
+        {
+          "path": "dev/deploy/parts/e4251c62be31dbe43fc63bedae082bb7b75900f5-000.part",
+          "sha": "479ae7c9315f6f2b4abd7c1a80a2b9054e44d09c",
+          "size": 9437184,
+          "offset": 0
+        },
+        {
+          "path": "dev/deploy/parts/e4251c62be31dbe43fc63bedae082bb7b75900f5-001.part",
+          "sha": "d609c532f11a5c88cda6646f1f073f765a4eba85",
+          "size": 9437184,
+          "offset": 9437184
+        },
+        {
+          "path": "dev/deploy/parts/e4251c62be31dbe43fc63bedae082bb7b75900f5-002.part",
+          "sha": "97e78a9639294bc5fcebeca638090ab3f1d68045",
+          "size": 9437184,
+          "offset": 18874368
+        },
+        {
+          "path": "dev/deploy/parts/e4251c62be31dbe43fc63bedae082bb7b75900f5-003.part",
+          "sha": "5cce282cb6fdbe50213771e3a7cae9d6cc6e949b",
+          "size": 3890540,
+          "offset": 28311552
+        }
+      ]
+    },
+    {
+      "path": "public/osiedle/assets/park_tree.glb",
+      "sha": "a01c320d3570ec830ca8aad236ebf178d6354086",
+      "size": 37242960,
+      "parts": [
+        {
+          "path": "dev/deploy/parts/a01c320d3570ec830ca8aad236ebf178d6354086-000.part",
+          "sha": "ef1846de094391f250f5e2831e4e682f2b7eb367",
+          "size": 9437184,
+          "offset": 0
+        },
+        {
+          "path": "dev/deploy/parts/a01c320d3570ec830ca8aad236ebf178d6354086-001.part",
+          "sha": "f13f14e5124323a02e507b952f6db84e0a84f5d8",
+          "size": 9437184,
+          "offset": 9437184
+        },
+        {
+          "path": "dev/deploy/parts/a01c320d3570ec830ca8aad236ebf178d6354086-002.part",
+          "sha": "c4db0e960c2b2d06f415b8185896f706d09674c1",
+          "size": 9437184,
+          "offset": 18874368
+        },
+        {
+          "path": "dev/deploy/parts/a01c320d3570ec830ca8aad236ebf178d6354086-003.part",
+          "sha": "1b6d5c069bca15a4deffcec22f317b1bfddd3379",
+          "size": 8931408,
+          "offset": 28311552
+        }
+      ]
+    },
+    {
+      "path": "public/osiedle/assets/policestation.glb",
+      "sha": "88f5620643947d15dd554d802e37c8f2abebd022",
+      "size": 24723272,
+      "parts": [
+        {
+          "path": "dev/deploy/parts/88f5620643947d15dd554d802e37c8f2abebd022-000.part",
+          "sha": "c7b25e34b512c608f1df02281992e4eec1871296",
+          "size": 9437184,
+          "offset": 0
+        },
+        {
+          "path": "dev/deploy/parts/88f5620643947d15dd554d802e37c8f2abebd022-001.part",
+          "sha": "9328262c74ae1aae59045eadb4c137ec5d1917be",
+          "size": 9437184,
+          "offset": 9437184
+        },
+        {
+          "path": "dev/deploy/parts/88f5620643947d15dd554d802e37c8f2abebd022-002.part",
+          "sha": "be3c5a133cca44ce3497a98250eeeaa1ed7898bd",
+          "size": 5848904,
+          "offset": 18874368
+        }
+      ]
+    }
+  ]
+}

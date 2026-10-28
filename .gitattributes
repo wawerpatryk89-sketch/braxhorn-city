@@ -1,0 +1,7 @@
+dev/source-assets/verdant-trail/*.blend filter=lfs diff=lfs merge=lfs -text
+dev/source-assets/verdant-trail/*.hdr filter=lfs diff=lfs merge=lfs -text
+dev/source-assets/verdant-trail/*.zip filter=lfs diff=lfs merge=lfs -text
+
+dev/source-assets/people-packs/*.zip filter=lfs diff=lfs merge=lfs -text
+
+dev/source-assets/hospital/*.zip filter=lfs diff=lfs merge=lfs -text

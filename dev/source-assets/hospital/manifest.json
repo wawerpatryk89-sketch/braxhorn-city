@@ -1,0 +1,13 @@
+{
+  "file": "Hospital_assets.zip",
+  "bytes": 215402044,
+  "sha256": "d5072f585056fa3e4e3a1c92d1ab342812ec4c1fa527ca4b378d4770dc18df1a",
+  "author": "Madduck",
+  "source": "User upload, itch.io Free Modular 3D hospital environment",
+  "usedObjects": [
+    "Bed",
+    "Chair",
+    "Wheel_chair"
+  ],
+  "runtimeTextureLimit": 1024
+}

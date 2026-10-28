@@ -1,0 +1,282 @@
+{
+  "report": {
+    "baked": true,
+    "cityBaked": false,
+    "cpu": [
+      0.8999999985098839,
+      0.5,
+      0.7000000029802322,
+      0.29999999701976776,
+      0.20000000298023224,
+      0.3999999985098839,
+      0.20000000298023224,
+      0.3999999985098839,
+      0.6999999955296516,
+      0.8000000044703484,
+      0.29999999701976776,
+      0.30000000447034836,
+      0.29999999701976776,
+      0.29999999701976776,
+      0.20000000298023224,
+      0.20000000298023224,
+      0.19999999552965164,
+      0.10000000149011612,
+      0.20000000298023224,
+      0.29999999701976776
+    ],
+    "frames": [
+      8,
+      3.899999998509884,
+      4.399999998509884,
+      6.4000000059604645,
+      3.1999999955296516,
+      3.399999998509884
+    ],
+    "triangles": 266261,
+    "verts": 563202,
+    "render": {
+      "frame": 52,
+      "calls": 163,
+      "triangles": 301901,
+      "points": 0,
+      "lines": 0
+    },
+    "memory": {
+      "geometries": 223,
+      "textures": 94
+    },
+    "dpr": 1.75,
+    "lights": [
+      {
+        "type": "PointLight",
+        "visible": false,
+        "intensity": 8,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "PointLight",
+        "visible": false,
+        "intensity": 8,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "PointLight",
+        "visible": false,
+        "intensity": 8,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "PointLight",
+        "visible": false,
+        "intensity": 8,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "SpotLight",
+        "visible": false,
+        "intensity": 95.19999999999999,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "SpotLight",
+        "visible": false,
+        "intensity": 168,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "SpotLight",
+        "visible": false,
+        "intensity": 154,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "SpotLight",
+        "visible": false,
+        "intensity": 133,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "SpotLight",
+        "visible": false,
+        "intensity": 118.99999999999999,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "SpotLight",
+        "visible": false,
+        "intensity": 118.99999999999999,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "SpotLight",
+        "visible": true,
+        "intensity": 70,
+        "shadow": false
+      },
+      {
+        "type": "SpotLight",
+        "visible": true,
+        "intensity": 55,
+        "shadow": false
+      },
+      {
+        "type": "PointLight",
+        "visible": false,
+        "intensity": 1.8,
+        "shadow": false,
+        "inside": true
+      },
+      {
+        "type": "HemisphereLight",
+        "visible": true,
+        "intensity": 0.765,
+        "shadow": false
+      },
+      {
+        "type": "DirectionalLight",
+        "visible": true,
+        "intensity": 2,
+        "shadow": true
+      }
+    ],
+    "largest": [
+      {
+        "name": "Body",
+        "parent": "nyxa",
+        "n": 22514,
+        "material": "MeshStandardMaterial",
+        "cast": true,
+        "skinned": true,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "",
+        "n": 21596,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "Body",
+        "parent": "brax",
+        "n": 19324,
+        "material": "MeshStandardMaterial",
+        "cast": true,
+        "skinned": true,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "",
+        "n": 15404,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "",
+        "n": 11224,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "",
+        "n": 11200,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "",
+        "n": 10664,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "mesh_0",
+        "parent": "",
+        "n": 10644,
+        "material": "MeshStandardMaterial",
+        "cast": true,
+        "skinned": true,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "floors",
+        "n": 9076,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "",
+        "n": 8064,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "",
+        "n": 6628,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "",
+        "n": 6024,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "",
+        "n": 6024,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "gym",
+        "n": 5736,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      },
+      {
+        "name": "",
+        "parent": "",
+        "n": 4936,
+        "material": "MeshBasicMaterial",
+        "cast": false,
+        "visible": true
+      }
+    ],
+    "meshes": 229,
+    "npc": 5,
+    "street": false
+  },
+  "logs": []
+}

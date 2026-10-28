@@ -5,7 +5,7 @@
 #   Usage (repo root):  python3 dev/tools/build_quick.py [--dev]
 import os, sys, subprocess, datetime
 R = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-ESB = '/opt/npm-tools/node_modules/esbuild/bin/esbuild'   # preinstalled in the session image
+ESB = os.environ.get('ESBUILD', '/opt/npm-tools/node_modules/esbuild/bin/esbuild')   # preinstalled in the session image
 dev = '--dev' in sys.argv
 args = [ESB, 'dev/src/main.js', '--bundle', '--format=iife', '--target=es2020', '--alias:three=./dev/three/build/three.module.js',
         '--outfile=public/game.js', '--log-level=warning'] + ([] if dev else ['--minify']) + (['--sourcemap'] if dev else [])

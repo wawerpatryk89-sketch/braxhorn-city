@@ -1,0 +1,470 @@
+{
+  "files": [
+    {
+      "uploaded_name": "Archiwum(1).zip",
+      "stored_name": "textures-01.zip",
+      "bytes": 152322012,
+      "sha256": "5c14983ee39b61ecb97d01fc3fbf66b81e503221bf5c4a718a4ca3b1f3995be3",
+      "entries": [
+        {
+          "name": "coast_rocks_05_nor_gl_4k.exr",
+          "bytes": 35774556
+        },
+        {
+          "name": "coast_rocks_05_rough_4k.exr",
+          "bytes": 10546740
+        },
+        {
+          "name": "coastal_cliff_02_nor_gl_2k.exr",
+          "bytes": 8579847
+        },
+        {
+          "name": "coastal_cliff_02_rough_2k.exr",
+          "bytes": 3406701
+        },
+        {
+          "name": "coastal_cliff_04_nor_gl_2k.exr",
+          "bytes": 9470899
+        },
+        {
+          "name": "coastal_cliff_04_rough_2k.exr",
+          "bytes": 3603645
+        },
+        {
+          "name": "dead_tree_trunk_nor_gl_2k.exr",
+          "bytes": 7943845
+        },
+        {
+          "name": "dead_tree_trunk_rough_2k.exr",
+          "bytes": 3944387
+        },
+        {
+          "name": "dry_branches_medium_01_nor_gl_2k.exr",
+          "bytes": 9155024
+        },
+        {
+          "name": "dry_branches_medium_01_rough_2k.exr",
+          "bytes": 3874550
+        },
+        {
+          "name": "forest_ground_04_nor_gl_2k.exr",
+          "bytes": 10166059
+        },
+        {
+          "name": "forest_ground_04_rough_2k.exr",
+          "bytes": 3477073
+        },
+        {
+          "name": "forest_leaves_04_nor_gl_4k.exr",
+          "bytes": 39994915
+        },
+        {
+          "name": "island_tree_01_nor_gl_1k.exr",
+          "bytes": 2415600
+        },
+        {
+          "name": "island_tree_01_rough_1k.exr",
+          "bytes": 875600
+        }
+      ]
+    },
+    {
+      "uploaded_name": "Archiwum 2(1).zip",
+      "stored_name": "textures-02.zip",
+      "bytes": 347951075,
+      "sha256": "ae997050e8a98ccb9f6121d8eb1aa146a0b13d14fe04b386e90442c8f2fc47d0",
+      "entries": [
+        {
+          "name": "kloofendal_48d_partly_cloudy_puresky_8k.exr",
+          "bytes": 290870780
+        },
+        {
+          "name": "rocks_ground_01_nor_gl_4k.exr",
+          "bytes": 37155885
+        },
+        {
+          "name": "rubber_duck_toy_metal_1k.exr",
+          "bytes": 4784
+        },
+        {
+          "name": "rubber_duck_toy_nor_gl_1k.exr",
+          "bytes": 110500
+        },
+        {
+          "name": "rubber_duck_toy_rough_1k.exr",
+          "bytes": 519456
+        },
+        {
+          "name": "sand_rocks_small_01_nor_gl_1k.exr",
+          "bytes": 2198463
+        },
+        {
+          "name": "sand_rocks_small_01_rough_1k.exr",
+          "bytes": 941714
+        },
+        {
+          "name": "tree_small_02_nor_gl_1k.exr",
+          "bytes": 2462967
+        },
+        {
+          "name": "tree_small_02_rough_1k.exr",
+          "bytes": 978610
+        },
+        {
+          "name": "alps_field_2k.hdr",
+          "bytes": 6531494
+        },
+        {
+          "name": "coast_rocks_05_diff_4k.jpg",
+          "bytes": 12157163
+        },
+        {
+          "name": "coastal_cliff_02_diff_2k.jpg",
+          "bytes": 2655313
+        },
+        {
+          "name": "coastal_cliff_04_diff_2k.jpg",
+          "bytes": 2900951
+        },
+        {
+          "name": "dead_tree_trunk_diff_2k.jpg",
+          "bytes": 2580084
+        },
+        {
+          "name": "dry_branches_medium_01_diff_2k.jpg",
+          "bytes": 2815859
+        }
+      ]
+    },
+    {
+      "uploaded_name": "Archiwum 4.zip",
+      "stored_name": "textures-04.zip",
+      "bytes": 41799175,
+      "sha256": "73c97a874021b9c318f827bcf71175825fa271f9248e4466cfc20e738cecf90a",
+      "entries": [
+        {
+          "name": "grass_medium_02_alpha.png",
+          "bytes": 12607561
+        },
+        {
+          "name": "grass_medium_02_diff.png",
+          "bytes": 12607286
+        },
+        {
+          "name": "grass_medium_02_disp.png",
+          "bytes": 12607561
+        },
+        {
+          "name": "grass_medium_02_dry_diff.png",
+          "bytes": 12607428
+        },
+        {
+          "name": "grass_medium_02_nor_gl.png",
+          "bytes": 12607561
+        },
+        {
+          "name": "grass_medium_02_rough.png",
+          "bytes": 12607427
+        },
+        {
+          "name": "ground_mask_01.png",
+          "bytes": 1145491
+        },
+        {
+          "name": "island_tree_01_branches_diff_1k.png",
+          "bytes": 5300271
+        },
+        {
+          "name": "island_tree_01_branches_nor_gl_1k.png",
+          "bytes": 5400459
+        },
+        {
+          "name": "island_tree_01_branches_rough_1k.png",
+          "bytes": 1625206
+        },
+        {
+          "name": "island_tree_01_leaves_alpha_1k.png",
+          "bytes": 57438
+        },
+        {
+          "name": "island_tree_01_leaves_diff_1k.png",
+          "bytes": 2627035
+        },
+        {
+          "name": "island_tree_01_leaves_nor_gl_1k.png",
+          "bytes": 2886859
+        },
+        {
+          "name": "island_tree_01_leaves_rough_1k.png",
+          "bytes": 879599
+        },
+        {
+          "name": "ivy_alpha.png",
+          "bytes": 300357
+        },
+        {
+          "name": "ivy_diff.png",
+          "bytes": 1335349
+        },
+        {
+          "name": "ivy_disp.png",
+          "bytes": 858873
+        },
+        {
+          "name": "ivy_normal.png",
+          "bytes": 2296076
+        },
+        {
+          "name": "ivy_rough.png",
+          "bytes": 736721
+        },
+        {
+          "name": "jacaranda_tree_branches_diff_1k.png",
+          "bytes": 5223386
+        },
+        {
+          "name": "jacaranda_tree_branches_nor_gl_1k.png",
+          "bytes": 5400459
+        }
+      ]
+    },
+    {
+      "uploaded_name": "Archiwum 6.zip",
+      "stored_name": "textures-06.zip",
+      "bytes": 249124129,
+      "sha256": "3f5b57a9d2f472260d5f07c5017f237c23cfe21dc43731a85f313e02979196e1",
+      "entries": [
+        {
+          "name": "rock_face_2_rough.png",
+          "bytes": 16808537
+        },
+        {
+          "name": "rock_face_diff.png",
+          "bytes": 50417248
+        },
+        {
+          "name": "rock_face_nor_gl.png",
+          "bytes": 50417248
+        },
+        {
+          "name": "rock_face_rough.png",
+          "bytes": 16808537
+        },
+        {
+          "name": "rocks_ground_01_disp_4k.png",
+          "bytes": 27524659
+        },
+        {
+          "name": "root_cluster_01_diff.png",
+          "bytes": 50417248
+        },
+        {
+          "name": "root_cluster_01_nor_gl.png",
+          "bytes": 50417248
+        },
+        {
+          "name": "root_cluster_01_rough.png",
+          "bytes": 16808537
+        },
+        {
+          "name": "root_cluster_2_diff.png",
+          "bytes": 50417248
+        },
+        {
+          "name": "root_cluster_2_disp.png",
+          "bytes": 16808537
+        },
+        {
+          "name": "root_cluster_2_nor_gl.png",
+          "bytes": 50417248
+        },
+        {
+          "name": "root_cluster_2_rough.png",
+          "bytes": 50418859
+        },
+        {
+          "name": "shrub_01_alpha.png",
+          "bytes": 4204677
+        },
+        {
+          "name": "shrub_01_diff.png",
+          "bytes": 12607009
+        },
+        {
+          "name": "shrub_01_disp.png",
+          "bytes": 4204677
+        },
+        {
+          "name": "shrub_01_nor_gl.png",
+          "bytes": 12607009
+        },
+        {
+          "name": "shrub_01_rough.png",
+          "bytes": 4204677
+        },
+        {
+          "name": "shrub_02_alpha.png",
+          "bytes": 4203225
+        },
+        {
+          "name": "shrub_02_diff.png",
+          "bytes": 12605396
+        },
+        {
+          "name": "shrub_02_disp.png",
+          "bytes": 4203225
+        },
+        {
+          "name": "shrub_02_mask.png",
+          "bytes": 12605396
+        },
+        {
+          "name": "shrub_02_nor_gl.png",
+          "bytes": 12605396
+        },
+        {
+          "name": "shrub_02_rough.png",
+          "bytes": 4203225
+        },
+        {
+          "name": "shrub_03_alpha.png",
+          "bytes": 4203225
+        },
+        {
+          "name": "shrub_03_diff.png",
+          "bytes": 12605396
+        },
+        {
+          "name": "shrub_03_nor_gl.png",
+          "bytes": 12605396
+        },
+        {
+          "name": "shrub_03_rough.png",
+          "bytes": 4203225
+        },
+        {
+          "name": "shrub_04_alpha.png",
+          "bytes": 4203225
+        },
+        {
+          "name": "shrub_04_diff.png",
+          "bytes": 12605396
+        },
+        {
+          "name": "shrub_04_mask.png",
+          "bytes": 4204675
+        }
+      ]
+    },
+    {
+      "uploaded_name": "verdant_trail.blend",
+      "stored_name": "verdant_trail.blend",
+      "bytes": 233127638,
+      "sha256": "1099755db10b036aae9a92db1b1d774b054cf3896dc0ada9bb99d6cca2644f28"
+    },
+    {
+      "uploaded_name": "alps_field_2k(1).hdr",
+      "stored_name": "alps_field_2k.hdr",
+      "bytes": 6531494,
+      "sha256": "90ef5a4e0c46d0177a06406b59142a6bb426176a85c195fa23d2e443383a9e12"
+    },
+    {
+      "uploaded_name": "Archiwum(2).zip",
+      "stored_name": "textures-05a.zip",
+      "bytes": 107606172,
+      "sha256": "5e6233627665a9634fc76b07d9a448adc7ca7a792238acb385fbf8a0015e8497",
+      "entries": [
+        {
+          "name": "jacaranda_tree_leaves_nor_gl_1k.png",
+          "bytes": 4154090
+        },
+        {
+          "name": "jacaranda_tree_leaves_rough_1k.png",
+          "bytes": 992522
+        },
+        {
+          "name": "jacaranda_tree_trunk_diff_1k.png",
+          "bytes": 5450061
+        },
+        {
+          "name": "jacaranda_tree_trunk_disp_1k.png",
+          "bytes": 1697879
+        },
+        {
+          "name": "jacaranda_tree_trunk_nor_gl_1k.png",
+          "bytes": 5486270
+        },
+        {
+          "name": "jacaranda_tree_trunk_rough_1k.png",
+          "bytes": 1747236
+        },
+        {
+          "name": "rock_07_diff.png",
+          "bytes": 50417248
+        },
+        {
+          "name": "rock_07_nor_gl.png",
+          "bytes": 201662162
+        },
+        {
+          "name": "rock_07_rough.png",
+          "bytes": 16810128
+        }
+      ]
+    },
+    {
+      "uploaded_name": "Archiwum 2(2).zip",
+      "stored_name": "textures-05b.zip",
+      "bytes": 172213274,
+      "sha256": "f7b0f994617594a1de5c5dae350c266566012062a88d1b751b25cb1233d194c2",
+      "entries": [
+        {
+          "name": "rock_08_diff.png",
+          "bytes": 50417248
+        },
+        {
+          "name": "rock_08_nor_gl.png",
+          "bytes": 50417248
+        },
+        {
+          "name": "rock_08_rough.png",
+          "bytes": 16808537
+        },
+        {
+          "name": "rock_face_01_diff.png",
+          "bytes": 50419284
+        },
+        {
+          "name": "rock_face_01_disp.png",
+          "bytes": 16809990
+        },
+        {
+          "name": "rock_face_01_nor_gl.png",
+          "bytes": 50419144
+        },
+        {
+          "name": "rock_face_01_rough.png",
+          "bytes": 16810412
+        },
+        {
+          "name": "rock_face_2_diff.png",
+          "bytes": 50417248
+        },
+        {
+          "name": "rock_face_2_nor_gl.png",
+          "bytes": 50417248
+        }
+      ]
+    }
+  ],
+  "missing": [],
+  "duplicates": {
+    "verdant_trail(1).blend": "verdant_trail.blend",
+    "alps_field_2k(2).hdr": "alps_field_2k.hdr"
+  },
+  "known_missing_textures": [
+    "jacaranda_tree_leaves_diff_1k.png",
+    "jacaranda_tree_leaves_alpha_1k.png",
+    "jacaranda_tree_branches_rough_1k.png"
+  ]
+}

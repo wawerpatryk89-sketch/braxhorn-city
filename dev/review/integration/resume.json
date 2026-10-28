@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "resumed": {
+    "hero": "brax",
+    "money": 654,
+    "kills": 9,
+    "yaw": 0.7,
+    "checkpoint": null,
+    "query": "",
+    "baked": true
+  },
+  "reloaded": {
+    "money": 777,
+    "mode": "title",
+    "player": false
+  }
+}

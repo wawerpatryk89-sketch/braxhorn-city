@@ -1,0 +1,227 @@
+{
+  "checks": [
+    {
+      "name": "gym-bake-valid",
+      "pass": true,
+      "details": {
+        "baked": true,
+        "lights": [
+          {
+            "type": "PointLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "PointLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "PointLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "PointLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "SpotLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "SpotLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "SpotLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "SpotLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "SpotLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "SpotLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "SpotLight",
+            "visible": false
+          },
+          {
+            "type": "SpotLight",
+            "visible": false
+          },
+          {
+            "type": "PointLight",
+            "visible": false,
+            "interior": true
+          },
+          {
+            "type": "HemisphereLight",
+            "visible": true
+          },
+          {
+            "type": "DirectionalLight",
+            "visible": true
+          }
+        ],
+        "street": false,
+        "hero": "nyxa",
+        "render": {
+          "frame": 40,
+          "calls": 163,
+          "triangles": 308281,
+          "points": 0,
+          "lines": 0
+        }
+      }
+    },
+    {
+      "name": "no-live-gym-lamps",
+      "pass": true
+    },
+    {
+      "name": "only-fill-and-sun",
+      "pass": true
+    },
+    {
+      "name": "city-and-estate-not-loaded-in-gym",
+      "pass": true
+    },
+    {
+      "name": "movement-independent-of-render-rate",
+      "pass": true,
+      "details": [
+        {
+          "hz": 60,
+          "distance": 4.247165964029975,
+          "yawSame": true,
+          "at": [
+            -1.2353827217316122,
+            0,
+            7.038914533469211
+          ]
+        },
+        {
+          "hz": 20,
+          "distance": 4.362499999968597,
+          "yawSame": true,
+          "at": [
+            -1.4999950059604494,
+            0,
+            7.162499999965739
+          ]
+        },
+        {
+          "hz": 10,
+          "distance": 4.386666666666665,
+          "yawSame": true,
+          "at": [
+            -1.499999999955299,
+            0,
+            7.186666666666665
+          ]
+        }
+      ]
+    },
+    {
+      "name": "camera-never-auto-turns",
+      "pass": true
+    },
+    {
+      "name": "city-lighting-valid",
+      "pass": true
+    },
+    {
+      "name": "estate-gate-action",
+      "pass": true
+    },
+    {
+      "name": "estate-loads-after-transition",
+      "pass": true,
+      "details": {
+        "ready": true,
+        "errors": [],
+        "homes": 8,
+        "pos": [
+          0,
+          1.78,
+          92
+        ],
+        "assets": 21
+      }
+    },
+    {
+      "name": "estate-entry-spawn",
+      "pass": true
+    },
+    {
+      "name": "eight-homes",
+      "pass": true
+    },
+    {
+      "name": "return-preserves-player",
+      "pass": true,
+      "details": {
+        "hero": "nyxa",
+        "money": 321,
+        "hp": 75.16952000000181,
+        "bossIdx": 2,
+        "kills": 7,
+        "position": [
+          100,
+          0.15,
+          34.5
+        ],
+        "baked": true,
+        "cityBaked": true,
+        "titleHidden": true
+      }
+    },
+    {
+      "name": "checkpoint-consumed-on-return",
+      "pass": true
+    },
+    {
+      "name": "no-remote-boss-at-return",
+      "pass": true
+    },
+    {
+      "name": "return-resumes-game",
+      "pass": true
+    },
+    {
+      "name": "no-delayed-boss-in-gym",
+      "pass": true
+    },
+    {
+      "name": "gym-accessible-after-return",
+      "pass": true
+    },
+    {
+      "name": "no-javascript-errors",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "no-missing-game-assets",
+      "pass": true,
+      "details": []
+    }
+  ],
+  "errors": [],
+  "failedRequests": []
+}

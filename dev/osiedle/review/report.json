@@ -1,0 +1,602 @@
+{
+  "stats": {
+    "calls": 276,
+    "triangles": 2206503,
+    "geometries": 424,
+    "textures": 133,
+    "assets": 21,
+    "errors": [],
+    "position": [
+      43,
+      1.78,
+      -57.639999999999944
+    ],
+    "yaw": 0
+  },
+  "vegetation": [
+    {
+      "kind": "tree",
+      "count": 7,
+      "source": "park_tree.glb"
+    },
+    {
+      "kind": "shrub",
+      "count": 17,
+      "source": "park_shrub.glb"
+    },
+    {
+      "kind": "rock",
+      "count": 6,
+      "source": "park_rock.glb"
+    }
+  ],
+  "homeCount": 8,
+  "models": [
+    {
+      "name": "dom_suburban",
+      "position": [
+        -35.62706132902621,
+        0.571027791485422,
+        35.63663251652709
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -36.5,
+          "y": 0.08000000000000002,
+          "z": 18.03601544898616
+        },
+        "max": {
+          "x": -19.5,
+          "y": 8.209578371419374,
+          "z": 35.963984551013844
+        }
+      }
+    },
+    {
+      "name": "dom_nowoczesny",
+      "position": [
+        26.38991308650456,
+        0.3313761329055603,
+        29.36424432134317
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 20,
+          "y": 0.08000000000000002,
+          "z": 20.53476109881526
+        },
+        "max": {
+          "x": 33.99999999999999,
+          "y": 9.820398385626868,
+          "z": 35.46523890118474
+        }
+      }
+    },
+    {
+      "name": "willa_nowoczesna",
+      "position": [
+        -21.10677507187082,
+        0.08000000000000006,
+        2.7551630578859765
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -37.49999999999999,
+          "y": 0.08,
+          "z": -11.075757575757578
+        },
+        "max": {
+          "x": -20.499999999999996,
+          "y": 10.449283385031416,
+          "z": 11.075757575757578
+        }
+      }
+    },
+    {
+      "name": "dom_z_wnetrzem",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 21,
+          "y": 0.07999999821186066,
+          "z": -6.644509315490723
+        },
+        "max": {
+          "x": 35,
+          "y": 11.878177642822266,
+          "z": 6.644509315490723
+        }
+      }
+    },
+    {
+      "name": "dom_wnetrze_zewn",
+      "position": [
+        -11.9835707982067,
+        0.04221473756340754,
+        46.93553392987538
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -38,
+          "y": 0.08,
+          "z": 54.780382103399866
+        },
+        "max": {
+          "x": -17.999999999999996,
+          "y": 3.6715278032106458,
+          "z": 63.219617896600134
+        }
+      }
+    },
+    {
+      "name": "dom_nowoczesny",
+      "position": [
+        27.346335449826313,
+        0.3493315709702432,
+        60.46169034429625
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 20.5,
+          "y": 0.08000000000000002,
+          "z": 51.00152974873063
+        },
+        "max": {
+          "x": 35.49999999999999,
+          "y": 10.516141127457358,
+          "z": 66.99847025126937
+        }
+      }
+    },
+    {
+      "name": "garaze_sowieckie",
+      "position": [
+        -31.927836234126573,
+        0.09832198893471006,
+        -38.0288823943018
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -46.5,
+          "y": 0.08,
+          "z": -43.94451565647317
+        },
+        "max": {
+          "x": -23.499999999999996,
+          "y": 3.9014002319477505,
+          "z": -34.05548434352682
+        }
+      }
+    },
+    {
+      "name": "gameready_casino_scene",
+      "position": [
+        -85.99029712373975,
+        9.256280780116596,
+        -67.09673574477421
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -103,
+          "y": 0.08000000000000007,
+          "z": -51.115217299494034
+        },
+        "max": {
+          "x": -69,
+          "y": 6.883334595112972,
+          "z": -34.88478270050597
+        }
+      }
+    },
+    {
+      "name": "policestation",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 70.5,
+          "y": 0.07999999821186066,
+          "z": -53.29022216796875
+        },
+        "max": {
+          "x": 101.5,
+          "y": 4.074995517730713,
+          "z": -28.326536178588867
+        }
+      }
+    },
+    {
+      "name": "nightclub",
+      "position": [
+        -86,
+        0.2375,
+        13.322749842286186
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -92.3,
+          "y": 0.08000000000000002,
+          "z": 1.9827492414716534
+        },
+        "max": {
+          "x": -79.7,
+          "y": 4.02758016582481,
+          "z": 15.799999935627016
+        }
+      }
+    },
+    {
+      "name": "blackjack_table",
+      "position": [
+        -99,
+        0.0800000000000004,
+        -32.49289169019766
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -100.55,
+          "y": 0.08,
+          "z": -31.986301013291406
+        },
+        "max": {
+          "x": -97.45,
+          "y": 1.1577166172588282,
+          "z": -30.013698986708597
+        }
+      }
+    },
+    {
+      "name": "roulette_table",
+      "position": [
+        -77.04702755234442,
+        0.6143457871685399,
+        -30.2000671387074
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -74.89999999999999,
+          "y": 0.08000000000000002,
+          "z": -32.52389154409174
+        },
+        "max": {
+          "x": -71.1,
+          "y": 1.3543227703043121,
+          "z": -29.47610845590826
+        }
+      }
+    },
+    {
+      "name": "stylized_poker_table_-_game_asset",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": -100.89759826660156,
+          "y": 0.07999999821186066,
+          "z": -55.44139862060547
+        },
+        "max": {
+          "x": -97.06793212890625,
+          "y": 1.4648653268814087,
+          "z": -52.559600830078125
+        }
+      }
+    },
+    {
+      "name": "hospital_bed",
+      "position": [
+        74.99999966100494,
+        0.08,
+        5.999999951572133
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 74.42500000000001,
+          "y": 0.08000000000000002,
+          "z": 4.694985302773974
+        },
+        "max": {
+          "x": 75.575,
+          "y": 1.0406043258802984,
+          "z": 7.305014697226026
+        }
+      }
+    },
+    {
+      "name": "hospital_bed",
+      "position": [
+        74.99999966100494,
+        0.08,
+        15.999999951572132
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 74.42500000000001,
+          "y": 0.08000000000000002,
+          "z": 14.694985302773972
+        },
+        "max": {
+          "x": 75.575,
+          "y": 1.0406043258802984,
+          "z": 17.305014697226024
+        }
+      }
+    },
+    {
+      "name": "hospital_bed",
+      "position": [
+        96.99999966100494,
+        0.08,
+        5.999999951572133
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 96.42500000000001,
+          "y": 0.08000000000000002,
+          "z": 4.694985302773974
+        },
+        "max": {
+          "x": 97.575,
+          "y": 1.0406043258802984,
+          "z": 7.305014697226026
+        }
+      }
+    },
+    {
+      "name": "hospital_bed",
+      "position": [
+        96.99999966100494,
+        0.08,
+        15.999999951572132
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 96.42500000000001,
+          "y": 0.08000000000000002,
+          "z": 14.694985302773972
+        },
+        "max": {
+          "x": 97.575,
+          "y": 1.0406043258802984,
+          "z": 17.305014697226024
+        }
+      }
+    },
+    {
+      "name": "hospital_chair",
+      "position": [
+        92.99999926520842,
+        0.08,
+        25
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 92.675,
+          "y": 0.07999999999999996,
+          "z": 24.616004460823067
+        },
+        "max": {
+          "x": 93.32499999999999,
+          "y": 1.1921736659302704,
+          "z": 25.383995539176937
+        }
+      }
+    },
+    {
+      "name": "hospital_chair",
+      "position": [
+        96.99999926520842,
+        0.08,
+        25
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 96.675,
+          "y": 0.07999999999999996,
+          "z": 24.616004460823067
+        },
+        "max": {
+          "x": 97.32499999999999,
+          "y": 1.1921736659302704,
+          "z": 25.383995539176937
+        }
+      }
+    },
+    {
+      "name": "hospital_chair",
+      "position": [
+        100.99999926520842,
+        0.08,
+        25
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 100.675,
+          "y": 0.07999999999999996,
+          "z": 24.616004460823067
+        },
+        "max": {
+          "x": 101.32499999999999,
+          "y": 1.1921736659302704,
+          "z": 25.383995539176937
+        }
+      }
+    },
+    {
+      "name": "hospital_wheelchair",
+      "position": [
+        102,
+        0.08,
+        23.000000210422595
+      ],
+      "bounds": {
+        "isBox3": true,
+        "min": {
+          "x": 101.625,
+          "y": 0.08000000000000002,
+          "z": 22.746183695639623
+        },
+        "max": {
+          "x": 102.375,
+          "y": 0.7616950818668147,
+          "z": 23.25381630436037
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "routes": [
+    {
+      "name": "street-villa-terrace-return",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "bedroom-bathroom-return",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "both-streets-loop",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "contact-house-garden-return",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "park-entry",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "expanded-street-loop",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "casino-interior-entry",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "club-interior-entry",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "police-interior-entry",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "hospital-through-corridor",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "boxing-arena-entry",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "octagon-arena-entry",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "casino-front-door",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "club-front-door",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "police-front-door",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "hospital-front-door",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "boxing-front-door",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "arena-front-door",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "garage-court",
+      "passed": true,
+      "failure": null,
+      "yawUnchanged": true
+    },
+    {
+      "name": "closed-city-gate",
+      "passed": true
+    },
+    {
+      "name": "closed-forest-gate",
+      "passed": true
+    }
+  ]
+}

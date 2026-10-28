@@ -508,7 +508,7 @@ export async function buildDistrict({ scene, world, A, font, logos, street }) {
     box(gx, gx + 0.4, ST.near - 1, D.frontZ + 1, 3.2, -1, 'fence');
     const bz0 = ST.road0 + 0.2; B.box(mats.white, gx - 1.2, gx - 0.8, 0, 1.1, bz0, bz0 + 0.4, { uv: null });
     for (let k = 0; k < 9; k++) B.box(k % 2 ? mats.white : mats.red, gx - 1.06, gx - 0.94, 0.95, 1.08, bz0 + 0.4 + k * 0.95, bz0 + 1.35 + k * 0.95, { uv: null });
-    const sg = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.2), M({ map: CT.signBoard(font, 'OSIEDLE DOMKÓW', { fg: '#f0ead8', bg: '#2e4a66', border: '#f0ead8', sub: 'WJAZD ZAMKNIĘTY' }) }));
+    const sg = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.2), M({ map: CT.signBoard(font, 'OSIEDLE DOMKÓW', { fg: '#f0ead8', bg: '#2e4a66', border: '#f0ead8', sub: 'PRZEJŚCIE NA OSIEDLE' }) }));
     sg.position.set(gx - 0.1, 2.2, ST.road1 + 1.6); sg.rotation.y = -Math.PI / 2; G.add(sg);
     // beyond the gate: only the road continues (the house estate is plansza 2, built separately and joined here)
     B.box(mats.asphalt, gx, gx + 40, -0.3, 0.0, ST.road0, ST.road1, { uv: 4, ud: { noBake: true } });

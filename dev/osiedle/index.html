@@ -1,0 +1,8 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Braxhorn · Osiedle</title><link rel="stylesheet" href="./style.css"></head><body>
+<canvas id="scene" aria-label="Osiedle Braxhorn w 3D"></canvas>
+<header><div class="brand">BRAXHORN<span>OSIEDLE / ETAP 02</span></div><button id="menu" aria-label="Otwórz mapę">Mapa</button></header>
+<div id="place">Ulica Wiśniowa <span>Zwiedzanie osiedla</span></div>
+<div id="loading"><b>BRAXHORN</b><span id="status">Przygotowuję osiedle…</span><progress id="progress" max="21" value="0"></progress><button id="enter" hidden>Wejdź na osiedle</button></div>
+<div id="map" hidden><section><button id="close" aria-label="Zamknij mapę">×</button><small>DZIELNICA 02</small><h1>Osiedle Braxhorn</h1><p>8 domów · kasyno · dyskoteka · komisariat · szpital · ring · oktagon.</p><div id="destinations"></div><p class="help">Komputer: WASD / strzałki · przeciągnij, aby się rozejrzeć.<br>Telefon: lewy drążek — ruch, prawa część ekranu — rozglądanie.</p><button id="return-city">Wróć do miasta BRAXHORN</button><button id="quality">Jakość: wysoka</button></section></div>
+<div id="hint">WASD — ruch · przeciągnij — rozejrzyj się</div><div id="joystick"><i></i></div><div id="crosshair"></div><button id="action" hidden></button>
+<script type="module" src="./game.js"></script></body></html>

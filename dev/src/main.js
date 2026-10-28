@@ -24,6 +24,8 @@ import { buildDistrict, POINTS, ZONES } from './district.js';
 const PLACES = {}; const buildPlace = null; const buildVilla = null;
 import { prepareBake, bakeLighting, packBake, applyBake, setLightmapUV, bakeGroundMap, applyGroundMap, floatGeo } from './bake.js';
 import { mergeGeometries } from '../three/examples/jsm/utils/BufferGeometryUtils.js';
+import { advanceFrame } from './frame-time.js';
+import { saveCityVisit, readCityVisit, clearCityVisit, estateURL } from '../shared/district-travel.js';
 import { HEROES, PROLOGUE, CHAPTERS, BOSSES, CRYPT_BOSSES, ZOMBIE, ENDING, HINTS } from './story.js';
 
 const $ = (id) => document.getElementById(id);
@@ -121,12 +123,15 @@ async function boot() {
   const floor = createGymFloors({ hall: HALL, alley: ALLEY, turf: { x0: -5, x1: 9, z0: 7.3, z1: 9.6 }, font: fontStack });
   gym.root.add(floor.mesh);
   // baked lighting (bake.js): static gym meshes become unlit + stored light; people and moving props stay lit live
-  const BAKE_FILE = 'bake/gym3.bin.gz', BAKE_GAIN = 1.5;
+  const BAKE_FILE = 'bake/gym4.bin.gz', BAKE_GAIN = 1.5;
   const CITY_BAKE = 'bake/city1.bin.gz', CITY_GROUND = 'bake/city1_ground.bin.gz', CITY_GAIN = 1.0;
   let cityBakeList = [], cityGround = [], cityBaked = false;
   const bakeList = prepareBake(gym.root);
   let baked = false;
   try { const raw = await A.loadBin(BAKE_FILE); baked = !!applyBake(bakeList, new Uint16Array(raw.slice().buffer), BAKE_GAIN); } catch (e) { console.warn('gym bake not loaded', e); }
+  // Never silently run the tessellated hall with all live lamps after a stale or
+  // failed bake. This exact fallback caused the phone performance regression.
+  if (!baked) { fail('Nie udało się wczytać oświetlenia siłowni. Odśwież grę, aby pobrać aktualną wersję.'); return; }
   if (baked) {
     // the baked floor does not take live shadows: a shadow-only layer on the floor and the ring for the fighters
     const shMat = new THREE.ShadowMaterial({ opacity: 0.38 });
@@ -316,7 +321,7 @@ async function boot() {
   ui.onConfirmHero = (k) => startGame(k);
 
   // ---------------- game start ----------------
-  async function startGame(heroKey) {
+  async function startGame(heroKey, resume = null) {
     G.hero = HEROES[heroKey]; ui.showSelect(false);
     const otherKey = heroKey === 'brax' ? 'nyxa' : 'brax';
     player = heroModels[heroKey]; partner = heroModels[otherKey];
@@ -329,22 +334,45 @@ async function boot() {
     cam.target.set(player.pos.x, 1.6, player.pos.z); cam.yaw = Math.PI; cam.snap = true;
     ui.setHero(G.hero, HEROES[otherKey]);
     applyUpgrades();
-    window.__mg.player = player; window.__mg.partner = partner;
+    window.__mg.partner = partner;
     G.mode = 'story';
-    await ui.story(PROLOGUE);
+    if (!resume) await ui.story(PROLOGUE);
     G.mode = 'play'; G.chapter = 'gym';
-    await ui.chapter(CHAPTERS.gym);
+    if (!resume) await ui.chapter(CHAPTERS.gym);
     if (G.explore) setExplore(true); else ui.objective(HINTS.gymStart);
     sound.setRoom('gym');
     // gym members, then stream the street in the background
     people.populateGym(isTouch ? 5 : 7).catch(e => console.warn('gym people', e));
     // the city is not built while you train: it loads behind a loading screen when you step out of the gym door
+    if (resume) {
+      ui.loading(true, 'Wracam z osiedla…');
+      try {
+        await loadStreet();
+        G.explore = resume.explore;
+        for (const key of ['money','bossIdx','cryptStage','kills','specialIdx']) if (Number.isFinite(resume[key])) G[key] = resume[key];
+        G.cryptOpen = !!resume.cryptOpen;
+        G.chapter = 'street'; G.streetShown = true;
+        player.pos.set(100, 0, 34.5); player.y = 0.15;
+        player.hp = Math.max(1, Math.min(player.maxHp, resume.hp ?? player.maxHp));
+        partner.root.visible = false; partner.col.top = -10;
+        if (resume.bat) { equipBat(); G.bat.hits = Math.max(1, Math.min(16, resume.batHits ?? 16)); ui.weapon('PAŁKA', G.bat.hits); }
+        cam.yaw = resume.yaw ?? Math.PI / 2; cam.pitch = resume.pitch ?? 0.3; cam.dist = resume.dist ?? 5.8;
+        cam.target.set(player.pos.x, player.y + 1.6, player.pos.z); cam.snap = true;
+        store.set('money', G.money); ui.money(G.money); updateBars();
+        sound.setRoom('street'); ui.objective(G.explore ? EXPLORE_HINT : HINTS.street);
+        // Consume the handoff so a later refresh cannot restore stale money/HP.
+        clearCityVisit();
+        const url = new URL(location.href); url.searchParams.delete('from'); history.replaceState(null, '', url);
+      } catch (e) { console.error(e); ui.banner('', 'Powrót do miasta nie powiódł się. Jesteś bezpiecznie w siłowni.', 4); }
+      finally { ui.loading(false); }
+    }
   }
 
   // ---------------- street ----------------
   let streetPromise = null;
   function loadStreet() {
     if (streetPromise) return streetPromise;
+    G.loadingWorld = true;
     streetPromise = (async () => {
       const tS = performance.now(); const T = (m) => console.log('[t] ' + m + ' ' + ((performance.now() - tS) / 1000).toFixed(1) + 's');
       const st = await buildStreet({ scene, world, font: fontStack, A, logos, Q }); T('street');
@@ -385,9 +413,9 @@ async function boot() {
       try { renderer.compile(scene, camera); } catch { } // compile the street's shaders now, not on the first frame outside
       // pedestrians come later: their routes are ready in district.js (ROUTES)
       // preload the first bosses + zombies
-      loadChar('tiger'); loadChar('zombie'); loadChar('tiger2'); loadChar('fant'); loadChar('musc');
+      if (!G.explore) { loadChar('tiger'); loadChar('zombie'); loadChar('tiger2'); loadChar('fant'); loadChar('musc'); }
       return st;
-    })();
+    })().finally(() => { G.loadingWorld = false; });
     return streetPromise;
   }
   let cryptPromise = null;
@@ -433,7 +461,18 @@ async function boot() {
     }
   }
   const DEST_TITLE = { street: 'Ulica BRAXHORN', villa: 'Willa' };
+  function visitEstate() {
+    if (!player || G.travelling) return;
+    if (G.boss || G.spawningBoss || G.lock || G.carry) { ui.banner('', 'Dokończ bieżącą walkę lub dostawę przed zmianą dzielnicy.', 3); return; }
+    try {
+      saveCityVisit({hero:G.hero.key,explore:G.explore,hp:player.hp,money:G.money,bossIdx:G.bossIdx,cryptStage:G.cryptStage,cryptOpen:G.cryptOpen,kills:G.kills,specialIdx:G.specialIdx,bat:!!G.bat,batHits:G.bat?.hits,yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist});
+      store.set('money', G.money); store.set('upg', upg);
+    } catch (e) { ui.banner('', 'Nie mogę zapisać stanu gracza. Pozostajesz w mieście.', 3); return; }
+    G.travelling = true; ui.loading(true, 'Przechodzę na osiedle…');
+    location.assign(estateURL());
+  }
   async function travel(dest) {
+    if (dest === 'osiedle') return visitEstate();
     if (dest.startsWith('pt:')) return jumpTo(dest.slice(3));
     if (G.travelling || dest === G.chapter) { ui.showMap(false); return; }
     G.travelling = true; ui.showMap(false);
@@ -510,6 +549,7 @@ async function boot() {
     void turf;
     const items = [
       { key: 'gym', title: 'Siłownia BRAXHORN', sub: 'Twoja baza. Ring, worki i sparing.', tag: 'Baza' },
+      { key: 'osiedle', title: 'Osiedle Wiśniowa', sub: '8 domów, park, kasyno, szpital i areny. Zwiedzanie.', tag: 'Dzielnica 02' },
       { key: 'pt:street_gym', title: 'Ulica przed siłownią', sub: 'Główna ulica dzielnicy.', tag: 'Ulica' },
       { key: 'pt:shop_inside', title: 'Sklep BRAXHORN NUTRITION', sub: 'Odżywki i leczenie, obok siłowni.', tag: 'Sklep' },
       { key: 'pt:club_door', title: 'Dyskoteka NOVA', sub: 'Wejście z ulicy, sala, bar, zaplecze i piwnica.', tag: 'Klub' },
@@ -917,13 +957,16 @@ async function boot() {
     }
   }
   async function updateBossTriggers() {
-    if (G.explore || G.chapter !== 'street' || G.boss || G.spawningBoss || G.bossIdx >= BOSSES.length) return;
+    if (G.explore || G.travelling || G.chapter !== 'street' || G.boss || G.spawningBoss || G.bossIdx >= BOSSES.length) return;
     const def = BOSSES[G.bossIdx];
-    if (player.pos.x > def.x - 12 && player.pos.z > ST.near) {
+    // Returning from the eastern district must not summon a boss far behind us
+    // and snap the player back into that boss's arena.
+    if (Math.abs(player.pos.x - def.x) < 12 && player.pos.z > ST.near) {
       G.spawningBoss = true;
       try {
         const z = Math.max(ST.near + 1.2, Math.min(ST.road1 - 0.5, player.pos.z + rand(-1.5, 1.5)));
         const f = await spawnBoss(def, def.x + 4, z);
+        if (G.chapter !== 'street' || G.travelling || G.explore || BOSSES[G.bossIdx] !== def) { despawn(f); return; }
         G.lock = [def.x - 15, def.x + 10];
         bossIntro(f);
       } finally { G.spawningBoss = false; }
@@ -1227,7 +1270,8 @@ async function boot() {
     if (G.place && G.chapter === G.place.def.key && Math.hypot(player.pos.x - G.place.exit.x, player.pos.z - G.place.exit.z) < 3.2) return { label: 'JEDŹ', fn: openMap };
     // shop counter: buying (the healing rules come with the mission); closed passages: a short note
     { const p = POINTS.shop_counter; if (Math.hypot(player.pos.x - p.x, player.pos.z - p.z) < 1.6 && Math.abs(player.y - p.y) < 0.6) return { label: 'SKLEP', fn: () => ui.shop(true, SHOP, upg, G.money) }; }
-    for (const [id, msg] of [['closed_forest', 'Droga do lasu z bunkrami jest zamknięta. Otworzy się później.'], ['closed_estate', 'Wjazd na osiedle domków jest zamknięty. Otworzy się po pokonaniu szefa.']]) { const p = POINTS[id]; if (Math.hypot(player.pos.x - p.x, player.pos.z - p.z) < 3.5) return { label: 'ZAMKNIĘTE', fn: () => ui.banner('', msg, 2.4) }; }
+    { const p = POINTS.closed_estate; if (Math.hypot(player.pos.x - p.x, player.pos.z - p.z) < 6.5) return { label: 'OSIEDLE', fn: visitEstate }; }
+    { const p = POINTS.closed_forest; if (Math.hypot(player.pos.x - p.x, player.pos.z - p.z) < 3.5) return { label: 'ZAMKNIĘTE', fn: () => ui.banner('', 'Droga do lasu z bunkrami jest zamknięta. Otworzy się później.', 2.4) }; }
     return null;
   }
 
@@ -1293,6 +1337,7 @@ async function boot() {
       else if (a === 'shake') useShake();
     }
 
+    if (G.travelling || G.loadingWorld || G.waitStreet) return;
     const o = updateLighting(realDt, tAll);
     if (playing) {
       // input relative to camera
@@ -1327,7 +1372,7 @@ async function boot() {
     // AI
     if (partner && G.chapter === 'gym' && G.mode === 'play' && partner.root.visible) aiSpar(partner, dt);
     for (const a of actors) if (a.team === 'enemy') aiEnemy(a, dt);
-    for (const a of actors) a.update(dt);
+    for (const a of actors) if (a.root.visible) a.update(dt);
     for (const a of actors) if (!Number.isFinite(a.pos.x + a.pos.z + a.y + a.heading)) { a.pos.set(player ? player.pos.x + 2 : 0, 0, player ? player.pos.z : 0); a.y = 0; a.heading = 0; a.vel.set(0, 0); a.knock.set(0, 0); a.vy = 0; a.onGround = true; a.stopOverlays(0); a.setState('loco'); }
     if (!Number.isFinite(cam.target.x + cam.target.y + cam.target.z + cam.yaw + cam.pitch)) { cam.target.set(0, 1.6, 0); cam.yaw = 0; cam.pitch = 0.3; }
     // keep the sparring partner in the ring
@@ -1350,12 +1395,14 @@ async function boot() {
 
     // zones: inside the hall the street (buildings, cars, walkers) is not drawn at all; it appears near the door
     const inHall = G.chapter === 'gym' && (G.mode !== 'play' || !player || player.pos.z < HALL.maxZ - 2.5);
+    // The alley's local lamps are unnecessary in the current day-only game.
+    for (const l of gym.lights) if (!l.userData.interior) l.visible = !DAY_ONLY && !inHall;
     const zn = player && G.mode === 'play' && G.chapter === 'street' ? zoneAt(player.pos.x, player.y, player.pos.z) : null;
     if (zn !== curZone) { curZone = zn; sound.setRoom(zn && (zn.mood === 'club' || zn.mood === 'cellar' || zn.mood === 'back') ? 'crypt' : zn && zn.mood === 'shop' ? 'gym' : G.chapter === 'gym' ? 'gym' : 'street'); }
     const hideOut = !!(curZone && curZone.hideOut);
     if (G.street && (G.chapter === 'gym' || G.chapter === 'street')) { G.street.group.visible = !inHall && !hideOut; gym.root.visible = !hideOut; if (G.district) G.district.interiors.group.visible = !inHall; }
     // street systems
-    if (G.street && (G.chapter === 'street' || G.chapter === 'gym')) {
+    if (G.street && !inHall && (G.chapter === 'street' || G.chapter === 'gym')) {
       G.street.update(dt, o, tAll);
       if (G.traffic && !G.explore) G.traffic.update(dt, actors.filter(a => a.root.visible), o, (f, car, dir) => {
         if (f.state === 'ko' || f.state === 'down') return;
@@ -1434,7 +1481,8 @@ async function boot() {
       if (!G.boss) ui.showOpp(G.chapter === 'gym' && partner.root.visible && (flat(player, partner) < 10 || inRing(player)));
       if (G.chapter === 'gym' && !G.sparHint && inRing(player)) { G.sparHint = true; ui.banner('SPARING', isTouch ? 'CIOS, KOP, SPECJAL i RZUT po prawej' : 'J cios · K kop · I specjal · E rzut', 2.4); sound.bell(1); }
       if (G.chapter === 'street' && G.street && !G.batHint && G.pickups.some(p => p.kind === 'bat' && flat(player, { pos: p.obj.position }) < 6)) { G.batHint = true; ui.banner('', HINTS.bat, 2.6); }
-      store.set('hour', env.hour);
+      // Day-only mode has a fixed hour; don't synchronously write storage every frame.
+      if (!DAY_ONLY && Math.floor(tAll) !== G.savedHourAt) { store.set('hour', env.hour); G.savedHourAt = Math.floor(tAll); }
     }
     updateCamera(realDt);
     ui.tick(realDt);
@@ -1474,13 +1522,17 @@ async function boot() {
   }
   function frame() {
     requestAnimationFrame(frame);
-    const d = clock.getDelta(); if (paused) return;
-    perf.t = (perf.t || 0) + d; perf.n = (perf.n || 0) + 1;
-    if (perf.t > 1 && perf.el) { perf.el.textContent = `${Math.round(perf.n / perf.t)} kl/s · ${dyn.cur.toFixed(2)}× · AA ${Q.msaa}× · ${renderer.info.render.calls} dc · ${Math.round(renderer.info.render.triangles / 1000)}k`; perf.t = 0; perf.n = 0; }
-    if (!menuOpen && G.mode === 'play') dynRes(d);
+    const d = clock.getDelta();
+    const idle = paused || menuOpen || !$('map').hidden || G.loadingWorld || G.waitStreet || G.travelling;
+    perf.el.hidden = idle || G.mode !== 'play';
+    if (paused || G.loadingWorld || G.waitStreet || G.travelling) { perf.t = perf.n = 0; return; }
     if (menuOpen) { while (actions.length) menuAction(actions.shift()); return; }
     if (!$('map').hidden) { actions.length = 0; return; }
-    try { tick(d); render(); }
+    if (G.mode === 'play') {
+      dynRes(d); perf.t = (perf.t || 0) + d; perf.n = (perf.n || 0) + 1;
+      if (perf.t > 1) { perf.el.textContent = `${Math.round(perf.n / perf.t)} kl/s · ${dyn.cur.toFixed(2)}× · AA ${Q.msaa}× · ${renderer.info.render.calls} dc · ${Math.round(renderer.info.render.triangles / 1000)}k`; perf.t = 0; perf.n = 0; }
+    }
+    try { advanceFrame(d, tick); render(); }
     catch (e) { frameErrors++; if (frameErrors === 1 || frameErrors % 300 === 0) console.error(e); }
   }
   // offline: bake the gym light (play-test harness writes the file to assets/bake)
@@ -1492,7 +1544,7 @@ async function boot() {
     const half = packBake(res);
     const gz = await new Response(new Blob([half.buffer]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
     const u = new Uint8Array(gz); let str = ''; for (let i = 0; i < u.length; i += 32768) str += String.fromCharCode.apply(null, u.subarray(i, i + 32768));
-    return { verts: half.length / 3, meshes: bakeList.length, occluders: occ.length, lights: gym.bakeLights.length, kb: Math.round(gz.byteLength / 1024), sec: ((performance.now() - t0) / 1000).toFixed(1), __file: { b64: btoa(str), path: '/home/claude/braxhorn-city/public/assets/bake/gym3.bin.gz' } };
+    return { verts: half.length / 3, meshes: bakeList.length, occluders: occ.length, lights: gym.bakeLights.length, kb: Math.round(gz.byteLength / 1024), sec: ((performance.now() - t0) / 1000).toFixed(1), __file: { b64: btoa(str), path: 'public/assets/' + BAKE_FILE } };
   }
   // offline: bake the district's daylight (sun 13:30 + sky + room lamps); harness writes public/assets/bake/city1.bin.gz
   const CITY_SUN = (sd) => ({ dir: sd, col: new THREE.Color(1.0, 0.93, 0.8).multiplyScalar(1.15), spread: 0.025, rays: 3 });
@@ -1534,12 +1586,20 @@ async function boot() {
     freeCam(x, y, z, tx, ty, tz, fov = 55) { camera.position.set(x, y, z); camera.fov = fov; camera.updateProjectionMatrix(); camera.lookAt(tx, ty, tz); },
     THREE, A, G, env, world, actors, scene, renderer, progs: () => renderer.info.programs, get player() { return player; }, get cam() { return cam; }, camera, sound,
     sim(sec, ks = []) { ks.forEach(k => keys.add(k)); for (let i = 0; i < Math.round(sec * 60); i++) tick(1 / 60); ks.forEach(k => keys.delete(k)); },
-    render, renderer, street: () => G.street, TUNE, charMats, bloom, act: (a) => actions.push(a), pause(v) { paused = v; }, joy, openMenu, closeMenu,
+    simFrames(elapsed, count, ks = []) { ks.forEach(k => keys.add(k)); for (let i = 0; i < count; i++) advanceFrame(elapsed, tick); ks.forEach(k => keys.delete(k)); },
+    visitEstate,
+    render, renderer, street: () => G.street, TUNE, charMats, bloom, act: (a) => actions.push(a), pause(v) { paused = v; if (v) perf.el.hidden = true; }, joy, openMenu, closeMenu,
     start: (k) => startGame(k), title: () => ui.onTitle(), spawnThug, people, loadPlace, travel, openMap, killFoes() { for (const a of [...actors]) if (a.team === 'enemy' && !a.dead) { a.hp = 0; a.ko(new THREE.Vector3(0, 0, -1)); onKO(a, player); } }, goVilla, leaveVilla, loadVilla, buy, upg, loadStreet, loadCrypt, enterCrypt, spawnZombie, setHour: (h) => env.setHour(h),
     tp(x, z) { player.pos.set(x, 0, z); cam.snap = true; },
   };
   ui.setExplore(G.explore); ui.setSound(sound.on); ui.setQuality(qKey); ui.setCam(cam.mode); ui.setOrient(view.w() > view.h());
   frame();
+  // Browser Back may reload the city after its previous WebGL page was discarded.
+  const returnState = readCityVisit();
+  if (returnState) { ui.showTitle(false); startGame(returnState.hero, returnState); }
+  addEventListener('pageshow', e => {
+    if (e.persisted) { G.travelling = false; ui.loading(false); clearCityVisit(); clock.getDelta(); }
+  });
 }
 
 const MOVE_LIST = [

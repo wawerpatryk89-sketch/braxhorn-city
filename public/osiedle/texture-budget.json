@@ -1,0 +1,98 @@
+[
+  {
+    "file": "blackjack_table.glb",
+    "sourceBytes": 5383244,
+    "runtimeBytes": 910596,
+    "textureLimit": 1024,
+    "resizedTextures": 3,
+    "sha256": "f89ee947f83cd015425e3e8f6312e9d5820b8dfc19bcad9c4ecd78a9f72471f5"
+  },
+  {
+    "file": "gameready_casino_scene.glb",
+    "sourceBytes": 32202056,
+    "runtimeBytes": 32202092,
+    "textureLimit": 1024,
+    "resizedTextures": 0,
+    "sha256": "a4212a70432ea077fbced00cee8cc2ba9bfc71db994dfe49272b18c0ba19370d"
+  },
+  {
+    "file": "hospital_bed.glb",
+    "sourceBytes": 11521828,
+    "runtimeBytes": 1650760,
+    "textureLimit": 1024,
+    "resizedTextures": 2,
+    "sha256": "73eb68d0e064d1f07d0f09c9abede8587086982fccf7349426a00713adf8d8df"
+  },
+  {
+    "file": "hospital_chair.glb",
+    "sourceBytes": 23409496,
+    "runtimeBytes": 1248760,
+    "textureLimit": 1024,
+    "resizedTextures": 2,
+    "sha256": "ea5718ffa434bed005bc7a090a875e70d98ee9c7cf2006ca523aa9d80bd67bb1"
+  },
+  {
+    "file": "hospital_wheelchair.glb",
+    "sourceBytes": 7107608,
+    "runtimeBytes": 1500700,
+    "textureLimit": 1024,
+    "resizedTextures": 2,
+    "sha256": "d0eb56568cb3176c6bebd72edc8db716fc8c9dbec25001915205011727a449b7"
+  },
+  {
+    "file": "nightclub.glb",
+    "sourceBytes": 18932796,
+    "runtimeBytes": 2625092,
+    "textureLimit": 1024,
+    "resizedTextures": 8,
+    "sha256": "e8622313d63ab1e69a6f9b4074dda2acb1ce34019ea55ec12503f31c1db3fb0a"
+  },
+  {
+    "file": "park_rock.glb",
+    "sourceBytes": 3603128,
+    "runtimeBytes": 3603128,
+    "textureLimit": 1024,
+    "resizedTextures": 0,
+    "sha256": "bc50126bb209266c5bb2c4affcc084706bc5c89133d3582a3c0e2060de6017fc"
+  },
+  {
+    "file": "park_shrub.glb",
+    "sourceBytes": 2595600,
+    "runtimeBytes": 2595620,
+    "textureLimit": 1024,
+    "resizedTextures": 0,
+    "sha256": "ed8f59cfacc9d8eb812afe492d0d8b5b0b3269c247bceab15ea8190085a230c9"
+  },
+  {
+    "file": "park_tree.glb",
+    "sourceBytes": 37242944,
+    "runtimeBytes": 37242960,
+    "textureLimit": 1024,
+    "resizedTextures": 0,
+    "sha256": "55a46aa3ba33de8dc8f2a0031b1736cb54bb338136ee2734b7327ce2adef40ba"
+  },
+  {
+    "file": "policestation.glb",
+    "sourceBytes": 24723244,
+    "runtimeBytes": 24723272,
+    "textureLimit": 1024,
+    "resizedTextures": 0,
+    "sha256": "1fe5504f3556ecdee40aa79451a2e033f4234af9f5412e6917f24b1d6e09072f"
+  },
+  {
+    "file": "roulette_table.glb",
+    "sourceBytes": 1969024,
+    "runtimeBytes": 937472,
+    "textureLimit": 1024,
+    "resizedTextures": 1,
+    "sha256": "a95405f7da47932b48fd7883b9fabb2138829a55fe931e986de15ee04c6da714"
+  },
+  {
+    "file": "stylized_poker_table_-_game_asset.glb",
+    "sourceBytes": 34558208,
+    "runtimeBytes": 3228084,
+    "textureLimit": 1024,
+    "resizedTextures": 6,
+    "sha256": "621f78e3427c667e0f5c23ac2b0460c179cfb1147866c20381981fb2426c3caf"
+  }
+]

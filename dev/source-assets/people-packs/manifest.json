@@ -1,0 +1,51 @@
+[
+  {
+    "source": "HCG_LowPoly_LawEnforcement_Set1_2021_10_28.zip",
+    "file": "law-enforcement.zip",
+    "bytes": 1972725,
+    "sha256": "f0da32497e09d02afae8855f8f32b2d8a8e7cbe177b5b9418506ed3bdfb0b634",
+    "entries": [
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/",
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/HCG_LowPoly_LawEnforcement_Characters_2021_10_28.fbx",
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/HCG_LowPoly_LawEnforcement_Items.fbx",
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/HCG_LowPoly_LawEnforcement_Set_1_2021_10_22.unitypackage",
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/lowPoly_TextureSet_A.png",
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/lowPoly_TextureSet_B.png",
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/lowPoly_TextureSet_C.png",
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/lowPoly_TextureSet_D.png",
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/lowPoly_TextureSet_E.png",
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/Readme!!.txt",
+      "HCG_LowPoly_LawEnforcement_Set1_2021_10_28/UseForAvatar_HCG_LowPoly_LawEnforcement_Characters_UploadMeToMixamo.fbx"
+    ],
+    "zip_error": null
+  },
+  {
+    "source": "Low poly people pack.zip",
+    "file": "people-pack.zip",
+    "bytes": 10421929,
+    "sha256": "1a24d4ebdc893270b1f4052605f4d6b6ab3d8c145387079cca6a38950d63d24d",
+    "entries": [
+      "Male worker.gltf",
+      "Male swat.glb",
+      "Male suit.gltf",
+      "Male spacesuit.gltf",
+      "Male punk.gltf",
+      "Male farmer.gltf",
+      "Male casual.gltf",
+      "Male casual hoodie.gltf",
+      "Male Beach.gltf",
+      "Male adventurer.gltf",
+      "King.gltf",
+      "Female worker.gltf",
+      "Female suit.gltf",
+      "Female soldier.gltf",
+      "Female SciFi.gltf",
+      "Female Punk.gltf",
+      "Female medieval.gltf",
+      "Female Formal.gltf",
+      "Female casual.gltf",
+      "Female adventurer.gltf"
+    ],
+    "zip_error": null
+  }
+]

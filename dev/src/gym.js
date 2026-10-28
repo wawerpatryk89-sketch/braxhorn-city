@@ -578,7 +578,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
     mk.position.set(minX + 0.05, 3.2, 3.5); mk.rotation.y = Math.PI / 2; cut.nx.add(mk);
     if (logos.wideA) {
       const wa = logos.wideA, ar = wa.image.height / wa.image.width;
-      const mural = new THREE.Mesh(new THREE.PlaneGeometry(4.9, 4.9 * ar), new THREE.MeshStandardMaterial({ map: wa, transparent: true, depthWrite: false, roughness: 0.75, emissive: 0xffffff, emissiveMap: wa, emissiveIntensity: 0.35 }));
+      const mural = new THREE.Mesh(new THREE.PlaneGeometry(4.9, 4.9 * ar), new THREE.MeshStandardMaterial({ map: wa, transparent: true, depthWrite: false, roughness: 0.75 }));
       mural.position.set(maxX - 0.08, 4.3, 0); mural.rotation.y = -Math.PI / 2; cut.px.add(mural);
       BC.px.box(signBoard, maxX - 0.04, 4.3, 0, 0.06, 4.9 * ar + 0.55, 5.2);
       const fl = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 6.4 * ar).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: wa, transparent: true, depthWrite: false, roughness: 0.85, opacity: 0.9, polygonOffset: true, polygonOffsetFactor: -2 }));
