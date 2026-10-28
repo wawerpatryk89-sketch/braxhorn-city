@@ -46,6 +46,19 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 - Patrole Czerwonego Rogu w dzień na ulicy.
 - Obraz: rozdzielczość dopasowuje się sama (1.0–2.0× piksela, cel ~50 kl/s), słabszy blask i mgła.
 
+## Siłownia etapami (28.10, południe)
+
+- **Etap 1** (`src/gymfloor.js`): koniec „mokrej” podłogi z odbiciami. Matowa czarna guma 1×1 m z drobinkami (szare + zielone), w zaułku sucha popękana betonowa wylewka. Lampy wiszące oświetlają salę przez pole lamp (`gym.lampSources`).
+- **Etap 2: kolory BRAXHORN** (`src/gym.js`):
+  - ściany z cegły pomalowanej na grafit (`T.brick(…, { paint })`), czarny sufit i belki;
+  - czarne panele do 1,3 m z zieloną listwą LED #8bff3a; zielony LED wzdłuż łuków i w niszach;
+  - białe, neutralne światło główne;
+  - ring: grafitowa mata z odznaką, narożniki zielone i czarne, górna lina zielona;
+  - worki czarne z zielonymi pasami, jeden zielony, jeden biały; czarna mata pod workami z zieloną ramką i napisem;
+  - pas sztucznej trawy z liniami co 2 m i napisem BRAXHORN;
+  - logo `wide_a` na prawej ścianie i na podłodze; kartony BRAXHORN NUTRITION; czarne szafki z zielonymi etykietami; odżywki na półkach.
+  - Wyjście: czarne drzwi z zieloną ramką LED, neon BRAXHORN GYM nad drzwiami, zielony neon OPEN 24/7, byk sprayem na ścianie. Sąsiednie budynki w zaułku zostały z czerwonej cegły.
+
 ## Fabuła (story.js)
 
 1. **Siłownia BRAXHORN GYM**: sparing z partnerem na ringu, wyjście drzwiami WYJŚCIE na zaułek.
