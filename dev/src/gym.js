@@ -25,11 +25,13 @@ function worldUV(geo, scale, offset = 0) {
   return geo;
 }
 
+const isOutside = (g) => { g.computeBoundingBox(); return (g.boundingBox.min.z + g.boundingBox.max.z) / 2 > HALL.maxZ + 0.35; };
 class Batch {
   constructor() { this.groups = new Map(); }
   add(mat, geo, opts = {}) {
-    const key = mat.uuid + (opts.cast ? 'c' : '') + (opts.receive === false ? 'n' : '');
-    if (!this.groups.has(key)) this.groups.set(key, { mat, geos: [], cast: !!opts.cast, receive: opts.receive !== false });
+    const outside = isOutside(geo);
+    const key = mat.uuid + (opts.cast ? 'c' : '') + (opts.receive === false ? 'n' : '') + (outside ? 'o' : '');
+    if (!this.groups.has(key)) this.groups.set(key, { mat, geos: [], cast: !!opts.cast, receive: opts.receive !== false, outside });
     const g = geo.index ? geo.toNonIndexed() : geo;
     for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k);
     if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
@@ -52,9 +54,9 @@ class Batch {
   }
   build(scene) {
     if (!this.groups.size) return;
-    for (const { mat, geos, cast, receive } of this.groups.values()) {
+    for (const { mat, geos, cast, receive, outside } of this.groups.values()) {
       const m = new THREE.Mesh(mergeGeometries(geos), mat);
-      m.castShadow = cast; m.receiveShadow = receive;
+      m.castShadow = cast; m.receiveShadow = receive; m.userData.outside = outside;
       scene.add(m);
     }
   }
@@ -82,7 +84,9 @@ function lightConeMaterial(color, strength) {
 export function buildGym(scene, world, quality, font, logos = null) {
   const root = new THREE.Group(); root.name = 'gym'; scene.add(root);
   const outerScene = scene; scene = root;
-  const out = { lights: [], bags: [], animated: [], glowSprites: [], spawnBallsAt: [], root, lampSources: [] };
+  const out = { lights: [], bags: [], animated: [], glowSprites: [], spawnBallsAt: [], root, lampSources: [], bakeLights: [] };
+  // light sources for the baked lighting (bake.js): position, colour x strength, range, lobe, lamp size
+  const BL = (x, y, z, col, k, r, lobe = null, size = 0) => out.bakeLights.push({ p: new THREE.Vector3(x, y, z), col: new THREE.Color(col).multiplyScalar(k), r, lobe, size });
   const LS = (x, y, z, col, k, r, kind = 'gym') => out.lampSources.push({ pos: new THREE.Vector3(x, y, z), col: new THREE.Color(col).multiplyScalar(k), r, kind });
   const B = new Batch();
   const cut = { ceil: new THREE.Group(), px: new THREE.Group(), nx: new THREE.Group(), pz: new THREE.Group(), nz: new THREE.Group() };
@@ -133,9 +137,11 @@ export function buildGym(scene, world, quality, font, logos = null) {
   BC.nx.box(brickMat, minX - wallT / 2, H / 2, (minZ + maxZ) / 2, wallT, H, maxZ - minZ + 1.2, { uvScale: 2.2 });
   BC.px.box(brickMat, maxX + wallT / 2, H / 2, (minZ + maxZ) / 2, wallT, H, maxZ - minZ + 1.2, { uvScale: 2.2 });
   const D = DOOR, A = ALLEY;
-  BC.pz.box(brickMat, (minX - 0.6 + D.x0) / 2, H / 2, maxZ + wallT / 2, D.x0 - (minX - 0.6), H, wallT, { uvScale: 2.2 });
-  BC.pz.box(brickMat, (D.x1 + maxX + 0.6) / 2, H / 2, maxZ + wallT / 2, maxX + 0.6 - D.x1, H, wallT, { uvScale: 2.2 });
-  BC.pz.box(brickMat, (D.x0 + D.x1) / 2, (D.h + H) / 2, maxZ + wallT / 2, D.x1 - D.x0, H - D.h, wallT, { uvScale: 2.2 });
+  for (const [zc, th] of [[maxZ + wallT / 4, wallT / 2], [maxZ + wallT * 3 / 4, wallT / 2]]) {
+    BC.pz.box(brickMat, (minX - 0.6 + D.x0) / 2, H / 2, zc, D.x0 - (minX - 0.6), H, th, { uvScale: 2.2 });
+    BC.pz.box(brickMat, (D.x1 + maxX + 0.6) / 2, H / 2, zc, maxX + 0.6 - D.x1, H, th, { uvScale: 2.2 });
+    BC.pz.box(brickMat, (D.x0 + D.x1) / 2, (D.h + H) / 2, zc, D.x1 - D.x0, H - D.h, th, { uvScale: 2.2 });
+  }
   // the alley outside the door
   BC.pz.box(brickAlley, A.x0 - 0.3, H / 2 + 0.5, (maxZ + wallT + A.z1) / 2, 0.6, H + 1, A.z1 - maxZ - wallT, { uvScale: 2.2 });
   BC.pz.box(brickAlley, A.x1 + 0.3, H / 2 + 0.5, (maxZ + wallT + A.z1) / 2, 0.6, H + 1, A.z1 - maxZ - wallT, { uvScale: 2.2 });
@@ -188,6 +194,11 @@ export function buildGym(scene, world, quality, font, logos = null) {
     for (let x = x0; x < x1 - 0.05; x += PW) { const xe = Math.min(x + PW, x1); Bt.box(wainMat, (x + xe) / 2, WH / 2, z + dir * 0.025, xe - x - 0.014, WH, 0.05); }
     Bt.box(ledGreen, (x0 + x1) / 2, WH + 0.025, z + dir * 0.05, x1 - x0, 0.05, 0.03, { receive: false });
   };
+  const ledGlowX = (x, z0, z1, dir) => { for (let z = z0 + 1.2; z < z1 - 0.6; z += 2.4) BL(x + dir * 0.15, WH + 0.03, z, GREEN, 0.22, 1.9); };
+  const ledGlowZ = (z, x0, x1, dir) => { for (let x = x0 + 1.2; x < x1 - 0.6; x += 2.4) BL(x, WH + 0.03, z + dir * 0.15, GREEN, 0.22, 1.9); };
+  ledGlowX(minX, minZ, maxZ, 1); ledGlowX(maxX, minZ, maxZ, -1); ledGlowZ(maxZ, minX, D.x0 - 0.15, -1); ledGlowZ(maxZ, D.x1 + 0.15, maxX, -1);
+  for (let i = 0; i < pier.length; i += 2) ledGlowZ(minZ, pier[i], pier[i + 1], 1);
+  for (const cx of arches) for (const a of [0.35, 1.2, 1.95, 2.8]) BL(cx + Math.cos(a) * (aw + 0.21), spring + Math.sin(a) * (aw + 0.21), minZ + 0.3, GREEN, 0.3, 2.4);
   wainX(BC.nx, minX, minZ, maxZ, 1); wainX(BC.px, maxX, minZ, maxZ, -1);
   wainZ(BC.pz, maxZ, minX, D.x0 - 0.15, -1); wainZ(BC.pz, maxZ, D.x1 + 0.15, maxX, -1);
   for (let i = 0; i < pier.length; i += 2) wainZ(BC.nz, minZ, pier[i], pier[i + 1], 1);
@@ -230,6 +241,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
     BC.nz.box(ironMat, sx, sy, sz, aw * 1.5, 0.06, 0.08);
     BC.nz.box(ledGreen, sx, sy - 0.035, sz + 0.03, aw * 1.45, 0.02, 0.04, { receive: false });
     LS(sx, sy - 0.3, sz + 0.9, 0xf4f4f0, 0.6, 5);
+    BL(sx, sy - 0.15, sz + 0.45, 0xf2f4ff, 2.2, 5.5, null, 0.4); BL(sx, sy - 0.1, sz + 0.2, GREEN, 0.35, 2.2);
     { const pl = new THREE.PointLight(0xf2f4ff, 8, 8, 2); pl.position.set(sx, sy - 0.2, sz + 0.9); pl.userData.tier = i === 1 ? 1 : 2; pl.visible = pl.userData.tier <= quality.pointLights; scene.add(pl); out.lights.push(pl); }
   });
 
@@ -240,11 +252,13 @@ export function buildGym(scene, world, quality, font, logos = null) {
     SB.box(ironMat, x, 3.2, z, 0.12, 0.28, 0.2);
     SB.cyl(warmBulb, x - side * 0.12, 3.25, z, 0.06, 0.06, 0.18, 8);
     out.glowSprites.push({ pos: new THREE.Vector3(x - side * 0.25, 3.25, z), color: 0xe8eeff, size: 1.0, group: side < 0 ? 'nx' : 'px' });
+    BL(x - side * 0.3, 3.25, z, 0xffeedd, 1.1, 5, null, 0.1);
   }
 
   // small arched windows on the left wall (dim night light)
   const winMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0x2a3d5c).multiplyScalar(1.4) });
   for (const z of [-6, 0, 6]) {
+    BL(minX + 0.35, 4.9, z, 0x9db8e8, 0.5, 4.5);
     const ws = new THREE.Shape(); ws.moveTo(-0.7, 0); ws.lineTo(-0.7, 1.3); ws.absarc(0, 1.3, 0.7, Math.PI, 0, true); ws.lineTo(0.7, 0); ws.lineTo(-0.7, 0);
     const wg = new THREE.ShapeGeometry(ws, 16); wg.rotateY(Math.PI / 2); wg.translate(minX + 0.01, 4.6, z);
     BC.nx.add(winMat, wg, { receive: false });
@@ -284,6 +298,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
       cone.layers.set(2); cone.renderOrder = 5; cone.visible = !!quality.cones; cut.ceil.add(cone); out.cones = out.cones || []; out.cones.push(cone); }
     out.glowSprites.push({ pos: new THREE.Vector3(x, y - 0.45, z), color: 0xf2f5ff, size: 1.5, group: 'ceil' });
     LS(x, y - 1.2, z, 0xf6f5f0, 1.25, 8.5);
+    BL(x, y - 0.5, z, 0xfff4e6, 9, 15, 'down', 0.28);
   }
   // a few real spot lights under the lamps (no shadow; one shadow light follows the player)
   const spotDefs = [[9, -5.5, 5.4, 68, 0.95], [-4, -1.5, 6.2, 120, 0.9], [-12, -4.5, 6.2, 110, 0.95], [4, 5.5, 6.2, 95, 0.9], [-8, 6, 6.2, 85, 0.9], [2.5, -9, 6.2, 85, 0.9]];
@@ -378,7 +393,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
       const s = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.42, 3).rotateX(Math.PI / 2), steelMat);
       s.position.set(Math.cos(a) * 0.12, -chainLen - 0.14, Math.sin(a) * 0.12); s.lookAt(new THREE.Vector3(0, -chainLen, 0).add(bag.position)); bag.add(s);
     }
-    scene.add(bag);
+    bag.userData.dynamic = true; scene.add(bag);
     const L = chainLen + 0.25 + len / 2;
     const col2 = { x: beamX, z, r: 0.34, top: beamY - chainLen - 0.25, bottom: beamY - chainLen - 0.25 - len, mobile: true, noStand: true };
     const b = { group: bag, L, ax: 0, az: 0, vx: 0, vz: 0, col: col2, z, bottomY: col2.bottom, topY: col2.top, hits: 0 };
@@ -471,7 +486,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
     panel.position.set(dw / 2, D.h / 2, 0); panel.castShadow = true; panel.receiveShadow = true; pivot.add(panel);
     for (const [y, z] of [[0.9, -0.07], [1.45, 0.07]]) { const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, dw * 0.7, 8).rotateZ(Math.PI / 2), steelMat); bar.position.set(dw * 0.55, y, z); pivot.add(bar); }
     for (let k = 0; k < 5; k++) { const rib = new THREE.Mesh(new THREE.BoxGeometry(dw - 0.2, 0.03, 0.09), ironMat); rib.position.set(dw / 2, 0.35 + k * 0.6, 0); pivot.add(rib); }
-    cut.pz.add(pivot);
+    pivot.userData.dynamic = true; cut.pz.add(pivot);
     out.door = { pivot, angle: 0, target: 0 };
     // steel frame + exit sign
     BC.pz.box(ironMat, D.x0 - 0.06, D.h / 2, maxZ + wallT / 2, 0.12, D.h, wallT + 0.04);
@@ -489,6 +504,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.47), new THREE.MeshBasicMaterial({ map: exitT, toneMapped: false }));
     sign.position.set((D.x0 + D.x1) / 2, D.h + 0.48, maxZ - 0.025); sign.rotation.y = Math.PI; cut.pz.add(sign);
     BC.pz.box(signBoard, (D.x0 + D.x1) / 2, D.h + 0.48, maxZ - 0.01, 1.58, 0.55, 0.02);
+    BL((D.x0 + D.x1) / 2, D.h + 0.48, maxZ - 0.3, 0x3ad66a, 0.5, 3);
     // alley props
     const A = ALLEY, zIn = maxZ + wallT;
     const dumpMat = new THREE.MeshStandardMaterial({ color: 0x17181a, roughness: 0.55, metalness: 0.5 });
@@ -545,14 +561,15 @@ export function buildGym(scene, world, quality, font, logos = null) {
   fan.add(blades);
   for (const rr of [0.35, 0.65]) { const ring = new THREE.Mesh(new THREE.TorusGeometry(rr, 0.012, 4, 32), steelMat); ring.position.z = 0.24; fan.add(ring); }
   for (let k = 0; k < 8; k++) { const sp = new THREE.Mesh(new THREE.BoxGeometry(0.015, fanR * 2, 0.015), steelMat); sp.rotation.z = k * Math.PI / 8; sp.position.z = 0.25; fan.add(sp); }
-  cut.nz.add(fan);
+  fan.userData.dynamic = true; cut.nz.add(fan);
   out.animated.push((dt) => { blades.rotation.z -= dt * 7; });
 
   // ---------------- neon ----------------
   const neon = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 1.55), new THREE.MeshBasicMaterial({ map: T.neonSign(font, 'BRAXHORN GYM', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.35) }));
   neon.position.set(minX + 0.08, 6.0, -3.6); neon.rotation.y = Math.PI / 2; cut.nx.add(neon);
   BC.nx.box(signBoard, minX + 0.04, 6.0, -3.6, 0.06, 1.9, 6.6);
-  out.neon = neon; LS(minX + 1.0, 5.6, -3.6, 0x8bff3a, 0.3, 5, 'neon');
+  out.neon = neon; LS(minX + 1.0, 5.6, -3.6, 0x8bff3a, 0.3, 5, 'neon'); BL(minX + 0.5, 6.0, -3.6, GREEN, 1.2, 5.5, null, 0.6);
+  for (const z of [10.2, 9.35]) for (const y of [1.2, 3.6, 6.0]) BL(minX + 0.75, y, z, GREEN, 0.25, 2.2);
   const purple = new THREE.MeshBasicMaterial({ color: new THREE.Color(GREEN).multiplyScalar(1.3) });
   BC.nx.cyl(purple, minX + 0.55, 3.6, 10.2, 0.045, 0.045, 7.0, 8);
   BC.nx.cyl(purple, minX + 0.55, 3.6, 9.35, 0.045, 0.045, 7.0, 8);

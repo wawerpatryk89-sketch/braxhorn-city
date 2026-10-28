@@ -96,9 +96,9 @@ export function createGymFloors({ hall, alley, wallT = 0.6, turf = null, font = 
   const ct = concreteTextures([aw / 6, ad / 6]);
   const conc = addLampField(new THREE.MeshStandardMaterial({ map: ct.map, normalMap: ct.normalMap, normalScale: new THREE.Vector2(0.8, 0.8), roughness: 0.95, metalness: 0, envMapIntensity: 0.1 }), 'lit');
   const g2 = new THREE.PlaneGeometry(aw, ad).rotateX(-Math.PI / 2); g2.translate((alley.x0 + alley.x1) / 2, 0.002, z1 + ad / 2);
-  const m2 = new THREE.Mesh(g2, conc); m2.receiveShadow = true; group.add(m2);
+  const m2 = new THREE.Mesh(g2, conc); m2.receiveShadow = true; m2.userData.outside = true; group.add(m2);
   // drain grate in the alley
   const grate = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.9).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x0e0f10, roughness: 0.8, metalness: 0.2 }));
-  grate.position.set((alley.x0 + alley.x1) / 2 + 1.2, 0.006, alley.z1 - 3.5); group.add(grate);
+  grate.position.set((alley.x0 + alley.x1) / 2 + 1.2, 0.006, alley.z1 - 3.5); grate.userData.outside = true; group.add(grate);
   return { mesh: group, update() { }, setSize() { }, uniforms: { reflStrength: { value: 0 } } };
 }

@@ -63,10 +63,10 @@ export class People {
   }
   fade(p, to, name, dur = 0.3) { const n = p.act(name); if (p.cur === n) return; n.reset().play(); p.cur.crossFadeTo(n, dur, false); p.cur = n; }
   // threats: [{x,z,r}], street bounds for walkers
-  update(dt, { threats = [], camPos, night = 0, bounds }) {
+  update(dt, { threats = [], camPos, night = 0, bounds, hideWalkers = false }) {
     for (const p of this.list) {
       const far = camPos && Math.hypot(p.g.position.x - camPos.x, p.g.position.z - camPos.z) > 55;
-      p.g.visible = !far && !(p.mode === 'walk' && night > 0.6 && p.nightHide);
+      p.g.visible = !far && !(p.mode === 'walk' && (hideWalkers || (night > 0.6 && p.nightHide)));
       p.col.top = p.g.visible ? 1.8 : -10;
       if (!p.g.visible) continue;
       p.mixer.update(dt);

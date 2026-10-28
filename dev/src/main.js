@@ -21,6 +21,7 @@ import { buildCrypt, CRYPT } from './crypt.js';
 import { People } from './people.js';
 import { buildVilla, VILLA } from './villa.js';
 import { PLACES, buildPlace } from './places.js';
+import { prepareBake, bakeLighting, packBake, applyBake } from './bake.js';
 import { HEROES, PROLOGUE, CHAPTERS, BOSSES, CRYPT_BOSSES, ZOMBIE, ENDING, HINTS } from './story.js';
 
 const $ = (id) => document.getElementById(id);
@@ -32,11 +33,11 @@ const QUALITY = {
 };
 const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-// phones: edge smoothing always on in High/Medium (no flicker); everything lit live is expensive, so High is
-// 1.5x pixels with 4x MSAA (looks as sharp as 2x without MSAA), 4 spotlights, 1 point light, 1024 shadows
+// phones: edge smoothing always on in High/Medium (no flicker). The gym walls/floor use baked light (bake.js), so live
+// lights only touch people: High keeps all lights at 1.75x pixels with 4x MSAA and 1024 shadows
 if (isTouch) for (const [k, q] of Object.entries(QUALITY)) {
   q.reflections = false; q.cones = false; q.shadow = 1024; q.bloom = Math.min(q.bloom, 0.6);
-  Object.assign(q, { high: { dpr: 1.5, msaa: 4, spots: 4, pointLights: 1 }, medium: { dpr: 1.25, msaa: 2, spots: 3, pointLights: 1 }, low: { dpr: 1, msaa: 0, spots: 3, pointLights: 1 } }[k]);
+  Object.assign(q, { high: { dpr: 1.75, msaa: 4, spots: 6, pointLights: 2 }, medium: { dpr: 1.5, msaa: 2, spots: 4, pointLights: 1 }, low: { dpr: 1.25, msaa: 0, spots: 3, pointLights: 1 } }[k]);
 }
 const flat = (a, b) => Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z);
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -115,6 +116,17 @@ async function boot() {
   const cTex = TX.concrete(512);
   const floor = createGymFloors({ hall: HALL, alley: ALLEY, turf: { x0: -5, x1: 9, z0: 7.3, z1: 9.6 }, font: fontStack });
   gym.root.add(floor.mesh);
+  // baked lighting (bake.js): static gym meshes become unlit + stored light; people and moving props stay lit live
+  const BAKE_FILE = 'bake/gym1.bin.gz', BAKE_GAIN = 1.75;
+  const bakeList = prepareBake(gym.root);
+  let baked = false;
+  try { const raw = await A.loadBin(BAKE_FILE); baked = !!applyBake(bakeList, new Uint16Array(raw.slice().buffer), BAKE_GAIN); } catch (e) { console.warn('gym bake not loaded', e); }
+  if (baked) {
+    // the baked floor does not take live shadows: a shadow-only layer on the floor and the ring for the fighters
+    const shMat = new THREE.ShadowMaterial({ opacity: 0.38 });
+    const sf = new THREE.Mesh(new THREE.PlaneGeometry(HALL.maxX - HALL.minX, HALL.maxZ - HALL.minZ + 2).rotateX(-Math.PI / 2), shMat); sf.position.set(0, 0.014, (HALL.minZ + HALL.maxZ) / 2 + 1); sf.receiveShadow = true; gym.root.add(sf);
+    const sr = new THREE.Mesh(new THREE.PlaneGeometry(RING.apron * 2, RING.apron * 2).rotateX(-Math.PI / 2), shMat); sr.position.set(RING.x, RING.h + 0.006, RING.z); sr.receiveShadow = true; gym.root.add(sr);
+  }
   const hemi = new THREE.HemisphereLight(0xb09070, 0x1c1612, 0.85); scene.add(hemi);
   const key = new THREE.DirectionalLight(0xfff0dc, 1.6);
   key.castShadow = true; key.shadow.mapSize.set(Q.shadow, Q.shadow);
@@ -1270,6 +1282,9 @@ async function boot() {
     for (const k of sparks) if (k.t < 1) { k.t += dt * 4; k.s.scale.setScalar((k.big ? 0.9 : 0.55) * (0.4 + k.t)); k.s.material.opacity = 1 - k.t; if (k.t >= 1) k.s.visible = false; }
     for (const a of actors) { const h = a.hipsWorld(); a.blob.visible = a.root.visible; a.blob.position.set(h.x, world.groundAt(h.x, h.z, a.y + 0.1) + 0.012, h.z); a.blob.scale.setScalar(1 + Math.max(0, a.y - world.groundAt(a.pos.x, a.pos.z, a.y)) * 0.4); }
 
+    // zones: inside the hall the street (buildings, cars, walkers) is not drawn at all; it appears near the door
+    const inHall = G.chapter === 'gym' && (G.mode !== 'play' || !player || player.pos.z < HALL.maxZ - 2.5);
+    if (G.street && (G.chapter === 'gym' || G.chapter === 'street')) G.street.group.visible = !inHall;
     // street systems
     if (G.street && (G.chapter === 'street' || G.chapter === 'gym')) {
       G.street.update(dt, o, tAll);
@@ -1290,7 +1305,7 @@ async function boot() {
       const threats = [];
       for (const a of actors) if (a.team === 'enemy' && !a.dead && a.root.visible) threats.push({ x: a.pos.x, z: a.pos.z, r: 8 });
       if (player && (player.state === 'attack' || G.boss)) threats.push({ x: player.pos.x, z: player.pos.z, r: 6 });
-      people.update(dt, { threats, camPos: camera.position, night: o.night, bounds: { x0: ST.x0, x1: ST.x1 - 2 } });
+      people.update(dt, { threats, camPos: camera.position, night: o.night, bounds: { x0: ST.x0, x1: ST.x1 - 2 }, hideWalkers: inHall });
     }
     // night: zombies
     if (playing && G.chapter === 'street') {
@@ -1392,10 +1407,22 @@ async function boot() {
     try { tick(d); render(); }
     catch (e) { frameErrors++; if (frameErrors === 1 || frameErrors % 300 === 0) console.error(e); }
   }
+  // offline: bake the gym light (play-test harness writes the file to assets/bake)
+  async function bakeGym() {
+    const t0 = performance.now();
+    const occ = []; gym.root.traverse(o => { if (o.isMesh && !o.isSkinnedMesh && o.visible !== false) { const ms = Array.isArray(o.material) ? o.material : [o.material]; if (ms.every(m => (m.isMeshStandardMaterial || m.isMeshBasicMaterial) && !m.transparent)) occ.push(o); } });
+    for (const b of balls) { const i = occ.indexOf(b.m); if (i >= 0) occ.splice(i, 1); }
+    const res = bakeLighting({ receivers: bakeList, occluders: occ, lights: gym.bakeLights });
+    const half = packBake(res);
+    const gz = await new Response(new Blob([half.buffer]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
+    const u = new Uint8Array(gz); let str = ''; for (let i = 0; i < u.length; i += 32768) str += String.fromCharCode.apply(null, u.subarray(i, i + 32768));
+    return { verts: half.length / 3, meshes: bakeList.length, occluders: occ.length, lights: gym.bakeLights.length, kb: Math.round(gz.byteLength / 1024), sec: ((performance.now() - t0) / 1000).toFixed(1), __file: { b64: btoa(str), path: '/home/claude/work/assets/bake/gym1.bin.gz' } };
+  }
   window.__mg = {
+    bakeGym, baked: () => baked,
     THREE, A, G, env, world, actors, scene, renderer, progs: () => renderer.info.programs, get player() { return player; }, get cam() { return cam; }, camera, sound,
     sim(sec, ks = []) { ks.forEach(k => keys.add(k)); for (let i = 0; i < Math.round(sec * 60); i++) tick(1 / 60); ks.forEach(k => keys.delete(k)); },
-    render, act: (a) => actions.push(a), pause(v) { paused = v; }, joy, openMenu, closeMenu,
+    render, renderer, street: () => G.street, act: (a) => actions.push(a), pause(v) { paused = v; }, joy, openMenu, closeMenu,
     start: (k) => startGame(k), title: () => ui.onTitle(), spawnThug, people, loadPlace, travel, openMap, killFoes() { for (const a of [...actors]) if (a.team === 'enemy' && !a.dead) { a.hp = 0; a.ko(new THREE.Vector3(0, 0, -1)); onKO(a, player); } }, goVilla, leaveVilla, loadVilla, buy, upg, loadStreet, loadCrypt, enterCrypt, spawnZombie, setHour: (h) => env.setHour(h),
     tp(x, z) { player.pos.set(x, 0, z); cam.snap = true; },
   };

@@ -1,0 +1,4 @@
+{"steps": [{"wait": "window.__mg && !document.getElementById('title').hidden", "timeout": 180, "must": true}, {"pause": true},
+{"eval": "(() => { const m = window.__mg; let tris = 0, meshes = 0; m.scene.traverse(o => { if (o.isMesh && o.geometry) { meshes++; const g = o.geometry; tris += (g.index ? g.index.count : g.attributes.position.count) / 3; } }); return { baked: m.baked(), tris: Math.round(tris), meshes }; })()"},
+{"eval": "window.__mg.bakeGym()"}
+]}
