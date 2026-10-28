@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from '../three/examples/jsm/utils/BufferGeometryUtils.js';
 import * as T from './textures.js';
+import { addLampField } from './env.js';
 
 export const HALL = { minX: -18, maxX: 18, minZ: -13, maxZ: 11, height: 8.5 };
 export const DOOR = { x0: -6.8, x1: -5.2, h: 3.0 };
@@ -81,7 +82,8 @@ function lightConeMaterial(color, strength) {
 export function buildGym(scene, world, quality, font, logos = null) {
   const root = new THREE.Group(); root.name = 'gym'; scene.add(root);
   const outerScene = scene; scene = root;
-  const out = { lights: [], bags: [], animated: [], glowSprites: [], spawnBallsAt: [], root };
+  const out = { lights: [], bags: [], animated: [], glowSprites: [], spawnBallsAt: [], root, lampSources: [] };
+  const LS = (x, y, z, col, k, r, kind = 'gym') => out.lampSources.push({ pos: new THREE.Vector3(x, y, z), col: new THREE.Color(col).multiplyScalar(k), r, kind });
   const B = new Batch();
   const cut = { ceil: new THREE.Group(), px: new THREE.Group(), nx: new THREE.Group(), pz: new THREE.Group(), nz: new THREE.Group() };
   for (const g of Object.values(cut)) scene.add(g);
@@ -112,7 +114,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
   const shadeOut = new THREE.MeshStandardMaterial({ color: 0x24272b, roughness: 0.4, metalness: 0.85, side: THREE.DoubleSide });
   const shadeIn = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xfff1dc).multiplyScalar(7) });
   const warmBulb = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffb35a).multiplyScalar(5) });
-  const coneWarm = lightConeMaterial(0xffe2b8, 0.026);
+  const coneWarm = lightConeMaterial(0xffe2b8, 0.014);
 
   // ---------------- floor sides / walls ----------------
   const { minX, maxX, minZ, maxZ, height: H } = HALL;
@@ -199,6 +201,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
     BC.nz.box(ironMat, sx, sy, sz, 0.18, 0.3, 0.12);
     BC.nz.cyl(warmBulb, sx, sy + 0.05, sz + 0.12, 0.07, 0.07, 0.2, 10);
     out.glowSprites.push({ pos: new THREE.Vector3(sx, sy + 0.05, sz + 0.3), color: 0xffa24a, size: 1.3, group: 'nz' });
+    LS(sx, sy, sz + 0.8, 0xffa24a, 0.9, 5);
     { const pl = new THREE.PointLight(0xff9a40, 18, 9, 2); pl.position.set(sx, sy + 0.2, sz + 0.9); pl.userData.tier = i === 1 ? 1 : 2; pl.visible = pl.userData.tier <= quality.pointLights; scene.add(pl); out.lights.push(pl); }
   });
 
@@ -252,6 +255,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
     { const cone = new THREE.Mesh(coneGeo, coneWarm); cone.position.set(x, y - 0.4 - 2.6, z);
       cone.layers.set(2); cone.renderOrder = 5; cone.visible = !!quality.cones; cut.ceil.add(cone); out.cones = out.cones || []; out.cones.push(cone); }
     out.glowSprites.push({ pos: new THREE.Vector3(x, y - 0.45, z), color: 0xfff0d8, size: 1.5, group: 'ceil' });
+    LS(x, y - 1.2, z, 0xffe9cf, 1.25, 8.5);
   }
   // a few real spot lights under the lamps (no shadow; one shadow light follows the player)
   const spotDefs = [[9, -5.5, 5.4, 85, 0.95], [-4, -1.5, 6.2, 120, 0.9], [-12, -4.5, 6.2, 110, 0.95], [4, 5.5, 6.2, 95, 0.9], [-8, 6, 6.2, 85, 0.9], [2.5, -9, 6.2, 85, 0.9]];
@@ -453,6 +457,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
     BC.pz.box(ironMat, A.x0 + 0.3, 4.4, 17.5, 0.5, 0.12, 0.5);
     BC.pz.cyl(new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffd7a0).multiplyScalar(4) }), A.x0 + 0.35, 4.32, 17.5, 0.16, 0.16, 0.03, 12);
     out.glowSprites.push({ pos: new THREE.Vector3(A.x0 + 0.5, 4.25, 17.5), color: 0xffcf90, size: 1.6, group: 'pz' });
+    LS(A.x0 + 1.2, 3.8, 17.5, 0xffd2a0, 1.5, 8); LS((D.x0 + D.x1) / 2, D.h + 0.6, zIn + 1.2, 0xd6e2ff, 1.4, 7); LS(A.x1 - 0.8, 3.0, zIn + 4.5, 0x46c8ff, 0.7, 4.5, 'neon');
     const sl2 = new THREE.SpotLight(0xffd2a0, 160, 18, 1.1, 0.75, 1.5); sl2.position.set(A.x0 + 0.4, 4.3, 17.5); sl2.target.position.set(A.x0 + 4.5, 0, 16.5);
     sl2.userData.rank = -1; scene.add(sl2, sl2.target); out.lights.push(sl2);
     // neon on the right wall + wall lamp above the door
@@ -485,7 +490,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
   // ---------------- neon ----------------
   const neon = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 1.55), new THREE.MeshBasicMaterial({ map: T.neonSign(font, 'BRAXHORN GYM', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(2.4) }));
   neon.position.set(minX + 0.03, 6.0, -3.6); neon.rotation.y = Math.PI / 2; cut.nx.add(neon);
-  out.neon = neon;
+  out.neon = neon; LS(minX + 1.0, 5.6, -3.6, 0x8bff3a, 0.5, 5, 'neon');
   const purple = new THREE.MeshBasicMaterial({ color: new THREE.Color(0x9b5cff).multiplyScalar(4) });
   BC.nx.cyl(purple, minX + 0.55, 3.6, 10.2, 0.045, 0.045, 7.0, 8);
   BC.nx.cyl(purple, minX + 0.55, 3.6, 9.35, 0.045, 0.045, 7.0, 8);
@@ -509,6 +514,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
 
   B.build(scene);
   for (const k in BC) BC[k].build(cut[k]);
+  root.traverse(o => { if (o.isMesh) for (const m of (Array.isArray(o.material) ? o.material : [o.material])) if (m.isMeshStandardMaterial) addLampField(m, 'lit'); });
 
   // glow sprites (soft halos around bulbs)
   const halo = T.radial('rgba(255,255,255,1)', 'rgba(255,255,255,0)');

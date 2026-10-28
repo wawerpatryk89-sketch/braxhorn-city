@@ -7,7 +7,7 @@ import { UnrealBloomPass } from '../three/examples/jsm/postprocessing/UnrealBloo
 import { GradePass } from './grade.js';
 import { World } from './world.js';
 import { buildGym, HALL, RING, DOOR, ALLEY } from './gym.js';
-import { createWetFloor } from './floor.js';
+import { createGymFloors } from './gymfloor.js';
 import * as TX from './textures.js';
 import { Fighter, MOVES, SCALE, angDiff } from './fighter.js';
 import { Sound } from './sound.js';
@@ -108,7 +108,7 @@ async function boot() {
   loadMsg('Buduję siłownię…');
   const gym = buildGym(scene, world, Q, fontStack, logos);
   const cTex = TX.concrete(512);
-  const floor = createWetFloor({ width: HALL.maxX - HALL.minX + 1.2, depth: ALLEY.z1 + 0.6 - (HALL.minZ - 3.6), center: new THREE.Vector3(0, 0, (ALLEY.z1 + 0.6 + HALL.minZ - 3.6) / 2), maps: cTex, wet: TX.wetMask(), quality: Q });
+  const floor = createGymFloors({ hall: HALL, alley: ALLEY });
   gym.root.add(floor.mesh);
   const hemi = new THREE.HemisphereLight(0xb09070, 0x1c1612, 0.85); scene.add(hemi);
   const key = new THREE.DirectionalLight(0xfff0dc, 1.6);
@@ -179,7 +179,7 @@ async function boot() {
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', () => setTimeout(resize, 250));
   resize();
-  let floorReflect = Q.reflections;
+  let floorReflect = false; // matte gym floor: no mirror pass
   function applyQuality(k) {
     qKey = k; Object.assign(Q, QUALITY[k]); store.set('quality3', k); dyn.max = Q.dpr; dyn.cur = Math.min(window.devicePixelRatio || 1, Q.dpr);
     renderer.setPixelRatio(dyn.cur);
@@ -187,7 +187,7 @@ async function boot() {
     for (const c of gym.cones || []) c.visible = Q.cones;
     for (const l of gym.lights) { if (l.isSpotLight) l.visible = l.userData.rank < Q.spots; else if (l.userData.tier) l.visible = l.userData.tier <= Q.pointLights; }
     if (key.shadow.mapSize.x !== Q.shadow) { key.shadow.mapSize.set(Q.shadow, Q.shadow); key.shadow.map?.dispose(); key.shadow.map = null; }
-    floorReflect = Q.reflections; resize();
+    floorReflect = false; resize();
   }
 
   // ---------------- UI ----------------
@@ -1060,6 +1060,7 @@ async function boot() {
       }
       if (G.traffic) for (const s of G.traffic.lampSources) add(s, s.w);
     }
+    if (gym.root.visible) for (const s of gym.lampSources) add(s, s.kind === 'neon' ? 1 : 1);
     if (G.crypt && G.crypt.group.visible) for (const s of G.crypt.lampSources) add(s, 1);
     if (G.villa && G.villa.group.visible) for (const s of G.villa.lampSources) add(s, s.kind === 'pool' ? 0.4 + 0.6 * o.lamps : o.lamps);
     if (G.place && G.place.group.visible) for (const s of G.place.lampSources) add(s, G.place.def.mood === 'indoor' ? 1 : 0.15 + 0.85 * o.lamps);
