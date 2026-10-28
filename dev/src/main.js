@@ -32,8 +32,8 @@ const QUALITY = {
 };
 const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-// phones: smooth first. No floor mirror (it renders the whole scene twice), no light shafts, fewer lights, no MSAA
-if (isTouch) for (const [k, q] of Object.entries(QUALITY)) { q.dpr = Math.min(q.dpr, k === 'high' ? 2 : 1.5); q.msaa = 0; q.shadow = Math.min(q.shadow, 1024); q.reflections = false; q.cones = false; q.spots = Math.min(q.spots, 3); q.pointLights = 1; q.bloom = Math.min(q.bloom, 0.6); }
+// High on a phone = the same as on a computer (only the floor mirror and the hazy light shafts stay off everywhere on touch)
+if (isTouch) for (const [k, q] of Object.entries(QUALITY)) { q.reflections = false; q.cones = false; if (k !== 'high') { q.msaa = k === 'medium' ? 2 : 0; q.dpr = Math.min(q.dpr, 1.5); } }
 const flat = (a, b) => Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z);
 const rand = (a, b) => a + Math.random() * (b - a);
 const fmtMoney = (v) => '$' + Math.round(v).toLocaleString('pl-PL');
@@ -83,7 +83,7 @@ async function boot() {
   canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); fail('Telefonowi zabrakło pamięci grafiki. Zamknij kartę i otwórz grę ponownie, najlepiej z jakością Niska.'); });
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
   if (renderer.getContext().isContextLost()) { fail('Przeglądarka nie dała grze dostępu do grafiki 3D.'); return; }
-  const dyn = { max: Q.dpr, cur: Math.min(window.devicePixelRatio || 1, isTouch ? Math.min(1.75, Q.dpr) : Q.dpr), acc: 0, n: 0, t: 0, cool: 3 };
+  const dyn = { max: Q.dpr, cur: Math.min(window.devicePixelRatio || 1, Q.dpr), acc: 0, n: 0, t: 0, cool: 3 };
   renderer.setPixelRatio(dyn.cur);
   renderer.setSize(view.w(), view.h(), false);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
@@ -126,14 +126,14 @@ async function boot() {
   scene.position.y = 0; scene.updateMatrixWorld(true);
   env.sky.visible = true;
   scene.environment = envGym;
-  const GYM_HEMI = { sky: new THREE.Color(0xcdc8c0), ground: new THREE.Color(0x3a3632), i: isTouch ? 1.7 : 1.15 }, GYM_KEY = { c: new THREE.Color(0xf6f6f2), i: isTouch ? 2.3 : 1.8 }; // phones have fewer spotlights
+  const GYM_HEMI = { sky: new THREE.Color(0xcdc8c0), ground: new THREE.Color(0x3a3632), i: Q.spots >= 6 ? 0.9 : 1.2 }, GYM_KEY = { c: new THREE.Color(0xf6f6f2), i: Q.spots >= 6 ? 1.25 : 1.5 }; // softer fill: black clothes stay black; a bit more with fewer spotlights // phones have fewer spotlights
 
   // ---------------- characters ----------------
   const chars = {}, charMats = [];
   function loadChar(k) {
     if (!chars[k]) chars[k] = (async () => {
       const [g, map, nrm, orm] = await Promise.all([A.loadRig(`chars/${k}.glb.gz`), A.loadTex(`tex/${k}_color.webp`, true), A.loadTex(`tex/${k}_normal.webp`, false), A.loadTex(`tex/${k}_orm.webp`, false)]);
-      const mat = addLampField(new THREE.MeshStandardMaterial({ map, normalMap: nrm, roughnessMap: orm, metalnessMap: orm, metalness: 0.15, roughness: 1, envMapIntensity: 0.35 }), 'lit'); // skin and cloth are not metal: no chrome sheen
+      const mat = addLampField(new THREE.MeshStandardMaterial({ map, normalMap: nrm, metalness: 0, roughness: 0.8, envMapIntensity: 0.35 }), 'lit'); // skin and cloth: matte, no metal (the ORM gloss made black clothes look silver)
       g.scene.traverse(o => { if (o.isSkinnedMesh) o.material = mat; }); charMats.push(mat);
       return { scene: g.scene, clips: g.animations, mat, used: 0 };
     })();
@@ -188,6 +188,8 @@ async function boot() {
     for (const c of gym.cones || []) c.visible = Q.cones;
     for (const l of gym.lights) { if (l.isSpotLight) l.visible = l.userData.rank < Q.spots; else if (l.userData.tier) l.visible = l.userData.tier <= Q.pointLights; }
     if (key.shadow.mapSize.x !== Q.shadow) { key.shadow.mapSize.set(Q.shadow, Q.shadow); key.shadow.map?.dispose(); key.shadow.map = null; }
+    for (const rt of [composer.renderTarget1, composer.renderTarget2]) if (rt.samples !== Q.msaa) { rt.samples = Q.msaa; rt.dispose(); }
+    GYM_HEMI.i = Q.spots >= 6 ? 0.9 : 1.2; GYM_KEY.i = Q.spots >= 6 ? 1.25 : 1.5;
     floorReflect = false; resize();
   }
 
@@ -1025,6 +1027,7 @@ async function boot() {
   const lampTmp = [];
   let outF = 0;
   const fogIn = new THREE.Color(0x08090a);
+  const keyOff = new THREE.Vector3(), keyC = new THREE.Vector3(), keyZero = new THREE.Vector3(), keyUp = new THREE.Vector3(0, 1, 0), keyM = new THREE.Matrix4(), keyMi = new THREE.Matrix4();
   function updateLighting(dt, t) {
     const o = env.update(dt);
     let target = 0;
@@ -1069,7 +1072,11 @@ async function boot() {
     const ph = player ? player.hipsWorld() : cam.target;
     if (outF > 0.5 && !crypt) { const d = o.elev > -2 ? env.sunDir : env.moonDir; key.position.set(ph.x + d.x * 30, Math.max(8, d.y * 30), ph.z + d.z * 30); }
     else key.position.set(ph.x + 3, 11, ph.z + 4);
-    key.target.position.set(ph.x, 0, ph.z); key.target.updateMatrixWorld();
+    // move the shadow in whole shadow-map texels only (otherwise shadow edges shimmer while walking)
+    { const off = keyOff.copy(key.position).sub(keyC.set(ph.x, 0, ph.z)); keyM.lookAt(off, keyZero, keyUp); keyMi.copy(keyM).invert();
+      const texel = (sc.right - sc.left) / key.shadow.mapSize.x; keyC.applyMatrix4(keyMi); keyC.x = Math.round(keyC.x / texel) * texel; keyC.y = Math.round(keyC.y / texel) * texel; keyC.applyMatrix4(keyM);
+      key.position.copy(keyC).add(off); key.target.position.copy(keyC); }
+    key.target.updateMatrixWorld();
     // lamp field: pick the brightest LAMP_N sources near the camera target
     lampTmp.length = 0;
     const tx = cam.target.x, tz = cam.target.z;
@@ -1256,7 +1263,6 @@ async function boot() {
 
     if (G.chapter === 'gym' || !player) { updateBags(dt); updateBalls(dt); }
     for (const a of gym.animated) a(dt);
-    if (gym.neon) gym.neon.material.opacity = 0.85 + 0.15 * Math.sin(tAll * 23) * (Math.sin(tAll * 1.3) > 0.97 ? 1 : 0.1);
     for (const k of sparks) if (k.t < 1) { k.t += dt * 4; k.s.scale.setScalar((k.big ? 0.9 : 0.55) * (0.4 + k.t)); k.s.material.opacity = 1 - k.t; if (k.t >= 1) k.s.visible = false; }
     for (const a of actors) { const h = a.hipsWorld(); a.blob.visible = a.root.visible; a.blob.position.set(h.x, world.groundAt(h.x, h.z, a.y + 0.1) + 0.012, h.z); a.blob.scale.setScalar(1 + Math.max(0, a.y - world.groundAt(a.pos.x, a.pos.z, a.y)) * 0.4); }
 

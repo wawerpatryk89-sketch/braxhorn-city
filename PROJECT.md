@@ -64,6 +64,14 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
   - przyczyna świecących postaci: odbicie otoczenia (envMapIntensity) 0.9–1.0 przy 0.3 na ścianach, a Brax/Nyxa miały metalness 0.6. Teraz 0.35 i metalness 0.15; ludzie z Mixamo też 0.35 (`people.mats`);
   - cieplejsze światło ogólne, słabsze reflektory, nasycenie 1.2 w siłowni.
 
+## Jakość na telefonie (28.10, 13:30)
+
+- „Wysoka” na telefonie = to samo co na komputerze: wygładzanie krawędzi MSAA 4×, cienie 2048, 6 reflektorów, 2 światła punktowe, pełny blask, do 2× piksela. Na telefonach wyłączone są tylko lustro podłogi i smugi światła. „Średnia”: MSAA 2×, do 1.5× piksela. Dynamiczna rozdzielczość dalej obniża piksel, gdy telefon nie wyrabia.
+- Wcześniej (tryb płynny po „zamula”) telefon nie miał MSAA, przez co migotały krawędzie i cienkie linie. Użytkownik chce jakości jak w grach mobilnych, więc nie wolno tego po cichu obcinać.
+- Migotanie: cień przesuwa się o całe teksele (`keyM`/snap), większe cegły (20 rzędów) i słabsze normal mapy na ścianach i podłodze, neon bez celowego mrugania, grubsze listwy LED.
+- Postacie matowe: bez ORM (połysk robił z czarnych ubrań srebrne), metalness 0, roughness 0.8.
+- Napis WYJŚCIE: duża zielona tablica z białym tekstem, bez poświaty.
+
 ## Tryb zwiedzania (28.10, 12:15)
 
 - Na razie włączony od startu, przełącznik jest w pauzie (Zwiedzanie / Walki), zapamiętywany w `store('explore')`.

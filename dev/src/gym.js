@@ -93,10 +93,10 @@ export function buildGym(scene, world, quality, font, logos = null) {
   // ---------------- materials ----------------
   // BRAXHORN colours: painted charcoal brick, black ceiling and steel, neon green #8bff3a accents, white light
   const GREEN = 0x8bff3a;
-  const brickT = T.brick(1024, 1024, { paint: [206, 205, 200] });
+  const brickT = T.brick(1024, 1024, { paint: [206, 205, 200], rows: 20 }); // bigger bricks: fine mortar lines shimmered on phones
   brickT.map.repeat.set(1, 1); brickT.normalMap.repeat.set(1, 1);
-  const brickMat = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, normalScale: new THREE.Vector2(1.2, 1.2), roughness: 0.86, color: 0xe4e3df, envMapIntensity: 0.3, emissive: 0xffffff, emissiveMap: brickT.map, emissiveIntensity: 0.16 });
-  const brickDark = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, roughness: 0.9, color: 0xa9aaac, envMapIntensity: 0.2, emissive: 0xffffff, emissiveMap: brickT.map, emissiveIntensity: 0.07 });
+  const brickMat = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.9, color: 0xe4e3df, envMapIntensity: 0.3, emissive: 0xffffff, emissiveMap: brickT.map, emissiveIntensity: 0.24 });
+  const brickDark = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.9, color: 0xa9aaac, envMapIntensity: 0.2, emissive: 0xffffff, emissiveMap: brickT.map, emissiveIntensity: 0.11 });
   const rimMat = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, roughness: 0.7, color: 0x2a2b2e, envMapIntensity: 0.2 });
   const signBoard = new THREE.MeshStandardMaterial({ color: 0x0d0e10, roughness: 0.45, metalness: 0.3 });
   // the other buildings in the alley keep plain red brick
@@ -182,11 +182,11 @@ export function buildGym(scene, world, quality, font, logos = null) {
   const WH = 1.3, PW = 1.2;
   const wainX = (Bt, x, z0, z1, dir) => {
     for (let z = z0; z < z1 - 0.05; z += PW) { const ze = Math.min(z + PW, z1); Bt.box(wainMat, x + dir * 0.025, WH / 2, (z + ze) / 2, 0.05, WH, ze - z - 0.014); }
-    Bt.box(ledGreen, x + dir * 0.05, WH + 0.02, (z0 + z1) / 2, 0.03, 0.035, z1 - z0, { receive: false });
+    Bt.box(ledGreen, x + dir * 0.05, WH + 0.025, (z0 + z1) / 2, 0.03, 0.05, z1 - z0, { receive: false });
   };
   const wainZ = (Bt, z, x0, x1, dir) => {
     for (let x = x0; x < x1 - 0.05; x += PW) { const xe = Math.min(x + PW, x1); Bt.box(wainMat, (x + xe) / 2, WH / 2, z + dir * 0.025, xe - x - 0.014, WH, 0.05); }
-    Bt.box(ledGreen, (x0 + x1) / 2, WH + 0.02, z + dir * 0.05, x1 - x0, 0.035, 0.03, { receive: false });
+    Bt.box(ledGreen, (x0 + x1) / 2, WH + 0.025, z + dir * 0.05, x1 - x0, 0.05, 0.03, { receive: false });
   };
   wainX(BC.nx, minX, minZ, maxZ, 1); wainX(BC.px, maxX, minZ, maxZ, -1);
   wainZ(BC.pz, maxZ, minX, D.x0 - 0.15, -1); wainZ(BC.pz, maxZ, D.x1 + 0.15, maxX, -1);
@@ -194,7 +194,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
   // green LED line along each arch
   for (const cx of arches) {
     const pts = []; for (let k = 0; k <= 32; k++) { const a = Math.PI * k / 32; pts.push(new THREE.Vector3(cx + Math.cos(a) * (aw + 0.21), spring + Math.sin(a) * (aw + 0.21), minZ + 0.15)); }
-    BC.nz.add(ledGreen, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.024, 5, false), { receive: false });
+    BC.nz.add(ledGreen, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.032, 5, false), { receive: false });
   }
 
   // alcoves behind the arches
@@ -482,12 +482,13 @@ export function buildGym(scene, world, quality, font, logos = null) {
       BC.pz.box(ledGreen, D.x1 + 0.14, D.h / 2, fz, 0.03, D.h + 0.1, 0.03, { receive: false });
       BC.pz.box(ledGreen, (D.x0 + D.x1) / 2, D.h + 0.14, fz, dw + 0.31, 0.03, 0.03, { receive: false });
     }
-    const exitC = document.createElement('canvas'); exitC.width = 256; exitC.height = 96; const ex = exitC.getContext('2d');
-    ex.fillStyle = '#0b0c0d'; ex.fillRect(0, 0, 256, 96); ex.strokeStyle = '#8bff3a'; ex.lineWidth = 4; ex.strokeRect(4, 4, 248, 88); ex.fillStyle = '#8bff3a'; ex.font = `800 56px ${font}`; ex.textAlign = 'center'; ex.textBaseline = 'middle'; ex.fillText('WYJŚCIE', 128, 50);
-    const exitT = new THREE.CanvasTexture(exitC); exitT.colorSpace = THREE.SRGBColorSpace;
-    const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.34), new THREE.MeshBasicMaterial({ map: exitT, color: new THREE.Color(1, 1, 1).multiplyScalar(1.6) }));
-    sign.position.set((D.x0 + D.x1) / 2, D.h + 0.45, maxZ - 0.02); sign.rotation.y = Math.PI; cut.pz.add(sign);
-    out.glowSprites.push({ pos: new THREE.Vector3((D.x0 + D.x1) / 2, D.h + 0.45, maxZ - 0.15), color: 0x40ff9a, size: 1.1, group: 'pz' });
+    const exitC = document.createElement('canvas'); exitC.width = 512; exitC.height = 160; const ex = exitC.getContext('2d');
+    ex.fillStyle = '#16a34a'; ex.fillRect(0, 0, 512, 160); ex.fillStyle = '#ffffff'; ex.font = `800 108px ${font}`; ex.textAlign = 'center'; ex.textBaseline = 'middle';
+    { const tw = ex.measureText('WYJŚCIE').width; if (tw > 470) ex.font = `800 ${108 * 470 / tw | 0}px ${font}`; } ex.fillText('WYJŚCIE', 256, 86);
+    const exitT = new THREE.CanvasTexture(exitC); exitT.colorSpace = THREE.SRGBColorSpace; exitT.anisotropy = 8;
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.47), new THREE.MeshBasicMaterial({ map: exitT, toneMapped: false }));
+    sign.position.set((D.x0 + D.x1) / 2, D.h + 0.48, maxZ - 0.025); sign.rotation.y = Math.PI; cut.pz.add(sign);
+    BC.pz.box(signBoard, (D.x0 + D.x1) / 2, D.h + 0.48, maxZ - 0.01, 1.58, 0.55, 0.02);
     // alley props
     const A = ALLEY, zIn = maxZ + wallT;
     const dumpMat = new THREE.MeshStandardMaterial({ color: 0x17181a, roughness: 0.55, metalness: 0.5 });

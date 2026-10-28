@@ -104,7 +104,7 @@ export function brick(w = 1024, h = 1024, opts = {}) {
   const paint = opts.paint || null; // painted brick: one colour, only the relief and grime remain
   const col = canvas(w, h), cx = col.getContext('2d');
   const hgt = new Float32Array(w * h);
-  const rows = 30, bh = h / rows, bw = bh * 3.1, mortar = 3;
+  const rows = opts.rows || 30, bh = h / rows, bw = bh * 3.1, mortar = opts.rows ? 4 : 3;
   cx.fillStyle = paint ? `rgb(${paint[0] * 0.82 | 0},${paint[1] * 0.82 | 0},${paint[2] * 0.82 | 0})` : '#4a4038'; cx.fillRect(0, 0, w, h);
   const cols = Math.round(w / bw);
   const bwx = w / cols;

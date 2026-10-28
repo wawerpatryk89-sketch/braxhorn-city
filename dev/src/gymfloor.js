@@ -82,7 +82,7 @@ export function createGymFloors({ hall, alley, wallT = 0.6, turf = null, font = 
   // hall (incl. the alcoves behind the back arches)
   const z0 = hall.minZ - 3.6, z1 = hall.maxZ + wallT, w = hall.maxX - hall.minX + 1.2, d = z1 - z0;
   const rt = rubberTextures([w / 4, d / 4]);
-  const rubber = addLampField(new THREE.MeshStandardMaterial({ map: rt.map, normalMap: rt.normalMap, normalScale: new THREE.Vector2(0.6, 0.6), roughness: 0.9, metalness: 0, envMapIntensity: 0.15 }), 'lit');
+  const rubber = addLampField(new THREE.MeshStandardMaterial({ map: rt.map, normalMap: rt.normalMap, normalScale: new THREE.Vector2(0.35, 0.35), roughness: 0.9, metalness: 0, envMapIntensity: 0.15 }), 'lit');
   const g1 = new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2); g1.translate(0, 0, (z0 + z1) / 2);
   const m1 = new THREE.Mesh(g1, rubber); m1.receiveShadow = true; group.add(m1);
   if (turf) {
