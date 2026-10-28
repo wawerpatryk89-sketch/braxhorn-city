@@ -242,7 +242,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
     BC.nz.box(ledGreen, sx, sy - 0.035, sz + 0.03, aw * 1.45, 0.02, 0.04, { receive: false });
     LS(sx, sy - 0.3, sz + 0.9, 0xf4f4f0, 0.6, 5);
     BL(sx, sy - 0.15, sz + 0.45, 0xf2f4ff, 2.2, 5.5, null, 0.4); BL(sx, sy - 0.1, sz + 0.2, GREEN, 0.35, 2.2);
-    { const pl = new THREE.PointLight(0xf2f4ff, 8, 8, 2); pl.position.set(sx, sy - 0.2, sz + 0.9); pl.userData.tier = i === 1 ? 1 : 2; pl.visible = pl.userData.tier <= quality.pointLights; scene.add(pl); out.lights.push(pl); }
+    { const pl = new THREE.PointLight(0xf2f4ff, 8, 8, 2); pl.position.set(sx, sy - 0.2, sz + 0.9); pl.userData.tier = i === 1 ? 1 : 2; pl.userData.interior = true; pl.visible = pl.userData.tier <= quality.pointLights; scene.add(pl); out.lights.push(pl); }
   });
 
   // sconces on side wall pilasters
@@ -304,7 +304,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
   const spotDefs = [[9, -5.5, 5.4, 68, 0.95], [-4, -1.5, 6.2, 120, 0.9], [-12, -4.5, 6.2, 110, 0.95], [4, 5.5, 6.2, 95, 0.9], [-8, 6, 6.2, 85, 0.9], [2.5, -9, 6.2, 85, 0.9]];
   spotDefs.forEach(([x, z, y, I, ang], i) => {
     const s = new THREE.SpotLight(0xf8f6f0, I * 1.4, 18, ang, 0.7, 1.5);
-    s.position.set(x, y - 0.4, z); s.target.position.set(x, 0, z); s.userData.rank = i; s.visible = i < quality.spots; scene.add(s, s.target); out.lights.push(s);
+    s.position.set(x, y - 0.4, z); s.target.position.set(x, 0, z); s.userData.rank = i; s.userData.interior = true; s.visible = i < quality.spots; scene.add(s, s.target); out.lights.push(s);
   });
 
   // ---------------- boxing ring ----------------
@@ -573,8 +573,8 @@ export function buildGym(scene, world, quality, font, logos = null) {
   const purple = new THREE.MeshBasicMaterial({ color: new THREE.Color(GREEN).multiplyScalar(1.3) });
   BC.nx.cyl(purple, minX + 0.55, 3.6, 10.2, 0.045, 0.045, 7.0, 8);
   BC.nx.cyl(purple, minX + 0.55, 3.6, 9.35, 0.045, 0.045, 7.0, 8);
-  const pp = new THREE.PointLight(0x7dff40, 1.8, 5, 2); pp.position.set(minX + 1.2, 3.2, 9.6); pp.userData.tier = 1; scene.add(pp); out.lights.push(pp);
-  { const np = new THREE.PointLight(0x8bff3a, 4, 7, 2); np.position.set(minX + 1.0, 5.6, -3.6); np.userData.tier = 2; np.visible = quality.pointLights >= 2; scene.add(np); out.lights.push(np); }
+  const pp = new THREE.PointLight(0x7dff40, 1.8, 5, 2); pp.position.set(minX + 1.2, 3.2, 9.6); pp.userData.tier = 1; pp.userData.interior = true; scene.add(pp); out.lights.push(pp);
+  { const np = new THREE.PointLight(0x8bff3a, 4, 7, 2); np.position.set(minX + 1.0, 5.6, -3.6); np.userData.tier = 2; np.userData.interior = true; np.visible = quality.pointLights >= 2; scene.add(np); out.lights.push(np); }
 
   // brand posters
   if (logos) {
@@ -606,6 +606,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
 
   // glow sprites (soft halos around bulbs)
   const halo = T.radial('rgba(255,255,255,1)', 'rgba(255,255,255,0)');
+  out.glowSprites.length = 0; // no glow halos: they read as cheap glare (and cost overdraw)
   for (const g of out.glowSprites) {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, color: new THREE.Color(g.color).multiplyScalar(0.2), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
     s.position.copy(g.pos); s.scale.setScalar(g.size); s.renderOrder = 6; (g.group ? cut[g.group] : scene).add(s);

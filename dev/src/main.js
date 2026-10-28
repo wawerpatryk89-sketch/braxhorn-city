@@ -26,9 +26,10 @@ import { HEROES, PROLOGUE, CHAPTERS, BOSSES, CRYPT_BOSSES, ZOMBIE, ENDING, HINTS
 
 const $ = (id) => document.getElementById(id);
 const store = { get(k, d) { try { const v = localStorage.getItem('bx_' + k); return v === null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem('bx_' + k, JSON.stringify(v)); } catch { } } };
+// no bloom anywhere: it made bright walls and people glow and cost several full-screen passes
 const QUALITY = {
-  high: { name: 'Wysoka', dpr: 2, reflections: true, reflectionScale: 0.5, streak: 5, streakTaps: 4, bloom: 1, shadow: 2048, cones: true, spots: 6, pointLights: 2, msaa: 4 },
-  medium: { name: 'Średnia', dpr: 1.5, reflections: true, reflectionScale: 0.33, streak: 4, streakTaps: 3, bloom: 0.5, shadow: 1024, cones: true, spots: 4, pointLights: 1, msaa: 0 },
+  high: { name: 'Wysoka', dpr: 2, reflections: true, reflectionScale: 0.5, streak: 5, streakTaps: 4, bloom: 0, shadow: 2048, cones: true, spots: 6, pointLights: 2, msaa: 4 },
+  medium: { name: 'Średnia', dpr: 1.5, reflections: true, reflectionScale: 0.33, streak: 4, streakTaps: 3, bloom: 0, shadow: 1024, cones: true, spots: 4, pointLights: 1, msaa: 0 },
   low: { name: 'Niska', dpr: 1, reflections: false, reflectionScale: 0.25, streak: 3, streakTaps: 3, bloom: 0, shadow: 1024, cones: false, spots: 3, pointLights: 1, msaa: 0 },
 };
 const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
@@ -117,7 +118,7 @@ async function boot() {
   const floor = createGymFloors({ hall: HALL, alley: ALLEY, turf: { x0: -5, x1: 9, z0: 7.3, z1: 9.6 }, font: fontStack });
   gym.root.add(floor.mesh);
   // baked lighting (bake.js): static gym meshes become unlit + stored light; people and moving props stay lit live
-  const BAKE_FILE = 'bake/gym1.bin.gz', BAKE_GAIN = 1.75;
+  const BAKE_FILE = 'bake/gym1.bin.gz', BAKE_GAIN = 1.5;
   const bakeList = prepareBake(gym.root);
   let baked = false;
   try { const raw = await A.loadBin(BAKE_FILE); baked = !!applyBake(bakeList, new Uint16Array(raw.slice().buffer), BAKE_GAIN); } catch (e) { console.warn('gym bake not loaded', e); }
@@ -126,6 +127,9 @@ async function boot() {
     const shMat = new THREE.ShadowMaterial({ opacity: 0.38 });
     const sf = new THREE.Mesh(new THREE.PlaneGeometry(HALL.maxX - HALL.minX, HALL.maxZ - HALL.minZ + 2).rotateX(-Math.PI / 2), shMat); sf.position.set(0, 0.014, (HALL.minZ + HALL.maxZ) / 2 + 1); sf.receiveShadow = true; gym.root.add(sf);
     const sr = new THREE.Mesh(new THREE.PlaneGeometry(RING.apron * 2, RING.apron * 2).rotateX(-Math.PI / 2), shMat); sr.position.set(RING.x, RING.h + 0.006, RING.z); sr.receiveShadow = true; gym.root.add(sr);
+    // the lamps are in the bake (and in the lamp field for people): live spot/point lights inside would only
+    // pile extra light on the fighters (they looked white and glowing) and cost time on every pixel of them
+    for (const l of gym.lights) if (l.userData.interior) { l.userData.off = true; l.visible = false; }
   }
   const hemi = new THREE.HemisphereLight(0xb09070, 0x1c1612, 0.85); scene.add(hemi);
   const key = new THREE.DirectionalLight(0xfff0dc, 1.6);
@@ -149,7 +153,7 @@ async function boot() {
   function loadChar(k) {
     if (!chars[k]) chars[k] = (async () => {
       const [g, map, nrm, orm] = await Promise.all([A.loadRig(`chars/${k}.glb.gz`), A.loadTex(`tex/${k}_color.webp`, true), A.loadTex(`tex/${k}_normal.webp`, false), A.loadTex(`tex/${k}_orm.webp`, false)]);
-      const mat = addLampField(new THREE.MeshStandardMaterial({ map, normalMap: nrm, metalness: 0, roughness: 0.8, envMapIntensity: 0.35 }), 'lit'); // skin and cloth: matte, no metal (the ORM gloss made black clothes look silver)
+      const mat = addLampField(new THREE.MeshStandardMaterial({ map, normalMap: nrm, metalness: 0, roughness: 0.6, envMapIntensity: 0.12 }), 'lit'); // skin and cloth: matte, no metal (the ORM gloss made black clothes look silver)
       g.scene.traverse(o => { if (o.isSkinnedMesh) o.material = mat; }); charMats.push(mat);
       return { scene: g.scene, clips: g.animations, mat, used: 0 };
     })();
@@ -202,7 +206,7 @@ async function boot() {
     renderer.setPixelRatio(dyn.cur);
     floor.uniforms.reflStrength.value = Q.reflections ? 1 : 0; bloom.enabled = Q.bloom > 0;
     for (const c of gym.cones || []) c.visible = Q.cones;
-    for (const l of gym.lights) { if (l.isSpotLight) l.visible = l.userData.rank < Q.spots; else if (l.userData.tier) l.visible = l.userData.tier <= Q.pointLights; }
+    for (const l of gym.lights) { if (l.userData.off) l.visible = false; else if (l.isSpotLight) l.visible = l.userData.rank < Q.spots; else if (l.userData.tier) l.visible = l.userData.tier <= Q.pointLights; }
     if (key.shadow.mapSize.x !== Q.shadow) { key.shadow.mapSize.set(Q.shadow, Q.shadow); key.shadow.map?.dispose(); key.shadow.map = null; }
     for (const rt of [composer.renderTarget1, composer.renderTarget2]) if (rt.samples !== Q.msaa) { rt.samples = Q.msaa; rt.dispose(); }
     GYM_HEMI.i = Q.spots >= 6 ? 0.9 : 1.2; GYM_KEY.i = Q.spots >= 6 ? 1.25 : 1.5;
@@ -1043,6 +1047,7 @@ async function boot() {
   const lampTmp = [];
   let outF = 0;
   const fogIn = new THREE.Color(0x08090a);
+  const TUNE = { charEnv: 0.12, hemi: 0.85, key: 1.6 }; // fighters: little flat fill, a clear key light -> black stays black, skin keeps its colour
   const keyOff = new THREE.Vector3(), keyC = new THREE.Vector3(), keyZero = new THREE.Vector3(), keyUp = new THREE.Vector3(0, 1, 0), keyM = new THREE.Matrix4(), keyMi = new THREE.Matrix4();
   function updateLighting(dt, t) {
     const o = env.update(dt);
@@ -1059,8 +1064,8 @@ async function boot() {
       env.outdoorLights(hemi, key);
       const k = outF;
       hemi.color.lerpColors(GYM_HEMI.sky, hemi.color.clone(), k); hemi.groundColor.lerpColors(GYM_HEMI.ground, hemi.groundColor.clone(), k);
-      hemi.intensity = GYM_HEMI.i * (1 - k) + hemi.intensity * k;
-      key.color.lerpColors(GYM_KEY.c, key.color.clone(), k); key.intensity = GYM_KEY.i * (1 - k) + key.intensity * k;
+      hemi.intensity = GYM_HEMI.i * TUNE.hemi * (1 - k) + hemi.intensity * k;
+      key.color.lerpColors(GYM_KEY.c, key.color.clone(), k); key.intensity = GYM_KEY.i * TUNE.key * (1 - k) + key.intensity * k;
       scene.fog.color.lerpColors(fogIn, env.fogColor, k); scene.fog.density = 0.004 * (1 - k) + (0.0055 + 0.0075 * o.night) * k;
       scene.background.copy(env.fogColor);
       lampU.uAmb.value.copy(env.amb);
@@ -1081,7 +1086,7 @@ async function boot() {
     }
     // reflections of the (bright) gym capture on skin/clothes: dim them outdoors at night and in the crypt
     // characters get as much of it as the room does (more made them look lit up / glowing)
-    const envK = crypt ? 0.25 : 0.35 * (1 - outF) + (0.25 + 0.35 * o.day) * outF;
+    const envK = crypt ? 0.25 : TUNE.charEnv * (1 - outF) + (0.25 + 0.35 * o.day) * outF;
     for (const m of charMats) m.envMapIntensity = envK;
     people.envK = envK; for (const m of people.mats) m.envMapIntensity = envK;
     // key light: follows the player; outdoors it comes from the sun/moon
@@ -1422,7 +1427,7 @@ async function boot() {
     bakeGym, baked: () => baked,
     THREE, A, G, env, world, actors, scene, renderer, progs: () => renderer.info.programs, get player() { return player; }, get cam() { return cam; }, camera, sound,
     sim(sec, ks = []) { ks.forEach(k => keys.add(k)); for (let i = 0; i < Math.round(sec * 60); i++) tick(1 / 60); ks.forEach(k => keys.delete(k)); },
-    render, renderer, street: () => G.street, act: (a) => actions.push(a), pause(v) { paused = v; }, joy, openMenu, closeMenu,
+    render, renderer, street: () => G.street, TUNE, charMats, bloom, act: (a) => actions.push(a), pause(v) { paused = v; }, joy, openMenu, closeMenu,
     start: (k) => startGame(k), title: () => ui.onTitle(), spawnThug, people, loadPlace, travel, openMap, killFoes() { for (const a of [...actors]) if (a.team === 'enemy' && !a.dead) { a.hp = 0; a.ko(new THREE.Vector3(0, 0, -1)); onKO(a, player); } }, goVilla, leaveVilla, loadVilla, buy, upg, loadStreet, loadCrypt, enterCrypt, spawnZombie, setHour: (h) => env.setHour(h),
     tp(x, z) { player.pos.set(x, 0, z); cam.snap = true; },
   };
