@@ -119,6 +119,32 @@ public static class BraxhornOriginalGymImport
                   ". NOT PLAYABLE YET. Must import actual Brax/Nyxa rigs and test mobile controls.");
     }
 
+    // Technical CI preview only. The game is NOT ready for player release:
+    // Brax/Nyxa rigs, character animation, touch controls and doors come next.
+    public static void BuildWebGLForQA()
+    {
+        Import();
+        PlayerSettings.companyName = "Braxhorn";
+        PlayerSettings.productName = "Braxhorn City - original gym import QA";
+        PlayerSettings.defaultScreenWidth = 960;
+        PlayerSettings.defaultScreenHeight = 540;
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
+        PlayerSettings.WebGL.template = "APPLICATION:Default";
+        string output = Path.GetFullPath(Path.Combine(Application.dataPath, "../../build/WebGL"));
+        Directory.CreateDirectory(output);
+        var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions {
+            scenes = new[] { ResultScene },
+            locationPathName = output,
+            target = BuildTarget.WebGL,
+            options = BuildOptions.None
+        });
+        if (report.summary.result != UnityEditor.Build.Reporting.BuildResult.Succeeded)
+            throw new InvalidOperationException("Original gym Unity QA build failed: " + report.summary.result);
+        File.WriteAllText(Path.Combine(output, "qa.json"),
+            "{\"purpose\":\"imported-original-gym-only-not-a-playable-game\",\"editor\":\"" +
+            Application.unityVersion + "\"}");
+    }
+
     private static void AddFloor(Transform parent, string name, float cx, float cz, float sx, float sz)
     {
         GameObject o = new GameObject(name);
