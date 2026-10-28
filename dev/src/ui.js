@@ -13,7 +13,7 @@ export class UI {
     document.body.classList.toggle('touch', isTouch);
     this.bannerT = 0; this.keysT = 0; this.sayT = 0; this.moneyShown = 0;
     const act = (id, a) => { const el = $(id); if (el) el.addEventListener('click', (e) => { e.preventDefault(); this.onAction(a); el.blur(); }); };
-    act('bCam', 'cam'); act('bMoves', 'moves'); act('bSnd', 'sound'); act('bIso', 'iso-left'); act('bOrient', 'orient'); act('bFull', 'fullscreen'); act('bTime', 'timefast'); act('bMenu', 'menu'); act('bResume', 'resume');
+    act('bCam', 'cam'); act('bMoves', 'moves'); act('bSnd', 'sound'); act('bIso', 'iso-left'); act('bOrient', 'orient'); act('bFull', 'fullscreen'); act('bTime', 'timefast'); act('bExplore', 'explore'); act('bMenu', 'menu'); act('bResume', 'resume');
     $('pause').addEventListener('click', (e) => { if (e.target.id === 'pause') this.onAction('resume'); });
     const d = document; if (d.fullscreenEnabled || d.webkitFullscreenEnabled) $('bFull').hidden = false;
     if (isTouch && !(d.fullscreenEnabled || d.webkitFullscreenEnabled)) $('bOrient').hidden = false;
@@ -184,6 +184,7 @@ export class UI {
   }
   setCam(m) { $('bCam').innerHTML = CAM_LABEL[m]; $('bIso').hidden = m !== '25d'; }
   setQuality(k) { this.qKey = k; $('bQual').innerHTML = lbl('Jakość: ', '') + this.quality[k].name; }
+  setExplore(on) { const b = $('bExplore'); if (!b) return; b.classList.toggle('main', on); b.innerHTML = on ? lbl('Zwiedzanie: wł. (bez walk)', 'Zwiedzanie') : lbl('Zwiedzanie: wył. (walki)', 'Walki'); }
   setSound(on) { $('bSnd').innerHTML = on ? lbl('Dźwięk: wł.', 'Dźwięk') : lbl('Dźwięk: wył.', 'Cisza'); }
   setOrient(landscape) { $('bOrient').textContent = landscape ? 'Pionowo' : 'Poziomo'; }
   throwReady(v) { $('btnThrow').classList.toggle('ready', v); }

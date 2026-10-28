@@ -223,7 +223,7 @@ async function boot() {
     ui.banner('', 'Shake BRAXHORN: +60% zdrowia', 1.4); sound.play('cash', { gain: 0.3, rate: 0.7 });
   }
   ui.onBuy = (id) => { const ok = buy(id); ui.shop(true, SHOP, upg, G.money); return ok; };
-  const G = { mode: 'title', chapter: 'gym', hero: null, money: save.money, bossIdx: 0, boss: null, lock: null, street: null, crypt: null, traffic: null, zombies: [], pickups: [], caseJob: null, bat: null, cryptStage: 0, hintT: 0, nightWas: null, kills: 0, specialIdx: 0 };
+  const G = { explore: store.get('explore', true), mode: 'title', chapter: 'gym', hero: null, money: save.money, bossIdx: 0, boss: null, lock: null, street: null, crypt: null, traffic: null, zombies: [], pickups: [], caseJob: null, bat: null, cryptStage: 0, hintT: 0, nightWas: null, kills: 0, specialIdx: 0 };
   ui.money(G.money);
 
   // ---------------- title + hero select ----------------
@@ -295,6 +295,7 @@ async function boot() {
     player.pos.set(-1.5, 0, 2.8); player.y = 0; player.heading = Math.PI;
     partner.team = 'spar'; partner.name = HEROES[otherKey].name; partner.hp = partner.maxHp = 120; partner.dmgMul = 0.7;
     partner.pos.set(RING.x, 0, RING.z - 1.0); partner.y = RING.h; partner.heading = 0; partner.setIdle('Boxing');
+    if (G.explore) { partner.root.visible = false; partner.col.top = -10; }
     cam.target.set(player.pos.x, 1.6, player.pos.z); cam.yaw = Math.PI; cam.snap = true;
     ui.setHero(G.hero, HEROES[otherKey]);
     applyUpgrades();
@@ -303,7 +304,7 @@ async function boot() {
     await ui.story(PROLOGUE);
     G.mode = 'play'; G.chapter = 'gym';
     await ui.chapter(CHAPTERS.gym);
-    ui.objective(HINTS.gymStart);
+    if (G.explore) setExplore(true); else ui.objective(HINTS.gymStart);
     sound.setRoom('gym');
     // gym members, then stream the street in the background
     people.populateGym(isTouch ? 5 : 7).catch(e => console.warn('gym people', e));
@@ -335,7 +336,7 @@ async function boot() {
       const batG = await A.loadGLTF('bat.glb'); G.batModel = batG.scene; G.batModel.traverse(o => { if (o.isMesh) { addLampField(o.material, 'lit'); o.castShadow = true; } });
       spawnBatPickup(new THREE.Vector3(ALLEY.x0 + 2.2, 0, ALLEY.z1 - 2.6));
       // sky reflection map for the street
-      G.street = st;
+      G.street = st; if (G.explore && st.setExplore) st.setExplore(true);
       try { renderer.compile(scene, camera); } catch { } // compile the street's shaders now, not on the first frame outside
       people.populateStreet(ST, isTouch ? 5 : 9).catch(e => console.warn('street people', e));
       // preload the first bosses + zombies
@@ -369,6 +370,24 @@ async function boot() {
     if (G.boss) { if (actors.includes(G.boss)) despawn(G.boss); G.boss = null; G.lock = null; ui.boss(null); G.spawningBoss = false; }
     G.gang = null;
   }
+  // ---------------- explore mode: no traffic, no enemies, open street, no damage ----------------
+  const EXPLORE_HINT = 'Tryb zwiedzania: nikt nie atakuje, aut nie ma, ulica otwarta w obie strony. Walki włączysz w pauzie.';
+  function setExplore(v) {
+    G.explore = v; store.set('explore', v);
+    if (G.street && G.street.setExplore) G.street.setExplore(v);
+    if (v) {
+      clearFoes();
+      for (const a of [...actors]) if (a.team === 'enemy' && a !== player) despawn(a);
+      if (G.traffic) { G.traffic.clear(); G.traffic.lampSources.length = 0; }
+      if (partner) { partner.root.visible = false; partner.col.top = -10; ui.showOpp(false); }
+      if (player) { player.hp = player.maxHp; updateBars(); }
+      if (G.mode === 'play') ui.objective(EXPLORE_HINT);
+    } else if (G.mode === 'play') {
+      if (partner && G.chapter === 'gym') { partner.root.visible = true; partner.col.top = partner.y + partner.height; }
+      if (G.place && G.chapter === G.place.def.key) startGang(G.place);
+      else ui.objective(G.chapter === 'street' ? (G.cryptOpen ? HINTS.crypt : HINTS.street) : G.chapter === 'gym' ? HINTS.gymStart : '');
+    }
+  }
   const DEST_TITLE = { street: 'Ulica BRAXHORN', villa: 'Willa' };
   async function travel(dest) {
     if (G.travelling || dest === G.chapter) { ui.showMap(false); return; }
@@ -398,7 +417,7 @@ async function boot() {
       G.street.group.visible = true; gym.root.visible = true; if (G.traffic) G.traffic.enabled = true;
       player.pos.set(G.myCar.x + 1.5, 0, ST.near + 1.8); player.y = 0.15; player.heading = Math.PI / 2;
       cam.yaw = -Math.PI / 2 - 0.72; sound.setRoom('street'); sound.playMusic('street');
-      ui.objective(G.cryptOpen ? HINTS.crypt : HINTS.street);
+      ui.objective(G.explore ? EXPLORE_HINT : G.cryptOpen ? HINTS.crypt : HINTS.street);
     } else if (dest === 'villa') {
       const v = target; v.group.visible = true; v.region.off = false;
       player.pos.set(v.spawn.x, 0, v.spawn.z); player.y = world.groundAt(v.spawn.x, v.spawn.z, v.spawn.y + 1.0); player.heading = Math.PI;
@@ -408,7 +427,7 @@ async function boot() {
       const p = target; p.group.visible = true; p.region.off = false;
       player.pos.set(p.spawn.x, 0, p.spawn.z); player.y = p.spawn.y + 0.05; player.heading = p.face;
       cam.yaw = p.face + Math.PI; sound.setRoom(p.def.room); sound.loop('city', p.def.mood === 'outdoor' ? 0.3 : 0); sound.playMusic('street');
-      startGang(p);
+      if (G.explore) ui.objective(EXPLORE_HINT); else startGang(p);
     }
     cam.target.set(player.pos.x, player.y + 1.6, player.pos.z); cam.pitch = 0.3; cam.snap = true; cam.lastManual = -1e9;
     store.set('lastPlace', dest);
@@ -827,7 +846,7 @@ async function boot() {
     }
   }
   async function updateBossTriggers() {
-    if (G.chapter !== 'street' || G.boss || G.spawningBoss || G.bossIdx >= BOSSES.length) return;
+    if (G.explore || G.chapter !== 'street' || G.boss || G.spawningBoss || G.bossIdx >= BOSSES.length) return;
     const def = BOSSES[G.bossIdx];
     if (player.pos.x > def.x - 12 && player.pos.z > ST.near) {
       G.spawningBoss = true;
@@ -1149,6 +1168,7 @@ async function boot() {
     else if (a === 'iso-left') { if (cam.mode === '25d') cam.isoYaw += Math.PI / 2; }
     else if (a === 'moves') ui.toggleMoves();
     else if (a === 'help') ui.toggleKeys();
+    else if (a === 'explore') { setExplore(!G.explore); ui.setExplore(G.explore); }
     else if (a === 'timefast') { env.fast = env.fast > 1 ? 1 : 30; ui.setTimeFast(env.fast > 1); }
     else if (a.startsWith('q-')) { applyQuality(a.slice(2)); ui.setQuality(a.slice(2)); if (menuOpen) render(); }
     else if (a === 'orient') { landscape = !(view.rotated || view.w() > view.h()); store.set('land', landscape); resize(); ui.setOrient(view.w() > view.h()); }
@@ -1207,9 +1227,9 @@ async function boot() {
       // chapter transitions
       if (G.chapter === 'gym' && player.pos.z > ALLEY.z1 - 0.2) {
         if (!G.street) { if (!G.waitStreet) { G.waitStreet = true; ui.loading(true, 'Ładuję ulicę…'); loadStreet().then(() => { ui.loading(false); G.waitStreet = false; }); } player.pos.z = ALLEY.z1 - 0.3; }
-        else { G.chapter = 'street'; if (!G.streetShown) { G.streetShown = true; ui.chapter(CHAPTERS.street); } ui.objective(G.cryptOpen ? HINTS.crypt : HINTS.street); sound.setRoom('street'); partner.root.visible = false; partner.col.top = -10; G.caseCd = 25; }
+        else { G.chapter = 'street'; if (!G.streetShown) { G.streetShown = true; ui.chapter(CHAPTERS.street); } if (!G.explore) ui.objective(G.cryptOpen ? HINTS.crypt : HINTS.street); sound.setRoom('street'); partner.root.visible = false; partner.col.top = -10; G.caseCd = 25; }
       } else if (G.chapter === 'street' && player.pos.z < ALLEY.z1 - 1.0 && player.pos.x > ALLEY.x0 && player.pos.x < ALLEY.x1) {
-        G.chapter = 'gym'; sound.setRoom('gym'); partner.root.visible = true; partner.col.top = partner.y + partner.height;
+        G.chapter = 'gym'; sound.setRoom('gym'); if (!G.explore) { partner.root.visible = true; partner.col.top = partner.y + partner.height; }
         if (G.carry) deliverCase();
       }
     }
@@ -1226,6 +1246,7 @@ async function boot() {
     if (G.lock && player) player.pos.x = Math.max(G.lock[0], Math.min(G.lock[1], player.pos.x));
     if (G.chapter === 'crypt' && G.crypt) for (const a of actors) if (a.root.visible) G.crypt.clampInside(a);
     for (const a of actors) { for (const ev of a.events) resolveStrike(ev); a.events.length = 0; }
+    if (G.explore && player && player.hp < player.maxHp) { player.hp = player.maxHp; updateBars(); }
     if (player && player.landed && player.landed < -7) { cam.shake = 0.12; sound.thump(0.5, player.pos); }
     if (player) player.landed = null;
     // fading out defeated enemies
@@ -1240,7 +1261,7 @@ async function boot() {
     // street systems
     if (G.street && (G.chapter === 'street' || G.chapter === 'gym')) {
       G.street.update(dt, o, tAll);
-      if (G.traffic) G.traffic.update(dt, actors.filter(a => a.root.visible), o, (f, car, dir) => {
+      if (G.traffic && !G.explore) G.traffic.update(dt, actors.filter(a => a.root.visible), o, (f, car, dir) => {
         if (f.state === 'ko' || f.state === 'down') return;
         const dmg = f.isPlayer ? 22 : 45;
         f.hp = Math.max(0, f.hp - dmg); f.stopOverlays(0.05); f.ko(dir); f.knock.set(dir.x, dir.z).multiplyScalar(9);
@@ -1267,12 +1288,12 @@ async function boot() {
       G.nightWas = night;
       G.zT = (G.zT ?? 8) - dt;
       const alive = G.zombies.filter(z => !z.dead).length;
-      if (night && !G.boss && G.zT < 0 && alive < (isTouch ? 2 : 3)) { G.zT = rand(14, 24); spawnZombie(); }
+      if (night && !G.explore && !G.boss && G.zT < 0 && alive < (isTouch ? 2 : 3)) { G.zT = rand(14, 24); spawnZombie(); }
       if (!night) for (const z of G.zombies) if (!z.dead) { z.dead = true; z.fadeT = 2.5; z.stopOverlays(0.2); }
       // daytime: small patrols of the Red Horn gang walk up the street
       G.patrolT = (G.patrolT ?? 45) - dt;
       const thugsOut = actors.some(a => a.thug && !a.dead);
-      if (!night && !G.boss && !thugsOut && G.patrolT < 0 && !G.spawningPatrol) {
+      if (!night && !G.explore && !G.boss && !thugsOut && G.patrolT < 0 && !G.spawningPatrol) {
         G.patrolT = rand(70, 110); G.spawningPatrol = true;
         const side = player.pos.x > 20 ? -1 : 1, x = Math.max(ST.x0 + 2, Math.min(ST.x1 - 3, player.pos.x + side * rand(14, 20)));
         const pool = ['Ch06_nonPBR', 'Ch08_nonPBR', 'Ch13_nonPBR', 'Ch17_nonPBR', 'Ch18_nonPBR', 'Ch27_nonPBR', 'Ch37_nonPBR', 'Ch38_nonPBR', 'Remy'];
@@ -1314,7 +1335,7 @@ async function boot() {
       const c = contextAction(); ui.action(c ? c.label : null);
       ui.throwReady(!!throwTarget()); ui.shakeNeeded(player.hp < player.maxHp * 0.7);
       ui.clock(env.clock, o.night > 0.5);
-      if (!G.boss) ui.showOpp(G.chapter === 'gym' && (flat(player, partner) < 10 || inRing(player)));
+      if (!G.boss) ui.showOpp(G.chapter === 'gym' && partner.root.visible && (flat(player, partner) < 10 || inRing(player)));
       if (G.chapter === 'gym' && !G.sparHint && inRing(player)) { G.sparHint = true; ui.banner('SPARING', isTouch ? 'CIOS, KOP, SPECJAL i RZUT po prawej' : 'J cios · K kop · I specjal · E rzut', 2.4); sound.bell(1); }
       if (G.chapter === 'street' && G.street && !G.batHint && G.pickups.some(p => p.kind === 'bat' && flat(player, { pos: p.obj.position }) < 6)) { G.batHint = true; ui.banner('', HINTS.bat, 2.6); }
       store.set('hour', env.hour);
@@ -1365,7 +1386,7 @@ async function boot() {
     start: (k) => startGame(k), title: () => ui.onTitle(), spawnThug, people, loadPlace, travel, openMap, killFoes() { for (const a of [...actors]) if (a.team === 'enemy' && !a.dead) { a.hp = 0; a.ko(new THREE.Vector3(0, 0, -1)); onKO(a, player); } }, goVilla, leaveVilla, loadVilla, buy, upg, loadStreet, loadCrypt, enterCrypt, spawnZombie, setHour: (h) => env.setHour(h),
     tp(x, z) { player.pos.set(x, 0, z); cam.snap = true; },
   };
-  ui.setSound(sound.on); ui.setQuality(qKey); ui.setCam(cam.mode); ui.setOrient(view.w() > view.h());
+  ui.setExplore(G.explore); ui.setSound(sound.on); ui.setQuality(qKey); ui.setCam(cam.mode); ui.setOrient(view.w() > view.h());
   frame();
 }
 

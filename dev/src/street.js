@@ -245,8 +245,9 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
   box(curbMat, XW, XE, -0.2, SW + 0.01, ST.road0 - 0.25, ST.road0, 0);
   box(curbMat, XW, CW, -0.2, SW + 0.01, ST.road1, ST.road1 + 0.25, 0);
   box(curbMat, CE, XE, -0.2, SW + 0.01, ST.road1, ST.road1 + 0.25, 0);
-  world.box(-60, ST.x1 + 12, ST.near, ST.road0, SW, -1, 'walk');
-  world.box(-60, 125, ST.road1, ST.far + 0.6, SW, -1, 'walk');
+  world.box(XW, XE, ST.near, ST.road0, SW, -1, 'walk');
+  world.box(XW, CW, ST.road1, ST.far + 0.6, SW, -1, 'walk'); world.box(CE, XE, ST.road1, ST.far + 0.6, SW, -1, 'walk');
+  world.box(CW - 3.5, CW, ST.far + 0.6, 140, SW, -1, 'walk'); world.box(CE, CE + 2.5, ST.far + 0.6, 140, SW, -1, 'walk');
   // cross street (west) sidewalks
   box(walkMat, CW - 3.5, CW, -0.2, SW, ST.far + 0.6, 140, 2);
   box(walkMat, CE, CE + 2.5, -0.2, SW, ST.far + 0.6, 140, 2);
@@ -275,9 +276,21 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
   // intersection patch
   const asphalt = addLampField(new THREE.MeshStandardMaterial({ color: 0x2b2c2e, roughness: 0.75 }));
   box(asphalt, -57, -46, -0.3, 0.005, ST.road0, ST.road1 + 0.6);
-  world.box(-60, -44.2, ST.near - 8, 130, 6, -1, 'cordon');          // west boundary (behind the police cordon)
-  world.box(-60, 130, ST.far + 0.1, ST.far + 4, 6, -1, 'farwall');    // far side boundary
-  world.box(ST.x1, 130, ST.near - 8, ST.far + 4, 8, -1, 'eastwall');  // viaduct wall
+  const story = [
+    world.box(-60, -44.2, ST.near - 8, 130, 6, -1, 'cordon'),          // west boundary (behind the police cordon)
+    world.box(-60, 130, ST.far + 0.1, ST.far + 4, 6, -1, 'farwall'),    // far side boundary
+    world.box(ST.x1, 130, ST.near - 8, ST.far + 4, 8, -1, 'eastwall'),  // viaduct wall
+  ];
+  // explore mode: the whole built street is open (both ways past the cordon and under the viaduct, plus the
+  // west cross street); these walls follow the outer building rows and only matter once the story walls are off
+  for (const [x0, x1, z0, z1] of [
+    [XW - 5, XW, ST.near - 40, 150], [XE, XE + 5, ST.near - 40, ST.far + 40],     // ends of the street
+    [XW, -60, ST.near - 40, ST.near], [ST.x1 + 9.6, XE, ST.near - 40, ST.near],   // near-side building rows
+    [ST.x1, ST.x1 + 9.6, ST.near - 40, ST.road0],                                 // viaduct pier on the near side
+    [XW, CW - 3.5, ST.far + 0.1, 150], [CE + 2.5, XE, ST.far + 0.1, 150],         // far side + the cross street sides
+    [CW - 3.5, CE + 2.5, 140, 150],                                               // end of the cross street
+  ]) world.box(x0, x1, z0, z1, 30, -1, 'citywall');
+  out.setExplore = (v) => { for (const b of story) { if (b.top0 === undefined) b.top0 = b.top; b.top = v ? -10 : b.top0; } };
 
   // ---------- near side: procedural shop buildings ----------
   const brickT = TX.brick(512, 512); brickT.map.repeat.set(1, 1);
