@@ -162,7 +162,7 @@ export class DayNight {
     const a = (this.hour - 6) / 12 * Math.PI;
     const elev = Math.sin(a) * 62 * Math.PI / 180;
     const az = Math.cos(a);
-    this.sunDir.set(az * Math.cos(elev), Math.sin(elev), -0.45 * Math.cos(elev)).normalize();
+    this.sunDir.set(az * Math.cos(elev), Math.sin(elev), 0.4 * Math.cos(elev)).normalize(); // from the north-ish side: the shop fronts get sun
     this.moonDir.set(-this.sunDir.x * 0.9, Math.max(0.35, -this.sunDir.y), 0.3).normalize();
     const e = elev * 180 / Math.PI;
     const day = sm(-5, 14, e), night = 1 - sm(-11, 1, e), golden = Math.max(0, 1 - Math.abs(e - 3) / 13) * (1 - night * 0.6);
