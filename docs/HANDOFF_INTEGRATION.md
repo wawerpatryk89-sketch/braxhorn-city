@@ -1,3 +1,19 @@
+# Aktualizacja: grywalna postać na osiedlu
+
+Wersja 2260795 była niepełną integracją: zapisywała postać przy przejściu, ale na osiedlu zostawiała kamerę pierwszoosobową. Użytkownik odrzucił ten rezultat. Bieżąca poprawka zastępuje podgląd działającą postacią z gry.
+
+- Osiedle używa tego samego `Fighter`, szkieletu i animacji `chars/brax.glb.gz` / `chars/nyxa.glb.gz`, tekstur, danych bohaterów, HUD-u i obsługi dotyku `UI` co miasto.
+- Wspólne skróty i menu ciosów: `dev/shared/player-controls.js`. Dostępne są ruch, chód/bieg, ciosy, specjal, skok, blok, unik, gesty i shake. Przeciwnicy, nowe misje i pojazdy nadal pozostają osobnym późniejszym etapem.
+- Wybrany bohater, HP i ulepszenia, pieniądze, broń/pozostałe użycia, postęp, kamera oraz bieżąca pozycja osiedla są zachowywane. Bezpośrednie wejście korzysta z ostatnio wybranego bohatera (domyślnie Brax). Historia przeglądarki po powrocie do miasta odczytuje aktualny checkpoint.
+- Kamera śledzi postać. Obrót zależy od użytkownika. Kolizje dotyczą kapsuły postaci, umeblowania, ścian i podłóg. Podwyższona podłoga komisariatu otrzymała rzeczywiste stopnie.
+- Świat nie jest przebudowywany ani pobierany razem z siłownią. Statyczne cienie osiedla są liczone raz; postać ma ruchomy cień kontaktowy, bez nowych lamp i efektów poświaty.
+- Osiedle buduje swój ekran z `dev/src/template.html`. Stare osobne pliki podglądu HTML/CSS usunięte. Układ świata i ładowanie modeli wydzielono do `dev/osiedle/level.js`, fizykę do `player-world.js`.
+- Test pełnego przejścia Nyxą: `dev/tools/check_integration.cjs`; test Braxa, sterowania i powrotu z ulepszeniami oraz bronią: `dev/tools/check_estate_player.cjs`; trasy obu ulic, wnętrz i aren: `dev/osiedle/check.cjs` — 21/21.
+
+Poniżej historyczny opis wcześniejszej poprawki wydajności. Opis pierwszoosobowego osiedla dotyczy wyłącznie starego wydania 2260795 i nie opisuje bieżącej poprawki.
+
+---
+
 # BRAXHORN CITY — siłownia i połączenie osiedla, 28.10.2026
 
 Gałąź robocza: `codex/city-osiedle-integration`.
@@ -55,3 +71,5 @@ Build: `ESBUILD=<ścieżka-do-esbuild> python3 dev/tools/build_quick.py`, nastę
 Pojedyncze żądanie połączenia GitHub ma limit 16 MiB. Duże modele są zapisane bez zmian jako części po 9 MiB w `dev/deploy/parts/`. `node dev/tools/assemble-assets.cjs` odtwarza oryginalne ścieżki i weryfikuje długość oraz SHA każdego modelu przed publikacją. Polecenie jest ustawione jako buildCommand w vercel.json. Zawartość modeli jest identyczna z przetestowaną lokalnie.
 
 Oryginalne archiwa ZIP/BLEND/HDR z dev/source-assets nie zostały wysłane przez tę ścieżkę; pozostają w lokalnej historii z LFS. Wszystkie zasoby wymagane do działania gry są w wydaniu. Część dodatkowych obrazów przeglądu może być uzupełniona po uruchomieniu produkcji.
+
+Publikacja potwierdzona: `main` = `22607951f6cd92f47fdbcb108a4a62fa1c305c89`, Vercel status success, produkcja `https://braxhorn-city.vercel.app`, osiedle `/osiedle/`. Wdrożenie Vercel: B3k5rGhuf7AcSNUrHLDhcDr1pauw. Lokalna historia zachowuje oryginalne duże modele i archiwa; commit wydania na GitHub ma osobną historię od bc26090 i modele transportowane w częściach. Nie nadpisywać main lokalną gałęzią przez force-push.

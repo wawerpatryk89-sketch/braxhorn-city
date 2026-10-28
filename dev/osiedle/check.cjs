@@ -8,7 +8,7 @@ const page=await browser.newPage({viewport:{width:915,height:412},hasTouch:true,
 const errors=[];page.on('pageerror',e=>(errors.push(e.message),console.log('PAGE ERROR',e.message)));
 await page.goto('http://127.0.0.1:18766/public/osiedle/'); console.log('PAGE LOADED');
 await page.waitForFunction(()=>window.__os?.ready||window.__os?.assetErrors.length,{},{timeout:120000});
-console.log('LOAD',await page.evaluate(()=>({status:document.getElementById('status').textContent,errors:__os.assetErrors})));
+console.log('LOAD',await page.evaluate(()=>({status:document.getElementById('loadMsg').textContent,errors:__os.assetErrors})));
 if(await page.evaluate(()=>!__os.ready))throw new Error('Asset load failed');
 await page.evaluate(()=>{__os.start();__os.pause(true)});
 const out='dev/osiedle/review';
@@ -20,7 +20,7 @@ await page.screenshot({timeout:120000,path:`${out}/${name}.png`});
 const routes=await page.evaluate(()=>{
  const results=[];
  function walk(name,points){__os.teleport(points[0][0],points[0][1]);const startYaw=__os.stats().yaw;let failure=null;
- for(const [x,z]of points.slice(1)){let n=0;while(Math.hypot(x-__os.camera.position.x,z-__os.camera.position.z)>.07&&n++<2200){const p=__os.camera.position,dx=x-p.x,dz=z-p.z,len=Math.hypot(dx,dz);const before=p.clone();__os.step(dx/len*Math.min(.09,len),dz/len*Math.min(.09,len));if(p.distanceTo(before)<.00001){failure={target:[x,z],at:p.toArray()};break;}}if(failure||n>=2200){failure??={timeout:true,target:[x,z]};break;}}
+ for(const [x,z]of points.slice(1)){let n=0;while(Math.hypot(x-__os.player.pos.x,z-__os.player.pos.z)>.07&&n++<2200){const p=__os.player.pos,dx=x-p.x,dz=z-p.z,len=Math.hypot(dx,dz);const before=p.clone();__os.step(dx/len*Math.min(.09,len),dz/len*Math.min(.09,len));if(p.distanceTo(before)<.00001){failure={target:[x,z],at:p.toArray()};break;}}if(failure||n>=2200){failure??={timeout:true,target:[x,z]};break;}}
  results.push({name,passed:!failure,failure,yawUnchanged:startYaw===__os.stats().yaw});
  }
  walk('street-villa-terrace-return',[[0,52],[0,-32],[2,-34],[2,-44],[0,-44],[0,-51],[0,-44],[2,-44],[2,-34],[0,-32],[0,52]]);
@@ -37,8 +37,8 @@ const routes=await page.evaluate(()=>{
  walk('octagon-arena-entry', [[86,86],[86,75],[86,70],[86,63],[86,70],[86,75],[86,86]]);
  for(const f of __os.LEVEL.facilities){walk(f.id+'-front-door',[[f.x,f.z+22],[f.x,f.z+13]]);}
  walk('garage-court',[[0,-19],[-24,-19],[-24,-30],[-24,-19],[0,-19]]);
- __os.teleport(0,95);__os.step(0,6);results.push({name:'closed-city-gate',passed:__os.camera.position.z<98});
- __os.teleport(43,-55);__os.step(0,-6);results.push({name:'closed-forest-gate',passed:__os.camera.position.z>-58});
+ __os.teleport(0,95);__os.step(0,6);results.push({name:'closed-city-gate',passed:__os.player.pos.z<98});
+ __os.teleport(43,-55);__os.step(0,-6);results.push({name:'closed-forest-gate',passed:__os.player.pos.z>-58});
  return results;
 });
 const report=await page.evaluate(()=>({stats:__os.stats(),vegetation:__os.vegetation,homeCount:__os.LEVEL.houses.length+2,models:__os.imported.map(o=>({name:o.name,position:o.position.toArray(),bounds:o.userData.collisionBounds}))}));report.errors=errors;report.routes=routes;

@@ -6,10 +6,14 @@ out=root/'public/osiedle';out.mkdir(parents=True,exist_ok=True)
 esbuild=os.environ.get('ESBUILD')
 cmd=[esbuild] if esbuild else ['npm','exec','--yes','--package=esbuild@0.28.2','--','esbuild']
 subprocess.run(cmd+['dev/osiedle/main.js','--bundle','--format=esm','--target=es2020','--alias:three=./dev/three/build/three.module.js','--outfile=public/osiedle/game.js','--minify'],cwd=root,check=True)
-for name in ['index.html','style.css']:shutil.copyfile(root/'dev/osiedle'/name,out/name)
+# Use the game's actual HUD and touch controls for this playable district.
 version=hashlib.sha256((out/'game.js').read_bytes()).hexdigest()[:10]
 index=out/'index.html'
-index.write_text(index.read_text().replace('./game.js',f'./game.js?v={version}'))
+template=(root/'dev/src/template.html').read_text()
+head,body=template.split('<div id="app">',1)
+html='<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">'+head+'</head><body><div id="app">'+body+'</body></html>'
+html=html.replace('src="assets/', 'src="../assets/').replace('src="game.js"', f'type="module" src="./game.js?v={version}"').replace('__BUILD__', 'Osiedle · '+version)
+index.write_text(html)
 (out/'assets').mkdir(exist_ok=True)
 for name in ['dom_suburban','dom_nowoczesny','willa_nowoczesna','dom_z_wnetrzem','garaze_sowieckie','dom_wnetrze_zewn']:
  src=root/f'dev/models/{name}.glb'; dest=out/f'assets/{name}.glb'

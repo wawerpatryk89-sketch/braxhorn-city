@@ -158,15 +158,34 @@
         "homes": 8,
         "pos": [
           0,
-          1.78,
+          0,
           92
         ],
-        "assets": 21
+        "assets": 21,
+        "hero": "nyxa",
+        "bones": 52
       }
     },
     {
       "name": "estate-entry-spawn",
       "pass": true
+    },
+    {
+      "name": "estate-keeps-visible-hero",
+      "pass": true,
+      "details": {
+        "ready": true,
+        "errors": [],
+        "homes": 8,
+        "pos": [
+          0,
+          0,
+          92
+        ],
+        "assets": 21,
+        "hero": "nyxa",
+        "bones": 52
+      }
     },
     {
       "name": "eight-homes",
@@ -178,7 +197,7 @@
       "details": {
         "hero": "nyxa",
         "money": 321,
-        "hp": 75.16952000000181,
+        "hp": 75.18512000000176,
         "bossIdx": 2,
         "kills": 7,
         "position": [

@@ -1,0 +1,123 @@
+{
+  "checks": [
+    {
+      "name": "estate-starts",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "same-brax-rig-and-state",
+      "pass": true,
+      "details": {
+        "key": "brax",
+        "hp": 82,
+        "maxHp": 150,
+        "money": 654,
+        "bones": 52,
+        "yaw": 0.7,
+        "visible": true,
+        "weapon": "PAŁKA · 7",
+        "clips": 38
+      }
+    },
+    {
+      "name": "touch-joystick-animates-player",
+      "pass": true,
+      "details": {
+        "distance": 3.849166666666626,
+        "phase": 0.9931045199034576,
+        "active": false,
+        "yawSame": true
+      }
+    },
+    {
+      "name": "attack-jump-block-work",
+      "pass": true,
+      "details": {
+        "attack": "attack",
+        "peak": 1.070000000000001,
+        "landed": true,
+        "block": "block",
+        "after": "loco"
+      }
+    },
+    {
+      "name": "camera-only-rotates-from-input",
+      "pass": true,
+      "details": {
+        "yaw": 0,
+        "changed": -0.24,
+        "after": -0.24
+      }
+    },
+    {
+      "name": "police-entry-has-real-steps",
+      "pass": true,
+      "details": [
+        86,
+        0.48744086978863643,
+        -37.100000000000186
+      ]
+    },
+    {
+      "name": "escape-closes-estate-map",
+      "pass": true
+    },
+    {
+      "name": "estate-updates-player-save",
+      "pass": true
+    },
+    {
+      "name": "brax-returns-with-updated-state",
+      "pass": true,
+      "details": {
+        "hero": "brax",
+        "money": 654,
+        "hp": 150,
+        "bat": 7,
+        "bossIdx": 2,
+        "kills": 9,
+        "consumed": true,
+        "baked": true
+      }
+    },
+    {
+      "name": "no-js-errors",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "no-missing-game-assets",
+      "pass": true,
+      "details": [
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Barlow:wght@400;500;600;700&display=swap",
+          "error": {
+            "errorText": "net::ERR_EMPTY_RESPONSE"
+          }
+        },
+        {
+          "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Barlow:wght@400;500;600;700&display=swap",
+          "error": {
+            "errorText": "net::ERR_EMPTY_RESPONSE"
+          }
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "failedRequests": [
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Barlow:wght@400;500;600;700&display=swap",
+      "error": {
+        "errorText": "net::ERR_EMPTY_RESPONSE"
+      }
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Barlow:wght@400;500;600;700&display=swap",
+      "error": {
+        "errorText": "net::ERR_EMPTY_RESPONSE"
+      }
+    }
+  ]
+}

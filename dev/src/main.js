@@ -24,6 +24,7 @@ import { buildDistrict, POINTS, ZONES } from './district.js';
 const PLACES = {}; const buildPlace = null; const buildVilla = null;
 import { prepareBake, bakeLighting, packBake, applyBake, setLightmapUV, bakeGroundMap, applyGroundMap, floatGeo } from './bake.js';
 import { mergeGeometries } from '../three/examples/jsm/utils/BufferGeometryUtils.js';
+import { MOVE_LIST, INPUT_ACTIONS } from '../shared/player-controls.js';
 import { advanceFrame } from './frame-time.js';
 import { saveCityVisit, readCityVisit, clearCityVisit, estateURL } from '../shared/district-travel.js';
 import { HEROES, PROLOGUE, CHAPTERS, BOSSES, CRYPT_BOSSES, ZOMBIE, ENDING, HINTS } from './story.js';
@@ -285,7 +286,7 @@ async function boot() {
     const k = e.key.toLowerCase();
     if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
     keys.add(k); if (e.repeat) return;
-    const map = { escape: 'menu', p: 'menu', ' ': 'jump', j: 'punch', k: 'kick', l: 'combo', u: 'kicks', e: 'throw', t: 'taunt', g: 'dance', r: 'warmup', v: 'cam', m: 'moves', q: 'iso-left', h: 'help', f: 'hook', x: 'dodge', o: 'act', i: 'special', b: 'shake', n: 'timefast', '1': 'view-model', '2': 'view-wire', '3': 'view-bones', enter: 'enter' };
+    const map = INPUT_ACTIONS;
     if (map[k]) press(map[k]);
     sound.unlock();
   });
@@ -322,7 +323,7 @@ async function boot() {
 
   // ---------------- game start ----------------
   async function startGame(heroKey, resume = null) {
-    G.hero = HEROES[heroKey]; ui.showSelect(false);
+    G.hero = HEROES[heroKey]; store.set('hero',heroKey); ui.showSelect(false);
     const otherKey = heroKey === 'brax' ? 'nyxa' : 'brax';
     player = heroModels[heroKey]; partner = heroModels[otherKey];
     player.isPlayer = true; player.team = 'hero';
@@ -356,6 +357,7 @@ async function boot() {
         player.hp = Math.max(1, Math.min(player.maxHp, resume.hp ?? player.maxHp));
         partner.root.visible = false; partner.col.top = -10;
         if (resume.bat) { equipBat(); G.bat.hits = Math.max(1, Math.min(16, resume.batHits ?? 16)); ui.weapon('PAŁKA', G.bat.hits); }
+        if (['3d','25d'].includes(resume.camMode)) cam.mode = resume.camMode;
         cam.yaw = resume.yaw ?? Math.PI / 2; cam.pitch = resume.pitch ?? 0.3; cam.dist = resume.dist ?? 5.8;
         cam.target.set(player.pos.x, player.y + 1.6, player.pos.z); cam.snap = true;
         store.set('money', G.money); ui.money(G.money); updateBars();
@@ -465,7 +467,7 @@ async function boot() {
     if (!player || G.travelling) return;
     if (G.boss || G.spawningBoss || G.lock || G.carry) { ui.banner('', 'Dokończ bieżącą walkę lub dostawę przed zmianą dzielnicy.', 3); return; }
     try {
-      saveCityVisit({hero:G.hero.key,explore:G.explore,hp:player.hp,money:G.money,bossIdx:G.bossIdx,cryptStage:G.cryptStage,cryptOpen:G.cryptOpen,kills:G.kills,specialIdx:G.specialIdx,bat:!!G.bat,batHits:G.bat?.hits,yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist});
+      saveCityVisit({hero:G.hero.key,explore:G.explore,hp:player.hp,money:G.money,bossIdx:G.bossIdx,cryptStage:G.cryptStage,cryptOpen:G.cryptOpen,kills:G.kills,specialIdx:G.specialIdx,bat:!!G.bat,batHits:G.bat?.hits,camMode:cam.mode,yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist});
       store.set('money', G.money); store.set('upg', upg);
     } catch (e) { ui.banner('', 'Nie mogę zapisać stanu gracza. Pozostajesz w mieście.', 3); return; }
     G.travelling = true; ui.loading(true, 'Przechodzę na osiedle…');
@@ -1598,17 +1600,14 @@ async function boot() {
   const returnState = readCityVisit();
   if (returnState) { ui.showTitle(false); startGame(returnState.hero, returnState); }
   addEventListener('pageshow', e => {
-    if (e.persisted) { G.travelling = false; ui.loading(false); clearCityVisit(); clock.getDelta(); }
+    if (e.persisted) {
+      // A browser-history return must consume the estate's latest player state.
+      if (readCityVisit()) { location.reload(); return; }
+      G.travelling = false; ui.loading(false); clock.getDelta();
+    }
   });
 }
 
-const MOVE_LIST = [
-  ['Ataki', [['punch', 'Prosty + krzyżowy', 'J'], ['hook', 'Sierpowy', 'F'], ['kick', 'Kopnięcie MMA', 'K'], ['kicks', 'Seria kopnięć', 'U'], ['combo', 'Kombinacja kopnięć', 'L'], ['special', 'Cios specjalny postaci', 'I'], ['throw', 'Rzut przez bark (przy rywalu)', 'E']]],
-  ['Obrona', [['block', 'Blok (przytrzymaj)', 'C'], ['dodge', 'Unik', 'X']]],
-  ['Ruch', [['jump', 'Skok', 'Spacja'], ['act', 'Akcja: drzwi, podnieś, wejdź', 'O'], ['stepf', 'Krok bokserski w przód'], ['stepl', 'Długi wypad'], ['stepb', 'Krok w tył']]],
-  ['Pokaz', [['taunt', 'Prowokacja', 'T'], ['warmup', 'Rozgrzewka', 'R'], ['guard', 'Garda'], ['dance', 'Taniec', 'G'], ['breakdance', 'Breakdance (Nyxa)']]],
-  ['Świat', [['timefast', 'Przyspiesz dzień i noc', 'N'], ['cam', 'Kamera 3D / 2.5D', 'V']]],
-];
 
 const start = () => boot().catch(err => {
   console.error(err);

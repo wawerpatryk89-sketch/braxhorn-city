@@ -33,13 +33,13 @@ const check=(name,pass,details)=>{report.checks.push({name,pass:!!pass,details})
  await page.evaluate(()=>{const m=__mg;m.G.explore=false;m.G.money=321;m.G.bossIdx=2;m.G.kills=7;m.player.hp=75;m.G.caseJob={state:'lying',obj:new m.THREE.Group()};m.G.carry=false;});
  await Promise.all([page.waitForURL('**/osiedle/?from=city',{timeout:30000}),page.evaluate(()=>{document.getElementById('btnAct').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));__mg.sim(.02);}).catch(e=>{if(!/context was destroyed/i.test(e.message))throw e;})]);
  await page.waitForFunction(()=>window.__os?.ready||window.__os?.assetErrors.length,null,{timeout:180000});
- const estate=await page.evaluate(()=>{__os.start();__os.pause(true);return{ready:__os.ready,errors:__os.assetErrors,homes:__os.LEVEL.houses.length+2,pos:__os.camera.position.toArray(),assets:__os.imported.length};});
+ const estate=await page.evaluate(()=>{__os.start();__os.pause(true);return{ready:__os.ready,errors:__os.assetErrors,homes:__os.LEVEL.houses.length+2,pos:__os.player.pos.toArray(),assets:__os.imported.length,hero:__os.player.key,bones:__os.player.mesh.skeleton.bones.length};});
  check('estate-loads-after-transition',estate.ready&&!estate.errors.length,estate);
- check('estate-entry-spawn',estate.pos[2]===92);check('eight-homes',estate.homes===8);
+ check('estate-entry-spawn',Math.abs(estate.pos[2]-92)<.1);check('estate-keeps-visible-hero',estate.hero==='nyxa'&&estate.bones>20,estate);check('eight-homes',estate.homes===8);
  await page.evaluate(()=>{__os.teleport(0,52);__os.renderer.render(__os.scene,__os.camera);});await page.screenshot({path:OUT+'/estate.png',timeout:120000});
  await page.evaluate(()=>{__os.teleport(4,-79,-1.2);__os.renderer.render(__os.scene,__os.camera);});await page.screenshot({path:OUT+'/park.png',timeout:120000});
- await page.locator('#menu').evaluate(e=>e.click());
- await Promise.all([page.waitForURL('**/public/?from=osiedle'),page.locator('#return-city').evaluate(e=>e.click())]);
+ await page.evaluate(()=>{__os.returnToCity();});
+ await page.waitForURL('**/public/?from=osiedle');
  await page.waitForFunction(()=>window.__mg?.player&&__mg.G.chapter==='street'&&!__mg.G.loadingWorld,null,{timeout:180000});
  const returned=await page.evaluate(()=>{__mg.pause(true);__mg.sim(.01);__mg.render();return{hero:__mg.G.hero.key,money:__mg.G.money,hp:__mg.player.hp,bossIdx:__mg.G.bossIdx,kills:__mg.G.kills,position:__mg.player.pos.toArray(),baked:__mg.baked(),cityBaked:__mg.cityBaked(),titleHidden:document.getElementById('title').hidden};});
  check('return-preserves-player',returned.hero==='nyxa'&&returned.money===321&&returned.hp>=75&&returned.hp<76&&returned.bossIdx===2&&returned.kills===7,returned);

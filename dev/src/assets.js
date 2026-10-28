@@ -6,12 +6,13 @@ import { KTX2Loader } from '../three/examples/jsm/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from '../three/examples/jsm/libs/meshopt_decoder.module.js';
 import { gunzipSync } from '../three/examples/jsm/libs/fflate.module.js';
 
-export const BASE = 'assets/';
+export let BASE = 'assets/';
 let loader = null, ktx2 = null;
 const cache = new Map();
 export const net = { bytes: 0, onProgress: null };
 
-export function initLoaders(renderer) {
+export function initLoaders(renderer, base = BASE) {
+  BASE = base;
   ktx2 = new KTX2Loader().setTranscoderPath(BASE + 'basis/').detectSupport(renderer);
   loader = new GLTFLoader().setKTX2Loader(ktx2).setMeshoptDecoder(MeshoptDecoder);
 }

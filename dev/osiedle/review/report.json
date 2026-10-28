@@ -1,16 +1,18 @@
 {
   "stats": {
-    "calls": 276,
-    "triangles": 2206503,
-    "geometries": 424,
-    "textures": 133,
+    "frame": 4,
+    "calls": 351,
+    "triangles": 2396835,
+    "points": 0,
+    "lines": 170261,
     "assets": 21,
     "errors": [],
     "position": [
       43,
-      1.78,
-      -57.639999999999944
+      0,
+      -57.324999999999996
     ],
+    "hero": "brax",
     "yaw": 0
   },
   "vegetation": [
