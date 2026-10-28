@@ -64,12 +64,20 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
   - przyczyna świecących postaci: odbicie otoczenia (envMapIntensity) 0.9–1.0 przy 0.3 na ścianach, a Brax/Nyxa miały metalness 0.6. Teraz 0.35 i metalness 0.15; ludzie z Mixamo też 0.35 (`people.mats`);
   - cieplejsze światło ogólne, słabsze reflektory, nasycenie 1.2 w siłowni.
 
-## Kierunek zaproponowany 28.10 (czeka na decyzję użytkownika)
+## Kierunek 28.10 (użytkownik: „zrób siłownię, żeby dobrze wyglądała i nie zamulała”)
 
 - Pełne „Wysoka” jak na komputerze zamulało na telefonie. Tymczasowo na telefonie: 1.5× piksela + MSAA 4×, 4 reflektory, 1 światło punktowe, cienie 1024.
 - Propozycja: zostać w przeglądarce, ale robić jak gry mobilne. Walki w 2,5D na małych arenach (podziemia, ringi) z kamerą z boku i upieczonym światłem, siłownia jako baza z upieczonym światłem, miasto mniejsze i prostsze (tylko przejścia). Docelowy poziom to porządna gra niezależna.
 - Unity/Godot odradzone przy tym celu: aplikacja zamiast linku, na iPhone'a potrzebny Mac i konto Apple, praca w edytorze po stronie użytkownika.
 - Plan upieczenia światła w siłowni: offline (harness), na wierzchołkach po teselacji co około 0,5 m; promienie do lamp i AO na prostopadłościanach z BVH; zapis Float16 w pliku; statyczne materiały na MeshBasic × kolor wierzchołka; na żywo tylko postacie (pole lamp, hemi, key) i cień gracza (nakładka ShadowMaterial). Zaułek zostaje na żywo (dzień i noc).
+
+## Upieczone światło w siłowni (28.10, 14:00)
+
+- `src/bake.js`: statyczne siatki siłowni cięte siatką co 0,5 m (`tessellate`, równo w osiach świata, bez szpar). Światło liczone raz offline: lampy wiszące z miękkim cieniem, kinkiety, nisze, zielone listwy i łuki, neon, okna, do tego AO. Źródła światła są w `gym.bakeLights` (`BL(...)` w gym.js).
+- Pieczenie: `node tools/play2.mjs dev/tools/bake_gym.json 915 412 1` (lokalny serwer na 8765) zapisuje `assets/bake/gym1.bin.gz` (Float16 RGB na wierzchołek, ok. 400 KB). Po KAŻDEJ zmianie geometrii siłowni trzeba upiec od nowa i podbić nazwę pliku (gym2…), bo pliki mają cache 1 dzień. Przy niezgodnej liczbie wierzchołków gra wraca do światła na żywo (ostrzeżenie w konsoli).
+- W grze: MeshBasicMaterial (tekstura × upieczone światło × `BAKE_GAIN` 1.75), siatki bez cieni na żywo; nakładka ShadowMaterial na podłodze i ringu daje cienie postaci. Zaułek (`userData.outside`, zewnętrzna połowa ściany frontowej) zostaje na żywo, bo ma dzień i noc.
+- Strefy: w hali ulica, jej auta i przechodnie nie są rysowane (pojawiają się 2,5 m przed drzwiami).
+- W siłowni widać ok. 160 tys. trójkątów i 190 wywołań rysowania.
 
 ## Jakość na telefonie (28.10, 13:30)
 
