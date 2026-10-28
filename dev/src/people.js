@@ -15,8 +15,10 @@ export class People {
   }
   async loadClips() {
     if (this.clips) return this.clips;
-    const buf = await this.A.loadBin('people/clips.json.gz');
-    this.clipData = JSON.parse(new TextDecoder().decode(buf));
+    const [buf, fb] = await Promise.all([this.A.loadBin('people/clips.json.gz'), this.A.loadBin('people/fight.json.gz')]);
+    const base = JSON.parse(new TextDecoder().decode(buf)), fight = JSON.parse(new TextDecoder().decode(fb));
+    this.fightNames = Object.keys(fight);
+    this.clipData = { ...fight, ...base };
     this.clips = {};
     return this.clips;
   }
@@ -106,7 +108,7 @@ export class People {
     }
     return Promise.all(ps);
   }
-  async populateGym() {
+  async populateGym(max = 7) {
     const spots = [
       ['Ch16_nonPBR', 'Back Squat', [12, 0, 7.3], Math.PI, 'barbell'],
       ['Ch31_nonPBR', 'Clean And Jerk', [5.6, 0, 8.4], Math.PI, 'barbell'],
@@ -116,7 +118,7 @@ export class People {
       ['Ch12_nonPBR', 'Jab Cross (1)', [-12.55, 0, 0.6], -Math.PI / 2, null],
       ['Ch26_nonPBR', 'Warming Up', [-6.5, 0, -7.2], 0.3, null],
     ];
-    return Promise.all(spots.map(([n, c, p, h, prop]) => this.spawn(n, { pos: new THREE.Vector3(...p), heading: h, mode: 'still', clip: c, prop, height: 1.72 })));
+    return Promise.all(spots.slice(0, max).map(([n, c, p, h, prop]) => this.spawn(n, { pos: new THREE.Vector3(...p), heading: h, mode: 'still', clip: c, prop, height: 1.72 })));
   }
 }
 

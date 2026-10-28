@@ -26,13 +26,14 @@ import { HEROES, PROLOGUE, CHAPTERS, BOSSES, CRYPT_BOSSES, ZOMBIE, ENDING, HINTS
 const $ = (id) => document.getElementById(id);
 const store = { get(k, d) { try { const v = localStorage.getItem('bx_' + k); return v === null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem('bx_' + k, JSON.stringify(v)); } catch { } } };
 const QUALITY = {
-  high: { name: 'Wysoka', dpr: 2, reflections: true, reflectionScale: 0.5, streak: 44, streakTaps: 7, bloom: 1, shadow: 2048, cones: true, spots: 6, pointLights: 2, msaa: 4 },
-  medium: { name: 'Średnia', dpr: 1.5, reflections: true, reflectionScale: 0.33, streak: 30, streakTaps: 5, bloom: 0.5, shadow: 1024, cones: true, spots: 4, pointLights: 1, msaa: 0 },
-  low: { name: 'Niska', dpr: 1, reflections: false, reflectionScale: 0.25, streak: 12, streakTaps: 5, bloom: 0, shadow: 1024, cones: false, spots: 3, pointLights: 1, msaa: 0 },
+  high: { name: 'Wysoka', dpr: 2, reflections: true, reflectionScale: 0.5, streak: 5, streakTaps: 4, bloom: 1, shadow: 2048, cones: true, spots: 6, pointLights: 2, msaa: 4 },
+  medium: { name: 'Średnia', dpr: 1.5, reflections: true, reflectionScale: 0.33, streak: 4, streakTaps: 3, bloom: 0.5, shadow: 1024, cones: true, spots: 4, pointLights: 1, msaa: 0 },
+  low: { name: 'Niska', dpr: 1, reflections: false, reflectionScale: 0.25, streak: 3, streakTaps: 3, bloom: 0, shadow: 1024, cones: false, spots: 3, pointLights: 1, msaa: 0 },
 };
 const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-if (isTouch) for (const [k, q] of Object.entries(QUALITY)) { q.dpr = Math.min(q.dpr, k === 'high' ? 2 : 1.5); q.msaa = 0; q.shadow = Math.min(q.shadow, 1024); if (k === 'high') q.reflectionScale = 0.33; }
+// phones: smooth first. No floor mirror (it renders the whole scene twice), no light shafts, fewer lights, no MSAA
+if (isTouch) for (const [k, q] of Object.entries(QUALITY)) { q.dpr = Math.min(q.dpr, k === 'high' ? 2 : 1.5); q.msaa = 0; q.shadow = Math.min(q.shadow, 1024); q.reflections = false; q.cones = false; q.spots = Math.min(q.spots, 3); q.pointLights = 1; q.bloom = Math.min(q.bloom, 0.6); }
 const flat = (a, b) => Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z);
 const rand = (a, b) => a + Math.random() * (b - a);
 const fmtMoney = (v) => '$' + Math.round(v).toLocaleString('pl-PL');
@@ -81,11 +82,11 @@ async function boot() {
   canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); fail('Telefonowi zabrakło pamięci grafiki. Zamknij kartę i otwórz grę ponownie, najlepiej z jakością Niska.'); });
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
   if (renderer.getContext().isContextLost()) { fail('Przeglądarka nie dała grze dostępu do grafiki 3D.'); return; }
-  const dyn = { max: Q.dpr, cur: Math.min(window.devicePixelRatio || 1, Q.dpr), acc: 0, n: 0, t: 0, cool: 3 };
+  const dyn = { max: Q.dpr, cur: Math.min(window.devicePixelRatio || 1, isTouch ? Math.min(1.75, Q.dpr) : Q.dpr), acc: 0, n: 0, t: 0, cool: 3 };
   renderer.setPixelRatio(dyn.cur);
   renderer.setSize(view.w(), view.h(), false);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = isTouch ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
   A.initLoaders(renderer);
   let lastBytes = 0;
   A.net.onProgress = () => { if (A.net.bytes - lastBytes > 200000) { lastBytes = A.net.bytes; const el = $('netMB'); if (el) el.textContent = (A.net.bytes / 1048576).toFixed(1) + ' MB'; } };
@@ -255,6 +256,10 @@ async function boot() {
   window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
   // audio may only start/resume inside a real activation (tap release / click / key), not on pointerdown
   for (const ev of ['pointerup', 'touchend', 'click']) window.addEventListener(ev, () => sound.unlock(), { passive: true, capture: true });
+  // iPhone Safari ignores user-scalable=no: block pinch and double-tap zoom (it made the HUD huge and the image blocky)
+  for (const ev of ['gesturestart', 'gesturechange', 'gestureend', 'dblclick']) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (e) => { const now = performance.now(); if (now - lastTouchEnd < 330 && G.mode === 'play') e.preventDefault(); lastTouchEnd = now; }, { passive: false });
   window.addEventListener('blur', () => keys.clear());
   ui.onAction = press;
   const held = { block: false };
@@ -300,7 +305,7 @@ async function boot() {
     ui.objective(HINTS.gymStart);
     sound.setRoom('gym');
     // gym members, then stream the street in the background
-    people.populateGym().catch(e => console.warn('gym people', e));
+    people.populateGym(isTouch ? 5 : 7).catch(e => console.warn('gym people', e));
     loadStreet().catch(e => console.error(e));
   }
 
@@ -330,7 +335,8 @@ async function boot() {
       spawnBatPickup(new THREE.Vector3(ALLEY.x0 + 2.2, 0, ALLEY.z1 - 2.6));
       // sky reflection map for the street
       G.street = st;
-      people.populateStreet(ST, isTouch ? 6 : 9).catch(e => console.warn('street people', e));
+      try { renderer.compile(scene, camera); } catch { } // compile the street's shaders now, not on the first frame outside
+      people.populateStreet(ST, isTouch ? 5 : 9).catch(e => console.warn('street people', e));
       // preload the first bosses + zombies
       loadChar('tiger'); loadChar('zombie'); loadChar('tiger2'); loadChar('fant'); loadChar('musc');
       return st;
@@ -352,7 +358,7 @@ async function boot() {
   }
   const placePromises = {};
   function loadPlace(k) {
-    if (!placePromises[k]) placePromises[k] = buildPlace(PLACES[k], { scene, world, A, onStatus: (m) => ui.loading(true, m) }).then(p => { (G.places ||= {})[k] = p; return p; });
+    if (!placePromises[k]) placePromises[k] = buildPlace(PLACES[k], { scene, world, A, onStatus: (m) => ui.loading(true, m) }).then(p => { (G.places ||= {})[k] = p; p.group.visible = true; try { renderer.compile(scene, camera); } catch { } p.group.visible = false; return p; });
     return placePromises[k];
   }
   // ---------------- travel between the city, the villa and the gang turfs ("rewiry") ----------------
@@ -451,7 +457,9 @@ async function boot() {
       const f = await spawnThug(b.person, { pos: [s.x, s.y, s.z], heading: gg.p.face + Math.PI, hp: b.hp, size: b.size, dmg: b.dmg, aggro: 1.0, moves: b.moves, label: b.name });
       f.boss = true; f.def = { ...b, id: 'turf', aggro: 1.0 };
       if (b.bat && G.batModel) {
-        const m = G.batModel.clone(); m.scale.setScalar(1 / (SCALE * f.k) * 0.95); m.rotation.set(Math.PI / 2, 0, 0); m.position.set(0, 9, 2.5);
+        const hand = f.model.getObjectByName('mixamorigRightHand'); f.root.updateMatrixWorld(true);
+        const bs = hand.getWorldScale(new THREE.Vector3()).x || 1, hs = SCALE * player.k; // hero hand scale (bat was tuned on it)
+        const m = G.batModel.clone(); m.scale.setScalar(0.95 / bs); m.rotation.set(Math.PI / 2, 0, 0); m.position.set(0, 9 * hs / bs, 2.5 * hs / bs);
         f.attach(m, 'mixamorigRightHand'); const tip = new THREE.Object3D(); tip.position.set(0, 0.85, 0); m.add(tip); f.addLimb('CLUB', tip); f.weapon = true;
       }
       gg.bossSpawned = true; gg.alive.push(f);
@@ -757,16 +765,11 @@ async function boot() {
 
   // ---------------- gang members: Mixamo people driven by the hero's fighting animations ----------------
   const thugClips = {};
+  // raw Mixamo fight clips (people/fight.json.gz) fit Mixamo bodies; the hero's retargeted clips would twist them
   async function thugClipSet(T, name) {
     if (thugClips[name]) return thugClips[name];
-    const bc = await loadChar('brax');
-    const it = bc.clips.find(c => c.name === 'Idle').tracks.find(t => t.name === 'mixamorigHips.position');
-    const rest = it ? it.values[1] : 53.6, k = T.hipsY / rest;
-    const want = new Set(); T.root.traverse(o => { if (o.isBone) want.add(o.name); });
-    thugClips[name] = bc.clips.map(c => new THREE.AnimationClip(c.name, c.duration, c.tracks.filter(t => want.has(t.name.split('.')[0])).map(t => {
-      if (!t.name.endsWith('.position')) return t;
-      const n = t.clone(); n.values = Float32Array.from(t.values, v => v * k); return n;
-    })));
+    await people.loadClips();
+    thugClips[name] = people.fightNames.map(n => people.clip(n, T.hipsY));
     return thugClips[name];
   }
   let braxHipsM = 0;
@@ -777,11 +780,13 @@ async function boot() {
     if (!braxHipsM) { const bc = await loadChar('brax'); const tmp = cloneSkinned(bc.scene); tmp.scale.setScalar(SCALE); tmp.updateMatrixWorld(true); braxHipsM = tmp.getObjectByName('mixamorigHips').getWorldPosition(new THREE.Vector3()).y; }
     const inner = cloneSkinned(T.root); inner.scale.setScalar((braxHipsM / SCALE) / T.hipsWorld);
     const wrap = new THREE.Group(); wrap.add(inner);
-    const f = new Fighter({ model: wrap, clips, meta: META, name: label, world, size, moves: null, isPlayer: false });
+    // human size: ~1.8 m tall (the hero is a big minotaur); Fighter size = hip height relative to the hero's
+    const hipsM = 1.8 * size * (T.hipsWorld / T.height), k = hipsM / braxHipsM;
+    const f = new Fighter({ model: wrap, clips, meta: META, name: label, world, size: k, moves: null, isPlayer: false });
     f.key = 'thug'; f.team = 'enemy'; f.hp = f.maxHp = hp; f.thug = true;
     f.pos.set(pos[0], 0, pos[2]); f.y = pos[1] || 0; f.heading = heading;
     scene.add(f.root); f.root.position.y = f.y; f.root.rotation.y = heading;
-    const b = new THREE.Mesh(new THREE.PlaneGeometry(1.6 * size, 1.6 * size).rotateX(-Math.PI / 2), blobMat); b.renderOrder = 2; scene.add(b); f.blob = b;
+    const b = new THREE.Mesh(new THREE.PlaneGeometry(1.6 * k, 1.6 * k).rotateX(-Math.PI / 2), blobMat); b.renderOrder = 2; scene.add(b); f.blob = b;
     f.def = { moves, aggro, name: label }; f.dmgMul = dmg; f.noRefill = true; f.setIdle('Boxing');
     f.update(1 / 60); // pose before the first render (no T-pose flash)
     actors.push(f);
@@ -1335,8 +1340,11 @@ async function boot() {
     if (dyn.t < 2.0) return;
     const avg = dyn.acc / dyn.n; dyn.acc = dyn.n = dyn.t = 0;
     let next = dyn.cur;
-    if (avg > 1 / 43 && dyn.cur > 1.0) { next = Math.max(1.0, dyn.cur - (avg > 1 / 30 ? 0.35 : 0.2)); dyn.cool = 6; }
-    else if (avg < 1 / 57 && dyn.cur < dyn.max && dyn.cool <= 0) { next = Math.min(dyn.max, dyn.cur + 0.15); dyn.cool = 4; }
+    const minDpr = Math.min(dyn.max, (window.devicePixelRatio || 1) >= 2 ? 1.25 : 1.0);
+    if (avg > 1 / 43 && dyn.cur > minDpr && dyn.cool <= 0) { next = Math.max(minDpr, dyn.cur - (avg > 1 / 30 ? 0.25 : 0.15)); dyn.cool = 8; }
+    else if (avg > 1 / 40 && floorReflect) { floorReflect = false; floor.uniforms.reflStrength.value = 0; dyn.cool = 6; }
+    else if (avg < 1 / 58 && dyn.cur < dyn.max && dyn.cool <= 0 && dyn.drops < 2) { next = Math.min(dyn.max, dyn.cur + 0.15); dyn.cool = 12; }
+    if (next < dyn.cur) dyn.drops = (dyn.drops || 0) + 1; // after two drops stay put (each change reallocates buffers = a hitch)
     if (Math.abs(next - dyn.cur) > 0.01) { dyn.cur = next; renderer.setPixelRatio(dyn.cur); resize(); }
   }
   function frame() {

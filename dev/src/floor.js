@@ -8,7 +8,7 @@ export function createWetFloor({ width, depth, center, maps, wet, quality }) {
   for (const k of ['map', 'roughnessMap', 'normalMap']) maps[k].repeat.set(repX, repY);
   const mat = new THREE.MeshStandardMaterial({
     map: maps.map, roughnessMap: maps.roughnessMap, normalMap: maps.normalMap,
-    normalScale: new THREE.Vector2(0.55, 0.55), roughness: 0.62, metalness: 0.0, envMapIntensity: 0.35,
+    normalScale: new THREE.Vector2(0.18, 0.18), roughness: 0.82, metalness: 0.0, envMapIntensity: 0.25, color: 0x8a8886,
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.rotation.x = -Math.PI / 2;
@@ -39,17 +39,15 @@ uniform sampler2D tRefl; uniform sampler2D tWet; uniform vec2 reflTexel; uniform
 varying vec4 vReflUv; varying vec2 vFloorUv;`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
 float wetK = texture2D( tWet, vFloorUv ).r;
-roughnessFactor = mix( roughnessFactor, roughnessFactor * 0.35, wetK );`)
+roughnessFactor = mix( roughnessFactor, roughnessFactor * 0.7, wetK );`)
       .replace('#include <opaque_fragment>', `
 {
   vec2 ruv = vReflUv.xy / vReflUv.w;
   vec2 bend = ( normal.xy - nonPerturbedNormal.xy ) * 0.028;
-  ruv += bend * ( 0.4 + wetK );
+  ruv += bend * 0.3;
   vec3 acc = vec3( 0.0 ); float wsum = 0.0;
-  // per-pixel jitter of the taps (interleaved gradient noise): smooth streaks instead of rows of dots
-  float ign = fract( 52.9829189 * fract( dot( gl_FragCoord.xy, vec2( 0.06711056, 0.00583715 ) ) ) );
   for ( int i = -${taps}; i <= ${taps}; i ++ ) {
-    float fi = ( float( i ) + ign - 0.5 ) / float( ${taps} );
+    float fi = float( i ) / float( ${taps} );
     float w = exp( -fi * fi * 2.2 );
     vec2 o = vec2( fi * reflTexel.x * 1.5, fi * reflTexel.y * streak * ( 0.7 + 0.8 * wetK ) );
     acc += texture2D( tRefl, ruv + o ).rgb * w; wsum += w;
@@ -57,7 +55,7 @@ roughnessFactor = mix( roughnessFactor, roughnessFactor * 0.35, wetK );`)
   vec3 refl = acc / wsum;
   float cosT = clamp( dot( normal, normalize( vViewPosition ) ), 0.0, 1.0 );
   float fres = 0.05 + 0.95 * pow( 1.0 - cosT, 5.0 );
-  float amt = reflStrength * mix( 0.22, 0.95, wetK ) * mix( 0.55, 1.0, fres );
+  float amt = reflStrength * mix( 0.1, 0.24, wetK ) * mix( 0.5, 1.0, fres );
   outgoingLight = outgoingLight * ( 1.0 - 0.45 * amt ) + refl * amt;
 }
 #include <opaque_fragment>`);

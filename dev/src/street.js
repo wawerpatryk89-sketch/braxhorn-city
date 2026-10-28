@@ -503,7 +503,12 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
   {
     const oc = buildOuterCity({ ST, group: G, poleMat });
     out.outer = oc;
-    for (const p of oc.lampHeads) { glow(p.clone().setY(p.y + 0.1), 0xffc77e, 2.6); L(p.clone().setY(p.y - 0.6), new THREE.Color(1.0, 0.62, 0.3).multiplyScalar(3.0), 9.5, 'street'); }
+    // distant lamp heads: one Points draw call instead of ~80 sprites
+    const pts = new Float32Array(oc.lampHeads.length * 3);
+    oc.lampHeads.forEach((p, i) => { pts[i * 3] = p.x; pts[i * 3 + 1] = p.y + 0.1; pts[i * 3 + 2] = p.z; L(p.clone().setY(p.y - 0.6), new THREE.Color(1.0, 0.62, 0.3).multiplyScalar(3.0), 9.5, 'street'); });
+    const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+    const pm = new THREE.PointsMaterial({ map: halo, size: 2.8, sizeAttenuation: true, color: new THREE.Color(0xffc77e), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+    const lampPts = new THREE.Points(pg, pm); lampPts.renderOrder = 6; G.add(lampPts); out.lampPts = lampPts;
     out.air = oc.airLights.map(a => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, color: new THREE.Color(1, 0.1, 0.05), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false })); s.position.copy(a.pos); s.scale.setScalar(3.2); s.userData.ph = Math.random() * 6; G.add(s); return s; });
   }
 
@@ -570,6 +575,7 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
     for (const n of out.neons) { n.material.opacity = 0.25 + 0.75 * Math.max(env.lamps, 0.35); }
     for (const b of out.buildings) b.mat.emissiveIntensity = 1.25 * night;
     if (out.outer) out.outer.update(night);
+    if (out.lampPts) { out.lampPts.material.color.setHex(0xffc77e).multiplyScalar(0.8 * Math.max(0.05, night)); }
     const tr = out.train;
     if (tr) {
       if (!tr.obj.visible) { tr.t -= dt; if (tr.t <= 0) { tr.dir = rnd() < 0.5 ? 1 : -1; tr.z = tr.dir > 0 ? -420 : 480; tr.obj.visible = true; tr.obj.rotation.y = tr.dir > 0 ? 0 : Math.PI; } }

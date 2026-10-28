@@ -489,7 +489,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
   const purple = new THREE.MeshBasicMaterial({ color: new THREE.Color(0x9b5cff).multiplyScalar(4) });
   BC.nx.cyl(purple, minX + 0.55, 3.6, 10.2, 0.045, 0.045, 7.0, 8);
   BC.nx.cyl(purple, minX + 0.55, 3.6, 9.35, 0.045, 0.045, 7.0, 8);
-  const pp = new THREE.PointLight(0x8e4dff, 10, 7, 2); pp.position.set(minX + 1.2, 3.2, 9.6); pp.userData.tier = 1; scene.add(pp); out.lights.push(pp);
+  const pp = new THREE.PointLight(0x8e4dff, 4, 5, 2); pp.position.set(minX + 1.2, 3.2, 9.6); pp.userData.tier = 1; scene.add(pp); out.lights.push(pp);
   { const np = new THREE.PointLight(0x8bff3a, 9, 7, 2); np.position.set(minX + 1.0, 5.6, -3.6); np.userData.tier = 2; np.visible = quality.pointLights >= 2; scene.add(np); out.lights.push(np); }
 
   // brand posters

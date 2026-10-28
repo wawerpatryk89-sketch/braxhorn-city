@@ -64,27 +64,30 @@ function voiced(sec, f0, { jitter = 0.06, formants = [[700, 6], [1150, 8], [2600
 
 // ---------------- the sound bank ----------------
 const BANK = {
-  punch: () => [0, 1, 2].map(v => {
-    const b = mk(0.4);
-    mixInto(b, filt(noiseBurst(0.06, 0.0005, 0.012), 'bp', 2600 + v * 500, 1.2), 0.9);
-    mixInto(b, tone(0.25, 170 + v * 15, 62, 0.001, 0.06), 1.1);
-    mixInto(b, filt(noiseBurst(0.12, 0.002, 0.03), 'bp', 900 + v * 120, 0.9), 0.7);
-    return norm(sat(b, 1.8), 0.95);
+  // hits: a short dull body thud (low sine drop + low-passed noise), a soft cloth/skin slap and a tiny click; no harsh saturation
+  punch: () => [0, 1, 2, 3].map(v => {
+    const b = mk(0.32);
+    mixInto(b, tone(0.22, 118 + v * 9, 52, 0.0015, 0.045), 1.0);                                   // thud
+    mixInto(b, filt(filt(noiseBurst(0.12, 0.0008, 0.028), 'lp', 520 + v * 60), 'hp', 70), 1.15);    // body
+    mixInto(b, filt(noiseBurst(0.05, 0.0004, 0.009), 'bp', 1150 + v * 140, 0.7), 0.45);             // slap
+    mixInto(b, filt(noiseBurst(0.012, 0.0001, 0.0022), 'hp', 2500), 0.12);                        // contact click
+    return norm(sat(b, 1.15), 0.92);
   }),
-  heavy: () => [0, 1].map(v => {
-    const b = mk(0.7);
-    mixInto(b, filt(noiseBurst(0.05, 0.0004, 0.01), 'hp', 1800), 0.8);
-    mixInto(b, tone(0.5, 120 + v * 10, 40, 0.001, 0.12), 1.4);
-    mixInto(b, filt(noiseBurst(0.3, 0.003, 0.07), 'lp', 700), 0.9);
-    mixInto(b, filt(noiseBurst(0.08, 0.001, 0.02), 'bp', 1400, 1.5), 0.6, 0.01);
-    return norm(sat(b, 2.6), 0.97);
+  heavy: () => [0, 1, 2].map(v => {
+    const b = mk(0.55);
+    mixInto(b, tone(0.4, 96 + v * 8, 40, 0.002, 0.085), 1.2);
+    mixInto(b, filt(filt(noiseBurst(0.22, 0.001, 0.05), 'lp', 420 + v * 50), 'hp', 50), 1.3);
+    mixInto(b, filt(noiseBurst(0.07, 0.0005, 0.014), 'bp', 950 + v * 120, 0.7), 0.5);
+    mixInto(b, filt(noiseBurst(0.015, 0.0001, 0.003), 'hp', 2200), 0.12);
+    mixInto(b, tone(0.3, 60, 34, 0.004, 0.09), 0.5, 0.01);                                        // low boom
+    return norm(sat(b, 1.3), 0.96);
   }),
   block: () => [0, 1].map(v => {
-    const b = mk(0.3);
-    mixInto(b, filt(noiseBurst(0.15, 0.001, 0.03), 'lp', 900 + v * 200), 1);
-    mixInto(b, tone(0.2, 220, 140, 0.001, 0.04), 0.5);
-    mixInto(b, filt(noiseBurst(0.02, 0.0002, 0.004), 'hp', 3500), 0.4);
-    return norm(b, 0.8);
+    const b = mk(0.26);
+    mixInto(b, filt(noiseBurst(0.12, 0.0008, 0.022), 'lp', 700 + v * 150), 1);                   // forearm/glove
+    mixInto(b, tone(0.14, 180, 120, 0.001, 0.03), 0.35);
+    mixInto(b, filt(noiseBurst(0.04, 0.0004, 0.008), 'bp', 1600, 0.8), 0.25);
+    return norm(b, 0.75);
   }),
   whoosh: () => [0, 1].map(v => {
     const len = v ? 0.42 : 0.26, b = mk(len);
@@ -315,7 +318,7 @@ export class Sound {
     }
     g.gain.value = gg;
     src.connect(g);
-    if (c.createStereoPanner && pan) { const p = c.createStereoPanner(); p.pan.value = pan * 0.8; g.connect(p); p.connect(this.fx); p.connect(this.verbSend()); }
+    if (c.createStereoPanner && pan) { const p = c.createStereoPanner(); p.pan.value = pan * 0.8; g.connect(p); p.connect(this.fx); p.connect(this.verbSend(wet)); }
     else { g.connect(this.fx); g.connect(this.verbSend(wet)); }
     src.start();
     return src;
@@ -352,9 +355,9 @@ export class Sound {
     this.music = { src, g, key };
   }
   // convenience wrappers used by the game
-  punch(k = 1, pos) { this.play(k > 0.8 ? 'heavy' : 'punch', { gain: 0.7 + 0.5 * Math.min(1, k), pos }); }
+  punch(k = 1, pos) { this.play(k > 0.8 ? 'heavy' : 'punch', { gain: 0.75 + 0.45 * Math.min(1, k), pos, wet: 0.15 }); }
   bag(k = 1, pos) { this.play('bag', { gain: 0.6 + 0.4 * k, pos }); }
-  block(pos) { this.play('block', { gain: 0.8, pos }); }
+  block(pos) { this.play('block', { gain: 0.8, pos, wet: 0.15 }); }
   thump(k = 1, pos) { this.play('fall', { gain: 0.5 + 0.6 * k, pos }); }
   whoosh(heavy, pos) { this.play('whoosh', { gain: heavy ? 0.55 : 0.4, variant: heavy ? 1 : 0, pos, wet: 0.2 }); }
   bell(n = 3) { if (!this.ok()) return; for (let i = 0; i < n; i++) setTimeout(() => this.play('bell', { gain: 0.6, wet: 0.8 }), i * 330); }

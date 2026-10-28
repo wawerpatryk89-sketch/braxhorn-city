@@ -3,7 +3,8 @@
 // without real three.js lights.
 import * as THREE from 'three';
 
-export const LAMP_N = 16;
+// phones: half the lamps (the loop runs for every pixel of every outdoor material)
+export const LAMP_N = (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || (typeof window !== 'undefined' && 'ontouchstart' in window) ? 8 : 16;
 export const lampU = {
   lampPos: { value: Array.from({ length: LAMP_N }, () => new THREE.Vector4(0, -500, 0, 1)) },
   lampCol: { value: Array.from({ length: LAMP_N }, () => new THREE.Vector3()) },
