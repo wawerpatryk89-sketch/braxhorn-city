@@ -99,8 +99,8 @@ export function buildGym(scene, world, quality, font, logos = null) {
   const GREEN = 0x8bff3a;
   const brickT = T.brick(1024, 1024, { paint: [206, 205, 200], rows: 20 }); // bigger bricks: fine mortar lines shimmered on phones
   brickT.map.repeat.set(1, 1); brickT.normalMap.repeat.set(1, 1);
-  const brickMat = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.9, color: 0xe4e3df, envMapIntensity: 0.3, emissive: 0xffffff, emissiveMap: brickT.map, emissiveIntensity: 0.24 });
-  const brickDark = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.9, color: 0xa9aaac, envMapIntensity: 0.2, emissive: 0xffffff, emissiveMap: brickT.map, emissiveIntensity: 0.11 });
+  const brickMat = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.9, color: 0xe4e3df, envMapIntensity: 0.3 });
+  const brickDark = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, normalScale: new THREE.Vector2(0.5, 0.5), roughness: 0.9, color: 0xa9aaac, envMapIntensity: 0.2 });
   const rimMat = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, roughness: 0.7, color: 0x2a2b2e, envMapIntensity: 0.2 });
   const signBoard = new THREE.MeshStandardMaterial({ color: 0x0d0e10, roughness: 0.45, metalness: 0.3 });
   // the other buildings in the alley keep plain red brick

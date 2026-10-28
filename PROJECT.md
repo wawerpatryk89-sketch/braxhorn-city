@@ -90,6 +90,9 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 - Bez LED-ów (14:20): zielone listwy, łuki i półki to matowa farba (`ledGreen` = MeshStandard, pieczona). Ramka LED wokół drzwi, zielone rurki neonowe i zielone światła w pieczeniu (gym3.bin.gz) usunięte. Wszystkie napisy (BRAXHORN GYM, OPEN 24/7, WYJŚCIE) malowane, oświetlone jak reszta. Liny ringu złamana biel/ciemna zieleń. Drzwi matowe (metal odbijał salę na srebrno), słabsze lampy w zaułku.
 - Ulica: bez poświat wokół lamp, żarówki latarni małe, neony sklepów bez blasku (zwykłe krycie, ostry napis), graffiti byka usunięte z zaułka. Pole lamp: światła na granicy wyboru 8 najbliższych płynnie wygasają (wcześniej przeskakiwały i ściany/okna mrugały).
 - Na razie tylko dzień: `DAY_ONLY` w main.js (godz. 13:30, zegar stoi), przycisk „Przyspiesz czas” ukryty.
+- **ZASADA (użytkownik, 14:27): kamera nigdy nie obraca się sama.** Usunięte wszystkie automatyczne obroty: dryf wzdłuż ulicy, ustawianie w walce, obrót w kryptach i przesuwanie celu w stronę przeciwnika. Kamera tylko idzie za postacią, a obraca ją wyłącznie gracz.
+- Odbicia na zewnątrz pochodzą z nieba (`captureSky`, PMREM). Wcześniej ulica odbijała białą siłownię i krawężniki „świeciły”. Ściany siłowni nie mają już emissive, bo zewnętrzna połowa ściany przy drzwiach świeciła.
+- Tryb zwiedzania znowu trzyma ściany ulicy (kordon i wiadukt). Dalsze ulice to puste wypełniacze, plansza 1 je zastąpi.
 
 ## Jakość na telefonie (28.10, 13:30)
 

@@ -361,7 +361,7 @@ async function boot() {
       const batG = await A.loadGLTF('bat.glb'); G.batModel = batG.scene; G.batModel.traverse(o => { if (o.isMesh) { addLampField(o.material, 'lit'); o.castShadow = true; } });
       spawnBatPickup(new THREE.Vector3(ALLEY.x0 + 2.2, 0, ALLEY.z1 - 2.6));
       // sky reflection map for the street
-      G.street = st; if (G.explore && st.setExplore) st.setExplore(true);
+      G.street = st;
       try { renderer.compile(scene, camera); } catch { } // compile the street's shaders now, not on the first frame outside
       people.populateStreet(ST, isTouch ? 5 : 9).catch(e => console.warn('street people', e));
       // preload the first bosses + zombies
@@ -396,10 +396,9 @@ async function boot() {
     G.gang = null;
   }
   // ---------------- explore mode: no traffic, no enemies, open street, no damage ----------------
-  const EXPLORE_HINT = 'Tryb zwiedzania: nikt nie atakuje, aut nie ma, ulica otwarta w obie strony. Walki włączysz w pauzie.';
+  const EXPLORE_HINT = 'Tryb zwiedzania: nikt nie atakuje i nie ma aut. Walki włączysz w pauzie.';
   function setExplore(v) {
     G.explore = v; store.set('explore', v);
-    if (G.street && G.street.setExplore) G.street.setExplore(v);
     if (v) {
       clearFoes();
       for (const a of [...actors]) if (a.team === 'enemy' && a !== player) despawn(a);
@@ -971,36 +970,9 @@ async function boot() {
       else { tgt = new THREE.Vector3(RING.x + (selectFocus === 'brax' ? -0.35 : 0.35), RING.h + 0.15, RING.z + 0.6); cam.yaw += angDiff(cam.yaw, 0.0) * Math.min(1, dt * 2); cam.pitch = 0.02; cam.dist = 7.4; }
     } else {
       const h = player.hipsWorld(); tgt = new THREE.Vector3(h.x, player.y + (cam.mode === '3d' ? 1.55 : 1.0) * player.k, h.z);
-      const foe = G.mode === 'play' && G.chapter !== 'crypt' ? fightFoe() : null;
-      if (foe) { tgt.x += (foe.pos.x - h.x) * 0.3; tgt.z += (foe.pos.z - h.z) * 0.3; }
     }
     cam.target.lerp(tgt, 1 - Math.exp(-dt * 9));
-    // street: drift towards a diagonal view along the street when the player is not steering the camera
-    if (G.mode === 'play' && cam.mode === '3d' && performance.now() - cam.lastManual > 3500) {
-      let want = null;
-      if (G.chapter === 'street' && player.pos.z > ST.near - 0.5) want = -Math.PI / 2 - 0.72;
-      if (G.place && G.chapter === G.place.def.key) want = G.place.face + Math.PI;
-      // fights on the street / in open rooms: look across the fight, from the open side
-      const foe = fightFoe();
-      if (foe && (G.chapter === 'street' || (G.place && G.chapter === G.place.def.key && G.place.def.openRoom))) {
-        const ax = foe.pos.x - player.pos.x, az = foe.pos.z - player.pos.z, al = Math.hypot(ax, az) || 1;
-        const n1 = [-az / al, ax / al], n2 = [az / al, -ax / al];
-        let n;
-        if (G.chapter === 'street') { const zc = (ST.road0 + ST.road1) / 2; n = Math.abs(player.pos.z + n1[1] * 4 - zc) < Math.abs(player.pos.z + n2[1] * 4 - zc) ? n1 : n2; }
-        else { const b = G.place.bounds, cx = (b.minX + b.maxX) / 2, cz = (b.minZ + b.maxZ) / 2; n = Math.hypot(player.pos.x + n1[0] * 4 - cx, player.pos.z + n1[1] * 4 - cz) < Math.hypot(player.pos.x + n2[0] * 4 - cx, player.pos.z + n2[1] * 4 - cz) ? n1 : n2; }
-        const w = Math.atan2(n[0], n[1]);
-        want = w + 0.35 * Math.sign(angDiff(w, Math.atan2(-ax, -az)) || 1); // a little behind the player
-      }
-      // crypt: look across the fight (perpendicular to the player-boss line), from the side nearer the cage centre
-      if (G.chapter === 'crypt' && G.boss && G.crypt) {
-        const ax = G.boss.pos.x - player.pos.x, az = G.boss.pos.z - player.pos.z, al = Math.hypot(ax, az) || 1, O = G.crypt.origin;
-        const mx = (G.boss.pos.x + player.pos.x) / 2, mz = (G.boss.pos.z + player.pos.z) / 2;
-        const n1 = [-az / al, ax / al], n2 = [az / al, -ax / al];
-        const d1 = Math.hypot(mx + n1[0] * 4 - O.x, mz + n1[1] * 4 - O.z), d2 = Math.hypot(mx + n2[0] * 4 - O.x, mz + n2[1] * 4 - O.z);
-        const n = d1 < d2 ? n1 : n2; want = Math.atan2(n[0], n[1]);
-      }
-      if (want !== null) { cam.yaw += angDiff(cam.yaw, want) * Math.min(1, dt * (G.chapter === 'crypt' || foe ? 1.6 : 0.8)); if (G.chapter !== 'crypt') cam.pitch += ((G.place && G.chapter === G.place.def.key ? 0.24 : 0.32) - cam.pitch) * Math.min(1, dt * 0.8); }
-    }
+    // the camera never turns by itself: only the player's thumb/mouse rotates it (it just follows the fighter)
     if (G.mode === 'play' && G.chapter === 'crypt' && cam.mode === '3d') { cam.pitch += (Math.max(cam.pitch, 0.86) - cam.pitch) * Math.min(1, dt * 3); cam.dist += (Math.max(cam.dist, 6.4) - cam.dist) * Math.min(1, dt * 3);
     }
     let yaw, pitch, dist, fov;
@@ -1050,7 +1022,16 @@ async function boot() {
   const lampTmp = [];
   let outF = 0;
   const fogIn = new THREE.Color(0x08090a);
-  const TUNE = { charEnv: 0.12, hemi: 0.85, key: 1.6 }; // fighters: little flat fill, a clear key light -> black stays black, skin keeps its colour
+  const TUNE = { charEnv: 0.12, hemi: 0.85, key: 1.6 };
+  let envSky = null;
+  function captureSky() {
+    const sky = env.sky, parent = sky.parent, pos = sky.position.clone(), tmp = new THREE.Scene();
+    const starsVis = env.stars.visible; env.stars.visible = false;
+    tmp.add(sky); sky.position.set(0, 0, 0); sky.updateMatrixWorld(true);
+    const tex = pmrem.fromScene(tmp, 0.02, 1, 2000).texture;
+    if (parent) parent.add(sky); sky.position.copy(pos); env.stars.visible = starsVis;
+    return tex;
+  } // fighters: little flat fill, a clear key light -> black stays black, skin keeps its colour
   const keyOff = new THREE.Vector3(), keyC = new THREE.Vector3(), keyZero = new THREE.Vector3(), keyUp = new THREE.Vector3(0, 1, 0), keyM = new THREE.Matrix4(), keyMi = new THREE.Matrix4();
   function updateLighting(dt, t) {
     const o = env.update(dt);
@@ -1089,6 +1070,9 @@ async function boot() {
     }
     // reflections of the (bright) gym capture on skin/clothes: dim them outdoors at night and in the crypt
     // characters get as much of it as the room does (more made them look lit up / glowing)
+    // reflections outdoors come from the sky, not from the (bright white) gym: the street glowed with the gym in it
+    if (outF > 0.5 && !crypt) { if (!envSky) envSky = captureSky(); if (scene.environment !== envSky) scene.environment = envSky; }
+    else if (scene.environment !== envGym) scene.environment = envGym;
     const envK = crypt ? 0.25 : TUNE.charEnv * (1 - outF) + (0.25 + 0.35 * o.day) * outF;
     for (const m of charMats) m.envMapIntensity = envK;
     people.envK = envK; for (const m of people.mats) m.envMapIntensity = envK;
