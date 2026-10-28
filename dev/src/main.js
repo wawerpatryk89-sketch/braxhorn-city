@@ -125,7 +125,7 @@ async function boot() {
   scene.position.y = 0; scene.updateMatrixWorld(true);
   env.sky.visible = true;
   scene.environment = envGym;
-  const GYM_HEMI = { sky: new THREE.Color(0xc4a888), ground: new THREE.Color(0x2a221b), i: 1.3 }, GYM_KEY = { c: new THREE.Color(0xfff0dc), i: 2.0 };
+  const GYM_HEMI = { sky: new THREE.Color(0xc9b39a), ground: new THREE.Color(0x3a3029), i: isTouch ? 2.0 : 1.3 }, GYM_KEY = { c: new THREE.Color(0xfff0dc), i: isTouch ? 2.7 : 2.0 }; // phones have fewer spotlights
 
   // ---------------- characters ----------------
   const chars = {}, charMats = [];
@@ -1022,10 +1022,10 @@ async function boot() {
       hemi.color.lerpColors(GYM_HEMI.sky, hemi.color.clone(), k); hemi.groundColor.lerpColors(GYM_HEMI.ground, hemi.groundColor.clone(), k);
       hemi.intensity = GYM_HEMI.i * (1 - k) + hemi.intensity * k;
       key.color.lerpColors(GYM_KEY.c, key.color.clone(), k); key.intensity = GYM_KEY.i * (1 - k) + key.intensity * k;
-      scene.fog.color.lerpColors(fogIn, env.fogColor, k); scene.fog.density = 0.0065 * (1 - k) + (0.0055 + 0.0075 * o.night) * k;
+      scene.fog.color.lerpColors(fogIn, env.fogColor, k); scene.fog.density = 0.004 * (1 - k) + (0.0055 + 0.0075 * o.night) * k;
       scene.background.copy(env.fogColor);
       lampU.uAmb.value.copy(env.amb);
-      renderer.toneMappingExposure = 1.12 * (1 - k) + (1.0 + 0.15 * o.night) * k;
+      renderer.toneMappingExposure = (isTouch ? 1.22 : 1.12) * (1 - k) + (1.0 + 0.15 * o.night) * k;
       if (placeMood === 'bright') {
         // clean fitness club: even white ceiling light
         hemi.color.set(0xe9eef2); hemi.groundColor.set(0x8c8a86); hemi.intensity = 1.3; key.color.set(0xffffff); key.intensity = 1.4;
