@@ -4,7 +4,7 @@ import { LEVEL } from './layout.js';
 import {buildCivic} from './civic.js';
 
 // All architecture is scoped to this level; no edits to city or gym modules.
-export function buildWorld(scene) {
+export function buildWorld(scene,logos) {
  const group=new T.Group();group.name='osiedle';scene.add(group);
  const collision=[],walkable=[], batches=new Map();let seed=41;
  const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
@@ -149,6 +149,6 @@ export function buildWorld(scene) {
  box(30,.04,-53,11,.08,8,M.stone,false);bench(34,-56);sign('POZNAŃSKA · GARAŻE',-26,2.2,-24.8,4);
  for(const z of [8,29])for(const x of [-8,8]){box(x,2.2,z,.12,4.4,.12,M.dark);box(x,4.4,z,.7,.16,.5,M.dark,false);}
  function flush(){for(const [mat,geos]of batches){const geo=mergeGeometries(geos);const m=new T.Mesh(geo,mat);m.castShadow=m.receiveShadow=true;group.add(m);for(const g of geos)g.dispose();}batches.clear();}
- const buildings=buildCivic({box,mesh,sign,bench,tree,fence,M,walkable,collision});
+ const buildings=buildCivic({box,mesh,sign,bench,tree,fence,M,walkable,collision,logos});
  flush();return {group,collision,walkable,sign,buildings,materials:M};
 }

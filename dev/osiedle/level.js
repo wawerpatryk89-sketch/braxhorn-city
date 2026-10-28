@@ -10,7 +10,10 @@ import {mergeGeometries} from '../three/examples/jsm/utils/BufferGeometryUtils.j
 
 export async function loadEstate(scene,renderer,progress=()=>{}) {
 let vegetation;
-const world=buildWorld(scene),imported=[],assetErrors=[];
+const textures=new T.TextureLoader();
+const [badge,wide]=await Promise.all(['badge.webp','wide_a.webp'].map(name=>textures.loadAsync('../assets/logo/'+name)));
+for(const tex of [badge,wide]){tex.colorSpace=T.SRGBColorSpace;tex.anisotropy=4;}
+const world=buildWorld(scene,{badge,wide}),imported=[],assetErrors=[];
 const ktx=new KTX2Loader().setTranscoderPath('../assets/basis/').detectSupport(renderer);const loader=new GLTFLoader().setKTX2Loader(ktx).setMeshoptDecoder(MeshoptDecoder);
 let importedReady=0;
 const modelCache=new Map();

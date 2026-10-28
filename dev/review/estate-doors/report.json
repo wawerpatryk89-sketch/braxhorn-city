@@ -1,0 +1,396 @@
+{
+  "checks": [
+    {
+      "name": "casino-front",
+      "pass": true,
+      "details": {
+        "id": "casino-front",
+        "prompt": "OTWÓRZ",
+        "nearest": "casino-front",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.000000000000039,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "casino-rear",
+      "pass": true,
+      "details": {
+        "id": "casino-rear",
+        "prompt": "OTWÓRZ",
+        "nearest": "casino-rear",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000426,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "club-front",
+      "pass": true,
+      "details": {
+        "id": "club-front",
+        "prompt": "OTWÓRZ",
+        "nearest": "club-front",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.000000000000039,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "club-rear",
+      "pass": true,
+      "details": {
+        "id": "club-rear",
+        "prompt": "OTWÓRZ",
+        "nearest": "club-rear",
+        "closedZ": 0.665,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000016,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "police-front",
+      "pass": true,
+      "details": {
+        "id": "police-front",
+        "prompt": "OTWÓRZ",
+        "nearest": "police-front",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.000000000000039,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "police-rear",
+      "pass": true,
+      "details": {
+        "id": "police-rear",
+        "prompt": "OTWÓRZ",
+        "nearest": "police-rear",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000426,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "hospital-front",
+      "pass": true,
+      "details": {
+        "id": "hospital-front",
+        "prompt": "OTWÓRZ",
+        "nearest": "hospital-front",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.000000000000039,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "hospital-rear",
+      "pass": true,
+      "details": {
+        "id": "hospital-rear",
+        "prompt": "OTWÓRZ",
+        "nearest": "hospital-rear",
+        "closedZ": 0.665,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000016,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "boxing-front",
+      "pass": true,
+      "details": {
+        "id": "boxing-front",
+        "prompt": "OTWÓRZ",
+        "nearest": "boxing-front",
+        "closedZ": 0.6650000000000063,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -0.9999999999998437,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "boxing-rear",
+      "pass": true,
+      "details": {
+        "id": "boxing-rear",
+        "prompt": "OTWÓRZ",
+        "nearest": "boxing-rear",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000426,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "arena-front",
+      "pass": true,
+      "details": {
+        "id": "arena-front",
+        "prompt": "OTWÓRZ",
+        "nearest": "arena-front",
+        "closedZ": 0.6650000000000063,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -0.9999999999998437,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "arena-rear",
+      "pass": true,
+      "details": {
+        "id": "arena-rear",
+        "prompt": "OTWÓRZ",
+        "nearest": "arena-rear",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000426,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "villa-front",
+      "pass": true,
+      "details": {
+        "id": "villa-front",
+        "prompt": "OTWÓRZ",
+        "nearest": "villa-front",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.000000000000039,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "villa-terrace",
+      "pass": true,
+      "details": {
+        "id": "villa-terrace",
+        "prompt": "OTWÓRZ",
+        "nearest": "villa-terrace",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000426,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "contact-front",
+      "pass": true,
+      "details": {
+        "id": "contact-front",
+        "prompt": "OTWÓRZ",
+        "nearest": "contact-front",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000355,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "contact-garden",
+      "pass": true,
+      "details": {
+        "id": "contact-garden",
+        "prompt": "OTWÓRZ",
+        "nearest": "contact-garden",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000426,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "villa-bathroom",
+      "pass": true,
+      "details": {
+        "id": "villa-bathroom",
+        "prompt": "OTWÓRZ",
+        "nearest": "villa-bathroom",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000426,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "casino-hall",
+      "pass": true,
+      "details": {
+        "id": "casino-hall",
+        "prompt": "OTWÓRZ",
+        "nearest": "casino-hall",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000426,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "police-office",
+      "pass": true,
+      "details": {
+        "id": "police-office",
+        "prompt": "OTWÓRZ",
+        "nearest": "police-office",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000355,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "club-hall",
+      "pass": true,
+      "details": {
+        "id": "club-hall",
+        "prompt": "OTWÓRZ",
+        "nearest": "club-hall",
+        "closedZ": 0.6649999999999991,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -1.0000000000000213,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "hospital-room--1-6.5",
+      "pass": true,
+      "details": {
+        "id": "hospital-room--1-6.5",
+        "prompt": "OTWÓRZ",
+        "nearest": "hospital-room--1-6.5",
+        "closedZ": 0.6650000000000063,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -0.9999999999998436,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "hospital-room--1-16.5",
+      "pass": true,
+      "details": {
+        "id": "hospital-room--1-16.5",
+        "prompt": "OTWÓRZ",
+        "nearest": "hospital-room--1-16.5",
+        "closedZ": 0.6650000000000063,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -0.9999999999998436,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "hospital-room-1-6.5",
+      "pass": true,
+      "details": {
+        "id": "hospital-room-1-6.5",
+        "prompt": "OTWÓRZ",
+        "nearest": "hospital-room-1-6.5",
+        "closedZ": 0.6650000000000063,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -0.9999999999998436,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "hospital-room-1-16.5",
+      "pass": true,
+      "details": {
+        "id": "hospital-room-1-16.5",
+        "prompt": "OTWÓRZ",
+        "nearest": "hospital-room-1-16.5",
+        "closedZ": 0.6650000000000063,
+        "animation": "door",
+        "angle": 1,
+        "opened": "open",
+        "insideZ": -0.9999999999998436,
+        "yawStable": true
+      }
+    },
+    {
+      "name": "closing-safety-and-pull-animation",
+      "pass": true,
+      "details": {
+        "staysOpen": true,
+        "collisionSafe": true,
+        "closes": true,
+        "clip": "Opening",
+        "opensInside": true,
+        "angle": 1
+      }
+    },
+    {
+      "name": "open-doors-survive-reload",
+      "pass": true
+    },
+    {
+      "name": "touch-action-opens-door",
+      "pass": true
+    },
+    {
+      "name": "no-js-errors",
+      "pass": true,
+      "details": []
+    },
+    {
+      "name": "no-missing-game-resources",
+      "pass": true,
+      "details": []
+    }
+  ],
+  "errors": [],
+  "missing": []
+}

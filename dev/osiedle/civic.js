@@ -1,12 +1,13 @@
 import * as T from 'three';
 import {LEVEL} from './layout.js';
+import {arenaMaterials,buildArena} from './arenas.js';
 
 // Public buildings and fight venues. Interaction sockets contain no mission logic.
-export function buildCivic({box,mesh,sign,bench,tree,fence,M,walkable,collision}) {
+export function buildCivic({box,mesh,sign,bench,tree,fence,M,walkable,collision,logos}) {
  const mat=(color)=>new T.MeshStandardMaterial({color,roughness:.92});
  const brick=mat(0x79594d), ivory=mat(0xd5d6cb), blue=mat(0x405866), burgundy=mat(0x533637);
  const pane=mat(0x738784), steel=mat(0x414a49);
- const buildings=[];
+ const buildings=[],arena=arenaMaterials(logos);
  for(const f of LEVEL.facilities){
   const {x,z,width:w,depth:d,id}=f, h=['casino','club','arena','boxing'].includes(id)?7:4.5;
   const skin=id==='hospital'?ivory:id==='police'?M.stone:id==='casino'?brick:M.dark;
@@ -33,9 +34,9 @@ export function buildCivic({box,mesh,sign,bench,tree,fence,M,walkable,collision}
   b(0,3.22,d/2+1.6,7,.25,3.5,M.dark,false);
   for(const a of [-3.1,3.1])b(a,1.55,d/2+2.8,.15,3.1,.15,steel);
   sign(f.label.toLocaleUpperCase('pl'),x,4.05,z+d/2+.4,Math.min(13,w-6));
-  sign('WEJŚCIE',x,2.85,z+d/2+.35,1.6);
-  sign('WYJŚCIE',x,2.75,z-d/2+.24,1.5);
-  sign('WYJŚCIE',x,2.75,z+d/2-.24,1.5,Math.PI);
+  sign('WEJŚCIE',x,3.6,z+d/2+.35,1.6);
+  sign('WYJŚCIE',x,3.4,z-d/2+.24,1.5);
+  sign('WYJŚCIE',x,3.4,z+d/2-.24,1.5,Math.PI);
   // Hard landscaping and rear service access connected around both sides.
   b(0,.025,d/2+3,w+4,.05,5,M.paving,false);
   for(const a of [-w/2-2,w/2+2])b(a,.025,0,2.7,.05,d+10,M.paving,false);
@@ -89,7 +90,7 @@ export function buildCivic({box,mesh,sign,bench,tree,fence,M,walkable,collision}
    // Roof structure, wall panelling and spectator seating give the hall a readable scale.
    for(let c=-12;c<=12;c+=6){b(0,6.1,c,w-.8,.24,.25,steel,false);for(const a of [-18,18])b(a,3,c,.24,6,.24,steel);}
    for(const a of [-19.7,19.7])b(a,1,0,.08,2,d-.8,M.stone,false);
-   for(const a of [-10,10])for(let c=-5;c<=3;c+=1.6){b(a,.5,c,1,.16,.85,blue);b(a,1,c-.38,1,.9,.12,blue);b(a,.25,c,.12,.5,.55,steel);}
+   for(const a of [-10,10])for(let c=-5;c<=3;c+=1.6){b(a,.5,c,1,.16,.85,M.dark);b(a,1,c-.38,1,.9,.12,M.dark);b(a,.25,c,.12,.5,.55,steel);}
 
    // Separate locker bays, with a clear circulation route around the platform.
    for(const a of [-16,16]){
@@ -98,37 +99,7 @@ export function buildCivic({box,mesh,sign,bench,tree,fence,M,walkable,collision}
    }
    for(const c of [-11,-9])for(const a of [-9,9])b(a,.45,c,5,.9,.8,M.stone);
    sign('SZATNIA',x-16,2.7,z+4,2.5);sign('ZAPLECZE',x+16,2.7,z+4,2.5);
-   const r=id==='arena'?5.5:4.6;
-   if(id==='boxing'){
-    b(0,.18,-1,9.2,.36,9.2,M.black);b(0,.37,-1,9,.025,9,M.cream,false);
-    walkable.push({x0:x-4.6,x1:x+4.6,z0:z-5.6,z1:z+3.6,y:.39});
-    for(const a of [-4.5,4.5])for(const c of [-5.5,3.5]){b(a,1.1,c,.22,1.8,.22,M.dark);b(a,1.25,c,.4,.95,.4,M.green);}
-    for(const y of [.9,1.2,1.5]){
-     for(const a of [-4.5,4.5])b(a,y,-1,.065,.065,9,M.dark);
-     b(0,y,-5.5,9,.065,.065,M.dark);
-     for(const a of [-2.85,2.85])b(a,y,3.5,3.3,.065,.065,M.dark);
-    }
-   }else{
-    const floor=mesh(new T.CylinderGeometry(r,r,.3,8),M.black,x,.15,z-1);floor.rotation.y=Math.PI/8;
-    const top=mesh(new T.CylinderGeometry(r-.08,r-.08,.025,8),M.cream,x,.315,z-1);top.rotation.y=Math.PI/8;
-    walkable.push({x,z:z-1,radius:r-.4,y:.34});
-    // Fence panels leave the southern gate open; collisions match visible panels.
-    const ap=r*Math.cos(Math.PI/8),len=2*r*Math.sin(Math.PI/8);
-    const cvs=document.createElement('canvas');cvs.width=cvs.height=64;const ctx=cvs.getContext('2d');ctx.strokeStyle='#505853';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,32);ctx.lineTo(32,0);ctx.lineTo(64,32);ctx.lineTo(32,64);ctx.closePath();ctx.stroke();
-    const tex=new T.CanvasTexture(cvs);tex.wrapS=tex.wrapT=T.RepeatWrapping;tex.repeat.set(12,6);
-    const wire=new T.MeshStandardMaterial({map:tex,transparent:true,alphaTest:.3,side:T.DoubleSide,roughness:1});
-    for(let i=0;i<8;i++){
-     const a=i*Math.PI/4,px=x+ap*Math.cos(a),pz=z-1+ap*Math.sin(a),rot=Math.PI/2-a;
-     if(i!==2){const panel=mesh(new T.PlaneGeometry(len,1.8),wire,px,1.25,pz);panel.rotation.y=rot;
-      // Thin segments approximate the diagonal panel, preserving circular walk-around.
-      for(let j=0;j<12;j++){const t=(j/11-.5)*len;const xx=px-Math.sin(a)*t,zz=pz+Math.cos(a)*t;collision.push({minX:xx-.17,maxX:xx+.17,minZ:zz-.17,maxZ:zz+.17,minY:.3,maxY:2.2});}
-     }
-     const va=a+Math.PI/8;const pole=mesh(new T.CylinderGeometry(.07,.07,2,8),M.dark,x+r*Math.cos(va),1.3,z-1+r*Math.sin(va));
-    }
-   }
-   // Low three-step approach to the open gate.
-   for(let k=0;k<3;k++){const zz=z+(id==='arena'?5.8:4.8)-k*.4,yy=.12*(k+1);b(0,yy/2,zz,2.1,yy,.5,M.stone,false);walkable.push({x0:x-1.05,x1:x+1.05,z0:zz-.25,z1:zz+.25,y:yy});}
-   sign(id==='boxing'?'BRAXHORN · BOXING':'BRAXHORN · OCTAGON',x,3,z-14.7,10);
+   buildArena(f,{mesh,box,collision,walkable,sign,arena});
    for(const a of [-1,1]){b(a*9,.85,9,3,1.7,.7,M.dark);sign('REGULAMIN · WALKI',x+a*9,1.6,z+9.38,2.6);}
   }
   buildings.push({id,entry:[x,z+d/2+2],rear:[x,z-d/2-2]});

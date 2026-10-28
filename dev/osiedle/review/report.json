@@ -1,10 +1,10 @@
 {
   "stats": {
-    "frame": 4,
-    "calls": 351,
-    "triangles": 2396835,
+    "frame": 5,
+    "calls": 271,
+    "triangles": 1903245,
     "points": 0,
-    "lines": 170261,
+    "lines": 240,
     "assets": 21,
     "errors": [],
     "position": [

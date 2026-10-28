@@ -1,0 +1,13 @@
+# Osiedle: działające drzwi i wykończenie aren
+
+Użytkownik wskazał brak otwieranych drzwi i zbyt prosty, nieoznakowany ring w porównaniu z siłownią. Poprawka obejmuje te konkretne braki; nie jest deklaracją ukończenia wyglądu całej dzielnicy.
+
+- `dev/osiedle/entrances.js`: 24 wejścia i przejścia w przygotowanych wnętrzach. Przednie/tylne drzwi sześciu obiektów publicznych, willa i taras, dom kontaktowy i ogród, łazienka, sala kasyna, komisariat, klub oraz cztery gabinety szpitalne. Drzwi są wyposażone w ramy, klamki, zawiasy i opcjonalne przeszklenia.
+- Akcja OTWÓRZ/ZAMKNIJ korzysta ze wspólnego HUD-u, przycisku dotykowego i klawisza O oraz istniejących animacji `Opening (1)` / `Opening` z siłowni. Fizyczna kolizja podąża za obróconym skrzydłem. Zamykanie wstrzymuje się/wycofuje, gdy na drodze jest postać. Wąskie pojedyncze drzwi otwierają się od gracza na dwukierunkowym zawiasie, aby nie blokować wyjścia z małych pomieszczeń.
+- Stan drzwi i kierunek otwarcia są zachowywane przy zapisie/opuszczeniu strony w `bx_estate_doors`. Nie dodano nowych lamp ani cieni przeliczanych w każdej klatce; ruchome skrzydła nie zapisują nieruchomego cienia w statycznej mapie. Detale każdego skrzydła i wszystkie nieruchome ościeżnice są łączone w siatki.
+- `dev/osiedle/arenas.js`: ring z matą i oryginalnym logo `badge.webp`, oznakowany fartuch, osłony narożników, cztery cylindryczne, lekko ugięte liny, przekładki, wyższy podest i trzy fizyczne stopnie. Oktagon ma oznakowaną matę i fartuch, osłonięte słupki, ramy siatki i schody. W halach są oryginalne logotypy `wide_a.webp` oraz matowa gumowa nawierzchnia. Platformy i przejścia zachowują kolizje.
+- Materiał maty i fartucha wykorzystuje funkcje `ringCanvas` / `apronSkirt` używane przez siłownię. Zmiany dotyczą osiedla; źródła i gotowy pakiet miasta/siłowni pozostają niezmienione.
+
+Sprawdzenie: 29 kontroli drzwi (24 przejścia, zamykanie/otwieranie od środka, odtworzenie stanu, przycisk dotykowy, brak błędów JS i brakujących plików) oraz 21 tras przechodzą. Test integracji dodatkowo sprawdza otwieranie przez Nyxę po przejściu z miasta i zachowanie stanu po powrocie. Zrzuty: `dev/review/estate-doors/`, `dev/review/integration/estate-boxing.png`, `estate-octagon.png`. Są to obrazy rzeczywistego renderowania, nie wygenerowane wizualizacje. Testy działają na Chromium/SwiftShader w widoku 915×412; nie są pomiarem FPS fizycznego iPhone'a.
+
+Pozostała praca wizualna osiedla: elewacje, część uproszczonych drzew i zagospodarowanie przestrzeni. Sześć importowanych domów nie otrzymało w tej poprawce nowych wnętrz. Ludzie, przeciwnicy, pojazdy i misje pozostają późniejszym etapem użytkownika.

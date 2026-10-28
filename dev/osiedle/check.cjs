@@ -20,7 +20,7 @@ await page.screenshot({timeout:120000,path:`${out}/${name}.png`});
 const routes=await page.evaluate(()=>{
  const results=[];
  function walk(name,points){__os.teleport(points[0][0],points[0][1]);const startYaw=__os.stats().yaw;let failure=null;
- for(const [x,z]of points.slice(1)){let n=0;while(Math.hypot(x-__os.player.pos.x,z-__os.player.pos.z)>.07&&n++<2200){const p=__os.player.pos,dx=x-p.x,dz=z-p.z,len=Math.hypot(dx,dz);const before=p.clone();__os.step(dx/len*Math.min(.09,len),dz/len*Math.min(.09,len));if(p.distanceTo(before)<.00001){failure={target:[x,z],at:p.toArray()};break;}}if(failure||n>=2200){failure??={timeout:true,target:[x,z]};break;}}
+ for(const [x,z]of points.slice(1)){let n=0;while(Math.hypot(x-__os.player.pos.x,z-__os.player.pos.z)>.07&&n++<2200){const door=__os.doors.nearest(__os.player);if(door?.state==='closed'){__os.pause(false);__os.act('act');__os.pause(true);__os.sim(6);}const p=__os.player.pos,dx=x-p.x,dz=z-p.z,len=Math.hypot(dx,dz);const before=p.clone();__os.step(dx/len*Math.min(.09,len),dz/len*Math.min(.09,len));if(p.distanceTo(before)<.00001){failure={target:[x,z],at:p.toArray()};break;}}if(failure||n>=2200){failure??={timeout:true,target:[x,z]};break;}}
  results.push({name,passed:!failure,failure,yawUnchanged:startYaw===__os.stats().yaw});
  }
  walk('street-villa-terrace-return',[[0,52],[0,-32],[2,-34],[2,-44],[0,-44],[0,-51],[0,-44],[2,-44],[2,-34],[0,-32],[0,52]]);

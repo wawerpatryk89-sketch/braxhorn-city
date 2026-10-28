@@ -192,12 +192,21 @@
       "pass": true
     },
     {
+      "name": "nyxa-uses-estate-door",
+      "pass": true,
+      "details": {
+        "hero": "nyxa",
+        "animation": "door",
+        "angle": 1
+      }
+    },
+    {
       "name": "return-preserves-player",
       "pass": true,
       "details": {
         "hero": "nyxa",
         "money": 321,
-        "hp": 75.18512000000176,
+        "hp": 75.1588400000036,
         "bossIdx": 2,
         "kills": 7,
         "position": [

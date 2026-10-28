@@ -22,6 +22,7 @@ const check=(name,pass,details)=>{report.checks.push({name,pass:!!pass,details})
  check('only-fill-and-sun',gym.lights.filter(l=>l.visible).length===2);
  check('city-and-estate-not-loaded-in-gym',!gym.street&&!requested.some(u=>u.includes('/osiedle/')||u.includes('/assets/city/')));
  await page.screenshot({path:OUT+'/gym.png',timeout:120000});
+ await page.evaluate(()=>{__mg.tp(9,1.7);__mg.cam.yaw=.3;__mg.cam.pitch=.55;__mg.cam.dist=7.5;__mg.sim(.4);__mg.render();});await page.screenshot({path:OUT+'/gym-ring.png',timeout:120000});
  const speeds=await page.evaluate(()=>{const out=[];for(const hz of [60,20,10]){const m=__mg,p=m.player;m.tp(-1.5,2.8);p.y=0;p.vel.set(0,0);p.knock.set(0,0);p.vy=0;p.speed=0;p.backToLoco(0);p.input.mag=0;m.cam.yaw=Math.PI;m.sim(.1);const yaw=m.cam.yaw,from=p.pos.clone();m.simFrames(1/hz,hz,['w']);out.push({hz,distance:p.pos.distanceTo(from),yawSame:m.cam.yaw===yaw,at:p.pos.toArray()});}return out;});
  check('movement-independent-of-render-rate',Math.max(...speeds.map(s=>s.distance))-Math.min(...speeds.map(s=>s.distance))<.16,speeds);
  check('camera-never-auto-turns',speeds.every(s=>s.yawSame));
@@ -36,8 +37,10 @@ const check=(name,pass,details)=>{report.checks.push({name,pass:!!pass,details})
  const estate=await page.evaluate(()=>{__os.start();__os.pause(true);return{ready:__os.ready,errors:__os.assetErrors,homes:__os.LEVEL.houses.length+2,pos:__os.player.pos.toArray(),assets:__os.imported.length,hero:__os.player.key,bones:__os.player.mesh.skeleton.bones.length};});
  check('estate-loads-after-transition',estate.ready&&!estate.errors.length,estate);
  check('estate-entry-spawn',Math.abs(estate.pos[2]-92)<.1);check('estate-keeps-visible-hero',estate.hero==='nyxa'&&estate.bones>20,estate);check('eight-homes',estate.homes===8);
+ const nyxaDoor=await page.evaluate(()=>{__os.teleport(0,-28.2,0);__os.pause(false);__os.act('act');__os.pause(true);const animation=__os.player.state;__os.sim(6);return{hero:__os.player.key,animation,angle:__os.doors.items.find(d=>d.id==='villa-front').angle};});check('nyxa-uses-estate-door',nyxaDoor.hero==='nyxa'&&nyxaDoor.animation==='door'&&nyxaDoor.angle===1,nyxaDoor);
  await page.evaluate(()=>{__os.teleport(0,52);__os.renderer.render(__os.scene,__os.camera);});await page.screenshot({path:OUT+'/estate.png',timeout:120000});
  await page.evaluate(()=>{__os.teleport(4,-79,-1.2);__os.renderer.render(__os.scene,__os.camera);});await page.screenshot({path:OUT+'/park.png',timeout:120000});
+ for(const [name,x,z] of [['estate-boxing',-88.5,70],['estate-octagon',83.5,70]]){await page.evaluate(([x,z])=>{__os.cam.dist=7.5;__os.teleport(x,z,.4,.6);__os.render();},[x,z]);await page.screenshot({path:OUT+'/'+name+'.png',timeout:120000});}
  await page.evaluate(()=>{__os.returnToCity();});
  await page.waitForURL('**/public/?from=osiedle');
  await page.waitForFunction(()=>window.__mg?.player&&__mg.G.chapter==='street'&&!__mg.G.loadingWorld,null,{timeout:180000});

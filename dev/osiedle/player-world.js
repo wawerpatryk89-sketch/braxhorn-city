@@ -29,6 +29,7 @@ export class EstateWorld extends World {
   }
   resolve(pos,r,y,h,ignore,ignore2) {
     let hit=super.resolve(pos,r,y,h,ignore,ignore2);
+    if(this.level.doors?.resolve(pos,r,y,h))hit=true;
     const from=this.previous.clone(),desired=pos.clone();
     for(const axis of ['x','z']) {
       const to=from.clone();to[axis]=desired[axis];
@@ -59,7 +60,8 @@ export class EstateWorld extends World {
       if(ray.intersectBox(box,point))distance=Math.min(distance,Math.max(.65,point.distanceTo(target)-.25));
     }
     this.ray.set(target,direction);this.ray.near=.3;this.ray.far=length;
-    const hit=this.ray.intersectObjects(this.meshes(this.nearby(target.x,target.z,length)),false)[0];
+    const hits=[this.ray.intersectObjects(this.meshes(this.nearby(target.x,target.z,length)),false)[0],this.level.doors?.cameraHit(this.ray)].filter(Boolean);
+    const hit=hits.sort((a,b)=>a.distance-b.distance)[0];
     if(hit)distance=Math.min(distance,Math.max(.65,hit.distance-.25));
     return target.clone().addScaledVector(direction,distance);
   }

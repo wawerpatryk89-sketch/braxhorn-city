@@ -21,7 +21,7 @@ const check=(name,ok,details)=>{report.checks.push({name,pass:!!ok,details});con
  check('attack-jump-block-work',controls.attack==='attack'&&controls.peak>.6&&controls.landed&&controls.block==='block'&&controls.after==='loco',controls);
  const camera=await page.evaluate(()=>{const m=__os,c=document.getElementById('c'),yaw=m.cam.yaw;c.dispatchEvent(new PointerEvent('pointerdown',{pointerId:82,pointerType:'touch',clientX:650,clientY:140,bubbles:true}));m.pause(false);c.dispatchEvent(new PointerEvent('pointermove',{pointerId:82,pointerType:'touch',clientX:690,clientY:145,bubbles:true}));c.dispatchEvent(new PointerEvent('pointerup',{pointerId:82,pointerType:'touch',clientX:690,clientY:145,bubbles:true}));m.pause(true);const changed=m.cam.yaw;m.sim(1);return {yaw,changed,after:m.cam.yaw};});
  check('camera-only-rotates-from-input',camera.changed!==camera.yaw&&camera.changed===camera.after,camera);
- const police=await page.evaluate(()=>{const m=__os;m.teleport(86,-29,0);for(let i=0;i<90;i++)m.step(0,-.09);m.render();return m.player.pos.toArray();});
+ const police=await page.evaluate(()=>{const m=__os;m.teleport(86,-30.7,0);m.pause(false);m.act('act');m.pause(true);m.sim(6);for(let i=0;i<90;i++)m.step(0,-.09);m.render();return m.player.pos.toArray();});
  check('police-entry-has-real-steps',police[2]<-36.8&&police[1]>.3,police);
  await page.screenshot({path:out+'/brax-police.png',timeout:120000});
  const mapClosed=await page.evaluate(()=>{__os.act('map');const opened=!document.getElementById('map').hidden;__os.act('menu');__os.pause(true);return opened&&document.getElementById('map').hidden;});
