@@ -19,10 +19,12 @@
         "PNG 4K"
       ],
       "content": "1 fotel + 8 map tekstur; 4K",
-      "license": "source_unconfirmed__resembles_polyhaven_CC0",
+      "license": "CC0__PolyHaven_official",
       "notes": "Duży plik; najpierw zoptymalizować tekstury do mobilnych wariantów; wymaga eksportu FBX/GLB.",
       "sourceFilePresentInGitHub": false,
-      "licenseReviewStatus": "source_confirmation_needed"
+      "licenseReviewStatus": "verified_on_official_creator_page",
+      "source": "https://polyhaven.com/a/modern_arm_chair_01",
+      "author": "Vibrant Nordic"
     },
     {
       "id": "lowpolyfurniturepackvol2-v1-0-zip",
