@@ -1,33 +1,62 @@
-# BRAXHORN — katalog 10 nowych paczek modeli (29.10.2026)
+# BRAXHORN — biblioteka źródeł modeli
 
-**Stan:** do GitHub zapisano WYŁĄCZNIE SPRAWDZONY KATALOG z SHA-256. Nie przesłano oryginalnych archiwów, GLB, modeli, tekstur ani aplikacji EXE. Nie dodano ich do gry i nie zmieniono produkcji.
+## Rzeczywisty stan, 29.10.2026
 
-Plik `catalog-20261029.json` opisuje dokładnie 10 przesłanych archiwów (481 721 572 bajty łącznie), sumy SHA-256, formaty, zawartość, potencjał jakościowy i prawa użytkowania.
+Ta biblioteka znajduje się na gałęzi `codex/city-unity-gym-port-20261029`. Nie dodano nowych assetów do działającej gry i nie zmieniono `main` ani produkcji.
 
-## Podział
+**W repozytorium są już prawdziwe pliki dwóch sof, nie tylko opisy:**
 
-- **Do jakości premium / do dalszego przygotowania:** Poly Haven Modern Arm Chair 01 4K (CC0), Abandoned Soviet Garages (Sketchfab CC-BY-4.0, wymaga podania autora).
-- **Elementy do testowego montażu/scen:** Gym Environment (FBX/OBJ/Blend), Modular Building 3 (Unitypackage, 12 budynków + elementy modułowe; styl średniowieczny), Low poly kitchen assets (FBX + tekstury).
-- **Tylko zapasowe low-poly:** Furniture Vol.2 (30 modeli), Gym (28), Hospital (27), City Vehicles (205 wariantów modeli i kolorów, nie 205 unikatowych pojazdów).
-- **Nie importować:** Build - Kitchen.rar — zawiera gotową aplikację Windows (EXE + DLL + pliki buildu), a nie edytowalne modele; nie uruchamiać pobranych plików wykonywalnych.
+- [Sofa 03 — BLEND + 4 tekstury 4K](sources/sofa_03/)
+- [Sofa 02 — BLEND + 4 tekstury 4K](sources/sofa_02/)
 
-## Licencje i bezpieczeństwo
+Łącznie 10 plików źródłowych, 33 717 193 bajty. Pliki pobrano z oficjalnego Poly Haven i porównano SHA-256 każdego pliku z zawartością archiwów przesłanych przez właściciela. Wszystkie 10 sum jest identycznych. Oryginalnych opakowań ZIP nie duplikowano.
 
-- Modele `reodesuxz` — licencje w ZIP pozwalają na wykorzystanie w projektach komercyjnych, ale zabraniają redystrybucji surowych modeli jako assetów, ich odsprzedaży i trenowania AI na nich.
-- Poly Haven Modern Arm Chair: CC0, oficjalna strona: https://polyhaven.com/a/modern_arm_chair_01 ; autor Vibrant Nordic. Można korzystać komercyjnie i udostępniać; wymagana optymalizacja 4K do iPhone.
-- Sketchfab garages: z metadanych GLB, autor olegolegperepelica, CC-BY-4.0; źródło https://sketchfab.com/3d-models/abandoned-soviet-garages-pack-game-ready-fcf453872c2d4cfbad12197d072fbfc4 ; trzeba zachować informację o autorze i licencji.
-- Pozostałe licencje nie były dołączone do archiwów — **nie zakładać** możliwości rozpowszechniania tych pakietów.
-- Repozytorium `braxhorn-city` jest **PUBLICZNE**. Surowe paczki z ograniczeniami redystrybucji wymagają wyodrębnionego prywatnego magazynu assetów, do którego dostęp ma wyłącznie właściciel/uprawnieni.
-- Dwa duże pliki źródłowe (fotel 138,8 MB i garaże 153,4 MB) przekraczają zwykły limit pojedynczego pliku GitHub Git, więc potrzebują Git LFS lub innego magazynu z kontrolą dostępu. Obecne narzędzia integracji GitHub nie przesyłają bezpośrednio lokalnych binarnych załączników; tego kroku jeszcze nie wykonano.
+Dowód: [raport sum kontrolnych](sofas-import-receipt.json) oraz [zakończony import źródeł](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/40790764684).
 
-## Użycie w Unity City
+**Pozostałe paczki są skatalogowane, ale ich oryginały nie zostały zapisane w tym repozytorium.** Nie przedstawiać katalogu jako potwierdzonego uploadu wszystkich modeli.
 
-1. Weryfikacja licencji i sum SHA-256 z katalogiem.
-2. Przechowywanie oryginałów w oddzielnym magazynie assetów, bez publikowania surowych modeli w publicznym źródle gry.
-3. Importowanie po jednym pakiecie w osobnej scenie Unity; sprawdzać format, skalę, pivot, normalne, mapy PBR i liczbę trójkątów.
-4. Modele low-poly nie zastępują bez wyraźnej zgody istniejącej oprawy Braxhorn.
-5. Po testach — konwersja i optymalizacja modeli szczegółowych do mobilnych LOD i tekstur 1K/2K; oryginały 4K pozostają jako źródła.
-6. Po zatwierdzeniu dopiero dodać wybrane elementy do właściwej sceny, bez zmian `main` ani produkcji.
+## Katalogi dostaw
 
-## Cel
-Budynki i wnętrza możemy tworzyć własnymi modułami geometrii w Unity ProBuilder lub za pomocą skryptów C#. Modele ludzi, mebli i pojazdów importować z FBX/GLB/Blend po ocenie jakości i licencji. Drzwi, okna otwierane i budynki do zniszczenia wymagają osobnych elementów i logiki, nie wystarczy sam model 3D.
+- [Pierwsze 10 plików — katalog](catalog-20261029.json): 481 721 572 bajty, metadane i sumy kontrolne; źródła tej pierwszej dostawy nie zostały wgrane.
+- [Kolejne 9 plików — zawartość, statusy i duplikaty](intake-20261029-02.json): 328 406 418 bajtów otrzymanych załączników. Dwie sofy mają zapisane źródła; reszta oczekuje na odpowiednie przechowywanie lub potwierdzenie licencji.
+
+Są to liczby dostarczonych plików, nie unikatowych zestawów modeli.
+
+## Druga dostawa: kontrola zawartości
+
+| Materiał | Potwierdzona zawartość | Stan |
+|---|---|---|
+| Sofa 02 / Sofa 03 | Po 1 BLEND i 4 tekstury; ZIP CRC poprawne | Źródła zapisane; nie importowano jeszcze do Unity |
+| VNB Gaming, Unity | 124 prefabrykaty, 25 materiałów, 29 PNG i 1 FBX | Katalog; oczekuje na prywatny magazyn |
+| VNB Gaming, ZIP | 132 FBX, 131 OBJ; wliczony jeden zbiorczy FBX | Katalog; alternatywny format tej samej kolekcji |
+| VNB Home, ZIP | 347 FBX, 347 OBJ; wliczony jeden zbiorczy FBX | Katalog; wersja 1.1 według README |
+| VNB - Home Set.unitypackage | 238 prefabrykatów, 31 materiałów, 33 PNG i 1 FBX | Katalog; autor oznacza tę nazwę jako starszą wersję |
+| ModularBuilding 3.zip | 57 FBX, 2 BLEND, 1 unitypackage, 14 PNG, 2 EXR | Pełny zestaw źródeł; katalog, bez uploadu archiwum |
+| ProceduralWallFile.blend | Plik Blender 2.93, 40 013 052 bajty | Identyczny plik znajduje się w ModularBuilding 3.zip |
+| Modular Building 3(1).unitypackage | SHA-256 identyczne jak poprzednio dostarczony pakiet | Duplikat; ta sama kopia jest też w ModularBuilding 3.zip |
+
+Plików BLEND ani osadzonego kodu nie uruchamiano. Sprawdzenie archiwum i sum kontrolnych nie jest testem wyglądu lub importu w Unity.
+
+## Licencje i zakres publikacji
+
+Repozytorium `braxhorn-city` jest publiczne. Publikacja samych modeli jest czymś innym niż wykorzystanie ich we własnej grze.
+
+- **Sofa 03:** CC0, autor Fran Calvente, https://polyhaven.com/a/sofa_03 .
+- **Sofa 02:** CC0, autor Kirill Sannikov, https://polyhaven.com/a/sofa_02 .
+- **VNB Gaming i Home:** strony autora pozwalają na użycie w projektach, ale wyraźnie zakazują publikacji jego pracy osobno lub jako paczki assetów. Jednocześnie pole licencji na stronie podaje CC BY 4.0; nie rozstrzygamy tej sprzeczności na korzyść publicznej redystrybucji. Źródła wymagają prywatnego przechowywania albo wyjaśnienia licencji z autorem. Źródła: https://vnbp.itch.io/low-poly-3d-gaming-set-vnb oraz https://vnbp.itch.io/low-poly-home-set .
+- **Modular Building 3:** README i strona autora podają dosłownie „Creative Commons Attribution 1.0 International License”. Zapis wymaga doprecyzowania; nie oznaczamy paczki jako CC0. https://loafbrr.itch.io/modular-building-3 .
+- Informacje o pierwszej dostawie pozostają w jej katalogu: fotel Poly Haven, garaże, siłownie, kuchnie, pojazdy i pozostałe zestawy. Brak potwierdzenia licencji nie oznacza zgody na publiczne udostępnianie źródeł.
+
+Modele VNB są celowo low-poly. Zachować jako bibliotekę pomocniczą; nie podmieniać nimi bez zgody docelowej oprawy premium.
+
+## Unity — potwierdzony wynik testu siłowni
+
+[Uruchomienie 40788363680](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/40788363680) zakończyło się `success`: import rzeczywistego GLB, kompilacja WebGL i zapis paczki testowej. Pobrana paczka zawiera index.html, WebGL.data, WebGL.wasm, loader, framework i qa.json.
+
+`qa.json` wskazuje Unity `6000.0.58f2` i cel `imported-original-gym-only-not-a-playable-game`.
+
+To wynik techniczny, nie odebrana wizualnie ani grywalna migracja. Nie ma potwierdzenia testu mobilnego, nie opublikowano gry i nie przeniesiono całego miasta ani osiedla.
+
+## Zasady dalszej pracy
+
+Zachować oryginały oraz identyfikację wersji. Import i optymalizację wykonywać na kopiach. Nie wykonywać skryptów z pobranych paczek bez kontroli. Nie podmieniać modeli, wyglądu ani produkcji bez polecenia właściciela. Samo zapisanie źródła do biblioteki nie oznacza dodania go do sceny gry.
