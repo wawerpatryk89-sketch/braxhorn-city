@@ -417,7 +417,7 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
     const l = lampPro.clone(); l.position.set(x, SW, z); l.rotation.y = facing; G.add(l);
     const hy = POLE_H - 0.25 + headY - 0.25;
     const head = new THREE.Vector3(Math.sin(facing) * armLen * 0.9, hy, Math.cos(facing) * armLen * 0.9).add(l.position);
-    L(head.clone().setY(hy - 0.8), new THREE.Color(1.0, 0.62, 0.3).multiplyScalar(3.0), 9.5, 'street');
+    L(head.clone().setY(hy - 0.8), new THREE.Color(1.0, 0.64, 0.33).multiplyScalar(3.3), 11, 'street');
     glow(head.clone().setY(hy - 0.15), 0xffc77e, 3.2);
     const c = new THREE.Mesh(coneGeo, coneMat); c.position.copy(head).setY(hy / 2); c.scale.y = hy / 7.2; c.layers.set(2); c.renderOrder = 5; G.add(c); out.cones.push(c);
     world.circle(x, z, 0.18, 7);

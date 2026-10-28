@@ -138,7 +138,7 @@ const P = {
   sunDay: C(1.0, 0.95, 0.88), sunSet: C(1.0, 0.45, 0.16),
   cloudDay: C(0.95, 0.96, 1.0), cloudSet: C(0.9, 0.45, 0.32), cloudNight: C(0.02, 0.022, 0.03),
   fogDay: C(0.55, 0.62, 0.72), fogSet: C(0.55, 0.36, 0.28), fogNight: C(0.014, 0.014, 0.019),
-  ambDay: C(1.0, 1.0, 1.0), ambSet: C(0.95, 0.72, 0.58), ambNight: C(0.1, 0.1, 0.112),
+  ambDay: C(1.0, 1.0, 1.0), ambSet: C(0.95, 0.72, 0.58), ambNight: C(0.135, 0.135, 0.15),
   hemiSkyDay: C(0.62, 0.72, 0.95), hemiSkyNight: C(0.08, 0.085, 0.11), hemiGround: C(0.18, 0.15, 0.12),
 };
 
@@ -184,7 +184,7 @@ export class DayNight {
     const o = this.out;
     hemi.color.copy(lerpC(P.hemiSkyNight, P.hemiSkyDay, o.day)).lerp(P.setHor, o.golden * 0.25);
     hemi.groundColor.copy(P.hemiGround).multiplyScalar(0.25 + 0.75 * o.day);
-    hemi.intensity = 0.55 + 0.75 * o.day;
+    hemi.intensity = 0.75 + 0.55 * o.day;
     if (o.elev > -2) { key.color.copy(lerpC(P.sunDay, P.sunSet, o.golden)); key.intensity = 2.8 * sm(-2, 8, o.elev); }
     else { key.color.set(0xb7c3e3); key.intensity = 0.42 * o.night; }
   }

@@ -228,6 +228,9 @@ body.compact .dest p { font-size: 11.5px; margin: 4px 0 8px; }
 /* loader */
 #loader { position: absolute; inset: 0; background: var(--bg); display: grid; place-items: center; z-index: 10; transition: opacity .6s; text-align: center; padding: 0 var(--sr) 0 var(--sl); }
 #loader.done { opacity: 0; pointer-events: none; }
+#loader > div { transition: opacity .15s; }
+#loader.done > div { opacity: 0; }
+#title:not([hidden]) > div { animation: rise .8s ease-out .3s both; }
 #loader img { width: min(520px, 76vw); display: block; margin: 0 auto; }
 
 #loader p { margin: 14px auto 0; color: var(--muted); font-size: 14px; letter-spacing: .06em; max-width: 40ch; overflow-wrap: anywhere; }

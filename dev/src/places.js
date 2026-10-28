@@ -28,7 +28,7 @@ export const PLACES = {
     waves: [['Ch38_nonPBR', 'Ch39_nonPBR'], ['Arissa', 'Lola_B_Styperek', 'Ch06_nonPBR'], ['Kachujin_G_Rosales', 'Ch17_nonPBR', 'Ch37_nonPBR']],
   },
   warehouse: {
-    key: 'warehouse', file: 'warehouse.glb', title: 'Stary magazyn', sub: 'Opuszczona hala na obrzeżach. Tu Czerwony Róg trzyma kasę.', lit: true,
+    key: 'warehouse', file: 'warehouse.glb', title: 'Stary magazyn', sub: 'Opuszczona hala na obrzeżach. Tu Czerwony Róg trzyma kasę.', lit: true, openRoom: true,
     at: [700, 0, -700], rotY: 0, mood: 'indoor', room: 'gym',
     play: [-13.6, 18.6, -12.3, -0.3], spawn: [-11.5, -6.3], exit: [-12.8, -6.3], face: Math.PI / 2,
     gang: [[0, -6], [3, -4], [6, -8], [9, -5], [12, -7]],
@@ -38,7 +38,7 @@ export const PLACES = {
     waves: [['Ch12_nonPBR', 'Ch22_nonPBR'], ['Ch26_nonPBR', 'Ch31_nonPBR', 'Ch47_nonPBR'], ['Big_Vegas', 'The_Boss', 'Remy']],
   },
   fitness: {
-    key: 'fitness', file: 'fitness.glb', title: 'Klub Złoty Róg', sub: 'Elegancki fitness klub. Za ladą recepcji Czerwony Róg pierze pieniądze.', lit: true, scale: 0.1,
+    key: 'fitness', file: 'fitness.glb', title: 'Klub Złoty Róg', sub: 'Elegancki fitness klub. Za ladą recepcji Czerwony Róg pierze pieniądze.', lit: true, scale: 0.1, openRoom: true,
     at: [-700, 0, 700], rotY: 0, mood: 'bright', room: 'gym',
     play: [40, 148, -54, 73], spawn: [126, 46], exit: [121, 51], face: -2.28,
     gang: [[90, 25], [78, 12], [100, 5], [70, -5], [95, -20]],

@@ -905,6 +905,13 @@ async function boot() {
   }
 
   // ---------------- camera ----------------
+  let foeCache = null, foeT = -1;
+  function fightFoe() {
+    if (foeT === tAll) return foeCache; foeT = tAll; foeCache = null;
+    if (!player) return null; let bd = 6;
+    for (const a of actors) if (a.team === 'enemy' && !a.dead && a.root.visible && Math.abs(a.y - player.y) < 1.5) { const d = flat(a, player); if (d < bd) { bd = d; foeCache = a; } }
+    return foeCache;
+  }
   function camForward() { const yaw = cam.mode === '3d' ? cam.yaw : cam.isoYaw; return { f: new THREE.Vector2(-Math.sin(yaw), -Math.cos(yaw)), r: new THREE.Vector2(Math.cos(yaw), -Math.sin(yaw)) }; }
   function updateCamera(dt) {
     let tgt;
@@ -914,6 +921,8 @@ async function boot() {
       else { tgt = new THREE.Vector3(RING.x + (selectFocus === 'brax' ? -0.35 : 0.35), RING.h + 0.15, RING.z + 0.6); cam.yaw += angDiff(cam.yaw, 0.0) * Math.min(1, dt * 2); cam.pitch = 0.02; cam.dist = 7.4; }
     } else {
       const h = player.hipsWorld(); tgt = new THREE.Vector3(h.x, player.y + (cam.mode === '3d' ? 1.55 : 1.0) * player.k, h.z);
+      const foe = G.mode === 'play' && G.chapter !== 'crypt' ? fightFoe() : null;
+      if (foe) { tgt.x += (foe.pos.x - h.x) * 0.3; tgt.z += (foe.pos.z - h.z) * 0.3; }
     }
     cam.target.lerp(tgt, 1 - Math.exp(-dt * 9));
     // street: drift towards a diagonal view along the street when the player is not steering the camera
@@ -921,6 +930,17 @@ async function boot() {
       let want = null;
       if (G.chapter === 'street' && player.pos.z > ST.near - 0.5) want = -Math.PI / 2 - 0.72;
       if (G.place && G.chapter === G.place.def.key) want = G.place.face + Math.PI;
+      // fights on the street / in open rooms: look across the fight, from the open side
+      const foe = fightFoe();
+      if (foe && (G.chapter === 'street' || (G.place && G.chapter === G.place.def.key && G.place.def.openRoom))) {
+        const ax = foe.pos.x - player.pos.x, az = foe.pos.z - player.pos.z, al = Math.hypot(ax, az) || 1;
+        const n1 = [-az / al, ax / al], n2 = [az / al, -ax / al];
+        let n;
+        if (G.chapter === 'street') { const zc = (ST.road0 + ST.road1) / 2; n = Math.abs(player.pos.z + n1[1] * 4 - zc) < Math.abs(player.pos.z + n2[1] * 4 - zc) ? n1 : n2; }
+        else { const b = G.place.bounds, cx = (b.minX + b.maxX) / 2, cz = (b.minZ + b.maxZ) / 2; n = Math.hypot(player.pos.x + n1[0] * 4 - cx, player.pos.z + n1[1] * 4 - cz) < Math.hypot(player.pos.x + n2[0] * 4 - cx, player.pos.z + n2[1] * 4 - cz) ? n1 : n2; }
+        const w = Math.atan2(n[0], n[1]);
+        want = w + 0.35 * Math.sign(angDiff(w, Math.atan2(-ax, -az)) || 1); // a little behind the player
+      }
       // crypt: look across the fight (perpendicular to the player-boss line), from the side nearer the cage centre
       if (G.chapter === 'crypt' && G.boss && G.crypt) {
         const ax = G.boss.pos.x - player.pos.x, az = G.boss.pos.z - player.pos.z, al = Math.hypot(ax, az) || 1, O = G.crypt.origin;
@@ -929,7 +949,7 @@ async function boot() {
         const d1 = Math.hypot(mx + n1[0] * 4 - O.x, mz + n1[1] * 4 - O.z), d2 = Math.hypot(mx + n2[0] * 4 - O.x, mz + n2[1] * 4 - O.z);
         const n = d1 < d2 ? n1 : n2; want = Math.atan2(n[0], n[1]);
       }
-      if (want !== null) { cam.yaw += angDiff(cam.yaw, want) * Math.min(1, dt * (G.chapter === 'crypt' ? 1.6 : 0.8)); if (G.chapter !== 'crypt') cam.pitch += ((G.place && G.chapter === G.place.def.key ? 0.24 : 0.32) - cam.pitch) * Math.min(1, dt * 0.8); }
+      if (want !== null) { cam.yaw += angDiff(cam.yaw, want) * Math.min(1, dt * (G.chapter === 'crypt' || foe ? 1.6 : 0.8)); if (G.chapter !== 'crypt') cam.pitch += ((G.place && G.chapter === G.place.def.key ? 0.24 : 0.32) - cam.pitch) * Math.min(1, dt * 0.8); }
     }
     if (G.mode === 'play' && G.chapter === 'crypt' && cam.mode === '3d') { cam.pitch += (Math.max(cam.pitch, 0.86) - cam.pitch) * Math.min(1, dt * 3); cam.dist += (Math.max(cam.dist, 6.4) - cam.dist) * Math.min(1, dt * 3);
     }
