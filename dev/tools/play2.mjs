@@ -12,6 +12,7 @@ const logs = [];
 page.on('console', m => { const t = m.text(); if (m.type() === 'error' || m.type() === 'warning' || t.startsWith('[t]')) { logs.push(m.type() + ': ' + t.slice(0, 300)); } });
 page.on('pageerror', e => logs.push('pageerror: ' + e.message));
 const t0 = Date.now();
+if (steps.sampleRate) await page.addInitScript((sr) => { const A = window.AudioContext; window.AudioContext = class extends A { constructor(o) { super({ ...(o || {}), sampleRate: sr }); } }; }, steps.sampleRate);
 await page.goto('http://127.0.0.1:8765/dist/index.html' + (steps.query || ''));
 for (const s of steps.steps) {
   try {

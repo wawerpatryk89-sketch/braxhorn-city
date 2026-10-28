@@ -20,6 +20,7 @@ import { Traffic } from './traffic.js';
 import { buildCrypt, CRYPT } from './crypt.js';
 import { People } from './people.js';
 import { buildVilla, VILLA } from './villa.js';
+import { PLACES, buildPlace } from './places.js';
 import { HEROES, PROLOGUE, CHAPTERS, BOSSES, CRYPT_BOSSES, ZOMBIE, ENDING, HINTS } from './story.js';
 
 const $ = (id) => document.getElementById(id);
@@ -250,6 +251,8 @@ async function boot() {
     sound.unlock();
   });
   window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+  // audio may only start/resume inside a real activation (tap release / click / key), not on pointerdown
+  for (const ev of ['pointerup', 'touchend', 'click']) window.addEventListener(ev, () => sound.unlock(), { passive: true, capture: true });
   window.addEventListener('blur', () => keys.clear());
   ui.onAction = press;
   const held = { block: false };
@@ -345,33 +348,130 @@ async function boot() {
     villaPromise = (async () => { const v = await buildVilla({ scene, world, A, onStatus: (m) => ui.loading(true, m) }); G.villa = v; return v; })();
     return villaPromise;
   }
-  async function goVilla() {
-    if (G.travelling) return; G.travelling = true;
-    await ui.fade(true); ui.loading(true, 'Jadę do willi…');
-    const v = await loadVilla(); ui.loading(false);
+  const placePromises = {};
+  function loadPlace(k) {
+    if (!placePromises[k]) placePromises[k] = buildPlace(PLACES[k], { scene, world, A, onStatus: (m) => ui.loading(true, m) }).then(p => { (G.places ||= {})[k] = p; return p; });
+    return placePromises[k];
+  }
+  // ---------------- travel between the city, the villa and the gang turfs ("rewiry") ----------------
+  function clearFoes() {
     for (const z of [...G.zombies]) despawn(z); G.zombies = [];
-    if (G.boss) { despawn(G.boss); G.boss = null; G.lock = null; ui.boss(null); G.spawningBoss = false; }
-    G.prevChapter = G.chapter; G.chapter = 'villa';
+    for (const a of [...actors]) if (a.thug) despawn(a);
+    if (G.boss) { if (actors.includes(G.boss)) despawn(G.boss); G.boss = null; G.lock = null; ui.boss(null); G.spawningBoss = false; }
+    G.gang = null;
+  }
+  const DEST_TITLE = { street: 'Ulica BRAXHORN', villa: 'Willa' };
+  async function travel(dest) {
+    if (G.travelling || dest === G.chapter) { ui.showMap(false); return; }
+    G.travelling = true; ui.showMap(false);
+    await ui.fade(true);
+    let target = null;
+    try {
+      if (dest === 'villa') { ui.loading(true, 'Jadę do willi…'); target = await loadVilla(); }
+      else if (PLACES[dest]) {
+        ui.loading(true, 'Jadę: ' + PLACES[dest].title + '…');
+        const d = PLACES[dest];
+        [target] = await Promise.all([loadPlace(dest), ...[...new Set(d.waves.flat().concat(d.boss.person))].map(n => people.template(n)), people.loadClips(), loadChar('brax')]);
+        if (d.boss.bat && !G.batModel) await loadStreet();
+      } else if (!G.street) { ui.loading(true, 'Ładuję ulicę…'); await loadStreet(); }
+    } catch (e) { console.error(e); ui.loading(false); await ui.fade(false); G.travelling = false; ui.banner('', 'Nie udało się załadować miejsca.', 2); return; }
+    ui.loading(false);
+    clearFoes(); dropCaseIfAny();
     if (G.street) G.street.group.visible = false; gym.root.visible = false; if (G.crypt) G.crypt.group.visible = false;
+    if (G.villa) { G.villa.group.visible = false; G.villa.region.off = true; }
+    for (const p of Object.values(G.places || {})) { p.group.visible = false; p.region.off = true; }
     if (G.traffic) G.traffic.enabled = false;
-    v.group.visible = true; v.region.off = false; env.sky.visible = true;
     if (partner) { partner.root.visible = false; partner.col.top = -10; }
-    player.pos.set(v.spawn.x, 0, v.spawn.z); player.y = world.groundAt(v.spawn.x, v.spawn.z, v.spawn.y + 1.0); player.vy = 0; player.onGround = true; player.backToLoco(0);
-    cam.target.set(player.pos.x, player.y + 1.6, player.pos.z); cam.yaw = 0; cam.pitch = 0.3; cam.snap = true;
-    sound.setRoom('street'); sound.loop('city', 0); sound.playMusic('street');
-    ui.objective('Twoja willa. Kanapa: odpoczynek. Laptop w kuchni: sklep. Porsche: powrót do miasta.');
-    await ui.fade(false); ui.banner('WILLA', 'Dom ' + G.hero.name + (G.hero.key === 'nyxa' ? 'y' : 'a'), 2.4);
+    env.sky.visible = true;
+    G.chapter = dest; G.place = PLACES[dest] ? target : null;
+    player.vy = 0; player.onGround = true; player.backToLoco(0); player.knock.set(0, 0); player.speed = 0;
+    if (dest === 'street') {
+      G.street.group.visible = true; gym.root.visible = true; if (G.traffic) G.traffic.enabled = true;
+      player.pos.set(G.myCar.x + 1.5, 0, ST.near + 1.8); player.y = 0.15; player.heading = Math.PI / 2;
+      cam.yaw = -Math.PI / 2 - 0.72; sound.setRoom('street'); sound.playMusic('street');
+      ui.objective(G.cryptOpen ? HINTS.crypt : HINTS.street);
+    } else if (dest === 'villa') {
+      const v = target; v.group.visible = true; v.region.off = false;
+      player.pos.set(v.spawn.x, 0, v.spawn.z); player.y = world.groundAt(v.spawn.x, v.spawn.z, v.spawn.y + 1.0); player.heading = Math.PI;
+      cam.yaw = 0; sound.setRoom('street'); sound.loop('city', 0); sound.playMusic('street');
+      ui.objective('Twoja willa. Kanapa: odpoczynek. Laptop w kuchni: sklep. Porsche: mapa miasta.');
+    } else {
+      const p = target; p.group.visible = true; p.region.off = false;
+      player.pos.set(p.spawn.x, 0, p.spawn.z); player.y = p.spawn.y + 0.05; player.heading = p.face;
+      cam.yaw = p.face + Math.PI; sound.setRoom(p.def.room); sound.loop('city', p.def.mood === 'outdoor' ? 0.3 : 0); sound.playMusic('street');
+      startGang(p);
+    }
+    cam.target.set(player.pos.x, player.y + 1.6, player.pos.z); cam.pitch = 0.3; cam.snap = true; cam.lastManual = -1e9;
+    store.set('lastPlace', dest);
+    await ui.fade(false);
+    if (dest === 'villa') ui.banner('WILLA', 'Dom ' + G.hero.name + (G.hero.key === 'nyxa' ? 'y' : 'a'), 2.4);
+    else if (PLACES[dest]) ui.banner(PLACES[dest].title.toUpperCase(), PLACES[dest].sub, 3);
+    else ui.banner('', DEST_TITLE.street, 1.6);
     G.travelling = false;
   }
-  async function leaveVilla() {
-    if (G.travelling) return; G.travelling = true;
-    await ui.fade(true);
-    G.villa.group.visible = false; G.villa.region.off = true;
-    G.chapter = 'street'; G.street.group.visible = true; gym.root.visible = true; if (G.traffic) G.traffic.enabled = true;
-    player.pos.set(G.myCar.x + 1.5, 0, ST.near + 1.8); player.y = 0.15; player.vy = 0; player.backToLoco(0);
-    cam.target.set(player.pos.x, 1.7, player.pos.z); cam.snap = true;
-    ui.objective(G.cryptOpen ? HINTS.crypt : HINTS.street);
-    await ui.fade(false); G.travelling = false;
+  const goVilla = () => travel('villa'), leaveVilla = () => travel('street');
+  function openMap() {
+    const turf = (k) => store.get('turf_' + k, false);
+    const items = [
+      { key: 'street', title: 'Ulica BRAXHORN', sub: 'Siłownia, bossowie Czerwonego Rogu, w nocy zarażeni.', tag: G.cryptOpen ? 'Krypta otwarta' : 'Bossowie: ' + Math.min(G.bossIdx, BOSSES.length) + '/' + BOSSES.length },
+      { key: 'villa', title: 'Willa', sub: 'Odpoczynek i sklep BRAXHORN.', tag: 'Dom' },
+      ...Object.values(PLACES).map(d => ({ key: d.key, title: d.title, sub: d.sub, tag: turf(d.key) ? 'Zdobyty · gang wraca' : 'Nagroda $' + (d.reward + d.boss.reward).toLocaleString('pl-PL'), done: turf(d.key) })),
+    ];
+    keys.clear(); joy.active = false; joy.x = joy.y = 0; held.block = false; if (player) player.input.mag = 0;
+    ui.showMap(true, items, G.chapter);
+  }
+  ui.onTravel = (k) => travel(k);
+  function dropCaseIfAny() { if (G.carry) dropCase(); if (G.caseJob) { if (G.caseJob.obj.parent) G.caseJob.obj.parent.remove(G.caseJob.obj); G.caseJob = null; G.carry = false; } }
+
+  // ---------------- gang fights on the turfs ----------------
+  function startGang(p) {
+    const d = p.def, done = store.get('turf_' + d.key, false);
+    G.gang = { p, d, wave: 0, t: 2.5, alive: [], bossSpawned: false, bossDead: false, finished: false, again: done };
+    ui.objective(done ? 'Gang wrócił na rewir. Pogoń ich jeszcze raz.' : 'Rozbij gang: trzy fale, potem ich szef.');
+  }
+  async function spawnWave(gg) {
+    const d = gg.d, names = d.waves[gg.wave], spots = gg.p.gang;
+    gg.spawning = true;
+    try {
+      const fs = await Promise.all(names.map((n, i) => {
+        const s = spots[Math.min(spots.length - 1, i + gg.wave)];
+        return spawnThug(n, { pos: [s.x + rand(-0.4, 0.4), s.y, s.z + rand(-0.6, 0.6)], heading: gg.p.face + Math.PI, hp: 52 + gg.wave * 8, size: rand(0.94, 1.04), dmg: 0.7 + gg.wave * 0.06, aggro: 0.7 + gg.wave * 0.1, moves: gg.wave === 2 ? ['jab', 'hook', 'kick', 'kicks'] : ['jab', 'hook', 'kick'], label: 'Czerwony Róg' });
+      }));
+      gg.alive.push(...fs);
+    } finally { gg.spawning = false; }
+    ui.banner('FALA ' + (gg.wave + 1), gg.wave === 0 ? 'Idą na ciebie.' : gg.wave === 1 ? 'Następni.' : 'Ostatni przed szefem.', 1.6);
+    gg.wave++;
+  }
+  async function spawnTurfBoss(gg) {
+    const b = gg.d.boss, s = gg.p.gang[1];
+    gg.spawning = true;
+    try {
+      const f = await spawnThug(b.person, { pos: [s.x, s.y, s.z], heading: gg.p.face + Math.PI, hp: b.hp, size: b.size, dmg: b.dmg, aggro: 1.0, moves: b.moves, label: b.name });
+      f.boss = true; f.def = { ...b, id: 'turf', aggro: 1.0 };
+      if (b.bat && G.batModel) {
+        const m = G.batModel.clone(); m.scale.setScalar(1 / (SCALE * f.k) * 0.95); m.rotation.set(Math.PI / 2, 0, 0); m.position.set(0, 9, 2.5);
+        f.attach(m, 'mixamorigRightHand'); const tip = new THREE.Object3D(); tip.position.set(0, 0.85, 0); m.add(tip); f.addLimb('CLUB', tip); f.weapon = true;
+      }
+      gg.bossSpawned = true; gg.alive.push(f);
+      bossIntro(f);
+    } finally { gg.spawning = false; }
+  }
+  function updateGang(dt) {
+    const gg = G.gang; if (!gg || gg.finished || gg.spawning || G.travelling) return;
+    gg.alive = gg.alive.filter(f => !f.dead);
+    if (gg.alive.length) return;
+    gg.t -= dt; if (gg.t > 0) return;
+    gg.t = 2.2;
+    if (gg.wave < gg.d.waves.length) spawnWave(gg);
+    else if (!gg.bossSpawned) spawnTurfBoss(gg);
+    else {
+      gg.finished = true;
+      const bonus = Math.round(gg.d.reward * (gg.again ? 0.4 : 1));
+      addMoney(bonus); sound.play('cash', { gain: 0.8 }); sound.playMusic('street');
+      ui.banner(gg.again ? 'REWIR OCZYSZCZONY' : 'REWIR ZDOBYTY', '+$' + bonus.toLocaleString('pl-PL') + ' od miasta za spokój', 3.2);
+      store.set('turf_' + gg.d.key, true);
+      ui.objective('Wróć do auta przy wejściu (JEDŹ), żeby wybrać kolejne miejsce.');
+    }
   }
   async function rest() {
     await ui.fade(true); env.setHour(env.hour + 6); player.hp = player.maxHp; updateBars(); await new Promise(r => setTimeout(r, 400)); await ui.fade(false);
@@ -495,6 +595,7 @@ async function boot() {
     // enemies stay down for good
     t.downTime = Infinity; t.dead = true; G.kills++;
     if (t.zombie) { dropCash(t.pos.x, t.pos.z, ZOMBIE.reward * rand(0.7, 1.4)); t.fadeT = 3.5; if (Math.random() < 0.7) sound.play('zombie', { gain: 0.6, rate: 0.8, pos: t.pos }); }
+    if (t.thug && !t.boss) { dropCash(t.pos.x, t.pos.z, 45 * rand(0.8, 1.5), t.y); t.fadeT = 5; }
     if (t.boss) bossDefeated(t);
   }
   function updateBars() {
@@ -638,7 +739,50 @@ async function boot() {
     }
     const b = o.def;
     o.setIdle(o.has('Boxing') ? 'Boxing' : 'Idle');
+    // crowds: only the two closest gang members fight, the rest circle at a distance and wait their turn
+    if (o.thug && !o.boss) {
+      const d = flat(o, player);
+      const closer = actors.filter(a => a !== o && a.team === 'enemy' && !a.dead && a.root.visible && flat(a, player) < d).length;
+      if (closer >= 2 && d < 5.5) {
+        o.heading += angDiff(o.heading, Math.atan2(player.pos.x - o.pos.x, player.pos.z - o.pos.z)) * Math.min(1, dt * 5);
+        if (d < 3.4) { const k = 1 / (d || 1); o.input.x = (o.pos.x - player.pos.x) * k; o.input.z = (o.pos.z - player.pos.z) * k; o.input.mag = 0.25; o.input.run = false; }
+        else if (ai.cd < 0 && Math.random() < 0.004) { o.doMove('taunt'); ai.cd = 3; }
+        return;
+      }
+    }
     brawl(o, dt, { moves: b.moves, block: 0.22 * b.aggro, dodge: 0.1, cool: 1.5 / b.aggro, reach: o.weapon ? 2.5 : 2.15 });
+  }
+
+  // ---------------- gang members: Mixamo people driven by the hero's fighting animations ----------------
+  const thugClips = {};
+  async function thugClipSet(T, name) {
+    if (thugClips[name]) return thugClips[name];
+    const bc = await loadChar('brax');
+    const it = bc.clips.find(c => c.name === 'Idle').tracks.find(t => t.name === 'mixamorigHips.position');
+    const rest = it ? it.values[1] : 53.6, k = T.hipsY / rest;
+    const want = new Set(); T.root.traverse(o => { if (o.isBone) want.add(o.name); });
+    thugClips[name] = bc.clips.map(c => new THREE.AnimationClip(c.name, c.duration, c.tracks.filter(t => want.has(t.name.split('.')[0])).map(t => {
+      if (!t.name.endsWith('.position')) return t;
+      const n = t.clone(); n.values = Float32Array.from(t.values, v => v * k); return n;
+    })));
+    return thugClips[name];
+  }
+  let braxHipsM = 0;
+  async function spawnThug(name, { pos = [0, 0, 0], heading = 0, hp = 60, size = 1, moves = ['jab', 'hook', 'kick'], aggro = 0.8, dmg = 0.8, label = 'Gang' } = {}) {
+    await people.loadClips();
+    const T = await people.template(name);
+    const clips = await thugClipSet(T, name);
+    if (!braxHipsM) { const bc = await loadChar('brax'); const tmp = cloneSkinned(bc.scene); tmp.scale.setScalar(SCALE); tmp.updateMatrixWorld(true); braxHipsM = tmp.getObjectByName('mixamorigHips').getWorldPosition(new THREE.Vector3()).y; }
+    const inner = cloneSkinned(T.root); inner.scale.setScalar((braxHipsM / SCALE) / T.hipsWorld);
+    const wrap = new THREE.Group(); wrap.add(inner);
+    const f = new Fighter({ model: wrap, clips, meta: META, name: label, world, size, moves: null, isPlayer: false });
+    f.key = 'thug'; f.team = 'enemy'; f.hp = f.maxHp = hp; f.thug = true;
+    f.pos.set(pos[0], 0, pos[2]); f.y = pos[1] || 0; f.heading = heading;
+    scene.add(f.root); f.root.position.y = f.y; f.root.rotation.y = heading;
+    const b = new THREE.Mesh(new THREE.PlaneGeometry(1.6 * size, 1.6 * size).rotateX(-Math.PI / 2), blobMat); b.renderOrder = 2; scene.add(b); f.blob = b;
+    f.def = { moves, aggro, name: label }; f.dmgMul = dmg; f.noRefill = true; f.setIdle('Boxing');
+    actors.push(f);
+    return f;
   }
 
   // ---------------- bosses ----------------
@@ -772,6 +916,7 @@ async function boot() {
     if (G.mode === 'play' && cam.mode === '3d' && performance.now() - cam.lastManual > 3500) {
       let want = null;
       if (G.chapter === 'street' && player.pos.z > ST.near - 0.5) want = -Math.PI / 2 - 0.72;
+      if (G.place && G.chapter === G.place.def.key) want = G.place.face + Math.PI;
       // crypt: look across the fight (perpendicular to the player-boss line), from the side nearer the cage centre
       if (G.chapter === 'crypt' && G.boss && G.crypt) {
         const ax = G.boss.pos.x - player.pos.x, az = G.boss.pos.z - player.pos.z, al = Math.hypot(ax, az) || 1, O = G.crypt.origin;
@@ -780,7 +925,7 @@ async function boot() {
         const d1 = Math.hypot(mx + n1[0] * 4 - O.x, mz + n1[1] * 4 - O.z), d2 = Math.hypot(mx + n2[0] * 4 - O.x, mz + n2[1] * 4 - O.z);
         const n = d1 < d2 ? n1 : n2; want = Math.atan2(n[0], n[1]);
       }
-      if (want !== null) { cam.yaw += angDiff(cam.yaw, want) * Math.min(1, dt * (G.chapter === 'crypt' ? 1.6 : 0.8)); if (G.chapter !== 'crypt') cam.pitch += (0.32 - cam.pitch) * Math.min(1, dt * 0.8); }
+      if (want !== null) { cam.yaw += angDiff(cam.yaw, want) * Math.min(1, dt * (G.chapter === 'crypt' ? 1.6 : 0.8)); if (G.chapter !== 'crypt') cam.pitch += ((G.place && G.chapter === G.place.def.key ? 0.24 : 0.32) - cam.pitch) * Math.min(1, dt * 0.8); }
     }
     if (G.mode === 'play' && G.chapter === 'crypt' && cam.mode === '3d') { cam.pitch += (Math.max(cam.pitch, 0.86) - cam.pitch) * Math.min(1, dt * 3); cam.dist += (Math.max(cam.dist, 6.4) - cam.dist) * Math.min(1, dt * 3);
     }
@@ -803,8 +948,9 @@ async function boot() {
       const indoor = o.z < HALL.maxZ && G.chapter === 'gym';
       if (indoor && dir.y > 0) k = Math.min(k, (HALL.height - 0.7 - o.y) / dir.y);
       if (G.chapter === 'crypt' && dir.y > 0) k = Math.min(k, (8.8 - o.y) / dir.y);
-      if (G.chapter === 'villa' && G.villa) {
-        const col = G.villa.col, L = dir.length(), steps = Math.ceil(L / 0.2);
+      const rcol = G.chapter === 'villa' && G.villa ? G.villa.col : G.place && G.chapter === G.place.def.key ? G.place.col : null;
+      if (rcol) {
+        const col = rcol, L = dir.length(), steps = Math.ceil(L / 0.2);
         for (let i = 2; i <= steps; i++) {
           const t = i / steps, px = o.x + dir.x * t, py = o.y + dir.y * t, pz = o.z + dir.z * t, ci = col.idx(px, pz);
           if (ci >= 0 && col.walls[ci] && col.walls[ci].some(w => w[0] < py + 0.3 && w[1] > py - 0.3)) { k = Math.min(k, Math.max(0.08, (i - 1.5) / steps)); break; }
@@ -814,7 +960,8 @@ async function boot() {
       }
       k = Math.max(0.12, k); camPos.copy(o).addScaledVector(dir, k);
       const d = k * dir.length(); if (d < 2.4) camPos.y += (2.4 - d) * 0.85;
-      camPos.y = Math.max(0.35, camPos.y);
+      camPos.y = Math.max((player && G.mode === 'play' ? player.y : 0) + 0.35, camPos.y);
+      if (rcol) { const ci = rcol.idx(camPos.x, camPos.z), fl = ci >= 0 ? rcol.floors[ci] : null; if (fl) for (const h of fl) if (h > o.y + 0.3 && h < camPos.y + 0.4) camPos.y = Math.min(camPos.y, h - 0.4); }
     }
     if (cam.shake > 0) { cam.shake = Math.max(0, cam.shake - dt); const a = cam.shake * 0.25; camPos.x += (Math.random() - 0.5) * a; camPos.y += (Math.random() - 0.5) * a; }
     if (cam.snap || camera.position.distanceTo(camPos) > 8) { camera.position.copy(camPos); cam.snap = false; } else camera.position.lerp(camPos, 1 - Math.exp(-dt * 16));
@@ -832,7 +979,8 @@ async function boot() {
   function updateLighting(dt, t) {
     const o = env.update(dt);
     let target = 0;
-    if (player && G.mode === 'play') { if (G.chapter === 'crypt') target = 2; else if (G.chapter === 'villa' || player.pos.z > ALLEY.z1 - 1) target = 1; else if (player.pos.z > HALL.maxZ + 0.4) target = 0.6; }
+    const placeMood = G.place && G.chapter === G.place.def.key ? G.place.def.mood : null;
+    if (player && G.mode === 'play') { if (G.chapter === 'crypt') target = 2; else if (G.chapter === 'villa' || placeMood || player.pos.z > ALLEY.z1 - 1) target = 1; else if (player.pos.z > HALL.maxZ + 0.4) target = 0.6; }
     else target = 0;
     const crypt = target === 2;
     if (!crypt) outF += ((target) - outF) * Math.min(1, dt * 2.5);
@@ -849,6 +997,13 @@ async function boot() {
       scene.background.copy(env.fogColor);
       lampU.uAmb.value.copy(env.amb);
       renderer.toneMappingExposure = 1.12 * (1 - k) + (1.0 + 0.15 * o.night) * k;
+      if (placeMood === 'indoor') {
+        // tunnel: dim daylight from the portals, sodium lamps carry the scene
+        hemi.intensity *= 0.35; key.intensity *= 0.15;
+        lampU.uAmb.value.copy(env.amb).multiplyScalar(0.32).addScalar(0.07);
+        scene.fog.color.copy(env.fogColor).multiplyScalar(0.25); scene.fog.density = 0.028; scene.background.copy(scene.fog.color);
+        renderer.toneMappingExposure = 1.1;
+      }
     }
     // reflections of the (bright) gym capture on skin/clothes: dim them outdoors at night and in the crypt
     const envK = crypt ? 0.3 : 0.9 * (1 - outF) + (0.32 + 0.58 * o.day) * outF;
@@ -872,6 +1027,7 @@ async function boot() {
     }
     if (G.crypt && G.crypt.group.visible) for (const s of G.crypt.lampSources) add(s, 1);
     if (G.villa && G.villa.group.visible) for (const s of G.villa.lampSources) add(s, s.kind === 'pool' ? 0.4 + 0.6 * o.lamps : o.lamps);
+    if (G.place && G.place.group.visible) for (const s of G.place.lampSources) add(s, G.place.def.mood === 'indoor' ? 1 : 0.15 + 0.85 * o.lamps);
     lampTmp.sort((a, b) => b[0] - a[0]);
     for (let i = 0; i < LAMP_N; i++) {
       const e = lampTmp[i];
@@ -919,12 +1075,13 @@ async function boot() {
     if (G.caseJob && G.caseJob.state === 'lying' && G.caseJob.obj.parent === scene && Math.hypot(G.caseJob.obj.position.x - player.pos.x, G.caseJob.obj.position.z - player.pos.z) < 1.3) return { label: 'WEŹ', fn: pickCase };
     if (G.chapter === 'villa' && G.villa) {
       const v = G.villa, d = (p) => Math.hypot(player.pos.x - p.x, player.pos.z - p.z);
-      if (d(v.car) < 4) return { label: 'DO MIASTA', fn: leaveVilla };
+      if (d(v.car) < 4) return { label: 'JEDŹ', fn: openMap };
       if (d(v.shop) < 2.5) return { label: 'SKLEP', fn: () => ui.shop(true, SHOP, upg, G.money) };
       if (d(v.sofa) < 2.8) return { label: 'ODPOCZNIJ', fn: rest };
       return null;
     }
-    if (G.chapter === 'street' && G.myCar && Math.hypot(player.pos.x - G.myCar.x, player.pos.z - G.myCar.z) < 3.4 && !G.boss) return { label: 'DO WILLI', fn: goVilla };
+    if (G.chapter === 'street' && G.myCar && Math.hypot(player.pos.x - G.myCar.x, player.pos.z - G.myCar.z) < 3.4 && !G.boss) return { label: 'JEDŹ', fn: openMap };
+    if (G.place && G.chapter === G.place.def.key && Math.hypot(player.pos.x - G.place.exit.x, player.pos.z - G.place.exit.z) < 3.2) return { label: 'JEDŹ', fn: openMap };
     if (G.chapter === 'street' && Math.hypot(player.pos.x - ST.door.x, player.pos.z - ST.door.z) < 2.2) {
       if (G.cryptOpen) return { label: 'WEJDŹ', fn: enterCrypt };
       return { label: 'ZAMKNIĘTE', fn: () => ui.banner('', 'Drzwi pilnuje Kafar. Najpierw pokonaj bossów na ulicy.', 2) };
@@ -1044,7 +1201,7 @@ async function boot() {
     for (const a of actors) { const h = a.hipsWorld(); a.blob.visible = a.root.visible; a.blob.position.set(h.x, world.groundAt(h.x, h.z, a.y + 0.1) + 0.012, h.z); a.blob.scale.setScalar(1 + Math.max(0, a.y - world.groundAt(a.pos.x, a.pos.z, a.y)) * 0.4); }
 
     // street systems
-    if (G.street && G.chapter !== 'crypt' && G.chapter !== 'villa') {
+    if (G.street && (G.chapter === 'street' || G.chapter === 'gym')) {
       G.street.update(dt, o, tAll);
       if (G.traffic) G.traffic.update(dt, actors.filter(a => a.root.visible), o, (f, car, dir) => {
         if (f.state === 'ko' || f.state === 'down') return;
@@ -1058,7 +1215,8 @@ async function boot() {
     }
     if (G.crypt && G.chapter === 'crypt') G.crypt.update(dt, tAll);
     if (G.villa && G.chapter === 'villa') G.villa.update(dt, o, tAll);
-    if (people.list.length && G.chapter !== 'crypt' && G.chapter !== 'villa') {
+    if (G.place && G.chapter === G.place.def.key) { G.place.update(dt, o, tAll); updateGang(dt); if (player.y < G.place.spawn.y - 6) { player.pos.set(G.place.spawn.x, 0, G.place.spawn.z); player.y = G.place.spawn.y + 0.1; player.vy = 0; player.onGround = true; cam.snap = true; } }
+    if (people.list.length && (G.chapter === 'street' || G.chapter === 'gym')) {
       const threats = [];
       for (const a of actors) if (a.team === 'enemy' && !a.dead && a.root.visible) threats.push({ x: a.pos.x, z: a.pos.z, r: 8 });
       if (player && (player.state === 'attack' || G.boss)) threats.push({ x: player.pos.x, z: player.pos.z, r: 6 });
@@ -1133,14 +1291,15 @@ async function boot() {
     requestAnimationFrame(frame);
     const d = clock.getDelta(); if (paused) return;
     if (menuOpen) { while (actions.length) menuAction(actions.shift()); return; }
+    if (!$('map').hidden) { actions.length = 0; return; }
     try { tick(d); render(); }
-    catch (e) { frameErrors++; if (frameErrors === 1 || frameErrors === 60) { console.error(e); ui.banner('Błąd', String(e && e.message || e).slice(0, 140), 20); } }
+    catch (e) { frameErrors++; if (frameErrors === 1 || frameErrors % 300 === 0) console.error(e); }
   }
   window.__mg = {
     THREE, A, G, env, world, actors, scene, renderer, progs: () => renderer.info.programs, get player() { return player; }, get cam() { return cam; }, camera, sound,
     sim(sec, ks = []) { ks.forEach(k => keys.add(k)); for (let i = 0; i < Math.round(sec * 60); i++) tick(1 / 60); ks.forEach(k => keys.delete(k)); },
     render, act: (a) => actions.push(a), pause(v) { paused = v; }, joy, openMenu, closeMenu,
-    start: (k) => startGame(k), title: () => ui.onTitle(), goVilla, leaveVilla, loadVilla, buy, upg, loadStreet, loadCrypt, enterCrypt, spawnZombie, setHour: (h) => env.setHour(h),
+    start: (k) => startGame(k), title: () => ui.onTitle(), spawnThug, people, loadPlace, travel, openMap, killFoes() { for (const a of [...actors]) if (a.team === 'enemy' && !a.dead) { a.hp = 0; a.ko(new THREE.Vector3(0, 0, -1)); onKO(a, player); } }, goVilla, leaveVilla, loadVilla, buy, upg, loadStreet, loadCrypt, enterCrypt, spawnZombie, setHour: (h) => env.setHour(h),
     tp(x, z) { player.pos.set(x, 0, z); cam.snap = true; },
   };
   ui.setSound(sound.on); ui.setQuality(qKey); ui.setCam(cam.mode); ui.setOrient(view.w() > view.h());

@@ -33,6 +33,13 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 - Willa: spokojniejsze światło w nocy.
 - Logo z przezroczystym tłem (`wide_a.webp`) na ekranie tytułowym, pauzie i w loaderze; na iPhonie podpowiedź „Do ekranu początkowego” (jedyny sposób na pełny ekran w Safari).
 
+## Co nowego (28.10, rano)
+
+- **Dźwięk naprawiony**: pogłos (ConvolverNode) miał próbkowanie 44,1 kHz, a telefony grają w 48 kHz → przeglądarka rzucała błąd i cały dźwięk się wyłączał. Teraz pogłos jest przeliczany do częstotliwości telefonu.
+- **Mapa miasta**: przy swoim aucie (ulica, willa, wejście do rewiru) akcja **JEDŹ** otwiera mapę: Ulica, Willa, **Tunel Futatsugoya**, **Zaułek Freemana**.
+- **Rewiry**: trzy fale gangu Czerwonego Rogu (ludzie z Mixamo bijący się animacjami Braxa), potem szef rewiru (Szczur w tunelu, Szpachla z pałką w zaułku). Za zdobycie nagroda; kolejne wizyty: gang wraca, mniejsza nagroda.
+- Skany tunelu i zaułka spakowane z `-slb` (bez szpar po upraszczaniu siatki).
+
 ## Fabuła (story.js)
 
 1. **Siłownia BRAXHORN GYM**: sparing z partnerem na ringu, wyjście drzwiami WYJŚCIE na zaułek.

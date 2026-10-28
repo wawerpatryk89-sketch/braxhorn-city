@@ -22,6 +22,8 @@ export class UI {
     $('moves').addEventListener('click', (e) => { if (e.target.id === 'moves') this.toggleMoves(false); });
     $('btnPlay').addEventListener('click', () => this.onTitle());
     $('shopClose').addEventListener('click', () => this.shop(false));
+    $('mapClose').addEventListener('click', () => this.showMap(false));
+    $('map').addEventListener('click', (e) => { if (e.target.id === 'map') this.showMap(false); });
     const list = $('movesList');
     for (const [group, items] of moves) {
       const sec = document.createElement('section');
@@ -156,6 +158,17 @@ export class UI {
       b.addEventListener('click', () => this.onBuy && this.onBuy(it.id));
       list.appendChild(b);
     }
+  }
+  showMap(open, items = [], here = '') {
+    const el = $('map'); el.hidden = !open; document.body.classList.toggle('menu', open && true);
+    if (!open) { if ($('pause').hidden) document.body.classList.remove('menu'); return; }
+    const list = $('mapList'); list.innerHTML = '';
+    items.forEach((it, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'dest' + (it.done ? ' done' : '') + (it.key === here ? ' here' : '');
+      b.innerHTML = `<b>${it.title}</b><p>${it.sub}</p><span class="tag">${it.tag || ''}</span><i>${String(i + 1).padStart(2, '0')}</i>`;
+      if (it.key !== here) b.addEventListener('click', () => this.onTravel && this.onTravel(it.key));
+      list.appendChild(b);
+    });
   }
   weapon(name, n) { const el = $('weapon'); el.hidden = !name; if (name) el.textContent = `${name} · ${n}`; }
   action(label) { const b = $('btnAct'); if (b) { b.hidden = !label; if (label) b.textContent = label; } const h = $('actHint'); if (h) { h.classList.toggle('on', !!label && !this.isTouch); if (label) h.innerHTML = `<kbd>O</kbd> ${label.toLowerCase()}`; } }

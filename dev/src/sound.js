@@ -253,11 +253,12 @@ export class Sound {
   unlock() {
     if (!this.on) return;
     this.iosUnmute();
-    if (this.ctx) { if (this.ctx.state !== 'running') this.ctx.resume(); return; }
+    if (this.ctx) { if (this.ctx.state !== 'running') this.ctx.resume().catch(() => { }); return; }
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
-      this.ctx = new AC();
+      this.ctx = new AC({ latencyHint: 'interactive' });
       const c = this.ctx;
+      c.onstatechange = () => { if (c.state !== 'running' && this.on) { const r = () => c.resume().catch(() => { }); setTimeout(r, 300); } };
       this.master = c.createGain(); this.master.gain.value = 0.9;
       const comp = c.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2;
       this.master.connect(comp); comp.connect(c.destination);
@@ -274,16 +275,29 @@ export class Sound {
   makeBuffers() {
     const c = this.ctx;
     for (const [k, arr] of Object.entries(this.raw)) this.buffers[k] = arr.map(d => { const b = c.createBuffer(1, d.length, SR); b.copyToChannel ? b.copyToChannel(d, 0) : b.getChannelData(0).set(d); return b; });
+    // a ConvolverNode needs an impulse at the context's own sample rate (Android/iPhone run at 48 kHz)
     this.irBuffers = {};
-    for (const [k, [L, R]] of Object.entries(this.irs)) { const b = c.createBuffer(2, L.length, SR); b.getChannelData(0).set(L); b.getChannelData(1).set(R); this.irBuffers[k] = b; }
-    this.setRoom(this.room || 'gym');
+    const sr = c.sampleRate, rs = (src) => { if (sr === SR) return src; const n = Math.round(src.length * sr / SR), out = new Float32Array(n), k = SR / sr; for (let i = 0; i < n; i++) { const x = i * k, j = Math.floor(x), f = x - j; out[i] = (src[j] || 0) * (1 - f) + (src[j + 1] || 0) * f; } return out; };
+    for (const [k, [L, R]] of Object.entries(this.irs)) { try { const l = rs(L), r = rs(R); const b = c.createBuffer(2, l.length, sr); b.getChannelData(0).set(l); b.getChannelData(1).set(r); this.irBuffers[k] = b; } catch (e) { console.warn('ir', k, e); } }
     this.ready = true;
+    this.setRoom(this.room || 'gym');
     if (this.wantMusic) this.playMusic(this.wantMusic);
     for (const [k, v] of Object.entries(this.wantLoops || {})) this.loop(k, v);
   }
   toggle() { this.on = !this.on; if (this.on) this.unlock(); if (this.master) this.master.gain.value = this.on ? 0.9 : 0; }
   ok() { return this.on && this.ready && this.ctx && this.ctx.state === 'running'; }
-  setRoom(r) { this.room = r; if (this.verb && this.irBuffers) { this.verb.buffer = this.irBuffers[r]; this.verbGain.gain.value = r === 'crypt' ? 0.5 : r === 'street' ? 0.22 : 0.32; } }
+  setRoom(r) {
+    this.room = r;
+    if (!this.verb || !this.irBuffers || !this.irBuffers[r] || this.verbRoom === r) return;
+    try {
+      // a convolver's buffer can only be set once in some browsers: swap in a fresh node per room
+      const v = this.ctx.createConvolver(); v.buffer = this.irBuffers[r]; v.connect(this.verbGain);
+      const old = this.verb; this.verb = v; this.verbRoom = r;
+      for (const s of this.verbSends || []) { try { s.disconnect(); s.connect(v); } catch { } }
+      try { old.disconnect(); } catch { }
+      this.verbGain.gain.value = r === 'crypt' ? 0.5 : r === 'street' ? 0.22 : 0.32;
+    } catch (e) { console.warn('reverb', e); }
+  }
   setListener(x, z, yaw) { this.listener.x = x; this.listener.z = z; this.listener.yaw = yaw; }
   // play a one-shot; pos (optional) = {x,z} world position for distance + pan
   play(name, { gain = 1, rate = 1, pos = null, wet = 0.6, variant = -1 } = {}) {
@@ -306,7 +320,12 @@ export class Sound {
     src.start();
     return src;
   }
-  verbSend(w = 0.6) { const g = this.ctx.createGain(); g.gain.value = w; g.connect(this.verb); return g; }
+  verbSend(w = 0.6) {
+    const key = Math.round(w * 10); this.sendMap ||= {}; this.verbSends ||= [];
+    let g = this.sendMap[key];
+    if (!g) { g = this.ctx.createGain(); g.gain.value = key / 10; g.connect(this.verb); this.sendMap[key] = g; this.verbSends.push(g); }
+    return g;
+  }
   // continuous loops (ambience, engines, sirens): set volume each frame, 0 stops
   loop(name, vol, rate = 1) {
     if (!this.ready) { (this.wantLoops ||= {})[name] = vol; return; }

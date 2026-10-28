@@ -204,6 +204,27 @@ body.touch.menu #touch, body.touch:not(.playing) #touch { display: none; }
 #busy i { width: 14px; height: 14px; border: 2px solid var(--neon); border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* city map */
+#map { background: radial-gradient(ellipse at 30% 20%, rgba(139,255,58,.08), rgba(3,4,3,.92) 60%); z-index: 9; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.mapbox { width: min(860px, 100%); max-height: 100%; overflow: auto; }
+.mapbox header { display: flex; justify-content: space-between; align-items: end; margin-bottom: 12px; }
+.mapbox small { font-size: 11px; font-weight: 700; letter-spacing: .3em; color: var(--neon); }
+.mapbox h2 { margin: 2px 0 0; font-family: var(--display); font-weight: 900; font-size: clamp(26px, 5vw, 40px); letter-spacing: .06em; text-transform: uppercase; }
+#mapList { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.dest { position: relative; text-align: left; border-radius: 12px; padding: 14px 14px 12px; min-height: 118px; cursor: pointer; overflow: hidden;
+  background: linear-gradient(160deg, rgba(30,36,30,.92), rgba(8,10,8,.92)); border: 1px solid rgba(238,241,234,.12); box-shadow: 0 10px 30px rgba(0,0,0,.35); transition: transform .15s, border-color .15s; }
+.dest:hover { transform: translateY(-2px); border-color: var(--line); }
+.dest b { display: block; font-family: var(--display); font-weight: 900; font-size: 22px; letter-spacing: .04em; text-transform: uppercase; line-height: 1; }
+.dest p { margin: 6px 0 10px; font-size: 12.5px; line-height: 1.35; color: var(--muted); }
+.dest .tag { position: absolute; left: 14px; bottom: 11px; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--neon); }
+.dest.done .tag { color: #9fd7ff; }
+.dest.here { border-color: var(--neon); cursor: default; }
+.dest.here::after { content: "JESTEŚ TUTAJ"; position: absolute; right: 12px; top: 12px; font-size: 9.5px; font-weight: 800; letter-spacing: .16em; color: #071004; background: var(--neon); padding: 2px 6px; border-radius: 3px; }
+.dest i { position: absolute; right: -10px; bottom: -18px; font-style: normal; font-family: var(--display); font-weight: 900; font-size: 86px; color: rgba(238,241,234,.04); line-height: 1; pointer-events: none; }
+body.compact .dest { min-height: 96px; padding: 10px 12px; }
+body.compact .dest b { font-size: 18px; }
+body.compact .dest p { font-size: 11.5px; margin: 4px 0 8px; }
+
 /* moves sheet */
 #moves { position: absolute; inset: 0; background: rgba(3,4,3,.62); display: grid; place-items: center; padding: calc(var(--st) + 16px) var(--sr) calc(var(--sb) + 16px) var(--sl); pointer-events: auto; z-index: 9; }
 #moves[hidden] { display: none; }
@@ -351,6 +372,12 @@ body.compact #story p { font-size: 14px; margin-bottom: 12px; }
       <button id="bOrient" type="button" hidden>Pionowo</button>
     </div>
     <p class="phint" id="pauseHint"></p>
+  </div>
+</div>
+<div id="map" class="overlay" hidden>
+  <div class="mapbox">
+    <header><div><small>MAPA</small><h2>Braxhorn City</h2></div><button id="mapClose" class="ghost" type="button">Zostaję</button></header>
+    <div id="mapList"></div>
   </div>
 </div>
 <div id="moves" hidden>

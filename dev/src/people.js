@@ -35,7 +35,7 @@ export class People {
       let hips = null, head = null;
       root.traverse(o => { if (o.isBone && o.name === 'mixamorigHips') hips = o; if (o.isBone && o.name === 'mixamorigHead') head = o; if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; addLampField(o.material, 'lit'); } });
       const hy = hips.getWorldPosition(new THREE.Vector3()).y, top = head.getWorldPosition(new THREE.Vector3()).y * 1.09;
-      return { root, hipsY: hips.position.y, height: top };
+      return { root, hipsY: hips.position.y, hipsWorld: hy, height: top };
     })();
     return this.templates[name];
   }
