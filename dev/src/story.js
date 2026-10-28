@@ -32,15 +32,19 @@ export const CHAPTERS = {
 // street bosses in order (x = where they wait on the street), then the crypt
 export const BOSSES = [
   { id: 'pazur', model: 'tiger', name: 'Pazur', title: 'Egzekutorka Czerwonego Rogu', hp: 150, dmg: 0.9, x: 8, reward: 300,
+    at: { pt: 'fight1_center', spawn: [-10, 85.5], r: 8, place: 'boisko na podwórku (brama naprzeciw siłowni)' },
     intro: 'Asterion przesyła pozdrowienia. Ja przekażę je osobiście.', outro: 'To… dopiero początek…',
     moves: ['jab', 'hook', 'kick', 'martelo', 'mma2', 'kicks'], speed: 1.05, aggro: 1.0 },
   { id: 'prega', model: 'tiger2', name: 'Pręga', title: 'Siostra Pazur', hp: 175, dmg: 1.0, x: 24, reward: 450,
-    intro: 'Położyłeś moją siostrę. Teraz moja kolej.', outro: 'Krypta… cię zje…',
+    at: { x: -75, y: 0.15, z: 76, spawn: [-75, 81], r: 7, place: 'nabrzeże przy molo' },
+    intro: 'Położyłeś moją siostrę. Teraz moja kolej.', introAlt: 'Pazur mówiła, że przyjdziesz. Zanim do niej dojdziesz, pogadasz ze mną.', introAltIf: 'pazur', outro: 'Krypta… cię zje…',
     moves: ['jab', 'kick', 'kicks', 'combo', 'martelo', 'mma2'], speed: 1.1, aggro: 1.15 },
   { id: 'roza', model: 'fant', name: 'Róża', title: 'Kiedyś trenowała w BRAXHORN GYM', hp: 200, dmg: 1.1, x: 40, reward: 600,
+    at: { pt: 'club_dance', spawn: [-44, 52], r: 5.5, place: 'parkiet w dyskotece NOVA' },
     intro: 'Serum dało mi więcej niż twoja siłownia kiedykolwiek.', outro: 'Może… jeszcze nie jest za późno…',
     moves: ['jab', 'hook', 'knee', 'bodyjab', 'elbow', 'combo'], speed: 1.0, aggro: 1.2 },
   { id: 'kafar', model: 'musc', name: 'Kafar', title: 'Bramkarz Krypty', hp: 240, dmg: 1.2, x: 55, reward: 800, weapon: 'club',
+    at: { pt: 'fight2_center', spawn: [-48.6, 48], r: 4.6, place: 'piwnica pod klubem NOVA (schody z zaplecza)' },
     intro: 'Bez zaproszenia nie wchodzisz. Zaproszeniem jest moja pałka.', outro: 'Wchodź… jeśli ci życie niemiłe.',
     moves: ['bat1', 'bat2', 'club4', 'bat3', 'clubKick'], speed: 0.9, aggro: 1.0 },
 ];
@@ -62,7 +66,7 @@ export const ENDING = [
 export const HINTS = {
   gymStart: 'Rozgrzej się: wejdź na ring po schodkach i powalcz z partnerem. Kiedy będziesz gotów, wyjdź drzwiami WYJŚCIE.',
   door: 'Czerwony Róg czeka na ulicy. Idź na wschód, pod wiadukt.',
-  street: 'Idź w prawo wzdłuż ulicy, pod wiadukt. Uważaj na auta!',
+  street: 'Czterech bossów czeka w swoich miejscach: boisko, nabrzeże, klub NOVA i piwnica. Uważaj na auta!',
   night: 'Zapada noc. Zarażeni wychodzą na ulice…',
   day: 'Świta. Zarażeni chowają się w cieniu.',
   bat: 'Kolczasta pałka! Podnieś ją: przycisk AKCJA (klawisz O).',

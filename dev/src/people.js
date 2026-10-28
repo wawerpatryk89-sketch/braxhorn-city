@@ -65,12 +65,13 @@ export class People {
   // threats: [{x,z,r}], street bounds for walkers
   update(dt, { threats = [], camPos, night = 0, bounds, hideWalkers = false }) {
     for (const p of this.list) {
-      const far = camPos && Math.hypot(p.g.position.x - camPos.x, p.g.position.z - camPos.z) > 55;
+      const far = camPos && Math.hypot(p.g.position.x - camPos.x, p.g.position.z - camPos.z) > (p.route ? this.routeFar ?? 55 : 55);
       p.g.visible = !far && !(p.mode === 'walk' && (hideWalkers || (night > 0.6 && p.nightHide)));
       p.col.top = p.g.visible ? 1.8 : -10;
       if (!p.g.visible) continue;
       p.mixer.update(dt);
-      if (p.mode === 'walk') this.walk(p, dt, threats, bounds);
+      if (p.route) this.walkRoute(p, dt, threats);
+      else if (p.mode === 'walk') this.walk(p, dt, threats, bounds);
       else if (p.prop) updateBarbell(p, this.tmp);
       p.col.x = p.g.position.x; p.col.z = p.g.position.z;
     }
@@ -94,6 +95,55 @@ export class People {
     pos.x += Math.sin(p.g.rotation.y) * p.speed * dt;
     // stay in the lane, step around the player/others a little
     if (p.lane) pos.z += (p.lane - pos.z) * Math.min(1, dt * 1.5);
+  }
+  // walking along a polyline (closed when the first and last points are equal), turning back at open ends
+  walkRoute(p, dt, threats) {
+    const pos = p.g.position, R = p.route, loop = R.loop;
+    let threat = null;
+    for (const t of threats) { const d = Math.hypot(t.x - pos.x, t.z - pos.z); if (d < (t.r || 7)) { threat = t; break; } }
+    const target = () => R.pts[p.wp];
+    if (threat && !(p.fleeT > 0)) {
+      // run towards whichever neighbouring waypoint leads away from the fight
+      const next = R.pts[p.wp], prevI = p.wp - p.dir, prev = R.pts[loop ? (prevI + R.pts.length) % R.pts.length : Math.max(0, Math.min(R.pts.length - 1, prevI))];
+      if (Math.hypot(prev[0] - threat.x, prev[1] - threat.z) > Math.hypot(next[0] - threat.x, next[1] - threat.z)) { p.dir = -p.dir; p.wp = loop ? (prevI + R.pts.length) % R.pts.length : Math.max(0, Math.min(R.pts.length - 1, prevI)); }
+      p.fleeT = 4;
+    }
+    if (p.fleeT > 0) { p.fleeT -= dt; if (p.state !== 'flee') { p.state = 'flee'; this.fade(p, 'flee', 'Running', 0.2); } p.speed = p.runSpeed; }
+    else if (p.state !== 'walk') { p.state = 'walk'; this.fade(p, 'walk', 'Walking', 0.4); p.speed = p.walkSpeed; }
+    let [tx, tz] = target();
+    if (Math.hypot(tx - pos.x, tz - pos.z) < 0.6) {
+      let n = p.wp + p.dir;
+      if (loop) n = (n + R.pts.length) % R.pts.length;
+      else if (n < 0 || n >= R.pts.length) { p.dir = -p.dir; n = p.wp + p.dir; }
+      p.wp = n; [tx, tz] = target();
+    }
+    p.heading = Math.atan2(tx - pos.x, tz - pos.z);
+    p.g.rotation.y += ((p.heading - p.g.rotation.y + Math.PI * 3) % (Math.PI * 2) - Math.PI) * Math.min(1, dt * 5);
+    const step = Math.min(p.speed * dt, Math.hypot(tx - pos.x, tz - pos.z));
+    pos.x += Math.sin(p.g.rotation.y) * step; pos.z += Math.cos(p.g.rotation.y) * step;
+    if (p.groundY) pos.y += (p.groundY(pos.x, pos.z, pos.y) - pos.y) * Math.min(1, dt * 10);
+  }
+  // people on named routes: routes = { name: [[x, z], ...] }, plan = [[routeName, count], ...]
+  async populateRoutes(routes, plan, groundY = null) {
+    const names = PEOPLE.filter(x => !GYM_PEOPLE.includes(x));
+    const ps = []; let i = 0;
+    for (const [rn, count] of plan) {
+      const pts = routes[rn]; if (!pts) continue;
+      const loop = pts.length > 2 && pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1];
+      const route = { pts: loop ? pts.slice(0, -1) : pts, loop };
+      for (let k = 0; k < count; k++, i++) {
+        const name = names[(i * 5 + 3) % names.length];
+        const seg = Math.min(route.pts.length - 2, Math.floor(((k + 0.5) / count) * (route.pts.length - 1)));
+        const a = route.pts[seg], b = route.pts[(seg + 1) % route.pts.length], u = 0.2 + 0.6 * ((i * 0.37) % 1);
+        const x = a[0] + (b[0] - a[0]) * u, z = a[1] + (b[1] - a[1]) * u;
+        const dir = loop ? 1 : (k % 2 ? -1 : 1);
+        const y = groundY ? groundY(x, z, 1) : 0.15;
+        ps.push(this.spawn(name, { pos: new THREE.Vector3(x, y, z), heading: Math.atan2(b[0] - a[0], b[1] - a[1]) + (dir < 0 ? Math.PI : 0), height: 1.62 + ((i * 13) % 7) * 0.04 }).then(p => {
+          p.route = route; p.dir = dir; p.wp = dir > 0 ? (seg + 1) % route.pts.length : seg; p.groundY = groundY; if (this.routeNoShadow) p.obj.traverse(o => { o.castShadow = false; }); return p;
+        }));
+      }
+    }
+    return Promise.all(ps);
   }
   async populateStreet(ST, n = 8) {
     const names = PEOPLE.filter(x => !GYM_PEOPLE.includes(x));

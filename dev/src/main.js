@@ -16,10 +16,10 @@ import { view, applyOrientation } from './view.js';
 import * as A from './assets.js';
 import { DayNight, lampU, LAMP_N, addLampField, smooth } from './env.js';
 import { buildStreet, ST, prepareCar, CARS } from './street.js';
-import { Traffic } from './traffic.js';
+import { Traffic, cityLoop } from './traffic.js';
 import { buildCrypt, CRYPT } from './crypt.js';
 import { People } from './people.js';
-import { buildDistrict, POINTS, ZONES } from './district.js';
+import { buildDistrict, POINTS, ZONES, ROUTES } from './district.js';
 // the old map places (villa, tunnel, alley, warehouse, club) were removed: plansza 1 replaces them
 const PLACES = {}; const buildPlace = null; const buildVilla = null;
 import { prepareBake, bakeLighting, packBake, applyBake, setLightmapUV, bakeGroundMap, applyGroundMap, floatGeo } from './bake.js';
@@ -259,7 +259,7 @@ async function boot() {
     ui.banner('', 'Shake BRAXHORN: +60% zdrowia', 1.4); sound.play('cash', { gain: 0.3, rate: 0.7 });
   }
   ui.onBuy = (id) => { const ok = buy(id); ui.shop(true, SHOP, upg, G.money); return ok; };
-  const G = { explore: store.get('explore', true), mode: 'title', chapter: 'gym', hero: null, money: save.money, bossIdx: 0, boss: null, lock: null, street: null, crypt: null, traffic: null, zombies: [], pickups: [], caseJob: null, bat: null, cryptStage: 0, hintT: 0, nightWas: null, kills: 0, specialIdx: 0 };
+  const G = { explore: store.get('explore2', false), mode: 'title', chapter: 'gym', hero: null, money: save.money, bossIdx: 0, bossDown: store.get('bossDown', []), arena: null, boss: null, lock: null, street: null, crypt: null, traffic: null, zombies: [], pickups: [], caseJob: null, bat: null, cryptStage: 0, hintT: 0, nightWas: null, kills: 0, specialIdx: 0 };
   ui.money(G.money);
 
   // ---------------- title + hero select ----------------
@@ -361,7 +361,7 @@ async function boot() {
         cam.yaw = resume.yaw ?? Math.PI / 2; cam.pitch = resume.pitch ?? 0.3; cam.dist = resume.dist ?? 5.8;
         cam.target.set(player.pos.x, player.y + 1.6, player.pos.z); cam.snap = true;
         store.set('money', G.money); ui.money(G.money); updateBars();
-        sound.setRoom('street'); ui.objective(G.explore ? EXPLORE_HINT : HINTS.street);
+        sound.setRoom('street'); ui.objective(G.explore ? EXPLORE_HINT : bossHint());
         // Consume the handoff so a later refresh cannot restore stale money/HP.
         clearCityVisit();
         const url = new URL(location.href); url.searchParams.delete('from'); history.replaceState(null, '', url);
@@ -406,14 +406,19 @@ async function boot() {
         world.box(x - hw, x + hw, z - hd, z + hd, 1.4, -1, 'car');
         if (models[k].userData.def.police) st.lampSources.push({ pos: new THREE.Vector3(x, 1.9, z), col: new THREE.Color(1, 0, 0), r: 9, kind: 'flash', phase: Math.random() * 3 });
       }
-      G.traffic = null; // moving traffic comes later (the old route used the removed cross street)
+      // moving traffic: a loop along both lanes with U-turns at the quay and before the estate gate (one police car)
+      const light = Object.fromEntries(['car_mar', 'car_dia', 'car_zuk', 'car_gmc', 'car_mus', 'car_dc', 'car_918'].filter(k => models[k]).map(k => [k, models[k]])); // models with few parts (draw calls)
+      G.traffic = new Traffic({ scene: st.group, models: light, sound, loops: [{ curve: cityLoop(), cars: isTouch ? 3 : 4, police: 1 }] }); G.traffic.camPos = camera.position;
       // pickups: the barbed bat in the alley
       const batG = await A.loadGLTF('bat.glb'); G.batModel = batG.scene; G.batModel.traverse(o => { if (o.isMesh) { addLampField(o.material, 'lit'); o.castShadow = true; } });
       spawnBatPickup(new THREE.Vector3(ALLEY.x0 + 2.2, 0, ALLEY.z1 - 2.6));
       // sky reflection map for the street
       G.street = st;
       try { renderer.compile(scene, camera); } catch { } // compile the street's shaders now, not on the first frame outside
-      // pedestrians come later: their routes are ready in district.js (ROUTES)
+      // pedestrians on the named routes (sidewalks, courtyard, quay, pier)
+      people.routeFar = isTouch ? 40 : 55; people.routeNoShadow = isTouch; // phones: fewer draw calls
+      people.populateRoutes(ROUTES, isTouch ? [['near_sidewalk', 2], ['far_sidewalk', 1], ['yard_loop', 1], ['quay', 1], ['pier', 1]] : [['near_sidewalk', 2], ['far_sidewalk', 2], ['yard_loop', 2], ['quay', 1], ['pier', 1], ['brama', 1]],
+        (x, z, y) => world.groundAt(x, z, y + 0.4)).catch(e => console.warn('street people', e));
       // preload the first bosses + zombies
       if (!G.explore) { loadChar('tiger'); loadChar('zombie'); loadChar('tiger2'); loadChar('fant'); loadChar('musc'); }
       return st;
@@ -442,30 +447,29 @@ async function boot() {
   function clearFoes() {
     for (const z of [...G.zombies]) despawn(z); G.zombies = [];
     for (const a of [...actors]) if (a.thug) despawn(a);
-    if (G.boss) { if (actors.includes(G.boss)) despawn(G.boss); G.boss = null; G.lock = null; ui.boss(null); G.spawningBoss = false; }
+    if (G.boss) { if (actors.includes(G.boss)) despawn(G.boss); G.boss = null; G.lock = null; G.arena = null; ui.boss(null); G.spawningBoss = false; }
     G.gang = null;
   }
   // ---------------- explore mode: no traffic, no enemies, open street, no damage ----------------
-  const EXPLORE_HINT = 'Tryb zwiedzania: nikt nie atakuje i nie ma aut. Walki włączysz w pauzie.';
+  const EXPLORE_HINT = 'Tryb zwiedzania: nikt cię nie atakuje. Walki z bossami włączysz w pauzie.';
   function setExplore(v) {
-    G.explore = v; store.set('explore', v);
+    G.explore = v; store.set('explore2', v);
     if (v) {
       clearFoes();
       for (const a of [...actors]) if (a.team === 'enemy' && a !== player) despawn(a);
-      if (G.traffic) { G.traffic.clear(); G.traffic.lampSources.length = 0; }
       if (partner) { partner.root.visible = false; partner.col.top = -10; ui.showOpp(false); }
       if (player) { player.hp = player.maxHp; updateBars(); }
       if (G.mode === 'play') ui.objective(EXPLORE_HINT);
     } else if (G.mode === 'play') {
       if (partner && G.chapter === 'gym') { partner.root.visible = true; partner.col.top = partner.y + partner.height; }
       if (G.place && G.chapter === G.place.def.key) startGang(G.place);
-      else ui.objective(G.chapter === 'street' ? (G.cryptOpen ? HINTS.crypt : HINTS.street) : G.chapter === 'gym' ? HINTS.gymStart : '');
+      else ui.objective(G.chapter === 'street' ? bossHint() : G.chapter === 'gym' ? HINTS.gymStart : '');
     }
   }
   const DEST_TITLE = { street: 'Ulica BRAXHORN', villa: 'Willa' };
   function visitEstate() {
     if (!player || G.travelling) return;
-    if (G.boss || G.spawningBoss || G.lock || G.carry) { ui.banner('', 'Dokończ bieżącą walkę lub dostawę przed zmianą dzielnicy.', 3); return; }
+    if (G.boss || G.spawningBoss || G.lock || G.arena || G.carry) { ui.banner('', 'Dokończ bieżącą walkę lub dostawę przed zmianą dzielnicy.', 3); return; }
     try {
       saveCityVisit({hero:G.hero.key,explore:G.explore,hp:player.hp,money:G.money,bossIdx:G.bossIdx,cryptStage:G.cryptStage,cryptOpen:G.cryptOpen,kills:G.kills,specialIdx:G.specialIdx,bat:!!G.bat,batHits:G.bat?.hits,camMode:cam.mode,yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist});
       store.set('money', G.money); store.set('upg', upg);
@@ -509,7 +513,7 @@ async function boot() {
       G.street.group.visible = true; gym.root.visible = true; if (G.traffic) G.traffic.enabled = true;
       player.pos.set(G.myCar.x + 1.5, 0, ST.near + 1.8); player.y = 0.15; player.heading = Math.PI / 2;
       cam.yaw = -Math.PI / 2 - 0.72; sound.setRoom('street'); sound.playMusic('street');
-      ui.objective(G.explore ? EXPLORE_HINT : G.cryptOpen ? HINTS.crypt : HINTS.street);
+      ui.objective(G.explore ? EXPLORE_HINT : bossHint());
     } else if (dest === 'villa') {
       const v = target; v.group.visible = true; v.region.off = false;
       player.pos.set(v.spawn.x, 0, v.spawn.z); player.y = world.groundAt(v.spawn.x, v.spawn.z, v.spawn.y + 1.0); player.heading = Math.PI;
@@ -558,6 +562,13 @@ async function boot() {
       { key: 'pt:quay_delivery', title: 'Nabrzeże: punkt dostaw', sub: 'Molo i odbiór przesyłek.', tag: 'Nabrzeże' },
       { key: 'pt:yard_brama_yard', title: 'Podwórko z boiskiem', sub: 'Blokowisko, brama naprzeciw siłowni.', tag: 'Podwórko' },
     ];
+    // where the bosses wait (map entries get the boss's name until it is beaten)
+    const bossAt = { 'pt:yard_brama_yard': 'pazur', 'pt:quay_delivery': 'prega', 'pt:club_door': 'roza' };
+    for (const it of items) {
+      const ids = it.key === 'pt:club_door' ? ['roza', 'kafar'] : bossAt[it.key] ? [bossAt[it.key]] : [];
+      const left = ids.map(id => BOSSES.find(b => b.id === id)).filter(b => b && !G.bossDown.includes(b.id));
+      if (left.length && !G.explore) { it.sub += ' Boss: ' + left.map(b => b.name).join(', ') + '.'; it.tag = 'Boss'; }
+    }
     keys.clear(); joy.active = false; joy.x = joy.y = 0; held.block = false; if (player) player.input.mag = 0;
     ui.showMap(true, items, G.chapter);
   }
@@ -886,7 +897,7 @@ async function boot() {
     if (o.thug && !o.boss) {
       const d = flat(o, player);
       const closer = actors.filter(a => a !== o && a.team === 'enemy' && !a.dead && a.root.visible && flat(a, player) < d).length;
-      if (closer >= 2 && d < 5.5) {
+      if (closer >= 1 && d < 5.5) { // one at a time: the others circle and wait
         o.heading += angDiff(o.heading, Math.atan2(player.pos.x - o.pos.x, player.pos.z - o.pos.z)) * Math.min(1, dt * 5);
         if (d < 3.4) { const k = 1 / (d || 1); o.input.x = (o.pos.x - player.pos.x) * k; o.input.z = (o.pos.z - player.pos.z) * k; o.input.mag = 0.25; o.input.run = false; }
         else if (ai.cd < 0 && Math.random() < 0.004) { o.doMove('taunt'); ai.cd = 3; }
@@ -937,7 +948,7 @@ async function boot() {
   }
   function bossIntro(f) {
     G.boss = f; ui.boss(f.def.name, f.def.title); ui.bossHp(1);
-    ui.say(f.def.name, f.def.intro, 4.2);
+    ui.say(f.def.name, f.def.introAlt && !G.bossDown.includes(f.def.introAltIf) ? f.def.introAlt : f.def.intro, 4.2);
     sound.playMusic('boss');
     if (f.key === 'demon') sound.play('roar', { gain: 0.9 }); else sound.play('grunt', { gain: 0.5, rate: 0.7, pos: f.pos });
   }
@@ -946,32 +957,42 @@ async function boot() {
     ui.banner('POKONANY!', def.name + ' leży.', 2.4); sound.bell(1);
     dropCash(f.pos.x, f.pos.z, def.reward, f.y);
     if (def.outro) setTimeout(() => ui.say(def.name, def.outro, 3), 1400);
-    G.boss = null; G.lock = null; ui.boss(null);
+    G.boss = null; G.lock = null; G.arena = null; ui.boss(null);
     f.fadeT = 6;
     if (G.chapter === 'street') {
-      G.bossIdx++;
+      if (!G.bossDown.includes(def.id)) G.bossDown.push(def.id); store.set('bossDown', G.bossDown);
+      G.bossIdx = G.bossDown.length;
       sound.playMusic('street');
-      if (G.bossIdx >= BOSSES.length) { G.cryptOpen = true; ui.objective(HINTS.crypt); loadCrypt(); }
-      else ui.objective(HINTS.street);
+      ui.objective(bossHint());
     } else if (G.chapter === 'crypt') {
       if (def.id === 'asterion') setTimeout(() => summonDemon(f), 3500);
       else if (def.id === 'demon') setTimeout(() => gameEnd(), 4000);
     }
   }
+  // bosses wait at their own places (story.js BOSSES[].at); the fight starts only when you walk in there
+  function bossSpot(def) { const p = def.at.pt ? POINTS[def.at.pt] : def.at; return { x: p.x, y: p.y ?? 0.15, z: p.z, r: def.at.r }; }
+  function bossesLeft() { return BOSSES.filter(b => !G.bossDown.includes(b.id)); }
+  function bossHint() {
+    const left = bossesLeft();
+    return left.length ? 'Bossowie czekają w swoich miejscach: ' + left.map(b => b.name + ' — ' + b.at.place).join('; ') + '. Mapa w pauzie.' : 'Wszyscy bossowie w mieście pokonani. Na osiedlu czekają jeszcze dwaj: sala bokserska i oktagon.';
+  }
   async function updateBossTriggers() {
-    if (G.explore || G.travelling || G.chapter !== 'street' || G.boss || G.spawningBoss || G.bossIdx >= BOSSES.length) return;
-    const def = BOSSES[G.bossIdx];
-    // Returning from the eastern district must not summon a boss far behind us
-    // and snap the player back into that boss's arena.
-    if (Math.abs(player.pos.x - def.x) < 12 && player.pos.z > ST.near) {
+    if (G.explore || G.travelling || G.chapter !== 'street' || G.boss || G.spawningBoss || !player) return;
+    for (const def of bossesLeft()) {
+      const sp = bossSpot(def);
+      if (Math.hypot(player.pos.x - sp.x, player.pos.z - sp.z) > sp.r - 0.6 || Math.abs(player.y - sp.y) > 1.6) continue;
       G.spawningBoss = true;
       try {
-        const z = Math.max(ST.near + 1.2, Math.min(ST.road1 - 0.5, player.pos.z + rand(-1.5, 1.5)));
-        const f = await spawnBoss(def, def.x + 4, z);
-        if (G.chapter !== 'street' || G.travelling || G.explore || BOSSES[G.bossIdx] !== def) { despawn(f); return; }
-        G.lock = [def.x - 15, def.x + 10];
+        // only the boss: patrols walking up the street go away
+        for (const a of [...actors]) if (a.thug && !a.dead) despawn(a);
+        const [bx, bz] = def.at.spawn;
+        const f = await spawnBoss(def, bx, bz, sp.y);
+        if (G.chapter !== 'street' || G.travelling || G.explore || G.bossDown.includes(def.id)) { despawn(f); return; }
+        f.heading = Math.atan2(player.pos.x - bx, player.pos.z - bz);
+        G.arena = { x: sp.x, z: sp.z, r: sp.r };
         bossIntro(f);
       } finally { G.spawningBoss = false; }
+      return;
     }
   }
   async function summonDemon(ast) {
@@ -1006,7 +1027,7 @@ async function boot() {
   }
   function pickCase() { const c = G.caseJob; c.state = 'carried'; c.obj.userData.halo.visible = false; player.attach(c.obj, 'mixamorigLeftHand'); c.obj.scale.setScalar(1 / (SCALE * player.k)); c.obj.position.set(0, 12, 0); c.obj.rotation.set(0, 0, Math.PI / 2); G.carry = true; ui.objective(HINTS.case); sound.play('cash', { gain: 0.4 }); }
   function dropCase() { const c = G.caseJob; if (!c || c.state !== 'carried') return; c.obj.parent.remove(c.obj); c.obj.scale.setScalar(1); c.obj.rotation.set(0, 0, 0); c.obj.position.set(player.pos.x + 0.6, 0.15, player.pos.z); c.obj.userData.halo.visible = true; scene.add(c.obj); c.state = 'lying'; G.carry = false; }
-  function deliverCase() { const c = G.caseJob; c.obj.parent.remove(c.obj); G.caseJob = null; G.carry = false; addMoney(500); ui.banner('DOSTARCZONE!', '+$500 za walizkę', 2.4); sound.play('cash', { gain: 0.7 }); ui.objective(G.chapter === 'street' ? HINTS.street : ''); G.caseCd = 50; }
+  function deliverCase() { const c = G.caseJob; c.obj.parent.remove(c.obj); G.caseJob = null; G.carry = false; addMoney(500); ui.banner('DOSTARCZONE!', '+$500 za walizkę', 2.4); sound.play('cash', { gain: 0.7 }); ui.objective(G.chapter === 'street' ? bossHint() : ''); G.caseCd = 50; }
   function addMoney(v) { G.money += v; store.set('money', G.money); ui.money(G.money, v > 0 ? v : 0); }
 
   // ---------------- crypt ----------------
@@ -1365,7 +1386,7 @@ async function boot() {
       }
       if (G.chapter === 'gym' && player.pos.z > ALLEY.z1 - 0.2) {
         if (!G.street) { if (!G.waitStreet) { G.waitStreet = true; ui.loading(true, 'Ładuję ulicę…'); loadStreet().then(() => { ui.loading(false); G.waitStreet = false; }); } player.pos.z = ALLEY.z1 - 0.3; }
-        else { G.chapter = 'street'; if (!G.streetShown) { G.streetShown = true; ui.chapter(CHAPTERS.street); } if (!G.explore) ui.objective(G.cryptOpen ? HINTS.crypt : HINTS.street); sound.setRoom('street'); partner.root.visible = false; partner.col.top = -10; G.caseCd = 25; }
+        else { G.chapter = 'street'; if (!G.streetShown) { G.streetShown = true; ui.chapter(CHAPTERS.street); } if (!G.explore) ui.objectivebossHint(); sound.setRoom('street'); partner.root.visible = false; partner.col.top = -10; G.caseCd = 25; }
       } else if (G.chapter === 'street' && player.pos.z < ALLEY.z1 - 1.0 && player.pos.x > ALLEY.x0 && player.pos.x < ALLEY.x1) {
         G.chapter = 'gym'; sound.setRoom('gym'); if (!G.explore) { partner.root.visible = true; partner.col.top = partner.y + partner.height; }
         if (G.carry) deliverCase();
@@ -1382,6 +1403,8 @@ async function boot() {
     if (partner && G.mode === 'play' && partner.root.visible && partner.y < RING.h - 0.3 && partner.onGround && partner.state === 'loco' && G.chapter === 'gym') { partner.pos.set(RING.x, 0, RING.z - 0.6); partner.y = RING.h; }
     // boss arena lock + crypt cage
     if (G.lock && player) player.pos.x = Math.max(G.lock[0], Math.min(G.lock[1], player.pos.x));
+    // boss arenas are circles around the boss's place: you stay in until it is decided
+    if (G.arena && player) { const A = G.arena, dx = player.pos.x - A.x, dz = player.pos.z - A.z, d = Math.hypot(dx, dz); if (d > A.r) { player.pos.x = A.x + dx / d * A.r; player.pos.z = A.z + dz / d * A.r; } }
     if (G.chapter === 'crypt' && G.crypt) for (const a of actors) if (a.root.visible) G.crypt.clampInside(a);
     for (const a of actors) { for (const ev of a.events) resolveStrike(ev); a.events.length = 0; }
     if (G.explore && player && player.hp < player.maxHp) { player.hp = player.maxHp; updateBars(); }
@@ -1406,7 +1429,7 @@ async function boot() {
     // street systems
     if (G.street && !inHall && (G.chapter === 'street' || G.chapter === 'gym')) {
       G.street.update(dt, o, tAll);
-      if (G.traffic && !G.explore) G.traffic.update(dt, actors.filter(a => a.root.visible), o, (f, car, dir) => {
+      if (G.traffic) G.traffic.update(dt, actors.filter(a => a.root.visible), o, (f, car, dir) => {
         if (f.state === 'ko' || f.state === 'down') return;
         const dmg = f.isPlayer ? 22 : 45;
         f.hp = Math.max(0, f.hp - dmg); f.stopOverlays(0.05); f.ko(dir); f.knock.set(dir.x, dir.z).multiplyScalar(9);
@@ -1423,7 +1446,7 @@ async function boot() {
       const threats = [];
       for (const a of actors) if (a.team === 'enemy' && !a.dead && a.root.visible) threats.push({ x: a.pos.x, z: a.pos.z, r: 8 });
       if (player && (player.state === 'attack' || G.boss)) threats.push({ x: player.pos.x, z: player.pos.z, r: 6 });
-      people.update(dt, { threats, camPos: camera.position, night: o.night, bounds: { x0: ST.x0, x1: ST.x1 - 2 }, hideWalkers: inHall });
+      people.update(dt, { threats, camPos: camera.position, night: o.night, bounds: { x0: ST.x0, x1: ST.x1 - 2 }, hideWalkers: inHall || hideOut });
     }
     // night: zombies
     if (playing && G.chapter === 'street') {

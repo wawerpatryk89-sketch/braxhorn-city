@@ -182,3 +182,13 @@ Postacie: `node tools/run_js.mjs convert.html <skrypt eksportu>` (Playwright + t
 - Światło: `bake/city1.bin.gz` (wierzchołki ścian, rekwizytów i wnętrz) + `bake/city1_ground.bin.gz` (tekstura światła podłóg z góry, 0,3 m). Pieczenie: `node dev/tools/play2.mjs <kroki z __mg.bakeCityGround() i __mg.bakeCity()>`. Po zmianie geometrii trzeba upiec od nowa i podnieść numer pliku.
 - Kolizje: `world.pit()` pozwala na podłogi poniżej 0 (piwnica, klatka schodowa). Modele po gltfpack mają skwantowane współrzędne: przed przekształceniem zawsze `floatGeo()` (bake.js).
 - Na później: podziemny klub walk pod wiaduktem (starcie nr 3), ruch aut, przechodnie (trasy są w `ROUTES`).
+
+## Ruch, przechodnie i bossowie (28.10, 23:40) — ostatni etap wersji przeglądarkowej
+
+- Auta: `traffic.js` jeździ w pętli (`loopPath`), bez znikania. Miasto: oba pasy ulicy, zawracanie przy nabrzeżu i przed bramą osiedla, 4 auta (telefon 3), w tym 1 radiowóz. Osiedle: główna droga (x = ±2), zawracanie na skrzyżowaniu i przed bramą do miasta, radiowóz + Żuk + GMC. Do ruchu tylko modele z małą liczbą części.
+- Przechodnie: `people.populateRoutes()` chodzą po trasach `ROUTES` (chodniki, podwórko, nabrzeże, molo, brama); uciekają od bójki. Na telefonie bez cieni i widoczni do 40 m. Osiedle: chodniki wzdłuż głównej drogi i ścieżki przed domami.
+- Bossowie czekają w swoich miejscach (`BOSSES[].at` w `story.js`): Pazur — boisko, Pręga — nabrzeże przy molo, Róża — parkiet NOVA, Kafar — piwnica. Walka zaczyna się, gdy wejdziesz na ich miejsce; do końca walki zostajesz w kole areny. Pokonani: `bx_bossDown`. Na osiedlu (`dev/osiedle/life.js`): Młot (pałka) na ringu w sali bokserskiej, Asterion w oktagonie (`bx_estateBossDown`).
+- Patrole gangu: atakuje zawsze tylko jeden, reszta krąży i czeka.
+- Tryb zwiedzania ma nowy klucz `explore2` (domyślnie wyłączony); auta jeżdżą także w zwiedzaniu.
+- Zrzut: `dev/docs/ruch_i_bossowie.jpg`.
+

@@ -1,45 +1,51 @@
-// Cars driving along two lanes of the main street and the west cross street. They brake for people
+// Cars circling a loop of lanes (city: the main street with U-turns at both ends; estate: its main road). They brake for people
 // standing in the lane (most of the time), honk, and knock down anyone they hit at speed.
 import * as THREE from 'three';
 import { ST } from './street.js';
 
-function pathEB() { // from the cross street (north) turning left into the eastbound lane
+const v3 = (x, z) => new THREE.Vector3(x, 0, z);
+// A closed loop: westbound lane (z = laneWB), U-turn at the quay end, eastbound lane (z = laneEB),
+// U-turn before the closed estate gate. [ax, az] / [bx, bz]: the two lane ends, `dir` = which way the turn bulges.
+export function loopPath(a0, a1, b1, b0, bulge) {
+  // a0 -> a1 along lane A, U-turn to b1, b1 -> b0 along lane B, U-turn back to a0
   const c = new THREE.CurvePath();
-  const x = ST.crossX + 2.0, z = ST.laneEB;
-  c.add(new THREE.LineCurve3(new THREE.Vector3(x, 0, 130), new THREE.Vector3(x, 0, z + 8)));
-  c.add(new THREE.QuadraticBezierCurve3(new THREE.Vector3(x, 0, z + 8), new THREE.Vector3(x, 0, z), new THREE.Vector3(x + 8, 0, z)));
-  c.add(new THREE.LineCurve3(new THREE.Vector3(x + 8, 0, z), new THREE.Vector3(150, 0, z)));
+  const turn = (p, q, d) => { const n = new THREE.Vector3(d[0], 0, d[1]); c.add(new THREE.CubicBezierCurve3(p, p.clone().addScaledVector(n, bulge), q.clone().addScaledVector(n, bulge), q)); };
+  const da = new THREE.Vector3().subVectors(a1, a0).normalize();
+  c.add(new THREE.LineCurve3(a0, a1)); turn(a1, b1, [da.x, da.z]);
+  c.add(new THREE.LineCurve3(b1, b0)); turn(b0, a0, [-da.x, -da.z]);
   return c;
 }
-function pathWB() { // from the east, under the viaduct, turning right into the cross street (north)
-  const c = new THREE.CurvePath();
-  const x = ST.crossX - 2.0, z = ST.laneWB;
-  c.add(new THREE.LineCurve3(new THREE.Vector3(150, 0, z), new THREE.Vector3(x + 9, 0, z)));
-  c.add(new THREE.QuadraticBezierCurve3(new THREE.Vector3(x + 9, 0, z), new THREE.Vector3(x, 0, z), new THREE.Vector3(x, 0, z + 9)));
-  c.add(new THREE.LineCurve3(new THREE.Vector3(x, 0, z + 9), new THREE.Vector3(x, 0, 130)));
-  return c;
+export function cityLoop() {
+  return loopPath(v3(90, ST.laneWB), v3(-50, ST.laneWB), v3(-50, ST.laneEB), v3(90, ST.laneEB), 8.5);
 }
-function sample(curve, step = 0.5) {
+function sample(curve, step = 0.5, loop = false) {
   const L = curve.getLength(), n = Math.ceil(L / step), pts = [];
   for (let i = 0; i <= n; i++) { const u = i / n; const p = curve.getPointAt(u), t = curve.getTangentAt(u); pts.push([p.x, p.z, Math.atan2(t.x, t.z)]); }
-  return { L, pts, at(s) { const f = Math.max(0, Math.min(1, s / L)) * (pts.length - 1), i = Math.floor(f), a = f - i, p = pts[i], q = pts[Math.min(i + 1, pts.length - 1)]; let dh = q[2] - p[2]; if (dh > Math.PI) dh -= Math.PI * 2; if (dh < -Math.PI) dh += Math.PI * 2; return [p[0] + (q[0] - p[0]) * a, p[1] + (q[1] - p[1]) * a, p[2] + dh * a]; } };
+  return { L, pts, loop, at(s) { if (loop) s = ((s % L) + L) % L; const f = Math.max(0, Math.min(1, s / L)) * (pts.length - 1), i = Math.floor(f), a = f - i, p = pts[i], q = pts[Math.min(i + 1, pts.length - 1)]; let dh = q[2] - p[2]; if (dh > Math.PI) dh -= Math.PI * 2; if (dh < -Math.PI) dh += Math.PI * 2; return [p[0] + (q[0] - p[0]) * a, p[1] + (q[1] - p[1]) * a, p[2] + dh * a]; } };
 }
 
 export class Traffic {
-  constructor({ scene, models, sound }) {
+  // loops: [{ curve, cars, police }] — every loop gets its cars at once and they keep circling (no pop-in)
+  constructor({ scene, models, sound, loops = [{ curve: cityLoop(), cars: 4, police: 1 }] }) {
     this.scene = scene; this.models = models; this.sound = sound;
-    this.paths = [sample(pathEB()), sample(pathWB())];
-    this.cars = []; this.spawnT = [1.0, 3.5]; this.lampSources = [];
+    this.paths = loops.map(l => sample(l.curve, 0.5, true));
+    this.cars = []; this.lampSources = [];
     this.flare = flareTex(); this.camPos = new THREE.Vector3();
     this.enabled = true;
     const keys = Object.keys(models);
     this.civil = keys.filter(k => !models[k].userData.def.police);
     this.police = keys.filter(k => models[k].userData.def.police);
     this.n = 0;
+    loops.forEach((l, i) => {
+      const L = this.paths[i].L, used = new Set();
+      for (let k = 0; k < l.cars; k++) {
+        const pool = (k < (l.police || 0) && this.police.length ? this.police : this.civil).filter(x => !used.has(x));
+        const key = pool.length ? pool[Math.floor(Math.random() * pool.length)] : this.civil[0];
+        used.add(key); this.spawn(i, key, (k + Math.random() * 0.3) * L / l.cars);
+      }
+    });
   }
-  spawn(pi) {
-    const pool = Math.random() < 0.14 && this.police.length ? this.police : this.civil;
-    const key = pool[Math.floor(Math.random() * pool.length)];
+  spawn(pi, key, s0 = 0) {
     const src = this.models[key];
     const obj = src.clone(); this.scene.add(obj);
     const size = src.userData.size;
@@ -49,7 +55,7 @@ export class Traffic {
     const mk = (color, s, p) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.flare, color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0 })); sp.scale.setScalar(s); sp.renderOrder = 6; sp.position.copy(p); obj.add(sp); return sp; };
     const hl = A.hl.map(p => mk(new THREE.Color(1, 0.94, 0.82), 0.95, p));
     const tl = A.tl.map(p => mk(new THREE.Color(1, 0.06, 0.03), 0.55, p));
-    const car = { obj, key, path: this.paths[pi], pi, s: 0, v: sp, cruise: sp, size, hl, tl, police: src.userData.def.police, honkT: 0, brakeChance: Math.random() < 0.85, id: this.n++, siren: src.userData.def.police && Math.random() < 0.6, hlY: (A.hl[0].y + A.hl[1].y) / 2, front: Math.max(A.hl[0].z, size.z / 2) };
+    const car = { obj, key, path: this.paths[pi], pi, s: s0, v: sp, cruise: sp, size, hl, tl, police: src.userData.def.police, honkT: 0, brakeChance: Math.random() < 0.85, id: this.n++, siren: src.userData.def.police && Math.random() < 0.6, hlY: (A.hl[0].y + A.hl[1].y) / 2, front: Math.max(A.hl[0].z, size.z / 2) };
     car.lamp = { pos: new THREE.Vector3(), dir: new THREE.Vector3(), cos: 0.8, col: new THREE.Color(1, 0.93, 0.8).multiplyScalar(4.2), r: 24, kind: 'car', dyn: true, w: 1 };
     car.tail = { pos: new THREE.Vector3(), col: new THREE.Color(1, 0.05, 0.02).multiplyScalar(0.9), r: 4.2, kind: 'tail', dyn: true, w: 1 };
     car.flash = car.police ? { pos: new THREE.Vector3(), col: new THREE.Color(1, 0, 0), r: 9, kind: 'flash', dyn: true, w: 1 } : null;
@@ -69,16 +75,14 @@ export class Traffic {
   // fighters: [{pos, y, radius, state, ...}], onHit(fighter, car, dir)
   update(dt, fighters, env, onHit, t) {
     if (!this.enabled) return;
-    for (let i = 0; i < 2; i++) {
-      this.spawnT[i] -= dt;
-      const onPath = this.cars.filter(c => c.pi === i);
-      if (this.spawnT[i] <= 0 && onPath.length < 3 && !onPath.some(c => c.s < 14)) { this.spawn(i); this.spawnT[i] = 5 + Math.random() * 9; }
-    }
     const night = env.lamps;
     for (const car of this.cars) {
       // look ahead: other cars and people in the lane
       let want = car.cruise, obstacle = null;
-      for (const o of this.cars) if (o !== car && o.pi === car.pi && o.s > car.s && o.s - car.s < 16) want = Math.min(want, Math.max(0, (o.s - car.s - car.size.z - 2.5) * 0.9));
+      const L = car.path.L;
+      for (const o of this.cars) if (o !== car && o.pi === car.pi) { const gap = ((o.s - car.s) % L + L) % L; if (gap < 16) want = Math.min(want, Math.max(0, (gap - car.size.z - 2.5) * 0.9)); }
+      // slow down for the U-turns
+      { let dh = Math.abs(car.path.at(car.s + 9)[2] - car.h) % (Math.PI * 2); if (dh > Math.PI) dh = Math.PI * 2 - dh; if (dh > 0.35) want = Math.min(want, 4.2); }
       for (const f of fighters) {
         if (!f.root.visible) continue;
         const dx = f.pos.x - car.x, dz = f.pos.z - car.z;
@@ -93,7 +97,7 @@ export class Traffic {
       car.honkT -= dt;
       const acc = want < car.v ? 14 : 3.5;
       car.v += Math.sign(want - car.v) * Math.min(Math.abs(want - car.v), acc * dt);
-      car.s += car.v * dt;
+      car.s = (car.s + car.v * dt) % L;
       this.place(car);
       // collisions with fighters
       for (const f of fighters) {
@@ -117,8 +121,6 @@ export class Traffic {
       car.lamp.w = night; car.tail.w = night * (braking ? 1.6 : 0.8);
       if (car.flash) { const ph = Math.floor(t * 6 + car.id) % 2; car.flash.col.setRGB(ph ? 1.6 : 0, 0, ph ? 0 : 2.0); car.flash.w = 1; }
     }
-    // retire cars at the end of the path
-    this.cars = this.cars.filter(c => { if (c.s >= c.path.L - 0.5) { this.scene.remove(c.obj); return false; } return true; });
     this.lampSources.length = 0;
     for (const c of this.cars) { if (night > 0.05) this.lampSources.push(c.lamp, c.tail); if (c.flash) this.lampSources.push(c.flash); }
   }

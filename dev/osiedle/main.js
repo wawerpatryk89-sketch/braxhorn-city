@@ -14,6 +14,7 @@ import {loadEstate} from './level.js';
 import {EstateWorld} from './player-world.js';
 import {EstateDoors} from './entrances.js';
 import {LEVEL} from './layout.js';
+import {createLife} from './life.js';
 
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{return JSON.parse(localStorage.getItem('bx_'+k))??d;}catch{return d;}},set(k,v){try{localStorage.setItem('bx_'+k,JSON.stringify(v));}catch{}}};
@@ -22,7 +23,7 @@ let landscape=store.get('land',true);applyOrientation(landscape,isTouch);
 const resume=readCityVisit();
 const heroKey=resume?.hero||(store.get('hero','brax')==='nyxa'?'nyxa':'brax');
 const hero=HEROES[heroKey];
-const state={hero:heroKey,explore:store.get('explore',true),money:store.get('money',0),specialIdx:0,...resume};
+const state={hero:heroKey,explore:store.get('explore2',false),money:store.get('money',0),specialIdx:0,...resume};
 const upg={hp:0,dmg:0,armor:0,shakes:1,...store.get('upg',{})};
 const QUALITY={high:{name:'Wysoka',dpr:1.75},medium:{name:'Średnia',dpr:1.5},low:{name:'Niska',dpr:1.25}};
 let qKey=store.get('quality3','high');if(!QUALITY[qKey])qKey='high';
@@ -41,7 +42,7 @@ const cam={mode:resume?.camMode||store.get('cam','3d'),yaw:resume?.yaw??0,pitch:
 const sound=new Sound(store.get('sound',true));sound.prepare().catch(console.warn);sound.setRoom('street');
 const ui=new UI({isTouch,quality:QUALITY,qKey,sound,moves:MOVE_LIST});
 const keys=new Set(),joy={x:0,y:0,active:false},held={block:false};
-let player,physics,level,doors,blob,ready=false,paused=false,travelling=false,last=performance.now(),punchAlt=0,danceAlt=0,frameNumber=0;
+let life=null,player,physics,level,doors,blob,ready=false,paused=false,travelling=false,last=performance.now(),punchAlt=0,danceAlt=0,frameNumber=0;
 const actions=[];
 A.initLoaders(renderer,'../assets/');
 A.net.onProgress=()=>{$('netMB').textContent=(A.net.bytes/1048576).toFixed(1)+' MB';};
@@ -56,6 +57,7 @@ function closeMenu(){paused=false;ui.showMap(false);ui.showPause(false);last=per
 function resize(){applyOrientation(landscape,isTouch);camera.aspect=view.w()/view.h();camera.updateProjectionMatrix();renderer.setSize(view.w(),view.h(),false);ui.setOrient(view.w()>view.h());}
 function fullscreen(){const el=document.documentElement;const fn=el.requestFullscreen||el.webkitRequestFullscreen;if(fn)Promise.resolve(fn.call(el)).catch(()=>{});}
 function teleport(x,z,a=cam.yaw,p=cam.pitch,y=1.78){
+ life?.abort();
  player.pos.set(x,y-1.7,z);player.y=y-1.7;player.vy=0;player.onGround=true;player.vel.set(0,0);player.knock.set(0,0);player.backToLoco(0);player.heading=a+Math.PI;
  physics.reset(player.pos);player.y=physics.groundAt(x,z,player.y+.01,player.radius);player.pos.y=player.y;
  cam.yaw=a;cam.pitch=p;cam.target.set(x,player.y+1.55,z);cam.snap=true;player.update(1/60);updateCamera(1/60);updateHud();
@@ -81,7 +83,7 @@ function menuAction(a){
  else if(a==='sound'){sound.toggle();store.set('sound',sound.on);ui.setSound(sound.on);}
  else if(a==='orient'){landscape=!(view.rotated||view.w()>view.h());store.set('land',landscape);resize();}
  else if(a==='fullscreen')fullscreen();
- else if(a==='explore'){state.explore=!state.explore;store.set('explore',state.explore);ui.setExplore(state.explore);}
+ else if(a==='explore'){state.explore=!state.explore;if(state.explore)life?.abort();store.set('explore2',state.explore);ui.setExplore(state.explore);}
  else if(a.startsWith('q-')){qKey=a.slice(2);store.set('quality3',qKey);renderer.setPixelRatio(Math.min(devicePixelRatio,QUALITY[qKey].dpr));resize();ui.setQuality(qKey);}
  else return false;
  return true;
@@ -123,7 +125,7 @@ function simulate(dt){
  Object.assign(player.input,{x:wx/length,z:wz/length,mag,run:joy.active||!keys.has('shift'),block:held.block||keys.has('c')});
  if(player.state==='emote'&&mag>.25)player.backToLoco(.25);
  if(player.input.block&&['loco','emote'].includes(player.state))player.startBlock();
- player.setIdle('Idle');player.update(dt);doors.update(dt,player);player.events.length=0;ui.tick(dt);
+ player.setIdle('Idle');player.update(dt);doors.update(dt,player);life?.update(dt,performance.now()/1000);player.events.length=0;ui.tick(dt);
  const h=player.hipsWorld();blob.position.set(h.x,physics.groundAt(h.x,h.z,player.y+.1)+.014,h.z);
  updateCamera(dt);
 }
@@ -153,6 +155,7 @@ async function boot(){
  if(Number.isFinite(resume?.estateHeading))player.heading=resume.estateHeading;
  ui.setHero(hero,HEROES[heroKey==='brax'?'nyxa':'brax']);ui.showOpp(false);ui.clock('13:30',false);ui.objective('Podejdź do drzwi i naciśnij OTWÓRZ. Miasto i siłownia są w mapie.');updateHud();
  scene.updateMatrixWorld(true);renderer.compile(scene,camera);render();renderer.shadowMap.autoUpdate=false;
+ life=createLife({scene,physics,player,ui,sound,meta,store,state,isTouch,camera});if(!state.explore)ui.objective(life.hint());
  ready=true;window.__os.ready=true;$('loader').classList.add('done');checkpoint();last=performance.now();
 }
 addEventListener('keydown',e=>{const k=e.key.toLowerCase();if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();keys.add(k);if(!e.repeat&&INPUT_ACTIONS[k])actions.push(INPUT_ACTIONS[k]);sound.unlock();});
@@ -163,5 +166,5 @@ addEventListener('blur',()=>{resetInput();if(ready)openMenu();});
 addEventListener('resize',resize);addEventListener('orientationchange',()=>setTimeout(resize,250));
 addEventListener('pagehide',checkpoint);addEventListener('pageshow',e=>{if(e.persisted){travelling=false;ui.loading(false);openMenu();last=performance.now();}});
 addEventListener('visibilitychange',()=>{if(document.hidden){resetInput();checkpoint();if(ready)openMenu();}});
-window.__os={ready:false,THREE:T,LEVEL,scene,camera,renderer,cam,joy,keys,state,assetErrors:[],get player(){return player;},get doors(){return doors;},get world(){return level?.world;},get imported(){return level?.imported||[];},get vegetation(){return level?.vegetation;},teleport,start(){paused=false;},pause(v){paused=v;resetInput();},step(dx,dz){const count=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.12));for(let i=0;i<count;i++){player.pos.x+=dx/count;player.pos.z+=dz/count;physics.resolve(player.pos,player.radius,player.y,player.height,player.col);player.y=physics.groundAt(player.pos.x,player.pos.z,player.y,player.radius);player.pos.y=player.y;}updateCamera(1/60);},sim(seconds){for(let t=0;t<seconds;t+=1/60)simulate(Math.min(1/60,seconds-t));},act:doAction,returnToCity,checkpoint,render,stats(){return{...renderer.info.render,assets:level?.imported.length,errors:[],position:player?.pos.toArray(),hero:heroKey,yaw:cam.yaw};}};
+window.__os={ready:false,THREE:T,LEVEL,scene,camera,renderer,cam,joy,keys,state,assetErrors:[],get player(){return player;},get life(){return life;},get doors(){return doors;},get world(){return level?.world;},get imported(){return level?.imported||[];},get vegetation(){return level?.vegetation;},teleport,start(){paused=false;},pause(v){paused=v;resetInput();},step(dx,dz){const count=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.12));for(let i=0;i<count;i++){player.pos.x+=dx/count;player.pos.z+=dz/count;physics.resolve(player.pos,player.radius,player.y,player.height,player.col);player.y=physics.groundAt(player.pos.x,player.pos.z,player.y,player.radius);player.pos.y=player.y;}updateCamera(1/60);},sim(seconds){for(let t=0;t<seconds;t+=1/60)simulate(Math.min(1/60,seconds-t));},act:doAction,returnToCity,checkpoint,render,stats(){return{...renderer.info.render,assets:level?.imported.length,errors:[],position:player?.pos.toArray(),hero:heroKey,yaw:cam.yaw};}};
 resize();requestAnimationFrame(frame);boot().catch(e=>{window.__os.assetErrors.push(e.message);$('loadMsg').textContent='Nie udało się uruchomić osiedla: '+e.message;console.error(e);});
