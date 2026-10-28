@@ -1,0 +1,438 @@
+// The street outside the gym: photogrammetry scans on the far side, procedural shop facades on the near side,
+// road, sidewalks, street lamps, signs with the BRAXHORN brand, a police cordon (west) and the railway viaduct
+// with the door to the crypt (east). Everything outdoors is lit by the shared lamp field (env.js).
+import * as THREE from 'three';
+import { mergeGeometries } from '../three/examples/jsm/utils/BufferGeometryUtils.js';
+import { addLampField } from './env.js';
+import * as TX from './textures.js';
+
+export const ST = {
+  near: 20.6, road0: 24, road1: 33, far: 35.5, x0: -44.2, x1: 61.4,
+  laneWB: 26.9, laneEB: 30.1, crossX: -52, viaductX: 68, door: { x: 61.2, z: 22.3 },
+};
+
+const rnd = (() => { let s = 1234567; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; })();
+
+// ---------- canvas helpers ----------
+function canvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function ctex(c, srgb = true, repeat = false) { const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4; return t; }
+
+// facade: brick or render wall with windows; emissive map with randomly lit windows
+function facadeTextures(w, h, style, shop) {
+  const PX = 40, W = Math.round(w * PX), H = Math.round(h * PX);
+  const c = canvas(W, H), x = c.getContext('2d'), e = canvas(W, H), ex = e.getContext('2d');
+  ex.fillStyle = '#000'; ex.fillRect(0, 0, W, H);
+  const base = { brick: '#6e3a2a', brick2: '#5b3426', render: '#8d8578', render2: '#6f7479', dark: '#3b3b40' }[style] || '#6e3a2a';
+  x.fillStyle = base; x.fillRect(0, 0, W, H);
+  if (style.startsWith('brick')) {
+    const bh = 0.075 * PX, bw = 0.23 * PX;
+    for (let r = 0; r * bh < H; r++) for (let k = -1; k * bw < W; k++) {
+      const v = 0.75 + rnd() * 0.4; x.fillStyle = `rgba(${150 * v | 0},${78 * v | 0},${58 * v | 0},0.55)`;
+      x.fillRect(k * bw + (r % 2) * bw / 2 + 1, r * bh + 1, bw - 2, bh - 2);
+    }
+  } else {
+    for (let i = 0; i < 2600; i++) { x.fillStyle = `rgba(0,0,0,${rnd() * 0.06})`; x.fillRect(rnd() * W, rnd() * H, 2 + rnd() * 30, 2 + rnd() * 30); }
+  }
+  // grime streaks
+  for (let i = 0; i < 40; i++) { const gx = rnd() * W; const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.18)'); x.fillStyle = g; x.fillRect(gx, rnd() * H * 0.5, 4 + rnd() * 18, H); }
+  // cornice lines
+  x.fillStyle = 'rgba(30,26,24,0.55)'; x.fillRect(0, H - 4.3 * PX, W, 0.25 * PX); x.fillRect(0, 0, W, 0.35 * PX);
+  // upper windows
+  const floors = Math.floor((h - 4.6) / 3.2), cols = Math.max(2, Math.floor(w / 2.6));
+  const colW = W / cols;
+  for (let f = 0; f < floors; f++) for (let k = 0; k < cols; k++) {
+    const wx = k * colW + colW * 0.25, ww = colW * 0.5, wy = H - (4.6 + f * 3.2 + 2.2) * PX, wh = 1.6 * PX;
+    x.fillStyle = '#1b1d22'; x.fillRect(wx - 3, wy - 3, ww + 6, wh + 6);
+    const lit = rnd();
+    const glass = x.createLinearGradient(wx, wy, wx + ww, wy + wh); glass.addColorStop(0, '#3a4452'); glass.addColorStop(1, '#151a22');
+    x.fillStyle = glass; x.fillRect(wx, wy, ww, wh);
+    x.fillStyle = '#c9c2b4'; x.fillRect(wx - 4, wy + wh + 2, ww + 8, 5); // sill
+    x.fillStyle = '#2a2a2e'; x.fillRect(wx + ww / 2 - 1.5, wy, 3, wh);
+    if (lit > 0.42) {
+      const col = lit > 0.92 ? '#7fb6ff' : lit > 0.8 ? '#ffd9a0' : '#ffb35c';
+      ex.fillStyle = col; ex.globalAlpha = 0.55 + rnd() * 0.45; ex.fillRect(wx, wy, ww, wh); ex.globalAlpha = 1;
+      if (rnd() > 0.5) { ex.fillStyle = 'rgba(0,0,0,0.6)'; ex.fillRect(wx + ww * rnd() * 0.6, wy, ww * 0.25, wh); } // curtain / person
+    }
+  }
+  // shop front
+  const sy = H - 4.0 * PX;
+  x.fillStyle = '#16181b'; x.fillRect(0.4 * PX, sy + 0.2 * PX, W - 0.8 * PX, 3.8 * PX);
+  const sg = x.createLinearGradient(0, sy, 0, H); sg.addColorStop(0, '#2c3a44'); sg.addColorStop(1, '#0d1116');
+  x.fillStyle = sg; x.fillRect(0.6 * PX, sy + 1.1 * PX, W - 1.2 * PX, 2.9 * PX);
+  x.fillStyle = '#0b0c0e'; for (let k = 1; k < 4; k++) x.fillRect(0.6 * PX + (W - 1.2 * PX) * k / 4 - 2, sy + 1.1 * PX, 4, 2.9 * PX);
+  if (shop) {
+    const gx0 = 0.6 * PX, gy0 = sy + 1.1 * PX, gw = W - 1.2 * PX, gh = 2.9 * PX;
+    const g = ex.createLinearGradient(0, gy0, 0, gy0 + gh); g.addColorStop(0, shop.glow || '#ffcf8a'); g.addColorStop(1, 'rgba(40,30,20,1)');
+    ex.globalAlpha = 0.38; ex.fillStyle = g; ex.fillRect(gx0, gy0, gw, gh); ex.globalAlpha = 1;
+    ex.fillStyle = 'rgba(0,0,0,0.7)';
+    for (let k = 0; k < 3; k++) ex.fillRect(gx0, gy0 + gh * (0.38 + 0.2 * k), gw, 5);
+    for (let i = 0; i < gw / 9; i++) { ex.fillStyle = `rgba(0,0,0,${0.3 + rnd() * 0.5})`; ex.fillRect(gx0 + i * 9 + rnd() * 3, gy0 + gh * (0.25 + 0.2 * Math.floor(rnd() * 3)), 5, 10 + rnd() * 10); }
+    ex.fillStyle = '#000'; for (let k = 1; k < 4; k++) ex.fillRect(gx0 + gw * k / 4 - 3, gy0, 6, gh);
+    ex.fillRect(W * 0.5 - 0.55 * PX, H - 2.4 * PX, 1.1 * PX, 2.4 * PX);
+  }
+  // door
+  x.fillStyle = '#0a0a0a'; x.fillRect(W * 0.5 - 0.55 * PX, H - 2.4 * PX, 1.1 * PX, 2.4 * PX);
+  return { map: ctex(c), emissiveMap: ctex(e) };
+}
+
+function paverTexture() {
+  const S = 256, c = canvas(S, S), x = c.getContext('2d');
+  x.fillStyle = '#6b6862'; x.fillRect(0, 0, S, S);
+  const n = 4;
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+    const v = 0.85 + rnd() * 0.25; x.fillStyle = `rgb(${120 * v | 0},${116 * v | 0},${108 * v | 0})`;
+    x.fillRect(i * S / n + 2, j * S / n + 2, S / n - 4, S / n - 4);
+  }
+  for (let i = 0; i < 900; i++) { x.fillStyle = `rgba(0,0,0,${rnd() * 0.12})`; x.fillRect(rnd() * S, rnd() * S, 1 + rnd() * 6, 1 + rnd() * 6); }
+  const t = ctex(c, true, true); return t;
+}
+
+function textSign(font, text, color, { w = 1024, h = 256, size = 150, bg = null } = {}) {
+  const c = canvas(w, h), x = c.getContext('2d');
+  if (bg) { x.fillStyle = bg; x.fillRect(0, 0, w, h); }
+  x.font = `800 ${size}px ${font}`; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.shadowColor = color; x.shadowBlur = 36; x.fillStyle = color; x.fillText(text, w / 2, h / 2 + 6);
+  x.shadowBlur = 10; x.fillStyle = '#fffaf0'; x.fillText(text, w / 2, h / 2 + 6);
+  return ctex(c);
+}
+
+// ---------- car material diet: merge untextured parts per car into one vertex-coloured mesh ----------
+export function slimCar(root) {
+  root.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(root.matrixWorld).invert();
+  const solid = [], glass = [], lights = [], keep = [];
+  const tmpM = new THREE.Matrix4(), col = new THREE.Color();
+  root.traverse(o => {
+    if (!o.isMesh) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    const m = mats[0];
+    const isGlass = (m.transmission > 0.05) || (m.transparent && m.opacity < 0.95) || /glass|window|windshield/i.test(m.name || '');
+    const isLight = /light|lamp|led|glow|emiss/i.test(m.name || '') || (m.emissive && m.emissive.getHSL({ h: 0, s: 0, l: 0 }).l > 0.2);
+    tmpM.multiplyMatrices(inv, o.matrixWorld);
+    if (m.map && !isGlass) { keep.push(o); return; }
+    const g = new THREE.BufferGeometry();
+    const src = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry;
+    const p = src.attributes.position, n = src.attributes.normal, cnt = p.count;
+    const P = new Float32Array(cnt * 3), N = new Float32Array(cnt * 3), C = new Float32Array(cnt * 3);
+    const v = new THREE.Vector3(), nm = new THREE.Matrix3().getNormalMatrix(tmpM);
+    col.copy(m.color || new THREE.Color(0.5, 0.5, 0.5));
+    if (isLight && m.emissive) col.add(m.emissive);
+    for (let i = 0; i < cnt; i++) {
+      v.fromBufferAttribute(p, i).applyMatrix4(tmpM); P[i * 3] = v.x; P[i * 3 + 1] = v.y; P[i * 3 + 2] = v.z;
+      if (n) { v.fromBufferAttribute(n, i).applyMatrix3(nm).normalize(); N[i * 3] = v.x; N[i * 3 + 1] = v.y; N[i * 3 + 2] = v.z; }
+      C[i * 3] = col.r; C[i * 3 + 1] = col.g; C[i * 3 + 2] = col.b;
+    }
+    g.setAttribute('position', new THREE.BufferAttribute(P, 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(N, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(C, 3));
+    if (!n) g.computeVertexNormals();
+    (isGlass ? glass : isLight ? lights : solid).push(g);
+  });
+  const out = new THREE.Group();
+  const add = (geos, mat) => { if (!geos.length) return null; const mg = mergeGeometries(geos); const mesh = new THREE.Mesh(mg, mat); out.add(mesh); return mesh; };
+  const body = add(solid, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.32, metalness: 0.55, envMapIntensity: 1.2 }));
+  const gl = add(glass, new THREE.MeshStandardMaterial({ vertexColors: true, color: 0x9fb4c8, roughness: 0.05, metalness: 0.9, transparent: true, opacity: 0.55, envMapIntensity: 1.5, depthWrite: false }));
+  const li = add(lights, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.2, emissive: 0xffffff, emissiveIntensity: 0 }));
+  for (const o of keep) {
+    const m = Array.isArray(o.material) ? o.material[0] : o.material;
+    const nm = new THREE.MeshStandardMaterial({ map: m.map, normalMap: m.normalMap || null, color: m.color, roughness: m.roughness ?? 0.5, metalness: m.metalness ?? 0.2, transparent: m.transparent, opacity: m.opacity, alphaTest: m.alphaTest || 0, side: m.side });
+    const mesh = new THREE.Mesh(o.geometry, nm); tmpM.multiplyMatrices(inv, o.matrixWorld); mesh.applyMatrix4(tmpM); out.add(mesh);
+  }
+  out.userData = { body, glass: gl, lights: li };
+  out.traverse(o => { if (o.isMesh) { addLampField(o.material, 'lit'); o.castShadow = false; o.receiveShadow = false; } });
+  return out;
+}
+
+// car definitions: target length (m), extra yaw to make the model's nose point to local +z
+export const CARS = {
+  car_s4: { len: 4.7, yaw: 0, name: 'Audi S4' }, car_r8: { len: 4.45, yaw: 0, name: 'Audi R8' }, car_rev: { len: 4.95, yaw: 0, name: 'Lamborghini' },
+  car_918: { len: 4.65, yaw: 0, name: 'Porsche 918' }, car_mus: { len: 4.6, yaw: 0, name: 'Mustang' }, car_dc: { len: 5.0, yaw: 0, name: 'Challenger' },
+  car_dia: { len: 4.5, yaw: 0, name: 'Policja', police: true }, car_mar: { len: 4.7, yaw: 0, name: 'Policja', police: true },
+  car_zuk: { len: 4.4, yaw: Math.PI, name: 'Żuk' }, car_gmc: { len: 5.8, yaw: -Math.PI / 2, name: 'GMC' },
+};
+export function prepareCar(key, gltf) {
+  const def = CARS[key];
+  const raw = gltf.scene;
+  const holder = new THREE.Group(); holder.add(raw);
+  raw.rotation.y = def.yaw; holder.updateMatrixWorld(true);
+  const b = new THREE.Box3().setFromObject(raw), s = b.getSize(new THREE.Vector3());
+  const k = def.len / Math.max(s.x, s.z);
+  raw.scale.multiplyScalar(k); holder.updateMatrixWorld(true);
+  const b2 = new THREE.Box3().setFromObject(raw), c2 = b2.getCenter(new THREE.Vector3());
+  raw.position.sub(new THREE.Vector3(c2.x, b2.min.y, c2.z));
+  holder.updateMatrixWorld(true);
+  const slim = slimCar(holder);
+  const size = new THREE.Box3().setFromObject(slim).getSize(new THREE.Vector3());
+  slim.userData.size = size; slim.userData.key = key; slim.userData.def = def;
+  return slim;
+}
+
+// ---------- the street ----------
+export async function buildStreet({ scene, world, font, A, logos, Q }) {
+  const G = new THREE.Group(); G.name = 'street'; scene.add(G);
+  const out = { group: G, lampSources: [], glows: [], cones: [], people: [], parked: [], flashers: [], animated: [], neons: [] };
+  const L = (pos, col, r, kind, extra = {}) => { const s = { pos: pos.clone ? pos.clone() : new THREE.Vector3(...pos), col: new THREE.Color(col), r, kind, ...extra }; out.lampSources.push(s); return s; };
+  const halo = TX.radial('rgba(255,255,255,1)', 'rgba(255,255,255,0)');
+  const glow = (pos, color, size, kind = 'street') => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, color: new THREE.Color(color), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); s.position.copy(pos); s.scale.setScalar(size); s.renderOrder = 6; s.userData.kind = kind; s.userData.base = new THREE.Color(color); G.add(s); out.glows.push(s); return s; };
+
+  // ---------- ground: sidewalks + curbs ----------
+  const paver = paverTexture();
+  const walkMat = addLampField(new THREE.MeshStandardMaterial({ map: paver, roughness: 0.85, color: 0xd8d4cc }));
+  const curbMat = addLampField(new THREE.MeshStandardMaterial({ color: 0x8b8984, roughness: 0.8 }));
+  const box = (mat, x0, x1, y0, y1, z0, z1, uv = 0) => {
+    const g = new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0); g.translate((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+    if (uv) { const p = g.attributes.position, u = g.attributes.uv; for (let i = 0; i < p.count; i++) u.setXY(i, p.getX(i) / uv, p.getZ(i) / uv); }
+    const m = new THREE.Mesh(g, mat); m.receiveShadow = true; G.add(m); return m;
+  };
+  const SW = 0.15;
+  box(walkMat, -60, ST.x1 + 12, -0.2, SW, ST.near - 0.2, ST.road0, 2);     // near sidewalk
+  box(walkMat, -60, 125, -0.2, SW, ST.road1, ST.far + 0.6, 2);             // far sidewalk
+  box(curbMat, -60, ST.x1 + 12, -0.2, SW + 0.01, ST.road0 - 0.25, ST.road0, 0);
+  box(curbMat, -60, 125, -0.2, SW + 0.01, ST.road1, ST.road1 + 0.25, 0);
+  world.box(-60, ST.x1 + 12, ST.near, ST.road0, SW, -1, 'walk');
+  world.box(-60, 125, ST.road1, ST.far + 0.6, SW, -1, 'walk');
+  // cross street (west) sidewalks
+  box(walkMat, -60, -46, -0.2, SW, ST.far + 0.6, 120, 2);
+  box(walkMat, -60, -57, -0.2, SW, ST.near - 8, ST.near, 2);
+
+  // ---------- road ----------
+  const roadG = await A.loadGLTF('road.glb');
+  const roadSrc = roadG.scene; roadSrc.updateMatrixWorld(true);
+  const rb = new THREE.Box3().setFromObject(roadSrc), rs = rb.getSize(new THREE.Vector3());
+  // model: wide along x, long along z (10 m x 15 m when scaled to metres)
+  const rsx = (ST.road1 - ST.road0) / rs.x, rsz = 15 / rs.z;
+  roadSrc.traverse(o => { if (o.isMesh) { o.receiveShadow = true; addLampField(o.material, 'lit'); o.material.envMapIntensity = 0.6; out.roadMat = o.material; } });
+  const roadTile = (x, z, rotY, lenScale = 1) => {
+    const t = roadSrc.clone(); const h = new THREE.Group(); h.add(t);
+    t.position.set(-(rb.min.x + rs.x / 2), -rb.max.y, -(rb.min.z + rs.z / 2));
+    h.scale.set(rsx, 0.05 / Math.max(rs.y, 1e-3) * 0 + rsx, rsz * lenScale); h.rotation.y = rotY; h.position.set(x, 0.0, z); G.add(h); return h;
+  };
+  for (let x = -46 + 7.5; x < 125; x += 15) roadTile(x, (ST.road0 + ST.road1) / 2, Math.PI / 2);
+  for (let z = ST.road1 + 7.5; z < 125; z += 15) roadTile(ST.crossX, z, 0);
+  // intersection patch
+  const asphalt = addLampField(new THREE.MeshStandardMaterial({ color: 0x2b2c2e, roughness: 0.75 }));
+  box(asphalt, -57, -46, -0.3, 0.005, ST.road0, ST.road1 + 0.6);
+  world.box(-60, -44.2, ST.near - 8, 130, 6, -1, 'cordon');          // west boundary (behind the police cordon)
+  world.box(-60, 130, ST.far + 0.1, ST.far + 4, 6, -1, 'farwall');    // far side boundary
+  world.box(ST.x1, 130, ST.near - 8, ST.far + 4, 8, -1, 'eastwall');  // viaduct wall
+
+  // ---------- near side: procedural shop buildings ----------
+  const brickT = TX.brick(512, 512); brickT.map.repeat.set(1, 1);
+  const sideMat = addLampField(new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, color: 0xb59a8a, roughness: 0.9 }));
+  const roofMat = addLampField(new THREE.MeshStandardMaterial({ color: 0x2a2826, roughness: 0.95 }));
+  const NEAR = [
+    { x0: -60, x1: -46, h: 14, s: 'render2' },
+    { x0: -46, x1: -35, h: 16, s: 'brick', sign: ['APTEKA', '#3dff8a'], glow: '#c8ffd8' },
+    { x0: -35, x1: -24, h: 12, s: 'render', sign: ['MONOPOLOWY', '#ffb347'], glow: '#ffd8a0' },
+    { x0: -24, x1: -14.5, h: 18, s: 'brick2', sign: ['LOMBARD', '#ff4f6d'], glow: '#ffc0c8' },
+    { x0: 1, x1: 12, h: 14, s: 'brick', sign: ['BAR 24/7', '#3fd2ff'], glow: '#a8e8ff' },
+    { x0: 12, x1: 24, h: 20, s: 'render2', sign: ['KEBAB', '#ffd23f'], glow: '#ffe7a0' },
+    { x0: 24, x1: 36, h: 13, s: 'dark', sign: ['BRAXHORN NUTRITION', '#8bff3a'], glow: '#c9ffb0', brand: true },
+    { x0: 36, x1: 48, h: 17, s: 'render', sign: ['HOTEL', '#ff7a3d'], glow: '#ffd2b0' },
+    { x0: 48, x1: 62, h: 15, s: 'brick2' },
+  ];
+  out.buildings = [];
+  for (const b of NEAR) {
+    const w = b.x1 - b.x0, d = 9, z0 = ST.near - d;
+    const ft = facadeTextures(w, b.h, b.s, b.sign ? { glow: b.glow } : null);
+    const front = addLampField(new THREE.MeshStandardMaterial({ map: ft.map, emissiveMap: ft.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.85 }));
+    const g = new THREE.BoxGeometry(w, b.h, d);
+    // brick on the sides/back: scale uv by size
+    const uv = g.attributes.uv, p = g.attributes.position, nrm = g.attributes.normal;
+    for (let i = 0; i < uv.count; i++) { if (Math.abs(nrm.getZ(i)) < 0.5) uv.setXY(i, (Math.abs(nrm.getX(i)) > 0.5 ? p.getZ(i) : p.getX(i)) / 3, p.getY(i) / 3); }
+    const m = new THREE.Mesh(g, [sideMat, sideMat, roofMat, roofMat, front, sideMat]);
+    m.position.set((b.x0 + b.x1) / 2, b.h / 2, z0 + d / 2); m.receiveShadow = true; G.add(m);
+    world.box(b.x0, b.x1, z0, ST.near, b.h, -1, 'bldg');
+    out.buildings.push({ mesh: m, mat: front, b });
+    // parapet
+    box(roofMat, b.x0, b.x1, b.h, b.h + 0.5, ST.near - 0.35, ST.near);
+    if (b.sign) {
+      const [text, color] = b.sign;
+      const sw = Math.min(w - 1.2, text.length * 0.62 + 1.2);
+      const sm = new THREE.Mesh(new THREE.PlaneGeometry(sw, sw / 4), new THREE.MeshBasicMaterial({ map: textSign(font, text, color, { size: text.length > 12 ? 92 : 150 }), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.6) }));
+      sm.position.set((b.x0 + b.x1) / 2, 4.45, ST.near + 0.06); sm.renderOrder = 5; G.add(sm); out.neons.push(sm);
+      L([(b.x0 + b.x1) / 2, 4.2, ST.near + 1.2], new THREE.Color(color).multiplyScalar(0.9), 7, 'neon');
+      L([(b.x0 + b.x1) / 2, 2.0, ST.near + 0.8], new THREE.Color(b.glow).multiplyScalar(0.5), 5.5, 'shop');
+    }
+  }
+  // brand store window poster + blade sign at the alley mouth
+  {
+    const poster = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.4 * logos.poster.image.height / logos.poster.image.width * 0.62), new THREE.MeshBasicMaterial({ map: logos.posterCrop, color: 0xffffff }));
+    poster.position.set(30, 2.25, ST.near + 0.04); G.add(poster); out.posterMat = poster.material;
+    const blade = new THREE.Group();
+    const bb = new THREE.Mesh(new THREE.BoxGeometry(0.18, 4.2, 1.5), new THREE.MeshStandardMaterial({ color: 0x0b0c0d, roughness: 0.5, metalness: 0.6 }));
+    blade.add(bb);
+    for (const sx of [-1, 1]) {
+      const face = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3), new THREE.MeshBasicMaterial({ map: logos.badge, color: new THREE.Color(1, 1, 1).multiplyScalar(1.15) }));
+      face.position.set(sx * 0.1, 0.95, 0); face.rotation.y = sx * Math.PI / 2; blade.add(face);
+      const txt = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 2.0), new THREE.MeshBasicMaterial({ map: vertSign(font, 'GYM', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      txt.position.set(sx * 0.1, -1.05, 0); txt.rotation.y = sx * Math.PI / 2; blade.add(txt); out.neons.push(txt);
+    }
+    blade.position.set(1.4, 6.2, ST.near + 0.9); G.add(blade);
+    L([1.4, 5.8, ST.near + 1.4], new THREE.Color(0x8bff3a).multiplyScalar(1.2), 7.5, 'neon');
+    // banner over the alley mouth
+    const ban = new THREE.Mesh(new THREE.PlaneGeometry(8.6, 8.6 * logos.wide.image.height / logos.wide.image.width), new THREE.MeshBasicMaterial({ map: logos.wide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.3) }));
+    ban.position.set(-6.75, 8.4, ST.near - 0.05); G.add(ban); out.neons.push(ban);
+    const banBack = new THREE.Mesh(new THREE.PlaneGeometry(15.5, 3.4), new THREE.MeshStandardMaterial({ color: 0x0c0d0e, roughness: 0.6, metalness: 0.4 }));
+    banBack.position.set(-6.75, 8.45, ST.near - 0.12); G.add(banBack);
+    L([-6.75, 7.6, ST.near + 1.6], new THREE.Color(0x8bff3a).multiplyScalar(0.8), 8, 'neon');
+  }
+
+  // ---------- rooftop billboard ----------
+  {
+    const bw = 14, bh = 7, bx = 30, by = 13 + 1.2 + bh / 2, bz = ST.near - 2.2;
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.4, bh + 0.4, 0.3), new THREE.MeshStandardMaterial({ color: 0x15171a, metalness: 0.7, roughness: 0.4 }));
+    frame.position.set(bx, by, bz - 0.18); G.add(frame);
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(bw, bh), new THREE.MeshBasicMaterial({ map: logos.billboard, color: 0xffffff }));
+    face.position.set(bx, by, bz); G.add(face); out.billboard = face;
+    for (const lx of [-4.5, 0, 4.5]) { const lm = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.18, 0.4), new THREE.MeshStandardMaterial({ color: 0x222, metalness: 0.8, roughness: 0.3 })); lm.position.set(bx + lx, by - bh / 2 - 0.3, bz + 0.9); G.add(lm); }
+    for (const lx of [-5, 0, 5]) L([bx + lx, by - 1, bz + 1.5], new THREE.Color(1, 0.95, 0.85).multiplyScalar(0.7), 6, 'bill');
+    for (const lx of [-7, 7]) { const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.2, 8), new THREE.MeshStandardMaterial({ color: 0x222, metalness: 0.8 })); pole.position.set(bx + lx * 0.8, 13 + 0.6, bz - 0.2); G.add(pole); }
+  }
+
+  // ---------- street lamps ----------
+  const lampG = await A.loadGLTF('lamp.glb');
+  // the model is a lamp arm: mounting plate at +z, head at -z (y up). Put it on our own pole.
+  const lampSrc = lampG.scene; lampSrc.updateMatrixWorld(true);
+  const lb = new THREE.Box3().setFromObject(lampSrc);
+  const lk = 3.3 / (lb.max.z - lb.min.z);
+  lampSrc.scale.multiplyScalar(lk);
+  lampSrc.position.set(-(lb.min.x + lb.max.x) / 2 * lk, 0, -lb.max.z * lk);
+  lampSrc.traverse(o => { if (o.isMesh) { addLampField(o.material, 'lit'); o.castShadow = false; } });
+  const armLen = (lb.max.z - lb.min.z) * lk, headY = lb.max.y * lk;
+  const POLE_H = 7.2;
+  const armHolder = new THREE.Group(); armHolder.add(lampSrc); armHolder.rotation.y = Math.PI; armHolder.position.y = POLE_H - 0.25;
+  const poleMat = addLampField(new THREE.MeshStandardMaterial({ color: 0x2b2e31, metalness: 0.75, roughness: 0.45 }));
+  const lampPro = new THREE.Group(); lampPro.add(armHolder);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.13, POLE_H, 10), poleMat); pole.position.y = POLE_H / 2; lampPro.add(pole);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.24, 0.6, 10), poleMat); base.position.y = 0.3; lampPro.add(base);
+  const coneMat = coneMaterial(0xffc27a, 0.05);
+  const coneGeo = new THREE.CylinderGeometry(0.25, 3.0, 7.2, 20, 1, true);
+  const placeLamp = (x, z, facing) => {
+    const l = lampPro.clone(); l.position.set(x, SW, z); l.rotation.y = facing; G.add(l);
+    const hy = POLE_H - 0.25 + headY - 0.25;
+    const head = new THREE.Vector3(Math.sin(facing) * armLen * 0.9, hy, Math.cos(facing) * armLen * 0.9).add(l.position);
+    L(head.clone().setY(hy - 0.8), new THREE.Color(1.0, 0.62, 0.3).multiplyScalar(3.0), 9.5, 'street');
+    glow(head.clone().setY(hy - 0.15), 0xffc77e, 2.4);
+    const c = new THREE.Mesh(coneGeo, coneMat); c.position.copy(head).setY(hy / 2); c.scale.y = hy / 7.2; c.layers.set(2); c.renderOrder = 5; G.add(c); out.cones.push(c);
+    world.circle(x, z, 0.18, 7);
+  };
+  for (let x = -40; x <= 58; x += 16) placeLamp(x, ST.road0 - 0.45, 0);
+  for (let x = -32; x <= 58; x += 16) placeLamp(x, ST.road1 + 0.45, Math.PI);
+
+  // ---------- far side: scans ----------
+  const placeScan = async (file, cfg) => {
+    const g = await A.loadGLTF(file); const root = g.scene;
+    if (cfg.trim) A.trimScan(root, cfg.trim);
+    const inner = new THREE.Group(); inner.add(root);
+    inner.rotation.y = cfg.rotY; inner.updateMatrixWorld(true);
+    const ref = new THREE.Vector3(...cfg.ref).applyMatrix4(new THREE.Matrix4().makeRotationY(cfg.rotY));
+    inner.position.copy(ref).negate();
+    const outer = new THREE.Group(); outer.add(inner); outer.position.set(...cfg.at); outer.rotation.z = cfg.tilt || 0;
+    if (cfg.scale) outer.scale.setScalar(cfg.scale);
+    root.traverse(o => { if (o.isMesh) { o.layers.set(3); addLampField(o.material, cfg.lit ? 'lit' : 'baked'); o.frustumCulled = true; } });
+    G.add(outer); outer.updateMatrixWorld(true);
+    return outer;
+  };
+  out.scans = {};
+  const scanCfg = {
+    row: { file: 'row.glb', rotY: Math.PI - 0.0675, ref: [-15, -2.6, 48], at: [-10, SW - 0.05, ST.far], tilt: -0.0172 },
+    fire: { file: 'fire.glb', rotY: Math.PI - 0.068, ref: [9, 36.1, 1], at: [41, SW - 0.05, ST.far], tilt: -0.038, trim: { keep: new THREE.Box3(new THREE.Vector3(-12, -1e9, -60), new THREE.Vector3(30, 1e9, 10)) } },
+    bridge: { file: 'bridge.glb', rotY: -Math.PI / 2, ref: [-3.5, -4.95, 5], at: [ST.viaductX, 0.0, (ST.road0 + ST.road1) / 2], trim: { shell: 0.35 } },
+  };
+  for (const [k, cfg] of Object.entries(scanCfg)) { try { out.scans[k] = await placeScan(cfg.file, cfg); } catch (e) { console.warn('scan', k, e); } }
+  // distant skyline
+  try {
+    const cg = await A.loadGLTF('city.glb');
+    for (const [x, z, ry, s] of [[-30, 118, 0, 3.4], [70, 105, Math.PI * 0.6, 3.0], [-95, 60, Math.PI / 2, 3.2]]) {
+      const c = cg.scene.clone(); c.scale.setScalar(s); c.rotation.y = ry; c.position.set(x, -0.5, z);
+      c.traverse(o => { if (o.isMesh) { o.layers.set(3); addLampField(o.material, 'baked'); } }); G.add(c);
+    }
+  } catch (e) { console.warn('city', e); }
+
+  // ---------- props ----------
+  const metal = addLampField(new THREE.MeshStandardMaterial({ color: 0x2c3034, metalness: 0.7, roughness: 0.45 }));
+  const green = addLampField(new THREE.MeshStandardMaterial({ color: 0x1f4a35, metalness: 0.4, roughness: 0.6 }));
+  const redM = addLampField(new THREE.MeshStandardMaterial({ color: 0xa3201b, roughness: 0.5 }));
+  // bins
+  for (const x of [-28, -2.5, 18, 42]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.28, 0.95, 14), green); b.position.set(x, SW + 0.47, ST.near + 0.6); b.castShadow = true; G.add(b); world.circle(x, ST.near + 0.6, 0.34, 1.0); }
+  // hydrants
+  for (const x of [-20, 26]) { const h = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.8, 10), redM); h.position.set(x, SW + 0.4, ST.road0 - 0.55); G.add(h); world.circle(x, ST.road0 - 0.55, 0.22, 0.85); }
+  // bus shelter with the badge ad
+  {
+    const bx = -22, bz = ST.near + 1.9;
+    const glass = new THREE.MeshStandardMaterial({ color: 0x9fb8c8, transparent: true, opacity: 0.22, roughness: 0.05, metalness: 0.2, depthWrite: false });
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.12, 1.6), metal); roof.position.set(bx, 2.6, bz); G.add(roof);
+    for (const dx of [-2, 2]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.5, 0.08), metal); p.position.set(bx + dx, 1.35, bz - 0.7); G.add(p); const p2 = p.clone(); p2.position.z = bz + 0.7; G.add(p2); }
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(4, 2.2), glass); back.position.set(bx, 1.4, bz - 0.72); G.add(back);
+    const ad = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 1.9), new THREE.MeshBasicMaterial({ map: logos.badgeTall })); ad.position.set(bx + 2.04, 1.35, bz); ad.rotation.y = Math.PI / 2; G.add(ad);
+    const ad2 = ad.clone(); ad2.rotation.y = -Math.PI / 2; ad2.position.x = bx + 2.0; G.add(ad2);
+    const bench = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.08, 0.45), metal); bench.position.set(bx, 0.6, bz - 0.4); G.add(bench);
+    world.box(bx - 2.1, bx + 2.1, bz - 0.8, bz - 0.6, 2.6); world.box(bx + 1.95, bx + 2.1, bz - 0.8, bz + 0.8, 2.6);
+    L([bx + 2.3, 1.4, bz], new THREE.Color(0.7, 1.0, 0.6).multiplyScalar(0.55), 4.5, 'shop');
+    out.busStop = { x: bx, z: bz };
+  }
+
+  // ---------- police cordon (west end) ----------
+  {
+    const stripe = (() => { const c = canvas(256, 64), x = c.getContext('2d'); for (let i = 0; i < 8; i++) { x.fillStyle = i % 2 ? '#f2f2f2' : '#d12a1e'; x.beginPath(); x.moveTo(i * 32 - 16, 64); x.lineTo(i * 32 + 16, 0); x.lineTo(i * 32 + 48, 0); x.lineTo(i * 32 + 16, 64); x.fill(); } return ctex(c, true, true); })();
+    const barMat = addLampField(new THREE.MeshStandardMaterial({ map: stripe, roughness: 0.6 }));
+    for (const [z0, z1] of [[ST.near + 0.3, ST.road0 - 0.2], [ST.road1 + 0.2, ST.far - 0.1]]) {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.3, z1 - z0), barMat); b.position.set(-43.6, 1.0, (z0 + z1) / 2); G.add(b);
+      for (const z of [z0 + 0.2, z1 - 0.2]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.0, 0.06), metal); leg.position.set(-43.6, 0.5, z); G.add(leg); }
+    }
+    out.cordon = { x: -46.5, zs: [ST.near + 2.2, ST.far - 1.4] };
+  }
+
+  // ---------- the crypt door under the viaduct ----------
+  {
+    const D = ST.door;
+    const wallMat = addLampField(new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, color: 0x9a7f70, roughness: 0.9 }));
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(1.2, 9, ST.road0 - ST.near + 9), wallMat); wall.position.set(ST.x1 + 0.6, 4.5, (ST.near - 9 + ST.road0) / 2); G.add(wall);
+    const doorM = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.6, 1.5), new THREE.MeshStandardMaterial({ color: 0x1a1d1b, metalness: 0.7, roughness: 0.35 })); doorM.position.set(ST.x1 - 0.02, 1.3 + SW, D.z); G.add(doorM);
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 0.7), new THREE.MeshBasicMaterial({ map: textSign(font, 'KRYPTA', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.8) }));
+    sign.position.set(ST.x1 - 0.08, 3.4, D.z); sign.rotation.y = -Math.PI / 2; G.add(sign); out.neons.push(sign); out.cryptSign = sign;
+    const mark = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), new THREE.MeshBasicMaterial({ map: logos.mark, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    mark.position.set(ST.x1 - 0.08, 5.0, D.z); mark.rotation.y = -Math.PI / 2; G.add(mark);
+    L([ST.x1 - 1.2, 3.2, D.z], new THREE.Color(0x8bff3a).multiplyScalar(1.4), 7, 'neon');
+    glow(new THREE.Vector3(ST.x1 - 0.3, 3.4, D.z), 0x8bff3a, 3.2, 'neon');
+  }
+
+  // graffiti marks on walls
+  for (const [x, y, z, s, ry] of [[-14.2, 2.4, 16.5, 1.6, Math.PI / 2], [0.7, 2.6, 15.0, 1.4, -Math.PI / 2], [-40, 1.8, ST.near + 0.03, 1.5, 0], [52, 2.2, ST.near + 0.03, 1.8, 0]]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(s, s), new THREE.MeshBasicMaterial({ map: logos.markSpray, transparent: true, depthWrite: false, opacity: 0.85 }));
+    m.position.set(x, y, z); m.rotation.y = ry; G.add(m);
+  }
+
+  // halos for lamps
+  for (const s of out.glows) s.visible = true;
+  out.update = (dt, env, t) => {
+    const night = env.lamps;
+    for (const c of out.cones) { c.visible = night > 0.05 && Q.cones; c.material.uniforms.uStrength.value = 0.05 * night; }
+    for (const g of out.glows) { g.material.color.copy(g.userData.base).multiplyScalar(0.45 * Math.max(0.08, night)); }
+    for (const n of out.neons) { n.material.opacity = 0.25 + 0.75 * Math.max(env.lamps, 0.35); }
+    for (const b of out.buildings) b.mat.emissiveIntensity = 1.25 * night;
+    if (out.roadMat) { out.roadMat.roughness = 1 - 0.45 * env.night; out.roadMat.envMapIntensity = 0.4 + 0.9 * env.night; }
+  };
+  return out;
+}
+
+function vertSign(font, text, color) {
+  const c = canvas(256, 384), x = c.getContext('2d');
+  x.font = `900 120px ${font}`; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.shadowColor = color; x.shadowBlur = 30; x.fillStyle = color;
+  [...text].forEach((ch, i) => x.fillText(ch, 128, 70 + i * 120));
+  x.shadowBlur = 8; x.fillStyle = '#f4fff0'; [...text].forEach((ch, i) => x.fillText(ch, 128, 70 + i * 120));
+  return ctex(c);
+}
+
+export function coneMaterial(color, strength) {
+  return new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(color) }, uStrength: { value: strength } },
+    vertexShader: `varying float vH; varying vec3 vN; varying vec3 vV;
+      void main(){ vH = uv.y; vec4 mv = modelViewMatrix * vec4(position,1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `uniform vec3 uColor; uniform float uStrength; varying float vH; varying vec3 vN; varying vec3 vV;
+      void main(){ float edge = pow(abs(dot(vN, vV)), 2.0); float a = pow(vH, 1.4) * edge * uStrength; gl_FragColor = vec4(uColor * a, 1.0); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+  });
+}
