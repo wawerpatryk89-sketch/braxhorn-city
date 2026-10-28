@@ -71,6 +71,14 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 - Unity/Godot odradzone przy tym celu: aplikacja zamiast linku, na iPhone'a potrzebny Mac i konto Apple, praca w edytorze po stronie użytkownika.
 - Plan upieczenia światła w siłowni: offline (harness), na wierzchołkach po teselacji co około 0,5 m; promienie do lamp i AO na prostopadłościanach z BVH; zapis Float16 w pliku; statyczne materiały na MeshBasic × kolor wierzchołka; na żywo tylko postacie (pole lamp, hemi, key) i cień gracza (nakładka ShadowMaterial). Zaułek zostaje na żywo (dzień i noc).
 
+## Plan gry na plansze (pomysł użytkownika, 28.10, 14:08)
+
+- Zamiast wielkiego otwartego miasta: plansze robione po kolei, każda zamknięta i dopracowana, potem przejście do następnej.
+- **Plansza 1, dzielnica BRAXHORN:** siłownia jako baza i zwarty kawałek miasta do biegania, w którym coś się dzieje. Z jednej strony miasto kończy się oceanem (nabrzeże, port), z drugiej są wejścia do miejsc walki (walki w 2,5D). Po drodze walizki i dostawy. Na końcu przejście do planszy 2.
+- **Plansza 2:** osiedle domków jednorodzinnych.
+- **Plansza 3:** las z bunkrami.
+- Każda plansza: upieczone światło, własne ładowanie, bez świecących efektów.
+
 ## Upieczone światło w siłowni (28.10, 14:00)
 
 - `src/bake.js`: statyczne siatki siłowni cięte siatką co 0,5 m (`tessellate`, równo w osiach świata, bez szpar). Światło liczone raz offline: lampy wiszące z miękkim cieniem, kinkiety, nisze, zielone listwy i łuki, neon, okna, do tego AO. Źródła światła są w `gym.bakeLights` (`BL(...)` w gym.js).
