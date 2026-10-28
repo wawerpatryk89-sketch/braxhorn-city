@@ -95,6 +95,7 @@ async function boot() {
   renderer.setPixelRatio(dyn.cur);
   renderer.setSize(view.w(), view.h(), false);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
+  renderer.info.autoReset = false; // counted over the whole frame (scene + grade pass) for the readout
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = isTouch ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
   A.initLoaders(renderer);
   let lastBytes = 0;
@@ -1449,26 +1450,33 @@ async function boot() {
     gu.uVig.value = G.chapter === 'crypt' ? 0.55 : 0.42;
     gu.uSat.value = G.chapter === 'gym' ? 1.2 : 1.08; // the gym is grey/black/green: give skin and clothes their colour
     if (floorReflect && G.chapter !== 'crypt' && (!player || player.pos.z < ALLEY.z1 + 6)) floor.update(renderer, scene, camera);
-    composer.render();
+    renderer.info.reset(); composer.render();
   }
   let paused = false, frameErrors = 0;
+  // small performance readout (top right) so a phone test shows real numbers: fps, pixel ratio, edge smoothing, draw calls, triangles
+  const perf = { fps: 0, el: null };
+  { const el = document.createElement('div'); el.style.cssText = 'position:fixed;right:8px;top:calc(env(safe-area-inset-top) + 58px);font:600 11px/1.2 system-ui,sans-serif;color:#cfd8cc;background:rgba(0,0,0,.45);padding:3px 6px;border-radius:6px;z-index:50;pointer-events:none'; el.textContent = '…'; document.body.appendChild(el); perf.el = el; }
   // dynamic resolution: keep ~50+ fps by moving the pixel ratio between 1.0 and the quality's maximum
   function dynRes(d) {
     if (d > 0.25) return; // tab switch / hitch
     dyn.acc += d; dyn.n++; dyn.t += d; dyn.cool -= d;
-    if (dyn.t < 2.0) return;
+    if (dyn.t < 1.5) return;
     const avg = dyn.acc / dyn.n; dyn.acc = dyn.n = dyn.t = 0;
     let next = dyn.cur;
-    const minDpr = Math.min(dyn.max, (window.devicePixelRatio || 1) >= 2 ? 1.25 : 1.0);
-    if (avg > 1 / 43 && dyn.cur > minDpr && dyn.cool <= 0) { next = Math.max(minDpr, dyn.cur - (avg > 1 / 30 ? 0.25 : 0.15)); dyn.cool = 8; }
+    // phones: hold ~55 fps; the sharpness follows the phone (never below 1.0x), edge smoothing stays on
+    const minDpr = 1.0;
+    perf.fps = 1 / avg;
+    if (avg > 1 / 50 && dyn.cur > minDpr && dyn.cool <= 0) { next = Math.max(minDpr, dyn.cur - (avg > 1 / 30 ? 0.3 : 0.15)); dyn.cool = 3; }
     else if (avg > 1 / 40 && floorReflect) { floorReflect = false; floor.uniforms.reflStrength.value = 0; dyn.cool = 6; }
-    else if (avg < 1 / 58 && dyn.cur < dyn.max && dyn.cool <= 0 && dyn.drops < 2) { next = Math.min(dyn.max, dyn.cur + 0.15); dyn.cool = 12; }
-    if (next < dyn.cur) dyn.drops = (dyn.drops || 0) + 1; // after two drops stay put (each change reallocates buffers = a hitch)
+    else if (avg < 1 / 58 && dyn.cur < dyn.max && dyn.cool <= 0 && (dyn.drops || 0) < 4) { next = Math.min(dyn.max, dyn.cur + 0.1); dyn.cool = 10; }
+    if (next < dyn.cur) dyn.drops = (dyn.drops || 0) + 1; // after a few drops stay put (each change reallocates buffers = a hitch)
     if (Math.abs(next - dyn.cur) > 0.01) { dyn.cur = next; renderer.setPixelRatio(dyn.cur); resize(); }
   }
   function frame() {
     requestAnimationFrame(frame);
     const d = clock.getDelta(); if (paused) return;
+    perf.t = (perf.t || 0) + d; perf.n = (perf.n || 0) + 1;
+    if (perf.t > 1 && perf.el) { perf.el.textContent = `${Math.round(perf.n / perf.t)} kl/s · ${dyn.cur.toFixed(2)}× · AA ${Q.msaa}× · ${renderer.info.render.calls} dc · ${Math.round(renderer.info.render.triangles / 1000)}k`; perf.t = 0; perf.n = 0; }
     if (!menuOpen && G.mode === 'play') dynRes(d);
     if (menuOpen) { while (actions.length) menuAction(actions.shift()); return; }
     if (!$('map').hidden) { actions.length = 0; return; }
