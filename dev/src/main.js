@@ -1071,8 +1071,11 @@ async function boot() {
     // reflections of the (bright) gym capture on skin/clothes: dim them outdoors at night and in the crypt
     // characters get as much of it as the room does (more made them look lit up / glowing)
     // reflections outdoors come from the sky, not from the (bright white) gym: the street glowed with the gym in it
-    if (outF > 0.5 && !crypt) { if (!envSky) envSky = captureSky(); if (scene.environment !== envSky) scene.environment = envSky; }
-    else if (scene.environment !== envGym) scene.environment = envGym;
+    // outdoors: no environment reflections on buildings/street (the sky made them shine); only car paint reflects the sky
+    if (outF > 0.5 && !crypt) {
+      if (!envSky && G.street) { envSky = captureSky(); G.street.group.traverse(o => { if (o.isMesh) for (const m of (Array.isArray(o.material) ? o.material : [o.material])) if (m.userData.car && 'envMap' in m) { m.envMap = envSky; m.envMapIntensity = 0.7; m.needsUpdate = true; } }); }
+      if (scene.environment !== null) scene.environment = null;
+    } else if (scene.environment !== envGym) scene.environment = envGym;
     const envK = crypt ? 0.25 : TUNE.charEnv * (1 - outF) + (0.25 + 0.35 * o.day) * outF;
     for (const m of charMats) m.envMapIntensity = envK;
     people.envK = envK; for (const m of people.mats) m.envMapIntensity = envK;

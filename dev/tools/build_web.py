@@ -20,6 +20,9 @@ html = ('<!doctype html>\n<html lang="pl">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-capable" content="yes">\n'
         '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n<meta name="apple-mobile-web-app-title" content="Braxhorn">\n'
         + head + '</head>\n<body>\n<div id="app">' + body + '\n</body>\n</html>\n')
+import datetime
+stamp = (datetime.datetime.utcnow() + datetime.timedelta(hours=1))
+html = html.replace('__BUILD__', stamp.strftime('%d.%m %H:%M')).replace('src="game.js"', 'src="game.js?v=' + stamp.strftime('%m%d%H%M%S') + '"')
 open(f'{D}/index.html', 'w').write(html)
 
 AS = f'{D}/assets'
@@ -46,6 +49,9 @@ for f in ('wide', 'badge', 'poster', 'mark'):
     if f == 'poster': Image.open(f'{W}/logos/poster.png').convert('RGB').resize((720, int(720 * 2556 / 1179)), Image.LANCZOS).save(f'{AS}/logo/poster.webp', quality=86)
     else: shutil.copy(src, f'{AS}/logo/{f}.webp')
 shutil.copy(f'{W}/logos/wide_a.webp', f'{AS}/logo/wide_a.webp')
+os.makedirs(f'{AS}/bake', exist_ok=True)
+for f in os.listdir(f'{W}/assets/bake') if os.path.isdir(f'{W}/assets/bake') else []:
+    if f.endswith('.gz'): shutil.copy(f'{W}/assets/bake/{f}', f'{AS}/bake/{f}')
 badge = Image.open(f'{W}/logos/badge.png').convert('RGB')
 badge.resize((192, 192), Image.LANCZOS).save(f'{D}/icon-192.png')
 badge.resize((512, 512), Image.LANCZOS).save(f'{D}/icon-512.png')

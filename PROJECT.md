@@ -93,6 +93,8 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 - **ZASADA (użytkownik, 14:27): kamera nigdy nie obraca się sama.** Usunięte wszystkie automatyczne obroty: dryf wzdłuż ulicy, ustawianie w walce, obrót w kryptach i przesuwanie celu w stronę przeciwnika. Kamera tylko idzie za postacią, a obraca ją wyłącznie gracz.
 - Odbicia na zewnątrz pochodzą z nieba (`captureSky`, PMREM). Wcześniej ulica odbijała białą siłownię i krawężniki „świeciły”. Ściany siłowni nie mają już emissive, bo zewnętrzna połowa ściany przy drzwiach świeciła.
 - Tryb zwiedzania znowu trzyma ściany ulicy (kordon i wiadukt). Dalsze ulice to puste wypełniacze, plansza 1 je zastąpi.
+- Na zewnątrz w ogóle nie ma odbić otoczenia (`scene.environment = null`). Odbicie nieba (`captureSky`) sprawiło, że budynki lśniły. Odbija tylko lakier aut (`userData.car`, envMap z nieba, 0.7).
+- Na ekranie tytułowym i w pauzie jest „Wersja: dd.mm gg:mm” (czas builda), a `game.js?v=…` wymusza nowy plik. Po każdej zmianie można sprawdzić, czy telefon ma nową wersję.
 
 ## Jakość na telefonie (28.10, 13:30)
 

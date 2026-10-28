@@ -178,6 +178,7 @@ export const CARS = {
 export function prepareCar(key, gltf) {
   const def = CARS[key];
   const raw = gltf.scene;
+  raw.traverse(o => { if (o.isMesh) for (const m of (Array.isArray(o.material) ? o.material : [o.material])) m.userData.car = true; });
   const holder = new THREE.Group(); holder.add(raw);
   raw.rotation.y = def.yaw; holder.updateMatrixWorld(true);
   const b = new THREE.Box3().setFromObject(raw), s = b.getSize(new THREE.Vector3());
