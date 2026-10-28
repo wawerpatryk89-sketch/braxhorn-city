@@ -1,0 +1,78 @@
+name: Unity cloud proof
+
+on:
+  push:
+    branches: [codex/unity-cloud-proof-20261028]
+    paths:
+      - 'unity-proof/**'
+      - '.github/workflows/unity-cloud-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unity-cloud-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  webgl:
+    name: Activate Unity and build WebGL
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          sparse-checkout: unity-proof
+          lfs: false
+          persist-credentials: false
+
+      - name: Validate secret presence and license format
+        shell: python
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          import os, sys, xml.etree.ElementTree as ET
+          required = ('UNITY_LICENSE', 'UNITY_EMAIL', 'UNITY_PASSWORD')
+          missing = [key for key in required if not os.environ.get(key, '').strip()]
+          if missing:
+              print('::error::Missing repository secrets: ' + ', '.join(missing))
+              sys.exit(1)
+          try:
+              ET.fromstring(os.environ['UNITY_LICENSE'].strip())
+          except ET.ParseError:
+              print('::error::UNITY_LICENSE is not complete XML. Replace it with the complete original .ulf text.')
+              sys.exit(1)
+          print('All three secrets are present; license XML is well formed. Values are not displayed.')
+
+      - name: Build isolated Unity check
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-proof
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: CloudProofBuild.Build
+          customParameters: -proofCommit ${{ github.sha }}
+          versioning: None
+          allowDirtyBuild: true
+
+      - name: Verify build output
+        shell: bash
+        run: |
+          test -s build/WebGL/index.html
+          test -s build/WebGL/proof.json
+          test -n "$(find build/WebGL/Build -name '*.wasm' -print -quit)"
+
+      - name: Upload WebGL preview files
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: braxhorn-unity-proof-${{ github.sha }}
+          path: build/WebGL/
+          if-no-files-found: error
+          retention-days: 3
