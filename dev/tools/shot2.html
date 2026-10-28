@@ -1,4 +1,4 @@
-<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<script type="importmap">{"imports":{"three":"/dev/three/build/three.module.js","three/addons/":"/dev/three/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -6,7 +6,7 @@ import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 const R = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); R.setSize(900, 600); R.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(R.domElement);
-const ktx2 = new KTX2Loader().setTranscoderPath('/three/examples/jsm/libs/basis/').detectSupport(R);
+const ktx2 = new KTX2Loader().setTranscoderPath('/dev/three/examples/jsm/libs/basis/').detectSupport(R);
 const L = new GLTFLoader().setKTX2Loader(ktx2).setMeshoptDecoder(MeshoptDecoder);
 window.THREE = THREE; window.L = L; window.R = R;
 // views: [{type:'top'} | {type:'persp', az, el, k} | {type:'side', axis:'x'|'z', dir:1|-1}]

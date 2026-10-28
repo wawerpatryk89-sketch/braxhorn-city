@@ -3,7 +3,7 @@ import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
 import fs from 'fs';
 const [stepsFile, W = '1280', H = '720', touch = '0'] = process.argv.slice(2);
 const steps = JSON.parse(fs.readFileSync(stepsFile, 'utf8'));
-const OUT = '/tmp/claude-0/-home-claude/95554dc2-b859-5b05-8dbb-eb3d5a35a497/scratchpad/play';
+const OUT = process.env.BX_OUT || '/tmp/bx_play'; // screenshots go here
 fs.mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
 const ctx = await browser.newContext({ viewport: { width: +W, height: +H }, hasTouch: touch === '1', isMobile: touch === '1', deviceScaleFactor: 1 });
@@ -13,7 +13,7 @@ page.on('console', m => { const t = m.text(); if (m.type() === 'error' || m.type
 page.on('pageerror', e => logs.push('pageerror: ' + e.message));
 const t0 = Date.now();
 if (steps.sampleRate) await page.addInitScript((sr) => { const A = window.AudioContext; window.AudioContext = class extends A { constructor(o) { super({ ...(o || {}), sampleRate: sr }); } }; }, steps.sampleRate);
-await page.goto('http://127.0.0.1:8765/dist/index.html' + (steps.query || ''));
+await page.goto((process.env.BX_URL || 'http://127.0.0.1:8765/public/index.html') + (steps.query || '')); // serve the repo root on :8765
 for (const s of steps.steps) {
   try {
     if (s.wait) await page.waitForFunction(s.wait, null, { timeout: (s.timeout || 120) * 1000 });
