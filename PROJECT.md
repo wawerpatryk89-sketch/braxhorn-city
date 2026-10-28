@@ -79,6 +79,25 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 - **Plansza 3:** las z bunkrami.
 - Każda plansza: upieczone światło, własne ładowanie, bez świecących efektów.
 
+## Przegląd modeli użytkownika (28.10, 14:50)
+
+Wyrenderowane w całości (`tools/run_shot2.mjs`, podgląd `przeglad_modeli.jpg`). Ocena:
+- **Zostaje:**
+  - `street_city_7_for_games_free.glb`: blokowisko z kamienicami, zrobione do gier, 54×53 m, 93 tys. trójkątów. Dzielnica planszy 1.
+  - `rick_roll_bridge.glb`: londyński wiadukt kolejowy z łukami i ulicą. Do wycięcia czarna obudowa skanu.
+  - `lincolns_inn_chapel_undercroft_1.glb`: podziemie ze sklepieniami, 55×38 m, na podziemny klub walk. Też do wycięcia obudowa.
+  - `ufc_octagon.glb`: niskopoligonowa klatka. Mata do przemalowania na BRAXHORN, bo ma cudze logo (UFC, Monster i inne).
+  - `city_street.glb`: kamienice do gier (same fasady, z tyłu otwarte), jako pierzeje ulicy.
+  - Tunel: wyjazd do planszy 2.
+  - Krypta St Pancras: na finał, później.
+- **Odpada:**
+  - willa, zaułek Freemana, magazyn, klub fitness (gym_3desain);
+  - street_1 (zniekształcony skan NY), Brick Lane i skatepark (czarne skorupy), Crouch End i Baltimore (skany z drona), spalony sklep, Trump Village, after the rain (prawie pusty);
+  - Hotel Ukraina, bo to prawdziwe zniszczenia wojenne.
+- Użytkownik o miejscach z mapy: willa bez sensu, zaułek do śmieci, magazyn i klub puste, tunel ładny, ale pusty.
+- **Rzut planszy 1** (`plansza1_rzut.png`, czeka na akceptację): ocean z nabrzeżem i molo na zachodzie, główna ulica, siłownia (baza), sklepy, blokowisko z podwórkiem, wiadukt z łukami, w łuku wejście do podziemnego klubu walk (octagon, walki 2,5D), tunel na wschodzie do planszy 2.
+- Pauza ma przycisk „Mapa”, a mapa ma siłownię, więc nie da się utknąć. Szyby aut są ciemne i bez transmission.
+
 ## Upieczone światło w siłowni (28.10, 14:00)
 
 - `src/bake.js`: statyczne siatki siłowni cięte siatką co 0,5 m (`tessellate`, równo w osiach świata, bez szpar). Światło liczone raz offline: lampy wiszące z miękkim cieniem, kinkiety, nisze, zielone listwy i łuki, neon, okna, do tego AO. Źródła światła są w `gym.bakeLights` (`BL(...)` w gym.js).
