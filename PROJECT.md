@@ -59,6 +59,17 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
   - logo `wide_a` na prawej ścianie i na podłodze; kartony BRAXHORN NUTRITION; czarne szafki z zielonymi etykietami; odżywki na półkach.
   - Wyjście: czarne drzwi z zieloną ramką LED, neon BRAXHORN GYM nad drzwiami, zielony neon OPEN 24/7, byk sprayem na ścianie. Sąsiednie budynki w zaułku zostały z czerwonej cegły.
 
+## Tryb zwiedzania (28.10, 12:15)
+
+- Na razie włączony od startu, przełącznik jest w pauzie (Zwiedzanie / Walki), zapamiętywany w `store('explore')`.
+- Nie ma jeżdżących aut, zombie, patroli, szefów ulicy, gangów na rewirach ani sparingpartnerki. Gracz nie traci zdrowia.
+- Ulica otwarta: ściany kordonu, wiaduktu i strony dalekiej (`story` w `street.js`) mają `top = -10`. Można iść do końca zbudowanej ulicy w obie strony (x −300…330), pod wiaduktem i w zachodnią przecznicę. Nowe ściany `citywall` idą wzdłuż rzędów budynków z `outer.js`.
+
+## Plan użytkownika (kolejność)
+
+1. Dopracować wygląd miasta (ma wyglądać fajnie, nie musi być idealnie) — użytkownik chodzi w trybie zwiedzania i mówi, co poprawić.
+2. Potem przygoda: walki na ringach albo w podziemiach, do których trzeba zejść; walka tam w 2,5D, żeby łatwiej się biło. Pomysł do ustalenia razem.
+
 ## Fabuła (story.js)
 
 1. **Siłownia BRAXHORN GYM**: sparing z partnerem na ringu, wyjście drzwiami WYJŚCIE na zaułek.
