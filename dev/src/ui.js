@@ -131,7 +131,7 @@ export class UI {
   }
   clock(s, night) { $('clock').textContent = s; $('clockIcon').textContent = night ? '☾' : '☀'; }
   setTimeFast(v) { $('bTime').classList.toggle('main', v); $('bTime').innerHTML = v ? lbl('Czas ×30', '×30') : lbl('Przyspiesz czas', 'Czas'); }
-  objective(t) { const el = $('objective'); el.textContent = t || ''; el.classList.toggle('on', !!t); }
+  objective(t) { const el = $('objective'); el.textContent = t || ''; el.classList.toggle('on', !!t); this.objT = t ? 10 : 0; }
   say(name, text, dur = 3) { const el = $('say'); el.querySelector('b').textContent = name; el.querySelector('b').hidden = !name; el.querySelector('span').textContent = text; el.classList.add('on'); this.sayT = dur; }
   weapon(name, n) { const el = $('weapon'); el.hidden = !name; if (name) el.textContent = `${name} · ${n}`; }
   action(label) { const b = $('btnAct'); if (b) { b.hidden = !label; if (label) b.textContent = label; } const h = $('actHint'); if (h) { h.classList.toggle('on', !!label && !this.isTouch); if (label) h.innerHTML = `<kbd>O</kbd> ${label.toLowerCase()}`; } }
@@ -156,6 +156,7 @@ export class UI {
   tick(dt) {
     if (this.bannerT > 0) { this.bannerT -= dt; if (this.bannerT <= 0) $('banner').classList.remove('on'); }
     if (this.sayT > 0) { this.sayT -= dt; if (this.sayT <= 0) $('say').classList.remove('on'); }
+    if (this.objT > 0) { this.objT -= dt; if (this.objT <= 0) $('objective').classList.remove('on'); }
     if (this.keysT > 0) { this.keysT -= dt; if (this.keysT <= 0) $('keys').classList.add('min'); }
   }
 }

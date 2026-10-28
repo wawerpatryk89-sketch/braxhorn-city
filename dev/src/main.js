@@ -29,7 +29,8 @@ const QUALITY = {
   low: { name: 'Niska', dpr: 1, reflections: false, reflectionScale: 0.25, streak: 12, streakTaps: 5, bloom: 0, shadow: 1024, cones: false, spots: 3, pointLights: 1, msaa: 0 },
 };
 const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
-if (isTouch) for (const q of Object.values(QUALITY)) { q.dpr = Math.min(q.dpr, 1.5); q.msaa = 0; q.shadow = Math.min(q.shadow, 1024); }
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+if (isTouch) for (const [k, q] of Object.entries(QUALITY)) { q.dpr = Math.min(q.dpr, k === 'high' ? 2 : 1.5); q.msaa = 0; q.shadow = Math.min(q.shadow, 1024); if (k === 'high') q.reflectionScale = 0.33; }
 const flat = (a, b) => Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z);
 const rand = (a, b) => a + Math.random() * (b - a);
 const fmtMoney = (v) => '$' + Math.round(v).toLocaleString('pl-PL');
@@ -68,7 +69,7 @@ async function boot() {
   try { await Promise.race([document.fonts.load('800 100px "Big Shoulders Display"'), new Promise(r => setTimeout(r, 2500))]); } catch { }
   let landscape = store.get('land', true);
   applyOrientation(landscape, isTouch);
-  let qKey = store.get('quality', isTouch ? 'medium' : 'high'); if (!QUALITY[qKey]) qKey = 'medium';
+  let qKey = store.get('quality2', isTouch && !isIOS ? 'medium' : 'high'); if (!QUALITY[qKey]) qKey = 'medium';
   const Q = { ...QUALITY[qKey] };
   const loadMsg = (m) => { const el = $('loadMsg'); if (el) el.textContent = m; };
 
@@ -120,7 +121,7 @@ async function boot() {
   scene.position.y = 0; scene.updateMatrixWorld(true);
   env.sky.visible = true;
   scene.environment = envGym;
-  const GYM_HEMI = { sky: new THREE.Color(0xb59676), ground: new THREE.Color(0x1c1612), i: 0.95 }, GYM_KEY = { c: new THREE.Color(0xfff0dc), i: 1.7 };
+  const GYM_HEMI = { sky: new THREE.Color(0xc4a888), ground: new THREE.Color(0x2a221b), i: 1.3 }, GYM_KEY = { c: new THREE.Color(0xfff0dc), i: 2.0 };
 
   // ---------------- characters ----------------
   const chars = {};
@@ -174,7 +175,7 @@ async function boot() {
   resize();
   let floorReflect = Q.reflections;
   function applyQuality(k) {
-    qKey = k; Object.assign(Q, QUALITY[k]); store.set('quality', k);
+    qKey = k; Object.assign(Q, QUALITY[k]); store.set('quality2', k);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.dpr));
     floor.uniforms.reflStrength.value = Q.reflections ? 1 : 0; bloom.enabled = Q.bloom > 0;
     for (const c of gym.cones || []) c.visible = Q.cones;
@@ -758,7 +759,7 @@ async function boot() {
       scene.fog.color.lerpColors(fogIn, env.fogColor, k); scene.fog.density = 0.011 * (1 - k) + (0.0055 + 0.012 * o.night) * k;
       scene.background.copy(env.fogColor);
       lampU.uAmb.value.copy(env.amb);
-      renderer.toneMappingExposure = 1.0 + 0.15 * o.night * k;
+      renderer.toneMappingExposure = 1.12 * (1 - k) + (1.0 + 0.15 * o.night) * k;
     }
     // key light: follows the player; outdoors it comes from the sun/moon
     const ph = player ? player.hipsWorld() : cam.target;
@@ -948,8 +949,9 @@ async function boot() {
       const night = o.night > 0.55;
       if (G.nightWas !== null && night !== G.nightWas) ui.banner(night ? 'NOC' : 'ŚWIT', night ? HINTS.night : HINTS.day, 3);
       G.nightWas = night;
-      G.zT = (G.zT ?? 6) - dt;
-      if (night && G.zT < 0 && G.zombies.length < (Q.bloom ? 5 : 4)) { G.zT = rand(7, 13); spawnZombie(); }
+      G.zT = (G.zT ?? 8) - dt;
+      const alive = G.zombies.filter(z => !z.dead).length;
+      if (night && !G.boss && G.zT < 0 && alive < (isTouch ? 2 : 3)) { G.zT = rand(14, 24); spawnZombie(); }
       if (!night) for (const z of G.zombies) if (!z.dead) { z.dead = true; z.fadeT = 2.5; z.stopOverlays(0.2); }
       // briefcase jobs
       G.caseCd = (G.caseCd ?? 30) - dt;

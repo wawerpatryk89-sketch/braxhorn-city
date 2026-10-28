@@ -227,9 +227,24 @@ export class Sound {
     this.prepared = true;
     if (this.ctx) this.makeBuffers();
   }
+  // iPhone: Web Audio is muted by the silent switch unless the page also plays a media element / uses the
+  // 'playback' audio session. Start a silent looping <audio> inside the first tap.
+  iosUnmute() {
+    if (this.unmuted) return; this.unmuted = true;
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { }
+    try {
+      const n = 4410, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+      const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+      w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, 44100, true); v.setUint32(28, 88200, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+      const el = document.createElement('audio'); el.setAttribute('playsinline', ''); el.loop = true; el.src = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+      el.volume = 0.01; const p = el.play(); if (p && p.catch) p.catch(() => { this.unmuted = false; }); this.silentEl = el;
+    } catch { }
+  }
   unlock() {
     if (!this.on) return;
-    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    this.iosUnmute();
+    if (this.ctx) { if (this.ctx.state !== 'running') this.ctx.resume(); return; }
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       this.ctx = new AC();

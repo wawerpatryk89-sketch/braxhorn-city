@@ -59,9 +59,9 @@ body.menu #hud .top, body.menu #touch, body.menu #keys, body.menu #objective, bo
 .tools button { background: var(--panel); border: 1px solid var(--hair); border-radius: 3px; padding: 6px 9px; font-size: 12px; font-weight: 600; letter-spacing: .03em; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); white-space: nowrap; }
 .tools button:hover { border-color: var(--line); color: #fff; }
 .tools .main { border-color: var(--line); color: var(--neon); }
-#objective { position: absolute; left: 50%; top: calc(var(--st) + 70px); transform: translateX(-50%); max-width: min(560px, 70vw); text-align: center; font-size: 13px; font-weight: 600; color: var(--ink); background: rgba(5,6,5,.55); border-left: 3px solid var(--neon); padding: 5px 10px; border-radius: 2px; opacity: 0; transition: opacity .4s; text-wrap: balance; }
+#objective { position: absolute; left: var(--sl); top: calc(var(--st) + 66px); max-width: min(420px, 42vw); text-align: left; font-size: 13px; font-weight: 600; color: var(--ink); background: rgba(5,6,5,.55); border-left: 3px solid var(--neon); padding: 5px 10px; border-radius: 2px; opacity: 0; transition: opacity .4s; text-wrap: balance; }
 #objective.on { opacity: 1; }
-#weapon { position: absolute; left: var(--sl); top: calc(var(--st) + 66px); font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: .08em; color: #ffb4a6; background: var(--panel); border: 1px solid rgba(224,68,44,.5); border-radius: 3px; padding: 3px 8px; }
+#weapon { position: absolute; right: var(--sr); top: calc(var(--st) + 96px); font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: .08em; color: #ffb4a6; background: var(--panel); border: 1px solid rgba(224,68,44,.5); border-radius: 3px; padding: 3px 8px; }
 
 /* banner, dialog, combo */
 #banner { position: absolute; left: 50%; top: calc(var(--st) + 24vh); transform: translate(-50%, -8px); text-align: center; opacity: 0; transition: opacity .35s, transform .35s; width: min(92vw, 640px); }
@@ -199,8 +199,8 @@ body.compact .clockbox { font-size: 14px; }
 body.compact .wallet { padding: 3px 8px; }
 body.compact .tools button { padding: 4px 7px; font-size: 10.5px; }
 body.compact .tools { max-width: 40vw; gap: 4px; }
-body.compact #objective { top: calc(var(--st) + 48px); font-size: 11.5px; }
-body.compact #weapon { top: calc(var(--st) + 44px); font-size: 12px; }
+body.compact #objective { top: calc(var(--st) + 44px); font-size: 11px; max-width: 36vw; }
+body.compact #weapon { top: calc(var(--st) + 74px); font-size: 12px; }
 body.compact .pads { transform: scale(.8); transform-origin: 100% 100%; bottom: calc(var(--sb) + 8px); }
 body.compact #joy { width: 108px; height: 108px; }
 body.compact #banner { top: calc(var(--st) + 18%); }
