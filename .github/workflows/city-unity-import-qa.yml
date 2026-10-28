@@ -1,0 +1,80 @@
+name: Unity QA import of original Braxhorn City gym
+
+on:
+  push:
+    branches: [codex/city-unity-gym-port-20261029]
+    paths:
+      - 'unity-city/**'
+      - '.github/workflows/city-unity-import-qa.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: unity-city-original-gym-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-import:
+    name: Import real GLB; fail if model absent; never deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          sparse-checkout: unity-city
+          lfs: false
+          persist-credentials: false
+
+      - name: Retrieve exported gym from verified source run
+        uses: actions/download-artifact@v4
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+
+      - name: Check source is real geometry, not placeholder
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,struct
+          p=Path('unity-city/Assets/Source/braxhorn-original-gym.glb')
+          assert p.exists() and p.stat().st_size > 1000000
+          with p.open('rb') as f:
+            assert f.read(4) == b'glTF'
+          m=json.loads(Path('unity-city/Assets/Source/gym-manifest.json').read_text())
+          assert m['meshes'] >= 100 and m['bakedLight'] is True
+          print('ORIGINAL_GYM_SOURCE_VALIDATED',m['meshes'],m['triangles'])
+          PY
+
+      - name: Import original gym to Unity (technical QA only)
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxhornOriginalGymImport.BuildWebGLForQA
+          versioning: None
+          allowDirtyBuild: true
+
+      - name: Check technical Unity WebGL build
+        run: |
+          test -s build/WebGL/index.html
+          test -s build/WebGL/qa.json
+          echo 'UNITY_IMPORT_BUILD_SUCCESS - this is not a playable Braxhorn City release'
+
+      - name: Upload internal QA preview only - NO DEPLOY
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unity-city-gym-import-qa-${{ github.sha }}
+          path: build/WebGL/
+          if-no-files-found: error
+          retention-days: 3
