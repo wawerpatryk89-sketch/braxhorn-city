@@ -178,7 +178,17 @@ export const CARS = {
 export function prepareCar(key, gltf) {
   const def = CARS[key];
   const raw = gltf.scene;
-  raw.traverse(o => { if (o.isMesh) for (const m of (Array.isArray(o.material) ? o.material : [o.material])) m.userData.car = true; });
+  raw.traverse(o => {
+    if (!o.isMesh) return;
+    for (const m of (Array.isArray(o.material) ? o.material : [o.material])) {
+      m.userData.car = true;
+      if (m.transmission) m.transmission = 0; // glass transmission = an extra render pass of the scene
+      // window glass: dark and nearly opaque (see-through glass from above made the car look roofless)
+      if (/glass|window|windshield/i.test(m.name || '') && !/light|lamp|red|orange|tail|indicator/i.test(m.name || '')) {
+        m.transparent = true; m.opacity = Math.max(m.opacity, 0.9); m.color && m.color.setRGB(0.02, 0.025, 0.03); m.roughness = 0.08; m.metalness = 0.4; m.depthWrite = true;
+      }
+    }
+  });
   const holder = new THREE.Group(); holder.add(raw);
   raw.rotation.y = def.yaw; holder.updateMatrixWorld(true);
   const b = new THREE.Box3().setFromObject(raw), s = b.getSize(new THREE.Vector3());

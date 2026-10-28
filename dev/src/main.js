@@ -437,7 +437,13 @@ async function boot() {
     env.sky.visible = true;
     G.chapter = dest; G.place = PLACES[dest] ? target : null;
     player.vy = 0; player.onGround = true; player.backToLoco(0); player.knock.set(0, 0); player.speed = 0;
-    if (dest === 'street') {
+    if (dest === 'gym') {
+      // back to the gym (from anywhere, via the pause menu map)
+      G.street.group.visible = true; gym.root.visible = true; if (G.traffic) G.traffic.enabled = true;
+      player.pos.set(-1.5, 0, 2.8); player.y = 0; player.heading = Math.PI; cam.yaw = Math.PI;
+      if (!G.explore && partner) { partner.root.visible = true; partner.col.top = partner.y + partner.height; }
+      sound.setRoom('gym'); sound.loop('city', 0); ui.objective(G.explore ? EXPLORE_HINT : HINTS.gymStart);
+    } else if (dest === 'street') {
       G.street.group.visible = true; gym.root.visible = true; if (G.traffic) G.traffic.enabled = true;
       player.pos.set(G.myCar.x + 1.5, 0, ST.near + 1.8); player.y = 0.15; player.heading = Math.PI / 2;
       cam.yaw = -Math.PI / 2 - 0.72; sound.setRoom('street'); sound.playMusic('street');
@@ -458,6 +464,7 @@ async function boot() {
     await ui.fade(false);
     if (dest === 'villa') ui.banner('WILLA', 'Dom ' + G.hero.name + (G.hero.key === 'nyxa' ? 'y' : 'a'), 2.4);
     else if (PLACES[dest]) ui.banner(PLACES[dest].title.toUpperCase(), PLACES[dest].sub, 3);
+    else if (dest === 'gym') ui.banner('', 'Siłownia BRAXHORN', 1.6);
     else ui.banner('', DEST_TITLE.street, 1.6);
     G.travelling = false;
   }
@@ -465,6 +472,7 @@ async function boot() {
   function openMap() {
     const turf = (k) => store.get('turf_' + k, false);
     const items = [
+      { key: 'gym', title: 'Siłownia BRAXHORN', sub: 'Twoja baza. Ring, worki i sparing.', tag: 'Baza' },
       { key: 'street', title: 'Ulica BRAXHORN', sub: 'Siłownia, bossowie Czerwonego Rogu, w nocy zarażeni.', tag: G.cryptOpen ? 'Krypta otwarta' : 'Bossowie: ' + Math.min(G.bossIdx, BOSSES.length) + '/' + BOSSES.length },
       { key: 'villa', title: 'Willa', sub: 'Odpoczynek i sklep BRAXHORN.', tag: 'Dom' },
       ...Object.values(PLACES).map(d => ({ key: d.key, title: d.title, sub: d.sub, tag: turf(d.key) ? 'Zdobyty · gang wraca' : 'Nagroda $' + (d.reward + d.boss.reward).toLocaleString('pl-PL'), done: turf(d.key) })),
@@ -1190,6 +1198,7 @@ async function boot() {
     else if (a === 'iso-left') { if (cam.mode === '25d') cam.isoYaw += Math.PI / 2; }
     else if (a === 'moves') ui.toggleMoves();
     else if (a === 'help') ui.toggleKeys();
+    else if (a === 'map') { closeMenu(); openMap(); }
     else if (a === 'explore') { setExplore(!G.explore); ui.setExplore(G.explore); }
     else if (a === 'timefast') { env.fast = env.fast > 1 ? 1 : 30; ui.setTimeFast(env.fast > 1); }
     else if (a.startsWith('q-')) { applyQuality(a.slice(2)); ui.setQuality(a.slice(2)); if (menuOpen) render(); }

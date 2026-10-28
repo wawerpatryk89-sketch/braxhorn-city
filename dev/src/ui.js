@@ -13,7 +13,7 @@ export class UI {
     document.body.classList.toggle('touch', isTouch);
     this.bannerT = 0; this.keysT = 0; this.sayT = 0; this.moneyShown = 0;
     const act = (id, a) => { const el = $(id); if (el) el.addEventListener('click', (e) => { e.preventDefault(); this.onAction(a); el.blur(); }); };
-    act('bCam', 'cam'); act('bMoves', 'moves'); act('bSnd', 'sound'); act('bIso', 'iso-left'); act('bOrient', 'orient'); act('bFull', 'fullscreen'); act('bTime', 'timefast'); act('bExplore', 'explore'); act('bMenu', 'menu'); act('bResume', 'resume');
+    act('bCam', 'cam'); act('bMoves', 'moves'); act('bSnd', 'sound'); act('bIso', 'iso-left'); act('bOrient', 'orient'); act('bFull', 'fullscreen'); act('bTime', 'timefast'); act('bExplore', 'explore'); act('bMap', 'map'); act('bMenu', 'menu'); act('bResume', 'resume');
     $('pause').addEventListener('click', (e) => { if (e.target.id === 'pause') this.onAction('resume'); });
     const d = document; if (d.fullscreenEnabled || d.webkitFullscreenEnabled) $('bFull').hidden = false;
     if (isTouch && !(d.fullscreenEnabled || d.webkitFullscreenEnabled)) $('bOrient').hidden = false;
