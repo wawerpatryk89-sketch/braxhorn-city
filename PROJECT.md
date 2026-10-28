@@ -58,6 +58,11 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
   - pas sztucznej trawy z liniami co 2 m i napisem BRAXHORN;
   - logo `wide_a` na prawej ścianie i na podłodze; kartony BRAXHORN NUTRITION; czarne szafki z zielonymi etykietami; odżywki na półkach.
   - Wyjście: czarne drzwi z zieloną ramką LED, neon BRAXHORN GYM nad drzwiami, zielony neon OPEN 24/7, byk sprayem na ścianie. Sąsiednie budynki w zaułku zostały z czerwonej cegły.
+- **Etap 3: jaśniej i premium** (po nagraniu użytkownika: za ciemno, neony za mocne, postacie „świecą”):
+  - jasna malowana cegła (równa, bez plam) z miękkim „podświetleniem ścian” (emissive 0.16); czarne obramowania łuków; zielony LED o połowę słabszy;
+  - neon i logo na ścianie na czarnych tablicach, nisze z półkami oświetlone na biało;
+  - przyczyna świecących postaci: odbicie otoczenia (envMapIntensity) 0.9–1.0 przy 0.3 na ścianach, a Brax/Nyxa miały metalness 0.6. Teraz 0.35 i metalness 0.15; ludzie z Mixamo też 0.35 (`people.mats`);
+  - cieplejsze światło ogólne, słabsze reflektory, nasycenie 1.2 w siłowni.
 
 ## Tryb zwiedzania (28.10, 12:15)
 
