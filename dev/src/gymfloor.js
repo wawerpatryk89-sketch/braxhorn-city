@@ -24,7 +24,7 @@ function rubberTextures(rep) {
   const N = 1024, T = N / 4, c = canvas(N), x = c.getContext('2d'), hc = canvas(N), hx = hc.getContext('2d');
   hx.fillStyle = '#909090'; hx.fillRect(0, 0, N, N);
   for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
-    const v = 26 + rnd() * 6; x.fillStyle = `rgb(${v | 0},${v | 0},${(v + 2) | 0})`; x.fillRect(i * T, j * T, T, T);
+    const v = 36 + rnd() * 6; x.fillStyle = `rgb(${v | 0},${v | 0},${(v + 2) | 0})`; x.fillRect(i * T, j * T, T, T);
   }
   // EPDM flecks
   const fl = [['#45484c', 6000, 1.5], ['#74777b', 1100, 1.3], ['#4c9a26', 900, 1.5], ['#1d1f22', 6000, 2.2]];

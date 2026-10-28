@@ -93,20 +93,22 @@ export function buildGym(scene, world, quality, font, logos = null) {
   // ---------------- materials ----------------
   // BRAXHORN colours: painted charcoal brick, black ceiling and steel, neon green #8bff3a accents, white light
   const GREEN = 0x8bff3a;
-  const brickT = T.brick(1024, 1024, { paint: [92, 94, 98] });
+  const brickT = T.brick(1024, 1024, { paint: [206, 205, 200] });
   brickT.map.repeat.set(1, 1); brickT.normalMap.repeat.set(1, 1);
-  const brickMat = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, normalScale: new THREE.Vector2(1.2, 1.2), roughness: 0.86, color: 0x7a7c80, envMapIntensity: 0.3 });
-  const brickDark = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, roughness: 0.9, color: 0x55575b, envMapIntensity: 0.2 });
+  const brickMat = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, normalScale: new THREE.Vector2(1.2, 1.2), roughness: 0.86, color: 0xe4e3df, envMapIntensity: 0.3, emissive: 0xffffff, emissiveMap: brickT.map, emissiveIntensity: 0.16 });
+  const brickDark = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, roughness: 0.9, color: 0xa9aaac, envMapIntensity: 0.2, emissive: 0xffffff, emissiveMap: brickT.map, emissiveIntensity: 0.07 });
+  const rimMat = new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, roughness: 0.7, color: 0x2a2b2e, envMapIntensity: 0.2 });
+  const signBoard = new THREE.MeshStandardMaterial({ color: 0x0d0e10, roughness: 0.45, metalness: 0.3 });
   // the other buildings in the alley keep plain red brick
   const brickRedT = T.brick(512, 512);
   const brickAlley = new THREE.MeshStandardMaterial({ map: brickRedT.map, normalMap: brickRedT.normalMap, roughness: 0.92, color: 0x8a7468, envMapIntensity: 0.2 });
   const woodT = T.wood(); woodT.repeat.set(1, 1);
-  const ceilMat = new THREE.MeshStandardMaterial({ roughness: 0.92, color: 0x141518 });
+  const ceilMat = new THREE.MeshStandardMaterial({ roughness: 0.92, color: 0x23252a });
   const beamMat = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.5, color: 0x1b1d20 });
   const plyMat = new THREE.MeshStandardMaterial({ map: woodT, roughness: 0.7, color: 0xe6c79a });
   const foamBlack = new THREE.MeshStandardMaterial({ color: 0x1a1b1e, roughness: 0.78 });
   const greenPaint = new THREE.MeshStandardMaterial({ color: 0x5fd422, roughness: 0.5, metalness: 0.1 });
-  const ledGreen = new THREE.MeshBasicMaterial({ color: new THREE.Color(GREEN).multiplyScalar(2.2) });
+  const ledGreen = new THREE.MeshBasicMaterial({ color: new THREE.Color(GREEN).multiplyScalar(1.2) });
   const wainMat = new THREE.MeshStandardMaterial({ color: 0x0c0d0f, roughness: 0.5, metalness: 0.15 });
   const ironMat = new THREE.MeshStandardMaterial({ color: 0x1d2024, roughness: 0.45, metalness: 0.75 });
   const steelMat = new THREE.MeshStandardMaterial({ color: 0x6f757c, roughness: 0.35, metalness: 0.9 });
@@ -120,7 +122,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
   // supplement tubs on the shelves: black, white and green
   const shelfStuff = [0x101113, 0xd9dcd6, 0x101113, 0x4fb51c, 0x1e2023].map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.45 }));
   const shadeOut = new THREE.MeshStandardMaterial({ color: 0x24272b, roughness: 0.4, metalness: 0.85, side: THREE.DoubleSide });
-  const shadeIn = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xf6f8ff).multiplyScalar(7) });
+  const shadeIn = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xf6f8ff).multiplyScalar(4.5) });
   const warmBulb = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xeef2ff).multiplyScalar(4) });
   const coneWarm = lightConeMaterial(0xe9eef8, 0.014);
 
@@ -170,7 +172,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
     rim.absarc(cx, spring, aw, Math.PI, 0, true); rim.lineTo(cx + aw + 0.42, spring);
     const rg = new THREE.ExtrudeGeometry(rim, { depth: 0.12, bevelEnabled: false, curveSegments: 28 });
     rg.translate(0, 0, minZ); rg.computeVertexNormals(); worldUV(rg, 1.1, 0.37);
-    BC.nz.add(brickDark, rg);
+    BC.nz.add(rimMat, rg);
   }
   // collision for back wall pieces between arches + alcove interiors
   const pier = [minX, ...arches.flatMap(c => [c - aw, c + aw]), maxX];
@@ -227,9 +229,8 @@ export function buildGym(scene, world, quality, font, logos = null) {
     const sx = cx, sy = 3.55, sz = zb + 0.1;
     BC.nz.box(ironMat, sx, sy, sz, aw * 1.5, 0.06, 0.08);
     BC.nz.box(ledGreen, sx, sy - 0.035, sz + 0.03, aw * 1.45, 0.02, 0.04, { receive: false });
-    out.glowSprites.push({ pos: new THREE.Vector3(sx, sy - 0.05, sz + 0.15), color: GREEN, size: 1.1, group: 'nz' });
-    LS(sx, sy - 0.3, sz + 0.9, GREEN, 0.55, 5);
-    { const pl = new THREE.PointLight(0x7dff40, 9, 8, 2); pl.position.set(sx, sy - 0.2, sz + 0.9); pl.userData.tier = i === 1 ? 1 : 2; pl.visible = pl.userData.tier <= quality.pointLights; scene.add(pl); out.lights.push(pl); }
+    LS(sx, sy - 0.3, sz + 0.9, 0xf4f4f0, 0.6, 5);
+    { const pl = new THREE.PointLight(0xf2f4ff, 8, 8, 2); pl.position.set(sx, sy - 0.2, sz + 0.9); pl.userData.tier = i === 1 ? 1 : 2; pl.visible = pl.userData.tier <= quality.pointLights; scene.add(pl); out.lights.push(pl); }
   });
 
   // sconces on side wall pilasters
@@ -285,9 +286,9 @@ export function buildGym(scene, world, quality, font, logos = null) {
     LS(x, y - 1.2, z, 0xf6f5f0, 1.25, 8.5);
   }
   // a few real spot lights under the lamps (no shadow; one shadow light follows the player)
-  const spotDefs = [[9, -5.5, 5.4, 85, 0.95], [-4, -1.5, 6.2, 120, 0.9], [-12, -4.5, 6.2, 110, 0.95], [4, 5.5, 6.2, 95, 0.9], [-8, 6, 6.2, 85, 0.9], [2.5, -9, 6.2, 85, 0.9]];
+  const spotDefs = [[9, -5.5, 5.4, 68, 0.95], [-4, -1.5, 6.2, 120, 0.9], [-12, -4.5, 6.2, 110, 0.95], [4, 5.5, 6.2, 95, 0.9], [-8, 6, 6.2, 85, 0.9], [2.5, -9, 6.2, 85, 0.9]];
   spotDefs.forEach(([x, z, y, I, ang], i) => {
-    const s = new THREE.SpotLight(0xf8f6f0, I * 1.9, 18, ang, 0.65, 1.5);
+    const s = new THREE.SpotLight(0xf8f6f0, I * 1.4, 18, ang, 0.7, 1.5);
     s.position.set(x, y - 0.4, z); s.target.position.set(x, 0, z); s.userData.rank = i; s.visible = i < quality.spots; scene.add(s, s.target); out.lights.push(s);
   });
 
@@ -524,9 +525,9 @@ export function buildGym(scene, world, quality, font, logos = null) {
     const sl = new THREE.SpotLight(0xc8d8ff, 150, 16, 1.15, 0.75, 1.5); sl.position.set((D.x0 + D.x1) / 2, D.h + 1.0, zIn + 0.35); sl.target.position.set((D.x0 + D.x1) / 2, 0, zIn + 3.5);
     sl.userData.rank = -1; scene.add(sl, sl.target); out.lights.push(sl);
     // BRAXHORN GYM neon over the door, outside
-    const og = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 0.85), new THREE.MeshBasicMaterial({ map: T.neonSign(font, 'BRAXHORN GYM', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(2.2) }));
+    const og = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 0.85), new THREE.MeshBasicMaterial({ map: T.neonSign(font, 'BRAXHORN GYM', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.5) }));
     og.position.set((D.x0 + D.x1) / 2, D.h + 1.85, zIn + 0.03); cut.pz.add(og);
-    out.glowSprites.push({ pos: new THREE.Vector3((D.x0 + D.x1) / 2, D.h + 1.85, zIn + 0.3), color: GREEN, size: 3.2, group: 'pz' });
+    out.glowSprites.push({ pos: new THREE.Vector3((D.x0 + D.x1) / 2, D.h + 1.85, zIn + 0.3), color: GREEN, size: 2.2, group: 'pz' });
     if (logos) { const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.3), new THREE.MeshBasicMaterial({ map: logos.markSpray, transparent: true, depthWrite: false, opacity: 0.85, color: 0xd8d8d8 })); sp.position.set(A.x1 - 0.02, 2.0, zIn + 7.8); sp.rotation.y = -Math.PI / 2; cut.pz.add(sp); }
     const pl = new THREE.PointLight(0x8bff3a, 10, 8, 2); pl.position.set(A.x1 - 0.8, 3.4, zIn + 4.5); pl.userData.tier = 1; scene.add(pl); out.lights.push(pl);
   }
@@ -547,14 +548,15 @@ export function buildGym(scene, world, quality, font, logos = null) {
   out.animated.push((dt) => { blades.rotation.z -= dt * 7; });
 
   // ---------------- neon ----------------
-  const neon = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 1.55), new THREE.MeshBasicMaterial({ map: T.neonSign(font, 'BRAXHORN GYM', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(2.4) }));
-  neon.position.set(minX + 0.03, 6.0, -3.6); neon.rotation.y = Math.PI / 2; cut.nx.add(neon);
-  out.neon = neon; LS(minX + 1.0, 5.6, -3.6, 0x8bff3a, 0.5, 5, 'neon');
-  const purple = new THREE.MeshBasicMaterial({ color: new THREE.Color(GREEN).multiplyScalar(2.6) });
+  const neon = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 1.55), new THREE.MeshBasicMaterial({ map: T.neonSign(font, 'BRAXHORN GYM', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.35) }));
+  neon.position.set(minX + 0.08, 6.0, -3.6); neon.rotation.y = Math.PI / 2; cut.nx.add(neon);
+  BC.nx.box(signBoard, minX + 0.04, 6.0, -3.6, 0.06, 1.9, 6.6);
+  out.neon = neon; LS(minX + 1.0, 5.6, -3.6, 0x8bff3a, 0.3, 5, 'neon');
+  const purple = new THREE.MeshBasicMaterial({ color: new THREE.Color(GREEN).multiplyScalar(1.3) });
   BC.nx.cyl(purple, minX + 0.55, 3.6, 10.2, 0.045, 0.045, 7.0, 8);
   BC.nx.cyl(purple, minX + 0.55, 3.6, 9.35, 0.045, 0.045, 7.0, 8);
-  const pp = new THREE.PointLight(0x7dff40, 4, 5, 2); pp.position.set(minX + 1.2, 3.2, 9.6); pp.userData.tier = 1; scene.add(pp); out.lights.push(pp);
-  { const np = new THREE.PointLight(0x8bff3a, 9, 7, 2); np.position.set(minX + 1.0, 5.6, -3.6); np.userData.tier = 2; np.visible = quality.pointLights >= 2; scene.add(np); out.lights.push(np); }
+  const pp = new THREE.PointLight(0x7dff40, 1.8, 5, 2); pp.position.set(minX + 1.2, 3.2, 9.6); pp.userData.tier = 1; scene.add(pp); out.lights.push(pp);
+  { const np = new THREE.PointLight(0x8bff3a, 4, 7, 2); np.position.set(minX + 1.0, 5.6, -3.6); np.userData.tier = 2; np.visible = quality.pointLights >= 2; scene.add(np); out.lights.push(np); }
 
   // brand posters
   if (logos) {
@@ -567,7 +569,9 @@ export function buildGym(scene, world, quality, font, logos = null) {
     if (logos.wideA) {
       const wa = logos.wideA, ar = wa.image.height / wa.image.width;
       const mural = new THREE.Mesh(new THREE.PlaneGeometry(4.9, 4.9 * ar), new THREE.MeshStandardMaterial({ map: wa, transparent: true, depthWrite: false, roughness: 0.75, emissive: 0xffffff, emissiveMap: wa, emissiveIntensity: 0.35 }));
-      mural.position.set(maxX - 0.04, 4.3, 0); mural.rotation.y = -Math.PI / 2; cut.px.add(mural);
+      mural.position.set(maxX - 0.08, 4.3, 0); mural.rotation.y = -Math.PI / 2; cut.px.add(mural);
+      BC.px.box(signBoard, maxX - 0.04, 4.3, 0, 0.06, 4.9 * ar + 0.55, 5.2);
+      BC.px.box(ledGreen, maxX - 0.08, 4.3 - (4.9 * ar + 0.55) / 2, 0, 0.02, 0.025, 5.2, { receive: false });
       const fl = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 6.4 * ar).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: wa, transparent: true, depthWrite: false, roughness: 0.85, opacity: 0.9, polygonOffset: true, polygonOffsetFactor: -2 }));
       fl.position.set(-3.5, 0.006, -6.2); fl.receiveShadow = true; fl.renderOrder = 1; scene.add(fl);
     }
@@ -585,7 +589,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
   // glow sprites (soft halos around bulbs)
   const halo = T.radial('rgba(255,255,255,1)', 'rgba(255,255,255,0)');
   for (const g of out.glowSprites) {
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, color: new THREE.Color(g.color).multiplyScalar(0.32), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, color: new THREE.Color(g.color).multiplyScalar(0.2), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
     s.position.copy(g.pos); s.scale.setScalar(g.size); s.renderOrder = 6; (g.group ? cut[g.group] : scene).add(s);
   }
   return out;

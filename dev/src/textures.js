@@ -129,8 +129,8 @@ export function brick(w = 1024, h = 1024, opts = {}) {
     const edge = Math.min(lx, bwx - lx, ly, bh - ly);
     const inBrick = edge > mortar;
     const n = fbm(x / w * 8, y / h * 8, 8, 4, 21);
-    const g = paint ? 0.88 + 0.22 * n : 0.75 + 0.45 * n;
-    const soot = smooth(0.55, 0.85, fbm(x / w * 2, y / h * 3, 2, 3, 61)) * (paint ? 0.2 : 0.45);
+    const g = paint ? 0.95 + 0.08 * n : 0.75 + 0.45 * n;
+    const soot = smooth(0.55, 0.85, fbm(x / w * 2, y / h * 3, 2, 3, 61)) * (paint ? 0.05 : 0.45);
     for (let c = 0; c < 3; c++) d[i + c] = d[i + c] * g * (1 - soot);
     hgt[y * w + x] = inBrick ? 0.6 + 0.4 * Math.min(1, (edge - mortar) / 4) * (0.8 + 0.2 * n) : 0.1 * n;
   }

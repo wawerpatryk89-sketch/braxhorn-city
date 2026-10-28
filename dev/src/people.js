@@ -11,7 +11,7 @@ const GYM_PEOPLE = ['Ch16_nonPBR', 'Ch31_nonPBR', 'Kachujin_G_Rosales', 'Ch22_no
 export class People {
   constructor({ scene, world, A }) {
     this.scene = scene; this.world = world; this.A = A;
-    this.templates = {}; this.clips = null; this.list = []; this.tmp = new THREE.Vector3();
+    this.templates = {}; this.clips = null; this.list = []; this.tmp = new THREE.Vector3(); this.mats = []; this.envK = 0.35;
   }
   async loadClips() {
     if (this.clips) return this.clips;
@@ -35,7 +35,7 @@ export class People {
       const g = await this.A.loadGLTF('people/' + name + '.glb');
       const root = g.scene; root.updateMatrixWorld(true);
       let hips = null, head = null;
-      root.traverse(o => { if (o.isBone && o.name === 'mixamorigHips') hips = o; if (o.isBone && o.name === 'mixamorigHead') head = o; if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; addLampField(o.material, 'lit'); } });
+      root.traverse(o => { if (o.isBone && o.name === 'mixamorigHips') hips = o; if (o.isBone && o.name === 'mixamorigHead') head = o; if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; for (const m of (Array.isArray(o.material) ? o.material : [o.material])) { addLampField(m, 'lit'); if (!this.mats.includes(m)) this.mats.push(m); m.envMapIntensity = this.envK; } } });
       const hy = hips.getWorldPosition(new THREE.Vector3()).y, top = head.getWorldPosition(new THREE.Vector3()).y * 1.09;
       return { root, hipsY: hips.position.y, hipsWorld: hy, height: top };
     })();

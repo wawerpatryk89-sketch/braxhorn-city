@@ -126,14 +126,14 @@ async function boot() {
   scene.position.y = 0; scene.updateMatrixWorld(true);
   env.sky.visible = true;
   scene.environment = envGym;
-  const GYM_HEMI = { sky: new THREE.Color(0xbcc0c8), ground: new THREE.Color(0x2c2e2d), i: isTouch ? 2.0 : 1.3 }, GYM_KEY = { c: new THREE.Color(0xf6f6f2), i: isTouch ? 2.7 : 2.0 }; // phones have fewer spotlights
+  const GYM_HEMI = { sky: new THREE.Color(0xcdc8c0), ground: new THREE.Color(0x3a3632), i: isTouch ? 1.7 : 1.15 }, GYM_KEY = { c: new THREE.Color(0xf6f6f2), i: isTouch ? 2.3 : 1.8 }; // phones have fewer spotlights
 
   // ---------------- characters ----------------
   const chars = {}, charMats = [];
   function loadChar(k) {
     if (!chars[k]) chars[k] = (async () => {
       const [g, map, nrm, orm] = await Promise.all([A.loadRig(`chars/${k}.glb.gz`), A.loadTex(`tex/${k}_color.webp`, true), A.loadTex(`tex/${k}_normal.webp`, false), A.loadTex(`tex/${k}_orm.webp`, false)]);
-      const mat = addLampField(new THREE.MeshStandardMaterial({ map, normalMap: nrm, roughnessMap: orm, metalnessMap: orm, metalness: 0.6, roughness: 1, envMapIntensity: 0.9 }), 'lit');
+      const mat = addLampField(new THREE.MeshStandardMaterial({ map, normalMap: nrm, roughnessMap: orm, metalnessMap: orm, metalness: 0.15, roughness: 1, envMapIntensity: 0.35 }), 'lit'); // skin and cloth are not metal: no chrome sheen
       g.scene.traverse(o => { if (o.isSkinnedMesh) o.material = mat; }); charMats.push(mat);
       return { scene: g.scene, clips: g.animations, mat, used: 0 };
     })();
@@ -1061,8 +1061,10 @@ async function boot() {
       }
     }
     // reflections of the (bright) gym capture on skin/clothes: dim them outdoors at night and in the crypt
-    const envK = crypt ? 0.3 : 0.9 * (1 - outF) + (0.32 + 0.58 * o.day) * outF;
+    // characters get as much of it as the room does (more made them look lit up / glowing)
+    const envK = crypt ? 0.25 : 0.35 * (1 - outF) + (0.25 + 0.35 * o.day) * outF;
     for (const m of charMats) m.envMapIntensity = envK;
+    people.envK = envK; for (const m of people.mats) m.envMapIntensity = envK;
     // key light: follows the player; outdoors it comes from the sun/moon
     const ph = player ? player.hipsWorld() : cam.target;
     if (outF > 0.5 && !crypt) { const d = o.elev > -2 ? env.sunDir : env.moonDir; key.position.set(ph.x + d.x * 30, Math.max(8, d.y * 30), ph.z + d.z * 30); }
@@ -1352,6 +1354,7 @@ async function boot() {
     const low = player && G.mode === 'play' && player.hp < player.maxHp * 0.3 ? 0.28 + 0.12 * Math.sin(tAll * 6) : 0;
     hurtT = Math.max(0, hurtT - 0.06); gu.uHurt.value = Math.max(low, hurtT * 0.6);
     gu.uVig.value = G.chapter === 'crypt' ? 0.55 : 0.42;
+    gu.uSat.value = G.chapter === 'gym' ? 1.2 : 1.08; // the gym is grey/black/green: give skin and clothes their colour
     if (floorReflect && G.chapter !== 'crypt' && (!player || player.pos.z < ALLEY.z1 + 6)) floor.update(renderer, scene, camera);
     composer.render();
   }
