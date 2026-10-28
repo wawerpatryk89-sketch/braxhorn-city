@@ -161,7 +161,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
   world.box(minX - 3, minX, minZ - 3, maxZ + 3, H); world.box(maxX, maxX + 3, minZ - 3, maxZ + 3, H);
   world.box(minX - 3, DOOR.x0, maxZ, maxZ + wallT, H); world.box(DOOR.x1, maxX + 3, maxZ, maxZ + wallT, H);
   out.doorCol = world.box(DOOR.x0, DOOR.x1, maxZ, maxZ + wallT, DOOR.h, 0, 'door');
-  world.box(minX - 3, ALLEY.x0, maxZ, ALLEY.z1, H + 1); world.box(ALLEY.x1, maxX + 3, maxZ, ALLEY.z1, H + 1);
+  world.box(ALLEY.x0 - 0.35, ALLEY.x0, maxZ, ALLEY.z1, H + 1); // west alley wall (the BRAXHORN NUTRITION shop is behind it) world.box(ALLEY.x1, maxX + 3, maxZ, ALLEY.z1, H + 1);
 
   // back wall with 4 big arches (polygon walked along the bottom edge)
   const arches = [-13.5, -4.5, 4.5, 13.5], aw = 2.9, spring = 3.6;

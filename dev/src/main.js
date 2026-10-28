@@ -19,9 +19,11 @@ import { buildStreet, ST, prepareCar, CARS } from './street.js';
 import { Traffic } from './traffic.js';
 import { buildCrypt, CRYPT } from './crypt.js';
 import { People } from './people.js';
-import { buildVilla, VILLA } from './villa.js';
-import { PLACES, buildPlace } from './places.js';
-import { prepareBake, bakeLighting, packBake, applyBake } from './bake.js';
+import { buildDistrict, POINTS, ZONES } from './district.js';
+// the old map places (villa, tunnel, alley, warehouse, club) were removed: plansza 1 replaces them
+const PLACES = {}; const buildPlace = null; const buildVilla = null;
+import { prepareBake, bakeLighting, packBake, applyBake, setLightmapUV, bakeGroundMap, applyGroundMap, floatGeo } from './bake.js';
+import { mergeGeometries } from '../three/examples/jsm/utils/BufferGeometryUtils.js';
 import { HEROES, PROLOGUE, CHAPTERS, BOSSES, CRYPT_BOSSES, ZOMBIE, ENDING, HINTS } from './story.js';
 
 const $ = (id) => document.getElementById(id);
@@ -119,6 +121,8 @@ async function boot() {
   gym.root.add(floor.mesh);
   // baked lighting (bake.js): static gym meshes become unlit + stored light; people and moving props stay lit live
   const BAKE_FILE = 'bake/gym3.bin.gz', BAKE_GAIN = 1.5;
+  const CITY_BAKE = 'bake/city1.bin.gz', CITY_GROUND = 'bake/city1_ground.bin.gz', CITY_GAIN = 1.0;
+  let cityBakeList = [], cityGround = [], cityBaked = false;
   const bakeList = prepareBake(gym.root);
   let baked = false;
   try { const raw = await A.loadBin(BAKE_FILE); baked = !!applyBake(bakeList, new Uint16Array(raw.slice().buffer), BAKE_GAIN); } catch (e) { console.warn('gym bake not loaded', e); }
@@ -341,29 +345,44 @@ async function boot() {
   function loadStreet() {
     if (streetPromise) return streetPromise;
     streetPromise = (async () => {
-      const st = await buildStreet({ scene, world, font: fontStack, A, logos, Q });
+      const tS = performance.now(); const T = (m) => console.log('[t] ' + m + ' ' + ((performance.now() - tS) / 1000).toFixed(1) + 's');
+      const st = await buildStreet({ scene, world, font: fontStack, A, logos, Q }); T('street');
+      const dist = await buildDistrict({ scene, world, A, font: fontStack, logos, street: st }); T('district');
+      st.district = dist; G.district = dist;
+      // baked daylight for the whole district (bake.js); people stay lit live and get a shadow-only layer on the ground
+      // outdoor floors take a top-down light texture (crisp sun shadows); walls, props and rooms take per-vertex light
+      cityGround = []; for (const r of [st.group, dist.interiors.group]) r.traverse(o => { if (o.isMesh && o.userData.ground && !o.userData.bakeIndoor && !o.userData.noBake) cityGround.push(o); });
+      for (const m of cityGround) { setLightmapUV(m); m.userData.noBake = true; }
+      cityBakeList = [...prepareBake(st.group, 1.6), ...prepareBake(dist.interiors.group, 0.6)]; T('tessellate ' + cityBakeList.reduce((a, m) => a + m.geometry.attributes.position.count, 0) + ' ground ' + cityGround.length);
+      try { const [raw, gr] = await Promise.all([A.loadBin(CITY_BAKE), A.loadBin(CITY_GROUND)]); cityBaked = !!applyBake(cityBakeList, new Uint16Array(raw.slice().buffer), CITY_GAIN) && !!applyGroundMap(cityGround, gr, { scale: 2, gain: CITY_GAIN }); } catch (e) { console.warn('city bake not loaded', e); }
+      T('bake applied ' + cityBaked);
+      if (cityBaked) {
+        const geos = []; const cat = (root) => root.traverse(o => { if (o.isMesh && o.userData.ground) { const g = floatGeo(o.geometry, ['position']).applyMatrix4(o.matrixWorld); geos.push(g.index ? g.toNonIndexed() : g); } });
+        cat(st.group); cat(dist.interiors.group);
+        const sh = new THREE.Mesh(mergeGeometries(geos), new THREE.ShadowMaterial({ opacity: 0.42 })); sh.position.y = 0.012; sh.receiveShadow = true; sh.userData.noBake = true; sh.name = 'shadowCatcher'; st.group.add(sh);
+      }
       const carKeys = Object.keys(CARS);
       const models = {};
       await Promise.all(carKeys.map(async k => { try { models[k] = prepareCar(k, await A.loadGLTF(k + '.glb')); } catch (e) { console.warn('car', k, e); } }));
       // a few parked cars
-      G.myCar = { x: -10.5, z: ST.road0 + 0.95 };
-      const parked = [['car_rev', G.myCar.x, G.myCar.z, Math.PI / 2], ['car_zuk', -24, ST.road0 + 0.95, Math.PI / 2], ['car_gmc', 46, ST.road1 - 0.95, -Math.PI / 2], ['car_mus', -33, ST.road1 - 0.95, -Math.PI / 2], ['car_dia', -47.5, ST.near + 2.0, 0.6], ['car_mar', -47.5, ST.far - 1.2, 2.6]];
+      G.myCar = { x: 6.5, z: ST.road0 + 0.95 };
+      const parked = [['car_rev', G.myCar.x, G.myCar.z, Math.PI / 2], ['car_zuk', -31, ST.road0 + 0.95, Math.PI / 2], ['car_gmc', 40, ST.road1 - 0.95, -Math.PI / 2], ['car_mus', -24, ST.road1 - 0.95, -Math.PI / 2], ['car_s4', 24, ST.road1 - 0.95, -Math.PI / 2]];
       for (const [k, x, z, ry] of parked) {
         if (!models[k]) continue;
-        const o = models[k].clone(); o.position.set(x, k === 'car_dia' || k === 'car_mar' ? 0.15 : 0, z); o.rotation.y = ry; st.group.add(o);
+        const o = models[k].clone(); o.position.set(x, k === 'car_dia' || k === 'car_mar' ? 0.15 : 0, z); o.rotation.y = ry; o.userData.dynamic = true; st.group.add(o);
         const s = models[k].userData.size; const c = Math.abs(Math.cos(ry)), sn = Math.abs(Math.sin(ry));
         const hw = (s.x * c + s.z * sn) / 2, hd = (s.x * sn + s.z * c) / 2;
         world.box(x - hw, x + hw, z - hd, z + hd, 1.4, -1, 'car');
         if (models[k].userData.def.police) st.lampSources.push({ pos: new THREE.Vector3(x, 1.9, z), col: new THREE.Color(1, 0, 0), r: 9, kind: 'flash', phase: Math.random() * 3 });
       }
-      G.traffic = new Traffic({ scene: st.group, models, sound }); G.traffic.camPos = camera.position;
+      G.traffic = null; // moving traffic comes later (the old route used the removed cross street)
       // pickups: the barbed bat in the alley
       const batG = await A.loadGLTF('bat.glb'); G.batModel = batG.scene; G.batModel.traverse(o => { if (o.isMesh) { addLampField(o.material, 'lit'); o.castShadow = true; } });
       spawnBatPickup(new THREE.Vector3(ALLEY.x0 + 2.2, 0, ALLEY.z1 - 2.6));
       // sky reflection map for the street
       G.street = st;
       try { renderer.compile(scene, camera); } catch { } // compile the street's shaders now, not on the first frame outside
-      people.populateStreet(ST, isTouch ? 5 : 9).catch(e => console.warn('street people', e));
+      // pedestrians come later: their routes are ready in district.js (ROUTES)
       // preload the first bosses + zombies
       loadChar('tiger'); loadChar('zombie'); loadChar('tiger2'); loadChar('fant'); loadChar('musc');
       return st;
@@ -414,6 +433,7 @@ async function boot() {
   }
   const DEST_TITLE = { street: 'Ulica BRAXHORN', villa: 'Willa' };
   async function travel(dest) {
+    if (dest.startsWith('pt:')) return jumpTo(dest.slice(3));
     if (G.travelling || dest === G.chapter) { ui.showMap(false); return; }
     G.travelling = true; ui.showMap(false);
     await ui.fade(true);
@@ -469,13 +489,31 @@ async function boot() {
     G.travelling = false;
   }
   const goVilla = () => travel('villa'), leaveVilla = () => travel('street');
+  // jump to a named point of the district (map / testing); the district is one continuous level
+  async function jumpTo(id) {
+    const p = POINTS[id]; ui.showMap(false); if (!p || G.travelling || !player) return;
+    G.travelling = true; await ui.fade(true);
+    if (!G.street) { ui.loading(true, 'Ładuję ulicę…'); await loadStreet(); ui.loading(false); }
+    clearFoes(); dropCaseIfAny();
+    if (G.crypt) G.crypt.group.visible = false; gym.root.visible = true; G.street.group.visible = true; env.sky.visible = true;
+    G.chapter = 'street'; G.place = null;
+    if (partner) { partner.root.visible = false; partner.col.top = -10; }
+    player.vy = 0; player.onGround = true; player.backToLoco(0); player.knock.set(0, 0); player.speed = 0;
+    player.pos.set(p.x, 0, p.z); player.y = p.y ?? 0; player.heading = p.face ?? 0;
+    cam.yaw = (p.face ?? 0) + Math.PI; cam.pitch = 0.3; cam.target.set(p.x, player.y + 1.6, p.z); cam.snap = true;
+    sound.setRoom('street'); ui.objective(G.explore ? EXPLORE_HINT : '');
+    await ui.fade(false); G.travelling = false;
+  }
   function openMap() {
     const turf = (k) => store.get('turf_' + k, false);
+    void turf;
     const items = [
       { key: 'gym', title: 'Siłownia BRAXHORN', sub: 'Twoja baza. Ring, worki i sparing.', tag: 'Baza' },
-      { key: 'street', title: 'Ulica BRAXHORN', sub: 'Siłownia, bossowie Czerwonego Rogu, w nocy zarażeni.', tag: G.cryptOpen ? 'Krypta otwarta' : 'Bossowie: ' + Math.min(G.bossIdx, BOSSES.length) + '/' + BOSSES.length },
-      { key: 'villa', title: 'Willa', sub: 'Odpoczynek i sklep BRAXHORN.', tag: 'Dom' },
-      ...Object.values(PLACES).map(d => ({ key: d.key, title: d.title, sub: d.sub, tag: turf(d.key) ? 'Zdobyty · gang wraca' : 'Nagroda $' + (d.reward + d.boss.reward).toLocaleString('pl-PL'), done: turf(d.key) })),
+      { key: 'pt:street_gym', title: 'Ulica przed siłownią', sub: 'Główna ulica dzielnicy.', tag: 'Ulica' },
+      { key: 'pt:shop_inside', title: 'Sklep BRAXHORN NUTRITION', sub: 'Odżywki i leczenie, obok siłowni.', tag: 'Sklep' },
+      { key: 'pt:club_door', title: 'Dyskoteka NOVA', sub: 'Wejście z ulicy, sala, bar, zaplecze i piwnica.', tag: 'Klub' },
+      { key: 'pt:quay_delivery', title: 'Nabrzeże: punkt dostaw', sub: 'Molo i odbiór przesyłek.', tag: 'Nabrzeże' },
+      { key: 'pt:yard_brama_yard', title: 'Podwórko z boiskiem', sub: 'Blokowisko, brama naprzeciw siłowni.', tag: 'Podwórko' },
     ];
     keys.clear(); joy.active = false; joy.x = joy.y = 0; held.block = false; if (player) player.input.mag = 0;
     ui.showMap(true, items, G.chapter);
@@ -961,6 +999,15 @@ async function boot() {
     location.reload();
   }
 
+  // ---------------- zones of the district (interiors, gate passage): camera ceiling, light mood, what to hide ----------------
+  let curZone = null;
+  function zoneAt(x, y, z) { for (const zn of ZONES) if (x >= zn.minX && x <= zn.maxX && z >= zn.minZ && z <= zn.maxZ && y >= zn.y0 && y <= zn.y1) return zn; return null; }
+  const MOODS = {
+    shop: { sky: 0xf4f0e8, ground: 0x6a6460, hemi: 1.0, key: 0xfff6ea, keyI: 1.1, fog: 0x2a2826, fogD: 0.004, exp: 1.05, amb: [0.55, 0.55, 0.53] },
+    club: { sky: 0x9a7aa8, ground: 0x1c1420, hemi: 0.6, key: 0xffd2e6, keyI: 0.6, fog: 0x0b090d, fogD: 0.01, exp: 1.3, amb: [0.18, 0.15, 0.2] },
+    back: { sky: 0xb8b8b0, ground: 0x2a2826, hemi: 0.65, key: 0xeaf2ff, keyI: 0.7, fog: 0x121212, fogD: 0.02, exp: 1.08, amb: [0.3, 0.3, 0.3] },
+    cellar: { sky: 0x9a8670, ground: 0x18120c, hemi: 0.42, key: 0xffc27a, keyI: 0.9, fog: 0x0a0806, fogD: 0.035, exp: 1.12, amb: [0.22, 0.18, 0.14] },
+  };
   // ---------------- camera ----------------
   let foeCache = null, foeT = -1;
   function fightFoe() {
@@ -990,7 +1037,7 @@ async function boot() {
     if (cam.mode === '3d' || G.mode !== 'play') {
       const dir = camPos.clone().sub(cam.target); let k = 1; const o = cam.target;
       for (const b of world.boxes) {
-        if (b.top - b.bottom < 2.6 || b.bottom > Math.max(o.y, camPos.y) || b.top < Math.min(o.y, camPos.y)) continue;
+        if (b.top - b.bottom < 2.6 || b.bottom > Math.max(o.y, camPos.y) || b.top < Math.min(o.y, camPos.y) || b.tag === 'fence' || b.tag === 'rail') continue;
         const pad = 0.3; let t0 = 0, t1 = 1, ok = true;
         for (const [oo, dd, lo, hi] of [[o.x, dir.x, b.minX - pad, b.maxX + pad], [o.z, dir.z, b.minZ - pad, b.maxZ + pad]]) {
           if (Math.abs(dd) < 1e-6) { if (oo < lo || oo > hi) { ok = false; break; } continue; }
@@ -1002,6 +1049,7 @@ async function boot() {
       const indoor = o.z < HALL.maxZ && G.chapter === 'gym';
       if (indoor && dir.y > 0) k = Math.min(k, (HALL.height - 0.7 - o.y) / dir.y);
       if (G.chapter === 'crypt' && dir.y > 0) k = Math.min(k, (8.8 - o.y) / dir.y);
+      if (curZone && curZone.ceil !== undefined && dir.y > 0) k = Math.min(k, Math.max(0.05, (curZone.ceil - 0.35 - o.y) / dir.y));
       const rcol = G.chapter === 'villa' && G.villa ? G.villa.col : G.place && G.chapter === G.place.def.key ? G.place.col : null;
       if (rcol) {
         const col = rcol, L = dir.length(), steps = Math.ceil(L / 0.2);
@@ -1015,6 +1063,7 @@ async function boot() {
       k = Math.max(0.12, k); camPos.copy(o).addScaledVector(dir, k);
       const d = k * dir.length(); if (d < 2.4) camPos.y += (2.4 - d) * 0.85;
       camPos.y = Math.max((player && G.mode === 'play' ? player.y : 0) + 0.35, camPos.y);
+      if (curZone && curZone.ceil !== undefined) camPos.y = Math.min(camPos.y, curZone.ceil - 0.3);
       if (rcol) { const ci = rcol.idx(camPos.x, camPos.z), fl = ci >= 0 ? rcol.floors[ci] : null; if (fl) for (const h of fl) if (h > o.y + 0.3 && h < camPos.y + 0.4) camPos.y = Math.min(camPos.y, h - 0.4); }
     }
     if (cam.shake > 0) { cam.shake = Math.max(0, cam.shake - dt); const a = cam.shake * 0.25; camPos.x += (Math.random() - 0.5) * a; camPos.y += (Math.random() - 0.5) * a; }
@@ -1076,6 +1125,12 @@ async function boot() {
         renderer.toneMappingExposure = 1.1;
       }
     }
+    // interiors of the district: their own light for the fighters (the rooms themselves are baked)
+    const mood = curZone && G.mode === 'play' ? MOODS[curZone.mood] : null;
+    if (mood && !crypt) {
+      hemi.color.set(mood.sky); hemi.groundColor.set(mood.ground); hemi.intensity = mood.hemi; key.color.set(mood.key); key.intensity = mood.keyI;
+      scene.fog.color.set(mood.fog); scene.fog.density = mood.fogD; scene.background.set(mood.fog); renderer.toneMappingExposure = mood.exp; lampU.uAmb.value.setRGB(...mood.amb);
+    } else if (curZone && curZone.mood === 'passage' && !crypt) { hemi.intensity *= 0.7; key.intensity *= 0.6; }
     // reflections of the (bright) gym capture on skin/clothes: dim them outdoors at night and in the crypt
     // characters get as much of it as the room does (more made them look lit up / glowing)
     // reflections outdoors come from the sky, not from the (bright white) gym: the street glowed with the gym in it
@@ -1089,7 +1144,8 @@ async function boot() {
     people.envK = envK; for (const m of people.mats) m.envMapIntensity = envK;
     // key light: follows the player; outdoors it comes from the sun/moon
     const ph = player ? player.hipsWorld() : cam.target;
-    if (outF > 0.5 && !crypt) { const d = o.elev > -2 ? env.sunDir : env.moonDir; key.position.set(ph.x + d.x * 30, Math.max(8, d.y * 30), ph.z + d.z * 30); }
+    if (mood) key.position.set(ph.x + 1.5, ph.y + 9, ph.z + 2);
+    else if (outF > 0.5 && !crypt) { const d = o.elev > -2 ? env.sunDir : env.moonDir; key.position.set(ph.x + d.x * 30, ph.y + Math.max(8, d.y * 30), ph.z + d.z * 30); }
     else key.position.set(ph.x + 3, 11, ph.z + 4);
     // move the shadow in whole shadow-map texels only (otherwise shadow edges shimmer while walking)
     { const off = keyOff.copy(key.position).sub(keyC.set(ph.x, 0, ph.z)); keyM.lookAt(off, keyZero, keyUp); keyMi.copy(keyM).invert();
@@ -1102,7 +1158,7 @@ async function boot() {
     const add = (s, w) => { if (w <= 0.01) return; const dx = s.pos.x - tx, dz = s.pos.z - tz; const score = w / (1 + (dx * dx + dz * dz) / (s.r * s.r * 4)); lampTmp.push([score, s, w]); };
     if (G.street && G.street.group.visible) {
       for (const s of G.street.lampSources) {
-        let w = s.kind === 'street' ? o.lamps : s.kind === 'flash' ? 1 : 0.1 + 0.9 * o.lamps;
+        let w = s.kind === 'street' ? o.lamps : s.kind === 'flash' || s.kind === 'room' ? 1 : 0.1 + 0.9 * o.lamps;
         if (s.kind === 'flash') { const ph2 = Math.floor(t * 5 + (s.phase || 0)) % 2; s.col.setRGB(ph2 ? 1.5 : 0, 0, ph2 ? 0 : 1.8); }
         add(s, w);
       }
@@ -1168,10 +1224,9 @@ async function boot() {
     }
     if (G.chapter === 'street' && G.myCar && Math.hypot(player.pos.x - G.myCar.x, player.pos.z - G.myCar.z) < 3.4 && !G.boss) return { label: 'JEDŹ', fn: openMap };
     if (G.place && G.chapter === G.place.def.key && Math.hypot(player.pos.x - G.place.exit.x, player.pos.z - G.place.exit.z) < 3.2) return { label: 'JEDŹ', fn: openMap };
-    if (G.chapter === 'street' && Math.hypot(player.pos.x - ST.door.x, player.pos.z - ST.door.z) < 2.2) {
-      if (G.cryptOpen) return { label: 'WEJDŹ', fn: enterCrypt };
-      return { label: 'ZAMKNIĘTE', fn: () => ui.banner('', 'Drzwi pilnuje Kafar. Najpierw pokonaj bossów na ulicy.', 2) };
-    }
+    // shop counter: buying (the healing rules come with the mission); closed passages: a short note
+    { const p = POINTS.shop_counter; if (Math.hypot(player.pos.x - p.x, player.pos.z - p.z) < 1.6 && Math.abs(player.y - p.y) < 0.6) return { label: 'SKLEP', fn: () => ui.shop(true, SHOP, upg, G.money) }; }
+    for (const [id, msg] of [['closed_forest', 'Droga do lasu z bunkrami jest zamknięta. Otworzy się później.'], ['closed_estate', 'Wjazd na osiedle domków jest zamknięty. Otworzy się po pokonaniu szefa.']]) { const p = POINTS[id]; if (Math.hypot(player.pos.x - p.x, player.pos.z - p.z) < 3.5) return { label: 'ZAMKNIĘTE', fn: () => ui.banner('', msg, 2.4) }; }
     return null;
   }
 
@@ -1290,7 +1345,10 @@ async function boot() {
 
     // zones: inside the hall the street (buildings, cars, walkers) is not drawn at all; it appears near the door
     const inHall = G.chapter === 'gym' && (G.mode !== 'play' || !player || player.pos.z < HALL.maxZ - 2.5);
-    if (G.street && (G.chapter === 'gym' || G.chapter === 'street')) G.street.group.visible = !inHall;
+    const zn = player && G.mode === 'play' && G.chapter === 'street' ? zoneAt(player.pos.x, player.y, player.pos.z) : null;
+    if (zn !== curZone) { curZone = zn; sound.setRoom(zn && (zn.mood === 'club' || zn.mood === 'cellar' || zn.mood === 'back') ? 'crypt' : zn && zn.mood === 'shop' ? 'gym' : G.chapter === 'gym' ? 'gym' : 'street'); }
+    const hideOut = !!(curZone && curZone.hideOut);
+    if (G.street && (G.chapter === 'gym' || G.chapter === 'street')) { G.street.group.visible = !inHall && !hideOut; gym.root.visible = !hideOut; if (G.district) G.district.interiors.group.visible = !inHall; }
     // street systems
     if (G.street && (G.chapter === 'street' || G.chapter === 'gym')) {
       G.street.update(dt, o, tAll);
@@ -1422,10 +1480,46 @@ async function boot() {
     const half = packBake(res);
     const gz = await new Response(new Blob([half.buffer]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
     const u = new Uint8Array(gz); let str = ''; for (let i = 0; i < u.length; i += 32768) str += String.fromCharCode.apply(null, u.subarray(i, i + 32768));
-    return { verts: half.length / 3, meshes: bakeList.length, occluders: occ.length, lights: gym.bakeLights.length, kb: Math.round(gz.byteLength / 1024), sec: ((performance.now() - t0) / 1000).toFixed(1), __file: { b64: btoa(str), path: '/home/claude/work/assets/bake/gym3.bin.gz' } };
+    return { verts: half.length / 3, meshes: bakeList.length, occluders: occ.length, lights: gym.bakeLights.length, kb: Math.round(gz.byteLength / 1024), sec: ((performance.now() - t0) / 1000).toFixed(1), __file: { b64: btoa(str), path: '/home/claude/braxhorn-city/public/assets/bake/gym3.bin.gz' } };
+  }
+  // offline: bake the district's daylight (sun 13:30 + sky + room lamps); harness writes public/assets/bake/city1.bin.gz
+  const CITY_SUN = (sd) => ({ dir: sd, col: new THREE.Color(1.0, 0.93, 0.8).multiplyScalar(1.15), spread: 0.025, rays: 3 });
+  const CITY_SKY = { zenith: new THREE.Color(0.40, 0.47, 0.58), horizon: new THREE.Color(0.58, 0.6, 0.62), bounce: new THREE.Color(0.17, 0.16, 0.145), dist: 70 };
+  function cityOccluders() {
+    const occ = [];
+    const okMat = (m) => (m.isMeshStandardMaterial || m.isMeshBasicMaterial || m.isMeshLambertMaterial) && !m.transparent && !(m.alphaTest > 0);
+    const add = (root) => root.traverse(o => { if (!o.isMesh || o.isSkinnedMesh || o.userData.noOcclude || o.name === 'shadowCatcher' || (o.userData.noBake && !o.userData.ground)) return; for (let p = o; p; p = p.parent) if (p.userData && p.userData.dynamic) return; const ms = Array.isArray(o.material) ? o.material : [o.material]; if (ms.every(okMat)) occ.push(o); });
+    add(G.street.group); add(G.district.interiors.group); add(gym.root);
+    return occ;
+  }
+  async function packFile(bytes, path) {
+    const gz = await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
+    const u = new Uint8Array(gz); let str = ''; for (let i = 0; i < u.length; i += 32768) str += String.fromCharCode.apply(null, u.subarray(i, i + 32768));
+    return { kb: Math.round(gz.byteLength / 1024), file: { b64: btoa(str), path } };
+  }
+  async function bakeCityGround() {
+    if (!G.street) await loadStreet();
+    const t0 = performance.now();
+    const solid = world.boxes.filter(b => (b.tag === 'bldg' || b.tag === 'block' || b.tag === 'room') && b.top > 3 && b.bottom < 0.5);
+    const rgb = bakeGroundMap({ occluders: cityOccluders(), heightAt: (x, z) => world.groundAt(x, z, 0.45), sun: CITY_SUN(env.sunDir.clone().normalize()), sky: CITY_SKY, scale: 2,
+      solidAt: (x, z) => solid.some(b => x > b.minX + 0.3 && x < b.maxX - 0.3 && z > b.minZ + 0.3 && z < b.maxZ - 0.3) });
+    const f = await packFile(rgb, '/home/claude/braxhorn-city/public/assets/' + CITY_GROUND);
+    return { kb: f.kb, sec: ((performance.now() - t0) / 1000).toFixed(1), __file: f.file };
+  }
+  async function bakeCity() {
+    if (!G.street) await loadStreet();
+    const t0 = performance.now();
+    const occ = cityOccluders();
+    const sd = env.sunDir.clone().normalize();
+    const res = bakeLighting({ receivers: cityBakeList, occluders: occ, lights: G.district.bakeLights, aoRays: 20, aoDist: 2.4, ambient: new THREE.Color(0.2, 0.19, 0.19), sun: CITY_SUN(sd), sky: CITY_SKY });
+    const half = packBake(res);
+    const gz = await new Response(new Blob([half.buffer]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
+    const u = new Uint8Array(gz); let str = ''; for (let i = 0; i < u.length; i += 32768) str += String.fromCharCode.apply(null, u.subarray(i, i + 32768));
+    return { verts: half.length / 3, meshes: cityBakeList.length, occluders: occ.length, kb: Math.round(gz.byteLength / 1024), sec: ((performance.now() - t0) / 1000).toFixed(1), sun: sd.toArray().map(v => +v.toFixed(3)), __file: { b64: btoa(str), path: '/home/claude/braxhorn-city/public/assets/' + CITY_BAKE } };
   }
   window.__mg = {
-    bakeGym, baked: () => baked,
+    bakeGym, baked: () => baked, bakeCity, bakeCityGround, cityBaked: () => cityBaked, POINTS, ZONES, jumpTo, zone: () => curZone && curZone.id,
+    freeCam(x, y, z, tx, ty, tz, fov = 55) { camera.position.set(x, y, z); camera.fov = fov; camera.updateProjectionMatrix(); camera.lookAt(tx, ty, tz); },
     THREE, A, G, env, world, actors, scene, renderer, progs: () => renderer.info.programs, get player() { return player; }, get cam() { return cam; }, camera, sound,
     sim(sec, ks = []) { ks.forEach(k => keys.add(k)); for (let i = 0; i < Math.round(sec * 60); i++) tick(1 / 60); ks.forEach(k => keys.delete(k)); },
     render, renderer, street: () => G.street, TUNE, charMats, bloom, act: (a) => actions.push(a), pause(v) { paused = v; }, joy, openMenu, closeMenu,

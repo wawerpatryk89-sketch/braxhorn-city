@@ -12,10 +12,12 @@ window.THREE = THREE; window.L = L; window.R = R;
 // views: [{type:'top'} | {type:'persp', az, el, k} | {type:'side', axis:'x'|'z', dir:1|-1}]
 window.shots = async (url, views, opts = {}) => {
   const g = await L.loadAsync(url); const root = g.scene;
+  if (opts.only) { const keep = []; root.traverse(o => { if (o.isMesh && opts.only.some(n => o.name === n || (n.endsWith('*') && o.name.startsWith(n.slice(0, -1))))) keep.push(o); }); root.traverse(o => { if (o.isMesh && !keep.includes(o)) o.visible = false; }); }
+  if (opts.only) { root.updateMatrixWorld(true); }
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0x30363e);
   scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 2.2)); const d = new THREE.DirectionalLight(0xffffff, 2); d.position.set(3, 5, 2); scene.add(d);
   scene.add(root); root.updateMatrixWorld(true);
-  const b = new THREE.Box3().setFromObject(root), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
+  const b = new THREE.Box3(); root.traverse(o => { if (o.isMesh && o.visible) b.expandByObject(o); }); const c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3());
   // grid every 5 m at the lowest point
   if (opts.grid !== false) { const gr = new THREE.GridHelper(Math.ceil(Math.max(s.x, s.z) / 5) * 5 + 10, Math.ceil(Math.max(s.x, s.z) / 5) + 2, 0xff3355, 0x88ff44); gr.position.set(Math.round(c.x / 5) * 5, b.min.y + 0.02, Math.round(c.z / 5) * 5); scene.add(gr); }
   const out = []; let tris = 0; root.traverse(o => { if (o.isMesh) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });

@@ -172,3 +172,13 @@ cd /home/claude/work && python3 tools/build_web.py          # → dist/
 cp -r dist/* braxhorn-city/public/ && git push                # Vercel publikuje sam
 ```
 Postacie: `node tools/run_js.mjs convert.html <skrypt eksportu>` (Playwright + three.js w przeglądarce).
+
+## Plansza 1: miasto według zlecenia „Dług w Braxhorn” (28.10, wieczór)
+
+- Pliki: `dev/src/district.js` (nabrzeże, pierzeja z bramą, podwórko z boiskiem, zamknięte przejścia, punkty i trasy), `dev/src/interiors.js` (sklep BRAXHORN NUTRITION, dyskoteka NOVA z przedsionkiem, salą, barem, zapleczem, schodami i piwnicą), `dev/src/citytex.js` (tekstury), `dev/src/street.js` (ulica od nabrzeża x = −66 do bramy osiedla x = 104).
+- Usunięte: odrzucone skany (Baltimore, spalony sklep, NY, magazyn, klub, willa, zaułek, Trump Village), przecznica, wypełniacze `outer.js`, kordon policji, napis KRYPTA, świecące neony. Na mapie w pauzie są tylko punkty dzielnicy.
+- Zamknięte przejścia: na południu, na końcu nabrzeża, droga do lasu z bunkrami z kawałkiem prawdziwego lasu z `las_droga` (`public/assets/city/forest.glb`); na wschodzie, za wiaduktem, brama „Osiedle domków” na x = 104. Za bramą jest tylko pusta jezdnia, bo osiedle (plansza 2) robi osobny czat i trzeba je tam podłączyć (jezdnia z 24…33, chodniki z 20,6…24 i 33…36,1, poziom chodnika 0,15).
+- Nazwane punkty misji: `dev/docs/plansza1_punkty.md` (w grze `__mg.POINTS`, `__mg.jumpTo(id)`). Strefy wnętrz (`ZONES`): sufit kamery, nastrój światła postaci i ukrywanie ulicy w klubie i piwnicy.
+- Światło: `bake/city1.bin.gz` (wierzchołki ścian, rekwizytów i wnętrz) + `bake/city1_ground.bin.gz` (tekstura światła podłóg z góry, 0,3 m). Pieczenie: `node dev/tools/play2.mjs <kroki z __mg.bakeCityGround() i __mg.bakeCity()>`. Po zmianie geometrii trzeba upiec od nowa i podnieść numer pliku.
+- Kolizje: `world.pit()` pozwala na podłogi poniżej 0 (piwnica, klatka schodowa). Modele po gltfpack mają skwantowane współrzędne: przed przekształceniem zawsze `floatGeo()` (bake.js).
+- Na później: podziemny klub walk pod wiaduktem (starcie nr 3), ruch aut, przechodnie (trasy są w `ROUTES`).

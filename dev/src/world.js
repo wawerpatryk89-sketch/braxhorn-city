@@ -3,7 +3,10 @@
 export const STEP_UP = 0.36;
 
 export class World {
-  constructor() { this.boxes = []; this.circles = []; this.dynamic = []; this.regions = []; }
+  constructor() { this.boxes = []; this.circles = []; this.dynamic = []; this.regions = []; this.pits = []; }
+  // areas whose base floor is below 0 (cellars, stairwells): without a pit the default floor is y = 0
+  pit(minX, maxX, minZ, maxZ, y) { const p = { minX, maxX, minZ, maxZ, y }; this.pits.push(p); return p; }
+  baseAt(x, z) { for (const p of this.pits) if (x >= p.minX && x <= p.maxX && z >= p.minZ && z <= p.maxZ) return p.y; return 0; }
   // mesh-derived collision for a rectangular area (villa, scanned arenas)
   addRegion(minX, maxX, minZ, maxZ, col) { const r = { minX, maxX, minZ, maxZ, col }; this.regions.push(r); return r; }
   regionAt(x, z) { for (const r of this.regions) if (!r.off && x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ) return r; return null; }
@@ -14,7 +17,7 @@ export class World {
   // highest walkable surface under (x,z) that is reachable from height y
   groundAt(x, z, y, r = 0) {
     const reg = this.regionAt(x, z);
-    let g = reg ? Math.max(-100, reg.col.groundAt(x, z, y)) : 0;
+    let g = reg ? Math.max(-100, reg.col.groundAt(x, z, y)) : this.baseAt(x, z);
     for (const b of this.boxes) {
       if (b.top > y + STEP_UP || b.bottom > y + 0.05) continue;
       if (x >= b.minX - r * 0.3 && x <= b.maxX + r * 0.3 && z >= b.minZ - r * 0.3 && z <= b.maxZ + r * 0.3) g = Math.max(g, b.top);
