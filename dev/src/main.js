@@ -71,7 +71,7 @@ async function boot() {
   try { await Promise.race([document.fonts.load('800 100px "Big Shoulders Display"'), new Promise(r => setTimeout(r, 2500))]); } catch { }
   let landscape = store.get('land', true);
   applyOrientation(landscape, isTouch);
-  let qKey = store.get('quality2', isTouch && !isIOS ? 'medium' : 'high'); if (!QUALITY[qKey]) qKey = 'medium';
+  let qKey = store.get('quality3', 'high'); if (!QUALITY[qKey]) qKey = 'high';
   const Q = { ...QUALITY[qKey] };
   const loadMsg = (m) => { const el = $('loadMsg'); if (el) el.textContent = m; };
 
@@ -81,7 +81,8 @@ async function boot() {
   canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); fail('Telefonowi zabrakło pamięci grafiki. Zamknij kartę i otwórz grę ponownie, najlepiej z jakością Niska.'); });
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
   if (renderer.getContext().isContextLost()) { fail('Przeglądarka nie dała grze dostępu do grafiki 3D.'); return; }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.dpr));
+  const dyn = { max: Q.dpr, cur: Math.min(window.devicePixelRatio || 1, Q.dpr), acc: 0, n: 0, t: 0, cool: 3 };
+  renderer.setPixelRatio(dyn.cur);
   renderer.setSize(view.w(), view.h(), false);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -160,7 +161,7 @@ async function boot() {
   // ---------------- post ----------------
   const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(view.w(), view.h(), { type: THREE.HalfFloatType, samples: Q.msaa }));
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.42, 0.45, 0.95);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.3, 0.5, 0.98);
   bloom.enabled = Q.bloom > 0; composer.addPass(bloom);
   const grade = new GradePass(); composer.addPass(grade);
   function resize() {
@@ -178,8 +179,8 @@ async function boot() {
   resize();
   let floorReflect = Q.reflections;
   function applyQuality(k) {
-    qKey = k; Object.assign(Q, QUALITY[k]); store.set('quality2', k);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, Q.dpr));
+    qKey = k; Object.assign(Q, QUALITY[k]); store.set('quality3', k); dyn.max = Q.dpr; dyn.cur = Math.min(window.devicePixelRatio || 1, Q.dpr);
+    renderer.setPixelRatio(dyn.cur);
     floor.uniforms.reflStrength.value = Q.reflections ? 1 : 0; bloom.enabled = Q.bloom > 0;
     for (const c of gym.cones || []) c.visible = Q.cones;
     for (const l of gym.lights) { if (l.isSpotLight) l.visible = l.userData.rank < Q.spots; else if (l.userData.tier) l.visible = l.userData.tier <= Q.pointLights; }
@@ -993,7 +994,7 @@ async function boot() {
       hemi.color.lerpColors(GYM_HEMI.sky, hemi.color.clone(), k); hemi.groundColor.lerpColors(GYM_HEMI.ground, hemi.groundColor.clone(), k);
       hemi.intensity = GYM_HEMI.i * (1 - k) + hemi.intensity * k;
       key.color.lerpColors(GYM_KEY.c, key.color.clone(), k); key.intensity = GYM_KEY.i * (1 - k) + key.intensity * k;
-      scene.fog.color.lerpColors(fogIn, env.fogColor, k); scene.fog.density = 0.011 * (1 - k) + (0.0055 + 0.012 * o.night) * k;
+      scene.fog.color.lerpColors(fogIn, env.fogColor, k); scene.fog.density = 0.0065 * (1 - k) + (0.0055 + 0.0075 * o.night) * k;
       scene.background.copy(env.fogColor);
       lampU.uAmb.value.copy(env.amb);
       renderer.toneMappingExposure = 1.12 * (1 - k) + (1.0 + 0.15 * o.night) * k;
@@ -1287,9 +1288,21 @@ async function boot() {
     composer.render();
   }
   let paused = false, frameErrors = 0;
+  // dynamic resolution: keep ~50+ fps by moving the pixel ratio between 1.0 and the quality's maximum
+  function dynRes(d) {
+    if (d > 0.25) return; // tab switch / hitch
+    dyn.acc += d; dyn.n++; dyn.t += d; dyn.cool -= d;
+    if (dyn.t < 2.0) return;
+    const avg = dyn.acc / dyn.n; dyn.acc = dyn.n = dyn.t = 0;
+    let next = dyn.cur;
+    if (avg > 1 / 43 && dyn.cur > 1.0) { next = Math.max(1.0, dyn.cur - (avg > 1 / 30 ? 0.35 : 0.2)); dyn.cool = 6; }
+    else if (avg < 1 / 57 && dyn.cur < dyn.max && dyn.cool <= 0) { next = Math.min(dyn.max, dyn.cur + 0.15); dyn.cool = 4; }
+    if (Math.abs(next - dyn.cur) > 0.01) { dyn.cur = next; renderer.setPixelRatio(dyn.cur); resize(); }
+  }
   function frame() {
     requestAnimationFrame(frame);
     const d = clock.getDelta(); if (paused) return;
+    if (!menuOpen && G.mode === 'play') dynRes(d);
     if (menuOpen) { while (actions.length) menuAction(actions.shift()); return; }
     if (!$('map').hidden) { actions.length = 0; return; }
     try { tick(d); render(); }

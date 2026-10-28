@@ -46,8 +46,10 @@ roughnessFactor = mix( roughnessFactor, roughnessFactor * 0.35, wetK );`)
   vec2 bend = ( normal.xy - nonPerturbedNormal.xy ) * 0.028;
   ruv += bend * ( 0.4 + wetK );
   vec3 acc = vec3( 0.0 ); float wsum = 0.0;
+  // per-pixel jitter of the taps (interleaved gradient noise): smooth streaks instead of rows of dots
+  float ign = fract( 52.9829189 * fract( dot( gl_FragCoord.xy, vec2( 0.06711056, 0.00583715 ) ) ) );
   for ( int i = -${taps}; i <= ${taps}; i ++ ) {
-    float fi = float( i ) / float( ${taps} );
+    float fi = ( float( i ) + ign - 0.5 ) / float( ${taps} );
     float w = exp( -fi * fi * 2.2 );
     vec2 o = vec2( fi * reflTexel.x * 1.5, fi * reflTexel.y * streak * ( 0.7 + 0.8 * wetK ) );
     acc += texture2D( tRefl, ruv + o ).rgb * w; wsum += w;
