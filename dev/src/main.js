@@ -32,8 +32,12 @@ const QUALITY = {
 };
 const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-// High on a phone = the same as on a computer (only the floor mirror and the hazy light shafts stay off everywhere on touch)
-if (isTouch) for (const [k, q] of Object.entries(QUALITY)) { q.reflections = false; q.cones = false; if (k !== 'high') { q.msaa = k === 'medium' ? 2 : 0; q.dpr = Math.min(q.dpr, 1.5); } }
+// phones: edge smoothing always on in High/Medium (no flicker); everything lit live is expensive, so High is
+// 1.5x pixels with 4x MSAA (looks as sharp as 2x without MSAA), 4 spotlights, 1 point light, 1024 shadows
+if (isTouch) for (const [k, q] of Object.entries(QUALITY)) {
+  q.reflections = false; q.cones = false; q.shadow = 1024; q.bloom = Math.min(q.bloom, 0.6);
+  Object.assign(q, { high: { dpr: 1.5, msaa: 4, spots: 4, pointLights: 1 }, medium: { dpr: 1.25, msaa: 2, spots: 3, pointLights: 1 }, low: { dpr: 1, msaa: 0, spots: 3, pointLights: 1 } }[k]);
+}
 const flat = (a, b) => Math.hypot(a.pos.x - b.pos.x, a.pos.z - b.pos.z);
 const rand = (a, b) => a + Math.random() * (b - a);
 const fmtMoney = (v) => '$' + Math.round(v).toLocaleString('pl-PL');
