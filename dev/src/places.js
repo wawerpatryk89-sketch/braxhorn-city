@@ -37,6 +37,16 @@ export const PLACES = {
       intro: 'Każdy dolar w tej hali jest policzony. Ty też zaraz będziesz.', outro: 'Rachunek… się nie zgadza…' },
     waves: [['Ch12_nonPBR', 'Ch22_nonPBR'], ['Ch26_nonPBR', 'Ch31_nonPBR', 'Ch47_nonPBR'], ['Big_Vegas', 'The_Boss', 'Remy']],
   },
+  fitness: {
+    key: 'fitness', file: 'fitness.glb', title: 'Klub Złoty Róg', sub: 'Elegancki fitness klub. Za ladą recepcji Czerwony Róg pierze pieniądze.', lit: true, scale: 0.1,
+    at: [-700, 0, 700], rotY: 0, mood: 'bright', room: 'gym',
+    play: [40, 148, -54, 73], spawn: [126, 46], exit: [121, 51], face: -2.28,
+    gang: [[90, 25], [78, 12], [100, 5], [70, -5], [95, -20]],
+    lamps: { from: -40, to: 60, every: 25, y: 4.0, col: [1.0, 0.97, 0.92], k: 0.6, r: 9 },
+    reward: 1500, boss: { name: 'Trener', title: 'Właściciel klubu Złoty Róg', person: 'Ch31_nonPBR', hp: 320, size: 1.15, dmg: 1.15, moves: ['jab', 'hook', 'kick', 'kicks', 'knee', 'mma2'], reward: 700,
+      intro: 'Karnet się skończył. Wynocha albo cię wyniosą.', outro: 'Dobra… daję ci… darmowy miesiąc…' },
+    waves: [['Arissa', 'Kachujin_G_Rosales'], ['Ch12_nonPBR', 'Ch26_nonPBR', 'Lola_B_Styperek'], ['Ch47_nonPBR', 'Ch22_nonPBR', 'Big_Vegas']],
+  },
 };
 
 export async function buildPlace(def, { scene, world, A, onStatus }) {
@@ -44,7 +54,7 @@ export async function buildPlace(def, { scene, world, A, onStatus }) {
   const out = { def, group: G, lampSources: [], glows: [] };
   const g = await A.loadGLTF(def.file);
   const root = g.scene;
-  const holder = new THREE.Group(); holder.add(root); holder.rotation.y = def.rotY; holder.position.set(...def.at); G.add(holder);
+  const holder = new THREE.Group(); holder.add(root); holder.rotation.y = def.rotY; holder.position.set(...def.at); if (def.scale) holder.scale.setScalar(def.scale); G.add(holder);
   holder.updateMatrixWorld(true);
   root.traverse(o => { if (o.isMesh) { addLampField(o.material, def.lit ? 'lit' : 'baked'); o.layers.set(3); if (def.lit) { o.receiveShadow = true; } } });
   const L = (x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(holder.matrixWorld);

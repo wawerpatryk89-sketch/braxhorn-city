@@ -1001,6 +1001,12 @@ async function boot() {
       scene.background.copy(env.fogColor);
       lampU.uAmb.value.copy(env.amb);
       renderer.toneMappingExposure = 1.12 * (1 - k) + (1.0 + 0.15 * o.night) * k;
+      if (placeMood === 'bright') {
+        // clean fitness club: even white ceiling light
+        hemi.color.set(0xe9eef2); hemi.groundColor.set(0x8c8a86); hemi.intensity = 1.3; key.color.set(0xffffff); key.intensity = 1.4;
+        lampU.uAmb.value.setRGB(1, 1, 1); scene.fog.color.set(0xb9bec4); scene.fog.density = 0.002; scene.background.set(0xb9bec4);
+        renderer.toneMappingExposure = 1.0;
+      }
       if (placeMood === 'indoor') {
         // tunnel: dim daylight from the portals, sodium lamps carry the scene
         hemi.intensity *= 0.35; key.intensity *= 0.15;
@@ -1295,8 +1301,8 @@ async function boot() {
   function render() {
     env.sky.position.copy(camera.position);
     const gu = grade.uniforms; gu.uTime.value = tAll;
-    const low = player && G.mode === 'play' && player.hp < player.maxHp * 0.3 ? 0.35 + 0.15 * Math.sin(tAll * 6) : 0;
-    hurtT = Math.max(0, hurtT - 0.045); gu.uHurt.value = Math.max(low, hurtT * 0.9);
+    const low = player && G.mode === 'play' && player.hp < player.maxHp * 0.3 ? 0.28 + 0.12 * Math.sin(tAll * 6) : 0;
+    hurtT = Math.max(0, hurtT - 0.06); gu.uHurt.value = Math.max(low, hurtT * 0.6);
     gu.uVig.value = G.chapter === 'crypt' ? 0.55 : 0.42;
     if (floorReflect && G.chapter !== 'crypt' && (!player || player.pos.z < ALLEY.z1 + 6)) floor.update(renderer, scene, camera);
     composer.render();

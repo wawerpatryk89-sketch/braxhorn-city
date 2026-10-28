@@ -31,7 +31,7 @@ void main() {
   float v = 1.0 - smoothstep(0.18, 0.62, length(q)) * uVig;
   c.rgb *= v;
   float hl = dot(c.rgb, vec3(0.333));
-  c.rgb = mix(c.rgb, vec3(hl) * vec3(1.35, 0.55, 0.5), uHurt * smoothstep(0.25, 0.7, length(q)));
+  c.rgb = mix(c.rgb, vec3(hl) * vec3(1.3, 0.45, 0.4), uHurt * smoothstep(0.38, 0.78, length(q)));
   c.rgb += (hash(gl_FragCoord.xy + fract(uTime * 7.13) * 917.0) - 0.5) * uGrain;
   gl_FragColor = c;
 }`;
