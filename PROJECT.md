@@ -78,6 +78,7 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 - W grze: MeshBasicMaterial (tekstura × upieczone światło × `BAKE_GAIN` 1.75), siatki bez cieni na żywo; nakładka ShadowMaterial na podłodze i ringu daje cienie postaci. Zaułek (`userData.outside`, zewnętrzna połowa ściany frontowej) zostaje na żywo, bo ma dzień i noc.
 - Strefy: w hali ulica, jej auta i przechodnie nie są rysowane (pojawiają się 2,5 m przed drzwiami).
 - W siłowni widać ok. 160 tys. trójkątów i 190 wywołań rysowania.
+- Bez świecenia (14:10): bloom wyłączony na każdej jakości, a halo wokół lamp usunięte. Przy upieczonej siłowni reflektory i światła punktowe w środku (`userData.interior`) są wyłączone, bo tylko dokładały światła postaciom. Postacie: `TUNE = { charEnv: 0.12, hemi: 0.85, key: 1.6 }`, roughness 0.6. Użytkownik nie chce świecących efektów: mają dobry wygląd zabierać i zamulać.
 
 ## Jakość na telefonie (28.10, 13:30)
 
