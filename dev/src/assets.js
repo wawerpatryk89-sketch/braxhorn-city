@@ -37,6 +37,7 @@ export function loadRig(path) {
   }));
   return cache.get(path);
 }
+export async function loadBin(path) { const b = new Uint8Array(await fetchBuf(path)); return path.endsWith('.gz') ? gunzipSync(b) : b; }
 export async function loadJSON(path) { return JSON.parse(new TextDecoder().decode(await fetchBuf(path))); }
 export function loadTex(path, srgb = true, opts = {}) {
   const key = 'tex:' + path + srgb;

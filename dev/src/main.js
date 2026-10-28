@@ -18,6 +18,7 @@ import { DayNight, lampU, LAMP_N, addLampField, smooth } from './env.js';
 import { buildStreet, ST, prepareCar, CARS } from './street.js';
 import { Traffic } from './traffic.js';
 import { buildCrypt, CRYPT } from './crypt.js';
+import { People } from './people.js';
 import { HEROES, PROLOGUE, CHAPTERS, BOSSES, CRYPT_BOSSES, ZOMBIE, ENDING, HINTS } from './story.js';
 
 const $ = (id) => document.getElementById(id);
@@ -184,6 +185,7 @@ async function boot() {
 
   // ---------------- UI ----------------
   const ui = new UI({ isTouch, quality: QUALITY, qKey, sound, moves: MOVE_LIST });
+  const people = new People({ scene, world, A });
   const save = { money: store.get('money', 0), best: store.get('best', 0) };
   const G = { mode: 'title', chapter: 'gym', hero: null, money: save.money, bossIdx: 0, boss: null, lock: null, street: null, crypt: null, traffic: null, zombies: [], pickups: [], caseJob: null, bat: null, cryptStage: 0, hintT: 0, nightWas: null, kills: 0, specialIdx: 0 };
   ui.money(G.money);
@@ -259,7 +261,8 @@ async function boot() {
     await ui.chapter(CHAPTERS.gym);
     ui.objective(HINTS.gymStart);
     sound.setRoom('gym');
-    // stream the street in the background
+    // gym members, then stream the street in the background
+    people.populateGym().catch(e => console.warn('gym people', e));
     loadStreet().catch(e => console.error(e));
   }
 
@@ -288,6 +291,7 @@ async function boot() {
       spawnBatPickup(new THREE.Vector3(ALLEY.x0 + 2.2, 0, ALLEY.z1 - 2.6));
       // sky reflection map for the street
       G.street = st;
+      people.populateStreet(ST, isTouch ? 6 : 9).catch(e => console.warn('street people', e));
       // preload the first bosses + zombies
       loadChar('tiger'); loadChar('zombie'); loadChar('tiger2'); loadChar('fant'); loadChar('musc');
       return st;
@@ -888,7 +892,7 @@ async function boot() {
       // chapter transitions
       if (G.chapter === 'gym' && player.pos.z > ALLEY.z1 - 0.2) {
         if (!G.street) { if (!G.waitStreet) { G.waitStreet = true; ui.loading(true, 'Ładuję ulicę…'); loadStreet().then(() => { ui.loading(false); G.waitStreet = false; }); } player.pos.z = ALLEY.z1 - 0.3; }
-        else { G.chapter = 'street'; ui.chapter(CHAPTERS.street); ui.objective(HINTS.street); sound.setRoom('street'); partner.root.visible = false; partner.col.top = -10; G.caseCd = 25; }
+        else { G.chapter = 'street'; if (!G.streetShown) { G.streetShown = true; ui.chapter(CHAPTERS.street); } ui.objective(G.cryptOpen ? HINTS.crypt : HINTS.street); sound.setRoom('street'); partner.root.visible = false; partner.col.top = -10; G.caseCd = 25; }
       } else if (G.chapter === 'street' && player.pos.z < ALLEY.z1 - 1.0 && player.pos.x > ALLEY.x0 && player.pos.x < ALLEY.x1) {
         G.chapter = 'gym'; sound.setRoom('gym'); partner.root.visible = true; partner.col.top = partner.y + partner.height;
         if (G.carry) deliverCase();
@@ -932,6 +936,12 @@ async function boot() {
       }, tAll);
     }
     if (G.crypt && G.chapter === 'crypt') G.crypt.update(dt, tAll);
+    if (people.list.length && G.chapter !== 'crypt') {
+      const threats = [];
+      for (const a of actors) if (a.team === 'enemy' && !a.dead && a.root.visible) threats.push({ x: a.pos.x, z: a.pos.z, r: 8 });
+      if (player && (player.state === 'attack' || G.boss)) threats.push({ x: player.pos.x, z: player.pos.z, r: 6 });
+      people.update(dt, { threats, camPos: camera.position, night: o.night, bounds: { x0: ST.x0, x1: ST.x1 - 2 } });
+    }
     // night: zombies
     if (playing && G.chapter === 'street') {
       updateBossTriggers();

@@ -35,6 +35,9 @@ out = {k: ({kk: v[kk] for kk in keep if kk in v} if not k.startswith('__') else 
 json.dump(out, open(f'{AS}/chars/clips.json', 'w'), separators=(',', ':'))
 for f in os.listdir(f'{W}/assets/src'):
     if f.endswith('.glb') and not f.startswith('test'): shutil.copy(f'{W}/assets/src/{f}', f'{AS}/{f}')
+os.makedirs(f'{AS}/people', exist_ok=True)
+for f in os.listdir(f'{W}/assets/people'):
+    if f.endswith('.glb') or f.endswith('.json.gz'): shutil.copy(f'{W}/assets/people/{f}', f'{AS}/people/{f}')
 for f in ('wide', 'badge', 'poster', 'mark'):
     src = f'{W}/logos/{f}_t.webp'
     if f == 'poster': Image.open(f'{W}/logos/poster.png').convert('RGB').resize((720, int(720 * 2556 / 1179)), Image.LANCZOS).save(f'{AS}/logo/poster.webp', quality=86)
