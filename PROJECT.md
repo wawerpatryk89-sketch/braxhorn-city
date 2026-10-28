@@ -87,6 +87,9 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 - Strefy: w hali ulica, jej auta i przechodnie nie są rysowane (pojawiają się 2,5 m przed drzwiami).
 - W siłowni widać ok. 160 tys. trójkątów i 190 wywołań rysowania.
 - Bez świecenia (14:10): bloom wyłączony na każdej jakości, a halo wokół lamp usunięte. Przy upieczonej siłowni reflektory i światła punktowe w środku (`userData.interior`) są wyłączone, bo tylko dokładały światła postaciom. Postacie: `TUNE = { charEnv: 0.12, hemi: 0.85, key: 1.6 }`, roughness 0.6. Użytkownik nie chce świecących efektów: mają dobry wygląd zabierać i zamulać.
+- Bez LED-ów (14:20): zielone listwy, łuki i półki to matowa farba (`ledGreen` = MeshStandard, pieczona). Ramka LED wokół drzwi, zielone rurki neonowe i zielone światła w pieczeniu (gym3.bin.gz) usunięte. Wszystkie napisy (BRAXHORN GYM, OPEN 24/7, WYJŚCIE) malowane, oświetlone jak reszta. Liny ringu złamana biel/ciemna zieleń. Drzwi matowe (metal odbijał salę na srebrno), słabsze lampy w zaułku.
+- Ulica: bez poświat wokół lamp, żarówki latarni małe, neony sklepów bez blasku (zwykłe krycie, ostry napis), graffiti byka usunięte z zaułka. Pole lamp: światła na granicy wyboru 8 najbliższych płynnie wygasają (wcześniej przeskakiwały i ściany/okna mrugały).
+- Na razie tylko dzień: `DAY_ONLY` w main.js (godz. 13:30, zegar stoi), przycisk „Przyspiesz czas” ukryty.
 
 ## Jakość na telefonie (28.10, 13:30)
 

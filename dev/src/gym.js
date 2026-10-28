@@ -111,23 +111,31 @@ export function buildGym(scene, world, quality, font, logos = null) {
   const beamMat = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.5, color: 0x1b1d20 });
   const plyMat = new THREE.MeshStandardMaterial({ map: woodT, roughness: 0.7, color: 0xe6c79a });
   const foamBlack = new THREE.MeshStandardMaterial({ color: 0x1a1b1e, roughness: 0.78 });
-  const greenPaint = new THREE.MeshStandardMaterial({ color: 0x5fd422, roughness: 0.5, metalness: 0.1 });
-  const ledGreen = new THREE.MeshBasicMaterial({ color: new THREE.Color(GREEN).multiplyScalar(1.2) });
+  const greenPaint = new THREE.MeshStandardMaterial({ color: 0x4caa1c, roughness: 0.6 });
+  // green trim is matte paint, lit like everything else (no self-glowing LED strips: the player does not want glow)
+  const ledGreen = new THREE.MeshStandardMaterial({ color: 0x4caa1c, roughness: 0.6 });
+  const paintSign = (text, color, w = 1024, h = 256) => {
+    const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+    x.font = `800 ${h * 0.6 | 0}px ${font}`; x.textAlign = 'center'; x.textBaseline = 'middle';
+    const tw = x.measureText(text).width; if (tw > w * 0.9) x.font = `800 ${h * 0.6 * w * 0.9 / tw | 0}px ${font}`;
+    x.fillStyle = color; x.fillText(text, w / 2, h / 2 + h * 0.03);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+  };
   const wainMat = new THREE.MeshStandardMaterial({ color: 0x0c0d0f, roughness: 0.5, metalness: 0.15 });
   const ironMat = new THREE.MeshStandardMaterial({ color: 0x1d2024, roughness: 0.45, metalness: 0.75 });
   const steelMat = new THREE.MeshStandardMaterial({ color: 0x6f757c, roughness: 0.35, metalness: 0.9 });
   const ductMat = new THREE.MeshStandardMaterial({ color: 0x4a4f55, roughness: 0.5, metalness: 0.8 });
-  const ropeMat = new THREE.MeshStandardMaterial({ color: 0xe9ebe6, roughness: 0.55 });
-  const ropeGreen = new THREE.MeshStandardMaterial({ color: 0x6fe02c, roughness: 0.5 });
+  const ropeMat = new THREE.MeshStandardMaterial({ color: 0x9da09a, roughness: 0.8 }); // off-white cloth: pure white glared under the ring lamps
+  const ropeGreen = new THREE.MeshStandardMaterial({ color: 0x3f8f18, roughness: 0.8 });
   const rubberMat = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.82 });
-  const padGreen = new THREE.MeshStandardMaterial({ color: 0x58c41f, roughness: 0.5 });
+  const padGreen = new THREE.MeshStandardMaterial({ color: 0x46a01a, roughness: 0.7 });
   const padBlack = new THREE.MeshStandardMaterial({ color: 0x15161a, roughness: 0.6 });
   const lockerMat = new THREE.MeshStandardMaterial({ color: 0x16181b, roughness: 0.45, metalness: 0.55 });
   // supplement tubs on the shelves: black, white and green
   const shelfStuff = [0x101113, 0xd9dcd6, 0x101113, 0x4fb51c, 0x1e2023].map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.45 }));
   const shadeOut = new THREE.MeshStandardMaterial({ color: 0x24272b, roughness: 0.4, metalness: 0.85, side: THREE.DoubleSide });
-  const shadeIn = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xf6f8ff).multiplyScalar(4.5) });
-  const warmBulb = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xeef2ff).multiplyScalar(4) });
+  const shadeIn = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xf6f8ff).multiplyScalar(2.2) });
+  const warmBulb = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xeef2ff).multiplyScalar(1.8) });
   const coneWarm = lightConeMaterial(0xe9eef8, 0.014);
 
   // ---------------- floor sides / walls ----------------
@@ -194,11 +202,6 @@ export function buildGym(scene, world, quality, font, logos = null) {
     for (let x = x0; x < x1 - 0.05; x += PW) { const xe = Math.min(x + PW, x1); Bt.box(wainMat, (x + xe) / 2, WH / 2, z + dir * 0.025, xe - x - 0.014, WH, 0.05); }
     Bt.box(ledGreen, (x0 + x1) / 2, WH + 0.025, z + dir * 0.05, x1 - x0, 0.05, 0.03, { receive: false });
   };
-  const ledGlowX = (x, z0, z1, dir) => { for (let z = z0 + 1.2; z < z1 - 0.6; z += 2.4) BL(x + dir * 0.15, WH + 0.03, z, GREEN, 0.22, 1.9); };
-  const ledGlowZ = (z, x0, x1, dir) => { for (let x = x0 + 1.2; x < x1 - 0.6; x += 2.4) BL(x, WH + 0.03, z + dir * 0.15, GREEN, 0.22, 1.9); };
-  ledGlowX(minX, minZ, maxZ, 1); ledGlowX(maxX, minZ, maxZ, -1); ledGlowZ(maxZ, minX, D.x0 - 0.15, -1); ledGlowZ(maxZ, D.x1 + 0.15, maxX, -1);
-  for (let i = 0; i < pier.length; i += 2) ledGlowZ(minZ, pier[i], pier[i + 1], 1);
-  for (const cx of arches) for (const a of [0.35, 1.2, 1.95, 2.8]) BL(cx + Math.cos(a) * (aw + 0.21), spring + Math.sin(a) * (aw + 0.21), minZ + 0.3, GREEN, 0.3, 2.4);
   wainX(BC.nx, minX, minZ, maxZ, 1); wainX(BC.px, maxX, minZ, maxZ, -1);
   wainZ(BC.pz, maxZ, minX, D.x0 - 0.15, -1); wainZ(BC.pz, maxZ, D.x1 + 0.15, maxX, -1);
   for (let i = 0; i < pier.length; i += 2) wainZ(BC.nz, minZ, pier[i], pier[i + 1], 1);
@@ -241,7 +244,7 @@ export function buildGym(scene, world, quality, font, logos = null) {
     BC.nz.box(ironMat, sx, sy, sz, aw * 1.5, 0.06, 0.08);
     BC.nz.box(ledGreen, sx, sy - 0.035, sz + 0.03, aw * 1.45, 0.02, 0.04, { receive: false });
     LS(sx, sy - 0.3, sz + 0.9, 0xf4f4f0, 0.6, 5);
-    BL(sx, sy - 0.15, sz + 0.45, 0xf2f4ff, 2.2, 5.5, null, 0.4); BL(sx, sy - 0.1, sz + 0.2, GREEN, 0.35, 2.2);
+    BL(sx, sy - 0.15, sz + 0.45, 0xf2f4ff, 2.2, 5.5, null, 0.4);
     { const pl = new THREE.PointLight(0xf2f4ff, 8, 8, 2); pl.position.set(sx, sy - 0.2, sz + 0.9); pl.userData.tier = i === 1 ? 1 : 2; pl.userData.interior = true; pl.visible = pl.userData.tier <= quality.pointLights; scene.add(pl); out.lights.push(pl); }
   });
 
@@ -480,31 +483,27 @@ export function buildGym(scene, world, quality, font, logos = null) {
   // front steel door
   {
     const D = DOOR, dw = D.x1 - D.x0;
-    const doorMat = new THREE.MeshStandardMaterial({ color: 0x141518, roughness: 0.4, metalness: 0.7 });
+    const doorMat = new THREE.MeshStandardMaterial({ color: 0x1a1b1e, roughness: 0.75, metalness: 0.1 });
+    const doorTrim = new THREE.MeshStandardMaterial({ color: 0x2a2c30, roughness: 0.7, metalness: 0.15 });
     const pivot = new THREE.Group(); pivot.position.set(D.x0, 0, maxZ + wallT - 0.04);
     const panel = new THREE.Mesh(new THREE.BoxGeometry(dw - 0.04, D.h - 0.04, 0.07), doorMat);
     panel.position.set(dw / 2, D.h / 2, 0); panel.castShadow = true; panel.receiveShadow = true; pivot.add(panel);
-    for (const [y, z] of [[0.9, -0.07], [1.45, 0.07]]) { const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, dw * 0.7, 8).rotateZ(Math.PI / 2), steelMat); bar.position.set(dw * 0.55, y, z); pivot.add(bar); }
-    for (let k = 0; k < 5; k++) { const rib = new THREE.Mesh(new THREE.BoxGeometry(dw - 0.2, 0.03, 0.09), ironMat); rib.position.set(dw / 2, 0.35 + k * 0.6, 0); pivot.add(rib); }
+    for (const [y, z] of [[0.9, -0.07], [1.45, 0.07]]) { const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, dw * 0.7, 8).rotateZ(Math.PI / 2), steelMat); bar.position.set(dw * 0.55, y, z); bar.material = doorTrim; pivot.add(bar); }
+    for (let k = 0; k < 5; k++) { const rib = new THREE.Mesh(new THREE.BoxGeometry(dw - 0.2, 0.03, 0.09), doorTrim); rib.position.set(dw / 2, 0.35 + k * 0.6, 0); pivot.add(rib); }
     pivot.userData.dynamic = true; cut.pz.add(pivot);
     out.door = { pivot, angle: 0, target: 0 };
     // steel frame + exit sign
     BC.pz.box(ironMat, D.x0 - 0.06, D.h / 2, maxZ + wallT / 2, 0.12, D.h, wallT + 0.04);
     BC.pz.box(ironMat, D.x1 + 0.06, D.h / 2, maxZ + wallT / 2, 0.12, D.h, wallT + 0.04);
     BC.pz.box(ironMat, (D.x0 + D.x1) / 2, D.h + 0.06, maxZ + wallT / 2, dw + 0.24, 0.12, wallT + 0.04);
-    for (const fz of [maxZ - 0.03, maxZ + wallT + 0.03]) {
-      BC.pz.box(ledGreen, D.x0 - 0.14, D.h / 2, fz, 0.03, D.h + 0.1, 0.03, { receive: false });
-      BC.pz.box(ledGreen, D.x1 + 0.14, D.h / 2, fz, 0.03, D.h + 0.1, 0.03, { receive: false });
-      BC.pz.box(ledGreen, (D.x0 + D.x1) / 2, D.h + 0.14, fz, dw + 0.31, 0.03, 0.03, { receive: false });
-    }
     const exitC = document.createElement('canvas'); exitC.width = 512; exitC.height = 160; const ex = exitC.getContext('2d');
     ex.fillStyle = '#16a34a'; ex.fillRect(0, 0, 512, 160); ex.fillStyle = '#ffffff'; ex.font = `800 108px ${font}`; ex.textAlign = 'center'; ex.textBaseline = 'middle';
     { const tw = ex.measureText('WYJŚCIE').width; if (tw > 470) ex.font = `800 ${108 * 470 / tw | 0}px ${font}`; } ex.fillText('WYJŚCIE', 256, 86);
     const exitT = new THREE.CanvasTexture(exitC); exitT.colorSpace = THREE.SRGBColorSpace; exitT.anisotropy = 8;
-    const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.47), new THREE.MeshBasicMaterial({ map: exitT, toneMapped: false }));
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.47), new THREE.MeshStandardMaterial({ map: exitT, roughness: 0.6 }));
     sign.position.set((D.x0 + D.x1) / 2, D.h + 0.48, maxZ - 0.025); sign.rotation.y = Math.PI; cut.pz.add(sign);
     BC.pz.box(signBoard, (D.x0 + D.x1) / 2, D.h + 0.48, maxZ - 0.01, 1.58, 0.55, 0.02);
-    BL((D.x0 + D.x1) / 2, D.h + 0.48, maxZ - 0.3, 0x3ad66a, 0.5, 3);
+
     // alley props
     const A = ALLEY, zIn = maxZ + wallT;
     const dumpMat = new THREE.MeshStandardMaterial({ color: 0x17181a, roughness: 0.55, metalness: 0.5 });
@@ -529,24 +528,22 @@ export function buildGym(scene, world, quality, font, logos = null) {
     BC.pz.box(ironMat, A.x0 + 0.3, 4.4, 17.5, 0.5, 0.12, 0.5);
     BC.pz.cyl(new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffd7a0).multiplyScalar(4) }), A.x0 + 0.35, 4.32, 17.5, 0.16, 0.16, 0.03, 12);
     out.glowSprites.push({ pos: new THREE.Vector3(A.x0 + 0.5, 4.25, 17.5), color: 0xffcf90, size: 1.6, group: 'pz' });
-    LS(A.x0 + 1.2, 3.8, 17.5, 0xffd2a0, 1.5, 8); LS((D.x0 + D.x1) / 2, D.h + 0.6, zIn + 1.2, 0xd6e2ff, 1.4, 7); LS(A.x1 - 0.8, 3.0, zIn + 4.5, GREEN, 0.6, 4.5, 'neon'); LS((D.x0 + D.x1) / 2, D.h + 1.6, zIn + 1.0, GREEN, 0.45, 4.5, 'neon');
-    const sl2 = new THREE.SpotLight(0xffd2a0, 160, 18, 1.1, 0.75, 1.5); sl2.position.set(A.x0 + 0.4, 4.3, 17.5); sl2.target.position.set(A.x0 + 4.5, 0, 16.5);
+    LS(A.x0 + 1.2, 3.8, 17.5, 0xffd2a0, 1.5, 8); LS((D.x0 + D.x1) / 2, D.h + 0.6, zIn + 1.2, 0xd6e2ff, 1.4, 7); 
+    const sl2 = new THREE.SpotLight(0xffd2a0, 70, 18, 1.1, 0.75, 1.5); sl2.position.set(A.x0 + 0.4, 4.3, 17.5); sl2.target.position.set(A.x0 + 4.5, 0, 16.5);
     sl2.userData.rank = -1; scene.add(sl2, sl2.target); out.lights.push(sl2);
     // neon on the right wall + wall lamp above the door
-    const neonT = T.neonSign(font, 'OPEN 24/7', '#8bff3a');
-    const nb = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshBasicMaterial({ map: neonT, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(2.2) }));
+    const nb = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65), new THREE.MeshStandardMaterial({ map: paintSign('OPEN 24/7', '#5fd422'), transparent: true, roughness: 0.6 }));
     nb.position.set(A.x1 - 0.02, 3.4, zIn + 4.5); nb.rotation.y = -Math.PI / 2; cut.pz.add(nb);
     B.box(ironMat, (D.x0 + D.x1) / 2, D.h + 1.1, zIn + 0.25, 0.5, 0.12, 0.5);
     B.cyl(new THREE.MeshBasicMaterial({ color: new THREE.Color(0xdfe9ff).multiplyScalar(4) }), (D.x0 + D.x1) / 2, D.h + 1.02, zIn + 0.3, 0.16, 0.16, 0.03, 12);
     out.glowSprites.push({ pos: new THREE.Vector3((D.x0 + D.x1) / 2, D.h + 0.95, zIn + 0.35), color: 0xcfe0ff, size: 1.6 });
-    const sl = new THREE.SpotLight(0xc8d8ff, 150, 16, 1.15, 0.75, 1.5); sl.position.set((D.x0 + D.x1) / 2, D.h + 1.0, zIn + 0.35); sl.target.position.set((D.x0 + D.x1) / 2, 0, zIn + 3.5);
+    const sl = new THREE.SpotLight(0xe8eeff, 55, 16, 1.15, 0.75, 1.5); sl.position.set((D.x0 + D.x1) / 2, D.h + 1.0, zIn + 0.35); sl.target.position.set((D.x0 + D.x1) / 2, 0, zIn + 3.5);
     sl.userData.rank = -1; scene.add(sl, sl.target); out.lights.push(sl);
     // BRAXHORN GYM neon over the door, outside
-    const og = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 0.85), new THREE.MeshBasicMaterial({ map: T.neonSign(font, 'BRAXHORN GYM', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.5) }));
+    const og = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 0.85), new THREE.MeshStandardMaterial({ map: paintSign('BRAXHORN GYM', '#5fd422'), transparent: true, roughness: 0.6 }));
+    BC.pz.box(signBoard, (D.x0 + D.x1) / 2, D.h + 1.85, zIn + 0.01, 3.6, 1.0, 0.02);
     og.position.set((D.x0 + D.x1) / 2, D.h + 1.85, zIn + 0.03); cut.pz.add(og);
     out.glowSprites.push({ pos: new THREE.Vector3((D.x0 + D.x1) / 2, D.h + 1.85, zIn + 0.3), color: GREEN, size: 2.2, group: 'pz' });
-    if (logos) { const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.3), new THREE.MeshBasicMaterial({ map: logos.markSpray, transparent: true, depthWrite: false, opacity: 0.85, color: 0xd8d8d8 })); sp.position.set(A.x1 - 0.02, 2.0, zIn + 7.8); sp.rotation.y = -Math.PI / 2; cut.pz.add(sp); }
-    const pl = new THREE.PointLight(0x8bff3a, 10, 8, 2); pl.position.set(A.x1 - 0.8, 3.4, zIn + 4.5); pl.userData.tier = 1; scene.add(pl); out.lights.push(pl);
   }
 
   // ---------------- wall fan between arches ----------------
@@ -565,16 +562,11 @@ export function buildGym(scene, world, quality, font, logos = null) {
   out.animated.push((dt) => { blades.rotation.z -= dt * 7; });
 
   // ---------------- neon ----------------
-  const neon = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 1.55), new THREE.MeshBasicMaterial({ map: T.neonSign(font, 'BRAXHORN GYM', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.35) }));
+  const neon = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 1.55), new THREE.MeshStandardMaterial({ map: paintSign('BRAXHORN GYM', '#5fd422'), transparent: true, roughness: 0.6 }));
   neon.position.set(minX + 0.08, 6.0, -3.6); neon.rotation.y = Math.PI / 2; cut.nx.add(neon);
   BC.nx.box(signBoard, minX + 0.04, 6.0, -3.6, 0.06, 1.9, 6.6);
-  out.neon = neon; LS(minX + 1.0, 5.6, -3.6, 0x8bff3a, 0.3, 5, 'neon'); BL(minX + 0.5, 6.0, -3.6, GREEN, 1.2, 5.5, null, 0.6);
-  for (const z of [10.2, 9.35]) for (const y of [1.2, 3.6, 6.0]) BL(minX + 0.75, y, z, GREEN, 0.25, 2.2);
-  const purple = new THREE.MeshBasicMaterial({ color: new THREE.Color(GREEN).multiplyScalar(1.3) });
-  BC.nx.cyl(purple, minX + 0.55, 3.6, 10.2, 0.045, 0.045, 7.0, 8);
-  BC.nx.cyl(purple, minX + 0.55, 3.6, 9.35, 0.045, 0.045, 7.0, 8);
+  out.neon = null;
   const pp = new THREE.PointLight(0x7dff40, 1.8, 5, 2); pp.position.set(minX + 1.2, 3.2, 9.6); pp.userData.tier = 1; pp.userData.interior = true; scene.add(pp); out.lights.push(pp);
-  { const np = new THREE.PointLight(0x8bff3a, 4, 7, 2); np.position.set(minX + 1.0, 5.6, -3.6); np.userData.tier = 2; np.userData.interior = true; np.visible = quality.pointLights >= 2; scene.add(np); out.lights.push(np); }
 
   // brand posters
   if (logos) {
@@ -589,7 +581,6 @@ export function buildGym(scene, world, quality, font, logos = null) {
       const mural = new THREE.Mesh(new THREE.PlaneGeometry(4.9, 4.9 * ar), new THREE.MeshStandardMaterial({ map: wa, transparent: true, depthWrite: false, roughness: 0.75, emissive: 0xffffff, emissiveMap: wa, emissiveIntensity: 0.35 }));
       mural.position.set(maxX - 0.08, 4.3, 0); mural.rotation.y = -Math.PI / 2; cut.px.add(mural);
       BC.px.box(signBoard, maxX - 0.04, 4.3, 0, 0.06, 4.9 * ar + 0.55, 5.2);
-      BC.px.box(ledGreen, maxX - 0.08, 4.3 - (4.9 * ar + 0.55) / 2, 0, 0.02, 0.025, 5.2, { receive: false });
       const fl = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 6.4 * ar).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: wa, transparent: true, depthWrite: false, roughness: 0.85, opacity: 0.9, polygonOffset: true, polygonOffsetFactor: -2 }));
       fl.position.set(-3.5, 0.006, -6.2); fl.receiveShadow = true; fl.renderOrder = 1; scene.add(fl);
     }

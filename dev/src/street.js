@@ -117,8 +117,7 @@ function textSign(font, text, color, { w = 1024, h = 256, size = 150, bg = null 
   const c = canvas(w, h), x = c.getContext('2d');
   if (bg) { x.fillStyle = bg; x.fillRect(0, 0, w, h); }
   x.font = `800 ${size}px ${font}`; x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.shadowColor = color; x.shadowBlur = 36; x.fillStyle = color; x.fillText(text, w / 2, h / 2 + 6);
-  x.shadowBlur = 10; x.fillStyle = '#fffaf0'; x.fillText(text, w / 2, h / 2 + 6);
+  x.shadowColor = color; x.shadowBlur = 4; x.fillStyle = color; x.fillText(text, w / 2, h / 2 + 6);
   return ctex(c);
 }
 
@@ -226,7 +225,7 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
     for (const [o, a] of [[0, 1], [0.05, 0.92], [0.12, 0.5], [0.25, 0.16], [0.5, 0.045], [1, 0]]) g.addColorStop(o, `rgba(255,255,255,${a})`);
     x.fillStyle = g; x.fillRect(0, 0, 128, 128); return ctex(c, false); })();
   out.halo = halo;
-  const glow = (pos, color, size, kind = 'street') => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, color: new THREE.Color(color), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); s.position.copy(pos); s.scale.setScalar(size); s.renderOrder = 6; s.userData.kind = kind; s.userData.base = new THREE.Color(color); G.add(s); out.glows.push(s); return s; };
+  const glow = (pos, color, size, kind = 'street') => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, color: new THREE.Color(color), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); s.position.copy(pos); s.scale.setScalar(size); s.renderOrder = 6; s.userData.kind = kind; s.userData.base = new THREE.Color(color); out.glows.push(s); return s; }; // halos are not shown (the player does not want glow)
 
   // ---------- ground: sidewalks + curbs ----------
   const paver = paverTexture();
@@ -325,7 +324,7 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
     if (b.sign) {
       const [text, color] = b.sign;
       const sw = Math.min(w - 1.2, text.length * 0.62 + 1.2);
-      const sm = new THREE.Mesh(new THREE.PlaneGeometry(sw, sw / 4), new THREE.MeshBasicMaterial({ map: textSign(font, text, color, { size: text.length > 12 ? 92 : 150 }), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.6) }));
+      const sm = new THREE.Mesh(new THREE.PlaneGeometry(sw, sw / 4), new THREE.MeshBasicMaterial({ map: textSign(font, text, color, { size: text.length > 12 ? 92 : 150 }), transparent: true, blending: THREE.NormalBlending, depthWrite: false, color: new THREE.Color(0.85, 0.85, 0.85) }));
       sm.position.set((b.x0 + b.x1) / 2, 4.45, ST.near + 0.32); sm.renderOrder = 5; G.add(sm); out.neons.push(sm);
       L([(b.x0 + b.x1) / 2, 4.2, ST.near + 1.2], new THREE.Color(color).multiplyScalar(0.9), 7, 'neon');
       L([(b.x0 + b.x1) / 2, 2.0, ST.near + 0.8], new THREE.Color(b.glow).multiplyScalar(0.5), 5.5, 'shop');
@@ -383,13 +382,13 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
     for (const sx of [-1, 1]) {
       const face = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3), new THREE.MeshBasicMaterial({ map: logos.badge, color: new THREE.Color(1, 1, 1).multiplyScalar(1.15) }));
       face.position.set(sx * 0.1, 0.95, 0); face.rotation.y = sx * Math.PI / 2; blade.add(face);
-      const txt = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 2.0), new THREE.MeshBasicMaterial({ map: vertSign(font, 'GYM', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      const txt = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 2.0), new THREE.MeshBasicMaterial({ map: vertSign(font, 'GYM', '#8bff3a'), transparent: true, blending: THREE.NormalBlending, depthWrite: false }));
       txt.position.set(sx * 0.1, -1.05, 0); txt.rotation.y = sx * Math.PI / 2; blade.add(txt); out.neons.push(txt);
     }
     blade.position.set(1.4, 6.2, ST.near + 0.9); G.add(blade);
     L([1.4, 5.8, ST.near + 1.4], new THREE.Color(0x8bff3a).multiplyScalar(1.2), 7.5, 'neon');
     // banner over the alley mouth
-    const ban = new THREE.Mesh(new THREE.PlaneGeometry(8.6, 8.6 * logos.wide.image.height / logos.wide.image.width), new THREE.MeshBasicMaterial({ map: logos.wide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.3) }));
+    const ban = new THREE.Mesh(new THREE.PlaneGeometry(8.6, 8.6 * logos.wide.image.height / logos.wide.image.width), new THREE.MeshBasicMaterial({ map: logos.wide, transparent: true, blending: THREE.NormalBlending, depthWrite: false, color: new THREE.Color(0.85, 0.85, 0.85) }));
     ban.position.set(-6.75, 8.4, ST.near - 0.05); G.add(ban); out.neons.push(ban);
     const banBack = new THREE.Mesh(new THREE.PlaneGeometry(15.5, 3.4), new THREE.MeshStandardMaterial({ color: 0x0c0d0e, roughness: 0.6, metalness: 0.4 }));
     banBack.position.set(-6.75, 8.45, ST.near - 0.12); G.add(banBack);
@@ -520,7 +519,7 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
     const pts = new Float32Array(oc.lampHeads.length * 3);
     oc.lampHeads.forEach((p, i) => { pts[i * 3] = p.x; pts[i * 3 + 1] = p.y + 0.1; pts[i * 3 + 2] = p.z; L(p.clone().setY(p.y - 0.6), new THREE.Color(1.0, 0.62, 0.3).multiplyScalar(3.0), 9.5, 'street'); });
     const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pts, 3));
-    const pm = new THREE.PointsMaterial({ map: halo, size: 2.8, sizeAttenuation: true, color: new THREE.Color(0xffc77e), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+    const pm = new THREE.PointsMaterial({ map: halo, size: 0.7, sizeAttenuation: true, color: new THREE.Color(0xffc77e), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
     const lampPts = new THREE.Points(pg, pm); lampPts.renderOrder = 6; G.add(lampPts); out.lampPts = lampPts;
     out.air = oc.airLights.map(a => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: halo, color: new THREE.Color(1, 0.1, 0.05), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false })); s.position.copy(a.pos); s.scale.setScalar(3.2); s.userData.ph = Math.random() * 6; G.add(s); return s; });
   }
@@ -565,17 +564,17 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
     const wallMat = addLampField(new THREE.MeshStandardMaterial({ map: brickT.map, normalMap: brickT.normalMap, color: 0x9a7f70, roughness: 0.9 }));
     const wall = new THREE.Mesh(new THREE.BoxGeometry(1.2, 9, ST.road0 - ST.near + 9), wallMat); wall.position.set(ST.x1 + 0.6, 4.5, (ST.near - 9 + ST.road0) / 2); G.add(wall);
     const doorM = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.6, 1.5), new THREE.MeshStandardMaterial({ color: 0x1a1d1b, metalness: 0.7, roughness: 0.35 })); doorM.position.set(ST.x1 - 0.02, 1.3 + SW, D.z); G.add(doorM);
-    const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 0.7), new THREE.MeshBasicMaterial({ map: textSign(font, 'KRYPTA', '#8bff3a'), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(1, 1, 1).multiplyScalar(1.8) }));
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 0.7), new THREE.MeshBasicMaterial({ map: textSign(font, 'KRYPTA', '#8bff3a'), transparent: true, blending: THREE.NormalBlending, depthWrite: false, color: new THREE.Color(0.85, 0.85, 0.85) }));
     sign.position.set(ST.x1 - 0.08, 3.4, D.z); sign.rotation.y = -Math.PI / 2; G.add(sign); out.neons.push(sign); out.cryptSign = sign;
-    const mark = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), new THREE.MeshBasicMaterial({ map: logos.mark, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const mark = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.4), new THREE.MeshBasicMaterial({ map: logos.markSpray, transparent: true, depthWrite: false, color: 0xbdbdbd }));
     mark.position.set(ST.x1 - 0.08, 5.0, D.z); mark.rotation.y = -Math.PI / 2; G.add(mark);
     L([ST.x1 - 1.2, 3.2, D.z], new THREE.Color(0x8bff3a).multiplyScalar(1.4), 7, 'neon');
     glow(new THREE.Vector3(ST.x1 - 0.3, 3.4, D.z), 0x8bff3a, 3.2, 'neon');
   }
 
   // graffiti marks on walls
-  for (const [x, y, z, s, ry] of [[-14.2, 2.4, 16.5, 1.6, Math.PI / 2], [0.7, 2.6, 15.0, 1.4, -Math.PI / 2], [-40, 1.8, ST.near + 0.03, 1.5, 0], [52, 2.2, ST.near + 0.03, 1.8, 0]]) {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(s, s), new THREE.MeshBasicMaterial({ map: logos.markSpray, transparent: true, depthWrite: false, opacity: 0.85 }));
+  for (const [x, y, z, s, ry] of [[-40, 1.8, ST.near + 0.03, 1.5, 0], [52, 2.2, ST.near + 0.03, 1.8, 0]]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(s, s), addLampField(new THREE.MeshStandardMaterial({ map: logos.markSpray, transparent: true, depthWrite: false, opacity: 0.85, roughness: 0.9 })));
     m.position.set(x, y, z); m.rotation.y = ry; G.add(m);
   }
 
@@ -604,9 +603,8 @@ export async function buildStreet({ scene, world, font, A, logos, Q }) {
 function vertSign(font, text, color) {
   const c = canvas(256, 384), x = c.getContext('2d');
   x.font = `900 120px ${font}`; x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.shadowColor = color; x.shadowBlur = 30; x.fillStyle = color;
+  x.shadowColor = color; x.shadowBlur = 4; x.fillStyle = color;
   [...text].forEach((ch, i) => x.fillText(ch, 128, 70 + i * 120));
-  x.shadowBlur = 8; x.fillStyle = '#f4fff0'; [...text].forEach((ch, i) => x.fillText(ch, 128, 70 + i * 120));
   return ctex(c);
 }
 

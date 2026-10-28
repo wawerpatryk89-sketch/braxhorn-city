@@ -28,8 +28,8 @@ const $ = (id) => document.getElementById(id);
 const store = { get(k, d) { try { const v = localStorage.getItem('bx_' + k); return v === null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem('bx_' + k, JSON.stringify(v)); } catch { } } };
 // no bloom anywhere: it made bright walls and people glow and cost several full-screen passes
 const QUALITY = {
-  high: { name: 'Wysoka', dpr: 2, reflections: true, reflectionScale: 0.5, streak: 5, streakTaps: 4, bloom: 0, shadow: 2048, cones: true, spots: 6, pointLights: 2, msaa: 4 },
-  medium: { name: 'Średnia', dpr: 1.5, reflections: true, reflectionScale: 0.33, streak: 4, streakTaps: 3, bloom: 0, shadow: 1024, cones: true, spots: 4, pointLights: 1, msaa: 0 },
+  high: { name: 'Wysoka', dpr: 2, reflections: true, reflectionScale: 0.5, streak: 5, streakTaps: 4, bloom: 0, shadow: 2048, cones: false, spots: 6, pointLights: 2, msaa: 4 },
+  medium: { name: 'Średnia', dpr: 1.5, reflections: true, reflectionScale: 0.33, streak: 4, streakTaps: 3, bloom: 0, shadow: 1024, cones: false, spots: 4, pointLights: 1, msaa: 0 },
   low: { name: 'Niska', dpr: 1, reflections: false, reflectionScale: 0.25, streak: 3, streakTaps: 3, bloom: 0, shadow: 1024, cones: false, spots: 3, pointLights: 1, msaa: 0 },
 };
 const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
@@ -118,7 +118,7 @@ async function boot() {
   const floor = createGymFloors({ hall: HALL, alley: ALLEY, turf: { x0: -5, x1: 9, z0: 7.3, z1: 9.6 }, font: fontStack });
   gym.root.add(floor.mesh);
   // baked lighting (bake.js): static gym meshes become unlit + stored light; people and moving props stay lit live
-  const BAKE_FILE = 'bake/gym1.bin.gz', BAKE_GAIN = 1.5;
+  const BAKE_FILE = 'bake/gym3.bin.gz', BAKE_GAIN = 1.5;
   const bakeList = prepareBake(gym.root);
   let baked = false;
   try { const raw = await A.loadBin(BAKE_FILE); baked = !!applyBake(bakeList, new Uint16Array(raw.slice().buffer), BAKE_GAIN); } catch (e) { console.warn('gym bake not loaded', e); }
@@ -137,7 +137,10 @@ async function boot() {
   const sc = key.shadow.camera; sc.left = -12; sc.right = 12; sc.top = 12; sc.bottom = -12; sc.near = 1; sc.far = 60;
   key.shadow.bias = -0.0004; key.shadow.normalBias = 0.03;
   scene.add(key, key.target);
-  const env = new DayNight(scene, { hour: store.get('hour', 17.6), dayLengthMin: 12 });
+  // for now: daytime only, the clock stands still (night = lit windows, signs and lamps flickering in and out)
+  const DAY_ONLY = true;
+  const env = new DayNight(scene, { hour: DAY_ONLY ? 13.5 : store.get('hour', 17.6), dayLengthMin: 12 });
+  if (DAY_ONLY) env.speed = 0;
   // reflections on skin / metal: capture the hall
   const pmrem = new THREE.PMREMGenerator(renderer);
   env.sky.visible = false;
@@ -1104,7 +1107,7 @@ async function boot() {
     const add = (s, w) => { if (w <= 0.01) return; const dx = s.pos.x - tx, dz = s.pos.z - tz; const score = w / (1 + (dx * dx + dz * dz) / (s.r * s.r * 4)); lampTmp.push([score, s, w]); };
     if (G.street && G.street.group.visible) {
       for (const s of G.street.lampSources) {
-        let w = s.kind === 'street' ? o.lamps : s.kind === 'flash' ? 1 : 0.3 + 0.7 * o.lamps;
+        let w = s.kind === 'street' ? o.lamps : s.kind === 'flash' ? 1 : 0.1 + 0.9 * o.lamps;
         if (s.kind === 'flash') { const ph2 = Math.floor(t * 5 + (s.phase || 0)) % 2; s.col.setRGB(ph2 ? 1.5 : 0, 0, ph2 ? 0 : 1.8); }
         add(s, w);
       }
@@ -1115,9 +1118,11 @@ async function boot() {
     if (G.villa && G.villa.group.visible) for (const s of G.villa.lampSources) add(s, s.kind === 'pool' ? 0.4 + 0.6 * o.lamps : o.lamps);
     if (G.place && G.place.group.visible) for (const s of G.place.lampSources) add(s, G.place.def.mood === 'indoor' ? 1 : 0.15 + 0.85 * o.lamps);
     lampTmp.sort((a, b) => b[0] - a[0]);
+    // lamps near the cut-off fade in/out instead of popping on and off (that made walls and windows blink while walking)
+    const thr = lampTmp.length > LAMP_N ? lampTmp[LAMP_N][0] : 0;
     for (let i = 0; i < LAMP_N; i++) {
       const e = lampTmp[i];
-      if (e) { const s = e[1]; lampU.lampPos.value[i].set(s.pos.x, s.pos.y, s.pos.z, s.r); lampU.lampCol.value[i].set(s.col.r * e[2], s.col.g * e[2], s.col.b * e[2]); if (s.dir) lampU.lampDir.value[i].set(s.dir.x, s.dir.y, s.dir.z, s.cos); else lampU.lampDir.value[i].w = -2; }
+      if (e) { const s = e[1]; const fd = thr > 0 ? Math.min(1, (e[0] - thr) / (thr * 0.6)) : 1; const w = e[2] * fd; lampU.lampPos.value[i].set(s.pos.x, s.pos.y, s.pos.z, s.r); lampU.lampCol.value[i].set(s.col.r * w, s.col.g * w, s.col.b * w); if (s.dir) lampU.lampDir.value[i].set(s.dir.x, s.dir.y, s.dir.z, s.cos); else lampU.lampDir.value[i].w = -2; }
       else { lampU.lampPos.value[i].set(0, -500, 0, 1); lampU.lampCol.value[i].set(0, 0, 0); lampU.lampDir.value[i].w = -2; }
     }
     return o;
@@ -1421,7 +1426,7 @@ async function boot() {
     const half = packBake(res);
     const gz = await new Response(new Blob([half.buffer]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
     const u = new Uint8Array(gz); let str = ''; for (let i = 0; i < u.length; i += 32768) str += String.fromCharCode.apply(null, u.subarray(i, i + 32768));
-    return { verts: half.length / 3, meshes: bakeList.length, occluders: occ.length, lights: gym.bakeLights.length, kb: Math.round(gz.byteLength / 1024), sec: ((performance.now() - t0) / 1000).toFixed(1), __file: { b64: btoa(str), path: '/home/claude/work/assets/bake/gym1.bin.gz' } };
+    return { verts: half.length / 3, meshes: bakeList.length, occluders: occ.length, lights: gym.bakeLights.length, kb: Math.round(gz.byteLength / 1024), sec: ((performance.now() - t0) / 1000).toFixed(1), __file: { b64: btoa(str), path: '/home/claude/work/assets/bake/gym3.bin.gz' } };
   }
   window.__mg = {
     bakeGym, baked: () => baked,
