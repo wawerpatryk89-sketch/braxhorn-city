@@ -17,21 +17,49 @@
       "license": "CC0",
       "inspection": "CRC passed; one BLEND and four textures; visual import not yet tested",
       "publicSourceImportAllowed": true,
-      "sourceFilesPresentInGitHub": false,
+      "sourceFilesPresentInGitHub": true,
       "sourceFiles": [
-        {"path":"sofa_03_4k.blend","bytes":354254,"sha256":"91ff3226060d7f5b09172689cada3e97c8189859ddf187af9ec0c1528780460a"},
-        {"path":"textures/sofa_03_opacity_4k.png","bytes":167418,"sha256":"5523ede23652a9679081dc9be8b44c2fef037c398426f6f4c0849653397ebd68"},
-        {"path":"textures/sofa_03_diff_4k.jpg","bytes":2032258,"sha256":"921c6930228d4f5cef8650fff89bbaec3b14affd8dce5786908f3a818af71fa9"},
-        {"path":"textures/sofa_03_nor_gl_4k.exr","bytes":4586443,"sha256":"d6f4a774a41556ac0264421e66f799a75296c7218a493a841e1ee74173957112"},
-        {"path":"textures/sofa_03_rough_4k.jpg","bytes":2188629,"sha256":"5902dab97ab9fc8d7114f45623580bdef9f8baf9f192ffb8bff8f5a9e676a178"}
-      ]
+        {
+          "path": "sofa_03_4k.blend",
+          "bytes": 354254,
+          "sha256": "91ff3226060d7f5b09172689cada3e97c8189859ddf187af9ec0c1528780460a"
+        },
+        {
+          "path": "textures/sofa_03_opacity_4k.png",
+          "bytes": 167418,
+          "sha256": "5523ede23652a9679081dc9be8b44c2fef037c398426f6f4c0849653397ebd68"
+        },
+        {
+          "path": "textures/sofa_03_diff_4k.jpg",
+          "bytes": 2032258,
+          "sha256": "921c6930228d4f5cef8650fff89bbaec3b14affd8dce5786908f3a818af71fa9"
+        },
+        {
+          "path": "textures/sofa_03_nor_gl_4k.exr",
+          "bytes": 4586443,
+          "sha256": "d6f4a774a41556ac0264421e66f799a75296c7218a493a841e1ee74173957112"
+        },
+        {
+          "path": "textures/sofa_03_rough_4k.jpg",
+          "bytes": 2188629,
+          "sha256": "5902dab97ab9fc8d7114f45623580bdef9f8baf9f192ffb8bff8f5a9e676a178"
+        }
+      ],
+      "storageStatus": "SOURCE_CONTENT_IMPORTED__EXACT_MEMBER_HASHES_MATCH_UPLOAD",
+      "storedAt": "asset-library/sources/sofa_03",
+      "originalZipStored": false
     },
     {
       "filename": "VNB-Gaming-Set.unitypackage",
       "bytes": 16012120,
       "sha256": "d18603cb8e057cc54cbf776f245e39c957297277a09e786124a518fdddd7f16d",
       "group": "vnb-gaming",
-      "content": {"prefabs":124,"materials":25,"png":29,"fbx":1},
+      "content": {
+        "prefabs": 124,
+        "materials": 25,
+        "png": 29,
+        "fbx": 1
+      },
       "style": "low-poly; not approved as premium",
       "source": "https://vnbp.itch.io/low-poly-3d-gaming-set-vnb",
       "licenseReview": "Author page allows use in games but explicitly says not to publish standalone assets; page also lists CC BY 4.0. Do not publicly redistribute without resolving conflicting wording.",
@@ -55,7 +83,14 @@
       "bytes": 153424914,
       "sha256": "dbef1d2597b3307153576612a9a108d705f9ce48a385d8c863ee53d6dd2abd6f",
       "group": "modular-building-3",
-      "content": {"files":77,"fbx":57,"blend":2,"unitypackage":1,"png":14,"exr":2},
+      "content": {
+        "files": 77,
+        "fbx": 57,
+        "blend": 2,
+        "unitypackage": 1,
+        "png": 14,
+        "exr": 2
+      },
       "inspection": "CRC passed; contains byte-identical copies of ProceduralWallFile.blend and previous Modular Building 3.unitypackage",
       "source": "https://loafbrr.itch.io/modular-building-3",
       "licenseAsWritten": "Creative Commons Attribution 1.0 International License",
@@ -69,7 +104,13 @@
       "bytes": 22628847,
       "sha256": "8c84feec8327d29f457fbcf20567265ae628cf7f1f207bab59f1264ade43e39c",
       "group": "vnb-gaming",
-      "content": {"files":429,"fbx":132,"obj":131,"mtl":131,"png":34},
+      "content": {
+        "files": 429,
+        "fbx": 132,
+        "obj": 131,
+        "mtl": 131,
+        "png": 34
+      },
       "inspection": "CRC passed; one combined FBX and 131 separated FBX files; source alternative to Unity package, not a different collection",
       "style": "low-poly; not approved as premium",
       "source": "https://vnbp.itch.io/low-poly-3d-gaming-set-vnb",
@@ -84,7 +125,12 @@
       "group": "modular-building-3",
       "duplicateOfPreviousUpload": "Modular Building 3.unitypackage",
       "duplicateOfArchiveMember": "ModularBuilding 3.zip::ModularBuilding 3/Modular Building 3.unitypackage",
-      "content": {"assetPaths":78,"fbx":57,"png":10,"materials":2},
+      "content": {
+        "assetPaths": 78,
+        "fbx": 57,
+        "png": 10,
+        "materials": 2
+      },
       "publicSourceImportAllowed": false,
       "sourceFilesPresentInGitHub": false,
       "storageStatus": "EXACT_DUPLICATE_NO_SECOND_COPY_NEEDED"
@@ -100,21 +146,50 @@
       "license": "CC0",
       "inspection": "CRC passed; one BLEND and four textures; visual import not yet tested",
       "publicSourceImportAllowed": true,
-      "sourceFilesPresentInGitHub": false,
+      "sourceFilesPresentInGitHub": true,
       "sourceFiles": [
-        {"path":"sofa_02_4k.blend","bytes":247662,"sha256":"988b30ccc577ff0d8ce0ab0716de7db8ea2e40079f9ce6e671a955d678baea00"},
-        {"path":"textures/sofa_02_metallic_4k.exr","bytes":42864,"sha256":"1a72eac27d5b30e789aeaf1228d1dacf508a9e1f6f0dacd871bfd64d6672f066"},
-        {"path":"textures/sofa_02_roughness_4k.jpg","bytes":1928402,"sha256":"e4db60259be80764750cee1ca1a5588bd1c3019223dad3be04ff12327acb1fbb"},
-        {"path":"textures/sofa_02_diff_4k.jpg","bytes":1333400,"sha256":"643609b157f61a5e2b5cd945d75a34ab2380fcd1cf40976285814840759f37c0"},
-        {"path":"textures/sofa_02_nor_gl_4k.exr","bytes":20835863,"sha256":"92e35fa331a6b75d8ead49f775624bcfe00f7a727630f35e2800e462ac8b8b57"}
-      ]
+        {
+          "path": "sofa_02_4k.blend",
+          "bytes": 247662,
+          "sha256": "988b30ccc577ff0d8ce0ab0716de7db8ea2e40079f9ce6e671a955d678baea00"
+        },
+        {
+          "path": "textures/sofa_02_metallic_4k.exr",
+          "bytes": 42864,
+          "sha256": "1a72eac27d5b30e789aeaf1228d1dacf508a9e1f6f0dacd871bfd64d6672f066"
+        },
+        {
+          "path": "textures/sofa_02_roughness_4k.jpg",
+          "bytes": 1928402,
+          "sha256": "e4db60259be80764750cee1ca1a5588bd1c3019223dad3be04ff12327acb1fbb"
+        },
+        {
+          "path": "textures/sofa_02_diff_4k.jpg",
+          "bytes": 1333400,
+          "sha256": "643609b157f61a5e2b5cd945d75a34ab2380fcd1cf40976285814840759f37c0"
+        },
+        {
+          "path": "textures/sofa_02_nor_gl_4k.exr",
+          "bytes": 20835863,
+          "sha256": "92e35fa331a6b75d8ead49f775624bcfe00f7a727630f35e2800e462ac8b8b57"
+        }
+      ],
+      "storageStatus": "SOURCE_CONTENT_IMPORTED__EXACT_MEMBER_HASHES_MATCH_UPLOAD",
+      "storedAt": "asset-library/sources/sofa_02",
+      "originalZipStored": false
     },
     {
       "filename": "VNB Low Poly Home Set.zip",
       "bytes": 17361161,
       "sha256": "c185f93fe484337f7e29632a9278a4d5e6860674cda728da14b7f34058a3d87e",
       "group": "vnb-home",
-      "content": {"files":1082,"fbx":347,"obj":347,"mtl":347,"png":40},
+      "content": {
+        "files": 1082,
+        "fbx": 347,
+        "obj": 347,
+        "mtl": 347,
+        "png": 40
+      },
       "inspection": "CRC passed; one combined FBX and 346 separated FBX files; version 1.1 per README",
       "style": "low-poly; not approved as premium",
       "source": "https://vnbp.itch.io/low-poly-home-set",
@@ -128,7 +203,12 @@
       "bytes": 6853350,
       "sha256": "7fd9a667f70397e93058d1f0b7a7389efbea6b5935f843e7ad5f945324316963",
       "group": "vnb-home",
-      "content": {"prefabs":238,"materials":31,"png":33,"fbx":1},
+      "content": {
+        "prefabs": 238,
+        "materials": 31,
+        "png": 33,
+        "fbx": 1
+      },
       "inspection": "Author page labels this filename an outdated Unity package; do not confuse with current VNB-Home-Set.unitypackage version 1.1",
       "source": "https://vnbp.itch.io/low-poly-home-set",
       "publicSourceImportAllowed": false,
