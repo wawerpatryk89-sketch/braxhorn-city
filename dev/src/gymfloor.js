@@ -27,7 +27,7 @@ function rubberTextures(rep) {
     const v = 26 + rnd() * 6; x.fillStyle = `rgb(${v | 0},${v | 0},${(v + 2) | 0})`; x.fillRect(i * T, j * T, T, T);
   }
   // EPDM flecks
-  const fl = [['#5d6064', 9000, 1.6], ['#8d9094', 2600, 1.4], ['#3e6f2c', 700, 1.5], ['#24262a', 6000, 2.2]];
+  const fl = [['#45484c', 6000, 1.5], ['#74777b', 1100, 1.3], ['#4c9a26', 900, 1.5], ['#1d1f22', 6000, 2.2]];
   for (const [col, n, r] of fl) { x.fillStyle = col; for (let k = 0; k < n; k++) { const s = r * (0.6 + rnd() * 0.8); x.fillRect(rnd() * N, rnd() * N, s, s); } }
   // scuffs: soft lighter patches where people train
   for (let k = 0; k < 18; k++) { const g = x.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, 'rgba(255,255,255,0.05)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.save(); x.translate(rnd() * N, rnd() * N); x.scale(60 + rnd() * 140, 40 + rnd() * 90); x.fillStyle = g; x.fillRect(-1, -1, 2, 2); x.restore(); }
@@ -60,7 +60,24 @@ function concreteTextures(rep) {
   return { map: tex(c, true, rep), normalMap: tex(heightToNormal(hc, 2.2), false, rep) };
 }
 
-export function createGymFloors({ hall, alley, wallT = 0.6 }) {
+// artificial turf sled lane: green grass, white yard lines every 2 m and the brand name (len x wid metres)
+function turfTextures(len, wid, font) {
+  const W = 2048, H = Math.round(W * wid / len), c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'), ppm = W / len;
+  x.fillStyle = '#285a17'; x.fillRect(0, 0, W, H);
+  for (let k = 0; k < 90000; k++) { const g = 70 + rnd() * 70 | 0; x.fillStyle = rnd() < 0.5 ? `rgba(${g * 0.45 | 0},${g},${g * 0.25 | 0},0.5)` : 'rgba(10,30,6,0.45)'; x.fillRect(rnd() * W, rnd() * H, 1.2, 2.4); }
+  // mowing stripes
+  for (let i = 0; i < len; i += 2) { x.fillStyle = 'rgba(255,255,255,0.03)'; x.fillRect(i * ppm, 0, ppm, H); }
+  x.fillStyle = 'rgba(240,244,236,0.88)';
+  for (let i = 0; i <= len; i += 2) x.fillRect(i * ppm - (i === 0 || i >= len - 0.01 ? 0 : 4), 0, i === 0 || i >= len - 0.01 ? 10 : 8, H);
+  x.fillRect(0, 0, W, 6); x.fillRect(0, H - 6, W, 6);
+  x.font = `800 ${H * 0.62 | 0}px ${font}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = 'rgba(240,244,236,0.82)';
+  x.fillText('BRAXHORN', W / 2, H / 2 + H * 0.04);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  return t;
+}
+
+export function createGymFloors({ hall, alley, wallT = 0.6, turf = null, font = 'Impact, sans-serif' }) {
   const group = new THREE.Group(); group.name = 'floors';
   // hall (incl. the alcoves behind the back arches)
   const z0 = hall.minZ - 3.6, z1 = hall.maxZ + wallT, w = hall.maxX - hall.minX + 1.2, d = z1 - z0;
@@ -68,6 +85,12 @@ export function createGymFloors({ hall, alley, wallT = 0.6 }) {
   const rubber = addLampField(new THREE.MeshStandardMaterial({ map: rt.map, normalMap: rt.normalMap, normalScale: new THREE.Vector2(0.6, 0.6), roughness: 0.9, metalness: 0, envMapIntensity: 0.15 }), 'lit');
   const g1 = new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2); g1.translate(0, 0, (z0 + z1) / 2);
   const m1 = new THREE.Mesh(g1, rubber); m1.receiveShadow = true; group.add(m1);
+  if (turf) {
+    const len = turf.x1 - turf.x0, wid = turf.z1 - turf.z0;
+    const tm = addLampField(new THREE.MeshStandardMaterial({ map: turfTextures(len, wid, font), roughness: 1, metalness: 0, envMapIntensity: 0.05 }), 'lit');
+    const gt = new THREE.PlaneGeometry(len, wid).rotateX(-Math.PI / 2).rotateY(Math.PI); gt.translate((turf.x0 + turf.x1) / 2, 0.008, (turf.z0 + turf.z1) / 2);
+    const mt = new THREE.Mesh(gt, tm); mt.receiveShadow = true; group.add(mt);
+  }
   // alley
   const aw = alley.x1 - alley.x0 + 1.2, ad = alley.z1 + 0.6 - z1;
   const ct = concreteTextures([aw / 6, ad / 6]);

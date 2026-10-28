@@ -100,11 +100,12 @@ export function wetMask(w = 256, h = 192) {
 }
 
 // ---------- old red-brown brick ----------
-export function brick(w = 1024, h = 1024) {
+export function brick(w = 1024, h = 1024, opts = {}) {
+  const paint = opts.paint || null; // painted brick: one colour, only the relief and grime remain
   const col = canvas(w, h), cx = col.getContext('2d');
   const hgt = new Float32Array(w * h);
   const rows = 30, bh = h / rows, bw = bh * 3.1, mortar = 3;
-  cx.fillStyle = '#4a4038'; cx.fillRect(0, 0, w, h);
+  cx.fillStyle = paint ? `rgb(${paint[0] * 0.82 | 0},${paint[1] * 0.82 | 0},${paint[2] * 0.82 | 0})` : '#4a4038'; cx.fillRect(0, 0, w, h);
   const cols = Math.round(w / bw);
   const bwx = w / cols;
   for (let r = 0; r < rows; r++) {
@@ -113,8 +114,8 @@ export function brick(w = 1024, h = 1024) {
       const x0 = k * bwx + off, y0 = r * bh;
       const seed = hash(r, (k + cols) % cols, 13);
       const burnt = seed > 0.86;
-      const base = burnt ? [52, 30, 24] : [118 + 40 * hash(r, k, 2), 58 + 22 * hash(r, k, 3), 36 + 14 * hash(r, k, 4)];
-      const dark = 0.7 + 0.3 * hash(r, k, 9);
+      const base = paint ? paint : burnt ? [52, 30, 24] : [118 + 40 * hash(r, k, 2), 58 + 22 * hash(r, k, 3), 36 + 14 * hash(r, k, 4)];
+      const dark = paint ? 0.9 + 0.1 * hash(r, k, 9) : 0.7 + 0.3 * hash(r, k, 9);
       cx.fillStyle = `rgb(${base[0] * dark | 0},${base[1] * dark | 0},${base[2] * dark | 0})`;
       cx.fillRect(x0 + mortar, y0 + mortar, bwx - mortar * 2, bh - mortar * 2);
     }
@@ -128,8 +129,8 @@ export function brick(w = 1024, h = 1024) {
     const edge = Math.min(lx, bwx - lx, ly, bh - ly);
     const inBrick = edge > mortar;
     const n = fbm(x / w * 8, y / h * 8, 8, 4, 21);
-    const g = 0.75 + 0.45 * n;
-    const soot = smooth(0.55, 0.85, fbm(x / w * 2, y / h * 3, 2, 3, 61)) * 0.45;
+    const g = paint ? 0.88 + 0.22 * n : 0.75 + 0.45 * n;
+    const soot = smooth(0.55, 0.85, fbm(x / w * 2, y / h * 3, 2, 3, 61)) * (paint ? 0.2 : 0.45);
     for (let c = 0; c < 3; c++) d[i + c] = d[i + c] * g * (1 - soot);
     hgt[y * w + x] = inBrick ? 0.6 + 0.4 * Math.min(1, (edge - mortar) / 4) * (0.8 + 0.2 * n) : 0.1 * n;
   }
@@ -155,9 +156,9 @@ export function wood(w = 512, h = 512) {
 }
 
 // ---------- ring canvas with logo ----------
-export function ringCanvas(font, badge = null) {
+export function ringCanvas(font, badge = null, base = '#7f8c97') {
   const s = 1024, c = canvas(s, s), x2 = c.getContext('2d');
-  x2.fillStyle = '#7f8c97'; x2.fillRect(0, 0, s, s);
+  x2.fillStyle = base; x2.fillRect(0, 0, s, s);
   const img = x2.getImageData(0, 0, s, s), d = img.data;
   for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) {
     const i = (y * s + x) * 4;
@@ -194,6 +195,7 @@ export function apronSkirt(font) {
 export function neonSign(font, text, color) {
   const w = 1024, h = 256, c = canvas(w, h), x2 = c.getContext('2d');
   x2.font = `800 150px ${font}`; x2.textAlign = 'center'; x2.textBaseline = 'middle';
+  const tw = x2.measureText(text).width; if (tw > w * 0.88) x2.font = `800 ${150 * w * 0.88 / tw | 0}px ${font}`; // never clip with a wider fallback font
   x2.shadowColor = color; x2.shadowBlur = 40; x2.fillStyle = color;
   x2.fillText(text, w / 2, h / 2 + 6);
   x2.shadowBlur = 12; x2.fillStyle = '#fff6ea';

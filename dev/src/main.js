@@ -40,7 +40,8 @@ const fmtMoney = (v) => '$' + Math.round(v).toLocaleString('pl-PL');
 
 // ---------------- logos (the player's brand) ----------------
 async function makeLogos() {
-  const [wide, badge, poster, mark] = await Promise.all(['logo/wide.webp', 'logo/badge.webp', 'logo/poster.webp', 'logo/mark.webp'].map(p => A.loadTex(p, true)));
+  const [wide, badge, poster, mark, wideA] = await Promise.all(['logo/wide.webp', 'logo/badge.webp', 'logo/poster.webp', 'logo/mark.webp', 'logo/wide_a.webp'].map(p => A.loadTex(p, true)));
+  wideA.anisotropy = 8;
   const cv = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
   const tex = (c) => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; };
   const P = poster.image, W = wide.image, B = badge.image, M = mark.image;
@@ -64,7 +65,7 @@ async function makeLogos() {
   const id = mx.getImageData(0, 0, 512, 512), d = id.data;
   for (let i = 0; i < d.length; i += 4) { const l = Math.max(d[i], d[i + 1], d[i + 2]); d[i + 3] = Math.min(255, Math.max(0, (l - 30) * 2.2)); }
   mx.putImageData(id, 0, 0);
-  return { wide, badge, poster, mark, posterCrop: tex(pc), billboard: tex(bb), badgeTall: tex(bt), markSpray: tex(ms), badgeImg: B, wideImg: W };
+  return { wide, wideA, badge, poster, mark, posterCrop: tex(pc), billboard: tex(bb), badgeTall: tex(bt), markSpray: tex(ms), badgeImg: B, wideImg: W };
 }
 
 async function boot() {
@@ -108,7 +109,7 @@ async function boot() {
   loadMsg('Buduję siłownię…');
   const gym = buildGym(scene, world, Q, fontStack, logos);
   const cTex = TX.concrete(512);
-  const floor = createGymFloors({ hall: HALL, alley: ALLEY });
+  const floor = createGymFloors({ hall: HALL, alley: ALLEY, turf: { x0: -5, x1: 9, z0: 7.3, z1: 9.6 }, font: fontStack });
   gym.root.add(floor.mesh);
   const hemi = new THREE.HemisphereLight(0xb09070, 0x1c1612, 0.85); scene.add(hemi);
   const key = new THREE.DirectionalLight(0xfff0dc, 1.6);
@@ -125,7 +126,7 @@ async function boot() {
   scene.position.y = 0; scene.updateMatrixWorld(true);
   env.sky.visible = true;
   scene.environment = envGym;
-  const GYM_HEMI = { sky: new THREE.Color(0xc9b39a), ground: new THREE.Color(0x3a3029), i: isTouch ? 2.0 : 1.3 }, GYM_KEY = { c: new THREE.Color(0xfff0dc), i: isTouch ? 2.7 : 2.0 }; // phones have fewer spotlights
+  const GYM_HEMI = { sky: new THREE.Color(0xbcc0c8), ground: new THREE.Color(0x2c2e2d), i: isTouch ? 2.0 : 1.3 }, GYM_KEY = { c: new THREE.Color(0xf6f6f2), i: isTouch ? 2.7 : 2.0 }; // phones have fewer spotlights
 
   // ---------------- characters ----------------
   const chars = {}, charMats = [];
@@ -1004,7 +1005,7 @@ async function boot() {
   // ---------------- lighting: indoor/outdoor blend + lamp field ----------------
   const lampTmp = [];
   let outF = 0;
-  const fogIn = new THREE.Color(0x0a0807);
+  const fogIn = new THREE.Color(0x08090a);
   function updateLighting(dt, t) {
     const o = env.update(dt);
     let target = 0;
