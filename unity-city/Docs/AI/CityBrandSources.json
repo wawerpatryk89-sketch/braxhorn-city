@@ -1,0 +1,54 @@
+{
+  "scope": "Unmodified user-supplied brand and character artwork. Scene panels retain the original aspect ratio. No invented product packaging or event dates.",
+  "items": [
+    {
+      "path": "unity-city/Assets/CityRebuild/Brand/brax-fighter.jpg",
+      "source": "upload/D19D894B-90D1-42BC-9C6C-3DB1A52102C5(2).jpeg",
+      "bytes": 317073,
+      "sha256": "cd5c8ccb50a20da1649bb4c3c7db77ecc6e80c3df8c03cb8521c61bef91a69dd",
+      "unchanged_source": true
+    },
+    {
+      "path": "unity-city/Assets/CityRebuild/Brand/nyxa-pink.jpg",
+      "source": "upload/882A5561-5B07-4146-BE01-D7881ECEE625.jpeg",
+      "bytes": 214023,
+      "sha256": "327f54d2be52ee966d4618a6ecd1938db58685a8126b4630764d3d2fc1af6c5c",
+      "unchanged_source": true
+    },
+    {
+      "path": "unity-city/Assets/CityRebuild/Brand/training.png",
+      "source": "upload/9C39AF0C-62DB-4409-8C55-D25511FA5064(1).PNG",
+      "bytes": 2412929,
+      "sha256": "916934febb73405ef5c9836403ee180c796198acbac1d21e7db33e06e4824e6f",
+      "unchanged_source": true
+    },
+    {
+      "path": "unity-city/Assets/CityRebuild/Brand/pw-ai-video.jpg",
+      "source": "upload/IMG_3618.JPG",
+      "bytes": 172557,
+      "sha256": "fd1ecc21b6c687633a3978fdd702d4165fd285d6ca98ab12a7ed73842590763a",
+      "unchanged_source": true
+    },
+    {
+      "path": "unity-city/Assets/CityRebuild/Brand/brand-wide.png",
+      "source": "braxhorn-city-rebuild/dev/logos/wide.png",
+      "bytes": 1119312,
+      "sha256": "e9082def434b7be04e9da61568832516736c651b6ed1af498419b663381024d4",
+      "unchanged_source": true
+    },
+    {
+      "path": "unity-city/Assets/CityRebuild/Brand/brand-badge.png",
+      "source": "braxhorn-city-rebuild/dev/logos/badge.png",
+      "bytes": 1589131,
+      "sha256": "8f6b0f4778cdfcfcea583d923d87f2f39b3e5b4f5befca3c6792a71b223f0fd7",
+      "unchanged_source": true
+    },
+    {
+      "path": "unity-city/Assets/CityRebuild/Brand/brand-poster.png",
+      "source": "braxhorn-city-rebuild/dev/logos/poster.png",
+      "bytes": 2697051,
+      "sha256": "58c8bb3f967d4bf9f39ef3f27411ffffb181b462bab3356c90dcbde38c550178",
+      "unchanged_source": true
+    }
+  ]
+}

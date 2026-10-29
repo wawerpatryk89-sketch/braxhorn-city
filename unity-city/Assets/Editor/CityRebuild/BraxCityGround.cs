@@ -1,0 +1,125 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+
+public static class BraxCityGround
+{
+    static Material pavement,asphalt,curb,paint,iron;
+    static Texture2D Texture(string dir,string name)=>AssetDatabase.LoadAssetAtPath<Texture2D>(dir+name);
+    public static void Prepare()
+    {
+        string dir="Assets/Source/CityRebuild/textures/concrete_pavement_02/";
+        var diffuse=Texture(dir,"diffuse.jpg");var normal=Texture(dir,"normal.png")??Texture(dir,"normal.jpg");var arm=Texture(dir,"arm.jpg");
+        if(!diffuse||!normal||!arm)throw new InvalidOperationException("Verified pavement PBR source is incomplete");
+        pavement=BraxCityMaterials.Textured("Concrete pavement metric 1.8 metres",diffuse,normal,arm,1/1.8f);
+        asphalt=BraxCityArchitecture.SurfaceTexture("Dry fine-grained road asphalt","clean_asphalt","clean_asphalt_diff_2k.jpg",2.1f);
+        curb=BraxCityMaterials.Surface("Granite kerb neutral",new Color(.49f,.49f,.46f),.96f);
+        paint=BraxCityMaterials.Surface("Road weathered white",new Color(.73f,.73f,.68f),.96f);
+        iron=BraxCityMaterials.Surface("Drain cast iron",new Color(.11f,.12f,.115f),.86f,.3f);
+    }
+    public static void Plane(Transform root,string name,Rect area,float y,Material material,Rect[] holes=null,float step=.8f)
+    {
+        var xs=new SortedSet<float>{area.xMin,area.xMax};var zs=new SortedSet<float>{area.yMin,area.yMax};
+        for(float x=area.xMin+step;x<area.xMax-.001f;x+=step)xs.Add(x);
+        for(float z=area.yMin+step;z<area.yMax-.001f;z+=step)zs.Add(z);
+        foreach(var h in holes??Array.Empty<Rect>())
+        {
+            if(h.xMin>area.xMin&&h.xMin<area.xMax)xs.Add(h.xMin);if(h.xMax>area.xMin&&h.xMax<area.xMax)xs.Add(h.xMax);
+            if(h.yMin>area.yMin&&h.yMin<area.yMax)zs.Add(h.yMin);if(h.yMax>area.yMin&&h.yMax<area.yMax)zs.Add(h.yMax);
+        }
+        var xx=xs.ToArray();var zz=zs.ToArray();var data=new BraxCitySystemMesh();
+        for(int i=0;i<xx.Length-1;i++)for(int j=0;j<zz.Length-1;j++)
+        {
+            var center=new Vector2((xx[i]+xx[i+1])*.5f,(zz[j]+zz[j+1])*.5f);
+            if(holes!=null&&holes.Any(h=>h.Contains(center)))continue;
+            data.Quad(new Vector3(xx[i],y,zz[j]),new Vector3(xx[i],y,zz[j+1]),new Vector3(xx[i+1],y,zz[j+1]),new Vector3(xx[i+1],y,zz[j]));
+        }
+        if(data.VertexCount==0)return;
+        var obj=BraxCityArchitecture.MeshObject(name,root,data,material);var mesh=obj.GetComponent<MeshFilter>().sharedMesh;
+        mesh.uv=mesh.vertices.Select(p=>new Vector2(p.x,p.z)).ToArray();mesh.RecalculateTangents();
+    }
+    static void Kerb(Transform root,float x0,float x1,float z,bool reverse)
+    {
+        var m=new BraxCitySystemMesh();
+        for(float x=x0;x<x1-.01f;x+=1)
+        {
+            float end=Mathf.Min(x+.99f,x1);if(x<54&&end>50)continue;
+            float a=z-.12f,b=z+.12f;
+            // Chamfered wearing edge, actual stone joints, no collision steps
+            // added on top of the original walkable kerb physics.
+            var profile=new[]{new Vector2(a,-.03f),new Vector2(a,.12f),new Vector2(a+.035f,.15f),new Vector2(b-.035f,.15f),new Vector2(b,.12f),new Vector2(b,-.03f)};
+            for(int k=0;k<profile.Length-1;k++)
+            {
+                var q=profile[k];var r=profile[k+1];
+                m.Quad(new Vector3(x,q.y,q.x),new Vector3(x,r.y,r.x),new Vector3(end,r.y,r.x),new Vector3(end,q.y,q.x));
+            }
+        }
+        if(m.VertexCount>0)BraxCityArchitecture.MeshObject("Jointed chamfered kerbstones",root,m,curb);
+    }
+    public static void Street(Transform parent)
+    {
+        Prepare();
+        var root=new GameObject("Street pavement and dry asphalt").transform;root.SetParent(parent,false);
+        for(float x=-104;x<66;x+=10)
+        {
+            float end=Mathf.Min(x+10,66);
+            Plane(root,"Near pavement segment",new Rect(x,20.6f,end-x,3.4f),.15f,pavement,BraxCitySystemsBuild.CrossingCurbCuts);
+            Plane(root,"Far pavement segment",new Rect(x,33,end-x,3.1f),.15f,pavement,BraxCitySystemsBuild.CrossingCurbCuts);
+            Plane(root,"Road segment",new Rect(x,24,end-x,9),.003f,asphalt);
+            Kerb(root,x,end,23.875f,false);Kerb(root,x,end,33.125f,true);
+        }
+        for(float x=-98;x<62;x+=7)
+        {
+            if(x>43&&x<58)continue;
+            BraxCityArchitecture.Box("Centre line dash",root,new Vector3(x,.009f,28.5f),new Vector3(3,.006f,.12f),paint);
+        }
+        foreach(float x in new[]{-91f,-73f,-55f,-32f,-9f,22f,42f,60f})
+        {
+            var grate=new BraxCitySystemMesh();
+            grate.Box(new Vector3(x,.012f,24.28f),new Vector3(.65f,.018f,.41f));
+            for(int i=0;i<9;i++)grate.Box(new Vector3(x-.28f+i*.07f,.024f,24.28f),new Vector3(.026f,.012f,.35f));
+            BraxCityArchitecture.MeshObject("Road drainage inlet",root,grate,iron);
+        }
+    }
+
+    public static void Viaduct(Transform parent)
+    {
+        var steel=BraxCityMaterials.Surface("Viaduct weathered graphite steel",new Color(.19f,.21f,.21f),.76f,.48f);
+        var concrete=BraxCityMaterials.Surface("Viaduct stone abutments",new Color(.45f,.44f,.40f),.96f);
+        var root=new GameObject("Riveted steel viaduct").transform;root.SetParent(parent,false);
+        for(float z=-14;z<120;z+=10)
+        {
+            var segment=new GameObject("Viaduct bay "+z).transform;segment.SetParent(root,false);
+            var frame=new BraxCitySystemMesh();
+            foreach(float x in new[]{-70.7f,-61.7f})
+            {
+                frame.Box(new Vector3(x,8.7f,z+5),new Vector3(.13f,1.05f,10));
+                frame.Box(new Vector3(x,8.2f,z+5),new Vector3(.52f,.13f,10));
+                frame.Box(new Vector3(x,9.2f,z+5),new Vector3(.52f,.13f,10));
+                for(float k=z;k<z+10;k+=1)
+                {
+                    frame.Box(new Vector3(x,8.7f,k),new Vector3(.32f,1.05f,.085f));
+                    foreach(float y in new[]{8.37f,9.03f})frame.Tube(new Vector3(x-.11f,y,k),new Vector3(x+.11f,y,k),.025f,8);
+                }
+            }
+            for(float k=z;k<z+10;k+=2.5f)
+            {
+                frame.Box(new Vector3(-66.2f,8.37f,k),new Vector3(9.4f,.43f,.12f));
+                frame.Box(new Vector3(-66.2f,8.18f,k),new Vector3(9.4f,.07f,.32f));
+                frame.Tube(new Vector3(-70.7f,8.35f,k),new Vector3(-61.7f,8.35f,k+2.4f),.045f,8);
+            }
+            BraxCityArchitecture.MeshObject("Riveted longitudinal girders and cross members",segment,frame,steel);
+            BraxCityArchitecture.Box("Concrete railway deck",segment,new Vector3(-66.2f,9.35f,z+5),new Vector3(9.5f,.24f,10),concrete,true);
+            foreach(float x in new[]{-67.0f,-65.5f})BraxCityArchitecture.Box("Rail retained for later train module",segment,new Vector3(x,9.58f,z+5),new Vector3(.09f,.16f,10),steel);
+            if(z+5>21&&z+5<37)continue;
+            foreach(float x in new[]{-69.9f,-62.5f})
+            {
+                BraxCityArchitecture.Box("Viaduct pier footing",segment,new Vector3(x,.18f,z+5),new Vector3(1.25f,.36f,1.25f),concrete,true);
+                BraxCityArchitecture.Box("Viaduct structural column",segment,new Vector3(x,4.23f,z+5),new Vector3(.72f,8.1f,.78f),concrete,true);
+                BraxCityArchitecture.Box("Column capital",segment,new Vector3(x,8.02f,z+5),new Vector3(1.2f,.35f,1.1f),concrete);
+            }
+        }
+    }
+}

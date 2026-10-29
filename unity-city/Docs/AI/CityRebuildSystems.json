@@ -1,0 +1,786 @@
+{
+  "coordinateSystem": "Unity world metres (source X negated; Y and Z unchanged). Y is floor height. Yaw is Unity degrees. areaSize is intended clear area requiring scene validation, not a measurement pass.",
+  "sourceCommit": "ba678928b2dcb2dff9e38bdb5306e090e76360cf",
+  "scope": "Five main and six side passive reservations. No NPC, objective, reward, combat trigger, visible marker or active arena.",
+  "anchors": [
+    {
+      "id": "fight1_center",
+      "label": "fight1_center",
+      "position": {
+        "x": 10,
+        "y": 0.15,
+        "z": 80
+      },
+      "yaw": 0,
+      "requireExisting": true
+    },
+    {
+      "id": "fight1_player",
+      "label": "fight1_player",
+      "position": {
+        "x": 15,
+        "y": 0.15,
+        "z": 80
+      },
+      "yaw": -90,
+      "requireExisting": true
+    },
+    {
+      "id": "yard_brama_street",
+      "label": "yard_brama_street",
+      "position": {
+        "x": 10,
+        "y": 0.15,
+        "z": 35.2
+      },
+      "yaw": 0,
+      "requireExisting": true
+    },
+    {
+      "id": "yard_brama_yard",
+      "label": "yard_brama_yard",
+      "position": {
+        "x": 10,
+        "y": 0.15,
+        "z": 50
+      },
+      "yaw": -180,
+      "requireExisting": true
+    },
+    {
+      "id": "yard_gate_west",
+      "label": "yard_gate_west",
+      "position": {
+        "x": 62.5,
+        "y": 0.15,
+        "z": 77
+      },
+      "yaw": -90,
+      "requireExisting": true
+    },
+    {
+      "id": "fight2_center",
+      "label": "fight2_center",
+      "position": {
+        "x": 45.5,
+        "y": -3.6,
+        "z": 52
+      },
+      "yaw": 0,
+      "requireExisting": true
+    },
+    {
+      "id": "cellar_entry",
+      "label": "cellar_entry",
+      "position": {
+        "x": 40.2,
+        "y": -3.6,
+        "z": 60.8
+      },
+      "yaw": 90,
+      "requireExisting": true
+    },
+    {
+      "id": "club_stairs_top",
+      "label": "club_stairs_top",
+      "position": {
+        "x": 37.5,
+        "y": 0.15,
+        "z": 55.9
+      },
+      "yaw": 0,
+      "requireExisting": true
+    },
+    {
+      "id": "club_yard_exit",
+      "label": "club_yard_exit",
+      "position": {
+        "x": 34.4,
+        "y": 0.15,
+        "z": 63.4
+      },
+      "yaw": 0,
+      "requireExisting": true
+    },
+    {
+      "id": "quay_entry",
+      "label": "quay_entry",
+      "position": {
+        "x": 70,
+        "y": 0.15,
+        "z": 28.5
+      },
+      "yaw": 90,
+      "requireExisting": true
+    },
+    {
+      "id": "quay_delivery",
+      "label": "quay_delivery",
+      "position": {
+        "x": 77.4,
+        "y": 0.15,
+        "z": 83
+      },
+      "yaw": 90,
+      "requireExisting": true
+    },
+    {
+      "id": "quay_delivery_item",
+      "label": "quay_delivery_item",
+      "position": {
+        "x": 78.6,
+        "y": 0.85,
+        "z": 81.2
+      },
+      "yaw": 0,
+      "requireExisting": false
+    },
+    {
+      "id": "pier_end",
+      "label": "pier_end",
+      "position": {
+        "x": 108,
+        "y": 0.32,
+        "z": 73
+      },
+      "yaw": 90,
+      "requireExisting": true
+    },
+    {
+      "id": "shop_door",
+      "label": "shop_door",
+      "position": {
+        "x": 20.7,
+        "y": 0.15,
+        "z": 21.4
+      },
+      "yaw": -180,
+      "requireExisting": true
+    },
+    {
+      "id": "shop_inside",
+      "label": "shop_inside",
+      "position": {
+        "x": 20.7,
+        "y": 0.15,
+        "z": 19.4
+      },
+      "yaw": -180,
+      "requireExisting": true
+    },
+    {
+      "id": "closed_estate",
+      "label": "closed_estate",
+      "position": {
+        "x": -101,
+        "y": 0.15,
+        "z": 28.5
+      },
+      "yaw": -90,
+      "requireExisting": true
+    },
+    {
+      "id": "closed_forest",
+      "label": "closed_forest",
+      "position": {
+        "x": 74,
+        "y": 0.15,
+        "z": 111
+      },
+      "yaw": 0,
+      "requireExisting": true
+    },
+    {
+      "id": "harbour_reserve",
+      "label": "harbour_reserve",
+      "position": {
+        "x": 75,
+        "y": 0.15,
+        "z": 14
+      },
+      "yaw": 0,
+      "requireExisting": false
+    },
+    {
+      "id": "underpass_reserve",
+      "label": "underpass_reserve",
+      "position": {
+        "x": -58.8,
+        "y": 0.15,
+        "z": 23
+      },
+      "yaw": -90,
+      "requireExisting": false
+    },
+    {
+      "id": "underpass_entry",
+      "label": "underpass_entry",
+      "position": {
+        "x": -61.0,
+        "y": 0.15,
+        "z": 23.4
+      },
+      "yaw": -90,
+      "requireExisting": false
+    },
+    {
+      "id": "metro_entry",
+      "label": "metro_entry",
+      "position": {
+        "x": 78.9,
+        "y": 0.15,
+        "z": 34.3
+      },
+      "yaw": 0,
+      "requireExisting": false
+    },
+    {
+      "id": "metro_stairs_bottom",
+      "label": "metro_stairs_bottom",
+      "position": {
+        "x": 78.9,
+        "y": -3.25,
+        "z": 44.2
+      },
+      "yaw": 0,
+      "requireExisting": false
+    },
+    {
+      "id": "metro_vestibule",
+      "label": "metro_vestibule",
+      "position": {
+        "x": 78,
+        "y": -3.25,
+        "z": 46.5
+      },
+      "yaw": 0,
+      "requireExisting": false
+    },
+    {
+      "id": "metro_station_boundary",
+      "label": "metro_station_boundary",
+      "position": {
+        "x": 77.85,
+        "y": -3.25,
+        "z": 48.55
+      },
+      "yaw": 0,
+      "requireExisting": false
+    },
+    {
+      "id": "garage_contact",
+      "label": "garage_contact",
+      "position": {
+        "x": 54,
+        "y": 0.15,
+        "z": 84.5
+      },
+      "yaw": -90,
+      "requireExisting": false
+    },
+    {
+      "id": "estate_city_contact",
+      "label": "estate_city_contact",
+      "position": {
+        "x": -96,
+        "y": 0.15,
+        "z": 34.7
+      },
+      "yaw": -90,
+      "requireExisting": false
+    }
+  ],
+  "reservations": [
+    {
+      "id": "MAIN_01",
+      "type": "MAIN",
+      "anchorId": "fight1_center",
+      "scene": "BraxhornCity",
+      "module": "BraxhornCity",
+      "areaSize": {
+        "x": 20,
+        "y": 3.5,
+        "z": 11
+      },
+      "yaw": 0,
+      "accessPointIds": [
+        "yard_brama_yard",
+        "yard_gate_west"
+      ],
+      "exitPointIds": [
+        "yard_brama_yard",
+        "yard_gate_west"
+      ],
+      "relatedPointIds": [
+        "fight1_player"
+      ],
+      "futureCharacterPositions": [
+        {
+          "x": 15,
+          "y": 0.15,
+          "z": 80
+        },
+        {
+          "x": 6,
+          "y": 0.15,
+          "z": 78
+        },
+        {
+          "x": 6,
+          "y": 0.15,
+          "z": 83
+        }
+      ],
+      "cameraPosition": {
+        "x": 10,
+        "y": 5.5,
+        "z": 66.5
+      },
+      "cameraConditions": "Keep the court clear, including the original camera approach and court entrances; no active arena boundary.",
+      "status": "prepared in source; runtime geometry, camera and mobile acceptance pending"
+    },
+    {
+      "id": "MAIN_02",
+      "type": "MAIN",
+      "anchorId": "fight2_center",
+      "scene": "BraxhornCity",
+      "module": "ExistingNOVA / Cellar",
+      "areaSize": {
+        "x": 8,
+        "y": 3.25,
+        "z": 9
+      },
+      "yaw": 0,
+      "accessPointIds": [
+        "club_stairs_top",
+        "cellar_entry"
+      ],
+      "exitPointIds": [
+        "cellar_entry",
+        "club_yard_exit"
+      ],
+      "relatedPointIds": [],
+      "futureCharacterPositions": [
+        {
+          "x": 43,
+          "y": -3.6,
+          "z": 50
+        },
+        {
+          "x": 47,
+          "y": -3.6,
+          "z": 55
+        },
+        {
+          "x": 43,
+          "y": -3.6,
+          "z": 55
+        }
+      ],
+      "cameraPosition": {
+        "x": 45.5,
+        "y": -1.2,
+        "z": 59
+      },
+      "cameraConditions": "Original cellar interior preserved. Camera must remain below ceiling y=-0.35 and clear of furniture along the walls.",
+      "status": "prepared in source; runtime geometry, camera and mobile acceptance pending"
+    },
+    {
+      "id": "MAIN_03",
+      "type": "MAIN",
+      "anchorId": "harbour_reserve",
+      "scene": "BraxhornCity",
+      "module": "HarbourExterior",
+      "areaSize": {
+        "x": 10,
+        "y": 3.5,
+        "z": 10
+      },
+      "yaw": 0,
+      "accessPointIds": [
+        "quay_entry"
+      ],
+      "exitPointIds": [
+        "quay_entry"
+      ],
+      "relatedPointIds": [],
+      "futureCharacterPositions": [
+        {
+          "x": 73,
+          "y": 0.15,
+          "z": 11
+        },
+        {
+          "x": 77,
+          "y": 0.15,
+          "z": 15
+        },
+        {
+          "x": 73,
+          "y": 0.15,
+          "z": 17
+        }
+      ],
+      "cameraPosition": {
+        "x": 80,
+        "y": 4.5,
+        "z": 24
+      },
+      "cameraConditions": "External apron by the warehouse; do not count the locked warehouse as a built interior. Keep the promenade and quay edge clear.",
+      "status": "prepared in source; runtime geometry, camera and mobile acceptance pending"
+    },
+    {
+      "id": "MAIN_04",
+      "type": "MAIN",
+      "anchorId": "underpass_reserve",
+      "scene": "BraxhornCity",
+      "module": "ViaductApproach / FutureUnderground",
+      "areaSize": {
+        "x": 4,
+        "y": 3.2,
+        "z": 2
+      },
+      "yaw": -90,
+      "accessPointIds": [
+        "quay_entry"
+      ],
+      "exitPointIds": [
+        "quay_entry"
+      ],
+      "relatedPointIds": [
+        "underpass_entry"
+      ],
+      "futureCharacterPositions": [
+        {
+          "x": -58,
+          "y": 0.15,
+          "z": 22.1
+        }
+      ],
+      "cameraPosition": {
+        "x": -54,
+        "y": 3.7,
+        "z": 29
+      },
+      "cameraConditions": "Current anchor is the pedestrian approach only. Future underground confrontation needs its own module and 12x14m clear area; no new interior or active arena is claimed.",
+      "status": "approach and module reservation in source; future underground interior is not built"
+    },
+    {
+      "id": "MAIN_05",
+      "type": "MAIN",
+      "anchorId": "metro_vestibule",
+      "scene": "BraxhornCity",
+      "module": "MetroVestibule / FutureMetroStation",
+      "areaSize": {
+        "x": 5.3,
+        "y": 3.1,
+        "z": 5.7
+      },
+      "yaw": 0,
+      "accessPointIds": [
+        "quay_entry",
+        "metro_entry",
+        "metro_stairs_bottom"
+      ],
+      "exitPointIds": [
+        "metro_stairs_bottom",
+        "metro_entry"
+      ],
+      "relatedPointIds": [
+        "metro_station_boundary"
+      ],
+      "futureCharacterPositions": [
+        {
+          "x": 77,
+          "y": -3.25,
+          "z": 46
+        },
+        {
+          "x": 79,
+          "y": -3.25,
+          "z": 47
+        }
+      ],
+      "cameraPosition": {
+        "x": 78.2,
+        "y": -1.65,
+        "z": 45
+      },
+      "cameraConditions": "Only the short vestibule is accessible. Rear locked gate is the boundary of the future station module. Full platform, train and encounter are not built.",
+      "status": "stairs and vestibule in source; traversal and camera tests pending; future station not built"
+    },
+    {
+      "id": "SIDE_01",
+      "type": "SIDE",
+      "anchorId": "quay_delivery",
+      "scene": "BraxhornCity",
+      "module": "QuayDelivery",
+      "areaSize": {
+        "x": 3.2,
+        "y": 3,
+        "z": 3
+      },
+      "yaw": 90,
+      "accessPointIds": [
+        "quay_entry",
+        "yard_gate_west"
+      ],
+      "exitPointIds": [
+        "quay_entry",
+        "yard_gate_west"
+      ],
+      "relatedPointIds": [
+        "quay_delivery_item"
+      ],
+      "futureCharacterPositions": [
+        {
+          "x": 76.3,
+          "y": 0.15,
+          "z": 84
+        }
+      ],
+      "cameraPosition": {
+        "x": 72,
+        "y": 3.5,
+        "z": 80
+      },
+      "cameraConditions": "Preserve pallet/item anchor while keeping the promenade and container counter access clear.",
+      "status": "prepared in source; runtime geometry, camera and mobile acceptance pending"
+    },
+    {
+      "id": "SIDE_02",
+      "type": "SIDE",
+      "anchorId": "pier_end",
+      "scene": "BraxhornCity",
+      "module": "Pier",
+      "areaSize": {
+        "x": 3,
+        "y": 3,
+        "z": 3
+      },
+      "yaw": 90,
+      "accessPointIds": [
+        "quay_entry"
+      ],
+      "exitPointIds": [
+        "quay_entry"
+      ],
+      "relatedPointIds": [],
+      "futureCharacterPositions": [
+        {
+          "x": 106,
+          "y": 0.32,
+          "z": 72
+        }
+      ],
+      "cameraPosition": {
+        "x": 101,
+        "y": 3.5,
+        "z": 73
+      },
+      "cameraConditions": "Keep both railings and the return path. Do not place a marker or NPC at the end of the pier.",
+      "status": "prepared in source; runtime geometry, camera and mobile acceptance pending"
+    },
+    {
+      "id": "SIDE_03",
+      "type": "SIDE",
+      "anchorId": "shop_door",
+      "scene": "BraxhornCity",
+      "module": "NutritionEntrance",
+      "areaSize": {
+        "x": 2.5,
+        "y": 3,
+        "z": 2
+      },
+      "yaw": -180,
+      "accessPointIds": [
+        "shop_door"
+      ],
+      "exitPointIds": [
+        "shop_door"
+      ],
+      "relatedPointIds": [
+        "shop_inside"
+      ],
+      "futureCharacterPositions": [
+        {
+          "x": 22,
+          "y": 0.15,
+          "z": 22
+        }
+      ],
+      "cameraPosition": {
+        "x": 25,
+        "y": 3.2,
+        "z": 26
+      },
+      "cameraConditions": "Interaction space is beside the actual nutrition shop entrance; do not block the threshold or sidewalk.",
+      "status": "prepared in source; runtime geometry, camera and mobile acceptance pending"
+    },
+    {
+      "id": "SIDE_04",
+      "type": "SIDE",
+      "anchorId": "garage_contact",
+      "scene": "BraxhornCity",
+      "module": "GarageForecourt",
+      "areaSize": {
+        "x": 4,
+        "y": 3.5,
+        "z": 4
+      },
+      "yaw": -90,
+      "accessPointIds": [
+        "yard_gate_west",
+        "yard_brama_yard"
+      ],
+      "exitPointIds": [
+        "yard_gate_west",
+        "yard_brama_yard"
+      ],
+      "relatedPointIds": [],
+      "futureCharacterPositions": [
+        {
+          "x": 53,
+          "y": 0.15,
+          "z": 86
+        }
+      ],
+      "cameraPosition": {
+        "x": 48,
+        "y": 3.5,
+        "z": 84.5
+      },
+      "cameraConditions": "Side courtyard position in front of garages, separate from the court. Check imported garage footprints before final acceptance.",
+      "status": "prepared in source; runtime geometry, camera and mobile acceptance pending"
+    },
+    {
+      "id": "SIDE_05",
+      "type": "SIDE",
+      "anchorId": "estate_city_contact",
+      "scene": "BraxhornCity",
+      "module": "EstateCityApproach",
+      "areaSize": {
+        "x": 3,
+        "y": 3,
+        "z": 1.8
+      },
+      "yaw": -90,
+      "accessPointIds": [
+        "closed_estate"
+      ],
+      "exitPointIds": [
+        "closed_estate"
+      ],
+      "relatedPointIds": [],
+      "futureCharacterPositions": [
+        {
+          "x": -94.5,
+          "y": 0.15,
+          "z": 34.7
+        }
+      ],
+      "cameraPosition": {
+        "x": -92,
+        "y": 3.4,
+        "z": 29
+      },
+      "cameraConditions": "Stay on the city sidewalk. Keep the gate, roadway, interaction radius and scene transfer route unobstructed.",
+      "status": "prepared in source; runtime geometry, camera and mobile acceptance pending"
+    },
+    {
+      "id": "SIDE_06",
+      "type": "SIDE",
+      "anchorId": "closed_forest",
+      "scene": "BraxhornCity",
+      "module": "ForestRoadApproach",
+      "areaSize": {
+        "x": 4,
+        "y": 3.5,
+        "z": 3
+      },
+      "yaw": 0,
+      "accessPointIds": [
+        "quay_entry"
+      ],
+      "exitPointIds": [
+        "quay_entry"
+      ],
+      "relatedPointIds": [],
+      "futureCharacterPositions": [
+        {
+          "x": 76,
+          "y": 0.15,
+          "z": 109.5
+        }
+      ],
+      "cameraPosition": {
+        "x": 74,
+        "y": 3.5,
+        "z": 105
+      },
+      "cameraConditions": "Reserve remains before the closed forest road; no forest district or active mission is created.",
+      "status": "prepared in source; runtime geometry, camera and mobile acceptance pending"
+    }
+  ],
+  "metroExcavation": {
+    "x": 75,
+    "z": 34.8,
+    "width": 5.7,
+    "depth": 15,
+    "floorY": -3.25,
+    "stairCount": 20,
+    "riser": 0.17,
+    "tread": 0.44,
+    "clearWidth": 3.2
+  },
+  "futureModules": [
+    {
+      "id": "FutureUnderground",
+      "origin": {
+        "x": -66,
+        "y": -4,
+        "z": 16
+      },
+      "requestedClearArea": {
+        "x": 12,
+        "y": 3.5,
+        "z": 14
+      },
+      "loaded": false,
+      "status": "spatial proposal behind current viaduct boundary, not a built interior"
+    },
+    {
+      "id": "FutureMetroStation",
+      "origin": {
+        "x": 77.85,
+        "y": -3.25,
+        "z": 60
+      },
+      "requestedClearArea": {
+        "x": 16,
+        "y": 4,
+        "z": 18
+      },
+      "loaded": false,
+      "status": "future separate scene/module, not included in the current initial download"
+    }
+  ],
+  "traffic": {
+    "crossingUnityX": 52,
+    "vehicleLanesZ": [
+      26.9,
+      30.1
+    ],
+    "startupAllRedSeconds": 2,
+    "cycleSecondsAfterStartup": 40,
+    "independentVehicleTrafficAI": false,
+    "pedestrianAI": false
+  },
+  "validation": {
+    "unityCompiled": false,
+    "sourceRaycastChecksExecuted": false,
+    "runtimeTraversalTested": false,
+    "visualAccepted": false,
+    "physicalPhoneTested": false
+  }
+}

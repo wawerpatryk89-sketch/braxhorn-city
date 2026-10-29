@@ -88,7 +88,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         if(paused)return;var p=values.Split(',');
         if(p.Length>=2 && float.TryParse(p[0],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float dx) && float.TryParse(p[1],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float dy))
-        {yaw-=dx*.22f;pitch=Mathf.Clamp(pitch+dy*.16f,7f,57f);}
+        {yaw=Mathf.Repeat(yaw-dx*.22f,360f);pitch=Mathf.Clamp(pitch+dy*.16f,-90f,90f);}
     }
     public void Command(string key)
     {
@@ -131,8 +131,11 @@ public sealed class BraxGymPlayer : MonoBehaviour
         bool acting=Time.time<actionEnd;
         float target=!acting?(move.magnitude>.12f?(runEnabled&&move.magnitude>.76f?5f:2f)*Mathf.Clamp01(move.magnitude*1.3f):0):0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
-        Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
-        Vector3 forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
+        // The player's horizontal controls remain well defined while looking
+        // exactly at the zenith/nadir, where projection of camera.forward is zero.
+        var heading=Quaternion.Euler(0,yaw+180f,0);
+        Vector3 right=heading*Vector3.right;
+        Vector3 forward=heading*Vector3.forward;
         Vector3 direction=right*move.x+forward*move.y;
         if(direction.sqrMagnitude>.01f && !acting)transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(direction),1-Mathf.Exp(-dt*12f));
         if(body.isGrounded&&vertical<0)vertical=-2f;vertical-=18f*dt;
@@ -188,7 +191,9 @@ public sealed class BraxGymPlayer : MonoBehaviour
         Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*distance;
         Vector3 position=cameraTarget+offset;
         if(Physics.SphereCast(cameraTarget,.18f,offset.normalized,out RaycastHit hit,distance,~(1<<8),QueryTriggerInteraction.Ignore))position=cameraTarget+offset.normalized*Mathf.Max(.8f,hit.distance-.15f);
-        view.transform.position=position;view.transform.LookAt(cameraTarget);
+        view.transform.position=position;
+        // Explicit orientation avoids LookAt's ambiguous up vector at +/-90.
+        view.transform.rotation=Quaternion.Euler(pitch,yaw+180f,0);
         if(contactShadow){var p=transform.position;
             if(cityWorld&&Physics.Raycast(p+Vector3.up*.25f,Vector3.down,out RaycastHit floor,30,~(1<<8),QueryTriggerInteraction.Ignore))p.y=floor.point.y+.018f;
             else p.y=body.isGrounded?transform.position.y+.018f:.018f;
@@ -201,7 +206,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         for(int i=0;i<6;i++)if(!float.TryParse(a[i],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out v[i])||float.IsNaN(v[i])||float.IsInfinity(v[i]))return;
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";clips.Play("Idle");
         body.enabled=false;transform.position=new Vector3(v[0],v[1],v[2]);body.enabled=true;
-        yaw=v[3];pitch=Mathf.Clamp(v[4],7f,57f);distance=Mathf.Clamp(v[5],.8f,12f);
+        yaw=Mathf.Repeat(v[3],360f);pitch=Mathf.Clamp(v[4],-90f,90f);distance=Mathf.Clamp(v[5],.8f,12f);
         cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);Report();
     }
     public void TravelTo(Vector3 position)
@@ -223,10 +228,11 @@ public sealed class BraxGymPlayer : MonoBehaviour
         var h=hand?hand.position:Vector3.zero;
         string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
         if(cityWorld){if(!string.IsNullOrEmpty(cityWorld.Context))context=cityWorld.Context;else if(context=="ULICA — KOLEJNY ETAP")context="";}
-        var right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
-        var forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
+        var heading=Quaternion.Euler(0,yaw+180f,0);
+        var right=heading*Vector3.right;
+        var forward=heading*Vector3.forward;
         var s=new Status{area=cityWorld?cityWorld.area:"gym",activePoint=cityWorld?cityWorld.activePoint:"",points=cityWorld?cityWorld.points:null,loadingArea=cityWorld&&cityWorld.loading,cityMeshes=cityWorld?cityWorld.originalMeshes:0,cityTriangles=cityWorld?cityWorld.originalTriangles:0,cityColliders=cityWorld?cityWorld.sourceColliders:0,openDoors=cityWorld?cityWorld.OpenDoors:0,ready=ready,paused=paused,x=transform.position.x,y=transform.position.y,z=transform.position.z,yaw=yaw,pitch=pitch,speed=speed,animation=action,context=context,hits=trainingHits,frames=Time.frameCount,handX=h.x,handY=h.y,handZ=h.z,doorOpen=doorOpen,build=buildId,
-            grounded=body.isGrounded,runEnabled=runEnabled,playerYaw=transform.eulerAngles.y,cameraYaw=view.transform.eulerAngles.y,verticalSpeed=vertical,
+            grounded=body.isGrounded,runEnabled=runEnabled,playerYaw=transform.eulerAngles.y,cameraYaw=Mathf.Repeat(yaw+180f,360f),verticalSpeed=vertical,
             rightX=right.x,rightZ=right.z,forwardX=forward.x,forwardZ=forward.z,
             lastHitBag=lastHitBag,lastHitTime=lastHitTime,lastHitDistance=lastHitDistance,lastHitAlignment=lastHitAlignment,bagAngles=bagSwing,bagVelocities=bagVelocity,
             gameTime=Time.time,simulationTime=simulationTime,moveX=move.x,moveY=move.y,lastHitImpulse=lastHitImpulse,

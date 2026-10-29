@@ -1,4 +1,4 @@
-name: City rebuild — isolated source asset audit
+name: City rebuild — isolated Unity build and source audit
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/unity-city-rebuild.yml
       - unity-tools/city-rebuild/**
+      - unity-city/**
 
 permissions:
   contents: read
@@ -17,7 +18,7 @@ concurrency:
 
 jobs:
   asset-audit:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029'
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-assets]')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -73,7 +74,7 @@ jobs:
           retention-days: 14
 
   asset-visual-inspection:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029'
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-assets]')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -107,7 +108,7 @@ jobs:
           retention-days: 14
 
   original-city-inventory:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029'
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-assets]')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -135,4 +136,98 @@ jobs:
           name: city-rebuild-original-inventory-${{ github.sha }}
           path: original-city-report/
           if-no-files-found: error
+          retention-days: 14
+
+  unity-city-build:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-build]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-city
+            unity-tools
+            unity-release
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+            asset-library/sources/sofa_02
+          persist-credentials: false
+          lfs: false
+      - name: Retrieve original gym export without replacing gym source code
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+      - name: Retrieve original city and separate estate source geometry
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40840263799
+          github-token: ${{ github.token }}
+          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
+          path: unity-city/Assets/Source/City/
+      - name: Retrieve inspected original facade and PBR assets
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40869502253
+          github-token: ${{ github.token }}
+          name: city-rebuild-curated-extended-3c98ccd919409da59d8145c0171b0776bc65b93d
+          path: unity-city/Assets/
+      - name: Prepare original rigs and native texture copies
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6
+          python3 -m compileall -q unity-tools
+          python3 unity-tools/prepare_playable.py
+          python3 unity-tools/premium_prepare.py
+          python3 unity-tools/premium_refinements.py
+          python3 unity-tools/city/prepare.py
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender
+          blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
+          git diff --exit-code -- unity-city/Assets unity-city/Packages unity-city/ProjectSettings unity-tools unity-release .github/workflows
+      - name: Compile isolated Unity city candidate
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxGymBuild.BuildCity
+          versioning: None
+          allowDirtyBuild: true
+      - name: Package candidate with the preserved iOS native streaming fix
+        run: |
+          python3 unity-tools/city-rebuild/package.py
+          node unity-tools/city-rebuild/check_transport.mjs
+      - name: Preserve build provenance and diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-build-report-${{ github.sha }}
+          path: |
+            city-rebuild-review/
+            build/WebGL/*.json
+            unity-city/Assets/Source/City/*.json
+            unity-city/Assets/Source/Premium/*.json
+            unity-city/Assets/Source/CityRebuild/source-audit.json
+            unity-city/Logs/
+            artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Preserve compiled candidate without publishing it
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-player-${{ github.sha }}
+          path: unity-preview/
+          if-no-files-found: warn
           retention-days: 14

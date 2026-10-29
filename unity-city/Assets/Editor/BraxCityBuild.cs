@@ -142,13 +142,14 @@ public static class BraxCityBuild
         world.sourceColliders=(data.collision.boxes?.Length??0)+(data.collision.circles?.Length??0)+meshColliders;
         world.points=(data.points??Array.Empty<Point>()).Where(p=>p.id!=null&&!p.id.Contains("camera")&&!p.id.Contains("enemy")&&!p.id.Contains("item")).Select(p=>new BraxCityPoint{id=p.id,label=p.label,position=Convert(p.x,p.y,p.z)}).ToArray();
         player.cityWorld=world;
+        if(area=="city")BraxCityRebuild.Apply(world,root.transform,physics);
         reports.Add(new AreaReport{area=area,originalMeshes=data.meshCount,importedMeshes=count,originalTriangles=(int)data.triangles,sourceBoxes=data.collision.boxes?.Length??0,sourceCircles=data.collision.circles?.Length??0,sourcePits=data.collision.pits?.Length??0,meshColliders=meshColliders,doors=doors.Count,bakedMaterials=baked,sourcePoints=world.points.Length});
         Debug.Log("ORIGINAL_CITY_AREA_IMPORTED "+JsonUtility.ToJson(reports.Last()));
         return world;
     }
     public static void AttachCity(BraxGymPlayer player)
     {
-        reports.Clear();AddArea("city",player);player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=320;player.view.backgroundColor=new Color(.67f,.75f,.81f);
+        reports.Clear();AddArea("city",player);player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=420;player.view.backgroundColor=new Color(.67f,.75f,.81f);
     }
     public static string CreateEstate(string commit)
     {
@@ -175,5 +176,6 @@ public static class BraxCityBuild
     {
         if(reports.Count!=2)throw new Exception("Both original areas must be included");
         File.WriteAllText(Path.Combine(output,"city-migration.json"),JsonUtility.ToJson(new Report{commit=commit,unity=Application.unityVersion,areas=reports.ToArray()},true));
+        BraxCityRebuild.WriteReport(output);
     }
 }
