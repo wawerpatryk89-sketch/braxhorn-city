@@ -4,6 +4,7 @@ No Unity packages are installed. Poly Haven maps are fetched individually and
 checked against its official API digest; original models are never executed.
 """
 import hashlib
+import io
 import json
 import pathlib
 import urllib.request
@@ -78,6 +79,29 @@ def main():
         if path.is_absolute() or '..' in path.parts:
             raise RuntimeError('Unsafe source path')
         save_source(spec, lamp_root / path, source, 'Kuutti Siitonen / Poly Haven', 'https://polyhaven.com/license')
+
+    # Approved mural is stored as a pinned compact source image. Decode only
+    # during CI asset preparation; mobile Unity imports the resulting PNG with
+    # ETC2 compression, not a runtime network request or an embedded JPG panel.
+    mural_source = ROOT / 'unity-tools/kickboxing/mural-source.avif'
+    mural_bytes = mural_source.read_bytes()
+    mural_digest = hashlib.sha256(mural_bytes).hexdigest()
+    if mural_digest != 'fe12ca1214af38ba5facd1777b2b9234a04907ad9b1a10b0ae3bc368f00f251c':
+        raise RuntimeError('Approved wall mural source SHA-256 does not match')
+    mural_png = TEXTURES / 'MuralPaint.png'
+    mural_png.parent.mkdir(parents=True, exist_ok=True)
+    with Image.open(io.BytesIO(mural_bytes)) as painted:
+        if painted.size != (1024, 384):
+            raise RuntimeError('Unexpected approved mural size')
+        painted.convert('RGB').save(mural_png, format='PNG', optimize=True)
+    RECEIPT.append({'file': str(mural_png.relative_to(ROOT)),
+        'source': 'Owner-approved BRAXHORN mural artwork in unity-tools/kickboxing/mural-source.avif',
+        'source_sha256': mural_digest,
+        'sha256': hashlib.sha256(mural_png.read_bytes()).hexdigest(),
+        'bytes': mural_png.stat().st_size, 'author': 'BRAXHORN project artwork',
+        'usage': 'Paint on existing back-wall brick, not a billboard',
+        'license': 'project-owned artwork; not a CC0 third-party asset'})
+
     (ASSETS / 'asset-provenance.json').write_text(json.dumps({'assets': RECEIPT,
         'api_credit': 'Powered by Poly Haven', 'scope': 'Kickboxing room and annex only',
         'brand': {'owner': 'BRAXHORN', 'source': 'Existing public/assets/logo', 'pixelEdits': False}}, indent=2))

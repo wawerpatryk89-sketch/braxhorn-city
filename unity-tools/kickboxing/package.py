@@ -128,6 +128,7 @@ def main():
         'Hanging Industrial Lamp: Kuutti Siitonen / Poly Haven, CC0.\n'
         'Fine Grained Wood: Rob Tuytel / Poly Haven, CC0, 0.6 m physical repeat.\n'
         'Rubber Tiles: Amal Kumar / Poly Haven, CC0, 2 m physical repeat.\n'
+        'Approved BRAXHORN rear-wall mural: project artwork, matte paint blended over source brick (not a framed billboard).\n'
         'Boxing gloves and bag; Compact WC; Basin pedestal sink cabinet: Innerscene, CC0.\n'
         'Reviewed bag derivative: original chain mesh and normal map, reinforced leather body, seams, straps, hardware and original BRAXHORN branding.\n'
         'Powered by Poly Haven. Full source and license URLs: kickboxing-assets.json.\n')
@@ -138,6 +139,8 @@ def main():
                'unityVersion': '6000.0.58f2', 'renderPipeline': 'Built-in',
                'productionChanged': False, 'physicalIPhoneValidated': False,
                'billboardArtworkApproved': False, 'billboardArtworkInstalled': False,
+               'muralArtworkApproved': True, 'muralArtworkInstalled': True,
+               'muralSourceSha256': 'fe12ca1214af38ba5facd1777b2b9234a04907ad9b1a10b0ae3bc368f00f251c',
                'transport': manifest,
                'loadingFix': {'revision': 'ios-stream-01', 'nativeStreamingGzip': True,
                               'maxInputChunkBytes': 65536, 'algorithmPreserved': True,

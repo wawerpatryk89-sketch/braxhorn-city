@@ -60,6 +60,8 @@ public sealed class BraxGymRoomDiagnostics : MonoBehaviour
             realtimeSeconds = Time.realtimeSinceStartup, build = player ? player.buildId : "",
             playerPosition = transform.position, hallBounds = hallBounds, annexBounds = annexBounds,
             wcConfigured = wcFixture != null, wcPosition = wcFixture ? wcFixture.position : Vector3.zero,
+            muralConfigured = GameObject.Find("BRAXHORN/Hall/Painted rear-wall BRAXHORN STREET FIGHTER mural") != null,
+            framedBillboardPresent = GameObject.Find("BRAXHORN/Hall/Billboard recessed backing") != null,
             mirror = CaptureMirror(), doors = CaptureDoors(), frameTiming = CaptureFrameTiming(),
             memory = new MemoryState {
                 unityAllocatedBytes = Profiler.GetTotalAllocatedMemoryLong(),
@@ -182,7 +184,7 @@ public sealed class BraxGymRoomDiagnostics : MonoBehaviour
         public float realtimeSeconds;
         public Vector3 playerPosition, wcPosition;
         public Bounds hallBounds, annexBounds;
-        public bool wcConfigured, allRoomDoorsOpen, privacySamplePassedWithDoorsOpen;
+        public bool wcConfigured, muralConfigured, framedBillboardPresent, allRoomDoorsOpen, privacySamplePassedWithDoorsOpen;
         public MirrorState mirror; public DoorState[] doors; public PrivacyRay[] privacy;
         public FrameTimingState frameTiming; public MemoryState memory; public DeviceState device;
     }

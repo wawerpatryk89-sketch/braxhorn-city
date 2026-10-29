@@ -29,9 +29,9 @@ public static class BraxGymReferenceRebuild
         public Vector3 mainDoorBefore, mainDoorAfter, ringCenterBefore, ringCenterAfter;
         public int sourceMeshesClipped, removedSourceTriangles, generatedMeshes, generatedTriangles, privacyRays, privacyBlocked;
         public bool privacyWithAllDoorsOpen, originalEntrancePreserved, originalRingPositionPreserved;
-        public bool billboardArtworkInstalled = false, physicalIPhoneValidated = false;
+        public bool billboardArtworkInstalled = false, muralArtworkInstalled = false, physicalIPhoneValidated = false;
         public string[] registeredDoors, requiredAssets;
-        public string[] pending = { "approved billboard artwork", "physical iPhone performance test", "visual inspection of assembled fixtures" };
+        public string[] pending = { "physical iPhone performance test", "visual acceptance of brick mural in compiled Unity", "visual inspection of assembled fixtures" };
     }
 
     public static void Apply(GameObject gym, Transform solids, BraxGymPlayer player, string generated)
@@ -81,7 +81,7 @@ public static class BraxGymReferenceRebuild
             BuildTrainingMat();
             BuildRingFinishing();
             BuildIndustrialCeiling();
-            BuildBillboardMount();
+            BuildMuralWall();
             BuildAnnex();
             BuildReception();
             BuildContactGrounding();
@@ -129,7 +129,7 @@ public static class BraxGymReferenceRebuild
         void PrepareMaterials()
         {
             if (!Shader.Find("Standard")) throw new InvalidOperationException("Built-in Standard shader is required by the current renderer.");
-            report.requiredAssets = new[] { "BrickAlbedo.jpg", "BrickNormal.png", "BrickARM.jpg", "RubberAlbedo.jpg", "RubberNormal.png", "RubberARM.jpg", "WoodAlbedo.jpg", "WoodNormal.png", "WoodARM.jpg", "Mark.png", "Wordmark.png" };
+            report.requiredAssets = new[] { "BrickAlbedo.jpg", "BrickNormal.png", "BrickARM.jpg", "RubberAlbedo.jpg", "RubberNormal.png", "RubberARM.jpg", "WoodAlbedo.jpg", "WoodNormal.png", "WoodARM.jpg", "MuralPaint.png", "Mark.png", "Wordmark.png" };
             foreach (string name in report.requiredAssets) RequiredTexture(name, name.Contains("Normal"), name.Contains("ARM"));
             brick = Material("Natural dark brick", new Color(.70f, .66f, .61f), .80f, 0);
             brick.mainTexture = RequiredTexture("BrickAlbedo.jpg");
@@ -181,7 +181,8 @@ public static class BraxGymReferenceRebuild
             if (importer == null) throw new InvalidOperationException("Required reviewed surface is missing: " + path);
             importer.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
             importer.sRGBTexture = !(normal || linear); importer.mipmapEnabled = true; importer.anisoLevel = 4;
-            importer.maxTextureSize = 2048; importer.wrapMode = name == "Mark.png" || name == "Wordmark.png" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
+            importer.maxTextureSize = name == "MuralPaint.png" ? 1024 : 2048; importer.textureCompression = TextureImporterCompression.Compressed;
+            importer.wrapMode = name == "Mark.png" || name == "Wordmark.png" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
             importer.isReadable = name.Contains("ARM"); importer.SaveAndReimport();
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
             if (!texture) throw new InvalidOperationException("Unity failed to import reviewed surface: " + path);
@@ -549,27 +550,43 @@ public static class BraxGymReferenceRebuild
             }
         }
 
-        void BuildBillboardMount()
+        void BuildMuralWall()
         {
-            // The reviewed flat artwork is 3:1. Keep the mount at that aspect
-            // ratio so neither character will be stretched when approved.
-            var center = new Vector3(-3.4f, 5.15f, -12.68f);
-            Box(hall, "Billboard recessed backing", center, new Vector3(18f, 6f, .10f), blackSteel, .025f);
-            foreach (float x in new[] { center.x - 9.06f, center.x + 9.06f })
-                Box(hall, "Billboard vertical frame", new Vector3(x, center.y, center.z + .04f), new Vector3(.11f, 6.16f, .14f), blackSteel, .017f);
-            foreach (float y in new[] { center.y - 3.06f, center.y + 3.06f })
-                Box(hall, "Billboard horizontal frame", new Vector3(center.x, y, center.z + .04f), new Vector3(18.22f, .11f, .14f), blackSteel, .017f);
-            var anchor = Group(root, "BillboardArtAnchor"); anchor.position = center + Vector3.forward * .065f;
-            anchor.rotation = Quaternion.Euler(0, 180, 0); anchor.localScale = new Vector3(18f, 6f, 1);
-            foreach (float x in new[] { -10f, -3.4f, 3.2f })
-            {
-                Tube(hall, "Billboard lamp frame fixing", new Vector3(x, 8.16f, -12.68f), new Vector3(x, 8.32f, -12.68f), .025f, blackSteel, 1, 10);
-                Tube(hall, "Billboard lamp bracket", new Vector3(x, 8.32f, -12.8f), new Vector3(x, 8.32f, -12.15f), .035f, blackSteel, 1, 10);
-                Box(hall, "Billboard wash lamp", new Vector3(x, 8.25f, -12.12f), new Vector3(.52f, .18f, .18f), blackSteel, .035f);
-                Box(hall, "Billboard lamp diffuser", new Vector3(x, 8.15f, -12.12f), new Vector3(.43f, .018f, .13f), lit, .006f);
-            }
-            // Source logos remain separate controlled assets; the wall art is not
-            // installed until its owner has approved the flat image.
+            // This is a wall PAINTING, not a framed billboard, sign, photo panel
+            // or a captured scene. Retain the existing brick behind the pigment.
+            // A feathered, rough, alpha-composited coat reveals brick and mortar
+            // and leaves no hard-edged black rectangle around the artwork.
+            var art = RequiredTexture("MuralPaint.png");
+            var shader = Shader.Find("Braxhorn/PaintedBrickMural");
+            if (!shader) throw new InvalidOperationException("The actual brick-painted mural shader is missing.");
+            var material = new Material(shader) { name = "Original BRAXHORN rear wall painted mural" };
+            material.SetTexture("_MainTex", art);
+            material.SetTexture("_BumpMap", RequiredTexture("BrickNormal.png", true));
+            material.SetFloat("_PaintOpacity", .87f);
+            AssetDatabase.CreateAsset(material, folder + "/PaintedBrickMural.mat");
+
+            // The approved flat graphic is 8:3; preserve its proportions.
+            // World +X appears camera LEFT at the existing front entrance, so
+            // reverse texture U to keep Brax visually LEFT and Nyxa RIGHT.
+            const float width = 20.4f, height = 7.65f;
+            var mural = new Mesh {
+                name = "Direct pigment coat on original brick wall",
+                vertices = new[] {
+                    new Vector3(-width / 2, -height / 2, 0),
+                    new Vector3(width / 2, -height / 2, 0),
+                    new Vector3(width / 2, height / 2, 0),
+                    new Vector3(-width / 2, height / 2, 0)
+                },
+                uv = new[] { new Vector2(1,0), Vector2.zero, new Vector2(0,1), Vector2.one },
+                triangles = new[] { 0,1,2,0,2,3 }
+            };
+            mural.RecalculateNormals();
+            var paint = MeshObject(hall, "Painted rear-wall BRAXHORN STREET FIGHTER mural", mural, material);
+            paint.localPosition = new Vector3(-3.4f, 4.57f, -12.62f);
+            report.muralArtworkInstalled = true;
+
+            // Keep the ORIGINAL project-owned mark and wordmark on the right
+            // brick wall. Neither is AI-generated or visually redrawn.
             Decal(hall, "Original right wall brand", RequiredTexture("Mark.png"), new Vector3(-17.89f, 5.1f, 0), 2.25f, 2.25f, Vector3.right, Vector3.up, Color.white);
             Decal(hall, "Original right wall wordmark", RequiredTexture("Wordmark.png"), new Vector3(-17.88f, 3.55f, 0), 4.8f, .78f, Vector3.right, Vector3.up, Color.white);
         }

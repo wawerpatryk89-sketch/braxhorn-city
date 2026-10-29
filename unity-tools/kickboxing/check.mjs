@@ -249,6 +249,10 @@ try {
   verify('Existing iOS streaming algorithm retained',release.loadingFix?.algorithmPreserved===true&&release.loadingFix?.nativeStreamingGzip===true,release.loadingFix);
   await step('Room diagnostic wiring',async()=>{
     const d=await capture('startup');
+
+    verify('Mural painted directly on rear brick, not a framed billboard',
+      d.muralConfigured && !d.framedBillboardPresent,
+      {mural:d.muralConfigured,framedBillboard:d.framedBillboardPresent});
     verify('Room references are assigned',d.wcConfigured&&d.mirror.configured&&['gym-backrooms','gym-locker','gym-wc'].every(id=>d.doors.some(x=>x.id===id)),d);
   });
   await review(1.5,.08,2.8,0,19,5.8,'exact original before-view comparison');
