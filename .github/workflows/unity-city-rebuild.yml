@@ -13,7 +13,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: city-reference-${{ contains(github.event.head_commit.message, '[city-build]') && 'build' || contains(github.event.head_commit.message, '[city-qa]') && 'qa' || contains(github.event.head_commit.message, '[city-preview]') && 'preview' || contains(github.event.head_commit.message, '[city-trees]') && 'trees' || 'assets' }}-${{ github.ref }}
+  group: city-reference-${{ (contains(github.event.head_commit.message, '[city-build]') || contains(github.event.head_commit.message, '[city-mobile]')) && 'build' || contains(github.event.head_commit.message, '[city-qa]') && 'qa' || contains(github.event.head_commit.message, '[city-preview]') && 'preview' || contains(github.event.head_commit.message, '[city-trees]') && 'trees' || 'assets' }}-${{ github.ref }}
   # A corrected city build supersedes an older failed/invalid candidate in this isolated branch.
   cancel-in-progress: true
 
@@ -194,7 +194,7 @@ jobs:
           retention-days: 14
 
   unity-city-build:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-build]')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && (contains(github.event.head_commit.message, '[city-build]') || contains(github.event.head_commit.message, '[city-mobile]'))
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -257,7 +257,7 @@ jobs:
           projectPath: unity-city
           unityVersion: 6000.0.58f2
           targetPlatform: WebGL
-          buildMethod: BraxGymBuild.BuildCity
+          buildMethod: ${{ contains(github.event.head_commit.message, '[city-mobile]') && 'BraxGymBuild.BuildCityMobile' || 'BraxGymBuild.BuildCity' }}
           versioning: None
           allowDirtyBuild: true
       - name: Assert that Unity actually completed the city WebGL player
