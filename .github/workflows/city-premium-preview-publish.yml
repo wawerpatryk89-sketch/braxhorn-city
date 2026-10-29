@@ -22,7 +22,7 @@ jobs:
         with:
           repository: wawerpatryk89-sketch/braxhorn-city
           run-id: 40914321114
-          github-token: \${{ github.token }}
+          github-token: ${{ github.token }}
           name: premium-street-player-48d81f1f998b9884709e74afe10c3f7ebf0b58ac
           path: player/
       - name: Download actual Unity screenshots and non-teleport walk QA
@@ -30,12 +30,12 @@ jobs:
         with:
           repository: wawerpatryk89-sketch/braxhorn-city
           run-id: 40914321114
-          github-token: \${{ github.token }}
+          github-token: ${{ github.token }}
           name: premium-street-actual-unity-review-48d81f1f998b9884709e74afe10c3f7ebf0b58ac
           path: qa/
       - name: Validate all source WebGL SHA256 and publish separate branch only
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
           import base64,hashlib,json,os,re,shutil,subprocess
@@ -136,7 +136,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: city-premium-visual-preview-publication-\${{ github.sha }}
+          name: city-premium-visual-preview-publication-${{ github.sha }}
           path: preview-receipt/
           if-no-files-found: warn
           retention-days: 14
