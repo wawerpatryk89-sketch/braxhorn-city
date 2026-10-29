@@ -152,7 +152,9 @@ public static class BraxCityPremiumTowerBuild
             new Vector3(r-l,upperHeight,b.z1-s1),ceiling);
         var streetDoor=BuildStreetDoor(root,x,b.z0-.06f);
         world.doors=world.doors.Concat(new[]{streetDoor}).ToArray();
-        BraxCityArchitecture.Sign(root,"BRAXHORN TOWER",new Vector3(x,3.40f,b.z0-.17f),.32f,Color.white);
+        // The same title is already rendered by the sourced street façade.
+        // Do not overlay two almost-coplanar text meshes (flickering/z-fight).
+        // The one BRAXHORN TOWER entry label stays clearly visible.
         // Deliberately keep the corridor from street door (Z36.1) to the lift
         // at Z51.28 free. Reception and seating stay outside that corridor.
         Solid(root,"Lobby security reception",new Vector3(b.x0+2.1f,.78f,b.z0+5.5f),
