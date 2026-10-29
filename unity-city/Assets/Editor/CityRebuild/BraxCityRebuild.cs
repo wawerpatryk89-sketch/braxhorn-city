@@ -143,6 +143,11 @@ public static class BraxCityRebuild
             // Their street-facing facades and returns remain fully modular.
             BraxCityStreetSkyline.Build(root);
             BraxCityPremiumTowerBuild.Build(world,root);
+            // The original task required actual access, not skyscraper
+            // facades with no doors. The quay lift remains the signature
+            // installation; the other eight towers get independent cabs,
+            // shaft walls, roof landings and safety railings.
+            BraxCityTowerLiftNetwork.Build(world,root);
             Disable(original,Enumerable.Range(179,15));
             BraxCityArchitecture.Tower(root,"north brick district",new Rect(27,100,35,13),.15f,22);
             BraxCityArchitecture.Tower(root,"north glass landmark",new Rect(-13,100,35,13),.15f,31);
@@ -223,6 +228,18 @@ public static class BraxCityRebuild
                     string.Join(",",missing));
             Debug.Log("CITY_ALL_REAL_ENTRANCES_AUDITED count="+required.Count+
                 " originalInteriorsPreserved=true");
+            if(world.additionalTowerElevators.Length!=8)
+                throw new InvalidOperationException("CITY_HIGHRISE_ELEVATORS_MISSING "+
+                    world.additionalTowerElevators.Length+"/8");
+            var distinctShafts=world.additionalTowerElevators
+                .Select(l=>l.shaftCenter).Distinct().Count();
+            if(distinctShafts!=8)
+                throw new InvalidOperationException("CITY_ELEVATOR_SHAFT_DUPLICATE "+
+                    distinctShafts+"/8");
+            Debug.Log("CITY_NINE_PHYSICAL_ELEVATORS_INCLUDED actual="+
+                (world.additionalTowerElevators.Length+1)+
+                " uniqueAdditionalShafts="+distinctShafts+
+                " sourceBuildings=18");
         }
         if(UnityEngine.Object.FindObjectsByType<BraxGymPlayer>(FindObjectsSortMode.None).Length!=1)
             throw new InvalidOperationException("Architecture-only city must contain precisely one controllable Brax");
