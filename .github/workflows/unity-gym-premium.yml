@@ -61,6 +61,12 @@ jobs:
           allowDirtyBuild: true
       - name: Package cache-safe mobile version
         run: python3 unity-tools/package_premium.py
+      - name: Preserve compiled candidate for QA retries without recompilation
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-premium-candidate-${{ github.sha }}
+          path: unity-preview/
+          retention-days: 3
       - name: Prepare browser validation
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1
