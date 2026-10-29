@@ -85,7 +85,11 @@ public static class BraxCityGround
     {
         const float surfaceY=.15f;
         const float stoneX=.52f,stoneZ=.34f,gap=.014f,thickness=.028f;
-        Plane(root,side+" real recessed stone grout",area,surfaceY-thickness-.004f,joints,null,1.4f);
+        // The existing Unity zebra crossing already owns two genuine
+        // sloped, collision-enabled wheelchair ramps at x50..54. Keep their
+        // entire rectangles free of fixed-height pavers/grout.
+        var crossingCutouts=BraxCitySystemsBuild.CrossingCurbCuts;
+        Plane(root,side+" real recessed stone grout",area,surfaceY-thickness-.004f,joints,crossingCutouts,1.4f);
         var light=new BraxCitySystemMesh();
         var dark=new BraxCitySystemMesh();
         int row=0,count=0;
@@ -97,6 +101,8 @@ public static class BraxCityGround
             {
                 float x0=Mathf.Max(x,area.xMin),x1=Mathf.Min(x+stoneX,area.xMax);
                 if(x1-x0<.08f)continue;
+                var cell=new Rect(x0,z,x1-x0,endZ-z);
+                if(crossingCutouts.Any(c=>c.Overlaps(cell,true)))continue;
                 float w=x1-x0-gap,d=endZ-z-gap;
                 if(w<.05f||d<.06f)continue;
                 var m=(count++%7==0 || (row+count)%11==0)?dark:light;
