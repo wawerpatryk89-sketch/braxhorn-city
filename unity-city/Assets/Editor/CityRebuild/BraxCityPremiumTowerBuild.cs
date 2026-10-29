@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 // Editor-only, self-contained tower fit-out on an existing authored frontage.
@@ -18,6 +19,7 @@ public static class BraxCityPremiumTowerBuild
     static Transform SlidingLeaf(Transform root,string label,Vector3 at,float width)
     {
         var leaf=Group(label,root,at);
+        leaf.gameObject.AddComponent<BraxCityMovingLiftPart>();
         Solid(leaf,"Brushed aluminium glass elevator door",new Vector3(0,1.42f,0),
             new Vector3(width,2.84f,.085f),steel);
         Deco(leaf,"Vertical inset glass door insert",new Vector3(0,1.42f,-.05f),
@@ -184,6 +186,7 @@ public static class BraxCityPremiumTowerBuild
         world.points=world.points.Concat(points).ToArray();
 
         var cabin=Group("Moving physical elevator cabin",root,new Vector3(x,groundY,shaftZ));
+        cabin.gameObject.AddComponent<BraxCityMovingLiftPart>();
         Solid(cabin,"Lift floor with collision",new Vector3(0,-.08f,0),new Vector3(3.20f,.16f,3.18f),steel);
         Solid(cabin,"Lift ceiling",new Vector3(0,3.15f,0),new Vector3(3.2f,.18f,3.18f),steel);
         foreach(float xx in new[]{-1.49f,1.49f})
@@ -211,6 +214,12 @@ public static class BraxCityPremiumTowerBuild
         elevator.lowerY=groundY;elevator.upperY=roofY;
         elevator.entranceZ=s0; elevator.shaftCenter=new Vector2(x,shaftZ);
         world.elevator=elevator;
+        // Asset meshes are static by default in the source authoring helper.
+        // Explicitly clear all static flags for real moving carriage parts:
+        // otherwise Unity can freeze doors/cabin into static batches.
+        foreach(var marker in root.GetComponentsInChildren<BraxCityMovingLiftPart>(true))
+            foreach(var t in marker.GetComponentsInChildren<Transform>(true))
+                GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
         Debug.Log("CITY_TOWER_ARCHITECTURE_CREATED floor="+groundY+" roof="+roofY+
             " authored-roof-points=8 source-footprint="+b.id+
             " / Unity physical traversal and safety acceptance pending");
