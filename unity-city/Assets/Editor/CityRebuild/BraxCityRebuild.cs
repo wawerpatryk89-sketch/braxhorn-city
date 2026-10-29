@@ -64,7 +64,7 @@ public static class BraxCityRebuild
         // A set-back tower above the representative block provides the high
         // skyline requested by the user. The lower detailed street floors stay
         // at their original physical scale and retain distinct premises.
-        BraxCityArchitecture.Tower(root,"central setback",new Rect(28,12.4f,22,7.2f),23.7f,22);
+        BraxCityArchitecture.Tower(root,"central setback",new Rect(28,-3.2f,22,22.8f),23.7f,22);
         if(WholeDistrict)
         {
             Cut(original,physics,Box(14.5f,26,5.1f,30,11.6f,20.63f),"shop_upper",false);
@@ -73,6 +73,17 @@ public static class BraxCityRebuild
             // untouched. Only geometry above its existing ceiling is replaced.
             Cut(original,physics,Box(32,52,5.1f,30,36.08f,62),"nova_upper",false);
             BraxCityArchitecture.UpperExtension(root,"NOVA",32,52,36.1f,62,5.1f,5);
+            // The 4.03 m clear gateway below remains the original open passage.
+            Cut(original,physics,Box(2,18,4.6f,40,36.08f,48),"courtyard_gateway_upper",false);
+            BraxCityArchitecture.UpperExtension(root,"Courtyard gateway",2,18,36.1f,48,4.6f,6);
+            Disable(original,BraxCityIndustrial.WholeSourceRendererIds);
+            foreach(var sourceCut in BraxCityIndustrial.SourceCuts)
+            {
+                var batch=original.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>t.name==sourceCut.renderer);
+                if(!batch)throw new InvalidOperationException("Warehouse source batch changed: "+sourceCut.renderer);
+                BraxCityMeshCut.Subtract(batch,sourceCut.volume,Output+"/Cuts",sourceCut.label);
+            }
+            BraxCityIndustrial.Apply(root);
             Disable(original,Enumerable.Range(179,15));
             BraxCityArchitecture.Tower(root,"north brick district",new Rect(27,100,35,13),.15f,22);
             BraxCityArchitecture.Tower(root,"north glass landmark",new Rect(-13,100,35,13),.15f,31);

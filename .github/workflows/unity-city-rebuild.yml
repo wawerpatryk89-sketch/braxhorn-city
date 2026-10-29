@@ -17,6 +17,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  foliage-topology-inspection:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-foliage-topology]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-city/Assets/Editor/CityRebuild/Materials
+          persist-credentials: false
+          lfs: false
+      - name: Retrieve immutable authored sources from the completed audit
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40872975563
+          github-token: ${{ github.token }}
+          name: city-rebuild-foliage-main-sources-9a8ea3ac561f395216cf6ae1a971450765c134e4
+          path: foliage-sources/
+      - name: Inspect leaf islands without modifying original geometry
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender
+          blender --background --disable-autoexec foliage-sources/tree_small_02/tree_small_02_1k.blend --python unity-city/Assets/Editor/CityRebuild/Materials/InspectFoliageTopology.py -- --object tree_small_02_LOD1 --output foliage-topology.json
+      - name: Preserve the topology findings independently
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-foliage-topology-${{ github.sha }}
+          path: foliage-topology.json
+          if-no-files-found: warn
+          retention-days: 14
   foliage-report-readout:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-tree-readout]')
     runs-on: ubuntu-latest
@@ -391,5 +422,41 @@ jobs:
         with:
           name: city-rebuild-preview-publication-${{ github.sha }}
           path: city-preview-publication-report/
+          if-no-files-found: warn
+          retention-days: 14
+
+  unity-city-evidence:
+    needs: unity-city-review
+    if: always() && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-qa]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+          lfs: false
+      - name: Retrieve actual screenshots and results even when runtime QA failed
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          name: city-rebuild-runtime-review-${{ github.sha }}
+          path: city-runtime-evidence/
+      - name: Save exact PNGs and JSON on a new evidence-only branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 unity-tools/city-rebuild/publish_evidence.py
+      - name: Preserve the small evidence publication receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-evidence-receipt-${{ github.sha }}
+          path: city-evidence-publication-report/
           if-no-files-found: warn
           retention-days: 14

@@ -20,29 +20,29 @@ public static class BraxCityArchitecture
     const string Factory="modular_factory_facade";
     public sealed class Building
     {
-        public string id,title;public float x0,x1,z0,z1;public int floors;public bool far;
-        public Building(string id,string title,float x0,float x1,float z0,float z1,int floors,bool far=false)
-        {this.id=id;this.title=title;this.x0=x0;this.x1=x1;this.z0=z0;this.z1=z1;this.floors=floors;this.far=far;}
+        public string id,title;public float x0,x1,z0,z1;public int floors;public bool far,industrial;
+        public Building(string id,string title,float x0,float x1,float z0,float z1,int floors,bool far=false,bool industrial=false)
+        {this.id=id;this.title=title;this.x0=x0;this.x1=x1;this.z0=z0;this.z1=z1;this.floors=floors;this.far=far;this.industrial=industrial;}
         public float Height=>3.75f+floors*3.2f+.75f;
     }
     public static readonly Building[] StreetBuildings={
-        new Building("apothecary","APTEKA",38,52,11.6f,20.6f,8),
-        new Building("corner_store","DELIKATESY",26,38,11.6f,20.6f,6),
+        new Building("apothecary","APTEKA",38,52,-4,20.6f,8),
+        new Building("corner_store","DELIKATESY",26,38,-4,20.6f,6),
         new Building("bar","BAR 24",-12,-1,11.6f,20.6f,7),
         new Building("restaurant","BISTRO",-24,-12,11.6f,20.6f,10),
-        new Building("workshop_shop","PRACOWNIA",-36,-24,11.6f,20.6f,7),
+        new Building("workshop_shop","PRACOWNIA",-36,-24,11.6f,20.6f,7,false,true),
         new Building("hotel","HOTEL",-48,-36,11.6f,20.6f,11),
         new Building("viaduct_corner","BRAXHORN",-61.4f,-48,11.6f,20.6f,8),
-        new Building("workshop","WARSZTAT",-87,-71,11.6f,20.6f,6),
+        new Building("workshop","WARSZTAT",-87,-71,11.6f,20.6f,6,false,true),
         new Building("estate_corner","KAWIARNIA",-104,-87,11.6f,20.6f,9),
         new Building("quay_corner","NABRZEŻE",52,66,36.1f,60,9,true),
         new Building("bakery","PIEKARNIA",18,32,36.1f,48,6,true),
-        new Building("gallery","GALERIA",-10,2,36.1f,48,8,true),
-        new Building("office_entrance","BRAXHORN",-22,-10,36.1f,48,7,true),
+        new Building("gallery","GALERIA",-10,2,36.1f,48,8,true,true),
+        new Building("office_entrance","BRAXHORN",-22,-10,36.1f,48,7,true,true),
         new Building("apartments_1","KSIĘGARNIA",-34,-22,36.1f,48,9,true),
-        new Building("apartments_2","KAWIARNIA",-46,-34,36.1f,48,7,true),
+        new Building("apartments_2","KAWIARNIA",-46,-34,36.1f,48,7,true,true),
         new Building("apartments_3","PRACOWNIA",-61.4f,-46,36.1f,48,8,true),
-        new Building("estate_apartments_1","BRAXHORN",-88,-71,36.1f,48,6,true),
+        new Building("estate_apartments_1","BRAXHORN",-88,-71,36.1f,48,6,true,true),
         new Building("estate_apartments_2","BRAXHORN",-104,-88,36.1f,48,9,true)
     };
 
@@ -137,9 +137,11 @@ public static class BraxCityArchitecture
         return BraxCityMaterials.Textured(name,baseColor,normal,arm,1f/metres);
     }
 
-    static void Elevation(Transform building,string name,Vector3 at,float yaw,float width,int floors,bool entry,string title)
+    static void Elevation(Transform building,string name,Vector3 at,float yaw,float width,int floors,bool entry,string title,bool industrial=false)
     {
         var face=Group(name,building,at,Quaternion.Euler(0,yaw,0));
+        string kit=industrial?Factory:Urban;
+        string cornice=industrial?"cornice02_standard_standard_01":"cornice_standard_standard_01";
         int bays=Mathf.Max(1,Mathf.RoundToInt(width/3f));float bay=width/bays;
         // The original windows retain all their depth; matching source wall
         // apertures are used on every near storey. Only horizontal bay fitting
@@ -147,31 +149,33 @@ public static class BraxCityArchitecture
         for(int i=0;i<bays;i++)
         {
             bool door=entry&&i==bays/2;
-            string wall=door?"wall_door_centered_large_01":"wall_window_centered_large_01";
-            string detail=door?"door_centered_large_01":"window_centered_large_01";
+            string wall=door?(industrial?"wall_door_recessed_large_01":"wall_door_centered_large_01"):"wall_window_centered_large_01";
+            string detail=door?(industrial?"door_recessed_large_01":"door_centered_large_01"):"window_centered_large_01";
             var scale=new Vector3(bay/3,1,1);
-            Part(Urban,wall,face,new Vector3(i*bay,.15f,0),Quaternion.identity,scale);
-            Part(Urban,detail,face,new Vector3(i*bay,.15f,0),Quaternion.identity,scale);
-            Part(Urban,"cornice_standard_standard_01",face,new Vector3(i*bay,3.25f,0),Quaternion.identity,scale);
+            Part(kit,wall,face,new Vector3(i*bay,.15f,0),Quaternion.identity,scale);
+            Part(kit,detail,face,new Vector3(i*bay,.15f,0),Quaternion.identity,scale);
+            Part(kit,cornice,face,new Vector3(i*bay,3.25f,0),Quaternion.identity,scale);
         }
         Box("Deep ground-floor recess",face,new Vector3(width*.5f,1.65f,-.48f),new Vector3(width,3,.08f),backing);
+        Box("Continuous ground-storey lintel",face,new Vector3(width*.5f,3.28f,-.1f),new Vector3(width,.3f,.2f),stone);
         Box("Stone ground-storey entablature",face,new Vector3(width*.5f,3.575f,-.08f),new Vector3(width,.35f,.3f),stone);
         for(int floor=0;floor<floors;floor++)
         {
             var storey=Group("Storey "+(floor+2),face,Vector3.zero,Quaternion.identity);float y=3.75f+floor*3.2f;
             bool top=floor==floors-1;
-            string suffix=top?"03":floor%3==0?"01":"02";
+            string suffix=industrial?"01":top?"03":floor%3==0?"01":"02";
             for(int i=0;i<bays;i++)
             {
                 var scale=new Vector3(bay/3,1,1);
-                Part(Urban,"wall_window_centered_large_"+suffix,storey,new Vector3(i*bay,y,0),Quaternion.identity,scale);
-                Part(Urban,"window_centered_large_"+suffix,storey,new Vector3(i*bay,y,0),Quaternion.identity,scale);
-                Part(Urban,"cornice_standard_standard_01",storey,new Vector3(i*bay,y+3,0),Quaternion.identity,scale);
+                Part(kit,"wall_window_centered_large_"+suffix,storey,new Vector3(i*bay,y,0),Quaternion.identity,scale);
+                Part(kit,"window_centered_large_"+suffix,storey,new Vector3(i*bay,y,0),Quaternion.identity,scale);
+                Part(kit,cornice,storey,new Vector3(i*bay,y+3,0),Quaternion.identity,scale);
             }
             Box("Window recess backing",storey,new Vector3(width*.5f,y+1.5f,-.5f),new Vector3(width,3,.08f),backing);
+            Box("Continuous floor joint",storey,new Vector3(width*.5f,y+3.1f,-.1f),new Vector3(width,.2f,.18f),stone);
             Batch(storey);
         }
-        for(int i=0;i<bays;i++)Part(Urban,"crown_standard_standard_01",face,new Vector3(i*bay,3.75f+floors*3.2f,0),Quaternion.identity,new Vector3(bay/3,1,1));
+        for(int i=0;i<bays;i++)Part(kit,"crown_standard_standard_01",face,new Vector3(i*bay,3.75f+floors*3.2f,0),Quaternion.identity,new Vector3(bay/3,1,1));
         if(entry&& !string.IsNullOrEmpty(title))
         {
             Box("Shop sign backing",face,new Vector3(width*.5f,3.42f,.18f),new Vector3(Mathf.Min(width-.6f,7.5f),.43f,.12f),darkMetal);
@@ -183,14 +187,18 @@ public static class BraxCityArchitecture
     public static Transform Build(Transform parent,Building b)
     {
         var g=Group("Building "+b.id,parent,Vector3.zero,Quaternion.identity);float width=b.x1-b.x0,depth=b.z1-b.z0;
-        if(b.far)Elevation(g,"Street frontage",new Vector3(b.x1,0,b.z0),180,width,b.floors,true,b.title);
-        else Elevation(g,"Street frontage",new Vector3(b.x0,0,b.z1),0,width,b.floors,true,b.title);
+        if(b.far)Elevation(g,"Street frontage",new Vector3(b.x1,0,b.z0),180,width,b.floors,true,b.title,b.industrial);
+        else Elevation(g,"Street frontage",new Vector3(b.x0,0,b.z1),0,width,b.floors,true,b.title,b.industrial);
         // Exposed backs are designed too. Recessed windows and a complete roof
         // avoid a dressed front with a blank, stretched box behind it.
-        if(b.far)Elevation(g,"Courtyard frontage",new Vector3(b.x0,0,b.z1),0,width,b.floors,false,"");
-        else Elevation(g,"Rear frontage",new Vector3(b.x1,0,b.z0),180,width,b.floors,false,"");
-        Box("West party wall masonry",g,new Vector3(b.x0+.12f,b.Height*.5f,(b.z0+b.z1)*.5f),new Vector3(.24f,b.Height,depth),brick,false,1);
-        Box("East party wall masonry",g,new Vector3(b.x1-.12f,b.Height*.5f,(b.z0+b.z1)*.5f),new Vector3(.24f,b.Height,depth),brick,false,1);
+        if(b.far)Elevation(g,"Courtyard frontage",new Vector3(b.x0,0,b.z1),0,width,b.floors,false,"",b.industrial);
+        else Elevation(g,"Rear frontage",new Vector3(b.x1,0,b.z0),180,width,b.floors,false,"",b.industrial);
+        bool westNeighbour=StreetBuildings.Any(n=>n!=b&&Mathf.Abs(n.x1-b.x0)<.01f&&n.z0<b.z1&&n.z1>b.z0);
+        bool eastNeighbour=StreetBuildings.Any(n=>n!=b&&Mathf.Abs(n.x0-b.x1)<.01f&&n.z0<b.z1&&n.z1>b.z0);
+        if(westNeighbour)Box("West party wall masonry",g,new Vector3(b.x0+.12f,b.Height*.5f,(b.z0+b.z1)*.5f),new Vector3(.24f,b.Height,depth),brick,false,1);
+        else Elevation(g,"Exposed west return",new Vector3(b.x0,0,b.z0),270,depth,b.floors,false,"",b.industrial);
+        if(eastNeighbour)Box("East party wall masonry",g,new Vector3(b.x1-.12f,b.Height*.5f,(b.z0+b.z1)*.5f),new Vector3(.24f,b.Height,depth),brick,false,1);
+        else Elevation(g,"Exposed east return",new Vector3(b.x1,0,b.z1),90,depth,b.floors,false,"",b.industrial);
         for(int i=0;i<=b.floors;i++)
         {
             float y=i==0?3.6f:3.75f+i*3.2f;
