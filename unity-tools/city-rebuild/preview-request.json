@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "status": "not-requested",
+  "sourceRun": 40871777803,
+  "sourceCommit": "882cd04c2a5977c700215b131fc96ca4b8c6d781",
+  "qaRun": null,
+  "qaCommit": null,
+  "visualReview": "pending",
+  "reviewedImages": [],
+  "knownIssues": [],
+  "purpose": "After actual Unity QA and image review, set exact matching QA run/SHA, reviewed-for-test and requested; push [city-preview]. This publishes only a new immutable test branch, never main or a production alias."
+}

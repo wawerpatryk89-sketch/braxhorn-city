@@ -188,9 +188,14 @@ public sealed class BraxGymPlayer : MonoBehaviour
         Vector3 want=transform.position+Vector3.up*1.65f;
         cameraTarget=Vector3.Lerp(cameraTarget,want,1-Mathf.Exp(-dt*12f));
         float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
-        Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*distance;
+        // At the vertical poles retain a small horizontal stand-off, so a
+        // straight-up view comes from beside the player instead of underneath
+        // their mesh. Pitch remains entirely controlled by the user's input.
+        float horizontal=Mathf.Max(distance*Mathf.Cos(pi),Mathf.Min(1.3f,distance));
+        Vector3 offset=new Vector3(Mathf.Sin(ya)*horizontal,Mathf.Sin(pi)*distance,Mathf.Cos(ya)*horizontal);
+        offset.y=Mathf.Max(offset.y,transform.position.y+.45f-cameraTarget.y);
         Vector3 position=cameraTarget+offset;
-        if(Physics.SphereCast(cameraTarget,.18f,offset.normalized,out RaycastHit hit,distance,~(1<<8),QueryTriggerInteraction.Ignore))position=cameraTarget+offset.normalized*Mathf.Max(.8f,hit.distance-.15f);
+        if(Physics.SphereCast(cameraTarget,.18f,offset.normalized,out RaycastHit hit,offset.magnitude,~(1<<8),QueryTriggerInteraction.Ignore))position=cameraTarget+offset.normalized*Mathf.Max(.05f,hit.distance-.15f);
         view.transform.position=position;
         // Explicit orientation avoids LookAt's ambiguous up vector at +/-90.
         view.transform.rotation=Quaternion.Euler(pitch,yaw+180f,0);

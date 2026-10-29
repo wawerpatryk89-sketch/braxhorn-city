@@ -9,6 +9,8 @@ The gym contractor's working tree has not been edited, exported over, or merged.
 
 The persistent authoring entry is `BraxCityRebuild.Apply`, called from `BraxCityBuild.AddArea` only for the city. Generated assets are disposable outputs. Original glTF, image files and materials are not overwritten.
 
+The supplied `Braxhorn_City_Master(1).pdf` describes the eventual five-region game, including the station and future combat systems. This city-stage order remains the specific implementation boundary: eleven passive reserves, the metro descent/vestibule, preserved estate connection, and no active campaign. The future station is deliberately not labelled finished. The gym contractor's current annex was inspected read-only: x approximately -25.5..-18.6, z -3..8. The current city street footprint starts at z=11.6 and does not occupy that annex. Its finished integration commit still requires an explicit handoff; observing a work-in-progress commit is not an integration approval.
+
 ## Reference inspection
 
 The complete attached 79.52 second recording was reviewed chronologically at 0.5 second intervals and at detailed selected views. It shows a mix of tall glass/metal towers and masonry fronts, recessed ground floors, generous paving slabs, dark street furniture and a detailed steel elevated railway. The strongest pedestrian reference is approximately 46–55 seconds. Its bloom, haze and glossy finish are not copied globally because the brief explicitly excludes those effects. The recording contains no palm, port or metro specification and is not a performance measurement of this project.

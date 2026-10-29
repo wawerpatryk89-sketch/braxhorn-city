@@ -40,6 +40,7 @@ public static class BraxCityRebuild
     {
         if(!world||world.area!="city")throw new InvalidOperationException("Renovation must run on the actual city source");
         Directory.CreateDirectory(Output);AssetDatabase.Refresh();replaced.Clear();
+        BraxCityArtwork.Prepare();
         var gymDoor=GameObject.Find("Original opening door");
         var gymDoorPosition=gymDoor?gymDoor.transform.position:Vector3.zero;
         var gymDoorRotation=gymDoor?gymDoor.transform.rotation:Quaternion.identity;
@@ -93,6 +94,18 @@ public static class BraxCityRebuild
         var glass=BraxCityMaterials.Surface("City controlled glass",new Color(.16f,.23f,.25f),.25f,.18f);
         BraxCitySystemsBuild.Apply(world,root,stone,concrete,metal,glass);
 
+        // Replace only the inspected furnishing groups. Original collision
+        // proxies are retained; the environment builder adds collision solely
+        // to new objects which did not have a corresponding source proxy.
+        Disable(original,BraxCityEnvironment.ReplacedOriginalMeshes);
+        var containerBatch=original.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>t.name=="CityMesh_231");
+        var timberBatch=original.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>t.name=="CityMesh_226");
+        if(!containerBatch||!timberBatch)throw new InvalidOperationException("Original harbour batches changed; refuse a broad replacement");
+        BraxCityMeshCut.Subtract(containerBatch,BraxCityEnvironment.ContainerReplacementRegion,Output+"/Cuts","container_panels");
+        for(int i=0;i<BraxCityEnvironment.PalletReplacementRegions.Length;i++)
+            BraxCityMeshCut.Subtract(timberBatch,BraxCityEnvironment.PalletReplacementRegions[i],Output+"/Cuts","pallet_"+i);
+        BraxCityEnvironment.Apply(root);
+
         // Only supplied brand images, with their native aspect ratio and real
         // steel supports. The first review uses two large signs, not a wall of ads.
         const string Brand="Assets/CityRebuild/Brand/";
@@ -108,6 +121,8 @@ public static class BraxCityRebuild
         // Editor-only baked sun visibility/AO, in generated mesh copies. No
         // global gym light, shared material, animation or door is modified.
         BraxCityMaterials.Bake(root,new[]{original});
+        Disable(original,new[]{BraxCityWaterBuild.ReplacedOriginalMesh});
+        BraxCityWaterBuild.Apply(root);
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
             throw new InvalidOperationException("Gym doorway integration boundary changed unexpectedly");
         var renderers=root.GetComponentsInChildren<MeshRenderer>(true).Where(r=>r.enabled&&r.gameObject.activeInHierarchy).ToArray();

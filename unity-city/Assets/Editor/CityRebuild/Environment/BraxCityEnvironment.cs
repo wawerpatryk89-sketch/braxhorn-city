@@ -293,12 +293,14 @@ public static class BraxCityEnvironment
         foreach(float z in new[]{31f,65f,102f})Bin(root,new Vector3(67.35f,.15f,z),true);
         foreach(float z in new[]{4f,38f,58f,94f})
         {
-            var t=Group("Quay mooring ring",root,new Vector3(83.6f,.34f,z));var parts=new BraxCitySystemMesh();
+            var t=Group("Quay mooring ring",root,new Vector3(83.6f,.33f,z));var parts=new BraxCitySystemMesh();
             parts.Ring(Vector3.zero,.15f,.188f,.035f);parts.Transform(Matrix4x4.Rotate(Quaternion.Euler(90,0,0)));
             Box(parts,new Vector3(0,-.035f,0),new Vector3(.28f,.05f,.18f));Emit("Forged mooring eye and anchor plate",t,parts,steel);
         }
-        Lifebelt(root,new Vector3(83.56f,1.05f,55),90);
-        Lifebelt(root,new Vector3(83.56f,1.05f,100),90);
+        // The ring faces the public promenade; its rear bracket meets the
+        // original continuous quay rail at x=83.74 rather than floating beside it.
+        Lifebelt(root,new Vector3(83.68f,1.05f,55),-90);
+        Lifebelt(root,new Vector3(83.68f,1.05f,100),-90);
     }
 
     private static void YardDetails(Transform root)
@@ -332,7 +334,7 @@ public static class BraxCityEnvironment
         // Existing timber deck, piles, palms, original railing and access stay.
         foreach(float x in new[]{87f,95f,103f,110f})foreach(float z in new[]{70.38f,75.62f})
         {
-            var t=Group("Pier timber fastenings",root,new Vector3(x,.326f,z));var metal=new BraxCitySystemMesh();
+            var t=Group("Pier timber fastenings",root,new Vector3(x,.321f,z));var metal=new BraxCitySystemMesh();
             Box(metal,new Vector3(0,.008f,0),new Vector3(.22f,.018f,.16f));
             foreach(float dx in new[]{-.065f,.065f})metal.Tube(new Vector3(dx,.015f,0),new Vector3(dx,.028f,0),.02f,6);
             Emit("Galvanized deck plate and bolts",t,metal,steel);
@@ -346,10 +348,19 @@ public static class BraxCityEnvironment
             Emit("Cast iron cleat",t,cleat,iron);
         }
         var ladder=new BraxCitySystemMesh();
-        foreach(float x in new[]{98.7f,99.3f})ladder.Tube(new Vector3(x,-2.65f,76.25f),new Vector3(x,.9f,76.25f),.034f,12);
+        foreach(float x in new[]{98.7f,99.3f})
+        {
+            ladder.Tube(new Vector3(x,-2.65f,76.25f),new Vector3(x,1.45f,76.25f),.034f,12);
+            ladder.Tube(new Vector3(x,1.45f,76.25f),new Vector3(x,1.45f,75.85f),.034f,12);
+            ladder.Tube(new Vector3(x,1.45f,75.85f),new Vector3(x,1.30f,75.85f),.034f,12);
+            // Bolt the water-side rails to the retained timber fascia.
+            ladder.Tube(new Vector3(x,.08f,76.25f),new Vector3(x,.08f,76.14f),.026f,12);
+            Box(ladder,new Vector3(x,.08f,76.15f),new Vector3(.14f,.2f,.02f));
+            foreach(float y in new[]{.015f,.145f})ladder.Tube(new Vector3(x,y,76.16f),new Vector3(x,y,76.18f),.018f,6);
+        }
         for(float y=-2.45f;y<.3f;y+=.3f)ladder.Tube(new Vector3(98.7f,y,76.25f),new Vector3(99.3f,y,76.25f),.024f,10);
         Emit("Water access ladder outside pier guard",root,ladder,steel);
-        Lifebelt(root,new Vector3(95.5f,1.02f,75.9f),180);
+        Lifebelt(root,new Vector3(95.5f,1.02f,75.79f),180);
     }
 
     private static void HarbourDetails(Transform root)

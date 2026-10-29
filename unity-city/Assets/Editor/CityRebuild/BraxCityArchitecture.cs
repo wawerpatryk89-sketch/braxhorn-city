@@ -55,7 +55,7 @@ public static class BraxCityArchitecture
         value=UnityEngine.Object.Instantiate(model);value.name="SOURCE_LIBRARY_DO_NOT_RENDER_"+slug;value.SetActive(false);
         libraries.Add(slug,value);return value;
     }
-    static Transform Part(string slug,string name,Transform parent,Vector3 at,Quaternion rotation,Vector3 scale)
+    internal static Transform Part(string slug,string name,Transform parent,Vector3 at,Quaternion rotation,Vector3 scale)
     {
         var source=Library(slug).GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>t.name==name);
         if(!source)throw new InvalidOperationException("Audited source module absent: "+slug+" / "+name);
@@ -259,8 +259,7 @@ public static class BraxCityArchitecture
 
     public static void Billboard(Transform parent,string id,Vector3 center,float width,string texturePath,float yaw)
     {
-        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
-        if(!texture)throw new InvalidOperationException("Original brand artwork missing: "+texturePath);
+        var texture=BraxCityArtwork.Load(texturePath);
         float height=width*texture.height/texture.width;
         var g=Group("BRAXHORN original artwork billboard "+id,parent,center,Quaternion.Euler(0,yaw,0));
         Box("Galvanised billboard back",g,Vector3.zero,new Vector3(width+.18f,height+.18f,.18f),darkMetal);
@@ -279,7 +278,7 @@ public static class BraxCityArchitecture
     public static void Sign(Transform parent,string text,Vector3 at,float size,Color color)
     {
         var obj=new GameObject("Architectural lettering "+text);obj.transform.SetParent(parent,false);obj.transform.localPosition=at;obj.transform.localRotation=Quaternion.Euler(0,180,0);
-        var tm=obj.AddComponent<TextMesh>();tm.text=text;tm.anchor=TextAnchor.MiddleCenter;tm.alignment=TextAlignment.Center;tm.fontSize=64;tm.characterSize=size;tm.color=color;
+        var tm=obj.AddComponent<TextMesh>();tm.text=text;tm.anchor=TextAnchor.MiddleCenter;tm.alignment=TextAlignment.Center;tm.fontSize=64;tm.characterSize=size*10f/64f;tm.color=color;
         tm.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         var shader=Shader.Find("Braxhorn/CitySignText");if(!shader)throw new InvalidOperationException("City text shader missing");
         var mat=new Material(shader){name="Depth tested lettering "+serial};mat.mainTexture=tm.font.material.mainTexture;

@@ -1,0 +1,131 @@
+Shader "Braxhorn/HarbourWaterMobile"
+{
+    Properties
+    {
+        _DeepColor ("Deep harbour water", Color) = (0.045,0.115,0.135,1)
+        _EdgeColor ("Near quay water", Color) = (0.075,0.165,0.172,1)
+        _SkyHorizon ("Sky horizon if reflection is unavailable", Color) = (0.43,0.49,0.52,1)
+        _SkyZenith ("Sky zenith if reflection is unavailable", Color) = (0.28,0.40,0.53,1)
+        _SunDirection ("Direction towards daylight", Vector) = (-0.45,0.78,-0.42,0)
+        _NearRectangle ("Moving mesh x0 z0 x1 z1", Vector) = (84,-64,148,192)
+        _ReflectionStrength ("Reflection contribution", Range(0,1)) = 0.58
+        _ReflectionMip ("Sky reflection softness", Range(0,6)) = 3.2
+        _RippleStrength ("Small wave slope", Range(0,1.5)) = 0.8
+        _SwellStrength ("Broad wave amplitude scale", Range(0,1)) = 1
+    }
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" "Queue"="Geometry+10" "IgnoreProjector"="True" }
+        LOD 150
+        Pass
+        {
+            Tags { "LightMode"="ForwardBase" }
+            ZWrite On
+            Cull Back
+            CGPROGRAM
+            #pragma target 3.0
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile_fog
+            #include "UnityCG.cginc"
+
+            half4 _DeepColor, _EdgeColor, _SkyHorizon, _SkyZenith;
+            float4 _SunDirection, _NearRectangle;
+            half _ReflectionStrength, _ReflectionMip, _RippleStrength, _SwellStrength;
+
+            struct appdata { float4 vertex : POSITION; };
+            struct v2f
+            {
+                float4 position : SV_POSITION;
+                float3 world : TEXCOORD0;
+                UNITY_FOG_COORDS(1)
+            };
+
+            // The mean surface remains at -1.7 m. Displacement fades to zero
+            // at every edge of the fine mesh, so adjoining flat patches meet.
+            float3 SwellEnvelope(float2 p)
+            {
+                float4 widths = float4(1.5,16.0,16.0,16.0);
+                float4 t = saturate((float4(p.x,p.x,p.y,p.y)
+                         - float4(_NearRectangle.x,_NearRectangle.z-16.0,
+                                  _NearRectangle.y,_NearRectangle.w-16.0))/widths);
+                float4 a = t*t*(3.0-2.0*t);
+                float4 d = 6.0*t*(1.0-t)/widths;
+                float value = a.x*(1.0-a.y)*a.z*(1.0-a.w);
+                float dx = (d.x*(1.0-a.y)-a.x*d.y)*a.z*(1.0-a.w);
+                float dz = a.x*(1.0-a.y)*(d.z*(1.0-a.w)-a.z*d.w);
+                return float3(value,dx,dz)*_SwellStrength;
+            }
+
+            float2 SwellPhase(float2 p)
+            {
+                float2 q = p - float2(84.0,60.0);
+                return float2(dot(q,float2(0.84,0.5426))*0.84,
+                              dot(q,float2(-0.4191,0.9079))*1.46)
+                       - _Time.y * float2(0.65,0.92);
+            }
+
+            v2f vert(appdata v)
+            {
+                v2f o;
+                float3 world = mul(unity_ObjectToWorld,v.vertex).xyz;
+                float2 phase = SwellPhase(world.xz);
+                world.y += dot(sin(phase),float2(0.022,0.012)) * SwellEnvelope(world.xz).x;
+                o.world = world;
+                o.position = mul(UNITY_MATRIX_VP,float4(world,1));
+                UNITY_TRANSFER_FOG(o,o.position);
+                return o;
+            }
+
+            half4 frag(v2f i) : SV_Target
+            {
+                // Full precision is intentional for world positions, time,
+                // trigonometry and derivatives on mobile GLES3/WebGL2.
+                float2 q = i.world.xz - float2(84.0,60.0);
+                float2 broadPhase = SwellPhase(i.world.xz);
+                float3 envelope = SwellEnvelope(i.world.xz);
+                float2 broad = cos(broadPhase) * float2(0.022*0.84,0.012*1.46);
+                float height = dot(sin(broadPhase),float2(0.022,0.012));
+                float2 slope = (broad.x * float2(0.84,0.5426)
+                              + broad.y * float2(-0.4191,0.9079)) * envelope.x + height*envelope.yz;
+                float3 phase = float3(dot(q,float2(0.6,0.8))*11.424,
+                                      dot(q,float2(0.958,-0.2868))*7.662,
+                                      dot(q,float2(-0.2095,0.9778))*4.796)
+                               - _Time.y * float3(1.73,1.21,0.87);
+                // Remove frequencies too small for the current pixel footprint.
+                // There is no scrolling bitmap, abrupt LOD or subpixel glitter.
+                float3 filter = 1.0 - smoothstep(1.0,2.8,fwidth(phase));
+                float3 small = cos(phase) * float3(0.0045*11.424,0.004*7.662,0.003*4.796) * filter;
+                float3 eye = _WorldSpaceCameraPos.xyz - i.world;
+                float distanceToEye = max(length(eye),0.001);
+                float detailFade = 1.0 - smoothstep(35.0,160.0,distanceToEye);
+                slope += (small.x * float2(0.6,0.8) + small.y * float2(0.958,-0.2868)
+                         + small.z * float2(-0.2095,0.9778)) * _RippleStrength * detailFade;
+                half3 normal = normalize(float3(-slope.x,1.0,-slope.y));
+                half3 view = eye / distanceToEye;
+                half3 light = normalize(_SunDirection.xyz);
+                half fresnel = 0.0204h + 0.9796h * pow(1.0h - saturate(dot(normal,view)),5.0h);
+                half3 reflectedDirection = reflect(-view,normal);
+                half4 encodedSky = UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0,reflectedDirection,_ReflectionMip);
+                half3 probeSky = DecodeHDR(encodedSky,unity_SpecCube0_HDR);
+                half3 skyGradient = lerp(_SkyHorizon.rgb,_SkyZenith.rgb,saturate(reflectedDirection.y));
+                // A missing/default black reflection texture uses an explicit
+                // sky approximation, never an invented reflection of buildings.
+                half skyAvailable = step(0.0001h,dot(probeSky,half3(0.2126h,0.7152h,0.0722h)));
+                half3 sky = lerp(skyGradient,probeSky,skyAvailable);
+                half edgeMix = exp2(-max(i.world.x - 84.0,0.0)*0.045);
+                half3 body = lerp(_DeepColor.rgb,_EdgeColor.rgb,edgeMix);
+                body *= 0.73h + 0.27h * saturate(dot(normal,light));
+                half3 color = lerp(body,min(sky,half3(1.4h,1.4h,1.4h)),fresnel*_ReflectionStrength);
+                half3 halfVector = normalize(light + view + half3(0,0.0001h,0));
+                half sun = pow(saturate(dot(normal,halfVector)),40.0h)*0.045h;
+                color += half3(1.0h,0.97h,0.89h)*sun;
+                half4 result = half4(color,1);
+                UNITY_APPLY_FOG(i.fogCoord,result);
+                return result;
+            }
+            ENDCG
+        }
+    }
+    Fallback Off
+}

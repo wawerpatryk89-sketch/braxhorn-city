@@ -147,12 +147,15 @@ Shader "Braxhorn/CityStaticPBR"
                 half3 normalTS = lerp(packed.xyz * 2 - 1, UnpackNormal(packed), _NormalEncoding);
                 normalTS.xy *= _BumpScale;
                 normalTS = normalize(normalTS);
-                half3 n = normalize(i.normal) * (facing >= 0 ? 1 : -1);
+                half3 n = normalize(i.normal);
                 half3 t = i.tangent.xyz;
                 half3 b;
-                // Preserve the supplied tangent frame. UV1 or absent tangents use a
-                // cotangent frame; no source mesh or UV needs to be rewritten.
-                if (dot(t,t) > .1 && abs(i.tangent.w) > .1 && _BumpMap_texCoord < .5)
+                // Supplied tangents describe UV0 before its material transform.
+                // Rotated/mirrored UVs, UV1 or absent tangents need the transformed
+                // cotangent frame; no source mesh or UV is rewritten.
+                bool plainNormalUV = dot(_BumpMap_Rotation.xy,_BumpMap_Rotation.xy) < 1e-12
+                                     && _BumpMap_ST.x > 0 && _BumpMap_ST.y > 0;
+                if (dot(t,t) > .1 && abs(i.tangent.w) > .1 && _BumpMap_texCoord < .5 && plainNormalUV)
                 {
                     t = normalize(t - n * dot(n,t));
                     b = cross(n,t) * i.tangent.w;
@@ -167,7 +170,10 @@ Shader "Braxhorn/CityStaticPBR"
                     float frameScale = rsqrt(max(max(dot(t,t),dot(b,b)), 1e-12));
                     t *= frameScale; b *= frameScale;
                 }
-                n = normalize(t * normalTS.x + b * normalTS.y + n * normalTS.z);
+                // Flip the complete perturbed normal on a two-sided back face.
+                // Flipping only N beforehand would leave tangent-space X unflipped.
+                n = normalize(t * normalTS.x + b * normalTS.y + n * normalTS.z)
+                    * (facing >= 0 ? 1 : -1);
                 half3 arm = tex2D(_ARM, MapUV(i.uv,_ARM_ST,_ARM_Rotation.xy,_ARM_texCoord)).rgb;
                 // glTF metallic-roughness channels: G roughness, B metallic.
                 half roughness = clamp(arm.g * _Roughness, .085, 1);
