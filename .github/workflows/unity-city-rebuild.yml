@@ -260,6 +260,10 @@ jobs:
           buildMethod: BraxGymBuild.BuildCity
           versioning: None
           allowDirtyBuild: true
+      - name: Assert that Unity actually completed the city WebGL player
+        # game-ci can mark the editor step green after -executeMethod threw.
+        # Only physical player files plus the exact Unity build reports count.
+        run: python3 unity-tools/city-rebuild/verify_unity_output.py
       - name: Package candidate with the preserved iOS native streaming fix
         run: |
           python3 unity-tools/city-rebuild/package.py
