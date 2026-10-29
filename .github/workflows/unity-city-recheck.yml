@@ -1,0 +1,54 @@
+name: Recheck existing connected Unity city player
+on:
+  push:
+    branches: [codex/unity-full-city-20261029]
+    paths: ['unity-release/recheck-city.mjs','unity-release/package-city-test.py','.github/workflows/unity-city-recheck.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: unity-city-existing-player-recheck
+  cancel-in-progress: false
+jobs:
+  recheck:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-full-city-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-release
+          persist-credentials: false
+      - name: Reuse already compiled original city, estate and gym
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40842927461
+          github-token: ${{ github.token }}
+          name: unity-full-city-player-19c71c167d4426523a251b94c3aeabbe9664aad5
+          path: unity-preview/
+      - name: Verify unchanged build and create lossless transport parts
+        run: |
+          python3 unity-release/package-city-test.py
+          node --check unity-preview/city-transport.js
+          node --check unity-release/recheck-city.mjs
+      - name: Install browser testing tools
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Check door state, actual gym-city passage and return from estate
+        run: node unity-release/recheck-city.mjs
+      - name: Save exact runtime evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-connected-review-${{ github.sha }}
+          path: city-recheck/
+          retention-days: 7
+      - name: Save tested playable package, no automatic production replacement
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-connected-player-${{ github.sha }}
+          path: unity-preview/
+          retention-days: 7
