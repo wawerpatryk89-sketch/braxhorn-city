@@ -1,0 +1,99 @@
+name: Verify published Unity gym preview URL
+on:
+  push:
+    branches: [codex/unity-gym-polish-controls-20261029]
+    paths: ['.github/workflows/unity-gym-verify-published-20261029.yml']
+permissions:
+  contents: read
+  deployments: read
+jobs:
+  verify-preview:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-gym-polish-controls-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Resolve the exact existing preview and verify its published bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64, hashlib, json, os, pathlib, urllib.request, urllib.parse, urllib.error
+          repo = 'wawerpatryk89-sketch/braxhorn-city'
+          published = 'bc0fa518566625e7c5afaf951fffcba9c76482c7'
+          source = '942509273fc7e5f726413306a4f3fcf749351b1e'
+          branch = 'codex/unity-gym-polish-controls-20261029'
+          report = {'scope':'isolated-unity-gym','publicationCommit':published,'sourceCommit':source,'productionModified':False,'candidates':[],'verified':False}
+          def github(path):
+              req = urllib.request.Request('https://api.github.com/repos/'+repo+'/'+path,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'Braxhorn-Gym-Preview-Verification'})
+              with urllib.request.urlopen(req,timeout=30) as response:return json.load(response)
+          def public(url):
+              # No GitHub credentials are forwarded to a deployment URL.
+              request = urllib.request.Request(url,headers={'User-Agent':'Braxhorn-Gym-Preview-Verification','Cache-Control':'no-cache'})
+              with urllib.request.urlopen(request,timeout=90) as response:
+                  final = urllib.parse.urlsplit(response.url)
+                  first = urllib.parse.urlsplit(url)
+                  if final.hostname != first.hostname:raise ValueError('Deployment redirected to another host')
+                  return response.read()
+          try:
+              report['mainBefore']=github('git/ref/heads/main')['object']['sha']
+              item=github('contents/public/unity-gym/release.json?ref='+published)
+              expected=json.loads(base64.b64decode(item['content']))
+              assert expected['sourceCommit']==source and expected['target']=='preview'
+              deployments=github('deployments?sha='+published+'&per_page=100')
+              report['deploymentCount']=len(deployments)
+              urls=[]
+              for d in deployments:
+                  assert d['sha']==published
+                  if d.get('production_environment'):continue
+                  for s in github('deployments/'+str(d['id'])+'/statuses?per_page=20'):
+                      if s.get('state')!='success':continue
+                      for field in ['environment_url','target_url']:
+                          url=s.get(field,'')
+                          host=urllib.parse.urlsplit(url)
+                          if host.scheme=='https' and host.hostname and host.hostname.endswith('.vercel.app') and host.hostname.startswith('braxhorn-city-'):
+                              origin=host.scheme+'://'+host.netloc
+                              if origin not in urls:urls.append(origin)
+              report['previewOrigins']=urls
+              for origin in urls:
+                  result={'url':origin+'/unity-gym/','verified':False}
+                  report['candidates'].append(result)
+                  try:
+                      live=json.loads(public(origin+'/unity-gym/release.json'))
+                      assert live['scope']=='isolated-unity-gym' and live['target']=='preview'
+                      assert live['sourceCommit']==source and live['files']==expected['files']
+                      result['sourceCommit']=live['sourceCommit']
+                      result['files']=[]
+                      for name,digest in expected['files'].items():
+                          path=pathlib.PurePosixPath(name)
+                          assert not path.is_absolute() and '..' not in path.parts
+                          data=public(origin+'/unity-gym/'+urllib.parse.quote(name,safe='/'))
+                          actual=hashlib.sha256(data).hexdigest()
+                          assert actual==digest, 'Different live file: '+name
+                          result['files'].append({'path':name,'bytes':len(data),'sha256':actual})
+                      result['verified']=True
+                      report['verified']=True
+                      report['testUrl']=result['url']
+                      print('VERIFIED_TEST_URL',result['url'])
+                      print('VERIFIED_SOURCE_COMMIT',source)
+                      print('VERIFIED_PUBLISHED_FILES',len(result['files']))
+                      break
+                  except Exception as error:result['error']=str(error)
+              report['mainAfter']=github('git/ref/heads/main')['object']['sha']
+              report['mainUnchangedDuringVerification']=report['mainBefore']==report['mainAfter']
+              assert report['verified'], 'No publicly accessible matching preview was verified; inspect the report'
+          finally:
+              pathlib.Path('published-preview-verification.json').write_text(json.dumps(report,indent=2)+'\n')
+              with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+                  out.write('## Unity gym preview verification\n\n')
+                  out.write('Source: `'+source+'`\n\n')
+                  out.write('Public live byte verification: '+str(report['verified'])+'\n\n')
+                  if report.get('testUrl'):out.write('Test link: '+report['testUrl']+'\n\n')
+                  out.write('No production writes performed.\n')
+      - name: Save live verification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-gym-published-preview-verification
+          path: published-preview-verification.json
+          if-no-files-found: error
+          retention-days: 7
