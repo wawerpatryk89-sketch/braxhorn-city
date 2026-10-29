@@ -62,3 +62,7 @@ At approximately 1 FPS in the first instrumented software-rendered run, fixed 45
 ## Test-only publication
 
 `publish_test.py` can verify the completed player/review artifacts and create a new `deployment/braxhorn-kickboxing-<sourceSHA12>` branch containing only the tested `public/unity-gym` replacement. It never updates `main`. The exact source SHA, run ID, hashes, continuous walkthrough evidence and original QA results must agree. The final preview URL is reported only after the hosting deployment and actual live files are verified.
+
+
+## Exact approved mural, 29 October 2026
+The approved original PNG is the 1983×793 image with SHA-256 `c84fbc33ea871834a403a80169f09fa0db562254c0d2f082e655cbf4dafc73ef`. In Unity use a proportional 1536×614 quality-80 4:4:4 JPEG, SHA-256 `e714741664dbedddc379a97a87f7d8757856c73438eeb34af10df058846628e8`, without generating/reinterpreting the bull, fighters, logo or lettering. The attached wall painting measures 19.2×7.675 m and retains existing brick and mortar normals. Old framed decor is disabled, and no new billboard frame is introduced. WebGL uses ETC2 RGB4 compression; NPOT scaling is disabled to keep the mural aspect. Real hardware performance remains subject to physical-phone test.

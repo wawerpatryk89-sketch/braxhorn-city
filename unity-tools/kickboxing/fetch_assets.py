@@ -80,32 +80,29 @@ def main():
             raise RuntimeError('Unsafe source path')
         save_source(spec, lamp_root / path, source, 'Kuutti Siitonen / Poly Haven', 'https://polyhaven.com/license')
 
-    # Approved mural is stored as a pinned compact source image. Decode only
-    # during CI asset preparation; mobile Unity imports the resulting PNG with
-    # ETC2 compression, not a runtime network request or an embedded JPG panel.
-    mural_source = ROOT / 'unity-tools/kickboxing/mural-source.avif'
+    # Pinned owner-approved original composition. Static Unity JPEG, no web
+    # request during gameplay; only resizing and JPEG compression was applied.
+    mural_source = TEXTURES / 'MuralPaint.jpg'
     mural_bytes = mural_source.read_bytes()
     mural_digest = hashlib.sha256(mural_bytes).hexdigest()
-    if mural_digest != '0e55d4f36e9e71acd6234a4b8dc3168680050d7349da671ac751443749bb9db7':
-        raise RuntimeError('Approved wall mural source SHA-256 does not match')
-    mural_png = TEXTURES / 'MuralPaint.png'
-    mural_png.parent.mkdir(parents=True, exist_ok=True)
+    if mural_digest != 'e714741664dbedddc379a97a87f7d8757856c73438eeb34af10df058846628e8':
+        raise RuntimeError('Original approved mural file digest mismatch')
     with Image.open(io.BytesIO(mural_bytes)) as painted:
-        if painted.size != (2048, 768):
-            raise RuntimeError('Unexpected approved mural size')
-        painted.convert('RGB').save(mural_png, format='PNG', optimize=True)
-    RECEIPT.append({'file': str(mural_png.relative_to(ROOT)),
-        'source': 'Owner-approved BRAXHORN mural artwork in unity-tools/kickboxing/mural-source.avif',
-        'source_sha256': mural_digest,
-        'approved_original_png_sha256': 'de309e0c2be5d00cf61573f5312f51792a59b11257983635c7b57b1e6d958102',
-        'original_resolution_px': [2048, 768],
-        'source_encoding': 'AVIF high-quality transport, converted to PNG before Unity import',
-        'sha256': hashlib.sha256(mural_png.read_bytes()).hexdigest(),
-        'bytes': mural_png.stat().st_size, 'author': 'BRAXHORN project artwork',
-        'usage': 'Paint on existing back-wall brick, not a billboard',
-        'license': 'project-owned artwork; not a CC0 third-party asset'})
+        if painted.size != (1536, 614):
+            raise RuntimeError('Original approved mural image ratio or resolution changed')
+    RECEIPT.append({'file': str(mural_source.relative_to(ROOT)),
+        'source': 'User-approved original BRAXHORN STREET FIGHTER graphic',
+        'approved_original_png_sha256': 'c84fbc33ea871834a403a80169f09fa0db562254c0d2f082e655cbf4dafc73ef',
+        'original_resolution_px': [1983, 793],
+        'unity_resolution_px': [1536, 614],
+        'source_encoding': 'JPEG q80 4:4:4, resize only; original composition fully preserved',
+        'sha256': mural_digest,
+        'bytes': len(mural_bytes),
+        'author': 'BRAXHORN project artwork',
+        'usage': 'Paint directly on existing rear-wall brick, without frame or panel',
+        'license': 'project artwork, not a third-party CC0 material'})
 
-    (ASSETS / 'asset-provenance.json').write_text(json.dumps({'assets': RECEIPT,
+        (ASSETS / 'asset-provenance.json').write_text(json.dumps({'assets': RECEIPT,
         'api_credit': 'Powered by Poly Haven', 'scope': 'Kickboxing room and annex only',
         'brand': {'owner': 'BRAXHORN', 'source': 'Existing public/assets/logo', 'pixelEdits': False}}, indent=2))
     print(json.dumps({'files': len(RECEIPT), 'bytes': sum(x['bytes'] for x in RECEIPT), 'receipt': str(ASSETS / 'asset-provenance.json')}))

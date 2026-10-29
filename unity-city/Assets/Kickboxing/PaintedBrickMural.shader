@@ -2,7 +2,7 @@ Shader "Braxhorn/PaintedBrickMural"
 {
     Properties
     {
-        _MainTex ("Approved BRAXHORN flat mural, 2048x768", 2D) = "white" {}
+        _MainTex ("Approved BRAXHORN flat mural, 1536x614", 2D) = "white" {}
         _BrickTex ("Original brick albedo", 2D) = "white" {}
         _BumpMap ("Original brick pores and mortar normal", 2D) = "bump" {}
         _PaintOpacity ("Dry pigment coverage", Range(0,1)) = .92
@@ -27,7 +27,7 @@ Shader "Braxhorn/PaintedBrickMural"
             half3 pigment = tex2D(_MainTex,IN.uv_MainTex).rgb;
             half3 brick = tex2D(_BrickTex,IN.uv2_BrickTex).rgb;
             float2 edgeUv = min(IN.uv_MainTex,1.0-IN.uv_MainTex);
-            float physicalEdge = min(edgeUv.x*2.6666667,edgeUv.y);
+            float physicalEdge = min(edgeUv.x*2.5016287,edgeUv.y);
             float hashSeed=dot(floor(IN.uv2_BrickTex*83.0),float2(12.9898,78.233));
             half noise=frac(sin(hashSeed)*43758.5453);
             half roughEdge=saturate((physicalEdge+noise*.014-.028)*31.0);

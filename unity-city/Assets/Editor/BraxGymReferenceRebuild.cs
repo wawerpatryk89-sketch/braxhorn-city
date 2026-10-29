@@ -129,7 +129,7 @@ public static class BraxGymReferenceRebuild
         void PrepareMaterials()
         {
             if (!Shader.Find("Standard")) throw new InvalidOperationException("Built-in Standard shader is required by the current renderer.");
-            report.requiredAssets = new[] { "BrickAlbedo.jpg", "BrickNormal.png", "BrickARM.jpg", "RubberAlbedo.jpg", "RubberNormal.png", "RubberARM.jpg", "WoodAlbedo.jpg", "WoodNormal.png", "WoodARM.jpg", "MuralPaint.png", "Mark.png", "Wordmark.png" };
+            report.requiredAssets = new[] { "BrickAlbedo.jpg", "BrickNormal.png", "BrickARM.jpg", "RubberAlbedo.jpg", "RubberNormal.png", "RubberARM.jpg", "WoodAlbedo.jpg", "WoodNormal.png", "WoodARM.jpg", "MuralPaint.jpg", "Mark.png", "Wordmark.png" };
             foreach (string name in report.requiredAssets) RequiredTexture(name, name.Contains("Normal"), name.Contains("ARM"));
             brick = Material("Natural dark brick", new Color(.70f, .66f, .61f), .80f, 0);
             brick.mainTexture = RequiredTexture("BrickAlbedo.jpg");
@@ -181,8 +181,18 @@ public static class BraxGymReferenceRebuild
             if (importer == null) throw new InvalidOperationException("Required reviewed surface is missing: " + path);
             importer.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
             importer.sRGBTexture = !(normal || linear); importer.mipmapEnabled = true; importer.anisoLevel = 4;
-            importer.maxTextureSize = 2048; // Keep the approved 2048x768 mural native; WebGL texture compression controls GPU memory. importer.textureCompression = TextureImporterCompression.Compressed;
-            importer.wrapMode = name == "Mark.png" || name == "Wordmark.png" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
+            importer.maxTextureSize = 2048;
+            importer.textureCompression = name == "MuralPaint.jpg" ? TextureImporterCompression.CompressedHQ : TextureImporterCompression.Compressed;
+            if (name == "MuralPaint.jpg")
+            {
+                importer.npotScale = TextureImporterNPOTScale.None;
+                importer.alphaSource = TextureImporterAlphaSource.None;
+                var web = importer.GetPlatformTextureSettings("WebGL");
+                web.name = "WebGL"; web.overridden = true; web.maxTextureSize = 2048;
+                web.format = TextureImporterFormat.ETC2_RGB4;
+                importer.SetPlatformTextureSettings(web);
+            }
+            importer.wrapMode = name == "Mark.png" || name == "Wordmark.png" || name == "MuralPaint.jpg" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
             importer.isReadable = name.Contains("ARM"); importer.SaveAndReimport();
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
             if (!texture) throw new InvalidOperationException("Unity failed to import reviewed surface: " + path);
@@ -556,10 +566,10 @@ public static class BraxGymReferenceRebuild
             // or a captured scene. Retain the existing brick behind the pigment.
             // A feathered, rough, alpha-composited coat reveals brick and mortar
             // and leaves no hard-edged black rectangle around the artwork.
-            // Exactly the owner's approved 8:3 image is now installed at its
-            // original 2048px resolution, not a smaller proxy or a panel.
-            var art = RequiredTexture("MuralPaint.png");
-            if (art.width != 2048 || art.height != 768)
+            // Exactly the owner's approved 2.502:1 composition is installed with no crop;
+            // 1536x614 is a mobile resample of the exact owner-approved PNG, not a smaller proxy or a panel.
+            var art = RequiredTexture("MuralPaint.jpg");
+            if (art.width != 1536 || art.height != 614)
                 throw new InvalidOperationException("The approved mural lost its original image resolution or aspect.");
             var shader = Shader.Find("Braxhorn/PaintedBrickMural");
             if (!shader) throw new InvalidOperationException("The actual brick-painted mural shader is missing.");
@@ -570,11 +580,11 @@ public static class BraxGymReferenceRebuild
             material.SetFloat("_PaintOpacity", .92f);
             AssetDatabase.CreateAsset(material, folder + "/PaintedBrickMural.mat");
 
-            // The approved flat graphic is 8:3; preserve its proportions.
+            // Approved flat reference is 1536:614; preserve its exact aspect.
             // World +X appears camera LEFT at the existing front entrance, so
             // reverse texture U to keep Brax visually LEFT and Nyxa RIGHT.
-            const float width = 20.4f, height = 7.65f;
-            const float centerX = -3.4f, centerY = 4.57f;
+            const float width = 19.2f, height = 7.675f;
+            const float centerX = -3.4f, centerY = 4.48f;
             // Audited old decor spans x[-16.82,16.82], z[-13.0,-12.88].
             // Disable only this raised legacy overlay; the ORIGINAL rear brick
             // wall (Gym_Mesh_70, inner face z=-13.0) stays fully intact.
