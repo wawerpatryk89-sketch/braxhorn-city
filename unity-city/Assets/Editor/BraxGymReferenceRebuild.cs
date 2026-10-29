@@ -881,7 +881,11 @@ public static class BraxGymReferenceRebuild
                 throw new InvalidOperationException("Original animated city exit door pivot was replaced.");
             for (int index = 24; index <= 31; index++)
             {
-                var renderer = FindSource(index).GetComponent<Renderer>();
+                // Door pieces 24..31 were deliberately reparented out of
+                // gym into player.door by the ORIGINAL scene builder.
+                var part = player.door.GetComponentsInChildren<Transform>(true)
+                    .FirstOrDefault(t => t.name == "Gym_Mesh_" + index);
+                var renderer = part ? part.GetComponent<Renderer>() : null;
                 if (!renderer) throw new InvalidOperationException(
                     "Required original exit door surface missing: " + index);
                 renderer.enabled = false;
