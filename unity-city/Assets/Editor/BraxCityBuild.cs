@@ -147,9 +147,9 @@ public static class BraxCityBuild
         Debug.Log("ORIGINAL_CITY_AREA_IMPORTED "+JsonUtility.ToJson(reports.Last()));
         return world;
     }
-    public static void AttachCity(BraxGymPlayer player)
+    public static void AttachCity(BraxGymPlayer player,bool includeEstate=true)
     {
-        reports.Clear();AddArea("city",player);player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=420;player.view.backgroundColor=new Color(.67f,.75f,.81f);
+        reports.Clear();var city=AddArea("city",player);city.estateAvailable=includeEstate;player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=420;player.view.backgroundColor=new Color(.67f,.75f,.81f);
     }
     public static string CreateEstate(string commit)
     {
@@ -172,10 +172,11 @@ public static class BraxCityBuild
         AddArea("estate",runtime);
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
-    public static void WriteReport(string output,string commit)
+    public static void WriteReport(string output,string commit,bool includeEstate=true)
     {
-        if(reports.Count!=2)throw new Exception("Both original areas must be included");
-        File.WriteAllText(Path.Combine(output,"city-migration.json"),JsonUtility.ToJson(new Report{commit=commit,unity=Application.unityVersion,areas=reports.ToArray()},true));
+        if(reports.Count!=(includeEstate?2:1))throw new Exception("Original area count differs from explicit mobile/full scene selection");
+        if(!includeEstate && (reports[0].area!="city" || reports[0].originalMeshes<100))throw new Exception("Mobile build omitted the original city");
+        File.WriteAllText(Path.Combine(output,"city-migration.json"),JsonUtility.ToJson(new Report{commit=commit,unity=Application.unityVersion,areas=reports.ToArray(),scope=includeEstate?"original-city-and-estate-exploration":"original-city-mobile-walkthrough"},true));
         BraxCityRebuild.WriteReport(output);
     }
 }
