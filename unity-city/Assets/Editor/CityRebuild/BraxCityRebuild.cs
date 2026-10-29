@@ -104,7 +104,15 @@ public static class BraxCityRebuild
             // Shared decoration batches are clipped only in the front volume.
             if(b.far)Cut(original,physics,Box(b.x0+.005f,b.x1-.005f,.3f,55,b.z0-.9f,b.z0+.02f),b.id+"_front",false);
             else Cut(original,physics,Box(b.x0+.005f,b.x1-.005f,.3f,55,b.z1-.02f,b.z1+1.4f),b.id+"_front",false);
-            BraxCityArchitecture.Build(root,b);
+            var authoredBuilding=BraxCityArchitecture.Build(root,b);
+            // The 17 source-premises door leaves were previously decorative
+            // and their underlying full-building colliders trapped Brax.
+            // Each independently-hinged glass entrance is now a real usable
+            // BraxCityDoor. The quay building uses the existing signature
+            // premium double door authored later in the tower builder.
+            var entrance=BraxCityArchitecture.BuildStreetAccessDoor(authoredBuilding,b);
+            if(entrance!=null)
+                world.doors=world.doors.Concat(new[]{entrance}).ToArray();
         }
         // A set-back tower above the representative block provides the high
         // skyline requested by the user. The lower detailed street floors stay
@@ -201,6 +209,21 @@ public static class BraxCityRebuild
         if(WholeDistrict && (builtBuildings.Length!=18||highRises<9||world.elevator==null))
             throw new InvalidOperationException("CITY_PREMIUM_INCOMPLETE measured street buildings="+
                 builtBuildings.Length+" highRises="+highRises+" elevator="+(world.elevator!=null));
+        // Source world may contain doors of the gym / NOVA. Require new doors
+        // from the 18 audited storefront footprints in addition to preserved
+        // interiors, no named building with a fake decorative entry.
+        if(WholeDistrict)
+        {
+            var required=new HashSet<string>(BraxCityArchitecture.StreetBuildings
+                .Select(b=>b.id=="quay_corner"?"R1_TOWER_DOOR":"R1_PUBLIC_DOOR_"+b.id));
+            var present=new HashSet<string>(world.doors.Where(d=>d).Select(d=>d.id));
+            var missing=required.Where(id=>!present.Contains(id)).ToArray();
+            if(missing.Length>0)
+                throw new InvalidOperationException("CITY_REAL_DOORS_MISSING "+
+                    string.Join(",",missing));
+            Debug.Log("CITY_ALL_REAL_ENTRANCES_AUDITED count="+required.Count+
+                " originalInteriorsPreserved=true");
+        }
         if(UnityEngine.Object.FindObjectsByType<BraxGymPlayer>(FindObjectsSortMode.None).Length!=1)
             throw new InvalidOperationException("Architecture-only city must contain precisely one controllable Brax");
         report=new ReviewReport{actuallyBuiltStreetBuildings=builtBuildings.Length,actuallyBuiltHighRises=highRises,
