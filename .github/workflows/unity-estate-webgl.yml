@@ -1,4 +1,4 @@
-name: BRAXHORN Osiedle Unity6 - source preflight / optional WebGL
+name: BRAXHORN Osiedle Unity6 - source preflight / partial WebGL
 on:
   push:
     branches:
@@ -81,13 +81,15 @@ jobs:
           projectPath: unity-city
           unityVersion: 6000.0.58f2
           targetPlatform: WebGL
-          buildMethod: Braxhorn.EstateMigration.Editor.EstateSceneBuilder.BuildWebGL
+          versioning: Custom
+          version: "0.1.0"
+          buildMethod: Braxhorn.EstateMigration.Editor.EstateSceneBuilder.BuildPartialWebGL
           buildsPath: unity-city/build
           allowDirtyBuild: true
       - uses: actions/upload-artifact@v4
         with:
-          name: estate-unity6-webgl-${{ github.sha }}
+          name: estate-unity6-PARTIAL-NOT-1TO1-${{ github.sha }}
           path: unity-city/build/
           retention-days: 14
       - name: No artificial 1:1 approval
-        run: echo "::notice::This test build requires a real Unity preview walkthrough and user approval."
+        run: echo "::notice::This is only a PARTIAL original-asset preview. 3 original GLBs still missing; user walkthrough required."
