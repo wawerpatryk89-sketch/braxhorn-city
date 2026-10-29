@@ -182,14 +182,18 @@ public static class BraxGymReferenceRebuild
             importer.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
             importer.sRGBTexture = !(normal || linear); importer.mipmapEnabled = true; importer.anisoLevel = 4;
             importer.maxTextureSize = 2048;
-            importer.textureCompression = name == "MuralPaint.jpg" ? TextureImporterCompression.CompressedHQ : TextureImporterCompression.Compressed;
+            // The owner-approved 1536x614 JPEG has a non-4-aligned height.
+            // Explicit ETC2_RGB4 override made Unity 6000.0.58f2 import return
+            // no Texture2D. Use native RGB24 for this single mural only; retain
+            // mipmaps, the exact uncropped image and mobile ETC2 for other assets.
+            importer.textureCompression = name == "MuralPaint.jpg" ? TextureImporterCompression.Uncompressed : TextureImporterCompression.Compressed;
             if (name == "MuralPaint.jpg")
             {
                 importer.npotScale = TextureImporterNPOTScale.None;
                 importer.alphaSource = TextureImporterAlphaSource.None;
                 var web = importer.GetPlatformTextureSettings("WebGL");
                 web.name = "WebGL"; web.overridden = true; web.maxTextureSize = 2048;
-                web.format = TextureImporterFormat.ETC2_RGB4;
+                web.format = TextureImporterFormat.RGB24;
                 importer.SetPlatformTextureSettings(web);
             }
             importer.wrapMode = name == "Mark.png" || name == "Wordmark.png" || name == "MuralPaint.jpg" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
