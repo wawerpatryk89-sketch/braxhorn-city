@@ -1,0 +1,43 @@
+{
+  "scope": "isolated-unity-gym",
+  "sourceCommit": "ec3fadaf05d6d69d20086ab163d3dacedd338f6b",
+  "sourceRun": 40795534797,
+  "approvedArtifact": 12863788361,
+  "qaPassed": true,
+  "qaPlatform": "Chromium software WebGL2, 915x412 touch emulation; not a physical iPhone test",
+  "publishedUtc": "2026-10-29T00:51:45.852594+00:00",
+  "originalCityReplaced": false,
+  "fullCityMigration": false,
+  "features": [
+    "original Brax",
+    "original gym",
+    "walking",
+    "running",
+    "manual camera",
+    "punch",
+    "kick",
+    "touch joystick"
+  ],
+  "files": {
+    "Build/WebGL.data.unityweb": "865dde5676c0bfe0755208bc93efaefecee842d826fb41ad7fcfdfb8e41f51cf",
+    "Build/WebGL.framework.js.unityweb": "a3a5c20773fa0133c3ab604bc1e5e13152564221632cca392e0a583060adaca0",
+    "Build/WebGL.loader.js": "9af53dc769a07be0c12fb16a16f824129ba4c0c7f7b8d80ef0d02e9a4d245b67",
+    "Build/WebGL.wasm.unityweb": "16fec6142cb1a3fcdde1b4c0745330a7dfe13d322a59e887f2a076969aa97cf9",
+    "TemplateData/MemoryProfiler.png": "0ce87be20d0c24ab6cb73b57de2004da261cc2a641e69319c6ae3fe11fc85483",
+    "TemplateData/favicon.ico": "9c13beb90ee8f70580d52a21d5233970d1c89e71e4a34a462c22610941c3c77f",
+    "TemplateData/fullscreen-button.png": "21221581673a54b8139d408d4a3f8d2b879e86827d4b6fc53b995ff7a99ee3e9",
+    "TemplateData/progress-bar-empty-dark.png": "bbee7131afe8a3365906240d89184dc86234c119467f390bc4bc6802328fdb4d",
+    "TemplateData/progress-bar-empty-light.png": "143696c060ad43d6c30f19ff5f49000927a139a2a1e4c9f45fafaa2b90d7d2be",
+    "TemplateData/progress-bar-full-dark.png": "3306a6244dcb3926fca38a28e3ced589df8ff1beed955eb17c0bbf01c918bc62",
+    "TemplateData/progress-bar-full-light.png": "12395ea785480c5cdf12fade6e6cbf49666d5bb1cef7240c113dbcba6bdc5c87",
+    "TemplateData/style.css": "8e3625e108a61dcd1d31303376d9e02d7bdc08921d254e8f4359b892b3825caa",
+    "TemplateData/unity-logo-dark.png": "c1b72d26c096487dabc948b54bc203f8dac7ed4e3f5733918798e858acb4b159",
+    "TemplateData/unity-logo-light.png": "002990aea0d946833cadc1519d5b7e50a4570bd537a0517dd79a59d3eec84da7",
+    "TemplateData/unity-logo-title-footer.png": "9e8b3bdb67c2446d16362fe59449d892100931dbbadfe6a9d923a4142b57a79f",
+    "TemplateData/webmemd-icon.png": "c56f5494640cedda273aad38d58e6ab9da625d5b3f4d875c0ff92c6192a569c2",
+    "index.html": "57666c016a3d11c6ead1a7565b7de47da041afed1c7ec480b2a714ed6b77da8a",
+    "logo.webp": "6bd61d27697739d5686a3487bd633da5eaec5580dbaaf5f9fa5e94c188a0a2ac",
+    "playable.json": "2b064889d56a8163907743a2afafbfb0b9f3b06341c6ab8a844613da534fadb0",
+    "robots.txt": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+  }
+}
