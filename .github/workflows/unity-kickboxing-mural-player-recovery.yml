@@ -16,7 +16,7 @@ jobs:
       - name: Checkout reviewed source QA only, without credential persistence
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: 05dfff0c1b400f7276c1e91dfecc62e6a5d90765
+          ref: b2279bd24f7ce1660160c6fc3af119e9820a32f9
           sparse-checkout: |
             unity-tools/kickboxing
             public/unity-gym
@@ -27,8 +27,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          source_sha=05dfff0c1b400f7276c1e91dfecc62e6a5d90765
-          run_id=40893958410
+          source_sha=b2279bd24f7ce1660160c6fc3af119e9820a32f9
+          run_id=40897925601
           for n in $(seq 1 160); do
             current=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.status')
             if [ "$current" = completed ]; then break; fi
@@ -42,9 +42,9 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 40893958410
+          run-id: 40897925601
           github-token: ${{ github.token }}
-          name: unity-kickboxing-player-05dfff0c1b400f7276c1e91dfecc62e6a5d90765
+          name: unity-kickboxing-player-b2279bd24f7ce1660160c6fc3af119e9820a32f9
           path: unity-preview/
       - name: Verify content hashes, approved mural and protected production boundaries
         run: |
@@ -53,7 +53,7 @@ jobs:
           from pathlib import Path
           import json,hashlib
           root=Path('unity-preview')
-          source='05dfff0c1b400f7276c1e91dfecc62e6a5d90765'
+          source='b2279bd24f7ce1660160c6fc3af119e9820a32f9'
           release=json.loads((root/'release.json').read_text())
           assert release['sourceCommit']==source
           assert release['scope']=='isolated-kickboxing-room-and-annex-test'
@@ -91,7 +91,7 @@ jobs:
         env:
           QA_OUT: kickboxing-review
           PLAYER_ROOT: unity-preview
-          GITHUB_SHA: 05dfff0c1b400f7276c1e91dfecc62e6a5d90765
+          GITHUB_SHA: b2279bd24f7ce1660160c6fc3af119e9820a32f9
         run: |
           set -euo pipefail
           node unity-tools/kickboxing/check.mjs
@@ -104,7 +104,7 @@ jobs:
           p=Path('kickboxing-review/report.json')
           assert p.is_file(),'Missing real Unity runtime report'
           r=json.loads(p.read_text())
-          assert r['commit']=='05dfff0c1b400f7276c1e91dfecc62e6a5d90765'
+          assert r['commit']=='b2279bd24f7ce1660160c6fc3af119e9820a32f9'
           assert r['finished'] is True and r['passed'] is True
           assert r['physicalIPhoneValidated'] is False
           assert len(r['checks'])>=45
@@ -114,13 +114,13 @@ jobs:
           assert Path('kickboxing-review/walkthrough.webm').stat().st_size>4096
           assert Path('kickboxing-review/browser.log').is_file()
           assert len(list(Path('kickboxing-review').glob('*.png')))>=4
-          print('REAL_UNITY_BROWSER_QA_PASS',len(r['checks']),'source=05dfff0c1b400f7276c1e91dfecc62e6a5d90765')
+          print('REAL_UNITY_BROWSER_QA_PASS',len(r['checks']),'source=b2279bd24f7ce1660160c6fc3af119e9820a32f9')
           PY
       - name: Upload real player screenshots, video and truth report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: unity-kickboxing-mural-recovered-evidence-05dfff0c1b400f7276c1e91dfecc62e6a5d90765
+          name: unity-kickboxing-mural-recovered-evidence-b2279bd24f7ce1660160c6fc3af119e9820a32f9
           path: kickboxing-review/
           if-no-files-found: warn
           retention-days: 14
@@ -129,7 +129,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          branch=deployment/braxhorn-mural-05dfff-recovered
+          branch=deployment/braxhorn-mural-b2279bd24f7c-recovered
           if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null; then
             echo 'Recovery preview exists; refuse to overwrite'; exit 1
           fi
