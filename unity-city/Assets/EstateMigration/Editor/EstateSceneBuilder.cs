@@ -34,6 +34,7 @@ namespace Braxhorn.EstateMigration.Editor
         //   -executeMethod Braxhorn.EstateMigration.Editor.EstateSceneBuilder.BuildWebGL
         public static void BuildWebGL()
         {
+            EstateShaderGuard.PreserveOriginalGltfShaders();
             ValidateInputs();
             PrepareScene();
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
@@ -70,6 +71,7 @@ namespace Braxhorn.EstateMigration.Editor
 
         public static void BuildPartialWebGL()
         {
+            EstateShaderGuard.PreserveOriginalGltfShaders();
             ValidatePartialInputs();
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
                 throw new BuildFailedException("WebGL must be selected in the isolated Unity project");
