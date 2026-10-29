@@ -181,7 +181,7 @@ public static class BraxGymReferenceRebuild
             if (importer == null) throw new InvalidOperationException("Required reviewed surface is missing: " + path);
             importer.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
             importer.sRGBTexture = !(normal || linear); importer.mipmapEnabled = true; importer.anisoLevel = 4;
-            importer.maxTextureSize = name == "MuralPaint.png" ? 1024 : 2048; importer.textureCompression = TextureImporterCompression.Compressed;
+            importer.maxTextureSize = 2048; // Keep the approved 2048x768 mural native; WebGL texture compression controls GPU memory. importer.textureCompression = TextureImporterCompression.Compressed;
             importer.wrapMode = name == "Mark.png" || name == "Wordmark.png" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
             importer.isReadable = name.Contains("ARM"); importer.SaveAndReimport();
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
