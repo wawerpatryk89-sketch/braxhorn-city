@@ -107,7 +107,11 @@ public static class BraxCityArchitecture
     {var g=new GameObject(name).transform;g.SetParent(parent,false);g.localPosition=at;g.localRotation=rotation;return g;}
     internal static GameObject MeshObject(string name,Transform parent,BraxCitySystemMesh data,Material material,bool collider=false)
     {
-        var mesh=data.Build(name);AssetDatabase.CreateAsset(mesh,Output+"/"+(serial++).ToString("D5")+".asset");
+        // Deliberately defer asset serialization. Most of these small authored
+        // pieces are merged by Batch() and otherwise would create >5,000
+        // redundant imported mesh assets during the full-street build.
+        // Finish(streetRoot) persists only surviving render/collision meshes.
+        var mesh=data.Build(name);serial++;
         var g=new GameObject(name);g.transform.SetParent(parent,false);g.AddComponent<MeshFilter>().sharedMesh=mesh;
         var r=g.AddComponent<MeshRenderer>();r.sharedMaterial=material;r.shadowCastingMode=ShadowCastingMode.Off;r.receiveShadows=false;
         if(collider)g.AddComponent<MeshCollider>().sharedMesh=mesh;
@@ -364,12 +368,54 @@ public static class BraxCityArchitecture
         foreach(var pair in groups)
         {
             var mesh=new Mesh{name=root.name+" / "+pair.Key.name,indexFormat=IndexFormat.UInt32};mesh.CombineMeshes(pair.Value.ToArray(),true,true,false);
-            AssetDatabase.CreateAsset(mesh,Output+"/batch_"+(serial++).ToString("D5")+".asset");
+            serial++; // the combined mesh is persisted once by Finish(root)
             var g=new GameObject("Local batch "+pair.Key.name);g.transform.SetParent(root,false);g.AddComponent<MeshFilter>().sharedMesh=mesh;
             var r=g.AddComponent<MeshRenderer>();r.sharedMaterial=pair.Key;r.shadowCastingMode=ShadowCastingMode.Off;r.receiveShadows=false;
             GameObjectUtility.SetStaticEditorFlags(g,StaticEditorFlags.OccludeeStatic|StaticEditorFlags.OccluderStatic);
         }
     }
-    public static void Finish()
-    {foreach(var g in libraries.Values)if(g)UnityEngine.Object.DestroyImmediate(g);libraries.Clear();}
+    public static void Finish(Transform streetRoot)
+    {
+        if(!streetRoot)throw new ArgumentNullException("streetRoot");
+        foreach(var g in libraries.Values)
+            if(g)UnityEngine.Object.DestroyImmediate(g);
+        libraries.Clear();
+        var filters=streetRoot.GetComponentsInChildren<MeshFilter>(true);
+        int persisted=0,transientDiscarded=0;
+        // Saving all retained meshes in one import transaction avoids thousands
+        // of Editor auto-refreshes, and keeps the final scene byte-identical to
+        // its generated runtime geometry, never depending on temporary objects.
+        AssetDatabase.StartAssetEditing();
+        try
+        {
+            foreach(var filter in filters)
+            {
+                if(!filter)continue;
+                var mesh=filter.sharedMesh;
+                if(!mesh||AssetDatabase.Contains(mesh))continue;
+                var renderer=filter.GetComponent<MeshRenderer>();
+                var collider=filter.GetComponent<MeshCollider>();
+                if((!renderer||!renderer.enabled)&&(!collider||!collider.enabled))
+                {
+                    filter.sharedMesh=null;
+                    UnityEngine.Object.DestroyImmediate(mesh);
+                    UnityEngine.Object.DestroyImmediate(filter);
+                    if(renderer)UnityEngine.Object.DestroyImmediate(renderer);
+                    transientDiscarded++;
+                    continue;
+                }
+                var path=Output+"/persistent_"+(serial++).ToString("D6")+".asset";
+                AssetDatabase.CreateAsset(mesh,path);
+                persisted++;
+            }
+        }
+        finally
+        {
+            AssetDatabase.StopAssetEditing();
+        }
+        AssetDatabase.SaveAssets();
+        Debug.Log("CITY_MESH_ASSET_COMPACTION persistent="+persisted+
+            " mergedTemporaryMeshesDiscarded="+transientDiscarded+
+            " all original facade prefabs and source PBR retained");
+    }
 }
