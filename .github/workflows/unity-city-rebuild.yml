@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: city-reference-asset-audit-${{ github.ref }}
@@ -27,15 +28,66 @@ jobs:
           lfs: false
       - name: Validate audit code
         run: python3 -m py_compile unity-tools/city-rebuild/audit_assets.py
-      - name: Inspect official Poly Haven sources without changing a scene
-        run: |
-          python3 -m pip install --disable-pip-version-check Pillow==11.3.0
-          python3 unity-tools/city-rebuild/audit_assets.py --output curated/Source/CityRebuild
-      - name: Preserve downloaded sources, API manifests and inspection report
+      - name: Retrieve the successful immutable Poly Haven audit
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40866427252
+          github-token: ${{ github.token }}
+          name: city-rebuild-curated-sources-fc135c8a10b7e54b44d2e97f84d7a662b03ad948
+          path: curated/
+      - name: Verify original hashes and collect a small review archive
+        run: python3 unity-tools/city-rebuild/split_report.py --source curated/Source/CityRebuild --output city-asset-report
+      - name: Preserve small review report independently of the source archive
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: city-rebuild-curated-sources-${{ github.sha }}
-          path: curated/
+          name: city-rebuild-asset-report-${{ github.sha }}
+          path: city-asset-report/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Preserve apartment modules at 1K for local visual inspection
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-urban-1k-${{ github.sha }}
+          path: curated/Source/CityRebuild/models/modular_urban_apartments_facade/1k/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve factory modules at 1K for local visual inspection
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-factory-1k-${{ github.sha }}
+          path: curated/Source/CityRebuild/models/modular_factory_facade/1k/
+          if-no-files-found: error
+          retention-days: 14
+
+  original-city-inventory:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+          lfs: false
+      - name: Retrieve original city export for geometric inspection only
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40840263799
+          github-token: ${{ github.token }}
+          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
+          path: original-city/
+      - name: Inventory true mesh bounds, material roles and textures
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0
+          python3 unity-tools/city-rebuild/inspect_original.py --source original-city/braxhorn-city.glb --manifest original-city/city-manifest.json --output original-city-report
+      - name: Preserve small source inventory and texture contact sheets
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-original-inventory-${{ github.sha }}
+          path: original-city-report/
           if-no-files-found: error
           retention-days: 14

@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import io
 import json
 import math
 import os
@@ -183,16 +184,56 @@ def transform_bounds(bounds, matrix):
     return combine_bounds([{"min": point, "max": point} for point in points])
 
 
-def inspect_gltf(path):
-    gltf = json.loads(path.read_text())
+def load_gltf(path):
+    """Read original .gltf or .glb without altering, externalizing or recompressing it."""
+    binary = None
+    if path.suffix.lower() == ".glb":
+        raw = path.read_bytes()
+        if raw[:4] != b"glTF" or struct.unpack_from("<I", raw, 4)[0] != 2:
+            raise ValueError("Expected glTF 2 binary")
+        if struct.unpack_from("<I", raw, 8)[0] != len(raw):
+            raise ValueError("Incomplete glTF binary")
+        offset = 12
+        gltf = None
+        while offset < len(raw):
+            length, kind = struct.unpack_from("<II", raw, offset)
+            chunk = memoryview(raw)[offset + 8:offset + 8 + length]
+            if kind == 0x4E4F534A:
+                gltf = json.loads(chunk.tobytes())
+            elif kind == 0x004E4942:
+                binary = chunk
+            offset += 8 + length
+        if gltf is None:
+            raise ValueError("Missing glTF JSON chunk")
+    else:
+        gltf = json.loads(path.read_text())
     buffers = []
     for buffer in gltf.get("buffers", []):
         uri = buffer.get("uri", "")
-        if uri.startswith("data:"):
+        if not uri and binary is not None:
+            buffers.append(binary)
+        elif uri.startswith("data:"):
             import base64
             buffers.append(base64.b64decode(uri.partition(",")[2]))
         else:
             buffers.append((path.parent / safe_relative(uri)).read_bytes())
+    return gltf, buffers
+
+
+def image_source(gltf, buffers, entry, base):
+    if "bufferView" in entry:
+        view = gltf["bufferViews"][entry["bufferView"]]
+        offset = view.get("byteOffset", 0)
+        return io.BytesIO(buffers[view["buffer"]][offset:offset + view["byteLength"]])
+    uri = entry.get("uri", "")
+    if uri.startswith("data:"):
+        import base64
+        return io.BytesIO(base64.b64decode(uri.partition(",")[2]))
+    return base / safe_relative(uri)
+
+
+def inspect_gltf(path):
+    gltf, buffers = load_gltf(path)
     def positions(accessor_index):
         accessor = gltf["accessors"][accessor_index]
         if accessor.get("sparse") or accessor.get("componentType") != 5126 or accessor.get("type") != "VEC3":
@@ -251,9 +292,7 @@ def inspect_gltf(path):
         visit(index, IDENTITY, [], set())
     images = []
     for entry in gltf.get("images", []):
-        uri = entry.get("uri")
-        images.append({**entry, **(image_info(path.parent / safe_relative(uri))
-                                  if uri and not uri.startswith("data:") else {})})
+        images.append({**entry, **image_info(image_source(gltf, buffers, entry, path.parent))})
     return {"coordinate_system": "Original glTF, metres as declared by glTF; no Unity X mirror applied",
             "source_file": path.name, "asset": gltf.get("asset"), "scene_index": scene_index,
             "extensions_used": gltf.get("extensionsUsed", []),
