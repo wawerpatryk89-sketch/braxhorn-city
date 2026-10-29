@@ -61,7 +61,7 @@ jobs:
           walk=json.loads((WALK/"walk-report.json").read_text())
           ok(release.get("scope")=="isolated-city-rebuild-preview" and
              release.get("sourceCommit")==SOURCE and release.get("cityCommit")==SOURCE and
-             release.get("sourceRun")==40914321114 and release.get("productionPublication") is False,
+             str(release.get("sourceRun"))=="40914321114" and release.get("productionPublication") is False,
              "Wrong compiled Unity player")
           ok(qa.get("passed") is True and qa.get("sourceCommit")==SOURCE and
              sum(c.get("passed") is True for c in qa["checks"])>=30,"Desktop Unity QA not passed")
