@@ -1,0 +1,142 @@
+name: Publish tested Unity city streaming loader only
+on:
+  push:
+    branches: [codex/unity-full-city-20261029]
+    paths: ['.github/workflows/unity-city-ios-publish.yml']
+permissions: {}
+concurrency:
+  group: unity-city-ios-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-full-city-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Read exact validated loading test
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 80c406217f7d70e89ee427f5995bf298156c4504
+          sparse-checkout: unity-release
+          persist-credentials: false
+      - name: Confirm exact validation run completed successfully
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import json,os,urllib.request
+          url='https://api.github.com/repos/wawerpatryk89-sketch/braxhorn-city/actions/runs/40855727591'
+          req=urllib.request.Request(url,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(req,timeout=30) as r:run=json.load(r)
+          assert run['status']=='completed' and run['conclusion']=='success'
+          assert run['head_sha']=='80c406217f7d70e89ee427f5995bf298156c4504'
+          assert run['head_branch']=='codex/unity-full-city-20261029'
+          assert run['path']=='.github/workflows/unity-city-ios-loader.yml'
+      - name: Download only the three tested text changes and their proofs
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40855727591
+          github-token: ${{ github.token }}
+          name: unity-city-ios-patch-80c406217f7d70e89ee427f5995bf298156c4504
+          path: ios-patch
+      - name: Read original published entry without changing other game files
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: dcc96fa09716a69d65c08252c663282494761642
+          path: deployed
+          sparse-checkout: public/unity-gym
+          persist-credentials: false
+          lfs: false
+      - name: Verify evidence and publish exactly the tested loader, index and release manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64,hashlib,json,os,pathlib,shutil,subprocess
+          patch=pathlib.Path('ios-patch');dest=pathlib.Path('deployed/public/unity-gym');proof=pathlib.Path('ios-public-proof');proof.mkdir()
+          expected='dcc96fa09716a69d65c08252c663282494761642'
+          source='19c71c167d4426523a251b94c3aeabbe9664aad5';qa_sha='80c406217f7d70e89ee427f5995bf298156c4504'
+          qa=json.loads((patch/'qa.json').read_text());identity=json.loads((patch/'asset-identity.json').read_text());release=json.loads((patch/'release.json').read_text())
+          assert qa['passed'] is True and len(qa['checks'])>=10 and all(c['passed'] for c in qa['checks'])
+          assert qa['qaCommit']==qa_sha and qa['sourceCommit']==source and qa['physicalIPhoneValidated'] is False
+          assert identity['beforeCommit']==expected and identity['sourceCommit']==source
+          assert release['loadingFix']['revision']=='ios-stream-01' and release['sourceCommit']==source
+          assert release['loadingFix']['unityBinaryChanged'] is False and release['loadingFix']['visualAssetsChanged'] is False
+          assert not any(p.is_symlink() for p in patch.rglob('*'))
+          for name,digest in identity['originalFiles'].items():
+              rel=pathlib.PurePosixPath(name);assert not rel.is_absolute() and '..' not in rel.parts
+              assert hashlib.sha256((dest/name).read_bytes()).hexdigest()==digest,name
+          allowed={'city-transport.js','index.html','release.json'}
+          assert set(identity['changedFiles'])==allowed
+          for name in ['city-transport.js','index.html']:
+              assert hashlib.sha256((patch/name).read_bytes()).hexdigest()==release['files'][name],name
+          release['loadingFix'].update(qaPassed=True,qaRun=40855727591,qaCommit=qa_sha,physicalIPhoneValidated=False)
+          for name in ['city-transport.js','index.html']:shutil.copyfile(patch/name,dest/name)
+          (dest/'release.json').write_text(json.dumps(release,indent=2)+'\n')
+          for name,digest in identity['originalFiles'].items():
+              if name not in allowed:assert hashlib.sha256((dest/name).read_bytes()).hexdigest()==digest,name
+          def git(*args,env=None):return subprocess.check_output(['git',*args],cwd='deployed',env=env,text=True).strip()
+          assert git('rev-parse','HEAD')==expected
+          assert git('remote','get-url','origin') in ['https://github.com/wawerpatryk89-sketch/braxhorn-city','https://github.com/wawerpatryk89-sketch/braxhorn-city.git']
+          git('config','user.name','github-actions[bot]');git('config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
+          git('add','--sparse','--','public/unity-gym/city-transport.js','public/unity-gym/index.html','public/unity-gym/release.json')
+          changed=set(git('diff','--cached','--name-only').splitlines())
+          assert changed=={'public/unity-gym/'+p for p in allowed},changed
+          git('commit','-m','fix(unity-gym): reduce startup memory via native streaming; preserve all original city assets')
+          env=os.environ.copy();token=env.pop('GH_TOKEN');auth=base64.b64encode(('x-access-token:'+token).encode()).decode()
+          env.update(GIT_CONFIG_COUNT='1',GIT_CONFIG_KEY_0='http.https://github.com/.extraheader',GIT_CONFIG_VALUE_0='AUTHORIZATION: basic '+auth)
+          assert git('ls-remote','origin','refs/heads/main',env=env).split()[0]==expected,'Main moved; refusing to overwrite concurrent work'
+          git('push','origin','HEAD:refs/heads/main',env=env)
+          receipt={'publishedCommit':git('rev-parse','HEAD'),'previousMain':expected,'sourceCommit':source,'qaRun':40855727591,'qaCommit':qa_sha,'changedFiles':sorted(changed),'originalGameAssetsUnchanged':True,'physicalIPhoneValidated':False,'liveVerified':False}
+          (proof/'publication.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          shutil.copyfile(patch/'qa.json',proof/'prepublication-qa.json')
+          print('ONLY_LOADING_FILES_PUBLISHED',receipt['publishedCommit'])
+      - name: Verify exact live loading patch without protected-preview redirects
+        shell: python
+        run: |
+          import hashlib,json,pathlib,time,urllib.request,urllib.parse
+          root=pathlib.Path('deployed/public/unity-gym');report_path=pathlib.Path('ios-public-proof/publication.json');report=json.loads(report_path.read_text())
+          origin='https://braxhorn-city.vercel.app';base=origin+'/unity-gym/'
+          def get(name):
+              url=base+name+('?v=' if '?' not in name else '&v=')+report['publishedCommit']
+              req=urllib.request.Request(url,headers={'Cache-Control':'no-cache','Accept-Encoding':'identity'})
+              with urllib.request.urlopen(req,timeout=40) as response:
+                  final=urllib.parse.urlsplit(response.url)
+                  assert final.scheme=='https' and final.netloc=='braxhorn-city.vercel.app' and final.path.startswith('/unity-gym')
+                  return response.read()
+          last_error='not observed'
+          for attempt in range(24):
+              try:
+                  results=[]
+                  for name in ['city-transport.js','index.html','release.json']:
+                      body=get('' if name=='index.html' else name)
+                      digest=hashlib.sha256(body).hexdigest()
+                      assert digest==hashlib.sha256((root/name).read_bytes()).hexdigest(),name
+                      results.append({'path':name,'sha256':digest,'bytes':len(body)})
+                  break
+              except Exception as error:last_error=str(error);time.sleep(5)
+          else:raise RuntimeError('Public loading patch not verified: '+last_error)
+          report.update(liveVerified=True,publicFiles=results,testUrl=base+'?v=ios-stream-01')
+          report_path.write_text(json.dumps(report,indent=2)+'\n');print('LIVE_LOADING_PATCH_VERIFIED')
+      - name: Prepare public runtime check
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start public Unity, exit gym, enter estate and return
+        env:
+          PLAYER_URL: https://braxhorn-city.vercel.app/unity-gym/?v=ios-stream-01
+          PLAYER_ROOT: deployed/public/unity-gym
+          QA_OUT: ios-public-proof
+        run: node unity-release/check-ios-loader.mjs
+      - name: Preserve publication, runtime logs and screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-ios-public-proof-${{ github.sha }}
+          path: ios-public-proof/
+          if-no-files-found: warn
+          retention-days: 7
