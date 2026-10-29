@@ -2,7 +2,7 @@ name: QA BRAXHORN ceiling fans and white ropes (isolated branch)
 on:
   push:
     branches: [codex/gym-premium-ceiling-continuation-20261029]
-    paths: ['unity-city/Assets/**', 'unity-city/Packages/**', 'unity-city/ProjectSettings/**', 'unity-tools/kickboxing/**', '.github/workflows/unity-kickboxing-reference-test.yml']
+    paths: ['unity-city/Assets/**', 'unity-city/Packages/**', 'unity-city/ProjectSettings/**', 'unity-tools/kickboxing/**', '.github/workflows/unity-gym-ceiling-continuation.yml']
 permissions:
   contents: read
   actions: read
