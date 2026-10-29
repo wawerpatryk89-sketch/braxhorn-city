@@ -33,6 +33,10 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private AudioClip impact;
     private Transform hand, leftFoot, rightFoot;
     private Vector3 cameraTarget;
+    // City-only camera tracking. The original gym/estate camera, animation,
+    // touch joystick and player controller remain exactly as before.
+    private float cityManualLookUntil,cityAutoYawVelocity;
+    private bool cityAutomaticFollow;
     private static readonly Vector3 Spawn = new Vector3(1.5f, .08f, 2.8f);
 #if UNITY_WEBGL && !UNITY_EDITOR
     [DllImport("__Internal")] private static extern void BXState(string data);
@@ -48,7 +52,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         public Vector2 lastHitImpulse;
         public Vector2[] bagAngles,bagVelocities;
         public string animation,context,build,area,activePoint;
-        public bool loadingArea;
+        public bool loadingArea,cityAutomaticCameraFollow;
         public int cityMeshes,cityTriangles,cityColliders,openDoors;
         public BraxCityPoint[] points;
         public int hits,frames,lastHitBag;
@@ -88,8 +92,37 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         if(paused)return;var p=values.Split(',');
         if(p.Length>=2 && float.TryParse(p[0],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float dx) && float.TryParse(p[1],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float dy))
-        {yaw=Mathf.Repeat(yaw-dx*.22f,360f);pitch=Mathf.Clamp(pitch+dy*.16f,-90f,90f);}
+        {
+            yaw=Mathf.Repeat(yaw-dx*.22f,360f);
+            // Full -90..+90 pitch is preserved, so Brax can look straight at
+            // the zenith, sun and cloud textures without a "ceiling" clamp.
+            pitch=Mathf.Clamp(pitch+dy*.16f,-90f,90f);
+            if(cityWorld && cityWorld.area=="city" && (Mathf.Abs(dx)+Mathf.Abs(dy)>.05f))
+            {
+                // Touch input has priority. No camera snap during a user orbit.
+                cityManualLookUntil=Time.time+3.5f;
+                cityAutoYawVelocity=0;
+                cityAutomaticFollow=false;
+            }
+        }
     }
+    private void FollowCityCamera(float dt)
+    {
+        cityAutomaticFollow=false;
+        if(!cityWorld||cityWorld.area!="city"||Time.time<cityManualLookUntil||paused)return;
+        // Look around while stopped or walking sideways: the player's chosen
+        // angle remains stable. Follow only normal forward locomotion; changing
+        // yaw during pure sidesteps would continuously rotate the joystick
+        // direction and make Brax run in circles.
+        if(move.y<=.45f || Mathf.Abs(move.x)>.28f || speed<.4f)return;
+        float behindYaw=Mathf.Repeat(transform.eulerAngles.y-180f,360f);
+        yaw=Mathf.Repeat(Mathf.SmoothDampAngle(yaw,behindYaw,
+            ref cityAutoYawVelocity,.42f,135f,dt),360f);
+        cityAutomaticFollow=true;
+        // Do NOT recenter pitch: manual full vertical look stays at the
+        // height selected by the user, including -90° into the sky.
+    }
+
     public void Command(string key)
     {
         if(!ready)return;
@@ -180,7 +213,9 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private void LateUpdate()
     {
         if(!ready)return;
-        UpdateCamera(Mathf.Min(Time.deltaTime,.1f));
+        float cameraDt=Mathf.Min(Time.deltaTime,.1f);
+        FollowCityCamera(cameraDt);
+        UpdateCamera(cameraDt);
         if(reviewEnabled||Time.unscaledTime>=stateAt){stateAt=Time.unscaledTime+.16f;Report();}
     }
     private void UpdateCamera(float dt)
@@ -237,7 +272,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         var right=heading*Vector3.right;
         var forward=heading*Vector3.forward;
         var s=new Status{area=cityWorld?cityWorld.area:"gym",activePoint=cityWorld?cityWorld.activePoint:"",points=cityWorld?cityWorld.points:null,loadingArea=cityWorld&&cityWorld.loading,cityMeshes=cityWorld?cityWorld.originalMeshes:0,cityTriangles=cityWorld?cityWorld.originalTriangles:0,cityColliders=cityWorld?cityWorld.sourceColliders:0,openDoors=cityWorld?cityWorld.OpenDoors:0,ready=ready,paused=paused,x=transform.position.x,y=transform.position.y,z=transform.position.z,yaw=yaw,pitch=pitch,speed=speed,animation=action,context=context,hits=trainingHits,frames=Time.frameCount,handX=h.x,handY=h.y,handZ=h.z,doorOpen=doorOpen,build=buildId,
-            grounded=body.isGrounded,runEnabled=runEnabled,playerYaw=transform.eulerAngles.y,cameraYaw=Mathf.Repeat(yaw+180f,360f),verticalSpeed=vertical,
+            grounded=body.isGrounded,runEnabled=runEnabled,cityAutomaticCameraFollow=cityAutomaticFollow,playerYaw=transform.eulerAngles.y,cameraYaw=Mathf.Repeat(yaw+180f,360f),verticalSpeed=vertical,
             rightX=right.x,rightZ=right.z,forwardX=forward.x,forwardZ=forward.z,
             lastHitBag=lastHitBag,lastHitTime=lastHitTime,lastHitDistance=lastHitDistance,lastHitAlignment=lastHitAlignment,bagAngles=bagSwing,bagVelocities=bagVelocity,
             gameTime=Time.time,simulationTime=simulationTime,moveX=move.x,moveY=move.y,lastHitImpulse=lastHitImpulse,
