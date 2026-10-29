@@ -1,0 +1,41 @@
+name: Diagnose public Unity metadata only
+on:
+  push:
+    branches: [codex/unity-full-city-20261029]
+    paths: ['.github/workflows/unity-city-metadata-diagnostic.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Compare original bytes with public responses
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64,hashlib,json,os,pathlib,urllib.request,urllib.parse
+          out=pathlib.Path('public-diagnostic');out.mkdir()
+          published='dcc96fa09716a69d65c08252c663282494761642';repo='wawerpatryk89-sketch/braxhorn-city';origin='https://braxhorn-city.vercel.app/unity-gym/'
+          report=[]
+          for name in ['material-review.json','release.json','index.html','city-transport.js']:
+              req=urllib.request.Request('https://api.github.com/repos/'+repo+'/contents/public/unity-gym/'+name+'?ref='+published,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(req,timeout=30) as r:git=json.load(r)
+              expected=base64.b64decode(git['content']);(out/('git-'+name)).write_bytes(expected)
+              for suffix in ['', '?probe='+published]:
+                  item={'file':name,'suffix':suffix,'expectedSha256':hashlib.sha256(expected).hexdigest()}
+                  try:
+                      req=urllib.request.Request(origin+name+suffix,headers={'Accept-Encoding':'identity','Cache-Control':'no-cache'})
+                      with urllib.request.urlopen(req,timeout=45) as r:
+                          data=r.read();item.update(status=r.status,finalUrl=r.url,headers=dict(r.headers),sha256=hashlib.sha256(data).hexdigest(),bytes=len(data),matches=data==expected)
+                          (out/(('fresh-' if suffix else 'plain-')+name)).write_bytes(data)
+                  except Exception as e:item['error']=str(e)
+                  print(json.dumps(item),flush=True);report.append(item)
+          (out/'report.json').write_text(json.dumps(report,indent=2))
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: city-public-metadata-diagnostic
+          path: public-diagnostic/
+          retention-days: 7
