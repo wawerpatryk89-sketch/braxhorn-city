@@ -58,11 +58,15 @@ try {
  await shot('00-start');
  const initial=await state();
  fs.writeFileSync(path.join(out,'initial-state.json'),JSON.stringify(initial,null,2));
- // Isolated lift fixture: only the initial lobby placement is a QA teleport.
+ // Only the initial placement on the tower sidewalk is a QA teleport.
  // Every subsequent metre through the doors and up/down the shaft is physical.
- await point('R1_TOWER_LOBBY');
- await turn(180,12); await shot('01-lobby');
+ await point('R1_TOWER_STREET_ENTRY');
+ await turn(180,12); await shot('00-tower-entrance');
  if((await state()).runEnabled)await send('Command','run');
+ check('Street entrance offers door interaction',(await state()).context.includes('OTWÓRZ DRZWI'));
+ await page.locator('#action').click();
+ let doorStart=await state();await until(t=>window.BraxhornState.simulationTime>=t+1,doorStart.simulationTime);
+ await walkToZ(40.1,1,8); await shot('01-lobby');
  await walkToZ(49.4,1,15); await shot('02-lower-call');
  await page.locator('#action').click();
  let a=await state();await until(t=>window.BraxhornState.simulationTime>=t+2,a.simulationTime);
@@ -82,17 +86,23 @@ try {
  await until(()=>window.BraxhornState.context.includes('ZJEDŹ NA ULICĘ'));
  await shot('04-top');
  check('Passenger reaches roof',Math.abs((await state()).y-top)<.2,brief(await state()));
+ await turn(0,12);await walkToZ(44,-1,8);await shot('04-roof-duel-space');
+ check('Player walks out onto roof deck',Math.abs((await state()).y-top)<.2,brief(await state()));
+ await turn(180,12);await walkToZ(53,1,8);
+ await until(()=>window.BraxhornState.context.includes('ZJEDŹ NA ULICĘ'));
  await page.locator('#action').click();
  await until(y=>window.BraxhornState.y<=y+.15,low.y,360000);
  a=await state();await until(t=>window.BraxhornState.simulationTime>=t+2,a.simulationTime);
  await turn(0,12);await walkToZ(49.4,-1,8);await shot('05-return');
  check('Passenger exits onto original lobby',Math.abs((await state()).y-low.y)<.2,brief(await state()));
+ await walkToZ(34.4,-1,12);await shot('06-return-to-street');
+ check('Player returns through the original street entrance',(await state()).z<34.5,brief(await state()));
  check('No emergency recovery or lost-floor event',!logs.some(l=>/CITY_LIFT_(SAFETY_STOP|RECOVERED_AT_DEPARTURE)/.test(l)));
 } catch(error) {
  checks.push({name:'lift route',passed:false,error:String(error)});
  console.error(String(error));await shot('failure').catch(()=>{});
 } finally {
- fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({sourceCommit:expected,passed:checks.length>0&&checks.every(c=>c.passed),fixture:'QA placement at lobby only; physical travel after setup',checks,last:await state().catch(()=>null)},null,2));
+ fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({sourceCommit:expected,passed:checks.length>0&&checks.every(c=>c.passed),fixture:'QA placement on tower sidewalk only; physical entrance, lift, roof walk and return after setup',checks,last:await state().catch(()=>null)},null,2));
  fs.writeFileSync(path.join(out,'browser.log'),logs.join('\n'));
  await context.close();await browser.close();server.close();
  process.exitCode=checks.every(c=>c.passed)?0:1;

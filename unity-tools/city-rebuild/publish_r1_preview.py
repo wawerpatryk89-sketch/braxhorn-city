@@ -42,7 +42,8 @@ def main():
     passed = {c['name'] for c in report['checks'] if c.get('passed') is True}
     require({'Passenger reaches roof', 'Passenger exits onto original lobby',
              'Lift holds passenger position while game is paused',
-             'No emergency recovery or lost-floor event'} <= passed, 'Incomplete lift evidence')
+             'No emergency recovery or lost-floor event', 'Player walks out onto roof deck',
+             'Player returns through the original street entrance'} <= passed, 'Incomplete lift evidence')
     names = set()
     for name, digest in release['files'].items():
         require(isinstance(name, str) and re.fullmatch(r'[A-Za-z0-9_./-]+', name) and
@@ -63,7 +64,8 @@ def main():
             {'key': 'Cache-Control', 'value': 'no-store'}]} for p in ['/', '/index.html', '/release.json']]})
     (out / 'robots.txt').write_text('User-agent: *\nDisallow: /\n')
     (out / 'evidence').mkdir()
-    for name in ['00-start.png', '01-lobby.png', '03-inside-car.png', '04-top.png', '05-return.png']:
+    for name in ['00-start.png', '00-tower-entrance.png', '01-lobby.png', '03-inside-car.png',
+                 '04-top.png', '04-roof-duel-space.png', '05-return.png', '06-return-to-street.png']:
         file = qa / name
         require(file.is_file() and file.read_bytes()[:8] == b'\x89PNG\r\n\x1a\n',
                 'Missing actual Unity screenshot: ' + name)
@@ -71,7 +73,7 @@ def main():
     write(out / 'preview-qa-summary.json', {
         'status': 'CANDIDATE_REQUIRES_VISUAL_AND_OWNER_REVIEW', 'sourceCommit': source,
         'sourceRun': run, 'flagshipPhysicalLiftPassed': True, 'pausePassed': True,
-        'initialLobbyPlacement': 'QA fixture; not a continuous street walk',
+        'initialPlacement': 'QA fixture on tower sidewalk; continuous physical route thereafter',
         'allNineLiftsRuntimePassed': False, 'physicalIphoneTested': False,
         'ownerAccepted': False, 'productionPublication': False,
         'scope': 'R1 city only; newer gym and R2 contractor branches not integrated'})

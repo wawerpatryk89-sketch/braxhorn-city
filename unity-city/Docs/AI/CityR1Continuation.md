@@ -14,7 +14,7 @@ BraxCityElevator: reopen at an occupied threshold, suspend on game/application p
 
 The sole shared-player addition is a read-only IsPaused property. No movement, animation, camera, rig, materials or gym logic is rewritten.
 
-`check_lift.mjs` checks actual compiled Unity at the pinned SHA. Its initial placement is explicitly a QA lobby fixture, not evidence of a continuous street route. Thereafter it walks into the car, rides up, rides down and exits. New-build coverage also checks game pause in transit. Screenshots and failures are preserved by CI. Physical iPhone remains NOT TESTED.
+`check_lift.mjs` checks actual compiled Unity at the pinned SHA. Its initial placement is explicitly a QA fixture on the tower sidewalk, not evidence of a walk from the gym. Thereafter it opens the real street door, walks through the lobby into the car, rides up, exits onto the roof deck, returns to the car, rides down and walks back through the same street entrance. New-build coverage also checks game pause in transit. Screenshots and failures are preserved by CI. Physical iPhone remains NOT TESTED.
 
 ## Acceptance checkpoints
 
