@@ -1,0 +1,45 @@
+name: Unity city source audit
+on:
+  push:
+    branches: [codex/unity-full-city-20261029]
+    paths: ['.github/workflows/unity-city-source-audit.yml']
+permissions:
+  contents: read
+jobs:
+  source:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-full-city-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            dev/src
+            dev/tools
+            dev/docs
+            unity-city
+            unity-tools
+          persist-credentials: false
+          lfs: false
+      - name: Snapshot authored sources only, not credentials or generated output
+        shell: python
+        run: |
+          import hashlib,json,pathlib,subprocess,zipfile
+          roots=['dev/src','dev/tools','dev/docs','unity-city','unity-tools','.github/workflows']
+          paths=subprocess.check_output(['git','ls-files','-z'],text=True).split('\0')
+          output=pathlib.Path('city-source-audit');output.mkdir()
+          manifest=[]
+          with zipfile.ZipFile(output/'source.zip','w',zipfile.ZIP_DEFLATED) as z:
+            for p in paths:
+              f=pathlib.Path(p)
+              if not f.is_file() or not (any(p.startswith(root+'/') for root in roots) or p in ['PROJECT.md','ZLECENIE.md','vercel.json','.gitignore']):continue
+              if f.suffix.lower() not in ['.js','.mjs','.py','.html','.json','.cs','.shader','.jslib','.txt','.md','.yml','.yaml','.meta','.asset','.asmdef','.unity','.xml','.gitignore']:continue
+              if any(s in ['Library','Temp','Logs','obj','Build','PlayableGenerated'] for s in f.parts):continue
+              b=f.read_bytes();z.writestr(p,b);manifest.append({'path':p,'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()})
+          (output/'inventory.json').write_text(json.dumps(manifest,indent=2))
+          print('SOURCE_AUDIT_FILES',len(manifest))
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-full-city-source-audit
+          path: city-source-audit/
+          retention-days: 7
