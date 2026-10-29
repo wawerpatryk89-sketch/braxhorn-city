@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "dataPath": "Build/7a7e0a031af5_WebGL.data.unityweb",
+  "bytes": 411201395,
+  "sha256": "639ae3a1be657afda35e8d36c7fe3e724ff72427e43ca74f26439196aa337392",
+  "uncompressedBytes": 556975905,
+  "uncompressedSha256": "78555b12698c83d0d47cf8a08872e0634e247090ddbbb4c26cb5f198bc613908",
+  "parts": [
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part000",
+      "bytes": 33554432,
+      "sha256": "e3177bedb030a6d61163aaaab45a2281b3840067813ab3f06cadd775a68a70c7"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part001",
+      "bytes": 33554432,
+      "sha256": "9d3bd5f14ac9d5a05073a44bc72744e72ed33db3db5c12661e65fb6c3f042a1f"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part002",
+      "bytes": 33554432,
+      "sha256": "28cf196460f64c2246b3bbed0c08dea574b13238e0f780c13288637a3d781ea3"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part003",
+      "bytes": 33554432,
+      "sha256": "3a7e43e4ac416377cfc35f6222d350ef61b3cd3dc18013d78485d1e54b4cd996"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part004",
+      "bytes": 33554432,
+      "sha256": "f1594af90a66edd40470eb0baad541a4891a8cb55f32b24bfc900dd7679c78fa"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part005",
+      "bytes": 33554432,
+      "sha256": "3f29edf214df7786b9f565ef4d98bde717ef4068dcca2956c93a767f484b1395"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part006",
+      "bytes": 33554432,
+      "sha256": "4d55fa480fc829b17375c92ece691c7d1085c8c3b3254350dba6c98f8d2895ed"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part007",
+      "bytes": 33554432,
+      "sha256": "3c45b3cd0053922096a5350a0f1c81cbc4db026a69e43d33f6c7c7a7fa7b3c8d"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part008",
+      "bytes": 33554432,
+      "sha256": "e3f720f0189238cc925a3be416f79232ef8b01bc6e988c3cf526649dea0ea13b"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part009",
+      "bytes": 33554432,
+      "sha256": "b36ab7cbc564adc3c6e5d8031b1024b274b736f839f3db61cb19368f3fa2272a"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part010",
+      "bytes": 33554432,
+      "sha256": "822a15e62f9c5dc3ee43286ae86f3cbc6c71a70ed472360ba14220814a1eac34"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part011",
+      "bytes": 33554432,
+      "sha256": "0cf376636a43cf53b41335368103902f1fc5471c9e206ad8525c7487c76b0ab7"
+    },
+    {
+      "path": "Build/7a7e0a031af5_WebGL.data.unityweb.part012",
+      "bytes": 8548211,
+      "sha256": "4c7854acefd6378775b1e49efa5cc2a26491a785f4b2a6488cbd839f2cf85f9d"
+    }
+  ],
+  "sourceCommit": "7a7e0a031af51b7acfe17eff9f1212e680dc27dc",
+  "compiledDataBytesUnchanged": true,
+  "districtStreaming": false
+}

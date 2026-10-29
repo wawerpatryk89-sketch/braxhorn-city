@@ -1,0 +1,13 @@
+{
+  "status": "CANDIDATE_REQUIRES_VISUAL_AND_OWNER_REVIEW",
+  "sourceCommit": "7a7e0a031af51b7acfe17eff9f1212e680dc27dc",
+  "sourceRun": "40956482527",
+  "flagshipPhysicalLiftPassed": true,
+  "pausePassed": true,
+  "initialPlacement": "QA fixture on tower sidewalk; continuous physical route thereafter",
+  "allNineLiftsRuntimePassed": false,
+  "physicalIphoneTested": false,
+  "ownerAccepted": false,
+  "productionPublication": false,
+  "scope": "R1 city only; newer gym and R2 contractor branches not integrated"
+}
