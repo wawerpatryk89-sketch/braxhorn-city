@@ -118,12 +118,18 @@ jobs:
           if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null; then
             echo 'The review branch already exists: refusing to overwrite'; exit 1
           fi
+          # A deployment branch must be based on unmodified production, not
+          # on a test branch that contains workflow edits. GitHub App tokens
+          # without workflow scope cannot push a branch introducing them.
+          git fetch --no-tags origin main
+          base=$(git rev-parse refs/remotes/origin/main)
+          [ "$base" = "26e5ef339b09df6c1077e9968200660ec89cdacf" ] || { echo 'Production base changed; require new review'; exit 1; }
+          git checkout -b "$branch" origin/main
           rm -rf public/unity-gym
           mkdir -p public/unity-gym
           cp -a staged-player/. public/unity-gym/
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout -b "$branch"
           git add -A -- public/unity-gym
           git diff --cached --name-only | awk '!/^public\/unity-gym\//{bad=1; print "UNEXPECTED FILE:",$0} END{exit bad}'
           git diff --cached --quiet && { echo 'Review player identical to existing player'; exit 1; }
