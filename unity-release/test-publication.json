@@ -1,0 +1,34 @@
+{
+  "source_run_id": 40804856090,
+  "source_commit": "942509273fc7e5f726413306a4f3fcf749351b1e",
+  "visual_review": "reviewed",
+  "branch": "codex/unity-gym-polish-controls-20261029",
+  "runtime_checks_passed": 63,
+  "runtime_checks_total": 63,
+  "review_artifact_id": 12868455705,
+  "playable_artifact_id": 12868271503,
+  "reviewed_screenshots": [
+    "01-premium-hall.png",
+    "02-premium-punch.png",
+    "03-premium-kick.png",
+    "04-ring-details.png",
+    "05-bags-windows.png",
+    "06-brax-front.png",
+    "07-library-lounge.png",
+    "08-bag-contact.png"
+  ],
+  "visual_findings": [
+    "Original hall layout, original Brax, face, clothing branding and green accents preserved.",
+    "Bag straps, welded chain links, leather seams and ring finishing visibly refined.",
+    "34 original materials upgraded; original source-linked brick normal and six linear roughness maps applied.",
+    "Brax final normal strength 0.60, roughness floor 0.78, metallic scale 0; original atlas highlights retained.",
+    "No new missing surfaces, detached fittings or obvious geometry regression in the reviewed stills.",
+    "The wide hall is moderately refined; this review does not claim a radical or photorealistic transformation."
+  ],
+  "validation_limits": [
+    "Chromium WebGL2 with SwiftShader and CDP touch emulation, not physical iPhone/Safari/mobile GPU validation.",
+    "Representative wall, ring apron, squat rack and ground collision checks, not every mesh or animation.",
+    "Still screenshots support visual review; tracked runtime bone motion and bag response support action validation."
+  ],
+  "publication_scope": "public/unity-gym/ on the isolated test branch only; main and the production city remain unchanged"
+}
