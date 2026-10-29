@@ -281,6 +281,12 @@ try {
     await review(10.25,.08,-7.55,0,15,5.8,'two separate speed pear stands');
     await frames(await state(),4);
     await shot('02b-two-standing-speed-pears-visual-review');
+    await review(9.1,.08,-2.5,270,16,6.2,'original treadmill bench and dumbbells');
+    await frames(await state(),4);
+    await shot('02c-oxygen-original-bench-treadmill-dumbbells');
+    await review(12.2,.08,4.5,270,15,6.5,'original wall ladder and bicycle');
+    await frames(await state(),4);
+    await shot('02d-oxygen-original-ladder-bike-clear-walkway');
   });
 
   await step('Four camera directions',async()=>{
