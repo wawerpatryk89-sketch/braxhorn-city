@@ -125,6 +125,7 @@ public static class BraxCityRebuild
         for(int i=0;i<BraxCityEnvironment.PalletReplacementRegions.Length;i++)
             BraxCityMeshCut.Subtract(timberBatch,BraxCityEnvironment.PalletReplacementRegions[i],Output+"/Cuts","pallet_"+i);
         BraxCityEnvironment.Apply(root);
+        if(WholeDistrict)BraxCityStreetLighting.Build(root);
 
         // Only supplied brand images, with their native aspect ratio and real
         // steel supports. The first review uses two large signs, not a wall of ads.
