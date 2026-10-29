@@ -1,0 +1,1795 @@
+{
+  "passed": true,
+  "sourceCommit": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+  "qaCommit": "34ba35d5d920740fc5ce4470d2a45a0661aa0a5d",
+  "buildId": "city-55fb02f90b27-40878906652",
+  "checks": [
+    {
+      "name": "Actual Unity player starts",
+      "passed": true,
+      "data": {
+        "ready": true,
+        "paused": false,
+        "doorOpen": false,
+        "grounded": false,
+        "runEnabled": true,
+        "handFound": true,
+        "leftFootFound": true,
+        "rightFootFound": true,
+        "x": 1.5,
+        "y": 0.04716797173023224,
+        "z": 2.799999952316284,
+        "yaw": 0,
+        "pitch": 19,
+        "speed": 0,
+        "handX": 0.9559993147850037,
+        "handY": 1.273305058479309,
+        "handZ": 2.6491539478302,
+        "playerYaw": 180,
+        "cameraYaw": 180,
+        "rightX": -1,
+        "rightZ": 8.742277657347586e-8,
+        "forwardX": -8.742277657347586e-8,
+        "forwardZ": -1,
+        "verticalSpeed": -0.9359997510910034,
+        "lastHitTime": 0,
+        "lastHitDistance": 0,
+        "lastHitAlignment": 0,
+        "gameTime": 0.031999994069337845,
+        "simulationTime": 0.05199998617172241,
+        "moveX": 0,
+        "moveY": 0,
+        "leftFootPosition": {
+          "x": 1.836826205253601,
+          "y": 0.18868936598300934,
+          "z": 2.1515822410583496
+        },
+        "rightFootPosition": {
+          "x": 1.0950931310653687,
+          "y": 0.18805819749832153,
+          "z": 3.4059696197509766
+        },
+        "lastHitImpulse": {
+          "x": 0,
+          "y": 0
+        },
+        "bagAngles": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "bagVelocities": [
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 0
+          },
+          {
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "animation": "Idle",
+        "context": "",
+        "build": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+        "area": "city",
+        "activePoint": "",
+        "loadingArea": false,
+        "cityMeshes": 724,
+        "cityTriangles": 521280,
+        "cityColliders": 234,
+        "openDoors": 0,
+        "points": [
+          {
+            "id": "gym_start",
+            "label": "start misji, środek siłowni",
+            "position": {
+              "x": 1.5,
+              "y": 0,
+              "z": 2.799999952316284
+            }
+          },
+          {
+            "id": "gym_ring_access",
+            "label": "schodki na ring (rozgrzewka)",
+            "position": {
+              "x": -9,
+              "y": 0,
+              "z": -1.2000000476837158
+            }
+          },
+          {
+            "id": "gym_ring_center",
+            "label": "środek ringu",
+            "position": {
+              "x": -9,
+              "y": 0.949999988079071,
+              "z": -5.5
+            }
+          },
+          {
+            "id": "gym_talk",
+            "label": "rozmowa z trenerem: zlecenie, wypłata, koniec misji",
+            "position": {
+              "x": -3.200000047683716,
+              "y": 0,
+              "z": 3.4000000953674316
+            }
+          },
+          {
+            "id": "gym_trainer",
+            "label": "miejsce trenera (zleceniodawca)",
+            "position": {
+              "x": -4.300000190734863,
+              "y": 0,
+              "z": 2.4000000953674316
+            }
+          },
+          {
+            "id": "gym_door_in",
+            "label": "drzwi od środka",
+            "position": {
+              "x": 6,
+              "y": 0,
+              "z": 9.600000381469727
+            }
+          },
+          {
+            "id": "gym_door_out",
+            "label": "drzwi od zaułka",
+            "position": {
+              "x": 6,
+              "y": 0,
+              "z": 12.800000190734863
+            }
+          },
+          {
+            "id": "street_gym",
+            "label": "wylot zaułka siłowni na ulicę",
+            "position": {
+              "x": 6.75,
+              "y": 0.15000000596046448,
+              "z": 21.600000381469727
+            }
+          },
+          {
+            "id": "shop_door",
+            "label": "wejście do sklepu z chodnika",
+            "position": {
+              "x": 20.700000762939453,
+              "y": 0.15000000596046448,
+              "z": 21.399999618530273
+            }
+          },
+          {
+            "id": "quay_entry",
+            "label": "koniec ulicy przy nabrzeżu",
+            "position": {
+              "x": 70,
+              "y": 0.15000000596046448,
+              "z": 28.5
+            }
+          },
+          {
+            "id": "quay_delivery",
+            "label": "punkt dostaw: odbiór torby ze sprzętem (+mała zapłata)",
+            "position": {
+              "x": 77.4000015258789,
+              "y": 0.15000000596046448,
+              "z": 83
+            }
+          },
+          {
+            "id": "pier_end",
+            "label": "koniec mola",
+            "position": {
+              "x": 108,
+              "y": 0.3199999928474426,
+              "z": 73
+            }
+          },
+          {
+            "id": "yard_gate_west",
+            "label": "brama podwórka od nabrzeża (skrót)",
+            "position": {
+              "x": 62.5,
+              "y": 0.15000000596046448,
+              "z": 77
+            }
+          },
+          {
+            "id": "yard_brama_street",
+            "label": "brama na podwórko od ulicy (naprzeciw siłowni)",
+            "position": {
+              "x": 10,
+              "y": 0.15000000596046448,
+              "z": 35.20000076293945
+            }
+          },
+          {
+            "id": "yard_brama_yard",
+            "label": "wyjście z podwórka w stronę sklepu i siłowni",
+            "position": {
+              "x": 10,
+              "y": 0.15000000596046448,
+              "z": 50
+            }
+          },
+          {
+            "id": "fight1_center",
+            "label": "punkt starcia nr 1: boisko",
+            "position": {
+              "x": 10,
+              "y": 0.15000000596046448,
+              "z": 80
+            }
+          },
+          {
+            "id": "fight1_player",
+            "label": "gracz wchodzi na boisko",
+            "position": {
+              "x": 15,
+              "y": 0.15000000596046448,
+              "z": 80
+            }
+          },
+          {
+            "id": "closed_forest",
+            "label": "zamknięta droga do lasu z bunkrami",
+            "position": {
+              "x": 74,
+              "y": 0.15000000596046448,
+              "z": 111
+            }
+          },
+          {
+            "id": "closed_estate",
+            "label": "zamknięty wjazd na osiedle domków",
+            "position": {
+              "x": -101,
+              "y": 0.15000000596046448,
+              "z": 28.5
+            }
+          },
+          {
+            "id": "shop_inside",
+            "label": "za drzwiami sklepu",
+            "position": {
+              "x": 20.700000762939453,
+              "y": 0.15000000596046448,
+              "z": 19.399999618530273
+            }
+          },
+          {
+            "id": "shop_counter",
+            "label": "miejsce zakupu: lada (cena, efekt leczenia, saldo)",
+            "position": {
+              "x": 22.100000381469727,
+              "y": 0.15000000596046448,
+              "z": 15
+            }
+          },
+          {
+            "id": "shop_clerk",
+            "label": "sprzedawca za ladą",
+            "position": {
+              "x": 22.100000381469727,
+              "y": 0.15000000596046448,
+              "z": 12.850000381469727
+            }
+          },
+          {
+            "id": "shop_fridge",
+            "label": "lodówka z napojami",
+            "position": {
+              "x": 16.299999237060547,
+              "y": 0.15000000596046448,
+              "z": 13.600000381469727
+            }
+          },
+          {
+            "id": "club_door",
+            "label": "wejście do dyskoteki z ulicy",
+            "position": {
+              "x": 42,
+              "y": 0.15000000596046448,
+              "z": 35
+            }
+          },
+          {
+            "id": "club_bouncer",
+            "label": "miejsce przyszłej ochrony w przedsionku",
+            "position": {
+              "x": 39.29999923706055,
+              "y": 0.15000000596046448,
+              "z": 38.20000076293945
+            }
+          },
+          {
+            "id": "club_vestibule",
+            "label": "przedsionek",
+            "position": {
+              "x": 42,
+              "y": 0.15000000596046448,
+              "z": 39
+            }
+          },
+          {
+            "id": "club_hall_entry",
+            "label": "wejście na salę",
+            "position": {
+              "x": 42,
+              "y": 0.15000000596046448,
+              "z": 43
+            }
+          },
+          {
+            "id": "club_dance",
+            "label": "środek parkietu",
+            "position": {
+              "x": 44,
+              "y": 0.15000000596046448,
+              "z": 48.5
+            }
+          },
+          {
+            "id": "club_bar",
+            "label": "przy barze (gracz)",
+            "position": {
+              "x": 36.70000076293945,
+              "y": 0.15000000596046448,
+              "z": 48
+            }
+          },
+          {
+            "id": "club_barman",
+            "label": "barman",
+            "position": {
+              "x": 33.400001525878906,
+              "y": 0.15000000596046448,
+              "z": 48
+            }
+          },
+          {
+            "id": "club_contact",
+            "label": "osoba związana ze zleceniem (loża)",
+            "position": {
+              "x": 50,
+              "y": 0.15000000596046448,
+              "z": 46.400001525878906
+            }
+          },
+          {
+            "id": "club_dj",
+            "label": "DJ",
+            "position": {
+              "x": 49.20000076293945,
+              "y": 0.550000011920929,
+              "z": 53.599998474121094
+            }
+          },
+          {
+            "id": "club_back_door",
+            "label": "przejście na zaplecze",
+            "position": {
+              "x": 35,
+              "y": 0.15000000596046448,
+              "z": 55.900001525878906
+            }
+          },
+          {
+            "id": "club_stairs_top",
+            "label": "schody do piwnicy",
+            "position": {
+              "x": 37.5,
+              "y": 0.15000000596046448,
+              "z": 55.900001525878906
+            }
+          },
+          {
+            "id": "cellar_entry",
+            "label": "wejście do piwnicy",
+            "position": {
+              "x": 40.20000076293945,
+              "y": -3.5999999046325684,
+              "z": 60.79999923706055
+            }
+          },
+          {
+            "id": "fight2_center",
+            "label": "punkt starcia nr 2: piwnica pod klubem",
+            "position": {
+              "x": 45.5,
+              "y": -3.5999999046325684,
+              "z": 52
+            }
+          },
+          {
+            "id": "fight2_bag",
+            "label": "torba z pieniędzmi siłowni (na stole)",
+            "position": {
+              "x": 50.400001525878906,
+              "y": -2.799999952316284,
+              "z": 47
+            }
+          },
+          {
+            "id": "club_yard_exit",
+            "label": "wyjście z zaplecza na podwórko",
+            "position": {
+              "x": 34.400001525878906,
+              "y": 0.15000000596046448,
+              "z": 63.400001525878906
+            }
+          },
+          {
+            "id": "quay_delivery_item",
+            "label": "quay_delivery_item",
+            "position": {
+              "x": 78.5999984741211,
+              "y": 0.8500000238418579,
+              "z": 81.19999694824219
+            }
+          },
+          {
+            "id": "harbour_reserve",
+            "label": "harbour_reserve",
+            "position": {
+              "x": 75,
+              "y": 0.15000000596046448,
+              "z": 14
+            }
+          },
+          {
+            "id": "underpass_reserve",
+            "label": "underpass_reserve",
+            "position": {
+              "x": -58.79999923706055,
+              "y": 0.15000000596046448,
+              "z": 23
+            }
+          },
+          {
+            "id": "underpass_entry",
+            "label": "underpass_entry",
+            "position": {
+              "x": -61,
+              "y": 0.15000000596046448,
+              "z": 23.399999618530273
+            }
+          },
+          {
+            "id": "metro_entry",
+            "label": "metro_entry",
+            "position": {
+              "x": 78.9000015258789,
+              "y": 0.15000000596046448,
+              "z": 34.29999923706055
+            }
+          },
+          {
+            "id": "metro_stairs_bottom",
+            "label": "metro_stairs_bottom",
+            "position": {
+              "x": 78.9000015258789,
+              "y": -3.25,
+              "z": 44.20000076293945
+            }
+          },
+          {
+            "id": "metro_vestibule",
+            "label": "metro_vestibule",
+            "position": {
+              "x": 78,
+              "y": -3.25,
+              "z": 46.5
+            }
+          },
+          {
+            "id": "metro_station_boundary",
+            "label": "metro_station_boundary",
+            "position": {
+              "x": 77.8499984741211,
+              "y": -3.25,
+              "z": 48.54999923706055
+            }
+          },
+          {
+            "id": "garage_contact",
+            "label": "garage_contact",
+            "position": {
+              "x": 54,
+              "y": 0.15000000596046448,
+              "z": 84.5
+            }
+          },
+          {
+            "id": "estate_city_contact",
+            "label": "estate_city_contact",
+            "position": {
+              "x": -96,
+              "y": 0.15000000596046448,
+              "z": 34.70000076293945
+            }
+          }
+        ],
+        "hits": 0,
+        "frames": 3,
+        "lastHitBag": -1
+      }
+    },
+    {
+      "name": "Compiled player matches the exact reviewed commit",
+      "passed": true,
+      "data": {
+        "expected": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+        "actual": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+        "release": "55fb02f90b27a5d43b8eb61d8e873141c53d5513"
+      }
+    },
+    {
+      "name": "Original player rig control points are present",
+      "passed": true,
+      "data": {
+        "hand": true,
+        "leftFoot": true,
+        "rightFoot": true
+      }
+    },
+    {
+      "name": "Touch joystick moves screen-right",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 22,
+          "yaw": 0,
+          "pitch": 19,
+          "frames": 18,
+          "simulationTime": 1.534000039100647,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 5.501999855041504,
+          "y": 0.18499980866909027,
+          "z": 22,
+          "yaw": 0,
+          "pitch": 19,
+          "frames": 28,
+          "simulationTime": 2.7029993534088135,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Movement follows yaw 0",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 22,
+          "yaw": 0,
+          "pitch": 19,
+          "frames": 32,
+          "simulationTime": 3.1829988956451416,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 5.501999855041504,
+          "y": 0.18499980866909027,
+          "z": 22,
+          "yaw": 0,
+          "pitch": 19,
+          "frames": 38,
+          "simulationTime": 3.902998208999634,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Movement follows yaw 90",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 22,
+          "yaw": 90,
+          "pitch": 19,
+          "frames": 42,
+          "simulationTime": 4.283998012542725,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 23.24799919128418,
+          "yaw": 90,
+          "pitch": 19,
+          "frames": 48,
+          "simulationTime": 5.003997325897217,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Movement follows yaw 180",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 22,
+          "yaw": 180,
+          "pitch": 19,
+          "frames": 52,
+          "simulationTime": 5.39199686050415,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 7.998000144958496,
+          "y": 0.18499980866909027,
+          "z": 22,
+          "yaw": 180,
+          "pitch": 19,
+          "frames": 58,
+          "simulationTime": 6.111996173858643,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Movement follows yaw 270",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 22,
+          "yaw": 270,
+          "pitch": 19,
+          "frames": 62,
+          "simulationTime": 6.485995769500732,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 20.75200080871582,
+          "yaw": 270,
+          "pitch": 19,
+          "frames": 68,
+          "simulationTime": 7.205995082855225,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Touch camera reaches vertical pitch -90",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 6.75,
+        "y": 0.18499980866909027,
+        "z": 22,
+        "yaw": 90,
+        "pitch": -90,
+        "frames": 107,
+        "simulationTime": 11.731990814208984,
+        "grounded": true,
+        "doorOpen": false,
+        "context": ""
+      }
+    },
+    {
+      "name": "Right movement remains defined at vertical pitch -90",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 22,
+          "yaw": 90,
+          "pitch": -90,
+          "frames": 107,
+          "simulationTime": 11.731990814208984,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 22.974655151367188,
+          "yaw": 90,
+          "pitch": -90,
+          "frames": 122,
+          "simulationTime": 13.282991409301758,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Touch camera reaches vertical pitch 90",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 6.75,
+        "y": 0.18499980866909027,
+        "z": 22,
+        "yaw": 90,
+        "pitch": 90,
+        "frames": 161,
+        "simulationTime": 17.884000778198242,
+        "grounded": true,
+        "doorOpen": false,
+        "context": ""
+      }
+    },
+    {
+      "name": "Right movement remains defined at vertical pitch 90",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 22,
+          "yaw": 90,
+          "pitch": 90,
+          "frames": 161,
+          "simulationTime": 17.884000778198242,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 6.75,
+          "y": 0.18499980866909027,
+          "z": 23.24799919128418,
+          "yaw": 90,
+          "pitch": 90,
+          "frames": 176,
+          "simulationTime": 19.57701301574707,
+          "grounded": true,
+          "doorOpen": false,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Walking does not take control of the camera",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 4.302000045776367,
+        "y": 0.18499980866909027,
+        "z": 22,
+        "yaw": 90,
+        "pitch": -45,
+        "frames": 197,
+        "simulationTime": 21.996028900146484,
+        "grounded": true,
+        "doorOpen": false,
+        "context": ""
+      }
+    },
+    {
+      "name": "Normal map exposes friendly destinations and hides technical anchors",
+      "passed": true,
+      "data": [
+        "Siłownia",
+        "Ring",
+        "Ulica przy siłowni",
+        "Nabrzeże",
+        "Molo",
+        "Podwórko",
+        "Boisko",
+        "Droga do lasu",
+        "Przejście na osiedle",
+        "BRAXHORN NUTRITION",
+        "Klub NOVA",
+        "Piwnica klubu NOVA"
+      ]
+    },
+    {
+      "name": "Walk reaches z=22.1",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 6,
+          "y": 0.034999921917915344,
+          "z": 9.399999618530273,
+          "yaw": 180,
+          "pitch": 19,
+          "frames": 218,
+          "simulationTime": 23.79604148864746,
+          "grounded": true,
+          "doorOpen": true,
+          "context": "ZAMKNIJ DRZWI"
+        },
+        "after": {
+          "area": "city",
+          "x": 6.000002384185791,
+          "y": 0.18499989807605743,
+          "z": 22.647998809814453,
+          "yaw": 180,
+          "pitch": 19,
+          "frames": 244,
+          "simulationTime": 26.91606330871582,
+          "grounded": true,
+          "doorOpen": true,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Gym threshold is physically traversable",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 6,
+          "y": 0.034999921917915344,
+          "z": 9.399999618530273,
+          "yaw": 180,
+          "pitch": 19,
+          "frames": 209,
+          "simulationTime": 22.716033935546875,
+          "grounded": true,
+          "doorOpen": true,
+          "context": "ZAMKNIJ DRZWI"
+        },
+        "after": {
+          "area": "city",
+          "x": 6.000002384185791,
+          "y": 0.18499989807605743,
+          "z": 22.647998809814453,
+          "yaw": 180,
+          "pitch": 19,
+          "frames": 244,
+          "simulationTime": 26.91606330871582,
+          "grounded": true,
+          "doorOpen": true,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Walk reaches z=9.5",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 6.000002384185791,
+          "y": 0.18499989807605743,
+          "z": 22.647998809814453,
+          "yaw": 0,
+          "pitch": 19,
+          "frames": 253,
+          "simulationTime": 27.90106964111328,
+          "grounded": true,
+          "doorOpen": true,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 6.000000953674316,
+          "y": 0.03499980270862579,
+          "z": 9.399999618530273,
+          "yaw": 0,
+          "pitch": 19,
+          "frames": 279,
+          "simulationTime": 31.02109146118164,
+          "grounded": true,
+          "doorOpen": true,
+          "context": "ZAMKNIJ DRZWI"
+        }
+      }
+    },
+    {
+      "name": "Gym can be re-entered through the same door",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 6.000000953674316,
+        "y": 0.03499980270862579,
+        "z": 9.399999618530273,
+        "yaw": 0,
+        "pitch": 19,
+        "frames": 279,
+        "simulationTime": 31.02109146118164,
+        "grounded": true,
+        "doorOpen": true,
+        "context": "ZAMKNIJ DRZWI"
+      }
+    },
+    {
+      "name": "Exactly five main and six side permanent IDs exist",
+      "passed": true,
+      "data": {
+        "ids": [
+          "MAIN_01",
+          "MAIN_02",
+          "MAIN_03",
+          "MAIN_04",
+          "MAIN_05",
+          "SIDE_01",
+          "SIDE_02",
+          "SIDE_03",
+          "SIDE_04",
+          "SIDE_05",
+          "SIDE_06"
+        ],
+        "positions": [
+          {
+            "x": 10,
+            "y": 0.15000000596046448,
+            "z": 80
+          },
+          {
+            "x": 45.5,
+            "y": -3.5999999046325684,
+            "z": 52
+          },
+          {
+            "x": 75,
+            "y": 0.15000000596046448,
+            "z": 14
+          },
+          {
+            "x": -58.79999923706055,
+            "y": 0.15000000596046448,
+            "z": 23
+          },
+          {
+            "x": 78,
+            "y": -3.25,
+            "z": 46.5
+          },
+          {
+            "x": 77.4000015258789,
+            "y": 0.15000000596046448,
+            "z": 83
+          },
+          {
+            "x": 108,
+            "y": 0.3199999928474426,
+            "z": 73
+          },
+          {
+            "x": 20.700000762939453,
+            "y": 0.15000000596046448,
+            "z": 21.399999618530273
+          },
+          {
+            "x": 54,
+            "y": 0.15000000596046448,
+            "z": 84.5
+          },
+          {
+            "x": -96,
+            "y": 0.15000000596046448,
+            "z": 34.70000076293945
+          },
+          {
+            "x": 74,
+            "y": 0.15000000596046448,
+            "z": 111
+          }
+        ]
+      }
+    },
+    {
+      "name": "Reservations have distinct physical anchors",
+      "passed": true,
+      "data": [
+        {
+          "x": 10,
+          "y": 0.15000000596046448,
+          "z": 80
+        },
+        {
+          "x": 45.5,
+          "y": -3.5999999046325684,
+          "z": 52
+        },
+        {
+          "x": 75,
+          "y": 0.15000000596046448,
+          "z": 14
+        },
+        {
+          "x": -58.79999923706055,
+          "y": 0.15000000596046448,
+          "z": 23
+        },
+        {
+          "x": 78,
+          "y": -3.25,
+          "z": 46.5
+        },
+        {
+          "x": 77.4000015258789,
+          "y": 0.15000000596046448,
+          "z": 83
+        },
+        {
+          "x": 108,
+          "y": 0.3199999928474426,
+          "z": 73
+        },
+        {
+          "x": 20.700000762939453,
+          "y": 0.15000000596046448,
+          "z": 21.399999618530273
+        },
+        {
+          "x": 54,
+          "y": 0.15000000596046448,
+          "z": 84.5
+        },
+        {
+          "x": -96,
+          "y": 0.15000000596046448,
+          "z": 34.70000076293945
+        },
+        {
+          "x": 74,
+          "y": 0.15000000596046448,
+          "z": 111
+        }
+      ]
+    },
+    {
+      "name": "An entire actual signal cycle was observed",
+      "passed": true,
+      "data": {
+        "phases": [
+          "AllRedBeforePedestrians",
+          "PedestriansGreen",
+          "PedestrianClearance",
+          "AllRedBeforeVehicles",
+          "VehiclesRedAmber",
+          "VehiclesGreen",
+          "VehiclesAmber"
+        ],
+        "start": {
+          "build": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+          "area": "city",
+          "trafficPhase": "AllRedBeforePedestrians",
+          "vehicleRed": true,
+          "vehicleAmber": false,
+          "vehicleGreen": false,
+          "pedestrianRed": true,
+          "pedestrianGreen": false,
+          "secondsRemaining": 1.1750000081956387,
+          "signalElapsed": 62.82499999180436,
+          "completedSignalCycles": 1,
+          "reservationCount": 11,
+          "observedFramesPerSecond": 3.8166675567626953,
+          "managedMemoryBytes": 430080,
+          "player": {
+            "x": 46,
+            "y": 0.03499983251094818,
+            "z": 28.5
+          },
+          "reservationIds": [
+            "MAIN_01",
+            "MAIN_02",
+            "MAIN_03",
+            "MAIN_04",
+            "MAIN_05",
+            "SIDE_01",
+            "SIDE_02",
+            "SIDE_03",
+            "SIDE_04",
+            "SIDE_05",
+            "SIDE_06"
+          ],
+          "reservationPositions": [
+            {
+              "x": 10,
+              "y": 0.15000000596046448,
+              "z": 80
+            },
+            {
+              "x": 45.5,
+              "y": -3.5999999046325684,
+              "z": 52
+            },
+            {
+              "x": 75,
+              "y": 0.15000000596046448,
+              "z": 14
+            },
+            {
+              "x": -58.79999923706055,
+              "y": 0.15000000596046448,
+              "z": 23
+            },
+            {
+              "x": 78,
+              "y": -3.25,
+              "z": 46.5
+            },
+            {
+              "x": 77.4000015258789,
+              "y": 0.15000000596046448,
+              "z": 83
+            },
+            {
+              "x": 108,
+              "y": 0.3199999928474426,
+              "z": 73
+            },
+            {
+              "x": 20.700000762939453,
+              "y": 0.15000000596046448,
+              "z": 21.399999618530273
+            },
+            {
+              "x": 54,
+              "y": 0.15000000596046448,
+              "z": 84.5
+            },
+            {
+              "x": -96,
+              "y": 0.15000000596046448,
+              "z": 34.70000076293945
+            },
+            {
+              "x": 74,
+              "y": 0.15000000596046448,
+              "z": 111
+            }
+          ]
+        },
+        "end": {
+          "build": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+          "area": "city",
+          "trafficPhase": "PedestriansGreen",
+          "vehicleRed": true,
+          "vehicleAmber": false,
+          "vehicleGreen": false,
+          "pedestrianRed": false,
+          "pedestrianGreen": true,
+          "secondsRemaining": 7.9420000202953815,
+          "signalElapsed": 105.05799997970462,
+          "completedSignalCycles": 2,
+          "reservationCount": 11,
+          "observedFramesPerSecond": 3.095993995666504,
+          "managedMemoryBytes": 430080,
+          "player": {
+            "x": 46,
+            "y": 0.03499983251094818,
+            "z": 28.5
+          },
+          "reservationIds": [
+            "MAIN_01",
+            "MAIN_02",
+            "MAIN_03",
+            "MAIN_04",
+            "MAIN_05",
+            "SIDE_01",
+            "SIDE_02",
+            "SIDE_03",
+            "SIDE_04",
+            "SIDE_05",
+            "SIDE_06"
+          ],
+          "reservationPositions": [
+            {
+              "x": 10,
+              "y": 0.15000000596046448,
+              "z": 80
+            },
+            {
+              "x": 45.5,
+              "y": -3.5999999046325684,
+              "z": 52
+            },
+            {
+              "x": 75,
+              "y": 0.15000000596046448,
+              "z": 14
+            },
+            {
+              "x": -58.79999923706055,
+              "y": 0.15000000596046448,
+              "z": 23
+            },
+            {
+              "x": 78,
+              "y": -3.25,
+              "z": 46.5
+            },
+            {
+              "x": 77.4000015258789,
+              "y": 0.15000000596046448,
+              "z": 83
+            },
+            {
+              "x": 108,
+              "y": 0.3199999928474426,
+              "z": 73
+            },
+            {
+              "x": 20.700000762939453,
+              "y": 0.15000000596046448,
+              "z": 21.399999618530273
+            },
+            {
+              "x": 54,
+              "y": 0.15000000596046448,
+              "z": 84.5
+            },
+            {
+              "x": -96,
+              "y": 0.15000000596046448,
+              "z": 34.70000076293945
+            },
+            {
+              "x": 74,
+              "y": 0.15000000596046448,
+              "z": 111
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "No conflicting pedestrian and vehicle permission",
+      "passed": true,
+      "data": {
+        "samples": 297
+      }
+    },
+    {
+      "name": "Walk reaches z=46.25",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 78.9000015258789,
+          "y": 0.18499992787837982,
+          "z": 33.5,
+          "yaw": 180,
+          "pitch": 19,
+          "frames": 481,
+          "simulationTime": 54.79289245605469,
+          "grounded": true,
+          "doorOpen": true,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 78.9000015258789,
+          "y": -3.2150001525878906,
+          "z": 46.43600082397461,
+          "yaw": 180,
+          "pitch": 19,
+          "frames": 537,
+          "simulationTime": 61.51283264160156,
+          "grounded": true,
+          "doorOpen": true,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Player walks down real stairs into the vestibule",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 78.9000015258789,
+          "y": 0.18499992787837982,
+          "z": 33.5,
+          "yaw": 180,
+          "pitch": 19,
+          "frames": 481,
+          "simulationTime": 54.79289245605469,
+          "grounded": true,
+          "doorOpen": true,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 78.9000015258789,
+          "y": -3.2150001525878906,
+          "z": 46.43600082397461,
+          "yaw": 180,
+          "pitch": 19,
+          "frames": 537,
+          "simulationTime": 61.51283264160156,
+          "grounded": true,
+          "doorOpen": true,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Walk reaches z=33.7",
+      "passed": true,
+      "data": {
+        "before": {
+          "area": "city",
+          "x": 78.9000015258789,
+          "y": -3.2150001525878906,
+          "z": 46.43600082397461,
+          "yaw": 0,
+          "pitch": 19,
+          "frames": 546,
+          "simulationTime": 62.59282302856445,
+          "grounded": true,
+          "doorOpen": true,
+          "context": ""
+        },
+        "after": {
+          "area": "city",
+          "x": 78.9000015258789,
+          "y": 0.18499982357025146,
+          "z": 33.64799880981445,
+          "yaw": 0,
+          "pitch": 19,
+          "frames": 602,
+          "simulationTime": 69.23892974853516,
+          "grounded": true,
+          "doorOpen": true,
+          "context": ""
+        }
+      }
+    },
+    {
+      "name": "Player walks back up to the original sidewalk",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 78.9000015258789,
+        "y": 0.18499982357025146,
+        "z": 33.64799880981445,
+        "yaw": 0,
+        "pitch": 19,
+        "frames": 602,
+        "simulationTime": 69.23892974853516,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location street_gym",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 6.75,
+        "y": 0.1849999725818634,
+        "z": 21.600000381469727,
+        "yaw": 90,
+        "pitch": 15,
+        "frames": 619,
+        "simulationTime": 71.27897644042969,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location shop_inside",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 20.700000762939453,
+        "y": 0.1849999725818634,
+        "z": 19.399999618530273,
+        "yaw": 0,
+        "pitch": 15,
+        "frames": 635,
+        "simulationTime": 73.09801483154297,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location club_dance",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 44,
+        "y": 0.1849999725818634,
+        "z": 48.5,
+        "yaw": 0,
+        "pitch": 15,
+        "frames": 652,
+        "simulationTime": 75.04306030273438,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location cellar_entry",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 40.20000076293945,
+        "y": -3.565000057220459,
+        "z": 60.79999923706055,
+        "yaw": 90,
+        "pitch": 15,
+        "frames": 668,
+        "simulationTime": 76.96310424804688,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location fight1_center",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 10,
+        "y": 0.1849999725818634,
+        "z": 80,
+        "yaw": 180,
+        "pitch": 15,
+        "frames": 683,
+        "simulationTime": 78.66914367675781,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location garage_contact",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 54,
+        "y": 0.1849999725818634,
+        "z": 84.5,
+        "yaw": 270,
+        "pitch": 15,
+        "frames": 700,
+        "simulationTime": 80.70919036865234,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location quay_entry",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 70,
+        "y": 0.1849999725818634,
+        "z": 28.5,
+        "yaw": 270,
+        "pitch": 15,
+        "frames": 717,
+        "simulationTime": 82.67823791503906,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location harbour_reserve",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 75,
+        "y": 0.1849999725818634,
+        "z": 14,
+        "yaw": 0,
+        "pitch": 15,
+        "frames": 734,
+        "simulationTime": 84.540283203125,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location pier_end",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 108,
+        "y": 0.35499992966651917,
+        "z": 73,
+        "yaw": 90,
+        "pitch": 15,
+        "frames": 751,
+        "simulationTime": 86.46432495117188,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location underpass_reserve",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": -58.79999923706055,
+        "y": 0.1849999725818634,
+        "z": 23,
+        "yaw": 90,
+        "pitch": 15,
+        "frames": 766,
+        "simulationTime": 88.14436340332031,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Grounded review location closed_forest",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 74,
+        "y": 0.1849999725818634,
+        "z": 111,
+        "yaw": 180,
+        "pitch": 15,
+        "frames": 783,
+        "simulationTime": 90.18441009521484,
+        "grounded": true,
+        "doorOpen": true,
+        "context": ""
+      }
+    },
+    {
+      "name": "Separate estate is still the same compiled build",
+      "passed": true,
+      "data": {
+        "area": "estate",
+        "x": 0,
+        "y": 0.03499980270862579,
+        "z": 92,
+        "yaw": 0,
+        "pitch": 19,
+        "frames": 943,
+        "simulationTime": 0.8309999704360962,
+        "grounded": true,
+        "doorOpen": false,
+        "context": "WRÓĆ DO MIASTA"
+      }
+    },
+    {
+      "name": "Return unloads estate and restores the city",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": -99,
+        "y": 0.03499981760978699,
+        "z": 28.5,
+        "yaw": 0,
+        "pitch": 19,
+        "frames": 1048,
+        "simulationTime": 1.1510000228881836,
+        "grounded": true,
+        "doorOpen": false,
+        "context": "WEJDŹ NA OSIEDLE"
+      }
+    },
+    {
+      "name": "Player updates after browser tab focus returns",
+      "passed": true,
+      "data": {
+        "area": "city",
+        "x": 1.5,
+        "y": 0.03499980270862579,
+        "z": 2.799999952316284,
+        "yaw": 0,
+        "pitch": 19,
+        "frames": 1071,
+        "simulationTime": 3.153998851776123,
+        "grounded": true,
+        "doorOpen": false,
+        "context": ""
+      }
+    },
+    {
+      "name": "Physical phone application background recovery",
+      "passed": null,
+      "data": "Not performed: headless desktop tab focus only; lifecycle events are preserved",
+      "events": [
+        {
+          "type": "pageshow",
+          "at": 46.700000000004366,
+          "visibility": "visible"
+        }
+      ]
+    },
+    {
+      "name": "No runtime or shader exceptions",
+      "passed": true,
+      "data": []
+    }
+  ],
+  "sections": [
+    {
+      "name": "touch-and-camera",
+      "startSeconds": 11.816,
+      "passed": true,
+      "endSeconds": 94.711
+    },
+    {
+      "name": "public-map",
+      "startSeconds": 94.711,
+      "passed": true,
+      "endSeconds": 96.266
+    },
+    {
+      "name": "gym-door-route",
+      "startSeconds": 96.266,
+      "passed": true,
+      "endSeconds": 147.595
+    },
+    {
+      "name": "eleven-reservations",
+      "startSeconds": 147.595,
+      "passed": true,
+      "endSeconds": 147.599
+    },
+    {
+      "name": "traffic-full-cycle",
+      "startSeconds": 147.599,
+      "passed": true,
+      "endSeconds": 208.993
+    },
+    {
+      "name": "metro-walk-down-and-back",
+      "startSeconds": 208.993,
+      "passed": true,
+      "endSeconds": 265.926
+    },
+    {
+      "name": "district-visual-review",
+      "startSeconds": 265.926,
+      "passed": true,
+      "endSeconds": 379.009
+    },
+    {
+      "name": "separate-estate-and-return",
+      "startSeconds": 379.009,
+      "passed": true,
+      "endSeconds": 570.954
+    },
+    {
+      "name": "browser-background-return",
+      "startSeconds": 570.954,
+      "passed": true,
+      "endSeconds": 573.566
+    }
+  ],
+  "timings": {
+    "navigationToStartButtonMs": 50,
+    "coldStartButtonToReadyMs": 8022,
+    "coldStartButtonToConfirmedControlMs": 21367,
+    "confirmedControlIncludesQaSetup": true,
+    "cityToEstateReadyMs": 9680,
+    "estateToVisitedCityReadyMs": 137105
+  },
+  "platform": {
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.7390.37 Safari/537.36",
+    "viewport": {
+      "width": 915,
+      "height": 412
+    },
+    "devicePixelRatio": 1,
+    "canvas": {
+      "width": 915,
+      "height": 412
+    },
+    "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "webglVendor": "Google Inc. (Google)",
+    "webglAttributes": {
+      "alpha": true,
+      "antialias": false,
+      "depth": true,
+      "desynchronized": false,
+      "failIfMajorPerformanceCaveat": false,
+      "powerPreference": "high-performance",
+      "premultipliedAlpha": false,
+      "preserveDrawingBuffer": false,
+      "stencil": true,
+      "xrCompatible": false
+    }
+  },
+  "sessionWallSeconds": 575.909,
+  "frameTimingMs": {
+    "count": 1070,
+    "median": 366.60000000009313,
+    "p95": 1700,
+    "p99": 2716.5999999999767,
+    "max": 7449.699999999953,
+    "meaning": "Browser animation-frame intervals on desktop software rendering; not physical-phone FPS"
+  },
+  "memory": {
+    "managedSamples": 1823,
+    "managedPeakBytes": 479232,
+    "meaning": "Managed heap telemetry only, not total process/GPU/iOS memory"
+  },
+  "finalState": {
+    "area": "city",
+    "x": 1.5,
+    "y": 0.03499980270862579,
+    "z": 2.799999952316284,
+    "yaw": 0,
+    "pitch": 19,
+    "frames": 1076,
+    "simulationTime": 3.64499831199646,
+    "grounded": true,
+    "doorOpen": false,
+    "context": ""
+  },
+  "visualAcceptance": "pending human/image review",
+  "physicalPhoneAcceptance": "not tested",
+  "videoScope": "Actual Unity automated review. Includes clearly logged QA position changes; metro and gym route sections are continuous physical movement."
+}

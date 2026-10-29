@@ -1,0 +1,174 @@
+{
+  "schema": 1,
+  "purpose": "Actual Unity runtime screenshots and QA, not a game deployment",
+  "sourceCommit": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+  "sourceRun": 40878906652,
+  "qaCommit": "34ba35d5d920740fc5ce4470d2a45a0661aa0a5d",
+  "qaRun": "40883489583",
+  "qaPassed": true,
+  "qaStatus": "completed report",
+  "branch": "evidence/city-rebuild-34ba35d5d920",
+  "files": {
+    "01-gym-baseline-preserved.png": {
+      "bytes": 420891,
+      "sha256": "880f2ca37720a376e6b3d712cc5cd8164171c1f0a848f0d092cb5de3cb6d8f17"
+    },
+    "02-camera-vertical-up.png": {
+      "bytes": 109053,
+      "sha256": "f8ab5e216dfeb69b65961dcca8322a3c91b3c03b149f19ca67be45672950f561"
+    },
+    "03-camera-vertical-down.png": {
+      "bytes": 358912,
+      "sha256": "e661976b55dfb3d468a828dee394eb511f8855ee1e350c13777c8db65afa21d8"
+    },
+    "04-skyline-from-player.png": {
+      "bytes": 257894,
+      "sha256": "5d1a4a6dbb59107deaad766003033ae04aca3c6d24de44d5583ff65756614dc1"
+    },
+    "05-walked-out-of-gym.png": {
+      "bytes": 374053,
+      "sha256": "48377019934b843f43c1f9d63a367222c28e0cb83d3b9df0ee0d748089d9a863"
+    },
+    "06-walked-back-into-gym.png": {
+      "bytes": 220833,
+      "sha256": "f697f38bed9c9d95eec7624a5f4466d1f3f1fbc5164f4a4056ba59630602ea9e"
+    },
+    "07-street.png": {
+      "bytes": 405571,
+      "sha256": "156806145ab8c27cd280c8ed7d13ecbb77a294eb044c027472a511e30963253a"
+    },
+    "08-nutrition.png": {
+      "bytes": 298448,
+      "sha256": "7be4db82dcd5809d697958004e3cea176b670cbb22935ac10e300ec3d40585f3"
+    },
+    "09-nova.png": {
+      "bytes": 254793,
+      "sha256": "939adabf2b443099d8a863ba13e0b9aab9254377cbcfa119dfd91549004e042d"
+    },
+    "10-cellar.png": {
+      "bytes": 205009,
+      "sha256": "b00d9c8ed132f2bce436686d27e931bcdb1baba37c33dfb141aa7387aabff9b7"
+    },
+    "11-court.png": {
+      "bytes": 414294,
+      "sha256": "3ad8c613307b6877833b3dcad3cc41a2491bfbf1ff0756744e015f4fac8bfff2"
+    },
+    "12-garages.png": {
+      "bytes": 264088,
+      "sha256": "6082a364099fe369ffed12b851f855708fcf5f7fdf343c419c87fd2a257cdc5a"
+    },
+    "13-waterfront.png": {
+      "bytes": 289907,
+      "sha256": "6f73b19af8f0ad0b138fe679d88091c42f863b1e796d9a3fabd9cd5cd6170b83"
+    },
+    "14-port.png": {
+      "bytes": 428825,
+      "sha256": "bf183e4218f6ca5b4649294fb094841ed40d43a057e5fdd85a817047a5b06941"
+    },
+    "15-pier.png": {
+      "bytes": 454784,
+      "sha256": "770233886ea3444db56455aa3d5b472317649081612a3ff5635203bbe2a8f02d"
+    },
+    "16-viaduct.png": {
+      "bytes": 315184,
+      "sha256": "59a4cf8a37b001e2cf92ac149bac634cf5cd8f932cea87eab6cc6389e81f4925"
+    },
+    "17-forest-boundary.png": {
+      "bytes": 619050,
+      "sha256": "e9847036400128f6d5ebd32b09b5a02de87af2fd45535012c89166ca2315687f"
+    },
+    "18-estate-entry.png": {
+      "bytes": 352515,
+      "sha256": "51e490df5e410a9c1f7aabc13c283662d19e259cedd6da80ff6db91a5be18cc3"
+    },
+    "19-estate-park.png": {
+      "bytes": 324870,
+      "sha256": "067a2a18b57f48fad5965969d90ec03717e84dfb20e8def9e712095b5688e631"
+    },
+    "20-returned-city.png": {
+      "bytes": 372882,
+      "sha256": "5723857d0397fe645a87c3d463c526ff0e170c931628919bd49162169018ea97"
+    },
+    "21-gym-after-roundtrip.png": {
+      "bytes": 421339,
+      "sha256": "5717e26dbc0f0dfd478a861aa05f7479506d396b19a8636784fd20a102d6a774"
+    },
+    "metro-01-entrance.png": {
+      "bytes": 391674,
+      "sha256": "d5b451362aaf43d82d92398391450668898e4b0b89642ee2d7e0aa0a17302131"
+    },
+    "metro-02-vestibule.png": {
+      "bytes": 116685,
+      "sha256": "57c0bd38cf8b27f3762e3e0d29585c8b2affab5b00e0339c387a0c1228b870be"
+    },
+    "metro-03-returned-to-street.png": {
+      "bytes": 333641,
+      "sha256": "9a5741520cdd9f029a99c36199d398e30deaa36c3bb70d021ab02a4736c63e02"
+    },
+    "palms-north-crown.png": {
+      "bytes": 393966,
+      "sha256": "b0f91d8cdb6b76aaaeb4f500b487c207c6b89f6ec363e1cfc9b719eb22625bc0"
+    },
+    "palms-north-trunk.png": {
+      "bytes": 425813,
+      "sha256": "ae60f030277f1e21eff03fb16cf1b35d0b92c6e2a2e7a8c4eadf31fe70c563e3"
+    },
+    "palms-south-crown.png": {
+      "bytes": 416999,
+      "sha256": "518c962ae0257050b34f7e5f7edc39f0bf2af352e5ef5fb3c74d1ee21ddaaacd"
+    },
+    "palms-south-trunk.png": {
+      "bytes": 410329,
+      "sha256": "09a4225d5979988c496482eb64a147a6ce1e2c2185436da5becc37e474a2a950"
+    },
+    "traffic-AllRedBeforePedestrians.png": {
+      "bytes": 307317,
+      "sha256": "fc5be1aa3ad7ab84f848bb79a5bebd794a4cc66adb33458e764b602e6331857c"
+    },
+    "traffic-AllRedBeforeVehicles.png": {
+      "bytes": 307123,
+      "sha256": "e2429bf9e421494429bbd5d88262d0c914a8309990ea584c782a4a372ff797c1"
+    },
+    "traffic-PedestrianClearance.png": {
+      "bytes": 307230,
+      "sha256": "19390377e2391cbdbf6d87046cb36cbeb91675ae4e92eefb01bc130e724a3bc8"
+    },
+    "traffic-PedestriansGreen.png": {
+      "bytes": 307683,
+      "sha256": "f80236b3813bf4c8cec27e14ef50bd57241a1aeff715e7291345ff13f3f67fa3"
+    },
+    "traffic-VehiclesAmber.png": {
+      "bytes": 306976,
+      "sha256": "4c9f7fbefe992a19ca185705c1b6e51bb54e692a8d8ff59494c8be45feaca2a8"
+    },
+    "traffic-VehiclesGreen.png": {
+      "bytes": 307050,
+      "sha256": "9a44e8c59163909d9813ec46d1036cb76571f8795e83129ade7d79c914423146"
+    },
+    "traffic-VehiclesRedAmber.png": {
+      "bytes": 307348,
+      "sha256": "8d9a483f9441583cf43cab89f46ddea29dec0c20b6b69515d6929bda6e4c560d"
+    },
+    "report.json": {
+      "bytes": 45195,
+      "sha256": "569098913179336516aa842e9459eefdc69041572e05a14b68a38a9ed42966d0"
+    },
+    "reservations.json": {
+      "bytes": 1225,
+      "sha256": "f1e75e9758cf1a09af112375fcb36828c5612f878b11a4f27e7eaceec495c34e"
+    },
+    "traffic-cycle.json": {
+      "bytes": 549284,
+      "sha256": "29f4a1db34ba6e57f5bbbafbb88cff897a8122a5c448a9adb348bc7f57c0a003"
+    },
+    "browser.log": {
+      "bytes": 13374,
+      "sha256": "e08c52242c2e593ad4ff9099d42606403bc09e12ea0fb24cf7cb1391c29335dc"
+    }
+  },
+  "imageBytesUnmodified": true,
+  "physicalPhoneTested": false,
+  "visualAcceptance": "pending image review",
+  "productionPublication": false,
+  "fullTraceAndVideo": "Preserved separately in the same QA run's workflow artifacts"
+}
