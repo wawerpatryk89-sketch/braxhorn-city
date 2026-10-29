@@ -172,10 +172,26 @@ public static class BraxCityBuild
         AddArea("estate",runtime);
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
-    public static void WriteReport(string output,string commit)
+    public static void WriteReport(string output,string commit,bool cityReviewOnly=false)
     {
-        if(reports.Count!=2)throw new Exception("Both original areas must be included");
-        File.WriteAllText(Path.Combine(output,"city-migration.json"),JsonUtility.ToJson(new Report{commit=commit,unity=Application.unityVersion,areas=reports.ToArray()},true));
+        if(cityReviewOnly)
+        {
+            if(reports.Count!=1||reports[0].area!="city")
+                throw new Exception("iPhone street review must include only authored city scene");
+        }
+        else if(reports.Count!=2)
+            throw new Exception("The original full-city build must retain both city and estate");
+        var report=new Report{commit=commit,unity=Application.unityVersion,areas=reports.ToArray()};
+        if(cityReviewOnly)
+        {
+            report.scope="city-only-mobile-architecture-review";
+            report.notYetPorted=new[]{
+                "Separate original estate scene deliberately excluded from this review player (source untouched)",
+                "City-street NPC and vehicle traffic not activated",
+                "Estate story/economy and future character selection",
+            };
+        }
+        File.WriteAllText(Path.Combine(output,"city-migration.json"),JsonUtility.ToJson(report,true));
         BraxCityRebuild.WriteReport(output);
     }
 }
