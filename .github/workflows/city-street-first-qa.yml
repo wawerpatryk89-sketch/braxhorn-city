@@ -6,6 +6,7 @@ on:
       - preview/city-walkable-street-45a9555f3a44
     paths:
       - '.github/workflows/city-street-first-qa.yml'
+      - 'release.json'
 
 permissions:
   contents: read
