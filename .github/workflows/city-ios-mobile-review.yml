@@ -1,0 +1,225 @@
+name: BRAXHORN CITY — iPhone-sized empty-street Unity 6 review (NO PRODUCTION)
+
+on:
+  push:
+    branches:
+      - codex/city-ios-memory-review-20261029
+    paths:
+      - '.github/workflows/city-ios-mobile-review.yml'
+      - 'unity-city/**'
+      - 'unity-tools/city-rebuild/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: city-ios-review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  city-mobile-build:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-city
+            unity-tools
+            unity-release
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+            asset-library/sources/sofa_02
+          persist-credentials: false
+          lfs: false
+      - name: Check iOS review script syntax before heavy Unity build
+        run: |
+          python3 -m py_compile unity-tools/city-rebuild/verify_ios_city_only.py unity-tools/city-rebuild/publish_ios_city_preview.py
+          node --check unity-tools/city-rebuild/check_ios_street.mjs
+          node --check unity-tools/city-rebuild/walk.mjs
+      - name: Restore unmodified original gym and Brax (not contractor's new gym)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+      - name: Restore exact original city and separate estate source (only city is bundled)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40840263799
+          github-token: ${{ github.token }}
+          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
+          path: unity-city/Assets/Source/City/
+      - name: Restore verified source facades and PBR without replacing a single original asset
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40869502253
+          github-token: ${{ github.token }}
+          name: city-rebuild-curated-extended-3c98ccd919409da59d8145c0171b0776bc65b93d
+          path: unity-city/Assets/
+      - name: Prepare original native textures and Brax rig — no redesign
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6
+          python3 unity-tools/city-rebuild/check_brand_sources.py
+          python3 -m compileall -q unity-tools
+          python3 unity-tools/prepare_playable.py
+          python3 unity-tools/premium_prepare.py
+          python3 unity-tools/premium_refinements.py
+          python3 unity-tools/city/prepare.py
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender
+          blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
+          git diff --exit-code -- unity-city/Assets unity-city/Packages unity-city/ProjectSettings unity-tools unity-release .github/workflows
+      - name: Build actual city-only Unity 6000.0.58f2 WebGL for iPhone, not full estate
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxGymBuild.BuildCityIphoneReview
+          versioning: None
+          allowDirtyBuild: true
+      - name: Confirm actual compiled WebGL files, not a green CI UI
+        run: python3 unity-tools/city-rebuild/verify_unity_output.py
+      - name: Preserve existing iOS bounded native streaming loader
+        run: |
+          python3 unity-tools/city-rebuild/package.py
+          node unity-tools/city-rebuild/check_transport.mjs
+      - name: FAIL if large estate, hidden cars or 558MB bootstrap are still included
+        run: python3 unity-tools/city-rebuild/verify_ios_city_only.py
+      - name: Save exact full Unity player for real preview, no production deploy
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-ios-player-${{ github.sha }}
+          path: unity-preview/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Save real Unity build errors and source identity even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-ios-build-report-${{ github.sha }}
+          path: |
+            build/WebGL/*.json
+            city-rebuild-review/
+            unity-city/Logs/
+            unity-city/Assets/Source/City/*.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  city-ios-startup-qa:
+    needs: city-mobile-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+      - name: Download exact compiled one-scene Unity source
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: city-ios-player-${{ github.sha }}
+          path: unity-preview/
+      - name: Install WebGL renderer and verify JavaScript
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node --check unity-tools/city-rebuild/check_ios_street.mjs
+      - name: Physically load compiled Unity and test Brax joystick + NOVA lamp
+        env:
+          EXPECTED_BUILD_SHA: ${{ github.sha }}
+        run: node unity-tools/city-rebuild/check_ios_street.mjs
+      - name: Preserve exact Unity player screenshots and complete smoke QA
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-ios-actual-unity-smoke-${{ github.sha }}
+          path: city-ios-review/
+          if-no-files-found: warn
+          retention-days: 14
+
+  city-ios-continuous-walk:
+    needs: city-mobile-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: city-ios-player-${{ github.sha }}
+          path: unity-preview/
+      - run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node --check unity-tools/city-rebuild/walk.mjs
+      - name: Continuous 85-stop Brax walk from original gym spawn, no relocation
+        continue-on-error: true
+        env:
+          EXPECTED_BUILD_SHA: ${{ github.sha }}
+          WALK_ROUTE: unity-tools/city-rebuild/walk-route-mobile-city.json
+          WALK_OUT: city-ios-walk
+        run: node unity-tools/city-rebuild/walk.mjs
+      - name: Preserve true no-teleport report and screenshots (FAIL remains visible)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-ios-continuous-walk-${{ github.sha }}
+          path: |
+            city-ios-walk/*.json
+            city-ios-walk/*.png
+            city-ios-walk/*.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  publish-isolated-phone-preview:
+    needs: [city-mobile-build,city-ios-startup-qa]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+      - name: Fetch exact compiled iPhone-sized Unity player with original Brax
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: city-ios-player-${{ github.sha }}
+          path: ios-ready-player/
+      - name: Fetch exact completed actual Unity desktop startup and screenshot QA
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: city-ios-actual-unity-smoke-${{ github.sha }}
+          path: ios-ready-smoke/
+      - name: Create immutable new preview-only Git branch (not main, not production)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 unity-tools/city-rebuild/publish_ios_city_preview.py
+      - name: Preserve publication receipt / never claim physical phone PASS
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-ios-review-preview-publication-${{ github.sha }}
+          path: ios-preview-publish-evidence/
+          if-no-files-found: warn
+          retention-days: 14
