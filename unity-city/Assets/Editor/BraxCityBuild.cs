@@ -160,7 +160,13 @@ public static class BraxCityBuild
     }
     public static void AttachCity(BraxGymPlayer player)
     {
-        reports.Clear();AddArea("city",player);player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=420;player.view.backgroundColor=new Color(.67f,.75f,.81f);
+        reports.Clear();AddArea("city",player);
+        player.worldSpawn=new Vector3(1.5f,.08f,2.8f);
+        player.view.farClipPlane=420;
+        player.view.backgroundColor=new Color(.67f,.75f,.81f);
+        // City scene only: actual visible cloud sky and solar disc from a
+        // single compressed 1K panorama. Built-In gym/estate remain untouched.
+        BraxCitySkyAuthoring.ApplyToCity(player.view);
     }
     public static string CreateEstate(string commit)
     {
