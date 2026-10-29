@@ -1,0 +1,22 @@
+{
+  "status": "CITY_ONLY_EARLIER_WALKABLE_SNAPSHOT_NOT_NEW_SEGMENT",
+  "sourceCommit": "45a9555f3a449d2d78165882b465c8bb82267d7f",
+  "sourceRun": 40930737141,
+  "webGLCompiled": true,
+  "desktopBraxWalkPassed": true,
+  "desktopGzipStreamingPassed": true,
+  "sourceBinaryVerified": true,
+  "originalCompiledBytes": 205283084,
+  "mobileIPhoneNotTested": true,
+  "fullWalkingRouteNotAccepted": true,
+  "roofElevatorNotAccepted": true,
+  "metroSign": "Previous BRAXHORN label in this pinned build; fixed only in later source",
+  "knownLimitations": [
+    "Old world geometry, not the new 1st segment with clouds/autofollow camera",
+    "Whole 170-metre city scene but excludes original estate",
+    "No active NPC, police, vehicles, combat, or missions",
+    "Roof elevator installed but not end-to-end tested",
+    "Original walk test had a route obstruction near NOVA; fix is in next uncompiled branch"
+  ],
+  "productionPublication": false
+}
