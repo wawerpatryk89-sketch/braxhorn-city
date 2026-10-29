@@ -1,0 +1,74 @@
+name: BRAXHORN Unity 6 Estate (source-only migration)
+on:
+  push:
+    branches: [work/unity6-estate-migration-20261029]
+    paths:
+      - 'scripts/unity-estate/**'
+      - 'dev/osiedle/tools/unity-export.html'
+      - 'dev/osiedle/layout.js'
+      - 'dev/osiedle/level.js'
+      - 'dev/osiedle/world.js'
+      - 'dev/osiedle/civic.js'
+      - 'dev/osiedle/arenas.js'
+      - 'dev/osiedle/entrances.js'
+      - 'dev/osiedle/vegetation.js'
+      - '.github/workflows/unity-estate-migration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: estate-migration-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  capture-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            .github
+            dev/osiedle
+            dev/three
+            dev/src
+            dev/shared
+            dev/models
+            public/osiedle/assets
+            public/assets/logo
+            scripts/unity-estate
+            unity-city
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save --prefix scripts/unity-estate playwright@1.56.1
+          scripts/unity-estate/node_modules/.bin/playwright install --with-deps chromium
+      - name: Capture exact procedural source and source inventory
+        run: node scripts/unity-estate/export.cjs unity-city/Assets/EstateMigration/Generated
+      - name: Store proof as artifact (source, NOT Unity preview)
+        uses: actions/upload-artifact@v4
+        with:
+          name: estate-source-geometry-${{ github.sha }}
+          path: |
+            unity-city/Assets/EstateMigration/Generated/EstateProceduralAndDoors.glb
+            unity-city/Assets/EstateMigration/Generated/EstateSourceManifest.json
+            unity-city/Assets/EstateMigration/Generated/SOURCE_AUDIT.txt
+          retention-days: 14
+      - name: Commit generated source geometry only to this estate branch
+        run: |
+          set -euo pipefail
+          F=unity-city/Assets/EstateMigration/Generated/EstateProceduralAndDoors.glb
+          test -s "$F"
+          if [ "$(stat -c%s "$F")" -gt 85000000 ]; then
+            echo 'Generated GLB is too large for repository; retained in workflow artifact only.'
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add unity-city/Assets/EstateMigration/Generated
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "build(estate): capture original procedural world and source manifest [skip ci]"
+          git push origin HEAD:refs/heads/work/unity6-estate-migration-20261029
