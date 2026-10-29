@@ -14,7 +14,7 @@ The measured plan is `KickboxingLayout.svg`. From the original entrance, the bag
 
 The right-wall portal leads through an enclosed dogleg corridor to separate locker and WC doors. The changing room includes eight steel lockers, a bench and coat hooks. The toilet room includes imported ceramic fixtures, a real mirror, dispenser, paper holder, closed walls and ceiling. Doors reuse the original city interaction component.
 
-Architecture verification enumerates 15,120 sight segments from 560 hall viewpoints to 27 points in the WC bay, excluding door leaves as occluders. The builder fails if any is clear. Runtime diagnostics separately perform actual Physics.Linecast checks from the entrance, mat, ring and bags while all three backroom doors are open.
+Architecture verification enumerates 15,120 sight segments from 560 hall viewpoints to 27 points in the WC bay, excluding door leaves as occluders. The builder fails if any is clear. Runtime diagnostics separately perform actual Physics.Linecast checks from the entrance, mat, ring and bags while all three backroom doors are open. These rays consider only the full opaque boundaries registered on layer 11; broad ring colliders, door leaves and furnishings cannot count as privacy evidence. The 12 runtime sample rays supplement the broader geometric sweep and do not replace it.
 
 ## Selected assets
 

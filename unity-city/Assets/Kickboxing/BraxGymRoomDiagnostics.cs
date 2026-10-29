@@ -143,10 +143,10 @@ public sealed class BraxGymRoomDiagnostics : MonoBehaviour
                     viewpoint = privacyViewpointNames != null && i < privacyViewpointNames.Length ? privacyViewpointNames[i] : "view-" + i,
                     target = j, from = from, to = to, length = length
                 };
-                // Ignore the player, reflective glass, and triggers. A hit on the
-                // WC itself cannot establish privacy: the blocker must be at least
-                // 0.65 m before the target, outside the fixture envelope.
-                if (Physics.Linecast(from, to, out RaycastHit hit, ~((1 << 8) | (1 << 9)), QueryTriggerInteraction.Ignore)) {
+                // Only full opaque boundaries registered by ColliderBox(privacy:true)
+                // use layer 11. Door leaves, ring colliders, furnishings and sanitary
+                // fixtures cannot establish privacy. Retain the 0.65 m distance check.
+                if (Physics.Linecast(from, to, out RaycastHit hit, 1 << 11, QueryTriggerInteraction.Ignore)) {
                     ray.hit = hit.collider.name; ray.hitPosition = hit.point; ray.hitDistance = hit.distance;
                     ray.blocked = hit.distance < length - .65f && !hit.collider.bounds.Contains(to);
                 }

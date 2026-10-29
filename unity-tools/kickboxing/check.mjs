@@ -345,7 +345,8 @@ try {
     await shot('04-live-mirror');
     // Cross the clear gap between bags, then view the reflection obliquely so
     // the real character's back does not cover its reflected face.
-    await moveTo(16,-4.1,'clear aisle between bags and mirror');await look(250,9);await frames(await state(),6);
+    await moveTo(16,-4.1,'clear aisle between bags and mirror');
+    await moveTo(16.55,-4.8,'unobstructed mirror inspection point');await look(315,12);await frames(await state(),6);
     await shot('04b-mirror-character-detail');
     await moveTo(12.3,-3,'return from mirror detail position');await look(90,12);await frames(await state(),3);
     const hidden=await capture('mirror-out-of-view-before');await frames(await state(),10);const hiddenEnd=await capture('mirror-out-of-view-after');

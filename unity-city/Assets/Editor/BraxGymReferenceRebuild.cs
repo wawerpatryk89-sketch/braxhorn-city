@@ -545,7 +545,7 @@ public static class BraxGymReferenceRebuild
                 var fill = Group(fixtures, "Neutral room indirect fill").gameObject.AddComponent<Light>();
                 fill.type = LightType.Directional; fill.color = new Color(1f, .97f, .93f);
                 fill.intensity = .42f; fill.shadows = LightShadows.None; fill.cullingMask = 1 << 10;
-                fill.renderMode = LightRenderMode.NotImportant; fill.transform.rotation = Quaternion.Euler(direction);
+                fill.renderMode = LightRenderMode.ForceVertex; fill.transform.rotation = Quaternion.Euler(direction);
             }
         }
 
@@ -767,7 +767,13 @@ public static class BraxGymReferenceRebuild
         BoxCollider ColliderBox(string name, Vector3 center, Vector3 size, bool privacy = false)
         {
             var t = Group(physics, name); t.position = center; var c = t.gameObject.AddComponent<BoxCollider>(); c.size = size;
-            if (privacy) privacyWalls.Add(new Bounds(center, size)); return c;
+            if (privacy)
+            {
+                // Only full static opaque boundaries participate in privacy evidence.
+                t.gameObject.layer = 11;
+                privacyWalls.Add(new Bounds(center, size));
+            }
+            return c;
         }
 
         void LocalLight(string name, Vector3 p, float intensity, float range)
