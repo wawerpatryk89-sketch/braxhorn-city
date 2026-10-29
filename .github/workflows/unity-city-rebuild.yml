@@ -61,6 +61,40 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  asset-visual-inspection:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-tools/city-rebuild
+            dev/three
+          persist-credentials: false
+          lfs: false
+      - name: Retrieve original source modules for inspection only
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40866427252
+          github-token: ${{ github.token }}
+          name: city-rebuild-curated-sources-fc135c8a10b7e54b44d2e97f84d7a662b03ad948
+          path: curated/
+      - name: Render exact source modules in an isolated PBR viewer
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node unity-tools/city-rebuild/check_assets.mjs
+      - name: Preserve small source inspection images
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-asset-visuals-${{ github.sha }}
+          path: city-asset-visual-review/
+          if-no-files-found: error
+          retention-days: 14
+
   original-city-inventory:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029'
     runs-on: ubuntu-latest
