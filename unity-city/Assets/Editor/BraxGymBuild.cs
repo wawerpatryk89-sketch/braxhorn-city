@@ -47,12 +47,17 @@ public static class BraxGymBuild
                 if(!m||!m.name.Contains("_baked")||m.renderQueue>=2450)continue;
                 if(!cache.TryGetValue(m,out var t))
                 {
-                    t=new Material(matte){name="Matte original "+cache.Count};
+                    t=new Material(matte){name=m.name};
                     string textureName=m.GetTexturePropertyNames().FirstOrDefault(n=>n.ToLowerInvariant().Contains("basecolor")||n=="_MainTex");
                     if(textureName!=null){t.mainTexture=m.GetTexture(textureName);t.mainTextureScale=m.GetTextureScale(textureName);t.mainTextureOffset=m.GetTextureOffset(textureName);}
                     foreach(var name in new[]{"_BaseColor","_Color","baseColorFactor","_BaseColorFactor"})if(m.HasProperty(name)){t.color=m.GetColor(name);break;}
                     foreach(var name in new[]{"_Cull","_CullMode","_CullModeForward"})if(m.HasProperty(name)){t.SetFloat("_Cull",m.GetFloat(name));break;}
-                    t.SetFloat("_VertexColor",1);AssetDatabase.CreateAsset(t,Generated+"/Matte"+cache.Count+".mat");cache[m]=t;tuned++;
+                    t.SetFloat("_VertexColor",1);
+                    // Unity names a new main asset after its filename. Keep the
+                    // original BX material identity used by the surface pass.
+                    string assetName=new string(m.name.Select(c=>char.IsLetterOrDigit(c)||c=='_'?c:'_').ToArray());
+                    AssetDatabase.CreateAsset(t,Generated+"/"+assetName+".mat");
+                    t.name=m.name;EditorUtility.SetDirty(t);cache[m]=t;tuned++;
                     Debug.Log("GYM_MATERIAL "+m.name+" shader="+m.shader.name+" texture="+textureName+" color="+t.color);
                 }
                 materialSlots[k]=t;
@@ -87,7 +92,7 @@ public static class BraxGymBuild
                 var b=r.bounds;
                 if(Mathf.Abs(b.center.x-14)<.45f && Mathf.Abs(b.center.z-z)<.5f && b.size.x<1.4f && b.size.z<1.4f && b.center.y>1f && b.max.y<4.65f)r.transform.SetParent(bag.transform,true);
             }
-            AddBox(solids.transform,"Bag collision",new Vector3(14,1.9f,z),new Vector3(.65f,1.55f,.65f));bags.Add(bag.transform);
+            AddBox(bag.transform,"Bag collision",new Vector3(14,1.9f,z),new Vector3(.65f,1.55f,.65f));bags.Add(bag.transform);
         }
         var player=new GameObject("BraxhornPlayer");player.transform.position=new Vector3(1.5f,.08f,2.8f);player.transform.rotation=Quaternion.Euler(0,180,0);player.layer=8;
         var body=player.AddComponent<CharacterController>();body.height=2.25f;body.radius=.35f;body.center=new Vector3(0,1.125f,0);body.stepOffset=.36f;body.slopeLimit=48;body.skinWidth=.035f;
@@ -118,6 +123,10 @@ public static class BraxGymBuild
         QualitySettings.antiAliasing=4;QualitySettings.pixelLightCount=2;QualitySettings.shadows=ShadowQuality.Disable;QualitySettings.anisotropicFiltering=AnisotropicFiltering.ForceEnable;
         PlayerSettings.colorSpace=ColorSpace.Linear;PlayerSettings.companyName="Braxhorn";PlayerSettings.productName="Braxhorn Gym";PlayerSettings.defaultScreenWidth=1280;PlayerSettings.defaultScreenHeight=720;
         PlayerSettings.WebGL.compressionFormat=WebGLCompressionFormat.Gzip;PlayerSettings.WebGL.decompressionFallback=true;PlayerSettings.WebGL.template="APPLICATION:Default";
+        // Material selection and original-hero refinement are authored source,
+        // never string substitutions performed by an asset-preparation script.
+        BraxGymPremium.Apply(gym,hero,bags.ToArray(),camera,light,fill,Generated);
+        BraxHeroRefinements.Apply(hero,bags.ToArray(),camera,Generated);
         const string scenePath=Generated+"/BraxhornGym.unity";if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         EditorBuildSettings.scenes=new[]{new EditorBuildSettingsScene(scenePath,true)};AssetDatabase.SaveAssets();
         var output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);

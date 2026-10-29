@@ -1,0 +1,172 @@
+name: Unity gym polish and controls - isolated test
+
+on:
+  push:
+    branches: [codex/unity-gym-polish-controls-20261029]
+    paths: ['unity-city/**', 'unity-tools/**', '.github/workflows/unity-gym-polish-test.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: unity-gym-polish-test-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  polish-test:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-gym-polish-controls-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout the isolated test sources and verified library
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            .github/workflows
+            unity-city
+            unity-tools
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+            asset-library/sources/sofa_02
+          lfs: false
+          persist-credentials: false
+
+      - name: Retrieve the original gym geometry from the verified export
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+
+      - name: Check source syntax and record authored code and asset hashes
+        run: |
+          python3 -m compileall -q unity-tools
+          node --check unity-tools/check_premium.mjs
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, subprocess
+          root = pathlib.Path.cwd()
+          tracked = subprocess.check_output(['git', 'ls-files', '-z'], text=True).split('\0')
+          code = {'.cs', '.shader', '.jslib', '.py', '.mjs'}
+          paths = sorted(p for p in tracked if p and (
+              (p.startswith(('unity-city/', 'unity-tools/')) and pathlib.Path(p).suffix in code)
+              or p.startswith(('public/assets/chars/', 'public/assets/tex/', 'asset-library/sources/sofa_02/'))
+          ) and (root / p).is_file())
+          assert 'unity-city/Assets/BraxGymPlayer.cs' in paths
+          assert 'unity-city/Assets/Editor/BraxGymBuild.cs' in paths
+          assert 'public/assets/chars/brax.glb.gz' in paths
+          digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          out = root / 'unity-review'
+          out.mkdir(exist_ok=True)
+          record = {
+              'commit': os.environ['GITHUB_SHA'],
+              'branch': os.environ['GITHUB_REF'],
+              'files': {p: digest(root / p) for p in paths},
+              'originalGymExportSha256': digest(root / 'unity-city/Assets/Source/braxhorn-original-gym.glb')
+          }
+          (out / 'authored-source-hashes.json').write_text(json.dumps(record, indent=2) + '\n')
+          print('AUTHORED_SOURCE_SNAPSHOT', record['commit'], len(paths))
+          PY
+
+      - name: Prepare source assets and material maps without rewriting authored code
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6
+          python3 unity-tools/prepare_playable.py
+          python3 unity-tools/premium_prepare.py
+          python3 unity-tools/premium_refinements.py
+
+      - name: Convert the verified textured sofa from the owner library
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender
+          blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
+
+      - name: Require original source identity and unchanged authored code before Unity
+        shell: python
+        run: |
+          import hashlib, json, pathlib
+          root = pathlib.Path.cwd()
+          record = json.loads((root / 'unity-review/authored-source-hashes.json').read_text())
+          changed = [p for p, sha in record['files'].items() if not (root / p).is_file() or hashlib.sha256((root / p).read_bytes()).hexdigest() != sha]
+          assert not changed, 'Asset preparation changed authored code or original assets: ' + repr(changed)
+          source = root / 'unity-city/Assets/Source'
+          integrity = json.loads((source / 'source-integrity.json').read_text())
+          materials = json.loads((source / 'Premium/material-review.json').read_text())
+          geometry = json.loads((source / 'Premium/geometry-review.json').read_text())
+          assert integrity['sourceGymSha256'] == record['originalGymExportSha256']
+          assert integrity['geometryReplaced'] is False
+          assert materials['sourceCodeRewritten'] is False and geometry['sourceCodeRewritten'] is False
+          assert materials['originalHeroRigChanged'] is False and materials['originalUVsChanged'] is False
+          for name in ('braxhorn-original-gym.glb', 'BraxOriginal.glb', 'LibrarySofa02.glb', 'gym-collisions.json'):
+              assert (source / name).is_file() and (source / name).stat().st_size > 100, name
+          (root / 'unity-review/source-preparation-check.json').write_text(json.dumps({'passed': True, 'commit': record['commit'], 'checkedFiles': len(record['files']), 'sourceCodeRewritten': False, 'originalSourceAssetsChanged': False}, indent=2) + '\n')
+          print('ORIGINAL_INPUTS_AND_AUTHORED_CODE_PRESERVED', len(record['files']))
+
+      - name: Compile the isolated gym in Unity 6 for WebGL
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxGymBuild.Build
+          versioning: None
+          allowDirtyBuild: true
+
+      - name: Package the versioned mobile test build
+        run: python3 unity-tools/package_premium.py
+
+      - name: Prepare browser validation
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Test camera yaw, touch controls, movement, actions, collisions and visual views
+        run: node unity-tools/check_premium.mjs
+
+      - name: Require successful runtime evidence for this exact source commit
+        shell: python
+        run: |
+          import hashlib, json, os, pathlib
+          root = pathlib.Path.cwd()
+          qa = json.loads((root / 'unity-review/report.json').read_text())
+          game = json.loads((root / 'unity-preview/playable.json').read_text())
+          record = json.loads((root / 'unity-review/authored-source-hashes.json').read_text())
+          assert qa['passed'] is True and qa['checks']
+          assert all(check['passed'] is True for check in qa['checks'])
+          assert game['commit'] == record['commit'] == os.environ['GITHUB_SHA']
+          assert game['originalBrax'] is True and game['originalGym'] is True
+          assert game['productionChanged'] is False
+          assert {'Walking', 'Running', 'Jab Cross (1)', 'Mma Kick (1)', 'Jump'}.issubset(game['animationNames'])
+          changed = [p for p, sha in record['files'].items() if not (root / p).is_file() or hashlib.sha256((root / p).read_bytes()).hexdigest() != sha]
+          assert not changed, 'Build changed authored code or original assets: ' + repr(changed)
+          print('ISOLATED_UNITY_GYM_QA_PASS', game['commit'], len(qa['checks']))
+
+      - name: Save runtime screenshots, source identity and material provenance
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-polish-review-${{ github.sha }}
+          path: |
+            unity-review/
+            unity-city/Assets/Source/source-integrity.json
+            unity-city/Assets/Source/Premium/*.json
+            build/WebGL/playable.json
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Save the tested build for separate visual review and test publication
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-polish-playable-${{ github.sha }}
+          path: unity-preview/
+          if-no-files-found: error
+          retention-days: 7

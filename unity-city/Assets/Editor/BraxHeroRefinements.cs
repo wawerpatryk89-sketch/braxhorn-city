@@ -9,10 +9,10 @@ using UnityEngine;
 public static class BraxHeroRefinements
 {
     const string P="Assets/Source/Premium/";
-    static Texture2D Map(string file,bool linear=false)
+    static Texture2D Map(string file,bool linear=false,bool normal=false)
     {
         var importer=AssetImporter.GetAtPath(P+file) as TextureImporter;
-        if(importer!=null&&linear){importer.sRGBTexture=false;importer.mipmapEnabled=true;importer.anisoLevel=8;importer.textureCompression=TextureImporterCompression.Uncompressed;importer.SaveAndReimport();}
+        if(importer!=null){importer.textureType=normal?TextureImporterType.NormalMap:TextureImporterType.Default;importer.sRGBTexture=!(linear||normal);importer.mipmapEnabled=true;importer.anisoLevel=8;importer.textureCompression=TextureImporterCompression.Uncompressed;importer.SaveAndReimport();}
         var t=AssetDatabase.LoadAssetAtPath<Texture2D>(P+file);if(!t)throw new Exception("Missing original Brax texture "+file);return t;
     }
     static Mesh RoundedBag(float height)
@@ -21,8 +21,8 @@ public static class BraxHeroRefinements
         var v=new List<Vector3>();var uv=new List<Vector2>();var indices=new List<int>();
         for(int j=0;j<y.Length;j++)for(int k=0;k<=sides;k++)
         {
-            float a=k*Mathf.PI*2/sides;v.Add(new Vector3(Mathf.Sin(a)*r[j],y[j]*height,Mathf.Cos(a)*r[j]));uv.Add(new Vector2((float)k/sides,y[j]+.5f));
-            if(j<y.Length-1&&k<sides){int q=j*(sides+1)+k;indices.AddRange(new[]{q,q+1,q+sides+1,q+1,q+sides+2,q+sides+1});}
+            float a=k*Mathf.PI*2/sides;v.Add(new Vector3(-Mathf.Sin(a)*r[j],y[j]*height,Mathf.Cos(a)*r[j]));uv.Add(new Vector2((float)k/sides,y[j]+.5f));
+            if(j<y.Length-1&&k<sides){int q=j*(sides+1)+k;indices.AddRange(new[]{q,q+sides+1,q+1,q+1,q+sides+1,q+sides+2});}
         }
         var m=new Mesh{name="Rounded original-size leather bag"};m.SetVertices(v);m.SetUVs(0,uv);m.SetTriangles(indices,0);m.RecalculateNormals();m.RecalculateTangents();m.RecalculateBounds();return m;
     }
@@ -30,10 +30,10 @@ public static class BraxHeroRefinements
     {
         var shader=Shader.Find("Braxhorn/HeroPremium");if(!shader)throw new Exception("Original ORM shader unavailable");
         var material=new Material(shader){name="Brax original PBR restored",color=Color.white};
-        material.SetTexture("_MainTex",Map("BraxAlbedo.png"));material.SetTexture("_BumpMap",Map("BraxNormal.png"));material.SetTexture("_Orm",Map("BraxOrm.png",true));material.SetFloat("_BumpScale",.75f);
+        material.SetTexture("_MainTex",Map("BraxAlbedo.png"));material.SetTexture("_BumpMap",Map("BraxNormal.png",false,true));material.SetTexture("_Orm",Map("BraxOrm.png",true));material.SetFloat("_BumpScale",.82f);material.SetFloat("_RoughnessFloor",.64f);material.SetFloat("_MetallicScale",.12f);material.SetFloat("_OcclusionStrength",.8f);
         AssetDatabase.CreateAsset(material,generated+"/Premium/BraxSourceORM.mat");
         foreach(var renderer in hero.GetComponentsInChildren<SkinnedMeshRenderer>(true))renderer.sharedMaterials=Enumerable.Repeat(material,renderer.sharedMaterials.Length).ToArray();
-        var fill=new GameObject("Brax neutral portrait fill").AddComponent<Light>();fill.type=LightType.Directional;fill.cullingMask=1<<8;fill.transform.SetParent(camera.transform,false);fill.transform.localRotation=Quaternion.Euler(20,32,0);fill.color=new Color(.93f,.96f,1);fill.intensity=.28f;fill.shadows=LightShadows.None;
+        var fill=new GameObject("Brax neutral portrait fill").AddComponent<Light>();fill.type=LightType.Directional;fill.cullingMask=1<<8;fill.transform.SetParent(camera.transform,false);fill.transform.localRotation=Quaternion.Euler(20,32,0);fill.color=new Color(.93f,.96f,1);fill.intensity=.20f;fill.shadows=LightShadows.None;
         QualitySettings.pixelLightCount=4;
         float[] heights={1.65f,1.5f,1.7f,1.4f};
         for(int i=0;i<bags.Length;i++)

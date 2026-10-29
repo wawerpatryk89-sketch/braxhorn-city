@@ -20,10 +20,16 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private string action = "Idle";
     private bool hitPending, doorOpen, paused, runEnabled = true, soundEnabled = true;
     private float doorAngle;
-    private float[] bagSwing, bagVelocity;
+    private Vector2[] bagSwing, bagVelocity;
+    private Quaternion[] bagRestRotation;
+    private int lastHitBag = -1;
+    private float lastHitTime, lastHitDistance, lastHitAlignment;
+    private Vector2 lastHitImpulse;
+    private float simulationTime;
+    private bool reviewEnabled;
     private AudioSource audioSource;
     private AudioClip impact;
-    private Transform hand;
+    private Transform hand, leftFoot, rightFoot;
     private Vector3 cameraTarget;
     private static readonly Vector3 Spawn = new Vector3(1.5f, .08f, 2.8f);
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -31,10 +37,16 @@ public sealed class BraxGymPlayer : MonoBehaviour
 #endif
     [Serializable] private class Status
     {
-        public bool ready, paused, doorOpen;
+        public bool ready, paused, doorOpen, grounded, runEnabled, handFound, leftFootFound, rightFootFound;
         public float x,y,z,yaw,pitch,speed,handX,handY,handZ;
+        public float playerYaw,cameraYaw,rightX,rightZ,forwardX,forwardZ,verticalSpeed;
+        public float lastHitTime,lastHitDistance,lastHitAlignment;
+        public float gameTime,simulationTime,moveX,moveY;
+        public Vector3 leftFootPosition,rightFootPosition;
+        public Vector2 lastHitImpulse;
+        public Vector2[] bagAngles,bagVelocities;
         public string animation,context,build;
-        public int hits,frames;
+        public int hits,frames,lastHitBag;
     }
     private void Start()
     {
@@ -44,17 +56,25 @@ public sealed class BraxGymPlayer : MonoBehaviour
         clips.playAutomatically = false;
         clips.cullingType = AnimationCullingType.AlwaysAnimate;
         clips.Play("Idle");
-        bagSwing = new float[bags.Length]; bagVelocity = new float[bags.Length];
+        bagSwing = new Vector2[bags.Length]; bagVelocity = new Vector2[bags.Length];
+        bagRestRotation = new Quaternion[bags.Length];
+        for(int i=0;i<bags.Length;i++)bagRestRotation[i]=bags[i].localRotation;
         cameraTarget = transform.position + Vector3.up * 1.65f;
-        foreach (Transform t in visual.GetComponentsInChildren<Transform>()) if(t.name.Contains("RightHand")){hand=t;break;}
+        foreach (Transform t in visual.GetComponentsInChildren<Transform>())
+        {
+            if(!hand&&t.name.Contains("RightHand"))hand=t;
+            if(!leftFoot&&t.name.Contains("LeftFoot"))leftFoot=t;
+            if(!rightFoot&&t.name.Contains("RightFoot"))rightFoot=t;
+        }
         audioSource=gameObject.AddComponent<AudioSource>(); audioSource.spatialBlend=0f; audioSource.volume=.28f;
         const int rate=22050; var samples=new float[rate/6];
         for(int i=0;i<samples.Length;i++){float t=(float)i/rate; samples[i]=Mathf.Sin(2f*Mathf.PI*(100f-180f*t)*t)*Mathf.Exp(-t*34f)*.7f;}
         impact=AudioClip.Create("Training impact",samples.Length,1,rate,false); impact.SetData(samples,0);
-        ready=true; UpdateCamera(1f); Report();
+        reviewEnabled=ReviewEnabled();ready=true;UpdateCamera(1f);Report();
     }
     public void MoveInput(string values)
     {
+        if(paused){move=Vector2.zero;return;}
         var p=values.Split(',');
         if(p.Length>=2 && float.TryParse(p[0],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float x) && float.TryParse(p[1],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float y))
             move=Vector2.ClampMagnitude(new Vector2(x,y),1);
@@ -69,8 +89,14 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         if(!ready)return;
         if(key=="pause"){paused=!paused;move=Vector2.zero;foreach(AnimationState st in clips)st.speed=paused?0:1;Report();return;}
-        if(key=="reset"){body.enabled=false;transform.position=Spawn;body.enabled=true;vertical=0;speed=0;move=Vector2.zero;actionEnd=0;action="Idle";clips.Play("Idle");Report();return;}
-        if(key=="run"){runEnabled=!runEnabled;return;}
+        if(key=="reset")
+        {
+            body.enabled=false;transform.position=Spawn;transform.rotation=Quaternion.Euler(0,180,0);body.enabled=true;
+            vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
+            yaw=0;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
+            action="Idle";clips.Play("Idle");UpdateCamera(1f);Report();return;
+        }
+        if(key=="run"){runEnabled=!runEnabled;Report();return;}
         if(key=="sound"){soundEnabled=!soundEnabled;return;}
         if(paused)return;
         if(key=="action")
@@ -95,11 +121,16 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         if(!ready||paused)return;
         float dt=Mathf.Min(Time.deltaTime,.12f);
+        simulationTime+=dt;
         bool acting=Time.time<actionEnd;
         float target=!acting?(move.magnitude>.12f?(runEnabled&&move.magnitude>.76f?5f:2f)*Mathf.Clamp01(move.magnitude*1.3f):0):0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
-        float a=yaw*Mathf.Deg2Rad;
-        Vector3 direction=new Vector3(Mathf.Cos(a)*move.x-Mathf.Sin(a)*move.y,0,-Mathf.Sin(a)*move.x-Mathf.Cos(a)*move.y);
+        // Orbit yaw describes the camera's POSITION around its target, not its
+        // forward heading. At orbit yaw 0 the camera looks toward -Z, so screen
+        // right is -X. Use the displayed camera basis, independent of player yaw.
+        Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
+        Vector3 forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
+        Vector3 direction=right*move.x+forward*move.y;
         if(direction.sqrMagnitude>.01f && !acting)transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(direction),1-Mathf.Exp(-dt*12f));
         if(body.isGrounded&&vertical<0)vertical=-2f;vertical-=18f*dt;
         Vector3 step=(direction.normalized*speed+Vector3.up*vertical)*dt;
@@ -117,19 +148,40 @@ public sealed class BraxGymPlayer : MonoBehaviour
         doorAngle=Mathf.Lerp(doorAngle,doorOpen?-98f:0f,1-Mathf.Exp(-dt*5f));
         if(door)door.localRotation=Quaternion.Euler(0,doorAngle,0);
         for(int i=0;i<bags.Length;i++)
-        {bagVelocity[i]+=(-bagSwing[i]*15f-bagVelocity[i]*2.4f)*dt;bagSwing[i]+=bagVelocity[i]*dt;bags[i].localRotation=Quaternion.Euler(0,0,bagSwing[i]);}
-        if(Time.unscaledTime>=stateAt){stateAt=Time.unscaledTime+.16f;Report();}
+        {
+            bagVelocity[i]+=(-bagSwing[i]*15f-bagVelocity[i]*2.4f)*dt;
+            bagSwing[i]+=bagVelocity[i]*dt;
+            bags[i].localRotation=bagRestRotation[i]*Quaternion.Euler(bagSwing[i].x,0,bagSwing[i].y);
+        }
     }
     private void HitBag()
     {
         for(int i=0;i<bags.Length;i++)
         {
             Vector3 d=bags[i].position-transform.position;d.y=0;
-            if(d.magnitude<1.85f && Vector3.Dot(transform.forward,d.normalized)>.15f)
-            {trainingHits++;bagVelocity[i]+=transform.forward.x>0? -55f:55f;if(soundEnabled)audioSource.PlayOneShot(impact);Report();break;}
+            float alignment=Vector3.Dot(transform.forward,d.normalized);
+            if(d.magnitude<1.85f && alignment>.15f)
+            {
+                trainingHits++;lastHitBag=i;lastHitTime=Time.time;lastHitDistance=d.magnitude;lastHitAlignment=alignment;
+                Vector3 localForward=bags[i].parent?bags[i].parent.InverseTransformDirection(transform.forward):transform.forward;
+                localForward=Quaternion.Inverse(bagRestRotation[i])*localForward;
+                // The bag hangs DOWN from this pivot: +roll displaces it toward
+                // +X and -pitch toward +Z. The impulse must carry it away from
+                // the strike, including an approach along the other aisle axis.
+                lastHitImpulse=new Vector2(-localForward.z,localForward.x)*55f;
+                bagVelocity[i]+=lastHitImpulse;
+                if(soundEnabled)audioSource.PlayOneShot(impact);Report();break;
+            }
         }
     }
-    private void LateUpdate(){if(ready)UpdateCamera(Mathf.Min(Time.deltaTime,.1f));}
+    private void LateUpdate()
+    {
+        if(!ready)return;
+        UpdateCamera(Mathf.Min(Time.deltaTime,.1f));
+        // Report after LookAt so position, yaw and screen axes describe the same
+        // rendered frame. Reporting earlier exposes the previous camera basis.
+        if(reviewEnabled||Time.unscaledTime>=stateAt){stateAt=Time.unscaledTime+.16f;Report();}
+    }
     private void UpdateCamera(float dt)
     {
         Vector3 want=transform.position+Vector3.up*1.65f;
@@ -141,12 +193,38 @@ public sealed class BraxGymPlayer : MonoBehaviour
         view.transform.position=position;view.transform.LookAt(cameraTarget);
         if(contactShadow){var p=transform.position;p.y=body.isGrounded?transform.position.y+.018f:.018f;contactShadow.position=p;}
     }
+    // Explicit QA view, available only with ?qa=1. It does not replace gameplay
+    // controls and is excluded from the ordinary player entry point.
+    public void ReviewView(string text)
+    {
+        if(!reviewEnabled)return;
+        var a=text.Split(',');if(a.Length!=6)return;var v=new float[6];
+        for(int i=0;i<6;i++)if(!float.TryParse(a[i],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out v[i])||float.IsNaN(v[i])||float.IsInfinity(v[i]))return;
+        move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";clips.Play("Idle");
+        body.enabled=false;transform.position=new Vector3(v[0],v[1],v[2]);body.enabled=true;
+        yaw=v[3];pitch=Mathf.Clamp(v[4],7f,57f);distance=Mathf.Clamp(v[5],.8f,12f);
+        cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);Report();
+    }
+    private static bool ReviewEnabled()
+    {
+        if(!Uri.TryCreate(Application.absoluteURL,UriKind.Absolute,out var url))return false;
+        foreach(var value in url.Query.TrimStart('?').Split('&'))if(value=="qa=1")return true;
+        return false;
+    }
     private void OnApplicationFocus(bool focus){if(!focus)move=Vector2.zero;}
     private void Report()
     {
         var h=hand?hand.position:Vector3.zero;
         string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
-        var s=new Status{ready=ready,paused=paused,x=transform.position.x,y=transform.position.y,z=transform.position.z,yaw=yaw,pitch=pitch,speed=speed,animation=action,context=context,hits=trainingHits,frames=Time.frameCount,handX=h.x,handY=h.y,handZ=h.z,doorOpen=doorOpen,build=buildId};
+        var right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
+        var forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
+        var s=new Status{ready=ready,paused=paused,x=transform.position.x,y=transform.position.y,z=transform.position.z,yaw=yaw,pitch=pitch,speed=speed,animation=action,context=context,hits=trainingHits,frames=Time.frameCount,handX=h.x,handY=h.y,handZ=h.z,doorOpen=doorOpen,build=buildId,
+            grounded=body.isGrounded,runEnabled=runEnabled,playerYaw=transform.eulerAngles.y,cameraYaw=view.transform.eulerAngles.y,verticalSpeed=vertical,
+            rightX=right.x,rightZ=right.z,forwardX=forward.x,forwardZ=forward.z,
+            lastHitBag=lastHitBag,lastHitTime=lastHitTime,lastHitDistance=lastHitDistance,lastHitAlignment=lastHitAlignment,bagAngles=bagSwing,bagVelocities=bagVelocity,
+            gameTime=Time.time,simulationTime=simulationTime,moveX=move.x,moveY=move.y,lastHitImpulse=lastHitImpulse,
+            handFound=hand!=null,leftFootFound=leftFoot!=null,rightFootFound=rightFoot!=null,
+            leftFootPosition=leftFoot?leftFoot.position:Vector3.zero,rightFootPosition=rightFoot?rightFoot.position:Vector3.zero};
 #if UNITY_WEBGL && !UNITY_EDITOR
         BXState(JsonUtility.ToJson(s));
 #endif

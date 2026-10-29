@@ -1,0 +1,249 @@
+name: Publish reviewed Unity gym to the isolated test branch
+
+on:
+  push:
+    branches: [codex/unity-gym-polish-controls-20261029]
+    paths: ['unity-release/test-publication.json']
+
+permissions: {}
+
+concurrency:
+  group: unity-gym-polish-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish-test-only:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-gym-polish-controls-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout the exact test publication request
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/workflows
+            unity-release
+            public/unity-gym
+          lfs: false
+          persist-credentials: false
+
+      - name: Verify the reviewed source run and unchanged runtime sources
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64, json, os, pathlib, re, subprocess, urllib.request
+          repo = 'wawerpatryk89-sketch/braxhorn-city'
+          branch = 'codex/unity-gym-polish-controls-20261029'
+          assert os.environ['GITHUB_REPOSITORY'] == repo
+          assert os.environ['GITHUB_REF'] == 'refs/heads/' + branch
+          request_sha = os.environ['GITHUB_SHA']
+          assert re.fullmatch(r'[0-9a-f]{40}', request_sha)
+          assert subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip() == request_sha
+          marker_path = pathlib.Path('unity-release/test-publication.json')
+          assert marker_path.is_file() and not marker_path.is_symlink()
+          marker = json.loads(marker_path.read_text())
+          run_id = marker['source_run_id']
+          source_sha = marker['source_commit']
+          assert type(run_id) is int and run_id > 0, 'source_run_id must be a positive integer'
+          assert isinstance(source_sha, str) and re.fullmatch(r'[0-9a-f]{40}', source_sha), 'source_commit must be a full SHA'
+          assert marker['visual_review'] == 'reviewed', 'Visual review has not been recorded'
+          assert marker['branch'] == branch, 'Publication is restricted to the exact test branch'
+          token = os.environ['GH_TOKEN']
+          req = urllib.request.Request(
+              f'https://api.github.com/repos/{repo}/actions/runs/{run_id}',
+              headers={'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'Braxhorn-Unity-Gym-Preview'}
+          )
+          with urllib.request.urlopen(req, timeout=30) as response:
+              run = json.load(response)
+          assert run['id'] == run_id
+          assert run['status'] == 'completed' and run['conclusion'] == 'success', 'The source build is not successful and complete'
+          assert run['head_sha'] == source_sha and run['head_branch'] == branch
+          assert run['name'] == 'Unity gym polish and controls - isolated test'
+          assert run['path'] == '.github/workflows/unity-gym-polish-test.yml'
+          remote = subprocess.check_output(['git', 'remote', 'get-url', 'origin'], text=True).strip()
+          assert remote in (f'https://github.com/{repo}', f'https://github.com/{repo}.git')
+          git_env = os.environ.copy()
+          git_env.pop('GH_TOKEN', None)
+          auth = base64.b64encode(('x-access-token:' + token).encode()).decode()
+          git_env.update(GIT_CONFIG_COUNT='1', GIT_CONFIG_KEY_0='http.https://github.com/.extraheader', GIT_CONFIG_VALUE_0='AUTHORIZATION: basic ' + auth)
+          subprocess.run(['git', 'fetch', '--no-tags', '--depth=1', '--filter=blob:none', 'origin', source_sha], env=git_env, check=True)
+          changed = subprocess.check_output(['git', 'diff', '--name-only', '--no-renames', '-z', source_sha, request_sha, '--', 'unity-city', 'unity-tools'], text=True).split('\0')
+          changed = [p for p in changed if p]
+          assert not changed, 'Runtime sources changed after the reviewed build: ' + repr(changed)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write(f'run_id={run_id}\nsource_sha={source_sha}\n')
+          print('REVIEWED_SOURCE_RUN_VERIFIED', run_id, source_sha, branch)
+
+      - name: Download the exact reviewed playable build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ github.token }}
+          name: unity-polish-playable-${{ steps.source.outputs.source_sha }}
+          path: ${{ runner.temp }}/unity-polish-playable
+
+      - name: Download matching runtime and source review evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ github.token }}
+          name: unity-polish-review-${{ steps.source.outputs.source_sha }}
+          path: ${{ runner.temp }}/unity-polish-review
+
+      - name: Validate evidence and assemble only the separate Unity gym folder
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+        shell: python
+        run: |
+          import datetime, hashlib, html.parser, json, os, pathlib, re, shutil
+          scratch = pathlib.Path(os.environ['RUNNER_TEMP'])
+          playable_root = scratch / 'unity-polish-playable'
+          review_root = scratch / 'unity-polish-review'
+          expected = os.environ['SOURCE_SHA']
+          run_id = int(os.environ['SOURCE_RUN_ID'])
+          branch = 'codex/unity-gym-polish-controls-20261029'
+          def unique(root, name):
+              found = [p for p in root.rglob(name) if p.is_file() and not p.is_symlink()]
+              assert len(found) == 1, f'Expected one {name}, got {len(found)}'
+              return found[0]
+          def read(root, name):
+              return json.loads(unique(root, name).read_text())
+          assert not any(p.is_symlink() for root in (playable_root, review_root) for p in root.rglob('*')), 'Artifact symlinks are not allowed'
+          manifest = unique(playable_root, 'playable.json')
+          source = manifest.parent
+          game = json.loads(manifest.read_text())
+          qa = read(review_root, 'report.json')
+          integrity = read(review_root, 'source-integrity.json')
+          preparation = read(review_root, 'source-preparation-check.json')
+          authored = read(review_root, 'authored-source-hashes.json')
+          assert qa['passed'] is True and isinstance(qa['checks'], list) and qa['checks']
+          assert all(check['passed'] is True for check in qa['checks'])
+          assert qa['commit'] == game['commit'] == preparation['commit'] == authored['commit'] == expected
+          assert game['originalBrax'] is True and game['originalGym'] is True
+          assert game['productionChanged'] is False
+          assert {'Walking', 'Running', 'Jab Cross (1)', 'Mma Kick (1)', 'Jump'}.issubset(game['animationNames'])
+          assert integrity['geometryReplaced'] is False
+          assert integrity['sourceGymSha256'] == authored['originalGymExportSha256']
+          assert preparation['passed'] is True and preparation['checkedFiles'] > 0
+          assert preparation['sourceCodeRewritten'] is False and preparation['originalSourceAssetsChanged'] is False
+          assert authored['branch'] == 'refs/heads/' + branch
+          screenshots = [p for p in review_root.rglob('*.png') if p.stat().st_size > 1000]
+          assert len(screenshots) >= 2, 'Visual review screenshots are missing'
+          assert (source / 'index.html').stat().st_size > 5000
+          for pattern in ('*.loader.js', '*.data*', '*.framework.js*', '*.wasm*'):
+              found = list((source / 'Build').glob(pattern))
+              assert len(found) == 1 and found[0].is_file() and found[0].stat().st_size > 1000, pattern
+              assert found[0].name.startswith(expected[:12] + '_'), 'Unversioned or mismatched WebGL asset: ' + found[0].name
+          dest = pathlib.Path('public/unity-gym')
+          assert not pathlib.Path('public').is_symlink() and not dest.is_symlink()
+          if dest.exists():
+              assert dest.is_dir()
+              if any(dest.iterdir()):
+                  previous = json.loads((dest / 'release.json').read_text())
+                  assert previous.get('scope') == 'isolated-unity-gym', 'Refusing to replace an unknown directory'
+              shutil.rmtree(dest)
+          shutil.copytree(source, dest)
+          (dest / 'vercel.json').unlink(missing_ok=True)
+          (dest / 'release.json').unlink(missing_ok=True)
+          index = dest / 'index.html'
+          markup = index.read_text()
+          class Bases(html.parser.HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.hrefs = []
+              def handle_starttag(self, tag, attrs):
+                  if tag == 'base':
+                      self.hrefs.append(dict(attrs).get('href'))
+          parser = Bases()
+          parser.feed(markup)
+          if not parser.hrefs:
+              markup, count = re.subn(r'(<head\b[^>]*>)', r'\1<base href="/unity-gym/">', markup, count=1, flags=re.IGNORECASE)
+              assert count == 1, 'HTML head was not found'
+          else:
+              assert parser.hrefs == ['/unity-gym/'], 'Unexpected HTML base URL'
+          assert 'createUnityInstance' in markup
+          index.write_text(markup)
+          files = {p.relative_to(dest).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(dest.rglob('*')) if p.is_file()}
+          release = {
+              'scope': 'isolated-unity-gym', 'target': 'preview', 'branch': branch,
+              'sourceCommit': expected, 'sourceRun': run_id,
+              'publicationRequestCommit': os.environ['GITHUB_SHA'],
+              'publishedUtc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              'visualReview': 'reviewed', 'qaPassed': True, 'qaPlatform': qa['platform'],
+              'originalCityReplaced': False, 'fullCityMigration': False,
+              'originalBrax': True, 'originalGym': True,
+              'files': files
+          }
+          (dest / 'release.json').write_text(json.dumps(release, indent=2) + '\n')
+          receipt = {
+              'status': 'prepared-not-pushed', 'target': 'preview', 'branch': branch,
+              'scope': release['scope'], 'sourceCommit': expected, 'sourceRun': run_id,
+              'publicationRequestCommit': os.environ['GITHUB_SHA'],
+              'fileCount': len(files) + 1,
+              'bytes': sum(p.stat().st_size for p in dest.rglob('*') if p.is_file()),
+              'originalCityReplaced': False, 'previewLiveVerified': False
+          }
+          (scratch / 'unity-gym-preview-publication.json').write_text(json.dumps(receipt, indent=2) + '\n')
+          print('ISOLATED_TEST_PUBLICATION_PREPARED', expected, receipt['fileCount'], receipt['bytes'])
+
+      - name: Push only the Unity gym folder to the unchanged test branch head
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64, json, os, pathlib, subprocess
+          repo = 'wawerpatryk89-sketch/braxhorn-city'
+          branch = 'codex/unity-gym-polish-controls-20261029'
+          target_ref = 'refs/heads/' + branch
+          request_sha = os.environ['GITHUB_SHA']
+          assert os.environ['GITHUB_REPOSITORY'] == repo and os.environ['GITHUB_REF'] == target_ref
+          assert subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip() == request_sha
+          remote = subprocess.check_output(['git', 'remote', 'get-url', 'origin'], text=True).strip()
+          assert remote in (f'https://github.com/{repo}', f'https://github.com/{repo}.git')
+          def run(*args, **kw):
+              return subprocess.run(args, check=True, **kw)
+          run('git', 'config', 'user.name', 'github-actions[bot]')
+          run('git', 'config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com')
+          run('git', 'add', '--sparse', '--all', '--', 'public/unity-gym')
+          changed = subprocess.check_output(['git', 'diff', '--cached', '--name-only', '-z'], text=True).split('\0')
+          changed = [p for p in changed if p]
+          assert changed and all(p.startswith('public/unity-gym/') for p in changed), 'Out-of-scope staged paths: ' + repr(changed)
+          run('git', 'commit', '-m', 'test(unity): publish reviewed gym at /unity-gym/ on isolated preview branch')
+          env = os.environ.copy()
+          token = env.pop('GH_TOKEN')
+          auth = base64.b64encode(('x-access-token:' + token).encode()).decode()
+          env.update(GIT_CONFIG_COUNT='1', GIT_CONFIG_KEY_0='http.https://github.com/.extraheader', GIT_CONFIG_VALUE_0='AUTHORIZATION: basic ' + auth)
+          remote_refs = subprocess.check_output(['git', 'ls-remote', '--heads', 'origin', target_ref], env=env, text=True).splitlines()
+          assert len(remote_refs) == 1 and remote_refs[0].split() == [request_sha, target_ref], 'Test branch moved after the publication request; refusing to push'
+          run('git', 'push', 'origin', 'HEAD:' + target_ref, env=env)
+          published_sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          receipt_path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'unity-gym-preview-publication.json'
+          receipt = json.loads(receipt_path.read_text())
+          receipt.update(status='branch-pushed-awaiting-preview-verification', publishedCommit=published_sha, changedPaths=changed)
+          receipt_path.write_text(json.dumps(receipt, indent=2) + '\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## Isolated Unity gym preview source published\n\n')
+              summary.write('Only `public/unity-gym/` was committed to `' + branch + '`.\n\n')
+              summary.write('Publication commit: `' + published_sha + '`\n\n')
+              summary.write('Reviewed source: `' + receipt['sourceCommit'] + '`; build run: ' + str(receipt['sourceRun']) + '.\n\n')
+              summary.write('The Vercel preview URL and its `/unity-gym/release.json` still require live verification.\n')
+          print('UNITY_GYM_TEST_BRANCH_PUBLICATION_COMMIT', published_sha)
+
+      - name: Save the publication receipt without claiming a live preview
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-polish-preview-publication-${{ github.sha }}
+          path: ${{ runner.temp }}/unity-gym-preview-publication.json
+          if-no-files-found: warn
+          retention-days: 7

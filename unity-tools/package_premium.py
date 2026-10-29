@@ -12,7 +12,8 @@ html=html.replace('UNITY / TRENING','UNITY / TRENING 02')
 html=html.replace('Wersja testowa — oddzielna od Braxhorn City.','Rozbudowana siłownia — oddzielna od Braxhorn City.')
 html=html.replace("productVersion:'2026.10.29'","productVersion:'2026.10.29-"+version+"'")
 (out/'index.html').write_text(html)
-for name in ['unity-premium-report.json','material-review.json']:
+for name in ['unity-premium-report.json','material-review.json','geometry-review.json','source-refinements.json']:
  shutil.copyfile(root/'unity-city/Assets/Source/Premium'/name,out/name)
 (out/'library-credits.txt').write_text('Sofa 02: Kirill Sannikov / Poly Haven, CC0. Existing owner library. Original source 4K retained unchanged; runtime textures 2K.\nBrax model, rig, animations, UVs and brand marks remain original.\n')
+shutil.copyfile(root/'unity-city/Assets/Source/source-integrity.json',out/'source-integrity.json')
 print('PREMIUM_WEBGL_ASSETS_VERSIONED',version,sum(p.stat().st_size for p in out.rglob('*') if p.is_file()))
