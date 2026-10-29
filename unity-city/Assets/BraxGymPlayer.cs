@@ -12,6 +12,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public Transform[] bags;
     // Gym-only optional target. Original 4 heavy-bag pivots, rig, input and city stay intact.
     public BraxGymSpeedBag speedBag;
+    // Optional second physical pear in this room; original heavy bag pivots unchanged.
+    public BraxGymSpeedBag[] additionalSpeedBags = Array.Empty<BraxGymSpeedBag>();
     public Transform contactShadow;
     public string buildId;
     public bool ready;
@@ -187,20 +189,29 @@ public sealed class BraxGymPlayer : MonoBehaviour
         // A speed pear is hit by FISTS, not by kicks, and only within its
         // measured 3D sphere/contact arc. Index -2 is reserved exclusively
         // for this new target; original bag indices 0..3 are unchanged.
-        if(!originalBagHit && action=="Punch" && speedBag)
+        if (!originalBagHit && action == "Punch")
         {
-            float distanceToPear,alignmentToPear;
-            if(speedBag.TryReceivePunch(transform.position,transform.forward,
-                out distanceToPear,out alignmentToPear))
+            // Both separate steel stands have genuine timed punch contacts.
+            // The primary pear retains the original diagnostics and hit index.
+            int count=(speedBag ? 1 : 0)+(additionalSpeedBags == null ? 0 : additionalSpeedBags.Length);
+            for (int i=0; i<count; i++)
             {
+                BraxGymSpeedBag target;
+                if (speedBag && i==0) target=speedBag;
+                else target=additionalSpeedBags[speedBag ? i-1 : i];
+                if (!target) continue;
+                float distanceToPear,alignmentToPear;
+                if (!target.TryReceivePunch(transform.position,transform.forward,
+                    out distanceToPear,out alignmentToPear)) continue;
                 trainingHits++;
                 lastHitBag=-2;
                 lastHitTime=Time.time;
                 lastHitDistance=distanceToPear;
                 lastHitAlignment=alignmentToPear;
-                lastHitImpulse=speedBag.LastImpulse;
-                if(soundEnabled)audioSource.PlayOneShot(impact);
+                lastHitImpulse=target.LastImpulse;
+                if (soundEnabled)audioSource.PlayOneShot(impact);
                 Report();
+                break; // One contact frame can only strike one physical target.
             }
         }
     }
