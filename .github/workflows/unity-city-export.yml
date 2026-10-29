@@ -13,6 +13,8 @@ jobs:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-full-city-20261029'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      CITY_SOURCE_COMMIT: 260a5897472d42d099766da48e708859bba6c3dc
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -28,19 +30,22 @@ jobs:
             unity-tools
           persist-credentials: false
           lfs: false
-      - name: Verify city inputs against the current production source, without writes
+      - name: Read exact production browser inputs into the temporary exporter worktree
         run: |
-          git fetch --no-tags --depth=1 origin 260a5897472d42d099766da48e708859bba6c3dc
-          git diff --exit-code 260a5897472d42d099766da48e708859bba6c3dc HEAD -- dev/src dev/shared dev/osiedle public/index.html public/game.js
-          node dev/tools/assemble-assets.cjs
           mkdir -p city-export
+          git fetch --no-tags --depth=1 origin "$CITY_SOURCE_COMMIT"
+          git restore --source="$CITY_SOURCE_COMMIT" --worktree -- dev/src dev/shared dev/osiedle dev/three dev/tools dev/deploy public
           python3 - <<'PY'
-          import pathlib,zipfile,json,hashlib
+          import pathlib,zipfile,json,hashlib,os
+          records=[]
           with zipfile.ZipFile('city-export/source-audit.zip','w',zipfile.ZIP_DEFLATED) as z:
             for root in ['dev/src','dev/shared','dev/osiedle','dev/deploy','dev/tools']:
               for p in pathlib.Path(root).rglob('*'):
-                if p.is_file() and p.suffix in ['.js','.mjs','.cjs','.py','.json','.md','.html']:z.write(p,p.as_posix())
+                if p.is_file() and p.suffix in ['.js','.mjs','.cjs','.py','.json','.md','.html']:
+                  z.write(p,p.as_posix());records.append({'path':str(p),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
+          pathlib.Path('city-export/source-provenance.json').write_text(json.dumps({'browserSourceCommit':os.environ['CITY_SOURCE_COMMIT'],'exporterCommit':os.environ['GITHUB_SHA'],'productionWrites':False,'files':records},indent=2))
           PY
+          node dev/tools/assemble-assets.cjs
       - name: Prepare original runtime exporter
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1
