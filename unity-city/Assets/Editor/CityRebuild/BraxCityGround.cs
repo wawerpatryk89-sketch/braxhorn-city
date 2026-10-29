@@ -22,8 +22,22 @@ public static class BraxCityGround
     public static void Plane(Transform root,string name,Rect area,float y,Material material,Rect[] holes=null,float step=.8f)
     {
         var xs=new SortedSet<float>{area.xMin,area.xMax};var zs=new SortedSet<float>{area.yMin,area.yMax};
-        for(float x=area.xMin+step;x<area.xMax-.001f;x+=step)xs.Add(x);
-        for(float z=area.yMin+step;z<area.yMax-.001f;z+=step)zs.Add(z);
+        // Use integer-indexed grid positions instead of cumulative float
+        // addition. 46 + 5 * .8 must coincide with the crossing's exact x=50:
+        // repeated += .8 produced x=49.999996 and a zero-area thin cell.
+        if(step<=0 || !float.IsFinite(step))throw new ArgumentOutOfRangeException(nameof(step));
+        for(int i=1; ;i++)
+        {
+            float x=area.xMin+i*step;
+            if(x>=area.xMax-.001f)break;
+            xs.Add(x);
+        }
+        for(int i=1; ;i++)
+        {
+            float z=area.yMin+i*step;
+            if(z>=area.yMax-.001f)break;
+            zs.Add(z);
+        }
         foreach(var h in holes??Array.Empty<Rect>())
         {
             if(h.xMin>area.xMin&&h.xMin<area.xMax)xs.Add(h.xMin);if(h.xMax>area.xMin&&h.xMax<area.xMax)xs.Add(h.xMax);
