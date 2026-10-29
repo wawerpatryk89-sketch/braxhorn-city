@@ -79,7 +79,7 @@ try {
   await send('Command','pause');await until(()=>!window.BraxhornState.paused);
  }
  await until(y=>window.BraxhornState.y>=y-.15,top,360000);
- a=await state();await until(t=>window.BraxhornState.simulationTime>=t+2,a.simulationTime);
+ await until(()=>window.BraxhornState.context.includes('ZJEDŹ NA ULICĘ'));
  await shot('04-top');
  check('Passenger reaches roof',Math.abs((await state()).y-top)<.2,brief(await state()));
  await page.locator('#action').click();
@@ -87,6 +87,7 @@ try {
  a=await state();await until(t=>window.BraxhornState.simulationTime>=t+2,a.simulationTime);
  await turn(0,12);await walkToZ(49.4,-1,8);await shot('05-return');
  check('Passenger exits onto original lobby',Math.abs((await state()).y-low.y)<.2,brief(await state()));
+ check('No emergency recovery or lost-floor event',!logs.some(l=>/CITY_LIFT_(SAFETY_STOP|RECOVERED_AT_DEPARTURE)/.test(l)));
 } catch(error) {
  checks.push({name:'lift route',passed:false,error:String(error)});
  console.error(String(error));await shot('failure').catch(()=>{});

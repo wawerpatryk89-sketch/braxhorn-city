@@ -148,3 +148,35 @@ jobs:
           path: city-lift-review/
           if-no-files-found: error
           retention-days: 14
+
+  isolated-preview:
+    needs: physical-lift-review
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+          lfs: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: city-access-player-${{ github.sha }}
+          path: unity-preview
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: r1-lift-review-${{ github.sha }}
+          path: city-lift-review
+      - name: Publish matching compiled Unity candidate to new preview branch only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 unity-tools/city-rebuild/publish_r1_preview.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: r1-preview-receipt-${{ github.sha }}
+          path: preview-receipt/
+          if-no-files-found: error
+          retention-days: 14
