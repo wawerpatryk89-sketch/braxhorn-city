@@ -33,7 +33,7 @@ class WebGLHandler(http.server.SimpleHTTPRequestHandler):
         return super().guess_type(path)
 
     def end_headers(self):
-        if self.path.split("?")[0].endswith(".gz"):
+        if self.path.split("?")[0].startswith("/Build/") and self.path.split("?")[0].endswith(".gz"):
             self.send_header("Content-Encoding", "gzip")
         self.send_header("Access-Control-Allow-Origin", "*")
         super().end_headers()
@@ -72,6 +72,20 @@ async def verify():
                 page.on("requestfailed", lambda request: result["errors"].append(
                     "HTTP " + request.url + " " + str(request.failure)
                 ))
+                # Verify the original Brax binary remains gzip-compressed over HTTP.
+                # Unity itself decompresses brax.glb.gz; applying Content-Encoding to
+                # this asset silently corrupts the avatar in a browser.
+                asset_response = await page.request.get(
+                    f"http://127.0.0.1:{PORT}/StreamingAssets/Estate/brax.glb.gz",
+                    timeout=30000)
+                original = (ROOT / "StreamingAssets/Estate/brax.glb.gz").read_bytes()
+                received = await asset_response.body()
+                result["braxGzipTransportIntact"] = (
+                    asset_response.status == 200 and received == original and
+                    received[:2] == bytes([0x1f,0x8b]))
+                if not result["braxGzipTransportIntact"]:
+                    raise RuntimeError(
+                        "Brax original GLB.gz was altered by HTTP transport; refuse screenshot PASS")
                 await page.goto(f"http://127.0.0.1:{PORT}/",
                                 wait_until="domcontentloaded", timeout=30000)
                 try:
@@ -114,7 +128,7 @@ async def verify():
                           "exception", "fatal", "failed to fetch", "out of memory"])]
                 result["fatal"] = fatal[:12]
                 result["visualPass"] = bool(result["loaded"] and
-                   result["pixel_check"] == "NO_MASS_MAGENTA" and not fatal)
+                   result["pixel_check"] == "NO_MASS_MAGENTA" and\n                   result.get("braxGzipTransportIntact") is True and not fatal)
             finally:
                 await browser.close()
     finally:

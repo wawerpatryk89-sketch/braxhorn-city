@@ -6,6 +6,7 @@ on:
       - work/unity6-estate-migration-20261029
     paths:
       - ".github/workflows/estate-unity-visual-qa.yml"
+      - "scripts/unity-estate/visual-qa.py"
   workflow_dispatch:
 
 permissions:
