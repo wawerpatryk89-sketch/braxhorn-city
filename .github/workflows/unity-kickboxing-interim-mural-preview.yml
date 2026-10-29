@@ -1,0 +1,145 @@
+name: Publish verified interim BRAXHORN Unity mural gameplay preview
+on:
+  push:
+    branches:
+      - test/braxhorn-kickboxing-reference-20261029
+    paths:
+      - .github/workflows/unity-kickboxing-interim-mural-preview.yml
+permissions:
+  contents: write
+  actions: read
+jobs:
+  review-preview:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/test/braxhorn-kickboxing-reference-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout only the existing player directory
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            public/unity-gym
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Require exact completed source workflow and build identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          source_sha=8d8ceed0d0602285d7c1f89628b2df8456e6caa9
+          run_id=40885598293
+          for attempt in $(seq 1 70); do
+            status=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.status')
+            if [ "$status" = completed ]; then break; fi
+            sleep 20
+          done
+          [ "$status" = completed ] || { echo 'Source workflow not completed'; exit 1; }
+          observed=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.head_sha')
+          [ "$observed" = "$source_sha" ] || { echo 'Run commit mismatch'; exit 1; }
+          echo "Source run complete; QA conclusion is recorded separately and is NOT assumed PASS"
+      - name: Download exact compiled Unity WebGL player
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40885598293
+          github-token: ${{ github.token }}
+          name: unity-kickboxing-player-8d8ceed0d0602285d7c1f89628b2df8456e6caa9
+          path: staged-player/
+      - name: Download unmodified real runtime evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40885598293
+          github-token: ${{ github.token }}
+          name: unity-kickboxing-review-8d8ceed0d0602285d7c1f89628b2df8456e6caa9
+          path: staged-evidence/
+      - name: Validate source, exact artifact bytes and original QA truth
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,pathlib,os
+          root=pathlib.Path('staged-player')
+          evidence=pathlib.Path('staged-evidence/kickboxing-review')
+          source='8d8ceed0d0602285d7c1f89628b2df8456e6caa9'
+          def load(path): return json.loads(path.read_text(encoding='utf-8'))
+          release=load(root/'release.json')
+          assert release['sourceCommit']==source
+          assert release['scope']=='isolated-kickboxing-room-and-annex-test'
+          assert release['productionChanged'] is False
+          assert release['billboardArtworkApproved'] is False
+          assert release['billboardArtworkInstalled'] is False
+          assert release['muralArtworkApproved'] is True
+          assert release['muralArtworkInstalled'] is True
+          assert release['muralSourceSha256']=='fe12ca1214af38ba5facd1777b2b9234a04907ad9b1a10b0ae3bc368f00f251c'
+          assert release['physicalIPhoneValidated'] is False
+          assert release['loadingFix']['algorithmPreserved'] is True
+          assert release['loadingFix']['nativeStreamingGzip'] is True
+          assert load(root/'transport.json')==release['transport']
+          game=load(root/'playable.json')
+          assert game['commit']==source
+          layout=load(root/'kickboxing-layout.json')
+          assert layout['originalEntrancePreserved'] and layout['originalRingPositionPreserved']
+          assert layout['privacyWithAllDoorsOpen']
+          files=release['files']
+          got={p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()}
+          assert got==set(files)|{'release.json'},'Unexpected compiled player contents'
+          for name,expected in files.items():
+            p=root/name
+            assert p.is_file() and p.stat().st_size<100*1024*1024,name
+            with p.open('rb') as f:
+              h=hashlib.sha256()
+              for block in iter(lambda:f.read(1024*1024),b''):h.update(block)
+            assert h.hexdigest()==expected,name
+          report_path=evidence/'report.json'
+          assert report_path.is_file(),'Original QA report must be preserved'
+          qa=load(report_path)
+          assert qa['commit']==source and qa['finished'] is True
+          assert qa['physicalIPhoneValidated'] is False
+          assert (evidence/'walkthrough.webm').stat().st_size>4096
+          assert (evidence/'browser.log').is_file()
+          assert len(list(evidence.glob('*.png')))>=4
+          os.makedirs('review-receipt',exist_ok=True)
+          result={'mode':'ISOLATED_VISUAL_REVIEW_ONLY_NOT_ACCEPTANCE',
+            'sourceCommit':source,'sourceRun':40885598293,
+            'qaPassed':qa.get('passed',False),
+            'qaFailedChecks':[x.get('name') for x in qa.get('checks',[]) if not x.get('passed')],
+            'qaConclusion':'Success' if qa.get('passed') else 'Incomplete or failed; inspect original QA',
+            'billboardInstalled':False,'muralArtworkInstalled':True,'physicalIPhoneValidated':False,
+            'productionChanged':False,'fileCount':len(files),
+            'previewSource':'unmodified compiled Unity player artifact'}
+          pathlib.Path('review-receipt/review-status.json').write_text(json.dumps(result,indent=2))
+          print('BRAXHORN_REVIEW_TRUTH',json.dumps(result))
+          PY
+      - name: Publish exact compiled player to a NEW test-only Git branch
+        run: |
+          set -euo pipefail
+          branch="deployment/braxhorn-mural-8d8ceed0d060"
+          if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null; then
+            echo 'The review branch already exists: refusing to overwrite'; exit 1
+          fi
+          git fetch --no-tags origin main
+          base=$(git rev-parse refs/remotes/origin/main)
+          [ "$base" = "26e5ef339b09df6c1077e9968200660ec89cdacf" ] || { echo 'Production base changed; refuse preview'; exit 1; }
+          git checkout -b "$branch" origin/main
+          rm -rf public/unity-gym
+          mkdir -p public/unity-gym
+          cp -a staged-player/. public/unity-gym/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- public/unity-gym
+          git diff --cached --name-only | awk '!/^public\/unity-gym\//{bad=1; print "UNEXPECTED FILE:",$0} END{exit bad}'
+          git diff --cached --quiet && { echo 'Review player identical to existing player'; exit 1; }
+          git commit -m "test(unity): isolate compiled kickboxing visual review 027d95f07d7d (QA truth preserved)"
+          git push origin "HEAD:refs/heads/$branch"
+          echo "New test preview branch: $branch"
+          echo 'Production main was not changed.'
+      - name: Keep the original QA result and source validation
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: kickboxing-preview-publication-receipt
+          path: |
+            review-receipt/
+            staged-evidence/kickboxing-review/report.json
+          if-no-files-found: warn
+          retention-days: 14
