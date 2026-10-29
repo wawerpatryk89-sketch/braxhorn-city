@@ -1,0 +1,65 @@
+name: BRAXHORN Estate - update isolated preview ONLY after real WebGL pixels PASS
+on:
+  push:
+    branches:
+      - work/unity6-estate-migration-20261029
+    paths:
+      - ".github/workflows/estate-update-verified-webgl.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish-corrected-partial-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            .github
+
+      - name: Require REAL Unity screenshot QA (never publish untested magenta)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run watch 40969059821 -R "$GITHUB_REPOSITORY" --exit-status --interval 15
+          echo "Real WebGL browser test has PASSED; using exact tested artifact."
+
+      - name: Fetch exact shader-fixed Unity WebGL build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run download 40969008277 -R "$GITHUB_REPOSITORY" \
+            -n estate-unity6-PARTIAL-NOT-1TO1-ccf2349859f4bfa927e41ad39ecd46f3388b383c \
+            -D "$RUNNER_TEMP/estate-corrected-build"
+          test -s "$RUNNER_TEMP/estate-corrected-build/EstatePartial_NOT_1TO1/index.html"
+          test -s "$RUNNER_TEMP/estate-corrected-build/EstatePartial_NOT_1TO1/Build/EstatePartial_NOT_1TO1.wasm.gz"
+          test -s "$RUNNER_TEMP/estate-corrected-build/EstatePartial_NOT_1TO1/StreamingAssets/Estate/EstateProceduralAndDoors.glb"
+
+      - name: Commit tested game to an ISOLATED preview Git branch only
+        run: |
+          set -euo pipefail
+          BRANCH="preview/estate-unity6-webgl-20261029"
+          REF="refs/heads/$BRANCH"
+          git fetch --no-tags --depth=1 origin "$REF:refs/remotes/origin/$BRANCH"
+          git switch -C "$BRANCH" "refs/remotes/origin/$BRANCH"
+          git rm --sparse --cached -r --ignore-unmatch Build StreamingAssets TemplateData index.html
+          cp -a "$RUNNER_TEMP/estate-corrected-build/EstatePartial_NOT_1TO1/." .
+          test -s index.html
+          git add --sparse -A Build StreamingAssets TemplateData index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then
+            echo "Tested game already on isolated preview branch."
+          else
+            git commit -m "fix(est-visual): verified original Unity WebGL shaders, NOT full 1:1"
+            git push origin "HEAD:$REF"
+          fi
+          echo "Preview branch updated. No main, city, gym or production touched."
