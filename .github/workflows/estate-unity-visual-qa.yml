@@ -1,0 +1,59 @@
+name: BRAXHORN Estate - REAL Unity WebGL screenshot QA (NO MAGENTA)
+
+on:
+  push:
+    branches:
+      - work/unity6-estate-migration-20261029
+    paths:
+      - ".github/workflows/estate-unity-visual-qa.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  verify-real-webgl-pixels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/unity-estate/visual-qa.py
+
+      - name: Require shader-fixed Unity WebGL build to FINISH successfully
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run watch 40968468699 -R "$GITHUB_REPOSITORY" --exit-status --interval 15
+          gh run download 40968468699 -R "$GITHUB_REPOSITORY" \
+            -n estate-unity6-PARTIAL-NOT-1TO1-2b9f3d9e024a831a47cf12a3b95561ae431487fc \
+            -D "$RUNNER_TEMP/estate-player"
+          test -s "$RUNNER_TEMP/estate-player/EstatePartial_NOT_1TO1/index.html"
+          test -s "$RUNNER_TEMP/estate-player/EstatePartial_NOT_1TO1/Build/EstatePartial_NOT_1TO1.wasm.gz"
+
+      - name: Install real headless Chrome for Unity WebGL visual rendering
+        run: |
+          python3 -m pip install --quiet Pillow==11.3.0 playwright==1.56.1
+          python3 -m playwright install --with-deps chromium
+
+      - name: RENDER original estate in WebGL - fail on >7 percent magenta pixels
+        env:
+          ESTATE_WEBGL_ROOT: ${{ runner.temp }}/estate-player/EstatePartial_NOT_1TO1
+          ESTATE_QA_OUTPUT: ${{ runner.temp }}/estate-qa
+        run: python3 scripts/unity-estate/visual-qa.py
+
+      - name: Preserve actual browser image for user approval
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: estate-REAL-WebGL-screenshot-QA-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/estate-qa/unity-estate-real-browser.png
+            ${{ runner.temp }}/estate-qa/visual-qa-report.json
+          retention-days: 14
+          if-no-files-found: warn
