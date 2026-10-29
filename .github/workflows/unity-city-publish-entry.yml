@@ -1,0 +1,140 @@
+name: Publish connected Unity city only at the existing gym test entry
+on:
+  push:
+    branches: [codex/unity-full-city-20261029]
+    paths: ['unity-release/publish-connected-city.json']
+permissions: {}
+concurrency:
+  group: unity-city-test-entry-publication
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-full-city-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-release
+            public/unity-gym
+          persist-credentials: false
+      - name: Validate explicit reviewed publication request
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import json,os,pathlib,re,urllib.request
+          m=json.loads(pathlib.Path('unity-release/publish-connected-city.json').read_text())
+          assert m['source_commit']=='19c71c167d4426523a251b94c3aeabbe9664aad5'
+          assert m['target_path']=='public/unity-gym/' and m['visual_review']=='reviewed'
+          assert re.fullmatch('[0-9a-f]{40}',m['qa_commit']) and re.fullmatch('[0-9a-f]{40}',m['expected_main'])
+          assert type(m['qa_run']) is int
+          req=urllib.request.Request('https://api.github.com/repos/wawerpatryk89-sketch/braxhorn-city/actions/runs/'+str(m['qa_run']),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(req) as r:run=json.load(r)
+          assert run['conclusion']=='success' and run['status']=='completed'
+          assert run['head_sha']==m['qa_commit'] and run['head_branch']=='codex/unity-full-city-20261029'
+          assert run['name']=='Recheck existing connected Unity city player'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/city-publication-request.json').write_text(json.dumps(m))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('run='+str(m['qa_run'])+'\nsha='+m['qa_commit']+'\n')
+      - name: Download exact browser-tested package
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: ${{ steps.source.outputs.run }}
+          github-token: ${{ github.token }}
+          name: city-connected-player-${{ steps.source.outputs.sha }}
+          path: ${{ runner.temp }}/city-tested-player
+      - name: Download corresponding browser evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: ${{ steps.source.outputs.run }}
+          github-token: ${{ github.token }}
+          name: city-connected-review-${{ steps.source.outputs.sha }}
+          path: ${{ runner.temp }}/city-tested-review
+      - name: Verify all bytes and publish only public/unity-gym, preserving original City
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64,hashlib,json,os,pathlib,shutil,subprocess
+          root=pathlib.Path.cwd();tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          m=json.loads((tmp/'city-publication-request.json').read_text());src=tmp/'city-tested-player'
+          qa=json.loads((tmp/'city-tested-review/report.json').read_text());release=json.loads((src/'release.json').read_text())
+          assert qa['passed'] is True and all(c['passed'] for c in qa['checks'])
+          assert qa['sourceCommit']==release['sourceCommit']==m['source_commit'] and qa['qaCommit']==m['qa_commit']
+          assert release['scope']=='isolated-unity-gym' and release['originalCityReplaced'] is False
+          assert not any(p.is_symlink() for p in src.rglob('*'))
+          for name,digest in release['files'].items():
+              p=pathlib.PurePosixPath(name);assert not p.is_absolute() and '..' not in p.parts
+              assert hashlib.sha256((src/name).read_bytes()).hexdigest()==digest,name
+          assert len(list((tmp/'city-tested-review').glob('*.png')))>=20
+          shutil.copyfile('unity-release/recheck-city.mjs','city-live-check.mjs')
+          env=os.environ.copy();token=env.pop('GH_TOKEN')
+          auth=base64.b64encode(('x-access-token:'+token).encode()).decode()
+          env.update(GIT_CONFIG_COUNT='1',GIT_CONFIG_KEY_0='http.https://github.com/.extraheader',GIT_CONFIG_VALUE_0='AUTHORIZATION: basic '+auth)
+          def git(*args,auth=False):return subprocess.check_output(['git',*args],env=env if auth else None,text=True).strip()
+          assert git('remote','get-url','origin') in ['https://github.com/wawerpatryk89-sketch/braxhorn-city','https://github.com/wawerpatryk89-sketch/braxhorn-city.git']
+          git('fetch','--no-tags','--depth=1','origin','main',auth=True)
+          assert git('rev-parse','FETCH_HEAD')==m['expected_main'],'Main changed; refusing to overwrite concurrent work'
+          git('checkout','--detach',m['expected_main'])
+          dest=root/'public/unity-gym';assert not dest.is_symlink()
+          previous=json.loads((dest/'release.json').read_text());assert previous['scope']=='isolated-unity-gym'
+          shutil.rmtree(dest);shutil.copytree(src,dest);(dest/'vercel.json').unlink(missing_ok=True)
+          release.update(qaPassed=True,qaChecks=len(qa['checks']),qaRun=m['qa_run'],qaCommit=m['qa_commit'],visualReview='reviewed',previousMain=m['expected_main'])
+          (dest/'release.json').write_text(json.dumps(release,indent=2)+'\n')
+          git('add','--sparse','--force','--all','--','public/unity-gym')
+          changed=[p for p in git('diff','--cached','--name-only','-z').split('\0') if p]
+          assert changed and all(p.startswith('public/unity-gym/') for p in changed),changed
+          git('config','user.name','github-actions[bot]');git('config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
+          git('commit','-m','release(unity-gym): connect reviewed original city and estate; preserve main City files')
+          assert git('ls-remote','origin','refs/heads/main',auth=True).split()[0]==m['expected_main'],'Main moved before publication'
+          git('push','origin','HEAD:refs/heads/main',auth=True)
+          receipt={'publishedCommit':git('rev-parse','HEAD'),'previousMain':m['expected_main'],'sourceCommit':m['source_commit'],'changedPaths':changed,'onlyTestEntryChanged':True,'testUrl':'https://braxhorn-city.vercel.app/unity-gym/','liveVerified':False}
+          (tmp/'city-publication-receipt.json').write_text(json.dumps(receipt,indent=2))
+          print('ONLY_UNITY_GYM_TEST_ENTRY_PUBLISHED',receipt['publishedCommit'])
+      - name: Verify the public deployed build, not a protected branch preview
+        shell: python
+        run: |
+          import hashlib,json,os,pathlib,time,urllib.request
+          tmp=pathlib.Path(os.environ['RUNNER_TEMP']);p=tmp/'city-publication-receipt.json';receipt=json.loads(p.read_text())
+          origin='https://braxhorn-city.vercel.app/unity-gym/'
+          def fetch(name):
+              req=urllib.request.Request(origin+name,headers={'Cache-Control':'no-cache'})
+              with urllib.request.urlopen(req,timeout=90) as r:
+                  assert r.url.startswith(origin),'Unexpected hosting redirect'
+                  return r.read()
+          for attempt in range(40):
+              try:
+                  live=json.loads(fetch('release.json?v='+receipt['publishedCommit']))
+                  if live.get('sourceCommit')==receipt['sourceCommit'] and live.get('qaPassed'):break
+              except Exception:pass
+              time.sleep(10)
+          else:raise RuntimeError('New public Unity release not observed')
+          for name,digest in live['files'].items():assert hashlib.sha256(fetch(name)).hexdigest()==digest,name
+          receipt.update(liveVerified=True,verifiedFiles=len(live['files']))
+          p.write_text(json.dumps(receipt,indent=2));print('PUBLIC_UNITY_CITY_BYTES_VERIFIED',receipt['verifiedFiles'])
+      - name: Install real browser for public runtime verification
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Exercise the public gym-city-estate link
+        env:
+          PLAYER_ROOT: public/unity-gym
+          PLAYER_URL: https://braxhorn-city.vercel.app/unity-gym/
+          QA_OUT: city-live-review
+        run: node city-live-check.mjs
+      - name: Save publication and real live test evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-publication-proof-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/city-publication-receipt.json
+            city-live-review/
+          retention-days: 7
