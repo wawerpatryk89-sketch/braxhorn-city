@@ -38,15 +38,16 @@ jobs:
       - name: Inspect leaf islands without modifying original geometry
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends blender
-          blender --background --disable-autoexec foliage-sources/tree_small_02/tree_small_02_1k.blend --python unity-city/Assets/Editor/CityRebuild/Materials/InspectFoliageTopology.py -- --object tree_small_02_LOD1 --output foliage-topology.json
+          sudo apt-get install -y --no-install-recommends blender python3-numpy
+          blender --background --disable-autoexec --python-exit-code 1 foliage-sources/tree_small_02/tree_small_02_1k.blend --python unity-city/Assets/Editor/CityRebuild/Materials/InspectFoliageTopology.py -- --object tree_small_02_LOD1 --output foliage-topology.json
+          test -s foliage-topology.json
       - name: Preserve the topology findings independently
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: city-rebuild-foliage-topology-${{ github.sha }}
           path: foliage-topology.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14
   foliage-report-readout:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-tree-readout]')
