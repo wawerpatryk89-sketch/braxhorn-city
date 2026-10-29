@@ -23,3 +23,11 @@ User requires a playable Vercel test preview at each 15% checkpoint (15, 30, 45,
 First checkpoint: functional access and return for the existing flagship tower, actual street view and clear defects reported. Subsequent work: remaining building/roof routes, usable rooftop arenas, full metro station, remaining R1 mission spaces and grounds, then complete physical walkthrough and device review. Inspect each candidate before advancing visual work beyond its checkpoint.
 
 Vercel project: braxhorn-city / prj_qeJX3ynFW1b21OYRsZlXKChzSRDh. Ordinary source-branch Vercel builds still serve the older public tree; use a dedicated preview branch containing the exact Unity WebGL artifact. Do not present a source-only branch preview as the new Unity version.
+
+## Ceiling obstruction correction
+
+Baseline run 40953176475 passed the flagship physical up/down route at source 58db7d5f. This original baseline used direct action commands, so does not validate touch-button visibility. Its actual roof screenshot was inspected.
+
+Eight additional shafts intersected a full collidable lobby ceiling at y=3.76. Replace that ceiling with four slabs around the shared shaft footprint. The build now checks each additional passenger shaft for static collision obstructions. This is an editor geometry gate, not a substitute for physical riding and device testing. Existing architecture materials and all 18 footprints are retained.
+
+R1 packaging also adds ZJEDŹ to visible contextual actions; the previous HTML hid the roof descent button. New browser tests click the visible Action button. Static UI regression passed; new-player runtime results remain pending.

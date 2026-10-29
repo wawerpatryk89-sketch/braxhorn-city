@@ -241,6 +241,7 @@ public static class BraxCityRebuild
             if(distinctShafts!=8)
                 throw new InvalidOperationException("CITY_ELEVATOR_SHAFT_DUPLICATE "+
                     distinctShafts+"/8");
+            BraxCityTowerLiftNetwork.ValidatePassengerShafts(world);
             Debug.Log("CITY_NINE_PHYSICAL_ELEVATORS_INCLUDED actual="+
                 (world.additionalTowerElevators.Length+1)+
                 " uniqueAdditionalShafts="+distinctShafts+

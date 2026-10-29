@@ -10,12 +10,36 @@ using UnityEngine;
 // CharacterController. Doors/cabins have collision, not teleport triggers.
 public static class BraxCityTowerLiftNetwork
 {
-    const float HalfShaft=1.83f;
+    public const float HalfShaft=1.83f;
     const float HalfInner=1.65f;
     const float LowerY=.15f;
     const float OpeningHeight=2.93f;
     const float DoorSpeed=1.35f; // Runtime uses this in BraxCityElevator.
     static Material steel,stone,glass,deck,illumination,black;
+    public static Vector2 ShaftCenter(BraxCityArchitecture.Building b)
+    {
+        float direction=b.far?1f:-1f;
+        return new Vector2((b.x0+b.x1)*.5f,
+            (b.far?b.z0:b.z1)+direction*Mathf.Min(4.85f,(b.z1-b.z0)*.54f));
+    }
+    public static void ValidatePassengerShafts(BraxCityWorld world)
+    {
+        Physics.SyncTransforms();
+        foreach(var lift in world.additionalTowerElevators)
+        {
+            float bottom=lift.lowerY+.30f,top=lift.upperY-.30f;
+            var centre=new Vector3(lift.shaftCenter.x,(bottom+top)*.5f,lift.shaftCenter.y);
+            var blockers=Physics.OverlapBox(centre,new Vector3(1.35f,(top-bottom)*.5f,1.35f),
+                Quaternion.identity,~0,QueryTriggerInteraction.Ignore)
+                .Where(c=>!c.GetComponentInParent<BraxCityMovingLiftPart>() &&
+                          !c.GetComponentInParent<BraxGymPlayer>())
+                .Select(c=>c.name).Distinct().ToArray();
+            if(blockers.Length>0)
+                throw new InvalidOperationException("CITY_LIFT_SHAFT_BLOCKED "+lift.name+": "+
+                    string.Join(", ",blockers));
+        }
+        Debug.Log("CITY_LIFT_PASSENGER_SHAFT_CLEAR measured=8 staticCollisionCheck=true");
+    }
     static Transform Group(string name,Transform parent,Vector3 local)
     {
         var tr=new GameObject(name).transform;
@@ -199,11 +223,11 @@ public static class BraxCityTowerLiftNetwork
     {
         var top=BraxCityStreetSkyline.Footprint(b,plan);
         float roof=BraxCityStreetSkyline.RoofHeight(b,plan.additionalFloors);
-        float sx=(b.x0+b.x1)*.5f;
-        float dz=b.z1-b.z0;
+        var shaft=ShaftCenter(b);
+        float sx=shaft.x;
         float dir=b.far?1f:-1f;
         float streetFace=b.far?b.z0:b.z1;
-        float sz=streetFace+dir*Mathf.Min(4.85f,dz*.54f);
+        float sz=shaft.y;
         if(sx-HalfShaft<=top.xMin+.4f||sx+HalfShaft>=top.xMax-.4f ||
            sz-HalfShaft<=top.yMin+.25f||sz+HalfShaft>=top.yMax-.25f)
             throw new InvalidOperationException("Cannot fit physical lift inside source tower "+b.id+" "+top);

@@ -253,8 +253,31 @@ public static class BraxCityArchitecture
                 new Color(.29f,.305f,.30f),.87f,.04f);
             Box("REAL walkable entry floor "+b.id,g,new Vector3((b.x0+b.x1)*.5f,.055f,lobbyCenterZ),
                 new Vector3(width-.38f,.11f,effectiveDepth),warmFloor,true);
-            Box("Lobby ceiling "+b.id,g,new Vector3((b.x0+b.x1)*.5f,lobbyHeight+.18f,lobbyCenterZ),
-                new Vector3(width-.32f,.16f,effectiveDepth),wallFinish,true);
+            if(hasLift)
+            {
+                // Use the same shaft footprint as the physical cabin/roof.
+                // A full lobby ceiling otherwise stops the passenger at 3.7 m.
+                var shaft=BraxCityTowerLiftNetwork.ShaftCenter(b);
+                float half=BraxCityTowerLiftNetwork.HalfShaft;
+                float west=b.x0+.16f,east=b.x1-.16f;
+                float south=Mathf.Min(streetZ,interiorEnd),north=Mathf.Max(streetZ,interiorEnd);
+                float left=shaft.x-half,right=shaft.x+half;
+                float front=shaft.y-half,back=shaft.y+half;
+                if(left<=west||right>=east||front<=south||back>=north)
+                    throw new InvalidOperationException("Lobby cannot contain lift opening: "+b.id);
+                float ceilingY=lobbyHeight+.18f;
+                Box("Lobby ceiling west "+b.id,g,new Vector3((west+left)*.5f,ceilingY,lobbyCenterZ),
+                    new Vector3(left-west,.16f,effectiveDepth),wallFinish,true);
+                Box("Lobby ceiling east "+b.id,g,new Vector3((right+east)*.5f,ceilingY,lobbyCenterZ),
+                    new Vector3(east-right,.16f,effectiveDepth),wallFinish,true);
+                Box("Lobby ceiling south "+b.id,g,new Vector3(shaft.x,ceilingY,(south+front)*.5f),
+                    new Vector3(half*2,.16f,front-south),wallFinish,true);
+                Box("Lobby ceiling north "+b.id,g,new Vector3(shaft.x,ceilingY,(back+north)*.5f),
+                    new Vector3(half*2,.16f,north-back),wallFinish,true);
+            }
+            else
+                Box("Lobby ceiling "+b.id,g,new Vector3((b.x0+b.x1)*.5f,lobbyHeight+.18f,lobbyCenterZ),
+                    new Vector3(width-.32f,.16f,effectiveDepth),wallFinish,true);
             foreach(float sideX in new[]{b.x0+.14f,b.x1-.14f})
                 Box("Walkable lobby sidewall "+b.id,g,new Vector3(sideX,lobbyHeight*.5f,lobbyCenterZ),
                     new Vector3(.27f,lobbyHeight,effectiveDepth),wallFinish,true);
