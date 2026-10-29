@@ -216,6 +216,17 @@ public static class BraxCityRebuild
         BraxCityArchitecture.Billboard(root,"training",new Vector3(39,39,20.05f),13,Brand+"training.png",0);
         if(WholeDistrict)
         {
+            // Two additional original licensed/supplied BRAXHORN identities:
+            // one restrained art panel per block, at upper-storey height so
+            // it cannot obstruct doors, streetlights or the Brax capsule.
+            // The actual supplied image aspect ratio is always preserved.
+            BraxCityArchitecture.Billboard(root,"avenue-original-badge",
+                new Vector3(-6.2f,15.8f,20.92f),4.3f,Brand+"brand-badge.png",0);
+            BraxCityArchitecture.Billboard(root,"bakery-original-poster",
+                new Vector3(27.2f,15.3f,35.76f),4.0f,Brand+"brand-poster.png",180);
+        }
+        if(WholeDistrict)
+        {
             BraxCityArchitecture.Billboard(root,"brax",new Vector3(-18,16,21.2f),6,Brand+"brax-fighter.jpg",0);
             BraxCityArchitecture.Billboard(root,"nyxa",new Vector3(-39,16,35.7f),5,Brand+"nyxa-pink.jpg",180);
             BraxCityArchitecture.Billboard(root,"pw-ai-video",new Vector3(57,12,35.6f),4,Brand+"pw-ai-video.jpg",180);
