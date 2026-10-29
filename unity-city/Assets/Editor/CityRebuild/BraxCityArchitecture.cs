@@ -203,17 +203,24 @@ public static class BraxCityArchitecture
     public static Transform Build(Transform parent,Building b)
     {
         var g=Group("Building "+b.id,parent,Vector3.zero,Quaternion.identity);float width=b.x1-b.x0,depth=b.z1-b.z0;
-        if(b.far)Elevation(g,"Street frontage",new Vector3(b.x1,0,b.z0),180,width,b.floors,true,b.title,b.industrial,b.id=="quay_corner");
-        else Elevation(g,"Street frontage",new Vector3(b.x0,0,b.z1),0,width,b.floors,true,b.title,b.industrial,b.id=="quay_corner");
+        // All eighteen frontages require a REAL portal, not a non-interactive
+        // door mesh over a solid interior collider. Quay tower retains its
+        // separately designed double glass doors in PremiumTowerBuild.
+        if(b.far)Elevation(g,"Street frontage",new Vector3(b.x1,0,b.z0),180,width,b.floors,true,b.title,b.industrial,true);
+        else Elevation(g,"Street frontage",new Vector3(b.x0,0,b.z1),0,width,b.floors,true,b.title,b.industrial,true);
         // Exposed backs are designed too. Recessed windows and a complete roof
         // avoid a dressed front with a blank, stretched box behind it.
         if(b.far)Elevation(g,"Courtyard frontage",new Vector3(b.x0,0,b.z1),0,width,b.floors,false,"",b.industrial);
         else Elevation(g,"Rear frontage",new Vector3(b.x1,0,b.z0),180,width,b.floors,false,"",b.industrial);
         bool westNeighbour=StreetBuildings.Any(n=>n!=b&&Mathf.Abs(n.x1-b.x0)<.01f&&n.z0<b.z1&&n.z1>b.z0);
         bool eastNeighbour=StreetBuildings.Any(n=>n!=b&&Mathf.Abs(n.x0-b.x1)<.01f&&n.z0<b.z1&&n.z1>b.z0);
-        if(westNeighbour)Box("West party wall masonry",g,new Vector3(b.x0+.12f,b.Height*.5f,(b.z0+b.z1)*.5f),new Vector3(.24f,b.Height,depth),brick,false,1);
+        // These shared returns were formerly visibly RED even between glass
+        // towers. Their audited geometry is retained, but finished in
+        // subdued graphite metal so no isolated red-brick slab reads as a
+        // rendering error on the public street.
+        if(westNeighbour)Box("West shared graphite structural return",g,new Vector3(b.x0+.12f,b.Height*.5f,(b.z0+b.z1)*.5f),new Vector3(.24f,b.Height,depth),darkMetal,false,1);
         else Elevation(g,"Exposed west return",new Vector3(b.x0,0,b.z0),270,depth,b.floors,false,"",b.industrial);
-        if(eastNeighbour)Box("East party wall masonry",g,new Vector3(b.x1-.12f,b.Height*.5f,(b.z0+b.z1)*.5f),new Vector3(.24f,b.Height,depth),brick,false,1);
+        if(eastNeighbour)Box("East shared graphite structural return",g,new Vector3(b.x1-.12f,b.Height*.5f,(b.z0+b.z1)*.5f),new Vector3(.24f,b.Height,depth),darkMetal,false,1);
         else Elevation(g,"Exposed east return",new Vector3(b.x1,0,b.z1),90,depth,b.floors,false,"",b.industrial);
         for(int i=0;i<=b.floors;i++)
         {
@@ -223,19 +230,115 @@ public static class BraxCityArchitecture
         }
         // No intermediate full roof may seal the accessible lift shaft.
         // Its upper tower and final roof deck are composed of real cut slabs.
-        if(b.id!="quay_corner")
+        // Any building carrying an accessible skyscraper must have a real
+        // vertical shaft, without opaque roof slabs sealing the lower facade.
+        bool hasLift=BraxCityStreetSkyline.HighRises.Any(t=>t.id==b.id);
+        if(!hasLift)
             Box("Weatherproof roof",g,new Vector3((b.x0+b.x1)*.5f,b.Height-.45f,(b.z0+b.z1)*.5f),new Vector3(width,.15f,depth),roof);
-        // Future premises remain closed. The existing shop, NOVA and gym are
-        // excluded from this builder and keep their real doorway openings.
+        // Remove the old full-block collider: it physically prevented entry
+        // through every source door. Author a short (7 m) walkable ground
+        // lobby with solid lateral boundaries and an actual moving door.
+        // No unlocked warehouse, NPC, shop logic or extra gameplay is added.
         if(b.id!="quay_corner")
         {
-            var physical=new GameObject("Closed future premises collision");physical.transform.SetParent(g,false);
-            physical.transform.position=new Vector3((b.x0+b.x1)*.5f,b.Height*.5f,(b.z0+b.z1)*.5f);
-            physical.AddComponent<BoxCollider>().size=new Vector3(width,b.Height,depth);
+            const float lobbyHeight=3.58f;
+            float effectiveDepth=Mathf.Min(7.05f,depth-.55f);
+            float streetZ=b.far?b.z0:b.z1;
+            float behind=b.far?1f:-1f;
+            float lobbyCenterZ=streetZ+behind*effectiveDepth*.5f;
+            float interiorEnd=streetZ+behind*effectiveDepth;
+            var warmFloor=BraxCityMaterials.Surface("Natural non-gloss stone in accessible ground-floor lobbies",
+                new Color(.45f,.45f,.43f),.93f,.02f);
+            var wallFinish=BraxCityMaterials.Surface("Matte premium interior walls in authored lobbies",
+                new Color(.29f,.305f,.30f),.87f,.04f);
+            Box("REAL walkable entry floor "+b.id,g,new Vector3((b.x0+b.x1)*.5f,.055f,lobbyCenterZ),
+                new Vector3(width-.38f,.11f,effectiveDepth),warmFloor,true);
+            Box("Lobby ceiling "+b.id,g,new Vector3((b.x0+b.x1)*.5f,lobbyHeight+.18f,lobbyCenterZ),
+                new Vector3(width-.32f,.16f,effectiveDepth),wallFinish,true);
+            foreach(float sideX in new[]{b.x0+.14f,b.x1-.14f})
+                Box("Walkable lobby sidewall "+b.id,g,new Vector3(sideX,lobbyHeight*.5f,lobbyCenterZ),
+                    new Vector3(.27f,lobbyHeight,effectiveDepth),wallFinish,true);
+            Box("Closed rear of finished street lobby "+b.id,g,
+                new Vector3((b.x0+b.x1)*.5f,lobbyHeight*.5f,interiorEnd),
+                new Vector3(width-.2f,lobbyHeight,.24f),wallFinish,true);
+            if(depth-effectiveDepth>.45f)
+                Box("Physically closed unbuilt rear premises "+b.id,g,
+                    new Vector3((b.x0+b.x1)*.5f,b.Height*.5f,(interiorEnd+(b.far?b.z1:b.z0))*.5f),
+                    new Vector3(width-.3f,b.Height,depth-effectiveDepth),wallFinish,true);
+            // Upper unoccupied floors are protected by structural partitions,
+            // but there is intentionally NO solid collider across the
+            // player's ground-floor entrance.
+            if(!hasLift)
+                Box("Solid nonpublic upper floors "+b.id,g,
+                    new Vector3((b.x0+b.x1)*.5f,(b.Height+lobbyHeight)*.5f,(b.z0+b.z1)*.5f),
+                    new Vector3(width-.3f,b.Height-lobbyHeight,depth-.3f),wallFinish,true);
         }
         // The accessible tower receives partitioned structure, not a solid
         // whole-building collider that traps the player at the lobby entrance.
         return g;
+    }
+
+    /// <summary>
+    /// The sourced facade kit contained decorative non-functional door
+    /// geometry; all other buildings now receive a real, hinged, collidable
+    /// entrance in their EXISTING dedicated modular middle bay. This
+    /// registers with BraxCityWorld so the user's original Action button
+    /// can open/close it. The one showcase tower owns its own door design.
+    /// </summary>
+    public static BraxCityDoor BuildStreetAccessDoor(Transform building,Building b)
+    {
+        if(b.id=="quay_corner")return null;
+        if(!building || building.name!="Building "+b.id)
+            throw new InvalidOperationException("Cannot attach city door to wrong building "+b.id);
+        float frontZ=b.far?b.z0:b.z1;
+        float yaw=b.far?180f:0f;
+        float x=(b.x0+b.x1)*.5f;
+        var root=Group("PUBLIC WORKING ENTRANCE "+b.title+" "+b.id,building,
+            new Vector3(x,.15f,frontZ),Quaternion.Euler(0,yaw,0));
+        float width=b.x1-b.x0;
+        int bays=Mathf.Max(1,Mathf.RoundToInt(width/3f));
+        float bay=width/bays;
+        // Exact original middle modular bay centre. For odd bay counts the
+        // visible door is not always exactly at the block centre.
+        float frontX=b.far?b.x1:b.x0;
+        float direction=b.far?-1f:1f;
+        float portalX=frontX+direction*(bays/2+.5f)*bay;
+        root.position=new Vector3(portalX,.15f,frontZ);
+        const float widthEach=.94f;
+        var colour=BraxCityMaterials.Surface("City working door graphite steel / nonemissive",
+            new Color(.11f,.14f,.145f),.59f,.43f);
+        var tinted=BraxCityMaterials.Surface("City working door smoked safety glazing",
+            new Color(.27f,.36f,.39f,.73f),.23f,.12f);
+        var handle=BraxCityMaterials.Surface("City door stainless handle",
+            new Color(.58f,.60f,.56f),.33f,.62f);
+        var leaves=new Transform[2];var sideDirections=new[]{1f,-1f};
+        for(int i=0;i<2;i++)
+        {
+            float axis=i==0?-1.0f:1.0f;
+            float center= i==0?widthEach*.5f:-widthEach*.5f;
+            var leaf=Group((i==0?"Left":"Right")+" real door leaf with capsule collision",root,
+                new Vector3(axis,0,0),Quaternion.identity);
+            Box("Operable smoked safety door",leaf,new Vector3(center,1.37f,-.02f),
+                new Vector3(widthEach,2.74f,.075f),tinted,true);
+            foreach(float frame in new[]{-.43f,.43f})
+                Box("Powder coated frame",leaf,new Vector3(center+frame,1.37f,-.070f),
+                    new Vector3(.04f,2.74f,.08f),colour);
+            Box("Lockable handle",leaf,new Vector3(center+(i==0?.34f:-.34f),1.12f,.08f),
+                new Vector3(.035f,.31f,.12f),handle);
+            leaves[i]=leaf;
+        }
+        foreach(float jamb in new[]{-1.1f,1.1f})
+            Box("Structurally framed entrance jamb",root,new Vector3(jamb,1.46f,-.02f),
+                new Vector3(.13f,2.93f,.28f),colour);
+        Box("Architectural entrance lintel",root,new Vector3(0,2.97f,-.02f),
+            new Vector3(2.32f,.15f,.28f),colour);
+        var door=root.gameObject.AddComponent<BraxCityDoor>();
+        door.id="R1_PUBLIC_DOOR_"+b.id;
+        door.label=b.title;
+        door.leaves=leaves;door.sides=sideDirections;
+        Debug.Log("CITY_FUNCTIONAL_ENTRY id="+door.id+" worldXYZ="+root.position+
+            " sourceFootprint="+b.id+" actualDoorCollision=2");
+        return door;
     }
 
     public static void UpperExtension(Transform parent,string id,float x0,float x1,float z0,float z1,float baseY,int floors)
@@ -249,7 +352,7 @@ public static class BraxCityArchitecture
         Box("Upper roof",g,new Vector3((x0+x1)*.5f,h-.4f,(z0+z1)*.5f),new Vector3(w,.2f,z1-z0),roof);
     }
 
-    public static void Tower(Transform parent,string id,Rect footprint,float baseY,int floors,float floorHeight=3.35f)
+    public static void Tower(Transform parent,string id,Rect footprint,float baseY,int floors,float floorHeight=3.35f,bool openLiftRoof=false)
     {
         if(floors<2||floors>48||floorHeight<3f||footprint.width<6||footprint.height<6)
             throw new InvalidOperationException("Invalid high-rise metre-scale geometry: "+id);
@@ -302,11 +405,10 @@ public static class BraxCityArchitecture
             Batch(face);
         }
         float height=floors*floorHeight;
-        if(id=="quay observation tower")
+        if(id=="quay observation tower"||openLiftRoof)
         {
-            // A solid roof would visually and physically occlude the elevator
-            // from arriving at the terrace. BraxCityPremiumTowerBuild authors
-            // the surrounding roof slabs with the true central shaft opening.
+            // Every street-linked tall building needs a true roof lift exit.
+            // A solid top slab would seal the elevator or trap the player.
             Debug.Log("CITY_LIFT_OPEN_ROOF full slab suppressed for "+id);
         }
         else
