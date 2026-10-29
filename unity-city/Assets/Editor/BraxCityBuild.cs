@@ -27,6 +27,7 @@ public static class BraxCityBuild
     [Serializable] public sealed class AreaReport { public string area;public int originalMeshes,importedMeshes,originalTriangles,sourceBoxes,sourceCircles,sourcePits,meshColliders,doors,bakedMaterials,sourcePoints; }
     [Serializable] public sealed class Report { public string commit,unity,browserSource="260a5897472d42d099766da48e708859bba6c3dc",scope="original-city-and-estate-exploration";public bool originalCityReplaced=false,originalModels=true,originalBraxRig=true;public AreaReport[] areas;public string[] notYetPorted={"estate NPC schedules and combat AI","estate story and economy","additional playable character selection"}; }
     static readonly List<AreaReport> reports=new List<AreaReport>();
+    static bool MobileCityCompression;
     static GameObject Import(string path)
     {
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(path)??AssetDatabase.LoadAllAssetsAtPath(path).OfType<GameObject>().FirstOrDefault();
@@ -44,7 +45,11 @@ public static class BraxCityBuild
     {
         string path=Source+file;var importer=AssetImporter.GetAtPath(path) as TextureImporter;
         if(importer==null)throw new Exception("Original lightmap not imported: "+file);
-        importer.sRGBTexture=false;importer.textureCompression=TextureImporterCompression.Uncompressed;importer.mipmapEnabled=true;importer.maxTextureSize=4096;importer.wrapMode=TextureWrapMode.Clamp;importer.SaveAndReimport();
+        // WebGL city-only derivative uses high-quality GPU compression for static lightmaps;
+        // exact original source image bytes and UVs are not modified.
+        importer.sRGBTexture=false;
+        importer.textureCompression=MobileCityCompression?TextureImporterCompression.CompressedHQ:TextureImporterCompression.Uncompressed;
+        importer.mipmapEnabled=true;importer.maxTextureSize=MobileCityCompression?2048:4096;importer.wrapMode=TextureWrapMode.Clamp;importer.SaveAndReimport();
         return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }
     static int ConvertBaked(GameObject root,Manifest data)
@@ -149,7 +154,7 @@ public static class BraxCityBuild
     }
     public static void AttachCity(BraxGymPlayer player,bool includeEstate=true)
     {
-        reports.Clear();var city=AddArea("city",player);city.estateAvailable=includeEstate;player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=420;player.view.backgroundColor=new Color(.67f,.75f,.81f);
+        reports.Clear();MobileCityCompression=!includeEstate;var city=AddArea("city",player);city.estateAvailable=includeEstate;player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=420;player.view.backgroundColor=new Color(.67f,.75f,.81f);
     }
     public static string CreateEstate(string commit)
     {
