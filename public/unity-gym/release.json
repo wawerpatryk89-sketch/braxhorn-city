@@ -1,28 +1,67 @@
 {
   "scope": "isolated-unity-gym",
-  "sourceCommit": "ec3fadaf05d6d69d20086ab163d3dacedd338f6b",
-  "sourceRun": 40795534797,
-  "approvedArtifact": 12863788361,
+  "iteration": "premium-02",
+  "sourceCommit": "38015034070ba78dc8f3c63e2d4ec5eee31111d2",
+  "sourceRun": 40803826572,
   "qaPassed": true,
-  "qaPlatform": "Chromium software WebGL2, 915x412 touch emulation; not a physical iPhone test",
-  "publishedUtc": "2026-10-29T00:51:45.852594+00:00",
+  "qaChecks": 16,
+  "qaPlatform": "Chromium WebGL2, 915x412, actual CDP touch input; camera-basis synchronized per rendered frame; not a physical iPhone test",
+  "publishedUtc": "2026-10-29T02:12:35.074591+00:00",
+  "previousMain": "99f2ddd113790db222f6e3392764965f53d311d5",
+  "previousSource": "ec3fadaf05d6d69d20086ab163d3dacedd338f6b",
   "originalCityReplaced": false,
   "fullCityMigration": false,
   "features": [
-    "original Brax",
-    "original gym",
-    "walking",
-    "running",
-    "manual camera",
-    "punch",
-    "kick",
-    "touch joystick"
+    "camera-relative joystick fixed",
+    "original Brax rig and animations",
+    "original ORM restored",
+    "black clothing and lime accents",
+    "wall and floor relief",
+    "rounded ring pads and thicker bound ropes",
+    "ring stitching eyelets and stair grips",
+    "rounded leather bags with chains",
+    "arched window frames",
+    "verified library Sofa02",
+    "cache-safe versioned WebGL files"
   ],
+  "premiumDetails": {
+    "upgradedMaterials": 34,
+    "detailParts": 379,
+    "librarySofa02": true,
+    "heroRigChanged": false,
+    "glowAdded": false
+  },
+  "materials": {
+    "originalHeroGeometryChanged": false,
+    "originalHeroRigChanged": false,
+    "originalUVsChanged": false,
+    "originalLogosChanged": false,
+    "sourceTextureSize": [
+      2048,
+      2048
+    ],
+    "greenPixelsAdjusted": 253579,
+    "newMaps": [
+      "original brick relief",
+      "rubber relief",
+      "leather grain",
+      "canvas weave",
+      "brushed metal",
+      "Brax colour and normal"
+    ]
+  },
+  "sourceRefinements": {
+    "originalOrmRestored": true,
+    "originalRigChanged": false,
+    "originalBrandingChanged": false,
+    "bagColourSpaceCorrected": true,
+    "roundedBagSegments": 48
+  },
   "files": {
-    "Build/WebGL.data.unityweb": "865dde5676c0bfe0755208bc93efaefecee842d826fb41ad7fcfdfb8e41f51cf",
-    "Build/WebGL.framework.js.unityweb": "a3a5c20773fa0133c3ab604bc1e5e13152564221632cca392e0a583060adaca0",
-    "Build/WebGL.loader.js": "9af53dc769a07be0c12fb16a16f824129ba4c0c7f7b8d80ef0d02e9a4d245b67",
-    "Build/WebGL.wasm.unityweb": "16fec6142cb1a3fcdde1b4c0745330a7dfe13d322a59e887f2a076969aa97cf9",
+    "Build/38015034070b_WebGL.data.unityweb": "d3c6a3b8d45e282e7ab9034a21551d76cd1821b14b8055572571e291977eddb6",
+    "Build/38015034070b_WebGL.framework.js.unityweb": "26d46f57071baf030395c06b91b4b8cfc6109bc7612eb5cb60944138b84a183b",
+    "Build/38015034070b_WebGL.loader.js": "9defef85d59b6bdb658d80c411d72def7938f19f579459dff3bbc5e8d1314aa3",
+    "Build/38015034070b_WebGL.wasm.unityweb": "ed9bd33838e8f01de01198833c225cd01acc3860f5ac8f5f18687d89030a80b1",
     "TemplateData/MemoryProfiler.png": "0ce87be20d0c24ab6cb73b57de2004da261cc2a641e69319c6ae3fe11fc85483",
     "TemplateData/favicon.ico": "9c13beb90ee8f70580d52a21d5233970d1c89e71e4a34a462c22610941c3c77f",
     "TemplateData/fullscreen-button.png": "21221581673a54b8139d408d4a3f8d2b879e86827d4b6fc53b995ff7a99ee3e9",
@@ -35,9 +74,12 @@
     "TemplateData/unity-logo-light.png": "002990aea0d946833cadc1519d5b7e50a4570bd537a0517dd79a59d3eec84da7",
     "TemplateData/unity-logo-title-footer.png": "9e8b3bdb67c2446d16362fe59449d892100931dbbadfe6a9d923a4142b57a79f",
     "TemplateData/webmemd-icon.png": "c56f5494640cedda273aad38d58e6ab9da625d5b3f4d875c0ff92c6192a569c2",
-    "index.html": "57666c016a3d11c6ead1a7565b7de47da041afed1c7ec480b2a714ed6b77da8a",
+    "index.html": "a53c8563dfa680c09ddc1928f19922a6f3dd73de28dc7601b531a63972b4accd",
+    "library-credits.txt": "d68c0532d5eb3fa57a6bb40c69f96575c1da9fba850435a2cb0523b035d39196",
     "logo.webp": "6bd61d27697739d5686a3487bd633da5eaec5580dbaaf5f9fa5e94c188a0a2ac",
-    "playable.json": "2b064889d56a8163907743a2afafbfb0b9f3b06341c6ab8a844613da534fadb0",
-    "robots.txt": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+    "material-review.json": "a45377b625e7116c4dbc880b7f23b3ba885276a997c6b3d92c1acd8514446a96",
+    "playable.json": "4f55194f3f9a85daee29447ff2137014a098cfc1612e7c165a11e9fa93643629",
+    "robots.txt": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+    "unity-premium-report.json": "0dad56016dee308b86f442f55b4adb9f959f33f826d9641c3348e9548c8c0084"
   }
 }

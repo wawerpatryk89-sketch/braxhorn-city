@@ -1,0 +1,19 @@
+{
+  "originalHeroGeometryChanged": false,
+  "originalHeroRigChanged": false,
+  "originalUVsChanged": false,
+  "originalLogosChanged": false,
+  "sourceTextureSize": [
+    2048,
+    2048
+  ],
+  "greenPixelsAdjusted": 253579,
+  "newMaps": [
+    "original brick relief",
+    "rubber relief",
+    "leather grain",
+    "canvas weave",
+    "brushed metal",
+    "Brax colour and normal"
+  ]
+}
