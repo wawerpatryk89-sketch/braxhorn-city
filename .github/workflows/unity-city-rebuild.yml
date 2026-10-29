@@ -14,7 +14,8 @@ permissions:
 
 concurrency:
   group: city-reference-${{ contains(github.event.head_commit.message, '[city-build]') && 'build' || contains(github.event.head_commit.message, '[city-qa]') && 'qa' || contains(github.event.head_commit.message, '[city-preview]') && 'preview' || contains(github.event.head_commit.message, '[city-trees]') && 'trees' || 'assets' }}-${{ github.ref }}
-  cancel-in-progress: false
+  # A corrected city build supersedes an older failed/invalid candidate in this isolated branch.
+  cancel-in-progress: true
 
 jobs:
   foliage-topology-inspection:
