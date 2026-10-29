@@ -29,7 +29,12 @@ public sealed class BraxCityWorld : MonoBehaviour
         {
             if(loading)return "WCZYTYWANIE DZIELNICY…";
             var p=player.transform.position;
-            if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ NA OSIEDLE";
+            if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)
+                // Preserve the existing estate gateway and map marker. The
+                // iPhone street review intentionally does not ship the very
+                // large estate scene, so don't offer a misleading action.
+                return Application.CanStreamedLevelBeLoaded("BraxhornEstate")
+                    ?"WEJDŹ NA OSIEDLE":"PRZEJŚCIE DO OSIEDLA — KOLEJNY ETAP";
             if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f)return "WRÓĆ DO MIASTA";
             if(elevator)
             {
@@ -61,7 +66,16 @@ public sealed class BraxCityWorld : MonoBehaviour
     {
         if(loading)return true;
         var p=player.transform.position;
-        if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
+        if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)
+        {
+            if(!Application.CanStreamedLevelBeLoaded("BraxhornEstate"))
+            {
+                Debug.Log("CITY_REVIEW_ESTATE_GATE_PRESERVED_ONLY: no unloaded estate scene in the stage-1 iPhone build");
+                return true;
+            }
+            StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));
+            return true;
+        }
         if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return true;}
         if(elevator&&elevator.TryInteract(p))return true;
         if(nearby){nearby.Toggle(player.transform.position);return true;}
