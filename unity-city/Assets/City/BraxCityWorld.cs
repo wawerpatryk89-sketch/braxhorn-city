@@ -15,6 +15,7 @@ public sealed class BraxCityWorld : MonoBehaviour
     public BraxGymPlayer player;
     public BraxCityPoint[] points=Array.Empty<BraxCityPoint>();
     public BraxCityDoor[] doors=Array.Empty<BraxCityDoor>();
+    public BraxCityElevator elevator;
     public int originalMeshes,originalTriangles,sourceColliders;
     public bool loading;
     public string activePoint;
@@ -30,6 +31,11 @@ public sealed class BraxCityWorld : MonoBehaviour
             var p=player.transform.position;
             if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ NA OSIEDLE";
             if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f)return "WRÓĆ DO MIASTA";
+            if(elevator)
+            {
+                var liftContext=elevator.Context;
+                if(!string.IsNullOrEmpty(liftContext))return liftContext;
+            }
             if(nearby)return (nearby.IsOpen?"ZAMKNIJ DRZWI · ":"OTWÓRZ DRZWI · ")+nearby.label;
             return "";
         }
@@ -57,6 +63,7 @@ public sealed class BraxCityWorld : MonoBehaviour
         var p=player.transform.position;
         if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
         if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return true;}
+        if(elevator&&elevator.TryInteract(p))return true;
         if(nearby){nearby.Toggle(player.transform.position);return true;}
         return false;
     }
