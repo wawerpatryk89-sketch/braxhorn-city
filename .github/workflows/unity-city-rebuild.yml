@@ -17,6 +17,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  foliage-report-readout:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-tree-readout]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Retrieve the completed small foliage report only
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40872975563
+          github-token: ${{ github.token }}
+          name: city-rebuild-foliage-lod-report-9a8ea3ac561f395216cf6ae1a971450765c134e4
+          path: foliage-report/
+      - name: Expose already inspected authored LOD metadata for review
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for path in sorted(Path('foliage-report').rglob('*-lods.json')):
+              data=json.loads(path.read_text())
+              print('AUTHORED_LOD_REPORT',path.name,json.dumps(data,separators=(',',':')))
+          PY
   asset-audit:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-assets]')
     runs-on: ubuntu-latest
