@@ -48,11 +48,21 @@ public static class BraxCityGround
         {
             var center=new Vector2((xx[i]+xx[i+1])*.5f,(zz[j]+zz[j+1])*.5f);
             if(holes!=null&&holes.Any(h=>h.Contains(center)))continue;
+            // Float32 grid stepping can produce near-duplicate boundaries at the
+            // crossing cuts (e.g. 49.999996 vs 50.0 metres). Their triangles
+            // have zero normals and abort the offline city lighting bake.
+            // Omit only sub-2mm nonphysical strips; preserve exact cut edges.
+            if(xx[i+1]-xx[i]<.002f||zz[j+1]-zz[j]<.002f)continue;
             data.Quad(new Vector3(xx[i],y,zz[j]),new Vector3(xx[i],y,zz[j+1]),new Vector3(xx[i+1],y,zz[j+1]),new Vector3(xx[i+1],y,zz[j]));
         }
         if(data.VertexCount==0)return;
         var obj=BraxCityArchitecture.MeshObject(name,root,data,material);var mesh=obj.GetComponent<MeshFilter>().sharedMesh;
         mesh.uv=mesh.vertices.Select(p=>new Vector2(p.x,p.z)).ToArray();mesh.RecalculateTangents();
+        // A pavement plane must have upward-facing, non-degenerate normals.
+        // Validate before attempting the expensive static-lighting bake.
+        foreach(var normal in mesh.normals)
+            if(normal.sqrMagnitude<.9f||Vector3.Dot(normal,Vector3.up)<.99f)
+                throw new InvalidOperationException("Invalid pavement mesh normal: "+name+" ("+area+")");
     }
     static void Kerb(Transform root,float x0,float x1,float z,bool reverse)
     {
