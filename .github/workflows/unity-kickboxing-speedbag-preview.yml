@@ -1,14 +1,14 @@
-name: Publish isolated BRAXHORN speed-pear premium gym ONLY after real WebGL QA
+name: Publish isolated BRAXHORN pear and reception corrected gym ONLY after verified Unity QA
 on:
   push:
-    branches: [test/gym-premium-ceiling-recovery-20261029]
+    branches: [test/gym-pear-reception-visualfix-20261029]
     paths: ['.github/workflows/unity-kickboxing-speedbag-preview.yml']
 permissions:
   contents: write
   actions: read
 jobs:
   reviewed-preview:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/test/gym-premium-ceiling-recovery-20261029'
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/test/gym-pear-reception-visualfix-20261029'
     runs-on: ubuntu-latest
     timeout-minutes: 100
     steps:
@@ -24,8 +24,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          run_id=40937730540
-          source_sha=25fbb9ff9274c3ac0575e51000ca08c4d069c5ec
+          run_id=40950295395
+          source_sha=df93b3cf4d0538551eab0789c882ffd9da77c97a
           for attempt in $(seq 1 240); do
             state=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.status')
             if [ "$state" = completed ]; then break; fi
@@ -41,24 +41,24 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 40937730540
+          run-id: 40950295395
           github-token: ${{ github.token }}
-          name: unity-kickboxing-player-25fbb9ff9274c3ac0575e51000ca08c4d069c5ec
+          name: unity-kickboxing-player-df93b3cf4d0538551eab0789c882ffd9da77c97a
           path: staged-player/
       - name: Download real run screenshots and truth
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 40937730540
+          run-id: 40950295395
           github-token: ${{ github.token }}
-          name: unity-kickboxing-review-25fbb9ff9274c3ac0575e51000ca08c4d069c5ec
+          name: unity-kickboxing-review-df93b3cf4d0538551eab0789c882ffd9da77c97a
           path: staged-evidence/
       - name: Refuse to publish unverified game or static/fake pear
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import pathlib,json,hashlib
-          src='25fbb9ff9274c3ac0575e51000ca08c4d069c5ec'
+          src='df93b3cf4d0538551eab0789c882ffd9da77c97a'
           root=pathlib.Path('staged-player')
           ev=pathlib.Path('staged-evidence/kickboxing-review')
           def read(f): return json.loads(f.read_text(encoding='utf-8'))
@@ -74,7 +74,8 @@ jobs:
           layout=read(root/'kickboxing-layout.json')
           for flag in ('originalEntrancePreserved','originalRingPositionPreserved',
                        'privacyWithAllDoorsOpen','speedBagStandInstalled',
-                       'singleEntranceSofaRemoved','receptionCurved','loungeCorrected'):
+                       'singleEntranceSofaRemoved','receptionCurved','loungeCorrected',
+                       'legacyReceptionRemoved','receptionMeshVisible','speedPearMeshFinite'):
             assert layout[flag] is True,flag
           assert layout['ceilingFansConfigured']==2
           assert layout['animatedCeilingFans']==2
@@ -94,7 +95,12 @@ jobs:
           assert report['walkthroughContinuous'] is True
           assert (ev/'walkthrough.webm').stat().st_size>4096
           assert (ev/'03b-speedbag-real-contact.png').stat().st_size>1024
-          required={'New physical speed bag trigger is bound to player',
+          assert (ev/'03a-speedbag-standing-pear-visible.png').stat().st_size>1024
+          assert (ev/'01b-premium-curved-reception.png').stat().st_size>1024
+          required={'Original box reception absent in audited original meshes',
+           'New curved premium reception has visible geometry',
+           'Speed-pear 3D mesh has finite visible dimensions',
+           'New physical speed bag trigger is bound to player',
            'Out-of-range speed bag punch does not score',
            'Only one real punch hit is counted on pear',
            'Real 3D pear rebounds after impact rather than remaining rigid',
@@ -103,12 +109,12 @@ jobs:
           checks={c['name']:c['passed'] for c in report['checks']}
           assert required<=set(checks)
           assert all(checks.values()) and all(checks[k] is True for k in required)
-          print('PASS: all real Unity QA + speedbag hits, misses and rebound, screenshot, file digests')
+          print('PASS: corrected pear and reception source checks, genuine Unity QA, both view screenshots and file digests; human visual acceptance remains open')
           PY
       - name: Publish only compiled gym player to new isolated review branch
         run: |
           set -euo pipefail
-          branch=deployment/braxhorn-premium-speedpear-25fbb9ff9274
+          branch=deployment/braxhorn-pear-reception-visualfix-df93b3cf4d05
           if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null; then
             echo 'Isolated target already exists; do not overwrite'; exit 1
           fi
@@ -125,14 +131,14 @@ jobs:
           git add -A -- public/unity-gym
           git diff --cached --name-only | awk '!/^public\/unity-gym\//{print; bad=1} END{exit bad}'
           git diff --cached --quiet && { echo "No modified gym files"; exit 1; }
-          git commit -m "test(unity): reviewed interactive speedboxing pear premium gym 25fbb9ff9274"
+          git commit -m "test(unity): reviewed pear and curved reception visualfix df93b3cf4d05"
           git push origin "HEAD:refs/heads/$branch"
           echo "Published isolated, unmerged preview branch: $branch"
       - name: Preserve original source run audit
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: premium-speedpear-publication-evidence
+          name: pear-reception-visualfix-publication-evidence
           path: |
             staged-evidence/kickboxing-review/report.json
           if-no-files-found: warn
