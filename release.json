@@ -90,7 +90,7 @@
     "geometry-review.json": "44a06070ada74c68efeda0e42949785316836b3056ec5c714320aba0412d985f",
     "curated-source-audit.json": "c81d845b0b3bdb6c66967f8a611d2878106910985ce83a85f67292fbddedeee7",
     "city-migration.json": "f9366662d4330b5f79257ed9e464cacd190b798d865091b8e556abbba0be3088",
-    "index.html": "50343f4b4e8fab88932ea7a7f159383ff620a8af0ffa8e94bf029d381632e63a",
+    "index.html": "90f0c5cf1c53cab22afee737d4232fb0b6f61af28893a141299077d619d9d5d0",
     "city-transport.js": "f60a2e610fb92f9e98adbabc54eda2437fe54f2e85ec96d2075301216b295be7",
     "native-texture-preparation.json": "6e3e14762970a53f004ba4511d37d8977c1e1350c9ab474e45a91ce8f94f29b3",
     "city-manifest.json": "61fdb364fe337abe97375e2b0e8771b384532a8ad818ff211f4b199a94b819bb",
@@ -116,5 +116,16 @@
     "TemplateData/progress-bar-empty-light.png": "143696c060ad43d6c30f19ff5f49000927a139a2a1e4c9f45fafaa2b90d7d2be",
     "TemplateData/style.css": "8e3625e108a61dcd1d31303376d9e02d7bdc08921d254e8f4359b892b3825caa",
     "TemplateData/favicon.ico": "9c13beb90ee8f70580d52a21d5233970d1c89e71e4a34a462c22610941c3c77f"
+  },
+  "previewEntryOverride": {
+    "entryScript": "city-direct-street-entry",
+    "changes": "UI only; original compiled Unity 6 binary unmodified",
+    "startPoint": "street_gym",
+    "pointFromOriginalCityManifest": {
+      "x": 6.75,
+      "y": 0.15,
+      "z": 21.6
+    },
+    "physicalIphoneTested": false
   }
 }
