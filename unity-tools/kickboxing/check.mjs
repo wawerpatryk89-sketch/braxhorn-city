@@ -259,6 +259,23 @@ try {
   await frames(await state(),4);await shot('00-matched-before-view');
   await review(3,.08,5,0,7,5.8,'entry composition');await frames(await state(),4);await shot('01-entry-composition');
 
+  // Prior preview passed punch/rebound QA while the leather mesh was invisible.
+  // Save close-up evidence of the actual compiled geometry, not just a counter.
+  await step('Premium reception and standing speed pears visual evidence',async()=>{
+    const layout=JSON.parse(fs.readFileSync(path.join(root,'kickboxing-layout.json'),'utf8'));
+    verify('Two individual premium standing speed pears configured',
+      layout.speedBagStandCount===2 && layout.speedBagStandInstalled===true,
+      {standCount:layout.speedBagStandCount,configured:layout.speedBagStandInstalled});
+    verify('Curved premium reception assembly configured',layout.receptionCurved===true,
+      {curved:layout.receptionCurved});
+    await review(-4.35,.08,7.05,180,17,4.5,'new curved reception front');
+    await frames(await state(),4);
+    await shot('01b-curved-reception-front-visual-review');
+    await review(10.25,.08,-7.55,0,15,5.8,'two separate speed pear stands');
+    await frames(await state(),4);
+    await shot('02b-two-standing-speed-pears-visual-review');
+  });
+
   await step('Four camera directions',async()=>{
     for(const yaw of [0,90,180,270]){
       await review();await look(yaw);await runMode(false);const a=await state();
