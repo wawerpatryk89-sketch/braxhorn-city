@@ -38,6 +38,16 @@ public static partial class BraxCityMaterials
     /// read-only occlusion. No Physics/RenderSettings/Light changes and no runtime BVH.
     /// </summary>
     public static BakeReport Bake(Transform newlyAuthoredRoot, Transform[] occluderRoots)
+    { return Bake(newlyAuthoredRoot,occluderRoots,true); }
+
+    /// <summary>
+    /// The complete city uses audited coarse *lighting-only* silhouette
+    /// proxies. This is independent of actual visible facade meshes, whose
+    /// PBR and geometry are left intact. The source city itself can still
+    /// supply real occlusion. Never silently raise the 2M triangle BVH guard.
+    /// </summary>
+    public static BakeReport Bake(Transform newlyAuthoredRoot, Transform[] occluderRoots,
+        bool includeAuthoredGeometryAsOccluder)
     {
         if (!newlyAuthoredRoot) throw new ArgumentNullException(nameof(newlyAuthoredRoot));
         if (EditorApplication.isPlaying) throw new InvalidOperationException("City lighting is an offline Editor operation.");
@@ -48,6 +58,11 @@ public static partial class BraxCityMaterials
         {
             var renderer = filter.GetComponent<MeshRenderer>();
             if (!Eligible(filter, renderer)) continue;
+            // Massive high-rise curtain walls already receive accurate PBR
+            // per-pixel sun/sky lighting in CityStaticPBR. Vertex AO on every
+            // mullion and every tiny stone side would consume millions of
+            // rays, without improving phone-visible detail.
+            if (IsHighFrequencyDynamicLightingFallback(filter.transform)) continue;
             foreach (var material in renderer.sharedMaterials)
                 if (IsCityMaterial(material)) { receivers.Add(filter); break; }
         }
@@ -60,8 +75,14 @@ public static partial class BraxCityMaterials
         }
         var occluders = new List<MeshFilter>();
         var seen = new HashSet<MeshFilter>();
-        AddOccluders(newlyAuthoredRoot, occluders, seen);
-        foreach (var root in occluderRoots ?? Array.Empty<Transform>()) AddOccluders(root,occluders,seen);
+        if(includeAuthoredGeometryAsOccluder)
+            AddOccluders(newlyAuthoredRoot, occluders, seen);
+        foreach (var root in occluderRoots ?? Array.Empty<Transform>())
+            AddOccluders(root,occluders,seen);
+        Debug.Log("CITY_LIGHTING_OCCLUDER_POLICY authoredDetail="+
+            includeAuthoredGeometryAsOccluder+" supplementaryRoots="+
+            (occluderRoots==null?0:occluderRoots.Length)+
+            " prioritizedReceivers="+receivers.Count);
         EnsureFolder(MeshFolder);
         var samples = new Dictionary<SampleKey, Vector2>();
         try
@@ -146,6 +167,18 @@ public static partial class BraxCityMaterials
             samples.Clear();
             if (!Application.isBatchMode) EditorUtility.ClearProgressBar();
         }
+    }
+
+    static bool IsHighFrequencyDynamicLightingFallback(Transform t)
+    {
+        // This selector affects only optional offline vertex AO, not scene
+        // geometry, renderers, materials, collision or real-time movement.
+        for(Transform p=t;p;p=p.parent)
+            if(p.name.StartsWith("High-rise ",StringComparison.Ordinal))
+                return true;
+        var name=t.name;
+        return name.Contains("pavers") || name.Contains("stone variation") ||
+               name.Contains("street lantern") || name.Contains("Streetlamp");
     }
 
     static bool Eligible(MeshFilter filter, MeshRenderer renderer)
