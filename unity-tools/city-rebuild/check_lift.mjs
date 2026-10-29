@@ -64,12 +64,12 @@ try {
  await turn(180,12); await shot('01-lobby');
  if((await state()).runEnabled)await send('Command','run');
  await walkToZ(49.4,1,15); await shot('02-lower-call');
- await send('Command','action');
+ await page.locator('#action').click();
  let a=await state();await until(t=>window.BraxhornState.simulationTime>=t+2,a.simulationTime);
  await walkToZ(53,1,8); await shot('03-inside-car');
  const low=await state();
  check('Cabin offers a real upward ride',low.context.includes('WJEDŹ'),brief(low));
- await send('Command','action');
+ await page.locator('#action').click();
  const top=initial.points.find(p=>p.id==='R1_ELEVATOR_TOP').position.y;
  if(process.env.TEST_LIFT_PAUSE==='1') {
   await until(y=>window.BraxhornState.y>y+2,low.y,120000);
@@ -82,7 +82,7 @@ try {
  a=await state();await until(t=>window.BraxhornState.simulationTime>=t+2,a.simulationTime);
  await shot('04-top');
  check('Passenger reaches roof',Math.abs((await state()).y-top)<.2,brief(await state()));
- await send('Command','action');
+ await page.locator('#action').click();
  await until(y=>window.BraxhornState.y<=y+.15,low.y,360000);
  a=await state();await until(t=>window.BraxhornState.simulationTime>=t+2,a.simulationTime);
  await turn(0,12);await walkToZ(49.4,-1,8);await shot('05-return');

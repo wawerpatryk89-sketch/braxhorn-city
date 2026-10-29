@@ -38,6 +38,14 @@ def filter_public_navigation(path):
     path.write_text(html.replace(old, new, 1))
 
 
+def enable_roof_return_action(path):
+    html = path.read_text()
+    old = "context.includes('DACH')||context.includes('PRZYWOŁAJ')"
+    if html.count(old) != 1:
+        raise ValueError("City interaction UI changed; verify roof-return visibility before packaging")
+    path.write_text(html.replace(old, "context.includes('DACH')||context.includes('ZJEDŹ')||context.includes('PRZYWOŁAJ')", 1))
+
+
 def digest(path):
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
@@ -131,6 +139,7 @@ def main():
     runpy.run_path(str(ROOT / "unity-tools/city/package.py"), run_name="__main__")
     out = ROOT / "unity-preview"
     filter_public_navigation(out / "index.html")
+    enable_roof_return_action(out / "index.html")
     city_manifest = json.loads((out / "city-migration.json").read_text())
     if city_manifest.get("commit") != commit:
         raise ValueError("Compiled city provenance does not match the build source commit")
