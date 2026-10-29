@@ -17,6 +17,9 @@ public sealed class BraxCityWorld : MonoBehaviour
     public BraxCityDoor[] doors=Array.Empty<BraxCityDoor>();
     public int originalMeshes,originalTriangles,sourceColliders;
     public bool loading;
+    // City-only iPhone candidate does not include the estate scene in WebGL data.
+    // A closed entrance is safer than a broken SceneManager transition.
+    public bool estateAvailable=true;
     public string activePoint;
     public static string Arrival;
     private BraxCityDoor nearby;
@@ -28,7 +31,7 @@ public sealed class BraxCityWorld : MonoBehaviour
         {
             if(loading)return "WCZYTYWANIE DZIELNICY…";
             var p=player.transform.position;
-            if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ NA OSIEDLE";
+            if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return estateAvailable?"WEJDŹ NA OSIEDLE":"PRZEJŚCIE ZAMKNIĘTE — WERSJA MOBILNA";
             if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f)return "WRÓĆ DO MIASTA";
             if(nearby)return (nearby.IsOpen?"ZAMKNIJ DRZWI · ":"OTWÓRZ DRZWI · ")+nearby.label;
             return "";
@@ -55,7 +58,7 @@ public sealed class BraxCityWorld : MonoBehaviour
     {
         if(loading)return true;
         var p=player.transform.position;
-        if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
+        if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f){if(estateAvailable)StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
         if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return true;}
         if(nearby){nearby.Toggle(player.transform.position);return true;}
         return false;
