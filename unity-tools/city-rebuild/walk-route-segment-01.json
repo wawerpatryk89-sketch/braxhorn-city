@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "name": "BRAXHORN CITY first local playable acceptance segment: Gym street -> Nutrition -> NOVA -> crossing",
+  "coordinateSystem": "Genuine Unity world metres, normal Brax controller, no point teleport",
+  "status": "planned checkpoints to validate after actual Unity compile; no PASS until native walk runs",
+  "steps": [
+    {
+      "id": "street-spawn",
+      "at": [
+        6.75,
+        0.15,
+        27.85
+      ],
+      "areaLabel": "Street spawn (original 3D Brax)",
+      "shot": true
+    },
+    {
+      "id": "gym-outside",
+      "at": [
+        6.75,
+        0.15,
+        22.05
+      ],
+      "areaLabel": "Gym external frontage",
+      "shot": true
+    },
+    {
+      "id": "nutrition-approach",
+      "at": [
+        16,
+        0.15,
+        22.15
+      ]
+    },
+    {
+      "id": "nutrition-front",
+      "at": [
+        20.7,
+        0.15,
+        22.15
+      ],
+      "areaLabel": "BRAXHORN NUTRITION storefront",
+      "shot": true
+    },
+    {
+      "id": "near-facades",
+      "at": [
+        38,
+        0.15,
+        22.1
+      ],
+      "areaLabel": "Premium shops, windows, cobblestone",
+      "shot": true
+    },
+    {
+      "id": "crossing-near",
+      "at": [
+        52,
+        0.15,
+        22.55
+      ],
+      "waitForPedestrians": true,
+      "shot": true
+    },
+    {
+      "id": "crossing-far",
+      "at": [
+        52,
+        0.15,
+        34.75
+      ],
+      "areaLabel": "Full pedestrian crossing",
+      "shot": true
+    },
+    {
+      "id": "nova-farwalk",
+      "at": [
+        46.2,
+        0.15,
+        34.78
+      ],
+      "areaLabel": "Previously obstructed NOVA sidewalk",
+      "shot": true
+    },
+    {
+      "id": "nova-exterior",
+      "at": [
+        42,
+        0.15,
+        34.75
+      ],
+      "areaLabel": "NOVA entry",
+      "shot": true
+    },
+    {
+      "id": "nova-threshold",
+      "at": [
+        42,
+        0.15,
+        39
+      ],
+      "openNearbyDoor": true
+    },
+    {
+      "id": "nova-hall",
+      "at": [
+        44,
+        0.15,
+        48
+      ],
+      "areaLabel": "Existing NOVA hall, preserved",
+      "shot": true
+    },
+    {
+      "id": "nova-return",
+      "at": [
+        42,
+        0.15,
+        39
+      ]
+    },
+    {
+      "id": "nova-exit",
+      "at": [
+        42,
+        0.15,
+        34.75
+      ]
+    },
+    {
+      "id": "far-crossing-return",
+      "at": [
+        52,
+        0.15,
+        34.75
+      ],
+      "waitForPedestrians": true
+    },
+    {
+      "id": "near-crossing-return",
+      "at": [
+        52,
+        0.15,
+        22.55
+      ]
+    },
+    {
+      "id": "gym-approach-return",
+      "at": [
+        6.75,
+        0.15,
+        22.05
+      ]
+    },
+    {
+      "id": "finish-segment",
+      "at": [
+        6.75,
+        0.15,
+        27.85
+      ],
+      "areaLabel": "Returned to review start",
+      "shot": true
+    }
+  ]
+}
