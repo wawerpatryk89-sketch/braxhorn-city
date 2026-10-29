@@ -373,7 +373,7 @@ public static class BraxCitySystemsBuild
             m.Tube(new Vector3(76.86f,3.1f,z),new Vector3(76.86f,2.5f,z),.047f,8);
             MeshObject("Metro M identifier "+z,parent,m,white);
         }
-        Text(parent,"Metro station label","BRAXHORN",new Vector3(78.9f,.51f,34.96f),0,.24f,Color.white);
+        Text(parent,"Metro station label","METRO",new Vector3(78.9f,.51f,34.96f),0,.24f,Color.white);
         var lintel=new BraxCitySystemMesh();lintel.RoundedPanel(new Vector3(78.9f,.52f,35.025f),2.7f,.37f,.08f,.03f);
         // Label is placed on a narrow sign over the descending entrance, with
         // 2.9 m clear height from the first tread below its support crossbar.
