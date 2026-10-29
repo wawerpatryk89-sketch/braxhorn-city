@@ -1,4 +1,4 @@
-name: Publish isolated BRAXHORN kickboxing visual-review preview
+name: Publish isolated BRAXHORN kickboxing painted-wall mural visual-review preview
 on:
   push:
     branches:
@@ -26,8 +26,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          source_sha=027d95f07d7d99b5de0f37e335dfe7ad2a5992ed
-          run_id=40874396297
+          source_sha=8d8ceed0d0602285d7c1f89628b2df8456e6caa9
+          run_id=40885598293
           for attempt in $(seq 1 70); do
             status=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.status')
             if [ "$status" = completed ]; then break; fi
@@ -41,17 +41,17 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 40874396297
+          run-id: 40885598293
           github-token: ${{ github.token }}
-          name: unity-kickboxing-player-027d95f07d7d99b5de0f37e335dfe7ad2a5992ed
+          name: unity-kickboxing-player-8d8ceed0d0602285d7c1f89628b2df8456e6caa9
           path: staged-player/
       - name: Download unmodified real runtime evidence
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 40874396297
+          run-id: 40885598293
           github-token: ${{ github.token }}
-          name: unity-kickboxing-review-027d95f07d7d99b5de0f37e335dfe7ad2a5992ed
+          name: unity-kickboxing-review-8d8ceed0d0602285d7c1f89628b2df8456e6caa9
           path: staged-evidence/
       - name: Validate source, exact artifact bytes and original QA truth
         run: |
@@ -60,7 +60,7 @@ jobs:
           import hashlib,json,pathlib,os
           root=pathlib.Path('staged-player')
           evidence=pathlib.Path('staged-evidence/kickboxing-review')
-          source='027d95f07d7d99b5de0f37e335dfe7ad2a5992ed'
+          source='8d8ceed0d0602285d7c1f89628b2df8456e6caa9'
           def load(path): return json.loads(path.read_text(encoding='utf-8'))
           release=load(root/'release.json')
           assert release['sourceCommit']==source
@@ -68,6 +68,9 @@ jobs:
           assert release['productionChanged'] is False
           assert release['billboardArtworkApproved'] is False
           assert release['billboardArtworkInstalled'] is False
+          assert release['muralArtworkApproved'] is True
+          assert release['muralArtworkInstalled'] is True
+          assert release['muralSourceSha256']=='fe12ca1214af38ba5facd1777b2b9234a04907ad9b1a10b0ae3bc368f00f251c'
           assert release['physicalIPhoneValidated'] is False
           assert release['loadingFix']['algorithmPreserved'] is True
           assert release['loadingFix']['nativeStreamingGzip'] is True
@@ -97,11 +100,11 @@ jobs:
           assert len(list(evidence.glob('*.png')))>=4
           os.makedirs('review-receipt',exist_ok=True)
           result={'mode':'ISOLATED_VISUAL_REVIEW_ONLY_NOT_ACCEPTANCE',
-            'sourceCommit':source,'sourceRun':40874396297,
+            'sourceCommit':source,'sourceRun':40885598293,
             'qaPassed':qa.get('passed',False),
             'qaFailedChecks':[x.get('name') for x in qa.get('checks',[]) if not x.get('passed')],
             'qaConclusion':'Success' if qa.get('passed') else 'Incomplete or failed; inspect original QA',
-            'billboardInstalled':False,'physicalIPhoneValidated':False,
+            'billboardInstalled':False,'muralArtworkInstalled':True,'physicalIPhoneValidated':False,
             'productionChanged':False,'fileCount':len(files),
             'previewSource':'unmodified compiled Unity player artifact'}
           pathlib.Path('review-receipt/review-status.json').write_text(json.dumps(result,indent=2))
@@ -110,7 +113,7 @@ jobs:
       - name: Publish exact compiled player to a NEW test-only Git branch
         run: |
           set -euo pipefail
-          branch="deployment/braxhorn-kickboxing-027d95f07d7d"
+          branch="deployment/braxhorn-mural-8d8ceed0d060"
           if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null; then
             echo 'The review branch already exists: refusing to overwrite'; exit 1
           fi
