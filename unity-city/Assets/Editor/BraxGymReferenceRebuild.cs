@@ -1488,6 +1488,9 @@ public static class BraxGymReferenceRebuild
             // Reviewed imported fixtures keep all their original material slots.
             var filters = group.GetComponentsInChildren<MeshFilter>(true).Where(f => f.sharedMesh && f.sharedMesh.subMeshCount == 1 &&
                 AssetDatabase.GetAssetPath(f.sharedMesh).StartsWith(folder + "/", StringComparison.Ordinal) &&
+                // Never collapse or destroy the movable pear's hitbox / rebounding
+                // pivot. Other static hall meshes retain normal batching.
+                !f.GetComponentInParent<BraxGymSpeedBag>() &&
                 f.GetComponent<MeshRenderer>() && f.GetComponent<MeshRenderer>().enabled && f.GetComponent<MeshRenderer>().sharedMaterials.Length == 1).ToArray();
             foreach (var set in filters.GroupBy(f => f.GetComponent<MeshRenderer>().sharedMaterial))
             {
