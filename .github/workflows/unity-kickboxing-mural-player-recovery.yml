@@ -1,0 +1,160 @@
+name: Verify completed BRAXHORN mural Unity player and publish isolated QA preview
+on:
+  push:
+    branches: [test/braxhorn-mural-player-qa-recovery-20261029]
+    paths:
+      - .github/workflows/unity-kickboxing-mural-player-recovery.yml
+permissions:
+  contents: write
+  actions: read
+jobs:
+  verify-and-preview:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/test/braxhorn-mural-player-qa-recovery-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout reviewed source QA only, without credential persistence
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 05dfff0c1b400f7276c1e91dfecc62e6a5d90765
+          sparse-checkout: |
+            unity-tools/kickboxing
+            public/unity-gym
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Wait only for the exact original Unity build job
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          source_sha=05dfff0c1b400f7276c1e91dfecc62e6a5d90765
+          run_id=40893958410
+          for n in $(seq 1 160); do
+            current=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.status')
+            if [ "$current" = completed ]; then break; fi
+            sleep 15
+          done
+          [ "$current" = completed ] || { echo 'Original Unity build did not finish'; exit 1; }
+          observed=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.head_sha')
+          [ "$observed" = "$source_sha" ] || { echo 'Source run sha mismatch'; exit 1; }
+          echo 'Source run concluded; this job will verify the actual Unity player artifact and perform new QA regardless of the earlier report-artifact upload result.'
+      - name: Retrieve compiled Unity WebGL player only (never recompile it)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40893958410
+          github-token: ${{ github.token }}
+          name: unity-kickboxing-player-05dfff0c1b400f7276c1e91dfecc62e6a5d90765
+          path: unity-preview/
+      - name: Verify content hashes, approved mural and protected production boundaries
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,hashlib
+          root=Path('unity-preview')
+          source='05dfff0c1b400f7276c1e91dfecc62e6a5d90765'
+          release=json.loads((root/'release.json').read_text())
+          assert release['sourceCommit']==source
+          assert release['scope']=='isolated-kickboxing-room-and-annex-test'
+          assert release['productionChanged'] is False
+          assert release['billboardArtworkInstalled'] is False
+          assert release['muralArtworkApproved'] is True and release['muralArtworkInstalled'] is True
+          assert release['muralOriginalApprovedPngSha256']=='c84fbc33ea871834a403a80169f09fa0db562254c0d2f082e655cbf4dafc73ef'
+          assert release['muralSourceSha256']=='e714741664dbedddc379a97a87f7d8757856c73438eeb34af10df058846628e8'
+          assert release['loadingFix']['algorithmPreserved'] is True
+          assert release['loadingFix']['nativeStreamingGzip'] is True
+          assert release['physicalIPhoneValidated'] is False
+          assert json.loads((root/'transport.json').read_text())==release['transport']
+          assert json.loads((root/'playable.json').read_text())['commit']==source
+          layout=json.loads((root/'kickboxing-layout.json').read_text())
+          assert layout['originalEntrancePreserved'] and layout['originalRingPositionPreserved']
+          assert layout['privacyWithAllDoorsOpen']
+          expected=release['files']
+          found={p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()}
+          assert found==set(expected)|{'release.json'},'Unexpected or missing compiled player files'
+          for name,digest in expected.items():
+            p=root/name
+            assert p.stat().st_size<100*1024*1024,name
+            h=hashlib.sha256()
+            with p.open('rb') as f:
+              for block in iter(lambda:f.read(1024*1024),b''): h.update(block)
+            assert h.hexdigest()==digest,name
+          print('VALIDATED_UNMODIFIED_UNITY_PLAYER',source,len(expected))
+          PY
+      - name: Install real Chromium for WebGL QA
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Perform full actual browser walkthrough of compiled Unity mural build
+        env:
+          QA_OUT: kickboxing-review
+          PLAYER_ROOT: unity-preview
+          GITHUB_SHA: 05dfff0c1b400f7276c1e91dfecc62e6a5d90765
+        run: |
+          set -euo pipefail
+          node unity-tools/kickboxing/check.mjs
+      - name: Reject failed or incomplete browser QA before publishing
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          p=Path('kickboxing-review/report.json')
+          assert p.is_file(),'Missing real Unity runtime report'
+          r=json.loads(p.read_text())
+          assert r['commit']=='05dfff0c1b400f7276c1e91dfecc62e6a5d90765'
+          assert r['finished'] is True and r['passed'] is True
+          assert r['physicalIPhoneValidated'] is False
+          assert len(r['checks'])>=45
+          assert all(ch['passed'] for ch in r['checks'])
+          assert r['walkthroughContinuous'] is True
+          assert not r.get('error')
+          assert Path('kickboxing-review/walkthrough.webm').stat().st_size>4096
+          assert Path('kickboxing-review/browser.log').is_file()
+          assert len(list(Path('kickboxing-review').glob('*.png')))>=4
+          print('REAL_UNITY_BROWSER_QA_PASS',len(r['checks']),'source=05dfff0c1b400f7276c1e91dfecc62e6a5d90765')
+          PY
+      - name: Upload real player screenshots, video and truth report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-kickboxing-mural-recovered-evidence-05dfff0c1b400f7276c1e91dfecc62e6a5d90765
+          path: kickboxing-review/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publish only a NEW game-preview branch based on unchanged production main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch=deployment/braxhorn-mural-05dfff-recovered
+          if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null; then
+            echo 'Recovery preview exists; refuse to overwrite'; exit 1
+          fi
+          gh auth setup-git
+          git fetch --no-tags origin main
+          base=$(git rev-parse refs/remotes/origin/main)
+          [ "$base" = '26e5ef339b09df6c1077e9968200660ec89cdacf' ] || { echo 'Production changed; refuse publication'; exit 1; }
+          git checkout -b "$branch" origin/main
+          rm -rf public/unity-gym
+          mkdir -p public/unity-gym
+          cp -a unity-preview/. public/unity-gym/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- public/unity-gym
+          git diff --cached --name-only | awk '!/^public\/unity-gym\//{bad=1; print "Unexpected changed file",$0} END{exit bad}'
+          git diff --cached --quiet && { echo 'Review build indistinguishable from original player'; exit 1; }
+          git commit -m "test(unity): visually verified approved painted BRAXHORN mural (source 05dfff0c1b40)"
+          git push origin "HEAD:refs/heads/$branch"
+          echo 'Only a new isolated WebGL game preview branch has been published; production was not changed.'
+      - name: Save verification receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-kickboxing-mural-recovery-receipt
+          path: |
+            kickboxing-review/report.json
+          if-no-files-found: warn
+          retention-days: 14
