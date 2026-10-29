@@ -1,0 +1,70 @@
+{
+  "sourceCommit": "48d81f1f998b9884709e74afe10c3f7ebf0b58ac",
+  "sourceRun": 40914321114,
+  "qaPassed": true,
+  "fullWalkPassed": false,
+  "source": "actual Unity 6 desktop WebGL screenshots",
+  "photos": [
+    {
+      "id": "street",
+      "title": "Ulica — poziom Braxa",
+      "caption": "Asfalt, kostka, latarnie, fasady i proporcje ulicy",
+      "original": "full/street.png",
+      "preview": "img/street.jpg",
+      "originalSha256": "e1597930377ab351fe425be76e57a1c5dca1faee506221bb0cabcdb50fa6d9e0",
+      "originalBytes": 443991,
+      "previewBytes": 53640
+    },
+    {
+      "id": "skyline",
+      "title": "Wieżowce — spojrzenie w górę",
+      "caption": "Wysokość zabudowy, stal, szkło i skala fasad",
+      "original": "full/skyline.png",
+      "preview": "img/skyline.jpg",
+      "originalSha256": "3a6b0d009627f7a1b1a3603a6552fa89eff9cc079c3514f3c4dc91de0be5d215",
+      "originalBytes": 489467,
+      "previewBytes": 72658
+    },
+    {
+      "id": "frontages",
+      "title": "Witryny i elewacje — pieszo",
+      "caption": "Architektura lokali oglądana z chodnika",
+      "original": "full/frontages.png",
+      "preview": "img/frontages.jpg",
+      "originalSha256": "f5402ea6eaa018c959665d02e5ec6fb8401f9ff3d1f008a5b9878d149221c9e7",
+      "originalBytes": 332547,
+      "previewBytes": 43372
+    },
+    {
+      "id": "waterfront",
+      "title": "Nabrzeże i promenada",
+      "caption": "Nawierzchnia, barierki, światło i teren",
+      "original": "full/waterfront.png",
+      "preview": "img/waterfront.jpg",
+      "originalSha256": "d268ba485bfd16280f7de24a91a632c73e868e895d642702d64e69e3c3d43c22",
+      "originalBytes": 288213,
+      "previewBytes": 36357
+    },
+    {
+      "id": "viaduct",
+      "title": "Wiadukt — zachodni odcinek",
+      "caption": "Konstrukcja stalowa i dostęp pod wiaduktem",
+      "original": "full/viaduct.png",
+      "preview": "img/viaduct.jpg",
+      "originalSha256": "1e24e3fa9cf7e4eeb74bf89ad12f490cb0ae52f973b0b27694e68c3ed8ecbca3",
+      "originalBytes": 394547,
+      "previewBytes": 49931
+    },
+    {
+      "id": "metro",
+      "title": "Metro — wejście",
+      "caption": "Schody, krawężniki i ciągi piesze",
+      "original": "full/metro.png",
+      "preview": "img/metro.jpg",
+      "originalSha256": "62f48b5da0eb9b1e74028884892a61e5bdc5c22fd30992b6da5b03854f07a004",
+      "originalBytes": 386027,
+      "previewBytes": 54296
+    }
+  ],
+  "productionChanged": false
+}
