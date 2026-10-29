@@ -390,6 +390,22 @@ try {
       JSON.stringify(await history(ready.qaSequence),null,2));
   });
 
+  await step('Second owner-supplied pear contact',async()=>{
+    await review(8.65,.08,-7.55,0,15,5.8,'second authentic speed pear');
+    await runMode(false);
+    await moveTo(8.65,-9.06,'approach second pear');
+    const before=await state();
+    await page.click('#punch');
+    await until('Second pear moves training counter',
+      hits=>window.BraxhornState?.hits>hits,before.hits);
+    const after=await state();
+    verify('Second authentic pear responds independently',
+      after.hits===before.hits+1 && after.lastHitBag===-2,
+      {before:before.hits,after:after.hits,lastHitBag:after.lastHitBag});
+    await shot('03c-owner-oxygen-second-pear-contact');
+    await waitIdle();
+  });
+
   // The following successful legs form one continuous physical walkthrough.
   await review(3,.08,5,0,7,5.8,'continuous walkthrough start');await runMode(false);
   lastLegPassed=await step('Ring stairs traversal',async()=>{
