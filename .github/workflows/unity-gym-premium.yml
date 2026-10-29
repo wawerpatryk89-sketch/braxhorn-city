@@ -1,0 +1,87 @@
+name: Premium original Unity gym
+on:
+  push:
+    branches: [codex/unity-gym-premium-20261029]
+    paths: ['unity-city/**', 'unity-tools/**', '.github/workflows/unity-gym-premium.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: unity-premium-gym
+  cancel-in-progress: true
+jobs:
+  premium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout isolated source and verified library
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-city
+            unity-tools
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+            asset-library/sources/sofa_02
+          lfs: false
+          persist-credentials: false
+      - name: Retrieve the original gym geometry
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+      - name: Prepare source-preserving materials and corrected controls
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6
+          python3 unity-tools/prepare_playable.py
+          python3 unity-tools/premium_prepare.py
+      - name: Convert verified textured sofa from owner library
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender
+          blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
+      - name: Compile premium original gym in Unity 6
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxGymBuild.Build
+          versioning: None
+          allowDirtyBuild: true
+      - name: Package cache-safe mobile version
+        run: python3 unity-tools/package_premium.py
+      - name: Prepare browser validation
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify screen-relative directions, real touch and animations
+        run: node unity-tools/check_premium.mjs
+      - name: Save real visual evidence and material provenance
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-premium-review-${{ github.sha }}
+          path: |
+            unity-review/
+            unity-city/Assets/Source/source-integrity.json
+            unity-city/Assets/Source/Premium/*.json
+            build/WebGL/playable.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Save browser-tested build for visual acceptance, not automatic production
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-premium-playable-${{ github.sha }}
+          path: unity-preview/
+          retention-days: 7
