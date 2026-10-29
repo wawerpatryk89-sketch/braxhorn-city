@@ -717,7 +717,7 @@ public static class BraxGymReferenceRebuild
             {
                 int center = vs.Count; var p = end == 0 ? a : b; var n = end == 0 ? -axis : axis; vs.Add(p); ns.Add(n); uv.Add(Vector2.one * .5f);
                 for (int k = 0; k <= sides; k++) { float angle = k * Mathf.PI * 2 / sides; var radial = side * Mathf.Cos(angle) + up * Mathf.Sin(angle); vs.Add(p + radial * radius); ns.Add(n); uv.Add(new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * .5f + Vector2.one * .5f); }
-                for (int k = 0; k < sides; k++) if (end == 0) triangles.AddRange(new[] { center, center + k + 2, center + k + 1 }); else triangles.AddRange(new[] { center, center + k + 1, center + k + 2 });
+                for (int k = 0; k < sides; k++) if (end == 0) triangles.AddRange(new[] { center, center + k + 1, center + k + 2 }); else triangles.AddRange(new[] { center, center + k + 2, center + k + 1 });
             }
             var mesh = new Mesh(); mesh.SetVertices(vs); mesh.SetNormals(ns); mesh.SetUVs(0, uv); mesh.SetTriangles(triangles, 0); return MeshObject(parent, name, mesh, material);
         }

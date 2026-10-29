@@ -92,7 +92,12 @@ public static class BraxGymReferenceEquipment
     {
         var anchor=GameObject.Find(path);
         if (!anchor) throw new InvalidOperationException("Mirror mounting frame is missing: "+path);
-        if (westWall) anchor.transform.rotation=Quaternion.LookRotation(Vector3.right,Vector3.up);
+        if (westWall)
+        {
+            anchor.transform.rotation=Quaternion.LookRotation(Vector3.right,Vector3.up);
+            // Reflective coating sits in front of the solid backing plate.
+            anchor.transform.position+=Vector3.right*.03f;
+        }
         var mesh=new Mesh{name=label+" reflective glass"};
         mesh.vertices=new[]{new Vector3(-.5f,-.5f,0),new Vector3(.5f,-.5f,0),new Vector3(.5f,.5f,0),new Vector3(-.5f,.5f,0)};
         mesh.uv=new[]{Vector2.zero,Vector2.right,Vector2.one,Vector2.up};mesh.triangles=new[]{0,1,2,0,2,3};
