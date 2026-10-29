@@ -155,7 +155,7 @@ public static partial class BraxCityMaterials
         {
             if (t.gameObject.layer == 8 || t.GetComponent<SkinnedMeshRenderer>() || t.GetComponent<Animator>()
                 || t.GetComponent<Animation>() || t.GetComponent<Rigidbody>() || t.GetComponent("BraxCityDoor")
-                || t.name == "Original opening door") return false;
+                || t.GetComponent("BraxCityMovingLiftPart") || t.name == "Original opening door") return false;
         }
         return true;
     }
