@@ -20,7 +20,7 @@ public static class BraxGymReferenceRebuild
 
     [Serializable] public sealed class Report
     {
-        public string revision = "kickboxing-reference-annex-02";
+        public string revision = "kickboxing-reference-annex-03-ceiling-air";
         public string coordinateSystem = "Unity metres, existing glTF X mirror retained";
         public Vector3 annexMin = new Vector3(-25.5f, 0, -3f);
         public Vector3 annexMax = new Vector3(-18f, 3.1f, 8f);
@@ -28,6 +28,7 @@ public static class BraxGymReferenceRebuild
         public Vector3 portalMax = new Vector3(-17.6f, 2.7f, 6f);
         public Vector3 mainDoorBefore, mainDoorAfter, ringCenterBefore, ringCenterAfter;
         public int sourceMeshesClipped, removedSourceTriangles, generatedMeshes, generatedTriangles, privacyRays, privacyBlocked;
+        public int ceilingFansConfigured, animatedCeilingFans;
         public bool privacyWithAllDoorsOpen, originalEntrancePreserved, originalRingPositionPreserved;
         public bool billboardArtworkInstalled = false, muralArtworkInstalled = false, physicalIPhoneValidated = false;
         public string[] registeredDoors, requiredAssets;
@@ -90,6 +91,10 @@ public static class BraxGymReferenceRebuild
             player.cityWorld.doors = (player.cityWorld.doors ?? Array.Empty<BraxCityDoor>()).Concat(newDoors).ToArray();
             report.registeredDoors = newDoors.Select(d => d.id).ToArray();
             CheckPrivacy();
+            report.ceilingFansConfigured = root.GetComponentsInChildren<BraxGymCeilingFan>(true).Length;
+            report.animatedCeilingFans = root.GetComponentsInChildren<BraxGymCeilingFan>(true).Count(f => f.rotor != null && f.revolutionsPerMinute > 0f);
+            if (report.ceilingFansConfigured != 2 || report.animatedCeilingFans != 2)
+                throw new InvalidOperationException("Two real high-ceiling ventilation fans with assigned animated rotors are required.");
             foreach (var group in batches) BatchByMaterial(group);
             var finalMeshes = root.GetComponentsInChildren<MeshFilter>(true).Where(f => f.sharedMesh && f.GetComponent<Renderer>() && f.GetComponent<Renderer>().enabled).ToArray();
             report.generatedMeshes = finalMeshes.Length;
@@ -592,6 +597,7 @@ public static class BraxGymReferenceRebuild
                 foreach (float dz in new[] { -.85f, .85f }) Tube(hall, "Linear light cable", new Vector3(13.8f, 5.5f, z + dz), new Vector3(13.8f, 7.3f, z + dz), .008f, blackSteel, 1, 6);
                 LocalLight("Neutral leather and suspension task light", new Vector3(13.8f, 5.25f, z), 2.0f, 8.0f);
             }
+            BuildPremiumCeilingFans();
             // Inexpensive neutral indirect fill is restricted to the new room
             // layer. The original character and city lights remain untouched.
             foreach (var direction in new[] { new Vector3(28f, 90f, 0), new Vector3(28f, 270f, 0) })
@@ -601,6 +607,123 @@ public static class BraxGymReferenceRebuild
                 fill.intensity = .42f; fill.shadows = LightShadows.None; fill.cullingMask = 1 << 10;
                 fill.renderMode = LightRenderMode.ForceVertex; fill.transform.rotation = Quaternion.Euler(direction);
             }
+        }
+
+        // Two high-clearance industrial air circulators and four real duct outlet grilles.
+        // All fixtures are above the player/camera envelope; nothing in the ring,
+        // boxing bag swing paths, player rig, original entrance or city is modified.
+        void BuildPremiumCeilingFans()
+        {
+            var housing = Material("HVLS graphite enamel motor housing", new Color(.105f, .115f, .125f), .72f, .34f);
+            var bladeSteel = Material("HVLS satin steel curved blades", new Color(.31f, .335f, .35f), .69f, .44f);
+            var fastener = Material("HVLS brushed alloy machine screws", new Color(.47f, .49f, .50f), .55f, .75f);
+            var mounts = new[] { new Vector2(-1.45f, -6.0f), new Vector2(9.35f, 3.45f) };
+            for (int i = 0; i < mounts.Length; i++)
+            {
+                var mount = Group(fixtures, "Suspended industrial five-blade ceiling fan " + (i + 1));
+                mount.localPosition = new Vector3(mounts[i].x, 6.36f, mounts[i].y);
+                Box(mount, "Four-bolt steel ceiling mounting plate", new Vector3(0, 1.37f, 0),
+                    new Vector3(.42f, .075f, .42f), housing, .025f);
+                Tube(mount, "Structural steel drop shaft", new Vector3(0, .10f, 0),
+                    new Vector3(0, 1.38f, 0), .048f, housing, 2, 20);
+                foreach (int sx in new[] { -1, 1 }) foreach (int sz in new[] { -1, 1 })
+                    Tube(mount, "Ceiling bracket bolt", new Vector3(sx * .155f, 1.41f, sz * .155f),
+                        new Vector3(sx * .155f, 1.46f, sz * .155f), .016f, fastener, 1, 12);
+                Tube(mount, "Circular ventilated motor housing", new Vector3(0, -.10f, 0),
+                    new Vector3(0, .20f, 0), .198f, housing, 3, 28);
+                Ring(mount, "Machined motor end collar", new Vector3(0, -.115f, 0),
+                    .195f, .016f, fastener, Quaternion.Euler(90, 0, 0), 32, 8);
+                for (int slot = 0; slot < 10; slot++)
+                {
+                    float a = slot * Mathf.PI * 2f / 10f;
+                    float dx = Mathf.Cos(a) * .202f, dz = Mathf.Sin(a) * .202f;
+                    Tube(mount, "Axial-motor cooling slot rim",
+                        new Vector3(dx, .012f, dz), new Vector3(dx, .095f, dz),
+                        .008f, fastener, 1, 6);
+                }
+
+                var rotor = Group(mount, "Five curved fan blades - animated rotor");
+                rotor.localPosition = new Vector3(0, -.19f, 0);
+                Tube(rotor, "Five-blade machined rotor hub", new Vector3(0, -.065f, 0),
+                    new Vector3(0, .065f, 0), .17f, housing, 2, 24);
+                MeshObject(rotor, "Five solid curved satin alloy fan blades", MakePremiumFanBlades(), bladeSteel);
+                for (int blade = 0; blade < 5; blade++)
+                {
+                    float a = blade * 2f * Mathf.PI / 5f;
+                    var p = new Vector3(Mathf.Cos(a) * .25f, .028f, Mathf.Sin(a) * .25f);
+                    Tube(rotor, "Blade-root bolted fastener", p, p + Vector3.up * .025f,
+                        .024f, fastener, 1, 12);
+                }
+
+                var animation = mount.gameObject.AddComponent<BraxGymCeilingFan>();
+                animation.rotor = rotor;
+                animation.revolutionsPerMinute = i == 0 ? 48f : 54f;
+            }
+
+            // Vented outlet faces belong to the existing longitudinal high duct,
+            // with real metal louvers rather than emissive rectangles.
+            foreach (float z in new[] { -9.0f, -3.3f, 2.4f, 7.9f })
+            {
+                Box(hall, "Ventilation branch metal outlet plenum", new Vector3(16.10f, 6.83f, z),
+                    new Vector3(.38f, .32f, 1.08f), blackSteel, .025f);
+                Box(hall, "Recessed ventilation grille frame", new Vector3(16.10f, 6.665f, z),
+                    new Vector3(.34f, .020f, 1.00f), steel, .008f);
+                Box(hall, "Dark air cavity behind louvered grille", new Vector3(16.10f, 6.647f, z),
+                    new Vector3(.28f, .006f, .91f), housing, .002f);
+                for (int l = -3; l <= 3; l++)
+                {
+                    float iz = z + l * .115f;
+                    Box(hall, "Angled metal outlet louver", new Vector3(16.10f, 6.622f, iz),
+                        new Vector3(.27f, .024f, .019f), fastener, .004f);
+                }
+            }
+        }
+
+        Mesh MakePremiumFanBlades()
+        {
+            // A single closed blade mesh per fan: aerodynamic taper, thickness,
+            // subtle twist and root bolts; not flat planes or billboard textures.
+            var vertices = new List<Vector3>();
+            var uv = new List<Vector2>();
+            var triangles = new List<int>();
+            float[] distance = { .18f, .35f, .60f, .89f, 1.12f };
+            float[] halfWidth = { .070f, .145f, .175f, .140f, .055f };
+            float[] twist = { .005f, .025f, .050f, .038f, .012f };
+            for (int blade = 0; blade < 5; blade++)
+            {
+                int offset = vertices.Count;
+                var rotation = Quaternion.AngleAxis(blade * 72f, Vector3.up);
+                for (int segment = 0; segment < distance.Length; segment++)
+                {
+                    float r = distance[segment], w = halfWidth[segment], y = twist[segment];
+                    vertices.Add(rotation * new Vector3(r, y, -w));
+                    vertices.Add(rotation * new Vector3(r, y, w));
+                    vertices.Add(rotation * new Vector3(r, y - .024f, -w));
+                    vertices.Add(rotation * new Vector3(r, y - .024f, w));
+                    uv.Add(new Vector2(r, 0)); uv.Add(new Vector2(r, 1));
+                    uv.Add(new Vector2(r, 0)); uv.Add(new Vector2(r, 1));
+                }
+                for (int segment = 0; segment < distance.Length - 1; segment++)
+                {
+                    int a = offset + segment * 4, b = a + 4;
+                    triangles.AddRange(new[] {
+                        a, a+1, b, a+1, b+1, b,        // upper metal shell
+                        a+2, b+2, a+3, a+3, b+2, b+3, // underside
+                        a, b, a+2, a+2, b, b+2,        // leading bevel
+                        a+1, a+3, b+1, b+1, a+3, b+3  // trailing bevel
+                    });
+                }
+                int first = offset, last = offset + (distance.Length - 1) * 4;
+                triangles.AddRange(new[] { first, first+2, first+1, first+1, first+2, first+3,
+                    last, last+1, last+2, last+1, last+3, last+2 });
+            }
+            var mesh = new Mesh { name = "Solid aerodynamic premium industrial ceiling fan blades" };
+            mesh.SetVertices(vertices);
+            mesh.SetUVs(0, uv);
+            mesh.SetTriangles(triangles, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
         }
 
         void BuildMuralWall()
