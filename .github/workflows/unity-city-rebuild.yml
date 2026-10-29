@@ -1,0 +1,41 @@
+name: City rebuild — isolated source asset audit
+
+on:
+  push:
+    branches: [codex/city-reference-rebuild-20261029]
+    paths:
+      - .github/workflows/unity-city-rebuild.yml
+      - unity-tools/city-rebuild/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: city-reference-asset-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  asset-audit:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+          lfs: false
+      - name: Validate audit code
+        run: python3 -m py_compile unity-tools/city-rebuild/audit_assets.py
+      - name: Inspect official Poly Haven sources without changing a scene
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0
+          python3 unity-tools/city-rebuild/audit_assets.py --output curated/Source/CityRebuild
+      - name: Preserve downloaded sources, API manifests and inspection report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-curated-sources-${{ github.sha }}
+          path: curated/
+          if-no-files-found: error
+          retention-days: 14
