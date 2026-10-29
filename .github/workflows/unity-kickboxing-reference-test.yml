@@ -23,6 +23,7 @@ jobs:
             public/assets/chars
             public/assets/tex
             public/assets/logo
+            dev/logos/badge.png
             public/unity-gym
             asset-library/sources/sofa_02
           persist-credentials: false

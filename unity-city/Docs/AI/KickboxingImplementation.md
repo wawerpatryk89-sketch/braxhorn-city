@@ -66,3 +66,13 @@ At approximately 1 FPS in the first instrumented software-rendered run, fixed 45
 
 ## Exact approved mural, 29 October 2026
 The approved original PNG is the 1983×793 image with SHA-256 `c84fbc33ea871834a403a80169f09fa0db562254c0d2f082e655cbf4dafc73ef`. In Unity use a proportional 1536×614 quality-80 4:4:4 JPEG, SHA-256 `e714741664dbedddc379a97a87f7d8757856c73438eeb34af10df058846628e8`, without generating/reinterpreting the bull, fighters, logo or lettering. The attached wall painting measures 19.2×7.675 m and retains existing brick and mortar normals. Old framed decor is disabled, and no new billboard frame is introduced. WebGL uses ETC2 RGB4 compression; NPOT scaling is disabled to keep the mural aspect. Real hardware performance remains subject to physical-phone test.
+
+
+## 2026-10-29 — Second premium-polish acceptance requirements (owner)
+
+- Exterior street door: keep the original hinge, opening action and city transition, but remove observed flickering of visible faces. Hide original 8 layered GLB leaf renderers; use one thick, depth-separated premium door skin, retaining original physics. Proof: repeated close/open/exit and real iPhone video.
+- Reception corner: replace old hall bench with TWO source-library sofa_02 models placed along perpendicular walls in an L-shaped layout; include a real wood-and-steel coffee table, grounded furniture, no obstruction to the annex corridor.
+- Boxing ring: all four horizontal ropes must have real padded white textile appearance, appropriate thickness, fabric normal map and original protected posts. No colored alternating ropes.
+- Training bags: use original reviewed black synthetic-leather body, source chain links and steel fastenings, retain impact-driven swing. Do not simplify to branded cylinders.
+- Branding: exact uploaded 1254x1254 BRAXHORN NUTRITION badge with bull above wordmark for wall and training mat, not split blurry text/mark. The source badge must match SHA-256 8f6b0f4778cdfcfcea583d923d87f2f39b3e5b4f5befca3c6792a71b223f0fd7. Original BRAX+NYXA rear-wall painted mural remains unchanged.
+- City and characters are out of scope; source-to-Unity rebuild stays isolated. Screens must come from compiled Unity, no AI-created previews. Physical-device 30 FPS measurement is separate and pending.

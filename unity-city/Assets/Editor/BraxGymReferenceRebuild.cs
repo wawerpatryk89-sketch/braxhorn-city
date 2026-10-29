@@ -84,6 +84,7 @@ public static class BraxGymReferenceRebuild
             BuildMuralWall();
             BuildAnnex();
             BuildReception();
+            FinishOriginalExitDoor();
             BuildContactGrounding();
             BuildMirrorAnchor();
             player.cityWorld.doors = (player.cityWorld.doors ?? Array.Empty<BraxCityDoor>()).Concat(newDoors).ToArray();
@@ -129,7 +130,7 @@ public static class BraxGymReferenceRebuild
         void PrepareMaterials()
         {
             if (!Shader.Find("Standard")) throw new InvalidOperationException("Built-in Standard shader is required by the current renderer.");
-            report.requiredAssets = new[] { "BrickAlbedo.jpg", "BrickNormal.png", "BrickARM.jpg", "RubberAlbedo.jpg", "RubberNormal.png", "RubberARM.jpg", "WoodAlbedo.jpg", "WoodNormal.png", "WoodARM.jpg", "MuralPaint.jpg", "Mark.png", "Wordmark.png" };
+            report.requiredAssets = new[] { "BrickAlbedo.jpg", "BrickNormal.png", "BrickARM.jpg", "RubberAlbedo.jpg", "RubberNormal.png", "RubberARM.jpg", "WoodAlbedo.jpg", "WoodNormal.png", "WoodARM.jpg", "MuralPaint.jpg", "Mark.png", "Wordmark.png", "ApprovedNutritionBadge.png" };
             foreach (string name in report.requiredAssets) RequiredTexture(name, name.Contains("Normal"), name.Contains("ARM"));
             brick = Material("Natural dark brick", new Color(.70f, .66f, .61f), .80f, 0);
             brick.mainTexture = RequiredTexture("BrickAlbedo.jpg");
@@ -223,7 +224,7 @@ public static class BraxGymReferenceRebuild
                 web.format = TextureImporterFormat.RGB24;
                 importer.SetPlatformTextureSettings(web);
             }
-            importer.wrapMode = name == "Mark.png" || name == "Wordmark.png" || name == "MuralPaint.jpg" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
+            importer.wrapMode = name == "Mark.png" || name == "Wordmark.png" || name == "ApprovedNutritionBadge.png" || name == "MuralPaint.jpg" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
             importer.isReadable = name.Contains("ARM"); importer.SaveAndReimport();
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
             if (!texture) throw new InvalidOperationException("Unity failed to import reviewed surface: " + path);
@@ -411,9 +412,13 @@ public static class BraxGymReferenceRebuild
                 Box(hall, "Green mat perimeter", new Vector3(x, .058f, (z0 + z1) / 2), new Vector3(.105f, .003f, z1 - z0 - .08f), green, .001f);
             foreach (float z in new[] { z0 + .08f, z1 - .08f })
                 Box(hall, "Green mat perimeter", new Vector3((x0 + x1) / 2, .058f, z), new Vector3(x1 - x0 - .08f, .003f, .105f), green, .001f);
-            Decal(hall, "Original brand mark on mat", RequiredTexture("Mark.png"), new Vector3(1.2f, .061f, 2.9f), 2.25f, 1.65f, Vector3.up, Vector3.back, Color.white);
-            Text(hall, "BRAXHORN", new Vector3(1.2f, .062f, 4.45f), 6.5f, Color.white, Quaternion.Euler(90, 180, 0));
-            Text(hall, "KICKBOXING", new Vector3(1.2f, .067f, 5.4f), 5.4f, BrandGreen, Quaternion.Euler(90, 180, 0));
+            // One owner-approved project badge, complete with NUTRITION.
+            // Replaces three tiny overlapping decals; its bull is above the wordmark
+            // exactly as supplied by the owner. Original pixels are never redrawn.
+            Decal(hall, "Approved BRAXHORN NUTRITION training mat badge",
+                RequiredTexture("ApprovedNutritionBadge.png"),
+                new Vector3(1.2f, .068f, 3.73f), 4.25f, 4.25f,
+                Vector3.up, Vector3.back, Color.white);
         }
 
         void BuildRingFinishing()
@@ -427,17 +432,24 @@ public static class BraxGymReferenceRebuild
             }
             foreach (int id in new[] { 136, 137 }) FindSource(id).GetComponent<Renderer>().enabled = false;
             const float cx = -9f, cz = -5.5f, half = 3.45f;
+            // The ropes are professional padded WHITE boxing ropes, not the
+            // previous alternating green and thin line appearance. Reuse the
+            // existing fabric normal map to retain close-range woven detail.
+            var ropeNormal = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Source/Premium/RopeNormal.png");
+            if (!ropeNormal) throw new InvalidOperationException("Reviewed woven rope normal map is missing.");
+            var ropeMaterial = Material("Premium white textile ring rope", new Color(.93f, .94f, .93f), .84f, 0f);
+            SetNormal(ropeMaterial, ropeNormal, .25f);
             float[] heights = { 1.22f, 1.60f, 1.98f, 2.36f };
             for (int i = 0; i < heights.Length; i++)
             {
-                float y = heights[i]; var ropeMaterial = i == 0 || i == 3 ? green : white;
+                float y = heights[i];
                 var a = new Vector3(cx - half, y, cz - half); var b = new Vector3(cx + half, y, cz - half);
                 var c = new Vector3(cx + half, y, cz + half); var d = new Vector3(cx - half, y, cz + half);
-                Tube(hall, "Four-rope ring rear", a, b, .042f, ropeMaterial, 36, 10, .022f);
-                Tube(hall, "Four-rope ring side", a, d, .042f, ropeMaterial, 36, 10, .022f);
-                Tube(hall, "Four-rope ring side", b, c, .042f, ropeMaterial, 36, 10, .022f);
-                Tube(hall, "Four-rope ring entry left", d, new Vector3(-9.85f, y, cz + half), .042f, ropeMaterial, 20, 10, .015f);
-                Tube(hall, "Four-rope ring entry right", new Vector3(-8.15f, y, cz + half), c, .042f, ropeMaterial, 20, 10, .015f);
+                Tube(hall, "Four-rope ring rear", a, b, .050f, ropeMaterial, 40, 12, .012f);
+                Tube(hall, "Four-rope ring side", a, d, .050f, ropeMaterial, 40, 12, .012f);
+                Tube(hall, "Four-rope ring side", b, c, .050f, ropeMaterial, 40, 12, .012f);
+                Tube(hall, "Four-rope ring entry left", d, new Vector3(-9.85f, y, cz + half), .050f, ropeMaterial, 22, 12, .008f);
+                Tube(hall, "Four-rope ring entry right", new Vector3(-8.15f, y, cz + half), c, .050f, ropeMaterial, 22, 12, .008f);
                 foreach (int sx in new[] { -1, 1 }) foreach (int sz in new[] { -1, 1 })
                 {
                     var corner = new Vector3(cx + sx * half, y, cz + sz * half);
@@ -647,10 +659,13 @@ public static class BraxGymReferenceRebuild
             paint.localPosition = new Vector3(centerX, centerY, -12.986f);
             report.muralArtworkInstalled = true;
 
-            // Keep the ORIGINAL project-owned mark and wordmark on the right
-            // brick wall. Neither is AI-generated or visually redrawn.
-            Decal(hall, "Original right wall brand", RequiredTexture("Mark.png"), new Vector3(-17.89f, 5.1f, 0), 2.25f, 2.25f, Vector3.right, Vector3.up, Color.white);
-            Decal(hall, "Original right wall wordmark", RequiredTexture("Wordmark.png"), new Vector3(-17.88f, 3.55f, 0), 4.8f, .78f, Vector3.right, Vector3.up, Color.white);
+            // Remove the blurry split mark + wordmark. Place the EXACT owner
+            // supplied bull-above-BRAXHORN-NUTRITION badge as one wall print;
+            // no AI reinterpretation and no raised billboard frame.
+            Decal(hall, "Approved BRAXHORN NUTRITION right wall badge",
+                RequiredTexture("ApprovedNutritionBadge.png"),
+                new Vector3(-17.875f, 5.03f, 0f), 3.85f, 3.85f,
+                Vector3.right, Vector3.up, Color.white);
         }
 
         void BuildAnnex()
@@ -750,7 +765,75 @@ public static class BraxGymReferenceRebuild
             Box(hall, "Reception payment terminal stand", p + new Vector3(.95f, 1.14f, -.12f), new Vector3(.13f, .07f, .15f), blackSteel, .02f);
             var terminal = Box(hall, "Reception payment terminal", p + new Vector3(.95f, 1.23f, -.12f), new Vector3(.12f, .035f, .19f), vinyl, .018f); terminal.localRotation = Quaternion.Euler(-25, 0, 0);
             ColliderBox("Reception collision", p + new Vector3(0, .55f, 0), new Vector3(3.55f, 1.10f, .94f));
-            Bench(hall, new Vector3(-14.9f, 0, 8.7f), 2.45f, true);
+            BuildCornerLounge();
+        }
+
+        void BuildCornerLounge()
+        {
+            // Use the actual reviewed CC0 sofa from the existing library.
+            // Two sofas sit on TWO perpendicular walls of the same corner.
+            // Keep the annex door (right wall z=4.2..6.0) clear.
+            PlaceLibrarySofa("BRAXHORN lounge sofa against entrance wall",
+                new Vector3(-13.80f, 0f, 10.31f), 0f);
+            PlaceLibrarySofa("BRAXHORN lounge sofa against right wall",
+                new Vector3(-17.11f, 0f, 7.79f), -90f);
+
+            // Furnished coffee table with a rounded real wooden top, dark
+            // powder-coated steel lower frame and individual protected feet.
+            var p = new Vector3(-15.40f, 0f, 8.46f);
+            Box(hall, "BRAXHORN lounge coffee table oak top",
+                p + new Vector3(0, .46f, 0), new Vector3(1.20f, .075f, .76f), wood, .055f);
+            Box(hall, "Coffee table discreet steel rim",
+                p + new Vector3(0, .415f, 0), new Vector3(1.13f, .027f, .69f), blackSteel, .025f);
+            foreach (float x in new[] { -.46f, .46f })
+                foreach (float z in new[] { -.24f, .24f })
+                {
+                    Box(hall, "Coffee table slim steel leg",
+                        p + new Vector3(x, .225f, z), new Vector3(.036f, .43f, .036f), blackSteel, .008f);
+                    Box(hall, "Coffee table rubber floor foot",
+                        p + new Vector3(x, .018f, z), new Vector3(.060f, .035f, .060f), rubber, .008f);
+                }
+            ColliderBox("Lounge coffee table collision",
+                p + new Vector3(0, .26f, 0), new Vector3(1.22f, .51f, .78f));
+        }
+
+        void PlaceLibrarySofa(string name, Vector3 center, float yaw)
+        {
+            const string path = "Assets/Source/LibrarySofa02.glb";
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>(path)
+                ?? AssetDatabase.LoadAllAssetsAtPath(path).OfType<GameObject>().FirstOrDefault();
+            if (!source) throw new InvalidOperationException(
+                "Original sofa_02 from the approved CC0 library is required: " + path);
+            var anchor = Group(hall, name);
+            anchor.position = center;
+            anchor.rotation = Quaternion.Euler(0, yaw, 0);
+            var sofa = UnityEngine.Object.Instantiate(source, anchor, false);
+            sofa.name = "Original library sofa_02 premium upholstery";
+            var renderers = sofa.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0)
+                throw new InvalidOperationException("The imported library sofa has no renderers.");
+            Bounds bounds = renderers[0].bounds;
+            foreach (var renderer in renderers) bounds.Encapsulate(renderer.bounds);
+            float size = Mathf.Max(bounds.size.x, bounds.size.z);
+            if (size < .05f) throw new InvalidOperationException("Original CC0 sofa scale is invalid.");
+            sofa.transform.localScale *= 2.32f / size;
+            bounds = renderers[0].bounds;
+            foreach (var renderer in renderers)
+            {
+                renderer.gameObject.layer = 10;
+                renderer.shadowCastingMode = ShadowCastingMode.Off;
+                bounds.Encapsulate(renderer.bounds);
+            }
+            sofa.transform.position += new Vector3(center.x - bounds.center.x,
+                -bounds.min.y, center.z - bounds.center.z);
+            bounds = renderers[0].bounds;
+            foreach (var renderer in renderers) bounds.Encapsulate(renderer.bounds);
+            // Bounds-driven obstruction, rather than an unrelated invisible box.
+            ColliderBox(name + " collision",
+                new Vector3(bounds.center.x, Mathf.Min(.46f, bounds.center.y), bounds.center.z),
+                new Vector3(Mathf.Max(.70f, bounds.size.x * .94f),
+                    Mathf.Clamp(bounds.size.y, .32f, .92f),
+                    Mathf.Max(.70f, bounds.size.z * .94f)));
         }
 
         void Bench(Transform parent, Vector3 p, float length, bool alongX)
@@ -787,6 +870,48 @@ public static class BraxGymReferenceRebuild
             Box(hall, "Mirror green base detail", new Vector3(17.83f, .34f, -3.25f), new Vector3(.020f, .025f, 14.45f), green, .005f);
         }
 
+        void FinishOriginalExitDoor()
+        {
+            // Source GLB uses eight layered door meshes at the original city exit.
+            // Their overlapping faces can z-fight as the door rotates on mobile.
+            // Keep the EXISTING animated hinge, interaction and physics intact;
+            // hide only the old visible leaf surfaces and skin that same pivot
+            // with one thick opaque door plus noncoplanar, recessed trim.
+            if (!player.door || player.door.name != "Original opening door")
+                throw new InvalidOperationException("Original animated city exit door pivot was replaced.");
+            for (int index = 24; index <= 31; index++)
+            {
+                var renderer = FindSource(index).GetComponent<Renderer>();
+                if (!renderer) throw new InvalidOperationException(
+                    "Required original exit door surface missing: " + index);
+                renderer.enabled = false;
+            }
+            var hinge = player.door;
+            Box(hinge, "BRAXHORN exterior door solid no-flicker leaf",
+                new Vector3(-.79f, 1.50f, .11f),
+                new Vector3(1.50f, 2.92f, .080f), vinyl, .018f);
+            foreach (float y in new[] { .40f, 1.02f, 1.64f, 2.26f })
+                Box(hinge, "Exterior door inset structural emboss",
+                    new Vector3(-.79f, y, .164f),
+                    new Vector3(1.26f, .017f, .012f), blackSteel, .006f);
+            Box(hinge, "Exterior door discreet green identity line",
+                new Vector3(-.79f, 2.80f, .166f),
+                new Vector3(1.25f, .024f, .012f), green, .004f);
+            foreach (float sign in new[] { -1f, 1f })
+            {
+                float z = .11f + sign * .061f;
+                Tube(hinge, "Exterior exit steel handle socket",
+                    new Vector3(-1.35f, 1.03f, z),
+                    new Vector3(-1.35f, 1.03f, z + sign * .018f),
+                    .027f, steel, 1, 12);
+                Tube(hinge, "Exterior exit sturdy grab lever",
+                    new Vector3(-1.35f, 1.03f, z + sign * .018f),
+                    new Vector3(-1.12f, 1.03f, z + sign * .018f),
+                    .012f, steel, 1, 12);
+            }
+            // Nothing about doorAngle, city-world transitions or input changes.
+        }
+
         void BuildContactGrounding()
         {
             // A small shared soft contact mask restores depth at static object
@@ -810,7 +935,9 @@ public static class BraxGymReferenceRebuild
             };
             footprint(hall, new Vector3(-9f, .012f, -5.5f), 9.1f, 9.1f);
             footprint(hall, new Vector3(-2.6f, .012f, 9.65f), 3.9f, 1.3f);
-            footprint(hall, new Vector3(-14.9f, .012f, 8.7f), 2.8f, .85f);
+            footprint(hall, new Vector3(-13.80f, .012f, 10.31f), 2.45f, 1.1f);
+            footprint(hall, new Vector3(-17.11f, .012f, 7.79f), 1.1f, 2.45f);
+            footprint(hall, new Vector3(-15.40f, .012f, 8.46f), 1.34f, .9f);
             footprint(annex, new Vector3(-22.67f, .012f, 5.8f), .82f, 3.15f);
             footprint(annex, new Vector3(-24.92f, .012f, 4.73f), .90f, 5.95f);
             footprint(annex, new Vector3(-24.4f, .012f, -1.92f), .86f, 1.1f);

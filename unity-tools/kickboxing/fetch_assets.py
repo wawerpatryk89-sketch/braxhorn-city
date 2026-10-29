@@ -68,6 +68,19 @@ def main():
         source_path = ROOT / 'public/assets/logo' / source_name
         with Image.open(source_path) as image:
             image.convert('RGBA').save(TEXTURES / target_name)
+    # Exact owner-provided 1254px NUTRITION badge is already a tracked project
+    # asset (same Git blob as user upload). No regeneration or typography edits.
+    approved = ROOT / 'dev/logos/badge.png'
+    raw = approved.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != '8f6b0f4778cdfcfcea583d923d87f2f39b3e5b4f5befca3c6792a71b223f0fd7':
+        raise RuntimeError('Owner-approved bull-over-BRAXHORN-NUTRITION logo changed')
+    with Image.open(io.BytesIO(raw)) as image:
+        if image.size != (1254, 1254): raise RuntimeError('Approved badge dimensions changed')
+    (TEXTURES / 'ApprovedNutritionBadge.png').write_bytes(raw)
+    RECEIPT.append({'file': str((TEXTURES / 'ApprovedNutritionBadge.png').relative_to(ROOT)),
+        'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest(),
+        'source': 'Owner-provided exact original badge.png (BRAXHORN NUTRITION)',
+        'license': 'BRAXHORN project-owned artwork, not stock or generated', 'pixelEdits': False})
     # Keep the original separate glTF dependencies: no Blender round trip or
     # texture re-encoding is needed to import the real Poly Haven mesh in Unity.
     lamp = json.loads(fetch('https://api.polyhaven.com/files/hanging_industrial_lamp'))['gltf']['1k']['gltf']
