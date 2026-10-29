@@ -26,8 +26,11 @@ public static class BraxGymBuild
     static void Layer(Transform root,int layer){foreach(Transform t in root.GetComponentsInChildren<Transform>(true))t.gameObject.layer=layer;}
     static void AddBox(Transform parent,string name,Vector3 center,Vector3 size)
     {var obj=new GameObject(name);obj.transform.SetParent(parent,false);obj.transform.position=center;obj.AddComponent<BoxCollider>().size=size;}
-    public static void Build()
+    public static void Build(){BuildInternal(false);}
+    public static void BuildCity(){BuildInternal(true);}
+    private static void BuildInternal(bool fullCity)
     {
+        if(fullCity)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
         Directory.CreateDirectory(Generated);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
         var gym=ImportModel("Assets/Source/braxhorn-original-gym.glb");
@@ -53,8 +56,6 @@ public static class BraxGymBuild
                     foreach(var name in new[]{"_BaseColor","_Color","baseColorFactor","_BaseColorFactor"})if(m.HasProperty(name)){t.color=m.GetColor(name);break;}
                     foreach(var name in new[]{"_Cull","_CullMode","_CullModeForward"})if(m.HasProperty(name)){t.SetFloat("_Cull",m.GetFloat(name));break;}
                     t.SetFloat("_VertexColor",1);
-                    // Unity names a new main asset after its filename. Keep the
-                    // original BX material identity used by the surface pass.
                     string assetName=new string(m.name.Select(c=>char.IsLetterOrDigit(c)||c=='_'?c:'_').ToArray());
                     AssetDatabase.CreateAsset(t,Generated+"/"+assetName+".mat");
                     t.name=m.name;EditorUtility.SetDirty(t);cache[m]=t;tuned++;
@@ -64,8 +65,6 @@ public static class BraxGymBuild
             }
             r.sharedMaterials=materialSlots;
         }
-        // glTFast converts right-handed glTF coordinates by mirroring X. Apply the
-        // SAME conversion to the source physics, spawns, bag pivots and doorway.
         var solids=new GameObject("Original collisions (glTF X conversion)");int n=0;GameObject doorCollider=null;
         foreach(var b in world.boxes)
         {
@@ -92,8 +91,6 @@ public static class BraxGymBuild
                 var b=r.bounds;
                 if(Mathf.Abs(b.center.x-14)<.45f && Mathf.Abs(b.center.z-z)<.5f && b.size.x<1.4f && b.size.z<1.4f && b.center.y>1f && b.max.y<4.65f)r.transform.SetParent(bag.transform,true);
             }
-            // Each original bag has its own height. A shared collider left an
-            // invisible cap above short bags and missed their lower leather edge.
             var bagBody=Find(bag.transform,"Gym_Mesh_"+(81+bags.Count*8));
             var bagRenderer=bagBody?bagBody.GetComponent<MeshRenderer>():null;
             if(!bagRenderer)throw new Exception("Original bag collider source missing "+bags.Count);
@@ -129,17 +126,19 @@ public static class BraxGymBuild
         QualitySettings.antiAliasing=4;QualitySettings.pixelLightCount=2;QualitySettings.shadows=ShadowQuality.Disable;QualitySettings.anisotropicFiltering=AnisotropicFiltering.ForceEnable;
         PlayerSettings.colorSpace=ColorSpace.Linear;PlayerSettings.companyName="Braxhorn";PlayerSettings.productName="Braxhorn Gym";PlayerSettings.defaultScreenWidth=1280;PlayerSettings.defaultScreenHeight=720;
         PlayerSettings.WebGL.compressionFormat=WebGLCompressionFormat.Gzip;PlayerSettings.WebGL.decompressionFallback=true;PlayerSettings.WebGL.template="APPLICATION:Default";
-        // Material selection and original-hero refinement are authored source,
-        // never string substitutions performed by an asset-preparation script.
         BraxGymPremium.Apply(gym,hero,bags.ToArray(),camera,light,fill,Generated);
         BraxHeroRefinements.Apply(hero,bags.ToArray(),camera,Generated);
-        const string scenePath=Generated+"/BraxhornGym.unity";if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
-        EditorBuildSettings.scenes=new[]{new EditorBuildSettingsScene(scenePath,true)};AssetDatabase.SaveAssets();
+        if(fullCity)BraxCityBuild.AttachCity(runtime);
+        string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
+        string sourceCommit=runtime.buildId;
+        string[] scenePaths=fullCity?new[]{scenePath,BraxCityBuild.CreateEstate(sourceCommit)}:new[]{scenePath};
+        EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
         var output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);
-        var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=new[]{scenePath},target=BuildTarget.WebGL,locationPathName=output,options=BuildOptions.None});
+        var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=BuildTarget.WebGL,locationPathName=output,options=BuildOptions.None});
         if(result.summary.result!=BuildResult.Succeeded)throw new Exception("Playable Unity build failed "+result.summary.result);
-        var report=new Report{unity=Application.unityVersion,commit=runtime.buildId,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
+        var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
+        if(fullCity)BraxCityBuild.WriteReport(output,sourceCommit);
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }
 }

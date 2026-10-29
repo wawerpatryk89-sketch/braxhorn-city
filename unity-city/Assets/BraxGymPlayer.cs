@@ -13,6 +13,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public Transform contactShadow;
     public string buildId;
     public bool ready;
+    public BraxCityWorld cityWorld;
+    public Vector3 worldSpawn=new Vector3(1.5f,.08f,2.8f);
     public int trainingHits;
     private Vector2 move;
     private float yaw, pitch = 19f, distance = 5.8f, vertical, speed;
@@ -45,7 +47,10 @@ public sealed class BraxGymPlayer : MonoBehaviour
         public Vector3 leftFootPosition,rightFootPosition;
         public Vector2 lastHitImpulse;
         public Vector2[] bagAngles,bagVelocities;
-        public string animation,context,build;
+        public string animation,context,build,area,activePoint;
+        public bool loadingArea;
+        public int cityMeshes,cityTriangles,cityColliders,openDoors;
+        public BraxCityPoint[] points;
         public int hits,frames,lastHitBag;
     }
     private void Start()
@@ -91,7 +96,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(key=="pause"){paused=!paused;move=Vector2.zero;foreach(AnimationState st in clips)st.speed=paused?0:1;Report();return;}
         if(key=="reset")
         {
-            body.enabled=false;transform.position=Spawn;transform.rotation=Quaternion.Euler(0,180,0);body.enabled=true;
+            body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,180,0);body.enabled=true;
             vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
             yaw=0;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
             action="Idle";clips.Play("Idle");UpdateCamera(1f);Report();return;
@@ -101,6 +106,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(paused)return;
         if(key=="action")
         {
+            if(cityWorld&&cityWorld.Interact())return;
             if(door && Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f){doorOpen=!doorOpen;Report();}
             return;
         }
@@ -119,15 +125,12 @@ public sealed class BraxGymPlayer : MonoBehaviour
     }
     private void Update()
     {
-        if(!ready||paused)return;
+        if(!ready||paused||(cityWorld&&cityWorld.loading))return;
         float dt=Mathf.Min(Time.deltaTime,.12f);
         simulationTime+=dt;
         bool acting=Time.time<actionEnd;
         float target=!acting?(move.magnitude>.12f?(runEnabled&&move.magnitude>.76f?5f:2f)*Mathf.Clamp01(move.magnitude*1.3f):0):0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
-        // Orbit yaw describes the camera's POSITION around its target, not its
-        // forward heading. At orbit yaw 0 the camera looks toward -Z, so screen
-        // right is -X. Use the displayed camera basis, independent of player yaw.
         Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
         Vector3 forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
         Vector3 direction=right*move.x+forward*move.y;
@@ -135,8 +138,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(body.isGrounded&&vertical<0)vertical=-2f;vertical-=18f*dt;
         Vector3 step=(direction.normalized*speed+Vector3.up*vertical)*dt;
         int n=Mathf.Max(1,Mathf.CeilToInt(step.magnitude/.16f));for(int i=0;i<n;i++)body.Move(step/n);
-        if(transform.position.y< -3f)Command("reset");
-        if(transform.position.z>20.2f){body.enabled=false;var q=transform.position;q.z=20.2f;transform.position=q;body.enabled=true;}
+        if(transform.position.y<(cityWorld?-20f:-3f))Command("reset");
+        if(!cityWorld&&transform.position.z>20.2f){body.enabled=false;var q=transform.position;q.z=20.2f;transform.position=q;body.enabled=true;}
         if(hitPending&&Time.time>=hitAt){hitPending=false;HitBag();}
         if(!acting)
         {
@@ -165,9 +168,6 @@ public sealed class BraxGymPlayer : MonoBehaviour
                 trainingHits++;lastHitBag=i;lastHitTime=Time.time;lastHitDistance=d.magnitude;lastHitAlignment=alignment;
                 Vector3 localForward=bags[i].parent?bags[i].parent.InverseTransformDirection(transform.forward):transform.forward;
                 localForward=Quaternion.Inverse(bagRestRotation[i])*localForward;
-                // The bag hangs DOWN from this pivot: +roll displaces it toward
-                // +X and -pitch toward +Z. The impulse must carry it away from
-                // the strike, including an approach along the other aisle axis.
                 lastHitImpulse=new Vector2(-localForward.z,localForward.x)*55f;
                 bagVelocity[i]+=lastHitImpulse;
                 if(soundEnabled)audioSource.PlayOneShot(impact);Report();break;
@@ -178,8 +178,6 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         if(!ready)return;
         UpdateCamera(Mathf.Min(Time.deltaTime,.1f));
-        // Report after LookAt so position, yaw and screen axes describe the same
-        // rendered frame. Reporting earlier exposes the previous camera basis.
         if(reviewEnabled||Time.unscaledTime>=stateAt){stateAt=Time.unscaledTime+.16f;Report();}
     }
     private void UpdateCamera(float dt)
@@ -191,10 +189,11 @@ public sealed class BraxGymPlayer : MonoBehaviour
         Vector3 position=cameraTarget+offset;
         if(Physics.SphereCast(cameraTarget,.18f,offset.normalized,out RaycastHit hit,distance,~(1<<8),QueryTriggerInteraction.Ignore))position=cameraTarget+offset.normalized*Mathf.Max(.8f,hit.distance-.15f);
         view.transform.position=position;view.transform.LookAt(cameraTarget);
-        if(contactShadow){var p=transform.position;p.y=body.isGrounded?transform.position.y+.018f:.018f;contactShadow.position=p;}
+        if(contactShadow){var p=transform.position;
+            if(cityWorld&&Physics.Raycast(p+Vector3.up*.25f,Vector3.down,out RaycastHit floor,30,~(1<<8),QueryTriggerInteraction.Ignore))p.y=floor.point.y+.018f;
+            else p.y=body.isGrounded?transform.position.y+.018f:.018f;
+            contactShadow.position=p;}
     }
-    // Explicit QA view, available only with ?qa=1. It does not replace gameplay
-    // controls and is excluded from the ordinary player entry point.
     public void ReviewView(string text)
     {
         if(!reviewEnabled)return;
@@ -205,6 +204,13 @@ public sealed class BraxGymPlayer : MonoBehaviour
         yaw=v[3];pitch=Mathf.Clamp(v[4],7f,57f);distance=Mathf.Clamp(v[5],.8f,12f);
         cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);Report();
     }
+    public void TravelTo(Vector3 position)
+    {
+        move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";
+        body.enabled=false;transform.position=position;body.enabled=true;clips.Play("Idle");
+        cameraTarget=position+Vector3.up*1.65f;UpdateCamera(1f);Report();
+    }
+    public void TravelPoint(string id){if(cityWorld&&!paused)cityWorld.GoTo(id);}
     private static bool ReviewEnabled()
     {
         if(!Uri.TryCreate(Application.absoluteURL,UriKind.Absolute,out var url))return false;
@@ -216,9 +222,10 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         var h=hand?hand.position:Vector3.zero;
         string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
+        if(cityWorld){if(!string.IsNullOrEmpty(cityWorld.Context))context=cityWorld.Context;else if(context=="ULICA — KOLEJNY ETAP")context="";}
         var right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
         var forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
-        var s=new Status{ready=ready,paused=paused,x=transform.position.x,y=transform.position.y,z=transform.position.z,yaw=yaw,pitch=pitch,speed=speed,animation=action,context=context,hits=trainingHits,frames=Time.frameCount,handX=h.x,handY=h.y,handZ=h.z,doorOpen=doorOpen,build=buildId,
+        var s=new Status{area=cityWorld?cityWorld.area:"gym",activePoint=cityWorld?cityWorld.activePoint:"",points=cityWorld?cityWorld.points:null,loadingArea=cityWorld&&cityWorld.loading,cityMeshes=cityWorld?cityWorld.originalMeshes:0,cityTriangles=cityWorld?cityWorld.originalTriangles:0,cityColliders=cityWorld?cityWorld.sourceColliders:0,openDoors=cityWorld?cityWorld.OpenDoors:0,ready=ready,paused=paused,x=transform.position.x,y=transform.position.y,z=transform.position.z,yaw=yaw,pitch=pitch,speed=speed,animation=action,context=context,hits=trainingHits,frames=Time.frameCount,handX=h.x,handY=h.y,handZ=h.z,doorOpen=doorOpen,build=buildId,
             grounded=body.isGrounded,runEnabled=runEnabled,playerYaw=transform.eulerAngles.y,cameraYaw=view.transform.eulerAngles.y,verticalSpeed=vertical,
             rightX=right.x,rightZ=right.z,forwardX=forward.x,forwardZ=forward.z,
             lastHitBag=lastHitBag,lastHitTime=lastHitTime,lastHitDistance=lastHitDistance,lastHitAlignment=lastHitAlignment,bagAngles=bagSwing,bagVelocities=bagVelocity,
