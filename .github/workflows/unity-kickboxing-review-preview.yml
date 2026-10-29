@@ -12,7 +12,7 @@ jobs:
   review-preview:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/test/braxhorn-kickboxing-reference-20261029'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
     steps:
       - name: Checkout only the existing player directory
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -26,9 +26,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          source_sha=8d8ceed0d0602285d7c1f89628b2df8456e6caa9
-          run_id=40885598293
-          for attempt in $(seq 1 70); do
+          source_sha=57bbc8b490a6171647285c249a2596af841c82a0
+          run_id=40886681006
+          for attempt in $(seq 1 330); do
             status=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.status')
             if [ "$status" = completed ]; then break; fi
             sleep 20
@@ -41,17 +41,17 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 40885598293
+          run-id: 40886681006
           github-token: ${{ github.token }}
-          name: unity-kickboxing-player-8d8ceed0d0602285d7c1f89628b2df8456e6caa9
+          name: unity-kickboxing-player-57bbc8b490a6171647285c249a2596af841c82a0
           path: staged-player/
       - name: Download unmodified real runtime evidence
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 40885598293
+          run-id: 40886681006
           github-token: ${{ github.token }}
-          name: unity-kickboxing-review-8d8ceed0d0602285d7c1f89628b2df8456e6caa9
+          name: unity-kickboxing-review-57bbc8b490a6171647285c249a2596af841c82a0
           path: staged-evidence/
       - name: Validate source, exact artifact bytes and original QA truth
         run: |
@@ -60,7 +60,7 @@ jobs:
           import hashlib,json,pathlib,os
           root=pathlib.Path('staged-player')
           evidence=pathlib.Path('staged-evidence/kickboxing-review')
-          source='8d8ceed0d0602285d7c1f89628b2df8456e6caa9'
+          source='57bbc8b490a6171647285c249a2596af841c82a0'
           def load(path): return json.loads(path.read_text(encoding='utf-8'))
           release=load(root/'release.json')
           assert release['sourceCommit']==source
@@ -70,7 +70,7 @@ jobs:
           assert release['billboardArtworkInstalled'] is False
           assert release['muralArtworkApproved'] is True
           assert release['muralArtworkInstalled'] is True
-          assert release['muralSourceSha256']=='fe12ca1214af38ba5facd1777b2b9234a04907ad9b1a10b0ae3bc368f00f251c'
+          assert release['muralSourceSha256']=='0e55d4f36e9e71acd6234a4b8dc3168680050d7349da671ac751443749bb9db7'
           assert release['physicalIPhoneValidated'] is False
           assert release['loadingFix']['algorithmPreserved'] is True
           assert release['loadingFix']['nativeStreamingGzip'] is True
@@ -100,7 +100,7 @@ jobs:
           assert len(list(evidence.glob('*.png')))>=4
           os.makedirs('review-receipt',exist_ok=True)
           result={'mode':'ISOLATED_VISUAL_REVIEW_ONLY_NOT_ACCEPTANCE',
-            'sourceCommit':source,'sourceRun':40885598293,
+            'sourceCommit':source,'sourceRun':40886681006,
             'qaPassed':qa.get('passed',False),
             'qaFailedChecks':[x.get('name') for x in qa.get('checks',[]) if not x.get('passed')],
             'qaConclusion':'Success' if qa.get('passed') else 'Incomplete or failed; inspect original QA',
@@ -113,7 +113,7 @@ jobs:
       - name: Publish exact compiled player to a NEW test-only Git branch
         run: |
           set -euo pipefail
-          branch="deployment/braxhorn-mural-8d8ceed0d060"
+          branch="deployment/braxhorn-mural-57bbc8b490a6"
           if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null; then
             echo 'The review branch already exists: refusing to overwrite'; exit 1
           fi
@@ -126,7 +126,7 @@ jobs:
           git add -A -- public/unity-gym
           git diff --cached --name-only | awk '!/^public\/unity-gym\//{bad=1; print "UNEXPECTED FILE:",$0} END{exit bad}'
           git diff --cached --quiet && { echo 'Review player identical to existing player'; exit 1; }
-          git commit -m "test(unity): isolate compiled kickboxing visual review 027d95f07d7d (QA truth preserved)"
+          git commit -m "test(unity): approved high-res painted wall review 57bbc8b490a6 (QA truth preserved)"
           git push origin "HEAD:refs/heads/$branch"
           echo "New test preview branch: $branch"
           echo 'Production main was not changed.'
