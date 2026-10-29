@@ -43,7 +43,7 @@ jobs:
 
       - name: Install real headless Chrome for Unity WebGL visual rendering
         run: |
-          python3 -m pip install --quiet Pillow==11.3.0 playwright==1.56.1
+          python3 -m pip install --quiet Pillow==11.3.0 playwright==1.56.0
           python3 -m playwright install --with-deps chromium
 
       - name: RENDER original estate in WebGL - fail on >7 percent magenta pixels
