@@ -21,7 +21,7 @@ public static class BraxCityRebuild
         public int actuallyBuiltStreetBuildings,actuallyBuiltHighRises,streetMainRoadLengthMetres;
         public string[] actualBuildingIds;
         public bool sourceAssetsRetained=true,phoneAccepted=false,visualAccepted=false;
-        public int vehicleSourceRenderersHidden;
+        public int vehicleSourceRenderersHidden,reviewOnlyVehicleObjectsRemoved,reviewOnlyDisabledGeometryObjectsRemoved;
         public bool physicalElevatorInstalled,physicalElevatorTested=false;
         public string[] replacedSourceRenderers;
         public string[] remaining={"Review full player route and mobile device performance","Integrate the specified finished gym commit","Review and replace remaining original vegetation where needed"};
@@ -72,6 +72,46 @@ public static class BraxCityRebuild
         Debug.Log("CITY_EMPTY_STREET_SOURCE_VERIFIED vehicles_hidden="+VehicleCount+
             " no static car meshes remain in original city source");
         return VehicleCount;
+    }
+
+    // Memory control for the isolated iPhone REVIEW scene only. Hiding a
+    // MeshRenderer does not remove its mesh/texture/prefab references from a
+    // Unity build; this 724-mesh original city import still contains 397
+    // vehicle meshes even when traffic is absent. Remove ONLY the inspected
+    // disabled objects from the temporary, unpacked scene instance.
+    // Never delete or modify any original imported glTF or source asset.
+    static void PruneHiddenMobileReviewGeometry(Transform original,
+        out int vehiclesRemoved,out int otherInvisibleObjectsRemoved)
+    {
+        if(Environment.GetEnvironmentVariable("BRAX_CITY_MOBILE_REVIEW")!="1")
+            throw new InvalidOperationException("Source mesh pruning is review-only");
+        vehiclesRemoved=0;otherInvisibleObjectsRemoved=0;
+        var items=original.GetComponentsInChildren<Transform>(true)
+            .Where(t=>t.name.StartsWith("CityMesh_",StringComparison.Ordinal)).ToArray();
+        foreach(var t in items)
+        {
+            if(!t)continue;
+            int index;
+            if(!int.TryParse(t.name.Substring("CityMesh_".Length),out index))
+                throw new InvalidOperationException("Unknown original mesh node "+t.name);
+            var rs=t.GetComponentsInChildren<MeshRenderer>(true);
+            if(rs.Length==0||rs.Any(r=>r.enabled))
+                continue;
+            if(t.GetComponentsInChildren<Collider>(true).Any(c=>c.enabled)
+                ||t.GetComponentsInChildren<Animation>(true).Length>0
+                ||t.GetComponentsInChildren<Animator>(true).Length>0
+                ||t.GetComponentsInChildren<BraxCityDoor>(true).Length>0)
+                throw new InvalidOperationException("Refusing to prune active original geometry "+t.name);
+            if(index>=VehicleFirst&&index<VehicleFirst+VehicleCount)vehiclesRemoved++;
+            else otherInvisibleObjectsRemoved++;
+            UnityEngine.Object.DestroyImmediate(t.gameObject);
+        }
+        if(vehiclesRemoved!=VehicleCount)
+            throw new InvalidOperationException("Mobile source vehicle compaction was not complete: "+
+                vehiclesRemoved+"/"+VehicleCount);
+        Debug.Log("CITY_IPHONE_SCENE_COMPACTION vehicles="+vehiclesRemoved+
+            " otherHiddenGeometry="+otherInvisibleObjectsRemoved+
+            " sourceGLTFAssetsModified=false estateIncluded=false");
     }
 
     static void Cut(Transform original,Transform physics,Bounds volume,string id,bool removeCollision=true)
@@ -186,6 +226,9 @@ public static class BraxCityRebuild
         BraxCityLightingOcclusionProxy.Bake(root,original);
         Disable(original,new[]{BraxCityWaterBuild.ReplacedOriginalMesh});
         BraxCityWaterBuild.Apply(root);
+        int mobilePrunedVehicles=0,mobilePrunedHidden=0;
+        if(Environment.GetEnvironmentVariable("BRAX_CITY_MOBILE_REVIEW")=="1")
+            PruneHiddenMobileReviewGeometry(original,out mobilePrunedVehicles,out mobilePrunedHidden);
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
             throw new InvalidOperationException("Gym doorway integration boundary changed unexpectedly");
         var renderers=root.GetComponentsInChildren<MeshRenderer>(true).Where(r=>r.enabled&&r.gameObject.activeInHierarchy).ToArray();
@@ -206,6 +249,8 @@ public static class BraxCityRebuild
         report=new ReviewReport{actuallyBuiltStreetBuildings=builtBuildings.Length,actuallyBuiltHighRises=highRises,
             actualBuildingIds=builtBuildings.Select(b=>b.id).ToArray(),streetMainRoadLengthMetres=170,
             vehicleSourceRenderersHidden=hiddenVehicleMeshes,
+            reviewOnlyVehicleObjectsRemoved=mobilePrunedVehicles,
+            reviewOnlyDisabledGeometryObjectsRemoved=mobilePrunedHidden,
             stage=WholeDistrict?"whole-district-awaiting-visual-and-mobile-acceptance":"representative-segment-awaiting-player-review",cityCommit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local",
             renderedMeshes=renderers.Length,triangles=renderers.Sum(r=>{var f=r.GetComponent<MeshFilter>();return f&&f.sharedMesh?f.sharedMesh.triangles.Length/3:0;}),
             materials=renderers.SelectMany(r=>r.sharedMaterials).Distinct().Count(),
