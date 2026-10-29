@@ -29,9 +29,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh run watch 40968468699 -R "$GITHUB_REPOSITORY" --exit-status --interval 15
-          gh run download 40968468699 -R "$GITHUB_REPOSITORY" \
-            -n estate-unity6-PARTIAL-NOT-1TO1-2b9f3d9e024a831a47cf12a3b95561ae431487fc \
+          gh run watch 40969008277 -R "$GITHUB_REPOSITORY" --exit-status --interval 15
+          gh run download 40969008277 -R "$GITHUB_REPOSITORY" \
+            -n estate-unity6-PARTIAL-NOT-1TO1-ccf2349859f4bfa927e41ad39ecd46f3388b383c \
             -D "$RUNNER_TEMP/estate-player"
           test -s "$RUNNER_TEMP/estate-player/EstatePartial_NOT_1TO1/index.html"
           test -s "$RUNNER_TEMP/estate-player/EstatePartial_NOT_1TO1/Build/EstatePartial_NOT_1TO1.wasm.gz"
