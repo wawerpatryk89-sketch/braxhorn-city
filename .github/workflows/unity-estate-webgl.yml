@@ -1,0 +1,92 @@
+name: BRAXHORN Osiedle Unity6 - source preflight / optional WebGL
+on:
+  push:
+    branches:
+      - work/unity6-estate-migration-20261029
+    paths:
+      - "unity-city/Assets/EstateMigration/**"
+      - "unity-city/Assets/StreamingAssets/Estate/**"
+      - "unity-city/Packages/**"
+      - "unity-city/ProjectSettings/**"
+      - "scripts/unity-estate/prepare-unity-assets.py"
+      - ".github/workflows/unity-estate-webgl.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  source-preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      unity_license_available: ${{ steps.license.outputs.available }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            unity-city
+            scripts/unity-estate/prepare-unity-assets.py
+      - name: Convert original Brax textures and verify source hashes
+        run: |
+          python3 -m pip install --quiet Pillow==11.3.0
+          python3 scripts/unity-estate/prepare-unity-assets.py
+      - name: Check previously configured Unity license without displaying secrets
+        id: license
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        run: |
+          if [[ -n "$UNITY_LICENSE" ]] || ([[ -n "$UNITY_EMAIL" && -n "$UNITY_PASSWORD" ]] && [[ -n "$UNITY_SERIAL" ]]); then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "Unity compilation authorized."
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Unity WebGL preview BLOCKED: no configured Unity CI license. No build or playable URL claimed."
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: estate-source-preflight-${{ github.sha }}
+          path: unity-city/Assets/EstateMigration/Generated/UnitySourcePreflight.json
+          retention-days: 14
+
+  unity-webgl:
+    needs: source-preflight
+    if: needs.source-preflight.outputs.unity_license_available == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            unity-city
+            scripts/unity-estate/prepare-unity-assets.py
+      - name: Convert original Brax textures for Unity
+        run: |
+          python3 -m pip install --quiet Pillow==11.3.0
+          python3 scripts/unity-estate/prepare-unity-assets.py
+      - name: Build isolated Unity 6000.0.58f2 WebGL estate
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: Braxhorn.EstateMigration.Editor.EstateSceneBuilder.BuildWebGL
+          buildsPath: unity-city/build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: estate-unity6-webgl-${{ github.sha }}
+          path: unity-city/build/
+          retention-days: 14
+      - name: No artificial 1:1 approval
+        run: echo "::notice::This test build requires a real Unity preview walkthrough and user approval."
