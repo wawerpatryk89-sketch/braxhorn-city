@@ -1,0 +1,36 @@
+name: Unity premium source review
+on:
+  push:
+    branches: [codex/unity-gym-premium-20261029]
+    paths: ['.github/workflows/unity-premium-source-review.yml']
+permissions:
+  contents: read
+jobs:
+  sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-city
+            unity-tools
+            dev/src
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+            .github/workflows
+          persist-credentials: false
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-premium-original-sources
+          path: |
+            unity-city/
+            unity-tools/
+            dev/src/
+            public/assets/chars/brax.glb.gz
+            public/assets/tex/brax*
+            public/assets/logo/
+            PROJECT.md
+            ZLECENIE.md
+          retention-days: 1
