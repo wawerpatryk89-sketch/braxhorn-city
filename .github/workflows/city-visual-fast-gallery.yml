@@ -1,0 +1,125 @@
+name: CITY screenshot review — actual Unity stills, no Unity download
+
+on:
+  push:
+    branches:
+      - codex/city-ios-memory-review-20261029
+    paths:
+      - '.github/workflows/city-visual-fast-gallery.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish-fast-visual-review:
+    runs-on: ubuntu-latest
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    timeout-minutes: 15
+    steps:
+      - name: Retrieve only real Unity screenshot QA, no 412MB WebGL download
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40914321114
+          github-token: ${{ github.token }}
+          name: premium-street-actual-unity-review-48d81f1f998b9884709e74afe10c3f7ebf0b58ac
+          path: input/
+      - name: Make a 6-shot iPhone-native architectural gallery from unchanged Unity evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 -m pip install -q --disable-pip-version-check Pillow==11.3.0
+          python3 - <<'PY'
+          import base64, hashlib, html, json, os, re, subprocess, shutil
+          from pathlib import Path
+          from PIL import Image
+          root=Path.cwd()
+          source=root/'input'
+          build='48d81f1f998b9884709e74afe10c3f7ebf0b58ac'
+          branch='preview/city-visual-48d81f1f998b'
+          report=json.loads((source/'city-rebuild-review/report.json').read_text())
+          walk=json.loads((source/'premium-street-walk/walk-report.json').read_text())
+          assert report['sourceCommit']==build and report['passed'] is True
+          assert walk['sourceCommit']==build and walk['passed'] is False
+          def sha(path):
+              with path.open('rb') as f:
+                  return hashlib.file_digest(f,'sha256').hexdigest()
+          photos=[
+            ('street','Ulica — poziom Braxa','city-rebuild-review/07-street.png',
+             'Asfalt, kostka, latarnie, fasady i proporcje ulicy'),
+            ('skyline','Wieżowce — spojrzenie w górę','city-rebuild-review/04-skyline-from-player.png',
+             'Wysokość zabudowy, stal, szkło i skala fasad'),
+            ('frontages','Witryny i elewacje — pieszo','premium-street-walk/p1-representative-frontages.png',
+             'Architektura lokali oglądana z chodnika'),
+            ('waterfront','Nabrzeże i promenada','city-rebuild-review/13-waterfront.png',
+             'Nawierzchnia, barierki, światło i teren'),
+            ('viaduct','Wiadukt — zachodni odcinek','city-rebuild-review/16-viaduct.png',
+             'Konstrukcja stalowa i dostęp pod wiaduktem'),
+            ('metro','Metro — wejście','city-rebuild-review/metro-01-entrance.png',
+             'Schody, krawężniki i ciągi piesze'),
+          ]
+          dest=root/'gallery'
+          assert not dest.exists()
+          (dest/'img').mkdir(parents=True)
+          (dest/'full').mkdir()
+          entries=[]
+          for slug,title,relative,caption in photos:
+              file=source/relative
+              assert file.is_file() and file.open('rb').read(8)==bytes((137,80,78,71,13,10,26,10)),file
+              original=dest/'full'/f'{slug}.png'
+              shutil.copyfile(file,original)
+              with Image.open(file) as im:
+                  assert im.format=='PNG' and im.size==(915,412), f'Unknown Unity screenshot dimensions: {file}'
+                  preview=dest/'img'/f'{slug}.jpg'
+                  im.convert('RGB').save(preview,'JPEG',quality=78,optimize=True,progressive=True)
+              entries.append(dict(id=slug,title=title,caption=caption,
+                                  original=f'full/{slug}.png',preview=f'img/{slug}.jpg',
+                                  originalSha256=sha(file),originalBytes=file.stat().st_size,
+                                  previewBytes=preview.stat().st_size))
+          cards=''.join(
+            '<article id="'+e['id']+'"><a href="'+e['original']+'" target="_blank" rel="noopener">'+
+            '<img src="'+e['preview']+'" alt="'+html.escape(e['title'])+'" loading="lazy" width="915" height="412"></a>'+
+            '<div class="copy"><h2>'+html.escape(e['title'])+'</h2><p>'+html.escape(e['caption'])+'</p>'+
+            '<a href="'+e['original']+'" target="_blank" rel="noopener">Powiększ oryginalny screenshot PNG</a></div></article>'
+            for e in entries
+          )
+          page='''<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>BRAXHORN CITY — prawdziwe kadry Unity</title><style>
+          :root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0d1011;color:#f1f0ed;font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1000px;padding:25px 16px 50px;margin:auto}.kicker{letter-spacing:.16em;font-size:11px;color:#a6c58a;text-transform:uppercase}h1{font-size:clamp(25px,5.3vw,42px);letter-spacing:-.025em;line-height:1.15}p{color:#b5bcb8}.notice{border-top:1px solid #2c3831;border-bottom:1px solid #2c3831;padding:14px 0;margin:17px 0 25px;font-size:14px;color:#c4cfc6}nav{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0 32px}nav a{border:1px solid #465547;border-radius:30px;padding:7px 13px;font-size:13px;color:#dce6d9;text-decoration:none}article{background:#151b1b;border:1px solid #29302e;border-radius:12px;overflow:hidden;margin:0 0 25px}article img{width:100%;height:auto;display:block;aspect-ratio:915/412}.copy{padding:15px 18px 20px}.copy h2{margin:0;font-size:19px}.copy p{margin:6px 0 10px}.copy a{color:#b8d4a3;font-size:13px}footer{font-size:13px;color:#9ca7a0;border-top:1px solid #29302e;padding-top:15px}a:focus-visible{outline:2px solid #dbeab5;outline-offset:4px}
+          </style></head><body><main><div class="kicker">BRAXHORN CITY / prawdziwe kadry gry</div><h1>Odbiór architektury bez ładowania gry</h1><p>6 oryginalnych zrzutów z uruchomionego Unity 6 — wczytujesz tylko zdjęcia wybranego odcinka.</p><div class="notice"><b>Wersja:</b> 48d81f1f998b &nbsp;|&nbsp; <b>Źródło:</b> rzeczywisty Unity WebGL, kontrola desktopowa. <b>Ważne:</b> te kadry pochodzą sprzed poprawki kolizji przy NOVA. Pełny spacer i odbiór na iPhonie pozostają otwarte.</div><nav><a href="#street">Ulica</a><a href="#skyline">Wieżowce</a><a href="#frontages">Witryny</a><a href="#waterfront">Nabrzeże</a><a href="#viaduct">Wiadukt</a><a href="#metro">Metro</a></nav>'''+cards+'''<footer>Screenshoty wykonano przez QA z rzeczywiście skompilowanego Unity 6, nie przez generator obrazów. Miniatury są jedynie skompresowanymi kopiami; każdy oryginalny PNG pozostaje dostępny. Bez aktywnych misji, ruchu i nowych NPC. To etap odbioru wizualnego, a nie certyfikowany test iPhone.</footer></main></body></html>'''
+          (dest/'index.html').write_text(page,encoding='utf-8')
+          (dest/'robots.txt').write_text('User-agent: *\nDisallow: /\n')
+          (dest/'vercel.json').write_text(json.dumps(dict(framework=None,buildCommand='',installCommand='',outputDirectory='.',cleanUrls=False,headers=[dict(source='/(.*)',headers=[dict(key='Cache-Control',value='public, max-age=1800')])])))
+          manifest=dict(sourceCommit=build,sourceRun=40914321114,qaPassed=True,fullWalkPassed=False,
+                        source='actual Unity 6 desktop WebGL screenshots',photos=entries,productionChanged=False)
+          (dest/'evidence.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2))
+          print('CITY_SCREENSHOT_GALLERY',json.dumps(dict(photos=len(entries),
+                 totalCompressedBytes=sum(x['previewBytes'] for x in entries),sourceCommit=build)))
+          token=os.environ.pop('GH_TOKEN')
+          env=os.environ.copy()
+          env.update(GIT_CONFIG_COUNT='1',GIT_CONFIG_KEY_0='http.https://github.com/.extraheader',
+                     GIT_CONFIG_VALUE_0='AUTHORIZATION: basic '+
+                       base64.b64encode(('x-access-token:'+token).encode()).decode())
+          def git(*args,auth=False):
+              return subprocess.check_output(['git','-c','core.hooksPath=/dev/null',*args],
+                cwd=dest,env=env if auth else None,text=True).strip()
+          git('init','--initial-branch='+branch)
+          git('config','user.name','github-actions[bot]')
+          git('config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
+          git('remote','add','origin','https://github.com/wawerpatryk89-sketch/braxhorn-city.git')
+          assert not git('ls-remote','--heads','origin','refs/heads/'+branch,auth=True), 'Do not overwrite screenshot preview'
+          git('add','--all')
+          git('commit','-m','preview(city): six original Unity screenshots, no WebGL payload')
+          sha=git('rev-parse','HEAD')
+          git('push','origin','HEAD:refs/heads/'+branch,auth=True)
+          Path('gallery-publication.json').write_text(json.dumps(dict(branch=branch,sha=sha,photos=len(entries),sourceCommit=build)))
+          print('CITY_SCREENSHOT_GALLERY_PUBLISHED',branch,sha,flush=True)
+          PY
+      - name: Save publication record
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-fast-screenshot-publication-${{ github.sha }}
+          path: gallery-publication.json
+          if-no-files-found: warn
+          retention-days: 14
