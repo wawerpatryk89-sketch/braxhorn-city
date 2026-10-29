@@ -29,7 +29,17 @@ namespace Braxhorn.EstateMigration.Editor
                 throw new BuildFailedException(
                     "Braxhorn source lock requires Built-In Render Pipeline; found different pipeline");
 
-            var included = new List<Shader>(GraphicsSettings.alwaysIncludedShaders ?? Array.Empty<Shader>());
+            // Unity 6000.0 uses the *serialized* GraphicsSettings object.
+            // The direct alwaysIncludedShaders API exists only in newer Unity releases.
+            var graphics = GraphicsSettings.GetGraphicsSettings();
+            if (graphics == null)
+                throw new BuildFailedException("GraphicsSettings asset is unavailable in Unity 6000.0");
+
+            var serialized = new SerializedObject(graphics);
+            var list = serialized.FindProperty("m_AlwaysIncludedShaders");
+            if (list == null || !list.isArray)
+                throw new BuildFailedException("Unity 6000.0 m_AlwaysIncludedShaders property unavailable");
+
             foreach (var name in RequiredShaderNames)
             {
                 var shader = Shader.Find(name);
@@ -37,20 +47,39 @@ namespace Braxhorn.EstateMigration.Editor
                     throw new BuildFailedException(
                         "Original glTFast shader unavailable: '" + name +
                         "'. Refusing to ship magenta Unity WebGL. Check GLTFast package and pipeline.");
-                if (!included.Contains(shader))
-                    included.Add(shader);
+
+                bool found = false;
+                for (int i = 0; i < list.arraySize; i++)
+                    if (list.GetArrayElementAtIndex(i).objectReferenceValue == shader)
+                    {
+                        found = true;
+                        break;
+                    }
+                if (!found)
+                {
+                    int idx = list.arraySize;
+                    list.InsertArrayElementAtIndex(idx);
+                    list.GetArrayElementAtIndex(idx).objectReferenceValue = shader;
+                }
                 Debug.Log("[BRAXHORN ESTATE SHADER LOCK] " + name + " -> " + shader.name);
             }
 
-            // Persist in GraphicsSettings prior to BuildPipeline.BuildPlayer.
-            // Keeping these glTF shader variants in the player is essential because
-            // models and their materials are instantiated AFTER the WebGL build.
-            GraphicsSettings.alwaysIncludedShaders = included.ToArray();
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(graphics);
             AssetDatabase.SaveAssets();
+
+            var verify = new SerializedObject(GraphicsSettings.GetGraphicsSettings());
+            var saved = verify.FindProperty("m_AlwaysIncludedShaders");
             foreach (var name in RequiredShaderNames)
             {
-                if (!GraphicsSettings.alwaysIncludedShaders.Any(s => s != null && s.name == name))
-                    throw new BuildFailedException("Missing shader in WebGL inclusion list: " + name);
+                bool found = false;
+                for (int i = 0; i < saved.arraySize; i++)
+                {
+                    var shader = saved.GetArrayElementAtIndex(i).objectReferenceValue as Shader;
+                    if (shader != null && shader.name == name) { found = true; break; }
+                }
+                if (!found)
+                    throw new BuildFailedException("Missing WebGL shader after save: " + name);
             }
             Debug.Log("[BRAXHORN ESTATE SHADER LOCK] PASS: " +
                       string.Join(", ", RequiredShaderNames) +
