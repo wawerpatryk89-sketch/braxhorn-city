@@ -18,6 +18,8 @@ public static class BraxCityRebuild
         public string stage,sourceCommit="ba678928b2dcb2dff9e38bdb5306e090e76360cf",cityCommit,gymIntegration="Source gym preserved; other contractor final commit not yet supplied";
         public int renderedMeshes,triangles,materials,missionReservations=11;
         public int plannedStreetBuildings=18,nearStreetBuildings=9,farStreetBuildings=9,streetHighRises=9;
+        public int actuallyBuiltStreetBuildings,actuallyBuiltHighRises,streetMainRoadLengthMetres;
+        public string[] actualBuildingIds;
         public bool sourceAssetsRetained=true,phoneAccepted=false,visualAccepted=false;
         public bool physicalElevatorInstalled,physicalElevatorTested=false;
         public string[] replacedSourceRenderers;
@@ -147,7 +149,23 @@ public static class BraxCityRebuild
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
             throw new InvalidOperationException("Gym doorway integration boundary changed unexpectedly");
         var renderers=root.GetComponentsInChildren<MeshRenderer>(true).Where(r=>r.enabled&&r.gameObject.activeInHierarchy).ToArray();
-        report=new ReviewReport{stage=WholeDistrict?"whole-district-awaiting-visual-and-mobile-acceptance":"representative-segment-awaiting-player-review",cityCommit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local",
+        // Count installed mesh-bearing building objects, not declared plan
+        // entries. Fail closed if any required storefront is missing.
+        var builtBuildings=BraxCityArchitecture.StreetBuildings.Where(b=>
+        {
+            var node=root.Find("Building "+b.id);
+            return node&&node.GetComponentsInChildren<MeshRenderer>(true).Any(x=>x.enabled);
+        }).ToArray();
+        var highRises=root.GetComponentsInChildren<Transform>(true)
+            .Count(t=>t.name.StartsWith("High-rise ",StringComparison.Ordinal));
+        if(WholeDistrict && (builtBuildings.Length!=18||highRises<9||world.elevator==null))
+            throw new InvalidOperationException("CITY_PREMIUM_INCOMPLETE measured street buildings="+
+                builtBuildings.Length+" highRises="+highRises+" elevator="+(world.elevator!=null));
+        if(UnityEngine.Object.FindObjectsByType<BraxGymPlayer>(FindObjectsSortMode.None).Length!=1)
+            throw new InvalidOperationException("Architecture-only city must contain precisely one controllable Brax");
+        report=new ReviewReport{actuallyBuiltStreetBuildings=builtBuildings.Length,actuallyBuiltHighRises=highRises,
+            actualBuildingIds=builtBuildings.Select(b=>b.id).ToArray(),streetMainRoadLengthMetres=170,
+            stage=WholeDistrict?"whole-district-awaiting-visual-and-mobile-acceptance":"representative-segment-awaiting-player-review",cityCommit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local",
             renderedMeshes=renderers.Length,triangles=renderers.Sum(r=>{var f=r.GetComponent<MeshFilter>();return f&&f.sharedMesh?f.sharedMesh.triangles.Length/3:0;}),
             materials=renderers.SelectMany(r=>r.sharedMaterials).Distinct().Count(),
             physicalElevatorInstalled=world.elevator!=null,
