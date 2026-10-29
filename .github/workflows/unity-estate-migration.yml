@@ -57,18 +57,5 @@ jobs:
             unity-city/Assets/EstateMigration/Generated/EstateSourceManifest.json
             unity-city/Assets/EstateMigration/Generated/SOURCE_AUDIT.txt
           retention-days: 14
-      - name: Commit generated source geometry only to this estate branch
-        run: |
-          set -euo pipefail
-          F=unity-city/Assets/EstateMigration/Generated/EstateProceduralAndDoors.glb
-          test -s "$F"
-          if [ "$(stat -c%s "$F")" -gt 85000000 ]; then
-            echo 'Generated GLB is too large for repository; retained in workflow artifact only.'
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add unity-city/Assets/EstateMigration/Generated
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m "build(estate): capture original procedural world and source manifest [skip ci]"
-          git push origin HEAD:refs/heads/work/unity6-estate-migration-20261029
+      - name: Export artifact only
+        run: echo "Export saved as artifact; live branch is never overwritten by CI." 
