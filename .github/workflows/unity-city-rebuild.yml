@@ -194,7 +194,7 @@ jobs:
           retention-days: 14
 
   unity-city-build:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-build]') && !contains(github.event.head_commit.message, '[city-cancel]')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-build]')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
