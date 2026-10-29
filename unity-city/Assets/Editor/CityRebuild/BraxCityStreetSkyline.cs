@@ -85,7 +85,7 @@ public static class BraxCityStreetSkyline
             var b=BraxCityArchitecture.StreetBuildings.Single(x=>x.id==plan.id);
             var footprint=Footprint(b,plan);
             var title=plan.id==AccessibleTowerId?"quay observation tower":plan.id+" skyline";
-            BraxCityArchitecture.Tower(streetRoot,title,footprint,b.Height,plan.additionalFloors,FloorHeight);
+            BraxCityArchitecture.Tower(streetRoot,title,footprint,b.Height,plan.additionalFloors,FloorHeight,true);
             Debug.Log("CITY_PREMIUM_HIGHRISE "+plan.id+" base="+b.Height+" roof="+RoofHeight(b,plan.additionalFloors)
                 +" footprint="+footprint+" side="+(b.far?"FAR":"NEAR"));
         }
