@@ -37,6 +37,12 @@ public sealed class BraxGymPlayer : MonoBehaviour
     // touch joystick and player controller remain exactly as before.
     private float cityManualLookUntil,cityAutoYawVelocity;
     private bool cityAutomaticFollow;
+    // Diagnostic-only external QA camera. Never enabled in normal gameplay.
+    // Lets us send honest aerial/rooftop screenshots from the actual Unity
+    // render without moving or teleporting the playable Brax.
+    private bool reviewAerial;
+    private Vector3 reviewAerialPos;
+    private Quaternion reviewAerialRotation;
     private static readonly Vector3 Spawn = new Vector3(1.5f, .08f, 2.8f);
 #if UNITY_WEBGL && !UNITY_EDITOR
     [DllImport("__Internal")] private static extern void BXState(string data);
@@ -86,7 +92,10 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(paused){move=Vector2.zero;return;}
         var p=values.Split(',');
         if(p.Length>=2 && float.TryParse(p[0],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float x) && float.TryParse(p[1],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float y))
+        {
             move=Vector2.ClampMagnitude(new Vector2(x,y),1);
+            if(move.sqrMagnitude>.0001f)reviewAerial=false;
+        }
     }
     public void LookInput(string values)
     {
@@ -216,6 +225,11 @@ public sealed class BraxGymPlayer : MonoBehaviour
         float cameraDt=Mathf.Min(Time.deltaTime,.1f);
         FollowCityCamera(cameraDt);
         UpdateCamera(cameraDt);
+        if(reviewEnabled&&reviewAerial)
+        {
+            view.transform.position=reviewAerialPos;
+            view.transform.rotation=reviewAerialRotation;
+        }
         if(reviewEnabled||Time.unscaledTime>=stateAt){stateAt=Time.unscaledTime+.16f;Report();}
     }
     private void UpdateCamera(float dt)
@@ -244,11 +258,37 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(!reviewEnabled)return;
         var a=text.Split(',');if(a.Length!=6)return;var v=new float[6];
         for(int i=0;i<6;i++)if(!float.TryParse(a[i],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out v[i])||float.IsNaN(v[i])||float.IsInfinity(v[i]))return;
+        reviewAerial=false;
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";clips.Play("Idle");
         body.enabled=false;transform.position=new Vector3(v[0],v[1],v[2]);body.enabled=true;
         yaw=Mathf.Repeat(v[3],360f);pitch=Mathf.Clamp(v[4],-90f,90f);distance=Mathf.Clamp(v[5],.8f,12f);
         cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);Report();
     }
+    public void ReviewAerialCamera(string values)
+    {
+        if(!reviewEnabled || !cityWorld || cityWorld.area!="city")return;
+        // Only the camera moves for QA: Brax remains on the street, physics
+        // and game interactions continue to use his true physical position.
+        // Coordinates are real Unity metres, not an illustration transform.
+        var parts=values.Split(',');
+        if(parts.Length!=5)return;
+        var v=new float[5];
+        for(int i=0;i<v.Length;i++)
+            if(!float.TryParse(parts[i],System.Globalization.NumberStyles.Float,
+                 System.Globalization.CultureInfo.InvariantCulture,out v[i])||
+               float.IsNaN(v[i])||float.IsInfinity(v[i]))return;
+        if(Mathf.Abs(v[0])>150f||v[1]<3f||v[1]>160f||v[2]<-60f||v[2]>140f)return;
+        reviewAerialPos=new Vector3(v[0],v[1],v[2]);
+        reviewAerialRotation=Quaternion.Euler(Mathf.Clamp(v[4],-89f,89f),
+                                             Mathf.Repeat(v[3],360f),0);
+        reviewAerial=true;
+        view.transform.position=reviewAerialPos;
+        view.transform.rotation=reviewAerialRotation;
+        Debug.Log("CITY_REAL_UNITY_AERIAL_QA cameraXYZ="+reviewAerialPos+
+            " BraxRemainsAt="+transform.position+
+            " notAGameplayTeleport=true");
+    }
+
     public void TravelTo(Vector3 position)
     {
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";
