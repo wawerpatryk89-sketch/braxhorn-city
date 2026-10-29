@@ -15,7 +15,7 @@ permissions:
 jobs:
   verify-real-webgl-pixels:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,7 +29,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh run watch 40969008277 -R "$GITHUB_REPOSITORY" --exit-status --interval 15
+          status="$(gh run view 40969008277 -R "$GITHUB_REPOSITORY" --json conclusion --jq '.conclusion')"
+          if [[ "$status" != "success" ]]; then
+            echo "::error::Shader-fixed Unity build has not passed: $status"
+            exit 1
+          fi
+          echo "Unity build is already SUCCESS; download exact completed artifact."
           gh run download 40969008277 -R "$GITHUB_REPOSITORY" \
             -n estate-unity6-PARTIAL-NOT-1TO1-ccf2349859f4bfa927e41ad39ecd46f3388b383c \
             -D "$RUNNER_TEMP/estate-player"
@@ -45,7 +50,7 @@ jobs:
         env:
           ESTATE_WEBGL_ROOT: ${{ runner.temp }}/estate-player/EstatePartial_NOT_1TO1
           ESTATE_QA_OUTPUT: ${{ runner.temp }}/estate-qa
-        run: python3 scripts/unity-estate/visual-qa.py
+        run: timeout 360s python3 scripts/unity-estate/visual-qa.py
 
       - name: Preserve actual browser image for user approval
         if: always()
