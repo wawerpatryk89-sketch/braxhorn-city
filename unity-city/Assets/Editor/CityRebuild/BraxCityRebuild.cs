@@ -183,7 +183,7 @@ public static class BraxCityRebuild
         BraxCityArchitecture.Finish();
         // Editor-only baked sun visibility/AO, in generated mesh copies. No
         // global gym light, shared material, animation or door is modified.
-        BraxCityMaterials.Bake(root,new[]{original});
+        BraxCityLightingOcclusionProxy.Bake(root,original);
         Disable(original,new[]{BraxCityWaterBuild.ReplacedOriginalMesh});
         BraxCityWaterBuild.Apply(root);
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
