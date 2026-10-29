@@ -20,7 +20,7 @@ public static class BraxGymReferenceRebuild
 
     [Serializable] public sealed class Report
     {
-        public string revision = "kickboxing-reference-annex-03-ceiling-air";
+        public string revision = "kickboxing-premium-04-reception-fitness";
         public string coordinateSystem = "Unity metres, existing glTF X mirror retained";
         public Vector3 annexMin = new Vector3(-25.5f, 0, -3f);
         public Vector3 annexMax = new Vector3(-18f, 3.1f, 8f);
@@ -28,7 +28,8 @@ public static class BraxGymReferenceRebuild
         public Vector3 portalMax = new Vector3(-17.6f, 2.7f, 6f);
         public Vector3 mainDoorBefore, mainDoorAfter, ringCenterBefore, ringCenterAfter;
         public int sourceMeshesClipped, removedSourceTriangles, generatedMeshes, generatedTriangles, privacyRays, privacyBlocked;
-        public int ceilingFansConfigured, animatedCeilingFans;
+        public int ceilingFansConfigured, animatedCeilingFans, premiumStrengthModelsPlaced;
+        public bool singleEntranceSofaRemoved, receptionCurved, loungeCorrected, speedBagStandInstalled;
         public bool privacyWithAllDoorsOpen, originalEntrancePreserved, originalRingPositionPreserved;
         public bool billboardArtworkInstalled = false, muralArtworkInstalled = false, physicalIPhoneValidated = false;
         public string[] registeredDoors, requiredAssets;
@@ -85,6 +86,7 @@ public static class BraxGymReferenceRebuild
             BuildMuralWall();
             BuildAnnex();
             BuildReception();
+            BuildPremiumFitnessFinalPass();
             FinishOriginalExitDoor();
             BuildContactGrounding();
             BuildMirrorAnchor();
@@ -95,6 +97,9 @@ public static class BraxGymReferenceRebuild
             report.animatedCeilingFans = root.GetComponentsInChildren<BraxGymCeilingFan>(true).Count(f => f.rotor != null && f.revolutionsPerMinute > 0f);
             if (report.ceilingFansConfigured != 2 || report.animatedCeilingFans != 2)
                 throw new InvalidOperationException("Two real high-ceiling ventilation fans with assigned animated rotors are required.");
+            if (!report.singleEntranceSofaRemoved || !report.receptionCurved || !report.loungeCorrected ||
+                !report.speedBagStandInstalled || report.premiumStrengthModelsPlaced != 5)
+                throw new InvalidOperationException("Final premium fitness equipment and lounge requirements not satisfied.");
             foreach (var group in batches) BatchByMaterial(group);
             var finalMeshes = root.GetComponentsInChildren<MeshFilter>(true).Where(f => f.sharedMesh && f.GetComponent<Renderer>() && f.GetComponent<Renderer>().enabled).ToArray();
             report.generatedMeshes = finalMeshes.Length;
@@ -877,18 +882,86 @@ public static class BraxGymReferenceRebuild
 
         void BuildReception()
         {
-            var p = new Vector3(-2.6f, 0, 9.65f);
-            Box(hall, "Reception plinth", p + new Vector3(0, .08f, 0), new Vector3(3.25f, .16f, .82f), blackSteel, .025f);
-            Box(hall, "Reception dark front", p + new Vector3(0, .58f, -.32f), new Vector3(3.35f, .94f, .13f), blackSteel, .035f);
-            foreach (float x in new[] { -1.59f, 1.59f })
-                Box(hall, "Reception end panel", p + new Vector3(x, .57f, 0), new Vector3(.12f, .95f, .79f), vinyl, .023f);
-            Box(hall, "Reception oak transaction top", p + new Vector3(0, 1.08f, 0), new Vector3(3.55f, .065f, .94f), wood, .022f);
-            Box(hall, "Reception green inset", p + new Vector3(0, .34f, -.392f), new Vector3(2.85f, .035f, .012f), green, .004f);
-            Decal(hall, "Reception original wordmark", RequiredTexture("Wordmark.png"), p + new Vector3(0, .71f, -.395f), 2.05f, .31f, Vector3.back, Vector3.up, Color.white);
-            Box(hall, "Reception payment terminal stand", p + new Vector3(.95f, 1.14f, -.12f), new Vector3(.13f, .07f, .15f), blackSteel, .02f);
-            var terminal = Box(hall, "Reception payment terminal", p + new Vector3(.95f, 1.23f, -.12f), new Vector3(.12f, .035f, .19f), vinyl, .018f); terminal.localRotation = Quaternion.Euler(-25, 0, 0);
-            ColliderBox("Reception collision", p + new Vector3(0, .55f, 0), new Vector3(3.55f, 1.10f, .94f));
+            // Owner: luxurious radius at one end, subtly projecting toward hall.
+            // Existing position / real city exit remain unchanged.
+            var p = new Vector3(-2.6f,0f,9.65f);
+            var graphite=Material("BRAXHORN reception satin graphite",
+                new Color(.052f,.058f,.064f),.70f,.38f);
+            var warmMetal=Material("BRAXHORN reception champagne metal edge",
+                new Color(.37f,.35f,.29f),.48f,.73f);
+            var walnut=Material("BRAXHORN reception real figured dark walnut",
+                new Color(.61f,.53f,.46f),.74f,0f);
+            walnut.mainTexture=RequiredTexture("WoodAlbedo.jpg");
+            SetNormal(walnut,RequiredTexture("WoodNormal.png",true),.45f);
+            AddArm(walnut,RequiredTexture("WoodARM.jpg",false,true),"Wood");
+            MeshObject(hall,"Premium reception shaped full-radius toe plinth",
+                RoundedReceptionGeometry(.055f,.145f,0f),blackSteel).localPosition=p;
+            MeshObject(hall,"Premium reception bowed one-end graphite body",
+                RoundedReceptionGeometry(.145f,1.045f,0f),graphite).localPosition=p;
+            MeshObject(hall,"Premium reception precision satin metal top edge",
+                RoundedReceptionGeometry(1.041f,1.067f,.035f),warmMetal).localPosition=p;
+            MeshObject(hall,"Premium reception curved genuine walnut worktop",
+                RoundedReceptionGeometry(1.064f,1.136f,.052f),walnut).localPosition=p;
+            Box(hall,"Premium reception inset lower shadow reveal",
+                p+new Vector3(-.50f,.23f,-.773f),
+                new Vector3(2.56f,.23f,.018f),blackSteel,.008f);
+            Tube(hall,"Reception fine green inset line",
+                p+new Vector3(-1.88f,.36f,-.783f),
+                p+new Vector3(1.07f,.36f,-.783f),
+                .011f,green,8,10);
+            // Only the genuine project logo, never fake/generated lettering.
+            Decal(hall,"BRAXHORN original reception wordmark",
+                RequiredTexture("Wordmark.png"),p+new Vector3(-.46f,.77f,-.782f),
+                1.92f,.31f,Vector3.back,Vector3.up,Color.white);
+            Box(hall,"Real reception payment stand",
+                p+new Vector3(.48f,1.19f,.10f),
+                new Vector3(.17f,.10f,.17f),blackSteel,.025f);
+            var terminal=Box(hall,"Reception premium POS terminal",
+                p+new Vector3(.48f,1.25f,.10f),
+                new Vector3(.14f,.045f,.21f),vinyl,.015f);
+            terminal.localRotation=Quaternion.Euler(-18f,0,0);
+            ColliderBox("Premium curved counter solid obstruction",
+                p+new Vector3(-.1f,.58f,-.11f),new Vector3(3.62f,1.16f,1.30f));
+            report.receptionCurved=true;
             BuildCornerLounge();
+        }
+
+        Mesh RoundedReceptionGeometry(float bottom,float top,float overhang)
+        {
+            // Rounded solid extrusion, NOT a scaled rectangular primitive:
+            // left end straight, right end a genuine 180-degree curved cap.
+            float front=-.75f-overhang,rear=.52f+overhang;
+            float rad=(rear-front)*.5f,zMid=(front+rear)*.5f;
+            var outline=new List<Vector2>{new Vector2(-1.94f-overhang,front)};
+            for(int k=0;k<=24;k++)
+            {
+                float a=-Mathf.PI*.5f+Mathf.PI*k/24f;
+                outline.Add(new Vector2(1.07f+rad*Mathf.Cos(a),
+                    zMid+rad*Mathf.Sin(a)));
+            }
+            outline.Add(new Vector2(-1.94f-overhang,rear));
+            var vertices=new List<Vector3>();var uv=new List<Vector2>();var triangles=new List<int>();
+            foreach(var q in outline)
+            {
+                vertices.Add(new Vector3(q.x,top,q.y));
+                vertices.Add(new Vector3(q.x,bottom,q.y));
+                uv.Add(q*1.2f);uv.Add(q*1.2f);
+            }
+            int n=outline.Count, topCenter=vertices.Count;
+            vertices.Add(new Vector3(-.36f,top,zMid));uv.Add(new Vector2(-.36f,zMid));
+            vertices.Add(new Vector3(-.36f,bottom,zMid));uv.Add(new Vector2(-.36f,zMid));
+            for(int i=0;i<n;i++)
+            {
+                int a=i*2,b=((i+1)%n)*2;
+                triangles.AddRange(new[]{
+                    topCenter,b,a,topCenter+1,a+1,b+1,
+                    a,a+1,b,b,a+1,b+1
+                });
+            }
+            var mesh=new Mesh{name="Luxury rounded counter solid with shaped sides"};
+            mesh.SetVertices(vertices);mesh.SetUVs(0,uv);
+            mesh.SetTriangles(triangles,0);mesh.RecalculateNormals();mesh.RecalculateBounds();
+            return mesh;
         }
 
         void BuildCornerLounge()
@@ -897,19 +970,19 @@ public static class BraxGymReferenceRebuild
             // Two sofas sit on TWO perpendicular walls of the same corner.
             // Keep the annex door (right wall z=4.2..6.0) clear.
             PlaceLibrarySofa("BRAXHORN lounge sofa against entrance wall",
-                new Vector3(-13.80f, 0f, 10.31f), 0f);
+                new Vector3(-13.80f, 0f, 10.31f), 180f);
             PlaceLibrarySofa("BRAXHORN lounge sofa against right wall",
-                new Vector3(-17.11f, 0f, 7.79f), -90f);
+                new Vector3(-17.11f, 0f, 7.79f), 90f);
 
             // Furnished coffee table with a rounded real wooden top, dark
             // powder-coated steel lower frame and individual protected feet.
-            var p = new Vector3(-15.40f, 0f, 8.46f);
+            var p = new Vector3(-15.33f, 0f, 8.47f);
             Box(hall, "BRAXHORN lounge coffee table oak top",
-                p + new Vector3(0, .46f, 0), new Vector3(1.20f, .075f, .76f), wood, .055f);
+                p + new Vector3(0, .46f, 0), new Vector3(1.72f, .078f, 1.04f), wood, .068f);
             Box(hall, "Coffee table discreet steel rim",
-                p + new Vector3(0, .415f, 0), new Vector3(1.13f, .027f, .69f), blackSteel, .025f);
-            foreach (float x in new[] { -.46f, .46f })
-                foreach (float z in new[] { -.24f, .24f })
+                p + new Vector3(0, .415f, 0), new Vector3(1.64f, .027f, .96f), blackSteel, .025f);
+            foreach (float x in new[] { -.67f, .67f })
+                foreach (float z in new[] { -.36f, .36f })
                 {
                     Box(hall, "Coffee table slim steel leg",
                         p + new Vector3(x, .225f, z), new Vector3(.036f, .43f, .036f), blackSteel, .008f);
@@ -917,7 +990,139 @@ public static class BraxGymReferenceRebuild
                         p + new Vector3(x, .018f, z), new Vector3(.060f, .035f, .060f), rubber, .008f);
                 }
             ColliderBox("Lounge coffee table collision",
-                p + new Vector3(0, .26f, 0), new Vector3(1.22f, .51f, .78f));
+                p + new Vector3(0, .26f, 0), new Vector3(1.75f, .51f, 1.07f));
+            report.loungeCorrected=true;
+        }
+
+        void BuildPremiumFitnessFinalPass()
+        {
+            // Extra old chair by the entrance was created BEFORE the verified
+            // two-sofa lounge. Remove only that accidental third chair.
+            var extra=GameObject.Find("Library Sofa 02 - original PBR model");
+            var oldCollider=GameObject.Find("Library sofa collision");
+            if(!extra || !oldCollider)
+                throw new InvalidOperationException("Missing third entrance chair or its obsolete collider");
+            UnityEngine.Object.DestroyImmediate(extra);
+            UnityEngine.Object.DestroyImmediate(oldCollider);
+            report.singleEntranceSofaRemoved=true;
+
+            // Real six-hook forged metal coat rack on the vacated entrance wall.
+            Box(hall,"Former entry-chair area: dark walnut coat backing",
+                new Vector3(17.72f,1.73f,8.36f),new Vector3(.07f,.31f,2.75f),wood,.02f);
+            Box(hall,"Coat rack continuous satin steel plate",
+                new Vector3(17.67f,1.73f,8.36f),new Vector3(.05f,.12f,2.67f),blackSteel,.017f);
+            foreach(float z in new[]{7.26f,7.70f,8.14f,8.58f,9.02f,9.46f})
+            {
+                Tube(hall,"Real stainless coat hook mounting bolt",
+                    new Vector3(17.65f,1.72f,z),new Vector3(17.55f,1.72f,z),
+                    .027f,steel,1,12);
+                Tube(hall,"Forged curved coat hook",
+                    new Vector3(17.55f,1.72f,z),new Vector3(17.43f,1.57f,z),
+                    .024f,blackSteel,6,12);
+                Tube(hall,"Protective upturned coat hook end",
+                    new Vector3(17.43f,1.57f,z),new Vector3(17.42f,1.68f,z),
+                    .024f,steel,5,12);
+            }
+
+            // Genuine GLB models from the independently audited CC0 fitness
+            // library, never the user's low-poly set and never its rings.
+            FitnessModel("PremiumDumbbellRack",new Vector3(-15.62f,0,-10.75f),
+                90f,1.96f,new Vector3(1.20f,1.18f,2.05f));
+            FitnessModel("PremiumPlateTree",new Vector3(-16.55f,0,-8.02f),
+                0f,.86f,new Vector3(.92f,1.49f,.92f));
+            FitnessModel("PremiumKettlebellRack",new Vector3(-16.51f,0,-5.64f),
+                90f,1.2f,new Vector3(.86f,1.2f,1.24f));
+            FitnessModel("PremiumFlatBench",new Vector3(-15.50f,0,-3.58f),
+                90f,1.34f,new Vector3(.89f,.52f,1.41f));
+            FitnessModel("PremiumInclineBench",new Vector3(-15.46f,0,-1.38f),
+                90f,1.36f,new Vector3(.93f,1.0f,1.45f));
+            SpeedBagPearStation();
+        }
+
+        void FitnessModel(string filename,Vector3 p,float yaw,float width,Vector3 bounds)
+        {
+            var a=Group(hall,"BRAXHORN real CC0 strength apparatus "+filename);
+            a.position=p;a.rotation=Quaternion.Euler(0,yaw,0);
+            // Fail closed if the true PBR GLB did not import; no cubes replace it.
+            AddRequiredModel("Fitness/"+filename+".gltf",a,width,true);
+            ColliderBox("BRAXHORN gym strength obstacle "+filename,
+                p+new Vector3(0,bounds.y*.5f,0),bounds);
+            report.premiumStrengthModelsPlaced++;
+        }
+
+        void SpeedBagPearStation()
+        {
+            // Speed boxing pear suspended under a hard round speedball platform
+            // on its own steel stand: this is NOT another floor heavy bag.
+            var a=Group(hall,"Premium speed boxing pear stand");
+            var basePos=new Vector3(11.20f,0,-10.65f);a.position=basePos;
+            var leather=Material("Speedboxing authentic brown leather",
+                new Color(.30f,.25f,.20f),.70f,0f);
+            leather.mainTexture=RequiredTexture("LeatherAlbedo.jpg");
+            SetNormal(leather,RequiredTexture("LeatherNormal.png",true),.55f);
+            var polished=Material("Speedbag stand machined stainless steel",
+                new Color(.35f,.37f,.38f),.47f,.81f);
+            var darkWood=Material("Speedbag black walnut striking drum",
+                new Color(.46f,.39f,.33f),.76f,0f);
+            darkWood.mainTexture=RequiredTexture("WoodAlbedo.jpg");
+            SetNormal(darkWood,RequiredTexture("WoodNormal.png",true),.45f);
+            Box(a,"Heavy anti-tip rectangular stand base",
+                new Vector3(0,.09f,-.20f),new Vector3(.76f,.18f,.98f),blackSteel,.065f);
+            foreach(float x in new[]{-.32f,.32f})foreach(float z in new[]{-.59f,.19f})
+                Box(a,"Speed bag stand reinforced rubber feet",
+                    new Vector3(x,.035f,z),new Vector3(.14f,.06f,.14f),rubber,.02f);
+            Tube(a,"Real tubular telescopic height-adjustable upright",
+                new Vector3(0,.18f,-.28f),new Vector3(0,2.20f,-.28f),
+                .074f,blackSteel,2,22);
+            for(float y=.54f;y<1.96f;y+=.17f)
+                Tube(a,"Mechanical stand height index pin",
+                    new Vector3(-.07f,y,-.28f),new Vector3(.07f,y,-.28f),
+                    .008f,polished,1,8);
+            Tube(a,"Hard stainless projecting platform arm",
+                new Vector3(0,2.12f,-.28f),new Vector3(0,2.12f,.32f),
+                .048f,polished,2,18);
+            Tube(a,"Genuine round premium walnut speedbag striking board",
+                new Vector3(0,2.18f,.32f),new Vector3(0,2.27f,.32f),
+                .46f,darkWood,2,36);
+            Ring(a,"Speedball platform alloy edge",new Vector3(0,2.225f,.32f),
+                .465f,.016f,polished,Quaternion.Euler(90f,0,0),36,8);
+            Tube(a,"Swivel with steel bearing",new Vector3(0,2.00f,.32f),
+                new Vector3(0,2.18f,.32f),.034f,polished,3,20);
+            var pear=MeshObject(a,"Full three-dimensional pear leather bag",
+                SpeedPearMesh(),leather);
+            pear.localPosition=new Vector3(0,1.72f,.32f);
+            // Not wired as a fictional fifth standard punching bag:
+            // existing player four-bag collision and training remain unchanged.
+            ColliderBox("Speedbag fixed steel support collision",
+                basePos+new Vector3(0,.16f,-.20f),new Vector3(.79f,.32f,.99f));
+            report.speedBagStandInstalled=true;
+        }
+
+        Mesh SpeedPearMesh()
+        {
+            var v=new List<Vector3>();var uv=new List<Vector2>();var ix=new List<int>();
+            const int latitude=20,longitude=32;
+            for(int y=0;y<=latitude;y++)
+            {
+                float t=y/(float)latitude;
+                float r=.021f+.205f*Mathf.Pow(Mathf.Sin(Mathf.PI*t),1.02f)*
+                    (.78f+.22f*t);
+                for(int a=0;a<=longitude;a++)
+                {
+                    float angle=a*Mathf.PI*2/longitude;
+                    v.Add(new Vector3(Mathf.Cos(angle)*r,.24f-.53f*t,
+                        Mathf.Sin(angle)*r));
+                    uv.Add(new Vector2(a/(float)longitude,t));
+                    if(y<latitude&&a<longitude)
+                    {
+                        int i=y*(longitude+1)+a;
+                        ix.AddRange(new[]{i,i+1,i+longitude+1,i+1,i+longitude+2,i+longitude+1});
+                    }
+                }
+            }
+            var m=new Mesh{name="Speedboxing real rounded pear leather mesh"};
+            m.SetVertices(v);m.SetUVs(0,uv);m.SetTriangles(ix,0);
+            m.RecalculateNormals();m.RecalculateBounds();return m;
         }
 
         void PlaceLibrarySofa(string name, Vector3 center, float yaw)

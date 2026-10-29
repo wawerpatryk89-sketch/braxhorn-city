@@ -55,6 +55,8 @@ jobs:
           python3 unity-tools/premium_refinements.py
           python3 unity-tools/city/prepare.py
           python3 unity-tools/kickboxing/fetch_assets.py
+          python3 unity-tools/kickboxing/fetch_fitness_assets.py
+          python3 unity-tools/kickboxing/externalize_fitness.py
       - name: Reproduce the reviewed CC0-derived bags with pinned Blender
         run: |
           curl --fail --location --retry 3 --output /tmp/blender-4.2.3-linux-x64.tar.xz https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
