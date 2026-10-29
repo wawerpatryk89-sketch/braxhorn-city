@@ -1,0 +1,113 @@
+name: QA BRAXHORN ceiling fans and white ropes (isolated branch)
+on:
+  push:
+    branches: [codex/gym-premium-ceiling-continuation-20261029]
+    paths: ['unity-city/Assets/**', 'unity-city/Packages/**', 'unity-city/ProjectSettings/**', 'unity-tools/kickboxing/**', '.github/workflows/unity-kickboxing-reference-test.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: gym-premium-ceiling-continuation-test
+  cancel-in-progress: false
+jobs:
+  room:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/gym-premium-ceiling-continuation-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-city
+            unity-tools
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+            dev/logos/badge.png
+            public/unity-gym
+            asset-library/sources/sofa_02
+          persist-credentials: false
+          lfs: false
+      - name: Retrieve the existing verified gym geometry
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+      - name: Reuse existing city and estate, without exporting or redesigning them
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40840263799
+          github-token: ${{ github.token }}
+          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
+          path: unity-city/Assets/Source/City/
+      - name: Prepare unchanged player and current source assets
+        run: |
+          mkdir -p kickboxing-review
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6
+          python3 -m compileall -q unity-tools
+          node --check unity-tools/kickboxing/check.mjs
+          python3 unity-tools/prepare_playable.py
+          python3 unity-tools/premium_prepare.py
+          python3 unity-tools/premium_refinements.py
+          python3 unity-tools/city/prepare.py
+          python3 unity-tools/kickboxing/fetch_assets.py
+      - name: Reproduce the reviewed CC0-derived bags with pinned Blender
+        run: |
+          curl --fail --location --retry 3 --output /tmp/blender-4.2.3-linux-x64.tar.xz https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
+          echo '3a64efd1982465395abab4259b4091d5c8c56054c7267e9633e4f702a71ea3f4  /tmp/blender-4.2.3-linux-x64.tar.xz' | sha256sum --check --strict
+          tar -xJf /tmp/blender-4.2.3-linux-x64.tar.xz -C /tmp
+          /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
+          /tmp/blender-4.2.3-linux-x64/blender --background --factory-startup --disable-autoexec -t 4 --python unity-tools/kickboxing/prepare_bag.py -- --source build-source/BoxingBagSource.glb --skip-render --preview-dir kickboxing-review/bag-source
+          python3 unity-tools/kickboxing/externalize_models.py --remove-source
+          git diff --exit-code -- unity-city/Assets/BraxGymPlayer.cs unity-city/Assets/City unity-city/Assets/Editor/BraxCityBuild.cs unity-city/Assets/Editor/BraxHeroRefinements.cs unity-tools/prepare_playable.py unity-tools/premium_refinements.py unity-tools/city/prepare.py
+      - name: Compile the connected Unity player with the rebuilt room and annex
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxGymBuild.BuildCity
+          versioning: None
+          allowDirtyBuild: true
+      - name: Package separate test player with the current iOS streaming loader
+        run: python3 unity-tools/kickboxing/package.py
+      - name: Prepare real browser execution
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Exercise the actual Unity room, training, mirrors, backrooms and city return
+        env:
+          QA_OUT: kickboxing-review
+          PLAYER_ROOT: unity-preview
+        run: node unity-tools/kickboxing/check.mjs
+      - name: Preserve actual runtime screenshots, walkthrough and diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-kickboxing-review-${{ github.sha }}
+          path: |
+            kickboxing-review/
+            build/WebGL/playable.json
+            build/WebGL/city-migration.json
+            unity-city/Assets/PlayableGenerated/ReferenceRebuild/layout-report.json
+            unity-city/Assets/Kickboxing/asset-provenance.json
+            unity-city/Assets/Kickboxing/Models/BagSource.provenance.json
+            unity-city/Assets/Kickboxing/Models/native-texture-preparation.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Preserve compiled test player without replacing production
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-kickboxing-player-${{ github.sha }}
+          path: unity-preview/
+          if-no-files-found: warn
+          retention-days: 14
