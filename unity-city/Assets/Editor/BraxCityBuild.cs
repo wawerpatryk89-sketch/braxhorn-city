@@ -100,6 +100,17 @@ public static class BraxCityBuild
         var data=JsonUtility.FromJson<Manifest>(File.ReadAllText(Source+area+"-manifest.json"));
         if(data==null||data.meshCount<100||data.meshes==null||data.collision==null)throw new Exception("Incomplete original city manifest: "+area);
         var root=Import(Source+"braxhorn-"+area+".gltf");
+        if(area=="city"&&Environment.GetEnvironmentVariable("BRAX_CITY_MOBILE_REVIEW")=="1"
+            &&PrefabUtility.IsPartOfPrefabInstance(root))
+        {
+            // The original city glTF asset remains completely untouched.
+            // The generated review scene must not retain a prefab reference to
+            // hundreds of vehicle meshes/materials after those renderers are
+            // removed from the scene. This only unpacks this temporary instance.
+            PrefabUtility.UnpackPrefabInstance(root,PrefabUnpackMode.Completely,
+                InteractionMode.AutomatedAction);
+            Debug.Log("CITY_IPHONE_REVIEW_UNPACKED_TEMPORARY_CITY_INSTANCE sourcePrefabPreserved=true");
+        }
         var transforms=root.GetComponentsInChildren<Transform>(true).GroupBy(t=>t.name).ToDictionary(g=>g.Key,g=>g.First());
         int count=0,meshColliders=0;
         foreach(var mesh in data.meshes)
