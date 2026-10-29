@@ -1,4 +1,4 @@
-name: Diagnose public Unity metadata only
+name: Verify exact public Unity release bytes
 on:
   push:
     branches: [codex/unity-full-city-20261029]
@@ -8,34 +8,50 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 6
     steps:
-      - name: Compare original bytes with public responses
+      - name: Check all published files against the exact reviewed commit
         env:
           GH_TOKEN: ${{ github.token }}
         shell: python
         run: |
-          import base64,hashlib,json,os,pathlib,urllib.request,urllib.parse
+          import base64,concurrent.futures,hashlib,json,os,pathlib,time,urllib.request,urllib.parse
           out=pathlib.Path('public-diagnostic');out.mkdir()
           published='dcc96fa09716a69d65c08252c663282494761642';repo='wawerpatryk89-sketch/braxhorn-city';origin='https://braxhorn-city.vercel.app/unity-gym/'
-          report=[]
-          for name in ['material-review.json','release.json','index.html','city-transport.js']:
-              req=urllib.request.Request('https://api.github.com/repos/'+repo+'/contents/public/unity-gym/'+name+'?ref='+published,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
-              with urllib.request.urlopen(req,timeout=30) as r:git=json.load(r)
-              expected=base64.b64decode(git['content']);(out/('git-'+name)).write_bytes(expected)
-              for suffix in ['', '?probe='+published]:
-                  item={'file':name,'suffix':suffix,'expectedSha256':hashlib.sha256(expected).hexdigest()}
+          req=urllib.request.Request('https://api.github.com/repos/'+repo+'/contents/public/unity-gym/release.json?ref='+published,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(req,timeout=30) as r:expected_bytes=base64.b64decode(json.load(r)['content'])
+          expected=json.loads(expected_bytes);assert expected['sourceCommit']=='19c71c167d4426523a251b94c3aeabbe9664aad5' and expected['qaChecks']==39
+          def fetch_digest(name,suffix=''):
+              req=urllib.request.Request(origin+urllib.parse.quote(name,safe='/')+suffix,headers={'Accept-Encoding':'identity','Cache-Control':'no-cache'})
+              with urllib.request.urlopen(req,timeout=90) as r:
+                  actual_url=urllib.parse.urlsplit(r.url)
+                  assert actual_url.scheme=='https' and actual_url.hostname=='braxhorn-city.vercel.app'
+                  allowed=['/unity-gym/'+name]
+                  if name=='index.html':allowed.append('/unity-gym')
+                  assert actual_url.path in allowed,'Unexpected redirect '+r.url
+                  digest=hashlib.sha256();total=0
+                  while block:=r.read(524288):digest.update(block);total+=len(block)
+                  return {'sha256':digest.hexdigest(),'bytes':total,'finalUrl':r.url,'status':r.status,'headers':{k:v for k,v in r.headers.items() if k.lower() in ['content-type','cache-control','age','etag','x-vercel-cache']}}
+          def verify(item):
+              name,wanted=item;p=pathlib.PurePosixPath(name);assert not p.is_absolute() and '..' not in p.parts
+              result={'path':name,'expectedSha256':wanted,'verified':False,'attempts':[]}
+              for attempt in range(3):
                   try:
-                      req=urllib.request.Request(origin+name+suffix,headers={'Accept-Encoding':'identity','Cache-Control':'no-cache'})
-                      with urllib.request.urlopen(req,timeout=45) as r:
-                          data=r.read();item.update(status=r.status,finalUrl=r.url,headers=dict(r.headers),sha256=hashlib.sha256(data).hexdigest(),bytes=len(data),matches=data==expected)
-                          (out/(('fresh-' if suffix else 'plain-')+name)).write_bytes(data)
-                  except Exception as e:item['error']=str(e)
-                  print(json.dumps(item),flush=True);report.append(item)
-          (out/'report.json').write_text(json.dumps(report,indent=2))
+                      got=fetch_digest(name,'' if attempt==0 else '?verify='+published)
+                      result['attempts'].append(got)
+                      if got['sha256']==wanted:result.update(verified=True,bytes=got['bytes']);break
+                  except Exception as e:result['attempts'].append({'error':str(e)})
+                  time.sleep(2)
+              print('PUBLIC_FILE',name,'PASS' if result['verified'] else 'FAIL',flush=True);return result
+          items=[('release.json',hashlib.sha256(expected_bytes).hexdigest()),*expected['files'].items()]
+          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:results=list(pool.map(verify,items))
+          report={'publishedCommit':published,'sourceCommit':expected['sourceCommit'],'testUrl':origin,'verified':all(r['verified'] for r in results),'files':results,'verifiedFileCount':sum(r['verified'] for r in results),'verifiedBytes':sum(r.get('bytes',0) for r in results),'originalCityReplaced':False}
+          (out/'public-byte-verification.json').write_text(json.dumps(report,indent=2)+'\n')
+          print('PUBLIC_EXACT_BYTES',report['verified'],report['verifiedFileCount'],report['verifiedBytes'])
+          assert report['verified'],'Published bytes mismatch; see report, no deployment changes performed'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: city-public-metadata-diagnostic
+          name: city-public-exact-byte-verification
           path: public-diagnostic/
           retention-days: 7
