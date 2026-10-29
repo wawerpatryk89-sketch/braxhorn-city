@@ -112,7 +112,7 @@ public static class BraxEstateBuild {
   // Original level.js source offsets these small prop clusters by (-12,0,+5).
   foreach(var f in root.GetComponentsInChildren<MeshFilter>(true)){
    var r=f.GetComponent<Renderer>();if(r==null)continue;
-   var b=r.bounds,s=b.size;
+   var b=r.bounds; var s=b.size;
    float sourceMinZ=-b.max.z,sourceMaxZ=-b.min.z;
    if(s.x<2.2f&&s.z<2.2f&&s.y<1.6f&&b.max.y<1.7f&&
     b.max.x>85.2f&&b.min.x<86.8f&&sourceMaxZ>-37.2f&&sourceMinZ<-34.1f)
