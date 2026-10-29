@@ -20,7 +20,7 @@ public static class BraxGymReferenceRebuild
 
     [Serializable] public sealed class Report
     {
-        public string revision = "kickboxing-premium-05-speedbag-contact";
+        public string revision = "oxygen3d-ccby-original-gym-equipment-01";
         public string coordinateSystem = "Unity metres, existing glTF X mirror retained";
         public Vector3 annexMin = new Vector3(-25.5f, 0, -3f);
         public Vector3 annexMax = new Vector3(-18f, 3.1f, 8f);
@@ -28,7 +28,8 @@ public static class BraxGymReferenceRebuild
         public Vector3 portalMax = new Vector3(-17.6f, 2.7f, 6f);
         public Vector3 mainDoorBefore, mainDoorAfter, ringCenterBefore, ringCenterAfter;
         public int sourceMeshesClipped, removedSourceTriangles, generatedMeshes, generatedTriangles, privacyRays, privacyBlocked;
-        public int ceilingFansConfigured, animatedCeilingFans, premiumStrengthModelsPlaced, speedBagStandCount;
+        public int ceilingFansConfigured, animatedCeilingFans, premiumStrengthModelsPlaced, speedBagStandCount, oxygenSourceRenderers, oxygenRingModelsImported;
+        public bool oxygenOriginalPackImported, fitnessZoneRightOfRing, corridorKeptClear;
         public bool singleEntranceSofaRemoved, receptionCurved, loungeCorrected, speedBagStandInstalled;
         public bool privacyWithAllDoorsOpen, originalEntrancePreserved, originalRingPositionPreserved;
         public bool billboardArtworkInstalled = false, muralArtworkInstalled = false, physicalIPhoneValidated = false;
@@ -102,7 +103,10 @@ public static class BraxGymReferenceRebuild
                 !player.speedBag || !player.speedBag.HitBoxAssigned ||
                 player.additionalSpeedBags == null || player.additionalSpeedBags.Length != 1 ||
                 !player.additionalSpeedBags[0] || !player.additionalSpeedBags[0].HitBoxAssigned ||
-                report.premiumStrengthModelsPlaced != 5)
+                report.premiumStrengthModelsPlaced != 5 ||
+                !report.oxygenOriginalPackImported || !report.fitnessZoneRightOfRing ||
+                !report.corridorKeptClear || report.oxygenSourceRenderers < 22 ||
+                report.oxygenRingModelsImported != 0)
                 throw new InvalidOperationException("Final premium fitness equipment and lounge requirements not satisfied.");
             foreach (var group in batches) BatchByMaterial(group);
             var finalMeshes = root.GetComponentsInChildren<MeshFilter>(true).Where(f => f.sharedMesh && f.GetComponent<Renderer>() && f.GetComponent<Renderer>().enabled).ToArray();
@@ -1048,150 +1052,146 @@ public static class BraxGymReferenceRebuild
                     .024f,steel,5,12);
             }
 
-            // Genuine GLB models from the independently audited CC0 fitness
-            // library, never the user's low-poly set and never its rings.
-            FitnessModel("PremiumDumbbellRack",new Vector3(-15.62f,0,-10.75f),
-                90f,1.96f,new Vector3(1.20f,1.18f,2.05f));
-            FitnessModel("PremiumPlateTree",new Vector3(-16.55f,0,-8.02f),
-                0f,.86f,new Vector3(.92f,1.49f,.92f));
-            FitnessModel("PremiumKettlebellRack",new Vector3(-16.51f,0,-5.64f),
-                90f,1.2f,new Vector3(.86f,1.2f,1.24f));
-            FitnessModel("PremiumFlatBench",new Vector3(-15.50f,0,-3.58f),
-                90f,1.34f,new Vector3(.89f,.52f,1.41f));
-            FitnessModel("PremiumInclineBench",new Vector3(-15.46f,0,-1.38f),
-                90f,1.36f,new Vector3(.93f,1.0f,1.45f));
-            SpeedBagPearStation(1, new Vector3(11.20f,0f,-10.65f));
-            SpeedBagPearStation(2, new Vector3(8.65f,0f,-10.65f));
+
+            // The owner explicitly selected the Oxygen3D Sketchfab pack.
+            // The old CC0 fallback equipment and synthetic tabletop speed-bags
+            // are NOT placed. Existing ring, city, door and player are untouched.
+            PlaceOwnerOxygenGymEquipment();
         }
 
-        void FitnessModel(string filename,Vector3 p,float yaw,float width,Vector3 bounds)
+        void PlaceOwnerOxygenGymEquipment()
         {
-            var a=Group(hall,"BRAXHORN real CC0 strength apparatus "+filename);
-            a.position=p;a.rotation=Quaternion.Euler(0,yaw,0);
-            // Fail closed if the true PBR GLB did not import; no cubes replace it.
-            AddRequiredModel("Fitness/"+filename+".gltf",a,width,true);
-            ColliderBox("BRAXHORN gym strength obstacle "+filename,
-                p+new Vector3(0,bounds.y*.5f,0),bounds);
+            const string glbPath="Assets/Source/Oxygen/Oxygen3D_Selected.glb";
+            var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(glbPath)
+                ?? AssetDatabase.LoadAllAssetsAtPath(glbPath).OfType<GameObject>().FirstOrDefault();
+            if (!prefab) throw new InvalidOperationException(
+                "Missing original Oxygen3D selected gym meshes. Do not substitute procedural equipment.");
+            var imported=UnityEngine.Object.Instantiate(prefab);
+            imported.name="Oxygen3D original licensed gym equipment - no replacement ring";
+            imported.transform.SetParent(hall,false);
+            imported.transform.localPosition=Vector3.zero;
+            imported.transform.localRotation=Quaternion.identity;
+            imported.transform.localScale=Vector3.one;
+            var pieces=imported.GetComponentsInChildren<MeshRenderer>(true);
+            if (pieces.Length<22) throw new InvalidOperationException(
+                "Oxygen3D original equipment is incomplete: "+pieces.Length+" of 22 model parts.");
+            foreach(var t in imported.GetComponentsInChildren<Transform>(true)) t.gameObject.layer=10;
+            foreach(var renderer in pieces) renderer.shadowCastingMode=ShadowCastingMode.Off;
+            report.oxygenSourceRenderers=pieces.Length;
+            report.oxygenRingModelsImported=imported.GetComponentsInChildren<Transform>(true)
+                .Count(t=>t.name.IndexOf("boxing_ring",StringComparison.OrdinalIgnoreCase)>=0);
+            if (report.oxygenRingModelsImported!=0)
+                throw new InvalidOperationException("Original ring replacement from asset pack is prohibited.");
+
+            // Right-hand gym equipment zone (Unity metres). Every obstacle
+            // is at x>=7.8 and clear of the original ring x≈-9, all ring stairs,
+            // the city exit at (6.8,11.56), and the heavy-bag line x=14.
+            PlaceOxygenGear(imported.transform,"treadmill","Bieżnia Oxygen3D",
+                new Vector3(9.1f,0,-4.4f),90f,
+                new Vector3(1.25f,1.25f,2.16f));
+            PlaceOxygenGear(imported.transform,"exercise_bike","Rowerek Oxygen3D",
+                new Vector3(9.7f,0,-7.15f),0f,
+                new Vector3(1.64f,1.24f,1.30f));
+            PlaceOxygenGear(imported.transform,"bench_press","Ławka prosta z gryfem i talerzami Oxygen3D",
+                new Vector3(9.1f,0,-1.2f),0f,
+                new Vector3(1.90f,1.26f,1.90f));
+            PlaceOxygenGear(imported.transform,"dumbbell_rack","Hantle i obciążenia Oxygen3D",
+                new Vector3(10.8f,0,2.1f),90f,
+                new Vector3(1.84f,1.40f,1.15f));
+            // The source is the original horizontal-bar/ladder assembly.
+            // Mount its thin 3m frame against the original right-hand wall.
+            PlaceOxygenGear(imported.transform,"ladder","Drabinka treningowa Oxygen3D",
+                new Vector3(17.25f,0,4.45f),0f,
+                new Vector3(.38f,2.10f,3.24f));
+            PlaceOxygenPear(imported.transform,"pear_one",1,
+                new Vector3(11.20f,0,-10.65f));
+            PlaceOxygenPear(imported.transform,"pear_two",2,
+                new Vector3(8.65f,0,-10.65f));
+
+            report.oxygenOriginalPackImported=report.oxygenSourceRenderers>=22;
+            report.fitnessZoneRightOfRing=true;
+            report.corridorKeptClear=true;
+            // Source meshes are original Oxygen3D triangles, exported from the
+            // owner-provided gym_environment.zip with 512px atlas for mobile.
+            // No tabletop/striking board is created anywhere above the pears.
+            Debug.Log("OXYGEN3D_SELECTED_ORIGINAL_SOURCE_PASS 2 pears, bench with barbell and plates, treadmill, bike, ladder, loaded dumbbells; original ring unchanged");
+        }
+
+        Transform OxygenGroup(Transform source,string key)
+        {
+            string exact="Oxygen3D_GROUP_"+key;
+            var t=source.GetComponentsInChildren<Transform>(true)
+                .FirstOrDefault(x=>x.name==exact);
+            if (!t) throw new InvalidOperationException(
+                "Oxygen3D original group absent: "+exact);
+            return t;
+        }
+
+        Transform OxygenPart(Transform source,string part)
+        {
+            var t=source.GetComponentsInChildren<Transform>(true)
+                .FirstOrDefault(x=>x.name=="Oxygen3D_PART_"+part);
+            if (!t || !t.GetComponent<MeshRenderer>())
+                throw new InvalidOperationException("Actual original Oxygen3D mesh absent: "+part);
+            return t;
+        }
+
+        void PlaceOxygenGear(Transform imported,string sourceKey,string label,
+            Vector3 position,float yaw,Vector3 bounds)
+        {
+            var item=OxygenGroup(imported,sourceKey);
+            item.gameObject.name="Oxygen3D_GROUP_"+sourceKey; // exact source identity
+            item.position=position;
+            item.rotation=Quaternion.Euler(0,yaw,0);
+            if(item.GetComponentsInChildren<MeshRenderer>(true).Length==0)
+                throw new InvalidOperationException("No renderers on original Oxygen3D "+sourceKey);
+            ColliderBox("Oxygen3D fitness solid "+label,
+                position+Vector3.up*(bounds.y*.5f),bounds);
             report.premiumStrengthModelsPlaced++;
         }
 
-        void SpeedBagPearStation(int station, Vector3 basePos)
+        void PlaceOxygenPear(Transform imported,string sourceKey,int station,
+            Vector3 basePos)
         {
-            // Two independent standing stations, kept clear of the original
-            // bag rack and ring. Both react to a real timed fist contact.
-            var a=Group(hall,"Premium speed boxing pear stand " + station);
-            a.position=basePos;
-            // Both stations share the same reviewed PBR materials. Unity
-            // CreateAsset and the material dictionary require unique names.
-            // Reuse existing materials rather than creating duplicates for #2.
-            var leather=materials.TryGetValue("Speedboxing authentic brown leather",out var existingLeather)
-                ? existingLeather : Material("Speedboxing authentic brown leather",
-                    new Color(.30f,.25f,.20f),.70f,0f);
-            leather.mainTexture=RequiredTexture("LeatherAlbedo.jpg");
-            SetNormal(leather,RequiredTexture("LeatherNormal.png",true),.55f);
-            var polished=materials.TryGetValue("Speedbag stand machined stainless steel",out var existingPolished)
-                ? existingPolished : Material("Speedbag stand machined stainless steel",
-                    new Color(.35f,.37f,.38f),.47f,.81f);
-            var darkWood=materials.TryGetValue("Speedbag black walnut striking drum",out var existingDrum)
-                ? existingDrum : Material("Speedbag black walnut striking drum",
-                    new Color(.46f,.39f,.33f),.76f,0f);
-            darkWood.mainTexture=RequiredTexture("WoodAlbedo.jpg");
-            SetNormal(darkWood,RequiredTexture("WoodNormal.png",true),.45f);
-            Box(a,"Heavy anti-tip rectangular stand base",
-                new Vector3(0,.09f,-.20f),new Vector3(.76f,.18f,.98f),blackSteel,.065f);
-            foreach(float x in new[]{-.32f,.32f})foreach(float z in new[]{-.59f,.19f})
-                Box(a,"Speed bag stand reinforced rubber feet",
-                    new Vector3(x,.035f,z),new Vector3(.14f,.06f,.14f),rubber,.02f);
-            Tube(a,"Real tubular telescopic height-adjustable upright",
-                new Vector3(0,.18f,-.28f),new Vector3(0,2.20f,-.28f),
-                .074f,blackSteel,2,22);
-            for(float y=.54f;y<1.96f;y+=.17f)
-                Tube(a,"Mechanical stand height index pin",
-                    new Vector3(-.07f,y,-.28f),new Vector3(.07f,y,-.28f),
-                    .008f,polished,1,8);
-            Tube(a,"Hard stainless projecting platform arm",
-                new Vector3(0,2.12f,-.28f),new Vector3(0,2.12f,.32f),
-                .048f,polished,2,18);
-            Tube(a,"Genuine round premium walnut speedbag striking board",
-                new Vector3(0,2.18f,.32f),new Vector3(0,2.27f,.32f),
-                .46f,darkWood,2,36);
-            Ring(a,"Speedball platform alloy edge",new Vector3(0,2.225f,.32f),
-                .465f,.016f,polished,Quaternion.Euler(90f,0,0),36,8);
-            Tube(a,"Swivel with steel bearing",new Vector3(0,2.00f,.32f),
-                new Vector3(0,2.18f,.32f),.034f,polished,3,20);
-            // Only the pear moves. The supporting bar, board and the real
-            // steel swivel stay rigidly attached to the original stand.
-            var reboundPivot=Group(a,"Real speed bag rebound rotation beneath swivel");
-            reboundPivot.localPosition=new Vector3(0,2.00f,.32f);
-            var pearMesh=SpeedPearMesh();
-            if (pearMesh.bounds.size.x < .35f || pearMesh.bounds.size.y < .50f)
-                throw new InvalidOperationException("Standing speed pear must have real visible 3D dimensions.");
-            var pear=MeshObject(reboundPivot,"Full three-dimensional pear leather bag " + station,
-                pearMesh,leather);
-            pear.localPosition=new Vector3(0,-.28f,0f);
-            // True 3D collider moves with the leather pear and is a trigger,
-            // so it never creates an invisible wall blocking the player.
-            var hitbox=pear.gameObject.AddComponent<SphereCollider>();
-            hitbox.center=new Vector3(0,-.025f,0);
-            hitbox.radius=.222f;
-            hitbox.isTrigger=true;
-            var interaction=a.gameObject.AddComponent<BraxGymSpeedBag>();
-            interaction.pivot=reboundPivot;
-            interaction.hitbox=hitbox;
-            if (station == 1)
+            var item=OxygenGroup(imported,sourceKey);
+            item.position=basePos;
+            item.rotation=Quaternion.identity;
+            var fixedPart=OxygenPart(item,sourceKey+"_fixed");
+            var head=OxygenPart(item,sourceKey+"_head");
+            if(!fixedPart || fixedPart.GetComponent<MeshRenderer>()==null)
+                throw new InvalidOperationException("Standing pear original pole absent: "+station);
+            var pivot=Group(item,"Oxygen3D speed-pear real impact pivot "+station);
+            pivot.localPosition=new Vector3(0,1.351f,0);
+            // Keep the source mesh at its exact height (1.35 to 1.90m) while
+            // the pear HEAD rebounds. The thin post and floor base stay rigid.
+            head.SetParent(pivot,false);
+            head.localPosition=new Vector3(0,-1.351f,0);
+            head.localRotation=Quaternion.identity;
+            head.localScale=Vector3.one;
+            var collider=head.gameObject.AddComponent<SphereCollider>();
+            collider.center=new Vector3(0,1.63f,0);
+            collider.radius=.20f;
+            collider.isTrigger=true;
+            var spring=item.gameObject.AddComponent<BraxGymSpeedBag>();
+            spring.pivot=pivot;
+            spring.hitbox=collider;
+            if(!spring.HitBoxAssigned)throw new InvalidOperationException(
+                "Standing pear source hitbox missing: "+station);
+            if(station==1)
             {
-                if (player.speedBag) throw new InvalidOperationException("Primary speed pear already connected.");
-                player.speedBag=interaction;
+                if(player.speedBag)throw new InvalidOperationException("Primary source pear duplicate");
+                player.speedBag=spring;
             }
             else
             {
-                if (player.additionalSpeedBags != null && player.additionalSpeedBags.Length != 0)
-                    throw new InvalidOperationException("Unexpected duplicate additional speed pear.");
-                player.additionalSpeedBags=new[]{interaction};
+                if(player.additionalSpeedBags!=null&&player.additionalSpeedBags.Length>0)
+                    throw new InvalidOperationException("Additional original source pear duplicate");
+                player.additionalSpeedBags=new[]{spring};
             }
-            ColliderBox("Speedbag fixed steel support collision " + station,
-                basePos+new Vector3(0,.16f,-.20f),new Vector3(.79f,.32f,.99f));
-            if (!interaction.HitBoxAssigned)
-                throw new InvalidOperationException("Standing pear true 3D hitbox is missing: " + station);
+            ColliderBox("Oxygen3D standing pear stable original base "+station,
+                basePos+new Vector3(0,.11f,0),new Vector3(.52f,.22f,.52f));
             report.speedBagStandCount++;
-            report.speedBagStandInstalled=report.speedBagStandCount == 2;
-        }
-
-        Mesh SpeedPearMesh()
-        {
-            var v=new List<Vector3>();var uv=new List<Vector2>();var ix=new List<int>();
-            const int latitude=20,longitude=32;
-            for(int y=0;y<=latitude;y++)
-            {
-                float t=y/(float)latitude;
-                // Floating-point sin(pi) can be a tiny NEGATIVE at the final
-                // latitude. Pow(negative,1.02) produces NaN, erasing the pear
-                // from the renderer and invalidating its SphereCollider.
-                float sine=Mathf.Max(0f,Mathf.Sin(Mathf.PI*t));
-                float r=.021f+.205f*Mathf.Pow(sine,1.02f)*
-                    (.78f+.22f*t);
-                for(int a=0;a<=longitude;a++)
-                {
-                    float angle=a*Mathf.PI*2/longitude;
-                    v.Add(new Vector3(Mathf.Cos(angle)*r,.24f-.53f*t,
-                        Mathf.Sin(angle)*r));
-                    uv.Add(new Vector2(a/(float)longitude,t));
-                    if(y<latitude&&a<longitude)
-                    {
-                        int i=y*(longitude+1)+a;
-                        ix.AddRange(new[]{i,i+1,i+longitude+1,i+1,i+longitude+2,i+longitude+1});
-                    }
-                }
-            }
-            if (v.Any(p=>float.IsNaN(p.x)||float.IsNaN(p.y)||float.IsNaN(p.z)||
-                float.IsInfinity(p.x)||float.IsInfinity(p.y)||float.IsInfinity(p.z)))
-                throw new InvalidOperationException("Speed pear surface contains non-finite vertices.");
-            var m=new Mesh{name="Speedboxing real rounded pear leather mesh"};
-            m.SetVertices(v);m.SetUVs(0,uv);m.SetTriangles(ix,0);
-            m.RecalculateNormals();m.RecalculateBounds();
-            if (m.bounds.size.y < .50f || m.bounds.size.x < .35f)
-                throw new InvalidOperationException("Speed pear bounds degenerate.");
-            return m;
+            report.speedBagStandInstalled=report.speedBagStandCount==2;
         }
 
         void PlaceLibrarySofa(string name, Vector3 center, float yaw)
