@@ -1,0 +1,129 @@
+name: Publish visually reviewed premium Unity gym
+on:
+  push:
+    branches: [codex/unity-gym-premium-20261029]
+    paths: ['.github/workflows/publish-premium-unity-gym.yml']
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: publish-approved-unity-gym
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Read current production without replacing city or estate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          sparse-checkout: public/unity-gym
+          persist-credentials: false
+      - name: Download exact visually reviewed build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40803826572
+          github-token: ${{ github.token }}
+          name: unity-premium-playable-38015034070ba78dc8f3c63e2d4ec5eee31111d2
+          path: /tmp/brax-approved
+      - name: Download matching movement and visual evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40803826572
+          github-token: ${{ github.token }}
+          name: unity-premium-review-38015034070ba78dc8f3c63e2d4ec5eee31111d2
+          path: /tmp/brax-evidence
+      - name: Enforce source identity, original rig and passed direction tests
+        shell: python
+        run: |
+          import pathlib,json,shutil,hashlib,datetime,subprocess
+          src=pathlib.Path('/tmp/brax-approved'); ev=pathlib.Path('/tmp/brax-evidence')
+          expected='38015034070ba78dc8f3c63e2d4ec5eee31111d2'
+          qa=json.loads((ev/'unity-review/report.json').read_text())
+          game=json.loads((src/'playable.json').read_text())
+          integrity=json.loads((ev/'unity-city/Assets/Source/source-integrity.json').read_text())
+          materials=json.loads((src/'material-review.json').read_text())
+          details=json.loads((src/'unity-premium-report.json').read_text())
+          refinements=json.loads((ev/'unity-city/Assets/Source/Premium/source-refinements.json').read_text())
+          assert qa['passed'] and len(qa['checks'])>=16 and all(c['passed'] for c in qa['checks'])
+          names=[c['name'] for c in qa['checks']]
+          assert sum(n.startswith('Camera-relative ') for n in names)==8
+          assert 'Touch joystick right is camera right' in names
+          assert game['commit']==expected and game['originalBrax'] and game['originalGym']
+          assert game['gymMeshes']>=161 and integrity['geometryReplaced'] is False
+          assert materials['originalHeroRigChanged'] is False and materials['originalUVsChanged'] is False
+          assert details['librarySofa02'] is True and details['heroRigChanged'] is False
+          assert details['upgradedMaterials']>=20,'Wall/floor material pass did not execute'
+          assert refinements['originalOrmRestored'] is True and refinements['originalRigChanged'] is False
+          views=['01-premium-hall','04-ring-details','05-bags-windows','06-brax-front','07-library-lounge']
+          for view in views: assert (ev/'unity-review'/f'{view}.png').stat().st_size>50000
+          for pattern in ['*.loader.js','*.data*','*.framework.js*','*.wasm*']:
+              files=list((src/'Build').glob(pattern)); assert len(files)==1 and files[0].stat().st_size>1000
+              assert files[0].name.startswith(expected[:12]+'_')
+          dest=pathlib.Path('public/unity-gym')
+          prior=json.loads((dest/'release.json').read_text())
+          assert prior.get('scope')=='isolated-unity-gym','Unknown production scope'
+          assert prior['sourceCommit']=='ec3fadaf05d6d69d20086ab163d3dacedd338f6b','Another Unity release changed production; inspect it before replacing'
+          previous_main=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          shutil.rmtree(dest); shutil.copytree(src,dest)
+          html=(dest/'index.html').read_text();assert '<base ' not in html
+          html=html.replace('<head>','<head><base href="/unity-gym/">',1)
+          assert '<base href="/unity-gym/">' in html
+          (dest/'index.html').write_text(html);(dest/'vercel.json').unlink(missing_ok=True)
+          release={'scope':'isolated-unity-gym','iteration':'premium-02','sourceCommit':expected,
+            'sourceRun':40803826572,'qaPassed':True,'qaChecks':len(qa['checks']),'qaPlatform':qa['platform'],
+            'publishedUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            'previousMain':previous_main,'previousSource':prior['sourceCommit'],
+            'originalCityReplaced':False,'fullCityMigration':False,
+            'features':['camera-relative joystick fixed','original Brax rig and animations','original ORM restored',
+             'black clothing and lime accents','wall and floor relief','rounded ring pads and thicker bound ropes',
+             'ring stitching eyelets and stair grips','rounded leather bags with chains','arched window frames',
+             'verified library Sofa02','cache-safe versioned WebGL files'],
+            'premiumDetails':details,'materials':materials,'sourceRefinements':refinements,
+            'files':{p.relative_to(dest).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(dest.rglob('*')) if p.is_file()}}
+          (dest/'release.json').write_text(json.dumps(release,indent=2)+'\n')
+          print('PREMIUM_RELEASE_GATES_PASS',len(release['files']),release['qaChecks'],expected)
+      - name: Publish only approved gym folder, preserving all other content
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import subprocess,os,base64
+          def run(*a,**kw):return subprocess.run(a,check=True,**kw)
+          run('git','config','user.name','github-actions[bot]')
+          run('git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
+          run('git','add','--sparse','-f','public/unity-gym')
+          files=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
+          assert files and all(p.startswith('public/unity-gym/') for p in files)
+          run('git','commit','-m','release(unity): premium gym 02, corrected directions and reviewed original Brax')
+          env=os.environ.copy();auth=base64.b64encode(('x-access-token:'+env['GH_TOKEN']).encode()).decode()
+          env.update(GIT_CONFIG_COUNT='1',GIT_CONFIG_KEY_0='http.https://github.com/.extraheader',GIT_CONFIG_VALUE_0='AUTHORIZATION: basic '+auth)
+          run('git','push','origin','HEAD:refs/heads/main',env=env)
+          print('PREMIUM_MAIN_COMMIT',subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip())
+      - name: Verify deployed source and exact served WebGL bytes
+        shell: python
+        run: |
+          import urllib.request,json,time,hashlib
+          base='https://braxhorn-city.vercel.app/unity-gym/'
+          expected='38015034070ba78dc8f3c63e2d4ec5eee31111d2'
+          for attempt in range(36):
+              try:
+                  req=urllib.request.Request(base+'release.json?verify='+str(time.time_ns()),headers={'Cache-Control':'no-cache'})
+                  with urllib.request.urlopen(req,timeout=20) as r:release=json.load(r)
+                  if release.get('sourceCommit')!=expected:raise RuntimeError('Prior deployment still active')
+                  with urllib.request.urlopen(base+'?v='+expected[:12],timeout=30) as r: html=r.read().decode()
+                  assert '<base href="/unity-gym/">' in html and expected[:12]+'_WebGL' in html
+                  for relative,digest in release['files'].items():
+                      if not relative.startswith('Build/'):continue
+                      with urllib.request.urlopen(base+relative,timeout=60) as r:
+                          check=hashlib.sha256()
+                          for block in iter(lambda:r.read(1024*1024),b''):check.update(block)
+                      assert check.hexdigest()==digest,relative
+                  print('PREMIUM_GYM_LIVE_VERIFIED',base,expected)
+                  break
+              except Exception as e:print('Deployment verification:',type(e).__name__,str(e)[:120])
+              time.sleep(10)
+          else:raise RuntimeError('Main updated but live build not confirmed. Do not claim production success.')
