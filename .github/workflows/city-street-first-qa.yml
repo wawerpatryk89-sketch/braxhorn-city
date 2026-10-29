@@ -1,0 +1,117 @@
+name: Verify street-first existing Unity WebGL entry (NO REBUILD)
+
+on:
+  push:
+    branches:
+      - preview/city-walkable-street-45a9555f3a44
+    paths:
+      - '.github/workflows/city-street-first-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  actual-street-first-android-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify signed WebGL assets, index hash and original street point
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,hashlib
+          r=json.loads(Path('release.json').read_text())
+          data=json.loads(Path('city-manifest.json').read_text())
+          assert r['sourceCommit']=='45a9555f3a449d2d78165882b465c8bb82267d7f'
+          assert r['productionPublication'] is False
+          assert r['previewEntryOverride']['startPoint']=='street_gym'
+          point=next(p for p in data['points'] if p['id']=='street_gym')
+          assert abs(point['x']+6.75)<.001 and abs(point['z']-21.6)<.001
+          for name,expected in r['files'].items():
+            f=Path(name)
+            assert f.is_file(), name
+            with f.open('rb') as stream:
+              assert hashlib.file_digest(stream,'sha256').hexdigest()==expected, name
+          html=Path('index.html').read_text()
+          assert "window.BraxSend('TravelPoint','street_gym')" in html
+          print('PASS original 205MB Unity compiled bytes, street point, modified HTML SHA, no production change')
+          PY
+      - name: Install real browser renderer, no Unity rebuild
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Load actual WebGL, auto-start on street and move Brax with joystick
+        run: |
+          node --input-type=module - <<'JS'
+          import {chromium} from 'playwright';
+          import {createServer} from 'node:http';
+          import {createReadStream,existsSync,statSync,writeFileSync,mkdirSync} from 'node:fs';
+          import path from 'node:path';
+          const root=process.cwd();
+          const out='street-first-qa';mkdirSync(out,{recursive:true});
+          const server=createServer((req,res)=>{
+            try{
+              let f=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));
+              if(f!==root&&!f.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
+              if(existsSync(f)&&statSync(f).isDirectory())f=path.join(f,'index.html');
+              if(!existsSync(f)){res.writeHead(404);res.end();return;}
+              const ext=path.extname(f);
+              res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.json':'application/json','.wasm':'application/wasm','.unityweb':'application/octet-stream','.png':'image/png'})[ext]||'application/octet-stream');
+              res.setHeader('Content-Length',statSync(f).size);
+              res.setHeader('Cache-Control','no-store');
+              createReadStream(f).pipe(res);
+            }catch(e){res.writeHead(500);res.end(String(e))}
+          });
+          const run={sourceCommit:'45a9555f3a44',shaChecked:true,webglStarted:false,
+                     streetAutoStart:false,realBraxMovement:false,physicalAndroidValidated:false,
+                     physicalIphoneValidated:false,errors:[]};
+          let browser,context,page;
+          try{
+            await new Promise(resolve=>server.listen(19001,'127.0.0.1',resolve));
+            browser=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist','--disable-dev-shm-usage']});
+            context=await browser.newContext({viewport:{width:915,height:412},hasTouch:true,isMobile:true,deviceScaleFactor:1});
+            page=await context.newPage();
+            page.on('pageerror',e=>run.errors.push('PAGEERROR '+e.message));
+            await page.goto('http://127.0.0.1:19001/?street-check=1',{waitUntil:'domcontentloaded'});
+            await page.click('#start');
+            await page.waitForFunction(()=>window.BraxhornState?.ready===true||window.BraxhornError,{timeout:360000});
+            const boot=await page.evaluate(()=>({player:window.BraxhornState,error:window.BraxhornError}));
+            if(boot.error||boot.player?.area!=='city')throw Error('Original Unity city not started '+JSON.stringify(boot));
+            run.webglStarted=true;
+            await page.waitForFunction(()=>{const p=window.BraxhornState;
+              return p?.ready&&p.x>6.4&&p.x<7.1&&p.z>21.0&&p.z<22.5;},{timeout:60000});
+            run.streetAutoStart=true;
+            await page.waitForFunction(()=>window.BraxCityLoadingStats?.complete===true,{timeout:60000});
+            await page.screenshot({path:out+'/01-street-from-real-unity.png',timeout:60000});
+            const before=await page.evaluate(()=>window.BraxhornState);
+            await page.evaluate(()=>window.BraxSend('MoveInput','0,-1'));
+            await page.waitForFunction(t=>window.BraxhornState?.simulationTime>t+1.0,before.simulationTime,{timeout:70000});
+            await page.evaluate(()=>window.BraxSend('MoveInput','0,0'));
+            const after=await page.evaluate(()=>window.BraxhornState);
+            const moved=Math.hypot(after.x-before.x,after.z-before.z);
+            if(moved<.7)throw Error('Brax movement failed after street auto-entry: '+moved);
+            run.realBraxMovement=true;run.distanceMetres=moved;
+            await page.screenshot({path:out+'/02-brax-walks-on-city-street.png',timeout:60000});
+            console.log('PASS real Unity street auto-entry with original 3D Brax; moved',moved);
+          }catch(e){
+            run.errors.push(String(e));console.error('FAIL',e);
+            if(page)await page.screenshot({path:out+'/failure.png'}).catch(()=>{});
+          }finally{
+            run.passed=run.webglStarted&&run.streetAutoStart&&run.realBraxMovement&&run.errors.length===0;
+            writeFileSync(out+'/qa-report.json',JSON.stringify(run,null,2));
+            if(context)await context.close();if(browser)await browser.close();
+            server.close();
+            if(!run.passed)process.exitCode=1;
+          }
+          JS
+      - name: Save exact real Unity screenshots and runtime outcome
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: street-first-original-brax-real-player-qa-${{ github.sha }}
+          path: street-first-qa/
+          if-no-files-found: warn
+          retention-days: 10
