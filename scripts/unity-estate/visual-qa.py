@@ -65,9 +65,27 @@ async def verify():
             try:
                 page = await browser.new_page(viewport={"width": 1280, "height": 720},
                                               device_scale_factor=1)
-                page.on("console", lambda msg: result["warnings"].append(
-                    (msg.type + ": " + msg.text)[:600]
-                ) if msg.type in ("error", "warning") else None)
+                scene_ready = asyncio.Event()
+                result["runtimeSceneReady"] = False
+                result["sourceModelCount"] = None
+                result["runtimeSceneSummary"] = None
+                def collect_console(msg):
+                    message = msg.text
+                    if msg.type in ("error", "warning"):
+                        result["warnings"].append((msg.type + ": " + message)[:600])
+                    # Emitted by ORIGINAL Unity code after all GLB imports, doors,
+                    # vegetation AND AddOriginalBrax() have finished.
+                    if "[Estate] Models " in message:
+                        result["runtimeSceneSummary"] = message[:800]
+                        match = __import__("re").search(
+                            r"\[Estate\] Models (\d+)/21; doors (\d+)/24; collisions (\d+)", message)
+                        if match:
+                            result["sourceModelCount"] = int(match.group(1))
+                            result["sourceDoorCount"] = int(match.group(2))
+                            result["sourceCollisionCount"] = int(match.group(3))
+                        result["runtimeSceneReady"] = True
+                        scene_ready.set()
+                page.on("console", collect_console)
                 page.on("pageerror", lambda error: result["errors"].append(str(error)[:800]))
                 page.on("requestfailed", lambda request: result["errors"].append(
                     "HTTP " + request.url + " " + str(request.failure)
@@ -94,8 +112,14 @@ async def verify():
                         return !!bar && bar.style.display === 'none';
                     }""", timeout=120000)
                     result["loaded"] = True
-                    # Original 21 GLBs are loaded asynchronously after the Unity startup.
-                    await page.wait_for_timeout(35000)
+                    # Unity's loading bar only confirms engine startup, not the
+                    # original estate. Wait for C# runtime completion log.
+                    try:
+                        await asyncio.wait_for(scene_ready.wait(), timeout=210)
+                    except asyncio.TimeoutError:
+                        result["errors"].append(
+                            "Original estate never announced completion of 21 model slots")
+                    await page.wait_for_timeout(3500)
                 except Exception as error:
                     result["errors"].append("Unity player did not finish startup: " + str(error)[:500])
 
@@ -129,7 +153,11 @@ async def verify():
                 result["fatal"] = fatal[:12]
                 result["visualPass"] = bool(result["loaded"] and
                    result["pixel_check"] == "NO_MASS_MAGENTA" and
-                   result.get("braxGzipTransportIntact") is True and not fatal)
+                   result.get("braxGzipTransportIntact") is True and
+                   result.get("runtimeSceneReady") is True and
+                   result.get("sourceModelCount") == 19 and
+                   result.get("sourceDoorCount") == 24 and
+                   result.get("sourceCollisionCount") == 1013 and not fatal)
             finally:
                 await browser.close()
     finally:

@@ -51,7 +51,7 @@ jobs:
         env:
           ESTATE_WEBGL_ROOT: ${{ runner.temp }}/estate-player/EstatePartial_NOT_1TO1
           ESTATE_QA_OUTPUT: ${{ runner.temp }}/estate-qa
-        run: timeout 360s python3 scripts/unity-estate/visual-qa.py
+        run: timeout 420s python3 scripts/unity-estate/visual-qa.py
 
       - name: Preserve actual browser image for user approval
         if: always()
