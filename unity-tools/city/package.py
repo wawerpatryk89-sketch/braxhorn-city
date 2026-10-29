@@ -14,7 +14,7 @@ addon='''<script>
   original(s);points=s.points||[];area=s.area||'city';
   document.querySelector('#hits').textContent=area==='estate'?'OSIEDLE · UNITY':'MIASTO · UNITY';
   const context=s.context||'',action=document.querySelector('#action');
-  action.style.display=context.includes('DRZWI')||context.includes('OSIEDLE')||context.includes('WRÓĆ DO MIASTA')?'block':'none';action.textContent=context;
+  action.style.display=context.includes('DRZWI')||context.includes('OSIEDLE')||context.includes('WRÓĆ DO MIASTA')||context.includes('WIND')||context.includes('DACH')||context.includes('PRZYWOŁAJ')||context.includes('OTWÓRZ')?'block':'none';action.textContent=context;
   document.querySelector('#hint').textContent=context||defaultHint;
   if(s.loadingArea){document.querySelector('#loading').classList.remove('hidden');document.querySelector('#loadtext').textContent='Wczytuję dzielnicę…';}
  };
