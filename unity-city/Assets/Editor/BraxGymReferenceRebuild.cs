@@ -145,7 +145,12 @@ public static class BraxGymReferenceRebuild
             green = Material("BRAXHORN green 8BFF3A", BrandGreen, .71f, .02f);
             white = Material("Warm white print", new Color(.86f, .87f, .85f), .82f, 0);
             vinyl = Material("Black protective vinyl", new Color(.023f, .026f, .030f), .68f, 0);
-            wood = Material("Bench warm stained oak", new Color(.25f, .135f, .068f), .74f, 0);
+            wood = Material("Bench natural dark wood", Color.white, .74f, 0);
+            wood.mainTexture = RequiredTexture("WoodAlbedo.jpg");
+            SetNormal(wood, RequiredTexture("WoodNormal.png", true), .42f);
+            AddArm(wood, RequiredTexture("WoodARM.jpg", false, true), "Wood");
+            foreach (string map in new[] { "_MainTex", "_BumpMap", "_MetallicGlossMap", "_OcclusionMap" })
+                wood.SetTextureScale(map, Vector2.one / .6f);
             tile = Material("Annex charcoal porcelain", new Color(.18f, .19f, .20f), .77f, 0);
             plaster = Material("Annex graphite walls", new Color(.28f, .29f, .29f), .91f, 0);
             ceiling = Material("Annex neutral ceiling", new Color(.55f, .56f, .55f), .94f, 0);
@@ -341,7 +346,7 @@ public static class BraxGymReferenceRebuild
             foreach (float z in new[] { z0 + .08f, z1 - .08f })
                 Box(hall, "Green mat perimeter", new Vector3((x0 + x1) / 2, .058f, z), new Vector3(x1 - x0 - .08f, .003f, .105f), green, .001f);
             Decal(hall, "Original brand mark on mat", RequiredTexture("Mark.png"), new Vector3(1.2f, .061f, 2.9f), 2.25f, 1.65f, Vector3.up, Vector3.back, Color.white);
-            Decal(hall, "Original wordmark on mat", RequiredTexture("Wordmark.png"), new Vector3(1.2f, .062f, 4.45f), 7.1f, 1.1f, Vector3.up, Vector3.back, Color.white);
+            Text(hall, "BRAXHORN", new Vector3(1.2f, .062f, 4.45f), 6.5f, Color.white, Quaternion.Euler(90, 180, 0));
             Text(hall, "KICKBOXING", new Vector3(1.2f, .067f, 5.4f), 5.4f, BrandGreen, Quaternion.Euler(90, 180, 0));
         }
 
@@ -402,7 +407,7 @@ public static class BraxGymReferenceRebuild
             for (float z = -11.8f; z < 10.1f; z += 2.2f)
             {
                 Ring(hall, "Duct clamp", new Vector3(16.1f, 7.1f, z), .276f, .016f, steel, Quaternion.identity, 24, 6);
-                Tube(hall, "Duct ceiling support", new Vector3(16.1f, 7.38f, z), new Vector3(16.1f, 8.2f, z), .012f, blackSteel, 1, 6);
+                Tube(hall, "Duct ceiling support", new Vector3(16.1f, 7.38f, z), new Vector3(16.1f, 8.5f, z), .012f, blackSteel, 1, 6);
             }
             int n = 0;
             foreach (float x in new[] { -9f, 6f, 13.8f, 16.1f })
@@ -694,7 +699,9 @@ public static class BraxGymReferenceRebuild
                     Vector3 q = Vector3.Scale(n, half) + u * us[x] + v * ys[y];
                     Vector3 clamp = new Vector3(Mathf.Clamp(q.x, -inner.x, inner.x), Mathf.Clamp(q.y, -inner.y, inner.y), Mathf.Clamp(q.z, -inner.z, inner.z));
                     var normal = (q - clamp).normalized; vs.Add(clamp + normal * radius); ns.Add(normal);
-                    uv.Add(new Vector2(us[x], ys[y]) / (material == brick ? 2.2f : 1f));
+                    var texcoord = material == wood && Mathf.Abs(n.y) > .5f && size.x > size.z
+                        ? new Vector2(ys[y], us[x]) : new Vector2(us[x], ys[y]);
+                    uv.Add(texcoord / (material == brick ? 2.2f : 1f));
                 }
                 for (int y = 0; y < 5; y++) for (int x = 0; x < 5; x++) { int a = start + y * 6 + x; triangles.AddRange(new[] { a, a + 1, a + 6, a + 1, a + 7, a + 6 }); }
             }
@@ -738,7 +745,9 @@ public static class BraxGymReferenceRebuild
         void Decal(Transform parent, string name, Texture2D image, Vector3 p, float width, float height, Vector3 normal, Vector3 up, Color tint)
         {
             float fit = Mathf.Min(width / image.width, height / image.height); width = image.width * fit; height = image.height * fit;
-            var material = new Material(Shader.Find("Unlit/Transparent")) { name = name, mainTexture = image };
+            var shader = Shader.Find("Braxhorn/ControlledBrandPrint");
+            if (!shader) throw new InvalidOperationException("Controlled brand print shader missing.");
+            var material = new Material(shader) { name = name, mainTexture = image };
             if (material.HasProperty("_Color")) material.color = tint;
             AssetDatabase.CreateAsset(material, folder + "/Decal_" + Safe(name) + ".mat");
             var mesh = new Mesh { vertices = new[] { new Vector3(-width / 2, -height / 2, 0), new Vector3(width / 2, -height / 2, 0), new Vector3(width / 2, height / 2, 0), new Vector3(-width / 2, height / 2, 0) }, uv = new[] { Vector2.zero, Vector2.right, Vector2.one, Vector2.up }, triangles = new[] { 0, 2, 1, 0, 3, 2 } };
@@ -749,6 +758,7 @@ public static class BraxGymReferenceRebuild
         {
             var t = Group(parent, "Sign " + value); t.localPosition = p;
             var tm = t.gameObject.AddComponent<TextMesh>(); tm.font = font; tm.text = value; tm.fontSize = 64; tm.characterSize = .12f; tm.anchor = TextAnchor.MiddleCenter; tm.alignment = TextAlignment.Center; tm.color = color;
+            if (value == "BRAXHORN" || value == "KICKBOXING") tm.fontStyle = FontStyle.Bold;
             var r = t.GetComponent<MeshRenderer>(); r.sharedMaterial = font.material; r.shadowCastingMode = ShadowCastingMode.Off;
             font.RequestCharactersInTexture(value, 64, FontStyle.Normal);
             // Measure before rotating wall signs, whose world X bounds can be zero.

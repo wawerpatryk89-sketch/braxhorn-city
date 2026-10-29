@@ -132,7 +132,7 @@ public static class BraxGymBuild
         {
             BraxCityBuild.AttachCity(runtime);
             BraxGymReferenceRebuild.Apply(gym,solids.transform,runtime,Generated);
-            BraxGymReferenceEquipment.Apply(runtime,Generated);
+            BraxGymReferenceEquipment.Apply(gym,runtime,Generated);
         }
         string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;

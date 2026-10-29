@@ -37,7 +37,7 @@ const server=http.createServer((req,res)=>{
   } catch { res.writeHead(404);res.end(); }
 });
 let browser,context,page,cdp,video,release,initial,timeoutError=null,closing=false;
-let walkthroughContinuous=true,lastLegPassed=true,expectedNavigations=0;
+let walkthroughContinuous=true,lastLegPassed=true,expectedNavigations=0,walkthroughTraceSaved=false;
 const state=()=>page.evaluate(()=>window.BraxhornState);
 const history=seq=>page.evaluate(q=>window.BraxhornHistory.filter(s=>s.qaSequence>q),seq);
 const send=(method,arg='')=>page.evaluate(([m,a])=>window.BraxSend(m,a),[method,arg]);
@@ -164,10 +164,13 @@ async function shutdown(){
   await releaseInput();
   if(page&&!page.isClosed()){
     const trace=await page.evaluate(()=>window.BraxhornHistory||[]).catch(()=>[]);
-    fs.writeFileSync(path.join(out,'walkthrough-trace.json'),JSON.stringify(trace,null,2));
+    fs.writeFileSync(path.join(out,walkthroughTraceSaved?'restart-trace.json':'walkthrough-trace.json'),JSON.stringify(trace,null,2));
   }
   if(context)await context.close().catch(()=>{});
   if(video)await video.saveAs(path.join(out,'walkthrough.webm')).catch(e=>logs.push('VIDEO_ERROR '+String(e)));
+  const videoFile=path.join(out,'walkthrough.webm');
+  const videoBytes=fs.existsSync(videoFile)?fs.statSync(videoFile).size:0;
+  checks.push({name:'Actual recorded Unity walkthrough video',passed:!!video&&videoBytes>4096,atSeconds:elapsed(),data:{file:'walkthrough.webm',bytes:videoBytes}});
   if(browser)await browser.close().catch(()=>{});
   server.close();report(true);
 }
@@ -194,8 +197,11 @@ try {
   await page.addInitScript(()=>{
     let current=null,sequence=0;window.BraxhornHistory=[];
     Object.defineProperty(window,'BraxhornState',{configurable:true,get:()=>current,set:s=>{
-      current=s;if(s){s.qaSequence=++sequence;window.BraxhornHistory.push(s);
-        if(window.BraxhornHistory.length>16000)window.BraxhornHistory.splice(0,2000);}
+      current=s;if(s){s.qaSequence=++sequence;
+        // Travel-point lists are immutable map metadata and do not belong in
+        // thousands of per-frame evidence samples or their memory footprint.
+        const sample={...s};delete sample.points;window.BraxhornHistory.push(sample);
+        if(window.BraxhornHistory.length>12000)window.BraxhornHistory.splice(0,2000);}
     }});
   });
   cdp=await context.newCDPSession(page);await cdp.send('Performance.enable');
@@ -325,12 +331,23 @@ try {
     await look(90,15);await shot('08-toilet-interior');
     const privacy=await capture('privacy-all-room-doors-open');
     verify('No sampled training viewpoint sees WC with all doors open',privacy.privacySamplePassedWithDoorsOpen&&privacy.privacy.length>=12,{wc:privacy.wcPosition,doors:privacy.doors,rays:privacy.privacy});
+    await moveTo(roomX,privacy.wcPosition.z,'approach WC collision from clear aisle');await look(90,15);
+    const fixtureApproach=await state();await send('MoveInput','0,1');
+    const blocked=await simulated(fixtureApproach,.8),blockedEnd=await simulated(blocked,.35);await stop();
+    verify('WC fixture blocks sustained character movement',distance(blocked,blockedEnd)<.035&&blockedEnd.x>privacy.wcPosition.x+.4&&blockedEnd.x<roomX+.05&&blockedEnd.grounded,
+      {wc:privacy.wcPosition,before:brief(fixtureApproach),blocked:brief(blocked),after:brief(blockedEnd)});
+    await moveTo(roomX,wc.position.z,'return from fixture to WC door');
     // Verify the opaque toilet leaf closes and reopens using normal interaction.
     await until('WC closing interaction',()=>window.BraxhornState?.context.includes('TOALETA'));
     await page.click('#action');await simulated(await state(),.7);const closed=await capture('wc-door-closed');
     verify('WC door closes fully',closed.doors.some(x=>x.id==='gym-wc'&&!x.open&&x.leafLocalYaw.every(y=>Math.abs(y)<2)),closed.doors);
     await openRoomDoor(wc.id);
-    await moveTo(corridorX,wc.position.z,'WC exit');await moveTo(corridorX,entry.position.z,'return along concealed corridor');
+    await moveTo(corridorX,wc.position.z,'WC exit');
+    // Opening from inside swings this existing bidirectional door into the
+    // corridor. Reopen from the corridor before walking north along it.
+    await until('WC interaction from corridor',()=>window.BraxhornState?.context.includes('TOALETA'));
+    await page.click('#action');await simulated(await state(),.7);await openRoomDoor(wc.id);
+    await moveTo(corridorX,entry.position.z,'return along concealed corridor');
     await moveTo(entry.position.x-1.1,entry.position.z,'return through screen opening');await moveTo(outerX,entry.position.z,'backroom exit into hall');
     verify('Backrooms return to main hall',(await state()).x>entry.position.x+.6&&(await state()).grounded,brief(await state()));
     await shot('09-return-to-hall');await capture('backrooms-return');
@@ -355,6 +372,7 @@ try {
     verify('Reset returns to original spawn with no stale movement',distance(reset,initial)<.10&&angle(reset.yaw,0)<.1&&Math.abs(reset.moveX)+Math.abs(reset.moveY)<.001,{before:brief(before),after:brief(reset),initial:brief(initial)});
     await capture('before-explicit-reload');
     fs.writeFileSync(path.join(out,'walkthrough-trace.json'),JSON.stringify(await history(0),null,2));
+    walkthroughTraceSaved=true;
     verify('No unsolicited page reload during walkthrough',navigations.filter(n=>!n.expected).length===0,navigations);
     expectedNavigations=1;await page.reload({waitUntil:'domcontentloaded'});await page.click('#start');
     await until('Explicit restart initializes',()=>window.BraxhornState?.ready||window.BraxhornError,null,180000);

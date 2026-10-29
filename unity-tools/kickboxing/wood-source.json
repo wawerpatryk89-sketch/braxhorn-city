@@ -1,0 +1,76 @@
+{
+  "asset_id": "fine_grained_wood",
+  "name": "Fine Grained Wood",
+  "provider": "Poly Haven",
+  "author": "Rob Tuytel",
+  "source": "https://polyhaven.com/a/fine_grained_wood",
+  "official_files_api": "https://api.polyhaven.com/files/fine_grained_wood",
+  "official_info_api": "https://api.polyhaven.com/info/fine_grained_wood",
+  "license": "CC0-1.0",
+  "license_url": "https://polyhaven.com/license",
+  "api_credit": "Powered by Poly Haven",
+  "reviewed_utc": "2026-10-29",
+  "scope": "Existing kickboxing hall reception countertop and bench slats only",
+  "physical_size_m": [
+    0.6,
+    0.6
+  ],
+  "physical_size_evidence": "Official asset page: 0.6 m wide; official API dimensions: [600.0000238418579, 600.0000238418579] mm. Legacy API scale string 30x30CM is inconsistent; use current dimensions and published page.",
+  "visual_review": "Original 1K diffuse map opened and inspected: natural dark brown fine wood grain, slight surface wear and shallow scratches; no plank gaps or saturated red tint. Compared against dark_wood and selected this lower-saturation material.",
+  "integration": {
+    "albedo_tint": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "grain_direction_in_source": "V / vertical",
+    "uv_guidance": "Map each 0.6 m of physical surface to one texture repeat. Align grain along the long direction of each bench slat/countertop; avoid stretching one texture across the entire 3.55 m countertop.",
+    "unity_normal_import": "TextureImporterType.NormalMap; OpenGL tangent-space source; 1024 max size",
+    "unity_arm_import": "sRGB=false. R=occlusion, G=roughness, B=metallic; convert G to smoothness as required by existing shader.",
+    "texture_wrap": "Repeat",
+    "height_displacement": "None; only the three requested maps are included."
+  },
+  "maps": [
+    {
+      "channel": "Diffuse",
+      "resolution": "1k",
+      "format": "jpg",
+      "file": "unity-city/Assets/Kickboxing/Textures/WoodAlbedo.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/fine_grained_wood/fine_grained_wood_col_1k.jpg",
+      "md5": "3db9decdde678e087e67ff99d30c0a73",
+      "sha256": "d171f45ef01bc6e239b00dfaa4961bcd27f7d8e93e3962da3bd3d0ce703d802c",
+      "bytes": 336305,
+      "width": 1024,
+      "height": 1024,
+      "color_space": "sRGB"
+    },
+    {
+      "channel": "nor_gl",
+      "resolution": "1k",
+      "format": "png",
+      "file": "unity-city/Assets/Kickboxing/Textures/WoodNormal.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/fine_grained_wood/fine_grained_wood_nor_gl_1k.png",
+      "md5": "35c4f86b7fbd91eba54a4d6e88fb16d7",
+      "sha256": "ed173765ea09b3f19ddb2ab71e8d205815b980263c3dcb71695c13f704663514",
+      "bytes": 810317,
+      "width": 1024,
+      "height": 1024,
+      "color_space": "linear tangent-space OpenGL normal"
+    },
+    {
+      "channel": "arm",
+      "resolution": "1k",
+      "format": "jpg",
+      "file": "unity-city/Assets/Kickboxing/Textures/WoodARM.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/fine_grained_wood/fine_grained_wood_arm_1k.jpg",
+      "md5": "e0d2eb48c2eb9c36af2786c8a10269ff",
+      "sha256": "3928796cc98b380cd254dc67e9246e60027ef349edb5f75033cc6f3b34572450",
+      "bytes": 247999,
+      "width": 1024,
+      "height": 1024,
+      "color_space": "linear: R=ambient occlusion, G=roughness, B=metallic"
+    }
+  ],
+  "total_source_bytes": 1394621
+}

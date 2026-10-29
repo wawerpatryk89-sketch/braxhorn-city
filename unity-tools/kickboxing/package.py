@@ -104,6 +104,7 @@ def main():
     if previous not in html:
         raise RuntimeError('Current city entry does not match its published source version.')
     html = html.replace(previous + '_WebGL', VERSION + '_WebGL').replace(previous, VERSION)
+    html = html.replace('city-transport.js?v=ios-stream-01', 'city-transport.js?v=ios-stream-01-' + VERSION)
     html = re.sub(r'około \d+ MB danych Unity', f'około {round((total+entries["wasm"].stat().st_size)/1000000)} MB danych Unity', html)
     (OUT / 'index.html').write_text(html)
     shutil.copyfile(ROOT / 'public/assets/logo/wide_a.webp', OUT / 'logo.webp')
@@ -124,6 +125,7 @@ def main():
         'Brick Wall 10: Dimitrios Savva / Poly Haven, CC0.\n'
         'Fabric Leather 01: Rob Tuytel / Poly Haven, CC0.\n'
         'Hanging Industrial Lamp: Kuutti Siitonen / Poly Haven, CC0.\n'
+        'Fine Grained Wood: Rob Tuytel / Poly Haven, CC0, 0.6 m physical repeat.\n'
         'Boxing gloves and bag; Compact WC; Basin pedestal sink cabinet: Innerscene, CC0.\n'
         'Reviewed bag derivative: original chain mesh and normal map, reinforced leather body, seams, straps, hardware and original BRAXHORN branding.\n'
         'Powered by Poly Haven. Full source and license URLs: kickboxing-assets.json.\n')

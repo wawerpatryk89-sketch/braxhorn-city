@@ -11,7 +11,7 @@ public static class BraxGymReferenceEquipment
 {
     const string Models = "Assets/Kickboxing/Models/";
 
-    public static void Apply(BraxGymPlayer player, string generated)
+    public static void Apply(GameObject gym, BraxGymPlayer player, string generated)
     {
         if (!player || player.bags == null || player.bags.Length != 4)
             throw new InvalidOperationException("Four original bag pivots are required.");
@@ -27,6 +27,11 @@ public static class BraxGymReferenceEquipment
         Beam(frame.transform, "Lower flange", new Vector3(14,4.827f,-3), new Vector3(.34f,.05f,14.3f), steel);
         Beam(frame.transform, "Beam web", new Vector3(14,4.985f,-3), new Vector3(.085f,.266f,14.3f), steel);
         Beam(frame.transform, "Upper flange", new Vector3(14,5.143f,-3), new Vector3(.34f,.05f,14.3f), steel);
+        foreach (float z in new[]{-10f,4f})
+        {
+            Beam(frame.transform,"Column extension joint",new Vector3(14,4.701f,z),new Vector3(.20f,.202f,.20f),steel);
+            Beam(frame.transform,"Column bolted bearing plate",new Vector3(14,4.787f,z),new Vector3(.34f,.03f,.34f),steel);
+        }
         var swingSource = RequiredModel("BagSwing.glb");
         var mountSource = RequiredModel("BagMount.glb");
         for (int i = 0; i < player.bags.Length; i++)
@@ -61,8 +66,14 @@ public static class BraxGymReferenceEquipment
         diagnostics.roomDoors=player.cityWorld.doors.Where(d=>d.id.StartsWith("gym-")).ToArray();
         diagnostics.hallBounds=new Bounds(new Vector3(0,4.25f,-1),new Vector3(36,8.5f,24));
         diagnostics.annexBounds=new Bounds(new Vector3(-21.75f,1.55f,2.5f),new Vector3(7.5f,3.1f,11));
+        // Disabled obsolete equipment must not remain a serialized dependency
+        // with its old meshes/textures. Preserve empty transforms and all active
+        // ring, architecture, doorway and city geometry.
+        int removed=RemoveUnusedGeometry(gym);
+        var premium=GameObject.Find("Premium ring and hall finishing");
+        if(premium)removed+=RemoveUnusedGeometry(premium);
         AssetDatabase.SaveAssets();
-        Debug.Log("BRAXHORN_REFERENCE_EQUIPMENT four reviewed bags, two visible-only live mirrors, original player unchanged");
+        Debug.Log("BRAXHORN_REFERENCE_EQUIPMENT four reviewed bags, two visible-only live mirrors, original player unchanged; obsolete mesh references removed="+removed);
     }
 
     static GameObject RequiredModel(string file)
@@ -71,6 +82,20 @@ public static class BraxGymReferenceEquipment
             ??AssetDatabase.LoadAllAssetsAtPath(Models+file).OfType<GameObject>().FirstOrDefault();
         if (!model) throw new InvalidOperationException("Reviewed source model missing: "+file);
         return model;
+    }
+
+    static int RemoveUnusedGeometry(GameObject root)
+    {
+        int removed=0;
+        foreach(var renderer in root.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            if(renderer.enabled)continue;
+            var filter=renderer.GetComponent<MeshFilter>();
+            UnityEngine.Object.DestroyImmediate(renderer);
+            if(filter)UnityEngine.Object.DestroyImmediate(filter);
+            removed++;
+        }
+        return removed;
     }
 
     static void LayerAndShadows(GameObject root)

@@ -66,7 +66,7 @@ public sealed class BraxGymRoomDiagnostics : MonoBehaviour
                 unityReservedBytes = Profiler.GetTotalReservedMemoryLong(),
                 monoUsedBytes = Profiler.GetMonoUsedSizeLong(),
                 managedBytes = GC.GetTotalMemory(false),
-                note = "Zero Unity profiler counters can mean unavailable on this WebGL player. Browser heap is recorded separately."
+                note = "Zero Unity profiler counters can mean unavailable on this WebGL player. Managed counters include not-yet-collected objects; no GC is forced. Browser heap is recorded separately."
             },
             device = new DeviceState {
                 graphicsDevice = SystemInfo.graphicsDeviceName,

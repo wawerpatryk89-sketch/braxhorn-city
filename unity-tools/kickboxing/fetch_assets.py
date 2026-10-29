@@ -26,6 +26,8 @@ def save_source(spec, destination, source, author, license_url):
     data = fetch(spec['url'])
     if spec.get('md5') and hashlib.md5(data).hexdigest() != spec['md5']:
         raise RuntimeError('Official source digest mismatch: ' + str(destination))
+    if spec.get('sha256') and hashlib.sha256(data).hexdigest() != spec['sha256']:
+        raise RuntimeError('Reviewed source was changed upstream: ' + str(destination))
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_bytes(data)
     RECEIPT.append({'file': str(destination.relative_to(ROOT)), 'bytes': len(data),
@@ -51,9 +53,11 @@ def model(asset_id, filename):
 def main():
     polyhaven_maps('brick_wall_10', 'Brick', '2k', 'Dimitrios Savva / Poly Haven')
     polyhaven_maps('fabric_leather_01', 'Leather', '1k', 'Rob Tuytel / Poly Haven')
+    polyhaven_maps('fine_grained_wood', 'Wood', '1k', 'Rob Tuytel / Poly Haven')
     model('compact-wc-close-coupled-toilet-84214efd', 'Toilet.glb')
     model('basin-pedestal-sink-cabinet-81678fc4', 'Sink.glb')
-    save_source({'url': 'https://www.innerscene.com/api/library/boxing-gloves-and-bag-e3d766bc/download'},
+    save_source({'url': 'https://www.innerscene.com/api/library/boxing-gloves-and-bag-e3d766bc/download',
+                 'sha256': '70676b234ba42882e05f1dc31c42b5c248c046904b586eab18991080b016df8b'},
                 ROOT / 'build-source/BoxingBagSource.glb',
                 'https://www.innerscene.com/tools/library/3d-parts/boxing-gloves-and-bag-e3d766bc',
                 'Innerscene', 'https://www.innerscene.com/tools/library/terms')

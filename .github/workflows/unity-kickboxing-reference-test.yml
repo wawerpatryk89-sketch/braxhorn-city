@@ -7,7 +7,7 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: unity-kickboxing-reference-test
+  group: unity-kickboxing-preview
   cancel-in-progress: false
 jobs:
   room:
