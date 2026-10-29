@@ -7,7 +7,7 @@ using UnityEngine;
 // Does not alter shared lighting, Brax, camera, controls, NOVA, nutrition or gym.
 public static class BraxCityPremiumTowerBuild
 {
-    static Material stone,steel,glass,ceiling,deck,plant;
+    static Material stone,steel,glass,ceiling,deck,plant,lobbyFloor,led;
     static void Solid(Transform root,string name,Vector3 at,Vector3 size,Material mat)
         =>BraxCityArchitecture.Box(name,root,at,size,mat,true);
     static void Deco(Transform root,string name,Vector3 at,Vector3 size,Material mat)
@@ -20,10 +20,13 @@ public static class BraxCityPremiumTowerBuild
     {
         var leaf=Group(label,root,at);
         leaf.gameObject.AddComponent<BraxCityMovingLiftPart>();
-        Solid(leaf,"Brushed aluminium glass elevator door",new Vector3(0,1.42f,0),
-            new Vector3(width,2.84f,.085f),steel);
-        Deco(leaf,"Vertical inset glass door insert",new Vector3(0,1.42f,-.05f),
-            new Vector3(width-.2f,2.46f,.015f),glass);
+        Solid(leaf,"Full-height moving tempered safety glazing",new Vector3(0,1.42f,0),
+            new Vector3(width,2.84f,.085f),glass);
+        foreach(float x in new[]{-width*.47f,width*.47f})
+            Deco(leaf,"Slim charcoal stainless vertical door stile",
+                new Vector3(x,1.42f,-.05f),new Vector3(.045f,2.84f,.08f),steel);
+        Deco(leaf,"Premium brushed lower door rail",new Vector3(0,.095f,-.05f),
+            new Vector3(width,.115f,.08f),steel);
         return leaf;
     }
     static BraxCityDoor BuildStreetDoor(Transform root,float x,float streetZ)
@@ -118,13 +121,30 @@ public static class BraxCityPremiumTowerBuild
         ceiling=BraxCityMaterials.Surface("Lobby matte ceiling",new Color(.77f,.76f,.72f),.95f);
         deck=BraxCityMaterials.Surface("Roof nonslip terrazzo",new Color(.47f,.48f,.46f),.91f);
         plant=BraxCityMaterials.Surface("Technical galvanized metal",new Color(.33f,.35f,.35f),.75f,.55f);
+        led=BraxCityMaterials.Surface("Premium elevator and lobby satin LED diffuser / no bloom",
+            new Color(.80f,.77f,.67f),.40f,.04f);
+        // Reuse the same audited 2K PBR stone library as the rebuilt pavements
+        // (sRGB albedo, linear normal & AO/roughness/metallic ARM). The original
+        // untextured blue-looking floor is not acceptable for a flagship lobby.
+        const string tile="Assets/Source/CityRebuild/textures/concrete_pavement_02/";
+        var albedo=AssetDatabase.LoadAssetAtPath<Texture2D>(tile+"diffuse.jpg");
+        var normal=AssetDatabase.LoadAssetAtPath<Texture2D>(tile+"normal.png")??
+                   AssetDatabase.LoadAssetAtPath<Texture2D>(tile+"normal.jpg");
+        var arm=AssetDatabase.LoadAssetAtPath<Texture2D>(tile+"arm.jpg");
+        if(!albedo||!normal||!arm)
+            throw new InvalidOperationException("Premium tower stone PBR library is incomplete");
+        lobbyFloor=BraxCityMaterials.Textured("Tower lobby actual PBR slate stone",
+            albedo,normal,arm,1f/1.65f);
+        lobbyFloor.SetColor("_Color",new Color(.69f,.69f,.66f));
+        lobbyFloor.SetFloat("_BumpScale",1.10f);
+        EditorUtility.SetDirty(lobbyFloor);
         var root=Group("R1_TOWER accessible premium lobby lift and roof",streetRoot,Vector3.zero);
 
         // Physical ground-floor shell. The exterior facade and its original
         // 2-metric door aperture are rendered separately by the source kit.
-        Solid(root,"Walkable natural stone lobby floor",
+        Solid(root,"Walkable imported PBR stone lobby floor",
             new Vector3(x,.06f,(b.z0+b.z1)*.5f),
-            new Vector3(b.x1-b.x0-.3f,.18f,b.z1-b.z0-.25f),stone);
+            new Vector3(b.x1-b.x0-.3f,.18f,b.z1-b.z0-.25f),lobbyFloor);
         float groundCenter=(groundY+3.70f)*.5f,gh=3.70f-groundY;
         Solid(root,"Ground-floor west exterior wall",new Vector3(b.x0+.15f,groundCenter,(b.z0+b.z1)*.5f),
             new Vector3(.3f,gh,b.z1-b.z0),stone);
@@ -230,8 +250,13 @@ public static class BraxCityPremiumTowerBuild
 
         var cabin=Group("Moving physical elevator cabin",root,new Vector3(x,groundY,shaftZ));
         cabin.gameObject.AddComponent<BraxCityMovingLiftPart>();
-        Solid(cabin,"Lift floor with collision",new Vector3(0,-.08f,0),new Vector3(3.20f,.16f,3.18f),steel);
-        Solid(cabin,"Lift ceiling",new Vector3(0,3.15f,0),new Vector3(3.2f,.18f,3.18f),steel);
+        Solid(cabin,"Genuine PBR basalt passenger floor",new Vector3(0,-.08f,0),
+            new Vector3(3.20f,.16f,3.18f),lobbyFloor);
+        Solid(cabin,"Lift satin graphite ceiling",new Vector3(0,3.15f,0),
+            new Vector3(3.2f,.18f,3.18f),steel);
+        foreach(float line in new[]{-.98f,.98f})
+            Deco(cabin,"Warm recessed linear ceiling LED diffuser",
+                new Vector3(line,3.04f,0),new Vector3(.09f,.03f,2.67f),led);
         foreach(float xx in new[]{-1.49f,1.49f})
         {
             Solid(cabin,"Lift lateral glass panel",new Vector3(xx,1.5f,0),
@@ -254,6 +279,18 @@ public static class BraxCityPremiumTowerBuild
         elevator.upperDoorLeft=upperLeft;elevator.upperDoorRight=upperRight;
         elevator.lowerCall=new Vector3(x-2.2f,groundY+1.2f,s0-1.25f);
         elevator.upperCall=new Vector3(x-2.2f,roofY+1.2f,s0-1.25f);
+        Deco(root,"REAL passenger elevator ground-floor wall panel",
+            new Vector3(x-2.2f,1.35f,s0-1.25f),
+            new Vector3(.27f,.62f,.12f),steel);
+        Deco(root,"Ground floor lift button / no fake teleport",
+            new Vector3(x-2.2f,1.37f,s0-1.34f),
+            new Vector3(.11f,.11f,.045f),led);
+        Deco(root,"Real rooftop passenger elevator exit floor panel",
+            new Vector3(x-2.2f,roofY+1.35f,s0-1.25f),
+            new Vector3(.27f,.62f,.12f),steel);
+        Deco(root,"Roof lift return button",
+            new Vector3(x-2.2f,roofY+1.37f,s0-1.34f),
+            new Vector3(.11f,.11f,.045f),led);
         elevator.lowerY=groundY;elevator.upperY=roofY;
         elevator.entranceZ=s0; elevator.shaftCenter=new Vector2(x,shaftZ);
         world.elevator=elevator;
