@@ -64,6 +64,31 @@ public static class BraxCityPremiumTowerBuild
             Deco(parent,"Roof handrail east",new Vector3(x1-.52f,y+1.4f,z),new Vector3(.08f,.09f,2.55f),steel);
         }
     }
+    static void RoofShaftSafety(Transform root,float left,float right,float south,float north,float roofY)
+    {
+        // At roof level the elevator shaft is a *real opening*, not a fake
+        // surface. Guard all three open perimeter sides even while the cabin
+        // is at street level. The fourth (south) side is controlled by the
+        // physical sliding upper landing doors and their collision volumes.
+        const float h=1.44f;
+        float cy=roofY+h*.5f,cz=(south+north)*.5f;
+        Solid(root,"ROOF LIFT SAFETY west laminated glass barrier",
+            new Vector3(left-.07f,cy,cz),new Vector3(.14f,h,north-south+.3f),glass);
+        Solid(root,"ROOF LIFT SAFETY east laminated glass barrier",
+            new Vector3(right+.07f,cy,cz),new Vector3(.14f,h,north-south+.3f),glass);
+        Solid(root,"ROOF LIFT SAFETY north laminated glass barrier",
+            new Vector3((left+right)*.5f,cy,north+.07f),
+            new Vector3(right-left+.32f,h,.14f),glass);
+        foreach(float xx in new[]{left-.08f,right+.08f})
+        {
+            Deco(root,"Lift guard stainless upper rail",
+                new Vector3(xx,roofY+h,cz),new Vector3(.075f,.09f,north-south+.35f),steel);
+        }
+        Deco(root,"Lift guard north rail",
+            new Vector3((left+right)*.5f,roofY+h,north+.08f),
+            new Vector3(right-left+.38f,.09f,.08f),steel);
+    }
+
     static void Mechanical(Transform root,float x,float y,float z)
     {
         Solid(root,"Rooftop HVAC platform",new Vector3(x,y+.15f,z),new Vector3(2.6f,.3f,2.1f),stone);
@@ -169,6 +194,7 @@ public static class BraxCityPremiumTowerBuild
         Solid(root,"Terrace roof deck north",new Vector3(x,floorCenter,(s1+b.z1)*.5f),
             new Vector3(r-l,.28f,b.z1-s1),deck);
         RoofBarrier(root,b.x0,b.x1,b.z0,b.z1,roofY);
+        RoofShaftSafety(root,l,r,s0,s1,roofY);
         Mechanical(root,b.x0+2.0f,roofY,b.z1-3.25f);
         Mechanical(root,b.x1-2.0f,roofY,b.z1-3.25f);
         // Roof duel and two contacts have separate non-overlapping positions.
