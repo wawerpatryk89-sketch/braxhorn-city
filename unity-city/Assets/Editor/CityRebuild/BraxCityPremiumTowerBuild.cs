@@ -179,8 +179,11 @@ public static class BraxCityPremiumTowerBuild
             new BraxCityPoint{id="R1_TOWER_LIFT_LOWER",label="Lift lower",position=new Vector3(x,.15f,shaftZ)},
             new BraxCityPoint{id="R1_TOWER_LIFT_UPPER",label="Lift upper",position=new Vector3(x,roofY,shaftZ)},
             new BraxCityPoint{id="R1_TOWER_ROOF_ENTRY",label="Roof entrance",position=new Vector3(x,roofY,s0-1.8f)},
-            new BraxCityPoint{id="R1_TOWER_MEETING",label="Roof contacts",position=new Vector3(b.x0+3.4f,roofY,b.z0+7f)},
-            new BraxCityPoint{id="R1_ROOF_DUEL",label="Future one vs one",position=new Vector3(x,roofY,b.z0+7.3f)},
+            // Contact group is north of the shaft, separate from the clear
+            // 10 x 9 metre 1v1 area south of it. Nothing spawns until mission
+            // implementation is explicitly approved by the owner.
+            new BraxCityPoint{id="R1_TOWER_MEETING",label="Roof contacts",position=new Vector3(x-1.2f,roofY,b.z1-2.4f)},
+            new BraxCityPoint{id="R1_ROOF_DUEL",label="Future one vs one",position=new Vector3(x,roofY,b.z0+7.4f)},
             new BraxCityPoint{id="R1_TOWER_RETURN",label="Return to lift",position=new Vector3(x,roofY,s0-1.1f)}
         };
         world.points=world.points.Concat(points).ToArray();
