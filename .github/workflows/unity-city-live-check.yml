@@ -1,0 +1,77 @@
+name: Verify public connected Unity city without modifying release
+on:
+  push:
+    branches: [codex/unity-full-city-20261029]
+    paths: ['.github/workflows/unity-city-live-check.yml']
+permissions:
+  contents: read
+jobs:
+  public-check:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-full-city-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-release
+          persist-credentials: false
+      - name: Read the exact published isolated entry, not branch preview
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: dcc96fa09716a69d65c08252c663282494761642
+          path: deployed
+          sparse-checkout: public/unity-gym
+          persist-credentials: false
+      - name: Compare public files, including uncached metadata, with the reviewed release
+        shell: python
+        run: |
+          import concurrent.futures,hashlib,json,pathlib,urllib.request,urllib.parse,time
+          root=pathlib.Path('deployed/public/unity-gym');out=pathlib.Path('city-live-review');out.mkdir(exist_ok=True)
+          expected=json.loads((root/'release.json').read_text());source='19c71c167d4426523a251b94c3aeabbe9664aad5'
+          published='dcc96fa09716a69d65c08252c663282494761642';origin='https://braxhorn-city.vercel.app/unity-gym/'
+          assert expected['sourceCommit']==source and expected['qaPassed'] and expected['qaChecks']==39
+          def fetch(name):
+              req=urllib.request.Request(origin+name,headers={'Cache-Control':'no-cache','Accept-Encoding':'identity','User-Agent':'Braxhorn-City-Release-Check'})
+              with urllib.request.urlopen(req,timeout=90) as response:
+                  assert response.url.startswith(origin),'Unexpected redirect: '+response.url
+                  return response.read(),dict(response.headers)
+          live,headers=fetch('release.json?v='+published);live=json.loads(live)
+          assert live['sourceCommit']==source and live['files']==expected['files']
+          def verify(item):
+              name,digest=item;local=hashlib.sha256((root/name).read_bytes()).hexdigest();assert local==digest,'Git bytes differ: '+name
+              result={'path':name,'expectedSha256':digest,'verified':False,'cacheRetry':False}
+              try:
+                  data,h=fetch(urllib.parse.quote(name,safe='/'));actual=hashlib.sha256(data).hexdigest()
+                  result.update(initialSha256=actual,initialBytes=len(data),headers={k:v for k,v in h.items() if k.lower() in ['content-type','content-encoding','cache-control','age','etag','x-vercel-cache']})
+                  if actual!=digest:
+                      if name.endswith('.json'):(out/('initial-'+pathlib.Path(name).name)).write_bytes(data)
+                      data,h=fetch(urllib.parse.quote(name,safe='/')+'?verify='+published)
+                      actual=hashlib.sha256(data).hexdigest();result['cacheRetry']=True
+                      if actual!=digest and name.endswith('.json'):(out/('fresh-'+pathlib.Path(name).name)).write_bytes(data)
+                  result.update(sha256=actual,bytes=len(data),verified=actual==digest)
+              except Exception as error:result['error']=str(error)
+              print('PUBLIC_FILE',name,'PASS' if result['verified'] else 'FAIL','cacheRetry='+str(result['cacheRetry']),flush=True)
+              return result
+          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:results=list(pool.map(verify,expected['files'].items()))
+          report={'publishedCommit':published,'sourceCommit':source,'testUrl':origin,'verified':all(r['verified'] for r in results),'files':results,'runtimeFilesUncachedMismatch':[r['path'] for r in results if r['cacheRetry'] and not r['path'].endswith('.json')]}
+          (out/'public-byte-verification.json').write_text(json.dumps(report,indent=2)+'\n')
+          assert report['verified'],'Public bytes differ; see exact hashes and saved metadata'
+      - name: Install the browser for actual public interaction testing
+        if: always()
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Exercise public gym exit, city, estate doors and return, without republishing
+        if: always()
+        env:
+          PLAYER_ROOT: deployed/public/unity-gym
+          PLAYER_URL: https://braxhorn-city.vercel.app/unity-gym/?v=city-19c71c1
+          QA_OUT: city-live-review
+        run: node unity-release/recheck-city.mjs
+      - name: Save public byte and runtime evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-public-live-review-${{ github.sha }}
+          path: city-live-review/
+          retention-days: 7
