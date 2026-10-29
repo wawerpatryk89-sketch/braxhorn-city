@@ -21,6 +21,7 @@ public static class BraxCityRebuild
         public int actuallyBuiltStreetBuildings,actuallyBuiltHighRises,streetMainRoadLengthMetres;
         public string[] actualBuildingIds;
         public bool sourceAssetsRetained=true,phoneAccepted=false,visualAccepted=false;
+        public int vehicleSourceRenderersHidden;
         public bool physicalElevatorInstalled,physicalElevatorTested=false;
         public string[] replacedSourceRenderers;
         public string[] remaining={"Review full player route and mobile device performance","Integrate the specified finished gym commit","Review and replace remaining original vegetation where needed"};
@@ -35,6 +36,44 @@ public static class BraxCityRebuild
             if(set.Contains(t.name))foreach(var renderer in t.GetComponentsInChildren<MeshRenderer>(true))
             {if(renderer.enabled){renderer.enabled=false;replaced.Add(t.name);}}
     }
+    // The complete original city export was inspected, including all 724
+    // mesh accessor world bounds and manifest collision flags. Exactly 397
+    // vehicle submeshes (cars, accessories and motorcycles) occupy indices
+    // 271..667. Their combined world bounds in original source coordinates are
+    // x [-33.2,87.46], y [0,2.09], z [23.82,33.26].
+    // Their source collision flags are all false. This is a SOURCE-PINNED
+    // exclusion; never hide arbitrary objects by a broad car-name heuristic.
+    const int VehicleFirst=271,VehicleCount=397;
+    static int HideAuditedVehicles(Transform original)
+    {
+        var indexed=original.GetComponentsInChildren<Transform>(true)
+            .Where(t=>t.name.StartsWith("CityMesh_",StringComparison.Ordinal))
+            .ToDictionary(t=>t.name,t=>t);
+        for(int i=VehicleFirst;i<VehicleFirst+VehicleCount;i++)
+        {
+            Transform t;
+            if(!indexed.TryGetValue("CityMesh_"+i,out t))
+                throw new InvalidOperationException("Pinned source vehicle renderer missing: CityMesh_"+i);
+            foreach(var renderer in t.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                var b=renderer.bounds;
+                if(b.min.y<-.25f||b.max.y>2.35f||b.min.z<23.65f||b.max.z>33.45f)
+                    throw new InvalidOperationException("Vehicle-only geometry contract changed: "+t.name+" "+b);
+            }
+            if(t.GetComponentsInChildren<Collider>(true).Any(c=>c.enabled))
+                throw new InvalidOperationException("Audited vehicle collider contract changed: "+t.name);
+        }
+        Disable(original,Enumerable.Range(VehicleFirst,VehicleCount));
+        int stillVisible=0;
+        for(int i=VehicleFirst;i<VehicleFirst+VehicleCount;i++)
+            if(indexed["CityMesh_"+i].GetComponentsInChildren<MeshRenderer>(true).Any(x=>x.enabled))
+                stillVisible++;
+        if(stillVisible!=0)throw new InvalidOperationException("Some original cars are still visible: "+stillVisible);
+        Debug.Log("CITY_EMPTY_STREET_SOURCE_VERIFIED vehicles_hidden="+VehicleCount+
+            " no static car meshes remain in original city source");
+        return VehicleCount;
+    }
+
     static void Cut(Transform original,Transform physics,Bounds volume,string id,bool removeCollision=true)
     {
         BraxCityMeshCut.Subtract(original,volume,Output+"/Cuts",id);
@@ -45,6 +84,7 @@ public static class BraxCityRebuild
         if(!world||world.area!="city")throw new InvalidOperationException("Renovation must run on the actual city source");
         Directory.CreateDirectory(Output);AssetDatabase.Refresh();replaced.Clear();
         BraxCityArtwork.Prepare();
+        int hiddenVehicleMeshes=HideAuditedVehicles(original);
         var gymDoor=GameObject.Find("Original opening door");
         var gymDoorPosition=gymDoor?gymDoor.transform.position:Vector3.zero;
         var gymDoorRotation=gymDoor?gymDoor.transform.rotation:Quaternion.identity;
@@ -165,6 +205,7 @@ public static class BraxCityRebuild
             throw new InvalidOperationException("Architecture-only city must contain precisely one controllable Brax");
         report=new ReviewReport{actuallyBuiltStreetBuildings=builtBuildings.Length,actuallyBuiltHighRises=highRises,
             actualBuildingIds=builtBuildings.Select(b=>b.id).ToArray(),streetMainRoadLengthMetres=170,
+            vehicleSourceRenderersHidden=hiddenVehicleMeshes,
             stage=WholeDistrict?"whole-district-awaiting-visual-and-mobile-acceptance":"representative-segment-awaiting-player-review",cityCommit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local",
             renderedMeshes=renderers.Length,triangles=renderers.Sum(r=>{var f=r.GetComponent<MeshFilter>();return f&&f.sharedMesh?f.sharedMesh.triangles.Length/3:0;}),
             materials=renderers.SelectMany(r=>r.sharedMaterials).Distinct().Count(),
