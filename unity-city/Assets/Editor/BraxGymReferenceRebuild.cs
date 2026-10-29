@@ -177,6 +177,33 @@ public static class BraxGymReferenceRebuild
         {
             if (textures.TryGetValue(name, out var cached)) return cached;
             string path = TextureRoot + name;
+            // This one approved mural previously decoded but intermittently returned
+            // null from the Unity TextureImporter on Linux/WebGL (verified CI log).
+            // Preserve the exact JPEG pixels using a serialized native Texture2D
+            // instead of reimporting this asset repeatedly. Other textures retain
+            // their original imported PBR maps and mobile compression.
+            if (name == "MuralPaint.jpg")
+            {
+                byte[] ownerPixels = File.ReadAllBytes(path);
+                using (var digest = System.Security.Cryptography.SHA256.Create())
+                {
+                    string sha = BitConverter.ToString(digest.ComputeHash(ownerPixels)).Replace("-", "").ToLowerInvariant();
+                    if (sha != "e714741664dbedddc379a97a87f7d8757856c73438eeb34af10df058846628e8")
+                        throw new InvalidOperationException("Approved mural source pixels changed; refusing an altered graphic.");
+                }
+                var paintTexture = new Texture2D(2, 2, TextureFormat.RGB24, true);
+                paintTexture.name = "Owner-approved BRAXHORN wall pigment - original pixels";
+                if (!ImageConversion.LoadImage(paintTexture, ownerPixels, false) ||
+                    paintTexture.width != 1536 || paintTexture.height != 614)
+                    throw new InvalidOperationException("Unity could not decode the exact approved BRAXHORN mural.");
+                paintTexture.wrapMode = TextureWrapMode.Clamp;
+                paintTexture.filterMode = FilterMode.Trilinear;
+                paintTexture.anisoLevel = 4;
+                paintTexture.Apply(true, false);
+                AssetDatabase.CreateAsset(paintTexture, folder + "/OwnerApprovedMuralTexture.asset");
+                textures.Add(name, paintTexture);
+                return paintTexture;
+            }
             var importer = AssetImporter.GetAtPath(path) as TextureImporter;
             if (importer == null) throw new InvalidOperationException("Required reviewed surface is missing: " + path);
             importer.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
