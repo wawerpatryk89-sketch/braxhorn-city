@@ -1,2 +1,10 @@
-Sofa 02: Kirill Sannikov / Poly Haven, CC0. Existing owner library. Original source 4K retained unchanged; runtime textures 2K.
-Brax model, rig, animations, UVs and brand marks remain original.
+BRAXHORN marks, Brax, existing city and original animations: project owner.
+Brick Wall 10: Dimitrios Savva / Poly Haven, CC0.
+Fabric Leather 01: Rob Tuytel / Poly Haven, CC0.
+Hanging Industrial Lamp: Kuutti Siitonen / Poly Haven, CC0.
+Fine Grained Wood: Rob Tuytel / Poly Haven, CC0, 0.6 m physical repeat.
+Rubber Tiles: Amal Kumar / Poly Haven, CC0, 2 m physical repeat.
+Approved BRAXHORN rear-wall mural: project artwork, matte paint blended over source brick (not a framed billboard).
+Boxing gloves and bag; Compact WC; Basin pedestal sink cabinet: Innerscene, CC0.
+Reviewed bag derivative: original chain mesh and normal map, reinforced leather body, seams, straps, hardware and original BRAXHORN branding.
+Powered by Poly Haven. Full source and license URLs: kickboxing-assets.json.
