@@ -134,7 +134,7 @@ def main():
     city_manifest = json.loads((out / "city-migration.json").read_text())
     if city_manifest.get("commit") != commit:
         raise ValueError("Compiled city provenance does not match the build source commit")
-    if city_manifest.get("scope") == "city-only-mobile-architecture-review":
+    if city_manifest.get("scope") in ("city-only-mobile-architecture-review", "city-segment-mobile-architecture-review"):
         if [item.get("area") for item in city_manifest.get("areas", [])] != ["city"]:
             raise ValueError("City-only mobile preview must not bundle the original estate scene")
         entry = out / "index.html"
@@ -149,6 +149,14 @@ def main():
             "Oddzielna migracja Unity — oryginalna gra pozostaje bez zmian.",
             "Podgląd przebudowanej ulicy na iPhone. Osiedle jest wyłączone wyłącznie z tego pakietu."
         )
+        if city_manifest.get("scope") == "city-segment-mobile-architecture-review":
+            html = html.replace("Twoje miasto.<br>Twoje zasady.",
+                                "BRAXHORN CITY.<br>Odcinek pierwszy.")
+            html = html.replace("WEJDŹ DO MIASTA", "SPACER BRAXEM — ODCINEK 1")
+            html = html.replace("Podgląd przebudowanej ulicy na iPhone. Osiedle jest wyłączone wyłącznie z tego pakietu.",
+                                "Grywalna część miasta: BRAXHORN NUTRITION, NOVA i przejście dla pieszych. Tylko Brax. Pełna gra bez zmian.")
+            html = html.replace("Przegląd ulicy. Przejście na osiedle w kolejnym etapie.",
+                                "Ulica i wieżowce. Kamera podąża za Braxem; przeciągnij ekran, by spojrzeć w niebo.")
         entry.write_text(html)
         print("CITY_IOS_STAGE_ONE_SPLASH 1 city scene / no estate module; original city assets retained", flush=True)
     source_loader = ROOT / "unity-release/ios-stream-loader.js"
