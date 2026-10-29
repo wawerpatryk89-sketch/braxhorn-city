@@ -1,0 +1,97 @@
+name: Playable original Braxhorn gym
+on:
+  push:
+    branches: [codex/unity-gym-playable-20261029]
+    paths: ['unity-city/**', 'unity-tools/**', '.github/workflows/unity-gym-playable.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: unity-playable-gym
+  cancel-in-progress: true
+jobs:
+  playable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout isolated source only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-city
+            unity-tools
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+          lfs: false
+          persist-credentials: false
+      - name: Retrieve verified original gym export
+        uses: actions/download-artifact@v4
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+      - name: Prepare actual Brax and correct original baked light
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0
+          python3 unity-tools/prepare_playable.py
+      - name: Unity 6 playable WebGL build
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxGymBuild.Build
+          versioning: None
+          allowDirtyBuild: true
+      - name: Assemble separate mobile preview
+        run: python3 unity-tools/package_preview.py
+      - name: Install browser validation tools
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run real WebGL input and animation tests
+        run: node unity-tools/check_preview.mjs
+      - name: Save visual evidence and input report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-gym-review-${{ github.sha }}
+          path: |
+            unity-review/
+            unity-city/Assets/Source/source-integrity.json
+            build/WebGL/playable.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Save playable preview artifact
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-gym-playable-${{ github.sha }}
+          path: unity-preview/
+          retention-days: 7
+      - name: Commit tested preview only to isolated branch
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import os, subprocess, base64
+          def run(*args,**kw): subprocess.run(args,check=True,**kw)
+          run('git','config','user.name','github-actions[bot]')
+          run('git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
+          run('git','add','--sparse','-f','unity-preview')
+          changed=subprocess.run(['git','diff','--cached','--quiet']).returncode
+          if changed:
+              run('git','commit','-m','build(unity): tested original Brax gym preview; production untouched [skip ci]')
+              env=os.environ.copy()
+              auth=base64.b64encode(('x-access-token:'+env['GH_TOKEN']).encode()).decode()
+              env.update(GIT_CONFIG_COUNT='1',GIT_CONFIG_KEY_0='http.https://github.com/.extraheader',GIT_CONFIG_VALUE_0='AUTHORIZATION: basic '+auth)
+              run('git','push','origin','HEAD:refs/heads/codex/unity-gym-playable-20261029',env=env)
