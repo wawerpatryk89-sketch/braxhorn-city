@@ -1,0 +1,14 @@
+{
+  "status": "VISUAL_REVIEW_ONLY_NOT_ACCEPTED",
+  "sourceCommit": "48d81f1f998b9884709e74afe10c3f7ebf0b58ac",
+  "sourceRun": 40914321114,
+  "desktopQAPassed": true,
+  "actualPassedChecks": 41,
+  "continuousPlayerWalkPassed": false,
+  "firstWalkCheckpointsPassed": 10,
+  "knownIssue": "The NOVA route was blocked by a streetlight, fixed in later uncompiled source",
+  "liftAccepted": false,
+  "physicalIphoneTested": false,
+  "ownerAccepted": false,
+  "productionPublication": false
+}

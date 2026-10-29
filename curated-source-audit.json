@@ -1,0 +1,1312 @@
+{
+  "schema": 1,
+  "status": "source_audit_complete_visual_review_pending",
+  "commit": "3c98ccd919409da59d8145c0171b0776bc65b93d",
+  "generated_utc": "2026-10-29T11:34:35.344076+00:00",
+  "source": "https://polyhaven.com",
+  "license_reference": "https://polyhaven.com/license",
+  "purpose": "Source audit only; no visual acceptance, mobile performance pass or Unity compatibility claim",
+  "original_gltf_preserved": true,
+  "assets": [
+    {
+      "id": "modular_urban_apartments_facade",
+      "kind": "model",
+      "variants": [
+        {
+          "resolution": "1k",
+          "api_path": [
+            "gltf",
+            "1k",
+            "gltf"
+          ],
+          "gltf": "models/modular_urban_apartments_facade/1k/modular_urban_apartments_facade_1k.gltf",
+          "dependencies": [
+            "modular_urban_apartments_facade.bin",
+            "textures/modular_urban_apartments_facade_objects_arm_1k.jpg",
+            "textures/modular_urban_apartments_facade_objects_diff_1k.jpg",
+            "textures/modular_urban_apartments_facade_objects_nor_gl_1k.jpg",
+            "textures/modular_urban_apartments_facade_plaster_arm_1k.jpg",
+            "textures/modular_urban_apartments_facade_plaster_diff_1k.jpg",
+            "textures/modular_urban_apartments_facade_plaster_nor_gl_1k.jpg",
+            "textures/modular_urban_apartments_facade_trim_01_arm_1k.jpg",
+            "textures/modular_urban_apartments_facade_trim_01_diff_1k.jpg",
+            "textures/modular_urban_apartments_facade_trim_01_nor_gl_1k.jpg",
+            "textures/modular_urban_apartments_facade_trim_02_arm_1k.jpg",
+            "textures/modular_urban_apartments_facade_trim_02_diff_1k.jpg",
+            "textures/modular_urban_apartments_facade_trim_02_nor_gl_1k.jpg"
+          ],
+          "inventory": "models/modular_urban_apartments_facade/1k/inventory.json",
+          "mesh_count": 147,
+          "node_count": 147,
+          "triangles": 270045,
+          "scene_bounds": {
+            "min": [
+              -24.52999696135521,
+              -2.0,
+              -6.240000009536743
+            ],
+            "max": [
+              27.000000119209304,
+              15.000000476837158,
+              0.42500004172325134
+            ],
+            "size": [
+              51.52999708056451,
+              17.000000476837158,
+              6.6650000512599945
+            ]
+          }
+        },
+        {
+          "resolution": "2k",
+          "api_path": [
+            "gltf",
+            "2k",
+            "gltf"
+          ],
+          "gltf": "models/modular_urban_apartments_facade/2k/modular_urban_apartments_facade_2k.gltf",
+          "dependencies": [
+            "modular_urban_apartments_facade.bin",
+            "textures/modular_urban_apartments_facade_objects_arm_2k.jpg",
+            "textures/modular_urban_apartments_facade_objects_diff_2k.jpg",
+            "textures/modular_urban_apartments_facade_objects_nor_gl_2k.jpg",
+            "textures/modular_urban_apartments_facade_plaster_arm_2k.jpg",
+            "textures/modular_urban_apartments_facade_plaster_diff_2k.jpg",
+            "textures/modular_urban_apartments_facade_plaster_nor_gl_2k.jpg",
+            "textures/modular_urban_apartments_facade_trim_01_arm_2k.jpg",
+            "textures/modular_urban_apartments_facade_trim_01_diff_2k.jpg",
+            "textures/modular_urban_apartments_facade_trim_01_nor_gl_2k.jpg",
+            "textures/modular_urban_apartments_facade_trim_02_arm_2k.jpg",
+            "textures/modular_urban_apartments_facade_trim_02_diff_2k.jpg",
+            "textures/modular_urban_apartments_facade_trim_02_nor_gl_2k.jpg"
+          ],
+          "inventory": "models/modular_urban_apartments_facade/2k/inventory.json",
+          "mesh_count": 147,
+          "node_count": 147,
+          "triangles": 270045,
+          "scene_bounds": {
+            "min": [
+              -24.52999696135521,
+              -2.0,
+              -6.240000009536743
+            ],
+            "max": [
+              27.000000119209304,
+              15.000000476837158,
+              0.42500004172325134
+            ],
+            "size": [
+              51.52999708056451,
+              17.000000476837158,
+              6.6650000512599945
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "modular_factory_facade",
+      "kind": "model",
+      "variants": [
+        {
+          "resolution": "1k",
+          "api_path": [
+            "gltf",
+            "1k",
+            "gltf"
+          ],
+          "gltf": "models/modular_factory_facade/1k/modular_factory_facade_1k.gltf",
+          "dependencies": [
+            "modular_factory_facade.bin",
+            "textures/modular_factory_facade_brick_arm_1k.jpg",
+            "textures/modular_factory_facade_brick_diff_1k.jpg",
+            "textures/modular_factory_facade_brick_nor_gl_1k.jpg",
+            "textures/modular_factory_facade_doors_arm_1k.jpg",
+            "textures/modular_factory_facade_doors_diff_1k.jpg",
+            "textures/modular_factory_facade_doors_nor_gl_1k.jpg",
+            "textures/modular_factory_facade_garage_arm_1k.jpg",
+            "textures/modular_factory_facade_garage_diff_1k.jpg",
+            "textures/modular_factory_facade_garage_nor_gl_1k.jpg",
+            "textures/modular_factory_facade_trim_01_arm_1k.jpg",
+            "textures/modular_factory_facade_trim_01_diff_1k.jpg",
+            "textures/modular_factory_facade_trim_01_nor_gl_1k.jpg",
+            "textures/modular_factory_facade_windows_arm_1k.jpg",
+            "textures/modular_factory_facade_windows_diff_1k.jpg",
+            "textures/modular_factory_facade_windows_nor_gl_1k.jpg"
+          ],
+          "inventory": "models/modular_factory_facade/1k/inventory.json",
+          "mesh_count": 192,
+          "node_count": 192,
+          "triangles": 175014,
+          "scene_bounds": {
+            "min": [
+              -30.329998463392258,
+              -2.0,
+              -5.146249532699585
+            ],
+            "max": [
+              23.00000023841858,
+              27.0,
+              0.20999999344348907
+            ],
+            "size": [
+              53.32999870181084,
+              29.0,
+              5.356249526143074
+            ]
+          }
+        },
+        {
+          "resolution": "2k",
+          "api_path": [
+            "gltf",
+            "2k",
+            "gltf"
+          ],
+          "gltf": "models/modular_factory_facade/2k/modular_factory_facade_2k.gltf",
+          "dependencies": [
+            "modular_factory_facade.bin",
+            "textures/modular_factory_facade_brick_arm_2k.jpg",
+            "textures/modular_factory_facade_brick_diff_2k.jpg",
+            "textures/modular_factory_facade_brick_nor_gl_2k.jpg",
+            "textures/modular_factory_facade_doors_arm_2k.jpg",
+            "textures/modular_factory_facade_doors_diff_2k.jpg",
+            "textures/modular_factory_facade_doors_nor_gl_2k.jpg",
+            "textures/modular_factory_facade_garage_arm_2k.jpg",
+            "textures/modular_factory_facade_garage_diff_2k.jpg",
+            "textures/modular_factory_facade_garage_nor_gl_2k.jpg",
+            "textures/modular_factory_facade_trim_01_arm_2k.jpg",
+            "textures/modular_factory_facade_trim_01_diff_2k.jpg",
+            "textures/modular_factory_facade_trim_01_nor_gl_2k.jpg",
+            "textures/modular_factory_facade_windows_arm_2k.jpg",
+            "textures/modular_factory_facade_windows_diff_2k.jpg",
+            "textures/modular_factory_facade_windows_nor_gl_2k.jpg"
+          ],
+          "inventory": "models/modular_factory_facade/2k/inventory.json",
+          "mesh_count": 192,
+          "node_count": 192,
+          "triangles": 175014,
+          "scene_bounds": {
+            "min": [
+              -30.329998463392258,
+              -2.0,
+              -5.146249532699585
+            ],
+            "max": [
+              23.00000023841858,
+              27.0,
+              0.20999999344348907
+            ],
+            "size": [
+              53.32999870181084,
+              29.0,
+              5.356249526143074
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "brick_wall_001",
+      "kind": "texture",
+      "resolution": "2k",
+      "maps": {
+        "diffuse": {
+          "path": "textures/brick_wall_001/2k/brick_wall_001_diffuse_2k.jpg",
+          "api_path": [
+            "Diffuse",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "JPEG"
+        },
+        "normal_gl": {
+          "path": "textures/brick_wall_001/2k/brick_wall_001_nor_gl_2k.png",
+          "api_path": [
+            "nor_gl",
+            "2k",
+            "png"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGBA",
+          "format": "PNG"
+        },
+        "roughness": {
+          "path": "textures/brick_wall_001/2k/brick_wall_001_rough_2k.jpg",
+          "api_path": [
+            "Rough",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "L",
+          "format": "JPEG"
+        },
+        "ao": {
+          "path": "textures/brick_wall_001/2k/brick_wall_001_ao_2k.jpg",
+          "api_path": [
+            "AO",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "L",
+          "format": "JPEG"
+        },
+        "arm": {
+          "path": "textures/brick_wall_001/2k/brick_wall_001_arm_2k.jpg",
+          "api_path": [
+            "arm",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "JPEG"
+        }
+      }
+    },
+    {
+      "id": "clean_asphalt",
+      "kind": "texture",
+      "resolution": "2k",
+      "maps": {
+        "diffuse": {
+          "path": "textures/clean_asphalt/2k/clean_asphalt_diff_2k.jpg",
+          "api_path": [
+            "Diffuse",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "JPEG"
+        },
+        "normal_gl": {
+          "path": "textures/clean_asphalt/2k/clean_asphalt_nor_gl_2k.png",
+          "api_path": [
+            "nor_gl",
+            "2k",
+            "png"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "PNG"
+        },
+        "roughness": {
+          "path": "textures/clean_asphalt/2k/clean_asphalt_rough_2k.jpg",
+          "api_path": [
+            "Rough",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "L",
+          "format": "JPEG"
+        },
+        "ao": {
+          "path": "textures/clean_asphalt/2k/clean_asphalt_ao_2k.jpg",
+          "api_path": [
+            "AO",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "L",
+          "format": "JPEG"
+        },
+        "arm": {
+          "path": "textures/clean_asphalt/2k/clean_asphalt_arm_2k.jpg",
+          "api_path": [
+            "arm",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "JPEG"
+        }
+      }
+    },
+    {
+      "id": "concrete_pavement_02",
+      "kind": "texture",
+      "resolution": "2k",
+      "maps": {
+        "diffuse": {
+          "path": "textures/concrete_pavement_02/2k/concrete_pavement_02_diff_2k.jpg",
+          "api_path": [
+            "Diffuse",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "JPEG"
+        },
+        "normal_gl": {
+          "path": "textures/concrete_pavement_02/2k/concrete_pavement_02_nor_gl_2k.png",
+          "api_path": [
+            "nor_gl",
+            "2k",
+            "png"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "PNG"
+        },
+        "roughness": {
+          "path": "textures/concrete_pavement_02/2k/concrete_pavement_02_rough_2k.jpg",
+          "api_path": [
+            "Rough",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "L",
+          "format": "JPEG"
+        },
+        "ao": {
+          "path": "textures/concrete_pavement_02/2k/concrete_pavement_02_ao_2k.jpg",
+          "api_path": [
+            "AO",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "L",
+          "format": "JPEG"
+        },
+        "arm": {
+          "path": "textures/concrete_pavement_02/2k/concrete_pavement_02_arm_2k.jpg",
+          "api_path": [
+            "arm",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "JPEG"
+        }
+      },
+      "runtime_aliases": {
+        "diffuse": {
+          "path": "textures/concrete_pavement_02/diffuse.jpg",
+          "sha256": "a634f169ef1bb928585340f7feac69375b2bbbdfc0448e316dbaebe03bd5bf89",
+          "original": "textures/concrete_pavement_02/2k/concrete_pavement_02_diff_2k.jpg",
+          "image_bytes_unchanged": true
+        },
+        "normal_gl": {
+          "path": "textures/concrete_pavement_02/normal.png",
+          "sha256": "73be3d4054ed5689d8e64b935da89a0ab6fde3d4cf15067ce09559eb5053903d",
+          "original": "textures/concrete_pavement_02/2k/concrete_pavement_02_nor_gl_2k.png",
+          "image_bytes_unchanged": true
+        },
+        "arm": {
+          "path": "textures/concrete_pavement_02/arm.jpg",
+          "sha256": "31db270fb5f33732bd2099086c292f30d891485cb18505a0780f93812e608f24",
+          "original": "textures/concrete_pavement_02/2k/concrete_pavement_02_arm_2k.jpg",
+          "image_bytes_unchanged": true
+        }
+      }
+    },
+    {
+      "id": "wooden_planks",
+      "kind": "texture",
+      "resolution": "2k",
+      "maps": {
+        "diffuse": {
+          "path": "textures/wooden_planks/2k/wooden_planks_diff_2k.jpg",
+          "api_path": [
+            "Diffuse",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "JPEG"
+        },
+        "normal_gl": {
+          "path": "textures/wooden_planks/2k/wooden_planks_nor_gl_2k.png",
+          "api_path": [
+            "nor_gl",
+            "2k",
+            "png"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "PNG"
+        },
+        "roughness": {
+          "path": "textures/wooden_planks/2k/wooden_planks_rough_2k.jpg",
+          "api_path": [
+            "Rough",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "JPEG"
+        },
+        "ao": {
+          "path": "textures/wooden_planks/2k/wooden_planks_ao_2k.jpg",
+          "api_path": [
+            "AO",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "L",
+          "format": "JPEG"
+        },
+        "arm": {
+          "path": "textures/wooden_planks/2k/wooden_planks_arm_2k.jpg",
+          "api_path": [
+            "arm",
+            "2k",
+            "jpg"
+          ],
+          "width": 2048,
+          "height": 2048,
+          "mode": "RGB",
+          "format": "JPEG"
+        }
+      },
+      "runtime_aliases": {
+        "diffuse": {
+          "path": "textures/wooden_planks/diffuse.jpg",
+          "sha256": "02a124390e368fe7ae4bb98235fd02113cd4159fd5a7ea580ccba3e319b3577b",
+          "original": "textures/wooden_planks/2k/wooden_planks_diff_2k.jpg",
+          "image_bytes_unchanged": true
+        },
+        "normal_gl": {
+          "path": "textures/wooden_planks/normal.png",
+          "sha256": "a38653b1a01f274bb6983887d7ca914074666b21ce7e42680144515d87d7b122",
+          "original": "textures/wooden_planks/2k/wooden_planks_nor_gl_2k.png",
+          "image_bytes_unchanged": true
+        },
+        "arm": {
+          "path": "textures/wooden_planks/arm.jpg",
+          "sha256": "1a7f957ef671fbf891deabc61dd454f1d8b2ae49d5b4fe0476dd0f2698d98e13",
+          "original": "textures/wooden_planks/2k/wooden_planks_arm_2k.jpg",
+          "image_bytes_unchanged": true
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "files": [
+    {
+      "path": "models/modular_urban_apartments_facade/api-files.json",
+      "url": "https://api.polyhaven.com/files/modular_urban_apartments_facade",
+      "bytes": 169835,
+      "sha256": "b2afcde97bf3154eb7b3b2c28c63c74d60a9694ac2a55103977d4e9f60c603fb",
+      "md5": "a56bd4c2854ad0fb64398a4e85547c0e",
+      "api_md5_verified": false
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/api-info.json",
+      "url": "https://api.polyhaven.com/info/modular_urban_apartments_facade",
+      "bytes": 1129,
+      "sha256": "72d633345a0c8e92d501eb3bceb3248783a53ba2379233c17d9386a8ea4af550",
+      "md5": "c444eb8ed3db2b99797d539182332ea8",
+      "api_md5_verified": false
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/modular_urban_apartments_facade_1k.gltf",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_1k.gltf",
+      "bytes": 270799,
+      "sha256": "1a5a17dffd27fb9e1236dea7e51c4e0393a9d88ed0885a0621e67a37f80b27eb",
+      "md5": "81f4252c7816d0e93149c1ca814134ff",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/modular_urban_apartments_facade.bin",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/modular_urban_apartments_facade/modular_urban_apartments_facade.bin",
+      "bytes": 8168772,
+      "sha256": "f041e71b6bd31864f20dd64d3a82519454a603c300686161e0349ff44f838bf2",
+      "md5": "e54b1de59041da0f44db64efb8bda8f6",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_objects_arm_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_objects_arm_1k.jpg",
+      "bytes": 790231,
+      "sha256": "16c23388d22461b5fc8f2a879e5549bc1591d99e0da4f0c057fe2a49c458da38",
+      "md5": "0e4c15b0cea8d5ffec1fef80f3398736",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_objects_diff_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_objects_diff_1k.jpg",
+      "bytes": 576336,
+      "sha256": "038083f96e63d92e6a30685f1a7f5b5b01a6448118dfecd6ed364d31088db7df",
+      "md5": "f37a2e4d64b5d31e35c95b96f1346472",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_objects_nor_gl_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_objects_nor_gl_1k.jpg",
+      "bytes": 544638,
+      "sha256": "e5bac0355cbacb09d4400398f7e5f159624fb0519d5c007b639da75e59137030",
+      "md5": "e946b86448a627db9d7672a6d2cd3430",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_plaster_arm_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_plaster_arm_1k.jpg",
+      "bytes": 533411,
+      "sha256": "71c2ab6cfe97411f0111e99658b88cd22946abc96a3ed67051e06dab8dde5cb8",
+      "md5": "4c5089bcf37a8dffce54b08dbbd18277",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_plaster_diff_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_plaster_diff_1k.jpg",
+      "bytes": 519200,
+      "sha256": "aac6cb79d9a3f73ad360077a439e1b81b1e919d6ace658a27225b20858bcad3c",
+      "md5": "04dc48f9569357117f07dcd811dffe99",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_plaster_nor_gl_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_plaster_nor_gl_1k.jpg",
+      "bytes": 1003277,
+      "sha256": "79cebca9b98dcb62efc5474a2d236c98a34b7260b58a65db24e501acf60de66c",
+      "md5": "17cd57b1af85612484e1d5c04f3ae98c",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_trim_01_arm_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_01_arm_1k.jpg",
+      "bytes": 651756,
+      "sha256": "b3fe0aa9389d827afa4a29e15842209a6d8dadb86eca9a0b462c2c9fe4f58987",
+      "md5": "4275d3cc004e0475c2ab0b8fcdac88d6",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_trim_01_diff_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_01_diff_1k.jpg",
+      "bytes": 553769,
+      "sha256": "62510c9e167363da1ff101b03d0c7705c74cb0e20bb02fc7bc0596f9da26ac8c",
+      "md5": "065bcc1f7e4e9bb0cd79573f7cd6b5f3",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_trim_01_nor_gl_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_01_nor_gl_1k.jpg",
+      "bytes": 850037,
+      "sha256": "65cf274a67914590329b67eb6d926377d5aa45fa326afb91caa8781a30c99160",
+      "md5": "a9b1ec2e41fa1b3e2c857109ced93963",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_trim_02_arm_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_02_arm_1k.jpg",
+      "bytes": 706292,
+      "sha256": "45a49a17b19b7d579237ec343b56ebee79ce1b06cb9d1179af8609d64ee1c27f",
+      "md5": "b99d29cde37713e4cc19d65c7a13cf63",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_trim_02_diff_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_02_diff_1k.jpg",
+      "bytes": 499399,
+      "sha256": "10097392fa107eb3723fff229f1f9522dedd2f91e4bdc3eaac884325d42ddf8e",
+      "md5": "6541ee4a6a9877338a54e70834ee620e",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/1k/textures/modular_urban_apartments_facade_trim_02_nor_gl_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_02_nor_gl_1k.jpg",
+      "bytes": 820776,
+      "sha256": "8a87d143725ec32951061b55935ffcef426755b0d11236d93e8b18cf94612498",
+      "md5": "613735836878414de4b3b1a8d07d53b9",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/modular_urban_apartments_facade_2k.gltf",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_2k.gltf",
+      "bytes": 270799,
+      "sha256": "ce1ef4af29b37ca558ca05c29f0b1cc65d5a51dd66627f9d979b5ffc948b5333",
+      "md5": "1ce22fcd5537779fcfbf941f6375a8a7",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/modular_urban_apartments_facade.bin",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/modular_urban_apartments_facade/modular_urban_apartments_facade.bin",
+      "bytes": 8168772,
+      "sha256": "f041e71b6bd31864f20dd64d3a82519454a603c300686161e0349ff44f838bf2",
+      "md5": "e54b1de59041da0f44db64efb8bda8f6",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_objects_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_objects_arm_2k.jpg",
+      "bytes": 2748860,
+      "sha256": "8573bb7a15e809f635aa71fb0348355f93195394f1788bf05ea68ca4daa2e887",
+      "md5": "35e430dbb5fba6ec02c463d1b384a80a",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_objects_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_objects_diff_2k.jpg",
+      "bytes": 2013153,
+      "sha256": "0fe0a7ef75c49a7f4f16699b6bfe99f8455f384aefe256d5d0f568fd730c4a26",
+      "md5": "e52fdfcb5694cabffc38bc8de8af623d",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_objects_nor_gl_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_objects_nor_gl_2k.jpg",
+      "bytes": 2064585,
+      "sha256": "8c3cfb763c1343eed3082ba5f256f9d9c80775f6199aca9dc6434843e7b7a9dd",
+      "md5": "bcac084cb8270eea360a6ca596ea80ba",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_plaster_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_plaster_arm_2k.jpg",
+      "bytes": 2352206,
+      "sha256": "0658b150074321691cdd81e04d0c42966034f45f4c74b501ec497a29c4144375",
+      "md5": "f01279c252016feebe255da56d03e459",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_plaster_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_plaster_diff_2k.jpg",
+      "bytes": 2238064,
+      "sha256": "56189b59a07675924e8c82d2aa963f861c60191fef337e29cca8f09b47767f72",
+      "md5": "719453e638edda0c75a98b56f03b8d25",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_plaster_nor_gl_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_plaster_nor_gl_2k.jpg",
+      "bytes": 4895944,
+      "sha256": "582ac0de84d07e45d467ac898d2c14492db2258d06fbeba65644c25a346564ec",
+      "md5": "7d45cd5c65ac1bfe04626f11a5ac2436",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_trim_01_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_01_arm_2k.jpg",
+      "bytes": 2559719,
+      "sha256": "c34c3eb081a60a8d5daacc217bdca889c945225be79b272135abd08fb6b8aa85",
+      "md5": "7a0024112f4038c16466e2c45c22e7db",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_trim_01_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_01_diff_2k.jpg",
+      "bytes": 2198191,
+      "sha256": "6446a76c4b45a88101f2ba14723ca53f5f2269721249461fcff4c666914b626a",
+      "md5": "609c1fc3cbccfb481ac700e2a678b9ae",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_trim_01_nor_gl_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_01_nor_gl_2k.jpg",
+      "bytes": 3610799,
+      "sha256": "cecff1160db9801e7c7d7eb2be4cae63cc883f8e1af9e496a0025a0776610813",
+      "md5": "8f6ca282e1c154b95468f59e99ada317",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_trim_02_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_02_arm_2k.jpg",
+      "bytes": 2887047,
+      "sha256": "bab306cc2a40a9f699e5c33fd97e0f3a4ac1817e71afa47518861fb452011e86",
+      "md5": "129bac48a9995c901103d3ce6159b630",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_trim_02_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_02_diff_2k.jpg",
+      "bytes": 1991640,
+      "sha256": "9fa34f2f5c1c421f700b16bd21e143d34c0b5e65423b8d7b5203d2b8761594e4",
+      "md5": "9d0ab416e8b446f85181531805b6a3a7",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_urban_apartments_facade/2k/textures/modular_urban_apartments_facade_trim_02_nor_gl_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_urban_apartments_facade/modular_urban_apartments_facade_trim_02_nor_gl_2k.jpg",
+      "bytes": 3427345,
+      "sha256": "eef1cf6efafd3cb92a23d382d09db5817f51dd3f1c09b5785e192bf4561e70c5",
+      "md5": "80031f2f13f19bf23f4953ecaa0ecdd6",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/api-files.json",
+      "url": "https://api.polyhaven.com/files/modular_factory_facade",
+      "bytes": 155257,
+      "sha256": "a51c971493c1399dedf19f85b85a880bd3ba5ae4e09d4dd3198e069bb00556dc",
+      "md5": "6b97396c480c217f62daaffd2579d372",
+      "api_md5_verified": false
+    },
+    {
+      "path": "models/modular_factory_facade/api-info.json",
+      "url": "https://api.polyhaven.com/info/modular_factory_facade",
+      "bytes": 1086,
+      "sha256": "dec347816ba47ada0f2c912bf13d96a25d169409f9774e0369535cd22d030c07",
+      "md5": "72769687dfb0448562924088ec31eb95",
+      "api_md5_verified": false
+    },
+    {
+      "path": "models/modular_factory_facade/1k/modular_factory_facade_1k.gltf",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/modular_factory_facade/modular_factory_facade_1k.gltf",
+      "bytes": 372666,
+      "sha256": "41ff58b722f9cb3e9db8bcacae3163946603ae99a1d42bb6f9045d7c4ec0f179",
+      "md5": "0633b294fcc02eac73cfd7be32ab5dce",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/modular_factory_facade.bin",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/modular_factory_facade/modular_factory_facade.bin",
+      "bytes": 6269260,
+      "sha256": "12702fb065a838695e0621e1aac3947af92d32c439fb965c8b0563ad691fed70",
+      "md5": "225eee006759007851584344b0b22847",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_brick_arm_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_brick_arm_1k.jpg",
+      "bytes": 726245,
+      "sha256": "322cba4e6b03e39fa2a57335deddfbda6d819f8b29b108b9000790ded99b0d95",
+      "md5": "06461ea382b58db6fd761fc934583bcb",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_brick_diff_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_brick_diff_1k.jpg",
+      "bytes": 1115986,
+      "sha256": "852b01c61efc07fd8e60e59767657ef51112bf65f5eaf184f02c27ea5170582d",
+      "md5": "4feceecc0de80a7a918da3d978a3ce43",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_brick_nor_gl_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_brick_nor_gl_1k.jpg",
+      "bytes": 1052229,
+      "sha256": "1168796e949c5ce3957142e86bce1d09531466aaea90dc46cbc3f3225cbdd78e",
+      "md5": "83e7a81d1c675db96b7cdfb2d0ff7cfe",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_doors_arm_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_doors_arm_1k.jpg",
+      "bytes": 723782,
+      "sha256": "794b16de5bd2aae6431fd8aee7b10b3b1095bbe89b233a158a1e031e0a27c4e3",
+      "md5": "d4b8f00519d2e7ddf58fa44153844c44",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_doors_diff_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_doors_diff_1k.jpg",
+      "bytes": 570733,
+      "sha256": "157b59b9d1c929e51e2747f4f9481389743acba539308cecbb98c17294b6c7e1",
+      "md5": "5bce81bcd8fc898b944c4b093d52ba7c",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_doors_nor_gl_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_doors_nor_gl_1k.jpg",
+      "bytes": 488916,
+      "sha256": "1e3bdff6d4b30cb26e901d6d14e42d398aeacfb46767900404eb38ec5ba016dc",
+      "md5": "b111ecd5d50f7444569e3af33f351ad1",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_garage_arm_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_garage_arm_1k.jpg",
+      "bytes": 682331,
+      "sha256": "a72cfa9020a0a7aad2476b2ceb3c60dc21ac69d4e9026dcddc82710e6784b40f",
+      "md5": "4949c0a6096a8f9ba3017239f1a4249f",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_garage_diff_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_garage_diff_1k.jpg",
+      "bytes": 588149,
+      "sha256": "d1cf6239c7364900b02279600937a4c9bf0a21d315efabf18f16d5637020e39f",
+      "md5": "792087136344341d1f7e9d84ea7c7ed4",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_garage_nor_gl_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_garage_nor_gl_1k.jpg",
+      "bytes": 752068,
+      "sha256": "e8ac6265622fb8c8df454ae02a75746bc37ded0d4533dbe65fa275d0e40f28ba",
+      "md5": "8633fc5d96f268b36a16a7f081270a81",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_trim_01_arm_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_trim_01_arm_1k.jpg",
+      "bytes": 733418,
+      "sha256": "0ab1657c75a9b5beb3d5552adfafccdd5174c391f20ccd6c0b41939c1a8bfe3f",
+      "md5": "0d491794ea39a9a7afeb03b559102e9a",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_trim_01_diff_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_trim_01_diff_1k.jpg",
+      "bytes": 617348,
+      "sha256": "beff49832938c5493a4b5bbb82eeabd138c29c6523e5228e006f702859bbc87f",
+      "md5": "c7a15377b393f037443e3d7887a29774",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_trim_01_nor_gl_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_trim_01_nor_gl_1k.jpg",
+      "bytes": 827556,
+      "sha256": "05441cf545c9d5f6786cd191e9b3b627668b1176e155d1fae7fbe28f6a8d3802",
+      "md5": "afc86cc035a9547145dac6033560f62d",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_windows_arm_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_windows_arm_1k.jpg",
+      "bytes": 873236,
+      "sha256": "7bfc0d579188dd88bb2d8962ae81402e6ccabff244709e68ba3be4cc5d500d0d",
+      "md5": "a151ecff61bb35d2ad79ac9d185ddfae",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_windows_diff_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_windows_diff_1k.jpg",
+      "bytes": 619613,
+      "sha256": "d361dacbd23095dacf1d82eb5a509a305c44b007f8adfb221dc2e5efe56180e0",
+      "md5": "6017facba3275e6d0903fea05834f9df",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/1k/textures/modular_factory_facade_windows_nor_gl_1k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/modular_factory_facade/modular_factory_facade_windows_nor_gl_1k.jpg",
+      "bytes": 612643,
+      "sha256": "4dc9e4a6b97d5384849faeebca87eae9f6736664971c6c10a41fc19bd01fc106",
+      "md5": "0840bdc3c5b917607cb7c08816e34618",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/modular_factory_facade_2k.gltf",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/2k/modular_factory_facade/modular_factory_facade_2k.gltf",
+      "bytes": 372666,
+      "sha256": "f659bc368b07878202dbacca63bc60c8150bb61a3ede4869b540864e4dcb1e48",
+      "md5": "a62391e18db2708ad5ada4536fe5db08",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/modular_factory_facade.bin",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/modular_factory_facade/modular_factory_facade.bin",
+      "bytes": 6269260,
+      "sha256": "12702fb065a838695e0621e1aac3947af92d32c439fb965c8b0563ad691fed70",
+      "md5": "225eee006759007851584344b0b22847",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_brick_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_brick_arm_2k.jpg",
+      "bytes": 2567917,
+      "sha256": "dc313e13bd12687bd8827b5e439c1ea2b56fbc883d935f26132b44781a21be14",
+      "md5": "4ac18c9b094ded66e0638f6563599574",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_brick_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_brick_diff_2k.jpg",
+      "bytes": 4421090,
+      "sha256": "02204a7971f406dcd2b6e1e3bc90e5656c5749a4417cfd5977dc7dfa5042a5d4",
+      "md5": "1b64dc2c47a30a818f71350ddaafaf46",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_brick_nor_gl_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_brick_nor_gl_2k.jpg",
+      "bytes": 3471100,
+      "sha256": "a31341b4b1329bb2c27ce74da866aa56b359a5a60fcddbc6cd5be0029e410611",
+      "md5": "8cfd8766355b8fb0f0d62ec43f4fd3cb",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_doors_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_doors_arm_2k.jpg",
+      "bytes": 2628673,
+      "sha256": "07af095d6ecb4966ec029968ff7b0d111de8b2e1910bbea168dc9c958a4da3d1",
+      "md5": "129e4e40a329c984c7129959243f1dcb",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_doors_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_doors_diff_2k.jpg",
+      "bytes": 2081334,
+      "sha256": "1189acbe5ed4ecaccda9ec40f0a4a4a454016a22dbab0f18d3bdb61a01d9821a",
+      "md5": "666740bd7e05a98135b00bc17d54571c",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_doors_nor_gl_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_doors_nor_gl_2k.jpg",
+      "bytes": 2099914,
+      "sha256": "4c885d8170310e9b26c80780458eee000dcb67ea057cb14b782d10e835b2a698",
+      "md5": "2df739e72f6915fa9ca6cf9db09b9f18",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_garage_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_garage_arm_2k.jpg",
+      "bytes": 2542492,
+      "sha256": "0efc9b69568cf6b13bb22256edf8bec347fbc0ac5496d5736c8dc3eb69e800dd",
+      "md5": "72dbb1e5a6f2697b9eab3b4625cd70f2",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_garage_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_garage_diff_2k.jpg",
+      "bytes": 2189076,
+      "sha256": "83722741c6bbdfafd285b6f5d0a2913c133d91b11705fb684d526a6695da0537",
+      "md5": "90b0cb878fc30794dcd62525128b8811",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_garage_nor_gl_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_garage_nor_gl_2k.jpg",
+      "bytes": 3235785,
+      "sha256": "d42a8cbcffe9a08d4fea5d12dbac82da0622efa49ad083361eead5b94927a086",
+      "md5": "d3329280f8ba1d699ef6ece5a2c253ca",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_trim_01_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_trim_01_arm_2k.jpg",
+      "bytes": 3129201,
+      "sha256": "3c70a0bb5e9f4d46183bebe5494d7665a775ea13c428af0dcea2fc29c950d48f",
+      "md5": "3e1832783c806c04e4fdef255a7eee45",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_trim_01_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_trim_01_diff_2k.jpg",
+      "bytes": 2537009,
+      "sha256": "bc4e041d46829466f8a7cb45b2b84f26e6cd7a41464b89590423d7ba65075c6d",
+      "md5": "8cb3a127e8b4856602f7ee8765f72c0f",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_trim_01_nor_gl_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_trim_01_nor_gl_2k.jpg",
+      "bytes": 3717593,
+      "sha256": "1f43fa78247a60f4f06096c95df26b95b94727167e917a18962963b2993eb650",
+      "md5": "c52a2c5e4dcbe12372067b3cdf2fe36c",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_windows_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_windows_arm_2k.jpg",
+      "bytes": 3333067,
+      "sha256": "963ececefba6c4a104a32258e611f250ea1f715fba747f7a0a640b7e4603f1b6",
+      "md5": "f0b8598915f3fd4def4c7cce659a4239",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_windows_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_windows_diff_2k.jpg",
+      "bytes": 2316599,
+      "sha256": "2ca66aa0a753ab7fb6dcf605ec64a90fe116d6271719b20ee1a2069b568d2edd",
+      "md5": "121d76deede671d436ef38a1dfd9a5db",
+      "api_md5_verified": true
+    },
+    {
+      "path": "models/modular_factory_facade/2k/textures/modular_factory_facade_windows_nor_gl_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/2k/modular_factory_facade/modular_factory_facade_windows_nor_gl_2k.jpg",
+      "bytes": 2675074,
+      "sha256": "7d66b69bf4715555085b1d3c0f95fc2e28f325d8a1ab7a68d1078dca7db7ab04",
+      "md5": "fa9a037f50c56cce1416ea27b99609ad",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/brick_wall_001/api-files.json",
+      "url": "https://api.polyhaven.com/files/brick_wall_001",
+      "bytes": 26857,
+      "sha256": "2f8b0895120ed931ba41fe4fad4bbae060b40503e6eefa4bfa825bc2157e2f81",
+      "md5": "d9a128e1fb372b983c12325371512881",
+      "api_md5_verified": false
+    },
+    {
+      "path": "textures/brick_wall_001/api-info.json",
+      "url": "https://api.polyhaven.com/info/brick_wall_001",
+      "bytes": 990,
+      "sha256": "ce6c8917d60817f2e233082c4d96ea6eb8792e0b798df1a2cfdf3a69b44c91bf",
+      "md5": "9b40123dd747856d0fb7e21398ea6f91",
+      "api_md5_verified": false
+    },
+    {
+      "path": "textures/brick_wall_001/2k/brick_wall_001_diffuse_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/brick_wall_001/brick_wall_001_diffuse_2k.jpg",
+      "bytes": 2043756,
+      "sha256": "aefa7f3743282de2c7df4e4282c868de204239ac3c94e818b1ef74f2a2d74f1a",
+      "md5": "0f478f67d252a1fa7b351460a19965bd",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/brick_wall_001/2k/brick_wall_001_nor_gl_2k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/brick_wall_001/brick_wall_001_nor_gl_2k.png",
+      "bytes": 10160813,
+      "sha256": "186647594418f425a3bb757f444144c01a1eda7a9f109c49b9a09400b3ff8607",
+      "md5": "150673fc4074ae533f7a940ef7cf6ce5",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/brick_wall_001/2k/brick_wall_001_rough_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/brick_wall_001/brick_wall_001_rough_2k.jpg",
+      "bytes": 788257,
+      "sha256": "96a124344ee8ace616cf4397324b7b2e47c4f07b6961d12bc19a7b90d2bf61a0",
+      "md5": "3218b14608165fb4903dcca0e127c005",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/brick_wall_001/2k/brick_wall_001_ao_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/brick_wall_001/brick_wall_001_ao_2k.jpg",
+      "bytes": 1052369,
+      "sha256": "2bb16e9aaa1a48f5779e31126117665756670553b4e25aca35ed817183c891e3",
+      "md5": "bde8859a1e9febee40b6316bf641181b",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/brick_wall_001/2k/brick_wall_001_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/brick_wall_001/brick_wall_001_arm_2k.jpg",
+      "bytes": 436079,
+      "sha256": "0d6c6a14399c34350e4152680d95ed636a9bbd36db8e5ae05f68272d3f9520e2",
+      "md5": "0f0ba5357b1c62fd76945e63d2a6e58e",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/clean_asphalt/api-files.json",
+      "url": "https://api.polyhaven.com/files/clean_asphalt",
+      "bytes": 26213,
+      "sha256": "4c8cfadc6f2dcfd5092b8d75c62ee5a6ad731a56870dc0c5c86ccd6a2891e63f",
+      "md5": "fd7ed50d14b1f4f582b6e3404d1d2a5b",
+      "api_md5_verified": false
+    },
+    {
+      "path": "textures/clean_asphalt/api-info.json",
+      "url": "https://api.polyhaven.com/info/clean_asphalt",
+      "bytes": 1012,
+      "sha256": "4f9e22d20c670413066735188f246fd75460413ef76bcab69d87acb18531ed6c",
+      "md5": "c972ad5568075d109729178cfb965118",
+      "api_md5_verified": false
+    },
+    {
+      "path": "textures/clean_asphalt/2k/clean_asphalt_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/clean_asphalt/clean_asphalt_diff_2k.jpg",
+      "bytes": 3314999,
+      "sha256": "9d58f263b695c268e391aa39ea2f6b30ab9f36d279715cc78593a4d43368039c",
+      "md5": "d3afa117daf0846a743bbf5b4eb2464d",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/clean_asphalt/2k/clean_asphalt_nor_gl_2k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/clean_asphalt/clean_asphalt_nor_gl_2k.png",
+      "bytes": 22989548,
+      "sha256": "eb1bb30f0d906ea8b38543cb6add6854ef5bd0fce0ef073b2f83e0d2d3e9ca8a",
+      "md5": "bed7ba9c47e0ebd986772f6015dc9300",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/clean_asphalt/2k/clean_asphalt_rough_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/clean_asphalt/clean_asphalt_rough_2k.jpg",
+      "bytes": 2898463,
+      "sha256": "3b5afbcee7e27fa8908b0e191dd7eda5d4239bbfe68f9ce0b84e4f55f708d2e7",
+      "md5": "b2dfdcd35bd5462dd8b275c6adc68d74",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/clean_asphalt/2k/clean_asphalt_ao_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/clean_asphalt/clean_asphalt_ao_2k.jpg",
+      "bytes": 3141137,
+      "sha256": "581a6b5a1d40b599d1ce73a9eb1125acaa5ac09cb4dbaf33c5e0b1bcfdc8dae3",
+      "md5": "72b00076439b3aff9819e51ad6a8dbf9",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/clean_asphalt/2k/clean_asphalt_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/clean_asphalt/clean_asphalt_arm_2k.jpg",
+      "bytes": 3461113,
+      "sha256": "88e7f69b2b749559841c46c5f7732c1dc59f15acca7bb8f27c6a8b3a6f22cfac",
+      "md5": "683b881a2b614cd57fd518102f6ce99a",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/concrete_pavement_02/api-files.json",
+      "url": "https://api.polyhaven.com/files/concrete_pavement_02",
+      "bytes": 28570,
+      "sha256": "6aa03588d25ec332a50dc7b95ab1e896eee1ed3c704eefa714dcf6ae79622a64",
+      "md5": "8fb62ddb21b69e97e86672a80ceccc87",
+      "api_md5_verified": false
+    },
+    {
+      "path": "textures/concrete_pavement_02/api-info.json",
+      "url": "https://api.polyhaven.com/info/concrete_pavement_02",
+      "bytes": 998,
+      "sha256": "304d4b4838f1a7c194ffafe52ab3fddb95beaa79f7d0945899af6109c7a46535",
+      "md5": "88c1321bd77a95cb8465f4d8ad26fbe1",
+      "api_md5_verified": false
+    },
+    {
+      "path": "textures/concrete_pavement_02/2k/concrete_pavement_02_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_pavement_02/concrete_pavement_02_diff_2k.jpg",
+      "bytes": 4215026,
+      "sha256": "a634f169ef1bb928585340f7feac69375b2bbbdfc0448e316dbaebe03bd5bf89",
+      "md5": "d0aa888aa34ab72209591e0190d23b67",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/concrete_pavement_02/2k/concrete_pavement_02_nor_gl_2k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/concrete_pavement_02/concrete_pavement_02_nor_gl_2k.png",
+      "bytes": 24108590,
+      "sha256": "73be3d4054ed5689d8e64b935da89a0ab6fde3d4cf15067ce09559eb5053903d",
+      "md5": "93a8898d665d609a3f8ec8ba6474b800",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/concrete_pavement_02/2k/concrete_pavement_02_rough_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_pavement_02/concrete_pavement_02_rough_2k.jpg",
+      "bytes": 2243259,
+      "sha256": "788dcdd015bafdf8759b83294628dc6cce464a5d38bc98e8f4458373941f8bc7",
+      "md5": "1444bb4d7474d80f61d250839b973ec7",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/concrete_pavement_02/2k/concrete_pavement_02_ao_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_pavement_02/concrete_pavement_02_ao_2k.jpg",
+      "bytes": 2904164,
+      "sha256": "b7e90bb77056bb4ffbe1b082b49862068d6a062f607e24585ed249d3ca92e598",
+      "md5": "2a3242291fff60dc10f29eea8fded23c",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/concrete_pavement_02/2k/concrete_pavement_02_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/concrete_pavement_02/concrete_pavement_02_arm_2k.jpg",
+      "bytes": 2717807,
+      "sha256": "31db270fb5f33732bd2099086c292f30d891485cb18505a0780f93812e608f24",
+      "md5": "57d3d0757ba5e46fe1cf198337c2ffd3",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/concrete_pavement_02/diffuse.jpg",
+      "bytes": 4215026,
+      "sha256": "a634f169ef1bb928585340f7feac69375b2bbbdfc0448e316dbaebe03bd5bf89",
+      "source_alias_of": "textures/concrete_pavement_02/2k/concrete_pavement_02_diff_2k.jpg"
+    },
+    {
+      "path": "textures/concrete_pavement_02/normal.png",
+      "bytes": 24108590,
+      "sha256": "73be3d4054ed5689d8e64b935da89a0ab6fde3d4cf15067ce09559eb5053903d",
+      "source_alias_of": "textures/concrete_pavement_02/2k/concrete_pavement_02_nor_gl_2k.png"
+    },
+    {
+      "path": "textures/concrete_pavement_02/arm.jpg",
+      "bytes": 2717807,
+      "sha256": "31db270fb5f33732bd2099086c292f30d891485cb18505a0780f93812e608f24",
+      "source_alias_of": "textures/concrete_pavement_02/2k/concrete_pavement_02_arm_2k.jpg"
+    },
+    {
+      "path": "textures/wooden_planks/api-files.json",
+      "url": "https://api.polyhaven.com/files/wooden_planks",
+      "bytes": 26203,
+      "sha256": "43c726de8b6b18f2774b013cb866b2399606d98288315026df7593ca8dfe61a3",
+      "md5": "ef6124acf42e6cfd1ec56bf6133dd428",
+      "api_md5_verified": false
+    },
+    {
+      "path": "textures/wooden_planks/api-info.json",
+      "url": "https://api.polyhaven.com/info/wooden_planks",
+      "bytes": 947,
+      "sha256": "468f903e7f6ae7981cac95ac5500a4ef63ccc29586d002cff941869d48b3c60b",
+      "md5": "26c6a2dea65cc0f0b944c114d3043b65",
+      "api_md5_verified": false
+    },
+    {
+      "path": "textures/wooden_planks/2k/wooden_planks_diff_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wooden_planks/wooden_planks_diff_2k.jpg",
+      "bytes": 1940468,
+      "sha256": "02a124390e368fe7ae4bb98235fd02113cd4159fd5a7ea580ccba3e319b3577b",
+      "md5": "501f2a9c15c15522d936c71d96375a1f",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/wooden_planks/2k/wooden_planks_nor_gl_2k.png",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/2k/wooden_planks/wooden_planks_nor_gl_2k.png",
+      "bytes": 20481276,
+      "sha256": "a38653b1a01f274bb6983887d7ca914074666b21ce7e42680144515d87d7b122",
+      "md5": "1402c72859a04b2c8b4464d208294f13",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/wooden_planks/2k/wooden_planks_rough_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wooden_planks/wooden_planks_rough_2k.jpg",
+      "bytes": 1010429,
+      "sha256": "6b9761d9955a6405e73d0040348cf856bfa3d94127baab3b177cdd8d27390f95",
+      "md5": "352a474f0ddb002fe1b02d61c48d68ea",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/wooden_planks/2k/wooden_planks_ao_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wooden_planks/wooden_planks_ao_2k.jpg",
+      "bytes": 2225631,
+      "sha256": "e1b2e7cb192bb91142f7c252b141a290551c46ffe30fbf9d4e1cd1fba9ef0da2",
+      "md5": "b3f36036e7f3db36cac48b761fe5231c",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/wooden_planks/2k/wooden_planks_arm_2k.jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/wooden_planks/wooden_planks_arm_2k.jpg",
+      "bytes": 1979267,
+      "sha256": "1a7f957ef671fbf891deabc61dd454f1d8b2ae49d5b4fe0476dd0f2698d98e13",
+      "md5": "eefed394c850e1cd888418ad0827e3f3",
+      "api_md5_verified": true
+    },
+    {
+      "path": "textures/wooden_planks/diffuse.jpg",
+      "bytes": 1940468,
+      "sha256": "02a124390e368fe7ae4bb98235fd02113cd4159fd5a7ea580ccba3e319b3577b",
+      "source_alias_of": "textures/wooden_planks/2k/wooden_planks_diff_2k.jpg"
+    },
+    {
+      "path": "textures/wooden_planks/normal.png",
+      "bytes": 20481276,
+      "sha256": "a38653b1a01f274bb6983887d7ca914074666b21ce7e42680144515d87d7b122",
+      "source_alias_of": "textures/wooden_planks/2k/wooden_planks_nor_gl_2k.png"
+    },
+    {
+      "path": "textures/wooden_planks/arm.jpg",
+      "bytes": 1979267,
+      "sha256": "1a7f957ef671fbf891deabc61dd454f1d8b2ae49d5b4fe0476dd0f2698d98e13",
+      "source_alias_of": "textures/wooden_planks/2k/wooden_planks_arm_2k.jpg"
+    }
+  ],
+  "download_bytes": 239681394,
+  "base_audit_commit": "fc135c8a10b7e54b44d2e97f84d7a662b03ad948",
+  "base_audit_run": 40866427252
+}

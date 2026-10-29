@@ -1,0 +1,1 @@
+BRAXHORN CITY real Unity 6 preview at 48d81f1f998b. Desktop QA passed. NOVA walk collision remains on this pinned player; next source branch changes it. Physical phone, lift and full walk NOT accepted. No modifications to production, source gym or Brax rigs.
