@@ -1,0 +1,75 @@
+name: Validate bounded native Unity city loading
+on:
+  push:
+    branches: [codex/unity-full-city-20261029]
+    paths: ['unity-release/ios-stream-loader.js','unity-release/patch-ios-loader.py','unity-release/check-ios-loader.mjs','.github/workflows/unity-city-ios-loader.yml']
+permissions:
+  contents: read
+concurrency:
+  group: unity-city-ios-loader
+  cancel-in-progress: false
+jobs:
+  validate-loader:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-full-city-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Read loader fix from existing city branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-release
+          persist-credentials: false
+      - name: Reuse exact published city binary, not another export or Unity build
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: dcc96fa09716a69d65c08252c663282494761642
+          path: deployed
+          sparse-checkout: public/unity-gym
+          persist-credentials: false
+          lfs: false
+      - name: Verify all original data and prepare only loader changes
+        run: |
+          python3 unity-release/patch-ios-loader.py
+          node --check deployed/public/unity-gym/city-transport.js
+          node --check unity-release/check-ios-loader.mjs
+      - name: Install WebKit and Chromium validation
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Check native WebKit transport and actual connected Unity player
+        run: node unity-release/check-ios-loader.mjs
+      - name: Require successful test and preserve only the three reviewed text changes
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,pathlib,shutil
+          root=pathlib.Path('deployed/public/unity-gym')
+          qa=json.loads(pathlib.Path('ios-review/ios-loader-report.json').read_text())
+          assert qa['passed'] is True and qa['checks'] and all(x['passed'] for x in qa['checks'])
+          assert qa['sourceCommit']=='19c71c167d4426523a251b94c3aeabbe9664aad5'
+          assert qa['physicalIPhoneValidated'] is False
+          before=json.loads(pathlib.Path('ios-review/asset-identity.json').read_text())
+          allowed={'city-transport.js','index.html','release.json'}
+          for name,sha in before['originalFiles'].items():
+              if name not in allowed:assert hashlib.sha256((root/name).read_bytes()).hexdigest()==sha,name
+          out=pathlib.Path('ios-patch');out.mkdir()
+          for name in sorted(allowed):shutil.copyfile(root/name,out/name)
+          shutil.copyfile('ios-review/ios-loader-report.json',out/'qa.json')
+          shutil.copyfile('ios-review/asset-identity.json',out/'asset-identity.json')
+          print('LOADER_FIX_TESTED_ORIGINAL_GAME_UNCHANGED')
+          PY
+      - name: Save test logs and actual screenshots even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-city-ios-review-${{ github.sha }}
+          path: ios-review/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Save tested loader patch, no automatic publication
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-city-ios-patch-${{ github.sha }}
+          path: ios-patch/
+          if-no-files-found: error
+          retention-days: 7
