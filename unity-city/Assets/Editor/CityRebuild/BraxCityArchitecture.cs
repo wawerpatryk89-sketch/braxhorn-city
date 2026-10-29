@@ -35,7 +35,7 @@ public static class BraxCityArchitecture
         new Building("viaduct_corner","BRAXHORN",-61.4f,-48,11.6f,20.6f,8),
         new Building("workshop","WARSZTAT",-87,-71,11.6f,20.6f,6,false,true),
         new Building("estate_corner","KAWIARNIA",-104,-87,11.6f,20.6f,9),
-        new Building("quay_corner","NABRZEŻE",52,66,36.1f,60,9,true),
+        new Building("quay_corner","BRAXHORN TOWER",52,66,36.1f,60,9,true),
         new Building("bakery","PIEKARNIA",18,32,36.1f,48,6,true),
         new Building("gallery","GALERIA",-10,2,36.1f,48,8,true,true),
         new Building("office_entrance","BRAXHORN",-22,-10,36.1f,48,7,true,true),
