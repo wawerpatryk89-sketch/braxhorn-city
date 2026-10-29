@@ -4,7 +4,6 @@ on:
     branches: [codex/city-r1-continuation-20261029]
     paths:
       - .github/workflows/city-r1-lift-review.yml
-      - unity-tools/city-rebuild/check_lift.mjs
 permissions:
   contents: read
   actions: read

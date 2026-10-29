@@ -26,6 +26,8 @@ public sealed class BraxCityElevator : MonoBehaviour
     const float DoorSeconds = 1.35f;
     const float InteractionRadius = 2.75f;
 
+    bool applicationSuspended;
+
     public bool IsTravelling { get { return phase == Phase.Moving; } }
     public float CurrentY { get { return cabin ? cabin.position.y : lowerY; } }
     public string Context
@@ -111,9 +113,35 @@ public sealed class BraxCityElevator : MonoBehaviour
         return true;
     }
 
+    // Reopen before a moving leaf can trap the player's capsule at the sill.
+    bool DoorwayOccupied()
+    {
+        Vector3 at=player.transform.position;
+        return Mathf.Abs(at.y-cabin.position.y)<2.3f &&
+            Mathf.Abs(at.x-shaftCenter.x)<1.55f+player.body.radius &&
+            Mathf.Abs(at.z-entranceZ)<player.body.radius+.35f;
+    }
+
+    void RecoverAtDepartureLanding()
+    {
+        // Exceptional recovery only, never the normal transport mechanism.
+        // The old controller disabled itself mid-shaft, leaving no usable exit.
+        float landing=currentFloor==0?lowerY:upperY;
+        cabin.position=new Vector3(cabin.position.x,landing,cabin.position.z);
+        destination=currentFloor;
+        passenger=false;
+        phase=Phase.Opening;
+        SetDoors(0f);
+        Physics.SyncTransforms();
+        player.TravelTo(new Vector3(shaftCenter.x,landing+.05f,shaftCenter.y));
+        Debug.LogError("CITY_LIFT_RECOVERED_AT_DEPARTURE landing="+currentFloor);
+    }
+
+    void OnApplicationPause(bool suspended) { applicationSuspended=suspended; }
+
     void Update()
     {
-        if(!player || !cabin)return;
+        if(!player || !cabin || applicationSuspended || player.IsPaused)return;
         float delta=Mathf.Min(Time.deltaTime,.05f);
         switch(phase)
         {
@@ -122,6 +150,13 @@ public sealed class BraxCityElevator : MonoBehaviour
                 if(openness>=.999f){SetDoors(1);phase=Phase.Open;}
                 break;
             case Phase.Closing:
+                if(DoorwayOccupied())
+                {
+                    destination=currentFloor;
+                    passenger=false;
+                    phase=Phase.Opening;
+                    break;
+                }
                 SetDoors(openness-delta/DoorSeconds);
                 if(openness<=.001f)
                 {
@@ -136,6 +171,11 @@ public sealed class BraxCityElevator : MonoBehaviour
                 }
                 break;
             case Phase.Moving:
+                // Reset/map travel may deliberately move the player away.
+                // Do not keep adding lift displacement to that new position.
+                Vector3 rider=player.transform.position;
+                if(passenger && (Mathf.Abs(rider.x-shaftCenter.x)>1.65f ||
+                    Mathf.Abs(rider.z-shaftCenter.y)>1.65f)) passenger=false;
                 float target=destination==0?lowerY:upperY;
                 float before=cabin.position.y;
                 float after=Mathf.MoveTowards(before,target,Speed*delta);
@@ -149,7 +189,7 @@ public sealed class BraxCityElevator : MonoBehaviour
                     if(Mathf.Abs(player.transform.position.y-after)>.65f)
                     {
                         Debug.LogError("CITY_LIFT_SAFETY_STOP player lost the physical moving floor");
-                        enabled=false;
+                        RecoverAtDepartureLanding();
                         return;
                     }
                 }

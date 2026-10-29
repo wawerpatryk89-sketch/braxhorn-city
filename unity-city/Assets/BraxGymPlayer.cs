@@ -21,6 +21,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private float actionEnd, hitAt, stateAt;
     private string action = "Idle";
     private bool hitPending, doorOpen, paused, runEnabled = true, soundEnabled = true;
+    public bool IsPaused => paused;
     private float doorAngle;
     private Vector2[] bagSwing, bagVelocity;
     private Quaternion[] bagRestRotation;

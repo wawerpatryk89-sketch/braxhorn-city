@@ -1,0 +1,150 @@
+name: R1 city continuation - elevator safety build
+
+on:
+  push:
+    branches:
+      - codex/city-r1-continuation-20261029
+    paths:
+      - '.github/workflows/city-r1-build.yml'
+      - 'unity-city/**'
+      - 'unity-tools/city-rebuild/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: city-r1-continuation-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unity-compile:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout isolated street branch (never main)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-city
+            unity-tools
+            unity-release
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+            asset-library/sources/sofa_02
+          persist-credentials: false
+          lfs: false
+      - name: Restore exact preserved original gym geometry
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+      - name: Restore exact original city and separate estate
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40840263799
+          github-token: ${{ github.token }}
+          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
+          path: unity-city/Assets/Source/City/
+      - name: Restore authored facades and PBR materials (audited source archive)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40869502253
+          github-token: ${{ github.token }}
+          name: city-rebuild-curated-extended-3c98ccd919409da59d8145c0171b0776bc65b93d
+          path: unity-city/Assets/
+      - name: Verify source integrity and prepare assets unchanged
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6
+          python3 unity-tools/city-rebuild/check_brand_sources.py
+          python3 -m compileall -q unity-tools
+          python3 unity-tools/prepare_playable.py
+          python3 unity-tools/premium_prepare.py
+          python3 unity-tools/premium_refinements.py
+          python3 unity-tools/city/prepare.py
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender
+          blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
+          git diff --exit-code -- unity-city/Assets unity-city/Packages unity-city/ProjectSettings unity-tools unity-release .github/workflows
+      - name: Build actual Unity 6.0.58f2 WebGL player (no publication)
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxGymBuild.BuildCity
+          versioning: None
+          allowDirtyBuild: true
+      - name: Verify compiled player bytes and full SHA provenance
+        run: python3 unity-tools/city-rebuild/verify_unity_output.py
+      - name: Package isolated reviewed candidate (not hosted)
+        run: |
+          python3 unity-tools/city-rebuild/package.py
+          node unity-tools/city-rebuild/check_transport.mjs
+      - name: Preserve hard errors, build provenance and scene reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-access-build-report-${{ github.sha }}
+          path: |
+            build/WebGL/*.json
+            city-rebuild-review/
+            unity-city/Assets/Source/City/*.json
+            unity-city/Assets/Source/Premium/*.json
+            unity-city/Assets/Source/CityRebuild/source-audit.json
+            unity-city/Logs/
+            artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Save physical compiled WebGL files for comparison, never production
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-access-player-${{ github.sha }}
+          path: unity-preview/
+          if-no-files-found: error
+          retention-days: 14
+
+  physical-lift-review:
+    needs: unity-compile
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+          lfs: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: city-access-player-${{ github.sha }}
+          path: unity-preview
+      - name: Install real WebGL browser
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify physical lift ascent, pause, descent and lobby exit
+        env:
+          EXPECTED_BUILD_SHA: ${{ github.sha }}
+          TEST_LIFT_PAUSE: '1'
+        run: node unity-tools/city-rebuild/check_lift.mjs
+      - name: Save actual Unity evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: r1-lift-review-${{ github.sha }}
+          path: city-lift-review/
+          if-no-files-found: error
+          retention-days: 14

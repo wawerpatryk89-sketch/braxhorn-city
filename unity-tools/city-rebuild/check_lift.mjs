@@ -71,6 +71,13 @@ try {
  check('Cabin offers a real upward ride',low.context.includes('WJEDŹ'),brief(low));
  await send('Command','action');
  const top=initial.points.find(p=>p.id==='R1_ELEVATOR_TOP').position.y;
+ if(process.env.TEST_LIFT_PAUSE==='1') {
+  await until(y=>window.BraxhornState.y>y+2,low.y,120000);
+  await send('Command','pause');await until(()=>window.BraxhornState.paused);
+  const paused=await state();await page.waitForTimeout(1500);
+  check('Lift holds passenger position while game is paused',Math.abs((await state()).y-paused.y)<.08,{before:brief(paused),after:brief(await state())});
+  await send('Command','pause');await until(()=>!window.BraxhornState.paused);
+ }
  await until(y=>window.BraxhornState.y>=y-.15,top,360000);
  a=await state();await until(t=>window.BraxhornState.simulationTime>=t+2,a.simulationTime);
  await shot('04-top');
