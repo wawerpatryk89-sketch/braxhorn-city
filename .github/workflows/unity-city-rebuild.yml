@@ -36,8 +36,19 @@ jobs:
           github-token: ${{ github.token }}
           name: city-rebuild-curated-sources-fc135c8a10b7e54b44d2e97f84d7a662b03ad948
           path: curated/
+      - name: Add verified pavement and wooden deck PBR sources
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0
+          python3 unity-tools/city-rebuild/extend_curated.py --source curated/Source/CityRebuild
       - name: Verify original hashes and collect a small review archive
         run: python3 unity-tools/city-rebuild/split_report.py --source curated/Source/CityRebuild --output city-asset-report
+      - name: Preserve complete extended original sources for the Unity build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-curated-extended-${{ github.sha }}
+          path: curated/
+          if-no-files-found: error
+          retention-days: 14
       - name: Preserve small review report independently of the source archive
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

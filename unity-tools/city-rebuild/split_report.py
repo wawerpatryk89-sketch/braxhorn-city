@@ -31,7 +31,7 @@ def main():
     variants = {}
     for variant in args.source.glob("models/*/1k"):
         variants[variant.parent.name] = sum(p.stat().st_size for p in variant.rglob("*") if p.is_file())
-    provenance = {"source_run": 40866427252, "source_commit": report["commit"],
+    provenance = {"base_source_run": 40866427252, "source_commit": report["commit"],
                   "source_artifact": "city-rebuild-curated-sources-fc135c8a10b7e54b44d2e97f84d7a662b03ad948",
                   "verified_files": len(report["files"]), "small_report_files": copied,
                   "original_1k_variant_bytes": variants,
