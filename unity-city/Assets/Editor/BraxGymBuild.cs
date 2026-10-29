@@ -189,7 +189,7 @@ public static class BraxGymBuild
         if(result.summary.result!=BuildResult.Succeeded)throw new Exception("Playable Unity build failed "+result.summary.result);
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
-        if(fullCity)BraxCityBuild.WriteReport(output,sourceCommit,cityReviewOnly);
+        if(fullCity)BraxCityBuild.WriteReport(output,sourceCommit,cityReviewOnly,segmentReview);
         if(segmentReview)BraxCitySegmentReview.WriteReport(output);
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }
