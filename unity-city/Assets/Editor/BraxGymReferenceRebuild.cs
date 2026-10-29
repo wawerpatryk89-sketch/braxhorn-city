@@ -955,7 +955,7 @@ public static class BraxGymReferenceRebuild
                 int a=i*2,b=((i+1)%n)*2;
                 triangles.AddRange(new[]{
                     topCenter,b,a,topCenter+1,a+1,b+1,
-                    a,a+1,b,b,a+1,b+1
+                    a,b,a+1,b,b+1,a+1
                 });
             }
             var mesh=new Mesh{name="Luxury rounded counter solid with shaped sides"};
