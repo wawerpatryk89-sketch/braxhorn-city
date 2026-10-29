@@ -128,7 +128,8 @@ async def verify():
                           "exception", "fatal", "failed to fetch", "out of memory"])]
                 result["fatal"] = fatal[:12]
                 result["visualPass"] = bool(result["loaded"] and
-                   result["pixel_check"] == "NO_MASS_MAGENTA" and\n                   result.get("braxGzipTransportIntact") is True and not fatal)
+                   result["pixel_check"] == "NO_MASS_MAGENTA" and
+                   result.get("braxGzipTransportIntact") is True and not fatal)
             finally:
                 await browser.close()
     finally:
