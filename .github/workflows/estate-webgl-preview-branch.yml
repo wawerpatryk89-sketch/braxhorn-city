@@ -1,0 +1,74 @@
+name: BRAXHORN Estate Unity6 WebGL - isolated static preview branch
+on:
+  push:
+    branches:
+      - work/unity6-estate-migration-20261029
+    paths:
+      - ".github/workflows/estate-webgl-preview-branch.yml"
+permissions:
+  contents: write
+  actions: read
+jobs:
+  prepare-static-preview-branch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github
+      - name: Download exact successful Unity WebGL CI artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run download 40964078557 -R "${GITHUB_REPOSITORY}" \
+            -n estate-unity6-PARTIAL-NOT-1TO1-c484745eeb6abc2bd7a3d3c0e9836ca4f292de05 \
+            -D /tmp/estate-preview-artifact
+          test -s /tmp/estate-preview-artifact/EstatePartial_NOT_1TO1/index.html
+          test -s /tmp/estate-preview-artifact/EstatePartial_NOT_1TO1/Build/EstatePartial_NOT_1TO1.wasm.gz
+          test -s /tmp/estate-preview-artifact/EstatePartial_NOT_1TO1/StreamingAssets/Estate/brax.glb.gz
+      - name: Publish only compiled static files to a separate Git branch (NO deployment)
+        run: |
+          set -euo pipefail
+          REF="refs/heads/preview/estate-unity6-webgl-20261029"
+          if git ls-remote --exit-code --heads origin "$REF" >/dev/null; then
+            echo "::notice::Isolated preview branch already exists; not overwriting."
+            exit 0
+          fi
+          git switch --orphan preview/estate-unity6-webgl-20261029
+          cp -a /tmp/estate-preview-artifact/EstatePartial_NOT_1TO1/. .
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          c = {
+            "version": 2,
+            "framework": None,
+            "buildCommand": None,
+            "outputDirectory": ".",
+            "headers": [
+              {"source": "/Build/(.*)\\.wasm\\.gz", "headers": [
+                {"key": "Content-Type", "value": "application/wasm"},
+                {"key": "Content-Encoding", "value": "gzip"}]},
+              {"source": "/Build/(.*)\\.framework\\.js\\.gz", "headers": [
+                {"key": "Content-Type", "value": "application/javascript"},
+                {"key": "Content-Encoding", "value": "gzip"}]},
+              {"source": "/Build/(.*)\\.data\\.gz", "headers": [
+                {"key": "Content-Type", "value": "application/octet-stream"},
+                {"key": "Content-Encoding", "value": "gzip"}]},
+              {"source": "/StreamingAssets/(.*)", "headers": [
+                {"key": "Cache-Control", "value": "public, max-age=3600"}]}
+            ]
+          }
+          Path("vercel.json").write_text(json.dumps(c, indent=2) + "\n")
+          Path("README.md").write_text(
+            "# BRAXHORN UNITY ESTATE TEST BUILD\n"
+            "This is the isolated partial Unity 6 WebGL build from GitHub Actions run 40964078557.\n"
+            "No full 1:1 sign-off: 3 original models missing and device QA pending.\n")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html Build StreamingAssets TemplateData README.md vercel.json
+          git commit -m "preview(estate): isolated original Unity6 partial WebGL build [skip ci]"
+          git push origin HEAD:"$REF"
