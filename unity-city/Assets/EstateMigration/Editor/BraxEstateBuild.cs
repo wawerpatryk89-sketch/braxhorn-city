@@ -30,7 +30,7 @@ public static class BraxEstateBuild {
   public float x0,x1,z0,z1,x,z,y,radius;
  }
  [Serializable] public class DoorData {
-  public string id,label;public float x,z,yaw,width,height,base;
+  public string id,label;public float x,z,yaw,width,height,@base;
   public bool single,glass,wood;public int leafCount,initialSwing;
  }
  [Serializable] public class PlantData {
