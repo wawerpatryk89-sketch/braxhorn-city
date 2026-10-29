@@ -30,6 +30,7 @@ public static class BraxGymReferenceRebuild
         public int sourceMeshesClipped, removedSourceTriangles, generatedMeshes, generatedTriangles, privacyRays, privacyBlocked;
         public int ceilingFansConfigured, animatedCeilingFans, premiumStrengthModelsPlaced;
         public bool singleEntranceSofaRemoved, receptionCurved, loungeCorrected, speedBagStandInstalled;
+        public bool legacyReceptionRemoved, receptionMeshVisible, speedPearMeshFinite;
         public bool privacyWithAllDoorsOpen, originalEntrancePreserved, originalRingPositionPreserved;
         public bool billboardArtworkInstalled = false, muralArtworkInstalled = false, physicalIPhoneValidated = false;
         public string[] registeredDoors, requiredAssets;
@@ -79,6 +80,7 @@ public static class BraxGymReferenceRebuild
             PrepareMaterials();
             CutAnnexDoorway();
             ClearObsoleteEquipment();
+            VerifyLegacyReceptionCleared();
             FinishExistingSurfaces();
             BuildTrainingMat();
             BuildRingFinishing();
@@ -98,6 +100,7 @@ public static class BraxGymReferenceRebuild
             if (report.ceilingFansConfigured != 2 || report.animatedCeilingFans != 2)
                 throw new InvalidOperationException("Two real high-ceiling ventilation fans with assigned animated rotors are required.");
             if (!report.singleEntranceSofaRemoved || !report.receptionCurved || !report.loungeCorrected ||
+                !report.legacyReceptionRemoved || !report.receptionMeshVisible || !report.speedPearMeshFinite ||
                 !report.speedBagStandInstalled || !player.speedBag || !player.speedBag.HitBoxAssigned ||
                 report.premiumStrengthModelsPlaced != 5)
                 throw new InvalidOperationException("Final premium fitness equipment and lounge requirements not satisfied.");
@@ -322,6 +325,35 @@ public static class BraxGymReferenceRebuild
                 if (RingBounds.Contains(b.center) || BagFrameBounds.Contains(b.center)) continue;
                 UnityEngine.Object.DestroyImmediate(c.gameObject);
             }
+        }
+
+        void VerifyLegacyReceptionCleared()
+        {
+            // The former rectangular reception is carried by three indexed source
+            // furniture meshes. They must be removed *at its original location*;
+            // otherwise the new curved desk overlaps the old one visually.
+            var oldDesk = new Bounds(new Vector3(-2.0f, .69f, 10.24f),
+                new Vector3(4.8f, 1.32f, 1.20f));
+            int remaining = 0;
+            foreach (int index in new[] { 138, 141, 144 })
+            {
+                var source = FindSource(index);
+                var filter = source.GetComponent<MeshFilter>();
+                var renderer = source.GetComponent<MeshRenderer>();
+                if (!renderer || !renderer.enabled || !filter || !filter.sharedMesh) continue;
+                var vertices = filter.sharedMesh.vertices;
+                var triangles = filter.sharedMesh.triangles;
+                for (int i = 0; i < triangles.Length; i += 3)
+                {
+                    Vector3 middle = (vertices[triangles[i]] + vertices[triangles[i+1]] +
+                        vertices[triangles[i+2]]) / 3f;
+                    if (oldDesk.Contains(filter.transform.TransformPoint(middle))) remaining++;
+                }
+            }
+            if (remaining != 0)
+                throw new InvalidOperationException("Original box-shaped reception is still visible: " + remaining + " triangles");
+            report.legacyReceptionRemoved = true;
+            Debug.Log("BRAXHORN_RECEPTION_LEGACY_REMOVED: original furniture triangles=0");
         }
 
         void FinishExistingSurfaces()
@@ -897,8 +929,15 @@ public static class BraxGymReferenceRebuild
             AddArm(walnut,RequiredTexture("WoodARM.jpg",false,true),"Wood");
             MeshObject(hall,"Premium reception shaped full-radius toe plinth",
                 RoundedReceptionGeometry(.055f,.145f,0f),blackSteel).localPosition=p;
-            MeshObject(hall,"Premium reception bowed one-end graphite body",
-                RoundedReceptionGeometry(.145f,1.045f,0f),graphite).localPosition=p;
+            var counter = MeshObject(hall,"Premium reception bowed one-end graphite body",
+                RoundedReceptionGeometry(.145f,1.045f,0f),graphite);
+            counter.localPosition=p;
+            // Real shaped geometry must be visible, not merely a creation flag.
+            var counterBounds = counter.GetComponent<MeshRenderer>().bounds;
+            if (counterBounds.size.x < 3.45f || counterBounds.size.y < .85f ||
+                counterBounds.size.z < 1.10f || float.IsNaN(counterBounds.center.x))
+                throw new InvalidOperationException("Premium reception mesh has invalid or missing silhouette");
+            report.receptionMeshVisible = true;
             MeshObject(hall,"Premium reception precision satin metal top edge",
                 RoundedReceptionGeometry(1.041f,1.067f,.035f),warmMetal).localPosition=p;
             MeshObject(hall,"Premium reception curved genuine walnut worktop",
@@ -910,6 +949,21 @@ public static class BraxGymReferenceRebuild
                 p+new Vector3(-1.88f,.36f,-.783f),
                 p+new Vector3(1.07f,.36f,-.783f),
                 .011f,green,8,10);
+            // Continuously follow the actually rounded right end. The accent is
+            // restrained and matches the approved black/wood/green BRAXHORN design.
+            const int arcSegments = 20;
+            var centerZ = (-.75f + .52f) * .5f;
+            var capRadius = (.52f + .75f) * .5f;
+            for (int i = 0; i < arcSegments; i++)
+            {
+                float t0 = -Mathf.PI*.5f + Mathf.PI*i/arcSegments;
+                float t1 = -Mathf.PI*.5f + Mathf.PI*(i+1)/arcSegments;
+                Vector3 from = p+new Vector3(1.07f+capRadius*Mathf.Cos(t0),.79f,
+                    centerZ+capRadius*Mathf.Sin(t0)-.013f);
+                Vector3 to = p+new Vector3(1.07f+capRadius*Mathf.Cos(t1),.79f,
+                    centerZ+capRadius*Mathf.Sin(t1)-.013f);
+                Tube(hall,"Reception curved end fine green seam",from,to,.010f,green,1,8);
+            }
             // Only the genuine project logo, never fake/generated lettering.
             Decal(hall,"BRAXHORN original reception wordmark",
                 RequiredTexture("Wordmark.png"),p+new Vector3(-.46f,.77f,-.782f),
@@ -1093,9 +1147,15 @@ public static class BraxGymReferenceRebuild
             // steel swivel stay rigidly attached to the original stand.
             var reboundPivot=Group(a,"Real speed bag rebound rotation beneath swivel");
             reboundPivot.localPosition=new Vector3(0,2.00f,.32f);
+            var pearMesh = SpeedPearMesh();
+            var bounds = pearMesh.bounds;
+            if (float.IsNaN(bounds.center.y) || float.IsInfinity(bounds.center.y) ||
+                bounds.size.y < .48f || bounds.size.x < .35f)
+                throw new InvalidOperationException("Speed pear mesh missing/invalid: refuse an invisible punching target");
             var pear=MeshObject(reboundPivot,"Full three-dimensional pear leather bag",
-                SpeedPearMesh(),leather);
+                pearMesh,leather);
             pear.localPosition=new Vector3(0,-.28f,0f);
+            report.speedPearMeshFinite = true;
             // True 3D collider moves with the leather pear and is a trigger,
             // so it never creates an invisible wall blocking the player.
             var hitbox=pear.gameObject.AddComponent<SphereCollider>();
@@ -1120,8 +1180,13 @@ public static class BraxGymReferenceRebuild
             for(int y=0;y<=latitude;y++)
             {
                 float t=y/(float)latitude;
-                float r=.021f+.205f*Mathf.Pow(Mathf.Sin(Mathf.PI*t),1.02f)*
+                // sin(PI) is slightly negative in float32. Fractional Pow of a
+                // negative value produced NaN vertices and an invisible 3D pear.
+                float positiveSine = Mathf.Max(0f, Mathf.Sin(Mathf.PI*t));
+                float r=.021f+.205f*Mathf.Pow(positiveSine,1.02f)*
                     (.78f+.22f*t);
+                if (float.IsNaN(r) || float.IsInfinity(r))
+                    throw new InvalidOperationException("Non-finite speed-pear radius at latitude "+y);
                 for(int a=0;a<=longitude;a++)
                 {
                     float angle=a*Mathf.PI*2/longitude;
@@ -1135,6 +1200,9 @@ public static class BraxGymReferenceRebuild
                     }
                 }
             }
+            if (v.Any(p=>float.IsNaN(p.x)||float.IsNaN(p.y)||float.IsNaN(p.z)||
+                    float.IsInfinity(p.x)||float.IsInfinity(p.y)||float.IsInfinity(p.z)))
+                throw new InvalidOperationException("Non-finite speed-pear vertices would hide the target");
             var m=new Mesh{name="Speedboxing real rounded pear leather mesh"};
             m.SetVertices(v);m.SetUVs(0,uv);m.SetTriangles(ix,0);
             m.RecalculateNormals();m.RecalculateBounds();return m;
