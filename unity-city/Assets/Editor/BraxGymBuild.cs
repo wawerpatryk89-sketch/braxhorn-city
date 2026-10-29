@@ -46,7 +46,27 @@ public static class BraxGymBuild
         }
         finally {Environment.SetEnvironmentVariable(key,previous);}
     }
-    private static void BuildInternal(bool fullCity,bool cityReviewOnly=false)
+    public static void BuildCitySegmentReview()
+    {
+        // Source files of both the gym and full-city build are untouched.
+        // Compiled WebGL includes one city scene, only its chosen geographical
+        // slice, and the original controlled 3D Brax.
+        const string city="BRAX_CITY_MOBILE_REVIEW",segment="BRAX_CITY_SEGMENT_REVIEW";
+        string previousCity=Environment.GetEnvironmentVariable(city);
+        string previousSegment=Environment.GetEnvironmentVariable(segment);
+        try
+        {
+            Environment.SetEnvironmentVariable(city,"1");
+            Environment.SetEnvironmentVariable(segment,"1");
+            BuildInternal(true,true,true);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(city,previousCity);
+            Environment.SetEnvironmentVariable(segment,previousSegment);
+        }
+    }
+    private static void BuildInternal(bool fullCity,bool cityReviewOnly=false,bool segmentReview=false)
     {
         if(fullCity)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
         Directory.CreateDirectory(Generated);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
@@ -147,6 +167,12 @@ public static class BraxGymBuild
         BraxGymPremium.Apply(gym,hero,bags.ToArray(),camera,light,fill,Generated);
         BraxHeroRefinements.Apply(hero,bags.ToArray(),camera,Generated);
         if(fullCity)BraxCityBuild.AttachCity(runtime);
+        if(segmentReview)
+        {
+            if(!cityReviewOnly)
+                throw new InvalidOperationException("Segment review must omit separate estate scene");
+            BraxCitySegmentReview.Apply(runtime);
+        }
         string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;
         // City-only review is a packaging boundary, never a source deletion.
@@ -164,6 +190,7 @@ public static class BraxGymBuild
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
         if(fullCity)BraxCityBuild.WriteReport(output,sourceCommit,cityReviewOnly);
+        if(segmentReview)BraxCitySegmentReview.WriteReport(output);
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }
 }
