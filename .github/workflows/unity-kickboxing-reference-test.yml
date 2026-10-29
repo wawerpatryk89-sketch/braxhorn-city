@@ -2,12 +2,12 @@ name: Build and review BRAXHORN kickboxing room test
 on:
   push:
     branches: [test/braxhorn-kickboxing-reference-20261029]
-    paths: ['unity-city/**', 'unity-tools/kickboxing/**', '.github/workflows/unity-kickboxing-reference-test.yml']
+    paths: ['unity-city/Assets/**', 'unity-city/Packages/**', 'unity-city/ProjectSettings/**', 'unity-tools/kickboxing/**', '.github/workflows/unity-kickboxing-reference-test.yml']
 permissions:
   contents: read
   actions: read
 concurrency:
-  group: unity-kickboxing-preview
+  group: unity-kickboxing-reference-test
   cancel-in-progress: false
 jobs:
   room:
@@ -61,6 +61,7 @@ jobs:
           tar -xJf /tmp/blender-4.2.3-linux-x64.tar.xz -C /tmp
           /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
           /tmp/blender-4.2.3-linux-x64/blender --background --factory-startup --disable-autoexec -t 4 --python unity-tools/kickboxing/prepare_bag.py -- --source build-source/BoxingBagSource.glb --skip-render --preview-dir kickboxing-review/bag-source
+          python3 unity-tools/kickboxing/externalize_models.py --remove-source
           git diff --exit-code -- unity-city/Assets/BraxGymPlayer.cs unity-city/Assets/City unity-city/Assets/Editor/BraxCityBuild.cs unity-city/Assets/Editor/BraxHeroRefinements.cs unity-tools/prepare_playable.py unity-tools/premium_refinements.py unity-tools/city/prepare.py
       - name: Compile the connected Unity player with the rebuilt room and annex
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
@@ -98,6 +99,7 @@ jobs:
             unity-city/Assets/PlayableGenerated/ReferenceRebuild/layout-report.json
             unity-city/Assets/Kickboxing/asset-provenance.json
             unity-city/Assets/Kickboxing/Models/BagSource.provenance.json
+            unity-city/Assets/Kickboxing/Models/native-texture-preparation.json
           if-no-files-found: warn
           retention-days: 14
       - name: Preserve compiled test player without replacing production

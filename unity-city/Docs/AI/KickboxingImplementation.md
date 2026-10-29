@@ -25,6 +25,7 @@ Existing Library gym packs were inspected first. Their low-poly bags and simplif
 | Brick Wall 10 | [Poly Haven](https://polyhaven.com/a/brick_wall_10), Dimitrios Savva | Interior dark brick; 2K albedo/normal; 1K runtime control maps |
 | Fabric Leather 01 | [Poly Haven](https://polyhaven.com/a/fabric_leather_01), Rob Tuytel | Selected leather source maps, 1K |
 | Fine Grained Wood | [Poly Haven](https://polyhaven.com/a/fine_grained_wood), Rob Tuytel | Bench and reception worktop; 1K; 0.6 m repeat; grain follows the board |
+| Rubber Tiles | [Poly Haven](https://polyhaven.com/a/rubber_tiles), Amal Kumar | Graphite rubber albedo, normal and roughness; 1K; 2 m world-sized repeat |
 | Hanging Industrial Lamp | [Poly Haven](https://polyhaven.com/a/hanging_industrial_lamp), Kuutti Siitonen | Actual manufactured pendant mesh and 1K maps |
 | Boxing gloves and bag | [Innerscene](https://www.innerscene.com/tools/library/3d-parts/boxing-gloves-and-bag-e3d766bc) | CC0 chain mesh and leather normal source for the reviewed reinforced bag derivative |
 | Compact WC | [Innerscene](https://www.innerscene.com/tools/library/3d-parts/compact-wc-close-coupled-toilet-84214efd) | Actual rounded ceramic toilet model |
@@ -42,6 +43,10 @@ The main mirror uses a real planar camera and oblique clip plane, includes the m
 
 Neutral local lights illuminate only the room layer. The original global character/city lighting is retained. New surface control maps are imported compressed PNGs, not serialized uncompressed Texture2D assets. Obsolete disabled gym mesh/filter references are removed after the finishing pass. The original character and city geometry/texture preparation are not reduced or replaced.
 
+The first actual runtime review found insufficient surface definition, old branding overlays and repeated apron lettering. The next finishing pass removes those source prints, gives the original ring a graphite woven canvas and black fabric apron with controlled single brand placements, and uses the reviewed rubber material at its measured scale. Neutral room-only indirect fill and bag task lights reveal the brick and leather. Small shared static contact masks ground the ring, reception and backroom fittings. World lettering uses depth testing so signs do not show through walls. The billboard mount is 18 by 6 m, matching the reviewed flat artwork's 3:1 ratio; the artwork is still not installed before owner approval.
+
+`externalize_models.py` moves the original Sink, Toilet and BagSwing PNG bytes into native Unity texture assets. It verifies the complete glTF graph, unchanged geometry bytes and unchanged decoded image pixels. The dedicated postprocessor compresses only these new room textures with ETC2; it does not modify city or character settings. Its memory estimates are theoretical until the build report and runtime measurements confirm the actual imported formats.
+
 `package.py` preserves the current native gzip algorithm, 65,536-byte maximum input chunks, sequential 32 MiB transport parts, exact expanded length and one Unity output allocation. It regenerates the manifest for the new compiled data and versions the transport URL. It never restores the earlier large JS inflation path.
 
 ## Validation contract
@@ -49,6 +54,8 @@ Neutral local lights illuminate only the room layer. The original global charact
 `unity-kickboxing-reference-test.yml` compiles the actual connected Unity WebGL player and runs `check.mjs`. The runner records actual screenshots and a WebM walkthrough; no generated imagery is used as runtime evidence. Failed route legs remain marked as failures and any review-camera repositioning is declared.
 
 The acceptance route covers startup/reload, movement and camera, real CDP two-touch input, run/jump/punch/kick, physical ring stairs, bag impact and damping, live reflection, all backroom doors, room access, WC privacy, fixture collision, city exit and physical return. Reports retain frame timings and available memory counters.
+
+At approximately 1 FPS in the first instrumented software-rendered run, fixed 45-second wall-time limits expired before long walks reached their destinations. Route budgets now account for physical distance and measured simulation progress, while unchanged movement, collision-stagnation checks, no-frame-progress checks and a 30-minute total limit remain enforced. This change allows functional traversal tests on the slow server; it is not a performance pass. The extra `00-matched-before-view.png` uses the exact original comparison view; `04b-mirror-character-detail.png` records a physical approach between the bags for a clearer reflection inspection.
 
 **Desktop Chromium/SwiftShader evidence is not a physical iPhone test.** The required minimum 30 FPS on the target phone remains unverified until measured on that device. Billboard approval and visual inspection of the assembled Unity scene are separate gates; compilation alone is not visual acceptance.
 

@@ -117,6 +117,7 @@ def main():
         'kickboxing-layout.json': 'unity-city/Assets/PlayableGenerated/ReferenceRebuild/layout-report.json',
         'kickboxing-assets.json': 'unity-city/Assets/Kickboxing/asset-provenance.json',
         'bag-provenance.json': 'unity-city/Assets/Kickboxing/Models/BagSource.provenance.json',
+        'kickboxing-native-textures.json': 'unity-city/Assets/Kickboxing/Models/native-texture-preparation.json',
     }.items():
         shutil.copyfile(ROOT / source, OUT / name)
     (OUT / 'robots.txt').write_text('User-agent: *\nDisallow: /\n')
@@ -126,6 +127,7 @@ def main():
         'Fabric Leather 01: Rob Tuytel / Poly Haven, CC0.\n'
         'Hanging Industrial Lamp: Kuutti Siitonen / Poly Haven, CC0.\n'
         'Fine Grained Wood: Rob Tuytel / Poly Haven, CC0, 0.6 m physical repeat.\n'
+        'Rubber Tiles: Amal Kumar / Poly Haven, CC0, 2 m physical repeat.\n'
         'Boxing gloves and bag; Compact WC; Basin pedestal sink cabinet: Innerscene, CC0.\n'
         'Reviewed bag derivative: original chain mesh and normal map, reinforced leather body, seams, straps, hardware and original BRAXHORN branding.\n'
         'Powered by Poly Haven. Full source and license URLs: kickboxing-assets.json.\n')

@@ -3,63 +3,133 @@
 <rect width="1440" height="1040" fill="#101413"/>
 <g font-family="DejaVu Sans,Arial,sans-serif">
 <text x="92" y="62" font-size="30" fill="#f2f5ef" font-weight="700">BRAXHORN KICKBOXING</text>
-<text x="92" y="97" font-size="18" fill="#b3c0b5">ETAP A · Rzut do realizacji — istniejąca sala + dobudowane zaplecze</text>
-<text x="92" y="128" font-size="14" fill="#94a799">Wymiary sali odczytane z projektu Unity. Widok od góry; wejście na dole.</text>
+<text x="92" y="97" font-size="18" fill="#b3c0b5">ETAP A · Aktualny rzut sceny — sala + zaplecze</text>
+<text x="92" y="128" font-size="14" fill="#94a799">Współrzędne projektu Unity; widok od góry, główne wejście na dole. Skala: 24 px = 1 m.</text>
 <rect x="218" y="170" width="864" height="576" fill="#242b27" stroke="#e3eadf" stroke-width="4"/>
 <rect x="218" y="170" width="864" height="576" fill="url(#grid)" stroke="none" stroke-width="0"/>
-<rect x="1082" y="410" width="180.0" height="264" fill="#293828" stroke="#8bff3a" stroke-width="4"/>
-<rect x="1181.6" y="530" width="74.40000000000009" height="138.0" fill="#36443a" stroke="#47524b" stroke-width="2"/>
-<rect x="1181.6" y="416.0" width="74.40000000000009" height="106.79999999999995" fill="#3b4541" stroke="#47524b" stroke-width="2"/>
-<rect x="1134.8" y="416.0" width="46.799999999999955" height="252.0" fill="#1b271e" stroke="#47524b" stroke-width="2"/>
-<rect x="1082" y="582.8" width="52.799999999999955" height="43.200000000000045" fill="#1b271e" stroke="none" stroke-width="0"/>
-<rect x="1131.92" y="410" width="5.759999999999991" height="171.5999999999999" fill="#bcc7ba" stroke="none" stroke-width="0"/>
-<rect x="1179.2" y="410" width="4.7999999999999545" height="98.39999999999998" fill="#bcc7ba" stroke="none" stroke-width="0"/>
-<rect x="1179.2" y="539.6" width="4.7999999999999545" height="134.39999999999998" fill="#bcc7ba" stroke="none" stroke-width="0"/>
-<rect x="1079.12" y="582.8" width="5.760000000000218" height="43.200000000000045" fill="#1b271e" stroke="none" stroke-width="0"/>
-<rect x="1179.2" y="461.6" width="4.7999999999999545" height="31.199999999999932" fill="#1b271e" stroke="none" stroke-width="0"/>
-<rect x="1179.2" y="578" width="4.7999999999999545" height="32.40000000000009" fill="#1b271e" stroke="none" stroke-width="0"/>
-<rect x="1236.8" y="549.2" width="12.0" height="103.20000000000005" fill="#18201b" stroke="#849181" stroke-width="1"/>
-<rect x="1215.2" y="563.5999999999999" width="12.0" height="69.60000000000014" fill="#6a624b" stroke="#aa9c76" stroke-width="1"/>
-<text x="1218.8" y="545.6" text-anchor="middle" font-size="12" fill="#e4ede2">SZATNIA</text>
-<text x="1218.8" y="506.0" text-anchor="middle" font-size="14" fill="#e4ede2">WC</text>
-<ellipse cx="1232.0" cy="444.79999999999995" rx="9" ry="12" fill="#dce3db"/>
-<text x="1158.8" y="393.20000000000005" text-anchor="middle" font-size="12" fill="#8bff3a">KORYTARZ</text>
-<path d="M1058 604.4000000000001H1158.8V478.4" stroke="#8bff3a" stroke-width="2.5" stroke-dasharray="7 5" fill="none" marker-end="url(#arrow)"/>
+<rect x="1082" y="410" width="180.0" height="264" fill="#1b271e" stroke="#8bff3a" stroke-width="2"/>
+<rect x="1184.0" y="524.96" width="70.79999999999995" height="141.83999999999992" fill="#36443a" stroke="none" stroke-width="0"/>
+<rect x="1184.0" y="417.20000000000005" width="70.79999999999995" height="103.43999999999994" fill="#3b4541" stroke="none" stroke-width="0"/>
+<rect x="1254.8" y="410" width="7.2000000000000455" height="264" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1096.4" y="666.8" width="165.5999999999999" height="7.2000000000000455" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1096.4" y="410" width="165.5999999999999" height="7.2000000000000455" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1082" y="410" width="14.400000000000091" height="172.79999999999995" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1082" y="626" width="14.400000000000091" height="48" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1079.6" y="582.8" width="16.800000000000182" height="43.200000000000045" fill="#1b271e" stroke="none" stroke-width="0"/>
+<rect x="1138.6399999999999" y="417.20000000000005" width="4.320000000000164" height="165.5999999999999" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1138.6399999999999" y="626" width="4.320000000000164" height="40.799999999999955" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1181.6" y="520.64" width="73.20000000000005" height="4.32000000000005" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1180.4" y="417.20000000000005" width="3.599999999999909" height="22.799999999999955" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1180.4" y="468.79999999999995" width="3.599999999999909" height="80.40000000000009" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1180.4" y="578" width="3.599999999999909" height="88.79999999999995" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1241.8400000000001" y="528.8" width="12.47999999999979" height="15.840000000000032" fill="#18201b" stroke="#849181" stroke-width="0.8"/>
+<rect x="1241.8400000000001" y="545.5999999999999" width="12.47999999999979" height="15.840000000000032" fill="#18201b" stroke="#849181" stroke-width="0.8"/>
+<rect x="1241.8400000000001" y="562.4000000000001" width="12.47999999999979" height="15.839999999999918" fill="#18201b" stroke="#849181" stroke-width="0.8"/>
+<rect x="1241.8400000000001" y="579.1999999999999" width="12.47999999999979" height="15.840000000000032" fill="#18201b" stroke="#849181" stroke-width="0.8"/>
+<rect x="1241.8400000000001" y="596.0" width="12.47999999999979" height="15.840000000000032" fill="#18201b" stroke="#849181" stroke-width="0.8"/>
+<rect x="1241.8400000000001" y="612.8" width="12.47999999999979" height="15.840000000000032" fill="#18201b" stroke="#849181" stroke-width="0.8"/>
+<rect x="1241.8400000000001" y="629.5999999999999" width="12.47999999999979" height="15.840000000000032" fill="#18201b" stroke="#849181" stroke-width="0.8"/>
+<rect x="1241.8400000000001" y="646.4000000000001" width="12.47999999999979" height="15.839999999999918" fill="#18201b" stroke="#849181" stroke-width="0.8"/>
+<rect x="1188.32" y="587.5999999999999" width="11.52000000000021" height="67.20000000000005" fill="#6a624b" stroke="#aa9c76" stroke-width="1"/>
+<path d="M1184.96 594.3199999999999L1188.56 594.3199999999999" fill="none" stroke="#a5b2a0" stroke-width="1.5" stroke-dasharray=""/>
+<path d="M1184.96 610.4000000000001L1188.56 610.4000000000001" fill="none" stroke="#a5b2a0" stroke-width="1.5" stroke-dasharray=""/>
+<path d="M1184.96 626.48L1188.56 626.48" fill="none" stroke="#a5b2a0" stroke-width="1.5" stroke-dasharray=""/>
+<path d="M1184.96 642.5600000000001L1188.56 642.5600000000001" fill="none" stroke="#a5b2a0" stroke-width="1.5" stroke-dasharray=""/>
+<text x="1217.6" y="541.52" text-anchor="middle" font-size="12" fill="#e4ede2">SZATNIA</text>
+<text x="1217.6" y="629.5999999999999" text-anchor="middle" font-size="10" fill="#c0cfb9">1,73 m</text>
+<text x="1217.6" y="644.0" text-anchor="middle" font-size="9" fill="#a7b6a3">przejścia</text>
+<text x="1218.8" y="484.4" text-anchor="middle" font-size="15" fill="#e4ede2">WC</text>
+<ellipse cx="1235.6" cy="435.92" rx="8.16" ry="10.8" fill="#dce3db"/>
+<rect x="1240.1599999999999" y="484.64" width="13.920000000000073" height="16.319999999999993" fill="#dce3db" stroke="#9bb1aa" stroke-width="1"/>
+<ellipse cx="1247.12" cy="492.79999999999995" rx="4" ry="5" fill="#8ca29c"/>
+<path d="M1253.12 484.52L1253.12 501.08" fill="none" stroke="#a5d3d5" stroke-width="2.5" stroke-dasharray=""/>
+<text x="1157.6" y="392.0" text-anchor="middle" font-size="12" fill="#8bff3a">KORYTARZ · 1,56 m</text>
+<path d="M1053.2 604.4000000000001H1160.0V454.4H1210.4" stroke="#8bff3a" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow)"/>
+<path d="M1160.0 563.5999999999999H1210.4" stroke="#8bff3a" stroke-width="2" stroke-dasharray="6 4" fill="none" marker-end="url(#arrow)"/>
+<path d="M1088.72 582.8L1088.72 626.0" fill="none" stroke="#b9e2d5" stroke-width="2" stroke-dasharray=""/>
+<path d="M1088.72 582.8A43.199999999999996 43.199999999999996 0 0 0 1045.52 626.0" stroke="#a2bcaa" stroke-opacity=".65" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<path d="M1088.72 582.8A43.199999999999996 43.199999999999996 0 0 1 1131.92 626.0" stroke="#a2bcaa" stroke-opacity=".65" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<circle cx="1067.1200000000001" cy="604.4000000000001" r="9" fill="#8bff3a"/><text x="1067.1200000000001" y="608.4000000000001" text-anchor="middle" font-size="12" font-weight="700" fill="#101413">1</text>
+<path d="M1182.2 549.2L1182.2 578.0" fill="none" stroke="#b9e2d5" stroke-width="2" stroke-dasharray=""/>
+<path d="M1182.2 549.2A28.800000000000004 28.800000000000004 0 0 0 1153.4 578.0" stroke="#a2bcaa" stroke-opacity=".65" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<path d="M1182.2 549.2A28.800000000000004 28.800000000000004 0 0 1 1211.0 578.0" stroke="#a2bcaa" stroke-opacity=".65" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<circle cx="1202.6" cy="563.5999999999999" r="9" fill="#8bff3a"/><text x="1202.6" y="567.5999999999999" text-anchor="middle" font-size="12" font-weight="700" fill="#101413">2</text>
+<path d="M1182.2 440.0L1182.2 468.79999999999995" fill="none" stroke="#b9e2d5" stroke-width="2" stroke-dasharray=""/>
+<path d="M1182.2 439.99999999999994A28.799999999999997 28.799999999999997 0 0 0 1153.4 468.79999999999995" stroke="#a2bcaa" stroke-opacity=".65" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<path d="M1182.2 439.99999999999994A28.799999999999997 28.799999999999997 0 0 1 1211.0 468.79999999999995" stroke="#a2bcaa" stroke-opacity=".65" stroke-width="1" stroke-dasharray="3 3" fill="none"/>
+<circle cx="1202.6" cy="454.4" r="9" fill="#8bff3a"/><text x="1202.6" y="458.4" text-anchor="middle" font-size="12" font-weight="700" fill="#101413">3</text>
+<rect x="390.79999999999995" y="458.0" width="456.0" height="230.4000000000001" fill="#202821" stroke="#8bff3a" stroke-width="3"/>
+<path d="M822.8 458.0L822.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M798.8 458.0L798.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M774.8 458.0L774.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M750.8 458.0L750.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M726.8 458.0L726.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M702.8 458.0L702.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M678.8 458.0L678.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M654.8 458.0L654.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M630.8 458.0L630.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M606.8 458.0L606.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M582.8 458.0L582.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M558.8 458.0L558.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M534.8 458.0L534.8 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M510.79999999999995 458.0L510.79999999999995 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M486.79999999999995 458.0L486.79999999999995 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M462.79999999999995 458.0L462.79999999999995 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M438.79999999999995 458.0L438.79999999999995 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M414.79999999999995 458.0L414.79999999999995 688.4000000000001" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M846.8 482.0L390.79999999999995 482.0" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M846.8 506.0L390.79999999999995 506.0" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M846.8 530.0L390.79999999999995 530.0" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M846.8 554.0L390.79999999999995 554.0" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M846.8 578.0L390.79999999999995 578.0" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M846.8 602.0L390.79999999999995 602.0" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M846.8 626.0L390.79999999999995 626.0" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M846.8 650.0L390.79999999999995 650.0" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<path d="M846.8 674.0L390.79999999999995 674.0" fill="none" stroke="#384438" stroke-width="0.6" stroke-dasharray=""/>
+<text x="621.2" y="506.0" text-anchor="middle" font-size="16" fill="#e4ede2">MATA / SPARING</text>
+<text x="621.2" y="588.8" text-anchor="middle" font-size="24" fill="#e4ede2">BRAXHORN</text>
+<text x="621.2" y="611.5999999999999" text-anchor="middle" font-size="18" fill="#8bff3a">KICKBOXING</text>
+<text x="621.2" y="654.8" text-anchor="middle" font-size="13" fill="#b5c5b0">19,0 × 9,6 m · wolna powierzchnia</text>
 <rect x="765.2" y="249.20000000000002" width="201.5999999999999" height="201.59999999999994" fill="#151b18" stroke="#859280" stroke-width="3"/>
-<rect x="782.0" y="266" width="168.0" height="168" fill="#303a32" stroke="#8bff3a" stroke-width="3"/>
+<rect x="783.2" y="267.20000000000005" width="165.5999999999999" height="165.5999999999999" fill="#303a32" stroke="#8bff3a" stroke-width="3"/>
 <circle cx="950.0" cy="266" r="6" fill="#8bff3a"/>
 <circle cx="950.0" cy="434" r="6" fill="#8bff3a"/>
 <circle cx="782.0" cy="266" r="6" fill="#8bff3a"/>
 <circle cx="782.0" cy="434" r="6" fill="#8bff3a"/>
 <text x="866" y="350.0" text-anchor="middle" font-size="21" fill="#e4ede2">RING</text>
 <text x="866" y="377.6" text-anchor="middle" font-size="12" fill="#b5c5b0">podest 8,4 × 8,4 m</text>
-<rect x="846.8" y="450.79999999999995" width="38.40000000000009" height="33.60000000000002" fill="#636a5b" stroke="#a8b49e" stroke-width="1"/>
-<text x="866" y="509.6" text-anchor="middle" font-size="12" fill="#e4ede2">schodki</text>
-<rect x="410" y="458" width="288" height="216" fill="#202821" stroke="#8bff3a" stroke-width="3"/>
-<text x="554" y="539.6" text-anchor="middle" font-size="22" fill="#e4ede2">BRAXHORN</text>
-<text x="554" y="569.5999999999999" text-anchor="middle" font-size="17" fill="#8bff3a">KICKBOXING</text>
-<text x="554" y="605.5999999999999" text-anchor="middle" font-size="13" fill="#e4ede2">MATA / SPARING</text>
-<rect x="222.79999999999995" y="237.20000000000002" width="7.2000000000000455" height="362.39999999999986" fill="#a5d3d5" stroke="#d6f3ed" stroke-width="1"/>
-<circle cx="314" cy="280.4" r="13" fill="#151a17" stroke="#8bff3a" stroke-width="2"/>
-<circle cx="314" cy="352.4" r="13" fill="#151a17" stroke="#8bff3a" stroke-width="2"/>
-<circle cx="314" cy="424.4" r="13" fill="#151a17" stroke="#8bff3a" stroke-width="2"/>
-<circle cx="314" cy="496.4" r="13" fill="#151a17" stroke="#8bff3a" stroke-width="2"/>
-<text x="316.4" y="566.0" text-anchor="middle" font-size="14" fill="#e4ede2">WORKI</text>
-<text x="316.4" y="592.4000000000001" text-anchor="middle" font-size="11" fill="#a1b29f">na stalowej belce</text>
+<rect x="845.6" y="450.79999999999995" width="40.799999999999955" height="11.040000000000077" fill="#636a5b" stroke="#a8b49e" stroke-width="1"/>
+<rect x="845.6" y="461.84000000000003" width="40.799999999999955" height="11.039999999999964" fill="#636a5b" stroke="#a8b49e" stroke-width="1"/>
+<text x="891.2" y="495.20000000000005" text-anchor="middle" font-size="12" fill="#e4ede2">schodki</text>
+<rect x="220.64" y="230.0" width="1.4400000000000546" height="348.0" fill="#a5d3d5" stroke="#d6f3ed" stroke-width="2"/>
+<path d="M314 238.39999999999998L314 581.5999999999999" fill="none" stroke="#8c9a8d" stroke-width="3" stroke-dasharray="5 4"/>
+<rect x="311.6" y="239.60000000000002" width="4.7999999999999545" height="4.7999999999999545" fill="#c2ccc0" stroke="#c2ccc0" stroke-width="1"/>
+<rect x="311.6" y="575.5999999999999" width="4.7999999999999545" height="4.800000000000182" fill="#c2ccc0" stroke="#c2ccc0" stroke-width="1"/>
+<circle cx="314" cy="280.4" r="6.6000000000000005" fill="#151a17" stroke="#8bff3a" stroke-width="1.5"/>
+<circle cx="314" cy="352.4" r="6.6000000000000005" fill="#151a17" stroke="#8bff3a" stroke-width="1.5"/>
+<circle cx="314" cy="424.4" r="6.6000000000000005" fill="#151a17" stroke="#8bff3a" stroke-width="1.5"/>
+<circle cx="314" cy="496.4" r="6.6000000000000005" fill="#151a17" stroke="#8bff3a" stroke-width="1.5"/>
+<text x="316.4" y="603.2" text-anchor="middle" font-size="14" fill="#e4ede2">4 WORKI</text>
+<text x="316.4" y="626.0" text-anchor="middle" font-size="10" fill="#a1b29f">Ø 0,55 m · rozstaw 3 m</text>
 <text x="196.40000000000003" y="410" fill="#b5d8db" font-size="13" transform="rotate(-90 196.40000000000003 410)" text-anchor="middle">LUSTRO — ODBICIE POSTACI NA ŻYWO</text>
-<rect x="470.0" y="172.39999999999998" width="511.20000000000005" height="9.600000000000023" fill="#8bff3a" stroke="#8bff3a" stroke-width="1"/>
-<text x="724.4" y="210.79999999999998" text-anchor="middle" font-size="15" fill="#e4ede2">BILLBOARD · BRAX + NYXA</text>
-<text x="724.4" y="231.20000000000002" text-anchor="middle" font-size="11" fill="#a8b8a4">grafika zatwierdzana osobno</text>
-<rect x="630.8" y="674" width="100.80000000000007" height="48" fill="#303b30" stroke="#8bff3a" stroke-width="2"/>
-<text x="681.2" y="702.8" text-anchor="middle" font-size="12" fill="#e4ede2">RECEPCJA</text>
+<rect x="515.6" y="176.48" width="432.0" height="2.400000000000034" fill="#8bff3a" stroke="#8bff3a" stroke-width="2"/>
+<text x="731.6" y="206.0" text-anchor="middle" font-size="15" fill="#e4ede2">BILLBOARD · BRAX + NYXA</text>
+<text x="731.6" y="226.39999999999998" text-anchor="middle" font-size="11" fill="#a8b8a4">oprawa 18 × 6 m · grafika zatwierdzana osobno</text>
+<path d="M1079.3600000000001 424.4L1079.3600000000001 539.6" fill="none" stroke="#8bff3a" stroke-width="1.5" stroke-dasharray=""/>
+<text x="1062.8" y="482" fill="#a6bc9d" font-size="11" transform="rotate(-90 1062.8 482)" text-anchor="middle">LOGO BRAXHORN</text>
+<rect x="669.8" y="702.3199999999999" width="85.20000000000005" height="22.559999999999945" fill="#6a624b" stroke="#8bff3a" stroke-width="2"/>
+<text x="712.4" y="719.1200000000001" text-anchor="middle" font-size="11" fill="#e4ede2">RECEPCJA</text>
+<rect x="978.2" y="685.04" width="58.799999999999955" height="11.519999999999982" fill="#6a624b" stroke="#aa9c76" stroke-width="1"/>
+<text x="1007.6" y="722" text-anchor="middle" font-size="11" fill="#e4ede2">ŁAWKA 2,45 m</text>
 <rect x="486.8" y="742.4000000000001" width="38.400000000000034" height="7.199999999999818" fill="#101413" stroke="none" stroke-width="0"/>
 <path d="M506 798.8L506 731.5999999999999" stroke="#8bff3a" stroke-width="3" marker-end="url(#arrow)"/>
 <text x="506" y="834.8" text-anchor="middle" font-size="15" fill="#e4ede2">ISTNIEJĄCE WEJŚCIE Z MIASTA</text>
 <text x="506" y="861.2" text-anchor="middle" font-size="12" fill="#a9b8a5">położenie zachowane</text>
 <text x="650" y="152.0" text-anchor="middle" font-size="14" fill="#aebda9">36 m · pełna istniejąca szerokość sali</text>
-<text x="1172.0" y="722.0" text-anchor="middle" font-size="14" fill="#8bff3a">DOBUDÓWKA</text>
+<text x="1172.0" y="722.0" text-anchor="middle" font-size="14" fill="#8bff3a">ZAPLECZE</text>
 <text x="1172.0" y="748.4000000000001" text-anchor="middle" font-size="13" fill="#e4ede2">7,5 × 11 m brutto</text>
 <path d="M92 885H1348" stroke="#3c473e"/>
-<circle cx="105" cy="925" r="6" fill="#8bff3a"/><text x="126" y="930" font-size="17" fill="#e6eee1">Zaplecze powiększa budynek; sala treningowa zachowuje obecny metraż.</text>
-<circle cx="105" cy="965" r="6" fill="#8bff3a"/><text x="126" y="970" font-size="17" fill="#e6eee1">Korytarz z zakrętem + pełna ściana osłonowa + osobne drzwi szatni i WC.</text>
-<text x="92" y="1010" font-size="13" fill="#8e9f90">To rzut układu, nie zrzut z działającej gry. Wyposażenie i przejścia są dopracowywane w scenie Unity.</text></g></svg>
+<circle cx="105" cy="918" r="6" fill="#8bff3a"/><text x="126" y="923" font-size="16" fill="#e6eee1">Dojście: sala → 1. zaplecze → korytarz z zakrętem → 2. szatnia / 3. toaleta.</text>
+<circle cx="105" cy="952" r="6" fill="#8bff3a"/><text x="126" y="957" font-size="16" fill="#e6eee1">Światło otworów: 1 = 1,80 m; 2 i 3 = 1,20 m. Pełna ściana osłonowa między salą a WC.</text>
+<text x="92" y="989" font-size="13" fill="#a7b6a3">Zielona linia przerywana: dojście; szara: belka nad workami. Łuki: dwustronne drzwi. Zaplecze poza obrysem sali.</text>
+<text x="92" y="1017" font-size="13" fill="#8e9f90">To rzut techniczny aktualnej sceny Unity, nie zrzut z gry ani potwierdzenie zaliczenia testów przejść.</text></g></svg>

@@ -20,7 +20,7 @@ public static class BraxGymReferenceRebuild
 
     [Serializable] public sealed class Report
     {
-        public string revision = "kickboxing-reference-annex-01";
+        public string revision = "kickboxing-reference-annex-02";
         public string coordinateSystem = "Unity metres, existing glTF X mirror retained";
         public Vector3 annexMin = new Vector3(-25.5f, 0, -3f);
         public Vector3 annexMax = new Vector3(-18f, 3.1f, 8f);
@@ -56,7 +56,7 @@ public static class BraxGymReferenceRebuild
         readonly List<BraxCityDoor> newDoors = new List<BraxCityDoor>();
         readonly List<Transform> batches = new List<Transform>();
         Transform root, hall, annex, fixtures, physics;
-        Material brick, rubber, matRubber, blackSteel, steel, green, white, vinyl, wood, tile, plaster, ceiling, lit;
+        Material brick, rubber, matRubber, blackSteel, steel, green, white, vinyl, wood, tile, plaster, ceiling, lit, worldText;
         Font font;
         int assetNumber;
 
@@ -84,6 +84,7 @@ public static class BraxGymReferenceRebuild
             BuildBillboardMount();
             BuildAnnex();
             BuildReception();
+            BuildContactGrounding();
             BuildMirrorAnchor();
             player.cityWorld.doors = (player.cityWorld.doors ?? Array.Empty<BraxCityDoor>()).Concat(newDoors).ToArray();
             report.registeredDoors = newDoors.Select(d => d.id).ToArray();
@@ -128,18 +129,24 @@ public static class BraxGymReferenceRebuild
         void PrepareMaterials()
         {
             if (!Shader.Find("Standard")) throw new InvalidOperationException("Built-in Standard shader is required by the current renderer.");
-            report.requiredAssets = new[] { "BrickAlbedo.jpg", "BrickNormal.png", "BrickARM.jpg", "Mark.png", "Wordmark.png" };
+            report.requiredAssets = new[] { "BrickAlbedo.jpg", "BrickNormal.png", "BrickARM.jpg", "RubberAlbedo.jpg", "RubberNormal.png", "RubberARM.jpg", "WoodAlbedo.jpg", "WoodNormal.png", "WoodARM.jpg", "Mark.png", "Wordmark.png" };
             foreach (string name in report.requiredAssets) RequiredTexture(name, name.Contains("Normal"), name.Contains("ARM"));
-            brick = Material("Natural dark brick", new Color(.52f, .49f, .46f), .80f, 0);
+            brick = Material("Natural dark brick", new Color(.70f, .66f, .61f), .80f, 0);
             brick.mainTexture = RequiredTexture("BrickAlbedo.jpg");
             SetNormal(brick, RequiredTexture("BrickNormal.png", true), .65f);
             AddArm(brick, RequiredTexture("BrickARM.jpg", false, true), "Brick");
-            rubber = Material("Dry graphite rubber", new Color(.058f, .063f, .067f), .90f, 0);
-            matRubber = Material("Training mat graphite", new Color(.080f, .087f, .092f), .91f, 0);
-            var micro = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Source/Premium/RubberMicroNormal.png");
-            if (!micro) throw new InvalidOperationException("Existing rubber grain is missing; do not replace it with glossy flat flooring.");
-            SetNormal(rubber, micro, .24f); SetNormal(matRubber, micro, .20f);
-            rubber.SetTextureScale("_BumpMap", new Vector2(5, 5)); matRubber.SetTextureScale("_BumpMap", new Vector2(3, 3));
+            rubber = Material("Dry graphite rubber", new Color(.88f, .90f, .92f), .90f, 0);
+            matRubber = Material("Training mat graphite", new Color(1.12f, 1.14f, 1.16f), .91f, 0);
+            foreach (var surface in new[] { rubber, matRubber })
+            {
+                surface.mainTexture = RequiredTexture("RubberAlbedo.jpg");
+                SetNormal(surface, RequiredTexture("RubberNormal.png", true), .40f);
+            }
+            AddArm(rubber, RequiredTexture("RubberARM.jpg", false, true), "Rubber");
+            matRubber.SetTexture("_MetallicGlossMap", rubber.GetTexture("_MetallicGlossMap"));
+            matRubber.SetTexture("_OcclusionMap", rubber.GetTexture("_OcclusionMap"));
+            matRubber.EnableKeyword("_METALLICGLOSSMAP"); matRubber.SetFloat("_OcclusionStrength", .82f);
+            rubber.SetFloat("_GlossMapScale", .36f); matRubber.SetFloat("_GlossMapScale", .36f);
             blackSteel = Material("Black powder coated steel", new Color(.026f, .031f, .034f), .64f, .48f);
             steel = Material("Neutral brushed steel", new Color(.35f, .38f, .40f), .39f, .83f);
             green = Material("BRAXHORN green 8BFF3A", BrandGreen, .71f, .02f);
@@ -158,6 +165,12 @@ public static class BraxGymReferenceRebuild
             lit.EnableKeyword("_EMISSION"); lit.SetColor("_EmissionColor", new Color(.7f, .7f, .66f));
             font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (!font) throw new InvalidOperationException("Unity's built-in font is unavailable for controlled signage.");
+            var printShader = Shader.Find("Braxhorn/WorldPrintedText");
+            if (!printShader) throw new InvalidOperationException("Depth-tested world signage shader is missing.");
+            worldText = new Material(printShader) { name = "World printed lettering", mainTexture = font.material.mainTexture };
+            AssetDatabase.CreateAsset(worldText, folder + "/WorldPrintedText.mat");
+            var textBinding = root.gameObject.AddComponent<BraxGymWorldText>();
+            textBinding.font = font; textBinding.printMaterial = worldText;
         }
 
         Texture2D RequiredTexture(string name, bool normal = false, bool linear = false)
@@ -238,7 +251,7 @@ public static class BraxGymReferenceRebuild
 
         void ClearObsoleteEquipment()
         {
-            foreach (int id in Enumerable.Range(114, 19).Concat(new[] { 14, 15, 16, 143, 145, 146, 147, 154, 156, 157, 158, 159, 160 }))
+            foreach (int id in Enumerable.Range(114, 19).Concat(new[] { 6, 7, 8, 14, 15, 16, 35, 49, 50, 113, 143, 145, 146, 147, 154, 156, 157, 158, 159, 160 }))
             { var t = FindSource(id); var r = t.GetComponent<Renderer>(); if (r) r.enabled = false; }
             foreach (int id in new[] { 133, 135, 138, 140, 141, 142, 144 })
             {
@@ -284,6 +297,17 @@ public static class BraxGymReferenceRebuild
             }
             foreach (var m in Resources.FindObjectsOfTypeAll<Material>())
                 if (m.name == "Green_vinyl") m.color = BrandGreen;
+            // This audited source mesh ends at the existing entrance threshold;
+            // the alley is a different mesh and retains its original finish.
+            var floor = FindSource(153).GetComponent<MeshFilter>();
+            var floorMesh = UnityEngine.Object.Instantiate(floor.sharedMesh);
+            floorMesh.name = "Original hall floor with metre-scaled rubber UV";
+            floorMesh.uv = floorMesh.vertices.Select(p => {
+                var world = floor.transform.TransformPoint(p); return new Vector2(world.x, world.z) / 2f;
+            }).ToArray();
+            floorMesh.RecalculateTangents();
+            AssetDatabase.CreateAsset(floorMesh, folder + "/OriginalHallRubberUV.asset");
+            floor.sharedMesh = floorMesh;
             // A deliberate base detail, not a continuous neon wash.
             for (int side = -1; side <= 1; side += 2)
             {
@@ -352,6 +376,7 @@ public static class BraxGymReferenceRebuild
 
         void BuildRingFinishing()
         {
+            FinishOriginalRingSurfaces();
             var previous = GameObject.Find("Premium ring and hall finishing");
             if (previous)
             {
@@ -387,6 +412,93 @@ public static class BraxGymReferenceRebuild
                 Box(hall, "Apron green lower binding", new Vector3(x, .105f, cz), new Vector3(.018f, .055f, 8.35f), green, .005f);
             foreach (float z in new[] { cz - 4.2f, cz + 4.2f })
                 Box(hall, "Apron green lower binding", new Vector3(cx, .105f, z), new Vector3(8.35f, .055f, .018f), green, .005f);
+
+            // One controlled brand placement per exposed face. The front print
+            // is beside the staircase, never behind its treads or gate opening.
+            RingApronBrand("front", new Vector3(-5.15f, .46f, -1.282f),
+                new Vector3(-6.80f, .46f, -1.282f), .49f, 2.50f, Vector3.forward);
+            RingApronBrand("hall side", new Vector3(-4.782f, .46f, -8.0f),
+                new Vector3(-4.782f, .46f, -4.75f), .64f, 4.70f, Vector3.right);
+
+            const float canvasEdge = 3.28f, canvasY = .956f;
+            foreach (float x in new[] { cx - canvasEdge, cx + canvasEdge })
+                Box(hall, "Ring canvas green printed boundary", new Vector3(x, canvasY, cz),
+                    new Vector3(.032f, .002f, canvasEdge * 2), green, .0005f);
+            foreach (float z in new[] { cz - canvasEdge, cz + canvasEdge })
+                Box(hall, "Ring canvas green printed boundary", new Vector3(cx, canvasY, z),
+                    new Vector3(canvasEdge * 2, .002f, .032f), green, .0005f);
+            Decal(hall, "Ring canvas original compact mark", RequiredTexture("Mark.png"),
+                new Vector3(cx, .956f, cz), 1.35f, 1.35f, Vector3.up, Vector3.back, Color.white);
+        }
+
+        void FinishOriginalRingSurfaces()
+        {
+            // Audited source: deck76 has the canvas in material38. Each original
+            // apron77..80 uses material39 and U=0..2.2, multiplying the already
+            // repeated source lettering. Retain the exact meshes, UVs and bounds;
+            // remove that print by replacing only these local material slots.
+            var weave = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Source/Premium/CanvasNormal.png");
+            if (!weave) throw new InvalidOperationException("Existing fine canvas weave is required for the original ring finish.");
+            var apron = Material("Ring matte black fabric apron", new Color(.016f, .019f, .022f), .92f, 0);
+            SetNormal(apron, weave, .18f);
+            // Standard uses MainTex UV transform for its normal map as well.
+            // Compensate the existing2.2 UV span; no old albedo is sampled.
+            apron.mainTextureScale = new Vector2(35f / 2.2f, 4f);
+            var canvas = Material("Ring graphite woven canvas", new Color(.045f, .052f, .058f), .94f, 0);
+            SetNormal(canvas, weave, .24f); canvas.mainTextureScale = new Vector2(32f, 32f);
+
+            var deck = FindSource(76).GetComponent<MeshRenderer>();
+            var deckMesh = deck.GetComponent<MeshFilter>().sharedMesh;
+            var deckBounds = deck.bounds; var deckMaterials = deck.sharedMaterials; int canvasSlots = 0;
+            for (int i = 0; i < deckMaterials.Length; i++)
+                if (deckMaterials[i] && deckMaterials[i].name.StartsWith("BX_38_", StringComparison.Ordinal))
+                { deckMaterials[i] = canvas; canvasSlots++; }
+            if (canvasSlots != 1) throw new InvalidOperationException("Expected exactly one original ring canvas material38; refuse an inferred deck replacement.");
+            deck.sharedMaterials = deckMaterials; deck.gameObject.layer = 10;
+            if (deck.GetComponent<MeshFilter>().sharedMesh != deckMesh || deck.bounds != deckBounds)
+                throw new InvalidOperationException("Ring material finishing changed deck geometry or bounds.");
+
+            foreach (int id in new[] { 77, 78, 79, 80 })
+            {
+                var renderer = FindSource(id).GetComponent<MeshRenderer>();
+                var mesh = renderer.GetComponent<MeshFilter>().sharedMesh; var bounds = renderer.bounds;
+                if (renderer.sharedMaterials.Length != 1 || !renderer.sharedMaterial ||
+                    !renderer.sharedMaterial.name.StartsWith("BX_39_", StringComparison.Ordinal))
+                    throw new InvalidOperationException("Expected original printed apron material39 on Gym_Mesh_" + id);
+                renderer.sharedMaterial = apron; renderer.gameObject.layer = 10;
+                if (renderer.GetComponent<MeshFilter>().sharedMesh != mesh || renderer.bounds != bounds)
+                    throw new InvalidOperationException("Ring finishing changed an original apron mesh or its bounds: " + id);
+            }
+            Debug.Log("BRAXHORN_RING_SURFACES original deck76 and aprons77-80 retained; old repeating albedo removed; graphite canvas and black matte apron applied");
+        }
+
+        void RingApronBrand(string face, Vector3 markCenter, Vector3 textCenter, float markSize, float textWidth, Vector3 outward)
+        {
+            Decal(hall, "Ring " + face + " original brand mark", RequiredTexture("Mark.png"),
+                markCenter, markSize, markSize, outward, Vector3.up, Color.white);
+            var textRoot = Group(hall, "Ring " + face + " single BRAXHORN KICKBOXING print");
+            textRoot.localPosition = textCenter;
+            // Use the shared depth-tested print material and its runtime font
+            // binding. Do not assign Unity's default overlay font material.
+            Text(textRoot, "BRAXHORN KICKBOXING", Vector3.zero, textWidth,
+                new Color(.86f, .88f, .86f), Quaternion.identity);
+            var label = textRoot.Find("Sign BRAXHORN KICKBOXING");
+            var text = label.GetComponent<TextMesh>(); text.fontStyle = FontStyle.Bold;
+            label.localScale = Vector3.one;
+            font.RequestCharactersInTexture(text.text, text.fontSize, FontStyle.Bold);
+            var renderer = label.GetComponent<MeshRenderer>(); renderer.sharedMaterial.mainTexture = font.material.mainTexture;
+            float advance = 0, low = 0, high = 0;
+            foreach (char c in text.text)
+                if (font.GetCharacterInfo(c, out var glyph, text.fontSize, FontStyle.Bold))
+                { advance += glyph.advance; low = Mathf.Min(low, glyph.minY); high = Mathf.Max(high, glyph.maxY); }
+            float width = renderer.localBounds.size.x, height = renderer.localBounds.size.y;
+            if (width <= .00001f) width = advance * text.characterSize / 10f;
+            if (height <= .00001f) height = (high - low) * text.characterSize / 10f;
+            if (width <= .00001f || height <= .00001f)
+                throw new InvalidOperationException("Could not measure the controlled ring brand print.");
+            label.localScale = Vector3.one * Mathf.Min(textWidth / width, .42f / height);
+            // TextMesh faces local-Z; turn that face towards the hall.
+            textRoot.localRotation = Quaternion.LookRotation(-outward, Vector3.up);
         }
 
         void BuildIndustrialCeiling()
@@ -419,29 +531,42 @@ public static class BraxGymReferenceRebuild
                 AddRequiredModel("PendantLamp/PendantLamp.gltf", anchor, .64f, false);
                 LocalLight("Neutral hall task light", new Vector3(x, 5.8f, z), 1.7f, 11f);
             }
-            foreach (float z in new[] { -7f, 5f })
+            foreach (float z in new[] { -7f, -1f, 5f })
             {
                 Box(hall, "Linear task light body", new Vector3(13.8f, 5.45f, z), new Vector3(.16f, .12f, 2.4f), blackSteel, .022f);
                 Box(hall, "Linear neutral diffuser", new Vector3(13.8f, 5.38f, z), new Vector3(.11f, .012f, 2.30f), lit, .004f);
                 foreach (float dz in new[] { -.85f, .85f }) Tube(hall, "Linear light cable", new Vector3(13.8f, 5.5f, z + dz), new Vector3(13.8f, 7.3f, z + dz), .008f, blackSteel, 1, 6);
+                LocalLight("Neutral leather and suspension task light", new Vector3(13.8f, 5.25f, z), 2.0f, 8.0f);
+            }
+            // Inexpensive neutral indirect fill is restricted to the new room
+            // layer. The original character and city lights remain untouched.
+            foreach (var direction in new[] { new Vector3(28f, 90f, 0), new Vector3(28f, 270f, 0) })
+            {
+                var fill = Group(fixtures, "Neutral room indirect fill").gameObject.AddComponent<Light>();
+                fill.type = LightType.Directional; fill.color = new Color(1f, .97f, .93f);
+                fill.intensity = .42f; fill.shadows = LightShadows.None; fill.cullingMask = 1 << 10;
+                fill.renderMode = LightRenderMode.NotImportant; fill.transform.rotation = Quaternion.Euler(direction);
             }
         }
 
         void BuildBillboardMount()
         {
-            var center = new Vector3(-3.4f, 5.35f, -12.68f);
-            Box(hall, "Billboard recessed backing", center, new Vector3(21.4f, 4.60f, .10f), blackSteel, .025f);
-            foreach (float x in new[] { center.x - 10.76f, center.x + 10.76f })
-                Box(hall, "Billboard vertical frame", new Vector3(x, center.y, center.z + .04f), new Vector3(.11f, 4.76f, .14f), blackSteel, .017f);
-            foreach (float y in new[] { center.y - 2.36f, center.y + 2.36f })
-                Box(hall, "Billboard horizontal frame", new Vector3(center.x, y, center.z + .04f), new Vector3(21.62f, .11f, .14f), blackSteel, .017f);
+            // The reviewed flat artwork is 3:1. Keep the mount at that aspect
+            // ratio so neither character will be stretched when approved.
+            var center = new Vector3(-3.4f, 5.15f, -12.68f);
+            Box(hall, "Billboard recessed backing", center, new Vector3(18f, 6f, .10f), blackSteel, .025f);
+            foreach (float x in new[] { center.x - 9.06f, center.x + 9.06f })
+                Box(hall, "Billboard vertical frame", new Vector3(x, center.y, center.z + .04f), new Vector3(.11f, 6.16f, .14f), blackSteel, .017f);
+            foreach (float y in new[] { center.y - 3.06f, center.y + 3.06f })
+                Box(hall, "Billboard horizontal frame", new Vector3(center.x, y, center.z + .04f), new Vector3(18.22f, .11f, .14f), blackSteel, .017f);
             var anchor = Group(root, "BillboardArtAnchor"); anchor.position = center + Vector3.forward * .065f;
-            anchor.rotation = Quaternion.Euler(0, 180, 0); anchor.localScale = new Vector3(21.4f, 4.6f, 1);
-            foreach (float x in new[] { -11f, -3.4f, 4.2f })
+            anchor.rotation = Quaternion.Euler(0, 180, 0); anchor.localScale = new Vector3(18f, 6f, 1);
+            foreach (float x in new[] { -10f, -3.4f, 3.2f })
             {
-                Tube(hall, "Billboard lamp bracket", new Vector3(x, 7.85f, -12.8f), new Vector3(x, 7.85f, -12.15f), .035f, blackSteel, 1, 10);
-                Box(hall, "Billboard wash lamp", new Vector3(x, 7.78f, -12.12f), new Vector3(.52f, .18f, .18f), blackSteel, .035f);
-                Box(hall, "Billboard lamp diffuser", new Vector3(x, 7.68f, -12.12f), new Vector3(.43f, .018f, .13f), lit, .006f);
+                Tube(hall, "Billboard lamp frame fixing", new Vector3(x, 8.16f, -12.68f), new Vector3(x, 8.32f, -12.68f), .025f, blackSteel, 1, 10);
+                Tube(hall, "Billboard lamp bracket", new Vector3(x, 8.32f, -12.8f), new Vector3(x, 8.32f, -12.15f), .035f, blackSteel, 1, 10);
+                Box(hall, "Billboard wash lamp", new Vector3(x, 8.25f, -12.12f), new Vector3(.52f, .18f, .18f), blackSteel, .035f);
+                Box(hall, "Billboard lamp diffuser", new Vector3(x, 8.15f, -12.12f), new Vector3(.43f, .018f, .13f), lit, .006f);
             }
             // Source logos remain separate controlled assets; the wall art is not
             // installed until its owner has approved the flat image.
@@ -517,10 +642,10 @@ public static class BraxGymReferenceRebuild
         void BuildSanitaryAnchors()
         {
             var wc = Group(annex, "WCFixtureAnchor"); wc.position = new Vector3(-24.4f, 0, -1.92f);
-            AddRequiredModel("Toilet.glb", wc, .74f, true);
+            AddRequiredModel("Toilet.gltf", wc, .74f, true);
             ColliderBox("WC porcelain collision", new Vector3(-24.4f, .39f, -1.92f), new Vector3(.68f, .78f, .90f));
             var sink = Group(annex, "SinkFixtureAnchor"); sink.position = new Vector3(-24.80f, 0, .45f); sink.rotation = Quaternion.Euler(0, 90, 0);
-            AddRequiredModel("Sink.glb", sink, .70f, true);
+            AddRequiredModel("Sink.gltf", sink, .70f, true);
             ColliderBox("Washbasin collision", new Vector3(-24.88f, .66f, .45f), new Vector3(.58f, 1.12f, .68f));
             // Original manufactured fixtures are supplied by the asset pass. These
             // small fittings are modelled with curved profiles and remain separate.
@@ -581,6 +706,35 @@ public static class BraxGymReferenceRebuild
             foreach (float y in new[] { .39f, 3.37f })
                 Box(hall, "Mirror steel horizontal frame", new Vector3(17.88f, y, -3.25f), new Vector3(.055f, .055f, 14.62f), blackSteel, .009f);
             Box(hall, "Mirror green base detail", new Vector3(17.83f, .34f, -3.25f), new Vector3(.020f, .025f, 14.45f), green, .005f);
+        }
+
+        void BuildContactGrounding()
+        {
+            // A small shared soft contact mask restores depth at static object
+            // bases without enabling expensive city-wide real-time shadows.
+            var pixels = new Color32[128 * 128];
+            for (int y = 0; y < 128; y++) for (int x = 0; x < 128; x++)
+            {
+                float edge = Mathf.Max(Mathf.Abs((x + .5f) / 64f - 1), Mathf.Abs((y + .5f) / 64f - 1));
+                float alpha = (1f - Mathf.SmoothStep(0, 1, Mathf.InverseLerp(.73f, 1f, edge))) * .30f;
+                pixels[y * 128 + x] = new Color32(0, 0, 0, (byte)(255f * alpha));
+            }
+            var texture = ControlTexture("StaticContactGrounding", 128, 128, pixels);
+            var material = new Material(Shader.Find("Unlit/Transparent")) { name = "Static soft contact", mainTexture = texture };
+            AssetDatabase.CreateAsset(material, folder + "/StaticContactGrounding.mat");
+            Action<Transform, Vector3, float, float> footprint = (parent, p, width, depth) => {
+                var mesh = new Mesh { vertices = new[] {
+                    new Vector3(-width / 2, 0, -depth / 2), new Vector3(width / 2, 0, -depth / 2),
+                    new Vector3(width / 2, 0, depth / 2), new Vector3(-width / 2, 0, depth / 2) },
+                    uv = new[] { Vector2.zero, Vector2.right, Vector2.one, Vector2.up }, triangles = new[] { 0, 2, 1, 0, 3, 2 } };
+                mesh.RecalculateNormals(); var t = MeshObject(parent, "Static contact grounding", mesh, material); t.localPosition = p;
+            };
+            footprint(hall, new Vector3(-9f, .012f, -5.5f), 9.1f, 9.1f);
+            footprint(hall, new Vector3(-2.6f, .012f, 9.65f), 3.9f, 1.3f);
+            footprint(hall, new Vector3(-14.9f, .012f, 8.7f), 2.8f, .85f);
+            footprint(annex, new Vector3(-22.67f, .012f, 5.8f), .82f, 3.15f);
+            footprint(annex, new Vector3(-24.92f, .012f, 4.73f), .90f, 5.95f);
+            footprint(annex, new Vector3(-24.4f, .012f, -1.92f), .86f, 1.1f);
         }
 
         void Door(string id, string label, float x, float z0, float z1, float height)
@@ -701,7 +855,7 @@ public static class BraxGymReferenceRebuild
                     var normal = (q - clamp).normalized; vs.Add(clamp + normal * radius); ns.Add(normal);
                     var texcoord = material == wood && Mathf.Abs(n.y) > .5f && size.x > size.z
                         ? new Vector2(ys[y], us[x]) : new Vector2(us[x], ys[y]);
-                    uv.Add(texcoord / (material == brick ? 2.2f : 1f));
+                    uv.Add(texcoord / (material == brick ? 2.2f : material == rubber || material == matRubber ? 2f : 1f));
                 }
                 for (int y = 0; y < 5; y++) for (int x = 0; x < 5; x++) { int a = start + y * 6 + x; triangles.AddRange(new[] { a, a + 1, a + 6, a + 1, a + 7, a + 6 }); }
             }
@@ -759,10 +913,11 @@ public static class BraxGymReferenceRebuild
             var t = Group(parent, "Sign " + value); t.localPosition = p;
             var tm = t.gameObject.AddComponent<TextMesh>(); tm.font = font; tm.text = value; tm.fontSize = 64; tm.characterSize = .12f; tm.anchor = TextAnchor.MiddleCenter; tm.alignment = TextAlignment.Center; tm.color = color;
             if (value == "BRAXHORN" || value == "KICKBOXING") tm.fontStyle = FontStyle.Bold;
-            var r = t.GetComponent<MeshRenderer>(); r.sharedMaterial = font.material; r.shadowCastingMode = ShadowCastingMode.Off;
-            font.RequestCharactersInTexture(value, 64, FontStyle.Normal);
+            var r = t.GetComponent<MeshRenderer>(); r.sharedMaterial = worldText; r.shadowCastingMode = ShadowCastingMode.Off;
+            font.RequestCharactersInTexture(value, 64, tm.fontStyle);
+            worldText.mainTexture = font.material.mainTexture;
             // Measure before rotating wall signs, whose world X bounds can be zero.
-            float advance = 0; foreach (char c in value) if (font.GetCharacterInfo(c, out var glyph, 64)) advance += glyph.advance;
+            float advance = 0; foreach (char c in value) if (font.GetCharacterInfo(c, out var glyph, 64, tm.fontStyle)) advance += glyph.advance;
             float actualWidth = r.localBounds.size.x;
             if (actualWidth <= .00001f) actualWidth = advance * tm.characterSize / 10f;
             if (actualWidth > 0) t.localScale = Vector3.one * (width / actualWidth);

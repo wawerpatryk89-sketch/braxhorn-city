@@ -7,7 +7,7 @@ import http from 'node:http';
 // all traversals, stairs, collisions, strikes and doors use the existing controls.
 const root=path.resolve(process.env.UNITY_PREVIEW_DIR||'unity-preview');
 const out=path.resolve(process.env.UNITY_REVIEW_DIR||'kickboxing-review');
-const started=Date.now(), WAIT=45000, MAX_QA=Number(process.env.UNITY_QA_TIMEOUT_MS||870000);
+const started=Date.now(), WAIT=45000, MAX_QA=Number(process.env.UNITY_QA_TIMEOUT_MS||1800000);
 const checks=[], logs=[], captures=[], segments=[], requests=[], navigations=[];
 const limitations=[
   'Chromium WebGL2 with SwiftShader, a 915x412 touch viewport and genuine CDP multi-touch events. This is not a physical iPhone, Safari, or mobile GPU test.',
@@ -114,15 +114,47 @@ async function runMode(enabled){
   return until('Run mode applied',v=>window.BraxhornState?.runEnabled===v,enabled);
 }
 async function waitIdle(){return until('Action ends',()=>window.BraxhornState?.animation==='Idle'&&window.BraxhornState.speed<.05);}
+function routeBudgetMs(metres,simulationSecondsPerWallSecond){
+  // The actual movement code caps simulation steps at 0.12 s. At the observed
+  // ~1 FPS in software WebGL, a ten-metre walk needs far more than 45 wall
+  // seconds. Allow for approach/deceleration, then scale by measured progress;
+  // this changes only a timeout, never input, timeScale, movement, or assertions.
+  const simulationSeconds=metres/1.5+2;
+  const rate=Number.isFinite(simulationSecondsPerWallSecond)&&simulationSecondsPerWallSecond>0
+    ?Math.min(1,simulationSecondsPerWallSecond):1;
+  return Math.min(MAX_QA,Math.max(WAIT,Math.ceil(simulationSeconds/rate*1400)));
+}
 async function moveTo(x,z,label,tolerance=.16){
   await runMode(false);
-  const first=await state(),deadline=Date.now()+WAIT;
+  const first=await state(),routeStarted=Date.now(),initialDistance=Math.hypot(x-first.x,z-first.z);
+  const recentFrameMs=await page.evaluate(()=>window.BraxhornRoomState?.frameTiming?.meanMs||0);
+  const initialRate=recentFrameMs>0?Math.min(1,120/recentFrameMs):1;
+  let wallBudget=routeBudgetMs(initialDistance,initialRate),lastSimulationProgress=routeStarted;
+  // A generous simulation-time ceiling also prevents endlessly extending a
+  // route when a moving character circles or slides without reaching its goal.
+  const simulationBudget=(initialDistance/1.5+2)*2;
   let a=first,anchor=first;
+  const timing=()=>{
+    const seconds=Math.max(.001,(Date.now()-routeStarted)/1000),simulationSeconds=a.simulationTime-first.simulationTime;
+    return {wallSeconds:seconds,simulationSeconds,frames:a.frames-first.frames,
+      observedFps:(a.frames-first.frames)/seconds,simulationSecondsPerWallSecond:simulationSeconds/seconds,
+      wallBudgetSeconds:wallBudget/1000,simulationBudgetSeconds:simulationBudget};
+  };
   while(Math.hypot(x-a.x,z-a.z)>tolerance){
-    if(Date.now()>deadline)throw new Error('Physical route timeout '+label+' '+JSON.stringify(brief(a)));
+    if(Date.now()-routeStarted>wallBudget)
+      throw new Error('Physical route timeout '+label+' '+JSON.stringify({state:brief(a),timing:timing()}));
+    if(Date.now()-lastSimulationProgress>WAIT)
+      throw new Error('No simulation progress on physical route '+label+' '+JSON.stringify({state:brief(a),timing:timing()}));
+    if(a.simulationTime-first.simulationTime>simulationBudget)
+      throw new Error('Physical route exceeded simulation allowance '+label+' '+JSON.stringify({state:brief(a),timing:timing()}));
     const dx=x-a.x,dz=z-a.z,d=Math.hypot(dx,dz),magnitude=Math.min(1,Math.max(.14,d*.95));
     await send('MoveInput',[magnitude*(dx*a.rightX+dz*a.rightZ)/d,magnitude*(dx*a.forwardX+dz*a.forwardZ)/d].join(','));
+    const previousSimulationTime=a.simulationTime;
     a=await frames(a,2);
+    if(a.simulationTime>previousSimulationTime+.000001)lastSimulationProgress=Date.now();
+    const observed=timing();
+    if(observed.simulationSeconds>0)
+      wallBudget=Math.max(wallBudget,routeBudgetMs(initialDistance,observed.simulationSecondsPerWallSecond));
     if(a.simulationTime-anchor.simulationTime>1.3){
       if(distance(anchor,a)<.045)throw new Error('Collider blocks physical route '+label+' '+JSON.stringify(brief(a)));
       anchor=a;
@@ -130,7 +162,8 @@ async function moveTo(x,z,label,tolerance=.16){
     if(a.y<-1||a.y>3)throw new Error('Unexpected vertical position on '+label+' '+a.y);
   }
   const end=await stop();
-  segments.push({kind:'physical movement',label,atSeconds:elapsed(),from:brief(first),to:brief(end),target:{x,z}});
+  a=end;
+  segments.push({kind:'physical movement',label,atSeconds:elapsed(),from:brief(first),to:brief(end),target:{x,z},timing:timing()});
   return end;
 }
 async function capture(label){
@@ -218,7 +251,9 @@ try {
     const d=await capture('startup');
     verify('Room references are assigned',d.wcConfigured&&d.mirror.configured&&['gym-backrooms','gym-locker','gym-wc'].every(id=>d.doors.some(x=>x.id===id)),d);
   });
-  await review(6,.08,8,0,7,1.8,'entry composition');await frames(await state(),4);await shot('01-entry-composition');
+  await review(1.5,.08,2.8,0,19,5.8,'exact original before-view comparison');
+  await frames(await state(),4);await shot('00-matched-before-view');
+  await review(3,.08,5,0,7,5.8,'entry composition');await frames(await state(),4);await shot('01-entry-composition');
 
   await step('Four camera directions',async()=>{
     for(const yaw of [0,90,180,270]){
@@ -276,7 +311,7 @@ try {
   });
 
   // The following successful legs form one continuous physical walkthrough.
-  await review(6,.08,8,0,7,1.8,'continuous walkthrough start');await runMode(false);
+  await review(3,.08,5,0,7,5.8,'continuous walkthrough start');await runMode(false);
   lastLegPassed=await step('Ring stairs traversal',async()=>{
     await look(0,19);await moveTo(-9,1.2,'hall to ring stairs');const before=await state();
     await moveTo(-9,-4.2,'climb original ring stairs');const ring=await state();
@@ -307,7 +342,12 @@ try {
     const a=await capture('mirror-visible-before');await moveTo(12.3,-3,'movement reflected by main mirror');await frames(await state(),8);
     const b=await capture('mirror-visible-after');
     verify('Real reflection renders animated player layer',b.mirror.ready&&b.mirror.textureCreated&&b.mirror.renders>a.mirror.renders&&b.mirror.sourceIncludesPlayer&&b.mirror.sourceIncludesMirror&&b.mirror.width>=512&&b.mirror.width<=1024,b.mirror);
-    await shot('04-live-mirror');await look(90,12);await frames(await state(),3);
+    await shot('04-live-mirror');
+    // Cross the clear gap between bags, then view the reflection obliquely so
+    // the real character's back does not cover its reflected face.
+    await moveTo(16,-4.1,'clear aisle between bags and mirror');await look(250,9);await frames(await state(),6);
+    await shot('04b-mirror-character-detail');
+    await moveTo(12.3,-3,'return from mirror detail position');await look(90,12);await frames(await state(),3);
     const hidden=await capture('mirror-out-of-view-before');await frames(await state(),10);const hiddenEnd=await capture('mirror-out-of-view-after');
     verify('Main mirror does not render while behind camera',hiddenEnd.mirror.renders-hidden.mirror.renders<=1,{before:hidden.mirror.renders,after:hiddenEnd.mirror.renders});
     await look(270,12);await frames(await state(),4);await shot('05-mirror-return');

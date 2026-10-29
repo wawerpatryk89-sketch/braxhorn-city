@@ -32,7 +32,7 @@ public static class BraxGymReferenceEquipment
             Beam(frame.transform,"Column extension joint",new Vector3(14,4.701f,z),new Vector3(.20f,.202f,.20f),steel);
             Beam(frame.transform,"Column bolted bearing plate",new Vector3(14,4.787f,z),new Vector3(.34f,.03f,.34f),steel);
         }
-        var swingSource = RequiredModel("BagSwing.glb");
+        var swingSource = RequiredModel("BagSwing.gltf");
         var mountSource = RequiredModel("BagMount.glb");
         for (int i = 0; i < player.bags.Length; i++)
         {

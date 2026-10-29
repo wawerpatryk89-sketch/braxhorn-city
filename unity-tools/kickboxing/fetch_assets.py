@@ -54,6 +54,7 @@ def main():
     polyhaven_maps('brick_wall_10', 'Brick', '2k', 'Dimitrios Savva / Poly Haven')
     polyhaven_maps('fabric_leather_01', 'Leather', '1k', 'Rob Tuytel / Poly Haven')
     polyhaven_maps('fine_grained_wood', 'Wood', '1k', 'Rob Tuytel / Poly Haven')
+    polyhaven_maps('rubber_tiles', 'Rubber', '1k', 'Amal Kumar / Poly Haven')
     model('compact-wc-close-coupled-toilet-84214efd', 'Toilet.glb')
     model('basin-pedestal-sink-cabinet-81678fc4', 'Sink.glb')
     save_source({'url': 'https://www.innerscene.com/api/library/boxing-gloves-and-bag-e3d766bc/download',
