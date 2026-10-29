@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "status": "prepared-not-pushed",
+  "environment": "preview",
+  "repository": "wawerpatryk89-sketch/braxhorn-city",
+  "branch": "preview/city-rebuild-55fb02f90b27",
+  "sourceCommit": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+  "sourceRun": 40878906652,
+  "qaCommit": "34ba35d5d920740fc5ce4470d2a45a0661aa0a5d",
+  "qaRun": 40883489583,
+  "buildId": "city-55fb02f90b27-40878906652",
+  "requestCommit": "47513dced70df5cdbdca227ce6d10e7365953d42",
+  "visualReview": "reviewed-for-test",
+  "reviewedImages": {
+    "07-street.png": "156806145ab8c27cd280c8ed7d13ecbb77a294eb044c027472a511e30963253a",
+    "13-waterfront.png": "6f73b19af8f0ad0b138fe679d88091c42f863b1e796d9a3fabd9cd5cd6170b83",
+    "04-skyline-from-player.png": "5d1a4a6dbb59107deaad766003033ae04aca3c6d24de44d5583ff65756614dc1"
+  },
+  "knownIssues": [
+    "Only 2 of 18 street buildings replaced; WholeDistrict=false. This is not the finished user-requested city.",
+    "Skyline, detailed facades and overall premium quality far below reference video; visual acceptance failed.",
+    "Mobile physical iPhone not tested; desktop software-rendering QA only.",
+    "Existing separate gym contractor's newer final commit is not integrated; original gym preserved."
+  ],
+  "qaReportSha256": "569098913179336516aa842e9459eefdc69041572e05a14b68a38a9ed42966d0",
+  "candidateReleaseSha256": "6720adff46b197debe1378019f4f02bce021c0e59c78e160f0590784963b3b3d",
+  "deploymentOnlyChanges": [
+    "vercel.json",
+    "preview-qa-summary.json",
+    "preview-publication.json",
+    "deployment-files.json"
+  ],
+  "compiledPlayerUnchanged": true,
+  "liveUnityVerified": false,
+  "physicalPhoneAcceptance": "not tested",
+  "finalCityAcceptance": "open",
+  "productionPublication": false,
+  "preparedUtc": "2026-10-29T13:58:55.991353+00:00"
+}

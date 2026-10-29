@@ -1,0 +1,42 @@
+{
+    "commit": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+    "unity": "6000.0.58f2",
+    "browserSource": "260a5897472d42d099766da48e708859bba6c3dc",
+    "scope": "original-city-and-estate-exploration",
+    "originalCityReplaced": false,
+    "originalModels": true,
+    "originalBraxRig": true,
+    "areas": [
+        {
+            "area": "city",
+            "originalMeshes": 724,
+            "importedMeshes": 724,
+            "originalTriangles": 521280,
+            "sourceBoxes": 151,
+            "sourceCircles": 83,
+            "sourcePits": 2,
+            "meshColliders": 0,
+            "doors": 0,
+            "bakedMaterials": 149,
+            "sourcePoints": 48
+        },
+        {
+            "area": "estate",
+            "originalMeshes": 553,
+            "importedMeshes": 553,
+            "originalTriangles": 2427187,
+            "sourceBoxes": 1026,
+            "sourceCircles": 0,
+            "sourcePits": 0,
+            "meshColliders": 97,
+            "doors": 24,
+            "bakedMaterials": 13,
+            "sourcePoints": 14
+        }
+    ],
+    "notYetPorted": [
+        "estate NPC schedules and combat AI",
+        "estate story and economy",
+        "additional playable character selection"
+    ]
+}
