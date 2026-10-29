@@ -1,0 +1,784 @@
+{
+  "schema": 1,
+  "name": "Continuous city-only iPhone preview route (no estate scene)",
+  "coordinateSystem": "Unity metres, source X negated. Walk targets only; no teleport instructions.",
+  "status": "measured actual compiled Unity normal input route; city scene only; all future mission reserves passive",
+  "sources": [
+    "Original city-manifest.json from run 40840263799",
+    "dev/src/interiors.js at ba678928b2dcb2dff9e38bdb5306e090e76360cf: NOVA openings and 15 stair treads",
+    "unity-city/Docs/AI/CityRebuildSystems.json"
+  ],
+  "steps": [
+    {
+      "id": "gym-corridor",
+      "at": [
+        6,
+        0,
+        3.4
+      ]
+    },
+    {
+      "id": "gym-door-inside",
+      "at": [
+        6,
+        0,
+        9.4
+      ],
+      "openGymDoor": true
+    },
+    {
+      "id": "gym-door-outside",
+      "at": [
+        6,
+        0.15,
+        13
+      ]
+    },
+    {
+      "id": "gym-alley",
+      "at": [
+        6.75,
+        0.15,
+        22
+      ],
+      "areaLabel": "Gym exterior",
+      "shot": true
+    },
+    {
+      "id": "nutrition-threshold",
+      "at": [
+        20.7,
+        0.15,
+        22
+      ],
+      "openNearbyDoor": true
+    },
+    {
+      "id": "nutrition-inside",
+      "at": [
+        20.7,
+        0.15,
+        19.4
+      ],
+      "areaLabel": "BRAXHORN NUTRITION",
+      "shot": true
+    },
+    {
+      "id": "nutrition-return",
+      "at": [
+        20.7,
+        0.15,
+        22
+      ]
+    },
+    {
+      "id": "representative-frontages",
+      "at": [
+        38,
+        0.15,
+        22
+      ],
+      "areaLabel": "Detailed street facades",
+      "shot": true,
+      "look": [
+        0,
+        -30
+      ]
+    },
+    {
+      "id": "crossing-near",
+      "at": [
+        52,
+        0.15,
+        22.6
+      ],
+      "waitForPedestrians": true
+    },
+    {
+      "id": "crossing-far",
+      "at": [
+        52,
+        0.15,
+        34.7
+      ],
+      "areaLabel": "Traffic crossing",
+      "shot": true
+    },
+    {
+      "id": "nova-entrance",
+      "at": [
+        42,
+        0.15,
+        34.7
+      ],
+      "openNearbyDoor": true
+    },
+    {
+      "id": "nova-vestibule",
+      "at": [
+        42,
+        0.15,
+        39
+      ]
+    },
+    {
+      "id": "nova-hall-opening",
+      "at": [
+        42,
+        0.15,
+        43
+      ],
+      "tolerance": 0.25
+    },
+    {
+      "id": "nova-dance-floor",
+      "at": [
+        44,
+        0.15,
+        48.5
+      ],
+      "areaLabel": "NOVA interior",
+      "shot": true
+    },
+    {
+      "id": "nova-back-approach",
+      "at": [
+        39.8,
+        0.15,
+        53.5
+      ]
+    },
+    {
+      "id": "nova-back-door-align",
+      "at": [
+        35,
+        0.15,
+        53.5
+      ],
+      "openNearbyDoor": true
+    },
+    {
+      "id": "nova-back-room",
+      "at": [
+        35,
+        0.15,
+        55.9
+      ],
+      "tolerance": 0.12
+    },
+    {
+      "id": "nova-stairs-top",
+      "at": [
+        37.5,
+        -0.1,
+        55.9
+      ],
+      "tolerance": 0.12
+    },
+    {
+      "id": "nova-stairs-bottom",
+      "at": [
+        37.5,
+        -3.6,
+        60.9
+      ],
+      "tolerance": 0.12
+    },
+    {
+      "id": "nova-cellar-opening",
+      "at": [
+        40.2,
+        -3.6,
+        60.9
+      ],
+      "tolerance": 0.18
+    },
+    {
+      "id": "nova-cellar-rear",
+      "at": [
+        45.5,
+        -3.6,
+        60.9
+      ]
+    },
+    {
+      "id": "nova-cellar-center",
+      "at": [
+        45.5,
+        -3.6,
+        52
+      ],
+      "areaLabel": "NOVA cellar / MAIN_02",
+      "shot": true
+    },
+    {
+      "id": "nova-cellar-return",
+      "at": [
+        45.5,
+        -3.6,
+        60.9
+      ]
+    },
+    {
+      "id": "nova-cellar-opening-return",
+      "at": [
+        40.2,
+        -3.6,
+        60.9
+      ],
+      "tolerance": 0.18
+    },
+    {
+      "id": "nova-stair-foot-return",
+      "at": [
+        37.5,
+        -3.6,
+        60.9
+      ],
+      "tolerance": 0.12
+    },
+    {
+      "id": "nova-stair-top-return",
+      "at": [
+        37.5,
+        -0.1,
+        55.9
+      ],
+      "tolerance": 0.12
+    },
+    {
+      "id": "nova-back-room-return",
+      "at": [
+        35,
+        0.15,
+        55.9
+      ],
+      "tolerance": 0.12
+    },
+    {
+      "id": "nova-yard-door",
+      "at": [
+        34.4,
+        0.15,
+        60.4
+      ],
+      "openNearbyDoor": true
+    },
+    {
+      "id": "nova-yard-exit",
+      "at": [
+        34.4,
+        0.15,
+        63.4
+      ],
+      "areaLabel": "NOVA courtyard exit",
+      "shot": true
+    },
+    {
+      "id": "yard-clear-lane",
+      "at": [
+        34.4,
+        0.15,
+        68
+      ]
+    },
+    {
+      "id": "court-approach",
+      "at": [
+        10,
+        0.15,
+        68
+      ]
+    },
+    {
+      "id": "court-main",
+      "at": [
+        10,
+        0.15,
+        80
+      ],
+      "areaLabel": "Court / MAIN_01",
+      "shot": true
+    },
+    {
+      "id": "court-return",
+      "at": [
+        10,
+        0.15,
+        68
+      ]
+    },
+    {
+      "id": "yard-main-gate-inside",
+      "at": [
+        10,
+        0.15,
+        50
+      ]
+    },
+    {
+      "id": "yard-main-gate-outside",
+      "at": [
+        10,
+        0.15,
+        35.2
+      ],
+      "areaLabel": "Main courtyard gate",
+      "shot": true
+    },
+    {
+      "id": "yard-main-gate-return",
+      "at": [
+        10,
+        0.15,
+        50
+      ]
+    },
+    {
+      "id": "court-front-lane",
+      "at": [
+        10,
+        0.15,
+        68
+      ]
+    },
+    {
+      "id": "garage-approach",
+      "at": [
+        54,
+        0.15,
+        68
+      ]
+    },
+    {
+      "id": "garage-contact",
+      "at": [
+        54,
+        0.15,
+        84.5
+      ],
+      "areaLabel": "Garages / SIDE_04",
+      "shot": true
+    },
+    {
+      "id": "yard-quay-lane",
+      "at": [
+        54,
+        0.15,
+        77
+      ]
+    },
+    {
+      "id": "yard-quay-gate",
+      "at": [
+        62.5,
+        0.15,
+        77
+      ],
+      "areaLabel": "Courtyard quay gate",
+      "shot": true
+    },
+    {
+      "id": "delivery-pallet-bypass",
+      "at": [
+        75.2,
+        0.15,
+        77
+      ]
+    },
+    {
+      "id": "delivery-north-approach",
+      "at": [
+        75.2,
+        0.15,
+        83
+      ]
+    },
+    {
+      "id": "delivery-contact",
+      "at": [
+        77.4,
+        0.15,
+        83
+      ],
+      "areaLabel": "Quay delivery / SIDE_01",
+      "shot": true
+    },
+    {
+      "id": "delivery-return",
+      "at": [
+        75.2,
+        0.15,
+        83
+      ]
+    },
+    {
+      "id": "forest-approach",
+      "at": [
+        74,
+        0.15,
+        96
+      ]
+    },
+    {
+      "id": "forest-boundary",
+      "at": [
+        74,
+        0.15,
+        111
+      ],
+      "areaLabel": "Forest boundary / SIDE_06",
+      "shot": true
+    },
+    {
+      "id": "forest-return",
+      "at": [
+        74,
+        0.15,
+        96
+      ]
+    },
+    {
+      "id": "quay-pier-approach",
+      "at": [
+        74,
+        0.15,
+        73
+      ]
+    },
+    {
+      "id": "pier-threshold",
+      "at": [
+        82,
+        0.15,
+        73
+      ]
+    },
+    {
+      "id": "pier-water-view",
+      "at": [
+        103,
+        0.32,
+        73
+      ],
+      "areaLabel": "Pier water view",
+      "shot": true,
+      "look": [
+        270,
+        8
+      ],
+      "holdSeconds": 20
+    },
+    {
+      "id": "pier-end",
+      "at": [
+        108,
+        0.32,
+        73
+      ],
+      "areaLabel": "Pier / SIDE_02",
+      "shot": true
+    },
+    {
+      "id": "pier-return",
+      "at": [
+        82,
+        0.15,
+        73
+      ]
+    },
+    {
+      "id": "promenade",
+      "at": [
+        82,
+        0.15,
+        58
+      ],
+      "areaLabel": "Waterfront and original palms",
+      "shot": true,
+      "look": [
+        90,
+        -25
+      ]
+    },
+    {
+      "id": "promenade-water-view",
+      "at": [
+        80,
+        0.15,
+        58
+      ],
+      "shot": true,
+      "look": [
+        270,
+        8
+      ],
+      "holdSeconds": 20
+    },
+    {
+      "id": "promenade-metro-bypass",
+      "at": [
+        82,
+        0.15,
+        58
+      ]
+    },
+    {
+      "id": "metro-forecourt-east",
+      "at": [
+        82,
+        0.15,
+        33.5
+      ]
+    },
+    {
+      "id": "metro-top",
+      "at": [
+        78.9,
+        0.15,
+        33.5
+      ],
+      "tolerance": 0.2,
+      "areaLabel": "Metro entrance",
+      "shot": true
+    },
+    {
+      "id": "metro-stair-bottom",
+      "at": [
+        78.9,
+        -3.25,
+        44.2
+      ],
+      "tolerance": 0.2
+    },
+    {
+      "id": "metro-vestibule",
+      "at": [
+        78.9,
+        -3.25,
+        46.5
+      ],
+      "areaLabel": "Metro vestibule / MAIN_05",
+      "shot": true
+    },
+    {
+      "id": "metro-stair-foot-return",
+      "at": [
+        78.9,
+        -3.25,
+        44.2
+      ],
+      "tolerance": 0.2
+    },
+    {
+      "id": "metro-return",
+      "at": [
+        78.9,
+        0.15,
+        33.5
+      ],
+      "tolerance": 0.2,
+      "shot": true
+    },
+    {
+      "id": "port-junction",
+      "at": [
+        74,
+        0.15,
+        28.5
+      ]
+    },
+    {
+      "id": "port-apron",
+      "at": [
+        75,
+        0.15,
+        14
+      ],
+      "areaLabel": "Harbour / MAIN_03",
+      "shot": true
+    },
+    {
+      "id": "port-return",
+      "at": [
+        74,
+        0.15,
+        28.5
+      ]
+    },
+    {
+      "id": "quay-street-corner",
+      "at": [
+        65,
+        0.15,
+        28.5
+      ]
+    },
+    {
+      "id": "street-far-corner",
+      "at": [
+        65,
+        0.15,
+        34.7
+      ]
+    },
+    {
+      "id": "crossing-return-wait",
+      "at": [
+        52,
+        0.15,
+        34.7
+      ],
+      "waitForPedestrians": true
+    },
+    {
+      "id": "crossing-return",
+      "at": [
+        52,
+        0.15,
+        22.6
+      ]
+    },
+    {
+      "id": "street-west-frontages",
+      "at": [
+        -45,
+        0.15,
+        22.6
+      ],
+      "areaLabel": "West street frontages",
+      "shot": true
+    },
+    {
+      "id": "viaduct-approach",
+      "at": [
+        -58.8,
+        0.15,
+        23
+      ],
+      "areaLabel": "Viaduct / MAIN_04",
+      "shot": true
+    },
+    {
+      "id": "viaduct-module-boundary",
+      "at": [
+        -61,
+        0.15,
+        23.4
+      ],
+      "shot": true
+    },
+    {
+      "id": "viaduct-boundary-return",
+      "at": [
+        -58.8,
+        0.15,
+        23
+      ]
+    },
+    {
+      "id": "viaduct-far-sidewalk",
+      "at": [
+        -58.8,
+        0.15,
+        34.6
+      ]
+    },
+    {
+      "id": "viaduct-passage",
+      "at": [
+        -73,
+        0.15,
+        34.6
+      ]
+    },
+    {
+      "id": "estate-sidewalk",
+      "at": [
+        -96,
+        0.15,
+        34.7
+      ]
+    },
+    {
+      "id": "estate-gate",
+      "at": [
+        -99,
+        0.15,
+        28.5
+      ],
+      "areaLabel": "Estate connection / SIDE_05",
+      "shot": true
+    },
+    {
+      "id": "estate-return-sidewalk",
+      "at": [
+        -99,
+        0.15,
+        34.6
+      ]
+    },
+    {
+      "id": "viaduct-return",
+      "at": [
+        -73,
+        0.15,
+        34.6
+      ]
+    },
+    {
+      "id": "west-street-return",
+      "at": [
+        -58.8,
+        0.15,
+        34.6
+      ]
+    },
+    {
+      "id": "far-street-return",
+      "at": [
+        52,
+        0.15,
+        34.7
+      ],
+      "waitForPedestrians": true
+    },
+    {
+      "id": "final-crossing",
+      "at": [
+        52,
+        0.15,
+        22.6
+      ]
+    },
+    {
+      "id": "gym-alley-return",
+      "at": [
+        6.75,
+        0.15,
+        22
+      ]
+    },
+    {
+      "id": "gym-door-return",
+      "at": [
+        6,
+        0.15,
+        13
+      ],
+      "openGymDoor": true
+    },
+    {
+      "id": "gym-inside-return",
+      "at": [
+        6,
+        0,
+        9.4
+      ],
+      "areaLabel": "Gym after full city circuit",
+      "shot": true
+    }
+  ],
+  "scope": "CITY_ONLY_STAGE_1; estate gateway remains physically present but destination is unbundled",
+  "notes": "Normal controls only, no teleport. Original estate route remains in walk-route.json, not changed or deleted."
+}
