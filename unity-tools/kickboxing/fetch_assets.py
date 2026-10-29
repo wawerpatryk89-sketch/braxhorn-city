@@ -58,11 +58,43 @@ def main():
     polyhaven_maps('rubber_tiles', 'Rubber', '1k', 'Amal Kumar / Poly Haven')
     model('compact-wc-close-coupled-toilet-84214efd', 'Toilet.glb')
     model('basin-pedestal-sink-cabinet-81678fc4', 'Sink.glb')
-    save_source({'url': 'https://www.innerscene.com/api/library/boxing-gloves-and-bag-e3d766bc/download',
-                 'sha256': '70676b234ba42882e05f1dc31c42b5c248c046904b586eab18991080b016df8b'},
-                ROOT / 'build-source/BoxingBagSource.glb',
-                'https://www.innerscene.com/tools/library/3d-parts/boxing-gloves-and-bag-e3d766bc',
-                'Innerscene', 'https://www.innerscene.com/tools/library/terms')
+    # Innerscene recently changed the binary served at the SAME official asset
+    # URL. Do not bypass integrity by trusting an arbitrary response. Accept only
+    # a valid, bounded GLB with exactly the named heavy-bag/chain elements required
+    # by our original Blender derivative; record the actual new digest for audit.
+    url = 'https://www.innerscene.com/api/library/boxing-gloves-and-bag-e3d766bc/download'
+    data = fetch(url)
+    source_sha = hashlib.sha256(data).hexdigest()
+    original_sha = '70676b234ba42882e05f1dc31c42b5c248c046904b586eab18991080b016df8b'
+    if len(data) < 50000 or len(data) > 25 * 1024 * 1024 or data[:4] != b'glTF':
+        raise RuntimeError('Updated source is not the reviewed GLB family (length or magic)')
+    import struct
+    version, total = struct.unpack_from('<II', data, 4)
+    chunk_bytes, chunk_type = struct.unpack_from('<II', data, 12)
+    if version != 2 or total != len(data) or chunk_type != 0x4e4f534a or chunk_bytes > 4 * 1024 * 1024:
+        raise RuntimeError('Malformed or unexpected source GLB container')
+    source_glb = json.loads(data[20:20 + chunk_bytes])
+    names = {node.get('name', '') for node in source_glb.get('nodes', [])}
+    if not {'Heavy bag', 'Chains, swivel and ceiling plate'}.issubset(names):
+        raise RuntimeError('Updated model no longer contains the reviewed bag and steel chain')
+    if len(source_glb.get('meshes', [])) < 2 or not source_glb.get('images') or not source_glb.get('materials'):
+        raise RuntimeError('Updated source lost required 3D meshes, materials or leather textures')
+    destination = ROOT / 'build-source/BoxingBagSource.glb'
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(data)
+    changed = source_sha != original_sha
+    RECEIPT.append({'file': str(destination.relative_to(ROOT)),
+        'bytes': len(data), 'sha256': source_sha, 'source': url,
+        'origin': 'https://www.innerscene.com/tools/library/3d-parts/boxing-gloves-and-bag-e3d766bc',
+        'author': 'Innerscene', 'license': 'CC0-1.0',
+        'license_url': 'https://www.innerscene.com/tools/library/terms',
+        'original_pinned_sha256': original_sha,
+        'upstream_binary_changed': changed,
+        'validation': 'bounded glTF2 GLB, exact named body & steel-chain nodes, meshes and textures',
+        'review_status': 'runtime visual check still required' if changed else 'original pinned bytes'})
+    if changed:
+        print('REVIEW_REQUIRED_SOURCE_BINARY_CHANGED', source_sha,
+            'only vetted GLB structure is accepted; source visual QA remains required')
     # Exact project-owned pixels, losslessly re-encoded for Unity's importer.
     for source_name, target_name in [('mark.webp', 'Mark.png'), ('wide_a.webp', 'Wordmark.png')]:
         source_path = ROOT / 'public/assets/logo' / source_name
