@@ -151,7 +151,7 @@ def main():
                "sourceRun": os.environ.get("GITHUB_RUN_ID"),
                "unityVersion": "6000.0.58f2", "target": "WebGL",
                "originalCityExportRun": 40840263799, "originalGymExportRun": 40787817505,
-               "curatedSourceAuditRun": 40866427252,
+               "curatedBaseAuditRun": 40866427252, "curatedSourceAuditRun": 40869502253,
                "transport": manifest,
                "loadingFix": {"revision": "ios-stream-01", "sourceSha256": digest(source_loader),
                               "nativeStreamingGzip": True, "maxInputChunkBytes": 65536,

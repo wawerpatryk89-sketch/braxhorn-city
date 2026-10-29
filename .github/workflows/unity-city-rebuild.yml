@@ -231,3 +231,92 @@ jobs:
           path: unity-preview/
           if-no-files-found: warn
           retention-days: 14
+
+  unity-city-review:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-qa]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+          lfs: false
+      - name: Resolve the exact completed build selected for review
+        id: target
+        run: python3 unity-tools/city-rebuild/review_target.py
+      - name: Retrieve compiled Unity candidate without rebuilding it
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: ${{ steps.target.outputs.run }}
+          github-token: ${{ github.token }}
+          name: ${{ steps.target.outputs.artifact }}
+          path: unity-preview/
+      - name: Install isolated browser QA runtime
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node --check unity-tools/city-rebuild/check.mjs
+      - name: Verify native streaming preserves the compiled player bytes
+        run: node unity-tools/city-rebuild/check_transport.mjs
+      - name: Review actual Unity controls, skyline, signals, reservations and metro
+        env:
+          EXPECTED_BUILD_SHA: ${{ steps.target.outputs.commit }}
+        run: node unity-tools/city-rebuild/check.mjs
+      - name: Preserve small screenshots, telemetry and honest desktop results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-runtime-review-${{ github.sha }}
+          path: |
+            city-rebuild-review/*.json
+            city-rebuild-review/*.png
+            city-rebuild-review/browser.log
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Preserve actual Unity review recording separately
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-runtime-video-${{ github.sha }}
+          path: city-rebuild-review/browser-review.webm
+          if-no-files-found: warn
+          retention-days: 14
+
+  foliage-lod-inspection:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/city-reference-rebuild-20261029' && contains(github.event.head_commit.message, '[city-trees]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-tools/city-rebuild
+            unity-city/Assets/Editor/CityRebuild/Materials
+          persist-credentials: false
+          lfs: false
+      - name: Install read-only Blender source inspection runtime
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender
+          blender --version
+          python3 -m py_compile unity-tools/city-rebuild/inspect_tree_sources.py
+      - name: Inspect byte budgets and authored LODs without fetching texture sets
+        run: python3 unity-tools/city-rebuild/inspect_tree_sources.py
+      - name: Preserve small foliage LOD metadata and logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-foliage-lod-report-${{ github.sha }}
+          path: city-tree-report/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Preserve original main blend sources separately
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-rebuild-foliage-main-sources-${{ github.sha }}
+          path: city-tree-sources/
+          if-no-files-found: warn
+          retention-days: 14
