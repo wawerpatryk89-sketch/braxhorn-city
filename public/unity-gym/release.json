@@ -1,85 +1,113 @@
 {
   "scope": "isolated-unity-gym",
-  "iteration": "premium-02",
-  "sourceCommit": "38015034070ba78dc8f3c63e2d4ec5eee31111d2",
-  "sourceRun": 40803826572,
-  "qaPassed": true,
-  "qaChecks": 16,
-  "qaPlatform": "Chromium WebGL2, 915x412, actual CDP touch input; camera-basis synchronized per rendered frame; not a physical iPhone test",
-  "publishedUtc": "2026-10-29T02:12:35.074591+00:00",
-  "previousMain": "99f2ddd113790db222f6e3392764965f53d311d5",
-  "previousSource": "ec3fadaf05d6d69d20086ab163d3dacedd338f6b",
+  "iteration": "connected-city-and-estate",
+  "sourceCommit": "19c71c167d4426523a251b94c3aeabbe9664aad5",
+  "sourceRun": 40842927461,
   "originalCityReplaced": false,
-  "fullCityMigration": false,
-  "features": [
-    "camera-relative joystick fixed",
-    "original Brax rig and animations",
-    "original ORM restored",
-    "black clothing and lime accents",
-    "wall and floor relief",
-    "rounded ring pads and thicker bound ropes",
-    "ring stitching eyelets and stair grips",
-    "rounded leather bags with chains",
-    "arched window frames",
-    "verified library Sofa02",
-    "cache-safe versioned WebGL files"
-  ],
-  "premiumDetails": {
-    "upgradedMaterials": 34,
-    "detailParts": 379,
-    "librarySofa02": true,
-    "heroRigChanged": false,
-    "glowAdded": false
-  },
-  "materials": {
-    "originalHeroGeometryChanged": false,
-    "originalHeroRigChanged": false,
-    "originalUVsChanged": false,
-    "originalLogosChanged": false,
-    "sourceTextureSize": [
-      2048,
-      2048
+  "fullGameplayMigration": false,
+  "assetQualityChanged": false,
+  "transport": {
+    "dataPath": "Build/19c71c167d44_WebGL.data.unityweb",
+    "bytes": 286821275,
+    "sha256": "f5cf692beb441d7a69f0d41361475533def4f2c02e6e55fddc3ad1b89fd0fe06",
+    "parts": [
+      {
+        "path": "Build/19c71c167d44_WebGL.data.unityweb.part000",
+        "bytes": 33554432,
+        "sha256": "7ae445763fb45c70274d0661051c048cdba1e4b13303b795b4a1dcd1c248251d"
+      },
+      {
+        "path": "Build/19c71c167d44_WebGL.data.unityweb.part001",
+        "bytes": 33554432,
+        "sha256": "f24cec6fc9c7fa0be31135fa3bfbc0d8a80dbeee152518456b93ee746e28a5b7"
+      },
+      {
+        "path": "Build/19c71c167d44_WebGL.data.unityweb.part002",
+        "bytes": 33554432,
+        "sha256": "d522edf3775471c67727fde6ace5469a9ec31c9490f1788ba7f61c8d53cb368d"
+      },
+      {
+        "path": "Build/19c71c167d44_WebGL.data.unityweb.part003",
+        "bytes": 33554432,
+        "sha256": "6961721bb53e72f063bcbf74d14a244601b6c29cde52e4cb174be0ab92a09d0f"
+      },
+      {
+        "path": "Build/19c71c167d44_WebGL.data.unityweb.part004",
+        "bytes": 33554432,
+        "sha256": "e4ed965491a50e5db12714e938969f54e67eb01ef1bec6291259ea810bd9a10c"
+      },
+      {
+        "path": "Build/19c71c167d44_WebGL.data.unityweb.part005",
+        "bytes": 33554432,
+        "sha256": "2b775d4d19b20ff903c05e50664e07b2af3890cc6564950369adaa6b786adac2"
+      },
+      {
+        "path": "Build/19c71c167d44_WebGL.data.unityweb.part006",
+        "bytes": 33554432,
+        "sha256": "26c0b3045a315453609832a566b94d6739020dcbb8b8fd6fbd3be01b9ab7c7b4"
+      },
+      {
+        "path": "Build/19c71c167d44_WebGL.data.unityweb.part007",
+        "bytes": 33554432,
+        "sha256": "fba9ab335cdc4d2d60637c2fed76000e532c01d56ac624d26af0b9da36e08223"
+      },
+      {
+        "path": "Build/19c71c167d44_WebGL.data.unityweb.part008",
+        "bytes": 18385819,
+        "sha256": "a61ca423b0dbfeaae420dcba2e808e1afe7fa18ab2cd3444e921ba958e8c9c61"
+      }
     ],
-    "greenPixelsAdjusted": 253579,
-    "newMaps": [
-      "original brick relief",
-      "rubber relief",
-      "leather grain",
-      "canvas weave",
-      "brushed metal",
-      "Brax colour and normal"
-    ]
-  },
-  "sourceRefinements": {
-    "originalOrmRestored": true,
-    "originalRigChanged": false,
-    "originalBrandingChanged": false,
-    "bagColourSpaceCorrected": true,
-    "roundedBagSegments": 48
+    "sourceCommit": "19c71c167d4426523a251b94c3aeabbe9664aad5",
+    "assetQualityChanged": false
   },
   "files": {
-    "Build/38015034070b_WebGL.data.unityweb": "d3c6a3b8d45e282e7ab9034a21551d76cd1821b14b8055572571e291977eddb6",
-    "Build/38015034070b_WebGL.framework.js.unityweb": "26d46f57071baf030395c06b91b4b8cfc6109bc7612eb5cb60944138b84a183b",
-    "Build/38015034070b_WebGL.loader.js": "9defef85d59b6bdb658d80c411d72def7938f19f579459dff3bbc5e8d1314aa3",
-    "Build/38015034070b_WebGL.wasm.unityweb": "ed9bd33838e8f01de01198833c225cd01acc3860f5ac8f5f18687d89030a80b1",
-    "TemplateData/MemoryProfiler.png": "0ce87be20d0c24ab6cb73b57de2004da261cc2a641e69319c6ae3fe11fc85483",
-    "TemplateData/favicon.ico": "9c13beb90ee8f70580d52a21d5233970d1c89e71e4a34a462c22610941c3c77f",
+    "material-review.json": "83001f296cb74f9d393f03d2b732de1c4eee9c18c40d5fceea6b6536371330e8",
+    "source-provenance.json": "5f00607725b0af73fc29ed354f617ffb464a57f41a013fe7c3af338ecc35198b",
+    "unity-premium-report.json": "979d1e29f7a91ac3582eaf2dec77d7b152aabab6fc67f933b33dfcd91a7981c9",
+    "transport.json": "ed8eeb5bbcb3891a16091f20ba4506de725e73a324b2065a0f300c02067c3cd0",
+    "estate-manifest.json": "d3814ad8a02c24353ed1ab757e808afa89b91781d0c081bf449f5abfca026e26",
+    "migration-scope.txt": "c8745f159017bc468cf280b078375e669eae9c7f837c13650da6ddaeed66711f",
+    "source-integrity.json": "cad0014d4e33512965bfa2e7a2c5a1a3f29015a7c81e4d47499ce88c68ed3ce0",
+    "source-refinements.json": "a7607a989f5b93ac4950c81667db7b6b16360ce27bffdc8fa913738d88562c9a",
+    "library-credits.txt": "d68c0532d5eb3fa57a6bb40c69f96575c1da9fba850435a2cb0523b035d39196",
+    "playable.json": "45bc335424acf8205147d8704f5a9aa1844e3831c025115eaed32f5ec58a4cc7",
+    "logo.webp": "6bd61d27697739d5686a3487bd633da5eaec5580dbaaf5f9fa5e94c188a0a2ac",
+    "robots.txt": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+    "geometry-review.json": "44a06070ada74c68efeda0e42949785316836b3056ec5c714320aba0412d985f",
+    "city-migration.json": "038a5fcecc4969de42beeb129458fe110812249cf9ed3489b5c81d9fb6db9087",
+    "index.html": "62cafb9313d9f83f23421831da5b63c8590c4d5342a41a6b87648143b82bc873",
+    "city-transport.js": "453893ec1d28424eb4ec492090595921c56526a5e0a4f87db55c9a74d759d94e",
+    "native-texture-preparation.json": "6e3e14762970a53f004ba4511d37d8977c1e1350c9ab474e45a91ce8f94f29b3",
+    "city-manifest.json": "61fdb364fe337abe97375e2b0e8771b384532a8ad818ff211f4b199a94b819bb",
+    "Build/19c71c167d44_WebGL.data.unityweb.part007": "fba9ab335cdc4d2d60637c2fed76000e532c01d56ac624d26af0b9da36e08223",
+    "Build/19c71c167d44_WebGL.data.unityweb.part005": "2b775d4d19b20ff903c05e50664e07b2af3890cc6564950369adaa6b786adac2",
+    "Build/19c71c167d44_WebGL.data.unityweb.part006": "26c0b3045a315453609832a566b94d6739020dcbb8b8fd6fbd3be01b9ab7c7b4",
+    "Build/19c71c167d44_WebGL.loader.js": "89d72b7e4d24d108cbfe9b731bfd455f19fa3744364bde1a9c6dce62f8348c21",
+    "Build/19c71c167d44_WebGL.framework.js.unityweb": "af8c3ff165d1259142cec254ccd5f1a14759577413efbe4f6f95e6fa5899ad15",
+    "Build/19c71c167d44_WebGL.data.unityweb.part002": "d522edf3775471c67727fde6ace5469a9ec31c9490f1788ba7f61c8d53cb368d",
+    "Build/19c71c167d44_WebGL.wasm.unityweb": "27fc1c6033826427ca13739d3cb04c306db8ed1935da573fef700bb602633ba8",
+    "Build/19c71c167d44_WebGL.data.unityweb.part004": "e4ed965491a50e5db12714e938969f54e67eb01ef1bec6291259ea810bd9a10c",
+    "Build/19c71c167d44_WebGL.data.unityweb.part003": "6961721bb53e72f063bcbf74d14a244601b6c29cde52e4cb174be0ab92a09d0f",
+    "Build/19c71c167d44_WebGL.data.unityweb.part008": "a61ca423b0dbfeaae420dcba2e808e1afe7fa18ab2cd3444e921ba958e8c9c61",
+    "Build/19c71c167d44_WebGL.data.unityweb.part000": "7ae445763fb45c70274d0661051c048cdba1e4b13303b795b4a1dcd1c248251d",
+    "Build/19c71c167d44_WebGL.data.unityweb.part001": "f24cec6fc9c7fa0be31135fa3bfbc0d8a80dbeee152518456b93ee746e28a5b7",
     "TemplateData/fullscreen-button.png": "21221581673a54b8139d408d4a3f8d2b879e86827d4b6fc53b995ff7a99ee3e9",
-    "TemplateData/progress-bar-empty-dark.png": "bbee7131afe8a3365906240d89184dc86234c119467f390bc4bc6802328fdb4d",
-    "TemplateData/progress-bar-empty-light.png": "143696c060ad43d6c30f19ff5f49000927a139a2a1e4c9f45fafaa2b90d7d2be",
+    "TemplateData/MemoryProfiler.png": "0ce87be20d0c24ab6cb73b57de2004da261cc2a641e69319c6ae3fe11fc85483",
     "TemplateData/progress-bar-full-dark.png": "3306a6244dcb3926fca38a28e3ced589df8ff1beed955eb17c0bbf01c918bc62",
-    "TemplateData/progress-bar-full-light.png": "12395ea785480c5cdf12fade6e6cbf49666d5bb1cef7240c113dbcba6bdc5c87",
-    "TemplateData/style.css": "8e3625e108a61dcd1d31303376d9e02d7bdc08921d254e8f4359b892b3825caa",
     "TemplateData/unity-logo-dark.png": "c1b72d26c096487dabc948b54bc203f8dac7ed4e3f5733918798e858acb4b159",
-    "TemplateData/unity-logo-light.png": "002990aea0d946833cadc1519d5b7e50a4570bd537a0517dd79a59d3eec84da7",
+    "TemplateData/progress-bar-empty-dark.png": "bbee7131afe8a3365906240d89184dc86234c119467f390bc4bc6802328fdb4d",
     "TemplateData/unity-logo-title-footer.png": "9e8b3bdb67c2446d16362fe59449d892100931dbbadfe6a9d923a4142b57a79f",
     "TemplateData/webmemd-icon.png": "c56f5494640cedda273aad38d58e6ab9da625d5b3f4d875c0ff92c6192a569c2",
-    "index.html": "a53c8563dfa680c09ddc1928f19922a6f3dd73de28dc7601b531a63972b4accd",
-    "library-credits.txt": "d68c0532d5eb3fa57a6bb40c69f96575c1da9fba850435a2cb0523b035d39196",
-    "logo.webp": "6bd61d27697739d5686a3487bd633da5eaec5580dbaaf5f9fa5e94c188a0a2ac",
-    "material-review.json": "a45377b625e7116c4dbc880b7f23b3ba885276a997c6b3d92c1acd8514446a96",
-    "playable.json": "4f55194f3f9a85daee29447ff2137014a098cfc1612e7c165a11e9fa93643629",
-    "robots.txt": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
-    "unity-premium-report.json": "0dad56016dee308b86f442f55b4adb9f959f33f826d9641c3348e9548c8c0084"
-  }
+    "TemplateData/progress-bar-full-light.png": "12395ea785480c5cdf12fade6e6cbf49666d5bb1cef7240c113dbcba6bdc5c87",
+    "TemplateData/unity-logo-light.png": "002990aea0d946833cadc1519d5b7e50a4570bd537a0517dd79a59d3eec84da7",
+    "TemplateData/progress-bar-empty-light.png": "143696c060ad43d6c30f19ff5f49000927a139a2a1e4c9f45fafaa2b90d7d2be",
+    "TemplateData/style.css": "8e3625e108a61dcd1d31303376d9e02d7bdc08921d254e8f4359b892b3825caa",
+    "TemplateData/favicon.ico": "9c13beb90ee8f70580d52a21d5233970d1c89e71e4a34a462c22610941c3c77f"
+  },
+  "qaPassed": true,
+  "qaChecks": 39,
+  "qaRun": 40847762762,
+  "qaCommit": "78b479cd624e850b15d2485435f13346f0bf4069",
+  "visualReview": "reviewed",
+  "previousMain": "260a5897472d42d099766da48e708859bba6c3dc"
 }

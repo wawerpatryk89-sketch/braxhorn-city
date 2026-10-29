@@ -9,11 +9,28 @@
   ],
   "greenPixelsAdjusted": 253579,
   "newMaps": [
-    "original brick relief",
+    "source-linked brick relief",
     "rubber relief",
     "leather grain",
     "canvas weave",
     "brushed metal",
-    "Brax colour and normal"
+    "Brax colour and normal",
+    "linear brick/rubber/leather/canvas/steel/rope roughness"
+  ],
+  "roughnessMapsAreLinear": true,
+  "sourceCodeRewritten": false,
+  "surfaceSources": [
+    {
+      "material": 9,
+      "baseTexture": 3,
+      "normalTexture": 9,
+      "method": "source-normal-same-albedo-and-UV"
+    },
+    {
+      "material": 69,
+      "baseTexture": 22,
+      "normalTexture": null,
+      "method": "relief-derived-from-original-albedo"
+    }
   ]
 }
