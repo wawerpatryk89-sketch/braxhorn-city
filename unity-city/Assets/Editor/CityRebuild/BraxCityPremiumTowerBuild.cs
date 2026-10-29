@@ -184,8 +184,20 @@ public static class BraxCityPremiumTowerBuild
             // implementation is explicitly approved by the owner.
             new BraxCityPoint{id="R1_TOWER_MEETING",label="Roof contacts",position=new Vector3(x-1.2f,roofY,b.z1-2.4f)},
             new BraxCityPoint{id="R1_ROOF_DUEL",label="Future one vs one",position=new Vector3(x,roofY,b.z0+7.4f)},
-            new BraxCityPoint{id="R1_TOWER_RETURN",label="Return to lift",position=new Vector3(x,roofY,s0-1.1f)}
+            new BraxCityPoint{id="R1_TOWER_RETURN",label="Return to lift",position=new Vector3(x,roofY,s0-1.1f)},
+            // MASTER V3 includes original reference IDs and newer R1_TOWER
+            // aliases. Both remain hidden technical points, not extra quests.
+            new BraxCityPoint{id="R1_TOWER_LIFT_CABIN",label="Cabin checkpoint",position=new Vector3(x,groundY,shaftZ)},
+            new BraxCityPoint{id="R1_ELEVATOR_0",label="Elevator ground floor",position=new Vector3(x,groundY,shaftZ)},
+            new BraxCityPoint{id="R1_ELEVATOR_TOP",label="Elevator roof",position=new Vector3(x,roofY,shaftZ)},
+            new BraxCityPoint{id="R1_ROOF_ENTRY",label="Roof entry",position=new Vector3(x,roofY,s0-1.8f)},
+            new BraxCityPoint{id="R1_ROOF_MEETING",label="Roof contacts",position=new Vector3(x-1.2f,roofY,b.z1-2.4f)},
+            new BraxCityPoint{id="R1_ROOF_CAMERA",label="Rooftop camera zone",position=new Vector3(x,roofY+2.8f,b.z0+11.2f)},
+            new BraxCityPoint{id="R1_ROOF_RETURN",label="Roof return",position=new Vector3(x,roofY,s0-1.1f)}
         };
+        if(world.points.Select(p=>p.id).Intersect(points.Select(p=>p.id)).Any() ||
+            points.GroupBy(p=>p.id).Any(g=>g.Count()!=1))
+            throw new InvalidOperationException("MASTER V3 tower infrastructure point ID collides with source reservation");
         world.points=world.points.Concat(points).ToArray();
 
         var cabin=Group("Moving physical elevator cabin",root,new Vector3(x,groundY,shaftZ));
@@ -224,7 +236,7 @@ public static class BraxCityPremiumTowerBuild
             foreach(var t in marker.GetComponentsInChildren<Transform>(true))
                 GameObjectUtility.SetStaticEditorFlags(t.gameObject,0);
         Debug.Log("CITY_TOWER_ARCHITECTURE_CREATED floor="+groundY+" roof="+roofY+
-            " authored-roof-points=8 source-footprint="+b.id+
+            " authored-roof-points="+points.Length+" source-footprint="+b.id+
             " / Unity physical traversal and safety acceptance pending");
     }
 }
