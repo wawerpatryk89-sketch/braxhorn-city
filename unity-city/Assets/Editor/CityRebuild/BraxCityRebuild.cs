@@ -180,7 +180,7 @@ public static class BraxCityRebuild
             BraxCityArchitecture.Billboard(root,"nyxa",new Vector3(-39,16,35.7f),5,Brand+"nyxa-pink.jpg",180);
             BraxCityArchitecture.Billboard(root,"pw-ai-video",new Vector3(57,12,35.6f),4,Brand+"pw-ai-video.jpg",180);
         }
-        BraxCityArchitecture.Finish();
+        BraxCityArchitecture.Finish(root);
         // Editor-only baked sun visibility/AO, in generated mesh copies. No
         // global gym light, shared material, animation or door is modified.
         BraxCityLightingOcclusionProxy.Bake(root,original);
