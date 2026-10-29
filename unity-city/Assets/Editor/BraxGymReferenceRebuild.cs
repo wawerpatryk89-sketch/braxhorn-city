@@ -592,6 +592,10 @@ public static class BraxGymReferenceRebuild
                 foreach (float dz in new[] { -.85f, .85f }) Tube(hall, "Linear light cable", new Vector3(13.8f, 5.5f, z + dz), new Vector3(13.8f, 7.3f, z + dz), .008f, blackSteel, 1, 6);
                 LocalLight("Neutral leather and suspension task light", new Vector3(13.8f, 5.25f, z), 2.0f, 8.0f);
             }
+            // Two actual ceiling circulation fans. Housing/grilles are static
+            // and batch with the hall; rotors remain dynamic under Fixtures.
+            // No new glow, bloom, baked changes, collision or character lighting.
+            BuildCeilingFans();
             // Inexpensive neutral indirect fill is restricted to the new room
             // layer. The original character and city lights remain untouched.
             foreach (var direction in new[] { new Vector3(28f, 90f, 0), new Vector3(28f, 270f, 0) })
@@ -601,6 +605,76 @@ public static class BraxGymReferenceRebuild
                 fill.intensity = .42f; fill.shadows = LightShadows.None; fill.cullingMask = 1 << 10;
                 fill.renderMode = LightRenderMode.ForceVertex; fill.transform.rotation = Quaternion.Euler(direction);
             }
+        }
+
+        void BuildCeilingFans()
+        {
+            // Placed between the inspected cross beams, away from the ring,
+            // suspended boxing bags, pendant lamps and current room routes.
+            BuildCeilingCirculator("01", new Vector3(-1.0f, 6.55f, -7.0f));
+            BuildCeilingCirculator("02", new Vector3(-1.0f, 6.55f, 4.85f));
+        }
+
+        void BuildCeilingCirculator(string id, Vector3 center)
+        {
+            // Industrial matte-black overhead unit: steel motor mount, five
+            // swept metal blades and a real, not texture-only, protective grille.
+            Tube(hall, "Fan " + id + " suspended steel downrod",
+                center + Vector3.up * .24f, center + Vector3.up * 1.12f,
+                .036f, blackSteel, 1, 12);
+            Box(hall, "Fan " + id + " ceiling anchor plate",
+                center + Vector3.up * 1.16f,
+                new Vector3(.34f, .095f, .34f), blackSteel, .026f);
+            foreach (float side in new[] { -1f, 1f })
+                Tube(hall, "Fan " + id + " downrod diagonal brace",
+                    center + new Vector3(side * .22f, .72f, 0f),
+                    center + new Vector3(0f, .23f, 0f),
+                    .018f, steel, 1, 10);
+
+            Ring(hall, "Fan " + id + " upper steel safety hoop",
+                center + Vector3.up * .20f,
+                1.15f, .026f, blackSteel, Quaternion.Euler(90f, 0f, 0f), 48, 8);
+            Ring(hall, "Fan " + id + " lower steel safety hoop",
+                center + Vector3.down * .20f,
+                1.15f, .023f, steel, Quaternion.Euler(90f, 0f, 0f), 48, 8);
+            for (int a = 0; a < 12; a++)
+            {
+                float angle = a * Mathf.PI / 6f;
+                var radial = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+                Tube(hall, "Fan " + id + " guard spoke",
+                    center + Vector3.down * .20f + radial * .19f,
+                    center + Vector3.down * .20f + radial * 1.14f,
+                    .010f, steel, 1, 8);
+                if (a % 2 == 0)
+                    Tube(hall, "Fan " + id + " grille riser",
+                        center + Vector3.down * .19f + radial * 1.15f,
+                        center + Vector3.up * .19f + radial * 1.15f,
+                        .012f, blackSteel, 1, 8);
+            }
+
+            var rotor = Group(fixtures, "Fan " + id + " independently rotating assembly");
+            rotor.localPosition = center;
+            Box(rotor, "Fan " + id + " cylindrical drive hub",
+                Vector3.up * .07f, new Vector3(.29f, .20f, .29f), blackSteel, .045f);
+            Box(rotor, "Fan " + id + " lower hub cap",
+                Vector3.down * .065f, new Vector3(.20f, .035f, .20f), steel, .017f);
+            for (int i = 0; i < 5; i++)
+            {
+                var blade = Group(rotor, "Fan " + id + " steel aerofoil " + (i + 1));
+                blade.localRotation = Quaternion.Euler(0f, i * 72f, 0f);
+                Tube(blade, "Forged blade support",
+                    new Vector3(.12f, .01f, 0f), new Vector3(.43f, .01f, 0f),
+                    .022f, steel, 1, 10);
+                var mainBlade = Box(blade, "Swept matte metal blade",
+                    new Vector3(.64f, .015f, .04f),
+                    new Vector3(.74f, .05f, .24f), blackSteel, .023f);
+                mainBlade.localRotation = Quaternion.Euler(6f, -7f, 0f);
+                var tip = Box(blade, "Tapered blade tip",
+                    new Vector3(1.06f, .025f, .10f),
+                    new Vector3(.16f, .039f, .17f), blackSteel, .018f);
+                tip.localRotation = Quaternion.Euler(6f, -11f, 0f);
+            }
+            rotor.gameObject.AddComponent<BraxGymCeilingFan>().revolutionsPerMinute = 28f;
         }
 
         void BuildMuralWall()
