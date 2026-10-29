@@ -9,7 +9,6 @@ const out=path.resolve(process.env.QA_OUT||'city-rebuild-review');
 fs.mkdirSync(out,{recursive:true});
 const release=JSON.parse(fs.readFileSync(path.join(root,'release.json'),'utf8'));
 const expected=process.env.EXPECTED_BUILD_SHA||release.sourceCommit;
-const mobileCityOnly=release.mobileCityOnly===true;
 const checks=[],logs=[],sections=[],timings={};
 const viewport={width:915,height:412};
 const server=http.createServer((req,res)=>{
@@ -122,20 +121,11 @@ try{
   }
  });
 
- if(!mobileCityOnly)await section('separate-estate-and-return',async()=>{
+ await section('separate-estate-and-return',async()=>{
   await point('closed_estate');await until(()=>window.BraxhornState.context.includes('OSIEDLE'));const departure=Date.now();await send('Command','action');await until(()=>window.BraxhornState?.area==='estate'&&window.BraxhornState.ready&&window.BraxhornState.grounded,null,420000);timings.cityToEstateReadyMs=Date.now()-departure;await shot('18-estate-entry');
   check('Separate estate is still the same compiled build',(await state()).build===expected,brief(await state()));await point('park');await shot('19-estate-park');
   await point('estate_entry');await until(()=>window.BraxhornState.context.includes('WRÓĆ DO MIASTA'));const back=Date.now();await send('Command','action');await until(()=>window.BraxhornState?.area==='city'&&window.BraxhornState.ready&&window.BraxhornState.grounded&&window.BraxhornState.x< -90,null,420000);timings.estateToVisitedCityReadyMs=Date.now()-back;await shot('20-returned-city');
   check('Return unloads estate and restores the city',(await state()).area==='city'&&(await state()).build===expected,brief(await state()));await point('gym_start');await shot('21-gym-after-roundtrip');
- });
- else await section('city-mobile-portal-safe',async()=>{
-  const migration=JSON.parse(fs.readFileSync(path.join(root,'city-migration.json'),'utf8'));
-  check('Mobile player includes original complete city but no estate',migration.scope==='original-city-mobile-walkthrough'&&migration.areas.length===1&&migration.areas[0].area==='city'&&migration.areas[0].originalMeshes>100,migration.areas);
-  const portal=await point('closed_estate');check('Mobile portal states inaccessible area',portal.context.includes('PRZEJŚCIE ZAMKNIĘTE'),brief(portal));
-  await send('Command','action');const after=await state();
-  check('Mobile portal does not load nonexistent scene',after.area==='city'&&!after.loadingArea,brief(after));
-  await point('gym_start');await shot('21-gym-after-mobile-route');
-  check('Brax stays controllable after visiting city boundary',(await state()).ready,brief(await state()));
  });
 
  await section('browser-background-return',async()=>{

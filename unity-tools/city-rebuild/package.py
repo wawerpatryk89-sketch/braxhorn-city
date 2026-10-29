@@ -132,25 +132,10 @@ def main():
     out = ROOT / "unity-preview"
     filter_public_navigation(out / "index.html")
     city_manifest = json.loads((out / "city-migration.json").read_text())
-    mobile_city_only = city_manifest.get("scope") == "original-city-mobile-walkthrough"
-    if mobile_city_only:
-        areas = city_manifest.get("areas", [])
-        if len(areas) != 1 or areas[0].get("area") != "city":
-            raise ValueError("Mobile player must contain exactly the complete city scene")
     if city_manifest.get("commit") != commit:
         raise ValueError("Compiled city provenance does not match the build source commit")
     source_loader = ROOT / "unity-release/ios-stream-loader.js"
     manifest = package_transport(out, commit, source_loader)
-    if mobile_city_only:
-        html_path = out / "index.html"
-        html = html_path.read_text()
-        # Keep the real native player, but reduce the GPU framebuffer cost on iOS.
-        old_dpr = "devicePixelRatio:Math.min(devicePixelRatio,1.75)"
-        if html.count(old_dpr) != 1:
-            raise ValueError("Expected known Unity mobile DPR configuration")
-        html = html.replace(old_dpr, "devicePixelRatio:Math.min(devicePixelRatio,1.25)")
-        html = html.replace("Brax. Siłownia. Miasto. Osiedle.", "Brax. Siłownia. Miasto.")
-        html_path.write_text(html)
     evidence = ROOT / "city-rebuild-review"
     evidence.mkdir(exist_ok=True)
     curated = ROOT / "unity-city/Assets/Source/CityRebuild/source-audit.json"
@@ -164,7 +149,7 @@ def main():
                "sourceCommit": commit, "cityCommit": commit, "gymIntegrationCommit": gym_commit,
                "gymIntegrationStatus": "integrated_commit_requires_runtime_review" if gym_commit else "new_gym_integration_pending",
                "sourceRun": os.environ.get("GITHUB_RUN_ID"),
-               "unityVersion": "6000.0.58f2", "target": "WebGL", "mobileCityOnly": mobile_city_only,
+               "unityVersion": "6000.0.58f2", "target": "WebGL",
                "originalCityExportRun": 40840263799, "originalGymExportRun": 40787817505,
                "curatedBaseAuditRun": 40866427252, "curatedSourceAuditRun": 40869502253,
                "transport": manifest,

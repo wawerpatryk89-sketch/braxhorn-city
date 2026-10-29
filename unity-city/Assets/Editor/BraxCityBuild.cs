@@ -27,7 +27,6 @@ public static class BraxCityBuild
     [Serializable] public sealed class AreaReport { public string area;public int originalMeshes,importedMeshes,originalTriangles,sourceBoxes,sourceCircles,sourcePits,meshColliders,doors,bakedMaterials,sourcePoints; }
     [Serializable] public sealed class Report { public string commit,unity,browserSource="260a5897472d42d099766da48e708859bba6c3dc",scope="original-city-and-estate-exploration";public bool originalCityReplaced=false,originalModels=true,originalBraxRig=true;public AreaReport[] areas;public string[] notYetPorted={"estate NPC schedules and combat AI","estate story and economy","additional playable character selection"}; }
     static readonly List<AreaReport> reports=new List<AreaReport>();
-    static bool MobileCityCompression;
     static GameObject Import(string path)
     {
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(path)??AssetDatabase.LoadAllAssetsAtPath(path).OfType<GameObject>().FirstOrDefault();
@@ -45,11 +44,7 @@ public static class BraxCityBuild
     {
         string path=Source+file;var importer=AssetImporter.GetAtPath(path) as TextureImporter;
         if(importer==null)throw new Exception("Original lightmap not imported: "+file);
-        // WebGL city-only derivative uses high-quality GPU compression for static lightmaps;
-        // exact original source image bytes and UVs are not modified.
-        importer.sRGBTexture=false;
-        importer.textureCompression=MobileCityCompression?TextureImporterCompression.CompressedHQ:TextureImporterCompression.Uncompressed;
-        importer.mipmapEnabled=true;importer.maxTextureSize=MobileCityCompression?2048:4096;importer.wrapMode=TextureWrapMode.Clamp;importer.SaveAndReimport();
+        importer.sRGBTexture=false;importer.textureCompression=TextureImporterCompression.Uncompressed;importer.mipmapEnabled=true;importer.maxTextureSize=4096;importer.wrapMode=TextureWrapMode.Clamp;importer.SaveAndReimport();
         return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }
     static int ConvertBaked(GameObject root,Manifest data)
@@ -152,9 +147,9 @@ public static class BraxCityBuild
         Debug.Log("ORIGINAL_CITY_AREA_IMPORTED "+JsonUtility.ToJson(reports.Last()));
         return world;
     }
-    public static void AttachCity(BraxGymPlayer player,bool includeEstate=true)
+    public static void AttachCity(BraxGymPlayer player)
     {
-        reports.Clear();MobileCityCompression=!includeEstate;var city=AddArea("city",player);city.estateAvailable=includeEstate;player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=420;player.view.backgroundColor=new Color(.67f,.75f,.81f);
+        reports.Clear();AddArea("city",player);player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=420;player.view.backgroundColor=new Color(.67f,.75f,.81f);
     }
     public static string CreateEstate(string commit)
     {
@@ -177,11 +172,10 @@ public static class BraxCityBuild
         AddArea("estate",runtime);
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
-    public static void WriteReport(string output,string commit,bool includeEstate=true)
+    public static void WriteReport(string output,string commit)
     {
-        if(reports.Count!=(includeEstate?2:1))throw new Exception("Original area count differs from explicit mobile/full scene selection");
-        if(!includeEstate && (reports[0].area!="city" || reports[0].originalMeshes<100))throw new Exception("Mobile build omitted the original city");
-        File.WriteAllText(Path.Combine(output,"city-migration.json"),JsonUtility.ToJson(new Report{commit=commit,unity=Application.unityVersion,areas=reports.ToArray(),scope=includeEstate?"original-city-and-estate-exploration":"original-city-mobile-walkthrough"},true));
+        if(reports.Count!=2)throw new Exception("Both original areas must be included");
+        File.WriteAllText(Path.Combine(output,"city-migration.json"),JsonUtility.ToJson(new Report{commit=commit,unity=Application.unityVersion,areas=reports.ToArray()},true));
         BraxCityRebuild.WriteReport(output);
     }
 }

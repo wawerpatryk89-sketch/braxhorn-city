@@ -52,20 +52,6 @@ def verify(root: Path, commit: str) -> dict:
                 f"{data.get('commit')!r} != {commit}"
             )
         found[filename] = data["commit"]
-        if filename == "city-migration.json":
-            areas = data.get("areas")
-            scope = data.get("scope")
-            if scope == "original-city-mobile-walkthrough":
-                if not isinstance(areas, list) or len(areas) != 1 or areas[0].get("area") != "city":
-                    raise RuntimeError("City-only mobile build must contain the original real city, without estate")
-            elif scope == "original-city-and-estate-exploration":
-                if not isinstance(areas, list) or {a.get("area") for a in areas} != {"city", "estate"}:
-                    raise RuntimeError("Full build must preserve both original Unity areas")
-            else:
-                raise RuntimeError(f"Unexpected Unity scene selection: {scope!r}")
-            found["citySceneCount"] = len(areas)
-            found["citySceneScope"] = scope
-    found["compiledDataBytes"] = next(assets.glob("*.data.unityweb")).stat().st_size
     return found
 
 

@@ -27,7 +27,7 @@ REPO_ID = 1436397588
 SECTIONS = {
     "touch-and-camera", "public-map", "gym-door-route", "eleven-reservations",
     "traffic-full-cycle", "metro-walk-down-and-back", "district-visual-review",
-    "browser-background-return",
+    "separate-estate-and-return", "browser-background-return",
 }
 
 
@@ -167,8 +167,7 @@ def stage(marker, player, qa_root, destination, evidence):
             len([c for c in qa.get("checks", []) if c.get("passed") is True]) >= 20,
             "Runtime QA contains failures or insufficient actual checks")
     passed_sections = {s["name"] for s in qa.get("sections", []) if s.get("passed") is True}
-    variant_section = "city-mobile-portal-safe" if release.get("mobileCityOnly") is True else "separate-estate-and-return"
-    require((SECTIONS | {variant_section}).issubset(passed_sections), "Required Unity walkthrough sections did not pass")
+    require(SECTIONS.issubset(passed_sections), "Required Unity walkthrough sections did not pass")
     reviewed = {}
     for name in marker["reviewedImages"]:
         image = qa_root / name

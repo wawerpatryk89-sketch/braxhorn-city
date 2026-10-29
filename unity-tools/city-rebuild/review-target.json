@@ -1,5 +1,5 @@
 {
-  "runId": 40889432675,
-  "commit": "0dc7d7bc65dd1e5c1d80e340fb3aff99300b878d",
-  "purpose": "Physical-iPhone-oriented city-only WebGL candidate: original Brax and city, estate excluded from initial payload; verify real Unity runtime before any private preview publication."
+  "runId": 40878906652,
+  "commit": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+  "purpose": "Review the exact successful Unity WebGL city artifact and capture authentic Unity screenshots; do not publish production."
 }
