@@ -20,7 +20,7 @@ public static class BraxGymReferenceRebuild
 
     [Serializable] public sealed class Report
     {
-        public string revision = "kickboxing-premium-04-reception-fitness";
+        public string revision = "kickboxing-premium-05-speedbag-contact";
         public string coordinateSystem = "Unity metres, existing glTF X mirror retained";
         public Vector3 annexMin = new Vector3(-25.5f, 0, -3f);
         public Vector3 annexMax = new Vector3(-18f, 3.1f, 8f);
@@ -98,7 +98,8 @@ public static class BraxGymReferenceRebuild
             if (report.ceilingFansConfigured != 2 || report.animatedCeilingFans != 2)
                 throw new InvalidOperationException("Two real high-ceiling ventilation fans with assigned animated rotors are required.");
             if (!report.singleEntranceSofaRemoved || !report.receptionCurved || !report.loungeCorrected ||
-                !report.speedBagStandInstalled || report.premiumStrengthModelsPlaced != 5)
+                !report.speedBagStandInstalled || !player.speedBag || !player.speedBag.HitBoxAssigned ||
+                report.premiumStrengthModelsPlaced != 5)
                 throw new InvalidOperationException("Final premium fitness equipment and lounge requirements not satisfied.");
             foreach (var group in batches) BatchByMaterial(group);
             var finalMeshes = root.GetComponentsInChildren<MeshFilter>(true).Where(f => f.sharedMesh && f.GetComponent<Renderer>() && f.GetComponent<Renderer>().enabled).ToArray();
@@ -1088,14 +1089,28 @@ public static class BraxGymReferenceRebuild
                 .465f,.016f,polished,Quaternion.Euler(90f,0,0),36,8);
             Tube(a,"Swivel with steel bearing",new Vector3(0,2.00f,.32f),
                 new Vector3(0,2.18f,.32f),.034f,polished,3,20);
-            var pear=MeshObject(a,"Full three-dimensional pear leather bag",
+            // Only the pear moves. The supporting bar, board and the real
+            // steel swivel stay rigidly attached to the original stand.
+            var reboundPivot=Group(a,"Real speed bag rebound rotation beneath swivel");
+            reboundPivot.localPosition=new Vector3(0,2.00f,.32f);
+            var pear=MeshObject(reboundPivot,"Full three-dimensional pear leather bag",
                 SpeedPearMesh(),leather);
-            pear.localPosition=new Vector3(0,1.72f,.32f);
-            // Not wired as a fictional fifth standard punching bag:
-            // existing player four-bag collision and training remain unchanged.
+            pear.localPosition=new Vector3(0,-.28f,0f);
+            // True 3D collider moves with the leather pear and is a trigger,
+            // so it never creates an invisible wall blocking the player.
+            var hitbox=pear.gameObject.AddComponent<SphereCollider>();
+            hitbox.center=new Vector3(0,-.025f,0);
+            hitbox.radius=.222f;
+            hitbox.isTrigger=true;
+            var interaction=a.gameObject.AddComponent<BraxGymSpeedBag>();
+            interaction.pivot=reboundPivot;
+            interaction.hitbox=hitbox;
+            if(player.speedBag) throw new InvalidOperationException(
+                "Duplicate speed bag gameplay binding in the same gym");
+            player.speedBag=interaction;
             ColliderBox("Speedbag fixed steel support collision",
                 basePos+new Vector3(0,.16f,-.20f),new Vector3(.79f,.32f,.99f));
-            report.speedBagStandInstalled=true;
+            report.speedBagStandInstalled=interaction.HitBoxAssigned;
         }
 
         Mesh SpeedPearMesh()

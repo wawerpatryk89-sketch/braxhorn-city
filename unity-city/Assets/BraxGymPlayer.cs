@@ -10,6 +10,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public CharacterController body;
     public Transform door;
     public Transform[] bags;
+    // Gym-only optional target. Original 4 heavy-bag pivots, rig, input and city stay intact.
+    public BraxGymSpeedBag speedBag;
     public Transform contactShadow;
     public string buildId;
     public bool ready;
@@ -47,6 +49,10 @@ public sealed class BraxGymPlayer : MonoBehaviour
         public Vector3 leftFootPosition,rightFootPosition;
         public Vector2 lastHitImpulse;
         public Vector2[] bagAngles,bagVelocities;
+        public bool speedBagConnected;
+        public int speedBagHits;
+        public float speedBagLastHitTime, speedBagLastDistance, speedBagLastAlignment;
+        public Vector2 speedBagAngles, speedBagVelocities;
         public string animation,context,build,area,activePoint;
         public bool loadingArea;
         public int cityMeshes,cityTriangles,cityColliders,openDoors;
@@ -159,6 +165,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     }
     private void HitBag()
     {
+        bool originalBagHit=false;
         for(int i=0;i<bags.Length;i++)
         {
             Vector3 d=bags[i].position-transform.position;d.y=0;
@@ -170,7 +177,30 @@ public sealed class BraxGymPlayer : MonoBehaviour
                 localForward=Quaternion.Inverse(bagRestRotation[i])*localForward;
                 lastHitImpulse=new Vector2(-localForward.z,localForward.x)*55f;
                 bagVelocity[i]+=lastHitImpulse;
-                if(soundEnabled)audioSource.PlayOneShot(impact);Report();break;
+                if(soundEnabled)audioSource.PlayOneShot(impact);
+                originalBagHit=true;
+                Report();
+                break;
+            }
+        }
+        // Same original punch contact frame, no fake proximity scoring in Update.
+        // A speed pear is hit by FISTS, not by kicks, and only within its
+        // measured 3D sphere/contact arc. Index -2 is reserved exclusively
+        // for this new target; original bag indices 0..3 are unchanged.
+        if(!originalBagHit && action=="Punch" && speedBag)
+        {
+            float distanceToPear,alignmentToPear;
+            if(speedBag.TryReceivePunch(transform.position,transform.forward,
+                out distanceToPear,out alignmentToPear))
+            {
+                trainingHits++;
+                lastHitBag=-2;
+                lastHitTime=Time.time;
+                lastHitDistance=distanceToPear;
+                lastHitAlignment=alignmentToPear;
+                lastHitImpulse=speedBag.LastImpulse;
+                if(soundEnabled)audioSource.PlayOneShot(impact);
+                Report();
             }
         }
     }
@@ -229,6 +259,13 @@ public sealed class BraxGymPlayer : MonoBehaviour
             grounded=body.isGrounded,runEnabled=runEnabled,playerYaw=transform.eulerAngles.y,cameraYaw=view.transform.eulerAngles.y,verticalSpeed=vertical,
             rightX=right.x,rightZ=right.z,forwardX=forward.x,forwardZ=forward.z,
             lastHitBag=lastHitBag,lastHitTime=lastHitTime,lastHitDistance=lastHitDistance,lastHitAlignment=lastHitAlignment,bagAngles=bagSwing,bagVelocities=bagVelocity,
+            speedBagConnected=speedBag&&speedBag.HitBoxAssigned,
+            speedBagHits=speedBag?speedBag.HitCount:0,
+            speedBagLastHitTime=speedBag?speedBag.LastHitTime:0f,
+            speedBagLastDistance=speedBag?speedBag.LastDistance:0f,
+            speedBagLastAlignment=speedBag?speedBag.LastAlignment:0f,
+            speedBagAngles=speedBag?speedBag.Angles:Vector2.zero,
+            speedBagVelocities=speedBag?speedBag.AngularVelocity:Vector2.zero,
             gameTime=Time.time,simulationTime=simulationTime,moveX=move.x,moveY=move.y,lastHitImpulse=lastHitImpulse,
             handFound=hand!=null,leftFootFound=leftFoot!=null,rightFootFound=rightFoot!=null,
             leftFootPosition=leftFoot?leftFoot.position:Vector3.zero,rightFootPosition=rightFoot?rightFoot.position:Vector3.zero};

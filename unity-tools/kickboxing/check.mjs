@@ -314,6 +314,52 @@ try {
     verify(animation+' out of range does not hit a bag',(await state()).hits===a.hits,{before:a.hits,after:(await state()).hits});
   });
 
+  await step('Live interactive speed-bag pear: real fist contact and rebound',async()=>{
+    await review(11.20,.08,-7.55,0,15,5.8,'speed bag interaction test setup');
+    const far=await state();
+    verify('New physical speed bag trigger is bound to player',far.speedBagConnected===true,far);
+    await page.click('#punch');await waitIdle();
+    const distant=await state();
+    verify('Out-of-range speed bag punch does not score',
+      distant.speedBagHits===far.speedBagHits && distant.hits===far.hits,
+      {before:brief(far),after:brief(distant)});
+    await runMode(false);
+    // Use actual grounded player movement to turn toward the pear rather than
+    // an artificial force-hit command or a teleport into the trigger.
+    await moveTo(11.20,-9.06,'approach training speed pear naturally');
+    const ready=await state();
+    await page.click('#punch');
+    await until('Genuine timed fist hit to speedbag',
+      hits=>window.BraxhornState?.speedBagHits>hits,ready.speedBagHits);
+    await until('Pear visibly swings after real contact',
+      seq=>window.BraxhornHistory.some(s=>s.qaSequence>seq &&
+        Math.hypot(s.speedBagAngles?.x||0,s.speedBagAngles?.y||0)>1.25),
+      ready.qaSequence);
+    const hit=await state();
+    verify('Only one real punch hit is counted on pear',hit.speedBagHits===ready.speedBagHits+1 &&
+      hit.hits===ready.hits+1 && hit.lastHitBag===-2 &&
+      hit.speedBagLastAlignment>.72 && hit.speedBagLastDistance<1.82,
+      {speedBagHits:hit.speedBagHits,allHits:hit.hits,lastHitBag:hit.lastHitBag,
+       distance:hit.speedBagLastDistance,alignment:hit.speedBagLastAlignment});
+    await shot('03b-speedbag-real-contact');await waitIdle();
+    const firstTrace=await history(ready.qaSequence);
+    const maximum=Math.max(0,...firstTrace.map(v=>Math.hypot(
+      v.speedBagAngles?.x||0,v.speedBagAngles?.y||0)));
+    verify('Real 3D pear rebounds after impact rather than remaining rigid',maximum>1.25 && maximum<28,{maximum});
+    const beforeKick=await state();
+    await page.click('#kick');await waitIdle();
+    const afterKick=await state();
+    verify('Speed boxing pear requires a punch, not a kick',
+      afterKick.speedBagHits===beforeKick.speedBagHits,
+      {before:beforeKick.speedBagHits,after:afterKick.speedBagHits});
+    const settled=await simulated(await state(),2.8);
+    verify('Speed boxing pear movement dissipates naturally',
+      Math.hypot(settled.speedBagAngles.x,settled.speedBagAngles.y)<maximum*.36,
+      {peak:maximum,settled:Math.hypot(settled.speedBagAngles.x,settled.speedBagAngles.y)});
+    fs.writeFileSync(path.join(out,'speedbag-contact-trace.json'),
+      JSON.stringify(await history(ready.qaSequence),null,2));
+  });
+
   // The following successful legs form one continuous physical walkthrough.
   await review(3,.08,5,0,7,5.8,'continuous walkthrough start');await runMode(false);
   lastLegPassed=await step('Ring stairs traversal',async()=>{
