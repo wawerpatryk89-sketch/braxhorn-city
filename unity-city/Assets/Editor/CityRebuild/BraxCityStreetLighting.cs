@@ -19,7 +19,13 @@ public static class BraxCityStreetLighting
     {
         // Both posts stand on the existing pavements with a recessed foundation.
         // The metro entrance and marked pedestrian crossing remain free.
-        float z=far?34.30f:22.90f;
+        // Source Unity no-teleport walking test 40914321114 proved that
+        // the far-side lamp at (46,34.30) physically blocked Brax at
+        // (46.188,34.770), exactly its 0.145 m post collider plus his
+        // capsule radius. Recess the entire far line close to the *road-side*
+        // kerb, leaving the pedestrian corridor z>=34.15 completely free.
+        // Preserve the actual posts, shading, materials and their colliders.
+        float z=far?33.32f:22.90f;
         var root=Group("Premium graphite curved street lantern "+x+" "+(far?"far":"near"),
             street,new Vector3(x,.15f,z));
         float facing=far?-1f:1f;
