@@ -1,0 +1,62 @@
+name: Publish real optimized Brax city walkable snapshot (NO PRODUCTION)
+
+on:
+  push:
+    branches:
+      - test/city-walkable-ios-snapshot-20261029
+    paths:
+      - '.github/workflows/publish-city-walkable-snapshot.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  verified-city-gameplay:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: ci
+          persist-credentials: false
+      - name: Download exact original 205MB compiled iOS city Unity WebGL, never game source
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40930737141
+          github-token: ${{ github.token }}
+          name: city-ios-player-45a9555f3a449d2d78165882b465c8bb82267d7f
+          path: player/
+      - name: Install browser for actual 3D Brax movement test
+        run: |
+          python3 -m py_compile ci/publish_city_walkable_snapshot.py
+          node --check ci/city-walkable-snapshot-smoke.mjs
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run actual Unity 6 WebGL in mobile browser and walk Brax, no QA teleport
+        run: node ci/city-walkable-snapshot-smoke.mjs
+      - name: Save honest runtime QA including failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-walkable-interim-actual-unity-qa-${{ github.sha }}
+          path: walking-smoke/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publish only if actual Unity and joystick both PASS
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 ci/publish_city_walkable_snapshot.py
+      - name: Publish source SHA receipt (production untouched)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-walkable-interim-publication-${{ github.sha }}
+          path: walkable-receipt/
+          if-no-files-found: warn
+          retention-days: 14
+    permissions:
+      contents: write
+      actions: read
