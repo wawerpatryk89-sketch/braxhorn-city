@@ -28,7 +28,7 @@ public static class BraxGymReferenceRebuild
         public Vector3 portalMax = new Vector3(-17.6f, 2.7f, 6f);
         public Vector3 mainDoorBefore, mainDoorAfter, ringCenterBefore, ringCenterAfter;
         public int sourceMeshesClipped, removedSourceTriangles, generatedMeshes, generatedTriangles, privacyRays, privacyBlocked;
-        public int ceilingFansConfigured, animatedCeilingFans, premiumStrengthModelsPlaced;
+        public int ceilingFansConfigured, animatedCeilingFans, premiumStrengthModelsPlaced, speedBagStandCount;
         public bool singleEntranceSofaRemoved, receptionCurved, loungeCorrected, speedBagStandInstalled;
         public bool privacyWithAllDoorsOpen, originalEntrancePreserved, originalRingPositionPreserved;
         public bool billboardArtworkInstalled = false, muralArtworkInstalled = false, physicalIPhoneValidated = false;
@@ -98,7 +98,10 @@ public static class BraxGymReferenceRebuild
             if (report.ceilingFansConfigured != 2 || report.animatedCeilingFans != 2)
                 throw new InvalidOperationException("Two real high-ceiling ventilation fans with assigned animated rotors are required.");
             if (!report.singleEntranceSofaRemoved || !report.receptionCurved || !report.loungeCorrected ||
-                !report.speedBagStandInstalled || !player.speedBag || !player.speedBag.HitBoxAssigned ||
+                !report.speedBagStandInstalled || report.speedBagStandCount != 2 ||
+                !player.speedBag || !player.speedBag.HitBoxAssigned ||
+                player.additionalSpeedBags == null || player.additionalSpeedBags.Length != 1 ||
+                !player.additionalSpeedBags[0] || !player.additionalSpeedBags[0].HitBoxAssigned ||
                 report.premiumStrengthModelsPlaced != 5)
                 throw new InvalidOperationException("Final premium fitness equipment and lounge requirements not satisfied.");
             foreach (var group in batches) BatchByMaterial(group);
@@ -911,9 +914,23 @@ public static class BraxGymReferenceRebuild
                 p+new Vector3(1.07f,.36f,-.783f),
                 .011f,green,8,10);
             // Only the genuine project logo, never fake/generated lettering.
+            // The distinct walnut inset and warm/green edge are on the actual
+            // audience-facing side, not hidden under the previous graphite shell.
+            Box(hall,"Premium reception floating dark-walnut front fascia",
+                p+new Vector3(-.49f,.73f,-.800f),
+                new Vector3(2.72f,.55f,.034f),walnut,.012f);
+            Tube(hall,"Premium reception illuminated green counter underlip",
+                p+new Vector3(-1.88f,1.034f,-.807f),
+                p+new Vector3(1.07f,1.034f,-.807f),
+                .018f,green,1,20);
+            foreach(float x in new[]{-1.91f,1.04f})
+                Tube(hall,"Premium reception recessed vertical accent",
+                    p+new Vector3(x,.44f,-.829f),
+                    p+new Vector3(x,.97f,-.829f),
+                    .012f,warmMetal,1,14);
             Decal(hall,"BRAXHORN original reception wordmark",
-                RequiredTexture("Wordmark.png"),p+new Vector3(-.46f,.77f,-.782f),
-                1.92f,.31f,Vector3.back,Vector3.up,Color.white);
+                RequiredTexture("Wordmark.png"),p+new Vector3(-.46f,.74f,-.842f),
+                2.15f,.34f,Vector3.back,Vector3.up,Color.white);
             Box(hall,"Real reception payment stand",
                 p+new Vector3(.48f,1.19f,.10f),
                 new Vector3(.17f,.10f,.17f),blackSteel,.025f);
@@ -923,7 +940,13 @@ public static class BraxGymReferenceRebuild
             terminal.localRotation=Quaternion.Euler(-18f,0,0);
             ColliderBox("Premium curved counter solid obstruction",
                 p+new Vector3(-.1f,.58f,-.11f),new Vector3(3.62f,1.16f,1.30f));
-            report.receptionCurved=true;
+            report.receptionCurved =
+                hall.Find("Premium reception bowed one-end graphite body") &&
+                hall.Find("Premium reception curved genuine walnut worktop") &&
+                hall.Find("Premium reception floating dark-walnut front fascia") &&
+                hall.Find("BRAXHORN original reception wordmark");
+            if (!report.receptionCurved)
+                throw new InvalidOperationException("Premium reception front, curved counter or original brand mark missing.");
             BuildCornerLounge();
         }
 
@@ -1037,7 +1060,8 @@ public static class BraxGymReferenceRebuild
                 90f,1.34f,new Vector3(.89f,.52f,1.41f));
             FitnessModel("PremiumInclineBench",new Vector3(-15.46f,0,-1.38f),
                 90f,1.36f,new Vector3(.93f,1.0f,1.45f));
-            SpeedBagPearStation();
+            SpeedBagPearStation(1, new Vector3(11.20f,0f,-10.65f));
+            SpeedBagPearStation(2, new Vector3(8.65f,0f,-10.65f));
         }
 
         void FitnessModel(string filename,Vector3 p,float yaw,float width,Vector3 bounds)
@@ -1051,12 +1075,12 @@ public static class BraxGymReferenceRebuild
             report.premiumStrengthModelsPlaced++;
         }
 
-        void SpeedBagPearStation()
+        void SpeedBagPearStation(int station, Vector3 basePos)
         {
-            // Speed boxing pear suspended under a hard round speedball platform
-            // on its own steel stand: this is NOT another floor heavy bag.
-            var a=Group(hall,"Premium speed boxing pear stand");
-            var basePos=new Vector3(11.20f,0,-10.65f);a.position=basePos;
+            // Two independent standing stations, kept clear of the original
+            // bag rack and ring. Both react to a real timed fist contact.
+            var a=Group(hall,"Premium speed boxing pear stand " + station);
+            a.position=basePos;
             var leather=Material("Speedboxing authentic brown leather",
                 new Color(.30f,.25f,.20f),.70f,0f);
             leather.mainTexture=RequiredTexture("LeatherAlbedo.jpg");
@@ -1093,8 +1117,11 @@ public static class BraxGymReferenceRebuild
             // steel swivel stay rigidly attached to the original stand.
             var reboundPivot=Group(a,"Real speed bag rebound rotation beneath swivel");
             reboundPivot.localPosition=new Vector3(0,2.00f,.32f);
-            var pear=MeshObject(reboundPivot,"Full three-dimensional pear leather bag",
-                SpeedPearMesh(),leather);
+            var pearMesh=SpeedPearMesh();
+            if (pearMesh.bounds.size.x < .35f || pearMesh.bounds.size.y < .50f)
+                throw new InvalidOperationException("Standing speed pear must have real visible 3D dimensions.");
+            var pear=MeshObject(reboundPivot,"Full three-dimensional pear leather bag " + station,
+                pearMesh,leather);
             pear.localPosition=new Vector3(0,-.28f,0f);
             // True 3D collider moves with the leather pear and is a trigger,
             // so it never creates an invisible wall blocking the player.
@@ -1105,12 +1132,23 @@ public static class BraxGymReferenceRebuild
             var interaction=a.gameObject.AddComponent<BraxGymSpeedBag>();
             interaction.pivot=reboundPivot;
             interaction.hitbox=hitbox;
-            if(player.speedBag) throw new InvalidOperationException(
-                "Duplicate speed bag gameplay binding in the same gym");
-            player.speedBag=interaction;
-            ColliderBox("Speedbag fixed steel support collision",
+            if (station == 1)
+            {
+                if (player.speedBag) throw new InvalidOperationException("Primary speed pear already connected.");
+                player.speedBag=interaction;
+            }
+            else
+            {
+                if (player.additionalSpeedBags != null && player.additionalSpeedBags.Length != 0)
+                    throw new InvalidOperationException("Unexpected duplicate additional speed pear.");
+                player.additionalSpeedBags=new[]{interaction};
+            }
+            ColliderBox("Speedbag fixed steel support collision " + station,
                 basePos+new Vector3(0,.16f,-.20f),new Vector3(.79f,.32f,.99f));
-            report.speedBagStandInstalled=interaction.HitBoxAssigned;
+            if (!interaction.HitBoxAssigned)
+                throw new InvalidOperationException("Standing pear true 3D hitbox is missing: " + station);
+            report.speedBagStandCount++;
+            report.speedBagStandInstalled=report.speedBagStandCount == 2;
         }
 
         Mesh SpeedPearMesh()
@@ -1120,7 +1158,11 @@ public static class BraxGymReferenceRebuild
             for(int y=0;y<=latitude;y++)
             {
                 float t=y/(float)latitude;
-                float r=.021f+.205f*Mathf.Pow(Mathf.Sin(Mathf.PI*t),1.02f)*
+                // Floating-point sin(pi) can be a tiny NEGATIVE at the final
+                // latitude. Pow(negative,1.02) produces NaN, erasing the pear
+                // from the renderer and invalidating its SphereCollider.
+                float sine=Mathf.Max(0f,Mathf.Sin(Mathf.PI*t));
+                float r=.021f+.205f*Mathf.Pow(sine,1.02f)*
                     (.78f+.22f*t);
                 for(int a=0;a<=longitude;a++)
                 {
@@ -1135,9 +1177,15 @@ public static class BraxGymReferenceRebuild
                     }
                 }
             }
+            if (v.Any(p=>float.IsNaN(p.x)||float.IsNaN(p.y)||float.IsNaN(p.z)||
+                float.IsInfinity(p.x)||float.IsInfinity(p.y)||float.IsInfinity(p.z)))
+                throw new InvalidOperationException("Speed pear surface contains non-finite vertices.");
             var m=new Mesh{name="Speedboxing real rounded pear leather mesh"};
             m.SetVertices(v);m.SetUVs(0,uv);m.SetTriangles(ix,0);
-            m.RecalculateNormals();m.RecalculateBounds();return m;
+            m.RecalculateNormals();m.RecalculateBounds();
+            if (m.bounds.size.y < .50f || m.bounds.size.x < .35f)
+                throw new InvalidOperationException("Speed pear bounds degenerate.");
+            return m;
         }
 
         void PlaceLibrarySofa(string name, Vector3 center, float yaw)
