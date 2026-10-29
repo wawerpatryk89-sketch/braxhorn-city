@@ -1,96 +1,116 @@
 {
-  "scope": "isolated-unity-gym",
-  "iteration": "connected-city-and-estate",
-  "sourceCommit": "19c71c167d4426523a251b94c3aeabbe9664aad5",
-  "sourceRun": 40842927461,
-  "originalCityReplaced": false,
-  "fullGameplayMigration": false,
-  "assetQualityChanged": false,
+  "scope": "isolated-kickboxing-room-and-annex-test",
+  "sourceCommit": "5dc2b75660603200ada0888ab979a9e378bcb1ba",
+  "productionBase": "26e5ef339b09df6c1077e9968200660ec89cdacf",
+  "unitySourceBase": "ba678928b2dcb2dff9e38bdb5306e090e76360cf",
+  "unityVersion": "6000.0.58f2",
+  "renderPipeline": "Built-in",
+  "productionChanged": false,
+  "physicalIPhoneValidated": false,
+  "billboardArtworkApproved": false,
+  "billboardArtworkInstalled": false,
+  "muralArtworkApproved": true,
+  "muralArtworkInstalled": true,
+  "muralSourceSha256": "e714741664dbedddc379a97a87f7d8757856c73438eeb34af10df058846628e8",
+  "muralOriginalApprovedPngSha256": "c84fbc33ea871834a403a80169f09fa0db562254c0d2f082e655cbf4dafc73ef",
   "transport": {
-    "dataPath": "Build/19c71c167d44_WebGL.data.unityweb",
-    "bytes": 286821275,
-    "sha256": "f5cf692beb441d7a69f0d41361475533def4f2c02e6e55fddc3ad1b89fd0fe06",
+    "dataPath": "Build/5dc2b7566060_WebGL.data.unityweb",
+    "bytes": 299256907,
+    "sha256": "34e041d24bed8c58582ea85e2db311972e2be2a0a6c20f379780ba0acc3649b4",
+    "uncompressedBytes": 372446906,
+    "uncompressedSha256": "041bd058bf609f5e556b8ed3b9a02771f932dfa0bf160a06402a8e574762bb3f",
     "parts": [
       {
-        "path": "Build/19c71c167d44_WebGL.data.unityweb.part000",
+        "path": "Build/5dc2b7566060_WebGL.data.unityweb.part000",
         "bytes": 33554432,
-        "sha256": "7ae445763fb45c70274d0661051c048cdba1e4b13303b795b4a1dcd1c248251d"
+        "sha256": "25f367d91543088d3ccae16e215b9099fc595cd47ba9f93a6a587699558bf4cd"
       },
       {
-        "path": "Build/19c71c167d44_WebGL.data.unityweb.part001",
+        "path": "Build/5dc2b7566060_WebGL.data.unityweb.part001",
         "bytes": 33554432,
-        "sha256": "f24cec6fc9c7fa0be31135fa3bfbc0d8a80dbeee152518456b93ee746e28a5b7"
+        "sha256": "ceddceb1f1e8f747a8a2e6ac91de985559db12126d95899aa11f9c8928a9c09f"
       },
       {
-        "path": "Build/19c71c167d44_WebGL.data.unityweb.part002",
+        "path": "Build/5dc2b7566060_WebGL.data.unityweb.part002",
         "bytes": 33554432,
-        "sha256": "d522edf3775471c67727fde6ace5469a9ec31c9490f1788ba7f61c8d53cb368d"
+        "sha256": "7c64483fb41195320bdcb75880348f8deae6b69ebdd9fb9bad2d612a3d479f7f"
       },
       {
-        "path": "Build/19c71c167d44_WebGL.data.unityweb.part003",
+        "path": "Build/5dc2b7566060_WebGL.data.unityweb.part003",
         "bytes": 33554432,
-        "sha256": "6961721bb53e72f063bcbf74d14a244601b6c29cde52e4cb174be0ab92a09d0f"
+        "sha256": "06d924b215786ad936acbb3ad6579e382ed18a5a7949f40b66588d40f750a952"
       },
       {
-        "path": "Build/19c71c167d44_WebGL.data.unityweb.part004",
+        "path": "Build/5dc2b7566060_WebGL.data.unityweb.part004",
         "bytes": 33554432,
-        "sha256": "e4ed965491a50e5db12714e938969f54e67eb01ef1bec6291259ea810bd9a10c"
+        "sha256": "6aba556623698acdf70681c14e309c9cbecd682197eda71b8206c964e2934738"
       },
       {
-        "path": "Build/19c71c167d44_WebGL.data.unityweb.part005",
+        "path": "Build/5dc2b7566060_WebGL.data.unityweb.part005",
         "bytes": 33554432,
-        "sha256": "2b775d4d19b20ff903c05e50664e07b2af3890cc6564950369adaa6b786adac2"
+        "sha256": "860deebeed766031fd93ca9da9a0eba016c80a23cdb908a2028b768c6b3dccd9"
       },
       {
-        "path": "Build/19c71c167d44_WebGL.data.unityweb.part006",
+        "path": "Build/5dc2b7566060_WebGL.data.unityweb.part006",
         "bytes": 33554432,
-        "sha256": "26c0b3045a315453609832a566b94d6739020dcbb8b8fd6fbd3be01b9ab7c7b4"
+        "sha256": "a9e238c89f07df1372168b3198ddc023b9052688784b3819428740a4d74e5f7d"
       },
       {
-        "path": "Build/19c71c167d44_WebGL.data.unityweb.part007",
+        "path": "Build/5dc2b7566060_WebGL.data.unityweb.part007",
         "bytes": 33554432,
-        "sha256": "fba9ab335cdc4d2d60637c2fed76000e532c01d56ac624d26af0b9da36e08223"
+        "sha256": "dfdf2fd20f0750a7fc22fb2a14c8bac61067cd6871edd2c24bac4f41a6d203bc"
       },
       {
-        "path": "Build/19c71c167d44_WebGL.data.unityweb.part008",
-        "bytes": 18385819,
-        "sha256": "a61ca423b0dbfeaae420dcba2e808e1afe7fa18ab2cd3444e921ba958e8c9c61"
+        "path": "Build/5dc2b7566060_WebGL.data.unityweb.part008",
+        "bytes": 30821451,
+        "sha256": "929a9ed7cbd1d9e685a8788ba382619ef959b8d03b3f25e9cce8a854dad1e7c7"
       }
     ],
-    "sourceCommit": "19c71c167d4426523a251b94c3aeabbe9664aad5",
-    "assetQualityChanged": false
+    "sourceCommit": "5dc2b75660603200ada0888ab979a9e378bcb1ba",
+    "assetQualityChanged": true
+  },
+  "loadingFix": {
+    "revision": "ios-stream-01",
+    "nativeStreamingGzip": true,
+    "maxInputChunkBytes": 65536,
+    "algorithmPreserved": true,
+    "compressedBytes": 299256907,
+    "uncompressedBytes": 372446906
   },
   "files": {
     "material-review.json": "83001f296cb74f9d393f03d2b732de1c4eee9c18c40d5fceea6b6536371330e8",
+    "bag-provenance.json": "bacf40734229f102f904bb5a13ba184aa7777bfa2af0967317cd2d00b8ae964d",
     "source-provenance.json": "5f00607725b0af73fc29ed354f617ffb464a57f41a013fe7c3af338ecc35198b",
     "unity-premium-report.json": "979d1e29f7a91ac3582eaf2dec77d7b152aabab6fc67f933b33dfcd91a7981c9",
-    "transport.json": "ed8eeb5bbcb3891a16091f20ba4506de725e73a324b2065a0f300c02067c3cd0",
+    "transport.json": "2c8d75e17d3113b709cc5501b4a4a0366029494848b4b5f3d2249d4b35870fbf",
     "estate-manifest.json": "d3814ad8a02c24353ed1ab757e808afa89b91781d0c081bf449f5abfca026e26",
-    "migration-scope.txt": "c8745f159017bc468cf280b078375e669eae9c7f837c13650da6ddaeed66711f",
     "source-integrity.json": "cad0014d4e33512965bfa2e7a2c5a1a3f29015a7c81e4d47499ce88c68ed3ce0",
     "source-refinements.json": "a7607a989f5b93ac4950c81667db7b6b16360ce27bffdc8fa913738d88562c9a",
-    "library-credits.txt": "d68c0532d5eb3fa57a6bb40c69f96575c1da9fba850435a2cb0523b035d39196",
-    "playable.json": "45bc335424acf8205147d8704f5a9aa1844e3831c025115eaed32f5ec58a4cc7",
+    "kickboxing-layout.json": "b82864398ee90aee34d99ebf9198e1f8f6ef69d9d7c29da808767c41dd82ec48",
+    "library-credits.txt": "8527edd0fb36b419bd763939dc0f7b4a62059b74ac443c36beaee55932a4a152",
+    "kickboxing-native-textures.json": "e0f7fd628a7db3f94b7805ec3d2cd932e756ee8ec8c0d46802c0825b6cabbbcf",
+    "playable.json": "f453bbf94e8ff4d496a9652994b02a11765555abc06e1851555ae18da9b23b39",
     "logo.webp": "6bd61d27697739d5686a3487bd633da5eaec5580dbaaf5f9fa5e94c188a0a2ac",
     "robots.txt": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
     "geometry-review.json": "44a06070ada74c68efeda0e42949785316836b3056ec5c714320aba0412d985f",
-    "city-migration.json": "038a5fcecc4969de42beeb129458fe110812249cf9ed3489b5c81d9fb6db9087",
-    "index.html": "3e24e522f2404a050bd7429e91f0d701bbc055c87ce5e9cc0b75b674b62b1d48",
-    "city-transport.js": "13189eb4a0508fc1f54bba619d2fd81641790caef1cbc272d9d23d96c68a9582",
+    "city-migration.json": "d6f8d7d3e6ae29615ec5f60f1730750d696599c244ee856087aa6cccf8f9f007",
+    "index.html": "a1bc73ce8fb9befe697620ed79b086ce4e583f5aae5b787bee95c90d68280471",
+    "city-transport.js": "3290da40d82e2981f38ee08ef9c626678f75008390c9f24b3ddd7f66c131ddfd",
     "native-texture-preparation.json": "6e3e14762970a53f004ba4511d37d8977c1e1350c9ab474e45a91ce8f94f29b3",
     "city-manifest.json": "61fdb364fe337abe97375e2b0e8771b384532a8ad818ff211f4b199a94b819bb",
-    "Build/19c71c167d44_WebGL.data.unityweb.part007": "fba9ab335cdc4d2d60637c2fed76000e532c01d56ac624d26af0b9da36e08223",
-    "Build/19c71c167d44_WebGL.data.unityweb.part005": "2b775d4d19b20ff903c05e50664e07b2af3890cc6564950369adaa6b786adac2",
-    "Build/19c71c167d44_WebGL.data.unityweb.part006": "26c0b3045a315453609832a566b94d6739020dcbb8b8fd6fbd3be01b9ab7c7b4",
-    "Build/19c71c167d44_WebGL.loader.js": "89d72b7e4d24d108cbfe9b731bfd455f19fa3744364bde1a9c6dce62f8348c21",
-    "Build/19c71c167d44_WebGL.framework.js.unityweb": "af8c3ff165d1259142cec254ccd5f1a14759577413efbe4f6f95e6fa5899ad15",
-    "Build/19c71c167d44_WebGL.data.unityweb.part002": "d522edf3775471c67727fde6ace5469a9ec31c9490f1788ba7f61c8d53cb368d",
-    "Build/19c71c167d44_WebGL.wasm.unityweb": "27fc1c6033826427ca13739d3cb04c306db8ed1935da573fef700bb602633ba8",
-    "Build/19c71c167d44_WebGL.data.unityweb.part004": "e4ed965491a50e5db12714e938969f54e67eb01ef1bec6291259ea810bd9a10c",
-    "Build/19c71c167d44_WebGL.data.unityweb.part003": "6961721bb53e72f063bcbf74d14a244601b6c29cde52e4cb174be0ab92a09d0f",
-    "Build/19c71c167d44_WebGL.data.unityweb.part008": "a61ca423b0dbfeaae420dcba2e808e1afe7fa18ab2cd3444e921ba958e8c9c61",
-    "Build/19c71c167d44_WebGL.data.unityweb.part000": "7ae445763fb45c70274d0661051c048cdba1e4b13303b795b4a1dcd1c248251d",
-    "Build/19c71c167d44_WebGL.data.unityweb.part001": "f24cec6fc9c7fa0be31135fa3bfbc0d8a80dbeee152518456b93ee746e28a5b7",
+    "kickboxing-assets.json": "1e35c28dda1630663de9b0a963e0d5d5439216803c63150155f5bbeed9d7b45f",
+    "Build/5dc2b7566060_WebGL.data.unityweb.part006": "a9e238c89f07df1372168b3198ddc023b9052688784b3819428740a4d74e5f7d",
+    "Build/5dc2b7566060_WebGL.data.unityweb.part007": "dfdf2fd20f0750a7fc22fb2a14c8bac61067cd6871edd2c24bac4f41a6d203bc",
+    "Build/5dc2b7566060_WebGL.data.unityweb.part002": "7c64483fb41195320bdcb75880348f8deae6b69ebdd9fb9bad2d612a3d479f7f",
+    "Build/5dc2b7566060_WebGL.data.unityweb.part001": "ceddceb1f1e8f747a8a2e6ac91de985559db12126d95899aa11f9c8928a9c09f",
+    "Build/5dc2b7566060_WebGL.data.unityweb.part008": "929a9ed7cbd1d9e685a8788ba382619ef959b8d03b3f25e9cce8a854dad1e7c7",
+    "Build/5dc2b7566060_WebGL.data.unityweb.part000": "25f367d91543088d3ccae16e215b9099fc595cd47ba9f93a6a587699558bf4cd",
+    "Build/5dc2b7566060_WebGL.data.unityweb.part003": "06d924b215786ad936acbb3ad6579e382ed18a5a7949f40b66588d40f750a952",
+    "Build/5dc2b7566060_WebGL.wasm.unityweb": "e137d95883143a3c17b417e92c5c6649ce283abd4bfaaef3a809c772e46ab5c6",
+    "Build/5dc2b7566060_WebGL.framework.js.unityweb": "9d88902f7eb3adb320d82ec4d98a97e2f91d16b7f41e5b8ac94ab7ea62d32eb0",
+    "Build/5dc2b7566060_WebGL.data.unityweb.part004": "6aba556623698acdf70681c14e309c9cbecd682197eda71b8206c964e2934738",
+    "Build/5dc2b7566060_WebGL.data.unityweb.part005": "860deebeed766031fd93ca9da9a0eba016c80a23cdb908a2028b768c6b3dccd9",
+    "Build/5dc2b7566060_WebGL.loader.js": "0d61009463560c3de1f010db43b282c1d7754cba1103fad71d87f42904358230",
     "TemplateData/fullscreen-button.png": "21221581673a54b8139d408d4a3f8d2b879e86827d4b6fc53b995ff7a99ee3e9",
     "TemplateData/MemoryProfiler.png": "0ce87be20d0c24ab6cb73b57de2004da261cc2a641e69319c6ae3fe11fc85483",
     "TemplateData/progress-bar-full-dark.png": "3306a6244dcb3926fca38a28e3ced589df8ff1beed955eb17c0bbf01c918bc62",
@@ -103,27 +123,5 @@
     "TemplateData/progress-bar-empty-light.png": "143696c060ad43d6c30f19ff5f49000927a139a2a1e4c9f45fafaa2b90d7d2be",
     "TemplateData/style.css": "8e3625e108a61dcd1d31303376d9e02d7bdc08921d254e8f4359b892b3825caa",
     "TemplateData/favicon.ico": "9c13beb90ee8f70580d52a21d5233970d1c89e71e4a34a462c22610941c3c77f"
-  },
-  "qaPassed": true,
-  "qaChecks": 39,
-  "qaRun": 40847762762,
-  "qaCommit": "78b479cd624e850b15d2485435f13346f0bf4069",
-  "visualReview": "reviewed",
-  "previousMain": "260a5897472d42d099766da48e708859bba6c3dc",
-  "loadingFix": {
-    "revision": "ios-stream-01",
-    "qaPassed": true,
-    "sourceBefore": "dcc96fa09716a69d65c08252c663282494761642",
-    "sourceCommit": "19c71c167d4426523a251b94c3aeabbe9664aad5",
-    "nativeStreamingGzip": true,
-    "maxInputChunkBytes": 65536,
-    "compressedBytes": 286821275,
-    "uncompressedBytes": 358936591,
-    "uncompressedSha256": "fc8c053c6c53e7d8b39467d6b8faf26bf07388011a21c2c1dfa55d5cfa15acc5",
-    "unityBinaryChanged": false,
-    "visualAssetsChanged": false,
-    "physicalIPhoneValidated": false,
-    "qaRun": 40855727591,
-    "qaCommit": "80c406217f7d70e89ee427f5995bf298156c4504"
   }
 }
