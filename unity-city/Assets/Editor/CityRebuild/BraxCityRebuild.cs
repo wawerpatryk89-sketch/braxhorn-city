@@ -7,17 +7,19 @@ using UnityEngine;
 
 public static class BraxCityRebuild
 {
-    // The first Unity review deliberately limits architectural replacement to
-    // one complete street segment. Flip only after inspecting the real player
-    // build; an unreviewed first pass is never reported as the finished city.
-    public const bool WholeDistrict=false;
+    // User-authorized rebuild of all 18 source footprints, both frontages.
+    // Build succeeds only after real sources import; visual/phone acceptance
+    // is never inferred from this switch or from a green workflow.
+    public const bool WholeDistrict=true;
     const string Output="Assets/PlayableGenerated/CityRebuild";
     static readonly List<string> replaced=new List<string>();
     [Serializable] sealed class ReviewReport
     {
         public string stage,sourceCommit="ba678928b2dcb2dff9e38bdb5306e090e76360cf",cityCommit,gymIntegration="Source gym preserved; other contractor final commit not yet supplied";
         public int renderedMeshes,triangles,materials,missionReservations=11;
+        public int plannedStreetBuildings=18,nearStreetBuildings=9,farStreetBuildings=9,streetHighRises=9;
         public bool sourceAssetsRetained=true,phoneAccepted=false,visualAccepted=false;
+        public bool physicalElevatorInstalled,physicalElevatorTested=false;
         public string[] replacedSourceRenderers;
         public string[] remaining={"Review full player route and mobile device performance","Integrate the specified finished gym commit","Review and replace remaining original vegetation where needed"};
     }
@@ -47,6 +49,7 @@ public static class BraxCityRebuild
         var gymDoorScale=gymDoor?gymDoor.transform.lossyScale:Vector3.one;
         var root=new GameObject("BRAXHORN CITY reference renovation").transform;
         BraxCityArchitecture.Prepare();
+        if(WholeDistrict)BraxCityStreetSkyline.ValidateStreetFootprints();
         // Near/far sidewalks, asphalt and kerbs are authored as spatial pieces;
         // the original source collision stays until the exact crossing cuts.
         Disable(original,Enumerable.Range(0,6));
@@ -64,7 +67,8 @@ public static class BraxCityRebuild
         // A set-back tower above the representative block provides the high
         // skyline requested by the user. The lower detailed street floors stay
         // at their original physical scale and retain distinct premises.
-        BraxCityArchitecture.Tower(root,"central setback",new Rect(28,-3.2f,22,22.8f),23.7f,22);
+        if(!WholeDistrict)
+            BraxCityArchitecture.Tower(root,"central setback",new Rect(28,-3.2f,22,22.8f),23.7f,22);
         if(WholeDistrict)
         {
             Cut(original,physics,Box(14.5f,26,5.1f,30,11.6f,20.63f),"shop_upper",false);
@@ -84,6 +88,11 @@ public static class BraxCityRebuild
                 BraxCityMeshCut.Subtract(batch,sourceCut.volume,Output+"/Cuts",sourceCut.label);
             }
             BraxCityIndustrial.Apply(root);
+            // High-rises are placed on the 18 *real street footprints*. The
+            // original source first floors are never vertically stretched.
+            // Their street-facing facades and returns remain fully modular.
+            BraxCityStreetSkyline.Build(root);
+            BraxCityPremiumTowerBuild.Build(world,root);
             Disable(original,Enumerable.Range(179,15));
             BraxCityArchitecture.Tower(root,"north brick district",new Rect(27,100,35,13),.15f,22);
             BraxCityArchitecture.Tower(root,"north glass landmark",new Rect(-13,100,35,13),.15f,31);
@@ -139,7 +148,9 @@ public static class BraxCityRebuild
         var renderers=root.GetComponentsInChildren<MeshRenderer>(true).Where(r=>r.enabled&&r.gameObject.activeInHierarchy).ToArray();
         report=new ReviewReport{stage=WholeDistrict?"whole-district-awaiting-visual-and-mobile-acceptance":"representative-segment-awaiting-player-review",cityCommit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local",
             renderedMeshes=renderers.Length,triangles=renderers.Sum(r=>{var f=r.GetComponent<MeshFilter>();return f&&f.sharedMesh?f.sharedMesh.triangles.Length/3:0;}),
-            materials=renderers.SelectMany(r=>r.sharedMaterials).Distinct().Count(),replacedSourceRenderers=replaced.Distinct().ToArray()};
+            materials=renderers.SelectMany(r=>r.sharedMaterials).Distinct().Count(),
+            physicalElevatorInstalled=world.elevator!=null,
+            replacedSourceRenderers=replaced.Distinct().ToArray()};
         File.WriteAllText(Output+"/review-scope.json",JsonUtility.ToJson(report,true));
         Debug.Log("CITY_REFERENCE_REBUILD "+JsonUtility.ToJson(report));AssetDatabase.SaveAssets();
     }
