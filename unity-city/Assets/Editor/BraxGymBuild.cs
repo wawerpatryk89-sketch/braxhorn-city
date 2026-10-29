@@ -32,7 +32,20 @@ public static class BraxGymBuild
     // methods remain unchanged. An entire 2.4M triangle estate with 178 unique
     // image files should NOT be bundled in the first iPhone street acceptance:
     // the operator requested an empty street with Brax, not an estate release.
-    public static void BuildCityIphoneReview(){BuildInternal(true,true);}
+    public static void BuildCityIphoneReview()
+    {
+        // Scope destructive generated-scene compaction ONLY to the iOS
+        // acceptance output. This flag is restored for all normal gym and
+        // regular city invocations, and never changes source prefabs.
+        const string key="BRAX_CITY_MOBILE_REVIEW";
+        string previous=Environment.GetEnvironmentVariable(key);
+        try
+        {
+            Environment.SetEnvironmentVariable(key,"1");
+            BuildInternal(true,true);
+        }
+        finally {Environment.SetEnvironmentVariable(key,previous);}
+    }
     private static void BuildInternal(bool fullCity,bool cityReviewOnly=false)
     {
         if(fullCity)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
