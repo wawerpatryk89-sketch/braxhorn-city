@@ -1,0 +1,12 @@
+{
+  "source_commit": "19c71c167d4426523a251b94c3aeabbe9664aad5",
+  "qa_run": 40847762762,
+  "qa_commit": "78b479cd624e850b15d2485435f13346f0bf4069",
+  "expected_main": "260a5897472d42d099766da48e708859bba6c3dc",
+  "target_path": "public/unity-gym/",
+  "visual_review": "reviewed",
+  "reviewed_screenshots": ["02-original-street.png", "02b-back-inside-gym.png", "19-villa-open-door.png", "21-final-gym.png"],
+  "qa_checks": 39,
+  "scope": "Existing original city and estate connected to premium gym; original main City remains unchanged outside public/unity-gym.",
+  "limitations": ["Not a physical iPhone performance test", "Estate NPC schedules and combat AI not yet ported", "Estate story/economy and additional character selection not yet ported"]
+}
