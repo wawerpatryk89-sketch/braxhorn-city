@@ -21,11 +21,13 @@ try{
   browser=await webkit.launch({headless:true});page=await browser.newPage();
   await page.goto('http://127.0.0.1:8765/transport-check');
   const stream=await page.evaluate(async()=>{
-   const r=await window.BraxCityFetch('Build/19c71c167d44_WebGL.data.unityweb');const reader=r.body.getReader();let count=0,header='';
-   while(true){const value=await reader.read();if(value.done)break;if(header.length<15)header+=String.fromCharCode(...value.value.subarray(0,15-header.length));count+=value.value.byteLength;}
-   return {count,header,length:r.headers.get('content-length'),stats:window.BraxCityLoadingStats};
+   const r=await window.BraxCityFetch('Build/19c71c167d44_WebGL.data.unityweb');const reader=r.body.getReader();let count=0;const headerBytes=[];
+   // UnityWebData1.0 is 15 characters; its required terminating NUL is byte 16.
+   while(true){const value=await reader.read();if(value.done)break;if(headerBytes.length<16)headerBytes.push(...value.value.subarray(0,16-headerBytes.length));count+=value.value.byteLength;}
+   return {count,headerBytes,length:r.headers.get('content-length'),stats:window.BraxCityLoadingStats};
   });
-  check('WebKit native gzip stream completes at exact original length',stream.count===358936591&&stream.length==='358936591'&&stream.header==='UnityWebData1.0\0'&&stream.stats.complete&&stream.stats.maxInputChunk<=65536,stream);
+  const expectedHeader=Array.from(Buffer.from('UnityWebData1.0\0'));
+  check('WebKit native gzip stream completes at exact original length',stream.count===358936591&&stream.length==='358936591'&&JSON.stringify(stream.headerBytes)===JSON.stringify(expectedHeader)&&stream.stats.complete&&stream.stats.maxInputChunk<=65536,stream);
   // A missing segment must fail clearly, not silently return incomplete data.
   await page.route('**/*.part000',route=>route.fulfill({status:503,body:'unavailable'}));
   const failure=await page.evaluate(async()=>{try{const r=await window.BraxCityFetch('Build/19c71c167d44_WebGL.data.unityweb');const q=r.body.getReader();while(!(await q.read()).done){}return {failed:false}}catch(e){return {failed:true,message:String(e)}}});
@@ -58,9 +60,7 @@ try{
  await wait(()=>window.BraxhornState?.area==='estate'&&window.BraxhornState.ready&&window.BraxhornState.grounded,null,240000);
  check('Original estate still loads', (await state()).cityMeshes===553,{build:(await state()).build,area:(await state()).area,meshes:(await state()).cityMeshes});await shot('04-native-stream-estate');
  await send('Command','action');await wait(()=>window.BraxhornState?.area==='city'&&window.BraxhornState.ready&&window.BraxhornState.grounded,null,240000);
- await send('TravelPoint','gym_start');
- // The original point list determines the exact start ID. Reset is always the
- // existing player command and avoids inventing a missing navigation target.
+ // Existing reset command returns to the original gym spawn without inventing a navigation point.
  await send('Command','reset');await wait(()=>window.BraxhornState?.grounded&&Math.abs(window.BraxhornState.x-1.5)<.1&&Math.abs(window.BraxhornState.z-2.8)<.1);
  check('Gym remains playable after city-estate round trip',(await state()).area==='city'&&await page.evaluate(()=>!!window.unityInstance),await state());await shot('05-final-connected-gym');
  const errors=logs.filter(x=>/PAGEERROR|NullReferenceException|MissingReferenceException|abort\(|memory access out of bounds|Shader.*(not supported|error)/i.test(x));
