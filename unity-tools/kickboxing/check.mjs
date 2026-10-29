@@ -258,6 +258,14 @@ try {
   await review(1.5,.08,2.8,0,19,5.8,'exact original before-view comparison');
   await frames(await state(),4);await shot('00-matched-before-view');
   await review(3,.08,5,0,7,5.8,'entry composition');await frames(await state(),4);await shot('01-entry-composition');
+  await step('Premium curved reception visual evidence',async()=>{
+    const layout=JSON.parse(fs.readFileSync(path.join(root,'kickboxing-layout.json'),'utf8'));
+    verify('Original box reception absent in audited original meshes',layout.legacyReceptionRemoved===true,layout);
+    verify('New curved premium reception has visible geometry',layout.receptionMeshVisible===true&&layout.receptionCurved===true,layout);
+    await review(-.1,.08,7.45,135,12,3.5,'actual curved reception from hall');
+    await frames(await state(),4);
+    await shot('01b-premium-curved-reception');
+  });
 
   await step('Four camera directions',async()=>{
     for(const yaw of [0,90,180,270]){
@@ -314,6 +322,13 @@ try {
     verify(animation+' out of range does not hit a bag',(await state()).hits===a.hits,{before:a.hits,after:(await state()).hits});
   });
 
+  await step('Visible speed-pear geometry and stand',async()=>{
+    const layout=JSON.parse(fs.readFileSync(path.join(root,'kickboxing-layout.json'),'utf8'));
+    verify('Speed-pear 3D mesh has finite visible dimensions',layout.speedPearMeshFinite===true&&layout.speedBagStandInstalled===true,layout);
+    await review(9.2,.08,-8.6,306,13,4.1,'stand and pear visual inspection before contact');
+    await frames(await state(),4);
+    await shot('03a-speedbag-standing-pear-visible');
+  });
   await step('Live interactive speed-bag pear: real fist contact and rebound',async()=>{
     await review(11.20,.08,-7.55,0,15,5.8,'speed bag interaction test setup');
     const far=await state();
