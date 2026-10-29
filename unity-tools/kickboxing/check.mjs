@@ -266,6 +266,13 @@ try {
     verify('Two individual premium standing speed pears configured',
       layout.speedBagStandCount===2 && layout.speedBagStandInstalled===true,
       {standCount:layout.speedBagStandCount,configured:layout.speedBagStandInstalled});
+    verify('Owner selected seven original Oxygen gym pieces',layout.oxygenOriginalPackImported===true&&layout.oxygenSourceRenderers>=22&&layout.oxygenRingModelsImported===0&&layout.premiumStrengthModelsPlaced===5,layout);
+    const original=await capture('oxygen-source-meshes');
+    verify('Original equipment visible, no new ring or overhead tabletops',
+      original.oxygen?.sourceLoaded===true&&original.oxygen.renderedMeshes>=22&&
+      original.oxygen.groupsPresent===7&&original.oxygen.realPearHeads===2&&
+      original.oxygen.importedRingCopies===0&&original.oxygen.overheadPlatforms===0,
+      original.oxygen);
     verify('Curved premium reception assembly configured',layout.receptionCurved===true,
       {curved:layout.receptionCurved});
     await review(-4.35,.08,7.05,180,17,4.5,'new curved reception front');
