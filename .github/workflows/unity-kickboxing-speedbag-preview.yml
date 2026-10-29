@@ -1,0 +1,139 @@
+name: Publish isolated BRAXHORN speed-pear premium gym ONLY after real WebGL QA
+on:
+  push:
+    branches: [test/gym-premium-ceiling-recovery-20261029]
+    paths: ['.github/workflows/unity-kickboxing-speedbag-preview.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  reviewed-preview:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/test/gym-premium-ceiling-recovery-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - name: Checkout only the existing published player directory
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          sparse-checkout: |
+            public/unity-gym
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Require exact completed Unity build and FULL PASS
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run_id=40937730540
+          source_sha=25fbb9ff9274c3ac0575e51000ca08c4d069c5ec
+          for attempt in $(seq 1 240); do
+            state=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.status')
+            if [ "$state" = completed ]; then break; fi
+            sleep 20
+          done
+          [ "${state:-}" = completed ] || { echo 'Build did not complete before deadline'; exit 1; }
+          observed=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.head_sha')
+          conclusion=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" --jq '.conclusion')
+          [ "$observed" = "$source_sha" ] || { echo 'Wrong compiled commit'; exit 1; }
+          [ "$conclusion" = success ] || { echo "Unity build / actual QA did not PASS: $conclusion"; exit 1; }
+          echo "Verified passing source $source_sha"
+      - name: Download exact compiled Unity WebGL test player
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40937730540
+          github-token: ${{ github.token }}
+          name: unity-kickboxing-player-25fbb9ff9274c3ac0575e51000ca08c4d069c5ec
+          path: staged-player/
+      - name: Download real run screenshots and truth
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40937730540
+          github-token: ${{ github.token }}
+          name: unity-kickboxing-review-25fbb9ff9274c3ac0575e51000ca08c4d069c5ec
+          path: staged-evidence/
+      - name: Refuse to publish unverified game or static/fake pear
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib,json,hashlib
+          src='25fbb9ff9274c3ac0575e51000ca08c4d069c5ec'
+          root=pathlib.Path('staged-player')
+          ev=pathlib.Path('staged-evidence/kickboxing-review')
+          def read(f): return json.loads(f.read_text(encoding='utf-8'))
+          release=read(root/'release.json')
+          assert release['sourceCommit']==src
+          assert release['productionChanged'] is False
+          assert release['scope']=='isolated-kickboxing-room-and-annex-test'
+          assert release['physicalIPhoneValidated'] is False
+          assert release['loadingFix']['algorithmPreserved'] is True
+          assert release['loadingFix']['nativeStreamingGzip'] is True
+          assert read(root/'transport.json')==release['transport']
+          assert read(root/'playable.json')['commit']==src
+          layout=read(root/'kickboxing-layout.json')
+          for flag in ('originalEntrancePreserved','originalRingPositionPreserved',
+                       'privacyWithAllDoorsOpen','speedBagStandInstalled',
+                       'singleEntranceSofaRemoved','receptionCurved','loungeCorrected'):
+            assert layout[flag] is True,flag
+          assert layout['ceilingFansConfigured']==2
+          assert layout['animatedCeilingFans']==2
+          assert layout['premiumStrengthModelsPlaced']==5
+          files=release['files']
+          existing={p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()}
+          assert existing==set(files)|{'release.json'}, 'Unexpected built player files'
+          for name,sha in files.items():
+            p=root/name
+            assert p.exists() and p.stat().st_size<100*1024*1024,name
+            h=hashlib.sha256()
+            with p.open('rb') as f:
+              for chunk in iter(lambda:f.read(2*1024*1024),b''):h.update(chunk)
+            assert h.hexdigest()==sha,name
+          report=read(ev/'report.json')
+          assert report['commit']==src and report['finished'] and report['passed']
+          assert report['walkthroughContinuous'] is True
+          assert (ev/'walkthrough.webm').stat().st_size>4096
+          assert (ev/'03b-speedbag-real-contact.png').stat().st_size>1024
+          required={'New physical speed bag trigger is bound to player',
+           'Out-of-range speed bag punch does not score',
+           'Only one real punch hit is counted on pear',
+           'Real 3D pear rebounds after impact rather than remaining rigid',
+           'Speed boxing pear requires a punch, not a kick',
+           'Speed boxing pear movement dissipates naturally'}
+          checks={c['name']:c['passed'] for c in report['checks']}
+          assert required<=set(checks)
+          assert all(checks.values()) and all(checks[k] is True for k in required)
+          print('PASS: all real Unity QA + speedbag hits, misses and rebound, screenshot, file digests')
+          PY
+      - name: Publish only compiled gym player to new isolated review branch
+        run: |
+          set -euo pipefail
+          branch=deployment/braxhorn-premium-speedpear-25fbb9ff9274
+          if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null; then
+            echo 'Isolated target already exists; do not overwrite'; exit 1
+          fi
+          git fetch --no-tags origin main
+          main=$(git rev-parse refs/remotes/origin/main)
+          [ "$main" = 26e5ef339b09df6c1077e9968200660ec89cdacf ] || {
+            echo "main changed; stop to avoid interfering with city/production"; exit 1; }
+          git checkout -b "$branch" origin/main
+          rm -rf public/unity-gym
+          mkdir -p public/unity-gym
+          cp -a staged-player/. public/unity-gym/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- public/unity-gym
+          git diff --cached --name-only | awk '!/^public\/unity-gym\//{print; bad=1} END{exit bad}'
+          git diff --cached --quiet && { echo "No modified gym files"; exit 1; }
+          git commit -m "test(unity): reviewed interactive speedboxing pear premium gym 25fbb9ff9274"
+          git push origin "HEAD:refs/heads/$branch"
+          echo "Published isolated, unmerged preview branch: $branch"
+      - name: Preserve original source run audit
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: premium-speedpear-publication-evidence
+          path: |
+            staged-evidence/kickboxing-review/report.json
+          if-no-files-found: warn
+          retention-days: 14
