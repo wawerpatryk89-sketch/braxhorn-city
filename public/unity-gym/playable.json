@@ -1,7 +1,7 @@
 {
     "purpose": "playable-original-gym",
     "unity": "6000.0.58f2",
-    "commit": "19c71c167d4426523a251b94c3aeabbe9664aad5",
+    "commit": "25fbb9ff9274c3ac0575e51000ca08c4d069c5ec",
     "gymMeshes": 161,
     "originalClips": 11,
     "colliders": 60,

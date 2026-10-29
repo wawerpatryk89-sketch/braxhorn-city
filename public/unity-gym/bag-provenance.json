@@ -1,0 +1,54 @@
+{
+  "source": "https://www.innerscene.com/tools/library/3d-parts/boxing-gloves-and-bag-e3d766bc",
+  "license": "https://www.innerscene.com/tools/library/terms",
+  "licenseId": "CC0-1.0",
+  "sourceSha256": "2f50f7c1d0d017edf623a2c9f4a8b15a8248df48bb10bd2d291ebd8d619cef85",
+  "sourceMeshNames": [
+    "Heavy bag",
+    "Chains, swivel and ceiling plate"
+  ],
+  "sourceBodyDimensionsMetres": [
+    0.35600001925350644,
+    1.0670000314712524
+  ],
+  "removed": [
+    "Boxing glove left",
+    "Boxing glove right"
+  ],
+  "bodyDimensionsMetres": [
+    0.55,
+    1.8
+  ],
+  "swingPivotLocal": [
+    0,
+    0,
+    0
+  ],
+  "bodyLocalY": [
+    -4.15,
+    -2.35
+  ],
+  "floorClearanceAtPivotWorldY4_6": 0.45,
+  "mountBeamContactLocalY": 0.202,
+  "wholeBagTriangles": 17972,
+  "swingTriangles": 16932,
+  "mountTriangles": 1040,
+  "sourceLinkTrianglesAfterReduction": 78,
+  "sourceLinkInstances": 96,
+  "brandSource": "public/assets/logo/mark.webp",
+  "brandSha256": "3f3d65c565b0425586a832365f24d6c08518ec64135963515a3744854c64b295",
+  "brandGreen": "#8bff3a",
+  "textureLimit": 1024,
+  "files": {
+    "BagSwing.glb": {
+      "sha256": "f9a851425b8604ea8b3641355ee99ded201c18166535dfe59d5b2dcca2441a52",
+      "bytes": 2598748
+    },
+    "BagMount.glb": {
+      "sha256": "c7aa89da595d97a9145c8d203386b0a295afce5371c0d1c339066ad437ce0dfe",
+      "bytes": 31564
+    }
+  },
+  "generatedBy": "unity-tools/kickboxing/prepare_bag.py",
+  "validation": "Geometry and Blender visual inspection only; Unity/device performance remains to be measured."
+}
