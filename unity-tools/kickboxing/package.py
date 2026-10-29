@@ -140,7 +140,7 @@ def main():
                'productionChanged': False, 'physicalIPhoneValidated': False,
                'billboardArtworkApproved': False, 'billboardArtworkInstalled': False,
                'muralArtworkApproved': True, 'muralArtworkInstalled': True,
-               'muralSourceSha256': 'fe12ca1214af38ba5facd1777b2b9234a04907ad9b1a10b0ae3bc368f00f251c',
+               'muralSourceSha256': '0e55d4f36e9e71acd6234a4b8dc3168680050d7349da671ac751443749bb9db7',
                'transport': manifest,
                'loadingFix': {'revision': 'ios-stream-01', 'nativeStreamingGzip': True,
                               'maxInputChunkBytes': 65536, 'algorithmPreserved': True,

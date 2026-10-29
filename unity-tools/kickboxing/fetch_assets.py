@@ -86,17 +86,20 @@ def main():
     mural_source = ROOT / 'unity-tools/kickboxing/mural-source.avif'
     mural_bytes = mural_source.read_bytes()
     mural_digest = hashlib.sha256(mural_bytes).hexdigest()
-    if mural_digest != 'fe12ca1214af38ba5facd1777b2b9234a04907ad9b1a10b0ae3bc368f00f251c':
+    if mural_digest != '0e55d4f36e9e71acd6234a4b8dc3168680050d7349da671ac751443749bb9db7':
         raise RuntimeError('Approved wall mural source SHA-256 does not match')
     mural_png = TEXTURES / 'MuralPaint.png'
     mural_png.parent.mkdir(parents=True, exist_ok=True)
     with Image.open(io.BytesIO(mural_bytes)) as painted:
-        if painted.size != (1024, 384):
+        if painted.size != (2048, 768):
             raise RuntimeError('Unexpected approved mural size')
         painted.convert('RGB').save(mural_png, format='PNG', optimize=True)
     RECEIPT.append({'file': str(mural_png.relative_to(ROOT)),
         'source': 'Owner-approved BRAXHORN mural artwork in unity-tools/kickboxing/mural-source.avif',
         'source_sha256': mural_digest,
+        'approved_original_png_sha256': 'de309e0c2be5d00cf61573f5312f51792a59b11257983635c7b57b1e6d958102',
+        'original_resolution_px': [2048, 768],
+        'source_encoding': 'AVIF high-quality transport, converted to PNG before Unity import',
         'sha256': hashlib.sha256(mural_png.read_bytes()).hexdigest(),
         'bytes': mural_png.stat().st_size, 'author': 'BRAXHORN project artwork',
         'usage': 'Paint on existing back-wall brick, not a billboard',

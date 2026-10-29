@@ -556,19 +556,33 @@ public static class BraxGymReferenceRebuild
             // or a captured scene. Retain the existing brick behind the pigment.
             // A feathered, rough, alpha-composited coat reveals brick and mortar
             // and leaves no hard-edged black rectangle around the artwork.
+            // Exactly the owner's approved 8:3 image is now installed at its
+            // original 2048px resolution, not a smaller proxy or a panel.
             var art = RequiredTexture("MuralPaint.png");
+            if (art.width != 2048 || art.height != 768)
+                throw new InvalidOperationException("The approved mural lost its original image resolution or aspect.");
             var shader = Shader.Find("Braxhorn/PaintedBrickMural");
             if (!shader) throw new InvalidOperationException("The actual brick-painted mural shader is missing.");
             var material = new Material(shader) { name = "Original BRAXHORN rear wall painted mural" };
             material.SetTexture("_MainTex", art);
+            material.SetTexture("_BrickTex", RequiredTexture("BrickAlbedo.jpg"));
             material.SetTexture("_BumpMap", RequiredTexture("BrickNormal.png", true));
-            material.SetFloat("_PaintOpacity", .87f);
+            material.SetFloat("_PaintOpacity", .92f);
             AssetDatabase.CreateAsset(material, folder + "/PaintedBrickMural.mat");
 
             // The approved flat graphic is 8:3; preserve its proportions.
             // World +X appears camera LEFT at the existing front entrance, so
             // reverse texture U to keep Brax visually LEFT and Nyxa RIGHT.
             const float width = 20.4f, height = 7.65f;
+            const float centerX = -3.4f, centerY = 4.57f;
+            // Audited old decor spans x[-16.82,16.82], z[-13.0,-12.88].
+            // Disable only this raised legacy overlay; the ORIGINAL rear brick
+            // wall (Gym_Mesh_70, inner face z=-13.0) stays fully intact.
+            var oldPanel = FindSource(71).GetComponent<MeshRenderer>();
+            var oldBounds = oldPanel.bounds;
+            if (oldBounds.size.x < 30f || oldBounds.min.z < -13.1f || oldBounds.max.z > -12.7f)
+                throw new InvalidOperationException("Legacy rear decor changed: refusing an inferred removal.");
+            oldPanel.enabled = false;
             var mural = new Mesh {
                 name = "Direct pigment coat on original brick wall",
                 vertices = new[] {
@@ -578,11 +592,18 @@ public static class BraxGymReferenceRebuild
                     new Vector3(-width / 2, height / 2, 0)
                 },
                 uv = new[] { new Vector2(1,0), Vector2.zero, new Vector2(0,1), Vector2.one },
+                // Same world-scale brick normal and grout placement as source.
+                uv2 = new[] {
+                    new Vector2((centerX-width/2)/2.2f, (centerY-height/2)/2.2f),
+                    new Vector2((centerX+width/2)/2.2f, (centerY-height/2)/2.2f),
+                    new Vector2((centerX+width/2)/2.2f, (centerY+height/2)/2.2f),
+                    new Vector2((centerX-width/2)/2.2f, (centerY+height/2)/2.2f)
+                },
                 triangles = new[] { 0,1,2,0,2,3 }
             };
             mural.RecalculateNormals();
             var paint = MeshObject(hall, "Painted rear-wall BRAXHORN STREET FIGHTER mural", mural, material);
-            paint.localPosition = new Vector3(-3.4f, 4.57f, -12.62f);
+            paint.localPosition = new Vector3(centerX, centerY, -12.986f);
             report.muralArtworkInstalled = true;
 
             // Keep the ORIGINAL project-owned mark and wordmark on the right
