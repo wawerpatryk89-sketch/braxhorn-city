@@ -102,7 +102,7 @@ def main():
         'usage': 'Paint directly on existing rear-wall brick, without frame or panel',
         'license': 'project artwork, not a third-party CC0 material'})
 
-        (ASSETS / 'asset-provenance.json').write_text(json.dumps({'assets': RECEIPT,
+    (ASSETS / 'asset-provenance.json').write_text(json.dumps({'assets': RECEIPT,
         'api_credit': 'Powered by Poly Haven', 'scope': 'Kickboxing room and annex only',
         'brand': {'owner': 'BRAXHORN', 'source': 'Existing public/assets/logo', 'pixelEdits': False}}, indent=2))
     print(json.dumps({'files': len(RECEIPT), 'bytes': sum(x['bytes'] for x in RECEIPT), 'receipt': str(ASSETS / 'asset-provenance.json')}))
