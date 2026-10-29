@@ -25,7 +25,7 @@ public static class BraxCityGround
         // Use integer-indexed grid positions instead of cumulative float
         // addition. 46 + 5 * .8 must coincide with the crossing's exact x=50:
         // repeated += .8 produced x=49.999996 and a zero-area thin cell.
-        if(step<=0 || !float.IsFinite(step))throw new ArgumentOutOfRangeException(nameof(step));
+        if(step<=0 || float.IsNaN(step) || float.IsInfinity(step))throw new ArgumentOutOfRangeException(nameof(step));
         for(int i=1; ;i++)
         {
             float x=area.xMin+i*step;
