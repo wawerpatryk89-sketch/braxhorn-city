@@ -120,6 +120,10 @@ def main():
         'kickboxing-native-textures.json': 'unity-city/Assets/Kickboxing/Models/native-texture-preparation.json',
     }.items():
         shutil.copyfile(ROOT / source, OUT / name)
+    oxygen=json.loads((ROOT/'unity-tools/kickboxing/oxygen_selected_receipt.json').read_text())
+    if oxygen.get('models')!=['pear_one','pear_two','bench_press','treadmill','exercise_bike','ladder','dumbbell_rack'] or oxygen.get('ringModelsImported')!=0:
+        raise RuntimeError('Original Oxygen3D equipment pack is missing or contains extra ring geometry')
+    (OUT/'oxygen-source.json').write_text(json.dumps(oxygen,indent=2)+'\n')
     (OUT / 'robots.txt').write_text('User-agent: *\nDisallow: /\n')
     (OUT / 'library-credits.txt').write_text(
         'BRAXHORN marks, Brax, existing city and original animations: project owner.\n'
@@ -131,6 +135,9 @@ def main():
         'Approved BRAXHORN rear-wall mural: project artwork, matte paint blended over source brick (not a framed billboard).\n'
         'Boxing gloves and bag; Compact WC; Basin pedestal sink cabinet: Innerscene, CC0.\n'
         'Reviewed bag derivative: original chain mesh and normal map, reinforced leather body, seams, straps, hardware and original BRAXHORN branding.\n'
+        'Oxygen3D / Oxygen — Game Ready Gym Environment Asset Pack, CC BY Attribution.\n'
+        'Source: https://sketchfab.com/3d-models/game-ready-gym-environment-asset-pack-8aef4a478bbe49d483280968aff59064\n'
+        'Changes: selected the owner requested equipment; optimised texture atlas for Unity mobile; did not import the original pack rings.\n'
         'Powered by Poly Haven. Full source and license URLs: kickboxing-assets.json.\n')
     files = {p.relative_to(OUT).as_posix(): digest(p) for p in OUT.rglob('*') if p.is_file()}
     release = {'scope': 'isolated-kickboxing-room-and-annex-test', 'sourceCommit': COMMIT,
@@ -146,6 +153,10 @@ def main():
                'loadingFix': {'revision': 'ios-stream-01', 'nativeStreamingGzip': True,
                               'maxInputChunkBytes': 65536, 'algorithmPreserved': True,
                               'compressedBytes': total, 'uncompressedBytes': expanded_bytes},
+               'oxygenOriginalSource': {'author':'Oxygen3D','license':'CC BY Attribution',
+                 'archiveSha256':'c847f82ec2c0f07a7466812c303414135576a50f5432708518518fa6a6e302ad',
+                 'selectedModelCount':7,'ringModelsImported':0,
+                 'outputSha256':oxygen['outputSha256']},
                'files': files}
     (OUT / 'release.json').write_text(json.dumps(release, indent=2) + '\n')
     print('KICKBOXING_TEST_PACKAGE', COMMIT, total, expanded_bytes, len(parts))
