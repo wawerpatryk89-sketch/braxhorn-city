@@ -1,0 +1,142 @@
+name: Publish existing compiled Unity city as isolated visual-review preview
+
+on:
+  push:
+    branches:
+      - codex/city-premium-street-rebuild
+    paths:
+      - .github/workflows/city-premium-preview-publish.yml
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  immutable-webgl-preview:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Download exact 48d81f Unity 6 player (not a source-only preview)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40914321114
+          github-token: \${{ github.token }}
+          name: premium-street-player-48d81f1f998b9884709e74afe10c3f7ebf0b58ac
+          path: player/
+      - name: Download actual Unity screenshots and non-teleport walk QA
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40914321114
+          github-token: \${{ github.token }}
+          name: premium-street-actual-unity-review-48d81f1f998b9884709e74afe10c3f7ebf0b58ac
+          path: qa/
+      - name: Validate all source WebGL SHA256 and publish separate branch only
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64,hashlib,json,os,re,shutil,subprocess
+          from pathlib import Path
+          REPO="wawerpatryk89-sketch/braxhorn-city"
+          SOURCE="48d81f1f998b9884709e74afe10c3f7ebf0b58ac"
+          PREVIEW="preview/city-premium-stage-"+SOURCE[:12]
+          ROOT=Path.cwd();PLAYER=ROOT/"player";QA=ROOT/"qa"/"city-rebuild-review"
+          WALK=ROOT/"qa"/"premium-street-walk";OUT=ROOT/"payload";REPORT=ROOT/"preview-receipt"
+          def ok(x,message):
+              if not x:raise RuntimeError(message)
+          def digest(path):
+              with path.open("rb") as f:return hashlib.file_digest(f,"sha256").hexdigest()
+          def write(path,value):
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_text(json.dumps(value,ensure_ascii=False,indent=2)+"\n")
+          ok(os.environ["GITHUB_REPOSITORY"]==REPO,"Wrong repository")
+          ok(os.environ["GITHUB_REF"]=="refs/heads/codex/city-premium-street-rebuild","Wrong branch")
+          ok(not OUT.exists() and PLAYER.is_dir() and QA.is_dir() and WALK.is_dir(),"Missing exact player/QA")
+          ok(not any(x.is_symlink() for x in PLAYER.rglob("*")),"Symlink in player")
+          release=json.loads((PLAYER/"release.json").read_text())
+          qa=json.loads((QA/"report.json").read_text())
+          walk=json.loads((WALK/"walk-report.json").read_text())
+          ok(release.get("scope")=="isolated-city-rebuild-preview" and
+             release.get("sourceCommit")==SOURCE and release.get("cityCommit")==SOURCE and
+             release.get("sourceRun")==40914321114 and release.get("productionPublication") is False,
+             "Wrong compiled Unity player")
+          ok(qa.get("passed") is True and qa.get("sourceCommit")==SOURCE and
+             sum(c.get("passed") is True for c in qa["checks"])>=30,"Desktop Unity QA not passed")
+          ok(walk.get("sourceCommit")==SOURCE and walk.get("passed") is False and
+             "nova-entrance" in walk.get("failure","").lower() and
+             sum(c.get("passed") is True for c in walk["checkpoints"])>=10,
+             "Unexpected walking failure; do not publish")
+          names=set()
+          for name,hash_value in release["files"].items():
+              ok(isinstance(name,str) and re.fullmatch(r"[A-Za-z0-9_./-]+",name) and
+                 not name.startswith("/") and ".." not in name.split("/"),"Bad file path")
+              f=PLAYER/name
+              ok(f.is_file() and not f.is_symlink() and f.stat().st_size<99*1024*1024,
+                 "WebGL file missing/too large "+name)
+              ok(digest(f)==hash_value,"Tampered compiled WebGL data "+name)
+              names.add(name)
+          ok({p.relative_to(PLAYER).as_posix() for p in PLAYER.rglob("*") if p.is_file()}==
+             names|{"release.json"},"Unmanifested game file")
+          shutil.copytree(PLAYER,OUT)
+          write(OUT/"vercel.json",{"framework":None,"buildCommand":"","installCommand":"",
+            "outputDirectory":".","cleanUrls":False,
+            "headers":[{"source":"/","headers":[{"key":"Cache-Control","value":"no-store"}]},
+                       {"source":"/index.html","headers":[{"key":"Cache-Control","value":"no-store"}]},
+                       {"source":"/release.json","headers":[{"key":"Cache-Control","value":"no-store"}]}]})
+          (OUT/"robots.txt").write_text("User-agent: *\nDisallow: /\n")
+          (OUT/"evidence").mkdir()
+          for name in ["04-skyline-from-player.png","07-street.png","13-waterfront.png","16-viaduct.png"]:
+              f=QA/name
+              ok(f.is_file() and f.open("rb").read(8)==bytes((137,80,78,71,13,10,26,10)),
+                 "Missing actual Unity screenshot "+name)
+              shutil.copy2(f,OUT/"evidence"/name)
+          write(OUT/"preview-qa-summary.json",{
+            "status":"VISUAL_REVIEW_ONLY_NOT_ACCEPTED","sourceCommit":SOURCE,
+            "sourceRun":40914321114,"desktopQAPassed":True,
+            "actualPassedChecks":sum(c.get("passed") is True for c in qa["checks"]),
+            "continuousPlayerWalkPassed":False,"firstWalkCheckpointsPassed":10,
+            "knownIssue":"The NOVA route was blocked by a streetlight, fixed in later uncompiled source",
+            "liftAccepted":False,"physicalIphoneTested":False,"ownerAccepted":False,
+            "productionPublication":False})
+          (OUT/"README.md").write_text("BRAXHORN CITY real Unity 6 preview at "+SOURCE[:12]+
+             ". Desktop QA passed. NOVA walk collision remains on this pinned player; "+
+             "next source branch changes it. Physical phone, lift and full walk NOT accepted. "+
+             "No modifications to production, source gym or Brax rigs.\n")
+          token=os.environ.pop("GH_TOKEN")
+          env=os.environ.copy()
+          env.update(GIT_CONFIG_COUNT="1",
+            GIT_CONFIG_KEY_0="http.https://github.com/.extraheader",
+            GIT_CONFIG_VALUE_0="AUTHORIZATION: basic "+
+              base64.b64encode(("x-access-token:"+token).encode()).decode())
+          def git(*args,auth=False):
+              return subprocess.check_output(["git","-c","core.hooksPath=/dev/null",*args],
+                        cwd=OUT,env=env if auth else None,text=True).strip()
+          git("init","--initial-branch="+PREVIEW)
+          git("config","user.name","github-actions[bot]")
+          git("config","user.email","41898282+github-actions[bot]@users.noreply.github.com")
+          git("remote","add","origin","https://github.com/"+REPO+".git")
+          ok(not git("ls-remote","--heads","origin","refs/heads/"+PREVIEW,auth=True),
+             "Already-published preview must not be overwritten")
+          git("add","--all")
+          git("commit","-m","preview(city): actual Unity review "+SOURCE[:12]+" / known NOVA walk issue")
+          commit=git("rev-parse","HEAD")
+          git("push","origin","HEAD:refs/heads/"+PREVIEW,auth=True)
+          info={"previewBranch":PREVIEW,"previewCommit":commit,"unitySourceCommit":SOURCE,
+                "desktopQApass":True,"walkPass":False,"productionChanged":False}
+          write(REPORT/"publication.json",info)
+          print("CITY_REAL_UNITY_PREVIEW_PUBLISHED",json.dumps(info))
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as s:
+              s.write("Exact Unity 6 preview: "+PREVIEW+"\n")
+              s.write("Known issue: blocked NOVA walk. Not final acceptance.\n")
+          PY
+      - name: Retain immutable preview publication receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city-premium-visual-preview-publication-\${{ github.sha }}
+          path: preview-receipt/
+          if-no-files-found: warn
+          retention-days: 14
