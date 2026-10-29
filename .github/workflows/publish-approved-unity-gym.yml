@@ -1,0 +1,122 @@
+name: Publish approved Unity gym only
+on:
+  push:
+    branches: [codex/unity-gym-playable-20261029]
+    paths: ['.github/workflows/publish-approved-unity-gym.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: publish-approved-unity-gym
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout latest production without replacing existing game
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          sparse-checkout: public/unity-gym
+          lfs: false
+          persist-credentials: false
+      - name: Download browser-tested playable Unity build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40795534797
+          github-token: ${{ github.token }}
+          name: unity-gym-playable-ec3fadaf05d6d69d20086ab163d3dacedd338f6b
+          path: /tmp/brax-approved
+      - name: Download matching runtime evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40795534797
+          github-token: ${{ github.token }}
+          name: unity-gym-review-ec3fadaf05d6d69d20086ab163d3dacedd338f6b
+          path: /tmp/brax-evidence
+      - name: Require verified source and successful input tests
+        shell: python
+        run: |
+          import pathlib, json, shutil, hashlib, datetime
+          source=pathlib.Path('/tmp/brax-approved')
+          evidence=pathlib.Path('/tmp/brax-evidence')
+          expected='ec3fadaf05d6d69d20086ab163d3dacedd338f6b'
+          qa=json.loads((evidence/'unity-review/report.json').read_text())
+          game=json.loads((source/'playable.json').read_text())
+          integrity=json.loads((evidence/'unity-city/Assets/Source/source-integrity.json').read_text())
+          assert qa['passed'] is True and len(qa['checks'])>=8
+          assert all(c['passed'] is True for c in qa['checks'])
+          assert game['commit']==expected and game['purpose']=='playable-original-gym'
+          assert game['originalBrax'] and game['originalGym'] and game['gymMeshes']>=161
+          assert integrity['geometryReplaced'] is False
+          assert {'Walking','Running','Jab Cross (1)','Mma Kick (1)'}.issubset(game['animationNames'])
+          assert (source/'index.html').stat().st_size>5000
+          for pattern in ['*.loader.js','*.data*','*.framework.js*','*.wasm*']:
+              found=list((source/'Build').glob(pattern))
+              assert len(found)==1 and found[0].stat().st_size>1000, pattern
+          assert (evidence/'unity-review/01-gym-brax.png').stat().st_size>100000
+          dest=pathlib.Path('public/unity-gym')
+          if dest.exists() and any(dest.iterdir()):
+              prior=json.loads((dest/'release.json').read_text())
+              assert prior.get('scope')=='isolated-unity-gym', 'Refusing to overwrite an unknown production directory'
+              shutil.rmtree(dest)
+          shutil.copytree(source,dest)
+          html=(dest/'index.html').read_text()
+          assert '<base ' not in html
+          html=html.replace('<head>','<head><base href="/unity-gym/">',1)
+          assert '<base href="/unity-gym/">' in html
+          (dest/'index.html').write_text(html)
+          (dest/'vercel.json').unlink(missing_ok=True)
+          release={
+              'scope':'isolated-unity-gym','sourceCommit':expected,'sourceRun':40795534797,
+              'approvedArtifact':12863788361,'qaPassed':True,'qaPlatform':qa['platform'],
+              'publishedUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              'originalCityReplaced':False,'fullCityMigration':False,
+              'features':['original Brax','original gym','walking','running','manual camera','punch','kick','touch joystick'],
+              'files':{p.relative_to(dest).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(dest.rglob('*')) if p.is_file()}
+          }
+          (dest/'release.json').write_text(json.dumps(release,indent=2)+'\n')
+          print('APPROVED_PUBLICATION_FILES',len(release['files']),sum(p.stat().st_size for p in dest.rglob('*') if p.is_file()))
+      - name: Commit only the additional Unity gym folder to main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import subprocess,os,base64
+          def run(*args,**kw):return subprocess.run(args,check=True,**kw)
+          run('git','config','user.name','github-actions[bot]')
+          run('git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
+          run('git','add','--sparse','-f','public/unity-gym')
+          changed=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
+          assert changed and all(p.startswith('public/unity-gym/') for p in changed),changed
+          run('git','commit','-m','release(unity): add tested playable gym at /unity-gym/; keep city and estate unchanged')
+          env=os.environ.copy()
+          auth=base64.b64encode(('x-access-token:'+env['GH_TOKEN']).encode()).decode()
+          env.update(GIT_CONFIG_COUNT='1',GIT_CONFIG_KEY_0='http.https://github.com/.extraheader',GIT_CONFIG_VALUE_0='AUTHORIZATION: basic '+auth)
+          run('git','push','origin','HEAD:refs/heads/main',env=env)
+          sha=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          print('UNITY_GYM_PRODUCTION_SOURCE_COMMIT',sha)
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('## Unity gym published source\nOnly `public/unity-gym/` added. Existing city and estate unchanged.\n\nCommit: '+sha+'\n\nCandidate URL: https://braxhorn-city.vercel.app/unity-gym/\n')
+      - name: Verify live production artifact identity
+        shell: python
+        run: |
+          import urllib.request,json,time
+          url='https://braxhorn-city.vercel.app/unity-gym/release.json'
+          expected='ec3fadaf05d6d69d20086ab163d3dacedd338f6b'
+          for attempt in range(36):
+              try:
+                  req=urllib.request.Request(url+'?verify='+str(time.time_ns()),headers={'Cache-Control':'no-cache'})
+                  with urllib.request.urlopen(req,timeout=20) as r: data=json.load(r)
+                  if data.get('sourceCommit')==expected and data.get('qaPassed') is True:
+                      with urllib.request.urlopen('https://braxhorn-city.vercel.app/unity-gym/',timeout=20) as r: html=r.read().decode()
+                      assert '<base href="/unity-gym/">' in html and 'createUnityInstance' in html
+                      print('UNITY_GYM_LIVE_HTTP_PASS',url,expected)
+                      break
+              except Exception as e: print('Deployment not yet verified:',type(e).__name__)
+              time.sleep(10)
+          else: raise RuntimeError('Production source is saved, but live Vercel deployment was not confirmed. Do not claim the URL works.')
