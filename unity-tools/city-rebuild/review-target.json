@@ -1,5 +1,5 @@
 {
-  "runId": 40874908147,
-  "commit": "e0fa84943a3cc4e09ab701162fd0f1e791f1669a",
-  "purpose": "Exact second representative Unity candidate; run QA only after the build completes successfully."
+  "runId": 40878590371,
+  "commit": "d09d5203132d50900ba6f54e0b25f9c632385267",
+  "purpose": "Exact pavement-normal-corrected representative Unity candidate; QA requires completed successful build and actual player artifact."
 }
