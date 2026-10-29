@@ -8,7 +8,7 @@ permissions:
   actions: read
 concurrency:
   group: unity-gym-ceiling-recovery-20261029
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   room:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/test/gym-premium-ceiling-recovery-20261029'
