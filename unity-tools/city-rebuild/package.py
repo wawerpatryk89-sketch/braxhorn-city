@@ -134,6 +134,23 @@ def main():
     city_manifest = json.loads((out / "city-migration.json").read_text())
     if city_manifest.get("commit") != commit:
         raise ValueError("Compiled city provenance does not match the build source commit")
+    if city_manifest.get("scope") == "city-only-mobile-architecture-review":
+        if [item.get("area") for item in city_manifest.get("areas", [])] != ["city"]:
+            raise ValueError("City-only mobile preview must not bundle the original estate scene")
+        entry = out / "index.html"
+        html = entry.read_text()
+        html = html.replace(
+            "Brax. Siłownia. Miasto. Osiedle.",
+            "Brax. Odkryj całą przebudowaną ulicę. Bez ruchu i NPC."
+        ).replace(
+            "Siłownia → ulica → osiedle. Kamerę obracasz sam.",
+            "Przegląd ulicy. Przejście na osiedle w kolejnym etapie."
+        ).replace(
+            "Oddzielna migracja Unity — oryginalna gra pozostaje bez zmian.",
+            "Podgląd przebudowanej ulicy na iPhone. Osiedle jest wyłączone wyłącznie z tego pakietu."
+        )
+        entry.write_text(html)
+        print("CITY_IOS_STAGE_ONE_SPLASH 1 city scene / no estate module; original city assets retained", flush=True)
     source_loader = ROOT / "unity-release/ios-stream-loader.js"
     manifest = package_transport(out, commit, source_loader)
     evidence = ROOT / "city-rebuild-review"
