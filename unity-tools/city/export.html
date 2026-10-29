@@ -1,0 +1,134 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Braxhorn — source export</title>
+<script type="importmap">{"imports":{"three":"/dev/three/build/three.module.js","three/addons/":"/dev/three/examples/jsm/"}}</script>
+<style>body{margin:0;background:#151515;color:white}iframe{width:100%;height:100vh;border:0}</style></head><body><iframe id="source"></iframe>
+<script type="module">
+import * as T from 'three';
+import {GLTFExporter} from 'three/addons/exporters/GLTFExporter.js';
+const area=new URLSearchParams(location.search).get('area')||'city';
+const frame=document.querySelector('iframe');frame.src=area==='estate'?'/public/osiedle/':'/public/';
+window.exportReady=false;window.exportError=null;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));let api,roots,initialBoxes=0,initialCircles=0;
+async function initialize(){
+ try{
+  const deadline=performance.now()+300000;
+  while(performance.now()<deadline){api=area==='estate'?frame.contentWindow.__os:frame.contentWindow.__mg;if(api&&(area==='estate'?api.ready:api.baked?.()))break;await sleep(200)}
+  if(!api||(area==='estate'?!api.ready:!api.baked()))throw Error('Original '+area+' did not initialize');
+  api.pause(true);
+  if(area==='city'){
+   initialBoxes=api.world.boxes.length;initialCircles=api.world.circles.length;
+   await api.loadStreet();if(!api.cityBaked())throw Error('Original city baked lighting unavailable');
+   roots=[api.G.street.group,api.G.district.interiors.group];
+  }else{
+   if(api.assetErrors.length)throw Error('Original estate asset error '+api.assetErrors.join(';'));
+   for(const d of api.doors.items)api.doors.setAngle(d,0);
+   roots=api.scene.children.filter(o=>o!==api.player.root&&!o.isLight&&!o.isCamera&&!o.isSkinnedMesh);
+  }
+  roots=[...new Set(roots)].filter(r=>!roots.some(p=>p!==r&&isUnder(r,p)));
+  api.scene.updateMatrixWorld(true);window.exportReady=true;
+ }catch(e){window.exportError=String(e);console.error(e)}
+}
+function isUnder(n,parent){for(let p=n;p;p=p.parent)if(p===parent)return true;return false}
+initialize();
+function download(name,data,type='application/octet-stream'){
+ const a=document.createElement('a'),url=URL.createObjectURL(new Blob([data],{type}));a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),120000);
+}
+function attribute(a,index=false){
+ const values=index?new Uint32Array(a.count):new Float32Array(a.count*a.itemSize);
+ for(let i=0;i<a.count;i++){values[i*a.itemSize]=a.getX(i);if(a.itemSize>1)values[i*a.itemSize+1]=a.getY(i);if(a.itemSize>2)values[i*a.itemSize+2]=a.getZ(i);if(a.itemSize>3)values[i*a.itemSize+3]=a.getW(i)}
+ return new T.BufferAttribute(values,a.itemSize,false);
+}
+function geometry(src){
+ const g=new T.BufferGeometry();for(const [name,a]of Object.entries(src.attributes))if(['position','normal','tangent','uv','uv1','uv2','color'].includes(name))g.setAttribute(name,attribute(a));
+ if(src.index)g.setIndex(attribute(src.index,true));for(const group of src.groups)g.addGroup(group.start,group.count,group.materialIndex);return g;
+}
+const convertedTextures=new Map(),convertedMaterials=new Map();let report;
+function pixels(texture){
+ const S=api.THREE,r=api.renderer,im=texture.image||texture.mipmaps?.[0];
+ if(!im?.width||!im?.height)throw Error('Source texture has no dimensions: '+texture.name);
+ const w=im.width,h=im.height;
+ const source=texture.clone();source.offset.set(0,0);source.repeat.set(1,1);source.rotation=0;source.center.set(0,0);source.matrixAutoUpdate=true;source.needsUpdate=true;
+ const target=new S.WebGLRenderTarget(w,h,{depthBuffer:false,stencilBuffer:false});
+ const scene=new S.Scene(),camera=new S.OrthographicCamera(-1,1,1,-1,0,1);
+ const material=new S.ShaderMaterial({uniforms:{source:{value:source},srgb:{value:texture.colorSpace===S.SRGBColorSpace?1:0}},depthTest:false,depthWrite:false,toneMapped:false,
+ vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
+ fragmentShader:'uniform sampler2D source;uniform float srgb;varying vec2 vUv;void main(){vec4 c=texture2D(source,vUv);if(srgb>.5)c.rgb=mix(12.92*c.rgb,1.055*pow(max(c.rgb,vec3(0.)),vec3(1./2.4))-.055,step(vec3(.0031308),c.rgb));gl_FragColor=c;}' });
+ const plane=new S.Mesh(new S.PlaneGeometry(2,2),material);scene.add(plane);
+ const previous=r.getRenderTarget(),autoClear=r.autoClear;r.autoClear=true;r.setRenderTarget(target);r.render(scene,camera);
+ const raw=new Uint8Array(w*h*4);r.readRenderTargetPixels(target,0,0,w,h,raw);r.setRenderTarget(previous);r.autoClear=autoClear;
+ target.dispose();material.dispose();plane.geometry.dispose();source.dispose();
+ const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const data=new Uint8ClampedArray(raw.length);
+ for(let y=0;y<h;y++)data.set(raw.subarray((h-1-y)*w*4,(h-y)*w*4),y*w*4);
+ canvas.getContext('2d').putImageData(new ImageData(data,w,h),0,0);return canvas;
+}
+function texture(src){
+ if(!src)return null;if(convertedTextures.has(src))return convertedTextures.get(src);
+ const special=src.isCompressedTexture||src.isDataTexture||src.image?.data;
+ const image=special?pixels(src):src.image;
+ if(!image)throw Error('Empty original texture');
+ const tex=new T.Texture(image);tex.colorSpace=src.colorSpace;tex.flipY=special?true:src.flipY;
+ tex.wrapS=src.wrapS;tex.wrapT=src.wrapT;tex.magFilter=src.magFilter;tex.minFilter=src.minFilter;tex.offset.copy(src.offset);tex.repeat.copy(src.repeat);tex.center.copy(src.center);tex.rotation=src.rotation;tex.channel=src.channel;tex.needsUpdate=true;
+ report.textures.push({name:src.name,width:image.width,height:image.height,decodedFromGPU:!!special});convertedTextures.set(src,tex);return tex;
+}
+async function material(src){
+ if(convertedMaterials.has(src))return convertedMaterials.get(src);
+ if(src.isShaderMaterial||src.isRawShaderMaterial)throw Error('Unsupported visible source shader: '+src.name);
+ const basic=!!src.isMeshBasicMaterial;
+ const m=basic?new T.MeshBasicMaterial():new T.MeshStandardMaterial();m.name=area+'_'+(basic?'baked':'lit')+'_'+convertedMaterials.size;
+ m.color.copy(src.color||new T.Color(1,1,1));m.opacity=src.opacity??1;m.transparent=src.transparent;m.alphaTest=src.alphaTest||0;m.side=src.side;m.depthWrite=src.depthWrite;m.vertexColors=src.vertexColors;
+ m.map=texture(src.map);if(!basic){m.normalMap=texture(src.normalMap);if(src.normalScale)m.normalScale.copy(src.normalScale);m.roughness=src.roughness??.85;m.metalness=src.metalness??0;m.roughnessMap=texture(src.roughnessMap);m.metalnessMap=texture(src.metalnessMap);m.aoMap=texture(src.aoMap);m.aoMapIntensity=src.aoMapIntensity??1;m.emissive.set(0);}
+ const record={name:m.name,originalName:src.name,baked:basic,vertexColors:!!src.vertexColors,transparent:!!src.transparent,opacity:m.opacity,alphaTest:m.alphaTest,doubleSided:src.side===T.DoubleSide,lightMap:'',lightMapGain:0};
+ convertedMaterials.set(src,m);
+ if(src.lightMap){
+  const image=pixels(src.lightMap),name=area+'-ground-light.png';
+  if(!report.groundMap){const blob=await new Promise(r=>image.toBlob(r,'image/png'));download(name,blob,'image/png');report.groundMap={file:name,width:image.width,height:image.height};}
+  record.lightMap=name;record.lightMapGain=(src.lightMapIntensity||1)/Math.PI;
+ }
+ report.materials.push(record);return m;
+}
+function point(id,p){return{id,label:p.note||id,x:p.x,y:p.y||0,z:p.z,face:p.face||0}}
+window.exportArea=async()=>{
+ if(!window.exportReady)throw Error(window.exportError||'not ready');
+ report={area,coordinateSystem:'source right-handed Y-up metres; glTFast mirrors X',geometry:'original runtime geometry; no replacement meshes',meshCount:0,vertices:0,triangles:0,materials:[],textures:[],meshes:[],doors:[],omitted:[],points:[],zones:[],sourceBaked:area==='city'?api.cityBaked():false};
+ const root=new T.Group();root.name='BRAXHORN_'+area.toUpperCase();
+ const doorGroups=new Map();const colliderIds=new Set();
+ if(area==='estate'){
+  for(const obj of api.imported)for(const mesh of obj.userData.collisionMeshes||[])colliderIds.add(mesh.uuid);
+  for(const d of api.doors.items){
+   const info={id:d.id,label:d.label,x:d.x,y:d.base,z:d.z,yaw:d.yaw,width:d.width,height:d.height,single:!!d.single,leaves:[]};
+   for(let i=0;i<d.leaves.length;i++){const l=d.leaves[i],g=new T.Group();g.name='DoorLeaf_'+d.id+'_'+i;g.matrixAutoUpdate=false;g.matrix.fromArray(l.pivot.matrixWorld.elements);root.add(g);doorGroups.set(l.pivot,{group:g,inverse:new T.Matrix4().copy(g.matrix).invert()});info.leaves.push({name:g.name,side:l.side,width:l.width,height:l.height,center:l.center});}
+   report.doors.push(info);
+  }
+  report.collision={boxes:api.world.collision.map(b=>({minX:b.minX,maxX:b.maxX,minZ:b.minZ,maxZ:b.maxZ,top:b.maxY,bottom:b.minY,tag:'estate'})),circles:[],pits:[],walkable:api.world.walkable};
+  report.points=[point('estate_entry',{x:0,y:.08,z:92}),point('park',{x:20,y:0,z:-83}),point('court',{x:-28,y:0,z:-72}),point('villa_front',{x:0,y:.08,z:-24}),point('villa_living',{x:0,y:.08,z:-33}),point('villa_terrace',{x:0,y:.08,z:-51}),point('garages',{x:-24,y:.08,z:-25}),point('contact',{x:30,y:.08,z:-28}),...api.LEVEL.facilities.map(f=>point(f.id,{x:f.x,y:.08,z:f.z+19,note:f.label}))];
+  report.layout=api.LEVEL;
+ }else{
+  report.collision={boxes:api.world.boxes.slice(initialBoxes).map(b=>({...b})),circles:api.world.circles.slice(initialCircles).map(c=>({x:c.x,z:c.z,r:c.r,top:c.top,bottom:c.bottom,tag:c.tag||'',noStand:!!c.noStand})),pits:api.world.pits.map(p=>({...p})),walkable:[]};
+  report.points=Object.entries(api.POINTS).filter(([k,p])=>Number.isFinite(p.x)&&Number.isFinite(p.z)).map(([k,p])=>point(k,p));report.zones=api.ZONES;
+ }
+ const nodes=[];for(const group of roots)group.traverse(n=>{if(n.isMesh&&n.geometry?.attributes.position)nodes.push(n)});
+ const seen=new Set();
+ for(const n of nodes){
+  if(seen.has(n.uuid))continue;seen.add(n.uuid);
+  const mats=Array.isArray(n.material)?n.material:[n.material];
+  if(n.isSkinnedMesh||isUnder(n,api.player?.root)||mats.some(m=>m?.isShadowMaterial)){report.omitted.push({name:n.name,reason:n.isSkinnedMesh?'character handled by original rig importer':'player or shadow-only overlay'});continue}
+  if(mats.some(m=>!m))throw Error('Missing original material');
+  const localMaterials=await Promise.all(mats.map(material));
+  const instances=n.isInstancedMesh?n.count:1;
+  for(let k=0;k<instances;k++){
+   const g=geometry(n.geometry),mesh=new T.Mesh(g,localMaterials.length===1?localMaterials[0]:localMaterials);mesh.name=(area==='city'?'CityMesh_':'EstateMesh_')+report.meshCount;
+   let matrix=new T.Matrix4().fromArray(n.matrixWorld.elements);if(n.isInstancedMesh){const instance=new api.THREE.Matrix4();n.getMatrixAt(k,instance);matrix.multiply(new T.Matrix4().fromArray(instance.elements));}
+   let parent=root;for(const [pivot,d]of doorGroups)if(isUnder(n,pivot)){parent=d.group;matrix.premultiply(d.inverse);break;}
+   mesh.matrixAutoUpdate=false;mesh.matrix.copy(matrix);parent.add(mesh);
+   const triangles=(g.index?g.index.count:g.attributes.position.count)/3;
+   report.meshes.push({name:mesh.name,originalName:n.name,vertices:g.attributes.position.count,triangles,collider:colliderIds.has(n.uuid),ground:!!n.userData.ground,dynamicDoor:parent!==root});
+   report.meshCount++;report.vertices+=g.attributes.position.count;report.triangles+=triangles;
+  }
+ }
+ if(report.meshCount<100)throw Error('Incomplete original '+area+' geometry: '+report.meshCount);
+ root.updateMatrixWorld(true);
+ const box=new T.Box3().setFromObject(root);report.bounds={min:box.min.toArray(),max:box.max.toArray()};
+ const bytes=await new GLTFExporter().parseAsync(root,{binary:true,onlyVisible:false,maxTextureSize:4096,trs:false});
+ report.bytes=bytes.byteLength;download('braxhorn-'+area+'.glb',bytes,'model/gltf-binary');
+ download(area+'-manifest.json',JSON.stringify(report,null,2),'application/json');return report;
+};
+</script></body></html>

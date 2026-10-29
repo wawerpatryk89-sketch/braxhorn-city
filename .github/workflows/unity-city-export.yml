@@ -1,0 +1,69 @@
+name: Export full original city and estate for Unity
+on:
+  push:
+    branches: [codex/unity-full-city-20261029]
+    paths: ['unity-tools/city/export*', '.github/workflows/unity-city-export.yml']
+permissions:
+  contents: read
+concurrency:
+  group: unity-full-city-export
+  cancel-in-progress: false
+jobs:
+  export:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity-full-city-20261029'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            .github/workflows
+            dev/src
+            dev/shared
+            dev/osiedle
+            dev/three
+            dev/tools
+            dev/deploy
+            public
+            unity-tools
+          persist-credentials: false
+          lfs: false
+      - name: Verify city inputs against the current production source, without writes
+        run: |
+          git fetch --no-tags --depth=1 origin 260a5897472d42d099766da48e708859bba6c3dc
+          git diff --exit-code 260a5897472d42d099766da48e708859bba6c3dc HEAD -- dev/src dev/shared dev/osiedle public/index.html public/game.js
+          node dev/tools/assemble-assets.cjs
+          mkdir -p city-export
+          python3 - <<'PY'
+          import pathlib,zipfile,json,hashlib
+          with zipfile.ZipFile('city-export/source-audit.zip','w',zipfile.ZIP_DEFLATED) as z:
+            for root in ['dev/src','dev/shared','dev/osiedle','dev/deploy','dev/tools']:
+              for p in pathlib.Path(root).rglob('*'):
+                if p.is_file() and p.suffix in ['.js','.mjs','.cjs','.py','.json','.md','.html']:z.write(p,p.as_posix())
+          PY
+      - name: Prepare original runtime exporter
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Export actual district and estate including lightmaps and door hinges
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/city-server.log 2>&1 &
+          node unity-tools/city/export.mjs
+      - name: Retain export evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-city-source-evidence-${{ github.sha }}
+          path: |
+            city-export/*.json
+            city-export/*.log
+            city-export/*.png
+            city-export/source-audit.zip
+          retention-days: 7
+      - name: Retain verified original geometry for Unity import
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity-full-city-geometry-${{ github.sha }}
+          path: city-export/
+          retention-days: 7
