@@ -30,7 +30,7 @@ public static class BraxHeroRefinements
     {
         var shader=Shader.Find("Braxhorn/HeroPremium");if(!shader)throw new Exception("Original ORM shader unavailable");
         var material=new Material(shader){name="Brax original PBR restored",color=Color.white};
-        material.SetTexture("_MainTex",Map("BraxAlbedo.png"));material.SetTexture("_BumpMap",Map("BraxNormal.png",false,true));material.SetTexture("_Orm",Map("BraxOrm.png",true));material.SetFloat("_BumpScale",.82f);material.SetFloat("_RoughnessFloor",.64f);material.SetFloat("_MetallicScale",.12f);material.SetFloat("_OcclusionStrength",.8f);
+        material.SetTexture("_MainTex",Map("BraxAlbedo.png"));material.SetTexture("_BumpMap",Map("BraxNormal.png",false,true));material.SetTexture("_Orm",Map("BraxOrm.png",true));material.SetFloat("_BumpScale",.60f);material.SetFloat("_RoughnessFloor",.78f);material.SetFloat("_MetallicScale",0f);material.SetFloat("_OcclusionStrength",.8f);
         AssetDatabase.CreateAsset(material,generated+"/Premium/BraxSourceORM.mat");
         foreach(var renderer in hero.GetComponentsInChildren<SkinnedMeshRenderer>(true))renderer.sharedMaterials=Enumerable.Repeat(material,renderer.sharedMaterials.Length).ToArray();
         var fill=new GameObject("Brax neutral portrait fill").AddComponent<Light>();fill.type=LightType.Directional;fill.cullingMask=1<<8;fill.transform.SetParent(camera.transform,false);fill.transform.localRotation=Quaternion.Euler(20,32,0);fill.color=new Color(.93f,.96f,1);fill.intensity=.20f;fill.shadows=LightShadows.None;
@@ -41,7 +41,9 @@ public static class BraxHeroRefinements
             var body=bags[i].GetComponentsInChildren<MeshFilter>(true).FirstOrDefault(r=>r.name=="Gym_Mesh_"+(81+i*8));if(!body)throw new Exception("Missing original bag body "+i);
             var mesh=RoundedBag(heights[i]);AssetDatabase.CreateAsset(mesh,generated+"/Premium/Bag48_"+i+".asset");body.sharedMesh=mesh;
         }
-        File.WriteAllText(P+"source-refinements.json","{\"originalOrmRestored\":true,\"originalRigChanged\":false,\"originalBrandingChanged\":false,\"bagColourSpaceCorrected\":true,\"roundedBagSegments\":48}");
+        File.WriteAllText(P+"source-refinements.json",string.Format(System.Globalization.CultureInfo.InvariantCulture,
+            "{{\"originalOrmRestored\":true,\"originalRigChanged\":false,\"originalBrandingChanged\":false,\"bagColourSpaceCorrected\":true,\"roundedBagSegments\":48,\"heroBumpScale\":{0},\"heroRoughnessFloor\":{1},\"heroMetallicScale\":{2}}}",
+            material.GetFloat("_BumpScale"),material.GetFloat("_RoughnessFloor"),material.GetFloat("_MetallicScale")));
         AssetDatabase.SaveAssets();Debug.Log("SOURCE_REFINEMENTS_PASS: original Brax ORM restored; bag colour space and rounded ends corrected");
     }
 }

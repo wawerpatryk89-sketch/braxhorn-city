@@ -5,9 +5,9 @@ Shader "Braxhorn/HeroPremium"
   _MainTex("Original Brax colour",2D)="white"{}
   _BumpMap("Original normal",2D)="bump"{}
   _Orm("Original AO roughness metal",2D)="white"{}
-  _BumpScale("Normal strength",Range(0,2))=.75
-  _RoughnessFloor("Matte cloth and fur",Range(0,1))=.64
-  _MetallicScale("Source metal response",Range(0,1))=.12
+  _BumpScale("Normal strength",Range(0,2))=.60
+  _RoughnessFloor("Matte cloth and fur",Range(0,1))=.78
+  _MetallicScale("Source metal response",Range(0,1))=0
   _OcclusionStrength("Source contact detail",Range(0,1))=.8
   _Color("Tint",Color)=(1,1,1,1)
  }

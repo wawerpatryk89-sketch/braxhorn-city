@@ -19,6 +19,7 @@ jobs:
     permissions:
       contents: write
       actions: read
+      deployments: read
     steps:
       - name: Checkout the exact test publication request
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -238,6 +239,163 @@ jobs:
               summary.write('Reviewed source: `' + receipt['sourceCommit'] + '`; build run: ' + str(receipt['sourceRun']) + '.\n\n')
               summary.write('The Vercel preview URL and its `/unity-gym/release.json` still require live verification.\n')
           print('UNITY_GYM_TEST_BRANCH_PUBLICATION_COMMIT', published_sha)
+
+      - name: Discover the exact preview and verify its public release manifest
+        timeout-minutes: 6
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import datetime, json, os, pathlib, re, time, urllib.error, urllib.parse, urllib.request
+          repo = 'wawerpatryk89-sketch/braxhorn-city'
+          receipt_path = pathlib.Path(os.environ['RUNNER_TEMP']) / 'unity-gym-preview-publication.json'
+          receipt = json.loads(receipt_path.read_text())
+          published_sha = receipt['publishedCommit']
+          assert re.fullmatch(r'[0-9a-f]{40}', published_sha)
+          assert receipt['branch'] == 'codex/unity-gym-polish-controls-20261029'
+          assert receipt['status'] == 'branch-pushed-awaiting-preview-verification'
+          receipt.update(previewLiveVerified=False, authRequired=None, previewDiscoveryAttempts=0)
+          deadline = time.monotonic() + 300
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          github_client = urllib.request.build_opener(NoRedirect())
+          public_client = urllib.request.build_opener(NoRedirect())
+          def timeout():
+              remaining = deadline - time.monotonic()
+              if remaining <= 0:
+                  raise TimeoutError('Preview discovery deadline reached')
+              return min(20, remaining)
+          def github_json(path):
+              assert path.startswith('/repos/' + repo + '/')
+              request = urllib.request.Request('https://api.github.com' + path, headers={
+                  'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                  'Accept': 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28',
+                  'User-Agent': 'Braxhorn-Unity-Gym-Preview'
+              })
+              with github_client.open(request, timeout=timeout()) as response:
+                  return json.load(response)
+          def auth_location(location):
+              value = urllib.parse.urlsplit(location)
+              path = value.path.lower()
+              return any(part in path for part in ('/login', '/signin', '/sign-in', '/sso', '/auth'))
+          def verify_public_release(origin):
+              # This separate request has no GitHub token, cookie jar or auth handler.
+              manifest_url = origin + '/unity-gym/release.json'
+              receipt.update(previewUrl=origin + '/unity-gym/', releaseManifestUrl=manifest_url)
+              request = urllib.request.Request(manifest_url + '?verify=' + published_sha, headers={
+                  'Accept': 'application/json', 'Cache-Control': 'no-cache',
+                  'User-Agent': 'Braxhorn-Unity-Gym-Public-Check'
+              })
+              try:
+                  with public_client.open(request, timeout=timeout()) as response:
+                      receipt['previewHttpStatus'] = response.status
+                      body = response.read(1024 * 1024 + 1)
+                      if len(body) > 1024 * 1024:
+                          receipt['status'] = 'branch-pushed-preview-manifest-too-large'
+                          return False
+                  try:
+                      manifest = json.loads(body)
+                  except (ValueError, UnicodeDecodeError):
+                      lower = body.lower()
+                      is_auth = any(value in lower for value in (b'authentication required', b'log in to vercel', b'vercel.com/login', b'vercel.com/sso-api'))
+                      receipt.update(authRequired=True if is_auth else None, status='branch-pushed-preview-auth-required' if is_auth else 'branch-pushed-preview-manifest-not-json')
+                      return is_auth
+                  if not isinstance(manifest, dict):
+                      receipt['status'] = 'branch-pushed-preview-manifest-invalid'
+                      return False
+                  receipt['authRequired'] = False
+                  receipt['observedSourceCommit'] = str(manifest.get('sourceCommit', ''))[:100]
+                  receipt['observedSourceRun'] = str(manifest.get('sourceRun', ''))[:100]
+                  identity = (
+                      manifest.get('sourceCommit') == receipt['sourceCommit']
+                      and type(manifest.get('sourceRun')) is int
+                      and manifest['sourceRun'] == receipt['sourceRun']
+                      and manifest.get('scope') == 'isolated-unity-gym'
+                      and manifest.get('originalCityReplaced') is False
+                  )
+                  if identity:
+                      receipt.update(status='preview-release-verified', previewLiveVerified=True)
+                      receipt.pop('previewDiscoveryError', None)
+                      return True
+                  receipt['status'] = 'branch-pushed-preview-identity-mismatch'
+                  return False
+              except urllib.error.HTTPError as error:
+                  receipt['previewHttpStatus'] = error.code
+                  if error.code in (401, 403):
+                      receipt.update(status='branch-pushed-preview-auth-required', authRequired=True)
+                      return True
+                  if error.code in (301, 302, 303, 307, 308):
+                      location = urllib.parse.urljoin(manifest_url, error.headers.get('Location', ''))
+                      parsed = urllib.parse.urlsplit(location)
+                      is_auth = auth_location(location)
+                      receipt.update(status='branch-pushed-preview-auth-required' if is_auth else 'branch-pushed-preview-redirect-unverified', authRequired=True if is_auth else None)
+                      receipt['previewRedirectHost'] = parsed.hostname
+                      receipt['previewRedirectPath'] = parsed.path
+                      return True
+                  receipt['status'] = 'branch-pushed-preview-manifest-unavailable'
+                  return False
+              except (urllib.error.URLError, TimeoutError, OSError) as error:
+                  receipt.update(status='branch-pushed-preview-unreachable', previewDiscoveryError={'phase': 'public-manifest', 'type': type(error).__name__})
+                  return False
+          done = False
+          while time.monotonic() < deadline and not done:
+              receipt['previewDiscoveryAttempts'] += 1
+              try:
+                  deployments = github_json(f'/repos/{repo}/deployments?sha={published_sha}&per_page=30')
+                  assert isinstance(deployments, list), 'GitHub deployments response was not a list'
+                  if receipt.get('previewDiscoveryError', {}).get('phase') == 'github-deployments':
+                      receipt.pop('previewDiscoveryError', None)
+                  candidates = [d for d in deployments if (
+                      d.get('sha') == published_sha
+                      and d.get('production_environment') is not True
+                      and isinstance(d.get('environment'), str)
+                      and d['environment'].strip()
+                      and d['environment'].strip().lower() != 'production'
+                      and type(d.get('id')) is int
+                  )]
+                  for deployment in sorted(candidates, key=lambda d: d['id'], reverse=True):
+                      statuses = github_json(f"/repos/{repo}/deployments/{deployment['id']}/statuses?per_page=10")
+                      if not isinstance(statuses, list) or not statuses or statuses[0].get('state') != 'success':
+                          continue
+                      status = statuses[0]
+                      if str(status.get('environment', '')).strip().lower() == 'production':
+                          continue
+                      parsed = urllib.parse.urlsplit(status.get('environment_url', ''))
+                      if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password:
+                          continue
+                      origin = urllib.parse.urlunsplit(('https', parsed.netloc, '', '', ''))
+                      receipt.update(githubDeploymentId=deployment['id'], githubDeploymentEnvironment=deployment['environment'], previewBaseUrl=origin)
+                      done = verify_public_release(origin)
+                      if done:
+                          break
+              except urllib.error.HTTPError as error:
+                  receipt['previewDiscoveryError'] = {'phase': 'github-deployments', 'type': 'HTTPError', 'httpStatus': error.code}
+                  if error.code in (401, 403, 404):
+                      receipt['status'] = 'branch-pushed-preview-discovery-blocked'
+                      break
+              except (urllib.error.URLError, TimeoutError, OSError, ValueError, AssertionError) as error:
+                  receipt['previewDiscoveryError'] = {'phase': 'github-deployments', 'type': type(error).__name__}
+              receipt_path.write_text(json.dumps(receipt, indent=2) + '\n')
+              remaining = deadline - time.monotonic()
+              if not done and remaining > 0:
+                  time.sleep(min(10, remaining))
+          receipt['previewDiscoveryTimedOut'] = not done and time.monotonic() >= deadline
+          if receipt['status'] == 'branch-pushed-awaiting-preview-verification':
+              receipt['status'] = 'branch-pushed-preview-discovery-failed' if receipt.get('previewDiscoveryError') else 'branch-pushed-preview-not-found'
+          receipt['previewCheckedUtc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+          receipt_path.write_text(json.dumps(receipt, indent=2) + '\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('\n## Preview discovery and public manifest check\n\n')
+              summary.write('Status: `' + receipt['status'] + '`\n\n')
+              if receipt.get('previewUrl'):
+                  summary.write('Preview candidate: ' + receipt['previewUrl'] + '\n\n')
+              summary.write('Public release identity verified: `' + str(receipt['previewLiveVerified']).lower() + '`\n\n')
+              summary.write('Authentication required: `' + ('unknown' if receipt['authRequired'] is None else str(receipt['authRequired']).lower()) + '`\n\n')
+              if not receipt['previewLiveVerified']:
+                  summary.write('The test branch push remains saved. A usable live preview has not been confirmed; no deployment or protection settings were changed.\n')
+          print('UNITY_GYM_PREVIEW_DISCOVERY', receipt['status'], receipt.get('previewUrl', 'no-preview-url'), 'verified=' + str(receipt['previewLiveVerified']).lower())
 
       - name: Save the publication receipt without claiming a live preview
         if: always()

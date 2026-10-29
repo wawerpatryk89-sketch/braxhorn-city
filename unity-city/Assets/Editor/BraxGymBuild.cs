@@ -92,7 +92,13 @@ public static class BraxGymBuild
                 var b=r.bounds;
                 if(Mathf.Abs(b.center.x-14)<.45f && Mathf.Abs(b.center.z-z)<.5f && b.size.x<1.4f && b.size.z<1.4f && b.center.y>1f && b.max.y<4.65f)r.transform.SetParent(bag.transform,true);
             }
-            AddBox(bag.transform,"Bag collision",new Vector3(14,1.9f,z),new Vector3(.65f,1.55f,.65f));bags.Add(bag.transform);
+            // Each original bag has its own height. A shared collider left an
+            // invisible cap above short bags and missed their lower leather edge.
+            var bagBody=Find(bag.transform,"Gym_Mesh_"+(81+bags.Count*8));
+            var bagRenderer=bagBody?bagBody.GetComponent<MeshRenderer>():null;
+            if(!bagRenderer)throw new Exception("Original bag collider source missing "+bags.Count);
+            AddBox(bag.transform,"Bag collision",bagRenderer.bounds.center,bagRenderer.bounds.size);
+            bags.Add(bag.transform);
         }
         var player=new GameObject("BraxhornPlayer");player.transform.position=new Vector3(1.5f,.08f,2.8f);player.transform.rotation=Quaternion.Euler(0,180,0);player.layer=8;
         var body=player.AddComponent<CharacterController>();body.height=2.25f;body.radius=.35f;body.center=new Vector3(0,1.125f,0);body.stepOffset=.36f;body.slopeLimit=48;body.skinWidth=.035f;

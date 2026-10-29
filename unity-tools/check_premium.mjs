@@ -234,7 +234,7 @@ try{
     ['04-ring-details',[-9,1.05,-5.5,35,22,8]],
     ['05-bags-windows',[12.1,.08,-5.4,-90,25,6]],
     ['06-brax-front',[1.5,.08,2.8,180,10,3.7]],
-    ['07-library-lounge',[13.3,.08,6.6,180,20,5]],
+    ['07-library-lounge',[13.0,.08,7.2,210,18,4]],
   ]){await review(...view);await frames(await state(),3);await shot(name);}
   const scriptErrors=logs.filter(l=>l.startsWith('PAGEERROR:'));
   const shaderErrors=logs.filter(l=>/Shader.*(not supported|unsupported|error)|Hidden\/InternalErrorShader/i.test(l));
