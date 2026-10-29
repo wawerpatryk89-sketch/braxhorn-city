@@ -6,16 +6,27 @@ using UnityEngine;
 
 public static class BraxCityGround
 {
-    static Material pavement,asphalt,curb,paint,iron;
+    static Material pavement,pavementVariation,asphalt,curb,paint,iron,joints;
     static Texture2D Texture(string dir,string name)=>AssetDatabase.LoadAssetAtPath<Texture2D>(dir+name);
     public static void Prepare()
     {
         string dir="Assets/Source/CityRebuild/textures/concrete_pavement_02/";
         var diffuse=Texture(dir,"diffuse.jpg");var normal=Texture(dir,"normal.png")??Texture(dir,"normal.jpg");var arm=Texture(dir,"arm.jpg");
         if(!diffuse||!normal||!arm)throw new InvalidOperationException("Verified pavement PBR source is incomplete");
-        pavement=BraxCityMaterials.Textured("Concrete pavement metric 1.8 metres",diffuse,normal,arm,1/1.8f);
-        asphalt=BraxCityArchitecture.SurfaceTexture("Dry fine-grained road asphalt","clean_asphalt","clean_asphalt_diff_2k.jpg",2.1f);
-        curb=BraxCityMaterials.Surface("Granite kerb neutral",new Color(.49f,.49f,.46f),.96f);
+        pavement=BraxCityMaterials.Textured("Street realistic granite paving stone / existing 2K maps",diffuse,normal,arm,1f/1.8f);
+        pavement.SetColor("_Color",new Color(.80f,.77f,.72f));
+        pavement.SetFloat("_BumpScale",1.25f);
+        pavementVariation=BraxCityMaterials.Textured("Street granite warm tone / existing 2K maps",diffuse,normal,arm,1f/1.8f);
+        pavementVariation.SetColor("_Color",new Color(.69f,.66f,.62f));
+        pavementVariation.SetFloat("_BumpScale",1.20f);
+        // Deep neutral-charcoal material retains the real source albedo,
+        // original roughness, physical metalness and normal maps. Never a
+        // plain black material or a blue-tinted glossy road.
+        asphalt=BraxCityArchitecture.SurfaceTexture("Deep charcoal grainy asphalt PBR / original source","clean_asphalt","clean_asphalt_diff_2k.jpg",2.1f);
+        asphalt.SetColor("_Color",new Color(.44f,.43f,.41f));
+        asphalt.SetFloat("_BumpScale",1.35f);
+        joints=BraxCityMaterials.Surface("Dark recessed mortar joints between actual stones",new Color(.17f,.16f,.15f),.99f);
+        curb=BraxCityMaterials.Surface("Rough natural granite kerb neutral",new Color(.44f,.43f,.40f),.97f);
         paint=BraxCityMaterials.Surface("Road weathered white",new Color(.73f,.73f,.68f),.96f);
         iron=BraxCityMaterials.Surface("Drain cast iron",new Color(.11f,.12f,.115f),.86f,.3f);
     }
@@ -64,6 +75,40 @@ public static class BraxCityGround
             if(normal.sqrMagnitude<.9f||Vector3.Dot(normal,Vector3.up)<.99f)
                 throw new InvalidOperationException("Invalid pavement mesh normal: "+name+" ("+area+")");
     }
+    // Stone pavers are genuine geometry rather than a painted grid. Each
+    // ten-metre block has two spatially separate surface meshes: warmer and
+    // cooler sourced PBR textures. Underlying grout sits below the original
+    // walkable y=.15f collision, so there is no extra step or capsule snag.
+    // Staggered joints, millimetre gaps and true stone side faces read from
+    // the player's 1.65m eye height without per-stone GameObjects.
+    static void Cobblestone(Transform root,string side,Rect area)
+    {
+        const float surfaceY=.15f;
+        const float stoneX=.52f,stoneZ=.34f,gap=.014f,thickness=.028f;
+        Plane(root,side+" real recessed stone grout",area,surfaceY-thickness-.004f,joints,null,1.4f);
+        var light=new BraxCitySystemMesh();
+        var dark=new BraxCitySystemMesh();
+        int row=0,count=0;
+        for(float z=area.yMin;z<area.yMax-.002f;z+=stoneZ,row++)
+        {
+            float endZ=Mathf.Min(z+stoneZ,area.yMax);
+            float startX=area.xMin-(row%2==0?0:stoneX*.5f);
+            for(float x=startX;x<area.xMax-.002f;x+=stoneX)
+            {
+                float x0=Mathf.Max(x,area.xMin),x1=Mathf.Min(x+stoneX,area.xMax);
+                if(x1-x0<.08f)continue;
+                float w=x1-x0-gap,d=endZ-z-gap;
+                if(w<.05f||d<.06f)continue;
+                var m=(count++%7==0 || (row+count)%11==0)?dark:light;
+                m.Box(new Vector3((x0+x1)*.5f,surfaceY-thickness*.5f,(z+endZ)*.5f),
+                    new Vector3(w,thickness,d),1.8f);
+            }
+        }
+        if(light.VertexCount>0)BraxCityArchitecture.MeshObject(side+" hand-laid full stone pavers",root,light,pavement);
+        if(dark.VertexCount>0)BraxCityArchitecture.MeshObject(side+" natural stone variation",root,dark,pavementVariation);
+        Debug.Log("CITY_STREET_PHYSICAL_PAVERS "+side+" stones="+count+" area="+area);
+    }
+
     static void Kerb(Transform root,float x0,float x1,float z,bool reverse)
     {
         var m=new BraxCitySystemMesh();
@@ -89,8 +134,8 @@ public static class BraxCityGround
         for(float x=-104;x<66;x+=10)
         {
             float end=Mathf.Min(x+10,66);
-            Plane(root,"Near pavement segment",new Rect(x,20.6f,end-x,3.4f),.15f,pavement,BraxCitySystemsBuild.CrossingCurbCuts);
-            Plane(root,"Far pavement segment",new Rect(x,33,end-x,3.1f),.15f,pavement,BraxCitySystemsBuild.CrossingCurbCuts);
+            Cobblestone(root,"Near pavement",new Rect(x,20.6f,end-x,3.4f));
+            Cobblestone(root,"Far pavement",new Rect(x,33,end-x,3.1f));
             Plane(root,"Road segment",new Rect(x,24,end-x,9),.003f,asphalt);
             Kerb(root,x,end,23.875f,false);Kerb(root,x,end,33.125f,true);
         }
