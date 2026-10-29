@@ -62,6 +62,7 @@ public sealed class BraxGymRoomDiagnostics : MonoBehaviour
             wcConfigured = wcFixture != null, wcPosition = wcFixture ? wcFixture.position : Vector3.zero,
             muralConfigured = GameObject.Find("BRAXHORN/Hall/Painted rear-wall BRAXHORN STREET FIGHTER mural") != null,
             framedBillboardPresent = GameObject.Find("BRAXHORN/Hall/Billboard recessed backing") != null,
+            oxygen = CaptureOxygen(),
             mirror = CaptureMirror(), doors = CaptureDoors(), frameTiming = CaptureFrameTiming(),
             memory = new MemoryState {
                 unityAllocatedBytes = Profiler.GetTotalAllocatedMemoryLong(),
@@ -92,6 +93,51 @@ public sealed class BraxGymRoomDiagnostics : MonoBehaviour
 #else
         Debug.Log("BRAXHORN_ROOM_DIAGNOSTICS " + json, this);
 #endif
+    }
+
+    OxygenState CaptureOxygen()
+    {
+        var state=new OxygenState();
+        var original=GameObject.Find("Oxygen3D original licensed gym equipment - no replacement ring");
+        if(!original)return state;
+        state.sourceLoaded=true;
+        state.renderedMeshes=original.GetComponentsInChildren<MeshRenderer>(true).Length;
+        var groups=original.GetComponentsInChildren<Transform>(true);
+        string[] names={"pear_one","pear_two","bench_press","treadmill",
+                        "exercise_bike","ladder","dumbbell_rack"};
+        state.groupsPresent=0;
+        foreach(var key in names)
+        {
+            var target=Array.Find(groups,t=>t.name=="Oxygen3D_GROUP_"+key);
+            if(target!=null)state.groupsPresent++;
+            if(target!=null)
+            {
+                if(key=="bench_press")state.benchPosition=target.position;
+                if(key=="treadmill")state.treadmillPosition=target.position;
+                if(key=="exercise_bike")state.bikePosition=target.position;
+                if(key=="ladder")state.ladderPosition=target.position;
+                if(key=="dumbbell_rack")state.dumbbellsPosition=target.position;
+            }
+        }
+        foreach(var group in groups)
+        {
+            if(group.name.IndexOf("Oxygen3D_PART_pear_",StringComparison.Ordinal)>=0
+                && group.name.EndsWith("_head",StringComparison.Ordinal))
+                state.realPearHeads++;
+            if(group.name.IndexOf("boxing_ring",StringComparison.OrdinalIgnoreCase)>=0)
+                state.importedRingCopies++;
+        }
+        state.overheadPlatforms=0;
+        foreach(var transform in GameObject.FindObjectsByType<Transform>(FindObjectsSortMode.None))
+        {
+            if(transform.name.IndexOf("Speedball platform",StringComparison.OrdinalIgnoreCase)>=0
+                ||transform.name.IndexOf("striking board",StringComparison.OrdinalIgnoreCase)>=0)
+                state.overheadPlatforms++;
+        }
+        state.fitnessRightOfPears=state.treadmillPosition.x>7f &&
+            state.benchPosition.x>7f && state.dumbbellsPosition.x>7f &&
+            state.bikePosition.x>7f && state.ladderPosition.x>11f;
+        return state;
     }
 
     MirrorState CaptureMirror()
@@ -185,8 +231,15 @@ public sealed class BraxGymRoomDiagnostics : MonoBehaviour
         public Vector3 playerPosition, wcPosition;
         public Bounds hallBounds, annexBounds;
         public bool wcConfigured, muralConfigured, framedBillboardPresent, allRoomDoorsOpen, privacySamplePassedWithDoorsOpen;
-        public MirrorState mirror; public DoorState[] doors; public PrivacyRay[] privacy;
+        public MirrorState mirror; public OxygenState oxygen;
+        public DoorState[] doors; public PrivacyRay[] privacy;
         public FrameTimingState frameTiming; public MemoryState memory; public DeviceState device;
+    }
+    [Serializable] sealed class OxygenState
+    {
+        public bool sourceLoaded, fitnessRightOfPears;
+        public int renderedMeshes, groupsPresent, realPearHeads, importedRingCopies, overheadPlatforms;
+        public Vector3 benchPosition, treadmillPosition, bikePosition, dumbbellsPosition, ladderPosition;
     }
     [Serializable] sealed class MirrorState {
         public bool configured, ready, textureCreated, sourceIncludesPlayer, sourceIncludesMirror;
