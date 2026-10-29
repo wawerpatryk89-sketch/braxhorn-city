@@ -1081,14 +1081,20 @@ public static class BraxGymReferenceRebuild
             // bag rack and ring. Both react to a real timed fist contact.
             var a=Group(hall,"Premium speed boxing pear stand " + station);
             a.position=basePos;
-            var leather=Material("Speedboxing authentic brown leather",
-                new Color(.30f,.25f,.20f),.70f,0f);
+            // Both stations share the same reviewed PBR materials. Unity
+            // CreateAsset and the material dictionary require unique names.
+            // Reuse existing materials rather than creating duplicates for #2.
+            var leather=materials.TryGetValue("Speedboxing authentic brown leather",out var existingLeather)
+                ? existingLeather : Material("Speedboxing authentic brown leather",
+                    new Color(.30f,.25f,.20f),.70f,0f);
             leather.mainTexture=RequiredTexture("LeatherAlbedo.jpg");
             SetNormal(leather,RequiredTexture("LeatherNormal.png",true),.55f);
-            var polished=Material("Speedbag stand machined stainless steel",
-                new Color(.35f,.37f,.38f),.47f,.81f);
-            var darkWood=Material("Speedbag black walnut striking drum",
-                new Color(.46f,.39f,.33f),.76f,0f);
+            var polished=materials.TryGetValue("Speedbag stand machined stainless steel",out var existingPolished)
+                ? existingPolished : Material("Speedbag stand machined stainless steel",
+                    new Color(.35f,.37f,.38f),.47f,.81f);
+            var darkWood=materials.TryGetValue("Speedbag black walnut striking drum",out var existingDrum)
+                ? existingDrum : Material("Speedbag black walnut striking drum",
+                    new Color(.46f,.39f,.33f),.76f,0f);
             darkWood.mainTexture=RequiredTexture("WoodAlbedo.jpg");
             SetNormal(darkWood,RequiredTexture("WoodNormal.png",true),.45f);
             Box(a,"Heavy anti-tip rectangular stand base",
