@@ -137,7 +137,7 @@ public static class BraxCityArchitecture
         return BraxCityMaterials.Textured(name,baseColor,normal,arm,1f/metres);
     }
 
-    static void Elevation(Transform building,string name,Vector3 at,float yaw,float width,int floors,bool entry,string title,bool industrial=false)
+    static void Elevation(Transform building,string name,Vector3 at,float yaw,float width,int floors,bool entry,string title,bool industrial=false,bool functionalEntry=false)
     {
         var face=Group(name,building,at,Quaternion.Euler(0,yaw,0));
         string kit=industrial?Factory:Urban;
@@ -152,11 +152,23 @@ public static class BraxCityArchitecture
             string wall=door?(industrial?"wall_door_recessed_large_01":"wall_door_centered_large_01"):"wall_window_centered_large_01";
             string detail=door?(industrial?"door_recessed_large_01":"door_centered_large_01"):"window_centered_large_01";
             var scale=new Vector3(bay/3,1,1);
-            Part(kit,wall,face,new Vector3(i*bay,.15f,0),Quaternion.identity,scale);
-            Part(kit,detail,face,new Vector3(i*bay,.15f,0),Quaternion.identity,scale);
+            // The tower doorway is not a painted glass rectangle. Reserve the
+            // entire central modular bay as a true exterior opening. Its
+            // separate hinged doors and structural jambs are authored by the
+            // tower-fit-out builder, without blocking the CharacterController.
+            if(!functionalEntry || !door)
+            {
+                Part(kit,wall,face,new Vector3(i*bay,.15f,0),Quaternion.identity,scale);
+                Part(kit,detail,face,new Vector3(i*bay,.15f,0),Quaternion.identity,scale);
+            }
             Part(kit,cornice,face,new Vector3(i*bay,3.25f,0),Quaternion.identity,scale);
         }
-        Box("Deep ground-floor recess",face,new Vector3(width*.5f,1.65f,-.48f),new Vector3(width,3,.08f),backing);
+        if(functionalEntry)
+        {
+            for(int i=0;i<bays;i++)if(i!=bays/2)
+                Box("Deep ground-floor glazing recess",face,new Vector3((i+.5f)*bay,1.65f,-.48f),new Vector3(bay,3,.08f),backing);
+        }
+        else Box("Deep ground-floor recess",face,new Vector3(width*.5f,1.65f,-.48f),new Vector3(width,3,.08f),backing);
         Box("Continuous ground-storey lintel",face,new Vector3(width*.5f,3.28f,-.1f),new Vector3(width,.3f,.2f),stone);
         Box("Stone ground-storey entablature",face,new Vector3(width*.5f,3.575f,-.08f),new Vector3(width,.35f,.3f),stone);
         for(int floor=0;floor<floors;floor++)
@@ -187,8 +199,8 @@ public static class BraxCityArchitecture
     public static Transform Build(Transform parent,Building b)
     {
         var g=Group("Building "+b.id,parent,Vector3.zero,Quaternion.identity);float width=b.x1-b.x0,depth=b.z1-b.z0;
-        if(b.far)Elevation(g,"Street frontage",new Vector3(b.x1,0,b.z0),180,width,b.floors,true,b.title,b.industrial);
-        else Elevation(g,"Street frontage",new Vector3(b.x0,0,b.z1),0,width,b.floors,true,b.title,b.industrial);
+        if(b.far)Elevation(g,"Street frontage",new Vector3(b.x1,0,b.z0),180,width,b.floors,true,b.title,b.industrial,b.id=="quay_corner");
+        else Elevation(g,"Street frontage",new Vector3(b.x0,0,b.z1),0,width,b.floors,true,b.title,b.industrial,b.id=="quay_corner");
         // Exposed backs are designed too. Recessed windows and a complete roof
         // avoid a dressed front with a blank, stretched box behind it.
         if(b.far)Elevation(g,"Courtyard frontage",new Vector3(b.x0,0,b.z1),0,width,b.floors,false,"",b.industrial);
@@ -205,12 +217,20 @@ public static class BraxCityArchitecture
             Box("Return course west",g,new Vector3(b.x0-.015f,y,(b.z0+b.z1)*.5f),new Vector3(.33f,.16f,depth+.35f),stone);
             Box("Return course east",g,new Vector3(b.x1+.015f,y,(b.z0+b.z1)*.5f),new Vector3(.33f,.16f,depth+.35f),stone);
         }
-        Box("Weatherproof roof",g,new Vector3((b.x0+b.x1)*.5f,b.Height-.45f,(b.z0+b.z1)*.5f),new Vector3(width,.15f,depth),roof);
+        // No intermediate full roof may seal the accessible lift shaft.
+        // Its upper tower and final roof deck are composed of real cut slabs.
+        if(b.id!="quay_corner")
+            Box("Weatherproof roof",g,new Vector3((b.x0+b.x1)*.5f,b.Height-.45f,(b.z0+b.z1)*.5f),new Vector3(width,.15f,depth),roof);
         // Future premises remain closed. The existing shop, NOVA and gym are
         // excluded from this builder and keep their real doorway openings.
-        var physical=new GameObject("Closed future premises collision");physical.transform.SetParent(g,false);
-        physical.transform.position=new Vector3((b.x0+b.x1)*.5f,b.Height*.5f,(b.z0+b.z1)*.5f);
-        physical.AddComponent<BoxCollider>().size=new Vector3(width,b.Height,depth);
+        if(b.id!="quay_corner")
+        {
+            var physical=new GameObject("Closed future premises collision");physical.transform.SetParent(g,false);
+            physical.transform.position=new Vector3((b.x0+b.x1)*.5f,b.Height*.5f,(b.z0+b.z1)*.5f);
+            physical.AddComponent<BoxCollider>().size=new Vector3(width,b.Height,depth);
+        }
+        // The accessible tower receives partitioned structure, not a solid
+        // whole-building collider that traps the player at the lobby entrance.
         return g;
     }
 
@@ -227,42 +247,74 @@ public static class BraxCityArchitecture
 
     public static void Tower(Transform parent,string id,Rect footprint,float baseY,int floors,float floorHeight=3.35f)
     {
+        if(floors<2||floors>48||floorHeight<3f||footprint.width<6||footprint.height<6)
+            throw new InvalidOperationException("Invalid high-rise metre-scale geometry: "+id);
         var g=Group("High-rise "+id,parent,Vector3.zero,Quaternion.identity);
-        var glass=BraxCityMaterials.Surface("Tower blue grey glazing",new Color(.19f,.25f,.29f),.22f,.28f);
-        var glassLight=BraxCityMaterials.Surface("Tower glazing subtle variation",new Color(.24f,.29f,.32f),.3f,.22f);
-        var spandrel=BraxCityMaterials.Surface("Tower dark ceramic spandrels",new Color(.12f,.14f,.15f),.7f,.08f);
-        var faces=new[]{new[]{footprint.xMin,footprint.yMax,0f,footprint.width},new[]{footprint.xMax,footprint.yMin,180f,footprint.width},
-            new[]{footprint.xMin,footprint.yMin,270f,footprint.height},new[]{footprint.xMax,footprint.yMax,90f,footprint.height}};
+        bool warm=id.Contains("brick")||id.Contains("hotel")||id.Contains("estate");
+        bool cool=id.Contains("quay")||id.Contains("glass")||id.Contains("gallery");
+        var glass=BraxCityMaterials.Surface("Tower PBR glazing "+(warm?"smoky grey":cool?"blue steel":"slate"),
+            warm?new Color(.24f,.255f,.26f):cool?new Color(.15f,.25f,.29f):new Color(.19f,.22f,.25f),.20f,.18f);
+        var glassLight=BraxCityMaterials.Surface("Tower glazing tile variation "+id,
+            warm?new Color(.29f,.29f,.28f):cool?new Color(.20f,.29f,.32f):new Color(.24f,.26f,.28f),.28f,.12f);
+        var spandrel=BraxCityMaterials.Surface("Tower ceramic spandrels "+(warm?"warm":"dark"),
+            warm?new Color(.19f,.18f,.17f):new Color(.10f,.13f,.14f),.73f,.08f);
+        var metal=BraxCityMaterials.Surface("Tower facade brushed mullion "+(warm?"bronze":"steel"),
+            warm?new Color(.31f,.275f,.23f):new Color(.19f,.22f,.235f),.55f,.62f);
+        var faces=new[]{new[]{footprint.xMin,footprint.yMax,0f,footprint.width},
+            new[]{footprint.xMax,footprint.yMin,180f,footprint.width},
+            new[]{footprint.xMin,footprint.yMin,270f,footprint.height},
+            new[]{footprint.xMax,footprint.yMax,90f,footprint.height}};
         foreach(var f in faces)
         {
-            var face=Group("Curtain wall",g,new Vector3(f[0],baseY,f[1]),Quaternion.Euler(0,f[2],0));
-            int bays=Mathf.Max(2,Mathf.RoundToInt(f[3]/1.65f));float bay=f[3]/bays;
-            // Each panel is recessed behind real mullions, floor spandrels and
-            // transoms. Tall towers add floors, not taller windows or textures.
+            var face=Group("Real recessed curtain facade",g,new Vector3(f[0],baseY,f[1]),Quaternion.Euler(0,f[2],0));
+            int bays=Mathf.Max(2,Mathf.RoundToInt(f[3]/1.65f));
+            float bay=f[3]/bays;
+            // Vertices are accumulated over the full local elevation before
+            // baking: 4 material meshes per face, not 4 temporary GameObjects
+            // per floor. This substantially reduces Unity import churn.
+            var frame=new BraxCitySystemMesh();
+            var windows=new BraxCitySystemMesh();
+            var variant=new BraxCitySystemMesh();
+            var opaque=new BraxCitySystemMesh();
             for(int storey=0;storey<floors;storey++)
             {
-                var frame=new BraxCitySystemMesh();var windows=new BraxCitySystemMesh();var variant=new BraxCitySystemMesh();var opaque=new BraxCitySystemMesh();
                 float y=storey*floorHeight;
                 for(int i=0;i<bays;i++)
                 {
                     float x=i*bay;
-                    (i%5==storey%5?variant:windows).Box(new Vector3(x+bay*.5f,y+floorHeight*.57f,-.065f),new Vector3(bay-.11f,floorHeight*.76f,.045f));
-                    frame.Box(new Vector3(x+.045f,y+floorHeight*.5f,.035f),new Vector3(.09f,floorHeight,.16f));
-                    frame.Box(new Vector3(x+bay*.5f,y+floorHeight*.63f,.035f),new Vector3(bay,.055f,.15f));
-                    opaque.Box(new Vector3(x+bay*.5f,y+.23f,-.015f),new Vector3(bay,.46f,.12f));
+                    (i%7==storey%7?variant:windows).Box(new Vector3(x+bay*.5f,y+floorHeight*.57f,-.07f),
+                        new Vector3(bay-.14f,floorHeight*.75f,.055f));
+                    frame.Box(new Vector3(x+.045f,y+floorHeight*.5f,.075f),new Vector3(.09f,floorHeight,.22f));
+                    frame.Box(new Vector3(x+bay*.5f,y+floorHeight*.65f,.075f),new Vector3(bay,.055f,.16f));
+                    opaque.Box(new Vector3(x+bay*.5f,y+.28f,.0f),new Vector3(bay,.56f,.14f));
                 }
-                frame.Box(new Vector3(f[3],y+floorHeight*.5f,.035f),new Vector3(.09f,floorHeight,.16f));
-                frame.Box(new Vector3(f[3]*.5f,y+floorHeight-.04f,.035f),new Vector3(f[3],.08f,.18f));
-                MeshObject("Glazed panels storey "+(storey+1),face,windows,glass);
-                if(variant.VertexCount>0)MeshObject("Subtle glazing variation",face,variant,glassLight);
-                MeshObject("Mullions and transoms",face,frame,darkMetal);MeshObject("Opaque floor edge",face,opaque,spandrel);
+                frame.Box(new Vector3(f[3],y+floorHeight*.5f,.075f),new Vector3(.09f,floorHeight,.22f));
+                frame.Box(new Vector3(f[3]*.5f,y+floorHeight-.04f,.075f),new Vector3(f[3],.09f,.19f));
             }
+            MeshObject("Glazed panels real depth",face,windows,glass);
+            if(variant.VertexCount>0)MeshObject("Irregular glass bays",face,variant,glassLight);
+            MeshObject("Extruded metal mullions",face,frame,metal);
+            MeshObject("Ceramic floor spandrels",face,opaque,spandrel);
             Batch(face);
         }
         float height=floors*floorHeight;
-        Box("Tower roof and coping",g,new Vector3(footprint.center.x,baseY+height+.12f,footprint.center.y),new Vector3(footprint.width+.3f,.24f,footprint.height+.3f),roof);
-        Box("Recessed plant enclosure",g,new Vector3(footprint.center.x,baseY+height+1.3f,footprint.center.y),new Vector3(footprint.width*.52f,2.3f,footprint.height*.5f),darkMetal);
-        if(baseY<.2f)Box("Tower closed structural core",g,new Vector3(footprint.center.x,height*.5f,footprint.center.y),new Vector3(footprint.width-.3f,height,footprint.height-.3f),backing,true);
+        if(id=="quay observation tower")
+        {
+            // A solid roof would visually and physically occlude the elevator
+            // from arriving at the terrace. BraxCityPremiumTowerBuild authors
+            // the surrounding roof slabs with the true central shaft opening.
+            Debug.Log("CITY_LIFT_OPEN_ROOF full slab suppressed for "+id);
+        }
+        else
+        {
+            Box("Weatherproof roof and coping",g,new Vector3(footprint.center.x,baseY+height+.12f,footprint.center.y),
+                new Vector3(footprint.width+.3f,.24f,footprint.height+.3f),roof);
+            Box("Recessed technical penthouse",g,new Vector3(footprint.center.x,baseY+height+1.30f,footprint.center.y),
+                new Vector3(footprint.width*.52f,2.30f,footprint.height*.5f),metal);
+        }
+        if(baseY<.2f)Box("Tower closed structural core",g,
+            new Vector3(footprint.center.x,height*.5f,footprint.center.y),
+            new Vector3(footprint.width-.3f,height,footprint.height-.3f),backing,true);
     }
 
     public static void Billboard(Transform parent,string id,Vector3 center,float width,string texturePath,float yaw)
