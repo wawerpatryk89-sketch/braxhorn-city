@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1040" viewBox="0 0 1440 1040">
+<defs><pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#ffffff" stroke-opacity=".035"/></pattern><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#8bff3a" stroke-width="1.4"/></marker></defs>
+<rect width="1440" height="1040" fill="#101413"/>
+<g font-family="DejaVu Sans,Arial,sans-serif">
+<text x="92" y="62" font-size="30" fill="#f2f5ef" font-weight="700">BRAXHORN KICKBOXING</text>
+<text x="92" y="97" font-size="18" fill="#b3c0b5">ETAP A · Rzut do realizacji — istniejąca sala + dobudowane zaplecze</text>
+<text x="92" y="128" font-size="14" fill="#94a799">Wymiary sali odczytane z projektu Unity. Widok od góry; wejście na dole.</text>
+<rect x="218" y="170" width="864" height="576" fill="#242b27" stroke="#e3eadf" stroke-width="4"/>
+<rect x="218" y="170" width="864" height="576" fill="url(#grid)" stroke="none" stroke-width="0"/>
+<rect x="1082" y="410" width="180.0" height="264" fill="#293828" stroke="#8bff3a" stroke-width="4"/>
+<rect x="1181.6" y="530" width="74.40000000000009" height="138.0" fill="#36443a" stroke="#47524b" stroke-width="2"/>
+<rect x="1181.6" y="416.0" width="74.40000000000009" height="106.79999999999995" fill="#3b4541" stroke="#47524b" stroke-width="2"/>
+<rect x="1134.8" y="416.0" width="46.799999999999955" height="252.0" fill="#1b271e" stroke="#47524b" stroke-width="2"/>
+<rect x="1082" y="582.8" width="52.799999999999955" height="43.200000000000045" fill="#1b271e" stroke="none" stroke-width="0"/>
+<rect x="1131.92" y="410" width="5.759999999999991" height="171.5999999999999" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1179.2" y="410" width="4.7999999999999545" height="98.39999999999998" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1179.2" y="539.6" width="4.7999999999999545" height="134.39999999999998" fill="#bcc7ba" stroke="none" stroke-width="0"/>
+<rect x="1079.12" y="582.8" width="5.760000000000218" height="43.200000000000045" fill="#1b271e" stroke="none" stroke-width="0"/>
+<rect x="1179.2" y="461.6" width="4.7999999999999545" height="31.199999999999932" fill="#1b271e" stroke="none" stroke-width="0"/>
+<rect x="1179.2" y="578" width="4.7999999999999545" height="32.40000000000009" fill="#1b271e" stroke="none" stroke-width="0"/>
+<rect x="1236.8" y="549.2" width="12.0" height="103.20000000000005" fill="#18201b" stroke="#849181" stroke-width="1"/>
+<rect x="1215.2" y="563.5999999999999" width="12.0" height="69.60000000000014" fill="#6a624b" stroke="#aa9c76" stroke-width="1"/>
+<text x="1218.8" y="545.6" text-anchor="middle" font-size="12" fill="#e4ede2">SZATNIA</text>
+<text x="1218.8" y="506.0" text-anchor="middle" font-size="14" fill="#e4ede2">WC</text>
+<ellipse cx="1232.0" cy="444.79999999999995" rx="9" ry="12" fill="#dce3db"/>
+<text x="1158.8" y="393.20000000000005" text-anchor="middle" font-size="12" fill="#8bff3a">KORYTARZ</text>
+<path d="M1058 604.4000000000001H1158.8V478.4" stroke="#8bff3a" stroke-width="2.5" stroke-dasharray="7 5" fill="none" marker-end="url(#arrow)"/>
+<rect x="765.2" y="249.20000000000002" width="201.5999999999999" height="201.59999999999994" fill="#151b18" stroke="#859280" stroke-width="3"/>
+<rect x="782.0" y="266" width="168.0" height="168" fill="#303a32" stroke="#8bff3a" stroke-width="3"/>
+<circle cx="950.0" cy="266" r="6" fill="#8bff3a"/>
+<circle cx="950.0" cy="434" r="6" fill="#8bff3a"/>
+<circle cx="782.0" cy="266" r="6" fill="#8bff3a"/>
+<circle cx="782.0" cy="434" r="6" fill="#8bff3a"/>
+<text x="866" y="350.0" text-anchor="middle" font-size="21" fill="#e4ede2">RING</text>
+<text x="866" y="377.6" text-anchor="middle" font-size="12" fill="#b5c5b0">podest 8,4 × 8,4 m</text>
+<rect x="846.8" y="450.79999999999995" width="38.40000000000009" height="33.60000000000002" fill="#636a5b" stroke="#a8b49e" stroke-width="1"/>
+<text x="866" y="509.6" text-anchor="middle" font-size="12" fill="#e4ede2">schodki</text>
+<rect x="410" y="458" width="288" height="216" fill="#202821" stroke="#8bff3a" stroke-width="3"/>
+<text x="554" y="539.6" text-anchor="middle" font-size="22" fill="#e4ede2">BRAXHORN</text>
+<text x="554" y="569.5999999999999" text-anchor="middle" font-size="17" fill="#8bff3a">KICKBOXING</text>
+<text x="554" y="605.5999999999999" text-anchor="middle" font-size="13" fill="#e4ede2">MATA / SPARING</text>
+<rect x="222.79999999999995" y="237.20000000000002" width="7.2000000000000455" height="362.39999999999986" fill="#a5d3d5" stroke="#d6f3ed" stroke-width="1"/>
+<circle cx="314" cy="280.4" r="13" fill="#151a17" stroke="#8bff3a" stroke-width="2"/>
+<circle cx="314" cy="352.4" r="13" fill="#151a17" stroke="#8bff3a" stroke-width="2"/>
+<circle cx="314" cy="424.4" r="13" fill="#151a17" stroke="#8bff3a" stroke-width="2"/>
+<circle cx="314" cy="496.4" r="13" fill="#151a17" stroke="#8bff3a" stroke-width="2"/>
+<text x="316.4" y="566.0" text-anchor="middle" font-size="14" fill="#e4ede2">WORKI</text>
+<text x="316.4" y="592.4000000000001" text-anchor="middle" font-size="11" fill="#a1b29f">na stalowej belce</text>
+<text x="196.40000000000003" y="410" fill="#b5d8db" font-size="13" transform="rotate(-90 196.40000000000003 410)" text-anchor="middle">LUSTRO — ODBICIE POSTACI NA ŻYWO</text>
+<rect x="470.0" y="172.39999999999998" width="511.20000000000005" height="9.600000000000023" fill="#8bff3a" stroke="#8bff3a" stroke-width="1"/>
+<text x="724.4" y="210.79999999999998" text-anchor="middle" font-size="15" fill="#e4ede2">BILLBOARD · BRAX + NYXA</text>
+<text x="724.4" y="231.20000000000002" text-anchor="middle" font-size="11" fill="#a8b8a4">grafika zatwierdzana osobno</text>
+<rect x="630.8" y="674" width="100.80000000000007" height="48" fill="#303b30" stroke="#8bff3a" stroke-width="2"/>
+<text x="681.2" y="702.8" text-anchor="middle" font-size="12" fill="#e4ede2">RECEPCJA</text>
+<rect x="486.8" y="742.4000000000001" width="38.400000000000034" height="7.199999999999818" fill="#101413" stroke="none" stroke-width="0"/>
+<path d="M506 798.8L506 731.5999999999999" stroke="#8bff3a" stroke-width="3" marker-end="url(#arrow)"/>
+<text x="506" y="834.8" text-anchor="middle" font-size="15" fill="#e4ede2">ISTNIEJĄCE WEJŚCIE Z MIASTA</text>
+<text x="506" y="861.2" text-anchor="middle" font-size="12" fill="#a9b8a5">położenie zachowane</text>
+<text x="650" y="152.0" text-anchor="middle" font-size="14" fill="#aebda9">36 m · pełna istniejąca szerokość sali</text>
+<text x="1172.0" y="722.0" text-anchor="middle" font-size="14" fill="#8bff3a">DOBUDÓWKA</text>
+<text x="1172.0" y="748.4000000000001" text-anchor="middle" font-size="13" fill="#e4ede2">7,5 × 11 m brutto</text>
+<path d="M92 885H1348" stroke="#3c473e"/>
+<circle cx="105" cy="925" r="6" fill="#8bff3a"/><text x="126" y="930" font-size="17" fill="#e6eee1">Zaplecze powiększa budynek; sala treningowa zachowuje obecny metraż.</text>
+<circle cx="105" cy="965" r="6" fill="#8bff3a"/><text x="126" y="970" font-size="17" fill="#e6eee1">Korytarz z zakrętem + pełna ściana osłonowa + osobne drzwi szatni i WC.</text>
+<text x="92" y="1010" font-size="13" fill="#8e9f90">To rzut układu, nie zrzut z działającej gry. Wyposażenie i przejścia są dopracowywane w scenie Unity.</text></g></svg>

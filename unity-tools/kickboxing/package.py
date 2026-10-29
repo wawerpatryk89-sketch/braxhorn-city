@@ -1,0 +1,147 @@
+"""Package the rebuilt Unity room using the current production iOS transport.
+
+Only the compiled player and its manifest change. The proven native gzip
+stream, mobile controls and city UI are carried forward from current main.
+This script creates an isolated test artifact; it never publishes production.
+"""
+import hashlib
+import json
+import os
+import pathlib
+import re
+import shutil
+import zlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+SOURCE = ROOT / 'build/WebGL'
+OUT = ROOT / 'unity-preview'
+PUBLISHED = ROOT / 'public/unity-gym'
+COMMIT = os.environ.get('GITHUB_SHA', 'local')
+VERSION = COMMIT[:12]
+
+
+def digest(path):
+    h = hashlib.sha256()
+    with path.open('rb') as stream:
+        while chunk := stream.read(1024 * 1024):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def main():
+    if OUT.exists():
+        shutil.rmtree(OUT)
+    shutil.copytree(SOURCE, OUT)
+    build = OUT / 'Build'
+    entries = {}
+    for key, pattern in [('loader', '*.loader.js'), ('data', '*.data*'),
+                         ('framework', '*.framework.js*'), ('wasm', '*.wasm*')]:
+        matches = list(build.glob(pattern))
+        if len(matches) != 1:
+            raise RuntimeError((key, [p.name for p in matches]))
+        source = matches[0]
+        renamed = source.with_name(VERSION + '_' + source.name)
+        source.rename(renamed)
+        entries[key] = renamed
+
+    loader = entries['loader']
+    code = loader.read_text()
+    replacements = {
+        'fetch(e,t).then(function(e){return b.readBodyWithProgress':
+        '(window.BraxCityFetch||fetch)(e,t).then(function(e){return b.readBodyWithProgress',
+        'n=b.companyName&&b.productName?b.cachedFetch:b.fetchWithProgress':
+        'n=window.BraxCityFetch?b.fetchWithProgress:(b.companyName&&b.productName?b.cachedFetch:b.fetchWithProgress)'
+    }
+    for old, new in replacements.items():
+        if code.count(old) != 1:
+            raise RuntimeError('Unity loader changed; refusing to drop existing iOS streaming hook: ' + old)
+        code = code.replace(old, new, 1)
+    loader.write_text(code)
+
+    compressed = hashlib.sha256()
+    expanded = hashlib.sha256()
+    inflater = zlib.decompressobj(31)
+    parts = []
+    expanded_bytes = total = 0
+    data = entries['data']
+    with data.open('rb') as source:
+        while payload := source.read(32 * 1024 * 1024):
+            target = data.with_name(data.name + f'.part{len(parts):03d}')
+            target.write_bytes(payload)
+            compressed.update(payload)
+            total += len(payload)
+            for offset in range(0, len(payload), 65536):
+                decoded = inflater.decompress(payload[offset:offset+65536])
+                expanded_bytes += len(decoded)
+                expanded.update(decoded)
+            parts.append({'path': target.relative_to(OUT).as_posix(), 'bytes': len(payload), 'sha256': digest(target)})
+    tail = inflater.flush()
+    expanded.update(tail)
+    expanded_bytes += len(tail)
+    if not inflater.eof or inflater.unused_data:
+        raise RuntimeError('Compiled Unity data is not one complete gzip stream.')
+    manifest = {'dataPath': data.relative_to(OUT).as_posix(), 'bytes': total,
+                'sha256': compressed.hexdigest(), 'uncompressedBytes': expanded_bytes,
+                'uncompressedSha256': expanded.hexdigest(), 'parts': parts,
+                'sourceCommit': COMMIT, 'assetQualityChanged': True}
+    data.unlink()
+    (OUT / 'transport.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    transport = (PUBLISHED / 'city-transport.js').read_text()
+    if "const revision = 'ios-stream-01'" not in transport or 'DecompressionStream' not in transport:
+        raise RuntimeError('Expected current iOS-safe loader template is missing.')
+    transport, count = re.subn(r'  const manifest = .*?;\n',
+                              '  const manifest = ' + json.dumps(manifest, separators=(',', ':')) + ';\n',
+                              transport, count=1)
+    if count != 1:
+        raise RuntimeError('Transport manifest replacement failed.')
+    # These are diagnostic labels only, not changes to the streaming algorithm.
+    transport = transport.replace('originalAssetsChanged: false', 'originalAssetsChanged: true')
+    transport = transport.replace('Original Unity asset bytes are unchanged.', 'Native stream algorithm preserved; room rebuilt on an isolated test branch.')
+    (OUT / 'city-transport.js').write_text(transport)
+
+    html = (PUBLISHED / 'index.html').read_text()
+    previous = json.loads((PUBLISHED / 'release.json').read_text())['sourceCommit'][:12]
+    if previous not in html:
+        raise RuntimeError('Current city entry does not match its published source version.')
+    html = html.replace(previous + '_WebGL', VERSION + '_WebGL').replace(previous, VERSION)
+    html = re.sub(r'około \d+ MB danych Unity', f'około {round((total+entries["wasm"].stat().st_size)/1000000)} MB danych Unity', html)
+    (OUT / 'index.html').write_text(html)
+    shutil.copyfile(ROOT / 'public/assets/logo/wide_a.webp', OUT / 'logo.webp')
+    for name in ['city-manifest.json', 'estate-manifest.json', 'source-provenance.json', 'native-texture-preparation.json']:
+        shutil.copyfile(ROOT / 'unity-city/Assets/Source/City' / name, OUT / name)
+    for name in ['unity-premium-report.json', 'material-review.json', 'geometry-review.json', 'source-refinements.json']:
+        shutil.copyfile(ROOT / 'unity-city/Assets/Source/Premium' / name, OUT / name)
+    for name, source in {
+        'source-integrity.json': 'unity-city/Assets/Source/source-integrity.json',
+        'kickboxing-layout.json': 'unity-city/Assets/PlayableGenerated/ReferenceRebuild/layout-report.json',
+        'kickboxing-assets.json': 'unity-city/Assets/Kickboxing/asset-provenance.json',
+        'bag-provenance.json': 'unity-city/Assets/Kickboxing/Models/BagSource.provenance.json',
+    }.items():
+        shutil.copyfile(ROOT / source, OUT / name)
+    (OUT / 'robots.txt').write_text('User-agent: *\nDisallow: /\n')
+    (OUT / 'library-credits.txt').write_text(
+        'BRAXHORN marks, Brax, existing city and original animations: project owner.\n'
+        'Brick Wall 10: Dimitrios Savva / Poly Haven, CC0.\n'
+        'Fabric Leather 01: Rob Tuytel / Poly Haven, CC0.\n'
+        'Hanging Industrial Lamp: Kuutti Siitonen / Poly Haven, CC0.\n'
+        'Boxing gloves and bag; Compact WC; Basin pedestal sink cabinet: Innerscene, CC0.\n'
+        'Reviewed bag derivative: original chain mesh and normal map, reinforced leather body, seams, straps, hardware and original BRAXHORN branding.\n'
+        'Powered by Poly Haven. Full source and license URLs: kickboxing-assets.json.\n')
+    files = {p.relative_to(OUT).as_posix(): digest(p) for p in OUT.rglob('*') if p.is_file()}
+    release = {'scope': 'isolated-kickboxing-room-and-annex-test', 'sourceCommit': COMMIT,
+               'productionBase': '26e5ef339b09df6c1077e9968200660ec89cdacf',
+               'unitySourceBase': 'ba678928b2dcb2dff9e38bdb5306e090e76360cf',
+               'unityVersion': '6000.0.58f2', 'renderPipeline': 'Built-in',
+               'productionChanged': False, 'physicalIPhoneValidated': False,
+               'billboardArtworkApproved': False, 'billboardArtworkInstalled': False,
+               'transport': manifest,
+               'loadingFix': {'revision': 'ios-stream-01', 'nativeStreamingGzip': True,
+                              'maxInputChunkBytes': 65536, 'algorithmPreserved': True,
+                              'compressedBytes': total, 'uncompressedBytes': expanded_bytes},
+               'files': files}
+    (OUT / 'release.json').write_text(json.dumps(release, indent=2) + '\n')
+    print('KICKBOXING_TEST_PACKAGE', COMMIT, total, expanded_bytes, len(parts))
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,198 @@
+{
+  "version": "2026-10-29",
+  "project": "Braxhorn City -> Unity",
+  "totalFiles": 10,
+  "totalBytes": 481721572,
+  "uploadStatus": "METADATA_ONLY__NO_BINARY_UPLOADED",
+  "repositoryVisibility": "public",
+  "assetStoragePolicy": "Never put third-party redistributable-prohibited packages in this public repository. Preserve original archives in private operator-controlled storage or a licensed asset store; Git LFS needed for >100 MiB.",
+  "records": [
+    {
+      "id": "modern-arm-chair-01-4k-blend-zip",
+      "filename": "modern_arm_chair_01_4k.blend.zip",
+      "bytes": 138796745,
+      "sha256": "29209d399fbc4d47a89242ac230299cbd46149387ce8cd2397fad2c1bd91e62d",
+      "category": "furniture",
+      "quality": "premium_candidate",
+      "formats": [
+        "BLEND",
+        "PNG 4K"
+      ],
+      "content": "1 fotel + 8 map tekstur; 4K",
+      "license": "CC0__PolyHaven_official",
+      "notes": "Duży plik; najpierw zoptymalizować tekstury do mobilnych wariantów; wymaga eksportu FBX/GLB.",
+      "sourceFilePresentInGitHub": false,
+      "licenseReviewStatus": "verified_on_official_creator_page",
+      "source": "https://polyhaven.com/a/modern_arm_chair_01",
+      "author": "Vibrant Nordic"
+    },
+    {
+      "id": "lowpolyfurniturepackvol2-v1-0-zip",
+      "filename": "LowPolyFurniturePackVol2_v1.0.zip",
+      "bytes": 555732,
+      "sha256": "1dc36ec5d8768b8e1b4b68fdac2af3e67375671512472f2dac5447644900b953",
+      "category": "furniture",
+      "quality": "low_poly_reference_only",
+      "formats": [
+        "FBX",
+        "GLB",
+        "OBJ",
+        "BLEND"
+      ],
+      "content": "30 uproszczonych modeli; 4882 trójkąty łącznie",
+      "license": "reodesuxz_commercial_use_yes_redistribute_standalone_no_AI_training_no",
+      "notes": "LICENSE.txt wewnątrz ZIP, zakaz udostępniania plików jako biblioteki assetów.",
+      "sourceFilePresentInGitHub": false,
+      "licenseReviewStatus": "read_from_source_archive"
+    },
+    {
+      "id": "low-poly-kitchen-assets-rar",
+      "filename": "Low poly kitchen assets.rar",
+      "bytes": 77518267,
+      "sha256": "1a001c102784d19fe7135d9bfccdc690c3cca784fea0db716c47e72861dd12bc",
+      "category": "kitchen",
+      "quality": "low_poly",
+      "formats": [
+        "FBX",
+        "Unitypackage",
+        "PNG"
+      ],
+      "content": "26 FBX, 45 PNG, 1 unitypackage",
+      "license": "not_found_in_archive__verify_source",
+      "notes": "Do scen pomocniczych; oryginalna licencja nie występuje w RAR.",
+      "sourceFilePresentInGitHub": false,
+      "licenseReviewStatus": "source_licence_unverified"
+    },
+    {
+      "id": "build-kitchen-rar",
+      "filename": "Build - Kitchen.rar",
+      "bytes": 32000036,
+      "sha256": "59b97d930515e87a17cd64af81be72d6312077ee5f5de44f5272f70de0fd0d6c",
+      "category": "application",
+      "quality": "not_importable",
+      "formats": [
+        "EXE",
+        "DLL",
+        "Unity built player data"
+      ],
+      "content": "Gotowa aplikacja Windows; nie ma źródłowego projektu lub paczki modeli",
+      "license": "not_found_in_archive__verify_source",
+      "notes": "NIE URUCHAMIAĆ pobranego exe; nie importować do Unity jako modeli.",
+      "sourceFilePresentInGitHub": false,
+      "licenseReviewStatus": "source_licence_unverified"
+    },
+    {
+      "id": "modular-building-3-unitypackage",
+      "filename": "Modular Building 3.unitypackage",
+      "bytes": 38394271,
+      "sha256": "5d4329e16d9a5aff12fb0aeff1fa8db6f5ef4752640ed499bbbb9dc20c55c6f2",
+      "category": "architecture",
+      "quality": "medieval_modular_reference",
+      "formats": [
+        "Unitypackage",
+        "FBX",
+        "PNG"
+      ],
+      "content": "12 budynków i most oraz 40+ części okien, drzwi, ścian, dachów; tekstury 1K/2K",
+      "license": "not_found_in_archive__verify_source",
+      "notes": "Modularny pakiet gotowy pod Unity, ale średniowieczny wygląd nie pasuje bezpośrednio do Braxhorn City.",
+      "sourceFilePresentInGitHub": false,
+      "licenseReviewStatus": "source_licence_unverified"
+    },
+    {
+      "id": "gym-environment-zip",
+      "filename": "gym_environment.zip",
+      "bytes": 4214018,
+      "sha256": "c847f82ec2c0f07a7466812c303414135576a50f5432708518518fa6a6e302ad",
+      "category": "gym",
+      "quality": "review_render",
+      "formats": [
+        "BLEND",
+        "FBX",
+        "OBJ",
+        "PNG"
+      ],
+      "content": "Pojedyncze środowisko siłowni w trzech formatach + tekstura",
+      "license": "not_found_in_archive__verify_source",
+      "notes": "Możliwe wykorzystanie po ocenie skali, materiałów i jakości; nie zastępować istniejącej siłowni.",
+      "sourceFilePresentInGitHub": false,
+      "licenseReviewStatus": "source_licence_unverified"
+    },
+    {
+      "id": "abandoned-soviet-garages-pack-game-ready-glb",
+      "filename": "abandoned_soviet_garages_pack_game-ready.glb",
+      "bytes": 153369096,
+      "sha256": "b42b5ea75fffebec6f065da9c2ac83caa5ec44fc5c5919dab5557058e1762fa0",
+      "category": "city",
+      "quality": "detailed_candidate_needs_optimization",
+      "formats": [
+        "GLB"
+      ],
+      "content": "7 siatek, 17 węzłów, 10 obrazów tekstur",
+      "license": "CC-BY-4.0__attribution_required",
+      "source": "https://sketchfab.com/3d-models/abandoned-soviet-garages-pack-game-ready-fcf453872c2d4cfbad12197d072fbfc4",
+      "author": "olegolegperepelica",
+      "notes": "Źródło i autor z nagłówka GLB; atrybucja jest obowiązkowa, plik ~146 MiB, wymagana optymalizacja.",
+      "sourceFilePresentInGitHub": false,
+      "licenseReviewStatus": "read_from_source_archive"
+    },
+    {
+      "id": "low-poly-city-vehicles-pack-v1-2-rar",
+      "filename": "[Low Poly] City Vehicles Pack v1.2.rar",
+      "bytes": 36083096,
+      "sha256": "510d485dadd32f9b6e8b54cd4772139c7a35d608836d4c8ff8e06f092b0d99ea",
+      "category": "vehicles",
+      "quality": "low_poly_reference_only",
+      "formats": [
+        "FBX",
+        "OBJ",
+        "BLEND",
+        "Unitypackage",
+        "PNG"
+      ],
+      "content": "205 FBX wariantów modeli/kolorów, nie 205 unikalnych pojazdów; 1 unitypackage",
+      "license": "not_found_in_archive__verify_source",
+      "notes": "Do ruchu tła ewentualnie; docelowo realistyczne pojazdy z większą liczbą szczegółów.",
+      "sourceFilePresentInGitHub": false,
+      "licenseReviewStatus": "source_licence_unverified"
+    },
+    {
+      "id": "lowpolygympack-v1-0-zip",
+      "filename": "LowPolyGymPack_v1.0.zip",
+      "bytes": 398516,
+      "sha256": "d1e19ed5e82943414e4cba55dd57d2f20fc16e59e00f39790f82ea24561419c1",
+      "category": "gym",
+      "quality": "low_poly_reference_only",
+      "formats": [
+        "FBX",
+        "GLB",
+        "OBJ",
+        "BLEND"
+      ],
+      "content": "28 modeli; 2708 trójkątów łącznie",
+      "license": "reodesuxz_commercial_use_yes_redistribute_standalone_no_AI_training_no",
+      "notes": "LICENSE.txt wewnątrz ZIP; nie umieszczać plików w publicznym repozytorium jako biblioteki.",
+      "sourceFilePresentInGitHub": false,
+      "licenseReviewStatus": "read_from_source_archive"
+    },
+    {
+      "id": "lowpolyhospitalpack-v1-0-zip",
+      "filename": "LowPolyHospitalPack_v1.0.zip",
+      "bytes": 391795,
+      "sha256": "930011d1eb1f618af9f30155fec19f6dfed0b47d9294bfd45301291e4fe3cd68",
+      "category": "hospital",
+      "quality": "low_poly_reference_only",
+      "formats": [
+        "FBX",
+        "GLB",
+        "OBJ",
+        "BLEND"
+      ],
+      "content": "27 modeli; 2556 trójkątów łącznie",
+      "license": "reodesuxz_commercial_use_yes_redistribute_standalone_no_AI_training_no",
+      "notes": "LICENSE.txt wewnątrz ZIP; publiczny upload modeli niezalecany.",
+      "sourceFilePresentInGitHub": false,
+      "licenseReviewStatus": "read_from_source_archive"
+    }
+  ]
+}
