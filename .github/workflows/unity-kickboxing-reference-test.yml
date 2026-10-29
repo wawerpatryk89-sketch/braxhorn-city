@@ -1,17 +1,17 @@
-name: Build and review BRAXHORN premium ceiling fan room - isolated QA
+name: BRAXHORN pear and reception visual correction - isolated QA
 on:
   push:
-    branches: [test/gym-premium-ceiling-recovery-20261029]
+    branches: [test/gym-pear-reception-visualfix-20261029]
     paths: ['unity-city/Assets/**', 'unity-city/Packages/**', 'unity-city/ProjectSettings/**', 'unity-tools/kickboxing/**', '.github/workflows/unity-kickboxing-reference-test.yml']
 permissions:
   contents: read
   actions: read
 concurrency:
-  group: unity-gym-ceiling-recovery-20261029
+  group: unity-gym-pear-reception-visualfix-20261029
   cancel-in-progress: true
 jobs:
   room:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/test/gym-premium-ceiling-recovery-20261029'
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/test/gym-pear-reception-visualfix-20261029'
     runs-on: ubuntu-latest
     timeout-minutes: 65
     steps:
