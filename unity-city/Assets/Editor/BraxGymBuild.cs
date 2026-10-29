@@ -40,10 +40,10 @@ public static class BraxGymBuild
         foreach(var r in renderers)
         {
             r.shadowCastingMode=ShadowCastingMode.Off;
-            var source=r.sharedMaterials;var output=new Material[source.Length];
+            var source=r.sharedMaterials;var materialSlots=new Material[source.Length];
             for(int k=0;k<source.Length;k++)
             {
-                var m=source[k];output[k]=m;
+                var m=source[k];materialSlots[k]=m;
                 if(!m||!m.name.Contains("_baked")||m.renderQueue>=2450)continue;
                 if(!cache.TryGetValue(m,out var t))
                 {
@@ -55,9 +55,9 @@ public static class BraxGymBuild
                     t.SetFloat("_VertexColor",1);AssetDatabase.CreateAsset(t,Generated+"/Matte"+cache.Count+".mat");cache[m]=t;tuned++;
                     Debug.Log("GYM_MATERIAL "+m.name+" shader="+m.shader.name+" texture="+textureName+" color="+t.color);
                 }
-                output[k]=t;
+                materialSlots[k]=t;
             }
-            r.sharedMaterials=output;
+            r.sharedMaterials=materialSlots;
         }
         // glTFast converts right-handed glTF coordinates by mirroring X. Apply the
         // SAME conversion to the source physics, spawns, bag pivots and doorway.
