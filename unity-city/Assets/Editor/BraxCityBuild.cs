@@ -189,7 +189,7 @@ public static class BraxCityBuild
         AddArea("estate",runtime);
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
-    public static void WriteReport(string output,string commit,bool cityReviewOnly=false)
+    public static void WriteReport(string output,string commit,bool cityReviewOnly=false,bool segmentReview=false)
     {
         if(cityReviewOnly)
         {
@@ -201,9 +201,10 @@ public static class BraxCityBuild
         var report=new Report{commit=commit,unity=Application.unityVersion,areas=reports.ToArray()};
         if(cityReviewOnly)
         {
-            report.scope="city-only-mobile-architecture-review";
+            report.scope=segmentReview?"city-segment-mobile-architecture-review":"city-only-mobile-architecture-review";
             report.notYetPorted=new[]{
                 "Separate original estate scene deliberately excluded from this review player (source untouched)",
+                segmentReview?"Outside world deliberately excluded from this playable street segment (original source untouched)":"City architecture remains complete in this mobile city-only build",
                 "City-street NPC and vehicle traffic not activated",
                 "Estate story/economy and future character selection",
             };
