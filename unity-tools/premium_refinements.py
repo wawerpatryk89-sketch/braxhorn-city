@@ -21,21 +21,32 @@ f=R/'unity-city/Assets/Editor/BraxGymBuild.cs';s=f.read_text();needle='BraxGymPr
 assert s.count(needle)==1,'Expected a single verified premium integration point'
 s=s.replace(needle,needle+'\n        BraxHeroRefinements.Apply(hero,bags.ToArray(),camera,Generated);',1);f.write_text(s)
 
-# Verify exact source patterns before corrections; fail rather than overwrite a different implementation.
 def replace_once(path,old,new):
  s=path.read_text();assert s.count(old)==1, 'Unexpected source changed: '+str(path)+' / '+old[:50]
  path.write_text(s.replace(old,new,1))
+
+# Persist source identity independently of Unity's asset naming behavior.
+f=R/'unity-city/Assets/Editor/BraxGymBuild.cs'
+replace_once(f,
+ 'AssetDatabase.CreateAsset(t,Generated+"/Matte"+cache.Count+".mat");cache[m]=t;tuned++;',
+ 'AssetDatabase.CreateAsset(t,Generated+"/"+m.name+"_"+cache.Count+".mat");t.name=m.name;t.SetOverrideTag("BraxOriginalMaterial",m.name);EditorUtility.SetDirty(t);cache[m]=t;tuned++;')
 f=R/'unity-city/Assets/Editor/BraxGymPremium.cs'
+replace_once(f,
+ 'if(!m.name.StartsWith("BX_"))continue;var parts=m.name.Split(\'_\');',
+ 'string sourceName=m.GetTag("BraxOriginalMaterial",false,m.name);if(!sourceName.StartsWith("BX_"))continue;var parts=sourceName.Split(\'_\');')
+replace_once(f,'int upgraded=0;','int upgraded=0,reliefMapped=0;bool wallRelief=false,floorRelief=false;')
+replace_once(f,'            upgraded++;',
+ '            if(m.GetFloat("_NormalStrength")>.001f&&m.GetTexture("_NormalMap")){reliefMapped++;if(id==9||id==35||id==36)wallRelief=true;if(id==69)floorRelief=true;}\n            Debug.Log("PREMIUM_MATERIAL_BOUND "+sourceName+" normal="+m.GetFloat("_NormalStrength"));\n            upgraded++;')
+replace_once(f,'        var heroMat=Pbr(',
+ '        if(upgraded<20||reliefMapped<10||!wallRelief||!floorRelief)throw new Exception("Premium relief not assigned: materials="+upgraded+" mapped="+reliefMapped+" walls="+wallRelief+" floor="+floorRelief);\n        Debug.Log("PREMIUM_RELIEF_PASS materials="+upgraded+" mapped="+reliefMapped+" walls="+wallRelief+" floor="+floorRelief);\n        var heroMat=Pbr(')
 replace_once(f,'tr[q++]=i;tr[q++]=i+1;tr[q++]=i+sides+1;tr[q++]=i+1;tr[q++]=i+sides+2;tr[q++]=i+sides+1;',
  'tr[q++]=i;tr[q++]=i+sides+1;tr[q++]=i+1;tr[q++]=i+1;tr[q++]=i+sides+1;tr[q++]=i+sides+2;')
 replace_once(f,'new Vector3(11f,0,8.4f)','new Vector3(14.4f,0,8.4f)')
-# New rounded bag must follow glTFast's X mirror so original labels remain oriented correctly.
 f=R/'unity-city/Assets/Editor/BraxHeroRefinements.cs'
 replace_once(f,'Mathf.Sin(a)*r[j]','-Mathf.Sin(a)*r[j]')
 replace_once(f,'new[]{q,q+1,q+sides+1,q+1,q+sides+2,q+sides+1}',
  'new[]{q,q+sides+1,q+1,q+1,q+sides+1,q+sides+2}')
-# Natural material response only: no self illumination on the whole character.
 f=R/'unity-city/Assets/HeroPremium.shader'
 replace_once(f,'o.Emission=c*(.035+green*.055);o.Alpha=1;','o.Emission=0;o.Alpha=1;')
 (P/'geometry-review.json').write_text(json.dumps({'chainFacesOutward':True,'bagUVHandednessPreserved':True,'originalHeroRigChanged':False,'wholeCharacterEmission':False,'sofaPosition':[14.4,0,8.4]},indent=2))
-print('SOURCE_REFINEMENTS_PREPARED: original ORM, leather colour space, outward faces, original rig/UV/logo retained')
+print('SOURCE_REFINEMENTS_PREPARED: original ORM, leather colour space, outward faces, original rig/UV/logo, stable material IDs and mandatory relief gates')
