@@ -197,6 +197,11 @@ public static class BraxCityRebuild
         // Editor-only baked sun visibility/AO, in generated mesh copies. No
         // global gym light, shared material, animation or door is modified.
         BraxCityLightingOcclusionProxy.Bake(root,original);
+        // The prior release retouched NEW facades only and left the OLD
+        // neighbouring buildings in oversaturated vertex/baked shader mode.
+        // Retune surviving public street legacy geometry with real matte PBR.
+        // Interior NOVA/Nutrition and all imported source files stay intact.
+        BraxCityLegacyFacadeFinish.Apply(original);
         Disable(original,new[]{BraxCityWaterBuild.ReplacedOriginalMesh});
         BraxCityWaterBuild.Apply(root);
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
