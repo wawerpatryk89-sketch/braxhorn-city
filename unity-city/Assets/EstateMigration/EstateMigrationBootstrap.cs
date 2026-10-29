@@ -287,7 +287,7 @@ namespace Braxhorn.EstateMigration
             var bounds = new Bounds(Vector3.zero, Vector3.zero);
             foreach (var renderer in filters)
             {
-                if (!renderer.enabled || renderer is ParticleSystemRenderer) continue;
+                if (!renderer.enabled || !(renderer is MeshRenderer || renderer is SkinnedMeshRenderer)) continue;
                 if (!gotOne) { bounds = renderer.bounds; gotOne = true; }
                 else bounds.Encapsulate(renderer.bounds);
             }
