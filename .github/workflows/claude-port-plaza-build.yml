@@ -216,6 +216,7 @@ jobs:
         cat unity-city/Assets/PlayableGenerated/ClaudeGround/ground.json || echo 'BRAK raportu trawy'
         cat unity-city/Assets/PlayableGenerated/ClaudeGround/trees.json || echo 'BRAK raportu drzew'
         cat unity-city/Assets/PlayableGenerated/ClaudeGround/courts.json || echo 'BRAK raportu boisk'
+        cat unity-city/Assets/PlayableGenerated/ClaudeMetro/metro.json || echo 'BRAK raportu metra'
         cat unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json || echo 'BRAK raportu drzwi'
     - name: Wgraj player do ukrytego wydania (do zdjec i nagrania)
       if: steps.package.outcome == 'success'
@@ -230,6 +231,7 @@ jobs:
         cp unity-city/Assets/PlayableGenerated/ClaudeGround/ground.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeGround/trees.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeGround/courts.json unity-preview/ || true
+        cp unity-city/Assets/PlayableGenerated/ClaudeMetro/metro.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json unity-preview/ || true
         (cd unity-preview && zip -q -r -1 ../player-${GITHUB_SHA::7}.zip .)
         ls -la player-*.zip
