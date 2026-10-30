@@ -23,7 +23,7 @@ public static class BraxClaudeNovaClub
     {
         public string status = "NOT_RUN", error = "";
         public float floorY, ceilingY, wallW, wallE, wallS, wallN;
-        public List<string> placed = new List<string>(), skipped = new List<string>();
+        public List<string> placed = new List<string>(), skipped = new List<string>(), notes = new List<string>();
     }
 
     static Report rep;
@@ -145,24 +145,32 @@ public static class BraxClaudeNovaClub
         float cx = (wallW + wallE) * .5f;
 
         // 1) Konsola DJ przy ścianie północnej, przodem do parkietu.
+        // Sprawdzana bryła = konsola + 0.8 m miejsca dla DJ-a PO STRONIE SALI (wcześniej bryła
+        // wchodziła 0.15 m w ścianę, więc konsola nigdy nie stawała — build 05e1a53).
         var boothSize = new Vector3(2.6f, 1.05f, .9f);
-        Vector3? booth = null;
-        foreach (float dx in new[] { 0f, -3f, 3f, -6f, 6f, -8.5f, 8.5f })
+        Vector3? booth = null; float boothFace = 1f;
+        foreach (float face in new[] { 1f, -1f })            // 1 = ściana północna, -1 = południowa
         {
-            var p = new Vector3(cx + dx, floorY, wallN - .25f - boothSize.z * .5f);
-            if (Free(p, boothSize + new Vector3(0, 0, .8f))) { booth = p; break; }
+            float wallZ = face > 0 ? wallN : wallS;
+            foreach (float dx in new[] { 0f, -3f, 3f, -6f, 6f, -8f, 8f })
+            {
+                var p = new Vector3(cx + dx, floorY, wallZ - face * (.3f + boothSize.z * .5f));
+                if (Free(p - new Vector3(0, 0, face * .4f), boothSize + new Vector3(0, 0, .8f))) { booth = p; boothFace = face; break; }
+            }
+            if (booth.HasValue) break;
         }
         if (booth.HasValue)
         {
             var b = booth.Value;
+            rep.notes.Add("konsola DJ przy ścianie " + (boothFace > 0 ? "północnej" : "południowej") + " x=" + b.x.ToString("0.0"));
             Box("NOVA: konsola DJ korpus", b + Vector3.up * (boothSize.y * .5f), boothSize, granite);
             Box("NOVA: konsola DJ blat", b + Vector3.up * (boothSize.y + .025f), new Vector3(boothSize.x + .1f, .05f, boothSize.z + .08f), steel, false);
-            Model(ND + "dj_mixer.glb", "NOVA: mikser DJ", b + Vector3.up * (boothSize.y + .05f), 180f, width: 1.05f, solid: false);
+            Model(ND + "dj_mixer.glb", "NOVA: mikser DJ", b + Vector3.up * (boothSize.y + .05f), boothFace > 0 ? 180f : 0f, width: 1.05f, solid: false);
             float laserH = Mathf.Clamp(ceilY - (floorY + boothSize.y + .05f) - .1f, .8f, 2.4f);
             Model(ND + "laser_light.glb", "NOVA: laser lewy", b + new Vector3(-boothSize.x * .5f + .15f, boothSize.y + .05f, 0), 0, height: laserH, solid: false);
             Model(ND + "laser_light.glb", "NOVA: laser prawy", b + new Vector3(boothSize.x * .5f - .15f, boothSize.y + .05f, 0), 0, height: laserH, solid: false);
         }
-        else rep.skipped.Add("konsola DJ: brak wolnego miejsca przy ścianie północnej");
+        else rep.skipped.Add("konsola DJ: brak wolnego miejsca przy ścianie północnej i południowej");
 
         // 2) Kula nad środkiem parkietu, zawieszona pod sufitem.
         float danceZ = booth.HasValue ? Mathf.Lerp(booth.Value.z, wallS, .45f) : HallCenter.z;
@@ -180,16 +188,24 @@ public static class BraxClaudeNovaClub
 
         // 3) Bar przy ścianie zachodniej (zapas: wschodnia), blat marmurowy, hokery.
         bool barDone = false;
-        foreach (bool west in new[] { true, false })
+        // Kilka długości i przesunięć wzdłuż ściany (kolumny, listwy, drzwi) zanim uznamy brak miejsca.
+        var tries = new List<(bool west, float L, float dz)>();
+        foreach (bool w in new[] { true, false })
+            foreach (float l in new[] { Mathf.Min(6f, (wallN - wallS) - 3f), 4.5f, 3.4f })
+                foreach (float d in new[] { 0f, -1.5f, 1.5f, -3f, 3f })
+                    tries.Add((w, l, d));
+        foreach (var t in tries)
         {
+            bool west = t.west; float L = t.L;
             float sign = west ? 1 : -1;
             float wall = west ? wallW : wallE;
-            float L = Mathf.Min(6f, (wallN - wallS) - 3f);
             float counterX = wall + sign * (.4f + 1.15f + .35f);
-            var cz = (wallN + wallS) * .5f;
+            var cz = (wallN + wallS) * .5f + t.dz;
+            if (cz - L * .5f < wallS + .6f || cz + L * .5f > wallN - .6f) continue;
             var counter = new Vector3(counterX, floorY, cz);
-            var shelf = new Vector3(wall + sign * .22f, floorY, cz);
+            var shelf = new Vector3(wall + sign * .26f, floorY, cz);
             if (!Free(counter, new Vector3(.7f, 1.1f, L)) || !Free(shelf, new Vector3(.4f, 2.0f, L))) continue;
+            rep.notes.Add("bar przy ścianie " + (west ? "zachodniej" : "wschodniej") + ", długość " + L.ToString("0.0") + " m");
             Box("NOVA: tylna zabudowa baru", shelf + Vector3.up * 1.0f, new Vector3(.38f, 2.0f, L), wood);
             Box("NOVA: półka barowa", shelf + new Vector3(sign * .02f, 1.45f, 0), new Vector3(.42f, .04f, L - .2f), steel, false);
             Box("NOVA: front baru", counter + Vector3.up * .53f, new Vector3(.6f, 1.06f, L), granite);
