@@ -58,5 +58,17 @@ Gałąź robocza: `codex/estate-premium-renovation-20261030`.
 - **Technika:** additive scene/Addressables w docelowej aplikacji, wspólny `BraxGymPlayer`, LOD, GPU instancing, ograniczenia pamięci; pomiar na telefonach, nie tylko w Chromium.
 - **Brama do lasu:** zostawić zablokowaną do osobnego etapu, nie tworzyć przypadkowego połączenia.
 
+## Wariant koncepcyjny rozbudowy R2 (NIE WDROŻONY, do zatwierdzenia)
+W masterze nie ma zatwierdzonej liczby nowych willi ani dokładnych współrzędnych nowych parcel. Poniższe ilości są **propozycją**, nie stanem gry:
+- Dodatkowe **10–14 działek** o różnych rozmiarach, podzielone na 2–3 krótkie ulice mieszkalne z rondem lub placem, bez kopiowania tych samych fasad.
+- Duży park o powierzchni co najmniej **2× obecnej części parkowej** (wymaga pomiaru mapy i kontroli stref walki); naturalne krawędzie, szerokie ścieżki, ławki i wydzielony plac spotkań.
+- Wyodrębnione **2 punkty handlowe** wymagane w masterze: sklep odzieżowy oraz punkt odżywek, z czytelnymi wejściami.
+- Strefa usług publicznych (komisariat/szpital) zachowuje połączenie drogowe i wejścia, bez sztucznych barier.
+- Dodatkowy dojazd techniczny do garaży, logiczne chodniki, zatoki postojowe i bezpieczne dojścia do parku.
+- Rezerwa na przyszłe misje, interakcje Nyxy i walki trzy na trzy, bez uruchamiania logiki w etapie remontu.
+- Nowa granica terenu, brama i połączenie z R1 dopiero po zatwierdzeniu planu, kolizji i wydajności.
+
+**Warunek rozpoczęcia rozbudowy:** użytkownik akceptuje szkic zagospodarowania i dostępne zasoby; remont istniejącego osiedla jest wcześniej odebrany.
+
 ## Odbiór
 Brak zgody na publikację i brak gotowego remontu = **NIEODEBRANE**. Dowód: rzeczywisty build Unity + materiał wideo + PASS/FAIL kolizji, drzwi i oryginalnego Braxa + fizyczny iPhone. Przed wydaniem każdej wersji opisać dokładnie, które elementy są zrobione, a które nadal zablokowane przez brak assetów.
