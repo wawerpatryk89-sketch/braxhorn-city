@@ -1,0 +1,552 @@
+{
+  "schema": "braxhorn-r2-road-layout-v1",
+  "status": "PROPOSED_INFRASTRUCTURE_CONTRACT_NOT_BUILT__UNITY_SURVEY_REQUIRED",
+  "engine": "Unity 6000.0.58f2",
+  "scene": "BraxhornEstate",
+  "repo": "wawerpatryk89-sketch/braxhorn-city",
+  "branch": "codex/estate-r2-roads-expansion-20261030",
+  "baseCommit": "80b4004f078269e59c598ada5e0920406dddc8ec",
+  "authority": [
+    "BRAXHORN_CITY_MASTER_V3_KOMPLETNY.pdf: region 2, mobility, 11 missions",
+    "BRAXHORN_CITY_R2_PLAN_OSIEDLA_MIGRACJA_UNITY.md: R2 area and zoning proposal",
+    "dev/osiedle/layout.js and dev/osiedle/world.js: HISTORICAL coordinate reference only",
+    "UNITY import estate-manifest.json and Unity scene: ACTUAL position authority"
+  ],
+  "scope": "Region R2 only, all existing + new primary roads and sidewalks first; house renovations/new buildings later",
+  "measurements": {
+    "units": "metres",
+    "coordinateSystem": "source-layout x,z only; generated Unity import uses X sign inversion; survey transform in compiled scene before building",
+    "currentSourceBounds": {
+      "minX": -114,
+      "maxX": 114,
+      "minZ": -102,
+      "maxZ": 99,
+      "width": 228,
+      "height": 201,
+      "areaHa": 4.5828
+    },
+    "proposedEnvelope": {
+      "minX": -225,
+      "maxX": 225,
+      "minZ": -175,
+      "maxZ": 175,
+      "width": 450,
+      "height": 350,
+      "areaHa": 15.75
+    },
+    "proposedSizeIsApprovedSurvey": false,
+    "enforceExistingBuildingNoRelocation": true,
+    "existingDoorCollisionPreservation": true,
+    "stageOnlyRoadsAndWalkways": true
+  },
+  "existing": {
+    "anchors": [
+      {
+        "id": "villa",
+        "x": 0,
+        "z": -38,
+        "existing": true
+      },
+      {
+        "id": "contact-house",
+        "x": 30,
+        "z": -32,
+        "existing": true
+      },
+      {
+        "id": "dom-01",
+        "x": -28,
+        "z": 27,
+        "existing": true
+      },
+      {
+        "id": "dom-02",
+        "x": 27,
+        "z": 28,
+        "existing": true
+      },
+      {
+        "id": "dom-03",
+        "x": -29,
+        "z": 0,
+        "existing": true
+      },
+      {
+        "id": "dom-04",
+        "x": 28,
+        "z": 0,
+        "existing": true
+      },
+      {
+        "id": "dom-07",
+        "x": -28,
+        "z": 59,
+        "existing": true
+      },
+      {
+        "id": "dom-08",
+        "x": 28,
+        "z": 59,
+        "existing": true
+      },
+      {
+        "id": "casino",
+        "x": -86,
+        "z": -42,
+        "existing": true
+      },
+      {
+        "id": "club",
+        "x": -86,
+        "z": 14,
+        "existing": true
+      },
+      {
+        "id": "police",
+        "x": 86,
+        "z": -42,
+        "existing": true
+      },
+      {
+        "id": "hospital",
+        "x": 86,
+        "z": 14,
+        "existing": true
+      },
+      {
+        "id": "boxing",
+        "x": -86,
+        "z": 64,
+        "existing": true
+      },
+      {
+        "id": "octagon",
+        "x": 86,
+        "z": 64,
+        "existing": true
+      },
+      {
+        "id": "park",
+        "x": 20,
+        "z": -83,
+        "existing": true
+      },
+      {
+        "id": "court",
+        "x": -28,
+        "z": -83,
+        "existing": true
+      },
+      {
+        "id": "city-portal",
+        "x": 0,
+        "z": 94,
+        "existing": true
+      }
+    ],
+    "observedSourceRoads": [
+      {
+        "id": "SRC-01",
+        "type": "current-main",
+        "polyline": [
+          [
+            0,
+            -24
+          ],
+          [
+            0,
+            98
+          ]
+        ],
+        "approxCarriagewayM": 9,
+        "rule": "KEEP geometry/alignment; refurbish only"
+      },
+      {
+        "id": "SRC-02",
+        "type": "current-cross",
+        "polyline": [
+          [
+            -45.5,
+            -19
+          ],
+          [
+            45.5,
+            -19
+          ]
+        ],
+        "approxCarriagewayM": 8,
+        "rule": "KEEP geometry/alignment; refurbish only"
+      },
+      {
+        "id": "SRC-03",
+        "type": "current-cross",
+        "polyline": [
+          [
+            -45.5,
+            39
+          ],
+          [
+            45.5,
+            39
+          ]
+        ],
+        "approxCarriagewayM": 5,
+        "rule": "KEEP width unless verified safe; refurbish only"
+      },
+      {
+        "id": "SRC-04",
+        "type": "current-side-street",
+        "polyline": [
+          [
+            -43,
+            -16.5
+          ],
+          [
+            -43,
+            36.5
+          ]
+        ],
+        "approxCarriagewayM": 5,
+        "rule": "KEEP existing houses/fences clear"
+      },
+      {
+        "id": "SRC-05",
+        "type": "current-side-street",
+        "polyline": [
+          [
+            43,
+            -16.5
+          ],
+          [
+            43,
+            36.5
+          ]
+        ],
+        "approxCarriagewayM": 5,
+        "rule": "KEEP existing houses/fences clear"
+      }
+    ]
+  },
+  "proposedMotorRoutes": [
+    {
+      "id": "RD-01",
+      "label": "Outer perimeter boulevard / complete ring",
+      "priority": "P0",
+      "polyline": [
+        [
+          -174,
+          -126
+        ],
+        [
+          174,
+          -126
+        ],
+        [
+          174,
+          126
+        ],
+        [
+          -174,
+          126
+        ],
+        [
+          -174,
+          -126
+        ]
+      ],
+      "newConstruction": true,
+      "carriagewayWidthM": 7,
+      "sidewalksLeftRightM": [
+        2.3,
+        2.3
+      ],
+      "plantingStripM": 0.7,
+      "cornerRadiusM": 9,
+      "access": "continuous walking and future road access",
+      "notes": "Round all corners. Retain outside strips for future properties; do not place buildings."
+    },
+    {
+      "id": "RD-02",
+      "label": "Northern transverse artery / existing road extension",
+      "priority": "P0",
+      "polyline": [
+        [
+          -174,
+          -19
+        ],
+        [
+          174,
+          -19
+        ]
+      ],
+      "newConstruction": "outside existing SRC-02 ends",
+      "carriagewayWidthM": 7,
+      "existingSegmentWidthM": 8,
+      "sidewalksLeftRightM": [
+        2.2,
+        2.2
+      ],
+      "notes": "Preserve SRC-02 x=-45.5..45.5. Blend widths in new outer extensions; do not destroy current driveways."
+    },
+    {
+      "id": "RD-03",
+      "label": "Southern transverse artery / existing road extension",
+      "priority": "P0",
+      "polyline": [
+        [
+          -174,
+          39
+        ],
+        [
+          174,
+          39
+        ]
+      ],
+      "newConstruction": "outside existing SRC-03 ends",
+      "carriagewayWidthM": 6.4,
+      "existingSegmentWidthM": 5,
+      "sidewalksLeftRightM": [
+        2.2,
+        2.2
+      ],
+      "notes": "Preserve SRC-03 x=-45.5..45.5 and sport/hospital access; blend outside central build footprints."
+    },
+    {
+      "id": "RD-04-W",
+      "label": "Western service boulevard",
+      "priority": "P1",
+      "polyline": [
+        [
+          -130,
+          -126
+        ],
+        [
+          -130,
+          126
+        ]
+      ],
+      "newConstruction": true,
+      "carriagewayWidthM": 6.4,
+      "sidewalksLeftRightM": [
+        2.2,
+        2.2
+      ],
+      "notes": "Serves existing casino, club and boxing hall via surveyed footpaths; do not touch building faces."
+    },
+    {
+      "id": "RD-04-E",
+      "label": "Eastern service boulevard",
+      "priority": "P1",
+      "polyline": [
+        [
+          130,
+          -126
+        ],
+        [
+          130,
+          126
+        ]
+      ],
+      "newConstruction": true,
+      "carriagewayWidthM": 6.4,
+      "sidewalksLeftRightM": [
+        2.2,
+        2.2
+      ],
+      "notes": "Serves police, hospital and octagon via surveyed footpaths."
+    },
+    {
+      "id": "RD-05",
+      "label": "City gate to perimeter ring",
+      "priority": "P0",
+      "polyline": [
+        [
+          0,
+          98
+        ],
+        [
+          0,
+          126
+        ]
+      ],
+      "newConstruction": "only z>current road end",
+      "carriagewayWidthM": 9,
+      "sidewalksLeftRightM": [
+        2.2,
+        2.2
+      ],
+      "notes": "Respect existing city return interaction near x=0,z=92; maintain usable portal."
+    }
+  ],
+  "pedestrianContracts": [
+    {
+      "id": "PW-01",
+      "label": "North park/court pedestrian edge",
+      "priority": "P0",
+      "suggestedPolyline": [
+        [
+          -48,
+          -108
+        ],
+        [
+          0,
+          -110
+        ],
+        [
+          48,
+          -108
+        ]
+      ],
+      "widthM": 3,
+      "needsRuntimeSurvey": true,
+      "notes": "Keep basketball court clear and avoid existing Verdant Trail trees/rocks; route accessible from north ring."
+    },
+    {
+      "id": "PW-02",
+      "label": "Northern ring to park and court entrances",
+      "priority": "P0",
+      "suggestedPolyline": null,
+      "widthM": 2.5,
+      "needsRuntimeSurvey": true,
+      "notes": "Provide two distinct 2.5m+ accessible paths; place points after real Unity surveying."
+    },
+    {
+      "id": "PW-03",
+      "label": "Crossstreet to villa and contact house",
+      "priority": "P0",
+      "suggestedPolyline": null,
+      "widthM": 2.2,
+      "needsRuntimeSurvey": true,
+      "notes": "Join verified door entry positions; do not pass through existing villa at x≈0,z=-38."
+    },
+    {
+      "id": "PW-04",
+      "label": "Casino club police hospital and sport entrances",
+      "priority": "P0",
+      "suggestedPolyline": null,
+      "widthM": 2.5,
+      "needsRuntimeSurvey": true,
+      "notes": "Separate pedestrian approaches and coherent accessible crossings from RD-02/RD-03/RD-04."
+    },
+    {
+      "id": "PW-05",
+      "label": "All eight houses, garage and plot driveways",
+      "priority": "P0",
+      "suggestedPolyline": null,
+      "widthM": 2,
+      "needsRuntimeSurvey": true,
+      "notes": "Every real front door and garage has a passable link from street; no wall or fence overlap."
+    },
+    {
+      "id": "PW-06",
+      "label": "North school reserve crossing",
+      "priority": "P1",
+      "suggestedPolyline": null,
+      "widthM": 3,
+      "needsRuntimeSurvey": true,
+      "notes": "Build raised safe pedestrian crossing over RD-01 north near future school zone; don't build school itself."
+    },
+    {
+      "id": "PW-07",
+      "label": "Reserved shops and nutrition passage",
+      "priority": "P1",
+      "suggestedPolyline": null,
+      "widthM": 2.5,
+      "needsRuntimeSurvey": true,
+      "notes": "Provide walkable frontages of future retail zone without spawning buildings."
+    },
+    {
+      "id": "PW-08",
+      "label": "Reserved sport 3v3/boss safe area access",
+      "priority": "P1",
+      "suggestedPolyline": null,
+      "widthM": 3,
+      "needsRuntimeSurvey": true,
+      "notes": "Preserve ≥16x18m open pad footprint and six future spawns; this phase makes roads, not arena assets."
+    }
+  ],
+  "reservedLaterDevelopment": [
+    {
+      "id": "R2-Z1",
+      "kind": "residential",
+      "where": "Existing center retained; new parcels along west and east of ring, align to verified roads",
+      "restrictions": "No new homes in road phase"
+    },
+    {
+      "id": "R2-Z2",
+      "kind": "civic",
+      "where": "East: police hospital apothecary and a future civic plaza",
+      "restrictions": "Reserve proper emergency/disabled entrance; not build"
+    },
+    {
+      "id": "R2-Z3",
+      "kind": "vip",
+      "where": "West: casino, club, VIP service/quiet buffer",
+      "restrictions": "Keep separation from houses"
+    },
+    {
+      "id": "R2-Z4",
+      "kind": "sport",
+      "where": "South and south-west/south-east: boxing and octagon with distinct approaches",
+      "restrictions": "Keep 16x18m 3v3 pad open"
+    },
+    {
+      "id": "R2-Z5",
+      "kind": "park-school",
+      "where": "North by existing court and park, reserve school site beyond northern road",
+      "restrictions": "Keep greenery and basketball court untouched"
+    },
+    {
+      "id": "R2-Z6",
+      "kind": "retail",
+      "where": "East/central frontage connected to main sidewalks",
+      "restrictions": "Reserve clothing and nutrition shop locations"
+    }
+  ],
+  "materials": {
+    "road": "/Braxhorn city/Asset Library/Textures/Roads/TwoLaneRoadPatches02/TwoLaneRoadPatches02_MR_4K(1).zip",
+    "optionalHighway": "/Braxhorn city/Asset Library/Textures/Roads/FourLaneRoadClean01/FourLaneRoadClean01_MR_4K.zip",
+    "sidewalk": "/Braxhorn city/Asset Library/Textures/PavingStones151/PavingStones151_2K-JPG.zip",
+    "grass": "/Braxhorn city/Materialy/Roslinnosc/grass_bermuda_01_2k.blend.zip",
+    "notes": "Library files are not guaranteed mounted in Codex/Actions; verify import, provenance, license and content. No synthetic texture substitution."
+  },
+  "implementationRules": [
+    "Create real Unity6 source under isolated estate-only scripts (e.g. BraxEstateR2RoadNetwork.cs) and reuse one Brax controller.",
+    "Survey exact scene mesh/bounds/door transforms in actual build; x sign flips in Unity import; do not blindly paste proposed coordinates.",
+    "Create actual road/sidewalk/curb meshes with correct UVs, mesh colliders and interpolated junction geometry; never rely on decals alone.",
+    "Keep 553 original estate mesh inventory and every existing door/portal, no building movement.",
+    "Only apply surfaces after SHA/licensing/UV verification of source map.",
+    "Build expansion terrain and ground collision up to proposed envelope; do not obstruct buildings and entry triggers.",
+    "No new buildings, cars, NPCs, mission logic or combat in this phase.",
+    "No main/production changes, no cross-workstream file merges.",
+    "Capture 15% actual Unity6 before/after PNG and 20–40 second authentic MP4 with one walk; then finish all roads.",
+    "Final prove no collision/z-fighting/missing UV and real Brax walk between house, civic, park, sport, loop and return portal."
+  ],
+  "qa": {
+    "milestone15": {
+      "status": "REQUIRED",
+      "screenshotsMin": 4,
+      "videoSecondsMin": 20,
+      "videoSecondsMax": 40,
+      "fromUnityRuntime": true,
+      "teleportUsed": false,
+      "proofFields": [
+        "buildSHA",
+        "GitHubActionsRun",
+        "beforeAfter",
+        "PBRAssetsApplied",
+        "unchangedOriginalMeshes",
+        "testResults"
+      ]
+    },
+    "completion": {
+      "phase": "ALL_P0_P1_ROADS_AND_SIDEWALKS",
+      "metadataReport": true,
+      "sourceHashProof": true,
+      "visualQA": true,
+      "WebGLBuild": true,
+      "noUnsafeTeleport": true,
+      "ownerAcceptanceRequired": true
+    }
+  }
+}
