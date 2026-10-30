@@ -172,6 +172,7 @@ public static class BraxCityBuild
         // Estate-only visual pass: verified source textures on original roof meshes.
         BraxEstateR2ApprovedRoofs.Apply();
         BraxEstateR2FacadeFinish.Apply();
+        BraxEstateR2Segment.Apply();
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
     public static void WriteReport(string output,string commit)

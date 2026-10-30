@@ -1,8 +1,8 @@
-name: BRAXHORN R2 renovation Unity6 - source lighting QA and original Brax
+name: BRAXHORN R2 dom04 scoped PBR - Unity6 progress evidence
 on:
   push:
     branches: [codex/estate-premium-renovation-20261030]
-    paths: ['unity-city/**','unity-tools/city/prepare.py','unity-tools/city/package.py','unity-tools/city/check.mjs','.github/workflows/estate-renovation-unity-build.yml']
+    paths: ['unity-city/**','unity-tools/city/**','.github/workflows/estate-renovation-unity-build.yml']
 permissions:
   contents: read
   actions: read
@@ -51,6 +51,7 @@ jobs:
           python3 unity-tools/prepare_playable.py
           python3 unity-tools/premium_prepare.py
           python3 unity-tools/premium_refinements.py
+          python3 unity-tools/city/prepare_segment.py
           python3 unity-tools/city/prepare.py
           python3 unity-tools/city/import_approved_roofs.py
           sudo apt-get update -qq
@@ -114,6 +115,19 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1
           npx playwright install --with-deps chromium
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Record real scoped early checkpoint before and after (not full acceptance)
+        run: node unity-tools/city/record_r2_progress.mjs
+      - name: Save independent early progress photos, live MP4 and source bindings
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: r2-progress-review-${{ github.sha }}
+          path: |
+            r2-progress-review/
+            city-review/r2-segment-sources.json
+            unity-city/city-review/r2-segment-bindings.json
+          retention-days: 30
       - name: Validate SAME BraxGymPlayer and city joystick in ESTATE FIRST scene
         run: node unity-tools/city/check_estate_original_player.mjs
       - name: Save build and browser evidence
