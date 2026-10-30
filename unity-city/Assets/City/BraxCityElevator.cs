@@ -114,7 +114,12 @@ public sealed class BraxCityElevator : MonoBehaviour
     void Update()
     {
         if(!player || !cabin)return;
-        float delta=Mathf.Min(Time.deltaTime,.05f);
+        // A slow WebGL render frame may take much longer than 50 ms. Clamping
+        // the ENTIRE frame to 50 ms made a 1.35 s door animation require at
+        // least 27 frames (over 15 seconds in the measured QA runtime).
+        // Advance by elapsed game time, while substepping only the moving
+        // physical cabin and passenger to keep collider displacements small.
+        float delta=Mathf.Min(Time.deltaTime,.333f);
         switch(phase)
         {
             case Phase.Opening:
@@ -137,27 +142,34 @@ public sealed class BraxCityElevator : MonoBehaviour
                 break;
             case Phase.Moving:
                 float target=destination==0?lowerY:upperY;
-                float before=cabin.position.y;
-                float after=Mathf.MoveTowards(before,target,Speed*delta);
-                // The carriage and CharacterController use exactly the same
-                // measured displacement; camera remains controlled by player.
-                cabin.position+=Vector3.up*(after-before);
-                if(passenger)
+                float remaining=delta;
+                if(passenger)player.MoveInput("0,0");
+                // Keep an actual moving car and CharacterController, NOT a warp.
+                // Several short physical steps preserve travel speed at low FPS.
+                while(remaining>.0001f)
                 {
-                    player.MoveInput("0,0");
-                    player.body.Move(Vector3.up*(after-before));
-                    if(Mathf.Abs(player.transform.position.y-after)>.65f)
+                    float step=Mathf.Min(remaining,.05f);
+                    remaining-=step;
+                    float before=cabin.position.y;
+                    float after=Mathf.MoveTowards(before,target,Speed*step);
+                    cabin.position+=Vector3.up*(after-before);
+                    if(passenger)
                     {
-                        Debug.LogError("CITY_LIFT_SAFETY_STOP player lost the physical moving floor");
-                        enabled=false;
-                        return;
+                        player.body.Move(Vector3.up*(after-before));
+                        if(Mathf.Abs(player.transform.position.y-after)>.65f)
+                        {
+                            Debug.LogError("CITY_LIFT_SAFETY_STOP player lost the physical moving floor");
+                            enabled=false;
+                            return;
+                        }
                     }
-                }
-                if(Mathf.Abs(after-target)<.002f)
-                {
-                    currentFloor=destination;
-                    phase=Phase.Opening;
-                    passenger=false;
+                    if(Mathf.Abs(after-target)<.002f)
+                    {
+                        currentFloor=destination;
+                        phase=Phase.Opening;
+                        passenger=false;
+                        break;
+                    }
                 }
                 break;
         }
