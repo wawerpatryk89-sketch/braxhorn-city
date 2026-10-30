@@ -511,6 +511,24 @@ namespace Braxhorn.EstateMigration
                 var normalBytes = await Fetch(heroKey+"_normal.png");
                 var normal = new Texture2D(2,2,TextureFormat.RGBA32,true,true);
                 bool normalAvailable = normal.LoadImage(normalBytes);
+                if (normalAvailable)
+                {
+                    // The original Three.js normal map is stored as RGB. Unity
+                    // Standard uses the DXT5nm-style alpha/green pair on some
+                    // WebGL shader variants. Preserve RGB for the other variants
+                    // and copy the source red channel to alpha for both paths.
+                    // Never change the original source texture on disk.
+                    var pixels = normal.GetPixels32();
+                    for (int p = 0; p < pixels.Length; p++)
+                    {
+                        var px = pixels[p];
+                        px.a = px.r;
+                        pixels[p] = px;
+                    }
+                    normal.SetPixels32(pixels);
+                    normal.wrapMode = TextureWrapMode.Repeat;
+                    normal.Apply(true, false);
+                }
                 var shader = Shader.Find("Standard");
                 if (shader == null) throw new IOException("Original hero Unity Standard shader missing");
                 foreach (var render in avatar.GetComponentsInChildren<SkinnedMeshRenderer>(true))
