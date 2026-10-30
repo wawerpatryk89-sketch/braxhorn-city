@@ -105,3 +105,23 @@ report['officialCC0Sources'] = [dict(set='white_stucco_02',source='https://polyh
 report['ownerLibraryArchiveHashComparison'] = 'NOT_AVAILABLE_FOR_THESE_TWO_SETS; newly verified official source copies, not private Library transport'
 (ROOT / 'city-review/r2-segment-sources.json').write_text(json.dumps(report, indent=2))
 print('R2_NAMED_OFFICIAL_CC0_SOURCE_COPIES_VERIFIED', len(records))
+
+for key, asset, maps in [
+    ('WhiteBrick','whitewashed_brick',[
+        ('Albedo','diff','jpg','c37b6e9c560b9aad8aadee031696f9b89414f3e619a30e2c9c844f8ac0402ad6'),
+        ('Normal','nor_gl','exr','30f5c306cfefbbab52b5236a0a6f27f1df4e9741997abccf1698e2553ce889d8'),
+        ('MR','rough','jpg','03c17afc9a60cf51999ac2f40b5540a2840d4b8e28f89db7e39d0ce48bb50c30')]),
+    ('RedBrick','red_brick',[
+        ('Albedo','diff','jpg','85b7a5eadd14766126069a6ee0033873cbe96a4a09246e8d21226613028b739c'),
+        ('Normal','nor_gl','exr','df31f41ebf211789d8ff27c92dd866681639ad6ff7ece8100109a94cbc5f0eae'),
+        ('MR','rough','jpg','eb84e52a2d07c7d7c195ccc4556668972fa540d381fcc828e8d485ddf5c52484')]),
+]:
+    for slot, kind, ext, sha in maps:
+        name=f'{asset}_{kind}_4k.{ext}'
+        url=f'https://dl.polyhaven.org/file/ph-assets/Textures/{ext}/4k/{asset}/{name}'
+        save_map(key,slot,download(url,sha,name),ext=='exr')
+    report['officialCC0Sources'].append(dict(set=asset,source='https://polyhaven.com/a/'+asset,license='https://polyhaven.com/license'))
+report['maps']=records
+(ROOT/'city-review/r2-segment-sources.json').write_text(json.dumps(report,indent=2))
+import runpy
+runpy.run_path(str(ROOT/'unity-tools/city/build_dom03_selection.py'),run_name='__main__')

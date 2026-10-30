@@ -13,7 +13,7 @@ const audit={passed:false,stage:'WORK IN PROGRESS — EARLY CHECKPOINT (15% acce
 const bindingPath=['city-review/r2-segment-bindings.json','unity-city/city-review/r2-segment-bindings.json'].find(p=>fs.existsSync(p));
 if(!bindingPath)throw Error('No actual Unity scoped binding report');
 audit.unityBindings=JSON.parse(fs.readFileSync(bindingPath));
-if(audit.unityBindings.bindings.length!==5||audit.unityBindings.fullRenovationApproved!==false)throw Error('Incorrect checkpoint attestation');
+if(audit.unityBindings.bindings.length!==8||audit.unityBindings.realTreeInstances!==2||audit.unityBindings.realShrubInstances!==12||audit.unityBindings.fullRenovationApproved!==false)throw Error('Incorrect partial two-house checkpoint attestation');
 const server=http.createServer((req,res)=>{
  let f=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname);
  if(f!==root&&!f.startsWith(root+path.sep)){res.writeHead(403);res.end();return}
@@ -49,21 +49,28 @@ try{
  await send('ReviewView','-17,.08,0,90,12,8');await page.waitForTimeout(1500);await shot('03-facade-detail');
  await send('ReviewView','-13,.08,1,90,32,7');await page.waitForTimeout(1500);await shot('04-approach-detail');
  await send('ReviewView','-14,.08,8,100,7,12');await page.waitForTimeout(1500);await shot('05-roof-overview');
+ await send('ReviewView','14,.08,6,260,7,12');await page.waitForTimeout(1500);
+ await compare('ProgressBefore');await page.waitForTimeout(1200);await shot('06-dom03-before');
+ await compare('ProgressAfter');await page.waitForTimeout(1200);await shot('07-dom03-after');
+ await send('ReviewView','18,.08,3,270,12,8');await page.waitForTimeout(1500);await shot('08-dom03-detail');
+ await send('ReviewView','0,.08,6,90,7,12');await page.waitForTimeout(1500);await shot('09-garden-overview');
  await page.waitForFunction(()=>window.BraxhornState?.grounded,null,{timeout:30000});
  // From this point only original MoveInput and LookInput. No reset, Travel*, ReviewView.
  const interval=await page.evaluate(()=>({clock:performance.now(),origin:performance.timeOrigin}));
  const began=Date.now();let previous=await state(),traveled=0,grounded=0,frames=0;
+ const initialFrames=previous.frames;
  while(Date.now()-began<30000){
-  const s=await state();const target={x:-14,z:-8};const remain=Math.hypot(target.x-s.x,target.z-s.z);
+  const s=await state();const target={x:0,z:-8};const remain=Math.hypot(target.x-s.x,target.z-s.z);
   const dx=(target.x-s.x)/Math.max(.01,remain), dz=(target.z-s.z)/Math.max(.01,remain);
   const magnitude=remain>1?.43:0;
   await send('MoveInput',[(dx*s.rightX+dz*s.rightZ)*magnitude,(dx*s.forwardX+dz*s.forwardZ)*magnitude].join(','));
-  await send('LookInput','-.6,0');
+  // Continuous physical camera orbit from dom04 to dom03, independent of movement.
+  await send('LookInput','-13.6,0');
   await page.waitForTimeout(500);
   const next=await state(),delta=Math.hypot(next.x-previous.x,next.z-previous.z),dt=next.simulationTime-previous.simulationTime;
   if(next.area!=='estate'||next.build!==sha||next.cityMeshes!==553||dt<0||delta>Math.max(1.3,dt*6.2+.5)||Math.abs(next.y-previous.y)>1.5)throw Error('Unity traversal discontinuity');
   traveled+=delta;frames++;if(next.grounded)grounded++;
-  samples.push({wallMs:Date.now()-began,x:next.x,y:next.y,z:next.z,t:next.simulationTime,animation:next.animation});previous=next;
+  samples.push({wallMs:Date.now()-began,x:next.x,y:next.y,z:next.z,t:next.simulationTime,renderFrame:next.frames,cameraYaw:next.cameraYaw,animation:next.animation});previous=next;
  }
  await send('MoveInput','0,0');
  const end=await page.evaluate(()=>performance.now());
@@ -87,6 +94,9 @@ try{
  const f=JSON.parse(info.stdout).format;if(Number(f.duration)<20||Number(f.duration)>40)throw Error('Invalid checkpoint MP4 length');
  audit.passed=true;audit.durationSeconds=Number(f.duration);audit.groundTraveledMetres=traveled;audit.samples=samples;
  audit.originalPlayer='BraxGymPlayer';audit.meshCount=553;audit.preRollSeconds=trim;
+ audit.stage='WORK IN PROGRESS — TWO HOUSES / FULL RENOVATION NOT ACCEPTED';
+ audit.renderFramesDuringFilm=previous.frames-initialFrames;
+ audit.measuredSoftwareRendererFps=audit.renderFramesDuringFilm/walkDuration;
  fs.rmSync(path.join(out,'raw'),{recursive:true,force:true});fs.unlinkSync(raw);
 }catch(e){audit.error=String(e);process.exitCode=1;try{await page.screenshot({path:path.join(out,'FAIL.png')})}catch{};console.error(e)}
 finally{
