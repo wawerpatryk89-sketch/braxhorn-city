@@ -354,6 +354,8 @@ public static class BraxCitySystemsBuild
         // A 5.7 m wide passage preserves the original vestibule alignment.
         SolidBox("G5 connecting corridor limestone floor",station,new Vector3(77.85f,floor-.12f,51.8f),
             new Vector3(5.7f,.24f,4.2f),stone,.8f);
+        SolidBox("G5 corridor structural roof / public street cover",station,
+            new Vector3(77.85f,-.08f,51.8f),new Vector3(5.7f,.22f,4.2f),stone,1.2f);
         foreach(float x in new[]{75.0f,80.7f})
             SolidBox("G5 corridor finished wall",station,new Vector3(x,-1.66f,51.8f),
                 new Vector3(.2f,3.2f,4.2f),concrete,1);
