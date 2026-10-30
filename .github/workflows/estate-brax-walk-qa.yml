@@ -1,0 +1,60 @@
+name: BRAXHORN Estate - verify ONE original Brax walkthrough on mobile
+on:
+  push:
+    branches:
+      - codex/estate-unity-source-recovery-20261030
+    paths:
+      - "scripts/unity-estate/walkthrough-qa.py"
+      - ".github/workflows/estate-brax-walk-qa.yml"
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  brax-walk-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/unity-estate/walkthrough-qa.py
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: preview/estate-unity6-full-20261030
+          path: preview-source
+          sparse-checkout: |
+            index.html
+      - name: Require tested original Unity6 artifact, not a substitute scene
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh run view 41024359763 -R "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)" = success
+          gh run download 41024359763 -R "$GITHUB_REPOSITORY" \
+            -n estate-originals-recovery-fa744e3fdfb2d73639b41e56ba38b22062cf1c2d \
+            -D "$RUNNER_TEMP/original"
+          dir="$(find "$RUNNER_TEMP/original" -type f -path '*/EstateWebGL/index.html' -printf '%h\n' | head -n1)"
+          test -n "$dir" && test -s "$dir/Build/EstateWebGL.wasm.gz"
+          cp preview-source/index.html "$dir/index.html"
+          grep -q 'SendMessage("BRAXHORN_ESTATE_ORIGINAL_MIGRATION"' "$dir/index.html"
+          grep -q 'beginBraxWalk' "$dir/index.html"
+          echo "ESTATE_WEBGL_ROOT=$dir" >> "$GITHUB_ENV"
+      - name: Install Chromium with WebGL support
+        run: |
+          python3 -m pip install --quiet playwright==1.56.0
+          python3 -m playwright install --with-deps chromium
+      - name: Real Unity WebGL original Brax walk test on iPhone-size emulation
+        env:
+          ESTATE_QA_OUTPUT: ${{ runner.temp }}/brax-walk-qa
+        run: timeout 330s python3 scripts/unity-estate/walkthrough-qa.py
+      - name: Preserve real game screenshot and QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-brax-walk-iphone-emulation-${{ github.sha }}
+          path: ${{ runner.temp }}/brax-walk-qa/
+          retention-days: 14
+          if-no-files-found: warn
