@@ -6,7 +6,7 @@ import {buildCivic} from './civic.js';
 // All architecture is scoped to this level; no edits to city or gym modules.
 export function buildWorld(scene) {
  const group=new T.Group();group.name='osiedle';scene.add(group);
- const collision=[],walkable=[], batches=new Map();let seed=41;
+ const collision=[],walkable=[], batches=new Map(), foliageRequests=[];let seed=41;
  const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
  function texture(kind,color){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.fillStyle=color;g.fillRect(0,0,256,256);
   for(let i=0;i<13000;i++){g.fillStyle=`rgba(${random()>.5?'255,255,255':'0,0,0'},${random()*.035})`;g.fillRect(random()*256,random()*256,kind==='wood'?1:2,kind==='wood'?14:2);}
@@ -29,7 +29,12 @@ export function buildWorld(scene) {
  function mesh(geo,mat,x,y,z){const o=new T.Mesh(geo,mat);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;group.add(o);return o;}
  function sign(text,x,y,z,width=3,rotation=0){const c=document.createElement('canvas');c.width=1024;c.height=192;const g=c.getContext('2d');g.fillStyle='#27332d';g.fillRect(0,0,1024,192);g.fillStyle='#c7d2b9';g.font='600 65px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(text,512,96,960);const tx=new T.CanvasTexture(c);tx.colorSpace=T.SRGBColorSpace;const m=mesh(new T.PlaneGeometry(width,width*192/1024),new T.MeshStandardMaterial({map:tx,roughness:1}),x,y,z);m.rotation.y=rotation;return m;}
  function hedge(x,z,w,d){box(x,.6,z,w,1.2,d,M.leaf);box(x,.1,z,w+.2,.2,d+.2,M.stone);}
- function tree(x,z,h=6){mesh(new T.CylinderGeometry(.14,.24,h,7),M.trunk,x,h/2,z);collision.push({minX:x-.25,maxX:x+.25,minZ:z-.25,maxZ:z+.25,minY:0,maxY:h});for(let i=0;i<3;i++)mesh(new T.IcosahedronGeometry(h*.32,1),i%2?M.green:M.leaf,x+(i-1)*.65,h*.77+(i%2)*.9,z+(i%2)*.7);}
+ function tree(x,z,h=6){
+  // No synthetic cylinder/icosahedron trees. Every requested tree is an
+  // instanced REAL Verdant Trail source mesh, loaded by addVegetation().
+  // Keep trunk collision in one place (vegetation.js) to avoid double barriers.
+  foliageRequests.push({kind:'tree',x,z,height:h,rotation:random()*Math.PI*2});
+ }
  function fence(x,z,w,d){box(x,.12,z,w,.24,d,M.stone);box(x,1.15,z,w,.13,d,M.dark);const along=w>d,n=Math.ceil(Math.max(w,d)/.24);for(let i=0;i<=n;i++)box(along?x-w/2+i*w/n:x,.69,along?z:z-d/2+i*d/n,along?.07:w,1.1,along?d:.07,M.dark,false);collision.push({minX:x-w/2,maxX:x+w/2,minZ:z-d/2,maxZ:z+d/2,minY:0,maxY:1.2});}
  function bench(x,z){box(x,.48,z,2,.14,.55,M.wood);box(x,.92,z-.25,2,.55,.1,M.wood);for(const dx of [-.7,.7])box(x+dx,.24,z,.12,.48,.46,M.dark);}
  // Continuous walkable district and roads, with deliberate physical boundaries.
@@ -123,14 +128,15 @@ export function buildWorld(scene) {
  b(-11.77,1.7,5.7,.08,1.3,1.6,M.dark,false);b(-11.71,1.7,5.7,.025,1.1,1.4,M.cream,false);
  b(-11.68,1.8,5.5,.025,.6,.45,M.green,false);
  for(const [x,z]of [[-10,6],[2,-6]]){
+  // Real source shrubs replace plastic leaf spheres; decorative pots remain.
   mesh(new T.CylinderGeometry(.34,.25,.6,16),M.terra,X+x,.36,Z+z);
-  for(let i=0;i<5;i++){const leaf=mesh(new T.SphereGeometry(.35,8,6),M.leaf,X+x+Math.sin(i*2)*.22,1+i*.12,Z+z+Math.cos(i*2)*.22);leaf.scale.set(.5,1.6,.8);}
+  foliageRequests.push({kind:'shrub',x:X+x,z:Z+z,y:.66,height:.68,rotation:random()*Math.PI*2});
  }
  b(0,.09,8.9,2.1,.035,1.2,M.dark,false);
  for(const x of [-1.32,1.32])b(x,1.32,8,.08,2.64,.38,M.dark,false);
  // Terrace and garden: flat walkable deck, planters, sheltered seating.
  b(0,.03,-12,25,.06,8,M.wood,false);b(-8,.45,-12,4,.7,1.2,M.fabric);b(6,.4,-12,2.3,.16,1.4,M.stone);b(6,.2,-12,.7,.4,.7,M.dark);
- for(const x of [-11,11]){b(x,.5,-14,1.2,1,1.2,M.terra);mesh(new T.IcosahedronGeometry(.85,1),M.leaf,X+x,1.5,Z-14);}
+ for(const x of [-11,11]){b(x,.5,-14,1.2,1,1.2,M.terra);foliageRequests.push({kind:'shrub',x:X+x,z:Z-14,y:1.02,height:.9,rotation:random()*Math.PI*2});}
  hedge(0,-58,31,1);hedge(-16,-45,1,25);hedge(16,-45,1,25);
  // A second genuinely accessible house: contact's home and garden route.
  // Imported houses keep their original geometry; this interior is built separately.
@@ -150,5 +156,5 @@ export function buildWorld(scene) {
  for(const z of [8,29])for(const x of [-8,8]){box(x,2.2,z,.12,4.4,.12,M.dark);box(x,4.4,z,.7,.16,.5,M.dark,false);}
  function flush(){for(const [mat,geos]of batches){const geo=mergeGeometries(geos);const m=new T.Mesh(geo,mat);m.castShadow=m.receiveShadow=true;group.add(m);for(const g of geos)g.dispose();}batches.clear();}
  const buildings=buildCivic({box,mesh,sign,bench,tree,fence,M,walkable,collision});
- flush();return {group,collision,walkable,sign,buildings,materials:M};
+ flush();return {group,collision,walkable,sign,buildings,materials:M,foliageRequests};
 }
