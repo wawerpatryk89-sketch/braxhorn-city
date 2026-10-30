@@ -83,6 +83,22 @@ def main() -> int:
             n += 1
         report["models"][m] = n
         print("MODEL", m, "files", n)
+    # Niebo: to samo co dziś w mieście (kloofendal_48d_partly_cloudy_puresky z biblioteki właściciela),
+    # ale ostre: 4096x2048 zamiast 2048x1024 (wersja tonemapped JPG z Poly Haven).
+    sky_id = "kloofendal_48d_partly_cloudy_puresky"
+    f = files(sky_id)
+    url = f["tonemapped"]["url"]
+    d = ROOT / "sky"
+    d.mkdir(parents=True, exist_ok=True)
+    raw = d / "sky_full.jpg"
+    raw.write_bytes(get(url))
+    from PIL import Image
+    im = Image.open(raw).convert("RGB")
+    im = im.resize((4096, 2048), Image.LANCZOS)
+    im.save(d / "kloofendal_4k.jpg", quality=92)
+    raw.unlink()
+    report["sky"] = {"id": sky_id, "size": [4096, 2048]}
+    print("SKY", sky_id, "4096x2048 OK")
     (ROOT / "polyhaven-receipt.json").write_text(json.dumps(report, indent=1))
     (ROOT / "LICENSE-CC0.txt").write_text(
         "Wszystkie pliki w tym katalogu pochodzą z https://polyhaven.com i są na licencji CC0.\n")
