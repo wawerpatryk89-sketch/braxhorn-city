@@ -88,7 +88,7 @@ public static class BraxClaudeGround
         return new Color(avg.r * tint.r, avg.g * tint.g, avg.b * tint.b);
     }
 
-    static bool LooksLikeGrass(Material m)
+    internal static bool LooksLikeGrass(Material m)
     {
         if (!m) return false;
         string n = (m.name + " " + (m.HasProperty("_MainTex") && m.GetTexture("_MainTex") ? m.GetTexture("_MainTex").name : "")).ToLowerInvariant();

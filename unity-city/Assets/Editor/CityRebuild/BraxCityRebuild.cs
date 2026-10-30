@@ -235,6 +235,7 @@ public static class BraxCityRebuild
         BraxNutritionShopBuild.Apply(world,original,physics,root);
         // Wyposażenie klubu NOVA (tylko testowy build Claude, ENABLE_TEST_BUILD.txt).
         BraxClaudeNovaClub.Apply();
+        BraxClaudeVenues.Apply();
         BraxClaudeGround.Save();
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
             throw new InvalidOperationException("Gym doorway integration boundary changed unexpectedly");
