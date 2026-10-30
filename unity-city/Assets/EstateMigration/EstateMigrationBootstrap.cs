@@ -3,6 +3,8 @@
 // Unity 6000.0.58f2, com.unity.cloud.gltfast 6.20.0.
 using System;
 using System.IO;
+using System.Globalization;
+using System.Runtime.InteropServices;
 using System.IO.Compression;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -96,6 +98,16 @@ namespace Braxhorn.EstateMigration
         string message = "Wczytywanie oryginalnego osiedla...";
         bool ready, missingAssets, braxAvailable;
         bool runPressed;
+        // WebGL bridge consumes the original Braxhorn 3D touch HUD in the HTML template.
+        Vector2 webMove = Vector2.zero;
+        bool webJoyActive, webPlaying, webPaused, webJumpQueued, webActQueued;
+        bool webBlockPressed, heroSwitching, isIsoCamera;
+        float physicalSpeed, animationLockUntil;
+        string currentHero = "brax";
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal")] static extern void BRX_EstateReady();
+        [DllImport("__Internal")] static extern void BRX_HeroLoaded();
+#endif
         float verticalSpeed, yaw, pitch = 0.31f, dist = 5.8f;
         int joystickFinger = -1, lookFinger = -1;
         Vector2 joyCenter, joystickInput;
@@ -248,8 +260,13 @@ namespace Braxhorn.EstateMigration
             message = "Drzewa, krzewy i skały oryginalnej planszy";
             await LoadVegetation();
             ConnectOriginalDoors(procedural);
-            await AddOriginalBrax();
+            await AddOriginalHero("brax");
             ready = true;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            BRX_EstateReady();
+#else
+            webPlaying = true;
+#endif
             message = missingAssets || errors.Count > 0
                 ? "Unity: WGLĄD TECHNICZNY — NIEKOMPLETNA MIGRACJA 1:1"
                 : "Unity: geometria załadowana. Wymaga kontroli 1:1 i testów na telefonie";
@@ -430,69 +447,208 @@ namespace Braxhorn.EstateMigration
             }
         }
 
-        async Task AddOriginalBrax()
+        // A source-faithful hero: exact original rig/animation GLB and original PNG-converted WebP.
+        // Both characters are available in dev/osiedle/main.js and BRAXHORN CITY selection.
+        async Task AddOriginalHero(string heroKey)
         {
-            var body = new GameObject("BRAX_ORIGINAL_PLAYER_NoSubstitute");
+            if (heroKey != "brax" && heroKey != "nyxa")
+                throw new ArgumentException("Unrecognized original player: " + heroKey);
+            var previous = characterRoot;
+            var body = new GameObject(heroKey.ToUpperInvariant()+"_ORIGINAL_PLAYER_NoSubstitute");
             body.transform.SetParent(transform, false);
+            body.SetActive(false);
             body.transform.position = WorldPoint(0,.12f,92);
-            characterRoot = body.transform;
-            character = body.AddComponent<CharacterController>();
-            character.radius = .60f;
-            character.height = 2.25f;
-            character.center = new Vector3(0, 1.125f, 0);
-            character.stepOffset = .35f;
-            character.slopeLimit = 55f;
-            character.skinWidth = .07f;
+            var controller = body.AddComponent<CharacterController>();
+            controller.radius = .60f;
+            controller.height = 2.25f;
+            controller.center = new Vector3(0, 1.125f, 0);
+            controller.stepOffset = .35f;
+            controller.slopeLimit = 55f;
+            controller.skinWidth = .07f;
             try
             {
-                var avatar = await InstantiateOriginal("brax.glb.gz","BRAX_ORIGINAL_RIG_AND_ANIMATIONS",body.transform);
+                var avatar = await InstantiateOriginal(heroKey+".glb.gz",
+                    heroKey.ToUpperInvariant()+"_ORIGINAL_RIG_AND_ANIMATIONS",body.transform);
                 avatar.transform.localPosition = Vector3.zero;
-                avatar.transform.localScale = Vector3.one * .024f; // Existing Fighter.SCALE, no guessing.
-                braxVisual = avatar.transform;
-                braxAnimation = avatar.GetComponentInChildren<Animation>(true);
-                braxAvailable = true;
+                avatar.transform.localScale = Vector3.one * .024f; // dev/src/fighter.js original SCALE.
+                var animation = avatar.GetComponentInChildren<Animation>(true);
+                var colorBytes = await Fetch(heroKey+"_color.png");
+                var color = new Texture2D(2,2,TextureFormat.RGBA32,true,false);
+                if (!color.LoadImage(colorBytes)) throw new IOException("Original hero texture cannot decode");
+                color.wrapMode = TextureWrapMode.Repeat; color.Apply(true);
+                var normalBytes = await Fetch(heroKey+"_normal.png");
+                var normal = new Texture2D(2,2,TextureFormat.RGBA32,true,true);
+                bool normalAvailable = normal.LoadImage(normalBytes);
+                var shader = Shader.Find("Standard");
+                if (shader == null) throw new IOException("Original hero Unity Standard shader missing");
+                foreach (var render in avatar.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    var mats=render.materials;
+                    for (int i=0; i<mats.Length; i++)
+                    {
+                        var mat=new Material(shader);
+                        mat.name=heroKey+"_Original_Source_Material";
+                        mat.mainTexture=color;mat.color=Color.white;
+                        mat.SetFloat("_Metallic",0f);
+                        mat.SetFloat("_Glossiness",.4f);
+                        if(normalAvailable)
+                        {
+                            mat.SetTexture("_BumpMap",normal);
+                            mat.EnableKeyword("_NORMALMAP");
+                        }
+                        mats[i]=mat;
+                    }
+                    render.materials=mats;
+                }
+                characterRoot=body.transform;
+                character=controller;
+                braxVisual=avatar.transform;
+                braxAnimation=animation;
+                braxAvailable=true;
+                currentHero=heroKey;
+                if(previous!=null) Destroy(previous.gameObject);
+                body.SetActive(true);
+                if(animation!=null && animation.GetClip("Idle")!=null)
+                    animation.CrossFade("Idle",.15f);
+                else
+                {
+                    // Never claim that an original animation played unless it really exists.
+                    Debug.LogWarning("SOURCE ANIMATION BLOCKED: "+heroKey+
+                        " - glTFast LegacyAnimation/Idle not present. Movement will work, clip QA fails.");
+                }
+                Debug.Log("[Estate] Original "+heroKey+" source model and WebP textures loaded.");
+            }
+            catch(Exception error)
+            {
+                Destroy(body);
+                errors.Add("Original hero "+heroKey+" loading failed: "+error.Message);
+                Debug.LogError(error);
+                if(previous==null)throw;
+                throw;
+            }
+        }
+
+        // WebGL's HUD is based on the real dev/src/template.html.
+        // Messages are received only by the isolated estate controller.
+        static float ParseInput(string value)
+        {
+            if(!float.TryParse(value,NumberStyles.Float,CultureInfo.InvariantCulture,out var v))
+                return 0f;
+            return float.IsFinite(v)?v:0f;
+        }
+
+        public void OnWebJoystick(string payload)
+        {
+            var p=(payload??"").Split(',');
+            if(p.Length!=3)return;
+            webMove=Vector2.ClampMagnitude(new Vector2(ParseInput(p[0]),ParseInput(p[1])),1);
+            webJoyActive=p[2]=="1";
+            if(!webJoyActive)webMove=Vector2.zero;
+        }
+
+        public void OnWebLook(string payload)
+        {
+            var p=(payload??"").Split(',');
+            if(p.Length!=2||webPaused||!webPlaying)return;
+            // Original source dev/osiedle/main.js: yaw-=dx*.006 rad; pitch+=dy*.004 rad.
+            yaw -= ParseInput(p[0])*.006f*Mathf.Rad2Deg;
+            pitch=Mathf.Clamp(pitch+ParseInput(p[1])*.004f,.05f,1.2f);
+        }
+
+        void PlayOriginalAction(string action)
+        {
+            if(braxAnimation==null)
+            {
+                Debug.LogWarning("No source Animation component for "+currentHero+" action "+action);
+                return;
+            }
+            string clip=null;
+            switch(action)
+            {
+                case "punch": clip="Jab Cross (1)"; break;
+                case "kick": clip="Mma Kick (1)"; break;
+                case "special": clip=currentHero=="nyxa"?"Martelo Do Chau":"Illegal Knee"; break;
+                case "dodge": clip="Dodging"; break;
+                case "hold:block:1": clip="Center Block"; break;
+            }
+            if(clip==null)return;
+            var original=braxAnimation.GetClip(clip);
+            if(original==null)
+            {
+                Debug.LogWarning("Original animation clip '"+clip+"' absent from runtime import.");
+                return;
+            }
+            braxAnimation.CrossFade(clip,.12f);
+            animationLockUntil=Time.time+Mathf.Min(3f,original.length+.06f);
+        }
+
+        public async void OnWebAction(string command)
+        {
+            if(!ready||string.IsNullOrWhiteSpace(command))return;
+            if(command.StartsWith("hero:"))
+            {
+                if(heroSwitching)return;
+                var next=command.Substring(5);
+                if(next!="brax"&&next!="nyxa")return;
+                heroSwitching=true;
                 try
                 {
-                    var png = await Fetch("brax_color.png");
-                    var tex = new Texture2D(2,2,TextureFormat.RGBA32,true,false);
-                    if (!tex.LoadImage(png)) throw new IOException("Color PNG decode");
-                    tex.wrapMode = TextureWrapMode.Repeat; tex.Apply(true);
-                    var normalBytes = await Fetch("brax_normal.png");
-                    var normal = new Texture2D(2,2,TextureFormat.RGBA32,true,true);
-                    bool hasNormal = normal.LoadImage(normalBytes);
-                    foreach (var render in avatar.GetComponentsInChildren<SkinnedMeshRenderer>(true))
-                    {
-                        var originals = render.materials;
-                        for (int i = 0; i < originals.Length; i++)
-                        {
-                            var shader = Shader.Find("Standard");
-                            if (shader == null) throw new IOException("Unity Standard shader absent");
-                            var mat = new Material(shader);
-                            mat.name = "BraxOriginal_ColorMatching_ThreeSource";
-                            mat.mainTexture = tex;
-                            mat.color = Color.white;
-                            mat.SetFloat("_Metallic", 0f);
-                            mat.SetFloat("_Glossiness", .4f);
-                            if (hasNormal)
-                            {
-                                mat.SetTexture("_BumpMap", normal);
-                                mat.EnableKeyword("_NORMALMAP");
-                            }
-                            originals[i] = mat;
-                        }
-                        render.materials = originals;
-                    }
+                    if(next!=currentHero)await AddOriginalHero(next);
+                    webPlaying=true;webPaused=false;
+                    physicalSpeed=0;
+#if UNITY_WEBGL && !UNITY_EDITOR
+                    BRX_HeroLoaded();
+#endif
                 }
-                catch (Exception e)
-                {
-                    braxAvailable = false;
-                    errors.Add("Original Brax texture missing/invalid: " + e.Message);
-                }
+                catch(Exception e){Debug.LogError("Hero select failed: "+e);}
+                finally {heroSwitching=false;}
+                return;
             }
-            catch (Exception e)
+            if(command=="pause"){webPaused=true;webMove=Vector2.zero;webJoyActive=false;physicalSpeed=0;return;}
+            if(command=="resume"){webPaused=false;return;}
+            if(!webPlaying||webPaused)return;
+            switch(command)
             {
-                braxAvailable = false; // No substitute object used for the player's visual.
-                errors.Add("Original Brax model missing: " + e.Message);
+                case "jump": webJumpQueued=true;PlayOriginalAction("jump");return;
+                case "act": webActQueued=true;return;
+                case "punch":case "kick":case "special":case "dodge":PlayOriginalAction(command);return;
+                case "hold:block:1":webBlockPressed=true;PlayOriginalAction(command);return;
+                case "hold:block:0":webBlockPressed=false;return;
+                case "cam":isIsoCamera=!isIsoCamera;return;
+                case "throw":Debug.LogWarning("Throw requires a real opponent and original two-body throw; not present in isolated estate preview.");return;
+            }
+            if(command.StartsWith("zoom:"))
+            {
+                dist=Mathf.Clamp(dist*(1+ParseInput(command.Substring(5))),3f,10f);
+                return;
+            }
+            if(command.StartsWith("goto:"))
+            {
+                float x=0,z=92;
+                switch(command.Substring(5))
+                {
+                    case "spawn":x=0;z=52;break;
+                    case "park":x=20;z=-83;break;
+                    case "court":x=-28;z=-72;break;
+                    case "villa":x=0;z=-24;break;
+                    case "terrace":x=0;z=-51;break;
+                    case "garages":x=-24;z=-25;break;
+                    case "contact":x=30;z=-28;break;
+                    case "casino":x=-86;z=-23;break;
+                    case "club":x=-86;z=33;break;
+                    case "police":x=86;z=-23;break;
+                    case "hospital":x=86;z=33;break;
+                    case "boxing":x=-86;z=83;break;
+                    case "arena":x=86;z=83;break;
+                    default:return;
+                }
+                if(characterRoot!=null)
+                {
+                    character.enabled=false;
+                    characterRoot.position=WorldPoint(x,.12f,z);
+                    character.enabled=true;
+                    physicalSpeed=0;
+                }
             }
         }
 
@@ -553,53 +709,76 @@ namespace Braxhorn.EstateMigration
 
         void Update()
         {
-            if (!ready || character == null) return;
-            Vector2 input = Vector2.zero;
-            bool interaction = false, jump = false;
-#if ENABLE_LEGACY_INPUT_MANAGER
-            input = new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical"));
-            if (Input.GetKeyDown(KeyCode.E)) interaction = true;
-            if (Input.GetKeyDown(KeyCode.Space)) jump = true;
-            bool running = Input.GetKey(KeyCode.LeftShift) || runPressed;
-            if (Input.GetMouseButton(1))
-            {
-                yaw += Input.GetAxis("Mouse X") * 2.5f;
-                pitch = Mathf.Clamp(pitch - Input.GetAxis("Mouse Y") * .6f,.05f,1.15f);
-            }
-            if (Input.GetKeyDown(KeyCode.Tab)) runPressed = !runPressed;
-#else
-            bool running = runPressed;
+            if(!ready||character==null||heroSwitching)return;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            if(!webPlaying||webPaused)return;
 #endif
-            ProcessTouch(ref input, ref interaction, ref jump);
-            if (interaction) ToggleNearestDoor();
+            Vector2 input=Vector2.zero;
+            bool interaction=false,jump=false;
+            bool running=true;
+#if ENABLE_LEGACY_INPUT_MANAGER
+            input=new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical"));
+            running=!Input.GetKey(KeyCode.LeftShift); // original shift toggles walking.
+            if(Input.GetKeyDown(KeyCode.O))interaction=true;
+            if(Input.GetKeyDown(KeyCode.Space))jump=true;
+            if(Input.GetMouseButton(1))
+            {
+                yaw-=Input.GetAxis("Mouse X")*2.5f;
+                pitch=Mathf.Clamp(pitch+Input.GetAxis("Mouse Y")*.006f,.05f,1.2f);
+            }
+            if(Input.GetKeyDown(KeyCode.J))PlayOriginalAction("punch");
+            if(Input.GetKeyDown(KeyCode.K))PlayOriginalAction("kick");
+            if(Input.GetKeyDown(KeyCode.I))PlayOriginalAction("special");
+            if(Input.GetKeyDown(KeyCode.X))PlayOriginalAction("dodge");
+#endif
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // Exact original floating joystick is managed by DOM pointer events.
+            if(webJoyActive)
+            {
+                input=webMove;
+                running=input.magnitude>.62f;
+            }
+            jump |= webJumpQueued;
+            interaction |= webActQueued;
+            webJumpQueued=webActQueued=false;
+#else
+            ProcessTouch(ref input,ref interaction,ref jump);
+#endif
+            if(interaction)ToggleNearestDoor();
             UpdateDoors(Time.deltaTime);
-            input = Vector2.ClampMagnitude(input,1);
-            Vector3 camForward = Vector3.ProjectOnPlane(playerCamera.transform.forward,Vector3.up).normalized;
-            if (camForward.sqrMagnitude < .01f) camForward = Vector3.back;
-            Vector3 camRight = Vector3.Cross(Vector3.up,camForward).normalized * -1f;
-            // Unity right is always positive screen right.
-            camRight = playerCamera.transform.right;
-            camRight.y = 0; camRight.Normalize();
-            var velocity = (camForward * input.y + camRight * input.x) * (running ? runningSpeed : walkingSpeed);
-            if (character.isGrounded)
+            input=Vector2.ClampMagnitude(input,1f);
+            float mag=input.magnitude;
+            var camForward=Vector3.ProjectOnPlane(playerCamera.transform.forward,Vector3.up).normalized;
+            if(camForward.sqrMagnitude<.01f)camForward=Vector3.forward;
+            var camRight=Vector3.ProjectOnPlane(playerCamera.transform.right,Vector3.up).normalized;
+            float rawSpeed=running?(mag>.62f?runningSpeed:walkingSpeed*1.1f):
+                          walkingSpeed*Mathf.Min(1f,.35f+mag);
+            var targetSpeed=mag>.08f?rawSpeed:0f;
+            physicalSpeed=Mathf.MoveTowards(physicalSpeed,targetSpeed,
+                (targetSpeed>physicalSpeed?12f:16f)*Time.deltaTime);
+            var dir=camForward*input.y+camRight*input.x;
+            if(dir.sqrMagnitude>.001f)dir.Normalize();
+            var velocity=dir*physicalSpeed;
+            if(character.isGrounded)
             {
-                if (verticalSpeed < 0) verticalSpeed = -1.5f;
-                if (jump) verticalSpeed = 6.3f;
+                if(verticalSpeed<0)verticalSpeed=-1.5f;
+                if(jump)
+                {
+                    verticalSpeed=6.3f;
+                    PlayOriginalAction("jump");
+                }
             }
-            verticalSpeed -= 18f * Time.deltaTime;
-            var displacement = velocity + Vector3.up * verticalSpeed;
-            character.Move(displacement * Time.deltaTime);
-            if (velocity.sqrMagnitude > .01f)
+            verticalSpeed-=18f*Time.deltaTime;
+            character.Move((velocity+Vector3.up*verticalSpeed)*Time.deltaTime);
+            if(velocity.sqrMagnitude>.01f)
+                characterRoot.rotation=Quaternion.Slerp(characterRoot.rotation,
+                    Quaternion.LookRotation(velocity,Vector3.up),Time.deltaTime*10f);
+            // Real original GLB clips, never artificial sine-wave animations.
+            if(braxAnimation!=null&&Time.time>=animationLockUntil)
             {
-                characterRoot.rotation = Quaternion.Slerp(characterRoot.rotation,
-                    Quaternion.LookRotation(velocity,Vector3.up),Time.deltaTime*10);
-            }
-            // Play only original embedded animation clips (no generic procedurally animated walk).
-            if (braxAnimation != null)
-            {
-                string clip = velocity.sqrMagnitude < .01f ? "Idle" : running ? "Running" : "Walking";
-                if (braxAnimation.GetClip(clip)!=null && !braxAnimation.IsPlaying(clip))
-                    braxAnimation.CrossFade(clip,.16f);
+                var clip=physicalSpeed<.1f?"Idle":physicalSpeed>3f?"Running":"Walking";
+                if(braxAnimation.GetClip(clip)!=null&&!braxAnimation.IsPlaying(clip))
+                    braxAnimation.CrossFade(clip,.15f);
             }
         }
 
@@ -660,7 +839,7 @@ namespace Braxhorn.EstateMigration
             Vector3 target = characterRoot ? characterRoot.position+Vector3.up*1.55f : Vector3.zero;
             float a = yaw * Mathf.Deg2Rad;
             var offset = new Vector3(Mathf.Sin(a)*Mathf.Cos(pitch),Mathf.Sin(pitch),
-                                     Mathf.Cos(a)*Mathf.Cos(pitch))*dist;
+                                     -Mathf.Cos(a)*Mathf.Cos(pitch))*(isIsoCamera?17f:dist);
             var desired = target+offset;
             var dir = desired-target;
             if (Physics.SphereCast(target,.22f,dir.normalized,out var hit,
@@ -673,6 +852,10 @@ namespace Braxhorn.EstateMigration
 
         void OnGUI()
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // The real BRAXHORN HUD is in the WebGL template, not temporary IMGUI boxes.
+            return;
+#endif
             var w = Screen.width; var h = Screen.height;
             GUI.skin.box.alignment = TextAnchor.MiddleCenter;
             var top = new Rect(12,12,Mathf.Min(675,w-24),60);
