@@ -53,6 +53,20 @@ try{
   const s=await point(id);await page.screenshot({path:path.join(out,file+'.png')});
   check('Accessible real world anchor '+id,s.ready&&s.grounded&&s.area==='city',{x:s.x,y:s.y,z:s.z,context:s.context});
  }
+ // Tower must be a real moving cabin, not a teleport to a screenshot.
+ const lower=await point('R1_ELEVATOR_0');
+ await send('Command','action');
+ await page.waitForFunction(()=>window.BraxhornState?.context?.includes('WJEDŹ NA DACH'),null,{timeout:15000});
+ await send('Command','action');
+ await page.waitForFunction(y=>window.BraxhornState?.y>y+15,lower.y,{timeout:45000});
+ const upper=await get();
+ check('Tower passenger rides physical elevator upward',upper.y>lower.y+15,{from:lower.y,to:upper.y});
+ await page.screenshot({path:path.join(out,'tower-real-elevator-arrival.png')});
+ await page.waitForFunction(()=>window.BraxhornState?.context?.includes('ZJEDŹ NA ULICĘ'),null,{timeout:15000});
+ await send('Command','action');
+ await page.waitForFunction(y=>window.BraxhornState?.y<y-15,upper.y,{timeout:45000});
+ const lowerAgain=await get();
+ check('Tower passenger returns down in same physical cabin',lowerAgain.y<upper.y-15,{from:upper.y,to:lowerAgain.y});
  // Physical metro floor is below grade, with a real platform collider.
  await send('ReviewView','77.85,-3.17,63,180,15,4.2');
  await page.waitForFunction(()=>window.BraxhornState?.grounded&&Math.abs(window.BraxhornState?.z-63)<.5,null,{timeout:90000});
