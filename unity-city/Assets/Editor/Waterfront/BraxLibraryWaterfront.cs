@@ -59,6 +59,7 @@ public static class BraxLibraryWaterfront
         Model(root,"jetski_collection.glb","Jet ski blue",new Vector3(126,WaterY-.2f,110),3.2f,0,false,"material_gameasset.001",false,placed);
         Model(root,"jetski_collection.glb","Jet ski yellow",new Vector3(135,WaterY-.2f,110),3.2f,-25,false,"material_gameasset.003",false,placed);
         Model(root,"lifeguard_tower.glb","Real beach lifeguard tower",new Vector3(99,-.21f,140),9,180,true,null,true,placed);
+        BraxWaterfrontPbrLighting.Apply(root);
         var review=new Review{placed=placed.ToArray()};
         File.WriteAllText(Generated+"/waterfront-qa.json",JsonUtility.ToJson(review,true));
         AssetDatabase.ImportAsset(Generated+"/waterfront-qa.json");
@@ -74,10 +75,10 @@ public static class BraxLibraryWaterfront
     }
     static void Beach(Transform root)
     {
-        var dry=BraxCityMaterials.Textured("Original 4K coast sand / Unity 2K preview",
-            Tex("coast_sand_02_diff_2k.jpg"),Tex("coast_sand_02_normal_2k.png"),Tex("coast_sand_02_arm_2k.png"));
-        var wet=BraxCityMaterials.Textured("Original 4K damp sand / Unity 2K preview",
-            Tex("damp_sand_diff_2k.jpg"),Tex("damp_sand_normal_2k.png"),Tex("damp_sand_arm_2k.png"));
+        var dry=BraxWaterfrontPbrLighting.SandMaterial("CoastSand",
+            "coast_sand_02_diff_2k.jpg","coast_sand_02_normal_2k.png","coast_sand_02_arm_2k.png");
+        var wet=BraxWaterfrontPbrLighting.SandMaterial("DampSand",
+            "damp_sand_diff_2k.jpg","damp_sand_normal_2k.png","damp_sand_arm_2k.png");
         var height=Tex("coast_sand_02_disp_2k.png");
         var imp=(TextureImporter)AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(height));
         if(!imp.isReadable){imp.isReadable=true;imp.sRGBTexture=false;imp.SaveAndReimport();height=Tex("coast_sand_02_disp_2k.png");}
