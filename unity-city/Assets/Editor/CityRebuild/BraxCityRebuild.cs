@@ -223,6 +223,7 @@ public static class BraxCityRebuild
         BraxCityLegacyFacadeFinish.Apply(original);
         Disable(original,new[]{BraxCityWaterBuild.ReplacedOriginalMesh});
         BraxCityWaterBuild.Apply(root);
+        BraxNutritionShopBuild.Apply(world,original,physics,root);
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
             throw new InvalidOperationException("Gym doorway integration boundary changed unexpectedly");
         var renderers=root.GetComponentsInChildren<MeshRenderer>(true).Where(r=>r.enabled&&r.gameObject.activeInHierarchy).ToArray();

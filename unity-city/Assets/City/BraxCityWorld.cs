@@ -16,6 +16,7 @@ public sealed class BraxCityWorld : MonoBehaviour
     public BraxCityPoint[] points=Array.Empty<BraxCityPoint>();
     public BraxCityDoor[] doors=Array.Empty<BraxCityDoor>();
     public BraxCityElevator elevator;
+    public BraxNutritionCounter nutritionCounter;
     // The original quay showcase lift remains separate and unchanged.
     // Eight further on-street tower lifts register independently so every
     // high-rise has its own door/cabin/roof and there is no "teleport" fake.
@@ -49,6 +50,7 @@ public sealed class BraxCityWorld : MonoBehaviour
                 var liftContext=elevator.Context;
                 if(!string.IsNullOrEmpty(liftContext))return liftContext;
             }
+            if(nutritionCounter&&!string.IsNullOrEmpty(nutritionCounter.Context))return nutritionCounter.Context;
             if(nearby)return (nearby.IsOpen?"ZAMKNIJ DRZWI · ":"OTWÓRZ DRZWI · ")+nearby.label;
             return "";
         }
@@ -79,6 +81,7 @@ public sealed class BraxCityWorld : MonoBehaviour
         foreach(var lift in additionalTowerElevators)
             if(lift&&lift.TryInteract(p))return true;
         if(elevator&&elevator.TryInteract(p))return true;
+        if(nutritionCounter&&nutritionCounter.TryInteract())return true;
         if(nearby){nearby.Toggle(player.transform.position);return true;}
         return false;
     }

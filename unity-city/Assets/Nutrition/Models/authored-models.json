@@ -1,0 +1,20 @@
+{
+  "kind": "Original owner-authorized BRAXHORN retail asset kit",
+  "blender": "4.3.2",
+  "metres": true,
+  "parts": [
+    "WheyTub",
+    "CreatineJar",
+    "Shaker",
+    "ShelvingBay",
+    "Counter",
+    "DisplayIsland",
+    "LinearPendant",
+    "FloorTile"
+  ],
+  "unityVisualAcceptance": false,
+  "glbSha256": "46ab54d2f64cd4b437df7903b4374308eb2f01e7e3da759eb98861079ef84678",
+  "glbBytes": 1754248,
+  "sourceScript": "unity-tools/nutrition/create_models.py",
+  "previewIsUnityGameplay": false
+}

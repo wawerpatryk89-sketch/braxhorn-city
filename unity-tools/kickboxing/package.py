@@ -10,6 +10,7 @@ import os
 import pathlib
 import re
 import shutil
+import sys
 import zlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -28,7 +29,23 @@ def digest(path):
     return h.hexdigest()
 
 
+def validate_template():
+    # Fail before the expensive Unity build, not after it has succeeded.
+    for name in ['index.html', 'city-transport.js', 'release.json']:
+        if not (PUBLISHED / name).is_file():
+            raise RuntimeError('Missing real Unity mobile shell: ' + name)
+    transport = (PUBLISHED / 'city-transport.js').read_text()
+    html = (PUBLISHED / 'index.html').read_text()
+    previous = json.loads((PUBLISHED / 'release.json').read_text())['sourceCommit'][:12]
+    if "const revision = 'ios-stream-01'" not in transport or 'DecompressionStream' not in transport:
+        raise RuntimeError('Expected preserved native iOS Unity transport is missing.')
+    if previous not in html or 'BraxSend' not in html:
+        raise RuntimeError('Unity mobile entry and template release are inconsistent.')
+    print('UNITY_MOBILE_SHELL_TEMPLATE_VALID', previous)
+
+
 def main():
+    validate_template()
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(SOURCE, OUT)
@@ -120,6 +137,9 @@ def main():
         'kickboxing-native-textures.json': 'unity-city/Assets/Kickboxing/Models/native-texture-preparation.json',
     }.items():
         shutil.copyfile(ROOT / source, OUT / name)
+    nutrition_receipt = ROOT / 'unity-city/Assets/PlayableGenerated/Nutrition/shop-receipt.json'
+    if nutrition_receipt.is_file():
+        shutil.copyfile(nutrition_receipt, OUT / 'nutrition-shop.json')
     (OUT / 'robots.txt').write_text('User-agent: *\nDisallow: /\n')
     (OUT / 'library-credits.txt').write_text(
         'BRAXHORN marks, Brax, existing city and original animations: project owner.\n'
@@ -132,8 +152,11 @@ def main():
         'Boxing gloves and bag; Compact WC; Basin pedestal sink cabinet: Innerscene, CC0.\n'
         'Reviewed bag derivative: original chain mesh and normal map, reinforced leather body, seams, straps, hardware and original BRAXHORN branding.\n'
         'Powered by Poly Haven. Full source and license URLs: kickboxing-assets.json.\n')
+    if nutrition_receipt.is_file():
+        with (OUT / 'library-credits.txt').open('a') as credits:
+            credits.write('BRAXHORN Nutrition retail models, labels and material maps: original owner-authorized project artwork; source in unity-tools/nutrition and asset-library/sources/nutrition.\n')
     files = {p.relative_to(OUT).as_posix(): digest(p) for p in OUT.rglob('*') if p.is_file()}
-    release = {'scope': 'isolated-kickboxing-room-and-annex-test', 'sourceCommit': COMMIT,
+    release = {'scope': 'isolated-gym-city-renovation-test' if nutrition_receipt.is_file() else 'isolated-kickboxing-room-and-annex-test', 'sourceCommit': COMMIT,
                'productionBase': '26e5ef339b09df6c1077e9968200660ec89cdacf',
                'unitySourceBase': 'ba678928b2dcb2dff9e38bdb5306e090e76360cf',
                'unityVersion': '6000.0.58f2', 'renderPipeline': 'Built-in',
@@ -142,6 +165,7 @@ def main():
                'muralArtworkApproved': True, 'muralArtworkInstalled': True,
                'muralSourceSha256': 'e714741664dbedddc379a97a87f7d8757856c73438eeb34af10df058846628e8',
                'muralOriginalApprovedPngSha256': 'c84fbc33ea871834a403a80169f09fa0db562254c0d2f082e655cbf4dafc73ef',
+               'nutritionInstalled': nutrition_receipt.is_file(), 'nutritionOwnerAccepted': False,
                'transport': manifest,
                'loadingFix': {'revision': 'ios-stream-01', 'nativeStreamingGzip': True,
                               'maxInputChunkBytes': 65536, 'algorithmPreserved': True,
@@ -152,4 +176,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if sys.argv[1:] == ['--check-template']:
+        validate_template()
+    elif sys.argv[1:]:
+        raise SystemExit('Usage: package.py [--check-template]')
+    else:
+        main()

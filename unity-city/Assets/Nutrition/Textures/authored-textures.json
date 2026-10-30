@@ -1,0 +1,16 @@
+{
+  "authoring": "Original procedural BRAXHORN artwork, owner-authorized 2026-10-30",
+  "fonts": "DejaVu Sans / DejaVu Sans Condensed, Bitstream Vera + DejaVu license; font software not redistributed",
+  "fontSha256": "21f02ebcea75529d3ed9d26e089cd1b9c59a4b784119ba3a96e9bc83cf755ec7",
+  "sourcesPreserved": true,
+  "unityVisualAcceptance": false,
+  "files": {
+    "BraxhornProductAtlas.png": "5605fe58292d82a1da4942f0587bdcb00b69f97b2b138c72e7b8dc11917e95b0",
+    "LimestoneARM.png": "1715456214927f5ea7c78aeb93e4f435670095193b43294cc9335f818a7ca225",
+    "LimestoneColour.jpg": "a92d621f575a5162374f26d32e1f85d0cf3165204576e403795b3e1080ab5087",
+    "LimestoneNormal.png": "f8d09f87539da443d596b8bc00df47b787fee8e57b6cca917f2c4b4004d8a50c",
+    "WalnutARM.png": "7804a79ce2e98597fa6295bdb6b021205fe4f9489f99792347a3c3141905eea6",
+    "WalnutColour.jpg": "7479a18b1bac192458f692e7c542dee6e39b3d4ef61527910d6b483a9a293640",
+    "WalnutNormal.png": "5f49ada2956ca196d201143ae1fdbd3a72b80e663ae2051b601f9bab24cfae7c"
+  }
+}

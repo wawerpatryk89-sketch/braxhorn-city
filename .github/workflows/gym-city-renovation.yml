@@ -67,7 +67,9 @@ jobs:
         persist-credentials: false
         lfs: false
     - name: Verify project WebGL bridge providers before the expensive Unity build
-      run: python3 unity-tools/check_webgl_bridges.py
+      run: |
+        python3 unity-tools/check_webgl_bridges.py
+        python3 unity-tools/kickboxing/package.py --check-template
     - name: Receive durable SHA-verified original Unity imports
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:
@@ -95,6 +97,8 @@ jobs:
         python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6 opencv-python-headless==4.12.0.88
 
         python3 -m compileall -q unity-tools
+
+        python3 unity-tools/nutrition/audit_assets.py
 
         node --check unity-tools/kickboxing/check.mjs
 
@@ -158,8 +162,10 @@ jobs:
         versioning: None
         allowDirtyBuild: true
     - name: Package separate test player with the current iOS streaming loader
+      id: package
       run: python3 unity-tools/kickboxing/package.py
     - name: Prepare real browser execution
+      id: browser
       run: 'npm install --no-save --ignore-scripts playwright@1.56.1
 
         npx playwright install --with-deps chromium
@@ -167,7 +173,11 @@ jobs:
         '
     - name: Verify actual NOVA music output, club-only playback, pause, mute and scene cleanup
       run: node unity-tools/nova-audio/check.mjs
+    - name: Verify the complete Nutrition shop, real energy refill and district persistence
+      if: always() && !cancelled() && steps.package.outcome == 'success' && steps.browser.outcome == 'success'
+      run: node unity-tools/nutrition/check.mjs
     - name: Exercise the actual Unity room, training, mirrors, backrooms and city return
+      if: always() && !cancelled() && steps.package.outcome == 'success' && steps.browser.outcome == 'success'
       env:
         QA_OUT: kickboxing-review
         PLAYER_ROOT: unity-preview
@@ -198,6 +208,12 @@ jobs:
 
 
           nova-audio-review/
+
+          nutrition-review/
+
+          nutrition-asset-review/source-audit.json
+
+          unity-city/Assets/PlayableGenerated/Nutrition/shop-receipt.json
 
           unity-city/Assets/StreamingAssets/NOVA/provenance.json
 
