@@ -14,7 +14,34 @@ concurrency:
   group: braxhorn-unity6-integration-test
   cancel-in-progress: false
 jobs:
+  source-imports:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity6-integration-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # Required for reading nonpublished draft release assets
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city
+          persist-credentials: false
+      - name: Verified original import fetch from private GitHub draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 unity-tools/city/fetch_original_imports.py
+      - name: Make originals available to read-only compilation job
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity6-original-imports-${{ github.sha }}
+          path: unity-city/Assets/Source/
+          retention-days: 3
+          if-no-files-found: error
   integrated-unity6:
+    needs: source-imports
+    permissions:
+      contents: read
+      actions: read
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity6-integration-20261030'
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -31,10 +58,11 @@ jobs:
             asset-library/sources/sofa_02
           persist-credentials: false
           lfs: false
-      - name: Fetch Unity6 original assets by authenticated draft release IDs
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 unity-tools/city/fetch_original_imports.py
+      - name: Receive SHA-verified original Unity6 gym city estate assets
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: unity6-original-imports-${{ github.sha }}
+          path: unity-city/Assets/Source/
       - name: Prepare ORIGINAL assets and R2 textures for Unity only
         run: |
           mkdir -p city-review
