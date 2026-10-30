@@ -48,6 +48,7 @@ public static class BraxLibraryWaterfront
         foreach(var path in Required)if(!AssetDatabase.LoadMainAssetAtPath(path))
             throw new InvalidOperationException("Library asset not imported in Unity: "+path);
         Directory.CreateDirectory(Generated);
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         var root=new GameObject("BRAXHORN LIBRARY WATERFRONT (TEST)").transform;
         Beach(root);
         var placed=new List<Placed>();
