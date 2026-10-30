@@ -50,6 +50,23 @@ public static class BraxRegionFlicker
             quality = g.AddComponent<BraxRegionTextureQuality>();
         }
         quality.anisotropy = 4;
+
+        // Napisy 3D z testem głębi (domyślny GUI/Text Shader ma ZTest Always i prześwituje przez ściany).
+        var signage = root.GetComponentInChildren<BraxRegionSignage>(true);
+        if (!signage)
+        {
+            var g = new GameObject("CLAUDE napisy 3D z testem głębi");
+            g.transform.SetParent(root, false);
+            signage = g.AddComponent<BraxRegionSignage>();
+        }
+        var shader3d = Shader.Find("GUI/3D Text Shader");
+        if (shader3d)
+        {
+            var template = new Material(shader3d) { name = "Napis 3D: szablon z testem głębi" };
+            AssetDatabase.CreateAsset(template, BraxRegion.Out + "/Materials/signage-3d-text.mat");
+            signage.depthTested = template;
+        }
+        else BraxRegion.Note("brak shadera GUI/3D Text Shader, napisy zostają z ZTest Always");
         BraxRegion.Note("offset głębi: materiałów " + swapped.Count + ", rendererów " + renderers);
     }
 }

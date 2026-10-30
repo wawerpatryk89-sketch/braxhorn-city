@@ -143,6 +143,8 @@ public static class BraxGymBuild
             BraxGymReferenceRebuild.Apply(gym,solids.transform,runtime,Generated);
             BraxGymReferenceEquipment.Apply(gym,runtime,Generated);
             BraxNovaMusicBuild.Attach(runtime);
+            // Siłownia jako wizytówka (Claude, region R1): tatami judo i dodatki w wolnym miejscu hali.
+            BraxRegionGym.Apply(gym,runtime);
         }
         string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;
