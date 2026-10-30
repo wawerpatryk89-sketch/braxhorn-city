@@ -414,7 +414,7 @@ document.body.classList.toggle('touch',mobile);
 document.body.classList.add('menu');
 const canvas=$("unity-canvas");
 const game={
- unity:null, sourceReady:false, hero:'brax', playing:false, paused:false,
+ unity:null, sourceReady:false, hero:'brax', playing:false, paused:false, walkDispatched:false,
  joystick:null, pointers:new Map(), readyToSelect:false
 };
 window.__brxEstateUnity=game;
@@ -431,6 +431,13 @@ function toast(text){
  b.classList.add("on");
  setTimeout(()=>b.classList.remove("on"),1800);
 }
+function beginBraxWalk(){
+ if(game.walkDispatched || !game.sourceReady || !game.unity)return;
+ game.walkDispatched=true;
+ game.hero='brax';
+ console.log("BRAXHORN Estate: entering as the existing original Brax, no hero selection.");
+ send("OnWebAction","hero:brax");
+}
 function activateGame(){
  game.playing=true;game.paused=false;
  document.body.classList.add("playing");document.body.classList.remove("menu");
@@ -441,53 +448,21 @@ function activateGame(){
 window.BrxUnityEstateReady=function(){
  game.sourceReady=true;
  const load=$("loader");if(load)load.classList.add("done");
- const title=$("title");if(title)title.hidden=false;
- document.body.classList.add("menu");
- const hint=$("estate-status");if(hint)hint.textContent="Osiedle Unity 6 / dostępne modele: 21/21";
- console.log("BRAXHORN Estate original-source scene ready.");
+ visible("title",false);visible("select",false);
+ const hint=$("estate-status");if(hint)hint.textContent="Osiedle Unity 6 / 21/21 oryginalnych modeli";
+ console.log("BRAXHORN Estate original-source scene ready; preparing original Brax walkthrough.");
+ beginBraxWalk();
 };
 window.BrxUnityHeroReady=function(){
  activateGame();
- const info=$("meName");if(info)info.textContent=game.hero==='nyxa'?'Nyxa':'Brax';
+ const info=$("meName");if(info)info.textContent="Brax";
 };
-const heroes={
- brax:{name:"Brax",title:"Właściciel BRAXHORN GYM",
-  desc:"Ciężka ręka, twarda głowa. Kolano i łokieć, których nikt nie chce poczuć dwa razy.",
-  stats:{"Siła":9,"Szybkość":6,"Obrona":8},
-  specialNames:["Kolano","Łokieć","Seria na korpus"]},
- nyxa:{name:"Nyxa",title:"Mistrzyni kopnięć",
-  desc:"Najszybsza zawodniczka w mieście. Martelo, podwójne kopnięcie i breakdance na deser.",
-  stats:{"Siła":7,"Szybkość":9,"Obrona":6},
-  specialNames:["Martelo","Kopnięcie z obrotu","Seria na korpus"]}
-};
-function selectHero(k){
- game.hero=k;
- for(const el of document.querySelectorAll("#heroCards .hero"))
-  el.classList.toggle("on",el.dataset.k===k);
- const b=$("btnFight");if(b)b.textContent="GRAJ JAKO "+heroes[k].name.toUpperCase();
-}
-const cards=$("heroCards");
-for(const [key,h] of Object.entries(heroes)){
- const c=document.createElement("button");
- c.className="hero";c.type="button";c.dataset.k=key;
- c.innerHTML="<b>"+h.name+"</b><em>"+h.title+"</em><p>"+h.desc+"</p>"+
-  Object.entries(h.stats).map(([name,num])=>'<div class="stat"><span>'+name+
-  '</span><i style="--v:'+(num*10)+'%"></i></div>').join("")+
-  "<small>Specjal: "+h.specialNames.join(" · ")+"</small>";
- c.addEventListener("click",()=>{if(game.hero===key)startHero(key);else selectHero(key);});
- cards.appendChild(c);
-}
-function startHero(k){
- if(!game.sourceReady)return;
- game.hero=k;
- const b=$("btnFight");if(b)b.textContent="ŁADUJĘ "+heroes[k].name.toUpperCase()+"…";
- send("OnWebAction","hero:"+k);
-}
-$("btnPlay").onclick=()=>{
- if(!game.sourceReady)return;
- visible("title",false);visible("select",true);selectHero(game.hero);
-};
-$("btnFight").onclick=()=>startHero(game.hero);
+// One original Brax from the city and gym. No character selector in estate survey.
+$("btnPlay").onclick=beginBraxWalk;
+$("btnFight").onclick=beginBraxWalk;
+document.querySelectorAll('#touch [data-act="punch"],#touch [data-act="kick"],#touch [data-act="special"],#touch [data-act="throw"],#touch [data-act="dodge"],#touch [data-hold="block"]').forEach(el=>{el.style.display="none";});
+const actionDoor=$("btnAct");if(actionDoor)actionDoor.hidden=false;
+const moveMenu=$("bMoves");if(moveMenu)moveMenu.hidden=true;
 function showPause(yes){
  if(!game.playing)return;
  game.paused=yes;document.body.classList.toggle("menu",yes);
@@ -630,6 +605,7 @@ script.onload=()=>{
  }).then(unity=>{
   game.unity=unity;
   console.log("BRAXHORN Unity 6 runtime initialized, waiting for original estate sources.");
+  beginBraxWalk();
  }).catch(error=>{
   const msg=$("loadMsg");if(msg)msg.textContent="Unity 6: "+error;
   console.error("UNITY ESTATE FAILED",error);
