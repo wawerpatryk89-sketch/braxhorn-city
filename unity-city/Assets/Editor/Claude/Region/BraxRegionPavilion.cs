@@ -193,14 +193,14 @@ public static class BraxRegionPavilion
 
         // 7) Sala walk: ring 6×6 m (podest, płótno, słupki, liny), schodki, tablica, worki… (worek: brak w CC0).
         var rc = new Vector3((Split + inner1) * .5f + .3f, 0, 0);
-        float rh = .5f, rs = 6.0f;
-        Box("Ring: podest", rc + new Vector3(0, rh * .5f, 0), new Vector3(rs, rh, rs), skirt, true);
-        Box("Ring: płótno", rc + new Vector3(0, rh + .02f, 0), new Vector3(rs + .3f, .04f, rs + .3f), canvas, true);
-        Box("Ring: fartuch front", rc + new Vector3(0, rh * .5f, -rs * .5f - .02f), new Vector3(rs + .3f, rh, .03f), skirt);
-        Box("Ring: fartuch tył", rc + new Vector3(0, rh * .5f, rs * .5f + .02f), new Vector3(rs + .3f, rh, .03f), skirt);
-        Box("Ring: fartuch zachód", rc + new Vector3(-rs * .5f - .02f, rh * .5f, 0), new Vector3(.03f, rh, rs + .3f), skirt);
-        Box("Ring: fartuch wschód", rc + new Vector3(rs * .5f + .02f, rh * .5f, 0), new Vector3(.03f, rh, rs + .3f), skirt);
-        float half = rs * .5f - .15f;
+        float rh = .5f, ringSize = 6.0f;
+        Box("Ring: podest", rc + new Vector3(0, rh * .5f, 0), new Vector3(ringSize, rh, ringSize), skirt, true);
+        Box("Ring: płótno", rc + new Vector3(0, rh + .02f, 0), new Vector3(ringSize + .3f, .04f, ringSize + .3f), canvas, true);
+        Box("Ring: fartuch front", rc + new Vector3(0, rh * .5f, -ringSize * .5f - .02f), new Vector3(ringSize + .3f, rh, .03f), skirt);
+        Box("Ring: fartuch tył", rc + new Vector3(0, rh * .5f, ringSize * .5f + .02f), new Vector3(ringSize + .3f, rh, .03f), skirt);
+        Box("Ring: fartuch zachód", rc + new Vector3(-ringSize * .5f - .02f, rh * .5f, 0), new Vector3(.03f, rh, ringSize + .3f), skirt);
+        Box("Ring: fartuch wschód", rc + new Vector3(ringSize * .5f + .02f, rh * .5f, 0), new Vector3(.03f, rh, ringSize + .3f), skirt);
+        float half = ringSize * .5f - .15f;
         foreach (float px in new[] { -half, half })
             foreach (float pz in new[] { -half, half })
             {
@@ -216,7 +216,7 @@ public static class BraxRegionPavilion
         }
         // schodki do ringu od strony przejścia
         for (int s = 0; s < 3; s++)
-            Box("Ring: schodek", rc + new Vector3(-rs * .5f - .45f - s * .3f, (rh / 3f) * (3 - s) - (rh / 6f), 1.0f), new Vector3(.3f, rh / 3f * (3 - s), 1.0f), skirt, true);
+            Box("Ring: schodek", rc + new Vector3(-ringSize * .5f - .45f - s * .3f, (rh / 3f) * (3 - s) - (rh / 6f), 1.0f), new Vector3(.3f, rh / 3f * (3 - s), 1.0f), skirt, true);
         // tablica wyników i dekoracje
         var board = BraxRegion.Model("standing_chalkboard_01");
         if (board) BraxRegion.Put(root, board, "Sala walk: tablica", root.TransformPoint(new Vector3(inner1 - .7f, .07f, zin1 - .8f)), root.eulerAngles.y + 200f, 1f, true, 1.8f);
@@ -226,7 +226,7 @@ public static class BraxRegionPavilion
         if (ball) BraxRegion.Put(root, ball, "Sala walk: piłka", root.TransformPoint(new Vector3(Split + 1.0f, .07f, zin1 - .6f)), root.eulerAngles.y, 1f, false, .3f);
         var stoolB = BraxRegion.Model("metal_stool_02", "metal_stool_01", "wooden_stool_01");
         if (stoolB) foreach (float sz in new[] { -2.0f, 2.0f })
-            BraxRegion.Put(root, stoolB, "Sala walk: taboret narożnika", root.TransformPoint(rc + new Vector3(-rs * .5f - .6f, .07f, sz)), root.eulerAngles.y, 1f, true, .9f);
+            BraxRegion.Put(root, stoolB, "Sala walk: taboret narożnika", root.TransformPoint(rc + new Vector3(-ringSize * .5f - .6f, .07f, sz)), root.eulerAngles.y, 1f, true, .9f);
 
         // 8) Logo i napis na fascii frontowej, nad wejściem i oknami.
         Logo(new Vector3(DoorX, H + .62f, z0 - .25f), 3.4f);
