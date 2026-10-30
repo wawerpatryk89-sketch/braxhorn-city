@@ -76,6 +76,12 @@ namespace Braxhorn.EstateMigration.Editor
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
                 throw new BuildFailedException("WebGL must be selected in the isolated Unity project");
             PreparePartialScene();
+            // Use the ORIGINAL Braxhorn HUD and start-menu HTML, not Unity's default player shell.
+            // This template also gives the Unity runtime real iOS touch controls.
+            var templatePath = "Assets/WebGLTemplates/BRAXHORN_ESTATE/index.html";
+            if (!File.Exists(templatePath))
+                throw new BuildFailedException("Original BRAXHORN WebGL template absent: " + templatePath);
+            PlayerSettings.WebGL.template = "PROJECT:BRAXHORN_ESTATE";
             var options = new BuildPlayerOptions
             {
                 scenes = new[] {"Assets/EstateMigration/Scenes/EstatePartial_NOT_1TO1.unity"},
@@ -93,7 +99,8 @@ namespace Braxhorn.EstateMigration.Editor
         {
             var directory = Path.Combine(Application.dataPath,"StreamingAssets/Estate");
             foreach (var name in new[] {"EstateSourceManifest.json","EstateProceduralAndDoors.glb",
-                                         "brax.glb.gz","brax_color.png","brax_normal.png"})
+                                         "brax.glb.gz","brax_color.png","brax_normal.png",
+                                         "nyxa.glb.gz","nyxa_color.png","nyxa_normal.png","wide_a.webp"})
                 if (!File.Exists(Path.Combine(directory,name)))
                     throw new BuildFailedException("Partial source missing: " + name);
             var data = JsonUtility.FromJson<EstateManifest>(
