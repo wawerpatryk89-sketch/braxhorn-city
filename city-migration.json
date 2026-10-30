@@ -1,0 +1,29 @@
+{
+    "commit": "ee68890dced8a3f90f8ba3958265e5d02c2ce6d7",
+    "unity": "6000.0.58f2",
+    "browserSource": "260a5897472d42d099766da48e708859bba6c3dc",
+    "scope": "waterfront-only-review-no-estate",
+    "originalCityReplaced": false,
+    "originalModels": true,
+    "originalBraxRig": true,
+    "areas": [
+        {
+            "area": "city",
+            "originalMeshes": 724,
+            "importedMeshes": 724,
+            "originalTriangles": 521280,
+            "sourceBoxes": 151,
+            "sourceCircles": 83,
+            "sourcePits": 2,
+            "meshColliders": 0,
+            "doors": 0,
+            "bakedMaterials": 149,
+            "sourcePoints": 87
+        }
+    ],
+    "notYetPorted": [
+        "estate NPC schedules and combat AI",
+        "estate story and economy",
+        "additional playable character selection"
+    ]
+}
