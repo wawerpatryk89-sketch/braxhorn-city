@@ -255,14 +255,38 @@ public static class BraxEstateDom04Premium
     }
 
 
+    static Material GenuineVegetationCutout(Material original,string name,Color tint)
+    {
+        if(!original)throw new Exception("DOM04 real original Verdant foliage material missing");
+        var albedo=original.mainTexture;
+        if(!albedo)throw new Exception("DOM04 original Verdant Trail texture missing: "+name);
+        var mat=new Material(Shader.Find("Standard")){name=name,color=tint,enableInstancing=true};
+        mat.mainTexture=albedo;mat.SetFloat("_Metallic",0f);mat.SetFloat("_Glossiness",.05f);
+        mat.SetFloat("_Mode",1f);mat.SetFloat("_Cutoff",.40f);
+        mat.SetOverrideTag("RenderType","TransparentCutout");
+        mat.SetInt("_SrcBlend",(int)BlendMode.One);
+        mat.SetInt("_DstBlend",(int)BlendMode.Zero);
+        mat.SetInt("_ZWrite",1);
+        mat.EnableKeyword("_ALPHATEST_ON");
+        mat.DisableKeyword("_ALPHABLEND_ON");
+        mat.renderQueue=(int)RenderQueue.AlphaTest;
+        AssetDatabase.CreateAsset(mat,Output+name.Replace(" ","_")+".mat");
+        return mat;
+    }
     static void Plant(MeshRenderer[] all,Transform parent)
     {
         MeshRenderer Original(string name)=>all.Single(x=>x.name==name);
+        var genuineLeaves=GenuineVegetationCutout(Original("EstateMesh_453").sharedMaterial,
+            "DOM04 authentic Verdant green leaves",new Color(.64f,.88f,.52f,1f));
+        var genuineShrubs=GenuineVegetationCutout(Original("EstateMesh_467").sharedMaterial,
+            "DOM04 authentic Verdant green shrubs",new Color(.68f,.90f,.61f,1f));
         GameObject CopyPart(string id,string src,Transform own,float scale)
         {
             var o=new GameObject(id);o.transform.SetParent(own,false);o.transform.localScale=Vector3.one*scale;
             var r=Original(src);o.AddComponent<MeshFilter>().sharedMesh=r.GetComponent<MeshFilter>().sharedMesh;
-            var rr=o.AddComponent<MeshRenderer>();rr.sharedMaterials=r.sharedMaterials;
+            var rr=o.AddComponent<MeshRenderer>();
+            rr.sharedMaterials=source=="EstateMesh_453"?new[]{genuineLeaves}:
+               source=="EstateMesh_467"?new[]{genuineShrubs}:r.sharedMaterials;
             rr.shadowCastingMode=src=="EstateMesh_439"?ShadowCastingMode.On:ShadowCastingMode.Off;
             return o;
         }
@@ -287,12 +311,28 @@ public static class BraxEstateDom04Premium
             float scale=2.65f/(9.336063f-.798673f);
             tree.transform.position=new Vector3(pos.x,.04f-.798673f*scale,pos.z);
             var trunk=CopyPart("Genuine source trunk 439","EstateMesh_439",tree.transform,scale).GetComponent<MeshRenderer>();
-            var canopy=CopyPart("Genuine source canopy LOD 460","EstateMesh_460",tree.transform,scale).GetComponent<MeshRenderer>();
+            var canopy=CopyPart("Genuine source leaf atlas LOD 453","EstateMesh_453",tree.transform,scale).GetComponent<MeshRenderer>();
             var lod=tree.AddComponent<LODGroup>();
             lod.SetLODs(new[]{new LOD(.055f,new Renderer[]{trunk,canopy})});
             lod.RecalculateBounds();
         }
 
+        // Improve the original DOM04 tree and original shrubs ONLY, leave other R2 estates untouched.
+        var existing=GameObject.Find("R2ProgressEvidence")?.GetComponent<BraxR2ProgressEvidence>();
+        if(existing && existing.addedPlanting!=null)
+        foreach(var instance in existing.addedPlanting)
+        {
+            if(!instance)continue;
+            bool originalTree=instance.name=="R2 original Verdant tree / 36";
+            bool originalShrub=instance.name.StartsWith("R2 original Verdant shrub / ") &&
+                instance.transform.position.x< -16.5f && instance.transform.position.x> -39.5f;
+            if(!originalTree && !originalShrub)continue;
+            foreach(var r in instance.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                if(r.name.Contains("EstateMesh_453"))r.sharedMaterial=genuineLeaves;
+                if(r.name.Contains("EstateMesh_467"))r.sharedMaterial=genuineShrubs;
+            }
+        }
         var shrubPositions=new[]{new Vector3(-38.1f,.04f,-8.05f),new Vector3(-18.7f,.04f,8.45f),new Vector3(-18.6f,.04f,-8.35f)};
         for(int i=0;i<shrubPositions.Length;i++)
         {
@@ -445,7 +485,7 @@ public static class BraxEstateDom04Premium
         public string[] changedOriginalRenderers={"EstateMesh_273 (all original DOM04 lawn top faces only)","EstateMesh_327","EstateMesh_312","EstateMesh_323 (DOM04 only)","EstateMesh_280 (verified front fence triangles only)","EstateMesh_275 (negative-X approach UV only)"};
         public string facade="Poly Haven beige_wall_001 library byte-identical maps / warm beige matte";
         public string grass="100% replacement on original EstateMesh_273 TOP triangles, 483m2; genuine grass_ground PBR + owner grass_bermuda_01 correctly alpha-cutout / 4200 batched ground tufts";
-        public string garden="four source Verdant ornamental trees in DOM04 including original x=-36 tree; 3 new real source 439/460 LOD trees and genuine source shrubs 467";
+        public string garden="four original Verdant ornamental trees from textured 439 trunk + 453 source leaf atlas; 1 preserved/retinted original and 3 additional green real LOD trees, real shrub source 467";
         public string fence="original DOM04 front-fence triangles refinished in satin anthracite; global shared mesh split locally, all other fence surfaces and original gate/physics unchanged";
         public string roof="original DOM04 pitched geometry / roof_tiles genuine PBR / warmer muted terracotta, improved gloss and normal";
         public string flowers="4 ORIGINAL planter_box_01 wooden model instances + 4 original periwinkle_plant 3D flowering plants";
