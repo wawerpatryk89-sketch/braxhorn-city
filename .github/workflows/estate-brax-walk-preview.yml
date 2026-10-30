@@ -1,0 +1,71 @@
+name: BRAXHORN UNITY 6 - isolated Brax walking only preview
+on:
+  push:
+    branches:
+      - work/unity6-estate-migration-20261029
+    paths:
+      - "scripts/unity-estate/brax-walk-index.html"
+      - ".github/workflows/estate-brax-walk-preview.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-brax-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            .github
+            scripts/unity-estate/brax-walk-index.html
+      - name: Download exactly the successfully compiled Unity6 with original Brax controller
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh run view 40978751265 -R "$GITHUB_REPOSITORY" --json conclusion --jq '.conclusion')" = "success"
+          gh run download 40978751265 -R "$GITHUB_REPOSITORY" \
+            -n estate-unity6-PARTIAL-NOT-1TO1-639817138a8ba07fd6bf5c8855f155bd4035e233 \
+            -D "$RUNNER_TEMP/brax-player"
+          test -s "$RUNNER_TEMP/brax-player/EstatePartial_NOT_1TO1/Build/EstatePartial_NOT_1TO1.wasm.gz"
+          test -s "$RUNNER_TEMP/brax-player/EstatePartial_NOT_1TO1/StreamingAssets/Estate/brax.glb.gz"
+          cp scripts/unity-estate/brax-walk-index.html "$RUNNER_TEMP/index.html"
+      - name: Publish to an entirely NEW and separate preview branch (no city, gym, production changes)
+        run: |
+          set -euo pipefail
+          REF="refs/heads/preview/estate-brax-walk-20261030"
+          if git ls-remote --exit-code --heads origin "$REF" >/dev/null; then
+            echo "::error::Dedicated Brax preview branch already exists; will not overwrite."
+            exit 1
+          fi
+          git switch --orphan preview/estate-brax-walk-20261030
+          cp -a "$RUNNER_TEMP/brax-player/EstatePartial_NOT_1TO1/." .
+          cp "$RUNNER_TEMP/index.html" index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          cfg={"version":2,"framework":None,"buildCommand":None,"outputDirectory":".",
+           "headers":[
+             {"source":"/Build/(.*)\\.wasm\\.gz",
+              "headers":[{"key":"Content-Type","value":"application/wasm"},{"key":"Content-Encoding","value":"gzip"}]},
+             {"source":"/Build/(.*)\\.framework\\.js\\.gz",
+              "headers":[{"key":"Content-Type","value":"application/javascript"},{"key":"Content-Encoding","value":"gzip"}]},
+             {"source":"/Build/(.*)\\.data\\.gz",
+              "headers":[{"key":"Content-Type","value":"application/octet-stream"},{"key":"Content-Encoding","value":"gzip"}]}
+           ]}
+          Path("vercel.json").write_text(json.dumps(cfg,indent=2)+"\n")
+          Path("README.md").write_text(
+           "# BRAXHORN City: BRAx only, walk/camera original Unity 6\n"
+           "Dedicated user-requested walk-only partial preview. No hero selection, combat or gym.\n"
+           "Original asset set incomplete (casino/police/park tree). No full 1:1 acceptance.\n")
+          PY
+          test -s index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --sparse index.html Build StreamingAssets TemplateData vercel.json README.md
+          git commit -m "preview(estate): BRAx only original source Unity6 walking [skip ci]"
+          git push origin HEAD:"$REF"
