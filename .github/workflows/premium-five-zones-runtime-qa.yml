@@ -1,0 +1,57 @@
+name: BRAXHORN CITY — premium five zones runtime screenshots
+on:
+  workflow_run:
+    workflows: ["BRAXHORN CITY — premium five zones Unity 6 isolated test"]
+    types: [completed]
+permissions:
+  actions: read
+  contents: read
+jobs:
+  actual-player-qa:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'codex/premium-five-zones-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout actual build source SHA
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+      - name: Download exactly this Unity player
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          name: premium-five-zones-player-${{ github.event.workflow_run.head_sha }}
+          path: unity-preview
+      - name: Verify provenance and single scene
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads(Path('unity-preview/release.json').read_text())
+          c=json.loads(Path('unity-preview/city-migration.json').read_text())
+          assert r['sourceCommit']==os.environ['EXPECTED_SHA']
+          assert r['productionPublication'] is False
+          assert c['scope']=='waterfront-only-review-no-estate'
+          assert len(c['areas'])==1 and c['areas'][0]['area']=='city'
+          print('REAL_SINGLE_SCENE_BUILD_PROVENANCE_PASS')
+          PY
+      - name: Install actual WebGL browser runner
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Walk and photograph source locations in real Unity player
+        run: node unity-tools/city-rebuild/premium-zones-qa.mjs
+      - name: Preserve screenshots and failure evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: premium-five-zones-visual-evidence-${{ github.event.workflow_run.head_sha }}
+          path: premium-zones-qa/
+          if-no-files-found: warn
+          retention-days: 14
