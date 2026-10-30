@@ -534,7 +534,7 @@ namespace Braxhorn.EstateMigration
         {
             if(!float.TryParse(value,NumberStyles.Float,CultureInfo.InvariantCulture,out var v))
                 return 0f;
-            return float.IsFinite(v)?v:0f;
+            return !float.IsNaN(v) && !float.IsInfinity(v) ? v : 0f;
         }
 
         public void OnWebJoystick(string payload)
@@ -565,6 +565,7 @@ namespace Braxhorn.EstateMigration
             string clip=null;
             switch(action)
             {
+                case "jump": clip="Jump"; break;
                 case "punch": clip="Jab Cross (1)"; break;
                 case "kick": clip="Mma Kick (1)"; break;
                 case "special": clip=currentHero=="nyxa"?"Martelo Do Chau":"Illegal Knee"; break;
