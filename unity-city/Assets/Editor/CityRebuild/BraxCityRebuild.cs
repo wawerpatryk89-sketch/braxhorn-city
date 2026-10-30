@@ -148,6 +148,7 @@ public static class BraxCityRebuild
             // installation; the other eight towers get independent cabs,
             // shaft walls, roof landings and safety railings.
             BraxCityTowerLiftNetwork.Build(world,root);
+            BraxCityTowerDistrictFinish.Apply(world,root);
             Disable(original,Enumerable.Range(179,15));
             BraxCityArchitecture.Tower(root,"north brick district",new Rect(27,100,35,13),.15f,22);
             BraxCityArchitecture.Tower(root,"north glass landmark",new Rect(-13,100,35,13),.15f,31);
