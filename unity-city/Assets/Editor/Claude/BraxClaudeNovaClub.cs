@@ -95,7 +95,7 @@ public static class BraxClaudeNovaClub
                             float? width = null, float? height = null, bool solid = true, bool topAt = false)
     {
         var o = (GameObject)UnityEngine.Object.Instantiate(Load(path), root, false);
-        o.name = label; o.transform.position = Vector3.zero; o.transform.rotation = Quaternion.Euler(0, yaw, 0);
+        o.name = label; o.transform.position = Vector3.zero; o.transform.rotation = Quaternion.Euler(0, yaw, 0) * o.transform.rotation;
         var b = RB(o);
         float s = 1f;
         if (width.HasValue) s = width.Value / Mathf.Max(b.size.x, b.size.z);

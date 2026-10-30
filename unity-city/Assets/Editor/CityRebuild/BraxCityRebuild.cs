@@ -227,6 +227,8 @@ public static class BraxCityRebuild
         BraxCityWaterBuild.Apply(root);
         // Scope-locked waterfront extension: never runs in production or
         // Codex's separate Nutrition build unless explicitly enabled for TEST.
+        // Skan Claude obejmuje też stare miasto i jego fizykę (osobne hierarchie).
+        BraxClaudeGround.SourceCity=original;BraxClaudeGround.SourcePhysics=physics;
         if(Environment.GetEnvironmentVariable("BRAX_HARBOR_BEACH_SOURCE_READY")=="1" ||
            System.IO.File.Exists("Assets/Source/HarborBeach/ENABLE_TEST_BUILD.txt"))
             BraxHarborBeachBuild.Apply(root);

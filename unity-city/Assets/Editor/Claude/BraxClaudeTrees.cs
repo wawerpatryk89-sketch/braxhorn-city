@@ -14,7 +14,7 @@ public static class BraxClaudeTrees
     const string PH = "Assets/Source/Claude/PolyHaven/models/";
     static readonly string[] Species = { "tree_small_02", "island_tree_01", "island_tree_02", "jacaranda_tree" };
 
-    [Serializable] sealed class Report { public int removed, planted, trunksRemoved; public List<string> notes = new List<string>(); public List<Vector3> spots = new List<Vector3>(); }
+    [Serializable] sealed class Report { public int removed, planted, trunksRemoved, collidersCut, withLod; public List<string> notes = new List<string>(); public List<Vector3> spots = new List<Vector3>(); }
 
     static bool FlatGreen(Material m)
     {
@@ -69,7 +69,7 @@ public static class BraxClaudeTrees
     static void Run(Transform cityRoot, Report rep)
     {
         var crowns = new List<Bounds>();
-        foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
+        foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
         {
             if (!r.enabled || Protected(r.transform)) continue;
             var mf = r.GetComponent<MeshFilter>(); if (!mf || !mf.sharedMesh) continue;
@@ -83,7 +83,7 @@ public static class BraxClaudeTrees
             crowns.Add(b); rep.removed++;
         }
         // Pnie pod usuniętymi koronami.
-        foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
+        foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
         {
             if (!r.enabled || Protected(r.transform) || !r.sharedMaterials.Any(FlatBrown)) continue;
             var b = r.bounds;
@@ -91,8 +91,20 @@ public static class BraxClaudeTrees
             if (!crowns.Any(c => Mathf.Abs(c.center.x - b.center.x) < .8f && Mathf.Abs(c.center.z - b.center.z) < .8f)) continue;
             r.enabled = false; foreach (var col in r.GetComponents<Collider>()) col.enabled = false; rep.trunksRemoved++;
         }
-        var sources = Species.Select(Load).Where(g => g).ToArray();
+        // Fizyka starego miasta to osobna hierarchia skrzynek: bez tego po usuniętym drzewie
+        // zostaje niewidzialny słup. Wycinamy tylko wąski pień nad chodnikiem (y > 0.35 m).
+        if (BraxClaudeGround.SourcePhysics)
+            foreach (var c in crowns)
+            {
+                var vol = new Bounds(new Vector3(c.center.x, (.35f + c.max.y) * .5f, c.center.z),
+                                     new Vector3(Mathf.Min(c.size.x, 1.4f), Mathf.Max(.2f, c.max.y - .35f), Mathf.Min(c.size.z, 1.4f)));
+                try { rep.collidersCut += BraxCityMeshCut.SubtractBoxColliders(BraxClaudeGround.SourcePhysics, vol); }
+                catch (Exception e) { rep.notes.Add("kolizja drzewa " + c.center + ": " + e.Message); }
+            }
+        // Pełna jakość z bliska (oryginał Poly Haven), uproszczona kopia (gltfpack, _lod1) tylko z daleka.
+        var sources = Species.Select(id => (full: Load(id), far: Load(id + "_lod1"))).Where(p => p.full).ToArray();
         if (sources.Length == 0) { rep.notes.Add("brak modeli drzew Poly Haven"); return; }
+        rep.notes.Add("LOD daleki dostępny dla " + sources.Count(p => p.far) + "/" + sources.Length + " gatunków");
         var root = new GameObject("CLAUDE prawdziwe drzewa").transform; root.SetParent(cityRoot, false); root.position = Vector3.zero;
         Physics.SyncTransforms();
         var rnd = new System.Random(1977);
@@ -102,9 +114,9 @@ public static class BraxClaudeTrees
             float gy = .15f;
             foreach (var h in Physics.RaycastAll(spot + Vector3.up * 30f, Vector3.down, 40f, ~0, QueryTriggerInteraction.Ignore))
                 if (h.normal.y > .7f && h.point.y < 1.5f && h.point.y > -1f) { gy = h.point.y; break; }
-            var src = sources[rnd.Next(sources.Length)];
+            var pair = sources[rnd.Next(sources.Length)]; var src = pair.full; int yaw = rnd.Next(360);
             var o = (GameObject)UnityEngine.Object.Instantiate(src, root, false);
-            o.name = "Drzewo: " + src.name; o.transform.rotation = Quaternion.Euler(0, rnd.Next(360), 0);
+            o.name = "Drzewo: " + src.name; o.transform.rotation = Quaternion.Euler(0, yaw, 0) * o.transform.rotation;
             var rs = o.GetComponentsInChildren<Renderer>(true); if (rs.Length == 0) { UnityEngine.Object.DestroyImmediate(o); continue; }
             var b = rs[0].bounds; foreach (var r in rs.Skip(1)) b.Encapsulate(r.bounds);
             float target = Mathf.Clamp(Mathf.Max(c.max.y, 4.5f) * 1.25f, 5f, 9f);
@@ -112,6 +124,27 @@ public static class BraxClaudeTrees
             b = rs[0].bounds; foreach (var r in rs.Skip(1)) b.Encapsulate(r.bounds);
             o.transform.position += new Vector3(spot.x - b.center.x, gy - b.min.y, spot.z - b.center.z);
             foreach (var r in rs) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
+            if (pair.far)
+            {
+                // Kopia daleka dokładnie w tym samym miejscu i skali co pełny model.
+                var f = (GameObject)UnityEngine.Object.Instantiate(pair.far, root, false); f.name = "LOD1 daleki";
+                f.transform.rotation = Quaternion.Euler(0, yaw, 0) * f.transform.rotation;
+                var frs = f.GetComponentsInChildren<Renderer>(true);
+                if (frs.Length > 0)
+                {
+                    var fb0 = frs[0].bounds; foreach (var r in frs.Skip(1)) fb0.Encapsulate(r.bounds);
+                    if (fb0.size.y > .01f) f.transform.localScale *= b.size.y / fb0.size.y;
+                    var fb = frs[0].bounds; foreach (var r in frs.Skip(1)) fb.Encapsulate(r.bounds);
+                    var nb = rs[0].bounds; foreach (var r in rs.Skip(1)) nb.Encapsulate(r.bounds);
+                    f.transform.position += nb.center - fb.center;
+                    f.transform.SetParent(o.transform, true);
+                    foreach (var r in frs) { r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true; }
+                    var lg = o.AddComponent<LODGroup>();
+                    lg.SetLODs(new[] { new LOD(.30f, rs), new LOD(.015f, frs) });
+                    lg.RecalculateBounds(); rep.withLod++;
+                }
+                else UnityEngine.Object.DestroyImmediate(f);
+            }
             var trunk = new GameObject("Drzewo: kolizja pnia").AddComponent<CapsuleCollider>();
             trunk.transform.SetParent(root, false); trunk.transform.position = new Vector3(spot.x, gy + 1.5f, spot.z);
             trunk.radius = .25f; trunk.height = 3f;

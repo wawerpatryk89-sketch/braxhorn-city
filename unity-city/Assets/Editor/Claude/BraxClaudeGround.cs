@@ -15,6 +15,20 @@ public static class BraxClaudeGround
     const string PH = "Assets/Source/Claude/PolyHaven/";
     const string Out = "Assets/PlayableGenerated/ClaudeGround";
 
+    // Stare miasto (CityMesh_*) i jego fizyka NIE są dziećmi korzenia renowacji — to osobne
+    // hierarchie. Bez tego trawa, „kulkowe” drzewa i stare boisko nie były w ogóle widziane
+    // (build 05e1a53: grassRenderers 0, cutTriangles 0). Ustawiane w BraxCityRebuild.Apply.
+    public static Transform SourceCity, SourcePhysics;
+    public static List<T> All<T>(Transform cityRoot) where T : Component
+    {
+        var list = new List<T>();
+        if (cityRoot) list.AddRange(cityRoot.GetComponentsInChildren<T>(true));
+        if (SourceCity && SourceCity != cityRoot) list.AddRange(SourceCity.GetComponentsInChildren<T>(true));
+        if (typeof(Collider).IsAssignableFrom(typeof(T)) && SourcePhysics && SourcePhysics != cityRoot && SourcePhysics != SourceCity)
+            list.AddRange(SourcePhysics.GetComponentsInChildren<T>(true));
+        return list;
+    }
+
     [Serializable] public sealed class Report
     {
         public int grassRenderers, grassMaterialsReplaced, cutTriangles, cutMeshes;
@@ -116,7 +130,7 @@ public static class BraxClaudeGround
         Material grass;
         try { grass = Grass(); }
         catch (Exception e) { report.notes.Add("trawa: " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_GROUND " + e); return; }
-        foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
+        foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
         {
             if (Excluded(r.transform)) continue;
             var b = r.bounds;
@@ -135,7 +149,7 @@ public static class BraxClaudeGround
     // Usuwa trójkąty płaskiego terenu (normalna w górę, wysokość y0..y1) w prostokącie XZ.
     public static void Cut(Transform cityRoot, Rect area, float y0, float y1, Transform except)
     {
-        foreach (var mf in cityRoot.GetComponentsInChildren<MeshFilter>(true))
+        foreach (var mf in BraxClaudeGround.All<MeshFilter>(cityRoot))
         {
             if (!mf.sharedMesh || (except && mf.transform.IsChildOf(except))) continue;
             var mr = mf.GetComponent<MeshRenderer>(); if (!mr) continue;
@@ -171,7 +185,7 @@ public static class BraxClaudeGround
             report.cutTriangles += removed; report.cutMeshes++; report.cutMeshNames.Add(mf.name);
         }
         // Osobne siatki kolizji (bez renderera) nad plażą: też wycinamy.
-        foreach (var col in cityRoot.GetComponentsInChildren<MeshCollider>(true))
+        foreach (var col in BraxClaudeGround.All<MeshCollider>(cityRoot))
         {
             if (!col.sharedMesh || col.GetComponent<MeshRenderer>() || (except && col.transform.IsChildOf(except))) continue;
             var b = col.bounds;

@@ -154,14 +154,16 @@ jobs:
         '
     - name: Pobierz prawdziwe materialy i modele CC0 z Poly Haven (taras wiezowca)
       run: python3 unity-tools/claude/fetch_polyhaven.py
-    - name: Odchudz drzewa Poly Haven pod telefon (gltfpack)
+    - name: Drzewa Poly Haven - pelna jakosc z bliska + uproszczona kopia LOD1 z daleka (gltfpack)
       run: |
         curl -sSL -o /tmp/gp.zip https://github.com/zeux/meshoptimizer/releases/download/v0.22/gltfpack-ubuntu.zip
         unzip -o -q /tmp/gp.zip -d /tmp/gp && chmod +x /tmp/gp/gltfpack
         for t in tree_small_02 island_tree_01 island_tree_02 jacaranda_tree; do
           d=unity-city/Assets/Source/Claude/PolyHaven/models/$t
-          if /tmp/gp/gltfpack -i $d/$t.gltf -o /tmp/$t.glb -noq -km -kn -si 0.25; then rm -rf $d/* && mv /tmp/$t.glb $d/$t.glb; else echo "zostaje oryginalny gltf: $t"; fi
-          ls -la $d
+          # Oryginal zostaje nietkniety (LOD0). Obok powstaje kopia daleka (LOD1, 25% trojkatow).
+          mkdir -p ${d}_lod1
+          /tmp/gp/gltfpack -i $d/$t.gltf -o ${d}_lod1/${t}_lod1.glb -noq -km -kn -si 0.25 || echo "brak LOD1 dla $t (zostaje sam oryginal)"
+          ls -la $d ${d}_lod1
         done
     - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830

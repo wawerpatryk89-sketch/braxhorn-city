@@ -61,7 +61,7 @@ public static class BraxClaudeTowerTerrace
         var o = (GameObject)UnityEngine.Object.Instantiate(Source(id), parent, false);
         o.name = label;
         o.transform.position = Vector3.zero;
-        o.transform.rotation = Quaternion.Euler(0, yaw, 0);
+        o.transform.rotation = Quaternion.Euler(0, yaw, 0) * o.transform.rotation;
         var b = Bounds(o);
         if (b.size.y < .05f || b.size.y > 6f)
             throw new InvalidOperationException("Nierealna skala modelu " + id + ": " + b.size);
@@ -247,7 +247,7 @@ public static class BraxClaudeTowerTerrace
                 foreach (float fz in new[] { z0 + depth * .32f, z0 + depth * .62f })
                 {
                     var o = (GameObject)UnityEngine.Object.Instantiate(src, root, false);
-                    o.name = "Lobby: sofa"; o.transform.rotation = Quaternion.Euler(0, 90, 0);
+                    o.name = "Lobby: sofa"; o.transform.rotation = Quaternion.Euler(0, 90, 0) * o.transform.rotation;
                     var b = Bounds(o); float sc = 2.0f / Mathf.Max(b.size.x, b.size.z); o.transform.localScale *= sc;
                     b = Bounds(o); o.transform.position += new Vector3(x0 + 1.2f - b.center.x, .15f - b.min.y, fz - b.center.z);
                     b = Bounds(o); var c = new GameObject("Lobby: sofa kolizja").AddComponent<BoxCollider>();
