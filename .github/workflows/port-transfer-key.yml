@@ -1,0 +1,40 @@
+name: BRAXHORN port - private source transfer key
+on:
+  push:
+    branches: [codex/port-unity-import-20261030]
+    paths: [.github/workflows/port-transfer-key.yml]
+permissions:
+  contents: write
+concurrency:
+  group: port-transfer-key-20261030
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TRANSFER_TAG: port-private-transfer-20261030
+    steps:
+      - name: Create private draft with decryption key; expose only public certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir transfer
+          trap 'rm -rf transfer' EXIT
+          gh api "repos/$GH_REPO/releases?per_page=100" > transfer/releases.json
+          id=$(jq -r --arg tag "$TRANSFER_TAG" '.[] | select(.tag_name==$tag and .draft==true) | .id' transfer/releases.json)
+          if [ -n "$id" ]; then
+            aid=$(gh api "repos/$GH_REPO/releases/$id" --jq '.assets[] | select(.name=="recipient.crt") | .id')
+            test -n "$aid"
+            gh api "repos/$GH_REPO/releases/assets/$aid" -H 'Accept: application/octet-stream' > transfer/recipient.crt
+          else
+            openssl req -x509 -newkey rsa:3072 -nodes -keyout transfer/recipient.key -out transfer/recipient.crt -days 30 -subj '/CN=Braxhorn Port Source Transfer/' 2>/dev/null
+            gh release create "$TRANSFER_TAG" transfer/recipient.key transfer/recipient.crt --draft --target "$GITHUB_SHA" --title 'PRIVATE port source transfer key' --notes 'Never publish: private decryption key for owner Library source transfer. Public repository receives encrypted bytes only.'
+          fi
+          echo PUBLIC_RECIPIENT_CERTIFICATE_BEGIN
+          cat transfer/recipient.crt
+          echo PUBLIC_RECIPIENT_CERTIFICATE_END
+          openssl x509 -in transfer/recipient.crt -noout -fingerprint -sha256
