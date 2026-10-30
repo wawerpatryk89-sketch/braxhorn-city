@@ -73,7 +73,7 @@ public static class BraxClaudeMetro
 
         // 0) Zaślepki „przyszłej stacji” na końcu holu: wyłączamy wszystko, co stoi w przejściu (oprócz podłogi holu).
         var gate = new Bounds(new Vector3(StairX, Vest + 1.6f, 48.9f), new Vector3(StairW + .4f, 3.0f, 1.4f));
-        foreach (var c in cityRoot.GetComponentsInChildren<Collider>(true))
+        foreach (var c in BraxClaudeGround.All<Collider>(cityRoot))
         {
             if (c.transform.IsChildOf(root) || !c.enabled) continue;
             var b = c.bounds;
@@ -82,7 +82,7 @@ public static class BraxClaudeMetro
             c.enabled = false; rep.removedBlockers++;
             foreach (var r in c.GetComponentsInChildren<Renderer>(true)) r.enabled = false;
         }
-        foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
+        foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
         {
             if (r.transform.IsChildOf(root) || !r.enabled) continue; var b = r.bounds;
             if (!gate.Intersects(b) || b.max.y < Vest + .3f) continue;
@@ -189,14 +189,14 @@ public static class BraxClaudeMetro
         var tunnel = Load(MD + "metro_tunnel_section.glb");
         if (tunnel)
         {
-            var probe = (GameObject)UnityEngine.Object.Instantiate(tunnel); probe.transform.rotation = Quaternion.Euler(0, 90, 0);
+            var probe = (GameObject)UnityEngine.Object.Instantiate(tunnel); probe.transform.rotation = Quaternion.Euler(0, 90, 0) * probe.transform.rotation;
             var pb = RB(probe); UnityEngine.Object.DestroyImmediate(probe);
             float sc = 4.8f / Mathf.Max(.1f, pb.size.y), seg = pb.size.x * sc;
             foreach (var (start, end) in new[] { (tunnelEnd0, HX0) })
                 for (float sx = start; sx < end - .1f; sx += seg)
                 {
                     var o = (GameObject)UnityEngine.Object.Instantiate(tunnel, root, false); o.name = "Metro: odcinek tunelu";
-                    o.transform.rotation = Quaternion.Euler(0, 90, 0); o.transform.localScale *= sc;
+                    o.transform.rotation = Quaternion.Euler(0, 90, 0) * o.transform.rotation; o.transform.localScale *= sc;
                     var b = RB(o); o.transform.position += new Vector3(sx + seg * .5f - b.center.x, Track - .15f - b.min.y, tz - b.center.z);
                     rep.tunnelSegments++;
                 }
@@ -211,7 +211,7 @@ public static class BraxClaudeMetro
         {
             var o = (GameObject)UnityEngine.Object.Instantiate(train, root, false); o.name = "Metro: wagon BRAXHORN";
             var b = RB(o); bool alongZ = b.size.z > b.size.x;
-            o.transform.rotation = Quaternion.Euler(0, alongZ ? 90 : 0, 0);
+            o.transform.rotation = Quaternion.Euler(0, alongZ ? 90 : 0, 0) * o.transform.rotation;
             b = RB(o); float sc = 22f / Mathf.Max(b.size.x, b.size.z); o.transform.localScale *= sc;
             b = RB(o); o.transform.position += new Vector3(hx - b.center.x, Track + .2f - b.min.y, tz - b.center.z);
             b = RB(o);

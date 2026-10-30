@@ -1,0 +1,285 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+// BRAXHORN CITY — region R1 „na gotowo” (Claude, testowy build gałęzi claude/region-20261030).
+// Wejście: BraxRegion.Apply(world, root) wywołane na końcu BraxCityRebuild.Apply.
+// Zasady właściciela: tylko materiały i modele z Poly Haven (CC0) i z biblioteki w repo,
+// żadnych kolorowych klocków, rośliny i drzewa bez odchudzania, nic nie świeci.
+// Każdy krok jest osobno zabezpieczony: błąd jednego kroku nie przerywa buildu.
+public static class BraxRegion
+{
+    public const string PH = "Assets/Source/Claude/PolyHaven/";
+    public const string Lib = "Assets/Source/Claude/Library/";
+    public const string Out = "Assets/PlayableGenerated/ClaudeRegion";
+
+    [Serializable]
+    public sealed class Report
+    {
+        public string status = "NOT_RUN";
+        public List<string> steps = new List<string>();
+        public List<string> notes = new List<string>();
+        public List<string> missingAssets = new List<string>();
+        public int offsetMaterials, offsetRenderers;
+        public int shrubs, grassClumps, flowers, rocks, trees, streetProps, beachProps;
+        public int terraceFlowers, terracePlants;
+        public bool pavilion, pavilionDoor, nutrition, nova;
+        public Vector3 pavilionAt;
+    }
+
+    public static Report Rep = new Report();
+    public static bool Enabled => BraxClaudeTowerTerrace.Enabled;
+    public static System.Random Rnd = new System.Random(20261030);
+
+    public static void Apply(BraxCityWorld world, Transform root)
+    {
+        if (!Enabled) return;
+        Rep = new Report();
+        Rnd = new System.Random(20261030);
+        Directory.CreateDirectory(Out);
+        Directory.CreateDirectory(Out + "/Materials");
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        Physics.SyncTransforms();
+
+        Step("pawilon sportowy (szatnia + sala walk)", () => BraxRegionPavilion.Apply(world, root));
+        Step("taras wieżowca: kwiaty i rośliny", () => BraxRegionTerrace.Apply(root));
+        Step("wnętrza: Nutrition i NOVA", () => BraxRegionInteriors.Apply(root));
+        Step("zieleń naturalna i mała architektura", () => BraxRegionVegetation.Apply(root));
+        // Na końcu: przesunięcie głębi dla wszystkiego, co dobudowane (anty-migotanie).
+        Step("anty-migotanie (offset głębi, trilinear)", () => BraxRegionFlicker.Apply(root));
+
+        // Siatki zrobione po BraxCityArchitecture.Finish nie mają plików: zapisujemy je, żeby build był deterministyczny.
+        Step("utrwalenie siatek", () => PersistMeshes(root));
+        Rep.status = "BUILT";
+        File.WriteAllText(Out + "/region.json", JsonUtility.ToJson(Rep, true));
+        Debug.Log("BRAXHORN_CLAUDE_REGION " + JsonUtility.ToJson(Rep));
+    }
+
+    static void PersistMeshes(Transform root)
+    {
+        Directory.CreateDirectory(Out + "/Meshes");
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        int saved = 0, serial = 0;
+        var seen = new HashSet<Mesh>();
+        AssetDatabase.StartAssetEditing();
+        try
+        {
+            foreach (var filter in root.GetComponentsInChildren<MeshFilter>(true))
+            {
+                var mesh = filter ? filter.sharedMesh : null;
+                if (!mesh || seen.Contains(mesh) || AssetDatabase.Contains(mesh)) continue;
+                seen.Add(mesh);
+                AssetDatabase.CreateAsset(mesh, Out + "/Meshes/region_" + (serial++).ToString("D5") + ".asset");
+                saved++;
+            }
+        }
+        finally { AssetDatabase.StopAssetEditing(); }
+        AssetDatabase.SaveAssets();
+        Note("utrwalone siatki: " + saved);
+    }
+
+    static void Step(string name, Action action)
+    {
+        try { action(); Rep.steps.Add(name + ": OK"); }
+        catch (Exception e)
+        {
+            Rep.steps.Add(name + ": BŁĄD " + e.Message);
+            Debug.LogError("BRAXHORN_CLAUDE_REGION " + name + ": " + e);
+        }
+    }
+
+    public static void Note(string text) { Rep.notes.Add(text); Debug.Log("BRAXHORN_CLAUDE_REGION " + text); }
+
+    // ---------------- tekstury Poly Haven ----------------
+
+    static readonly Dictionary<string, Material> materials = new Dictionary<string, Material>();
+
+    static Texture2D Tex(string path)
+    {
+        if (!File.Exists(path)) return null;
+        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+    }
+
+    /// <summary>Czy dany zestaw tekstur Poly Haven jest dostępny (pobrany w buildzie).</summary>
+    public static bool HasTexture(string slug)
+    {
+        return File.Exists(PH + "textures/" + slug + "/diffuse.jpg") ||
+               File.Exists("Assets/Source/CityRebuild/textures/" + slug + "/2k/" + slug + "_diff_2k.jpg");
+    }
+
+    /// <summary>
+    /// Materiał PBR z tekstur Poly Haven. Pierwszy dostępny slug z listy; metres = ile metrów
+    /// świata na jedno powtórzenie tekstury. Brak wszystkich slugów = wyjątek (krok zgłosi błąd).
+    /// </summary>
+    public static Material Pbr(string name, float metres, Color? tint, params string[] slugs)
+    {
+        foreach (var slug in slugs)
+        {
+            Texture2D d = null, n = null, a = null;
+            string ph = PH + "textures/" + slug + "/";
+            string cr = "Assets/Source/CityRebuild/textures/" + slug + "/2k/";
+            if (File.Exists(ph + "diffuse.jpg")) { d = Tex(ph + "diffuse.jpg"); n = Tex(ph + "normal.jpg"); a = Tex(ph + "arm.jpg"); }
+            else if (File.Exists(cr + slug + "_diff_2k.jpg")) { d = Tex(cr + slug + "_diff_2k.jpg"); n = Tex(cr + slug + "_nor_gl_2k.png"); a = Tex(cr + slug + "_arm_2k.jpg"); }
+            if (!d) { if (!Rep.missingAssets.Contains("tex:" + slug)) Rep.missingAssets.Add("tex:" + slug); continue; }
+            string key = name + "|" + slug + "|" + metres.ToString("F3") + "|" + (tint.HasValue ? tint.Value.ToString() : "-");
+            Material m;
+            if (materials.TryGetValue(key, out m) && m) return m;
+            string tintTag = tint.HasValue ? " " + ColorUtility.ToHtmlStringRGB(tint.Value) : "";
+            m = BraxCityMaterials.Textured(name + " [" + slug + tintTag + "]", d, n, a, 1f / Mathf.Max(.05f, metres));
+            if (tint.HasValue) { m.SetColor("_Color", tint.Value); EditorUtility.SetDirty(m); }
+            materials[key] = m;
+            return m;
+        }
+        throw new FileNotFoundException("Poly Haven: brak tekstur " + string.Join("/", slugs));
+    }
+
+    /// <summary>Drobne okucia (stal, szkło): materiał bez tekstury, tylko dla małych elementów.</summary>
+    public static Material Fitting(string name, Color color, float roughness, float metallic)
+    {
+        return BraxCityMaterials.Surface(name, color, roughness, metallic);
+    }
+
+    public static readonly Color Steel = new Color(.62f, .63f, .64f);
+    public static readonly Color Champagne = new Color(.66f, .58f, .46f);
+    public static readonly Color Glass = new Color(.70f, .80f, .82f, .24f);
+
+    // ---------------- modele Poly Haven i biblioteki ----------------
+
+    static readonly Dictionary<string, GameObject> models = new Dictionary<string, GameObject>();
+
+    /// <summary>Pierwszy istniejący model z listy id (Poly Haven .glb/.gltf lub biblioteka .glb). null = brak.</summary>
+    public static GameObject Model(params string[] ids)
+    {
+        foreach (var id in ids)
+        {
+            GameObject cached;
+            if (models.TryGetValue(id, out cached) && cached) return cached;
+            foreach (var p in new[] { PH + "models/" + id + "/" + id + ".glb", PH + "models/" + id + "/" + id + ".gltf", Lib + id + ".glb" })
+            {
+                if (!File.Exists(p)) continue;
+                AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceSynchronousImport);
+                var go = AssetDatabase.LoadAssetAtPath<GameObject>(p) ?? AssetDatabase.LoadAllAssetsAtPath(p).OfType<GameObject>().FirstOrDefault();
+                if (go) { models[id] = go; return go; }
+            }
+            if (!Rep.missingAssets.Contains("model:" + id)) Rep.missingAssets.Add("model:" + id);
+        }
+        return null;
+    }
+
+    public static Bounds Bounds(GameObject go)
+    {
+        var rs = go.GetComponentsInChildren<Renderer>(true);
+        if (rs.Length == 0) return new Bounds(go.transform.position, Vector3.zero);
+        var b = rs[0].bounds;
+        foreach (var r in rs.Skip(1)) b.Encapsulate(r.bounds);
+        return b;
+    }
+
+    /// <summary>
+    /// Stawia kopię modelu tak, że środek podstawy stoi w punkcie floor (y = poziom podłoża).
+    /// scale: mnożnik; maxHeight > 0 ogranicza wysokość (skaluje w dół); solid: kolizja (box).
+    /// </summary>
+    public static GameObject Put(Transform parent, GameObject source, string label, Vector3 floor, float yaw,
+                                 float scale = 1f, bool solid = true, float maxHeight = 0f, float sink = 0f)
+    {
+        if (!source) return null;
+        var o = (GameObject)UnityEngine.Object.Instantiate(source, parent, false);
+        o.name = label;
+        o.transform.position = Vector3.zero;
+        o.transform.rotation = Quaternion.Euler(0, yaw, 0) * o.transform.rotation;   // obrót z importu zostaje (Sketchfab Z-up)
+        if (Mathf.Abs(scale - 1f) > .0001f) o.transform.localScale *= scale;
+        var b = Bounds(o);
+        if (maxHeight > 0f && b.size.y > maxHeight) { o.transform.localScale *= maxHeight / b.size.y; b = Bounds(o); }
+        o.transform.position = floor - new Vector3(b.center.x, b.min.y + sink, b.center.z);
+        foreach (var r in o.GetComponentsInChildren<Renderer>(true))
+        {
+            r.shadowCastingMode = ShadowCastingMode.On;
+            r.receiveShadows = true;
+        }
+        if (solid)
+        {
+            b = Bounds(o);
+            var c = new GameObject(label + " kolizja").AddComponent<BoxCollider>();
+            c.transform.SetParent(parent, false);
+            c.transform.position = b.center;
+            c.size = b.size;
+        }
+        return o;
+    }
+
+    public static GameObject Box(string name, Transform parent, Vector3 at, Vector3 size, Material m, bool solid = false, float metres = 1f)
+    {
+        return BraxCityArchitecture.Box(name, parent, at, size, m, solid, metres);
+    }
+
+    public static Light Warm(Transform parent, string name, Vector3 at, float intensity, float range)
+    {
+        var l = new GameObject(name).AddComponent<Light>();
+        l.transform.SetParent(parent, false);
+        l.transform.position = at;
+        l.type = LightType.Point;
+        l.color = new Color(1f, .92f, .80f);
+        l.intensity = intensity;
+        l.range = range;
+        l.shadows = LightShadows.None;
+        l.renderMode = LightRenderMode.ForcePixel;
+        return l;
+    }
+
+    // ---------------- geometria i wolne miejsce ----------------
+
+    public static bool Free(Vector3 center, Vector3 size)
+    {
+        return !Physics.CheckBox(center, size * .5f, Quaternion.identity, ~0, QueryTriggerInteraction.Ignore);
+    }
+
+    /// <summary>Najwyższe podłoże pod punktem (x, z) w zakresie yMin..yMax, normalna w górę.</summary>
+    public static bool Ground(float x, float z, float yMin, float yMax, out RaycastHit best)
+    {
+        best = default(RaycastHit);
+        bool found = false;
+        foreach (var h in Physics.RaycastAll(new Vector3(x, yMax + 30f, z), Vector3.down, yMax - yMin + 30f, ~0, QueryTriggerInteraction.Ignore))
+        {
+            if (h.normal.y < .75f || h.point.y < yMin || h.point.y > yMax) continue;
+            if (!found || h.point.y > best.point.y) { best = h; found = true; }
+        }
+        return found;
+    }
+
+    public static float Range(float a, float b) { return a + (float)Rnd.NextDouble() * (b - a); }
+    public static T Pick<T>(IList<T> list) { return list[Rnd.Next(list.Count)]; }
+
+    public static bool IsGrassRenderer(Renderer r)
+    {
+        if (!r || !r.enabled) return false;
+        foreach (var m in r.sharedMaterials)
+        {
+            if (!m) continue;
+            if (m.shader && m.shader.name == "Braxhorn/ClaudeWorldGround" && m.name.ToLowerInvariant().Contains("tra")) return true;
+            if (BraxClaudeGround.LooksLikeGrass(m)) return true;
+        }
+        return false;
+    }
+
+    public static bool Under(Transform t, string prefix)
+    {
+        for (var p = t; p; p = p.parent)
+            if (p.name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
+
+    public static Transform Root(Transform parent, string name)
+    {
+        var old = parent.Find(name);
+        if (old) UnityEngine.Object.DestroyImmediate(old.gameObject);
+        var t = new GameObject(name).transform;
+        t.SetParent(parent, false);
+        t.position = Vector3.zero;
+        return t;
+    }
+}

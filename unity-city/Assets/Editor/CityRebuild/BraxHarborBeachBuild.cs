@@ -184,7 +184,7 @@ public static class BraxHarborBeachBuild
         var go = UnityEngine.Object.Instantiate(prefab);
         go.name = name; go.transform.SetParent(parent, false);
         go.transform.localPosition = Vector3.zero;
-        go.transform.rotation = Quaternion.Euler(0, yaw, 0);
+        go.transform.rotation = Quaternion.Euler(0, yaw, 0) * go.transform.rotation; // zachowany obrót z importu (Sketchfab Z-up)
         go.transform.localScale = go.transform.localScale * scale;
         var b = RendererBounds(go);
         float dy = yMode == 0 ? y - b.min.y : y - b.max.y;
@@ -321,9 +321,9 @@ public static class BraxHarborBeachBuild
 
         // 2) Piasek: matowy fotoskan (bez plastikowego połysku), skala w metrach świata.
         var dry = BraxClaudeGround.WorldMaterial("Plaza: suchy piasek coast_sand_02",
-            Tex("coast_sand_02", "_diff_2k.jpg"), Tex("coast_sand_02", "_nor_2k.png", normal: true), null, 2.4f, new Color(1.12f, .96f, .70f), .28f, .9f);
+            Tex("coast_sand_02", "_diff_2k.jpg"), Tex("coast_sand_02", "_nor_2k.png", normal: true), null, 2.4f, new Color(1.0f, .98f, .93f), .28f, .9f); // naturalny kolor fotoskanu, bez pomarańczowego barwienia
         var wet = BraxClaudeGround.WorldMaterial("Plaza: mokry piasek damp_sand",
-            Tex("damp_sand", "_diff_2k.jpg"), Tex("damp_sand", "_nor_2k.png", normal: true), null, 2.4f, new Color(.98f, .84f, .60f), .2f, .8f);
+            Tex("damp_sand", "_diff_2k.jpg"), Tex("damp_sand", "_nor_2k.png", normal: true), null, 2.4f, new Color(.94f, .90f, .82f), .2f, .8f); // mokry piasek: ciemniejszy, naturalny
         var dryDisp = Tex("coast_sand_02", "_disp_2k.png", read: true);
         Vector3 tip; int tris; Rect zone;
         bool corner = CornerBeach(cityRoot, root, dry, wet, dryDisp, out tip, out tris, out zone);
@@ -334,7 +334,7 @@ public static class BraxHarborBeachBuild
         // 1) Cały zielony trawnik nad wodą staje się plażą: zasięg z prawdziwych siatek trawy
             //    przy brzegu (ograniczony do pasa nadmorskiego), trawa wycięta razem z kolizją.
             float lx0 = LandX, lz0 = Z0, lz1 = Z1;
-            foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
+            foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
             {
                 var b = r.bounds;
                 if (b.max.x < LandX || b.min.x > Shore || b.max.z < Z0 || b.min.z > Z1 || b.size.y > 3f || b.max.y > 1.5f) continue;

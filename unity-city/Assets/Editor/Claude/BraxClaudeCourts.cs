@@ -43,7 +43,7 @@ public static class BraxClaudeCourts
 
         // ---------- 1) kort -> boisko piłkarskie ----------
         MeshRenderer court = null; float best = 0;
-        foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
+        foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
         {
             var b = r.bounds; if (b.size.y > .6f || b.max.y > 1f || Vector2.Distance(new Vector2(b.center.x, b.center.z), new Vector2(10, 80)) > 12f) continue;
             if (!r.sharedMaterials.Any(Reddish)) continue;
@@ -62,7 +62,7 @@ public static class BraxClaudeCourts
                 court.sharedMaterials = court.sharedMaterials.Select(m => Reddish(m) ? turf : m).ToArray();
             }
             // stare linie tenisowe (białe, płaskie) w obrębie boiska — wyłączone
-            foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
+            foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
             {
                 if (r == court) continue; var b = r.bounds;
                 if (!cb.Intersects(b) || b.size.y > .15f || b.max.y > ground + .1f) continue;

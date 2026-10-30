@@ -33,6 +33,10 @@ Shader "Braxhorn/CityStaticPBR"
         [HideInInspector] _DstBlend("Destination blend", Float) = 0
         [HideInInspector] _ZWrite("Depth write", Float) = 1
         [HideInInspector] _Transparent("Preserve blend alpha", Float) = 0
+        // Przesunięcie głębi (polygon offset): nowe elewacje wygrywają ze starą ścianą
+        // w tym samym miejscu, więc nie migoczą (z-fighting). 0 = bez zmian.
+        _OffsetFactor("Depth offset factor", Float) = 0
+        _OffsetUnits("Depth offset units", Float) = 0
         _SunDirection("Surface towards city sun", Vector) = (-.45,.78,-.42,0)
         _SunColor("City daylight colour", Color) = (1,.98,.94,1)
         _SunIntensity("City sun irradiance", Range(0,5)) = 2.4
@@ -47,6 +51,7 @@ Shader "Braxhorn/CityStaticPBR"
         Cull [_Cull]
         Blend [_SrcBlend] [_DstBlend]
         ZWrite [_ZWrite]
+        Offset [_OffsetFactor], [_OffsetUnits]
         Pass
         {
             Name "CITY_STATIC_PBR"

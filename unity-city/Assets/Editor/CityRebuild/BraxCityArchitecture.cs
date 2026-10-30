@@ -432,7 +432,9 @@ public static class BraxCityArchitecture
         var art=BraxCityMaterials.Textured("Original artwork "+id,texture,null,null,1);
         var face=new BraxCitySystemMesh();face.Quad(new Vector3(-width*.5f,-height*.5f,.101f),new Vector3(width*.5f,-height*.5f,.101f),new Vector3(width*.5f,height*.5f,.101f),new Vector3(-width*.5f,height*.5f,.101f));
         var obj=MeshObject("Unmodified supplied brand artwork",g,face,art);
-        var mesh=obj.GetComponent<MeshFilter>().sharedMesh;mesh.uv=new[]{Vector2.zero,Vector2.right,Vector2.one,Vector2.up};
+        // Front tablicy patrzy w +Z grupy (w stronę ulicy), więc U musi MALEĆ wraz z X,
+        // inaczej napis czyta się w lustrzanym odbiciu (błąd widoczny na nagraniach z telefonu).
+        var mesh=obj.GetComponent<MeshFilter>().sharedMesh;mesh.uv=new[]{Vector2.right,Vector2.zero,Vector2.up,Vector2.one};
         var mount=new BraxCitySystemMesh();
         foreach(float x in new[]{-width*.42f,width*.42f})
         {

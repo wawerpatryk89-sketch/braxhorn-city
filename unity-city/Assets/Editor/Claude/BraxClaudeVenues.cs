@@ -16,6 +16,7 @@ public static class BraxClaudeVenues
     {
         var g = BraxCityArchitecture.Box(name, parent, at, size, m, false);
         g.transform.localPosition = Vector3.zero; g.transform.localRotation = Quaternion.identity; g.transform.localScale = Vector3.one;
+        GameObjectUtility.SetStaticEditorFlags(g, 0); // ruchome skrzydło: bez static batching
     }
 
     static Transform Leaf(string entranceLabel)

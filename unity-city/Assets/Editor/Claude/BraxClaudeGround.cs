@@ -88,6 +88,20 @@ public static class BraxClaudeGround
         return new Color(avg.r * tint.r, avg.g * tint.g, avg.b * tint.b);
     }
 
+    // Stare miasto (original) i jego fizyka (physics) to osobne hierarchie obok korzenia renowacji.
+    // Skan samego cityRoot ich nie widzi (build 05e1a53: grassRenderers 0, cutTriangles 0).
+    public static Transform SourceCity, SourcePhysics;
+    public static T[] All<T>(Transform cityRoot) where T : Component
+    {
+        var list = new List<T>();
+        if (cityRoot) list.AddRange(cityRoot.GetComponentsInChildren<T>(true));
+        if (SourceCity && SourceCity != cityRoot && !SourceCity.IsChildOf(cityRoot) && !(cityRoot && cityRoot.IsChildOf(SourceCity)))
+            list.AddRange(SourceCity.GetComponentsInChildren<T>(true));
+        if (SourcePhysics && typeof(Collider).IsAssignableFrom(typeof(T)) && SourcePhysics != cityRoot && !SourcePhysics.IsChildOf(cityRoot))
+            list.AddRange(SourcePhysics.GetComponentsInChildren<T>(true));
+        return list.ToArray();
+    }
+
     internal static bool LooksLikeGrass(Material m)
     {
         if (!m) return false;
@@ -116,7 +130,7 @@ public static class BraxClaudeGround
         Material grass;
         try { grass = Grass(); }
         catch (Exception e) { report.notes.Add("trawa: " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_GROUND " + e); return; }
-        foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
+        foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
         {
             if (Excluded(r.transform)) continue;
             var b = r.bounds;
@@ -135,7 +149,7 @@ public static class BraxClaudeGround
     // Usuwa trójkąty płaskiego terenu (normalna w górę, wysokość y0..y1) w prostokącie XZ.
     public static void Cut(Transform cityRoot, Rect area, float y0, float y1, Transform except)
     {
-        foreach (var mf in cityRoot.GetComponentsInChildren<MeshFilter>(true))
+        foreach (var mf in BraxClaudeGround.All<MeshFilter>(cityRoot))
         {
             if (!mf.sharedMesh || (except && mf.transform.IsChildOf(except))) continue;
             var mr = mf.GetComponent<MeshRenderer>(); if (!mr) continue;
@@ -170,13 +184,40 @@ public static class BraxClaudeGround
             mf.sharedMesh = copy;
             report.cutTriangles += removed; report.cutMeshes++; report.cutMeshNames.Add(mf.name);
         }
-        // Osobne siatki kolizji (bez renderera) nad plażą: też wycinamy.
-        foreach (var col in cityRoot.GetComponentsInChildren<MeshCollider>(true))
+        // Osobne siatki kolizji (bez renderera, hierarchia fizyki) nad plażą: wycinamy tak samo,
+        // inaczej gracz chodziłby po niewidzialnym trawniku nad piaskiem.
+        foreach (var col in BraxClaudeGround.All<MeshCollider>(cityRoot))
         {
             if (!col.sharedMesh || col.GetComponent<MeshRenderer>() || (except && col.transform.IsChildOf(except))) continue;
             var b = col.bounds;
             if (b.max.x < area.xMin || b.min.x > area.xMax || b.max.z < area.yMin || b.min.z > area.yMax) continue;
-            report.notes.Add("osobna kolizja nad plażą zostawiona: " + col.name);
+            if (b.min.y > y1 || b.max.y < y0 || b.size.y > 6f) continue;
+            var src = col.sharedMesh; Vector3[] v;
+            try { v = src.vertices; } catch { report.notes.Add("nieczytelna siatka kolizji " + src.name); continue; }
+            if (v == null || v.Length == 0) continue;
+            var M = col.transform.localToWorldMatrix;
+            var w = v.Select(q => M.MultiplyPoint3x4(q)).ToArray();
+            var copy = UnityEngine.Object.Instantiate(src); copy.name = src.name + "_kolizja_bez_trawy_pod_plaza";
+            int removed = 0;
+            for (int sm = 0; sm < src.subMeshCount; sm++)
+            {
+                var tris = src.GetTriangles(sm); var keep = new List<int>(tris.Length);
+                for (int i = 0; i < tris.Length; i += 3)
+                {
+                    Vector3 a = w[tris[i]], bb = w[tris[i + 1]], c = w[tris[i + 2]];
+                    var ce = (a + bb + c) / 3f; var nrm = Vector3.Cross(bb - a, c - a).normalized;
+                    bool inside = ce.x > area.xMin && ce.x < area.xMax && ce.z > area.yMin && ce.z < area.yMax;
+                    if (inside && Mathf.Abs(nrm.y) > .8f && ce.y > y0 && ce.y < y1) { removed++; continue; }
+                    keep.Add(tris[i]); keep.Add(tris[i + 1]); keep.Add(tris[i + 2]);
+                }
+                copy.SetTriangles(keep, sm);
+            }
+            if (removed == 0) { UnityEngine.Object.DestroyImmediate(copy); continue; }
+            Directory.CreateDirectory(Out);
+            string cp = Out + "/" + Guid.NewGuid().ToString("N").Substring(0, 8) + "_colcut.asset";
+            AssetDatabase.CreateAsset(copy, cp);
+            col.sharedMesh = copy;
+            report.cutTriangles += removed; report.cutMeshes++; report.cutMeshNames.Add("kolizja: " + col.name);
         }
     }
 

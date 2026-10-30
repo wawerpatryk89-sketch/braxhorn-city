@@ -227,6 +227,7 @@ public static class BraxCityRebuild
         BraxCityWaterBuild.Apply(root);
         // Scope-locked waterfront extension: never runs in production or
         // Codex's separate Nutrition build unless explicitly enabled for TEST.
+        BraxClaudeGround.SourceCity=original;BraxClaudeGround.SourcePhysics=physics;
         if(Environment.GetEnvironmentVariable("BRAX_HARBOR_BEACH_SOURCE_READY")=="1" ||
            System.IO.File.Exists("Assets/Source/HarborBeach/ENABLE_TEST_BUILD.txt"))
             BraxHarborBeachBuild.Apply(root);
@@ -239,6 +240,8 @@ public static class BraxCityRebuild
         // Wyposażenie klubu NOVA (tylko testowy build Claude, ENABLE_TEST_BUILD.txt).
         BraxClaudeNovaClub.Apply();
         BraxClaudeVenues.Apply();
+        // Region R1 na gotowo (Claude, gałąź claude/region-20261030): pawilon, taras, wnętrza, zieleń, anty-migotanie.
+        BraxRegion.Apply(world,root);
         BraxClaudeGround.Save();
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
             throw new InvalidOperationException("Gym doorway integration boundary changed unexpectedly");
