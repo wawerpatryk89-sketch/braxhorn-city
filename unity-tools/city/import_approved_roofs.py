@@ -27,8 +27,35 @@ for name, url, expected, source_zip in MAPS:
         resized = im.convert("RGB").resize((2048,2048),Image.Resampling.LANCZOS)
         target = OUTPUT / f"R2{name}Albedo.jpg"
         resized.save(target, quality=95, subsampling=0, optimize=True)
+    # PBR maps belong to the EXACT same two operator-delivered Poly Haven assets.
+    # No generated normal/roughness substitutes. Fail closed if a source map is absent.
+    slug = "grey_roof_01" if name == "GreyRoof" else "roof_tiles"
+    extra = {}
+    for role, fmt in (("nor_dx", "png"), ("rough", "jpg")):
+        map_url = f"https://dl.polyhaven.org/file/ph-assets/Textures/{fmt}/4k/{slug}/{slug}_{role}_4k.{fmt}"
+        with urllib.request.urlopen(urllib.request.Request(map_url,headers={"User-Agent":"Braxhorn-R2-asset-source-verifier/1.0"}),timeout=150) as response:
+            raw = response.read()
+        with Image.open(io.BytesIO(raw)) as im:
+            if im.size != (4096,4096):
+                raise RuntimeError(f"BLOCKED ORIGINAL PBR MAP RESOLUTION {slug} {role}: {im.size}")
+            if role == "nor_dx":
+                # Unity Standard tangent-space normals use the DirectX source map.
+                pbr_target = OUTPUT / f"R2{name}Normal.png"
+                im.convert("RGB").resize((2048,2048),Image.Resampling.LANCZOS).save(pbr_target,optimize=True)
+            else:
+                # Original roughness, converted to Unity Standard smoothness alpha.
+                rough = im.convert("L").resize((2048,2048),Image.Resampling.LANCZOS)
+                color = Image.open(OUTPUT / f"R2{name}Albedo.jpg").convert("RGB")
+                rgba = color.convert("RGBA")
+                rgba.putalpha(rough.point(lambda value: 255-value))
+                pbr_target = OUTPUT / f"R2{name}SmoothnessAlbedo.png"
+                rgba.save(pbr_target,optimize=True)
+        extra[role]={"sourceUrl":map_url,"sourceSha256":hashlib.sha256(raw).hexdigest(),
+                     "runtimePath":str(pbr_target.relative_to(BASE)),
+                     "runtimeSha256":hashlib.sha256(pbr_target.read_bytes()).hexdigest(),
+                     "pixelWidth":2048,"pixelHeight":2048}
     manifest["maps"].append({"name":name,"originZip":source_zip,"sourceUrl":url,
         "sourceSha256":found,"runtimeSha256":hashlib.sha256(target.read_bytes()).hexdigest(),
-        "runtimePath":str(target.relative_to(BASE)),"pixelWidth":2048,"pixelHeight":2048})
+        "runtimePath":str(target.relative_to(BASE)),"pixelWidth":2048,"pixelHeight":2048,"pbrMaps":extra})
 (OUTPUT/"source-provenance.json").write_text(json.dumps(manifest,indent=2)+"\n",encoding="utf8")
 print("R2_APPROVED_REAL_ROOF_SOURCE_TEXTURES_STAGED",json.dumps(manifest))
