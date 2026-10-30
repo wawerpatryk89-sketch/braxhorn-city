@@ -70,6 +70,26 @@ jobs:
           buildMethod: BraxGymBuild.BuildCity
           versioning: None
           allowDirtyBuild: true
+      - name: Verify evidence of exact Unity R2 roof bindings (not a finished renovation)
+        run: |
+          python3 - <<'PY'
+          import json,pathlib
+          paths=[pathlib.Path('city-review/r2-roof-materials.json'),pathlib.Path('unity-city/city-review/r2-roof-materials.json')]
+          found=[p for p in paths if p.is_file()]
+          assert len(found)==1, f'Expected one generated Unity R2 roof audit, got {found}'
+          r=json.loads(found[0].read_text(encoding='utf-8'))
+          assert r['scene']=='BraxhornEstate'
+          assert r['status']=='R2_ROOF_MAPS_APPLIED__VISUAL_ACCEPTANCE_PENDING'
+          assert r['greySlots']>=1 and r['tileSlots']>=1
+          assert r['originalRoofMeshes']>=2 and r['originalRoofVertices']>0
+          assert r['originalMeshDataUnmodified'] is True
+          assert r['originalCityAndGymUnmodified'] is True
+          assert r['originalBraxUnmodified'] is True
+          assert r['windowAndDoorsImported'] is False
+          assert r['asphaltImported'] is False
+          assert r['filmApproved'] is False
+          print('R2_UNITY_ROOF_BINDINGS_VERIFIED__FULL_RENOVATION_BLOCKED',json.dumps({'file':str(found[0]),'greySlots':r['greySlots'],'tileSlots':r['tileSlots'],'windowAndDoorsImported':False,'asphaltImported':False,'filmApproved':False}))
+          PY
       - name: Package isolated city entry and provenance
         run: python3 unity-tools/city/package_estate.py
       - name: Verify smaller mobile payload (original Brax untouched)
@@ -95,6 +115,7 @@ jobs:
           name: estate-renovation-original-brax-review-${{ github.sha }}
           path: |
             city-review/
+            unity-city/city-review/r2-roof-materials.json
             build/WebGL/city-migration.json
             build/WebGL/playable.json
             unity-city/Assets/Source/City/native-texture-preparation.json
