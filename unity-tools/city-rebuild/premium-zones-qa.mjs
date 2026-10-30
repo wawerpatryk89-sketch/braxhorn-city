@@ -26,7 +26,7 @@ try{
  page.on('pageerror',e=>errors.push('PAGEERROR '+e.message));
  page.on('crash',()=>errors.push('PAGE_CRASH'));
  page.on('console',m=>{if(m.type()==='error')errors.push('CONSOLE '+m.text())});
- await page.goto('http://127.0.0.1:8976/',{waitUntil:'domcontentloaded'});
+ await page.goto('http://127.0.0.1:8976/?qa=1',{waitUntil:'domcontentloaded'});
  await page.locator('#start').click();
  await page.waitForFunction(()=>window.BraxhornState?.ready||window.BraxhornError,null,{timeout:360000});
  check('Unity runtime ready',!!(await page.evaluate(()=>window.BraxhornState?.ready)),await page.evaluate(()=>window.BraxhornError));
