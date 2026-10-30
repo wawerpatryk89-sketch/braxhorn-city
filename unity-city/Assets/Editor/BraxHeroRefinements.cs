@@ -30,11 +30,16 @@ public static class BraxHeroRefinements
     {
         var shader=Shader.Find("Braxhorn/HeroPremium");if(!shader)throw new Exception("Original ORM shader unavailable");
         var material=new Material(shader){name="Brax original PBR restored",color=Color.white};
-        material.SetTexture("_MainTex",Map("BraxAlbedo.png"));material.SetTexture("_BumpMap",Map("BraxNormal.png",false,true));material.SetTexture("_Orm",Map("BraxOrm.png",true));material.SetFloat("_BumpScale",.60f);material.SetFloat("_RoughnessFloor",.78f);material.SetFloat("_MetallicScale",0f);material.SetFloat("_OcclusionStrength",.8f);
+        material.SetTexture("_MainTex",Map("BraxAlbedo.png"));material.SetTexture("_BumpMap",Map("BraxNormal.png",false,true));material.SetTexture("_Orm",Map("BraxOrm.png",true));material.SetFloat("_BumpScale",.85f);material.SetFloat("_RoughnessFloor",.42f);material.SetFloat("_MetallicScale",.30f);material.SetFloat("_OcclusionStrength",1f);material.SetFloat("_OcclusionStrength",.8f);
         AssetDatabase.CreateAsset(material,generated+"/Premium/BraxSourceORM.mat");
         foreach(var renderer in hero.GetComponentsInChildren<SkinnedMeshRenderer>(true))renderer.sharedMaterials=Enumerable.Repeat(material,renderer.sharedMaterials.Length).ToArray();
         var fill=new GameObject("Brax neutral portrait fill").AddComponent<Light>();fill.type=LightType.Directional;fill.cullingMask=1<<8;fill.transform.SetParent(camera.transform,false);fill.transform.localRotation=Quaternion.Euler(20,32,0);fill.color=new Color(.93f,.96f,1);fill.intensity=.20f;fill.shadows=LightShadows.None;
         QualitySettings.pixelLightCount=4;
+        // Postać jak w podglądzie Tripo: klucz z cieniem własnym (tylko warstwa gracza), kontra od tyłu
+        // (sylwetka), fill zostaje. Cienie włączone tylko dla światła klucza postaci; miasto bez cieni.
+        var key=new GameObject("Brax key light (self-shadow)").AddComponent<Light>();key.type=LightType.Directional;key.cullingMask=1<<8;key.transform.SetParent(camera.transform,false);key.transform.localRotation=Quaternion.Euler(35,-40,0);key.color=new Color(1f,.96f,.90f);key.intensity=.55f;key.shadows=LightShadows.Soft;key.shadowStrength=.62f;key.shadowBias=.02f;key.shadowNormalBias=.35f;key.shadowNearPlane=.2f;
+        var rim=new GameObject("Brax rim light (silhouette)").AddComponent<Light>();rim.type=LightType.Directional;rim.cullingMask=1<<8;rim.transform.SetParent(camera.transform,false);rim.transform.localRotation=Quaternion.Euler(30,160,0);rim.color=new Color(.86f,.93f,1f);rim.intensity=.9f;rim.shadows=LightShadows.None;
+        QualitySettings.shadows=ShadowQuality.All;QualitySettings.shadowDistance=14;QualitySettings.shadowResolution=ShadowResolution.Medium;QualitySettings.shadowCascades=1;QualitySettings.shadowProjection=ShadowProjection.CloseFit;
         float[] heights={1.65f,1.5f,1.7f,1.4f};
         for(int i=0;i<bags.Length;i++)
         {
