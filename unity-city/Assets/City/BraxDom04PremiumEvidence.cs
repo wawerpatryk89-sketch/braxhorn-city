@@ -15,7 +15,7 @@ public sealed class BraxDom04PremiumEvidence : MonoBehaviour
     public void Dom04After(string ignored) { Toggle(true); }
     void Toggle(bool after)
     {
-        if (!Application.absoluteURL.Contains("qa=dom04")) return;
+        if (!Application.absoluteURL.Contains("dom04=1") || !Application.absoluteURL.Contains("qa=1")) return;
         wallA.sharedMaterials = after ? newA : oldA;
         wallB.sharedMaterials = after ? newB : oldB;
         approach.sharedMesh = after ? newApproach : oldApproach;

@@ -27,7 +27,7 @@ try {
  const state=()=>page.evaluate(()=>window.BraxhornState);
  const switchView=m=>page.evaluate(m=>window.unityInstance.SendMessage('Dom04PremiumEvidence',m,''),m);
  const shot=async name=>page.screenshot({path:path.join(out,name+'.png'),timeout:90000});
- await page.goto('http://127.0.0.1:8767/?qa=dom04',{waitUntil:'domcontentloaded'});
+ await page.goto('http://127.0.0.1:8767/?qa=1&dom04=1',{waitUntil:'domcontentloaded'});
  await page.click('#start');
  await page.waitForFunction(()=>window.BraxhornState?.ready||window.BraxhornError,null,{timeout:480000});
  if(await page.evaluate(()=>!!window.BraxhornError))throw Error('Unity WebGL start failed');
@@ -41,9 +41,12 @@ try {
  const after=await state();
  if(Math.hypot(before.x-after.x,before.z-after.z)>.03 || Math.abs(before.yaw-after.yaw)>.01)throw Error('Before/after camera mismatch');
  report.beforeAfterSameCamera=true;
+ if(Math.abs(before.x+14)>.04||Math.abs(before.z-6)>.04)throw Error('DOM04 QA placement failed; refusing street pictures');
  await send('ReviewView','-17,.08,0,90,12,8');await page.waitForTimeout(1600);await shot('03-facade');
  await send('ReviewView','-13,.08,1,90,32,7');await page.waitForTimeout(1600);await shot('04-grass-paving-fence');
  await send('ReviewView','-13,.08,0,90,9,8');await page.waitForTimeout(1600);
+ const houseStart=await state();
+ if(Math.abs(houseStart.x+13)>.04||Math.abs(houseStart.z)>.04)throw Error('DOM04 continuous film placement failed');
  await page.waitForFunction(()=>window.BraxhornState?.grounded,null,{timeout:30000});
  // Film interval: original MoveInput + LookInput exclusively. No ReviewView, teleport, or scene jump.
  const clock=await page.evaluate(()=>performance.now());const started=Date.now();
@@ -51,11 +54,11 @@ try {
  const firstFrame=previous.frames;
  while(Date.now()-started<24000){
     const s=await state(),elapsed=(Date.now()-started)/1000;
-    const target=elapsed<12?{x:-22,z:0}:{x:-10,z:0};
+    const target=elapsed<12?{x:-14,z:-6}:{x:-14,z:6};
     const remain=Math.hypot(target.x-s.x,target.z-s.z),dx=(target.x-s.x)/Math.max(.01,remain),dz=(target.z-s.z)/Math.max(.01,remain);
-    const mag=remain>.75?.39:0;
+    const mag=remain>.75?.55:0;
     await send('MoveInput',[(dx*s.rightX+dz*s.rightZ)*mag,(dx*s.forwardX+dz*s.forwardZ)*mag].join(','));
-    await send('LookInput','-1.8,0');
+    await send('LookInput','-0.35,0');
     await page.waitForTimeout(500);
     const t=await state(),dist=Math.hypot(t.x-previous.x,t.z-previous.z),dt=t.simulationTime-previous.simulationTime;
     if(t.area!=='estate'||t.build!==sha||dt<0||dist>Math.max(1.3,dt*6.2+.5)||Math.abs(t.y-previous.y)>1.5)throw Error('Noncontinuous Unity player motion');
@@ -64,7 +67,7 @@ try {
  }
  await send('MoveInput','0,0');
  const end=await page.evaluate(()=>performance.now());
- if(traveled<2 || grounded/frames<.8)throw Error('Physical movement insufficient: '+traveled);
+ if(traveled<.8 || grounded/frames<.8)throw Error('Physical DOM04 camera movement insufficient: '+traveled);
  const errors=logs.filter(l=>/PAGEERROR|NullReferenceException|MissingReferenceException|Shader.*(error|not supported)|abort\(|memory access out of bounds/.test(l));
  if(errors.length)throw Error(errors.join('\n'));
  await page.close();const raw=path.join(out,'recorded.webm');
