@@ -1,0 +1,109 @@
+name: BRAXHORN R2 premium renovation Unity 6 - isolated build and QA
+on:
+  push:
+    branches: [codex/estate-premium-renovation-20261030]
+    paths: ['unity-city/**','unity-tools/city/prepare.py','unity-tools/city/package.py','unity-tools/city/check.mjs','.github/workflows/estate-premium-renovation-build.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: estate-premium-r2-renovation-build
+  cancel-in-progress: false
+jobs:
+  estate:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/estate-premium-renovation-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-city
+            unity-tools
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+            asset-library/sources/sofa_02
+          persist-credentials: false
+          lfs: false
+      - name: Retrieve verified original gym export
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+      - name: Retrieve original city and estate, not substitute geometry
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40840263799
+          github-token: ${{ github.token }}
+          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
+          path: unity-city/Assets/Source/City/
+      - name: Prepare original rigs, native texture copies and library material
+        run: |
+          mkdir -p city-review
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6
+          python3 -m compileall -q unity-tools
+          node --check unity-tools/city/check.mjs
+          python3 unity-tools/prepare_playable.py
+          python3 unity-tools/premium_prepare.py
+          python3 unity-tools/premium_refinements.py
+          python3 unity-tools/city/prepare.py
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender
+          blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
+          git diff --exit-code -- unity-city/Assets/*.cs unity-city/Assets/*.shader unity-city/Assets/Editor unity-city/Assets/City unity-tools
+      - name: Compile both original areas in Unity 6 WebGL
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxGymBuild.BuildCity
+          versioning: None
+          allowDirtyBuild: true
+      - name: Package isolated city entry and provenance
+        run: python3 unity-tools/city/package_estate.py
+      - name: Verify smaller mobile payload (original Brax untouched)
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          data=list(pathlib.Path('unity-preview/Build').glob('*.data.unityweb'))
+          assert len(data)==1,data
+          size=data[0].stat().st_size
+          print('ESTATE_ONLY_COMPRESSED_BYTES',size,'PREVIOUS_BYTES',286816719)
+          assert size<286816719,'Estate-only scene did not reduce Unity payload'
+          PY
+      - name: Prepare real browser validation
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Validate SAME BraxGymPlayer and city joystick in ESTATE FIRST scene
+        run: node unity-tools/city/check_estate_original_player.mjs
+      - name: Save build and browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: estate-premium-r2-review-${{ github.sha }}
+          path: |
+            city-review/
+            build/WebGL/city-migration.json
+            build/WebGL/playable.json
+            unity-city/Assets/Source/City/native-texture-preparation.json
+            unity-city/Assets/Source/City/source-provenance.json
+          retention-days: 14
+      - name: Save compiled player for diagnosis, not automatic publication
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: estate-premium-r2-build-${{ github.sha }}
+          path: unity-preview/
+          if-no-files-found: warn
+          retention-days: 14
