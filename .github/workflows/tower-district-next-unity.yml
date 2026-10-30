@@ -149,3 +149,52 @@ jobs:
           path: tower-district-qa/
           if-no-files-found: warn
           retention-days: 14
+
+  publish-video-review:
+    needs: actual-player-qa
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout reviewed gallery builder
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+      - name: Download real video and screenshots from successful runtime QA
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: tower-district-next-runtime-evidence-${{ github.sha }}
+          path: tower-district-qa/
+      - name: Verify Unity evidence and generate light video review
+        run: python3 unity-tools/city-rebuild/publish_tower_gallery.py
+      - name: Publish immutable TEST-only video review branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64,os,subprocess
+          from pathlib import Path
+          root=Path('tower-gallery')
+          sha=os.environ['GITHUB_SHA']
+          branch='preview/tower-district-video-'+sha[:12]
+          token=os.environ.pop('GH_TOKEN')
+          env=os.environ.copy()
+          env.update(GIT_CONFIG_COUNT='1',GIT_CONFIG_KEY_0='http.https://github.com/.extraheader',
+            GIT_CONFIG_VALUE_0='AUTHORIZATION: basic '+base64.b64encode(('x-access-token:'+token).encode()).decode())
+          def git(*args,auth=False):
+              return subprocess.check_output(['git','-c','core.hooksPath=/dev/null',*args],
+                cwd=root,env=env if auth else None,text=True).strip()
+          git('init','--initial-branch='+branch)
+          git('config','user.name','github-actions[bot]')
+          git('config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
+          git('remote','add','origin','https://github.com/wawerpatryk89-sketch/braxhorn-city.git')
+          if git('ls-remote','--heads','origin','refs/heads/'+branch,auth=True):
+              raise RuntimeError('Immutable gallery branch already exists')
+          git('add','--all')
+          git('commit','-m','review(city): real Unity tower district video '+sha[:12])
+          git('push','origin','HEAD:refs/heads/'+branch,auth=True)
+          print('REAL_UNITY_TOWER_VIDEO_REVIEW_PUBLISHED',branch)
+          PY
