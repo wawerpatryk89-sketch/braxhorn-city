@@ -1,60 +1,62 @@
-name: BRAXHORN R2 premium renovation - source quality gates
+name: BRAXHORN R2 - Unity-only source and old Three vendor removal gates
 on:
   push:
     branches: [codex/estate-premium-renovation-20261030]
     paths:
-      - dev/osiedle/**
-      - docs/OSIEDLE_REMONT_PREMIUM_20261030.md
-      - .github/workflows/estate-premium-renovation-qa.yml
+      - 'dev/three/**'
+      - 'unity-city/**'
+      - '.github/workflows/estate-premium-renovation-qa.yml'
 permissions:
   contents: read
 jobs:
   source-check:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/estate-premium-renovation-20261030'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Check JavaScript source syntax
-        run: |
-          node --check dev/osiedle/world.js
-          node --check dev/osiedle/level.js
-          node --check dev/osiedle/layout.js
-          node --check dev/osiedle/vegetation.js
-      - name: Build R2 source only - no city, no production
-        run: |
-          npm exec --yes --package=esbuild@0.28.2 -- esbuild dev/osiedle/main.js --bundle --format=esm --target=es2020 --alias:three=./dev/three/build/three.module.js --outfile=/tmp/braxhorn-estate-renovation.js
-          test -s /tmp/braxhorn-estate-renovation.js
-      - name: Verify original source foliage and no synthetic trees
+      - name: Verify Three.js vendor removed without deleting original content library
         run: |
           python3 - <<'PY'
-          import pathlib,json
-          root=pathlib.Path('dev/osiedle')
-          world=(root/'world.js').read_text()
-          foliage=(root/'vegetation.js').read_text()
-          layout=(root/'layout.js').read_text()
-          level=(root/'level.js').read_text()
-          assert "new T.IcosahedronGeometry(h*.32" not in world
-          assert "foliageRequests.push({kind:'tree'" in world
-          assert "foliageRequests.push({kind:'shrub'" in world
-          assert "park_" in foliage and "glb" in foliage
-          assert "world.foliageRequests" in level
-          assert "SOURCE_TEXTURE_APPLIED" in level and "BLOCKED_NO_VERIFIED_SOURCE_MAP" in level
-          assert "stucco_indoor" in level and "Parquetlight_1K" in level
-          assert "PavingStones151" in pathlib.Path('docs/OSIEDLE_REMONT_PREMIUM_20261030.md').read_text()
-          present=(root/'assets/park_tree.glb').is_file()
-          report={"status":"SOURCE_CODE_COMPILES__VISUAL_UNITY_QA_PENDING",
-            "sourceVerdantTreeBinaryInThisBranch":present,
-            "unverifiedAsphaltAndWindowsRemainBlocked":True,
-            "sharedPlayerChanged":False,
-            "cityAndGymChanged":False}
-          pathlib.Path('/tmp/estate-renovation-source-qa.json').write_text(json.dumps(report,indent=2))
-          print(json.dumps(report))
+          from pathlib import Path
+          import json
+          assert not Path('dev/three').exists(), 'Legacy vendored Three.js is still present'
+          required=[
+            'unity-city/Assets/BraxGymPlayer.cs',
+            'unity-city/Assets/Editor/BraxGymBuild.cs',
+            'unity-city/Assets/Editor/BraxCityBuild.cs',
+            'unity-city/Assets/City/BraxCityWorld.cs',
+            'unity-city/Assets/Editor/BraxEstateR2ApprovedRoofs.cs',
+            'unity-city/Assets/Editor/BraxEstateR2FacadeFinish.cs',
+            'unity-city/ProjectSettings/ProjectVersion.txt',
+          ]
+          missing=[p for p in required if not Path(p).is_file()]
+          assert not missing, f'Unity 6 sources missing: {missing}'
+          assert '6000.0.58f2' in Path('unity-city/ProjectSettings/ProjectVersion.txt').read_text()
+          assert Path('asset-library').is_dir(), 'Owned asset library missing'
+          assert Path('dev/models').is_dir(), 'Original 3D models missing'
+          assert Path('public/assets').is_dir(), 'Game assets missing'
+          # Legacy browser bundles and export source remain read-only until
+          # an independent full Unity City+Estate+Gym WebGL build has passed.
+          legacy=['public/game.js','public/osiedle/game.js','dev/src/main.js']
+          assert all(Path(p).is_file() for p in legacy),'Legacy rollback/reference not preserved'
+          report={
+            'scope':'codex/estate-premium-renovation-20261030',
+            'vendoredThreeJsRemoved':True,
+            'allOwnedAssetDirectoriesRetained':True,
+            'legacyBrowserBundlesArchivedInPlaceUntilFullUnityRelease':True,
+            'fullUnityReleaseApproved':False,
+            'productionUpdated':False,
+            'result':'SOURCE_GATE_PASS_ONLY__UNITY_RUNTIME_ACCEPTANCE_NOT_PROVEN'
+          }
+          Path('/tmp/r2-unity-only-source-gate.json').write_text(json.dumps(report,indent=2))
+          print(json.dumps(report,sort_keys=True))
           PY
-      - name: Save evidence
+      - name: Upload source removal evidence
         uses: actions/upload-artifact@v4
         with:
-          name: estate-premium-renovation-source-qa-${{ github.sha }}
-          path: /tmp/estate-renovation-source-qa.json
+          name: r2-three-vendor-removal-check-${{ github.sha }}
+          path: /tmp/r2-unity-only-source-gate.json
           retention-days: 14
