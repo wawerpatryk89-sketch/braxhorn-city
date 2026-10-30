@@ -12,7 +12,8 @@ def download(url):
     assert url.startswith("https://dl.polyhaven.org/"), "Source must be official Poly Haven"
     with urllib.request.urlopen(urllib.request.Request(url,headers={"User-Agent":"BRAXHORN DOM04 genuine owner library assets"}),timeout=240) as r:return r.read()
 def files(asset):
-    with urllib.request.urlopen("https://api.polyhaven.com/files/"+asset,timeout=180) as r:return json.load(r)
+    req=urllib.request.Request("https://api.polyhaven.com/files/"+asset,headers={"User-Agent":"Braxhorn-Unity6-Dom04-CC0/1.0","Accept":"application/json"})
+    with urllib.request.urlopen(req,timeout=180) as r:return json.load(r)
 def all_urls(v,into):
     if isinstance(v,dict):
         u=v.get("url")
