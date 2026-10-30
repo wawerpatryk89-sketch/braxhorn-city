@@ -548,5 +548,19 @@
       "noUnsafeTeleport": true,
       "ownerAcceptanceRequired": true
     }
+  },
+  "originalSourceArchive": {
+    "releaseTag": "unity6-original-source-imports-20261030",
+    "draft": true,
+    "verifiedPipeline": "codex/unity6-integration-20261030:unity-tools/city/fetch_original_imports.py",
+    "note": "Do not rely on expiring original Actions artifact runs 40787817505 or 40840263799. Reuse provenance SHA checks from durable draft."
+  },
+  "workstreamIsolation": {
+    "roadBranch": "codex/estate-r2-roads-expansion-20261030",
+    "houseBranch": "codex/estate-premium-renovation-20261030",
+    "cityIntegrationBranch": "codex/unity6-integration-20261030",
+    "productionBranch": "main",
+    "noCrossBranchWrites": true,
+    "onlyOwnerApprovedMerge": true
   }
 }

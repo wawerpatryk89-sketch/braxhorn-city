@@ -80,3 +80,17 @@ Odcinki to **proponowane polilinie w źródłowym układzie**, nie gotowe wspó�
 - Każda istotna zmiana założonych stref, istniejącego układu czy przesunięcie budynku wymaga uprzedniej zgody właściciela.
 
 **Cel zlecenia: najpierw kompletne, wiarygodne, połączone DROGI i CHODNIKI regionu R2 w Unity 6. Bez nowych budynków i bez publikacji produkcyjnej.**
+
+## Trwałość oryginalnych eksportów i poprawny tryb pracy Codexa
+
+- Nie szukaj edytora Unity na swoim lokalnym terminalu jako warunku startu. Pracujemy: **GitHub connector → zmiany C# w izolowanej gałęzi → GitHub Actions Unity 6000.0.58f2 → WebGL → prawdziwe screenshoty i MP4**. Brak lokalnego Unity nie jest powodem zakończenia zadania.
+- **Źródłowa gałąź R2 ma starszy workflow**, który nadal pobiera oryginalne modele z GitHub Actions run **40787817505** i **40840263799**. Ich artefakty są czasowe. W pierwszej kolejności przystosuj ODIZOLOWANY workflow drogowy do trwałego szkicu GitHub Release: **unity6-original-source-imports-20261030**.
+- W sprawdzonej gałęzi **codex/unity6-integration-20261030** istnieje działający kod **unity-tools/city/fetch_original_imports.py** oraz rozdzielony workflow: etap dostępu do prywatnego szkicu (uprawnienie wyłącznie do odczytania źródeł, token technicznie wymaga contents:write), następnie odizolowany etap kompilacji read-only. Zastosuj ten zweryfikowany wzorzec z kontrolą SHA-256; nie powracaj do wygasających oryginalnych Actions jako jedynego źródła.
+- Każdy nowy workflow i każda nowa scena tylko na **codex/estate-r2-roads-expansion-20261030**. Żadnych zmian ani automatycznego łączenia gałęzi **codex/estate-premium-renovation-20261030** (wykonawca domów), **codex/unity6-integration-20261030** (wykonawca miasta) i **main**.
+- Rzeczywiste drogi implementuj w odrębnej klasie C#, np. **BraxEstateR2RoadNetwork**. Podłącz ją minimalnym, izolowanym wywołaniem wyłącznie do tworzenia sceny **BraxhornEstate**. Nie przepisuj kontrolera Braxa, prefabów siłowni ani cudzych materiałów.
+- Pliki z Biblioteki ChatGPT nie są automatycznie montowane w Codex. Jeśli zasób PBR jest poza GitHub workspace, zastosuj zatwierdzony transfer jego kopii i weryfikację licencji / SHA; nie twórz atrap. Braki odnotuj jako **BLOCKED**, a prawdziwe drogi, które można wykonać, przygotuj bez podawania fikcyjnego końcowego PASS.
+- Odbiory 15%, 100% i inne raporty nie zastępują **własnego wizualnego odbioru operatora**. Nie obiecuj działającego linku przed rzeczywistą publikacją i testem WebGL.
+
+## Potwierdzony zakres tego commitu
+
+Ten commit obejmuje **jedynie plan, układ proponowanych osi i kontrakt dla Codexa**. Nie utworzono żadnej drogi w scenie Unity 6, nie użyto plików właściciela do importu i nie wykonano żadnej kompilacji drogi. Realizacja fizyczna i materiałowa jest zadaniem kolejnego etapu.
