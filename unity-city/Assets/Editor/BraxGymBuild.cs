@@ -28,7 +28,8 @@ public static class BraxGymBuild
     {var obj=new GameObject(name);obj.transform.SetParent(parent,false);obj.transform.position=center;obj.AddComponent<BoxCollider>().size=size;}
     public static void Build(){BuildInternal(false);}
     public static void BuildCity(){BuildInternal(true);}
-    private static void BuildInternal(bool fullCity)
+    public static void BuildWaterfrontPreview(){BuildInternal(true,true);}
+    private static void BuildInternal(bool fullCity,bool waterfrontPreview=false)
     {
         if(fullCity)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
         Directory.CreateDirectory(Generated);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
@@ -129,16 +130,18 @@ public static class BraxGymBuild
         BraxGymPremium.Apply(gym,hero,bags.ToArray(),camera,light,fill,Generated);
         BraxHeroRefinements.Apply(hero,bags.ToArray(),camera,Generated);
         if(fullCity)BraxCityBuild.AttachCity(runtime);
-        string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
+        if(waterfrontPreview)BraxCityWaterfrontPreview.Apply(runtime);
+        string scenePath=Generated+(waterfrontPreview?"/BraxhornWaterfrontPreview.unity":fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;
-        string[] scenePaths=fullCity?new[]{scenePath,BraxCityBuild.CreateEstate(sourceCommit)}:new[]{scenePath};
+        string[] scenePaths=fullCity&&!waterfrontPreview?new[]{scenePath,BraxCityBuild.CreateEstate(sourceCommit)}:new[]{scenePath};
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
         var output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=BuildTarget.WebGL,locationPathName=output,options=BuildOptions.None});
         if(result.summary.result!=BuildResult.Succeeded)throw new Exception("Playable Unity build failed "+result.summary.result);
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
-        if(fullCity)BraxCityBuild.WriteReport(output,sourceCommit);
+        if(fullCity&&!waterfrontPreview)BraxCityBuild.WriteReport(output,sourceCommit);
+        if(waterfrontPreview)BraxCityBuild.WriteWaterfrontReport(output,sourceCommit);
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }
 }
