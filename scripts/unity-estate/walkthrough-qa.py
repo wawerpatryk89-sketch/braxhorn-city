@@ -45,8 +45,33 @@ async def main():
       combatButtonsHidden:[...document.querySelectorAll('#touch [data-act="punch"],#touch [data-act="kick"],#touch [data-act="special"],#touch [data-act="throw"],#touch [data-act="dodge"],#touch [data-hold="block"]')].every(x=>x.style.display==="none")
     })""")
     report["state"]=state
+    # Verify joystick and camera messages really reach the active Unity instance.
+    await page.evaluate("""() => {
+      window.__walkInputMessages=[];
+      const unity=window.__brxEstateUnity.unity;
+      const original=unity.SendMessage.bind(unity);
+      unity.SendMessage=(...args)=>{window.__walkInputMessages.push(args);return original(...args)};
+    }""")
+    stick=await page.locator("#joy").bounding_box()
+    assert stick is not None, "Fixed joystick is not visible"
+    sx,sy=stick["x"]+stick["width"]/2,stick["y"]+stick["height"]/2
+    await page.mouse.move(sx,sy)
+    await page.mouse.down()
+    await page.mouse.move(sx+40,sy-34,steps=8)
+    await page.wait_for_timeout(500)
+    await page.mouse.up()
+    await page.mouse.move(650,310)
+    await page.mouse.down()
+    await page.mouse.move(710,270,steps=6)
+    await page.mouse.up()
+    inputs=await page.evaluate("() => window.__walkInputMessages")
+    report["inputMessages"]=[x for x in inputs if x[1] in ("OnWebJoystick","OnWebLook")][:12]
+    report["inputPass"]=(
+      any(x[0]=="BRAXHORN_ESTATE_ORIGINAL_MIGRATION" and x[1]=="OnWebJoystick" and x[2].endswith(",1") for x in inputs)
+      and any(x[0]=="BRAXHORN_ESTATE_ORIGINAL_MIGRATION" and x[1]=="OnWebLook" for x in inputs)
+    )
     await page.screenshot(path=str(OUT/"estate-brax-walk-iphone-emulation.png"))
-    report["passed"]=bool(state["hero"]=="brax" and state["playing"] and state["sourceReady"] and state["walkDispatched"] and state["heroName"]=="Brax" and state["selectorHidden"] and state["canvas"] and state["doorActionVisible"] and state["combatButtonsHidden"] and not report["errors"])
+    report["passed"]=bool(state["hero"]=="brax" and state["playing"] and state["sourceReady"] and state["walkDispatched"] and state["heroName"]=="Brax" and state["selectorHidden"] and state["canvas"] and state["doorActionVisible"] and state["combatButtonsHidden"] and report["inputPass"] and not report["errors"])
    finally: await browser.close()
  finally:
   server.shutdown()
