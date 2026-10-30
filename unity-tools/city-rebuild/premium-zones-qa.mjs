@@ -12,7 +12,7 @@ const server=http.createServer((req,res)=>{
  let u=new URL(req.url,'http://localhost');
  let p=path.resolve(root,'.'+decodeURIComponent(u.pathname));
  if(p===root)p=path.join(root,'index.html');
- if(!p.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
+ if(p!==root && !p.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
  if(fs.existsSync(p)&&fs.statSync(p).isDirectory())p=path.join(p,'index.html');
  if(!fs.existsSync(p)){res.writeHead(404);res.end();return;}
  const types={'.html':'text/html','.js':'application/javascript','.json':'application/json','.wasm':'application/wasm','.png':'image/png','.webp':'image/webp'};
@@ -111,7 +111,7 @@ try{
  await page.screenshot({path:path.join(out,'10-metro-walked-stairs-up.png')});
 
  check('No runtime page crash',!errors.some(x=>x.includes('PAGE_CRASH')),errors.slice(-8));
-}catch(e){errors.push('QA_FATAL '+String(e));process.exitCode=1}
+}catch(e){errors.push('QA_FATAL '+String(e));console.error('QA_FATAL',e);process.exitCode=1}
 finally{
  fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({build:release.sourceCommit,checks,errors,physicalIPhoneValidated:false,visualAccepted:false},null,2));
  if(context)await context.close();
