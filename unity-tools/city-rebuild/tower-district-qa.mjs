@@ -10,7 +10,8 @@ const checks=[],errors=[];
 const server=http.createServer((req,res)=>{
  const u=new URL(req.url,'http://localhost');
  let file=path.resolve(root,'.'+decodeURIComponent(u.pathname));
- if(file!==root&&!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return}
+ if(file===root)file=path.join(root,'index.html');
+ if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return}
  if(fs.existsSync(file)&&fs.statSync(file).isDirectory())file=path.join(file,'index.html');
  if(!fs.existsSync(file)){res.writeHead(404);res.end();return}
  const types={'.html':'text/html','.js':'application/javascript','.json':'application/json','.wasm':'application/wasm'};
@@ -41,6 +42,39 @@ try{
   await page.screenshot({path:path.join(out,String(i+1).padStart(2,'0')+'-office-'+ids[i]+'.png')});
  }
  check('All eight distinct office foyer points visible',checks.filter(x=>x.name.startsWith('Real office scene anchor')).length===8,checks.length);
+
+ // QA camera enters the existing cabin; this does NOT prove walkable entrance.
+ // Actual ascent/descent must occur in the Unity moving passenger cabin.
+ const sendReview=v=>send('ReviewView',v.map(n=>Number(n).toFixed(3)).join(','));
+ const get=()=>page.evaluate(()=>window.BraxhornState);
+ for(const id of ids){
+  const lowerId='R1_TOWER_'+id+'_LOWER_LIFT',roofId='R1_TOWER_'+id+'_ROOF';
+  const points=(await get()).points||[];
+  const lower=points.find(p=>p.id===lowerId),roof=points.find(p=>p.id===roofId);
+  check('Source Unity lift points '+id,!!lower&&!!roof,{lowerId,roofId});
+  const dir=Math.sign(roof.position.z-lower.position.z);
+  check('Valid separate physical shaft '+id,Math.abs(roof.position.z-lower.position.z)>.5&&Math.abs(dir)===1,{lower:lower.position,roof:roof.position});
+  const shaftZ=lower.position.z+dir*3.15;
+  await sendReview([lower.position.x,lower.position.y+.12,shaftZ,180,15,4.2]);
+  await page.waitForFunction(()=>window.BraxhornState?.context?.includes('OTWÓRZ DRZWI WINDY'),null,{timeout:30000});
+  const start=await get();
+  await send('Command','action');
+  await page.waitForFunction(()=>window.BraxhornState?.context?.includes('WJEDŹ NA DACH'),null,{timeout:15000});
+  await send('Command','action');
+  await page.waitForFunction(y=>window.BraxhornState?.y>y+15,start.y,{timeout:60000});
+  await page.waitForFunction(()=>window.BraxhornState?.context?.includes('ZJEDŹ NA ULICĘ'),null,{timeout:120000});
+  const top=await get();
+  check('Actual moving cabin carried passenger UP '+id,top.y>start.y+15&&Math.abs(top.y-roof.position.y)<2.5,{startY:start.y,topY:top.y,roofY:roof.position.y});
+  await page.screenshot({path:path.join(out,'lift-up-'+id+'.png')});
+  await send('Command','action');
+  await page.waitForFunction(y=>window.BraxhornState?.y<y-15,top.y,{timeout:60000});
+  await page.waitForFunction(()=>window.BraxhornState?.context?.includes('WJEDŹ NA DACH'),null,{timeout:120000});
+  const end=await get();
+  check('Actual moving cabin carried passenger DOWN '+id,Math.abs(end.y-start.y)<2.5,{startY:start.y,endY:end.y});
+ }
+ check('All eight separate physical lift round trips verified',
+  checks.filter(c=>c.name.startsWith('Actual moving cabin carried passenger DOWN ')&&c.passed).length===8,checks.length);
+ check('No Unity browser crash',!errors.some(x=>x.includes('PAGE_CRASH')),errors);
 }catch(e){errors.push(String(e));process.exitCode=1}
 finally{
  if(context)await context.close();
