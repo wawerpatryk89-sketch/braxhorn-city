@@ -10,12 +10,40 @@ import {mergeGeometries} from '../three/examples/jsm/utils/BufferGeometryUtils.j
 
 export async function loadEstate(scene,renderer,progress=()=>{}) {
 let vegetation;
-const world=buildWorld(scene),imported=[],assetErrors=[];
+const world=buildWorld(scene),imported=[],assetErrors=[],surfaceSources=new Map(),surfaceAudit=[];
+// Reuse ONLY maps from delivered real house models; never fabricate a PBR map.
+const sourceSurfaceNames={
+ plaster:['stucco_indoor','stucco_yellow_outdoor','stucco_dark'],
+ wood:['Parquetlight_1K','MI_Wooden_Planks_ulyobjsn_2K'],
+ stone:['Concrete_obruby','MI_Marble_Floor_th5jfjufw_4K']
+};
+function collectSourceSurfaces(root,source){
+ root.traverse(o=>{if(!o.isMesh)return;for(const m of Array.isArray(o.material)?o.material:[o.material]){
+  if(!m||!m.map)return;
+  const name=m.name.replace(/\\s*\\(Instance\\)$/,'');
+  for(const [role,names]of Object.entries(sourceSurfaceNames))if(names.includes(name)){
+   const current=surfaceSources.get(role),rank=names.indexOf(name);
+   if(!current||rank<current.rank)surfaceSources.set(role,{name,source,map:m.map,normalMap:m.normalMap||null,roughnessMap:m.roughnessMap||null,rank});
+  }
+ }});
+}
+function applySourceSurfaces(){
+ for(const [role,names]of Object.entries(sourceSurfaceNames)){
+  const found=surfaceSources.get(role),target=world.materials[role];
+  if(!found){surfaceAudit.push({role,status:'BLOCKED_NO_VERIFIED_SOURCE_MAP',candidates:names});continue;}
+  const repeat=t=>{if(!t)return null;const c=t.clone();c.wrapS=c.wrapT=T.RepeatWrapping;c.needsUpdate=true;return c;};
+  target.map=repeat(found.map);target.normalMap=repeat(found.normalMap);target.roughnessMap=repeat(found.roughnessMap);
+  target.color.set(0xffffff);target.roughness=role==='wood'?.78:.92;target.metalness=0;target.needsUpdate=true;
+  surfaceAudit.push({role,status:'SOURCE_TEXTURE_APPLIED',source:found.source,material:found.name,normal:!!found.normalMap});
+ }
+}
+
 const ktx=new KTX2Loader().setTranscoderPath('../assets/basis/').detectSupport(renderer);const loader=new GLTFLoader().setKTX2Loader(ktx).setMeshoptDecoder(MeshoptDecoder);
 let importedReady=0;
 const modelCache=new Map();
 async function loadModel(name,x,z,width,rotation=0){
  if(!modelCache.has(name))modelCache.set(name,await loader.loadAsync('./assets/'+name+'.glb'));const root=modelCache.get(name).scene.clone(true);root.name=name;root.rotation.y=rotation;root.updateMatrixWorld(true);let b=new T.Box3().setFromObject(root);let s=b.getSize(new T.Vector3());root.scale.multiplyScalar(width/s.x);root.updateMatrixWorld(true);b.setFromObject(root);const c=b.getCenter(new T.Vector3());root.position.set(x-c.x,.08-b.min.y,z-c.z);
+ collectSourceSurfaces(root,name);
  root.traverse(o=>{if(!o.isMesh)return;o.castShadow=o.receiveShadow=true;for(const m of Array.isArray(o.material)?o.material:[o.material]){if(m.emissive)m.emissive.set(0);if('emissiveIntensity'in m)m.emissiveIntensity=0;if('metalness'in m)m.metalness=Math.min(m.metalness,.12);if('roughness'in m)m.roughness=Math.max(m.roughness,.65);if('transmission'in m&&m.transmission>0){m.transmission=0;m.transparent=true;m.opacity=.22;m.depthWrite=false;}m.envMapIntensity=0;}});
  // Cut actual door openings in the supplied closed interior walls.
  if(name==='gameready_casino_scene')openDoorway(root,{minX:-90.7,maxX:-88.1,minY:.15,maxY:3.3,minZ:-36.2,maxZ:-34.5});
@@ -62,6 +90,7 @@ async function loadModel(name,x,z,width,rotation=0){
 const ready=async()=>{
  // Sequential loading bounds peak decoding memory and keeps progress accurate.
  for(const h of LEVEL.houses){progress('Przygotowuję dom '+h.id.slice(-2)+'…',importedReady);try{await loadModel(h.model,h.x,h.z,h.width,h.rotation);}catch(e){assetErrors.push(h.model+': '+e.message);}}
+ applySourceSurfaces();
  progress('Przygotowuję garaże…',importedReady);try{await loadModel('garaze_sowieckie',-35,-39,23,Math.PI/2);}catch(e){assetErrors.push('garaze: '+e.message);}
  for(const [name,x,z,w,rot]of [
   ['gameready_casino_scene',-86,-43,34,Math.PI/2],
@@ -88,7 +117,7 @@ const ready=async()=>{
  try{vegetation=await addVegetation(scene,loader,world.collision,world.foliageRequests);}catch(e){assetErrors.push('las: '+e.message);}
  scene.updateMatrixWorld(true);
  if(assetErrors.length)throw new Error(assetErrors.join('; '));
- return {world,imported,assetErrors,vegetation};
+ return {world,imported,assetErrors,vegetation,surfaceAudit};
 };
 return ready();
 }
