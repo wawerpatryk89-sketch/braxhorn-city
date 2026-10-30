@@ -2,6 +2,12 @@
 
 Owner authorization: combine the accepted mural/ring/locker/WC gym with the tower/metro city, then renovate Nutrition → NOVA → BRAXHORN TOWER and rooftop → harbour/beach. Premium assets only; report missing sources. No production publication.
 
+## Owner rule: finish one location before starting the next
+
+Complete and verify the whole current location before moving to another: architecture and finishes, required source equipment and detail, entrance/exit, collisions, lighting and relevant interactions. Nutrition is the entire shop; NOVA includes its full equipment and owner-approved music; BRAXHORN TOWER includes lobby/interior, physical lift, rooftop and the finished viewing/fighting terrace.
+
+Progress images are work-in-progress, not completion. Provide real Unity screenshots and video for review. Do not mark a location complete or proceed to the next until outstanding defects are resolved and the owner accepts it. If sources, music approval, access or other required materials are missing, report the specific blocker, keep the location open and continue only useful work within that same location. Do not substitute unfinished or low-quality assets to bypass a blocker.
+
 ## Pinned integration sources
 - Base / Three runtime removal / durable original imports: `17f12b57ba38c23242bdcc825d27e0ba51ba8aba`.
 - Accepted gym authoring, textures and reproduction tools: `b2279bd24f7ce1660160c6fc3af119e9820a32f9`.
