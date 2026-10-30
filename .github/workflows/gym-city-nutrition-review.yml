@@ -5,6 +5,8 @@ name: Export genuine Unity6 Nutrition photos and phone video
     paths:
       - .github/workflows/gym-city-nutrition-review.yml
       - .github/scripts/nutrition_review_media.py
+      - .github/scripts/nutrition_review_check.mjs
+      - public/unity-gym/index.html
   workflow_dispatch: {}
 permissions:
   contents: read
@@ -29,8 +31,48 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 .github/scripts/nutrition_review_media.py wait
-  photos:
+  runtime:
     needs: actual-evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            .github/scripts
+            public/unity-gym
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 41098711225
+          github-token: ${{ github.token }}
+          name: gym-city-renovation-player-7ee178ab5f688748e0f17bfd3b69cd2a6b937783
+          path: unity-preview
+      - name: Apply only the verified Nutrition phone action to the actual compiled player
+        run: python3 .github/scripts/nutrition_review_media.py prepare
+      - name: Prepare genuine player execution and phone recording
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Enter the real shop and replenish the actual resource through the phone action
+        run: node .github/scripts/nutrition_review_check.mjs
+      - name: Preserve genuine Nutrition gameplay and the actual phone entry identity
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nutrition-complete-runtime-review-${{ github.sha }}
+          path: |
+            nutrition-review/
+            unity-preview/release.json
+            unity-preview/nutrition-shop.json
+          retention-days: 14
+          if-no-files-found: warn
+  photos:
+    needs: runtime
+    if: always() && !cancelled() && needs.runtime.result != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -40,10 +82,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 41098711225
-          github-token: ${{ github.token }}
-          name: gym-city-renovation-review-7ee178ab5f688748e0f17bfd3b69cd2a6b937783
+          name: nutrition-complete-runtime-review-${{ github.sha }}
           path: actual-evidence
       - name: Transfer original Unity screenshots and retain actual QA failures
         run: python3 .github/scripts/nutrition_review_media.py photos
@@ -56,7 +95,8 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
   video:
-    needs: actual-evidence
+    needs: runtime
+    if: always() && !cancelled() && needs.runtime.result != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -66,10 +106,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 41098711225
-          github-token: ${{ github.token }}
-          name: gym-city-renovation-review-7ee178ab5f688748e0f17bfd3b69cd2a6b937783
+          name: nutrition-complete-runtime-review-${{ github.sha }}
           path: actual-evidence
       - name: Prepare encoding of actual captured player footage
         run: |

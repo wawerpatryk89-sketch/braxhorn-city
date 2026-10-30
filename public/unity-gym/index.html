@@ -32,7 +32,9 @@ const keys=new Set();function keyMove(){send('MoveInput',((keys.has('KeyD')||key
   original(s);points=s.points||[];area=s.area||'city';
   document.querySelector('#hits').textContent=area==='estate'?'OSIEDLE · UNITY':'MIASTO · UNITY';
   const context=s.context||'',action=document.querySelector('#action');
-  action.style.display=context.includes('DRZWI')||context.includes('OSIEDLE')||context.includes('WRÓĆ DO MIASTA')?'block':'none';action.textContent=context;
+  const refuel=context.startsWith('UZUPEŁNIJ ENERGIĘ'),full=context.startsWith('ENERGIA PEŁNA');
+  action.style.display=context.includes('DRZWI')||context.includes('OSIEDLE')||context.includes('WRÓĆ DO MIASTA')||refuel||full?'block':'none';
+  action.disabled=full;action.textContent=refuel?'UZUPEŁNIJ ENERGIĘ':full?'ENERGIA PEŁNA':context;action.setAttribute('aria-label',context);
   document.querySelector('#hint').textContent=context||defaultHint;
   if(s.loadingArea){document.querySelector('#loading').classList.remove('hidden');document.querySelector('#loadtext').textContent='Wczytuję dzielnicę…';}
  };
