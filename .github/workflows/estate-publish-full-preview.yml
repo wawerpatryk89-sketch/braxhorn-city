@@ -81,7 +81,7 @@ jobs:
           if large: raise SystemExit("GitHub/Vercel single-file size preflight FAILED: "+str(large))
           print("All preview files below 95MB Git limit")
           PY
-          git add -A
+          git add --sparse -A
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "preview(estate): verified original 21-model Unity6 playable walkthrough [skip ci]"
