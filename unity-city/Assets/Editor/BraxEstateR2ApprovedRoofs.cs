@@ -20,6 +20,14 @@ public static class BraxEstateR2ApprovedRoofs
     private static Material Build(string name,string texturePath,string normalPath,Color tint,bool twoSided,string output)
     {
         var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+        var importer=AssetImporter.GetAtPath(normalPath) as TextureImporter;
+        if(importer==null)throw new InvalidOperationException("Original normal-map import missing: "+normalPath);
+        if(importer.textureType!=TextureImporterType.NormalMap || importer.sRGBTexture)
+        {
+            importer.textureType=TextureImporterType.NormalMap;
+            importer.sRGBTexture=false;
+            importer.SaveAndReimport();
+        }
         var normal=AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath);
         if(texture==null || texture.width!=2048 || texture.height!=2048)
             throw new InvalidOperationException("Verified operator roof diffuse map missing: "+texturePath);
