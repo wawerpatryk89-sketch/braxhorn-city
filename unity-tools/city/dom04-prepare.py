@@ -79,3 +79,23 @@ outputs["BermudaCutout.png"]=save(c,"BermudaCutout.png")
 report=dict(scope="DOM04_ONLY",libraryFiles=["beige_wall_001_4k.blend.zip","grass_bermuda_01_2k.blend.zip"],sources=provenance,outputs=outputs,sourceVerified=True,sceneVerified=False,visualAcceptance=False)
 (AUDIT/"dom04-library-source-evidence.json").write_text(json.dumps(report,indent=2))
 print("DOM04_LIBRARY_BYTE_IDENTICAL_SOURCE_PASS",len(provenance))
+
+
+# 100% genuine owner's Library plant material. Archive inspected on 30 Oct 2026:
+# periwinkle_plant_2k.blend.zip -> exact source .blend / diffuse / opacity files.
+# Download only identical files from Poly Haven's official CC0 repository.
+PERIWINKLE_LIBRARY_EXACT={
+    "periwinkle_plant_2k.blend":"e9fc4300a8be05a9e7ec4423c239e9af37a2f3e4be9e6175a19ba82e1ffafd8a",
+    "periwinkle_plant_diff_2k.jpg":"015ae7b001fa72a2be9a4297590e30d9e29ec4d686ca1f19d8a313671ac3d137",
+    "periwinkle_plant_opacity_2k.png":"969a29f3c44bd9be704e7acc22746785ac7ca26746eec7c157c9c7d1bee2e841",
+}
+for name,sha in PERIWINKLE_LIBRARY_EXACT.items():
+    data=source("periwinkle_plant",name,sha)
+    (OUT/name).write_bytes(data)
+report["plantLibrarySource"]="ChatGPT Library: /Braxhorn city/Materialy/Roslinnosc/periwinkle_plant_2k.blend.zip"
+report["plantSourceFilesVerified"]={k:hashlib.sha256((OUT/k).read_bytes()).hexdigest() for k in PERIWINKLE_LIBRARY_EXACT}
+report["plantSourceVerified"]=True
+report["sceneVerified"]=False
+report["visualAcceptance"]=False
+(AUDIT/"dom04-library-source-evidence.json").write_text(json.dumps(report,indent=2))
+print("DOM04_PERIWINKLE_OWNER_LIBRARY_EXACT_BYTES_PASS",len(PERIWINKLE_LIBRARY_EXACT))
