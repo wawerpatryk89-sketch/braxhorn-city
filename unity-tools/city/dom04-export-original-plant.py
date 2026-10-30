@@ -21,13 +21,23 @@ for im in bpy.data.images:
     if max(im.size)>1024:
         k=1024/max(im.size);im.scale(max(1,round(im.size[0]*k)),max(1,round(im.size[1]*k)))
     im.pack()
-objects=[o for o in bpy.context.scene.objects if o.type=="MESH" and not o.hide_render]
+# bpy.context.scene.objects can contain meshes in hidden/excluded collections.
+# Exporting those raises "can't be selected because it is not in View Layer".
+# Restrict to the actual active ViewLayer, preserving source geometry and UVs.
+objects=[o for o in bpy.context.view_layer.objects if o.type=="MESH" and not o.hide_render]
+# One botanical source plant per pot; pick the highest-detail available mesh,
+# not all 4 photogrammetry plant variations and their lower LODs stacked together.
+if name=="periwinkle_plant" and objects:
+    objects=[max(objects,key=lambda obj:sum(max(1,len(p.vertices)-2) for p in obj.data.polygons))]
 if not objects:raise RuntimeError("Original "+name+" BLEND has no visible source meshes")
 tris=sum(len(p.vertices)-2 for o in objects for p in o.data.polygons)
 if tris<=0:raise RuntimeError("No real mesh faces")
 if tris>300000:raise RuntimeError("Unexpected model geometry size: "+name+" "+str(tris))
 bpy.ops.object.select_all(action="DESELECT")
-for o in objects:o.hide_set(False);o.select_set(True)
+for o in objects:
+    o.hide_set(False)
+    o.hide_viewport=False
+    o.select_set(True)
 bpy.context.view_layer.objects.active=objects[0]
 # Game-ready cap: original photogrammetry plant remains genuine source geometry.
 if name=="periwinkle_plant" and tris>16000:
