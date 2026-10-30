@@ -173,6 +173,8 @@ public static class BraxCityBuild
         BraxEstateR2ApprovedRoofs.Apply();
         BraxEstateR2FacadeFinish.Apply();
         BraxEstateR2Segment.Apply();
+        // Rozbudowa Claude: Park Centralny + osiedle B (ENABLE: zawsze na gałęzi claude/osiedle-*).
+        BraxClaudeOsiedle.Apply();
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
     public static void WriteReport(string output,string commit)

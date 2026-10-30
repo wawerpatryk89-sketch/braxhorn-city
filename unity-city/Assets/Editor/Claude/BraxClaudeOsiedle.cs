@@ -1,0 +1,708 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+// BRAXHORN R2 — rozbudowa osiedla (Claude, gałąź claude/osiedle-20261031).
+// Dwa osiedla domków przedzielone parkiem:
+//   osiedle A (istniejące)  z  -102 ..  99
+//   Park Centralny          z  -150 .. -102  (aleje, fontanna, ławki, drzewa)
+//   osiedle B (nowe)        z  -236 .. -150  (13 nowoczesnych willi, ulica z chodnikami)
+// Współrzędne Unity (X już odwrócone względem źródła three.js). Materiały: Poly Haven / ambientCG (CC0),
+// siatki łączone per materiał i obszar (mało wywołań rysowania na telefonie), kolizje BoxCollider.
+public static class BraxClaudeOsiedle
+{
+    const string Tex = "Assets/Source/Claude/Osiedle/textures/";
+    const string Mdl = "Assets/Source/Claude/Osiedle/models/";
+    const string Out = "Assets/PlayableGenerated/ClaudeOsiedle";
+
+    // Układ
+    const float X0 = -114f, X1 = 114f;
+    const float FenceA = -102f;                    // dawny płot południowy osiedla A
+    const float ParkZ0 = -150f;                    // granica park / osiedle B
+    const float SouthZ = -236f;
+    const float AxisX = -20f;                      // oś: brama osiedla A -> aleja parku -> ulica B
+    const float StreetZ = -193f;                   // oś ulicy głównej osiedla B
+    const float Carriage = 3.5f, Kerb = .2f, Green = .7f, Walk = 2.3f;
+    static float Half => Carriage + Kerb + Green + Walk; // 6.7 m od osi do granicy działek
+
+    [Serializable] sealed class Report
+    {
+        public string status = "NIE URUCHOMIONO", error = "";
+        public int villas, pools, parkTrees, plotTrees, shrubs, benches, lamps, bins, tables, oldFenceTrianglesRemoved,
+                   oldFenceCollidersDisabled, meshes, triangles, materials, points;
+        public List<string> notes = new List<string>();
+    }
+    static Report rep;
+    static Transform root;
+
+    // ---------------- materiały ----------------
+    static readonly Dictionary<string, Material> mats = new Dictionary<string, Material>();
+    static readonly Dictionary<Material, float> tile = new Dictionary<Material, float>();
+
+    static Texture2D Map(string path, bool normal, bool srgb)
+    {
+        var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (!imp) throw new Exception("brak mapy " + path);
+        imp.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+        imp.sRGBTexture = srgb; imp.maxTextureSize = 1024; imp.mipmapEnabled = true;
+        imp.wrapMode = TextureWrapMode.Repeat; imp.anisoLevel = 4; imp.filterMode = FilterMode.Trilinear;
+        imp.textureCompression = TextureImporterCompression.Compressed;
+        if (path.EndsWith("mg.png")) imp.alphaSource = TextureImporterAlphaSource.FromInput;
+        imp.SaveAndReimport();
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+    }
+
+    // id = katalog tekstury, metres = rozmiar jednego powtórzenia w metrach
+    static Material Pbr(string key, string id, float metres, Color tint, float smooth = 1f, float metal = 0f)
+    {
+        if (mats.TryGetValue(key, out var have)) return have;
+        var d = Tex + id + "/";
+        var m = new Material(Shader.Find("Standard")) { name = "Osiedle: " + key, color = tint, enableInstancing = true };
+        m.mainTexture = Map(d + "albedo.jpg", false, true);
+        m.SetTexture("_BumpMap", Map(d + "normal.jpg", true, false)); m.EnableKeyword("_NORMALMAP"); m.SetFloat("_BumpScale", 1f);
+        m.SetTexture("_MetallicGlossMap", Map(d + "mg.png", false, false)); m.EnableKeyword("_METALLICGLOSSMAP");
+        m.SetFloat("_GlossMapScale", smooth); m.SetFloat("_Metallic", metal);
+        m.SetTexture("_OcclusionMap", Map(d + "ao.jpg", false, false)); m.SetFloat("_OcclusionStrength", 1f);
+        AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat");
+        mats[key] = m; tile[m] = metres; return m;
+    }
+    static Material Plain(string key, Color c, float smooth, float metal = 0f)
+    {
+        if (mats.TryGetValue(key, out var have)) return have;
+        var m = new Material(Shader.Find("Standard")) { name = "Osiedle: " + key, color = c, enableInstancing = true };
+        m.SetFloat("_Glossiness", smooth); m.SetFloat("_Metallic", metal);
+        AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat");
+        mats[key] = m; tile[m] = 1f; return m;
+    }
+    static string Safe(string s) => new string(s.Select(ch => char.IsLetterOrDigit(ch) ? ch : '_').ToArray());
+
+    static Material Asphalt => Pbr("jezdnia asfalt", "asphalt_02", 4f, new Color(.78f, .78f, .80f), .9f);
+    static Material Pavers => Pbr("chodnik kostka", "concrete_pavers_02", 2.2f, new Color(1.05f, 1.05f, 1.05f));
+    static Material KerbStone => Pbr("krawężnik granit", "concrete_pavement_02", 1.2f, new Color(.92f, .92f, .93f));
+    static Material Slabs => Pbr("płyty ścieżek", "concrete_pavement_02", 2.4f, new Color(1.06f, 1.05f, 1.02f));
+    static Material Herring => Pbr("podjazd jodełka", "herringbone_brick_02", 2.4f, new Color(1f, 1f, 1f));
+    static Material ParkPath => Pbr("aleja parku", "concrete_pavers_03", 3f, new Color(1.02f, 1f, .97f));
+    static Material Stucco => Pbr("tynk biały", "white_stucco_02", 2.5f, new Color(1.04f, 1.04f, 1.02f));
+    static Material StuccoWarm => Pbr("tynk ciepły", "white_stucco_02", 2.5f, new Color(.98f, .93f, .86f));
+    static Material Wood => Pbr("deska elewacyjna", "weathered_planks", 2.4f, new Color(.95f, .80f, .64f), .8f);
+    static Material WoodDark => Pbr("deska płotu ciemna", "weathered_planks", 2.4f, new Color(.42f, .36f, .31f), .8f);
+    static Material Stone => Pbr("kamień elewacyjny", "white_sandstone_blocks_02", 2.6f, new Color(1f, .98f, .95f));
+    static Material Plinth => Pbr("cokół kamienny", "rough_block_wall", 2.2f, new Color(.82f, .80f, .78f));
+    static Material Gravel => Pbr("żwir dachu", "bicolour_gravel", 2.5f, new Color(.9f, .9f, .9f));
+    static Material Deck => Pbr("taras deska", "wood_floor_deck", 2.2f, new Color(.92f, .86f, .80f), .8f);
+    static Material PoolTiles => Pbr("niecka basenu", "blue_floor_tiles_01", 1.6f, new Color(.9f, 1f, 1.05f));
+    static Material Grass => Pbr("trawnik", "grass004", 3.5f, new Color(.93f, 1f, .93f), .6f);
+    static Material Glass => Plain("szkło przyciemniane", new Color(.10f, .13f, .15f), .93f, .55f);
+    static Material Frame => Plain("aluminium antracyt", new Color(.07f, .075f, .08f), .45f, .6f);
+    static Material Steel => Plain("stal czarna płotów", new Color(.06f, .065f, .07f), .35f, .5f);
+    static Material GarageDoor => Plain("brama garażowa", new Color(.20f, .21f, .22f), .5f, .4f);
+    static Material Paint => Plain("biała farba drogowa", new Color(.93f, .93f, .9f), .3f);
+    static Material Water => Plain("woda", new Color(.18f, .42f, .52f), .96f, .1f);
+
+    // ---------------- łączenie geometrii ----------------
+    sealed class Batch
+    {
+        public readonly List<Vector3> v = new List<Vector3>(), n = new List<Vector3>();
+        public readonly List<Vector4> t = new List<Vector4>();
+        public readonly List<Vector2> uv = new List<Vector2>();
+        public readonly List<int> i = new List<int>();
+        public bool shadows = true;
+    }
+    static readonly Dictionary<(string, Material), Batch> batches = new Dictionary<(string, Material), Batch>();
+    static string group = "osiedle";
+
+    static Batch B(Material m)
+    {
+        if (!batches.TryGetValue((group, m), out var b)) batches[(group, m)] = b = new Batch();
+        return b;
+    }
+    static void Planar(Vector3 n, out Vector3 u, out Vector3 w)
+    {
+        if (Mathf.Abs(n.y) > .5f) { u = Vector3.right; w = Vector3.forward; }
+        else if (Mathf.Abs(n.x) > Mathf.Abs(n.z)) { u = Vector3.forward; w = Vector3.up; }
+        else { u = Vector3.right; w = Vector3.up; }
+    }
+    // Czworokąt p0..p3 (dowolna kolejność obwodu), normalna n, UV planarne w metrach / tile.
+    static void Quad(Material m, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 n)
+    {
+        var b = B(m); float s = tile.TryGetValue(m, out var tl) ? tl : 1f;
+        Planar(n, out var u, out var w);
+        float sign = Vector3.Dot(Vector3.Cross(n, u), w) >= 0 ? 1f : -1f;
+        int k = b.v.Count;
+        foreach (var p in new[] { p0, p1, p2, p3 })
+        {
+            b.v.Add(p); b.n.Add(n); b.t.Add(new Vector4(u.x, u.y, u.z, sign));
+            b.uv.Add(new Vector2(Vector3.Dot(p, u) / s, Vector3.Dot(p, w) / s));
+        }
+        bool flip = Vector3.Dot(Vector3.Cross(p1 - p0, p2 - p0), n) < 0;
+        if (!flip) b.i.AddRange(new[] { k, k + 1, k + 2, k, k + 2, k + 3 });
+        else b.i.AddRange(new[] { k, k + 2, k + 1, k, k + 3, k + 2 });
+    }
+    static void Top(Material m, float x0, float x1, float z0, float z1, float y)
+        => Quad(m, new Vector3(x0, y, z0), new Vector3(x1, y, z0), new Vector3(x1, y, z1), new Vector3(x0, y, z1), Vector3.up);
+
+    // Prostopadłościan wyrównany do osi; bottom=false pomija spód (niewidoczny), solid = BoxCollider.
+    static void Box(Material m, Vector3 c, Vector3 s, bool solid = true, bool bottom = false)
+    {
+        var h = s * .5f;
+        Vector3 P(float x, float y, float z) => c + new Vector3(x * h.x, y * h.y, z * h.z);
+        Quad(m, P(-1, 1, -1), P(1, 1, -1), P(1, 1, 1), P(-1, 1, 1), Vector3.up);
+        if (bottom) Quad(m, P(-1, -1, -1), P(1, -1, -1), P(1, -1, 1), P(-1, -1, 1), Vector3.down);
+        Quad(m, P(-1, -1, -1), P(1, -1, -1), P(1, 1, -1), P(-1, 1, -1), Vector3.back);
+        Quad(m, P(-1, -1, 1), P(1, -1, 1), P(1, 1, 1), P(-1, 1, 1), Vector3.forward);
+        Quad(m, P(-1, -1, -1), P(-1, -1, 1), P(-1, 1, 1), P(-1, 1, -1), Vector3.left);
+        Quad(m, P(1, -1, -1), P(1, -1, 1), P(1, 1, 1), P(1, 1, -1), Vector3.right);
+        if (solid) Collider(c, s);
+    }
+    static void BoxMinMax(Material m, float x0, float x1, float y0, float y1, float z0, float z1, bool solid = true, bool bottom = false)
+        => Box(m, new Vector3((x0 + x1) * .5f, (y0 + y1) * .5f, (z0 + z1) * .5f), new Vector3(Mathf.Abs(x1 - x0), y1 - y0, Mathf.Abs(z1 - z0)), solid, bottom);
+
+    static Transform colliders;
+    static void Collider(Vector3 c, Vector3 s)
+    {
+        var g = new GameObject("kolizja"); g.transform.SetParent(colliders, false); g.transform.position = c;
+        g.AddComponent<BoxCollider>().size = s;
+    }
+
+    static void Ring(Material m, Vector3 c, float r0, float r1, int seg = 32)
+    {
+        for (int k = 0; k < seg; k++)
+        {
+            float a0 = k * Mathf.PI * 2 / seg, a1 = (k + 1) * Mathf.PI * 2 / seg;
+            Vector3 d0 = new Vector3(Mathf.Cos(a0), 0, Mathf.Sin(a0)), d1 = new Vector3(Mathf.Cos(a1), 0, Mathf.Sin(a1));
+            Quad(m, c + d0 * r0, c + d0 * r1, c + d1 * r1, c + d1 * r0, Vector3.up);
+        }
+    }
+    static void Cylinder(Material m, Vector3 baseCenter, float r, float h, int seg = 24, bool top = true, bool solid = true, bool inward = false)
+    {
+        var b = B(m); float s = tile.TryGetValue(m, out var tl) ? tl : 1f;
+        for (int k = 0; k < seg; k++)
+        {
+            float a0 = k * Mathf.PI * 2 / seg, a1 = (k + 1) * Mathf.PI * 2 / seg;
+            Vector3 d0 = new Vector3(Mathf.Cos(a0), 0, Mathf.Sin(a0)), d1 = new Vector3(Mathf.Cos(a1), 0, Mathf.Sin(a1));
+            int i0 = b.v.Count;
+            var verts = new[] { baseCenter + d0 * r, baseCenter + d1 * r, baseCenter + d1 * r + Vector3.up * h, baseCenter + d0 * r + Vector3.up * h };
+            var norms = inward ? new[] { -d0, -d1, -d1, -d0 } : new[] { d0, d1, d1, d0 };
+            var us = new[] { a0 * r / s, a1 * r / s, a1 * r / s, a0 * r / s };
+            for (int q = 0; q < 4; q++)
+            {
+                b.v.Add(verts[q]); b.n.Add(norms[q]);
+                var tg = Vector3.Cross(Vector3.up, norms[q]).normalized;
+                b.t.Add(new Vector4(tg.x, tg.y, tg.z, -1));
+                b.uv.Add(new Vector2(us[q], (verts[q].y - baseCenter.y) / s));
+            }
+            if (!inward) b.i.AddRange(new[] { i0, i0 + 2, i0 + 1, i0, i0 + 3, i0 + 2 });
+            else b.i.AddRange(new[] { i0, i0 + 1, i0 + 2, i0, i0 + 2, i0 + 3 });
+        }
+        if (top) Disc(m, baseCenter + Vector3.up * h, r, seg);
+        if (solid) Collider(baseCenter + Vector3.up * (h * .5f), new Vector3(r * 1.6f, h, r * 1.6f));
+    }
+    static void Disc(Material m, Vector3 c, float r, int seg = 32)
+    {
+        var b = B(m); float s = tile.TryGetValue(m, out var tl) ? tl : 1f;
+        int ic = b.v.Count;
+        void V(Vector3 p) { b.v.Add(p); b.n.Add(Vector3.up); b.t.Add(new Vector4(1, 0, 0, 1)); b.uv.Add(new Vector2(p.x / s, p.z / s)); }
+        V(c);
+        for (int k = 0; k <= seg; k++) { float a = k * Mathf.PI * 2 / seg; V(c + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * r); }
+        for (int k = 0; k < seg; k++) b.i.AddRange(new[] { ic, ic + k + 2, ic + k + 1 });
+    }
+
+    static void Flush()
+    {
+        int n = 0;
+        foreach (var kv in batches)
+        {
+            var b = kv.Value; if (b.v.Count == 0) continue;
+            var parent = Group(kv.Key.Item1);
+            var mesh = new Mesh { name = "Osiedle " + kv.Key.Item1 + " / " + kv.Key.Item2.name, indexFormat = IndexFormat.UInt32 };
+            mesh.SetVertices(b.v); mesh.SetNormals(b.n); mesh.SetTangents(b.t); mesh.SetUVs(0, b.uv); mesh.SetTriangles(b.i, 0);
+            mesh.RecalculateBounds();
+            AssetDatabase.CreateAsset(mesh, Out + "/mesh_" + (n++) + ".asset");
+            var g = new GameObject(kv.Key.Item2.name); g.transform.SetParent(parent, false);
+            g.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = kv.Key.Item2;
+            r.shadowCastingMode = kv.Key.Item2 == Grass || kv.Key.Item2 == Asphalt || kv.Key.Item2 == ParkPath ? ShadowCastingMode.Off : ShadowCastingMode.On;
+            r.receiveShadows = true;
+            rep.meshes++; rep.triangles += b.i.Count / 3;
+        }
+        batches.Clear();
+    }
+    static readonly Dictionary<string, Transform> groups = new Dictionary<string, Transform>();
+    static Transform Group(string name)
+    {
+        if (groups.TryGetValue(name, out var t)) return t;
+        t = new GameObject(name).transform; t.SetParent(root, false); groups[name] = t; return t;
+    }
+
+    // ---------------- modele ----------------
+    static GameObject Model(string id)
+    {
+        var p = Mdl + id + "/" + id + ".gltf";
+        if (!File.Exists(p)) { rep.notes.Add("brak modelu " + id); return null; }
+        AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceSynchronousImport);
+        var go = AssetDatabase.LoadAssetAtPath<GameObject>(p) ?? AssetDatabase.LoadAllAssetsAtPath(p).OfType<GameObject>().FirstOrDefault();
+        if (!go) rep.notes.Add("glTFast nie zaimportował " + id);
+        return go;
+    }
+    static Bounds RB(GameObject o)
+    {
+        var rs = o.GetComponentsInChildren<Renderer>(true);
+        var b = rs[0].bounds; foreach (var r in rs.Skip(1)) b.Encapsulate(r.bounds); return b;
+    }
+    // Model w skali natywnej (Poly Haven = metry), spód na y; obrót yaw * własny obrót modelu.
+    static GameObject Put(GameObject src, Vector3 at, float yaw, float cull = .02f, bool solid = true)
+    {
+        if (!src) return null;
+        var o = (GameObject)UnityEngine.Object.Instantiate(src, Group(group), false);
+        o.name = src.name; o.transform.position = Vector3.zero;
+        o.transform.rotation = Quaternion.Euler(0, yaw, 0) * o.transform.rotation;
+        if (o.GetComponentsInChildren<Renderer>(true).Length == 0) { UnityEngine.Object.DestroyImmediate(o); return null; }
+        var b = RB(o);
+        o.transform.position += new Vector3(at.x - b.center.x, at.y - b.min.y, at.z - b.center.z);
+        var rs = o.GetComponentsInChildren<Renderer>(true);
+        foreach (var r in rs) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
+        var lod = o.AddComponent<LODGroup>(); lod.SetLODs(new[] { new LOD(cull, rs) }); lod.RecalculateBounds();
+        if (solid) { b = RB(o); Collider(b.center, b.size); }
+        return o;
+    }
+
+    // Prawdziwe drzewa i krzewy z paczki Verdant, które już są w scenie osiedla (te same siatki,
+    // co w remoncie R2): kopie bez nowej geometrii w pamięci.
+    static Dictionary<string, MeshRenderer> verdant;
+    static GameObject Tree(Vector3 at, float height, float yaw)
+    {
+        string[] near = { "EstateMesh_439", "EstateMesh_446", "EstateMesh_453", "EstateMesh_460" }, far = { "EstateMesh_439", "EstateMesh_453" };
+        if (near.Any(nm => !verdant.ContainsKey(nm))) return null;
+        var t = new GameObject("Drzewo (Verdant)"); t.transform.SetParent(Group(group), false);
+        MeshRenderer Part(string nm, string label)
+        {
+            var src = verdant[nm]; var o = new GameObject(label); o.transform.SetParent(t.transform, false);
+            o.transform.localPosition = src.transform.position; o.transform.localRotation = src.transform.rotation; o.transform.localScale = src.transform.lossyScale;
+            o.AddComponent<MeshFilter>().sharedMesh = src.GetComponent<MeshFilter>().sharedMesh;
+            var r = o.AddComponent<MeshRenderer>(); r.sharedMaterials = src.sharedMaterials; return r;
+        }
+        var nr = near.Select(nm => Part(nm, "blisko " + nm)).ToArray();
+        var fr = far.Select(nm => Part(nm, "daleko " + nm)).ToArray();
+        foreach (var r in nr) r.shadowCastingMode = r.name.EndsWith("439") ? ShadowCastingMode.On : ShadowCastingMode.Off;
+        foreach (var r in fr) r.shadowCastingMode = ShadowCastingMode.Off;
+        var b = nr[0].bounds; foreach (var r in nr.Skip(1)) b.Encapsulate(r.bounds);
+        float s = height / Mathf.Max(.5f, b.size.y);
+        // skala i obrót wokół podstawy pnia
+        var pivot = new Vector3(b.center.x, b.min.y, b.center.z);
+        foreach (Transform c in t.transform) { c.localPosition -= pivot; }
+        t.transform.localScale = Vector3.one * s; t.transform.rotation = Quaternion.Euler(0, yaw, 0);
+        t.transform.position = at;
+        var lod = t.AddComponent<LODGroup>(); lod.SetLODs(new[] { new LOD(.22f, nr), new LOD(.06f, fr) }); lod.RecalculateBounds();
+        var trunk = new GameObject("pień kolizja"); trunk.transform.SetParent(colliders, false); trunk.transform.position = at + Vector3.up * 1.4f;
+        var cap = trunk.AddComponent<CapsuleCollider>(); cap.radius = .3f; cap.height = 2.8f;
+        return t;
+    }
+    static GameObject Shrub(Vector3 at, float scale, float yaw)
+    {
+        if (!verdant.TryGetValue("EstateMesh_467", out var src)) return null;
+        var p = new GameObject("Krzew (Verdant)"); p.transform.SetParent(Group(group), false);
+        var o = new GameObject("krzew"); o.transform.SetParent(p.transform, false);
+        o.transform.localPosition = src.transform.position; o.transform.localRotation = src.transform.rotation; o.transform.localScale = src.transform.lossyScale;
+        o.AddComponent<MeshFilter>().sharedMesh = src.GetComponent<MeshFilter>().sharedMesh;
+        var r = o.AddComponent<MeshRenderer>(); r.sharedMaterials = src.sharedMaterials; r.shadowCastingMode = ShadowCastingMode.Off;
+        var b = r.bounds; var pivot = new Vector3(b.center.x, b.min.y, b.center.z);
+        o.transform.localPosition -= pivot;
+        p.transform.localScale = Vector3.one * scale; p.transform.rotation = Quaternion.Euler(0, yaw, 0); p.transform.position = at;
+        var lod = p.AddComponent<LODGroup>(); lod.SetLODs(new[] { new LOD(.02f, new Renderer[] { r }) }); lod.RecalculateBounds();
+        rep.shrubs++;
+        return p;
+    }
+
+    // Nowoczesna latarnia (słup + płaska oprawa), bez świecenia — tylko dzień.
+    static void Lamp(Vector3 at, float yaw)
+    {
+        Box(Frame, at + Vector3.up * 2.4f, new Vector3(.12f, 4.8f, .12f));
+        var dir = Quaternion.Euler(0, yaw, 0) * Vector3.forward;
+        var head = at + Vector3.up * 4.75f + dir * .35f;
+        Box(Frame, head, new Vector3(Mathf.Abs(dir.x) > .5f ? .9f : .28f, .1f, Mathf.Abs(dir.z) > .5f ? .9f : .28f), false);
+        Box(Paint, head - Vector3.up * .055f, new Vector3(Mathf.Abs(dir.x) > .5f ? .7f : .2f, .01f, Mathf.Abs(dir.z) > .5f ? .7f : .2f), false);
+        rep.lamps++;
+    }
+
+    // Płot premium: kamienny murek + słupki + poziome stalowe lamele. Przerwy: lista (od, do) wzdłuż biegu.
+    static void FenceX(float x0, float x1, float z, float h, params (float, float)[] gaps) => FenceRun(true, x0, x1, z, h, gaps);
+    static void FenceZ(float z0, float z1, float x, float h, params (float, float)[] gaps) => FenceRun(false, z0, z1, x, h, gaps);
+    static void FenceRun(bool alongX, float a0, float a1, float fixedCoord, float h, (float, float)[] gaps)
+    {
+        if (a1 < a0) { var tmp = a0; a0 = a1; a1 = tmp; }
+        var segs = new List<(float, float)>(); float cur = a0;
+        foreach (var g in gaps.OrderBy(q => q.Item1)) { if (g.Item1 > cur) segs.Add((cur, g.Item1)); cur = Mathf.Max(cur, g.Item2); }
+        if (cur < a1) segs.Add((cur, a1));
+        Vector3 P(float a, float y) => alongX ? new Vector3(a, y, fixedCoord) : new Vector3(fixedCoord, y, a);
+        Vector3 S(float len, float hy, float th) => alongX ? new Vector3(len, hy, th) : new Vector3(th, hy, len);
+        foreach (var (s0, s1) in segs)
+        {
+            float len = s1 - s0; if (len < .4f) continue;
+            float mid = (s0 + s1) * .5f;
+            Box(Plinth, P(mid, .3f), S(len, .6f, .36f), true);
+            Box(Plinth, P(mid, .63f), S(len + .04f, .06f, .42f), false);
+            int bays = Mathf.Max(1, Mathf.RoundToInt(len / 3.2f)); float step = len / bays;
+            for (int k = 0; k <= bays; k++) Box(Plinth, P(s0 + k * step, h * .5f), S(.46f, h, .46f), false);
+            for (int sl = 0; sl < 6; sl++)
+            {
+                float y = .78f + sl * (h - .95f) / 5f;
+                Box(Steel, P(mid, y), S(len, .07f, .05f), false);
+            }
+            Collider(P(mid, h * .5f), S(len, h, .4f));
+        }
+    }
+    // Płot boczny działki: ciemne poziome deski na słupkach.
+    static void WoodFenceZ(float z0, float z1, float x, float h = 1.7f)
+    {
+        if (z1 < z0) { var t = z0; z0 = z1; z1 = t; }
+        float len = z1 - z0, mid = (z0 + z1) * .5f;
+        int posts = Mathf.Max(1, Mathf.RoundToInt(len / 2.4f));
+        for (int k = 0; k <= posts; k++) Box(Frame, new Vector3(x, h * .5f, z0 + k * len / posts), new Vector3(.09f, h, .09f), false);
+        for (int sl = 0; sl < 9; sl++)
+        {
+            float y = .12f + sl * (h - .2f) / 8.5f;
+            Box(WoodDark, new Vector3(x, y + .07f, mid), new Vector3(.04f, .14f, len), false);
+        }
+        Collider(new Vector3(x, h * .5f, mid), new Vector3(.12f, h, len));
+    }
+
+    // ---------------- ulice ----------------
+    // Przekrój: jezdnia | krawężnik | pas zieleni | chodnik.
+    static void StreetX(float x0, float x1, float zc, params (float, float)[] sideGapsNorth)
+    {
+        Top(Asphalt, x0, x1, zc - Carriage, zc + Carriage, .03f);
+        // środkowa linia przerywana
+        for (float x = x0 + 1.5f; x + 3f < x1; x += 6f) Top(Paint, x, x + 3f, zc - .06f, zc + .06f, .046f);
+        foreach (int side in new[] { -1, 1 })
+        {
+            float kz = zc + side * (Carriage + Kerb * .5f), wz = zc + side * (Carriage + Kerb + Green + Walk * .5f);
+            var runs = new List<(float, float)> { (x0, x1) };
+            if (side > 0 && sideGapsNorth.Length > 0)
+            {
+                runs.Clear(); float cur = x0;
+                foreach (var g in sideGapsNorth.OrderBy(q => q.Item1)) { if (g.Item1 > cur) runs.Add((cur, g.Item1)); cur = g.Item2; }
+                if (cur < x1) runs.Add((cur, x1));
+            }
+            foreach (var (a, b) in runs)
+            {
+                BoxMinMax(KerbStone, a, b, 0, .16f, kz - Kerb * .5f, kz + Kerb * .5f);
+                BoxMinMax(Pavers, a, b, 0, .14f, wz - Walk * .5f, wz + Walk * .5f);
+                for (float x = a + 10f; x < b - 4f; x += 22f) Lamp(new Vector3(x, 0, zc + side * (Carriage + Kerb + Green * .5f)), side > 0 ? 180 : 0);
+            }
+        }
+    }
+    static void StreetZ(float z0, float z1, float xc)
+    {
+        if (z1 < z0) { var t = z0; z0 = z1; z1 = t; }
+        Top(Asphalt, xc - Carriage, xc + Carriage, z0, z1, .03f);
+        for (float z = z0 + 1.5f; z + 3f < z1; z += 6f) Top(Paint, xc - .06f, xc + .06f, z, z + 3f, .046f);
+        foreach (int side in new[] { -1, 1 })
+        {
+            float kx = xc + side * (Carriage + Kerb * .5f), wx = xc + side * (Carriage + Kerb + Green + Walk * .5f);
+            BoxMinMax(KerbStone, kx - Kerb * .5f, kx + Kerb * .5f, 0, .16f, z0, z1);
+            BoxMinMax(Pavers, wx - Walk * .5f, wx + Walk * .5f, 0, .14f, z0, z1);
+            for (float z = z0 + 8f; z < z1 - 4f; z += 20f) Lamp(new Vector3(xc + side * (Carriage + Kerb + Green * .5f), 0, z), side > 0 ? 270 : 90);
+        }
+    }
+    static void Zebra(float x0, float x1, float z0, float z1, bool stripesAlongZ)
+    {
+        if (stripesAlongZ) for (float x = x0 + .25f; x < x1 - .3f; x += 1f) Top(Paint, x, x + .5f, z0, z1, .047f);
+        else for (float z = z0 + .25f; z < z1 - .3f; z += 1f) Top(Paint, x0, x1, z, z + .5f, .047f);
+    }
+
+    // ---------------- willa ----------------
+    static GameObject outdoorSet, bench, bin, picnic, planter;
+    static void Villa(int index, float u0, float u1, float front, float dir)
+    {
+        group = "Osiedle B / willa " + (index + 1);
+        float W = u1 - u0, depth = dir > 0 ? ParkZ0 - front : front - SouthZ;
+        bool mirror = index % 2 == 1; int variant = index % 3;
+        float Z(float w) => front + dir * w;                         // głębokość działki -> świat
+        float U(float a) => mirror ? u1 - a : u0 + a;                 // pozycja wzdłuż ulicy -> świat
+        void BoxL(Material m, float a0, float a1, float y0, float y1, float w0, float w1, bool solid = true, bool bottom = false)
+            => BoxMinMax(m, Mathf.Min(U(a0), U(a1)), Mathf.Max(U(a0), U(a1)), y0, y1, Mathf.Min(Z(w0), Z(w1)), Mathf.Max(Z(w0), Z(w1)), solid, bottom);
+
+        float Wm = Mathf.Min(W - 13f, 18f), garage = 6.5f, s0 = (W - (Wm + garage)) * .5f;
+        float h0 = s0, h1 = s0 + Wm, g0 = h1, g1 = h1 + garage;     // dom i garaż wzdłuż ulicy
+        float f0 = 7f, f1 = 18f;                                      // front i tył parteru (głębokość)
+        var wallG = variant == 1 ? Stone : Stucco;
+        var wallU = variant == 0 ? Wood : variant == 1 ? Stucco : StuccoWarm;
+
+        // parter + cokół
+        BoxL(wallG, h0, h1, 0, 3.4f, f0, f1);
+        BoxL(Plinth, h0 - .04f, h1 + .04f, 0, .35f, f0 - .04f, f1 + .04f, false);
+        // stropodach parteru: attyka + żwir
+        BoxL(wallG, h0, h1, 3.4f, 3.75f, f0, f0 + .25f, false); BoxL(wallG, h0, h1, 3.4f, 3.75f, f1 - .25f, f1, false);
+        BoxL(wallG, h0, h0 + .25f, 3.4f, 3.75f, f0, f1, false); BoxL(wallG, h1 - .25f, h1, 3.4f, 3.75f, f0, f1, false);
+        BoxL(Gravel, h0 + .25f, h1 - .25f, 3.4f, 3.46f, f0 + .25f, f1 - .25f, false);
+        // piętro przesunięte i wysunięte nad wejście
+        float uw = Wm * .62f, uA = h0, uB = uA + uw, e0 = 5.4f, e1 = 14.6f;   // nad wejściem (U() odbija stronę)
+        BoxL(wallU, uA, uB, 3.46f, 6.7f, e0, e1, true, true);
+        BoxL(Stucco, uA - .05f, uB + .05f, 6.7f, 7.05f, e0 - .05f, e1 + .05f, false);
+        BoxL(Gravel, uA + .2f, uB - .2f, 7.05f, 7.08f, e0 + .2f, e1 - .2f, false);
+        // garaż
+        BoxL(Stucco, g0, g1, 0, 3.0f, f0, f0 + 6.5f);
+        BoxL(Stucco, g0, g1, 3.0f, 3.25f, f0, f0 + 6.5f, false);
+        BoxL(GarageDoor, g0 + .7f, g1 - .7f, .02f, 2.45f, f0 - .06f, f0 + .02f, false);
+        for (int k = 1; k < 6; k++) BoxL(Frame, g0 + .7f, g1 - .7f, .02f + k * .4f, .04f + k * .4f, f0 - .075f, f0 - .055f, false);
+
+        // okna: szkło wysunięte 3 cm, rama antracyt
+        void Pane(float a0, float a1, float y0, float y1, float w, float outward)
+        {
+            float wa = w - outward * .03f, wb = w + outward * .015f;
+            BoxL(Glass, a0, a1, y0, y1, Mathf.Min(wa, wb), Mathf.Max(wa, wb), false);
+            float fw = .07f, fa = w - outward * .05f, fb = w + outward * .01f;
+            BoxL(Frame, a0 - fw, a1 + fw, y0 - fw, y0, Mathf.Min(fa, fb), Mathf.Max(fa, fb), false);
+            BoxL(Frame, a0 - fw, a1 + fw, y1, y1 + fw, Mathf.Min(fa, fb), Mathf.Max(fa, fb), false);
+            BoxL(Frame, a0 - fw, a0, y0, y1, Mathf.Min(fa, fb), Mathf.Max(fa, fb), false);
+            BoxL(Frame, a1, a1 + fw, y0, y1, Mathf.Min(fa, fb), Mathf.Max(fa, fb), false);
+        }
+        // front parteru: drzwi przy krawędzi, dalej trzy duże przeszklenia
+        float door0 = h0 + 1.4f, door1 = door0 + 1.25f;
+        BoxL(Wood, door0, door1, .02f, 2.45f, f0 - .06f, f0 + .02f, false);
+        BoxL(Frame, door1 - .25f, door1 - .2f, 1.0f, 1.5f, f0 - .1f, f0 - .06f, false);
+        BoxL(Stucco, door0 - .9f, door1 + 1.2f, 2.95f, 3.15f, f0 - 1.8f, f0, false, true);   // daszek nad wejściem
+        float gl0 = door1 + 1.0f, gl1 = h1 - 1.0f; int panes = Mathf.Max(1, Mathf.RoundToInt((gl1 - gl0) / 2.6f));
+        for (int k = 0; k < panes; k++) { float a = gl0 + k * (gl1 - gl0) / panes + .12f, b = gl0 + (k + 1) * (gl1 - gl0) / panes - .12f; Pane(a, b, .4f, 2.9f, f0, -1); }
+        // tył parteru: przesuwne drzwi tarasowe
+        int rear = Mathf.Max(2, Mathf.RoundToInt((Wm - 2f) / 2.8f));
+        for (int k = 0; k < rear; k++) { float a = h0 + 1f + k * (Wm - 2f) / rear + .1f, b = h0 + 1f + (k + 1) * (Wm - 2f) / rear - .1f; Pane(a, b, .3f, 3.0f, f1, 1); }
+        // piętro: wstęga okien z przodu, dwa okna z tyłu, boczne
+        Pane(uA + .8f, uB - .8f, 4.1f, 6.15f, e0, -1);
+        Pane(uA + .9f, uA + uw * .45f, 4.1f, 6.15f, e1, 1); Pane(uA + uw * .55f, uB - .9f, 4.1f, 6.15f, e1, 1);
+        // tarasy i basen
+        BoxL(Deck, h0, h1, 0, .18f, f1, f1 + 4.2f);
+        if (outdoorSet) Put(outdoorSet, new Vector3(U(h0 + Wm * .35f), .18f, Z(f1 + 2.2f)), mirror ? 180 : 0, .03f, true);
+        bool pool = W >= 33f;
+        if (pool)
+        {
+            float p0 = h0 + Wm * .5f - 4.8f, p1 = h0 + Wm * .5f + 4.8f, q0 = f1 + 5.2f, q1 = f1 + 9.0f;
+            BoxL(Slabs, p0 - 1f, p1 + 1f, 0, .2f, q0 - 1f, q0, false); BoxL(Slabs, p0 - 1f, p1 + 1f, 0, .2f, q1, q1 + 1f, false);
+            BoxL(Slabs, p0 - 1f, p0, 0, .2f, q0, q1, false); BoxL(Slabs, p1, p1 + 1f, 0, .2f, q0, q1, false);
+            BoxL(PoolTiles, p0, p1, -.02f, .04f, q0, q1, false);
+            var wm = Water; float wa = Mathf.Min(U(p0), U(p1)), wb = Mathf.Max(U(p0), U(p1)), za = Mathf.Min(Z(q0), Z(q1)), zb = Mathf.Max(Z(q0), Z(q1));
+            Top(wm, wa, wb, za, zb, .12f);
+            Collider(new Vector3((wa + wb) * .5f, .4f, (za + zb) * .5f), new Vector3(wb - wa + 2f, .8f, zb - za + 2f));
+            rep.pools++;
+        }
+        // podjazd (jodełka) i ścieżka (płyty) od chodnika
+        BoxL(Herring, g0 + .5f, g1 - .5f, 0, .04f, 0, f0, false);
+        BoxL(Slabs, door0 - .1f, door1 + .1f, 0, .04f, 0, f0 - .05f, false);
+        // płot frontowy z przerwami na podjazd i furtkę
+        float fz = Z(.3f);
+        (float, float) Gap(float a, float b) => (Mathf.Min(U(a), U(b)), Mathf.Max(U(a), U(b)));
+        FenceX(u0, u1, fz, 1.55f, Gap(g0 + .5f, g1 - .5f), Gap(door0 - .2f, door1 + .2f));
+        Box(Frame, new Vector3(U(door1 + .6f), .65f, Z(.75f)), new Vector3(.38f, 1.3f, .32f), true);    // skrzynka na listy
+        // boczne płoty: lewa granica każdej działki (prawa zamyka sąsiad / ostatnia działka)
+        WoodFenceZ(Z(.6f), Z(depth - .3f), u0 + .1f);
+        // tylny płot (od parku lub od granicy osiedla)
+        FenceX(u0, u1, Z(depth - .3f), 1.55f);
+        // zieleń działki
+        Tree(new Vector3(U(W - 3f), 0, Z(3.4f)), 6.5f + (index % 3) * .8f, index * 47f); rep.plotTrees++;
+        Shrub(new Vector3(U(gl0 + .6f), 0, Z(f0 - .9f)), .38f, index * 31f);
+        Shrub(new Vector3(U((gl0 + gl1) * .5f), 0, Z(f0 - .9f)), .34f, index * 17f);
+        Shrub(new Vector3(U(gl1 - .4f), 0, Z(f0 - .9f)), .4f, index * 53f);
+        rep.villas++;
+    }
+
+    // ---------------- park ----------------
+    static void Park()
+    {
+        group = "Park Centralny";
+        float z0 = ParkZ0, z1 = FenceA - .6f, zc = (z0 + z1) * .5f;     // z1 = -102.6
+        // aleja N-S (oś bramy) i W-E, plac z fontanną na skrzyżowaniu
+        float r = 9f;
+        Top(ParkPath, AxisX - 3f, AxisX + 3f, z0, zc - r + .4f, .03f);
+        Top(ParkPath, AxisX - 3f, AxisX + 3f, zc + r - .4f, z1 + .6f, .03f);
+        Top(ParkPath, X0 + 4f, AxisX - r + .4f, zc - 2f, zc + 2f, .03f);
+        Top(ParkPath, AxisX + r - .4f, X1 - 4f, zc - 2f, zc + 2f, .03f);
+        Disc(ParkPath, new Vector3(AxisX, .046f, zc), r, 48);
+        // fontanna: kamienna misa, woda, kolumna z czaszą
+        var fc = new Vector3(AxisX, 0, zc);
+        Cylinder(Stone, fc, 3.6f, .55f, 40, false, true);
+        Ring(Stone, fc + Vector3.up * .55f, 3.05f, 3.6f, 40);
+        Cylinder(Stone, fc + Vector3.up * .42f, 3.05f, .13f, 40, false, false, true);
+        Disc(Water, fc + Vector3.up * .42f, 3.05f, 40);
+        Cylinder(Stone, fc + Vector3.up * .42f, .45f, 1.25f, 20, true, false);
+        Cylinder(Stone, fc + Vector3.up * 1.6f, 1.15f, .2f, 28, true, false);
+        Disc(Water, fc + Vector3.up * 1.81f, 1.0f, 28);
+        // ławki wokół placu i wzdłuż alei
+        for (int k = 0; k < 6; k++)
+        {
+            float a = (k * 60f + 30f) * Mathf.Deg2Rad; var p = fc + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * 7.6f;
+            if (bench && Put(bench, new Vector3(p.x, .03f, p.z), 90f - k * 60f - 30f + 180f, .03f)) rep.benches++;
+        }
+        for (float x = X0 + 14f; x < X1 - 10f; x += 18f)
+        {
+            if (Mathf.Abs(x - AxisX) < 14f) continue;
+            bool northSide = ((int)((x - X0) / 18f)) % 2 == 0;
+            if (bench && Put(bench, new Vector3(x, .03f, zc + (northSide ? 3.1f : -3.1f)), northSide ? 180 : 0, .03f)) rep.benches++;
+            Lamp(new Vector3(x + 9f, 0, zc + (northSide ? -2.6f : 2.6f)), northSide ? 0 : 180);
+            if (bin && ((int)x) % 3 == 0 && Put(bin, new Vector3(x + 1.6f, .03f, zc + (northSide ? 3.2f : -3.2f)), 0, .02f)) rep.bins++;
+        }
+        for (float z = z0 + 6f; z < z1 - 4f; z += 14f)
+        {
+            if (Mathf.Abs(z - zc) < 12f) continue;
+            Lamp(new Vector3(AxisX - 3.6f, 0, z), 90);
+            if (bench && Put(bench, new Vector3(AxisX + 3.7f, .03f, z + 7f), 270, .03f)) rep.benches++;
+        }
+        // stoły piknikowe na trawnikach
+        foreach (var p in new[] { new Vector2(-80, -114), new Vector2(-60, -139), new Vector2(40, -113), new Vector2(75, -138) })
+            if (picnic && Put(picnic, new Vector3(p.x, 0, p.y), 15f, .03f)) rep.tables++;
+        // aleje drzew: wzdłuż alei W-E i N-S, kilka grup na trawnikach
+        var rnd = new System.Random(2031);
+        for (float x = X0 + 10f; x < X1 - 6f; x += 16f)
+        {
+            if (Mathf.Abs(x - AxisX) < 16f) continue;
+            foreach (float side in new[] { -1f, 1f })
+                if (Tree(new Vector3(x + (float)rnd.NextDouble() * 2f, 0, zc + side * 6.2f), 7f + (float)rnd.NextDouble() * 2.2f, rnd.Next(360))) rep.parkTrees++;
+        }
+        for (float z = z0 + 6f; z < z1 - 3f; z += 12f)
+        {
+            if (Mathf.Abs(z - zc) < 13f) continue;
+            foreach (float side in new[] { -1f, 1f })
+                if (Tree(new Vector3(AxisX + side * 6.5f, 0, z), 6.5f + (float)rnd.NextDouble() * 2f, rnd.Next(360))) rep.parkTrees++;
+        }
+        foreach (var p in new[] { new Vector2(-95, -140), new Vector2(-88, -110), new Vector2(15, -140), new Vector2(60, -110), new Vector2(98, -142) })
+        {
+            if (Tree(new Vector3(p.x, 0, p.y), 8.5f, rnd.Next(360))) rep.parkTrees++;
+            for (int k = 0; k < 3; k++) Shrub(new Vector3(p.x + 3f + k * 1.4f, 0, p.y - 2.5f + k), .36f + k * .03f, rnd.Next(360));
+        }
+    }
+
+    // ---------------- stary płot południowy osiedla A ----------------
+    static void RemoveOldSouthFence(Transform estate, Transform physics)
+    {
+        var vol = new Bounds(new Vector3(0, 1.5f, FenceA), new Vector3(229.5f, 2.94f, 2.8f));     // y .03..2.97
+        foreach (var mf in estate.GetComponentsInChildren<MeshFilter>(true))
+        {
+            var mr = mf.GetComponent<MeshRenderer>(); if (!mr || !mf.sharedMesh || !mr.bounds.Intersects(vol)) continue;
+            var src = mf.sharedMesh; Vector3[] v;
+            try { v = src.vertices; } catch { rep.notes.Add("nieczytelna siatka " + src.name); continue; }
+            if (v == null || v.Length == 0) continue;
+            var M = mf.transform.localToWorldMatrix; var w = v.Select(p => M.MultiplyPoint3x4(p)).ToArray();
+            Mesh copy = null; int removed = 0;
+            for (int s = 0; s < src.subMeshCount; s++)
+            {
+                var tri = src.GetTriangles(s); var keep = new List<int>(tri.Length);
+                for (int k = 0; k < tri.Length; k += 3)
+                {
+                    if (vol.Contains(w[tri[k]]) && vol.Contains(w[tri[k + 1]]) && vol.Contains(w[tri[k + 2]])) { removed++; continue; }
+                    keep.Add(tri[k]); keep.Add(tri[k + 1]); keep.Add(tri[k + 2]);
+                }
+                if (keep.Count != tri.Length)
+                {
+                    if (!copy) { copy = UnityEngine.Object.Instantiate(src); copy.name = src.name + "_bez_starego_plotu"; }
+                    copy.SetTriangles(keep, s);
+                }
+            }
+            if (copy)
+            {
+                AssetDatabase.CreateAsset(copy, Out + "/cut_" + Safe(mf.name) + ".asset");
+                mf.sharedMesh = copy; var mc = mf.GetComponent<MeshCollider>(); if (mc) mc.sharedMesh = copy;
+                rep.oldFenceTrianglesRemoved += removed; rep.notes.Add("stary płot: " + mf.name + " -" + removed + " trójkątów");
+            }
+        }
+        if (physics)
+            foreach (var c in physics.GetComponentsInChildren<BoxCollider>(true))
+            {
+                var b = c.bounds;
+                if (b.size.x > 150f && Mathf.Abs(b.center.z - FenceA) < 1.2f && b.size.z < 2f) { c.enabled = false; rep.oldFenceCollidersDisabled++; }
+            }
+    }
+
+    // ---------------- główne ----------------
+    public static void Apply()
+    {
+        rep = new Report(); mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle";
+        try { Build(); rep.status = "ZBUDOWANO"; }
+        catch (Exception e) { rep.status = "BŁĄD"; rep.error = e.Message; Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE " + e); }
+        rep.materials = mats.Count;
+        Directory.CreateDirectory("city-review");
+        File.WriteAllText("city-review/osiedle-claude.json", JsonUtility.ToJson(rep, true));
+        Debug.Log("BRAXHORN_CLAUDE_OSIEDLE " + JsonUtility.ToJson(rep));
+    }
+
+    static void Build()
+    {
+        if (!Directory.Exists(Tex)) throw new Exception("brak tekstur osiedla (unity-tools/claude/fetch_osiedle.py)");
+        Directory.CreateDirectory(Out); AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        var estate = GameObject.Find("braxhorn-estate")?.transform;
+        if (!estate) throw new Exception("brak korzenia braxhorn-estate");
+        var physics = GameObject.Find("Original estate collisions")?.transform;
+        verdant = estate.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.name == "EstateMesh_439" || r.name == "EstateMesh_446" ||
+                  r.name == "EstateMesh_453" || r.name == "EstateMesh_460" || r.name == "EstateMesh_467").GroupBy(r => r.name).ToDictionary(g => g.Key, g => g.First());
+        if (verdant.Count < 5) rep.notes.Add("Verdant: znaleziono " + verdant.Count + "/5 części drzew");
+
+        root = new GameObject("CLAUDE osiedle: park + osiedle B").transform;
+        colliders = new GameObject("kolizje").transform; colliders.SetParent(root, false);
+        outdoorSet = Model("outdoor_table_chair_set_01"); bench = Model("painted_wooden_bench"); bin = Model("metal_trash_can");
+        picnic = Model("wooden_picnic_table"); planter = Model("planter_box_02");
+
+        // 1) podłoże nowej części: trawa + fizyczna podłoga
+        group = "Podłoże";
+        float zA = FenceA - .6f, zG = FenceA - .4f;
+        for (float z = SouthZ; z < zG - .01f; z += 34f) Top(Grass, X0, X1, z, Mathf.Min(z + 34f, zG), -.02f);
+        var floor = new GameObject("podłoga nowej części"); floor.transform.SetParent(colliders, false);
+        floor.transform.position = new Vector3(0, -.15f, (SouthZ + zA) * .5f);
+        floor.AddComponent<BoxCollider>().size = new Vector3(X1 - X0, .3f, zA - SouthZ);
+
+        // 2) stary płot -> nowy, z bramami do parku
+        RemoveOldSouthFence(estate, physics);
+        group = "Ogrodzenie";
+        FenceX(X0, X1, FenceA, 1.6f, (AxisX - 4f, AxisX + 4f), (28f, 32f));
+        foreach (float gx in new[] { AxisX - 4.3f, AxisX + 4.3f, 27.7f, 32.3f }) Box(Plinth, new Vector3(gx, 1.15f, FenceA), new Vector3(.62f, 2.3f, .62f));
+        FenceZ(SouthZ, FenceA, X0 + .25f, 1.6f); FenceZ(SouthZ, FenceA, X1 - .25f, 1.6f); FenceX(X0, X1, SouthZ + .25f, 1.6f);
+
+        // 3) park
+        Park();
+
+        // 4) osiedle B: ulica główna W-E, ulica N-S od alei parku, zebry
+        group = "Osiedle B / ulice";
+        float gapA = AxisX - Carriage - Kerb, gapB = AxisX + Carriage + Kerb;
+        StreetX(X0 + .6f, X1 - .6f, StreetZ, (gapA - Green - Walk, gapB + Green + Walk));
+        StreetZ(ParkZ0, StreetZ + Carriage, AxisX);
+        Zebra(AxisX - Carriage, AxisX + Carriage, StreetZ + Carriage + .2f, StreetZ + Carriage + 3.2f, true);
+        Zebra(AxisX + 9f, AxisX + 12f, StreetZ - Carriage, StreetZ + Carriage, false);
+        // wjazd do parku: niska brama z kamiennymi słupami
+        foreach (float gx in new[] { AxisX - 3.5f, AxisX + 3.5f }) Box(Plinth, new Vector3(gx, 1.1f, ParkZ0 - .2f), new Vector3(.6f, 2.2f, .6f));
+
+        // 5) działki z willami
+        float north = StreetZ + Half, south = StreetZ - Half;     // przednie granice działek
+        int idx = 0;
+        void Row(float a, float b, int count, float front, float dir)
+        {
+            float w = (b - a) / count;
+            for (int k = 0; k < count; k++) Villa(idx++, a + k * w, a + (k + 1) * w, front, dir);
+        }
+        Row(X0 + .6f, AxisX - Half, 3, north, 1f);
+        Row(AxisX + Half, X1 - .6f, 4, north, 1f);
+        Row(X0 + .6f, X1 - .6f, 6, south, -1f);
+        group = "Osiedle B / ogrodzenie";
+        WoodFenceZ(north + .6f, ParkZ0 - .3f, X1 - .7f); WoodFenceZ(south - .6f, SouthZ + .3f, X1 - .7f);
+        FenceZ(north + .3f, ParkZ0 - .3f, AxisX - Half - .25f, 1.55f);
+
+        Flush();
+
+        // 6) punkty podróży (TravelPoint) do nowych miejsc
+        var world = UnityEngine.Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(w => w.area == "estate");
+        if (world)
+        {
+            var add = new[]
+            {
+                new BraxCityPoint { id = "park_centralny", label = "Park Centralny", position = new Vector3(AxisX + 1.5f, .08f, -112f) },
+                new BraxCityPoint { id = "fontanna", label = "Fontanna w parku", position = new Vector3(AxisX + 6f, .08f, -132f) },
+                new BraxCityPoint { id = "osiedle_b", label = "Osiedle B", position = new Vector3(AxisX + 1.5f, .1f, -170f) },
+                new BraxCityPoint { id = "osiedle_b_ulica", label = "Osiedle B, ulica", position = new Vector3(30f, .1f, StreetZ) },
+                new BraxCityPoint { id = "willa_b", label = "Willa z basenem", position = new Vector3(55f, .1f, south - 1.5f) },
+            };
+            world.points = world.points.Concat(add).ToArray(); rep.points = add.Length;
+        }
+        else rep.notes.Add("brak BraxCityWorld estate — bez nowych punktów");
+        AssetDatabase.SaveAssets();
+    }
+}

@@ -1,0 +1,105 @@
+name: Claude R2 osiedle - park + osiedle B (Unity6 WebGL, zdjecia w CI)
+on:
+  push:
+    branches: [claude/osiedle-20261031]
+    paths: ['unity-city/**','unity-tools/**','.github/workflows/claude-osiedle-build.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: claude-osiedle
+  cancel-in-progress: true
+jobs:
+  estate:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-city
+            unity-tools
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+            asset-library/sources/sofa_02
+          persist-credentials: false
+          lfs: false
+      - name: Oryginalna silownia (artefakt Codexa)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+      - name: Oryginalne miasto i osiedle (artefakt Codexa)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40840263799
+          github-token: ${{ github.token }}
+          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
+          path: unity-city/Assets/Source/City/
+      - name: Przygotowanie zrodel (jak w buildzie Codexa R2)
+        run: |
+          mkdir -p city-review
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6 opencv-python-headless==4.12.0.88
+          python3 -m compileall -q unity-tools
+          python3 unity-tools/prepare_playable.py
+          python3 unity-tools/premium_prepare.py
+          python3 unity-tools/premium_refinements.py
+          python3 unity-tools/city/prepare_segment.py
+          python3 unity-tools/city/prepare.py
+          python3 unity-tools/city/import_approved_roofs.py
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender
+          blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
+          git diff --exit-code -- unity-city/Assets/*.cs unity-city/Assets/*.shader unity-city/Assets/Editor unity-city/Assets/City unity-tools
+      - name: Materialy i modele CC0 do osiedla (Poly Haven + ambientCG)
+        run: python3 unity-tools/claude/fetch_osiedle.py
+      - name: Kompilacja Unity 6 (osiedle jako pierwsza scena)
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxGymBuild.BuildCity
+          versioning: None
+          allowDirtyBuild: true
+      - name: Raport rozbudowy
+        if: always()
+        run: |
+          for f in unity-city/city-review/osiedle-claude.json city-review/osiedle-claude.json; do [ -f "$f" ] && cat "$f"; done || true
+      - name: Pakowanie playera
+        run: python3 unity-tools/city/package_estate.py
+      - name: Przegladarka do zdjec
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Zdjecia z prawdziwego playera (park, osiedle B, plot, punkty)
+        continue-on-error: true
+        timeout-minutes: 45
+        run: node unity-tools/claude/osiedle_shots.mjs
+      - name: Player i zdjecia do szkicu wydania claude-osiedle-preview
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REL=claude-osiedle-preview
+          S=${GITHUB_SHA::7}
+          mkdir -p osiedle-shots
+          for f in unity-city/city-review/osiedle-claude.json city-review/osiedle-claude.json; do [ -f "$f" ] && cp "$f" osiedle-shots/; done || true
+          (cd osiedle-shots && zip -q -r ../osiedle-shots-$S.zip .)
+          if [ -f unity-preview/index.html ]; then (cd unity-preview && zip -q -r -1 ../osiedle-player-$S.zip .); fi
+          ls -la osiedle-*.zip
+          gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
+              --title "Podglad osiedla R2 (Claude, TEST)" --notes "Player Unity 6 osiedla (park + osiedle B) i zdjecia z CI. Nie produkcja."
+          gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber osiedle-*.zip
