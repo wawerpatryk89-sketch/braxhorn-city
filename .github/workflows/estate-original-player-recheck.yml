@@ -1,0 +1,49 @@
+name: BRAXHORN Estate - recheck ORIGINAL city player without rebuilding Unity
+on:
+  push:
+    branches: [codex/estate-shared-city-player-20261030]
+    paths:
+      - unity-tools/city/check_estate_original_player.mjs
+      - .github/workflows/estate-original-player-recheck.yml
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            unity-tools/city/check_estate_original_player.mjs
+            .github/workflows/estate-original-player-recheck.yml
+      - name: Retrieve exact previously compiled shared-city Brax scene
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run download 41038775796 -R "$GITHUB_REPOSITORY" \
+            -n estate-shared-city-player-build-140407203586a6c150faf6355ebd4c1a2faa55c7 \
+            -D unity-preview
+          test -s unity-preview/index.html
+          test -s unity-preview/city-migration.json
+          test -d unity-preview/Build
+          node --check unity-tools/city/check_estate_original_player.mjs
+      - name: Install real Chromium for original estate player QA
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test exact original city controls, player and estate door
+        env:
+          SOURCE_BUILD_SHA: 140407203586a6c150faf6355ebd4c1a2faa55c7
+        run: node unity-tools/city/check_estate_original_player.mjs
+      - name: Preserve original Brax walkthrough evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: estate-original-city-player-recheck-${{ github.sha }}
+          path: city-review/
+          retention-days: 14
+          if-no-files-found: warn
