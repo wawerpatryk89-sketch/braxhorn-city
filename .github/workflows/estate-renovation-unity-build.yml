@@ -79,7 +79,7 @@ jobs:
           assert len(found)==1, f'Expected one generated Unity R2 roof audit, got {found}'
           r=json.loads(found[0].read_text(encoding='utf-8'))
           assert r['scene']=='BraxhornEstate'
-          assert r['status']=='R2_ROOF_MAPS_APPLIED__VISUAL_ACCEPTANCE_PENDING'
+          assert r['status']=='R2_ROOF_PBR_APPLIED__VISUAL_ACCEPTANCE_PENDING'
           assert r['greySlots']>=1 and r['tileSlots']>=1
           assert r['normalSlots'] >= 2 and r['smoothnessSlots'] >= 2
           assert r['pbrSourceMapCount'] == 6

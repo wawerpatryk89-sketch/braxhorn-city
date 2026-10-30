@@ -21,12 +21,13 @@ public static class BraxEstateR2ApprovedRoofs
     {
         var importer=AssetImporter.GetAtPath(path) as TextureImporter;
         if(importer==null)throw new InvalidOperationException("Original PBR source not imported: "+path);
+        bool expectedSrgb=!normal && path.EndsWith("Albedo.jpg",StringComparison.OrdinalIgnoreCase);
         bool change=importer.textureType!=(normal?TextureImporterType.NormalMap:TextureImporterType.Default)
-            ||importer.sRGBTexture==normal||!importer.mipmapEnabled||importer.maxTextureSize!=2048;
+            ||importer.sRGBTexture!=expectedSrgb||!importer.mipmapEnabled||importer.maxTextureSize!=2048;
         if(change)
         {
             importer.textureType=normal?TextureImporterType.NormalMap:TextureImporterType.Default;
-            importer.sRGBTexture=!normal && path.EndsWith("Albedo.jpg",StringComparison.OrdinalIgnoreCase);
+            importer.sRGBTexture=expectedSrgb;
             importer.mipmapEnabled=true;
             importer.maxTextureSize=2048;
             importer.wrapMode=TextureWrapMode.Repeat;
