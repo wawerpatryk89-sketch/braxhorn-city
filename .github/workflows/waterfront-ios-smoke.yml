@@ -1,0 +1,28 @@
+name: BRAXHORN CITY — iOS WebKit hosted waterfront smoke (TEST only)
+on:
+  push:
+    branches: [codex/waterfront-recovery-20261030]
+    paths: ['.github/workflows/waterfront-ios-smoke.yml','unity-tools/city-rebuild/waterfront-ios-smoke.mjs']
+permissions:
+  contents: read
+jobs:
+  webkit-hosted-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+      - run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps webkit chromium
+      - name: Inspect exact hosted preview in WebKit and Chromium
+        run: node unity-tools/city-rebuild/waterfront-ios-smoke.mjs
+      - name: Preserve screenshot and runtime report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: waterfront-ios-smoke-${{ github.sha }}
+          path: ios-waterfront-review/
+          retention-days: 14
