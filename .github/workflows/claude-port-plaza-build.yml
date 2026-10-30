@@ -154,6 +154,15 @@ jobs:
         '
     - name: Pobierz prawdziwe materialy i modele CC0 z Poly Haven (taras wiezowca)
       run: python3 unity-tools/claude/fetch_polyhaven.py
+    - name: Odchudz drzewa Poly Haven pod telefon (gltfpack)
+      run: |
+        curl -sSL -o /tmp/gp.zip https://github.com/zeux/meshoptimizer/releases/download/v0.22/gltfpack-ubuntu.zip
+        unzip -o -q /tmp/gp.zip -d /tmp/gp && chmod +x /tmp/gp/gltfpack
+        for t in tree_small_02 island_tree_01 island_tree_02 jacaranda_tree; do
+          d=unity-city/Assets/Source/Claude/PolyHaven/models/$t
+          if /tmp/gp/gltfpack -i $d/$t.gltf -o /tmp/$t.glb -noq -km -kn -si 0.25; then rm -rf $d/* && mv /tmp/$t.glb $d/$t.glb; else echo "zostaje oryginalny gltf: $t"; fi
+          ls -la $d
+        done
     - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
@@ -205,6 +214,8 @@ jobs:
         cat unity-city/Assets/PlayableGenerated/ClaudeTower/terrace.json || echo 'BRAK raportu tarasu'
         cat unity-city/Assets/PlayableGenerated/ClaudeNova/nova-club.json || echo 'BRAK raportu NOVA'
         cat unity-city/Assets/PlayableGenerated/ClaudeGround/ground.json || echo 'BRAK raportu trawy'
+        cat unity-city/Assets/PlayableGenerated/ClaudeGround/trees.json || echo 'BRAK raportu drzew'
+        cat unity-city/Assets/PlayableGenerated/ClaudeGround/courts.json || echo 'BRAK raportu boisk'
         cat unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json || echo 'BRAK raportu drzwi'
     - name: Wgraj player do ukrytego wydania (do zdjec i nagrania)
       if: steps.package.outcome == 'success'
@@ -217,6 +228,8 @@ jobs:
         cp unity-city/Assets/PlayableGenerated/ClaudeTower/terrace.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeNova/nova-club.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeGround/ground.json unity-preview/ || true
+        cp unity-city/Assets/PlayableGenerated/ClaudeGround/trees.json unity-preview/ || true
+        cp unity-city/Assets/PlayableGenerated/ClaudeGround/courts.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json unity-preview/ || true
         (cd unity-preview && zip -q -r -1 ../player-${GITHUB_SHA::7}.zip .)
         ls -la player-*.zip

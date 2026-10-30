@@ -210,6 +210,100 @@ public static class BraxHarborBeachBuild
         c.transform.SetParent(root, false); c.center = center; c.size = size;
     }
 
+
+    // ===== Plaża na narożniku cypla (kształt z prawdziwego terenu) =====
+    // Siatka 1 m: promienie w dół szukają lądu (trawnik ~0 m). Czubek cypla = najdalej na wschód.
+    // Strefa plaży: ląd w promieniu 35 m od czubka + pas morza do 14 m od brzegu, łagodnie pod wodę.
+    static bool CornerBeach(Transform cityRoot, Transform root, Material dry, Material wet, Texture2D disp,
+                            out Vector3 tip, out int tris, out Rect zoneRect)
+    {
+        tip = Vector3.zero; tris = 0; zoneRect = default;
+        Physics.SyncTransforms();
+        const float gx0 = 60f, gz0 = 98f, step = 1f; const int nx = 150, nz = 120;
+        var land = new float[nx + 1, nz + 1]; var isLand = new bool[nx + 1, nz + 1];
+        int east = 0;
+        for (int i = 0; i <= nx; i++)
+            for (int k = 0; k <= nz; k++)
+            {
+                float x = gx0 + i * step, z = gz0 + k * step; float best = float.NegativeInfinity;
+                foreach (var h in Physics.RaycastAll(new Vector3(x, 40f, z), Vector3.down, 45f, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    if (h.collider.transform.IsChildOf(root)) continue;
+                    if (h.normal.y < .6f || h.point.y < -.6f || h.point.y > 1.2f) continue;
+                    if (best == float.NegativeInfinity || h.point.y < best) best = h.point.y;
+                }
+                if (best != float.NegativeInfinity) { isLand[i, k] = true; land[i, k] = best; if (x > Shore + 2f) east++; }
+            }
+        if (east < 60) return false;
+        float tipX = float.NegativeInfinity; double zs = 0; int zc = 0;
+        for (int i = nx; i >= 0 && tipX == float.NegativeInfinity; i--)
+            for (int k = 0; k <= nz; k++) if (isLand[i, k] && gx0 + i * step > Shore) { tipX = gx0 + i * step; }
+        int ti = Mathf.RoundToInt((tipX - gx0) / step);
+        for (int k = 0; k <= nz; k++) if (isLand[ti, k]) { zs += gz0 + k * step; zc++; }
+        float tipZ = (float)(zs / Mathf.Max(1, zc));
+        float xMin = tipX - 35f, zMin = tipZ - 45f, zMax = tipZ + 45f;
+        bool Zone(int i, int k) { float x = gx0 + i * step, z = gz0 + k * step; return isLand[i, k] && x >= xMin && z >= zMin && z <= zMax; }
+        // brzeg strefy: ląd strefy sąsiadujący z morzem
+        var shore = new List<Vector2>(); float zr0 = float.MaxValue, zr1 = float.MinValue;
+        for (int i = 1; i < nx; i++)
+            for (int k = 1; k < nz; k++)
+            {
+                if (!Zone(i, k)) continue;
+                float z = gz0 + k * step; zr0 = Mathf.Min(zr0, z); zr1 = Mathf.Max(zr1, z);
+                if (!isLand[i + 1, k] || !isLand[i - 1, k] || !isLand[i, k + 1] || !isLand[i, k - 1]) shore.Add(new Vector2(gx0 + i * step, z));
+            }
+        if (shore.Count < 10) return false;
+        zoneRect = new Rect(xMin, zr0, tipX - xMin, zr1 - zr0);
+        float Dist(float x, float z) { float d = float.MaxValue; foreach (var p in shore) { float dx = p.x - x, dz = p.y - z; float q = dx * dx + dz * dz; if (q < d) d = q; } return Mathf.Sqrt(d); }
+        // wysokości wierzchołków
+        var h2 = new float[nx + 1, nz + 1]; var use = new bool[nx + 1, nz + 1]; var sea = new bool[nx + 1, nz + 1];
+        for (int i = 0; i <= nx; i++)
+            for (int k = 0; k <= nz; k++)
+            {
+                float x = gx0 + i * step, z = gz0 + k * step;
+                float detail = (disp.GetPixelBilinear(Mathf.Repeat(x / 11f, 1), Mathf.Repeat(z / 13f, 1)).grayscale - .5f) * .05f;
+                if (Zone(i, k)) { h2[i, k] = land[i, k] + .02f + Mathf.Max(0, detail); use[i, k] = true; continue; }
+                if (isLand[i, k] || x < xMin - 1f || z < zMin - 14f || z > zMax + 14f) continue;
+                float d = Dist(x, z); if (d > 14f) continue;
+                h2[i, k] = .02f - 2.9f * Mathf.SmoothStep(0, 1, d / 12f) + detail; use[i, k] = true; sea[i, k] = true;
+                if (d >= 11f && d < 12f)
+                    Stop(root, "Plaza: granica kąpieliska", new Vector3(x, 0, z), new Vector3(1.05f, 5f, 1.05f));
+            }
+        // siatki: suchy (ląd) i mokry (pod wodą)
+        foreach (bool wetPart in new[] { false, true })
+        {
+            var verts = new List<Vector3>(); var idx = new List<int>(); var map = new Dictionary<int, int>();
+            int V(int i, int k)
+            {
+                int key = i * (nz + 1) + k;
+                if (!map.TryGetValue(key, out int v)) { v = verts.Count; map[key] = v; verts.Add(new Vector3(gx0 + i * step, h2[i, k], gz0 + k * step)); }
+                return v;
+            }
+            for (int i = 0; i < nx; i++)
+                for (int k = 0; k < nz; k++)
+                {
+                    if (!use[i, k] || !use[i + 1, k] || !use[i, k + 1] || !use[i + 1, k + 1]) continue;
+                    bool anySea = sea[i, k] || sea[i + 1, k] || sea[i, k + 1] || sea[i + 1, k + 1];
+                    if (anySea != wetPart) continue;
+                    int a = V(i, k), b = V(i + 1, k), c = V(i, k + 1), d = V(i + 1, k + 1);
+                    idx.Add(a); idx.Add(c); idx.Add(b); idx.Add(b); idx.Add(c); idx.Add(d);
+                }
+            if (idx.Count == 0) continue;
+            var mesh = new Mesh { name = wetPart ? "Plaza mokry piasek" : "Plaza suchy piasek", indexFormat = IndexFormat.UInt32 };
+            mesh.SetVertices(verts); mesh.SetTriangles(idx, 0);
+            mesh.SetUVs(0, verts.Select(v => new Vector2(v.x * .3f, v.z * .3f)).ToList());
+            mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
+            AssetDatabase.CreateAsset(mesh, Generated + "/" + (wetPart ? "corner_wet" : "corner_dry") + ".asset");
+            var o = new GameObject(mesh.name); o.transform.SetParent(root, false);
+            o.AddComponent<MeshFilter>().sharedMesh = mesh;
+            var r = o.AddComponent<MeshRenderer>(); r.sharedMaterial = wetPart ? wet : dry; r.shadowCastingMode = ShadowCastingMode.Off;
+            o.AddComponent<MeshCollider>().sharedMesh = mesh;
+            tris += idx.Count / 3;
+        }
+        tip = new Vector3(tipX, land[ti, Mathf.Clamp(Mathf.RoundToInt((tipZ - gz0) / step), 0, nz)], tipZ);
+        return true;
+    }
+
     public static void Apply(Transform cityRoot)
     {
         if (!cityRoot || cityRoot.name != "BRAXHORN CITY reference renovation")
@@ -225,51 +319,60 @@ public static class BraxHarborBeachBuild
         var root = new GameObject(RootName).transform;
         root.SetParent(cityRoot, false); root.position = Vector3.zero;
 
-        // 1) Cały zielony trawnik nad wodą staje się plażą: zasięg z prawdziwych siatek trawy
-        //    przy brzegu (ograniczony do pasa nadmorskiego), trawa wycięta razem z kolizją.
-        float lx0 = LandX, lz0 = Z0, lz1 = Z1;
-        foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
-        {
-            var b = r.bounds;
-            if (b.max.x < LandX || b.min.x > Shore || b.max.z < Z0 || b.min.z > Z1 || b.size.y > 3f || b.max.y > 1.5f) continue;
-            if (!r.sharedMaterials.Any(BraxClaudeGround.LooksLikeGrass)) continue;
-            lx0 = Mathf.Min(lx0, b.min.x); lz0 = Mathf.Min(lz0, b.min.z); lz1 = Mathf.Max(lz1, b.max.z);
-        }
-        lx0 = Mathf.Clamp(lx0, 50f, LandX); lz0 = Mathf.Clamp(lz0, 104f, Z0); lz1 = Mathf.Clamp(lz1, Z1, 190f);
-        BeachX0 = lx0; BeachZ0 = lz0; BeachZ1 = lz1;
-        BraxClaudeGround.Cut(cityRoot, new Rect(lx0 - .5f, lz0 - .5f, Shore - lx0 + 1.5f, lz1 - lz0 + 1f), -.6f, .7f, root);
-
         // 2) Piasek: matowy fotoskan (bez plastikowego połysku), skala w metrach świata.
         var dry = BraxClaudeGround.WorldMaterial("Plaza: suchy piasek coast_sand_02",
             Tex("coast_sand_02", "_diff_2k.jpg"), Tex("coast_sand_02", "_nor_2k.png", normal: true), null, 2.4f, new Color(1.12f, .96f, .70f), .28f, .9f);
         var wet = BraxClaudeGround.WorldMaterial("Plaza: mokry piasek damp_sand",
             Tex("damp_sand", "_diff_2k.jpg"), Tex("damp_sand", "_nor_2k.png", normal: true), null, 2.4f, new Color(.98f, .84f, .60f), .2f, .8f);
         var dryDisp = Tex("coast_sand_02", "_disp_2k.png", read: true);
-        int nz = Mathf.Clamp(Mathf.RoundToInt((BeachZ1 - BeachZ0) / .45f), 60, 190);
-        int nxd = Mathf.Clamp(Mathf.RoundToInt((92f - BeachX0) / .45f), 30, 100);
-        int tris = BeachStrip(root, "Plaza suchy piasek", BeachX0, 92f, BeachZ0, BeachZ1, nxd, nz, dryDisp, dry);
-        tris += BeachStrip(root, "Plaza mokry piasek przy wodzie", 92f, SeaX, BeachZ0, BeachZ1, 30, nz, dryDisp, wet);
+        Vector3 tip; int tris; Rect zone;
+        bool corner = CornerBeach(cityRoot, root, dry, wet, dryDisp, out tip, out tris, out zone);
+        if (corner)
+            BraxClaudeGround.Cut(cityRoot, new Rect(zone.xMin - .5f, zone.yMin - .5f, zone.width + 1.5f, zone.height + 1f), -.6f, .7f, root);
+        else
+        {
+        // 1) Cały zielony trawnik nad wodą staje się plażą: zasięg z prawdziwych siatek trawy
+            //    przy brzegu (ograniczony do pasa nadmorskiego), trawa wycięta razem z kolizją.
+            float lx0 = LandX, lz0 = Z0, lz1 = Z1;
+            foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                var b = r.bounds;
+                if (b.max.x < LandX || b.min.x > Shore || b.max.z < Z0 || b.min.z > Z1 || b.size.y > 3f || b.max.y > 1.5f) continue;
+                if (!r.sharedMaterials.Any(BraxClaudeGround.LooksLikeGrass)) continue;
+                lx0 = Mathf.Min(lx0, b.min.x); lz0 = Mathf.Min(lz0, b.min.z); lz1 = Mathf.Max(lz1, b.max.z);
+            }
+            lx0 = Mathf.Clamp(lx0, 50f, LandX); lz0 = Mathf.Clamp(lz0, 104f, Z0); lz1 = Mathf.Clamp(lz1, Z1, 190f);
+            BeachX0 = lx0; BeachZ0 = lz0; BeachZ1 = lz1;
+            BraxClaudeGround.Cut(cityRoot, new Rect(lx0 - .5f, lz0 - .5f, Shore - lx0 + 1.5f, lz1 - lz0 + 1f), -.6f, .7f, root);
 
+            int nz = Mathf.Clamp(Mathf.RoundToInt((BeachZ1 - BeachZ0) / .45f), 60, 190);
+            int nxd = Mathf.Clamp(Mathf.RoundToInt((92f - BeachX0) / .45f), 30, 100);
+            tris = BeachStrip(root, "Plaza suchy piasek", BeachX0, 92f, BeachZ0, BeachZ1, nxd, nz, dryDisp, dry);
+            tris += BeachStrip(root, "Plaza mokry piasek przy wodzie", 92f, SeaX, BeachZ0, BeachZ1, 30, nz, dryDisp, wet);
+
+        }
+        float jx = corner ? tip.x - 3f + 12.9f : 101f, jz = corner ? tip.z : 133f;
         // 3) Pomost z plaży w morze (natywna skala 25.8 m), deska ok. 1.5 m nad wodą.
-        var jetty = Put(root, "rustic_wooden_dock.glb", "Marina: drewniany pomost", 101f, Water + 1.55f + 1.5f, 133f, 1f, 90f, 1);
+        var jetty = Put(root, "rustic_wooden_dock.glb", "Marina: drewniany pomost", jx, Water + 1.55f + 1.5f, jz, 1f, 90f, 1);
         StaticMeshCollision(jetty);
         var jb = RendererBounds(jetty);
 
         // 4) Jacht (24 m) przycumowany po północnej stronie pomostu, Riva po południowej.
         float yachtScale = .6f;
-        var yacht = Put(root, "yacht.glb", "Marina: jacht przy pomoście", 114f, Water - 1.5f, jb.max.z + 3.2f, yachtScale, 90f);
-        var riva = Put(root, "bateau_riva_boat.glb", "Marina: motorówka Riva", 106f, Water - .55f, jb.min.z - 2.4f, 1f, 90f);
-        Put(root, "bateau_riva_boat.glb", "Marina: motorówka Riva 2", 118.5f, Water - .55f, jb.min.z - 2.4f, 1f, 90f);
-        Put(root, "yacht.glb", "Marina: jacht na kotwicy 30 m", 132f, Water - 1.8f, jb.min.z - 17f, .75f, 72f);
-        Put(root, "yacht.glb", "Marina: jacht na kotwicy 20 m", 130f, Water - 1.2f, jb.max.z + 19f, .5f, 108f);
+        var yacht = Put(root, "yacht.glb", "Marina: jacht przy pomoście", jb.center.x + 6f, Water - 1.5f, jb.max.z + 3.2f, yachtScale, 90f);
+        var riva = Put(root, "bateau_riva_boat.glb", "Marina: motorówka Riva", jb.center.x - 1f, Water - .55f, jb.min.z - 2.4f, 1f, 90f);
+        Put(root, "bateau_riva_boat.glb", "Marina: motorówka Riva 2", jb.max.x + 4.5f, Water - .55f, jb.min.z - 2.4f, 1f, 90f);
+        Put(root, "yacht.glb", "Marina: jacht na kotwicy 30 m", jb.max.x + 18f, Water - 1.8f, jb.min.z - 17f, .75f, 72f);
+        Put(root, "yacht.glb", "Marina: jacht na kotwicy 20 m", jb.max.x + 16f, Water - 1.2f, jb.max.z + 19f, .5f, 108f);
 
         // 5) Skutery przy brzegu (lekko wyciągnięte na płyciznę).
-        Put(root, "jetski_01.glb", "Plaza: skuter wodny 1", 99f, Water - .22f, 146f, 1.2f, 62f);
-        Put(root, "jetski_02.glb", "Plaza: skuter wodny 2", 100.5f, Water - .22f, 149.5f, 1.2f, 31f);
-        Put(root, "jetski_01.glb", "Plaza: skuter wodny 3", 97.8f, Water - .22f, 151.8f, 1.2f, 12f);
+        float sx = corner ? tip.x + 10f : 99f, sz = corner ? jb.max.z + 9f : 146f;
+        Put(root, "jetski_01.glb", "Plaza: skuter wodny 1", sx, Water - .22f, sz, 1.2f, 62f);
+        Put(root, "jetski_02.glb", "Plaza: skuter wodny 2", sx + 1.5f, Water - .22f, sz + 3.5f, 1.2f, 31f);
+        Put(root, "jetski_01.glb", "Plaza: skuter wodny 3", sx - 1.2f, Water - .22f, sz + 5.8f, 1.2f, 12f);
 
         // 6) Budka ratownika na suchym piasku, przodem do morza.
-        var tower = Put(root, "lifeguard_tower.glb", "Plaza: budka ratownika", 79f, .02f, 141f, 6.2f / 31.0f, 270f);
+        var tower = Put(root, "lifeguard_tower.glb", "Plaza: budka ratownika", corner ? tip.x - 14f : 79f, corner ? tip.y + .02f : .02f, corner ? tip.z + 9f : 141f, 6.2f / 31.0f, 270f);
         StaticMeshCollision(tower);
 
         // 7) Dźwig portowy w skali rzeczywistej (ok. 40 m) na nabrzeżu, wysięgnik nad wodą.
@@ -293,10 +396,12 @@ public static class BraxHarborBeachBuild
 
         // 8) Granica kąpieliska (po kostki w wodzie), z przerwą na wejście na pomost.
         float stopX = 97.5f;
+        if (!corner) {
         Stop(root, "Plaza: granica wody N", new Vector3(stopX, 0, (jb.max.z + BeachZ1) * .5f), new Vector3(.5f, 5f, BeachZ1 - jb.max.z));
         Stop(root, "Plaza: granica wody S", new Vector3(stopX, 0, (BeachZ0 + jb.min.z) * .5f), new Vector3(.5f, 5f, jb.min.z - BeachZ0));
         Stop(root, "Plaza: bok N", new Vector3((Shore + stopX) * .5f, 0, BeachZ1 + .2f), new Vector3(stopX - Shore, 5f, .5f));
         Stop(root, "Plaza: bok S", new Vector3((Shore + stopX) * .5f, 0, BeachZ0 - .2f), new Vector3(stopX - Shore, 5f, .5f));
+        }
         Stop(root, "Pomost: krawędź N", new Vector3(jb.center.x, 0, jb.max.z - .3f), new Vector3(jb.size.x, 5f, .3f));
         Stop(root, "Pomost: krawędź S", new Vector3(jb.center.x, 0, jb.min.z + .3f), new Vector3(jb.size.x, 5f, .3f));
         Stop(root, "Pomost: koniec", new Vector3(jb.max.x - .3f, 0, jb.center.z), new Vector3(.3f, 5f, jb.size.z));
@@ -309,6 +414,6 @@ public static class BraxHarborBeachBuild
         };
         File.WriteAllText(Generated + "/harbor-beach-review.json", JsonUtility.ToJson(report, true));
         AssetDatabase.SaveAssets();
-        Debug.Log("BRAXHORN_HARBOR_UNITY6_STAGED beach x=" + BeachX0 + ".." + Shore + " z=" + BeachZ0 + ".." + BeachZ1 + " jetty=" + jb + " " + JsonUtility.ToJson(report));
+        Debug.Log("BRAXHORN_HARBOR_UNITY6_STAGED corner=" + corner + " tip=" + tip + " zone=" + zone + " beach x=" + BeachX0 + ".." + Shore + " z=" + BeachZ0 + ".." + BeachZ1 + " jetty=" + jb + " " + JsonUtility.ToJson(report));
     }
 }

@@ -232,6 +232,8 @@ public static class BraxCityRebuild
             BraxHarborBeachBuild.Apply(root);
         // Prawdziwa trawa w całym mieście (tylko testowy build Claude).
         BraxClaudeGround.ReplaceGrass(root);
+        BraxClaudeTrees.Apply(root);
+        BraxClaudeCourts.Apply(root);
         BraxNutritionShopBuild.Apply(world,original,physics,root);
         // Wyposażenie klubu NOVA (tylko testowy build Claude, ENABLE_TEST_BUILD.txt).
         BraxClaudeNovaClub.Apply();

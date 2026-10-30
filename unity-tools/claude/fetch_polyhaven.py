@@ -29,6 +29,10 @@ MODELS = [
     "outdoor_table_chair_set_01",
     "modular_street_seating",
     "bar_chair_round_01",        # hokery w klubie NOVA
+    "tree_small_02",             # prawdziwe drzewa zamiast „kulek” (odchudzane gltfpack w buildzie)
+    "island_tree_01",
+    "island_tree_02",
+    "jacaranda_tree",
 ]
 
 
