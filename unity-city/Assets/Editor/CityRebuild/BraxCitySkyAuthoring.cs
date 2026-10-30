@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -26,6 +27,10 @@ public static class BraxCitySkyAuthoring
         var importer=AssetImporter.GetAtPath(TexturePath) as TextureImporter;
         if(!importer)throw new InvalidOperationException("City sky texture importer missing");
         importer.textureType=TextureImporterType.Default;
+        // A panorama must stay a 2D equirectangular image. Unity can infer
+        // a cubemap from a sky filename with minimal .meta importer settings.
+        importer.textureShape=TextureImporterShape.Texture2D;
+        importer.npotScale=TextureImporterNPOTScale.None;
         importer.sRGBTexture=true;
         importer.mipmapEnabled=true;
         importer.wrapModeU=TextureWrapMode.Repeat;
@@ -39,8 +44,12 @@ public static class BraxCitySkyAuthoring
         web.format=TextureImporterFormat.ETC2_RGB4;web.compressionQuality=100;
         importer.SetPlatformTextureSettings(web);
         importer.SaveAndReimport();
-        var sky=AssetDatabase.LoadAssetAtPath<Texture2D>(TexturePath);
-        if(!sky)throw new InvalidOperationException("City cloud sky did not import");
+        var sky=AssetDatabase.LoadAssetAtPath<Texture2D>(TexturePath)
+            ??AssetDatabase.LoadAllAssetsAtPath(TexturePath).OfType<Texture2D>().FirstOrDefault();
+        if(!sky)throw new InvalidOperationException("City cloud sky did not import as Texture2D; shape="+
+            importer.textureShape+"; mainAsset="+AssetDatabase.LoadMainAssetAtPath(TexturePath)?.GetType().FullName);
+        if(sky.width!=Width||sky.height!=Height)
+            throw new InvalidOperationException("City sky panorama dimensions changed: "+sky.width+"x"+sky.height);
         var previous=AssetDatabase.LoadAssetAtPath<Material>(SkyPath);
         if(previous)AssetDatabase.DeleteAsset(SkyPath);
         var mat=new Material(shader){name="BRAXHORN CITY library Kloofendal partly cloudy sky"};
