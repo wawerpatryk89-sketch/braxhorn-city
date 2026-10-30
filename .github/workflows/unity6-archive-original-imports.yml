@@ -1,0 +1,87 @@
+name: BRAXHORN UNITY6 - safeguard original imported geometry (DRAFT release)
+on:
+  push:
+    branches: [codex/unity6-integration-20261030]
+    paths: ['.github/workflows/unity6-archive-original-imports.yml']
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: braxhorn-unity6-source-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity6-integration-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: unity6-original-source-imports-20261030
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: .github/workflows/unity6-archive-original-imports.yml
+          persist-credentials: false
+      - name: Reject existing release tag; never overwrite originals
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo 'Release already exists. Do not overwrite or republish.'; exit 1
+          fi
+      - name: Fetch original gym from still-live 2026-10-28 Unity export
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: original-inputs/gym/
+      - name: Fetch original city and estate from still-live 2026-10-29 Unity export
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40840263799
+          github-token: ${{ github.token }}
+          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
+          path: original-inputs/city/
+      - name: Bit-exact archive with per-source SHA-256 and no changes to assets
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,pathlib,zipfile
+          archives=[
+            ('gym','braxhorn-original-gym-unity6.zip',40787817505),
+            ('city','braxhorn-original-city-estate-unity6.zip',40840263799),
+          ]
+          receipt={'engine':'Unity6','scope':'isolated-source-backup','isDraft':True,'sources':[]}
+          def sha(p):
+            with p.open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
+          for folder,name,run in archives:
+            base=pathlib.Path('original-inputs')/folder
+            files=sorted(p for p in base.rglob('*') if p.is_file())
+            if not files:raise RuntimeError('Original import was empty: '+folder)
+            output=pathlib.Path(name)
+            with zipfile.ZipFile(output,'w',compression=zipfile.ZIP_STORED,allowZip64=True) as dst:
+              for p in files:dst.write(p,p.relative_to(base).as_posix())
+            with zipfile.ZipFile(output) as src:
+              if src.testzip() is not None or len(src.namelist())!=len(files):raise RuntimeError('Archive integrity failed')
+            receipt['sources'].append({'name':name,'sourceRun':run,'sha256':sha(output),'bytes':output.stat().st_size,
+              'files':[{'path':p.relative_to(base).as_posix(),'sha256':sha(p)} for p in files]})
+          pathlib.Path('braxhorn-unity6-original-imports.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          print('ORIGINAL_UNITY6_IMPORTS_ARCHIVED_AND_HASHED',json.dumps([{'name':a['name'],'bytes':a['bytes']} for a in receipt['sources']]))
+          PY
+      - name: Create nonpublic draft release, not a game publication
+        run: |
+          gh release create "$RELEASE_TAG" \
+            braxhorn-original-gym-unity6.zip \
+            braxhorn-original-city-estate-unity6.zip \
+            braxhorn-unity6-original-imports.json \
+            --draft --title 'BRAXHORN CITY Unity6 ORIGINAL IMPORT BACKUP' \
+            --notes 'TEST only. Original geometry backup for future Unity builds. Draft; not a playable release or production publication.'
+      - name: Verify it remains a draft with exactly three source assets
+        run: gh release view "$RELEASE_TAG" --json isDraft,assets --jq '.isDraft == true and (.assets | length) == 3' | grep -qx true
+      - name: Save backup receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity6-original-source-backup-audit-${{ github.sha }}
+          path: braxhorn-unity6-original-imports.json
+          retention-days: 14
