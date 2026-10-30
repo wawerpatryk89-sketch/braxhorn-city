@@ -1,0 +1,86 @@
+name: BRAXHORN Estate - publish corrected Brax Unity6 walkthrough PREVIEW ONLY
+on:
+  push:
+    branches:
+      - codex/estate-unity-source-recovery-20261030
+    paths:
+      - ".github/workflows/estate-publish-corrected-brax.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-corrected-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          sparse-checkout: |
+            .github/workflows/estate-publish-corrected-brax.yml
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: preview/estate-unity6-full-20261030
+          path: preview-source
+          sparse-checkout: |
+            index.html
+            vercel.json
+      - name: Download VERIFIED Unity6 corrected Brax build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh run view 41031933641 -R "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)" = success
+          gh run download 41031933641 -R "$GITHUB_REPOSITORY" \
+            -n estate-originals-recovery-427cb01787fe5ac65f46a81396ca7f290a1618a9 \
+            -D "$RUNNER_TEMP/corrected"
+          root="$(find "$RUNNER_TEMP/corrected" -type f -path '*/EstateWebGL/index.html' -printf '%h\n' | head -n1)"
+          test -n "$root" && test -s "$root/index.html"
+          report="$(find "$RUNNER_TEMP/corrected" -name visual-qa-report.json -print -quit)"
+          test -n "$report"
+          REPORT="$report" python3 - <<'PY'
+          import json,os
+          r=json.load(open(os.environ["REPORT"]))
+          assert r["visualPass"] and r["runtimeSceneReady"] and r["loaded"]
+          assert r["sourceModelCount"]==21 and r["sourceDoorCount"]==24
+          assert r["sourceCollisionCount"]==1013 and not r["errors"]
+          assert "missing sources none" in r["runtimeSceneSummary"]
+          print("Original source models and corrected Brax Unity6 QA PASS")
+          PY
+          echo "UNITY_WEB_ROOT=$root" >> "$GITHUB_ENV"
+      - name: Publish independent preview branch (never main/production)
+        run: |
+          set -euo pipefail
+          ref="refs/heads/preview/estate-unity6-brax-fixed-20261030"
+          if git ls-remote --exit-code --heads origin "$ref" >/dev/null; then
+            echo "::error::Refuse to overwrite existing preview branch"
+            exit 1
+          fi
+          cp preview-source/index.html "$RUNNER_TEMP/index.html"
+          cp preview-source/vercel.json "$RUNNER_TEMP/vercel.json"
+          git switch --orphan preview/estate-unity6-brax-fixed-20261030
+          git rm -r --cached -q . || true
+          cp -a "$UNITY_WEB_ROOT/." .
+          cp "$RUNNER_TEMP/index.html" ./index.html
+          cp "$RUNNER_TEMP/vercel.json" ./vercel.json
+          rm -rf preview-source
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path("index.html").read_text()
+          assert 'SendMessage("BRAXHORN_ESTATE_ORIGINAL_MIGRATION"' in s
+          assert "beginBraxWalk" in s and "fixedStickMove" in s
+          assert "elapsed>=180" in s
+          assert Path("Build/EstateWebGL.loader.js").is_file()
+          assert Path("Build/EstateWebGL.wasm.gz").is_file()
+          assert Path("StreamingAssets").is_dir()
+          print("Preview HTML, joystick, Unity receiver and binary present")
+          PY
+          printf '# BRAXHORN Estate corrected Brax - preview only\nUnity6 corrected Brax materials build from successful run 41031933641; source models 21/21, 24 doors. No visual iPhone acceptance yet.\n' > README.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --sparse -A
+          git commit -m "preview(estate): corrected Brax materials and mobile joystick, Unity6 21/21 [skip ci]"
+          git push origin "HEAD:$ref"
+          echo "PREVIEW ONLY; original estate and production unchanged"
