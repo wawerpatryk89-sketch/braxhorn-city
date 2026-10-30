@@ -20,7 +20,7 @@ const sourceSurfaceNames={
 function collectSourceSurfaces(root,source){
  root.traverse(o=>{if(!o.isMesh)return;for(const m of Array.isArray(o.material)?o.material:[o.material]){
   if(!m||!m.map)return;
-  const name=m.name.replace(/\\s*\\(Instance\\)$/,'');
+  const name=m.name.replace(/\s*\(Instance\)$/,'');
   for(const [role,names]of Object.entries(sourceSurfaceNames))if(names.includes(name)){
    const current=surfaceSources.get(role),rank=names.indexOf(name);
    if(!current||rank<current.rank)surfaceSources.set(role,{name,source,map:m.map,normalMap:m.normalMap||null,roughnessMap:m.roughnessMap||null,rank});
