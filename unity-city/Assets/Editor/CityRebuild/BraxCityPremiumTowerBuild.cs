@@ -220,6 +220,48 @@ public static class BraxCityPremiumTowerBuild
             new Vector3(r-l,.28f,s0-b.z0),deck);
         Solid(root,"Terrace roof deck north",new Vector3(x,floorCenter,(s1+b.z1)*.5f),
             new Vector3(r-l,.28f,b.z1-s1),deck);
+        // The terrace and its side faces share the same audited source PBR
+        // stone texture. Keep tiles above the existing structural slab without
+        // adding another overlapping walkable collider.
+        var tileGrout=BraxCityMaterials.Surface("Tower warm limestone grout",
+            new Color(.33f,.34f,.32f),.94f);
+        for(float z=b.z0+.65f;z<b.z1-.65f;z+=2.0f)
+        {
+            Deco(root,"Roof terrace west tiled skirting",
+                new Vector3(b.x0+.48f,roofY+.20f,z),new Vector3(.025f,.38f,1.94f),deck);
+            Deco(root,"Roof terrace east tiled skirting",
+                new Vector3(b.x1-.48f,roofY+.20f,z),new Vector3(.025f,.38f,1.94f),deck);
+            Deco(root,"Roof parapet west tile joint",
+                new Vector3(b.x0+.496f,roofY+.20f,z+.98f),new Vector3(.029f,.38f,.025f),tileGrout);
+            Deco(root,"Roof parapet east tile joint",
+                new Vector3(b.x1-.496f,roofY+.20f,z+.98f),new Vector3(.029f,.38f,.025f),tileGrout);
+        }
+        for(float xx=b.x0+.75f;xx<b.x1-.75f;xx+=2.0f)
+        {
+            Deco(root,"Roof terrace south tiled skirting",
+                new Vector3(xx,roofY+.20f,b.z0+.48f),new Vector3(1.94f,.38f,.025f),deck);
+            Deco(root,"Roof terrace north tiled skirting",
+                new Vector3(xx,roofY+.20f,b.z1-.48f),new Vector3(1.94f,.38f,.025f),deck);
+        }
+        // Entrance lobby: warm painted walls, true stone flooring, stainless
+        // lower skirting and architectural lighting (not emissive neon).
+        var lobbyPaint=BraxCityMaterials.Surface("Tower lobby warm painted wall finish",
+            new Color(.78f,.77f,.73f),.96f);
+        foreach(float xx in new[]{b.x0+.31f,b.x1-.31f})
+        {
+            Deco(root,"Tower painted lobby interior wall",
+                new Vector3(xx,1.92f,(b.z0+b.z1)*.5f),
+                new Vector3(.025f,3.10f,b.z1-b.z0-.65f),lobbyPaint);
+            Deco(root,"Tower lobby stainless skirting",
+                new Vector3(xx,.24f,(b.z0+b.z1)*.5f),
+                new Vector3(.035f,.17f,b.z1-b.z0-.7f),steel);
+        }
+        Deco(root,"Tower lobby painted rear wall",
+            new Vector3(x,1.92f,b.z1-.31f),
+            new Vector3(b.x1-b.x0-.7f,3.10f,.025f),lobbyPaint);
+        for(float zz=b.z0+3f;zz<b.z1-2f;zz+=5f)
+            Deco(root,"Tower lobby satin ceiling lighting recess",
+                new Vector3(x,3.58f,zz),new Vector3(4.5f,.035f,.19f),led);
         RoofBarrier(root,b.x0,b.x1,b.z0,b.z1,roofY);
         RoofShaftSafety(root,l,r,s0,s1,roofY);
         Mechanical(root,b.x0+2.0f,roofY,b.z1-3.25f);
