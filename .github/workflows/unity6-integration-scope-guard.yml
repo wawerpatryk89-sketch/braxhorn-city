@@ -1,0 +1,52 @@
+name: BRAXHORN UNITY6 - integration scope and protected-assets gate
+on:
+  pull_request:
+    branches: [codex/unity6-integration-20261030]
+permissions:
+  contents: read
+jobs:
+  protect:
+    if: github.base_ref == 'codex/unity6-integration-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Prevent cross-workstream overwrites and asset deletion
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 - <<'PY'
+          import os,subprocess
+          base,head=os.environ['BASE_SHA'],os.environ['HEAD_SHA']
+          raw=subprocess.check_output(['git','diff','--name-status','--no-renames',base,head],text=True)
+          protected={
+            'unity-city/Assets/BraxGymPlayer.cs',
+            'unity-city/Assets/Editor/BraxGymPremium.cs',
+            'unity-city/Assets/Editor/BraxHeroRefinements.cs',
+            'unity-city/Assets/Plugins/WebGL/BraxhornBridge.jslib',
+          }
+          libraries=(
+            'asset-library/','dev/models/','dev/source-assets/',
+            'dev/osiedle/assets/','public/assets/','public/osiedle/assets/',
+            'public/unity-gym/',
+          )
+          legacy=(
+            'dev/three/','dev/src/','dev/shared/','public/game.js','public/osiedle/game.js',
+          )
+          violations=[]
+          for line in raw.splitlines():
+            status,path=line.split('\t',1)
+            if path in protected:violations.append('SHARED PLAYER / ACCEPTED GYM LOCK: '+path)
+            if status.startswith('D') and path.startswith(libraries):
+              violations.append('OWNER LIBRARY DELETION: '+path)
+            if path.startswith(legacy):
+              violations.append('OLD THREE RUNTIME REINTRODUCTION: '+path)
+          if violations:
+            print('\n'.join(violations))
+            raise SystemExit('FAIL CLOSED: operator review required for shared sources or asset deletions')
+          print('UNITY6_WORKSTREAM_SCOPE_CHECK_PASS; operator visual acceptance still required')
+          PY
