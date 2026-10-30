@@ -1,0 +1,57 @@
+name: BRAXHORN Estate - recheck compiled Unity6 with corrected source-ready QA
+on:
+  push:
+    branches:
+      - codex/estate-unity-source-recovery-20261030
+    paths:
+      - "scripts/unity-estate/visual-qa.py"
+      - ".github/workflows/estate-recheck-compiled-webgl.yml"
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  test-existing-unity-binary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/unity-estate/visual-qa.py
+      - name: Download previously COMPILED full-original Unity 6 binary (no recompilation)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run download 41020375795 -R "$GITHUB_REPOSITORY" \
+            -n estate-originals-recovery-4e138b8a5396981d46f592aea6a023179cec5899 \
+            -D "$RUNNER_TEMP/replay"
+          find "$RUNNER_TEMP/replay" -type f -name index.html -print
+          dir="$(find "$RUNNER_TEMP/replay" -type f -path '*/EstateWebGL/index.html' -printf '%h\n' | head -n 1)"
+          if [[ -z "$dir" || ! -s "$dir/index.html" ]]; then
+            echo "::error::Previously compiled Unity6 EstateWebGL binary not found"
+            exit 1
+          fi
+          echo "ESTATE_WEBGL_ROOT=$dir" >> "$GITHUB_ENV"
+      - name: Install real Chromium renderer
+        run: |
+          python3 -m pip install --quiet Pillow==11.3.0 playwright==1.56.0
+          python3 -m playwright install --with-deps chromium
+      - name: Verify actual Unity 6 source-ready event, 21/21 models and 24/24 doors
+        env:
+          ESTATE_QA_OUTPUT: ${{ runner.temp }}/estate-recheck-qa
+          ESTATE_EXPECTED_MODELS: "21"
+        run: timeout 360s python3 scripts/unity-estate/visual-qa.py
+      - name: Save genuine screenshot and full report regardless of pass/fail
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: estate-qa-recheck-${{ github.sha }}
+          path: ${{ runner.temp }}/estate-recheck-qa/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Keep production unchanged; user acceptance still required
+        run: echo "No deploy or merge. User must visually inspect 1:1."
