@@ -1,4 +1,5 @@
 import {chromium} from 'playwright';import fs from 'node:fs';import path from 'node:path';import http from 'node:http';
+const sourceBuild=process.env.SOURCE_BUILD_SHA||process.env.GITHUB_SHA;
 const root=path.resolve('unity-preview'),out=path.resolve('city-review');fs.mkdirSync(out,{recursive:true});const checks=[],logs=[];
 const server=http.createServer((req,res)=>{let f=path.resolve(root,'.'+new URL(req.url,'http://local').pathname);if(!f.startsWith(root+path.sep)&&f!==root){res.writeHead(403);res.end();return}if(fs.existsSync(f)&&fs.statSync(f).isDirectory())f=path.join(f,'index.html');if(!fs.existsSync(f)){res.writeHead(404);res.end();return}res.setHeader('Content-Type',({'.html':'text/html','.js':'application/javascript','.json':'application/json','.wasm':'application/wasm'})[path.extname(f)]||'application/octet-stream');fs.createReadStream(f).pipe(res)});await new Promise(r=>server.listen(8765,'127.0.0.1',r));
 const browser=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist','--disable-dev-shm-usage']});const page=await browser.newPage({viewport:{width:915,height:412},hasTouch:true,isMobile:true});
@@ -16,7 +17,7 @@ try{
  check('Original Unity estate starts without separate fighter controller',!await page.evaluate(()=>window.BraxhornError),await state());
  const expected=JSON.parse(fs.readFileSync(path.join(root,'city-migration.json')));
  const s=await until(()=>window.BraxhornState?.grounded);
- check('ORIGINAL CITY PLAYER in estate scene, exact Unity build',s.build===process.env.GITHUB_SHA&&s.area==='estate'&&s.cityMeshes===553&&expected.areas.length===2,{build:s.build,area:s.area,meshes:s.cityMeshes});
+ check('ORIGINAL CITY PLAYER in estate scene, exact Unity build',s.build===sourceBuild&&s.area==='estate'&&s.cityMeshes===553&&expected.areas.length===2,{build:s.build,area:s.area,meshes:s.cityMeshes});
  check('Original Brax clips and character physics ready',s.ready&&s.grounded&&typeof s.playerYaw==='number'&&typeof s.cameraYaw==='number'&&typeof s.animation==='string',{animation:s.animation,grounded:s.grounded});
  await shot('01-original-brax-estate');
  for(const yaw of [0,90,180,270]){
@@ -35,7 +36,10 @@ try{
   await shot(name);
  }
  await send('ReviewView','0,.08,-27.5,0,12,5.8');
- await until(()=>window.BraxhornState?.grounded);
+ // Wait for the NEW position and the next 120ms nearby-door scan.
+ // Grounded alone may still describe the previous waypoint.
+ await until(()=>Math.abs(window.BraxhornState?.z+27.5)<.35 && Math.abs(window.BraxhornState?.x)<.35);
+ await until(()=>window.BraxhornState?.context?.includes('DRZWI'));
  const before=await state();
  check('Original villa has working door interaction',before.context.includes('DRZWI'),before.context);
  await send('Command','action');await until(n=>window.BraxhornState.openDoors>n,before.openDoors);
@@ -43,6 +47,6 @@ try{
  check('Same original player and controls, no new fighter',true,{area:(await state()).area,player:'BraxGymPlayer',doors:(await state()).openDoors});
  const errors=logs.filter(l=>/PAGEERROR|NullReferenceException|MissingReferenceException|Shader.*(not supported|error)|abort\(|memory access out of bounds/.test(l));
  check('No runtime or shader exceptions',errors.length===0,errors);
- fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({passed:true,commit:process.env.GITHUB_SHA,checks,playerSource:'BraxGymPlayer.cs / BraxCityBuild.CreateEstate',platform:'Chromium WebGL2 / SwiftShader; 915x412 touch viewport, NOT physical iPhone',visualAcceptance:'user required'},null,2));
-}catch(e){await shot('failure').catch(()=>{});fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({passed:false,commit:process.env.GITHUB_SHA,error:String(e),lastState:await state().catch(()=>null),checks},null,2));console.error(e);process.exitCode=1}
+ fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({passed:true,commit:sourceBuild,checks,playerSource:'BraxGymPlayer.cs / BraxCityBuild.CreateEstate',platform:'Chromium WebGL2 / SwiftShader; 915x412 touch viewport, NOT physical iPhone',visualAcceptance:'user required'},null,2));
+}catch(e){await shot('failure').catch(()=>{});fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({passed:false,commit:sourceBuild,error:String(e),lastState:await state().catch(()=>null),checks},null,2));console.error(e);process.exitCode=1}
 finally{fs.writeFileSync(path.join(out,'browser.log'),logs.join('\n'));await browser.close();server.close()}
