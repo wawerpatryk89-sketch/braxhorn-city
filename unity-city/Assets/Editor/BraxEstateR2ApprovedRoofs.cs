@@ -13,22 +13,33 @@ public static class BraxEstateR2ApprovedRoofs
         public string scene="BraxhornEstate",status="R2_ROOF_MAPS_APPLIED__VISUAL_ACCEPTANCE_PENDING";
         public string assetSource="Poly Haven CC0: grey_roof_01 and roof_tiles (SHA-256 verified at download)";
         public int greySlots, tileSlots, originalRoofMeshes, originalRoofVertices;
+        public int sourceNormalMaps, sourceRoughnessMaps;
         public bool originalMeshDataUnmodified=true, originalCityAndGymUnmodified=true, originalBraxUnmodified=true;
         public bool windowAndDoorsImported=false, asphaltImported=false, filmApproved=false;
     }
-    private static Material Build(string name,string texturePath,Color tint,bool twoSided,string output)
+    private static Material Build(string name,string texturePath,string normalPath,Color tint,bool twoSided,string output)
     {
         var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+        var normal=AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath);
         if(texture==null || texture.width!=2048 || texture.height!=2048)
             throw new InvalidOperationException("Verified operator roof diffuse map missing: "+texturePath);
+        if(normal==null || normal.width!=2048 || normal.height!=2048)
+            throw new InvalidOperationException("Original Poly Haven normal map missing: "+normalPath);
         var shader=Shader.Find("Standard");
         if(shader==null)throw new InvalidOperationException("Unity Standard PBR shader unavailable");
         var mat=new Material(shader){name=name};
         mat.mainTexture=texture;
+        mat.SetTexture("_BumpMap",normal);
+        mat.SetFloat("_BumpScale",.65f);
+        mat.EnableKeyword("_NORMALMAP");
+        // Original roughness is packed into the source albedo alpha as
+        // smoothness = 1 - roughness; no invented reflectivity map.
+        mat.SetFloat("_SmoothnessTextureChannel",1f);
+        mat.EnableKeyword("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A");
         mat.color=tint;
         mat.SetFloat("_Metallic",0f);
-        mat.SetFloat("_Glossiness",0.22f);
-        mat.SetFloat("_GlossMapScale",0f);
+        mat.SetFloat("_Glossiness",.8f);
+        mat.SetFloat("_GlossMapScale",1f);
         mat.enableInstancing=true;
         if(twoSided)mat.SetFloat("_Cull",0f);
         AssetDatabase.CreateAsset(mat,output);
@@ -41,11 +52,11 @@ public static class BraxEstateR2ApprovedRoofs
         const string dir="Assets/PlayableGenerated/R2Approved";
         Directory.CreateDirectory(dir);
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        var grey=Build("R2 Grey Roof / delivered source","Assets/Source/City/R2Approved/R2GreyRoofAlbedo.jpg",
-            Color.white,true,dir+"/R2GreyRoof.mat");
-        var tiles=Build("R2 Roof Tiles / delivered source","Assets/Source/City/R2Approved/R2RoofTilesAlbedo.jpg",
-            Color.white,false,dir+"/R2RoofTiles.mat");
-        var audit=new RoofAudit();
+        var grey=Build("R2 Grey Roof / delivered source","Assets/Source/City/R2Approved/R2GreyRoofSmoothnessAlbedo.png",
+            "Assets/Source/City/R2Approved/R2GreyRoofNormal.png",Color.white,true,dir+"/R2GreyRoof.mat");
+        var tiles=Build("R2 Roof Tiles / delivered source","Assets/Source/City/R2Approved/R2RoofTilesSmoothnessAlbedo.png",
+            "Assets/Source/City/R2Approved/R2RoofTilesNormal.png",Color.white,false,dir+"/R2RoofTiles.mat");
+        var audit=new RoofAudit{sourceNormalMaps=2,sourceRoughnessMaps=2};
         var counts=new HashSet<Mesh>();
         foreach(var renderer in root.GetComponentsInChildren<MeshRenderer>(true))
         {
