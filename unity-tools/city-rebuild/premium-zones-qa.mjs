@@ -36,6 +36,27 @@ try{
  check('Unity runtime ready',!!(await page.evaluate(()=>window.BraxhornState?.ready)),await page.evaluate(()=>window.BraxhornError));
  const send=(method,arg='')=>page.evaluate(([m,a])=>window.BraxSend(m,a),[method,arg]);
  const get=()=>page.evaluate(()=>window.BraxhornState);
+ // Capture original Unity status and actual screenshot when a moving cabin
+ // transition fails. Never turn a timeout into a passing QA check.
+ const observe=async(label,predicate,timeout=30000)=>{
+  const started=Date.now(),samples=[];
+  while(Date.now()-started<timeout){
+   const state=await get();
+   if(!samples.length||state?.context!==samples[samples.length-1].context||
+      Date.now()-started-samples[samples.length-1].elapsedMs>1500){
+    samples.push({elapsedMs:Date.now()-started,context:state?.context,
+      x:state?.x,y:state?.y,z:state?.z,frames:state?.frames,gameTime:state?.gameTime});
+   }
+   if(predicate(state)){console.log('REAL_UNITY_TRANSITION_PASS',label,JSON.stringify(samples[samples.length-1]));return state;}
+   await page.waitForTimeout(350);
+  }
+  const safe=label.replace(/[^a-z0-9_-]/gi,'-');
+  const details={build:release.sourceCommit,label,samples,lastState:await get()};
+  fs.writeFileSync(path.join(out,'transition-failure-'+safe+'.json'),JSON.stringify(details,null,2));
+  await page.screenshot({path:path.join(out,'transition-failure-'+safe+'.png')}).catch(()=>{});
+  console.error('REAL_UNITY_TRANSITION_FAIL',JSON.stringify(details));
+  throw Error('Actual Unity transition failed: '+label);
+ };
  const point=async(id)=>{
   await send('TravelPoint',id);
   await page.waitForFunction(id=>window.BraxhornState?.activePoint===id&&window.BraxhornState?.grounded,id,{timeout:90000});
@@ -59,16 +80,18 @@ try{
  }
  // Tower must be a real moving cabin, not a teleport to a screenshot.
  const lower=await point('R1_ELEVATOR_0');
+ check('Tower lift initial cabin prompt is physical',lower.context?.includes('OTWÓRZ DRZWI WINDY'),lower.context);
  await send('Command','action');
- await page.waitForFunction(()=>window.BraxhornState?.context?.includes('WJEDŹ NA DACH'),null,{timeout:15000});
+ await observe('flagship cabin opens',s=>s?.context?.includes('WJEDŹ NA DACH'),30000);
  await send('Command','action');
- await page.waitForFunction(y=>window.BraxhornState?.y>y+15,lower.y,{timeout:45000});
+ await observe('flagship passenger rises 15m',s=>s?.y>lower.y+15,90000);
+ await observe('flagship reaches roof',s=>s?.context?.includes('ZJEDŹ NA ULICĘ'),120000);
  const upper=await get();
  check('Tower passenger rides physical elevator upward',upper.y>lower.y+15,{from:lower.y,to:upper.y});
  await page.screenshot({path:path.join(out,'tower-real-elevator-arrival.png')});
- await page.waitForFunction(()=>window.BraxhornState?.context?.includes('ZJEDŹ NA ULICĘ'),null,{timeout:15000});
  await send('Command','action');
- await page.waitForFunction(y=>window.BraxhornState?.y<y-15,upper.y,{timeout:45000});
+ await observe('flagship passenger descends 15m',s=>s?.y<upper.y-15,90000);
+ await observe('flagship completes return',s=>s?.context?.includes('WJEDŹ NA DACH'),120000);
  const lowerAgain=await get();
  check('Tower passenger returns down in same physical cabin',lowerAgain.y<upper.y-15,{from:upper.y,to:lowerAgain.y});
  // G5 acceptance requires real uninterrupted walking from pavement DOWN the
