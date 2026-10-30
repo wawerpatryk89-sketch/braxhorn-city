@@ -154,7 +154,7 @@ jobs:
         '
     - name: Pobierz prawdziwe materialy i modele CC0 z Poly Haven (taras wiezowca)
       run: python3 unity-tools/claude/fetch_polyhaven.py
-    - name: Region R1: dodatkowe tekstury i modele CC0 z Poly Haven (rosliny 2K, wpisy opcjonalne)
+    - name: Region R1 - dodatkowe tekstury i modele CC0 z Poly Haven (rosliny 2K, wpisy opcjonalne)
       run: python3 unity-tools/claude/fetch_region.py
     - name: Drzewa i rosliny Poly Haven bez odchudzania (pelna jakosc, decyzja wlasciciela)
       run: |
