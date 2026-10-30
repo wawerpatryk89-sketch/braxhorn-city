@@ -6,12 +6,12 @@
   "originalsUntouched": true,
   "userApproval": "visual renovation only, no city/gym/production edits",
   "scope": "windows, doors and roof tiles",
-  "hashesPrefixNote": "sha256 first 16 hex digits from source bytes; full hashes in asset ingestion workspace",
+  "hashesPrefixNote": "Full SHA-256 of source bytes validated after Library materialization; originals kept unchanged.",
   "records": [
     {
       "file": "roof_tiles_4k.blend.zip",
       "size": 87953728,
-      "sha256": "004630925258bbb4",
+      "sha256": "004630925258bbb471b3878a6e8e99e838a4aeade5ea3d1cce5d74a0c6536cd9",
       "license": "CC0",
       "source": "https://polyhaven.com/a/roof_tiles",
       "kind": "roof PBR",
@@ -26,7 +26,7 @@
     {
       "file": "grey_roof_01_4k.blend.zip",
       "size": 54182802,
-      "sha256": "1927220f53fbb2ec",
+      "sha256": "1927220f53fbb2ec5bc470c2632187504f87239bc2fed803dc1b29e8391db7d7",
       "license": "CC0",
       "source": "https://polyhaven.com/a/grey_roof_01",
       "kind": "grey roof PBR",
@@ -41,7 +41,7 @@
     {
       "file": "door-pack-free.glb",
       "size": 16346568,
-      "sha256": "b92e4dc30dea8f1a",
+      "sha256": "b92e4dc30dea8f1acd46d0774973e3b7a6144efc04878538042e9a0512f73a7d",
       "license": "CC-BY-4.0",
       "author": "saeedsd",
       "source": "https://sketchfab.com/3d-models/door-pack-free-cdc29229c5014f1685df5052cfaee850",
@@ -51,7 +51,7 @@
     {
       "file": "interior_wood_doors_pack_1.glb",
       "size": 14278600,
-      "sha256": "41f6b8fdfb73c284",
+      "sha256": "41f6b8fdfb73c2849d45c41b76aac710dbd5bebdcf64bf50c90045110420aa2c",
       "license": "CC-BY-4.0",
       "author": "Toni García Vilche",
       "source": "https://sketchfab.com/3d-models/interior-wood-doors-pack-1-32707dcfa6304f49bf99148d0211f5f7",
@@ -61,7 +61,7 @@
     {
       "file": "realistic_old_wooden_window.glb",
       "size": 9749920,
-      "sha256": "e9d5a0e61ae06d57",
+      "sha256": "e9d5a0e61ae06d57f7ee5b13e5aa53082ef38815823b6a62480e214822ec7f71",
       "license": "CC-BY-4.0",
       "author": "Nait",
       "source": "https://sketchfab.com/3d-models/realistic-old-wooden-window-0d76c234747347b79975f3eb71003807",
@@ -71,7 +71,7 @@
     {
       "file": "residential_window.glb",
       "size": 518748,
-      "sha256": "001c49c716bccd2d",
+      "sha256": "001c49c716bccd2d98b13f9139e77bda63de758754c08cb0a8bab2ac4a146578",
       "license": "CC-BY-4.0",
       "author": "AleixoAlonso",
       "source": "https://sketchfab.com/3d-models/residential-window-ae11104237314463a61251fd46ded4b4",
