@@ -1,5 +1,8 @@
 name: BRAXHORN Estate - publish ORIGINAL city player isolated preview
 on:
+  push:
+    branches: [codex/estate-shared-city-player-20261030]
+    paths: [.github/workflows/estate-publish-original-city-player.yml]
   workflow_dispatch:
 permissions:
   contents: write
@@ -20,15 +23,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          run=41038775796
+          run=41041109947
           test "$(gh run view "$run" -R "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)" = success || {
             echo "::error::Original city BraxGymPlayer Unity6 build has not passed";exit 1;
           }
-          gh run download "$run" -R "$GITHUB_REPOSITORY" \
+          gh run download 41038775796 -R "$GITHUB_REPOSITORY" \
             -n estate-shared-city-player-build-140407203586a6c150faf6355ebd4c1a2faa55c7 \
             -D "$RUNNER_TEMP/player"
           gh run download "$run" -R "$GITHUB_REPOSITORY" \
-            -n estate-shared-city-player-review-140407203586a6c150faf6355ebd4c1a2faa55c7 \
+            -n estate-original-city-player-recheck-05508c1bbcee54e6449c21271a03fd4b3669c825 \
             -D "$RUNNER_TEMP/qa"
           qa="$(find "$RUNNER_TEMP/qa" -name report.json -print -quit)"
           test -n "$qa"
