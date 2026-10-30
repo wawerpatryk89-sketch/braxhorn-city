@@ -70,27 +70,44 @@ try{
  await page.waitForFunction(y=>window.BraxhornState?.y<y-15,upper.y,{timeout:45000});
  const lowerAgain=await get();
  check('Tower passenger returns down in same physical cabin',lowerAgain.y<upper.y-15,{from:upper.y,to:lowerAgain.y});
- // Physical metro floor is below grade, with a real platform collider.
- await send('ReviewView','77.85,-3.17,63,180,15,4.2');
- await page.waitForFunction(()=>window.BraxhornState?.grounded&&Math.abs(window.BraxhornState?.z-63)<.5,null,{timeout:90000});
- const metro=await get();await page.screenshot({path:path.join(out,'07-metro-platform.png')});
- check('Metro platform can carry Brax',metro.grounded&&metro.y< -2.9&&metro.y> -3.5,metro);
- // The G5 acceptance route must be physically traversable in both directions.
- await send('ReviewView','78.0,-3.17,46.5,180,15,4.2');
- await page.waitForFunction(()=>window.BraxhornState?.grounded&&Math.abs(window.BraxhornState?.z-46.5)<.5,null,{timeout:90000});
- try{
-  await send('MoveInput','0,1');
-  await page.waitForFunction(()=>window.BraxhornState?.z>60.0,null,{timeout:25000});
- }finally{await send('MoveInput','0,0')}
- const arrived=await get();
- check('Metro G5 walked from vestibule into station',arrived.z>60&&arrived.grounded,arrived);
- try{
-  await send('MoveInput','0,-1');
-  await page.waitForFunction(()=>window.BraxhornState?.z<48.0,null,{timeout:25000});
- }finally{await send('MoveInput','0,0')}
- const returned=await get();
- check('Metro G5 walked back from station to vestibule',returned.z<48&&returned.grounded,returned);
- await page.screenshot({path:path.join(out,'08-metro-return-route.png')});
+ // G5 acceptance requires real uninterrupted walking from pavement DOWN the
+ // stairs onto the platform and UP again. ReviewView is used only once at
+ // the street entrance; a teleported vestibule position is NOT proof.
+ await send('ReviewView','78.9,0.30,34.2,180,15,4.2');
+ await page.waitForFunction(()=>window.BraxhornState?.grounded,null,{timeout:30000});
+ const street=await get();
+ check('Metro G5 starts at real street entrance',street.grounded&&street.z<34.8&&street.y>-.35,street);
+ await page.screenshot({path:path.join(out,'07-metro-street-entrance.png')});
+ const walkTo=async(input,axis,operator,threshold,timeout=90000)=>{
+  try{
+   await send('MoveInput',input);
+   await page.waitForFunction(([axis,operator,threshold])=>{
+    const s=window.BraxhornState;
+    if(!s||!s.ready)return false;
+    const value=s[axis];
+    return operator==='>'?value>threshold:value<threshold;
+   },[axis,operator,threshold],{timeout});
+  }finally{await send('MoveInput','0,0')}
+  await page.waitForFunction(()=>window.BraxhornState?.grounded,null,{timeout:30000});
+  return get();
+ };
+ const stairFoot=await walkTo('0,1','z','>',44.5);
+ check('Metro G5 stairs physically descend from street to lower landing',
+   stairFoot.grounded&&stairFoot.y< -2.75&&stairFoot.y> -3.8,
+   {entry:street,landing:stairFoot});
+ await page.screenshot({path:path.join(out,'08-metro-walked-stairs-down.png')});
+ const metro=await walkTo('0,1','z','>',60);
+ check('Metro G5 platform reached by walking, not teleport',
+   metro.grounded&&metro.y< -2.9&&metro.y> -3.6&&metro.z>60,metro);
+ await page.screenshot({path:path.join(out,'09-metro-platform-walked.png')});
+ const vestibuleReturn=await walkTo('0,-1','z','<',46);
+ check('Metro G5 walked from platform back to vestibule',
+   vestibuleReturn.grounded&&vestibuleReturn.y< -2.75&&vestibuleReturn.z<46,vestibuleReturn);
+ const backOnStreet=await walkTo('0,-1','z','<',34.6);
+ check('Metro G5 stairs physically ascend back to street',
+   backOnStreet.grounded&&backOnStreet.y>-.35&&backOnStreet.z<34.6,
+   {start:street,end:backOnStreet});
+ await page.screenshot({path:path.join(out,'10-metro-walked-stairs-up.png')});
 
  check('No runtime page crash',!errors.some(x=>x.includes('PAGE_CRASH')),errors.slice(-8));
 }catch(e){errors.push('QA_FATAL '+String(e));process.exitCode=1}
