@@ -1,0 +1,71 @@
+name: BRAXHORN Estate - publish VERIFIED real Unity video (no re-recording)
+on:
+  push:
+    branches: [codex/estate-only-iphone-loading-20261030]
+    paths: [.github/workflows/estate-publish-recorded-video.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          sparse-checkout: .github/workflows/estate-publish-recorded-video.yml
+      - name: Download actual Unity Brax estate MP4 and independently verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh run download 41043993478 -R "$GITHUB_REPOSITORY" \
+            -n braxhorn-estate-real-unity-video-50a618393425636edde9c01d81e862ee81335c5f \
+            -D "$RUNNER_TEMP/recorded"
+          python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ["RUNNER_TEMP"])/"recorded"
+          videos=list(p.rglob("braxhorn-osiedle-przed-remontem.mp4"))
+          reports=list(p.rglob("report.json"))
+          assert len(videos)==len(reports)==1,(videos,reports)
+          r=json.loads(reports[0].read_text())
+          assert r["passed"] and r["originalCityPlayer"]=="BraxGymPlayer"
+          assert r["scene"]=="BraxhornEstate" and r["meshCount"]==553
+          assert len(r["stops"])==14 and r["durationSeconds"]>60
+          assert videos[0].stat().st_size>1000000
+          assert len(list(p.rglob("*.png")))>=12
+          print("REAL UNITY VIDEO VERIFIED",r["durationSeconds"],videos[0].stat().st_size)
+          PY
+      - name: Publish separate VIDEO ONLY branch (never main, no Unity project writes)
+        run: |
+          set -euo pipefail
+          ref="refs/heads/preview/estate-real-unity-video-20261030"
+          if git ls-remote --exit-code --heads origin "$ref" >/dev/null; then
+            echo "::error::Video branch exists, refuse overwrite";exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/site"
+          cp "$(find "$RUNNER_TEMP/recorded" -name braxhorn-osiedle-przed-remontem.mp4 -print -quit)" "$RUNNER_TEMP/site/wideo-osiedle.mp4"
+          find "$RUNNER_TEMP/recorded" -name '*.png' -exec cp {} "$RUNNER_TEMP/site/" \;
+          cp "$(find "$RUNNER_TEMP/recorded" -name report.json -print -quit)" "$RUNNER_TEMP/site/report.json"
+          cat > "$RUNNER_TEMP/site/index.html" <<'HTML'
+          <!doctype html>
+          <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>BRAXHORN — nagranie prawdziwego osiedla Unity</title><style>html,body{margin:0;background:#0b0e0a;color:#f4f6f1;font:16px system-ui}main{max-width:1100px;margin:auto;padding:18px}h1{font-size:clamp(20px,4vw,34px)}p{line-height:1.5;color:#d1d9cc}video{width:100%;aspect-ratio:16/9;background:#000;border-radius:10px}a{color:#a8f76d}small{color:#aab2a5}.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:24px}.shots img{width:100%;border-radius:8px}figure{margin:0}figcaption{font-size:13px;padding:5px}</style></head>
+          <body><main><h1>BRAXHORN CITY — osiedle domków przed remontem</h1><p>Rzeczywisty zapis Unity 6: oryginalny Brax, scena BraxhornEstate, sterowanie miasta. Nagranie z automatycznej sesji Chromium WebGL, nie z fizycznego iPhone'a. Żadnych wygenerowanych obrazów.</p><video controls playsinline preload="metadata" src="wideo-osiedle.mp4"></video><p><a href="wideo-osiedle.mp4" download>Pobierz MP4</a></p><small>Film do oceny obecnego osiedla przed remontem. Produkcja niezmieniona.</small><section class="shots" id="shots"></section></main>
+          <script>const names=[["01-wejscie","Wejście"],["02-dom-elewacja","Elewacja domu"],["03-wnetrze-domu","Wnętrze"],["04-taras","Taras"],["05-garaze","Garaże"],["06-park-zielen","Park"],["07-plac","Plac"],["08-kasyno","Kasyno"],["09-klub","Klub"],["10-komisariat","Komisariat"],["11-szpital","Szpital"],["12-sala-bokserska","Sala bokserska"],["13-arena","Arena"],["14-podsumowanie-osiedla","Osiedle"]];for(const [file,label] of names){const f=document.createElement('figure');const a=document.createElement('a');a.href=file+'.png';const i=document.createElement('img');i.src=file+'.png';i.loading='lazy';i.alt=label;a.append(i);const c=document.createElement('figcaption');c.textContent=label;f.append(a,c);document.querySelector('#shots').append(f)}</script></body></html>
+          HTML
+          cat > "$RUNNER_TEMP/site/vercel.json" <<'JSON'
+          {"version":2,"framework":null,"buildCommand":null,"outputDirectory":".","headers":[{"source":"/(.*)","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]}]}
+          JSON
+          git reset --hard HEAD
+          git clean -fdx
+          git switch --orphan preview/estate-real-unity-video-20261030
+          git rm -r --cached -q . || true
+          rm -rf .github
+          cp -a "$RUNNER_TEMP/site/." .
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --sparse -A
+          git commit -m "preview(estate): real Unity Brax walkthrough video before renovation [skip ci]"
+          git push origin "HEAD:$ref"
+          echo "VIDEO REVIEW ONLY, main and production untouched"
