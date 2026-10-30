@@ -41,6 +41,10 @@ public static class BraxCityTowerDistrictFinish
         float width=Mathf.Max(bounds.size.x,bounds.size.z);
         if(width<.01f||width>100f)throw new InvalidOperationException("Source model scale is implausible: "+label);
         obj.transform.localScale*=desiredHorizontalWidth/width;
+        var scaled=obj.GetComponentsInChildren<Renderer>(true);
+        Bounds placed=scaled[0].bounds;
+        foreach(var rr in scaled.Skip(1))placed.Encapsulate(rr.bounds);
+        obj.transform.position+=Vector3.up*(position.y-placed.min.y);
         foreach(var rr in renderers)
         {
             rr.shadowCastingMode=ShadowCastingMode.Off;
@@ -51,8 +55,9 @@ public static class BraxCityTowerDistrictFinish
         if(label.Contains("reception sofa"))
         {
             var collider=obj.AddComponent<BoxCollider>();
-            collider.center=obj.transform.InverseTransformPoint(bounds.center);
-            collider.size=obj.transform.InverseTransformVector(bounds.size);
+            collider.center=obj.transform.InverseTransformPoint(placed.center);
+            var local=obj.transform.InverseTransformVector(placed.size);
+            collider.size=new Vector3(Mathf.Abs(local.x),Mathf.Abs(local.y),Mathf.Abs(local.z));
         }
     }
     public static void Apply(BraxCityWorld world,Transform streetRoot)
