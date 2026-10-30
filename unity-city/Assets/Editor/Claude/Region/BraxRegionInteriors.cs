@@ -18,6 +18,8 @@ public static class BraxRegionInteriors
         catch (Exception e) { BraxRegion.Note("Nutrition: BŁĄD " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_REGION Nutrition " + e); }
         try { NovaClub(cityRoot); BraxRegion.Rep.nova = true; }
         catch (Exception e) { BraxRegion.Note("NOVA: BŁĄD " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_REGION NOVA " + e); }
+        try { NovaFront(cityRoot); }
+        catch (Exception e) { BraxRegion.Note("NOVA: BŁĄD " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_REGION NOVA " + e); }
     }
 
     static bool Inside(Bounds b, Renderer r) { return r && b.Intersects(r.bounds); }
@@ -63,6 +65,84 @@ public static class BraxRegionInteriors
             props++;
         }
         BraxRegion.Note("Nutrition: ściany " + walls + ", podłogi " + floors + ", dodatki " + props);
+    }
+
+    // Front klubu NOVA od ulicy (parter x 32..52 przy z=36.1 to czarna bryła ze starego miasta):
+    // ciemne panele, granitowe pilastry, nadproże i daszek nad wejściem, napis NOVA, kinkiety (bez poświaty),
+    // słupki z czerwoną liną (kolejka), donice z roślinami. Otwór drzwi (x 40.9..43.1) i skrzydło zostają wolne.
+    static void NovaFront(Transform cityRoot)
+    {
+        const float X0 = 32.2f, X1 = 51.8f, Z = 36.0f, H = 5.0f, DoorL = 40.4f, DoorR = 43.6f, DoorH = 2.95f;
+        var root = BraxRegion.Root(cityRoot, "CLAUDE NOVA: front od ulicy");
+        var panel = BraxRegion.Pbr("NOVA front: ciemne panele", 1.4f, new Color(.16f, .16f, .18f), "exterior_wall_cladding_02", "exterior_wall_cladding", "concrete_wall_008");
+        var pilaster = BraxRegion.Pbr("NOVA front: granitowe pilastry", 1.0f, new Color(.30f, .30f, .32f), "granite_tile", "granite_tile_02");
+        var soffit = BraxRegion.Pbr("NOVA front: spód daszka", 1.0f, new Color(.45f, .36f, .30f), "dark_wood", "wood_planks");
+        var rope = BraxRegion.Pbr("NOVA front: czerwona lina", .4f, null, "leather_red_02", "leather_white", "wood_planks");
+        var champagne = BraxRegion.Fitting("NOVA front: stal szampańska", BraxRegion.Champagne, .30f, .92f);
+        var black = BraxRegion.Fitting("NOVA front: czarna stal", new Color(.06f, .06f, .065f), .55f, .6f);
+        float y0 = .15f;
+        // panele po bokach wejścia, od cokołu do pasa nad parterem
+        BraxRegion.Box("NOVA front: panel lewy", root, new Vector3((X0 + DoorL) * .5f, y0 + H * .5f, Z), new Vector3(DoorL - X0, H, .12f), panel, true);
+        BraxRegion.Box("NOVA front: panel prawy", root, new Vector3((DoorR + X1) * .5f, y0 + H * .5f, Z), new Vector3(X1 - DoorR, H, .12f), panel, true);
+        BraxRegion.Box("NOVA front: nadproże", root, new Vector3((DoorL + DoorR) * .5f, y0 + DoorH + (H - DoorH) * .5f, Z), new Vector3(DoorR - DoorL, H - DoorH, .12f), panel, true);
+        BraxRegion.Box("NOVA front: cokół", root, new Vector3((X0 + X1) * .5f, y0 + .3f, Z - .04f), new Vector3(X1 - X0, .6f, .2f), pilaster, true);
+        for (float px = X0 + .4f; px <= X1 - .3f; px += 4.9f)
+        {
+            if (px > DoorL - 1.2f && px < DoorR + 1.2f) continue;
+            BraxRegion.Box("NOVA front: pilaster", root, new Vector3(px, y0 + H * .5f, Z - .07f), new Vector3(.5f, H, .26f), pilaster, true);
+        }
+        // portal wejścia: granit po bokach, daszek ze stali szampańskiej, czarny spód z ciepłym światłem
+        BraxRegion.Box("NOVA front: portal lewy", root, new Vector3(DoorL - .3f, y0 + DoorH * .5f, Z - .1f), new Vector3(.6f, DoorH, .32f), pilaster, true);
+        BraxRegion.Box("NOVA front: portal prawy", root, new Vector3(DoorR + .3f, y0 + DoorH * .5f, Z - .1f), new Vector3(.6f, DoorH, .32f), pilaster, true);
+        BraxRegion.Box("NOVA front: portal góra", root, new Vector3((DoorL + DoorR) * .5f, y0 + DoorH + .25f, Z - .1f), new Vector3(DoorR - DoorL + 1.2f, .5f, .32f), pilaster, true);
+        BraxRegion.Box("NOVA front: daszek", root, new Vector3((DoorL + DoorR) * .5f, y0 + 3.55f, Z - 1.1f), new Vector3(7.0f, .16f, 2.2f), champagne, true);
+        BraxRegion.Box("NOVA front: spód daszka", root, new Vector3((DoorL + DoorR) * .5f, y0 + 3.46f, Z - 1.1f), new Vector3(6.8f, .02f, 2.1f), soffit);
+        foreach (float sx in new[] { (DoorL + DoorR) * .5f - 3.2f, (DoorL + DoorR) * .5f + 3.2f })
+            BraxRegion.Box("NOVA front: cięgno daszka", root, new Vector3(sx, y0 + 4.2f, Z - 1.1f), new Vector3(.04f, 1.4f, .04f), champagne);
+        BraxRegion.Warm(root, "NOVA front: światło pod daszkiem", new Vector3((DoorL + DoorR) * .5f, y0 + 3.3f, Z - 1.0f), 1.0f, 6f);
+        // napis NOVA nad daszkiem (test głębi daje BraxRegionSignage)
+        var sign = new GameObject("NOVA front: napis NOVA");
+        sign.transform.SetParent(root, false);
+        sign.transform.position = new Vector3((DoorL + DoorR) * .5f, y0 + 4.35f, Z - .2f);
+        sign.transform.rotation = Quaternion.identity;   // czytelny od strony ulicy (-Z)
+        var tm = sign.AddComponent<TextMesh>();
+        tm.text = "NOVA"; tm.anchor = TextAnchor.MiddleCenter; tm.alignment = TextAlignment.Center;
+        tm.fontSize = 64; tm.characterSize = .95f * 10f / 64f; tm.color = new Color(.95f, .95f, .93f);
+        tm.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var smr = sign.GetComponent<MeshRenderer>(); if (smr && tm.font) smr.sharedMaterial = tm.font.material;
+        BraxRegion.Box("NOVA front: tło napisu", root, new Vector3((DoorL + DoorR) * .5f, y0 + 4.35f, Z - .06f), new Vector3(4.6f, .9f, .06f), black);
+        // kinkiety po bokach wejścia (modele Poly Haven, bez poświaty)
+        var lamp = BraxRegion.Model("industrial_wall_lamp", "industrial_wall_sconce", "industrial_caged_sconce");
+        if (lamp)
+            foreach (float lx in new[] { DoorL - 1.3f, DoorR + 1.3f })
+            {
+                var o = (GameObject)UnityEngine.Object.Instantiate(lamp, root, false);
+                o.name = "NOVA front: kinkiet"; o.transform.position = Vector3.zero;
+                o.transform.rotation = Quaternion.Euler(0, 180, 0) * o.transform.rotation;
+                var b = BraxRegion.Bounds(o); float big = Mathf.Max(b.size.x, b.size.y, b.size.z);
+                if (big > .6f && big > .001f) { o.transform.localScale *= .6f / big; b = BraxRegion.Bounds(o); }
+                o.transform.position = new Vector3(lx, y0 + 2.7f, Z - .08f - b.extents.z) - new Vector3(b.center.x, b.center.y, 0) + new Vector3(0, 0, 0);
+            }
+        // kolejka: słupki ze stali i czerwona lina, po lewej stronie wejścia wzdłuż chodnika
+        for (int i = 0; i < 4; i++)
+        {
+            float px = DoorL - .9f - i * 1.4f, pz = Z - 1.9f;
+            BraxRegion.Box("NOVA front: słupek kolejki", root, new Vector3(px, y0 + .5f, pz), new Vector3(.06f, 1.0f, .06f), champagne, true);
+            BraxRegion.Box("NOVA front: podstawa słupka", root, new Vector3(px, y0 + .02f, pz), new Vector3(.3f, .04f, .3f), champagne);
+            if (i > 0) BraxRegion.Box("NOVA front: lina", root, new Vector3(px + .7f, y0 + .9f, pz), new Vector3(1.3f, .05f, .05f), rope);
+        }
+        // donice z roślinami po obu stronach, kosz
+        var planter = BraxRegion.Model("planter_box_02", "planter_box_01");
+        var plant = BraxRegion.Model("potted_plant_04", "potted_plant_02");
+        if (planter)
+            foreach (float px in new[] { DoorL - 3.4f, DoorR + 3.4f })
+            {
+                BraxRegion.Put(root, planter, "NOVA front: donica", new Vector3(px, y0, Z - .7f), 0f, 1f, true, .6f);
+                if (plant) BraxRegion.Put(root, plant, "NOVA front: roślina", new Vector3(px, y0 + .3f, Z - .7f), BraxRegion.Range(0, 360), 1f, false, 1.4f);
+            }
+        var bin = BraxRegion.Model("metal_trash_can");
+        if (bin) BraxRegion.Put(root, bin, "NOVA front: kosz", new Vector3(DoorR + 1.9f, y0, Z - 1.0f), 0f, 1f, true, .95f);
+        BraxRegion.Note("NOVA: front od ulicy zbudowany (x " + X0 + ".." + X1 + ")");
     }
 
     static float WallDistance(Vector3 eye, Vector3 dir, float max)

@@ -21,6 +21,8 @@ TEXTURES = [
     "painted_metal_shutter", "metal_plate", "wooden_planks",
     # taras, plaża, wnętrza
     "brown_mud_leaves_01", "wood_planks_grey", "plank_flooring_02", "wood_floor", "granite_tile_02",
+    # front klubu NOVA, siłownia
+    "leather_red_02", "tatami_mat", "concrete_wall_008",
 ]
 MODELS_2K = [  # rośliny: pełna jakość
     "shrub_01", "shrub_02", "shrub_03", "shrub_04",
@@ -43,6 +45,7 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     "coffee_table_round_01", "modern_coffee_table_01", "industrial_coffee_table",
     "modern_arm_chair_01", "ArmChair_01", "mid_century_lounge_chair",
     "hanging_picture_frame_01", "hanging_picture_frame_02", "hanging_picture_frame_03",
+    "industrial_wall_lamp", "industrial_wall_sconce", "security_camera_01",
 ]
 
 
