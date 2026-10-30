@@ -277,6 +277,7 @@ public static class BraxEstateDom04Premium
         mat.SetInt("_SrcBlend",(int)BlendMode.One);
         mat.SetInt("_DstBlend",(int)BlendMode.Zero);
         mat.SetInt("_ZWrite",1);
+        mat.SetInt("_Cull",0); // original Verdant leaf cards are double-sided
         mat.EnableKeyword("_ALPHATEST_ON");
         mat.DisableKeyword("_ALPHABLEND_ON");
         mat.renderQueue=(int)RenderQueue.AlphaTest;
@@ -295,8 +296,8 @@ public static class BraxEstateDom04Premium
             var o=new GameObject(id);o.transform.SetParent(own,false);o.transform.localScale=Vector3.one*scale;
             var r=Original(src);o.AddComponent<MeshFilter>().sharedMesh=r.GetComponent<MeshFilter>().sharedMesh;
             var rr=o.AddComponent<MeshRenderer>();
-            rr.sharedMaterials=source=="EstateMesh_453"?new[]{genuineLeaves}:
-               source=="EstateMesh_467"?new[]{genuineShrubs}:r.sharedMaterials;
+            rr.sharedMaterials=src=="EstateMesh_453"?new[]{genuineLeaves}:
+               src=="EstateMesh_467"?new[]{genuineShrubs}:r.sharedMaterials;
             rr.shadowCastingMode=src=="EstateMesh_439"?ShadowCastingMode.On:ShadowCastingMode.Off;
             return o;
         }
