@@ -5,6 +5,9 @@ Run BEFORE city/prepare.py (which externalizes the GLB).
 import hashlib, io, json, pathlib, struct
 import numpy as np
 from PIL import Image
+import os, urllib.request, zipfile
+os.environ['OPENCV_IO_ENABLE_OPENEXR'] = '1'
+import cv2
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'unity-city/Assets/Source/City/braxhorn-estate.glb'
@@ -48,3 +51,57 @@ report = dict(status='SOURCE_MAPS_VERIFIED__UNITY_BINDINGS_PENDING', originalExp
 (ROOT / 'city-review').mkdir(exist_ok=True)
 (ROOT / 'city-review/r2-segment-sources.json').write_text(json.dumps(report, indent=2))
 print('R2_SEGMENT_EXACT_ORIGINAL_PBR_MAPS_VERIFIED', len(records))
+
+# Exact named owner-library sets, fetched as fresh official CC0 source copies.
+# Their upload-archive hashes were not recorded in the previous eight-file audit:
+# do not claim these bytes were transported from the owner's private Library.
+def download(url, expected, filename):
+    request = urllib.request.Request(url, headers={'User-Agent': 'Braxhorn-R2-verified-PBR/1.0'})
+    with urllib.request.urlopen(request, timeout=180) as response:
+        data = response.read()
+    actual = hashlib.sha256(data).hexdigest()
+    if actual != expected:
+        raise RuntimeError('Official source hash mismatch: ' + filename + ' ' + actual)
+    (source_dir / filename).write_bytes(data)
+    return data
+
+def save_map(key, slot, data, exr=False):
+    if exr:
+        array = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_UNCHANGED)
+        if array is None:
+            raise RuntimeError('Real EXR normal map failed to decode')
+        array = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)
+        im = Image.fromarray(np.rint(np.clip(array, 0, 1) * 255).astype(np.uint8))
+    else:
+        im = Image.open(io.BytesIO(data)).convert('RGB')
+    im.thumbnail((2048, 2048), Image.Resampling.LANCZOS)
+    if slot == 'MR':
+        rough = np.asarray(im)[:, :, 0].astype(np.float32) / 255
+        rgba = np.zeros((im.height, im.width, 4), np.uint8)
+        rgba[:, :, 3] = np.rint((1 - np.maximum(rough, .75)) * 255).astype(np.uint8)
+        im = Image.fromarray(rgba)
+    dest = OUT / (key + slot + '.png')
+    im.save(dest)
+    records.append(dict(set=key, slot=slot, sourceSha256=hashlib.sha256(data).hexdigest(), runtimeSha256=hashlib.sha256(dest.read_bytes()).hexdigest(), runtimePath=str(dest.relative_to(ROOT))))
+
+for slot, filename, ext, sha in [
+    ('Albedo','white_stucco_02_diff_4k.jpg','jpg','94e56a2173851458eab45c7d54ae024b850e7deeb33059dad9fc836c8d3069e7'),
+    ('Normal','white_stucco_02_nor_gl_4k.exr','exr','a91d368af8d7d9072dcdd5c0da84af50ac2f25e46c68703ec26358c83de1b9f8'),
+    ('MR','white_stucco_02_rough_4k.jpg','jpg','060ce3a82aeb97a7afaad14e91859ea418cf41d82eda2b3158e62f9d6719f6f7'),
+]:
+    url = f'https://dl.polyhaven.org/file/ph-assets/Textures/{ext}/4k/white_stucco_02/{filename}'
+    save_map('Stucco', slot, download(url, sha, filename), ext == 'exr')
+
+paving_url = 'https://ambientcg.com/get?file=PavingStones151_2K-JPG.zip'
+paving_sha = '41965f7604eda1de8866c68682815fa5c908bdc60e855a1ca3ec0991f0c00b7e'
+archive = download(paving_url, paving_sha, 'PavingStones151_2K-JPG.zip')
+with zipfile.ZipFile(io.BytesIO(archive)) as package:
+    if package.testzip() is not None:
+        raise RuntimeError('PavingStones151 CRC failure')
+    for slot, suffix in [('Albedo','Color'),('Normal','NormalGL'),('MR','Roughness'),('AO','AmbientOcclusion')]:
+        save_map('Paving', slot, package.read(f'PavingStones151_2K-JPG_{suffix}.jpg'))
+report['maps'] = records
+report['officialCC0Sources'] = [dict(set='white_stucco_02',source='https://polyhaven.com/a/white_stucco_02',license='https://polyhaven.com/license'),dict(set='PavingStones151',source='https://ambientcg.com/a/PavingStones151',license='https://docs.ambientcg.com/license/',archiveSha256=paving_sha,physicalRepeatMetres=5.4)]
+report['ownerLibraryArchiveHashComparison'] = 'NOT_AVAILABLE_FOR_THESE_TWO_SETS; newly verified official source copies, not private Library transport'
+(ROOT / 'city-review/r2-segment-sources.json').write_text(json.dumps(report, indent=2))
+print('R2_NAMED_OFFICIAL_CC0_SOURCE_COPIES_VERIFIED', len(records))

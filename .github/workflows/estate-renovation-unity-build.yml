@@ -146,6 +146,13 @@ jobs:
             unity-city/Assets/Source/City/native-texture-preparation.json
             unity-city/Assets/Source/City/source-provenance.json
           retention-days: 14
+      - name: Preserve exact original map copies separately from review media
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: r2-exact-source-copies-${{ github.sha }}
+          path: r2-source-archive/
+          retention-days: 90
       - name: Save compiled player for diagnosis, not automatic publication
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

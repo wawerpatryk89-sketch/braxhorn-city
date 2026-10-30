@@ -40,7 +40,7 @@ try{
  if(initial.build!==sha||initial.area!=='estate'||initial.cityMeshes!==553)throw Error('Wrong exact Unity build');
  if(!initial.handFound||!initial.leftFootFound||!initial.rightFootFound)throw Error('Original Brax rig incomplete');
  // Real Unity baseline first, then the same camera after. These are separate screenshots.
- await send('ReviewView','-14,.08,6,100,19,12');await page.waitForTimeout(1500);
+ await send('ReviewView','-14,.08,6,100,7,12');await page.waitForTimeout(1500);
  await compare('ProgressBefore');await page.waitForTimeout(1200);await shot('01-before');
  audit.before=await state();
  await compare('ProgressAfter');await page.waitForTimeout(1200);await shot('02-after');
@@ -48,7 +48,7 @@ try{
  if(Math.hypot(audit.before.x-audit.after.x,audit.before.z-audit.after.z)>.03||Math.abs(audit.before.yaw-audit.after.yaw)>.01)throw Error('Before/after camera mismatch');
  await send('ReviewView','-17,.08,0,90,12,8');await page.waitForTimeout(1500);await shot('03-facade-detail');
  await send('ReviewView','-13,.08,1,90,32,7');await page.waitForTimeout(1500);await shot('04-approach-detail');
- await send('ReviewView','-14,.08,8,100,19,12');await page.waitForTimeout(1500);
+ await send('ReviewView','-14,.08,8,100,7,12');await page.waitForTimeout(1500);await shot('05-roof-overview');
  await page.waitForFunction(()=>window.BraxhornState?.grounded,null,{timeout:30000});
  // From this point only original MoveInput and LookInput. No reset, Travel*, ReviewView.
  const interval=await page.evaluate(()=>({clock:performance.now(),origin:performance.timeOrigin}));

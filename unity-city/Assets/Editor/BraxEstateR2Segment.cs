@@ -53,7 +53,12 @@ public static class BraxEstateR2Segment
         m.mainTexture = Texture(source + "Albedo.png", false);
         m.SetTexture("_BumpMap", Texture(source + "Normal.png", true));
         m.SetTexture("_MetallicGlossMap", Texture(source + "MR.png", false));
-        m.SetFloat("_BumpScale", .65f); m.SetFloat("_GlossMapScale", .7f);
+        m.SetFloat("_BumpScale", key.Contains("Plaster") ? .2f : .45f); m.SetFloat("_GlossMapScale", .7f);
+        if (File.Exists(source + "AO.png"))
+        {
+            m.SetTexture("_OcclusionMap", Texture(source + "AO.png", false));
+            m.SetFloat("_OcclusionStrength", .55f);
+        }
         m.EnableKeyword("_NORMALMAP"); m.EnableKeyword("_METALLICGLOSSMAP");
         AssetDatabase.CreateAsset(m, Output + "/" + key + ".mat"); return m;
     }
@@ -142,16 +147,16 @@ public static class BraxEstateR2Segment
     {
         var root=GameObject.Find("braxhorn-estate"); if(!root)throw new Exception("Original estate missing");
         Directory.CreateDirectory(Output); AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        var plaster=Material("WarmMineralPlaster","Assets/Source/City/R2Segment/108",new Color(.94f,.91f,.84f));
+        var plaster=Material("WarmMineralPlaster","Assets/Source/City/R2Segment/Stucco",new Color(.965f,.945f,.905f));
         var brick=Material("OriginalBrickPlinth","Assets/Source/City/R2Segment/117",new Color(.86f,.83f,.78f));
-        var paving=Material("OriginalStoneApproach","Assets/Source/City/R2Segment/113",new Color(.75f,.74f,.70f));
+        var paving=Material("PavingStones151","Assets/Source/City/R2Segment/Paving",Color.white);
         var roofSource=AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/R2Approved/R2RoofTiles.mat");
         if(!roofSource)throw new Exception("Verified Poly Haven roof source missing");
         var roof=new Material(roofSource){name="R2 dom04 / real roof tiles / 2m",enableInstancing=true};
         AssetDatabase.CreateAsset(roof,Output+"/RoofTiles.mat");
         var renderers=root.GetComponentsInChildren<MeshRenderer>(true);
         var records=new List<Record>(); var bindings=new List<BraxR2ProgressEvidence.Binding>();
-        foreach(var task in new[]{("EstateMesh_327",plaster,"exterior stucco",2f),("EstateMesh_312",plaster,"entrance plaster",2f),("EstateMesh_321",brick,"brick plinth",4f),("EstateMesh_323",roof,"pitched roof",2f),("EstateMesh_275",paving,"bounded existing approach",2f)})
+        foreach(var task in new[]{("EstateMesh_327",plaster,"exterior stucco",1.5f),("EstateMesh_312",plaster,"entrance plaster",1.5f),("EstateMesh_321",brick,"brick plinth",3f),("EstateMesh_323",roof,"pitched roof",2f),("EstateMesh_275",paving,"bounded existing approach",5.4f)})
         {
             var r=renderers.Single(x=>x.name==task.Item1);
             bindings.Add(Bind(r,task.Item2,task.Item3,task.Item4,records,task.Item1=="EstateMesh_275"));
