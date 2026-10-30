@@ -452,6 +452,103 @@ public static class BraxEstateDom04Premium
             var l=shrub.AddComponent<LODGroup>();l.SetLODs(new[]{new LOD(.012f,new Renderer[]{renderer})});l.RecalculateBounds();
         }
     }
+
+    static GameObject CreateSourceModel(GameObject prefab,Transform parent,string label,Vector3 ground,float diameter,float yaw)
+    {
+        if(!prefab)throw new Exception("DOM04 original Library 3D model was not imported: "+label);
+        var ob=UnityEngine.Object.Instantiate(prefab,parent,true);
+        ob.name=label;
+        ob.transform.position=Vector3.zero;
+        ob.transform.rotation=Quaternion.Euler(0,yaw,0);
+        var rr=ob.GetComponentsInChildren<Renderer>(true);
+        if(rr.Length==0)throw new Exception("DOM04 owner source 3D model has no visible mesh "+label);
+        Bounds bounds=rr[0].bounds;
+        foreach(var r in rr.Skip(1))bounds.Encapsulate(r.bounds);
+        float horizontal=Mathf.Max(bounds.size.x,bounds.size.z);
+        if(horizontal<.01f || horizontal>150f)throw new Exception("Bad original model bounds: "+label);
+        float scale=diameter/horizontal;
+        ob.transform.localScale*=scale;
+        rr=ob.GetComponentsInChildren<Renderer>(true);
+        bounds=rr[0].bounds;
+        foreach(var r in rr.Skip(1))bounds.Encapsulate(r.bounds);
+        // Actual mesh lowest vertex sits on the source property height. No primitive geometry.
+        ob.transform.position+=ground-new Vector3(bounds.center.x,bounds.min.y,bounds.center.z);
+        foreach(var r in rr)
+        {
+            r.shadowCastingMode=ShadowCastingMode.Off;
+            r.receiveShadows=true;
+        }
+        return ob;
+    }
+    static void AddRealFlowerBoxes(Transform parent)
+    {
+        var planter=AssetDatabase.LoadAssetAtPath<GameObject>(Source+"DOM04_planter_box_01.glb");
+        var flower=AssetDatabase.LoadAssetAtPath<GameObject>(Source+"DOM04_periwinkle_plant.glb");
+        if(!planter||!flower)throw new Exception("DOM04 real owner-named flower/planter sources not imported");
+        // Clear original entrance walkway z +/-1.55 and leave fence/gate untouched.
+        var positions=new[]{
+            new Vector3(-19.60f,.065f,-3.65f),
+            new Vector3(-19.60f,.065f, 3.65f),
+            new Vector3(-38.15f,.065f,-3.80f),
+            new Vector3(-38.15f,.065f, 3.80f),
+        };
+        for(int i=0;i<positions.Length;i++)
+        {
+            var p=positions[i];
+            if(p.x<=-39.4f||p.x>=-16.8f||Mathf.Abs(p.z)>10.1f||Mathf.Abs(p.z)<1.55f)
+                throw new Exception("DOM04 REAL planting box outside bounds/gate");
+            CreateSourceModel(planter,parent,"DOM04 original wooden planter box "+(i+1),p,.92f,i%2==0?0:180);
+            var flowers=CreateSourceModel(flower,parent,"DOM04 real flowering periwinkle "+(i+1),
+                p+Vector3.up*.27f,.82f,i*73f);
+            // All plants are real .blend source mesh instances, not billboard flowers.
+        }
+        Debug.Log("DOM04_FOUR_REAL_SOURCE_WOODEN_PLANTERS_WITH_FOUR_ORIGINAL_FLOWERING_PERIWINKLE");
+    }
+    static void PremiumOriginalWindows(MeshRenderer[] all,Transform parent,BraxDom04PremiumEvidence evidence)
+    {
+        var glass=all.Single(r=>r.name=="EstateMesh_315");
+        if(glass.bounds.min.x < -34.1f || glass.bounds.max.x > -22.2f || glass.bounds.max.y>7.2f)
+            throw new Exception("DOM04 imported original glass belongs to unexpected house");
+        evidence.glassRenderer=glass;evidence.glassBefore=glass.sharedMaterials;
+        var standard=Shader.Find("Standard");
+        if(!standard)throw new Exception("DOM04 Unity Standard translucent glass shader absent");
+        var clear=new Material(standard){name="DOM04 realistic clear original window glazing"};
+        clear.SetFloat("_Mode",3);
+        clear.SetOverrideTag("RenderType","Transparent");
+        clear.SetInt("_SrcBlend",(int)BlendMode.SrcAlpha);
+        clear.SetInt("_DstBlend",(int)BlendMode.OneMinusSrcAlpha);
+        clear.SetInt("_ZWrite",0);
+        clear.DisableKeyword("_ALPHATEST_ON");clear.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        clear.EnableKeyword("_ALPHABLEND_ON");clear.renderQueue=(int)RenderQueue.Transparent;
+        clear.color=new Color(.83f,.89f,.88f,.18f);
+        clear.SetFloat("_Glossiness",.83f);
+        AssetDatabase.CreateAsset(clear,Output+"Dom04OriginalClearGlass.mat");
+        evidence.glassAfter=Enumerable.Repeat(clear,evidence.glassBefore.Length).ToArray();
+        glass.sharedMaterials=evidence.glassAfter;
+        // Staged rooms: imported genuine original interior geometry is preserved.
+        // Expose the REAL SOURCE furniture through original real windows.
+        // Sofa 02 is already the owner's genuine 4K/2K GLB exported earlier in this workflow.
+        var sofa=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Source/LibrarySofa02.glb");
+        if(!sofa)throw new Exception("DOM04 genuine LibrarySofa02 imported model not found");
+        CreateSourceModel(sofa,parent,"DOM04 simulated ground-floor lounge / actual Library sofa",
+            new Vector3(-26.0f,1.02f,-1.9f),1.55f,180);
+        CreateSourceModel(sofa,parent,"DOM04 simulated upper lounge / actual Library sofa",
+            new Vector3(-26.1f,4.69f,-2.0f),1.5f,180);
+        // No invented photographs, rooms or new house façades; two low-cost no-shadow
+        // interior fill lights allow genuine interior architecture to be seen through glass.
+        foreach(var setting in new[]{new Vector3(-26.5f,2.9f,-1.5f),new Vector3(-26.5f,6.1f,-1.5f)})
+        {
+            var go=new GameObject("DOM04 soft interior visibility / source room");
+            go.transform.SetParent(parent,false);
+            go.transform.position=setting;
+            var light=go.AddComponent<Light>();
+            light.type=LightType.Point;light.range=6.5f;light.intensity=.85f;
+            light.color=new Color(1f,.91f,.78f);light.shadows=LightShadows.None;
+            light.cullingMask=~0;
+        }
+        Debug.Log("DOM04_ORIGINAL_REAL_GLASS_TRANSPARENT__SIMULATED_FURNISHED_ROOMS_FROM_GENUINE_OWNER_SOFA");
+    }
+
     public static void Apply()
     {
         var root=GameObject.Find("braxhorn-estate");if(!root)throw new Exception("Original Unity6 BraxhornEstate missing");
@@ -481,6 +578,8 @@ public static class BraxEstateDom04Premium
         foliage.AddComponent<MeshFilter>().sharedMesh=Bermuda(4200);
         var fr=foliage.AddComponent<MeshRenderer>();fr.sharedMaterial=BermudaMaterial();fr.shadowCastingMode=ShadowCastingMode.Off;
         Plant(renderers,home.transform);
+        AddRealFlowerBoxes(home.transform);
+        PremiumOriginalWindows(renderers,home.transform,e);
         MakeOriginalWindowsSeeThrough(R("EstateMesh_315"),e,home.transform);
         PlaceGenuineFlowerPots(home.transform);
         Directory.CreateDirectory("city-review");
@@ -501,6 +600,8 @@ public static class BraxEstateDom04Premium
         public string garden="four source Verdant ornamental trees in DOM04 including original x=-36 tree; 3 new real source 439/460 LOD trees and genuine source shrubs 467";
         public string fence="original DOM04 front-fence triangles refinished in satin anthracite; global shared mesh split locally, all other fence surfaces and original gate/physics unchanged";
         public string roof="original DOM04 pitched geometry / roof_tiles genuine PBR / warmer muted terracotta, improved gloss and normal";
+        public string flowers="4 ORIGINAL planter_box_01 wooden model instances + 4 original periwinkle_plant 3D flowering plants";
+        public string windows="real original DOM04 glazing EstateMesh_315 clear Standard transparent; furnished existing original house rooms with 2 original user LibrarySofa02, 2 nonshadow local interior visibility lights";
         public string windows="Original dom04 glass EstateMesh_315 transparency corrected; existing actual 3D rooms stucco 312, wood 313 and parquet 316 visible with two warm shadowless interior lights; no invented flat fake interior";
         public string flowers="4 full 3D original owner Library periwinkle plants in original-library-textured bespoke tapered ceramic PBR planters";
         public int floweringRealPlants=4,ceramicPlanters=4;

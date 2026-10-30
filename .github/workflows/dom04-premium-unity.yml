@@ -60,6 +60,9 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends blender
           blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
+          python3 unity-tools/city/dom04-real-flower-sources.py
+          blender --background --disable-autoexec dom04-flower-originals/planter_box_01/planter_box_01_4k.blend --python unity-tools/city/dom04-export-original-plant.py -- planter_box_01
+          blender --background --disable-autoexec dom04-flower-originals/periwinkle_plant/periwinkle_plant_2k.blend --python unity-tools/city/dom04-export-original-plant.py -- periwinkle_plant
           blender --background --disable-autoexec unity-city/Assets/Source/City/Dom04/periwinkle_plant_2k.blend --python unity-tools/city/dom04-export-periwinkle.py
           git diff --exit-code -- unity-city/Assets/*.cs unity-city/Assets/*.shader unity-city/Assets/Editor unity-city/Assets/City unity-tools
       - name: Compile original estate and DOM04 upgrade with Unity 6

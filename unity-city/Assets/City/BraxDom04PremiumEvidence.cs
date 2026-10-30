@@ -11,6 +11,8 @@ public sealed class BraxDom04PremiumEvidence : MonoBehaviour
     public Material[] roofBefore, roofAfter, fenceBefore, fenceAfter;
     public MeshRenderer windowGlassRenderer;
     public Material[] windowBeforeMaterials,windowAfterMaterials;
+    public MeshRenderer glassRenderer;
+    public Material[] glassBefore,glassAfter;
     public MeshRenderer lawnSourceRenderer;
     public MeshFilter lawnSourceFilter;
     public Mesh lawnBeforeMesh, lawnAfterMesh;
@@ -28,6 +30,7 @@ public sealed class BraxDom04PremiumEvidence : MonoBehaviour
         if (windowGlassRenderer) windowGlassRenderer.sharedMaterials = after ? windowAfterMaterials : windowBeforeMaterials;
         if (lawnSourceFilter) lawnSourceFilter.sharedMesh = after ? lawnAfterMesh : lawnBeforeMesh;
         if (lawnSourceRenderer) lawnSourceRenderer.sharedMaterials = after ? lawnAfterMaterials : lawnBeforeMaterials;
+        if (glassRenderer) glassRenderer.sharedMaterials = after ? glassAfter : glassBefore;
         if (roofRenderer) roofRenderer.sharedMaterials = after ? roofAfter : roofBefore;
         if (fenceFilter) fenceFilter.sharedMesh = after ? fenceMeshAfter : fenceMeshBefore;
         if (fenceRenderer) fenceRenderer.sharedMaterials = after ? fenceAfter : fenceBefore;
