@@ -1,0 +1,79 @@
+name: Claude - trwala kopia bazy Unity + podglad ostatniego buildu (bez nowego buildu)
+
+# Kopiuje wygasajace pliki po starych buildach (silownia, miasto, fasady, importy)
+# oraz ostatni skompilowany player gym-city (da153be) do ukrytego wydania w repo.
+# Nic nie buduje, nie publikuje i nie zmienia main ani produkcji.
+
+on:
+  push:
+    branches:
+      - claude/port-plaza-20261030
+    paths:
+      - '.github/workflows/claude-backup-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Silownia (wygasa 31.10)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: base/original-gym
+      - name: Miasto i osiedle (wygasa 5.11)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40840263799
+          github-token: ${{ github.token }}
+          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
+          path: base/full-city-geometry
+      - name: Fasady i materialy PBR (wygasa 12.11, bez kopii)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40869502253
+          github-token: ${{ github.token }}
+          name: city-rebuild-curated-extended-3c98ccd919409da59d8145c0171b0776bc65b93d
+          path: base/curated-extended
+      - name: Importy Unity6 uzyte w ostatnim buildzie
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 41106522085
+          github-token: ${{ github.token }}
+          name: unity6-original-imports-da153becf424223c2b917479d55d4853a0bcc78b
+          path: base/unity6-original-imports
+      - name: Ostatni skompilowany player gym-city (da153be)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 41106522085
+          github-token: ${{ github.token }}
+          name: gym-city-renovation-player-da153becf424223c2b917479d55d4853a0bcc78b
+          path: base/gym-city-player-da153be
+      - name: Spakuj i wgraj do ukrytego wydania
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REL: claude-base-backup-20261030
+        run: |
+          set -euo pipefail
+          cd base
+          find . -maxdepth 3 | head -60
+          for d in */; do d=${d%/}; (cd "$d" && zip -q -r -1 "../$d.zip" .); done
+          ls -la *.zip
+          sha256sum *.zip > SHA256SUMS.txt
+          gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
+              --title "Kopia bazy Unity (Claude) 30.10" \
+              --notes "Trwala kopia plikow po buildach, ktore GitHub kasuje automatycznie. Tylko do buildow, nie do publikacji."
+          gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber *.zip SHA256SUMS.txt
