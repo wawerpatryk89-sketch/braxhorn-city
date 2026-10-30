@@ -29,6 +29,7 @@ public static class BraxRegionInteriors
         var plaster = BraxRegion.Pbr("Nutrition: tynk ścian", 1.5f, new Color(.93f, .91f, .87f), "white_plaster_02", "rectangular_facade_tiles");
         var walnut = BraxRegion.Pbr("Nutrition: ściana tylna z drewna", 1.2f, new Color(.62f, .50f, .40f), "wood_plank_wall", "wood_planks");
         var floor = BraxRegion.Pbr("Nutrition: deska podłogowa", 1.6f, null, "plank_flooring_02", "wood_floor", "wood_planks");
+        var glazing = BraxRegion.Fitting("Nutrition: szyba witryny", new Color(.72f, .82f, .86f, .28f), .04f, 0f);
         int walls = 0, floors = 0;
         foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
@@ -37,6 +38,8 @@ public static class BraxRegionInteriors
             if (n.StartsWith("mineral side wall", StringComparison.OrdinalIgnoreCase)) { r.sharedMaterial = plaster; walls++; }
             else if (n.StartsWith("rear mineral wall", StringComparison.OrdinalIgnoreCase)) { r.sharedMaterial = walnut; walls++; }
             else if (n.StartsWith("Nutrition continuous original-level floor", StringComparison.OrdinalIgnoreCase)) { r.sharedMaterial = floor; floors++; }
+            else if (n.StartsWith("shopfront window glazing", StringComparison.OrdinalIgnoreCase) || n.StartsWith("clear warm shopfront glazing", StringComparison.OrdinalIgnoreCase))
+            { r.sharedMaterial = glazing; walls++; }   // widoczna szyba witryny (lekki odcień i odbicie), nie „otwarty front”
         }
         // Podłoga sklepu: najwyższe podłoże w środku.
         RaycastHit g;
