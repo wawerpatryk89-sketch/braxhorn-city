@@ -131,7 +131,10 @@ public static class BraxGymBuild
         if(fullCity)BraxCityBuild.AttachCity(runtime);
         string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;
-        string[] scenePaths=fullCity?new[]{scenePath,BraxCityBuild.CreateEstate(sourceCommit)}:new[]{scenePath};
+        // Estate review boots directly into the EXISTING city estate scene with the
+        // SAME BraxGymPlayer, original rig, material, clips and mobile controls.
+        // City remains in the build for future travel; no duplicate player code.
+        string[] scenePaths=fullCity?new[]{BraxCityBuild.CreateEstate(sourceCommit),scenePath}:new[]{scenePath};
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
         var output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=BuildTarget.WebGL,locationPathName=output,options=BuildOptions.None});
