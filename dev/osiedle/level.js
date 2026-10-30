@@ -85,7 +85,7 @@ const ready=async()=>{
   world.walkable.push({x0:84.8,x1:87.2,z0,z1,y});
  }
  progress('Sadzę roślinność z paczki lasu…',importedReady);
- try{vegetation=await addVegetation(scene,loader,world.collision);}catch(e){assetErrors.push('las: '+e.message);}
+ try{vegetation=await addVegetation(scene,loader,world.collision,world.foliageRequests);}catch(e){assetErrors.push('las: '+e.message);}
  scene.updateMatrixWorld(true);
  if(assetErrors.length)throw new Error(assetErrors.join('; '));
  return {world,imported,assetErrors,vegetation};
