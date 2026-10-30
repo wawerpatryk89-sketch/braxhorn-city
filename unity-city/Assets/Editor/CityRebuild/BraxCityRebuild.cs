@@ -172,6 +172,15 @@ public static class BraxCityRebuild
         BraxCityVenueDoors.Apply(world,root);
         var metro=BraxCitySystemsBuild.MetroExcavation;
         Cut(original,physics,Box(metro.xMin,metro.xMax,-4,.5f,metro.yMin,metro.yMax),"metro_excavation");
+        // The station is an actual underground volume, not an overlay below
+        // the source's solid virtual y=0 ground. Remove only the exact
+        // corridor and platform air volumes, leaving all other city geometry.
+        // The station builder replaces the ground cover with a load-bearing
+        // roof and the lower floor with source-library stone.
+        Cut(original,physics,Box(74.9f,80.8f,-3.52f,.12f,49.7f,54.05f),
+            "G5_access_corridor_void");
+        Cut(original,physics,Box(69.7f,85.6f,-3.55f,.12f,54.0f,72.2f),
+            "G5_station_platform_and_tracks_void");
         var stone=BraxCityMaterials.Surface("Metro limestone",new Color(.55f,.55f,.51f),.93f);
         var concrete=BraxCityMaterials.Surface("Metro fair-faced concrete",new Color(.5f,.51f,.49f),.95f);
         var metal=BraxCityMaterials.Surface("City brushed steel",new Color(.2f,.22f,.23f),.48f,.55f);
