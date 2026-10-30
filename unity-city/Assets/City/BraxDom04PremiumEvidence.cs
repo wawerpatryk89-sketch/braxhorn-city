@@ -7,6 +7,10 @@ public sealed class BraxDom04PremiumEvidence : MonoBehaviour
     public MeshFilter approach;
     public Mesh oldApproach, newApproach;
     public GameObject visibleUpgrade;
+    public MeshRenderer roofRenderer, fenceRenderer;
+    public Material[] roofBefore, roofAfter, fenceBefore, fenceAfter;
+    public MeshFilter fenceFilter;
+    public Mesh fenceMeshBefore, fenceMeshAfter;
     public void Dom04Before(string ignored) { Toggle(false); }
     public void Dom04After(string ignored) { Toggle(true); }
     void Toggle(bool after)
@@ -15,6 +19,9 @@ public sealed class BraxDom04PremiumEvidence : MonoBehaviour
         wallA.sharedMaterials = after ? newA : oldA;
         wallB.sharedMaterials = after ? newB : oldB;
         approach.sharedMesh = after ? newApproach : oldApproach;
+        if (roofRenderer) roofRenderer.sharedMaterials = after ? roofAfter : roofBefore;
+        if (fenceFilter) fenceFilter.sharedMesh = after ? fenceMeshAfter : fenceMeshBefore;
+        if (fenceRenderer) fenceRenderer.sharedMaterials = after ? fenceAfter : fenceBefore;
         visibleUpgrade.SetActive(after);
         Debug.Log("DOM04_ONLY_ACTUAL_UNITY_COMPARE_" + (after ? "AFTER" : "BEFORE"));
     }

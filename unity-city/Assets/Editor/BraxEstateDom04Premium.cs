@@ -111,6 +111,81 @@ public static class BraxEstateDom04Premium
         if(changes<12)throw new Exception("DOM04 original path source vertices not verified: "+changes);
         copy.uv=uv;copy.RecalculateTangents();AssetDatabase.CreateAsset(copy,Output+"Dom04ApproachUV.asset");return copy;
     }
+
+    static void UpgradeOriginalDom04Roof(MeshRenderer roof, BraxDom04PremiumEvidence evidence)
+    {
+        // Source geometry and actual operator Poly Haven roof_tiles maps, not a roof proxy.
+        if (roof.bounds.min.x < -35.01f || roof.bounds.max.x > -21.7f || roof.bounds.min.z < -6.7f || roof.bounds.max.z > 6.7f)
+            throw new Exception("DOM04 pitched roof unexpectedly outside verified bounds");
+        evidence.roofRenderer = roof;
+        evidence.roofBefore = roof.sharedMaterials;
+        if (evidence.roofBefore.Length != 1 || !evidence.roofBefore[0].GetTexture("_BumpMap"))
+            throw new Exception("DOM04 real tiled PBR source material missing");
+        var tile = new Material(evidence.roofBefore[0]) { name="DOM04 muted natural terracotta / exact roof_tiles original PBR", enableInstancing=true };
+        tile.color = new Color(.87f,.70f,.62f,1f);
+        tile.SetFloat("_BumpScale",.56f);
+        tile.SetFloat("_GlossMapScale",.52f);
+        tile.SetFloat("_Metallic",0f);
+        AssetDatabase.CreateAsset(tile,Output+"Dom04NaturalRoofTiles.mat");
+        evidence.roofAfter = new [] { tile };
+        roof.sharedMaterials = evidence.roofAfter;
+    }
+    static void UpgradeOnlyOriginalDom04FrontFence(MeshRenderer fence, BraxDom04PremiumEvidence evidence)
+    {
+        // Global original Mesh_280 contains fences from OTHER houses.
+        // Split ONLY verified x=-16.5, z=-10..10, y=0..1.5 original iron-fence triangles.
+        // Preserve gate, existing geometry and collision, never modify another house.
+        var filter=fence.GetComponent<MeshFilter>();
+        if(!filter || !filter.sharedMesh || filter.sharedMesh.subMeshCount != 1)
+            throw new Exception("DOM04 original iron front-fence source not found");
+        var original=filter.sharedMesh;
+        var verts=original.vertices;
+        var triangles=original.GetTriangles(0);
+        var untouched=new List<int>(triangles.Length);
+        var frontFence=new List<int>(2048);
+        for(int i=0;i<triangles.Length;i+=3)
+        {
+            var world = (fence.transform.TransformPoint(verts[triangles[i]])+
+                         fence.transform.TransformPoint(verts[triangles[i+1]])+
+                         fence.transform.TransformPoint(verts[triangles[i+2]])) / 3f;
+            bool isDom04Fence=Mathf.Abs(world.x +16.5f)<.26f &&
+                              Mathf.Abs(world.z)<=10.2f &&
+                              world.y>=.05f && world.y<=1.51f;
+            var dest = isDom04Fence ? frontFence : untouched;
+            dest.Add(triangles[i]);dest.Add(triangles[i+1]);dest.Add(triangles[i+2]);
+        }
+        int upgradedTriangles=frontFence.Count/3;
+        if(upgradedTriangles<760 || upgradedTriangles>1000)
+            throw new Exception("DOM04 scoped original fence triangulation mismatch: "+upgradedTriangles);
+        evidence.fenceRenderer=fence;
+        evidence.fenceFilter=filter;
+        evidence.fenceMeshBefore=original;
+        evidence.fenceBefore=fence.sharedMaterials;
+        if(evidence.fenceBefore.Length!=1)
+            throw new Exception("Unexpected source fence material slots");
+        var copy=UnityEngine.Object.Instantiate(original);
+        copy.name="DOM04 exact original front fence mesh / local metal material binding";
+        copy.subMeshCount=2;
+        copy.SetTriangles(untouched.ToArray(),0);
+        copy.SetTriangles(frontFence.ToArray(),1);
+        AssetDatabase.CreateAsset(copy,Output+"Dom04OriginalFrontFence.asset");
+        var shader=Shader.Find("Standard");
+        if(!shader) throw new Exception("Standard iron material shader missing");
+        var metal=new Material(shader) {
+            name="DOM04 satin anthracite iron / local original fence metal",
+            color=new Color(.15f,.175f,.17f,1f),
+            enableInstancing=true
+        };
+        metal.SetFloat("_Metallic",.56f);
+        metal.SetFloat("_Glossiness",.28f);
+        AssetDatabase.CreateAsset(metal,Output+"Dom04FenceAnthracite.mat");
+        evidence.fenceMeshAfter=copy;
+        evidence.fenceAfter=new [] { evidence.fenceBefore[0],metal };
+        filter.sharedMesh=copy;
+        fence.sharedMaterials=evidence.fenceAfter;
+        Debug.Log("DOM04_FENCE_ONLY_ORIGINAL_FRONT_FENCE_TRIANGLES "+upgradedTriangles);
+    }
+
     static void Plant(MeshRenderer[] all,Transform parent)
     {
         MeshRenderer Original(string name)=>all.Single(x=>x.name==name);
@@ -126,11 +201,11 @@ public static class BraxEstateDom04Premium
         // This is the second tree on dom04, not the dom03 planting.
         var t=new GameObject("DOM04 Verdant real small tree / source 439 453");t.transform.SetParent(parent,false);
         float scale=2.65f/(9.336063f-.798673f);
-        t.transform.position=new Vector3(-13.6f,.04f-.798673f*scale,7.15f);
+        t.transform.position=new Vector3(-18.2f,.04f-.798673f*scale,7.15f);
         var trunk=CopyPart("Original trunk","EstateMesh_439",t.transform,scale).GetComponent<MeshRenderer>();
         var leaves=CopyPart("Original leaves","EstateMesh_453",t.transform,scale).GetComponent<MeshRenderer>();
         var lod=t.AddComponent<LODGroup>();lod.SetLODs(new[]{new LOD(.08f,new Renderer[]{trunk,leaves})});lod.RecalculateBounds();
-        var shrubPositions=new[]{new Vector3(-38.1f,.04f,-8.05f),new Vector3(-16.7f,.04f,8.5f),new Vector3(-12.5f,.04f,-7.7f)};
+        var shrubPositions=new[]{new Vector3(-38.1f,.04f,-8.05f),new Vector3(-18.7f,.04f,8.45f),new Vector3(-18.6f,.04f,-8.35f)};
         for(int i=0;i<shrubPositions.Length;i++)
         {
             var shrub=new GameObject("DOM04 source Verdant shrub "+i);shrub.transform.SetParent(parent,false);
@@ -158,6 +233,8 @@ public static class BraxEstateDom04Premium
         var path=R("EstateMesh_275").GetComponent<MeshFilter>();
         e.approach=path;e.oldApproach=path.sharedMesh;e.newApproach=ApplyLocalPathUv(R("EstateMesh_275"));
         path.sharedMesh=e.newApproach;
+        UpgradeOriginalDom04Roof(R("EstateMesh_323"),e);
+        UpgradeOnlyOriginalDom04FrontFence(R("EstateMesh_280"),e);
         var home=new GameObject("DOM04 only premium lawn and garden");
         home.transform.SetParent(root.transform,false);e.visibleUpgrade=home;
         var lawn=new GameObject("DOM04 true textured grass ground");lawn.transform.SetParent(home.transform,false);
@@ -175,11 +252,12 @@ public static class BraxEstateDom04Premium
     [Serializable] sealed class Dom04Audit
     {
         public string scene="BraxhornEstate",scope="DOM04_ONLY", engine=Application.unityVersion;
-        public string[] changedOriginalRenderers={"EstateMesh_327","EstateMesh_312","EstateMesh_275 (negative-X approach UV only)"};
+        public string[] changedOriginalRenderers={"EstateMesh_327","EstateMesh_312","EstateMesh_323 (DOM04 only)","EstateMesh_280 (verified front fence triangles only)","EstateMesh_275 (negative-X approach UV only)"};
         public string facade="Poly Haven beige_wall_001 library byte-identical maps / warm beige matte";
         public string grass="grass_ground official PBR plus library grass_bermuda_01 original cutout atlas (1800 batched tuft-cross clusters)";
         public string garden="one new original Verdant Trail source tree 439/453 and three original source shrubs 467; original DOM04 plants remain";
-        public string fence="existing metal fence untouched; original gate and physics unchanged";
+        public string fence="original DOM04 front-fence triangles refinished in satin anthracite; global shared mesh split locally, all other fence surfaces and original gate/physics unchanged";
+        public string roof="original DOM04 pitched geometry / roof_tiles genuine PBR / warmer muted terracotta, improved gloss and normal";
         public bool originalCityOrGymChanged=false,originalBraxOrControlsChanged=false,physicalIphoneTest=false,visualQAConfirmed=false,productionPublished=false;
     }
 }
