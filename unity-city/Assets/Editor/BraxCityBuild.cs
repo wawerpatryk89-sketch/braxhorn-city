@@ -111,6 +111,13 @@ public static class BraxCityBuild
         if(count!=data.meshCount)throw new Exception("Original city mesh count differs after Unity import");
         int baked=ConvertBaked(root,data);
         if(area=="city"&&baked<10)throw new Exception("Original baked city materials did not survive import");
+        if(area=="estate")
+        {
+            // R2 only. Verified CC0 PBR maps applied to existing source
+            // materials/UVs; original architecture, windows and doors unchanged.
+            int renovated=BraxEstatePremiumPBR.Apply(root,data.materials);
+            Debug.Log("R2_RENOVATED_PBR_MATERIAL_SLOTS "+renovated);
+        }
         var physics=new GameObject("Original "+area+" collisions").transform;
         BaseFloor(data,physics);
         foreach(var b in data.collision.boxes??Array.Empty<Box>())PhysicsBox(physics,"Source "+b.tag,b.minX,b.maxX,b.minZ,b.maxZ,b.bottom,b.top);
