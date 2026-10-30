@@ -1,0 +1,128 @@
+name: BRAXHORN R2 — actual Unity premium PBR VIDEO, gated by real QA
+on:
+  push:
+    branches: [codex/estate-premium-pbr-20261030]
+    paths: [.github/workflows/estate-pbr-video-after-qa.yml]
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: r2-pbr-real-video-once
+  cancel-in-progress: false
+jobs:
+  video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          sparse-checkout: |
+            unity-tools/city/record_estate_walkthrough.mjs
+            .github/workflows/estate-pbr-video-after-qa.yml
+      - name: Require exact premium R2 build to pass before capturing any footage
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run=41047312350
+          for i in $(seq 1 70); do
+            result="$(gh run view "$run" -R "$GITHUB_REPOSITORY" --json status,conclusion --jq '.status+" "+(.conclusion // "waiting")')"
+            if [[ "$result" == "completed success" ]]; then break; fi
+            if [[ "$result" == completed* ]]; then echo "::error::Premium build was not successful: $result";exit 1;fi
+            sleep 20
+          done
+          test "$(gh run view "$run" -R "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)" = success
+          gh run download "$run" -R "$GITHUB_REPOSITORY" \
+            -n braxhorn-r2-pbr-unity-test-700b41d84f6afbc5eb4463dbea81a0a688840205 \
+            -D unity-preview
+          gh run download "$run" -R "$GITHUB_REPOSITORY" \
+            -n braxhorn-r2-pbr-review-700b41d84f6afbc5eb4463dbea81a0a688840205 \
+            -D r2-quality-review
+          test -s unity-preview/index.html && test -d unity-preview/Build
+      - name: Verify actually imported roofs, plaster and bricks and same original Brax
+        run: |
+          python3 - <<'PY'
+          import json,pathlib
+          root=pathlib.Path('unity-preview')
+          report=list(root.rglob('estate-pbr-material-report.json'))
+          provenance=list(root.rglob('estate-pbr-provenance.json'))
+          qa=list(pathlib.Path('r2-quality-review').rglob('report.json'))
+          assert len(report)==len(provenance)==len(qa)==1,(report,provenance,qa)
+          p=json.loads(report[0].read_text());s=json.loads(provenance[0].read_text())
+          q=json.loads(qa[0].read_text())
+          assert p['scope']=='R2 ESTATE ONLY' and p['rendererSlotsUpdated']>=4
+          assert len({e['assetId'] for e in p['entries']})>=3
+          assert len(s['assets'])==6 and q['passed'] is True
+          assert q['playerSource']=='BraxGymPlayer.cs / BraxCityBuild.CreateEstate'
+          assert all(x['passed'] for x in q['checks'])
+          print('GATE PASS: ORIGINAL CITY BRAX + R2 MATERIAL SLOTS',p['rendererSlotsUpdated'])
+          PY
+      - name: Install real Chromium and MP4 recorder
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+          if ! command -v ffmpeg >/dev/null; then sudo apt-get update -qq && sudo apt-get install -y ffmpeg; fi
+      - name: Record REAL Unity6 Brax walkthrough of renovated R2, no AI-generated footage
+        env:
+          SOURCE_BUILD_SHA: 700b41d84f6afbc5eb4463dbea81a0a688840205
+        run: node unity-tools/city/record_estate_walkthrough.mjs
+      - name: Final verification of MP4 and material changes
+        run: |
+          python3 - <<'PY'
+          import json,pathlib,subprocess
+          base=pathlib.Path('estate-video-review')
+          p=base/'braxhorn-osiedle-przed-remontem.mp4'
+          r=json.loads((base/'report.json').read_text())
+          assert p.stat().st_size>150000 and r['passed'] and r['scene']=='BraxhornEstate'
+          assert len(r['stops'])>=12 and r['originalCityPlayer']=='BraxGymPlayer'
+          assert r['durationSeconds']>=25 and len(list(base.glob('*.png')))>=12
+          assert subprocess.run(['ffprobe','-v','error',str(p)],check=False).returncode==0
+          print('REAL UNITY PBR VIDEO PASS duration',r['durationSeconds'],'stops',len(r['stops']))
+          PY
+      - name: Preserve verified MP4 and actual Unity screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: estate-premium-pbr-real-video-${{ github.sha }}
+          path: |
+            estate-video-review/braxhorn-osiedle-przed-remontem.mp4
+            estate-video-review/*.png
+            estate-video-review/report.json
+            estate-video-review/error.txt
+            estate-video-review/browser.log
+            unity-preview/estate-pbr-material-report.json
+            unity-preview/estate-pbr-provenance.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Publish only isolated VIDEO REVIEW, never actual city/gym/production
+        if: success()
+        run: |
+          set -euo pipefail
+          ref="refs/heads/preview/estate-pbr-real-video-20261030"
+          if git ls-remote --exit-code --heads origin "$ref" >/dev/null; then
+            echo "::error::Review branch exists, refusing overwrite";exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/review"
+          cp estate-video-review/braxhorn-osiedle-przed-remontem.mp4 "$RUNNER_TEMP/review/wideo-osiedle-pbr.mp4"
+          cp estate-video-review/*.png "$RUNNER_TEMP/review/"
+          cp estate-video-review/report.json "$RUNNER_TEMP/review/report.json"
+          cp "$(find unity-preview -name estate-pbr-material-report.json -print -quit)" "$RUNNER_TEMP/review/estate-pbr-material-report.json"
+          cat > "$RUNNER_TEMP/review/index.html" <<'HTML'
+          <!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>BRAXHORN CITY — osiedle R2 PBR / rzeczywisty Unity 6</title><style>html,body{margin:0;background:#0b0e0a;color:#eff3ed;font:16px system-ui}main{max-width:1100px;margin:auto;padding:20px}h1{font-size:clamp(23px,4vw,34px)}p{line-height:1.5;color:#d4dfd1}video{width:100%;background:#000;border-radius:10px}a{color:#aaf46b}.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:14px;margin-top:24px}.shots img{width:100%;border-radius:10px}figure{margin:0}figcaption{padding:5px;font-size:13px}</style></head><body><main><h1>BRAXHORN CITY — osiedle R2 / etap materiałowy</h1><p>To rzeczywisty film z Unity 6 WebGL. Oryginalny Brax i identyczne sterowanie z miasta. Sprawdzony materiał pokazuje pierwszą iterację remontu: autentyczne dachówki, tynki i cegły PBR w istniejących budynkach. Nadal nie jest to odbiór całego osiedla; asfalt, komplet okien/drzwi i końcowa zieleń wymagają osobnej integracji.</p><video controls playsinline preload="metadata" src="wideo-osiedle-pbr.mp4"></video><p><a href="wideo-osiedle-pbr.mp4" download>Pobierz rzeczywisty film MP4</a></p><section class="shots" id="shots"></section><p>Źródła materiałów: Poly Haven CC0. Nagranie: automatyczny Chromium WebGL, nie fizyczny iPhone. Produkcja i główne miasto bez zmian.</p></main><script>for(const [f,t] of [["01-wejscie","Wejście"],["02-dom-elewacja","Elewacja domu"],["03-wnetrze-domu","Wnętrze"],["04-taras","Taras"],["05-garaze","Garaże"],["06-park-zielen","Park"],["07-plac","Plac"],["08-kasyno","Kasyno"],["09-klub","Klub"],["10-komisariat","Komisariat"],["11-szpital","Szpital"],["12-sala-bokserska","Sala bokserska"],["13-arena","Arena"]]){let q=document.createElement("figure"),a=document.createElement("a"),i=document.createElement("img"),t1=document.createElement("figcaption");a.href=f+".png";i.src=f+".png";i.loading="lazy";t1.textContent=t;a.append(i);q.append(a,t1);document.querySelector("#shots").append(q)}</script></body></html>
+          HTML
+          cat > "$RUNNER_TEMP/review/vercel.json" <<'JSON'
+          {"version":2,"framework":null,"buildCommand":null,"outputDirectory":".","headers":[{"source":"/(.*)","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]}]}
+          JSON
+          git reset --hard HEAD
+          git clean -fdx
+          git switch --orphan preview/estate-pbr-real-video-20261030
+          git rm -r --cached -q . || true
+          rm -rf unity-tools .github
+          cp -a "$RUNNER_TEMP/review/." .
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --sparse -A
+          git commit -m "preview(estate): certified real Unity6 Brax R2 PBR renovation video [skip ci]"
+          git push origin "HEAD:$ref"
+          echo "ISOLATED REAL GAME VIDEO ONLY. PRODUCTION UNTOUCHED."
