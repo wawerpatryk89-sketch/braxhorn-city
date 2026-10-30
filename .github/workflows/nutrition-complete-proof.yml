@@ -1,0 +1,100 @@
+name: Verify complete Nutrition entry counter and exit in actual Unity6
+'on':
+  push:
+    branches: [codex/gym-city-renovation-20261030]
+    paths:
+      - .github/workflows/nutrition-complete-proof.yml
+      - .github/scripts/nutrition_complete_proof.mjs
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: braxhorn-nutrition-complete-runtime-proof
+  cancel-in-progress: true
+env:
+  REVIEW_SOURCE: da153becf424223c2b917479d55d4853a0bcc78b
+  REVIEW_RUN: '41106522085'
+  REVIEW_EVIDENCE_ROOT: .
+jobs:
+  complete-shop:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/gym-city-renovation-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+      - name: Receive only the unchanged compiled Nutrition player when it becomes available
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json,os,time,urllib.request
+          root='https://api.github.com/repos/wawerpatryk89-sketch/braxhorn-city'
+          source=os.environ['REVIEW_SOURCE'];run=os.environ['REVIEW_RUN']
+          def get(path):
+              request=urllib.request.Request(root+path,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','User-Agent':'BRAXHORN-Nutrition-only-QA'})
+              with urllib.request.urlopen(request,timeout=30) as response:return json.load(response)
+          deadline=time.monotonic()+70*60
+          while time.monotonic()<deadline:
+              state=get('/actions/runs/'+run)
+              assert state['head_sha']==source,'Actual compiled source changed'
+              artifacts=get('/actions/runs/'+run+'/artifacts?per_page=100')['artifacts']
+              if any(a['name']=='gym-city-renovation-player-'+source and not a['expired'] for a in artifacts):
+                  print('ACTUAL_COMPILED_NUTRITION_PLAYER_AVAILABLE',source);break
+              if state['status']=='completed':raise RuntimeError('Unity run ended without a real player: '+str(state['conclusion']))
+              print('WAITING_FOR_CURRENT_NUTRITION_PLAYER',state['status'],flush=True);time.sleep(45)
+          else:raise TimeoutError('Actual Nutrition build did not become available')
+          PY
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 41106522085
+          github-token: ${{ github.token }}
+          name: gym-city-renovation-player-da153becf424223c2b917479d55d4853a0bcc78b
+          path: unity-preview
+      - name: Verify actual Unity6 identity without altering any compiled or presentation bytes
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib
+          identity=json.loads(pathlib.Path('unity-preview/release.json').read_text())
+          assert identity['sourceCommit']==os.environ['REVIEW_SOURCE'] and identity['unityVersion']=='6000.0.58f2'
+          assert identity['nutritionInstalled']
+          print('EXACT_UNCHANGED_UNITY_PLAYER_VERIFIED',identity['sourceCommit'])
+          PY
+      - name: Prepare real browser gameplay and phone video capture
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Physically enter the complete shop refill through touch and leave through the doorway
+        id: nutrition
+        run: node .github/scripts/nutrition_complete_proof.mjs
+      - name: Retain complete genuine shop evidence and exact compiled identity
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nutrition-complete-actual-runtime-${{ github.sha }}
+          path: |
+            nutrition-review/
+            unity-preview/release.json
+            unity-preview/nutrition-shop.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Expose genuine completed-shop photos with failed criteria retained
+        if: always() && !cancelled() && steps.nutrition.outcome != 'skipped'
+        run: python3 .github/scripts/nutrition_review_media.py photos
+      - name: Expose genuine phone video with failed criteria retained
+        if: always() && !cancelled() && steps.nutrition.outcome != 'skipped'
+        run: python3 .github/scripts/nutrition_review_media.py video
+      - name: Retain compact actual phone review material
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nutrition-complete-phone-review-${{ github.sha }}
+          path: nutrition-phone-review/
+          retention-days: 14
+          if-no-files-found: warn

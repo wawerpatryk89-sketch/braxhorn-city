@@ -116,7 +116,8 @@ def photos() -> int:
     report = review_report()
     names = [
         "00-kerb-and-frontage.png", "02-shop-entrance-and-interior.png",
-        "04-counter-after-regeneration.png", "05-products-and-retail-finish.png",
+        "03-counter-before-regeneration.png", "04-counter-after-regeneration.png",
+        "05-products-and-retail-finish.png", "06-actual-exit-to-street.png",
     ]
     source = ROOT / "nutrition-review"
     if not report.get("passed"):
