@@ -8,6 +8,7 @@ on:
       - '.github/workflows/premium-five-zones-unity.yml'
       - 'unity-city/Assets/Editor/CityRebuild/**'
       - 'unity-city/Assets/City/BraxCityWorld.cs'
+      - 'unity-city/Assets/City/BraxCityElevator.cs'
       - 'unity-tools/city-rebuild/premium-zones-qa.mjs'
 
 permissions:
