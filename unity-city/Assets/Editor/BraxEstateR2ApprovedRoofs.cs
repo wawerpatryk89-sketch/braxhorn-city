@@ -1,103 +1,108 @@
 using System;
 using System.IO;
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 using System.Collections.Generic;
 
-// Premium texture binding ONLY in the estate scene, original roof geometry remains untouched.
-// No material substitution when source file or renderer UVs are missing.
+// Estate-only PBR upgrade using six SHA-256-verified maps taken from the
+// exact Poly Haven texture sets supplied by the operator. No geometry substitution.
 public static class BraxEstateR2ApprovedRoofs
 {
-    [Serializable] private class RoofAudit
+    [Serializable] private sealed class RoofAudit
     {
-        public string scene="BraxhornEstate",status="R2_ROOF_MAPS_APPLIED__VISUAL_ACCEPTANCE_PENDING";
-        public string assetSource="Poly Haven CC0: grey_roof_01 and roof_tiles (SHA-256 verified at download)";
-        public int greySlots, tileSlots, originalRoofMeshes, originalRoofVertices;
-        public int sourceNormalMaps, sourceRoughnessMaps;
-        public bool originalMeshDataUnmodified=true, originalCityAndGymUnmodified=true, originalBraxUnmodified=true;
-        public bool windowAndDoorsImported=false, asphaltImported=false, filmApproved=false;
+        public string scene="BraxhornEstate",status="R2_ROOF_PBR_APPLIED__VISUAL_ACCEPTANCE_PENDING";
+        public string assetSource="Operator-provided Poly Haven CC0 4K sets (six source maps SHA-256 verified)";
+        public int greySlots,tileSlots,normalSlots,smoothnessSlots,originalRoofMeshes,originalRoofVertices,pbrSourceMapCount=6;
+        public bool originalMeshDataUnmodified=true,originalCityAndGymUnmodified=true,originalBraxUnmodified=true;
+        public bool windowAndDoorsImported=false,asphaltImported=false,filmApproved=false;
     }
-    private static Material Build(string name,string texturePath,string normalPath,Color tint,bool twoSided,string output)
+
+    private static Texture2D Source(string path,bool normal)
     {
-        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
-        var importer=AssetImporter.GetAtPath(normalPath) as TextureImporter;
-        if(importer==null)throw new InvalidOperationException("Original normal-map import missing: "+normalPath);
-        if(importer.textureType!=TextureImporterType.NormalMap || importer.sRGBTexture)
+        var importer=AssetImporter.GetAtPath(path) as TextureImporter;
+        if(importer==null)throw new InvalidOperationException("Original PBR source not imported: "+path);
+        bool change=importer.textureType!=(normal?TextureImporterType.NormalMap:TextureImporterType.Default)
+            ||importer.sRGBTexture==normal||!importer.mipmapEnabled||importer.maxTextureSize!=2048;
+        if(change)
         {
-            importer.textureType=TextureImporterType.NormalMap;
-            importer.sRGBTexture=false;
+            importer.textureType=normal?TextureImporterType.NormalMap:TextureImporterType.Default;
+            importer.sRGBTexture=!normal && path.EndsWith("Albedo.jpg",StringComparison.OrdinalIgnoreCase);
+            importer.mipmapEnabled=true;
+            importer.maxTextureSize=2048;
+            importer.wrapMode=TextureWrapMode.Repeat;
             importer.SaveAndReimport();
         }
-        var normal=AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath);
-        if(texture==null || texture.width!=2048 || texture.height!=2048)
-            throw new InvalidOperationException("Verified operator roof diffuse map missing: "+texturePath);
-        if(normal==null || normal.width!=2048 || normal.height!=2048)
-            throw new InvalidOperationException("Original Poly Haven normal map missing: "+normalPath);
+        var t=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if(t==null||t.width!=2048||t.height!=2048)
+            throw new InvalidOperationException("Incorrect delivered R2 PBR resolution: "+path);
+        return t;
+    }
+    private static Material Build(string key,string label,bool twoSided,string directory)
+    {
+        const string source="Assets/Source/City/R2Approved/R2";
+        var albedo=Source(source+key+"Albedo.jpg",false);
+        var normal=Source(source+key+"Normal.png",true);
+        var gloss=Source(source+key+"MetallicSmoothness.png",false);
         var shader=Shader.Find("Standard");
-        if(shader==null)throw new InvalidOperationException("Unity Standard PBR shader unavailable");
-        var mat=new Material(shader){name=name};
-        mat.mainTexture=texture;
+        if(!shader)throw new InvalidOperationException("Unity Standard PBR shader not found");
+        var mat=new Material(shader){name="R2 / "+label+" / verified PBR"};
+        mat.mainTexture=albedo;
+        mat.color=Color.white;
         mat.SetTexture("_BumpMap",normal);
-        mat.SetFloat("_BumpScale",.65f);
+        mat.SetFloat("_BumpScale",0.82f);
         mat.EnableKeyword("_NORMALMAP");
-        // Original roughness is packed into the source albedo alpha as
-        // smoothness = 1 - roughness; no invented reflectivity map.
-        mat.SetFloat("_SmoothnessTextureChannel",1f);
-        mat.EnableKeyword("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A");
-        mat.color=tint;
+        mat.SetTexture("_MetallicGlossMap",gloss);
         mat.SetFloat("_Metallic",0f);
-        mat.SetFloat("_Glossiness",.8f);
         mat.SetFloat("_GlossMapScale",1f);
+        mat.SetFloat("_Glossiness",0.35f);
+        mat.EnableKeyword("_METALLICGLOSSMAP");
         mat.enableInstancing=true;
         if(twoSided)mat.SetFloat("_Cull",0f);
-        AssetDatabase.CreateAsset(mat,output);
+        AssetDatabase.CreateAsset(mat,directory+"/R2"+key+".mat");
         return mat;
     }
     public static void Apply()
     {
         var root=GameObject.Find("braxhorn-estate");
-        if(root==null)throw new InvalidOperationException("Expected ORIGINAL Unity estate root not found");
-        const string dir="Assets/PlayableGenerated/R2Approved";
-        Directory.CreateDirectory(dir);
+        if(root==null)throw new InvalidOperationException("Original Unity estate geometry missing");
+        const string output="Assets/PlayableGenerated/R2Approved";
+        Directory.CreateDirectory(output);
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        var grey=Build("R2 Grey Roof / delivered source","Assets/Source/City/R2Approved/R2GreyRoofSmoothnessAlbedo.png",
-            "Assets/Source/City/R2Approved/R2GreyRoofNormal.png",Color.white,true,dir+"/R2GreyRoof.mat");
-        var tiles=Build("R2 Roof Tiles / delivered source","Assets/Source/City/R2Approved/R2RoofTilesSmoothnessAlbedo.png",
-            "Assets/Source/City/R2Approved/R2RoofTilesNormal.png",Color.white,false,dir+"/R2RoofTiles.mat");
-        var audit=new RoofAudit{sourceNormalMaps=2,sourceRoughnessMaps=2};
-        var counts=new HashSet<Mesh>();
+        var grey=Build("GreyRoof","Grey Roof 01",true,output);
+        var tiles=Build("RoofTiles","Roof Tiles",false,output);
+        var audit=new RoofAudit();
+        var originalMeshes=new HashSet<Mesh>();
         foreach(var renderer in root.GetComponentsInChildren<MeshRenderer>(true))
         {
             var materials=renderer.sharedMaterials;
             bool changed=false;
             for(int i=0;i<materials.Length;i++)
             {
-                var original=materials[i];
-                if(original==null)continue;
-                string role=original.name.Replace(" (Instance)","");
+                var source=materials[i];
+                if(!source)continue;
+                string role=source.name.Replace(" (Instance)","");
                 Material approved=null;
                 if(role=="estate_lit_99"){approved=grey;audit.greySlots++;}
                 if(role=="estate_lit_106"){approved=tiles;audit.tileSlots++;}
-                if(approved==null)continue;
-                var meshFilter=renderer.GetComponent<MeshFilter>();
-                if(meshFilter==null || meshFilter.sharedMesh==null)
-                    throw new InvalidOperationException("R2 roof renderer without source mesh: "+renderer.name);
-                if(meshFilter.sharedMesh.uv==null || meshFilter.sharedMesh.uv.Length==0)
-                    throw new InvalidOperationException("R2 roof mesh without source UV: "+renderer.name);
-                if(counts.Add(meshFilter.sharedMesh))
-                {
-                    audit.originalRoofMeshes++;
-                    audit.originalRoofVertices+=meshFilter.sharedMesh.vertexCount;
-                }
-                materials[i]=approved;
-                changed=true;
+                if(!approved)continue;
+                var filter=renderer.GetComponent<MeshFilter>();
+                if(!filter||!filter.sharedMesh)
+                    throw new InvalidOperationException("R2 roof source mesh missing: "+renderer.name);
+                var m=filter.sharedMesh;
+                if(m.uv==null||m.uv.Length!=m.vertexCount)
+                    throw new InvalidOperationException("R2 roof needs original mesh UVs: "+renderer.name);
+                if(originalMeshes.Add(m)){audit.originalRoofMeshes++;audit.originalRoofVertices+=m.vertexCount;}
+                if(!approved.GetTexture("_BumpMap")||!approved.GetTexture("_MetallicGlossMap"))
+                    throw new InvalidOperationException("Missing actual PBR source map for "+renderer.name);
+                audit.normalSlots++;audit.smoothnessSlots++;
+                materials[i]=approved;changed=true;
             }
             if(changed)renderer.sharedMaterials=materials;
         }
-        if(audit.greySlots<1||audit.tileSlots<1)
-            throw new InvalidOperationException("R2 original roof source roles not found: grey="+audit.greySlots+" tiles="+audit.tileSlots);
+        if(audit.greySlots<1||audit.tileSlots<1||audit.normalSlots<2||audit.smoothnessSlots<2)
+            throw new InvalidOperationException("R2 PBR roof source roles missing");
         Directory.CreateDirectory("city-review");
         File.WriteAllText("city-review/r2-roof-materials.json",JsonUtility.ToJson(audit,true));
-        Debug.Log("R2_ORIGINAL_GEOMETRY_VERIFIED_ROOF_TEXTURES "+JsonUtility.ToJson(audit));
+        Debug.Log("R2_UNITY_ORIGINAL_ROOF_FULL_PBR_APPLIED "+JsonUtility.ToJson(audit));
     }
 }

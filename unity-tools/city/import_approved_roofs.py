@@ -1,61 +1,128 @@
-"""Import exact operator-delivered Poly Haven roof diffuse textures into isolated R2 Unity staging.
-Fail closed if source changed. Only approved real external material, never a synthesized fallback.
-The delivery ZIPs were verified against the same original map hashes in ChatGPT Library.
+"""Stage the operator-delivered Poly Haven roof PBR maps in ISOLATED Unity R2.
+Every 4K source is byte-verified against the actual uploaded archives. No fallback.
+Convert real 4K PBR input into iPhone-friendly 2K textures: albedo, OpenGL normal,
+and Unity Standard metallic(0)/smoothness(1-roughness) alpha packing.
 """
-import hashlib, io, json, pathlib, urllib.request
+import hashlib
+import io
+import json
+import os
+import pathlib
+import time
+import urllib.request
+
+os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
+import cv2
+import numpy as np
 from PIL import Image
-BASE = pathlib.Path(__file__).resolve().parents[2]
-OUTPUT = BASE / "unity-city/Assets/Source/City/R2Approved"
-OUTPUT.mkdir(parents=True, exist_ok=True)
-MAPS = (
- ("GreyRoof", "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/grey_roof_01/grey_roof_01_diff_4k.jpg",
-  "599a76538d75cd814a8ade220100fdd5fb4fb57b0c66f16e567583dec0aed2b4", "grey_roof_01_4k.blend.zip"),
- ("RoofTiles", "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/roof_tiles/roof_tiles_diff_4k.jpg",
-  "accad55fa8473f7ae9a7b49101d1c077824a4e428e9a553398599efd43755945", "roof_tiles_4k.blend.zip"),
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+TARGET = ROOT / "unity-city/Assets/Source/City/R2Approved"
+EVIDENCE = ROOT / "city-review"
+TARGET.mkdir(parents=True, exist_ok=True)
+EVIDENCE.mkdir(parents=True, exist_ok=True)
+BASE = "https://dl.polyhaven.org/file/ph-assets/Textures/"
+MAPS = [
+    ("GreyRoof", "albedo", "jpg", "grey_roof_01", "grey_roof_01_diff_4k.jpg",
+     "599a76538d75cd814a8ade220100fdd5fb4fb57b0c66f16e567583dec0aed2b4"),
+    ("GreyRoof", "roughness", "jpg", "grey_roof_01", "grey_roof_01_rough_4k.jpg",
+     "113a6930087e288d52111fa70b4f0816287054f5ffcbbf3c256a6e5b4b7811fc"),
+    ("GreyRoof", "normal", "exr", "grey_roof_01", "grey_roof_01_nor_gl_4k.exr",
+     "0c35a3f361db145deda3db38e8bd0be0a01f2592e12cd1bfe3f0c7dbfaa32aca"),
+    ("RoofTiles", "albedo", "jpg", "roof_tiles", "roof_tiles_diff_4k.jpg",
+     "accad55fa8473f7ae9a7b49101d1c077824a4e428e9a553398599efd43755945"),
+    ("RoofTiles", "roughness", "exr", "roof_tiles", "roof_tiles_rough_4k.exr",
+     "249deb7615b654bb12b675f21067a251fb2785257295b17e6457654b685eda2a"),
+    ("RoofTiles", "normal", "exr", "roof_tiles", "roof_tiles_nor_gl_4k.exr",
+     "9cd788b665c4cd67023edbc53800dcd3f27b0e42b5af4dae1bea23cd9beb2590"),
+]
+verified = {}
+provenance = {
+    "scope": "TEST_R2_ONLY",
+    "source": "Operator-delivered Poly Haven CC0 maps; exact 4K SHA-256 checked",
+    "sourceMaps": [],
+    "generatedMaps": [],
+    "unitySceneApplied": False,
+    "visualAcceptance": False,
+}
+
+for key, kind, ext, asset, filename, expected in MAPS:
+    url = BASE + ext + "/4k/" + asset + "/" + filename
+    last_error = None
+    for attempt in range(3):
+        try:
+            request = urllib.request.Request(url, headers={"User-Agent": "Braxhorn-R2-verified-PBR/1.0"})
+            with urllib.request.urlopen(request, timeout=150) as response:
+                content = response.read()
+            break
+        except (TimeoutError, OSError) as exc:
+            last_error = exc
+            if attempt == 2:
+                raise RuntimeError("Verified source unavailable: " + url) from last_error
+            time.sleep(2 ** attempt)
+    sha = hashlib.sha256(content).hexdigest()
+    if sha != expected:
+        raise RuntimeError("Operator PBR source SHA-256 mismatch: " + filename + " " + sha)
+    verified[(key, kind)] = (content, ext)
+    provenance["sourceMaps"].append({
+        "name": filename, "url": url, "sha256": sha,
+        "sourceArchive": ("grey_roof_01_4k.blend.zip" if key == "GreyRoof" else "roof_tiles_4k.blend.zip"),
+    })
+
+for key in ("GreyRoof", "RoofTiles"):
+    albedo, _ = verified[(key, "albedo")]
+    with Image.open(io.BytesIO(albedo)) as photo:
+        if photo.size != (4096, 4096):
+            raise RuntimeError("Unexpected operator PBR resolution: " + key + " diffuse")
+        im = photo.convert("RGB").resize((2048, 2048), Image.Resampling.LANCZOS)
+        out = TARGET / ("R2" + key + "Albedo.jpg")
+        im.save(out, quality=95, subsampling=0, optimize=True)
+    for kind in ("roughness", "normal"):
+        raw, ext = verified[(key, kind)]
+        if ext == "jpg":
+            with Image.open(io.BytesIO(raw)) as im:
+                if im.size != (4096, 4096):
+                    raise RuntimeError("Wrong roughness source resolution: " + key)
+                array = np.asarray(im.convert("L").resize((2048, 2048), Image.Resampling.LANCZOS))
+                values = array.astype(np.float32) / 255.0
+        else:
+            array = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
+            if array is None or array.shape[:2] != (4096, 4096):
+                raise RuntimeError("Unable to decode exact 4K EXR source " + key + "/" + kind)
+            values = cv2.resize(array, (2048, 2048), interpolation=cv2.INTER_AREA)
+        values = np.clip(values, 0.0, 1.0)
+        if kind == "normal":
+            if len(values.shape) != 3 or values.shape[2] != 3:
+                raise RuntimeError("Wrong source normal map channel count: " + key)
+            # OpenCV decodes EXR as BGR; PBR source has OpenGL (+Y) normals.
+            values = cv2.cvtColor(values, cv2.COLOR_BGR2RGB)
+            normal = np.rint(values * 255).astype(np.uint8)
+            out = TARGET / ("R2" + key + "Normal.png")
+            Image.fromarray(normal, "RGB").save(out, optimize=True)
+        else:
+            if values.ndim == 3:
+                raise RuntimeError("Unexpected multichannel roof roughness: " + key)
+            smooth = np.rint((1.0 - values) * 255).astype(np.uint8)
+            rgba = np.zeros((2048, 2048, 4), dtype=np.uint8)
+            rgba[:, :, 3] = smooth
+            out = TARGET / ("R2" + key + "MetallicSmoothness.png")
+            Image.fromarray(rgba, "RGBA").save(out, optimize=True)
+        provenance["generatedMaps"].append({
+            "path": str(out.relative_to(ROOT)),
+            "sha256": hashlib.sha256(out.read_bytes()).hexdigest(),
+            "pixels": [2048, 2048],
+        })
+    provenance["generatedMaps"].append({
+        "path": str((TARGET / ("R2" + key + "Albedo.jpg")).relative_to(ROOT)),
+        "sha256": hashlib.sha256((TARGET / ("R2" + key + "Albedo.jpg")).read_bytes()).hexdigest(),
+        "pixels": [2048, 2048],
+    })
+
+(EVIDENCE / "r2-pbr-source-provenance.json").write_text(
+    json.dumps(provenance, indent=2) + "\n", encoding="utf-8"
 )
-manifest = {"scope":"R2_ONLY","source":"Poly Haven CC0; verified against delivered originals",
-            "maps":[],"unitySceneApplied":False,"verifiedRender":False}
-for name, url, expected, source_zip in MAPS:
-    with urllib.request.urlopen(urllib.request.Request(url,headers={"User-Agent":"Braxhorn-R2-asset-source-verifier/1.0"}),timeout=150) as response:
-        blob = response.read()
-    found = hashlib.sha256(blob).hexdigest()
-    if found != expected:
-        raise RuntimeError(f"BLOCKED SOURCE HASH MISMATCH for {name}: {found}")
-    with Image.open(io.BytesIO(blob)) as im:
-        if im.width != 4096 or im.height != 4096:
-            raise RuntimeError(f"BLOCKED SOURCE RESOLUTION for {name}: {im.size}")
-        resized = im.convert("RGB").resize((2048,2048),Image.Resampling.LANCZOS)
-        target = OUTPUT / f"R2{name}Albedo.jpg"
-        resized.save(target, quality=95, subsampling=0, optimize=True)
-    # PBR maps belong to the EXACT same two operator-delivered Poly Haven assets.
-    # No generated normal/roughness substitutes. Fail closed if a source map is absent.
-    slug = "grey_roof_01" if name == "GreyRoof" else "roof_tiles"
-    extra = {}
-    for role, fmt in (("nor_dx", "png"), ("rough", "jpg")):
-        map_url = f"https://dl.polyhaven.org/file/ph-assets/Textures/{fmt}/4k/{slug}/{slug}_{role}_4k.{fmt}"
-        with urllib.request.urlopen(urllib.request.Request(map_url,headers={"User-Agent":"Braxhorn-R2-asset-source-verifier/1.0"}),timeout=150) as response:
-            raw = response.read()
-        with Image.open(io.BytesIO(raw)) as im:
-            if im.size != (4096,4096):
-                raise RuntimeError(f"BLOCKED ORIGINAL PBR MAP RESOLUTION {slug} {role}: {im.size}")
-            if role == "nor_dx":
-                # Unity Standard tangent-space normals use the DirectX source map.
-                pbr_target = OUTPUT / f"R2{name}Normal.png"
-                im.convert("RGB").resize((2048,2048),Image.Resampling.LANCZOS).save(pbr_target,optimize=True)
-            else:
-                # Original roughness, converted to Unity Standard smoothness alpha.
-                rough = im.convert("L").resize((2048,2048),Image.Resampling.LANCZOS)
-                color = Image.open(OUTPUT / f"R2{name}Albedo.jpg").convert("RGB")
-                rgba = color.convert("RGBA")
-                rgba.putalpha(rough.point(lambda value: 255-value))
-                pbr_target = OUTPUT / f"R2{name}SmoothnessAlbedo.png"
-                rgba.save(pbr_target,optimize=True)
-        extra[role]={"sourceUrl":map_url,"sourceSha256":hashlib.sha256(raw).hexdigest(),
-                     "runtimePath":str(pbr_target.relative_to(BASE)),
-                     "runtimeSha256":hashlib.sha256(pbr_target.read_bytes()).hexdigest(),
-                     "pixelWidth":2048,"pixelHeight":2048}
-    manifest["maps"].append({"name":name,"originZip":source_zip,"sourceUrl":url,
-        "sourceSha256":found,"runtimeSha256":hashlib.sha256(target.read_bytes()).hexdigest(),
-        "runtimePath":str(target.relative_to(BASE)),"pixelWidth":2048,"pixelHeight":2048,"pbrMaps":extra})
-(OUTPUT/"source-provenance.json").write_text(json.dumps(manifest,indent=2)+"\n",encoding="utf8")
-print("R2_APPROVED_REAL_ROOF_SOURCE_TEXTURES_STAGED",json.dumps(manifest))
+print("R2_OPERATOR_SOURCE_FULL_PBR_VERIFIED", json.dumps({
+    "sourceCount": len(provenance["sourceMaps"]),
+    "outputCount": len(provenance["generatedMaps"]),
+    "outputNames": [pathlib.Path(x["path"]).name for x in provenance["generatedMaps"]],
+}))

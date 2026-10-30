@@ -45,7 +45,7 @@ jobs:
       - name: Prepare original rigs, native texture copies and library material
         run: |
           mkdir -p city-review
-          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6 opencv-python-headless==4.12.0.88
           python3 -m compileall -q unity-tools
           node --check unity-tools/city/check.mjs
           python3 unity-tools/prepare_playable.py
@@ -81,6 +81,8 @@ jobs:
           assert r['scene']=='BraxhornEstate'
           assert r['status']=='R2_ROOF_MAPS_APPLIED__VISUAL_ACCEPTANCE_PENDING'
           assert r['greySlots']>=1 and r['tileSlots']>=1
+          assert r['normalSlots'] >= 2 and r['smoothnessSlots'] >= 2
+          assert r['pbrSourceMapCount'] == 6
           assert r['originalRoofMeshes']>=2 and r['originalRoofVertices']>0
           assert r['originalMeshDataUnmodified'] is True
           assert r['originalCityAndGymUnmodified'] is True
@@ -88,6 +90,12 @@ jobs:
           assert r['windowAndDoorsImported'] is False
           assert r['asphaltImported'] is False
           assert r['filmApproved'] is False
+          fp=[pathlib.Path('city-review/r2-facade-finishes.json'),pathlib.Path('unity-city/city-review/r2-facade-finishes.json')]
+          present=[p for p in fp if p.is_file()]
+          assert len(present)==1, 'Unity façade audit missing'
+          facade=json.loads(present[0].read_text(encoding='utf-8'))
+          assert facade['scene']=='BraxhornEstate' and facade['originalMeshesUnchanged'] is True
+          assert facade['renovatedMaterialSlots'] >= 3 and facade['renovatedSourceRoles'] >= 2
           print('R2_UNITY_ROOF_BINDINGS_VERIFIED__FULL_RENOVATION_BLOCKED',json.dumps({'file':str(found[0]),'greySlots':r['greySlots'],'tileSlots':r['tileSlots'],'windowAndDoorsImported':False,'asphaltImported':False,'filmApproved':False}))
           PY
       - name: Package isolated city entry and provenance
@@ -116,6 +124,9 @@ jobs:
           path: |
             city-review/
             unity-city/city-review/r2-roof-materials.json
+            city-review/r2-facade-finishes.json
+            unity-city/city-review/r2-facade-finishes.json
+            city-review/r2-pbr-source-provenance.json
             build/WebGL/city-migration.json
             build/WebGL/playable.json
             unity-city/Assets/Source/City/native-texture-preparation.json
