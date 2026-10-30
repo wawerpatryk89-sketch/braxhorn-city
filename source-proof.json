@@ -1,0 +1,61 @@
+{
+  "kind": "isolated-Unity6-integrated-preview",
+  "engine": "Unity6",
+  "commit": "55c986a09e2b22e63c7e5f15ec35ef11bced840d",
+  "QA": "PASS",
+  "productionChanged": false,
+  "legacyThreeRuntime": false,
+  "physicalIPhoneTestPassed": false,
+  "visualAcceptance": "operator-pending",
+  "cityVehicles": "hidden verified 397 original source vehicle meshes",
+  "originalDataBytes": 301402746,
+  "originalDataSHA256": "a2c47a4ae527494d1dc0d3dd2962dbd447d5c2eed6270ddc3f87bf62cc05e8e1",
+  "transportParts": [
+    {
+      "path": "Build/55c986a09e2b_WebGL.data.unityweb.part000",
+      "bytes": 33554432,
+      "sha256": "b6d8082e7b1aa92ea5a0c2fabe77d3ffb46404e45f1e67c073d8157b0176e2e3"
+    },
+    {
+      "path": "Build/55c986a09e2b_WebGL.data.unityweb.part001",
+      "bytes": 33554432,
+      "sha256": "5757b202881d2897eb52983d4fd313339466ce8b8e65540554fd86b6483a072d"
+    },
+    {
+      "path": "Build/55c986a09e2b_WebGL.data.unityweb.part002",
+      "bytes": 33554432,
+      "sha256": "540e3ac816dddd73dd119bbca98f04323fda04cf427bd3649cabd29d3d61ab36"
+    },
+    {
+      "path": "Build/55c986a09e2b_WebGL.data.unityweb.part003",
+      "bytes": 33554432,
+      "sha256": "aae2cbe99e7525f8870855e9f4a612692c33aa6d6c811d65bb6a9baac7524634"
+    },
+    {
+      "path": "Build/55c986a09e2b_WebGL.data.unityweb.part004",
+      "bytes": 33554432,
+      "sha256": "9afb6e7de7d653ee7a5d2ae9570f512bd637c7561913c887f1ab99e3d33851a9"
+    },
+    {
+      "path": "Build/55c986a09e2b_WebGL.data.unityweb.part005",
+      "bytes": 33554432,
+      "sha256": "06a2568c3d0ca993c414299a3a84600798efd729aea4534f340738bdf6c520eb"
+    },
+    {
+      "path": "Build/55c986a09e2b_WebGL.data.unityweb.part006",
+      "bytes": 33554432,
+      "sha256": "9702d5b3707d408ea64a945f8ad35b6c8d21bf0da7dbc13184ac55b4a56863c3"
+    },
+    {
+      "path": "Build/55c986a09e2b_WebGL.data.unityweb.part007",
+      "bytes": 33554432,
+      "sha256": "c5932a0868a1fafc24444978ad24a93cbc2fe496f2872bc913951927cbf51a5f"
+    },
+    {
+      "path": "Build/55c986a09e2b_WebGL.data.unityweb.part008",
+      "bytes": 32967290,
+      "sha256": "0f035276d01b7ffe37bfe7383c39a1c5d2696477feb81a942c270f40bb9d1267"
+    }
+  ],
+  "uncompressedBytes": 373684474
+}
