@@ -55,7 +55,7 @@ def pack_rough(data):
     return Image.fromarray(rgba,"RGBA")
 
 beige_diff=source("beige_wall_001","beige_wall_001_diff_4k.jpg","80062445c4122f72bd067cbc4ac511146c6a7de4a3bb4fe78237c9838e4def37")
-beige_nor=source("beige_wall_001","beige_wall_001_nor_gl_4k.exr","d8af03f8df0868489c1cb1672fc7cc1ce87daa9890d2cc63")
+beige_nor=source("beige_wall_001","beige_wall_001_nor_gl_4k.exr","b99eafe6acbd05b838ec2667f3f0539eb6987b5f2c3a2ed510ce547a9ab72a2a")
 beige_rough=source("beige_wall_001","beige_wall_001_rough_4k.jpg","662874883ceb729365eb16f5c01457e993ca29474ce659bb96eb0a16be09264a")
 # Exact model atlas textures inside operator's grass_bermuda_01_2k.blend.zip.
 bermuda_diff=source("grass_bermuda_01","grass_bermuda_01_diff_2k.jpg","30183c203739dee9812b70f21916fcdcd88719dcfe4fa3270d8ce208369ec933")
@@ -66,7 +66,7 @@ grass_file="grass_ground_diff_2k.jpg"
 ground_diff=source("grass_ground",grass_file)
 ground_normal=source("grass_ground","grass_ground_nor_gl_2k.exr")
 outputs={
- "BeigeAlbedo.png":save(image(beige_diff).resize((1024,1024),Image.Resampling.LANCZOS),"BeigeAlbedo.png"),
+ "BeigeAlbedo.png":save(Image.fromarray(np.uint8(np.clip(np.stack([.945+(np.asarray(image(beige_diff).resize((1024,1024),Image.Resampling.LANCZOS)).astype(np.float32).mean(2)/255-.60)*.20,.915+(np.asarray(image(beige_diff).resize((1024,1024),Image.Resampling.LANCZOS)).astype(np.float32).mean(2)/255-.60)*.20,.865+(np.asarray(image(beige_diff).resize((1024,1024),Image.Resampling.LANCZOS)).astype(np.float32).mean(2)/255-.60)*.20],axis=2),0,1)*255)),"BeigeAlbedo.png"),
  "BeigeNormal.png":save(normal_exr(beige_nor),"BeigeNormal.png"),
  "BeigeMR.png":save(pack_rough(beige_rough),"BeigeMR.png"),
  "GrassGroundAlbedo.png":save(image(ground_diff).resize((1024,1024),Image.Resampling.LANCZOS),"GrassGroundAlbedo.png"),
