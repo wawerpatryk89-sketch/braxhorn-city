@@ -137,14 +137,27 @@ public static class BraxCityGround
     {
         Prepare();
         var root=new GameObject("Street pavement and dry asphalt").transform;root.SetParent(parent,false);
+        // The previous 170m sidewalk meshes extended beneath the kerbs.
+        // Both paving and kerb top faces were at y=.15m in the same X/Z band:
+        // near side z=23.755..23.995 and far side z=33.005..33.245.
+        // That is genuine coplanar geometry (depth-buffer z-fighting), not a
+        // material defect. Meet the *outer* kerb edges exactly; do not move
+        // the playable road, kerbs, ramp cuts, physics or existing shop doors.
+        const float nearKerbZ=23.875f,farKerbZ=33.125f,kerbHalfWidth=.12f;
+        float nearPavementEnd=nearKerbZ-kerbHalfWidth;
+        float farPavementStart=farKerbZ+kerbHalfWidth;
+        if(nearPavementEnd<=20.6f||farPavementStart>=36.1f)
+            throw new InvalidOperationException("Street kerb/paving geometry contract invalid");
         for(float x=-104;x<66;x+=10)
         {
             float end=Mathf.Min(x+10,66);
-            Cobblestone(root,"Near pavement",new Rect(x,20.6f,end-x,3.4f));
-            Cobblestone(root,"Far pavement",new Rect(x,33,end-x,3.1f));
+            Cobblestone(root,"Near pavement",new Rect(x,20.6f,end-x,nearPavementEnd-20.6f));
+            Cobblestone(root,"Far pavement",new Rect(x,farPavementStart,end-x,36.1f-farPavementStart));
             Plane(root,"Road segment",new Rect(x,24,end-x,9),.003f,asphalt);
-            Kerb(root,x,end,23.875f,false);Kerb(root,x,end,33.125f,true);
+            Kerb(root,x,end,nearKerbZ,false);Kerb(root,x,end,farKerbZ,true);
         }
+        Debug.Log("CITY_KERB_PAVING_SEPARATION nearZ="+nearPavementEnd+
+            " farZ="+farPavementStart+" single-owner-top-faces=true visualQA=pending");
         for(float x=-98;x<62;x+=7)
         {
             if(x>43&&x<58)continue;
