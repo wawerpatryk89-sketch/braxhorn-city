@@ -107,22 +107,31 @@ async def verify():
                 await page.goto(f"http://127.0.0.1:{PORT}/",
                                 wait_until="domcontentloaded", timeout=30000)
                 try:
+                    # BRAXHORN uses a custom Unity template: #unity-loading-bar
+                    # does not exist. Wait for the REAL C# source-ready callback.
                     await page.wait_for_function("""() => {
-                        const bar = document.querySelector('#unity-loading-bar');
-                        return !!bar && bar.style.display === 'none';
-                    }""", timeout=120000)
+                        const game = window.__brxEstateUnity;
+                        return !!game && game.sourceReady === true &&
+                               !!game.unity && document.querySelector('#loader')?.classList.contains('done');
+                    }""", timeout=210000)
                     result["loaded"] = True
-                    # Unity's loading bar only confirms engine startup, not the
-                    # original estate. Wait for C# runtime completion log.
+                    # The source summary is an independent check, not a loading animation.
                     try:
-                        await asyncio.wait_for(scene_ready.wait(), timeout=210)
+                        await asyncio.wait_for(scene_ready.wait(), timeout=20)
                     except asyncio.TimeoutError:
                         result["errors"].append(
-                            "Original estate never announced completion of 21 model slots")
+                            "Original estate did not report model/door/collision totals")
                     await page.wait_for_timeout(3500)
                 except Exception as error:
                     result["errors"].append("Unity player did not finish startup: " + str(error)[:500])
 
+                result["browserState"] = await page.evaluate("""() => ({
+                    loader: document.querySelector('#loader')?.className,
+                    sourceReady: window.__brxEstateUnity?.sourceReady ?? false,
+                    unityInitialized: !!window.__brxEstateUnity?.unity,
+                    loadMessage: document.querySelector('#loadMsg')?.textContent,
+                    status: document.querySelector('#estate-status')?.textContent
+                })""")
                 screenshot = REPORT_DIR / "unity-estate-real-browser.png"
                 await page.screenshot(path=str(screenshot), timeout=30000)
                 box = await page.locator("#unity-canvas").bounding_box()
