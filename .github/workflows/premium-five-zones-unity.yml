@@ -6,7 +6,7 @@ on:
       - codex/premium-five-zones-20261030
     paths:
       - '.github/workflows/premium-five-zones-unity.yml'
-      - 'unity-city/Assets/Editor/CityRebuild/Systems/**'
+      - 'unity-city/Assets/Editor/CityRebuild/**'
 
 permissions:
   contents: read
