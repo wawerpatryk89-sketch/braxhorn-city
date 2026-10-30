@@ -28,6 +28,26 @@ public sealed class BraxCityWorld : MonoBehaviour
     private BraxCityDoor nearby;
     private float nextScan;
     public int OpenDoors { get { int n=0;foreach(var d in doors)if(d&&d.IsOpen)n++;return n;} }
+    // Proximity is evaluated at the current player position, not a cached
+    // door from a previous QA travel point. This also prevents interacting
+    // with the previous venue after a navigation jump.
+    private BraxCityDoor DoorInReach()
+    {
+        if(!player)return null;
+        var position=player.transform.position;
+        BraxCityDoor closest=null;
+        float best=3.3f;
+        foreach(var door in doors)
+        {
+            if(!door)continue;
+            var offset=position-door.transform.position;
+            if(Mathf.Abs(offset.y)>2.3f)continue;
+            offset.y=0;
+            float distance=offset.magnitude;
+            if(distance<best){best=distance;closest=door;}
+        }
+        return closest;
+    }
     public string Context
     {
         get
@@ -49,7 +69,8 @@ public sealed class BraxCityWorld : MonoBehaviour
                 var liftContext=elevator.Context;
                 if(!string.IsNullOrEmpty(liftContext))return liftContext;
             }
-            if(nearby)return (nearby.IsOpen?"ZAMKNIJ DRZWI · ":"OTWÓRZ DRZWI · ")+nearby.label;
+            var door=DoorInReach();
+            if(door)return (door.IsOpen?"ZAMKNIJ DRZWI · ":"OTWÓRZ DRZWI · ")+door.label;
             return "";
         }
     }
@@ -79,13 +100,14 @@ public sealed class BraxCityWorld : MonoBehaviour
         foreach(var lift in additionalTowerElevators)
             if(lift&&lift.TryInteract(p))return true;
         if(elevator&&elevator.TryInteract(p))return true;
-        if(nearby){nearby.Toggle(player.transform.position);return true;}
+        var door=DoorInReach();
+        if(door){door.Toggle(player.transform.position);return true;}
         return false;
     }
     public void GoTo(string id)
     {
         if(loading)return;
-        foreach(var p in points)if(p.id==id){activePoint=id;player.TravelTo(p.position+Vector3.up*.08f);return;}
+        foreach(var p in points)if(p.id==id){activePoint=id;nearby=null;nextScan=0;player.TravelTo(p.position+Vector3.up*.08f);return;}
         Debug.LogWarning("Unknown original city point: "+id);
     }
     private IEnumerator ChangeScene(string scene,string arrival)
