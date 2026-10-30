@@ -14,6 +14,7 @@ jobs:
           persist-credentials: true
           sparse-checkout: |
             .github/workflows/estate-publish-original-city-player.yml
+            unity-release/ios-stream-loader.js
       - name: Require successful exact shared-city-player build and estate QA
         env:
           GH_TOKEN: ${{ github.token }}
@@ -51,9 +52,10 @@ jobs:
           if git ls-remote --exit-code --heads origin "$ref" >/dev/null; then
             echo "::error::Refusing to overwrite previous preview branch";exit 1;
           fi
+          cp unity-release/ios-stream-loader.js "$RUNNER_TEMP/ios-stream-loader.js"
           git switch --orphan preview/estate-original-city-player-20261030
           git rm -r --cached -q . || true
-          rm -rf .github
+          rm -rf .github unity-release
           cp -a "$PLAYER_DIR/." .
           python3 - <<'PY'
           from pathlib import Path
@@ -63,7 +65,54 @@ jobs:
           assert "BraxSend" in s and "MoveInput" in s and "LookInput" in s
           assert "BraxhornPlayer" in s
           assert "EstateMigrationBootstrap" not in s
-          assert len(list(Path("Build").glob("*part*")))>=6
+          # Exact original Unity binary; only split the huge compressed data
+          # into transport chunks and route loader fetch through native streaming.
+          import hashlib,zlib,os
+          build=Path("Build")
+          data=list(build.glob("*.data.unityweb"))
+          loader=list(build.glob("*.loader.js"))
+          assert len(data)==1 and len(loader)==1,(data,loader)
+          data=data[0];loader=loader[0]
+          original_size=data.stat().st_size
+          assert original_size>50_000_000
+          chunk_size=32*1024*1024
+          sha=hashlib.sha256();expanded=hashlib.sha256()
+          inflater=zlib.decompressobj(31);expanded_size=0;parts=[]
+          with data.open("rb") as src:
+           idx=0
+           while True:
+            block=src.read(chunk_size)
+            if not block:break
+            sha.update(block)
+            decoded=inflater.decompress(block)
+            expanded.update(decoded);expanded_size+=len(decoded)
+            name=f"{data.name}.part{idx:03d}"
+            (build/name).write_bytes(block)
+            parts.append({"path":"Build/"+name,"bytes":len(block),"sha256":hashlib.sha256(block).hexdigest()})
+            idx+=1
+          tail=inflater.flush();expanded.update(tail);expanded_size+=len(tail)
+          assert inflater.eof and not inflater.unused_data and len(parts)>=2
+          data.unlink()
+          manifest={"dataPath":"Build/"+data.name,"bytes":original_size,"sha256":sha.hexdigest(),
+            "parts":parts,"sourceCommit":"140407203586a6c150faf6355ebd4c1a2faa55c7",
+            "uncompressedBytes":expanded_size}
+          template=Path(os.environ["RUNNER_TEMP"])/"ios-stream-loader.js"
+          transport=template.read_text()
+          assert transport.count("__MANIFEST__")==1
+          Path("city-transport.js").write_text(transport.replace("__MANIFEST__",json.dumps(manifest,separators=(",",":"))))
+          loader_text=loader.read_text()
+          anchor="fetch(e,t).then(function(e){return b.readBodyWithProgress"
+          assert loader_text.count(anchor)==1,"Unity fetch interception anchor changed"
+          loader.write_text(loader_text.replace(anchor,"(window.BraxCityFetch||fetch)(e,t).then(function(e){return b.readBodyWithProgress"))
+          html=p.read_text()
+          anchor="<script>\\n'use strict';"
+          assert html.count(anchor)==1,"Original city HTML entry anchor changed"
+          html=html.replace(anchor,'<script src="city-transport.js?v=estate-original-01"></script>'+anchor,1)
+          assert html.count("function fail(e){")==1
+          html=html.replace("function fail(e){","window.addEventListener('brax-city-load-error',e=>fail(e.detail));\\nfunction fail(e){",1)
+          p.write_text(html)
+          Path("transport.json").write_text(json.dumps(manifest,indent=2)+"\\n")
+          print("ORIGINAL CITY PLAYER DATA UNCHANGED",original_size,"native stream",expanded_size,"parts",len(parts))
           cfg={"version":2,"framework":None,"buildCommand":None,"outputDirectory":"."}
           Path("vercel.json").write_text(json.dumps(cfg,indent=2)+"\n")
           Path("README.md").write_text("# Braxhorn Estate — original city player\nStandalone review of ORIGINAL BraxhornEstate Unity6 scene using SAME BraxGymPlayer, BraxSourceORM, animations and mobile HUD as city. Original city and production untouched. User visual acceptance pending.\n")
