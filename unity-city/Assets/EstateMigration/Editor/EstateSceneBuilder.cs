@@ -37,6 +37,10 @@ namespace Braxhorn.EstateMigration.Editor
             EstateShaderGuard.PreserveOriginalGltfShaders();
             ValidateInputs();
             PrepareScene();
+            // Preserve the existing Braxhorn mobile HUD and touch controls.
+            if (!File.Exists("Assets/WebGLTemplates/BRAXHORN_ESTATE/index.html"))
+                throw new BuildFailedException("Original Braxhorn WebGL UI template missing");
+            PlayerSettings.WebGL.template = "PROJECT:BRAXHORN_ESTATE";
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WebGL)
                 throw new BuildFailedException("Switch to WebGL inside the isolated Unity project first; never change shared target silently.");
             var options = new BuildPlayerOptions
