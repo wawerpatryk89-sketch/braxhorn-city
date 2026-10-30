@@ -1,6 +1,6 @@
 import {webkit,chromium} from 'playwright';
 import fs from 'node:fs';
-const url='https://braxhorn-city-i44hthxgl-wawerpatryk89-1409.vercel.app';
+const url="https://braxhorn-city-git-preview-waterfront-83579f-wawerpatryk89-1409.vercel.app?_vercel_share=IyPkE18S9glEG5kKMZisszltt6fQzOV9";
 fs.mkdirSync('ios-waterfront-review',{recursive:true});
 const report={url,sourceCommit:'62d5484d8050c59c4fcbcc4b4111c41d0d2d29ed',physicalIPhoneValidated:false,tests:[]};
 for(const [name,engine] of [['webkit',webkit],['chromium',chromium]]){
@@ -12,7 +12,7 @@ for(const [name,engine] of [['webkit',webkit],['chromium',chromium]]){
   await page.goto(url,{waitUntil:'domcontentloaded',timeout:90000});
   await page.screenshot({path:'ios-waterfront-review/'+name+'-entry.png'});
   const info=await page.evaluate(()=>({title:document.title,hasStart:!!document.querySelector('#start'),webgl2:!!document.createElement('canvas').getContext('webgl2')}));
-  const response=await page.request.get(url+'/release.json');
+  const releaseUrl=new URL('/release.json',url);releaseUrl.search=new URL(url).search;const response=await page.request.get(releaseUrl.href);
   const raw=await response.text();const contentType=response.headers()['content-type']||'';const manifest=contentType.includes('application/json')?JSON.parse(raw):{};const blocked=!contentType.includes('application/json');
   report.tests.push({engine:name,...info,manifestSource:manifest.sourceCommit,manifestOk:manifest.sourceCommit===report.sourceCommit,blocked,contentType,httpStatus:response.status(),responseUrl:response.url(),responseSample:blocked?raw.slice(0,160):undefined,errors});
  }catch(e){report.tests.push({engine:name,error:String(e)});}finally{if(browser)await browser.close();}
