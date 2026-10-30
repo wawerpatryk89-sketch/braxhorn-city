@@ -1,0 +1,89 @@
+name: BRAXHORN Estate - publish isolated playable Unity 6 preview
+on:
+  push:
+    branches:
+      - codex/estate-unity-source-recovery-20261030
+    paths:
+      - ".github/workflows/estate-publish-full-preview.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-playable-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout: |
+            .github/workflows/estate-publish-full-preview.yml
+      - name: Require SUCCESSFUL original 21/21 Unity6 build and screenshot QA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          status="$(gh run view 41024359763 -R "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)"
+          test "$status" = "success" || { echo "::error::Full original Unity QA not successful"; exit 1; }
+          gh run download 41024359763 -R "$GITHUB_REPOSITORY" \
+            -n estate-originals-recovery-fa744e3fdfb2d73639b41e56ba38b22062cf1c2d \
+            -D "$RUNNER_TEMP/verified"
+          root="$(find "$RUNNER_TEMP/verified" -type f -path '*/EstateWebGL/index.html' -printf '%h\n' | head -n1)"
+          test -n "$root" && test -s "$root/index.html" || exit 1
+          report="$(find "$RUNNER_TEMP/verified" -name visual-qa-report.json -print -quit)"
+          test -n "$report" || exit 1
+          REPORT="$report" python3 - <<'PY'
+          import json,os
+          x=json.load(open(os.environ["REPORT"]))
+          assert x["visualPass"] and x["runtimeSceneReady"] and x["loaded"]
+          assert x["sourceModelCount"]==21 and x["sourceDoorCount"]==24
+          assert x["sourceCollisionCount"]==1013 and x["braxGzipTransportIntact"]
+          assert "missing sources none" in x["runtimeSceneSummary"]
+          assert not x["fatal"] and not x["errors"]
+          print("VERIFIED 21/21 ORIGINAL UNITY WEBGL, NO MISSING MODELS")
+          PY
+          echo "UNITY_WEB_ROOT=$root" >> "$GITHUB_ENV"
+      - name: Publish only dedicated preview branch; never touch main or production
+        run: |
+          set -euo pipefail
+          ref="refs/heads/preview/estate-unity6-full-20261030"
+          if git ls-remote --exit-code --heads origin "$ref" >/dev/null; then
+            echo "::error::Dedicated preview branch already exists; refuse overwrite"
+            exit 1
+          fi
+          git switch --orphan preview/estate-unity6-full-20261030
+          git rm -r --cached -q . || true
+          cp -a "$UNITY_WEB_ROOT/." .
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          index=Path("index.html")
+          content=index.read_text()
+          content=content.replace("Źródłowa migracja Unity 6 · 3 oryginalne modele brakują","Źródłowa migracja Unity 6 · 21/21 oryginalnych modeli")
+          content=content.replace("Osiedle Unity 6 / dostępne modele: 19/21","Osiedle Unity 6 / dostępne modele: 21/21")
+          index.write_text(content)
+          cfg={"version":2,"framework":None,"buildCommand":None,"outputDirectory":".",
+            "headers":[
+              {"source":"/Build/(.*)\\.wasm\\.gz","headers":[{"key":"Content-Type","value":"application/wasm"},{"key":"Content-Encoding","value":"gzip"}]},
+              {"source":"/Build/(.*)\\.framework\\.js\\.gz","headers":[{"key":"Content-Type","value":"application/javascript"},{"key":"Content-Encoding","value":"gzip"}]},
+              {"source":"/Build/(.*)\\.data\\.gz","headers":[{"key":"Content-Type","value":"application/octet-stream"},{"key":"Content-Encoding","value":"gzip"}]}
+            ]}
+          Path("vercel.json").write_text(json.dumps(cfg,indent=2)+"\n")
+          Path("README.md").write_text("# Braxhorn Estate Unity6 / isolated playable review\nOriginal 21/21 models, 24 doors, 1013 source collision boxes. Chromium QA PASS.\nVisual 1:1 and iPhone controls not yet user-accepted. No production changes.\n")
+          PY
+          test -s index.html
+          test -d Build && test -d StreamingAssets
+          python3 - <<'PY'
+          from pathlib import Path
+          large=[(str(p),p.stat().st_size) for p in Path(".").rglob("*") if p.is_file() and p.stat().st_size > 95_000_000]
+          if large: raise SystemExit("GitHub/Vercel single-file size preflight FAILED: "+str(large))
+          print("All preview files below 95MB Git limit")
+          PY
+          git add -A
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "preview(estate): verified original 21-model Unity6 playable walkthrough [skip ci]"
+          git push origin "HEAD:$ref"
+          echo "Dedicated preview branch published; main and production untouched."
