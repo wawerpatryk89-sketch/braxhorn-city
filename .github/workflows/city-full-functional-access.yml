@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - codex/city-waterfront-premium-20261030
+      - codex/waterfront-recovery-20261030
     paths:
       - '.github/workflows/city-full-functional-access.yml'
       - 'unity-city/**'
