@@ -383,7 +383,7 @@ public static class BraxEstateDom04Premium
     static void AddRealFlowerBoxes(Transform parent)
     {
         var planter=AssetDatabase.LoadAssetAtPath<GameObject>(Source+"DOM04_planter_box_01.glb");
-        var flower=AssetDatabase.LoadAssetAtPath<GameObject>(Source+"DOM04_periwinkle_plant.glb");
+        var flower=AssetDatabase.LoadAssetAtPath<GameObject>(Source+"Dom04Periwinkle.glb");
         if(!planter||!flower)throw new Exception("DOM04 real owner-named flower/planter sources not imported");
         // Clear original entrance walkway z +/-1.55 and leave fence/gate untouched.
         var positions=new[]{

@@ -23,9 +23,11 @@ def all_urls(v,into):
         for child in v.values():all_urls(child,into)
     elif isinstance(v,list):
         for child in v:all_urls(child,into)
+# Periwinkle is staged independently with EXACT operator-Library hashes in
+# dom04-prepare.py and exported by the already verified dom04-export-periwinkle.py.
+# Fetch only the original owner-named wooden planter once, not the plant twice.
 for asset,resolution,expected_blend in [
-    ("planter_box_01","4k",None),
-    ("periwinkle_plant","2k","e9fc4300a8be05a9e7ec4423c239e9af37a2f3e4be9e6175a19ba82e1ffafd8a")
+    ("planter_box_01","4k",None)
 ]:
     source=all_urls(files(asset),{}) if False else {}
     all_urls(files(asset),source)
