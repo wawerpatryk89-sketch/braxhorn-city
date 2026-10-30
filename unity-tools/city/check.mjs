@@ -28,7 +28,11 @@ try{
  for(const [id,name]of [['park','10-estate-park'],['court','11-estate-court'],['villa_front','12-original-villa'],['casino','13-casino'],['hospital','14-hospital'],['police','15-police'],['club','16-estate-club'],['boxing','17-boxing-hall'],['arena','18-arena']]){
   const s=await point(id);check('Original estate point '+id+' is reachable',s.grounded&&s.y>-.15,{x:s.x,y:s.y,z:s.z});await shot(name);
  }
- await send('ReviewView','0,.08,-27.5,0,12,5.8');await until(()=>window.BraxhornState?.grounded);await page.waitForTimeout(400);
+ await send('ReviewView','0,.08,-27.5,0,12,5.8');
+ // Wait for actual teleport positioning and the 120 ms door proximity scan.
+ // Grounded alone may still refer to the previous waypoint (arena).
+ await until(()=>Math.abs(window.BraxhornState?.z+27.5)<.35 && Math.abs(window.BraxhornState?.x)<.35);
+ await until(()=>window.BraxhornState?.context?.includes('DRZWI'));
  const before=await state();check('Original villa door has interaction',before.context.includes('DRZWI'),before.context);await send('Command','action');await until(n=>window.BraxhornState.openDoors>n,before.openDoors);await shot('19-villa-open-door');
  await point('estate_entry');await send('Command','action');await until(()=>window.BraxhornState?.area==='city'&&window.BraxhornState.ready&&window.BraxhornState.grounded,null,300000);await shot('20-city-return');
  check('Estate return keeps the original city map',(await state()).x<-90,await state());
