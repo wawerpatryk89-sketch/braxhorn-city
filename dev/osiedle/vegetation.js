@@ -4,7 +4,8 @@ import {LEVEL} from './layout.js';
 
 // Source foliage rendered as shared instances. Collision follows trunks/rocks,
 // never the canopy bounding box, so paths remain walkable under the leaves.
-export async function addVegetation(scene,loader,collision){
+export async function addVegetation(scene,loader,collision,extra=[]){
+ if(!Array.isArray(extra)||extra.some(p=>!['tree','shrub','rock'].includes(p.kind)||!Number.isFinite(p.x)||!Number.isFinite(p.z)))throw Error('Invalid source foliage request');
  const result=[];
  for(const kind of ['tree','shrub','rock']){
   const gltf=await loader.loadAsync(`./assets/park_${kind}.glb`),root=gltf.scene;
@@ -18,11 +19,11 @@ export async function addVegetation(scene,loader,collision){
    let g=o.geometry.clone().applyMatrix4(o.matrixWorld);g.translate(-anchor.x,-anchor.y,-anchor.z);if(g.index)g=g.toNonIndexed();
    if(!groups.has(mat))groups.set(mat,[]);groups.get(mat).push(g);
   });
-  const places=LEVEL.vegetation.filter(p=>p.kind===kind),dummy=new T.Object3D();
+  const places=[...LEVEL.vegetation,...extra].filter(p=>p.kind===kind),dummy=new T.Object3D();
   for(const [mat,geos]of groups){const geo=mergeGeometries(geos),mesh=new T.InstancedMesh(geo,mat,places.length);mesh.name='Verdant_'+kind;mesh.castShadow=mesh.receiveShadow=true;
-   places.forEach((p,i)=>{dummy.position.set(p.x,.07,p.z);dummy.rotation.y=p.rotation||0;dummy.scale.setScalar(p.height/size.y);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);});mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();scene.add(mesh);for(const g of geos)g.dispose();
+   places.forEach((p,i)=>{dummy.position.set(p.x,p.y??.07,p.z);dummy.rotation.y=p.rotation||0;dummy.scale.setScalar(p.height/size.y);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);});mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();scene.add(mesh);for(const g of geos)g.dispose();
   }
-  for(const p of places){const r=kind==='tree'?.22:kind==='rock'?p.height*.75:0;if(r)collision.push({minX:p.x-r,maxX:p.x+r,minZ:p.z-r,maxZ:p.z+r,minY:0,maxY:kind==='tree'?3:p.height});}
+  for(const p of places){const r=kind==='tree'?.22:kind==='rock'?p.height*.75:0;if(r)collision.push({minX:p.x-r,maxX:p.x+r,minZ:p.z-r,maxZ:p.z+r,minY:p.y??0,maxY:(p.y??0)+(kind==='tree'?3:p.height)});}
   result.push({kind,count:places.length,source:`park_${kind}.glb`});
  }
  return result;
