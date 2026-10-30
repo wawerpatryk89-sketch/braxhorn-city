@@ -42,6 +42,18 @@ try {
  if(Math.hypot(before.x-after.x,before.z-after.z)>.03 || Math.abs(before.yaw-after.yaw)>.01)throw Error('Before/after camera mismatch');
  report.beforeAfterSameCamera=true;
  if(Math.abs(before.x+14)>.04||Math.abs(before.z-6)>.04)throw Error('DOM04 QA placement failed; refusing street pictures');
+ const validate=spawnSync('python3',['-c',`
+from PIL import Image, ImageChops, ImageStat
+from pathlib import Path
+root=Path('dom04-evidence')
+a=Image.open(root/'01-before.png').convert('RGB').crop((0,30,420,320))
+b=Image.open(root/'02-after.png').convert('RGB').crop((0,30,420,320))
+m=sum(ImageStat.Stat(ImageChops.difference(a,b)).mean)/3
+print('DOM04_REAL_UNITY_HOUSE_PIXEL_DIFFERENCE',round(m,3))
+assert m>1.5, 'House surface did not visibly change; refuse fake PASS'
+`],{encoding:'utf8'});
+ if(validate.status!==0) throw Error('DOM04 actual Unity visual difference absent: '+validate.stdout+' '+validate.stderr);
+ report.realRenderedHouseDifference=validate.stdout.trim();
  await send('ReviewView','-17,.08,0,90,12,8');await page.waitForTimeout(1600);await shot('03-facade');
  await send('ReviewView','-13,.08,1,90,32,7');await page.waitForTimeout(1600);await shot('04-grass-paving-fence');
  await send('ReviewView','-13,.08,0,90,9,8');await page.waitForTimeout(1600);

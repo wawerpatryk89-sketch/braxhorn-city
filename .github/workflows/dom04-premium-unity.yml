@@ -10,7 +10,7 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: dom04-isolated-real-unity-20261030
+  group: dom04-isolated-final-proof-${{ github.sha }}
   cancel-in-progress: false
 jobs:
   dom04:
