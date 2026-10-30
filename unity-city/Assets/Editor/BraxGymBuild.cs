@@ -138,6 +138,7 @@ public static class BraxGymBuild
             // Exact accepted mural/ring/annex authoring; one original player.
             BraxGymReferenceRebuild.Apply(gym,solids.transform,runtime,Generated);
             BraxGymReferenceEquipment.Apply(gym,runtime,Generated);
+            BraxNovaMusicBuild.Attach(runtime);
         }
         string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;

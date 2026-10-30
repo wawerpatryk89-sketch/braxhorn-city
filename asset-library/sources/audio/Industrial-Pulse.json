@@ -1,0 +1,19 @@
+{
+  "track": "Industrial Pulse",
+  "ownerApprovedFor": "NOVA",
+  "sourcePath": "asset-library/sources/audio/Industrial-Pulse.original.mp3",
+  "sourceSha256": "e373ea0c75c6d0dd5a1cdee6e481b97c11bf79ef0afd6253f2ead00834ae9455",
+  "sourceUnchanged": true,
+  "sourceDurationSeconds": 207.6,
+  "removedIntroSeconds": 27.7,
+  "fadeInSeconds": 0.03,
+  "fadeOutSeconds": 0.25,
+  "runtimeDurationSeconds": 179.904,
+  "runtimePath": "StreamingAssets/NOVA/IndustrialPulseClub.mp3",
+  "runtimeSha256": "e9c285de0fb98ccbf6fdc3352239cda526043b4c0e93745c136b0bb4f6560d81",
+  "runtimeBytes": 4238324,
+  "fetchedOnFirstClubVisit": true,
+  "otherTracksSelected": false,
+  "runtimeAudioVerification": "PENDING_UNITY_WEBGL_TEST",
+  "note": "Original supplied by the owner in chat and explicitly selected for NOVA. No other library track is selected. Runtime audibility remains a separate Unity test."
+}

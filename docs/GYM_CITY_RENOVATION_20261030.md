@@ -46,3 +46,11 @@ Root: `/Braxhorn city/`. These are reported paths, not verified imports or licen
 - Commit `172952ab1e90e325c128e5d0c0cfa2c7f94de516`: upstream bag source hash changed; source integrity gate stopped before Unity.
 - Commit `646fb20880bb7d3926f6d464226ae6645a3fa2e3`: recovered the reviewed packed Blender derivative, verified its SHA-256 and exported byte-identical BagSwing/BagMount GLBs. Do not relax these checks to accept upstream replacements.
 - Run `41074406699`, first attempt: Unity package-cache failure for `com.unity.nuget.mono-cecil` before scene build. Retried the failed job on a fresh runner. No compiled or visually accepted combined build is asserted by these source changes.
+
+## Owner-approved NOVA music — Industrial Pulse
+
+The owner supplied `Industrial Pulse.mp3` and explicitly requested trimming its slow intro and installing it in NOVA. The source is preserved byte-for-byte at `asset-library/sources/audio/Industrial-Pulse.original.mp3` (SHA-256 `e373ea0c75c6d0dd5a1cdee6e481b97c11bf79ef0afd6253f2ead00834ae9455`). The club edit removes 27.70 seconds, with a 30 ms entry fade and a short end fade; runtime duration is approximately 179.9 seconds. `Cyber Agresor` remains unselected.
+
+`unity-tools/nova-audio/prepare.py` generates the MP3 under StreamingAssets. The real Unity city attaches one venue AudioSource and an audio controller to the existing player. It receives the existing pause/sound Command messages without editing BraxGymPlayer. Music is fetched on the first club visit, ramps down outside the hall/vestibule, pauses on mute/application pause and is disposed with the city scene. The original player, camera and controls are unchanged.
+
+`unity-tools/nova-audio/check.mjs` requires real browser audio output measured through a WebAudio analyser, tests mute/pause, leaving/re-entering NOVA and scene unload, and captures actual engine audio. Its position cuts are diagnostic and cannot be called a continuous walkthrough. Adding this track does not complete or accept NOVA's visual renovation.
