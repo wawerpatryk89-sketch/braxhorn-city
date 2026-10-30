@@ -1,0 +1,83 @@
+name: BRAXHORN CITY — publish isolated waterfront player after verified build
+on:
+  push:
+    branches: [codex/waterfront-recovery-20261030]
+    paths: ['.github/workflows/waterfront-isolated-publish.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Wait for exact isolated Unity build to finish successfully
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,time,json,urllib.request
+          run=41026420347
+          url=f'https://api.github.com/repos/wawerpatryk89-sketch/braxhorn-city/actions/runs/{run}'
+          for attempt in range(90):
+              req=urllib.request.Request(url,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(req,timeout=30) as response:data=json.load(response)
+              print('ISOLATED_BUILD',data['status'],data['conclusion'],flush=True)
+              if data['status']=='completed':
+                  if data['conclusion']!='success' or data['head_sha']!='ee68890dced8a3f90f8ba3958265e5d02c2ce6d7':
+                      raise RuntimeError('Isolated build failed or SHA mismatch; no preview')
+                  break
+              time.sleep(45)
+          else:raise RuntimeError('Build did not complete within review window')
+          PY
+      - name: Fetch exact isolated compiled Unity player
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 41026420347
+          github-token: ${{ github.token }}
+          name: waterfront-isolated-player-ee68890dced8a3f90f8ba3958265e5d02c2ce6d7
+          path: player/
+      - name: Verify single scene and publish immutable TEST-only branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,json,hashlib,base64,subprocess,re
+          from pathlib import Path
+          source='ee68890dced8a3f90f8ba3958265e5d02c2ce6d7'
+          branch='preview/waterfront-isolated-'+source[:12]
+          root=Path('player')
+          release=json.loads((root/'release.json').read_text())
+          city=json.loads((root/'city-migration.json').read_text())
+          if release.get('sourceCommit')!=source or release.get('productionPublication') is not False:
+              raise RuntimeError('Wrong source or production intent')
+          if city.get('scope')!='waterfront-only-review-no-estate' or len(city.get('areas',[]))!=1 or city['areas'][0]['area']!='city':
+              raise RuntimeError('Not the single-scene waterfront build')
+          transport=release['transport']
+          if transport['bytes']>=411757926:
+              raise RuntimeError('Isolated build not smaller than prior full city build')
+          for name,digest in release['files'].items():
+              if not re.fullmatch(r'[a-zA-Z0-9_./-]+',name) or '..' in name.split('/'):
+                  raise RuntimeError('Invalid player path')
+              f=root/name
+              if not f.is_file() or f.is_symlink() or hashlib.sha256(f.read_bytes()).hexdigest()!=digest:
+                  raise RuntimeError('Missing/altered Unity file '+name)
+          (root/'vercel.json').write_text(json.dumps({'framework':None,'buildCommand':'','installCommand':'','outputDirectory':'.'}))
+          (root/'robots.txt').write_text('User-agent: *\nDisallow: /\n')
+          (root/'ISOLATED-TEST.txt').write_text('BRAXHORN CITY isolated waterfront Unity player. Not visually or physically accepted. Source '+source+'\n')
+          token=os.environ.pop('GH_TOKEN');env=os.environ.copy()
+          env.update(GIT_CONFIG_COUNT='1',GIT_CONFIG_KEY_0='http.https://github.com/.extraheader',GIT_CONFIG_VALUE_0='AUTHORIZATION: basic '+base64.b64encode(('x-access-token:'+token).encode()).decode())
+          def git(*args,auth=False):
+              return subprocess.check_output(['git','-c','core.hooksPath=/dev/null',*args],cwd=root,env=env if auth else None,text=True).strip()
+          git('init','--initial-branch='+branch)
+          git('config','user.name','github-actions[bot]')
+          git('config','user.email','41898282+github-actions[bot]@users.noreply.github.com')
+          git('remote','add','origin','https://github.com/wawerpatryk89-sketch/braxhorn-city.git')
+          if git('ls-remote','--heads','origin','refs/heads/'+branch,auth=True):
+              raise RuntimeError('Immutable preview already exists')
+          git('add','--all')
+          git('commit','-m','preview(city): isolated Unity waterfront '+source[:12])
+          git('push','origin','HEAD:refs/heads/'+branch,auth=True)
+          print('ISOLATED_PREVIEW_PUBLISHED',branch,'compressedDataBytes',transport['bytes'],flush=True)
+          PY
