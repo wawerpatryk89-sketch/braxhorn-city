@@ -420,7 +420,7 @@ const game={
 window.__brxEstateUnity=game;
 const send=(action,payload)=>{
  if(!game.unity||!game.sourceReady)return;
- try {game.unity.SendMessage("ESTATE_PARTIAL_SOURCE_PREVIEW_NOT_ACCEPTED",action,String(payload));}
+ try {game.unity.SendMessage("BRAXHORN_ESTATE_ORIGINAL_MIGRATION",action,String(payload));}
  catch(e){console.warn("UNITY ESTATE INPUT:",e);}
 };
 const visible=(id,yes)=>{const el=$(id); if(el)el.hidden=!yes;};
