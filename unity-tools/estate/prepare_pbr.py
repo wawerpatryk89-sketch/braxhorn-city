@@ -101,6 +101,16 @@ for asset,meta in ASSETS.items():
           "providerMd5":digest,"sourceURL":url,"output":dest.relative_to(ROOT).as_posix(),
           "outputSha256":hashlib.sha256(image).hexdigest(),"width":dimensions[0],"height":dimensions[1],
           "outputBytes":len(image)})
+        if channel=="rough":
+            with Image.open(io.BytesIO(image)) as rough:
+                grayscale=rough.convert("L")
+                rgba=Image.new("RGBA",grayscale.size,(0,0,0,0))
+                rgba.putalpha(grayscale.point(lambda v:255-v))
+                metallic=OUT/(asset+"_metallic_gloss_1k.png")
+                rgba.save(metallic,format="PNG",optimize=True)
+                record["packedMetallicGloss"]={"path":metallic.relative_to(ROOT).as_posix(),
+                  "sha256":hashlib.sha256(metallic.read_bytes()).hexdigest(),
+                  "metallic":"R = 0", "smoothness":"A = 255 - official source roughness"}
     records.append(record)
     print("PBR_OFFICIAL_CC0_VERIFIED",asset,meta["role"],[x["channel"] for x in record["maps"]])
 report={"project":"BRAXHORN CITY R2 / ESTATE ONLY","source":"Poly Haven official public API",
@@ -109,5 +119,5 @@ report={"project":"BRAXHORN CITY R2 / ESTATE ONLY","source":"Poly Haven official
  "textureBudget":"max1024px per map; image maps only; optimized mobile Unity copies",
  "assets":records}
 (OUT/"estate-pbr-provenance.json").write_text(json.dumps(report,indent=2)+"\n")
-assert len(records)==6 and all(len(x["maps"])==3 for x in records)
+assert len(records)==6 and all(len(x["maps"])==3 and x.get("packedMetallicGloss") for x in records)
 print("ESTATE_PBR_COMPLETE",len(records),"assets",sum(p.stat().st_size for p in OUT.glob("*.png")),"bytes")
