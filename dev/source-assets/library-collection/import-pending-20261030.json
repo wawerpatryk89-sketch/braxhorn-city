@@ -1,12 +1,12 @@
 {
-  "status": "BLOCKED_NOT_IMPORTED",
+  "status": "PARTIAL_IMPORT",
   "date": "2026-10-30",
   "repository": "wawerpatryk89-sketch/braxhorn-city",
   "library_inventory_complete": true,
   "total_library_entries": 10392,
   "candidate_count": 907,
   "candidate_bytes": 35165926702,
-  "note": "Inventory only. No binary asset uploaded by this task. Archive contents have not been inspected. Duplicates are retained. Existing repository bytes have not been matched. git push failed: could not read Username for https://github.com.",
+  "note": "20 original binary assets uploaded. Git blob SHA verified against local bytes. Remaining items pending. Archives not yet inspected; no existing-repository byte matching performed.",
   "files": [
     {
       "library_file_id": "libfile_478eafb98f588191a2e216064cce9159",
@@ -75,8 +75,10 @@
       "library_file_id": "libfile_fd747eca4ac48191b0ff4b1ac39b8cf3",
       "path": "/Braxhorn city/Assety premium/residential_window.glb",
       "size_bytes": 518748,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "3cbfe92cac1c1ac55d933e3fe00d047838439dfb",
+      "target_path": "dev/source-assets/library-collection/files/Braxhorn city/Assety premium/residential_window.glb"
     },
     {
       "library_file_id": "libfile_efedf83e67f481919127f392e2fb01d6",
@@ -593,8 +595,10 @@
       "library_file_id": "libfile_be17b953f2948191bfbf595cd4ca44d7",
       "path": "/Braxhorn city/Asset Library/3D Models/Entertainment/Nightclub/dj_mixer.glb",
       "size_bytes": 241312,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "77b374fd9abe379d89b8c3aaac48c64d9a97cb82",
+      "target_path": "dev/source-assets/library-collection/files/Braxhorn city/Asset Library/3D Models/Entertainment/Nightclub/dj_mixer.glb"
     },
     {
       "library_file_id": "libfile_c8dc2d00b4b88191af1643e10a99e79b",
@@ -628,8 +632,10 @@
       "library_file_id": "libfile_4afb8e62db14819190c0ff59e0c469f1",
       "path": "/Braxhorn city/Asset Library/3D Models/Clubs/Lighting/laser_light.glb",
       "size_bytes": 277916,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "60e99071805608c041abd7fd95037fed99795d6e",
+      "target_path": "dev/source-assets/library-collection/files/Braxhorn city/Asset Library/3D Models/Clubs/Lighting/laser_light.glb"
     },
     {
       "library_file_id": "libfile_fcaf057b3dcc8191bf5ef2e165e53581",
@@ -2665,22 +2671,28 @@
       "library_file_id": "libfile_09d3cf5719808191800678cf1272598b",
       "path": "/Jab Cross - Copy.fbx",
       "size_bytes": 428048,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "24627897ca533b5d1818e57e7cc8ac7b49c3c6fb",
+      "target_path": "dev/source-assets/library-collection/files/Jab Cross - Copy.fbx"
     },
     {
       "library_file_id": "libfile_4fddad31b1f481918062cd4e55233299",
       "path": "/Kicking.fbx",
       "size_bytes": 427840,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "62a64331f2e57c39ed5f1180b7653add3724bf0f",
+      "target_path": "dev/source-assets/library-collection/files/Kicking.fbx"
     },
     {
       "library_file_id": "libfile_124178c061cc8191995a3c389fed0c43",
       "path": "/Kicking (2).fbx",
       "size_bytes": 376176,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "f91b5825647ede4a3d5f3c736dc9e9fcef9a301e",
+      "target_path": "dev/source-assets/library-collection/files/Kicking (2).fbx"
     },
     {
       "library_file_id": "libfile_903cc92cfb4481919c915e44d37d72be",
@@ -2693,8 +2705,10 @@
       "library_file_id": "libfile_c03f1e2b5330819194da91a06c11390e",
       "path": "/Center Block (2).fbx",
       "size_bytes": 380816,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "e3a36327ed09d95c0175b4287291191c436fdb4c",
+      "target_path": "dev/source-assets/library-collection/files/Center Block (2).fbx"
     },
     {
       "library_file_id": "libfile_2aef969eef088191b5edc4a9cdfc52b6",
@@ -2714,15 +2728,19 @@
       "library_file_id": "libfile_6e1e279567d081918c4bc48bdb5000bd",
       "path": "/Roundhouse Kick.fbx",
       "size_bytes": 429344,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "7bfb1f95c62663e818277e94c1f6ae5863d8a2be",
+      "target_path": "dev/source-assets/library-collection/files/Roundhouse Kick.fbx"
     },
     {
       "library_file_id": "libfile_e685e83bcca8819193c1816ed45c1047",
       "path": "/Illegal Elbow Punch.fbx",
       "size_bytes": 438272,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "1d18647474577deed5b17f31b5ce49a205e5dec4",
+      "target_path": "dev/source-assets/library-collection/files/Illegal Elbow Punch.fbx"
     },
     {
       "library_file_id": "libfile_8cc70fd2f0708191ac1258af0127a3f7",
@@ -3715,8 +3733,10 @@
       "library_file_id": "libfile_a10280c5ef4c8191b9995b7f5465651f",
       "path": "/Gra Braxhorn/Walking.fbx",
       "size_bytes": 529664,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "bf569d281d4d12da0adccd4baeb8f0135c98bc5d",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Walking.fbx"
     },
     {
       "library_file_id": "libfile_4158abdf621c81919d035f12eb110efd",
@@ -3729,8 +3749,10 @@
       "library_file_id": "libfile_1e70e85c237c819193cc9832051f0bd6",
       "path": "/Gra Braxhorn/Happy Walk.fbx",
       "size_bytes": 503968,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "b1704b825a7ff46c5a972d987ee77fb07442f6e3",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Happy Walk.fbx"
     },
     {
       "library_file_id": "libfile_6968b4a37c7c8191989321ff39ce6c01",
@@ -3841,8 +3863,10 @@
       "library_file_id": "libfile_2dbe6fa8b5c08191942952ffdc17af63",
       "path": "/Gra Braxhorn/Medium Step Forward (1).fbx",
       "size_bytes": 329696,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "adb36a300f399e3f7de510ee9cf17f95bc2af634",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Medium Step Forward (1).fbx"
     },
     {
       "library_file_id": "libfile_3312b7d708708191b31fa6d147710d35",
@@ -3869,8 +3893,10 @@
       "library_file_id": "libfile_4a69c3b40e0081918c85d4165505b798",
       "path": "/Gra Braxhorn/Fighting Idle.fbx",
       "size_bytes": 521984,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "9f0bf859c4b2e54c8bde72d1b8b0b8bff84641e0",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Fighting Idle.fbx"
     },
     {
       "library_file_id": "libfile_1e191cb03c648191a7089d8ab029708f",
@@ -3883,15 +3909,19 @@
       "library_file_id": "libfile_7a8c9b7274a88191b0ad1db4c65a5e56",
       "path": "/Gra Braxhorn/Kip Up (1).fbx",
       "size_bytes": 489616,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "79f4179d2324a246633edeb96610de3d00253246",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Kip Up (1).fbx"
     },
     {
       "library_file_id": "libfile_f5c8d0cc46808191ab7775442e3ede14",
       "path": "/Gra Braxhorn/Fighting Idle (1).fbx",
       "size_bytes": 521984,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "d79d273042618b0fd0c73c3febcf6014ae13a958",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Fighting Idle (1).fbx"
     },
     {
       "library_file_id": "libfile_e3f7013027408191888b1deea26e42ba",
@@ -3911,8 +3941,10 @@
       "library_file_id": "libfile_6ceeffd2858c81919b9ab9750635f2cb",
       "path": "/Gra Braxhorn/Breakdance Uprock Var 1 (1).fbx",
       "size_bytes": 495760,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "47337814d3bb7cec27e767ae54c20ac4ddf6d710",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Breakdance Uprock Var 1 (1).fbx"
     },
     {
       "library_file_id": "libfile_6211ad1089348191a012f669fcf34e0c",
@@ -3967,15 +3999,19 @@
       "library_file_id": "libfile_3ad1cdd0a99081918cc80a2b373276cc",
       "path": "/Gra Braxhorn/Punching.fbx",
       "size_bytes": 357280,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "9c197a28f0448672047323c2d7857d3bd304835f",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Punching.fbx"
     },
     {
       "library_file_id": "libfile_c71dd5edebc88191b1f829d7d5d7d1f6",
       "path": "/Gra Braxhorn/Step Backward(1).fbx",
       "size_bytes": 320128,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "2fc1a94e74aa755b64a8db67a499ba7a2eb561bd",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Step Backward(1).fbx"
     },
     {
       "library_file_id": "libfile_294d74bfc528819181a94892a78b7791",
@@ -4009,8 +4045,10 @@
       "library_file_id": "libfile_4a80e87458148191a7990675903a6f0d",
       "path": "/Gra Braxhorn/Center Block(1).fbx",
       "size_bytes": 453248,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "59bac4cdb7de0a305e32a04d97e19724561b348f",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Center Block(1).fbx"
     },
     {
       "library_file_id": "libfile_2717dbe57ac481918f97a6b9434355be",
@@ -4037,8 +4075,10 @@
       "library_file_id": "libfile_52c00dabbc108191adcea59ec11287ea",
       "path": "/Gra Braxhorn/Boxing.fbx",
       "size_bytes": 424784,
-      "status": "PENDING_BYTES_NOT_VERIFIED",
-      "classification": "asset_or_asset_documentation"
+      "status": "IMPORTED_GIT_BLOB_VERIFIED",
+      "classification": "asset_or_asset_documentation",
+      "git_blob_sha": "f464fc9559b6ff41b4acf2fef6d6bfc9545f159f",
+      "target_path": "dev/source-assets/library-collection/files/Gra Braxhorn/Boxing.fbx"
     },
     {
       "library_file_id": "libfile_f81f3180f12081918b4d3d650c5c21c3",
@@ -6357,5 +6397,7 @@
       "status": "PENDING_BYTES_NOT_VERIFIED",
       "classification": "archive_requires_content_check"
     }
-  ]
+  ],
+  "imported_file_count": 20,
+  "imported_bytes": 8466584
 }
