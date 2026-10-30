@@ -16,6 +16,34 @@ public static class BraxNutritionShopBuild
     static GameObject kit;
     static Shader interiorShader;
     static int materialSerial,productCount,shelfCount;
+    static readonly string[] RequiredParts={"WheyTub","CreatineJar","Shaker","ShelvingBay","Counter","DisplayIsland","LinearPendant","FloorTile"};
+    static Material KitMaterial(string name)
+    {
+        var source=kit.GetComponentsInChildren<MeshRenderer>(true).SelectMany(r=>r.sharedMaterials)
+            .Where(m=>m&&m.name==name).Distinct().SingleOrDefault();
+        if(!source||!source.HasProperty("baseColorTexture")||!source.GetTexture("baseColorTexture"))
+            throw new InvalidOperationException("Nutrition embedded material/map is unavailable: "+name);
+        return source;
+    }
+    // The kit embeds the exact source artwork/maps. Use those persistent
+    // glTFast textures, rather than inferring a second standalone importer.
+    public static void ValidateSources()
+    {
+        kit=AssetDatabase.LoadAssetAtPath<GameObject>(Source+"Models/NutritionKit.glb");
+        interiorShader=Shader.Find("Braxhorn/NutritionInteriorPBR");
+        if(!kit||!interiorShader)throw new InvalidOperationException("Actual authored Nutrition kit/shader not imported");
+        var names=kit.GetComponentsInChildren<Transform>(true).Select(t=>t.name).ToArray();
+        foreach(var name in RequiredParts)
+            if(names.Count(n=>n==name)!=1)throw new InvalidOperationException("Nutrition kit part is missing or ambiguous: "+name);
+        foreach(var name in new[]{"BH honed warm limestone furniture","BH satin oiled walnut joinery","BH wrap labels original atlas"})
+        {
+            var texture=KitMaterial(name).GetTexture("baseColorTexture");
+            if(!(texture is Texture2D)||texture.width<512||texture.height<512)
+                throw new InvalidOperationException("Nutrition embedded source map is not the expected Texture2D: "+name);
+            Debug.Log("NUTRITION_EMBEDDED_SOURCE_READY "+name+" texture="+texture.name+" size="+texture.width+"x"+texture.height);
+        }
+    }
+    static Material KitSurface(string name){return Interior(BraxCityMaterials.Imported(KitMaterial(name)));}
     [Serializable] sealed class Receipt
     {
         public string engine="Unity6",stage="whole-shop-awaiting-runtime-and-owner-acceptance";
@@ -110,9 +138,7 @@ public static class BraxNutritionShopBuild
         if(world.nutritionCounter)throw new InvalidOperationException("Duplicate Nutrition shop");
         if(!world.points.Any(p=>p.id=="shop_inside"))throw new InvalidOperationException("Original Nutrition anchor missing");
         Directory.CreateDirectory(Output);AssetDatabase.Refresh();converted.Clear();materialSerial=productCount=shelfCount=0;
-        kit=AssetDatabase.LoadAssetAtPath<GameObject>(Source+"Models/NutritionKit.glb");
-        interiorShader=Shader.Find("Braxhorn/NutritionInteriorPBR");
-        if(!kit||!interiorShader)throw new InvalidOperationException("Actual authored Nutrition kit/shader not imported");
+        ValidateSources();
         var cut=new Bounds(new Vector3(20.25f,2.60f,16.15f),new Vector3(11.36f,4.94f,9.06f));
         BraxCityMeshCut.Subtract(original,cut,Output+"/Cuts","nutrition_whole_interior");
         BraxCityMeshCut.SubtractBoxColliders(physics,cut);
@@ -121,12 +147,8 @@ public static class BraxNutritionShopBuild
         var dark=Finish("powder coated graphite",new Color(.075f,.09f,.095f),.58f,.25f);
         var metal=Finish("warm brushed metal",new Color(.47f,.37f,.23f),.42f,.7f);
         var seam=Finish("recessed stone joints",new Color(.27f,.27f,.25f),.96f);
-        var stone=Interior(BraxCityMaterials.Textured("Nutrition authored limestone",
-            AssetDatabase.LoadAssetAtPath<Texture2D>(Source+"Textures/LimestoneColour.jpg"),
-            AssetDatabase.LoadAssetAtPath<Texture2D>(Source+"Textures/LimestoneNormal.png"),
-            AssetDatabase.LoadAssetAtPath<Texture2D>(Source+"Textures/LimestoneARM.png")));
-        var art=Interior(BraxCityMaterials.Textured("Nutrition original brand print",
-            AssetDatabase.LoadAssetAtPath<Texture2D>(Source+"Textures/BraxhornProductAtlas.png"),null,null));
+        var stone=KitSurface("BH honed warm limestone furniture");
+        var art=KitSurface("BH wrap labels original atlas");
         var glass=Finish("clear warm shopfront glazing",new Color(.69f,.76f,.76f,.17f),.16f,.02f);
         Box("lowered floor joint bed",root,new Vector3(20.25f,.10f,16.2f),new Vector3(11.1f,.062f,8.8f),seam);
         PhysicsBox(root,"Nutrition continuous original-level floor",new Vector3(20.25f,.06f,16.2f),new Vector3(11.1f,.18f,8.8f));

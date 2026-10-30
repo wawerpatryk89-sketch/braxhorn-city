@@ -1,13 +1,11 @@
 name: Export genuine Unity6 Nutrition photos and phone video
 'on':
-  push:
-    branches: [codex/gym-city-renovation-20261030]
-    paths:
-      - .github/workflows/gym-city-nutrition-review.yml
-      - .github/scripts/nutrition_review_media.py
-      - .github/scripts/nutrition_review_check.mjs
-      - public/unity-gym/index.html
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Full compiled Nutrition TEST source commit
+        required: true
+        type: string
 permissions:
   contents: read
   actions: read
@@ -15,110 +13,83 @@ concurrency:
   group: braxhorn-nutrition-real-media-review
   cancel-in-progress: true
 env:
-  REVIEW_SOURCE: 7ee178ab5f688748e0f17bfd3b69cd2a6b937783
-  REVIEW_RUN: '41098711225'
+  REVIEW_SOURCE: ${{ inputs.source }}
 jobs:
   actual-evidence:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/gym-city-renovation-20261030'
     runs-on: ubuntu-latest
     timeout-minutes: 130
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          sparse-checkout: .github/scripts
-          persist-credentials: false
-      - name: Wait for the existing real Unity build and player evidence without rebuilding
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 .github/scripts/nutrition_review_media.py wait
-  runtime:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: .github/scripts
+        persist-credentials: false
+    - name: Wait for the existing real Unity build and player evidence without rebuilding
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 .github/scripts/nutrition_review_media.py wait
+      id: wait
+    outputs:
+      run: ${{ steps.wait.outputs.run }}
+  photos:
     needs: actual-evidence
     runs-on: ubuntu-latest
-    timeout-minutes: 35
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          sparse-checkout: |
-            .github/scripts
-            public/unity-gym
-          persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 41098711225
-          github-token: ${{ github.token }}
-          name: gym-city-renovation-player-7ee178ab5f688748e0f17bfd3b69cd2a6b937783
-          path: unity-preview
-      - name: Apply only the verified Nutrition phone action to the actual compiled player
-        run: python3 .github/scripts/nutrition_review_media.py prepare
-      - name: Prepare genuine player execution and phone recording
-        run: |
-          npm install --no-save --ignore-scripts playwright@1.56.1
-          npx playwright install --with-deps chromium
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends ffmpeg
-      - name: Enter the real shop and replenish the actual resource through the phone action
-        run: node .github/scripts/nutrition_review_check.mjs
-      - name: Preserve genuine Nutrition gameplay and the actual phone entry identity
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: nutrition-complete-runtime-review-${{ github.sha }}
-          path: |
-            nutrition-review/
-            unity-preview/release.json
-            unity-preview/nutrition-shop.json
-          retention-days: 14
-          if-no-files-found: warn
-  photos:
-    needs: runtime
-    if: always() && !cancelled() && needs.runtime.result != 'skipped'
-    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          sparse-checkout: .github/scripts
-          persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          name: nutrition-complete-runtime-review-${{ github.sha }}
-          path: actual-evidence
-      - name: Transfer original Unity screenshots and retain actual QA failures
-        run: python3 .github/scripts/nutrition_review_media.py photos
-      - name: Retain original phone review photos and runtime report
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: nutrition-actual-Unity-photos-7ee178ab5f68
-          path: nutrition-phone-review/
-          retention-days: 14
-          if-no-files-found: warn
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: .github/scripts
+        persist-credentials: false
+    - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: ${{ needs.actual-evidence.outputs.run }}
+        github-token: ${{ github.token }}
+        name: nutrition-priority-review-${{ env.REVIEW_SOURCE }}
+        path: actual-evidence
+    - name: Transfer original Unity screenshots and retain actual QA failures
+      run: python3 .github/scripts/nutrition_review_media.py photos
+    - name: Retain original phone review photos and runtime report
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: nutrition-actual-Unity-photos-${{ env.REVIEW_SOURCE }}
+        path: nutrition-phone-review/
+        retention-days: 14
+        if-no-files-found: warn
+    env:
+      REVIEW_RUN: ${{ needs.actual-evidence.outputs.run }}
   video:
-    needs: runtime
-    if: always() && !cancelled() && needs.runtime.result != 'skipped'
+    needs: actual-evidence
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          sparse-checkout: .github/scripts
-          persist-credentials: false
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          name: nutrition-complete-runtime-review-${{ github.sha }}
-          path: actual-evidence
-      - name: Prepare encoding of actual captured player footage
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends ffmpeg
-      - name: Transfer actual unretouched 45-second counter excerpt and runtime result
-        run: python3 .github/scripts/nutrition_review_media.py video
-      - name: Retain actual phone review video and runtime report
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: nutrition-actual-Unity-video-7ee178ab5f68
-          path: nutrition-phone-review/
-          retention-days: 14
-          if-no-files-found: warn
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: .github/scripts
+        persist-credentials: false
+    - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: ${{ needs.actual-evidence.outputs.run }}
+        github-token: ${{ github.token }}
+        name: nutrition-priority-review-${{ env.REVIEW_SOURCE }}
+        path: actual-evidence
+    - name: Prepare encoding of actual captured player footage
+      run: 'sudo apt-get update -qq
+
+        sudo apt-get install -y --no-install-recommends ffmpeg
+
+        '
+    - name: Transfer actual unretouched 45-second counter excerpt and runtime result
+      run: python3 .github/scripts/nutrition_review_media.py video
+    - name: Retain actual phone review video and runtime report
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: nutrition-actual-Unity-video-${{ env.REVIEW_SOURCE }}
+        path: nutrition-phone-review/
+        retention-days: 14
+        if-no-files-found: warn
+    env:
+      REVIEW_RUN: ${{ needs.actual-evidence.outputs.run }}

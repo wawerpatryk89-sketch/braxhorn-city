@@ -21,7 +21,7 @@ const server=http.createServer((req,res)=>{
   res.setHeader('Content-Length',fs.statSync(file).size);fs.createReadStream(file).pipe(res);
  }catch{res.writeHead(404);res.end();}
 });
-let browser,context,page,video,videoStarted,routeStart,routeEnd;
+let browser,context,page,video,videoStarted,routeStart,routeEnd,phoneCounterActionTapped=false;
 const check=(name,ok,data)=>{checks.push({name,passed:!!ok,data});console.log((ok?'PASS ':'FAIL ')+name);if(!ok)throw Error(name);};
 const send=(method,arg='')=>page.evaluate(([m,a])=>window.BraxSend(m,a),[method,arg]);
 const player=()=>page.evaluate(()=>window.BraxhornState);
@@ -69,7 +69,7 @@ try{
  await walkTo(26,23.35,'Actual movement along the street kerb');await shot('01-frontage-after-movement');
  await at('shop_door');await fixture(35);
  await until(()=>window.BraxhornState.context.includes('BRAXHORN NUTRITION'));
- const beforeDoor=await energy();await send('Command','action');
+ const beforeDoor=await energy();await page.locator('#action').tap();
  await until(()=>window.BraxhornState.openDoors>0);
  check('Opening the shop door does not replenish energy',(await energy()).refills===beforeDoor.refills&&Math.abs((await energy()).energy-35)<.01,await energy());
  await walkTo(20.7,18.8,'Enter Nutrition through the actual open door');
@@ -78,10 +78,12 @@ try{
  await until(()=>window.BraxhornNutritionState.inRange&&window.BraxhornState.context.includes('UZUPEŁNIJ ENERGIĘ'));
  check('Actual running expenditure updates fighter energy',(await energy()).energy<35,await energy());
  await shot('03-counter-before-regeneration');
- const beforeRefill=await energy();await send('Command','action');
+ check('Phone action is visible and enabled at the real counter',await page.locator('#action').isVisible()&&!await page.locator('#action').isDisabled()&&await page.locator('#action').innerText()==='UZUPEŁNIJ ENERGIĘ');
+ const beforeRefill=await energy();await page.locator('#action').tap();phoneCounterActionTapped=true;
  await until(()=>window.BraxhornNutritionState.energy===window.BraxhornNutritionState.maximum);
  check('Counter restores the actual fighter resource',(await energy()).refills===beforeRefill.refills+1,await energy());
  await shot('04-counter-after-regeneration');
+ check('Full energy is clearly shown on the phone button',await page.locator('#action').isVisible()&&await page.locator('#action').isDisabled()&&await page.locator('#action').innerText()==='ENERGIA PEŁNA');
  const full=await energy();await send('Command','action');await page.waitForTimeout(600);
  check('Repeat activation at full energy has no extra gain',(await energy()).energy===full.maximum&&(await energy()).refills===full.refills,await energy());
  routeEnd=Date.now();
@@ -92,7 +94,7 @@ try{
  await at('shop_inside');await fixture(35);const away=await energy();
  await send('Command','action');await page.waitForTimeout(600);
  check('Action outside counter range cannot regenerate',!(await energy()).inRange&&(await energy()).energy===35&&(await energy()).refills===away.refills,await energy());
- await view('22.0,0.15,18.8,25,17,4.5');await shot('05-products-and-retail-finish');
+ await view('21.8,0.15,15.8,20,17,4.4');await shot('05-products-and-retail-finish');
  await at('closed_estate');await send('Command','action');await until(()=>window.BraxhornState.area==='estate',null,180000);
  check('Energy persists when entering the estate',(await energy()).energy===35,await energy());
  await view('0,0.08,92,0,19,5.8');await send('Command','action');await until(()=>window.BraxhornState.area==='city',null,180000);
@@ -117,9 +119,9 @@ finally{
   }
  }
  fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({sourceCommit:release.sourceCommit,checks,errors,segments,cuts,
-  passed:checks.length>=12&&checks.every(c=>c.passed)&&errors.length===0,
+  passed:checks.length>=14&&checks.every(c=>c.passed)&&errors.length===0,
   diagnosticPositionAndEnergyFixtures:true,continuousEntireVideo:false,actualMovementWithinNamedLegs:true,
-  videoHasAudio:false,physicalPhoneValidated:false,visualAcceptance:'REQUIRES_OWNER_REVIEW',
+  videoHasAudio:false,phoneCounterActionTapped,physicalPhoneValidated:false,visualAcceptance:'REQUIRES_OWNER_REVIEW',
   flickerReview:'Inspect actual moving and stationary frontage/kerb footage; no automated absence-of-flicker claim.',
   prototypeEnergyCosts:{runningPerMetre:.12,trainingHit:1.5,movementAndCombatPenaltiesAdded:false}},null,2));
 }

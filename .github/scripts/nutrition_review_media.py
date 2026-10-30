@@ -17,11 +17,13 @@ import time
 import urllib.request
 
 REPOSITORY = "wawerpatryk89-sketch/braxhorn-city"
-SOURCE = os.environ.get("REVIEW_SOURCE", "7ee178ab5f688748e0f17bfd3b69cd2a6b937783")
-RUN = int(os.environ.get("REVIEW_RUN", "41098711225"))
-ARTIFACT = "gym-city-renovation-review-" + SOURCE
+SOURCE = os.environ["REVIEW_SOURCE"]
+if len(SOURCE) != 40 or any(c not in "0123456789abcdef" for c in SOURCE):
+    raise ValueError("Actual Nutrition review requires a full source commit SHA")
+RUN = int(os.environ["REVIEW_RUN"]) if os.environ.get("REVIEW_RUN") else None
+ARTIFACT = "nutrition-priority-review-" + SOURCE
 PLAYER_ARTIFACT = "gym-city-renovation-player-" + SOURCE
-ROOT = Path("actual-evidence")
+ROOT = Path(os.environ.get("REVIEW_EVIDENCE_ROOT", "actual-evidence"))
 OUTPUT = Path("nutrition-phone-review")
 
 
@@ -40,8 +42,17 @@ def api(path: str) -> dict:
 
 
 def wait_for_artifact() -> None:
+    global RUN
     deadline = time.monotonic() + 125 * 60
     while time.monotonic() < deadline:
+        if RUN is None:
+            runs = api("/actions/runs?head_sha=" + SOURCE + "&per_page=30")["workflow_runs"]
+            run = next((r for r in runs if r["head_sha"] == SOURCE and r.get("path") == ".github/workflows/gym-city-renovation.yml"), None)
+            if run is None:
+                print("WAITING_FOR_ACTUAL_SOURCE_WORKFLOW " + SOURCE, flush=True)
+                time.sleep(30)
+                continue
+            RUN = run["id"]
         run = api(f"/actions/runs/{RUN}")
         if run["head_sha"] != SOURCE:
             raise RuntimeError("Review source differs from the actual Unity run")
@@ -54,6 +65,8 @@ def wait_for_artifact() -> None:
                 "runStatus": run["status"], "runConclusion": run["conclusion"],
                 "artifactAvailabilityIsNotQAAcceptance": True,
             }), flush=True)
+            with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+                output.write("run=" + str(RUN) + "\n")
             return
         if run["status"] == "completed":
             raise RuntimeError("Unity run ended without its actual review and player artifacts: " + str(run["conclusion"]))
@@ -62,37 +75,6 @@ def wait_for_artifact() -> None:
         }), flush=True)
         time.sleep(45)
     raise TimeoutError("Actual Unity evidence did not become available within the review window")
-
-
-def prepare_mobile_entry() -> None:
-    root = Path("unity-preview")
-    release = json.loads((root / "release.json").read_text())
-    if release.get("sourceCommit") != SOURCE or release.get("unityVersion") != "6000.0.58f2":
-        raise RuntimeError("Mobile review must use the actual expected compiled Unity 6 player")
-    if not release.get("nutritionInstalled"):
-        raise RuntimeError("The actual compiled player has no Nutrition installation receipt")
-    entry = root / "index.html"
-    original = entry.read_text()
-    template = Path("public/unity-gym/index.html").read_text()
-    old = "  action.style.display=context.includes('DRZWI')||context.includes('OSIEDLE')||context.includes('WRÓĆ DO MIASTA')?'block':'none';action.textContent=context;"
-    start = template.index("  const refuel=context.startsWith('UZUPEŁNIJ ENERGIĘ')")
-    end = template.index("\n  document.querySelector('#hint')", start)
-    replacement = template[start:end]
-    if original.count(old) != 1 or "action.disabled=full" not in replacement:
-        raise RuntimeError("Expected Nutrition-only mobile action patch no longer matches the entry")
-    patched = original.replace(old, replacement, 1)
-    entry.write_text(patched)
-    patch = {
-        "compiledSourceCommit": SOURCE, "presentationCommit": os.environ["GITHUB_SHA"],
-        "scope": "Show the real Nutrition action on the existing phone button",
-        "originalEntrySha256": hashlib.sha256(original.encode()).hexdigest(),
-        "patchedEntrySha256": hashlib.sha256(patched.encode()).hexdigest(),
-        "compiledUnityBytesChanged": False, "productionChanged": False,
-    }
-    release["presentationPatch"] = patch
-    release["files"]["index.html"] = patch["patchedEntrySha256"]
-    (root / "release.json").write_text(json.dumps(release, indent=2) + "\n")
-    print("NUTRITION_MOBILE_ENTRY_PREPARED " + json.dumps(patch), flush=True)
 
 
 def review_report() -> dict:
@@ -182,13 +164,10 @@ def video() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=["wait", "prepare", "photos", "video"])
+    parser.add_argument("mode", choices=["wait", "photos", "video"])
     mode = parser.parse_args().mode
     if mode == "wait":
         wait_for_artifact()
-        return 0
-    if mode == "prepare":
-        prepare_mobile_entry()
         return 0
     return photos() if mode == "photos" else video()
 

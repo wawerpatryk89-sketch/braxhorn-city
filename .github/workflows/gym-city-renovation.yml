@@ -58,6 +58,8 @@ jobs:
 
           public/unity-gym
 
+          .github/scripts
+
           asset-library/sources/sofa_02
 
 
@@ -161,9 +163,31 @@ jobs:
         buildMethod: BraxGymBuild.BuildRenovation
         versioning: None
         allowDirtyBuild: true
+    - name: Verify actual Unity player output and complete Nutrition receipt
+      run: |
+        python3 - <<'PY'
+        import json,os,pathlib
+        root=pathlib.Path('build/WebGL')
+        identity=json.loads((root/'playable.json').read_text())
+        assert identity['commit']==os.environ['GITHUB_SHA'] and identity['unity']=='6000.0.58f2'
+        for pattern in ('*.loader.js','*.data*','*.framework.js*','*.wasm*'):
+            files=list((root/'Build').glob(pattern))
+            assert len(files)==1 and files[0].stat().st_size>0,(pattern,files)
+        receipt=json.loads(pathlib.Path('unity-city/Assets/PlayableGenerated/Nutrition/shop-receipt.json').read_text())
+        assert receipt['installedProducts']>=130 and receipt['installedShelvingBays']==8
+        print('ACTUAL_UNITY6_NUTRITION_PLAYER_OUTPUT_VERIFIED',identity['commit'],receipt['installedProducts'])
+        PY
     - name: Package separate test player with the current iOS streaming loader
       id: package
       run: python3 unity-tools/kickboxing/package.py
+    - name: Preserve compiled test player for immediate Nutrition review
+      if: always() && !cancelled() && steps.package.outcome == 'success'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: gym-city-renovation-player-${{ github.sha }}
+        path: unity-preview/
+        if-no-files-found: error
+        retention-days: 14
     - name: Prepare real browser execution
       id: browser
       run: 'npm install --no-save --ignore-scripts playwright@1.56.1
@@ -171,11 +195,40 @@ jobs:
         npx playwright install --with-deps chromium
 
         '
-    - name: Verify actual NOVA music output, club-only playback, pause, mute and scene cleanup
-      run: node unity-tools/nova-audio/check.mjs
     - name: Verify the complete Nutrition shop, real energy refill and district persistence
+      id: nutrition
       if: always() && !cancelled() && steps.package.outcome == 'success' && steps.browser.outcome == 'success'
       run: node unity-tools/nutrition/check.mjs
+    - name: Preserve Nutrition photos and film before testing other locations
+      if: always() && !cancelled() && steps.package.outcome == 'success' && steps.browser.outcome == 'success'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: nutrition-priority-review-${{ github.sha }}
+        path: |
+          nutrition-review/
+          unity-preview/release.json
+          unity-preview/nutrition-shop.json
+          build/WebGL/playable.json
+          nutrition-asset-review/source-audit.json
+        if-no-files-found: error
+        retention-days: 14
+    - name: Expose genuine Nutrition screenshots to the owner review connector
+      if: always() && !cancelled() && steps.package.outcome == 'success' && steps.browser.outcome == 'success'
+      env:
+        REVIEW_SOURCE: ${{ github.sha }}
+        REVIEW_RUN: ${{ github.run_id }}
+        REVIEW_EVIDENCE_ROOT: .
+      run: python3 .github/scripts/nutrition_review_media.py photos
+    - name: Expose genuine Nutrition phone video to the owner review connector
+      if: always() && !cancelled() && steps.package.outcome == 'success' && steps.browser.outcome == 'success'
+      env:
+        REVIEW_SOURCE: ${{ github.sha }}
+        REVIEW_RUN: ${{ github.run_id }}
+        REVIEW_EVIDENCE_ROOT: .
+      run: python3 .github/scripts/nutrition_review_media.py video
+    - name: Verify actual NOVA music output, club-only playback, pause, mute and scene cleanup
+      if: always() && !cancelled() && steps.package.outcome == 'success' && steps.browser.outcome == 'success'
+      run: node unity-tools/nova-audio/check.mjs
     - name: Exercise the actual Unity room, training, mirrors, backrooms and city return
       if: always() && !cancelled() && steps.package.outcome == 'success' && steps.browser.outcome == 'success'
       env:
@@ -211,6 +264,8 @@ jobs:
 
           nutrition-review/
 
+          nutrition-phone-review/
+
           nutrition-asset-review/source-audit.json
 
           unity-city/Assets/PlayableGenerated/Nutrition/shop-receipt.json
@@ -218,14 +273,6 @@ jobs:
           unity-city/Assets/StreamingAssets/NOVA/provenance.json
 
           '
-        if-no-files-found: warn
-        retention-days: 14
-    - name: Preserve compiled test player without replacing production
-      if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-      with:
-        name: gym-city-renovation-player-${{ github.sha }}
-        path: unity-preview/
         if-no-files-found: warn
         retention-days: 14
     needs: source-imports
