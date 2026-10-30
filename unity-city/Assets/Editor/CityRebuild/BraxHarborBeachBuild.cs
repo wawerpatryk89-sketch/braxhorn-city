@@ -219,6 +219,7 @@ public static class BraxHarborBeachBuild
         VerifySource();
         var previous=cityRoot.Find(RootName);
         if(previous)UnityEngine.Object.DestroyImmediate(previous.gameObject);
+        if(AssetDatabase.IsValidFolder(Generated))AssetDatabase.DeleteAsset(Generated);
         Directory.CreateDirectory(Generated);
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
 
@@ -259,7 +260,7 @@ public static class BraxHarborBeachBuild
         baseCollider.size=new Vector3(5,.65f,5);
 
         var tower=Place(root,"lifeguard_tower.glb","Real lifeguard observation tower",
-              new Vector3(76,.15f,138),6.6f,30);
+              new Vector3(74,BeachY(74,138,dryDisp),138),6.6f,30);
         StaticMeshCollision(tower);
 
         var meshs=root.GetComponentsInChildren<MeshRenderer>(true);
