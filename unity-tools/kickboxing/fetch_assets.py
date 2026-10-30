@@ -7,6 +7,7 @@ import hashlib
 import io
 import json
 import pathlib
+import os
 import urllib.request
 from PIL import Image
 
@@ -58,11 +59,22 @@ def main():
     polyhaven_maps('rubber_tiles', 'Rubber', '1k', 'Amal Kumar / Poly Haven')
     model('compact-wc-close-coupled-toilet-84214efd', 'Toilet.glb')
     model('basin-pedestal-sink-cabinet-81678fc4', 'Sink.glb')
-    save_source({'url': 'https://www.innerscene.com/api/library/boxing-gloves-and-bag-e3d766bc/download',
-                 'sha256': '70676b234ba42882e05f1dc31c42b5c248c046904b586eab18991080b016df8b'},
-                ROOT / 'build-source/BoxingBagSource.glb',
-                'https://www.innerscene.com/tools/library/3d-parts/boxing-gloves-and-bag-e3d766bc',
-                'Innerscene', 'https://www.innerscene.com/tools/library/terms')
+    if os.environ.get('BRAXHORN_RESTORE_REVIEWED_BAG') == '1':
+        blend = ROOT / 'reviewed-gym-source/kickboxing-review/bag-source/bag-refined-before-export.blend'
+        if hashlib.sha256(blend.read_bytes()).hexdigest() != '37b70dbd08cd1966e2add2e71b24b96b14e001133f40ce2661648eb608a12e9f':
+            raise RuntimeError('Exact reviewed packed bag derivative is missing or changed')
+        RECEIPT.append({'file': str(blend.relative_to(ROOT)), 'bytes': blend.stat().st_size,
+            'sha256': hashlib.sha256(blend.read_bytes()).hexdigest(),
+            'source': 'GitHub Actions run 40897925601, unity-kickboxing-review-b2279bd24f7ce1660160c6fc3af119e9820a32f9',
+            'originalSourceSha256': '70676b234ba42882e05f1dc31c42b5c248c046904b586eab18991080b016df8b',
+            'license': 'CC0-1.0; original project branding',
+            'validation': 'exact output GLB byte checks run after Blender export'})
+    else:
+        save_source({'url': 'https://www.innerscene.com/api/library/boxing-gloves-and-bag-e3d766bc/download',
+                     'sha256': '70676b234ba42882e05f1dc31c42b5c248c046904b586eab18991080b016df8b'},
+                    ROOT / 'build-source/BoxingBagSource.glb',
+                    'https://www.innerscene.com/tools/library/3d-parts/boxing-gloves-and-bag-e3d766bc',
+                    'Innerscene', 'https://www.innerscene.com/tools/library/terms')
     # Exact project-owned pixels, losslessly re-encoded for Unity's importer.
     for source_name, target_name in [('mark.webp', 'Mark.png'), ('wide_a.webp', 'Wordmark.png')]:
         source_path = ROOT / 'public/assets/logo' / source_name

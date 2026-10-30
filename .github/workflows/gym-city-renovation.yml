@@ -75,6 +75,14 @@ jobs:
         github-token: ${{ github.token }}
         name: city-rebuild-curated-extended-3c98ccd919409da59d8145c0171b0776bc65b93d
         path: unity-city/Assets/
+    - name: Recover exact reviewed packed bag derivative instead of changed vendor response
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: 40897925601
+        github-token: ${{ github.token }}
+        name: unity-kickboxing-review-b2279bd24f7ce1660160c6fc3af119e9820a32f9
+        path: reviewed-gym-source/
     - name: Prepare unchanged player and current source assets
       run: 'mkdir -p kickboxing-review
 
@@ -100,6 +108,8 @@ jobs:
         python3 unity-tools/city-rebuild/check_brand_sources.py
 
         '
+      env:
+        BRAXHORN_RESTORE_REVIEWED_BAG: '1'
     - name: Reproduce the reviewed CC0-derived bags with pinned Blender
       run: 'curl --fail --location --retry 3 --output /tmp/blender-4.2.3-linux-x64.tar.xz https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
 
@@ -111,8 +121,8 @@ jobs:
         /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend
         --python unity-tools/export_library_sofa.py
 
-        /tmp/blender-4.2.3-linux-x64/blender --background --factory-startup --disable-autoexec -t 4 --python unity-tools/kickboxing/prepare_bag.py
-        -- --source build-source/BoxingBagSource.glb --skip-render --preview-dir kickboxing-review/bag-source
+        /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec reviewed-gym-source/kickboxing-review/bag-source/bag-refined-before-export.blend
+        --python unity-tools/kickboxing/restore_reviewed_bag.py
 
         python3 unity-tools/kickboxing/externalize_models.py --remove-source
 
