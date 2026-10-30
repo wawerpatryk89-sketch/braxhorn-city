@@ -1,0 +1,166 @@
+{
+  "engine": "Unity 6.0.58f2; glTFast 6.20.0 (existing Braxhorn City project)",
+  "branch": "codex/harbor-beach-unity6-isolated-20261030",
+  "scene_authoring_script": "unity-city/Assets/Editor/CityRebuild/BraxHarborBeachBuild.cs",
+  "source_type": "Original user-owned library 3D GLB plus Poly Haven PBR textures",
+  "artifacts": [
+    {
+      "file": "Assets/Source/HarborBeach/Models/yacht.glb",
+      "sha256": "e211db24777c7a81b9bb9ea2be3a307dfbb9a18bfc4d671ec57404109487090c",
+      "bytes": 7626288,
+      "mesh_count": 1,
+      "triangles": 8534,
+      "source_author": "Sergei",
+      "source_url": "https://sketchfab.com/3d-models/yacht-0dd451f295d049cea20c17d3ffa87ee3",
+      "source_license": "CC BY 4.0 (from original GLB metadata)",
+      "commercial_attribution_required": true,
+      "geometry_source": "Original user library: no generated replacement geometry"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Models/bateau_riva_boat.glb",
+      "sha256": "60c88ed7162008cd486f7a2b6aa1cef1d9ae833b85a04c1c145966e1a2788a86",
+      "bytes": 20432372,
+      "mesh_count": 106,
+      "triangles": 326068,
+      "source_author": "Configcars / maxipub",
+      "source_url": "https://sketchfab.com/3d-models/bateau-riva-boat-91f0f11ba42b4000abf788d54d73b9b1",
+      "source_license": "CC BY 4.0 (from original GLB metadata)",
+      "commercial_attribution_required": true,
+      "geometry_source": "Original user library: no generated replacement geometry"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Models/jetski_01.glb",
+      "sha256": "de0663c37cb1a6a61ee0001a072c664ebd885851bb12bbc4ba585d6929354fed",
+      "bytes": 5675116,
+      "mesh_count": 7,
+      "triangles": 50000,
+      "source_author": "Jungle Jim",
+      "source_url": "https://sketchfab.com/3d-models/jetski-collection-d261f758b40c45fdb03ddb57fe89a59e",
+      "source_license": "CC BY 4.0 (from original GLB metadata)",
+      "commercial_attribution_required": true,
+      "geometry_source": "Original user library: no generated replacement geometry"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Models/jetski_02.glb",
+      "sha256": "aa2e86c0fa76ea059e9a97b67f8edd0ad4a09bc7b8629cfd7e6cc14a79cc34ea",
+      "bytes": 5736716,
+      "mesh_count": 6,
+      "triangles": 50000,
+      "source_author": "Jungle Jim",
+      "source_url": "https://sketchfab.com/3d-models/jetski-collection-d261f758b40c45fdb03ddb57fe89a59e",
+      "source_license": "CC BY 4.0 (from original GLB metadata)",
+      "commercial_attribution_required": true,
+      "geometry_source": "Original user library: no generated replacement geometry"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Models/harbor_crane.glb",
+      "sha256": "15e99914b807ff31dfd34d769a98573ab92e1c49751a7f5ad3d5f71e0597f0e7",
+      "bytes": 44993620,
+      "mesh_count": 9,
+      "triangles": 255362,
+      "source_author": "MisterH",
+      "source_url": "https://sketchfab.com/3d-models/harbor-crane-d4d582ebd707426f93f1f5a9cdd0ce03",
+      "source_license": "CC BY 4.0 (from original GLB metadata)",
+      "commercial_attribution_required": true,
+      "geometry_source": "Original user library: no generated replacement geometry"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Models/rustic_wooden_dock.glb",
+      "sha256": "b85558e57a9619dd0b32be5e31ebb6ce3940894e2a476d84d898638a8d2e5a15",
+      "bytes": 10289180,
+      "mesh_count": 16,
+      "triangles": 24816,
+      "source_author": "Evan16",
+      "source_url": "https://sketchfab.com/3d-models/rustic-wooden-dock-a2d3be37c4184bc79480912a625a50f1",
+      "source_license": "CC BY 4.0 (from original GLB metadata)",
+      "commercial_attribution_required": true,
+      "geometry_source": "Original user library: no generated replacement geometry"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Models/lifeguard_tower.glb",
+      "sha256": "33429272320249f84d705fb80897348d9828012058b44a123fc9ad49aeba1cfe",
+      "bytes": 33920420,
+      "mesh_count": 6,
+      "triangles": 22021,
+      "source_author": "exiS7-Gs",
+      "source_url": "https://sketchfab.com/3d-models/lifeguard-tower-8707a73922004d5f8b67088b91a7a393",
+      "source_license": "CC BY 4.0 (from original GLB metadata)",
+      "commercial_attribution_required": true,
+      "geometry_source": "Original user library: no generated replacement geometry"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Textures/coast_sand_02_diff_2k.jpg",
+      "sha256": "1f2c19d46b15e1e2834f9d5af35ae1814ec6267d43ef125b58a708ab53ed0dc0",
+      "bytes": 1997006,
+      "source_author": "Poly Haven",
+      "source_license": "CC0",
+      "derived_from": "Original owner library 4K sand texture; image resize / PBR repack, not generated imagery"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Textures/coast_sand_02_nor_2k.png",
+      "sha256": "7a188c7645786905425691e52903776a9286dfa5c5a94856989de9f6602a3eff",
+      "bytes": 9269480,
+      "source_author": "Poly Haven",
+      "source_license": "CC0",
+      "derived_from": "Original owner library 4K sand texture; image resize / PBR repack, not generated imagery"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Textures/coast_sand_02_metal_smooth_2k.png",
+      "sha256": "f95eec74532f5f378847306afeefb0e960b8cbf383c9c4721fc359aee17fbbfe",
+      "bytes": 3056457,
+      "source_author": "Poly Haven",
+      "source_license": "CC0",
+      "derived_from": "Original owner library 4K sand texture; image resize / PBR repack, not generated imagery"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Textures/coast_sand_02_disp_2k.png",
+      "sha256": "1636522281b6c64bbb119553ee1ea3b9564613085992b611591137c936d2d272",
+      "bytes": 1491704,
+      "source_author": "Poly Haven",
+      "source_license": "CC0",
+      "derived_from": "Original owner library 4K sand texture; image resize / PBR repack, not generated imagery"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Textures/damp_sand_diff_2k.jpg",
+      "sha256": "c88d4acf0ae0b432b1f8473e3859c78508fbf8e41b79b3854062a5a037657297",
+      "bytes": 2293166,
+      "source_author": "Poly Haven",
+      "source_license": "CC0",
+      "derived_from": "Original owner library 4K sand texture; image resize / PBR repack, not generated imagery"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Textures/damp_sand_nor_2k.png",
+      "sha256": "ad5bcb7048592a198477349de1e1003186cf3e572198fd6c6f6962513fe97488",
+      "bytes": 10415906,
+      "source_author": "Poly Haven",
+      "source_license": "CC0",
+      "derived_from": "Original owner library 4K sand texture; image resize / PBR repack, not generated imagery"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Textures/damp_sand_metal_smooth_2k.png",
+      "sha256": "6adbac6dc5ebaa8ae18120460095740aa2c727588310b43350b0ff2a32261f37",
+      "bytes": 3845595,
+      "source_author": "Poly Haven",
+      "source_license": "CC0",
+      "derived_from": "Original owner library 4K sand texture; image resize / PBR repack, not generated imagery"
+    },
+    {
+      "file": "Assets/Source/HarborBeach/Textures/damp_sand_disp_2k.png",
+      "sha256": "5371748c69591b030f29f220183286bf5a8b82283f3290def43f1fb11955b957",
+      "bytes": 1770649,
+      "source_author": "Poly Haven",
+      "source_license": "CC0",
+      "derived_from": "Original owner library 4K sand texture; image resize / PBR repack, not generated imagery"
+    }
+  ],
+  "excluded_asset": {
+    "file": "dock_pier.glb",
+    "reason": "Contents contain VoodooHut mesh, not the wanted lifeguard station. Do not import."
+  },
+  "status": "ASSET_PACKAGE_PREPARED_NOT_COMPILED_IN_UNITY6_NOT_VISUALLY_ACCEPTED",
+  "required_environment_gate": "BRAX_HARBOR_BEACH_SOURCE_READY=1 (only on isolated TEST build)",
+  "reference_city_branch": "codex/gym-city-renovation-20261030 @ 6ee0260b519543a2176d9441be01d44ec651f0f5",
+  "production_unmodified": true,
+  "store_unmodified": true,
+  "ship_warning": "Do not publish source GLBs to public GitHub; include CC-BY creator attributions in the published game."
+}

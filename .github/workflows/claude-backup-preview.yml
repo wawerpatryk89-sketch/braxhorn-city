@@ -61,6 +61,14 @@ jobs:
           github-token: ${{ github.token }}
           name: gym-city-renovation-player-da153becf424223c2b917479d55d4853a0bcc78b
           path: base/gym-city-player-da153be
+      - name: Worki treningowe (kickboxing, wygasa 12.11)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40897925601
+          github-token: ${{ github.token }}
+          name: unity-kickboxing-review-b2279bd24f7ce1660160c6fc3af119e9820a32f9
+          path: base/kickboxing-review
       - name: Spakuj i wgraj do ukrytego wydania
         env:
           GH_TOKEN: ${{ github.token }}
@@ -68,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
           cd base
-          find . -maxdepth 3 | head -60
+          du -sh * || true
           for d in */; do d=${d%/}; (cd "$d" && zip -q -r -1 "../$d.zip" .); done
           ls -la *.zip
           sha256sum *.zip > SHA256SUMS.txt

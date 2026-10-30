@@ -1,0 +1,1 @@
+Włącza port i plażę (BraxHarborBeachBuild) tylko w testowym buildzie gałęzi claude/port-plaza-20261030.

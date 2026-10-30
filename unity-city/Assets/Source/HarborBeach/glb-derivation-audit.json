@@ -1,0 +1,1332 @@
+[
+  {
+    "name": "yacht.glb",
+    "source_sha256": "70032e7c14225554b0aaa13c3030c57d2f752dd8c906378319ab5425b4776064",
+    "derived_sha256": "e211db24777c7a81b9bb9ea2be3a307dfbb9a18bfc4d671ec57404109487090c",
+    "source_bytes": 17081268,
+    "derived_bytes": 7626288,
+    "image_updates": [
+      {
+        "view": 4,
+        "mime": "image/png",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 2342012,
+        "bytes_after": 1133599
+      },
+      {
+        "view": 5,
+        "mime": "image/png",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 6684284,
+        "bytes_after": 2575661
+      },
+      {
+        "view": 6,
+        "mime": "image/png",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 7449208,
+        "bytes_after": 3311244
+      }
+    ],
+    "geometry_unmodified": true
+  },
+  {
+    "name": "bateau_riva_boat.glb",
+    "source_sha256": "836a65800dee41480cdde1cf721c68d48c51a703be0f128708188d9b95d03d20",
+    "derived_sha256": "60c88ed7162008cd486f7a2b6aa1cef1d9ae833b85a04c1c145966e1a2788a86",
+    "source_bytes": 23243448,
+    "derived_bytes": 20432372,
+    "image_updates": [
+      {
+        "view": 4,
+        "mime": "image/png",
+        "resolution_before": [
+          512,
+          512
+        ],
+        "resolution_after": [
+          512,
+          512
+        ],
+        "bytes_before": 256966,
+        "bytes_after": 302051
+      },
+      {
+        "view": 5,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          512
+        ],
+        "resolution_after": [
+          1024,
+          512
+        ],
+        "bytes_before": 5885,
+        "bytes_after": 13792
+      },
+      {
+        "view": 6,
+        "mime": "image/png",
+        "resolution_before": [
+          128,
+          128
+        ],
+        "resolution_after": [
+          128,
+          128
+        ],
+        "bytes_before": 27974,
+        "bytes_after": 29281
+      },
+      {
+        "view": 7,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1392532,
+        "bytes_after": 1559779
+      },
+      {
+        "view": 8,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 594908,
+        "bytes_after": 696816
+      },
+      {
+        "view": 9,
+        "mime": "image/png",
+        "resolution_before": [
+          256,
+          128
+        ],
+        "resolution_after": [
+          256,
+          128
+        ],
+        "bytes_before": 11684,
+        "bytes_after": 10247
+      },
+      {
+        "view": 10,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 8573975,
+        "bytes_after": 5078130
+      },
+      {
+        "view": 11,
+        "mime": "image/png",
+        "resolution_before": [
+          512,
+          512
+        ],
+        "resolution_after": [
+          512,
+          512
+        ],
+        "bytes_before": 331515,
+        "bytes_after": 373022
+      },
+      {
+        "view": 12,
+        "mime": "image/png",
+        "resolution_before": [
+          512,
+          512
+        ],
+        "resolution_after": [
+          512,
+          512
+        ],
+        "bytes_before": 113336,
+        "bytes_after": 131377
+      },
+      {
+        "view": 13,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 952851,
+        "bytes_after": 1168384
+      },
+      {
+        "view": 14,
+        "mime": "image/png",
+        "resolution_before": [
+          512,
+          512
+        ],
+        "resolution_after": [
+          512,
+          512
+        ],
+        "bytes_before": 108722,
+        "bytes_after": 127309
+      },
+      {
+        "view": 15,
+        "mime": "image/png",
+        "resolution_before": [
+          512,
+          512
+        ],
+        "resolution_after": [
+          512,
+          512
+        ],
+        "bytes_before": 259692,
+        "bytes_after": 305234
+      },
+      {
+        "view": 16,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          512
+        ],
+        "resolution_after": [
+          1024,
+          512
+        ],
+        "bytes_before": 78028,
+        "bytes_after": 101533
+      }
+    ],
+    "geometry_unmodified": true
+  },
+  {
+    "name": "jetski_collection.glb",
+    "source_sha256": "e59e6b8fee7e0977c5200ec0f120d267d9f2fb2cc3d1c4008c532df5b960eb06",
+    "derived_sha256": "3b53aa19ed5b082c57a5a76523566020eb707ea9be65b99a12f0482af0f72116",
+    "source_bytes": 40364336,
+    "derived_bytes": 23768264,
+    "image_updates": [
+      {
+        "view": 4,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 275757,
+        "bytes_after": 171394
+      },
+      {
+        "view": 5,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 438882,
+        "bytes_after": 299260
+      },
+      {
+        "view": 6,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 826735,
+        "bytes_after": 245685
+      },
+      {
+        "view": 7,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 3199718,
+        "bytes_after": 869125
+      },
+      {
+        "view": 8,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 145815,
+        "bytes_after": 144694
+      },
+      {
+        "view": 9,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 462641,
+        "bytes_after": 281558
+      },
+      {
+        "view": 10,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 65158,
+        "bytes_after": 51359
+      },
+      {
+        "view": 11,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 143307,
+        "bytes_after": 111866
+      },
+      {
+        "view": 12,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 340217,
+        "bytes_after": 125392
+      },
+      {
+        "view": 13,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1618904,
+        "bytes_after": 483647
+      },
+      {
+        "view": 14,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 185092,
+        "bytes_after": 156123
+      },
+      {
+        "view": 15,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 831818,
+        "bytes_after": 470321
+      },
+      {
+        "view": 16,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1390775,
+        "bytes_after": 365620
+      },
+      {
+        "view": 17,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 6853768,
+        "bytes_after": 1690271
+      },
+      {
+        "view": 18,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 125249,
+        "bytes_after": 60687
+      },
+      {
+        "view": 19,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1435961,
+        "bytes_after": 801937
+      },
+      {
+        "view": 20,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 88465,
+        "bytes_after": 48576
+      },
+      {
+        "view": 21,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1720530,
+        "bytes_after": 663506
+      },
+      {
+        "view": 22,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 994473,
+        "bytes_after": 609445
+      },
+      {
+        "view": 23,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 71286,
+        "bytes_after": 35969
+      },
+      {
+        "view": 24,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1720527,
+        "bytes_after": 663504
+      },
+      {
+        "view": 25,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1136449,
+        "bytes_after": 676311
+      },
+      {
+        "view": 26,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 73539,
+        "bytes_after": 39861
+      },
+      {
+        "view": 27,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1720533,
+        "bytes_after": 663504
+      },
+      {
+        "view": 28,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1136463,
+        "bytes_after": 676334
+      }
+    ],
+    "geometry_unmodified": true
+  },
+  {
+    "name": "harbor_crane.glb",
+    "source_sha256": "fa35489f44b95b15383570ca8043d77761b0b2053dffb71957028dd3ab70db05",
+    "derived_sha256": "15e99914b807ff31dfd34d769a98573ab92e1c49751a7f5ad3d5f71e0597f0e7",
+    "source_bytes": 41702544,
+    "derived_bytes": 44993620,
+    "image_updates": [
+      {
+        "view": 4,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 948418,
+        "bytes_after": 1076847
+      },
+      {
+        "view": 5,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 902214,
+        "bytes_after": 1054583
+      },
+      {
+        "view": 6,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 621441,
+        "bytes_after": 824869
+      },
+      {
+        "view": 7,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 258408,
+        "bytes_after": 315784
+      },
+      {
+        "view": 8,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 195067,
+        "bytes_after": 231453
+      },
+      {
+        "view": 9,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 676358,
+        "bytes_after": 872401
+      },
+      {
+        "view": 10,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 962653,
+        "bytes_after": 1069372
+      },
+      {
+        "view": 11,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 898398,
+        "bytes_after": 1048970
+      },
+      {
+        "view": 12,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1273,
+        "bytes_after": 5016
+      },
+      {
+        "view": 13,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 565021,
+        "bytes_after": 752653
+      },
+      {
+        "view": 14,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1348383,
+        "bytes_after": 1492869
+      },
+      {
+        "view": 15,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 967484,
+        "bytes_after": 1131455
+      },
+      {
+        "view": 16,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 3696,
+        "bytes_after": 8786
+      },
+      {
+        "view": 17,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 814808,
+        "bytes_after": 1036988
+      },
+      {
+        "view": 18,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 978145,
+        "bytes_after": 1088683
+      },
+      {
+        "view": 19,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 919018,
+        "bytes_after": 1068515
+      },
+      {
+        "view": 20,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1706,
+        "bytes_after": 5769
+      },
+      {
+        "view": 21,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 744855,
+        "bytes_after": 963789
+      },
+      {
+        "view": 22,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1232250,
+        "bytes_after": 1389188
+      },
+      {
+        "view": 23,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 916631,
+        "bytes_after": 1065158
+      },
+      {
+        "view": 24,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1469,
+        "bytes_after": 5311
+      },
+      {
+        "view": 25,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 626740,
+        "bytes_after": 830473
+      },
+      {
+        "view": 26,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 1388478,
+        "bytes_after": 1552050
+      },
+      {
+        "view": 27,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 983094,
+        "bytes_after": 1135681
+      },
+      {
+        "view": 28,
+        "mime": "image/png",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 859037,
+        "bytes_after": 1079391
+      }
+    ],
+    "geometry_unmodified": true
+  },
+  {
+    "name": "dock_pier.glb",
+    "source_sha256": "05490d924fa9804c2186da2ceda1c90ab24c7c236eb1da72d1e746eeb21f7f80",
+    "derived_sha256": "8bcf1212dfa8de0a803c927db1cfccb263d26dfadb55e2ee86a26539b02c4dd8",
+    "source_bytes": 25785256,
+    "derived_bytes": 13206192,
+    "image_updates": [
+      {
+        "view": 3,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 6393196,
+        "bytes_after": 2927589
+      },
+      {
+        "view": 4,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 1652894,
+        "bytes_after": 387155
+      },
+      {
+        "view": 5,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 2303671,
+        "bytes_after": 598399
+      },
+      {
+        "view": 6,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 4525415,
+        "bytes_after": 2926796
+      },
+      {
+        "view": 7,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 1137982,
+        "bytes_after": 325540
+      },
+      {
+        "view": 8,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 908817,
+        "bytes_after": 257920
+      },
+      {
+        "view": 9,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 1949769,
+        "bytes_after": 483699
+      },
+      {
+        "view": 10,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 2038134,
+        "bytes_after": 484456
+      },
+      {
+        "view": 11,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          1024,
+          1024
+        ],
+        "resolution_after": [
+          1024,
+          1024
+        ],
+        "bytes_before": 156089,
+        "bytes_after": 95333
+      }
+    ],
+    "geometry_unmodified": true
+  },
+  {
+    "name": "rustic_wooden_dock.glb",
+    "source_sha256": "7c51a5ad0d51b9e9c2c7dfe32cf8e4998253ec87f64d42ccb423a007d0e2b235",
+    "derived_sha256": "b85558e57a9619dd0b32be5e31ebb6ce3940894e2a476d84d898638a8d2e5a15",
+    "source_bytes": 17025720,
+    "derived_bytes": 10289180,
+    "image_updates": [
+      {
+        "view": 4,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 3227656,
+        "bytes_after": 1060450
+      },
+      {
+        "view": 5,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 4074823,
+        "bytes_after": 2780105
+      },
+      {
+        "view": 6,
+        "mime": "image/png",
+        "resolution_before": [
+          2048,
+          2048
+        ],
+        "resolution_after": [
+          1536,
+          1536
+        ],
+        "bytes_before": 8646126,
+        "bytes_after": 5371494
+      }
+    ],
+    "geometry_unmodified": true
+  },
+  {
+    "name": "lifeguard_tower.glb",
+    "source_sha256": "255c609ca25fcaa8b5b55a0377121449ce358cbb85e8a1d3c55990e559bfca0a",
+    "derived_sha256": "33429272320249f84d705fb80897348d9828012058b44a123fc9ad49aeba1cfe",
+    "source_bytes": 113273716,
+    "derived_bytes": 33920420,
+    "image_updates": [
+      {
+        "view": 4,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 6500281,
+        "bytes_after": 847585
+      },
+      {
+        "view": 5,
+        "mime": "image/png",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 12148864,
+        "bytes_after": 4043156
+      },
+      {
+        "view": 6,
+        "mime": "image/png",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 7059579,
+        "bytes_after": 4260746
+      },
+      {
+        "view": 7,
+        "mime": "image/png",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 16809274,
+        "bytes_after": 5662922
+      },
+      {
+        "view": 8,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 196892,
+        "bytes_after": 115316
+      },
+      {
+        "view": 9,
+        "mime": "image/png",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 2131,
+        "bytes_after": 2391
+      },
+      {
+        "view": 10,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 7439765,
+        "bytes_after": 955685
+      },
+      {
+        "view": 11,
+        "mime": "image/png",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 14578028,
+        "bytes_after": 4832932
+      },
+      {
+        "view": 12,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 7581135,
+        "bytes_after": 933712
+      },
+      {
+        "view": 13,
+        "mime": "image/png",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 14694828,
+        "bytes_after": 4848527
+      },
+      {
+        "view": 14,
+        "mime": "image/jpeg",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 6920987,
+        "bytes_after": 988268
+      },
+      {
+        "view": 15,
+        "mime": "image/png",
+        "resolution_before": [
+          4096,
+          4096
+        ],
+        "resolution_after": [
+          2048,
+          2048
+        ],
+        "bytes_before": 18337670,
+        "bytes_after": 5424884
+      }
+    ],
+    "geometry_unmodified": true
+  }
+]

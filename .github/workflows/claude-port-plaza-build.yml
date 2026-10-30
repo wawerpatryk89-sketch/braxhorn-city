@@ -1,0 +1,215 @@
+name: Claude - port i plaza na silowni + miescie Unity6 (TEST, bez publikacji)
+'on':
+  push:
+    branches:
+    - claude/port-plaza-20261030
+    paths:
+    - unity-city/**
+    - .github/workflows/claude-port-plaza-build.yml
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: claude-port-plaza
+  cancel-in-progress: true
+jobs:
+  source-imports:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/port-plaza-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: unity-tools/city
+        persist-credentials: false
+    - name: Verified original import fetch from private GitHub draft release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: python3 unity-tools/city/fetch_original_imports.py
+    - name: Make originals available to read-only compilation job
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: unity6-original-imports-${{ github.sha }}
+        path: unity-city/Assets/Source/
+        retention-days: 3
+        if-no-files-found: error
+  combined-unity6:
+    permissions:
+      contents: write
+      actions: read
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/port-plaza-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: 'unity-city
+
+          unity-tools
+
+          public/assets/chars
+
+          public/assets/tex
+
+          public/assets/logo
+
+          public/unity-gym
+
+          .github/scripts
+
+          asset-library/sources/sofa_02
+
+
+          asset-library/sources/audio
+
+          '
+        persist-credentials: false
+        lfs: false
+    - name: Verify project WebGL bridge providers before the expensive Unity build
+      run: |
+        python3 unity-tools/check_webgl_bridges.py
+        python3 unity-tools/kickboxing/package.py --check-template
+    - name: Receive durable SHA-verified original Unity imports
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        name: unity6-original-imports-${{ github.sha }}
+        path: unity-city/Assets/Source/
+    - name: Restore authored facades and PBR materials (audited source archive)
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: 40869502253
+        github-token: ${{ github.token }}
+        name: city-rebuild-curated-extended-3c98ccd919409da59d8145c0171b0776bc65b93d
+        path: unity-city/Assets/
+    - name: Recover exact reviewed packed bag derivative instead of changed vendor response
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: 40897925601
+        github-token: ${{ github.token }}
+        name: unity-kickboxing-review-b2279bd24f7ce1660160c6fc3af119e9820a32f9
+        path: reviewed-gym-source/
+    - name: Prepare unchanged player and current source assets
+      run: 'mkdir -p kickboxing-review
+
+        python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6 opencv-python-headless==4.12.0.88
+
+        python3 -m compileall -q unity-tools
+
+        python3 unity-tools/nutrition/audit_assets.py
+
+        node --check unity-tools/kickboxing/check.mjs
+
+        python3 unity-tools/prepare_playable.py
+
+        python3 unity-tools/premium_prepare.py
+
+        python3 unity-tools/premium_refinements.py
+
+        python3 unity-tools/city/prepare.py
+
+        python3 unity-tools/kickboxing/fetch_assets.py
+
+
+        python3 unity-tools/city/import_approved_roofs.py
+
+        python3 unity-tools/city-rebuild/check_brand_sources.py
+
+
+        sudo apt-get update -qq
+
+        sudo apt-get install -y --no-install-recommends ffmpeg
+
+        python3 unity-tools/nova-audio/prepare.py
+
+        '
+      env:
+        BRAXHORN_RESTORE_REVIEWED_BAG: '1'
+    - name: Reproduce the reviewed CC0-derived bags with pinned Blender
+      run: 'curl --fail --location --retry 3 --output /tmp/blender-4.2.3-linux-x64.tar.xz https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
+
+        echo ''3a64efd1982465395abab4259b4091d5c8c56054c7267e9633e4f702a71ea3f4  /tmp/blender-4.2.3-linux-x64.tar.xz'' | sha256sum
+        --check --strict
+
+        tar -xJf /tmp/blender-4.2.3-linux-x64.tar.xz -C /tmp
+
+        /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend
+        --python unity-tools/export_library_sofa.py
+
+        /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec reviewed-gym-source/kickboxing-review/bag-source/bag-refined-before-export.blend
+        --python unity-tools/kickboxing/restore_reviewed_bag.py
+
+        python3 unity-tools/kickboxing/externalize_models.py --remove-source
+
+        git diff --exit-code -- unity-city/Assets/BraxGymPlayer.cs unity-city/Assets/City unity-city/Assets/Editor/BraxCityBuild.cs
+        unity-city/Assets/Editor/BraxHeroRefinements.cs unity-tools/prepare_playable.py unity-tools/premium_refinements.py
+        unity-tools/city/prepare.py
+
+        '
+    - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: unity-city/Library
+        key: claude-library-webgl-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.sha }}
+        restore-keys: claude-library-webgl-${{ hashFiles('unity-city/Packages/manifest.json') }}-
+    - name: Compile the connected Unity player with the rebuilt room and annex
+      uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+      env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      with:
+        projectPath: unity-city
+        unityVersion: 6000.0.58f2
+        targetPlatform: WebGL
+        buildMethod: BraxGymBuild.BuildRenovation
+        versioning: None
+        allowDirtyBuild: true
+    - name: Verify actual Unity player output and complete Nutrition receipt
+      run: |
+        python3 - <<'PY'
+        import json,os,pathlib
+        root=pathlib.Path('build/WebGL')
+        identity=json.loads((root/'playable.json').read_text())
+        assert identity['commit']==os.environ['GITHUB_SHA'] and identity['unity']=='6000.0.58f2'
+        for pattern in ('*.loader.js','*.data*','*.framework.js*','*.wasm*'):
+            files=list((root/'Build').glob(pattern))
+            assert len(files)==1 and files[0].stat().st_size>0,(pattern,files)
+        receipt=json.loads(pathlib.Path('unity-city/Assets/PlayableGenerated/Nutrition/shop-receipt.json').read_text())
+        assert receipt['installedProducts']>=130 and receipt['installedShelvingBays']==8
+        print('ACTUAL_UNITY6_NUTRITION_PLAYER_OUTPUT_VERIFIED',identity['commit'],receipt['installedProducts'])
+        PY
+    - name: Package separate test player with the current iOS streaming loader
+      id: package
+      run: python3 unity-tools/kickboxing/package.py
+    - name: Preserve compiled test player for immediate Nutrition review
+      if: always() && !cancelled() && steps.package.outcome == 'success'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: claude-port-plaza-player-${{ github.sha }}
+        path: unity-preview/
+        if-no-files-found: error
+        retention-days: 14
+    - name: Raport portu z edytora Unity
+      if: always()
+      run: cat unity-city/Assets/PlayableGenerated/HarborBeach/harbor-beach-review.json || echo 'BRAK raportu portu'
+    - name: Wgraj player do ukrytego wydania (do zdjec i nagrania)
+      if: steps.package.outcome == 'success'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REL: claude-port-plaza-preview
+      run: |
+        set -eu
+        cp unity-city/Assets/PlayableGenerated/HarborBeach/harbor-beach-review.json unity-preview/ || true
+        (cd unity-preview && zip -q -r -1 ../player-${GITHUB_SHA::7}.zip .)
+        ls -la player-*.zip
+        gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+          gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
+            --title "Podglad portu i plazy (Claude, TEST)" --notes "Skompilowany player Unity 6 do zdjec i nagrania. Nie produkcja."
+        gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber player-${GITHUB_SHA::7}.zip
+    needs: source-imports

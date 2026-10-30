@@ -1,0 +1,106 @@
+[
+  {
+    "source_file": "coast_sand_02_diff_4k.jpg",
+    "derived_file": "coast_sand_02_diff_2k.jpg",
+    "source_sha256": "53e8d16ab3bd4100d75a71eb79b17e9d6c3a0464a530883057af24ba73bf7262",
+    "derived_sha256": "1f2c19d46b15e1e2834f9d5af35ae1814ec6267d43ef125b58a708ab53ed0dc0",
+    "source_bytes": 10132736,
+    "derived_bytes": 1997006,
+    "resolution": [
+      2048,
+      2048
+    ],
+    "provenance": "Poly Haven (owner-uploaded source), CC0"
+  },
+  {
+    "source_file": "coast_sand_02_nor_gl_4k.exr",
+    "derived_file": "coast_sand_02_nor_2k.png",
+    "source_sha256": "6e39e9d1efcdec0afa3407db30c3b1b5b3a76912f82fe986e25109be6a494fcb",
+    "derived_sha256": "7a188c7645786905425691e52903776a9286dfa5c5a94856989de9f6602a3eff",
+    "source_bytes": 31138911,
+    "derived_bytes": 9269480,
+    "resolution": [
+      2048,
+      2048
+    ],
+    "provenance": "Poly Haven (owner-uploaded source), CC0"
+  },
+  {
+    "source_file": "coast_sand_02_rough_4k.exr",
+    "derived_file": "coast_sand_02_metal_smooth_2k.png",
+    "source_sha256": "4e23b8a84ab4f5528d219f111daaefbcf1ee9dbafdc0082fb6250c5d951f6e2a",
+    "derived_sha256": "f95eec74532f5f378847306afeefb0e960b8cbf383c9c4721fc359aee17fbbfe",
+    "source_bytes": 7560075,
+    "derived_bytes": 3056457,
+    "resolution": [
+      2048,
+      2048
+    ],
+    "provenance": "Poly Haven (owner-uploaded source), CC0"
+  },
+  {
+    "source_file": "coast_sand_02_disp_4k.png",
+    "derived_file": "coast_sand_02_disp_2k.png",
+    "source_sha256": "5f105bea8b93b32a73d29f2945d7459febda6f9d105a1babd6a5bbf2e8a6c4d2",
+    "derived_sha256": "1636522281b6c64bbb119553ee1ea3b9564613085992b611591137c936d2d272",
+    "source_bytes": 33472396,
+    "derived_bytes": 1491704,
+    "resolution": [
+      2048,
+      2048
+    ],
+    "provenance": "Poly Haven (owner-uploaded source), CC0"
+  },
+  {
+    "source_file": "damp_sand_diff_4k.jpg",
+    "derived_file": "damp_sand_diff_2k.jpg",
+    "source_sha256": "57ac23b541f087f79e4cd2d13e58c940d1133e8131ee02291674ab577fbcd1c3",
+    "derived_sha256": "c88d4acf0ae0b432b1f8473e3859c78508fbf8e41b79b3854062a5a037657297",
+    "source_bytes": 16418724,
+    "derived_bytes": 2293166,
+    "resolution": [
+      2048,
+      2048
+    ],
+    "provenance": "Poly Haven (owner-uploaded source), CC0"
+  },
+  {
+    "source_file": "damp_sand_nor_gl_4k.exr",
+    "derived_file": "damp_sand_nor_2k.png",
+    "source_sha256": "15efe8ccef2b0e25d6bb0a3b4b7025ce2824a06e7d29e897772067a4c3a4332f",
+    "derived_sha256": "ad5bcb7048592a198477349de1e1003186cf3e572198fd6c6f6962513fe97488",
+    "source_bytes": 40019967,
+    "derived_bytes": 10415906,
+    "resolution": [
+      2048,
+      2048
+    ],
+    "provenance": "Poly Haven (owner-uploaded source), CC0"
+  },
+  {
+    "source_file": "damp_sand_rough_4k.exr",
+    "derived_file": "damp_sand_metal_smooth_2k.png",
+    "source_sha256": "0c4898885e237f0ff6169e8353093e5a82d863ffb2964fde931261bbb4c3253f",
+    "derived_sha256": "6adbac6dc5ebaa8ae18120460095740aa2c727588310b43350b0ff2a32261f37",
+    "source_bytes": 10180390,
+    "derived_bytes": 3845595,
+    "resolution": [
+      2048,
+      2048
+    ],
+    "provenance": "Poly Haven (owner-uploaded source), CC0"
+  },
+  {
+    "source_file": "damp_sand_disp_4k.png",
+    "derived_file": "damp_sand_disp_2k.png",
+    "source_sha256": "90c9aac4afb85723e5d1afb55edc8b08152f928fab737f5fc8804a4de9bf04e4",
+    "derived_sha256": "5371748c69591b030f29f220183286bf5a8b82283f3290def43f1fb11955b957",
+    "source_bytes": 34773182,
+    "derived_bytes": 1770649,
+    "resolution": [
+      2048,
+      2048
+    ],
+    "provenance": "Poly Haven (owner-uploaded source), CC0"
+  }
+]

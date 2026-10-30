@@ -225,7 +225,8 @@ public static class BraxCityRebuild
         BraxCityWaterBuild.Apply(root);
         // Scope-locked waterfront extension: never runs in production or
         // Codex's separate Nutrition build unless explicitly enabled for TEST.
-        if(Environment.GetEnvironmentVariable("BRAX_HARBOR_BEACH_SOURCE_READY")=="1")
+        if(Environment.GetEnvironmentVariable("BRAX_HARBOR_BEACH_SOURCE_READY")=="1" ||
+           System.IO.File.Exists("Assets/Source/HarborBeach/ENABLE_TEST_BUILD.txt"))
             BraxHarborBeachBuild.Apply(root);
         BraxNutritionShopBuild.Apply(world,original,physics,root);
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
