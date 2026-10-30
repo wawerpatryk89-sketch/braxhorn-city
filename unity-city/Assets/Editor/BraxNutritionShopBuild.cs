@@ -63,8 +63,8 @@ public static class BraxNutritionShopBuild
         m.SetColor("_SkyColor",new Color(.77f,.75f,.69f));
         m.SetColor("_GroundColor",new Color(.38f,.36f,.32f));
         m.SetFloat("_ReflectionStrength",.30f);
-        m.SetVector("_ShopLightA",new Vector4(17.8f,3.82f,16.0f,8));
-        m.SetVector("_ShopLightB",new Vector4(23.0f,3.82f,15.8f,8));
+        m.SetVector("_ShopLightA",new Vector4(17.8f,4.11f,16.0f,8));
+        m.SetVector("_ShopLightB",new Vector4(23.0f,4.11f,16.0f,8));
         m.SetColor("_ShopColourA",new Color(5.8f,5.35f,4.65f));
         m.SetColor("_ShopColourB",new Color(5.8f,5.35f,4.65f));
         AssetDatabase.CreateAsset(m,Output+"/material_"+(materialSerial++)+".mat");
@@ -203,7 +203,8 @@ public static class BraxNutritionShopBuild
             Product("Shaker",root,new Vector3(x+.42f,1.105f,17.0f),8);
         }
         foreach(float x in new[]{17.8f,23.0f})
-            Part("LinearPendant",root,new Vector3(x,3.86f,16.0f));
+            // The authored 0.68m suspension reaches the 4.83m ceiling underside.
+            Part("LinearPendant",root,new Vector3(x,4.15f,16.0f));
         var service=root.gameObject.AddComponent<BraxNutritionCounter>();service.player=world.player;
         service.servicePoint=new Vector3(20.6f,.15f,14.6f);
         service.shopBounds=new Bounds(new Vector3(20.25f,2.55f,16.15f),new Vector3(11.3f,4.8f,9f));
