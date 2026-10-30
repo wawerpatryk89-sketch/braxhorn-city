@@ -17,7 +17,9 @@ public static class BraxEstateDom04Premium
         if(!imp) throw new InvalidOperationException("DOM04 verified material missing: "+p);
         imp.textureType=normal?TextureImporterType.NormalMap:TextureImporterType.Default;
         imp.sRGBTexture=!normal && !name.EndsWith("MR");
-        imp.maxTextureSize=1024; imp.mipmapEnabled=true; imp.wrapMode=TextureWrapMode.Repeat;
+        imp.maxTextureSize=1024; imp.mipmapEnabled=true;
+        imp.wrapMode=name=="BermudaCutout"?TextureWrapMode.Clamp:TextureWrapMode.Repeat;
+        if(name=="BermudaCutout"){ imp.alphaSource=TextureImporterAlphaSource.FromInput;imp.alphaIsTransparency=true; }
         imp.anisoLevel=4; imp.textureCompression=TextureImporterCompression.Compressed;
         imp.SaveAndReimport();
         var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(p);
@@ -36,16 +38,79 @@ public static class BraxEstateDom04Premium
         else {m.SetFloat("_Metallic",0);m.SetFloat("_Glossiness",.13f);}
         AssetDatabase.CreateAsset(m,Output+label+".mat");return m;
     }
-    static Mesh Ground()
+    // Replaces 100% of the EXISTING lawn source surface, rather than layering an overlay.
+    // Source verified independently from braxhorn-estate.glb:
+    // EstateMesh_273, upper two triangles at y=0.04,
+    // Unity x=[-39.5,-16.5], z=[-10.5,10.5], exactly 23x21=483 m2.
+    static void ReplaceOriginalDom04Lawn(MeshRenderer source, BraxDom04PremiumEvidence evidence)
     {
-        // Exact bounded DOM04 lawn only: old city estate stays as underlying floor.
-        // Top at 0.051: above original lawn y<=0.04, below existing paving y>=0.08.
-        var m=new Mesh{name="DOM04 lawn terrain surface / UV 3.2m"};
-        m.vertices=new[]{new Vector3(-40,.051f,-10),new Vector3(-7.5f,.051f,-10),new Vector3(-7.5f,.051f,10),new Vector3(-40,.051f,10)};
-        m.triangles=new[]{0,2,1,0,3,2};m.normals=Enumerable.Repeat(Vector3.up,4).ToArray();
-        m.uv=new[]{new Vector2(0,0),new Vector2(10.15625f,0),new Vector2(10.15625f,6.25f),new Vector2(0,6.25f)};
-        m.RecalculateBounds();AssetDatabase.CreateAsset(m,Output+"Lawn.asset");return m;
+        var filter=source.GetComponent<MeshFilter>();
+        if(!filter||!filter.sharedMesh||filter.sharedMesh.subMeshCount!=1)
+            throw new Exception("DOM04 verified original lawn mesh missing");
+        var original=filter.sharedMesh;
+        var positions=original.vertices;
+        var triangles=original.GetTriangles(0);
+        var unchanged=new List<int>(triangles.Length);
+        var exactLawn=new List<int>(6);
+        var lawnVertices=new HashSet<int>();
+        double area=0;
+        for(int i=0;i<triangles.Length;i+=3)
+        {
+            int i0=triangles[i],i1=triangles[i+1],i2=triangles[i+2];
+            Vector3 p0=source.transform.TransformPoint(positions[i0]);
+            Vector3 p1=source.transform.TransformPoint(positions[i1]);
+            Vector3 p2=source.transform.TransformPoint(positions[i2]);
+            bool top=(
+              Mathf.Abs(p0.y-.04f)<.001f &&
+              Mathf.Abs(p1.y-.04f)<.001f &&
+              Mathf.Abs(p2.y-.04f)<.001f
+            );
+            bool inPlot= new[]{p0,p1,p2}.All(p=>
+              p.x>=-39.501f && p.x<=-16.499f &&
+              p.z>=-10.501f && p.z<=10.501f
+            );
+            if(top && inPlot)
+            {
+                exactLawn.Add(i0);exactLawn.Add(i1);exactLawn.Add(i2);
+                lawnVertices.Add(i0);lawnVertices.Add(i1);lawnVertices.Add(i2);
+                area+=Vector3.Cross(p1-p0,p2-p0).magnitude*.5f;
+            }
+            else
+            {
+                unchanged.Add(i0);unchanged.Add(i1);unchanged.Add(i2);
+            }
+        }
+        if(exactLawn.Count!=6 || Mathf.Abs((float)area-483f)>.1f || lawnVertices.Count!=4)
+            throw new Exception("DOM04 source lawn NOT full original 483m2: triangles="+exactLawn.Count/3+" area="+area);
+        var turf=Pbr("OriginalLawnFullReplacement","GrassGround",new Color(.94f,1.04f,.95f),.7f);
+        var revised=UnityEngine.Object.Instantiate(original);
+        revised.name="DOM04 entire original 483m2 grass REPLACED in source ground mesh";
+        var uv=revised.uv;
+        if(uv.Length!=positions.Length)throw new Exception("Original lawn UV count mismatch");
+        foreach(int i in lawnVertices)
+        {
+            var p=source.transform.TransformPoint(positions[i]);
+            uv[i]=new Vector2(p.x/2.4f,p.z/2.4f);
+        }
+        revised.uv=uv;
+        revised.subMeshCount=2;
+        revised.SetTriangles(unchanged.ToArray(),0);
+        revised.SetTriangles(exactLawn.ToArray(),1);
+        revised.RecalculateBounds();
+        AssetDatabase.CreateAsset(revised,Output+"ReplacedOriginal483m2Lawn.asset");
+        evidence.lawnSourceRenderer=source;
+        evidence.lawnSourceFilter=filter;
+        evidence.lawnBeforeMesh=original;
+        evidence.lawnAfterMesh=revised;
+        evidence.lawnBeforeMaterials=source.sharedMaterials;
+        if(evidence.lawnBeforeMaterials.Length!=1)
+            throw new Exception("Original lawn material slot mismatch");
+        evidence.lawnAfterMaterials=new[]{evidence.lawnBeforeMaterials[0],turf};
+        filter.sharedMesh=revised;
+        source.sharedMaterials=evidence.lawnAfterMaterials;
+        Debug.Log("DOM04_OLD_LAWN_100_PERCENT_REPLACED_IN_SOURCE_483M2_2_OF_2_TOP_TRIANGLES");
     }
+
     static Mesh Bermuda(int count)
     {
         // Original grass_bermuda_01 atlas from the user's library, double-sided
@@ -55,16 +120,16 @@ public static class BraxEstateDom04Premium
         int placed=0;
         for(int trial=0;trial<count*5 && placed<count;trial++)
         {
-            float x=-39.5f+(float)rand.NextDouble()*31.7f;
-            float z=-9.4f+(float)rand.NextDouble()*18.8f;
-            if(x > -35.4f && x < -20.6f && z > -6.9f && z < 6.9f)continue; // house
-            if(x > -21.4f && x < -7.0f && Mathf.Abs(z)<2.65f)continue; // original path/gate
-            if(x < -36.2f && z>5.8f && z<9.4f)continue; // existing tree trunk
+            float x=-39.1f+(float)rand.NextDouble()*22.2f;
+            float z=-10.0f+(float)rand.NextDouble()*20.0f;
+            if(x > -35.4f && x < -20.6f && z > -7.15f && z < 6.95f)continue; // actual house footprint
+            if(x > -18.8f && Mathf.Abs(z)<1.55f)continue; // original path + free entry
+            if(Mathf.Pow(x+36f,2)+Mathf.Pow(z-7f,2)<.8f*.8f)continue; // original trunk
             placed++;
             float angle=(float)rand.NextDouble()*Mathf.PI*2;
-            float height=.105f+(float)rand.NextDouble()*.13f;
-            float width=.11f+(float)rand.NextDouble()*.15f;
-            int col=rand.Next(4),row=rand.Next(2); // 4x3 atlas of real blades
+            float height=.07f+(float)rand.NextDouble()*.11f;
+            float width=.08f+(float)rand.NextDouble()*.13f;
+            int col=rand.Next(4),row=rand.Next(3); // true 4x3 atlas from owner grass_bermuda_01
             float u0=col*.25f+.009f,u1=(col+1)*.25f-.009f;
             float vv0=1-(row+1)/3f+.006f,vv1=1-row/3f-.006f;
             for(int plane=0;plane<2;plane++)
@@ -78,15 +143,18 @@ public static class BraxEstateDom04Premium
             }
         }
         if(placed < count*.9)throw new Exception("DOM04 only Bermuda foliage density gate failed "+placed);
-        var mesh=new Mesh{name="DOM04 1800 real Bermuda atlas grass clusters / mobile combined",indexFormat=IndexFormat.UInt32};
-        mesh.SetVertices(v);mesh.SetUVs(0,uv);mesh.SetTriangles(tr,0);mesh.RecalculateNormals();mesh.RecalculateBounds();
+        var mesh=new Mesh{name="DOM04 real Bermuda library blades / dense mobile single batch",indexFormat=IndexFormat.UInt32};
+        mesh.SetVertices(v);mesh.SetUVs(0,uv);mesh.SetTriangles(tr,0);
+        // Real cutout leaf quads need upward-biased normals for daylight,
+        // rather than horizontal dark normals on a vertical plane.
+        mesh.normals=Enumerable.Repeat(Vector3.up,v.Count).ToArray();mesh.RecalculateBounds();
         AssetDatabase.CreateAsset(mesh,Output+"BermudaFoliage.asset");return mesh;
     }
     static Material BermudaMaterial()
     {
         var m=new Material(Shader.Find("Standard")){name="DOM04 / real grass_bermuda_01 / cutout",enableInstancing=true};
-        m.mainTexture=Tex("BermudaCutout");m.color=new Color(.94f,1f,.88f,1f);
-        m.SetFloat("_Mode",1);m.SetFloat("_Cutoff",.32f);m.SetInt("_SrcBlend",(int)BlendMode.One);
+        m.mainTexture=Tex("BermudaCutout");m.color=new Color(1.12f,1.17f,1.10f,1f);
+        m.SetFloat("_Mode",1);m.SetFloat("_Cutoff",.48f);m.SetOverrideTag("RenderType","TransparentCutout");m.SetInt("_SrcBlend",(int)BlendMode.One);
         m.SetInt("_DstBlend",(int)BlendMode.Zero);m.SetInt("_ZWrite",1);
         m.DisableKeyword("_ALPHABLEND_ON");m.DisableKeyword("_ALPHAPREMULTIPLY_ON");m.EnableKeyword("_ALPHATEST_ON");
         m.renderQueue=(int)RenderQueue.AlphaTest;m.SetFloat("_Metallic",0);m.SetFloat("_Glossiness",.08f);
@@ -197,14 +265,33 @@ public static class BraxEstateDom04Premium
             rr.shadowCastingMode=src=="EstateMesh_439"?ShadowCastingMode.On:ShadowCastingMode.Off;
             return o;
         }
-        // Original Verdant Trail tree already in this imported estate GLB.
-        // This is the second tree on dom04, not the dom03 planting.
-        var t=new GameObject("DOM04 Verdant real small tree / source 439 453");t.transform.SetParent(parent,false);
-        float scale=2.65f/(9.336063f-.798673f);
-        t.transform.position=new Vector3(-18.2f,.04f-.798673f*scale,7.15f);
-        var trunk=CopyPart("Original trunk","EstateMesh_439",t.transform,scale).GetComponent<MeshRenderer>();
-        var leaves=CopyPart("Original leaves","EstateMesh_453",t.transform,scale).GetComponent<MeshRenderer>();
-        var lod=t.AddComponent<LODGroup>();lod.SetLODs(new[]{new LOD(.08f,new Renderer[]{trunk,leaves})});lod.RecalculateBounds();
+        // One verified original tree remains at (-36,7) from the existing R2
+        // source-only renovation. Add THREE more within DOM04: FOUR in total.
+        // The real Verdant source meshes 439 (trunk) + 460 (optimized LOD foliage)
+        // are reused, not synthesized trees or plastic spheres.
+        var trees=new[]{
+            new Vector3(-18.8f,0,7.5f),
+            new Vector3(-36.5f,0,-7.5f),
+            new Vector3(-18.8f,0,-7.5f)
+        };
+        for(int i=0;i<trees.Length;i++)
+        {
+            var pos=trees[i];
+            if(pos.x<-39.5f||pos.x>-16.5f||pos.z<-10.5f||pos.z>10.5f)
+                throw new Exception("DOM04 tree escaped property");
+            if(pos.x>-35.2f&&pos.x<-20.7f&&Mathf.Abs(pos.z)<7f)
+                throw new Exception("DOM04 tree blocks house");
+            var tree=new GameObject("DOM04 authentic Verdant ornamental tree "+(i+2));
+            tree.transform.SetParent(parent,false);
+            float scale=2.65f/(9.336063f-.798673f);
+            tree.transform.position=new Vector3(pos.x,.04f-.798673f*scale,pos.z);
+            var trunk=CopyPart("Genuine source trunk 439","EstateMesh_439",tree.transform,scale).GetComponent<MeshRenderer>();
+            var canopy=CopyPart("Genuine source canopy LOD 460","EstateMesh_460",tree.transform,scale).GetComponent<MeshRenderer>();
+            var lod=tree.AddComponent<LODGroup>();
+            lod.SetLODs(new[]{new LOD(.055f,new Renderer[]{trunk,canopy})});
+            lod.RecalculateBounds();
+        }
+
         var shrubPositions=new[]{new Vector3(-38.1f,.04f,-8.05f),new Vector3(-18.7f,.04f,8.45f),new Vector3(-18.6f,.04f,-8.35f)};
         for(int i=0;i<shrubPositions.Length;i++)
         {
@@ -237,12 +324,10 @@ public static class BraxEstateDom04Premium
         UpgradeOnlyOriginalDom04FrontFence(R("EstateMesh_280"),e);
         var home=new GameObject("DOM04 only premium lawn and garden");
         home.transform.SetParent(root.transform,false);e.visibleUpgrade=home;
-        var lawn=new GameObject("DOM04 true textured grass ground");lawn.transform.SetParent(home.transform,false);
-        lawn.AddComponent<MeshFilter>().sharedMesh=Ground();
-        var lawnR=lawn.AddComponent<MeshRenderer>();lawnR.sharedMaterial=Pbr("LivingGrassGround","GrassGround",new Color(.83f,1.07f,.84f),.43f);
-        lawnR.shadowCastingMode=ShadowCastingMode.Off;
+        // Refinish the original estate ground mesh; NO surface overlay left behind.
+        ReplaceOriginalDom04Lawn(R("EstateMesh_273"),e);
         var foliage=new GameObject("DOM04 library grass_bermuda_01 mobile batch");foliage.transform.SetParent(home.transform,false);
-        foliage.AddComponent<MeshFilter>().sharedMesh=Bermuda(1800);
+        foliage.AddComponent<MeshFilter>().sharedMesh=Bermuda(4200);
         var fr=foliage.AddComponent<MeshRenderer>();fr.sharedMaterial=BermudaMaterial();fr.shadowCastingMode=ShadowCastingMode.Off;
         Plant(renderers,home.transform);
         Directory.CreateDirectory("city-review");
@@ -252,10 +337,15 @@ public static class BraxEstateDom04Premium
     [Serializable] sealed class Dom04Audit
     {
         public string scene="BraxhornEstate",scope="DOM04_ONLY", engine=Application.unityVersion;
-        public string[] changedOriginalRenderers={"EstateMesh_327","EstateMesh_312","EstateMesh_323 (DOM04 only)","EstateMesh_280 (verified front fence triangles only)","EstateMesh_275 (negative-X approach UV only)"};
+        public string lawnReplacedSourceRenderer="EstateMesh_273";
+        public float replacedOriginalLawnAreaSquareMetres=483f;
+        public int originalLawnTopTrianglesReplaced=2;
+        public bool oldGrassOverlayRetained=false;
+        public int originalVerdantTreesOnDom04=1,additionalRealVerdantTrees=3,totalDom04Trees=4;
+        public string[] changedOriginalRenderers={"EstateMesh_273 (all original DOM04 lawn top faces only)","EstateMesh_327","EstateMesh_312","EstateMesh_323 (DOM04 only)","EstateMesh_280 (verified front fence triangles only)","EstateMesh_275 (negative-X approach UV only)"};
         public string facade="Poly Haven beige_wall_001 library byte-identical maps / warm beige matte";
-        public string grass="grass_ground official PBR plus library grass_bermuda_01 original cutout atlas (1800 batched tuft-cross clusters)";
-        public string garden="one new original Verdant Trail source tree 439/453 and three original source shrubs 467; original DOM04 plants remain";
+        public string grass="100% replacement on original EstateMesh_273 TOP triangles, 483m2; genuine grass_ground PBR + owner grass_bermuda_01 correctly alpha-cutout / 4200 batched ground tufts";
+        public string garden="four source Verdant ornamental trees in DOM04 including original x=-36 tree; 3 new real source 439/460 LOD trees and genuine source shrubs 467";
         public string fence="original DOM04 front-fence triangles refinished in satin anthracite; global shared mesh split locally, all other fence surfaces and original gate/physics unchanged";
         public string roof="original DOM04 pitched geometry / roof_tiles genuine PBR / warmer muted terracotta, improved gloss and normal";
         public bool originalCityOrGymChanged=false,originalBraxOrControlsChanged=false,physicalIphoneTest=false,visualQAConfirmed=false,productionPublished=false;

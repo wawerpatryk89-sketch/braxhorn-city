@@ -82,6 +82,9 @@ jobs:
           assert len(matches)==1,matches
           data=json.loads(matches[0].read_text())
           assert data['scope']=='DOM04_ONLY' and data['originalBraxOrControlsChanged'] is False
+          assert data['lawnReplacedSourceRenderer']=='EstateMesh_273'
+          assert data['replacedOriginalLawnAreaSquareMetres']==483 and data['originalLawnTopTrianglesReplaced']==2
+          assert data['oldGrassOverlayRetained'] is False and data['totalDom04Trees']==4
           assert data['productionPublished'] is False and data['visualQAConfirmed'] is False
           source=json.loads(pathlib.Path('city-review/dom04-library-source-evidence.json').read_text())
           assert source['sourceVerified'] and sum(x['libraryByteIdentity'] for x in source['sources'])==5
