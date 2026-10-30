@@ -389,15 +389,14 @@ public static class BraxCitySystemsBuild
         for(float z=55f;z<=71f;z+=4f)
             canopy.Box(new Vector3(76f,-.28f,z),new Vector3(9f,.10f,.16f));
         MeshObject("G5 recessed ceiling lighting channels",station,canopy,white);
-        // Keep lights restrained and mobile-friendly.
+        // The city's audited systems contract forbids dynamic point lights.
+        // Use actual pale source metal/diffuser surfaces instead: avoids
+        // mobile GPU cost and preserves the G5 validation invariant.
+        var fixtures=new BraxCitySystemMesh();
         for(int i=0;i<4;i++)
-        {
-            var lamp=new GameObject("G5 ceiling practical light "+i).AddComponent<Light>();
-            lamp.transform.SetParent(station,false);
-            lamp.transform.position=new Vector3(75.7f,-.55f,56f+i*4.5f);
-            lamp.type=LightType.Point;lamp.range=7f;lamp.intensity=.48f;
-            lamp.color=new Color(.85f,.91f,1f);lamp.shadows=LightShadows.None;
-        }
+            fixtures.Box(new Vector3(75.7f,-.31f,56f+i*4.5f),
+                new Vector3(3.8f,.035f,.28f));
+        MeshObject("G5 platform satin ceiling diffusers",station,fixtures,white);
         Text(station,"G5 metro platform sign","BRAXHORN · PERON 1",
             new Vector3(75.2f,-1.35f,71.9f),180,.32f,Color.white);
         Text(station,"G5 metro exit sign","WYJŚCIE / EXIT",
