@@ -13,8 +13,8 @@ for(const [name,engine] of [['webkit',webkit],['chromium',chromium]]){
   await page.screenshot({path:'ios-waterfront-review/'+name+'-entry.png'});
   const info=await page.evaluate(()=>({title:document.title,hasStart:!!document.querySelector('#start'),webgl2:!!document.createElement('canvas').getContext('webgl2')}));
   const response=await page.request.get(url+'/release.json');
-  const manifest=response.ok()?await response.json():{};
-  report.tests.push({engine:name,...info,manifestSource:manifest.sourceCommit,manifestOk:manifest.sourceCommit===report.sourceCommit,errors});
+  const raw=await response.text();const contentType=response.headers()['content-type']||'';const manifest=contentType.includes('application/json')?JSON.parse(raw):{};const blocked=!contentType.includes('application/json');
+  report.tests.push({engine:name,...info,manifestSource:manifest.sourceCommit,manifestOk:manifest.sourceCommit===report.sourceCommit,blocked,contentType,httpStatus:response.status(),responseUrl:response.url(),responseSample:blocked?raw.slice(0,160):undefined,errors});
  }catch(e){report.tests.push({engine:name,error:String(e)});}finally{if(browser)await browser.close();}
 }
 fs.writeFileSync('ios-waterfront-review/report.json',JSON.stringify(report,null,2));
