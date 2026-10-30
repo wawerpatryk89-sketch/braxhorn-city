@@ -105,6 +105,12 @@ jobs:
           areas=json.loads((output/'city-migration.json').read_text())['areas']
           assert {a['area']:a['originalMeshes'] for a in areas}=={'city':724,'estate':553},areas
           assert all(a['originalMeshes']==a['importedMeshes'] for a in areas)
+          no_cars=json.loads((output/'unity6-no-cars.json').read_text())
+          assert no_cars['engine']=='Unity6' and no_cars['status']=='ORIGINAL_STATIC_VEHICLES_HIDDEN_IN_TEST'
+          assert no_cars['sourceCityMeshes']==724 and no_cars['disabledMeshes']==397
+          assert no_cars['disabledRenderers']>=397 and no_cars['skippedCarCollisionBoxes']==5
+          assert no_cars['sourceAssetsUnchanged'] and no_cars['cityArchitectureUnchanged']
+          assert no_cars['approvedGymUnchanged'] and no_cars['originalBraxUnchanged']
           gym=json.loads((output/'playable.json').read_text())
           assert gym['originalBrax'] and gym['originalGym'] and gym['touchControls']
           assert gym['gymMeshes']>=100 and gym['originalClips']>=5
@@ -139,6 +145,7 @@ jobs:
             city-review/
             unity-city/city-review/
             build/WebGL/unity6-district-registry.json
+            build/WebGL/unity6-no-cars.json
             build/WebGL/city-migration.json
             build/WebGL/playable.json
             unity-city/Assets/Source/City/source-provenance.json

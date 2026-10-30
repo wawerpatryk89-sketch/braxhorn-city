@@ -27,6 +27,28 @@ public static class BraxCityBuild
     [Serializable] public sealed class AreaReport { public string area;public int originalMeshes,importedMeshes,originalTriangles,sourceBoxes,sourceCircles,sourcePits,meshColliders,doors,bakedMaterials,sourcePoints; }
     [Serializable] public sealed class Report { public string commit,unity,browserSource="260a5897472d42d099766da48e708859bba6c3dc",scope="original-city-and-estate-exploration";public bool originalCityReplaced=false,originalModels=true,originalBraxRig=true;public AreaReport[] areas;public string[] notYetPorted={"estate NPC schedules and combat AI","estate story and economy","additional playable character selection"}; }
     static readonly List<AreaReport> reports=new List<AreaReport>();
+    // TEST integration only. Source GLB inventory verified: CityMesh_271 through
+    // CityMesh_667 are the eight stationary source vehicles (397 source meshes).
+    // All model bytes and material assets remain untouched; only render and
+    // vehicle collision flags are disabled in the integrated Unity scene.
+    const int FirstSourceCarMesh=271,LastSourceCarMesh=667;
+    static int disabledCarMeshes,disabledCarRenderers,omittedCarBoxes;
+    static bool sourceCarFilterRequested;
+    [Serializable] public sealed class CarFilterReport
+    {
+        public string area="city",engine="Unity6",status="ORIGINAL_STATIC_VEHICLES_HIDDEN_IN_TEST";
+        public int sourceCityMeshes=724,firstCarMesh=FirstSourceCarMesh,lastCarMesh=LastSourceCarMesh;
+        public int disabledMeshes,disabledRenderers,skippedCarCollisionBoxes;
+        public bool sourceAssetsUnchanged=true,cityArchitectureUnchanged=true,
+            approvedGymUnchanged=true,originalBraxUnchanged=true,productionUnchanged=true;
+    }
+    static bool IsVerifiedCarMesh(string name)
+    {
+        const string prefix="CityMesh_";
+        if(name==null||!name.StartsWith(prefix,StringComparison.Ordinal))return false;
+        return int.TryParse(name.Substring(prefix.Length),out var id)
+            && id>=FirstSourceCarMesh && id<=LastSourceCarMesh;
+    }
     static GameObject Import(string path)
     {
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(path)??AssetDatabase.LoadAllAssetsAtPath(path).OfType<GameObject>().FirstOrDefault();
@@ -94,7 +116,7 @@ public static class BraxCityBuild
             PhysicsBox(root,"Original virtual floor",x[i],x[i+1],z[j],z[j+1],y-.18f,y);
         }
     }
-    static BraxCityWorld AddArea(string area,BraxGymPlayer player)
+    static BraxCityWorld AddArea(string area,BraxGymPlayer player,bool hideStaticCars=false)
     {
         Directory.CreateDirectory(Output);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         var data=JsonUtility.FromJson<Manifest>(File.ReadAllText(Source+area+"-manifest.json"));
@@ -102,18 +124,47 @@ public static class BraxCityBuild
         var root=Import(Source+"braxhorn-"+area+".gltf");
         var transforms=root.GetComponentsInChildren<Transform>(true).GroupBy(t=>t.name).ToDictionary(g=>g.Key,g=>g.First());
         int count=0,meshColliders=0;
+        if(hideStaticCars&&(area!="city"||data.meshCount!=724))
+            throw new InvalidOperationException("Static car filter only supports the verified ORIGINAL city 724-mesh export");
         foreach(var mesh in data.meshes)
         {
             if(!transforms.TryGetValue(mesh.name,out var t)||t.GetComponentsInChildren<MeshFilter>(true).Length==0)throw new Exception("Original geometry missing after Unity import: "+mesh.name);
             count++;
+            if(hideStaticCars && IsVerifiedCarMesh(mesh.name))
+            {
+                if(mesh.collider||mesh.dynamicDoor||mesh.ground)
+                    throw new InvalidOperationException("Original vehicle source misidentified: "+mesh.name);
+                int found=0;
+                foreach(var mf in t.GetComponentsInChildren<MeshFilter>(true))
+                {
+                    var renderer=mf.GetComponent<MeshRenderer>();
+                    if(!renderer)throw new InvalidOperationException("Original source car renderer missing: "+mesh.name);
+                    renderer.enabled=false;found++;disabledCarRenderers++;
+                }
+                if(found<1)throw new InvalidOperationException("No original car source mesh: "+mesh.name);
+                disabledCarMeshes++;
+                continue;
+            }
             if(mesh.collider&&!mesh.dynamicDoor){foreach(var mf in t.GetComponentsInChildren<MeshFilter>(true)){var c=mf.gameObject.AddComponent<MeshCollider>();c.sharedMesh=mf.sharedMesh;meshColliders++;}}
         }
         if(count!=data.meshCount)throw new Exception("Original city mesh count differs after Unity import");
+        if(hideStaticCars && disabledCarMeshes!=(LastSourceCarMesh-FirstSourceCarMesh+1))
+            throw new InvalidOperationException("Verified vehicle group incomplete: "+disabledCarMeshes);
         int baked=ConvertBaked(root,data);
         if(area=="city"&&baked<10)throw new Exception("Original baked city materials did not survive import");
         var physics=new GameObject("Original "+area+" collisions").transform;
         BaseFloor(data,physics);
-        foreach(var b in data.collision.boxes??Array.Empty<Box>())PhysicsBox(physics,"Source "+b.tag,b.minX,b.maxX,b.minZ,b.maxZ,b.bottom,b.top);
+        foreach(var b in data.collision.boxes??Array.Empty<Box>())
+        {
+            if(hideStaticCars && string.Equals(b.tag,"car",StringComparison.OrdinalIgnoreCase))
+            {
+                omittedCarBoxes++;
+                continue;
+            }
+            PhysicsBox(physics,"Source "+b.tag,b.minX,b.maxX,b.minZ,b.maxZ,b.bottom,b.top);
+        }
+        if(hideStaticCars && omittedCarBoxes!=5)
+            throw new InvalidOperationException("Original vehicle collision manifest changed: "+omittedCarBoxes);
         foreach(var c in data.collision.circles??Array.Empty<Circle>())
         {
             if(c.r<=0||c.top<=c.bottom)continue;
@@ -139,16 +190,18 @@ public static class BraxCityBuild
             doors.Add(behaviour);
         }
         var world=new GameObject("Original "+area+" navigation").AddComponent<BraxCityWorld>();world.area=area;world.player=player;world.doors=doors.ToArray();world.originalMeshes=count;world.originalTriangles=(int)data.triangles;
-        world.sourceColliders=(data.collision.boxes?.Length??0)+(data.collision.circles?.Length??0)+meshColliders;
+        world.sourceColliders=(data.collision.boxes?.Length??0)+(data.collision.circles?.Length??0)+meshColliders-(hideStaticCars?omittedCarBoxes:0);
         world.points=(data.points??Array.Empty<Point>()).Where(p=>p.id!=null&&!p.id.Contains("camera")&&!p.id.Contains("enemy")&&!p.id.Contains("item")).Select(p=>new BraxCityPoint{id=p.id,label=p.label,position=Convert(p.x,p.y,p.z)}).ToArray();
         player.cityWorld=world;
         reports.Add(new AreaReport{area=area,originalMeshes=data.meshCount,importedMeshes=count,originalTriangles=(int)data.triangles,sourceBoxes=data.collision.boxes?.Length??0,sourceCircles=data.collision.circles?.Length??0,sourcePits=data.collision.pits?.Length??0,meshColliders=meshColliders,doors=doors.Count,bakedMaterials=baked,sourcePoints=world.points.Length});
         Debug.Log("ORIGINAL_CITY_AREA_IMPORTED "+JsonUtility.ToJson(reports.Last()));
         return world;
     }
-    public static void AttachCity(BraxGymPlayer player)
+    public static void AttachCity(BraxGymPlayer player,bool hideStaticCars=false)
     {
-        reports.Clear();AddArea("city",player);player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=320;player.view.backgroundColor=new Color(.67f,.75f,.81f);
+        reports.Clear();disabledCarMeshes=0;disabledCarRenderers=0;omittedCarBoxes=0;
+        sourceCarFilterRequested=hideStaticCars;
+        AddArea("city",player,hideStaticCars);player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=320;player.view.backgroundColor=new Color(.67f,.75f,.81f);
     }
     public static string CreateEstate(string commit)
     {
@@ -178,5 +231,14 @@ public static class BraxCityBuild
     {
         if(reports.Count!=2)throw new Exception("Both original areas must be included");
         File.WriteAllText(Path.Combine(output,"city-migration.json"),JsonUtility.ToJson(new Report{commit=commit,unity=Application.unityVersion,areas=reports.ToArray()},true));
+        if(sourceCarFilterRequested)
+        {
+            if(disabledCarMeshes!=397||disabledCarRenderers<397||omittedCarBoxes!=5)
+                throw new InvalidOperationException("Integrated no-car Unity6 audit failed");
+            var carAudit=new CarFilterReport{disabledMeshes=disabledCarMeshes,
+                disabledRenderers=disabledCarRenderers,skippedCarCollisionBoxes=omittedCarBoxes};
+            File.WriteAllText(Path.Combine(output,"unity6-no-cars.json"),JsonUtility.ToJson(carAudit,true));
+            Debug.Log("UNITY6_VERIFIED_STATIC_CARS_HIDDEN "+JsonUtility.ToJson(carAudit));
+        }
     }
 }
