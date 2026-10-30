@@ -139,13 +139,13 @@ jobs:
           npx playwright install --with-deps chromium
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
-      - name: Test real doors, metro platform, Tower and city zones
+      - name: Record eight real office foyers and landscaping in Unity
         run: node unity-tools/city-rebuild/tower-district-qa.mjs
       - name: Save actual Unity screenshots and failed checks
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: tower-district-next-runtime-evidence-${{ github.sha }}
-          path: premium-zones-qa/
+          path: tower-district-qa/
           if-no-files-found: warn
           retention-days: 14
