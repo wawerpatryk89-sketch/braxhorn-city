@@ -114,7 +114,9 @@ public sealed class BraxCityElevator : MonoBehaviour
     void Update()
     {
         if(!player || !cabin)return;
-        float delta=Mathf.Min(Time.deltaTime,.05f);
+        // Keep doors on game-frame time, even with slow software-rendered
+        // WebGL frames. Only each physical lift substep is capped at 50 ms.
+        float delta=Mathf.Min(Time.deltaTime,.333f);
         switch(phase)
         {
             case Phase.Opening:
@@ -137,27 +139,34 @@ public sealed class BraxCityElevator : MonoBehaviour
                 break;
             case Phase.Moving:
                 float target=destination==0?lowerY:upperY;
-                float before=cabin.position.y;
-                float after=Mathf.MoveTowards(before,target,Speed*delta);
-                // The carriage and CharacterController use exactly the same
-                // measured displacement; camera remains controlled by player.
-                cabin.position+=Vector3.up*(after-before);
-                if(passenger)
+                float remaining=delta;
+                if(passenger)player.MoveInput("0,0");
+                // Move the same physical car and original player controller in
+                // short measured substeps, never teleporting either endpoint.
+                while(remaining>.0001f)
                 {
-                    player.MoveInput("0,0");
-                    player.body.Move(Vector3.up*(after-before));
-                    if(Mathf.Abs(player.transform.position.y-after)>.65f)
+                    float step=Mathf.Min(remaining,.05f);
+                    remaining-=step;
+                    float before=cabin.position.y;
+                    float after=Mathf.MoveTowards(before,target,Speed*step);
+                    cabin.position+=Vector3.up*(after-before);
+                    if(passenger)
                     {
-                        Debug.LogError("CITY_LIFT_SAFETY_STOP player lost the physical moving floor");
-                        enabled=false;
-                        return;
+                        player.body.Move(Vector3.up*(after-before));
+                        if(Mathf.Abs(player.transform.position.y-after)>.65f)
+                        {
+                            Debug.LogError("CITY_LIFT_SAFETY_STOP player lost the physical moving floor");
+                            enabled=false;
+                            return;
+                        }
                     }
-                }
-                if(Mathf.Abs(after-target)<.002f)
-                {
-                    currentFloor=destination;
-                    phase=Phase.Opening;
-                    passenger=false;
+                    if(Mathf.Abs(after-target)<.002f)
+                    {
+                        currentFloor=destination;
+                        phase=Phase.Opening;
+                        passenger=false;
+                        break;
+                    }
                 }
                 break;
         }
