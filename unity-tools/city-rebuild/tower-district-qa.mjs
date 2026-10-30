@@ -10,7 +10,7 @@ const checks=[],errors=[];
 const server=http.createServer((req,res)=>{
  const u=new URL(req.url,'http://localhost');
  let file=path.resolve(root,'.'+decodeURIComponent(u.pathname));
- if(!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return}
+ if(file!==root&&!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return}
  if(fs.existsSync(file)&&fs.statSync(file).isDirectory())file=path.join(file,'index.html');
  if(!fs.existsSync(file)){res.writeHead(404);res.end();return}
  const types={'.html':'text/html','.js':'application/javascript','.json':'application/json','.wasm':'application/wasm'};
