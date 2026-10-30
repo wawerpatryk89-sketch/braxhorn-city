@@ -165,8 +165,19 @@ public static class BraxClaudeTowerTerrace
         Put(root, "modular_street_seating", "Taras: ławka widokowa 1", new Vector3(cx - width * .25f, roofY, z0 + 1.55f), 0);
         Put(root, "modular_street_seating", "Taras: ławka widokowa 2", new Vector3(cx + width * .25f, roofY, z0 + 1.55f), 0);
 
-        // Środek i tył dachu zostają wolne: miejsce walki (R1_ROOF_DUEL, także 3 na 3).
+        // Miejsce walki: wolny kwadrat 7×7 m (wielkość ringu) wokół R1_ROOF_DUEL.
+        var duel = new Vector3(cx, roofY, z0 + 7.4f);
+        bool InRing(Vector3 p, float r) => Mathf.Abs(p.x - duel.x) < 3.5f + r && Mathf.Abs(p.z - duel.z) < 3.5f + r;
         int tables = 0;
+        float tz = Mathf.Min(z1 - 6.5f, ShaftZ - 4.5f);
+        foreach (var t in new[] { new Vector3(x0 + 3.2f, roofY, tz), new Vector3(x1 - 3.2f, roofY, tz) })
+        {
+            if (width < 12f || InRing(t, 1.3f) || Mathf.Abs(t.x - cx) < 3.2f) continue;
+            Put(root, "outdoor_table_chair_set_01", "Taras: stolik z krzesłami " + (tables + 1), t, t.x < cx ? 20 : -20);
+            tables++;
+        }
+
+        PremiumLift(tower, cx, roofY);
 
         Directory.CreateDirectory("Assets/PlayableGenerated/ClaudeTower");
         File.WriteAllText("Assets/PlayableGenerated/ClaudeTower/terrace.json", JsonUtility.ToJson(new Report
@@ -175,6 +186,46 @@ public static class BraxClaudeTowerTerrace
             planters = boxes, tables = tables, plants = 4, benches = 2
         }, true));
         Debug.Log($"BRAXHORN_CLAUDE_TOWER_TERRACE roofY={roofY:F1} {width:F1}x{depth:F1} deck={deckSwapped} planters={boxes} tables={tables}");
+    }
+
+
+    // Winda premium: granitowa posadzka, szczotkowana stal w kolorze szampana, ciemne drewno,
+    // polerowane poręcze, kamienne portale drzwi na parterze i na dachu. Mechanika windy bez zmian.
+    static void PremiumLift(Transform tower, float cx, float roofY)
+    {
+        var cabin = tower.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == "Moving physical elevator cabin");
+        if (!cabin) throw new InvalidOperationException("Brak kabiny windy");
+        var granite = Pbr("Winda: polerowany ciemny granit", "granite_tile", .9f);
+        granite.SetColor("_Color", new Color(.36f, .36f, .38f)); EditorUtility.SetDirty(granite);
+        var champagne = BraxCityMaterials.Surface("Winda: szczotkowana stal szampańska", new Color(.66f, .58f, .46f), .30f, .92f);
+        var polished = BraxCityMaterials.Surface("Winda: polerowana stal poręczy", new Color(.80f, .80f, .80f), .14f, 1f);
+        var walnut = Pbr("Winda: ciemne drewno orzechowe", "wood_planks", .9f);
+        walnut.SetColor("_Color", new Color(.36f, .26f, .20f)); EditorUtility.SetDirty(walnut);
+        foreach (var r in cabin.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            string n = r.gameObject.name;
+            if (n.StartsWith("Genuine PBR basalt passenger floor")) r.sharedMaterial = granite;
+            else if (n.StartsWith("Lift lateral glass panel")) r.sharedMaterial = champagne;
+            else if (n.StartsWith("Lift rear panel")) r.sharedMaterial = walnut;
+            else if (n.StartsWith("Lift stainless handrail")) r.sharedMaterial = polished;
+        }
+        foreach (var r in tower.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            string n = r.gameObject.name;
+            if (n.StartsWith("Slim charcoal stainless vertical door stile") || n.StartsWith("Premium brushed lower door rail"))
+                r.sharedMaterial = champagne;
+        }
+        // Kamienne portale wokół drzwi windy (parter i dach), front szybu s0 = 53 - 1.72.
+        float s0 = ShaftZ - 1.72f;
+        var portal = new GameObject("CLAUDE portale windy premium").transform;
+        portal.SetParent(tower, false); portal.position = Vector3.zero;
+        foreach (float baseY in new[] { .15f, roofY })
+        {
+            Box("Winda: portal granitowy lewy", portal, new Vector3(cx - 1.72f, baseY + 1.55f, s0 - .30f), new Vector3(.28f, 3.1f, .16f), granite);
+            Box("Winda: portal granitowy prawy", portal, new Vector3(cx + 1.72f, baseY + 1.55f, s0 - .30f), new Vector3(.28f, 3.1f, .16f), granite);
+            Box("Winda: portal granitowy nadproże", portal, new Vector3(cx, baseY + 3.22f, s0 - .30f), new Vector3(3.72f, .26f, .16f), granite);
+            Box("Winda: listwa szampańska", portal, new Vector3(cx, baseY + 3.06f, s0 - .39f), new Vector3(3.2f, .04f, .02f), champagne);
+        }
     }
 
     [Serializable] sealed class Report
