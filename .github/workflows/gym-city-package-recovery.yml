@@ -1,0 +1,132 @@
+name: Recover compiled Unity6 gym and city TEST package
+'on':
+  push:
+    branches: [codex/gym-city-renovation-20261030]
+    paths: [.github/workflows/gym-city-package-recovery.yml]
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: braxhorn-gym-city-package-recovery
+  cancel-in-progress: true
+jobs:
+  recover-and-exercise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: |
+          unity-tools
+          public/unity-gym
+          public/assets/logo
+        persist-credentials: false
+    - name: Receive actual compiled Unity6 player from its failed packaging run
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: 41084834041
+        github-token: ${{ github.token }}
+        name: gym-city-renovation-player-77b68fedfdf2dda2c6a76a2cbaed5a8fe4666bc4
+        path: unity-preview
+    - name: Receive actual compilation and source receipts
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: 41084834041
+        github-token: ${{ github.token }}
+        name: gym-city-renovation-review-77b68fedfdf2dda2c6a76a2cbaed5a8fe4666bc4
+        path: compiled-evidence
+    - name: Verify compiled bytes and restore the pinned real Unity mobile shell
+      run: |
+        python3 - <<'PY'
+        import hashlib,json,os,pathlib,re,shutil,zlib
+        root=pathlib.Path('unity-preview')
+        shell=pathlib.Path('public/unity-gym')
+        evidence=pathlib.Path('compiled-evidence')
+        source='77b68fedfdf2dda2c6a76a2cbaed5a8fe4666bc4'
+        manifest=json.loads((root/'transport.json').read_text())
+        playable=json.loads((evidence/'build/WebGL/playable.json').read_text())
+        assert manifest['sourceCommit']==source and playable['commit']==source
+        assert playable['unity']=='6000.0.58f2'
+        digest=hashlib.sha256();expanded=hashlib.sha256()
+        count=decoded=0;inflater=zlib.decompressobj(31)
+        for part in manifest['parts']:
+            f=root/part['path']
+            assert f.stat().st_size==part['bytes']
+            h=hashlib.sha256()
+            with f.open('rb') as stream:
+                while chunk:=stream.read(65536):
+                    digest.update(chunk);h.update(chunk);count+=len(chunk)
+                    data=inflater.decompress(chunk);decoded+=len(data);expanded.update(data)
+            assert h.hexdigest()==part['sha256']
+        tail=inflater.flush();decoded+=len(tail);expanded.update(tail)
+        assert inflater.eof and not inflater.unused_data
+        assert count==manifest['bytes'] and digest.hexdigest()==manifest['sha256']
+        assert decoded==manifest['uncompressedBytes'] and expanded.hexdigest()==manifest['uncompressedSha256']
+        code=(shell/'city-transport.js').read_text()
+        assert "const revision = 'ios-stream-01'" in code and 'DecompressionStream' in code
+        code,n=re.subn(r'  const manifest = .*?;\n','  const manifest = '+json.dumps(manifest,separators=(',',':'))+';\n',code,count=1)
+        assert n==1
+        code=code.replace('originalAssetsChanged: false','originalAssetsChanged: true')
+        code=code.replace('Original Unity asset bytes are unchanged.','Preserved native stream algorithm; actual integrated Unity6 player.')
+        (root/'city-transport.js').write_text(code)
+        previous=json.loads((shell/'release.json').read_text())['sourceCommit'][:12]
+        html=(shell/'index.html').read_text()
+        assert previous in html and 'THREE.' not in html
+        html=html.replace(previous,source[:12]).replace('city-transport.js?v=ios-stream-01','city-transport.js?v=ios-stream-01-'+source[:12])
+        (root/'index.html').write_text(html)
+        shutil.copyfile('public/assets/logo/wide_a.webp',root/'logo.webp')
+        for p in (evidence/'build/WebGL').glob('*.json'):shutil.copyfile(p,root/p.name)
+        copies={
+          'kickboxing-layout.json':'unity-city/Assets/PlayableGenerated/ReferenceRebuild/layout-report.json',
+          'kickboxing-assets.json':'unity-city/Assets/Kickboxing/asset-provenance.json',
+          'bag-provenance.json':'unity-city/Assets/Kickboxing/Models/BagSource.provenance.json',
+          'kickboxing-native-textures.json':'unity-city/Assets/Kickboxing/Models/native-texture-preparation.json'}
+        for name,original in copies.items():shutil.copyfile(evidence/original,root/name)
+        release={'sourceCommit':source,'unityVersion':playable['unity'],'scope':'recovered-actual-compiled-gym-city-TEST',
+          'recoveryWorkflowCommit':os.environ['GITHUB_SHA'],'sourceWorkflowRun':41084834041,
+          'productionChanged':False,'runtimeValidation':'PENDING','physicalIPhoneValidated':False,
+          'transport':manifest,'loadingFix':{'revision':'ios-stream-01','algorithmPreserved':True,'nativeStreamingGzip':True,
+            'compressedBytes':count,'uncompressedBytes':decoded}}
+        (root/'release.json').write_text(json.dumps(release,indent=2)+'\n')
+        (root/'robots.txt').write_text('User-agent: *\nDisallow: /\n')
+        print('ACTUAL_COMPILED_UNITY_PLAYER_RECOVERED',source,count,decoded)
+        PY
+    - name: Prepare real browser execution and video encoding
+      run: |
+        npm install --no-save --ignore-scripts playwright@1.56.1
+        npx playwright install --with-deps chromium
+        sudo apt-get update -qq
+        sudo apt-get install -y --no-install-recommends ffmpeg
+    - name: Exercise actual automatic NOVA audio output
+      run: node unity-tools/nova-audio/check.mjs
+    - name: Exercise actual gym, doors, backrooms and city return
+      if: success() || failure()
+      run: env GITHUB_SHA=77b68fedfdf2dda2c6a76a2cbaed5a8fe4666bc4 node unity-tools/kickboxing/check.mjs
+    - name: Encode actual captured Unity video for phone review
+      if: always()
+      run: |
+        if [ -s kickboxing-review/walkthrough.webm ]; then
+          ffmpeg -hide_banner -loglevel error -i kickboxing-review/walkthrough.webm -an -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p -movflags +faststart kickboxing-review/walkthrough.mp4
+        fi
+    - name: Retain actual runtime evidence including any failed checks
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: recovered-gym-city-runtime-review-77b68fedfdf2
+        path: |
+          kickboxing-review/
+          nova-audio-review/
+          compiled-evidence/
+        retention-days: 14
+        if-no-files-found: warn
+    - name: Retain recovered real TEST player
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: recovered-gym-city-player-77b68fedfdf2
+        path: unity-preview/
+        retention-days: 14
+        if-no-files-found: warn
