@@ -1,0 +1,150 @@
+name: BRAXHORN Unity6 - publish PASS-only integrated TEST Preview
+on:
+  push:
+    branches: [codex/unity6-integration-20261030]
+    paths: ['.github/workflows/unity6-publish-preview.yml']
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: braxhorn-unity6-preview-publisher-20261030
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity6-integration-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_SHA: 55c986a09e2b22e63c7e5f15ec35ef11bced840d
+      SOURCE_RUN: '41067256233'
+      PREVIEW_REF: 'refs/heads/preview/unity6-integrated-20261030'
+    steps:
+      - name: Checkout ONLY verification workflow and existing Unity streaming loader
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            .github/workflows/unity6-publish-preview.yml
+            unity-release/ios-stream-loader.js
+          persist-credentials: true
+      - name: Wait until exact original Unity 6 integrated run PASS, reject stale code
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 120); do
+            state="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN" --jq '.status')"
+            source="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN" --jq '.head_sha')"
+            verdict="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN" --jq '.conclusion // "pending"')"
+            test "$source" = "$SOURCE_SHA" || { echo "::error::Wrong source SHA"; exit 1; }
+            if [ "$state" = completed ]; then
+              test "$verdict" = success || { echo "::error::UNITY 6 CI was not PASS: $verdict"; exit 1; }
+              break
+            fi
+            if [ "$n" = 120 ]; then echo "::error::No confirmed CI PASS"; exit 1; fi
+            sleep 20
+          done
+          source_files="$(gh api "repos/$GITHUB_REPOSITORY/compare/$SOURCE_SHA...$GITHUB_SHA" --jq '[.files[].filename | select(. != ".github/workflows/unity6-publish-preview.yml")] | length')"
+          test "$source_files" = 0 || { echo "::error::Source changed since tested commit; refusing stale preview"; exit 1; }
+          if git ls-remote --exit-code --heads origin "$PREVIEW_REF" >/dev/null; then
+            echo "::error::Preview branch already exists; no implicit overwrite"; exit 1
+          fi
+          echo "UNITY6_EXACT_SOURCE_CI_VERIFIED $SOURCE_SHA"
+      - name: Retrieve exactly tested Unity 6 playable bundle and browser evidence
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/unity-player" "$RUNNER_TEMP/qa"
+          gh run download "$SOURCE_RUN" -R "$GITHUB_REPOSITORY" -n "unity6-integration-webgl-$SOURCE_SHA" -D "$RUNNER_TEMP/unity-player"
+          gh run download "$SOURCE_RUN" -R "$GITHUB_REPOSITORY" -n "unity6-integration-qa-$SOURCE_SHA" -D "$RUNNER_TEMP/qa"
+          test -s "$RUNNER_TEMP/unity-player/index.html"
+          test -s "$RUNNER_TEMP/unity-player/unity6-district-registry.json"
+          test -n "$(find "$RUNNER_TEMP/unity-player/Build" -name '*.data.unityweb' -print -quit)"
+      - name: Validate Unity runtime check results and source receipt, no substitutions
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib
+          base=pathlib.Path(os.environ["RUNNER_TEMP"])
+          player=base/"unity-player";qa=base/"qa"
+          report=json.loads((qa/"city-review/report.json").read_text())
+          assert report.get("passed") is True,report.get("error")
+          assert report["commit"]==os.environ["SOURCE_SHA"]
+          assert len(report["checks"])>=27,len(report["checks"])
+          assert all(q["passed"] for q in report["checks"])
+          assert "Chromium WebGL2" in report["platform"]
+          data=json.loads((player/"unity6-district-registry.json").read_text())
+          assert data["commit"]==os.environ["SOURCE_SHA"] and data["engine"]=="Unity6"
+          assert data["districtIds"]==["city","estate"]
+          assert data["scenePaths"]==["Assets/PlayableGenerated/BraxhornCity.unity","Assets/PlayableGenerated/BraxhornEstate.unity"]
+          assert not data["externalThreeRuntimeUsed"] and not data["productionChanged"]
+          no_cars=json.loads((qa/"build/WebGL/unity6-no-cars.json").read_text())
+          assert no_cars["disabledMeshes"]==397 and no_cars["skippedCarCollisionBoxes"]==5
+          assert no_cars["sourceAssetsUnchanged"] and no_cars["cityArchitectureUnchanged"]
+          print("UNITY6_WEBGL_BOTH_SCENES_AND_NO_CARS_QA_PASS",len(report["checks"]))
+          PY
+      - name: Prepare verified memory-conscious static Unity6 preview, no fake video
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/site"
+          cp -a "$RUNNER_TEMP/unity-player/." "$RUNNER_TEMP/site/"
+          SOURCE_TEMPLATE="$GITHUB_WORKSPACE/unity-release/ios-stream-loader.js" python3 - <<'PY'
+          import hashlib,json,os,pathlib,zlib
+          site=pathlib.Path(os.environ["RUNNER_TEMP"])/"site"
+          build=site/"Build";data=list(build.glob("*.data.unityweb"));loader=list(build.glob("*.loader.js"))
+          assert len(data)==1 and len(loader)==1,(data,loader)
+          data,loader=data[0],loader[0]
+          total=data.stat().st_size
+          assert total>50_000_000, "Unexpected Unity data payload"
+          stream=zlib.decompressobj(31)
+          sha=hashlib.sha256();decoded=hashlib.sha256()
+          expanded=0;chunks=[];size=32*1024*1024
+          with data.open("rb") as source:
+            for i,chunk in enumerate(iter(lambda:source.read(size),b"")):
+              sha.update(chunk)
+              output=build/(data.name+f".part{i:03d}");output.write_bytes(chunk)
+              content=stream.decompress(chunk);decoded.update(content);expanded+=len(content)
+              chunks.append({"path":"Build/"+output.name,"bytes":len(chunk),"sha256":hashlib.sha256(chunk).hexdigest()})
+          last=stream.flush();decoded.update(last);expanded+=len(last)
+          assert stream.eof and not stream.unused_data and len(chunks)>=2
+          compressed=sha.hexdigest();data.unlink()
+          manifest={"dataPath":"Build/"+data.name,"bytes":total,"sha256":compressed,
+            "parts":chunks,"sourceCommit":os.environ["SOURCE_SHA"],"uncompressedBytes":expanded}
+          template=pathlib.Path(os.environ["SOURCE_TEMPLATE"]).read_text()
+          assert template.count("__MANIFEST__")==1
+          (site/"city-transport.js").write_text(template.replace("__MANIFEST__",json.dumps(manifest,separators=(",",":"))))
+          code=loader.read_text()
+          anchor="fetch(e,t).then(function(e){return b.readBodyWithProgress"
+          assert code.count(anchor)==1,"Unexpected Unity loader, cannot patch safely"
+          loader.write_text(code.replace(anchor,"(window.BraxCityFetch||fetch)(e,t).then(function(e){return b.readBodyWithProgress",1))
+          index=site/"index.html";html=index.read_text()
+          anchor="<script>\n'use strict';"
+          assert html.count(anchor)==1,"Cannot install authentic Unity loader streaming"
+          html=html.replace(anchor,'<script src="city-transport.js"></script>'+anchor,1)
+          assert html.count("function fail(e){")==1
+          html=html.replace("function fail(e){","window.addEventListener('brax-city-load-error',e=>fail(e.detail));\nfunction fail(e){",1)
+          index.write_text(html)
+          settings={"version":2,"framework":None,"buildCommand":None,"outputDirectory":".",
+            "headers":[{"source":"/(.*)","headers":[{"key":"X-Robots-Tag","value":"noindex, nofollow"}]}]}
+          (site/"vercel.json").write_text(json.dumps(settings,indent=2)+"\n")
+          receipt={"kind":"isolated-Unity6-integrated-preview","engine":"Unity6",
+            "commit":os.environ["SOURCE_SHA"],"QA":"PASS",
+            "productionChanged":False,"legacyThreeRuntime":False,
+            "physicalIPhoneTestPassed":False,"visualAcceptance":"operator-pending",
+            "cityVehicles":"hidden verified 397 original source vehicle meshes",
+            "originalDataBytes":total,"originalDataSHA256":compressed,
+            "transportParts":chunks,"uncompressedBytes":expanded}
+          (site/"source-proof.json").write_text(json.dumps(receipt,indent=2)+"\n")
+          print("UNITY6_WEBGL_ORIGINAL_BINARY_SAFE_STREAM",total,expanded,len(chunks))
+          oversized=[(str(p),p.stat().st_size) for p in site.rglob("*") if p.is_file() and p.stat().st_size>95_000_000]
+          assert not oversized,oversized
+          PY
+      - name: Publish isolated orphan branch ONLY — do not touch main or production
+        run: |
+          set -euo pipefail
+          git switch --orphan preview/unity6-integrated-20261030
+          git rm -r --cached -q . || true
+          rm -rf .github unity-release
+          cp -a "$RUNNER_TEMP/site/." .
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --sparse -A
+          git commit -m "preview(Unity6): approved technical QA of gym city without cars and estate [skip ci]"
+          git push origin "HEAD:$PREVIEW_REF"
+          echo "UNITY6_TEST_PREVIEW_BRANCH_PUBLISHED__PRODUCTION_UNCHANGED"
