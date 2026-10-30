@@ -230,9 +230,12 @@ public static class BraxCityRebuild
         if(Environment.GetEnvironmentVariable("BRAX_HARBOR_BEACH_SOURCE_READY")=="1" ||
            System.IO.File.Exists("Assets/Source/HarborBeach/ENABLE_TEST_BUILD.txt"))
             BraxHarborBeachBuild.Apply(root);
+        // Prawdziwa trawa w całym mieście (tylko testowy build Claude).
+        BraxClaudeGround.ReplaceGrass(root);
         BraxNutritionShopBuild.Apply(world,original,physics,root);
         // Wyposażenie klubu NOVA (tylko testowy build Claude, ENABLE_TEST_BUILD.txt).
         BraxClaudeNovaClub.Apply();
+        BraxClaudeGround.Save();
         if(gymDoor&&(Vector3.Distance(gymDoorPosition,gymDoor.transform.position)>.0001f||Quaternion.Angle(gymDoorRotation,gymDoor.transform.rotation)>.0001f||Vector3.Distance(gymDoorScale,gymDoor.transform.lossyScale)>.0001f))
             throw new InvalidOperationException("Gym doorway integration boundary changed unexpectedly");
         var renderers=root.GetComponentsInChildren<MeshRenderer>(true).Where(r=>r.enabled&&r.gameObject.activeInHierarchy).ToArray();

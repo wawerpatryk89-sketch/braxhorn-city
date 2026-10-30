@@ -107,171 +107,190 @@ public static class BraxHarborBeachBuild
         return mat;
     }
 
-    // A natural relief sampled from the delivered real Poly Haven displacement map.
-    // Only original user textures determine the relief detail; no random/fake noise.
-    static float BeachY(float x,float z,Texture2D displacement)
+    // ===== Plaża i marina (przepisane przez Claude po obejrzeniu pierwszego buildu) =====
+    // Ląd x 70..84 (trawa wycięta), morze od x=84. Piasek na poziomie terenu,
+    // od brzegu łagodnie schodzi pod wodę (lustro wody -1.7 m ok. x=96).
+    const float Z0 = 113f, Z1 = 153f, LandX = 70f, SeaX = 104f;
+
+    static float BeachY(float x, float z, Texture2D disp)
     {
-        float t=Mathf.Clamp01((x-70f)/(Shore-70f));
-        float descending=Mathf.SmoothStep(0,1,t);
-        float baseY=Mathf.Lerp(.17f,Water-.26f,descending);
-        float u=Mathf.Repeat((x-70f)/11f,1);
-        float v=Mathf.Repeat((z-113f)/13f,1);
-        float sample=displacement.GetPixelBilinear(u,v).grayscale;
-        float seamGuard=Mathf.Clamp01(Mathf.Abs(x-80f)/1.25f);
-        float detail=(sample-.5f)*.10f*Mathf.Sin(Mathf.PI*t)*seamGuard;
-        return baseY+detail;
+        float y;
+        if (x <= Shore) y = .02f;
+        else
+        {
+            float t = Mathf.Clamp01((x - Shore) / (SeaX - Shore));
+            y = .02f - 2.75f * Mathf.Pow(Mathf.SmoothStep(0, 1, t), 1.05f);
+        }
+        // Boki plaży nad wodą schodzą łagodnie pod wodę (bez pionowej krawędzi).
+        if (x > Shore)
+        {
+            float edge = Mathf.Min(z - Z0, Z1 - z);
+            float k = 1f - Mathf.Clamp01(edge / 5f);
+            y = Mathf.Lerp(y, Water - 1.2f, k * Mathf.Clamp01((x - Shore) / 3f));
+        }
+        float u = Mathf.Repeat(x / 11f, 1), v = Mathf.Repeat(z / 13f, 1);
+        float detail = (disp.GetPixelBilinear(u, v).grayscale - .5f) * .06f;
+        return y + (x <= Shore - .5f ? Mathf.Max(0, detail) : detail);
     }
 
-    static int BeachStrip(Transform parent,string name,float x0,float x1,
-                          float z0,float z1,int segmentsX,int segmentsZ,
-                          Texture2D displacement,Material material)
+    static int BeachStrip(Transform parent, string name, float x0, float x1, float z0, float z1,
+                          int nx, int nz, Texture2D disp, Material material)
     {
-        var verts=new Vector3[(segmentsX+1)*(segmentsZ+1)];
-        var uv=new Vector2[verts.Length];
-        var indices=new int[segmentsX*segmentsZ*6];
-        for(int z=0;z<=segmentsZ;z++)
-        for(int x=0;x<=segmentsX;x++)
-        {
-            int i=z*(segmentsX+1)+x;
-            float worldX=Mathf.Lerp(x0,x1,(float)x/segmentsX);
-            float worldZ=Mathf.Lerp(z0,z1,(float)z/segmentsZ);
-            verts[i]=new Vector3(worldX,BeachY(worldX,worldZ,displacement),worldZ);
-            uv[i]=new Vector2((worldX-70f)*.30f,(worldZ-113f)*.30f);
-        }
-        int t=0;
-        for(int z=0;z<segmentsZ;z++)
-        for(int x=0;x<segmentsX;x++)
-        {
-            int a=z*(segmentsX+1)+x, b=a+1, c=a+segmentsX+1, d=c+1;
-            // Upward winding for a Unity X/Z height field.
-            indices[t++]=a;indices[t++]=c;indices[t++]=b;
-            indices[t++]=b;indices[t++]=c;indices[t++]=d;
-        }
-        var mesh=new Mesh{name=name,indexFormat=verts.Length>65535?IndexFormat.UInt32:IndexFormat.UInt16};
-        mesh.vertices=verts;mesh.uv=uv;mesh.triangles=indices;
-        mesh.RecalculateNormals();mesh.RecalculateBounds();
-        AssetDatabase.CreateAsset(mesh,Generated+"/"+name.Replace(' ','_')+".asset");
-        var obj=new GameObject(name);
-        obj.transform.SetParent(parent,false);
-        obj.AddComponent<MeshFilter>().sharedMesh=mesh;
-        var ren=obj.AddComponent<MeshRenderer>();ren.sharedMaterial=material;
-        ren.shadowCastingMode=ShadowCastingMode.Off;
-        // Walkable realistic sand, anchored only in the new beach zone.
-        obj.AddComponent<MeshCollider>().sharedMesh=mesh;
-        return indices.Length/3;
+        var verts = new Vector3[(nx + 1) * (nz + 1)];
+        var uv = new Vector2[verts.Length];
+        for (int z = 0; z <= nz; z++)
+            for (int x = 0; x <= nx; x++)
+            {
+                int i = z * (nx + 1) + x;
+                float wx = Mathf.Lerp(x0, x1, (float)x / nx), wz = Mathf.Lerp(z0, z1, (float)z / nz);
+                verts[i] = new Vector3(wx, BeachY(wx, wz, disp), wz);
+                uv[i] = new Vector2(wx * .3f, wz * .3f);
+            }
+        var idx = new int[nx * nz * 6]; int t = 0;
+        for (int z = 0; z < nz; z++)
+            for (int x = 0; x < nx; x++)
+            {
+                int a = z * (nx + 1) + x, b = a + 1, c = a + nx + 1, d = c + 1;
+                idx[t++] = a; idx[t++] = c; idx[t++] = b; idx[t++] = b; idx[t++] = c; idx[t++] = d;
+            }
+        var mesh = new Mesh { name = name, indexFormat = verts.Length > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
+        mesh.vertices = verts; mesh.uv = uv; mesh.triangles = idx;
+        mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
+        AssetDatabase.CreateAsset(mesh, Generated + "/" + name.Replace(' ', '_') + ".asset");
+        var obj = new GameObject(name); obj.transform.SetParent(parent, false);
+        obj.AddComponent<MeshFilter>().sharedMesh = mesh;
+        var ren = obj.AddComponent<MeshRenderer>(); ren.sharedMaterial = material;
+        ren.shadowCastingMode = ShadowCastingMode.Off; ren.receiveShadows = true;
+        obj.AddComponent<MeshCollider>().sharedMesh = mesh;
+        return idx.Length / 3;
     }
 
     static Bounds RendererBounds(GameObject go)
     {
-        var rs=go.GetComponentsInChildren<Renderer>(true);
-        if(rs.Length==0)throw new InvalidOperationException("3D GLB has no renderers: "+go.name);
-        Bounds b=rs[0].bounds;
-        for(int i=1;i<rs.Length;i++)b.Encapsulate(rs[i].bounds);
-        if(b.size.sqrMagnitude<.001f)throw new InvalidOperationException("3D GLB has invalid bounds: "+go.name);
+        var rs = go.GetComponentsInChildren<Renderer>(true);
+        if (rs.Length == 0) throw new InvalidOperationException("3D GLB has no renderers: " + go.name);
+        Bounds b = rs[0].bounds;
+        for (int i = 1; i < rs.Length; i++) b.Encapsulate(rs[i].bounds);
         return b;
     }
 
-    static GameObject Place(Transform parent,string file,string name,
-                            Vector3 target,float height,float yaw,
-                            bool alignBottom=true,float submerge=0f)
+    // Model w skali rzeczywistej (scale × natywne metry). yMode: 0 = spód na y, 1 = góra na y.
+    static GameObject Put(Transform parent, string file, string name, float x, float y, float z,
+                          float scale, float yaw, int yMode = 0)
     {
-        var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(Models+file);
-        if(!prefab)throw new InvalidOperationException("Not imported original GLB: "+file);
-        var go=UnityEngine.Object.Instantiate(prefab);
-        go.name=name;go.transform.SetParent(parent,false);
-        go.transform.localPosition=Vector3.zero;
-        go.transform.localScale=Vector3.one;
-        go.transform.rotation=Quaternion.Euler(0,yaw,0);
-        var b=RendererBounds(go);
-        if(b.size.y<=.001f)throw new InvalidOperationException("Model has no height: "+file);
-        float scale=height/b.size.y;
-        if(float.IsNaN(scale)||float.IsInfinity(scale)||scale<=0)
-            throw new InvalidOperationException("GLB scale invalid: "+file);
-        go.transform.localScale=Vector3.one*scale;
-        b=RendererBounds(go);
-        var delta=new Vector3(target.x-b.center.x,0,target.z-b.center.z);
-        // For static land objects, the original ground-supported base is preserved.
-        // For boats, submerge only a known fraction of its measured hull bounding height.
-        delta.y=(alignBottom?target.y-b.min.y:target.y-go.transform.position.y)-submerge;
-        go.transform.position+=delta;
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Models + file);
+        if (!prefab) throw new InvalidOperationException("Not imported original GLB: " + file);
+        var go = UnityEngine.Object.Instantiate(prefab);
+        go.name = name; go.transform.SetParent(parent, false);
+        go.transform.localPosition = Vector3.zero;
+        go.transform.rotation = Quaternion.Euler(0, yaw, 0);
+        go.transform.localScale = go.transform.localScale * scale;
+        var b = RendererBounds(go);
+        float dy = yMode == 0 ? y - b.min.y : y - b.max.y;
+        go.transform.position += new Vector3(x - b.center.x, dy, z - b.center.z);
+        foreach (var r in go.GetComponentsInChildren<Renderer>(true)) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
         return go;
     }
 
     static void StaticMeshCollision(GameObject go)
     {
-        foreach(var filter in go.GetComponentsInChildren<MeshFilter>(true))
+        foreach (var filter in go.GetComponentsInChildren<MeshFilter>(true))
         {
-            if(!filter.sharedMesh)continue;
-            var col=filter.gameObject.GetComponent<MeshCollider>();
-            if(!col)col=filter.gameObject.AddComponent<MeshCollider>();
-            col.sharedMesh=filter.sharedMesh;
-            col.convex=false;
+            if (!filter.sharedMesh) continue;
+            var col = filter.gameObject.GetComponent<MeshCollider>();
+            if (!col) col = filter.gameObject.AddComponent<MeshCollider>();
+            col.sharedMesh = filter.sharedMesh; col.convex = false;
         }
+    }
+
+    static void Stop(Transform root, string name, Vector3 center, Vector3 size)
+    {
+        var c = new GameObject(name).AddComponent<BoxCollider>();
+        c.transform.SetParent(root, false); c.center = center; c.size = size;
     }
 
     public static void Apply(Transform cityRoot)
     {
-        if(!cityRoot || cityRoot.name!="BRAXHORN CITY reference renovation")
+        if (!cityRoot || cityRoot.name != "BRAXHORN CITY reference renovation")
             throw new InvalidOperationException("Harbor is restricted to actual Unity 6 city renovation root");
-        if(Mathf.Abs(BraxCityWaterBuild.WaterY-Water)>.0001f ||
-           Mathf.Abs(BraxCityWaterBuild.ShoreX-Shore)>.0001f)
+        if (Mathf.Abs(BraxCityWaterBuild.WaterY - Water) > .0001f || Mathf.Abs(BraxCityWaterBuild.ShoreX - Shore) > .0001f)
             throw new InvalidOperationException("Original city water footprint changed; refuse port placement");
         VerifySource();
-        var previous=cityRoot.Find(RootName);
-        if(previous)UnityEngine.Object.DestroyImmediate(previous.gameObject);
-        if(AssetDatabase.IsValidFolder(Generated))AssetDatabase.DeleteAsset(Generated);
+        var previous = cityRoot.Find(RootName);
+        if (previous) UnityEngine.Object.DestroyImmediate(previous.gameObject);
+        if (AssetDatabase.IsValidFolder(Generated)) AssetDatabase.DeleteAsset(Generated);
         Directory.CreateDirectory(Generated);
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        var root = new GameObject(RootName).transform;
+        root.SetParent(cityRoot, false); root.position = Vector3.zero;
 
-        var root=new GameObject(RootName).transform;
-        root.SetParent(cityRoot,false);
-        root.position=Vector3.zero;
-        var dry=Sand("Braxhorn dry coastal sand 2K genuine PBR","coast_sand_02");
-        var wet=Sand("Braxhorn wet tidal sand 2K genuine PBR","damp_sand");
-        var dryDisp=Tex("coast_sand_02","_disp_2k.png",read:true);
-        var wetDisp=Tex("damp_sand","_disp_2k.png",read:true);
-        int dryTriangles=BeachStrip(root,"Dry sand authentic coastal relief",70,80,113,153,40,80,dryDisp,dry);
-        int wetTriangles=BeachStrip(root,"Wet sand natural waterline",80,84.35f,113,153,18,80,wetDisp,wet);
+        // 1) Trawa pod plażą wycięta (razem z kolizją).
+        BraxClaudeGround.Cut(cityRoot, new Rect(LandX - .5f, Z0 - .5f, Shore - LandX + 1.5f, Z1 - Z0 + 1f), -.6f, .7f, root);
 
-        // Current concrete quay / old timber pier stay in the original scene.
-        // New original wooden jetty links the existing shore to the small marina.
-        var jetty=Place(root,"rustic_wooden_dock.glb","Library original wooden jetty",
-                        new Vector3(99,.1f,122),9,90,alignBottom:false);
+        // 2) Piasek: matowy fotoskan (bez plastikowego połysku), skala w metrach świata.
+        var dry = BraxClaudeGround.WorldMaterial("Plaza: suchy piasek coast_sand_02",
+            Tex("coast_sand_02", "_diff_2k.jpg"), Tex("coast_sand_02", "_nor_2k.png", normal: true), null, 2.4f, Color.white, .28f, .9f);
+        var wet = BraxClaudeGround.WorldMaterial("Plaza: mokry piasek damp_sand",
+            Tex("damp_sand", "_diff_2k.jpg"), Tex("damp_sand", "_nor_2k.png", normal: true), null, 2.4f, new Color(.93f, .93f, .93f), .2f, .8f);
+        var dryDisp = Tex("coast_sand_02", "_disp_2k.png", read: true);
+        int tris = BeachStrip(root, "Plaza suchy piasek", LandX, 92f, Z0, Z1, 66, 100, dryDisp, dry);
+        tris += BeachStrip(root, "Plaza mokry piasek przy wodzie", 92f, SeaX, Z0, Z1, 30, 100, dryDisp, wet);
+
+        // 3) Pomost z plaży w morze (natywna skala 25.8 m), deska ok. 1.5 m nad wodą.
+        var jetty = Put(root, "rustic_wooden_dock.glb", "Marina: drewniany pomost", 101f, Water + 1.55f + 1.5f, 133f, 1f, 90f, 1);
         StaticMeshCollision(jetty);
+        var jb = RendererBounds(jetty);
 
-        // Two different licensed real boats; no synthetic substitutes.
-        Place(root,"yacht.glb","Berth A — real yacht GLB",
-              new Vector3(118,Water,100),8,0,true,2.3f);
-        Place(root,"bateau_riva_boat.glb","Berth B — Riva boat GLB",
-              new Vector3(104,Water,48),2.55f,0,true,.72f);
+        // 4) Jacht (24 m) przycumowany po północnej stronie pomostu, Riva po południowej.
+        float yachtScale = .6f;
+        var yacht = Put(root, "yacht.glb", "Marina: jacht przy pomoście", 114f, Water - 1.5f, jb.max.z + 3.2f, yachtScale, 90f);
+        var riva = Put(root, "bateau_riva_boat.glb", "Marina: motorówka Riva", 108f, Water - .55f, jb.min.z - 2.4f, 1f, 90f);
 
-        // Two individual variants derived solely from user's five-model GLB.
-        Place(root,"jetski_01.glb","Jet ski 01 source geometry",
-              new Vector3(103,Water,84),1.30f,90,true,.32f);
-        Place(root,"jetski_02.glb","Jet ski 02 source geometry",
-              new Vector3(108,Water,85.5f),1.30f,90,true,.32f);
+        // 5) Skutery przy brzegu (lekko wyciągnięte na płyciznę).
+        Put(root, "jetski_01.glb", "Plaza: skuter wodny 1", 99f, Water - .22f, 146f, 1.2f, 62f);
+        Put(root, "jetski_02.glb", "Plaza: skuter wodny 2", 100.5f, Water - .22f, 149.5f, 1.2f, 31f);
 
-        var crane=Place(root,"harbor_crane.glb","Original industrial harbour crane",
-              new Vector3(78,.17f,-37),22,-90);
-        // Use only a base collision envelope, never 255k-triangle solid mesh physics.
-        var baseCollider=new GameObject("Real crane pedestal collision").AddComponent<BoxCollider>();
-        baseCollider.transform.SetParent(crane.transform,false);
-        baseCollider.center=Vector3.zero;
-        baseCollider.size=new Vector3(5,.65f,5);
-
-        var tower=Place(root,"lifeguard_tower.glb","Real lifeguard observation tower",
-              new Vector3(74,BeachY(74,138,dryDisp),138),6.6f,30);
+        // 6) Budka ratownika na suchym piasku, przodem do morza.
+        var tower = Put(root, "lifeguard_tower.glb", "Plaza: budka ratownika", 79f, .02f, 141f, 6.2f / 31.0f, 270f);
         StaticMeshCollision(tower);
 
-        var meshs=root.GetComponentsInChildren<MeshRenderer>(true);
-        var report=new Review{
-            models=new[]{"yacht.glb","bateau_riva_boat.glb","jetski_01.glb",
-                         "jetski_02.glb","harbor_crane.glb","rustic_wooden_dock.glb","lifeguard_tower.glb"},
-            sourcePaths=Required,active3dModels=7,
-            meshRenderers=meshs.Length,sandTriangles=dryTriangles+wetTriangles,sandColliders=2
+        // 7) Dźwig portowy w skali rzeczywistej (ok. 40 m) na nabrzeżu, wysięgnik nad wodą.
+        var crane = Put(root, "harbor_crane.glb", "Port: dźwig portowy", 74f, .17f, -37f, 1f, -90f);
+        var cb = RendererBounds(crane);
+        // Podstawa = środek ciężkości geometrii; ma stać na lądzie (x < 82), wysięgnik nad morzem.
+        Vector3 mass = Vector3.zero; float wsum = 0;
+        foreach (var f in crane.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if (!f.sharedMesh) continue; var rr = f.GetComponent<Renderer>(); if (!rr) continue;
+            float wv = f.sharedMesh.vertexCount; mass += rr.bounds.center * wv; wsum += wv;
+        }
+        if (wsum > 0) mass /= wsum;
+        if (mass.x > cb.center.x) { crane.transform.RotateAround(cb.center, Vector3.up, 180f); cb = RendererBounds(crane); mass = 2 * cb.center - mass; mass.y = cb.center.y; }
+        crane.transform.position += new Vector3(76f - mass.x, 0, 0);
+        // Podstawa dźwigu (natywne y=0) na nabrzeżu; chwytak może wisieć niżej, nad wodą.
+        { var cp = crane.transform.position; cp.y = .17f; crane.transform.position = cp; }
+        var baseCollider = new GameObject("Dźwig: kolizja podstawy").AddComponent<BoxCollider>();
+        baseCollider.transform.SetParent(root, false);
+        baseCollider.center = new Vector3(76f, 1.2f, -37f); baseCollider.size = new Vector3(8f, 2.4f, 8f);
+
+        // 8) Granica kąpieliska (po kostki w wodzie), z przerwą na wejście na pomost.
+        float stopX = 97.5f;
+        Stop(root, "Plaza: granica wody N", new Vector3(stopX, 0, (jb.max.z + Z1) * .5f), new Vector3(.5f, 5f, Z1 - jb.max.z));
+        Stop(root, "Plaza: granica wody S", new Vector3(stopX, 0, (Z0 + jb.min.z) * .5f), new Vector3(.5f, 5f, jb.min.z - Z0));
+        Stop(root, "Plaza: bok N", new Vector3((Shore + stopX) * .5f, 0, Z1 + .2f), new Vector3(stopX - Shore, 5f, .5f));
+        Stop(root, "Plaza: bok S", new Vector3((Shore + stopX) * .5f, 0, Z0 - .2f), new Vector3(stopX - Shore, 5f, .5f));
+        Stop(root, "Pomost: krawędź N", new Vector3(jb.center.x, 0, jb.max.z - .3f), new Vector3(jb.size.x, 5f, .3f));
+        Stop(root, "Pomost: krawędź S", new Vector3(jb.center.x, 0, jb.min.z + .3f), new Vector3(jb.size.x, 5f, .3f));
+        Stop(root, "Pomost: koniec", new Vector3(jb.max.x - .3f, 0, jb.center.z), new Vector3(.3f, 5f, jb.size.z));
+
+        var meshs = root.GetComponentsInChildren<MeshRenderer>(true);
+        var report = new Review
+        {
+            models = new[] { "yacht.glb", "bateau_riva_boat.glb", "jetski_01.glb", "jetski_02.glb", "harbor_crane.glb", "rustic_wooden_dock.glb", "lifeguard_tower.glb" },
+            sourcePaths = Required, active3dModels = 7, meshRenderers = meshs.Length, sandTriangles = tris, sandColliders = 2
         };
-        File.WriteAllText(Generated+"/harbor-beach-review.json",JsonUtility.ToJson(report,true));
+        File.WriteAllText(Generated + "/harbor-beach-review.json", JsonUtility.ToJson(report, true));
         AssetDatabase.SaveAssets();
-        Debug.Log("BRAXHORN_HARBOR_UNITY6_STAGED "+JsonUtility.ToJson(report));
+        Debug.Log("BRAXHORN_HARBOR_UNITY6_STAGED jetty=" + jb + " " + JsonUtility.ToJson(report));
     }
 }

@@ -178,6 +178,7 @@ public static class BraxClaudeTowerTerrace
         }
 
         PremiumLift(tower, cx, roofY);
+        LobbyAndEntrance(tower, x0, x1, z0, cx);
 
         Directory.CreateDirectory("Assets/PlayableGenerated/ClaudeTower");
         File.WriteAllText("Assets/PlayableGenerated/ClaudeTower/terrace.json", JsonUtility.ToJson(new Report
@@ -188,6 +189,104 @@ public static class BraxClaudeTowerTerrace
         Debug.Log($"BRAXHORN_CLAUDE_TOWER_TERRACE roofY={roofY:F1} {width:F1}x{depth:F1} deck={deckSwapped} planters={boxes} tables={tables}");
     }
 
+
+
+    // Lobby i wejście od A do Z: marmurowa posadzka, granit i orzech na ścianach, jasny sufit
+    // z ciepłym światłem, recepcja, sofy, rośliny, logo BRAXHORN, granitowy portal i daszek.
+    static void LobbyAndEntrance(Transform tower, float x0, float x1, float z0, float cx)
+    {
+        float s0 = ShaftZ - 1.72f;
+        var marble = Pbr("Lobby: marmurowa posadzka", "marble_01", 1.1f);
+        var granite = Pbr("Lobby: granit okładzin", "granite_tile", 1.0f);
+        granite.SetColor("_Color", new Color(.40f, .40f, .42f)); EditorUtility.SetDirty(granite);
+        var walnut = Pbr("Lobby: orzech na ścianach", "wood_planks", 1.0f);
+        walnut.SetColor("_Color", new Color(.44f, .33f, .25f)); EditorUtility.SetDirty(walnut);
+        var champagne = BraxCityMaterials.Surface("Lobby: stal szampańska", new Color(.66f, .58f, .46f), .30f, .92f);
+        var ceiling = BraxCityMaterials.Surface("Lobby: jasny matowy sufit", new Color(.86f, .84f, .80f), .95f);
+
+        foreach (var r in tower.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            string n = r.gameObject.name;
+            if (n.StartsWith("Walkable imported PBR stone lobby floor")) r.sharedMaterial = marble;
+            else if (n.StartsWith("Ground-floor") && n.Contains("wall")) r.sharedMaterial = granite;
+            else if (n.StartsWith("Entrance wall")) r.sharedMaterial = granite;
+            else if (n.StartsWith("Tower painted lobby interior wall") || n.StartsWith("Tower lobby painted rear wall")) r.sharedMaterial = walnut;
+            else if (n.StartsWith("Tower lobby stainless skirting")) r.sharedMaterial = champagne;
+        }
+
+        var root = new GameObject("CLAUDE lobby i wejście wieżowca").transform;
+        root.SetParent(tower, false); root.position = Vector3.zero;
+        float depth = s0 - z0, w = x1 - x0;
+
+        // Jasny podwieszany sufit (zamiast czarnej „dziury”) i ciepłe światło bez poświaty.
+        Box("Lobby: sufit podwieszany", root, new Vector3(cx, 3.56f, (z0 + s0) * .5f - .2f), new Vector3(w - .7f, .05f, depth - .8f), ceiling);
+        foreach (float fz in new[] { z0 + depth * .25f, z0 + depth * .6f })
+            foreach (float fx in new[] { cx - w * .22f, cx + w * .22f })
+            {
+                var l = new GameObject("Lobby: ciepłe światło sufitowe").AddComponent<Light>();
+                l.transform.SetParent(root, false); l.transform.position = new Vector3(fx, 3.3f, fz);
+                l.type = LightType.Point; l.color = new Color(1f, .88f, .74f); l.intensity = 1.25f; l.range = 7.5f;
+                l.shadows = LightShadows.None; l.renderMode = LightRenderMode.ForcePixel;
+            }
+
+        // Recepcja po prawej (z dala od przejścia drzwi → winda).
+        if (x1 - cx > 4.6f)
+        {
+            var d = new Vector3(cx + 2.9f, 0, z0 + Mathf.Min(7f, depth * .45f));
+            Box("Lobby: recepcja front granit", root, d + Vector3.up * .55f, new Vector3(3.0f, 1.1f, .75f), granite, true);
+            Box("Lobby: recepcja blat marmur", root, d + Vector3.up * 1.125f, new Vector3(3.15f, .05f, .9f), marble);
+            Box("Lobby: recepcja listwa", root, d + new Vector3(0, .9f, -.38f), new Vector3(3.0f, .04f, .02f), champagne);
+        }
+        // Sofy z biblioteki po lewej, przodem do środka.
+        const string sofa = "Assets/Source/LibrarySofa02.glb";
+        if (File.Exists(sofa) && cx - x0 > 4.6f)
+        {
+            AssetDatabase.ImportAsset(sofa, ImportAssetOptions.ForceSynchronousImport);
+            var src = AssetDatabase.LoadAssetAtPath<GameObject>(sofa);
+            if (src)
+                foreach (float fz in new[] { z0 + depth * .32f, z0 + depth * .62f })
+                {
+                    var o = (GameObject)UnityEngine.Object.Instantiate(src, root, false);
+                    o.name = "Lobby: sofa"; o.transform.rotation = Quaternion.Euler(0, 90, 0);
+                    var b = Bounds(o); float sc = 2.0f / Mathf.Max(b.size.x, b.size.z); o.transform.localScale *= sc;
+                    b = Bounds(o); o.transform.position += new Vector3(x0 + 1.2f - b.center.x, .15f - b.min.y, fz - b.center.z);
+                    b = Bounds(o); var c = new GameObject("Lobby: sofa kolizja").AddComponent<BoxCollider>();
+                    c.transform.SetParent(root, false); c.transform.position = b.center; c.size = b.size;
+                }
+        }
+        Put(root, "potted_plant_04", "Lobby: roślina przy wejściu L", new Vector3(cx - 2.0f, .15f, z0 + .9f), 30);
+        Put(root, "potted_plant_04", "Lobby: roślina przy wejściu P", new Vector3(cx + 2.0f, .15f, z0 + .9f), -50);
+        Put(root, "potted_plant_02", "Lobby: roślina przy windzie L", new Vector3(cx - 2.6f, .15f, s0 - 1.0f), 80);
+        Put(root, "potted_plant_02", "Lobby: roślina przy windzie P", new Vector3(cx + 2.6f, .15f, s0 - 1.0f), -20);
+
+        // Logo BRAXHORN na ścianie (matowe, oświetlone jak reszta, nie świeci).
+        const string logo = "Assets/CityRebuild/Brand/brand-wide.png";
+        if (File.Exists(logo))
+        {
+            AssetDatabase.ImportAsset(logo, ImportAssetOptions.ForceSynchronousImport);
+            var t = AssetDatabase.LoadAssetAtPath<Texture2D>(logo);
+            var m = new Material(Shader.Find("Standard")) { name = "Lobby: logo BRAXHORN" };
+            m.SetTexture("_MainTex", t); m.SetFloat("_Mode", 1); m.EnableKeyword("_ALPHATEST_ON");
+            m.SetFloat("_Cutoff", .4f); m.SetFloat("_Glossiness", .15f); m.renderQueue = 2450;
+            Directory.CreateDirectory("Assets/PlayableGenerated/ClaudeTower");
+            AssetDatabase.CreateAsset(m, "Assets/PlayableGenerated/ClaudeTower/lobby-logo.mat");
+            var q = GameObject.CreatePrimitive(PrimitiveType.Quad); q.name = "Lobby: logo BRAXHORN";
+            UnityEngine.Object.DestroyImmediate(q.GetComponent<Collider>());
+            q.transform.SetParent(root, false);
+            q.transform.position = new Vector3(x0 + .36f, 2.2f, z0 + depth * .47f);
+            q.transform.rotation = Quaternion.Euler(0, -90, 0);
+            float aspect = t ? (float)t.width / t.height : 3f;
+            q.transform.localScale = new Vector3(Mathf.Min(3.4f, depth * .4f), Mathf.Min(3.4f, depth * .4f) / aspect, 1);
+            q.GetComponent<MeshRenderer>().sharedMaterial = m;
+        }
+
+        // Wejście z ulicy: granitowe okładziny po bokach drzwi i daszek ze stali szampańskiej.
+        foreach (float side in new[] { -1f, 1f })
+            Box("Wejście: granitowa okładzina", root, new Vector3(cx + side * 2.36f, 1.85f, z0 - .07f), new Vector3(2.6f, 3.7f, .1f), granite);
+        Box("Wejście: nadproże granit", root, new Vector3(cx, 3.55f, z0 - .07f), new Vector3(2.2f, .3f, .1f), granite);
+        Box("Wejście: daszek", root, new Vector3(cx, 3.95f, z0 - 1.15f), new Vector3(7.6f, .18f, 2.4f), champagne);
+        Box("Wejście: spód daszka", root, new Vector3(cx, 3.85f, z0 - 1.15f), new Vector3(7.4f, .02f, 2.3f), ceiling);
+    }
 
     // Winda premium: granitowa posadzka, szczotkowana stal w kolorze szampana, ciemne drewno,
     // polerowane poręcze, kamienne portale drzwi na parterze i na dachu. Mechanika windy bez zmian.

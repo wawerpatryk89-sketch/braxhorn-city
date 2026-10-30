@@ -83,6 +83,28 @@ def main() -> int:
             n += 1
         report["models"][m] = n
         print("MODEL", m, "files", n)
+    # Prawdziwa trawa: ambientCG Grass004 (CC0), 2K JPG -> diffuse/normal/arm (R=AO, G=roughness).
+    import io, zipfile
+    from PIL import Image
+    z = zipfile.ZipFile(io.BytesIO(get("https://ambientcg.com/get?file=Grass004_2K-JPG.zip")))
+    names = z.namelist()
+    def member(token):
+        for n in names:
+            if token in n and n.lower().endswith((".jpg", ".png")):
+                return Image.open(io.BytesIO(z.read(n)))
+        return None
+    color, normal, rough, ao = member("_Color"), member("_NormalGL"), member("_Roughness"), member("_AmbientOcclusion")
+    if color is None or normal is None or rough is None:
+        raise RuntimeError("Grass004: brak map w paczce: " + ", ".join(names))
+    d = ROOT / "textures" / "grass004"
+    d.mkdir(parents=True, exist_ok=True)
+    color.convert("RGB").save(d / "diffuse.jpg", quality=92)
+    normal.convert("RGB").save(d / "normal.jpg", quality=95)
+    r = rough.convert("L")
+    a = ao.convert("L").resize(r.size) if ao is not None else Image.new("L", r.size, 255)
+    Image.merge("RGB", (a, r, Image.new("L", r.size, 0))).save(d / "arm.jpg", quality=92)
+    report["textures"]["grass004"] = {"source": "ambientCG Grass004 (CC0)", "ao": ao is not None}
+    print("TEX grass004 (ambientCG) OK")
     # Niebo: to samo co dziś w mieście (kloofendal_48d_partly_cloudy_puresky z biblioteki właściciela),
     # ale ostre: 4096x2048 zamiast 2048x1024 (wersja tonemapped JPG z Poly Haven).
     sky_id = "kloofendal_48d_partly_cloudy_puresky"
