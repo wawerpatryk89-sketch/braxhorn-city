@@ -596,20 +596,47 @@ const config={
  devicePixelRatio: Math.min(window.devicePixelRatio||1,1.5),
  showBanner: (msg,type)=>{console[type==="error"?"error":"warn"]("UNITY:",msg);toast(msg)}
 };
+// Report genuine startup state on iPhone; never leave a permanent spinner.
+const bootStarted=Date.now();
+let engineProgress=0, startupFailure=null;
+const loadingMessage=$("loadMsg");
+function showStartupFailure(reason){
+ if(game.sourceReady||startupFailure)return;
+ startupFailure=String(reason).slice(0,250);
+ if(loadingMessage)loadingMessage.textContent="Nie udało się uruchomić Unity: "+startupFailure+". Otwórz ten adres w Safari. Osiedle nie jest gotowe na tym urządzeniu.";
+ const bar=$q("#loader .bar i");if(bar)bar.style.background="#d65b41";
+ console.error("BRAXHORN UNITY STARTUP FAILED:",startupFailure);
+}
+window.addEventListener("unhandledrejection",e=>{
+ if(!game.sourceReady)showStartupFailure(e.reason?.message||"Błąd WebGL");
+});
+window.addEventListener("error",e=>{
+ if(!game.sourceReady && /webgl|unity|wasm|memory/i.test(e.message||""))showStartupFailure(e.message);
+});
+const bootMonitor=setInterval(()=>{
+ if(game.sourceReady||startupFailure){clearInterval(bootMonitor);return;}
+ const elapsed=Math.round((Date.now()-bootStarted)/1000);
+ if(elapsed>=180){
+  showStartupFailure(game.unity?"Przekroczono 180 sekund wczytywania sceny":"Przekroczono 180 sekund uruchamiania WebGL");
+  clearInterval(bootMonitor);return;
+ }
+ if(loadingMessage){
+  const stage=game.unity?"Wczytywanie oryginalnych modeli osiedla":"Uruchamianie Unity 6";
+  loadingMessage.textContent=stage+" — "+elapsed+" s"+(game.unity?"":" · silnik "+Math.round(engineProgress*100)+"%");
+ }
+},2000);
 const script=document.createElement("script");
 script.src="Build/EstateWebGL.loader.js";
+script.onerror=()=>showStartupFailure("Nie pobrano pliku uruchamiającego Unity");
 script.onload=()=>{
  createUnityInstance(canvas,config,progress=>{
+  engineProgress=Math.max(engineProgress,progress);
   const bar=$q("#loader .bar i");if(bar)bar.style.width=Math.min(90,progress*90)+"%";
-  const msg=$("loadMsg");if(msg)msg.textContent="Ładuję Unity 6 i osiedle…";
  }).then(unity=>{
   game.unity=unity;
   console.log("BRAXHORN Unity 6 runtime initialized, waiting for original estate sources.");
   beginBraxWalk();
- }).catch(error=>{
-  const msg=$("loadMsg");if(msg)msg.textContent="Unity 6: "+error;
-  console.error("UNITY ESTATE FAILED",error);
- });
+ }).catch(error=>showStartupFailure(error?.message||String(error)));
 };
 document.body.appendChild(script);
 })();
