@@ -1,8 +1,6 @@
-name: BRAXHORN R2 premium renovation Unity 6 - isolated build and QA
+name: BRAXHORN R2 premium renovation Unity 6 - MANUAL FALLBACK ONLY
 on:
-  push:
-    branches: [codex/estate-premium-renovation-20261030]
-    paths: ['unity-city/**','unity-tools/city/prepare.py','unity-tools/city/package.py','unity-tools/city/check.mjs','.github/workflows/estate-premium-renovation-build.yml']
+  workflow_dispatch:
 permissions:
   contents: read
   actions: read

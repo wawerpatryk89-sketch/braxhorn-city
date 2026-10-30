@@ -52,6 +52,7 @@ jobs:
           python3 unity-tools/premium_prepare.py
           python3 unity-tools/premium_refinements.py
           python3 unity-tools/city/prepare.py
+          python3 unity-tools/city/import_approved_roofs.py
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends blender
           blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
