@@ -178,6 +178,12 @@ public static class BraxCityBuild
         AddArea("estate",runtime);
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
+    public static void WriteWaterfrontReport(string output,string commit)
+    {
+        if(reports.Count!=1||reports[0].area!="city")throw new Exception("Waterfront preview must contain exactly the city area");
+        File.WriteAllText(Path.Combine(output,"city-migration.json"),JsonUtility.ToJson(new Report{commit=commit,unity=Application.unityVersion,scope="waterfront-only-review-no-estate",areas=reports.ToArray()},true));
+        BraxCityRebuild.WriteReport(output);
+    }
     public static void WriteReport(string output,string commit)
     {
         if(reports.Count!=2)throw new Exception("Both original areas must be included");
