@@ -28,11 +28,11 @@ Gałąź robocza: `codex/estate-premium-renovation-20261030`.
 | Materiał / detal | Stan | Decyzja |
 |---|---|---|
 | Drzewa, krzewy, skały Verdant Trail | Udokumentowane, modele źródłowe częściowo zachowane; brak `park_tree.glb` w bieżącej gałęzi GitHub | Odtworzyć wyłącznie z zatwierdzonego źródła i SHA, bez sztucznych zamienników |
-| Tynk wewnętrzny i elewacyjny | Materiały `stucco_indoor`, `stucco_yellow_outdoor` w istniejących domach; operator dostarczył `white_plaster_02_4k.blend.zip` do biblioteki | Najpierw odzyskać i porównać rzeczywiste mapy; osobny import 4K source -> 1–2K runtime |
+| Tynk wewnętrzny i elewacyjny | Poly Haven `white_plaster_02`, `beige_wall_001`, `white_stucco_02` — 18 map PBR z 6 rodzin zweryfikowanych oficjalnym API (test 41047049159 PASS) | W gałęzi `codex/estate-premium-pbr-20261030` trwa import zoptymalizowanych map 1K do wybranych istniejących materiałów Unity; rezultat wymaga renderu QA i odbioru |
 | Cegła | `PlainRedBricks_1K`, `M_Brick_Clay_Beveled` w źródłowych domach; dodatkowe Bricks106B/097/104 w bibliotece | Wykorzystać istniejące, nie pobierać ponownie |
 | Kostka i nawierzchnie | PavingStones151 2K i materiały drogowe w bibliotece ChatGPT; niezweryfikowany import do Unity | Nie udawać PBR szarym kolorem; wymaga kontrolowanego importu |
 | Asfalt | Operator zapowiedział nowy asset | **BLOKADA**: nie kłaść zastępczego „asfaltu” |
-| Okna i stolarka | Operator zapowiedział nowe modele/tekstury | **BLOKADA**: nie podmieniać na sztuczne panele; zachować otwory i działające wejścia |
+| Okna i stolarka | **6 nowych zasobów zapisanych w bibliotece:** dwa GLB okien, dwa GLB drzwi, dwie paczki dachówek Poly Haven 4K. Pliki sprawdzone pod kątem formatu i autorstwa | **WSTĘPNA WERYFIKACJA**: drzwi i okna nadal wymagają importu Unity oraz dopasowania zawiasów i kolizji; nie zastępować na ślepo |
 | Glazura, płytki | `MarbleFloorTiles_1K`, `MI_Gypsum_Tiles_uldnbcdn_2K`, `MI_Marble_Floor_th5jfjufw_4K` w istniejących domach | Zweryfikować wygląd, UV i prawa do użycia przed zmianą |
 | Donice, ławki | Zasoby w bibliotece; część geometrii w scenie nadal uproszczona | Bez dodatkowych sztucznych zamienników |
 | Komisariat — kartony/graty | Wymaga identyfikacji rzeczywistych meshów i kontroli wnętrza | **BLOKADA bezpieczeństwa:** nie usuwać przypadkowych meshów ani biurek. Najpierw selekcja, screenshot przed/po |
@@ -72,3 +72,12 @@ W masterze nie ma zatwierdzonej liczby nowych willi ani dokładnych współrzęd
 
 ## Odbiór
 Brak zgody na publikację i brak gotowego remontu = **NIEODEBRANE**. Dowód: rzeczywisty build Unity + materiał wideo + PASS/FAIL kolizji, drzwi i oryginalnego Braxa + fizyczny iPhone. Przed wydaniem każdej wersji opisać dokładnie, które elementy są zrobione, a które nadal zablokowane przez brak assetów.
+
+## Aktualizacja zasobów 30.10.2026 — źródłowe modele już w bibliotece
+
+Folder: `/Braxhorn City/Assety premium`. Dokładny spis źródeł, autorów, skrótów SHA-256 i zasad importu: `asset-library/intake-20261030-estate-doors-windows-roofs.json`.
+
+- `roof_tiles_4k.blend.zip` i `grey_roof_01_4k.blend.zip`: Poly Haven CC0; prawdziwe mapy diffuse/normal/roughness/displacement. **Nie podmieniać geometrii dachów w ciemno.**
+- `door-pack-free.glb`, `interior_wood_doors_pack_1.glb`, `realistic_old_wooden_window.glb`, `residential_window.glb`: Sketchfab CC-BY 4.0, należy zachować atrybucję; cztery pliki GLB były sprawdzone, ale nie zostały jeszcze zaimportowane do zatwierdzonego Unity. Nie przepisywać na bazie proceduralnych atrap.
+- Test oficjalnych 6 rodzin Poly Haven: GitHub run `41047049159` PASS, 18 map i 6 map metallic/smoothness. Kopie mobile mają rozdzielczość maks. 1K. Trwa odizolowany build `codex/estate-premium-pbr-20261030`; nie uważać go za gotowy do czasu browser QA i obejrzenia filmu.
+- Do ukończenia w tej iteracji: właściwa trawa/ziemia/kostka PBR, okna/drzwi z GLB i pełny porządek komisariatu. Jeśli nie ma potwierdzonych siatek i materiałów, zgłosić blokadę, nie udawać ukończenia.
