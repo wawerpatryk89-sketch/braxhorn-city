@@ -66,6 +66,7 @@ jobs:
           test -s index.html
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add --sparse index.html Build StreamingAssets TemplateData vercel.json README.md
+          git add --sparse index.html Build StreamingAssets vercel.json README.md
+          if test -d TemplateData; then git add --sparse TemplateData; fi
           git commit -m "preview(estate): BRAx only original source Unity6 walking [skip ci]"
           git push origin HEAD:"$REF"
