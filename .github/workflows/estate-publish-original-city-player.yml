@@ -1,0 +1,79 @@
+name: BRAXHORN Estate - publish ORIGINAL city player isolated preview
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          sparse-checkout: |
+            .github/workflows/estate-publish-original-city-player.yml
+      - name: Require successful exact shared-city-player build and estate QA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run=41038775796
+          test "$(gh run view "$run" -R "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)" = success || {
+            echo "::error::Original city BraxGymPlayer Unity6 build has not passed";exit 1;
+          }
+          gh run download "$run" -R "$GITHUB_REPOSITORY" \
+            -n estate-shared-city-player-build-140407203586a6c150faf6355ebd4c1a2faa55c7 \
+            -D "$RUNNER_TEMP/player"
+          gh run download "$run" -R "$GITHUB_REPOSITORY" \
+            -n estate-shared-city-player-review-140407203586a6c150faf6355ebd4c1a2faa55c7 \
+            -D "$RUNNER_TEMP/qa"
+          qa="$(find "$RUNNER_TEMP/qa" -name report.json -print -quit)"
+          test -n "$qa"
+          REPORT="$qa" python3 - <<'PY'
+          import json,os
+          r=json.load(open(os.environ["REPORT"]))
+          assert r["passed"] is True
+          assert len(r["checks"])>=12
+          assert r["playerSource"]=="BraxGymPlayer.cs / BraxCityBuild.CreateEstate"
+          assert all(c["passed"] for c in r["checks"])
+          print("Original shared city player, exact estate controls, camera and doors PASS")
+          PY
+          test -s "$RUNNER_TEMP/player/index.html"
+          test -d "$RUNNER_TEMP/player/Build"
+          test -s "$RUNNER_TEMP/player/city-migration.json"
+          echo "PLAYER_DIR=$RUNNER_TEMP/player" >> "$GITHUB_ENV"
+      - name: Publish standalone preview branch only, never main or city production
+        run: |
+          set -euo pipefail
+          ref="refs/heads/preview/estate-original-city-player-20261030"
+          if git ls-remote --exit-code --heads origin "$ref" >/dev/null; then
+            echo "::error::Refusing to overwrite previous preview branch";exit 1;
+          fi
+          git switch --orphan preview/estate-original-city-player-20261030
+          git rm -r --cached -q . || true
+          rm -rf .github
+          cp -a "$PLAYER_DIR/." .
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          p=Path("index.html");s=p.read_text()
+          assert "WEJDŹ NA OSIEDLE" in s
+          assert "BraxSend" in s and "MoveInput" in s and "LookInput" in s
+          assert "BraxhornPlayer" in s
+          assert "EstateMigrationBootstrap" not in s
+          assert len(list(Path("Build").glob("*part*")))>=6
+          cfg={"version":2,"framework":None,"buildCommand":None,"outputDirectory":"."}
+          Path("vercel.json").write_text(json.dumps(cfg,indent=2)+"\n")
+          Path("README.md").write_text("# Braxhorn Estate — original city player\nStandalone review of ORIGINAL BraxhornEstate Unity6 scene using SAME BraxGymPlayer, BraxSourceORM, animations and mobile HUD as city. Original city and production untouched. User visual acceptance pending.\n")
+          large=[(str(x),x.stat().st_size) for x in Path(".").rglob("*") if x.is_file() and x.stat().st_size>95_000_000]
+          if large:raise SystemExit("Oversized file: "+str(large))
+          print("Standalone original player and estate binary verified")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --sparse -A
+          git commit -m "preview(estate): original city Brax and identical controls, estate scene first [skip ci]"
+          git push origin "HEAD:$ref"
+          echo "PREVIEW BRANCH ONLY. No production writes."
