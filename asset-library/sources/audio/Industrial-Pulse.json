@@ -12,8 +12,11 @@
   "runtimePath": "StreamingAssets/NOVA/IndustrialPulseClub.mp3",
   "runtimeSha256": "e9c285de0fb98ccbf6fdc3352239cda526043b4c0e93745c136b0bb4f6560d81",
   "runtimeBytes": 4238324,
-  "fetchedOnFirstClubVisit": true,
   "otherTracksSelected": false,
   "runtimeAudioVerification": "PENDING_UNITY_WEBGL_TEST",
-  "note": "Original supplied by the owner in chat and explicitly selected for NOVA. No other library track is selected. Runtime audibility remains a separate Unity test."
+  "note": "Original supplied by the owner in chat and explicitly selected for NOVA. No other library track is selected. Runtime audibility remains a separate Unity test.",
+  "fetchedOnApproachToNOVA": true,
+  "automaticPlayback": true,
+  "quietlyAudibleOutsideEntrance": true,
+  "continuousPartyTimeline": true
 }

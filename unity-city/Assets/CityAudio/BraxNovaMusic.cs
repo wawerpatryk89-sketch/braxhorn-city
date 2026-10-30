@@ -13,6 +13,8 @@ public sealed class BraxNovaMusic : MonoBehaviour
     public AudioSource venueSource;
     public Bounds hall;
     public Bounds vestibule;
+    public Bounds entranceOutside;
+    public Vector3 doorway;
     public float volume = .55f;
     private bool muted, paused, background, unfocused, started;
     private float gain, targetGain, nextReport, retryAt;
@@ -44,9 +46,14 @@ public sealed class BraxNovaMusic : MonoBehaviour
     private float VenueGain(Vector3 p)
     {
         if (hall.Contains(p)) return 1;
-        if (!vestibule.Contains(p)) return 0;
-        return Mathf.Lerp(.08f, .8f, Mathf.SmoothStep(0, 1,
-            Mathf.InverseLerp(vestibule.min.z, vestibule.max.z, p.z)));
+        if (vestibule.Contains(p))
+            return Mathf.Lerp(.24f, .8f, Mathf.SmoothStep(0, 1,
+                Mathf.InverseLerp(vestibule.min.z, vestibule.max.z, p.z)));
+        if (!entranceOutside.Contains(p)) return 0;
+        float distance = Vector2.Distance(new Vector2(p.x, p.z), new Vector2(doorway.x, doorway.z));
+        // A quiet spill from the real doorway announces the party outside.
+        // It is not broadcast into the adjacent shop/tower or the basement.
+        return .24f * (1 - Mathf.SmoothStep(0, 1, Mathf.Clamp01(distance / 14f)));
     }
 
     public void Command(string key)
@@ -79,12 +86,13 @@ public sealed class BraxNovaMusic : MonoBehaviour
             venueSource.volume = volume * gain;
             if (targetGain > 0 && !ownedClip && request == null && Time.unscaledTime >= retryAt)
                 StartCoroutine(LoadMusic());
-            if (ownedClip && gain > .001f && !venueSource.isPlaying)
+            // Once approached, the party keeps playing in the city even when
+            // Brax walks out of earshot. Position affects loudness, not time.
+            if (ownedClip && !venueSource.isPlaying)
             {
                 if (!started) { venueSource.Play(); started = true; }
                 else venueSource.UnPause();
             }
-            if (gain <= .001f && venueSource.isPlaying) venueSource.Pause();
         }
         if (Time.unscaledTime >= nextReport) { nextReport = Time.unscaledTime + .25f; Report(); }
     }

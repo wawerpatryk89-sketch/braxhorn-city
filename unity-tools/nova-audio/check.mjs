@@ -85,10 +85,18 @@ try{
  check('Exact compiled source',await page.evaluate(s=>window.BraxhornState.build===s,expected),expected);
  check('Music is not downloaded while starting in the gym',!requests.some(r=>r.url.includes('IndustrialPulseClub.mp3')),await state());
  await page.mouse.click(890,200); // Genuine input gesture for browser audio unlock.
- await at('club_dance');
+ await at('club_door');
  await until(()=>window.BraxhornNovaMusic?.error||window.BraxhornNovaMusic?.loaded,null,120000);
  check('Approved edited clip loads',!(await state()).error&&(await state()).loaded,await state());
  await until(()=>window.BraxhornNovaMusic.playing&&window.BraxhornNovaMusic.time>1);
+ const outside=await state();
+ check('Party starts automatically before entering the club',outside.targetGain>0&&outside.targetGain<.3,outside);
+ const doorstepAudio=await rms();
+ check('Actual music is quietly audible outside NOVA',doorstepAudio.maximum>.00001,doorstepAudio);
+ await shot('00-party-audible-from-doorstep');
+ await at('club_dance');
+ await until(()=>window.BraxhornNovaMusic.targetGain>.99&&window.BraxhornNovaMusic.volume>.5);
+ check('Club interior is louder than the doorstep',(await state()).volume>outside.volume*2.5,{outside,inside:await state()});
  check('Intro removed and full edit loaded',(await state()).duration>179&&(await state()).duration<181,await state());
  const audible=await rms();check('Actual browser audio output is audible in NOVA',audible.maximum>.0001,audible);
  await shot('01-nova-approved-music');
@@ -114,11 +122,11 @@ try{
  check('Pause preserves music position',Math.abs((await state()).time-before)<.1,{before,after:(await state()).time});
  await send('Command','pause');await until(()=>!window.BraxhornNovaMusic.paused&&window.BraxhornNovaMusic.playing);
  check('Music resumes audibly',(await rms()).maximum>.0001,await state());
- await at('street_gym');await until(()=>window.BraxhornNovaMusic.volume<.001&&!window.BraxhornNovaMusic.playing);
- const street=await rms();check('Music fades to silence outside the club',street.maximum<.00001,street);
+ await at('street_gym');await until(()=>window.BraxhornNovaMusic.volume<.001&&window.BraxhornNovaMusic.playing);
+ const street=await rms();check('Party continues but is inaudible far from NOVA',street.maximum<.00001,street);
  await shot('02-street-without-club-music');
  await at('shop_inside');await page.waitForTimeout(1000);
- check('Nutrition does not play NOVA music',(await state()).targetGain===0&&!(await state()).playing,await state());
+ check('Nutrition does not receive NOVA music',(await state()).targetGain===0&&(await state()).volume<.001,await state());
  await at('club_dance');await until(()=>window.BraxhornNovaMusic.playing);
  check('Re-entry resumes the same single clip',(await state()).loaded&&(await state()).time>=before,await state());
  await at('closed_estate');await send('Command','action');

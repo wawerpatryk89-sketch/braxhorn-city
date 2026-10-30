@@ -1,6 +1,6 @@
 """Create the owner-approved NOVA edit without altering the supplied original.
 
-StreamingAssets is fetched by Unity on the first visit to NOVA; it is not an
+StreamingAssets is fetched by Unity automatically on approaching NOVA; it is not an
 AudioClip reference included in the city's initial compressed data archive.
 """
 import hashlib
@@ -56,7 +56,9 @@ def main():
         'fadeOutSeconds': 0.25, 'runtimeDurationSeconds': length,
         'runtimePath': 'StreamingAssets/NOVA/IndustrialPulseClub.mp3',
         'runtimeSha256': sha(target), 'runtimeBytes': target.stat().st_size,
-        'fetchedOnFirstClubVisit': True, 'otherTracksSelected': False,
+        'fetchedOnApproachToNOVA': True, 'automaticPlayback': True,
+        'quietlyAudibleOutsideEntrance': True, 'continuousPartyTimeline': True,
+        'otherTracksSelected': False,
         'runtimeAudioVerification': 'PENDING_UNITY_WEBGL_TEST'
     }
     (DEST / 'provenance.json').write_text(json.dumps(receipt, indent=2) + '\n')

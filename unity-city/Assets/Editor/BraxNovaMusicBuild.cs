@@ -26,9 +26,12 @@ public static class BraxNovaMusicBuild
         var music = player.gameObject.AddComponent<BraxNovaMusic>();
         music.player = player; music.venueSource = source;
         // Coordinates are Unity metres, from the preserved club floor/entry.
-        // The street, Nutrition, Tower and basement are outside these zones.
+        // The doorstep and nearby street receive a quiet doorway spill;
+        // Nutrition, Tower and the basement are not in the music zones.
         music.hall = new Bounds(new Vector3(43.5f, 1.6f, 48.5f), new Vector3(25, 3.8f, 15));
         music.vestibule = new Bounds(new Vector3(42, 1.6f, 39.5f), new Vector3(4.6f, 3.8f, 7));
-        Debug.Log("NOVA_APPROVED_OWNER_MUSIC_ATTACHED originalPlayerSourceUnchanged=true fetchedOnFirstClubVisit=true");
+        music.doorway = new Vector3(42, .15f, 36.08f);
+        music.entranceOutside = new Bounds(new Vector3(42, 1.6f, 29.04f), new Vector3(28, 3.8f, 14.08f));
+        Debug.Log("NOVA_APPROVED_OWNER_MUSIC_ATTACHED originalPlayerSourceUnchanged=true automaticDoorwayApproach=true continuousParty=true");
     }
 }
