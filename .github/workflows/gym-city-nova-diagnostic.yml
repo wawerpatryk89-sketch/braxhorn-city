@@ -1,0 +1,100 @@
+name: Inspect actual compiled Unity6 NOVA audio
+'on':
+  push:
+    branches:
+    - codex/gym-city-renovation-20261030
+    paths:
+    - .github/workflows/gym-city-nova-diagnostic.yml
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: braxhorn-gym-city-nova-diagnostic
+  cancel-in-progress: true
+jobs:
+  recover-and-exercise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: 'unity-tools
+
+          public/unity-gym
+
+          public/assets/logo
+
+          '
+        persist-credentials: false
+    - name: Receive actual compiled Unity6 player from its failed packaging run
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: 41084834041
+        github-token: ${{ github.token }}
+        name: gym-city-renovation-player-77b68fedfdf2dda2c6a76a2cbaed5a8fe4666bc4
+        path: unity-preview
+    - name: Receive actual compilation and source receipts
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: 41084834041
+        github-token: ${{ github.token }}
+        name: gym-city-renovation-review-77b68fedfdf2dda2c6a76a2cbaed5a8fe4666bc4
+        path: compiled-evidence
+    - name: Verify compiled bytes and restore the pinned real Unity mobile shell
+      run: "python3 - <<'PY'\nimport hashlib,json,os,pathlib,re,shutil,zlib\nroot=pathlib.Path('unity-preview')\n\
+        shell=pathlib.Path('public/unity-gym')\nevidence=pathlib.Path('compiled-evidence')\nsource='77b68fedfdf2dda2c6a76a2cbaed5a8fe4666bc4'\n\
+        manifest=json.loads((root/'transport.json').read_text())\nplayable=json.loads((evidence/'build/WebGL/playable.json').read_text())\n\
+        assert manifest['sourceCommit']==source and playable['commit']==source\nassert playable['unity']=='6000.0.58f2'\n\
+        digest=hashlib.sha256();expanded=hashlib.sha256()\ncount=decoded=0;inflater=zlib.decompressobj(31)\nfor\
+        \ part in manifest['parts']:\n    f=root/part['path']\n    assert f.stat().st_size==part['bytes']\n    h=hashlib.sha256()\n\
+        \    with f.open('rb') as stream:\n        while chunk:=stream.read(65536):\n            digest.update(chunk);h.update(chunk);count+=len(chunk)\n\
+        \            data=inflater.decompress(chunk);decoded+=len(data);expanded.update(data)\n    assert h.hexdigest()==part['sha256']\n\
+        tail=inflater.flush();decoded+=len(tail);expanded.update(tail)\nassert inflater.eof and not inflater.unused_data\n\
+        assert count==manifest['bytes'] and digest.hexdigest()==manifest['sha256']\nassert decoded==manifest['uncompressedBytes']\
+        \ and expanded.hexdigest()==manifest['uncompressedSha256']\ncode=(shell/'city-transport.js').read_text()\n\
+        assert \"const revision = 'ios-stream-01'\" in code and 'DecompressionStream' in code\ncode,n=re.subn(r'\
+        \  const manifest = .*?;\\n','  const manifest = '+json.dumps(manifest,separators=(',',':'))+';\\n',code,count=1)\n\
+        assert n==1\ncode=code.replace('originalAssetsChanged: false','originalAssetsChanged: true')\ncode=code.replace('Original\
+        \ Unity asset bytes are unchanged.','Preserved native stream algorithm; actual integrated Unity6 player.')\n\
+        (root/'city-transport.js').write_text(code)\nprevious=json.loads((shell/'release.json').read_text())['sourceCommit'][:12]\n\
+        html=(shell/'index.html').read_text()\nassert previous in html and 'THREE.' not in html\nhtml=html.replace(previous,source[:12]).replace('city-transport.js?v=ios-stream-01','city-transport.js?v=ios-stream-01-'+source[:12])\n\
+        (root/'index.html').write_text(html)\nshutil.copyfile('public/assets/logo/wide_a.webp',root/'logo.webp')\n\
+        for p in (evidence/'build/WebGL').glob('*.json'):shutil.copyfile(p,root/p.name)\ncopies={\n  'kickboxing-layout.json':'unity-city/Assets/PlayableGenerated/ReferenceRebuild/layout-report.json',\n\
+        \  'kickboxing-assets.json':'unity-city/Assets/Kickboxing/asset-provenance.json',\n  'bag-provenance.json':'unity-city/Assets/Kickboxing/Models/BagSource.provenance.json',\n\
+        \  'kickboxing-native-textures.json':'unity-city/Assets/Kickboxing/Models/native-texture-preparation.json'}\n\
+        for name,original in copies.items():shutil.copyfile(evidence/original,root/name)\nrelease={'sourceCommit':source,'unityVersion':playable['unity'],'scope':'recovered-actual-compiled-gym-city-TEST',\n\
+        \  'recoveryWorkflowCommit':os.environ['GITHUB_SHA'],'sourceWorkflowRun':41084834041,\n  'productionChanged':False,'runtimeValidation':'PENDING','physicalIPhoneValidated':False,\n\
+        \  'transport':manifest,'loadingFix':{'revision':'ios-stream-01','algorithmPreserved':True,'nativeStreamingGzip':True,\n\
+        \    'compressedBytes':count,'uncompressedBytes':decoded}}\n(root/'release.json').write_text(json.dumps(release,indent=2)+'\\\
+        n')\n(root/'robots.txt').write_text('User-agent: *\\nDisallow: /\\n')\nprint('ACTUAL_COMPILED_UNITY_PLAYER_RECOVERED',source,count,decoded)\n\
+        PY\n"
+    - name: Prepare real browser execution and video encoding
+      run: 'npm install --no-save --ignore-scripts playwright@1.56.1
+
+        npx playwright install --with-deps chromium
+
+        sudo apt-get update -qq
+
+        sudo apt-get install -y --no-install-recommends ffmpeg
+
+        '
+    - name: Exercise actual automatic NOVA audio output
+      run: node unity-tools/nova-audio/check.mjs
+    - name: Expose actual diagnostic report and frame to the review connector
+      if: always()
+      run: "python3 - <<'PYDIAG'\nfrom pathlib import Path\nimport base64\nroot=Path('nova-audio-review')\np=root/'report.json'\n\
+        if p.is_file():\n    print('NOVA_ACTUAL_RUNTIME_REPORT_BEGIN')\n    print(p.read_text())\n    print('NOVA_ACTUAL_RUNTIME_REPORT_END')\n\
+        pictures=[root/'failure.png'] if (root/'failure.png').is_file() else sorted(root.glob('*.png'))[:2]\nfor\
+        \ p in pictures:\n    print('NOVA_IMAGE_BEGIN '+p.name)\n    data=base64.b64encode(p.read_bytes()).decode()\n\
+        \    for at in range(0,len(data),120):print(data[at:at+120])\n    print('NOVA_IMAGE_END '+p.name)\nPYDIAG\n"
+    - name: Retain actual NOVA runtime diagnostic evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: actual-nova-diagnostic-${{ github.sha }}
+        path: nova-audio-review/
+        retention-days: 14
+        if-no-files-found: warn
