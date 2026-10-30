@@ -1,0 +1,94 @@
+name: Recover genuine completed Nutrition photos and video
+'on':
+  push:
+    branches: [codex/gym-city-renovation-20261030]
+    paths: [.github/workflows/nutrition-capture-recovery.yml]
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: braxhorn-nutrition-capture-recovery
+  cancel-in-progress: true
+env:
+  REVIEW_SOURCE: da153becf424223c2b917479d55d4853a0bcc78b
+  REVIEW_RUN: '41110561845'
+jobs:
+  actual-media:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+      - name: Receive actual original Unity screenshots and browser WebM
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 41110561845
+          github-token: ${{ github.token }}
+          name: nutrition-complete-actual-runtime-f506fb6ac3825f5667284333eaf482363f73fb01
+          path: recovered-evidence
+      - name: Prepare encoding of retained real footage
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Recover original captures and retain the original failed finalization evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64,gzip,hashlib,json,os,pathlib,re,runpy,shutil,subprocess,urllib.error,urllib.request
+          root=pathlib.Path('recovered-evidence');out=pathlib.Path('nutrition-phone-review');out.mkdir(exist_ok=True)
+          source=os.environ['REVIEW_SOURCE']
+          identity=json.loads((root/'unity-preview/release.json').read_text())
+          assert identity['sourceCommit']==source and identity['unityVersion']=='6000.0.58f2'
+          receipt=json.loads((root/'unity-preview/nutrition-shop.json').read_text())
+          assert receipt['installedProducts']>=130 and receipt['installedShelvingBays']==8
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self,req,fp,code,msg,headers,newurl):return None
+          request=urllib.request.Request('https://api.github.com/repos/wawerpatryk89-sketch/braxhorn-city/actions/jobs/124251570470/logs',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','User-Agent':'BRAXHORN-actual-capture-recovery'})
+          try:
+              with urllib.request.build_opener(NoRedirect).open(request,timeout=30) as response:log_bytes=response.read()
+          except urllib.error.HTTPError as error:
+              if error.code not in (301,302,303,307,308):raise
+              location=error.headers['Location']
+              assert location.startswith('https://')
+              with urllib.request.urlopen(location,timeout=60) as response:log_bytes=response.read()
+          if log_bytes[:2]==b'\x1f\x8b':log_bytes=gzip.decompress(log_bytes)
+          log=log_bytes.decode('utf-8-sig')
+          observed=re.findall(r'^([^\n]+Z) PASS ([^\r\n]+)',log,re.M)
+          required=['Unity starts without a startup error','Exact source built in Unity 6','Whole shop contains actual authored products and shelving','Initial energy is bounded','Opening the shop door does not replenish energy','Actual running expenditure updates fighter energy','Phone action is visible and enabled at the real counter','Counter restores the actual fighter resource','Full energy is clearly shown on the phone button','Repeat activation at full energy has no extra gain','Paused action cannot regenerate','Action outside counter range cannot regenerate','Actual player exits the finished shop through its physical doorway','Energy persists when entering the estate','Energy persists when reloading the city','Recreated shop reconnects to the same energy owner','No browser exceptions']
+          assert set(required).issubset({name for stamp,name in observed}),observed
+          assert 'NUTRITION_QA_FAILED' not in log and 'FAIL ' not in log
+          assert 'video.saveAs: Target page, context or browser has been closed' in log
+          (out/'original-job.log').write_bytes(log_bytes)
+          videos=list((root/'nutrition-review/raw-video').glob('*.webm'))
+          assert len(videos)==1,videos
+          raw=videos[0]
+          probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_format','-show_streams','-of','json',str(raw)]))
+          duration=float(probe['format']['duration']);assert duration>220,duration
+          video=out/'Nutrition-Unity6-regeneracja-45s.mp4'
+          subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-ss','174','-i',str(raw),'-t','45','-an','-vf','scale=960:-2,fps=15','-c:v','libx264','-preset','fast','-b:v','300k','-maxrate','350k','-bufsize','700k','-pix_fmt','yuv420p','-movflags','+faststart',str(video)],check=True,timeout=120)
+          report={'sourceCommit':source,'compiledWorkflowRun':41106522085,'originalRuntimeWorkflowRun':41110561845,'originalRuntimeJob':124251570470,'originalRuntimeWorkflowConclusion':'failure','originalFailure':'video.saveAs was called after browser close; the original JSON reporter did not finish','originalFailurePreserved':True,'runtimeAssertionsPassed':True,'runtimeAssertions':[{'name':name,'timestamp':stamp,'passed':True,'evidence':'Exact original completed GitHub job log'} for stamp,name in observed],'originalAssertionDataValuesUnavailable':True,'captureRecoveredFromOriginalWebM':True,'rawVideoSha256':hashlib.sha256(raw.read_bytes()).hexdigest(),'rawVideoSeconds':duration,'excerptStartSeconds':174,'excerptSeconds':45,'playbackSpeed':1,'diagnosticPositionAndEnergyFixtures':True,'videoHasAudio':False,'physicalPhoneValidated':False,'visualAcceptance':'REQUIRES_OWNER_REVIEW','receipt':receipt}
+          (out/'recovery-report.json').write_text(json.dumps(report,indent=2)+'\n')
+          (out/'actual-player-identity.json').write_text(json.dumps(identity,indent=2)+'\n')
+          print('BRAX_NUTRITION_RECOVERED_REPORT_BEGIN');print(json.dumps(report,indent=2));print('BRAX_NUTRITION_RECOVERED_REPORT_END')
+          emit=runpy.run_path('.github/scripts/nutrition_review_media.py')['emit']
+          files=[]
+          for name in ['00-kerb-and-frontage.png','02-shop-entrance-and-interior.png','03-counter-before-regeneration.png','04-counter-after-regeneration.png','05-products-and-retail-finish.png','06-actual-exit-to-street.png']:
+              path=root/'nutrition-review'/name
+              assert path.read_bytes().startswith(b'\x89PNG\r\n\x1a\n'),name
+              destination=out/name;shutil.copyfile(path,destination);files.append(emit(destination,'image/png'))
+          files.append(emit(video,'video/mp4'))
+          (out/'files-manifest.json').write_text(json.dumps(files,indent=2)+'\n')
+          PY
+      - name: Retain authentic phone review material and original failure evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: nutrition-recovered-actual-phone-review-${{ github.sha }}
+          path: nutrition-phone-review/
+          retention-days: 14
+          if-no-files-found: warn
