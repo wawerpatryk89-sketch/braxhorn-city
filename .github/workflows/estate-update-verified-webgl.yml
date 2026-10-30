@@ -14,7 +14,7 @@ permissions:
 jobs:
   publish-corrected-partial-preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,13 +23,31 @@ jobs:
           sparse-checkout: |
             .github
 
-      - name: Require REAL Unity screenshot QA (never publish untested magenta)
+      - name: Require actual original Brax + completed scene from screenshot QA
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh run watch 40969059821 -R "$GITHUB_REPOSITORY" --exit-status --interval 15
-          echo "Real WebGL browser test has PASSED; using exact tested artifact."
+          status="$(gh run view 40976624425 -R "$GITHUB_REPOSITORY" --json conclusion --jq '.conclusion')"
+          if [[ "$status" != "success" ]]; then
+            echo "::error::Braxhorn WebGL scene QA did not pass: $status"
+            exit 1
+          fi
+          gh run download 40976624425 -R "$GITHUB_REPOSITORY" \
+            -n estate-REAL-WebGL-screenshot-QA-f797ece96d00906e69304c5d029d2dbd0e6b2b93 \
+            -D "$RUNNER_TEMP/estate-certified-qa"
+          python3 - <<'PY'
+          import os, json
+          from pathlib import Path
+          file = Path(os.environ["RUNNER_TEMP"]) / "estate-certified-qa/visual-qa-report.json"
+          a = json.loads(file.read_text())
+          assert a["loaded"] and a["visualPass"] and a["runtimeSceneReady"]
+          assert a["pink_ratio"] < .01 and a["braxGzipTransportIntact"]
+          assert a["sourceModelCount"] == 19 and a["sourceDoorCount"] == 24
+          assert a["sourceCollisionCount"] == 1013
+          assert (file.parent / "unity-estate-real-browser.png").is_file()
+          print("PASS: REAL unity rendered original Brax, 19/21 assets, 24 doors, no magenta.")
+          PY
 
       - name: Fetch exact shader-fixed Unity WebGL build
         env:
@@ -53,7 +71,10 @@ jobs:
           git rm --sparse --cached -r --ignore-unmatch Build StreamingAssets TemplateData index.html
           cp -a "$RUNNER_TEMP/estate-corrected-build/EstatePartial_NOT_1TO1/." .
           test -s index.html
-          git add --sparse -A Build StreamingAssets TemplateData index.html
+          mkdir -p qa
+          cp -a "$RUNNER_TEMP/estate-certified-qa/unity-estate-real-browser.png" qa/
+          cp -a "$RUNNER_TEMP/estate-certified-qa/visual-qa-report.json" qa/
+          git add --sparse -A Build StreamingAssets TemplateData index.html qa
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if git diff --cached --quiet; then
