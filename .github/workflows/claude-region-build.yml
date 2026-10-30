@@ -238,3 +238,171 @@ jobs:
             --title "Podglad regionu R1 (Claude, TEST)" --notes "Skompilowany player Unity 6 do zdjec i nagrania. Nie produkcja."
         gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber player-${GITHUB_SHA::7}.zip
     needs: source-imports
+
+  android-apk:
+    permissions:
+      contents: write
+      actions: read
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/region-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        sparse-checkout: 'unity-city
+
+          unity-tools
+
+          public/assets/chars
+
+          public/assets/tex
+
+          public/assets/logo
+
+          public/unity-gym
+
+          .github/scripts
+
+          asset-library/sources/sofa_02
+
+
+          asset-library/sources/audio
+
+          '
+        persist-credentials: false
+        lfs: false
+    - name: Verify project WebGL bridge providers before the expensive Unity build
+      run: |
+        python3 unity-tools/check_webgl_bridges.py
+        python3 unity-tools/kickboxing/package.py --check-template
+    - name: Receive durable SHA-verified original Unity imports
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        name: unity6-original-imports-${{ github.sha }}
+        path: unity-city/Assets/Source/
+    - name: Restore authored facades and PBR materials (audited source archive)
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: 40869502253
+        github-token: ${{ github.token }}
+        name: city-rebuild-curated-extended-3c98ccd919409da59d8145c0171b0776bc65b93d
+        path: unity-city/Assets/
+    - name: Recover exact reviewed packed bag derivative instead of changed vendor response
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        repository: wawerpatryk89-sketch/braxhorn-city
+        run-id: 40897925601
+        github-token: ${{ github.token }}
+        name: unity-kickboxing-review-b2279bd24f7ce1660160c6fc3af119e9820a32f9
+        path: reviewed-gym-source/
+    - name: Prepare unchanged player and current source assets
+      run: 'mkdir -p kickboxing-review
+
+        python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6 opencv-python-headless==4.12.0.88
+
+        python3 -m compileall -q unity-tools
+
+        python3 unity-tools/nutrition/audit_assets.py
+
+        node --check unity-tools/kickboxing/check.mjs
+
+        python3 unity-tools/prepare_playable.py
+
+        python3 unity-tools/premium_prepare.py
+
+        python3 unity-tools/premium_refinements.py
+
+        python3 unity-tools/city/prepare.py
+
+        python3 unity-tools/kickboxing/fetch_assets.py
+
+
+        python3 unity-tools/city/import_approved_roofs.py
+
+        python3 unity-tools/city-rebuild/check_brand_sources.py
+
+
+        sudo apt-get update -qq
+
+        sudo apt-get install -y --no-install-recommends ffmpeg
+
+        python3 unity-tools/nova-audio/prepare.py
+
+        '
+      env:
+        BRAXHORN_RESTORE_REVIEWED_BAG: '1'
+    - name: Reproduce the reviewed CC0-derived bags with pinned Blender
+      run: 'curl --fail --location --retry 3 --output /tmp/blender-4.2.3-linux-x64.tar.xz https://download.blender.org/release/Blender4.2/blender-4.2.3-linux-x64.tar.xz
+
+        echo ''3a64efd1982465395abab4259b4091d5c8c56054c7267e9633e4f702a71ea3f4  /tmp/blender-4.2.3-linux-x64.tar.xz'' | sha256sum
+        --check --strict
+
+        tar -xJf /tmp/blender-4.2.3-linux-x64.tar.xz -C /tmp
+
+        /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend
+        --python unity-tools/export_library_sofa.py
+
+        /tmp/blender-4.2.3-linux-x64/blender --background --disable-autoexec reviewed-gym-source/kickboxing-review/bag-source/bag-refined-before-export.blend
+        --python unity-tools/kickboxing/restore_reviewed_bag.py
+
+        python3 unity-tools/kickboxing/externalize_models.py --remove-source
+
+        git diff --exit-code -- unity-city/Assets/BraxGymPlayer.cs unity-city/Assets/City unity-city/Assets/Editor/BraxCityBuild.cs
+        unity-city/Assets/Editor/BraxHeroRefinements.cs unity-tools/prepare_playable.py unity-tools/premium_refinements.py
+        unity-tools/city/prepare.py
+
+        '
+    - name: Pobierz prawdziwe materialy i modele CC0 z Poly Haven (taras wiezowca)
+      run: python3 unity-tools/claude/fetch_polyhaven.py
+    - name: Region R1 - dodatkowe tekstury i modele CC0 z Poly Haven (rosliny 2K, wpisy opcjonalne)
+      run: python3 unity-tools/claude/fetch_region.py
+    - name: Drzewa i rosliny Poly Haven bez odchudzania (pelna jakosc, decyzja wlasciciela)
+      run: |
+        for t in tree_small_02 island_tree_01 island_tree_02 jacaranda_tree; do ls unity-city/Assets/Source/Claude/PolyHaven/models/$t | head -3; done
+    - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: unity-city/Library
+        key: claude-library-android-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.sha }}
+        restore-keys: claude-library-android-${{ hashFiles('unity-city/Packages/manifest.json') }}-
+    - name: Kompilacja aplikacji Android (APK) z tej samej sceny
+      uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+      env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      with:
+        projectPath: unity-city
+        unityVersion: 6000.0.58f2
+        targetPlatform: Android
+        buildMethod: BraxGymBuild.BuildRenovationAndroid
+        androidExportType: androidPackage
+        versioning: None
+        allowDirtyBuild: true
+    - name: Raport portu z edytora Unity
+      if: always()
+      run: |
+        cat unity-city/Assets/PlayableGenerated/HarborBeach/harbor-beach-review.json || echo 'BRAK raportu portu'
+        cat unity-city/Assets/PlayableGenerated/ClaudeTower/terrace.json || echo 'BRAK raportu tarasu'
+        cat unity-city/Assets/PlayableGenerated/ClaudeNova/nova-club.json || echo 'BRAK raportu NOVA'
+        cat unity-city/Assets/PlayableGenerated/ClaudeGround/ground.json || echo 'BRAK raportu trawy'
+        cat unity-city/Assets/PlayableGenerated/ClaudeGround/trees.json || echo 'BRAK raportu drzew'
+        cat unity-city/Assets/PlayableGenerated/ClaudeGround/courts.json || echo 'BRAK raportu boisk'
+        cat unity-city/Assets/PlayableGenerated/ClaudeMetro/metro.json || echo 'BRAK raportu metra'
+        cat unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json || echo 'BRAK raportu drzwi'
+        cat unity-city/Assets/PlayableGenerated/ClaudeRegion/region.json || echo 'BRAK raportu regionu'
+    - name: Wgraj APK do ukrytego wydania (instalacja na Androidzie)
+      if: always() && !cancelled()
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REL: claude-region-preview
+      run: |
+        set -eu
+        ls -la build/Android/
+        cp build/Android/braxhorn-city.apk braxhorn-city-${GITHUB_SHA::7}.apk
+        gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+          gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
+            --title "Podglad regionu R1 (Claude, TEST)" --notes "Skompilowany player Unity 6 (WebGL + APK) do zdjec i nagrania. Nie produkcja."
+        gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber braxhorn-city-${GITHUB_SHA::7}.apk
+    needs: source-imports

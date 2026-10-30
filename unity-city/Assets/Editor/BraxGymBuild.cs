@@ -32,9 +32,12 @@ public static class BraxGymBuild
     // Only the isolated Unity6 integration branch calls this: gym + city + estate.
     public static void BuildIntegrated(){BuildInternal(true,true);}
     public static void BuildRenovation(){BuildInternal(true,true,true);}
-    private static void BuildInternal(bool fullCity,bool integrated,bool renovation=false)
+    // Aplikacja Android (APK) z tej samej sceny: przeglądarka na telefonie nie dźwiga 750 MB danych.
+    // Sterowanie dotykowe w Unity (BraxTouchControls) zamiast warstwy HTML.
+    public static void BuildRenovationAndroid(){BuildInternal(true,true,true,BuildTarget.Android);}
+    private static void BuildInternal(bool fullCity,bool integrated,bool renovation=false,BuildTarget target=BuildTarget.WebGL)
     {
-        if(fullCity)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
+        if(fullCity&&target==BuildTarget.WebGL)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
         Directory.CreateDirectory(Generated);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         if(renovation)BraxNutritionShopBuild.ValidateSources();
         var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
@@ -158,8 +161,27 @@ public static class BraxGymBuild
                 : new[]{BraxCityBuild.CreateEstate(sourceCommit)})
             : new[]{scenePath};
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
-        var output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);
-        var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=BuildTarget.WebGL,locationPathName=output,options=BuildOptions.None});
+        string output,location;
+        if(target==BuildTarget.Android)
+        {
+            PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android,"com.braxhorn.city");
+            PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android,ScriptingImplementation.IL2CPP);
+            PlayerSettings.Android.targetArchitectures=AndroidArchitecture.ARM64;
+            PlayerSettings.Android.minSdkVersion=AndroidSdkVersions.AndroidApiLevel24;
+            PlayerSettings.Android.useAPKExpansionFiles=false;
+            PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
+            PlayerSettings.productName="Braxhorn City";
+            EditorUserBuildSettings.buildAppBundle=false;
+            EditorUserBuildSettings.androidBuildSubtarget=MobileTextureSubtarget.ETC2;
+            output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/Android"));Directory.CreateDirectory(output);
+            location=Path.Combine(output,"braxhorn-city.apk");
+        }
+        else
+        {
+            output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);
+            location=output;
+        }
+        var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=BuildOptions.None});
         if(result.summary.result!=BuildResult.Succeeded)throw new Exception("Playable Unity build failed "+result.summary.result);
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
