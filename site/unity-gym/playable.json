@@ -1,0 +1,21 @@
+{
+    "purpose": "playable-original-gym",
+    "unity": "6000.0.58f2",
+    "commit": "05e1a5339c75026ff5ad8119117361dc537accf5",
+    "gymMeshes": 161,
+    "originalClips": 11,
+    "colliders": 60,
+    "matteSurfaces": 34,
+    "originalBrax": true,
+    "originalGym": true,
+    "touchControls": true,
+    "productionChanged": false,
+    "animationNames": [
+        "Idle",
+        "Walking",
+        "Running",
+        "Jab Cross (1)",
+        "Mma Kick (1)",
+        "Jump"
+    ]
+}

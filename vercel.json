@@ -1,0 +1,12 @@
+{
+  "framework": null,
+  "installCommand": "echo pomijam",
+  "buildCommand": "echo gotowe",
+  "outputDirectory": "site",
+  "ignoreCommand": "test ! -f READY",
+  "redirects": [{ "source": "/", "destination": "/unity-gym/", "permanent": false }],
+  "headers": [
+    { "source": "/unity-gym/Build/(.*)\\.wasm", "headers": [{ "key": "Content-Type", "value": "application/wasm" }] },
+    { "source": "/unity-gym/Build/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] }
+  ]
+}

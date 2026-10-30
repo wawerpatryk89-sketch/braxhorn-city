@@ -1,0 +1,18 @@
+{
+    "engine": "Unity6",
+    "commit": "05e1a5339c75026ff5ad8119117361dc537accf5",
+    "entryDistrict": "city",
+    "status": "BUILT_UNITY_TEST__VISUAL_ACCEPTANCE_PENDING",
+    "scenePaths": [
+        "Assets/PlayableGenerated/BraxhornCity.unity",
+        "Assets/PlayableGenerated/BraxhornEstate.unity"
+    ],
+    "districtIds": [
+        "city",
+        "estate"
+    ],
+    "originalBraxPreserved": true,
+    "originalGymSourcePreserved": true,
+    "productionChanged": false,
+    "externalThreeRuntimeUsed": false
+}

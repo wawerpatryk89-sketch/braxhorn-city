@@ -1,0 +1,19 @@
+{
+    "status": "BUILT",
+    "error": "",
+    "floorY": 0.15000000596046449,
+    "ceilingY": 3.5500001907348635,
+    "wallW": 32.30000305175781,
+    "wallE": 51.69999694824219,
+    "wallS": 41.80000305175781,
+    "wallN": 55.0,
+    "placed": [
+        "NOVA: kula dyskotekowa",
+        "NOVA: sofa w loży 2"
+    ],
+    "skipped": [
+        "konsola DJ: brak wolnego miejsca przy ścianie północnej",
+        "bar: brak wolnego miejsca przy ścianach bocznych",
+        "sofa 1: zajęte miejsce"
+    ]
+}

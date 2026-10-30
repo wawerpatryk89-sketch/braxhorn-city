@@ -1,0 +1,106 @@
+{
+  "dataPath": "Build/05e1a5339c75_WebGL.data.unityweb",
+  "bytes": 605965606,
+  "sha256": "fa8ea7dfc1c3c8924920a240f0d69a05b3840e087b691edd63b244dbb9fa7f61",
+  "uncompressedBytes": 784906070,
+  "uncompressedSha256": "2e024e52ed79dd86ac78b83b67d2dfb8dc25e9dff01f577a200160cb6e3a5a25",
+  "parts": [
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part000",
+      "bytes": 33554432,
+      "sha256": "0af72d091e6a197fedab728372aa84472274530b3303e2c6001bac69585c5e17"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part001",
+      "bytes": 33554432,
+      "sha256": "66db8b18b616c289db4b9f89c2d20538e9a24419325edcb893fb07abf2b05a0f"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part002",
+      "bytes": 33554432,
+      "sha256": "f1015347a0b6a826dd24c653655ca382641a426e28500c2240faaf3b746e4cd2"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part003",
+      "bytes": 33554432,
+      "sha256": "545f40b0730e556fae09891d20794698b8a3bcf55259033edc01c3206d216932"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part004",
+      "bytes": 33554432,
+      "sha256": "66bc5707210e1d778f8ceb424cb6a61f749dbc67d91f20e2a3f1a800935dea86"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part005",
+      "bytes": 33554432,
+      "sha256": "25e878e815511bf672f0d1ef76895c41bd14a399cc79f2dae6b2ae8cad3fe290"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part006",
+      "bytes": 33554432,
+      "sha256": "40cf983e5feda4aa55db522bdae5d062a24285d0a69fb759ea7ff2a8427bbedb"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part007",
+      "bytes": 33554432,
+      "sha256": "2856694b524f8cef2d26e28409ec2aeada4424bf1e09ffb72f08a56c01af6ada"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part008",
+      "bytes": 33554432,
+      "sha256": "4b494b3ac51a6e057285ede5dff9b954b8982f11a4704660c573c8d5c1363a4c"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part009",
+      "bytes": 33554432,
+      "sha256": "b02bb7fda22cb35343a98dd5f312a7791f4b5b60e434ef69106db3da1cadb090"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part010",
+      "bytes": 33554432,
+      "sha256": "90a7316dfb982ad2b284d838dd93105a44e79fa2b92648619cf209d41cb3dea3"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part011",
+      "bytes": 33554432,
+      "sha256": "6f9f082dd9cc2f507f61a97b20d75d77de0688a97a66202c2e3fed457f6ec876"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part012",
+      "bytes": 33554432,
+      "sha256": "c5d1ac3070aabca6466a767c2acd36910a0dfee09e14db9a840ffa79951bf185"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part013",
+      "bytes": 33554432,
+      "sha256": "398c284186a707a9ff6b6f155bae6e54112a4ef220c68ce989c0ea4f569a957e"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part014",
+      "bytes": 33554432,
+      "sha256": "362355e39919b76e9a5879dcc6465cae316cc28c6d00f9b6f003bbbfa0fdd2a2"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part015",
+      "bytes": 33554432,
+      "sha256": "d69041575ab35ba19f9b45f8a1b53786c6dedbb9a62f963653e99cd439a9dd8b"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part016",
+      "bytes": 33554432,
+      "sha256": "5506791b87a7a9e127c9929189c33d47caec97f0aff58bcb77e3d6994d68acf3"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part017",
+      "bytes": 33554432,
+      "sha256": "47b9e123fcaaa5bba3e973408ee53a9489a6176c63a87d1763b0cf44537f6720"
+    },
+    {
+      "path": "Build/05e1a5339c75_WebGL.data.unityweb.part018",
+      "bytes": 1985830,
+      "sha256": "e34f750fe097d96b8ee83c30877468274231bf8cae4d7ac3f15e4b6b41ce7244"
+    }
+  ],
+  "sourceCommit": "05e1a5339c75026ff5ad8119117361dc537accf5",
+  "assetQualityChanged": true
+}
