@@ -12,7 +12,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: city-all-doors-lifts-${{ github.ref }}
+  group: isolated-waterfront-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
