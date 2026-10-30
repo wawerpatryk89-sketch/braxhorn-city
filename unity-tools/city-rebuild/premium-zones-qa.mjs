@@ -58,6 +58,23 @@ try{
  await page.waitForFunction(()=>window.BraxhornState?.grounded&&Math.abs(window.BraxhornState?.z-63)<.5,null,{timeout:90000});
  const metro=await get();await page.screenshot({path:path.join(out,'07-metro-platform.png')});
  check('Metro platform can carry Brax',metro.grounded&&metro.y< -2.9&&metro.y> -3.5,metro);
+ // The G5 acceptance route must be physically traversable in both directions.
+ await send('ReviewView','78.0,-3.17,46.5,180,15,4.2');
+ await page.waitForFunction(()=>window.BraxhornState?.grounded&&Math.abs(window.BraxhornState?.z-46.5)<.5,null,{timeout:90000});
+ try{
+  await send('MoveInput','0,1');
+  await page.waitForFunction(()=>window.BraxhornState?.z>60.0,null,{timeout:25000});
+ }finally{await send('MoveInput','0,0')}
+ const arrived=await get();
+ check('Metro G5 walked from vestibule into station',arrived.z>60&&arrived.grounded,arrived);
+ try{
+  await send('MoveInput','0,-1');
+  await page.waitForFunction(()=>window.BraxhornState?.z<48.0,null,{timeout:25000});
+ }finally{await send('MoveInput','0,0')}
+ const returned=await get();
+ check('Metro G5 walked back from station to vestibule',returned.z<48&&returned.grounded,returned);
+ await page.screenshot({path:path.join(out,'08-metro-return-route.png')});
+
  check('No runtime page crash',!errors.some(x=>x.includes('PAGE_CRASH')),errors.slice(-8));
 }catch(e){errors.push('QA_FATAL '+String(e));process.exitCode=1}
 finally{
