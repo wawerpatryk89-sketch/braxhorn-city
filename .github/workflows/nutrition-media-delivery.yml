@@ -1,0 +1,54 @@
+name: Deliver original Nutrition review media in separate files
+'on':
+  push:
+    branches: [codex/gym-city-renovation-20261030]
+    paths: [.github/workflows/nutrition-media-delivery.yml]
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        file:
+          - 05-products-and-retail-finish.png
+          - 02-shop-entrance-and-interior.png
+          - 04-counter-after-regeneration.png
+          - 00-kerb-and-frontage.png
+          - Nutrition-Unity6-regeneracja-45s.mp4
+    env:
+      REVIEW_SOURCE: da153becf424223c2b917479d55d4853a0bcc78b
+      REVIEW_RUN: '41110561845'
+      REVIEW_FILE: ${{ matrix.file }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+      - name: Receive original recovered Unity photos and video
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 41115228518
+          github-token: ${{ github.token }}
+          name: nutrition-recovered-actual-phone-review-58b284f7dd285f5b282e110b3eadbf8c8d327485
+          path: phone-evidence
+      - name: Transfer one original media file and its genuine recovery evidence
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib,runpy
+          root=pathlib.Path('phone-evidence')
+          report=json.loads((root/'recovery-report.json').read_text())
+          assert report['sourceCommit']==os.environ['REVIEW_SOURCE']
+          assert report['runtimeAssertionsPassed'] and report['captureRecoveredFromOriginalWebM']
+          assert report['originalRuntimeWorkflowConclusion']=='failure' and report['originalFailurePreserved']
+          print('BRAX_NUTRITION_RECOVERED_REPORT_BEGIN');print(json.dumps(report,indent=2));print('BRAX_NUTRITION_RECOVERED_REPORT_END')
+          name=os.environ['REVIEW_FILE'];assert pathlib.Path(name).name==name
+          file=root/name;assert file.is_file()
+          emit=runpy.run_path('.github/scripts/nutrition_review_media.py')['emit']
+          emit(file,'image/png' if file.suffix=='.png' else 'video/mp4')
+          PY
