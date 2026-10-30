@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-30",
+  "base_commit": "58db7d5f6a25601c8120025f3153d0be8a5498a2",
+  "brand": "BRAXHORN",
+  "scope": "Full segment from BRAXHORN NUTRITION towards sea; source screenshots and MASTER V3 govern acceptance.",
+  "implemented_source_only": [
+    "Library Kloofendal sky derivative replaces procedural sky",
+    "Tower terrace uses existing audited PBR paving maps"
+  ],
+  "remaining": [
+    "BRAXHORN NUTRITION full interior, counter and branded products",
+    "All buildings, wall finishes, missing floors, windows along authorized segment",
+    "Tower finishes, lift and furnished observation terrace; preserve roof mission space",
+    "Equipped nightclub with interior music on entry",
+    "Sports courts and surroundings",
+    "Port, piers, moving vessels and yachts",
+    "Dry/wet sand beach, lifeguard hut and landscaping",
+    "Visible island adapted from library generator, preserving future mission expansion",
+    "Diagnose and resolve reported flashing in actual player",
+    "Real continuous walk-through, lift roundtrip and visual review"
+  ],
+  "verified_library_assets": [
+    "vacation-island-unity-main.zip",
+    "super-yacht02.glb",
+    "frickies_yacht.glb",
+    "yacht.glb",
+    "damp_sand_4k.blend.zip",
+    "coast_sand_02_4k.blend.zip",
+    "kloofendal_48d_partly_cloudy_puresky_8k.exr"
+  ],
+  "island_notes": "Archive contains generator for Unity 6000.3.6f1 / URP 17, no third-party art; current city is 6000.0.58f2 Built-in. Adaptation and dependency checks required.",
+  "acceptance": {
+    "compiled": false,
+    "visual_pass": false,
+    "physical_phone_pass": false,
+    "complete": false
+  }
+}

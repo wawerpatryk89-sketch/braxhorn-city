@@ -3,7 +3,7 @@ name: BRAXHORN CITY — full street 18 real doors + 9 lifts (isolated Unity 6)
 on:
   push:
     branches:
-      - codex/city-full-street-functional-access-20261029
+      - codex/city-waterfront-premium-20261030
     paths:
       - '.github/workflows/city-full-functional-access.yml'
       - 'unity-city/**'
@@ -175,3 +175,4 @@ jobs:
             city-access-walk/continuous-walk.webm
           if-no-files-found: warn
           retention-days: 14
+

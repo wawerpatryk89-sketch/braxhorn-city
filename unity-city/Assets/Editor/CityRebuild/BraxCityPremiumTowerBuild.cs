@@ -119,7 +119,6 @@ public static class BraxCityPremiumTowerBuild
         steel=BraxCityMaterials.Surface("Tower lift charcoal steel",new Color(.19f,.21f,.22f),.49f,.38f);
         glass=BraxCityMaterials.Surface("Tower lobby clear smoked safety glazing",new Color(.37f,.47f,.48f,.46f),.19f,.13f);
         ceiling=BraxCityMaterials.Surface("Lobby matte ceiling",new Color(.77f,.76f,.72f),.95f);
-        deck=BraxCityMaterials.Surface("Roof nonslip terrazzo",new Color(.47f,.48f,.46f),.91f);
         plant=BraxCityMaterials.Surface("Technical galvanized metal",new Color(.33f,.35f,.35f),.75f,.55f);
         led=BraxCityMaterials.Surface("Premium elevator and lobby satin LED diffuser / no bloom",
             new Color(.80f,.77f,.67f),.40f,.04f);
@@ -138,6 +137,12 @@ public static class BraxCityPremiumTowerBuild
         lobbyFloor.SetColor("_Color",new Color(.69f,.69f,.66f));
         lobbyFloor.SetFloat("_BumpScale",1.10f);
         EditorUtility.SetDirty(lobbyFloor);
+        deck=BraxCityMaterials.Textured("Observation terrace library stone paving",
+            albedo,normal,arm,1f/1.65f);
+        deck.SetColor("_Color",new Color(.82f,.81f,.78f));
+        deck.SetFloat("_BumpScale",.65f);
+        deck.SetFloat("_Metallic",0f);
+        EditorUtility.SetDirty(deck);
         var root=Group("R1_TOWER accessible premium lobby lift and roof",streetRoot,Vector3.zero);
 
         // Physical ground-floor shell. The exterior facade and its original
@@ -305,3 +310,4 @@ public static class BraxCityPremiumTowerBuild
             " / Unity physical traversal and safety acceptance pending");
     }
 }
+

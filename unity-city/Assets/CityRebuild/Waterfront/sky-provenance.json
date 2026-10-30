@@ -1,0 +1,18 @@
+{
+  "source_library_file_id": "libfile_16f94985d17c8191b7aa288efc169d76",
+  "source_name": "kloofendal_48d_partly_cloudy_puresky_8k.exr",
+  "source_sha256": "102b29e13c4ffb3a369f932f49626250079c58333b861de0d910eccfb8441bc5",
+  "runtime_file": "daylight-sky.jpg",
+  "runtime_sha256": "b8f5192639532e79f2b9f9db573b3de9c01919a8ff04a88bcea37b6ddb628844",
+  "source_resolution": [
+    8192,
+    4096
+  ],
+  "runtime_resolution": [
+    2048,
+    1024
+  ],
+  "processing": "Linear area downsample, luminance-preserving extended Reinhard to SDR, sRGB. Original EXR unmodified. Half-float sun overflow capped to 65504.",
+  "license": "Poly Haven CC0 per supplied Vacation Island attribution",
+  "visual_review": "Panorama inspected locally; Unity gameplay validation pending"
+}
