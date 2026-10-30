@@ -1,0 +1,64 @@
+name: BRAXHORN CITY — publish exact compiled waterfront TEST preview (never production)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout recovery branch only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Fetch exact verified compiled Unity player
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 41013639868
+          github-token: ${{ github.token }}
+          name: city-access-player-62d5484d8050c59c4fcbcc4b4111c41d0d2d29ed
+          path: player/
+      - name: Validate source and create isolated preview branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,json,hashlib,base64,subprocess,re
+          from pathlib import Path
+          source="62d5484d8050c59c4fcbcc4b4111c41d0d2d29ed"
+          preview="preview/waterfront-recovery-"+source[:12]
+          root=Path("player")
+          manifest=json.loads((root/"release.json").read_text())
+          if manifest.get("sourceCommit")!=source or manifest.get("productionPublication") is not False:
+              raise RuntimeError("Wrong Unity build provenance or production intent")
+          files=manifest.get("files",{})
+          if not files:raise RuntimeError("No hashed Unity build files")
+          for name,digest in files.items():
+              if not re.fullmatch(r"[a-zA-Z0-9_./-]+",name) or ".." in name.split("/"):
+                  raise RuntimeError("Invalid path")
+              f=root/name
+              if not f.is_file() or f.is_symlink() or hashlib.sha256(f.read_bytes()).hexdigest()!=digest:
+                  raise RuntimeError("Missing or altered Unity player file: "+name)
+          if not (root/"index.html").is_file():raise RuntimeError("Missing Unity entrypoint")
+          (root/"vercel.json").write_text(json.dumps({"framework":None,"buildCommand":"","installCommand":"","outputDirectory":".","headers":[{"source":"/(.*)","headers":[{"key":"Cache-Control","value":"no-store"}]}]}))
+          (root/"robots.txt").write_text("User-agent: *\nDisallow: /\n")
+          (root/"TEST-README.txt").write_text("BRAXHORN CITY TEST preview, exact Unity player "+source+"; no production or visual acceptance.\n")
+          token=os.environ.pop("GH_TOKEN")
+          env=os.environ.copy()
+          env.update(GIT_CONFIG_COUNT="1",GIT_CONFIG_KEY_0="http.https://github.com/.extraheader",GIT_CONFIG_VALUE_0="AUTHORIZATION: basic "+base64.b64encode(("x-access-token:"+token).encode()).decode())
+          def git(*args,auth=False):
+              return subprocess.check_output(["git","-c","core.hooksPath=/dev/null",*args],cwd=root,env=env if auth else None,text=True).strip()
+          git("init","--initial-branch="+preview)
+          git("config","user.name","github-actions[bot]")
+          git("config","user.email","41898282+github-actions[bot]@users.noreply.github.com")
+          git("remote","add","origin","https://github.com/wawerpatryk89-sketch/braxhorn-city.git")
+          if git("ls-remote","--heads","origin","refs/heads/"+preview,auth=True):
+              raise RuntimeError("Immutable preview already exists")
+          git("add","--all")
+          git("commit","-m","preview(city): exact compiled waterfront TEST player "+source[:12])
+          git("push","origin","HEAD:refs/heads/"+preview,auth=True)
+          print("PREVIEW_BRANCH="+preview)
+          PY
