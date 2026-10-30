@@ -1,0 +1,60 @@
+name: BRAXHORN R2 premium renovation - source quality gates
+on:
+  push:
+    branches: [codex/estate-premium-renovation-20261030]
+    paths:
+      - dev/osiedle/**
+      - docs/OSIEDLE_REMONT_PREMIUM_20261030.md
+      - .github/workflows/estate-premium-renovation-qa.yml
+permissions:
+  contents: read
+jobs:
+  source-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check JavaScript source syntax
+        run: |
+          node --check dev/osiedle/world.js
+          node --check dev/osiedle/level.js
+          node --check dev/osiedle/layout.js
+          node --check dev/osiedle/vegetation.js
+      - name: Build R2 source only - no city, no production
+        run: |
+          npm exec --yes --package=esbuild@0.28.2 -- esbuild dev/osiedle/main.js --bundle --format=esm --target=es2020 --alias:three=./dev/three/build/three.module.js --outfile=/tmp/braxhorn-estate-renovation.js
+          test -s /tmp/braxhorn-estate-renovation.js
+      - name: Verify original source foliage and no synthetic trees
+        run: |
+          python3 - <<'PY'
+          import pathlib,json
+          root=pathlib.Path('dev/osiedle')
+          world=(root/'world.js').read_text()
+          foliage=(root/'vegetation.js').read_text()
+          layout=(root/'layout.js').read_text()
+          level=(root/'level.js').read_text()
+          assert "new T.IcosahedronGeometry(h*.32" not in world
+          assert "foliageRequests.push({kind:'tree'" in world
+          assert "foliageRequests.push({kind:'shrub'" in world
+          assert "park_" in foliage and "glb" in foliage
+          assert "world.foliageRequests" in level
+          assert "SOURCE_TEXTURE_APPLIED" in level and "BLOCKED_NO_VERIFIED_SOURCE_MAP" in level
+          assert "stucco_indoor" in level and "Parquetlight_1K" in level
+          assert "PavingStones151" in pathlib.Path('docs/OSIEDLE_REMONT_PREMIUM_20261030.md').read_text()
+          present=(root/'assets/park_tree.glb').is_file()
+          report={"status":"SOURCE_CODE_COMPILES__VISUAL_UNITY_QA_PENDING",
+            "sourceVerdantTreeBinaryInThisBranch":present,
+            "unverifiedAsphaltAndWindowsRemainBlocked":True,
+            "sharedPlayerChanged":False,
+            "cityAndGymChanged":False}
+          pathlib.Path('/tmp/estate-renovation-source-qa.json').write_text(json.dumps(report,indent=2))
+          print(json.dumps(report))
+          PY
+      - name: Save evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: estate-premium-renovation-source-qa-${{ github.sha }}
+          path: /tmp/estate-renovation-source-qa.json
+          retention-days: 14
