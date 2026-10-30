@@ -14,7 +14,7 @@ permissions:
   actions: read
 concurrency:
   group: braxhorn-gym-city-renovation
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   source-imports:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/gym-city-renovation-20261030'
@@ -66,6 +66,8 @@ jobs:
           '
         persist-credentials: false
         lfs: false
+    - name: Verify project WebGL bridge providers before the expensive Unity build
+      run: python3 unity-tools/check_webgl_bridges.py
     - name: Receive durable SHA-verified original Unity imports
       uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
       with:

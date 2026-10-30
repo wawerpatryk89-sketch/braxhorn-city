@@ -27,7 +27,7 @@ Workflow `gym-city-renovation.yml` retrieves SHA-verified durable source imports
 ## Remaining work — not implemented or accepted
 - Combined build/runtime/visual verification and city flicker diagnosis.
 - Nutrition details and material pass.
-- NOVA source equipment audit and actual licensed music file, positional audio and phone audio-unlock validation.
+- NOVA source equipment audit and visual renovation; integrated owner-approved music still awaits actual runtime and phone audio-unlock validation.
 - Tower interior and fighting terrace finish; physical elevator round trips.
 - Source yacht/jet-ski/harbour/beach asset audit and installation. Library descriptions alone do not prove binary availability.
 - Films for owner review, then physical phone performance checks.
@@ -56,3 +56,17 @@ The owner supplied `Industrial Pulse.mp3` and explicitly requested trimming its 
 `unity-tools/nova-audio/check.mjs` requires real browser audio output measured through a WebAudio analyser, tests mute/pause, leaving/re-entering NOVA and scene unload, and captures actual engine audio. Its position cuts are diagnostic and cannot be called a continuous walkthrough. Adding this track does not complete or accept NOVA's visual renovation.
 
 Owner clarification: no separate music start button, no silence at the club threshold. The automatic party should be gently audible outside the real NOVA entrance. This does not authorize advancing to a different renovation location.
+
+## Integration linker failure and correction
+
+Run `41074406699`, attempt 2, reached the Unity 6000.0.58f2 WebGL link step and failed with `undefined symbol: BXRoomState`. The gym diagnostics C# component had been integrated but its matching WebGL plugin had been omitted. Restore `Assets/Plugins/WebGL/BraxRoomDiagnostics.jslib` and its original `.meta` byte-for-byte from the accepted gym commit `b2279bd24f7ce1660160c6fc3af119e9820a32f9`; do not replace the player or silence diagnostics.
+
+`unity-tools/check_webgl_bridges.py` detects absent or duplicate project-owned BX bridge providers before the long Unity build. This is source preflight only; the real Unity linker and runtime checks remain required. Superseded runs of this isolated TEST workflow are cancelled when a corrected commit arrives, so a known broken older build does not block its replacement. This concurrency group is specific to the gym/city renovation workflow.
+
+The preflight reproduced the missing `BXRoomState` failure before restoration, then passed for all four project bridges afterwards. The restored plugin and metadata match source Git blob SHAs `6f76f85c8a2fa9d1663c78a29ed70c3372eaf5c2` and `a2cfcc9018cd094ca202e4571da470f3984e178e`. These results do not assert a successful Unity build.
+
+## Owner-reported visual defect: buildings and kerbs
+
+Acceptance requires stable building facades and kerbs during actual camera/player movement. Test the route from the accepted gym entrance past Nutrition and toward NOVA/Tower from close and oblique views. Capture real Unity footage, including stationary views and movement along both kerbs; screenshots or successful compilation alone cannot demonstrate absence of flicker.
+
+Hypotheses remain unconfirmed for the combined build: overlapping/coplanar source and rebuilt geometry, thin edge/texture aliasing, and lighting/shadow instability. The integrated city authoring already separates the kerb and pavement top surfaces (`CITY_KERB_PAVING_SEPARATION`), but its runtime visual effect is unverified. Inspect the original reproduction before selecting geometry, camera, material or lighting corrections. Keep gym, player, estate and production outside this fix's scope.
