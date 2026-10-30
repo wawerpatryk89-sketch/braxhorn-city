@@ -1,0 +1,89 @@
+{
+  "project": "BRAXHORN CITY / R2 existing estate",
+  "date": "2026-10-30",
+  "libraryPath": "/Braxhorn City/Assety premium",
+  "status": "SOURCE_AUDIT_ONLY; SOURCE GLBs/ZIPs SAVED IN USER LIBRARY, NOT IN PUBLIC GITHUB",
+  "originalsUntouched": true,
+  "userApproval": "visual renovation only, no city/gym/production edits",
+  "scope": "windows, doors and roof tiles",
+  "hashesPrefixNote": "sha256 first 16 hex digits from source bytes; full hashes in asset ingestion workspace",
+  "records": [
+    {
+      "file": "roof_tiles_4k.blend.zip",
+      "size": 87953728,
+      "sha256": "004630925258bbb4",
+      "license": "CC0",
+      "source": "https://polyhaven.com/a/roof_tiles",
+      "kind": "roof PBR",
+      "contents": [
+        "roof_tiles_diff_4k.jpg",
+        "roof_tiles_nor_gl_4k.exr",
+        "roof_tiles_rough_4k.exr",
+        "roof_tiles_disp_4k.png"
+      ],
+      "action": "mobile PBR at 1K from certified official Poly Haven source; roof tiles for applicable original R2 roof meshes"
+    },
+    {
+      "file": "grey_roof_01_4k.blend.zip",
+      "size": 54182802,
+      "sha256": "1927220f53fbb2ec",
+      "license": "CC0",
+      "source": "https://polyhaven.com/a/grey_roof_01",
+      "kind": "grey roof PBR",
+      "contents": [
+        "grey_roof_01_diff_4k.jpg",
+        "grey_roof_01_nor_gl_4k.exr",
+        "grey_roof_01_rough_4k.jpg",
+        "grey_roof_01_disp_4k.png"
+      ],
+      "action": "mobile PBR at 1K from certified official Poly Haven source"
+    },
+    {
+      "file": "door-pack-free.glb",
+      "size": 16346568,
+      "sha256": "b92e4dc30dea8f1a",
+      "license": "CC-BY-4.0",
+      "author": "saeedsd",
+      "source": "https://sketchfab.com/3d-models/door-pack-free-cdc29229c5014f1685df5052cfaee850",
+      "kind": "2 door/2 frame meshes",
+      "action": "not imported yet; must fit exact hinge and clear openings; credit required"
+    },
+    {
+      "file": "interior_wood_doors_pack_1.glb",
+      "size": 14278600,
+      "sha256": "41f6b8fdfb73c284",
+      "license": "CC-BY-4.0",
+      "author": "Toni García Vilche",
+      "source": "https://sketchfab.com/3d-models/interior-wood-doors-pack-1-32707dcfa6304f49bf99148d0211f5f7",
+      "kind": "wooden doors + frames",
+      "action": "not imported yet; check model pivots and runtime interaction; credit required"
+    },
+    {
+      "file": "realistic_old_wooden_window.glb",
+      "size": 9749920,
+      "sha256": "e9d5a0e61ae06d57",
+      "license": "CC-BY-4.0",
+      "author": "Nait",
+      "source": "https://sketchfab.com/3d-models/realistic-old-wooden-window-0d76c234747347b79975f3eb71003807",
+      "kind": "old timber window",
+      "action": "not fit for every premium house; selectively, after visual approval; credit required"
+    },
+    {
+      "file": "residential_window.glb",
+      "size": 518748,
+      "sha256": "001c49c716bccd2d",
+      "license": "CC-BY-4.0",
+      "author": "AleixoAlonso",
+      "source": "https://sketchfab.com/3d-models/residential-window-ae11104237314463a61251fd46ded4b4",
+      "kind": "modern residential window",
+      "action": "best candidate for modern house; need asset-to-Unity import and measured placement; credit required"
+    }
+  ],
+  "technicalGates": [
+    "new window cannot block open original doorway",
+    "door leaf hinges and collision must correspond to source",
+    "Poly Haven roof tiles use validated official maps with 1K mobile copies",
+    "keep R2 BraxGymPlayer and existing clips untouched",
+    "no CC-BY asset redistribution as standalone library files"
+  ]
+}
