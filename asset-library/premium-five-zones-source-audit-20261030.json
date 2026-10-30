@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "scope": "SOURCE_AUDIT_ONLY_NOT_IMPORTED",
+  "auditedAt": "2026-10-30",
+  "source": "user-supplied Braxhorn City Asset Library",
+  "licenseStatus": "Review original asset licenses before redistribution; this record does not authorize publishing source GLBs",
+  "items": [
+    {
+      "name": "super-yacht02.glb",
+      "bytes": 16033632,
+      "meshes": 24,
+      "triangles": 465764,
+      "extentsMeters": [
+        9.92,
+        11.68,
+        45.21
+      ],
+      "use": "distant water background, needs mobile LOD and real waterline"
+    },
+    {
+      "name": "frickies_yacht.glb",
+      "bytes": 11492536,
+      "meshes": 43,
+      "triangles": 70770,
+      "extentsSourceUnits": [
+        0.44,
+        0.63,
+        1.98
+      ],
+      "use": "small vessel only after audited scaling"
+    },
+    {
+      "name": "jetski_collection.glb",
+      "bytes": 40364336,
+      "meshes": 31,
+      "triangles": 250000,
+      "extentsSourceUnits": [
+        2.68,
+        1.24,
+        7.66
+      ],
+      "use": "collection, split individual jetski objects and optimize for mobile"
+    },
+    {
+      "name": "rustic_wooden_dock.glb",
+      "bytes": 17025720,
+      "meshes": 16,
+      "triangles": 24816,
+      "extentsSourceUnits": [
+        8.04,
+        8.9,
+        25.78
+      ],
+      "use": "dock, verify axis, waterline, and collision"
+    },
+    {
+      "name": "disco_ball_with_colored_lights.glb",
+      "bytes": 2997976,
+      "meshes": 10,
+      "triangles": 48096,
+      "extentsSourceUnits": [
+        1.05,
+        1.43,
+        1.05
+      ],
+      "use": "NOVA, optimize 48k triangles before mobile"
+    },
+    {
+      "name": "dj_mixer.glb",
+      "bytes": 241312,
+      "meshes": 2,
+      "triangles": 3086,
+      "extentsSourceUnits": [
+        0.714,
+        0.084,
+        1.314
+      ],
+      "use": "NOVA DJ station"
+    },
+    {
+      "name": "coast_sand_02_4k.blend.zip",
+      "bytes": 82534643,
+      "contents": [
+        "diffuse 4K",
+        "normal 4K",
+        "roughness 4K",
+        "displacement 4K"
+      ],
+      "use": "dry beach PBR"
+    },
+    {
+      "name": "damp_sand_4k.blend.zip",
+      "bytes": 101619308,
+      "contents": [
+        "diffuse 4K",
+        "normal 4K",
+        "roughness 4K",
+        "displacement 4K"
+      ],
+      "use": "wet sand PBR"
+    }
+  ],
+  "status": {
+    "actualModelsLocated": true,
+    "actualModelBinariesImportedToUnity": false,
+    "realWaterfrontCompleted": false,
+    "mobileValidated": false
+  },
+  "restriction": "Do not call any port, beach or NOVA complete based on this audit. Import original source assets into authorized Unity build first."
+}
