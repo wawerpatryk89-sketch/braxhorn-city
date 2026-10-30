@@ -161,6 +161,15 @@ public static class BraxCityRebuild
 
         foreach(var cut in BraxCitySystemsBuild.CrossingCurbCuts)
             Cut(original,physics,Box(cut.xMin,cut.xMax,-.3f,.25f,cut.yMin,cut.yMax),"crossing_lowered_kerb");
+        // The original NOVA and Nutrition interior anchors were present but
+        // their street-facing source wall/collision was not a usable portal.
+        // Cut only the 2.2m source doorway volumes; retain every other source
+        // wall, floor, bar, shop shelf and interior object.
+        Cut(original,physics,Box(40.9f,43.1f,.12f,2.90f,35.98f,36.45f),
+            "nova_real_source_entrance");
+        Cut(original,physics,Box(19.60f,21.80f,.12f,2.90f,20.30f,21.45f),
+            "nutrition_real_source_entrance");
+        BraxCityVenueDoors.Apply(world,root);
         var metro=BraxCitySystemsBuild.MetroExcavation;
         Cut(original,physics,Box(metro.xMin,metro.xMax,-4,.5f,metro.yMin,metro.yMax),"metro_excavation");
         var stone=BraxCityMaterials.Surface("Metro limestone",new Color(.55f,.55f,.51f),.93f);
