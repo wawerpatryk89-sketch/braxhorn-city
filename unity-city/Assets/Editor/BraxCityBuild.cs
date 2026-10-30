@@ -173,6 +173,7 @@ public static class BraxCityBuild
         BraxEstateR2ApprovedRoofs.Apply();
         BraxEstateR2FacadeFinish.Apply();
         BraxEstateR2Segment.Apply();
+        BraxEstateDom04Premium.Apply();
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
     public static void WriteReport(string output,string commit)
