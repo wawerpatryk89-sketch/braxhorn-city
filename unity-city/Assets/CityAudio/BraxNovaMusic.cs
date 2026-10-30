@@ -20,6 +20,11 @@ public sealed class BraxNovaMusic : MonoBehaviour
     private float gain, targetGain, nextReport, retryAt;
     private UnityWebRequest request;
     private AudioClip ownedClip;
+    private AudioClip pendingClip;
+    private bool decoding;
+    private float observedLength;
+    private string clipLoadState = "not-requested";
+    private long responseCode, downloadedBytes;
     private string failure = "", sourceUrl;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -27,9 +32,10 @@ public sealed class BraxNovaMusic : MonoBehaviour
 #endif
     [Serializable] private sealed class State
     {
-        public string track = "Industrial Pulse", venue = "NOVA", error, url;
-        public bool active, loaded, playing, downloading, muted, paused;
-        public float time, duration, volume, targetGain;
+        public string track = "Industrial Pulse", venue = "NOVA", error, url, clipLoadState;
+        public bool active, loaded, playing, downloading, decoding, muted, paused;
+        public float time, duration, volume, targetGain, observedLength;
+        public long responseCode,downloadedBytes;
         public float removedIntroSeconds = 27.70f;
     }
 
@@ -100,28 +106,48 @@ public sealed class BraxNovaMusic : MonoBehaviour
     private IEnumerator LoadMusic()
     {
         failure = "";
+        observedLength = 0;clipLoadState = "downloading";
         request = UnityWebRequestMultimedia.GetAudioClip(sourceUrl, AudioType.MPEG);
         // Wait for the actual clip before playback. This also works on WebGL
         // backends that cannot play a partially downloaded AudioClip.
         yield return request.SendWebRequest();
+        responseCode = request.responseCode;downloadedBytes = (long)request.downloadedBytes;
         if (request.result == UnityWebRequest.Result.Success)
         {
-            try { ownedClip = DownloadHandlerAudioClip.GetContent(request); }
+            decoding = true;
+            try { pendingClip = DownloadHandlerAudioClip.GetContent(request); }
             catch (Exception e) { failure = "NOVA audio decode failed: " + e.Message; }
-            if (ownedClip && ownedClip.length > 175 && ownedClip.length < 185)
+            // WebGL's browser decoder can finish after HTTP completion. Keep
+            // the pending clip separate: Update must not Play an empty source
+            // or destroy a valid download while its duration is still zero.
+            float deadline = Time.realtimeSinceStartup + 45f;
+            while (pendingClip)
             {
+                observedLength = pendingClip.length;
+                clipLoadState = pendingClip.loadState.ToString();
+                if (pendingClip.loadState == AudioDataLoadState.Failed) break;
+                if (pendingClip.loadState == AudioDataLoadState.Loaded && observedLength > 0) break;
+                if (Time.realtimeSinceStartup >= deadline) break;
+                yield return null;
+            }
+            if (pendingClip && pendingClip.loadState == AudioDataLoadState.Loaded &&
+                observedLength > 175 && observedLength < 185)
+            {
+                ownedClip = pendingClip;pendingClip = null;started = false;
                 ownedClip.name = "Industrial Pulse - approved NOVA edit (intro removed)";
                 venueSource.clip = ownedClip;
                 Debug.Log("NOVA_AUDIO_READY duration=" + ownedClip.length + " introRemoved=27.70");
             }
             else
             {
-                if (string.IsNullOrEmpty(failure)) failure = "NOVA returned an invalid or unexpected audio clip";
-                if (ownedClip) Destroy(ownedClip);
-                ownedClip = null;
+                if (string.IsNullOrEmpty(failure)) failure = "NOVA clip not ready/invalid: state="+
+                    clipLoadState+" length="+observedLength+" HTTP="+responseCode+" bytes="+downloadedBytes;
+                if (pendingClip) Destroy(pendingClip);
+                pendingClip = null;
             }
         }
         else failure = request.error;
+        decoding = false;
         request.Dispose(); request = null;
         if (!string.IsNullOrEmpty(failure))
         {
@@ -137,6 +163,8 @@ public sealed class BraxNovaMusic : MonoBehaviour
         BXNovaMusicState(JsonUtility.ToJson(new State {
             active = isActiveAndEnabled, error = failure, url = sourceUrl, loaded = ownedClip,
             playing = venueSource && venueSource.isPlaying, downloading = request != null,
+            decoding = decoding, clipLoadState = clipLoadState, observedLength = observedLength,
+            responseCode = responseCode, downloadedBytes = downloadedBytes,
             muted = muted, paused = paused || background || unfocused,
             time = venueSource && ownedClip ? venueSource.time : 0,
             duration = ownedClip ? ownedClip.length : 0,
@@ -157,6 +185,8 @@ public sealed class BraxNovaMusic : MonoBehaviour
         if (request != null) { request.Abort(); request.Dispose(); request = null; }
         if (venueSource) { venueSource.Stop(); venueSource.clip = null; }
         if (ownedClip) { Destroy(ownedClip); ownedClip = null; }
+        if (pendingClip) { Destroy(pendingClip); pendingClip = null; }
+        decoding = false;
         Report();
     }
 }

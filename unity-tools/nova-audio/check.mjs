@@ -7,7 +7,8 @@ import http from 'node:http';
 // isolate audio cases; this is a diagnostic sequence, not a continuous walk.
 const root=path.resolve('unity-preview'),out=path.resolve('nova-audio-review');
 fs.mkdirSync(out,{recursive:true});
-const checks=[],errors=[],requests=[];
+const checks=[],errors=[],requests=[],logs=[];
+let diagnosticNativeDecode=null;
 const expected=JSON.parse(fs.readFileSync(path.join(root,'release.json'))).sourceCommit;
 const server=http.createServer((req,res)=>{
  let pathname=decodeURIComponent(new URL(req.url,'http://local').pathname);
@@ -53,6 +54,7 @@ try{
  browser=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist','--disable-dev-shm-usage']});
  context=await browser.newContext({viewport:{width:915,height:412},hasTouch:true,isMobile:true});
  page=await context.newPage();page.on('pageerror',e=>errors.push(String(e)));
+ page.on('console',m=>logs.push(m.type()+': '+m.text()));
  page.on('response',r=>requests.push({url:r.url(),status:r.status()}));
  await page.addInitScript(()=>{
   window.__novaContexts=[];window.__novaMonitors=[];
@@ -134,12 +136,29 @@ try{
  await until(()=>!window.BraxhornNovaMusic?.active&&!window.BraxhornNovaMusic?.playing);
  check('Scene unload stops club audio',(await rms()).maximum<.00001,await state());
  check('No browser exceptions',errors.length===0,errors);
-}catch(e){errors.push(String(e));console.error('NOVA_AUDIO_QA_FAILED',e);process.exitCode=1;await shot('failure').catch(()=>{});}
+}catch(e){
+ errors.push(String(e));console.error('NOVA_AUDIO_QA_FAILED',e);process.exitCode=1;
+ await shot('failure').catch(()=>{});
+ // A diagnostic decode is not playback evidence and cannot make a failed
+ // Unity audibility check pass. It distinguishes invalid MP3 bytes from
+ // Unity/browser clip-initialisation problems.
+ if(page)diagnosticNativeDecode=await page.evaluate(async()=>{
+  const url=window.BraxhornNovaMusic?.url;if(!url)return null;
+  try{
+   const c=window.__novaContexts[0];if(!c)return {error:'No Unity AudioContext observed'};
+   const r=await fetch(url);const bytes=await r.arrayBuffer();
+   const clip=await c.decodeAudioData(bytes.slice(0));
+   return {http:r.status,bytes:bytes.byteLength,duration:clip.duration,channels:clip.numberOfChannels,sampleRate:clip.sampleRate,audibilityProven:false};
+  }catch(error){return {error:String(error),audibilityProven:false};}
+ }).catch(error=>({error:String(error)}));
+}
 finally{
  fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({sourceCommit:expected,checks,errors,
   passed:checks.length>=13&&checks.every(c=>c.passed)&&errors.length===0,
   runtimeAudioOutputMeasured:checks.some(c=>c.name==='Actual browser audio output is audible in NOVA'&&c.passed),
   diagnosticPositionCuts:true,continuousWalk:false,physicalPhoneValidated:false,videoWithAudio:false,
+  diagnosticNativeDecode,
   recordedAudio:fs.existsSync(path.join(out,'actual-unity-nova-audio.webm'))?'actual-unity-nova-audio.webm':null},null,2));
+ fs.writeFileSync(path.join(out,'browser.log'),logs.join('\n'));
  if(context)await context.close();if(browser)await browser.close();server.close();
 }
