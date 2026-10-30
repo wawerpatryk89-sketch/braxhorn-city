@@ -229,9 +229,9 @@ public static class BraxHarborBeachBuild
 
         // 2) Piasek: matowy fotoskan (bez plastikowego połysku), skala w metrach świata.
         var dry = BraxClaudeGround.WorldMaterial("Plaza: suchy piasek coast_sand_02",
-            Tex("coast_sand_02", "_diff_2k.jpg"), Tex("coast_sand_02", "_nor_2k.png", normal: true), null, 2.4f, Color.white, .28f, .9f);
+            Tex("coast_sand_02", "_diff_2k.jpg"), Tex("coast_sand_02", "_nor_2k.png", normal: true), null, 2.4f, new Color(1.12f, .96f, .70f), .28f, .9f);
         var wet = BraxClaudeGround.WorldMaterial("Plaza: mokry piasek damp_sand",
-            Tex("damp_sand", "_diff_2k.jpg"), Tex("damp_sand", "_nor_2k.png", normal: true), null, 2.4f, new Color(.93f, .93f, .93f), .2f, .8f);
+            Tex("damp_sand", "_diff_2k.jpg"), Tex("damp_sand", "_nor_2k.png", normal: true), null, 2.4f, new Color(.98f, .84f, .60f), .2f, .8f);
         var dryDisp = Tex("coast_sand_02", "_disp_2k.png", read: true);
         int tris = BeachStrip(root, "Plaza suchy piasek", LandX, 92f, Z0, Z1, 66, 100, dryDisp, dry);
         tris += BeachStrip(root, "Plaza mokry piasek przy wodzie", 92f, SeaX, Z0, Z1, 30, 100, dryDisp, wet);
