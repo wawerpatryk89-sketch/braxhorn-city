@@ -12,7 +12,7 @@ const root=path.resolve('unity-preview');
 const out=path.resolve('estate-r2-film-review');
 fs.mkdirSync(out,{recursive:true});
 const verification=path.resolve('city-review/r2-remodel-manifest.json');
-const required=['roofTextureBindings','windowModelsInstanced','doorModelsInstanced','visualQAConfirmed'];
+const required=['roofTextureBindings','windowModelsInstanced','doorModelsInstanced'];
 const audit={passed:false,recordingKind:'ONE CONTINUOUS LIVE UNITY6 WALK',teleportsAllowed:false,teleportsUsed:0,frames:[],stops:[],sourceSha:process.env.SOURCE_BUILD_SHA||process.env.GITHUB_SHA||null};
 let server,browser,context,page;
 const logs=[];
@@ -22,6 +22,7 @@ const requireRealRemodel=()=>{
  const report=JSON.parse(fs.readFileSync(verification,'utf8'));
  if(report.scene!=='BraxhornEstate'||report.importer!=='Unity6' || report.originalBraxPreserved!==true)fail('Remodel attestation identity mismatch');
  for(const key of required)if(!Number.isFinite(report[key])||report[key]<1)fail('No verified Unity scene implementation of '+key);
+ if(report.visualQAConfirmed!==true)fail('Actual Unity visual QA not yet accepted');
  if(!report.sourceAssetHashes||Object.keys(report.sourceAssetHashes).length<4)fail('Missing verified material/model source hashes');
  return report;
 };
