@@ -71,7 +71,17 @@ jobs:
           allowDirtyBuild: true
       - name: Package isolated city entry and provenance
         run: python3 unity-tools/city/package_estate.py
-      - name: Verify smaller mobile payload (original Brax untouched)\n        run: |\n          python3 - <<'PY'\n          import pathlib\n          data=list(pathlib.Path('unity-preview/Build').glob('*.data.unityweb'))\n          assert len(data)==1,data\n          size=data[0].stat().st_size\n          print('ESTATE_ONLY_COMPRESSED_BYTES',size,'PREVIOUS_BYTES',286816719)\n          assert size<286816719,'Estate-only scene did not reduce Unity payload'\n          PY\n      - name: Prepare real browser validation
+      - name: Verify smaller mobile payload (original Brax untouched)
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          data=list(pathlib.Path('unity-preview/Build').glob('*.data.unityweb'))
+          assert len(data)==1,data
+          size=data[0].stat().st_size
+          print('ESTATE_ONLY_COMPRESSED_BYTES',size,'PREVIOUS_BYTES',286816719)
+          assert size<286816719,'Estate-only scene did not reduce Unity payload'
+          PY
+      - name: Prepare real browser validation
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1
           npx playwright install --with-deps chromium
