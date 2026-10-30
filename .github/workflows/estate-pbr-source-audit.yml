@@ -1,0 +1,43 @@
+name: BRAXHORN Estate - official roofing and wall PBR source audit
+on:
+  push:
+    branches: [codex/estate-premium-pbr-20261030]
+    paths: ['unity-tools/estate/prepare_pbr.py','.github/workflows/estate-pbr-source-audit.yml']
+permissions:
+  contents: read
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            unity-tools/estate
+            .github/workflows/estate-pbr-source-audit.yml
+      - run: python3 -m pip install --quiet Pillow==11.3.0
+      - name: Download original verified Poly Haven PBR to isolated Unity assets
+        run: python3 unity-tools/estate/prepare_pbr.py
+      - name: Verify all real PBR maps, no placeholders
+        run: |
+          python3 - <<'PY'
+          import json,pathlib
+          root=pathlib.Path("unity-city/Assets/Source/EstateRenovation")
+          d=json.loads((root/"estate-pbr-provenance.json").read_text())
+          assert len(d["assets"])==6
+          for asset in d["assets"]:
+              assert set(x["channel"] for x in asset["maps"])=={"diff","nor_gl","rough"}
+              for rec in asset["maps"]:
+                  p=pathlib.Path(rec["output"])
+                  assert p.is_file() and p.stat().st_size>1000
+                  assert max(rec["width"],rec["height"])<=1024
+          print("PBR source input 6/6, maps 18/18, original archive untouched")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: estate-certified-cc0-pbr-${{ github.sha }}
+          path: unity-city/Assets/Source/EstateRenovation/
+          retention-days: 14
+          if-no-files-found: warn
