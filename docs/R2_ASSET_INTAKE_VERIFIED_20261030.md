@@ -27,3 +27,19 @@ Poly Haven potwierdza licencję zbiorczą [CC0](https://polyhaven.com/license). 
 8. Każda gałąź inna niż `codex/estate-premium-renovation-20261030` oraz produkcja/main pozostają nietknięte.
 
 **Odbiór 30.10.2026:** SOURCE MATERIAL AVAILABLE; R2 UNITY VISUAL REMODEL NOT YET VERIFIED; MOVIE NOT READY; HOSTING NOT READY. Nie wysyłać gotowego linku użytkownikowi przed PASS każdej bramki.
+
+
+## Ponowny audyt źródeł: 30.10.2026 — osiem paczek Library, bez zmiany Unity
+
+Osiem oryginalnych paczek w ChatGPT Library otwarto ponownie jako pliki binarne. Sześć zasobów premium w `/Braxhorn city/Assety premium/` ma **identyczne SHA-256** jak w tabeli powyżej. Każdy z czterech GLB ma nagłówek glTF 2.0 i rzeczywistą geometrię (odpowiednio 3, 2, 4, 6 meshy). Oba ZIP-y dachowe przeszły pełną kontrolę CRC.
+
+Dwa dodatkowe oryginalne źródła asfaltu znajdują się w `/Braxhorn city/Asset Library/Textures/Roads/`:
+
+| Plik Library | SHA-256 bezpośrednio z pliku | Integralność | Mapy i rozdzielczość |
+| --- | --- | --- | --- |
+| `FourLaneRoadClean01/FourLaneRoadClean01_MR_4K.zip` | `42246da7da60d8837682ce5bbff4489f4aaa32e0ef434e41d1c2cc8cd264293c` | ZIP CRC PASS | 5 oryginalnych PNG: AO, BaseColor, Height, Normal, Roughness; każda 4096 × 2048 |
+| `TwoLaneRoadPatches02/TwoLaneRoadPatches02_MR_4K(1).zip` | `ab64260ecdb137caa33367dddae078bbd37e28a261b787b223aa84a713fa5d5f` | ZIP CRC PASS | 5 oryginalnych PNG: AO, BaseColor, Height, Normal, Roughness; każda 4096 × 2048 |
+
+**Podstawowe rozróżnienie:** Library SOURCE PASS ≠ Unity SCENE PASS ≠ rzeczywisty film MP4 PASS ≠ hosting READY. Pliki z Library nie są automatycznie widoczne w workspace GitHub Actions; żadna próba zastąpienia ich prostymi bryłami, podobnymi modelami czy innymi teksturami nie jest dopuszczalna.
+
+**Sprawdzone workflowy R2:** run `41045850441` i `41046088170` mają `success`. Nowszy Unity build `41057257784` potwierdza tylko oryginalną scenę BraxhornEstate, przypisanie PBR do dwóch istniejących powierzchni dachowych (po jednym slocie na zestaw) oraz wykończenie oryginalnych elewacji; audyt wprost raportuje `windowAndDoorsImported=false`, `asphaltImported=false`, `filmApproved=false`. Source gate `41060224161` przeszedł, ale nie dowodzi wdrożenia modeli w Unity. Bez rzeczywistego importu, przejść i ciągłego spaceru z oryginalnym Braxem nie przygotowywać publikacji filmowej. Istniejący film sprzed remontu nie jest dowodem postępu R2.
