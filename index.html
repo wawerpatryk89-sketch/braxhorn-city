@@ -116,7 +116,12 @@ body.touch #keys { display: none; }
 /* touch controls */
 #touch { display: none; }
 body.touch #touch { display: block; }
-#joy { position: absolute; width: 128px; height: 128px; border-radius: 50%; border: 1px solid rgba(238,241,234,.22); background: radial-gradient(circle, rgba(5,6,5,.15), rgba(5,6,5,.45)); transform: translate(-50%, -50%); opacity: 0; transition: opacity .15s; left: 90px; top: 70%; }
+#joy { position: absolute; width: 128px; height: 128px; border-radius: 50%; border: 1px solid rgba(238,241,234,.35); background: radial-gradient(circle, rgba(5,6,5,.25), rgba(6,10,6,.65)); transform: translate(-50%, -50%); opacity: .82; transition: opacity .15s; left: max(88px, calc(var(--sl) + 72px)); top: 72%; pointer-events: auto; touch-action: none; z-index: 15; }
+#joy.on { opacity: 1; border-color: var(--neon); }
+#joyHint { pointer-events: none; }
+#touch { pointer-events: none; }
+#touch .pads { pointer-events: none; }
+#touch button { pointer-events: auto; }
 #joy.on { opacity: 1; }
 #joyKnob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #c8ff9a, var(--neon2)); box-shadow: 0 0 20px rgba(139,255,58,.5); transform: translate(-50%, -50%); }
 #joyHint { position: absolute; left: calc(var(--sl) + 8px); bottom: calc(var(--sb) + 26px); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: rgba(238,241,234,.45); transition: opacity .5s; }
@@ -519,9 +524,40 @@ function touchJoy(x,y,on){
  send("OnWebJoystick", x.toFixed(4)+","+y.toFixed(4)+","+(on?1:0));
 }
 function resetTouches(){
- game.pointers.clear();joyEl?.classList.remove("on");
+ game.pointers.clear();stickPointer=null;joyEl?.classList.remove("on");
+ if(knob)knob.style.transform="translate(-50%,-50%)";
  touchJoy(0,0,false);
 }
+// Fixed visible thumbstick. Pointer capture ensures reliable continuous movement on iOS.
+let stickPointer=null;
+function fixedStickMove(e){
+ if(e.pointerId!==stickPointer || !game.playing || game.paused)return;
+ const rect=joyEl.getBoundingClientRect();
+ let dx=e.clientX-(rect.left+rect.width/2),dy=e.clientY-(rect.top+rect.height/2);
+ const mag=Math.hypot(dx,dy);if(mag>R){dx*=R/mag;dy*=R/mag;}
+ knob.style.transform="translate(calc(-50% + "+dx+"px),calc(-50% + "+dy+"px))";
+ touchJoy(dx/R,-dy/R,true);
+ e.preventDefault();
+}
+joyEl.addEventListener("pointerdown",e=>{
+ if(!game.playing||game.paused)return;
+ e.preventDefault();e.stopPropagation();
+ if(stickPointer!==null)return;
+ stickPointer=e.pointerId;
+ try{joyEl.setPointerCapture(e.pointerId)}catch{}
+ joyEl.classList.add("on");$("joyHint")?.classList.add("gone");
+ fixedStickMove(e);
+});
+joyEl.addEventListener("pointermove",fixedStickMove);
+function fixedStickEnd(e){
+ if(e.pointerId!==stickPointer)return;
+ stickPointer=null;
+ knob.style.transform="translate(-50%,-50%)";
+ joyEl.classList.remove("on");touchJoy(0,0,false);
+ e.preventDefault();e.stopPropagation();
+}
+joyEl.addEventListener("pointerup",fixedStickEnd);
+joyEl.addEventListener("pointercancel",fixedStickEnd);
 canvas.addEventListener("contextmenu",e=>e.preventDefault());
 canvas.addEventListener("pointerdown",e=>{
  if(!game.playing||game.paused)return;
@@ -531,7 +567,7 @@ canvas.addEventListener("pointerdown",e=>{
  const role=touch&&x<rect.width*.45?"joy":"look";
  game.pointers.set(e.pointerId,{role,x0:x,y0:y,x,y});
  if(role==="joy"){
-  joyEl.style.left=x+"px";joyEl.style.top=y+"px";
+  // Floating input is a fallback for touches outside the fixed stick.
   joyEl.classList.add("on");knob.style.transform="translate(-50%,-50%)";
   touchJoy(0,0,true);$("joyHint")?.classList.add("gone");
  }
