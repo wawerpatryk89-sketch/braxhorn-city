@@ -1,0 +1,103 @@
+name: BRAXHORN Estate - original source recovery + strict Unity6 WebGL QA
+on:
+  push:
+    branches:
+      - codex/estate-unity-source-recovery-20261030
+    paths:
+      - "scripts/unity-estate/recover-originals.py"
+      - "scripts/unity-estate/prepare-unity-assets.py"
+      - "scripts/unity-estate/visual-qa.py"
+      - "unity-city/Assets/EstateMigration/**"
+      - ".github/workflows/estate-source-recovery-webgl.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-1to1-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 95
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          persist-credentials: false
+          sparse-checkout: |
+            unity-city
+            scripts/unity-estate
+            dev/deploy/asset-parts.json
+            dev/deploy/parts
+            dev/osiedle/assets
+      - name: Recover EXACT original casino, police station and park tree (SHA-256)
+        run: python3 scripts/unity-estate/recover-originals.py
+      - name: Verify original inventory and prepare lossless hero textures
+        run: |
+          python3 -m pip install --quiet Pillow==11.3.0
+          python3 scripts/unity-estate/prepare-unity-assets.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('unity-city/Assets/StreamingAssets/Estate/EstateSourceManifest.json')
+          m=json.loads(p.read_text())
+          assert len(m['sourceModels'])==21 and len(m['doors'])==24
+          assert len(m['collision'])==1013 and len(m['vegetation'])==30
+          assert not m['missingOriginalModels']
+          assert all(x['present'] for x in m['binaryAssets'])
+          assert all(x['source'] for x in m['sourceModels'])
+          print('SOURCE INVENTORY PASS: all original source models present')
+          PY
+      - name: Require existing Unity CI activation (do not invent license)
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        run: |
+          if [[ -z "$UNITY_LICENSE" ]] && { [[ -z "$UNITY_EMAIL" ]] || [[ -z "$UNITY_PASSWORD" ]] || [[ -z "$UNITY_SERIAL" ]]; }; then
+            echo "::error::No Unity CI license configured. Source recovered, compilation blocked."
+            exit 1
+          fi
+      - name: Compile strict ORIGINAL Unity 6 estate (not the partial build)
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UPM_CACHE_ROOT: /tmp/braxhorn-estate-recovery-upm
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          versioning: Custom
+          version: "0.1.0"
+          buildMethod: Braxhorn.EstateMigration.Editor.EstateSceneBuilder.BuildWebGL
+          buildsPath: unity-city/build
+          allowDirtyBuild: true
+      - name: Install real Chromium for Unity WebGL QA
+        run: |
+          python3 -m pip install --quiet playwright==1.56.0
+          python3 -m playwright install --with-deps chromium
+      - name: Render full-source Unity and require 21/21 models, 24 doors, zero missing
+        env:
+          ESTATE_WEBGL_ROOT: ${{ github.workspace }}/unity-city/build/EstateWebGL
+          ESTATE_QA_OUTPUT: ${{ runner.temp }}/estate-full-source-qa
+          ESTATE_EXPECTED_MODELS: "21"
+        run: timeout 420s python3 scripts/unity-estate/visual-qa.py
+      - name: Preserve actual Unity build and screenshots for user review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: estate-originals-recovery-${{ github.sha }}
+          path: |
+            unity-city/Assets/EstateMigration/Generated/RecoveredOriginals.json
+            unity-city/Assets/EstateMigration/Generated/UnitySourcePreflight.json
+            ${{ runner.temp }}/estate-full-source-qa/visual-qa-report.json
+            ${{ runner.temp }}/estate-full-source-qa/unity-estate-real-browser.png
+            unity-city/build/EstateWebGL
+          retention-days: 14
+          if-no-files-found: warn
+      - name: No automatic production deployment or visual 1-to-1 approval
+        run: echo "Strict Unity compilation and browser QA completed; user visual acceptance and iPhone test still required."
