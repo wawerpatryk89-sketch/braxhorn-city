@@ -25,14 +25,17 @@ for asset in MANIFEST["binaryAssets"]:
     actual = sha256(path.read_bytes()).hexdigest()
     if actual != asset["sha256"]:
         errors.append(f'MODIFIED ORIGINAL {path.name} actual={actual} source={asset["sha256"]}')
-for name in ["brax_color", "brax_normal"]:
+for name in ["brax_color", "brax_normal", "nyxa_color", "nyxa_normal"]:
     source = ASSETS / (name + ".webp")
     if not source.is_file(): errors.append(f"MISSING BRAX ORIGINAL TEXTURE {source.name}")
+for name in ["nyxa.glb.gz", "wide_a.webp"]:
+    if not (ASSETS / name).is_file():
+        errors.append(f"MISSING SOURCE HERO/BRANDING {name}")
 if errors:
     print("\n".join(errors),file=sys.stderr)
     raise SystemExit(1)
 from PIL import Image
-for name in ["brax_color", "brax_normal"]:
+for name in ["brax_color", "brax_normal", "nyxa_color", "nyxa_normal"]:
     source = ASSETS / (name + ".webp")
     out = ASSETS / (name + ".png")
     with Image.open(source) as im:
