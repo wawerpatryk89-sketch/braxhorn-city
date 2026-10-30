@@ -116,7 +116,7 @@ public static class BraxCityBuild
             PhysicsBox(root,"Original virtual floor",x[i],x[i+1],z[j],z[j+1],y-.18f,y);
         }
     }
-    static BraxCityWorld AddArea(string area,BraxGymPlayer player,bool hideStaticCars=false)
+    static BraxCityWorld AddArea(string area,BraxGymPlayer player,bool hideStaticCars=false,bool renovation=false)
     {
         Directory.CreateDirectory(Output);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         var data=JsonUtility.FromJson<Manifest>(File.ReadAllText(Source+area+"-manifest.json"));
@@ -193,15 +193,17 @@ public static class BraxCityBuild
         world.sourceColliders=(data.collision.boxes?.Length??0)+(data.collision.circles?.Length??0)+meshColliders-(hideStaticCars?omittedCarBoxes:0);
         world.points=(data.points??Array.Empty<Point>()).Where(p=>p.id!=null&&!p.id.Contains("camera")&&!p.id.Contains("enemy")&&!p.id.Contains("item")).Select(p=>new BraxCityPoint{id=p.id,label=p.label,position=Convert(p.x,p.y,p.z)}).ToArray();
         player.cityWorld=world;
+        if(renovation && area=="city")BraxCityRebuild.Apply(world,root.transform,physics);
         reports.Add(new AreaReport{area=area,originalMeshes=data.meshCount,importedMeshes=count,originalTriangles=(int)data.triangles,sourceBoxes=data.collision.boxes?.Length??0,sourceCircles=data.collision.circles?.Length??0,sourcePits=data.collision.pits?.Length??0,meshColliders=meshColliders,doors=doors.Count,bakedMaterials=baked,sourcePoints=world.points.Length});
         Debug.Log("ORIGINAL_CITY_AREA_IMPORTED "+JsonUtility.ToJson(reports.Last()));
         return world;
     }
-    public static void AttachCity(BraxGymPlayer player,bool hideStaticCars=false)
+    public static void AttachCity(BraxGymPlayer player,bool hideStaticCars=false,bool renovation=false)
     {
         reports.Clear();disabledCarMeshes=0;disabledCarRenderers=0;omittedCarBoxes=0;
         sourceCarFilterRequested=hideStaticCars;
-        AddArea("city",player,hideStaticCars);player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=320;player.view.backgroundColor=new Color(.67f,.75f,.81f);
+        AddArea("city",player,hideStaticCars,renovation);player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=320;player.view.backgroundColor=new Color(.67f,.75f,.81f);
+        if(renovation){player.view.farClipPlane=420;BraxCitySkyAuthoring.ApplyToCity(player.view);}
     }
     public static string CreateEstate(string commit)
     {

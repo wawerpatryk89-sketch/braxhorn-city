@@ -31,7 +31,8 @@ public static class BraxGymBuild
     public static void BuildCity(){BuildInternal(true,false);}
     // Only the isolated Unity6 integration branch calls this: gym + city + estate.
     public static void BuildIntegrated(){BuildInternal(true,true);}
-    private static void BuildInternal(bool fullCity,bool integrated)
+    public static void BuildRenovation(){BuildInternal(true,true,true);}
+    private static void BuildInternal(bool fullCity,bool integrated,bool renovation=false)
     {
         if(fullCity)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
         Directory.CreateDirectory(Generated);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
@@ -131,7 +132,13 @@ public static class BraxGymBuild
         PlayerSettings.WebGL.compressionFormat=WebGLCompressionFormat.Gzip;PlayerSettings.WebGL.decompressionFallback=true;PlayerSettings.WebGL.template="APPLICATION:Default";
         BraxGymPremium.Apply(gym,hero,bags.ToArray(),camera,light,fill,Generated);
         BraxHeroRefinements.Apply(hero,bags.ToArray(),camera,Generated);
-        if(fullCity)BraxCityBuild.AttachCity(runtime,integrated);
+        if(fullCity)BraxCityBuild.AttachCity(runtime,integrated,renovation);
+        if(renovation)
+        {
+            // Exact accepted mural/ring/annex authoring; one original player.
+            BraxGymReferenceRebuild.Apply(gym,solids.transform,runtime,Generated);
+            BraxGymReferenceEquipment.Apply(gym,runtime,Generated);
+        }
         string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;
         // Estate review boots directly into the EXISTING city estate scene with the
@@ -156,6 +163,7 @@ public static class BraxGymBuild
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
         if(fullCity)BraxCityBuild.WriteReport(output,sourceCommit);
         if(integrated)BraxUnityDistrictRegistry.WriteBuildReceipt(output,sourceCommit,scenePaths);
+        if(renovation)BraxCityRebuild.WriteReport(output);
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }
 }

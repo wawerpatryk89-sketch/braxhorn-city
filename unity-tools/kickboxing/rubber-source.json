@@ -1,0 +1,52 @@
+{
+  "asset_id": "rubber_tiles",
+  "name": "Rubber Tiles",
+  "author": "Amal Kumar",
+  "provider": "Poly Haven",
+  "source": "https://polyhaven.com/a/rubber_tiles",
+  "license": "CC0-1.0",
+  "license_url": "https://polyhaven.com/license",
+  "api_credit": "Powered by Poly Haven",
+  "physical_size_m": [
+    2,
+    2
+  ],
+  "maps": [
+    {
+      "channel": "Diffuse",
+      "format": "jpg",
+      "resolution": "1k",
+      "recommended_name": "RubberAlbedo.jpg",
+      "size": 351085,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rubber_tiles/rubber_tiles_diff_1k.jpg",
+      "md5": "2a2cc9b5e06639c7fb6cc26c263c00ff"
+    },
+    {
+      "channel": "nor_gl",
+      "format": "png",
+      "resolution": "1k",
+      "recommended_name": "RubberNormal.png",
+      "size": 5760184,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/rubber_tiles/rubber_tiles_nor_gl_1k.png",
+      "md5": "375d515ce497f48e95973235a88da950"
+    },
+    {
+      "channel": "arm",
+      "format": "jpg",
+      "resolution": "1k",
+      "recommended_name": "RubberARM.jpg",
+      "size": 639130,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/rubber_tiles/rubber_tiles_arm_1k.jpg",
+      "md5": "8b7e2c4a9851564b8e701b450df9abc9"
+    }
+  ],
+  "preview_verified": "Original 1K albedo visually inspected: graphite/black rubber, subtle surface wear and shallow joints; no recoloring required.",
+  "preview_sha256": "07c66caf17f14b1eae8a60bfd11a3b00a88af0101d51aab370609a2f13bb8c04",
+  "suggested_scope": "Existing gym rubber floor and training surface only; retain independent green perimeter and original branding.",
+  "uv_guidance": "One repeat per 2 m in both horizontal world axes. Map UV=(world_x/2,world_z/2). Keep physical tile scale when applying to individual mat meshes.",
+  "normal_strength_start": 0.45,
+  "metallic": 0,
+  "roughness": "Use original ARM G; do not apply a glossy uniform coating.",
+  "displacement": "Not needed for the phone build; use the original normal map for shallow relief.",
+  "notes": "Source specification only; fetch_assets.py and C# are not modified by this selection."
+}

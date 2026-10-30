@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inspekcja oryginalnych modułów fasad</title>
+<style>html,body{margin:0;width:100%;height:100%;background:#bcc6cb;color:#101b21;font:14px system-ui}canvas{display:block}#label{position:fixed;left:18px;top:14px;padding:9px 12px;background:#fffffff0;max-width:90%;line-height:1.4}#note{position:fixed;bottom:10px;left:18px;background:#ffffffdf;padding:6px 10px;font-size:12px}</style>
+<script type="importmap">{"imports":{"three":"/dev/three/build/three.module.js"}}</script>
+</head><body><div id="label"></div><div id="note">Inspekcja źródła glTF 1K · rzeczywista skala · osobny renderer, nie gotowa gra Unity</div>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from '/dev/three/examples/jsm/loaders/GLTFLoader.js';
+import {RoomEnvironment} from '/dev/three/examples/jsm/environments/RoomEnvironment.js';
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(1);renderer.setSize(innerWidth,innerHeight);
+if('outputColorSpace' in renderer)renderer.outputColorSpace=THREE.SRGBColorSpace;else renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.append(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color('#bfcad0');
+const pmrem=new THREE.PMREMGenerator(renderer);scene.environment=pmrem.fromScene(new RoomEnvironment(renderer),0.04).texture;
+scene.add(new THREE.HemisphereLight(0xe6f2ff,0x8d897c,1.1));
+const sun=new THREE.DirectionalLight(0xfff1d9,2.7);sun.position.set(4,7,6);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-7;sun.shadow.camera.right=7;sun.shadow.camera.top=10;sun.shadow.camera.bottom=-4;sun.shadow.normalBias=.015;scene.add(sun);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.MeshStandardMaterial({color:0x919b9f,roughness:.9}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;ground.position.y=-.015;scene.add(ground);
+const ruler=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(2,0,0),new THREE.Vector3(2,1.8,0),new THREE.Vector3(1.9,0,0),new THREE.Vector3(2.1,0,0),new THREE.Vector3(1.9,1.8,0),new THREE.Vector3(2.1,1.8,0)]),new THREE.LineBasicMaterial({color:0x163344}));scene.add(ruler);
+const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.05,70);
+const loader=new GLTFLoader(),cache=new Map();let assembly=null;
+window.inspectAsset=async function(config){
+ if(assembly)scene.remove(assembly);
+ let source=cache.get(config.asset);
+ if(!source){source=(await loader.loadAsync('/curated/Source/CityRebuild/models/'+config.asset+'/1k/'+config.asset+'_1k.gltf')).scene;cache.set(config.asset,source);}
+ assembly=new THREE.Group();const records=[];
+ for(const part of config.parts){
+  const original=source.getObjectByName(part.name);if(!original)throw Error('Source node missing: '+part.name);
+  const clone=original.clone(true);clone.position.set(0,part.y||0,0);clone.quaternion.identity();clone.scale.set(1,1,1);
+  clone.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});assembly.add(clone);
+  records.push({name:part.name,originalPosition:original.position.toArray(),placedPosition:clone.position.toArray()});
+ }
+ assembly.position.x=1.5;scene.add(assembly);assembly.updateMatrixWorld(true);
+ const bounds=new THREE.Box3().setFromObject(assembly),size=bounds.getSize(new THREE.Vector3()),centre=bounds.getCenter(new THREE.Vector3());
+ const front=config.front||1,oblique=config.view==='oblique';
+ const tall=size.y>4.5;
+ camera.position.set(oblique?4.5:0,1.7,(tall?10:5.7)*front);
+ camera.lookAt(centre.x,tall?size.y*.43:1.6,centre.z);
+ if(config.view==='detail'){camera.position.set(1.1,1.65,2.6*front);camera.lookAt(-.35,1.5,0);}
+ sun.position.set(-3,8,6*front);sun.target.position.set(0,1.5,0);scene.add(sun.target);
+ document.querySelector('#label').textContent=config.label+' · '+config.view+' · kamera 1,70 m · znacznik wysokości 1,80 m';
+ renderer.render(scene,camera);await new Promise(r=>requestAnimationFrame(r));renderer.render(scene,camera);
+ const report={asset:config.asset,label:config.label,view:config.view,sourceScalePreserved:true,bounds:{min:bounds.min.toArray(),max:bounds.max.toArray(),size:size.toArray()},camera:camera.position.toArray(),nodes:records,renderer:'Three.js PBR source inspection only; Unity compatibility and final appearance remain unverified'};
+ window.assetInspection=report;return report;
+};
+window.assetViewerReady=true;
+</script></body></html>

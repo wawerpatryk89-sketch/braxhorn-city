@@ -15,8 +15,14 @@ public sealed class BraxCityWorld : MonoBehaviour
     public BraxGymPlayer player;
     public BraxCityPoint[] points=Array.Empty<BraxCityPoint>();
     public BraxCityDoor[] doors=Array.Empty<BraxCityDoor>();
+    public BraxCityElevator elevator;
+    // The original quay showcase lift remains separate and unchanged.
+    // Eight further on-street tower lifts register independently so every
+    // high-rise has its own door/cabin/roof and there is no "teleport" fake.
+    public BraxCityElevator[] additionalTowerElevators=Array.Empty<BraxCityElevator>();
     public int originalMeshes,originalTriangles,sourceColliders;
     public bool loading;
+    public bool waterfrontPreview;
     public string activePoint;
     public static string Arrival;
     private BraxCityDoor nearby;
@@ -28,8 +34,21 @@ public sealed class BraxCityWorld : MonoBehaviour
         {
             if(loading)return "WCZYTYWANIE DZIELNICY…";
             var p=player.transform.position;
-            if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ NA OSIEDLE";
+            if(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ NA OSIEDLE";
             if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f)return "WRÓĆ DO MIASTA";
+            // Do not hide elevator calls behind ordinary door prompts.
+            // Player proximity is evaluated inside each real lift controller.
+            foreach(var lift in additionalTowerElevators)
+                if(lift)
+                {
+                    var prompt=lift.Context;
+                    if(!string.IsNullOrEmpty(prompt))return prompt;
+                }
+            if(elevator)
+            {
+                var liftContext=elevator.Context;
+                if(!string.IsNullOrEmpty(liftContext))return liftContext;
+            }
             if(nearby)return (nearby.IsOpen?"ZAMKNIJ DRZWI · ":"OTWÓRZ DRZWI · ")+nearby.label;
             return "";
         }
@@ -55,8 +74,11 @@ public sealed class BraxCityWorld : MonoBehaviour
     {
         if(loading)return true;
         var p=player.transform.position;
-        if(area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
+        if(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
         if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return true;}
+        foreach(var lift in additionalTowerElevators)
+            if(lift&&lift.TryInteract(p))return true;
+        if(elevator&&elevator.TryInteract(p))return true;
         if(nearby){nearby.Toggle(player.transform.position);return true;}
         return false;
     }

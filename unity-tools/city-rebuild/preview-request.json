@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "status": "requested",
+  "sourceRun": 40878906652,
+  "sourceCommit": "55fb02f90b27a5d43b8eb61d8e873141c53d5513",
+  "qaRun": 40883489583,
+  "qaCommit": "34ba35d5d920740fc5ce4470d2a45a0661aa0a5d",
+  "visualReview": "reviewed-for-test",
+  "reviewedImages": [
+    "07-street.png",
+    "13-waterfront.png",
+    "04-skyline-from-player.png"
+  ],
+  "knownIssues": [
+    "Only 2 of 18 street buildings replaced; WholeDistrict=false. This is not the finished user-requested city.",
+    "Skyline, detailed facades and overall premium quality far below reference video; visual acceptance failed.",
+    "Mobile physical iPhone not tested; desktop software-rendering QA only.",
+    "Existing separate gym contractor's newer final commit is not integrated; original gym preserved."
+  ],
+  "purpose": "User requested immediate playable link to inspect CURRENT partial city candidate with original character; preview only, no production changes. Visual acceptance remains FAILED."
+}
