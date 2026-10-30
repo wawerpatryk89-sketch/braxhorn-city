@@ -105,13 +105,13 @@ jobs:
           assert loader_text.count(anchor)==1,"Unity fetch interception anchor changed"
           loader.write_text(loader_text.replace(anchor,"(window.BraxCityFetch||fetch)(e,t).then(function(e){return b.readBodyWithProgress"))
           html=p.read_text()
-          anchor="<script>\\n'use strict';"
+          anchor="<script>\n'use strict';"
           assert html.count(anchor)==1,"Original city HTML entry anchor changed"
           html=html.replace(anchor,'<script src="city-transport.js?v=estate-original-01"></script>'+anchor,1)
           assert html.count("function fail(e){")==1
-          html=html.replace("function fail(e){","window.addEventListener('brax-city-load-error',e=>fail(e.detail));\\nfunction fail(e){",1)
+          html=html.replace("function fail(e){","window.addEventListener('brax-city-load-error',e=>fail(e.detail));\nfunction fail(e){",1)
           p.write_text(html)
-          Path("transport.json").write_text(json.dumps(manifest,indent=2)+"\\n")
+          Path("transport.json").write_text(json.dumps(manifest,indent=2)+"\n")
           print("ORIGINAL CITY PLAYER DATA UNCHANGED",original_size,"native stream",expanded_size,"parts",len(parts))
           cfg={"version":2,"framework":None,"buildCommand":None,"outputDirectory":"."}
           Path("vercel.json").write_text(json.dumps(cfg,indent=2)+"\n")
