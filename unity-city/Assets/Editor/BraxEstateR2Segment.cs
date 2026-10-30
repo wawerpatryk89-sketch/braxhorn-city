@@ -24,7 +24,7 @@ public static class BraxEstateR2Segment
     [Serializable] sealed class Audit
     {
         public string scene = "BraxhornEstate", stage = "WORK_IN_PROGRESS__EARLY_CHECKPOINT__VISUAL_REVIEW_PENDING";
-        public string sourceHouse = "dom-03 / willa_nowoczesna; dom-04 / dom_z_wnetrzem", coordinateConversion = "Unity X = -source X; Y/Z unchanged";
+        public string sourceHouse = "dom-04 / dom_z_wnetrzem ONLY", coordinateConversion = "Unity X = -source X; Y/Z unchanged";
         public bool fullRenovationApproved = false, visualQAConfirmed = false, windowsImported = false, doorsImported = false;
         public Record[] bindings;
         public int realTreeInstances, realShrubInstances, replacedProceduralTreeRenderers;
@@ -141,10 +141,10 @@ public static class BraxEstateR2Segment
             }
             if (approach)
             {
-                // Union of the two existing source X 7..21 / -21..-7 approaches.
+                // Strictly DOM04 original approach Unity X -21..-7. DOM03 remains untouched.
                 // Remainders retain the exact original material and UVs.
                 var pending=new List<List<Vertex>>{poly};
-                foreach(int side in new[]{-1,1})
+                foreach(int side in new[]{-1})
                 {
                     var remaining=new List<List<Vertex>>();
                     foreach(var part in pending)
@@ -189,7 +189,6 @@ public static class BraxEstateR2Segment
         Directory.CreateDirectory(Output); AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         var plaster=Material("WarmMineralPlaster","Assets/Source/City/R2Segment/Stucco",new Color(.965f,.945f,.905f));
         var brick=Material("RedBrickPlinth","Assets/Source/City/R2Segment/RedBrick",new Color(.86f,.83f,.78f));
-        var whiteBrick=Material("WhitewashedBrickDom03","Assets/Source/City/R2Segment/WhiteBrick",Color.white);
         var paving=Material("PavingStones151","Assets/Source/City/R2Segment/Paving",Color.white);
         var roofSource=AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/R2Approved/R2RoofTiles.mat");
         if(!roofSource)throw new Exception("Verified Poly Haven roof source missing");
@@ -197,20 +196,15 @@ public static class BraxEstateR2Segment
         AssetDatabase.CreateAsset(roof,Output+"/RoofTiles.mat");
         var renderers=root.GetComponentsInChildren<MeshRenderer>(true);
         var records=new List<Record>(); var bindings=new List<BraxR2ProgressEvidence.Binding>();
-        foreach(var task in new[]{("EstateMesh_327",plaster,"exterior stucco",1.5f),("EstateMesh_312",plaster,"entrance plaster",1.5f),("EstateMesh_321",brick,"brick plinth",2f),("EstateMesh_323",roof,"pitched roof",2f),("EstateMesh_275",paving,"both bounded existing approaches",5.4f)})
+        foreach(var task in new[]{("EstateMesh_327",plaster,"exterior stucco",1.5f),("EstateMesh_312",plaster,"entrance plaster",1.5f),("EstateMesh_321",brick,"brick plinth",2f),("EstateMesh_323",roof,"pitched roof",2f),("EstateMesh_275",paving,"DOM04 bounded original approach only",5.4f)})
         {
             var r=renderers.Single(x=>x.name==task.Item1);
             bindings.Add(Bind(r,task.Item2,task.Item3,task.Item4,records,task.Item1=="EstateMesh_275"));
         }
-        foreach(var name in new[]{"EstateMesh_309","EstateMesh_311"})
-            bindings.Add(Bind(renderers.Single(x=>x.name==name),whiteBrick,"dom03 original atlas brick faces",2f,records,false,true));
-        var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Source/City/braxhorn-estate.gltf");
-        var originalRoof=prefab.GetComponentsInChildren<MeshRenderer>(true).Single(x=>x.name=="EstateMesh_310").sharedMaterial;
-        bindings.Add(Bind(renderers.Single(x=>x.name=="EstateMesh_310"),roof,"dom03 pitched roof; original fascia preserved",2f,records,false,true,originalRoof));
         var evidence=new GameObject("R2ProgressEvidence").AddComponent<BraxR2ProgressEvidence>(); evidence.bindings=bindings.ToArray();
         Plant(renderers,evidence);
         Directory.CreateDirectory("city-review");
-        File.WriteAllText("city-review/r2-segment-bindings.json",JsonUtility.ToJson(new Audit{bindings=records.ToArray(),realTreeInstances=2,realShrubInstances=12,replacedProceduralTreeRenderers=8},true));
+        File.WriteAllText("city-review/r2-segment-bindings.json",JsonUtility.ToJson(new Audit{bindings=records.ToArray(),realTreeInstances=1,realShrubInstances=6,replacedProceduralTreeRenderers=4},true));
         Debug.Log("R2_DOM04_SCOPED_PBR_IMPLEMENTED__VISUAL_REVIEW_PENDING " + records.Count);
     }
     static void Plant(MeshRenderer[] renderers,BraxR2ProgressEvidence evidence)
@@ -234,7 +228,7 @@ public static class BraxEstateR2Segment
             return r;
         }
         // Genuine existing model components; no generated canopy spheres.
-        foreach(float sourceX in new[]{-37f,36f})
+        foreach(float sourceX in new[]{36f})
         {
             var tree=new GameObject("R2 original Verdant tree / "+sourceX); additions.Add(tree);
             float scale=4.7f/(9.336063f-.798673f);
@@ -243,7 +237,7 @@ public static class BraxEstateR2Segment
             var far=new[]{"EstateMesh_439","EstateMesh_453"}.Select(s=>Part(s,tree.transform,"Far / "+s,scale)).Cast<Renderer>().ToArray();
             var lod=tree.AddComponent<LODGroup>();lod.SetLODs(new[]{new LOD(.22f,near),new LOD(.07f,far)});lod.RecalculateBounds();
         }
-        foreach(var source in new[]{new Vector2(18,6),new Vector2(18,-6),new Vector2(18,9.5f),new Vector2(18,-9.5f),new Vector2(37,9),new Vector2(37,-9),new Vector2(-19,6),new Vector2(-19,-6),new Vector2(-19,9.5f),new Vector2(-19,-9.5f),new Vector2(-39,9),new Vector2(-39,-9)})
+        foreach(var source in new[]{new Vector2(18,6),new Vector2(18,-6),new Vector2(18,9.5f),new Vector2(18,-9.5f),new Vector2(37,9),new Vector2(37,-9)})
         {
             var plant=new GameObject("R2 original Verdant shrub / "+source);additions.Add(plant);
             plant.transform.position=new Vector3(-source.x,.04f,source.y);
@@ -251,7 +245,7 @@ public static class BraxEstateR2Segment
             var r=Part("EstateMesh_467",plant.transform,"Real shrub",.4f);
             var lod=plant.AddComponent<LODGroup>();lod.SetLODs(new[]{new LOD(.018f,new Renderer[]{r})});lod.RecalculateBounds();
         }
-        var names=new[]{"EstateMesh_84","EstateMesh_85","EstateMesh_86","EstateMesh_87","EstateMesh_89","EstateMesh_90","EstateMesh_91","EstateMesh_92"};
+        var names=new[]{"EstateMesh_89","EstateMesh_90","EstateMesh_91","EstateMesh_92"};
         evidence.replacedTreeRenderers=names.Select(n=>renderers.Single(r=>r.name==n)).ToArray();
         foreach(var r in evidence.replacedTreeRenderers)
         {

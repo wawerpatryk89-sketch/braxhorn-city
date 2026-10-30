@@ -170,8 +170,8 @@ public static class BraxCityBuild
         var runtime=player.AddComponent<BraxGymPlayer>();runtime.visual=hero.transform;runtime.body=body;runtime.clips=animation;runtime.view=camera;runtime.contactShadow=shadow.transform;runtime.bags=Array.Empty<Transform>();runtime.buildId=commit;runtime.worldSpawn=player.transform.position;
         AddArea("estate",runtime);
         // Estate-only visual pass: verified source textures on original roof meshes.
-        BraxEstateR2ApprovedRoofs.Apply();
-        BraxEstateR2FacadeFinish.Apply();
+        // DOM04-only: stage real roof map but never repaint any other house.
+        BraxEstateR2ApprovedRoofs.PrepareMaterialsOnly();
         BraxEstateR2Segment.Apply();
         BraxEstateDom04Premium.Apply();
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;

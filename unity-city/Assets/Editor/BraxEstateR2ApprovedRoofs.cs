@@ -62,6 +62,15 @@ public static class BraxEstateR2ApprovedRoofs
         AssetDatabase.CreateAsset(mat,directory+"/R2"+key+".mat");
         return mat;
     }
+    // Stage actual PBR asset for DOM04 without touching any OTHER house renderer.
+    public static void PrepareMaterialsOnly()
+    {
+        const string output="Assets/PlayableGenerated/R2Approved";
+        Directory.CreateDirectory(output);
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        Build("RoofTiles","Roof Tiles",false,output);
+        Debug.Log("DOM04_ROOFTILES_OPERATOR_PBR_PREPARED_ONLY__OTHER_HOUSES_UNMODIFIED");
+    }
     public static void Apply()
     {
         var root=GameObject.Find("braxhorn-estate");
