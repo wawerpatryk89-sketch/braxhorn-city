@@ -1,0 +1,50 @@
+name: BRAXHORN Estate Unity6 - REAL startup and controls QA
+on:
+  push:
+    branches:
+      - work/unity6-estate-migration-20261029
+    paths:
+      - "scripts/unity-estate/ui-qa.py"
+      - ".github/workflows/estate-unity-ui-qa.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preview-ui-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/unity-estate/ui-qa.py
+      - name: Download EXACT approved Unity 6 source/UI artifact (no rebuilding or mixing)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh run view 40978751265 -R "$GITHUB_REPOSITORY" --json conclusion --jq '.conclusion')" = "success"
+          gh run download 40978751265 -R "$GITHUB_REPOSITORY" \
+            -n estate-unity6-PARTIAL-NOT-1TO1-639817138a8ba07fd6bf5c8855f155bd4035e233 \
+            -D "$RUNNER_TEMP/estate-ui-player"
+          test -s "$RUNNER_TEMP/estate-ui-player/EstatePartial_NOT_1TO1/index.html"
+          test -s "$RUNNER_TEMP/estate-ui-player/EstatePartial_NOT_1TO1/StreamingAssets/Estate/nyxa.glb.gz"
+      - name: Install Chrome with WebGL SwiftShader
+        run: |
+          python3 -m pip install --quiet Pillow==11.3.0 playwright==1.56.0
+          python3 -m playwright install --with-deps chromium
+      - name: Test actual original BRAXHORN start, hero select, UI and loaded world
+        env:
+          ESTATE_WEBGL_ROOT: ${{ runner.temp }}/estate-ui-player/EstatePartial_NOT_1TO1
+          ESTATE_QA_OUTPUT: ${{ runner.temp }}/estate-ui-qa
+        run: timeout 390s python3 scripts/unity-estate/ui-qa.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: estate-original-UI-real-browser-QA-${{ github.sha }}
+          path: ${{ runner.temp }}/estate-ui-qa
+          retention-days: 14
+          if-no-files-found: warn
