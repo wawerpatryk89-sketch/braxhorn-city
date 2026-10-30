@@ -165,15 +165,8 @@ public static class BraxClaudeTowerTerrace
         Put(root, "modular_street_seating", "Taras: ławka widokowa 1", new Vector3(cx - width * .25f, roofY, z0 + 1.55f), 0);
         Put(root, "modular_street_seating", "Taras: ławka widokowa 2", new Vector3(cx + width * .25f, roofY, z0 + 1.55f), 0);
 
-        // Stoliki z krzesłami z tyłu, przed agregatami, z dala od wyjścia z windy.
+        // Środek i tył dachu zostają wolne: miejsce walki (R1_ROOF_DUEL, także 3 na 3).
         int tables = 0;
-        float tz = Mathf.Min(z1 - 6.5f, ShaftZ - 4.5f);
-        if (width >= 13f && tz > z0 + 12f)
-        {
-            Put(root, "outdoor_table_chair_set_01", "Taras: stolik z krzesłami W", new Vector3(x0 + 3.4f, roofY, tz), 20);
-            Put(root, "outdoor_table_chair_set_01", "Taras: stolik z krzesłami E", new Vector3(x1 - 3.4f, roofY, tz), -20);
-            tables = 2;
-        }
 
         Directory.CreateDirectory("Assets/PlayableGenerated/ClaudeTower");
         File.WriteAllText("Assets/PlayableGenerated/ClaudeTower/terrace.json", JsonUtility.ToJson(new Report

@@ -18,7 +18,9 @@ TEXTURES = [
     "wood_floor_deck",           # taras na dachu wieżowca
     "rectangular_facade_tiles",  # elewacja wieżowca (wariant A)
     "exterior_wall_cladding",    # elewacja wieżowca (wariant B)
-    "granite_tile",              # cokół / obrzeża tarasu
+    "granite_tile",              # cokół / obrzeża tarasu, front baru
+    "marble_01",                 # blat baru w klubie NOVA
+    "wood_planks",               # tylna zabudowa baru / podest DJ
 ]
 MODELS = [
     "planter_box_01",
@@ -26,6 +28,7 @@ MODELS = [
     "potted_plant_04",
     "outdoor_table_chair_set_01",
     "modular_street_seating",
+    "bar_chair_round_01",        # hokery w klubie NOVA
 ]
 
 

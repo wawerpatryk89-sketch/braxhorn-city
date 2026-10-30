@@ -200,7 +200,10 @@ jobs:
         retention-days: 14
     - name: Raport portu z edytora Unity
       if: always()
-      run: cat unity-city/Assets/PlayableGenerated/HarborBeach/harbor-beach-review.json || echo 'BRAK raportu portu'
+      run: |
+        cat unity-city/Assets/PlayableGenerated/HarborBeach/harbor-beach-review.json || echo 'BRAK raportu portu'
+        cat unity-city/Assets/PlayableGenerated/ClaudeTower/terrace.json || echo 'BRAK raportu tarasu'
+        cat unity-city/Assets/PlayableGenerated/ClaudeNova/nova-club.json || echo 'BRAK raportu NOVA'
     - name: Wgraj player do ukrytego wydania (do zdjec i nagrania)
       if: steps.package.outcome == 'success'
       env:
@@ -210,6 +213,7 @@ jobs:
         set -eu
         cp unity-city/Assets/PlayableGenerated/HarborBeach/harbor-beach-review.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeTower/terrace.json unity-preview/ || true
+        cp unity-city/Assets/PlayableGenerated/ClaudeNova/nova-club.json unity-preview/ || true
         (cd unity-preview && zip -q -r -1 ../player-${GITHUB_SHA::7}.zip .)
         ls -la player-*.zip
         gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
