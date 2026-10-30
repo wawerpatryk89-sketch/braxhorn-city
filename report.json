@@ -1,0 +1,140 @@
+{
+  "passed": true,
+  "kind": "REAL UNITY WEBGL SCREEN CAPTURE, not generated images",
+  "originalCityPlayer": "BraxGymPlayer",
+  "scene": "BraxhornEstate",
+  "meshCount": 553,
+  "stops": [
+    {
+      "id": "estate_entry",
+      "label": "01-wejscie",
+      "x": 0,
+      "y": 0.03499987721443176,
+      "z": 92,
+      "area": "estate",
+      "animation": "Idle"
+    },
+    {
+      "id": "villa_front",
+      "label": "02-dom-elewacja",
+      "x": -0.052488502115011215,
+      "y": 0.034999996423721313,
+      "z": -24.195890426635742,
+      "area": "estate",
+      "animation": "Walk"
+    },
+    {
+      "id": "villa_living",
+      "label": "03-wnetrze-domu",
+      "x": -0.11632128059864044,
+      "y": 0.03499987721443176,
+      "z": -33.16612243652344,
+      "area": "estate",
+      "animation": "Idle"
+    },
+    {
+      "id": "villa_terrace",
+      "label": "04-taras",
+      "x": 0.035215847194194794,
+      "y": 0.03499987721443176,
+      "z": -50.8002815246582,
+      "area": "estate",
+      "animation": "Idle"
+    },
+    {
+      "id": "garages",
+      "label": "05-garaze",
+      "x": 23.816200256347656,
+      "y": 0.03499987721443176,
+      "z": -25.08570671081543,
+      "area": "estate",
+      "animation": "Walk"
+    },
+    {
+      "id": "park",
+      "label": "06-park-zielen",
+      "x": -20.116321563720703,
+      "y": 0.03499980270862579,
+      "z": -83.16612243652344,
+      "area": "estate",
+      "animation": "Idle"
+    },
+    {
+      "id": "court",
+      "label": "07-plac",
+      "x": 27.856597900390625,
+      "y": 0.03499980270862579,
+      "z": -71.85659790039062,
+      "area": "estate",
+      "animation": "Idle"
+    },
+    {
+      "id": "casino",
+      "label": "08-kasyno",
+      "x": 85.947509765625,
+      "y": 0.03499987721443176,
+      "z": -23.195890426635742,
+      "area": "estate",
+      "animation": "Idle"
+    },
+    {
+      "id": "club",
+      "label": "09-klub",
+      "x": 85.82437133789062,
+      "y": 0.03499987721443176,
+      "z": 33.10139846801758,
+      "area": "estate",
+      "animation": "Idle"
+    },
+    {
+      "id": "police",
+      "label": "10-komisariat",
+      "x": -86.11631774902344,
+      "y": 0.034999996423721313,
+      "z": -23.16612434387207,
+      "area": "estate",
+      "animation": "Walk"
+    },
+    {
+      "id": "hospital",
+      "label": "11-szpital",
+      "x": -86.2326431274414,
+      "y": 0.034999996423721313,
+      "z": 32.66775131225586,
+      "area": "estate",
+      "animation": "Walk"
+    },
+    {
+      "id": "boxing",
+      "label": "12-sala-bokserska",
+      "x": 85.82437133789062,
+      "y": 0.034999996423721313,
+      "z": 82.89859771728516,
+      "area": "estate",
+      "animation": "Walk"
+    },
+    {
+      "id": "arena",
+      "label": "13-arena",
+      "x": -86.57170867919922,
+      "y": 0.03499987721443176,
+      "z": 83.20808410644531,
+      "area": "estate",
+      "animation": "Idle"
+    },
+    {
+      "id": "estate_entry",
+      "label": "14-podsumowanie-osiedla",
+      "x": 5.3187982018698676e-8,
+      "y": 0.03499987721443176,
+      "z": 92.6083984375,
+      "area": "estate",
+      "animation": "Idle"
+    }
+  ],
+  "durationSeconds": 151.5,
+  "bytes": 3085101,
+  "capture": "Chromium WebGL2 SwiftShader, not iPhone",
+  "visualAcceptance": "pending user review",
+  "sourceBuild": "700b41d84f6afbc5eb4463dbea81a0a688840205"
+}

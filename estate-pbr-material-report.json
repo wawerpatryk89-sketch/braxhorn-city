@@ -1,0 +1,51 @@
+{
+    "productionChanged": false,
+    "originalMeshesChanged": false,
+    "scope": "R2 ESTATE ONLY",
+    "source": "verified Poly Haven CC0 textures, max 1024px",
+    "rendererSlotsUpdated": 7,
+    "entries": [
+        {
+            "sourceMaterial": "HOUSE_ROOF",
+            "replacement": "R2_CC0_PBR_grey_roof_01",
+            "assetId": "grey_roof_01",
+            "rendererSlots": 1
+        },
+        {
+            "sourceMaterial": "M_Basic_Wall",
+            "replacement": "R2_CC0_PBR_white_plaster_02",
+            "assetId": "white_plaster_02",
+            "rendererSlots": 1
+        },
+        {
+            "sourceMaterial": "M_Brick_Clay_Beveled",
+            "replacement": "R2_CC0_PBR_red_brick",
+            "assetId": "red_brick",
+            "rendererSlots": 1
+        },
+        {
+            "sourceMaterial": "PlainRedBricks_1K",
+            "replacement": "R2_CC0_PBR_red_brick",
+            "assetId": "red_brick",
+            "rendererSlots": 1
+        },
+        {
+            "sourceMaterial": "roof",
+            "replacement": "R2_CC0_PBR_roof_tiles",
+            "assetId": "roof_tiles",
+            "rendererSlots": 1
+        },
+        {
+            "sourceMaterial": "stucco_indoor",
+            "replacement": "R2_CC0_PBR_white_plaster_02",
+            "assetId": "white_plaster_02",
+            "rendererSlots": 1
+        },
+        {
+            "sourceMaterial": "stucco_yellow_outdoor",
+            "replacement": "R2_CC0_PBR_beige_wall_001",
+            "assetId": "beige_wall_001",
+            "rendererSlots": 1
+        }
+    ]
+}
