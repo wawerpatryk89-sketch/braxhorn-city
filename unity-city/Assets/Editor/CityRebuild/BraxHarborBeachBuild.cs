@@ -117,7 +117,8 @@ public static class BraxHarborBeachBuild
         float u=Mathf.Repeat((x-70f)/11f,1);
         float v=Mathf.Repeat((z-113f)/13f,1);
         float sample=displacement.GetPixelBilinear(u,v).grayscale;
-        float detail=(sample-.5f)*.10f*Mathf.Sin(Mathf.PI*t);
+        float seamGuard=Mathf.Clamp01(Mathf.Abs(x-80f)/1.25f);
+        float detail=(sample-.5f)*.10f*Mathf.Sin(Mathf.PI*t)*seamGuard;
         return baseY+detail;
     }
 
@@ -184,7 +185,7 @@ public static class BraxHarborBeachBuild
         var b=RendererBounds(go);
         if(b.size.y<=.001f)throw new InvalidOperationException("Model has no height: "+file);
         float scale=height/b.size.y;
-        if(!float.IsFinite(scale)||scale<=0)
+        if(float.IsNaN(scale)||float.IsInfinity(scale)||scale<=0)
             throw new InvalidOperationException("GLB scale invalid: "+file);
         go.transform.localScale=Vector3.one*scale;
         b=RendererBounds(go);
