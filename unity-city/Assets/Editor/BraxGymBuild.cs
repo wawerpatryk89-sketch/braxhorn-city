@@ -29,7 +29,9 @@ public static class BraxGymBuild
     public static void Build(){BuildInternal(false);}
     public static void BuildCity(){BuildInternal(true);}
     public static void BuildWaterfrontPreview(){BuildInternal(true,true);}
-    private static void BuildInternal(bool fullCity,bool waterfrontPreview=false)
+    // Explicit opt-in Unity 6 source-only review. Requires original Library GLBs staged.
+    public static void BuildWaterfrontLibraryPreview(){BuildInternal(true,true,true);}
+    private static void BuildInternal(bool fullCity,bool waterfrontPreview=false,bool libraryWaterfront=false)
     {
         if(fullCity)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
         Directory.CreateDirectory(Generated);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
@@ -131,7 +133,8 @@ public static class BraxGymBuild
         BraxHeroRefinements.Apply(hero,bags.ToArray(),camera,Generated);
         if(fullCity)BraxCityBuild.AttachCity(runtime);
         if(waterfrontPreview)BraxCityWaterfrontPreview.Apply(runtime);
-        string scenePath=Generated+(waterfrontPreview?"/BraxhornWaterfrontPreview.unity":fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
+        if(libraryWaterfront)BraxLibraryWaterfront.Apply(runtime);
+        string scenePath=Generated+(libraryWaterfront?"/BraxhornPortBeachLibraryReview.unity":waterfrontPreview?"/BraxhornWaterfrontPreview.unity":fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;
         string[] scenePaths=fullCity&&!waterfrontPreview?new[]{scenePath,BraxCityBuild.CreateEstate(sourceCommit)}:new[]{scenePath};
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
