@@ -25,3 +25,9 @@
 - Żadnych zapisów do `main`, podmian domen czy produkcyjnego Vercel bez osobnego polecenia.
 - Źródłowe eksporty Unity są obecnie pobierane z historycznych GitHub Actions; do trwałego pipeline’u trzeba je zachować jako trwałe źródła importowe, zanim artefakty wygasną.
 - Stare źródła Three.js wycofywane w odizolowanej gałęzi integracji bez naruszenia assetów. W `main` stary runtime pozostaje do końcowego cutoveru.
+
+## Wykonany purge starego silnika na gałęzi integracyjnej
+- Źródła runtime Three.js (`dev/src/`, `dev/shared/`, skrypty Three osiedla) i dwa przestarzałe bundlery `public/**/game.js` zostały usunięte tylko na tej gałęzi.
+- Stare wejściowe `public/index.html` i `public/osiedle/index.html` usunięto, aby brakujące skrypty Three nie udawały działającej gry. Prawdziwy Unity WebGL jest generowany do `unity-preview/index.html` przez odseparowane GitHub Actions.
+- Narzędzia jednorazowego importu historycznych źródeł w `unity-tools/city/export.*` są archiwalnym przygotowaniem modeli, **nie** silnikiem wykonywanej gry. Po utrwaleniu oryginalnych eksportów można je osobno zarchiwizować.
+- Archiwum Git (historyczne commity) pozostaje nienaruszone jako mechanizm odzyskania pracy; nie kasować historii.

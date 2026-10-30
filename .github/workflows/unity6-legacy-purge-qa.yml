@@ -1,0 +1,55 @@
+name: BRAXHORN UNITY6 - legacy Three runtime removal QA (isolated TEST)
+on:
+  push:
+    branches: [codex/unity6-integration-20261030]
+    paths:
+      - 'dev/src/**'
+      - 'dev/three/**'
+      - 'dev/shared/**'
+      - 'dev/osiedle/*.js'
+      - 'dev/osiedle/*.cjs'
+      - 'dev/tools/*.js'
+      - 'dev/tools/*.mjs'
+      - 'dev/tools/*.cjs'
+      - 'dev/tools/*.html'
+      - 'public/game.js'
+      - 'public/osiedle/game.js'
+      - 'public/index.html'
+      - 'public/osiedle/index.html'
+      - '.github/workflows/unity6-legacy-purge-qa.yml'
+permissions:
+  contents: read
+jobs:
+  source-isolation:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity6-integration-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Assert old runtime is gone without deleting operator library
+        run: |
+          python3 - <<'PY'
+          import pathlib,json
+          forbidden=['dev/three','dev/src','dev/shared','public/game.js','public/osiedle/game.js','public/index.html','public/osiedle/index.html']
+          remaining=[p for p in forbidden if pathlib.Path(p).exists()]
+          remaining+= [str(p) for pattern in ('dev/osiedle/*.js','dev/osiedle/*.cjs','dev/tools/*.js','dev/tools/*.mjs','dev/tools/*.cjs','dev/tools/*.html') for p in pathlib.Path('.').glob(pattern)]
+          assert not remaining,remaining
+          kept=['asset-library','dev/models','dev/source-assets','dev/osiedle/assets','public/assets','public/osiedle/assets','unity-city','public/unity-gym']
+          missing=[p for p in kept if not pathlib.Path(p).is_dir()]
+          assert not missing,missing
+          assert pathlib.Path('unity-city/Assets/UnityDistricts/registry.json').is_file()
+          assert pathlib.Path('unity-city/Assets/BraxGymPlayer.cs').is_file()
+          assert pathlib.Path('unity-city/Assets/Editor/BraxGymBuild.cs').is_file()
+          assert pathlib.Path('public/assets/chars/brax.glb.gz').is_file()
+          report={'engine':'Unity6','legacyBrowserEngineRemovedFromTEST':True,'libraryDirectoriesPreserved':True,'integratedScenes':2,'productionChanged':False,'runtimeQA':'SEPARATE_UNITY_CI_REQUIRED'}
+          pathlib.Path('/tmp/unity6-source-removal-audit.json').write_text(json.dumps(report,indent=2))
+          print('UNITY6_LEGACY_RUNTIME_SOURCE_PURGE_PASS',json.dumps(report))
+          PY
+      - name: Preserve audit receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity6-source-cleanup-${{ github.sha }}
+          path: /tmp/unity6-source-removal-audit.json
+          retention-days: 14
