@@ -19,12 +19,12 @@ const server=http.createServer((req,res)=>{
  fs.createReadStream(file,{highWaterMark:65536}).pipe(res);
 });
 await new Promise(resolve=>server.listen(8978,'127.0.0.1',resolve));
-let browser,context,video;
+let browser,context,video,page,stage='startup';
 const check=(name,passed,data)=>{checks.push({name,passed:!!passed,data});if(!passed)throw Error(name+' '+JSON.stringify(data));console.log('PASS',name)};
 try{
  browser=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist','--disable-dev-shm-usage']});
  context=await browser.newContext({viewport:{width:932,height:430},isMobile:true,hasTouch:true,recordVideo:{dir:out,size:{width:932,height:430}}});
- const page=await context.newPage();video=page.video();
+ page=await context.newPage();video=page.video();
  page.on('pageerror',e=>errors.push('PAGE '+e.message));page.on('crash',()=>errors.push('PAGE_CRASH'));
  await page.goto('http://127.0.0.1:8978/?qa=1',{waitUntil:'domcontentloaded'});
  await page.locator('#start').click();
@@ -47,6 +47,29 @@ try{
  // Actual ascent/descent must occur in the Unity moving passenger cabin.
  const sendReview=v=>send('ReviewView',v.map(n=>Number(n).toFixed(3)).join(','));
  const get=()=>page.evaluate(()=>window.BraxhornState);
+ // Observe state transitions instead of hiding the actual Unity failure behind
+ // a generic Playwright timeout. These are runtime measurements, not mock data.
+ const compact=s=>({x:s?.x,y:s?.y,z:s?.z,context:s?.context,grounded:s?.grounded,
+   verticalSpeed:s?.verticalSpeed,gameTime:s?.gameTime,frames:s?.frames,ready:s?.ready});
+ const observe=async(label,predicate,timeout)=>{
+   stage=label;
+   const start=Date.now(),samples=[];
+   while(Date.now()-start<timeout){
+     const state=await get(),snapshot={elapsedMs:Date.now()-start,...compact(state)};
+     if(samples.length===0 || snapshot.context!==samples[samples.length-1].context ||
+       Math.abs((snapshot.y??0)-(samples[samples.length-1].y??0))>1.0 ||
+       (Date.now()-start)-(samples[samples.length-1].elapsedMs??0)>1800)
+       samples.push(snapshot);
+     if(predicate(state)){console.log('LIFT_TRANSITION_PASS',label,JSON.stringify(snapshot));return state;}
+     await page.waitForTimeout(350);
+   }
+   const safe=label.replace(/[^a-z0-9_-]/gi,'-');
+   const details={sourceCommit:release.sourceCommit,stage:label,samples,lastState:compact(await get())};
+   fs.writeFileSync(path.join(out,'lift-diagnostic-'+safe+'.json'),JSON.stringify(details,null,2));
+   console.error('LIFT_TRANSITION_FAIL',JSON.stringify(details));
+   await page.screenshot({path:path.join(out,'lift-failure-'+safe+'.png')}).catch(()=>{});
+   throw Error('Actual Unity lift transition failed: '+label);
+ };
  for(const id of ids){
   const lowerId='R1_TOWER_'+id+'_LOWER_LIFT',roofId='R1_TOWER_'+id+'_ROOF';
   const points=(await get()).points||[];
@@ -56,10 +79,11 @@ try{
   check('Valid separate physical shaft '+id,Math.abs(roof.position.z-lower.position.z)>.5&&Math.abs(dir)===1,{lower:lower.position,roof:roof.position});
   const shaftZ=lower.position.z+dir*3.15;
   await sendReview([lower.position.x,lower.position.y+.12,shaftZ,180,15,4.2]);
-  await page.waitForFunction(()=>window.BraxhornState?.context?.includes('OTWÓRZ DRZWI WINDY'),null,{timeout:30000});
+  await observe('closed cabin '+id,s=>s?.context?.includes('OTWÓRZ DRZWI WINDY'),30000);
   const start=await get();
+  console.log('LIFT_ACTION_START',id,JSON.stringify(compact(start)));
   await send('Command','action');
-  await page.waitForFunction(()=>window.BraxhornState?.context?.includes('WJEDŹ NA DACH'),null,{timeout:15000});
+  await observe('opened cabin '+id,s=>s?.context?.includes('WJEDŹ NA DACH'),15000);
   await send('Command','action');
   await page.waitForFunction(y=>window.BraxhornState?.y>y+15,start.y,{timeout:60000});
   await page.waitForFunction(()=>window.BraxhornState?.context?.includes('ZJEDŹ NA ULICĘ'),null,{timeout:120000});
@@ -75,7 +99,7 @@ try{
  check('All eight separate physical lift round trips verified',
   checks.filter(c=>c.name.startsWith('Actual moving cabin carried passenger DOWN ')&&c.passed).length===8,checks.length);
  check('No Unity browser crash',!errors.some(x=>x.includes('PAGE_CRASH')),errors);
-}catch(e){errors.push(String(e));process.exitCode=1}
+}catch(e){errors.push('QA stage '+stage+': '+String(e));console.error('REAL_UNITY_QA_FAILED',stage,String(e));process.exitCode=1}
 finally{
  if(context)await context.close();
  if(video)try{
