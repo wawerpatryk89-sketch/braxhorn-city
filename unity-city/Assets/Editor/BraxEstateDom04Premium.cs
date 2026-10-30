@@ -82,7 +82,7 @@ public static class BraxEstateDom04Premium
         }
         if(exactLawn.Count!=6 || Mathf.Abs((float)area-483f)>.1f || lawnVertices.Count!=4)
             throw new Exception("DOM04 source lawn NOT full original 483m2: triangles="+exactLawn.Count/3+" area="+area);
-        var turf=Pbr("OriginalLawnFullReplacement","GrassGround",new Color(.94f,1.04f,.95f),.7f);
+        var turf=Pbr("OriginalLawnFullReplacement","GrassGround",new Color(.82f,1.12f,.76f),.7f);
         var revised=UnityEngine.Object.Instantiate(original);
         revised.name="DOM04 entire original 483m2 grass REPLACED in source ground mesh";
         var uv=revised.uv;
@@ -259,7 +259,17 @@ public static class BraxEstateDom04Premium
     {
         if(!original)throw new Exception("DOM04 real original Verdant foliage material missing");
         var albedo=original.mainTexture;
-        if(!albedo)throw new Exception("DOM04 original Verdant Trail texture missing: "+name);
+        if(!albedo)
+        foreach(var property in original.GetTexturePropertyNames())
+        {
+            var key=property.ToLowerInvariant();
+            if(key.Contains("base")||key.Contains("main")||key.Contains("albedo"))
+            {
+                albedo=original.GetTexture(property);
+                if(albedo)break;
+            }
+        }
+        if(!albedo)throw new Exception("DOM04 original Verdant Trail albedo missing: "+name);
         var mat=new Material(Shader.Find("Standard")){name=name,color=tint,enableInstancing=true};
         mat.mainTexture=albedo;mat.SetFloat("_Metallic",0f);mat.SetFloat("_Glossiness",.05f);
         mat.SetFloat("_Mode",1f);mat.SetFloat("_Cutoff",.40f);
@@ -490,7 +500,6 @@ public static class BraxEstateDom04Premium
         public string roof="original DOM04 pitched geometry / roof_tiles genuine PBR / warmer muted terracotta, improved gloss and normal";
         public string flowers="4 ORIGINAL planter_box_01 wooden model instances + 4 original periwinkle_plant 3D flowering plants";
         public string windows="real original DOM04 glazing EstateMesh_315 clear Standard transparent; furnished existing original house rooms with 2 original user LibrarySofa02, 2 nonshadow local interior visibility lights";
-        public string flowers="4 full 3D original owner Library periwinkle plants in original-library-textured bespoke tapered ceramic PBR planters";
         public int floweringRealPlants=4,originalSourceWoodenPlanters=4;
         public bool originalWindowFrameMeshUnchanged=true,originalInteriorMeshesUnchanged=true;
         public bool originalCityOrGymChanged=false,originalBraxOrControlsChanged=false,physicalIphoneTest=false,visualQAConfirmed=false,productionPublished=false;
