@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "engine": "Unity6",
+  "startDistrict": "city",
+  "districts": [
+    {
+      "id": "city",
+      "scenePath": "Assets/PlayableGenerated/BraxhornCity.unity",
+      "buildEnabled": true
+    },
+    {
+      "id": "estate",
+      "scenePath": "Assets/PlayableGenerated/BraxhornEstate.unity",
+      "buildEnabled": true
+    }
+  ]
+}

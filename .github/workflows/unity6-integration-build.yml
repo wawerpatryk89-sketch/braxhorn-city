@@ -1,0 +1,137 @@
+name: BRAXHORN CITY - UNITY 6 integrated gym city estate (TEST only)
+on:
+  push:
+    branches: [codex/unity6-integration-20261030]
+    paths:
+      - 'unity-city/**'
+      - 'unity-tools/**'
+      - '.github/workflows/unity6-integration-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: braxhorn-unity6-integration-test
+  cancel-in-progress: false
+jobs:
+  integrated-unity6:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/unity6-integration-20261030'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Fetch only actual Unity source, libraries, and preparation scripts
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-city
+            unity-tools
+            public/assets/chars
+            public/assets/tex
+            public/assets/logo
+            asset-library/sources/sofa_02
+          persist-credentials: false
+          lfs: false
+      - name: Import archived ORIGINAL gym (no new model)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40787817505
+          github-token: ${{ github.token }}
+          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
+          path: unity-city/Assets/Source/
+      - name: Import archived ORIGINAL city and estate geometry (not replacements)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          repository: wawerpatryk89-sketch/braxhorn-city
+          run-id: 40840263799
+          github-token: ${{ github.token }}
+          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
+          path: unity-city/Assets/Source/City/
+      - name: Prepare ORIGINAL assets and R2 textures for Unity only
+        run: |
+          mkdir -p city-review
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0 numpy==2.2.6 opencv-python-headless==4.12.0.88
+          python3 -m compileall -q unity-tools
+          node --check unity-tools/city/check.mjs
+          python3 unity-tools/prepare_playable.py
+          python3 unity-tools/premium_prepare.py
+          python3 unity-tools/premium_refinements.py
+          python3 unity-tools/city/prepare.py
+          python3 unity-tools/city/import_approved_roofs.py
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender
+          blender --background --disable-autoexec asset-library/sources/sofa_02/sofa_02_4k.blend --python unity-tools/export_library_sofa.py
+          git diff --exit-code -- unity-city/Assets/*.cs unity-city/Assets/*.shader unity-city/Assets/Editor unity-city/Assets/City unity-tools
+      - name: Build two ORIGINAL playable scenes on Unity 6
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: WebGL
+          buildMethod: BraxGymBuild.BuildIntegrated
+          versioning: None
+          allowDirtyBuild: true
+      - name: Strict Unity-generated dual-scene, Brax, roof material and geometry receipts
+        run: |
+          python3 - <<'PY'
+          import json,pathlib
+          output=pathlib.Path('build/WebGL')
+          entry=json.loads((output/'unity6-district-registry.json').read_text())
+          assert entry['engine']=='Unity6'
+          assert entry['districtIds']==['city','estate'],entry
+          assert entry['scenePaths']==['Assets/PlayableGenerated/BraxhornCity.unity','Assets/PlayableGenerated/BraxhornEstate.unity'],entry
+          assert entry['originalBraxPreserved'] and entry['originalGymSourcePreserved']
+          assert not entry['externalThreeRuntimeUsed'] and not entry['productionChanged']
+          areas=json.loads((output/'city-migration.json').read_text())['areas']
+          assert {a['area']:a['originalMeshes'] for a in areas}=={'city':724,'estate':553},areas
+          assert all(a['originalMeshes']==a['importedMeshes'] for a in areas)
+          gym=json.loads((output/'playable.json').read_text())
+          assert gym['originalBrax'] and gym['originalGym'] and gym['touchControls']
+          assert gym['gymMeshes']>=100 and gym['originalClips']>=5
+          roof=[pathlib.Path('city-review/r2-roof-materials.json'),pathlib.Path('unity-city/city-review/r2-roof-materials.json')]
+          found=[p for p in roof if p.exists()]
+          assert len(found)==1,found
+          r=json.loads(found[0].read_text())
+          assert r['pbrSourceMapCount']==6 and r['normalSlots']>=2 and r['smoothnessSlots']>=2
+          fac=[pathlib.Path('city-review/r2-facade-finishes.json'),pathlib.Path('unity-city/city-review/r2-facade-finishes.json')]
+          ff=[p for p in fac if p.exists()]
+          assert len(ff)==1,ff
+          f=json.loads(ff[0].read_text())
+          assert f['originalMeshesUnchanged'] and f['renovatedMaterialSlots']>=3
+          print('UNITY6_DUAL_SCENE_GEOMETRY_AND_ORIGINAL_GYM_SOURCE_PASS')
+          PY
+      - name: Prepare same original Unity city interface for browser QA
+        run: python3 unity-tools/city/package.py
+      - name: Retain scene registry in Unity-only downloadable build
+        run: cp build/WebGL/unity6-district-registry.json unity-preview/unity6-district-registry.json
+      - name: Launch browser for actual Unity scene navigation QA
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test gym, city, estate and return with real Unity runtime
+        run: node unity-tools/city/check.mjs
+      - name: Preserve honest QA evidence (not production)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity6-integration-qa-${{ github.sha }}
+          path: |
+            city-review/
+            unity-city/city-review/
+            build/WebGL/unity6-district-registry.json
+            build/WebGL/city-migration.json
+            build/WebGL/playable.json
+            unity-city/Assets/Source/City/source-provenance.json
+          retention-days: 14
+      - name: Preserve TEST-only playable Unity6 city+estate bundle
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity6-integration-webgl-${{ github.sha }}
+          path: unity-preview/
+          if-no-files-found: warn
+          retention-days: 14

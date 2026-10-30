@@ -26,9 +26,12 @@ public static class BraxGymBuild
     static void Layer(Transform root,int layer){foreach(Transform t in root.GetComponentsInChildren<Transform>(true))t.gameObject.layer=layer;}
     static void AddBox(Transform parent,string name,Vector3 center,Vector3 size)
     {var obj=new GameObject(name);obj.transform.SetParent(parent,false);obj.transform.position=center;obj.AddComponent<BoxCollider>().size=size;}
-    public static void Build(){BuildInternal(false);}
-    public static void BuildCity(){BuildInternal(true);}
-    private static void BuildInternal(bool fullCity)
+    public static void Build(){BuildInternal(false,false);}
+    // Preserve the existing estate-only R2 path and its accepted gym appearance.
+    public static void BuildCity(){BuildInternal(true,false);}
+    // Only the isolated Unity6 integration branch calls this: gym + city + estate.
+    public static void BuildIntegrated(){BuildInternal(true,true);}
+    private static void BuildInternal(bool fullCity,bool integrated)
     {
         if(fullCity)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
         Directory.CreateDirectory(Generated);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
@@ -138,7 +141,13 @@ public static class BraxGymBuild
         // The estate scene itself still uses the UNMODIFIED city's BraxGymPlayer,
         // BraxOriginal.glb, BraxSourceORM.mat and original animations.
         // This branch is never merged into the connected city build.
-        string[] scenePaths=fullCity?new[]{BraxCityBuild.CreateEstate(sourceCommit)}:new[]{scenePath};
+        // Built scenes are the same original models and the same BraxGymPlayer.
+        // R2 remains estate-only; unified TEST has BOTH real scenes and a validated registry.
+        string[] scenePaths=fullCity
+            ? (integrated
+                ? BraxUnityDistrictRegistry.Resolve(scenePath,BraxCityBuild.CreateEstate(sourceCommit))
+                : new[]{BraxCityBuild.CreateEstate(sourceCommit)})
+            : new[]{scenePath};
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
         var output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=BuildTarget.WebGL,locationPathName=output,options=BuildOptions.None});
@@ -146,6 +155,7 @@ public static class BraxGymBuild
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
         if(fullCity)BraxCityBuild.WriteReport(output,sourceCommit);
+        if(integrated)BraxUnityDistrictRegistry.WriteBuildReceipt(output,sourceCommit,scenePaths);
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }
 }
