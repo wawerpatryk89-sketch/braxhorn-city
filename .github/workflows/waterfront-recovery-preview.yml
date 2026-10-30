@@ -1,5 +1,10 @@
 name: BRAXHORN CITY — publish exact compiled waterfront TEST preview (never production)
 on:
+  push:
+    branches:
+      - codex/waterfront-recovery-20261030
+    paths:
+      - '.github/workflows/waterfront-recovery-preview.yml'
   workflow_dispatch:
 permissions:
   contents: write
