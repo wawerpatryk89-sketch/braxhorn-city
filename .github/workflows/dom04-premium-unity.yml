@@ -63,7 +63,6 @@ jobs:
           python3 unity-tools/city/dom04-real-flower-sources.py
           blender --background --disable-autoexec dom04-flower-originals/planter_box_01/planter_box_01_4k.blend --python unity-tools/city/dom04-export-original-plant.py -- planter_box_01
           blender --background --disable-autoexec dom04-flower-originals/periwinkle_plant/periwinkle_plant_2k.blend --python unity-tools/city/dom04-export-original-plant.py -- periwinkle_plant
-          blender --background --disable-autoexec unity-city/Assets/Source/City/Dom04/periwinkle_plant_2k.blend --python unity-tools/city/dom04-export-periwinkle.py
           git diff --exit-code -- unity-city/Assets/*.cs unity-city/Assets/*.shader unity-city/Assets/Editor unity-city/Assets/City unity-tools
       - name: Compile original estate and DOM04 upgrade with Unity 6
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
@@ -90,14 +89,16 @@ jobs:
           assert data['replacedOriginalLawnAreaSquareMetres']==483 and data['originalLawnTopTrianglesReplaced']==2
           assert data['oldGrassOverlayRetained'] is False and data['totalDom04Trees']==4
           assert data['originalWindowFrameMeshUnchanged'] is True and data['originalInteriorMeshesUnchanged'] is True
-          assert data['floweringRealPlants']==4 and data['ceramicPlanters']==4
+          assert data['floweringRealPlants']==4 and data['originalSourceWoodenPlanters']==4
           assert 'EstateMesh_315' in data['windows']
           assert data['productionPublished'] is False and data['visualQAConfirmed'] is False
           source=json.loads(pathlib.Path('city-review/dom04-library-source-evidence.json').read_text())
           assert source['sourceVerified'] and sum(x['libraryByteIdentity'] for x in source['sources'])==8
           assert source['plantSourceVerified'] is True and len(source['plantSourceFilesVerified'])==3
-          flowers=json.loads(pathlib.Path('city-review/dom04-periwinkle-export.json').read_text())
-          assert flowers['geometryIsOriginal'] and flowers['outputTriangles']<=20000
+          flowers=json.loads(pathlib.Path('city-review/dom04-flower-model-sources.json').read_text())
+          assert flowers['sourceVerified'] is True
+          assert len(flowers['publisherSources']['planter_box_01'])>=4
+          assert len(flowers['publisherSources']['periwinkle_plant'])>=4
           PY
       - name: Package isolated Unity player for browser QA
         run: python3 unity-tools/city/package_estate.py
@@ -116,7 +117,7 @@ jobs:
           path: |
             dom04-evidence/
             city-review/dom04-library-source-evidence.json
-            city-review/dom04-periwinkle-export.json
+            city-review/dom04-flower-model-sources.json
             unity-city/city-review/dom04-premium-scope.json
           retention-days: 30
       - name: Upload compiled unity-only test player, NEVER publish

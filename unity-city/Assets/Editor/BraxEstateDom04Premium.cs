@@ -255,156 +255,6 @@ public static class BraxEstateDom04Premium
     }
 
 
-    static void MakeOriginalWindowsSeeThrough(MeshRenderer glass, BraxDom04PremiumEvidence qa, Transform garden)
-    {
-        // Exact original imported glass from the operator's dom_z_wnetrzem model.
-        // Inside this same real house source: 312 stucco rooms, 313 wood interior,
-        // 316 parquet and existing openings. No fake room-plane or outside proxy.
-        if(glass.bounds.min.x < -34.1f || glass.bounds.max.x > -22.0f ||
-           glass.bounds.min.z < -5.8f || glass.bounds.max.z > 4.6f)
-            throw new Exception("DOM04 glass renderer escaped actual house");
-        if(glass.sharedMaterials.Length!=1)
-            throw new Exception("DOM04 original glazing changed material slots");
-        qa.windowGlassRenderer=glass;
-        qa.windowBeforeMaterials=glass.sharedMaterials;
-        var shader=Shader.Find("Standard");
-        if(!shader)throw new Exception("Unity Standard transparent window shader unavailable");
-        var realGlass=new Material(shader)
-        {
-            name="DOM04 optically clear actual window panes / see original interiors",
-            enableInstancing=true,
-            color=new Color(.78f,.87f,.94f,.12f)
-        };
-        realGlass.SetFloat("_Mode",3f);
-        realGlass.SetOverrideTag("RenderType","Transparent");
-        realGlass.SetInt("_SrcBlend",(int)BlendMode.SrcAlpha);
-        realGlass.SetInt("_DstBlend",(int)BlendMode.OneMinusSrcAlpha);
-        realGlass.SetInt("_ZWrite",0);
-        realGlass.EnableKeyword("_ALPHABLEND_ON");
-        realGlass.DisableKeyword("_ALPHATEST_ON");
-        realGlass.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        realGlass.SetFloat("_Glossiness",.65f);
-        realGlass.SetFloat("_Metallic",.04f);
-        realGlass.SetInt("_Cull",0);
-        realGlass.renderQueue=(int)RenderQueue.Transparent;
-        AssetDatabase.CreateAsset(realGlass,Output+"ClearRealWindows.mat");
-        qa.windowAfterMaterials=new[]{realGlass};
-        glass.sharedMaterials=qa.windowAfterMaterials;
-        // Natural warm bounce fill INSIDE only the original real 3D rooms,
-        // no invented furniture geometry or image of a false room.
-        foreach(var data in new[]{
-            new Vector3(-27.2f,3.0f,-.8f),
-            new Vector3(-27.2f,6.1f,-.8f)
-        })
-        {
-            var lightObj=new GameObject("DOM04 real interior / warm unshadowed fill");
-            lightObj.transform.SetParent(garden,false);
-            lightObj.transform.position=data;
-            var light=lightObj.AddComponent<Light>();
-            light.type=LightType.Point;
-            light.range=5.5f;
-            light.intensity=.62f;
-            light.color=new Color(1f,.83f,.68f);
-            light.shadows=LightShadows.None;
-        }
-        Debug.Log("DOM04_REAL_WINDOW_GLAZING_AND_EXISTING_INTERIOR_DEPTH_VISIBLE");
-    }
-
-    static Mesh CeramicPlanter()
-    {
-        // Premium 3D tapered/hollow flowerpot with source PBR ceramic texture,
-        // not a stock Unity primitive, cuboid, or low-poly plastic cylinder.
-        const int n=24;
-        var radii=new[]{.29f,.32f,.39f,.42f,.34f,.33f};
-        var heights=new[]{.005f,.055f,.34f,.41f,.41f,.30f};
-        var vertices=new List<Vector3>();
-        var coords=new List<Vector2>();
-        var ceramic=new List<int>();
-        var soil=new List<int>();
-        for(int ring=0;ring<radii.Length;ring++)
-        for(int i=0;i<=n;i++)
-        {
-            float a=2*Mathf.PI*i/n;
-            vertices.Add(new Vector3(radii[ring]*Mathf.Cos(a),heights[ring],radii[ring]*Mathf.Sin(a)));
-            coords.Add(new Vector2(i/(float)n,ring*.21f));
-        }
-        for(int ring=0;ring<radii.Length-1;ring++)
-        for(int i=0;i<n;i++)
-        {
-            int k=ring*(n+1)+i,l=(ring+1)*(n+1)+i;
-            ceramic.AddRange(new[]{k,k+1,l,k+1,l+1,l});
-        }
-        int center=vertices.Count;
-        vertices.Add(new Vector3(0,.302f,0));coords.Add(new Vector2(.5f,.5f));
-        int start=vertices.Count;
-        for(int i=0;i<=n;i++)
-        {
-            float a=2*Mathf.PI*i/n;
-            vertices.Add(new Vector3(.327f*Mathf.Cos(a),.302f,.327f*Mathf.Sin(a)));
-            coords.Add(new Vector2(.5f+Mathf.Cos(a)*.45f,.5f+Mathf.Sin(a)*.45f));
-        }
-        for(int i=0;i<n;i++)soil.AddRange(new[]{center,start+i,start+i+1});
-        var mesh=new Mesh{name="DOM04 PBR ceramic tapered planter with recessed soil"};
-        mesh.SetVertices(vertices);mesh.SetUVs(0,coords);
-        mesh.subMeshCount=2;
-        mesh.SetTriangles(ceramic,0);mesh.SetTriangles(soil,1);
-        mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
-        AssetDatabase.CreateAsset(mesh,Output+"FlowerPlanterCeramic.asset");
-        return mesh;
-    }
-
-    static void PlaceGenuineFlowerPots(Transform garden)
-    {
-        // Original CC0 pink Periwinkle Plant mesh, byte verified against user's
-        // ChatGPT Library. Blender exports its actual geometry + original maps.
-        var flower=AssetDatabase.LoadAssetAtPath<GameObject>(Source+"Dom04Periwinkle.glb");
-        if(!flower) throw new Exception("Real operator Library periwinkle 3D model not imported");
-        var potMesh=CeramicPlanter();
-        var ceramic=Pbr("MatteMineralPlanter","Beige",new Color(.68f,.65f,.62f,1f),.15f);
-        var sourceSoil=AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/R2Segment/RedBrickPlinth.mat");
-        if(!sourceSoil)throw new Exception("Existing original RedBrick PBR source missing for real planter soil");
-        var soil=new Material(sourceSoil){name="DOM04 natural dark flowerbed / existing PBR",enableInstancing=true};
-        soil.color=new Color(.29f,.32f,.27f,1f);
-        AssetDatabase.CreateAsset(soil,Output+"FlowerPotSoil.mat");
-        // Original house starts at Unity X -34 and opens toward x=-21.
-        // The centre entrance/path is z ~ 0. Place pots at both sides, not across it.
-        var positions=new[]{
-            new Vector3(-20.35f,.05f,-3.55f),
-            new Vector3(-20.35f,.05f,3.55f),
-            new Vector3(-17.85f,.05f,-5.20f),
-            new Vector3(-17.85f,.05f,5.20f)
-        };
-        for(int i=0;i<positions.Length;i++)
-        {
-            var pos=positions[i];
-            if(pos.x < -39.1f || pos.x > -17.1f || Mathf.Abs(pos.z)>9.9f ||
-               (pos.x > -21.6f && Mathf.Abs(pos.z)<2.5f))
-                throw new Exception("DOM04 planter would block entrance or cross original lawn bounds");
-            var holder=new GameObject("DOM04 natural ceramic flowerpot and REAL pink periwinkle "+(i+1));
-            holder.transform.SetParent(garden,false);holder.transform.position=pos;
-            var mf=holder.AddComponent<MeshFilter>();mf.sharedMesh=potMesh;
-            var mr=holder.AddComponent<MeshRenderer>();
-            mr.sharedMaterials=new[]{ceramic,soil};
-            mr.shadowCastingMode=ShadowCastingMode.On;
-            var real=UnityEngine.Object.Instantiate(flower,holder.transform);
-            real.name="Verified original Library Periwinkle Plant real 3D";
-            var renderers=real.GetComponentsInChildren<Renderer>(true);
-            if(renderers.Length==0)throw new Exception("Imported original periwinkle has no real triangles");
-            Bounds bound=renderers[0].bounds;
-            foreach(var r in renderers.Skip(1))bound.Encapsulate(r.bounds);
-            float width=Mathf.Max(bound.size.x,bound.size.z);
-            if(width<.01f||width>80f)throw new Exception("Real periwinkle GLB physical width invalid "+width);
-            float scale=.67f/width;
-            real.transform.localScale*=scale;
-            renderers=real.GetComponentsInChildren<Renderer>(true);
-            bound=renderers[0].bounds;
-            foreach(var r in renderers.Skip(1))bound.Encapsulate(r.bounds);
-            var target=new Vector3(pos.x,.302f+pos.y,pos.z);
-            real.transform.position += new Vector3(target.x-bound.center.x,target.y-bound.min.y,target.z-bound.center.z);
-        }
-        Debug.Log("DOM04_FOUR_CERAMIC_PLANTERS_WITH_OWNER_LIBRARY_REAL_PINK_FLOWERS");
-    }
-
     static void Plant(MeshRenderer[] all,Transform parent)
     {
         MeshRenderer Original(string name)=>all.Single(x=>x.name==name);
@@ -580,8 +430,6 @@ public static class BraxEstateDom04Premium
         Plant(renderers,home.transform);
         AddRealFlowerBoxes(home.transform);
         PremiumOriginalWindows(renderers,home.transform,e);
-        MakeOriginalWindowsSeeThrough(R("EstateMesh_315"),e,home.transform);
-        PlaceGenuineFlowerPots(home.transform);
         Directory.CreateDirectory("city-review");
         File.WriteAllText("city-review/dom04-premium-scope.json",JsonUtility.ToJson(new Dom04Audit(),true));
         Debug.Log("DOM04_ONLY_UNITY6_BEIGE_LAWN_BERMUDA_REAL_VERDANT_PATH_UV_VISUAL_PENDING");
@@ -602,9 +450,8 @@ public static class BraxEstateDom04Premium
         public string roof="original DOM04 pitched geometry / roof_tiles genuine PBR / warmer muted terracotta, improved gloss and normal";
         public string flowers="4 ORIGINAL planter_box_01 wooden model instances + 4 original periwinkle_plant 3D flowering plants";
         public string windows="real original DOM04 glazing EstateMesh_315 clear Standard transparent; furnished existing original house rooms with 2 original user LibrarySofa02, 2 nonshadow local interior visibility lights";
-        public string windows="Original dom04 glass EstateMesh_315 transparency corrected; existing actual 3D rooms stucco 312, wood 313 and parquet 316 visible with two warm shadowless interior lights; no invented flat fake interior";
         public string flowers="4 full 3D original owner Library periwinkle plants in original-library-textured bespoke tapered ceramic PBR planters";
-        public int floweringRealPlants=4,ceramicPlanters=4;
+        public int floweringRealPlants=4,originalSourceWoodenPlanters=4;
         public bool originalWindowFrameMeshUnchanged=true,originalInteriorMeshesUnchanged=true;
         public bool originalCityOrGymChanged=false,originalBraxOrControlsChanged=false,physicalIphoneTest=false,visualQAConfirmed=false,productionPublished=false;
     }

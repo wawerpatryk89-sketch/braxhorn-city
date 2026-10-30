@@ -9,8 +9,6 @@ public sealed class BraxDom04PremiumEvidence : MonoBehaviour
     public GameObject visibleUpgrade;
     public MeshRenderer roofRenderer, fenceRenderer;
     public Material[] roofBefore, roofAfter, fenceBefore, fenceAfter;
-    public MeshRenderer windowGlassRenderer;
-    public Material[] windowBeforeMaterials,windowAfterMaterials;
     public MeshRenderer glassRenderer;
     public Material[] glassBefore,glassAfter;
     public MeshRenderer lawnSourceRenderer;
@@ -27,7 +25,6 @@ public sealed class BraxDom04PremiumEvidence : MonoBehaviour
         wallA.sharedMaterials = after ? newA : oldA;
         wallB.sharedMaterials = after ? newB : oldB;
         approach.sharedMesh = after ? newApproach : oldApproach;
-        if (windowGlassRenderer) windowGlassRenderer.sharedMaterials = after ? windowAfterMaterials : windowBeforeMaterials;
         if (lawnSourceFilter) lawnSourceFilter.sharedMesh = after ? lawnAfterMesh : lawnBeforeMesh;
         if (lawnSourceRenderer) lawnSourceRenderer.sharedMaterials = after ? lawnAfterMaterials : lawnBeforeMaterials;
         if (glassRenderer) glassRenderer.sharedMaterials = after ? glassAfter : glassBefore;
