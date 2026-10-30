@@ -31,46 +31,10 @@ jobs:
             asset-library/sources/sofa_02
           persist-credentials: false
           lfs: false
-      - name: Retrieve persistent ORIGINAL Unity6 sources from nonpublic DRAFT GitHub release
+      - name: Fetch Unity6 original assets by authenticated draft release IDs
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          mkdir -p unity6-source-backup unity-city/Assets/Source/City
-          gh release download unity6-original-source-imports-20261030 \
-            --pattern 'braxhorn-original-*.zip' \
-            --pattern 'braxhorn-unity6-original-imports.json' \
-            --dir unity6-source-backup
-          python3 - <<'PY'
-          import hashlib,json,pathlib,zipfile
-          root=pathlib.Path('unity6-source-backup')
-          receipt=json.loads((root/'braxhorn-unity6-original-imports.json').read_text())
-          assert receipt['engine']=='Unity6' and receipt['isDraft'] is True
-          assert {x['sourceRun'] for x in receipt['sources']}=={40787817505,40840263799}
-          def sha(path):
-            with path.open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
-          for row in receipt['sources']:
-            archive=root/row['name']
-            assert archive.is_file() and sha(archive)==row['sha256']
-            target=pathlib.Path('unity-city/Assets/Source/City' if row['sourceRun']==40840263799 else 'unity-city/Assets/Source')
-            with zipfile.ZipFile(archive) as z:
-              assert z.testzip() is None
-              for info in z.infolist():
-                p=pathlib.PurePosixPath(info.filename)
-                assert not p.is_absolute() and '..' not in p.parts and not info.is_dir()
-              z.extractall(target)
-            for f in row['files']:
-              p=target/f['path']
-              assert p.is_file() and sha(p)==f['sha256'],str(p)
-          for expected in ('unity-city/Assets/Source/braxhorn-original-gym.glb',
-                           'unity-city/Assets/Source/gym-collisions.json',
-                           'unity-city/Assets/Source/City/braxhorn-city.glb',
-                           'unity-city/Assets/Source/City/braxhorn-estate.glb',
-                           'unity-city/Assets/Source/City/city-manifest.json',
-                           'unity-city/Assets/Source/City/estate-manifest.json'):
-            assert pathlib.Path(expected).is_file(),expected
-          print('DRAFT_GITHUB_RELEASE_ORIGINAL_UNITY6_SOURCE_PASS')
-          PY
+        run: python3 unity-tools/city/fetch_original_imports.py
       - name: Prepare ORIGINAL assets and R2 textures for Unity only
         run: |
           mkdir -p city-review
