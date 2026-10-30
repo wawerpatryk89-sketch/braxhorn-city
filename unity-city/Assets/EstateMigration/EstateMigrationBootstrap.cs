@@ -351,6 +351,33 @@ namespace Braxhorn.EstateMigration
             }
         }
 
+        // A MeshCollider requires genuine, non-degenerate triangles.
+        // Preserve the original rendered GLB untouched. The original 1013
+        // collision boxes remain active even when a decorative mesh is skipped.
+        static bool CanUseAsCollisionMesh(Mesh mesh)
+        {
+            if (mesh == null || mesh.vertexCount < 3 || mesh.subMeshCount == 0) return false;
+            // Unity PhysX rejects very large triangles; do not mutate source geometry.
+            if (mesh.bounds.size.magnitude > 500f) return false;
+            var vertices = mesh.vertices;
+            bool hasArea = false;
+            for (int sub = 0; sub < mesh.subMeshCount; sub++)
+            {
+                if (mesh.GetTopology(sub) != MeshTopology.Triangles) return false;
+                var indices = mesh.GetIndices(sub);
+                for (int i = 0; i + 2 < indices.Length; i += 3)
+                {
+                    int a = indices[i], b = indices[i + 1], c = indices[i + 2];
+                    if (a < 0 || b < 0 || c < 0 ||
+                        a >= vertices.Length || b >= vertices.Length || c >= vertices.Length)
+                        return false;
+                    if (Vector3.Cross(vertices[b]-vertices[a], vertices[c]-vertices[a]).sqrMagnitude > 1e-10f)
+                        hasArea = true;
+                }
+            }
+            return hasArea;
+        }
+
         static void AddPreciseColliders(GameObject imported)
         {
             foreach (var filter in imported.GetComponentsInChildren<MeshFilter>(true))
@@ -360,6 +387,11 @@ namespace Braxhorn.EstateMigration
                 {
                     if (filter.GetComponent<Collider>() == null)
                     {
+                        if (!CanUseAsCollisionMesh(filter.sharedMesh))
+                        {
+                            Debug.LogWarning("[Estate] Decorative or invalid collision mesh skipped: " + filter.name);
+                            continue;
+                        }
                         var collider = filter.gameObject.AddComponent<MeshCollider>();
                         collider.sharedMesh = filter.sharedMesh;
                         collider.convex = false;
