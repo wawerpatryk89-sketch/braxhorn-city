@@ -74,6 +74,11 @@ outputs={
 }
 c=image(bermuda_diff).resize((1024,1024),Image.Resampling.LANCZOS)
 a=Image.open(io.BytesIO(bermuda_alpha)).convert("L").resize((1024,1024),Image.Resampling.LANCZOS)
+# Photographic Bermuda source foliage remains identical geometry and opacity.
+# Restore daylight exposure and rich but natural green using source RGB only.
+rgb=np.asarray(c,dtype=np.float32)/255.0
+rgb=np.clip(np.power(rgb,.75)*np.array([.80,1.15,.85],dtype=np.float32),0,1)
+c=Image.fromarray(np.rint(rgb*255).astype(np.uint8),"RGB")
 c.putalpha(a)
 outputs["BermudaCutout.png"]=save(c,"BermudaCutout.png")
 report=dict(scope="DOM04_ONLY",libraryFiles=["beige_wall_001_4k.blend.zip","grass_bermuda_01_2k.blend.zip"],sources=provenance,outputs=outputs,sourceVerified=True,sceneVerified=False,visualAcceptance=False)

@@ -54,6 +54,8 @@ jobs:
           python3 unity-tools/premium_prepare.py
           python3 unity-tools/premium_refinements.py
           python3 unity-tools/city/prepare_segment.py
+          # Color-grade exact real Verdant source PNGs BEFORE the importer converts the original GLB.
+          python3 unity-tools/city/dom04-correct-real-foliage.py
           python3 unity-tools/city/prepare.py
           python3 unity-tools/city/import_approved_roofs.py
           python3 unity-tools/city/dom04-prepare.py
@@ -89,12 +91,14 @@ jobs:
           assert data['replacedOriginalLawnAreaSquareMetres']==483 and data['originalLawnTopTrianglesReplaced']==2
           assert data['oldGrassOverlayRetained'] is False and data['totalDom04Trees']==4
           assert data['originalWindowFrameMeshUnchanged'] is True and data['originalInteriorMeshesUnchanged'] is True
-          assert data['floweringRealPlants']==4 and data['originalSourceWoodenPlanters']==4
+          assert data['floweringRealPlants']==12 and data['originalSourceWoodenPlanters']==4
           assert 'EstateMesh_315' in data['windows']
           assert data['productionPublished'] is False and data['visualQAConfirmed'] is False
           source=json.loads(pathlib.Path('city-review/dom04-library-source-evidence.json').read_text())
           assert source['sourceVerified'] and sum(x['libraryByteIdentity'] for x in source['sources'])==8
           assert source['plantSourceVerified'] is True and len(source['plantSourceFilesVerified'])==3
+          foliage=json.loads(pathlib.Path('city-review/dom04-verdant-color-qa.json').read_text())
+          assert foliage['sourceAtlasesVerified'] is True and foliage['alphaPreserved'] is True
           flowers=json.loads(pathlib.Path('city-review/dom04-flower-model-sources.json').read_text())
           assert flowers['sourceVerified'] is True
           assert len(flowers['publisherSources']['planter_box_01'])>=4
@@ -119,6 +123,7 @@ jobs:
             dom04-evidence/
             city-review/dom04-library-source-evidence.json
             city-review/dom04-flower-model-sources.json
+            city-review/dom04-verdant-color-qa.json
             city-review/dom04-periwinkle-export.json
             unity-city/city-review/dom04-premium-scope.json
           retention-days: 30

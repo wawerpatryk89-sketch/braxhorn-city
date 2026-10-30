@@ -18,8 +18,9 @@ public static class BraxEstateDom04Premium
         imp.textureType=normal?TextureImporterType.NormalMap:TextureImporterType.Default;
         imp.sRGBTexture=!normal && !name.EndsWith("MR");
         imp.maxTextureSize=1024; imp.mipmapEnabled=true;
-        imp.wrapMode=name=="BermudaCutout"?TextureWrapMode.Clamp:TextureWrapMode.Repeat;
-        if(name=="BermudaCutout"){ imp.alphaSource=TextureImporterAlphaSource.FromInput;imp.alphaIsTransparency=true; }
+        bool isCutout=name=="BermudaCutout" || name.StartsWith("Verdant");
+        imp.wrapMode=isCutout?TextureWrapMode.Clamp:TextureWrapMode.Repeat;
+        if(isCutout){ imp.alphaSource=TextureImporterAlphaSource.FromInput;imp.alphaIsTransparency=true; }
         imp.anisoLevel=4; imp.textureCompression=TextureImporterCompression.Compressed;
         imp.SaveAndReimport();
         var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(p);
@@ -82,7 +83,7 @@ public static class BraxEstateDom04Premium
         }
         if(exactLawn.Count!=6 || Mathf.Abs((float)area-483f)>.1f || lawnVertices.Count!=4)
             throw new Exception("DOM04 source lawn NOT full original 483m2: triangles="+exactLawn.Count/3+" area="+area);
-        var turf=Pbr("OriginalLawnFullReplacement","GrassGround",new Color(.82f,1.12f,.76f),.7f);
+        var turf=Pbr("OriginalLawnFullReplacement","GrassGround",new Color(.74f,1.28f,.68f),.7f);
         var revised=UnityEngine.Object.Instantiate(original);
         revised.name="DOM04 entire original 483m2 grass REPLACED in source ground mesh";
         var uv=revised.uv;
@@ -270,8 +271,12 @@ public static class BraxEstateDom04Premium
             }
         }
         if(!albedo)throw new Exception("DOM04 original Verdant Trail albedo missing: "+name);
-        var mat=new Material(Shader.Find("Standard")){name=name,color=tint,enableInstancing=true};
-        mat.mainTexture=albedo;mat.SetFloat("_Metallic",0f);mat.SetFloat("_Glossiness",.05f);
+        // Use THE SAME real original leaf/shrub atlases, color-graded from their
+        // actual source RGB+alpha (not generated vegetation).
+        bool leaves=name.Contains("leaves");
+        var corrected=Tex(leaves?"VerdantLeavesColorCorrected":"VerdantShrubsColorCorrected");
+        var mat=new Material(Shader.Find("Standard")){name=name,color=Color.white,enableInstancing=true};
+        mat.mainTexture=corrected;mat.SetFloat("_Metallic",0f);mat.SetFloat("_Glossiness",.05f);
         mat.SetFloat("_Mode",1f);mat.SetFloat("_Cutoff",.40f);
         mat.SetOverrideTag("RenderType","TransparentCutout");
         mat.SetInt("_SrcBlend",(int)BlendMode.One);
@@ -399,11 +404,18 @@ public static class BraxEstateDom04Premium
             if(p.x<=-39.4f||p.x>=-16.8f||Mathf.Abs(p.z)>10.1f||Mathf.Abs(p.z)<1.55f)
                 throw new Exception("DOM04 REAL planting box outside bounds/gate");
             CreateSourceModel(planter,parent,"DOM04 original wooden planter box "+(i+1),p,.92f,i%2==0?0:180);
-            var flowers=CreateSourceModel(flower,parent,"DOM04 real flowering periwinkle "+(i+1),
-                p+Vector3.up*.27f,.82f,i*73f);
-            // All plants are real .blend source mesh instances, not billboard flowers.
+            // Three independent genuine periwinkle source mesh instances
+            // per wooden planter. A full cluster, not one spindly stem.
+            var offsets=new[]{new Vector3(-.22f,0,-.08f),
+                              new Vector3(.18f,0,-.12f),
+                              new Vector3(0,0,.19f)};
+            for(int sprig=0;sprig<offsets.Length;sprig++)
+                CreateSourceModel(flower,parent,
+                    "DOM04 original pink periwinkle "+(i+1)+"-"+(sprig+1),
+                    p+Vector3.up*.28f+offsets[sprig],.49f,i*73f+sprig*107f);
+            // Every visible stem and leaf is geometry from the original .blend.
         }
-        Debug.Log("DOM04_FOUR_REAL_SOURCE_WOODEN_PLANTERS_WITH_FOUR_ORIGINAL_FLOWERING_PERIWINKLE");
+        Debug.Log("DOM04_FOUR_REAL_WOODEN_PLANTERS_WITH_TWELVE_ORIGINAL_LIBRARY_PERIWINKLE_MESHES");
     }
     static void PremiumOriginalWindows(MeshRenderer[] all,Transform parent,BraxDom04PremiumEvidence evidence)
     {
@@ -476,7 +488,7 @@ public static class BraxEstateDom04Premium
         // Refinish the original estate ground mesh; NO surface overlay left behind.
         ReplaceOriginalDom04Lawn(R("EstateMesh_273"),e);
         var foliage=new GameObject("DOM04 library grass_bermuda_01 mobile batch");foliage.transform.SetParent(home.transform,false);
-        foliage.AddComponent<MeshFilter>().sharedMesh=Bermuda(4200);
+        foliage.AddComponent<MeshFilter>().sharedMesh=Bermuda(7800);
         var fr=foliage.AddComponent<MeshRenderer>();fr.sharedMaterial=BermudaMaterial();fr.shadowCastingMode=ShadowCastingMode.Off;
         Plant(renderers,home.transform);
         AddRealFlowerBoxes(home.transform);
@@ -495,13 +507,13 @@ public static class BraxEstateDom04Premium
         public int originalVerdantTreesOnDom04=1,additionalRealVerdantTrees=3,totalDom04Trees=4;
         public string[] changedOriginalRenderers={"EstateMesh_273 (all original DOM04 lawn top faces only)","EstateMesh_327","EstateMesh_312","EstateMesh_323 (DOM04 only)","EstateMesh_280 (verified front fence triangles only)","EstateMesh_275 (negative-X approach UV only)"};
         public string facade="Poly Haven beige_wall_001 library byte-identical maps / warm beige matte";
-        public string grass="100% replacement on original EstateMesh_273 TOP triangles, 483m2; genuine grass_ground PBR + owner grass_bermuda_01 correctly alpha-cutout / 4200 batched ground tufts";
-        public string garden="four original Verdant ornamental trees from textured 439 trunk + 453 source leaf atlas; 1 preserved/retinted original and 3 additional green real LOD trees, real shrub source 467";
+        public string grass="100% replacement on original EstateMesh_273 DOM04 TOP triangles, 483m2; genuine grass_ground PBR + 7800 batched grass_bermuda_01 source atlas real blades";
+        public string garden="4 real Verdant trees / actual 439 trunk+453 leaf atlas color-graded using original source RGBA, 1 preserved original + 3 new ornamental trees; shrub 467 original corrected source map";
         public string fence="original DOM04 front-fence triangles refinished in satin anthracite; global shared mesh split locally, all other fence surfaces and original gate/physics unchanged";
         public string roof="original DOM04 pitched geometry / roof_tiles genuine PBR / warmer muted terracotta, improved gloss and normal";
-        public string flowers="4 ORIGINAL planter_box_01 wooden model instances + 4 original periwinkle_plant 3D flowering plants";
+        public string flowers="4 original planter_box_01 wooden models + 12 original periwinkle_plant 3D flowering meshes (three per planter)";
         public string windows="real original DOM04 glazing EstateMesh_315 clear Standard transparent; furnished existing original house rooms with 2 original user LibrarySofa02, 2 nonshadow local interior visibility lights";
-        public int floweringRealPlants=4,originalSourceWoodenPlanters=4;
+        public int floweringRealPlants=12,originalSourceWoodenPlanters=4;
         public bool originalWindowFrameMeshUnchanged=true,originalInteriorMeshesUnchanged=true;
         public bool originalCityOrGymChanged=false,originalBraxOrControlsChanged=false,physicalIphoneTest=false,visualQAConfirmed=false,productionPublished=false;
     }
