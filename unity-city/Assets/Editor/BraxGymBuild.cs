@@ -134,7 +134,11 @@ public static class BraxGymBuild
         // Estate review boots directly into the EXISTING city estate scene with the
         // SAME BraxGymPlayer, original rig, material, clips and mobile controls.
         // City remains in the build for future travel; no duplicate player code.
-        string[] scenePaths=fullCity?new[]{BraxCityBuild.CreateEstate(sourceCommit),scenePath}:new[]{scenePath};
+        // iPhone ESTATE preview only: exclude gym and city scenes from the WebGL payload.
+        // The estate scene itself still uses the UNMODIFIED city's BraxGymPlayer,
+        // BraxOriginal.glb, BraxSourceORM.mat and original animations.
+        // This branch is never merged into the connected city build.
+        string[] scenePaths=fullCity?new[]{BraxCityBuild.CreateEstate(sourceCommit)}:new[]{scenePath};
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
         var output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=BuildTarget.WebGL,locationPathName=output,options=BuildOptions.None});
