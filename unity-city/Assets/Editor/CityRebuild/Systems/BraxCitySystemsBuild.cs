@@ -290,7 +290,8 @@ public static class BraxCitySystemsBuild
         SolidBox("Stair retaining east wall",metro,new Vector3(80.6f,-1.175f,39.4f),new Vector3(.2f,4.15f,8.8f),concrete,1);
         SolidBox("Vestibule west wall",metro,new Vector3(75.1f,-1.7f,46.8f),new Vector3(.2f,3.5f,6f),concrete,1);
         SolidBox("Vestibule east wall",metro,new Vector3(80.6f,-1.7f,46.8f),new Vector3(.2f,3.5f,6f),concrete,1);
-        SolidBox("Vestibule rear retaining wall",metro,new Vector3(77.85f,-1.7f,49.7f),new Vector3(5.7f,3.5f,.2f),concrete,1);
+        // The former blind rear wall sealed the required G5 platform route.
+        // The original vestibule now continues into the new physical station.
         // Boundary under the west cover: the hall opens only into the stair run.
         SolidBox("Vestibule front return",metro,new Vector3(76.15f,-1.7f,43.7f),new Vector3(2.3f,3.5f,.2f),concrete,1);
         var coping=new BraxCitySystemMesh();
@@ -323,7 +324,7 @@ public static class BraxCitySystemsBuild
         // A solid low-profile guard volume stops jumping onto the open edge.
         var guard=new GameObject("Upper rear guard collision");guard.transform.SetParent(metro,false);
         var gc=guard.AddComponent<BoxCollider>();gc.center=new Vector3(78.95f,.7f,43.88f);gc.size=new Vector3(3.3f,1.1f,.12f);
-        BuildMetroGate(metro);
+        BuildMetroStation(metro,stone,concrete,metal);
         BuildMetroSigns(metro);
         var tileLines=new BraxCitySystemMesh();
         for(float y=-3.05f;y<-.4f;y+=.34f)
@@ -342,20 +343,66 @@ public static class BraxCitySystemsBuild
         MeshObject("Drainage grille at stair foot",metro,drains,black);
     }
 
-    private static void BuildMetroGate(Transform parent)
+    // Real walkable G5 station. All visible finishes are derived from the
+    // existing audited city stone, concrete and metal material library.
+    // No unverified train, fake rolling stock or external asset is introduced.
+    private static void BuildMetroStation(Transform parent,Material stone,Material concrete,Material metal)
     {
-        var gate=new BraxCitySystemMesh();
-        gate.Box(new Vector3(77.85f,-.47f,49.25f),new Vector3(5.3f,.14f,.18f));
-        foreach(float x in new[]{75.35f,77.85f,80.35f})gate.Box(new Vector3(x,-1.87f,49.25f),new Vector3(.1f,2.8f,.14f));
-        foreach(float y in new[]{-3.1f,-1.9f,-.67f})gate.Box(new Vector3(77.85f,y,49.25f),new Vector3(5.1f,.07f,.1f));
-        for(float x=75.5f;x<80.3f;x+=.16f)gate.Tube(new Vector3(x,-3.1f,49.25f),new Vector3(x,-.68f,49.25f),.018f,8);
-        gate.Box(new Vector3(77.88f,-1.9f,49.13f),new Vector3(.14f,.22f,.08f));
-        var obj=MeshObject("Locked gate to future station",parent,gate,black);
-        var col=obj.AddComponent<BoxCollider>();col.center=new Vector3(77.85f,-1.87f,49.25f);col.size=new Vector3(5.3f,2.8f,.18f);
-        var hardware=new BraxCitySystemMesh();
-        for(float y=-2.7f;y<-.7f;y+=1.7f)foreach(float x in new[]{75.4f,80.3f})hardware.Tube(new Vector3(x,y-.09f,49.22f),new Vector3(x,y+.09f,49.22f),.035f,12);
-        hardware.Tube(new Vector3(77.72f,-1.9f,49.06f),new Vector3(77.72f,-1.73f,49.06f),.018f,10);
-        MeshObject("Gate hinges and lock handle",parent,hardware,steel);
+        const float floor=-3.25f;
+        var station=new GameObject("G5 accessible metro platform and track infrastructure").transform;
+        station.SetParent(parent,false);
+        // A 5.7 m wide passage preserves the original vestibule alignment.
+        SolidBox("G5 connecting corridor limestone floor",station,new Vector3(77.85f,floor-.12f,51.8f),
+            new Vector3(5.7f,.24f,4.2f),stone,.8f);
+        foreach(float x in new[]{75.0f,80.7f})
+            SolidBox("G5 corridor finished wall",station,new Vector3(x,-1.66f,51.8f),
+                new Vector3(.2f,3.2f,4.2f),concrete,1);
+        // 16 x 18 m underground station, with a broad unobstructed boss arena.
+        // The tracks occupy a separate trench, never the player's route.
+        SolidBox("G5 station continuous walkable platform",station,new Vector3(75.5f,floor-.12f,63f),
+            new Vector3(11.2f,.24f,18f),stone,.8f);
+        SolidBox("G5 track bed recessed",station,new Vector3(83.4f,floor-.75f,63f),
+            new Vector3(4.2f,.3f,18f),concrete,1.2f);
+        SolidBox("G5 platform west wall",station,new Vector3(69.8f,-1.64f,63f),
+            new Vector3(.22f,3.25f,18f),concrete,1.1f);
+        SolidBox("G5 station north wall",station,new Vector3(77.5f,-1.64f,72.1f),
+            new Vector3(15.6f,3.25f,.22f),concrete,1.1f);
+        SolidBox("G5 station roof below street grade",station,new Vector3(77.5f,-.08f,63f),
+            new Vector3(15.6f,.22f,18f),concrete,1.2f);
+        var edge=new BraxCitySystemMesh();
+        edge.Box(new Vector3(81.05f,floor+.015f,63f),new Vector3(.3f,.03f,17.5f));
+        MeshObject("G5 continuous tactile platform warning strip",station,edge,brass);
+        var rails=new BraxCitySystemMesh();
+        foreach(float x in new[]{82.4f,84.3f})
+            rails.Box(new Vector3(x,floor-.47f,63f),new Vector3(.13f,.14f,17.8f));
+        MeshObject("G5 track rails from city metal material",station,rails,steel);
+        var sleepers=new BraxCitySystemMesh();
+        for(float z=54.3f;z<71.8f;z+=.7f)
+            sleepers.Box(new Vector3(83.35f,floor-.59f,z),new Vector3(3.2f,.12f,.22f));
+        MeshObject("G5 rail support ties",station,sleepers,black);
+        // Architectural finish with a real source material, no blank walls.
+        var wallBands=new BraxCitySystemMesh();
+        for(float z=54.4f;z<71.8f;z+=1.4f)
+            wallBands.Box(new Vector3(69.94f,-1.67f,z),new Vector3(.018f,2.7f,.02f));
+        MeshObject("G5 finished wall tile seams",station,wallBands,steel);
+        var canopy=new BraxCitySystemMesh();
+        for(float z=55f;z<=71f;z+=4f)
+            canopy.Box(new Vector3(76f,-.28f,z),new Vector3(9f,.10f,.16f));
+        MeshObject("G5 recessed ceiling lighting channels",station,canopy,white);
+        // Keep lights restrained and mobile-friendly.
+        for(int i=0;i<4;i++)
+        {
+            var lamp=new GameObject("G5 ceiling practical light "+i).AddComponent<Light>();
+            lamp.transform.SetParent(station,false);
+            lamp.transform.position=new Vector3(75.7f,-.55f,56f+i*4.5f);
+            lamp.type=LightType.Point;lamp.range=7f;lamp.intensity=.48f;
+            lamp.color=new Color(.85f,.91f,1f);lamp.shadows=LightShadows.None;
+        }
+        Text(station,"G5 metro platform sign","BRAXHORN · PERON 1",
+            new Vector3(75.2f,-1.35f,71.9f),180,.32f,Color.white);
+        Text(station,"G5 metro exit sign","WYJŚCIE / EXIT",
+            new Vector3(77.8f,-1.20f,54.05f),0,.24f,Color.white);
+        Debug.Log("CITY_G5_METRO_ACCESS platform=16x18 passage=5.7m sourceMaterialsOnly=true trainAssetNotVerified=true");
     }
 
     private static void BuildMetroSigns(Transform parent)
@@ -386,7 +433,7 @@ public static class BraxCitySystemsBuild
         mounts.Tube(new Vector3(77.2f,3.25f,35.08f),new Vector3(80.6f,3.25f,35.08f),.045f,12);
         MeshObject("Station sign support frame",parent,mounts,black);
         Text(parent,"Vestibule exit direction","WYJŚCIE",new Vector3(76.2f,-.65f,43.84f),180,.20f,Color.white);
-        Text(parent,"Future station gate label","STACJA ZAMKNIĘTA",new Vector3(77.85f,-.76f,49.12f),0,.20f,Color.white);
+        Text(parent,"Station access label","PERONY",new Vector3(77.85f,-.76f,49.12f),0,.20f,Color.white);
     }
 
     private static void Text(Transform parent,string name,string text,Vector3 position,float yaw,float heightMetres,Color color)
