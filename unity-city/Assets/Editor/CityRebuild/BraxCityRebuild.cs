@@ -143,6 +143,8 @@ public static class BraxCityRebuild
             // Their street-facing facades and returns remain fully modular.
             BraxCityStreetSkyline.Build(root);
             BraxCityPremiumTowerBuild.Build(world,root);
+            // Taras widokowy (tylko testowy build Claude, ENABLE_TEST_BUILD.txt).
+            BraxClaudeTowerTerrace.Apply(root);
             // The original task required actual access, not skyscraper
             // facades with no doors. The quay lift remains the signature
             // installation; the other eight towers get independent cabs,
