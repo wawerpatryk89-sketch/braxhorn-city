@@ -115,3 +115,34 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+
+  actual-player-qa:
+    needs: unity-compile
+    if: success()
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout actual source QA scripts
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/city-rebuild
+          persist-credentials: false
+      - name: Download actual Unity player from this build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: premium-five-zones-player-${{ github.sha }}
+          path: unity-preview
+      - name: Install browser runner
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test real doors, metro platform, Tower and city zones
+        run: node unity-tools/city-rebuild/premium-zones-qa.mjs
+      - name: Save actual Unity screenshots and failed checks
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: premium-five-zones-runtime-evidence-${{ github.sha }}
+          path: premium-zones-qa/
+          if-no-files-found: warn
+          retention-days: 14
