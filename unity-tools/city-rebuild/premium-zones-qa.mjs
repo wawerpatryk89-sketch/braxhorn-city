@@ -11,6 +11,7 @@ const checks=[],errors=[];
 const server=http.createServer((req,res)=>{
  let u=new URL(req.url,'http://localhost');
  let p=path.resolve(root,'.'+decodeURIComponent(u.pathname));
+ if(p===root)p=path.join(root,'index.html');
  if(!p.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
  if(fs.existsSync(p)&&fs.statSync(p).isDirectory())p=path.join(p,'index.html');
  if(!fs.existsSync(p)){res.writeHead(404);res.end();return;}
