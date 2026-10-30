@@ -2,6 +2,7 @@ import {chromium} from 'playwright';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
+import {spawnSync} from 'node:child_process';
 const root=path.resolve(process.env.PLAYER_ROOT||'unity-preview');
 const out=path.resolve('premium-zones-qa');
 fs.mkdirSync(out,{recursive:true});
@@ -18,11 +19,13 @@ const server=http.createServer((req,res)=>{
  fs.createReadStream(p,{highWaterMark:65536}).pipe(res);
 });
 await new Promise(resolve=>server.listen(8976,'127.0.0.1',resolve));
-let browser;
+let browser,context,video;
 const check=(name,ok,detail)=>{checks.push({name,passed:!!ok,detail});console.log(ok?'PASS':'FAIL',name,JSON.stringify(detail));if(!ok)throw Error(name)};
 try{
  browser=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist','--disable-dev-shm-usage']});
- const page=await browser.newPage({viewport:{width:932,height:430},isMobile:true,hasTouch:true});
+ context=await browser.newContext({viewport:{width:932,height:430},isMobile:true,hasTouch:true,recordVideo:{dir:out,size:{width:932,height:430}}});
+ const page=await context.newPage();
+ video=page.video();
  page.on('pageerror',e=>errors.push('PAGEERROR '+e.message));
  page.on('crash',()=>errors.push('PAGE_CRASH'));
  page.on('console',m=>{if(m.type()==='error')errors.push('CONSOLE '+m.text())});
@@ -93,6 +96,17 @@ try{
 }catch(e){errors.push('QA_FATAL '+String(e));process.exitCode=1}
 finally{
  fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({build:release.sourceCommit,checks,errors,physicalIPhoneValidated:false,visualAccepted:false},null,2));
+ if(context)await context.close();
+ if(video){
+  try{
+   const raw=await video.path();
+   const mp4=path.join(out,'braxhorn-real-unity-review.mp4');
+   const conversion=spawnSync('ffmpeg',['-y','-loglevel','error','-i',raw,'-c:v','libx264','-preset','veryfast','-crf','25','-pix_fmt','yuv420p','-movflags','+faststart',mp4],{encoding:'utf8',timeout:120000});
+   if(conversion.status!==0||!fs.existsSync(mp4)||fs.statSync(mp4).size<1024){errors.push('VIDEO_CONVERSION_FAILED '+conversion.stderr);process.exitCode=1}
+   else{console.log('UNITY_REVIEW_VIDEO',mp4,fs.statSync(mp4).size);fs.unlinkSync(raw)}
+  }catch(e){errors.push('VIDEO_CAPTURE_FAILED '+String(e));process.exitCode=1}
+ }
+ fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({build:release.sourceCommit,checks,errors,physicalIPhoneValidated:false,visualAccepted:false,videoAudioCaptured:false},null,2));
  if(browser)await browser.close();
  server.close();
 }
