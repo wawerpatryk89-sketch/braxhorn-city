@@ -37,6 +37,18 @@ try{
   await page.waitForFunction(id=>window.BraxhornState?.activePoint===id&&window.BraxhornState?.grounded,id,{timeout:90000});
   return get();
  };
+ // Doors are required to work, not merely appear on a screenshot.
+ for(const [id,label] of [['shop_door','BRAXHORN NUTRITION'],['club_door','NOVA']]){
+  const before=await point(id);
+  await page.waitForTimeout(600);
+  const prompt=(await get()).context||'';
+  check('Door prompt near '+label,prompt.includes('OTWÓRZ')&&prompt.includes(label),prompt);
+  await send('Command','action');
+  await page.waitForFunction(n=>window.BraxhornState?.openDoors>n,before.openDoors,{timeout:10000});
+  const after=await get();
+  check('Real door physically opens '+label,after.openDoors>before.openDoors,{before:before.openDoors,after:after.openDoors});
+  await page.screenshot({path:path.join(out,'door-'+id+'.png')});
+ }
  for(const [id,file] of [['shop_inside','01-nutrition'],['club_dance','02-nova'],['quay_entry','03-waterfront'],['pier_end','04-pier'],['R1_TOWER_LOBBY','05-tower-lobby'],['R1_TOWER_ROOF_ENTRY','06-tower-roof']]){
   const s=await point(id);await page.screenshot({path:path.join(out,file+'.png')});
   check('Accessible real world anchor '+id,s.ready&&s.grounded&&s.area==='city',{x:s.x,y:s.y,z:s.z,context:s.context});
