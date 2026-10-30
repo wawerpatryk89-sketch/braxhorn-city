@@ -155,9 +155,11 @@ async def verify():
                    result["pixel_check"] == "NO_MASS_MAGENTA" and
                    result.get("braxGzipTransportIntact") is True and
                    result.get("runtimeSceneReady") is True and
-                   result.get("sourceModelCount") == 19 and
+                   result.get("sourceModelCount") == int(os.environ.get("ESTATE_EXPECTED_MODELS", "19")) and
                    result.get("sourceDoorCount") == 24 and
-                   result.get("sourceCollisionCount") == 1013 and not fatal)
+                   result.get("sourceCollisionCount") == 1013 and
+                   (os.environ.get("ESTATE_EXPECTED_MODELS", "19") != "21" or
+                    "missing sources none" in (result.get("runtimeSceneSummary") or "")) and not fatal)
             finally:
                 await browser.close()
     finally:
