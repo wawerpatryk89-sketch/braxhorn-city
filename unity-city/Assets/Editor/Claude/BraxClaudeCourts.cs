@@ -39,13 +39,55 @@ public static class BraxClaudeCourts
         return n.Contains("clay") || n.Contains("court") || n.Contains("kort") || (c.r > .35f && c.r > c.g * 1.4f && c.r > c.b * 1.6f);
     }
 
+    // Siatka bramki: tekstura oczek 12,5 cm generowana w edytorze (linie kryjące, reszta wycięta maską alfa),
+    // dwustronna, na shaderze miasta. Build 62be06c: półprzezroczysta płyta wyglądała jak szklane pudło.
+    static Material NetMaterial()
+    {
+        const string dir = "Assets/PlayableGenerated/ClaudeCourts";
+        Directory.CreateDirectory(dir);
+        string png = dir + "/siatka-bramki.png";
+        if (!File.Exists(png))
+        {
+            const int n = 128;
+            var t = new Texture2D(n, n, TextureFormat.RGBA32, false);
+            var px = new Color32[n * n];
+            for (int y = 0; y < n; y++) for (int x = 0; x < n; x++)
+            {
+                bool line = (x % 16) < 2 || (y % 16) < 2;
+                px[y * n + x] = new Color32(236, 236, 230, (byte)(line ? 255 : 0));
+            }
+            t.SetPixels32(px); t.Apply();
+            File.WriteAllBytes(png, t.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(t);
+            AssetDatabase.ImportAsset(png, ImportAssetOptions.ForceSynchronousImport);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(png);
+            imp.textureType = TextureImporterType.Default; imp.alphaIsTransparency = true; imp.alphaSource = TextureImporterAlphaSource.FromInput;
+            imp.mipmapEnabled = true; imp.mipMapsPreserveCoverage = true; imp.alphaTestReferenceValue = .5f;
+            imp.wrapMode = TextureWrapMode.Repeat; imp.filterMode = FilterMode.Bilinear; imp.anisoLevel = 4;
+            imp.textureCompression = TextureImporterCompression.Uncompressed;
+            imp.SaveAndReimport();
+        }
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(png);
+        var sh = Shader.Find(BraxCityMaterials.ShaderName);
+        if (!tex || !sh) return BraxCityMaterials.Surface("Boisko: siatka bramki", new Color(.85f, .85f, .85f, .35f), .9f);
+        var m = new Material(sh) { name = "Boisko: siatka bramki (oczka)" };
+        m.SetTexture("_MainTex", tex); m.SetTextureScale("_MainTex", Vector2.one);   // 8 oczek na metr
+        m.SetFloat("_Roughness", .9f); m.SetFloat("_Metallic", 0);
+        m.SetFloat("_AlphaClip", 1); m.SetFloat("_Cutoff", .5f); m.SetFloat("_Cull", 0);
+        m.doubleSidedGI = true;
+        string path = dir + "/siatka-bramki.mat";
+        if (File.Exists(path)) AssetDatabase.DeleteAsset(path);
+        AssetDatabase.CreateAsset(m, path);
+        return m;
+    }
+
     static void Run(Transform cityRoot, Report rep)
     {
         root = new GameObject("CLAUDE boiska na podwórku").transform; root.SetParent(cityRoot, false); root.position = Vector3.zero;
         Physics.SyncTransforms();
         var white = BraxCityMaterials.Surface("Boisko: biała farba linii", new Color(.86f, .86f, .84f), .9f);
         var steel = BraxCityMaterials.Surface("Boisko: ocynkowana stal", new Color(.62f, .63f, .64f), .4f, .85f);
-        var net = BraxCityMaterials.Surface("Boisko: siatka bramki", new Color(.85f, .85f, .85f, .35f), .9f);
+        var net = NetMaterial();   // prawdziwe oczka (maska alfa), nie półprzezroczysta „szyba”
 
         // ---------- 1) kort -> boisko piłkarskie ----------
         MeshRenderer court = null; float best = 0;

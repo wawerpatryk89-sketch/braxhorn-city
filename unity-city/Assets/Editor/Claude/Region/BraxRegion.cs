@@ -75,6 +75,10 @@ public static class BraxRegion
             if (l.type != LightType.Point && l.type != LightType.Spot) continue;
             l.renderMode = LightRenderMode.ForceVertex;
             l.shadows = LightShadows.None;
+            // Tłumienie Unity (1/(1+25·d²/r²)) jest ostre: przy 3 m od lampy o zasięgu 8 m zostaje 22 %.
+            // Wartości dobierane wcześniej „na oko” pod ForcePixel podbijamy, żeby wnętrza były jasne.
+            l.intensity *= 1.7f;
+            l.range = Mathf.Max(l.range, 8f);
             n++;
         }
         Note("lampy wnętrz (ForceVertex): " + n);
