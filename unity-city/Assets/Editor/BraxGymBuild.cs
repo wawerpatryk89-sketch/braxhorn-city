@@ -35,6 +35,28 @@ public static class BraxGymBuild
     // Aplikacja Android (APK) z tej samej sceny: przeglądarka na telefonie nie dźwiga 750 MB danych.
     // Sterowanie dotykowe w Unity (BraxTouchControls) zamiast warstwy HTML.
     public static void BuildRenovationAndroid(){BuildInternal(true,true,true,BuildTarget.Android);}
+    // Raport rozmiaru danych (Android: AAR > 4 GB, WebGL: webgl.data > 2 GB). Co i ile waży, po typie i po pliku.
+    static void SizeReport(UnityEditor.Build.Reporting.BuildReport result)
+    {
+        try
+        {
+            var byType=new Dictionary<string,long>();var byAsset=new Dictionary<string,long>();long total=0;
+            foreach(var pack in result.packedAssets)foreach(var c in pack.contents)
+            {
+                string t=c.type!=null?c.type.Name:"?";string a=string.IsNullOrEmpty(c.sourceAssetPath)?"(scena/wbudowane)":c.sourceAssetPath;
+                long sz=(long)c.packedSize;total+=sz;
+                byType[t]=(byType.ContainsKey(t)?byType[t]:0)+sz;byAsset[a]=(byAsset.ContainsKey(a)?byAsset[a]:0)+sz;
+            }
+            var sb=new System.Text.StringBuilder();
+            sb.Append("BRAXHORN_BUILD_SIZE total=").Append(total/1048576).Append(" MB, result=").Append(result.summary.result).Append('\n');
+            foreach(var kv in byType.OrderByDescending(k=>k.Value).Take(12))sb.Append("  TYPE ").Append(kv.Value/1048576).Append(" MB  ").Append(kv.Key).Append('\n');
+            foreach(var kv in byAsset.OrderByDescending(k=>k.Value).Take(60))sb.Append("  ASSET ").Append(kv.Value/1048576).Append(" MB  ").Append(kv.Key).Append('\n');
+            Debug.Log(sb.ToString());
+            File.WriteAllText(Path.Combine(Generated,"build-size.txt"),sb.ToString());
+        }
+        catch(Exception e){Debug.LogWarning("BRAXHORN_BUILD_SIZE raport nieudany: "+e.Message);}
+    }
+
     private static void BuildInternal(bool fullCity,bool integrated,bool renovation=false,BuildTarget target=BuildTarget.WebGL)
     {
         if(fullCity&&target==BuildTarget.WebGL)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
@@ -193,6 +215,7 @@ public static class BraxGymBuild
         }
         if(target==BuildTarget.Android){EditorUserBuildSettings.overrideMaxTextureSize=0;EditorUserBuildSettings.overrideTextureCompression=UnityEditor.Build.OverrideTextureCompression.NoOverride;}
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=BuildOptions.None});
+        SizeReport(result);
         if(result.summary.result!=BuildResult.Succeeded)throw new Exception("Playable Unity build failed "+result.summary.result);
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
