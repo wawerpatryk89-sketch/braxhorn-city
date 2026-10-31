@@ -133,6 +133,20 @@ def main() -> int:
     img(get(sky)).convert("RGB").resize((4096, 2048), Image.LANCZOS).save(ROOT / "sky" / "niebo_4k.jpg", quality=92)
     report["textures"]["sky"] = "kloofendal_48d_partly_cloudy_puresky (Poly Haven CC0)"
     print("SKY OK")
+    # Szyldy sklepów (bez świecenia): grafit, ciepłe białe litery, cienka ramka. Czcionka DejaVu (Ubuntu).
+    from PIL import ImageDraw, ImageFont
+    font_path = next((p for p in ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+                                  "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf") if pathlib.Path(p).exists()), None)
+    (ROOT / "signs").mkdir(parents=True, exist_ok=True)
+    for name, text in {"butik": "BUTIK  NYXA", "shake": "SHAKE BAR", "kawiarnia": "KAWIARNIA", "market": "MARKET 24",
+                       "kort": "KLUB TENISOWY", "ochrona": "OCHRONA"}.items():
+        im = Image.new("RGB", (1024, 256), (34, 37, 40)); dr = ImageDraw.Draw(im)
+        dr.rectangle([10, 10, 1013, 245], outline=(176, 150, 104), width=6)
+        f = ImageFont.truetype(font_path, 118) if font_path else ImageFont.load_default()
+        w = dr.textlength(text, font=f); dr.text(((1024 - w) / 2, 58), text, font=f, fill=(236, 228, 214))
+        im.save(ROOT / "signs" / f"{name}.png")
+    report["textures"]["signs"] = "szyldy generowane (DejaVu Sans Bold)"
+    print("SIGNS OK", font_path)
     (ROOT / "osiedle-sources.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
     return 0
 

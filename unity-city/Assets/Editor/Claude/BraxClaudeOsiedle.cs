@@ -32,7 +32,7 @@ public static class BraxClaudeOsiedle
     [Serializable] sealed class Report
     {
         public string status = "NIE URUCHOMIONO", error = "";
-        public int ballTreesReplaced, villas, pools, parkTrees, plotTrees, shrubs, benches, lamps, bins, tables, oldFenceTrianglesRemoved,
+        public int ballTreesReplaced, shops, tennis, villas, pools, parkTrees, plotTrees, shrubs, benches, lamps, bins, tables, oldFenceTrianglesRemoved,
                    oldFenceCollidersDisabled, meshes, triangles, materials, points;
         public List<string> notes = new List<string>();
     }
@@ -558,6 +558,137 @@ public static class BraxClaudeOsiedle
         rep.villas++;
     }
 
+    // ---------------- szyldy, sklepy, kort, stróżówka ----------------
+    static Material SignMat(string id)
+    {
+        string key = "szyld " + id; if (mats.TryGetValue(key, out var have)) return have;
+        string path = "Assets/Source/Claude/Osiedle/signs/" + id + ".png";
+        var imp = AssetImporter.GetAtPath(path) as TextureImporter; if (!imp) { rep.notes.Add("brak szyldu " + id); return Frame; }
+        imp.sRGBTexture = true; imp.mipmapEnabled = true; imp.wrapMode = TextureWrapMode.Clamp; imp.maxTextureSize = 1024; imp.SaveAndReimport();
+        var m = new Material(Shader.Find("Standard")) { name = "Osiedle: " + key, mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path) };
+        m.SetFloat("_Glossiness", .35f); AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = 1f; return m;
+    }
+    // Szyld: płyta grafitowa + front z napisem (UV 0..1 na całą tablicę), normalna nx/nz (kierunek do oglądającego).
+    static void Sign(string id, Vector3 c, float w, float h, Vector3 n)
+    {
+        bool alongX = Mathf.Abs(n.z) > .5f;
+        Box(Frame, c - n * .06f, alongX ? new Vector3(w + .1f, h + .1f, .1f) : new Vector3(.1f, h + .1f, w + .1f), false);
+        var m = SignMat(id); var b = B(m); int k = b.v.Count;
+        Vector3 right = alongX ? (n.z < 0 ? Vector3.right : Vector3.left) : (n.x > 0 ? Vector3.back : Vector3.forward);
+        var f0 = c + n * .005f;
+        var p = new[] { f0 - right * w * .5f - Vector3.up * h * .5f, f0 + right * w * .5f - Vector3.up * h * .5f, f0 + right * w * .5f + Vector3.up * h * .5f, f0 - right * w * .5f + Vector3.up * h * .5f };
+        var uv = new[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 1) };
+        for (int q = 0; q < 4; q++) { b.v.Add(p[q]); b.n.Add(n); b.t.Add(new Vector4(right.x, right.y, right.z, 1)); b.uv.Add(uv[q]); }
+        if (Vector3.Dot(Vector3.Cross(p[1] - p[0], p[2] - p[0]), n) >= 0) b.i.AddRange(new[] { k, k + 1, k + 2, k, k + 2, k + 3 });
+        else b.i.AddRange(new[] { k, k + 2, k + 1, k, k + 3, k + 2 });
+    }
+
+    // Pierzeja: parter ze sklepami (witryny, wejścia, markizy, szyldy), piętro z apartamentami i balkonami,
+    // placyk przed budynkiem ze stolikami kawiarni. front = granica działek od ulicy (z), budynek w głąb (+z).
+    static void ShopRow(float x0, float x1, float front)
+    {
+        group = "Osiedle B / pierzeja sklepów";
+        float zf = front + 6f, zb = zf + 14f, H0 = 4.2f, H1 = 7.6f;
+        Top(Slabs, x0, x1, front, zf, .045f);                                      // placyk
+        BoxMinMax(Stucco, x0, x1, 0, H0, zf, zb);                                   // parter (bryła)
+        BoxMinMax(Plinth, x0 - .04f, x1 + .04f, 0, .3f, zf - .04f, zb + .04f, false);
+        BoxMinMax(StuccoWarm, x0 + .3f, x1 - .3f, H0, H1, zf + .8f, zb - .3f);      // piętro cofnięte (balkony z przodu)
+        BoxMinMax(Stucco, x0 + .2f, x1 - .2f, H1, H1 + .4f, zf + .7f, zb - .2f, false);
+        BoxMinMax(Gravel, x0 + .45f, x1 - .45f, H1 + .4f, H1 + .43f, zf + .95f, zb - .45f, false);
+        BoxMinMax(Gravel, x0 + .2f, x1 - .2f, H0, H0 + .05f, zf + .05f, zf + .8f, false);     // posadzka balkonów
+        BoxMinMax(GlassClear, x0 + .2f, x1 - .2f, H0 + .05f, H0 + 1.05f, zf + .05f, zf + .09f, false);
+        BoxMinMax(Frame, x0 + .2f, x1 - .2f, H0 + 1.05f, H0 + 1.1f, zf + .03f, zf + .11f, false);
+        string[] shops = { "butik", "shake", "kawiarnia", "market" };
+        float unit = (x1 - x0) / shops.Length;
+        for (int k = 0; k < shops.Length; k++)
+        {
+            float a = x0 + k * unit, b = a + unit;
+            // witryna na całą szerokość lokalu (szkło wysunięte, ramy co 2.4 m), drzwi szklane
+            BoxMinMax(Glass, a + .6f, b - .6f, .35f, 3.5f, zf - .03f, zf + .02f, false);
+            for (float x = a + .6f; x <= b - .55f; x += Mathf.Max(1.8f, (b - a - 1.2f) / Mathf.Max(1, Mathf.Round((b - a - 1.2f) / 2.4f))))
+                BoxMinMax(Frame, x - .04f, x + .04f, .35f, 3.5f, zf - .06f, zf + .01f, false);
+            BoxMinMax(Frame, a + .6f, b - .6f, 3.5f, 3.58f, zf - .06f, zf + .01f, false);
+            BoxMinMax(Frame, a + .6f, b - .6f, .3f, .38f, zf - .06f, zf + .01f, false);
+            float d0 = (a + b) * .5f - .9f;
+            BoxMinMax(GlassClear, d0, d0 + 1.8f, .02f, 2.6f, zf - .08f, zf - .04f, false);
+            BoxMinMax(Steel, d0 + .85f, d0 + .95f, .9f, 1.7f, zf - .12f, zf - .08f, false);
+            // markiza (stal) i szyld nad nią
+            BoxMinMax(Frame, a + .4f, b - .4f, 3.62f, 3.72f, zf - 1.6f, zf, false, true);
+            Sign(shops[k], new Vector3((a + b) * .5f, 3.95f, zf - .12f), Mathf.Min(6f, unit - 2f), 1.5f * Mathf.Min(6f, unit - 2f) / 6f, Vector3.back);
+            // okna apartamentów
+            for (float x = a + 1.4f; x < b - 1.2f; x += 3.2f)
+            {
+                BoxMinMax(Glass, x, x + 2.0f, H0 + .6f, H0 + 2.9f, zf + .77f, zf + .83f, false);
+                BoxMinMax(Frame, x - .06f, x + 2.06f, H0 + 2.9f, H0 + 2.97f, zf + .75f, zf + .84f, false);
+            }
+            if (k > 0) BoxMinMax(Plinth, a - .15f, a + .15f, 0, H0, zf - .05f, zf + .02f, false);   // pilastry między lokalami
+        }
+        // ogródek kawiarni, donice i ławki na placyku
+        float cx = x0 + 2.5f * unit;
+        if (outdoorSet) for (int k = 0; k < 4; k++) Put(outdoorSet, new Vector3(cx - 4.5f + k * 3f, .045f, front + 3f), k * 25f, .03f, true);
+        if (planter) for (float x = x0 + 3f; x < x1 - 2f; x += 9f) Put(planter, new Vector3(x, .045f, front + .9f), 0, .03f, false);
+        if (bench) { Put(bench, new Vector3(x0 + unit * .5f, .045f, front + 1.4f), 180, .03f); Put(bench, new Vector3(x0 + unit * 3.5f, .045f, front + 1.4f), 180, .03f); rep.benches += 2; }
+        rep.shops = shops.Length;
+    }
+
+    // Klub tenisowy: kort deblowy 23.77 x 10.97 z wybiegami, siatka, ogrodzenie 3 m z ciemnozieloną osłoną,
+    // pawilon klubowy z tarasem. Działka x0..x1, od ulicy front, w głąb dir.
+    static void TennisClub(float x0, float x1, float front, float dir)
+    {
+        group = "Osiedle B / klub tenisowy";
+        var acryl = Plain("kort akryl niebieski", new Color(.16f, .33f, .52f), .25f); var out_ = Plain("kort akryl zielony", new Color(.20f, .38f, .29f), .25f);
+        var screen = Plain("osłona kortu", new Color(.08f, .2f, .14f), .2f);
+        float cx = (x0 + x1) * .5f, cz = front + dir * 13f;
+        Top(out_, cx - 18f, cx + 18f, cz - 9f, cz + 9f, .035f);
+        Top(acryl, cx - 11.885f, cx + 11.885f, cz - 5.485f, cz + 5.485f, .04f);
+        void Line(float a0, float a1, float b0, float b1) => Top(Paint, Mathf.Min(a0, a1), Mathf.Max(a0, a1), Mathf.Min(b0, b1), Mathf.Max(b0, b1), .046f);
+        foreach (float z in new[] { -5.485f, 5.485f, -4.115f, 4.115f }) Line(cx - 11.885f, cx + 11.885f, cz + z - .025f, cz + z + .025f);
+        foreach (float x in new[] { -11.885f, 11.885f }) Line(cx + x - .025f, cx + x + .025f, cz - 5.485f, cz + 5.485f);
+        foreach (float x in new[] { -6.4f, 6.4f }) Line(cx + x - .025f, cx + x + .025f, cz - 4.115f, cz + 4.115f);
+        Line(cx - 6.4f, cx + 6.4f, cz - .025f, cz + .025f);
+        // siatka
+        foreach (float z in new[] { -6.4f, 6.4f }) Box(Steel, new Vector3(cx, .53f, cz + z), new Vector3(.08f, 1.07f, .08f));
+        Box(screen, new Vector3(cx, .6f, cz), new Vector3(.02f, .9f, 12.8f), false);
+        Box(Paint, new Vector3(cx, 1.06f, cz), new Vector3(.03f, .06f, 12.8f), false);
+        Collider(new Vector3(cx, .5f, cz), new Vector3(.1f, 1f, 12.8f));
+        // ogrodzenie 3 m: słupki co 3 m + ciemna osłona do 2.4 m, wejście od strony ulicy
+        float fx0 = cx - 18f, fx1 = cx + 18f, fz0 = cz - 9f, fz1 = cz + 9f;
+        for (float x = fx0; x <= fx1 + .01f; x += 3f) foreach (float z in new[] { fz0, fz1 }) Box(Steel, new Vector3(x, 1.5f, z), new Vector3(.08f, 3f, .08f), false);
+        for (float z = fz0; z <= fz1 + .01f; z += 3f) foreach (float x in new[] { fx0, fx1 }) Box(Steel, new Vector3(x, 1.5f, z), new Vector3(.08f, 3f, .08f), false);
+        float gate = dir > 0 ? fz0 : fz1;
+        foreach (float z in new[] { fz0, fz1 })
+        {
+            if (z == gate) { BoxMinMax(screen, fx0, cx - 1.2f, .1f, 2.4f, z - .02f, z + .02f, true); BoxMinMax(screen, cx + 1.2f, fx1, .1f, 2.4f, z - .02f, z + .02f, true); }
+            else BoxMinMax(screen, fx0, fx1, .1f, 2.4f, z - .02f, z + .02f, true);
+        }
+        foreach (float x in new[] { fx0, fx1 }) BoxMinMax(screen, x - .02f, x + .02f, .1f, 2.4f, fz0, fz1, true);
+        foreach (float z in new[] { fz0, fz1 }) BoxMinMax(Steel, fx0, fx1, 2.98f, 3.04f, z - .03f, z + .03f, false);
+        // pawilon klubowy w głębi działki
+        float pz0 = cz + dir * 10.5f, pz1 = cz + dir * 16.5f;
+        BoxMinMax(Wood, cx - 7f, cx + 7f, 0, 3.2f, Mathf.Min(pz0, pz1), Mathf.Max(pz0, pz1));
+        BoxMinMax(Stucco, cx - 7.6f, cx + 7.6f, 3.2f, 3.5f, Mathf.Min(pz0, pz1) - .9f, Mathf.Max(pz0, pz1) + .3f, false, true);
+        float face = pz0 - dir * .02f;
+        BoxMinMax(Glass, cx - 5.5f, cx + 5.5f, .3f, 2.9f, Mathf.Min(face, face - dir * .05f), Mathf.Max(face, face - dir * .05f), false);
+        Sign("kort", new Vector3(cx + 6f, 2.5f, cz - dir * 9.12f), 5f, 1.25f, new Vector3(0, 0, -dir));
+        if (bench) { Put(bench, new Vector3(cx - 4f, .035f, cz - dir * 10.2f), dir > 0 ? 0 : 180, .03f); Put(bench, new Vector3(cx + 4f, .035f, cz - dir * 10.2f), dir > 0 ? 0 : 180, .03f); rep.benches += 2; }
+        // ścieżka z ulicy do bramki kortu i płot działki
+        Top(Slabs, cx - 1.2f, cx + 1.2f, Mathf.Min(front, gate), Mathf.Max(front, gate), .045f);
+        FenceX(x0, x1, front + dir * .3f, 1.55f, (cx - 1.4f, cx + 1.4f));
+        WoodFenceZ(front + dir * .6f, dir > 0 ? ParkZ0 - .3f : SouthZ + .3f, x0 + .1f);
+        rep.tennis = 1;
+    }
+
+    static void Guardhouse(float x, float z)
+    {
+        group = "Park Centralny / stróżówka";
+        BoxMinMax(Stucco, x - 1.6f, x + 1.6f, 0, 2.8f, z - 1.6f, z + 1.6f);
+        BoxMinMax(Frame, x - 1.8f, x + 1.8f, 2.8f, 3.0f, z - 1.8f, z + 1.8f, false, true);
+        BoxMinMax(Glass, x + 1.58f, x + 1.63f, .9f, 2.3f, z - 1.2f, z + 1.2f, false);
+        BoxMinMax(Glass, x - 1.2f, x + 1.2f, .9f, 2.3f, z + 1.58f, z + 1.63f, false);
+        BoxMinMax(Wood, x - .5f, x + .5f, .02f, 2.2f, z - 1.66f, z - 1.58f, false);
+        Sign("ochrona", new Vector3(x, 2.5f, z + 1.68f), 1.8f, .45f, Vector3.forward);
+    }
+
     // ---------------- park ----------------
     static void Park()
     {
@@ -898,8 +1029,19 @@ public static class BraxClaudeOsiedle
             for (int k = 0; k < count; k++) Villa(idx++, a + k * w, a + (k + 1) * w, front, dir);
         }
         Row(X0 + .6f, AxisX - Half, 3, north, 1f);
-        Row(AxisX + Half, X1 - .6f, 4, north, 1f);
-        Row(X0 + .6f, X1 - .6f, 6, south, -1f);
+        // pierzeja sklepów zamiast dwóch willi (od ulicy N-S), dalej dwie wille
+        float shopEnd = AxisX + Half + 62f;
+        ShopRow(AxisX + Half + .5f, shopEnd, north);
+        WoodFenceZ(north + 6f, ParkZ0 - .3f, shopEnd + .2f);
+        Row(shopEnd + .6f, X1 - .6f, 2, north, 1f);
+        // rząd południowy: 6 działek, czwarta = klub tenisowy (miejsce na ustawkę 3 na 3)
+        float pw = (X1 - X0 - 1.2f) / 6f;
+        for (int k = 0; k < 6; k++)
+        {
+            float a = X0 + .6f + k * pw, b = a + pw;
+            if (k == 3) TennisClub(a, b, south, -1f); else Villa(idx++, a, b, south, -1f);
+        }
+        Guardhouse(AxisX - 7f, FenceA - 2.4f);
         group = "Osiedle B / ogrodzenie";
         WoodFenceZ(north + .6f, ParkZ0 - .3f, X1 - .7f); WoodFenceZ(south - .6f, SouthZ + .3f, X1 - .7f);
         FenceZ(north + .3f, ParkZ0 - .3f, AxisX - Half - .25f, 1.55f);
@@ -917,6 +1059,8 @@ public static class BraxClaudeOsiedle
                 new BraxCityPoint { id = "osiedle_b", label = "Osiedle B", position = new Vector3(AxisX + 1.5f, .1f, -170f) },
                 new BraxCityPoint { id = "osiedle_b_ulica", label = "Osiedle B, ulica", position = new Vector3(30f, .1f, StreetZ) },
                 new BraxCityPoint { id = "willa_b", label = "Willa z basenem", position = new Vector3(55f, .1f, south - 1.5f) },
+                new BraxCityPoint { id = "sklepy_b", label = "Sklepy na osiedlu B", position = new Vector3(AxisX + Half + 15f, .1f, north + 2.5f) },
+                new BraxCityPoint { id = "kort_tenisowy", label = "Klub tenisowy (3 na 3)", position = new Vector3(X0 + .6f + 3.5f * (X1 - X0 - 1.2f) / 6f, .1f, south - 3f) },
             };
             world.points = world.points.Concat(add).ToArray(); rep.points = add.Length;
         }

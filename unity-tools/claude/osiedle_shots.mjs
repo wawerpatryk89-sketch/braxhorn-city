@@ -31,6 +31,10 @@ const VIEWS = [
   ['09_ogrody_basen', '-50,.1,-229,180,14,10'],
   ['10_nowy_plot_A', '30,.08,-98,0,10,9'],
   ['11_skrzyzowanie', '-12,.1,-186,315,16,11'],
+  ['18_sklepy_b', '18,.1,-190,180,14,11'],
+  ['19_kort_tenisowy', '19,.15,-198,0,26,12'],
+  ['20_plac_zabaw', '-64,.08,-133,90,16,11'],
+  ['21_A_dom_07_nowa_willa', '10,.1,59,270,10,11'],
   ['12_A_ulica_glowna', '0,.08,20,180,10,10'],
   ['13_A_dom_01', '12,.1,27,270,10,10'],
   ['14_A_dom_07', '12,.1,59,270,10,10'],
@@ -38,7 +42,7 @@ const VIEWS = [
   ['16_A_bulwar', '-30,.1,39,270,10,9'],
   ['17_A_willa', '0,.08,-22,0,12,10'],
 ];
-const TRAVEL = ['park_centralny', 'fontanna', 'osiedle_b', 'osiedle_b_ulica', 'willa_b'];
+const TRAVEL = ['park_centralny', 'fontanna', 'osiedle_b', 'osiedle_b_ulica', 'willa_b', 'sklepy_b', 'kort_tenisowy'];
 
 async function session(fn) {
   const browser = await chromium.launch({args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--disable-dev-shm-usage', '--disable-gpu-watchdog']});
