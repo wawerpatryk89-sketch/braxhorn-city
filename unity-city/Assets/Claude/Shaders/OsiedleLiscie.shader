@@ -23,6 +23,9 @@ Shader "Braxhorn/OsiedleLiscie"
         _Wrap ("Owinięcie światła", Range(0,1)) = .45
         _Trans ("Prześwit pod słońce", Range(0,1)) = .35
         _Wind ("Ruch liści", Float) = .02
+        _NoRecolor ("Bez przemalowania (rośliny z własnym kolorem)", Float) = 0
+        _Up ("Normalna w górę (kępy traw)", Range(0,1)) = 0
+        _InnerDark ("Ciemniejsze wnętrze korony", Range(0,1)) = .5
     }
     SubShader
     {
@@ -34,7 +37,7 @@ Shader "Braxhorn/OsiedleLiscie"
         #pragma target 3.0
         sampler2D _MainTex;
         fixed4 _Leaf, _Leaf2;
-        float _MeanGamma, _MeanLinear, _Recolor, _Detail, _Gain, _Sphere, _Wrap, _Trans, _Wind;
+        float _MeanGamma, _MeanLinear, _Recolor, _Detail, _Gain, _Sphere, _Wrap, _Trans, _Wind, _NoRecolor, _Up, _InnerDark;
         float4 _Center, _Radius;
         struct Input { float2 uv_MainTex; float inner; float hue; };
 
@@ -45,6 +48,8 @@ Shader "Braxhorn/OsiedleLiscie"
             float r = length(d);
             float3 sph = d / max(r, 1e-3);
             v.normal = normalize(lerp(v.normal, sph * max(_Radius.xyz, 1e-3), _Sphere));
+            float3 upObj = normalize(mul((float3x3)unity_WorldToObject, float3(0, 1, 0)));
+            v.normal = normalize(lerp(v.normal, upObj, _Up));
             o.inner = saturate(r) * saturate(sph.y * .35 + .75);
             float3 root = float3(unity_ObjectToWorld[0].w, unity_ObjectToWorld[1].w, unity_ObjectToWorld[2].w);
             o.hue = frac(sin(dot(root.xz, float2(12.9898, 78.233))) * 43758.5453);
@@ -65,10 +70,10 @@ Shader "Braxhorn/OsiedleLiscie"
             float lum = dot(c.rgb, float3(.3, .59, .11));
             float k = lerp(1, lum / max(mean, 1e-4), _Detail);
             float leafy = saturate((c.g - c.r) * 6 + .5);
-            float rec = max(_Recolor, leafy * step(_Recolor, .5) * .9);
+            float rec = max(_Recolor, leafy * step(_Recolor, .5) * .9) * (1 - _NoRecolor);
             fixed3 green = lerp(_Leaf.rgb, _Leaf2.rgb, IN.hue) * lerp(.85, 1.12, frac(IN.hue * 7.13));
             fixed3 col = lerp(c.rgb * _Gain, green * k, rec);
-            o.Albedo = col * lerp(.5, 1, IN.inner);
+            o.Albedo = col * lerp(1 - _InnerDark, 1, IN.inner);
             o.Alpha = c.a;
         }
 

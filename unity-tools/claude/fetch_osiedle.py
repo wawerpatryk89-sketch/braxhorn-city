@@ -38,6 +38,7 @@ TEXTURES = {
     "yellow_flower_mulch": "ściółka rabat",
     "large_grey_tiles": "posadzka komisariatu",
     "painted_plaster_wall": "ściany wnętrz (farba)",
+    "wood_floor": "parkiet w willach na sprzedaż",
 }
 MODELS = [
     "street_lamp_01",       # latarnia parkowa
@@ -51,11 +52,18 @@ MODELS = [
     "drawer_cabinet",
     "office_notepads",
     "standing_chalkboard_01",
+    "dining_table",           # wille na sprzedaż: jadalnia
+    "modern_coffee_table_01", # salon
+    "modern_wooden_cabinet",  # szafka RTV
     "wooden_picnic_table",
-    "grass_bermuda_01",     # kępy trawy przy płotach, drzewach i ścieżkach
+    "grass_bermuda_01",     # kępy trawy przy płotach, drzewach i ścieżkach (po jednym wariancie)
+    "grass_medium_01",
     "grass_medium_02",
-    "flower_gazania",       # kwiaty na rabatach
+    "flower_gazania",       # plamy kwiatów na trawnikach
     "dandelion_01",
+    "flower_empodium",
+    "periwinkle_plant",
+    "flower_ursinia",
 ]
 
 
@@ -154,7 +162,7 @@ def main() -> int:
     font_path = next((p for p in ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
                                   "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf") if pathlib.Path(p).exists()), None)
     (ROOT / "signs").mkdir(parents=True, exist_ok=True)
-    for name, text in {"butik": "BUTIK  NYXA", "shake": "ODŻYWKI · SHAKE BAR", "kawiarnia": "KAWIARNIA", "market": "MARKET 24",
+    for name, text in {"butik": "BUTIK  NYXA", "shake": "SHAKE BAR", "braxhorn": "BRAXHORN KICKBOXING", "nutrition": "BRAXHORN NUTRITION", "sprzedaz": "NA SPRZEDAŻ", "kawiarnia": "KAWIARNIA", "market": "MARKET 24",
                        "kort": "KLUB TENISOWY", "ochrona": "OCHRONA", "policja": "KOMISARIAT POLICJI", "silownia": "SIŁOWNIA PLENEROWA"}.items():
         im = Image.new("RGB", (1024, 256), (34, 37, 40)); dr = ImageDraw.Draw(im)
         dr.rectangle([10, 10, 1013, 245], outline=(176, 150, 104), width=6)
@@ -346,6 +354,21 @@ def main() -> int:
     for k, fn in enumerate([t0, t1, t2, t3, t4, t5, t6, t7]):
         fn((k % 4) * 512, (k // 4) * 512)
     at.save(ROOT / "detail" / "pokoje.png")
+    # Tekstury drzewa z GLB do osobnych plików (Unity skompresuje je; z GLB szłyby bez kompresji, 16 MB).
+    import struct as _st
+    glb = (ROOT / "models" / "drzewo_verdant" / "drzewo_verdant.glb").read_bytes()
+    jl = _st.unpack("<I", glb[12:16])[0]; gj = json.loads(glb[20:20 + jl]); b0 = 20 + jl + 8
+    def _img(tex_index):
+        im = gj["images"][gj["textures"][tex_index]["source"]]; bv = gj["bufferViews"][im["bufferView"]]; o = b0 + bv.get("byteOffset", 0)
+        return glb[o:o + bv["byteLength"]]
+    for m in gj["materials"]:
+        pbr = m.get("pbrMetallicRoughness", {})
+        if m.get("alphaMode") == "MASK":
+            (ROOT / "models" / "drzewo_verdant" / "liscie.png").write_bytes(_img(pbr["baseColorTexture"]["index"]))
+        else:
+            (ROOT / "models" / "drzewo_verdant" / "kora.png").write_bytes(_img(pbr["baseColorTexture"]["index"]))
+            if "normalTexture" in m: (ROOT / "models" / "drzewo_verdant" / "kora_n.png").write_bytes(_img(m["normalTexture"]["index"]))
+    print("TREE TEX OK")
     print("DETAIL OK")
     (ROOT / "osiedle-sources.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
     return 0

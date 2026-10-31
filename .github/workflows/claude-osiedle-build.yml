@@ -70,30 +70,66 @@ jobs:
       - name: Raport rozbudowy
         if: always()
         run: |
-          for f in unity-city/city-review/osiedle-claude.json city-review/osiedle-claude.json; do [ -f "$f" ] && cat "$f"; done || true
+          for f in unity-city/city-review/osiedle-claude.json city-review/osiedle-claude.json unity-city/city-review/osiedle-rozmiary.json city-review/osiedle-rozmiary.json; do [ -f "$f" ] && cat "$f"; done || true
+          du -sb build/WebGL 2>/dev/null || true
       - name: Pakowanie playera
         run: python3 unity-tools/city/package_estate.py
-      - name: Przegladarka do zdjec
-        run: |
-          npm install --no-save --ignore-scripts playwright@1.56.1
-          npx playwright install --with-deps chromium
-      - name: Zdjecia z prawdziwego playera (park, osiedle B, plot, punkty)
-        continue-on-error: true
-        timeout-minutes: 45
-        run: node unity-tools/claude/osiedle_shots.mjs
-      - name: Player i zdjecia do szkicu wydania claude-osiedle-preview
-        if: always()
+      - name: Player do szkicu wydania (zdjęcia robią 3 osobne maszyny równolegle)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           REL=claude-osiedle-preview
           S=${GITHUB_SHA::7}
           mkdir -p osiedle-shots && date > osiedle-shots/build.txt
-          for f in unity-city/city-review/osiedle-claude.json city-review/osiedle-claude.json; do [ -f "$f" ] && cp "$f" osiedle-shots/; done || true
-          (cd osiedle-shots && zip -q -r ../osiedle-shots-$S.zip .)
-          if [ -f unity-preview/index.html ]; then (cd unity-preview && zip -q -r -1 ../osiedle-player-$S.zip .); fi
+          for f in unity-city/city-review/osiedle-claude.json city-review/osiedle-claude.json unity-city/city-review/osiedle-rozmiary.json city-review/osiedle-rozmiary.json; do [ -f "$f" ] && cp "$f" osiedle-shots/; done || true
+          du -sb unity-preview > osiedle-shots/rozmiar-playera.txt 2>/dev/null || true
+          (cd osiedle-shots && zip -q -r ../osiedle-report-$S.zip .)
+          (cd unity-preview && zip -q -r -1 ../osiedle-player-$S.zip .)
           ls -la osiedle-*.zip
           gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
             gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
               --title "Podglad osiedla R2 (Claude, TEST)" --notes "Player Unity 6 osiedla (park + osiedle B) i zdjecia z CI. Nie produkcja."
-          gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber osiedle-*.zip
+          gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber osiedle-player-$S.zip osiedle-report-$S.zip
+  shots:
+    needs: estate
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [0, 1, 2]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-tools/claude
+          persist-credentials: false
+          lfs: false
+      - name: Player z wydania
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          S=${GITHUB_SHA::7}
+          gh release download claude-osiedle-preview --repo "$GITHUB_REPOSITORY" --pattern "osiedle-player-$S.zip" --dir /tmp/p
+          mkdir -p unity-preview && unzip -q /tmp/p/osiedle-player-$S.zip -d unity-preview && ls unity-preview | head
+      - name: Przegladarka do zdjec
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Zdjecia z prawdziwego playera (czesc ${{ matrix.part }} z 3)
+        continue-on-error: true
+        timeout-minutes: 80
+        env:
+          SHOT_PART: ${{ matrix.part }}
+          SHOT_PARTS: 3
+        run: node unity-tools/claude/osiedle_shots.mjs
+      - name: Zdjecia do szkicu wydania
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          S=${GITHUB_SHA::7}
+          mkdir -p osiedle-shots && date > osiedle-shots/part-${{ matrix.part }}.txt
+          (cd osiedle-shots && zip -q -r ../osiedle-shots-$S-part${{ matrix.part }}.zip .)
+          gh release upload claude-osiedle-preview --repo "$GITHUB_REPOSITORY" --clobber osiedle-shots-$S-part${{ matrix.part }}.zip
