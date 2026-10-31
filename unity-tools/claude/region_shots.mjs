@@ -32,6 +32,8 @@ const VIEWS = [
   ['06_nutrition_wnetrze', '20.3,0.2,18,0,12,9'],
   ['06b_nutrition_mural', '20.25,0.2,18,0,6,6'],
   ['02b_worki_z_bliska', '14,0.2,8,90,10,2.5'],
+  ['02c_tatami_judo', '-2,0.2,4,180,28,9'],
+  ['02d_gruszki', '13,0.2,-3,90,10,4'],
   ['03b_elewacja_nutrition', '22,0.2,30,0,22,12'],
   ['07b_elewacja_nad_nova', '44,0.2,28,180,24,12'],
   ['11b_lobby_obraz', '59,0.3,41,180,8,5'],
