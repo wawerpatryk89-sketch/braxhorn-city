@@ -745,6 +745,24 @@ public static class BraxClaudeOsiedle
         rep.notes.Add("remont A: asfalt 11 pól, chodniki " + walks.Count + " pasów, płoty " + Houses.Length + " działek");
     }
 
+    static void Sky()
+    {
+        const string path = "Assets/Source/Claude/Osiedle/sky/niebo_4k.jpg";
+        var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (!imp) { rep.notes.Add("brak nieba " + path); return; }
+        imp.textureShape = TextureImporterShape.Texture2D; imp.sRGBTexture = true; imp.mipmapEnabled = false;
+        imp.wrapModeU = TextureWrapMode.Repeat; imp.wrapModeV = TextureWrapMode.Clamp; imp.maxTextureSize = 4096;
+        imp.textureCompression = TextureImporterCompression.Compressed; imp.SaveAndReimport();
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        var shader = Shader.Find("Skybox/Panoramic"); if (!shader || !tex) { rep.notes.Add("brak shadera Skybox/Panoramic"); return; }
+        var m = new Material(shader) { name = "Osiedle: niebo z chmurami" };
+        m.SetTexture("_MainTex", tex); m.SetFloat("_Mapping", 1); m.SetFloat("_ImageType", 0); m.SetFloat("_Exposure", 1.05f); m.SetFloat("_Rotation", 40f);
+        AssetDatabase.CreateAsset(m, Out + "/niebo.mat");
+        RenderSettings.skybox = m;
+        foreach (var cam in UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None)) cam.clearFlags = CameraClearFlags.Skybox;
+        rep.notes.Add("niebo: Skybox/Panoramic 4K");
+    }
+
     // ---------------- główne ----------------
     public static void Apply()
     {
@@ -772,6 +790,17 @@ public static class BraxClaudeOsiedle
         colliders = new GameObject("kolizje").transform; colliders.SetParent(root, false);
         outdoorSet = Model("outdoor_table_chair_set_01"); bench = Model("painted_wooden_bench"); bin = Model("metal_trash_can");
         picnic = Model("wooden_picnic_table"); planter = Model("planter_box_02");
+
+        // 0) niebo z chmurami zamiast jednolitego tła; trawa osiedla A na fotoskanie (jedna, bez nakładania)
+        Sky();
+        var oldGround = estate.GetComponentsInChildren<MeshRenderer>(true).FirstOrDefault(r => r.name == "EstateMesh_273");
+        if (oldGround && oldGround.bounds.size.x > 200f && oldGround.bounds.max.y < .1f)
+        {
+            oldGround.enabled = false; group = "Podłoże A";
+            for (float z = -103f; z < 101f - .01f; z += 34f) Top(Grass, -116f, 116f, z, Mathf.Min(z + 34f, 101f), -.01f);
+            rep.notes.Add("trawa A: EstateMesh_273 zastąpiona fotoskanem Grass004");
+        }
+        else rep.notes.Add("trawa A: nie znaleziono EstateMesh_273 o oczekiwanym kształcie");
 
         // 1) podłoże nowej części: trawa + fizyczna podłoga
         group = "Podłoże";

@@ -126,6 +126,13 @@ def main() -> int:
     save_set(ROOT / "textures" / "grass004", color, normal, rough, None, ao)
     report["textures"]["grass004"] = "trawniki (ambientCG)"
     print("TEX grass004 OK")
+    # Niebo dzienne z chmurami (to samo co w mieście): Poly Haven kloofendal_48d_partly_cloudy_puresky,
+    # wersja tonemapped JPG przeskalowana do 4096x2048.
+    sky = files("kloofendal_48d_partly_cloudy_puresky")["tonemapped"]["url"]
+    (ROOT / "sky").mkdir(parents=True, exist_ok=True)
+    img(get(sky)).convert("RGB").resize((4096, 2048), Image.LANCZOS).save(ROOT / "sky" / "niebo_4k.jpg", quality=92)
+    report["textures"]["sky"] = "kloofendal_48d_partly_cloudy_puresky (Poly Haven CC0)"
+    print("SKY OK")
     (ROOT / "osiedle-sources.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
     return 0
 
