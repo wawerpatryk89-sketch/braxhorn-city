@@ -13,7 +13,7 @@ public static class BraxClaudeTrees
 {
     const string PH = "Assets/Source/Claude/PolyHaven/models/";
     // Skany Poly Haven (island_tree, jacaranda: 2–17 mln trójkątów) zastąpione drzewem do gry z LOD (raport rozmiaru 0a75e9f).
-    static readonly string[] Species = { "tree_small_02", "drzewo_verdant" };
+    static readonly string[] Species = { "drzewo_verdant" };   // build 5: bez tree_small_02 (118 MB w APK, brak pamięci na telefonie)
 
     [Serializable] sealed class Report { public int removed, planted, trunksRemoved; public List<string> notes = new List<string>(); public List<Vector3> spots = new List<Vector3>(); }
 

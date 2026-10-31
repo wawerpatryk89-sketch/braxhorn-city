@@ -135,7 +135,7 @@ public static class BraxRegionIsland
             if (palms.Count >= 6) break;
         }
         var trees = new List<GameObject>();
-        foreach (var id in new[] { "drzewo_verdant", "tree_small_02" }) { var m = BraxRegion.Model(id); if (m) trees.Add(m); }
+        foreach (var id in new[] { "drzewo_verdant" }) { var m = BraxRegion.Model(id); if (m) trees.Add(m); }
         var shrubs = new List<GameObject>();
         foreach (var id in new[] { "shrub_01", "shrub_02", "shrub_03", "park_shrub" }) { var m = BraxRegion.Model(id); if (m) shrubs.Add(m); }
         var rocks = new List<GameObject>();

@@ -241,6 +241,10 @@ public static class BraxGymBuild
             PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
             PlayerSettings.productName="Braxhorn City";
             EditorUserBuildSettings.buildAppBundle=false;
+            // Build 5 (właściciel 21:34–21:36: gra zamyka się na starcie; raport d260250: 1.1 GB tekstur + 0.6 GB siatek w pamięci naraz):
+            // na telefon wszystkie tekstury maks. 1024 (ekran telefonu i tak nie pokaże 2K z bliska), siatki bez nieużywanych kanałów.
+            EditorUserBuildSettings.overrideMaxTextureSize=1024;
+            PlayerSettings.stripUnusedMeshComponents=true;
             EditorUserBuildSettings.androidBuildSubtarget=MobileTextureSubtarget.ETC2;   // build 5: z powrotem ETC2 jak w działającym APK 5739547 (d260250 z ASTC zamykał się na starcie u właściciela); ASTC wróci po teście na telefonie
             output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/Android"));Directory.CreateDirectory(output);
             location=Path.Combine(output,"braxhorn-city.apk");

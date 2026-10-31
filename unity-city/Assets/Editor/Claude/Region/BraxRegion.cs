@@ -219,7 +219,7 @@ public static class BraxRegion
     /// <summary>Pierwszy istniejący model z listy id (Poly Haven .glb/.gltf lub biblioteka .glb). null = brak.</summary>
     // Drzewa Poly Haven to skany po 2–17 mln trójkątów (pine_tree_01 = 1,2 GB w paczce, raport 0a75e9f).
     // Na telefon: jedno drzewo do gry „drzewo_verdant” (pień + liście w 3 gęstościach, 49k/28k/13k, LOD) — wspólne z osiedlem Opusa.
-    static readonly HashSet<string> HeavyTrees = new HashSet<string> { "pine_tree_01", "fir_tree_01", "island_tree_01", "island_tree_02", "island_tree_03", "jacaranda_tree" };
+    static readonly HashSet<string> HeavyTrees = new HashSet<string> { "pine_tree_01", "fir_tree_01", "island_tree_01", "island_tree_02", "island_tree_03", "jacaranda_tree", "tree_small_02" };   // tree_small_02: 118 MB w APK (raport d260250) — telefon zamykał grę na starcie
     public static GameObject Model(params string[] ids)
     {
         foreach (var rawId in ids)
