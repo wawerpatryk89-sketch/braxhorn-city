@@ -311,6 +311,14 @@ def address_plate(out, street="POZNAŃSKA", number="2", w=1024, h=512):
     f2 = font(FB, 230); tw = d.textlength(number, font=f2); d.text(((w - tw) / 2, 190), number, font=f2, fill=(250, 250, 250))
     img.save(out)
 
+def street_plate(out, name, w=1024, h=256):
+    """Tablica z nazwą ulicy: granat, biała ramka, biały napis (ul. NAZWA)."""
+    img = Image.new("RGB", (w, h), (22, 46, 104)); d = ImageDraw.Draw(img)
+    d.rounded_rectangle([10, 10, w - 11, h - 11], radius=18, outline=(246, 246, 246), width=9)
+    f1 = font(FB, 56); d.text((48, (h - 56) / 2 - 6), "ul.", font=f1, fill=(246, 246, 246))
+    f2, s2 = _fit(d, name, FB, 120, w - 200); tw = d.textlength(name, font=f2); d.text((150 + (w - 190 - tw) / 2, (h - s2) / 2 - 10), name, font=f2, fill=(250, 250, 250))
+    img.save(out)
+
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1]); out.mkdir(parents=True, exist_ok=True)
     speaker(out / "glosnik.png"); amplifier(out / "wzmacniacz.png")
@@ -319,4 +327,4 @@ if __name__ == "__main__":
     bet_board(out / "tablica_zakladow.png"); gold_sign(out / "zaklady.png", "ZAKŁADY"); gold_sign(out / "kasa_zetony.png", "KASA  ·  ŻETONY")
     gold_sign(out / "bar_kasyna.png", "BAR"); print("KASYNO WNĘTRZE OK")
     police_sign(out / "policja_odznaka.png"); hospital_sign(out / "szpital_h.png"); arena_sign(out / "hala_walk.png"); print("SZYLDY BUDYNKÓW OK")
-    octagon_mat(out / "oktagon_mata.png"); octagon_apron(out / "oktagon_fartuch.png"); chain_link(out / "siatka_oktagonu.png"); octagon_banner(out / "baner_oktagon.png"); brand_sign(out / "braxhorn_arena.png"); gold_sign(out / "recepcja_braxhorn.png", "BRAXHORN"); packaging(out / "opakowania.png"); name_plaque(out / "rodzina_wawer.png"); address_plate(out / "poznanska_2.png"); print("OKTAGON OK")
+    octagon_mat(out / "oktagon_mata.png"); octagon_apron(out / "oktagon_fartuch.png"); chain_link(out / "siatka_oktagonu.png"); octagon_banner(out / "baner_oktagon.png"); brand_sign(out / "braxhorn_arena.png"); gold_sign(out / "recepcja_braxhorn.png", "BRAXHORN"); packaging(out / "opakowania.png"); name_plaque(out / "rodzina_wawer.png"); address_plate(out / "poznanska_2.png"); street_plate(out / "ul_poznanska.png", "POZNAŃSKA"); street_plate(out / "ul_wisniowa.png", "WIŚNIOWA"); print("OKTAGON OK")

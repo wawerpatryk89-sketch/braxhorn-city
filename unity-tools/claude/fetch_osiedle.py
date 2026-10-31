@@ -349,7 +349,7 @@ def main() -> int:
     tb5.chain_link(ROOT / "signs" / "siatka_oktagonu.png"); tb5.octagon_banner(ROOT / "signs" / "baner_oktagon.png")
     tb5.brand_sign(ROOT / "signs" / "braxhorn_arena.png"); tb5.gold_sign(ROOT / "signs" / "recepcja_braxhorn.png", "BRAXHORN"); tb5.packaging(ROOT / "signs" / "opakowania.png")
     tb5.gold_sign(ROOT / "signs" / "tur_pod_zamosciem.png", "TUR POD ZAMOŚCIEM", 2048, 384)
-    tb5.name_plaque(ROOT / "signs" / "rodzina_wawer.png"); tb5.address_plate(ROOT / "signs" / "poznanska_2.png")   # dom Wawerów (właściciel 21:00)   # nazwa osiedla (właściciel 31.10, 20:55)
+    tb5.name_plaque(ROOT / "signs" / "rodzina_wawer.png"); tb5.address_plate(ROOT / "signs" / "poznanska_2.png"); tb5.street_plate(ROOT / "signs" / "ul_poznanska.png", "POZNAŃSKA"); tb5.street_plate(ROOT / "signs" / "ul_wisniowa.png", "WIŚNIOWA")   # dom Wawerów (właściciel 21:00)   # nazwa osiedla (właściciel 31.10, 20:55)
     print("TEKSTURY BUILD 5 OK")
     # Źdźbła trawy: atlas 2048x512 = 4 odmiany kępy (świeża, ciemniejsza, z suchszymi końcówkami, gęsta niska).
     import math, random
