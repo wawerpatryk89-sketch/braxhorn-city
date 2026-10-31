@@ -102,6 +102,8 @@ public static class BraxClaudeOsiedle
     static Material GarageDoor => Plain("brama garażowa", new Color(.20f, .21f, .22f), .5f, .4f);
     static Material Paint => Plain("biała farba drogowa", new Color(.93f, .93f, .9f), .3f);
     static Material Water => Plain("woda", new Color(.18f, .42f, .52f), .96f, .1f);
+    static Material Rubber => Plain("nawierzchnia placu zabaw", new Color(.42f, .17f, .13f), .15f);
+    static Material PlayGreen => Plain("zieleń sprzętu zabaw", new Color(.20f, .42f, .26f), .45f, .1f);
     static Material GlassClear
     {
         get
@@ -597,6 +599,35 @@ public static class BraxClaudeOsiedle
             Lamp(new Vector3(AxisX - 3.6f, 0, z), 90);
             if (bench && Put(bench, new Vector3(AxisX + 3.7f, .03f, z + 7f), 270, .03f)) rep.benches++;
         }
+        // plac zabaw (bezpieczna nawierzchnia, huśtawki, wieża z daszkiem, ławeczka)
+        {
+            float px = -72f, pz = -140f;
+            Top(Rubber, px - 7f, px + 7f, pz - 5f, pz + 5f, .035f);
+            foreach (float sx in new[] { -4.2f, -.6f })            // dwie ramy huśtawki (A) + belka
+            {
+                Box(Steel, new Vector3(px + sx, 1.25f, pz - 2.6f), new Vector3(.1f, 2.5f, .1f)); Box(Steel, new Vector3(px + sx, 1.25f, pz - 1.4f), new Vector3(.1f, 2.5f, .1f));
+            }
+            Box(Steel, new Vector3(px - 2.4f, 2.48f, pz - 2f), new Vector3(3.8f, .12f, .12f), false);
+            foreach (float sx in new[] { -3.3f, -1.5f })
+            {
+                Box(Steel, new Vector3(px + sx - .25f, 1.6f, pz - 2f), new Vector3(.02f, 1.7f, .02f), false); Box(Steel, new Vector3(px + sx + .25f, 1.6f, pz - 2f), new Vector3(.02f, 1.7f, .02f), false);
+                Box(PlayGreen, new Vector3(px + sx, .72f, pz - 2f), new Vector3(.6f, .06f, .25f), false);
+            }
+            foreach (float tx in new[] { 2.2f, 4.2f }) foreach (float tz in new[] { -1.2f, .8f }) Box(Deck, new Vector3(px + tx, 1.5f, pz + tz), new Vector3(.14f, 3f, .14f));
+            Box(Deck, new Vector3(px + 3.2f, 1.2f, pz - .2f), new Vector3(2.2f, .12f, 2.2f), false);
+            Box(PlayGreen, new Vector3(px + 3.2f, 3.05f, pz - .2f), new Vector3(2.5f, .1f, 2.5f), false);
+            Box(PlayGreen, new Vector3(px + 3.2f, .6f, pz + 1.6f), new Vector3(.7f, .06f, 2.0f), false);     // ześlizg (prosty)
+            if (bench) { Put(bench, new Vector3(px - 1f, .035f, pz + 4.2f), 180, .03f); rep.benches++; }
+        }
+        // pergola nad aleją przy placu (drewno, bez pnączy)
+        foreach (float gx in new[] { AxisX - 26f, AxisX + 16f })
+        {
+            for (float x = gx; x <= gx + 10f; x += 2.5f) foreach (float side in new[] { -2.3f, 2.3f }) Box(Deck, new Vector3(x, 1.35f, zc + side), new Vector3(.18f, 2.7f, .18f));
+            foreach (float side in new[] { -2.3f, 2.3f }) Box(Deck, new Vector3(gx + 5f, 2.78f, zc + side), new Vector3(10.6f, .16f, .2f), false);
+            for (float x = gx - .2f; x <= gx + 10.2f; x += .6f) Box(Deck, new Vector3(x, 2.92f, zc), new Vector3(.08f, .12f, 5.4f), false);
+        }
+        // donice z kwiatami wokół placu z fontanną
+        if (planter) for (int k = 0; k < 6; k++) { float a = k * 60f * Mathf.Deg2Rad; Put(planter, new Vector3(AxisX + Mathf.Cos(a) * 5.3f, .046f, zc + Mathf.Sin(a) * 5.3f), k * 60f + 90f, .03f, false); }
         // stoły piknikowe na trawnikach
         foreach (var p in new[] { new Vector2(-80, -114), new Vector2(-60, -139), new Vector2(40, -113), new Vector2(75, -138) })
             if (picnic && Put(picnic, new Vector3(p.x, 0, p.y), 15f, .03f)) rep.tables++;
