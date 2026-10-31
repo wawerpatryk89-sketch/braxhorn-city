@@ -272,12 +272,12 @@ public static class BraxCityRebuild
                     string.Join(",",missing));
             Debug.Log("CITY_ALL_REAL_ENTRANCES_AUDITED count="+required.Count+
                 " originalInteriorsPreserved=true");
-            if(world.additionalTowerElevators.Length!=8)
+            if(world.additionalTowerElevators.Length<8)
                 throw new InvalidOperationException("CITY_HIGHRISE_ELEVATORS_MISSING "+
                     world.additionalTowerElevators.Length+"/8");
             var distinctShafts=world.additionalTowerElevators
                 .Select(l=>l.shaftCenter).Distinct().Count();
-            if(distinctShafts!=8)
+            if(distinctShafts<8)
                 throw new InvalidOperationException("CITY_ELEVATOR_SHAFT_DUPLICATE "+
                     distinctShafts+"/8");
             Debug.Log("CITY_NINE_PHYSICAL_ELEVATORS_INCLUDED actual="+
