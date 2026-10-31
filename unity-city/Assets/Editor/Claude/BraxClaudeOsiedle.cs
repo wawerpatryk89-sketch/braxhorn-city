@@ -32,7 +32,7 @@ public static class BraxClaudeOsiedle
     [Serializable] sealed class Report
     {
         public string status = "NIE URUCHOMIONO", error = "";
-        public int villas, pools, parkTrees, plotTrees, shrubs, benches, lamps, bins, tables, oldFenceTrianglesRemoved,
+        public int ballTreesReplaced, villas, pools, parkTrees, plotTrees, shrubs, benches, lamps, bins, tables, oldFenceTrianglesRemoved,
                    oldFenceCollidersDisabled, meshes, triangles, materials, points;
         public List<string> notes = new List<string>();
     }
@@ -80,12 +80,12 @@ public static class BraxClaudeOsiedle
     }
     static string Safe(string s) => new string(s.Select(ch => char.IsLetterOrDigit(ch) ? ch : '_').ToArray());
 
-    static Material Asphalt => Pbr("jezdnia asfalt", "asphalt_02", 4f, new Color(.78f, .78f, .80f), .9f);
-    static Material Pavers => Pbr("chodnik kostka", "concrete_pavers_02", 2.2f, new Color(1.05f, 1.05f, 1.05f));
+    static Material Asphalt => Pbr("jezdnia asfalt", "asphalt_04", 3.5f, new Color(.50f, .51f, .53f), .9f);
+    static Material Pavers => Pbr("chodnik płyty", "concrete_pavement_02", 1.6f, new Color(.93f, .93f, .94f));
     static Material KerbStone => Pbr("krawężnik granit", "concrete_pavement_02", 1.2f, new Color(.92f, .92f, .93f));
     static Material Slabs => Pbr("płyty ścieżek", "concrete_pavement_02", 2.4f, new Color(1.06f, 1.05f, 1.02f));
     static Material Herring => Pbr("podjazd jodełka", "herringbone_brick_02", 2.4f, new Color(1f, 1f, 1f));
-    static Material ParkPath => Pbr("aleja parku", "concrete_pavers_03", 3f, new Color(1.02f, 1f, .97f));
+    static Material ParkPath => Pbr("aleja parku", "concrete_pavers_03", 3f, new Color(.92f, .9f, .88f));
     static Material Stucco => Pbr("tynk biały", "white_stucco_02", 2.5f, new Color(1.04f, 1.04f, 1.02f));
     static Material StuccoWarm => Pbr("tynk ciepły", "white_stucco_02", 2.5f, new Color(.98f, .93f, .86f));
     static Material Wood => Pbr("deska elewacyjna", "weathered_planks", 2.4f, new Color(.95f, .80f, .64f), .8f);
@@ -255,6 +255,7 @@ public static class BraxClaudeOsiedle
     static GameObject Model(string id)
     {
         var p = Mdl + id + "/" + id + ".gltf";
+        if (!File.Exists(p)) p = Mdl + id + "/" + id + ".glb";
         if (!File.Exists(p)) { rep.notes.Add("brak modelu " + id); return null; }
         AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceSynchronousImport);
         var go = AssetDatabase.LoadAssetAtPath<GameObject>(p) ?? AssetDatabase.LoadAllAssetsAtPath(p).OfType<GameObject>().FirstOrDefault();
@@ -286,32 +287,35 @@ public static class BraxClaudeOsiedle
     // Prawdziwe drzewa i krzewy z paczki Verdant, które już są w scenie osiedla (te same siatki,
     // co w remoncie R2): kopie bez nowej geometrii w pamięci.
     static Dictionary<string, MeshRenderer> verdant;
-    static GameObject Tree(Vector3 at, float height, float yaw)
+    // Drzewo do gry: pień + liście Verdant w 3 gęstościach (49k / 28k / 13k trójkątów zamiast 175k),
+    // ten sam wygląd korony; LOD zmienia gęstość liści z odległością.
+    static GameObject treeSrc; static bool treeTried;
+    static GameObject Tree(Vector3 at, float height, float yaw, bool trunkCollider = true)
     {
-        string[] near = { "EstateMesh_439", "EstateMesh_446", "EstateMesh_453", "EstateMesh_460" }, far = { "EstateMesh_439", "EstateMesh_453" };
-        if (near.Any(nm => !verdant.ContainsKey(nm))) return null;
-        var t = new GameObject("Drzewo (Verdant)"); t.transform.SetParent(Group(group), false);
-        MeshRenderer Part(string nm, string label)
-        {
-            var src = verdant[nm]; var o = new GameObject(label); o.transform.SetParent(t.transform, false);
-            o.transform.localPosition = src.transform.position; o.transform.localRotation = src.transform.rotation; o.transform.localScale = src.transform.lossyScale;
-            o.AddComponent<MeshFilter>().sharedMesh = src.GetComponent<MeshFilter>().sharedMesh;
-            var r = o.AddComponent<MeshRenderer>(); r.sharedMaterials = src.sharedMaterials; return r;
-        }
-        var nr = near.Select(nm => Part(nm, "blisko " + nm)).ToArray();
-        var fr = far.Select(nm => Part(nm, "daleko " + nm)).ToArray();
-        foreach (var r in nr) r.shadowCastingMode = r.name.EndsWith("439") ? ShadowCastingMode.On : ShadowCastingMode.Off;
-        foreach (var r in fr) r.shadowCastingMode = ShadowCastingMode.Off;
-        var b = nr[0].bounds; foreach (var r in nr.Skip(1)) b.Encapsulate(r.bounds);
-        float s = height / Mathf.Max(.5f, b.size.y);
-        // skala i obrót wokół podstawy pnia
+        if (!treeTried) { treeTried = true; treeSrc = Model("drzewo_verdant"); if (!treeSrc) rep.notes.Add("brak drzewo_verdant.glb"); }
+        if (!treeSrc) return null;
+        var t = (GameObject)UnityEngine.Object.Instantiate(treeSrc, Group(group), false); t.name = "Drzewo (Verdant, LOD)";
+        t.transform.position = Vector3.zero; t.transform.localScale = Vector3.one;
+        Renderer R(string nm) => t.GetComponentsInChildren<Renderer>(true).FirstOrDefault(r => r.name == nm);
+        Renderer pien = R("pien"), l0 = R("liscie_0"), l1 = R("liscie_1"), l2 = R("liscie_2");
+        if (!pien || !l0) { UnityEngine.Object.DestroyImmediate(t); rep.notes.Add("drzewo_verdant: brak węzłów pien/liscie"); treeSrc = null; return null; }
+        var all = new[] { pien, l0, l1, l2 }.Where(r => r).ToArray();
+        var b = pien.bounds; foreach (var r in all) b.Encapsulate(r.bounds);
         var pivot = new Vector3(b.center.x, b.min.y, b.center.z);
-        foreach (Transform c in t.transform) { c.localPosition -= pivot; }
-        t.transform.localScale = Vector3.one * s; t.transform.rotation = Quaternion.Euler(0, yaw, 0);
+        foreach (Transform c in t.transform) c.position -= pivot;
+        t.transform.localScale = Vector3.one * (height / Mathf.Max(.5f, b.size.y));
+        t.transform.rotation = Quaternion.Euler(0, yaw, 0) * t.transform.rotation;
         t.transform.position = at;
-        var lod = t.AddComponent<LODGroup>(); lod.SetLODs(new[] { new LOD(.22f, nr), new LOD(.06f, fr) }); lod.RecalculateBounds();
-        var trunk = new GameObject("pień kolizja"); trunk.transform.SetParent(colliders, false); trunk.transform.position = at + Vector3.up * 1.4f;
-        var cap = trunk.AddComponent<CapsuleCollider>(); cap.radius = .3f; cap.height = 2.8f;
+        pien.shadowCastingMode = ShadowCastingMode.On; l0.shadowCastingMode = ShadowCastingMode.On;
+        if (l1) l1.shadowCastingMode = ShadowCastingMode.Off; if (l2) l2.shadowCastingMode = ShadowCastingMode.Off;
+        var lod = t.AddComponent<LODGroup>();
+        lod.SetLODs(new[] { new LOD(.25f, new[] { pien, l0 }), new LOD(.10f, new[] { pien, l1 ? l1 : l0 }), new LOD(.03f, new[] { pien, l2 ? l2 : (l1 ? l1 : l0) }) });
+        lod.RecalculateBounds();
+        if (trunkCollider)
+        {
+            var trunk = new GameObject("pień kolizja"); trunk.transform.SetParent(colliders, false); trunk.transform.position = at + Vector3.up * 1.4f;
+            var cap = trunk.AddComponent<CapsuleCollider>(); cap.radius = .3f; cap.height = 2.8f;
+        }
         return t;
     }
     static GameObject Shrub(Vector3 at, float scale, float yaw)
@@ -428,7 +432,7 @@ public static class BraxClaudeOsiedle
     }
 
     // ---------------- willa ----------------
-    static GameObject outdoorSet, bench, bin, picnic, planter;
+    static GameObject outdoorSet, bench, bin, picnic, planter; static int binTurn;
     static void Villa(int index, float u0, float u1, float front, float dir)
     {
         group = "Osiedle B / willa " + (index + 1);
@@ -497,6 +501,10 @@ public static class BraxClaudeOsiedle
         for (int k = 0; k < rear; k++) { float a = h0 + 1f + k * (Wm - 2f) / rear + .1f, b = h0 + 1f + (k + 1) * (Wm - 2f) / rear - .1f; Pane(a, b, .3f, 3.0f, f1, 1); }
         // piętro: wstęga okien z przodu, dwa okna z tyłu, boczne
         Pane(uA + .8f, uB - .8f, 4.1f, 6.15f, e0, -1);
+        int mull = Mathf.Max(1, Mathf.RoundToInt((uw - 1.6f) / 1.7f));
+        for (int k = 1; k < mull; k++) { float a = uA + .8f + k * (uw - 1.6f) / mull; BoxL(Frame, a - .035f, a + .035f, 4.1f, 6.15f, e0 - .05f, e0 + .01f, false); }
+        if (planter) { Put(planter, new Vector3(U(h1 - 1.4f), 3.46f, Z(f0 + 1.0f)), mirror ? 270 : 90, .03f, false); Put(planter, new Vector3(U(door1 + .7f), 0, Z(f0 - .6f)), 0, .03f, false); }
+        foreach (float a in new[] { door0 - .35f, door1 + .35f }) BoxL(Frame, a - .07f, a + .07f, 2.05f, 2.35f, f0 - .12f, f0, false);
         Pane(uA + .9f, uA + uw * .45f, 4.1f, 6.15f, e1, 1); Pane(uA + uw * .55f, uB - .9f, 4.1f, 6.15f, e1, 1);
         // tarasy i basen
         BoxL(Deck, h0, h1, 0, .18f, f1, f1 + 4.2f);
@@ -566,7 +574,7 @@ public static class BraxClaudeOsiedle
             bool northSide = ((int)((x - X0) / 18f)) % 2 == 0;
             if (bench && Put(bench, new Vector3(x, .03f, zc + (northSide ? 3.1f : -3.1f)), northSide ? 180 : 0, .03f)) rep.benches++;
             Lamp(new Vector3(x + 9f, 0, zc + (northSide ? -2.6f : 2.6f)), northSide ? 0 : 180);
-            if (bin && ((int)x) % 3 == 0 && Put(bin, new Vector3(x + 1.6f, .03f, zc + (northSide ? 3.2f : -3.2f)), 0, .02f)) rep.bins++;
+            if (bin && (++binTurn) % 2 == 0 && Put(bin, new Vector3(x + 1.6f, .03f, zc + (northSide ? 3.2f : -3.2f)), 0, .02f)) rep.bins++;
         }
         for (float z = z0 + 6f; z < z1 - 4f; z += 14f)
         {
@@ -579,13 +587,13 @@ public static class BraxClaudeOsiedle
             if (picnic && Put(picnic, new Vector3(p.x, 0, p.y), 15f, .03f)) rep.tables++;
         // aleje drzew: wzdłuż alei W-E i N-S, kilka grup na trawnikach
         var rnd = new System.Random(2031);
-        for (float x = X0 + 10f; x < X1 - 6f; x += 16f)
+        for (float x = X0 + 10f; x < X1 - 6f; x += 22f)
         {
             if (Mathf.Abs(x - AxisX) < 16f) continue;
             foreach (float side in new[] { -1f, 1f })
                 if (Tree(new Vector3(x + (float)rnd.NextDouble() * 2f, 0, zc + side * 6.2f), 7f + (float)rnd.NextDouble() * 2.2f, rnd.Next(360))) rep.parkTrees++;
         }
-        for (float z = z0 + 6f; z < z1 - 3f; z += 12f)
+        for (float z = z0 + 6f; z < z1 - 3f; z += 15f)
         {
             if (Mathf.Abs(z - zc) < 13f) continue;
             foreach (float side in new[] { -1f, 1f })
@@ -681,6 +689,22 @@ public static class BraxClaudeOsiedle
             vols.Add(MinMax(fxu - .25f, fxu + .25f, -.005f, 1.45f, h.z - h.hd - .1f, h.z + h.hd + .1f));
         }
         CutVolumes(estate, physics, vols);
+
+        // 1b) „kulkowe” drzewa (zielone sfery na brązowym walcu) -> drzewo Verdant w tym samym miejscu.
+        //     Kolizja pnia zostaje oryginalna (okrągły collider w fizyce osiedla).
+        var rends = estate.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.enabled && r.sharedMaterial).ToArray();
+        bool Mat(MeshRenderer r, string n) => r.sharedMaterial.name.Replace(" (Instance)", "") == n;
+        var trunks = rends.Where(r => Mat(r, "estate_lit_1") && r.bounds.size.x < .7f && r.bounds.size.z < .7f && r.bounds.size.y > 2.5f && r.bounds.size.y < 8f).ToList();
+        var crowns = rends.Where(r => (Mat(r, "estate_lit_2") || Mat(r, "estate_lit_3")) && Mathf.Max(r.bounds.size.x, r.bounds.size.y, r.bounds.size.z) < 5f && r.bounds.min.y > .8f).ToList();
+        group = "Osiedle A / drzewa zamiast kulek";
+        foreach (var tr in trunks)
+        {
+            var c = tr.bounds.center; var mine = crowns.Where(k => Mathf.Abs(k.bounds.center.x - c.x) < 2.2f && Mathf.Abs(k.bounds.center.z - c.z) < 2.2f).ToList();
+            if (mine.Count == 0) continue;
+            float top = mine.Max(k => k.bounds.max.y);
+            foreach (var k in mine) k.enabled = false; tr.enabled = false;
+            if (Tree(new Vector3(c.x, 0, c.z), Mathf.Clamp(top * 1.15f, 6.5f, 10f), (c.x * 37f + c.z * 11f) % 360f, false)) rep.ballTreesReplaced++;
+        }
 
         // 2) nowe ogrodzenie obwodowe (kamień + stal) i płoty działek
         group = "Osiedle A / ogrodzenie";

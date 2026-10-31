@@ -20,7 +20,7 @@ UA = {"User-Agent": "BraxhornCity-UnityBuild/1.0 (github.com/wawerpatryk89-sketc
 ROOT = pathlib.Path("unity-city/Assets/Source/Claude/Osiedle")
 
 TEXTURES = {
-    "asphalt_02": "jezdnia",
+    "asphalt_04": "jezdnia (gładki, ciemny asfalt osiedlowy)",
     "concrete_pavers_02": "chodniki",
     "concrete_pavement_02": "krawężniki, płyty ścieżek, obrzeże basenu",
     "herringbone_brick_02": "podjazdy",
