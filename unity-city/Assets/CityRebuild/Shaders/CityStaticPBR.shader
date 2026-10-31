@@ -61,6 +61,9 @@ Shader "Braxhorn/CityStaticPBR"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
+            // Lampy wnętrz: światła punktowe w trybie ForceVertex trafiają do 4 slotów
+            // unity_4LightPos*; liczymy je tu PER PIKSEL (bez dodatkowych przebiegów ForwardAdd).
+            #pragma multi_compile _ VERTEXLIGHT_ON
             #include "UnityCG.cginc"
 
             sampler2D _MainTex, _BumpMap, _ARM, _OcclusionMap, _EmissionMap;
@@ -206,6 +209,30 @@ Shader "Braxhorn/CityStaticPBR"
                 half3 sky = WorkingColour(_SkyColor.rgb), ground = WorkingColour(_GroundColor.rgb);
                 half3 ambient = lerp(ground,sky,n.y*.5+.5) * _AmbientIntensity;
                 half3 colour = direct + albedo*(1-metallic)*ambient*ambientAO;
+                #ifdef VERTEXLIGHT_ON
+                // Lampy wnętrz (hol, klub, pawilon, metro): do 4 świateł punktowych na obiekt,
+                // ten sam BRDF co słońce, tłumienie Unity (atten0 = 25/zasięg²) z miękkim końcem.
+                [unroll]
+                for (int li = 0; li < 4; li++)
+                {
+                    float3 lampPos = float3(unity_4LightPosX0[li], unity_4LightPosY0[li], unity_4LightPosZ0[li]);
+                    float3 toLamp = lampPos - i.worldPos;
+                    float d2 = max(dot(toLamp, toLamp), 1e-4);
+                    float3 ld = toLamp * rsqrt(d2);
+                    float r2 = d2 * unity_4LightAtten0[li] / 25.0;
+                    float att = saturate(1.0 - r2 * r2) / (1.0 + d2 * unity_4LightAtten0[li]);
+                    half nlL = saturate(dot(n, ld));
+                    half3 hL = normalize(view + ld);
+                    half nhL = saturate(dot(n, hL)), vhL = saturate(dot(view, hL));
+                    half3 fL = f0 + (1-f0) * Pow5(1-vhL);
+                    float denomL = nhL*nhL*(a2-1)+1;
+                    float distL = a2 / max(UNITY_PI*denomL*denomL, 1e-6);
+                    float geomL = (nv/(nv*(1-k)+k)) * (nlL/(nlL*(1-k)+k));
+                    half3 specL = fL * (distL*geomL/max(4*nv*nlL,.001));
+                    half3 diffL = (1-fL)*(1-metallic)*albedo/UNITY_PI;
+                    colour += (diffL+specL) * WorkingColour(unity_LightColor[li].rgb) * (UNITY_PI*att*nlL) * textureAO;
+                }
+                #endif
                 // Broad, roughness-filtered sky/ground reflection; no camera render,
                 // screen-space reflection, real-time probe, or extra light is involved.
                 half3 reflected = reflect(-view,n);

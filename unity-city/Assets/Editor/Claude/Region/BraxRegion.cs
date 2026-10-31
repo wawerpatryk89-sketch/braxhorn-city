@@ -40,23 +40,44 @@ public static class BraxRegion
         if (!Enabled) return;
         Rep = new Report();
         Rnd = new System.Random(20261030);
+        cityMaterials.Clear(); converted = 0; keptForeign = 0;
         Directory.CreateDirectory(Out);
         Directory.CreateDirectory(Out + "/Materials");
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         Physics.SyncTransforms();
 
+        // Najpierw morze: stara łąka i las znad wody (jachty „w trawie”), zanim zieleń szuka trawników.
+        Step("morze bez łąki i lasu nad wodą", () => BraxRegionSea.Apply(root));
         Step("pawilon sportowy (szatnia + sala walk)", () => BraxRegionPavilion.Apply(world, root));
         Step("taras wieżowca: kwiaty i rośliny", () => BraxRegionTerrace.Apply(root));
         Step("wnętrza: Nutrition i NOVA", () => BraxRegionInteriors.Apply(root));
         Step("zieleń naturalna i mała architektura", () => BraxRegionVegetation.Apply(root));
+        // Lampy wnętrz: CityStaticPBR liczy światła punktowe tylko ze slotów „vertex light” (ForceVertex).
+        Step("lampy wnętrz w trybie ForceVertex", () => InteriorLights(root));
         // Na końcu: przesunięcie głębi dla wszystkiego, co dobudowane (anty-migotanie).
         Step("anty-migotanie (offset głębi, trilinear)", () => BraxRegionFlicker.Apply(root));
 
         // Siatki zrobione po BraxCityArchitecture.Finish nie mają plików: zapisujemy je, żeby build był deterministyczny.
         Step("utrwalenie siatek", () => PersistMeshes(root));
+        Note("materiały modeli → CityStaticPBR: " + converted + ", bez konwersji: " + keptForeign);
         Rep.status = "BUILT";
         File.WriteAllText(Out + "/region.json", JsonUtility.ToJson(Rep, true));
         Debug.Log("BRAXHORN_CLAUDE_REGION " + JsonUtility.ToJson(Rep));
+    }
+
+    // Wszystkie światła punktowe/stożkowe pod korzeniem renowacji (hol wieżowca, metro, NOVA, pawilon, sklep)
+    // na ForceVertex: wtedy trafiają do unity_4LightPos* i CityStaticPBR liczy je per piksel.
+    static void InteriorLights(Transform root)
+    {
+        int n = 0;
+        foreach (var l in root.GetComponentsInChildren<Light>(true))
+        {
+            if (l.type != LightType.Point && l.type != LightType.Spot) continue;
+            l.renderMode = LightRenderMode.ForceVertex;
+            l.shadows = LightShadows.None;
+            n++;
+        }
+        Note("lampy wnętrz (ForceVertex): " + n);
     }
 
     static void PersistMeshes(Transform root)
@@ -171,6 +192,26 @@ public static class BraxRegion
         return null;
     }
 
+    // Materiały z importu glTFast (Poly Haven, biblioteka) → CityStaticPBR: to samo słońce, ambient,
+    // maska alfa (liście, kwiaty) i dwustronność co reszta miasta. Build 62be06c: kwiaty i trawy
+    // z shaderem glTFast były czarnymi plamami. Nieznany materiał zostaje bez zmian.
+    static readonly Dictionary<Material, Material> cityMaterials = new Dictionary<Material, Material>();
+    static int converted, keptForeign;
+    public static Material CityMaterial(Material m)
+    {
+        if (!m) return m;
+        Material c;
+        if (cityMaterials.TryGetValue(m, out c)) return c;
+        try { c = BraxCityMaterials.Imported(m); converted++; }
+        catch (Exception e)
+        {
+            c = m; keptForeign++;
+            if (keptForeign <= 8) Note("materiał bez konwersji: " + m.name + " (" + (m.shader ? m.shader.name : "?") + "): " + e.Message);
+        }
+        cityMaterials[m] = c;
+        return c;
+    }
+
     public static Bounds Bounds(GameObject go)
     {
         var rs = go.GetComponentsInChildren<Renderer>(true);
@@ -200,6 +241,7 @@ public static class BraxRegion
         {
             r.shadowCastingMode = ShadowCastingMode.On;
             r.receiveShadows = true;
+            r.sharedMaterials = r.sharedMaterials.Select(CityMaterial).ToArray();
         }
         if (solid)
         {
@@ -227,7 +269,7 @@ public static class BraxRegion
         l.intensity = intensity;
         l.range = range;
         l.shadows = LightShadows.None;
-        l.renderMode = LightRenderMode.ForcePixel;
+        l.renderMode = LightRenderMode.ForceVertex;   // CityStaticPBR: sloty vertex light liczone per piksel
         return l;
     }
 
