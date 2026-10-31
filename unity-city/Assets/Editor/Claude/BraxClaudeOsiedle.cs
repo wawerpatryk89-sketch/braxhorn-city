@@ -3441,7 +3441,7 @@ public static class BraxClaudeOsiedle
         foreach (var h in Houses)
         {
             float xu = -h.x, fxu = -(h.x < 0 ? h.x + 11.5f : h.x - 11.5f);
-            FenceZ(h.z - h.hd, h.z + h.hd, fxu, 1.45f, (h.z - 1.8f, h.z + 1.8f));
+            if (!(h.x == 28 && h.z == 59)) FenceZ(h.z - h.hd, h.z + h.hd, fxu, 1.45f, (h.z - 1.8f, h.z + 1.8f));   // dom-08 = dom Wawerów: własny płot (WawerHouse)
             WoodFenceX(xu - 11.5f, xu + 11.5f, h.z - h.hd); WoodFenceX(xu - 11.5f, xu + 11.5f, h.z + h.hd);
             TuftLine(new Vector3(xu - 11f, 0, h.z - h.hd), new Vector3(xu + 11f, 0, h.z - h.hd), 3.4f, 1f);
             TuftLine(new Vector3(xu - 11f, 0, h.z + h.hd), new Vector3(xu + 11f, 0, h.z + h.hd), 3.4f, -1f);
@@ -3596,6 +3596,7 @@ public static class BraxClaudeOsiedle
             float bx0 = fxu + inward * .7f, bx1 = fxu + inward * 1.9f;
             foreach (var (za, zb) in new[] { (h.z - h.hd + .9f, h.z - 2.9f), (h.z + 2.9f, h.z + h.hd - .9f) })
             {
+                if (h.x == 28 && h.z == 59) break;                                  // dom Wawerów: przy płocie szpaler tuj (WawerHouse)
                 float xa = Mathf.Min(bx0, bx1), xb = Mathf.Max(bx0, bx1);
                 if (zb - za > 2f && Free(xa + .6f, za + .3f, .25f) && Free(xb - .6f, zb - .3f, .25f) && Free((xa + xb) * .5f, (za + zb) * .5f, .3f))
                     FlowerBed(xa, xb, za, zb, (int)(h.z * 10 + za), 0, 2, 1);
@@ -4130,6 +4131,166 @@ public static class BraxClaudeOsiedle
         BoxMinMax(black, 84.7f, 85.3f, H + .2f, H + .55f, -68.52f, -68.48f, false, true);
         BoxMinMax(black, 86.0f, 86.14f, H + .05f, H + .1f, -68.62f, -68.45f, false);
         rep.notes.Add("siłownia A: nowa recepcja (zaokrąglona, orzech + lamele, blat kwarc, logo BRAXHORN) przy wejściu, stara lada usunięta");
+    }
+
+    // Iglak z kart liści drzewa (te same karty co krzewy, ciemna zieleń igliwia): tuja kolumnowa (jedna bryła wąska i wysoka)
+    // albo świerk (3 coraz węższe piętra korony + pień). Bez nowych modeli (iglaki Poly Haven mają miliony trójkątów).
+    static void Conifer(Vector3 at, float height, float width, bool spruce, float yaw)
+    {
+        if (!bushMesh) { var tmp = Bush(at, 1f, 0f); if (tmp) { UnityEngine.Object.DestroyImmediate(tmp); rep.bushes--; } }   // ładuje siatkę i liście
+        if (!bushMesh || !mats.TryGetValue("drzewa", out var leafSrc)) return;
+        if (!mats.TryGetValue("iglaki", out var have))
+        {
+            var needles = new Material(leafSrc) { name = "Osiedle: iglaki (tuje, świerk)" };
+            foreach (var pn in new[] { "_Leaf", "_Leaf2", "_Color" })
+                if (needles.HasProperty(pn)) needles.SetColor(pn, needles.GetColor(pn) * new Color(.52f, .66f, .58f));
+            AssetDatabase.CreateAsset(needles, Out + "/iglaki.mat"); mats["iglaki"] = needles; have = needles;
+        }
+        var root = new GameObject(spruce ? "Świerk" : "Tuja"); root.transform.SetParent(Group(group), false);
+        var mb = bushMesh.bounds; var rs = new List<Renderer>();
+        void Layer(float y0, float h, float w)
+        {
+            var o = new GameObject("igliwie"); o.transform.SetParent(root.transform, false);
+            o.AddComponent<MeshFilter>().sharedMesh = bushMesh;
+            var r = o.AddComponent<MeshRenderer>(); r.sharedMaterial = have; r.shadowCastingMode = ShadowCastingMode.On; rs.Add(r);
+            float sx = w / Mathf.Max(.3f, Mathf.Max(mb.size.x, mb.size.z)), sy = h / Mathf.Max(.3f, mb.size.y);
+            o.transform.localScale = new Vector3(sx, sy, sx);
+            o.transform.localPosition = new Vector3(-mb.center.x * sx, y0 - mb.min.y * sy, -mb.center.z * sx);
+        }
+        if (spruce)
+        {
+            Cylinder(Plain("pień świerka", new Color(.22f, .15f, .10f), .2f), at, .16f, 1.2f, 10, false, false);
+            Layer(.5f, height * .45f, width); Layer(height * .32f, height * .4f, width * .7f); Layer(height * .6f, height * .4f, width * .42f);
+        }
+        else Layer(0f, height, width);
+        root.transform.position = at; root.transform.rotation = Quaternion.Euler(0, yaw, 0);
+        var lod = root.AddComponent<LODGroup>(); lod.SetLODs(new[] { new LOD(.02f, rs.ToArray()) }); lod.RecalculateBounds();
+        Hard(at.x - width * .4f, at.x + width * .4f, at.z - width * .4f, at.z + width * .4f);
+        if (spruce) treeSpots.Add(new Vector3(at.x, height, at.z));
+        rep.bushes++;
+    }
+
+    // Dom rodziny Wawerów (właściciel 31.10, 20:59: „to jest mój dom… zbudujesz podobny na osiedlu i płot i rośliny?”,
+    // 21:00: „Rodzina Wawer”; zrzuty Street View, sierpień 2025). Na działce dom-08 (Codex: three.js (28, 59) → Unity x −39.5…−16.5,
+    // z 49…69, front od ulicy głównej na x −16.5) — naprzeciw nowej willi, pierwsze domy za tunelem. Stary dom Codexa wycięty.
+    // Ze zdjęć: parter + poddasze (wysoka ścianka kolankowa, małe okna pod okapem — właściciel 21:03: „nie piętrowy”), plan 10 × 14 m, tynk brzoskwiniowy, szary cokół, dach czterospadowy z czerwonej
+    // blachodachówki (25°) z okapem, brązowe rynny i rury spustowe, komin z cegły; od ulicy ganek z czerwonym daszkiem
+    // dwuspadowym na drewnianych słupkach, brązowe drzwi, markiza nad oknem z prawej, małe okna piętra z brązowymi okiennicami.
+    // Płot: jasne słupy z daszkami co ~2.8 m, między nimi czarne przęsła z pionowych prętów na niskiej podmurówce, brama
+    // dwuskrzydłowa (otwarta). Rośliny: szpaler tuj przy płocie, duże tuje przy domu, świerk przed gankiem, drzewa za domem.
+    // Tabliczka RODZINA WAWER przy bramie i obok drzwi, numer POZNAŃSKA 2 na elewacji. Wnętrza brak (drzwi zamknięte).
+    static void WawerHouse(Transform estate, Transform physics)
+    {
+        group = "Osiedle A / dom rodziny Wawerów (Poznańska 2)";
+        var plot = MinMax(-39.2f, -17.9f, .05f, 14f, 49.6f, 68.4f);
+        CutVolumes(estate, physics, new List<Bounds> { plot, MinMax(-15.95f, -15.05f, -.02f, 2.2f, 56.5f, 57.3f) });   // dom Codexa + słupek z numerem
+        if (physics)
+            foreach (var col in physics.GetComponentsInChildren<Collider>(true))
+            {
+                var cb = col.bounds; var e = plot; e.Expand(new Vector3(.4f, 1f, .4f));
+                if (col.enabled && e.Contains(cb.min) && e.Contains(cb.max)) col.enabled = false;
+            }
+        var peach = Pbr("tynk brzoskwiniowy (dom Wawerów)", "white_stucco_02", 2.5f, new Color(.96f, .79f, .64f));
+        var roof = Pbr("blachodachówka czerwona", "clay_roof_tiles_02", 2.2f, new Color(.86f, .36f, .25f), .85f);
+        var brown = Plain("okleina orzech (okna, drzwi, rynny)", new Color(.26f, .15f, .08f), .45f);
+        var glass = Plain("szyba ciemna z odbiciem", new Color(.07f, .09f, .11f), .95f, .2f);
+        var sill = Plain("parapet szary", new Color(.62f, .62f, .60f), .4f);
+        var soffit = Plain("podbitka brązowa", new Color(.30f, .19f, .11f), .3f);
+        var brick = Plain("cegła komina", new Color(.50f, .20f, .14f), .2f);
+        var timber = Plain("drewno ganku", new Color(.36f, .22f, .12f), .35f);
+        var canvas = Plain("markiza kremowa", new Color(.86f, .80f, .66f), .1f);
+        var bars = Plain("przęsła płotu czarne", new Color(.04f, .04f, .045f), .5f, .6f);
+        var pillar = Pbr("słupy płotu tynk jasny", "white_stucco_02", 2.0f, new Color(.95f, .86f, .74f));
+        const float x0 = -35.5f, x1 = -25.5f, z0 = 52f, z1 = 66f, yb = .3f, yE = 5.6f, ov = .55f;   // parter + poddasze użytkowe na wysokiej ściance kolankowej (właściciel 21:03)
+        // bryła: cokół, ściany (kolizja), gzyms pod okapem
+        BoxMinMax(Plinth, x0 - .05f, x1 + .05f, 0f, yb + .1f, z0 - .05f, z1 + .05f, false);
+        BoxMinMax(peach, x0, x1, yb + .1f, yE, z0, z1, true);
+        // okna: rama brązowa, szyba, parapet; n = kierunek lica
+        void Window(Vector3 c, Vector3 n, float w, float h, bool shutters)
+        {
+            var t = Vector3.Cross(Vector3.up, n).normalized; float yaw = Mathf.Atan2(n.x, n.z) * Mathf.Rad2Deg;
+            OBox(brown, c + n * .02f, new Vector3(w + .14f, h + .14f, .05f), yaw);
+            OBox(glass, c + n * .05f, new Vector3(w - .04f, h - .04f, .01f), yaw);
+            OBox(brown, c + n * .055f, new Vector3(.06f, h - .04f, .02f), yaw);                                    // słupek
+            OBox(sill, c + n * .1f - Vector3.up * (h * .5f + .07f), new Vector3(w + .2f, .04f, .2f), yaw);
+            if (shutters) foreach (float sd in new[] { -1f, 1f }) OBox(brown, c + n * .04f + t * sd * (w * .5f + .2f + w * .25f), new Vector3(w * .5f, h, .04f), yaw);
+        }
+        var front = Vector3.right; float fx = x1;
+        foreach (float z in new[] { 53.6f, 56.2f, 58.8f }) Window(new Vector3(fx, 1.75f, z), front, 1.2f, 1.4f, false);
+        Window(new Vector3(fx, 1.75f, 64.6f), front, 1.5f, 1.4f, false);
+        // poddasze: małe okna tuż pod okapem (ze zdjęć: dwa z brązowymi okiennicami od ulicy, jedno z prawej)
+        foreach (float z in new[] { 55.8f, 60.0f }) Window(new Vector3(fx, 4.95f, z), front, .8f, .62f, true);
+        Window(new Vector3(fx, 4.95f, 64.8f), front, .8f, .62f, false);
+        foreach (float z in new[] { 54.5f, 58.8f, 63.0f }) Window(new Vector3(x0, 1.75f, z), Vector3.left, 1.2f, 1.4f, false);
+        foreach (float z in new[] { 56.0f, 62.0f }) Window(new Vector3(x0, 4.95f, z), Vector3.left, .8f, .62f, false);
+        foreach (float x in new[] { -32.8f, -28.2f }) Window(new Vector3(x, 1.75f, z1), Vector3.forward, 1.1f, 1.3f, false);   // ściana od z0 bez okien (jak na zdjęciu)
+        Window(new Vector3(-30.5f, 4.95f, z1), Vector3.forward, .8f, .62f, false);
+        // drzwi wejściowe (brązowe, zamknięte) + tabliczki
+        BoxMinMax(brown, fx, fx + .06f, yb + .1f, 2.55f, 60.95f, 62.15f, false);
+        BoxMinMax(sill, fx + .06f, fx + .08f, 1.3f, 1.36f, 61.95f, 62.05f, false);                                  // klamka
+        Sign("rodzina_wawer", new Vector3(fx + .02f, 1.95f, 60.4f), .7f, .35f, Vector3.right, false);
+        Sign("poznanska_2", new Vector3(fx + .02f, 2.9f, 52.9f), .8f, .4f, Vector3.right, false);
+        // schody i ganek: 2 stopnie, daszek dwuspadowy z blachodachówki na dwóch słupkach, szczyt z drewna
+        BoxMinMax(Concrete, fx, fx + 1.5f, 0f, .15f, 60.1f, 63.0f); BoxMinMax(Concrete, fx, fx + 1.0f, .15f, .3f, 60.3f, 62.8f);
+        const float gx1 = -23.6f, ga = 59.9f, gb = 63.2f, gE = 2.75f, gR = 3.55f; float gm = (ga + gb) * .5f;
+        foreach (float z in new[] { ga + .15f, gb - .15f }) BoxMinMax(timber, gx1 + .05f, gx1 + .2f, 0f, gE, z - .08f, z + .08f, true);
+        foreach (int sd in new[] { -1, 1 })
+        {
+            float ze = sd < 0 ? ga : gb;
+            var pa = new Vector3(fx, gE, ze); var pb = new Vector3(gx1, gE, ze); var pc = new Vector3(gx1, gR, gm); var pd = new Vector3(fx, gR, gm);
+            var nrm = Normal(pa, pb, pc, Vector3.up); Quad(roof, pa, pb, pc, pd, nrm); Quad(soffit, pa, pb, pc, pd, -nrm);
+        }
+        Tri(timber, new Vector3(gx1, gE, ga), new Vector3(gx1, gE, gb), new Vector3(gx1, gR, gm), Vector3.right);
+        BoxMinMax(timber, gx1, gx1 + .1f, gE - .12f, gE, ga, gb, false, true);
+        // markiza nad oknem z prawej (od ulicy): płótno ze spadkiem i falbana
+        { var a = new Vector3(fx, 2.95f, 63.7f); var b = new Vector3(fx, 2.95f, 65.6f); var c = new Vector3(fx + 1.3f, 2.5f, 65.6f); var d = new Vector3(fx + 1.3f, 2.5f, 63.7f);
+          var nrm = Normal(a, b, c, Vector3.up); Quad(canvas, a, b, c, d, nrm); Quad(canvas, a, b, c, d, -nrm);
+          BoxMinMax(brown, fx + 1.28f, fx + 1.32f, 2.3f, 2.5f, 63.7f, 65.6f, false); }
+        // dach czterospadowy 25° z okapem, kalenica wzdłuż z
+        float rx0 = x0 - ov, rx1 = x1 + ov, rz0 = z0 - ov, rz1 = z1 + ov, half = (rx1 - rx0) * .5f, rise = half * Mathf.Tan(25f * Mathf.Deg2Rad), yR = yE + rise, xm = (rx0 + rx1) * .5f;
+        Vector3 A = new Vector3(rx0, yE, rz0), Bc = new Vector3(rx1, yE, rz0), C = new Vector3(rx1, yE, rz1), D = new Vector3(rx0, yE, rz1), R0 = new Vector3(xm, yR, rz0 + half), R1 = new Vector3(xm, yR, rz1 - half);
+        Quad(roof, Bc, C, R1, R0, Normal(Bc, C, R1, Vector3.up)); Quad(roof, D, A, R0, R1, Normal(D, A, R0, Vector3.up));
+        Tri(roof, A, Bc, R0, Normal(A, Bc, R0, Vector3.up)); Tri(roof, C, D, R1, Normal(C, D, R1, Vector3.up));
+        BoxMinMax(soffit, rx0, rx1, yE - .06f, yE, rz0, rz1, false, true);
+        foreach (var (a0, a1, b0, b1) in new[] { (rx0, rx1, rz0 - .12f, rz0), (rx0, rx1, rz1, rz1 + .12f), (rx0 - .12f, rx0, rz0, rz1), (rx1, rx1 + .12f, rz0, rz1) })
+            BoxMinMax(brown, a0, a1, yE - .16f, yE - .02f, b0, b1, false, true);                                    // rynny
+        foreach (var (cx, cz) in new[] { (x1 + .1f, z0 - .1f), (x1 + .1f, z1 + .1f), (x0 - .1f, z0 - .1f), (x0 - .1f, z1 + .1f) })
+            Cylinder(brown, new Vector3(cx, 0f, cz), .055f, yE - .1f, 8, false, false);                                // rury spustowe
+        BoxMinMax(brick, -31.9f, -31.2f, yE + 1.0f, yR + 1.0f, 55.2f, 55.9f, false); BoxMinMax(sill, -32.0f, -31.1f, yR + 1.0f, yR + 1.08f, 55.1f, 56.0f, false, true);
+        // płot od ulicy (x −16.5): słupy z daszkami, podmurówka, przęsła z prętów; brama 3.6 m otwarta do środka
+        const float fxp = -16.5f; float[] posts = { 49.25f, 52.0f, 54.75f, 57.2f, 60.8f, 63.5f, 66.2f, 68.75f };
+        foreach (float z in posts)
+        {
+            BoxMinMax(pillar, fxp - .21f, fxp + .21f, 0f, 1.7f, z - .21f, z + .21f, true);
+            BoxMinMax(pillar, fxp - .26f, fxp + .26f, 1.7f, 1.78f, z - .26f, z + .26f, false);
+            var top = new Vector3(fxp, 2.0f, z); float r = .26f;
+            Vector3 c00 = new Vector3(fxp - r, 1.78f, z - r), c10 = new Vector3(fxp + r, 1.78f, z - r), c11 = new Vector3(fxp + r, 1.78f, z + r), c01 = new Vector3(fxp - r, 1.78f, z + r);
+            foreach (var (p, q) in new[] { (c00, c10), (c10, c11), (c11, c01), (c01, c00) }) Tri(pillar, p, q, top, Normal(p, q, top, ((p + q) * .5f - new Vector3(fxp, 1.78f, z)).normalized + Vector3.up));
+        }
+        void Span(float za, float zb)
+        {
+            BoxMinMax(pillar, fxp - .12f, fxp + .12f, 0f, .3f, za, zb, true);
+            BoxMinMax(bars, fxp - .025f, fxp + .025f, .38f, .42f, za, zb, false); BoxMinMax(bars, fxp - .025f, fxp + .025f, 1.42f, 1.46f, za, zb, false);
+            for (float z = za + .1f; z < zb - .05f; z += .12f) BoxMinMax(bars, fxp - .012f, fxp + .012f, .3f, 1.55f, z - .012f, z + .012f, false);
+            Collider(new Vector3(fxp, .9f, (za + zb) * .5f), new Vector3(.12f, 1.6f, zb - za));
+        }
+        for (int k = 0; k + 1 < posts.Length; k++) if (k != 3) Span(posts[k] + .21f, posts[k + 1] - .21f);
+        foreach (var (hz, sd) in new[] { (57.41f, 1f), (60.59f, -1f) })                                              // skrzydła bramy otwarte do środka
+        {
+            for (float x = fxp - .15f; x > fxp - 1.75f; x -= .12f) BoxMinMax(bars, x - .012f, x + .012f, .1f, 1.5f, hz - .012f, hz + .012f, false);
+            BoxMinMax(bars, fxp - 1.75f, fxp - .1f, .1f, .14f, hz - .02f, hz + .02f, false); BoxMinMax(bars, fxp - 1.75f, fxp - .1f, 1.46f, 1.5f, hz - .02f, hz + .02f, false);
+        }
+        Sign("rodzina_wawer", new Vector3(fxp + .215f, 1.25f, 60.8f), .38f, .19f, Vector3.right, false);
+        // podjazd i dojście do ganku z kostki
+        Top(Herring, fxp - .05f, fx + 1.5f, 57.4f, 60.6f, .045f); Top(Herring, fx + 1.5f, fx + 3.6f, 60.6f, 63.1f, .045f);
+        // rośliny: szpaler tuj przy płocie (bez bramy), duże tuje przy domu, świerk przed gankiem, drzewa za domem
+        foreach (float z in new[] { 50.4f, 52.0f, 53.6f, 55.2f, 64.6f, 66.2f, 67.8f }) Conifer(new Vector3(fxp - .9f, 0, z), 2.6f + Mathf.Abs(z * 13.7f) % .8f, .85f, false, z * 31f);
+        Conifer(new Vector3(-23.6f, 0, 53.2f), 4.3f, 1.2f, false, 10f); Conifer(new Vector3(-23.9f, 0, 57.0f), 3.8f, 1.1f, false, 70f); Conifer(new Vector3(-23.3f, 0, 65.9f), 4.6f, 1.3f, false, 130f);
+        Conifer(new Vector3(-21.6f, 0, 55.6f), 6.6f, 3.4f, true, 40f);
+        foreach (var (tx, tz, th) in new[] { (-38.0f, 51.5f, 10f), (-38.2f, 59.5f, 9.2f) })
+            if (!NearTree(tx, tz, 5f)) Tree(new Vector3(tx, 0, tz), th, tx * 7f + tz);
+        foreach (float z in new[] { 61.5f, 63.4f }) Bush(new Vector3(-19.2f, 0, z), 1.3f, z * 17f);
+        rep.notes.Add("dom rodziny Wawerów (Poznańska 2): działka dom-08, dom 10 × 14 m z dachem czterospadowym, ganek, markiza, płot ze słupami i przęsłami, tuje, świerk");
     }
 
     // Krok dodatkowy: błąd w nim nie przerywa budowy reszty osiedla (trafia do raportu).
@@ -4739,6 +4900,7 @@ public static class BraxClaudeOsiedle
 
         // 2) stary płot -> nowy, z bramami do parku
         RenovateA(estate, physics);
+        Guard("dom rodziny Wawerów (Poznańska 2)", () => WawerHouse(estate, physics));
         CivicFacades();
         Guard("kasyno — bogate wejście", () => CasinoEntrance(estate, physics));
         Guard("szyldy budynków (policja, szpital, hala walk)", () => CivicSigns(estate));

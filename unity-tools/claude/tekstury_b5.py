@@ -289,6 +289,28 @@ def packaging(out):
                 bx = x0 + 18 + k * 5; d.rectangle([bx, y0 + 100, bx + rnd.choice((1, 2, 3)), y0 + 118], fill=(30, 30, 32))
     img.save(out)
 
+def name_plaque(out, text="RODZINA WAWER", w=1024, h=512):
+    """Tabliczka na drzwi / słupek bramy: mosiądz szczotkowany z ciemnymi wygrawerowanymi literami, ramka, wkręty."""
+    rnd = np.random.default_rng(3)
+    a = np.zeros((h, w, 3), np.float32); a[:] = (196, 160, 84)
+    a += rnd.normal(0, 4, (h, 1, 1)) + np.linspace(-14, 14, w)[None, :, None]
+    img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGB"); d = ImageDraw.Draw(img)
+    d.rounded_rectangle([18, 18, w - 19, h - 19], radius=26, outline=(110, 80, 30), width=10)
+    for x, y in ((50, 50), (w - 50, 50), (50, h - 50), (w - 50, h - 50)): d.ellipse([x - 14, y - 14, x + 14, y + 14], fill=(150, 118, 56), outline=(90, 66, 24), width=3)
+    words = text.split(" ", 1)
+    f1, s1 = _fit(d, words[0], FS, 120, w - 200); tw = d.textlength(words[0], font=f1); d.text(((w - tw) / 2, 90), words[0], font=f1, fill=(46, 30, 10))
+    if len(words) > 1:
+        f2, s2 = _fit(d, words[1], FS, 150, w - 200); tw = d.textlength(words[1], font=f2); d.text(((w - tw) / 2, 250), words[1], font=f2, fill=(46, 30, 10))
+    img.save(out)
+
+def address_plate(out, street="POZNAŃSKA", number="2", w=1024, h=512):
+    """Tabliczka adresowa na elewację: granat, biała ramka, nazwa ulicy i duży numer."""
+    img = Image.new("RGB", (w, h), (22, 46, 104)); d = ImageDraw.Draw(img)
+    d.rounded_rectangle([14, 14, w - 15, h - 15], radius=30, outline=(246, 246, 246), width=12)
+    f1, _ = _fit(d, street, FB, 110, w - 160); tw = d.textlength(street, font=f1); d.text(((w - tw) / 2, 60), street, font=f1, fill=(250, 250, 250))
+    f2 = font(FB, 230); tw = d.textlength(number, font=f2); d.text(((w - tw) / 2, 190), number, font=f2, fill=(250, 250, 250))
+    img.save(out)
+
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1]); out.mkdir(parents=True, exist_ok=True)
     speaker(out / "glosnik.png"); amplifier(out / "wzmacniacz.png")
@@ -297,4 +319,4 @@ if __name__ == "__main__":
     bet_board(out / "tablica_zakladow.png"); gold_sign(out / "zaklady.png", "ZAKŁADY"); gold_sign(out / "kasa_zetony.png", "KASA  ·  ŻETONY")
     gold_sign(out / "bar_kasyna.png", "BAR"); print("KASYNO WNĘTRZE OK")
     police_sign(out / "policja_odznaka.png"); hospital_sign(out / "szpital_h.png"); arena_sign(out / "hala_walk.png"); print("SZYLDY BUDYNKÓW OK")
-    octagon_mat(out / "oktagon_mata.png"); octagon_apron(out / "oktagon_fartuch.png"); chain_link(out / "siatka_oktagonu.png"); octagon_banner(out / "baner_oktagon.png"); brand_sign(out / "braxhorn_arena.png"); gold_sign(out / "recepcja_braxhorn.png", "BRAXHORN"); packaging(out / "opakowania.png"); print("OKTAGON OK")
+    octagon_mat(out / "oktagon_mata.png"); octagon_apron(out / "oktagon_fartuch.png"); chain_link(out / "siatka_oktagonu.png"); octagon_banner(out / "baner_oktagon.png"); brand_sign(out / "braxhorn_arena.png"); gold_sign(out / "recepcja_braxhorn.png", "BRAXHORN"); packaging(out / "opakowania.png"); name_plaque(out / "rodzina_wawer.png"); address_plate(out / "poznanska_2.png"); print("OKTAGON OK")

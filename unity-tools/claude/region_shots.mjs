@@ -86,6 +86,9 @@ const VIEWS = [
   ['E13_komisariat_szyld', '-86,.1,-18,0,12,12', 'estate'],
   ['E14_park_lawki_B', '-20,.08,-110,0,10,8', 'estate'],
   ['E15_hala_walk_front', '-86,.1,88,0,12,12', 'estate'],
+  ['E16_dom_wawerow_front', '-8,.1,59,90,10,9', 'estate'],
+  ['E17_dom_wawerow_jak_na_zdjeciu', '-12,.1,46,125,8,10', 'estate'],
+  ['E18_tablice_tur_pod_zamosciem', '0,.1,97,0,10,7', 'estate'],
 ];
 const TRAVEL = (process.env.TRAVEL_POINTS || '').split(',').filter(Boolean);
 
