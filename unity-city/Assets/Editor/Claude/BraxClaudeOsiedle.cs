@@ -4198,12 +4198,12 @@ public static class BraxClaudeOsiedle
         var soffit = Plain("podbitka brązowa", new Color(.30f, .19f, .11f), .3f);
         var brick = Plain("cegła komina", new Color(.50f, .20f, .14f), .2f);
         var timber = Plain("drewno ganku", new Color(.36f, .22f, .12f), .35f);
-        var canvas = Plain("markiza kremowa", new Color(.86f, .80f, .66f), .1f);
+        var canvas = Plain("daszek okienny szary", new Color(.70f, .71f, .70f), .35f, .3f);
         var bars = Plain("przęsła płotu czarne", new Color(.04f, .04f, .045f), .5f, .6f);
         var pillar = Pbr("słupy płotu tynk jasny", "white_stucco_02", 2.0f, new Color(.95f, .86f, .74f));
         const float x0 = -35.5f, x1 = -25.5f, z0 = 52f, z1 = 66f, yb = .3f, yE = 5.6f, ov = .55f;   // parter + poddasze użytkowe na wysokiej ściance kolankowej (właściciel 21:03)
         // bryła: cokół, ściany (kolizja), gzyms pod okapem
-        BoxMinMax(Plinth, x0 - .05f, x1 + .05f, 0f, yb + .1f, z0 - .05f, z1 + .05f, false);
+        BoxMinMax(Plain("cokół brązowy", new Color(.24f, .16f, .11f), .3f), x0 - .05f, x1 + .05f, 0f, yb + .1f, z0 - .05f, z1 + .05f, false);   // ze zdjęcia: ciemnobrązowy pas
         BoxMinMax(peach, x0, x1, yb + .1f, yE, z0, z1, true);
         // okna: rama brązowa, szyba, parapet; n = kierunek lica
         void Window(Vector3 c, Vector3 n, float w, float h, bool shutters)
@@ -4233,19 +4233,26 @@ public static class BraxClaudeOsiedle
         // schody i ganek: 2 stopnie, daszek dwuspadowy z blachodachówki na dwóch słupkach, szczyt z drewna
         BoxMinMax(Concrete, fx, fx + 1.5f, 0f, .15f, 60.1f, 63.0f); BoxMinMax(Concrete, fx, fx + 1.0f, .15f, .3f, 60.3f, 62.8f);
         const float gx1 = -23.6f, ga = 59.9f, gb = 63.2f, gE = 2.75f, gR = 3.55f; float gm = (ga + gb) * .5f;
-        foreach (float z in new[] { ga + .15f, gb - .15f }) BoxMinMax(timber, gx1 + .05f, gx1 + .2f, 0f, gE, z - .08f, z + .08f, true);
+        var postGrey = Plain("słupek ganku szary", new Color(.45f, .45f, .44f), .3f);
+        foreach (float z in new[] { ga + .15f, gb - .15f }) BoxMinMax(postGrey, gx1 + .05f, gx1 + .2f, 0f, gE, z - .07f, z + .07f, true);
         foreach (int sd in new[] { -1, 1 })
         {
             float ze = sd < 0 ? ga : gb;
             var pa = new Vector3(fx, gE, ze); var pb = new Vector3(gx1, gE, ze); var pc = new Vector3(gx1, gR, gm); var pd = new Vector3(fx, gR, gm);
             var nrm = Normal(pa, pb, pc, Vector3.up); Quad(roof, pa, pb, pc, pd, nrm); Quad(soffit, pa, pb, pc, pd, -nrm);
         }
-        Tri(timber, new Vector3(gx1, gE, ga), new Vector3(gx1, gE, gb), new Vector3(gx1, gR, gm), Vector3.right);
-        BoxMinMax(timber, gx1, gx1 + .1f, gE - .12f, gE, ga, gb, false, true);
-        // markiza nad oknem z prawej (od ulicy): płótno ze spadkiem i falbana
-        { var a = new Vector3(fx, 2.95f, 63.7f); var b = new Vector3(fx, 2.95f, 65.6f); var c = new Vector3(fx + 1.3f, 2.5f, 65.6f); var d = new Vector3(fx + 1.3f, 2.5f, 63.7f);
+        // szczyt otwarty jak na zdjęciu: deski wiatrowe, belka, słupek środkowy i zastrzały (konstrukcja widoczna, w środku cień daszku)
+        float rafter = Mathf.Sqrt((gm - ga) * (gm - ga) + (gR - gE) * (gR - gE)), ang = Mathf.Atan2(gR - gE, gm - ga) * Mathf.Rad2Deg;
+        OBoxQ(timber, new Vector3(gx1 + .05f, (gE + gR) * .5f + .05f, (ga + gm) * .5f), new Vector3(.08f, .16f, rafter + .12f), Quaternion.Euler(-ang, 0, 0));
+        OBoxQ(timber, new Vector3(gx1 + .05f, (gE + gR) * .5f + .05f, (gm + gb) * .5f), new Vector3(.08f, .16f, rafter + .12f), Quaternion.Euler(ang, 0, 0));
+        BoxMinMax(timber, gx1, gx1 + .1f, gE - .12f, gE, ga, gb, false, true);                                     // belka
+        BoxMinMax(timber, gx1, gx1 + .1f, gE, gR - .05f, gm - .05f, gm + .05f, false);                             // słupek środkowy
+        foreach (int sd in new[] { -1, 1 }) OBoxQ(timber, new Vector3(gx1 + .05f, gE + (gR - gE) * .33f, gm + sd * (gm - ga) * .38f), new Vector3(.06f, .08f, (gm - ga) * .62f), Quaternion.Euler(sd * -30f, 0, 0));   // zastrzały
+        // daszek nad oknem z prawej (od ulicy): mały, szary, ze spadkiem; obok okna brązowa okiennica
+        { var a = new Vector3(fx, 2.78f, 63.75f); var b = new Vector3(fx, 2.78f, 65.45f); var c = new Vector3(fx + .62f, 2.55f, 65.45f); var d = new Vector3(fx + .62f, 2.55f, 63.75f);
           var nrm = Normal(a, b, c, Vector3.up); Quad(canvas, a, b, c, d, nrm); Quad(canvas, a, b, c, d, -nrm);
-          BoxMinMax(brown, fx + 1.28f, fx + 1.32f, 2.3f, 2.5f, 63.7f, 65.6f, false); }
+          BoxMinMax(canvas, fx + .6f, fx + .64f, 2.42f, 2.56f, 63.75f, 65.45f, false);
+          BoxMinMax(brown, fx + .02f, fx + .06f, 1.0f, 2.5f, 63.05f, 63.8f, false); }                                // okiennica przy oknie z prawej
         // dach czterospadowy 25° z okapem, kalenica wzdłuż z
         float rx0 = x0 - ov, rx1 = x1 + ov, rz0 = z0 - ov, rz1 = z1 + ov, half = (rx1 - rx0) * .5f, rise = half * Mathf.Tan(25f * Mathf.Deg2Rad), yR = yE + rise, xm = (rx0 + rx1) * .5f;
         Vector3 A = new Vector3(rx0, yE, rz0), Bc = new Vector3(rx1, yE, rz0), C = new Vector3(rx1, yE, rz1), D = new Vector3(rx0, yE, rz1), R0 = new Vector3(xm, yR, rz0 + half), R1 = new Vector3(xm, yR, rz1 - half);
@@ -4270,8 +4277,14 @@ public static class BraxClaudeOsiedle
         void Span(float za, float zb)
         {
             BoxMinMax(pillar, fxp - .12f, fxp + .12f, 0f, .3f, za, zb, true);
-            BoxMinMax(bars, fxp - .025f, fxp + .025f, .38f, .42f, za, zb, false); BoxMinMax(bars, fxp - .025f, fxp + .025f, 1.42f, 1.46f, za, zb, false);
-            for (float z = za + .1f; z < zb - .05f; z += .12f) BoxMinMax(bars, fxp - .012f, fxp + .012f, .3f, 1.55f, z - .012f, z + .012f, false);
+            BoxMinMax(bars, fxp - .025f, fxp + .025f, .38f, .42f, za, zb, false);
+            float Arc(float z) => 1.36f + .16f * Mathf.Sin(Mathf.PI * Mathf.Clamp01((z - za) / (zb - za)));   // przęsło z łukiem u góry (zdjęcie)
+            for (float z = za + .1f; z < zb - .05f; z += .12f) BoxMinMax(bars, fxp - .012f, fxp + .012f, .3f, Arc(z) + .06f, z - .012f, z + .012f, false);
+            for (int k = 0; k < 8; k++)
+            {
+                float zA = za + (zb - za) * k / 8f, zB = za + (zb - za) * (k + 1) / 8f, yA = Arc(zA), yB = Arc(zB);
+                OBoxQ(bars, new Vector3(fxp, (yA + yB) * .5f, (zA + zB) * .5f), new Vector3(.04f, .04f, Mathf.Sqrt((zB - zA) * (zB - zA) + (yB - yA) * (yB - yA)) + .01f), Quaternion.Euler(-Mathf.Atan2(yB - yA, zB - zA) * Mathf.Rad2Deg, 0, 0));
+            }
             Collider(new Vector3(fxp, .9f, (za + zb) * .5f), new Vector3(.12f, 1.6f, zb - za));
         }
         for (int k = 0; k + 1 < posts.Length; k++) if (k != 3) Span(posts[k] + .21f, posts[k + 1] - .21f);
