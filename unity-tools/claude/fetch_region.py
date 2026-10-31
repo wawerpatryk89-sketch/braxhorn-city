@@ -29,6 +29,10 @@ TEXTURES = [
     "brick_wall_001", "red_brick_03",
     # tyły siłowni: wzgórze za wiaduktem
     "rock_wall_08", "rock_face_03",
+    # biedne mieszkanie Braxa nad NOVA: łuszcząca się farba, stara tapeta, linoleum, brudne kafle, spękany tynk, chodnik,
+    # rdzawe schody zewnętrzne, zniszczone szafki kuchenne
+    "peeling_painted_wall", "decrepit_wallpaper", "old_linoleum_flooring_01", "dirty_tiles", "worn_cracked_plaster", "dirty_carpet",
+    "rusty_painted_metal", "wood_cabinet_worn_long",
 ]
 MODELS_2K = [  # drzewa i krzewy: pełna jakość (2K); reszta roślin w 1K, bo edytor Unity na GitHubie ma 16 GB
     "shrub_01", "shrub_02", "shrub_03",
@@ -58,6 +62,10 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     "rollershutter_door", "metal_office_desk", "classic_laptop", "desk_lamp_arm_01", "office_notepads", "stationery_supplies",
     "SchoolChair_01", "modern_wooden_cabinet", "drawer_cabinet", "Sofa_01", "sofa_02", "dining_table", "WoodenTable_01", "WoodenTable_02",
     "tool_cart", "metal_tool_chest", "hand_truck", "old_tyre", "rusted_wheel_rim_01", "barrel_03", "Barrel_02", "coast_land_rocks_02",
+    # biedne mieszkanie Braxa nad NOVA (właściciel 31.10, 21:09–21:10): stare łóżko, telewizor kineskopowy, kuchenka, mikrofala,
+    # czajnik, szafa, regał, krzesło, stół, budzik, kartony, skrzynka, konserwy, goła żarówka, radio
+    "old_bed_frame", "Television_01", "electric_stove", "vintage_microwave", "vintage_electric_kettle", "painted_wooden_cabinet_02",
+    "Shelf_01", "WoodenTable_03", "alarm_clock_01", "cardboard_box_01", "plastic_crate_01", "russian_food_cans_01", "lightbulb_01", "boombox",
 ]
 
 

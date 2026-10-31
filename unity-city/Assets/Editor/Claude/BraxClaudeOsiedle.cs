@@ -68,6 +68,9 @@ public static class BraxClaudeOsiedle
     {
         if (mats.TryGetValue(key, out var have)) return have;
         var d = Tex + id + "/";
+        // build 5: brak tekstury (pobieranie Poly Haven nie zatrzymuje już buildu) = materiał jednolity w tym kolorze, nie wyjątek
+        if (!File.Exists(d + "albedo.jpg") || !File.Exists(d + "normal.jpg") || !File.Exists(d + "mg.png") || !File.Exists(d + "ao.jpg"))
+        { rep.notes.Add("brak tekstury " + id + " — " + key + " bez tekstury"); return Plain(key, tint, .4f * smooth, metal); }
         var m = new Material(Shader.Find("Standard")) { name = "Osiedle: " + key, color = tint, enableInstancing = true };
         m.mainTexture = Map(d + "albedo.jpg", false, true);
         m.SetTexture("_BumpMap", Map(d + "normal.jpg", true, false)); m.EnableKeyword("_NORMALMAP"); m.SetFloat("_BumpScale", 1f);

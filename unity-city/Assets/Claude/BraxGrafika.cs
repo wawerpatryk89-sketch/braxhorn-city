@@ -20,8 +20,10 @@ public sealed class BraxGrafika : MonoBehaviour
     static BraxGrafika inst;
     static int natW, natH;
     int doZastosowania = 2;          // ile klatek po wczytaniu sceny jeszcze raz nadpisać (gracz w Start ustawia 60 kl./s)
+    static bool rozdzielczoscUstawiona;   // telefon: rozdzielczość tylko raz na start i przy zmianie trybu (nie przy każdej scenie)
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    // Przed pierwszą sceną: limit mip tekstur i rozdzielczość ustawione, zanim tekstury sceny trafią do pamięci (bez przeładowania)
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Boot()
     {
         if (inst) return;
@@ -46,6 +48,7 @@ public sealed class BraxGrafika : MonoBehaviour
     {
         Aktualny = t;
         try { PlayerPrefs.SetInt(Klucz, (int)t); PlayerPrefs.Save(); } catch { }
+        rozdzielczoscUstawiona = false;
         if (inst) { inst.doZastosowania = 2; inst.Zastosuj(); }
     }
 
@@ -70,7 +73,7 @@ public sealed class BraxGrafika : MonoBehaviour
         {
             case Tryb.Niska:
                 QualitySettings.shadows = ShadowQuality.Disable; QualitySettings.shadowDistance = 0f;
-                QualitySettings.antiAliasing = 0; QualitySettings.lodBias = .45f; QualitySettings.globalTextureMipmapLimit = 1;
+                Msaa(0); QualitySettings.lodBias = .45f; Mip(1);
                 QualitySettings.pixelLightCount = 3; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Disable;
                 QualitySettings.realtimeReflectionProbes = false; QualitySettings.softParticles = false; QualitySettings.skinWeights = SkinWeights.TwoBones;
                 Rozdzielczosc(tel ? .65f : .8f); Klatki(30); Zasieg(220f); Trawa(12f, 18f);
@@ -78,7 +81,7 @@ public sealed class BraxGrafika : MonoBehaviour
             case Tryb.Srednia:
                 QualitySettings.shadows = ShadowQuality.HardOnly; QualitySettings.shadowResolution = ShadowResolution.Medium;
                 QualitySettings.shadowDistance = 35f; QualitySettings.shadowCascades = 1; QualitySettings.shadowProjection = ShadowProjection.StableFit;
-                QualitySettings.antiAliasing = 0; QualitySettings.lodBias = .8f; QualitySettings.globalTextureMipmapLimit = 0;
+                Msaa(0); QualitySettings.lodBias = .8f; Mip(0);
                 QualitySettings.pixelLightCount = 4; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
                 QualitySettings.realtimeReflectionProbes = false; QualitySettings.softParticles = false; QualitySettings.skinWeights = SkinWeights.TwoBones;
                 Rozdzielczosc(tel ? .85f : 1f); Klatki(tel ? 30 : 60); Zasieg(420f); Trawa(22f, 30f);
@@ -86,7 +89,7 @@ public sealed class BraxGrafika : MonoBehaviour
             default:
                 QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.VeryHigh;
                 QualitySettings.shadowDistance = 120f; QualitySettings.shadowCascades = 4; QualitySettings.shadowProjection = ShadowProjection.StableFit;
-                QualitySettings.antiAliasing = 4; QualitySettings.lodBias = 2.2f; QualitySettings.globalTextureMipmapLimit = 0;
+                Msaa(4); QualitySettings.lodBias = 2.2f; Mip(0);
                 QualitySettings.pixelLightCount = 6; QualitySettings.anisotropicFiltering = AnisotropicFiltering.ForceEnable;
                 QualitySettings.realtimeReflectionProbes = true; QualitySettings.softParticles = true; QualitySettings.skinWeights = SkinWeights.FourBones;
                 Rozdzielczosc(1f); Klatki(60); Zasieg(1200f); Trawa(40f, 50f);
@@ -96,9 +99,24 @@ public sealed class BraxGrafika : MonoBehaviour
 
     static void Rozdzielczosc(float skala)
     {
-        if (!Application.isMobilePlatform || natW <= 0) return;   // na komputerze / w przeglądarce okno zostaje takie, jakie jest
+        // Telefon: rozdzielczość renderu zostaje natywna — zmiana bufora ekranu na starcie zamykała aplikację po instalacji
+        // (właściciel 31.10, 21:34: „wypierdala mnie po instalacji przy włączaniu”). Płynność: cienie, LOD, tekstury, 30 kl./s.
+        if (Application.isMobilePlatform) return;
+        if (natW <= 0 || rozdzielczoscUstawiona) return;   // komputer / przeglądarka: okno bez zmian
+        rozdzielczoscUstawiona = true;
         int w = Mathf.RoundToInt(natW * skala), h = Mathf.RoundToInt(natH * skala);
-        if (Screen.width != w || Screen.height != h) Screen.SetResolution(w, h, true);
+        if (Mathf.Abs(Screen.width - w) > 2 || Mathf.Abs(Screen.height - h) > 2) Screen.SetResolution(w, h, true);
+    }
+
+    // Wygładzanie krawędzi zmieniane w trakcie gry odtwarza bufor ekranu — na części telefonów (Vulkan) to zamyka aplikację
+    // (właściciel 31.10, 21:33: „wypierdala z aplikacji” po APK d260250). Na telefonie MSAA zostaje takie, jak w buildzie.
+    // Limit mip tekstur tylko przy zmianie wartości: każde przypisanie przeładowuje wszystkie tekstury sceny z dysku
+    // (na telefonie z 4 GB to skok pamięci i zamknięcie aplikacji). Na start ustawiany przed pierwszą sceną (BeforeSceneLoad).
+    static void Mip(int n) { if (QualitySettings.globalTextureMipmapLimit != n) QualitySettings.globalTextureMipmapLimit = n; }
+    static void Msaa(int n)
+    {
+        if (Application.isMobilePlatform) return;
+        if (QualitySettings.antiAliasing != n) QualitySettings.antiAliasing = n;
     }
 
     static void Klatki(int fps)

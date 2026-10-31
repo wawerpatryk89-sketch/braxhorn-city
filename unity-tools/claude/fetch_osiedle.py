@@ -237,17 +237,27 @@ def main() -> int:
     for t, role in TEXTURES.items():
         f = files(t)
         def m(key):
+            # build 5: leather_red_02 nie ma klucza „Diffuse” (Poly Haven: „diff” / „Color”) — ten sam zapas co fetch_region.py
+            if key not in f and key == "Diffuse":
+                key = next((k for k in ("diff", "Color", "diffuse") if k in f), key)
             return img(get(pick(f[key], "2k")["jpg"]["url"]))
-        arm = m("arm") if "arm" in f else None
-        if arm is not None:
-            ao_c, rough_c, metal_c = arm.convert("RGB").split()
-        else:
-            ao_c, rough_c, metal_c = (m("AO") if "AO" in f else None), m("Rough"), None
-        save_set(ROOT / "textures" / t, m("Diffuse"), m("nor_gl"), rough_c, metal_c, ao_c)
+        try:
+            arm = m("arm") if "arm" in f else None
+            if arm is not None:
+                ao_c, rough_c, metal_c = arm.convert("RGB").split()
+            else:
+                ao_c, rough_c, metal_c = (m("AO") if "AO" in f else None), m("Rough"), None
+            save_set(ROOT / "textures" / t, m("Diffuse"), m("nor_gl"), rough_c, metal_c, ao_c)
+        except Exception as e:   # jedna tekstura nie może zatrzymać 2-godzinnego buildu (build 5: KeyError 'Diffuse')
+            report["textures"][t] = "BRAK: " + repr(e)
+            print("TEX", t, "BRAK", repr(e), "— materiał bez tej tekstury")
+            continue
         report["textures"][t] = role
         print("TEX", t, "OK", role)
     for mid in MODELS:
         f = files(mid)
+        if "gltf" not in f:
+            report["models"][mid] = "BRAK gltf"; print("MODEL", mid, "BRAK gltf"); continue
         g = pick(f["gltf"], "1k", "2k")["gltf"]
         d = ROOT / "models" / mid
         d.mkdir(parents=True, exist_ok=True)
