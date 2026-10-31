@@ -186,7 +186,12 @@ public static class BraxGymBuild
         {
             output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);
             location=output;
+            // Build 1ea4025: webgl.data przekroczył 2 GB („The file is too long”, limit Unity dla jednego pliku danych).
+            // WebGL służy tylko do zdjęć kontrolnych (telefon dostaje APK z pełnymi teksturami), więc tu tekstury do 1K.
+            EditorUserBuildSettings.overrideMaxTextureSize=1024;
+            EditorUserBuildSettings.overrideTextureCompression=OverrideTextureCompression.NoOverride;
         }
+        if(target==BuildTarget.Android){EditorUserBuildSettings.overrideMaxTextureSize=0;EditorUserBuildSettings.overrideTextureCompression=OverrideTextureCompression.NoOverride;}
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=BuildOptions.None});
         if(result.summary.result!=BuildResult.Succeeded)throw new Exception("Playable Unity build failed "+result.summary.result);
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
