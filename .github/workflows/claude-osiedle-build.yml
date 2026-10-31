@@ -94,7 +94,7 @@ jobs:
         run: |
           REL=claude-osiedle-preview
           S=${GITHUB_SHA::7}
-          mkdir -p osiedle-shots
+          mkdir -p osiedle-shots && date > osiedle-shots/build.txt
           for f in unity-city/city-review/osiedle-claude.json city-review/osiedle-claude.json; do [ -f "$f" ] && cp "$f" osiedle-shots/; done || true
           (cd osiedle-shots && zip -q -r ../osiedle-shots-$S.zip .)
           if [ -f unity-preview/index.html ]; then (cd unity-preview && zip -q -r -1 ../osiedle-player-$S.zip .); fi

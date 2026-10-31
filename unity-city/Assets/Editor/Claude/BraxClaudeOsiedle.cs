@@ -102,6 +102,19 @@ public static class BraxClaudeOsiedle
     static Material GarageDoor => Plain("brama garażowa", new Color(.20f, .21f, .22f), .5f, .4f);
     static Material Paint => Plain("biała farba drogowa", new Color(.93f, .93f, .9f), .3f);
     static Material Water => Plain("woda", new Color(.18f, .42f, .52f), .96f, .1f);
+    static Material GlassClear
+    {
+        get
+        {
+            if (mats.TryGetValue("szkło balustrad", out var have)) return have;
+            var m = new Material(Shader.Find("Standard")) { name = "Osiedle: szkło balustrad", color = new Color(.62f, .74f, .78f, .28f) };
+            m.SetFloat("_Mode", 3); m.SetFloat("_Glossiness", .95f); m.SetFloat("_Metallic", .1f);
+            m.SetInt("_SrcBlend", (int)BlendMode.One); m.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha); m.SetInt("_ZWrite", 0);
+            m.DisableKeyword("_ALPHATEST_ON"); m.DisableKeyword("_ALPHABLEND_ON"); m.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+            m.renderQueue = 3000; m.SetOverrideTag("RenderType", "Transparent");
+            AssetDatabase.CreateAsset(m, Out + "/szklo_balustrad.mat"); mats["szkło balustrad"] = m; tile[m] = 1f; return m;
+        }
+    }
 
     // ---------------- łączenie geometrii ----------------
     sealed class Batch
@@ -395,7 +408,7 @@ public static class BraxClaudeOsiedle
             }
         }
     }
-    static void StreetZ(float z0, float z1, float xc)
+    static void StreetNS(float z0, float z1, float xc)
     {
         if (z1 < z0) { var t = z0; z0 = z1; z1 = t; }
         Top(Asphalt, xc - Carriage, xc + Carriage, z0, z1, .03f);
@@ -444,6 +457,17 @@ public static class BraxClaudeOsiedle
         BoxL(wallU, uA, uB, 3.46f, 6.7f, e0, e1, true, true);
         BoxL(Stucco, uA - .05f, uB + .05f, 6.7f, 7.05f, e0 - .05f, e1 + .05f, false);
         BoxL(Gravel, uA + .2f, uB - .2f, 7.05f, 7.08f, e0 + .2f, e1 - .2f, false);
+        // taras na dachu parteru: szklana balustrada ze stalowym pochwytem tam, gdzie nie ma piętra
+        void Rail(float a0, float a1, float w0, float w1)
+        {
+            BoxL(GlassClear, a0, a1, 3.75f, 4.75f, w0, w1, false);
+            float pa = Mathf.Min(w0, w1), pb = Mathf.Max(w0, w1);
+            BoxL(Frame, a0, a1, 4.75f, 4.81f, pa - .02f, pb + .02f, false);
+        }
+        Rail(uB + .05f, h1 - .15f, f0 + .12f, f0 + .15f);
+        Rail(h1 - .15f, h1 - .12f, f0 + .12f, f1 - .12f);
+        Rail(h0 + .12f, h1 - .15f, f1 - .15f, f1 - .12f);
+        Rail(h0 + .12f, h0 + .15f, e1 + .05f, f1 - .12f);
         // garaż
         BoxL(Stucco, g0, g1, 0, 3.0f, f0, f0 + 6.5f);
         BoxL(Stucco, g0, g1, 3.0f, 3.25f, f0, f0 + 6.5f, false);
@@ -575,28 +599,31 @@ public static class BraxClaudeOsiedle
     }
 
     // ---------------- stary płot południowy osiedla A ----------------
-    static void RemoveOldSouthFence(Transform estate, Transform physics)
+    // Wycina z zbiorczych siatek osiedla A trójkąty leżące w całości w którejś z brył (stare płoty,
+    // sztuczne żywopłoty) i wyłącza ich stare kolizje. Jedno przejście po siatkach.
+    static void CutVolumes(Transform estate, Transform physics, List<Bounds> vols)
     {
-        var vol = new Bounds(new Vector3(0, 1.5f, FenceA), new Vector3(229.5f, 2.94f, 2.8f));     // y .03..2.97
         foreach (var mf in estate.GetComponentsInChildren<MeshFilter>(true))
         {
-            var mr = mf.GetComponent<MeshRenderer>(); if (!mr || !mf.sharedMesh || !mr.bounds.Intersects(vol)) continue;
-            var src = mf.sharedMesh; Vector3[] v;
-            try { v = src.vertices; } catch { rep.notes.Add("nieczytelna siatka " + src.name); continue; }
-            if (v == null || v.Length == 0) continue;
-            var M = mf.transform.localToWorldMatrix; var w = v.Select(p => M.MultiplyPoint3x4(p)).ToArray();
+            var mr = mf.GetComponent<MeshRenderer>(); if (!mr || !mf.sharedMesh) continue;
+            var hit = vols.Where(v => mr.bounds.Intersects(v)).ToArray(); if (hit.Length == 0) continue;
+            var src = mf.sharedMesh; Vector3[] v3;
+            try { v3 = src.vertices; } catch { rep.notes.Add("nieczytelna siatka " + src.name); continue; }
+            if (v3 == null || v3.Length == 0) continue;
+            var M = mf.transform.localToWorldMatrix; var w = v3.Select(p => M.MultiplyPoint3x4(p)).ToArray();
+            bool Inside(int a, int b, int c) { foreach (var v in hit) if (v.Contains(w[a]) && v.Contains(w[b]) && v.Contains(w[c])) return true; return false; }
             Mesh copy = null; int removed = 0;
             for (int s = 0; s < src.subMeshCount; s++)
             {
                 var tri = src.GetTriangles(s); var keep = new List<int>(tri.Length);
                 for (int k = 0; k < tri.Length; k += 3)
                 {
-                    if (vol.Contains(w[tri[k]]) && vol.Contains(w[tri[k + 1]]) && vol.Contains(w[tri[k + 2]])) { removed++; continue; }
+                    if (Inside(tri[k], tri[k + 1], tri[k + 2])) { removed++; continue; }
                     keep.Add(tri[k]); keep.Add(tri[k + 1]); keep.Add(tri[k + 2]);
                 }
                 if (keep.Count != tri.Length)
                 {
-                    if (!copy) { copy = UnityEngine.Object.Instantiate(src); copy.name = src.name + "_bez_starego_plotu"; }
+                    if (!copy) { copy = UnityEngine.Object.Instantiate(src); copy.name = src.name + "_remont"; }
                     copy.SetTriangles(keep, s);
                 }
             }
@@ -604,15 +631,94 @@ public static class BraxClaudeOsiedle
             {
                 AssetDatabase.CreateAsset(copy, Out + "/cut_" + Safe(mf.name) + ".asset");
                 mf.sharedMesh = copy; var mc = mf.GetComponent<MeshCollider>(); if (mc) mc.sharedMesh = copy;
-                rep.oldFenceTrianglesRemoved += removed; rep.notes.Add("stary płot: " + mf.name + " -" + removed + " trójkątów");
+                rep.oldFenceTrianglesRemoved += removed; rep.notes.Add("remont A: " + mf.name + " -" + removed + " trójkątów");
             }
         }
         if (physics)
             foreach (var c in physics.GetComponentsInChildren<BoxCollider>(true))
             {
-                var b = c.bounds;
-                if (b.size.x > 150f && Mathf.Abs(b.center.z - FenceA) < 1.2f && b.size.z < 2f) { c.enabled = false; rep.oldFenceCollidersDisabled++; }
+                var b = c.bounds; if (!c.enabled || b.size.y > 2.2f) continue;
+                if (vols.Any(v => { var e = v; e.Expand(new Vector3(.3f, .6f, .3f)); return e.Contains(b.min) && e.Contains(b.max); }))
+                { c.enabled = false; rep.oldFenceCollidersDisabled++; }
             }
+    }
+    static Bounds MinMax(float x0, float x1, float y0, float y1, float z0, float z1)
+    { var b = new Bounds(); b.SetMinMax(new Vector3(Mathf.Min(x0, x1), y0, Mathf.Min(z0, z1)), new Vector3(Mathf.Max(x0, x1), y1, Mathf.Max(z0, z1))); return b; }
+
+    static void WoodFenceX(float x0, float x1, float z, float h = 1.6f)
+    {
+        if (x1 < x0) { var t = x0; x0 = x1; x1 = t; }
+        float len = x1 - x0, mid = (x0 + x1) * .5f;
+        int posts = Mathf.Max(1, Mathf.RoundToInt(len / 2.4f));
+        for (int k = 0; k <= posts; k++) Box(Frame, new Vector3(x0 + k * len / posts, h * .5f, z), new Vector3(.09f, h, .09f), false);
+        for (int sl = 0; sl < 9; sl++)
+        {
+            float y = .12f + sl * (h - .2f) / 8.5f;
+            Box(WoodDark, new Vector3(mid, y + .07f, z), new Vector3(len, .14f, .04f), false);
+        }
+        Collider(new Vector3(mid, h * .5f, z), new Vector3(len, h, .12f));
+    }
+
+    // ---------------- remont osiedla A ----------------
+    // Źródło: dev/osiedle/world.js i civic.js (współrzędne three.js; Unity X = -X, układ symetryczny).
+    static readonly (float x, float z, float hd)[] Houses = { (-28, 27, 10), (27, 28, 10), (-29, 0, 12), (28, 0, 12), (-28, 59, 10), (28, 59, 10) };
+    static void RenovateA(Transform estate, Transform physics)
+    {
+        // 1) bryły do wycięcia: obwodowe żywopłoty (bez bramy północnej), płoty działek
+        var vols = new List<Bounds>
+        {
+            new Bounds(new Vector3(0, 1.48f, -102.05f), new Vector3(230f, 2.97f, 1.7f)),             // południe (pod park)
+            MinMax(-114.9f, -113.1f, -.005f, 1.45f, -101.2f, 99.3f), MinMax(113.1f, 114.9f, -.005f, 1.45f, -101.2f, 99.3f), // wschód / zachód
+            MinMax(-114.25f, -5.85f, -.005f, 1.45f, 97.15f, 98.85f), MinMax(5.85f, 114.25f, -.005f, 1.45f, 97.15f, 98.85f),  // północ bez bramy
+        };
+        // stare krawężniki ulicy głównej (box .18 x .14, x=±4.6, z -24..98) — zastępują je granitowe z przerwami
+        vols.Add(MinMax(-4.72f, -4.48f, -.005f, .16f, -24.1f, 98.1f)); vols.Add(MinMax(4.48f, 4.72f, -.005f, .16f, -24.1f, 98.1f));
+        foreach (var h in Houses)
+        {
+            float xu = -h.x, fxu = -(h.x < 0 ? h.x + 11.5f : h.x - 11.5f);
+            vols.Add(MinMax(xu - 11.75f, xu + 11.75f, -.005f, 1.45f, h.z - h.hd - .25f, h.z - h.hd + .25f));
+            vols.Add(MinMax(xu - 11.75f, xu + 11.75f, -.005f, 1.45f, h.z + h.hd - .25f, h.z + h.hd + .25f));
+            vols.Add(MinMax(fxu - .25f, fxu + .25f, -.005f, 1.45f, h.z - h.hd - .1f, h.z + h.hd + .1f));
+        }
+        CutVolumes(estate, physics, vols);
+
+        // 2) nowe ogrodzenie obwodowe (kamień + stal) i płoty działek
+        group = "Osiedle A / ogrodzenie";
+        FenceZ(FenceA, 98.6f, X0 + .25f, 1.6f); FenceZ(FenceA, 98.6f, X1 - .25f, 1.6f);
+        FenceX(X0, X1, 98f, 1.6f, (-6.2f, 6.2f));
+        foreach (var h in Houses)
+        {
+            float xu = -h.x, fxu = -(h.x < 0 ? h.x + 11.5f : h.x - 11.5f);
+            FenceZ(h.z - h.hd, h.z + h.hd, fxu, 1.45f, (h.z - 1.8f, h.z + 1.8f));
+            WoodFenceX(xu - 11.5f, xu + 11.5f, h.z - h.hd); WoodFenceX(xu - 11.5f, xu + 11.5f, h.z + h.hd);
+        }
+
+        // 3) nawierzchnie: nowy asfalt, chodniki z kostki, malowanie (wyżej niż stare, bez migotania)
+        group = "Osiedle A / drogi";
+        const float ya = .055f, yw = .095f, yp = .062f;
+        foreach (var (cx, cz, w, d) in new[] { (0f, 37f, 9f, 122f), (0f, -19f, 91f, 8f), (-43f, 10f, 5f, 53f), (43f, 10f, 5f, 53f), (0f, 39f, 91f, 5f),
+                                               (0f, -19f, 224f, 7f), (0f, 39f, 224f, 7f), (0f, 86f, 224f, 7f), (-58f, 16f, 6f, 140f), (58f, 16f, 6f, 140f), (43f, -43f, 5f, 33f) })
+            Top(Asphalt, -cx - w * .5f, -cx + w * .5f, cz - d * .5f, cz + d * .5f, ya);
+        var walks = new List<(float, float, float, float)> { (-6f, 37f, 2.8f, 122f), (6f, 37f, 2.8f, 122f), (0f, -25f, 94f, 3.3f), (0f, -13f, 94f, 3.3f), (-47f, 10f, 2f, 53f), (47f, 10f, 2f, 53f) };
+        foreach (float z in new[] { -19f, 39f, 86f }) foreach (float off in new[] { -5f, 5f }) walks.Add((0f, z + off, 224f, 2.8f));
+        foreach (float x in new[] { -58f, 58f }) foreach (float a in new[] { -4.5f, 4.5f }) walks.Add((x + a, 16f, 2f, 140f));
+        foreach (var (cx, cz, w, d) in walks)
+        {
+            float x0 = -cx - w * .5f, x1 = -cx + w * .5f, z0 = cz - d * .5f, z1 = cz + d * .5f;
+            Box(Pavers, new Vector3((x0 + x1) * .5f, yw * .5f, (z0 + z1) * .5f), new Vector3(x1 - x0, yw, z1 - z0), false);
+        }
+        foreach (float z in new[] { -19f, 39f, 86f })
+        {
+            for (float x = -109f; x <= 109f; x += 8f) Top(Paint, x - 1.5f, x + 1.5f, z - .06f, z + .06f, yp);
+            foreach (float x in new[] { -58f, 0f, 58f }) for (int a = -2; a <= 2; a++) Top(Paint, x + a - .25f, x + a + .25f, z - 1.2f, z + 1.2f, yp);
+        }
+        for (float z = -10f; z < 54f; z += 7f) Top(Paint, -.06f, .06f, z - 1.5f, z + 1.5f, yp);
+        foreach (float z in new[] { -10f, 33f }) for (int x = -3; x <= 3; x++) Top(Paint, x - .275f, x + .275f, z - 1.2f, z + 1.2f, yp);
+        // krawężniki wzdłuż ulicy głównej (jak w oryginale x=±4.6, tylko wyższe i granitowe), z przerwą na zebry
+        foreach (float x in new[] { -4.6f, 4.6f })
+            foreach (var (z0, z1) in new[] { (-15f, -11.4f), (-8.6f, 31.6f), (34.4f, 35.5f), (42.5f, 82.5f), (89.5f, 98f) })
+                BoxMinMax(KerbStone, x - .1f, x + .1f, 0, .12f, z0, z1, false);
+        rep.notes.Add("remont A: asfalt 11 pól, chodniki " + walks.Count + " pasów, płoty " + Houses.Length + " działek");
     }
 
     // ---------------- główne ----------------
@@ -645,14 +751,14 @@ public static class BraxClaudeOsiedle
 
         // 1) podłoże nowej części: trawa + fizyczna podłoga
         group = "Podłoże";
-        float zA = FenceA - .6f, zG = FenceA - .4f;
+        float zA = FenceA - .6f, zG = -103f;     // stara trawa (three.js box 232x204) kończy się na z=-103
         for (float z = SouthZ; z < zG - .01f; z += 34f) Top(Grass, X0, X1, z, Mathf.Min(z + 34f, zG), -.02f);
         var floor = new GameObject("podłoga nowej części"); floor.transform.SetParent(colliders, false);
         floor.transform.position = new Vector3(0, -.15f, (SouthZ + zA) * .5f);
         floor.AddComponent<BoxCollider>().size = new Vector3(X1 - X0, .3f, zA - SouthZ);
 
         // 2) stary płot -> nowy, z bramami do parku
-        RemoveOldSouthFence(estate, physics);
+        RenovateA(estate, physics);
         group = "Ogrodzenie";
         FenceX(X0, X1, FenceA, 1.6f, (AxisX - 4f, AxisX + 4f), (28f, 32f));
         foreach (float gx in new[] { AxisX - 4.3f, AxisX + 4.3f, 27.7f, 32.3f }) Box(Plinth, new Vector3(gx, 1.15f, FenceA), new Vector3(.62f, 2.3f, .62f));
@@ -665,7 +771,7 @@ public static class BraxClaudeOsiedle
         group = "Osiedle B / ulice";
         float gapA = AxisX - Carriage - Kerb, gapB = AxisX + Carriage + Kerb;
         StreetX(X0 + .6f, X1 - .6f, StreetZ, (gapA - Green - Walk, gapB + Green + Walk));
-        StreetZ(ParkZ0, StreetZ + Carriage, AxisX);
+        StreetNS(ParkZ0, StreetZ + Carriage, AxisX);
         Zebra(AxisX - Carriage, AxisX + Carriage, StreetZ + Carriage + .2f, StreetZ + Carriage + 3.2f, true);
         Zebra(AxisX + 9f, AxisX + 12f, StreetZ - Carriage, StreetZ + Carriage, false);
         // wjazd do parku: niska brama z kamiennymi słupami
