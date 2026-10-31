@@ -35,6 +35,45 @@ public static class BraxGymBuild
     // Aplikacja Android (APK) z tej samej sceny: przeglądarka na telefonie nie dźwiga 750 MB danych.
     // Sterowanie dotykowe w Unity (BraxTouchControls) zamiast warstwy HTML.
     public static void BuildRenovationAndroid(){BuildInternal(true,true,true,BuildTarget.Android);}
+    // OSOBNE APK DLA KAŻDEGO REJONU (właściciel 1.11, 00:37: „rozdziel mi osiedle od miasta” — APK 698aeb5 z miastem
+    // i osiedlem nie startuje na moto g86). Jedna kompilacja scen, trzy aplikacje obok siebie na telefonie (różne id):
+    //   braxhorn-osiedle.apk  — sama scena osiedla Tur pod Zamościem (Vulkan + OpenGL ES 3, jak dotąd),
+    //   braxhorn-miasto.apk   — samo miasto z siłownią (Vulkan + OpenGL ES 3),
+    //   braxhorn-miasto-gl.apk — samo miasto, tylko OpenGL ES 3 (test: czy start wywraca sterownik Vulkan na Mali).
+    // Kolejne BuildPlayer korzystają z tej samej kompilacji IL2CPP i tekstur (Library), więc dochodzi ~20–30 min na paczkę.
+    static BuildReport BuildAndroidSeparately(string cityScene,string estateScene,string output)
+    {
+        var variants=new[]{
+            new{tag="osiedle",scenes=new[]{estateScene},gl=false,id="com.braxhorn.osiedle",name="Braxhorn Osiedle"},
+            new{tag="miasto",scenes=new[]{cityScene},gl=false,id="com.braxhorn.miasto",name="Braxhorn Miasto"},
+            new{tag="miasto-gl",scenes=new[]{cityScene},gl=true,id="com.braxhorn.miasto.gl",name="Braxhorn Miasto GL"}};
+        bool useDefault=PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
+        var apis=PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
+        BuildReport last=null,ok=null;var summary=new List<string>();
+        foreach(var v in variants)
+        {
+            if(v.scenes.Any(p=>!File.Exists(p))){summary.Add(v.tag+": brak sceny");continue;}
+            EditorBuildSettings.scenes=v.scenes.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();
+            PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android,v.id);
+            PlayerSettings.productName=v.name;
+            if(v.gl){PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,false);PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,new[]{GraphicsDeviceType.OpenGLES3});}
+            else{PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,useDefault);if(!useDefault)PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,apis);}
+            AssetDatabase.SaveAssets();
+            var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=v.scenes,target=BuildTarget.Android,locationPathName=Path.Combine(output,"braxhorn-"+v.tag+".apk"),options=BuildOptions.None});
+            SizeReport(r);
+            try{File.Copy(Path.Combine(Generated,"build-size.txt"),Path.Combine(Generated,"build-size-"+v.tag+".txt"),true);}catch{}
+            summary.Add(v.tag+": "+r.summary.result+" "+(r.summary.totalSize/(1024*1024))+" MB");
+            Debug.Log("BRAXHORN_APK "+v.tag+" "+r.summary.result+" "+(r.summary.totalSize/(1024*1024))+" MB id="+v.id+(v.gl?" OpenGLES3":" Vulkan+GLES3"));
+            last=r;if(r.summary.result==BuildResult.Succeeded)ok=r;
+        }
+        PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,useDefault);if(!useDefault)PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,apis);
+        PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android,"com.braxhorn.city");PlayerSettings.productName="Braxhorn City";
+        File.WriteAllText(Path.Combine(output,"apk-variants.txt"),string.Join("\n",summary));
+        Debug.Log("BRAXHORN_APK_VARIANTS "+string.Join(" | ",summary));
+        if(ok==null)throw new Exception("Żadne APK nie zbudowało się: "+string.Join(" | ",summary));
+        return ok;
+    }
+
     // Tekstury elewacji/placów/billboardów → 1K dla danej platformy (platform override, format bez zmian, kompresja normalna).
     static void CapFacadeTextures(BuildTarget target)
     {
@@ -265,8 +304,14 @@ public static class BraxGymBuild
         EditorUserBuildSettings.overrideMaxTextureSize=0;
         EditorUserBuildSettings.overrideTextureCompression=UnityEditor.Build.OverrideTextureCompression.NoOverride;
         CapFacadeTextures(target);
-        var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=BuildOptions.None});
-        SizeReport(result);
+        BuildReport result;
+        if(target==BuildTarget.Android&&renovation&&fullCity&&!cityOnly&&scenePaths.Length>=2)
+            result=BuildAndroidSeparately(scenePath,Generated+"/BraxhornEstate.unity",output);
+        else
+        {
+            result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=BuildOptions.None});
+            SizeReport(result);
+        }
         if(result.summary.result!=BuildResult.Succeeded)throw new Exception("Playable Unity build failed "+result.summary.result);
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));

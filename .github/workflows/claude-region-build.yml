@@ -311,7 +311,7 @@ jobs:
       actions: read
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 355
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       with:
@@ -498,12 +498,22 @@ jobs:
       run: |
         set -eu
         ls -la build/Android/
-        cp build/Android/braxhorn-city.apk braxhorn-city-${GITHUB_SHA::7}.apk
-        cp unity-city/Assets/PlayableGenerated/build-size.txt build-size-android-${GITHUB_SHA::7}.txt || echo 'brak raportu rozmiaru' > build-size-android-${GITHUB_SHA::7}.txt
+        cat build/Android/apk-variants.txt 2>/dev/null || true
+        # od 1.11: osobne APK na rejon (osiedle / miasto / miasto-gl); stary jeden plik braxhorn-city.apk, jeśli jest
+        FILES=""
+        for f in build/Android/braxhorn-*.apk; do
+          [ -f "$f" ] || continue
+          tag=$(basename "$f" .apk); tag=${tag#braxhorn-}
+          cp "$f" braxhorn-${tag}-${GITHUB_SHA::7}.apk; FILES="$FILES braxhorn-${tag}-${GITHUB_SHA::7}.apk"
+          src=unity-city/Assets/PlayableGenerated/build-size-${tag}.txt; [ -f "$src" ] || src=unity-city/Assets/PlayableGenerated/build-size.txt
+          cp "$src" build-size-android-${tag}-${GITHUB_SHA::7}.txt 2>/dev/null || echo 'brak raportu rozmiaru' > build-size-android-${tag}-${GITHUB_SHA::7}.txt
+          FILES="$FILES build-size-android-${tag}-${GITHUB_SHA::7}.txt"
+        done
+        [ -n "$FILES" ] || { echo 'BRAK APK'; exit 1; }
         gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
           gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
             --title "Podglad regionu R1 (Claude, TEST)" --notes "Skompilowany player Unity 6 (WebGL + APK) do zdjec i nagrania. Nie produkcja."
-        gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber braxhorn-city-${GITHUB_SHA::7}.apk build-size-android-${GITHUB_SHA::7}.txt
+        gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber $FILES
     needs: [source-imports, cc0-assets]
 
   shots:
