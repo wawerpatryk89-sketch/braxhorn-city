@@ -203,7 +203,7 @@ public static class BraxCityBuild
         reports.Clear();disabledCarMeshes=0;disabledCarRenderers=0;omittedCarBoxes=0;
         sourceCarFilterRequested=hideStaticCars;
         AddArea("city",player,hideStaticCars,renovation);player.worldSpawn=new Vector3(1.5f,.08f,2.8f);player.view.farClipPlane=320;player.view.backgroundColor=new Color(.67f,.75f,.81f);
-        if(renovation){player.view.farClipPlane=420;BraxCitySkyAuthoring.ApplyToCity(player.view);BraxClaudeSky.Upgrade();}
+        if(renovation){player.view.farClipPlane=600;BraxCitySkyAuthoring.ApplyToCity(player.view);BraxClaudeSky.Upgrade();}
     }
     public static string CreateEstate(string commit)
     {

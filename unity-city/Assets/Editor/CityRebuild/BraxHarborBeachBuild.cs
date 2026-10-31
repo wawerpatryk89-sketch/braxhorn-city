@@ -333,22 +333,10 @@ public static class BraxHarborBeachBuild
         // dogęszczany drzewami w BraxRegionSea (po wycięciu starej łąki i sosen z prostokąta plaży).
         int tris = CapeBeach(root, dry, wet, dryDisp);
 
-        // 3) Pomost z południowego brzegu cypla w zatokę (wzdłuż −Z, natywna długość 25.8 m), deska nad wodą.
-        float jx = CapeJettyX, jz0 = CapeZ0 + 3.5f;
-        var jetty = Put(root, "rustic_wooden_dock.glb", "Marina: drewniany pomost", jx, Water + 1.55f + 1.5f, jz0 - 12.9f, 1f, 0f, 1);
-        StaticMeshCollision(jetty);
-        var jb = RendererBounds(jetty);
-        JettySteps(root, jb);
-
-        // 4) Jacht (24 m) przy pomoście od wschodu, Rivy od zachodu, jachty na kotwicy w zatoce, skutery na płyciźnie przy plaży.
-        Put(root, "yacht.glb", "Marina: jacht przy pomoście", jb.max.x + 3.4f, Water - 1.5f, jb.center.z - 1.5f, .6f, 0f);
-        Put(root, "bateau_riva_boat.glb", "Marina: motorówka Riva", jb.min.x - 2.4f, Water - .55f, jb.center.z + 4.5f, 1f, 0f);
-        Put(root, "bateau_riva_boat.glb", "Marina: motorówka Riva 2", jb.min.x - 2.4f, Water - .55f, jb.center.z - 4.5f, 1f, 0f);
-        Put(root, "yacht.glb", "Marina: jacht na kotwicy 30 m", 143f, Water - 1.8f, 88f, .75f, 155f);
-        Put(root, "yacht.glb", "Marina: jacht na kotwicy 20 m", 108f, Water - 1.2f, 72f, .5f, 25f);
-        Put(root, "jetski_01.glb", "Plaza: skuter wodny 1", 99f, Water - .22f, 108.5f, 1.2f, 150f);
-        Put(root, "jetski_02.glb", "Plaza: skuter wodny 2", 102.2f, Water - .22f, 107f, 1.2f, 175f);
-        Put(root, "jetski_01.glb", "Plaza: skuter wodny 3", 105.2f, Water - .22f, 108.8f, 1.2f, 205f);
+        // 3–4) Marina (decyzja właściciela 31.10, 16:34): zejście z plaży na pomost, pomost 70 m w zatokę, palce,
+        //      3 jachty + 3 motorówki Riva + 3 skutery — każdy prosto, równolegle do pomostu, z miejscem wejścia (BraxVessel).
+        //      Boje na linie wokół kąpieliska. Pojazdy można prowadzić (BraxVessel.Drive).
+        var jb = Marina(root);
 
         // 5) Budka ratownika na suchym piasku, przodem do zatoki (południe).
         var tower = Put(root, "lifeguard_tower.glb", "Plaza: budka ratownika", 132f, .02f, 127f, 6.2f / 31.0f, 0f);
@@ -356,6 +344,7 @@ public static class BraxHarborBeachBuild
 
         // 6) Parasole, leżaki, ręczniki (geometria z teksturami Poly Haven; w katalogu nie ma takich modeli).
         int furniture = 0;
+        Physics.SyncTransforms();   // 31.10: kolizje piasku muszą być zarejestrowane, inaczej OnSand nic nie znajduje (0 parasoli)
         try { furniture = BraxBeachFurniture.Place(root); }
         catch (Exception e) { Debug.LogWarning("BRAXHORN_HARBOR plaża: wyposażenie: " + e.Message); }
 
@@ -377,11 +366,6 @@ public static class BraxHarborBeachBuild
         var baseCollider = new GameObject("Dźwig: kolizja podstawy").AddComponent<BoxCollider>();
         baseCollider.transform.SetParent(root, false);
         baseCollider.center = new Vector3(76f, 1.2f, CraneZ); baseCollider.size = new Vector3(8f, 2.4f, 8f);
-
-        // 8) Krawędzie pomostu (nie spada się z deski).
-        Stop(root, "Pomost: krawędź E", new Vector3(jb.max.x - .3f, 0, jb.center.z), new Vector3(.3f, 5f, jb.size.z));
-        Stop(root, "Pomost: krawędź W", new Vector3(jb.min.x + .3f, 0, jb.center.z), new Vector3(.3f, 5f, jb.size.z));
-        Stop(root, "Pomost: koniec", new Vector3(jb.center.x, 0, jb.min.z + .3f), new Vector3(jb.size.x, 5f, .3f));
 
         var meshs = root.GetComponentsInChildren<MeshRenderer>(true);
         var report = new Review
@@ -464,6 +448,147 @@ public static class BraxHarborBeachBuild
             total += idx.Count / 3;
         }
         return total;
+    }
+
+
+    // ===== MARINA (31.10) =====
+    const float PierX = CapeJettyX, PierZ0 = 113f, PierZ1 = 44f, PierW = 3.2f;
+    static float Deck { get { return Water + 1.1f; } }   // deska 1,1 m nad lustrem wody
+
+    static Material Planks(string name)
+    {
+        var m = BraxCityMaterials.Surface(name, new Color(.45f, .36f, .26f), .8f);
+        try { m = BraxRegion.Pbr(name, 1.5f, null, "wood_planks_grey", "wooden_planks", "wood_planks"); } catch (Exception) { }
+        return m;
+    }
+
+    static void Pile(Transform root, Material m, float x, float z)
+    {
+        float top = Deck + .25f, bottom = -3.2f;
+        BraxCityArchitecture.Box("Marina: pal", root, new Vector3(x, (top + bottom) * .5f, z), new Vector3(.34f, top - bottom, .34f), m, false);
+    }
+
+    /// <summary>Deska pomostu z palami i krawężnikiem-stoperem (nie spada się z deski).</summary>
+    static void Walkway(Transform root, string name, Material planks, Material piles, float x0, float x1, float z0, float z1)
+    {
+        var c = new Vector3((x0 + x1) * .5f, Deck - .14f, (z0 + z1) * .5f);
+        BraxCityArchitecture.Box(name, root, c, new Vector3(x1 - x0, .28f, z1 - z0), planks, true);
+        bool alongZ = (z1 - z0) > (x1 - x0);
+        if (alongZ) for (float z = z0 + 1f; z <= z1 - .5f; z += 6f) { Pile(root, piles, x0 + .25f, z); Pile(root, piles, x1 - .25f, z); }
+        else for (float x = x0 + 1f; x <= x1 - .5f; x += 6f) { Pile(root, piles, x, z0 + .25f); Pile(root, piles, x, z1 - .25f); }
+    }
+
+    /// <summary>Obraca model tak, by dłuższa oś kadłuba leżała wzdłuż Z (równolegle do pomostu); zwraca bounds po obrocie.</summary>
+    static Bounds AlignAlongZ(GameObject go)
+    {
+        var b = RendererBounds(go);
+        if (b.size.x > b.size.z) { go.transform.RotateAround(b.center, Vector3.up, 90f); b = RendererBounds(go); }
+        return b;
+    }
+
+    /// <summary>Łódź zacumowana prosto przy pomoście + sterowanie (BraxVessel). Środek kadłuba w (x, z).</summary>
+    static GameObject Moor(Transform root, string file, string name, string label, float x, float z, float scale, float sink,
+                           float maxSpeed, float turn, float seatFrac, float seatBack, float length, float width)
+    {
+        var model = Put(root, file, name + " model", x, Water - sink, z, scale, 0f);
+        var b = AlignAlongZ(model);
+        model.transform.position += new Vector3(x - b.center.x, 0, z - b.center.z);
+        b = RendererBounds(model);
+        var v = new GameObject(name); v.transform.SetParent(root, false);
+        v.transform.position = new Vector3(x, Water, z); v.transform.rotation = Quaternion.identity;
+        model.transform.SetParent(v.transform, true);
+        var vessel = v.AddComponent<BraxVessel>();
+        vessel.label = label; vessel.waterY = Water; vessel.draft = 0f;
+        vessel.maxSpeed = maxSpeed; vessel.turnRate = turn; vessel.accel = maxSpeed * .45f;
+        vessel.length = length; vessel.width = width;
+        vessel.seat = new Vector3(0, Mathf.Max(.3f, (b.max.y - Water) * seatFrac), seatBack);
+        vessel.moor = v.transform.position; vessel.moorYaw = 0f;
+        return v;
+    }
+
+    static Bounds Marina(Transform root)
+    {
+        var planks = Planks("Marina: deski pomostu");
+        var piles = BraxCityMaterials.Surface("Marina: pale", new Color(.28f, .22f, .16f), .9f);
+        var concrete = BraxCityMaterials.Surface("Marina: beton zejścia", new Color(.62f, .6f, .56f), .9f);
+        try { concrete = BraxRegion.Pbr("Marina: beton zejścia", 2f, null, "concrete_floor_02", "concrete_wall_008"); } catch (Exception) { }
+
+        // Zejście z plaży: podest na piasku (y .02) i 2 stopnie w dół na deskę (Deck = -0.6).
+        BraxCityArchitecture.Box("Marina: podest zejścia", root, new Vector3(PierX, -.12f, PierZ0 + 1.6f), new Vector3(PierW + 1f, .3f, 3.2f), concrete, true);
+        int steps = 2; float rise = (.02f - Deck) / steps, run = .5f;
+        for (int i = 0; i < steps; i++)
+        {
+            float top = .02f - rise * (i + 1), z = PierZ0 - run * i - run * .5f;
+            BraxCityArchitecture.Box("Marina: stopień " + (i + 1), root, new Vector3(PierX, top - .15f, z), new Vector3(PierW + .6f, .3f, run + .02f), concrete, true);
+        }
+        // Główny pomost wzdłuż -Z.
+        float mainZ0 = PierZ1, mainZ1 = PierZ0 - run * steps;
+        Walkway(root, "Marina: pomost główny", planks, piles, PierX - PierW * .5f, PierX + PierW * .5f, mainZ0, mainZ1);
+        // Palce wschód (jachty): z 106, 84, 62; jachty między palcami.
+        float ex0 = PierX + PierW * .5f;
+        foreach (float z in new[] { 106f, 84f, 62f }) Walkway(root, "Marina: palec E " + z, planks, piles, ex0, ex0 + 14f, z - .8f, z + .8f);
+        float yachtX = ex0 + 4.6f;
+        int k = 0;
+        foreach (float z in new[] { 95f, 73f, 51f })
+            Moor(root, "yacht.glb", "Marina: jacht " + (++k), "JACHT", yachtX, z, .7f, 1.3f, 7f, 28f, .42f, -1.5f, 17f, 5f);
+        // Palce zachód (Rivy i skutery): z 108, 99, 90, 78.
+        float wx1 = PierX - PierW * .5f;
+        foreach (float z in new[] { 108f, 99f, 90f }) Walkway(root, "Marina: palec W " + z, planks, piles, wx1 - 9f, wx1, z - .7f, z + .7f);
+        Walkway(root, "Marina: palec W skutery", planks, piles, wx1 - 6f, wx1, 78f - .6f, 78f + .6f);
+        float rivaX = wx1 - 2.1f;
+        k = 0;
+        foreach (float z in new[] { 103.5f, 94.5f, 85.5f })
+            Moor(root, "bateau_riva_boat.glb", "Marina: motorówka Riva " + (++k), "MOTORÓWKA", rivaX, z, 1f, .5f, 10f, 48f, .55f, -1.2f, 8f, 2.6f);
+        float skiX = wx1 - 1.5f;
+        k = 0;
+        foreach (float z in new[] { 74.5f, 70f, 65.5f })
+        {
+            Moor(root, k % 2 == 0 ? "jetski_01.glb" : "jetski_02.glb", "Marina: skuter " + (k + 1), "SKUTER", skiX, z, 1.2f, .22f, 12f, 85f, .78f, -.35f, 3.2f, 1.2f); k++;
+            BraxCityArchitecture.Box("Marina: stopień do skutera", root, new Vector3(wx1 - .45f, Deck - .32f, z), new Vector3(.9f, .14f, 1.2f), planks, true);
+        }
+        // Stopery na krawędziach głównego pomostu — tylko tam, gdzie nie ma palca (przejście na palce wolne).
+        var fingersE = new[] { 106f, 84f, 62f }; var fingersW = new[] { 108f, 99f, 90f, 78f };
+        EdgeStops(root, "E", ex0 - .15f, mainZ0, mainZ1, fingersE);
+        EdgeStops(root, "W", wx1 + .15f, mainZ0, mainZ1, fingersW);
+        Stop(root, "Marina: koniec pomostu", new Vector3(PierX, 0, mainZ0 + .15f), new Vector3(PierW, 4f, .3f));
+        // Boje na linie: granica kąpieliska (południe z=92, wschód x=172), przerwa na kanał mariny x 112..128.
+        var yellow = BraxCityMaterials.Surface("Boja: żółta", new Color(1f, .82f, .1f), .5f);
+        var rope = BraxCityMaterials.Surface("Boja: lina", new Color(.9f, .9f, .85f), .9f);
+        int buoys = 0;
+        for (float x = 86f; x <= 172f; x += 6f) if (x < 112f || x > 128f) buoys += Buoy(root, yellow, rope, x, 92f, x + 6f <= 172f && (x + 6f < 112f || x > 128f) ? new Vector3(x + 6f, 0, 92f) : Vector3.zero);
+        for (float z = 98f; z <= 162f; z += 6f) buoys += Buoy(root, yellow, rope, 172f, z, z + 6f <= 162f ? new Vector3(172f, 0, z + 6f) : Vector3.zero);
+        Debug.Log("BRAXHORN_MARINA pomost z=" + mainZ0 + ".." + mainZ1 + " jachty=3 rivy=3 skutery=3 boje=" + buoys);
+        var jb = new Bounds(new Vector3(PierX, Deck, (mainZ0 + mainZ1) * .5f), new Vector3(PierW, .3f, mainZ1 - mainZ0));
+        return jb;
+    }
+
+    static void EdgeStops(Transform root, string side, float x, float z0, float z1, float[] fingers)
+    {
+        var cuts = new List<float>(fingers); cuts.Sort();
+        float from = z0;
+        foreach (float f in cuts)
+        {
+            float to = f - 1.0f;
+            if (to > from + .2f) Stop(root, "Marina: krawędź " + side, new Vector3(x, 0, (from + to) * .5f), new Vector3(.3f, 4f, to - from));
+            from = f + 1.0f;
+        }
+        if (z1 > from + .2f) Stop(root, "Marina: krawędź " + side, new Vector3(x, 0, (from + z1) * .5f), new Vector3(.3f, 4f, z1 - from));
+    }
+
+    static int Buoy(Transform root, Material yellow, Material rope, float x, float z, Vector3 next)
+    {
+        var b = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        b.name = "Boja"; b.transform.SetParent(root, false);
+        b.transform.position = new Vector3(x, Water + .12f, z); b.transform.localScale = Vector3.one * .55f;
+        UnityEngine.Object.DestroyImmediate(b.GetComponent<Collider>());
+        var r = b.GetComponent<Renderer>(); r.sharedMaterial = yellow; r.shadowCastingMode = ShadowCastingMode.Off;
+        if (next != Vector3.zero)
+        {
+            var mid = new Vector3((x + next.x) * .5f, Water + .03f, (z + next.z) * .5f);
+            var seg = BraxCityArchitecture.Box("Boja: lina", root, mid, new Vector3(Mathf.Abs(next.x - x) > .1f ? Mathf.Abs(next.x - x) : .06f, .05f, Mathf.Abs(next.z - z) > .1f ? Mathf.Abs(next.z - z) : .06f), rope, false);
+            foreach (var rr in seg.GetComponentsInChildren<Renderer>()) rr.shadowCastingMode = ShadowCastingMode.Off;
+        }
+        return 1;
     }
 
     // Schodki z piasku na deskę pomostu (deska ok. 1.3 m nad piaskiem): 4 stopnie po 0.33 m.

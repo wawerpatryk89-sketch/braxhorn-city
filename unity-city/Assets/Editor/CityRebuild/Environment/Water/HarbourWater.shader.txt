@@ -7,7 +7,7 @@ Shader "Braxhorn/HarbourWaterMobile"
         _SkyHorizon ("Sky horizon if reflection is unavailable", Color) = (0.43,0.49,0.52,1)
         _SkyZenith ("Sky zenith if reflection is unavailable", Color) = (0.28,0.40,0.53,1)
         _SunDirection ("Direction towards daylight", Vector) = (-0.45,0.78,-0.42,0)
-        _NearRectangle ("Moving mesh x0 z0 x1 z1", Vector) = (84,-64,148,192)
+        _NearRectangle ("Moving mesh x0 z0 x1 z1", Vector) = (84,-120,560,260)
         _ReflectionStrength ("Reflection contribution", Range(0,1)) = 0.58
         _ReflectionMip ("Sky reflection softness", Range(0,6)) = 3.2
         _RippleStrength ("Small wave slope", Range(0,1.5)) = 0.8
@@ -70,7 +70,7 @@ Shader "Braxhorn/HarbourWaterMobile"
                 v2f o;
                 float3 world = mul(unity_ObjectToWorld,v.vertex).xyz;
                 float2 phase = SwellPhase(world.xz);
-                world.y += dot(sin(phase),float2(0.022,0.012)) * SwellEnvelope(world.xz).x;
+                world.y += dot(sin(phase),float2(0.10,0.06)) * SwellEnvelope(world.xz).x;   // delikatne fale ok. 10 cm (31.10)
                 o.world = world;
                 o.position = mul(UNITY_MATRIX_VP,float4(world,1));
                 UNITY_TRANSFER_FOG(o,o.position);
@@ -84,8 +84,8 @@ Shader "Braxhorn/HarbourWaterMobile"
                 float2 q = i.world.xz - float2(84.0,60.0);
                 float2 broadPhase = SwellPhase(i.world.xz);
                 float3 envelope = SwellEnvelope(i.world.xz);
-                float2 broad = cos(broadPhase) * float2(0.022*0.84,0.012*1.46);
-                float height = dot(sin(broadPhase),float2(0.022,0.012));
+                float2 broad = cos(broadPhase) * float2(0.10*0.84,0.06*1.46);
+                float height = dot(sin(broadPhase),float2(0.10,0.06));
                 float2 slope = (broad.x * float2(0.84,0.5426)
                               + broad.y * float2(-0.4191,0.9079)) * envelope.x + height*envelope.yz;
                 float3 phase = float3(dot(q,float2(0.6,0.8))*11.424,

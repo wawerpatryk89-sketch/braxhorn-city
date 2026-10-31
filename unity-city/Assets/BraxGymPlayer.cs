@@ -16,6 +16,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public BraxCityWorld cityWorld;
     public Vector3 worldSpawn=new Vector3(1.5f,.08f,2.8f);
     public int trainingHits;
+    public BraxVessel vessel;   // pojazd wodny, na którym siedzi gracz (BraxVessel.Board)
     private Vector2 move;
     private float yaw, pitch = 19f, distance = 5.8f, vertical, speed;
     private float actionEnd, hitAt, stateAt;
@@ -96,6 +97,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(key=="pause"){paused=!paused;move=Vector2.zero;foreach(AnimationState st in clips)st.speed=paused?0:1;Report();return;}
         if(key=="reset")
         {
+            if(vessel){transform.SetParent(null,true);vessel=null;}
             body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,180,0);body.enabled=true;
             vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
             yaw=0;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
@@ -128,6 +130,12 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(!ready||paused||(cityWorld&&cityWorld.loading))return;
         float dt=Mathf.Min(Time.deltaTime,.12f);
         simulationTime+=dt;
+        if(vessel)
+        {
+            vessel.Drive(move,dt);speed=0;vertical=0;
+            if(action!="Idle"){action="Idle";clips["Idle"].wrapMode=WrapMode.Loop;clips["Idle"].speed=1;clips.CrossFade("Idle",.16f,PlayMode.StopAll);}
+            return;
+        }
         bool acting=Time.time<actionEnd;
         float target=!acting?(move.magnitude>.12f?(runEnabled&&move.magnitude>.76f?5f:2f)*Mathf.Clamp01(move.magnitude*1.3f):0):0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
@@ -223,6 +231,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         var h=hand?hand.position:Vector3.zero;
         string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
         if(cityWorld){if(!string.IsNullOrEmpty(cityWorld.Context))context=cityWorld.Context;else if(context=="ULICA — KOLEJNY ETAP")context="";}
+        if(vessel)context="ZEJDŹ · "+vessel.label;
         var right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
         var forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
         var s=new Status{area=cityWorld?cityWorld.area:"gym",activePoint=cityWorld?cityWorld.activePoint:"",points=cityWorld?cityWorld.points:null,loadingArea=cityWorld&&cityWorld.loading,cityMeshes=cityWorld?cityWorld.originalMeshes:0,cityTriangles=cityWorld?cityWorld.originalTriangles:0,cityColliders=cityWorld?cityWorld.sourceColliders:0,openDoors=cityWorld?cityWorld.OpenDoors:0,ready=ready,paused=paused,x=transform.position.x,y=transform.position.y,z=transform.position.z,yaw=yaw,pitch=pitch,speed=speed,animation=action,context=context,hits=trainingHits,frames=Time.frameCount,handX=h.x,handY=h.y,handZ=h.z,doorOpen=doorOpen,build=buildId,

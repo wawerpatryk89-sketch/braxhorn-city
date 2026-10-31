@@ -48,6 +48,7 @@ public static class BraxRegion
 
         // Najpierw morze: stara łąka i las znad wody (jachty „w trawie”), zanim zieleń szuka trawników.
         Step("morze bez łąki i lasu nad wodą", () => BraxRegionSea.Apply(root));
+        Step("wyspa na morzu (oktagon Ligi, pomost, otwarta)", () => BraxRegionIsland.Apply(root));
         Step("pawilon sportowy (szatnia + sala walk)", () => BraxRegionPavilion.Apply(world, root));
         Step("tyły siłowni: plac, wieżowce A/B, wiadukt z portalem, warsztaty", () => BraxRegionBackyard.Apply(world, root));
         Step("taras wieżowca: kwiaty i rośliny", () => BraxRegionTerrace.Apply(root));
@@ -276,7 +277,31 @@ public static class BraxRegion
     {
         if (BraxCityMaterials.IsCityMaterial(src)) return src;
         if (!src.HasProperty("baseColorFactor") || !src.HasProperty("roughnessFactor") || !src.HasProperty("metallicFactor"))
-            throw new InvalidOperationException("nie jest materiałem glTFast metallic/roughness");
+        {
+            // 31.10: drzewa za plażą były czarne — materiał nie był z glTFast (URP/Standard z paczki drzewo_verdant).
+            // Konwersja z tego, co jest: kolor + mapa bazowa + normalna, reszta domyślna; liście jako cutout.
+            string baseMap = src.HasProperty("_BaseMap") ? "_BaseMap" : src.HasProperty("_MainTex") ? "_MainTex" : null;
+            string baseCol = src.HasProperty("_BaseColor") ? "_BaseColor" : src.HasProperty("_Color") ? "_Color" : null;
+            if (baseMap == null && baseCol == null) throw new InvalidOperationException("nie jest materiałem glTFast ani Standard/URP");
+            var sh2 = Shader.Find(BraxCityMaterials.ShaderName);
+            if (!sh2) throw new InvalidOperationException("brak shadera " + BraxCityMaterials.ShaderName);
+            var c2 = new Material(sh2) { name = src.name + " (miasto)" };
+            c2.SetColor("_Color", baseCol != null ? src.GetColor(baseCol) : Color.white);
+            c2.SetFloat("_Roughness", src.HasProperty("_Smoothness") ? 1f - src.GetFloat("_Smoothness") : src.HasProperty("_Glossiness") ? 1f - src.GetFloat("_Glossiness") : .85f);
+            c2.SetFloat("_Metallic", src.HasProperty("_Metallic") ? src.GetFloat("_Metallic") : 0f);
+            if (baseMap != null) CopyMap(src, c2, baseMap, "_MainTex");
+            CopyMap(src, c2, "_BumpMap", "_BumpMap");
+            c2.SetFloat("_NormalEncoding", 1); c2.SetFloat("_UseARMForAO", 0);
+            bool cutout = src.IsKeywordEnabled("_ALPHATEST_ON") || src.renderQueue >= 2450 && src.renderQueue < 3000 || src.HasProperty("_Cutoff") && src.GetFloat("_Cutoff") > 0f && src.HasProperty("_AlphaClip") && src.GetFloat("_AlphaClip") > 0f;
+            float cull2 = src.HasProperty("_Cull") ? src.GetFloat("_Cull") : 2f;
+            c2.SetFloat("_Cull", cutout ? 0f : cull2); c2.doubleSidedGI = cutout;
+            c2.SetFloat("_AlphaClip", cutout ? 1 : 0); c2.SetFloat("_Cutoff", cutout ? (src.HasProperty("_Cutoff") ? Mathf.Clamp01(src.GetFloat("_Cutoff")) : .5f) : 0);
+            c2.SetFloat("_Transparent", 0); c2.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One); c2.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero); c2.SetFloat("_ZWrite", 1);
+            c2.renderQueue = cutout ? 2450 : 2000; c2.SetOverrideTag("RenderType", cutout ? "TransparentCutout" : "Opaque");
+            Directory.CreateDirectory(Out + "/Materials");
+            AssetDatabase.CreateAsset(c2, Out + "/Materials/model-" + cityMaterials.Count + ".mat");
+            return c2;
+        }
         var sh = Shader.Find(BraxCityMaterials.ShaderName);
         if (!sh) throw new InvalidOperationException("brak shadera " + BraxCityMaterials.ShaderName);
         var c = new Material(sh) { name = src.name + " (miasto)" };

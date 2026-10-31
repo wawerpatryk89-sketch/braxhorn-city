@@ -13,7 +13,9 @@ public static class BraxCityWaterBuild
     public const float WaterY = -1.7f;
     public const float ShoreX = 84f;
     public static readonly Rect Footprint = new Rect(84,-340,800,800);
-    public static readonly Rect MovingMeshFootprint = new Rect(84,-64,64,256);
+    // 31.10 (decyzja właściciela: delikatne fale na całym morzu, pływanie skuterem, wyspa): siatka falująca
+    // obejmuje zatokę, plażę, marinę i wyspę (x 84..560, z −120..260), krok 4 m = 8 płatów po 60×24 pól.
+    public static readonly Rect MovingMeshFootprint = new Rect(84,-120,476,380);
     const string Template = "Assets/Editor/CityRebuild/Environment/Water/HarbourWater.shader.txt";
     const string Output = "Assets/PlayableGenerated/CityRebuildWater";
     const string RootName = "Braxhorn harbour water";
@@ -26,7 +28,7 @@ public static class BraxCityWaterBuild
         public string normalSource = "Analytic derivatives of calm water waves; no verified water normal map was available";
         public string reflection = "Existing default sky cubemap with a soft explicit mip; sky gradient if the cubemap is black";
         public string validation = "Generated topology, bounds and shader import checked; WebGL compilation and real player review still required";
-        public float meanWaterY = WaterY, shorelineX = ShoreX, maximumSwellMetres = .034f;
+        public float meanWaterY = WaterY, shorelineX = ShoreX, maximumSwellMetres = .16f;
         public int patches, vertices, triangles, addedCameras, addedLights, addedReflectionProbes, addedColliders;
         public double coveredArea;
         public bool visualAccepted, physicalPhoneMeasured;
@@ -68,12 +70,12 @@ public static class BraxCityWaterBuild
         // Eight 32x64 m near-quay patches, two-metre grid. A shared analytic
         // function moves matching boundary vertices by the same amount.
         for(int x=0;x<2;x++)for(int z=0;z<4;z++)
-            Patch(root,new Rect(84+x*32,-64+z*64,32,64),2,material,patches);
+            Patch(root,new Rect(84+x*238,-120+z*95,238,95),4,material,patches);
         // The original water extent is preserved. Outside the moving rectangle,
         // flat low-cost patches have animated, distance-filtered surface normals.
-        Patch(root,new Rect(84,-340,64,276),800,material,patches);
-        Patch(root,new Rect(84,192,64,268),800,material,patches);
-        Patch(root,new Rect(148,-340,736,800),800,material,patches);
+        Patch(root,new Rect(84,-340,476,220),800,material,patches);
+        Patch(root,new Rect(84,260,476,200),800,material,patches);
+        Patch(root,new Rect(560,-340,324,800),800,material,patches);
         var report=Validate(root,patches,material);
         File.WriteAllText(Output+"/water-review.json",JsonUtility.ToJson(report,true));
         AssetDatabase.ImportAsset(Output+"/water-review.json");

@@ -35,6 +35,9 @@ public sealed class BraxCityWorld : MonoBehaviour
         {
             if(loading)return "WCZYTYWANIE DZIELNICY…";
             var p=player.transform.position;
+            if(player.vessel)return "ZEJDŹ · "+player.vessel.label;
+            var vessel=BraxVessel.Nearest(p,3.2f);
+            if(vessel)return "WSIĄDŹ · "+vessel.label;
             if(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ NA OSIEDLE";
             if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f)return "WRÓĆ DO MIASTA";
             // Do not hide elevator calls behind ordinary door prompts.
@@ -76,6 +79,9 @@ public sealed class BraxCityWorld : MonoBehaviour
     {
         if(loading)return true;
         var p=player.transform.position;
+        if(player.vessel){player.vessel.Dismount();return true;}
+        var vessel=BraxVessel.Nearest(p,3.2f);
+        if(vessel){vessel.Board(player);return true;}
         if(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
         if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return true;}
         foreach(var lift in additionalTowerElevators)
