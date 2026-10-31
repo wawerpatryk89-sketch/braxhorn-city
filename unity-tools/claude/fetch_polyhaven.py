@@ -37,16 +37,18 @@ MODELS = [
 
 
 def get(url: str) -> bytes:
-    for attempt in range(4):
+    # 31.10: build APK 41203048575 padł na ambientcg.com (4 × 180 s timeout = 12 min). Krótszy timeout, więcej prób;
+    # a przede wszystkim: pliki, które już są (pamięć podręczna CI), nie są pobierane ponownie (SKIP niżej).
+    for attempt in range(6):
         try:
             req = urllib.request.Request(url, headers=UA)
-            with urllib.request.urlopen(req, timeout=180) as r:
+            with urllib.request.urlopen(req, timeout=60) as r:
                 return r.read()
         except Exception as exc:  # noqa: BLE001
-            if attempt == 3:
+            if attempt == 5:
                 raise
             print(f"retry {attempt + 1} {url}: {exc}")
-            time.sleep(3 * (attempt + 1))
+            time.sleep(5 * (attempt + 1))
     raise RuntimeError(url)
 
 
@@ -64,8 +66,10 @@ def pick(res: dict, *keys):
 def main() -> int:
     report = {"source": "Poly Haven (CC0)", "textures": {}, "models": {}}
     for t in TEXTURES:
-        f = files(t)
         d = ROOT / "textures" / t
+        if all((d / o).exists() for o in ("diffuse.jpg", "normal.jpg", "arm.jpg")):
+            report["textures"][t] = "cached"; print("TEX", t, "SKIP (jest)"); continue
+        f = files(t)
         d.mkdir(parents=True, exist_ok=True)
         for key, out in (("Diffuse", "diffuse.jpg"), ("nor_gl", "normal.jpg"), ("arm", "arm.jpg")):
             url = pick(f[key], "2k")["jpg"]["url"]
@@ -74,9 +78,11 @@ def main() -> int:
             report["textures"].setdefault(t, {})[out] = len(data)
         print("TEX", t, "OK")
     for m in MODELS:
+        d = ROOT / "models" / m
+        if (d / f"{m}.gltf").exists() and len([q for q in d.rglob("*") if q.is_file()]) > 1:
+            report["models"][m] = "cached"; print("MODEL", m, "SKIP (jest)"); continue
         f = files(m)
         g = pick(f["gltf"], "1k", "2k")["gltf"]
-        d = ROOT / "models" / m
         d.mkdir(parents=True, exist_ok=True)
         (d / f"{m}.gltf").write_bytes(get(g["url"]))
         n = 1
@@ -90,39 +96,45 @@ def main() -> int:
     # Prawdziwa trawa: ambientCG Grass004 (CC0), 2K JPG -> diffuse/normal/arm (R=AO, G=roughness).
     import io, zipfile
     from PIL import Image
-    z = zipfile.ZipFile(io.BytesIO(get("https://ambientcg.com/get?file=Grass004_2K-JPG.zip")))
-    names = z.namelist()
+    d = ROOT / "textures" / "grass004"
+    if all((d / o).exists() for o in ("diffuse.jpg", "normal.jpg", "arm.jpg")):
+        print("TEX grass004 SKIP (jest)"); z = None
+    else:
+        z = zipfile.ZipFile(io.BytesIO(get("https://ambientcg.com/get?file=Grass004_2K-JPG.zip")))
+    names = z.namelist() if z else []
     def member(token):
         for n in names:
             if token in n and n.lower().endswith((".jpg", ".png")):
                 return Image.open(io.BytesIO(z.read(n)))
         return None
-    color, normal, rough, ao = member("_Color"), member("_NormalGL"), member("_Roughness"), member("_AmbientOcclusion")
-    if color is None or normal is None or rough is None:
-        raise RuntimeError("Grass004: brak map w paczce: " + ", ".join(names))
-    d = ROOT / "textures" / "grass004"
-    d.mkdir(parents=True, exist_ok=True)
-    color.convert("RGB").save(d / "diffuse.jpg", quality=92)
-    normal.convert("RGB").save(d / "normal.jpg", quality=95)
-    r = rough.convert("L")
-    a = ao.convert("L").resize(r.size) if ao is not None else Image.new("L", r.size, 255)
-    Image.merge("RGB", (a, r, Image.new("L", r.size, 0))).save(d / "arm.jpg", quality=92)
-    report["textures"]["grass004"] = {"source": "ambientCG Grass004 (CC0)", "ao": ao is not None}
-    print("TEX grass004 (ambientCG) OK")
+    if z:
+        color, normal, rough, ao = member("_Color"), member("_NormalGL"), member("_Roughness"), member("_AmbientOcclusion")
+        if color is None or normal is None or rough is None:
+            raise RuntimeError("Grass004: brak map w paczce: " + ", ".join(names))
+        d.mkdir(parents=True, exist_ok=True)
+        color.convert("RGB").save(d / "diffuse.jpg", quality=92)
+        normal.convert("RGB").save(d / "normal.jpg", quality=95)
+        r = rough.convert("L")
+        a = ao.convert("L").resize(r.size) if ao is not None else Image.new("L", r.size, 255)
+        Image.merge("RGB", (a, r, Image.new("L", r.size, 0))).save(d / "arm.jpg", quality=92)
+        report["textures"]["grass004"] = {"source": "ambientCG Grass004 (CC0)", "ao": ao is not None}
+        print("TEX grass004 (ambientCG) OK")
     # Niebo: to samo co dziś w mieście (kloofendal_48d_partly_cloudy_puresky z biblioteki właściciela),
     # ale ostre: 4096x2048 zamiast 2048x1024 (wersja tonemapped JPG z Poly Haven).
     sky_id = "kloofendal_48d_partly_cloudy_puresky"
-    f = files(sky_id)
-    url = f["tonemapped"]["url"]
     d = ROOT / "sky"
-    d.mkdir(parents=True, exist_ok=True)
-    raw = d / "sky_full.jpg"
-    raw.write_bytes(get(url))
-    from PIL import Image
-    im = Image.open(raw).convert("RGB")
-    im = im.resize((4096, 2048), Image.LANCZOS)
-    im.save(d / "kloofendal_4k.jpg", quality=92)
-    raw.unlink()
+    if (d / "kloofendal_4k.jpg").exists():
+        print("SKY SKIP (jest)")
+    else:
+        f = files(sky_id)
+        url = f["tonemapped"]["url"]
+        d.mkdir(parents=True, exist_ok=True)
+        raw = d / "sky_full.jpg"
+        raw.write_bytes(get(url))
+        im = Image.open(raw).convert("RGB")
+        im = im.resize((4096, 2048), Image.LANCZOS)
+        im.save(d / "kloofendal_4k.jpg", quality=92)
+        raw.unlink()
     report["sky"] = {"id": sky_id, "size": [4096, 2048]}
     print("SKY", sky_id, "4096x2048 OK")
     (ROOT / "polyhaven-receipt.json").write_text(json.dumps(report, indent=1))
