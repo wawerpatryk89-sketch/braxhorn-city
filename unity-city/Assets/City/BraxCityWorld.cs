@@ -147,6 +147,7 @@ public sealed class BraxSceneTransit : MonoBehaviour
     }
     IEnumerator Run(string scene)
     {
+        BraxStartLog.Etap("przejście tunelem do "+scene);
         var old=SceneManager.GetActiveScene();
         var empty=SceneManager.CreateScene("BRAXHORN przejscie "+Time.frameCount);
         var camGo=new GameObject("kamera przejścia");
