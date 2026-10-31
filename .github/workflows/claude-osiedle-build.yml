@@ -54,6 +54,13 @@ jobs:
           git diff --exit-code -- unity-city/Assets/*.cs unity-city/Assets/*.shader unity-city/Assets/Editor unity-city/Assets/City unity-tools
       - name: Materialy i modele CC0 do osiedla (Poly Haven + ambientCG)
         run: python3 unity-tools/claude/fetch_osiedle.py
+      - name: Miejsce na dysku dla obrazu Unity (build 3 padl na "no space left on device" przy pobieraniu obrazu)
+        run: |
+          df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/share/swift /usr/local/share/powershell || true
+          sudo apt-get clean || true
+          sudo docker image prune --all --force || true
+          df -h / | tail -1
       - name: Kompilacja Unity 6 (osiedle jako pierwsza scena)
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
