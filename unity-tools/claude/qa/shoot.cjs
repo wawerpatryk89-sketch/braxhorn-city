@@ -15,7 +15,7 @@ const server = http.createServer((req, res) => {
 });
 (async () => {
   await new Promise(r => server.listen(8765, r));
-  const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl', '--no-sandbox'] });
+  const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl', '--no-sandbox', '--disable-dev-shm-usage', '--js-flags=--max-old-space-size=6144', '--renderer-process-limit=1'] });
   const page = await b.newPage({ viewport: { width: 1280, height: 720 } });
   const errs = []; page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
   page.on('pageerror', e => errs.push('PAGEERROR ' + String(e).slice(0, 200)));

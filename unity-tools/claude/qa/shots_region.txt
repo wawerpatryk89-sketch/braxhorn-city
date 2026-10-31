@@ -17,3 +17,7 @@
 17-brzeg-polnoc|90,0.4,150,180,14,12
 18-metro-peron|70,-7.1,59.5,270,12,9
 19-metro-schody|78,-3.1,47,180,14,9
+25-nova-loze|36,0.2,48,270,12,8
+26-wiezowiec-lobby-recepcja|62,0.3,37,90,10,7
+27-plaza-piasek|78,0.4,125,0,16,12
+28-boisko-kosz|12,0.2,74,90,12,14
