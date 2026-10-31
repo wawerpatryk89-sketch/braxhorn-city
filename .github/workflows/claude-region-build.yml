@@ -275,6 +275,7 @@ jobs:
         cp unity-city/Assets/PlayableGenerated/HarborBeach/harbor-beach-review.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeTower/terrace.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeNova/nova-club.json unity-preview/ || true
+        cp unity-city/Assets/PlayableGenerated/ClaudeNova/nova-probe.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeGround/ground.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeGround/trees.json unity-preview/ || true
         cp unity-city/Assets/PlayableGenerated/ClaudeGround/courts.json unity-preview/ || true
