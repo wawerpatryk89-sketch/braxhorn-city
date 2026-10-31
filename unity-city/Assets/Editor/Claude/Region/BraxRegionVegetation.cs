@@ -22,12 +22,12 @@ public static class BraxRegionVegetation
     public static void Apply(Transform cityRoot)
     {
         var root = BraxRegion.Root(cityRoot, "CLAUDE zieleń naturalna i mała architektura");
-        var shrubs = Load("shrub_01", "shrub_02", "shrub_03", "shrub_04", "park_shrub");
-        var grass = Load("grass_medium_01", "grass_medium_02", "grass_bermuda_01");
-        var flowers = Load("flower_gazania", "flower_ursinia", "periwinkle_plant", "dandelion_01", "celandine_01", "flower_heliophila");
-        var rocks = Load("rock_moss_set_01", "rock_moss_set_02", "boulder_01", "rock_07", "stone_01", "park_rock");
-        var shoreRocks = Load("coast_rocks_01", "coast_rocks_02", "coast_rocks_03", "coast_rocks_05", "sand_rocks_small_01");
-        var trees = Load("island_tree_03", "pine_tree_01", "fir_tree_01", "tree_small_02", "island_tree_01");
+        var shrubs = Load("shrub_01", "shrub_02", "shrub_03", "park_shrub");
+        var grass = Load("grass_medium_01", "grass_medium_02");
+        var flowers = Load("flower_gazania", "flower_ursinia", "periwinkle_plant", "celandine_01");
+        var rocks = Load("rock_moss_set_01", "boulder_01", "stone_01", "park_rock");
+        var shoreRocks = Load("coast_rocks_01", "coast_rocks_03", "sand_rocks_small_01");
+        var trees = Load("island_tree_03", "pine_tree_01", "fir_tree_01");
         var bench = BraxRegion.Model("modular_street_seating", "painted_wooden_bench", "wooden_picnic_table");
         var lamp = BraxRegion.Model("street_lamp_02", "street_lamp_01");
         var bin = BraxRegion.Model("metal_trash_can");
@@ -48,7 +48,7 @@ public static class BraxRegionVegetation
             lawns.Add(b);
         }
         int shrubN = 0, grassN = 0, flowerN = 0, rockN = 0, treeN = 0, propN = 0;
-        const int MaxShrubs = 90, MaxGrass = 120, MaxFlowers = 70, MaxRocks = 30, MaxTrees = 26;
+        const int MaxShrubs = 60, MaxGrass = 80, MaxFlowers = 50, MaxRocks = 24, MaxTrees = 20;
         foreach (var lawn in lawns)
         {
             float step = 4.5f;

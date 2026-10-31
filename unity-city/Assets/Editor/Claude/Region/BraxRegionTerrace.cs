@@ -26,10 +26,10 @@ public static class BraxRegionTerrace
         var root = BraxRegion.Root(tower, "CLAUDE taras: kwiaty, rabaty i pergole");
 
         var flowers = new List<GameObject>();
-        foreach (var id in new[] { "flower_gazania", "flower_ursinia", "periwinkle_plant", "celandine_01", "flower_heliophila" })
+        foreach (var id in new[] { "flower_gazania", "flower_ursinia", "periwinkle_plant", "celandine_01" })
         { var m = BraxRegion.Model(id); if (m) flowers.Add(m); }
         var leafy = new List<GameObject>();
-        foreach (var id in new[] { "anthurium_botany_01", "calathea_orbifolia_01", "potted_plant_01", "fern_02" })
+        foreach (var id in new[] { "anthurium_botany_01", "calathea_orbifolia_01", "fern_02" })
         { var m = BraxRegion.Model(id); if (m) leafy.Add(m); }
         var treePot = BraxRegion.Model("pachira_aquatica_01", "potted_plant_04");
         var planter = BraxRegion.Model("planter_box_02", "planter_box_01");

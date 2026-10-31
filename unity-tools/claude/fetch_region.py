@@ -24,16 +24,18 @@ TEXTURES = [
     # front klubu NOVA, siłownia
     "leather_red_02", "tatami_mat", "concrete_wall_008",
 ]
-MODELS_2K = [  # rośliny: pełna jakość
-    "shrub_01", "shrub_02", "shrub_03", "shrub_04",
-    "grass_medium_01", "grass_medium_02", "grass_bermuda_01",
-    "flower_gazania", "flower_ursinia", "periwinkle_plant", "dandelion_01", "celandine_01", "flower_heliophila",
-    "anthurium_botany_01", "calathea_orbifolia_01", "potted_plant_01", "fern_02", "pachira_aquatica_01",
+MODELS_2K = [  # drzewa i krzewy: pełna jakość (2K); reszta roślin w 1K, bo edytor Unity na GitHubie ma 16 GB
+    "shrub_01", "shrub_02", "shrub_03",
     "island_tree_03", "pine_tree_01", "fir_tree_01",
 ]
+MODELS_1K_PLANTS = [
+    "grass_medium_01", "grass_medium_02",
+    "flower_gazania", "flower_ursinia", "periwinkle_plant", "celandine_01",
+    "anthurium_botany_01", "calathea_orbifolia_01", "potted_plant_01", "fern_02", "pachira_aquatica_01",
+]
 MODELS_1K = [  # mała architektura, wyposażenie, kamienie
-    "rock_moss_set_01", "rock_moss_set_02", "boulder_01", "rock_07", "stone_01",
-    "coast_rocks_01", "coast_rocks_02", "coast_rocks_03", "coast_rocks_05", "sand_rocks_small_01",
+    "rock_moss_set_01", "boulder_01", "stone_01",
+    "coast_rocks_01", "coast_rocks_03", "sand_rocks_small_01",
     "planter_box_02", "planter_box_03", "planter_pot_clay",
     "painted_wooden_bench", "wooden_picnic_table", "street_lamp_01", "street_lamp_02",
     "metal_trash_can", "fire_hydrant", "lifebuoy", "ocean_buoy", "lateral_sea_marker",
@@ -126,7 +128,7 @@ def main() -> int:
         except Exception as exc:  # noqa: BLE001
             report["missing"].append(f"model:{m}: {exc}")
             print("BRAK MODELU", m, exc)
-    for m in MODELS_1K:
+    for m in MODELS_1K_PLANTS + MODELS_1K:
         try:
             model(m, "1k", report)
         except Exception as exc:  # noqa: BLE001

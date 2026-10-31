@@ -27,19 +27,24 @@ public static class BraxRegionInteriors
     static void NutritionShop(Transform cityRoot)
     {
         var plaster = BraxRegion.Pbr("Nutrition: tynk ścian", 1.5f, new Color(.93f, .91f, .87f), "white_plaster_02", "rectangular_facade_tiles");
-        var walnut = BraxRegion.Pbr("Nutrition: ściana tylna z drewna", 1.2f, new Color(.62f, .50f, .40f), "wood_plank_wall", "wood_planks");
-        var floor = BraxRegion.Pbr("Nutrition: deska podłogowa", 1.6f, null, "plank_flooring_02", "wood_floor", "wood_planks");
         var glazing = BraxRegion.Fitting("Nutrition: szyba witryny", new Color(.72f, .82f, .86f, .28f), .04f, 0f);
         int walls = 0, floors = 0;
+        // Po BraxCityArchitecture.Batch ściany i sufit sklepu są jedną siatką „Local batch <materiał>”,
+        // więc dopasowujemy po nazwie materiału, nie po nazwie obiektu.
         foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (!Inside(Nutrition, r)) continue;
-            string n = r.gameObject.name;
-            if (n.StartsWith("mineral side wall", StringComparison.OrdinalIgnoreCase)) { r.sharedMaterial = plaster; walls++; }
-            else if (n.StartsWith("rear mineral wall", StringComparison.OrdinalIgnoreCase)) { r.sharedMaterial = walnut; walls++; }
-            else if (n.StartsWith("Nutrition continuous original-level floor", StringComparison.OrdinalIgnoreCase)) { r.sharedMaterial = floor; floors++; }
-            else if (n.StartsWith("shopfront window glazing", StringComparison.OrdinalIgnoreCase) || n.StartsWith("clear warm shopfront glazing", StringComparison.OrdinalIgnoreCase))
-            { r.sharedMaterial = glazing; walls++; }   // widoczna szyba witryny (lekki odcień i odbicie), nie „otwarty front”
+            var mats = r.sharedMaterials; bool changed = false;
+            for (int i = 0; i < mats.Length; i++)
+            {
+                var m = mats[i]; if (!m) continue;
+                string mn = m.name.ToLowerInvariant();
+                string n = r.gameObject.name.ToLowerInvariant();
+                if (mn.Contains("warm mineral plaster")) { mats[i] = plaster; changed = true; walls++; }
+                else if (n.Contains("shopfront window glazing") || n.Contains("clear warm shopfront glazing") || mn.Contains("shopfront glazing"))
+                { mats[i] = glazing; changed = true; walls++; }
+            }
+            if (changed) r.sharedMaterials = mats;
         }
         // Podłoga sklepu: najwyższe podłoże w środku.
         RaycastHit g;
