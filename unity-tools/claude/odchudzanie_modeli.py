@@ -24,7 +24,10 @@ GLB_DIRS = [
     "Source/Claude/Nova",
     "Source/Claude/Osiedle/models/drzewo_verdant",
     "Source/Claude/Osiedle/models/nutrition_kit",
+    "Nutrition/Models",                 # NutritionKit.glb sklepu w mieście (21 MB w APK)
+    "Source/CityRebuild/landscape",     # park_shrub.glb (16 MB)
 ]
+GLB_FILES = ["Source/LibrarySofa02.glb"]   # sofa z biblioteki (58 MB w APK) — siłownia, NOVA, taras, wieżowce
 GLTF_DIRS = ["Source/Claude/PolyHaven/models", "Source/Claude/Osiedle/models"]
 HEAVY = 150_000      # trójkątów: powyżej upraszczamy
 TARGET = 40_000
@@ -212,6 +215,13 @@ def main():
         if not p.is_dir():
             continue
         for glb in sorted(p.rglob("*.glb")):
+            try:
+                total_img += externalize(glb, rep)
+            except Exception as e:
+                rep["bledy"].append(f"{glb.name}: {e}")
+    for f in GLB_FILES:
+        glb = ASSETS / f
+        if glb.is_file():
             try:
                 total_img += externalize(glb, rep)
             except Exception as e:
