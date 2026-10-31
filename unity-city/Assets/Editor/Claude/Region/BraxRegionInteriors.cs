@@ -232,6 +232,9 @@ public static class BraxRegionInteriors
                     o.transform.position = at - b.center;
                     pictures++;
                 }
+        // Sala była za ciemna na zdjęciach: dwa dodatkowe ciepłe punkty nad parkietem (bez cieni, bez poświaty).
+        BraxRegion.Warm(root, "NOVA: światło nad parkietem W", new Vector3(Nova.center.x - 4f, y + 3.0f, Nova.center.z), .85f, 10f);
+        BraxRegion.Warm(root, "NOVA: światło nad parkietem E", new Vector3(Nova.center.x + 4f, y + 3.0f, Nova.center.z), .85f, 10f);
         BraxRegion.Warm(root, "NOVA: ciepłe światło loży W", new Vector3(wx0 + 1.9f, y + 2.6f, Nova.center.z), .9f, 6f);
         BraxRegion.Warm(root, "NOVA: ciepłe światło loży E", new Vector3(wx1 - 1.9f, y + 2.6f, Nova.center.z), .9f, 6f);
         BraxRegion.Note("NOVA: loże " + lounges + " (zajęte: " + string.Join("; ", blocked) + "), rośliny " + plants + ", obrazy " + pictures + " (ściany x " + wx0.ToString("F1") + ".." + wx1.ToString("F1") + ", z " + wz0.ToString("F1") + ".." + wz1.ToString("F1") + ")");
