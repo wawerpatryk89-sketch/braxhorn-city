@@ -19,9 +19,62 @@ public static class BraxRegionGym
         var rep = new Report();
         try { Build(gym, rep); }
         catch (Exception e) { rep.notes.Add("BŁĄD: " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_GYM " + e); }
+        try { NicerBags(runtime, rep); }
+        catch (Exception e) { rep.notes.Add("worki: BŁĄD " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_GYM worki " + e); }
         Directory.CreateDirectory(BraxRegion.Out);
         File.WriteAllText(BraxRegion.Out + "/gym.json", JsonUtility.ToJson(rep, true));
         Debug.Log("BRAXHORN_CLAUDE_GYM " + JsonUtility.ToJson(rep));
+    }
+
+    // Worki (decyzja właściciela: „worki ładniejsze”). Worek z Blendera to matowa, prawie czarna skóra
+    // (#171a1b, roughness .69, ziarno .38) — na telefonie czarna plama bez kształtu. Tu: ciemny grafit ze
+    // sheenem (roughness .42), wyraźne ziarno skóry (normal ×1.0), wzmocnienia ciemniejsze z lekkim połyskiem,
+    // chromowane okucia i łańcuch. Materiały zostają na shaderze importu (reagują na światła sali, warstwa 10).
+    static void NicerBags(BraxGymPlayer runtime, Report rep)
+    {
+        if (!runtime || runtime.bags == null) return;
+        var swapped = new Dictionary<Material, Material>();
+        int renderers = 0;
+        foreach (var pivot in runtime.bags)
+        {
+            if (!pivot) continue;
+            foreach (var r in pivot.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                var mats = r.sharedMaterials; bool changed = false;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    var m = mats[i]; if (!m) continue;
+                    Material o;
+                    if (!swapped.TryGetValue(m, out o))
+                    {
+                        string n = m.name.ToLowerInvariant();
+                        if (n.Contains("matte black leather")) o = Tuned(m, "Worek: skóra grafitowa", new Color(.15f, .16f, .165f), .42f, 1.0f);
+                        else if (n.Contains("reinforced leather")) o = Tuned(m, "Worek: wzmocnienia i taśmy", new Color(.09f, .10f, .10f), .52f, .9f);
+                        else if (n.Contains("suspension hardware")) o = Tuned(m, "Worek: chromowane okucia", new Color(.80f, .81f, .82f), .22f, 0f);
+                        else if (n.Contains("stitching")) o = Tuned(m, "Worek: przeszycia", new Color(.52f, .55f, .50f), .80f, 0f);
+                        else o = m;
+                        swapped[m] = o;
+                    }
+                    if (o != m) { mats[i] = o; changed = true; }
+                }
+                if (changed) { r.sharedMaterials = mats; renderers++; }
+            }
+        }
+        rep.notes.Add("worki: materiałów " + swapped.Count(kv => kv.Key != kv.Value) + ", rendererów " + renderers);
+    }
+
+    static Material Tuned(Material src, string name, Color baseColour, float roughness, float normalScale)
+    {
+        var m = new Material(src) { name = name };
+        if (m.HasProperty("baseColorFactor")) m.SetColor("baseColorFactor", baseColour);
+        if (m.HasProperty("roughnessFactor")) m.SetFloat("roughnessFactor", roughness);
+        if (normalScale > 0 && m.HasProperty("normalTexture_scale")) m.SetFloat("normalTexture_scale", normalScale);
+        if (m.HasProperty("_Color")) m.SetColor("_Color", baseColour);
+        if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", 1f - roughness);
+        if (m.HasProperty("_Roughness")) m.SetFloat("_Roughness", roughness);
+        Directory.CreateDirectory(BraxRegion.Out + "/Materials");
+        AssetDatabase.CreateAsset(m, BraxRegion.Out + "/Materials/worek-" + name.Replace(' ', '_').Replace(':', '_') + ".mat");
+        return m;
     }
 
     static void Build(GameObject gym, Report rep)
