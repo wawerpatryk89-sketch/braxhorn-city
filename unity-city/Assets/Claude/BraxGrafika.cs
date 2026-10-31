@@ -9,6 +9,8 @@ using UnityEngine.SceneManagement;
 // zasięg kamery, zasięg trawy 3D na osiedlu. Stosowane po każdym wczytaniu sceny (miasto ↔ osiedle), bo gracz
 // i kamery są w scenie. WYSOKA = „petarda” pod komputer: pełna rozdzielczość, MSAA 4×, miękkie cienie do 120 m,
 // 4 kaskady, LOD ×2.2, filtr anizotropowy, 60 kl./s.
+// Światła postaci (klucz, kontra, wypełnienie — BraxHeroRefinements, tylko warstwa gracza) muszą zostać pikselowe w każdym
+// trybie, inaczej Brax robi się płaski: limit świateł pikselowych 3 / 4 / 6 (koszt tylko na postaci; lampy wnętrz są ForceVertex).
 public sealed class BraxGrafika : MonoBehaviour
 {
     public enum Tryb { Niska = 0, Srednia = 1, Wysoka = 2 }
@@ -69,7 +71,7 @@ public sealed class BraxGrafika : MonoBehaviour
             case Tryb.Niska:
                 QualitySettings.shadows = ShadowQuality.Disable; QualitySettings.shadowDistance = 0f;
                 QualitySettings.antiAliasing = 0; QualitySettings.lodBias = .45f; QualitySettings.globalTextureMipmapLimit = 1;
-                QualitySettings.pixelLightCount = 1; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Disable;
+                QualitySettings.pixelLightCount = 3; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Disable;
                 QualitySettings.realtimeReflectionProbes = false; QualitySettings.softParticles = false; QualitySettings.skinWeights = SkinWeights.TwoBones;
                 Rozdzielczosc(tel ? .65f : .8f); Klatki(30); Zasieg(220f); Trawa(12f, 18f);
                 break;
@@ -77,7 +79,7 @@ public sealed class BraxGrafika : MonoBehaviour
                 QualitySettings.shadows = ShadowQuality.HardOnly; QualitySettings.shadowResolution = ShadowResolution.Medium;
                 QualitySettings.shadowDistance = 35f; QualitySettings.shadowCascades = 1; QualitySettings.shadowProjection = ShadowProjection.StableFit;
                 QualitySettings.antiAliasing = 0; QualitySettings.lodBias = .8f; QualitySettings.globalTextureMipmapLimit = 0;
-                QualitySettings.pixelLightCount = 2; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
+                QualitySettings.pixelLightCount = 4; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
                 QualitySettings.realtimeReflectionProbes = false; QualitySettings.softParticles = false; QualitySettings.skinWeights = SkinWeights.TwoBones;
                 Rozdzielczosc(tel ? .85f : 1f); Klatki(tel ? 30 : 60); Zasieg(420f); Trawa(22f, 30f);
                 break;
@@ -85,7 +87,7 @@ public sealed class BraxGrafika : MonoBehaviour
                 QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.VeryHigh;
                 QualitySettings.shadowDistance = 120f; QualitySettings.shadowCascades = 4; QualitySettings.shadowProjection = ShadowProjection.StableFit;
                 QualitySettings.antiAliasing = 4; QualitySettings.lodBias = 2.2f; QualitySettings.globalTextureMipmapLimit = 0;
-                QualitySettings.pixelLightCount = 4; QualitySettings.anisotropicFiltering = AnisotropicFiltering.ForceEnable;
+                QualitySettings.pixelLightCount = 6; QualitySettings.anisotropicFiltering = AnisotropicFiltering.ForceEnable;
                 QualitySettings.realtimeReflectionProbes = true; QualitySettings.softParticles = true; QualitySettings.skinWeights = SkinWeights.FourBones;
                 Rozdzielczosc(1f); Klatki(60); Zasieg(1200f); Trawa(40f, 50f);
                 break;

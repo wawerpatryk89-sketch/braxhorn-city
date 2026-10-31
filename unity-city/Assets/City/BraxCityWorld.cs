@@ -26,6 +26,13 @@ public sealed class BraxCityWorld : MonoBehaviour
     public bool waterfrontPreview;
     public string activePoint;
     public static string Arrival;
+    // PRZEJŚCIE MIASTO ↔ OSIEDLE (31.10, Opus): tunel na końcu przedłużonego wiaduktu w mieście (portal z=−74, deska 8.16 m,
+    // wnętrze do z=−88) i wylot tunelu na północnym końcu osiedla A (portal z=99.5, wnętrze do z=113). Wejście w głąb
+    // tunelu (8 m za portalem) samo wczytuje drugi rejon; przy portalu przycisk AKCJA mówi, dokąd prowadzi tunel.
+    // Przyjazd: wylot tunelu po drugiej stronie, kamera za plecami, przodem do wyjścia.
+    static readonly Vector3 CityPortal=new Vector3(-66.2f,8.16f,-74f), EstatePortal=new Vector3(0f,.08f,99.5f);
+    bool InCityTunnel(Vector3 p,float depth)=>area=="city"&&!waterfrontPreview&&Mathf.Abs(p.x-CityPortal.x)<4.8f&&p.y>CityPortal.y-1.2f&&p.z<CityPortal.z+2f-depth&&p.z>CityPortal.z-16f;
+    bool InEstateTunnel(Vector3 p,float depth)=>area=="estate"&&Mathf.Abs(p.x-EstatePortal.x)<4.8f&&p.y<3f&&p.z>EstatePortal.z-2f+depth&&p.z<EstatePortal.z+16f;
     private BraxCityDoor nearby;
     private float nextScan;
     public int OpenDoors { get { int n=0;foreach(var d in doors)if(d&&d.IsOpen)n++;return n;} }
@@ -41,6 +48,8 @@ public sealed class BraxCityWorld : MonoBehaviour
             if(vessel)return "WSIĄDŹ · "+vessel.label;
             var seat=BraxSeat.Nearest(p,1.6f);
             if(seat)return (seat.lie?"POŁÓŻ SIĘ · ":"USIĄDŹ · ")+seat.label;
+            if(InCityTunnel(p,0f))return "TUNEL → OSIEDLE";
+            if(InEstateTunnel(p,0f))return "TUNEL → MIASTO";
             if(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ NA OSIEDLE";
             if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f)return "WRÓĆ DO MIASTA";
             // Do not hide elevator calls behind ordinary door prompts.
@@ -64,11 +73,18 @@ public sealed class BraxCityWorld : MonoBehaviour
     private void Start()
     {
         if(!player)throw new InvalidOperationException("City player is not assigned");
-        if(Arrival=="city-return"&&area=="city")player.TravelTo(new Vector3(-99,.22f,28.5f));
+        if(Arrival=="city-return"&&area=="city")player.TravelTo(CityPortal+new Vector3(0,.14f,3.5f),180f);
+        if(Arrival=="estate-entry"&&area=="estate")player.TravelTo(EstatePortal+new Vector3(0,.06f,-4f),0f);
         Arrival=null;
     }
     private void Update()
     {
+        if(!loading&&player)
+        {
+            var q=player.transform.position;
+            if(InCityTunnel(q,8f)){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return;}
+            if(InEstateTunnel(q,8f)){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return;}
+        }
         if(loading||Time.unscaledTime<nextScan)return;
         nextScan=Time.unscaledTime+.12f;nearby=null;float best=3.3f;
         foreach(var d in doors)
@@ -88,7 +104,8 @@ public sealed class BraxCityWorld : MonoBehaviour
         if(vessel){vessel.Board(player);return true;}
         var seat2=BraxSeat.Nearest(p,1.6f);
         if(seat2){seat2.Use(player);return true;}
-        if(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
+        if(InCityTunnel(p,0f)||(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
+        if(InEstateTunnel(p,0f)){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return true;}
         if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return true;}
         foreach(var lift in additionalTowerElevators)
             if(lift&&lift.TryInteract(p))return true;
@@ -103,6 +120,7 @@ public sealed class BraxCityWorld : MonoBehaviour
         foreach(var p in points)if(p.id==id){activePoint=id;player.TravelTo(p.position+Vector3.up*.08f);return;}
         Debug.LogWarning("Unknown original city point: "+id);
     }
+    public void ReviewScene(string target){if(loading||area==target)return;StartCoroutine(ChangeScene(target=="estate"?"BraxhornEstate":"BraxhornCity",target=="estate"?"estate-entry":"city-return"));}
     private IEnumerator ChangeScene(string scene,string arrival)
     {
         loading=true;Arrival=arrival;player.MoveInput("0,0");

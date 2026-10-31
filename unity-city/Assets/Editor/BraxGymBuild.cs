@@ -189,6 +189,20 @@ public static class BraxGymBuild
             BraxNovaMusicBuild.Attach(runtime);
             // Siłownia jako wizytówka (Claude, region R1): tatami judo i dodatki w wolnym miejscu hali.
             BraxRegionGym.Apply(gym,runtime);
+            // Muzyka w siłowni (właściciel 31.10, 18:48: „to daj do siłki”): gra tylko w hali (prostopadłościan siatek hali
+            // przed ścianą z drzwiami z=11.4), cichnie 3 m za drzwiami. Pętla 3:57 (Assets/Claude/Audio, BraxClaudeMuzyka).
+            var gymClip=AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Claude/Audio/silownia_muzyka.ogg");
+            if(gymClip)
+            {
+                var hall=new Bounds();bool any=false;
+                foreach(var r in gym.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    var rb=r.bounds;if(rb.size.x>60f||rb.size.z>60f||rb.center.z>11.4f)continue;
+                    if(!any){hall=rb;any=true;}else hall.Encapsulate(rb);
+                }
+                if(any){var mg=new GameObject("Muzyka siłowni");var mz=mg.AddComponent<BraxClaudeMuzyka>();mz.utwor=gymClip;mz.wnetrze=hall;mz.glosnosc=.4f;mz.wygaszenie=3f;Debug.Log("BRAXHORN_SILOWNIA_MUZYKA "+hall);}
+            }
+            else Debug.LogWarning("DO POPRAWKI: brak Assets/Claude/Audio/silownia_muzyka.ogg");
         }
         string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;

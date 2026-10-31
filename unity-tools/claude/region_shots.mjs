@@ -70,6 +70,22 @@ const VIEWS = [
   ['24b_tyly_wiezowiec_B', '-36,0.2,-22,0,16,12'],
   ['25_drzewa_z_bliska', '20,0.2,100,0,10,5'],
   ['26_trawa_2m', '20,0.2,100,200,35,2.2'],
+  // osiedle w tym samym playerze (build 5, Opus): przejście sceną (ReviewScene), potem ReviewView we współrzędnych osiedla
+  ['E01_tunel_z_miasta', '-66.2,8.3,-66,0,12,8'],
+  ['E02_osiedle_wylot_tunelu', '0,.1,88,180,12,9', 'estate'],
+  ['E03_oktagon_od_wejscia', '-86,.1,76,0,16,7', 'estate'],
+  ['E04_oktagon_trybuny', '-80,.1,61,90,14,6', 'estate'],
+  ['E05_oktagon_mata_z_gory', '-86,.7,66.5,0,45,5', 'estate'],
+  ['E06_silownia_A_recepcja', '88.5,.1,-72,139,12,5', 'estate'],
+  ['E07_silownia_A_sciany_mural', '84,.1,-72,0,7,4', 'estate'],
+  ['E08_kasyno_bok_pietro', '50,.1,-18,250,7,12', 'estate'],
+  ['E09_lawka_park_A', '-28,.1,-84,180,20,5', 'estate'],
+  ['E10_A_aleja_ulica_glowna', '0,.08,20,180,10,10', 'estate'],
+  ['E11_kasyno_rog_chodnika', '50,.1,-18,325,7,12', 'estate'],
+  ['E12_willa1_roze', '-89.21,.1,-215.90,220,26,1.2', 'estate'],
+  ['E13_komisariat_szyld', '-86,.1,-18,0,12,12', 'estate'],
+  ['E14_park_lawki_B', '-20,.08,-110,0,10,8', 'estate'],
+  ['E15_hala_walk_front', '-86,.1,88,0,12,12', 'estate'],
 ];
 const TRAVEL = (process.env.TRAVEL_POINTS || '').split(',').filter(Boolean);
 
@@ -105,8 +121,14 @@ for (let i = 0; i < MINE.length; i += 6) {
     try {
       await session(async page => {
         if (i === 0 && PART === 0) fs.writeFileSync(path.join(out, 'state-start.json'), JSON.stringify(await page.evaluate(() => window.BraxhornState), null, 1));
-        for (const [name, view] of chunk) {
+        for (const [name, view, want = 'city'] of chunk) {
           if (fs.existsSync(path.join(out, name + '.png'))) continue;
+          const area = await page.evaluate(() => window.BraxhornState?.area || '');
+          if (area !== want) {
+            await send(page, 'ReviewScene', want);
+            await page.waitForFunction(w => window.BraxhornState?.area === w && !window.BraxhornState?.loadingArea, want, {timeout: 900000}).catch(() => log.push('zmiana sceny na ' + want + ': timeout'));
+            await page.waitForTimeout(8000);
+          }
           // zasłonięty kadr (kamera w drzewie / ścianie) = prawie jednolity obraz: PNG < 150 kB. Wtedy próba obrotu ±40° / bliżej.
           const [vx, vy, vz, vyaw, vp, vd] = view.split(',').map(Number);
           const variants = [view, [vx, vy, vz, vyaw + 40, vp, vd].join(','), [vx, vy, vz, vyaw - 40, vp, vd].join(','), [vx, vy, vz, vyaw, Math.max(vp, 20), Math.max(.8, vd * .55)].join(',')];

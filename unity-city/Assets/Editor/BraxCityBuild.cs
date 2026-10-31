@@ -227,6 +227,8 @@ public static class BraxCityBuild
         // Estate-only visual pass: verified source textures on original roof meshes.
         BraxEstateR2ApprovedRoofs.Apply();
         BraxEstateR2FacadeFinish.Apply();
+        // Osiedle R2 (Opus): remont A, Park Centralny, osiedle B, wille, kasyno, komisariat, siłownia A, trawa, wylot tunelu z miasta.
+        BraxClaudeOsiedle.Apply();
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
     // Paczka samego miasta (R1): zmienna BRAX_DISTRICTS=city, argument -braxDistricts city (game-ci customParameters;

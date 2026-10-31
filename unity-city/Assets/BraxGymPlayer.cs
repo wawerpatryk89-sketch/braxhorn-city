@@ -226,7 +226,11 @@ public sealed class BraxGymPlayer : MonoBehaviour
         body.enabled=false;transform.position=position;body.enabled=true;clips.Play("Idle");
         cameraTarget=position+Vector3.up*1.65f;UpdateCamera(1f);Report();
     }
+    // Przyjazd z drugiego rejonu (tunel): pozycja + kierunek kamery (0 = kamera na +z, patrzy na −z).
+    public void TravelTo(Vector3 position,float cameraYaw){yaw=cameraYaw;pitch=19f;transform.rotation=Quaternion.Euler(0,cameraYaw+180f,0);TravelTo(position);}
     public void TravelPoint(string id){if(cityWorld&&!paused)cityWorld.GoTo(id);}
+    // QA (tylko ?qa=1): przejście do drugiego rejonu bez chodzenia tunelem — zdjęcia osiedla z playera miasta.
+    public void ReviewScene(string targetArea){if(reviewEnabled&&cityWorld)cityWorld.ReviewScene(targetArea);}
     private static bool ReviewEnabled()
     {
         if(!Uri.TryCreate(Application.absoluteURL,UriKind.Absolute,out var url))return false;
