@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 // BRAXHORN CITY — zieleń naturalna i mała architektura w całym regionie R1.
@@ -37,7 +38,21 @@ public static class BraxRegionVegetation
         var crate = BraxRegion.Model("wooden_crate_02", "wooden_crate_01", "wooden_barrels_01");
         var hydrant = BraxRegion.Model("fire_hydrant");
 
-        // 1) Trawniki: wszystkie renderery trawy (stare miasto + renowacja), bez ulicy i bez cypla plaży.
+        // 0) Łąka leśna za promenadą (oryginalny CityMesh_257, x −60..84 po cięciu morza, z 112.5..240): materiał
+        //    glTFast bez _Color, więc BraxClaudeGround.ReplaceGrass jej nie poznał. Dostaje tę samą prawdziwą trawę.
+        var grassMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/ClaudeGround/Ziemia__prawdziwa_trawa_Grass004.mat");
+        int meadow = 0;
+        if (grassMat)
+            foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
+            {
+                if (r.name != "CityMesh_257" || !r.enabled) continue;
+                r.sharedMaterials = r.sharedMaterials.Select(_ => grassMat).ToArray(); meadow++;
+            }
+        BraxRegion.Note("łąka leśna (CityMesh_257) z prawdziwą trawą: " + meadow + (grassMat ? "" : " (brak materiału trawy)"));
+
+        // 1) Trawniki: wszystkie renderery trawy (stare miasto + renowacja), bez ulicy i bez cypla plaży,
+        //    tylko w regionie R1 (x −20..90, z 40..178): podwórko, promenada, las za promenadą.
+        var region = new Rect(-20f, 40f, 110f, 138f);
         var lawns = new List<Bounds>();
         foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
         {
@@ -45,7 +60,11 @@ public static class BraxRegionVegetation
             if (BraxRegion.Under(r.transform, "CLAUDE")) continue;
             var b = r.bounds;
             if (b.size.x < 3f || b.size.z < 3f || b.size.y > 6f || b.max.y > 4f || b.min.y < -4f) continue;
-            lawns.Add(b);
+            if (b.max.x < region.xMin || b.min.x > region.xMax || b.max.z < region.yMin || b.min.z > region.yMax) continue;
+            var min = Vector3.Max(b.min, new Vector3(region.xMin, b.min.y, region.yMin));
+            var max = Vector3.Min(b.max, new Vector3(region.xMax, b.max.y, region.yMax));
+            var clipped = new Bounds(); clipped.SetMinMax(min, max);
+            lawns.Add(clipped);
         }
         int shrubN = 0, grassN = 0, flowerN = 0, rockN = 0, treeN = 0, propN = 0, sampled = 0, rejGround = 0, rejFree = 0;
         const int MaxShrubs = 60, MaxGrass = 80, MaxFlowers = 50, MaxRocks = 24, MaxTrees = 20;

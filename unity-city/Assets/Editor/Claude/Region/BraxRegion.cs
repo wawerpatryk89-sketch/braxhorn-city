@@ -361,7 +361,9 @@ public static class BraxRegion
         foreach (var m in r.sharedMaterials)
         {
             if (!m) continue;
-            if (m.shader && m.shader.name == "Braxhorn/ClaudeWorldGround" && m.name.ToLowerInvariant().Contains("tra")) return true;
+            string mn = m.name.ToLowerInvariant();
+            if (mn.Contains("boisko") || mn.Contains("sztuczn") || mn.Contains("turf") || mn.Contains("kort")) return false;   // murawa boiska to nie trawnik
+            if (m.shader && m.shader.name == "Braxhorn/ClaudeWorldGround" && mn.Contains("tra")) return true;
             if (BraxClaudeGround.LooksLikeGrass(m)) return true;
         }
         return false;
