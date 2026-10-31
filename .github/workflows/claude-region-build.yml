@@ -156,7 +156,7 @@ jobs:
       run: python3 unity-tools/claude/fetch_polyhaven.py
     - name: Region R1 - dodatkowe tekstury i modele CC0 z Poly Haven (rosliny 2K, wpisy opcjonalne)
       run: python3 unity-tools/claude/fetch_region.py
-    - name: Drzewa: drzewo do gry z LOD zamiast skanow Poly Haven (budzet mobilny); paczka miasta bez gltf osiedla
+    - name: Drzewo do gry z LOD zamiast skanow Poly Haven (budzet mobilny), paczka miasta bez gltf osiedla
       run: |
         for t in tree_small_02; do ls unity-city/Assets/Source/Claude/PolyHaven/models/$t | head -3; done
         ls -la unity-city/Assets/Source/Claude/Library/drzewo_verdant.glb
@@ -366,7 +366,7 @@ jobs:
       run: python3 unity-tools/claude/fetch_polyhaven.py
     - name: Region R1 - dodatkowe tekstury i modele CC0 z Poly Haven (rosliny 2K, wpisy opcjonalne)
       run: python3 unity-tools/claude/fetch_region.py
-    - name: Drzewa: drzewo do gry z LOD zamiast skanow Poly Haven (budzet mobilny); paczka miasta bez gltf osiedla
+    - name: Drzewo do gry z LOD zamiast skanow Poly Haven (budzet mobilny), paczka miasta bez gltf osiedla
       run: |
         for t in tree_small_02; do ls unity-city/Assets/Source/Claude/PolyHaven/models/$t | head -3; done
         ls -la unity-city/Assets/Source/Claude/Library/drzewo_verdant.glb
