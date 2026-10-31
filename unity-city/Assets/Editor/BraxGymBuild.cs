@@ -35,6 +35,28 @@ public static class BraxGymBuild
     // Aplikacja Android (APK) z tej samej sceny: przeglądarka na telefonie nie dźwiga 750 MB danych.
     // Sterowanie dotykowe w Unity (BraxTouchControls) zamiast warstwy HTML.
     public static void BuildRenovationAndroid(){BuildInternal(true,true,true,BuildTarget.Android);}
+    // Tekstury elewacji/placów/billboardów → 1K dla danej platformy (platform override, format bez zmian, kompresja normalna).
+    static void CapFacadeTextures(BuildTarget target)
+    {
+        string platform=target==BuildTarget.Android?"Android":"WebGL";
+        string[] folders={"Assets/PlayableGenerated/CityRebuild/Textures","Assets/Source/CityRebuild/textures","Assets/Source/Claude/PolyHaven/textures","Assets/Source/HarborBeach/Textures","Assets/CityRebuild/Brand"};
+        folders=folders.Where(AssetDatabase.IsValidFolder).ToArray();
+        if(folders.Length==0)return;
+        int changed=0,kept=0;
+        foreach(var guid in AssetDatabase.FindAssets("t:Texture2D",folders))
+        {
+            string path=AssetDatabase.GUIDToAssetPath(guid);string lower=path.ToLowerInvariant();
+            if(lower.Contains("sand")||lower.Contains("tatami")||lower.Contains("leather")||lower.Contains("mural")||lower.Contains("terry")||lower.Contains("linen")||lower.Contains("gingham")){kept++;continue;}
+            var imp=AssetImporter.GetAtPath(path) as TextureImporter;if(!imp)continue;
+            var ps=imp.GetPlatformTextureSettings(platform);
+            if(ps.overridden&&ps.maxTextureSize<=1024)continue;
+            ps.name=platform;ps.overridden=true;ps.maxTextureSize=1024;
+            if(ps.compressionQuality>50)ps.compressionQuality=50;
+            imp.SetPlatformTextureSettings(ps);imp.SaveAndReimport();changed++;
+        }
+        Debug.Log("BRAXHORN_TEXTURE_CAP "+platform+": elewacje do 1K zmienione="+changed+", zostawione 2K (z bliska)="+kept);
+    }
+
     // Raport rozmiaru danych (Android: AAR > 4 GB, WebGL: webgl.data > 2 GB). Co i ile waży, po typie i po pliku.
     static void SizeReport(UnityEditor.Build.Reporting.BuildReport result)
     {
@@ -208,12 +230,13 @@ public static class BraxGymBuild
         {
             output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/WebGL"));Directory.CreateDirectory(output);
             location=output;
-            // Build 1ea4025: webgl.data przekroczył 2 GB („The file is too long”, limit Unity dla jednego pliku danych).
-            // WebGL służy tylko do zdjęć kontrolnych (telefon dostaje APK z pełnymi teksturami), więc tu tekstury do 1K.
-            EditorUserBuildSettings.overrideMaxTextureSize=1024;
-            EditorUserBuildSettings.overrideTextureCompression=UnityEditor.Build.OverrideTextureCompression.NoOverride;
         }
-        if(target==BuildTarget.Android){EditorUserBuildSettings.overrideMaxTextureSize=0;EditorUserBuildSettings.overrideTextureCompression=UnityEditor.Build.OverrideTextureCompression.NoOverride;}
+        // Budżet tekstur (decyzja właściciela 31.10): 2K tylko z bliska (rośliny, piasek, worki, tatami, skóra, mural),
+        // elewacje, place i billboardy oglądane z daleka do 1K. Globalny override (overrideMaxTextureSize) reimportował
+        // WSZYSTKIE ~1400 tekstur i build zdjęć przekroczył limit 2 h — dlatego per plik, tylko ~190 tekstur.
+        EditorUserBuildSettings.overrideMaxTextureSize=0;
+        EditorUserBuildSettings.overrideTextureCompression=UnityEditor.Build.OverrideTextureCompression.NoOverride;
+        CapFacadeTextures(target);
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=BuildOptions.None});
         SizeReport(result);
         if(result.summary.result!=BuildResult.Succeeded)throw new Exception("Playable Unity build failed "+result.summary.result);

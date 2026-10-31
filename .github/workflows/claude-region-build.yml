@@ -44,7 +44,7 @@ jobs:
       actions: read
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/region-20261030'
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 300
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       with:
@@ -251,7 +251,7 @@ jobs:
       actions: read
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/region-20261030'
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 300
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       with:
