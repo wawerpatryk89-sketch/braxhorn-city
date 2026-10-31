@@ -1,0 +1,11 @@
+{
+  "framework": null,
+  "installCommand": "echo pomijam",
+  "buildCommand": "echo gotowe",
+  "outputDirectory": "site",
+  "ignoreCommand": "test ! -f READY",
+  "headers": [
+    { "source": "/(.*)", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
+    { "source": "/Build/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] }
+  ]
+}
