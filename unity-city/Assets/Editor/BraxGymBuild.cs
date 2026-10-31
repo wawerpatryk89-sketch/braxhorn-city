@@ -202,7 +202,7 @@ public static class BraxGymBuild
         // Built scenes are the same original models and the same BraxGymPlayer.
         // R2 remains estate-only; unified TEST has BOTH real scenes and a validated registry.
         // BRAX_DISTRICTS=city: paczka samego regionu R1 (miasto bez sceny osiedla) — budżet mobilny, osiedle idzie osobną paczką.
-        bool cityOnly=renovation&&string.Equals(Environment.GetEnvironmentVariable("BRAX_DISTRICTS"),"city",StringComparison.OrdinalIgnoreCase);
+        bool cityOnly=renovation&&BraxCityBuild.CityOnly();
         if(cityOnly)Debug.Log("BRAXHORN_DISTRICTS city-only: scena osiedla pominięta w tej paczce");
         string[] scenePaths=fullCity
             ? (cityOnly

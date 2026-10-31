@@ -229,9 +229,19 @@ public static class BraxCityBuild
         BraxEstateR2FacadeFinish.Apply();
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
+    // Paczka samego miasta (R1): zmienna BRAX_DISTRICTS=city, argument -braxDistricts city (game-ci customParameters;
+    // zmienne env nie wchodza do kontenera Unity — build c4bdcbc) albo plik Assets/Editor/brax-districts.txt z trescia "city".
+    public static bool CityOnly()
+    {
+        if(string.Equals(Environment.GetEnvironmentVariable("BRAX_DISTRICTS"),"city",StringComparison.OrdinalIgnoreCase))return true;
+        var args=Environment.GetCommandLineArgs();
+        for(int i=0;i<args.Length-1;i++)if(args[i]=="-braxDistricts"&&string.Equals(args[i+1],"city",StringComparison.OrdinalIgnoreCase))return true;
+        const string flag="Assets/Editor/brax-districts.txt";
+        return File.Exists(flag)&&File.ReadAllText(flag).Trim().Equals("city",StringComparison.OrdinalIgnoreCase);
+    }
     public static void WriteReport(string output,string commit)
     {
-        if(reports.Count!=2&&!(reports.Count==1&&string.Equals(Environment.GetEnvironmentVariable("BRAX_DISTRICTS"),"city",StringComparison.OrdinalIgnoreCase)))Debug.LogWarning("DO POPRAWKI: Both original areas must be included (areas="+reports.Count+")");
+        if(reports.Count!=2&&!(reports.Count==1&&CityOnly()))Debug.LogWarning("DO POPRAWKI: Both original areas must be included (areas="+reports.Count+")");
         File.WriteAllText(Path.Combine(output,"city-migration.json"),JsonUtility.ToJson(new Report{commit=commit,unity=Application.unityVersion,areas=reports.ToArray()},true));
         if(sourceCarFilterRequested)
         {
