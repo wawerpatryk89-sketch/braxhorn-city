@@ -360,7 +360,9 @@ public static class BraxHarborBeachBuild
         catch (Exception e) { Debug.LogWarning("BRAXHORN_HARBOR plaża: wyposażenie: " + e.Message); }
 
         // 7) Dźwig portowy w skali rzeczywistej (ok. 40 m) na nabrzeżu, wysięgnik nad wodą.
-        var crane = Put(root, "harbor_crane.glb", "Port: dźwig portowy", 74f, .17f, -37f, 1f, -90f);
+        //    Decyzja właściciela (31.10): dźwig stoi przy placu kontenerowym (kontenery x 66..84, z -19..-7) → podstawa z=-25.
+        const float CraneZ = -25f;
+        var crane = Put(root, "harbor_crane.glb", "Port: dźwig portowy", 74f, .17f, CraneZ, 1f, -90f);
         var cb = RendererBounds(crane);
         Vector3 mass = Vector3.zero; float wsum = 0;
         foreach (var f in crane.GetComponentsInChildren<MeshFilter>(true))
@@ -374,7 +376,7 @@ public static class BraxHarborBeachBuild
         { var cp = crane.transform.position; cp.y = .17f; crane.transform.position = cp; }
         var baseCollider = new GameObject("Dźwig: kolizja podstawy").AddComponent<BoxCollider>();
         baseCollider.transform.SetParent(root, false);
-        baseCollider.center = new Vector3(76f, 1.2f, -37f); baseCollider.size = new Vector3(8f, 2.4f, 8f);
+        baseCollider.center = new Vector3(76f, 1.2f, CraneZ); baseCollider.size = new Vector3(8f, 2.4f, 8f);
 
         // 8) Krawędzie pomostu (nie spada się z deski).
         Stop(root, "Pomost: krawędź E", new Vector3(jb.max.x - .3f, 0, jb.center.z), new Vector3(.3f, 5f, jb.size.z));
