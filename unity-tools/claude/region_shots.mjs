@@ -41,6 +41,12 @@ const VIEWS = [
   ['07_nova_front', '42,0.2,31.5,180,12,9'],
   ['08_nova_wnetrze', '43.5,0.2,44,180,12,10'],
   ['09_nova_bar', '50,0.2,52,90,12,10'],
+  // mieszkanie Braxa nad NOVA (Opus, 1.11): drzwi klatki od ulicy, klatka, pokój (okna od ulicy), aneks
+  ['07c_klatka_drzwi', '33.6,0.2,32.6,180,8,4'],
+  ['07d_klatka_schody', '36.6,0.2,37.0,90,18,1.6'],
+  ['07e_mieszkanie_okna', '41,5.15,38.6,0,12,2'],
+  ['07f_mieszkanie_lozko_szafa', '41,5.15,40.4,180,14,2'],
+  ['07g_mieszkanie_aneks', '40.6,5.15,39.4,90,14,2'],
   ['10_wiezowiec_wejscie', '59,0.2,31,180,14,10'],
   ['11_wiezowiec_lobby', '59,0.3,39,180,12,9'],
   ['12_boiska', '10,0.2,72,180,14,12'],
