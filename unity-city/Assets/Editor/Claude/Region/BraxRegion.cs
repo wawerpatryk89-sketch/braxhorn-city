@@ -197,9 +197,10 @@ public static class BraxRegion
         return null;
     }
 
-    // Materiały z importu glTFast (Poly Haven, biblioteka) → CityStaticPBR: to samo słońce, ambient,
-    // maska alfa (liście, kwiaty) i dwustronność co reszta miasta. Build 62be06c: kwiaty i trawy
-    // z shaderem glTFast były czarnymi plamami. Nieznany materiał zostaje bez zmian.
+    // Materiały z importu glTFast (Poly Haven, biblioteka) → CityStaticPBR: to samo słońce, ambient i lampy,
+    // maska alfa (liście, kwiaty) i dwustronność co reszta miasta. Build 62be06c: kwiaty i trawy z shaderem
+    // glTFast były czarnymi plamami. Tekstury zostają te same (bez kopii i ponownej kompresji jak w
+    // BraxCityMaterials.Imported — przy ~200 teksturach to godziny buildu). Nieznany materiał zostaje bez zmian.
     static readonly Dictionary<Material, Material> cityMaterials = new Dictionary<Material, Material>();
     static int converted, keptForeign;
     public static Material CityMaterial(Material m)
@@ -207,7 +208,7 @@ public static class BraxRegion
         if (!m) return m;
         Material c;
         if (cityMaterials.TryGetValue(m, out c)) return c;
-        try { c = BraxCityMaterials.Imported(m); converted++; }
+        try { c = ConvertGltf(m); converted++; }
         catch (Exception e)
         {
             c = m; keptForeign++;
@@ -215,6 +216,59 @@ public static class BraxRegion
         }
         cityMaterials[m] = c;
         return c;
+    }
+
+    static Material ConvertGltf(Material src)
+    {
+        if (BraxCityMaterials.IsCityMaterial(src)) return src;
+        if (!src.HasProperty("baseColorFactor") || !src.HasProperty("roughnessFactor") || !src.HasProperty("metallicFactor"))
+            throw new InvalidOperationException("nie jest materiałem glTFast metallic/roughness");
+        var sh = Shader.Find(BraxCityMaterials.ShaderName);
+        if (!sh) throw new InvalidOperationException("brak shadera " + BraxCityMaterials.ShaderName);
+        var c = new Material(sh) { name = src.name + " (miasto)" };
+        c.SetColor("_Color", src.GetColor("baseColorFactor"));
+        c.SetFloat("_Roughness", src.GetFloat("roughnessFactor"));
+        c.SetFloat("_Metallic", src.GetFloat("metallicFactor"));
+        CopyMap(src, c, "baseColorTexture", "_MainTex");
+        CopyMap(src, c, "normalTexture", "_BumpMap");
+        CopyMap(src, c, "metallicRoughnessTexture", "_ARM");
+        CopyMap(src, c, "occlusionTexture", "_OcclusionMap");
+        CopyMap(src, c, "emissiveTexture", "_EmissionMap");
+        c.SetFloat("_BumpScale", BraxCityMaterials.Value(src, "normalTexture_scale", 1));
+        c.SetFloat("_OcclusionStrength", BraxCityMaterials.Value(src, "occlusionTexture_strength", 1));
+        var bump = c.GetTexture("_BumpMap");
+        var bumpImporter = bump ? AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(bump)) as TextureImporter : null;
+        c.SetFloat("_NormalEncoding", bumpImporter && bumpImporter.textureType == TextureImporterType.NormalMap ? 1 : 0);
+        c.SetFloat("_UseARMForAO", 0);
+        if (src.HasProperty("emissiveFactor")) c.SetColor("_EmissionColor", src.GetColor("emissiveFactor"));
+        float cull = src.HasProperty("_CullMode") ? src.GetFloat("_CullMode") : BraxCityMaterials.Value(src, "_Cull", 2);
+        c.SetFloat("_Cull", cull);
+        c.doubleSidedGI = cull == 0;
+        int mode = BraxCityMaterials.AlphaMode(src);
+        float cutoff = BraxCityMaterials.Value(src, "alphaCutoff", .5f);
+        c.SetFloat("_AlphaClip", mode == 1 ? 1 : 0);
+        c.SetFloat("_Cutoff", mode == 1 ? Mathf.Clamp01(cutoff) : 0);
+        c.SetFloat("_Transparent", mode == 2 ? 1 : 0);
+        c.SetFloat("_SrcBlend", (float)(mode == 2 ? UnityEngine.Rendering.BlendMode.SrcAlpha : UnityEngine.Rendering.BlendMode.One));
+        c.SetFloat("_DstBlend", (float)(mode == 2 ? UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha : UnityEngine.Rendering.BlendMode.Zero));
+        c.SetFloat("_ZWrite", mode == 2 ? 0 : 1);
+        c.renderQueue = mode == 2 ? 3000 : mode == 1 ? 2450 : 2000;
+        c.SetOverrideTag("RenderType", mode == 2 ? "Transparent" : mode == 1 ? "TransparentCutout" : "Opaque");
+        Directory.CreateDirectory(Out + "/Materials");
+        AssetDatabase.CreateAsset(c, Out + "/Materials/model-" + cityMaterials.Count + ".mat");
+        return c;
+    }
+
+    static void CopyMap(Material src, Material dst, string from, string to)
+    {
+        if (!src.HasProperty(from)) return;
+        var t = src.GetTexture(from);
+        if (!t) return;
+        dst.SetTexture(to, t);
+        dst.SetTextureScale(to, src.GetTextureScale(from));
+        dst.SetTextureOffset(to, src.GetTextureOffset(from));
+        if (src.HasProperty(from + "_Rotation") && dst.HasProperty(to + "_Rotation")) dst.SetVector(to + "_Rotation", src.GetVector(from + "_Rotation"));
+        if (src.HasProperty(from + "_texCoord") && dst.HasProperty(to + "_texCoord")) dst.SetFloat(to + "_texCoord", Mathf.Clamp01(src.GetFloat(from + "_texCoord")));
     }
 
     public static Bounds Bounds(GameObject go)
