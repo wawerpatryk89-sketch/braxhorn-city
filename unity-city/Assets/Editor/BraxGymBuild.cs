@@ -169,6 +169,10 @@ public static class BraxGymBuild
             PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android,"com.braxhorn.city");
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android,ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures=AndroidArchitecture.ARM64;
+            // Build 62be06c: kompilacja IL2CPP (clang arm64) zabita przez OOM na 16 GB (exit 137).
+            // Mniej C++ (OptimizeSize) = mniej pamięci i czasu; dla podglądu na telefonie wystarczy.
+            PlayerSettings.SetIl2CppCodeGeneration(UnityEditor.Build.NamedBuildTarget.Android,UnityEditor.Build.Il2CppCodeGeneration.OptimizeSize);
+            PlayerSettings.SetIl2CppCompilerConfiguration(UnityEditor.Build.NamedBuildTarget.Android,Il2CppCompilerConfiguration.Release);
             PlayerSettings.Android.minSdkVersion=AndroidSdkVersions.AndroidApiLevel24;
             PlayerSettings.Android.useAPKExpansionFiles=false;
             PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
