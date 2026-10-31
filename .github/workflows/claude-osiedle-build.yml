@@ -27,22 +27,16 @@ jobs:
             asset-library/sources/sofa_02
           persist-credentials: false
           lfs: false
-      - name: Oryginalna silownia (artefakt Codexa)
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 40787817505
-          github-token: ${{ github.token }}
-          name: braxhorn-city-original-gym-a4a395c93a3ee20eae36ab5e4aee52e1220f2d3c
-          path: unity-city/Assets/Source/
-      - name: Oryginalne miasto i osiedle (artefakt Codexa)
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          repository: wawerpatryk89-sketch/braxhorn-city
-          run-id: 40840263799
-          github-token: ${{ github.token }}
-          name: unity-full-city-geometry-148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71
-          path: unity-city/Assets/Source/City/
+      - name: Oryginalna silownia i geometria miasta+osiedla (trwala kopia w wydaniu claude-base-backup-20261030)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download claude-base-backup-20261030 --repo "$GITHUB_REPOSITORY" --pattern original-gym.zip --pattern full-city-geometry.zip --pattern SHA256SUMS.txt --dir /tmp/kopia
+          (cd /tmp/kopia && sha256sum --check --ignore-missing SHA256SUMS.txt)
+          mkdir -p unity-city/Assets/Source/City
+          unzip -o -q /tmp/kopia/original-gym.zip -d unity-city/Assets/Source/
+          unzip -o -q /tmp/kopia/full-city-geometry.zip -d unity-city/Assets/Source/City/
+          ls -la unity-city/Assets/Source/ unity-city/Assets/Source/City/ | head -30
       - name: Przygotowanie zrodel (jak w buildzie Codexa R2)
         run: |
           mkdir -p city-review
