@@ -18,6 +18,7 @@ public sealed class BraxPose : MonoBehaviour
 
     Transform visual, hips, spine, chest, head, lUp, lLeg, lFoot, rUp, rLeg, rFoot, lArm, lFore, lHand, rArm, rFore, rHand;
     GameObject shaker;
+    static Material shakerMat;
     bool searched;
 
     public static BraxPose Get(BraxGymPlayer p)
@@ -114,7 +115,15 @@ public sealed class BraxPose : MonoBehaviour
                         Destroy(shaker.GetComponent<Collider>());
                         shaker.transform.SetParent(rHand, false); shaker.transform.localScale = new Vector3(.085f, .1f, .085f) / Mathf.Max(.001f, rHand.lossyScale.x) * .024f * 40f;
                         shaker.transform.localPosition = Vector3.zero;
-                        var mr = shaker.GetComponent<MeshRenderer>(); mr.material = new Material(Shader.Find("Standard")) { color = new Color(.2f, .8f, .35f) };
+                        var mr = shaker.GetComponent<MeshRenderer>();
+                        // Jeden materiał na całą grę (audyt 31.10: nowy materiał przy każdym piciu); shader z materiału prymitywu,
+                        // gdy „Standard” nie wszedł do buildu — inaczej różowy shaker.
+                        if (!shakerMat)
+                        {
+                            var sh = Shader.Find("Standard"); if (!sh && mr.sharedMaterial) sh = mr.sharedMaterial.shader;
+                            if (sh) shakerMat = new Material(sh) { color = new Color(.2f, .8f, .35f) };
+                        }
+                        if (shakerMat) mr.sharedMaterial = shakerMat;
                     }
                 }
                 break;

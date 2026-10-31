@@ -229,6 +229,8 @@ public static class BraxCityBuild
         BraxEstateR2FacadeFinish.Apply();
         // Osiedle R2 (Opus): remont A, Park Centralny, osiedle B, wille, kasyno, komisariat, siłownia A, trawa, wylot tunelu z miasta.
         BraxClaudeOsiedle.Apply();
+        try{BraxClaudeBezSwiecenia.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (osiedle): "+e);}
+        try{BraxClaudeSiatki.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
     }
     // Paczka samego miasta (R1): zmienna BRAX_DISTRICTS=city, argument -braxDistricts city (game-ci customParameters;

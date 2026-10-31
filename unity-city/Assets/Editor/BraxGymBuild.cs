@@ -83,6 +83,7 @@ public static class BraxGymBuild
     {
         if(fullCity&&target==BuildTarget.WebGL)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
         Directory.CreateDirectory(Generated);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        try{BraxClaudeGlbTekstury.Sprawdz();}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrola tekstur .glb: "+e);}
         if(renovation)BraxNutritionShopBuild.ValidateSources();
         var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
         var gym=ImportModel("Assets/Source/braxhorn-original-gym.glb");
@@ -205,6 +206,9 @@ public static class BraxGymBuild
             }
             else Debug.LogWarning("DO POPRAWKI: brak Assets/Claude/Audio/silownia_muzyka.ogg");
         }
+        // Zasada „nic nie świeci” + lampy ForceVertex dla całej sceny (audyt miasta 31.10, Opus) — ostatni krok przed zapisem.
+        try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
+        try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;
         // Estate review boots directly into the EXISTING city estate scene with the

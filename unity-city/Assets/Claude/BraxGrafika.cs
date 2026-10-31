@@ -36,8 +36,9 @@ public sealed class BraxGrafika : MonoBehaviour
     {
         natW = Display.main.systemWidth > 0 ? Display.main.systemWidth : Screen.width;
         natH = Display.main.systemHeight > 0 ? Display.main.systemHeight : Screen.height;
-        // Telefon: zawsze NISKA na start (audyt 31.10: 1.1 GB tekstur, część z .glb nieskompresowana — limit mip ½ przed pierwszą
-        // sceną = ¼ pamięci tekstur; bez cieni w czasie rzeczywistym). ŚREDNIA / WYSOKA do wybrania w MENU.
+        // Telefon: domyślnie NISKA (audyt 31.10: 1.1 GB tekstur, część z .glb nieskompresowana — limit mip ½ przed pierwszą
+        // sceną = ¼ pamięci tekstur; bez cieni w czasie rzeczywistym). ŚREDNIA / WYSOKA do wybrania w MENU i zapamiętane,
+        // ale na telefonie żaden tryb nie zdejmuje limitu tekstur (Mip) — zapamiętany wybór nie może już zamknąć gry na starcie.
         int domyslny = Application.isMobilePlatform ? 0 : 2;
         int t = domyslny;
         try { t = PlayerPrefs.GetInt(Klucz, domyslny); } catch { }
@@ -114,7 +115,14 @@ public sealed class BraxGrafika : MonoBehaviour
     // (właściciel 31.10, 21:33: „wypierdala z aplikacji” po APK d260250). Na telefonie MSAA zostaje takie, jak w buildzie.
     // Limit mip tekstur tylko przy zmianie wartości: każde przypisanie przeładowuje wszystkie tekstury sceny z dysku
     // (na telefonie z 4 GB to skok pamięci i zamknięcie aplikacji). Na start ustawiany przed pierwszą sceną (BeforeSceneLoad).
-    static void Mip(int n) { if (QualitySettings.globalTextureMipmapLimit != n) QualitySettings.globalTextureMipmapLimit = n; }
+    // Telefon: tekstury zawsze w połowie rozdzielczości, w każdym trybie (audyt miasta 31.10: zapisany wybór ŚREDNIA dawał przy
+    // kolejnym starcie pełne tekstury = znowu zamykanie gry; zmiana limitu w menu przeładowywała wszystkie tekstury naraz).
+    // Limit ustawiony raz przed pierwszą sceną i nigdy nie zmieniany na telefonie. Pełne tekstury wrócą po podziale miasta na paczki.
+    static void Mip(int n)
+    {
+        if (Application.isMobilePlatform) n = Mathf.Max(n, 1);
+        if (QualitySettings.globalTextureMipmapLimit != n) QualitySettings.globalTextureMipmapLimit = n;
+    }
     static void Msaa(int n)
     {
         if (Application.isMobilePlatform) return;

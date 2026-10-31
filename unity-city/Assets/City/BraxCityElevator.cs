@@ -148,9 +148,10 @@ public sealed class BraxCityElevator : MonoBehaviour
                     player.body.Move(Vector3.up*(after-before));
                     if(Mathf.Abs(player.transform.position.y-after)>.65f)
                     {
-                        Debug.LogError("CITY_LIFT_SAFETY_STOP player lost the physical moving floor");
-                        enabled=false;
-                        return;
+                        // Audyt 31.10: wcześniej enabled=false wyłączało windę na zawsze. Teraz gracz zostaje odpięty,
+                        // a kabina kończy kurs i otwiera drzwi na piętrze — winda działa dalej.
+                        Debug.LogWarning("CITY_LIFT_SAFETY_STOP player lost the physical moving floor — cabin finishes run without passenger");
+                        passenger=false;
                     }
                 }
                 if(Mathf.Abs(after-target)<.002f)

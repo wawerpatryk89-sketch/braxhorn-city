@@ -289,6 +289,7 @@ public static class BraxRegion
             var sh2 = Shader.Find(BraxCityMaterials.ShaderName);
             if (!sh2) throw new InvalidOperationException("brak shadera " + BraxCityMaterials.ShaderName);
             var c2 = new Material(sh2) { name = src.name + " (miasto)" };
+            c2.enableInstancing = true;   // audyt 31.10: te same krzaki/skały/drzewa w jednym wywołaniu rysowania
             c2.SetColor("_Color", baseCol != null ? src.GetColor(baseCol) : Color.white);
             c2.SetFloat("_Roughness", src.HasProperty("_Smoothness") ? 1f - src.GetFloat("_Smoothness") : src.HasProperty("_Glossiness") ? 1f - src.GetFloat("_Glossiness") : .85f);
             c2.SetFloat("_Metallic", src.HasProperty("_Metallic") ? src.GetFloat("_Metallic") : 0f);
@@ -308,6 +309,7 @@ public static class BraxRegion
         var sh = Shader.Find(BraxCityMaterials.ShaderName);
         if (!sh) throw new InvalidOperationException("brak shadera " + BraxCityMaterials.ShaderName);
         var c = new Material(sh) { name = src.name + " (miasto)" };
+        c.enableInstancing = true;
         c.SetColor("_Color", src.GetColor("baseColorFactor"));
         c.SetFloat("_Roughness", src.GetFloat("roughnessFactor"));
         c.SetFloat("_Metallic", src.GetFloat("metallicFactor"));
