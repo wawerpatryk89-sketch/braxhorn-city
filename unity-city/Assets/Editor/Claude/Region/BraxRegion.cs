@@ -61,6 +61,8 @@ public static class BraxRegion
 
         // Siatki zrobione po BraxCityArchitecture.Finish nie mają plików: zapisujemy je, żeby build był deterministyczny.
         Step("utrwalenie siatek", () => PersistMeshes(root));
+        // Budżet: nic wyłączonego nie jedzie do paczki (397 siatek aut, zastąpione elewacje, atrapy), kompresja siatek.
+        Step("odchudzenie danych: wyłączone renderery i kompresja siatek", () => Slim(root));
         Note("materiały modeli → CityStaticPBR: " + converted + ", bez konwersji: " + keptForeign);
         Rep.status = "BUILT";
         File.WriteAllText(Out + "/region.json", JsonUtility.ToJson(Rep, true));
@@ -84,6 +86,36 @@ public static class BraxRegion
             n++;
         }
         Note("lampy wnętrz (ForceVertex): " + n);
+    }
+
+    // Wyłączony renderer nadal pakuje siatkę i tekstury do buildu. Usuwamy komponent (i MeshFilter, jeśli nie ma
+    // na obiekcie włączonej kolizji z tą siatką). Kompresja siatek (Low) zmniejsza plik, nie pamięć ani jakość.
+    static void Slim(Transform root)
+    {
+        int removed = 0, compressed = 0; var seen = new HashSet<Mesh>();
+        foreach (var scope in new[] { root, BraxClaudeGround.SourceCity })
+        {
+            if (!scope) continue;
+            foreach (var r in scope.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                if (r.enabled) continue;
+                var mf = r.GetComponent<MeshFilter>();
+                bool colliderUsesMesh = false;
+                if (mf && mf.sharedMesh) foreach (var mc in r.GetComponents<MeshCollider>()) if (mc.enabled && mc.sharedMesh == mf.sharedMesh) colliderUsesMesh = true;
+                UnityEngine.Object.DestroyImmediate(r);
+                if (mf && !colliderUsesMesh) UnityEngine.Object.DestroyImmediate(mf);
+                removed++;
+            }
+        }
+        foreach (var mf in root.GetComponentsInChildren<MeshFilter>(true))
+        {
+            var m = mf.sharedMesh; if (!m || seen.Contains(m)) continue; seen.Add(m);
+            string path = AssetDatabase.GetAssetPath(m);
+            if (string.IsNullOrEmpty(path) || !path.StartsWith("Assets/PlayableGenerated/")) continue;
+            if (MeshUtility.GetMeshCompression(m) != ModelImporterMeshCompression.Off) continue;
+            MeshUtility.SetMeshCompression(m, ModelImporterMeshCompression.Low); EditorUtility.SetDirty(m); compressed++;
+        }
+        Note("odchudzenie: usunięte wyłączone renderery " + removed + ", skompresowane siatki " + compressed);
     }
 
     static void PersistMeshes(Transform root)
