@@ -49,6 +49,7 @@ public static class BraxRegion
         // Najpierw morze: stara łąka i las znad wody (jachty „w trawie”), zanim zieleń szuka trawników.
         Step("morze bez łąki i lasu nad wodą", () => BraxRegionSea.Apply(root));
         Step("pawilon sportowy (szatnia + sala walk)", () => BraxRegionPavilion.Apply(world, root));
+        Step("tyły siłowni: plac, wieżowce A/B, wiadukt z portalem, warsztaty", () => BraxRegionBackyard.Apply(world, root));
         Step("taras wieżowca: kwiaty i rośliny", () => BraxRegionTerrace.Apply(root));
         Step("wnętrza: Nutrition i NOVA", () => BraxRegionInteriors.Apply(root));
         Step("stare drzewa-atrapy (kule na patykach) → prawdziwe drzewa", () => BraxRegionOldTrees.Apply(root));

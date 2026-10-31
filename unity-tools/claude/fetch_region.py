@@ -27,6 +27,8 @@ TEXTURES = [
     "rough_linen", "terry_cloth", "gingham_check", "teak_veneer", "fabric_pattern_05",
     # mural w sklepie: cegła pod farbą
     "brick_wall_001", "red_brick_03",
+    # tyły siłowni: wzgórze za wiaduktem
+    "rock_wall_08", "rock_face_03",
 ]
 MODELS_2K = [  # drzewa i krzewy: pełna jakość (2K); reszta roślin w 1K, bo edytor Unity na GitHubie ma 16 GB
     "shrub_01", "shrub_02", "shrub_03",
@@ -52,6 +54,10 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     "modern_arm_chair_01", "ArmChair_01", "mid_century_lounge_chair",
     "hanging_picture_frame_01", "hanging_picture_frame_02", "hanging_picture_frame_03",
     "industrial_wall_lamp", "industrial_wall_sconce", "security_camera_01",
+    # tyły siłowni: biura w wieżowcu A, warsztaty pod wiaduktem, wzgórze
+    "rollershutter_door", "metal_office_desk", "classic_laptop", "desk_lamp_arm_01", "office_notepads", "stationery_supplies",
+    "SchoolChair_01", "modern_wooden_cabinet", "drawer_cabinet", "Sofa_01", "sofa_02", "dining_table", "WoodenTable_01", "WoodenTable_02",
+    "tool_cart", "metal_tool_chest", "hand_truck", "old_tyre", "rusted_wheel_rim_01", "barrel_03", "Barrel_02", "coast_land_rocks_02",
 ]
 
 
