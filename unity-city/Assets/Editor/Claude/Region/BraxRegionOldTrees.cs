@@ -55,5 +55,30 @@ public static class BraxRegionOldTrees
         else BraxRegion.Note("stare drzewa: brak modeli drzew (island_tree_03 / pine_tree_01 / fir_tree_01)");
         BraxRegion.Rep.trees += planted;
         BraxRegion.Note("stare drzewa-atrapy: wyłączone renderery " + renderersOff + ", kolizje " + collidersOff + ", posadzone " + planted);
+
+        // Stare latarnie-atrapy na podwórku: słup (CityMesh_263/266/269) + płaska „głowica” 3 m (262/265/268)
+        // w (46,70), (−8,70), (24,95) → prawdziwe latarnie Poly Haven w tych samych miejscach.
+        int lampsOff = 0, lamps = 0;
+        var lampModel = BraxRegion.Model("street_lamp_02", "street_lamp_01");
+        foreach (var scope in new[] { original, physics, root })
+        {
+            if (!scope) continue;
+            foreach (var t in scope.GetComponentsInChildren<Transform>(true))
+            {
+                if (!LampMeshes.Contains(t.name)) continue;
+                foreach (var r in t.GetComponentsInChildren<Renderer>(true)) if (r.enabled) { r.enabled = false; lampsOff++; }
+                foreach (var c in t.GetComponentsInChildren<Collider>(true)) c.enabled = false;
+            }
+        }
+        if (lampModel)
+            foreach (var s in LampSpots)
+            {
+                RaycastHit hit; var floor = s;
+                if (BraxRegion.Ground(s.x, s.z, -1f, 3f, out hit)) floor = hit.point;
+                if (BraxRegion.Put(parent, lampModel, "Podwórko: latarnia", floor, 0f, 1f, true, 6.5f)) lamps++;
+            }
+        BraxRegion.Note("stare latarnie-atrapy: wyłączone renderery " + lampsOff + ", nowe latarnie " + lamps);
     }
+    static readonly string[] LampMeshes = { "CityMesh_262", "CityMesh_263", "CityMesh_265", "CityMesh_266", "CityMesh_268", "CityMesh_269" };
+    static readonly Vector3[] LampSpots = { new Vector3(46f, .15f, 70f), new Vector3(-8f, .15f, 70f), new Vector3(24f, .15f, 95f) };
 }
