@@ -23,6 +23,10 @@ TEXTURES = [
     "brown_mud_leaves_01", "wood_planks_grey", "plank_flooring_02", "wood_floor", "granite_tile_02",
     # front klubu NOVA, siłownia
     "leather_red_02", "leather_red_03", "tatami_mat", "concrete_wall_008",
+    # plaża: parasole (płótno), leżaki (drewno), ręczniki
+    "rough_linen", "terry_cloth", "gingham_check", "teak_veneer", "fabric_pattern_05",
+    # mural w sklepie: cegła pod farbą
+    "brick_wall_001", "red_brick_03",
 ]
 MODELS_2K = [  # drzewa i krzewy: pełna jakość (2K); reszta roślin w 1K, bo edytor Unity na GitHubie ma 16 GB
     "shrub_01", "shrub_02", "shrub_03",

@@ -146,75 +146,69 @@ public static class BraxRegionVegetation
                 if (BraxRegion.Put(root, lamp, "Podwórko: latarnia", lp, 0f, 1f, true, 5.5f)) propN++;
         }
 
-        // 3) Plaża i cypel: trawy wydmowe na granicy piasku, kamienie przy brzegu, koła ratunkowe, boje, skrzynie.
+        // 3) Plaża na cyplu (BraxHarborBeachBuild.CapeBeach): trawy wydmowe na tylnej krawędzi (północ i zachód),
+        //    kamienie w linii wody (południe i wschód), koło ratunkowe i skrzynie przy budce, boje w zatoce i na wschód.
         var beach = cityRoot.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.ToLowerInvariant().Contains("port + beach"));
         int beachN = 0;
         if (beach)
         {
-            var sand = beach.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.name.ToLowerInvariant().Contains("suchy piasek")).ToArray();
-            var wet = beach.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.name.ToLowerInvariant().Contains("mokry piasek")).ToArray();
-            foreach (var r in sand)
+            float cx0 = BraxHarborBeachBuild.CapeX0, cx1 = BraxHarborBeachBuild.CapeX1, cz0 = BraxHarborBeachBuild.CapeZ0, cz1 = BraxHarborBeachBuild.CapeZ1;
+            bool OnDry(float x, float z, out RaycastHit h)
             {
-                var b = r.bounds;
-                // trawy wydmowe wzdłuż tylnej krawędzi plaży (od strony lądu) i kwiaty nadmorskie
-                for (float z = b.min.z + 1f; z < b.max.z - 1f; z += 2.2f)
-                {
-                    float x = b.min.x + BraxRegion.Range(.4f, 2.4f);
-                    RaycastHit h;
-                    if (!BraxRegion.Ground(x, z, b.min.y - 1f, b.max.y + 1f, out h) || h.collider.transform != r.transform) continue;
-                    if (!BraxRegion.Free(h.point + Vector3.up * .4f, new Vector3(1.2f, .7f, 1.2f))) continue;
-                    var src = grass.Count > 0 && BraxRegion.Rnd.Next(4) != 0 ? (grass.Count > 0 ? BraxRegion.Pick(grass) : null) : (flowers.Count > 0 ? BraxRegion.Pick(flowers) : null);
-                    if (src && BraxRegion.Put(root, src, "Plaża: trawa wydmowa", h.point, BraxRegion.Range(0, 360), BraxRegion.Range(.9f, 1.3f), false, .8f, .03f)) beachN++;
-                }
-                // kamienie przy brzegu: na mokrym piasku, w linii wody
-                foreach (var w in wet)
-                {
-                    var wb = w.bounds;
-                    for (float z = wb.min.z + 2f; z < wb.max.z - 2f; z += 6.5f)
-                    {
-                        float x = wb.min.x + BraxRegion.Range(.5f, 3.5f);
-                        RaycastHit h;
-                        if (!BraxRegion.Ground(x, z, wb.min.y - 2f, wb.max.y + 1f, out h) || h.collider.transform != w.transform) continue;
-                        if (shoreRocks.Count == 0 || !BraxRegion.Free(h.point + Vector3.up * .5f, new Vector3(2.2f, 1f, 2.2f))) continue;
-                        if (BraxRegion.Put(root, BraxRegion.Pick(shoreRocks), "Brzeg: kamienie", h.point, BraxRegion.Range(0, 360), 1f, true, 1.1f, .15f)) beachN++;
-                    }
-                }
-                // koło ratunkowe na słupku i skrzynie przy budce ratownika
-                var tower = beach.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.ToLowerInvariant().Contains("budka ratownika"));
-                if (tower)
-                {
-                    var tb = BraxRegion.Bounds(tower.gameObject);
-                    var at = new Vector3(tb.max.x + 1.2f, 0, tb.center.z);
-                    RaycastHit h;
-                    if (BraxRegion.Ground(at.x, at.z, b.min.y - 1f, b.max.y + 1f, out h))
-                    {
-                        var post = BraxRegion.Pbr("Plaża: słupek drewniany", 1f, null, "wood_planks_grey", "wood_planks", "wooden_planks");
-                        BraxRegion.Box("Plaża: słupek koła ratunkowego", root, h.point + Vector3.up * .9f, new Vector3(.12f, 1.8f, .12f), post, true);
-                        if (lifebuoy)
-                        {
-                            var o = BraxRegion.Put(root, lifebuoy, "Plaża: koło ratunkowe", h.point + new Vector3(0, 1.1f, -.09f), 0f, 1f, false, .75f);
-                            if (o) beachN++;
-                        }
-                        if (crate && BraxRegion.Free(h.point + new Vector3(0, .5f, 1.6f), new Vector3(1.4f, 1f, 1.4f)))
-                            if (BraxRegion.Put(root, crate, "Plaża: skrzynie ratownika", h.point + new Vector3(0, 0, 1.6f), BraxRegion.Range(0, 360), 1f, true, 1.0f)) beachN++;
-                    }
-                }
+                if (!BraxRegion.Ground(x, z, -1f, 1.5f, out h)) return false;
+                return h.collider.name.ToLowerInvariant().Contains("suchy piasek");
             }
-            // boje w wodzie, 18–26 m od brzegu, poza pomostem
-            if (buoy)
+            // trawy wydmowe i kwiaty nadmorskie: tylna krawędź północna (z≈cz1−1.5) i zachodnia (x≈cx0+1.5)
+            var backEdge = new List<Vector2>();
+            for (float x = cx0 + 2f; x < cx1 - 1f; x += 2.2f) backEdge.Add(new Vector2(x + BraxRegion.Range(-.6f, .6f), cz1 - BraxRegion.Range(.6f, 2.6f)));
+            for (float z = cz0 + 2.5f; z < cz1 - 2f; z += 2.2f) backEdge.Add(new Vector2(cx0 + BraxRegion.Range(.5f, 2.5f), z + BraxRegion.Range(-.6f, .6f)));
+            foreach (var e in backEdge)
             {
-                var jetty = beach.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.ToLowerInvariant().Contains("pomost"));
-                Bounds? jb = jetty ? BraxRegion.Bounds(jetty.gameObject) : (Bounds?)null;
-                foreach (var r in wet)
+                RaycastHit h; if (!OnDry(e.x, e.y, out h)) continue;
+                if (!BraxRegion.Free(h.point + Vector3.up * .4f, new Vector3(1.2f, .7f, 1.2f))) continue;
+                var src = grass.Count > 0 && BraxRegion.Rnd.Next(4) != 0 ? BraxRegion.Pick(grass) : (flowers.Count > 0 ? BraxRegion.Pick(flowers) : (grass.Count > 0 ? BraxRegion.Pick(grass) : null));
+                if (src && BraxRegion.Put(root, src, "Plaża: trawa wydmowa", h.point, BraxRegion.Range(0, 360), BraxRegion.Range(.9f, 1.3f), false, .8f, .03f)) beachN++;
+            }
+            // kamienie w linii wody: co 6.5 m wzdłuż południowego i wschodniego brzegu (1–3 m za krawędzią plateau)
+            var shoreLine = new List<Vector2>();
+            for (float x = 92f; x < cx1 - 3f; x += 6.5f) shoreLine.Add(new Vector2(x + BraxRegion.Range(-1.5f, 1.5f), cz0 - BraxRegion.Range(1f, 3f)));
+            for (float z = cz0 + 4f; z < cz1 - 3f; z += 6.5f) shoreLine.Add(new Vector2(cx1 + BraxRegion.Range(1f, 3f), z + BraxRegion.Range(-1.5f, 1.5f)));
+            foreach (var e in shoreLine)
+            {
+                if (Mathf.Abs(e.x - BraxHarborBeachBuild.CapeJettyX) < 5f && e.y < cz0 + 1f) continue;   // nie przy pomoście
+                RaycastHit h; if (!BraxRegion.Ground(e.x, e.y, -3f, 1f, out h) || !h.collider.name.ToLowerInvariant().Contains("piasek")) continue;
+                if (shoreRocks.Count == 0 || !BraxRegion.Free(h.point + Vector3.up * .5f, new Vector3(2.2f, 1f, 2.2f))) continue;
+                if (BraxRegion.Put(root, BraxRegion.Pick(shoreRocks), "Brzeg: kamienie", h.point, BraxRegion.Range(0, 360), 1f, true, 1.1f, .15f)) beachN++;
+            }
+            // koło ratunkowe na słupku i skrzynie przy budce ratownika
+            var tower = beach.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name.ToLowerInvariant().Contains("budka ratownika"));
+            if (tower)
+            {
+                var tb = BraxRegion.Bounds(tower.gameObject);
+                RaycastHit h;
+                if (OnDry(tb.max.x + 1.6f, tb.center.z, out h))
                 {
-                    var wb = r.bounds;
-                    for (float z = wb.min.z + 4f; z < wb.max.z - 4f; z += 11f)
+                    var post = BraxRegion.Pbr("Plaża: słupek drewniany", 1f, null, "wood_planks_grey", "wood_planks", "wooden_planks");
+                    BraxRegion.Box("Plaża: słupek koła ratunkowego", root, h.point + Vector3.up * .9f, new Vector3(.12f, 1.8f, .12f), post, true);
+                    if (lifebuoy)
                     {
-                        var at = new Vector3(wb.max.x + BraxRegion.Range(16f, 24f), BraxCityWaterBuild.WaterY, z);
-                        if (jb.HasValue && Mathf.Abs(at.z - jb.Value.center.z) < jb.Value.extents.z + 6f && at.x < jb.Value.max.x + 8f) continue;
-                        var o = BraxRegion.Put(root, buoy, "Morze: boja", at, BraxRegion.Range(0, 360), 1f, false, 1.6f, .45f);
+                        var o = BraxRegion.Put(root, lifebuoy, "Plaża: koło ratunkowe", h.point + new Vector3(0, 1.1f, -.09f), 0f, 1f, false, .75f);
                         if (o) beachN++;
                     }
+                    if (crate && BraxRegion.Free(h.point + new Vector3(0, .5f, 1.6f), new Vector3(1.4f, 1f, 1.4f)))
+                        if (BraxRegion.Put(root, crate, "Plaża: skrzynie ratownika", h.point + new Vector3(0, 0, 1.6f), BraxRegion.Range(0, 360), 1f, true, 1.0f)) beachN++;
+                }
+            }
+            // boje: w zatoce 22 m od brzegu (z dala od pomostu) i na wschód od cypla
+            if (buoy)
+            {
+                var buoys = new List<Vector3>();
+                for (float x = 96f; x < cx1; x += 12f) if (Mathf.Abs(x - BraxHarborBeachBuild.CapeJettyX) > 9f) buoys.Add(new Vector3(x, BraxCityWaterBuild.WaterY, cz0 - BraxRegion.Range(19f, 25f)));
+                for (float z = cz0 + 6f; z < cz1; z += 12f) buoys.Add(new Vector3(cx1 + BraxRegion.Range(19f, 25f), BraxCityWaterBuild.WaterY, z));
+                foreach (var at in buoys)
+                {
+                    var o = BraxRegion.Put(root, buoy, "Morze: boja", at, BraxRegion.Range(0, 360), 1f, false, 1.6f, .45f);
+                    if (o) beachN++;
                 }
             }
         }
@@ -243,8 +237,8 @@ public static class BraxRegionVegetation
                 if (BraxRegion.Put(root, hydrant, "Ulica: hydrant", h.point, 0f, 1f, true, .9f)) streetN++;
         }
 
-        BraxRegion.Rep.shrubs = shrubN; BraxRegion.Rep.grassClumps = grassN; BraxRegion.Rep.flowers = flowerN;
-        BraxRegion.Rep.rocks = rockN; BraxRegion.Rep.trees = treeN; BraxRegion.Rep.streetProps = streetN + propN; BraxRegion.Rep.beachProps = beachN;
+        BraxRegion.Rep.shrubs += shrubN; BraxRegion.Rep.grassClumps = grassN; BraxRegion.Rep.flowers = flowerN;
+        BraxRegion.Rep.rocks = rockN; BraxRegion.Rep.trees += treeN; BraxRegion.Rep.streetProps = streetN + propN; BraxRegion.Rep.beachProps = beachN;
         BraxRegion.Note("zieleń: próbek " + sampled + " (odrzucone podłoże " + rejGround + ", zajęte " + rejFree + "), trawniki: " + string.Join("; ", lawns.Take(6).Select(l => l.center.x.ToString("F0") + "," + l.center.z.ToString("F0") + " " + l.size.x.ToString("F0") + "x" + l.size.z.ToString("F0"))) + " | trawników " + lawns.Count + ", krzewów " + shrubN + ", kęp " + grassN + ", kwiatów " + flowerN + ", kamieni " + rockN + ", drzew " + treeN + ", plaża " + beachN + ", ulica " + (streetN + propN));
     }
 }
