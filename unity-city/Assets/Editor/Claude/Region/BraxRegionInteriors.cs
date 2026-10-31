@@ -109,7 +109,7 @@ public static class BraxRegionInteriors
         var panel = BraxRegion.Pbr("NOVA front: ciemne panele", 1.4f, new Color(.16f, .16f, .18f), "exterior_wall_cladding_02", "exterior_wall_cladding", "concrete_wall_008");
         var pilaster = BraxRegion.Pbr("NOVA front: granitowe pilastry", 1.0f, new Color(.30f, .30f, .32f), "granite_tile", "granite_tile_02");
         var soffit = BraxRegion.Pbr("NOVA front: spód daszka", 1.0f, new Color(.45f, .36f, .30f), "dark_wood", "wood_planks");
-        var rope = BraxRegion.Pbr("NOVA front: czerwona lina", .4f, null, "leather_red_02", "leather_white", "wood_planks");
+        var rope = BraxRegion.Pbr("NOVA front: czerwona lina", .4f, new Color(.60f, .08f, .08f), "leather_red_03", "leather_red_02", "leather_white", "wood_planks");
         var champagne = BraxRegion.Fitting("NOVA front: stal szampańska", BraxRegion.Champagne, .30f, .92f);
         var black = BraxRegion.Fitting("NOVA front: czarna stal", new Color(.06f, .06f, .065f), .55f, .6f);
         float y0 = .15f;
@@ -127,22 +127,12 @@ public static class BraxRegionInteriors
         BraxRegion.Box("NOVA front: portal lewy", root, new Vector3(DoorL - .3f, y0 + DoorH * .5f, Z - .1f), new Vector3(.6f, DoorH, .32f), pilaster, true);
         BraxRegion.Box("NOVA front: portal prawy", root, new Vector3(DoorR + .3f, y0 + DoorH * .5f, Z - .1f), new Vector3(.6f, DoorH, .32f), pilaster, true);
         BraxRegion.Box("NOVA front: portal góra", root, new Vector3((DoorL + DoorR) * .5f, y0 + DoorH + .25f, Z - .1f), new Vector3(DoorR - DoorL + 1.2f, .5f, .32f), pilaster, true);
-        BraxRegion.Box("NOVA front: daszek", root, new Vector3((DoorL + DoorR) * .5f, y0 + 3.55f, Z - 1.1f), new Vector3(7.0f, .16f, 2.2f), champagne, true);
-        BraxRegion.Box("NOVA front: spód daszka", root, new Vector3((DoorL + DoorR) * .5f, y0 + 3.46f, Z - 1.1f), new Vector3(6.8f, .02f, 2.1f), soffit);
+        BraxRegion.Box("NOVA front: daszek", root, new Vector3((DoorL + DoorR) * .5f, y0 + 3.30f, Z - 1.0f), new Vector3(6.4f, .14f, 2.0f), champagne, true);
+        BraxRegion.Box("NOVA front: spód daszka", root, new Vector3((DoorL + DoorR) * .5f, y0 + 3.22f, Z - 1.0f), new Vector3(6.2f, .02f, 1.9f), soffit);
         foreach (float sx in new[] { (DoorL + DoorR) * .5f - 3.2f, (DoorL + DoorR) * .5f + 3.2f })
-            BraxRegion.Box("NOVA front: cięgno daszka", root, new Vector3(sx, y0 + 4.2f, Z - 1.1f), new Vector3(.04f, 1.4f, .04f), champagne);
-        BraxRegion.Warm(root, "NOVA front: światło pod daszkiem", new Vector3((DoorL + DoorR) * .5f, y0 + 3.3f, Z - 1.0f), 1.0f, 6f);
-        // napis NOVA nad daszkiem (test głębi daje BraxRegionSignage)
-        var sign = new GameObject("NOVA front: napis NOVA");
-        sign.transform.SetParent(root, false);
-        sign.transform.position = new Vector3((DoorL + DoorR) * .5f, y0 + 4.35f, Z - .2f);
-        sign.transform.rotation = Quaternion.identity;   // czytelny od strony ulicy (-Z)
-        var tm = sign.AddComponent<TextMesh>();
-        tm.text = "NOVA"; tm.anchor = TextAnchor.MiddleCenter; tm.alignment = TextAlignment.Center;
-        tm.fontSize = 64; tm.characterSize = .95f * 10f / 64f; tm.color = new Color(.95f, .95f, .93f);
-        tm.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        var smr = sign.GetComponent<MeshRenderer>(); if (smr && tm.font) smr.sharedMaterial = tm.font.material;
-        BraxRegion.Box("NOVA front: tło napisu", root, new Vector3((DoorL + DoorR) * .5f, y0 + 4.35f, Z - .06f), new Vector3(4.6f, .9f, .06f), black);
+            BraxRegion.Box("NOVA front: cięgno daszka", root, new Vector3(sx, y0 + 3.75f, Z - 1.0f), new Vector3(.04f, .9f, .04f), champagne);
+        BraxRegion.Warm(root, "NOVA front: światło pod daszkiem", new Vector3((DoorL + DoorR) * .5f, y0 + 3.05f, Z - .9f), 1.0f, 6f);
+        // Napis zostaje oryginalny („CLUB NOVA” + billboard „NOVA DYSKOTEKA”): bez trzeciego napisu.
         // kinkiety po bokach wejścia (modele Poly Haven, bez poświaty)
         var lamp = BraxRegion.Model("industrial_wall_lamp", "industrial_wall_sconce", "industrial_caged_sconce");
         if (lamp)
