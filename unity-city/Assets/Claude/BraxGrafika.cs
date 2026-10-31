@@ -16,7 +16,7 @@ public sealed class BraxGrafika : MonoBehaviour
     public enum Tryb { Niska = 0, Srednia = 1, Wysoka = 2 }
     public static Tryb Aktualny { get; private set; } = Tryb.Srednia;
     public static readonly string[] Nazwy = { "NISKA", "ŚREDNIA", "WYSOKA" };
-    const string Klucz = "braxhorn_grafika";
+    const string Klucz = "braxhorn_grafika_b5";   // nowy klucz: wybór z APK d260250 nie przechodzi do tej wersji
     static BraxGrafika inst;
     static int natW, natH;
     int doZastosowania = 2;          // ile klatek po wczytaniu sceny jeszcze raz nadpisać (gracz w Start ustawia 60 kl./s)
@@ -36,7 +36,9 @@ public sealed class BraxGrafika : MonoBehaviour
     {
         natW = Display.main.systemWidth > 0 ? Display.main.systemWidth : Screen.width;
         natH = Display.main.systemHeight > 0 ? Display.main.systemHeight : Screen.height;
-        int domyslny = Application.isMobilePlatform ? (SystemInfo.systemMemorySize > 0 && SystemInfo.systemMemorySize < 5800 ? 0 : 1) : 2;
+        // Telefon: zawsze NISKA na start (audyt 31.10: 1.1 GB tekstur, część z .glb nieskompresowana — limit mip ½ przed pierwszą
+        // sceną = ¼ pamięci tekstur; bez cieni w czasie rzeczywistym). ŚREDNIA / WYSOKA do wybrania w MENU.
+        int domyslny = Application.isMobilePlatform ? 0 : 2;
         int t = domyslny;
         try { t = PlayerPrefs.GetInt(Klucz, domyslny); } catch { }
         Aktualny = (Tryb)Mathf.Clamp(t, 0, 2);

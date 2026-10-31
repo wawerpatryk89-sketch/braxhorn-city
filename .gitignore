@@ -2,3 +2,4 @@ node_modules/
 .DS_Store
 unity-city/Assets/Source/Claude/PolyHaven/
 unity-tools/claude/__pycache__/
+unity-city/Assets/Claude/Audio/willa_muzyka.ogg*

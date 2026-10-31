@@ -196,6 +196,16 @@ jobs:
         ls -la unity-city/Assets/Source/City/ | grep -i estate || true; echo "miasto + osiedle R2 w jednej paczce (31.10, Opus)"
     - name: Materialy i modele osiedla R2 (Poly Haven + ambientCG + tekstury generowane)
       run: python3 unity-tools/claude/fetch_osiedle.py
+    - name: Prywatna muzyka do willi z rozami (plik zaszyfrowany, klucz tylko w sekretach repozytorium)
+      env:
+        KLUCZ: ${{ secrets.WILLA_MUZYKA_KLUCZ }}
+      run: |
+        if [ -n "$KLUCZ" ] && [ -f unity-tools/claude/prywatne/willa_muzyka.ogg.enc ]; then
+          openssl enc -d -aes-256-cbc -pbkdf2 -in unity-tools/claude/prywatne/willa_muzyka.ogg.enc -out unity-city/Assets/Claude/Audio/willa_muzyka.ogg -pass env:KLUCZ \
+            && echo "muzyka willi z rozami: OK" || { rm -f unity-city/Assets/Claude/Audio/willa_muzyka.ogg; echo "muzyka willi: zly klucz - gra Industrial Pulse"; }
+        else
+          echo "muzyka willi: brak sekretu WILLA_MUZYKA_KLUCZ - gra Industrial Pulse"
+        fi
     - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
@@ -417,6 +427,16 @@ jobs:
         ls -la unity-city/Assets/Source/City/ | grep -i estate || true; echo "miasto + osiedle R2 w jednej paczce (31.10, Opus)"
     - name: Materialy i modele osiedla R2 (Poly Haven + ambientCG + tekstury generowane)
       run: python3 unity-tools/claude/fetch_osiedle.py
+    - name: Prywatna muzyka do willi z rozami (plik zaszyfrowany, klucz tylko w sekretach repozytorium)
+      env:
+        KLUCZ: ${{ secrets.WILLA_MUZYKA_KLUCZ }}
+      run: |
+        if [ -n "$KLUCZ" ] && [ -f unity-tools/claude/prywatne/willa_muzyka.ogg.enc ]; then
+          openssl enc -d -aes-256-cbc -pbkdf2 -in unity-tools/claude/prywatne/willa_muzyka.ogg.enc -out unity-city/Assets/Claude/Audio/willa_muzyka.ogg -pass env:KLUCZ \
+            && echo "muzyka willi z rozami: OK" || { rm -f unity-city/Assets/Claude/Audio/willa_muzyka.ogg; echo "muzyka willi: zly klucz - gra Industrial Pulse"; }
+        else
+          echo "muzyka willi: brak sekretu WILLA_MUZYKA_KLUCZ - gra Industrial Pulse"
+        fi
     - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:

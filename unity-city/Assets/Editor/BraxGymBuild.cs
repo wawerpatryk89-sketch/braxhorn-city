@@ -191,6 +191,7 @@ public static class BraxGymBuild
             BraxRegionGym.Apply(gym,runtime);
             // Muzyka w siłowni (właściciel 31.10, 18:48: „to daj do siłki”): gra tylko w hali (prostopadłościan siatek hali
             // przed ścianą z drzwiami z=11.4), cichnie 3 m za drzwiami. Pętla 3:57 (Assets/Claude/Audio, BraxClaudeMuzyka).
+            BraxClaudeOsiedle.StreamAudio("Assets/Claude/Audio/silownia_muzyka.ogg");   // strumieniowo, nie 40 MB w RAM
             var gymClip=AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Claude/Audio/silownia_muzyka.ogg");
             if(gymClip)
             {
@@ -241,10 +242,10 @@ public static class BraxGymBuild
             PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
             PlayerSettings.productName="Braxhorn City";
             EditorUserBuildSettings.buildAppBundle=false;
-            // Build 5 (właściciel 21:34–21:36: gra zamyka się na starcie; raport d260250: 1.1 GB tekstur + 0.6 GB siatek w pamięci naraz):
-            // na telefon wszystkie tekstury maks. 1024 (ekran telefonu i tak nie pokaże 2K z bliska), siatki bez nieużywanych kanałów.
-            EditorUserBuildSettings.overrideMaxTextureSize=1024;
-            PlayerSettings.stripUnusedMeshComponents=true;
+            // Build 5 (właściciel 21:34–21:36: gra zamyka się na starcie; raport d260250: 1.1 GB tekstur + 0.6 GB siatek w pamięci naraz).
+            // Audyt 31.10: globalny limit tekstur i tak był zerowany niżej (i reimportowałby ~1400 tekstur), a tekstury wewnątrz .glb
+            // (jacht, skutery, dźwig, pociąg) są nieskompresowane — na telefonie tnie je limit mip w BraxGrafika (ustawiany przed
+            // pierwszą sceną). Kanały siatek bez zmian (stripUnusedMeshComponents niesprawdzone na telefonie — trawa z kodu).
             EditorUserBuildSettings.androidBuildSubtarget=MobileTextureSubtarget.ETC2;   // build 5: z powrotem ETC2 jak w działającym APK 5739547 (d260250 z ASTC zamykał się na starcie u właściciela); ASTC wróci po teście na telefonie
             output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/Android"));Directory.CreateDirectory(output);
             location=Path.Combine(output,"braxhorn-city.apk");

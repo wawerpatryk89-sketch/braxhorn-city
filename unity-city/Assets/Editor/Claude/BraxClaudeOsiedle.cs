@@ -1763,7 +1763,7 @@ public static class BraxClaudeOsiedle
                 float tableTop = SurfaceTop(tableGo, Pw(da, 0, dw), RB(tableGo).max.y);   // blat w środku stołu (promień), nie fałda obrusa
                 var v = Put(vase, Pw(da, tableTop, dw), 0f, .02f, false);
                 // willa 1 (właściciel 16:44): bukiet czerwonych róż na stole i karteczka „Kocham cię, Monika” przodem do wejścia z tarasu
-                if (v && sn == 0) { RoseBouquet(Pw(da, RB(v).max.y - .03f, dw), 22, 31); LoveCard(Pw(da, SurfaceTop(tableGo, Pw(da, 0, dw + .35f), tableTop), dw + .35f), Wax); }
+                if (v && sn == 0) { RoseBouquet(Pw(da, RB(v).max.y - .03f, dw), 12, 31); LoveCard(Pw(da, SurfaceTop(tableGo, Pw(da, 0, dw + .35f), tableTop), dw + .35f), Wax); }
                 else if (v) Bouquet(Pw(da, RB(v).max.y - .06f, dw), .05f);
             }
             if (fruitBowl) Put(fruitBowl, Pw(ka + 2.5f, .95f, (kw0 + kw1) * .5f), 30f, .02f, false);
@@ -2079,7 +2079,8 @@ public static class BraxClaudeOsiedle
                 var hifi = new GameObject("wieża grająca (muzyka)"); hifi.transform.SetParent(Group(group), false);
                 hifi.transform.position = Pw(am2 - .6f, cabTop, aw);
                 var gr = hifi.AddComponent<BraxClaudeGrajek>();
-                gr.utwor = AudioAsset("willa_muzyka.ogg"); if (!gr.utwor) gr.utwor = AudioAsset("industrial_pulse_petla.ogg");
+                // piosenka właściciela tylko w willi z różami i karteczką (sn == 0; plik prywatny, odszyfrowany w buildzie), w pozostałych Industrial Pulse
+                gr.utwor = sn == 0 ? AudioAsset("willa_muzyka.ogg") : null; if (!gr.utwor) gr.utwor = AudioAsset("industrial_pulse_petla.ogg");
                 Vector3 da2 = Pw(h0, 0, e0), db2 = Pw(h1, 6.7f, f1 + 4.2f);
                 gr.dom = MinMax(Mathf.Min(da2.x, db2.x), Mathf.Max(da2.x, db2.x), 0f, 6.7f, Mathf.Min(da2.z, db2.z), Mathf.Max(da2.z, db2.z));
                 rep.notes.Add("wieża w willi " + (sn + 1) + ": " + (gr.utwor ? gr.utwor.name : "BRAK muzyki"));
@@ -2297,7 +2298,18 @@ public static class BraxClaudeOsiedle
         var path = "Assets/Claude/Audio/" + file;
         if (!File.Exists(path)) return null;
         AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+        StreamAudio(path);
         return AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+    }
+    // Długie utwory (2–4 min) strumieniowo z paczki zamiast rozpakowania do pamięci przy wczytaniu (Decompress On Load =
+    // 30–40 MB RAM na utwór) — audyt pamięci na telefonie 31.10 (moto g86).
+    public static void StreamAudio(string path)
+    {
+        var imp = AssetImporter.GetAtPath(path) as AudioImporter; if (!imp) return;
+        var st = imp.defaultSampleSettings;
+        if (st.loadType == AudioClipLoadType.Streaming && st.compressionFormat == AudioCompressionFormat.Vorbis) return;
+        st.loadType = AudioClipLoadType.Streaming; st.compressionFormat = AudioCompressionFormat.Vorbis; st.quality = .6f;
+        imp.defaultSampleSettings = st; imp.loadInBackground = true; imp.SaveAndReimport();
     }
     // Szyld: płyta grafitowa + front z napisem (UV 0..1 na całą tablicę), normalna nx/nz (kierunek do oglądającego).
     static void Sign(string id, Vector3 c, float w, float h, Vector3 n, bool plate = true)
@@ -4613,7 +4625,7 @@ public static class BraxClaudeOsiedle
         var root = new GameObject("Bukiet czerwonych róż"); root.transform.SetParent(Group(group), false);
         for (int i = 0; i < count; i++)
         {
-            float ang = (float)rnd.NextDouble() * Mathf.PI * 2f, rr = .01f + (float)rnd.NextDouble() * .045f, lift = .2f + (float)rnd.NextDouble() * .2f, tilt = 3f + (float)rnd.NextDouble() * 20f;   // build 5: 22 róże, pełniejszy bukiet
+            float ang = (float)rnd.NextDouble() * Mathf.PI * 2f, rr = .012f + (float)rnd.NextDouble() * .03f, lift = .22f + (float)rnd.NextDouble() * .16f, tilt = 4f + (float)rnd.NextDouble() * 14f;   // bukiet jak na zdjęciu z buildu 4 (właściciel 21:45: „cofaj bukiet”)
             var outDir = new Vector3(Mathf.Cos(ang), 0, Mathf.Sin(ang));
             var rot = Quaternion.AngleAxis(tilt, Vector3.Cross(Vector3.up, outDir)) * Quaternion.Euler(0, (float)rnd.NextDouble() * 360f, 0);
             var go = new GameObject("róża " + (i + 1)); go.transform.SetParent(root.transform, false);
