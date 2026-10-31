@@ -81,7 +81,7 @@ public static class BraxClaudeOsiedle
     static string Safe(string s) => new string(s.Select(ch => char.IsLetterOrDigit(ch) ? ch : '_').ToArray());
 
     static Material Asphalt => Pbr("jezdnia asfalt", "asphalt_04", 3.5f, new Color(.50f, .51f, .53f), .9f);
-    static Material Pavers => Pbr("chodnik płyty", "concrete_pavement_02", 1.6f, new Color(.93f, .93f, .94f));
+    static Material Pavers => Pbr("chodnik płyty", "concrete_pavement_02", 1.6f, new Color(.86f, .90f, .96f));
     static Material KerbStone => Pbr("krawężnik granit", "concrete_pavement_02", 1.2f, new Color(.92f, .92f, .93f));
     static Material Slabs => Pbr("płyty ścieżek", "concrete_pavement_02", 2.4f, new Color(1.06f, 1.05f, 1.02f));
     static Material Herring => Pbr("podjazd jodełka", "herringbone_brick_02", 2.4f, new Color(1f, 1f, 1f));
@@ -433,17 +433,23 @@ public static class BraxClaudeOsiedle
 
     // ---------------- willa ----------------
     static GameObject outdoorSet, bench, bin, picnic, planter; static int binTurn;
-    static void Villa(int index, float u0, float u1, float front, float dir)
+    // swap = działka „bokiem” (ulica wzdłuż Z, głębokość wzdłuż X) — tak stoją domy osiedla A.
+    static void Villa(int index, float u0, float u1, float front, float dir, bool swap = false, float depthOverride = 0f,
+                      bool garageOn = true, bool fencesOn = true, string label = null)
     {
-        group = "Osiedle B / willa " + (index + 1);
-        float W = u1 - u0, depth = dir > 0 ? ParkZ0 - front : front - SouthZ;
-        bool mirror = index % 2 == 1; int variant = index % 3;
+        group = label ?? "Osiedle B / willa " + (index + 1);
+        float W = u1 - u0, depth = depthOverride > 0 ? depthOverride : dir > 0 ? ParkZ0 - front : front - SouthZ;
+        bool mirror = index % 2 == 1; int variant = index % 3; float yawFix = swap ? 90f : 0f;
         float Z(float w) => front + dir * w;                         // głębokość działki -> świat
         float U(float a) => mirror ? u1 - a : u0 + a;                 // pozycja wzdłuż ulicy -> świat
+        Vector3 Pw(float a, float y, float w) => swap ? new Vector3(Z(w), y, U(a)) : new Vector3(U(a), y, Z(w));
         void BoxL(Material m, float a0, float a1, float y0, float y1, float w0, float w1, bool solid = true, bool bottom = false)
-            => BoxMinMax(m, Mathf.Min(U(a0), U(a1)), Mathf.Max(U(a0), U(a1)), y0, y1, Mathf.Min(Z(w0), Z(w1)), Mathf.Max(Z(w0), Z(w1)), solid, bottom);
+        {
+            Vector3 p = Pw(a0, y0, w0), q = Pw(a1, y1, w1);
+            BoxMinMax(m, Mathf.Min(p.x, q.x), Mathf.Max(p.x, q.x), y0, y1, Mathf.Min(p.z, q.z), Mathf.Max(p.z, q.z), solid, bottom);
+        }
 
-        float Wm = Mathf.Min(W - 13f, 18f), garage = 6.5f, s0 = (W - (Wm + garage)) * .5f;
+        float Wm = garageOn ? Mathf.Min(W - 13f, 18f) : Mathf.Min(W - 6f, 16f), garage = garageOn ? 6.5f : 0f, s0 = (W - (Wm + garage)) * .5f;
         float h0 = s0, h1 = s0 + Wm, g0 = h1, g1 = h1 + garage;     // dom i garaż wzdłuż ulicy
         float f0 = 7f, f1 = 18f;                                      // front i tył parteru (głębokość)
         var wallG = variant == 1 ? Stone : Stucco;
@@ -473,10 +479,13 @@ public static class BraxClaudeOsiedle
         Rail(h0 + .12f, h1 - .15f, f1 - .15f, f1 - .12f);
         Rail(h0 + .12f, h0 + .15f, e1 + .05f, f1 - .12f);
         // garaż
-        BoxL(Stucco, g0, g1, 0, 3.0f, f0, f0 + 6.5f);
-        BoxL(Stucco, g0, g1, 3.0f, 3.25f, f0, f0 + 6.5f, false);
-        BoxL(GarageDoor, g0 + .7f, g1 - .7f, .02f, 2.45f, f0 - .06f, f0 + .02f, false);
-        for (int k = 1; k < 6; k++) BoxL(Frame, g0 + .7f, g1 - .7f, .02f + k * .4f, .04f + k * .4f, f0 - .075f, f0 - .055f, false);
+        if (garageOn)
+        {
+            BoxL(Stucco, g0, g1, 0, 3.0f, f0, f0 + 6.5f);
+            BoxL(Stucco, g0, g1, 3.0f, 3.25f, f0, f0 + 6.5f, false);
+            BoxL(GarageDoor, g0 + .7f, g1 - .7f, .02f, 2.45f, f0 - .06f, f0 + .02f, false);
+            for (int k = 1; k < 6; k++) BoxL(Frame, g0 + .7f, g1 - .7f, .02f + k * .4f, .04f + k * .4f, f0 - .075f, f0 - .055f, false);
+        }
 
         // okna: szkło wysunięte 3 cm, rama antracyt
         void Pane(float a0, float a1, float y0, float y1, float w, float outward)
@@ -490,12 +499,13 @@ public static class BraxClaudeOsiedle
             BoxL(Frame, a1, a1 + fw, y0, y1, Mathf.Min(fa, fb), Mathf.Max(fa, fb), false);
         }
         // front parteru: drzwi przy krawędzi, dalej trzy duże przeszklenia
-        float door0 = h0 + 1.4f, door1 = door0 + 1.25f;
+        float door0 = garageOn ? h0 + 1.4f : h0 + Wm * .5f - .62f, door1 = door0 + 1.25f;
         BoxL(Wood, door0, door1, .02f, 2.45f, f0 - .06f, f0 + .02f, false);
         BoxL(Frame, door1 - .25f, door1 - .2f, 1.0f, 1.5f, f0 - .1f, f0 - .06f, false);
         BoxL(Stucco, door0 - .9f, door1 + 1.2f, 2.95f, 3.15f, f0 - 1.8f, f0, false, true);   // daszek nad wejściem
         float gl0 = door1 + 1.0f, gl1 = h1 - 1.0f; int panes = Mathf.Max(1, Mathf.RoundToInt((gl1 - gl0) / 2.6f));
         for (int k = 0; k < panes; k++) { float a = gl0 + k * (gl1 - gl0) / panes + .12f, b = gl0 + (k + 1) * (gl1 - gl0) / panes - .12f; Pane(a, b, .4f, 2.9f, f0, -1); }
+        if (!garageOn && door0 - .8f - (h0 + 1f) > 1.2f) Pane(h0 + 1f, door0 - .8f, .4f, 2.9f, f0, -1);
         // tył parteru: przesuwne drzwi tarasowe
         int rear = Mathf.Max(2, Mathf.RoundToInt((Wm - 2f) / 2.8f));
         for (int k = 0; k < rear; k++) { float a = h0 + 1f + k * (Wm - 2f) / rear + .1f, b = h0 + 1f + (k + 1) * (Wm - 2f) / rear - .1f; Pane(a, b, .3f, 3.0f, f1, 1); }
@@ -503,12 +513,12 @@ public static class BraxClaudeOsiedle
         Pane(uA + .8f, uB - .8f, 4.1f, 6.15f, e0, -1);
         int mull = Mathf.Max(1, Mathf.RoundToInt((uw - 1.6f) / 1.7f));
         for (int k = 1; k < mull; k++) { float a = uA + .8f + k * (uw - 1.6f) / mull; BoxL(Frame, a - .035f, a + .035f, 4.1f, 6.15f, e0 - .05f, e0 + .01f, false); }
-        if (planter) { Put(planter, new Vector3(U(h1 - 1.4f), 3.46f, Z(f0 + 1.0f)), mirror ? 270 : 90, .03f, false); Put(planter, new Vector3(U(door1 + .7f), 0, Z(f0 - .6f)), 0, .03f, false); }
+        if (planter) { Put(planter, Pw(h1 - 1.4f, 3.46f, f0 + 1.0f), (mirror ? 270 : 90) + yawFix, .03f, false); Put(planter, Pw(door1 + .7f, 0, f0 - .6f), yawFix, .03f, false); }
         foreach (float a in new[] { door0 - .35f, door1 + .35f }) BoxL(Frame, a - .07f, a + .07f, 2.05f, 2.35f, f0 - .12f, f0, false);
         Pane(uA + .9f, uA + uw * .45f, 4.1f, 6.15f, e1, 1); Pane(uA + uw * .55f, uB - .9f, 4.1f, 6.15f, e1, 1);
         // tarasy i basen
         BoxL(Deck, h0, h1, 0, .18f, f1, f1 + 4.2f);
-        if (outdoorSet) Put(outdoorSet, new Vector3(U(h0 + Wm * .35f), .18f, Z(f1 + 2.2f)), mirror ? 180 : 0, .03f, true);
+        if (outdoorSet) Put(outdoorSet, Pw(h0 + Wm * .35f, .18f, f1 + 2.2f), (mirror ? 180 : 0) + yawFix, .03f, true);
         bool pool = W >= 33f;
         if (pool)
         {
@@ -516,28 +526,33 @@ public static class BraxClaudeOsiedle
             BoxL(Slabs, p0 - 1f, p1 + 1f, 0, .2f, q0 - 1f, q0, false); BoxL(Slabs, p0 - 1f, p1 + 1f, 0, .2f, q1, q1 + 1f, false);
             BoxL(Slabs, p0 - 1f, p0, 0, .2f, q0, q1, false); BoxL(Slabs, p1, p1 + 1f, 0, .2f, q0, q1, false);
             BoxL(PoolTiles, p0, p1, -.02f, .04f, q0, q1, false);
-            var wm = Water; float wa = Mathf.Min(U(p0), U(p1)), wb = Mathf.Max(U(p0), U(p1)), za = Mathf.Min(Z(q0), Z(q1)), zb = Mathf.Max(Z(q0), Z(q1));
+            var wm = Water; Vector3 pp = Pw(p0, 0, q0), qq = Pw(p1, 0, q1);
+            float wa = Mathf.Min(pp.x, qq.x), wb = Mathf.Max(pp.x, qq.x), za = Mathf.Min(pp.z, qq.z), zb = Mathf.Max(pp.z, qq.z);
             Top(wm, wa, wb, za, zb, .12f);
             Collider(new Vector3((wa + wb) * .5f, .4f, (za + zb) * .5f), new Vector3(wb - wa + 2f, .8f, zb - za + 2f));
             rep.pools++;
         }
         // podjazd (jodełka) i ścieżka (płyty) od chodnika
-        BoxL(Herring, g0 + .5f, g1 - .5f, 0, .04f, 0, f0, false);
+        if (garageOn) BoxL(Herring, g0 + .5f, g1 - .5f, 0, .04f, 0, f0, false);
         BoxL(Slabs, door0 - .1f, door1 + .1f, 0, .04f, 0, f0 - .05f, false);
-        // płot frontowy z przerwami na podjazd i furtkę
-        float fz = Z(.3f);
-        (float, float) Gap(float a, float b) => (Mathf.Min(U(a), U(b)), Mathf.Max(U(a), U(b)));
-        FenceX(u0, u1, fz, 1.55f, Gap(g0 + .5f, g1 - .5f), Gap(door0 - .2f, door1 + .2f));
-        Box(Frame, new Vector3(U(door1 + .6f), .65f, Z(.75f)), new Vector3(.38f, 1.3f, .32f), true);    // skrzynka na listy
-        // boczne płoty: lewa granica każdej działki (prawa zamyka sąsiad / ostatnia działka)
-        WoodFenceZ(Z(.6f), Z(depth - .3f), u0 + .1f);
-        // tylny płot (od parku lub od granicy osiedla)
-        FenceX(u0, u1, Z(depth - .3f), 1.55f);
+        if (fencesOn)
+        {
+            // płot frontowy z przerwami na podjazd i furtkę
+            float fz = Z(.3f);
+            (float, float) Gap(float a, float b) => (Mathf.Min(U(a), U(b)), Mathf.Max(U(a), U(b)));
+            var gaps = garageOn ? new[] { Gap(g0 + .5f, g1 - .5f), Gap(door0 - .2f, door1 + .2f) } : new[] { Gap(door0 - .2f, door1 + .2f) };
+            if (!swap) FenceX(u0, u1, fz, 1.55f, gaps); else FenceZ(u0, u1, fz, 1.55f, gaps);
+            var mb = Pw(door1 + .6f, .65f, .75f); Box(Frame, mb, swap ? new Vector3(.32f, 1.3f, .38f) : new Vector3(.38f, 1.3f, .32f), true);    // skrzynka na listy
+            // boczne płoty: lewa granica każdej działki (prawa zamyka sąsiad / ostatnia działka)
+            if (!swap) WoodFenceZ(Z(.6f), Z(depth - .3f), u0 + .1f); else WoodFenceX(Z(.6f), Z(depth - .3f), u0 + .1f);
+            // tylny płot (od parku lub od granicy osiedla)
+            if (!swap) FenceX(u0, u1, Z(depth - .3f), 1.55f); else FenceZ(u0, u1, Z(depth - .3f), 1.55f);
+        }
         // zieleń działki
-        Tree(new Vector3(U(W - 3f), 0, Z(3.4f)), 6.5f + (index % 3) * .8f, index * 47f); rep.plotTrees++;
-        Shrub(new Vector3(U(gl0 + .6f), 0, Z(f0 - .9f)), .38f, index * 31f);
-        Shrub(new Vector3(U((gl0 + gl1) * .5f), 0, Z(f0 - .9f)), .34f, index * 17f);
-        Shrub(new Vector3(U(gl1 - .4f), 0, Z(f0 - .9f)), .4f, index * 53f);
+        if (Tree(Pw(W - 3f, 0, 3.4f), 6.5f + (index % 3) * .8f, index * 47f)) rep.plotTrees++;
+        Shrub(Pw(gl0 + .6f, 0, f0 - .9f), .38f, index * 31f);
+        Shrub(Pw((gl0 + gl1) * .5f, 0, f0 - .9f), .34f, index * 17f);
+        Shrub(Pw(gl1 - .4f, 0, f0 - .9f), .4f, index * 53f);
         rep.villas++;
     }
 
@@ -690,6 +705,18 @@ public static class BraxClaudeOsiedle
         }
         CutVolumes(estate, physics, vols);
 
+        // 1a) dom-07: szara bryła bez elewacji (sama skorupa) -> nowa willa na tej samej działce (x 16.5..39.5, z 49..69)
+        var dom07 = MinMax(17.9f, 39.2f, .05f, 14f, 49.6f, 68.4f);
+        CutVolumes(estate, physics, new List<Bounds> { dom07 });
+        if (physics)
+            foreach (var col in physics.GetComponentsInChildren<Collider>(true))
+            {
+                var cb = col.bounds; var e = dom07; e.Expand(new Vector3(.4f, 1f, .4f));
+                if (col.enabled && e.Contains(cb.min) && e.Contains(cb.max)) { col.enabled = false; rep.oldFenceCollidersDisabled++; }
+            }
+        Villa(13, 49f, 69f, 16.5f, 1f, true, 23f, false, false, "Osiedle A / dom-07 nowa willa");
+        rep.notes.Add("dom-07: szara bryła usunięta, nowa willa na działce");
+
         // 1b) „kulkowe” drzewa (zielone sfery na brązowym walcu) -> drzewo Verdant w tym samym miejscu.
         //     Kolizja pnia zostaje oryginalna (okrągły collider w fizyce osiedla).
         var rends = estate.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.enabled && r.sharedMaterial).ToArray();
@@ -699,7 +726,8 @@ public static class BraxClaudeOsiedle
         group = "Osiedle A / drzewa zamiast kulek";
         foreach (var tr in trunks)
         {
-            var c = tr.bounds.center; var mine = crowns.Where(k => Mathf.Abs(k.bounds.center.x - c.x) < 2.2f && Mathf.Abs(k.bounds.center.z - c.z) < 2.2f).ToList();
+            var c = tr.bounds.center; if (dom07.Contains(new Vector3(c.x, 1f, c.z))) continue;
+            var mine = crowns.Where(k => Mathf.Abs(k.bounds.center.x - c.x) < 2.2f && Mathf.Abs(k.bounds.center.z - c.z) < 2.2f).ToList();
             if (mine.Count == 0) continue;
             float top = mine.Max(k => k.bounds.max.y);
             foreach (var k in mine) k.enabled = false; tr.enabled = false;
