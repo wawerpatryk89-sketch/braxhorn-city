@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -96,7 +97,57 @@ public static class BraxRegionInteriors
             o.transform.position = new Vector3(Nutrition.center.x, y + 2.5f, Nutrition.min.z + .08f) - b.center;
             props++;
         }
+        props += NutritionMural(root, y);
         BraxRegion.Note("Nutrition: ściany " + walls + ", podłogi " + floors + ", dodatki " + props);
+    }
+
+    // Mural właściciela (Brax, czerń + zieleń, jak w siłowni) na ceglanej ścianie po prawej (x≈25.7, wnętrze patrzy na −X).
+    // Farba na murze: matowa, bez emisji (nic nie świeci), proporcje obrazu zachowane, dookoła zostaje cegła.
+    static int NutritionMural(Transform root, float floorY)
+    {
+        const string path = "Assets/CityRebuild/Brand/nutrition-mural.jpg";
+        if (!File.Exists(path)) { BraxRegion.Note("Nutrition: brak pliku muralu " + path); return 0; }
+        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+        var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (imp && (imp.maxTextureSize < 2048 || !imp.mipmapEnabled || imp.anisoLevel < 4 || !imp.sRGBTexture))
+        { imp.maxTextureSize = 2048; imp.mipmapEnabled = true; imp.anisoLevel = 4; imp.sRGBTexture = true; imp.SaveAndReimport(); }
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if (!tex) { BraxRegion.Note("Nutrition: mural nie zaimportował się"); return 0; }
+        // Ściana: promień od środka sklepu w +X na wysokości 1.8 m; zapas 25.72, gdy ściana nie ma kolizji.
+        float wallX = 25.72f; RaycastHit hit;
+        var from = new Vector3(Nutrition.center.x, floorY + 1.8f, Nutrition.center.z);
+        foreach (var h in Physics.RaycastAll(from, Vector3.right, 8f, ~0, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance))
+            if (h.normal.x < -.7f && !BraxRegion.Under(h.collider.transform, "CLAUDE")) { wallX = h.point.x; break; }
+        float ratio = (float)tex.width / tex.height;              // 16:9
+        float height = 3.0f, width = height * ratio;              // 3.0 × 5.33 m
+        float zMin = Nutrition.min.z + 1.0f, zMax = Nutrition.max.z - 1.6f;   // bez witryny z przodu
+        if (width > zMax - zMin - .6f) { width = zMax - zMin - .6f; height = width / ratio; }
+        var center = new Vector3(wallX - .012f, floorY + .55f + height * .5f, (zMin + zMax) * .5f);
+        var sh = Shader.Find(BraxCityMaterials.ShaderName);
+        var m = new Material(sh) { name = "Nutrition: mural Brax (farba na cegle)" };
+        m.SetTexture("_MainTex", tex); m.SetFloat("_Roughness", .88f); m.SetFloat("_Metallic", 0f); m.SetFloat("_ReflectionStrength", .15f);
+        Material brick = null;
+        try { brick = BraxRegion.Pbr("Nutrition: cegła pod muralem", 3f, null, "brick_wall_001", "brick_wall_02", "red_brick_03", "brick_wall_008"); } catch (Exception) { }
+        if (brick && brick.GetTexture("_BumpMap")) { m.SetTexture("_BumpMap", brick.GetTexture("_BumpMap")); m.SetTextureScale("_BumpMap", new Vector2(width / 3f, height / 3f)); m.SetFloat("_BumpScale", .6f); m.SetFloat("_NormalEncoding", brick.GetFloat("_NormalEncoding")); }
+        Directory.CreateDirectory(BraxRegion.Out + "/Materials");
+        AssetDatabase.CreateAsset(m, BraxRegion.Out + "/Materials/nutrition-mural.mat");
+        // Cienka płyta 1 cm na ścianie; UV w metrach → skala tekstury = 1/rozmiar, żeby obraz zajął całą płytę raz.
+        var mesh = new Mesh { name = "Nutrition mural" };
+        float hw = width * .5f, hh = height * .5f;
+        mesh.vertices = new[] { new Vector3(0, -hh, -hw), new Vector3(0, -hh, hw), new Vector3(0, hh, hw), new Vector3(0, hh, -hw) };
+        mesh.normals = new[] { Vector3.left, Vector3.left, Vector3.left, Vector3.left };
+        mesh.uv = new[] { new Vector2(1, 0), new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1) };   // patrząc na ścianę z wnętrza (−X): lewa krawędź = +z
+        mesh.triangles = new[] { 0, 2, 1, 0, 3, 2 };
+        mesh.RecalculateTangents(); mesh.RecalculateBounds();
+        Directory.CreateDirectory(BraxRegion.Out + "/Meshes");
+        AssetDatabase.CreateAsset(mesh, BraxRegion.Out + "/Meshes/nutrition-mural.asset");
+        var g = new GameObject("Nutrition: mural Brax na ceglanej ścianie");
+        g.transform.SetParent(root, false); g.transform.position = center;
+        g.AddComponent<MeshFilter>().sharedMesh = mesh;
+        var mr = g.AddComponent<MeshRenderer>(); mr.sharedMaterial = m; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        GameObjectUtility.SetStaticEditorFlags(g, StaticEditorFlags.BatchingStatic);
+        BraxRegion.Note("Nutrition: mural " + width.ToString("0.0") + "×" + height.ToString("0.0") + " m na x=" + wallX.ToString("0.00"));
+        return 1;
     }
 
     // Front klubu NOVA od ulicy (parter x 32..52 przy z=36.1 to czarna bryła ze starego miasta):
