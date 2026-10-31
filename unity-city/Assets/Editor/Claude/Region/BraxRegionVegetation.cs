@@ -44,10 +44,10 @@ public static class BraxRegionVegetation
             if (!BraxRegion.IsGrassRenderer(r)) continue;
             if (BraxRegion.Under(r.transform, "CLAUDE")) continue;
             var b = r.bounds;
-            if (b.size.x < 3f || b.size.z < 3f || b.size.y > 3f || b.max.y > 2.5f || b.min.y < -3f) continue;
+            if (b.size.x < 3f || b.size.z < 3f || b.size.y > 6f || b.max.y > 4f || b.min.y < -4f) continue;
             lawns.Add(b);
         }
-        int shrubN = 0, grassN = 0, flowerN = 0, rockN = 0, treeN = 0, propN = 0;
+        int shrubN = 0, grassN = 0, flowerN = 0, rockN = 0, treeN = 0, propN = 0, sampled = 0, rejGround = 0, rejFree = 0;
         const int MaxShrubs = 60, MaxGrass = 80, MaxFlowers = 50, MaxRocks = 24, MaxTrees = 20;
         foreach (var lawn in lawns)
         {
@@ -57,17 +57,18 @@ public static class BraxRegionVegetation
                 {
                     float px = x + BraxRegion.Range(-1.4f, 1.4f), pz = z + BraxRegion.Range(-1.4f, 1.4f);
                     if (pz > StreetZ0 && pz < StreetZ1) continue;
-                    if (px > 66f && pz > 100f) continue;                 // cypel i plaża: osobno
                     RaycastHit h;
                     if (!BraxRegion.Ground(px, pz, lawn.min.y - 1f, lawn.max.y + 1f, out h)) continue;
+                    if (BraxRegion.Under(h.collider.transform, "BRAXHORN PORT") || BraxRegion.Under(h.collider.transform, "CLAUDE")) { rejGround++; continue; }   // piasek i dobudowane: osobno
                     var hr = h.collider.GetComponent<MeshRenderer>();
-                    bool onGrass = hr ? BraxRegion.IsGrassRenderer(hr) : Mathf.Abs(h.point.y - lawn.max.y) < .35f;
-                    if (!onGrass) continue;
+                    bool onGrass = hr ? BraxRegion.IsGrassRenderer(hr) : Mathf.Abs(h.point.y - lawn.max.y) < .6f;
+                    if (!onGrass) { rejGround++; continue; }
+                    sampled++;
                     var p = h.point;
                     double roll = BraxRegion.Rnd.NextDouble();
                     if (roll < .10 && trees.Count > 0 && treeN < MaxTrees)
                     {
-                        if (!BraxRegion.Free(p + Vector3.up * 4f, new Vector3(5f, 8f, 5f))) continue;
+                        if (!BraxRegion.Free(p + Vector3.up * 4.3f, new Vector3(4f, 7.4f, 4f))) { rejFree++; continue; }
                         var o = BraxRegion.Put(root, BraxRegion.Pick(trees), "Zieleń: drzewo", p, BraxRegion.Range(0, 360), 1f, false, 13f);
                         if (o)
                         {
@@ -78,7 +79,7 @@ public static class BraxRegionVegetation
                     }
                     else if (roll < .40 && shrubs.Count > 0 && shrubN < MaxShrubs)
                     {
-                        if (!BraxRegion.Free(p + Vector3.up * .9f, new Vector3(2.2f, 1.6f, 2.2f))) continue;
+                        if (!BraxRegion.Free(p + Vector3.up * 1.0f, new Vector3(2.0f, 1.4f, 2.0f))) { rejFree++; continue; }
                         var o = BraxRegion.Put(root, BraxRegion.Pick(shrubs), "Zieleń: krzew", p, BraxRegion.Range(0, 360), BraxRegion.Range(.9f, 1.3f), false, 2.4f, .04f);
                         if (o)
                         {
@@ -91,17 +92,17 @@ public static class BraxRegionVegetation
                     }
                     else if (roll < .72 && grass.Count > 0 && grassN < MaxGrass)
                     {
-                        if (!BraxRegion.Free(p + Vector3.up * .4f, new Vector3(1.2f, .7f, 1.2f))) continue;
+                        if (!BraxRegion.Free(p + Vector3.up * .55f, new Vector3(1.2f, .6f, 1.2f))) { rejFree++; continue; }
                         if (BraxRegion.Put(root, BraxRegion.Pick(grass), "Zieleń: kępa trawy", p, BraxRegion.Range(0, 360), BraxRegion.Range(.9f, 1.4f), false, .9f, .03f)) grassN++;
                     }
                     else if (roll < .92 && flowers.Count > 0 && flowerN < MaxFlowers)
                     {
-                        if (!BraxRegion.Free(p + Vector3.up * .4f, new Vector3(1.0f, .7f, 1.0f))) continue;
+                        if (!BraxRegion.Free(p + Vector3.up * .55f, new Vector3(1.0f, .6f, 1.0f))) { rejFree++; continue; }
                         if (BraxRegion.Put(root, BraxRegion.Pick(flowers), "Zieleń: kwiaty", p, BraxRegion.Range(0, 360), 1f, false, .6f, .02f)) flowerN++;
                     }
                     else if (rocks.Count > 0 && rockN < MaxRocks)
                     {
-                        if (!BraxRegion.Free(p + Vector3.up * .5f, new Vector3(1.8f, .9f, 1.8f))) continue;
+                        if (!BraxRegion.Free(p + Vector3.up * .65f, new Vector3(1.8f, .8f, 1.8f))) { rejFree++; continue; }
                         if (BraxRegion.Put(root, BraxRegion.Pick(rocks), "Zieleń: kamień", p, BraxRegion.Range(0, 360), 1f, true, 1.2f, .08f)) rockN++;
                     }
                 }
@@ -205,7 +206,7 @@ public static class BraxRegionVegetation
         if (planter)
             for (float x = -96f; x < 62f; x += 24f)
             {
-                float z = ((int)((x + 96f) / 24f)) % 2 == 0 ? 21.3f : 35.4f;
+                float z = ((int)((x + 96f) / 24f)) % 2 == 0 ? 22.1f : 34.6f;   // środek chodnika (20.6..23.6 i 33.4..36.1)
                 RaycastHit h;
                 if (!BraxRegion.Ground(x, z, -.5f, 1.0f, out h)) continue;
                 if (!BraxRegion.Free(h.point + Vector3.up * .5f, new Vector3(1.6f, 1f, 1.2f))) continue;
@@ -219,12 +220,12 @@ public static class BraxRegionVegetation
         if (hydrant)
         {
             RaycastHit h;
-            if (BraxRegion.Ground(26.5f, 21.1f, -.5f, 1f, out h) && BraxRegion.Free(h.point + Vector3.up * .5f, new Vector3(.8f, 1f, .8f)))
+            if (BraxRegion.Ground(27.5f, 22.3f, -.5f, 1f, out h) && BraxRegion.Free(h.point + Vector3.up * .55f, new Vector3(.7f, .9f, .7f)))
                 if (BraxRegion.Put(root, hydrant, "Ulica: hydrant", h.point, 0f, 1f, true, .9f)) streetN++;
         }
 
         BraxRegion.Rep.shrubs = shrubN; BraxRegion.Rep.grassClumps = grassN; BraxRegion.Rep.flowers = flowerN;
         BraxRegion.Rep.rocks = rockN; BraxRegion.Rep.trees = treeN; BraxRegion.Rep.streetProps = streetN + propN; BraxRegion.Rep.beachProps = beachN;
-        BraxRegion.Note("zieleń: trawników " + lawns.Count + ", krzewów " + shrubN + ", kęp " + grassN + ", kwiatów " + flowerN + ", kamieni " + rockN + ", drzew " + treeN + ", plaża " + beachN + ", ulica " + (streetN + propN));
+        BraxRegion.Note("zieleń: próbek " + sampled + " (odrzucone podłoże " + rejGround + ", zajęte " + rejFree + "), trawniki: " + string.Join("; ", lawns.Take(6).Select(l => l.center.x.ToString("F0") + "," + l.center.z.ToString("F0") + " " + l.size.x.ToString("F0") + "x" + l.size.z.ToString("F0"))) + " | trawników " + lawns.Count + ", krzewów " + shrubN + ", kęp " + grassN + ", kwiatów " + flowerN + ", kamieni " + rockN + ", drzew " + treeN + ", plaża " + beachN + ", ulica " + (streetN + propN));
     }
 }

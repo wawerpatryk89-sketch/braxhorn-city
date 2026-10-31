@@ -62,9 +62,9 @@ public static class BraxRegionTerrace
 
         // 2) Rabata wzdłuż tylnej balustrady (między narożnikami HVAC, poza windą): obrzeże, ziemia, kwiaty i liście.
         float bz = z1 - 1.15f;
-        foreach (var seg in new[] { new Vector2(x0 + 4.8f, cx - 3.6f), new Vector2(cx + 3.6f, x1 - 4.8f) })
+        foreach (var seg in new[] { new Vector2(x0 + 1.3f, cx - 3.4f), new Vector2(cx + 3.4f, x1 - 1.3f) })   // dach ma tylko 14 m szerokości
         {
-            if (seg.y - seg.x < 2f) continue;
+            if (seg.y - seg.x < 1.5f) continue;
             float mx = (seg.x + seg.y) * .5f, len = seg.y - seg.x;
             BraxRegion.Box("Taras: obrzeże rabaty", root, new Vector3(mx, roofY + .18f, bz), new Vector3(len, .36f, 1.1f), granite, true);
             BraxRegion.Box("Taras: ziemia rabaty", root, new Vector3(mx, roofY + .33f, bz), new Vector3(len - .2f, .08f, .9f), soil);
@@ -99,7 +99,7 @@ public static class BraxRegionTerrace
         foreach (float px in new[] { x0 + 3.2f, x1 - 3.2f })
         {
             var p = new Vector3(px, roofY, tz);
-            if (width < 12f || inRing(p, 2.6f) || Mathf.Abs(px - cx) < 3.2f) continue;
+            if (width < 12f || inRing(p, 1.0f) || Mathf.Abs(px - cx) < 3.2f) continue;
             float s = 2.1f, h = 2.6f;
             foreach (float ox in new[] { -s, s })
                 foreach (float oz in new[] { -s, s })
@@ -123,7 +123,7 @@ public static class BraxRegionTerrace
 
         // 5) Drzewka w donicach przy wejściu na dach (obok windy, poza przejściem) i w wolnych narożnikach przednich.
         if (treePot)
-            foreach (var at in new[] { new Vector3(cx - 3.0f, roofY, ShaftZ - 1.0f), new Vector3(cx + 3.0f, roofY, ShaftZ - 1.0f) })
+            foreach (var at in new[] { new Vector3(cx - 4.8f, roofY, ShaftZ - 1.0f), new Vector3(cx + 4.8f, roofY, ShaftZ - 1.0f) })
             {
                 if (nearLift(at) || inRing(at, 1f)) continue;
                 var o = BraxRegion.Put(root, treePot, "Taras: drzewko w donicy przy windzie", at, BraxRegion.Range(0, 360), 1f, true, 2.6f);
@@ -132,7 +132,7 @@ public static class BraxRegionTerrace
         if (planter && leafy.Count > 0)
             foreach (var at in new[] { new Vector3(x0 + 2.4f, roofY, z0 + 3.2f), new Vector3(x1 - 2.4f, roofY, z0 + 3.2f) })
             {
-                if (inRing(at, 1.2f)) continue;
+                if (inRing(at, .3f) || !BraxRegion.Free(at + Vector3.up * .6f, new Vector3(1.4f, 1f, 1.0f))) continue;
                 var o = BraxRegion.Put(root, planter, "Taras: donica z liśćmi", at, 0f, 1f, true, .6f);
                 if (o)
                 {

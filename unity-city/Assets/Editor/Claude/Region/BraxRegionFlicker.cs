@@ -59,14 +59,14 @@ public static class BraxRegionFlicker
             g.transform.SetParent(root, false);
             signage = g.AddComponent<BraxRegionSignage>();
         }
-        var shader3d = Shader.Find("GUI/3D Text Shader");
+        var shader3d = Shader.Find("Braxhorn/Text3D") ?? Shader.Find("GUI/3D Text Shader");
         if (shader3d)
         {
             var template = new Material(shader3d) { name = "Napis 3D: szablon z testem głębi" };
             AssetDatabase.CreateAsset(template, BraxRegion.Out + "/Materials/signage-3d-text.mat");
             signage.depthTested = template;
         }
-        else BraxRegion.Note("brak shadera GUI/3D Text Shader, napisy zostają z ZTest Always");
+        else BraxRegion.Note("brak shadera Braxhorn/Text3D, napisy zostają z ZTest Always");
         BraxRegion.Note("offset głębi: materiałów " + swapped.Count + ", rendererów " + renderers);
     }
 }

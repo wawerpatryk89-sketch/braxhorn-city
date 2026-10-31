@@ -26,6 +26,12 @@ public static class BraxClaudeCourts
         Debug.Log("BRAXHORN_CLAUDE_COURTS " + JsonUtility.ToJson(rep));
     }
 
+    static bool BraxRegionCourtsSkip(Transform t)
+    {
+        for (var p = t; p; p = p.parent) if (p.name.StartsWith("CLAUDE")) return true;
+        return false;
+    }
+
     static bool Reddish(Material m)
     {
         if (!m) return false; var c = m.HasProperty("_Color") ? m.GetColor("_Color") : Color.white;
@@ -43,12 +49,22 @@ public static class BraxClaudeCourts
 
         // ---------- 1) kort -> boisko piłkarskie ----------
         MeshRenderer court = null; float best = 0;
+        // Najpierw prawdziwy kort: duża płaska płyta (>= 14 m) przy (10, 80), niezależnie od koloru materiału
+        // (kort ma teksturę, więc _Color jest białe i test „ceglasty” go nie łapie). Potem zapasowo po kolorze.
         foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
         {
+            if (!r.enabled || BraxRegionCourtsSkip(r.transform)) continue;
             var b = r.bounds; if (b.size.y > .6f || b.max.y > 1f || Vector2.Distance(new Vector2(b.center.x, b.center.z), new Vector2(10, 80)) > 12f) continue;
-            if (!r.sharedMaterials.Any(Reddish)) continue;
+            if (Mathf.Min(b.size.x, b.size.z) < 8f || Mathf.Max(b.size.x, b.size.z) < 14f) continue;
             float area = b.size.x * b.size.z; if (area > best && area < 1500) { best = area; court = r; }
         }
+        if (!court)
+            foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))
+            {
+                var b = r.bounds; if (b.size.y > .6f || b.max.y > 1f || Vector2.Distance(new Vector2(b.center.x, b.center.z), new Vector2(10, 80)) > 12f) continue;
+                if (!r.sharedMaterials.Any(Reddish)) continue;
+                float area = b.size.x * b.size.z; if (area > best && area < 1500) { best = area; court = r; }
+            }
         Bounds cb;
         if (court)
         {
@@ -59,7 +75,7 @@ public static class BraxClaudeCourts
                 AssetDatabase.ImportAsset(g + "diffuse.jpg"); AssetDatabase.ImportAsset(g + "normal.jpg"); AssetDatabase.ImportAsset(g + "arm.jpg");
                 var turf = BraxClaudeGround.WorldMaterial("Boisko: sztuczna trawa", AssetDatabase.LoadAssetAtPath<Texture2D>(g + "diffuse.jpg"),
                     AssetDatabase.LoadAssetAtPath<Texture2D>(g + "normal.jpg"), AssetDatabase.LoadAssetAtPath<Texture2D>(g + "arm.jpg"), 1.2f, new Color(.62f, .95f, .55f), .1f, .5f);
-                court.sharedMaterials = court.sharedMaterials.Select(m => Reddish(m) ? turf : m).ToArray();
+                court.sharedMaterials = court.sharedMaterials.Select(m => (Reddish(m) || !court.sharedMaterials.Any(Reddish)) ? turf : m).ToArray();   // kort z teksturą: cała nawierzchnia
             }
             // stare linie tenisowe (białe, płaskie) w obrębie boiska — wyłączone
             foreach (var r in BraxClaudeGround.All<MeshRenderer>(cityRoot))

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 // BRAXHORN CITY — wykończenie wnętrz: sklep BRAXHORN NUTRITION i klub NOVA.
@@ -29,23 +30,46 @@ public static class BraxRegionInteriors
         var plaster = BraxRegion.Pbr("Nutrition: tynk ścian", 1.5f, new Color(.93f, .91f, .87f), "white_plaster_02", "rectangular_facade_tiles");
         var glazing = BraxRegion.Fitting("Nutrition: szyba witryny", new Color(.72f, .82f, .86f, .28f), .04f, 0f);
         int walls = 0, floors = 0;
-        // Po BraxCityArchitecture.Batch ściany i sufit sklepu są jedną siatką „Local batch <materiał>”,
-        // więc dopasowujemy po nazwie materiału, nie po nazwie obiektu.
+        // Ściany i sufit sklepu to materiał wnętrza Codexa (NutritionInteriorPBR, własne światło sklepu).
+        // Zachowujemy ten shader i jego światło, podmieniamy tylko tekstury na tynk Poly Haven.
+        // Po BraxCityArchitecture.Batch obiekty nazywają się „Local batch <materiał>”, więc dopasowanie po materiale.
+        var swapped = new Dictionary<Material, Material>();
+        var seenNames = new List<string>();
+        int inside = 0;
         foreach (var r in UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (!Inside(Nutrition, r)) continue;
+            inside++;
             var mats = r.sharedMaterials; bool changed = false;
             for (int i = 0; i < mats.Length; i++)
             {
                 var m = mats[i]; if (!m) continue;
                 string mn = m.name.ToLowerInvariant();
                 string n = r.gameObject.name.ToLowerInvariant();
-                if (mn.Contains("warm mineral plaster")) { mats[i] = plaster; changed = true; walls++; }
+                if (seenNames.Count < 40 && !seenNames.Contains(m.name)) seenNames.Add(m.name);
+                if (mn.Contains("mineral plaster") || mn.Contains("mineral wall") || n.Contains("mineral side wall") || n.Contains("rear mineral wall") || n.Contains("acoustic ceiling"))
+                {
+                    Material t;
+                    if (!swapped.TryGetValue(m, out t))
+                    {
+                        t = new Material(m) { name = m.name + " (tynk Poly Haven)" };
+                        t.SetTexture("_MainTex", plaster.GetTexture("_MainTex"));
+                        t.SetTextureScale("_MainTex", plaster.GetTextureScale("_MainTex"));
+                        if (t.HasProperty("_BumpMap")) { t.SetTexture("_BumpMap", plaster.GetTexture("_BumpMap")); t.SetTextureScale("_BumpMap", plaster.GetTextureScale("_BumpMap")); }
+                        if (t.HasProperty("_ARM")) { t.SetTexture("_ARM", plaster.GetTexture("_ARM")); t.SetTextureScale("_ARM", plaster.GetTextureScale("_ARM")); }
+                        if (t.HasProperty("_Color")) t.SetColor("_Color", new Color(.95f, .93f, .89f));
+                        foreach (var kw in plaster.shaderKeywords) t.EnableKeyword(kw);
+                        AssetDatabase.CreateAsset(t, BraxRegion.Out + "/Materials/nutrition-plaster-" + swapped.Count + ".mat");
+                        swapped[m] = t;
+                    }
+                    mats[i] = t; changed = true; walls++;
+                }
                 else if (n.Contains("shopfront window glazing") || n.Contains("clear warm shopfront glazing") || mn.Contains("shopfront glazing"))
                 { mats[i] = glazing; changed = true; walls++; }
             }
             if (changed) r.sharedMaterials = mats;
         }
+        BraxRegion.Note("Nutrition: rendererów w obrysie " + inside + ", materiały: " + string.Join(" | ", seenNames.Take(25)));
         // Podłoga sklepu: najwyższe podłoże w środku.
         RaycastHit g;
         float y = BraxRegion.Ground(Nutrition.center.x, Nutrition.center.z, -1f, 1.5f, out g) ? g.point.y : .15f;
@@ -178,13 +202,18 @@ public static class BraxRegionInteriors
         { var m = BraxRegion.Model(id); if (m) frames.Add(m); }
 
         // Loże: szukamy wolnych kwadratów 3×3 m wzdłuż ścian wschodniej i zachodniej.
-        int lounges = 0, plants = 0, pictures = 0;
+        int lounges = 0, plants = 0, pictures = 0; var blocked = new List<string>();
         if (table && chair)
             foreach (float wx in new[] { wx0 + 1.9f, wx1 - 1.9f })
                 for (float z = wz0 + 2.2f; z < wz1 - 2.2f && lounges < 6; z += 3.4f)
                 {
                     var c = new Vector3(wx, y, z);
-                    if (!BraxRegion.Free(c + Vector3.up * 1.0f, new Vector3(3.0f, 1.8f, 3.0f))) continue;
+                    if (!BraxRegion.Free(c + Vector3.up * 1.0f, new Vector3(3.0f, 1.8f, 3.0f)))
+                    {
+                        var hits = Physics.OverlapBox(c + Vector3.up * 1.0f, new Vector3(1.5f, .9f, 1.5f), Quaternion.identity, ~0, QueryTriggerInteraction.Ignore);
+                        if (blocked.Count < 6) blocked.Add(c.x.ToString("F0") + "," + c.z.ToString("F0") + ": " + string.Join("/", hits.Take(3).Select(h => h.name)));
+                        continue;
+                    }
                     if (!BraxRegion.Put(root, table, "NOVA: stolik loży", c, 0f, 1f, true, .6f)) continue;
                     float toward = wx < Nova.center.x ? 90f : -90f;   // fotele przodem do sali
                     foreach (float dz in new[] { -1.0f, 1.0f })
@@ -215,6 +244,6 @@ public static class BraxRegionInteriors
                 }
         BraxRegion.Warm(root, "NOVA: ciepłe światło loży W", new Vector3(wx0 + 1.9f, y + 2.6f, Nova.center.z), .9f, 6f);
         BraxRegion.Warm(root, "NOVA: ciepłe światło loży E", new Vector3(wx1 - 1.9f, y + 2.6f, Nova.center.z), .9f, 6f);
-        BraxRegion.Note("NOVA: loże " + lounges + ", rośliny " + plants + ", obrazy " + pictures + " (ściany x " + wx0.ToString("F1") + ".." + wx1.ToString("F1") + ", z " + wz0.ToString("F1") + ".." + wz1.ToString("F1") + ")");
+        BraxRegion.Note("NOVA: loże " + lounges + " (zajęte: " + string.Join("; ", blocked) + "), rośliny " + plants + ", obrazy " + pictures + " (ściany x " + wx0.ToString("F1") + ".." + wx1.ToString("F1") + ", z " + wz0.ToString("F1") + ".." + wz1.ToString("F1") + ")");
     }
 }
