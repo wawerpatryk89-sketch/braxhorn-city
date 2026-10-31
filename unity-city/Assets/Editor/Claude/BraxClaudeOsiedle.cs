@@ -32,7 +32,7 @@ public static class BraxClaudeOsiedle
     [Serializable] sealed class Report
     {
         public string status = "NIE URUCHOMIONO", error = "";
-        public int ballTreesReplaced, shops, tennis, villas, pools, parkTrees, plotTrees, shrubs, benches, lamps, bins, tables, oldFenceTrianglesRemoved,
+        public int ballTreesReplaced, shops, tennis, facades, villas, pools, parkTrees, plotTrees, shrubs, benches, lamps, bins, tables, oldFenceTrianglesRemoved,
                    oldFenceCollidersDisabled, meshes, triangles, materials, points;
         public List<string> notes = new List<string>();
     }
@@ -93,7 +93,7 @@ public static class BraxClaudeOsiedle
     static Material Stone => Pbr("kamień elewacyjny", "white_sandstone_blocks_02", 2.6f, new Color(1f, .98f, .95f));
     static Material Plinth => Pbr("cokół kamienny", "rough_block_wall", 2.2f, new Color(.82f, .80f, .78f));
     static Material Gravel => Pbr("żwir dachu", "bicolour_gravel", 2.5f, new Color(.9f, .9f, .9f));
-    static Material Deck => Pbr("taras deska", "wood_floor_deck", 2.2f, new Color(.92f, .86f, .80f), .8f);
+    static Material Deck => Pbr("taras deska", "wood_floor_deck", 2.2f, new Color(.80f, .79f, .77f), .8f);
     static Material PoolTiles => Pbr("niecka basenu", "blue_floor_tiles_01", 1.6f, new Color(.9f, 1f, 1.05f));
     static Material Grass => Pbr("trawnik", "grass004", 3.5f, new Color(.93f, 1f, .93f), .6f);
     static Material Glass => Plain("szkło przyciemniane", new Color(.10f, .13f, .15f), .93f, .55f);
@@ -689,6 +689,36 @@ public static class BraxClaudeOsiedle
         Sign("ochrona", new Vector3(x, 2.5f, z + 1.68f), 1.8f, .45f, Vector3.forward);
     }
 
+    // Elewacje budynków Codexa (kasyno, dyskoteka, komisariat, szpital, sala bokserska, hala walk):
+    // okładzina 3 cm przed starymi ścianami (bez kolizji, stare ściany zostają), z otworami wejść,
+    // obłożone pilastry i nowy gzyms. Okna, szyldy, daszek i drzwi zostają na wierzchu.
+    static void CivicFacades()
+    {
+        group = "Osiedle A / elewacje budynków";
+        var panel = Plain("panele kompozytowe antracyt", new Color(.15f, .16f, .17f), .5f, .2f);
+        var list = new (string id, float x, float z, float h, Material m)[]
+        {
+            ("kasyno", 86f, -42f, 7f, Stone), ("dyskoteka", 86f, 14f, 7f, WoodDark), ("komisariat", -86f, -42f, 4.5f, StuccoWarm),
+            ("szpital", -86f, 14f, 4.5f, Stucco), ("sala bokserska", 86f, 64f, 7f, Plinth), ("hala walk", -86f, 64f, 7f, panel),
+        };
+        const float w = 40f, d = 30f, t = .03f, off = .2f;   // okładzina 15.185..15.215: między starą ścianą (15.175) a czołem okien (15.24)
+        foreach (var (id, cx, cz, h, m) in list)
+        {
+            foreach (int side in new[] { -1, 1 })   // ściany boczne
+                BoxMinMax(m, cx + side * (w * .5f + off) - t * .5f, cx + side * (w * .5f + off) + t * .5f, 0, h, cz - d * .5f - off, cz + d * .5f + off, false);
+            foreach (int face in new[] { -1, 1 })   // przód i tył: dwa skrzydła + nadproże nad wejściem (otwór 4 x 3.1 m)
+            {
+                float zf = cz + face * (d * .5f + off);
+                foreach (int side in new[] { -1, 1 }) BoxMinMax(m, Mathf.Min(cx + side * 2f, cx + side * (w * .5f + off)), Mathf.Max(cx + side * 2f, cx + side * (w * .5f + off)), 0, h, zf - t * .5f, zf + t * .5f, false);
+                BoxMinMax(m, cx - 2f, cx + 2f, 3.1f, h, zf - t * .5f, zf + t * .5f, false);
+            }
+            for (float a = -w * .5f; a <= w * .5f + .01f; a += w / 8f)   // pilastry frontu
+                if (Mathf.Abs(a) > 2f) BoxMinMax(m, cx + a - .19f, cx + a + .19f, 0, h, cz + d * .5f + .05f, cz + d * .5f + .56f, false);
+            BoxMinMax(Frame, cx - w * .5f - .54f, cx + w * .5f + .54f, h - .02f, h + .34f, cz - d * .5f - .54f, cz + d * .5f + .54f, false);
+            rep.facades++;
+        }
+    }
+
     // ---------------- park ----------------
     static void Park()
     {
@@ -1002,6 +1032,7 @@ public static class BraxClaudeOsiedle
 
         // 2) stary płot -> nowy, z bramami do parku
         RenovateA(estate, physics);
+        CivicFacades();
         group = "Ogrodzenie";
         FenceX(X0, X1, FenceA, 1.6f, (AxisX - 4f, AxisX + 4f), (28f, 32f));
         foreach (float gx in new[] { AxisX - 4.3f, AxisX + 4.3f, 27.7f, 32.3f }) Box(Plinth, new Vector3(gx, 1.15f, FenceA), new Vector3(.62f, 2.3f, .62f));

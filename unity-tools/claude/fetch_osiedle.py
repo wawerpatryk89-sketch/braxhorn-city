@@ -142,8 +142,11 @@ def main() -> int:
                        "kort": "KLUB TENISOWY", "ochrona": "OCHRONA"}.items():
         im = Image.new("RGB", (1024, 256), (34, 37, 40)); dr = ImageDraw.Draw(im)
         dr.rectangle([10, 10, 1013, 245], outline=(176, 150, 104), width=6)
-        f = ImageFont.truetype(font_path, 118) if font_path else ImageFont.load_default()
-        w = dr.textlength(text, font=f); dr.text(((1024 - w) / 2, 58), text, font=f, fill=(236, 228, 214))
+        size = 118
+        f = ImageFont.truetype(font_path, size) if font_path else ImageFont.load_default()
+        while font_path and dr.textlength(text, font=f) > 930 and size > 40:
+            size -= 4; f = ImageFont.truetype(font_path, size)
+        w = dr.textlength(text, font=f); dr.text(((1024 - w) / 2, (256 - size) / 2 - 6), text, font=f, fill=(236, 228, 214))
         im.save(ROOT / "signs" / f"{name}.png")
     report["textures"]["signs"] = "szyldy generowane (DejaVu Sans Bold)"
     print("SIGNS OK", font_path)
