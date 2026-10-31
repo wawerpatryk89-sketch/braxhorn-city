@@ -39,6 +39,8 @@ TEXTURES = {
     "large_grey_tiles": "posadzka komisariatu",
     "painted_plaster_wall": "ściany wnętrz (farba)",
     "wood_floor": "parkiet w willach na sprzedaż",
+    "brown_mud_leaves_01": "ziemia z liśćmi pod drzewami (warstwa trawnika)",
+    "brick_wall_10": "cegła pod muralem siłowni A (ta sama co w siłowni miasta R1)",
 }
 MODELS = [
     "street_lamp_01",       # latarnia parkowa
@@ -55,10 +57,18 @@ MODELS = [
     "dining_table",           # wille na sprzedaż: jadalnia
     "modern_coffee_table_01", # salon
     "modern_wooden_cabinet",  # szafka RTV
+    "mid_century_lounge_chair",  # wille na sprzedaż: fotel klubowy (6.1 tys. trójkątów)
+    "Ottoman_01",             # podnóżek (4.2 tys.)
+    "potted_plant_04",        # rośliny w donicach (6.1 tys.)
+    "planter_box_01",         # donice na tarasie (8.1 tys.)
+    "sofa_03",                # wille: sofa salonu (8.0 tys.)
+    "lantern_chandelier_01",  # wille: żyrandol nad stołem (6.0 tys., nie świeci)
+    "ClassicConsole_01",      # wille: konsola pod obrazem (7.6 tys.)
+    "ceramic_vase_02",        # wille: wazony z kwiatami (2.8 tys.)
+    "wooden_bowl_02",         # wille: misa na wyspie (4.7 tys.)
+    "standing_picture_frame_02",  # wille: ramka na konsoli (3.0 tys.)
+    "stone_fire_pit",         # wille: palenisko w ogrodzie (3.9 tys., bez ognia)
     "wooden_picnic_table",
-    "grass_bermuda_01",     # kępy trawy przy płotach, drzewach i ścieżkach (po jednym wariancie)
-    "grass_medium_01",
-    "grass_medium_02",
     "flower_gazania",       # plamy kwiatów na trawnikach
     "dandelion_01",
     "flower_empodium",
@@ -107,6 +117,115 @@ def save_set(d: pathlib.Path, color: Image.Image, normal: Image.Image, rough: Im
     m = metal.convert("L").resize(size) if metal is not None else Image.new("L", size, 0)
     Image.merge("RGBA", (m, m, m, smooth)).save(d / "mg.png", optimize=True)
     (ao.convert("L").resize(size) if ao is not None else Image.new("L", size, 255)).save(d / "ao.jpg", quality=92)
+
+
+# Karty kęp w teksturze grass_medium_01 (Poly Haven, 2K): prostokąty x, y, w, h z analizy alfy
+# (składowe spójne po rozmyciu 5 px, bez zabłąkanych źdźbeł i brązowego liścia).
+KARTY = [(399, 1518, 631, 337), (1197, 1547, 463, 225), (1179, 1764, 440, 284), (58, 1782, 357, 266), (487, 1817, 540, 231)]
+
+def kepy_atlas(diff: Image.Image, alpha: Image.Image, out_png: pathlib.Path, out_json: pathlib.Path):
+    import numpy as np
+    import cv2
+    rgb = np.asarray(diff.convert("RGB")).astype(np.float32) / 255
+    a = np.asarray(alpha).astype(np.float32); a = a / a.max()
+    cells = []
+    W, H, cellH, pad = 2048, 1024, 340, 8
+    atlas = np.zeros((H, W, 4), np.float32)
+    x = pad; y = pad
+    for (cx, cy, cw, ch) in KARTY:
+        ca = a[cy:cy + ch, cx:cx + cw]; crgb = rgb[cy:cy + ch, cx:cx + cw]
+        # podstawa kępy: pod kępą są smugi z rozciągniętego UV (pionowy gradient koloru = 0) — cięcie na ich początku;
+        # bez smug: najniższy wiersz z pokryciem > 8%
+        g = np.abs(np.diff(crgb, axis=0)).sum(2); op = ca[1:] > .3
+        grad = np.array([g[r][op[r]].mean() if op[r].sum() > 20 else np.nan for r in range(ch - 1)])
+        base = None
+        for r in range(int(ch * .4), ch - 4):
+            seg = grad[r:r + 4]
+            if not np.isnan(seg).any() and (seg < .01).all(): base = r; break
+        if base is None:
+            cov = (ca > .3).mean(1); rows = np.where(cov > .08)[0]
+            base = int(rows.max()) + 3 if len(rows) else ch
+        ca = ca[:base].copy(); crgb = crgb[:base]
+        # smugi także wyżej (np. z sąsiedniej karty): piksel bez zmiany koloru przez 3 wiersze = smuga UV, nie źdźbło
+        gz = np.abs(np.diff(crgb, axis=0)).sum(2) < 1e-4
+        st = np.zeros_like(ca, bool); st[1:-1] = gz[:-1] & gz[1:]
+        ca[st] = 0
+        # przycięcie pustych kolumn i wierszy u góry
+        cols = np.where((ca > .3).any(0))[0]; rws = np.where((ca > .3).any(1))[0]
+        ca = ca[rws.min():, cols.min():cols.max() + 1]; crgb = crgb[rws.min():, cols.min():cols.max() + 1]
+        h0, w0 = ca.shape; s = (cellH - 2 * pad) / h0; nw, nh = int(round(w0 * s)), cellH - 2 * pad
+        if x + nw + pad > W: x = pad; y += cellH
+        ra = cv2.resize(ca, (nw, nh), interpolation=cv2.INTER_AREA); rr = cv2.resize(crgb, (nw, nh), interpolation=cv2.INTER_AREA)
+        atlas[y:y + nh, x:x + nw, :3] = rr; atlas[y:y + nh, x:x + nw, 3] = ra
+        cells.append({"u": x / W, "v": 1 - (y + nh) / H, "w": nw / W, "h": nh / H, "aspekt": nw / nh})
+        x += nw + 2 * pad
+    # kolor pod przezroczystością = średnia sąsiednich źdźbeł (bez ciemnych obwódek w mipmapach). Od najgrubszego
+    # rozmycia do najdrobniejszego: drobne nadpisuje grube tam, gdzie ma dane (audyt: odwrotna kolejność zostawiała
+    # pod każdym pikselem rozmycie 81 px). Własny kolor zostaje od alfy 0.4 (próg cięcia 0.45 − zapas).
+    A = atlas[..., 3:4]; col = atlas[..., :3] * A; keep = A >= .4; orig = atlas[..., :3].copy(); out = orig.copy()
+    for k in (81, 27, 9, 3):
+        num = cv2.GaussianBlur(col, (0, 0), k); den = cv2.GaussianBlur(A[..., 0], (0, 0), k)[..., None]
+        fill = num / np.maximum(den, 1e-4); out = np.where(den > 1e-3, fill, out)
+    atlas[..., :3] = np.where(keep, orig, out)
+    img = Image.fromarray((np.clip(atlas, 0, 1) * 255).astype(np.uint8), "RGBA"); img.save(out_png, optimize=True)
+    out_json.write_text(json.dumps({"zrodlo": "grass_medium_01 (Poly Haven CC0), karty kęp", "komorki": cells}, indent=1))
+    return cells
+
+
+# Szyld KASYNO „ekstra” (właściciel 31.10, 16:43): czarne tło z subtelnym złotym promienistym wzorem (art déco), podwójna
+# złota rama z rombami w narożnikach, litery szeryfowe w złotym gradiencie (brąz → jasne złoto → brąz) z ciemnym obrysem
+# i jasną krawędzią, po bokach ♠ (złoty) i ♦ (czerwony), nad i pod napisem gwiazdki. 2048×512 → 1024×256. Nic nie świeci.
+
+def kasyno_extra(out_path):
+    import math
+    import numpy as np
+    from PIL import ImageDraw, ImageFont, ImageFilter, ImageChops
+    fonts = [p for p in ("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf") if pathlib.Path(p).exists()]
+    font_bold = fonts[0] if fonts else None
+    font_any = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    if not font_bold or not pathlib.Path(font_any).exists():
+        print("szyld kasyna: brak czcionek DejaVu — zostaje zwykły"); return
+    W, H = 2048, 512
+    bg = np.zeros((H, W, 3), np.float32); bg[:] = (9, 8, 10)
+    yy, xx = np.mgrid[0:H, 0:W]; cx, cy = W / 2, H / 2
+    ang = np.arctan2(yy - cy, (xx - cx) / 2.2); rays = (np.cos(ang * 36) > .55).astype(np.float32)
+    fall = np.clip(1 - np.hypot((xx - cx) / W, (yy - cy) / H) * 1.6, 0, 1)
+    bg += rays[..., None] * fall[..., None] * np.array([28, 21, 8], np.float32)
+    img = Image.fromarray(np.clip(bg, 0, 255).astype(np.uint8), "RGB")
+    def gold_fill(mask):
+        g = np.linspace(0, 1, H)[:, None]
+        t = np.abs(g - .42) / .58
+        col = np.stack([(255 - 120 * t), (214 - 120 * t), (110 - 80 * t)], -1)            # jasne złoto u góry 1/3, brąz na krańcach
+        col = np.repeat(col, W, 1)
+        return Image.fromarray(np.clip(col, 0, 255).astype(np.uint8), "RGB"), mask
+    d = ImageDraw.Draw(img)
+    gold = (212, 172, 84); gold_hi = (246, 214, 130); bronze = (140, 98, 40)
+    for i, (m, w, c) in enumerate([(14, 16, bronze), (18, 8, gold), (42, 4, gold_hi)]):
+        d.rectangle([m, m, W - 1 - m, H - 1 - m], outline=c, width=w)
+    for (x, y) in [(42, 42), (W - 43, 42), (42, H - 43), (W - 43, H - 43)]:
+        d.polygon([(x, y - 26), (x + 26, y), (x, y + 26), (x - 26, y)], fill=gold_hi, outline=bronze)
+    # napis
+    mask = Image.new("L", (W, H), 0); md = ImageDraw.Draw(mask)
+    size = 300; f = ImageFont.truetype(font_bold, size)
+    text = "KASYNO"
+    while md.textlength(text, font=f) > W * .62 and size > 80: size -= 8; f = ImageFont.truetype(font_bold, size)
+    tw = md.textlength(text, font=f); asc, desc = f.getmetrics(); tx, ty = (W - tw) / 2, (H - (asc + desc)) / 2 - 6
+    md.text((tx, ty), text, font=f, fill=255)
+    outline = mask.filter(ImageFilter.MaxFilter(9))
+    shadow = Image.new("RGB", (W, H), (0, 0, 0)); img.paste(Image.new("RGB", (W, H), (60, 40, 14)), (0, 0), outline)
+    fill, _ = gold_fill(mask); img.paste(fill, (0, 0), mask)
+    edge = ImageChops.subtract(mask, mask.filter(ImageFilter.MinFilter(5))).point(lambda v: 150 if v > 0 else 0)
+    hi = Image.new("RGB", (W, H), (255, 236, 170)); top = edge.transform(edge.size, Image.AFFINE, (1, 0, 0, 0, 1, 2))
+    img.paste(hi, (0, 0), ImageChops.multiply(top, edge.point(lambda v: 255 if v else 0)))
+    # symbole kart i gwiazdki
+    fa = ImageFont.truetype(font_any, 170); d = ImageDraw.Draw(img)
+    for sym, x in [("♠", W * .095), ("♦", W * .905)]:
+        sw = d.textlength(sym, font=fa); d.text((x - sw / 2, H / 2 - 110), sym, font=fa, fill=gold if sym == "♠" else (196, 40, 46))
+    fs = ImageFont.truetype(font_any, 46)
+    for yrow in (62, H - 112):
+        stars = "★  ★  ★  ★  ★"; sw = d.textlength(stars, font=fs); d.text(((W - sw) / 2, yrow), stars, font=fs, fill=gold)
+    img = img.resize((1024, 256), Image.LANCZOS)
+    img.save(out_path)
 
 
 def main() -> int:
@@ -162,18 +281,59 @@ def main() -> int:
     font_path = next((p for p in ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
                                   "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf") if pathlib.Path(p).exists()), None)
     (ROOT / "signs").mkdir(parents=True, exist_ok=True)
-    for name, text in {"butik": "BUTIK  NYXA", "shake": "SHAKE BAR", "braxhorn": "BRAXHORN KICKBOXING", "nutrition": "BRAXHORN NUTRITION", "sprzedaz": "NA SPRZEDAŻ", "kawiarnia": "KAWIARNIA", "market": "MARKET 24",
-                       "kort": "KLUB TENISOWY", "ochrona": "OCHRONA", "policja": "KOMISARIAT POLICJI", "silownia": "SIŁOWNIA PLENEROWA"}.items():
-        im = Image.new("RGB", (1024, 256), (34, 37, 40)); dr = ImageDraw.Draw(im)
-        dr.rectangle([10, 10, 1013, 245], outline=(176, 150, 104), width=6)
+    styles = {"kasyno": ((10, 10, 12), (222, 184, 92), (200, 160, 80))}   # kasyno: złote litery na czerni, złota ramka
+    for name, text in {"kasyno": "KASYNO", "butik": "BUTIK  NYXA", "shake": "SHAKE BAR", "braxhorn": "BRAXHORN KICKBOXING", "nutrition": "BRAXHORN NUTRITION", "sprzedaz": "NA SPRZEDAŻ", "kawiarnia": "KAWIARNIA", "market": "MARKET 24",
+                       "kort": "KLUB TENISOWY", "ochrona": "OCHRONA", "policja": "KOMISARIAT POLICJI", "cela1": "CELA 1", "cela2": "CELA 2", "wkrotce": "WKRÓTCE OTWARCIE", "silownia": "SIŁOWNIA PLENEROWA"}.items():
+        bg, fg, fr = styles.get(name, ((34, 37, 40), (236, 228, 214), (176, 150, 104)))
+        im = Image.new("RGB", (1024, 256), bg); dr = ImageDraw.Draw(im)
+        dr.rectangle([10, 10, 1013, 245], outline=fr, width=6)
         size = 118
         f = ImageFont.truetype(font_path, size) if font_path else ImageFont.load_default()
         while font_path and dr.textlength(text, font=f) > 930 and size > 40:
             size -= 4; f = ImageFont.truetype(font_path, size)
-        w = dr.textlength(text, font=f); dr.text(((1024 - w) / 2, (256 - size) / 2 - 6), text, font=f, fill=(236, 228, 214))
+        w = dr.textlength(text, font=f); dr.text(((1024 - w) / 2, (256 - size) / 2 - 6), text, font=f, fill=fg)
         im.save(ROOT / "signs" / f"{name}.png")
     report["textures"]["signs"] = "szyldy generowane (DejaVu Sans Bold)"
     print("SIGNS OK", font_path)
+    kasyno_extra(ROOT / "signs" / "kasyno.png")
+    print("SZYLD KASYNO EKSTRA OK")
+    # karteczka do bukietu róż w willi 1 (właściciel 31.10): „Kocham cię, Monika” — kremowy papier, złota ramka,
+    # czerwony atrament, kursywa szeryfowa DejaVu, serduszko. 1024×666 (proporcje karty 20 × 13 cm).
+    fi = next((p for p in ("/usr/share/fonts/truetype/dejavu/DejaVuSerif-BoldItalic.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf",
+                           "/usr/share/fonts/truetype/dejavu/DejaVuSans-BoldOblique.ttf") if pathlib.Path(p).exists()), font_path)
+    card = Image.new("RGB", (1024, 666), (250, 244, 232)); dc = ImageDraw.Draw(card)
+    dc.rectangle([22, 22, 1001, 643], outline=(196, 160, 84), width=6); dc.rectangle([40, 40, 983, 625], outline=(214, 182, 110), width=2)
+    for line, size, y in [("Kocham cię,", 120, 150), ("Monika", 150, 320)]:
+        fnt = ImageFont.truetype(fi, size) if fi else ImageFont.load_default()
+        tw = dc.textlength(line, font=fnt); dc.text(((1024 - tw) / 2, y), line, font=fnt, fill=(150, 18, 40))
+    fh = ImageFont.truetype(font_path, 90) if font_path else ImageFont.load_default()
+    hw = dc.textlength("♥", font=fh); dc.text(((1024 - hw) / 2, 500), "♥", font=fh, fill=(196, 30, 50))
+    card.save(ROOT / "signs" / "kartka_monika.png")
+    print("KARTECZKA OK")
+    # Obrazy do willi na sprzedaż: abstrakcje 2:1 (1024×512) w kolorach każdej willi — granat ze złotem, szmaragd z mosiądzem,
+    # bordo z kremem. Generowane (bez cudzych dzieł): gradient tła, przenikające się koła i pasy, ziarno płótna.
+    import random as _r
+    for n, (b0, b1, accents) in enumerate([((14, 28, 60), (34, 66, 120), [(214, 176, 82), (236, 232, 220), (40, 140, 150)]),
+                                            ((8, 58, 48), (22, 96, 74), [(226, 196, 118), (242, 240, 228), (226, 110, 86)]),
+                                            ((86, 18, 32), (134, 42, 52), [(240, 226, 196), (214, 176, 82), (38, 36, 40)])], start=1):
+        rnd = _r.Random(900 + n); W2, H2 = 1024, 512
+        im = Image.new("RGB", (W2, H2)); px = im.load()
+        for y in range(H2):
+            t = y / (H2 - 1)
+            c = tuple(int(b0[i] + (b1[i] - b0[i]) * t) for i in range(3))
+            for x in range(W2): px[x, y] = c
+        ov = Image.new("RGBA", (W2, H2), (0, 0, 0, 0)); dr = ImageDraw.Draw(ov)
+        for _ in range(7):
+            col = accents[rnd.randrange(len(accents))]; r = rnd.randint(60, 210); cx, cy = rnd.randint(80, W2 - 80), rnd.randint(60, H2 - 60)
+            dr.ellipse([cx - r, cy - r, cx + r, cy + r], fill=col + (rnd.randint(70, 150),))
+        for _ in range(5):
+            col = accents[rnd.randrange(len(accents))]; x0 = rnd.randint(0, W2 - 200); y0 = rnd.randint(0, H2 - 40); w = rnd.randint(160, 520); h = rnd.randint(10, 34)
+            dr.rectangle([x0, y0, x0 + w, y0 + h], fill=col + (rnd.randint(140, 220),))
+        im = Image.alpha_composite(im.convert("RGBA"), ov).convert("RGB")
+        g = Image.effect_noise((W2, H2), 18).convert("L")
+        im = Image.blend(im, Image.merge("RGB", (g, g, g)), .06)
+        im.save(ROOT / "signs" / f"obraz{n}.png")
+    print("OBRAZY OK")
     # Źdźbła trawy: atlas 2048x512 = 4 odmiany kępy (świeża, ciemniejsza, z suchszymi końcówkami, gęsta niska).
     import math, random
     rnd = random.Random(31)
@@ -370,6 +530,12 @@ def main() -> int:
             if "normalTexture" in m: (ROOT / "models" / "drzewo_verdant" / "kora_n.png").write_bytes(_img(m["normalTexture"]["index"]))
     print("TREE TEX OK")
     print("DETAIL OK")
+    # Kępy trawy 3D: karty kęp z tekstury grass_medium_01 (Poly Haven CC0, 2K diffuse + alfa) -> atlas 2048x1024 + JSON komórek
+    gm = files("grass_medium_01")
+    kom = kepy_atlas(img(get(gm["Diffuse"]["2k"]["png"]["url"])), Image.open(io.BytesIO(get(gm["Alpha"]["2k"]["png"]["url"]))),
+                     ROOT / "detail" / "kepy_atlas.png", ROOT / "detail" / "kepy_atlas.json")
+    report["textures"]["kepy_atlas"] = f"grass_medium_01 (Poly Haven CC0): {len(kom)} kart kęp"
+    print("KEPY OK", len(kom))
     (ROOT / "osiedle-sources.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
     return 0
 

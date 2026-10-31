@@ -46,21 +46,51 @@ const VIEWS = [
   ['44_trawa_10m', '-99.5,.1,-158,180,18,10'],
   ['45_trawa_2m', '-99.5,.1,-160,200,35,2.2'],
   ['27_trawnik_z_gory', '-99.5,.1,-160,180,57,12'],
+  // zlecenie trawy (31.10): z ~1 m w dół (najbliżej, jak pozwala kamera gry), z 5 m, z 20 m, z końca alei, plus 33 jak wcześniej
+  ['50_trawa_z_bliska_w_dol', '-99.5,.1,-160,180,50,2'],
+  ['51_trawa_5m', '-99.5,.1,-158,200,20,5'],
+  ['52_trawa_20m', '-99.5,.1,-153,180,10,12'],
+  ['53_koniec_alei', '-100,.08,-126.3,270,8,8'],
+  // łąka (zlecenie trawy: z 1 m i z 10 m): pas łąki przed kortem od ulicy (z -203.7…-199.7, krzewy co 3.2 m w z -202.8)
+  ['54_laka_1m', '7.7,.05,-201,0,50,2'],
+  ['55_laka_10m', '7.7,.05,-201.5,0,15,10'],
   ['37_silownia_plenerowa', '58,.05,-104.5,0,22,12'],
-  ['38_silownia_A', '62,.1,-64,300,8,12'],
+  // siłownia A: build 3 — kamera w koronie drzewa, szyld poza kadrem. Teraz z placu przed drzwiami (kamera 1.0 m od tylnej
+  // ściany kasyna z -57.5; drzwi na ekranie x -0.38, szyld 3.75–5.15 m cały w kadrze) i od parku (polana siłowni plenerowej)
+  ['38_silownia_A', '86.5,.05,-63.2,340,7,5'],
+  ['38b_silownia_A_od_parku', '66.6,.05,-104.4,200,12,10'],
   ['39_silownia_A_srodek', '92,.1,-71.55,40,10,4'],
+  ['56_silownia_A_mural', '84,.1,-72,0,7,4'],   // mural właściciela na ścianie tylnej (z -91.04): cały w kadrze, środek nad głową gracza
   ['40_nutrition_B', '16,.1,-177,210,9,3'],
   ['41_willa_sprzedaz_front', '-91.25,.1,-199,0,10,12'],
-  ['42_willa_sprzedaz_salon', '-92,.1,-212,90,7,1.9'],
-  ['43_willa_sprzedaz_kuchnia', '-90,.1,-210,270,7,1.9'],
+  // trzy wille na sprzedaż (luksus): salon (TV ze ścianą akcentową, sofa, fotel klubowy), kuchnia (wyspa z marmurem, hokery),
+  // ogród (basen, jacuzzi, leżaki, parasol). Willa 1 i 2 lustrzane (x = u1 − a), willa 3 nie (x = u0 + a) — yaw odbity.
+  ['42_willa1_salon', '-92.10,.1,-214.70,85,8,2.5'],
+  ['43_willa1_kuchnia', '-90.10,.1,-212.20,300,8,2.5'],
+  ['62_willa1_ogrod_basen_jacuzzi', '-84,.1,-224.8,90,14,6'],
+  ['69_willa1_roze_i_karteczka', '-89.21,.1,-215.90,220,26,1.2'],   // bukiet róż na stole jadalni i karteczka (karteczka x -0.50, róże x -0.59, 2 m)
+  ['70_willa1_boisko_siatkowka', '-106.0,.1,-221.0,0,22,8'],   // boisko do siatkówki za garażem willi 1 (cały kort w kadrze, jacuzzi z lewej)
+  ['63_willa2_salon', '-16.50,.1,-214.70,85,8,2.5'],
+  ['64_willa2_kuchnia', '-14.50,.1,-212.20,300,8,2.5'],
+  ['65_willa2_ogrod_basen_jacuzzi', '-8.4,.1,-224.8,90,14,6'],
+  ['66_willa3_salon', '54.30,.1,-214.70,275,8,2.5'],
+  ['67_willa3_kuchnia', '52.30,.1,-212.20,60,8,2.5'],
+  ['68_willa3_ogrod_basen_jacuzzi', '46.2,.1,-224.8,270,14,6'],
   ['46_kawiarnia_wnetrze', '30.25,.1,-176,180,7,2.2'],
   ['47_market_wnetrze', '40.65,.1,-177.3,180,7,2'],
-  ['48_butik_wnetrze', '-6.55,.1,-177,180,7,2'],
   ['49_shakebar_wnetrze', '5.65,.1,-176.3,180,7,2.2'],
   ['34_komisariat_sala', '-86,.1,-37,0,4,2.4'],
   ['35_komisariat_hol', '-86,.1,-36,180,5,2.2'],
-  ['36_komisariat_cele', '-83,.1,-52,270,8,3'],
+  ['36_komisariat_cele', '-85.5,.1,-52.2,270,18,2.4'],   // obie cele z korytarza: kraty x ±0.5, prycze i sedesy ponad głową gracza (y +0.3)
   ['22_kasyno', '86,.1,-18,0,12,12'],
+  ['22b_kasyno_wejscie', '90,.1,-21.5,0,10,9'],   // markiza, kolumny, szyld, dywan; drzwi na ekranie x ±0.24 (nie za graczem)
+  ['22c_kasyno_z_ulicy', '50,.1,-18,325,7,12'],   // z daleka wzdłuż ulicy: piętro i wieża z szyldem (wieża y +0.91, parter x -0.23…-0.69)
+  // więcej zdjęć do przeglądu właściciela: wnętrze kasyna (stare, do oceny), butik zamknięty, wschód parku, trawnik A
+  ['57_kasyno_wnetrze_od_wejscia', '86,.1,-32,0,10,3'],
+  ['58_kasyno_sala_ku_wejsciu', '86,.1,-40,180,10,4'],
+  ['59_butik_zamkniety', '-6.6,.14,-183.5,180,8,4'],
+  ['60_park_aleja_wschod', '60,.08,-126.3,90,10,10'],
+  ['61_A_trawnik_park_wisniowy', '30,.08,-90,0,14,10'],
   ['23_komisariat', '-86,.1,-18,0,12,12'],
   ['24_szpital', '-86,.1,38,0,12,12'],
   ['25_hala_walk', '-86,.1,88,0,12,12'],

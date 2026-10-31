@@ -11,18 +11,25 @@ Shader "Braxhorn/OsiedleTrawa"
         _OcclusionMap ("AO", 2D) = "white" {}
         _Color ("Odcień", Color) = (1,1,1,1)
         _Dry ("Odcień suchszy (mnożnik liniowy, bez konwersji sRGB)", Vector) = (1.12,1.02,.78,1)
-        _Tile ("Metry na kafel", Float) = 2.5
+        _Tile ("Metry na kafel", Float) = 2
         _MacroTile ("Metry na dużą plamę", Float) = 29
         _MacroMix ("Siła plam", Range(0,1)) = .45
         _DryMix ("Siła przebarwień", Range(0,1)) = .35
-        _Stripe ("Szerokość pasa koszenia (m)", Float) = 2.4
-        _StripeMix ("Siła pasów", Range(0,.5)) = .09
+        _Stripe ("Szerokość pasa koszenia (m)", Float) = 1.8
+        _StripeMix ("Siła pasów", Range(0,.5)) = .045
         _BumpScale ("Siła wypukłości", Range(0,2)) = 1.1
         _Gloss ("Gładkość (mnożnik)", Range(0,1)) = .14
         _MacroMean ("Średnia jasność tekstury (liniowa, .3/.59/.11)", Float) = .1387
         _DryMean ("Średnia zieleń tekstury (liniowa)", Float) = .1631
         _DryThr ("Próg suchszych plam (× średnia)", Float) = 1.45
         _DryGain ("Narastanie suchszych plam", Float) = 2.5
+        _SoilTex ("Ziemia: albedo", 2D) = "gray" {}
+        _SoilBump ("Ziemia: normalna", 2D) = "bump" {}
+        _SoilTile ("Ziemia: metry na kafel", Float) = 1.3
+        _SoilTint ("Ziemia: mnożnik (liniowo)", Vector) = (1,1,1,1)
+        _Mask ("Maska ziemi (R)", 2D) = "black" {}
+        _MaskRect ("Maska: x0, z0, 1/szer., 1/dł. (m)", Vector) = (0,0,1,1)
+        _SoilMix ("Udział ziemi", Range(0,1)) = 0
     }
     SubShader
     {
@@ -31,7 +38,8 @@ Shader "Braxhorn/OsiedleTrawa"
         CGPROGRAM
         #pragma surface surf Standard fullforwardshadows
         #pragma target 3.0
-        sampler2D _MainTex, _BumpMap, _MetallicGlossMap, _OcclusionMap;
+        sampler2D _MainTex, _BumpMap, _MetallicGlossMap, _OcclusionMap, _SoilTex, _SoilBump, _Mask;
+        float4 _SoilTint, _MaskRect; float _SoilTile, _SoilMix;
         fixed4 _Color; float4 _Dry;
         float _Tile, _MacroTile, _MacroMix, _DryMix, _Stripe, _StripeMix, _BumpScale, _Gloss, _MacroMean, _DryMean, _DryThr, _DryGain;
         struct Input { float3 worldPos; };
@@ -53,11 +61,19 @@ Shader "Braxhorn/OsiedleTrawa"
             c.rgb = lerp(c.rgb, c.rgb * _Dry.rgb, dry * _DryMix);
             float stripe = step(.5, frac(w.x / (_Stripe * 2)));
             c.rgb *= 1 + (stripe - .5) * 2 * _StripeMix;
-            o.Albedo = c.rgb * _Color.rgb;
-            o.Normal = UnpackScaleNormal(tex2D(_BumpMap, uv), _BumpScale);
+            float3 grass = c.rgb * _Color.rgb;
+            float3 nGrass = UnpackScaleNormal(tex2D(_BumpMap, uv), _BumpScale);
+            // ziemia: maska (przy ścieżkach, pod drzewami) + plamy z dużej skali, żeby granica nie była gładka
+            float m = tex2D(_Mask, (w - _MaskRect.xy) * _MaskRect.zw).r;
+            // plamy z dużej skali tylko tam, gdzie maska > 0 (pierścień pod drzewem) — na otwartym trawniku ziemi nie ma wcale
+            float soil = saturate((m * 1.25 + (lum / _MacroMean - 1) * .25 * saturate(m * 4) - .08) * _SoilMix);
+            float2 su = r / _SoilTile;
+            float3 dirt = tex2D(_SoilTex, su).rgb * _SoilTint.rgb;
+            o.Albedo = lerp(grass, dirt, soil);
+            o.Normal = normalize(lerp(nGrass, UnpackNormal(tex2D(_SoilBump, su)), soil));
             o.Metallic = 0;
             // trawa jest matowa: mała gładkość, inaczej pod niebo (Fresnel) daleki trawnik bieleje
-            o.Smoothness = tex2D(_MetallicGlossMap, uv).a * _Gloss;
+            o.Smoothness = lerp(tex2D(_MetallicGlossMap, uv).a * _Gloss, .12, soil);
             o.Occlusion = tex2D(_OcclusionMap, uv).r;
             o.Alpha = 1;
         }
