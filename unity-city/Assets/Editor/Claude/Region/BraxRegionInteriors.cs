@@ -113,16 +113,17 @@ public static class BraxRegionInteriors
         { imp.maxTextureSize = 2048; imp.mipmapEnabled = true; imp.anisoLevel = 4; imp.sRGBTexture = true; imp.SaveAndReimport(); }
         var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         if (!tex) { BraxRegion.Note("Nutrition: mural nie zaimportował się"); return 0; }
-        // Ściana: promień od środka sklepu w +X na wysokości 1.8 m; zapas 25.72, gdy ściana nie ma kolizji.
-        float wallX = 25.72f; RaycastHit hit;
+        // 31.10 (właściciel): mural na ścianie NA WPROST wejścia (wejście od ulicy, z = max.z) → tylna ściana z = min.z.
+        float wallZ = Nutrition.min.z + .02f; RaycastHit hit;
         var from = new Vector3(Nutrition.center.x, floorY + 1.8f, Nutrition.center.z);
-        foreach (var h in Physics.RaycastAll(from, Vector3.right, 8f, ~0, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance))
-            if (h.normal.x < -.7f && !BraxRegion.Under(h.collider.transform, "CLAUDE")) { wallX = h.point.x; break; }
+        foreach (var h in Physics.RaycastAll(from, Vector3.back, 8f, ~0, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance))
+            if (h.normal.z > .7f && !BraxRegion.Under(h.collider.transform, "CLAUDE")) { wallZ = h.point.z; break; }
         float ratio = (float)tex.width / tex.height;              // 16:9
         float height = 3.0f, width = height * ratio;              // 3.0 × 5.33 m
-        float zMin = Nutrition.min.z + 1.0f, zMax = Nutrition.max.z - 1.6f;   // bez witryny z przodu
-        if (width > zMax - zMin - .6f) { width = zMax - zMin - .6f; height = width / ratio; }
-        var center = new Vector3(wallX - .012f, floorY + .55f + height * .5f, (zMin + zMax) * .5f);
+        float xMin = Nutrition.min.x + .8f, xMax = Nutrition.max.x - .8f;
+        if (width > xMax - xMin - .4f) { width = xMax - xMin - .4f; height = width / ratio; }
+        var center = new Vector3((xMin + xMax) * .5f, floorY + .55f + height * .5f, wallZ + .012f);
+        float wallX = wallZ;   // do raportu
         var sh = Shader.Find(BraxCityMaterials.ShaderName);
         var m = new Material(sh) { name = "Nutrition: mural Brax (farba na cegle)" };
         m.SetTexture("_MainTex", tex); m.SetFloat("_Roughness", .88f); m.SetFloat("_Metallic", 0f); m.SetFloat("_ReflectionStrength", .15f);
@@ -134,10 +135,11 @@ public static class BraxRegionInteriors
         // Cienka płyta 1 cm na ścianie; UV w metrach → skala tekstury = 1/rozmiar, żeby obraz zajął całą płytę raz.
         var mesh = new Mesh { name = "Nutrition mural" };
         float hw = width * .5f, hh = height * .5f;
-        mesh.vertices = new[] { new Vector3(0, -hh, -hw), new Vector3(0, -hh, hw), new Vector3(0, hh, hw), new Vector3(0, hh, -hw) };
-        mesh.normals = new[] { Vector3.left, Vector3.left, Vector3.left, Vector3.left };
-        mesh.uv = new[] { new Vector2(1, 0), new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1) };   // patrząc na ścianę z wnętrza (−X): lewa krawędź = +z
-        mesh.triangles = new[] { 0, 2, 1, 0, 3, 2 };
+        // płyta w płaszczyźnie XY, przód na +Z (widz patrzy od wejścia w stronę −Z): lewa krawędź obrazu = −x
+        mesh.vertices = new[] { new Vector3(-hw, -hh, 0), new Vector3(hw, -hh, 0), new Vector3(hw, hh, 0), new Vector3(-hw, hh, 0) };
+        mesh.normals = new[] { Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward };
+        mesh.uv = new[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 1) };
+        mesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };
         mesh.RecalculateTangents(); mesh.RecalculateBounds();
         Directory.CreateDirectory(BraxRegion.Out + "/Meshes");
         AssetDatabase.CreateAsset(mesh, BraxRegion.Out + "/Meshes/nutrition-mural.asset");
@@ -146,7 +148,7 @@ public static class BraxRegionInteriors
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var mr = g.AddComponent<MeshRenderer>(); mr.sharedMaterial = m; mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         GameObjectUtility.SetStaticEditorFlags(g, StaticEditorFlags.BatchingStatic);
-        BraxRegion.Note("Nutrition: mural " + width.ToString("0.0") + "×" + height.ToString("0.0") + " m na x=" + wallX.ToString("0.00"));
+        BraxRegion.Note("Nutrition: mural " + width.ToString("0.0") + "×" + height.ToString("0.0") + " m na tylnej ścianie z=" + wallZ.ToString("0.00") + " (na wprost wejścia)");
         return 1;
     }
 

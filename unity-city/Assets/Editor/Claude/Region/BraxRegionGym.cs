@@ -21,6 +21,8 @@ public static class BraxRegionGym
         catch (Exception e) { rep.notes.Add("BŁĄD: " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_GYM " + e); }
         try { NicerBags(runtime, rep); }
         catch (Exception e) { rep.notes.Add("worki: BŁĄD " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_GYM worki " + e); }
+        try { PremiumBags(gym, rep); }
+        catch (Exception e) { rep.notes.Add("worki: BŁĄD " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_GYM worki " + e); }
         Directory.CreateDirectory(BraxRegion.Out);
         File.WriteAllText(BraxRegion.Out + "/gym.json", JsonUtility.ToJson(rep, true));
         Debug.Log("BRAXHORN_CLAUDE_GYM " + JsonUtility.ToJson(rep));
@@ -30,6 +32,74 @@ public static class BraxRegionGym
     // (#171a1b, roughness .69, ziarno .38) — na telefonie czarna plama bez kształtu. Tu: ciemny grafit ze
     // sheenem (roughness .42), wyraźne ziarno skóry (normal ×1.0), wzmocnienia ciemniejsze z lekkim połyskiem,
     // chromowane okucia i łańcuch. Materiały zostają na shaderze importu (reagują na światła sali, warstwa 10).
+    // 31.10 (właściciel): gruszka na stojaku (reflex bag) i speed bag na platformie — premium, skóra z połyskiem, chrom. Z kodu.
+    static void PremiumBags(GameObject gym, Report rep)
+    {
+        var root = new GameObject("CLAUDE siłownia: gruszki premium").transform;
+        root.SetParent(gym ? gym.transform.parent : null, false); root.position = Vector3.zero;
+        var leather = BraxRegion.Pbr("Gruszka: skóra czarna z połyskiem", .6f, new Color(.12f, .12f, .13f), "leather_red_03", "leather_red_02", "leather_white");
+        if (leather) { if (leather.HasProperty("_Roughness")) leather.SetFloat("_Roughness", .22f); if (leather.HasProperty("_Glossiness")) leather.SetFloat("_Glossiness", .78f); }
+        var chrome = BraxRegion.Fitting("Gruszka: chrom", new Color(.85f, .86f, .88f), .18f, 1f);
+        var steel = BraxRegion.Fitting("Gruszka: stal czarna", new Color(.1f, .1f, .11f), .5f, .6f);
+        var wood = BraxRegion.Pbr("Speed bag: platforma (sklejka)", 1f, null, "plank_flooring_02", "wood_floor", "wooden_planks");
+        Physics.SyncTransforms();
+        int placed = 0;
+        // wolne miejsca przy ścianie za ramą worków (x 10..16, z -7..7), potem gdziekolwiek na podłodze hali
+        var spots = new List<Vector3>();
+        for (float z = -6f; z <= 6f; z += 2.5f) for (float x = 16.5f; x >= 9.5f; x -= 1.5f) spots.Add(new Vector3(x, 0, z));
+        for (float z = 7.5f; z >= -7.5f; z -= 1.5f) for (float x = -18f; x <= 9f; x += 1.5f) spots.Add(new Vector3(x, 0, z));
+        int reflex = 0, speed = 0;
+        foreach (var sp in spots)
+        {
+            if (reflex >= 2 && speed >= 2) break;
+            RaycastHit h; if (!BraxRegion.Ground(sp.x, sp.z, -.5f, .6f, out h) || h.point.y > .2f) continue;
+            bool wantReflex = reflex < 2;
+            float need = wantReflex ? 1.6f : 1.4f;
+            if (!BraxRegion.Free(new Vector3(sp.x, h.point.y + 1.3f, sp.z), new Vector3(need, 2.4f, need))) continue;
+            var c = new Vector3(sp.x, h.point.y, sp.z);
+            if (wantReflex)
+            {
+                // podstawa (dysk), słup chrom, sprężyna, gruszka skórzana (elipsoida z dwóch kul)
+                Cyl(root, "Gruszka: podstawa", c + Vector3.up * .05f, .42f, .1f, steel);
+                Cyl(root, "Gruszka: obciążenie", c + Vector3.up * .15f, .3f, .1f, steel);
+                Cyl(root, "Gruszka: słup", c + Vector3.up * .85f, .035f, 1.3f, chrome);
+                Cyl(root, "Gruszka: sprężyna", c + Vector3.up * 1.6f, .05f, .2f, chrome);
+                Cyl(root, "Gruszka: trzpień", c + Vector3.up * 1.78f, .025f, .16f, chrome);
+                Sph(root, "Gruszka: skóra dół", c + Vector3.up * 1.95f, new Vector3(.3f, .34f, .3f), leather);
+                Sph(root, "Gruszka: skóra góra", c + Vector3.up * 2.12f, new Vector3(.2f, .26f, .2f), leather);
+                var col = new GameObject("Gruszka: kolizja").AddComponent<CapsuleCollider>(); col.transform.SetParent(root, false); col.transform.position = c + Vector3.up * 1.1f; col.radius = .22f; col.height = 2.3f;
+                reflex++;
+            }
+            else
+            {
+                // speed bag: wspornik na słupie przy miejscu, platforma okrągła z drewna, obrotowy sworzeń, mała gruszka
+                Cyl(root, "Speed bag: podstawa", c + Vector3.up * .05f, .35f, .1f, steel);
+                Cyl(root, "Speed bag: słup", c + Vector3.up * 1.25f, .04f, 2.4f, steel);
+                Cyl(root, "Speed bag: platforma", c + Vector3.up * 2.45f, .6f, .06f, wood ? wood : steel);
+                Cyl(root, "Speed bag: sworzeń", c + Vector3.up * 2.37f, .02f, .1f, chrome);
+                Sph(root, "Speed bag: gruszka", c + Vector3.up * 2.14f, new Vector3(.17f, .26f, .17f), leather);
+                var col = new GameObject("Speed bag: kolizja").AddComponent<CapsuleCollider>(); col.transform.SetParent(root, false); col.transform.position = c + Vector3.up * 1.2f; col.radius = .2f; col.height = 2.5f;
+                speed++;
+            }
+            placed++;
+        }
+        rep.notes.Add("gruszki premium: reflex " + reflex + ", speed bag " + speed);
+    }
+    static void Cyl(Transform root, string name, Vector3 center, float radius, float height, Material m)
+    {
+        var g = GameObject.CreatePrimitive(PrimitiveType.Cylinder); g.name = name; g.transform.SetParent(root, false);
+        g.transform.position = center; g.transform.localScale = new Vector3(radius * 2f, height * .5f, radius * 2f);
+        UnityEngine.Object.DestroyImmediate(g.GetComponent<Collider>());
+        var r = g.GetComponent<MeshRenderer>(); if (m) r.sharedMaterial = m; r.shadowCastingMode = ShadowCastingMode.On;
+    }
+    static void Sph(Transform root, string name, Vector3 center, Vector3 size, Material m)
+    {
+        var g = GameObject.CreatePrimitive(PrimitiveType.Sphere); g.name = name; g.transform.SetParent(root, false);
+        g.transform.position = center; g.transform.localScale = size;
+        UnityEngine.Object.DestroyImmediate(g.GetComponent<Collider>());
+        var r = g.GetComponent<MeshRenderer>(); if (m) r.sharedMaterial = m; r.shadowCastingMode = ShadowCastingMode.On;
+    }
+
     static void NicerBags(BraxGymPlayer runtime, Report rep)
     {
         if (!runtime || runtime.bags == null) return;

@@ -30,7 +30,7 @@ const VIEWS = [
   ['04_ulica_zachod', '8,0.2,28,90,12,10'],
   ['05_nutrition_front', '20.7,0.2,25.5,0,12,9'],
   ['06_nutrition_wnetrze', '20.3,0.2,18,0,12,9'],
-  ['06b_nutrition_mural', '21.5,0.2,16,270,6,5'],
+  ['06b_nutrition_mural', '20.25,0.2,18,0,6,6'],
   ['02b_worki_z_bliska', '14,0.2,8,90,10,2.5'],
   ['03b_elewacja_nutrition', '22,0.2,30,0,22,12'],
   ['07b_elewacja_nad_nova', '44,0.2,28,180,24,12'],
