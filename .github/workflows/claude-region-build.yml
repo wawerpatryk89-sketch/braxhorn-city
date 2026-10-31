@@ -3,6 +3,7 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
   push:
     branches:
     - claude/region-20261030
+    - claude/miasto-opus-20261031
     paths:
     - unity-city/**
     - unity-tools/claude/**
@@ -16,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   source-imports:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/region-20261030'
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -39,7 +40,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/region-20261030'
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -73,7 +74,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/region-20261030'
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
@@ -293,7 +294,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/region-20261030'
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
@@ -478,7 +479,7 @@ jobs:
 
   shots:
     needs: combined-unity6
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/claude/region-20261030'
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
     runs-on: ubuntu-latest
     timeout-minutes: 100
     strategy:

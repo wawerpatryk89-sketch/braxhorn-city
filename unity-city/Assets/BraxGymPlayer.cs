@@ -163,6 +163,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(next=="Walk")clips[next].speed=Mathf.Max(.55f,speed/2f);
             if(next=="Run")clips[next].speed=Mathf.Max(.65f,speed/5f);
         }
+        if(door&&!doorOpen&&move.sqrMagnitude>.01f&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<1.9f){doorOpen=true;Report();}   // drzwi siłowni otwierają się same przy podejściu
         doorAngle=Mathf.Lerp(doorAngle,doorOpen?-98f:0f,1-Mathf.Exp(-dt*5f));
         if(door)door.localRotation=Quaternion.Euler(0,doorAngle,0);
         for(int i=0;i<bags.Length;i++)
@@ -233,13 +234,23 @@ public sealed class BraxGymPlayer : MonoBehaviour
         return false;
     }
     private void OnApplicationFocus(bool focus){if(!focus)move=Vector2.zero;}
+    // Napis przycisku akcji (strona WWW i sterowanie dotykowe w APK): drzwi siłowni, potem kontekst miasta (pojazdy,
+    // siedziska, drzwi lokali, windy, przejście na osiedle), na końcu pojazd / siedzisko gracza.
+    public string Context
+    {
+        get
+        {
+            string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
+            if(cityWorld){if(!string.IsNullOrEmpty(cityWorld.Context))context=cityWorld.Context;else if(context=="ULICA — KOLEJNY ETAP")context="";}
+            if(vessel)context="ZEJDŹ · "+vessel.label;
+            if(seat)context="WSTAŃ";
+            return context;
+        }
+    }
     private void Report()
     {
         var h=hand?hand.position:Vector3.zero;
-        string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
-        if(cityWorld){if(!string.IsNullOrEmpty(cityWorld.Context))context=cityWorld.Context;else if(context=="ULICA — KOLEJNY ETAP")context="";}
-        if(vessel)context="ZEJDŹ · "+vessel.label;
-        if(seat)context="WSTAŃ";
+        string context=Context;
         var right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
         var forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
         var s=new Status{area=cityWorld?cityWorld.area:"gym",activePoint=cityWorld?cityWorld.activePoint:"",points=cityWorld?cityWorld.points:null,loadingArea=cityWorld&&cityWorld.loading,cityMeshes=cityWorld?cityWorld.originalMeshes:0,cityTriangles=cityWorld?cityWorld.originalTriangles:0,cityColliders=cityWorld?cityWorld.sourceColliders:0,openDoors=cityWorld?cityWorld.OpenDoors:0,ready=ready,paused=paused,x=transform.position.x,y=transform.position.y,z=transform.position.z,yaw=yaw,pitch=pitch,speed=speed,animation=action,context=context,hits=trainingHits,frames=Time.frameCount,handX=h.x,handY=h.y,handZ=h.z,doorOpen=doorOpen,build=buildId,

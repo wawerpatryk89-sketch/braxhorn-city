@@ -227,7 +227,7 @@ public static class BraxGymBuild
             PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
             PlayerSettings.productName="Braxhorn City";
             EditorUserBuildSettings.buildAppBundle=false;
-            EditorUserBuildSettings.androidBuildSubtarget=MobileTextureSubtarget.ETC2;
+            EditorUserBuildSettings.androidBuildSubtarget=MobileTextureSubtarget.ASTC;   // ASTC (STANDARD-TECHNICZNY §3; ETC2 było tymczasowe)
             output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/Android"));Directory.CreateDirectory(output);
             location=Path.Combine(output,"braxhorn-city.apk");
         }
