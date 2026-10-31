@@ -184,8 +184,11 @@ public static class BraxClaudeOsiedle
         {
             if (mats.TryGetValue("trawnik", out var have)) return have;
             var sh = Shader.Find("Braxhorn/OsiedleTrawa");
-            if (!sh) { rep.notes.Add("brak shadera Braxhorn/OsiedleTrawa — Standard"); var p = Pbr("trawnik std", "grass004", 3.5f, new Color(.93f, 1f, .93f), .6f); mats["trawnik"] = p; return p; }
             var d = Tex + "grass004/";
+            // audyt 31.10: brak shadera albo którejś mapy trawy nie może przerwać budowy osiedla (Map rzuca wyjątek) ani zrobić
+            // z każdego trawnika „Hard” (grassMat musi być ustawiony także w zapasie)
+            if (!sh || !File.Exists(d + "albedo.jpg") || !File.Exists(d + "normal.jpg") || !File.Exists(d + "mg.png") || !File.Exists(d + "ao.jpg"))
+            { rep.notes.Add("trawnik: brak shadera lub map grass004 — materiał zapasowy"); var p = Pbr("trawnik std", "grass004", 3.5f, new Color(.93f, 1f, .93f), .6f); mats["trawnik"] = p; grassMat = p; return p; }
             var m = new Material(sh) { name = "Osiedle: trawnik (fotoskan, plamy, pasy koszenia)", color = new Color(.90f, 1f, .88f) };
             m.mainTexture = Map(d + "albedo.jpg", false, true);
             m.SetTexture("_BumpMap", Map(d + "normal.jpg", true, false));
@@ -214,7 +217,7 @@ public static class BraxClaudeOsiedle
             // warstwa ziemi (przy ścieżkach i pod drzewami): ziemia z liśćmi Poly Haven, kafel 1,3 m (wymiar skanu);
             // maska powstaje na końcu budowy (BuildSoilMask), do tego czasu bez ziemi (_SoilMix 0)
             var sd = Tex + "brown_mud_leaves_01/";
-            if (File.Exists(sd + "albedo.jpg"))
+            if (File.Exists(sd + "albedo.jpg") && File.Exists(sd + "normal.jpg"))
             {
                 m.SetTexture("_SoilTex", Map(sd + "albedo.jpg", false, true)); m.SetTexture("_SoilBump", Map(sd + "normal.jpg", true, false));
                 var sm = AlbedoMeanLinear(sd + "albedo.jpg"); float sy = .2126f * sm.x + .7152f * sm.y + .0722f * sm.z;
@@ -820,7 +823,11 @@ public static class BraxClaudeOsiedle
         {
             var d = Quaternion.Euler(0, a * 15f, 0) * Vector3.forward;
             for (float s = .3f; s <= 4f && s < best; s += .1f)
-                if (OnPaving(at.x + d.x * s, at.z + d.z * s, 0f)) { best = s; dir = d; break; }
+            {
+                float px = at.x + d.x * s, pz = at.z + d.z * s;
+                if (OnPaving(px, pz, 0f)) { best = s; dir = d; break; }
+                if (IsHard(px, pz, 0f)) break;                       // płot, mur, budynek: nie patrzymy przez nie (audyt 31.10)
+            }
         }
         float reach = 1.0f;                                       // od środka siedziska do krawędzi alejki
         if (best < 90f)
@@ -2600,7 +2607,6 @@ public static class BraxClaudeOsiedle
         float face = pz0 - dir * .02f;
         BoxMinMax(ShopGlass, cx - 5.5f, cx + 5.5f, .3f, 2.9f, Mathf.Min(face, face - dir * .05f), Mathf.Max(face, face - dir * .05f), false);
         Sign("kort", new Vector3(cx + 6f, 2.5f, cz - dir * 9.12f), 5f, 1.25f, new Vector3(0, 0, -dir));
-        ParkBench(new Vector3(cx - 4f, .035f, cz - dir * 10.2f), dir > 0 ? 180 : 0); ParkBench(new Vector3(cx + 4f, .035f, cz - dir * 10.2f), dir > 0 ? 180 : 0);
         // zieleń klubu: szpaler drzew za kortem i krzewy przy ogrodzeniu
         for (float x = cx - 15f; x <= cx + 15f; x += 7.5f) if (Tree(new Vector3(x, 0, cz + dir * 12.5f + (x > cx - 8 && x < cx + 8 ? dir * 6f : 0)), 7.2f + (float)treeRnd.NextDouble(), x * 11f)) rep.plotTrees++;
         for (float x = cx - 16f; x <= cx + 16f; x += 3.2f) if (Mathf.Abs(x - cx) > 2.5f && !IsHard(x, cz - dir * 9.9f, .5f)) Bush(new Vector3(x, 0, cz - dir * 9.9f), 1.2f, x * 5f);
@@ -2608,6 +2614,8 @@ public static class BraxClaudeOsiedle
         Top(Slabs, cx - 1.2f, cx + 1.2f, Mathf.Min(front, gate), Mathf.Max(front, gate), .045f);
         FenceX(x0, x1, front + dir * .3f, 1.55f, (cx - 1.4f, cx + 1.4f));
         if (leftFence) WoodFenceZ(front + dir * .6f, dir > 0 ? ParkZ0 - .3f : SouthZ + .3f, x0 + .1f);
+        // audyt 31.10: ławki po ścieżce i płocie — BenchSpot widzi ścieżkę do bramki, a nie chodnik za płotem (ławki wbite w płot)
+        ParkBench(new Vector3(cx - 4f, .035f, cz - dir * 10.2f), dir > 0 ? 180 : 0); ParkBench(new Vector3(cx + 4f, .035f, cz - dir * 10.2f), dir > 0 ? 180 : 0);
         rep.tennis = 1;
     }
 
@@ -3026,7 +3034,7 @@ public static class BraxClaudeOsiedle
             bool northSide = ((int)((x - X0) / 18f)) % 2 == 0;
             ParkBench(new Vector3(x, .03f, zc + (northSide ? 3.0f : -3.0f)), northSide ? 180 : 0);
             ParkLamp(new Vector3(x + 9f, .03f, zc + (northSide ? -2.7f : 2.7f)), northSide ? 0 : 180);
-            if ((++binTurn) % 2 == 0) Bin(new Vector3(x + 1.75f, .03f, zc + (northSide ? 2.75f : -2.75f)));
+            if ((++binTurn) % 2 == 0) Bin(new Vector3(x + 2.15f, .03f, zc + (northSide ? 2.75f : -2.75f)));   // audyt: obok placu ławki (1.55 m + krawężnik), nie na nim
             float bz = northSide ? -1f : 1f;
             FlowerBed(x - 3.2f, x + 3.2f, zc + bz * 2.6f, zc + bz * 3.9f, (int)x + 200, northSide ? new[] { 0, 2 } : new[] { 1, 3 });
         }
@@ -3440,6 +3448,7 @@ public static class BraxClaudeOsiedle
         {
             if (!tr) continue;                                   // mógł zniknąć razem z rodzicem usuniętej korony
             var c = tr.bounds.center; if (dom07.Contains(new Vector3(c.x, 1f, c.z))) continue;
+            if (c.x > -39.2f && c.x < -17.9f && c.z > 49.6f && c.z < 68.4f) continue;   // działka domu Wawerów (WawerHouse wycina starą kulkę i sadzi swoje)
             var mine = crowns.Where(k => k && Mathf.Abs(k.bounds.center.x - c.x) < 2.2f && Mathf.Abs(k.bounds.center.z - c.z) < 2.2f).ToList();
             if (mine.Count == 0) continue;
             float top = mine.Max(k => k.bounds.max.y);
@@ -3596,8 +3605,9 @@ public static class BraxClaudeOsiedle
         foreach (var h in Houses)
         {
             float xu = -h.x, fxu = -(h.x < 0 ? h.x + 11.5f : h.x - 11.5f), inward = Mathf.Sign(xu - fxu), back = fxu + inward * 23f;
-            // drzewa: do trzech na działkę, z dala od domu i płotów
-            for (int t = 0, placed = 0; t < 120 && placed < 4; t++)
+            // drzewa: do trzech na działkę, z dala od domu i płotów (dom Wawerów: własne rośliny w WawerHouse)
+            bool wawer = h.x == 28 && h.z == 59;
+            for (int t = 0, placed = 0; t < 120 && placed < 4 && !wawer; t++)
             {
                 float x = H(Mathf.Min(fxu, back) + 2f, Mathf.Max(fxu, back) - 2f), z = H(h.z - h.hd + 2f, h.z + h.hd - 2f);
                 if (!Free(x, z, 1.9f) || NearTree(x, z, 5f)) continue;
@@ -3605,7 +3615,7 @@ public static class BraxClaudeOsiedle
             }
             // krzewy wzdłuż płotów bocznych
             foreach (float sz in new[] { h.z - h.hd + 1.1f, h.z + h.hd - 1.1f })
-                for (float x = Mathf.Min(fxu, back) + 2f; x < Mathf.Max(fxu, back) - 1.5f; x += 2.6f)
+                for (float x = Mathf.Min(fxu, back) + 2f; x < Mathf.Max(fxu, back) - 1.5f && !wawer; x += 2.6f)
                     if (Free(x, sz, .7f) && !NearTree(x, sz, 2f)) Bush(new Vector3(x, 0, sz), H(1.3f, 1.9f), rnd.Next(360));
             // rabaty wzdłuż płotu od ulicy (po obu stronach furtki)
             float bx0 = fxu + inward * .7f, bx1 = fxu + inward * 1.9f;
@@ -3762,9 +3772,12 @@ public static class BraxClaudeOsiedle
     static void AvenueA()
     {
         group = "Osiedle A / aleja ulicy głównej";
+        Physics.SyncTransforms();
+        // audyt 31.10: stare latarnie i kosze osiedla nie są w rejestrze Hard — test kolizji w pniu i koronie (1–3 m nad ziemią)
+        bool Clear(float x, float z) => !Physics.CheckBox(new Vector3(x, 1.6f, z), new Vector3(1.1f, 1.4f, 1.1f), Quaternion.identity, ~0, QueryTriggerInteraction.Ignore);
         foreach (float x in new[] { -10.6f, 10.6f })
             for (float z = -9f; z < 97f; z += 7.5f)
-                if (!OnPaving(x, z, 1.4f) && !IsHard(x, z, 1.2f) && !NearTree(x, z, 5f)
+                if (!OnPaving(x, z, 1.4f) && !IsHard(x, z, 1.2f) && !NearTree(x, z, 5f) && Clear(x, z)
                     && Tree(new Vector3(x, 0, z), 7.4f + Mathf.Abs(z * 7.3f) % 1.4f, Mathf.Abs(z * 23f + x * 3f) % 360f)) rep.avenueTrees++;
         rep.notes.Add("aleja A: " + rep.avenueTrees + " drzew wzdłuż ulicy głównej");
     }
@@ -3953,11 +3966,11 @@ public static class BraxClaudeOsiedle
             rg.transform.position = new Vector3(cx, (yF + yT) * .5f, zs + run * .5f) - rg.transform.up * .05f;
             rg.AddComponent<BoxCollider>().size = new Vector3(2.2f, .1f, L);
         }
-        foreach (float sx in new[] { cx - 1.18f, cx + 1.18f })
+        foreach (float sx in new[] { cx - 1.02f, cx + 1.02f })                  // audyt: słupki na stopniach (schody x ±1.1), nie w powietrzu
         {
-            Cylinder(chrome, new Vector3(sx, .2f, zs + 1.25f), .025f, .9f, 8, true, false);
+            Cylinder(chrome, new Vector3(sx, yF + .2f, zs + 1.25f), .025f, .9f, 8, true, false);
             Cylinder(chrome, new Vector3(sx, yT, zs + .1f), .025f, .9f, 8, true, false);
-            OBoxQ(chrome, new Vector3(sx, (.2f + yT) * .5f + .9f, zs + .675f), new Vector3(.04f, .04f, 1.3f), Quaternion.Euler(Mathf.Atan2(yT - .2f, 1.15f) * Mathf.Rad2Deg, 0, 0));
+            OBoxQ(chrome, new Vector3(sx, (yF + .2f + yT) * .5f + .9f, zs + .675f), new Vector3(.04f, .04f, 1.3f), Quaternion.Euler(Mathf.Atan2(yT - yF - .2f, 1.15f) * Mathf.Rad2Deg, 0, 0));
         }
 
         // trybuny: rząd 0.9 m głębokości, 0.4 m wyżej; krzesełko (stopka, siedzisko, oparcie) co 0.56 m
@@ -4274,6 +4287,7 @@ public static class BraxClaudeOsiedle
         Quad(roof, Bc, C, R1, R0, Normal(Bc, C, R1, Vector3.up)); Quad(roof, D, A, R0, R1, Normal(D, A, R0, Vector3.up));
         Tri(roof, A, Bc, R0, Normal(A, Bc, R0, Vector3.up)); Tri(roof, C, D, R1, Normal(C, D, R1, Vector3.up));
         BoxMinMax(soffit, rx0, rx1, yE - .06f, yE, rz0, rz1, false, true);
+        roofBounds.Add(MinMax(rx0, rx1, yE - .2f, yR, rz0, rz1));                                   // korony drzew nie przez dach (PruneCrowns)
         foreach (var (a0, a1, b0, b1) in new[] { (rx0, rx1, rz0 - .12f, rz0), (rx0, rx1, rz1, rz1 + .12f), (rx0 - .12f, rx0, rz0, rz1), (rx1, rx1 + .12f, rz0, rz1) })
             BoxMinMax(brown, a0, a1, yE - .16f, yE - .02f, b0, b1, false, true);                                    // rynny
         foreach (var (cx, cz) in new[] { (x1 + .1f, z0 - .1f), (x1 + .1f, z1 + .1f), (x0 - .1f, z0 - .1f), (x0 - .1f, z1 + .1f) })
@@ -4315,7 +4329,7 @@ public static class BraxClaudeOsiedle
         foreach (float z in new[] { 50.4f, 52.0f, 53.6f, 55.2f, 64.6f, 66.2f, 67.8f }) Conifer(new Vector3(fxp - .9f, 0, z), 2.6f + Mathf.Abs(z * 13.7f) % .8f, .85f, false, z * 31f);
         Conifer(new Vector3(-23.6f, 0, 53.2f), 4.3f, 1.2f, false, 10f); Conifer(new Vector3(-23.9f, 0, 57.0f), 3.8f, 1.1f, false, 70f); Conifer(new Vector3(-23.3f, 0, 65.9f), 4.6f, 1.3f, false, 130f);
         Conifer(new Vector3(-21.6f, 0, 55.6f), 6.6f, 3.4f, true, 40f);
-        foreach (var (tx, tz, th) in new[] { (-38.0f, 51.5f, 10f), (-38.2f, 59.5f, 9.2f) })
+        foreach (var (tx, tz, th) in new[] { (-38.6f, 50.6f, 9f), (-38.6f, 61.0f, 8.6f) })
             if (!NearTree(tx, tz, 5f)) Tree(new Vector3(tx, 0, tz), th, tx * 7f + tz);
         foreach (float z in new[] { 61.5f, 63.4f }) Bush(new Vector3(-19.2f, 0, z), 1.3f, z * 17f);
         // ulica (właściciel 21:08: „ulica Poznańska 2”): główna ulica osiedla A (dom Wawerów, villa Codexa „POZNAŃSKA 5”, garaże
