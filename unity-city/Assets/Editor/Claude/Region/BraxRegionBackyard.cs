@@ -595,6 +595,14 @@ public static class BraxRegionBackyard
         try
         {
             int n = BraxCityMeshCut.Subtract(original, volume, BraxRegion.Out + "/Cuts", label);
+            // Audyt 31.10: stare wieżowce CityMesh_185/188 są już ukryte (BraxCityRebuild), a w ich miejscu stoją nowe
+            // „High-rise south skyline” / „south west skyline”. Cięcie tylko oryginału dawało 0 siatek — hol i biuro stały
+            // za szklaną elewacją nowej wieży. Tniemy też elewacje nowych wieżowców (Subtract pomija siatki poza bryłą).
+            foreach (var t in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (!t.name.StartsWith("High-rise ") || (t.parent && t.parent.name.StartsWith("High-rise "))) continue;
+                n += BraxCityMeshCut.Subtract(t, volume, BraxRegion.Out + "/Cuts", label + "_" + t.name.Substring(10).Replace(' ', '_'));
+            }
             if (BraxClaudeGround.SourcePhysics)
                 foreach (var col in BraxClaudeGround.SourcePhysics.GetComponentsInChildren<Collider>(true))
                     if (col.enabled && !col.isTrigger && col.bounds.Intersects(volume) && col is BoxCollider && volume.Contains(col.bounds.center)) col.enabled = false;
