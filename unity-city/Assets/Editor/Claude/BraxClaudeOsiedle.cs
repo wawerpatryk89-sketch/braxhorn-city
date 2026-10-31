@@ -32,7 +32,7 @@ public static class BraxClaudeOsiedle
     [Serializable] sealed class Report
     {
         public string status = "NIE URUCHOMIONO", error = "";
-        public int ballTreesReplaced, shops, tennis, facades, villas, pools, parkTrees, plotTrees, shrubs, benches, lamps, bins, tables, oldFenceTrianglesRemoved,
+        public int tufts, ballTreesReplaced, shops, tennis, facades, villas, pools, parkTrees, plotTrees, shrubs, benches, lamps, bins, tables, oldFenceTrianglesRemoved,
                    oldFenceCollidersDisabled, meshes, triangles, materials, points;
         public List<string> notes = new List<string>();
     }
@@ -95,7 +95,23 @@ public static class BraxClaudeOsiedle
     static Material Gravel => Pbr("żwir dachu", "bicolour_gravel", 2.5f, new Color(.9f, .9f, .9f));
     static Material Deck => Pbr("taras deska", "wood_floor_deck", 2.2f, new Color(.80f, .79f, .77f), .8f);
     static Material PoolTiles => Pbr("niecka basenu", "blue_floor_tiles_01", 1.6f, new Color(.9f, 1f, 1.05f));
-    static Material Grass => Pbr("trawnik", "grass004", 3.5f, new Color(.93f, 1f, .93f), .6f);
+    // Trawa: własny shader (plamy koloru, przebarwienia, pasy koszenia), awaryjnie Standard.
+    static Material Grass
+    {
+        get
+        {
+            if (mats.TryGetValue("trawnik", out var have)) return have;
+            var sh = Shader.Find("Braxhorn/OsiedleTrawa");
+            if (!sh) { rep.notes.Add("brak shadera Braxhorn/OsiedleTrawa — Standard"); var p = Pbr("trawnik std", "grass004", 3.5f, new Color(.93f, 1f, .93f), .6f); mats["trawnik"] = p; return p; }
+            var d = Tex + "grass004/";
+            var m = new Material(sh) { name = "Osiedle: trawnik (fotoskan, plamy, pasy koszenia)", color = new Color(.90f, 1f, .88f) };
+            m.mainTexture = Map(d + "albedo.jpg", false, true);
+            m.SetTexture("_BumpMap", Map(d + "normal.jpg", true, false));
+            m.SetTexture("_MetallicGlossMap", Map(d + "mg.png", false, false));
+            m.SetTexture("_OcclusionMap", Map(d + "ao.jpg", false, false));
+            AssetDatabase.CreateAsset(m, Out + "/trawnik.mat"); mats["trawnik"] = m; tile[m] = 3.5f; return m;
+        }
+    }
     static Material Glass => Plain("szkło przyciemniane", new Color(.10f, .13f, .15f), .93f, .55f);
     static Material Frame => Plain("aluminium antracyt", new Color(.07f, .075f, .08f), .45f, .6f);
     static Material Steel => Plain("stal czarna płotów", new Color(.06f, .065f, .07f), .35f, .5f);
@@ -435,6 +451,22 @@ public static class BraxClaudeOsiedle
 
     // ---------------- willa ----------------
     static GameObject outdoorSet, bench, bin, picnic, planter; static int binTurn;
+    static GameObject[] tufts = new GameObject[0], flowers = new GameObject[0]; static System.Random tuftRnd = new System.Random(77);
+    // Kępa trawy (lub kwiat) w 3D: losowy gatunek, obrót i skala, bez kolizji, znika z daleka.
+    static void Tuft(Vector3 at, bool flower = false, float scale = 1f)
+    {
+        var set = flower ? flowers : tufts; if (set.Length == 0) return;
+        var o = Put(set[tuftRnd.Next(set.Length)], at, tuftRnd.Next(360), flower ? .015f : .012f, false);
+        if (!o) return;
+        float s = scale * (.8f + (float)tuftRnd.NextDouble() * .5f); o.transform.localScale *= s;
+        foreach (var r in o.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = ShadowCastingMode.Off;
+        rep.tufts++;
+    }
+    static void TuftLine(Vector3 a, Vector3 b, float step, float side)
+    {
+        var d = b - a; float len = d.magnitude; if (len < .5f) return; d /= len; var n = new Vector3(-d.z, 0, d.x) * side;
+        for (float t = step * .5f; t < len; t += step) Tuft(a + d * t + n * (.35f + (float)tuftRnd.NextDouble() * .3f), false, .9f);
+    }
     // swap = działka „bokiem” (ulica wzdłuż Z, głębokość wzdłuż X) — tak stoją domy osiedla A.
     static void Villa(int index, float u0, float u1, float front, float dir, bool swap = false, float depthOverride = 0f,
                       bool garageOn = true, bool fencesOn = true, string label = null)
@@ -552,6 +584,9 @@ public static class BraxClaudeOsiedle
         }
         // zieleń działki
         if (Tree(Pw(W - 3f, 0, 3.4f), 6.5f + (index % 3) * .8f, index * 47f)) rep.plotTrees++;
+        TuftLine(Pw(.2f, 0, 1.2f), Pw(.2f, 0, depth - 1.2f), 3.2f, mirror ? -1f : 1f);
+        for (int k = 0; k < 4; k++) Tuft(Pw(W - 3f + Mathf.Cos(k * 1.7f) * 1.1f, 0, 3.4f + Mathf.Sin(k * 1.7f) * 1.1f));
+        for (int k = 0; k < 5; k++) Tuft(Pw(1.2f + k * .45f, 0, 1.0f + (k % 2) * .4f), true, 1.1f);
         Shrub(Pw(gl0 + .6f, 0, f0 - .9f), .38f, index * 31f);
         Shrub(Pw((gl0 + gl1) * .5f, 0, f0 - .9f), .34f, index * 17f);
         Shrub(Pw(gl1 - .4f, 0, f0 - .9f), .4f, index * 53f);
@@ -789,6 +824,13 @@ public static class BraxClaudeOsiedle
         }
         // donice z kwiatami wokół placu z fontanną
         if (planter) for (int k = 0; k < 6; k++) { float a = k * 60f * Mathf.Deg2Rad; Put(planter, new Vector3(AxisX + Mathf.Cos(a) * 5.3f, .046f, zc + Mathf.Sin(a) * 5.3f), k * 60f + 90f, .03f, false); }
+        // kępy trawy przy alejach i kwiaty przy placu
+        for (float x = X0 + 6f; x < X1 - 6f; x += 5.5f)
+        {
+            if (Mathf.Abs(x - AxisX) < 11f) continue;
+            Tuft(new Vector3(x, 0, zc + 2.45f + (float)tuftRnd.NextDouble() * .4f)); Tuft(new Vector3(x + 2.7f, 0, zc - 2.45f - (float)tuftRnd.NextDouble() * .4f));
+        }
+        for (int k = 0; k < 18; k++) { float a = k * 20f * Mathf.Deg2Rad; Tuft(new Vector3(AxisX + Mathf.Cos(a) * 9.6f, 0, zc + Mathf.Sin(a) * 9.6f), true, 1.2f); }
         // stoły piknikowe na trawnikach
         foreach (var p in new[] { new Vector2(-80, -114), new Vector2(-60, -139), new Vector2(40, -113), new Vector2(75, -138) })
             if (picnic && Put(picnic, new Vector3(p.x, 0, p.y), 15f, .03f)) rep.tables++;
@@ -806,6 +848,8 @@ public static class BraxClaudeOsiedle
             foreach (float side in new[] { -1f, 1f })
                 if (Tree(new Vector3(AxisX + side * 6.5f, 0, z), 6.5f + (float)rnd.NextDouble() * 2f, rnd.Next(360))) rep.parkTrees++;
         }
+        foreach (var t in Group(group).GetComponentsInChildren<LODGroup>(true).Where(l => l.name.StartsWith("Drzewo")).Select(l => l.transform.position).ToList())
+            for (int k = 0; k < 3; k++) Tuft(t + new Vector3(Mathf.Cos(k * 2.1f + t.x) * .9f, 0, Mathf.Sin(k * 2.1f + t.z) * .9f));
         foreach (var p in new[] { new Vector2(-95, -140), new Vector2(-88, -110), new Vector2(15, -140), new Vector2(60, -110), new Vector2(98, -142) })
         {
             if (Tree(new Vector3(p.x, 0, p.y), 8.5f, rnd.Next(360))) rep.parkTrees++;
@@ -935,6 +979,8 @@ public static class BraxClaudeOsiedle
             float xu = -h.x, fxu = -(h.x < 0 ? h.x + 11.5f : h.x - 11.5f);
             FenceZ(h.z - h.hd, h.z + h.hd, fxu, 1.45f, (h.z - 1.8f, h.z + 1.8f));
             WoodFenceX(xu - 11.5f, xu + 11.5f, h.z - h.hd); WoodFenceX(xu - 11.5f, xu + 11.5f, h.z + h.hd);
+            TuftLine(new Vector3(xu - 11f, 0, h.z - h.hd), new Vector3(xu + 11f, 0, h.z - h.hd), 3.4f, 1f);
+            TuftLine(new Vector3(xu - 11f, 0, h.z + h.hd), new Vector3(xu + 11f, 0, h.z + h.hd), 3.4f, -1f);
         }
 
         // 3) nawierzchnie: nowy asfalt, chodniki z kostki, malowanie (wyżej niż stare, bez migotania)
@@ -1010,6 +1056,8 @@ public static class BraxClaudeOsiedle
         colliders = new GameObject("kolizje").transform; colliders.SetParent(root, false);
         outdoorSet = Model("outdoor_table_chair_set_01"); bench = Model("painted_wooden_bench"); bin = Model("metal_trash_can");
         picnic = Model("wooden_picnic_table"); planter = Model("planter_box_02");
+        tufts = new[] { Model("grass_bermuda_01"), Model("grass_medium_02") }.Where(g => g).ToArray();
+        flowers = new[] { Model("flower_gazania"), Model("dandelion_01") }.Where(g => g).ToArray();
 
         // 0) niebo z chmurami zamiast jednolitego tła; trawa osiedla A na fotoskanie (jedna, bez nakładania)
         Sky();

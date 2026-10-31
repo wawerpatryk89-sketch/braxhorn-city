@@ -40,6 +40,10 @@ MODELS = [
     "planter_box_02",
     "outdoor_table_chair_set_01",
     "wooden_picnic_table",
+    "grass_bermuda_01",     # kępy trawy przy płotach, drzewach i ścieżkach
+    "grass_medium_02",
+    "flower_gazania",       # kwiaty na rabatach
+    "dandelion_01",
 ]
 
 
