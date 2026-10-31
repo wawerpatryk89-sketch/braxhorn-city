@@ -8,7 +8,7 @@ permissions:
   contents: write
   actions: read
 concurrency:
-  group: claude-osiedle
+  group: claude-osiedle-${{ github.sha }}
   cancel-in-progress: true
 jobs:
   estate:
