@@ -168,7 +168,8 @@ jobs:
     - name: Plik wymiany 10 GB (edytor Unity + kompilacja IL2CPP na 16 GB RAM, exit 137)
       run: |
         df -h / | tail -1
-        sudo fallocate -l 10G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile || echo 'brak miejsca na swap'
+        # /swapfile (2 GB) już istnieje na runnerze GitHuba („Text file busy”), więc osobny plik.
+        sudo fallocate -l 12G /swapfile-unity && sudo chmod 600 /swapfile-unity && sudo mkswap /swapfile-unity && sudo swapon /swapfile-unity || echo 'brak miejsca na swap'
         free -g
     - name: Compile the connected Unity player with the rebuilt room and annex
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
@@ -374,7 +375,8 @@ jobs:
     - name: Plik wymiany 10 GB (edytor Unity + kompilacja IL2CPP na 16 GB RAM, exit 137)
       run: |
         df -h / | tail -1
-        sudo fallocate -l 10G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile || echo 'brak miejsca na swap'
+        # /swapfile (2 GB) już istnieje na runnerze GitHuba („Text file busy”), więc osobny plik.
+        sudo fallocate -l 12G /swapfile-unity && sudo chmod 600 /swapfile-unity && sudo mkswap /swapfile-unity && sudo swapon /swapfile-unity || echo 'brak miejsca na swap'
         free -g
     - name: Kompilacja aplikacji Android (APK) z tej samej sceny
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
