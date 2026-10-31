@@ -1,0 +1,77 @@
+BRAXHORN CITY — AUTORZY
+
+Pomysł, świat, postacie i muzyka: właściciel gry.
+Modele oznaczone CC BY 4.0: licencja https://creativecommons.org/licenses/by/4.0/ — zmiany opisane przy modelu.
+Tekstury i modele CC0: Poly Haven (polyhaven.com), ambientCG (ambientcg.com) — dziękujemy.
+
+— Modele (autor · licencja · źródło, z metadanych plików) —
+Metro/Subway Station Interior — ETBENO (https://sketchfab.com/yulaflibiskuvi) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/metrosubway-station-interior-14f5a6534607450d82583e0aa0ed345b
+Metro Train 3D - Free 3D — kane_sk06 (https://sketchfab.com/kanesk06) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/metro-train-3d-free-3d-c6bfec7c75b147909a39de96045495c5
+Urban Series – Subway Section: Train Tunnel — Spazio Silvestre (https://sketchfab.com/spazio_silvestre) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/urban-series-subway-section-train-tunnel-26668039209f41a1a793e0e28ed8589c
+Disco ball with colored lights — WwWuengy (https://sketchfab.com/wwwuengy) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/disco-ball-with-colored-lights-8702a32e7a714eec8bde7e21c6de7bdb
+DJ Mixer — Astate (https://sketchfab.com/astate) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/dj-mixer-bf65c81e14bc486dbd3832bb64326860
+Laser Light — JanoschR (https://sketchfab.com/JanoschR) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/laser-light-cd3dff9f2ebe4dc8a8e3644e5266b210
+bateau RIVA boat — Configcars / maxipub (https://sketchfab.com/maxipub) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/bateau-riva-boat-91f0f11ba42b4000abf788d54d73b9b1
+Harbor crane — MisterH (https://sketchfab.com/TGVMisterH) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/harbor-crane-d4d582ebd707426f93f1f5a9cdd0ce03
+Lifeguard Tower — exiS7-Gs (https://sketchfab.com/exiS7-Gs) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/lifeguard-tower-8707a73922004d5f8b67088b91a7a393
+Rustic Wooden Dock — Evan16 (https://sketchfab.com/evan_16) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/rustic-wooden-dock-a2d3be37c4184bc79480912a625a50f1
+Yacht — Sergei (https://sketchfab.com/sergeif) — CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) — https://sketchfab.com/3d-models/yacht-0dd451f295d049cea20c17d3ffa87ee3
+
+— Claude/Library —
+Biblioteka właściciela — modele użyte w regionie R1
+- park_shrub.glb, park_rock.glb: z dev/osiedle/assets/ (paczka Verdant Trail, patrz dev/source-assets/verdant-trail/README.md
+i dev/osiedle/assets/manifest.json). Krzewy i kamienie na trawnikach podwórka i nabrzeża.
+
+— Claude/Metro —
+Metro: autorzy (CC BY 4.0)
+metro_train.glb · kane_sk06 (Sketchfab, „Metro Train 3D – free”) · 383k → 96k trójkątów, tekstury 4096 → 1024 px (218 MB → 25 MB)
+metro_station_interior.glb · ETBENO (Sketchfab) · tekstury maks. 1024 px
+metro_tunnel_section.glb · Spazio Silvestre (Sketchfab, „Urban series – subway section train tunnel”) · bez zmian
+
+— Claude/Nova —
+Klub NOVA: wyposażenie (CC BY 4.0, autorzy wymagani w grze)
+disco_ball.glb · WwWuengy · https://sketchfab.com/3d-models/disco-ball-with-colored-lights-8702a32e7a714eec8bde7e21c6de7bdb · 48k → ok. 10k trójkątów
+laser_light.glb · JanoschR · https://sketchfab.com/3d-models/laser-light-cd3dff9f2ebe4dc8a8e3644e5266b210 · bez zmian
+dj_mixer.glb · Astate · https://sketchfab.com/3d-models/dj-mixer-bf65c81e14bc486dbd3832bb64326860 · bez zmian
+Nieużyty: nightclub.glb (MozillaHubs) — cały budynek 20×38 m w stylu kreskówkowym, nie pasuje do sali NOVA.
+Bar, hokery (Poly Haven bar_chair_round_01), blat (marble_01) i fronty: CC0 z Poly Haven, pobierane w buildzie.
+
+— Claude/Osiedle/models/drzewo_verdant —
+Drzewo Verdant (gra)
+Źródło: części drzewa z paczki „Verdant Trail” właściciela (dev/source-assets/verdant-trail), już obecne
+w scenie osiedla jako EstateMesh_439 (pień, gałęzie) i EstateMesh_453 (liście, island_tree / jacaranda,
+tekstury Poly Haven CC0). Wersja do gry: karty liści przerzedzone losowo (55% / 30% / 12% / 4%) i powiększone
+wokół własnego środka (1.25 / 1.6 / 2.4 / 3.8), żeby korona została pełna przy 49k / 28k / 13k / 6k trójkątów
+zamiast 175k (czwarty poziom na dalekie drzewa w parku). Skrypt: unity-tools/claude/drzewo/build_tree.py + extract.py.
+
+— Claude/Osiedle/models/nutrition_kit —
+BRAXHORN Nutrition — zestaw do osiedla B
+Źródło: NutritionKit.glb i nutrition-mural.jpg z gałęzi miasta (claude/region-20261030-wip, sklep BRAXHORN
+Nutrition). Pliki skopiowane bez zmian (oryginał w mieście nietknięty) — właściciel polecił skopiować sklep
+z miasta do osiedla B i przemeblować go, żeby nie wyglądał tak samo.
+Części użyte w osiedlu: WheyTub, CreatineJar, Shaker, ShelvingBay, Counter, DisplayIsland, LinearPendant.
+Układ w osiedlu jest nowy (regały pod lewą i tylną ścianą, dwie wyspy na środku, lada przy wejściu po prawej,
+mural na prawej ścianie), wszystko scalone do kilku siatek. Kod: Assets/Editor/Claude/BraxClaudeOsiedle.cs
+(NutritionShop).
+
+— HarborBeach —
+Port i plaża: autorzy modeli (CC BY 4.0) i tekstur (CC0)
+Modele pochodzą z biblioteki właściciela (Sketchfab, CC BY 4.0). Na potrzeby telefonu
+uproszczono geometrię części modeli, zmniejszono osadzone tekstury i wyłączono świecenie
+(emissive). Sama geometria nie została zastąpiona innymi modelami.
+yacht.glb · Sergei · https://sketchfab.com/3d-models/yacht-0dd451f295d049cea20c17d3ffa87ee3 · bez zmian geometrii
+bateau_riva_boat.glb · Configcars / maxipub · https://sketchfab.com/3d-models/bateau-riva-boat-91f0f11ba42b4000abf788d54d73b9b1 · 326k → 43k trójkątów, tekstury maks. 1024 px
+jetski_01.glb, jetski_02.glb · Jungle Jim · https://sketchfab.com/3d-models/jetski-collection-d261f758b40c45fdb03ddb57fe89a59e · 50k → 15k trójkątów
+harbor_crane.glb · MisterH · (URL w metadanych oryginalnego GLB) · 255k → 67k trójkątów, bez świecenia
+rustic_wooden_dock.glb · Evan16 · https://sketchfab.com/3d-models/rustic-wooden-dock-a2d3be37c4184bc79480912a625a50f1 · tekstury maks. 1024 px
+lifeguard_tower.glb · exiS7-Gs · https://sketchfab.com/3d-models/lifeguard-tower-8707a73922004d5f8b67088b91a7a393 · tekstury maks. 1024 px, bez świecenia
+Textures/coast_sand_02_*, damp_sand_* · Poly Haven · https://polyhaven.com (CC0) · 2K z oryginałów 4K
+Licencja CC BY 4.0 wymaga podania autorów w grze (ekran „Autorzy”).
+
+— Claude/Library —
+Drzewo Verdant (gra)
+Źródło: części drzewa z paczki „Verdant Trail” właściciela (dev/source-assets/verdant-trail), już obecne
+w scenie osiedla jako EstateMesh_439 (pień, gałęzie) i EstateMesh_453 (liście, island_tree / jacaranda,
+tekstury Poly Haven CC0). Wersja do gry: karty liści przerzedzone losowo (55% / 30% / 12%) i powiększone
+wokół własnego środka (1.25 / 1.6 / 2.4), żeby korona została pełna przy 49k / 28k / 13k trójkątów
+zamiast 175k. Skrypt: unity-tools/claude/drzewo/build_tree.py + extract.py.

@@ -206,8 +206,10 @@ jobs:
         else
           echo "muzyka willi: brak sekretu WILLA_MUZYKA_KLUCZ - gra Industrial Pulse"
         fi
-    - name: Odchudzanie modeli pod telefon (tekstury z .glb jako pliki do kompresji, uproszczenie ciezkich skanow)
-      run: python3 unity-tools/claude/odchudzanie_modeli.py
+    - name: Odchudzanie modeli pod telefon (tekstury z .glb jako pliki do kompresji, uproszczenie ciezkich skanow) + ekran Autorzy
+      run: |
+        python3 unity-tools/claude/autorzy.py
+        python3 unity-tools/claude/odchudzanie_modeli.py
     - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
@@ -439,8 +441,10 @@ jobs:
         else
           echo "muzyka willi: brak sekretu WILLA_MUZYKA_KLUCZ - gra Industrial Pulse"
         fi
-    - name: Odchudzanie modeli pod telefon (tekstury z .glb jako pliki do kompresji, uproszczenie ciezkich skanow)
-      run: python3 unity-tools/claude/odchudzanie_modeli.py
+    - name: Odchudzanie modeli pod telefon (tekstury z .glb jako pliki do kompresji, uproszczenie ciezkich skanow) + ekran Autorzy
+      run: |
+        python3 unity-tools/claude/autorzy.py
+        python3 unity-tools/claude/odchudzanie_modeli.py
     - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:

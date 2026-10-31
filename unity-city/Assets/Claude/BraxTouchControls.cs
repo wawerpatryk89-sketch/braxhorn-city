@@ -21,6 +21,7 @@ public sealed class BraxTouchControls : MonoBehaviour
     Vector2 joyOrigin, joyNow, lookLast;      // współrzędne ekranu (Y w górę)
     float R, B, b, m, gap;
     bool runLock, paused, showFps;
+    bool credits; int creditsPage; string[] creditLines; GUIStyle creditStyle;   // MENU → AUTORZY (licencja CC BY 4.0)
     float fpsT, fpsShown; int fpsN;
     float nextFind, hintUntil;
     Texture2D disc, ring;
@@ -146,7 +147,7 @@ public sealed class BraxTouchControls : MonoBehaviour
     void Pause(bool on)
     {
         if (paused == on || !player) return;
-        paused = on; joyId = lookId = -1; player.MoveInput("0,0"); player.Command("pause");
+        paused = on; credits = false; joyId = lookId = -1; player.MoveInput("0,0"); player.Command("pause");
     }
 
     void Styles()
@@ -218,6 +219,7 @@ public sealed class BraxTouchControls : MonoBehaviour
         Input.simulateMouseWithTouches = true;   // w menu IMGUI ma reagować na dotyk
         var old = GUI.color;
         GUI.color = new Color(0, 0, 0, .72f); GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture); GUI.color = old;
+        if (credits) { Credits(s); return; }
         float w = s * 1.1f, x = (Screen.width - w) * .5f, y = Screen.height * .1f, h = s * .12f, g = s * .03f;
         GUI.Label(new Rect(0, y, Screen.width, h), "BRAXHORN CITY · PAUZA", menuTitle); y += h + g;
         if (GUI.Button(new Rect(x, y, w, h), "WRÓĆ DO GRY", menuBtn)) { Input.simulateMouseWithTouches = false; Pause(false); return; }
@@ -235,5 +237,45 @@ public sealed class BraxTouchControls : MonoBehaviour
         GUI.Label(new Rect(x, y, w, h * .5f), "NISKA: słabszy telefon · ŚREDNIA: telefon 30 kl./s · WYSOKA: komputer", small); y += h * .5f + g;
         if (GUI.Button(new Rect(x, y, (w - g) * .5f, h), showFps ? "FPS: WŁ." : "FPS: WYŁ.", menuBtn)) showFps = !showFps;
         if (GUI.Button(new Rect(x + (w + g) * .5f, y, (w - g) * .5f, h), "OD NOWA (SIŁOWNIA)", menuBtn)) { Input.simulateMouseWithTouches = false; Pause(false); player.Command("reset"); }
+        y += h + g;
+        if (GUI.Button(new Rect(x, y, w, h), "AUTORZY", menuBtn)) { credits = true; creditsPage = 0; }
+    }
+
+    // Ekran „Autorzy”: tekst z Resources/braxhorn_autorzy.txt (unity-tools/claude/autorzy.py zbiera CREDITS.md i metadane
+    // modeli w każdym buildzie). Strony zamiast przewijania — IMGUI na dotyku nie przewija ScrollView palcem.
+    void Credits(float s)
+    {
+        if (creditLines == null)
+        {
+            var ta = Resources.Load<TextAsset>("braxhorn_autorzy");
+            creditLines = (ta ? ta.text : "BRAXHORN CITY — AUTORZY\n(brak listy w tym buildzie)").Replace("\r", "").Split('\n');
+        }
+        if (creditStyle == null) creditStyle = new GUIStyle(small) { alignment = TextAnchor.UpperLeft, wordWrap = true, richText = false };
+        float w = Mathf.Min(Screen.width - s * .1f, s * 1.9f), x = (Screen.width - w) * .5f, top = Screen.height * .06f, h = s * .11f, g = s * .025f;
+        float areaH = Screen.height - top - h * 2.2f;
+        // strona = tyle linii, ile mieści się w polu (wysokość z zawijaniem liczona przez IMGUI)
+        int start = 0, page = 0, end = 0;
+        while (true)
+        {
+            float used = 0; end = start;
+            while (end < creditLines.Length)
+            {
+                float lh = creditStyle.CalcHeight(new GUIContent(creditLines[end].Length == 0 ? " " : creditLines[end]), w);
+                if (used + lh > areaH && end > start) break;
+                used += lh; end++;
+            }
+            if (page == creditsPage || end >= creditLines.Length) break;
+            start = end; page++;
+        }
+        creditsPage = page;
+        var text = string.Join("\n", creditLines, start, end - start);
+        GUI.Label(new Rect(x, top, w, areaH), text, creditStyle);
+        float y = Screen.height - h * 1.6f, bw = (w - 2 * g) / 3f;
+        GUI.enabled = creditsPage > 0;
+        if (GUI.Button(new Rect(x, y, bw, h), "WSTECZ", menuBtn)) creditsPage--;
+        GUI.enabled = end < creditLines.Length;
+        if (GUI.Button(new Rect(x + bw + g, y, bw, h), "DALEJ", menuBtn)) creditsPage++;
+        GUI.enabled = true;
+        if (GUI.Button(new Rect(x + 2 * (bw + g), y, bw, h), "ZAMKNIJ", menuBtn)) credits = false;
     }
 }
