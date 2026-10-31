@@ -36,11 +36,21 @@ TEXTURES = {
     "clay_roof_tiles_02": "dach kopertowy (dachówka ceramiczna)",
     "exterior_wall_cladding_02": "klinkier elewacyjny (parter willi, pierzeja sklepów)",
     "yellow_flower_mulch": "ściółka rabat",
+    "large_grey_tiles": "posadzka komisariatu",
+    "painted_plaster_wall": "ściany wnętrz (farba)",
 }
 MODELS = [
     "street_lamp_01",       # latarnia parkowa
     "modular_street_seating",  # ławka parkowa (listwy + żeliwo), składana z części
     "outdoor_table_chair_set_01",
+    "metal_office_desk",    # komisariat: biurka
+    "dining_chair_02",      # komisariat: krzesła
+    "modern_arm_chair_01",  # komisariat: poczekalnia
+    "sofa_02",              # komisariat: gabinet
+    "modern_ceiling_lamp_01",
+    "drawer_cabinet",
+    "office_notepads",
+    "standing_chalkboard_01",
     "wooden_picnic_table",
     "grass_bermuda_01",     # kępy trawy przy płotach, drzewach i ścieżkach
     "grass_medium_02",
@@ -144,8 +154,8 @@ def main() -> int:
     font_path = next((p for p in ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
                                   "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf") if pathlib.Path(p).exists()), None)
     (ROOT / "signs").mkdir(parents=True, exist_ok=True)
-    for name, text in {"butik": "BUTIK  NYXA", "shake": "SHAKE BAR", "kawiarnia": "KAWIARNIA", "market": "MARKET 24",
-                       "kort": "KLUB TENISOWY", "ochrona": "OCHRONA"}.items():
+    for name, text in {"butik": "BUTIK  NYXA", "shake": "ODŻYWKI · SHAKE BAR", "kawiarnia": "KAWIARNIA", "market": "MARKET 24",
+                       "kort": "KLUB TENISOWY", "ochrona": "OCHRONA", "policja": "KOMISARIAT POLICJI", "silownia": "SIŁOWNIA PLENEROWA"}.items():
         im = Image.new("RGB", (1024, 256), (34, 37, 40)); dr = ImageDraw.Draw(im)
         dr.rectangle([10, 10, 1013, 245], outline=(176, 150, 104), width=6)
         size = 118
@@ -238,6 +248,104 @@ def main() -> int:
             a = max(0.0, 1 - abs(r - .82) / .12)
             if r < 1 and a > 0: pr[xx, yy] = (240, 248, 255, int(200 * a))
     ring.save(ROOT / "detail" / "fala.png")
+    # Pokoje za szybami (atlas 2048x1024 = 8 tylnych ścian 512x512, 3.6 m x 3.4 m): meble na przezroczystym tle,
+    # kolor ściany i boki pokoju dokłada shader okna. 0–4 mieszkania, 5–7 sklepy.
+    import math, random
+    R = random.Random(77)
+    at = Image.new("RGBA", (2048, 1024), (0, 0, 0, 0)); da = ImageDraw.Draw(at)
+    PX = 512 / 3.6; PY = 512 / 3.4
+    def rect(ox, oy, x0, y0, x1, y1, col):   # metry od lewego dolnego rogu ściany
+        da.rectangle([ox + x0 * PX, oy + 511 - y1 * PY, ox + x1 * PX, oy + 511 - y0 * PY], fill=col)
+    def rrect(ox, oy, x0, y0, x1, y1, col, r=.06):
+        da.rounded_rectangle([ox + x0 * PX, oy + 511 - y1 * PY, ox + x1 * PX, oy + 511 - y0 * PY], radius=int(r * PX), fill=col)
+    def ell(ox, oy, cx, cy, rx, ry, col):
+        da.ellipse([ox + (cx - rx) * PX, oy + 511 - (cy + ry) * PY, ox + (cx + rx) * PX, oy + 511 - (cy - ry) * PY], fill=col)
+    def shade(c, k): return tuple(max(0, min(255, int(v * k))) for v in c[:3]) + (255,)
+    def painting(ox, oy, x0, y0, w, h):
+        rect(ox, oy, x0 - .04, y0 - .04, x0 + w + .04, y0 + h + .04, (40, 36, 32, 255))
+        rect(ox, oy, x0, y0, x0 + w, y0 + h, (236, 230, 218, 255))
+        for k in range(5):
+            c = R.choice([(196, 90, 60), (60, 110, 150), (220, 180, 80), (90, 130, 90), (40, 50, 70)])
+            ell(ox, oy, x0 + R.uniform(.15, w - .15), y0 + R.uniform(.15, h - .15), R.uniform(.08, .25), R.uniform(.06, .2), c + (255,))
+    def plant(ox, oy, x, s=1):
+        rect(ox, oy, x - .14 * s, 0, x + .14 * s, .32 * s, (150, 96, 70, 255))
+        for k in range(14):
+            ell(ox, oy, x + R.uniform(-.28, .28) * s, .35 * s + R.uniform(0, .7) * s, R.uniform(.06, .13) * s, R.uniform(.05, .1) * s, R.choice([(52, 104, 46), (70, 128, 58), (40, 86, 40)]) + (255,))
+    def lamp(ox, oy, x):
+        rect(ox, oy, x - .015, 0, x + .015, 1.45, (40, 40, 40, 255)); rect(ox, oy, x - .14, 0, x + .14, .03, (40, 40, 40, 255))
+        da.polygon([(ox + (x - .2) * PX, oy + 511 - 1.4 * PY), (ox + (x + .2) * PX, oy + 511 - 1.4 * PY), (ox + (x + .13) * PX, oy + 511 - 1.72 * PY), (ox + (x - .13) * PX, oy + 511 - 1.72 * PY)], fill=(236, 226, 200, 255))
+    def books(ox, oy, x0, x1, y0, y1):
+        x = x0
+        while x < x1 - .03:
+            w = R.uniform(.03, .07); h = R.uniform(.6, .95) * (y1 - y0)
+            rect(ox, oy, x, y0, min(x + w, x1), y0 + h, R.choice([(150, 40, 40), (40, 70, 120), (200, 170, 90), (60, 100, 70), (90, 60, 40), (220, 220, 210)]) + (255,)); x += w + .006
+    tiles = []
+    # 0 salon: kanapa, obraz, lampa, roślina, stolik
+    def t0(ox, oy):
+        sofa = (R.choice([(70, 86, 110), (120, 100, 80), (90, 96, 90)]) + (255,))
+        rrect(ox, oy, .7, .1, 2.9, .48, shade(sofa, .85)); rrect(ox, oy, .7, .4, 2.9, .9, sofa); rrect(ox, oy, .55, .1, .85, .66, shade(sofa, .9)); rrect(ox, oy, 2.75, .1, 3.05, .66, shade(sofa, .9))
+        rect(ox, oy, .7, 0, .78, .1, (40, 30, 25, 255)); rect(ox, oy, 2.82, 0, 2.9, .1, (40, 30, 25, 255))
+        painting(ox, oy, 1.2, 1.35, 1.2, .8); lamp(ox, oy, .3); plant(ox, oy, 3.3)
+    # 1 sypialnia: łóżko, szafa, obraz
+    def t1(ox, oy):
+        rect(ox, oy, .35, 0, 1.35, 2.1, (200, 186, 160, 255)); rect(ox, oy, .84, .05, .86, 2.05, (120, 106, 90, 255)); rect(ox, oy, .74, .9, .78, 1.2, (80, 70, 60, 255)); rect(ox, oy, .92, .9, .96, 1.2, (80, 70, 60, 255))
+        rect(ox, oy, 1.7, 0, 3.4, .55, (230, 228, 222, 255)); rect(ox, oy, 1.7, .4, 3.4, .55, R.choice([(120, 140, 170), (170, 120, 110), (140, 150, 120)]) + (255,))
+        rect(ox, oy, 1.65, 0, 3.45, 1.05, (110, 84, 64, 255)); rect(ox, oy, 1.75, .1, 3.35, .95, (128, 100, 78, 255)); rect(ox, oy, 1.7, 0, 3.4, .55, (232, 230, 224, 255)); rect(ox, oy, 1.7, .32, 3.4, .55, R.choice([(120, 140, 170), (170, 120, 110), (140, 150, 120)]) + (255,))
+        painting(ox, oy, 2.1, 1.45, .9, .6)
+    # 2 kuchnia: szafki dolne i górne, blat, lodówka
+    def t2(ox, oy):
+        front = R.choice([(236, 234, 228), (60, 70, 66), (180, 160, 130)])
+        rect(ox, oy, 0, 0, 2.7, .88, front + (255,)); rect(ox, oy, 0, .88, 2.75, .93, (50, 48, 46, 255))
+        for x in [0, .6, 1.2, 1.8, 2.4]: rect(ox, oy, x + .29, .1, x + .31, .8, shade(front, .8))
+        rect(ox, oy, 0, 1.45, 2.7, 2.15, front + (255,))
+        for x in [0, .9, 1.8]: rect(ox, oy, x + .44, 1.47, x + .46, 2.13, shade(front, .8))
+        rect(ox, oy, .2, .93, 2.5, 1.45, (210, 214, 214, 255))
+        rect(ox, oy, 2.8, 0, 3.5, 2.0, (200, 202, 204, 255)); rect(ox, oy, 2.8, 1.2, 3.5, 1.23, (150, 150, 150, 255)); rect(ox, oy, 2.85, 1.3, 2.88, 1.7, (120, 120, 120, 255))
+    # 3 gabinet: regał z książkami, biurko, krzesło
+    def t3(ox, oy):
+        rect(ox, oy, .2, 0, 1.9, 2.3, (120, 92, 66, 255))
+        for k in range(5):
+            y = .1 + k * .44; rect(ox, oy, .26, y, 1.84, y + .03, (100, 76, 54, 255)); books(ox, oy, .3, 1.8, y + .03, y + .4)
+        rect(ox, oy, 2.2, .72, 3.4, .76, (60, 50, 44, 255)); rect(ox, oy, 2.25, 0, 2.3, .72, (40, 40, 40, 255)); rect(ox, oy, 3.3, 0, 3.35, .72, (40, 40, 40, 255))
+        rect(ox, oy, 2.6, .76, 3.0, 1.06, (30, 30, 34, 255)); rrect(ox, oy, 2.55, .42, 3.05, 1.0, (50, 50, 56, 255)); lamp(ox, oy, 3.45)
+    # 4 jadalnia: stół, krzesła, lampa wisząca, kredens
+    def t4(ox, oy):
+        rect(ox, oy, .2, 0, 1.3, .9, (150, 120, 90, 255)); rect(ox, oy, .25, .9, 1.25, 1.6, (170, 140, 110, 255)); rect(ox, oy, .3, .95, .74, 1.55, (190, 200, 205, 255)); rect(ox, oy, .76, .95, 1.2, 1.55, (190, 200, 205, 255))
+        rect(ox, oy, 1.6, .72, 3.3, .78, (110, 80, 56, 255)); rect(ox, oy, 1.7, 0, 1.75, .72, (90, 66, 46, 255)); rect(ox, oy, 3.15, 0, 3.2, .72, (90, 66, 46, 255))
+        for x in [1.9, 2.5, 3.0]: rect(ox, oy, x, 0, x + .05, .9, (60, 50, 44, 255)); rect(ox, oy, x - .05, .42, x + .35, .46, (60, 50, 44, 255))
+        rect(ox, oy, 2.44, 1.7, 2.46, 3.4, (40, 40, 40, 255)); ell(ox, oy, 2.45, 1.62, .28, .12, (230, 220, 196, 255)); painting(ox, oy, 2.0, 1.95, .9, .55)
+    # 5 sklep odzieżowy: wieszaki z ubraniami, półki
+    def t5(ox, oy):
+        for bx in [.2, 1.9]:
+            rect(ox, oy, bx, 1.55, bx + 1.5, 1.58, (50, 50, 50, 255))
+            x = bx + .05
+            while x < bx + 1.42:
+                c = R.choice([(30, 30, 34), (200, 196, 186), (140, 40, 50), (60, 80, 120), (170, 150, 120), (90, 110, 80)])
+                rect(ox, oy, x, .7, x + .09, 1.5, c + (255,)); x += .12
+        rect(ox, oy, .1, 2.0, 3.5, 2.05, (200, 196, 190, 255))
+        for x in [.3, 1.1, 1.9, 2.7]: rect(ox, oy, x, 2.05, x + .6, 2.35, R.choice([(220, 210, 190), (60, 60, 70), (160, 50, 50)]) + (255,))
+    # 6 kawiarnia: lada, ekspres, tablica menu, półki z kubkami
+    def t6(ox, oy):
+        rect(ox, oy, .3, 0, 3.3, 1.05, (90, 66, 46, 255)); rect(ox, oy, .25, 1.05, 3.35, 1.1, (40, 40, 40, 255))
+        rect(ox, oy, 1.2, 1.1, 1.8, 1.55, (170, 172, 176, 255)); rect(ox, oy, 1.25, 1.3, 1.75, 1.45, (60, 60, 64, 255))
+        rect(ox, oy, .5, 1.9, 1.9, 2.7, (34, 36, 34, 255))
+        for k in range(5): rect(ox, oy, .6, 2.0 + k * .13, R.uniform(1.2, 1.8), 2.04 + k * .13, (220, 220, 210, 255))
+        for y in [1.75, 2.15, 2.55]:
+            rect(ox, oy, 2.2, y, 3.3, y + .03, (120, 92, 66, 255))
+            for x in range(6): rect(ox, oy, 2.28 + x * .17, y + .03, 2.38 + x * .17, y + .15, R.choice([(236, 232, 224), (190, 80, 60), (60, 90, 110)]) + (255,))
+    # 7 market: regały z towarem
+    def t7(ox, oy):
+        for bx in [.1, 1.85]:
+            rect(ox, oy, bx, 0, bx + 1.65, 2.0, (200, 200, 196, 255))
+            for k in range(5):
+                y = .15 + k * .38; rect(ox, oy, bx + .03, y, bx + 1.62, y + .03, (150, 150, 150, 255))
+                x = bx + .06
+                while x < bx + 1.55:
+                    w = R.uniform(.06, .14); h = R.uniform(.15, .3)
+                    rect(ox, oy, x, y + .03, x + w, y + .03 + h, R.choice([(200, 40, 40), (240, 200, 40), (40, 120, 60), (40, 80, 160), (240, 240, 230), (230, 120, 40)]) + (255,)); x += w + .01
+    for k, fn in enumerate([t0, t1, t2, t3, t4, t5, t6, t7]):
+        fn((k % 4) * 512, (k // 4) * 512)
+    at.save(ROOT / "detail" / "pokoje.png")
     print("DETAIL OK")
     (ROOT / "osiedle-sources.json").write_text(json.dumps(report, indent=1, ensure_ascii=False))
     return 0

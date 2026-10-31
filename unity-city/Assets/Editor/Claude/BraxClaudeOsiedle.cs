@@ -32,7 +32,7 @@ public static class BraxClaudeOsiedle
     [Serializable] sealed class Report
     {
         public string status = "NIE URUCHOMIONO", error = "";
-        public int grassClumps, flowerClumps, flowerBeds, bushes, roofs;
+        public int grassClumps, flowerClumps, flowerBeds, bushes, roofs, fakeRoomMaterials, fakeRoomWindowsA;
         public int tufts, ballTreesReplaced, shops, tennis, facades, villas, pools, parkTrees, plotTrees, shrubs, benches, lamps, bins, tables, oldFenceTrianglesRemoved,
                    oldFenceCollidersDisabled, meshes, triangles, materials, points;
         public List<string> notes = new List<string>();
@@ -186,7 +186,23 @@ public static class BraxClaudeOsiedle
     }
     static Material Blades => ClumpMat("trawa 3D źdźbła", "zdzbla.png", .035f, .8f, new Color(.80f, .90f, .74f), 16f, 30f);
     static Material Blooms => ClumpMat("kwiaty rabat", "kwiaty.png", .05f, 0f, Color.white, 34f, 60f);
-    static Material Glass => Plain("szkło przyciemniane", new Color(.10f, .13f, .15f), .93f, .55f);
+    // Szyby domów bez wnętrza: pokój za szybą (shader Braxhorn/OsiedleOkno); awaryjnie ciemne szkło.
+    static Material OknoMat(string key, float variant, float variants, float cellH, float floor0)
+    {
+        if (mats.TryGetValue(key, out var have)) return have;
+        var sh = Shader.Find("Braxhorn/OsiedleOkno"); const string path = "Assets/Source/Claude/Osiedle/detail/pokoje.png";
+        var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (!sh || !imp) { rep.notes.Add("okna: brak shadera lub atlasu pokoi — ciemne szkło"); var g = Plain("szkło przyciemniane", new Color(.10f, .13f, .15f), .93f, .55f); mats[key] = g; return g; }
+        imp.textureType = TextureImporterType.Default; imp.sRGBTexture = true; imp.alphaSource = TextureImporterAlphaSource.FromInput; imp.alphaIsTransparency = true;
+        imp.mipmapEnabled = true; imp.wrapMode = TextureWrapMode.Clamp; imp.maxTextureSize = 2048; imp.textureCompression = TextureImporterCompression.Compressed; imp.SaveAndReimport();
+        var m = new Material(sh) { name = "Osiedle: " + key };
+        m.SetTexture("_Rooms", AssetDatabase.LoadAssetAtPath<Texture2D>(path));
+        m.SetFloat("_Variant", variant); m.SetFloat("_Variants", variants); m.SetFloat("_CellH", cellH); m.SetFloat("_Floor0", floor0);
+        AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = 1f; rep.fakeRoomMaterials++; return m;
+    }
+    static Material Glass => OknoMat("okna z pokojami (domy)", 0, 5, 3.4f, 0f);
+    static Material ShopGlass => OknoMat("witryny z wnętrzem sklepu", 5, 3, 4.2f, 0f);
+    static Material FlatGlass => OknoMat("okna mieszkań nad sklepami", 0, 5, 3.4f, .8f);
     static Material Frame => Plain("aluminium antracyt", new Color(.07f, .075f, .08f), .45f, .6f);
     static Material Steel => Plain("stal czarna płotów", new Color(.06f, .065f, .07f), .35f, .5f);
     static Material GarageDoor => Plain("brama garażowa", new Color(.20f, .21f, .22f), .5f, .4f);
@@ -1160,7 +1176,7 @@ public static class BraxClaudeOsiedle
         {
             float a = x0 + k * unit, b = a + unit;
             // witryna na całą szerokość lokalu (szkło wysunięte, ramy co 2.4 m), drzwi szklane
-            BoxMinMax(Glass, a + .6f, b - .6f, .35f, 3.5f, zf - .03f, zf + .02f, false);
+            BoxMinMax(ShopGlass, a + .6f, b - .6f, .35f, 3.5f, zf - .03f, zf + .02f, false);
             for (float x = a + .6f; x <= b - .55f; x += Mathf.Max(1.8f, (b - a - 1.2f) / Mathf.Max(1, Mathf.Round((b - a - 1.2f) / 2.4f))))
                 BoxMinMax(Frame, x - .04f, x + .04f, .35f, 3.5f, zf - .06f, zf + .01f, false);
             BoxMinMax(Frame, a + .6f, b - .6f, 3.5f, 3.58f, zf - .06f, zf + .01f, false);
@@ -1174,16 +1190,16 @@ public static class BraxClaudeOsiedle
             // okna apartamentów: front (za balkonem) i tył (od parku) z balkonami francuskimi
             for (float x = a + 1.4f; x < b - 1.2f; x += 3.2f)
             {
-                BoxMinMax(Glass, x, x + 2.0f, H0 + .6f, H0 + 2.9f, zf + .77f, zf + .83f, false);
+                BoxMinMax(FlatGlass, x, x + 2.0f, H0 + .6f, H0 + 2.9f, zf + .77f, zf + .83f, false);
                 BoxMinMax(Frame, x - .06f, x + 2.06f, H0 + 2.9f, H0 + 2.97f, zf + .75f, zf + .84f, false);
-                BoxMinMax(Glass, x + .2f, x + 1.8f, H0 + .4f, H0 + 2.9f, zb - .33f, zb - .27f, false);
+                BoxMinMax(FlatGlass, x + .2f, x + 1.8f, H0 + .4f, H0 + 2.9f, zb - .33f, zb - .27f, false);
                 BoxMinMax(Frame, x + .14f, x + 1.86f, H0 + 2.9f, H0 + 2.97f, zb - .34f, zb - .24f, false);
                 BoxMinMax(Frame, x + .14f, x + 1.86f, H0 + .33f, H0 + .4f, zb - .34f, zb - .16f, false);
                 BoxMinMax(GlassClear, x + .14f, x + 1.86f, H0 + .45f, H0 + 1.4f, zb - .2f, zb - .17f, false);
                 BoxMinMax(Frame, x + .14f, x + 1.86f, H0 + 1.4f, H0 + 1.45f, zb - .21f, zb - .16f, false);
             }
             // tył parteru: okna zaplecza i drzwi serwisowe
-            BoxMinMax(Glass, a + 1.5f, a + 3.3f, 1.2f, 2.8f, zb, zb + .04f, false);
+            BoxMinMax(ShopGlass, a + 1.5f, a + 3.3f, 1.2f, 2.8f, zb, zb + .04f, false);
             BoxMinMax(Frame, a + 1.43f, a + 3.37f, 1.13f, 1.2f, zb, zb + .1f, false);
             BoxMinMax(GarageDoor, b - 2.6f, b - 1.5f, .02f, 2.3f, zb, zb + .05f, false);
             if (k > 0) BoxMinMax(Plinth, a - .15f, a + .15f, 0, H0, zf - .05f, zf + .02f, false);   // pilastry między lokalami
@@ -1194,9 +1210,9 @@ public static class BraxClaudeOsiedle
             float o = x == x0 ? -1f : 1f, xg = x + o * .02f, xu = x + o * (-.3f + .02f);
             for (float z = zf + 2.5f; z < zb - 2f; z += 4f)
             {
-                BoxMinMax(Glass, Mathf.Min(xg, xg + o * .03f), Mathf.Max(xg, xg + o * .03f), 1.0f, 3.0f, z, z + 1.6f, false);
+                BoxMinMax(ShopGlass, Mathf.Min(xg, xg + o * .03f), Mathf.Max(xg, xg + o * .03f), 1.0f, 3.0f, z, z + 1.6f, false);
                 BoxMinMax(Frame, Mathf.Min(xg, xg + o * .06f), Mathf.Max(xg, xg + o * .06f), 3.0f, 3.07f, z - .06f, z + 1.66f, false);
-                BoxMinMax(Glass, Mathf.Min(xu, xu + o * .03f), Mathf.Max(xu, xu + o * .03f), H0 + .6f, H0 + 2.8f, z + .1f, z + 1.5f, false);
+                BoxMinMax(FlatGlass, Mathf.Min(xu, xu + o * .03f), Mathf.Max(xu, xu + o * .03f), H0 + .6f, H0 + 2.8f, z + .1f, z + 1.5f, false);
                 BoxMinMax(Frame, Mathf.Min(xu, xu + o * .06f), Mathf.Max(xu, xu + o * .06f), H0 + 2.8f, H0 + 2.87f, z + .04f, z + 1.56f, false);
                 BoxMinMax(Frame, Mathf.Min(xu, xu + o * .12f), Mathf.Max(xu, xu + o * .12f), H0 + .5f, H0 + .56f, z, z + 1.6f, false);
             }
@@ -1256,7 +1272,7 @@ public static class BraxClaudeOsiedle
         BoxMinMax(Wood, cx - 7f, cx + 7f, 0, 3.2f, Mathf.Min(pz0, pz1), Mathf.Max(pz0, pz1));
         BoxMinMax(Stucco, cx - 7.6f, cx + 7.6f, 3.2f, 3.5f, Mathf.Min(pz0, pz1) - .9f, Mathf.Max(pz0, pz1) + .3f, false, true);
         float face = pz0 - dir * .02f;
-        BoxMinMax(Glass, cx - 5.5f, cx + 5.5f, .3f, 2.9f, Mathf.Min(face, face - dir * .05f), Mathf.Max(face, face - dir * .05f), false);
+        BoxMinMax(ShopGlass, cx - 5.5f, cx + 5.5f, .3f, 2.9f, Mathf.Min(face, face - dir * .05f), Mathf.Max(face, face - dir * .05f), false);
         Sign("kort", new Vector3(cx + 6f, 2.5f, cz - dir * 9.12f), 5f, 1.25f, new Vector3(0, 0, -dir));
         ParkBench(new Vector3(cx - 4f, .035f, cz - dir * 10.2f), dir > 0 ? 180 : 0); ParkBench(new Vector3(cx + 4f, .035f, cz - dir * 10.2f), dir > 0 ? 180 : 0);
         // zieleń klubu: szpaler drzew za kortem i krzewy przy ogrodzeniu
@@ -1337,7 +1353,7 @@ public static class BraxClaudeOsiedle
         Cylinder(Stone, fc + Vector3.up * 1.6f, 1.15f, .2f, 28, true, false);
         Disc(Water, fc + Vector3.up * 1.81f, 1.0f, 28);
         Cylinder(Steel, fc + Vector3.up * 1.81f, .07f, .14f, 10, true, false);
-        FountainWater(fc);
+        Guard("woda fontanny", () => FountainWater(fc));
         // rabaty: pierścień przy misie (na placu) i pierścień wokół placu, z przerwami na aleje
         foreach (var (a0, a1) in new[] { (22f, 68f), (112f, 158f), (202f, 248f), (292f, 338f) })
             FlowerRing(fc, 4.3f, 5.3f, a0, a1, (int)a0, 0, 2);
@@ -1424,6 +1440,9 @@ public static class BraxClaudeOsiedle
             foreach (float side in new[] { -2.3f, 2.3f }) Box(Deck, new Vector3(gx + 5f, 2.78f, zc + side), new Vector3(10.6f, .16f, .2f), false);
             for (float x = gx - .2f; x <= gx + 10.2f; x += .6f) Box(Deck, new Vector3(x, 2.92f, zc), new Vector3(.08f, .12f, 5.4f), false);
         }
+        // siłownia plenerowa (przed sadzeniem drzew, żeby drzewa jej nie zasłoniły)
+        Guard("siłownia plenerowa", () => OutdoorGym(50f, -119.6f));
+        group = "Park Centralny";
         // stoły piknikowe na trawnikach
         var picnicSpots = new[] { new Vector2(-80, -114), new Vector2(-48, -142), new Vector2(40, -113), new Vector2(75, -138) };
         foreach (var p in picnicSpots)
@@ -1439,6 +1458,7 @@ public static class BraxClaudeOsiedle
             if ((x - fc.x) * (x - fc.x) + (z - fc.z) * (z - fc.z) < 13.5f * 13.5f) return false;
             foreach (var p in picnicSpots) if ((x - p.x) * (x - p.x) + (z - p.y) * (z - p.y) < 5.5f * 5.5f) return false;
             if (x > -82f && x < -62f && z > -148.5f && z < -131.5f) return false;    // plac zabaw (widok bez drzew)
+            if (x > 47f && x < 69f && z > -121.5f && z < -103f) return false;        // siłownia plenerowa
             return true;
         }
         int before = treeSpots.Count;
@@ -1491,6 +1511,101 @@ public static class BraxClaudeOsiedle
         }
         foreach (var t in parkTrees.Where((q, i) => i % 3 == 0))
             for (int k = 0; k < 3; k++) Tuft(new Vector3(t.x + Mathf.Cos(k * 2.1f + t.x) * .9f, 0, t.z + Mathf.Sin(k * 2.1f + t.z) * .9f));
+    }
+
+    // Rura między dwoma punktami (drążki, poręcze, ramy sprzętu): pobocznica bez denek, normalne promieniste.
+    static void Tube(Material m, Vector3 a, Vector3 b, float r, int seg = 10)
+    {
+        var bt = B(m); var axis = (b - a); float len = axis.magnitude; if (len < 1e-3f) return; axis /= len;
+        var side = Vector3.Cross(axis, Mathf.Abs(axis.y) > .9f ? Vector3.right : Vector3.up).normalized; var up = Vector3.Cross(side, axis);
+        float s = tile.TryGetValue(m, out var tl) ? tl : 1f;
+        for (int k = 0; k < seg; k++)
+        {
+            float a0 = k * Mathf.PI * 2 / seg, a1 = (k + 1) * Mathf.PI * 2 / seg;
+            Vector3 d0 = side * Mathf.Cos(a0) + up * Mathf.Sin(a0), d1 = side * Mathf.Cos(a1) + up * Mathf.Sin(a1);
+            int i0 = bt.v.Count;
+            var vs = new[] { a + d0 * r, a + d1 * r, b + d1 * r, b + d0 * r }; var ns = new[] { d0, d1, d1, d0 };
+            var us = new[] { a0 * r / s, a1 * r / s, a1 * r / s, a0 * r / s }; var ws = new[] { 0f, 0f, len / s, len / s };
+            for (int q = 0; q < 4; q++) { bt.v.Add(vs[q]); bt.n.Add(ns[q]); bt.t.Add(new Vector4(axis.x, axis.y, axis.z, 1)); bt.uv.Add(new Vector2(us[q], ws[q])); }
+            bt.i.AddRange(new[] { i0, i0 + 2, i0 + 1, i0, i0 + 3, i0 + 2 });
+        }
+        if (Mathf.Min(a.y, b.y) < .3f) { var lo = Vector3.Min(a, b); var hi = Vector3.Max(a, b); Hard(lo.x - r, hi.x + r, lo.z - r, hi.z + r); }
+    }
+    // Siłownia plenerowa w parku (jak na polskich osiedlach): nawierzchnia EPDM, zestaw street workout
+    // (drążki na trzech wysokościach, poręcze do pompek, drabinka pozioma, ławka skośna do brzuszków),
+    // cztery urządzenia na słupach (orbitrek, wioślarz, twister, prasa nożna), tablica z zasadami, ławki.
+    static void OutdoorGym(float x0, float z0)
+    {
+        group = "Park Centralny / siłownia plenerowa";
+        var green = Plain("siłownia plenerowa zieleń", new Color(.16f, .42f, .24f), .55f, .2f);
+        var yellow = Plain("siłownia plenerowa żółć", new Color(.86f, .66f, .10f), .55f, .2f);
+        var steel = Plain("stal ocynkowana", new Color(.62f, .64f, .66f), .6f, .7f);
+        // kwadrat z kostki brukowej 16 x 16 m z obrzeżem — i tyle (sam sprzęt pod gołym niebem)
+        var kostka = Pbr("kostka brukowa", "concrete_pavers_02", 1.8f, new Color(.90f, .90f, .91f));
+        float x1 = x0 + 16f, z1 = z0 + 16f, y = .045f;
+        Top(kostka, x0, x1, z0, z1, y);
+        BoxMinMax(KerbStone, x0 - .1f, x1 + .1f, 0, .08f, z0 - .1f, z0, false); BoxMinMax(KerbStone, x0 - .1f, x1 + .1f, 0, .08f, z1, z1 + .1f, false);
+        BoxMinMax(KerbStone, x0 - .1f, x0, 0, .08f, z0, z1, false); BoxMinMax(KerbStone, x1, x1 + .1f, 0, .08f, z0, z1, false);
+        // street workout: rama z drążkami 1.6 / 2.0 / 2.4 m
+        float sx = x0 + 1.5f, sz = z0 + 2f;
+        float[] hs = { 1.6f, 2.0f, 2.4f };
+        for (int k = 0; k <= 3; k++) Tube(green, new Vector3(sx + k * 1.4f, y, sz), new Vector3(sx + k * 1.4f, 2.6f, sz), .06f);
+        for (int k = 0; k < 3; k++) Tube(steel, new Vector3(sx + k * 1.4f, hs[k], sz), new Vector3(sx + (k + 1) * 1.4f, hs[k], sz), .02f, 8);
+        Collider(new Vector3(sx + 2.1f, 1.3f, sz), new Vector3(4.4f, 2.6f, .14f));
+        // poręcze do pompek na poręczach (dipy)
+        float px = x0 + 8f, pz = z0 + 1.6f;
+        foreach (float dz in new[] { 0f, .55f })
+        {
+            foreach (float dx in new[] { 0f, 2f }) Tube(green, new Vector3(px + dx, y, pz + dz), new Vector3(px + dx, 1.2f, pz + dz), .05f);
+            Tube(steel, new Vector3(px - .1f, 1.2f, pz + dz), new Vector3(px + 2.1f, 1.2f, pz + dz), .025f, 8);
+        }
+        Collider(new Vector3(px + 1f, .6f, pz + .27f), new Vector3(2.2f, 1.2f, .7f));
+        // drabinka pozioma (małpi gaj)
+        float lx = x0 + 1.5f, lz = z0 + 5.5f;
+        foreach (float dz in new[] { 0f, .7f })
+        {
+            foreach (float dx in new[] { 0f, 3.6f }) Tube(green, new Vector3(lx + dx, y, lz + dz), new Vector3(lx + dx, 2.3f, lz + dz), .06f);
+            Tube(green, new Vector3(lx, 2.3f, lz + dz), new Vector3(lx + 3.6f, 2.3f, lz + dz), .045f);
+        }
+        for (float dx = .3f; dx < 3.4f; dx += .4f) Tube(steel, new Vector3(lx + dx, 2.3f, lz), new Vector3(lx + dx, 2.3f, lz + .7f), .018f, 6);
+        Collider(new Vector3(lx + 1.8f, 1.15f, lz + .35f), new Vector3(3.8f, 2.3f, .9f));
+        // ławka skośna do brzuszków
+        OBoxQ(yellow, new Vector3(x0 + 7.5f, .55f, z0 + 6.2f), new Vector3(.45f, .06f, 1.7f), Quaternion.Euler(-18f, 0, 0), true);
+        Tube(green, new Vector3(x0 + 7.5f, y, z0 + 5.5f), new Vector3(x0 + 7.5f, .3f, z0 + 5.5f), .05f); Tube(green, new Vector3(x0 + 7.5f, y, z0 + 6.9f), new Vector3(x0 + 7.5f, .82f, z0 + 6.9f), .05f);
+        Tube(steel, new Vector3(x0 + 7.25f, .42f, z0 + 7.05f), new Vector3(x0 + 7.75f, .42f, z0 + 7.05f), .03f, 8);
+        // urządzenia na słupach: słup + ramiona + pedały/siedziska (żółte), co 2.4 m wzdłuż tylnej krawędzi
+        for (int k = 0; k < 4; k++)
+        {
+            float ux = x0 + 9.6f + k * 1.7f, uz = z0 + 8.4f;
+            Tube(green, new Vector3(ux, y, uz), new Vector3(ux, 1.7f, uz), .07f);
+            Cylinder(green, new Vector3(ux, y, uz), .14f, .06f, 12, true, false);
+            Tube(green, new Vector3(ux, 1.55f, uz), new Vector3(ux, 1.55f, uz - .55f), .04f);
+            if (k == 0)   // orbitrek: dwa ramiona i płozy
+            {
+                foreach (float s2 in new[] { -.22f, .22f }) { Tube(steel, new Vector3(ux + s2, 1.55f, uz - .5f), new Vector3(ux + s2, .35f, uz - .75f), .025f, 8); OBox(yellow, new Vector3(ux + s2, .32f, uz - .85f), new Vector3(.14f, .04f, .36f), 0); }
+            }
+            else if (k == 1)   // wioślarz: siedzisko, podnóżek, drążek
+            {
+                OBox(yellow, new Vector3(ux, .45f, uz - .7f), new Vector3(.4f, .06f, .35f), 0); OBox(yellow, new Vector3(ux, .25f, uz - 1.25f), new Vector3(.45f, .04f, .2f), 0);
+                Tube(steel, new Vector3(ux - .3f, 1.0f, uz - .45f), new Vector3(ux + .3f, 1.0f, uz - .45f), .025f, 8);
+            }
+            else if (k == 2)   // twister: obrotowy talerz i uchwyty
+            {
+                Cylinder(yellow, new Vector3(ux, .2f, uz - .6f), .3f, .05f, 16, true, false);
+                Tube(steel, new Vector3(ux - .25f, 1.2f, uz - .3f), new Vector3(ux + .25f, 1.2f, uz - .3f), .025f, 8);
+            }
+            else   // prasa nożna: siedzisko z oparciem i płyta
+            {
+                OBox(yellow, new Vector3(ux, .5f, uz - .55f), new Vector3(.42f, .06f, .4f), 0); OBoxQ(yellow, new Vector3(ux, .8f, uz - .35f), new Vector3(.42f, .5f, .05f), Quaternion.Euler(-12f, 0, 0));
+                OBoxQ(yellow, new Vector3(ux, .45f, uz - 1.15f), new Vector3(.4f, .35f, .04f), Quaternion.Euler(15f, 0, 0));
+            }
+            Collider(new Vector3(ux, .85f, uz - .5f), new Vector3(.7f, 1.7f, 1.2f));
+        }
+        // tablica z zasadami i ławki
+        Tube(green, new Vector3(x1 - 1f, y, z0 + 1f), new Vector3(x1 - 1f, 2.2f, z0 + 1f), .05f);
+        Sign("silownia", new Vector3(x1 - 1f, 1.9f, z0 + .93f), 2.0f, .5f, Vector3.back);
+        ParkBench(new Vector3(x0 + 4f, .035f, z1 - .9f), 180); ParkBench(new Vector3(x0 + 11f, .035f, z0 - 1.2f), 0);
+        rep.notes.Add("park: siłownia plenerowa (street workout + 4 urządzenia)");
     }
 
     // Płynąca woda fontanny: strumień w górę z dyszy, przelew z górnej czaszy (kurtyna kropel), rozbryzgi i kręgi na tafli.
@@ -1834,6 +1949,30 @@ public static class BraxClaudeOsiedle
         rep.notes.Add("osiedle A: " + (rep.plotTrees - trees0) + " nowych drzew na działkach i przy ulicy, krzewy i rabaty");
     }
 
+    // Stare domy osiedla A (bez wnętrz): przezroczyste szyby na działkach -> pokój za szybą.
+    static void FakeRoomsA(Transform estate)
+    {
+        var glass = Glass; if (!glass || glass.shader.name != "Braxhorn/OsiedleOkno") return;
+        int n = 0;
+        foreach (var r in estate.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            if (!r.enabled) continue;
+            var b = r.bounds; bool inPlot = false;
+            foreach (var h in Houses) { float xu = -h.x; if (Mathf.Abs(b.center.x - xu) < 12f && Mathf.Abs(b.center.z - h.z) < h.hd + .5f) inPlot = true; }
+            if (!inPlot) continue;
+            var ms = r.sharedMaterials; bool changed = false;
+            for (int k = 0; k < ms.Length; k++)
+            {
+                var m = ms[k]; if (!m) continue;
+                bool transparent = m.renderQueue > 2450 || m.name.ToLowerInvariant().Contains("glass") || m.name.ToLowerInvariant().Contains("szk");
+                if (transparent) { ms[k] = glass; changed = true; }
+            }
+            if (changed) { r.sharedMaterials = ms; r.shadowCastingMode = ShadowCastingMode.Off; n++; }
+        }
+        rep.fakeRoomWindowsA = n;
+        rep.notes.Add("osiedle A: szyby z pokojami w " + n + " siatkach starych domów");
+    }
+
     // Stare drzewa Verdant z remontu R2 (Codex) w osiedlu A: ten sam ciemny liść — ten sam shader korony co nowe drzewa.
     static void FixOldLeaves(Transform estate)
     {
@@ -1847,6 +1986,123 @@ public static class BraxClaudeOsiedle
         }
         rep.notes.Add("stare korony Verdant w A: " + n + " na nowym shaderze liści");
     }
+
+    // Krok dodatkowy: błąd w nim nie przerywa budowy reszty osiedla (trafia do raportu).
+    static void Guard(string what, Action step)
+    {
+        var g = group;
+        try { step(); }
+        catch (Exception e) { rep.notes.Add("BŁĄD w kroku " + what + ": " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE krok " + what + ": " + e); }
+        group = g;
+    }
+    // ---------------- komisariat: nowe wnętrze ----------------
+    // Stare wnętrze (gotowy model ze Sketchfab: wypalone światło, kartony, amerykańskie flagi i plakaty)
+    // usunięte z paczki w całości (nie tylko wyłączone). Nowe: hol z poczekalnią, lada dyżurnego z szybą,
+    // sala operacyjna z biurkami w rzędach i krzesłami ustawionymi równo, gabinet komendanta za szkłem,
+    // pokój przesłuchań z lustrem weneckim, dwie cele z kratami, korytarz do tylnego wyjścia.
+    // Bryła: x -106..-66, z -57..-27 (ściany 0.2–0.5 m), sufit 4.39, drzwi frontowe i tylne na osi x = -86.
+    static GameObject offDesk, offChair, offArm, offSofa, offLamp, offShelf, offPads, offBoard;
+    static void PoliceInterior(Transform estate, Transform physics)
+    {
+        group = "Komisariat / wnętrze";
+        const float ix0 = -105.8f, ix1 = -66.2f, iz0 = -56.8f, iz1 = -27.2f, FY = .07f, CY = 4.38f, ax = -86f;
+        int gone = 0;
+        foreach (var mr in estate.GetComponentsInChildren<MeshRenderer>(true).ToList())
+        {
+            if (!mr || !mr.name.StartsWith("EstateMesh_") || !int.TryParse(mr.name.Substring(11), out var id)) continue;
+            if (id >= 364 && id <= 384) { UnityEngine.Object.DestroyImmediate(mr.gameObject); gone++; }
+        }
+        // wewnętrzne drzwi starego modelu i stopnie na jego podest
+        CutVolumes(estate, physics, new List<Bounds> { MinMax(ax - 2.4f, ax + 2.4f, -.01f, 3.3f, -36.7f, -32.1f) });
+        int cols = 0;
+        if (physics)
+            foreach (var c in physics.GetComponentsInChildren<Collider>(true).ToList())
+            {
+                var b = c.bounds;
+                if (b.min.x > ix0 - .1f && b.max.x < ix1 + .1f && b.min.z > iz0 - .1f && b.max.z < iz1 + .1f && b.size.y < 4.2f) { UnityEngine.Object.DestroyImmediate(c); cols++; }
+            }
+        rep.notes.Add("komisariat: usunięto stare wnętrze (" + gone + " siatek, " + cols + " kolizji)");
+
+        var floor = PbrFloor; var wall = InteriorPaint; var wood = Plain("lada dyżurnego drewno", new Color(.45f, .33f, .22f), .35f);
+        Top(floor, ix0, ix1, iz0, iz1, FY);
+        // ściany wewnętrzne: przegroda sali i zaplecza (z = -47) z przejściami, ściany pokoi z tyłu
+        float pz = -47f, wt = .15f;
+        void WallX(float x0, float x1, float z) { BoxMinMax(wall, x0, x1, FY, CY, z - wt * .5f, z + wt * .5f); }
+        void WallZ(float z0, float z1, float x) { BoxMinMax(wall, x - wt * .5f, x + wt * .5f, FY, CY, Mathf.Min(z0, z1), Mathf.Max(z0, z1)); }
+        void DoorFrame(float x, float z, bool alongX)
+        {
+            if (alongX) { BoxMinMax(Frame, x - .55f, x - .48f, FY, 2.25f, z - .1f, z + .1f, false); BoxMinMax(Frame, x + .48f, x + .55f, FY, 2.25f, z - .1f, z + .1f, false); BoxMinMax(Frame, x - .55f, x + .55f, 2.18f, 2.25f, z - .1f, z + .1f, false); BoxMinMax(wall, x - .48f, x + .48f, 2.25f, CY, z - wt * .5f, z + wt * .5f, false); }
+            else { BoxMinMax(Frame, x - .1f, x + .1f, FY, 2.25f, z - .55f, z - .48f, false); BoxMinMax(Frame, x - .1f, x + .1f, FY, 2.25f, z + .48f, z + .55f, false); BoxMinMax(Frame, x - .1f, x + .1f, 2.18f, 2.25f, z - .55f, z + .55f, false); BoxMinMax(wall, x - wt * .5f, x + wt * .5f, 2.25f, CY, z - .48f, z + .48f, false); }
+        }
+        // przegroda z = -47: przejście korytarza (ax ± 2), drzwi do pokoju przesłuchań (x -99)
+        WallX(ix0, -99.55f, pz); DoorFrame(-99f, pz, true); WallX(-98.45f, ax - 2f, pz); WallX(ax + 2f, ix1, pz);
+        // pokój przesłuchań (x ix0..-93), korytarz (-93..-79), cele (-79..ix1)
+        WallZ(pz, iz0, -93f);
+        WallZ(pz, iz0, -79f);
+        // gabinet komendanta: szklane ścianki (x ix0..-97, z -36..pz)
+        BoxMinMax(GlassClear, -97.03f, -96.97f, FY + .9f, 2.8f, -46.9f, -36.6f, false); BoxMinMax(wall, -97.06f, -96.94f, FY, FY + .9f, -46.9f, -36.6f);
+        BoxMinMax(GlassClear, ix0, -98.2f, FY + .9f, 2.8f, -36.03f, -35.97f, false); BoxMinMax(wall, ix0, -98.2f, FY, FY + .9f, -36.06f, -35.94f);
+        BoxMinMax(Frame, -97.06f, -96.94f, 2.8f, 2.9f, -46.9f, -35.94f, false); BoxMinMax(Frame, ix0, -96.94f, 2.8f, 2.9f, -36.06f, -35.94f, false);
+        // lada dyżurnego z szybą (z = -34.2), furtka po prawej
+        float cz = -34.2f;
+        BoxMinMax(wood, -96f, -78.2f, FY, 1.1f, cz - .35f, cz + .35f); BoxMinMax(Concrete, -96.05f, -78.15f, 1.1f, 1.16f, cz - .45f, cz + .45f, false);
+        BoxMinMax(GlassClear, -96f, -78.2f, 1.16f, 2.2f, cz - .02f, cz + .02f, false);
+        for (float x = -96f; x <= -78.1f; x += 2.97f) BoxMinMax(Frame, x - .03f, x + .03f, 1.16f, 2.24f, cz - .04f, cz + .04f, false);
+        BoxMinMax(Frame, -96f, -78.2f, 2.2f, 2.26f, cz - .04f, cz + .04f, false);
+        BoxMinMax(wood, -76.8f, -75.6f, FY, 1.0f, cz - .05f, cz + .05f, false);                           // furtka
+        Sign("policja", new Vector3(ax, 3.3f, pz + .1f), 6f, 1.5f, Vector3.forward);                        // szyld widoczny z holu
+        // poczekalnia: krzesła w rzędzie pod ścianą zachodnią, kosz, tablica
+        int seats = 0;
+        if (offChair) for (float z = -28.6f; z > -33.4f; z -= .75f) { Put(offChair, new Vector3(ix0 + .55f, FY, z), 90f, .04f, true); seats++; }
+        if (offArm) { Put(offArm, new Vector3(-74f, FY, -29f), 180f, .04f, true); Put(offArm, new Vector3(-71.5f, FY, -29f), 180f, .04f, true); }
+        Bin(new Vector3(-90f, FY, -28.2f));
+        if (offBoard) Put(offBoard, new Vector3(-69f, FY, -32f), 270f, .04f, false);
+        // sala operacyjna: 3 rzędy biurek, krzesła równo za biurkami (siedzący patrzy w stronę holu)
+        int desks = 0;
+        foreach (float rz in new[] { -38.2f, -41.6f, -45f })
+            foreach (float x in new[] { -94.5f, -91.6f, -80.4f, -77.5f, -72.4f, -69.5f })
+            {
+                if (offDesk && Put(offDesk, new Vector3(x, FY, rz), 0f, .03f, true)) desks++;
+                if (offChair) Put(offChair, new Vector3(x, FY, rz - .95f), 0f, .03f, false);
+                if (offPads && desks % 2 == 0) Put(offPads, new Vector3(x + .4f, FY + .79f, rz + .1f), 15f * (desks % 3), .015f, false);
+            }
+        // gabinet komendanta
+        if (offDesk) Put(offDesk, new Vector3(-101.5f, FY, -40f), 90f, .03f, true);
+        if (offChair) Put(offChair, new Vector3(-102.6f, FY, -40f), 90f, .03f, false);
+        if (offSofa) Put(offSofa, new Vector3(-101.5f, FY, -45.9f), 0f, .03f, true);
+        if (offShelf) Put(offShelf, new Vector3(-105.1f, FY, -43.5f), 90f, .03f, true);
+        // szafy na akta wzdłuż przegrody (strona sali)
+        if (offShelf) foreach (float x in new[] { -82.6f, -76f, -72.2f, -68.4f }) Put(offShelf, new Vector3(x, FY, pz + .45f), 180f, .03f, true);
+        // pokój przesłuchań: stół, dwa krzesła, lustro weneckie od korytarza
+        BoxMinMax(Steel, -100.8f, -98.8f, FY + .72f, FY + .76f, -52.4f, -51.4f, false);
+        foreach (float x in new[] { -100.6f, -99f }) foreach (float z in new[] { -52.3f, -51.5f }) BoxMinMax(Steel, x - .03f, x + .03f, FY, FY + .72f, z - .03f, z + .03f, false);
+        Collider(new Vector3(-99.8f, FY + .4f, -51.9f), new Vector3(2f, .8f, 1f));
+        if (offChair) { Put(offChair, new Vector3(-99.8f, FY, -53.1f), 0f, .03f, false); Put(offChair, new Vector3(-99.8f, FY, -50.7f), 180f, .03f, false); }
+        BoxMinMax(Plain("lustro weneckie", new Color(.12f, .14f, .15f), .97f, .7f), -93.1f, -92.9f, FY + 1.0f, 2.3f, -53.5f, -50f, false);
+        // cele: dwie, kraty od korytarza (x = -79), betonowa ławka w każdej
+        WallX(-79f, ix1, -51.9f);
+        foreach (var (c0, c1) in new[] { (-51.9f, pz), (iz0, -51.9f) })
+        {
+            BoxMinMax(Concrete, -77.5f, -70f, FY, FY + .45f, c0 + .1f, c0 + .7f);
+            for (float z = Mathf.Min(c0, c1) + .2f; z < Mathf.Max(c0, c1) - .1f; z += .14f)
+                if (Mathf.Abs(z - (c0 + c1) * .5f) > .55f) BoxMinMax(Steel, -79.03f, -78.97f, FY, CY, z - .015f, z + .015f, false);
+            BoxMinMax(Steel, -79.05f, -78.95f, 2.1f, 2.16f, Mathf.Min(c0, c1), Mathf.Max(c0, c1), false);
+            BoxMinMax(Steel, -79.05f, -78.95f, FY, CY, (c0 + c1) * .5f - .55f, (c0 + c1) * .5f - .5f, false);
+            Collider(new Vector3(-79f, CY * .5f, (c0 + c1) * .5f), new Vector3(.12f, CY, Mathf.Abs(c1 - c0)));
+        }
+        // lampy wiszące (bez świecenia) nad salą, holem i korytarzem
+        int lamps = 0;
+        if (offLamp)
+            foreach (var p in new[] { new Vector2(-93f, -39.9f), new Vector2(-79f, -39.9f), new Vector2(-71f, -39.9f), new Vector2(-93f, -43.3f), new Vector2(-79f, -43.3f), new Vector2(-71f, -43.3f),
+                                      new Vector2(-92f, -30.5f), new Vector2(-80f, -30.5f), new Vector2(-101.5f, -41f), new Vector2(-86f, -52f), new Vector2(-99.8f, -51.9f) })
+            {
+                var o = Put(offLamp, new Vector3(p.x, 0, p.y), 0f, .02f, false);
+                if (o) { var b = RB(o); o.transform.position += Vector3.up * (CY - b.max.y); lamps++; }
+            }
+        rep.notes.Add("komisariat: nowe wnętrze — " + desks + " biurek, " + seats + " krzeseł w poczekalni, " + lamps + " lamp, 2 cele");
+    }
+    static Material PbrFloor => Pbr("posadzka komisariatu", "large_grey_tiles", 2.4f, new Color(.95f, .95f, .95f));
+    static Material InteriorPaint => Pbr("ściany wnętrz farba", "painted_plaster_wall", 2.2f, new Color(.93f, .92f, .89f));
 
     // ---------------- główne ----------------
     public static void Apply()
@@ -1875,11 +2131,13 @@ public static class BraxClaudeOsiedle
         colliders = new GameObject("kolizje").transform; colliders.SetParent(root, false);
         outdoorSet = Model("outdoor_table_chair_set_01"); bench = Model("modular_street_seating"); parkLamp = Model("street_lamp_01");
         picnic = Model("wooden_picnic_table");
+        offDesk = Model("metal_office_desk"); offChair = Model("dining_chair_02"); offArm = Model("modern_arm_chair_01"); offSofa = Model("sofa_02");
+        offLamp = Model("modern_ceiling_lamp_01"); offShelf = Model("drawer_cabinet"); offPads = Model("office_notepads"); offBoard = Model("standing_chalkboard_01");
         tufts = new[] { Model("grass_bermuda_01"), Model("grass_medium_02") }.Where(g => g).ToArray();
         flowers = new[] { Model("flower_gazania"), Model("dandelion_01") }.Where(g => g).ToArray();
 
         // 0) niebo z chmurami zamiast jednolitego tła, światło i kolor dnia; trawa osiedla A na fotoskanie (jedna, bez nakładania)
-        Sky(); Daylight();
+        Guard("niebo", Sky); Guard("światło dnia", Daylight);
         var oldGround = estate.GetComponentsInChildren<MeshRenderer>(true).FirstOrDefault(r => r.name == "EstateMesh_273");
         if (oldGround && oldGround.bounds.size.x > 200f && oldGround.bounds.max.y < .1f)
         {
@@ -1946,11 +2204,13 @@ public static class BraxClaudeOsiedle
         FenceZ(north + .3f, ParkZ0 - .3f, AxisX - Half - .25f, 1.55f);
 
         // 6) osiedle A tak samo jak B: drzewa, krzewy i rabaty na działkach, szpaler wzdłuż ulicy głównej; zielone korony starych drzew
-        GreenA(estate, physics);
-        FixOldLeaves(estate);
+        Guard("zieleń osiedla A", () => GreenA(estate, physics));
+        Guard("korony starych drzew A", () => FixOldLeaves(estate));
+        Guard("okna z pokojami w starych domach A", () => FakeRoomsA(estate));
+        Guard("komisariat — nowe wnętrze", () => PoliceInterior(estate, physics));
         // 7) trawa w 3D na wszystkich trawnikach parku i osiedla B (po wszystkim, co zajmuje ziemię)
         group = "Trawa 3D";
-        GrassBlades(X0 + .4f, X1 - .4f, SouthZ + .4f, FenceA - .4f, .5f);
+        Guard("trawa 3D", () => GrassBlades(X0 + .4f, X1 - .4f, SouthZ + .4f, FenceA - .4f, .5f));
 
         Flush();
         FlushClumps();
