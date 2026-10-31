@@ -502,6 +502,7 @@ public static class BraxHarborBeachBuild
         vessel.maxSpeed = maxSpeed; vessel.turnRate = turn; vessel.accel = maxSpeed * .45f;
         vessel.length = length; vessel.width = width;
         vessel.seat = new Vector3(0, Mathf.Max(.3f, (b.max.y - Water) * seatFrac), seatBack);
+        vessel.sit = label != "JACHT";   // jacht: stoi za sterem; skuter i motorówka: siedzi (BraxPose.Ride)
         vessel.moor = v.transform.position; vessel.moorYaw = 0f;
         return v;
     }

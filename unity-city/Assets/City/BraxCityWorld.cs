@@ -36,8 +36,11 @@ public sealed class BraxCityWorld : MonoBehaviour
             if(loading)return "WCZYTYWANIE DZIELNICY…";
             var p=player.transform.position;
             if(player.vessel)return "ZEJDŹ · "+player.vessel.label;
+            if(player.seat)return "WSTAŃ";
             var vessel=BraxVessel.Nearest(p,3.2f);
             if(vessel)return "WSIĄDŹ · "+vessel.label;
+            var seat=BraxSeat.Nearest(p,1.6f);
+            if(seat)return (seat.lie?"POŁÓŻ SIĘ · ":"USIĄDŹ · ")+seat.label;
             if(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ NA OSIEDLE";
             if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f)return "WRÓĆ DO MIASTA";
             // Do not hide elevator calls behind ordinary door prompts.
@@ -80,14 +83,17 @@ public sealed class BraxCityWorld : MonoBehaviour
         if(loading)return true;
         var p=player.transform.position;
         if(player.vessel){player.vessel.Dismount();return true;}
+        if(player.seat){player.seat.Leave();return true;}
         var vessel=BraxVessel.Nearest(p,3.2f);
         if(vessel){vessel.Board(player);return true;}
+        var seat2=BraxSeat.Nearest(p,1.6f);
+        if(seat2){seat2.Use(player);return true;}
         if(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
         if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return true;}
         foreach(var lift in additionalTowerElevators)
             if(lift&&lift.TryInteract(p))return true;
         if(elevator&&elevator.TryInteract(p))return true;
-        if(nutritionCounter&&nutritionCounter.TryInteract())return true;
+        if(nutritionCounter&&nutritionCounter.TryInteract()){BraxPose.Get(player).Drink();return true;}
         if(nearby){nearby.Toggle(player.transform.position);return true;}
         return false;
     }

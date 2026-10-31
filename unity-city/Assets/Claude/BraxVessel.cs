@@ -19,6 +19,8 @@ public sealed class BraxVessel : MonoBehaviour
     public float turnRate = 70f;          // stopni/s przy pełnym sterze
     public float length = 3f, width = 1.2f;
     public Vector3 seat = new Vector3(0, .9f, -.2f);   // miejsce gracza (lokalnie, względem środka pojazdu)
+    public bool sit = true;               // skuter/motorówka: siedzi (BraxPose.Ride); jacht: stoi za sterem
+    public float sitLower = .95f;         // biodra 0,95 m nad stopami → korzeń postaci niżej o tyle przy siedzeniu
     public Vector3 moor;                  // gdzie pojazd stoi zacumowany
     public float moorYaw;
 
@@ -58,9 +60,10 @@ public sealed class BraxVessel : MonoBehaviour
         player.vessel = this;
         player.body.enabled = false;
         player.transform.SetParent(transform, true);
-        player.transform.localPosition = seat;
+        player.transform.localPosition = sit ? seat - Vector3.up * sitLower : seat;
         player.transform.localRotation = Quaternion.identity;
         speed = 0; yawVel = 0;
+        if (sit) BraxPose.Get(player).Set(BraxPose.Mode.Ride, transform);
     }
 
     /// <summary>Zejście: na najbliższy twardy grunt nad wodą w promieniu 4 m (pomost, piasek). Zwraca false, gdy za daleko od brzegu.</summary>
@@ -83,6 +86,7 @@ public sealed class BraxVessel : MonoBehaviour
         }
         if (!found) return false;
         var p = rider;
+        BraxPose.Get(p).Set(BraxPose.Mode.None, null);
         p.transform.SetParent(null, true);
         p.transform.position = best + Vector3.up * .08f;
         p.transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
