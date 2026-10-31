@@ -201,10 +201,15 @@ public static class BraxGymBuild
         // This branch is never merged into the connected city build.
         // Built scenes are the same original models and the same BraxGymPlayer.
         // R2 remains estate-only; unified TEST has BOTH real scenes and a validated registry.
+        // BRAX_DISTRICTS=city: paczka samego regionu R1 (miasto bez sceny osiedla) — budżet mobilny, osiedle idzie osobną paczką.
+        bool cityOnly=renovation&&string.Equals(Environment.GetEnvironmentVariable("BRAX_DISTRICTS"),"city",StringComparison.OrdinalIgnoreCase);
+        if(cityOnly)Debug.Log("BRAXHORN_DISTRICTS city-only: scena osiedla pominięta w tej paczce");
         string[] scenePaths=fullCity
-            ? (integrated
-                ? BraxUnityDistrictRegistry.Resolve(scenePath,BraxCityBuild.CreateEstate(sourceCommit))
-                : new[]{BraxCityBuild.CreateEstate(sourceCommit)})
+            ? (cityOnly
+                ? new[]{scenePath}
+                : integrated
+                    ? BraxUnityDistrictRegistry.Resolve(scenePath,BraxCityBuild.CreateEstate(sourceCommit))
+                    : new[]{BraxCityBuild.CreateEstate(sourceCommit)})
             : new[]{scenePath};
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
         string output,location;
@@ -243,7 +248,7 @@ public static class BraxGymBuild
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
         if(fullCity)BraxCityBuild.WriteReport(output,sourceCommit);
-        if(integrated)BraxUnityDistrictRegistry.WriteBuildReceipt(output,sourceCommit,scenePaths);
+        if(integrated&&!cityOnly)BraxUnityDistrictRegistry.WriteBuildReceipt(output,sourceCommit,scenePaths);
         if(renovation)BraxCityRebuild.WriteReport(output);
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }

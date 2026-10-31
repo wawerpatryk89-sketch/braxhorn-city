@@ -177,6 +177,7 @@ jobs:
         UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        BRAX_DISTRICTS: city
       with:
         projectPath: unity-city
         unityVersion: 6000.0.58f2
@@ -384,6 +385,7 @@ jobs:
         UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        BRAX_DISTRICTS: city
       with:
         projectPath: unity-city
         unityVersion: 6000.0.58f2
