@@ -213,10 +213,14 @@ public static class BraxRegion
     static readonly Dictionary<string, GameObject> models = new Dictionary<string, GameObject>();
 
     /// <summary>Pierwszy istniejący model z listy id (Poly Haven .glb/.gltf lub biblioteka .glb). null = brak.</summary>
+    // Drzewa Poly Haven to skany po 2–17 mln trójkątów (pine_tree_01 = 1,2 GB w paczce, raport 0a75e9f).
+    // Na telefon: jedno drzewo do gry „drzewo_verdant” (pień + liście w 3 gęstościach, 49k/28k/13k, LOD) — wspólne z osiedlem Opusa.
+    static readonly HashSet<string> HeavyTrees = new HashSet<string> { "pine_tree_01", "fir_tree_01", "island_tree_01", "island_tree_02", "island_tree_03", "jacaranda_tree" };
     public static GameObject Model(params string[] ids)
     {
-        foreach (var id in ids)
+        foreach (var rawId in ids)
         {
+            string id = HeavyTrees.Contains(rawId) ? "drzewo_verdant" : rawId;
             GameObject cached;
             if (models.TryGetValue(id, out cached) && cached) return cached;
             foreach (var p in new[] { PH + "models/" + id + "/" + id + ".glb", PH + "models/" + id + "/" + id + ".gltf", Lib + id + ".glb" })
@@ -229,6 +233,22 @@ public static class BraxRegion
             if (!Rep.missingAssets.Contains("model:" + id)) Rep.missingAssets.Add("model:" + id);
         }
         return null;
+    }
+
+    /// <summary>drzewo_verdant: węzły pien, liscie_0/1/2 → LODGroup 25 % / 10 % / 3 % (jak na osiedlu).</summary>
+    public static void TreeLods(GameObject o)
+    {
+        Transform pien = null, l0 = null, l1 = null, l2 = null;
+        foreach (var t in o.GetComponentsInChildren<Transform>(true))
+        {
+            if (t.name == "pien") pien = t; else if (t.name == "liscie_0") l0 = t; else if (t.name == "liscie_1") l1 = t; else if (t.name == "liscie_2") l2 = t;
+        }
+        if (!pien || !l0 || o.GetComponent<LODGroup>()) return;
+        Renderer[] R(params Transform[] ts) => ts.Where(t => t).SelectMany(t => t.GetComponentsInChildren<Renderer>(true)).ToArray();
+        var lod = o.AddComponent<LODGroup>();
+        lod.SetLODs(new[] { new LOD(.25f, R(pien, l0)), new LOD(.10f, R(pien, l1 ? l1 : l0)), new LOD(.03f, R(pien, l2 ? l2 : (l1 ? l1 : l0))) });
+        lod.RecalculateBounds();
+        foreach (var r in R(l0, l1, l2)) { r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false; }
     }
 
     // Materiały z importu glTFast (Poly Haven, biblioteka) → CityStaticPBR: to samo słońce, ambient i lampy,
@@ -336,6 +356,7 @@ public static class BraxRegion
             r.receiveShadows = true;
             r.sharedMaterials = r.sharedMaterials.Select(CityMaterial).ToArray();
         }
+        TreeLods(o);
         if (solid)
         {
             b = Bounds(o);

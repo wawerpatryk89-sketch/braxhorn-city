@@ -39,7 +39,7 @@ public static class BraxGymBuild
     static void CapFacadeTextures(BuildTarget target)
     {
         string platform=target==BuildTarget.Android?"Android":"WebGL";
-        string[] folders={"Assets/PlayableGenerated/CityRebuild/Textures","Assets/Source/CityRebuild/textures","Assets/Source/Claude/PolyHaven/textures","Assets/Source/HarborBeach/Textures","Assets/CityRebuild/Brand"};
+        string[] folders={"Assets/Source/City/Images","Assets/PlayableGenerated/CityRebuild/Textures","Assets/Source/CityRebuild/textures","Assets/Source/Claude/PolyHaven/textures","Assets/Source/HarborBeach/Textures","Assets/CityRebuild/Brand"};
         folders=folders.Where(AssetDatabase.IsValidFolder).ToArray();
         if(folders.Length==0)return;
         int changed=0,kept=0;

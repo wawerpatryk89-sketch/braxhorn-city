@@ -32,7 +32,7 @@ TEXTURES = [
 ]
 MODELS_2K = [  # drzewa i krzewy: pełna jakość (2K); reszta roślin w 1K, bo edytor Unity na GitHubie ma 16 GB
     "shrub_01", "shrub_02", "shrub_03",
-    "island_tree_03", "pine_tree_01", "fir_tree_01",
+    # island_tree_03 / pine_tree_01 / fir_tree_01: skany 2–17 mln trójkątów — w grze drzewo_verdant (Library)
 ]
 MODELS_1K_PLANTS = [
     "grass_medium_01", "grass_medium_02",

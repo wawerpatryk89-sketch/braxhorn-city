@@ -30,9 +30,9 @@ MODELS = [
     "modular_street_seating",
     "bar_chair_round_01",        # hokery w klubie NOVA
     "tree_small_02",             # prawdziwe drzewa zamiast „kulek” (odchudzane gltfpack w buildzie)
-    "island_tree_01",
-    "island_tree_02",
-    "jacaranda_tree",
+    # "island_tree_01",  # skan (mln trójkątów) — w grze drzewo_verdant
+    # "island_tree_02",  # skan (mln trójkątów) — w grze drzewo_verdant
+    # "jacaranda_tree",  # skan (mln trójkątów) — w grze drzewo_verdant
 ]
 
 

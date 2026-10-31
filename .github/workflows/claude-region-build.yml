@@ -156,9 +156,11 @@ jobs:
       run: python3 unity-tools/claude/fetch_polyhaven.py
     - name: Region R1 - dodatkowe tekstury i modele CC0 z Poly Haven (rosliny 2K, wpisy opcjonalne)
       run: python3 unity-tools/claude/fetch_region.py
-    - name: Drzewa i rosliny Poly Haven bez odchudzania (pelna jakosc, decyzja wlasciciela)
+    - name: Drzewa: drzewo do gry z LOD zamiast skanow Poly Haven (budzet mobilny); paczka miasta bez gltf osiedla
       run: |
-        for t in tree_small_02 island_tree_01 island_tree_02 jacaranda_tree; do ls unity-city/Assets/Source/Claude/PolyHaven/models/$t | head -3; done
+        for t in tree_small_02; do ls unity-city/Assets/Source/Claude/PolyHaven/models/$t | head -3; done
+        ls -la unity-city/Assets/Source/Claude/Library/drzewo_verdant.glb
+        rm -f unity-city/Assets/Source/City/braxhorn-estate.gltf unity-city/Assets/Source/City/braxhorn-estate.gltf.meta unity-city/Assets/Source/City/braxhorn-estate.bin unity-city/Assets/Source/City/braxhorn-estate.bin.meta; echo "paczka miasta: scena osiedla usunieta ze zrodel"
     - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
@@ -364,9 +366,11 @@ jobs:
       run: python3 unity-tools/claude/fetch_polyhaven.py
     - name: Region R1 - dodatkowe tekstury i modele CC0 z Poly Haven (rosliny 2K, wpisy opcjonalne)
       run: python3 unity-tools/claude/fetch_region.py
-    - name: Drzewa i rosliny Poly Haven bez odchudzania (pelna jakosc, decyzja wlasciciela)
+    - name: Drzewa: drzewo do gry z LOD zamiast skanow Poly Haven (budzet mobilny); paczka miasta bez gltf osiedla
       run: |
-        for t in tree_small_02 island_tree_01 island_tree_02 jacaranda_tree; do ls unity-city/Assets/Source/Claude/PolyHaven/models/$t | head -3; done
+        for t in tree_small_02; do ls unity-city/Assets/Source/Claude/PolyHaven/models/$t | head -3; done
+        ls -la unity-city/Assets/Source/Claude/Library/drzewo_verdant.glb
+        rm -f unity-city/Assets/Source/City/braxhorn-estate.gltf unity-city/Assets/Source/City/braxhorn-estate.gltf.meta unity-city/Assets/Source/City/braxhorn-estate.bin unity-city/Assets/Source/City/braxhorn-estate.bin.meta; echo "paczka miasta: scena osiedla usunieta ze zrodel"
     - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:

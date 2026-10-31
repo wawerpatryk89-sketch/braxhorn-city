@@ -12,7 +12,8 @@ using UnityEngine.Rendering;
 public static class BraxClaudeTrees
 {
     const string PH = "Assets/Source/Claude/PolyHaven/models/";
-    static readonly string[] Species = { "tree_small_02", "island_tree_01", "island_tree_02", "jacaranda_tree" };
+    // Skany Poly Haven (island_tree, jacaranda: 2–17 mln trójkątów) zastąpione drzewem do gry z LOD (raport rozmiaru 0a75e9f).
+    static readonly string[] Species = { "tree_small_02", "drzewo_verdant" };
 
     [Serializable] sealed class Report { public int removed, planted, trunksRemoved; public List<string> notes = new List<string>(); public List<Vector3> spots = new List<Vector3>(); }
 
@@ -45,7 +46,7 @@ public static class BraxClaudeTrees
 
     static GameObject Load(string id)
     {
-        foreach (var p in new[] { PH + id + "/" + id + ".glb", PH + id + "/" + id + ".gltf" })
+        foreach (var p in new[] { PH + id + "/" + id + ".glb", PH + id + "/" + id + ".gltf", "Assets/Source/Claude/Library/" + id + ".glb" })
         {
             if (!File.Exists(p)) continue;
             AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceSynchronousImport);
@@ -122,7 +123,8 @@ public static class BraxClaudeTrees
             if (b.size.y > .1f && (b.size.y > 14f || b.size.y < 3f)) { o.transform.localScale *= target / b.size.y; }
             b = rs[0].bounds; foreach (var r in rs.Skip(1)) b.Encapsulate(r.bounds);
             o.transform.position += new Vector3(spot.x - b.center.x, gy - b.min.y, spot.z - b.center.z);
-            foreach (var r in rs) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
+            foreach (var r in rs) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; r.sharedMaterials = r.sharedMaterials.Select(BraxRegion.CityMaterial).ToArray(); }
+            BraxRegion.TreeLods(o);
             var trunk = new GameObject("Drzewo: kolizja pnia").AddComponent<CapsuleCollider>();
             trunk.transform.SetParent(root, false); trunk.transform.position = new Vector3(spot.x, gy + 1.5f, spot.z);
             trunk.radius = .25f; trunk.height = 3f;
