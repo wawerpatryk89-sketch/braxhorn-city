@@ -48,7 +48,7 @@ public static class BraxRegionGym
                     if (!swapped.TryGetValue(m, out o))
                     {
                         string n = m.name.ToLowerInvariant();
-                        if (n.Contains("matte black leather")) o = Tuned(m, "Worek: skóra grafitowa", new Color(.15f, .16f, .165f), .42f, 1.0f);
+                        if (n.Contains("matte black leather")) o = Tuned(m, "Worek: skóra grafitowa z połyskiem", new Color(.13f, .14f, .15f), .24f, .8f);   // 31.10: skóra ma się błyszczeć
                         else if (n.Contains("reinforced leather")) o = Tuned(m, "Worek: wzmocnienia i taśmy", new Color(.09f, .10f, .10f), .52f, .9f);
                         else if (n.Contains("suspension hardware")) o = Tuned(m, "Worek: chromowane okucia", new Color(.80f, .81f, .82f), .22f, 0f);
                         else if (n.Contains("stitching")) o = Tuned(m, "Worek: przeszycia", new Color(.52f, .55f, .50f), .80f, 0f);
