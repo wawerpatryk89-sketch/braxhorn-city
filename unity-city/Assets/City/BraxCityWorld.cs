@@ -48,9 +48,9 @@ public sealed class BraxCityWorld : MonoBehaviour
             if(vessel)return "WSIĄDŹ · "+vessel.label;
             var seat=BraxSeat.Nearest(p,1.6f);
             if(seat)return (seat.lie?"POŁÓŻ SIĘ · ":"USIĄDŹ · ")+seat.label;
-            if(InCityTunnel(p,0f))return "TUNEL → OSIEDLE";
-            if(InEstateTunnel(p,0f))return "TUNEL → MIASTO";
-            if(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ NA OSIEDLE";
+            if(InCityTunnel(p,0f))return "TUNEL · TUR POD ZAMOŚCIEM";
+            if(InEstateTunnel(p,0f))return "TUNEL · MIASTO";
+            if(!waterfrontPreview&&area=="city"&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ · TUR POD ZAMOŚCIEM";
             if(area=="estate"&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f)return "WRÓĆ DO MIASTA";
             // Do not hide elevator calls behind ordinary door prompts.
             // Player proximity is evaluated inside each real lift controller.

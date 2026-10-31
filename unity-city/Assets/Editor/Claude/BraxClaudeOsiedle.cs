@@ -2689,6 +2689,18 @@ public static class BraxClaudeOsiedle
         BoxMinMax(dark, -half, half, 0, ht, pz + depth, pz + depth + .3f);
         Collider(new Vector3(0, -.15f, pz + depth * .5f), new Vector3(half * 2f, .3f, depth + 8f));
         Sign("miasto", new Vector3(0, 7.5f, pz - .1f), 6f, 1.5f, Vector3.back);
+        // nazwa osiedla (właściciel 31.10, 20:55: „nazwij te osiedle Tur pod Zamościem”): kamienne tablice po obu stronach drogi
+        // za wylotem tunelu (gracz wychodzi z tunelu i idzie na −z), napis z obu stron — złote litery na czerni w złotej ramie
+        var granite = Plain("granit grafit polerowany", new Color(.10f, .10f, .11f), .8f);
+        var goldN = Plain("złoto kasyna (mosiądz szczotkowany)", new Color(.80f, .62f, .25f), .72f, .9f);
+        foreach (float sx in new[] { -10.5f, 10.5f })
+        {
+            BoxMinMax(granite, sx - 2.6f, sx + 2.6f, 0f, .7f, 93.6f, 94.4f, true);
+            BoxMinMax(granite, sx - 2.4f, sx + 2.4f, .7f, 1.85f, 93.85f, 94.15f, true);
+            BoxMinMax(goldN, sx - 2.45f, sx + 2.45f, 1.85f, 1.91f, 93.82f, 94.18f, false, true);
+            Sign("tur_pod_zamosciem", new Vector3(sx, 1.275f, 94.16f), 4.4f, .83f, Vector3.forward, false);   // od tunelu
+            Sign("tur_pod_zamosciem", new Vector3(sx, 1.275f, 93.84f), 4.4f, .83f, Vector3.back, false);      // od osiedla
+        }
         rep.notes.Add("wylot tunelu z miasta: portal x ±" + half + " m, z " + pz + "–" + (pz + depth) + " (wejście do miasta 8 m w głąb)");
     }
 
