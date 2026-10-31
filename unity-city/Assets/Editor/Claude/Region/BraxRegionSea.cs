@@ -18,7 +18,7 @@ using UnityEngine;
 public static class BraxRegionSea
 {
     const float Shore = 84.3f, East = 150f, Z0 = 112.5f, Z1 = 172f;   // z do 172: jacht na kotwicy 20 m (z≈156+10)
-    const float LandX0 = 66f, BeachZ0 = 113f, BeachZ1 = 153f;
+    const float LandX0 = 66f, BeachZ0 = 113.7f, BeachZ1 = 153f;   // od 113.7: krawężnik promenady (CityMesh_232/233) sięga z=113.6
 
     public static void Apply(Transform root)
     {
