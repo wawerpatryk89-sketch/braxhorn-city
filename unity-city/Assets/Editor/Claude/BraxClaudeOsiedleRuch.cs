@@ -51,7 +51,7 @@ public static partial class BraxClaudeOsiedle
 
     static void Przechodnie()
     {
-        var walkSrc = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/PlayableGenerated/Walking.anim");
+        var walkSrc = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/PlayableGenerated/Walk.anim");   // 1.11 build 12: było „Walking.anim” (nie istnieje) → ludzie bez ruchu
         var idleSrc = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/PlayableGenerated/Idle.anim");
         if (!walkSrc || !idleSrc) { rep.notes.Add("DO POPRAWKI: brak klipów Braxa Walking/Idle — przechodnie bez ruchu"); }
         if (!AssetDatabase.IsValidFolder(LudzieDir)) { rep.notes.Add("DO POPRAWKI: brak " + LudzieDir + " (dekoduj_glb.mjs)"); return; }

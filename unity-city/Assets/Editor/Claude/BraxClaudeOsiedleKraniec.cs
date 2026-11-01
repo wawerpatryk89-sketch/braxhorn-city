@@ -34,7 +34,7 @@ public static partial class BraxClaudeOsiedle
         // 3) pasy lasu: stożki w skupiskach 30–260 m za płotem (poza wzgórzem nad tunelem)
         var rnd = new System.Random(4711);
         int stozki = 0;
-        for (int k = 0; k < 420; k++)
+        for (int k = 0; k < 0; k++)   // 1.11, 20:29 (właściciel): stożki-„choinki” usunięte — żadnych sztucznych brył; las w oddali dopiero z prawdziwych drzew
         {
             float side = (float)rnd.NextDouble();
             float d = 30f + Mathf.Pow((float)rnd.NextDouble(), 1.6f) * 230f;
