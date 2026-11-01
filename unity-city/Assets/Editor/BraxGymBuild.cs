@@ -68,12 +68,16 @@ public static class BraxGymBuild
         // Właściciel 1.11, 01:14: „jeden ma mieć wszystko podzielone plus extra osiedla na innym do wglądu na szybko”.
         var variants=new[]{
             new{tag="osiedle",scenes=Pack(estateScene,estateArea),gl=false,id="com.braxhorn.osiedle",name="Braxhorn Osiedle"},
-            new{tag="calosc",scenes=Pack(cityScene,cityArea,cityIsland,estateScene,estateArea),gl=false,id="com.braxhorn.city",name="Braxhorn City"}};
-        // Które APK budować: plik unity-city/apk-warianty.txt (np. „osiedle” albo „osiedle calosc”); brak pliku = oba.
+            new{tag="calosc",scenes=Pack(cityScene,cityArea,cityIsland,estateScene,estateArea),gl=false,id="com.braxhorn.city",name="Braxhorn City"},
+            // Diagnoza 1.11 (build 8: osiedle wchodzi, miasto pada przy włączaniu sceny): samo miasto na Vulkanie i na OpenGL ES 3.
+            new{tag="miasto",scenes=Pack(cityScene,cityArea,cityIsland),gl=false,id="com.braxhorn.miasto",name="Braxhorn Miasto"},
+            new{tag="miastogl",scenes=Pack(cityScene,cityArea,cityIsland),gl=true,id="com.braxhorn.miastogl",name="Braxhorn Miasto GL"}};
+        // Które APK budować: plik unity-city/apk-warianty.txt (osiedle / calosc / miasto / miastogl); brak pliku = wszystkie.
         // Właściciel 1.11, 07:09 „tyle kurwa czasu” — testujesz osiedle, budujemy tylko osiedle (~40 min mniej).
         string wybor="";try{if(File.Exists("apk-warianty.txt"))wybor=File.ReadAllText("apk-warianty.txt").ToLowerInvariant();}catch{}
         var wybrane=wybor.Split(new[]{' ','\n','\r','\t',','},StringSplitOptions.RemoveEmptyEntries).Where(w=>!w.StartsWith("#")).ToArray();
-        if(wybrane.Length>0){variants=variants.Where(v=>wybrane.Contains(v.tag)).ToArray();Debug.Log("BRAXHORN_APK wybrane warianty: "+string.Join(", ",variants.Select(v=>v.tag)));}
+        // kolejność budowania jak w pliku (pierwszy wariant idzie do pobrania najwcześniej)
+        if(wybrane.Length>0){var wszystkie=variants;variants=wybrane.Select(w=>wszystkie.FirstOrDefault(v=>v.tag==w)).Where(v=>v!=null).ToArray();Debug.Log("BRAXHORN_APK wybrane warianty: "+string.Join(", ",variants.Select(v=>v.tag)));}
         bool useDefault=PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
         var apis=PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
         BuildReport last=null,ok=null;var summary=new List<string>();
