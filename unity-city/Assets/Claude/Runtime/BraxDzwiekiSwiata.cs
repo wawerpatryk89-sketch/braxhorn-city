@@ -80,35 +80,3 @@ public static class BraxDzwiekiSwiata
     public static AudioClip Woda() { Przygotuj(); return woda; }
     public static void Krok(Vector3 pos, float vol) => Graj(BraxKroki.Losowy(), pos, vol, Random.Range(.95f, 1.15f), 14f);
 }
-
-// Odbicie: każde ciało z fizyką (piłki) — dźwięk przy uderzeniu, siła z prędkości zderzenia.
-public sealed class BraxOdbicie : MonoBehaviour
-{
-    public int rodzaj;             // 0 miękkie, 1 twarde (tenis), 2 ciężkie (lekarska)
-    float nast;
-    void OnCollisionEnter(Collision c)
-    {
-        float v = c.relativeVelocity.magnitude; if (v < 1.1f || Time.time < nast) return;
-        nast = Time.time + .06f;
-        BraxDzwiekiSwiata.Uderzenie(transform.position, v, rodzaj);
-    }
-}
-
-// Stałe źródło 3D w miejscu (np. fontanna): gra tylko, gdy słuchacz jest w zasięgu (+5 m), poza nim pauza.
-public sealed class BraxZrodloPetli : MonoBehaviour
-{
-    public string rodzaj = "woda"; public float glosnosc = .5f, zasieg = 30f;
-    AudioSource s; float nast;
-    void Start()
-    {
-        s = gameObject.AddComponent<AudioSource>(); s.clip = BraxDzwiekiSwiata.Woda(); s.loop = true; s.spatialBlend = 1f;
-        s.minDistance = 3f; s.maxDistance = zasieg; s.rolloffMode = AudioRolloffMode.Logarithmic; s.volume = glosnosc; s.priority = 140;
-    }
-    void Update()
-    {
-        if (Time.time < nast || !s) return; nast = Time.time + .5f;
-        var kam = Camera.main; if (!kam) return;
-        bool blisko = (kam.transform.position - transform.position).sqrMagnitude < (zasieg + 5f) * (zasieg + 5f);
-        if (blisko && !s.isPlaying) { s.time = Random.value * s.clip.length * .9f; s.Play(); } else if (!blisko && s.isPlaying) s.Pause();
-    }
-}

@@ -237,7 +237,7 @@ public static class BraxCityBuild
         // Osiedle na 2 obszary (właściciel 1.11): wszystko w całości poniżej z = −102 (dawny płot A: park, osiedle B, wille, sklepy,
         // kort) osobną sceną doczytywaną w tle; scena startowa = osiedle A z wjazdem z tunelu.
         try{var south=new Bounds();south.SetMinMax(new Vector3(-600f,-60f,-900f),new Vector3(600f,300f,-101.5f));
-            BraxClaudeObszary.Wydziel(scene,"BraxhornEstate_Poludnie",BraxClaudeObszary.WObszarze(scene,south),170f,280f,Generated);   // 1.11, 20:51 (właściciel: „widać horyzont, za chwilę wszystko się ładuje”): wczytanie 170 m przed granicą zamiast 45 m}
+            BraxClaudeObszary.Wydziel(scene,"BraxhornEstate_Poludnie",BraxClaudeObszary.WObszarze(scene,south),170f,280f,Generated);}   // 1.11, 20:51 (właściciel: „widać horyzont, za chwilę wszystko się ładuje”): wczytanie 170 m przed granicą zamiast 45 m
         catch(Exception e){Debug.LogWarning("DO POPRAWKI: podział osiedla na obszary: "+e);}
         AssetDatabase.SaveAssets();return path;
     }
