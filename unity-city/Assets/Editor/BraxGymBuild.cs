@@ -65,13 +65,16 @@ public static class BraxGymBuild
         string start=CreateStartScene();
         string cityArea=Generated+"/BraxhornCity_Nabrzeze.unity",cityIsland=Generated+"/BraxhornCity_Wyspa.unity",estateArea=Generated+"/BraxhornEstate_Poludnie.unity";
         string[] Pack(params string[] scenes)=>new[]{start}.Concat(scenes).Where(p=>p!=null&&File.Exists(p)).ToArray();
+        // kwadraty miasta (BraxhornCity_K*, 1.11): dopisywane do każdej paczki z miastem
+        var kw=Directory.Exists(Generated)?Directory.GetFiles(Generated,"BraxhornCity_K*.unity").Select(f=>f.Replace('\\','/')).OrderBy(f=>f).ToArray():new string[0];
+        cityIsland=cityIsland+"";var cityAll=new[]{cityScene,cityArea,cityIsland}.Concat(kw).ToArray();
         // Właściciel 1.11, 01:14: „jeden ma mieć wszystko podzielone plus extra osiedla na innym do wglądu na szybko”.
         var variants=new[]{
             new{tag="osiedle",scenes=Pack(estateScene,estateArea),gl=false,id="com.braxhorn.osiedle",name="Braxhorn Osiedle"},
-            new{tag="calosc",scenes=Pack(cityScene,cityArea,cityIsland,estateScene,estateArea),gl=false,id="com.braxhorn.city",name="Braxhorn City"},
+            new{tag="calosc",scenes=Pack(cityAll.Concat(new[]{estateScene,estateArea}).ToArray()),gl=false,id="com.braxhorn.city",name="Braxhorn City"},
             // Diagnoza 1.11 (build 8: osiedle wchodzi, miasto pada przy włączaniu sceny): samo miasto na Vulkanie i na OpenGL ES 3.
-            new{tag="miasto",scenes=Pack(cityScene,cityArea,cityIsland),gl=false,id="com.braxhorn.miasto",name="Braxhorn Miasto"},
-            new{tag="miastogl",scenes=Pack(cityScene,cityArea,cityIsland),gl=true,id="com.braxhorn.miastogl",name="Braxhorn Miasto GL"}};
+            new{tag="miasto",scenes=Pack(cityAll),gl=false,id="com.braxhorn.miasto",name="Braxhorn Miasto"},
+            new{tag="miastogl",scenes=Pack(cityAll),gl=true,id="com.braxhorn.miastogl",name="Braxhorn Miasto GL"}};
         // Które APK budować: plik unity-city/apk-warianty.txt (osiedle / calosc / miasto / miastogl); brak pliku = wszystkie.
         // Właściciel 1.11, 07:09 „tyle kurwa czasu” — testujesz osiedle, budujemy tylko osiedle (~40 min mniej).
         string wybor="";try{if(File.Exists("apk-warianty.txt"))wybor=File.ReadAllText("apk-warianty.txt").ToLowerInvariant();}catch{}
@@ -320,6 +323,26 @@ public static class BraxGymBuild
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: wyspa jako osobny obszar: "+e);}
             try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE"),45f,110f,Generated);}
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: podział miasta na obszary: "+e);}
+            // MIASTO W KWADRATACH (1.11, 19:00; decyzja właściciela „świat w kwadratach”): telefon padał w trakcie wczytywania
+            // głównej sceny (828 MB, 68 tys. obiektów — dziennik startu: koniec na „2a wczytywanie”). Kwadraty 150 × 150 m poza
+            // okolicą siłowni (start) idą do osobnych scen doczytywanych w tle 120 m przed krawędzią, zwalnianych 250 m za nią.
+            try
+            {
+                Bounds all=default;bool any=false;
+                foreach(var r in scene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<Renderer>(true))){if(!any){all=r.bounds;any=true;}else all.Encapsulate(r.bounds);}
+                Vector3 spawn=new Vector3(1.5f,0f,2.8f);const float K=150f;int nk=0;
+                for(float x=Mathf.Floor(all.min.x/K)*K;x<all.max.x;x+=K)
+                    for(float z=Mathf.Floor(all.min.z/K)*K;z<all.max.z;z+=K)
+                    {
+                        var cell=new Bounds(new Vector3(x+K*.5f,all.center.y,z+K*.5f),new Vector3(K,all.size.y+400f,K));
+                        var c2=cell;c2.center=new Vector3(c2.center.x,0f,c2.center.z);
+                        if(c2.SqrDistance(spawn)<70f*70f)continue;   // okolica siłowni zostaje w scenie startowej
+                        var w=BraxClaudeObszary.WObszarze(scene,cell);if(w.Count==0)continue;
+                        if(BraxClaudeObszary.Wydziel(scene,"BraxhornCity_K"+nk.ToString("00"),w,120f,250f,Generated)!=null)nk++;
+                    }
+                Debug.Log("BRAXHORN_KWADRATY miasto: "+nk+" kwadratów, granice miasta "+all.min.ToString("F0")+" … "+all.max.ToString("F0"));
+            }
+            catch(Exception e){Debug.LogWarning("DO POPRAWKI: kwadraty miasta: "+e);}
         }
         string sourceCommit=runtime.buildId;
         // Estate review boots directly into the EXISTING city estate scene with the

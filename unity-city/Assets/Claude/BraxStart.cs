@@ -56,7 +56,14 @@ public sealed class BraxStart : MonoBehaviour
         yield return Resources.UnloadUnusedAssets();
         var op = SceneManager.LoadSceneAsync(1, LoadSceneMode.Single);
         if (op == null) { status = "NIE MOŻNA WCZYTAĆ SCENY " + nazwa; yield break; }
-        while (!op.isDone) { postep = op.progress; yield return null; }
+        // 1.11: postęp co 10% do dziennika (build 9 pokazał tylko „2a” — teraz widać, przy ilu procentach i przy jakiej pamięci pada)
+        int zapisane = -1;
+        while (!op.isDone)
+        {
+            postep = op.progress; int dz = Mathf.FloorToInt(postep * 10f);
+            if (dz > zapisane) { zapisane = dz; BraxStartLog.Etap(dz >= 9 ? "2b dane wczytane (90%), włączanie sceny " + nazwa : "2a postęp " + dz * 10 + "%"); }
+            yield return null;
+        }
     }
 
     void OnDestroy() { Pokazuje = false; }
