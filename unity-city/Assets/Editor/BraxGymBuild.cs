@@ -55,11 +55,8 @@ public static class BraxGymBuild
         return path;
     }
 
-    // OSOBNE APK DLA KAŻDEGO REJONU (właściciel 1.11, 00:37: „rozdziel mi osiedle od miasta” — APK 698aeb5 z miastem
-    // i osiedlem nie startuje na moto g86). Jedna kompilacja scen, trzy aplikacje obok siebie na telefonie (różne id):
-    //   braxhorn-osiedle.apk  — sama scena osiedla Tur pod Zamościem (Vulkan + OpenGL ES 3, jak dotąd),
-    //   braxhorn-miasto.apk   — samo miasto z siłownią (Vulkan + OpenGL ES 3),
-    //   braxhorn-miasto-gl.apk — samo miasto, tylko OpenGL ES 3 (test: czy start wywraca sterownik Vulkan na Mali).
+    // OSOBNE APK (właściciel 1.11): braxhorn-osiedle.apk — samo osiedle Tur pod Zamościem (2 obszary) do szybkiego wglądu;
+    // braxhorn-calosc.apk — całość: miasto (2 obszary) + tunel + osiedle (2 obszary). Różne id = obie naraz na telefonie.
     // Kolejne BuildPlayer korzystają z tej samej kompilacji IL2CPP i tekstur (Library), więc dochodzi ~20–30 min na paczkę.
     static BuildReport BuildAndroidSeparately(string cityScene,string estateScene,string output)
     {
@@ -67,11 +64,11 @@ public static class BraxGymBuild
         // scena 1 = rejon (obszar startowy), scena 2 = drugi obszar rejonu doczytywany w tle (BraxObszary).
         string start=CreateStartScene();
         string cityArea=Generated+"/BraxhornCity_Nabrzeze.unity",estateArea=Generated+"/BraxhornEstate_Poludnie.unity";
-        string[] Pack(string region,string area)=>new[]{start,region,area}.Where(p=>p!=null&&File.Exists(p)).ToArray();
+        string[] Pack(params string[] scenes)=>new[]{start}.Concat(scenes).Where(p=>p!=null&&File.Exists(p)).ToArray();
+        // Właściciel 1.11, 01:14: „jeden ma mieć wszystko podzielone plus extra osiedla na innym do wglądu na szybko”.
         var variants=new[]{
             new{tag="osiedle",scenes=Pack(estateScene,estateArea),gl=false,id="com.braxhorn.osiedle",name="Braxhorn Osiedle"},
-            new{tag="miasto",scenes=Pack(cityScene,cityArea),gl=false,id="com.braxhorn.miasto",name="Braxhorn Miasto"},
-            new{tag="miasto-gl",scenes=Pack(cityScene,cityArea),gl=true,id="com.braxhorn.miasto.gl",name="Braxhorn Miasto GL"}};
+            new{tag="calosc",scenes=Pack(cityScene,cityArea,estateScene,estateArea),gl=false,id="com.braxhorn.city",name="Braxhorn City"}};
         bool useDefault=PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
         var apis=PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
         BuildReport last=null,ok=null;var summary=new List<string>();
