@@ -80,7 +80,7 @@ public sealed class BraxVessel : MonoBehaviour
             {
                 var o = transform.position + new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r);
                 RaycastHit hit;
-                if (!Physics.Raycast(o + Vector3.up * 6f, Vector3.down, out hit, 12f, ~(1 << 8), QueryTriggerInteraction.Ignore)) continue;
+                if (!Physics.Raycast(o + Vector3.up * 6f, Vector3.down, out hit, 12f, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore)) continue;
                 if (hit.point.y < waterY + .15f) continue;                 // dno pod wodą — nie
                 if (hit.collider.transform.IsChildOf(transform)) continue;  // własny kadłub — nie
                 if (r < bd) { bd = r; best = hit.point; found = true; }
@@ -114,7 +114,7 @@ public sealed class BraxVessel : MonoBehaviour
         // ląd przed dziobem: dno wyżej niż 0.8 m pod lustrem wody → stop (plaża, pomost, skały)
         var probe = next + fwd * (length * .5f + .5f);
         RaycastHit hit;
-        if (Physics.Raycast(probe + Vector3.up * 4f, Vector3.down, out hit, 20f, ~(1 << 8), QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(probe + Vector3.up * 4f, Vector3.down, out hit, 20f, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore))
         {
             bool own = hit.collider.transform.IsChildOf(transform);
             if (!own && hit.point.y > waterY - .8f) { speed = 0; next = transform.position; }

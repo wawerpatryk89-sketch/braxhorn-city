@@ -13,7 +13,7 @@ using UnityEngine.Rendering;
 //   osiedle B (nowe)        z  -236 .. -150  (13 nowoczesnych willi, ulica z chodnikami)
 // Współrzędne Unity (X już odwrócone względem źródła three.js). Materiały: Poly Haven / ambientCG (CC0),
 // siatki łączone per materiał i obszar (mało wywołań rysowania na telefonie), kolizje BoxCollider.
-public static class BraxClaudeOsiedle
+public static partial class BraxClaudeOsiedle
 {
     const string Tex = "Assets/Source/Claude/Osiedle/textures/";
     const string Mdl = "Assets/Source/Claude/Osiedle/models/";
@@ -4336,12 +4336,7 @@ public static class BraxClaudeOsiedle
         // „POZNAŃSKA · GARAŻE”) = Poznańska; tablica Codexa WIŚNIOWA na niej (three.js (6, 82)) zamieniona z tablicą POZNAŃSKA
         // przy ulicy wschodniej (three.js (51, −22)). Stare tablice (3.2 × 0.6 m, y 2.75, dwustronne) wycięte, nowe granatowe.
         CutVolumes(estate, physics, new List<Bounds> { MinMax(-7.7f, -4.3f, 2.38f, 3.12f, 81.84f, 82.16f), MinMax(-52.7f, -49.3f, 2.38f, 3.12f, -22.16f, -21.84f) });
-        foreach (var (sx, sz, id) in new[] { (-6f, 82f, "ul_poznanska"), (-51f, -22f, "ul_wisniowa") })
-        {
-            BoxMinMax(Frame, sx - .95f, sx + .95f, 2.5f, 3.0f, sz - .04f, sz + .04f, false, true);
-            Sign(id, new Vector3(sx, 2.75f, sz + .045f), 1.9f, .475f, Vector3.forward, false);
-            Sign(id, new Vector3(sx, 2.75f, sz - .045f), 1.9f, .475f, Vector3.back, false);
-        }
+        // 1.11: nowe tablice ulic (polski wzór, na własnym słupku na narożniku) stawia DrogiA — stare słupy Codexa wycięte
         rep.notes.Add("dom rodziny Wawerów (Poznańska 2): działka dom-08, dom 10 × 14 m z dachem czterospadowym, ganek, markiza, płot ze słupami i przęsłami, tuje, świerk");
     }
 
@@ -4958,6 +4953,7 @@ public static class BraxClaudeOsiedle
         Guard("szyldy budynków (policja, szpital, hala walk)", () => CivicSigns(estate));
         Guard("kasyno — przedsionek luksusowy", CasinoFoyer);
         Guard("wylot tunelu z miasta", () => CityTunnelPortal(estate, physics));
+        Guard("drogi osiedla A od nowa (skrzyżowania, zebry, rondo, parkingi, tablice)", () => DrogiA(estate, physics));
         Guard("siłownia A (za kasynem)", () => GymA(86f, -66f));
         Guard("muzyka (kasyno, siłownia A)", MusicZones);
         group = "Ogrodzenie";

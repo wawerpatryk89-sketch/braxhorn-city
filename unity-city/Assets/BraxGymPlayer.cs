@@ -68,6 +68,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
         bagRestRotation = new Quaternion[bags.Length];
         for(int i=0;i<bags.Length;i++)bagRestRotation[i]=bags[i].localRotation;
         cameraTarget = transform.position + Vector3.up * 1.65f;
+        Physics.IgnoreLayerCollision(8, 29, true);   // warstwa 29 = przeszkody tylko dla kamery
+        if (!view.GetComponent<BraxClaudeKamera>()) view.gameObject.AddComponent<BraxClaudeKamera>();   // bliska płaszczyzna 0.25 / 0.1 m przy ścianie — też w mieście
         foreach (Transform t in visual.GetComponentsInChildren<Transform>())
         {
             if(!hand&&t.name.Contains("RightHand"))hand=t;
@@ -91,7 +93,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         if(paused)return;var p=values.Split(',');
         if(p.Length>=2 && float.TryParse(p[0],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float dx) && float.TryParse(p[1],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float dy))
-        {yaw-=dx*.22f;pitch=Mathf.Clamp(pitch+dy*.16f,7f,57f);}
+        {yaw-=dx*.22f;pitch=Mathf.Clamp(pitch+dy*.16f,-32f,70f);}   // 1.11: kamera wyżej w górę (patrzenie na budynki, niebo) i bardziej z góry
     }
     public void Command(string key)
     {
@@ -197,6 +199,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         UpdateCamera(Mathf.Min(Time.deltaTime,.1f));
         if(reviewEnabled||Time.unscaledTime>=stateAt){stateAt=Time.unscaledTime+.16f;Report();}
     }
+    private bool hiddenClose;
     private void UpdateCamera(float dt)
     {
         Vector3 want=transform.position+Vector3.up*1.65f;
@@ -204,10 +207,17 @@ public sealed class BraxGymPlayer : MonoBehaviour
         float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
         Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*distance;
         Vector3 position=cameraTarget+offset;
-        if(Physics.SphereCast(cameraTarget,.18f,offset.normalized,out RaycastHit hit,distance,~(1<<8),QueryTriggerInteraction.Ignore))position=cameraTarget+offset.normalized*Mathf.Max(.8f,hit.distance-.15f);
+        // Kamera (audyt filmów właściciela 1.11): nie wchodzi w ściany, szyby, korony drzew i lampy — kolidują z nią też
+        // przeszkody „tylko dla kamery” (warstwa 29: korony, klosze, szkło balustrad; gracz przez nie przechodzi).
+        // Gdy ściana podsuwa kamerę bliżej niż 1.1 m, Brax znika z obrazu (zostaje jego cień) — pokój widać, a nie plecy.
+        float near=distance;
+        if(Physics.SphereCast(cameraTarget,.24f,offset.normalized,out RaycastHit hit,distance,~(1<<8),QueryTriggerInteraction.Ignore))near=Mathf.Max(.35f,hit.distance-.12f);
+        position=cameraTarget+offset.normalized*near;
         view.transform.position=position;view.transform.LookAt(cameraTarget);
+        bool close=near<1.1f;
+        if(close!=hiddenClose){hiddenClose=close;foreach(var r in visual.GetComponentsInChildren<Renderer>(true))r.shadowCastingMode=close?UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly:UnityEngine.Rendering.ShadowCastingMode.On;}
         if(contactShadow){var p=transform.position;
-            if(cityWorld&&Physics.Raycast(p+Vector3.up*.25f,Vector3.down,out RaycastHit floor,30,~(1<<8),QueryTriggerInteraction.Ignore))p.y=floor.point.y+.018f;
+            if(cityWorld&&Physics.Raycast(p+Vector3.up*.25f,Vector3.down,out RaycastHit floor,30,~((1<<8)|(1<<29)),QueryTriggerInteraction.Ignore))p.y=floor.point.y+.018f;
             else p.y=body.isGrounded?transform.position.y+.018f:.018f;
             contactShadow.position=p;}
     }
@@ -218,7 +228,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         for(int i=0;i<6;i++)if(!float.TryParse(a[i],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out v[i])||float.IsNaN(v[i])||float.IsInfinity(v[i]))return;
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";clips.Play("Idle");
         body.enabled=false;transform.position=new Vector3(v[0],v[1],v[2]);body.enabled=true;
-        yaw=v[3];pitch=Mathf.Clamp(v[4],7f,57f);distance=Mathf.Clamp(v[5],.8f,12f);
+        yaw=v[3];pitch=Mathf.Clamp(v[4],-32f,70f);distance=Mathf.Clamp(v[5],.8f,12f);
         cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);Report();
     }
     public void TravelTo(Vector3 position)

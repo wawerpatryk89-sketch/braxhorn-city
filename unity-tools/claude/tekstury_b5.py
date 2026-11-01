@@ -319,6 +319,13 @@ def street_plate(out, name, w=1024, h=256):
     f2, s2 = _fit(d, name, FB, 120, w - 200); tw = d.textlength(name, font=f2); d.text((150 + (w - 190 - tw) / 2, (h - s2) / 2 - 10), name, font=f2, fill=(250, 250, 250))
     img.save(out)
 
+def parking_sign(out, w=512):
+    """Znak D-18 „parking”: niebieski kwadrat, biała obwódka, białe P."""
+    img = Image.new("RGB", (w, w), (22, 74, 160)); d = ImageDraw.Draw(img)
+    d.rounded_rectangle([12, 12, w - 13, w - 13], radius=30, outline=(250, 250, 250), width=14)
+    f, s2 = _fit(d, "P", FB, 380, w - 120); tw = d.textlength("P", font=f); d.text(((w - tw) / 2, (w - s2) / 2 - 40), "P", font=f, fill=(250, 250, 250))
+    img.save(out)
+
 if __name__ == "__main__":
     out = pathlib.Path(sys.argv[1]); out.mkdir(parents=True, exist_ok=True)
     speaker(out / "glosnik.png"); amplifier(out / "wzmacniacz.png")
