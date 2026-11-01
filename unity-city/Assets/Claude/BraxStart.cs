@@ -76,12 +76,12 @@ public sealed class BraxStart : MonoBehaviour
         GUI.Label(new Rect(x, Screen.height - s * .1f, w, s * .09f), urzadzenie, maly);
     }
 
+    // Poziom API Androida z SystemInfo.operatingSystem („Android OS 15 / API-35 (…)”) — bez JNI: moduł AndroidJNI jest
+    // w tym projekcie wyłączony (build 7: CS1069 AndroidJavaClass → APK się nie zbudowało).
     static int Api()
     {
-#if UNITY_ANDROID && !UNITY_EDITOR
-        try { using (var v = new AndroidJavaClass("android.os.Build$VERSION")) return v.GetStatic<int>("SDK_INT"); } catch { }
-#endif
-        return 0;
+        var m = System.Text.RegularExpressions.Regex.Match(SystemInfo.operatingSystem ?? "", @"API-(\d+)");
+        return m.Success ? int.Parse(m.Groups[1].Value) : 0;
     }
 
     static string Nazwa(int r)
@@ -107,45 +107,8 @@ public sealed class BraxStart : MonoBehaviour
         }
     }
 
-    // Android 11+ (API 30): ActivityManager.getHistoricalProcessExitReasons — dlaczego poprzednie uruchomienia się skończyły.
-    static string PowodyZamkniecia()
-    {
-#if UNITY_ANDROID && !UNITY_EDITOR
-        try
-        {
-            if (Api() < 30) return "";
-            using (var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
-            using (var act = player.GetStatic<AndroidJavaObject>("currentActivity"))
-            {
-                string pkg = act.Call<string>("getPackageName");
-                using (var am = act.Call<AndroidJavaObject>("getSystemService", "activity"))
-                using (var list = am.Call<AndroidJavaObject>("getHistoricalProcessExitReasons", pkg, 0, 3))
-                {
-                    int n = list.Call<int>("size");
-                    if (n == 0) return "";
-                    var sb = new StringBuilder("ANDROID — JAK SKOŃCZYŁY SIĘ OSTATNIE URUCHOMIENIA:\n");
-                    long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    for (int i = 0; i < n; i++)
-                        using (var e = list.Call<AndroidJavaObject>("get", i))
-                        {
-                            int reason = e.Call<int>("getReason");
-                            string desc = e.Call<string>("getDescription");
-                            long pss = e.Call<long>("getPss"), rss = e.Call<long>("getRss"), ts = e.Call<long>("getTimestamp");
-                            int status = e.Call<int>("getStatus");
-                            long min = Math.Max(0, (now - ts) / 60000);
-                            sb.Append("• ").Append(Nazwa(reason)).Append(" · ").Append(min).Append(" min temu · pamięć ")
-                              .Append(pss / 1024).Append(" MB (RSS ").Append(rss / 1024).Append(" MB)");
-                            if (status != 0) sb.Append(" · kod ").Append(status);
-                            if (!string.IsNullOrEmpty(desc)) sb.Append(" · ").Append(desc.Length > 90 ? desc.Substring(0, 90) : desc);
-                            sb.Append('\n');
-                        }
-                    return sb.ToString();
-                }
-            }
-        }
-        catch (Exception ex) { return "(Android nie podał powodu zamknięcia: " + ex.Message + ")"; }
-#else
-        return "";
-#endif
-    }
+    // Powód zamknięcia wg Androida (ApplicationExitInfo) wymaga modułu AndroidJNI (com.unity.modules.androidjni), który jest
+    // w projekcie wyłączony; włączenie zmienia manifest pakietów = pełny reimport biblioteki w CI (+1–1.5 h). Do zrobienia razem
+    // z następną zmianą pakietów (Addressables). Do tego czasu: etap poprzedniego startu z BraxStartLog + dane telefonu.
+    static string PowodyZamkniecia() => "";
 }
