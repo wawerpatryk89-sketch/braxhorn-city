@@ -297,7 +297,8 @@ def main() -> int:
     (ROOT / "signs").mkdir(parents=True, exist_ok=True)
     styles = {"kasyno": ((10, 10, 12), (222, 184, 92), (200, 160, 80))}   # kasyno: złote litery na czerni, złota ramka
     for name, text in {"kasyno": "KASYNO", "butik": "BUTIK  NYXA", "shake": "SHAKE BAR", "braxhorn": "BRAXHORN KICKBOXING", "nutrition": "BRAXHORN NUTRITION", "sprzedaz": "NA SPRZEDAŻ", "kawiarnia": "KAWIARNIA", "market": "MARKET 24",
-                       "kort": "KLUB TENISOWY", "ochrona": "OCHRONA", "policja": "KOMISARIAT POLICJI", "cela1": "CELA 1", "cela2": "CELA 2", "wkrotce": "WKRÓTCE OTWARCIE", "miasto": "TUNEL  ·  MIASTO", "silownia": "SIŁOWNIA PLENEROWA"}.items():
+                       "kort": "KLUB TENISOWY", "ochrona": "OCHRONA", "policja": "KOMISARIAT POLICJI", "cela1": "CELA 1", "cela2": "CELA 2", "wkrotce": "WKRÓTCE OTWARCIE", "miasto": "TUNEL  ·  MIASTO", "silownia": "SIŁOWNIA PLENEROWA",
+                       "szatnia": "SZATNIA", "park_wisniowy": "PARK  WIŚNIOWY"}.items():
         bg, fg, fr = styles.get(name, ((34, 37, 40), (236, 228, 214), (176, 150, 104)))
         im = Image.new("RGB", (1024, 256), bg); dr = ImageDraw.Draw(im)
         dr.rectangle([10, 10, 1013, 245], outline=fr, width=6)
@@ -360,6 +361,7 @@ def main() -> int:
     tb5.brand_sign(ROOT / "signs" / "braxhorn_arena.png"); tb5.gold_sign(ROOT / "signs" / "recepcja_braxhorn.png", "BRAXHORN"); tb5.packaging(ROOT / "signs" / "opakowania.png")
     tb5.gold_sign(ROOT / "signs" / "tur_pod_zamosciem.png", "TUR POD ZAMOŚCIEM", 2048, 384)
     tb5.name_plaque(ROOT / "signs" / "rodzina_wawer.png"); tb5.address_plate(ROOT / "signs" / "poznanska_2.png"); tb5.street_plate(ROOT / "signs" / "ul_poznanska.png", "POZNAŃSKA"); tb5.street_plate(ROOT / "signs" / "ul_wisniowa.png", "WIŚNIOWA"); tb5.street_plate(ROOT / "signs" / "ul_bydgoska.png", "BYDGOSKA"); tb5.parking_sign(ROOT / "signs" / "znak_parking.png")   # dom Wawerów (właściciel 21:00)   # nazwa osiedla (właściciel 31.10, 20:55)
+    tb5.club_sign(ROOT / "signs" / "dyskoteka.png"); tb5.boxing_sign(ROOT / "signs" / "sala_bokserska.png"); tb5.shake_menu(ROOT / "signs" / "menu_shake.png")   # 1.11: szyld klubu, sala bokserska, menu Shake Baru
     print("TEKSTURY BUILD 5 OK")
     # Źdźbła trawy: atlas 2048x512 = 4 odmiany kępy (świeża, ciemniejsza, z suchszymi końcówkami, gęsta niska).
     import math, random

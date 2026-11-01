@@ -319,6 +319,64 @@ def street_plate(out, name, w=1024, h=256):
     f2, s2 = _fit(d, name, FB, 120, w - 200); tw = d.textlength(name, font=f2); d.text((150 + (w - 190 - tw) / 2, (h - s2) / 2 - 10), name, font=f2, fill=(250, 250, 250))
     img.save(out)
 
+def club_sign(out):
+    """Dyskoteka 2048×384 (12 × 2.25 m, 1.11 — zamiast płaskiej tablicy Codexa): czerń w fioletowym gradiencie, napis DYSKOTEKA
+    w kolorach magenta → cyjan (sam kolor bazowy, nic nie świeci), pod spodem CLUB · DJ · DANCE, po bokach słupki korektora."""
+    W, H = 2048, 384
+    img = _grad(W, H, (22, 8, 34), (6, 4, 12)); d = ImageDraw.Draw(img)
+    d.rectangle([8, 8, W - 9, H - 9], outline=(150, 40, 190), width=10); d.rectangle([28, 28, W - 29, H - 29], outline=(40, 170, 210), width=3)
+    rnd = random.Random(14)
+    for x0 in (70, W - 330):                                                    # korektor (słupki)
+        for k in range(10):
+            hgt = rnd.randint(60, 250); x = x0 + k * 26
+            for y in range(H - 60, H - 60 - hgt, -14):
+                t = (H - 60 - y) / 250
+                d.rectangle([x, y - 10, x + 18, y], fill=(int(60 + 190 * t), int(200 - 150 * t), int(230 - 40 * t)))
+    f, size = _fit(d, "DYSKOTEKA", FB, 200, W - 760)
+    tw = d.textlength("DYSKOTEKA", font=f); x0 = (W - tw) / 2
+    mask = Image.new("L", (W, H), 0); ImageDraw.Draw(mask).text((x0, 34), "DYSKOTEKA", font=f, fill=255)
+    a = np.zeros((H, W, 3), np.float32); t = np.linspace(0, 1, W)[None, :, None]
+    a[:] = np.array((236, 48, 180), np.float32) * (1 - t) + np.array((40, 210, 240), np.float32) * t
+    grad = Image.fromarray(a.astype(np.uint8), "RGB")
+    d.text((x0 + 5, 39), "DYSKOTEKA", font=f, fill=(0, 0, 0)); img.paste(grad, (0, 0), mask)
+    f2 = font(FB, 62); t2 = "CLUB  ·  DJ  ·  DANCE"; d = ImageDraw.Draw(img); tw2 = d.textlength(t2, font=f2)
+    d.text(((W - tw2) / 2, 272), t2, font=f2, fill=(230, 220, 245))
+    img.save(out)
+
+def boxing_sign(out):
+    """Sala bokserska 2048×384 (1.11 — budynek bez szyldu): czerń z czerwienią, liny ringu po bokach, SALA BOKSERSKA białym,
+    BRAXHORN BOXING na czerwono."""
+    W, H = 2048, 384
+    img = _grad(W, H, (16, 12, 12), (52, 8, 10)); d = ImageDraw.Draw(img)
+    d.rectangle([8, 8, W - 9, H - 9], outline=(214, 34, 40), width=10)
+    for x0, x1 in ((50, 330), (W - 330, W - 50)):                             # narożnik ringu: słupek i trzy liny
+        d.rectangle([x0 + 120, 60, x0 + 160, H - 60], fill=(40, 40, 44))
+        for k, y in enumerate((120, 190, 260)):
+            d.rectangle([x0, y - 9, x1, y + 9], fill=(230, 230, 230) if k % 2 else (214, 34, 40))
+    f, size = _fit(d, "SALA BOKSERSKA", FB, 170, W - 760)
+    tw = d.textlength("SALA BOKSERSKA", font=f); d.text(((W - tw) / 2 + 4, 52), "SALA BOKSERSKA", font=f, fill=(0, 0, 0)); d.text(((W - tw) / 2, 48), "SALA BOKSERSKA", font=f, fill=(250, 250, 250))
+    f2 = font(FB, 74); t2 = "B R A X H O R N   B O X I N G"; tw2 = d.textlength(t2, font=f2); d.text(((W - tw2) / 2, 262), t2, font=f2, fill=(230, 40, 46))
+    img.save(out)
+
+def shake_menu(out, w=1024, h=256):
+    """Tablica MENU nad ladą Shake Baru (4.4 × 1.1 m): kreda na grafitowej tablicy w drewnianej ramie, trzy kolumny z cenami."""
+    rnd = np.random.default_rng(21)
+    a = np.zeros((h, w, 3), np.float32); a[:] = (34, 38, 36); a += rnd.normal(0, 3, (h, w, 1))
+    img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGB"); d = ImageDraw.Draw(img)
+    d.rectangle([0, 0, w - 1, h - 1], outline=(120, 82, 48), width=12)
+    ft = font(FB, 40); tt = "MENU  ·  SHAKE BAR"; d.text(((w - d.textlength(tt, font=ft)) / 2, 16), tt, font=ft, fill=(244, 214, 120))
+    cols = [[("PROTEIN SHAKE", "14 zł"), ("BANANA BOOST", "15 zł"), ("CHOCO MASS", "16 zł")],
+            [("BERRY FIT", "15 zł"), ("MANGO LEAN", "15 zł"), ("GREEN DETOX", "13 zł")],
+            [("ESPRESSO", "8 zł"), ("WODA / IZO", "6 zł"), ("BATON BIAŁK.", "9 zł")]]
+    fi = font(FR, 22)
+    for c, items in enumerate(cols):
+        x0 = 34 + c * (w - 40) // 3
+        for r, (name, price) in enumerate(items):
+            y = 82 + r * 54
+            d.text((x0, y), name, font=fi, fill=(236, 236, 230))
+            d.text((x0 + 296 - d.textlength(price, font=fi), y), price, font=fi, fill=(160, 220, 170))
+    img.save(out)
+
 def parking_sign(out, w=512):
     """Znak D-18 „parking”: niebieski kwadrat, biała obwódka, białe P."""
     img = Image.new("RGB", (w, w), (22, 74, 160)); d = ImageDraw.Draw(img)
@@ -335,3 +393,4 @@ if __name__ == "__main__":
     gold_sign(out / "bar_kasyna.png", "BAR"); print("KASYNO WNĘTRZE OK")
     police_sign(out / "policja_odznaka.png"); hospital_sign(out / "szpital_h.png"); arena_sign(out / "hala_walk.png"); print("SZYLDY BUDYNKÓW OK")
     octagon_mat(out / "oktagon_mata.png"); octagon_apron(out / "oktagon_fartuch.png"); chain_link(out / "siatka_oktagonu.png"); octagon_banner(out / "baner_oktagon.png"); brand_sign(out / "braxhorn_arena.png"); gold_sign(out / "recepcja_braxhorn.png", "BRAXHORN"); packaging(out / "opakowania.png"); name_plaque(out / "rodzina_wawer.png"); address_plate(out / "poznanska_2.png"); street_plate(out / "ul_poznanska.png", "POZNAŃSKA"); street_plate(out / "ul_wisniowa.png", "WIŚNIOWA"); print("OKTAGON OK")
+    club_sign(out / "dyskoteka.png"); boxing_sign(out / "sala_bokserska.png"); shake_menu(out / "menu_shake.png"); print("SZYLDY 1.11 OK")
