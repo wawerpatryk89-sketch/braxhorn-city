@@ -90,6 +90,12 @@ jobs:
 
           public/assets/logo
 
+          public/assets/people
+
+          public/assets/basis
+
+          public/assets/cars-src
+
           public/unity-gym
 
           .github/scripts
@@ -208,6 +214,9 @@ jobs:
         fi
     - name: Odchudzanie modeli pod telefon (tekstury z .glb jako pliki do kompresji, uproszczenie ciezkich skanow) + ekran Autorzy
       run: |
+        # ludzie i auta z wersji przeglądarkowej (meshopt + KTX2) → zwykłe .glb dla glTFast (bez pakietów meshopt/KTX)
+        node unity-tools/claude/dekoduj_glb.mjs public/assets/people unity-city/Assets/Source/Claude/Ludzie || echo "DO POPRAWKI: dekodowanie ludzi"
+        node unity-tools/claude/dekoduj_glb.mjs public/assets/cars-src unity-city/Assets/Source/Claude/Auta || echo "DO POPRAWKI: dekodowanie aut"
         python3 unity-tools/claude/autorzy.py
         python3 unity-tools/claude/odchudzanie_modeli.py
     - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
@@ -325,6 +334,12 @@ jobs:
 
           public/assets/logo
 
+          public/assets/people
+
+          public/assets/basis
+
+          public/assets/cars-src
+
           public/unity-gym
 
           .github/scripts
@@ -443,6 +458,9 @@ jobs:
         fi
     - name: Odchudzanie modeli pod telefon (tekstury z .glb jako pliki do kompresji, uproszczenie ciezkich skanow) + ekran Autorzy
       run: |
+        # ludzie i auta z wersji przeglądarkowej (meshopt + KTX2) → zwykłe .glb dla glTFast (bez pakietów meshopt/KTX)
+        node unity-tools/claude/dekoduj_glb.mjs public/assets/people unity-city/Assets/Source/Claude/Ludzie || echo "DO POPRAWKI: dekodowanie ludzi"
+        node unity-tools/claude/dekoduj_glb.mjs public/assets/cars-src unity-city/Assets/Source/Claude/Auta || echo "DO POPRAWKI: dekodowanie aut"
         python3 unity-tools/claude/autorzy.py
         python3 unity-tools/claude/odchudzanie_modeli.py
     - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)

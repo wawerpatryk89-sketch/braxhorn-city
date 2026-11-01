@@ -26,7 +26,16 @@ GLB_DIRS = [
     "Source/Claude/Osiedle/models/nutrition_kit",
     "Nutrition/Models",                 # NutritionKit.glb sklepu w mieście (21 MB w APK)
     "Source/CityRebuild/landscape",     # park_shrub.glb (16 MB)
+    "Source/Claude/Ludzie",             # przechodnie (Mixamo, zdekodowane z wersji przeglądarkowej — dekoduj_glb.mjs)
+    "Source/Claude/Auta",               # auta (zdekodowane z public/assets/cars-src)
 ]
+# Drzewa osiedla (Verdant, 4 LOD-y w jednym .glb): LOD0 46 tys. trójkątów liści — w parku i alei kilkadziesiąt drzew
+# naraz = miliony trójkątów na klatkę (ŚREDNIA 14–17 kl./s u właściciela, 1.11). gltfpack upraszcza każdy LOD
+# osobno (węzły zachowane: -kn) — PRZED wyjęciem tekstur (obrazy jeszcze w .glb).
+GLB_SIMPLIFY = {
+    "Source/Claude/Osiedle/models/drzewo_verdant/drzewo_verdant.glb": 0.4,
+    "Source/Claude/Library/drzewo_verdant.glb": 0.4,
+}
 GLB_FILES = ["Source/LibrarySofa02.glb"]   # sofa z biblioteki (58 MB w APK) — siłownia, NOVA, taras, wieżowce
 GLTF_DIRS = ["Source/Claude/PolyHaven/models", "Source/Claude/Osiedle/models"]
 HEAVY = 150_000      # trójkątów: powyżej upraszczamy
@@ -207,9 +216,53 @@ def simplify(gltf_path, tris, cmd, rep):
     rep["uproszczone"].append({"model": str(gltf_path.relative_to(ASSETS)), "przed": tris, "po": best})
 
 
+def simplify_glb(glb, ratio, cmd, rep):
+    tris_before = glb_triangles(glb)
+    tmp = glb.with_name(glb.stem + "__lekki.glb")
+    r = subprocess.run(cmd + ["-i", str(glb), "-o", str(tmp), "-si", f"{ratio:.3f}", "-noq", "-kn", "-km", "-ke"], capture_output=True, text=True, timeout=600)
+    if r.returncode != 0 or not tmp.exists():
+        rep["bledy"].append(f"{glb.name}: gltfpack {r.returncode} {r.stderr[-300:]}")
+        return
+    after = glb_triangles(tmp)
+    # bezpiecznik: wszystkie obrazy muszą zostać (w buforze .glb albo jako plik obok) — inaczej drzewa bez tekstur
+    js_in, _ = read_glb(glb); js_out, _ = read_glb(tmp)
+    imgs_in, imgs_out = js_in.get("images") or [], js_out.get("images") or []
+    ok = len(imgs_out) >= len(imgs_in) and all(i.get("bufferView") is not None or (i.get("uri") and (tmp.parent / i["uri"]).exists()) for i in imgs_out)
+    if not ok or after <= 0:
+        tmp.unlink(missing_ok=True)
+        rep["bledy"].append(f"{glb.name}: po gltfpack brak obrazów ({len(imgs_in)} → {len(imgs_out)}) — zostaje oryginał")
+        return
+    tmp.replace(glb)
+    rep["uproszczone"].append({"model": str(glb.relative_to(ASSETS)), "przed": tris_before, "po": after})
+
+
+def glb_triangles(glb):
+    js, _ = read_glb(glb)
+    acc = js.get("accessors") or []
+    t = 0
+    for mesh in js.get("meshes") or []:
+        for p in mesh.get("primitives") or []:
+            if p.get("indices") is not None:
+                t += acc[p["indices"]]["count"] // 3
+            elif (p.get("attributes") or {}).get("POSITION") is not None:
+                t += acc[p["attributes"]["POSITION"]]["count"] // 3
+    return t
+
+
 def main():
     rep = {"glb": [], "uproszczone": [], "pominiete": [], "bledy": []}
     total_img = 0
+    simp = [(ASSETS / k, v) for k, v in GLB_SIMPLIFY.items() if (ASSETS / k).is_file()]
+    if simp:
+        cmd = gltfpack_cmd()
+        if not cmd:
+            print("DO POPRAWKI: brak gltfpack — drzewa bez uproszczenia")
+        else:
+            for g, ratio in simp:
+                try:
+                    simplify_glb(g, ratio, cmd, rep)
+                except Exception as e:
+                    rep["bledy"].append(f"{g.name}: {e}")
     for d in GLB_DIRS:
         p = ASSETS / d
         if not p.is_dir():

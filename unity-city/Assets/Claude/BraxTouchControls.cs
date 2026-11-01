@@ -22,6 +22,7 @@ public sealed class BraxTouchControls : MonoBehaviour
     float R, B, b, m, gap;
     bool runLock, paused, showFps;
     bool credits; int creditsPage; string[] creditLines; GUIStyle creditStyle;   // MENU → AUTORZY (licencja CC BY 4.0)
+    bool mapa; GUIStyle mapLab;   // MENU → MAPA (BraxMapa: obraz rejonu z góry, pozycja Braxa, podpisane miejsca)
     float fpsT, fpsShown; int fpsN;
     float nextFind, hintUntil;
     Texture2D disc, ring;
@@ -122,7 +123,8 @@ public sealed class BraxTouchControls : MonoBehaviour
                 else if (t.fingerId == lookId && t.phase == TouchPhase.Moved)
                 {
                     var d = (p - lookLast) * LookScale; lookLast = p;
-                    player.LookInput(F(d.x) + "," + F(-d.y));
+                    // 1.11 (właściciel: „jak robię w prawo, to mi w lewo przestawia”): przesunięcie palca w prawo obraca widok w prawo
+                    player.LookInput(F(-d.x) + "," + F(-d.y));
                 }
             }
             else if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
@@ -147,7 +149,7 @@ public sealed class BraxTouchControls : MonoBehaviour
     void Pause(bool on)
     {
         if (paused == on || !player) return;
-        paused = on; credits = false; joyId = lookId = -1; player.MoveInput("0,0"); player.Command("pause");
+        paused = on; credits = false; mapa = false; joyId = lookId = -1; player.MoveInput("0,0"); player.Command("pause");
     }
 
     void Styles()
@@ -220,6 +222,7 @@ public sealed class BraxTouchControls : MonoBehaviour
         var old = GUI.color;
         GUI.color = new Color(0, 0, 0, .72f); GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture); GUI.color = old;
         if (credits) { Credits(s); return; }
+        if (mapa) { Mapa(s); return; }
         float w = s * 1.1f, x = (Screen.width - w) * .5f, y = Screen.height * .1f, h = s * .12f, g = s * .03f;
         GUI.Label(new Rect(0, y, Screen.width, h), "BRAXHORN CITY · PAUZA", menuTitle); y += h + g;
         if (GUI.Button(new Rect(x, y, w, h), "WRÓĆ DO GRY", menuBtn)) { Input.simulateMouseWithTouches = false; Pause(false); return; }
@@ -238,7 +241,44 @@ public sealed class BraxTouchControls : MonoBehaviour
         if (GUI.Button(new Rect(x, y, (w - g) * .5f, h), showFps ? "FPS: WŁ." : "FPS: WYŁ.", menuBtn)) showFps = !showFps;
         if (GUI.Button(new Rect(x + (w + g) * .5f, y, (w - g) * .5f, h), "OD NOWA (SIŁOWNIA)", menuBtn)) { Input.simulateMouseWithTouches = false; Pause(false); player.Command("reset"); }
         y += h + g;
-        if (GUI.Button(new Rect(x, y, w, h), "AUTORZY", menuBtn)) { credits = true; creditsPage = 0; }
+        bool jestMapa = BraxMapa.Aktywna;
+        GUI.enabled = jestMapa;
+        if (GUI.Button(new Rect(x, y, (w - g) * .5f, h), jestMapa ? "MAPA" : "MAPA (wkrótce)", menuBtn)) mapa = true;
+        GUI.enabled = true;
+        if (GUI.Button(new Rect(x + (w + g) * .5f, y, (w - g) * .5f, h), "AUTORZY", menuBtn)) { credits = true; creditsPage = 0; }
+    }
+
+    // Mapa: obraz rejonu dopasowany do ekranu, podpisy miejsc, strzałka Braxa (pozycja + kierunek). Północ (+z) u góry.
+    void Mapa(float s)
+    {
+        var m = BraxMapa.Aktywna; if (!m || !m.obraz) { mapa = false; return; }
+        if (mapLab == null) { mapLab = new GUIStyle(small) { fontStyle = FontStyle.Bold, fontSize = Mathf.RoundToInt(s * .026f), wordWrap = false }; }
+        float bh = s * .1f, top = s * .04f, availH = Screen.height - top - bh * 1.5f, availW = Screen.width - s * .08f;
+        float asp = (float)m.obraz.width / m.obraz.height, mh = Mathf.Min(availH, availW / asp), mw = mh * asp;
+        var r = new Rect((Screen.width - mw) * .5f, top, mw, mh);
+        GUI.DrawTexture(r, m.obraz, ScaleMode.StretchToFill);
+        Vector2 Ekran(Vector2 uv) => new Vector2(r.x + uv.x * r.width, r.y + (1f - uv.y) * r.height);
+        var old = GUI.color;
+        foreach (var mi in m.miejsca)
+        {
+            var e = Ekran(new Vector2((mi.xz.x - m.swiat.x) / m.swiat.width, (mi.xz.y - m.swiat.y) / m.swiat.height));
+            var size = mapLab.CalcSize(new GUIContent(mi.nazwa));
+            var lr = new Rect(e.x - size.x * .5f - 4, e.y - size.y * .5f, size.x + 8, size.y);
+            GUI.color = new Color(0, 0, 0, .55f); GUI.DrawTexture(lr, Texture2D.whiteTexture);
+            GUI.color = Color.white; GUI.Label(lr, mi.nazwa, mapLab);
+        }
+        // Brax: zielona kropka i strzałka kierunku
+        var pe = Ekran(m.NaObraz(player.transform.position));
+        float ds = s * .035f;
+        float yaw = player.transform.eulerAngles.y;
+        var mat = GUI.matrix;
+        GUIUtility.RotateAroundPivot(yaw, pe);
+        GUI.color = Accent; GUI.DrawTexture(new Rect(pe.x - ds * .25f, pe.y - ds * 1.1f, ds * .5f, ds * .9f), Texture2D.whiteTexture);
+        GUI.matrix = mat;
+        GUI.color = Accent; GUI.DrawTexture(new Rect(pe.x - ds * .5f, pe.y - ds * .5f, ds, ds), disc);
+        GUI.color = old;
+        GUI.Label(new Rect(r.x, r.y + s * .01f, r.width, s * .05f), m.tytul + "  ·  zielona kropka = Ty", small);
+        if (GUI.Button(new Rect((Screen.width - s * .6f) * .5f, Screen.height - bh * 1.25f, s * .6f, bh), "ZAMKNIJ", menuBtn)) mapa = false;
     }
 
     // Ekran „Autorzy”: tekst z Resources/braxhorn_autorzy.txt (unity-tools/claude/autorzy.py zbiera CREDITS.md i metadane

@@ -60,10 +60,14 @@ public static partial class BraxClaudeOsiedle
 
     static List<UlicaA> ulice;
     static List<WezelA> wezly;
+    // dla ruchu (BraxClaudeOsiedleRuch): osie chodników między skrzyżowaniami i miejsca parkingowe (środek, kierunek)
+    static readonly List<(Vector3 a, Vector3 b)> chodnikiA = new List<(Vector3, Vector3)>();
+    static readonly List<(Vector3 p, float yaw)> miejscaA = new List<(Vector3, float)>();
 
     static void DrogiA(Transform estate, Transform physics)
     {
         group = "Osiedle A / drogi od nowa";
+        chodnikiA.Clear(); miejscaA.Clear();
         ulice = new List<UlicaA>
         {
             // bulwary W–E (Codex: jezdnia 7 m, chodniki 2.8 m przy z ± 5) — końce przy x ±64 wchodzą w parkingi
@@ -75,8 +79,9 @@ public static partial class BraxClaudeOsiedle
             // Wiśniowa (x −58) i Bydgoska (x 58): od parkingów przy parku do bulwaru B3
             new UlicaA { id = "N1", nazwa = "ul_wisniowa", alongX = false, c = -58f, a0 = -62f, a1 = 86f, cw = 3f, green = .3f, walkNeg = 2f, walkPos = 2f },
             new UlicaA { id = "N2", nazwa = "ul_bydgoska", alongX = false, c = 58f, a0 = -62f, a1 = 86f, cw = 3f, green = .3f, walkNeg = 2f, walkPos = 2f },
-            // uliczki przy domach (x ±43), chodnik po stronie zewnętrznej; zachodnia prowadzi dalej do bramy lasu (z −57.5)
-            new UlicaA { id = "S1", alongX = false, c = -43f, a0 = -57.5f, a1 = 39f, cw = 2.5f, green = .3f, walkNeg = 2f, walkPos = 0f, centerLine = false },
+            // uliczki przy domach (x ±43), chodnik po stronie zewnętrznej. Dawna droga Codexa do „LAS · TEREN ZAMKNIĘTY”
+            // (kikut asfaltu w polu z płotkiem i tablicą — właściciel 17:13: „zbędna rzecz”) usunięta: uliczka kończy się na B1.
+            new UlicaA { id = "S1", alongX = false, c = -43f, a0 = -19f, a1 = 39f, cw = 2.5f, green = .3f, walkNeg = 2f, walkPos = 0f, centerLine = false },
             new UlicaA { id = "S2", alongX = false, c = 43f, a0 = -19f, a1 = 39f, cw = 2.5f, green = .3f, walkNeg = 0f, walkPos = 2f, centerLine = false },
         };
         wezly = new List<WezelA>();
@@ -97,6 +102,7 @@ public static partial class BraxClaudeOsiedle
         foreach (float z in new[] { -19f, 39f, 86f }) cut.Add(MinMax(-113f, 113f, -.06f, .13f, z - 6.6f, z + 6.6f));
         foreach (float x in new[] { -58f, 58f }) cut.Add(MinMax(x - 5.7f, x + 5.7f, -.06f, .13f, -93f, 87f));
         cut.Add(MinMax(-46f, -40f, -.06f, .13f, -60f, -25f));
+        cut.Add(MinMax(-46.6f, -39.4f, -.1f, 3.2f, -58.7f, -57.3f));   // płotek i tablica LAS · TEREN ZAMKNIĘTY (Codex)
         // place przed budynkami (Codex: fz+18 ± 2.5, szer. 44) — nachodzą na bulwary; odtworzone niżej w części poza jezdnią
         var budynki = new[] { (86f, -42f), (86f, 14f), (-86f, -42f), (-86f, 14f), (86f, 64f), (-86f, 64f) };
         foreach (var (fx, fz) in budynki) { cut.Add(MinMax(fx - 22.2f, fx + 22.2f, -.06f, .13f, fz + 15.3f, fz + 20.7f)); cut.Add(MinMax(fx - 22.2f, fx + 22.2f, -.06f, .13f, fz - 18.7f, fz - 15.3f)); }
@@ -120,8 +126,6 @@ public static partial class BraxClaudeOsiedle
             ParkingBulwar(s, 86f, 82.4f, 95.6f, 1);      // przed salą bokserską / halą walk
             ParkingPark(s * 58f);
         }
-        // brama lasu na końcu uliczki zachodniej (Codex: płot 6 m + tablica LAS · TEREN ZAMKNIĘTY) — szlaban przed płotem
-        Szlaban(-43f, -56.6f, 2.5f);
         // 5) place przed budynkami poza jezdnią (wycięte wyżej) — płyty od ściany do chodnika bulwaru
         // krawędzie parkingów: z −21.4…−4.6 (B1), 34.6…45.4 (B2), 82.4…95.6 (B3)
         var lotEdges = new[] { (-21.4f, -4.6f), (34.6f, 45.4f), (82.4f, 95.6f) };
@@ -133,7 +137,7 @@ public static partial class BraxClaudeOsiedle
             float back = lotEdges.Select(e => e.Item2).Where(e => e < zr1 + .5f).DefaultIfEmpty(zr0).Max();
             if (back < zr1 - .2f) BoxMinMax(Pavers, fx - 22f, fx + 22f, 0, .1f, Mathf.Max(zr0, back), zr1);
         }
-        rep.notes.Add("drogi A od nowa: " + ulice.Count + " ulic, " + wezly.Count + " skrzyżowań (w tym rondo), 8 parkingów, tablice ulic, szlaban lasu");
+        rep.notes.Add("drogi A od nowa: " + ulice.Count + " ulic, " + wezly.Count + " skrzyżowań (w tym rondo), 8 parkingów, tablice ulic; droga do „lasu” Codexa usunięta");
     }
 
     // Odcinek ulicy z przerwami na skrzyżowania: jezdnia ciągła do środka węzła (węzeł kładzie własną płytę), krawężnik,
@@ -191,7 +195,16 @@ public static partial class BraxClaudeOsiedle
                 if (lo > cur) runs.Add((cur, lo)); cur = Mathf.Max(cur, hi);
             }
             if (cur < A1) runs.Add((cur, A1));
-            foreach (var (r0, r1) in runs) if (r1 - r0 > .05f) RectAlong(u, r0, r1, d0, d1, m, y0, y1, true);
+            foreach (var (r0, r1) in runs) if (r1 - r0 > .05f)
+                {
+                    RectAlong(u, r0, r1, d0, d1, m, y0, y1, true);
+                    if (typ == 3 && r1 - r0 > 12f)
+                    {
+                        float dc = (d0 + d1) * .5f;
+                        chodnikiA.Add(u.alongX ? (new Vector3(r0 + 1f, .14f, u.c + dc), new Vector3(r1 - 1f, .14f, u.c + dc))
+                                               : (new Vector3(u.c + dc, .14f, r0 + 1f), new Vector3(u.c + dc, .14f, r1 - 1f)));
+                    }
+                }
         }
         // linia osiowa: kreski 3 m co 6 m, przerwana przy węzłach (z zebrami: 1 m przed zebrą)
         if (u.centerLine)
@@ -352,6 +365,7 @@ public static partial class BraxClaudeOsiedle
             for (float x = startX; x + 2.5f <= endX + .01f; x += 2.5f)
             {
                 Top(Paint, x - .06f, x + .06f, r0, r1, YFarba); n++;
+                if (x + 2.5f <= endX + .01f) miejscaA.Add((new Vector3(x + 1.25f, YAsf, (r0 + r1) * .5f), Mathf.Abs(r0 - z0) < .01f ? 180f : 0f));
             }
             float lineZ = Mathf.Abs(r0 - z0) < .01f ? r1 : r0;
             Top(Paint, startX, endX, lineZ - .06f, lineZ + .06f, YFarba);
@@ -377,7 +391,11 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(KerbStone, xa - .2f, xb + .2f, 0, .16f, z0 - .2f, z0);
         float r0 = x + s * 3.4f, r1 = x + s * 8.4f;      // rząd miejsc
         int n = 0;
-        for (float z = z0 + 2f; z + 2.5f <= z1 - 1f; z += 2.5f) { Top(Paint, Mathf.Min(r0, r1), Mathf.Max(r0, r1), z - .06f, z + .06f, YFarba); n++; }
+        for (float z = z0 + 2f; z + 2.5f <= z1 - 1f; z += 2.5f)
+        {
+            Top(Paint, Mathf.Min(r0, r1), Mathf.Max(r0, r1), z - .06f, z + .06f, YFarba); n++;
+            if (z + 5f <= z1 - 1f) miejscaA.Add((new Vector3((r0 + r1) * .5f, YAsf, z + 1.25f), s > 0 ? 90f : 270f));
+        }
         Top(Paint, Mathf.Min(r0, r0 + s * .12f), Mathf.Max(r0, r0 + s * .12f), z0 + 2f, z0 + 2f + (n - 1) * 2.5f, YFarba);
         // chodnik wzdłuż rzędu miejsc, po stronie zewnętrznej (dojście do parku i do ulicy)
         float outer = s > 0 ? xb : xa;
