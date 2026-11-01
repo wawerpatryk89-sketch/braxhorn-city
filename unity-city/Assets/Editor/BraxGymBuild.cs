@@ -111,6 +111,10 @@ public static class BraxGymBuild
         folders=folders.Where(AssetDatabase.IsValidFolder).ToArray();
         if(folders.Length==0)return;
         int changed=0,kept=0;
+        // Wszystkie zmiany naraz (StartAssetEditing): jeden import zbiorczy zamiast ~880 pojedynczych, każdy z ponownym
+        // importem modelu .gltf, który z tych tekstur korzysta (build 8, APK: 05:31–06:40).
+        AssetDatabase.StartAssetEditing();
+        try{
         foreach(var guid in AssetDatabase.FindAssets("t:Texture2D",folders))
         {
             string path=AssetDatabase.GUIDToAssetPath(guid);string lower=path.ToLowerInvariant();
@@ -122,6 +126,7 @@ public static class BraxGymBuild
             if(ps.compressionQuality>50)ps.compressionQuality=50;
             imp.SetPlatformTextureSettings(ps);imp.SaveAndReimport();changed++;
         }
+        }finally{AssetDatabase.StopAssetEditing();}
         Debug.Log("BRAXHORN_TEXTURE_CAP "+platform+": elewacje do 1K zmienione="+changed+", zostawione 2K (z bliska)="+kept);
     }
 
