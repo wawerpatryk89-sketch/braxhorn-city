@@ -69,6 +69,11 @@ public static class BraxGymBuild
         var variants=new[]{
             new{tag="osiedle",scenes=Pack(estateScene,estateArea),gl=false,id="com.braxhorn.osiedle",name="Braxhorn Osiedle"},
             new{tag="calosc",scenes=Pack(cityScene,cityArea,cityIsland,estateScene,estateArea),gl=false,id="com.braxhorn.city",name="Braxhorn City"}};
+        // Które APK budować: plik unity-city/apk-warianty.txt (np. „osiedle” albo „osiedle calosc”); brak pliku = oba.
+        // Właściciel 1.11, 07:09 „tyle kurwa czasu” — testujesz osiedle, budujemy tylko osiedle (~40 min mniej).
+        string wybor="";try{if(File.Exists("apk-warianty.txt"))wybor=File.ReadAllText("apk-warianty.txt").ToLowerInvariant();}catch{}
+        var wybrane=wybor.Split(new[]{' ','\n','\r','\t',','},StringSplitOptions.RemoveEmptyEntries).Where(w=>!w.StartsWith("#")).ToArray();
+        if(wybrane.Length>0){variants=variants.Where(v=>wybrane.Contains(v.tag)).ToArray();Debug.Log("BRAXHORN_APK wybrane warianty: "+string.Join(", ",variants.Select(v=>v.tag)));}
         bool useDefault=PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
         var apis=PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
         BuildReport last=null,ok=null;var summary=new List<string>();
