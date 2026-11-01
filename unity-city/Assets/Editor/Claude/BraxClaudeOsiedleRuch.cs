@@ -67,8 +67,18 @@ public static partial class BraxClaudeOsiedle
         }
         if (modele.Count == 0 || chodnikiA.Count == 0) { rep.notes.Add("DO POPRAWKI: przechodnie — modeli " + modele.Count + ", chodników " + chodnikiA.Count); return; }
         var rnd = new System.Random(1101);
-        var odcinki = chodnikiA.OrderBy(_ => rnd.Next()).ToList();
-        int ile = Mathf.Min(16, odcinki.Count), zrobione = 0;
+        // część A (nowe chodniki) + część B: chodniki ulicy głównej, ulicy N-S i aleja parku
+        var odcinki = new List<(Vector3 a, Vector3 b)>(chodnikiA.OrderBy(_ => rnd.Next()).Take(14));
+        float wB = Carriage + Kerb + Green + Walk * .5f;
+        foreach (int sd in new[] { -1, 1 })
+        {
+            odcinki.Add((new Vector3(X0 + 8f, .14f, StreetZ + sd * wB), new Vector3(AxisX - 10f, .14f, StreetZ + sd * wB)));
+            odcinki.Add((new Vector3(AxisX + 10f, .14f, StreetZ + sd * wB), new Vector3(X1 - 8f, .14f, StreetZ + sd * wB)));
+            odcinki.Add((new Vector3(AxisX + sd * wB, .14f, ParkZ0 - 2f), new Vector3(AxisX + sd * wB, .14f, StreetZ + Half + 2f)));
+        }
+        odcinki.Add((new Vector3(AxisX + 1f, .05f, FenceA - 3f), new Vector3(AxisX + 1f, .05f, -127f)));   // aleja parku do fontanny
+        odcinki.Add((new Vector3(AxisX - 1f, .05f, -137f), new Vector3(AxisX - 1f, .05f, ParkZ0 + 2f)));
+        int ile = odcinki.Count, zrobione = 0;
         var klipy = new Dictionary<GameObject, (AnimationClip w, AnimationClip i)>();
         for (int k = 0; k < ile; k++)
         {
@@ -85,7 +95,7 @@ public static partial class BraxClaudeOsiedle
             if (!klipy.TryGetValue(src, out var kl)) { kl = (ClipNaSzkielet(walkSrc, o.transform, "Walking", src.name), ClipNaSzkielet(idleSrc, o.transform, "Idle", src.name)); klipy[src] = kl; }
             // korzeń ruchu: pusty obiekt (model jako dziecko — skala modelu nie wpływa na ruch)
             var root = new GameObject("Przechodzień " + (k + 1) + " · " + src.name); root.transform.SetParent(Group(group), false);
-            var (a, bb) = odcinki[k];
+            Vector3 a = odcinki[k].a, bb = odcinki[k].b;
             root.transform.position = a; o.transform.SetParent(root.transform, false); o.transform.localPosition = new Vector3(o.transform.localPosition.x, o.transform.localPosition.y, o.transform.localPosition.z);
             var anim = o.AddComponent<Animation>(); anim.playAutomatically = true; anim.cullingType = AnimationCullingType.BasedOnRenderers;
             if (kl.w) { anim.AddClip(kl.w, "Walking"); anim.clip = kl.w; }
@@ -234,8 +244,9 @@ public static partial class BraxClaudeOsiedle
             }
         }
         // zaparkowane: co trzecie miejsce na parkingach (losowo), przodem do alei
-        foreach (var (p, yaw) in miejscaA)
+        foreach (var mp in miejscaA)
         {
+            Vector3 p = mp.p; float yaw = mp.yaw;
             if (rnd.NextDouble() > .33) continue;
             var src = modele[rnd.Next(modele.Count)];
             var m = AutoModel(src, out _); if (!m) continue;

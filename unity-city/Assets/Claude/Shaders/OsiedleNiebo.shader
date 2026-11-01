@@ -58,6 +58,9 @@ Shader "Braxhorn/OsiedleNiebo"
                 half3 c = tex2D(_MainTex, ToRadialCoords(i.texcoord)).rgb;
                 half y = dot(c, half3(.2126, .7152, .0722));
                 c = max(0, y + (c - y) * _Saturation) * _Exposure;
+                // poniżej horyzontu (za płotem / poza zasięgiem kamery na NISKIEJ): kolor mgły zamiast nieba „pod ziemią”
+                half ny = normalize(i.texcoord).y;
+                c = lerp(c, unity_FogColor.rgb, saturate((0.03 - ny) / 0.16));
                 return half4(c, 1);
             }
             ENDCG
