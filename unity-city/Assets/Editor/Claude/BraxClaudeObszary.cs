@@ -50,6 +50,10 @@ public static class BraxClaudeObszary
             if (obszar.Contains(b.min) && obszar.Contains(b.max) && !MaZostajace(t) && !(t.GetComponent<Light>() && t.GetComponent<Light>().type == LightType.Directional))
             { res.Add(t); return; }
             if (!b.Intersects(obszar)) return;
+            // Build 8: 64 drzewa (Verdant, LOD) na granicy osiedla — pień przeniesiony do obszaru, korona została
+            // (LODGroup traci odwołanie między scenami → korona wisi w powietrzu, dopóki obszar się nie wczyta).
+            // Obiekt z LODGroup jest niepodzielny: cały w obszarze albo cały zostaje.
+            if (t.GetComponent<LODGroup>()) return;
             foreach (Transform c in t) Zbierz(c);
         }
         foreach (var root in scene.GetRootGameObjects()) Zbierz(root.transform);
@@ -87,6 +91,8 @@ public static class BraxClaudeObszary
                 if (mf.sharedMesh) for (int s = 0; s < mf.sharedMesh.subMeshCount; s++) tris += mf.sharedMesh.GetIndexCount(s) / 3;
             }
         }
+        // nazwy przed zamknięciem sceny obszaru (build 8: MissingReferenceException przy dzienniku po CloseScene)
+        string nazwy = string.Join(", ", wezly.Take(12).Select(w => w.name));
         // 4) nowa scena, przeniesienie, zapis
         foreach (var w in wezly) w.SetParent(null, true);
         var part = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
@@ -112,7 +118,7 @@ public static class BraxClaudeObszary
         Debug.Log("BRAXHORN_OBSZAR " + nazwaSceny + ": poddrzew " + wezly.Count + ", siatek " + rend + ", trójkątów " + tris +
                   ", granice " + gr.min.ToString("F0") + " … " + gr.max.ToString("F0") + ", wczytaj " + wczytaj + " m / zwolnij " + zwolnij + " m" +
                   ", zostawione w scenie głównej " + zostawione + (krzyzMain || krzyzPart ? " — UWAGA: odwołania między scenami (wyzerowane przy zapisie)" : "") +
-                  " | " + string.Join(", ", wezly.Take(12).Select(w => w.name)));
+                  " | " + nazwy);
         return path;
     }
 }
