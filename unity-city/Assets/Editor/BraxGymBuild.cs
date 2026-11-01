@@ -132,9 +132,9 @@ public static class BraxGymBuild
             }
             var sb=new System.Text.StringBuilder();
             sb.Append("BRAXHORN_BUILD_SIZE total=").Append(total/1048576).Append(" MB, result=").Append(result.summary.result).Append('\n');
-            // Rozmiar na obszar (właściciel 1.11: „obszar nie może być większy niż 500… musi być zapas na wyposażenie, ludność,
-            // bohaterów i pojazdy”). Na moto g86 działa paczka z 1.5 GB danych sceny, 1.7 GB już nie → budżet obszaru 900 MB
-            // (≈ 60 % granicy, ~600 MB zapasu na postacie, auta, wyposażenie). Pliki Unity: level{i} + sharedassets{i} = scena i.
+            // Rozmiar na obszar (właściciel 1.11, 01:32: „strefy po 300 MB, 200 zapas na auta, ludzi, misje”). Paczka ≈ dane / 2.7
+            // (a05fc1a: 1527 MB danych → APK 517 MB) → treść strefy ≤ 300 MB paczki ≈ 800 MB danych sceny; zapas 200 MB paczki
+            // ≈ 550 MB danych; razem ~1.35 GB < zmierzonej granicy moto g86 (1.5 GB działa, 1.7 GB nie). Pliki Unity: level{i} + sharedassets{i} = scena i.
             var perScene=new SortedDictionary<int,long>();long common=0;
             foreach(var pack in result.packedAssets)
             {
@@ -146,8 +146,8 @@ public static class BraxGymBuild
             foreach(var kv in perScene)
             {
                 long mb=kv.Value/1048576;string n=kv.Key<names.Length?names[kv.Key]:"scena "+kv.Key;
-                sb.Append("  OBSZAR ").Append(n).Append(": ").Append(mb).Append(" MB").Append(mb>900?"  — PONAD BUDŻET 900 MB":"").Append('\n');
-                if(mb>900)Debug.LogWarning("BRAXHORN_OBSZAR_BUDZET "+n+" = "+mb+" MB > 900 MB");
+                sb.Append("  OBSZAR ").Append(n).Append(": ").Append(mb).Append(" MB").Append(mb>800?"  — PONAD BUDŻET STREFY 800 MB (≈ 300 MB paczki)":"").Append(" ≈ paczka ").Append(mb*10/27).Append(" MB").Append('\n');
+                if(mb>800)Debug.LogWarning("BRAXHORN_OBSZAR_BUDZET "+n+" = "+mb+" MB danych > 800 MB (strefa 300 MB paczki)");
             }
             sb.Append("  WSPÓLNE (zasoby, ustawienia): ").Append(common/1048576).Append(" MB\n");
             foreach(var kv in byType.OrderByDescending(k=>k.Value).Take(12))sb.Append("  TYPE ").Append(kv.Value/1048576).Append(" MB  ").Append(kv.Key).Append('\n');
