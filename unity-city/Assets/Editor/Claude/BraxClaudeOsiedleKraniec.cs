@@ -57,6 +57,9 @@ public static partial class BraxClaudeOsiedle
             Wzgorze(hillMat, null, c, 110f + (float)rnd.NextDouble() * 90f, 90f + (float)rnd.NextDouble() * 70f, 22f + (float)rnd.NextDouble() * 30f, 12, false);
         }
         rep.notes.Add("kraniec mapy: łąki do " + R + " m, " + stozki + " drzew lasu w oddali, wzgórze nad tunelem, 14 wzgórz na horyzoncie");
+        // ruch (ludzie, auta) i mapa — po drogach A (DrogiA), przed trawą 3D; błąd w jednym nie zatrzymuje reszty
+        Guard("ruch: przechodnie i auta", RuchNaOsiedlu);
+        Guard("mapa osiedla (menu)", MapaOsiedla);
     }
 
     static void WzgorzeTunelu(Material m, float xa, float xb, float za, float zb, float h)
