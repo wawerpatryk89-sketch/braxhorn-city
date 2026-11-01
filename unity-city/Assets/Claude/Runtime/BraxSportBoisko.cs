@@ -159,6 +159,7 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
             var rb = go.AddComponent<Rigidbody>(); rb.mass = masa; rb.linearDamping = 0f; rb.angularDamping = 1f;
             rb.interpolation = RigidbodyInterpolation.Interpolate; rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             pilki[i] = rb; kule[i] = col;
+            go.AddComponent<BraxOdbicie>().rodzaj = nazwa.ToLowerInvariant().Contains("tenis") ? 1 : 0;   // dźwięk odbicia (1.11)
         }
     }
 

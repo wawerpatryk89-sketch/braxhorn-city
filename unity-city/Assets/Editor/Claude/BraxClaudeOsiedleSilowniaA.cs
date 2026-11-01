@@ -458,6 +458,7 @@ public static partial class BraxClaudeOsiedle
             go.AddComponent<SphereCollider>().radius = .17f;
             var rb = go.AddComponent<Rigidbody>(); rb.mass = 5f; rb.linearDamping = .6f; rb.angularDamping = 1.6f; rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic; rb.interpolation = RigidbodyInterpolation.Interpolate;
             go.AddComponent<BraxPilka>().promien = .17f;
+            go.AddComponent<BraxOdbicie>().rodzaj = 2;   // głuchy łomot o podłogę (1.11)
             GameObjectUtility.SetStaticEditorFlags(go, 0); pilki++;
         }
         // kettle we wnęce przy workach (x 11.18…15.82, z −16.0…−15.2): regał dwupoziomowy, 8 kettli 8–32 kg

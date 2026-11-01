@@ -15,7 +15,7 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja
     public Animation anim;
     public string chod = "Walking", stoi = "Idle";
     bool doB = true, rozmowa;
-    float pauza, nast, nastRozmowa, nastPowitanie, ton = 1f;
+    float pauza, nast, nastRozmowa, nastPowitanie, ton = 1f, przeszedl;
     Transform gracz, rozmowca;
     AudioSource glos;
     static Camera kam;
@@ -84,7 +84,8 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja
         }
         if (anim && !anim.IsPlaying(chod)) anim.CrossFade(chod, .25f);
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), dt * 6f);
-        transform.position += dir * Mathf.Min(predkosc * dt, d.magnitude);
+        float krok = Mathf.Min(predkosc * dt, d.magnitude); transform.position += dir * krok;
+        przeszedl += krok; if (przeszedl > .72f) { przeszedl = 0f; if (kam && (kam.transform.position - transform.position).sqrMagnitude < 14f * 14f) BraxDzwiekiSwiata.Krok(transform.position, .13f); }
     }
 
     void Powiedz(string tekst, float czas)

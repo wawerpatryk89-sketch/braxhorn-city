@@ -125,6 +125,8 @@ public static partial class BraxClaudeOsiedle
         var o = go.AddComponent<BraxOtoczenie>();
         o.ptaki = Ptaki(); o.wiatr = WiatrLiscie(); o.szum = SzumMiasta();
         o.parki = new[] { MinMax(-55f, 55f, -5f, 30f, -99f, -67f), MinMax(X0, X1, -5f, 30f, ParkZ0, FenceA) };   // Park Wiśniowy, park centralny
+        var fo = new GameObject("szum fontanny"); fo.transform.SetParent(go.transform, false); fo.transform.position = new Vector3(AxisX + 6f, 1f, -132f);
+        fo.AddComponent<BraxZrodloPetli>().glosnosc = .55f;
         rep.notes.Add("dźwięki: silnik w " + auta + " autach, tło (ptaki, wiatr, szum miasta) — synteza przy buildzie");
     }
 }

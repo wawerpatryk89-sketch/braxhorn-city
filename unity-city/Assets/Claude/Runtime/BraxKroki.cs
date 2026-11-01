@@ -32,6 +32,7 @@ public sealed class BraxKroki : MonoBehaviour
         if (kroki == null) Synteza();
     }
 
+    public static AudioClip Losowy() { if (kroki == null) Synteza(); return kroki[Random.Range(0, kroki.Length)]; }
     static void Synteza()
     {
         const int sr = 22050; kroki = new AudioClip[4]; var r = new System.Random(3);

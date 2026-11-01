@@ -20,6 +20,7 @@ public sealed class BraxCityDoor : MonoBehaviour
     }
     public void Toggle(Vector3 playerPosition)
     {
+        BraxDzwiekiSwiata.Drzwi(transform.position,target<=.5f);   // 1.11: dźwięk klamki i skrzydła
         if(target>.5f){target=0;return;}
         swing=transform.InverseTransformPoint(playerPosition).z>=0?1:-1;
         target=1;
