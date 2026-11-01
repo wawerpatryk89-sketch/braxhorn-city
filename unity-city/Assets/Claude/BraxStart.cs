@@ -34,7 +34,7 @@ public sealed class BraxStart : MonoBehaviour
         if (problem)
         {
             czekaNaDotyk = true; status = "POPRZEDNI START SIĘ NIE UDAŁ — ZRÓB ZRZUT EKRANU. DOTKNIJ, ŻEBY WCZYTAĆ GRĘ";
-            float until = Time.realtimeSinceStartup + 8f;
+            float until = Time.realtimeSinceStartup + 20f;
             while (czekaNaDotyk && Time.realtimeSinceStartup < until) { if (Input.touchCount > 0 || Input.GetMouseButtonDown(0)) break; yield return null; }
         }
         else yield return new WaitForSecondsRealtime(.4f);

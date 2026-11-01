@@ -298,6 +298,7 @@ public static class BraxGymBuild
             else Debug.LogWarning("DO POPRAWKI: brak Assets/Claude/Audio/silownia_muzyka.ogg");
         }
         // Zasada „nic nie świeci” + lampy ForceVertex dla całej sceny (audyt miasta 31.10, Opus) — ostatni krok przed zapisem.
+        {var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
         try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
         try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,

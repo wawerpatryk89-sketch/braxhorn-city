@@ -65,7 +65,7 @@ public sealed class BraxObszary : MonoBehaviour
         var op = SceneManager.LoadSceneAsync(o.scena, LoadSceneMode.Additive);
         if (op != null) { op.priority = 0; yield return op; }
         o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
-        BraxStartLog.Etap("OK");
+        BraxStartLog.Etap("obszar wczytany " + o.scena);
         Laduje--; o.w_toku = false; zajety = false;
     }
 

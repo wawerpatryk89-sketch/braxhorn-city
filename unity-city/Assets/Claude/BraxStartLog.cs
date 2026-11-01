@@ -1,17 +1,28 @@
 using System.Collections;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-// DZIENNIK STARTU NA TELEFONIE (31.10, Opus). Właściciel: „wypierdala mnie po instalacji przy włączaniu” — bez kabla i
-// logcatu nie wiemy, w którym miejscu. Gra zapisuje etapy startu (PlayerPrefs, od razu na dysk); jeśli poprzednie
-// uruchomienie nie doszło do końca (10 s gry po pierwszej klatce), przy następnym starcie u góry ekranu pojawia się
-// pasek: na którym etapie się zatrzymała, ile RAM-u ma telefon, jaka grafika (Vulkan / OpenGL) i ile pamięci zajęła gra.
-// Zrzut ekranu tego paska wystarczy, żeby wiedzieć, co naprawiać. Ten sam zapis przy przejściu tunelem między rejonami.
+// DZIENNIK STARTU NA TELEFONIE (31.10, Opus; przebudowa 1.11 po buildzie 8). Właściciel: „wypierdala mnie po instalacji
+// przy włączaniu” — bez kabla i logcatu nie wiemy, w którym miejscu. Gra zapisuje etapy startu; jeśli poprzednie
+// uruchomienie nie doszło do końca, przy następnym starcie ekran startowy (BraxStart) pokazuje ostatnie etapy.
+// Build 8: po wywaleniu miasta ekran NIE pokazał poprzedniego etapu. Dwie przyczyny naprawione tutaj:
+//  1) „OK” zapisywało się 10 s po pierwszej klatce sceny STARTOWEJ, także w trakcie wczytywania miasta w tle
+//     (scena startowa jest aktywna, dopóki miasto się nie włączy) — wywalenie przy włączaniu miasta zostawiało „OK”;
+//  2) PlayerPrefs na Androidzie zapisuje się asynchronicznie — przy zabiciu procesu ostatni wpis mógł nie dojść.
+// Teraz: osobny plik w pamięci aplikacji, dopisywany wierszami i od razu zrzucany na dysk (Flush(true) = fsync),
+// z godziną, etapem i pamięcią (zarezerwowana / używana / sterownik grafiki). „OK” tylko 10 s po pierwszej klatce
+// sceny gry (nie startowej) i tylko gdy nic się nie wczytuje. Do tego sygnał systemu „mało pamięci”
+// (Application.lowMemory = onTrimMemory Androida) i znaczniki włączania sceny oraz pierwszego renderu kamery.
 public sealed class BraxStartLog : MonoBehaviour
 {
     const string KEtap = "braxhorn_start_etap", KPamiec = "braxhorn_start_pamiec";
+    const string StartScene = "BraxhornStart";
     static BraxStartLog inst;
-    static string poprzedni;
+    static string poprzedni, sciezka;
+    static readonly System.Collections.Generic.List<string> wiersze = new System.Collections.Generic.List<string>();
+    static int maxMb;
+    static bool render0, render1;
     public static string Poprzedni => poprzedni;   // pokazywane też na ekranie startowym (BraxStart)
     float pokazDo;
     GUIStyle st;
@@ -22,33 +33,64 @@ public sealed class BraxStartLog : MonoBehaviour
         if (inst) return;
         try
         {
-            string last = PlayerPrefs.GetString(KEtap, "");
-            if (!string.IsNullOrEmpty(last) && last != "OK")
-                poprzedni = "POPRZEDNI START ZATRZYMAŁ SIĘ: " + last + " · zajęte " + PlayerPrefs.GetInt(KPamiec, 0) + " MB";
+            sciezka = Path.Combine(Application.persistentDataPath, "braxhorn_start.txt");
+            if (File.Exists(sciezka))
+            {
+                var all = File.ReadAllLines(sciezka);
+                if (all.Length > 0 && !all[all.Length - 1].Contains(" OK") && !all[all.Length - 1].Contains(" obszar wczytany"))
+                {
+                    int od = Mathf.Max(0, all.Length - 7);
+                    poprzedni = "POPRZEDNI START SIĘ NIE UDAŁ. OSTATNIE ETAPY:\n" + string.Join("\n", all, od, all.Length - od);
+                }
+            }
+            else
+            {
+                // pierwsze uruchomienie tej wersji dziennika: stary zapis z PlayerPrefs, jeśli był
+                string last = PlayerPrefs.GetString(KEtap, "");
+                if (!string.IsNullOrEmpty(last) && last != "OK")
+                    poprzedni = "POPRZEDNI START ZATRZYMAŁ SIĘ: " + last + " · zajęte " + PlayerPrefs.GetInt(KPamiec, 0) + " MB";
+            }
+            File.WriteAllText(sciezka, "");   // nowy start = nowy dziennik
         }
         catch { }
         var g = new GameObject("BRAXHORN dziennik startu");
         DontDestroyOnLoad(g);
         inst = g.AddComponent<BraxStartLog>();
-        Etap("1 start aplikacji");
+        Application.lowMemory += () => Etap("!!! SYSTEM: MAŁO PAMIĘCI");
+        Camera.onPreRender += c => { if (!render0 && Ready()) { render0 = true; Etap("4 pierwszy render kamery " + c.name); } };
+        Camera.onPostRender += c => { if (render0 && !render1) { render1 = true; Etap("5 po pierwszym renderze"); } };
+        Etap("1 start aplikacji · RAM telefonu " + SystemInfo.systemMemorySize + " MB · " + SystemInfo.graphicsDeviceType);
     }
+
+    static bool Ready() => SceneManager.GetActiveScene().name != StartScene && SceneManager.GetActiveScene().name != "";
 
     public static void Etap(string etap)
     {
         try
         {
-            long mb = UnityEngine.Profiling.Profiler.GetTotalReservedMemoryLong() / (1024 * 1024);
+            long res = UnityEngine.Profiling.Profiler.GetTotalReservedMemoryLong() / (1024 * 1024);
+            long used = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() / (1024 * 1024);
+            long gpu = UnityEngine.Profiling.Profiler.GetAllocatedMemoryForGraphicsDriver() / (1024 * 1024);
+            maxMb = (int)System.Math.Max(maxMb, res + gpu);
+            string w = System.DateTime.Now.ToString("HH:mm:ss") + " " + etap + " · pamięć " + res + " MB (używane " + used + ", grafika " + gpu + ")";
+            wiersze.Add(w);
+            if (sciezka != null)
+                using (var f = new FileStream(sciezka, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+                using (var sw = new StreamWriter(f))
+                { sw.WriteLine(w); sw.Flush(); f.Flush(true); }
             PlayerPrefs.SetString(KEtap, etap);
-            int prev = etap.StartsWith("1 ") ? 0 : PlayerPrefs.GetInt(KPamiec, 0);   // największe zajęcie pamięci od startu
-            PlayerPrefs.SetInt(KPamiec, (int)System.Math.Max(mb, prev));
-            PlayerPrefs.Save();
+            PlayerPrefs.SetInt(KPamiec, maxMb);
         }
         catch { }
     }
 
     void Awake()
     {
-        SceneManager.sceneLoaded += (s, m) => { Etap("2 wczytana scena " + s.name); StartCoroutine(PoKlatce(s.name)); };
+        SceneManager.sceneLoaded += (s, m) =>
+        {
+            Etap("2 włączona scena " + s.name + (m == LoadSceneMode.Additive ? " (obszar w tle)" : ""));
+            if (s.name != StartScene && m == LoadSceneMode.Single) { render0 = render1 = false; StartCoroutine(PoKlatce(s.name)); }
+        };
         if (poprzedni != null) pokazDo = Time.realtimeSinceStartup + 25f;
     }
 
@@ -56,8 +98,15 @@ public sealed class BraxStartLog : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         Etap("3 pierwsza klatka " + scena);
-        yield return new WaitForSecondsRealtime(10f);
-        if (SceneManager.GetActiveScene().name == scena) Etap("OK");
+        float until = Time.realtimeSinceStartup + 10f;
+        while (Time.realtimeSinceStartup < until || BraxObszary.Laduje > 0) yield return null;
+        if (SceneManager.GetActiveScene().name == scena) { Etap("OK"); PlayerPrefs.Save(); }
+    }
+
+    public static string Ostatnie(int n)
+    {
+        int od = Mathf.Max(0, wiersze.Count - n);
+        return string.Join("\n", wiersze.GetRange(od, wiersze.Count - od));
     }
 
     void OnGUI()
@@ -65,7 +114,7 @@ public sealed class BraxStartLog : MonoBehaviour
         if (poprzedni == null || Time.realtimeSinceStartup > pokazDo || BraxStart.Pokazuje) return;
         if (st == null)
         {
-            st = new GUIStyle(GUI.skin.box) { wordWrap = true, alignment = TextAnchor.MiddleCenter, fontSize = Mathf.Max(14, Mathf.Min(Screen.width, Screen.height) / 34) };
+            st = new GUIStyle(GUI.skin.box) { wordWrap = true, alignment = TextAnchor.MiddleLeft, fontSize = Mathf.Max(14, Mathf.Min(Screen.width, Screen.height) / 40) };
             st.normal.textColor = new Color(1f, .93f, .75f);
         }
         string info = poprzedni + "\nTelefon: " + SystemInfo.deviceModel + " · RAM " + SystemInfo.systemMemorySize + " MB · " +
