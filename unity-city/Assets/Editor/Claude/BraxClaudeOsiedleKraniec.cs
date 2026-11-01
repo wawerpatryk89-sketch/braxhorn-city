@@ -27,8 +27,9 @@ public static partial class BraxClaudeOsiedle
         Plaski(meadow, -R, ix0, iz0, iz1);       // zachód
         Plaski(meadow, ix1, R, iz0, iz1);        // wschód
 
-        // 2) wzgórze nad tunelem do miasta: od portalu (z 101) na północ, x −95…95, do 24 m — gładka kopuła z siatki
-        Wzgorze(hillMat, meadow, new Vector3(0, 0, 150f), 95f, 60f, 24f, 18, true);
+        // 2) wzgórze nad tunelem do miasta: zaczyna się za portalem (z 101.5 — nic nie wchodzi na osiedle), do 24 m już od
+        //    z ≈ 112 (strop tunelu 6.3 m schowany), x −95…95, opada ku bokom i na północ
+        WzgorzeTunelu(meadow, -95f, 95f, 101.5f, 215f, 24f);
 
         // 3) pasy lasu: stożki w skupiskach 30–260 m za płotem (poza wzgórzem nad tunelem)
         var rnd = new System.Random(4711);
@@ -56,6 +57,21 @@ public static partial class BraxClaudeOsiedle
             Wzgorze(hillMat, null, c, 110f + (float)rnd.NextDouble() * 90f, 90f + (float)rnd.NextDouble() * 70f, 22f + (float)rnd.NextDouble() * 30f, 12, false);
         }
         rep.notes.Add("kraniec mapy: łąki do " + R + " m, " + stozki + " drzew lasu w oddali, wzgórze nad tunelem, 14 wzgórz na horyzoncie");
+    }
+
+    static void WzgorzeTunelu(Material m, float xa, float xb, float za, float zb, float h)
+    {
+        const int nx = 24, nz = 18;
+        float S(float e0, float e1, float v) { float t = Mathf.Clamp01((v - e0) / (e1 - e0)); return t * t * (3f - 2f * t); }
+        float H(float x, float z) => h * S(xb, xb - 35f, x) * S(xa, xa + 35f, x) * S(za, za + 10.5f, z) * S(zb, zb - 30f, z);
+        Vector3 P(int i, int j) { float x = Mathf.Lerp(xa, xb, i / (float)nx), z = Mathf.Lerp(za, zb, j / (float)nz); return new Vector3(x, -.03f + H(x, z), z); }
+        for (int i = 0; i < nx; i++)
+            for (int j = 0; j < nz; j++)
+            {
+                var p00 = P(i, j); var p10 = P(i + 1, j); var p11 = P(i + 1, j + 1); var p01 = P(i, j + 1);
+                var nrm = Vector3.Cross(p01 - p00, p10 - p00).normalized; if (nrm.y < 0) nrm = -nrm;
+                Quad(m, p00, p10, p11, p01, nrm);
+            }
     }
 
     // Stożek (drzewo iglaste z daleka): boki bez podstawy.
