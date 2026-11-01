@@ -87,6 +87,8 @@ public static class BraxGymBuild
             summary.Add(v.tag+": "+r.summary.result+" "+(r.summary.totalSize/(1024*1024))+" MB");
             Debug.Log("BRAXHORN_APK "+v.tag+" "+r.summary.result+" "+(r.summary.totalSize/(1024*1024))+" MB id="+v.id+(v.gl?" OpenGLES3":" Vulkan+GLES3"));
             last=r;if(r.summary.result==BuildResult.Succeeded)ok=r;
+            // Znacznik gotowości: CI wysyła ten APK od razu (strażnik w tle), nie czeka na kolejne warianty (lekcja z 1.11).
+            if(r.summary.result==BuildResult.Succeeded)try{File.WriteAllText(Path.Combine(output,"braxhorn-"+v.tag+".gotowe"),v.tag);}catch{}
         }
         PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,useDefault);if(!useDefault)PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,apis);
         PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android,"com.braxhorn.city");PlayerSettings.productName="Braxhorn City";

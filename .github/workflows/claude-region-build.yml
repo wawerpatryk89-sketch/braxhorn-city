@@ -464,6 +464,38 @@ jobs:
         # /swapfile (2 GB) już istnieje na runnerze GitHuba („Text file busy”), więc osobny plik.
         sudo fallocate -l 12G /swapfile-unity && sudo chmod 600 /swapfile-unity && sudo mkswap /swapfile-unity && sudo swapon /swapfile-unity || echo 'brak miejsca na swap'
         free -g
+    - name: Straznik w tle - kazdy APK do wydania od razu po zbudowaniu (nie czeka na reszte wariantow)
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REL: claude-region-preview
+      run: |
+        mkdir -p "$RUNNER_TEMP/wyslane"
+        cat > "$RUNNER_TEMP/straznik.sh" <<'SH'
+        #!/bin/bash
+        # Gdy Unity zapisze build/Android/braxhorn-<wariant>.gotowe, APK i raport rozmiaru idą do wydania od razu.
+        S=${GITHUB_SHA::7}
+        while true; do
+          for m in build/Android/braxhorn-*.gotowe; do
+            [ -f "$m" ] || continue
+            tag=$(basename "$m" .gotowe); tag=${tag#braxhorn-}
+            [ -f "$RUNNER_TEMP/wyslane/$tag" ] && continue
+            f=build/Android/braxhorn-$tag.apk; [ -f "$f" ] || continue
+            cp "$f" "$RUNNER_TEMP/braxhorn-$tag-$S.apk"
+            src=unity-city/Assets/PlayableGenerated/build-size-$tag.txt
+            cp "$src" "$RUNNER_TEMP/build-size-android-$tag-$S.txt" 2>/dev/null || echo 'brak raportu rozmiaru' > "$RUNNER_TEMP/build-size-android-$tag-$S.txt"
+            gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+              gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" --title "Podglad regionu R1 (Claude, TEST)" --notes "Skompilowany player Unity 6. Nie produkcja."
+            if gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber "$RUNNER_TEMP/braxhorn-$tag-$S.apk" "$RUNNER_TEMP/build-size-android-$tag-$S.txt"; then
+              touch "$RUNNER_TEMP/wyslane/$tag"; echo "straznik: wyslany $tag $(date -u +%H:%M)" >> "$RUNNER_TEMP/straznik.log"
+            fi
+            rm -f "$RUNNER_TEMP/braxhorn-$tag-$S.apk"
+          done
+          sleep 30
+        done
+        SH
+        chmod +x "$RUNNER_TEMP/straznik.sh"
+        nohup "$RUNNER_TEMP/straznik.sh" > "$RUNNER_TEMP/straznik.out" 2>&1 &
+        echo "straznik uruchomiony"
     - name: Kompilacja aplikacji Android (APK) z tej samej sceny
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
       env:
@@ -501,15 +533,17 @@ jobs:
         cat build/Android/apk-variants.txt 2>/dev/null || true
         # od 1.11: osobne APK na rejon (osiedle / miasto / miasto-gl); stary jeden plik braxhorn-city.apk, jeśli jest
         FILES=""
+        cat "$RUNNER_TEMP/straznik.log" 2>/dev/null || true
         for f in build/Android/braxhorn-*.apk; do
           [ -f "$f" ] || continue
           tag=$(basename "$f" .apk); tag=${tag#braxhorn-}
+          [ -f "$RUNNER_TEMP/wyslane/$tag" ] && { echo "$tag juz wyslany przez straznika"; continue; }
           cp "$f" braxhorn-${tag}-${GITHUB_SHA::7}.apk; FILES="$FILES braxhorn-${tag}-${GITHUB_SHA::7}.apk"
           src=unity-city/Assets/PlayableGenerated/build-size-${tag}.txt; [ -f "$src" ] || src=unity-city/Assets/PlayableGenerated/build-size.txt
           cp "$src" build-size-android-${tag}-${GITHUB_SHA::7}.txt 2>/dev/null || echo 'brak raportu rozmiaru' > build-size-android-${tag}-${GITHUB_SHA::7}.txt
           FILES="$FILES build-size-android-${tag}-${GITHUB_SHA::7}.txt"
         done
-        [ -n "$FILES" ] || { echo 'BRAK APK'; exit 1; }
+        if [ -z "$FILES" ]; then ls "$RUNNER_TEMP/wyslane/" 2>/dev/null | grep -q . && { echo 'wszystkie APK wyslane wczesniej'; exit 0; }; echo 'BRAK APK'; exit 1; fi
         gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
           gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
             --title "Podglad regionu R1 (Claude, TEST)" --notes "Skompilowany player Unity 6 (WebGL + APK) do zdjec i nagrania. Nie produkcja."
