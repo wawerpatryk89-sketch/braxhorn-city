@@ -50,6 +50,7 @@ public sealed class BraxCityWorld : MonoBehaviour
             if(vessel)return "WSIĄDŹ · "+vessel.label;
             var seat=BraxSeat.Nearest(p,1.6f);
             if(seat)return (seat.lie?"POŁÓŻ SIĘ · ":"USIĄDŹ · ")+seat.label;
+            var ogolny=BraxInterakcje.Kontekst(p);if(!string.IsNullOrEmpty(ogolny))return ogolny;   // boiska, wyrzutnia piłek, później misje (BraxInterakcje)
             if(InCityTunnel(p,0f))return "TUNEL · TUR POD ZAMOŚCIEM";
             if(InEstateTunnel(p,0f))return "TUNEL · MIASTO";
             if(!waterfrontPreview&&area=="city"&&Available("BraxhornEstate")&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)return "WEJDŹ · TUR POD ZAMOŚCIEM";
@@ -106,6 +107,7 @@ public sealed class BraxCityWorld : MonoBehaviour
         if(vessel){vessel.Board(player);return true;}
         var seat2=BraxSeat.Nearest(p,1.6f);
         if(seat2){seat2.Use(player);return true;}
+        if(BraxInterakcje.Wykonaj(p))return true;
         if(InCityTunnel(p,0f)||(!waterfrontPreview&&area=="city"&&Available("BraxhornEstate")&&Vector3.Distance(p,new Vector3(-100,.15f,28.5f))<7f)){StartCoroutine(ChangeScene("BraxhornEstate","estate-entry"));return true;}
         if(InEstateTunnel(p,0f)){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return true;}
         if(area=="estate"&&Available("BraxhornCity")&&Vector3.Distance(p,new Vector3(0,.08f,92))<6f){StartCoroutine(ChangeScene("BraxhornCity","city-return"));return true;}

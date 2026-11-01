@@ -565,7 +565,13 @@ jobs:
         gh release view "$REL" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
           gh release create "$REL" --repo "$GITHUB_REPOSITORY" --draft --target "$GITHUB_SHA" \
             --title "Podglad regionu R1 (Claude, TEST)" --notes "Skompilowany player Unity 6 (WebGL + APK) do zdjec i nagrania. Nie produkcja."
-        gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber $FILES
+        # 1.11 (build 9): strażnik w tle mógł jeszcze wysyłać ostatni wariant — 404 przy równoległym wysyłaniu tego samego
+        # pliku. Każdy plik osobno, z ponowieniem; na koniec liczy się tylko to, czy plik jest w wydaniu.
+        for f in $FILES; do
+          ok=0
+          for i in 1 2 3 4 5 6; do gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber "$f" && { ok=1; break; }; sleep 30; done
+          if [ $ok = 0 ]; then gh release view "$REL" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -qx "$f" || { echo "NIE WYSLANO $f"; exit 1; }; fi
+        done
     needs: [source-imports, cc0-assets]
 
   shots:

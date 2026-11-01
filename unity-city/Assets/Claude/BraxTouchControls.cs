@@ -6,7 +6,8 @@ using UnityEngine;
 //  • Joystick (lewa część ekranu): okrągła podstawa i gałka; w spoczynku półprzezroczysty w lewym dolnym rogu,
 //    po dotknięciu przeskakuje pod kciuk. Wychylenie do krawędzi = bieg (gracz biegnie od 76% wychylenia).
 //  • Kamera: przeciąganie palcem po prawej części ekranu (poza przyciskami).
-//  • Przyciski okrągłe po prawej: CIOS (duży), KOP, SKOK, BIEG (blokada biegu: każde wychylenie = pełny bieg).
+//  • Przyciski okrągłe po prawej: CIOS (duży), KOP, SKOK. Bez przycisku BIEG (właściciel 1.11, 18:37): lekkie wychylenie
+//    joysticka = chód, mocne (do krawędzi) = bieg — płynnie, bez przełącznika.
 //    Obsługa z Input.touches (każdy palec osobno), NIE z IMGUI — IMGUI widzi tylko pierwszy palec, więc stary
 //    układ nie reagował na przycisk, gdy drugi palec trzymał joystick.
 //  • AKCJA: duży przycisk nad prawymi przyciskami z napisem z gry (OTWÓRZ DRZWI, WSIĄDŹ · MOTORÓWKA, USIĄDŹ · SOFA,
@@ -112,7 +113,6 @@ public sealed class BraxTouchControls : MonoBehaviour
                     if (InCircle(p, cPunch, B * .55f)) { player.Command("punch"); flashPunch = Time.unscaledTime + .15f; continue; }
                     if (InCircle(p, cKick, b * .58f)) { player.Command("kick"); flashKick = Time.unscaledTime + .15f; continue; }
                     if (InCircle(p, cJump, b * .58f)) { player.Command("jump"); flashJump = Time.unscaledTime + .15f; continue; }
-                    if (InCircle(p, cRun, b * .58f)) { runLock = !runLock; continue; }
                 }
                 if (p.x < Screen.width * .45f && joyId < 0) { joyId = t.fingerId; joyOrigin = p; joyNow = p; }
                 else if (p.x >= Screen.width * .45f && lookId < 0) { lookId = t.fingerId; lookLast = p; }
@@ -140,7 +140,6 @@ public sealed class BraxTouchControls : MonoBehaviour
     {
         var d = Vector2.ClampMagnitude((joyNow - joyOrigin) / R, 1f);
         if (d.magnitude < .08f) d = Vector2.zero;
-        else if (runLock && OnFoot) d = d.normalized;          // blokada biegu: każde wychylenie = pełny bieg
         player.MoveInput(F(d.x) + "," + F(d.y));
     }
 
@@ -200,7 +199,6 @@ public sealed class BraxTouchControls : MonoBehaviour
             DrawDisc(cPunch, B * .5f, now < flashPunch ? Hot : Glass, Ink, "CIOS", labBig);
             DrawDisc(cKick, b * .5f, now < flashKick ? Hot : Glass, Ink, "KOP", lab);
             DrawDisc(cJump, b * .5f, now < flashJump ? Accent : Glass, Ink, "SKOK", lab);
-            DrawDisc(cRun, b * .5f, runLock ? new Color(.25f, .55f, .1f, .8f) : Glass, runLock ? Accent : Ink, runLock ? "BIEG: WŁ" : "BIEG", lab);
         }
         string ctx = Context;
         if (!string.IsNullOrEmpty(ctx))

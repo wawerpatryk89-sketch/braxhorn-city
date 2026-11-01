@@ -10,6 +10,8 @@ public sealed class BraxAuto : MonoBehaviour
     public float vmax = 8f, vZakret = 4f, start;
     public Transform[] kola = new Transform[0];
     public float promienKola = .33f;
+    public AudioClip silnik;           // pętla silnika (BraxClaudeOsiedleDzwieki), wysokość tonu z prędkości
+    AudioSource dzwiek;
     public static readonly List<BraxAuto> Wszystkie = new List<BraxAuto>();
     float[] cum; float dl, s, v; int seg;
     Transform gracz;
@@ -26,6 +28,13 @@ public sealed class BraxAuto : MonoBehaviour
         for (int i = 0; i < trasa.Length; i++) cum[i + 1] = cum[i] + Vector3.Distance(trasa[i], trasa[(i + 1) % trasa.Length]);
         dl = cum[trasa.Length]; s = Mathf.Repeat(start, dl); v = vmax * .5f;
         Ustaw(0f, true);
+        if (silnik)
+        {
+            // dźwięk 3D: słychać z ok. 40 m, głośniej z bliska; ton rośnie z prędkością (właściciel 1.11: „auta niech mają dźwięk”)
+            dzwiek = gameObject.AddComponent<AudioSource>(); dzwiek.clip = silnik; dzwiek.loop = true; dzwiek.spatialBlend = 1f;
+            dzwiek.rolloffMode = AudioRolloffMode.Logarithmic; dzwiek.minDistance = 3.5f; dzwiek.maxDistance = 45f; dzwiek.dopplerLevel = .4f;
+            dzwiek.volume = .55f; dzwiek.priority = 160; dzwiek.pitch = .8f; dzwiek.time = Random.value * silnik.length * .9f;
+        }
     }
 
     void Update()
@@ -34,7 +43,12 @@ public sealed class BraxAuto : MonoBehaviour
         float dt = Time.deltaTime;
         if (!kam) kam = Camera.main;
         if (kam && (kam.transform.position - transform.position).sqrMagnitude > 120f * 120f)
-        { if (Time.time < nast) return; dt = .2f; nast = Time.time + .2f; }
+        { if (dzwiek && dzwiek.isPlaying) dzwiek.Pause(); if (Time.time < nast) return; dt = .2f; nast = Time.time + .2f; }
+        else if (dzwiek && kam)
+        {
+            bool blisko = (kam.transform.position - transform.position).sqrMagnitude < 55f * 55f;   // dalej cisza (zamiast szumu 12 aut naraz)
+            if (blisko && !dzwiek.isPlaying) dzwiek.Play(); else if (!blisko && dzwiek.isPlaying) dzwiek.Pause();
+        }
         if (!gracz) { var p = FindAnyObjectByType<BraxGymPlayer>(); if (p) gracz = p.transform; }
         // prędkość: zakręt przed nami (kąt trasy w ciągu 10 m), przeszkody
         Vector3 f0 = Kierunek(s), f1 = Kierunek(s + 10f);
@@ -44,6 +58,7 @@ public sealed class BraxAuto : MonoBehaviour
         v = Mathf.MoveTowards(v, want, (want < v ? 8f : 2.5f) * dt);
         s += v * dt;
         Ustaw(dt, false);
+        if (dzwiek) dzwiek.pitch = Mathf.Lerp(dzwiek.pitch, .78f + Mathf.Clamp01(v / Mathf.Max(1f, vmax)) * .75f + (want > v + .5f ? .08f : 0f), 1f - Mathf.Exp(-dt * 3f));
         if (kola.Length > 0 && v > .01f)
         {
             float deg = v * dt / promienKola * Mathf.Rad2Deg;

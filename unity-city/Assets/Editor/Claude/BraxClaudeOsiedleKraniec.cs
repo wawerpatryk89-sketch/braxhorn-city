@@ -60,6 +60,8 @@ public static partial class BraxClaudeOsiedle
         // ruch (ludzie, auta) i mapa — po drogach A (DrogiA), przed trawą 3D; błąd w jednym nie zatrzymuje reszty
         Guard("ruch: przechodnie i auta", RuchNaOsiedlu);
         Guard("mapa osiedla (menu)", MapaOsiedla);
+        Guard("sport: piłki i gry", Sport);
+        Guard("dźwięki: silniki aut i tło (ptaki, wiatr, miasto)", DzwiekiOsiedla);   // po RuchNaOsiedlu (auta już stoją)
     }
 
     static void WzgorzeTunelu(Material m, float xa, float xb, float za, float zb, float h)

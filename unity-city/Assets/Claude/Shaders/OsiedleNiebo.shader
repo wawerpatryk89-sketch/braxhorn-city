@@ -10,6 +10,10 @@ Shader "Braxhorn/OsiedleNiebo"
         _Exposure ("Ekspozycja", Range(0, 8)) = 1.05
         _Rotation ("Obrót (stopnie)", Range(0, 360)) = 40
         _Saturation ("Nasycenie (mnożnik wokół luminancji)", Range(0, 4)) = 2.1
+        _Chmury ("Ruch chmur (stopnie na sekundę)", Range(0, 2)) = .22
+        _SloRozmiar ("Słońce: promień (stopnie)", Range(0, 5)) = 1.1
+        _SloKolor ("Słońce: kolor", Color) = (1, .97, .88, 1)
+        _SloPoswiata ("Słońce: poświata", Range(0, 2)) = .55
     }
     SubShader
     {
@@ -23,10 +27,11 @@ Shader "Braxhorn/OsiedleNiebo"
             #pragma target 2.0
             #include "UnityCG.cginc"
             sampler2D _MainTex;
-            half _Exposure, _Saturation;
-            float _Rotation;
+            half _Exposure, _Saturation, _SloPoswiata;
+            float _Rotation, _Chmury, _SloRozmiar;
+            half4 _SloKolor;
             struct appdata_t { float4 vertex : POSITION; UNITY_VERTEX_INPUT_INSTANCE_ID };
-            struct v2f { float4 vertex : SV_POSITION; float3 texcoord : TEXCOORD0; UNITY_VERTEX_OUTPUT_STEREO };
+            struct v2f { float4 vertex : SV_POSITION; float3 texcoord : TEXCOORD0; float3 ruch : TEXCOORD1; UNITY_VERTEX_OUTPUT_STEREO };
 
             float3 RotateAroundYInDegrees (float3 vertex, float degrees)
             {
@@ -51,13 +56,24 @@ Shader "Braxhorn/OsiedleNiebo"
                 float3 rotated = RotateAroundYInDegrees(v.vertex.xyz, _Rotation);
                 o.vertex = UnityObjectToClipPos(rotated);
                 o.texcoord = v.vertex.xyz;
+                // chmury płyną (właściciel 1.11, 18:25): górna część nieba obraca się powoli; dół (horyzont panoramy) stoi
+                o.ruch = RotateAroundYInDegrees(v.vertex.xyz, -fmod(_Time.y * _Chmury, 360.0));
                 return o;
             }
             fixed4 frag (v2f i) : SV_Target
             {
-                half3 c = tex2D(_MainTex, ToRadialCoords(i.texcoord)).rgb;
+                half ny0 = normalize(i.texcoord).y;
+                half3 c = lerp(tex2D(_MainTex, ToRadialCoords(i.texcoord)).rgb, tex2D(_MainTex, ToRadialCoords(i.ruch)).rgb, smoothstep(.10, .32, ny0));
                 half y = dot(c, half3(.2126, .7152, .0722));
                 c = max(0, y + (c - y) * _Saturation) * _Exposure;
+                // słońce (właściciel 1.11: „słońce powinno być gdzieś”) w kierunku światła dziennego (RenderSettings.sun):
+                // tarcza z miękką krawędzią + poświata; kierunek świata = wierzchołek obrócony jak obraz nieba
+                float3 wd = normalize(RotateAroundYInDegrees(i.texcoord, _Rotation));
+                float cs = dot(wd, normalize(_WorldSpaceLightPos0.xyz));
+                float rr = radians(_SloRozmiar);
+                half tarcza = smoothstep(cos(rr * 1.35), cos(rr), cs);
+                half poswiata = (pow(saturate(cs), 48.0) * .22 + pow(saturate(cs), 700.0) * .65) * _SloPoswiata;
+                c = lerp(c, _SloKolor.rgb * 1.5, tarcza) + _SloKolor.rgb * poswiata;
                 // poniżej horyzontu (za płotem / poza zasięgiem kamery na NISKIEJ): kolor mgły zamiast nieba „pod ziemią”
                 half ny = normalize(i.texcoord).y;
                 c = lerp(c, unity_FogColor.rgb, saturate((0.03 - ny) / 0.16));

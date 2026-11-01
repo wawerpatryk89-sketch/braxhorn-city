@@ -4,20 +4,22 @@ using UnityEngine;
 //  • przycisk akcji z interfejsu gry (strona wysyła Command("action") do obiektu gracza — odbiera go BraxClaudeAkcja),
 //  • klawisz E na komputerze,
 //  • przycisk na ekranie (pojawia się tylko przy wieży; działa też dotykiem na telefonie).
-// Głośność 2D: pełna w domu (prostopadłościan `dom` = parter, piętro, taras), cichnie na `wygaszenie` m za ścianą.
+// Głośność 2D: w domu (prostopadłościan `dom` = parter, piętro, taras) głośniej przy wieży; za ścianą stłumiona (BraxClaudeMuzyka.Licz).
 public class BraxClaudeGrajek : MonoBehaviour
 {
     public AudioClip utwor;
     public Bounds dom;
     public float zasieg = 2.6f, glosnosc = .7f, wygaszenie = 6f;
     public static BraxClaudeGrajek Blisko;
-    AudioSource src; Transform gracz; float szukaj; bool gra;
+    AudioSource src; AudioLowPassFilter lp; Transform gracz; float szukaj, pasmo = 22000f; bool gra; Vector3[] zrodlo;
     GUIStyle styl;
 
     void Start()
     {
         src = gameObject.AddComponent<AudioSource>();
         src.clip = utwor; src.loop = true; src.playOnAwake = false; src.spatialBlend = 0f; src.volume = 0f; src.priority = 32;
+        lp = gameObject.AddComponent<AudioLowPassFilter>(); lp.cutoffFrequency = pasmo;
+        zrodlo = new[] { transform.position + Vector3.up * .5f };
     }
 
     void Update()
@@ -30,9 +32,12 @@ public class BraxClaudeGrajek : MonoBehaviour
         bool blisko = (gracz.position - transform.position).sqrMagnitude < zasieg * zasieg;
         if (blisko) Blisko = this; else if (Blisko == this) Blisko = null;
         if (blisko && Input.GetKeyDown(KeyCode.E)) Przelacz();
-        float d = Mathf.Sqrt(dom.SqrDistance(gracz.position));
-        float cel = gra ? glosnosc * Mathf.Clamp01(1f - d / wygaszenie) : 0f;
+        // 1.11 (właściciel): na zewnątrz słychać zza ścian (stłumione, do 15 m), w domu głośniej bliżej wieży, stereo w jej stronę
+        BraxClaudeMuzyka.Licz(gracz.position, dom, zrodlo, glosnosc, 15f, .42f, 650f, out float cel, out float celPasmo, out float pan);
+        if (!gra) cel = 0f;
         src.volume = Mathf.MoveTowards(src.volume, cel, Time.deltaTime * (gra ? .8f : 1.6f));
+        src.panStereo = Mathf.MoveTowards(src.panStereo, pan, Time.deltaTime * 1.5f);
+        pasmo = BraxClaudeMuzyka.Pasmo(pasmo, celPasmo, Time.deltaTime); if (lp) lp.cutoffFrequency = pasmo;
         if (!gra && src.volume <= .001f && src.isPlaying) src.Pause();
     }
 

@@ -380,6 +380,7 @@ public static partial class BraxClaudeOsiedle
     static void Quad(Material m, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 n)
     {
         var b = B(m); float s = tile.TryGetValue(m, out var tl) ? tl : 1f;
+        if (n.y < -.9f) SpodStropu(p0, p1, p2, p3);   // sufit → płyta kolizji dla kamery (BraxClaudeOsiedleSufity)
         Planar(n, out var u, out var w);
         float sign = Vector3.Dot(Vector3.Cross(n, u), w) >= 0 ? 1f : -1f;
         int k = b.v.Count;
@@ -605,7 +606,7 @@ public static partial class BraxClaudeOsiedle
             var g = new GameObject(kv.Key.Item2.name); g.transform.SetParent(parent, false);
             g.AddComponent<MeshFilter>().sharedMesh = mesh;
             var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = kv.Key.Item2;
-            r.shadowCastingMode = kv.Key.Item2 == Grass || kv.Key.Item2 == Asphalt || kv.Key.Item2 == ParkPath ? ShadowCastingMode.Off : ShadowCastingMode.On;
+            r.shadowCastingMode = kv.Key.Item2 == Grass || kv.Key.Item2 == Asphalt || kv.Key.Item2 == ParkPath || bezCieni.Contains(kv.Key.Item1) ? ShadowCastingMode.Off : ShadowCastingMode.On;
             r.receiveShadows = true;
             rep.meshes++; rep.triangles += b.i.Count / 3;
         }
@@ -1475,7 +1476,7 @@ public static partial class BraxClaudeOsiedle
         for (int k = 0, tries = 0; k < patches && tries < patches * 6; tries++)
         {
             float px = x0 + (float)rnd.NextDouble() * (x1 - x0), pz = z0 + (float)rnd.NextDouble() * (z1 - z0);
-            if (IsHard(px, pz, 1.2f) || SoilAt(px, pz) > .4f) continue;
+            if (IsHard(px, pz, 1.2f) || SoilAt(px, pz) > .4f || SportZajete(px, pz, 1.2f)) continue;   // nie na boisku (BraxClaudeOsiedleSport)
             FlowerPatch(new Vector3(px, 0, pz), .9f, 5 + rnd.Next(6)); k++;
         }
         rep.notes.Add("kwiaty: " + rep.flowerPatches + " plam, " + rep.flowerPlants + " roślin");
@@ -2260,6 +2261,7 @@ public static partial class BraxClaudeOsiedle
                     for (float pa = va0 - .45f; pa <= va1 + .451f; pa += .2f) BoxL(net, pa - .006f, pa + .006f, 1.43f, 2.38f, vwm - .006f, vwm + .006f, false);
                     for (float y = 1.43f; y < 2.38f; y += .19f) BoxL(net, va0 - .45f, va1 + .45f, y - .006f, y + .006f, vwm - .006f, vwm + .006f, false, true);
                     BoxL(white, va0 - .45f, va1 + .45f, 2.38f, 2.43f, vwm - .03f, vwm + .03f, false, true);
+                    siatkowkaRogi.Add(new[] { Pw(va0, .06f, vw0), Pw(va1, .06f, vw0), Pw(va0, .06f, vw1) });   // gra w siatkówkę (BraxClaudeOsiedleSport)
                 }
             }
         }
@@ -2573,7 +2575,10 @@ public static partial class BraxClaudeOsiedle
             // drzwi automatyczne otwarte (wejście bez skrzydła)
             // markiza (stal) i szyld nad nią
             BoxMinMax(Frame, a + .4f, b - .4f, 3.62f, 3.72f, zf - 1.6f, zf, false, true);
-            Sign(shops[k], new Vector3((a + b) * .5f, 3.95f, zf - .12f), Mathf.Min(6f, unit - 2f), 1.5f * Mathf.Min(6f, unit - 2f) / 6f, Vector3.back);
+            // 1.11 (właściciel 18:32: „listwa przecina napisy”): szyld 3.2–4.7 m przechodził przez markizę (3.62–3.72 m) —
+            // teraz cały nad markizą (spód 3.78 m), proporcje 4:1, najwyżej 0.95 m wysokości
+            { float sw = Mathf.Min(Mathf.Min(6f, unit - 2f), .95f * 4f), sh = sw / 4f;
+              Sign(shops[k], new Vector3((a + b) * .5f, 3.78f + sh * .5f, zf - .12f), sw, sh, Vector3.back); }
             // okna apartamentów: front (za balkonem) i tył (od parku) z balkonami francuskimi
             for (float x = a + 1.4f; x < b - 1.2f; x += 3.2f)
             {
@@ -2836,6 +2841,8 @@ public static partial class BraxClaudeOsiedle
             if (!clip || b.size == Vector3.zero) { rep.notes.Add("muzyka " + name + ": BRAK (" + file + ")"); continue; }
             var go = new GameObject("muzyka: " + name); go.transform.SetParent(Group(group), false); go.transform.position = b.center;
             var mz = go.AddComponent<BraxClaudeMuzyka>(); mz.utwor = clip; mz.wnetrze = b; mz.glosnosc = vol; mz.wygaszenie = 3f;
+            // 1.11, 18:06: głośniki w górnych narożnikach sali; na zewnątrz muzyka słyszalna zza ścian (BraxClaudeMuzyka)
+            try { mz.glosniki = BraxClaudeGlosniki.WNarozach(go.transform, b); } catch (System.Exception e) { rep.notes.Add("głośniki " + name + ": " + e.Message); }
             rep.notes.Add("muzyka " + name + ": " + clip.name + " (" + clip.length.ToString("F0") + " s)");
         }
     }
@@ -4274,16 +4281,20 @@ public static partial class BraxClaudeOsiedle
     static void GymReception(Transform g)
     {
         group = "Osiedle A / siłownia BRAXHORN — recepcja";
-        const float zW = -67.15f, r = 1.6f, xa = 83.6f, xb = 86.4f, H = 1.05f;
+        // 1.11 (właściciel 17:55: „nie ma wejścia za recepcję w ogóle”): lada odsunięta od ściany o 0.45 m (proste odcinki boków),
+        // łuk wschodni kończy się na 300° — przejście za ladę 1.4 m przy ścianie (bez kolizji), za ladą 1.47 m: krzesło
+        // recepcjonisty, półki z suplementami i shakerami na ścianie z lameli. Murawa z logo przed ladą przesunięta o 0.45 m.
+        const float zW = -67.15f, r = 1.6f, xa = 83.6f, xb = 86.4f, H = 1.05f, ext = .45f, zC = zW - ext;
         CutVolumes(g, null, new List<Bounds> { MinMax(81.6f, 86.4f, .02f, 1.7f, -68.35f, -67.3f) });
+        var turf = g.GetComponentsInChildren<Transform>(true).FirstOrDefault(q => q.name == "Gym_Mesh_154"); if (turf) turf.position += Vector3.back * ext;
         var walnut = Pbr("recepcja orzech", "wood_floor", 1.2f, new Color(.62f, .44f, .30f), .6f);
         var oak = Plain("recepcja lamele dąb ciemny", new Color(.24f, .15f, .09f), .5f);
         var quartz = Plain("blat kwarc biały", new Color(.93f, .92f, .90f), .8f);
         var black = Plain("recepcja cokół czarny", new Color(.03f, .03f, .035f), .4f);
-        var path = new List<Vector3>();
-        for (int k = 0; k <= 12; k++) { float a = Mathf.Deg2Rad * (180f + 90f * k / 12f); path.Add(new Vector3(xa + r * Mathf.Cos(a), 0, zW + r * Mathf.Sin(a))); }
-        for (int k = 1; k <= 4; k++) path.Add(new Vector3(xa + (xb - xa) * k / 4f, 0, zW - r));
-        for (int k = 1; k <= 9; k++) { float a = Mathf.Deg2Rad * (270f + 70f * k / 9f); path.Add(new Vector3(xb + r * Mathf.Cos(a), 0, zW + r * Mathf.Sin(a))); }
+        var path = new List<Vector3> { new Vector3(xa - r, 0, zW) };
+        for (int k = 0; k <= 12; k++) { float a = Mathf.Deg2Rad * (180f + 90f * k / 12f); path.Add(new Vector3(xa + r * Mathf.Cos(a), 0, zC + r * Mathf.Sin(a))); }
+        for (int k = 1; k <= 4; k++) path.Add(new Vector3(xa + (xb - xa) * k / 4f, 0, zC - r));
+        for (int k = 1; k <= 4; k++) { float a = Mathf.Deg2Rad * (270f + 30f * k / 4f); path.Add(new Vector3(xb + r * Mathf.Cos(a), 0, zC + r * Mathf.Sin(a))); }
         for (int k = 0; k + 1 < path.Count; k++)
         {
             Vector3 a = path[k], b = path[k + 1], d = (b - a).normalized, mid = (a + b) * .5f, n = Vector3.Cross(Vector3.up, d);
@@ -4291,19 +4302,35 @@ public static partial class BraxClaudeOsiedle
             OBox(walnut, mid - n * .25f + Vector3.up * (H * .5f + .04f), new Vector3(len + .02f, H - .08f, .5f), yw, true);
             OBox(black, mid - n * .27f + Vector3.up * .04f, new Vector3(len + .02f, .08f, .44f), yw);
             OBox(quartz, mid - n * .22f + Vector3.up * (H + .025f), new Vector3(len + .03f, .05f, .64f), yw);
-            bool underLogo = Mathf.Abs(mid.z - (zW - r)) < .01f && mid.x > 84.0f && mid.x < 86.0f;
+            bool underLogo = Mathf.Abs(mid.z - (zC - r)) < .01f && mid.x > 84.0f && mid.x < 86.0f;
             if (underLogo) continue;
             for (float t = .055f; t < len; t += .11f) OBox(oak, a + d * t + n * .02f + Vector3.up * (H * .5f + .02f), new Vector3(.035f, H - .1f, .04f), yw);
         }
-        Sign("recepcja_braxhorn", new Vector3((xa + xb) * .5f, .58f, zW - r - .07f), 2.2f, .55f, Vector3.back, false);
+        // czoło lady przy przejściu (koniec łuku): zamknięcie korpusu orzechem
+        { var e = path[path.Count - 1]; var dd = (e - path[path.Count - 2]).normalized; var nn = Vector3.Cross(Vector3.up, dd);
+          OBox(walnut, e - nn * .25f + Vector3.up * (H * .5f + .04f) + dd * .012f, new Vector3(.03f, H - .08f, .52f), Mathf.Atan2(-dd.z, dd.x) * Mathf.Rad2Deg); }
+        Sign("recepcja_braxhorn", new Vector3((xa + xb) * .5f, .58f, zC - r - .07f), 2.2f, .55f, Vector3.back, false);
         // ściana za ladą: lamele dębowe do 3.2 m z logo
         BoxMinMax(oak, 81.4f, 89.6f, 0f, 3.2f, zW - .05f, zW - .01f, false);
         for (float x = 81.5f; x < 89.55f; x += .16f) BoxMinMax(walnut, x, x + .06f, 0f, 3.2f, zW - .08f, zW - .05f, false);
         Sign("recepcja_braxhorn", new Vector3(85.5f, 2.3f, zW - .1f), 3.6f, .9f, Vector3.back, false);
         // monitor i terminal na blacie
-        BoxMinMax(black, 84.95f, 85.05f, H + .05f, H + .2f, -68.55f, -68.47f, false);
-        BoxMinMax(black, 84.7f, 85.3f, H + .2f, H + .55f, -68.52f, -68.48f, false, true);
-        BoxMinMax(black, 86.0f, 86.14f, H + .05f, H + .1f, -68.62f, -68.45f, false);
+        BoxMinMax(black, 84.95f, 85.05f, H + .05f, H + .2f, -68.55f - ext, -68.47f - ext, false);
+        BoxMinMax(black, 84.7f, 85.3f, H + .2f, H + .55f, -68.52f - ext, -68.48f - ext, false, true);
+        BoxMinMax(black, 86.0f, 86.14f, H + .05f, H + .1f, -68.62f - ext, -68.45f - ext, false);
+        // za ladą: krzesło recepcjonisty przodem do lady, półki z suplementami (puszki) i shakerami na ścianie z lameli
+        if (offChair) Put(offChair, new Vector3(85.0f, .01f, -68.1f), 180f, .03f, true);
+        var tub = new[] { Plain("puszka suplementu czarna", new Color(.05f, .05f, .055f), .5f), Plain("puszka suplementu biała", new Color(.9f, .9f, .88f), .5f), Plain("puszka suplementu zielona", new Color(.18f, .55f, .08f), .5f) };
+        foreach (float sy in new[] { 1.3f, 1.75f })
+        {
+            BoxMinMax(Steel, 82.1f, 84.5f, sy - .03f, sy, zW - .38f, zW - .08f, false, true);
+            for (int i = 0; i < 7; i++)
+            {
+                float x = 82.28f + i * .33f; bool shaker = (i + (sy > 1.5f ? 1 : 0)) % 3 == 2;
+                Cylinder(tub[i % 3], new Vector3(x, sy, zW - .23f), shaker ? .045f : .075f, shaker ? .22f : .2f, 14, true, false);
+                if (shaker) Cylinder(black, new Vector3(x, sy + .22f, zW - .23f), .047f, .04f, 14, true, false);
+            }
+        }
         rep.notes.Add("siłownia A: nowa recepcja (zaokrąglona, orzech + lamele, blat kwarc, logo BRAXHORN) przy wejściu, stara lada usunięta");
     }
 
@@ -4611,6 +4638,13 @@ public static partial class BraxClaudeOsiedle
                     if (b.top <= b.bottom || b.maxX <= b.minX || b.maxZ <= b.minZ || b.minZ > zCut) continue;
                     if (b.minX > -.5f && b.maxX < 4.5f && b.minZ > 9.6f && b.maxZ < 10.9f && b.top < 1.6f) continue;   // stara lada recepcji (nowa: GymReception)
                     float ux = -(b.minX + b.maxX) * .5f, uz0 = b.minZ, uz1 = Mathf.Min(b.maxZ, zCut);
+                    if (GymColliderOut(b.tag, -b.maxX, -b.minX, uz0, uz1, b.top))   // 1.11: liny, klocki, kartony, ławy — nowe wyposażenie (BraxClaudeOsiedleSilowniaA)
+                    {
+                        if (b.top > 8f && -b.minX > 20f)   // pustka przy ścianie wschodniej: ta sama kolizja z przerwą na przejście do szatni (do AnexH)
+                            foreach (var (q0, q1, y0) in new[] { (uz0, AnexZ0 - .1f, 0f), (AnexZ1 + .1f, uz1, 0f), (AnexZ0 - .1f, AnexZ1 + .1f, AnexH) })
+                            { Collider(new Vector3(gx + ux, (b.top + y0) * .5f, gz + (q0 + q1) * .5f), new Vector3(b.maxX - b.minX, b.top - y0, q1 - q0)); cols++; }
+                        continue;
+                    }
                     if (b.tag == "door")
                     {
                         // skrzydło otwarte: środek obrócony wokół zawiasu o -98°, kolizja obrócona tak samo
@@ -4631,13 +4665,18 @@ public static partial class BraxClaudeOsiedle
             Guard("siłownia A: mural właściciela", () => GymMural(g.transform, gx, gz));
             Guard("siłownia A: ściany grafit, podłoga z fakturą", () => GymRepaint(g));
             Guard("siłownia A: recepcja", () => GymReception(g.transform));
+            GymAWyposazenie(g.transform, gx, gz);   // 1.11: worki, liny, strefa siłowa, szatnia z WC, porządki (każdy krok w Guard)
+            group = "Osiedle A / siłownia BRAXHORN";
             rep.notes.Add("siłownia A: kopia oryginału (drzwi na północ, x " + dX.ToString("0.0") + "), " + doorParts + "/8 części drzwi otwartych, "
                           + conv + " materiałów wypalonych, " + cols + " kolizji, bez zaułka: " + dropped + " siatek");
         }
         // bryła zewnętrzna: klinkier, cokół, attyka, dach; od północy jedno wejście w osi drzwi hali, daszek, szyld
         float fz0 = hzS, fz1 = hzS + t;                                   // ściana z drzwiami (zewnętrzna twarz = frontFace)
         Hard(hx0 - t, hx1 + t, hzP - t, fz1);
-        BoxMinMax(Clinker, hx0 - t, hx0, 0, H, hzP - t, fz1, true); BoxMinMax(Clinker, hx1, hx1 + t, 0, H, hzP - t, fz1, true);
+        BoxMinMax(Clinker, hx0 - t, hx0, 0, H, hzP - t, fz1, true);
+        // ściana wschodnia z przejściem do przybudówki (szatnia, prysznice, WC — GymASzatnia): z_modelu AnexZ0…AnexZ1 ± 0.1, do AnexH
+        float aw0 = gz + AnexZ0 - .1f, aw1 = gz + AnexZ1 + .1f;
+        BoxMinMax(Clinker, hx1, hx1 + t, 0, H, hzP - t, aw0, true); BoxMinMax(Clinker, hx1, hx1 + t, 0, H, aw1, fz1, true); BoxMinMax(Clinker, hx1, hx1 + t, AnexH, H, aw0, aw1, true);
         BoxMinMax(Clinker, hx0 - t, hx1 + t, 0, H, hzP - t, hzP, true);
         const float dw = .9f, dh = 3.1f;                                  // otwór: drzwi hali 1.6 m + 10 cm z każdej strony
         BoxMinMax(Clinker, hx0 - t, dX - dw, 0, H, fz0, fz1, true); BoxMinMax(Clinker, dX + dw, hx1 + t, 0, H, fz0, fz1, true);
@@ -4661,7 +4700,7 @@ public static partial class BraxClaudeOsiedle
         // plac przed wejściem: od ściany do fartucha kasyna (z -61.5) i na zachód do ścieżki osiedla A (x 55)
         Top(Slabs, 55f, hx1 + t, fz1, -61.5f, .05f);
         Planter(new Vector3(dX - 3.2f, .05f, fz1 + .8f), 2.2f, .7f, 701, 1, 0); Planter(new Vector3(dX + 3.2f, .05f, fz1 + .8f), 2.2f, .7f, 702, 1, 0);
-        foreach (float bx in new[] { gx - 14f, gx - 8f }) Bench(new Vector3(bx, .05f, -62.4f), 180f);
+        // 1.11 (film zaułka): bez samotnych ławek na środku placu — plac i pas za kasynem to zaułek serwisowy (ZapleczeKasyna)
         // od parku i z boków: pas krzewów (pas do płotu 6.9 m — korona drzewa weszłaby w ścianę, więc bez drzew)
         for (float x = hx0 + 1.5f; x < hx1 - 1f; x += 3.4f) if (!IsHard(x, hzP - t - 2.4f, .6f)) Bush(new Vector3(x, 0, hzP - t - 2.4f), 1.5f + (float)treeRnd.NextDouble() * .5f, x * 11f);
         for (float z = hzP + 1.5f; z < fz1 - 2f; z += 3.6f) if (!IsHard(hx1 + t + 2.4f, z, .6f)) Bush(new Vector3(hx1 + t + 2.4f, 0, z), 1.4f + (float)treeRnd.NextDouble() * .5f, z * 13f);
@@ -5433,7 +5472,7 @@ public static partial class BraxClaudeOsiedle
     // ---------------- główne ----------------
     public static void Apply()
     {
-        rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
+        rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
         pavedCells.Clear(); pavingSet = null; CodexPaving();
         try { Build(); rep.status = "ZBUDOWANO"; }
         catch (Exception e) { rep.status = "BŁĄD"; rep.error = e.Message; Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE " + e); }
@@ -5504,6 +5543,7 @@ public static partial class BraxClaudeOsiedle
         Guard("białe manekiny i kamienne klocki Codexa (donice)", () => PlaceholdersA(estate, physics));
         Guard("Poznańska 5 — okna i drzwi", () => Poznanska5(estate, physics));
         Guard("siłownia A (za kasynem)", () => GymA(86f, -66f));
+        Guard("kasyno — zaplecze od zaułka (korytarz, sala VIP poker, biuro, WC) i zaułek serwisowy", () => ZapleczeKasyna(estate, physics));
         Guard("muzyka (kasyno, siłownia A)", MusicZones);
         group = "Ogrodzenie";
         // furtka x 51.6–55.4: siłownia plenerowa w parku ↔ wschodnia ścieżka osiedla A (x 52–55, od z -101) ↔ siłownia A
@@ -5558,6 +5598,7 @@ public static partial class BraxClaudeOsiedle
         Guard("park Wiśniowy (tablica, głazy, boisko, huśtawki, ścieżka)", () => ParkA(estate, physics));
         Guard("aleja ulicy głównej A", AvenueA);
         Guard("hala walk — oktagon premium", () => ArenaInterior(estate, physics));
+        Guard("sala bokserska — klub od nowa (ring z linami, worki, szatnia z WC)", () => SalaBokserska(estate, physics));
         Guard("dyskoteka — klub od nowa", () => DiscoInterior(estate, physics));
         Guard("zieleń osiedla A", () => GreenA(estate, physics));
         Guard("korony starych drzew A", () => FixOldLeaves(estate));
@@ -5573,6 +5614,7 @@ public static partial class BraxClaudeOsiedle
 
         Flush();
         FlushClumps();
+        Guard("sufity dla kamery (blokada nad pomieszczeniami)", SufityKamery);
 
         // 6) punkty podróży (TravelPoint) do nowych miejsc
         var world = UnityEngine.Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(w => w.area == "estate");

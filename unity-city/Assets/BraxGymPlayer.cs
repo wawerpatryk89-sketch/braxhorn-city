@@ -18,11 +18,19 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public int trainingHits;
     public BraxVessel vessel;   // pojazd wodny, na którym siedzi gracz (BraxVessel.Board)
     public BraxSeat seat;       // sofa / ławka / hoker / łóżko (BraxSeat.Use)
+    // Chwila trafienia CIOSU / KOPU (ta sama co trening na workach siłowni): pozycja gracza, kierunek, true = kopnięcie.
+    // Słuchają worki, liny ringu i piłki osiedla (BraxWorek, BraxLina, BraxPilka) — bez zależności gracza od nich.
+    public static event Action<Vector3,Vector3,bool> OnCios;
     private Vector2 move;
     private float yaw, pitch = 19f, distance = 5.8f, vertical, speed;
     private float actionEnd, hitAt, stateAt;
     private string action = "Idle";
     private bool hitPending, doorOpen, paused, runEnabled = true, soundEnabled = true;
+    // SKOK (właściciel 1.11, 18:23: „skok zjebany, jakiś podwójny”): klip Jump sam podnosił biodra, a fizyka od razu wybijała
+    // Braxa w górę — wychodziły dwa skoki naraz (z kucnięciem w powietrzu). Teraz: wybicie dopiero w chwili odbicia w klipie
+    // (biodra ruszają w górę po przysiadzie, najpóźniej po 0.3 s), wysokość daje tylko fizyka (klip bez własnego unoszenia bioder),
+    // a w skoku Brax leci dalej z prędkością biegu i da się nim lekko sterować.
+    private Transform hips; private float hipsRestY = float.NaN, hipsPrevY = float.NaN, jumpDeadline; private bool jumpPending;
     private float doorAngle;
     private Vector2[] bagSwing, bagVelocity;
     private Quaternion[] bagRestRotation;
@@ -120,7 +128,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(Time.time<actionEnd||vessel||seat)return;
         if(key=="punch")StartAction("Punch",1.25f,.43f);
         else if(key=="kick")StartAction("Kick",1.2f,.60f);
-        else if(key=="jump" && body.isGrounded){vertical=6.2f;StartAction("Jump",1.35f,-1);}
+        else if(key=="jump" && body.isGrounded && !jumpPending){StartAction("Jump",1.35f,-1);jumpPending=true;jumpDeadline=Time.time+.30f;hipsPrevY=float.NaN;}
     }
     private void StartAction(string name,float rate,float contact)
     {
@@ -147,18 +155,29 @@ public sealed class BraxGymPlayer : MonoBehaviour
             return;
         }
         bool acting=Time.time<actionEnd;
-        float target=!acting?(move.magnitude>.12f?(runEnabled&&move.magnitude>.76f?5f:2f)*Mathf.Clamp01(move.magnitude*1.3f):0):0;
+        bool jumping=acting&&action=="Jump";   // w skoku: pęd zostaje, sterowanie lekkie
+        float mag=move.magnitude;   // 1.11: chód przy lekkim wychyleniu (0.9–2.1 m/s), płynnie w bieg przy mocnym (do 5.2 m/s), bez przycisku BIEG
+        float naJoy=mag<.12f?0f:mag<.7f?Mathf.Lerp(.9f,2.1f,(mag-.12f)/.58f):(runEnabled?Mathf.Lerp(2.1f,5.2f,Mathf.SmoothStep(0f,1f,(mag-.7f)/.22f)):2.1f);
+        float target=jumping?speed:!acting?naJoy:0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
         Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
         Vector3 forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
         Vector3 direction=right*move.x+forward*move.y;
-        if(direction.sqrMagnitude>.01f && !acting)transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(direction),1-Mathf.Exp(-dt*12f));
+        if(direction.sqrMagnitude>.01f && (!acting||jumping))transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(direction),1-Mathf.Exp(-dt*12f));
+        if(jumpPending)
+        {
+            bool odbicie=Time.time>=jumpDeadline;
+            if(hips&&!float.IsNaN(hipsPrevY)&&Time.time>jumpDeadline-.2f&&hips.localPosition.y>hipsPrevY+.0015f)odbicie=true;   // koniec przysiadu
+            if(hips)hipsPrevY=hips.localPosition.y;
+            if(odbicie){jumpPending=false;if(body.isGrounded)vertical=6.2f;}
+        }
         if(body.isGrounded&&vertical<0)vertical=-2f;vertical-=18f*dt;
-        Vector3 step=(direction.normalized*speed+Vector3.up*vertical)*dt;
+        Vector3 moveDir=jumping&&direction.sqrMagnitude<.01f?transform.forward:direction.normalized;
+        Vector3 step=(moveDir*speed+Vector3.up*vertical)*dt;
         int n=Mathf.Max(1,Mathf.CeilToInt(step.magnitude/.16f));for(int i=0;i<n;i++)body.Move(step/n);
         if(transform.position.y<(cityWorld?-20f:-3f))Command("reset");
         if(!cityWorld&&transform.position.z>20.2f){body.enabled=false;var q=transform.position;q.z=20.2f;transform.position=q;body.enabled=true;}
-        if(hitPending&&Time.time>=hitAt){hitPending=false;HitBag();}
+        if(hitPending&&Time.time>=hitAt){hitPending=false;HitBag();OnCios?.Invoke(transform.position,transform.forward,action=="Kick");}
         if(!acting)
         {
             string next=speed>3f?"Run":speed>.12f?"Walk":"Idle";
@@ -193,8 +212,18 @@ public sealed class BraxGymPlayer : MonoBehaviour
             }
         }
     }
+    // Klip Jump bez własnego unoszenia bioder (wysokość daje fizyka); przysiad przy odbiciu i lądowaniu zostaje.
+    private void JumpHips()
+    {
+        if(!hips&&visual){foreach(var t in visual.GetComponentsInChildren<Transform>(true))if(t.name.EndsWith("Hips")){hips=t;break;}}
+        if(!hips)return;
+        if(action!="Jump"&&!jumpPending){if(action=="Idle")hipsRestY=float.IsNaN(hipsRestY)?hips.localPosition.y:Mathf.Lerp(hipsRestY,hips.localPosition.y,.05f);return;}
+        if(float.IsNaN(hipsRestY))return;
+        var p=hips.localPosition;if(p.y>hipsRestY){p.y=hipsRestY;hips.localPosition=p;}
+    }
     private void LateUpdate()
     {
+        JumpHips();
         if(!ready)return;
         UpdateCamera(Mathf.Min(Time.deltaTime,.1f));
         if(reviewEnabled||Time.unscaledTime>=stateAt){stateAt=Time.unscaledTime+.16f;Report();}

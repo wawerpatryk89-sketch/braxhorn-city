@@ -297,11 +297,14 @@ public static class BraxGymBuild
                     var rb=r.bounds;if(rb.size.x>60f||rb.size.z>60f||rb.center.z>11.4f)continue;
                     if(!any){hall=rb;any=true;}else hall.Encapsulate(rb);
                 }
-                if(any){var mg=new GameObject("Muzyka siłowni");var mz=mg.AddComponent<BraxClaudeMuzyka>();mz.utwor=gymClip;mz.wnetrze=hall;mz.glosnosc=.4f;mz.wygaszenie=3f;Debug.Log("BRAXHORN_SILOWNIA_MUZYKA "+hall);}
+                if(any){var mg=new GameObject("Muzyka siłowni");var mz=mg.AddComponent<BraxClaudeMuzyka>();mz.utwor=gymClip;mz.wnetrze=hall;mz.glosnosc=.4f;mz.wygaszenie=3f;try{mz.glosniki=BraxClaudeGlosniki.WNarozach(mg.transform,hall);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: głośniki siłowni: "+e.Message);}Debug.Log("BRAXHORN_SILOWNIA_MUZYKA "+hall);}
             }
             else Debug.LogWarning("DO POPRAWKI: brak Assets/Claude/Audio/silownia_muzyka.ogg");
         }
         // Zasada „nic nie świeci” + lampy ForceVertex dla całej sceny (audyt miasta 31.10, Opus) — ostatni krok przed zapisem.
+        // Sufity dla kamery (właściciel 1.11, 18:19): kamera nie wychodzi nad pomieszczenie (płyty kolizji tylko dla kamery, warstwa 29).
+        // (w mieście włączymy po znalezieniu przyczyny wywalania — teraz nic nowego w scenie miasta)
+        // try{BraxClaudeSufity.Renderery(scene);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: sufity dla kamery: "+e.Message);}
         {var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
         try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
         try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}

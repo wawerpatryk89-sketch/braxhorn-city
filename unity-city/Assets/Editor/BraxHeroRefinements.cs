@@ -12,7 +12,7 @@ public static class BraxHeroRefinements
     static Texture2D Map(string file,bool linear=false,bool normal=false)
     {
         var importer=AssetImporter.GetAtPath(P+file) as TextureImporter;
-        if(importer!=null){importer.textureType=normal?TextureImporterType.NormalMap:TextureImporterType.Default;importer.sRGBTexture=!(linear||normal);importer.mipmapEnabled=true;importer.anisoLevel=8;importer.textureCompression=TextureImporterCompression.Uncompressed;importer.SaveAndReimport();}
+        if(importer!=null){importer.textureType=normal?TextureImporterType.NormalMap:TextureImporterType.Default;importer.sRGBTexture=!(linear||normal);importer.mipmapEnabled=true;importer.anisoLevel=8;importer.textureCompression=TextureImporterCompression.Uncompressed;var ign=typeof(TextureImporter).GetProperty("ignoreMipmapLimit");if(ign!=null&&ign.CanWrite)ign.SetValue(importer,true);importer.SaveAndReimport();}
         var t=AssetDatabase.LoadAssetAtPath<Texture2D>(P+file);if(!t)throw new Exception("Missing original Brax texture "+file);return t;
     }
     static Mesh RoundedBag(float height)
@@ -25,6 +25,15 @@ public static class BraxHeroRefinements
             if(j<y.Length-1&&k<sides){int q=j*(sides+1)+k;indices.AddRange(new[]{q,q+sides+1,q+1,q+1,q+sides+1,q+sides+2});}
         }
         var m=new Mesh{name="Rounded original-size leather bag"};m.SetVertices(v);m.SetUVs(0,uv);m.SetTriangles(indices,0);m.RecalculateNormals();m.RecalculateTangents();m.RecalculateBounds();return m;
+    }
+    // Światła postaci jak w podglądzie Tripo (tylko warstwa gracza 8): wypełnienie, klucz z cieniem własnym, kontra od tyłu.
+    // 1.11 (właściciel: „w tripo lepiej wyglądał”): na osiedlu ich nie było — Brax miał tylko słońce i otoczenie (płaski, ciemny).
+    // cien=false na osiedlu: Brax nie rzuca tam cienia (ShadowCastingMode.Off), a cień kierunkowy kosztuje cały ekran na telefonie.
+    public static void CharacterLights(Camera camera,bool cien=false)
+    {
+        var fill=new GameObject("Brax neutral portrait fill").AddComponent<Light>();fill.type=LightType.Directional;fill.cullingMask=1<<8;fill.transform.SetParent(camera.transform,false);fill.transform.localRotation=Quaternion.Euler(20,32,0);fill.color=new Color(.93f,.96f,1);fill.intensity=.20f;fill.shadows=LightShadows.None;fill.renderMode=LightRenderMode.ForcePixel;
+        var key=new GameObject("Brax key light (self-shadow)").AddComponent<Light>();key.type=LightType.Directional;key.cullingMask=1<<8;key.transform.SetParent(camera.transform,false);key.transform.localRotation=Quaternion.Euler(35,-40,0);key.color=new Color(1f,.96f,.90f);key.intensity=.55f;key.shadows=cien?LightShadows.Soft:LightShadows.None;key.shadowStrength=.62f;key.shadowBias=.02f;key.shadowNormalBias=.35f;key.shadowNearPlane=.2f;key.renderMode=LightRenderMode.ForcePixel;
+        var rim=new GameObject("Brax rim light (silhouette)").AddComponent<Light>();rim.type=LightType.Directional;rim.cullingMask=1<<8;rim.transform.SetParent(camera.transform,false);rim.transform.localRotation=Quaternion.Euler(30,160,0);rim.color=new Color(.86f,.93f,1f);rim.intensity=.9f;rim.shadows=LightShadows.None;rim.renderMode=LightRenderMode.ForcePixel;
     }
     public static void Apply(GameObject hero,Transform[] bags,Camera camera,string generated)
     {

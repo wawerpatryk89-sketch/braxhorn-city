@@ -298,7 +298,9 @@ def main() -> int:
     styles = {"kasyno": ((10, 10, 12), (222, 184, 92), (200, 160, 80))}   # kasyno: złote litery na czerni, złota ramka
     for name, text in {"kasyno": "KASYNO", "butik": "BUTIK  NYXA", "shake": "SHAKE BAR", "braxhorn": "BRAXHORN KICKBOXING", "nutrition": "BRAXHORN NUTRITION", "sprzedaz": "NA SPRZEDAŻ", "kawiarnia": "KAWIARNIA", "market": "MARKET 24",
                        "kort": "KLUB TENISOWY", "ochrona": "OCHRONA", "policja": "KOMISARIAT POLICJI", "cela1": "CELA 1", "cela2": "CELA 2", "wkrotce": "WKRÓTCE OTWARCIE", "miasto": "TUNEL  ·  MIASTO", "silownia": "SIŁOWNIA PLENEROWA",
-                       "szatnia": "SZATNIA", "park_wisniowy": "PARK  WIŚNIOWY"}.items():
+                       "szatnia": "SZATNIA", "park_wisniowy": "PARK  WIŚNIOWY",
+                       "wc": "WC", "prysznice": "PRYSZNICE", "biuro": "BIURO KIEROWNIKA", "vip_poker": "SALA VIP  ·  POKER", "personel": "TYLKO DLA PERSONELU",
+                       "grafik": "GRAFIK  ·  PN–PT 6–22  ·  SOB 8–16"}.items():
         bg, fg, fr = styles.get(name, ((34, 37, 40), (236, 228, 214), (176, 150, 104)))
         im = Image.new("RGB", (1024, 256), bg); dr = ImageDraw.Draw(im)
         dr.rectangle([10, 10, 1013, 245], outline=fr, width=6)
