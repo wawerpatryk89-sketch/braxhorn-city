@@ -2,6 +2,11 @@ using UnityEngine;
 
 public sealed class BraxCityDoor : MonoBehaviour
 {
+    // Rejestr wszystkich drzwi w załadowanych scenach (1.11, Opus): drzwi w doczytywanych obszarach (port, osiedle B)
+    // nie mogą być w tablicy BraxCityWorld.doors (odwołanie między scenami Unity zeruje przy zapisie).
+    public static readonly System.Collections.Generic.List<BraxCityDoor> All=new System.Collections.Generic.List<BraxCityDoor>();
+    private void OnEnable(){if(!All.Contains(this))All.Add(this);}
+    private void OnDisable(){All.Remove(this);}
     public string id,label;
     public Transform[] leaves;
     public float[] sides;

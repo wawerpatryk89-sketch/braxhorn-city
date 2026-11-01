@@ -37,7 +37,7 @@ public sealed class BraxCityWorld : MonoBehaviour
     bool InEstateTunnel(Vector3 p,float depth)=>area=="estate"&&Available("BraxhornCity")&&Mathf.Abs(p.x-EstatePortal.x)<4.8f&&p.y<3f&&p.z>EstatePortal.z-2f+depth&&p.z<EstatePortal.z+16f;
     private BraxCityDoor nearby;
     private float nextScan;
-    public int OpenDoors { get { int n=0;foreach(var d in doors)if(d&&d.IsOpen)n++;return n;} }
+    public int OpenDoors { get { int n=0;foreach(var d in BraxCityDoor.All)if(d&&d.IsOpen)n++;return n;} }
     public string Context
     {
         get
@@ -89,7 +89,7 @@ public sealed class BraxCityWorld : MonoBehaviour
         }
         if(loading||Time.unscaledTime<nextScan)return;
         nextScan=Time.unscaledTime+.12f;nearby=null;float best=3.3f;
-        foreach(var d in doors)
+        foreach(var d in BraxCityDoor.All)   // wszystkie drzwi w załadowanych scenach (także w doczytanych obszarach)
         {
             if(!d)continue;var v=player.transform.position-d.transform.position;
             if(Mathf.Abs(v.y)>2.3f)continue;v.y=0;
@@ -150,16 +150,18 @@ public sealed class BraxSceneTransit : MonoBehaviour
     IEnumerator Run(string scene)
     {
         BraxStartLog.Etap("przejście tunelem do "+scene);
-        var old=SceneManager.GetActiveScene();
         var empty=SceneManager.CreateScene("BRAXHORN przejscie "+Time.frameCount);
         var camGo=new GameObject("kamera przejścia");
         SceneManager.MoveGameObjectToScene(camGo,empty);
         var cam=camGo.AddComponent<Camera>();cam.clearFlags=CameraClearFlags.SolidColor;cam.backgroundColor=Color.black;cam.cullingMask=0;
         SceneManager.SetActiveScene(empty);
         yield return null;
-        if(old.IsValid()&&old.isLoaded)
+        // rejon + jego doczytane obszary (BraxObszary): zwalniamy wszystkie sceny poza pustą
+        var doZwolnienia=new System.Collections.Generic.List<Scene>();
+        for(int i=0;i<SceneManager.sceneCount;i++){var sc=SceneManager.GetSceneAt(i);if(sc!=empty&&sc.isLoaded)doZwolnienia.Add(sc);}
+        foreach(var sc in doZwolnienia)
         {
-            var unload=SceneManager.UnloadSceneAsync(old);
+            var unload=SceneManager.UnloadSceneAsync(sc);
             if(unload!=null)yield return unload;
         }
         yield return Resources.UnloadUnusedAssets();

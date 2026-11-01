@@ -26,6 +26,7 @@ public sealed class BraxVessel : MonoBehaviour
 
     public bool Occupied { get { return rider; } }
     BraxGymPlayer rider;
+    UnityEngine.SceneManagement.Scene riderScene;
     float speed, yawVel, baseYaw;
     Vector3 home; bool homed;
 
@@ -57,6 +58,7 @@ public sealed class BraxVessel : MonoBehaviour
     {
         if (rider || !player) return;
         rider = player;
+        riderScene = player.gameObject.scene;   // obszary doczytywane (1.11): po zejściu gracz wraca do swojej sceny
         player.vessel = this;
         player.body.enabled = false;
         player.transform.SetParent(transform, true);
@@ -88,6 +90,8 @@ public sealed class BraxVessel : MonoBehaviour
         var p = rider;
         BraxPose.Get(p).Set(BraxPose.Mode.None, null);
         p.transform.SetParent(null, true);
+        if (riderScene.IsValid() && riderScene.isLoaded && p.gameObject.scene != riderScene)
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(p.gameObject, riderScene);
         p.transform.position = best + Vector3.up * .08f;
         p.transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
         p.body.enabled = true;

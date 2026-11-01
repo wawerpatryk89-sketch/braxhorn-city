@@ -35,6 +35,26 @@ public static class BraxGymBuild
     // Aplikacja Android (APK) z tej samej sceny: przeglądarka na telefonie nie dźwiga 750 MB danych.
     // Sterowanie dotykowe w Unity (BraxTouchControls) zamiast warstwy HTML.
     public static void BuildRenovationAndroid(){BuildInternal(true,true,true,BuildTarget.Android);}
+    // Drugie obszary rejonów (BraxClaudeObszary) dopisane na końcu listy scen paczki.
+    static string[] WithAreas(string[] scenes)
+    {
+        var list=scenes.ToList();
+        foreach(var a in new[]{Generated+"/BraxhornCity_Nabrzeze.unity",Generated+"/BraxhornEstate_Poludnie.unity"})
+            if(File.Exists(a)&&!list.Contains(a))list.Add(a);
+        return list.ToArray();
+    }
+    // Lekka scena startowa APK: czarna kamera + BraxStart (wczytuje scenę 1 w tle i pokazuje diagnozę poprzedniego startu).
+    static string CreateStartScene()
+    {
+        var sc=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
+        var cam=new GameObject("Kamera ekranu startowego").AddComponent<Camera>();
+        cam.clearFlags=CameraClearFlags.SolidColor;cam.backgroundColor=Color.black;cam.cullingMask=0;cam.allowMSAA=false;cam.allowHDR=false;
+        new GameObject("BRAXHORN ekran startowy").AddComponent<BraxStart>();
+        string path=Generated+"/BraxhornStart.unity";
+        if(!EditorSceneManager.SaveScene(sc,path))throw new Exception("Start scene save failed");
+        return path;
+    }
+
     // OSOBNE APK DLA KAŻDEGO REJONU (właściciel 1.11, 00:37: „rozdziel mi osiedle od miasta” — APK 698aeb5 z miastem
     // i osiedlem nie startuje na moto g86). Jedna kompilacja scen, trzy aplikacje obok siebie na telefonie (różne id):
     //   braxhorn-osiedle.apk  — sama scena osiedla Tur pod Zamościem (Vulkan + OpenGL ES 3, jak dotąd),
@@ -43,10 +63,15 @@ public static class BraxGymBuild
     // Kolejne BuildPlayer korzystają z tej samej kompilacji IL2CPP i tekstur (Library), więc dochodzi ~20–30 min na paczkę.
     static BuildReport BuildAndroidSeparately(string cityScene,string estateScene,string output)
     {
+        // Scena 0 = lekki ekran startowy (BraxStart: powód poprzedniego zamknięcia wg Androida, pasek wczytywania),
+        // scena 1 = rejon (obszar startowy), scena 2 = drugi obszar rejonu doczytywany w tle (BraxObszary).
+        string start=CreateStartScene();
+        string cityArea=Generated+"/BraxhornCity_Nabrzeze.unity",estateArea=Generated+"/BraxhornEstate_Poludnie.unity";
+        string[] Pack(string region,string area)=>new[]{start,region,area}.Where(p=>p!=null&&File.Exists(p)).ToArray();
         var variants=new[]{
-            new{tag="osiedle",scenes=new[]{estateScene},gl=false,id="com.braxhorn.osiedle",name="Braxhorn Osiedle"},
-            new{tag="miasto",scenes=new[]{cityScene},gl=false,id="com.braxhorn.miasto",name="Braxhorn Miasto"},
-            new{tag="miasto-gl",scenes=new[]{cityScene},gl=true,id="com.braxhorn.miasto.gl",name="Braxhorn Miasto GL"}};
+            new{tag="osiedle",scenes=Pack(estateScene,estateArea),gl=false,id="com.braxhorn.osiedle",name="Braxhorn Osiedle"},
+            new{tag="miasto",scenes=Pack(cityScene,cityArea),gl=false,id="com.braxhorn.miasto",name="Braxhorn Miasto"},
+            new{tag="miasto-gl",scenes=Pack(cityScene,cityArea),gl=true,id="com.braxhorn.miasto.gl",name="Braxhorn Miasto GL"}};
         bool useDefault=PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
         var apis=PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
         BuildReport last=null,ok=null;var summary=new List<string>();
@@ -110,6 +135,24 @@ public static class BraxGymBuild
             }
             var sb=new System.Text.StringBuilder();
             sb.Append("BRAXHORN_BUILD_SIZE total=").Append(total/1048576).Append(" MB, result=").Append(result.summary.result).Append('\n');
+            // Rozmiar na obszar (właściciel 1.11: „obszar nie może być większy niż 500… musi być zapas na wyposażenie, ludność,
+            // bohaterów i pojazdy”). Na moto g86 działa paczka z 1.5 GB danych sceny, 1.7 GB już nie → budżet obszaru 900 MB
+            // (≈ 60 % granicy, ~600 MB zapasu na postacie, auta, wyposażenie). Pliki Unity: level{i} + sharedassets{i} = scena i.
+            var perScene=new SortedDictionary<int,long>();long common=0;
+            foreach(var pack in result.packedAssets)
+            {
+                string f=Path.GetFileName(pack.shortPath??"");long sz=0;foreach(var c in pack.contents)sz+=(long)c.packedSize;
+                var m=System.Text.RegularExpressions.Regex.Match(f,@"^(?:level|sharedassets)(\d+)");
+                if(m.Success){int i=int.Parse(m.Groups[1].Value);perScene[i]=(perScene.ContainsKey(i)?perScene[i]:0)+sz;}else common+=sz;
+            }
+            var names=EditorBuildSettings.scenes.Select(x=>Path.GetFileNameWithoutExtension(x.path)).ToArray();
+            foreach(var kv in perScene)
+            {
+                long mb=kv.Value/1048576;string n=kv.Key<names.Length?names[kv.Key]:"scena "+kv.Key;
+                sb.Append("  OBSZAR ").Append(n).Append(": ").Append(mb).Append(" MB").Append(mb>900?"  — PONAD BUDŻET 900 MB":"").Append('\n');
+                if(mb>900)Debug.LogWarning("BRAXHORN_OBSZAR_BUDZET "+n+" = "+mb+" MB > 900 MB");
+            }
+            sb.Append("  WSPÓLNE (zasoby, ustawienia): ").Append(common/1048576).Append(" MB\n");
             foreach(var kv in byType.OrderByDescending(k=>k.Value).Take(12))sb.Append("  TYPE ").Append(kv.Value/1048576).Append(" MB  ").Append(kv.Key).Append('\n');
             foreach(var kv in byAsset.OrderByDescending(k=>k.Value).Take(60))sb.Append("  ASSET ").Append(kv.Value/1048576).Append(" MB  ").Append(kv.Key).Append('\n');
             Debug.Log(sb.ToString());
@@ -248,6 +291,11 @@ public static class BraxGymBuild
         // Zasada „nic nie świeci” + lampy ForceVertex dla całej sceny (audyt miasta 31.10, Opus) — ostatni krok przed zapisem.
         try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
         try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
+        // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,
+        // doczytywaną w tle 45 m przed granicą i zwalnianą 110 m od niej (BraxObszary). Scena startowa = centrum.
+        if(fullCity&&renovation)
+            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE","CLAUDE wyspa*"),45f,110f,Generated);}
+            catch(Exception e){Debug.LogWarning("DO POPRAWKI: podział miasta na obszary: "+e);}
         string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;
         // Estate review boots directly into the EXISTING city estate scene with the
@@ -264,9 +312,9 @@ public static class BraxGymBuild
         if(cityOnly)Debug.Log("BRAXHORN_DISTRICTS city-only: scena osiedla pominięta w tej paczce");
         string[] scenePaths=fullCity
             ? (cityOnly
-                ? new[]{scenePath}
+                ? new[]{scenePath,Generated+"/BraxhornCity_Nabrzeze.unity"}.Where(File.Exists).ToArray()
                 : integrated
-                    ? BraxUnityDistrictRegistry.Resolve(scenePath,BraxCityBuild.CreateEstate(sourceCommit))
+                    ? WithAreas(BraxUnityDistrictRegistry.Resolve(scenePath,BraxCityBuild.CreateEstate(sourceCommit)))
                     : new[]{BraxCityBuild.CreateEstate(sourceCommit)})
             : new[]{scenePath};
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();

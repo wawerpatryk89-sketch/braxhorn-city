@@ -51,6 +51,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         public Vector2[] bagAngles,bagVelocities;
         public string animation,context,build,area,activePoint;
         public bool loadingArea;
+        public bool loadingParts;   // obszar doczytywany w tle (BraxObszary)
         public int cityMeshes,cityTriangles,cityColliders,openDoors;
         public BraxCityPoint[] points;
         public int hits,frames,lastHitBag;
@@ -257,7 +258,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         string context=Context;
         var right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
         var forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
-        var s=new Status{area=cityWorld?cityWorld.area:"gym",activePoint=cityWorld?cityWorld.activePoint:"",points=cityWorld?cityWorld.points:null,loadingArea=cityWorld&&cityWorld.loading,cityMeshes=cityWorld?cityWorld.originalMeshes:0,cityTriangles=cityWorld?cityWorld.originalTriangles:0,cityColliders=cityWorld?cityWorld.sourceColliders:0,openDoors=cityWorld?cityWorld.OpenDoors:0,ready=ready,paused=paused,x=transform.position.x,y=transform.position.y,z=transform.position.z,yaw=yaw,pitch=pitch,speed=speed,animation=action,context=context,hits=trainingHits,frames=Time.frameCount,handX=h.x,handY=h.y,handZ=h.z,doorOpen=doorOpen,build=buildId,
+        var s=new Status{area=cityWorld?cityWorld.area:"gym",activePoint=cityWorld?cityWorld.activePoint:"",points=cityWorld?cityWorld.points:null,loadingArea=cityWorld&&cityWorld.loading,loadingParts=BraxObszary.Laduje>0,cityMeshes=cityWorld?cityWorld.originalMeshes:0,cityTriangles=cityWorld?cityWorld.originalTriangles:0,cityColliders=cityWorld?cityWorld.sourceColliders:0,openDoors=cityWorld?cityWorld.OpenDoors:0,ready=ready,paused=paused,x=transform.position.x,y=transform.position.y,z=transform.position.z,yaw=yaw,pitch=pitch,speed=speed,animation=action,context=context,hits=trainingHits,frames=Time.frameCount,handX=h.x,handY=h.y,handZ=h.z,doorOpen=doorOpen,build=buildId,
             grounded=body.isGrounded,runEnabled=runEnabled,playerYaw=transform.eulerAngles.y,cameraYaw=view.transform.eulerAngles.y,verticalSpeed=vertical,
             rightX=right.x,rightZ=right.z,forwardX=forward.x,forwardZ=forward.z,
             lastHitBag=lastHitBag,lastHitTime=lastHitTime,lastHitDistance=lastHitDistance,lastHitAlignment=lastHitAlignment,bagAngles=bagSwing,bagVelocities=bagVelocity,

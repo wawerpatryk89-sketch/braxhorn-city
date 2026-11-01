@@ -12,6 +12,7 @@ public sealed class BraxStartLog : MonoBehaviour
     const string KEtap = "braxhorn_start_etap", KPamiec = "braxhorn_start_pamiec";
     static BraxStartLog inst;
     static string poprzedni;
+    public static string Poprzedni => poprzedni;   // pokazywane też na ekranie startowym (BraxStart)
     float pokazDo;
     GUIStyle st;
 
@@ -61,7 +62,7 @@ public sealed class BraxStartLog : MonoBehaviour
 
     void OnGUI()
     {
-        if (poprzedni == null || Time.realtimeSinceStartup > pokazDo) return;
+        if (poprzedni == null || Time.realtimeSinceStartup > pokazDo || BraxStart.Pokazuje) return;
         if (st == null)
         {
             st = new GUIStyle(GUI.skin.box) { wordWrap = true, alignment = TextAnchor.MiddleCenter, fontSize = Mathf.Max(14, Mathf.Min(Screen.width, Screen.height) / 34) };

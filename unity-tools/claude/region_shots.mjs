@@ -115,6 +115,9 @@ async function session(fn) {
 }
 const send = (page, m, a) => page.evaluate(([m, a]) => window.BraxSend(m, a), [m, a]);
 async function settle(page) {
+  // obszary doczytywane w tle (BraxObszary): poczekaj, aż ruszy i skończy się wczytywanie drugiego obszaru
+  await page.waitForTimeout(900);
+  await page.waitForFunction(() => !window.BraxhornState?.loadingParts, null, {timeout: 240000}).catch(() => log.push('obszar: timeout wczytywania'));
   const f0 = await page.evaluate(() => window.BraxhornState?.frames || 0);
   await page.waitForFunction(f => (window.BraxhornState?.frames || 0) >= f + 8, f0, {timeout: 240000}).catch(() => log.push('frames timeout'));
   await page.waitForTimeout(1500);
