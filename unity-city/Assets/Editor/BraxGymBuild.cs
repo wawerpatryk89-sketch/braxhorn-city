@@ -377,6 +377,22 @@ public static class BraxGymBuild
             PlayerSettings.SetIl2CppCompilerConfiguration(UnityEditor.Build.NamedBuildTarget.Android,Il2CppCompilerConfiguration.Release);
             PlayerSettings.Android.minSdkVersion=AndroidSdkVersions.AndroidApiLevel24;
             PlayerSettings.Android.useAPKExpansionFiles=false;
+            // 1.11 (właściciel: „muszę odinstalować i zainstalować ponownie — nie może się aktualizować?”): każdy build CI
+            // podpisywał APK nowym kluczem debug → Android odrzucał aktualizację. Stały klucz z sekretów repozytorium
+            // (CI zapisuje go do braxhorn.keystore) + rosnący numer wersji (numer przebiegu CI) = zwykła aktualizacja.
+            try
+            {
+                if(File.Exists("braxhorn.keystore")&&File.Exists("braxhorn.keystore.pass"))
+                {
+                    string pass=File.ReadAllText("braxhorn.keystore.pass").Trim();
+                    PlayerSettings.Android.useCustomKeystore=true;PlayerSettings.Android.keystoreName=Path.GetFullPath("braxhorn.keystore");
+                    PlayerSettings.Android.keystorePass=pass;PlayerSettings.Android.keyaliasName="braxhorn";PlayerSettings.Android.keyaliasPass=pass;
+                    Debug.Log("BRAXHORN_PODPIS: własny klucz (aktualizacja bez odinstalowania)");
+                }
+                else Debug.LogWarning("BRAXHORN_PODPIS: brak klucza — klucz debug");
+                if(File.Exists("braxhorn.versioncode")&&int.TryParse(File.ReadAllText("braxhorn.versioncode").Trim(),out int vc)&&vc>0){PlayerSettings.Android.bundleVersionCode=vc;PlayerSettings.bundleVersion="1.0."+vc;}
+            }
+            catch(Exception e){Debug.LogWarning("DO POPRAWKI: podpis APK: "+e.Message);}
             PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
             PlayerSettings.productName="Braxhorn City";
             EditorUserBuildSettings.buildAppBundle=false;
