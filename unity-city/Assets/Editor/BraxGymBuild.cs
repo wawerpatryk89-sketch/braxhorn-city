@@ -39,7 +39,7 @@ public static class BraxGymBuild
     static string[] WithAreas(string[] scenes)
     {
         var list=scenes.ToList();
-        foreach(var a in new[]{Generated+"/BraxhornCity_Nabrzeze.unity",Generated+"/BraxhornEstate_Poludnie.unity"})
+        foreach(var a in new[]{Generated+"/BraxhornCity_Nabrzeze.unity",Generated+"/BraxhornCity_Wyspa.unity",Generated+"/BraxhornEstate_Poludnie.unity"})
             if(File.Exists(a)&&!list.Contains(a))list.Add(a);
         return list.ToArray();
     }
@@ -63,12 +63,12 @@ public static class BraxGymBuild
         // Scena 0 = lekki ekran startowy (BraxStart: powód poprzedniego zamknięcia wg Androida, pasek wczytywania),
         // scena 1 = rejon (obszar startowy), scena 2 = drugi obszar rejonu doczytywany w tle (BraxObszary).
         string start=CreateStartScene();
-        string cityArea=Generated+"/BraxhornCity_Nabrzeze.unity",estateArea=Generated+"/BraxhornEstate_Poludnie.unity";
+        string cityArea=Generated+"/BraxhornCity_Nabrzeze.unity",cityIsland=Generated+"/BraxhornCity_Wyspa.unity",estateArea=Generated+"/BraxhornEstate_Poludnie.unity";
         string[] Pack(params string[] scenes)=>new[]{start}.Concat(scenes).Where(p=>p!=null&&File.Exists(p)).ToArray();
         // Właściciel 1.11, 01:14: „jeden ma mieć wszystko podzielone plus extra osiedla na innym do wglądu na szybko”.
         var variants=new[]{
             new{tag="osiedle",scenes=Pack(estateScene,estateArea),gl=false,id="com.braxhorn.osiedle",name="Braxhorn Osiedle"},
-            new{tag="calosc",scenes=Pack(cityScene,cityArea,estateScene,estateArea),gl=false,id="com.braxhorn.city",name="Braxhorn City"}};
+            new{tag="calosc",scenes=Pack(cityScene,cityArea,cityIsland,estateScene,estateArea),gl=false,id="com.braxhorn.city",name="Braxhorn City"}};
         bool useDefault=PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
         var apis=PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
         BuildReport last=null,ok=null;var summary=new List<string>();
@@ -290,9 +290,15 @@ public static class BraxGymBuild
         try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,
         // doczytywaną w tle 45 m przed granicą i zwalnianą 110 m od niej (BraxObszary). Scena startowa = centrum.
+        // Wyspa osobno (właściciel 1.11, 01:43: „wyspa mogła być oddzielona i załadować się w trakcie płynięcia”): ~90 m morza
+        // od mariny, skuter ~15 m/s → wczytanie zaczyna się 140 m przed brzegiem wyspy (zaraz po wypłynięciu), zwolnienie 240 m.
         if(fullCity&&renovation)
-            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE","CLAUDE wyspa*"),45f,110f,Generated);}
+        {
+            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Wyspa",BraxClaudeObszary.PoNazwach(scene,"CLAUDE wyspa*"),140f,240f,Generated);}
+            catch(Exception e){Debug.LogWarning("DO POPRAWKI: wyspa jako osobny obszar: "+e);}
+            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE"),45f,110f,Generated);}
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: podział miasta na obszary: "+e);}
+        }
         string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;
         // Estate review boots directly into the EXISTING city estate scene with the
@@ -309,7 +315,7 @@ public static class BraxGymBuild
         if(cityOnly)Debug.Log("BRAXHORN_DISTRICTS city-only: scena osiedla pominięta w tej paczce");
         string[] scenePaths=fullCity
             ? (cityOnly
-                ? new[]{scenePath,Generated+"/BraxhornCity_Nabrzeze.unity"}.Where(File.Exists).ToArray()
+                ? new[]{scenePath,Generated+"/BraxhornCity_Nabrzeze.unity",Generated+"/BraxhornCity_Wyspa.unity"}.Where(File.Exists).ToArray()
                 : integrated
                     ? WithAreas(BraxUnityDistrictRegistry.Resolve(scenePath,BraxCityBuild.CreateEstate(sourceCommit)))
                     : new[]{BraxCityBuild.CreateEstate(sourceCommit)})
@@ -361,7 +367,7 @@ public static class BraxGymBuild
         var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
         if(fullCity)BraxCityBuild.WriteReport(output,sourceCommit);
-        if(integrated&&!cityOnly)BraxUnityDistrictRegistry.WriteBuildReceipt(output,sourceCommit,scenePaths.Where(p=>!p.Contains("_Nabrzeze")&&!p.Contains("_Poludnie")).ToArray());   // rejestr: tylko rejony, bez doczytywanych obszarów
+        if(integrated&&!cityOnly)BraxUnityDistrictRegistry.WriteBuildReceipt(output,sourceCommit,scenePaths.Where(p=>!p.Contains("_Nabrzeze")&&!p.Contains("_Wyspa")&&!p.Contains("_Poludnie")).ToArray());   // rejestr: tylko rejony, bez doczytywanych obszarów
         if(renovation)BraxCityRebuild.WriteReport(output);
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }
