@@ -290,6 +290,8 @@ public static class BraxGymBuild
         try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,
         // doczytywaną w tle 45 m przed granicą i zwalnianą 110 m od niej (BraxObszary). Scena startowa = centrum.
+        string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
+        // Podział na obszary PO zapisie sceny głównej (build 7: Unity nie tworzy sceny dodatkowej obok niezapisanej).
         // Wyspa osobno (właściciel 1.11, 01:43: „wyspa mogła być oddzielona i załadować się w trakcie płynięcia”): ~90 m morza
         // od mariny, skuter ~15 m/s → wczytanie zaczyna się 140 m przed brzegiem wyspy (zaraz po wypłynięciu), zwolnienie 240 m.
         if(fullCity&&renovation)
@@ -299,7 +301,6 @@ public static class BraxGymBuild
             try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE"),45f,110f,Generated);}
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: podział miasta na obszary: "+e);}
         }
-        string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         string sourceCommit=runtime.buildId;
         // Estate review boots directly into the EXISTING city estate scene with the
         // SAME BraxGymPlayer, original rig, material, clips and mobile controls.

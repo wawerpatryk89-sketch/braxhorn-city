@@ -61,6 +61,8 @@ public static class BraxClaudeObszary
     {
         wezly = wezly.Where(t => t).ToList();
         if (wezly.Count == 0) { Debug.LogWarning("DO POPRAWKI: obszar " + nazwaSceny + " — nic do przeniesienia"); return null; }
+        // Build 7: „Cannot create a new scene additively with an untitled scene unsaved” — scena główna musi być już zapisana.
+        if (string.IsNullOrEmpty(main.path)) throw new InvalidOperationException("Scena główna niezapisana — wywołaj Wydziel po SaveScene");
         // 1) zostające obiekty wyjęte z przenoszonych poddrzew (do korzenia sceny głównej)
         int zostawione = 0;
         foreach (var w in wezly.ToArray())
@@ -106,6 +108,7 @@ public static class BraxClaudeObszary
         lista.Add(new BraxObszary.Obszar { scena = nazwaSceny, granice = gr, wczytaj = wczytaj, zwolnij = zwolnij });
         holder.obszary = lista.ToArray();
         EditorUtility.SetDirty(holder);
+        if (!EditorSceneManager.SaveScene(main)) throw new Exception("Ponowny zapis sceny głównej nieudany: " + main.path);
         Debug.Log("BRAXHORN_OBSZAR " + nazwaSceny + ": poddrzew " + wezly.Count + ", siatek " + rend + ", trójkątów " + tris +
                   ", granice " + gr.min.ToString("F0") + " … " + gr.max.ToString("F0") + ", wczytaj " + wczytaj + " m / zwolnij " + zwolnij + " m" +
                   ", zostawione w scenie głównej " + zostawione + (krzyzMain || krzyzPart ? " — UWAGA: odwołania między scenami (wyzerowane przy zapisie)" : "") +

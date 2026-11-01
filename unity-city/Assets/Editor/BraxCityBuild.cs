@@ -231,12 +231,14 @@ public static class BraxCityBuild
         BraxClaudeOsiedle.Apply();
         try{BraxClaudeBezSwiecenia.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (osiedle): "+e);}
         try{BraxClaudeSiatki.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
+        const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");
+        // Podział na obszary PO zapisie sceny (build 7: „untitled scene unsaved”).
         // Osiedle na 2 obszary (właściciel 1.11): wszystko w całości poniżej z = −102 (dawny płot A: park, osiedle B, wille, sklepy,
         // kort) osobną sceną doczytywaną w tle; scena startowa = osiedle A z wjazdem z tunelu.
         try{var south=new Bounds();south.SetMinMax(new Vector3(-600f,-60f,-900f),new Vector3(600f,300f,-101.5f));
             BraxClaudeObszary.Wydziel(scene,"BraxhornEstate_Poludnie",BraxClaudeObszary.WObszarze(scene,south),45f,110f,Generated);}
         catch(Exception e){Debug.LogWarning("DO POPRAWKI: podział osiedla na obszary: "+e);}
-        const string path=Generated+"/BraxhornEstate.unity";if(!EditorSceneManager.SaveScene(scene,path))throw new Exception("Estate scene save failed");AssetDatabase.SaveAssets();return path;
+        AssetDatabase.SaveAssets();return path;
     }
     // Paczka samego miasta (R1): zmienna BRAX_DISTRICTS=city, argument -braxDistricts city (game-ci customParameters;
     // zmienne env nie wchodza do kontenera Unity — build c4bdcbc) albo plik Assets/Editor/brax-districts.txt z trescia "city".
