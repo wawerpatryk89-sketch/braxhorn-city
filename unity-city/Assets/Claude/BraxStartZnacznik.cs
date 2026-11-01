@@ -6,6 +6,10 @@ using UnityEngine;
 [DefaultExecutionOrder(-32000)]
 public sealed class BraxStartZnacznik : MonoBehaviour
 {
-    void Awake() { BraxStartLog.Etap("2- włączanie sceny " + gameObject.scene.name + ": pierwsze Awake"); }
+    void Awake()
+    {
+        BraxStartLog.Etap("2- włączanie sceny " + gameObject.scene.name + ": pierwsze Awake");
+        BraxStartTest.Zastosuj(gameObject.scene);   // test miasta: wyłączone części (ekran startowy), zanim się włączą
+    }
     void Start() { BraxStartLog.Etap("2+ pierwsze Start w scenie " + gameObject.scene.name); }
 }

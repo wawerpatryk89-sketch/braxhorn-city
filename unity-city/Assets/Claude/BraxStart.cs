@@ -19,8 +19,8 @@ public sealed class BraxStart : MonoBehaviour
     public static bool Pokazuje { get; private set; }
     string wyjscie = "", urzadzenie = "", status = "PRZYGOTOWANIE…";
     float postep;
-    bool czekaNaDotyk;
-    GUIStyle tytul, tekst, maly;
+    bool czekaNaDotyk, test;
+    GUIStyle tytul, tekst, maly, przycisk;
 
     IEnumerator Start()
     {
@@ -41,7 +41,17 @@ public sealed class BraxStart : MonoBehaviour
         czekaNaDotyk = false;
         if (SceneManager.sceneCountInBuildSettings < 2) { status = "BRAK SCENY GRY W PACZCE"; yield break; }
         string nazwa = System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(1));
-        status = "WCZYTYWANIE: " + nazwa;
+        if (nazwa == "BraxhornCity" && Application.platform == RuntimePlatform.Android)   // tylko telefon (WebGL i zdjęcia CI bez zmian)
+        {
+            // TEST MIASTA (BraxStartTest): palec z poprzedniego ekranu puszczony, zanim pokażą się przyciski
+            while (Input.touchCount > 0) yield return null;
+            yield return new WaitForSecondsRealtime(.3f);
+            status = "TEST MIASTA: ZAZNACZ, CO WYŁĄCZYĆ (ALBO NIC), I DOTKNIJ „WCZYTAJ MIASTO”";
+            test = true;
+            while (test) yield return null;   // przycisk WCZYTAJ MIASTO w OnGUI
+            BraxStartLog.Etap("1c test miasta: wyłączone " + BraxStartTest.Opis());
+        }
+        status = "WCZYTYWANIE: " + nazwa + (BraxStartTest.Wylaczone.Count > 0 ? " · BEZ: " + BraxStartTest.Opis() : "");
         BraxStartLog.Etap("2a wczytywanie sceny " + nazwa);
         yield return Resources.UnloadUnusedAssets();
         var op = SceneManager.LoadSceneAsync(1, LoadSceneMode.Single);
@@ -62,6 +72,7 @@ public sealed class BraxStart : MonoBehaviour
             tytul.normal.textColor = new Color(.55f, .9f, .25f); tekst.normal.textColor = new Color(.92f, .9f, .86f); maly.normal.textColor = new Color(.7f, .7f, .68f);
         }
         var old = GUI.color; GUI.color = Color.black; GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture); GUI.color = old;
+        if (test) { EkranTestu(s); return; }
         float w = Screen.width * .9f, x = (Screen.width - w) * .5f, y = Screen.height * .05f;
         GUI.Label(new Rect(0, y, Screen.width, s * .1f), "BRAXHORN CITY", tytul); y += s * .12f;
         GUI.Label(new Rect(x, y, w, s * .08f), status, tekst); y += s * .09f;
@@ -74,6 +85,37 @@ public sealed class BraxStart : MonoBehaviour
         if (!string.IsNullOrEmpty(wyjscie)) diag += wyjscie;
         if (diag.Length > 0) { GUI.Label(new Rect(x, y, w, Screen.height - y - s * .12f), diag, tekst); }
         GUI.Label(new Rect(x, Screen.height - s * .1f, w, s * .09f), urzadzenie, maly);
+    }
+
+    // Ekran testu miasta: dziennik poprzedniego startu u góry, pod nim 8 przełączników (2 kolumny) i WCZYTAJ MIASTO.
+    void EkranTestu(float s)
+    {
+        float H = Screen.height, W = Screen.width, w = W * .92f, x = (W - w) * .5f;
+        if (przycisk == null)
+        {
+            przycisk = new GUIStyle(GUI.skin.button) { fontSize = Mathf.RoundToInt(s * .036f), fontStyle = FontStyle.Bold, wordWrap = true };
+            przycisk.normal.textColor = przycisk.hover.textColor = przycisk.active.textColor = new Color(.95f, .94f, .9f);
+        }
+        GUI.Label(new Rect(0, H * .01f, W, H * .08f), "BRAXHORN CITY", tytul);
+        GUI.Label(new Rect(x, H * .09f, w, H * .08f), status, tekst);
+        string diag = string.IsNullOrEmpty(BraxStartLog.Poprzedni) ? "Poprzedni start: bez problemu (albo pierwsze uruchomienie)." : BraxStartLog.Poprzedni;
+        GUI.Label(new Rect(x, H * .17f, w, H * .25f), diag, maly);
+        var cz = BraxStartTest.Czesci;
+        float bw = (w - s * .03f) * .5f, bh = H * .085f, y0 = H * .43f;
+        var old = GUI.color;
+        for (int i = 0; i < cz.Length; i++)
+        {
+            bool off = BraxStartTest.Wylaczony(cz[i].klucz);
+            var r = new Rect(x + (i % 2) * (bw + s * .03f), y0 + (i / 2) * (bh + H * .012f), bw, bh);
+            GUI.color = off ? new Color(1f, .45f, .35f) : old;
+            if (GUI.Button(r, (off ? "WYŁĄCZONE · " : "") + cz[i].opis, przycisk))
+            { if (off) BraxStartTest.Wylaczone.Remove(cz[i].klucz); else BraxStartTest.Wylaczone.Add(cz[i].klucz); }
+        }
+        GUI.color = new Color(.55f, .9f, .25f);
+        float yb = y0 + 4 * (bh + H * .012f) + H * .01f;
+        if (GUI.Button(new Rect(x, yb, w, Mathf.Min(H * .11f, H - yb - H * .01f)), BraxStartTest.Wylaczone.Count == 0 ? "WCZYTAJ MIASTO (WSZYSTKO WŁĄCZONE)" : "WCZYTAJ MIASTO · BEZ: " + BraxStartTest.Wylaczone.Count, przycisk))
+            test = false;
+        GUI.color = old;
     }
 
     // Poziom API Androida z SystemInfo.operatingSystem („Android OS 15 / API-35 (…)”) — bez JNI: moduł AndroidJNI jest
