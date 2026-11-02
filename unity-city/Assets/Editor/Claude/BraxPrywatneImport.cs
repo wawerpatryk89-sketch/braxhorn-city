@@ -14,7 +14,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
 
     void OnPreprocessModel()
     {
-        if (!assetPath.StartsWith(Katalog)) return;
+        if (!assetPath.StartsWith(Katalog) || assetPath.StartsWith(Katalog + "Miasto/")) return;
         var mi = assetImporter as ModelImporter;
         if (mi == null) return;
         mi.materialImportMode = ModelImporterMaterialImportMode.None;
@@ -40,6 +40,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
     void OnPreprocessTexture()
     {
         if (!assetPath.StartsWith(Katalog)) return;
+        if (assetPath.StartsWith(Katalog + "Miasto/")) return;   // modele miasta ze Sketchfaba — własne ustawienia (BraxMiastoAssetyTekstury)
         var ti = assetImporter as TextureImporter;
         if (ti == null) return;
         string n = Path.GetFileNameWithoutExtension(assetPath).ToLowerInvariant();

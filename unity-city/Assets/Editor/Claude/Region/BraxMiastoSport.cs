@@ -235,12 +235,18 @@ internal static class BraxMiastoSport
         tw.kolor = BraxUliceKit.Bialy;
         BraxUliceKit.Napis3D("SPRZĘT", new Vector3(-4.85f, F + 3.05f, z1), Vector3.back, .22f, .04f, zielone, boki);
         KolL("ściana sprzętu", new Vector3(-8.5f, F, z1 - .35f), new Vector3(-1.5f, F + 2.8f, z1));
-        // stojak z hantlami
-        var st = new Vector3(-11.2f, F, z1 - 1.6f);
-        BraxUliceKit.S(czern).Box(st + new Vector3(0, 0, -.25f), st + new Vector3(1.6f, .7f, .25f));
-        for (int i = 0; i < 6; i++) { var p = st + new Vector3(.15f + i * .25f, .72f, 0); tw.kolor = kol[0]; tw.Rura(p + Vector3.back * .14f, p + Vector3.forward * .14f, .02f, 6); tw.Walec(p + Vector3.back * .16f + Vector3.down * .06f, .06f + i * .008f, .12f, 10); tw.Walec(p + Vector3.forward * .04f + Vector3.down * .06f, .06f + i * .008f, .12f, 10); }
-        tw.kolor = BraxUliceKit.Bialy;
-        KolL("stojak hantli", st + new Vector3(0, 0, -.3f), st + new Vector3(1.6f, .8f, .3f));
+        // stojak z hantlami (bryły z kodu) — etap „assety” 2.11: gdy jest paczka siłowni, ZAMIAST niego ekspozycja sprzętu ze
+        // Sketchfaba (atlas w tym miejscu, klatka z gryfem i bieżnia w witrynie, ławka) — BraxMiastoAssety.SprzetSklepu
+        bool sprzetModele = false;
+        try { sprzetModele = BraxMiastoAssety.SprzetSklepu(root, BraxMiastoSportKol, F, z1); } catch (System.Exception e) { Debug.LogError("BRAXHORN_MIASTO_ASSETY BRAXHORN SPORT sprzęt DO POPRAWKI: " + e); }
+        if (!sprzetModele)
+        {
+            var st = new Vector3(-11.2f, F, z1 - 1.6f);
+            BraxUliceKit.S(czern).Box(st + new Vector3(0, 0, -.25f), st + new Vector3(1.6f, .7f, .25f));
+            for (int i = 0; i < 6; i++) { var p = st + new Vector3(.15f + i * .25f, .72f, 0); tw.kolor = kol[0]; tw.Rura(p + Vector3.back * .14f, p + Vector3.forward * .14f, .02f, 6); tw.Walec(p + Vector3.back * .16f + Vector3.down * .06f, .06f + i * .008f, .12f, 10); tw.Walec(p + Vector3.forward * .04f + Vector3.down * .06f, .06f + i * .008f, .12f, 10); }
+            tw.kolor = BraxUliceKit.Bialy;
+            KolL("stojak hantli", st + new Vector3(0, 0, -.3f), st + new Vector3(1.6f, .8f, .3f));
+        }
         // kosz z piłkami
         var ko = new Vector3(.9f, F, -3.0f);
         ch.Pierscien(ko + Vector3.up * .8f, .5f, .53f, 0, 360, 24); for (int i = 0; i < 8; i++) { float a = i * 45f * Mathf.Deg2Rad; ch.Rura(ko + new Vector3(Mathf.Cos(a) * .52f, 0, Mathf.Sin(a) * .52f), ko + new Vector3(Mathf.Cos(a) * .52f, .8f, Mathf.Sin(a) * .52f), .015f, 6); }

@@ -474,7 +474,12 @@ public static class BraxClaudeMetro
         float zA = 23.6f; int nPrz = 7;
         float z = zA;
         var listaBramek = new List<(float z0, float z1)>();
-        for (int i = 0; i <= nPrz; i++)
+        // etap „assety” 2.11: bramki z modelu (ericdavis, CC-BY, paczka miasto_silownia_metro) ZAMIAST obudów i szybek z brył —
+        // stare nie powstają; brak paczki = bramki z kodu jak dotąd
+        bool bramkiModel = false; float zBm = 0f;
+        try { bramkiModel = BraxMiastoAssety.BramkiMetra(podziemie, GX, yM, zA + ((nPrz + 1) * korpus + nPrz * pas) * .5f, nPrz, out float zAm, out zBm); if (bramkiModel) zA = zAm; }
+        catch (Exception e) { Debug.LogError("BRAXHORN_MIASTO_ASSETY METRO bramki z modelu DO POPRAWKI: " + e); bramkiModel = false; }
+        for (int i = 0; i <= nPrz && !bramkiModel; i++)
         {
             // obudowa bramki (stal + szkło górne, wyświetlacz)
             W.MM(mStal, GX - dlug * .5f, GX + dlug * .5f, yM, yM + hG, z, z + korpus, true);
@@ -484,10 +489,10 @@ public static class BraxClaudeMetro
             W.MM(mCzarny, GX + .15f, GX + .45f, yM + hG + .02f, yM + hG + .04f, z + .04f, z + korpus - .04f);   // czytnik kart
             if (i < nPrz) { listaBramek.Add((z + korpus, z + korpus + pas)); z += korpus + pas; }
         }
-        float zB = z + korpus;
+        float zB = bramkiModel ? zBm : z + korpus;
         // szybki bramek: dwa skrzydła w każdym przejściu, chowają się w obudowy, gdy gracz podchodzi
         int nb = 0;
-        foreach (var (p0, p1) in listaBramek)
+        foreach (var (p0, p1) in listaBramek)   // (pusta przy bramkach z modelu)
         {
             var g = new GameObject("bramka biletowa " + (++nb)); g.transform.SetParent(podziemie, false);
             g.transform.position = new Vector3(GX, yM, (p0 + p1) * .5f);

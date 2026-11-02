@@ -11,14 +11,15 @@ public static class BraxMiastoGranice
 {
     // ---- prostokąt grywalny (ląd + akwen zatoki) — ETAP 1 rozbudowy (B, 2.11: rondo (−126, 28.5), Aleja Północna i Południowa) ----
     // Rozbudowa w kolejnych etapach zmienia TYLKO te liczby i wycięcia (reszta horyzontu przelicza się sama).
-    public const float X0 = -264f;   // zachód (ETAP 2): za pętlą ZACHÓD ul. Zachodniej (plac x −262…−218) — wcześniej −162 (za pierzejami alej)
+    public const float X0 = -872f;   // zachód (nowe dzielnice ze Sketchfaba, 2.11): za placem ATLANTY na zamknięciu Alei Centralnej — wcześniej −264 (ETAP 2), −162
     public const float X1 = 170f;    // wschód: za cyplem plaży (do 150) i mariną (do 166); dalej otwarte morze (wyspa = obszar nabrzeża)
     public const float Z0 = -85.45f; // południe: tył muru portalu tunelu na końcu Alei Południowej (lico portalu z = −84)
     public const float Z1 = 180f;    // północ: za lasem za plażą (z 160…174) i łąką
 
     // ---- wycięcia: części prostokąta, które NIE są grywalne (teren i las wchodzą do środka, granica idzie dookoła) ----
     // Las na północny zachód (za pętlą Alei Północnej, z ≥ 126) i wzgórze za placem wieżowców (na płd. od z −68, na wschód od x −61.4).
-    public static readonly Rect[] Wyciecia = { Rect.MinMaxRect(X0, 126f, -40f, Z1), Rect.MinMaxRect(-61.4f, Z0, 84f, -68f) };
+    // Nowe dzielnice (x X0…−262) kończą się na północy na z 156 (ciąg pieszy za rzędem B) — dalej las.
+    public static readonly Rect[] Wyciecia = { Rect.MinMaxRect(-262f, 126f, -40f, Z1), Rect.MinMaxRect(X0, 156f, -262f, Z1), Rect.MinMaxRect(-61.4f, Z0, 84f, -68f) };
 
     // ---- portal tunelu wyjazdu na osiedle (mur portalu w poprzek końca Alei Południowej): przerwa w ogrodzeniu granicy ----
     public static readonly Rect PortalTunelu = Rect.MinMaxRect(-148.5f, Z0 - 3f, -103.5f, Z0 + 3f);

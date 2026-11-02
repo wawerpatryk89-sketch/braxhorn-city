@@ -852,9 +852,12 @@ public static class BraxRegionTylyB
     {
         // klub fitness: bieżnie (2.0 × 0.8 m × k), ławka z gryfem na stojaku, stojak hantli, maty; wszystko z kodu, × k
         var cz = new BraxRegionMeble.Bud(); var st = new BraxRegionMeble.Bud(); var ek = new BraxRegionMeble.Bud();
+        int modeli = 0;
         for (int k = 0; k < 4; k++)
         {
             var p = new Vector3(ix0 + 2f + k * 1.6f * K, y0, fz1 - 1.6f * K);
+            // etap „assety” 2.11: bieżnia z modelu (Sketchfab, CC-BY) zamiast brył z kodu — gdy jest paczka siłowni
+            try { if (BraxMiastoAssety.Bieznia(F, p, 0f)) { modeli++; continue; } } catch (System.Exception e) { Debug.LogError("BRAXHORN_MIASTO_ASSETY fitness bieżnia DO POPRAWKI: " + e); }
             cz.MinMax(p + new Vector3(-.4f * K, 0, -1.0f * K), p + new Vector3(.4f * K, .22f * K, 1.0f * K));       // pas bieżni
             st.Cyl(p + new Vector3(-.38f * K, .2f * K, -.9f * K), p + new Vector3(-.38f * K, 1.25f * K, -.95f * K), .03f * K, 8);
             st.Cyl(p + new Vector3(.38f * K, .2f * K, -.9f * K), p + new Vector3(.38f * K, 1.25f * K, -.95f * K), .03f * K, 8);
@@ -863,12 +866,17 @@ public static class BraxRegionTylyB
         }
         // ławka do wyciskania ze stojakiem i gryfem z talerzami
         var lb = new Vector3(ix0 + 2.5f + 4 * 1.6f * K + 2f, y0, (fz0 + fz1) * .5f);
+        bool lawkaModel = false;
+        try { lawkaModel = BraxMiastoAssety.Lawka(F, lb, 0f); if (lawkaModel) modeli++; } catch (System.Exception e) { Debug.LogError("BRAXHORN_MIASTO_ASSETY fitness ławka DO POPRAWKI: " + e); }
+        if (!lawkaModel) {
         cz.MinMax(lb + new Vector3(-.17f * K, .4f * K, -.6f * K), lb + new Vector3(.17f * K, .47f * K, .6f * K));
         st.MinMax(lb + new Vector3(-.05f * K, 0, -.5f * K), lb + new Vector3(.05f * K, .4f * K, .5f * K));
         foreach (float sx in new[] { -.55f, .55f }) st.Cyl(lb + new Vector3(sx * K, 0, -.55f * K), lb + new Vector3(sx * K, 1.2f * K, -.55f * K), .03f * K, 8);
         st.Cyl(lb + new Vector3(-1.1f * K, 1.1f * K, -.55f * K), lb + new Vector3(1.1f * K, 1.1f * K, -.55f * K), .015f * K, 8);
         foreach (float sx in new[] { -.85f, .85f }) cz.Cyl(lb + new Vector3(sx * K - .03f, 1.1f * K, -.55f * K), lb + new Vector3(sx * K + .03f, 1.1f * K, -.55f * K), .225f * K, 18);
         BraxRegionMeble.Kolizja(F, "Ławka kolizja", lb + new Vector3(0, .3f * K, 0), new Vector3(.4f * K, .5f * K, 1.25f * K));
+        }
+        if (modeli > 0) Debug.Log("BRAXHORN_MIASTO_ASSETY fitness " + d.nazwa + ": modele sprzętu " + modeli + " (bieżnie, ławka — w miejscach brył z kodu, które nie powstały)");
         // stojak z hantlami
         var hp = new Vector3(ix1 - 3f, y0, fz1 - .8f * K);
         st.MinMax(hp + new Vector3(-1.2f * K, .6f * K, -.25f * K), hp + new Vector3(1.2f * K, .64f * K, .25f * K));

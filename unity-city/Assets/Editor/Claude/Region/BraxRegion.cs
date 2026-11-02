@@ -57,6 +57,8 @@ public static class BraxRegion
         Step("taras wieżowca: kwiaty i rośliny", () => BraxRegionTerrace.Apply(root));
         // BRAXHORN TOWER przy ulicy (B, 2.11 16:00): stare lobby/winda/taras zdjęte, nowe lobby, winda BraxWinda, apartament, taras.
         Step("Tower przy ulicy (B): lobby, drzwi automatyczne, winda, apartament, taras na dachu", () => BraxRegionTylyB.TowerQuay(world, root));
+        // Etap „assety” (2.11): statki ze Sketchfaba — drobnicowiec przy nabrzeżu B (poza dźwigiem i mariną), kontenerowiec na redzie.
+        Step("assety: port — drobnicowiec przy nabrzeżu B, kontenerowiec na redzie", () => BraxMiastoAssety.Port(root));
         // A 2.11: stare wykończenie Nutrition/NOVA (BraxRegionInteriors) wyłączone — oba lokale od nowa (kroki A po mieszkaniu Braxa)
         Step("interior mapping: pokoje za oknami budynków nieużytkowych", () => BraxRegionInteriorMap.Apply(root));
         Step("elewacje ulicy: prawdziwe okna, gzymsy, obraz w lobby", () => BraxRegionFacades.Apply(root));

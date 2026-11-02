@@ -20,7 +20,7 @@ using UnityEngine.Rendering;
 //     ul. Warsztatowej (jeden otwarty), plac ustawek 3 na 3, przystanek, wyjazd na osiedle (szlaban, znak, tunel w zboczu).
 // Wymiary × k; nawierzchnie: asfalt y 0.003 (jak ulica główna), chodnik/krawężnik y 0.15, trawa 0.12 (w otworach nawierzchni).
 // Żadna płaska powierzchnia nie leży na innej w tej samej wysokości (styk krawędzią albo odstęp ≥ 2 cm).
-public static class BraxRegionMiastoB
+public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sketchfaba (BraxRegionMiastoBDzielnice.cs — te same drogi)
 {
     static float K => BraxClaudeOsiedle.K;
     // ---------------- UKŁAD (B_ETAP1.md) ----------------
@@ -110,6 +110,7 @@ public static class BraxRegionMiastoB
         Krok("1. nawierzchnie: Aleja Północna i pętla", AlejaPolnocna);
         Krok("1. nawierzchnie: Aleja Południowa do tunelu", AlejaPoludniowa);
         Krok("1. nawierzchnie: ul. Zachodnia i pętla ZACHÓD (ETAP 2)", UlicaZachodnia);
+        Krok("1. nawierzchnie: NOWE DZIELNICE (Aleja Centralna, ulice C0–C3, Nowojorska, Tramwajowa, kwartały, skwer)", NoweDzielniceNawierzchnie);
         Krok("1. nawierzchnie: ul. Wiaduktowa i ul. Warsztatowa", UliceBoczne);
         Krok("1. teren między ulicami (trawniki, place, skwer)", Teren);
         Krok("1. parking przy warsztatach (asfalt z liniami w wycięciach, wjazd)", Parking);
@@ -118,12 +119,15 @@ public static class BraxRegionMiastoB
         Krok("2. budynki: warsztaty (jeden otwarty) i plac ustawek", Warsztaty);
         Krok("2. budynki: komisariat policji i szpital miejski (ul. Zachodnia)", () => BraxRegionTylyB.BudynkiZachodu(world, cityRoot, Komisariat, Szpital));
         Krok("2. budynki: CENTRUM — 6 wieżowców i GALERIA (ETAP 3)", () => BraxRegionTylyB.Centrum(world, cityRoot, WiezeCentrum, Galeria));
+        Krok("2. budynki: NOWE DZIELNICE (modele Sketchfab: centrum city5, kamienice city3, ATLANTA, LONDON, KINNAIRD)", () => NoweDzielniceBudynki(cityRoot));
         Krok("2. budowle: portal tunelu i zbocze", WyjazdNaOsiedle);
         Krok("3. wyposażenie na gotowym podłożu (drzewa, latarnie, ławki, słupki, rzeźba)", Wyposazenie);
         Krok("3. sygnalizacja na wysięgnikach i znaki", Sygnalizacja);
+        Krok("3. NOWE DZIELNICE: sygnalizacja alei, przystanki (autobus, tramwaj), wyposażenie", NoweDzielniceWyposazenie);
         Krok("3. przystanek autobusowy", Przystanek);
         Krok("3. szlaban i znak OSIEDLE", SzlabanIZnak);
         Krok("4. rejestracja jezdni dla ruchu (RUCH_API)", RejestracjaRuchu);
+        Krok("4. NOWE DZIELNICE: rejestracja jezdni", NoweDzielniceRejestracja);
         BraxRegionKamienica.Raport();
         BraxRegion.Note("miasto B: " + string.Join("; ", kroki));
         Debug.Log("BRAXHORN_MIASTO_B_UKLAD rondo=(" + RX + "," + RZ + ") R=" + RJezdnia + " aleja_pn x=" + AX + " z " + (RZ + 13.8f).ToString("0.0") + "…" + PetlaZ +
@@ -375,6 +379,7 @@ public static class BraxRegionMiastoB
         foreach (var k in WlotyRonda) yield return (new Vector2(RX, RZ), k, AH);
         yield return (new Vector2(AX, PetlaZ), 270f, AH);
         yield return (new Vector2(PetlaZX, RZ), 0f, AH);
+        yield return (new Vector2(PetlaZX, RZ), 180f, AH);   // wlot zachodni (Aleja Centralna)
     }
 
     // a − b (prostokąty osiowe) → do 4 prostokątów
@@ -478,7 +483,7 @@ public static class BraxRegionMiastoB
         PrzekrojX2("ul. Zachodnia", RZ, AH, Ziel, Chod, ZachX0, ZachX1, true, (ZachX1 - 6f, ZachX1), (ZachX0, ZachX0 + 6f));
         var c = new Vector2(PetlaZX, RZ);
         Asfalt("pętla ZACHÓD", PetlaZX - PetlaPlac, PetlaZX + PetlaPlac, RZ - PetlaPlac, RZ + PetlaPlac);
-        PlacZPierscieniem("pętla ZACHÓD", c, PetlaR, PetlaPlac, new[] { 0f }, AH);
+        PlacZPierscieniem("pętla ZACHÓD", c, PetlaR, PetlaPlac, new[] { 0f, 180f }, AH);   // wlot zach. = Aleja Centralna (nowe dzielnice)
         var kraw = new BraxRegionMeble.Bud(); Pierscien(kraw, c, PetlaWyspa - Kr, PetlaWyspa, YC, 48); kraw.Obiekt("Pętla ZACHÓD: krawężnik wyspy", root, krawMat, false, false);
         var tr = Dysk("Pętla ZACHÓD: trawnik wyspy", c, PetlaWyspa - Kr, YC - .03f, 48); Nawierzchnia(tr); BraxRegionTrawa.Teren(tr.GetComponent<MeshRenderer>(), true, false);
         Plyta("Pętla ZACHÓD: podłoże wyspy", beton, PetlaZX - PetlaWyspa, PetlaZX + PetlaWyspa, RZ - PetlaWyspa, RZ + PetlaWyspa, YC - .06f, .3f, false);
@@ -737,7 +742,7 @@ public static class BraxRegionMiastoB
         // trawniki NIE nachodzą na siebie ani na nawierzchnie (każdy prostokąt osobno, styk krawędzią)
         float zW0 = SZ - SH - Kr - 2.5f, zW1 = SZ + SH + Kr + 2.5f, zb = zW0 - 13.5f;
         // zachód (ETAP 2: ul. Zachodnia, pętla ZACHÓD, komisariat, szpital, pierzeja płn.) — prostokąty bez nakładania
-        float zL = RZ - 12f, zP = RZ + 12f, wx0 = BraxMiastoGranice.X0, pzx0 = PetlaZX - PetlaPlac;
+        float zL = RZ - 12f, zP = RZ + 12f, wx0 = NX, pzx0 = PetlaZX - PetlaPlac;   // trawniki B do krawędzi nowych dzielnic (x −262)
         Trawa("L1 za pierzeją zach. Alei Północnej", -156f, LicoW - 16f, RZ + RPlac, PetlaZ - PetlaPlac);
         TrawaBez("L2 na zachód od pętli", Rect.MinMaxRect(-156f, PetlaZ - PetlaPlac, AX - PetlaPlac - 3f, 126f), true, PrzejscieCentrumPetla);
         TrawaBez("Z-a za komisariatem i szpitalem (do skarpy)", Rect.MinMaxRect(wx0, ZboczeZ, LicoW - 16f, Komisariat.yMin), true, Galeria, PrzedpoleGalerii);
@@ -1194,6 +1199,7 @@ public static class BraxRegionMiastoB
         for (float z = RZ + RPlac + 10f; z + 3f < PetlaZ - PetlaPlac - 7f; z += 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z), new Vector3(AX + .06f, YA + .021f, z + 3f));
         for (float z = RZ - RPlac - 10f; z > SZ + SH + 18f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
         for (float z = SZ - SH - 18f; z > AS1 + 16f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
+        try { NoweDzielniceOznakowanie(farbaB); } catch (Exception e) { Debug.LogError("BRAXHORN_MIASTO_ASSETY oznakowanie nowych dzielnic DO POPRAWKI: " + e); }
         BudujAsfalt(farbaB);
     }
 
