@@ -6,12 +6,12 @@ using UnityEngine;
 // Import polskich kwestii (Resources/OsiedleGlosy, źródło: unity-tools/claude/osiedle_glosy.py — Ogg Vorbis q6 po obróbce
 // highpass 80 Hz / +3 dB przy 3 kHz / −16 LUFS). Build 45 (właściciel: mowa „zamulająca”): build 44 kodował drugi raz Vorbis
 // jakość 0.65 na źródle Ogg q3 = podwójna mocna kompresja. Teraz: krótkie kwestie (< 1.0 s — okrzyki, „Hej!”) PCM
-// (bez drugiej straty, ~44 KB/s przy 22 kHz mono), dłuższe Vorbis jakość 1.0 (druga kompresja praktycznie bez strat);
+// (bez drugiej straty, ~44 KB/s przy 22 kHz mono), dłuższe Vorbis jakość 0.85 na źródle q5 (druga kompresja praktycznie bez strat);
 // częstotliwość źródła (22 050 Hz) zachowana, mono.
 public sealed class BraxGlosyImport : AssetPostprocessor
 {
-    public const float KrotkaKwestia = 1.0f;   // 45 kwestii (35 s) = ~1.5 MB PCM w APK; dłuższe Vorbis 1.0
-    public override uint GetVersion() => 2;
+    public const float KrotkaKwestia = 1.0f;   // krótkie okrzyki PCM (~1.5 MB w APK); dłuższe Vorbis 0.85
+    public override uint GetVersion() => 3;
 
     void OnPreprocessAudio()
     {
@@ -23,7 +23,7 @@ public sealed class BraxGlosyImport : AssetPostprocessor
         bool krotka = sek > 0f && sek < KrotkaKwestia;
         settings.loadType = krotka ? AudioClipLoadType.DecompressOnLoad : AudioClipLoadType.CompressedInMemory;
         settings.compressionFormat = krotka ? AudioCompressionFormat.PCM : AudioCompressionFormat.Vorbis;
-        settings.quality = 1f;
+        settings.quality = .85f;   // źródło Ogg q5 po obróbce (−16 LUFS) — 0.85 bez słyszalnej straty, rozsądnie dla APK (~300 kwestii × 2 głosy)
         settings.sampleRateSetting = AudioSampleRateSetting.PreserveSampleRate;
         settings.preloadAudioData = true;
         importer.defaultSampleSettings = settings;

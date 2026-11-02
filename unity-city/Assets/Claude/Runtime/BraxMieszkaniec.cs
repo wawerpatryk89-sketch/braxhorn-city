@@ -89,7 +89,8 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         {
             // obsługa i siedzący patrzą na gracza, który podchodzi; obsługa wita
             patrzCel = .8f; patrzNa = gracz.position;
-            if (obsluga && Time.time > nastPowitanie) { nastPowitanie = Time.time + 45f; Powiedz(Powitanie(), 2.4f); }
+            if (obsluga && Time.time > nastPowitanie && BraxLudzie.MozeZagadacTeraz(true, nastPowitanie))
+            { string t = Powitanie(); float c = BraxDymki.Powiedz(transform, t, ton, BraxGlosPostaci.Rodzaj.Mijanie); BraxLudzie.Zagadal(c + .3f, ref nastPowitanie); }
         }
         else if (wAucie)
         {
@@ -150,7 +151,7 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
                 kto.mowiTeraz = true; sluch.mowiTeraz = false;
                 kto.Graj(Los(kto.mowi) ?? Los(kto.klipy), .4f); sluch.Graj(Los(sluch.slucha) ?? Los(sluch.klipy), .4f);
                 kto.patrzCel = sluch.patrzCel = .5f; kto.patrzNa = sluch.transform.position; sluch.patrzNa = kto.transform.position;
-                if (BraxLudzie.OdlKamery2(transform.position) < 24f * 24f) kto.Powiedz(kwestie[k], czas);
+                if (BraxLudzie.OdlKamery2(transform.position) < 24f * 24f) BraxDymki.Powiedz(kto.transform, kwestie[k], kto.ton, BraxGlosPostaci.Rodzaj.Tlo);   // E4b: tło, ciszej
                 yield return new WaitForSeconds(czas + .4f);
             }
             if (rozmowca) { mowiTeraz = rozmowca.mowiTeraz = false; Graj(Los(slucha) ?? Los(klipy), .5f); rozmowca.Graj(Los(rozmowca.slucha) ?? Los(rozmowca.klipy), .5f); }
@@ -195,11 +196,11 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         switch (rola)
         {
             case "barman": return BraxLudzie.Los(new[] { "Co podać?", "Dobry wieczór! Coś do picia?", "Szejk czy coś mocniejszego?" });
-            case "barista": return BraxLudzie.Los(new[] { "Dzień dobry! Kawa?", "Polecam dziś sernik.", "Cappuccino jak zawsze?" });
+            case "barista": return Random.value < .4f ? BraxLudzie.Los(BraxDymki.Sklep) : BraxLudzie.Los(new[] { "Dzień dobry! Kawa?", "Polecam dziś sernik.", "Cappuccino jak zawsze?" });
             case "recepcja": return BraxLudzie.Los(new[] { "Dzień dobry! W czym mogę pomóc?", "Witamy! Karnet czy wejście jednorazowe?" });
-            case "kasjer": return BraxLudzie.Los(new[] { "Dzień dobry!", "Następny proszę.", "Płatność kartą?" });
+            case "kasjer": return Random.value < .5f ? BraxLudzie.Los(BraxDymki.Sklep) : BraxLudzie.Los(new[] { "Dzień dobry!", "Następny proszę.", "Płatność kartą?" });
             case "kasyno": return BraxLudzie.Los(new[] { "Dobry wieczór. Żetony?", "Witamy w kasynie. Ile wymieniamy?" });
-            case "ochrona": return BraxLudzie.Los(new[] { "Dobry wieczór.", "Zapraszam, tylko bez awantur.", "Lista gości? Żartuję, wchodź." });
+            case "ochrona": return Random.value < .5f ? BraxLudzie.Los(BraxDymki.Ochroniarz) : BraxLudzie.Los(new[] { "Dobry wieczór.", "Zapraszam, tylko bez awantur.", "Lista gości? Żartuję, wchodź." });
             case "policja": return BraxLudzie.Los(new[] { "Dzień dobry. Coś się stało?", "Komisariat, słucham.", "Proszę poczekać, zaraz ktoś podejdzie." });
             case "lekarz": return BraxLudzie.Los(new[] { "Dzień dobry. Rejestracja jest na wprost.", "Proszę poczekać, zaraz pana poproszą." });
             case "szatnia": return BraxLudzie.Los(new[] { "Kurtkę zostawiamy?", "Dobry wieczór! Numerek proszę." });
@@ -225,7 +226,18 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     IEnumerator Pogadaj(Transform gracz)
     {
         mowiTeraz = true; doKiedyPatrzy = Time.time + 7f; patrzNa = gracz.position;
-        string w = obsluga ? Powitanie() : BraxDymki.Los(BraxDymki.Wiesci); float c1 = BraxDymki.Czas(w, ton);
+        if (!obsluga && Random.value < .5f)
+        {   // E4b: krótka rozmowa (mieszkaniec, Patryk, mieszkaniec)
+            var wym = BraxDymki.Wymiany[Random.Range(0, BraxDymki.Wymiany.Length)];
+            for (int k = 0; k < wym.Length; k++)
+            {
+                bool on = k % 2 == 0;
+                if (on) { if (!siedzi) Graj(Los(mowi) ?? Los(klipy), .3f); Powiedz(wym[k], 2f); } else BraxDymki.Powiedz(gracz, wym[k], 1f, BraxGlosPostaci.Rodzaj.Rozmowa);
+                yield return new WaitForSeconds(BraxDymki.Czas(wym[k], on ? ton : 1f) + .25f);
+            }
+            mowiTeraz = false; yield break;
+        }
+        string w = obsluga ? Powitanie() : BraxDymki.Los(Random.value < .5f ? BraxDymki.Wiesci : Random.value < .5f ? BraxDymki.WiesciWiecej : BraxDymki.Sasiedzi); float c1 = BraxDymki.Czas(w, ton);
         if (!siedzi) Graj(Los(mowi) ?? Los(klipy), .3f);
         Powiedz(w, c1); yield return new WaitForSeconds(c1 + .2f);
         string o = BraxDymki.Los(BraxDymki.OdpowiedziBraxa); BraxDymki.Pokaz(gracz, o, 2.4f, 2.55f); yield return new WaitForSeconds(BraxDymki.Czas(o) + .2f);

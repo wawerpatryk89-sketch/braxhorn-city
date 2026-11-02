@@ -1,3 +1,4 @@
+using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,6 +62,18 @@ public static partial class BraxClaudeOsiedle
                 + " LOD_ludzi=nie (cull: animacja do " + BraxLudzie.PromienMax + " m, limit " + BraxLudzie.LimitMax + "→" + BraxLudzie.LimitMin + " przy < 35 kl./s) cienie_postaci_zasieg=" + BraxLudzie.CienOdl.ToString("F1") + " m"
                 + " skóra_2_kości_od=" + BraxLudzie.DwieKosciOdl.ToString("F1") + " m cienie_aut_zasieg=" + BraxAuto.CienAutaOdl.ToString("F1") + " m");
         }
+        try
+        {   // E4b (build 45): rozmowy — kwestie wg sytuacji (indeks nagrań), kto zagaduje, limity
+            string json = File.Exists("Assets/Resources/OsiedleGlosy/indeks.json") ? File.ReadAllText("Assets/Resources/OsiedleGlosy/indeks.json") : "";
+            var syt = System.Text.RegularExpressions.Regex.Matches(json, "\"sytuacja\": *\"([^\"]+)\"").Cast<System.Text.RegularExpressions.Match>().GroupBy(m => m.Groups[1].Value).OrderByDescending(g => g.Count()).Select(g => g.Key + " " + g.Count());
+            int kw = System.Text.RegularExpressions.Regex.Matches(json, "\"tekst\":").Count;
+            var piesi = UnityEngine.Object.FindObjectsByType<BraxPieszy>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            int zag = piesi.Count(p => BraxLudzie.Zagadujacy(BraxLudzie.Ziarno(p.name, p.transform.position)));
+            Debug.Log("BRAXHORN_ROZMOWY kwestii=" + kw + " wg sytuacji: " + string.Join(", ", syt) + " | zagadujący=" + (piesi.Length > 0 ? (100f * zag / piesi.Length).ToString("F0") : "—") + "% (" + zag + "/" + piesi.Length
+                + " przechodniów; obsługa wita zawsze, z limitem) cooldown=osoba " + BraxLudzie.CooldownOsoby + " s, globalny " + BraxLudzie.CooldownGlobalny + " s, nie gdy gracz > " + BraxLudzie.GraczBiegnie + " m/s albo w aucie"
+                + " | głośność: wyraźnie do " + BraxGlosPostaci.Wyraznie.ToString("F1") + " m, cisza od " + BraxGlosPostaci.Cisza.ToString("F1") + " m, rozmowa 1.0 / mijanie 0.7 / tło 0.45");
+        }
+        catch (Exception e) { Debug.LogWarning("BRAXHORN_ROZMOWY DO POPRAWKI: " + e.Message); }
         Debug.Log("BRAXHORN_LUDZIE_REKWIZYTY plecaki=0 (klocek z 3 brył bez szelek wyłączony; pominięto " + rbPlecakiPominiete + " losowań) torby=zaokrąglone z paskiem, kubki/telefony/czapki/okulary bez zmian");
         Debug.Log("BRAXHORN_SKALA ludzie: k świata=" + K.ToString("F3") + " baza ludzi=" + WzrostBazaLudzi.ToString("F2") + " m (#44: 2.27) mężczyźni " + Stat(wzrostyM) + " kobiety " + Stat(wzrostyK)
             + " (oczekiwane: mężczyźni 2.202–2.270, kobiety 2.145–2.213)");

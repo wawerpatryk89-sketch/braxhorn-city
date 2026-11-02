@@ -19,7 +19,7 @@ Użycie:
                               --nadpisz zastępuje istniejące nagrania (po wyborze głosu: jedno polecenie)
   --check                     pokrycie kwestii + dekodowanie każdego Ogg
 Ustawienia na wyraźność: length_scale 0.9, noise_scale 0.5, noise_w 0.6; obróbka ffmpeg: highpass 80 Hz,
-podbicie 2–4 kHz (+3 dB przy 3 kHz), loudnorm −16 LUFS (dwa przejścia, liniowo), Ogg Vorbis q6 (Unity: jakość 1.0
+podbicie 2–4 kHz (+3 dB przy 3 kHz), loudnorm −16 LUFS (dwa przejścia, liniowo), Ogg Vorbis q5 (Unity: jakość 0.85
 albo PCM dla krótkich — BraxGlosyImport, bez podwójnej mocnej kompresji).
 """
 import argparse
@@ -54,9 +54,20 @@ def dialogue():
     parts.append(text[text.index('public static readonly string[] Okrzyki'):])
     text = (runtime / 'BraxMieszkaniec.cs').read_text()
     text = text[text.index('string Powitanie()'):text.index('// AKCJA:')]
+    role = text
     parts += re.findall(r'new\[\] \{([^}]+)\}', text)
     texts = sorted(set(re.findall(r'"([^"\n]+)"', '\n'.join(parts))))
-    return [{'tekst': t, 'id': hashlib.sha256(t.encode()).hexdigest()[:16]} for t in texts]
+    # sytuacja (build 45, E4b) = nazwa tablicy w kodzie (Mijanie, Sklep, Arena, Wymiany, Okrzyki…), rola „obsługa:<rola>” dla Powitanie()
+    sytuacje = {}
+    for blok in parts:
+        for m in re.finditer(r'string\[\](?:\[\])?\s+(\w+)\s*=\s*(\{[^\n]*\};|\{.*?\n\s*\};)', blok, re.S):
+            for t in re.findall(r'"([^"\n]+)"', m.group(2)):
+                sytuacje.setdefault(t, m.group(1))
+    for blok in [role]:
+        for m in re.finditer(r'case "(\w+)":[^\n]*', blok):
+            for t in re.findall(r'"([^"\n]+)"', m.group(0))[1:]:
+                sytuacje.setdefault(t, 'obsługa:' + m.group(1))
+    return [{'tekst': t, 'id': hashlib.sha256(t.encode()).hexdigest()[:16], 'sytuacja': sytuacje.get(t, 'inne')} for t in texts]
 
 
 def synteza(voice, tekst, wav_path, wyrazny=True):
@@ -152,7 +163,7 @@ def generuj(models, glos_m, glos_f, nadpisz):
                 if not nadpisz and destination.exists() and destination.stat().st_size > 0:
                     continue
                 synteza(voice, e['tekst'], wav_path)
-                obrobka(wav_path, destination, ['-c:a', 'libvorbis', '-q:a', '6'], 22050)
+                obrobka(wav_path, destination, ['-c:a', 'libvorbis', '-q:a', '5'], 22050)
     for path in OUTPUT.iterdir():
         if path.suffix in ('.ogg', '.json'):
             meta = Path(str(path) + '.meta')

@@ -83,6 +83,41 @@ public static class BraxLudzie
         wPromieniu++; return true;
     }
 
+    // ---------------- E4b (build 45): KTO ZAGADUJE (właściciel 20:40: „żeby nie każdy zagadywał”) ----------------
+    //  • stała osobowość: zagaduje ~1 na 6 osób (ziarno z nazwy i miejsca startu — ta sama osoba zawsze tak samo),
+    //  • osoba najwyżej co 75 s, ktokolwiek nowy najwyżej co 10 s, nigdy dwie naraz, nie gdy gracz biegnie (> 3 m/s) albo jedzie autem;
+    //  • pełna rozmowa tylko po POGADAJ.
+    public const int ZagadujeCo = 6; public const float CooldownOsoby = 75f, CooldownGlobalny = 10f, GraczBiegnie = 3f;
+    static float nastGlobalne, zajetyDo; static Vector3 graczPoprz; static float graczV; static int graczKlatka = -1;
+    public static int Ziarno(string nazwa, Vector3 p)
+    {
+        unchecked { int h = 17; foreach (char c in nazwa) h = h * 31 + c; h = h * 31 + Mathf.RoundToInt(p.x * 10f); h = h * 31 + Mathf.RoundToInt(p.z * 10f); return h; }
+    }
+    public static bool Zagadujacy(int ziarno) { unchecked { uint x = (uint)ziarno; x ^= x >> 16; x *= 0x7feb352d; x ^= x >> 15; x *= 0x846ca68b; x ^= x >> 16; return x % ZagadujeCo == 0; } }
+    public static bool MozeZagadac(bool zagadujacy, float teraz, float nastOsoby, float nastGlob, float zajety, float vGracza, bool graczWAucie)
+        => zagadujacy && teraz >= nastOsoby && teraz >= nastGlob && teraz >= zajety && vGracza < GraczBiegnie && !graczWAucie;
+    public static bool MozeZagadacTeraz(bool zagadujacy, float nastOsoby)
+    {
+        var g = Gracz; if (!g) return false;
+        if (Time.frameCount != graczKlatka)
+        {
+            float dt = Time.time - graczKlatkaCzas; graczKlatkaCzas = Time.time; graczKlatka = Time.frameCount;
+            if (dt > 1e-4f) { var d = g.position - graczPoprz; d.y = 0f; graczV = Mathf.Lerp(graczV, d.magnitude / dt, .3f); }
+            graczPoprz = g.position;
+        }
+        var p = g.GetComponent<BraxGymPlayer>();
+        return MozeZagadac(zagadujacy, Time.time, nastOsoby, nastGlobalne, zajetyDo, graczV, p && p.autoGracza);
+    }
+    static float graczKlatkaCzas;
+    public static void Zagadal(float czas, ref float nastOsoby) { nastOsoby = Time.time + CooldownOsoby; nastGlobalne = Time.time + CooldownGlobalny; zajetyDo = Time.time + czas; }
+    public static string Mijanie()
+    {
+        int h = System.DateTime.Now.Hour;
+        if (h < 11 && Random.value < .5f) return Los(BraxDymki.MijanieRano);
+        if (h >= 18 && Random.value < .5f) return Los(BraxDymki.MijanieWieczor);
+        return Los(BraxDymki.Mijanie);
+    }
+
     public static float OdlKamery2(Vector3 p) { var k = Kamera; return k ? (k.position - p).sqrMagnitude : 0f; }
 
     public static void Dodaj(IBraxOsoba o)

@@ -40,6 +40,9 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     float lean, leanCel, patrzWaga, patrzCel, nastObejrzenie, predkoscUcieczki, nastGrunt;
     Vector3 leanOs = Vector3.right, patrzNa, odrzut, kierUcieczki;
     Renderer[] skory; byte detale = 255; float nastDetale;   // E19 (build 45)
+    int zagadujacy = -1; Vector3 startPoz;                    // E4b: stała osobowość (−1 = jeszcze nie policzona)
+    static readonly Vector3[] Treningi = { new Vector3(-86f, 0f, 64f), new Vector3(86f, 0f, 64f), new Vector3(85f, 0f, -77f) };   // ARENA, sala bokserska, siłownia A
+    bool BlizejAreny() { foreach (var t in Treningi) if ((transform.position - t).sqrMagnitude < 35f * 35f) return true; return false; }
     bool blisko = true, krzyczZDaleka;
     Transform gracz, rozmowca;
     static readonly List<BraxPieszy> wszyscy = new List<BraxPieszy>();
@@ -52,6 +55,7 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
 
     void Start()
     {
+        startPoz = transform.position;
         if (trasa == null || trasa.Length < 2) { trasa = new[] { a, b }; przejscie = new bool[2]; }
         if (przejscie == null || przejscie.Length < trasa.Length) { var p = new bool[trasa.Length]; if (przejscie != null) System.Array.Copy(przejscie, p, przejscie.Length); przejscie = p; }
         // start w losowym miejscu trasy (nie na jezdni), w losowym kierunku
@@ -111,10 +115,20 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
             case Stan.Czeka: KrokCzeka(dt); return;
         }
         // Idzie / Wraca
-        if (gracz && Time.time > nastPowitanie)
-        {
+        if (gracz && Time.time > nastPowitanie && Time.time > unikaDo)
+        {   // E4b: zagaduje tylko „zagadujący” (~1 na 6), z limitami osoby i globalnym, nie gdy gracz biegnie/jedzie
             var g = gracz.position - transform.position; g.y = 0f;
-            if (g.magnitude < 3f) { nastPowitanie = Time.time + 40f; if (Time.time > unikaDo && Random.value < .35f) Powiedz(BraxDymki.Los(BraxDymki.Powitania), 2.6f); }
+            if (g.magnitude < 3f * BraxGlosPostaci.K)
+            {
+                if (zagadujacy < 0) zagadujacy = BraxLudzie.Zagadujacy(BraxLudzie.Ziarno(name, startPoz)) ? 1 : 0;
+                if (BraxLudzie.MozeZagadacTeraz(zagadujacy == 1, nastPowitanie))
+                {
+                    string t = Random.value < .2f && BlizejAreny() ? BraxDymki.Los(BraxDymki.Arena) : BraxLudzie.Mijanie();
+                    float c = BraxDymki.Powiedz(transform, t, ton, BraxGlosPostaci.Rodzaj.Mijanie);
+                    BraxLudzie.Zagadal(c + .3f, ref nastPowitanie);
+                }
+                else if (zagadujacy == 0) nastPowitanie = Time.time + 20f;
+            }
         }
         // trafiony wcześniej: omija gracza szerokim łukiem
         if (gracz && Time.time < unikaDo)
@@ -462,14 +476,28 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     IEnumerator PogadajZGraczem()
     {
         stan = Stan.Rozmowa; rozmowca = gracz;
-        string w = BraxDymki.Los(BraxDymki.Wiesci); float c1 = BraxDymki.Czas(w, ton);
+        if (Random.value < .5f)
+        {   // E4b: krótka rozmowa (mieszkaniec, Patryk, mieszkaniec)
+            var wym = BraxDymki.Wymiany[Random.Range(0, BraxDymki.Wymiany.Length)];
+            for (int k = 0; k < wym.Length && stan == Stan.Rozmowa; k++)
+            {
+                bool on = k % 2 == 0;
+                if (on) { Graj(Los(mowi, stoi), .3f); Powiedz(wym[k], 2f); } else { Graj(Los(slucha, stoi), .3f); BraxDymki.Powiedz(gracz, wym[k], 1f, BraxGlosPostaci.Rodzaj.Rozmowa); }
+                yield return new WaitForSeconds(BraxDymki.Czas(wym[k], on ? ton : 1f) + .25f);
+            }
+            if (stan != Stan.Rozmowa) yield break;
+            stan = Stan.Idzie; rozmowca = null; nastPowitanie = Time.time + 60f; nastRozmowa = Time.time + 30f;
+            Graj(chod, .3f, predkosc / Mathf.Max(.3f, predkoscKlipu));
+            yield break;
+        }
+        string w = BraxDymki.Los(Random.value < .5f ? BraxDymki.Wiesci : BraxDymki.WiesciWiecej); float c1 = BraxDymki.Czas(w, ton);
         Graj(Los(mowi, stoi), .3f);
         Powiedz(w, c1); yield return new WaitForSeconds(c1 + .2f);
         if (stan != Stan.Rozmowa) yield break;
         Graj(Los(slucha, stoi), .3f);
-        string o = BraxDymki.Los(BraxDymki.OdpowiedziBraxa); BraxDymki.Pokaz(gracz, o, 2.4f, 2.55f); yield return new WaitForSeconds(BraxDymki.Czas(o) + .2f);
+        string o = BraxDymki.Los(Random.value < .5f ? BraxDymki.OdpowiedziBraxa : BraxDymki.OdpowiedziPatryka); BraxDymki.Pokaz(gracz, o, 2.4f, 2.55f); yield return new WaitForSeconds(BraxDymki.Czas(o) + .2f);
         if (stan != Stan.Rozmowa) yield break;
-        string koniec = BraxDymki.Los(BraxDymki.Pozegnania); Powiedz(koniec, 2f); yield return new WaitForSeconds(BraxDymki.Czas(koniec, ton) + .2f);
+        string koniec = BraxDymki.Los(Random.value < .5f ? BraxDymki.Pozegnania : BraxDymki.PozegnaniaWiecej); Powiedz(koniec, 2f); yield return new WaitForSeconds(BraxDymki.Czas(koniec, ton) + .2f);
         if (stan != Stan.Rozmowa) yield break;
         stan = Stan.Idzie; rozmowca = null; nastPowitanie = Time.time + 60f; nastRozmowa = Time.time + 30f;
         Graj(chod, .3f, predkosc / Mathf.Max(.3f, predkoscKlipu));

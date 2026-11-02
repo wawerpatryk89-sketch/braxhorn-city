@@ -74,7 +74,8 @@ public static class BraxTestNaprawOsiedla
                 && BraxAutoGracza.MaksSkret(6f, 12f) < 38f && BraxAutoGracza.MaksSkret(-1f, 12f) == 38f, "skręt 38° przy małej prędkości, maleje z prędkością");
         // E6: próby pozy w kabinie — od najmniejszej zmiany, maks. odchylenie i pochylenie głowy na końcu, skala osoby nietknięta
         var proby = BraxClaudeOsiedle.KabinaProby(25f, 30f, 1.294f);
-        Require(proby.Count == 3 + 5 + 2 && proby[0].odch == 25f && Mathf.Abs(proby[0].zagl - .03f * 1.294f) < 1e-5f && proby[proby.Count - 1].odch == 30f && proby[proby.Count - 1].poch == 10f, "kolejność prób pozy w kabinie");
+        Require(proby.Count == 1 + 3 + 5 + 2 && proby[0].odch == 0f && proby[0].zagl == 0f && proby[0].poch == 0f && proby[1].odch == 25f && Mathf.Abs(proby[1].zagl - .03f * 1.294f) < 1e-5f
+                && proby[proby.Count - 1].odch == 30f && proby[proby.Count - 1].poch == 10f, "kolejność prób pozy w kabinie (najpierw poza z #44 bez zmian)");
         BraxFotelAuta.Rodzaj(1.17f, out var k1, out var b1, out var m1); BraxFotelAuta.Rodzaj(1.45f, out var k2, out _, out _); BraxFotelAuta.Rodzaj(2.1f, out var k3, out var b3, out var m3);
         Require(k1 == "sportowe" && b1 == 25f && m1 == 30f && k2 == "osobowe" && k3 == "dostawcze" && b3 == 8f && m3 == 12f, "rodzaj kabiny z wysokości auta");
         var go = new GameObject("test fotela"); var go2 = new GameObject("test kręgosłupa"); var glowa = new GameObject("test głowy");
@@ -114,11 +115,21 @@ public static class BraxTestNaprawOsiedla
             Require(!BraxWycinanieSiatki.OdejmijTrojkaty(grunt, Matrix4x4.identity, -1, 1, 0, 0f, .002f, plyta, out _, out _, out _), "przeciwny zwrot — bez zmian");
         }
         finally { UnityEngine.Object.DestroyImmediate(grunt); if (wynik) UnityEngine.Object.DestroyImmediate(wynik); }
+        // E4b: kto zagaduje — ~1 na 6 (stała osobowość), limity osoby/globalny, nie gdy gracz biegnie/jedzie; krzywa głośności
+        int zag = 0; for (int i = 0; i < 6000; i++) if (BraxLudzie.Zagadujacy(BraxLudzie.Ziarno("Przechodzień " + i, new Vector3(i * .7f, 0, -i * 1.3f)))) zag++;
+        Require(zag > 6000 / 8 && zag < 6000 / 5, "zagaduje ~1 na 6 osób (" + zag + "/6000)");
+        Require(BraxLudzie.Zagadujacy(BraxLudzie.Ziarno("a", Vector3.one)) == BraxLudzie.Zagadujacy(BraxLudzie.Ziarno("a", Vector3.one)), "stała osobowość");
+        Require(BraxLudzie.MozeZagadac(true, 100f, 0f, 0f, 0f, 1f, false) && !BraxLudzie.MozeZagadac(false, 100f, 0f, 0f, 0f, 1f, false), "niezagadujący milczy");
+        Require(!BraxLudzie.MozeZagadac(true, 100f, 120f, 0f, 0f, 1f, false) && !BraxLudzie.MozeZagadac(true, 100f, 0f, 105f, 0f, 1f, false) && !BraxLudzie.MozeZagadac(true, 100f, 0f, 0f, 101f, 1f, false), "limit osoby / globalny / ktoś już mówi");
+        Require(!BraxLudzie.MozeZagadac(true, 100f, 0f, 0f, 0f, 5f, false) && !BraxLudzie.MozeZagadac(true, 100f, 0f, 0f, 0f, 1f, true), "nie gdy gracz biegnie albo jedzie");
+        Require(BraxGlosPostaci.Krzywa(1f) == 1f && BraxGlosPostaci.Krzywa(BraxGlosPostaci.Cisza + 1f) == 0f && BraxGlosPostaci.Krzywa(8f) > BraxGlosPostaci.Krzywa(12f) && BraxGlosPostaci.Krzywa(12f) > 0f, "głośność: wyraźnie blisko, płynnie ciszej, cisza dalej");
+        BraxGlosPostaci.Ustawienia(BraxGlosPostaci.Rodzaj.Mijanie, false, out _, out float gm); BraxGlosPostaci.Ustawienia(BraxGlosPostaci.Rodzaj.Tlo, false, out _, out float gt); BraxGlosPostaci.Ustawienia(BraxGlosPostaci.Rodzaj.Rozmowa, false, out _, out float gr);
+        Require(gr > gm && gm > gt, "rozmowa głośniej niż mijanie, mijanie głośniej niż tło");
         // E22: kamera za plecami — martwa strefa, ograniczona prędkość, zbieżność, przejście przez ±180°
         Require(BraxGymPlayer.KrokZaPlecy(0f, 3f, 1f / 60f) == 0f, "kamera: martwa strefa 4°");
         float yaw = 0f; for (int i = 0; i < 120; i++) { float prev = yaw; yaw = BraxGymPlayer.KrokZaPlecy(yaw, 90f, 1f / 60f); Require(yaw - prev <= BraxGymPlayer.ZaPlecamiMaks / 60f + 1e-4f, "kamera: maks. 220°/s"); }
         Require(Mathf.Abs(90f - yaw) <= BraxGymPlayer.ZaPlecamiMartwa + .01f, "kamera: wraca za plecy w ~2 s");
         Require(BraxGymPlayer.KrokZaPlecy(170f, -170f, 1f / 60f) > 170f, "kamera: najkrótsza droga przez 180°");
-        Debug.Log("BRAXHORN_REGRESJA build45: PASS (ślizg auta, skręt, próby kabiny, rodzaj kabiny, mapa dachu, poza w aucie, głos, fontanna, Ogg, odejmowanie trójkątów, kamera za plecami)");
+        Debug.Log("BRAXHORN_REGRESJA build45: PASS (ślizg auta, skręt, próby kabiny, rodzaj kabiny, mapa dachu, poza w aucie, głos, fontanna, Ogg, odejmowanie trójkątów, kamera za plecami, kto zagaduje, krzywa głosu)");
     }
 }
