@@ -33,7 +33,23 @@ jobs:
           assert re.fullmatch('[a-f0-9]{40}',sha)
           repo='repos/'+os.environ['GITHUB_REPOSITORY']
           def api(path): return json.loads(subprocess.check_output(['gh','api',repo+'/'+path]))
+          def save_url(url):
+              parsed=urllib.parse.urlsplit(url)
+              assert parsed.scheme=='https' and parsed.hostname.endswith('.vercel.app') and not parsed.username
+              url='https://'+parsed.netloc
+              print('VERCEL_PREVIEW_URL',url)
+              with open(os.environ['GITHUB_ENV'],'a') as f:f.write('PREVIEW_URL='+url+'\n')
+              with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('Verified deployment record: '+url+'\n')
+              raise SystemExit(0)
           for attempt in range(40):
+              # Vercel may publish checks/statuses without GitHub Deployment records.
+              statuses=api('commits/'+sha+'/status')['statuses']
+              vercel_ok=any(s['context']=='Vercel' and s['state']=='success' for s in statuses)
+              if vercel_ok:
+                  for check in api('commits/'+sha+'/check-runs')['check_runs']:
+                      if check['head_sha']!=sha or check['app']['slug']!='vercel': continue
+                      match=re.search(r'https://vercel\.live/open-feedback/([a-zA-Z0-9.-]+\.vercel\.app)',check['output'].get('summary') or '')
+                      if match and '-git-preview-' in match[1]: save_url('https://'+match[1])
               deployments=api('deployments?sha='+sha+'&per_page=30')
               for d in deployments:
                   if d['sha']!=sha or d.get('production_environment') or d.get('environment','').lower()=='production': continue
@@ -42,13 +58,7 @@ jobs:
                   s=states[0]
                   url=s.get('environment_url') or s.get('target_url')
                   if s['state']!='success' or not url: continue
-                  parsed=urllib.parse.urlsplit(url)
-                  assert parsed.scheme=='https' and parsed.hostname.endswith('.vercel.app') and not parsed.username
-                  url='https://'+parsed.netloc
-                  print('VERCEL_PREVIEW_URL',url)
-                  with open(os.environ['GITHUB_ENV'],'a') as f:f.write('PREVIEW_URL='+url+'\n')
-                  with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('Verified deployment record: '+url+'\n')
-                  raise SystemExit(0)
+                  save_url(url)
               time.sleep(10)
           raise SystemExit('No successful Preview deployment URL found for this exact SHA')
           PY
