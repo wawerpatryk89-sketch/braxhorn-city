@@ -69,7 +69,8 @@ public static class BraxHarborBeachBuild
 
         Krok("plaża miejska", () => BraxNabrzezePlaza.Buduj(root));
         Krok("marina", () => BraxNabrzezeMarina.Buduj(root, cityRoot));
-        Krok("port: dźwig (przejściowo)", () => Dzwig(root));
+        Krok("A: port kontenerowy od nowa (nabrzeże, kontenerowiec, kontenery, biuro, brama)", () => BraxMiastoPort.Buduj(root, cityRoot));
+        Krok("port: dźwig nad statkiem", () => Dzwig(root));
         Krok("punkty misji", () => Punkty(cityRoot));
         AssetDatabase.SaveAssets();
         Debug.Log("BRAXHORN_HARBOR nabrzeże od nowa: woda y " + BraxNabrzeze.Woda + ", k " + BraxNabrzeze.K.ToString("F3") +
