@@ -3975,6 +3975,9 @@ public static partial class BraxClaudeOsiedle
     {
         group = "Osiedle A / hala walk — oktagon premium";
         const float X0 = -105.82f, X1 = -66.18f, Z0 = 49.18f, Z1 = 78.82f, yF = .055f, yC = 6.86f, cx = -86f, cz = 63.3f, dA = -88.05f, dB = -83.95f, dH = 3.1f;
+        // build 45 (właściciel 20:37: „Arena migocze!!!!!”): obrys ARENY BRAXHORN z elewacją, szyldem, banerami i daszkiem wejścia —
+        // kontrola migotania liczy tu pary do 3 cm (≥ 0.05 m²) i wycina dolną warstwę (BRAXHORN_ARENA_MIGOTANIE)
+        BraxKontrolaMigotania.Arena = MinMax(X0 - 3.5f, X1 + 3.5f, -.5f, 13f, Z0 - 3.5f, Z1 + 4.5f);
         var cut = MinMax(X0 + .04f, X1 - .04f, .06f, 6.84f, Z0 + .04f, Z1 - .04f);
         CutVolumes(estate, physics, new List<Bounds> { cut });
         int offCols = 0;
@@ -4745,6 +4748,11 @@ public static partial class BraxClaudeOsiedle
         go.transform.localPosition = new Vector3(cx, cy, -12.986f);
         go.AddComponent<MeshFilter>().sharedMesh = mesh;
         var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = m; mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = false;   // jak reszta hali (bez cienia dachu)
+        // build 45 (log #44: Gym_Mesh_70 ↔ mural 1.4 cm, 173 m² — migotanie): ściana pod muralem wycięta (zasada „nie nakładać”);
+        // mural nieprzezroczysty (farba na cegle w shaderze) — dziury nie widać. Kopia siłowni jest chroniona w kontroli — tniemy tu.
+        Physics.SyncTransforms();
+        int wyc = BraxKontrolaMigotania.WytnijPodNakladka(mr, gym.GetComponentsInChildren<MeshRenderer>(true), .03f, Out, out float poleMur);
+        Debug.Log("BRAXHORN_MURAL siłownia A: ściana pod muralem wycięta — siatek " + wyc + ", pole " + poleMur.ToString("F1") + " m² (mural " + (w * h).ToString("F1") + " m²)");
         rep.notes.Add("siłownia A: mural właściciela 19.2 × 7.675 m na ścianie tylnej (x " + (gx + cx - w / 2).ToString("0.0") + "…" + (gx + cx + w / 2).ToString("0.0")
                       + ", z " + (gz - 12.986f).ToString("0.00") + "), SHA-256 zgodne, stara nakładka " + (removed ? "usunięta" : "nieobecna"));
     }
@@ -5479,6 +5487,7 @@ public static partial class BraxClaudeOsiedle
 
     static void Build()
     {
+        BraxKontrolaMigotania.Arena = null;   // build 45: obrys areny ustawia ArenaInterior (bez starej wartości z poprzedniego buildu)
         if (!Directory.Exists(Tex)) throw new Exception("brak tekstur osiedla (unity-tools/claude/fetch_osiedle.py)");
         Directory.CreateDirectory(Out); AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         var estate = GameObject.Find("braxhorn-estate")?.transform;
@@ -5614,6 +5623,7 @@ public static partial class BraxClaudeOsiedle
         Guard("sufity dla kamery (blokada nad pomieszczeniami)", SufityKamery);
         // build 14 (dyspozytor przy scalaniu): kontrole jakości PRZED ludźmi — kontrola skaluje/przesuwa ławki i meble, a ludzie
         // siedzący są wstawiani na stałe na wysokości ławki; po kontroli siadają na już poprawionych. Siatki są jeszcze do odczytu.
+        Guard("posadzki — grunt wycięty pod posadzkami wszystkich lokali (posadzka nigdy nie leży na gruncie)", () => BraxKontrolaMigotania.Posadzki(UnityEngine.SceneManagement.SceneManager.GetActiveScene()));
         Guard("kontrole jakości: skala, umieszczenie, kolizje, migotanie, pomieszczenia, robot", () => BraxKontrola.Wszystko(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), "osiedle"));
         Guard("ludzie: przechodnie, obsada, kierowcy (Rocketbox)", LudzieNaOsiedlu);   // build 14 „ludzie”: po wnętrzach, ławkach i autach
 
