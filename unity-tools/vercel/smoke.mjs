@@ -2,11 +2,23 @@ import { chromium } from 'playwright';
 import fs from 'node:fs/promises';
 
 const base = process.env.PREVIEW_URL || 'http://127.0.0.1:8765';
-const report = { url: base, runtimePassed: false, errors: [], failedRequests: [] };
-const browser = await chromium.launch({ args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const report = { url: base, runtimePassed: false, errors: [], failedRequests: [], consoleErrors: [] };
+const browser = await chromium.launch({ channel: 'chromium', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-  page.on('pageerror', error => report.errors.push(error.message));
+  page.on('pageerror', error => report.errors.push({message:error.message,stack:error.stack}));
+  page.on('console', message => { if (message.type() === 'error') report.consoleErrors.push(message.text()); });
+  await page.addInitScript(() => {
+    window.__mediaDiagnostics = [];
+    const original = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function (...args) {
+      this.addEventListener('error', () => window.__mediaDiagnostics.push({
+        src: (this.currentSrc || this.src || '').slice(0, 160),
+        code: this.error?.code, message: this.error?.message
+      }), {once:true});
+      return original.apply(this, args);
+    };
+  });
   page.on('response', response => { if (response.status() >= 400) report.failedRequests.push({url:response.url(),status:response.status()}); });
   const response = await page.goto(base + '/unity-gym/', { waitUntil: 'domcontentloaded' });
   if (!response.ok()) throw new Error('Unity entry returned ' + response.status());
@@ -15,6 +27,7 @@ try {
   await page.waitForTimeout(5000);
   report.unity = await page.evaluate(() => ({
     instance: Boolean(window.unityInstance),
+    mediaDiagnostics: window.__mediaDiagnostics,
     sendMessage: typeof window.unityInstance?.SendMessage,
     canvas: {width:document.querySelector('#game')?.width,height:document.querySelector('#game')?.height},
     resources: performance.getEntriesByType('resource').map(r => r.name).filter(n => n.includes('/Build/'))
