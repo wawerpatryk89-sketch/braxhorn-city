@@ -1,6 +1,9 @@
 node_modules/
 .DS_Store
 unity-city/Assets/Source/Claude/PolyHaven/
+# ludzie Microsoft Rocketbox (MIT) — pobierane w CI (unity-tools/claude/fetch_rocketbox.py)
+unity-city/Assets/Source/Rocketbox/
+unity-city/Assets/Source/Rocketbox.meta
 unity-tools/claude/__pycache__/
 unity-city/Assets/Claude/Audio/willa_muzyka.ogg*
 

@@ -5615,6 +5615,7 @@ public static partial class BraxClaudeOsiedle
         Flush();
         FlushClumps();
         Guard("sufity dla kamery (blokada nad pomieszczeniami)", SufityKamery);
+        Guard("ludzie: przechodnie, obsada, kierowcy (Rocketbox)", LudzieNaOsiedlu);   // build 14 „ludzie”: po wnętrzach, ławkach i autach
 
         // 6) punkty podróży (TravelPoint) do nowych miejsc
         var world = UnityEngine.Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(w => w.area == "estate");

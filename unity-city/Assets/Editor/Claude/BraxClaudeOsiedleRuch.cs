@@ -49,7 +49,11 @@ public static partial class BraxClaudeOsiedle
         return dst;
     }
 
-    static void Przechodnie()
+    // Build 14: przechodnie z paczki Rocketbox powstają na końcu budowy (LudzieNaOsiedlu, BraxClaudeOsiedleLudzieMiejsca);
+    // te z build 13 (Mixamo z wersji przeglądarkowej) tylko, gdy paczki nie pobrano (fetch_rocketbox.py).
+    static void Przechodnie() { if (!RocketboxDostepny()) PrzechodnieMixamo(); }
+
+    static void PrzechodnieMixamo()
     {
         var walkSrc = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/PlayableGenerated/Walk.anim");   // 1.11 build 12: było „Walking.anim” (nie istnieje) → ludzie bez ruchu
         var idleSrc = AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/PlayableGenerated/Idle.anim");
