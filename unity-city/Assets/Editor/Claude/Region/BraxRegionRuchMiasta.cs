@@ -13,7 +13,8 @@ using UnityEngine;
 // (rondo PÓŁNOC — zawracanie), ul. Warsztatowa, ul. Wiaduktowa. Skrzyżowania ze światłami (J1, J2): auta stają w strefach
 // zatrzymania BraxSwiatloDrogowe (rodzaj = 2: bez prawej ręki, decyduje sygnalizacja). Trasy zamknięte (pętle) — auta nie
 // znikają na oczach gracza. Ulica główna na wschód od skrzyżowania po wiadukcie — zakres A (bez aut w tym etapie).
-// Wydajność: 6 aut w ruchu (LOD znika przy ~1.5 % ekranu), symulacja BraxRuchAut jak na osiedlu.
+// ETAP 2: czwarta pętla przez ul. Zachodnią z zawracaniem na pętli ZACHÓD (oś ulicy głównej przedłużona na zachód).
+// Wydajność: 8 aut w ruchu (LOD znika przy ~1.5 % ekranu), symulacja BraxRuchAut jak na osiedlu.
 public static partial class BraxClaudeOsiedle
 {
     public static void RuchMiastaB(Transform cityRoot)
@@ -79,24 +80,27 @@ public static partial class BraxClaudeOsiedle
         float rx = BraxRegionMiastoB.RX, rz = BraxRegionMiastoB.RZ, ax = BraxRegionMiastoB.AX, wx = BraxRegionMiastoB.WX, sz = BraxRegionMiastoB.SZ, pz = BraxRegionMiastoB.PetlaZ;
         float ah = BraxRegionMiastoB.AH, kr = BraxRegionMiastoB.Kr;
         // ulice (cw = połowa jezdni, half = połowa ulicy z chodnikiem)
-        var G = new BraxTrasyAut.Ulica { id = "MIASTO Główna", wzdluzX = true, c = rz, a0 = rx, a1 = wx + 30f, cw = 4.5f, half = 4.5f + kr + 3.1f };
+        var G = new BraxTrasyAut.Ulica { id = "MIASTO Główna i ul. Zachodnia", wzdluzX = true, c = rz, a0 = BraxRegionMiastoB.PetlaZX, a1 = wx + 30f, cw = 4.5f, half = 4.5f + kr + 3.1f };
         var A = new BraxTrasyAut.Ulica { id = "MIASTO Aleje", wzdluzX = false, c = ax, a0 = sz - 30f, a1 = pz, cw = ah, half = ah + kr + BraxRegionMiastoB.Ziel + BraxRegionMiastoB.Chod };
         var Wd = new BraxTrasyAut.Ulica { id = "MIASTO Wiaduktowa", wzdluzX = false, c = wx, a0 = sz, a1 = rz, cw = BraxRegionMiastoB.WH, half = BraxRegionMiastoB.WH + kr + 1.55f };
         var Ws = new BraxTrasyAut.Ulica { id = "MIASTO Warsztatowa", wzdluzX = true, c = sz, a0 = ax, a1 = BraxRegionMiastoB.SX1, cw = BraxRegionMiastoB.SH, half = BraxRegionMiastoB.SH + kr + 2.5f };
         var Pd = new BraxTrasyAut.Ulica { id = "MIASTO pętla (umowna oś x)", wzdluzX = true, c = pz, a0 = ax - 1f, a1 = ax + 1f, cw = ah, half = ah };
-        var ul = new List<BraxTrasyAut.Ulica> { G, A, Wd, Ws, Pd };
+        var Pw = new BraxTrasyAut.Ulica { id = "MIASTO pętla ZACHÓD (umowna oś z)", wzdluzX = false, c = BraxRegionMiastoB.PetlaZX, a0 = rz - 1f, a1 = rz + 1f, cw = ah, half = ah };
+        var ul = new List<BraxTrasyAut.Ulica> { G, A, Wd, Ws, Pd, Pw };
         var RONDO = new BraxTrasyAut.Wezel { x = rx, z = rz, rondo = true, ux = G, uz = A };
         var PETLA = new BraxTrasyAut.Wezel { x = ax, z = pz, rondo = true, ux = Pd, uz = A };
         var J1 = new BraxTrasyAut.Wezel { x = wx, z = rz, ux = G, uz = Wd, rodzaj = 2 };
         var J2 = new BraxTrasyAut.Wezel { x = ax, z = sz, ux = Ws, uz = A, rodzaj = 2 };
         var W = new BraxTrasyAut.Wezel { x = wx, z = sz, ux = Ws, uz = Wd };
-        var wz = new List<BraxTrasyAut.Wezel> { RONDO, PETLA, J1, J2, W };
+        var PETLA_W = new BraxTrasyAut.Wezel { x = BraxRegionMiastoB.PetlaZX, z = rz, rondo = true, ux = G, uz = Pw };
+        var wz = new List<BraxTrasyAut.Wezel> { RONDO, PETLA, J1, J2, W, PETLA_W };
         Vector2 P(BraxTrasyAut.Wezel w) => new Vector2(w.x, w.z);
         var defs = new List<BraxTrasyAut.Definicja>
         {
             new BraxTrasyAut.Definicja { nazwa = "M pętla Wiaduktowa–Warsztatowa (w lewo)", petla = true, y = YA, punkty = new[] { P(RONDO), P(J2), P(W), P(J1) } },
             new BraxTrasyAut.Definicja { nazwa = "M pętla Wiaduktowa–Warsztatowa (w prawo)", petla = true, y = YA, punkty = new[] { P(RONDO), P(J1), P(W), P(J2) } },
             new BraxTrasyAut.Definicja { nazwa = "M pętla przez Aleję Północną (zawracanie na rondzie PÓŁNOC)", petla = true, y = YA, punkty = new[] { P(RONDO), P(PETLA), P(RONDO), P(J1), P(W), P(J2) } },
+            new BraxTrasyAut.Definicja { nazwa = "M pętla przez ul. Zachodnią (zawracanie na pętli ZACHÓD)", petla = true, y = YA, punkty = new[] { P(RONDO), P(PETLA_W), P(RONDO), P(J2), P(W), P(J1) } },
         };
         // rondo miasta: tor jazdy w osi pierścienia (7.5…14.5 m → 11 m), krawędź zewnętrzna 14.5 m (obie pętle ronda tej samej wielkości)
         BraxTrasyAut.RondoPromien = (BraxRegionMiastoB.RWyspa + BraxRegionMiastoB.RJezdnia) * .5f; BraxTrasyAut.RondoJezdnia = BraxRegionMiastoB.RJezdnia;
@@ -110,7 +114,7 @@ public static partial class BraxClaudeOsiedle
         ra.punkty = wy.punkty.ToArray(); ra.trasy = wy.trasy.ToArray(); ra.zdarzenia = wy.zdarzenia.ToArray(); ra.wezly = wy.wezly.ToArray(); ra.ziarno = 2111;
         var rnd = new System.Random(2111); var pula = PulaAut(szablony); var klakson = Klakson();
         var auta = new List<BraxAuto>();
-        int[] ile = { 2, 2, 2 };
+        int[] ile = { 2, 2, 2, 2 };
         for (int r = 0; r < wy.trasy.Count; r++)
             for (int k = 0; k < (r < ile.Length ? ile[r] : 1); k++)
             {
@@ -186,6 +190,12 @@ public static partial class BraxClaudeOsiedle
             O("PARK TOWER — recepcja", RolaRecepcja, "recepcja", new Vector3(-26.8f, YC, -42.35f), 0f);
             O("PARK TOWER — kawiarnia", RolaObsluga, "barista", new Vector3(-51.2f, YC, -40.35f), 90f);                  // bar x −50.5…−49.5
             O("Warsztat AUTO NAPRAWA — mechanik", RolaObsluga, "mechanik", new Vector3(-100.1f, YC + .05f, -36.3f), 180f); // przy stole warsztatowym
+            // ul. Zachodnia (ETAP 2): dyżurny komisariatu i rejestracja szpitala za ladą holu, policjant przed wejściem, lekarz w holu szpitala
+            var lk = BraxRegionTylyB.LadaHolu(BraxRegionMiastoB.Komisariat); var ls = BraxRegionTylyB.LadaHolu(BraxRegionMiastoB.Szpital);
+            O("KOMISARIAT — dyżurny", RolaPolicja, "policja", new Vector3(lk.x + 1.0f * k, YC, lk.z - .95f * k), 0f);
+            O("KOMISARIAT — policjant przed wejściem", RolaPolicja, "policja", new Vector3(BraxRegionMiastoB.Komisariat.center.x + 3.2f * k, YC, BraxRegionMiastoB.Komisariat.yMax + 1.6f), 0f);
+            O("SZPITAL — rejestracja", RolaRecepcja, "recepcja", new Vector3(ls.x + 1.0f * k, YC, ls.z - .95f * k), 0f);
+            O("SZPITAL — lekarz w izbie przyjęć", RolaMedyk, "medyk", new Vector3(BraxRegionMiastoB.Szpital.center.x - 4f, YC, BraxRegionMiastoB.Szpital.yMax - 3.5f), 200f);
             // ławki miasta B: część zajęta (jedna osoba na ławkę)
             bool MojaB(Transform t)
             {
@@ -219,7 +229,7 @@ public static partial class BraxClaudeOsiedle
             int ileLawekB = lawki.Count;
             int wezlow = s.w.Count;
             int przejsc = s.zebry.Count / 2;
-            Debug.Log("BRAXHORN_LUDZIE_MIASTO_B obsada=" + obs + "/5 na_lawkach=" + siedz + " (ławek B " + ileLawekB + ") przechodnie=" + prz +
+            Debug.Log("BRAXHORN_LUDZIE_MIASTO_B obsada=" + obs + "/9 na_lawkach=" + siedz + " (ławek B " + ileLawekB + ") przechodnie=" + prz +
                       " siec: węzłów " + wezlow + ", przejść po zebrach " + przejsc);
             foreach (var n in rep.notes) Debug.Log("BRAXHORN_LUDZIE_MIASTO_B " + n);
         }
@@ -261,7 +271,7 @@ public static partial class BraxClaudeOsiedle
         O(xw, 51f, xw, 80f); O(xe, 51f, xe, 80f);
         O(xw, 6f, xw, -80f); O(xe, 6f, xe, sN); O(xe, sS, xe, -80f);
         // plac ronda: łuki chodnika między wylotami (przekątne po płytach placu, poza pierścieniem jezdni)
-        O(xe, 51f, -104f, gN); O(xe, 6f, -104f, gS); O(xw, 51f, -146f, 28.5f); O(-146f, 28.5f, xw, 6f);
+        O(xe, 51f, -104f, gN); O(xe, 6f, -104f, gS); O(xw, 51f, -148f, 38f); O(xw, 6f, -148f, 19f);
         // ulica główna: południowy chodnik przerwany wlotem ul. Wiaduktowej, północny ciągły
         O(-104f, gS, wW, gS); O(wE, gS, -40f, gS); O(-104f, gN, -40f, gN);
         // ul. Wiaduktowa (od ulicy głównej do Warsztatowej) i ul. Warsztatowa (północny przerwany wlotem Wiaduktowej, południowy do placu)
@@ -270,6 +280,8 @@ public static partial class BraxClaudeOsiedle
         // plac wieżowców (dwie aleje W-E i łączniki) i skwer po dawnym wiadukcie
         O(-61.6f, -10f, 60f, -10f); O(-58f, -10f, -58f, -34f); O(-58f, -34f, 60f, -34f); O(60f, -10f, 60f, -34f);
         O(-66.2f, gN + 1.8f, -66.2f, 118f);
+        // ul. Zachodnia (ETAP 2): chodniki od placu ronda do placu pętli ZACHÓD (wejścia komisariatu i szpitala przy chodniku płd.)
+        O(-148f, 38f, BraxRegionMiastoB.ZachX0, 38f); O(-148f, 19f, BraxRegionMiastoB.ZachX0, 19f);
         // styki odcinków
         for (int i = 0; i < s.w.Count; i++)
             for (int j = i + 1; j < s.w.Count; j++)
@@ -279,7 +291,8 @@ public static partial class BraxClaudeOsiedle
         Z(xw, 53.5f, xe, 53.5f); Z(xw, 3.5f, xe, 3.5f); Z(xw, 79f, xe, 79f);
         Z(-59.8f, gS, -59.8f, gN); Z(-72.6f, gS, -72.6f, gN); Z(wW, 20.6f, wE, 20.6f);
         Z(xw, -12.6f, xe, -12.6f); Z(xw, -25.4f, xe, -25.4f); Z(-118f, sN, -118f, sS);
-        rep.notes.Add("sieć chodników miasta B: węzłów " + s.w.Count + ", odcinków " + seg + " (odrzuconych " + odrz + "), zebr " + zebr + "/10" + (zebrBrak > 0 ? " — BRAK " + zebrBrak : ""));
+        Z(-151f, 19f, -151f, 38f); Z(BraxRegionMiastoB.ZachX0 + 3f, 19f, BraxRegionMiastoB.ZachX0 + 3f, 38f);
+        rep.notes.Add("sieć chodników miasta B: węzłów " + s.w.Count + ", odcinków " + seg + " (odrzuconych " + odrz + "), zebr " + zebr + "/12" + (zebrBrak > 0 ? " — BRAK " + zebrBrak : ""));
         return s;
     }
 }

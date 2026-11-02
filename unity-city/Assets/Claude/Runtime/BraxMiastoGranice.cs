@@ -11,7 +11,7 @@ public static class BraxMiastoGranice
 {
     // ---- prostokąt grywalny (ląd + akwen zatoki) — ETAP 1 rozbudowy (B, 2.11: rondo (−126, 28.5), Aleja Północna i Południowa) ----
     // Rozbudowa w kolejnych etapach zmienia TYLKO te liczby i wycięcia (reszta horyzontu przelicza się sama).
-    public const float X0 = -162f;   // zachód: za pierzejami zachodnimi alej (lico x −138, tył −154) i trawnikami do −162
+    public const float X0 = -264f;   // zachód (ETAP 2): za pętlą ZACHÓD ul. Zachodniej (plac x −262…−218) — wcześniej −162 (za pierzejami alej)
     public const float X1 = 170f;    // wschód: za cyplem plaży (do 150) i mariną (do 166); dalej otwarte morze (wyspa = obszar nabrzeża)
     public const float Z0 = -85.45f; // południe: tył muru portalu tunelu na końcu Alei Południowej (lico portalu z = −84)
     public const float Z1 = 180f;    // północ: za lasem za plażą (z 160…174) i łąką

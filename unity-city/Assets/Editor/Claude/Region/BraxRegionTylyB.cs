@@ -48,6 +48,39 @@ public static class BraxRegionTylyB
         Debug.Log("BRAXHORN_MIASTO_B_USUNIETE tyły: " + string.Join(" | ", usuniete.Take(40)));
     }
 
+    // ETAP 2 (ul. Zachodnia): KOMISARIAT POLICJI i SZPITAL MIEJSKI — ten sam generator co wieżowce A/B (elewacja z lizenami,
+    // drzwi automatyczne bez progu, hol z ladą, winda BraxWinda z panelem wszystkich pięter, piętra użytkowe, WC, klatka ewakuacyjna).
+    // Front (wejście) od strony +z = ulica. Woła BraxRegionMiastoB w etapie „2. budynki”.
+    public static void BudynkiZachodu(BraxCityWorld world, Transform cityRoot, Rect kom, Rect szp)
+    {
+        swiat = world; punkty.Clear();
+        root = BraxRegion.Root(cityRoot, "CLAUDE miasto B obszar: ul. Zachodnia — komisariat i szpital");
+        if (!granit) Materialy();
+        var policja = new Def
+        {
+            nazwa = "KOMISARIAT POLICJI", korona = "POLICJA", idDrzwi = "KOMISARIAT", x0 = kom.xMin, x1 = kom.xMax, z0 = kom.yMin, z1 = kom.yMax, pietra = 3,
+            szyb = new Vector2(kom.center.x, kom.yMin + 5f), lizena = new Color(.10f, .18f, .36f), recepcja = "DYŻURNY",
+            uzytkowe = new Dictionary<int, Rodzaj> { { 0, Rodzaj.Lobby }, { 1, Rodzaj.Biura }, { 3, Rodzaj.Konferencja } },
+            nazwy = new Dictionary<int, string> { { 0, "DYŻURKA · HOL" }, { 1, "WYDZIAŁ KRYMINALNY" }, { 3, "SALA ODPRAW" } }
+        };
+        var szpital = new Def
+        {
+            nazwa = "SZPITAL MIEJSKI", korona = "SZPITAL", idDrzwi = "SZPITAL", x0 = szp.xMin, x1 = szp.xMax, z0 = szp.yMin, z1 = szp.yMax, pietra = 4,
+            szyb = new Vector2(szp.center.x, szp.yMin + 5f), lizena = new Color(.86f, .87f, .88f), recepcja = "REJESTRACJA", krzyz = true,
+            uzytkowe = new Dictionary<int, Rodzaj> { { 0, Rodzaj.Lobby }, { 1, Rodzaj.Sala }, { 2, Rodzaj.Fitness }, { 3, Rodzaj.Sala } },
+            nazwy = new Dictionary<int, string> { { 0, "IZBA PRZYJĘĆ" }, { 1, "ODDZIAŁ — SALA 1" }, { 2, "REHABILITACJA" }, { 3, "ODDZIAŁ — SALA 2" } }
+        };
+        Krok("2. budynki: komisariat policji (ul. Zachodnia)", () => Wiezowiec(policja));
+        Krok("2. budynki: szpital miejski (ul. Zachodnia)", () => Wiezowiec(szpital));
+        Krok("punkty świata (komisariat, szpital)", ZapiszPunkty);
+    }
+    // środek lady holu (do obsady): ten sam wzór co Lobby (bez kawiarni)
+    public static Vector3 LadaHolu(Rect b)
+    {
+        float sx = b.center.x, sz = b.yMin + 5f, hd = KabD * .5f + .35f;
+        return new Vector3(sx + 7f, YC, sz + hd + 2.4f + 1.2f);
+    }
+
     static void Krok(string n, Action a)
     {
         try { a(); BraxRegion.Note("tyły B: " + n + ": OK"); }
@@ -204,12 +237,15 @@ public static class BraxRegionTylyB
 
     // =====================================================================================================================
     // WIEŻOWCE
-    enum Rodzaj { Lobby, LobbyKawiarnia, Biura, Zarzad, Konferencja, Fitness }
+    enum Rodzaj { Lobby, LobbyKawiarnia, Biura, Zarzad, Konferencja, Fitness, Sala }
     sealed class Def
     {
         public string nazwa, korona, idDrzwi; public float x0, x1, z0, z1; public int pietra; public Vector2 szyb;
         public Dictionary<int, Rodzaj> uzytkowe = new Dictionary<int, Rodzaj>();
         public Color lizena;
+        public string recepcja = "RECEPCJA";                                  // napis na ladzie holu (komisariat: DYŻURNY, szpital: REJESTRACJA)
+        public Dictionary<int, string> nazwy = new Dictionary<int, string>();  // własne nazwy pięter (panel windy, tablica, punkty)
+        public bool krzyz;                                                     // czerwony krzyż na koronie (szpital)
     }
     static float Hg => 5.0f * K;     // parter (hol) 5.0 m
     static float Hf => 3.6f * K;     // kondygnacja biurowa 3.6 m (strop do stropu)
@@ -316,6 +352,19 @@ public static class BraxRegionTylyB
         foreach (var kv in mFas) kv.Value.Obiekt(d.nazwa + " — elewacja " + kv.Key.name, T, kv.Key, false, true);
         BraxRegionMeble.Napis(T, d.korona, new Vector3(d.szyb.x, top + 1.2f * K, d.z1 + .05f), Vector3.forward, 1.1f * K, new Color(.95f, .95f, .93f));
         BraxRegionMeble.Napis(T, d.korona, new Vector3(d.szyb.x, top + 1.2f * K, d.z0 - .05f), Vector3.back, 1.1f * K, new Color(.95f, .95f, .93f));
+        if (d.krzyz)
+        {
+            // czerwony krzyż na attyce (przód i tył), z boku napisu: płyty 2 cm przed licem attyki (nie w jej płaszczyźnie)
+            var kr = new BraxRegionMeble.Bud(); float kx = d.x1 - 3f * K, ky = top + 1.2f * K, a = 1.0f * K, b = .32f * K;
+            foreach (var (zz, zn) in new[] { (d.z1, 1f), (d.z0, -1f) })
+            {
+                float z0k = zz + zn * .02f, z1k = zz + zn * .08f;
+                kr.MinMax(new Vector3(kx - a, ky - b, Mathf.Min(z0k, z1k)), new Vector3(kx + a, ky + b, Mathf.Max(z0k, z1k)));
+                kr.MinMax(new Vector3(kx - b, ky - a, Mathf.Min(z0k, z1k)), new Vector3(kx + b, ky - b, Mathf.Max(z0k, z1k)));
+                kr.MinMax(new Vector3(kx - b, ky + b, Mathf.Min(z0k, z1k)), new Vector3(kx + b, ky + a, Mathf.Max(z0k, z1k)));
+            }
+            kr.Obiekt(d.nazwa + " — krzyż", T, BraxRegionMeble.Swiecacy("Szpital: krzyż czerwony (podświetlany)", new Color(.85f, .06f, .05f), 1.2f), false, false);
+        }
         // ---------------- wejście: daszek, drzwi automatyczne, wycieraczka (w posadzce, bez progu)
         Wejscie(T, d);
         // ---------------- trzon: szyb windy (ściany od parteru do dachu), winda BraxWinda
@@ -391,7 +440,7 @@ public static class BraxRegionTylyB
     {
         int n = d.pietra;
         var pY = new float[n + 1]; var nazwy = new string[n + 1]; var uz = new bool[n + 1];
-        for (int i = 0; i <= n; i++) { pY[i] = Y(i); uz[i] = d.uzytkowe.ContainsKey(i); nazwy[i] = i == 0 ? "0 HOL" : uz[i] ? i + " " + Opis(d.uzytkowe[i]) : i.ToString(); }
+        for (int i = 0; i <= n; i++) { pY[i] = Y(i); uz[i] = d.uzytkowe.ContainsKey(i); nazwy[i] = i == 0 ? "0 " + (d.nazwy.TryGetValue(0, out var n0) ? n0 : "HOL") : uz[i] ? i + " " + Opis(d, i, d.uzytkowe[i]) : i.ToString(); }
         Winda(T, d.nazwa, d.szyb, pY, uz, nazwy, top, 1f);
     }
 
@@ -489,18 +538,20 @@ public static class BraxRegionTylyB
         return t;
     }
 
-    static string Opis(Rodzaj r) => r == Rodzaj.Biura ? "BIURA" : r == Rodzaj.Zarzad ? "ZARZĄD" : r == Rodzaj.Konferencja ? "KONFERENCJA" : r == Rodzaj.Fitness ? "FITNESS" : "HOL";
+    static string Opis(Rodzaj r) => r == Rodzaj.Biura ? "BIURA" : r == Rodzaj.Zarzad ? "ZARZĄD" : r == Rodzaj.Konferencja ? "KONFERENCJA" : r == Rodzaj.Fitness ? "FITNESS" : r == Rodzaj.Sala ? "SALA CHORYCH" : "HOL";
+    static string Opis(Def d, int i, Rodzaj r) => d != null && d.nazwy.TryGetValue(i, out var n) ? n : Opis(r);
 
     // ---------------- kondygnacja użytkowa
     static void Kondygnacja(Transform T, Def d, int i, Rodzaj r)
     {
-        var F = new GameObject("Kondygnacja " + i + " " + Opis(r) + " " + d.nazwa).transform; F.SetParent(T, false);
+        var F = new GameObject("Kondygnacja " + i + " " + Opis(d, i, r) + " " + d.nazwa).transform; F.SetParent(T, false);
         float y0 = Y(i), y1 = i == 0 ? Y(1) : Y(i) + Hf, yc = y1 - Pas - .05f;   // sufit podwieszany pod pasem stropowym
         // posadzka i sufit do pasa stropowego (0.3 m od lica) — styk krawędzią z panelem elewacji, bez nakładania
         float ix0 = d.x0 + .3f, ix1 = d.x1 - .3f, iz0 = d.z0 + .3f, iz1 = d.z1 - .3f;
         float sx = d.szyb.x, sz = d.szyb.y, hw = KabW * .5f + .35f, hd = KabD * .5f + .35f;
         bool lobby = r == Rodzaj.Lobby || r == Rodzaj.LobbyKawiarnia;
-        var pos = lobby ? kamienPos : r == Rodzaj.Fitness ? BraxCityMaterials.Surface("Fitness: nawierzchnia gumowa", new Color(.16f, .17f, .18f), .95f) : r == Rodzaj.Konferencja ? drewno : wykladzina;
+        var pos = lobby ? kamienPos : r == Rodzaj.Fitness ? BraxCityMaterials.Surface("Fitness: nawierzchnia gumowa", new Color(.16f, .17f, .18f), .95f) : r == Rodzaj.Konferencja ? drewno
+                : r == Rodzaj.Sala ? BraxCityMaterials.Surface("Szpital: linoleum jasne", new Color(.76f, .81f, .79f), .45f) : wykladzina;
         // posadzka (górna powierzchnia = y0; w holu y0 = plac — bez progu) z otworem na szyb; strop (płyta) pod nią
         var p = new BraxRegionMeble.Bud();
         p.MinMax(new Vector3(ix0, y0 - .3f, iz0), new Vector3(ix1, y0, sz - hd));
@@ -530,8 +581,9 @@ public static class BraxRegionTylyB
             case Rodzaj.Zarzad: Zarzad(F, d, i, y0, ix0, ix1, fz0, fz1, yc); break;
             case Rodzaj.Konferencja: Konferencja(F, d, y0, ix0, ix1, fz0, fz1); break;
             case Rodzaj.Fitness: Fitness(F, d, y0, ix0, ix1, fz0, fz1); break;
+            case Rodzaj.Sala: Sala(F, d, i, y0, ix0, ix1, fz0, fz1, yc); break;
         }
-        punkty.Add(new BraxCityPoint { id = "R1_" + d.idDrzwi + "_P" + i, label = d.nazwa + " — piętro " + i + " " + Opis(r), position = new Vector3(sx, y0, sz + hd + 1.5f) });
+        punkty.Add(new BraxCityPoint { id = "R1_" + d.idDrzwi + "_P" + i, label = d.nazwa + " — piętro " + i + " " + Opis(d, i, r), position = new Vector3(sx, y0, sz + hd + 1.5f) });
         ileWnetrz++;
     }
 
@@ -601,14 +653,14 @@ public static class BraxRegionTylyB
         lada.Obiekt("Recepcja: lada (dąb)", F, drewno, false, true); blat.Obiekt("Recepcja: blat (kamień)", F, kamienPos, false, true);
         BraxRegionMeble.Kolizja(F, "Recepcja kolizja", new Vector3(lx, y0 + .55f * K, lz), new Vector3(3.6f * K, 1.1f * K, .8f * K));
         BraxRegionMeble.KrzesloBiurowe(F, new Vector3(lx, y0, lz - .95f * K), 0f);
-        BraxRegionMeble.Napis(F, "RECEPCJA", new Vector3(lx, y0 + .6f * K, lz + .36f * K), Vector3.forward, .16f * K, new Color(.92f, .9f, .85f));
+        BraxRegionMeble.Napis(F, d.recepcja, new Vector3(lx, y0 + .6f * K, lz + .36f * K), Vector3.forward, .16f * K, new Color(.92f, .9f, .85f));
         // tablica pięter (przy windzie)
         var tab = new BraxRegionMeble.Bud(); float tx = sx - 2.6f * K; float tz = sz + hd + .02f;
         tab.MinMax(new Vector3(tx - .55f * K, y0 + 1.2f * K, tz), new Vector3(tx + .55f * K, y0 + 2.4f * K, tz + .05f));
         tab.Obiekt("Tablica pięter", F, czarny, false, false);
         BraxRegionMeble.Napis(F, d.nazwa, new Vector3(tx, y0 + 2.25f * K, tz + .06f), Vector3.forward, .09f * K, Color.white);
         int k = 0;
-        foreach (var kv in d.uzytkowe.OrderByDescending(q => q.Key)) { BraxRegionMeble.Napis(F, kv.Key + "  " + Opis(kv.Value), new Vector3(tx, y0 + 2.05f * K - k * .17f * K, tz + .06f), Vector3.forward, .07f * K, new Color(.9f, .9f, .85f)); k++; }
+        foreach (var kv in d.uzytkowe.OrderByDescending(q => q.Key)) { BraxRegionMeble.Napis(F, kv.Key + "  " + Opis(d, kv.Key, kv.Value), new Vector3(tx, y0 + 2.05f * K - k * .17f * K, tz + .06f), Vector3.forward, .07f * K, new Color(.9f, .9f, .85f)); k++; }
         // poczekalnia: 2 sofy, stolik, rośliny (Poly Haven, wymiary rzeczywiste × k)
         float wx = sx - (kawiarnia ? 9f : 8f);
         Model(F, "Hol: sofa", new Vector3(wx, y0, zf - 1.6f * K), 180f, .82f, true, "sofa_02", "sofa_03", "Sofa_01");
@@ -697,6 +749,53 @@ public static class BraxRegionTylyB
         Model(F, "Wypoczynek: fotel", new Vector3(lx + 2.4f * K, y0, fz1 - 2.6f * K), -120f, .9f, true, "modern_arm_chair_01", "mid_century_lounge_chair");
         Model(F, "Wypoczynek: stolik", new Vector3(lx, y0, fz1 - 2.5f * K), 0f, .42f, true, "modern_coffee_table_01");
         punkty.Add(new BraxCityPoint { id = "R1_" + d.idDrzwi + "_WIDOK", label = d.nazwa + " — sala konferencyjna z widokiem", position = new Vector3(lx, y0, fz1 - .5f) });
+    }
+
+    // sala chorych (szpital): łóżka szpitalne 0.95 × 2.1 m × k wezgłowiem do szyby (rama stal, materac, pościel, poduszka, BraxSeat
+    // — leżenie), szafki przyłóżkowe, stojaki kroplówek, szyny i zasłony między łóżkami, umywalka, napis sali; punkt obsady (lekarz)
+    static void Sala(Transform F, Def d, int i, float y0, float ix0, float ix1, float fz0, float fz1, float yc)
+    {
+        var rama = new BraxRegionMeble.Bud(); var mat = new BraxRegionMeble.Bud(); var pos = new BraxRegionMeble.Bud(); var szaf = new BraxRegionMeble.Bud(); var zas = new BraxRegionMeble.Bud();
+        var bial = BraxCityMaterials.Surface("Szpital: pościel biała", new Color(.93f, .94f, .95f), .6f);
+        var nieb = BraxCityMaterials.Surface("Szpital: zasłona błękitna", new Color(.55f, .72f, .80f), .85f);
+        float L = 2.1f * K, W = .95f * K, zg = fz1 - .25f;   // wezgłowie przy szybie (strefa frontowa)
+        int ile = 0;
+        for (float x = ix0 + 2.2f; x + W < ix1 - 1.5f && ile < 6; x += 3.4f * K)
+        {
+            float cx = x + W * .5f, z1 = zg, z0 = zg - L;
+            rama.MinMax(new Vector3(x, y0 + .45f * K, z0), new Vector3(x + W, y0 + .52f * K, z1));
+            foreach (float px in new[] { x + .04f, x + W - .08f }) foreach (float pz in new[] { z0 + .04f, z1 - .08f }) rama.MinMax(new Vector3(px, y0, pz), new Vector3(px + .04f * K, y0 + .45f * K, pz + .04f * K));
+            rama.MinMax(new Vector3(x, y0 + .52f * K, z1 - .05f), new Vector3(x + W, y0 + 1.05f * K, z1));          // wezgłowie
+            rama.MinMax(new Vector3(x, y0 + .52f * K, z0), new Vector3(x + W, y0 + .8f * K, z0 + .04f));             // przy nogach
+            mat.MinMax(new Vector3(x + .03f, y0 + .52f * K, z0 + .05f), new Vector3(x + W - .03f, y0 + .64f * K, z1 - .06f));
+            pos.MinMax(new Vector3(x + .02f, y0 + .64f * K, z0 + .04f), new Vector3(x + W - .02f, y0 + .69f * K, z1 - .55f * K));
+            pos.MinMax(new Vector3(x + .12f, y0 + .64f * K, z1 - .5f * K), new Vector3(x + W - .12f, y0 + .76f * K, z1 - .12f));   // poduszka
+            BraxRegionMeble.Kolizja(F, "Łóżko szpitalne kolizja", new Vector3(cx, y0 + .35f * K, (z0 + z1) * .5f), new Vector3(W, .7f * K, L));
+            var sd = new GameObject("Siedzisko: łóżko szpitalne"); sd.transform.SetParent(F, false); sd.transform.position = new Vector3(cx, y0 + .69f * K, (z0 + z1) * .5f);
+            sd.transform.rotation = Quaternion.LookRotation(Vector3.back); var bs = sd.AddComponent<BraxSeat>(); bs.lie = true; bs.label = "ŁÓŻKO"; bs.surfaceY = y0 + .69f * K;
+            // szafka przyłóżkowa i stojak kroplówki
+            szaf.MinMax(new Vector3(x + W + .12f, y0, z1 - .55f * K), new Vector3(x + W + .12f + .45f * K, y0 + .8f * K, z1 - .05f));
+            var st = new Vector3(x - .3f * K, y0, z1 - .6f * K);
+            rama.Cyl(st, st + Vector3.up * 1.9f * K, .015f * K, 8); rama.Cyl(st + new Vector3(-.25f * K, .02f, 0), st + new Vector3(.25f * K, .02f, 0), .02f * K, 6);
+            rama.Cyl(st + new Vector3(0, 1.85f * K, -.15f * K), st + new Vector3(0, 1.85f * K, .15f * K), .01f * K, 6);
+            // szyna sufitowa i zasłona (do połowy rozsunięta) po prawej stronie łóżka
+            float xs = x + W + .7f * K;
+            if (xs < ix1 - 1.5f)
+            {
+                rama.MinMax(new Vector3(xs - .02f, yc - .06f, z0 - .3f), new Vector3(xs + .02f, yc - .02f, z1));
+                zas.MinMax(new Vector3(xs - .01f, y0 + .25f * K, z1 - L * .55f), new Vector3(xs + .01f, yc - .08f, z1));
+            }
+            ile++;
+        }
+        var stal = BraxCityMaterials.Surface("Szpital: stal lakierowana biała", new Color(.86f, .87f, .88f), .45f, .3f);
+        rama.Obiekt("Sala: łóżka i stojaki (stal)", F, stal, false, true); mat.Obiekt("Sala: materace", F, BraxCityMaterials.Surface("Szpital: materac", new Color(.40f, .52f, .58f), .7f), false, true);
+        pos.Obiekt("Sala: pościel", F, bial, false, true); szaf.Obiekt("Sala: szafki przyłóżkowe", F, BraxCityMaterials.Surface("Szpital: laminat szafek", new Color(.82f, .80f, .74f), .5f), false, true);
+        zas.Obiekt("Sala: zasłony", F, nieb, false, true);
+        // umywalka przy korytarzu i napis sali
+        var um = new BraxRegionMeble.Bud(); var up = new Vector3(ix1 - 1.4f, y0, fz0 + .3f);
+        um.MinMax(up + new Vector3(-.3f * K, .8f * K, 0f), up + new Vector3(.3f * K, .9f * K, .45f * K)); um.Obiekt("Sala: umywalka", F, bial, false, true);
+        BraxRegionMeble.Napis(F, Opis(d, i, Rodzaj.Sala), new Vector3((ix0 + ix1) * .5f, y0 + 2.3f * K, fz0 + .05f), Vector3.forward, .14f * K, new Color(.15f, .35f, .45f));
+        punkty.Add(new BraxCityPoint { id = "R1_" + d.idDrzwi + "_SALA_" + i, label = d.nazwa + " — " + Opis(d, i, Rodzaj.Sala) + " (łóżek " + ile + ")", position = new Vector3((ix0 + ix1) * .5f, y0, fz0 + .8f) });
     }
 
     static void Fitness(Transform F, Def d, float y0, float ix0, float ix1, float fz0, float fz1)
