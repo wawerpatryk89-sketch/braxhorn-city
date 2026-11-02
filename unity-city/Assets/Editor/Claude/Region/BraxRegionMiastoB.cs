@@ -29,7 +29,7 @@ public static class BraxRegionMiastoB
     public const float AX = -126f, AH = 4.5f;              // osie alej (x), połowa jezdni
     public const float Kr = .25f, Ziel = 2.25f, Chod = 5f; // krawężnik, pas zieleni, chodnik → lico pierzei 12 m od osi
     public const float AN1 = 96f;                          // koniec 1. kwartału Alei Północnej (dalej pętla)
-    public const float PetlaZ = 110f, PetlaR = 11f, PetlaWyspa = 4.5f, PetlaPlac = 15f;
+    public const float PetlaZ = 104f, PetlaR = RJezdnia, PetlaWyspa = RWyspa, PetlaPlac = RPlac;   // pętla = rondo tej samej wielkości (zawracanie aut i autobusu)
     public const float AS1 = -84f;                         // portal tunelu (wyjazd na osiedle)
     public const float WX = -66.2f, WH = 3f;               // ul. Wiaduktowa
     public const float SZ = -19f, SH = 3f, SX1 = -61.4f;   // ul. Warsztatowa
@@ -316,6 +316,16 @@ public static class BraxRegionMiastoB
         Debug.Log("BRAXHORN_MIASTO_B_OZNAKOWANIE jezdnie=" + asfalty.Count + " pasy_farby=" + f.r.Count + " na_ulicy_A=" + reszta.Count + " (wycięte siatki asfaltu A: " + wyc + ") — farba W WYCIĘCIACH, bez nakładania");
     }
 
+    // czy punkt leży na jezdni miasta B (test ruchu aut): prostokąty asfaltu, pierścienie rond, ulica główna (A)
+    public static bool NaJezdni(Vector3 p)
+    {
+        var q = new Vector2(p.x, p.z);
+        foreach (var (_, r) in asfalty) { var rr = r; rr.xMin -= .3f; rr.yMin -= .3f; rr.xMax += .3f; rr.yMax += .3f; if (rr.Contains(q)) return true; }
+        if (Rect.MinMaxRect(-104.5f, 23.7f, 66f, 33.3f).Contains(q)) return true;
+        foreach (var c in new[] { new Vector2(RX, RZ), new Vector2(AX, PetlaZ) }) { float d = Vector2.Distance(q, c); if (d >= RWyspa - .3f && d <= RJezdnia + .3f) return true; }
+        return false;
+    }
+
     // a − b (prostokąty osiowe) → do 4 prostokątów
     static IEnumerable<Rect> Odejmij(Rect a, Rect b)
     {
@@ -523,7 +533,7 @@ public static class BraxRegionMiastoB
     {
         float z0 = RZ + RPlac;                // 50.5
         float z1 = PetlaZ - PetlaPlac;        // 95
-        PrzekrojZ("Aleja Północna", AX, AH, Ziel, Chod, z0, z1, true, (z0, z0 + 6f));
+        PrzekrojZ("Aleja Północna", AX, AH, Ziel, Chod, z0, z1, true, (z0, z0 + 6f), (z1 - 6f, z1));
         // pętla na końcu (zawrotka / pętla autobusowa PÓŁNOC): kwadrat ±15, pierścień R 11, wyspa R 4.5 z drzewem
         var c = new Vector2(AX, PetlaZ);
         Asfalt("pętla PÓŁNOC", AX - PetlaPlac, AX + PetlaPlac, PetlaZ - PetlaPlac, PetlaZ + PetlaPlac);
@@ -644,14 +654,12 @@ public static class BraxRegionMiastoB
         // Aleja Północna — zachód (lico x −138, front na +x = strona 1)
         Rzad(p, new[] {
             S("Aleja Północna 2 (narożnik ronda)", w0, w1, RZ + RPlac, 67f, 7, cz, 1, "APTEKA", "2", schody: true, frontPd: true),
-            S("Aleja Północna 4", w0, w1, 67f, 80f, 5, ty, 1, "PIEKARNIA", "4"),
-            S("Aleja Północna 6", w0, w1, 80f, PetlaZ - PetlaPlac, 6, cc, 1, "KWIACIARNIA", "6", schody: true, frontPn: true),
+            S("Aleja Północna 4 (narożnik pętli)", w0, w1, 67f, PetlaZ - PetlaPlac, 6, ty, 1, "PIEKARNIA", "4", frontPn: true),
         });
         // Aleja Północna — wschód (lico x −114, front na −x = strona 3)
         Rzad(p, new[] {
             S("Aleja Północna 1 (narożnik ronda)", e0, e1, RZ + RPlac, 66f, 6, ka, 3, "BANK", "1", frontPd: true),
-            S("Aleja Północna 3", e0, e1, 66f, 80f, 7, cj, 3, "KAWIARNIA", "3", schody: true),
-            S("Aleja Północna 5", e0, e1, 80f, PetlaZ - PetlaPlac, 5, cz, 3, "SKLEP SPOŻYWCZY", "5", frontPn: true),
+            S("Aleja Północna 3 (narożnik pętli)", e0, e1, 66f, PetlaZ - PetlaPlac, 7, cj, 3, "KAWIARNIA", "3", schody: true, frontPn: true),
         });
         // Aleja Południowa — zachód (narożnik ronda)
         Rzad(p, new[] { S("Aleja Południowa 2 (narożnik ronda)", w0, w1, -14f, RZ - RPlac, 6, cj, 1, "FRYZJER", "2", frontPn: true, schody: true) });
@@ -958,12 +966,13 @@ public static class BraxRegionMiastoB
             var c = new Vector3(RX, YA, RZ) + dir * (RPlac + 3f);
             Zebra(farbaB, c, dir, hj);
         }
+        Zebra(farbaB, new Vector3(AX, YA, PetlaZ - PetlaPlac - 3f), Vector3.forward, AH);   // wlot pętli (rondo PÓŁNOC)
         // oś ulicy głównej przed J1: linia ciągła 15 m po obu stronach (zamiast usuniętych kresek), dalej przerywana do ronda
         foreach (float sg in new[] { -1f, 1f })
             farbaB.MinMax(new Vector3(Mathf.Min(WX + sg * 10.8f, WX + sg * 25.8f), YA, GZ - .06f), new Vector3(Mathf.Max(WX + sg * 10.8f, WX + sg * 25.8f), YA, GZ + .06f));
         for (float x = WX - WH - 25f; x - 3f > -98f; x -= 7f) farbaB.MinMax(new Vector3(x - 3f, YA + .02f, GZ - .06f), new Vector3(x, YA + .021f, GZ + .06f));
         // osie alej: przerywane, przed skrzyżowaniami ciągłe
-        for (float z = RZ + RPlac + 10f; z < PetlaZ - PetlaPlac - 2f; z += 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z), new Vector3(AX + .06f, YA + .021f, z + 3f));
+        for (float z = RZ + RPlac + 10f; z + 3f < PetlaZ - PetlaPlac - 7f; z += 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z), new Vector3(AX + .06f, YA + .021f, z + 3f));
         for (float z = RZ - RPlac - 10f; z > SZ + SH + 18f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
         for (float z = SZ - SH - 18f; z > AS1 + 16f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
         BudujAsfalt(farbaB);

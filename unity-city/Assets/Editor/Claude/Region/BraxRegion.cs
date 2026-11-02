@@ -68,7 +68,9 @@ public static class BraxRegion
         Step("miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa, pierzeje, warsztaty", () => BraxRegionMiastoB.Apply(world, root));
         // Lampy wnętrz: CityStaticPBR liczy światła punktowe tylko ze slotów „vertex light” (ForceVertex).
         Step("siedziska: sofy, ławki, hokery, leżaki → BraxSeat", () => BraxRegionSeats.Apply(root));
-        Step("horyzont: niebo bez lustra, teren za granicą, granica, wiadukt dalej", () => BraxRegionHoryzont.Apply(world, root));
+        Step("horyzont: niebo bez lustra, teren za granicą, granica", () => BraxRegionHoryzont.Apply(world, root));
+        // Na końcu (jak na budowie): ruch aut miasta B na gotowych jezdniach, ze światłami (B, ETAP 2).
+        Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => BraxClaudeOsiedle.RuchMiastaB(root));
         Step("lampy wnętrz w trybie ForceVertex", () => InteriorLights(root));
         // Trawnik miasta (tyły, 2.11): podmiana starej trawy w miejscu, maska ziemi pod drzewami, kępy 3D — po wszystkich trawnikach.
         Step("trawnik miasta (materiał, maska ziemi, kępy, bez trawy na ścianach)", () => BraxRegionTrawa.Zakoncz(root));
