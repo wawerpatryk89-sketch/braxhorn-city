@@ -757,6 +757,44 @@ public static class BraxUlicePierzeje
             var szk = BraxUliceKit.SzkloPrzezroczyste;
             BraxUliceKit.S(szk).Quad(W(ladaS0, y0 + ladaH, ladaD - ladaG * .5f), W(ladaS1, y0 + ladaH, ladaD - ladaG * .5f), W(ladaS1, y0 + ladaH + .75f, ladaD - ladaG * .5f), W(ladaS0, y0 + ladaH + .75f, ladaD - ladaG * .5f), f.N);
         }
+        if (lok.typ == "apteka")
+        {
+            // APTEKA (A 2.11): regał-wyspa z parafarmaceutykami (dwustronny) po stronie bez drzwi, zielony krzyż świetlny nad
+            // regałem tylnym (3 bryły obok siebie — bez nakładania ramion), krzesełko przy ciśnieniomierzu przy witrynie
+            float Lg = Mathf.Min(2.0f, (sIn1 - sIn0) * .3f), gs0 = f.drzwiS > (sIn0 + sIn1) * .5f ? sIn0 + 1.9f : sIn1 - 1.9f - Lg, gd = -3.2f, gw = .6f, gh = 1.45f * k;
+            if (gs0 > sIn0 + 1.5f && gs0 + Lg < sIn1 - 1.5f && (gs0 > f.drzwiS + 1.1f || gs0 + Lg < f.drzwiS - 1.1f) && gd - gw * .5f > ladaD - ladaG + .3f)
+            {
+                sk.kolor = Kol(.93f, .93f, .91f);
+                sk.Box(W(gs0, y0, gd + gw * .5f), W(gs0 + Lg, y0 + .1f, gd - gw * .5f));                                  // cokół
+                sk.Box(W(gs0, y0 + .1f, gd + .02f), W(gs0 + Lg, y0 + gh, gd - .02f));                                   // plecy środkowe
+                sk.Box(W(gs0, y0 + .1f, gd + gw * .5f), W(gs0 + .03f, y0 + gh, gd - gw * .5f)); sk.Box(W(gs0 + Lg - .03f, y0 + .1f, gd + gw * .5f), W(gs0 + Lg, y0 + gh, gd - gw * .5f));
+                for (int p = 0; p < 4; p++)
+                {
+                    float y = y0 + .35f + p * (gh - .45f) / 3f;
+                    foreach (float sg in new[] { -1f, 1f })
+                    {
+                        float dA = gd + sg * .02f, dB = gd + sg * gw * .5f;
+                        sk.Box(W(gs0 + .03f, y - .02f, dA), W(gs0 + Lg - .03f, y, dB));
+                        if (p == 3) continue;
+                        for (float x = gs0 + .07f; x < gs0 + Lg - .12f;)
+                        {
+                            float wsz = .07f + (float)rng.NextDouble() * .12f, h = .1f + (float)rng.NextDouble() * .16f;
+                            st.kolor = KolTowaru(); st.Box(W(x, y + .004f, dA + sg * .02f), W(Mathf.Min(x + wsz, gs0 + Lg - .06f), y + .004f + h, dA + sg * (gw * .5f - .04f)));
+                            x += wsz + .015f;
+                        }
+                    }
+                }
+                sk.kolor = BraxUliceKit.Bialy; st.kolor = BraxUliceKit.Bialy;
+                var kg = new GameObject("kolizja: regał-wyspa apteki"); kg.transform.SetParent(kolizje, false); var bcg = kg.AddComponent<BoxCollider>();
+                var g0 = W(gs0, y0, gd + gw * .5f); var g1 = W(gs0 + Lg, y0 + gh, gd - gw * .5f); bcg.center = (g0 + g1) * .5f; bcg.size = new Vector3(Mathf.Abs(g1.x - g0.x), gh, Mathf.Abs(g1.z - g0.z));
+            }
+            // zielony krzyż świetlny nad regałem tylnym (na dwóch linkach z sufitu)
+            var krz = BraxUliceKit.S(BraxMiastoA.Swieci("apteka: krzyż świetlny (zieleń)", new Color(.1f, .75f, .3f), new Color(.2f, 1.6f, .5f)));
+            float kc = (sIn0 + sIn1) * .5f, kd = dTyl + .5f + .12f, ky = y0 + hR + .38f, ra = .2f, rb = .065f;
+            krz.Box(W(kc - rb, ky - ra, kd + .03f), W(kc + rb, ky + ra, kd - .03f));
+            krz.Box(W(kc - ra, ky - rb, kd + .03f), W(kc - rb, ky + rb, kd - .03f)); krz.Box(W(kc + rb, ky - rb, kd + .03f), W(kc + ra, ky + rb, kd - .03f));
+            foreach (float o in new[] { -.12f, .12f }) BraxUliceKit.S(blat).Rura(W(kc + o, ky + ra, kd), W(kc + o, ySuf, kd), .004f, 4);
+        }
         // kasa na ladzie
         st.kolor = Kol(.15f, .15f, .16f); st.Box(W(ladaS0 + .3f, y0 + ladaH, ladaD - .15f), W(ladaS0 + .62f, y0 + ladaH + .22f, ladaD - .45f)); st.kolor = BraxUliceKit.Bialy;
         // lampy sufitowe (panele)
