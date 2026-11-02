@@ -57,5 +57,63 @@ public static class BraxTestNaprawOsiedla
             Debug.Log("BRAXHORN_REGRESJA wycinanie: PASS (granice, pole, UV, submeshes, pusty wynik, transform, kolizje)");
         }
         finally { UnityEngine.Object.DestroyImmediate(mesh); if (cut) UnityEngine.Object.DestroyImmediate(cut); if (empty) UnityEngine.Object.DestroyImmediate(empty); }
+        Build45();
+    }
+
+    // ---------------- build 45: testy nowych funkcji (bez sceny) ----------------
+    static void Build45()
+    {
+        // E3c: poślizg auta po przeszkodzie i skręt zależny od prędkości
+        var wzdluz = BraxAutoGracza.Slizg(new Vector3(.3f, 0, 1).normalized, Vector3.left, out float utrata);   // ściana po prawej (normalna w lewo), jazda lekko skosem
+        Require(wzdluz.x == 0f && wzdluz.z > .3f && utrata > .15f && utrata < .85f, "ślizg wzdłuż ściany (bez wjazdu w ścianę, część prędkości)");
+        BraxAutoGracza.Slizg(Vector3.forward, Vector3.back, out float czolo);
+        var styczne = BraxAutoGracza.Slizg(Vector3.forward * 2f, Vector3.right, out float bok);
+        Require(czolo > .8f && bok < .2f && Mathf.Abs(styczne.z - 2f * (1f - bok)) < 1e-4f, "czołowo prawie stop, stycznie mała strata");
+        Require(BraxAutoGracza.Slizg(Vector3.forward, new Vector3(0, 1, -1).normalized, out _).y == 0f, "ślizg bez składowej pionowej");
+        Require(Mathf.Abs(BraxAutoGracza.MaksSkret(0f, 12f) - 38f) < .01f && Mathf.Abs(BraxAutoGracza.MaksSkret(12f, 12f) - 12f) < .01f
+                && BraxAutoGracza.MaksSkret(6f, 12f) < 38f && BraxAutoGracza.MaksSkret(-1f, 12f) == 38f, "skręt 38° przy małej prędkości, maleje z prędkością");
+        // E6: próby pozy w kabinie — od najmniejszej zmiany, maks. odchylenie i pochylenie głowy na końcu, skala osoby nietknięta
+        var proby = BraxClaudeOsiedle.KabinaProby(25f, 30f, 1.294f);
+        Require(proby.Count == 3 + 5 + 2 && proby[0].odch == 25f && Mathf.Abs(proby[0].zagl - .03f * 1.294f) < 1e-5f && proby[proby.Count - 1].odch == 30f && proby[proby.Count - 1].poch == 10f, "kolejność prób pozy w kabinie");
+        BraxFotelAuta.Rodzaj(1.17f, out var k1, out var b1, out var m1); BraxFotelAuta.Rodzaj(1.45f, out var k2, out _, out _); BraxFotelAuta.Rodzaj(2.1f, out var k3, out var b3, out var m3);
+        Require(k1 == "sportowe" && b1 == 25f && m1 == 30f && k2 == "osobowe" && k3 == "dostawcze" && b3 == 8f && m3 == 12f, "rodzaj kabiny z wysokości auta");
+        var go = new GameObject("test fotela"); var go2 = new GameObject("test kręgosłupa"); var glowa = new GameObject("test głowy");
+        try
+        {
+            var f = go.AddComponent<BraxFotelAuta>(); f.przeswit = .9f; f.mapaNx = 2; f.mapaNz = 3; f.mapaKrok = .5f; f.mapaX0 = -.25f; f.mapaZ0 = -.5f;
+            f.mapa = new[] { 1.0f, 1.0f, .8f, .9f, 1.2f, 1.2f };          // z −0.5: 1.0; z 0: 0.8/0.9; z 0.5: 1.2
+            Require(Mathf.Abs(f.Dach(0f, -.25f) - .8f) < 1e-5f && Mathf.Abs(f.Dach(0f, .4f) - .8f) < 1e-5f && Mathf.Abs(f.Dach(5f, 5f) - .8f) < 1e-5f, "mapa dachu: minimum sąsiadów, brzeg");
+            f.mapa = new float[0]; Require(f.Dach(0, 0) == .9f, "bez mapy — prześwit nad biodrem");
+            // poza w aucie: odchylenie przesuwa głowę do tyłu i w dół
+            glowa.transform.SetParent(go2.transform, false); glowa.transform.localPosition = new Vector3(0, .8f, 0);
+            var przed = glowa.transform.position;
+            BraxMieszkaniec.PozaWAucie(go2.transform, glowa.transform, Vector3.right, 25f, 0f);
+            var po = glowa.transform.position;
+            Require(po.z < przed.z - .3f && po.y < przed.y - .05f, "odchylenie tułowia: głowa do tyłu i niżej");
+        }
+        finally { UnityEngine.Object.DestroyImmediate(go); UnityEngine.Object.DestroyImmediate(go2); }
+        // E4: głos — rozmowa z graczem bliżej i wyraźniej niż tło
+        BraxGlosPostaci.Ustawienia(false, 3f, out float bl1, out float gl1); BraxGlosPostaci.Ustawienia(false, 20f, out float bl2, out float gl2); BraxGlosPostaci.Ustawienia(true, 0f, out float bl3, out _);
+        Require(bl1 < 1f && bl2 == 1f && bl3 == 0f && gl1 > gl2 && BraxGlosPostaci.MinOdl > 5f, "głos: rozmowa blisko (spatialBlend < 1), tło 3D, gracz 2D, min 4 m × K");
+        Require(BraxZrodloPetli.Spadek(.05f, .1f) == 1f && BraxZrodloPetli.Spadek(1f, .1f) < 1e-4f && BraxZrodloPetli.Spadek(.5f, .1f) < BraxZrodloPetli.Spadek(.3f, .1f), "fontanna: spadek do zera, malejący");
+        Require(Mathf.Abs(BraxGlosyImport.DlugoscOgg(new byte[10]) + 1f) < 1e-6f, "Ogg: zły nagłówek = −1");
+        // E5: odejmowanie trójkątów — kwadrat 4×4 (grunt) minus płyta 2×2 nad środkiem → 12 m², oryginał nietknięty, UV z interpolacji
+        var grunt = new Mesh { name = "test gruntu" }; Mesh wynik = null;
+        try
+        {
+            grunt.vertices = new[] { new Vector3(-2, 0, -2), new Vector3(-2, 0, 2), new Vector3(2, 0, 2), new Vector3(2, 0, -2) };
+            grunt.uv = new[] { new Vector2(-2, -2), new Vector2(-2, 2), new Vector2(2, 2), new Vector2(2, -2) };
+            grunt.triangles = new[] { 0, 1, 2, 0, 2, 3 }; grunt.RecalculateNormals();
+            var plyta = new List<Vector2[]> { new[] { new Vector2(-1, -1), new Vector2(-1, 1), new Vector2(1, 1) }, new[] { new Vector2(-1, -1), new Vector2(1, 1), new Vector2(1, -1) } };
+            wynik = BraxWycinanieSiatki.OdejmijTrojkaty(grunt, Matrix4x4.identity, -1, 1, 1, 0f, .002f, plyta, out int zm, out float p0, out float p1);
+            Require(wynik && zm == 2 && Mathf.Abs(p0 - 16f) < 1e-3f && Mathf.Abs(p1 - 12f) < 1e-3f && Mathf.Abs(Area(wynik) - 12f) < 1e-3f && Mathf.Abs(Area(grunt) - 16f) < 1e-4f, "wycięcie gruntu dokładnie pod płytą");
+            var vv = wynik.vertices; var uu = wynik.uv;
+            for (int i = 0; i < vv.Length; i++) Require((uu[i] - new Vector2(vv[i].x, vv[i].z)).sqrMagnitude < 1e-8f, "UV po odejmowaniu");
+            var n = wynik.normals; for (int i = 0; i < n.Length; i++) Require(n[i].y > .99f, "normalne po odejmowaniu");
+            Require(!BraxWycinanieSiatki.OdejmijTrojkaty(grunt, Matrix4x4.Translate(Vector3.up * .5f), -1, 1, 1, 0f, .002f, plyta, out _, out _, out _), "inna płaszczyzna — bez zmian");
+            Require(!BraxWycinanieSiatki.OdejmijTrojkaty(grunt, Matrix4x4.identity, -1, 1, 0, 0f, .002f, plyta, out _, out _, out _), "przeciwny zwrot — bez zmian");
+        }
+        finally { UnityEngine.Object.DestroyImmediate(grunt); if (wynik) UnityEngine.Object.DestroyImmediate(wynik); }
+        Debug.Log("BRAXHORN_REGRESJA build45: PASS (ślizg auta, skręt, próby kabiny, rodzaj kabiny, mapa dachu, poza w aucie, głos, fontanna, Ogg, odejmowanie trójkątów)");
     }
 }
