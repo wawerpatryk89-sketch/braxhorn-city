@@ -18,7 +18,7 @@ Osobny projekt, **niezwiązany z grą braxhorn-arena**.
 | `public/assets/logo/` | loga BRAXHORN (szerokie, okrągłe, plakat z minotaurem, znak byka) |
 | `dev/src/` | kod gry (moduły ES): `main.js` (rozgrywka), `fighter.js`, `street.js` (ulica, wiadukt, pociąg), `outer.js` (dalsze miasto), `traffic.js`, `crypt.js`, `villa.js`, `meshcol.js` (kolizje z modelu), `people.js` (przechodnie Mixamo), `env.js` (dzień/noc + „lamp field” z reflektorami), `grade.js` (filtr obrazu), `sound.js` (syntezowane dźwięki i muzyka), `ui.js`, `story.js`, `gym.js`, `template.html` |
 | `dev/tools/` | potok konwersji: `pipeline.js` + `convert.html` (FBX → retarget → GLB w przeglądarce, uruchamiane przez `run_js.mjs`/Playwright), `build_web.py` (buduje `dist/`), `pack.sh` (gltfpack), `play2.mjs` (testy w Playwright) |
-| `dev/anims/` | oryginalne animacje Mixamo (FBX): `brax/`, `extra/`, `extra2/`, `gym/` (Clean And Jerk, Snatch, Sumo High Pull, Back Squat, Reloading) |
+| `unity-city/Prywatne/` | prywatne zasoby właściciela TYLKO zaszyfrowane (`*.tar.gz.enc`, AES-256, klucz = sekret `BRAXHORN_KEYSTORE_PASS`; narzędzie `unity-tools/claude/prywatne.py`): model Patryka, model Nyxy, surowe animacje Mixamo z dawnego `dev/anims/` (`ruchy_brax`: `brax/`, `extra/`, `extra2/`, `gym/`), paczki ruchów właściciela (`ruchy_wlasciciela`, `nina_1..3`). Jawne `dev/anims/` usunięte z drzewa w buildzie 14 |
 | `dev/logos/` | oryginalne PNG logotypów |
 
 ## Co nowego (28.10)
@@ -159,7 +159,7 @@ Grywalne postacie: **Brax** (siła, specjal: kolano/łokieć) i **Nyxa** (szybko
 
 ## Do zrobienia (wersja 2, stare)
 
-- Przechodnie z Mixamo (chodzą po chodnikach, uciekają przed bójką) + ćwiczący na siłowni (animacje z `dev/anims/gym`) + gangsterzy w dzień.
+- Przechodnie z Mixamo (chodzą po chodnikach, uciekają przed bójką) + ćwiczący na siłowni (animacje `gym/` z paczki `unity-city/Prywatne/ruchy_brax`) + gangsterzy w dzień.
 - Willa głównej postaci (skany: smoking room + billiards room, garaż z Lamborghini), sklep z ulepszeniami za pieniądze.
 - Mapa miasta i rewiry na porachunki: tunel (futatsugoya), opuszczony magazyn, nowojorski zaułek (freeman alley).
 - Animacje Mixamo dla zombie (Zombie Walk/Attack/Scream/Dying) i demona (Mutant Roaring/Swiping/Jump Attack/Punch/Dying).

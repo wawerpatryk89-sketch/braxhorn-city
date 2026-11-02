@@ -210,13 +210,20 @@ public static class BraxCityBuild
         var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
         var player=new GameObject("BraxhornPlayer");player.layer=8;player.transform.position=new Vector3(0,.08f,92);
         var body=player.AddComponent<CharacterController>();body.height=2.25f;body.radius=.35f;body.center=new Vector3(0,1.125f,0);body.stepOffset=.36f;body.slopeLimit=48;body.skinWidth=.035f;
-        var hero=Import("Assets/Source/BraxOriginal.glb");hero.transform.SetParent(player.transform,false);hero.transform.localScale=Vector3.one*.024f;
+        // Build 14: na osiedlu gra Patryk (prywatny model właściciela, odszyfrowany w CI) — gotowy obiekt z klipami Legacy;
+        // null (brak klucza / plików / błąd) = Brax jak dotąd (BraxClaudeOsiedlePatryk.cs).
+        var hero=BraxClaudeOsiedle.PatrykBohater(player.transform,body);Animation animation;
+        if(hero)animation=hero.GetComponent<Animation>();
+        else
+        {
+        hero=Import("Assets/Source/BraxOriginal.glb");hero.transform.SetParent(player.transform,false);hero.transform.localScale=Vector3.one*.024f;
         foreach(var t in hero.GetComponentsInChildren<Transform>(true))t.gameObject.layer=8;
         var heroMaterial=AssetDatabase.LoadAssetAtPath<Material>(Generated+"/Premium/BraxSourceORM.mat");if(!heroMaterial)throw new Exception("Original Brax premium material missing");
         foreach(var r in hero.GetComponentsInChildren<SkinnedMeshRenderer>(true)){r.sharedMaterials=Enumerable.Repeat(heroMaterial,r.sharedMaterials.Length).ToArray();r.updateWhenOffscreen=true;r.shadowCastingMode=ShadowCastingMode.Off;}
-        var animation=hero.GetComponentInChildren<Animation>(true);if(!animation)animation=hero.AddComponent<Animation>();animation.playAutomatically=false;
+        animation=hero.GetComponentInChildren<Animation>(true);if(!animation)animation=hero.AddComponent<Animation>();animation.playAutomatically=false;
         foreach(var name in new[]{"Idle","Walk","Run","Punch","Kick","Jump"}){var clip=AssetDatabase.LoadAssetAtPath<AnimationClip>(Generated+"/"+name+".anim");if(!clip)throw new Exception("Original animation absent "+name);animation.AddClip(clip,name);}
         animation.clip=animation.GetClip("Idle");animation.Play("Idle");animation.Sample();
+        }
         var camera=new GameObject("Estate manual player camera").AddComponent<Camera>();camera.tag="MainCamera";camera.fieldOfView=55;camera.nearClipPlane=.1f;camera.farClipPlane=330;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.64f,.73f,.79f);camera.allowMSAA=true;BraxHeroRefinements.CharacterLights(camera);camera.allowHDR=false;camera.gameObject.AddComponent<AudioListener>();
         RenderSettings.ambientMode=AmbientMode.Trilight;RenderSettings.ambientSkyColor=new Color(.55f,.63f,.71f);RenderSettings.ambientEquatorColor=new Color(.38f,.44f,.43f);RenderSettings.ambientGroundColor=new Color(.23f,.27f,.22f);RenderSettings.fog=false;
         var sun=new GameObject("Estate daylight").AddComponent<Light>();sun.type=LightType.Directional;sun.intensity=1.08f;sun.color=new Color(1,.97f,.92f);sun.transform.rotation=Quaternion.Euler(48,-35,0);sun.shadows=LightShadows.Soft;sun.shadowStrength=.67f;sun.shadowBias=.04f;sun.shadowNormalBias=.25f;

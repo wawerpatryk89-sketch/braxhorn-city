@@ -212,6 +212,10 @@ jobs:
         else
           echo "muzyka willi: brak sekretu WILLA_MUZYKA_KLUCZ - gra Industrial Pulse"
         fi
+    - name: Prywatne zasoby wlasciciela - Patryk i ruchy Mixamo (paczki zaszyfrowane, klucz tylko w sekretach; bez klucza gra Brax)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/claude/prywatne.py
     - name: Odchudzanie modeli pod telefon (tekstury z .glb jako pliki do kompresji, uproszczenie ciezkich skanow) + ekran Autorzy
       run: |
         # ludzie i auta z wersji przeglądarkowej (meshopt + KTX2) → zwykłe .glb dla glTFast (bez pakietów meshopt/KTX)
@@ -456,6 +460,10 @@ jobs:
         else
           echo "muzyka willi: brak sekretu WILLA_MUZYKA_KLUCZ - gra Industrial Pulse"
         fi
+    - name: Prywatne zasoby wlasciciela - Patryk i ruchy Mixamo (paczki zaszyfrowane, klucz tylko w sekretach; bez klucza gra Brax)
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/claude/prywatne.py
     - name: Odchudzanie modeli pod telefon (tekstury z .glb jako pliki do kompresji, uproszczenie ciezkich skanow) + ekran Autorzy
       run: |
         # ludzie i auta z wersji przeglądarkowej (meshopt + KTX2) → zwykłe .glb dla glTFast (bez pakietów meshopt/KTX)
