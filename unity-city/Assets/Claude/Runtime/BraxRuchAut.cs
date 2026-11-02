@@ -12,6 +12,7 @@ public sealed class BraxRuchAut : MonoBehaviour
     public BraxWezelAut[] wezly = new BraxWezelAut[0];
     public BraxAuto[] auta = new BraxAuto[0];
     public int ziarno = 2026;
+    public float vZakret;   // E3d/e: prędkość w zakręcie (ustawia generator osiedla: 15 km/h × K)
 
     BraxRuchAutSym sym;
     Camera kam; Transform gracz; float szukaj;
@@ -22,7 +23,7 @@ public sealed class BraxRuchAut : MonoBehaviour
         if (trasy == null || trasy.Length == 0 || auta == null || auta.Length == 0) { enabled = false; return; }
         float szer = 1.6f, dl = 3.5f;
         foreach (var a in auta) if (a) { szer = Mathf.Max(szer, a.szer); dl = Mathf.Max(dl, a.dl); }
-        sym = new BraxRuchAutSym(punkty, trasy, zdarzenia, wezly, ziarno, szer, dl);
+        sym = new BraxRuchAutSym(punkty, trasy, zdarzenia, wezly, ziarno, szer, dl, vZakret);
         foreach (var a in auta) if (a) sym.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax); else sym.Dodaj(0, 0f, 4.5f, 1.9f, 2.7f, -1.3f, 8f);
         sym.UstawStart();
         sym.widoczne = Widoczne;

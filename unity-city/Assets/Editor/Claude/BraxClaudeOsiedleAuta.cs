@@ -147,6 +147,12 @@ public static partial class BraxClaudeOsiedle
                 if (u.alongX) { if (p.x >= a0 - tol && p.x <= a1 + tol && Mathf.Abs(p.z - u.c) <= u.cw + tol) return true; }
                 else if (p.z >= a0 - tol && p.z <= a1 + tol && Mathf.Abs(p.x - u.c) <= u.cw + tol) return true;
             }
+        foreach (var kv in lukNaroznika)   // E3b: asfalt łuku narożnika (kwadrat [róg jezdni, róg + R] poza kołem krawężnika)
+        {
+            var w = kv.Key.w; int sx = kv.Key.sx, sz = kv.Key.sz; float R = kv.Value;
+            float ox = w.x + sx * w.uz.cw, oz = w.z + sz * w.ux.cw, lx = (p.x - ox) * sx, lz = (p.z - oz) * sz;
+            if (lx >= -tol && lx <= R + tol && lz >= -tol && lz <= R + tol && new Vector2(p.x - (ox + sx * R), p.z - (oz + sz * R)).magnitude >= R - tol) return true;
+        }
         if (p.x >= X0 + .6f - tol && p.x <= X1 - .6f + tol && Mathf.Abs(p.z - StreetZ) <= Carriage + tol) return true;
         if (Mathf.Abs(p.x - AxisX) <= Carriage + tol && p.z >= StreetZ - tol && p.z <= ParkZ0 + tol) return true;
         return false;
@@ -195,6 +201,7 @@ public static partial class BraxClaudeOsiedle
         var mg = new GameObject("BRAXHORN ruch aut (trasy, pierwszeństwo, auta)"); mg.transform.SetParent(Group(group), false);
         var ra = mg.AddComponent<BraxRuchAut>();
         ra.punkty = wy.punkty.ToArray(); ra.trasy = wy.trasy.ToArray(); ra.zdarzenia = wy.zdarzenia.ToArray(); ra.wezly = wy.wezly.ToArray(); ra.ziarno = 2026;
+        ra.vZakret = 15f / 3.6f * K;   // E3d/e: zakręty ~15 km/h × K
         // 3) auta
         var rnd = new System.Random(2026); var pula = PulaAut(szablony); var klakson = Klakson();
         var auta = new List<BraxAuto>(); var opis = new Dictionary<string, int>();
@@ -230,13 +237,13 @@ public static partial class BraxClaudeOsiedle
         ra.auta = auta.ToArray();
         float szerMax = auta.Max(a => a.szer), dlMax = auta.Max(a => a.dl);
         // 4) położenia startowe (te same, które policzy gra) — scena wygląda tak samo przed uruchomieniem
-        var s0 = new BraxRuchAutSym(ra.punkty, ra.trasy, ra.zdarzenia, ra.wezly, ra.ziarno, szerMax, dlMax);
+        var s0 = new BraxRuchAutSym(ra.punkty, ra.trasy, ra.zdarzenia, ra.wezly, ra.ziarno, szerMax, dlMax, ra.vZakret);
         foreach (var a in auta) s0.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax);
         s0.UstawStart();
         for (int i = 0; i < auta.Count; i++) auta[i].transform.SetPositionAndRotation(s0.auta[i].poz, Quaternion.LookRotation(s0.auta[i].kier));
         rep.notes.Add("auta w ruchu: " + auta.Count + " na " + wy.trasy.Count + " trasach (" + string.Join(", ", opis.Select(kv => kv.Key + " ×" + kv.Value)) + ")");
         // 5) test ruchu: 10 min czasu gry krokiem 0,1 s, bez renderu
-        var st = new BraxRuchAutSym(ra.punkty, ra.trasy, ra.zdarzenia, ra.wezly, ra.ziarno, szerMax, dlMax);
+        var st = new BraxRuchAutSym(ra.punkty, ra.trasy, ra.zdarzenia, ra.wezly, ra.ziarno, szerMax, dlMax, ra.vZakret);
         foreach (var a in auta) st.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax);
         st.UstawStart();
         var zdarz = new List<string>(); st.naZakleszczenie = o => { if (zdarz.Count < 8) zdarz.Add(o); };
@@ -245,6 +252,7 @@ public static partial class BraxClaudeOsiedle
         string wynik = "BRAXHORN_RUCH_TEST zakleszczenia=" + wt.zakleszczenia + " nachodzenia=" + wt.nachodzenia + " poza_droga=" + wt.pozaDroga +
                        " (aut " + auta.Count + ", 600 s krokiem 0,1 s, przejazdy skrzyżowań " + wt.przejazdyWezlow + ", nowe przejazdy z tunelu/ulicy B " + wt.nowePrzejazdy +
                        ", śr. prędkość " + (wt.sredniaV * 3.6f).ToString("F0") + " km/h, stanie na auto " + wt.czasStania.ToString("F0") + " s, par kolidujących ruchów " + wt.konflikty +
+                       ", zakręty: limit " + (ra.vZakret * 3.6f).ToString("F1") + " km/h (15 × K), maks. " + (wt.vZakretMax * 3.6f).ToString("F1") + " km/h, za_szybko=" + wt.zaSzybkoWZakrecie + "/" + wt.probkiZakretu + " próbek" +
                        ", czas testu " + (DateTime.Now - t0).TotalSeconds.ToString("F1") + " s)";
         Debug.Log(wynik); rep.notes.Add(wynik.Replace("BRAXHORN_RUCH_TEST ", "test ruchu: "));
         foreach (var z in zdarz) Debug.Log("BRAXHORN_RUCH_TEST_ZDARZENIE " + z);

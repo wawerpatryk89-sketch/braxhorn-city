@@ -76,8 +76,11 @@ public sealed class BraxRuchAutSym
     readonly Vector3[] probki = new Vector3[48];
 
     readonly float szerAut, dlAut;   // największe wymiary aut (obrysy przy liczeniu konfliktów i linii zatrzymania)
-    public BraxRuchAutSym(Vector3[] punkty, BraxTrasaAut[] trasy, BraxZdarzenieAut[] zdarzenia, BraxWezelAut[] wezly, int ziarno, float szerMax = 2.05f, float dlMax = 5f)
+    // E3d/e (runda 4): prędkość w zakręcie (łuk o promieniu < 40 m) nie większa niż vZakret — 15 km/h × K (0 = tylko z przyspieszenia bocznego)
+    readonly float vZakret;
+    public BraxRuchAutSym(Vector3[] punkty, BraxTrasaAut[] trasy, BraxZdarzenieAut[] zdarzenia, BraxWezelAut[] wezly, int ziarno, float szerMax = 2.05f, float dlMax = 5f, float vZakret = 0f)
     {
+        this.vZakret = vZakret;
         szerAut = Mathf.Clamp(szerMax, 1.6f, 2.6f); dlAut = Mathf.Clamp(dlMax, 3.5f, 6.5f);
         pkt = punkty ?? new Vector3[0]; tr = trasy ?? new BraxTrasaAut[0]; wz = wezly ?? new BraxWezelAut[0];
         zd = zdarzenia != null ? (BraxZdarzenieAut[])zdarzenia.Clone() : new BraxZdarzenieAut[0];   // kopia — linie zatrzymania są tu przesuwane
@@ -137,6 +140,7 @@ public sealed class BraxRuchAutSym
             var a = T(r, s - 2.5f); var b = T(r, s + 2.5f);
             float kat = Vector3.Angle(a, b) * Mathf.Deg2Rad; float kr = kat / 5f;
             v[i] = kr < 1e-4f ? 16f : Mathf.Min(16f, Mathf.Sqrt(2.1f / kr));
+            if (vZakret > 0f && kr > 1f / 40f) v[i] = Mathf.Min(v[i], vZakret * .95f);   // zakręt: ~15 km/h × K (5 % zapasu na opóźnienie regulatora)
         }
         int przebiegi = t.petla ? 2 : 1;
         for (int p = 0; p < przebiegi; p++)
@@ -708,7 +712,9 @@ public sealed class BraxRuchAutSym
     }
 
     // ---------------- test (CI przy buildzie i lokalnie) ----------------
-    public struct WynikTestu { public int zakleszczenia, nachodzenia, pozaDroga, przestawienia, nowePrzejazdy, przejazdyWezlow, konflikty; public float sredniaV, czasStania; }
+    public struct WynikTestu { public int zakleszczenia, nachodzenia, pozaDroga, przestawienia, nowePrzejazdy, przejazdyWezlow, konflikty, probkiZakretu, zaSzybkoWZakrecie; public float sredniaV, czasStania, vZakretMax; }
+    // krzywizna trasy r w punkcie s (kąt między kierunkami 2.5 m przed i za / 5 m)
+    public float Krzywizna(int r, float s) => Vector3.Angle(T(r, s - 2.5f), T(r, s + 2.5f)) * Mathf.Deg2Rad / 5f;
 
     // Symulacja `sekundy` czasu gry krokiem `krok` bez renderu. naJezdni(p) — czy punkt (styk koła z jezdnią) leży na
     // jezdni. Liczy: zakleszczenia (auta przestawione po > 10 s stania), nachodzenia (nowe pary aut, których obrysy
@@ -726,6 +732,7 @@ public sealed class BraxRuchAutSym
             for (int x = 0; x < auta.Count; x++)
             {
                 var a = auta[x]; sumaV += a.v; probek++; if (a.v < .2f) stanie += krok;
+                if (Krzywizna(a.trasa, a.s) > 1f / 25f) { w.probkiZakretu++; w.vZakretMax = Mathf.Max(w.vZakretMax, a.v); if (vZakret > 0f && a.v > vZakret + .3f) w.zaSzybkoWZakrecie++; }
                 for (int y = x + 1; y < auta.Count; y++)
                 {
                     var b = auta[y]; long key = (long)x * 10000 + y;
