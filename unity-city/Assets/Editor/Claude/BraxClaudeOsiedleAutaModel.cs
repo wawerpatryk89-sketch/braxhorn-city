@@ -363,7 +363,8 @@ public static partial class BraxClaudeOsiedle
         Spaliny(A, sz, nad);
         // 8) lakier (do przemalowania): największy nieteksturowany materiał o nazwie lakieru
         sz.lakier = Lakier(A);
-        foreach (var r in go.GetComponentsInChildren<Renderer>(true)) { if (r is MeshRenderer) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; } }
+        foreach (var r in go.GetComponentsInChildren<Renderer>(true))
+            if (r is MeshRenderer && r.sharedMaterial != matStop && r.sharedMaterial != matMigacz) { r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true; }
         GameObjectUtility.SetStaticEditorFlags(go, 0);
         foreach (var t in go.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
         rep.notes.Add("auto " + src.name + ": " + sz.dl.ToString("F2") + " × " + sz.szerNadw.ToString("F2") + " × " + sz.wys.ToString("F2") + " m, przód " + sz.przod + ", kół " + sz.kol + ", lakier " + (sz.lakier ? sz.lakier.name : "—") + ";" + sz.uwagi);
@@ -374,7 +375,7 @@ public static partial class BraxClaudeOsiedle
     {
         var poz = new List<Vector3>(); var nor = new List<Vector3>(); var uv = new List<Vector2>(); var tan = new List<Vector4>();
         var mapy = new Dictionary<long, int>(); var poMat = new Dictionary<Material, List<int>>(); var kolej = new List<Material>();
-        var cache = new Dictionary<int, (Vector3[] n, Vector2[] uv, Vector4[] t)>();
+        var cache = new Dictionary<int, (Vector3[] n, Vector2[] uv, Vector4[] t)>(); var macierzN = new Dictionary<int, Matrix4x4>();
         foreach (var (ci, s, t) in tris)
         {
             var c = A.cz[ci];
@@ -387,7 +388,7 @@ public static partial class BraxClaudeOsiedle
             var mat = s < c.mats.Length ? c.mats[s] : (c.mats.Length > 0 ? c.mats[c.mats.Length - 1] : null);
             if (!mat) continue;
             if (!poMat.TryGetValue(mat, out var lista)) { poMat[mat] = lista = new List<int>(); kolej.Add(mat); }
-            var nm = c.m.inverse.transpose;
+            if (!macierzN.TryGetValue(ci, out var nm)) { nm = c.m.inverse.transpose; macierzN[ci] = nm; }
             var idx = new int[3];
             for (int q = 0; q < 3; q++)
             {
