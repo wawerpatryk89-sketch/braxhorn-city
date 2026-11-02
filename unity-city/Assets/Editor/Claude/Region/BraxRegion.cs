@@ -61,6 +61,7 @@ public static class BraxRegion
         Step("zieleń naturalna i mała architektura", () => BraxRegionVegetation.Apply(root));
         // Lampy wnętrz: CityStaticPBR liczy światła punktowe tylko ze slotów „vertex light” (ForceVertex).
         Step("siedziska: sofy, ławki, hokery, leżaki → BraxSeat", () => BraxRegionSeats.Apply(root));
+        Step("horyzont: niebo bez lustra, teren za granicą, granica, wiadukt dalej", () => BraxRegionHoryzont.Apply(world, root));
         Step("lampy wnętrz w trybie ForceVertex", () => InteriorLights(root));
         // Na końcu: przesunięcie głębi dla wszystkiego, co dobudowane (anty-migotanie).
         Step("anty-migotanie (offset głębi, trilinear)", () => BraxRegionFlicker.Apply(root));
