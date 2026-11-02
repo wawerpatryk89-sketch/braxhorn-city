@@ -22,6 +22,12 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     public string rola = "";                   // barman, recepcja, kasjer, ochrona, policja, lekarz, … — kwestie POGADAJ
     public Transform glowa, szyja, kregoslup, ramieL, ramieP;
     public float korektaRak;                   // stopnie: uniesienie ramion do przodu (kierowca)
+    // Build 45 — osoba w aucie (właściciel 20:28: „każdy człowiek powinien się zmieścić do auta”, skala zawsze 1.0):
+    // odchylenie tułowia do tyłu (oparcie: sportowe 25–30°, osobowe 18–22°, dostawcze 8–12°) od dolnego kręgu (Bip01 Spine),
+    // głowa pochylona do przodu (wzrok poziomo + ewentualnie lekko w dół, gdy dach nisko). Dobrane w buildzie (BraxClaudeKabiny).
+    public Transform kregoslupDol;
+    public float odchylenie, pochylenieGlowy;
+    Quaternion poKorekcie; bool maKorekte;
     public float ton = 1f, wzrost = 1.8f;
 
     float nastZmiana, nast, ostatni, lean, leanCel, patrzWaga, patrzCel, doKiedyPatrzy, nastPowitanie, nastRozgl;
@@ -93,9 +99,24 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         if (!siedzi && !wAucie && Time.time > doKiedyPatrzy) transform.rotation = Quaternion.Slerp(transform.rotation, obrot0, Mathf.Clamp01(dt * 1.5f));
     }
 
+    // Poza w aucie po animacji (ta sama funkcja liczy prześwit w buildzie): obrót wokół osi „w prawo” osoby — ujemny kąt
+    // = tułów do tyłu, dodatni = głowa do przodu (oś x Unity, układ lewoskrętny).
+    public static void PozaWAucie(Transform kregoslup, Transform glowa, Vector3 prawo, float odchylenie, float pochylenieGlowy)
+    {
+        if (kregoslup && odchylenie != 0f) kregoslup.rotation = Quaternion.AngleAxis(-odchylenie, prawo) * kregoslup.rotation;
+        if (glowa && pochylenieGlowy != 0f) glowa.rotation = Quaternion.AngleAxis(pochylenieGlowy, prawo) * glowa.rotation;
+    }
+
     void LateUpdate()
     {
         if (!blisko) return;
+        if (wAucie && (odchylenie != 0f || pochylenieGlowy != 0f) && kregoslupDol)
+        {
+            // animacja nie zapisała kości w tej klatce (culling poza ekranem) — korekty nie dokładamy drugi raz
+            if (maKorekte && Quaternion.Dot(kregoslupDol.localRotation, poKorekcie) > .9999999f) return;
+            PozaWAucie(kregoslupDol, glowa, transform.right, odchylenie, pochylenieGlowy);
+            poKorekcie = kregoslupDol.localRotation; maKorekte = true;
+        }
         if (korektaRak != 0f)
         {
             var r = transform.right;

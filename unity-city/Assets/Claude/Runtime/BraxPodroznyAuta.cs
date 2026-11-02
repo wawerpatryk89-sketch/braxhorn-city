@@ -10,6 +10,17 @@ public sealed class BraxPodroznyAuta : MonoBehaviour
     public BoxCollider samochod;
     public Vector3 dom, drzwi, siedzenieModel;
     public string chod, spokoj, siedzi;
+    // Build 45: poza w kabinie dobrana w buildzie (BraxClaudeKabiny): odchylenie tułowia, pochylenie głowy — skala 1.0.
+    public Transform kregoslupDol;
+    public float odchylenie, pochylenieGlowy;
+    Quaternion poKorekcie; bool maKorekte;
+    void LateUpdate()
+    {
+        if (!osoba || !osoba.wAucie || !kregoslupDol || (odchylenie == 0f && pochylenieGlowy == 0f) || !osoba.anim || !osoba.anim.enabled) return;
+        if (maKorekte && Quaternion.Dot(kregoslupDol.localRotation, poKorekcie) > .9999999f) return;   // animacja nie nadpisała (culling)
+        BraxMieszkaniec.PozaWAucie(kregoslupDol, osoba.glowa, transform.right, odchylenie, pochylenieGlowy);
+        poKorekcie = kregoslupDol.localRotation; maKorekte = true;
+    }
     Vector3 modelStoi;
     Quaternion rotStoi;
     CapsuleCollider kapsula;

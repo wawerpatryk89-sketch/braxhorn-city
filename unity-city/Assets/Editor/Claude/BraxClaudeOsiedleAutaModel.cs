@@ -368,8 +368,14 @@ public static partial class BraxClaudeOsiedle
         float xF = .21f * sz.szerNadw;
         var fk = new GameObject(FotelKierowcy).transform; fk.SetParent(nad, false); fk.localPosition = new Vector3(-xF, hSiedz, zF);
         var fp = new GameObject(FotelPasazera).transform; fp.SetParent(nad, false); fp.localPosition = new Vector3(xF, hSiedz, zF);
+        BraxFotelAuta.Rodzaj(sz.wys / K, out string rodzajKabiny, out float odchB, out float odchM);
         foreach (var seat in new[] { fk, fp })
-            seat.gameObject.AddComponent<BraxFotelAuta>().przeswit = PrzeswitKabiny(A,seat.localPosition,hSiedz);
+        {
+            var fa = seat.gameObject.AddComponent<BraxFotelAuta>();
+            fa.przeswit = PrzeswitKabiny(A, seat.localPosition, hSiedz);
+            fa.kabina = rodzajKabiny; fa.odchylenieBaza = odchB; fa.odchylenieMax = odchM;
+            MapaDachu(A, seat.localPosition, hSiedz, fa);   // build 45: dach nad konkretnym miejscem (głowa odchylonej osoby)
+        }
         // 7) światła i spaliny
         Swiatla(A, sz, nad);
         Spaliny(A, sz, nad);
@@ -404,6 +410,39 @@ public static partial class BraxClaudeOsiedle
             if(!float.IsNegativeInfinity(top))roof=Mathf.Min(roof,top);
         }
         return Mathf.Max(.2f,roof-seatY-.08f*K);
+    }
+
+    // Build 45: mapa dachu nad miejscem (siatka 9 × 21 co 6 cm × K: x ±24 cm × K, z od 80 cm × K za siedziskiem do 40 cm × K
+    // przed nim). Dla każdego węzła — najwyższa powierzchnia auta nad siedziskiem + 0.4 m × K (zewnętrzna skóra dachu / szyby)
+    // minus 8 cm × K (blacha + podsufitka), jak PrzeswitKabiny. Brak powierzchni (auto bez dachu) = najwyższy punkt auta.
+    // Rasteryzacja trójkątów po obrysie xz (bez pętli węzeł × wszystkie trójkąty).
+    static void MapaDachu(AnalizaAuta car, Vector3 seat, float seatY, BraxFotelAuta f)
+    {
+        const int nx = 9, nz = 21; float krok = .06f * K, x0 = -.24f * K, z0 = -.8f * K, minY = seatY + .4f * K;
+        var top = new float[nx * nz]; for (int i = 0; i < top.Length; i++) top[i] = float.NegativeInfinity;
+        foreach (var part in car.cz) foreach (var indices in part.tri) for (int i = 0; i + 2 < indices.Length; i += 3)
+        {
+            var a = part.w[indices[i]]; var b = part.w[indices[i + 1]]; var c = part.w[indices[i + 2]];
+            if (a.y < minY && b.y < minY && c.y < minY) continue;
+            float lx0 = Mathf.Min(a.x, Mathf.Min(b.x, c.x)) - seat.x, lx1 = Mathf.Max(a.x, Mathf.Max(b.x, c.x)) - seat.x;
+            float lz0 = Mathf.Min(a.z, Mathf.Min(b.z, c.z)) - seat.z, lz1 = Mathf.Max(a.z, Mathf.Max(b.z, c.z)) - seat.z;
+            int ix0 = Mathf.Max(0, Mathf.CeilToInt((lx0 - x0) / krok)), ix1 = Mathf.Min(nx - 1, Mathf.FloorToInt((lx1 - x0) / krok));
+            int iz0 = Mathf.Max(0, Mathf.CeilToInt((lz0 - z0) / krok)), iz1 = Mathf.Min(nz - 1, Mathf.FloorToInt((lz1 - z0) / krok));
+            if (ix0 > ix1 || iz0 > iz1) continue;
+            float den = (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z);
+            if (Mathf.Abs(den) < 1e-8f) continue;
+            for (int iz = iz0; iz <= iz1; iz++) for (int ix = ix0; ix <= ix1; ix++)
+            {
+                float x = seat.x + x0 + ix * krok, z = seat.z + z0 + iz * krok;
+                float u = ((b.z - c.z) * (x - c.x) + (c.x - b.x) * (z - c.z)) / den;
+                float v = ((c.z - a.z) * (x - c.x) + (a.x - c.x) * (z - c.z)) / den;
+                if (u < 0 || v < 0 || u + v > 1) continue;
+                float y = u * a.y + v * b.y + (1 - u - v) * c.y;
+                if (y > minY && y > top[iz * nx + ix]) top[iz * nx + ix] = y;
+            }
+        }
+        f.mapaNx = nx; f.mapaNz = nz; f.mapaKrok = krok; f.mapaX0 = x0; f.mapaZ0 = z0; f.mapa = new float[nx * nz];
+        for (int i = 0; i < top.Length; i++) f.mapa[i] = Mathf.Max(.2f, (float.IsNegativeInfinity(top[i]) ? car.mx.y : top[i]) - seatY - .08f * K);
     }
 
     static Mesh SiatkaKola(AnalizaAuta A, List<(int cz, int sub, int t)> tris, Vector3 srodek, out Material[] mats)

@@ -41,8 +41,10 @@ public static partial class BraxClaudeOsiedle
         Guard("ludzie: obsada lokali", () => ObsadaLokali(rnd));
         Guard("ludzie: pary i pojedynczo na placach", () => LudzieNaPlacach(rnd));
         Guard("ludzie: ławki", () => LudzieNaLawkach(rnd));
+        KabinyReset();
         Guard("ludzie: kierowcy i pasażerowie", () => KierowcyAut(rnd));
         Guard("ludzie: wsiadanie i wysiadanie na parkingach", () => PodrozniParkingow(rnd));
+        Guard("ludzie: kabiny — podsumowanie", () => rep.notes.Add(KabinyPodsumowanie()));
         Guard("ludzie: przechodnie", () => PrzechodnieRocketbox(rnd));
         Debug.Log("BRAXHORN_LUDZIE_KOPIE_KLIPOW " + kopieKlipow + " (oczekiwane 0: klip nazwany jak plik; >0 = wspólne kopie .anim, nie w scenie)");
         string msg = "BRAXHORN_LUDZIE postacie=" + rbPostacie.Count + " przechodnie=" + rbPrzechodnie + " obsada=" + rbObsada + " kierowcy=" + rbKierowcy +
@@ -495,7 +497,8 @@ public static partial class BraxClaudeOsiedle
             if (!m) continue;
             m.transform.SetParent(f, true);
             DopasujKabine(m, f);
-            if (kier) { m.korektaRak = 16f; rbKierowcy++; } else pas++;
+            // ramiona: kierowca do kierownicy (16°) + oddanie odchylenia tułowia (ręce zostają przy kierownicy), pasażer — oddanie odchylenia
+            if (kier) { m.korektaRak = 16f + m.odchylenie; rbKierowcy++; } else { m.korektaRak = m.odchylenie; pas++; }
             rbSiedzacy--;
             foreach (var c in m.GetComponentsInChildren<Collider>(true)) UnityEngine.Object.DestroyImmediate(c);
             foreach (var rb in m.GetComponentsInChildren<Rigidbody>(true)) UnityEngine.Object.DestroyImmediate(rb);
