@@ -34,6 +34,7 @@ public sealed class BraxObszary : MonoBehaviour
 
     void Update()
     {
+        if (BraxStartTest.Wylaczony("obszary")) return;   // test miasta (ekran startowy): bez doczytywania nabrzeża i wyspy
         if (!player) player = FindAnyObjectByType<BraxGymPlayer>();
         if (!player) return;
         // Bezpiecznik: gracz przeniesiony (punkt podróży, zdjęcia) do środka obszaru, który jeszcze się wczytuje —
