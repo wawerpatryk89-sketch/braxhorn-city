@@ -94,8 +94,7 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(mur, x0 + t, xb - t, yE, yE + .25f, z0 + t, z1 - t, false, true);   // strop biura
         BoxMinMax(mur, xb, x1 - t, yE, yE + .25f, z0 + t, z1 - t, false, true);         // strop hali
         BoxMinMax(Plinth, x0 - .04f, x1 + .04f, 0, .45f, z0 - .04f, z0, false); BoxMinMax(Plinth, x0 - .04f, x0, 0, .45f, z0, z1 + .04f, false); BoxMinMax(Plinth, x1, x1 + .04f, 0, .45f, z0, z1 + .04f, false);
-        foreach (var (a0, a1, b0, b1) in new[] { (x0, x1, z0, z0 + t), (x0, x1, z1 - t, z1), (x0, x0 + t, z0, z1), (x1 - t, x1, z0, z1) })
-            BoxMinMax(obr, a0 - .04f, a1 + .04f, yA, yA + .05f, b0 - .04f, b1 + .04f, false);
+        ObwodBez(obr, x0, x1, z0, z1, t, yA, yA + .05f, .04f);
         BoxMinMax(pas, x0 - .06f, x1 + .06f, yE - .1f, yE + .25f, z1, z1 + .06f, false);   // gzyms frontu
         BoxMinMax(StMat("membrana dachu", new Color(.35f, .36f, .37f), .2f), x0 + t, x1 - t, yE + .25f, yE + .3f, z0 + t, z1 - t, false);
         StDetal("warsztat", "cokół, attyka z obróbką, gzyms frontu");
@@ -124,7 +123,7 @@ public static partial class BraxClaudeOsiedle
             }
             else
             {
-                BoxMinMax(pod, a, b, .02f, gh, z1 - t - .1f, z1 - t - .06f, true);
+                BoxMinMax(pod, a + .005f, b - .005f, .02f, gh - .005f, z1 - t - .1f, z1 - t - .06f, true);   // podkład za segmentami (bez wspólnych lic)
                 for (float y = .02f; y < gh - .01f; y += .5f * K) BoxMinMax(seg, a, b, y, Mathf.Min(gh, y + .5f * K - .012f), z1 - t - .06f, z1 - t - .02f, false);
                 BoxMinMax(Frame, c - .25f, c + .25f, .9f, .97f, z1 - t - .02f, z1 - t, false);                              // uchwyt
             }
@@ -195,6 +194,9 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(Steel, c2 + .6f, c2 + .9f, 1.2f, 1.42f, z0 + t + .55f, z0 + t + .75f, false);                // imadło
         StDetal("warsztat", "podnośnik, opony, wózek, stół z imadłem");
         warsztatMechanicy.Add((new Vector3(c1 + .3f, .15f, lz + 2.4f), 180f)); warsztatMechanicy.Add((new Vector3(c2 - .5f, .15f, z0 + t + 1.5f), 180f));
+        // punkt podróży „garages” (Codex) zostaje pod tym samym id — teraz warsztat (wejście do biura)
+        foreach (var w in Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (w.points != null) foreach (var p in w.points) if (p != null && p.id == "garages") { p.label = "Warsztat (Poznańska)"; p.position = new Vector3((dzA + dzB) * .5f, .1f, z1 + 1.5f); }
         var pk = new GameObject("BRAXHORN punkt interakcji: warsztat (przyjęcie auta)"); pk.transform.SetParent(Group(group), false); pk.transform.position = new Vector3((dzA + dzB) * .5f, YS, z1 + 1.5f);
         group = g0;
         Debug.Log("BRAXHORN_WARSZTAT obrys x " + WX0 + "…" + WX1 + " z " + WZ0 + "…" + WZ1 + " budynek=24.0×12.0 m stanowiska=3 bramy_segmentowe=3 (1 otwarta) brama=" + gw.ToString("F2") + "×" + gh.ToString("F2") + " m podnośnik=1 opony=10 biuro_drzwi=1 miejsca_postojowe=4 mechanicy=" + warsztatMechanicy.Count + " (auto na podnośniku: brak — szablony aut z etapu ruchu)");

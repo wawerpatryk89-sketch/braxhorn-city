@@ -39,6 +39,12 @@ public static partial class BraxClaudeOsiedle
         m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
         mats[nazwa] = m; tile[m] = 1f; return m;
     }
+    // Obwód z 4 brył BEZ zakładek w narożach (attyki, obróbki, gzymsy): pas szerokości w, okap e tylko na zewnątrz.
+    static void ObwodBez(Material m, float x0, float x1, float z0, float z1, float w, float y0, float y1, float e, bool bottom = false)
+    {
+        BoxMinMax(m, x0 - e, x1 + e, y0, y1, z0 - e, z0 + w, false, bottom); BoxMinMax(m, x0 - e, x1 + e, y0, y1, z1 - w, z1 + e, false, bottom);
+        BoxMinMax(m, x0 - e, x0 + w, y0, y1, z0 + w, z1 - w, false, bottom); BoxMinMax(m, x1 - w, x1 + e, y0, y1, z0 + w, z1 - w, false, bottom);
+    }
     static void StDetal(string obiekt, string co, int n = 1) { stDetale += n; stDetaleOpis.Add(obiekt + ":" + co + (n > 1 ? "×" + n : "")); }
 
     // ---------------- krok główny ----------------
@@ -144,7 +150,9 @@ public static partial class BraxClaudeOsiedle
         foreach (var w in UnityEngine.Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             if (w.doors != null) w.doors = w.doors.Where(x => x).ToArray();
-            if (w.points != null) w.points = w.points.Where(p => p == null || !(p.id == "villa_front" || p.id == "villa_living" || p.id == "villa_terrace" || p.id == "contact")).ToArray();
+            // villa_front zostaje (stare testy CI: check.mjs / check_estate_original_player.mjs sprawdzają, że punkt jest osiągalny) —
+            // przepięty na wejście sklepu stacji w StacjaPunktyPodrozy; salon, taras i dom kontaktowy usunięte
+            if (w.points != null) w.points = w.points.Where(p => p == null || !(p.id == "villa_living" || p.id == "villa_terrace" || p.id == "contact")).ToArray();
         }
         rep.notes.Add("stacja: zwalone — " + trojkaty + " trójkątów siatek Codexa, " + kol + " kolizji, " + drzwi + " drzwi, " + grupy + " czworokątów okien/numeru");
         Debug.Log("BRAXHORN_STACJA zwalenie trójkąty=" + trojkaty + " kolizje=" + kol + " drzwi=" + drzwi + "/5 (contact-front, contact-garden, villa-front, villa-terrace, villa-bathroom) okna_i_numer_generatora=" + grupy + " czworokątów inne_z_generatora=" + gen);
@@ -299,13 +307,10 @@ public static partial class BraxClaudeOsiedle
         var obr = StMat("obróbka blacharska", new Color(.62f, .63f, .65f), .5f, .6f); var spod = StMat("podsufitka wiaty", new Color(.86f, .87f, .88f), .4f);
         var led = StSwiatlo("oprawa LED wiaty", new Color(1f, .98f, .92f));
         // dach: podsufitka, gzyms (pas dolny grafit, pas górny biały), obróbka attyki, płyta dachu ze spadkiem do rynien
-        BoxMinMax(spod, x0, x1, yP, yP + .04f, z0, z1, true, true);
-        foreach (var (a0, a1, b0, b1) in new[] { (x0, x1, z0, z0 + .12f), (x0, x1, z1 - .12f, z1), (x0, x0 + .12f, z0, z1), (x1 - .12f, x1, z0, z1) })
-        {
-            BoxMinMax(pas, a0, a1, yP, yP + .35f, b0, b1, false, true);
-            BoxMinMax(biel, a0, a1, yP + .35f, yG - .06f, b0, b1, false);
-            BoxMinMax(obr, a0 - .03f, a1 + .03f, yG - .06f, yG, b0 - .03f, b1 + .03f, false);   // obróbka attyki (kapinos)
-        }
+        BoxMinMax(spod, x0 + .12f, x1 - .12f, yP, yP + .04f, z0 + .12f, z1 - .12f, true, true);   // podsufitka wewnątrz pasa gzymsu (bez wspólnego lica)
+        ObwodBez(pas, x0, x1, z0, z1, .12f, yP, yP + .35f, 0f, true);
+        ObwodBez(biel, x0, x1, z0, z1, .12f, yP + .35f, yG - .06f, 0f);
+        ObwodBez(obr, x0, x1, z0, z1, .12f, yG - .06f, yG, .03f);   // obróbka attyki (kapinos)
         BoxMinMax(StMat("membrana dachu", new Color(.35f, .36f, .37f), .2f), x0 + .12f, x1 - .12f, yP + .04f, yP + .3f, z0 + .12f, z1 - .12f, false);
         StDetal("wiata", "gzyms dwupasmowy + obróbka attyki");
         // oprawy LED w podsufitce (wpuszczone: lico oprawy = lico podsufitki od dołu)
@@ -431,8 +436,7 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(Plinth, x0 - .04f, x1 + .04f, 0, .45f, z0 - .04f, z0, false); BoxMinMax(Plinth, x0 - .04f, x0, 0, .45f, z0, z1 + .04f, false); BoxMinMax(Plinth, x1, x1 + .04f, 0, .45f, z0, z1 + .04f, false);
         StDetal("sklep", "cokół kamienny");
         // attyka z obróbką (kapinos 3 cm), gzyms grafitowy pod attyką
-        foreach (var (a0, a1, b0, b1) in new[] { (x0, x1, z0, z0 + t), (x0, x1, z1 - t, z1), (x0, x0 + t, z0, z1), (x1 - t, x1, z0, z1) })
-            BoxMinMax(obr, a0 - .04f, a1 + .04f, yA, yA + .05f, b0 - .04f, b1 + .04f, false);
+        ObwodBez(obr, x0, x1, z0, z1, t, yA, yA + .05f, .04f);
         BoxMinMax(pas, x0 - .06f, x1 + .06f, yC + .1f, yC + .45f, z1, z1 + .06f, false);   // gzyms frontu
         BoxMinMax(StMat("membrana dachu", new Color(.35f, .36f, .37f), .2f), x0 + t, x1 - t, yC + .25f, yC + .3f, z0 + t, z1 - t, false);
         BoxMinMax(sciana, x0 + t, x1 - t, yC, yC + .25f, z0 + t, z1 - t, false, true);   // strop
@@ -558,7 +562,8 @@ public static partial class BraxClaudeOsiedle
     {
         var pod = StMat("podkład paneli", new Color(.12f, .12f, .13f), .2f);
         float sz = .012f * K, w = 1.2f * K;
-        if (wzdluzX) BoxMinMax(pod, a0, a1, y0, y1, c - grub * .5f + .04f, c + grub * .5f - .04f, true); else BoxMinMax(pod, c - grub * .5f + .04f, c + grub * .5f - .04f, y0, y1, a0, a1, true);
+        // podkład krótszy o 5 mm na końcach i u góry — żadne jego lico nie leży w płaszczyźnie lica panelu
+        if (wzdluzX) BoxMinMax(pod, a0 + .005f, a1 - .005f, y0, y1 - .005f, c - grub * .5f + .04f, c + grub * .5f - .04f, true); else BoxMinMax(pod, c - grub * .5f + .04f, c + grub * .5f - .04f, y0, y1 - .005f, a0 + .005f, a1 - .005f, true);
         for (float a = a0; a < a1 - .01f; a += w)
         {
             float b = Mathf.Min(a1, a + w - sz);
@@ -573,10 +578,9 @@ public static partial class BraxClaudeOsiedle
         var panel = StMat("panel ściany myjni", new Color(.86f, .88f, .9f), .55f, .2f); var obr = StMat("obróbka blacharska", new Color(.62f, .63f, .65f), .5f, .6f);
         var nieb = StMat("konstrukcja portalu", new Color(.08f, .3f, .62f), .55f, .4f); var szcz = StMat("szczotka myjni", new Color(.2f, .45f, .85f), .2f);
         PanelSciana(false, x0 + .15f, z0, z1, 0, yA, .3f, panel); PanelSciana(false, x1 - .15f, z0, z1, 0, yA, .3f, panel); PanelSciana(true, z0 + .15f, x0 + .3f, x1 - .3f, 0, yA, .3f, panel);
-        BoxMinMax(panel, x0 + .3f, x1 - .3f, yH + .05f, yA, z1 - .3f, z1, true);                       // nadproże bramy
+        BoxMinMax(panel, x0 + .3f, x1 - .3f, yH, yA, z1 - .3f, z1, true, true);                        // nadproże bramy (od góry otworu — bez szczeliny)
         BoxMinMax(panel, x0 + .3f, x1 - .3f, yH, yH + .2f, z0 + .3f, z1 - .3f, false, true);            // strop
-        foreach (var (a0, a1, b0, b1) in new[] { (x0, x1, z0, z0 + .3f), (x0, x1, z1 - .3f, z1), (x0, x0 + .3f, z0, z1), (x1 - .3f, x1, z0, z1) })
-            BoxMinMax(obr, a0 - .04f, a1 + .04f, yA, yA + .05f, b0 - .04f, b1 + .04f, false);
+        ObwodBez(obr, x0, x1, z0, z1, .3f, yA, yA + .05f, .04f);
         BoxMinMax(Plinth, x0 - .04f, x0, 0, .4f, z0, z1, false); BoxMinMax(Plinth, x1, x1 + .04f, 0, .4f, z0, z1, false); BoxMinMax(Plinth, x0, x1, 0, .4f, z0 - .04f, z0, false);
         StDetal("myjnia", "panele z fugą, attyka z obróbką, cokół");
         // brama rolowana podniesiona (skrzynka nawoju nad otworem), prowadnice
@@ -620,8 +624,7 @@ public static partial class BraxClaudeOsiedle
         foreach (float sx in new[] { x0 + .15f, (x0 + x1) * .5f, x1 - .15f })
             foreach (float sz in new[] { z0 + .2f, z1 - .2f }) BoxMinMax(nieb, sx - .12f, sx + .12f, YS, yH, sz - .12f, sz + .12f, true);
         BoxMinMax(panel, x0, x1, yH, yH + .5f, z0, z1, true, true);
-        foreach (var (a0, a1, b0, b1) in new[] { (x0, x1, z0, z0 + .1f), (x0, x1, z1 - .1f, z1), (x0, x0 + .1f, z0, z1), (x1 - .1f, x1, z0, z1) })
-            BoxMinMax(obr, a0 - .03f, a1 + .03f, yH + .5f, yH + .55f, b0 - .03f, b1 + .03f, false);
+        ObwodBez(obr, x0, x1, z0, z1, .1f, yH + .5f, yH + .55f, .03f);
         PanelSciana(true, z0 + .15f, x0 + .3f, x1 - .3f, YS, 2.4f * K, .12f, panel);
         PanelSciana(false, (x0 + x1) * .5f, z0 + .35f, z1 - 2f, YS, 2.2f * K, .1f, panel);
         // rynna z rurą spustową od strony tyłu
@@ -687,11 +690,12 @@ public static partial class BraxClaudeOsiedle
     {
         var w = UnityEngine.Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(q => q.area == "estate");
         if (!w) return;
-        w.points = (w.points ?? Array.Empty<BraxCityPoint>()).Concat(new[]
-        {
-            new BraxCityPoint { id = "stacja_paliw", label = "Stacja paliw (Poznańska)", position = new Vector3(-28.75f, .2f, -46.8f) },
-            new BraxCityPoint { id = "myjnia", label = "Myjnia (przy stacji paliw)", position = new Vector3(.75f, .1f, -45.5f) },
-        }).ToArray();
+        var wejscie = new Vector3(-28.75f, .2f, -48.3f);   // płyty przed drzwiami sklepu (lico 0.14)
+        var vf = (w.points ?? Array.Empty<BraxCityPoint>()).FirstOrDefault(p => p != null && p.id == "villa_front");
+        var nowe = new List<BraxCityPoint> { new BraxCityPoint { id = "myjnia", label = "Myjnia (przy stacji paliw)", position = new Vector3(.75f, .1f, -45.5f) } };
+        if (vf != null) { vf.label = "Stacja paliw (Poznańska)"; vf.position = wejscie; }
+        else nowe.Add(new BraxCityPoint { id = "stacja_paliw", label = "Stacja paliw (Poznańska)", position = wejscie });
+        w.points = (w.points ?? Array.Empty<BraxCityPoint>()).Concat(nowe).ToArray();
     }
     // kasjer: wołane po kroku ludzi (Rocketbox wczytany w LudzieNaOsiedlu)
     static void StacjaKasjer()
