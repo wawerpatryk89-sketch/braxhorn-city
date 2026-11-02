@@ -95,6 +95,10 @@ public static partial class BraxClaudeOsiedle
         // pasy przy wyspach (wyspa 1.55 m, z −36.53…−34.97) ≥ 4.5 m; zjazdy omijają latarnię B1 (x −31) i stare drzewo (x −18)
         if (-29f - (-34.97f) < 4.5f || -36.53f - (-42.5f) < 4.5f) return "pas przy wyspie węższy niż 4.5 m";
         foreach (var (a, c) in new[] { (-29.5f, -23f), (4.5f, 11f) }) if (c - a < 6f || (a < -30.4f && c > -31.6f) || (a < -16.5f && c > -19.5f)) return "zjazd koliduje";
+        // warsztat (E32): działka obok stacji (między nimi stare drzewo Codexa x 18), budynek 24 × 12 m w działce, plac do z −42
+        if (WX0 < SX1 + 5f) return "warsztat nachodzi na stację";
+        if (23f < WX0 || 47f > WX1 || -54f < WZ0 || -42f > WZ1) return "budynek warsztatu poza działką";
+        if (2.5f * K * 4f > 47f - 29f) return "4 miejsca postojowe nie mieszczą się przed warsztatem";
         return null;
     }
 
@@ -194,7 +198,7 @@ public static partial class BraxClaudeOsiedle
         // 5) odwodnienie: liniowe pod krawędzią wiaty, kratki, studzienki — w wycięciach asfaltu (pokrywa na poziomie asfaltu)
         OdplywLiniowy(-31f, -1f, -42.9f, true);
         foreach (var (x, z) in new[] { (-34.5f, -45.5f), (10.5f, -45.5f), (8f, -30.5f), (-33.5f, -30.5f) }) Kratka(x, z);
-        foreach (var (x, z) in new[] { (-10f, -45.5f), (2f, -33.5f) }) Studzienka(x, z);
+        foreach (var (x, z) in new[] { (-21.5f, -44.8f), (2f, -33.5f) }) Studzienka(x, z);   // poza strzałkami i odpływem
         // 6) oznakowanie w wycięciach: strzałki kierunku jazdy (na wschód), linia zatrzymania przy wyjeździe, koperty odkurzaczy
         foreach (float x in new[] { -33f, -14f }) StrzalkaWschod(x, -45.5f);
         ZnakWycieciu(zj0b + .2f, zj1b - .2f, -28.9f, -28.9f + .5f * K);                        // linia zatrzymania P-12
@@ -470,8 +474,8 @@ public static partial class BraxClaudeOsiedle
         StDetal("sklep", "leje i rury spustowe", 2);
         // ---- wnętrze ----
         var podl = Pbr("stacja: płytki sklepu", "large_grey_tiles", 1.2f, new Color(.96f, .96f, .96f));
-        Top(podl, x0 + t, x1 - t, z0 + t, z1 - .25f, yF);
-        BoxMinMax(Concrete, x0 + t, x1 - t, 0, yF, z0 + t, z1 - .25f, true);
+        BoxMinMax(Concrete, x0 + t, x1 - t, 0, yF - .04f, z0 + t, z1 - .25f, true);            // płyta (lico posadzki tylko z płytek)
+        BoxMinMax(podl, x0 + t, x1 - t, yF - .04f, yF, z0 + t, z1 - .25f, false);
         var listwa = StMat("listwa przypodłogowa", new Color(.3f, .3f, .31f), .4f);
         BoxMinMax(listwa, x0 + t, x1 - t, yF, yF + .08f, z0 + t, z0 + t + .015f, false); BoxMinMax(listwa, x0 + t, x0 + t + .015f, yF, yF + .08f, z0 + t, z1 - .25f, false); BoxMinMax(listwa, x1 - t - .015f, x1 - t, yF, yF + .08f, z0 + t, z1 - .25f, false);
         StDetal("sklep", "listwy przypodłogowe", 3);

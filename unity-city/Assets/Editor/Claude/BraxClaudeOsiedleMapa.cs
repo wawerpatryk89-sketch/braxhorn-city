@@ -56,6 +56,7 @@ public static partial class BraxClaudeOsiedle
             Prost(-19f, 5.5f, -62f, -48.5f, obiekt);                    // myjnia
         }
         else Prost(-12f, 12f, -46f, -30f, budynek);                    // willa Codexa (Wiśniowa 4)
+        if (WarsztatWlaczony) { Prost(WX0, WX1, -42f, -28.5f, asf); Prost(23f, 47f, -54f, -42f, budynek); }   // E32: warsztat zamiast garaży-kontenerów
         Prost(74f, 98f, -78f, -60f, obiekt);                           // siłownia A (za kasynem)
         // drogi A (DrogiA)
         if (ulice != null)
