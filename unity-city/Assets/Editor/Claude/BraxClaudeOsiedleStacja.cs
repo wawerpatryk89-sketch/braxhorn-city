@@ -46,6 +46,13 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(m, x0 - e, x1 + e, y0, y1, z0 - e, z0 + w, false, bottom); BoxMinMax(m, x0 - e, x1 + e, y0, y1, z1 - w, z1 + e, false, bottom);
         BoxMinMax(m, x0 - e, x0 + w, y0, y1, z0 + w, z1 - w, false, bottom); BoxMinMax(m, x1 - w, x1 + e, y0, y1, z0 + w, z1 - w, false, bottom);
     }
+    // Krawędzie ulicy B1 od strony działek (południe): krawężnik i zewnętrzna krawędź chodnika — z opisu ulicy po poszerzeniu (E3a).
+    static (float zKr, float zKr1, float zChod) KrawedzieB1()
+    {
+        var b1 = ulice?.FirstOrDefault(q => q.id == "B1");
+        if (b1 == null) return (-22.5f, -22.7f, -25.4f);
+        return (b1.c - b1.cw, b1.c - b1.cw - b1.kerb, b1.c - b1.HalfNeg);
+    }
     static void StDetal(string obiekt, string co, int n = 1) { stDetale += n; stDetaleOpis.Add(obiekt + ":" + co + (n > 1 ? "×" + n : "")); }
 
     // ---------------- krok główny ----------------
@@ -83,8 +90,9 @@ public static partial class BraxClaudeOsiedle
     {
         // cała działka: oba budynki, taras, płot, słupki bramy i stare drzewo Codexa (−18, −29) — stało pniem na krawędzi wiaty
         // (rzut z liczb kodu: korona 2.7–7.4 m przecinała gzyms wiaty 5.8–7.1 m), drzewo (18, −29) między stacją a warsztatem zostaje;
-        // y od 0.01: „Original virtual floor” (y −0.18…0) NIE jest cięta — podłoga z kolizją zostaje pod nową nawierzchnią
-        MinMax(SX0, SX1, .01f, 14f, SZ0, -25.5f),
+        // y od 0.01: „Original virtual floor” (y −0.18…0) NIE jest cięta — podłoga z kolizją zostaje pod nową nawierzchnią;
+        // od strony ulicy do 5 cm przed chodnikiem B1 (po poszerzeniu E3a chodnik sięga dalej na południe)
+        MinMax(SX0, SX1, .01f, 14f, SZ0, Mathf.Min(-25.5f, KrawedzieB1().zChod - .05f)),
     };
 
     // Układ stacji (te same liczby co w krokach budowy) — test w BraxTestNaprawOsiedla przed generowaniem osiedla.
@@ -139,7 +147,7 @@ public static partial class BraxClaudeOsiedle
         // geometria generatora z wcześniejszych kroków w obrysie (łączone siatki i osobne modele) — zwalona razem z budynkami;
         // podłoże (trawa y −0.01) i ulice (chodnik B1 kończy się na z −25.4) poza obrysem
         int gen = 0;
-        foreach (var v in vols) gen += WytnijZGrupy((gr, m) => !gr.StartsWith("Podłoże") && !gr.StartsWith("Osiedle A / stacja") && !gr.StartsWith("Osiedle A / myjnia"), v);
+        foreach (var v in vols) gen += WytnijZGrupy((gr, m) => !gr.StartsWith("Podłoże") && !gr.StartsWith("Osiedle A / stacja") && !gr.StartsWith("Osiedle A / myjnia") && !gr.StartsWith("Osiedle A / drogi") && gr != GrupaFarbyA, v);
         if (root)
             foreach (var r in root.GetComponentsInChildren<MeshRenderer>(true))
             {
@@ -171,7 +179,7 @@ public static partial class BraxClaudeOsiedle
         group = GrupaStacjiAsf;
         float zj0a = -29.5f, zj1a = -23f, zj0b = 4.5f, zj1b = 11f;          // zjazd (wjazd zach., wyjazd wsch.) — x
         // 1) zjazdy przez chodnik ulicy B1: krawężnik, zieleń i chodnik wycięte, krawężnik obniżony, asfalt na 2 cm niżej od chodnika
-        const float zKr = -22.5f, zKr1 = -22.7f, zChod = -25.4f;
+        var (zKr, zKr1, zChod) = KrawedzieB1();   // E3a: krawędzie B1 po poszerzeniu
         foreach (var (a, b) in new[] { (zj0a, zj1a), (zj0b, zj1b) })
         {
             var wyc = MinMax(a, b, -.1f, .6f, zChod - .02f, zKr + .02f);
@@ -189,7 +197,7 @@ public static partial class BraxClaudeOsiedle
         // 2) asfalt placu (bez pasa zieleni od ulicy, bez wysp, bez sklepu i myjni)
         float zF0 = -47.5f, zF1 = -28.4f;
         AsfaltProst(SX0, SX1, zF0, zF1);
-        AsfaltProst(zj0a, zj1a, zF1, SZ1); AsfaltProst(zj0b, zj1b, zF1, SZ1);
+        AsfaltProst(zj0a, zj1a, zF1, zChod); AsfaltProst(zj0b, zj1b, zF1, zChod);
         AsfaltProst(7f, SX1, -62f, zF0);                                                  // strefa odkurzaczy
         // 3) beton myjni (stanowiska i hala) — płyty z fugą dylatacyjną co 3 m × K (szczelina pokazuje podkład)
         var beton = Pbr("stacja: beton myjni", "concrete_pavement_02", 3f, new Color(.78f, .78f, .77f));

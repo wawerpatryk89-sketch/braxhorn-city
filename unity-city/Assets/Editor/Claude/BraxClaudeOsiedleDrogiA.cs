@@ -109,6 +109,8 @@ public static partial class BraxClaudeOsiedle
             new UlicaA { id = "S1", alongX = false, c = -43f, a0 = -19f, a1 = RondoZ, cw = 2.5f, green = .3f, walkNeg = 2f, walkPos = 0f, centerLine = false },
             new UlicaA { id = "S2", alongX = false, c = 43.6f, a0 = -19f, a1 = RondoZ, cw = 2.5f, green = .3f, walkNeg = 0f, walkPos = 2f, centerLine = false },
         };
+        farbaOdroczona = true; farbaOdroczonaLista.Clear();   // E3a (runda 3): farba prostokątna kładziona na końcu w wycięciach asfaltu
+        try { PoszerzUliceA(); } catch (Exception e) { Debug.LogError("BRAXHORN_DROGI_POSZERZENIE DO POPRAWKI: " + e.Message); }   // E3a: przekrój 2 × 3.5 m × K tam, gdzie jest miejsce
         try { SzerokosciUlicA(); } catch (Exception e) { Debug.LogError("BRAXHORN_DROGI_SZEROKOSC DO POPRAWKI: " + e.Message); }
         wezly = new List<WezelA>();
         foreach (var u in ulice.Where(q => q.alongX))
@@ -182,12 +184,14 @@ public static partial class BraxClaudeOsiedle
             float zf0 = fz + 15f, zf1 = fz + 20.5f, zr0 = fz - 18.5f, zr1 = fz - 15f;
             float front = zf1, back = zr0;
             foreach (var (l0, l1) in LotyBulwarow) { if (l0 - .2f > zf0 - .5f && l0 - .2f < front) front = l0 - .2f; if (l1 + .2f < zr1 + .5f && l1 + .2f > back - .6f) back = l1 + .2f; }
-            if (front > zf0 + .2f) BoxMinMax(Pavers, fx - 22f, fx + 22f, 0, .1f, zf0, front);
-            if (back < zr1 - .2f) BoxMinMax(Pavers, fx - 22f, fx + 22f, 0, .1f, back, zr1);
+            float px0 = fx < 0 ? fx - 22f : Mathf.Max(fx - 22f, bulwarKoniecE), px1 = fx < 0 ? Mathf.Min(fx + 22f, bulwarKoniecW) : fx + 22f;   // E3a: plac od nowej krawędzi Wiśniowej/Bydgoskiej
+            if (front > zf0 + .2f) BoxMinMax(Pavers, px0, px1, 0, .1f, zf0, front);
+            if (back < zr1 - .2f) BoxMinMax(Pavers, px0, px1, 0, .1f, back, zr1);
         }
         // 6) sygnalizacja świetlna
         foreach (var w in wezly.Where(q => q.rodzaj == RodzajWezla.Swiatla)) Guard("drogi A: sygnalizacja (" + w.x + ", " + w.z + ")", () => Sygnalizacja(w));
         group = "Osiedle A / drogi od nowa";
+        Guard("drogi A: oznakowanie w wycięciach asfaltu", () => FarbaWWycieciach());
         rep.notes.Add("drogi A (build 14): " + ulice.Count + " ulic, " + wezly.Count + " węzłów (rondo (0, " + RondoZ + "), światła ×" + wezly.Count(q => q.rodzaj == RodzajWezla.Swiatla) + "), "
                       + zebry.Count + " zebr, " + zatokiA + " zatok, usunięte stare nawierzchnie RenovateA: " + usunietePlyty + " płyt, płoty B2: " + przesunietePloty + " odcinków");
         Debug.Log("BRAXHORN_DROGI_A ulice=" + ulice.Count + ", wezly=" + wezly.Count + ", zebry=" + zebry.Count + ", zatoki=" + zatokiA + ", usuniete_plyty=" + usunietePlyty + ", przesuniete_ploty=" + przesunietePloty);
@@ -579,7 +583,7 @@ public static partial class BraxClaudeOsiedle
     // bulwaru), rzędy zatok prostopadłych (2.5 × 5 m × K, przodem do alejki), odbojnice, latarnie, znak D-18.
     static void ParkingBulwar(float side, UlicaA bulwar, float z0, float z1, (float a, float b, float sgn)[] rzedy)
     {
-        float xIn = side * 64f, xOut = side * 107.5f, xa = Mathf.Min(xIn, xOut), xb = Mathf.Max(xIn, xOut);
+        float xIn = side > 0 ? Mathf.Max(64f, bulwar.a1) : Mathf.Min(-64f, bulwar.a0), xOut = side * 107.5f, xa = Mathf.Min(xIn, xOut), xb = Mathf.Max(xIn, xOut);   // E3a: od końca bulwaru (nowa krawędź Wiśniowej/Bydgoskiej)
         Top(Asphalt, xa, xb, z0, z1, YAsf);
         // krawężniki (bez zakładek — narożniki należą do krawężników wzdłuż x): wzdłuż x, koniec, od strony bulwaru poza
         // jezdnią, domknięcie jezdni bulwaru poza parkingiem
@@ -677,7 +681,8 @@ public static partial class BraxClaudeOsiedle
                 }
             }
             float bylo = 2f * u.cw, mozna = 2f * (u.cw + Mathf.Max(0f, Mathf.Min(dN, dP) - .3f)), brak = Mathf.Max(0f, 2f * cel - mozna);
-            Debug.Log("BRAXHORN_DROGI_SZEROKOSC ulica=" + (u.nazwa ?? u.id) + " było=" + bylo.ToString("F2") + " jest=" + bylo.ToString("F2") + " (bez zmian w 45) możliwe=" + Mathf.Min(mozna, 2f * cel).ToString("F2")
+            float przed = szerPrzed.TryGetValue(u.id, out var sp) ? sp : bylo;
+            Debug.Log("BRAXHORN_DROGI_SZEROKOSC ulica=" + (u.nazwa ?? u.id) + " przed=" + przed.ToString("F2") + " po=" + bylo.ToString("F2") + " [" + (szerOpis.TryGetValue(u.id, out var so) ? so : "—") + "] możliwe_jeszcze=" + Mathf.Min(mozna, 2f * cel).ToString("F2")
                 + " cel=" + (2f * cel).ToString("F2") + " brak_miejsca=" + brak.ToString("F2") + " chodnik −/+ " + u.walkNeg.ToString("F1") + "/" + u.walkPos.ToString("F1") + " (≥ " + (1.5f * K).ToString("F2") + ")"
                 + " zieleń −/+ " + u.greenNeg.ToString("F1") + "/" + u.greenPos.ToString("F1") + " wolne za chodnikiem −/+ " + dN.ToString("F1") + "/" + dP.ToString("F1") + " m (próbek " + n + ")");
         }

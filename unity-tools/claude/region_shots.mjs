@@ -195,6 +195,12 @@ const VIEWS = [
   ['DETAL_warsztat_brama_segmenty', '38.1,0.1,-42.3,0,10,3', 'estate'],
   ['DETAL_warsztat_okno_parapet_opaska', '23,0.1,-48,270,10,3', 'estate'],
   ['DETAL_warsztat_podnosnik_hala', '32.4,0.25,-48.5,0,15,3', 'estate'],
+  // --- wykonawca B, runda 3 (E3a): ulice A poszerzone do 2 × 3.5 m × K tam, gdzie jest miejsce ---
+  ['B45_E3a_wisniowa_poszerzona', '-58,0.1,30,180,14,12', 'estate'],
+  ['B45_E3a_B1_przy_stacji', '-10,0.1,-19,270,12,12', 'estate'],
+  ['B45_E3a_uliczka_S1', '-44.3,0.1,20,180,12,12', 'estate'],
+  ['DETAL_ulica_kraweznik_chodnik_wisniowa', '-63.5,0.1,0,90,20,3', 'estate'],
+  ['DETAL_ulica_oznakowanie_w_wycieciu', '-2,0.1,-13,0,40,2.5', 'estate'],
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],

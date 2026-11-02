@@ -21,6 +21,8 @@ public static partial class BraxClaudeOsiedle
 
     static void UliceOsiedla()
     {
+        if (farbaOdroczonaLista.Count > 0) Guard("drogi A: oznakowanie w wycięciach (zaległe po błędzie w DrogiA)", () => FarbaWWycieciach());
+        farbaOdroczona = false;
         var g0 = group;
         zatokiB = podjazdyB = slupkiN = hydrantyN = przystankiN = barierkiN = koszeN = kratyN = 0;
         int farbaB = PrzeniesFarbe("Osiedle B / ulice", GrupaFarbyB, .006f);

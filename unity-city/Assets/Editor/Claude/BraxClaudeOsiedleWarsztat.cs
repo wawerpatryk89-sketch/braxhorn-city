@@ -23,7 +23,7 @@ public static partial class BraxClaudeOsiedle
         int detale0 = stDetale; stDetaleOpis.Clear();
         var g0 = group; group = "Osiedle A / warsztat";
         // 1) zwalenie: kontenery, tablica, geometria generatora i kolizje w obrysie (podłoga y ≤ 0 zostaje)
-        var vol = MinMax(WX0, WX1, .01f, 14f, WZ0, WZ1);
+        var vol = MinMax(WX0, WX1, .01f, 14f, WZ0, Mathf.Min(WZ1, KrawedzieB1().zChod - .05f));   // do 5 cm przed chodnikiem B1 (E3a)
         int przed = rep.oldFenceTrianglesRemoved;
         if (estate) CutVolumes(estate, physics, new List<Bounds> { vol, MinMax(23.9f, 28.1f, .01f, 2.7f, -24.95f, -24.65f) });
         int troj = rep.oldFenceTrianglesRemoved - przed, kol = 0, gen = 0;
@@ -38,7 +38,7 @@ public static partial class BraxClaudeOsiedle
                 Object.DestroyImmediate(c); kol++;
             }
         }
-        gen += WytnijZGrupy((gr, m) => !gr.StartsWith("Podłoże") && !gr.StartsWith("Osiedle A / warsztat") && !gr.StartsWith("Osiedle A / stacja") && !gr.StartsWith("Osiedle A / myjnia"), vol);
+        gen += WytnijZGrupy((gr, m) => !gr.StartsWith("Podłoże") && !gr.StartsWith("Osiedle A / warsztat") && !gr.StartsWith("Osiedle A / stacja") && !gr.StartsWith("Osiedle A / myjnia") && !gr.StartsWith("Osiedle A / drogi") && gr != GrupaFarbyA, vol);
         if (root)
             foreach (var r in root.GetComponentsInChildren<MeshRenderer>(true))
                 if (r && r.bounds.max.y > .05f && e.Contains(r.bounds.min) && e.Contains(r.bounds.max)) { Object.DestroyImmediate(r.gameObject); gen++; }
@@ -46,7 +46,7 @@ public static partial class BraxClaudeOsiedle
 
         // 2) nawierzchnia: zjazd z B1, plac (alejka + miejsca), krawężniki z fugą, odwodnienie, oznakowanie w wycięciach
         group = GrupaStacjiAsf;
-        const float zKr = -22.5f, zKr1 = -22.7f, zChod = -25.4f, dj0 = 22f, dj1 = 28.5f;
+        const float dj0 = 22f, dj1 = 28.5f; var (zKr, zKr1, zChod) = KrawedzieB1();   // E3a: krawędzie B1 po poszerzeniu
         var wyc = MinMax(dj0, dj1, -.1f, .6f, zChod - .02f, zKr + .02f);
         WytnijZGrupy((gr, m) => gr == "Osiedle A / drogi od nowa" && m != Asphalt, wyc);
         PodzielKolizje(colliders, wyc);
@@ -57,7 +57,7 @@ public static partial class BraxClaudeOsiedle
             if (xk < dj1 - .005f) { BoxMinMax(StMat("fuga krawężnika", new Color(.42f, .42f, .41f), .1f), xk, xk + .01f, YS - .03f, YS + .025f, zKr1 + .005f, zKr - .005f, false); stKraweznikiFugi++; }
         }
         Top(Asphalt, dj0, dj1, zChod, zKr1, YS + .02f);
-        AsfaltProst(WX0, WX1, -42f, -28.5f); AsfaltProst(dj0, dj1, -28.5f, WZ1);
+        AsfaltProst(WX0, WX1, -42f, -28.5f); AsfaltProst(dj0, dj1, -28.5f, zChod);
         KrawFugi(true, -28.4f, WX0, dj0 - .05f); KrawFugi(true, -28.4f, dj1 + .05f, WX1);
         KrawFugi(false, WX0 + .1f, -42f, -28.5f); KrawFugi(false, WX1 - .1f, -42f, -28.5f);
         OdplywLiniowy(29.5f, 47f, -41.6f, true);   // przed bramami, w asfalcie placu (plac do z −42)

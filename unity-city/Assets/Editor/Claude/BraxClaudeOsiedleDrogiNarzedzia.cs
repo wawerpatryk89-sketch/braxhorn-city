@@ -21,6 +21,7 @@ public static partial class BraxClaudeOsiedle
     // Farba drogowa w osobnej grupie bez rzucania cieni (pasy 2 cm nad asfaltem nie kładą „obwódki” cienia).
     static void Farba(float x0, float x1, float z0, float z1, float y = YFarba, Material m = null)
     {
+        if (farbaOdroczona && m == null && Mathf.Abs(y - YFarba) < 1e-4f) { farbaOdroczonaLista.Add((Mathf.Min(x0, x1), Mathf.Max(x0, x1), Mathf.Min(z0, z1), Mathf.Max(z0, z1))); return; }   // E3a: w wycięciu (na końcu DrogiA)
         var g = group; group = GrupaFarbyA;
         Top(m ?? Paint, Mathf.Min(x0, x1), Mathf.Max(x0, x1), Mathf.Min(z0, z1), Mathf.Max(z0, z1), y);
         group = g;
