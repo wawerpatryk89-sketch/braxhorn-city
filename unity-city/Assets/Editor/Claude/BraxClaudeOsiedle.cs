@@ -5615,6 +5615,9 @@ public static partial class BraxClaudeOsiedle
         Flush();
         FlushClumps();
         Guard("sufity dla kamery (blokada nad pomieszczeniami)", SufityKamery);
+        // build 14 (dyspozytor przy scalaniu): kontrole jakości PRZED ludźmi — kontrola skaluje/przesuwa ławki i meble, a ludzie
+        // siedzący są wstawiani na stałe na wysokości ławki; po kontroli siadają na już poprawionych. Siatki są jeszcze do odczytu.
+        Guard("kontrole jakości: skala, umieszczenie, kolizje, migotanie, pomieszczenia, robot", () => BraxKontrola.Wszystko(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), "osiedle"));
         Guard("ludzie: przechodnie, obsada, kierowcy (Rocketbox)", LudzieNaOsiedlu);   // build 14 „ludzie”: po wnętrzach, ławkach i autach
 
         // 6) punkty podróży (TravelPoint) do nowych miejsc

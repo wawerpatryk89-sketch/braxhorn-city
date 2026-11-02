@@ -236,7 +236,6 @@ public static class BraxCityBuild
         BraxEstateR2FacadeFinish.Apply();
         // Osiedle R2 (Opus): remont A, Park Centralny, osiedle B, wille, kasyno, komisariat, siłownia A, trawa, wylot tunelu z miasta.
         BraxClaudeOsiedle.Apply();
-        try{BraxKontrola.Wszystko(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrole jakości (osiedle): "+e);}   // build 14: skala, umieszczenie, kolizje, migotanie, pomieszczenia, robot — przed BezSwiecenia/Siatki (siatki jeszcze do odczytu)
         {var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
         try{BraxClaudeBezSwiecenia.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (osiedle): "+e);}
         try{BraxClaudeSiatki.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
