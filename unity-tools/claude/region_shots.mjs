@@ -95,6 +95,56 @@ const VIEWS = [
   ['E16_dom_wawerow_front', '-8,.1,59,90,10,9', 'estate'],
   ['E17_dom_wawerow_jak_na_zdjeciu', '-12,.1,46,125,8,10', 'estate'],
   ['E18_tablice_tur_pod_zamosciem', '0,.1,97,0,10,7', 'estate'],
+  // ---- build 14 (dyspozytor 2.11): ujęcia z raportów wykonawców; 4. pole = podgląd interfejsu (BraxSend('ReviewUi', tryb))
+  ['N14_H01_park_od_startu', '0,.1,-15,0,5,8', 'estate'],
+  ['N14_L01_chodnik_sklepy_B', '-3,.14,-183,180,10,7', 'estate'],
+  ['N14_L01b_ludzie_z_bliska', '-3,.14,-183,180,10,3', 'estate'],
+  ['N14_L02_lawki_fontanna', '-20,.05,-126.3,135,25,14', 'estate'],
+  ['N14_L03_kawiarnia_lada', '30.3,.14,-168.3,180,8,5', 'estate'],
+  ['N14_L04_dyskoteka_wejscie', '87,.1,29.5,0,10,7', 'estate'],
+  ['N14_L05_rondo_auta', '6,.1,33,315,12,8', 'estate'],
+  ['N14_L06_silownia_recepcja', '85,.1,-68.3,180,10,4.5', 'estate'],
+  ['N14_L07_parkiet', '93,.11,12,90,18,9', 'estate'],
+  ['N14_L08_komisariat', '-90,.07,-35,0,10,5', 'estate'],
+  ['N14_L09_kasyno_kasa', '72,.06,-34,0,8,4.5', 'estate'],
+  ['N14_L10_szpital_hol', '-86,.1,22,0,12,7', 'estate'],
+  ['N14_L11_zebra', '-58,.1,-19,45,30,18', 'estate'],
+  ['N14_L12_park', '-20,.05,-112,0,18,16', 'estate'],
+  ['N14_H02_horyzont_N', '0,.1,30,180,3,6', 'estate'],
+  ['N14_H03_horyzont_N_z_parku', '-20,.1,-140,180,4,6', 'estate'],
+  ['N14_H04_horyzont_W', '-104,.1,-125,90,3,5', 'estate'],
+  ['N14_H05_horyzont_E', '104,.1,-125,270,3,5', 'estate'],
+  ['N14_H06_horyzont_S', '19,.1,-226,0,3,5', 'estate'],
+  ['N14_H07_tunel_przod', '0,.1,80,180,8,10', 'estate'],
+  ['N14_H08_tunel_z_bliska', '0,1.2,96.8,180,2,1.5', 'estate'],
+  ['N14_H09_budka_szlaban', '9,.1,94,135,10,4', 'estate'],
+  ['N14_H10_lisce_z_bliska', '8,3,6,270,0,2', 'estate'],
+  ['N14_H11_bydgoska_drzewa', '58,.1,0,180,8,6', 'estate'],
+  ['N14_D01_rondo_z_gory', '0,0.2,42,0,70,12', 'estate'],
+  ['N14_D02_rondo_wlot_pld', '3,0.2,20.5,180,8,6', 'estate'],
+  ['N14_D03_rondo_wlot_zach', '-21,0.2,43.75,270,8,6', 'estate'],
+  ['N14_D05_b2_dom_wsch', '22,0.2,36.9,270,12,8', 'estate'],
+  ['N14_D06_b2_dom_zach', '-27,0.2,36.9,90,12,8', 'estate'],
+  ['N14_D07_swiatla_tunel', '0,0.2,74,180,10,9', 'estate'],
+  ['N14_D08_swiatla_b3', '14,0.2,87.75,90,10,8', 'estate'],
+  ['N14_D09_swiatla_b1', '0,0.2,-2,0,10,9', 'estate'],
+  ['N14_D10_zebra_tunel', '0,0.2,97,0,12,8', 'estate'],
+  ['N14_D11_parking_silownia', '56,0.2,-80,270,14,8', 'estate'],
+  ['N14_D12_parking_sala_bokserska', '-80,0.2,86.9,180,16,9', 'estate'],
+  ['N14_D13_parking_kasyno', '85,0.2,-13,0,14,10', 'estate'],
+  ['N14_D14_park_zebra', '-58,0.2,-54,0,12,9', 'estate'],
+  ['N14_D15_tablica_bydgoska', '52,0.2,-10.5,0,6,3.5', 'estate'],
+  ['N14_D17_przystanek_poznanska', '5.5,0.2,3,180,10,6', 'estate'],
+  ['N14_D19_b_parking', '5,0.2,-158.5,180,14,9', 'estate'],
+  ['N14_D21_b_plac_pawilonu', '8,0.2,-191.25,180,10,7', 'estate'],
+  ['N14_K01_kasyno_ruletka', '73,.06,-31.5,0,12,3', 'estate'],
+  ['N14_T01_witryna_kawiarni', '30.25,.3,-183.8,180,12,8', 'estate'],
+  ['N14_T02_witryna_marketu', '42.55,.3,-183.8,180,12,8', 'estate'],
+  ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
+  ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
+  ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],
+  ['N14_UI05_teleport', '0,.08,20,180,10,10', 'estate', 'teleport'],
+  ['N14_UI07_mapa', '0,.08,20,180,10,10', 'estate', 'mapa'],
 ];
 const TRAVEL = (process.env.TRAVEL_POINTS || '').split(',').filter(Boolean);
 
@@ -136,7 +186,7 @@ for (let i = 0; i < MINE.length; i += 6) {
     try {
       await session(async page => {
         if (i === 0 && PART === 0) fs.writeFileSync(path.join(out, 'state-start.json'), JSON.stringify(await page.evaluate(() => window.BraxhornState), null, 1));
-        for (const [name, view, want = 'city'] of chunk) {
+        for (const [name, view, want = 'city', ui = ''] of chunk) {
           if (fs.existsSync(path.join(out, name + '.png'))) continue;
           const area = await page.evaluate(() => window.BraxhornState?.area || '');
           if (area !== want) {
@@ -150,9 +200,11 @@ for (let i = 0; i < MINE.length; i += 6) {
           let used = view, size = 0;
           for (const v of variants) {
             await send(page, 'ReviewView', v); await settle(page);
+            if (ui) { await send(page, 'ReviewUi', ui); await page.waitForTimeout(1500); }   // interfejs Unity (przyciski, menu) na zdjęciu
             const buf = await page.screenshot({path: path.join(out, name + '.tmp.png'), timeout: 300000});
+            if (ui) { await send(page, 'ReviewUi', 'wyl'); await page.waitForTimeout(500); }
             used = v; size = buf.length;
-            if (size >= 150000) break;
+            if (size >= 150000 || ui) break;
             log.push('zasłonięty kadr ' + name + ' (' + v + ', ' + size + ' B) — próbuję inny');
           }
           fs.renameSync(path.join(out, name + '.tmp.png'), path.join(out, name + '.png'));
