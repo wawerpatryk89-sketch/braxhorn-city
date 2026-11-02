@@ -182,7 +182,7 @@ public static partial class BraxClaudeOsiedle
             Vector2 din = (cur - prev).normalized, dout = (next - cur).normalized;
             Vector2 rin = new Vector2(din.y, -din.x), rout = new Vector2(dout.y, -dout.x);   // prawo względem kierunku (Unity: x prawo, z przód)
             float lin = Pas(prev, cur), lout = Pas(cur, next);
-            bool rondo = Mathf.Abs(cur.x) < .1f && Mathf.Abs(cur.y - 39f) < .1f;
+            bool rondo = Mathf.Abs(cur.x) < .1f && Mathf.Abs(cur.y - RondoZ) < .1f;
             if (rondo)
             {
                 const float R = 9.1f;
@@ -221,10 +221,10 @@ public static partial class BraxClaudeOsiedle
         const float y = YAsf + .01f;
         var petle = new[]
         {
-            new[] { new Vector2(-58, -19), new Vector2(58, -19), new Vector2(58, 39), new Vector2(0, 39), new Vector2(-58, 39) },
-            new[] { new Vector2(-58, 39), new Vector2(0, 39), new Vector2(58, 39), new Vector2(58, -19), new Vector2(-58, -19) },
-            new[] { new Vector2(0, -19), new Vector2(0, 39), new Vector2(0, 86), new Vector2(58, 86), new Vector2(58, -19) },
-            new[] { new Vector2(0, -19), new Vector2(-58, -19), new Vector2(-58, 86), new Vector2(0, 86), new Vector2(0, 39) },
+            new[] { new Vector2(-58, -19), new Vector2(58, -19), new Vector2(58, RondoZ), new Vector2(0, RondoZ), new Vector2(-58, RondoZ) },
+            new[] { new Vector2(-58, RondoZ), new Vector2(0, RondoZ), new Vector2(58, RondoZ), new Vector2(58, -19), new Vector2(-58, -19) },
+            new[] { new Vector2(0, -19), new Vector2(0, RondoZ), new Vector2(0, 86), new Vector2(58, 86), new Vector2(58, -19) },
+            new[] { new Vector2(0, -19), new Vector2(-58, -19), new Vector2(-58, 86), new Vector2(0, 86), new Vector2(0, RondoZ) },
         };
         var rnd = new System.Random(2026); int auta = 0, parked = 0, mi = 0;
         foreach (var petla in petle)
