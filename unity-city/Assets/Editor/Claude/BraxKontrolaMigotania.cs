@@ -299,6 +299,8 @@ public static class BraxKontrolaMigotania
     {
         if (ruchomeCache.TryGetValue(r, out var b)) return b;
         b = false; foreach (var t in Ruchome) if (r.GetComponentInParent(t)) { b = true; break; }
+        // auta z generatora („Auto zaparkowane · …”, „Auto · car_…”, „Auto Patryka …”) — nie tniemy (siatka na każdy egzemplarz = rozmiar APK)
+        if (!b) for (var x = r.transform; x; x = x.parent) if (x.name.StartsWith("Auto ")) { b = true; break; }
         ruchomeCache[r] = b; return b;
     }
 
