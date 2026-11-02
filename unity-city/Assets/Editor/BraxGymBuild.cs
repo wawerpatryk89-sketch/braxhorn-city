@@ -358,9 +358,11 @@ public static class BraxGymBuild
         // Podział na obszary PO zapisie sceny głównej (build 7: Unity nie tworzy sceny dodatkowej obok niezapisanej).
         // Wyspa osobno (właściciel 1.11, 01:43: „wyspa mogła być oddzielona i załadować się w trakcie płynięcia”): ~90 m morza
         // od mariny, skuter ~15 m/s → wczytanie zaczyna się 140 m przed brzegiem wyspy (zaraz po wypłynięciu), zwolnienie 240 m.
+        // A 2.11 (właściciel 16:04 „osobny obszar ~250–300 m, z daleka sylwetka, bez wyskakiwania”): granica obszaru to obrys
+        // siatki wyspy z dnem (±150 m od środka 400, 60), brzeg lądu ~60 m dalej → 200 m od obrysu ≈ 260 m od brzegu; zwolnienie 280.
         if(fullCity&&renovation&&!osiedle)
         {
-            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Wyspa",BraxClaudeObszary.PoNazwach(scene,"CLAUDE wyspa*"),140f,240f,Generated);}
+            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Wyspa",BraxClaudeObszary.PoNazwach(scene,"CLAUDE wyspa*"),200f,280f,Generated);}
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: wyspa jako osobny obszar: "+e);}
             try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE"),45f,110f,Generated);}
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: podział miasta na obszary: "+e);}
