@@ -58,6 +58,7 @@ public static class BraxKontrola
             Krok("umieszczenie", () => BraxKontrolaUmieszczenia.Wykonaj(scena, spis));
             Krok("kolizje", () => BraxKontrolaKolizji.Wykonaj(spis));
             Krok("migotanie", () => BraxKontrolaMigotania.Wykonaj(scena, spis));
+            Krok("materiały (podłogi-lustra)", () => BraxKontrolaMaterialow.Wykonaj(scena));
             Krok("pomieszczenia", () => BraxKontrolaPomieszczen.Wykonaj(scena));
             Krok("robot", () => BraxRobotKolizji.Wykonaj(scena, spis));
         }
