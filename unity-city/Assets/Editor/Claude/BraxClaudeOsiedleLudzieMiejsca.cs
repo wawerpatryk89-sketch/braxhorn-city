@@ -36,6 +36,7 @@ public static partial class BraxClaudeOsiedle
         }
         Physics.SyncTransforms();
         var rnd = new System.Random(1414);
+        wzrostyM.Clear(); wzrostyK.Clear();
         group = "Ludzie (Rocketbox)";
         // najpierw ludzie w miejscu (sprawdzanie wolnego miejsca nie widzi jeszcze kolizji przechodniów), na końcu przechodnie
         Guard("ludzie: obsada lokali", () => ObsadaLokali(rnd));
@@ -51,7 +52,12 @@ public static partial class BraxClaudeOsiedle
                      " bledy_kosci=" + rbBledyKosci + " tpoza=" + rbTpoza + " siedzacy=" + rbSiedzacy + " pary=" + rbPary + " inni=" + rbInni + " razem=" + rbLudzie +
                      " klipy=" + rbKlipy.Count + " wzrost_bohatera=" + WzrostBohatera.ToString("F2");
         Debug.Log(msg); rep.notes.Add(msg);
+        string Stat(List<float> l) => l.Count == 0 ? "—" : "n=" + l.Count + " śr " + l.Average().ToString("F3") + " min " + l.Min().ToString("F3") + " max " + l.Max().ToString("F3");
+        Debug.Log("BRAXHORN_SKALA ludzie: k świata=" + K.ToString("F3") + " baza ludzi=" + WzrostBazaLudzi.ToString("F2") + " m (#44: 2.27) mężczyźni " + Stat(wzrostyM) + " kobiety " + Stat(wzrostyK)
+            + " (oczekiwane: mężczyźni 2.202–2.270, kobiety 2.145–2.213)");
     }
+    static readonly List<float> wzrostyM = new List<float>(), wzrostyK = new List<float>();
+    static List<float> WzrostyLudzi(bool kobieta) => kobieta ? wzrostyK : wzrostyM;
 
     // ---------------- sieć chodników ----------------
     sealed class SiecPieszych

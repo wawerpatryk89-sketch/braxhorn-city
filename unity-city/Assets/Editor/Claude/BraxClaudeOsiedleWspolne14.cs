@@ -25,6 +25,9 @@ public static partial class BraxClaudeOsiedle
     // wszystko tak jak pod Braxa”). Ta sama skala na osiedlu (gracz Patryk 2.27 m) i w mieście (gracz Brax).
     // Build 44 (GPT 2e63785) liczył świat od Patryka (k = 1.261) — przywrócone (build 45): k = 2.33 / 1.80 = 1.294 zawsze.
     public const float WzrostBraxa = 2.33f;
+    // Baza wzrostu LUDZI (przechodnie, mieszkańcy, obsada, kierowcy, pasażerowie) — właściciel 2.11 20:45: „skala ludzi jest
+    // dobra na pewno” (build 44, H = 2.27) — nie zmieniać razem z K świata. Mężczyźni 0.97–1.00 × baza, kobiety 0.945–0.975 × baza.
+    public const float WzrostBazaLudzi = 2.27f;
     public static float WzrostBohatera = WzrostBraxa;
     public static float K => WzrostBohatera / 1.80f;
 
@@ -43,7 +46,7 @@ public static partial class BraxClaudeOsiedle
         float gracz = WzrostBohatera;                                         // zmierzony gracz (tylko do logu)
         if (WzrostZModelu > 1.2f && WzrostZModelu < 3.2f) gracz = WzrostZModelu;
         WzrostBohatera = WzrostBraxa;                                          // świat zawsze pod Braxa (gracz nie zmienia miary)
-        Debug.Log("BRAXHORN_SKALA wzrost bohatera " + WzrostBohatera.ToString("F2") + " m (miara świata = Brax), k = " + K.ToString("F3") + ", gracz w scenie " + gracz.ToString("F2") + " m");
+        Debug.Log("BRAXHORN_SKALA wzrost bohatera " + WzrostBohatera.ToString("F2") + " m (miara świata = Brax), k świata = " + K.ToString("F3") + ", baza ludzi = " + WzrostBazaLudzi.ToString("F2") + " m (jak #44), gracz w scenie " + gracz.ToString("F2") + " m");
         return WzrostBohatera;
     }
 
