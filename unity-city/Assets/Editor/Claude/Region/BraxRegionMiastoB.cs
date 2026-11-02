@@ -35,6 +35,10 @@ public static class BraxRegionMiastoB
     public const float SZ = -19f, SH = 3f, SX1 = -61.4f;   // ul. Warsztatowa
     public const float GZ = 28.5f, GH = 4.5f;              // ulica główna
     const float YA = .003f, YC = .15f;
+    // parking przy warsztatach (za warsztatami, wjazd z Alei Południowej przez zjazd we wschodnim pasie zieleni): 2 rzędy po 12
+    // stanowisk prostopadłych 2.5 × 5 m × k, aleja manewrowa 6 m; powierzchnia na poziomie chodnika
+    public const float ParkX0 = -112f, ParkX1 = -72f, ParkZ0 = -66f, ParkZ1 = -46f, ParkAleja0 = -59f, ParkAleja1 = -53f;
+    public static readonly List<(Vector3 c, Vector3 przod, Vector2 rozmiar)> MiejscaParkingu = new List<(Vector3, Vector3, Vector2)>();
 
     static Transform root;
     static Material asfalt, plyty, plytyCiemne, krawMat, farba, granit, beton, stal, cegla;
@@ -71,7 +75,7 @@ public static class BraxRegionMiastoB
 
     public static void Apply(BraxCityWorld world, Transform cityRoot)
     {
-        usuniete.Clear(); kroki.Clear(); SkrzyzowaniaZeSwiatlami.Clear(); asfalty.Clear(); wyposazenie.Clear(); nawierzchnie.Clear(); drzewa = latarnie = zebry = sygnalizatory = 0; MigotaniePary = 0;
+        usuniete.Clear(); kroki.Clear(); SkrzyzowaniaZeSwiatlami.Clear(); asfalty.Clear(); wyposazenie.Clear(); nawierzchnie.Clear(); zjazdy.Clear(); MiejscaParkingu.Clear(); drzewa = latarnie = zebry = sygnalizatory = 0; MigotaniePary = 0;
         BraxRegionKamienica.Zeruj();
         root = BraxRegion.Root(cityRoot, "CLAUDE miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa");
         Krok("usunięcie wiaduktu, płotu końca ulicy i gruntu-lustra", () => UsunStare(cityRoot));
@@ -84,6 +88,7 @@ public static class BraxRegionMiastoB
         Krok("1. nawierzchnie: Aleja Południowa do tunelu", AlejaPoludniowa);
         Krok("1. nawierzchnie: ul. Wiaduktowa i ul. Warsztatowa", UliceBoczne);
         Krok("1. teren między ulicami (trawniki, place, skwer)", Teren);
+        Krok("1. parking przy warsztatach (asfalt z liniami w wycięciach, wjazd)", Parking);
         Krok("1. jezdnie z oznakowaniem w wycięciach nawierzchni", PlanOznakowania);
         Krok("2. budynki: pierzeje alej (kamienice z detalami)", Pierzeje);
         Krok("2. budynki: warsztaty (jeden otwarty) i plac ustawek", Warsztaty);
@@ -347,40 +352,69 @@ public static class BraxRegionMiastoB
     }
 
     // przekrój ulicy wzdłuż osi z (stałe x = c): jezdnia, krawężniki, pasy zieleni, chodniki, od z0 do z1
+    // zjazdy przez pas zieleni (strona s: −1 zach., +1 wsch.; zakres z): krawężnik obniżony (4 cm nad jezdnią), w pasie zieleni
+    // rampa asfaltowa od krawężnika do poziomu chodnika (chodnik idzie dalej bez przerwy — auto wjeżdża na jego poziom)
+    static readonly List<(int s, float a, float b)> zjazdy = new List<(int, float, float)>();
     static void PrzekrojZ(string n, float c, float hj, float ziel, float chod, float z0, float z1, bool drzewaTu, params (float a, float b)[] przerwyZieleni)
     {
         Asfalt(n, c - hj, c + hj, z0, z1);
-        Kraweznik(c - hj - Kr, c - hj, z0, z1); Kraweznik(c + hj, c + hj + Kr, z0, z1);
         foreach (int s in new[] { -1, 1 })
         {
+            var zj = zjazdy.Where(q => q.s == s && q.b > z0 && q.a < z1).OrderBy(q => q.a).ToList();
+            float k0 = s < 0 ? c - hj - Kr : c + hj, k1 = s < 0 ? c - hj : c + hj + Kr;
+            float kz = z0;
+            foreach (var q in zj)
+            {
+                float a = Mathf.Max(z0, q.a), b = Mathf.Min(z1, q.b);
+                Kraweznik(k0, k1, kz, a); Plyta("Krawężnik obniżony (zjazd)", krawMat, k0, k1, a, b, YA + .04f, .3f - YA); kz = b;
+            }
+            Kraweznik(k0, k1, kz, z1);
             float e0 = c + s * (hj + Kr), e1 = c + s * (hj + Kr + ziel), e2 = c + s * (hj + Kr + ziel + chod);
             float zx0 = Mathf.Min(e0, e1), zx1 = Mathf.Max(e0, e1), cx0 = Mathf.Min(e1, e2), cx1 = Mathf.Max(e1, e2);
+            bool Przerwa(float z, float m) => przerwyZieleni.Any(p => z > p.a - m && z < p.b + m) || zj.Any(p => z > p.a - m && z < p.b + m);
             if (ziel > .1f)
             {
-                // pas zieleni z przerwami (przejścia) — w przerwie chodnik
+                // pas zieleni z przerwami (przejścia — chodnik; zjazdy — rampa)
                 float cur = z0;
-                foreach (var p in przerwyZieleni.OrderBy(q => q.a))
+                foreach (var p in przerwyZieleni.Select(q => (q.a, q.b, zjazd: false)).Concat(zj.Select(q => (q.a, q.b, zjazd: true))).OrderBy(q => q.a))
                 {
                     if (p.b <= z0 || p.a >= z1) continue;
                     Trawa(n + " pas zieleni", zx0, zx1, cur, Mathf.Max(cur, p.a));
-                    Chodnik(n + " przejście przez pas zieleni", zx0, zx1, Mathf.Max(z0, p.a), Mathf.Min(z1, p.b));
+                    if (p.zjazd) Rampa(n + " zjazd przez pas zieleni", zx0, zx1, Mathf.Max(z0, p.a), Mathf.Min(z1, p.b), s);
+                    else Chodnik(n + " przejście przez pas zieleni", zx0, zx1, Mathf.Max(z0, p.a), Mathf.Min(z1, p.b));
                     cur = Mathf.Min(z1, p.b);
                 }
                 Trawa(n + " pas zieleni", zx0, zx1, cur, z1);
                 if (drzewaTu)
                     for (float z = z0 + 6f; z < z1 - 3f; z += 13f)
                     {
-                        if (przerwyZieleni.Any(p => z > p.a - 2.5f && z < p.b + 2.5f)) continue;
+                        if (Przerwa(z, 2.5f)) continue;
                         Drzewo(new Vector3((zx0 + zx1) * .5f, YC - .03f, z));
                     }
                 for (float z = z0 + 12.5f; z < z1 - 3f; z += 26f)
                 {
-                    if (przerwyZieleni.Any(p => z > p.a - 1.5f && z < p.b + 1.5f)) continue;
+                    if (Przerwa(z, 1.5f)) continue;
                     Latarnia(new Vector3((zx0 + zx1) * .5f, YC - .03f, z), new Vector3(-s, 0, 0), hj * 1.0f + Kr + ziel * .5f);
                 }
             }
             Chodnik(n, cx0, cx1, z0, z1);
         }
+    }
+
+    // rampa zjazdu w pasie zieleni: od obniżonego krawężnika (strona jezdni) do poziomu chodnika; kolizja = obrócona płyta
+    static void Rampa(string n, float x0, float x1, float z0, float z1, int s)
+    {
+        float yL = YA + .04f, yH = YC, yb = -.15f;
+        float ya = s > 0 ? yL : yH, yc = s > 0 ? yH : yL;   // wysokość przy x0 i przy x1 (niska strona przy jezdni)
+        var b = new BraxRegionMeble.Bud();
+        b.Quad(new Vector3(x0, ya, z0), new Vector3(x0, ya, z1), new Vector3(x1, yc, z1), new Vector3(x1, yc, z0));
+        b.Quad(new Vector3(x0, ya, z0), new Vector3(x1, yc, z0), new Vector3(x1, yb, z0), new Vector3(x0, yb, z0));
+        b.Quad(new Vector3(x1, yc, z1), new Vector3(x0, ya, z1), new Vector3(x0, yb, z1), new Vector3(x1, yb, z1));
+        b.Obiekt("Zjazd: " + n, root, asfalt, false, false);
+        float run = x1 - x0, rise = yc - ya, len = Mathf.Sqrt(run * run + rise * rise);
+        var rot = Quaternion.Euler(0f, 0f, Mathf.Atan2(rise, run) * Mathf.Rad2Deg);
+        var top = new Vector3((x0 + x1) * .5f, (ya + yc) * .5f, (z0 + z1) * .5f);
+        Nawierzchnia(BraxRegionMeble.Kolizja(root, "Zjazd kolizja: " + n, top - rot * Vector3.up * .15f, new Vector3(len, .3f, z1 - z0), rot));
     }
 
     // przekrój ulicy wzdłuż osi x (stałe z = c)
@@ -554,6 +588,7 @@ public static class BraxRegionMiastoB
         // od ronda do Warsztatowej (z −13.25 … 6.5) i od Warsztatowej do tunelu (z −84 … −24.75)
         PrzekrojZ("Aleja Południowa", AX, AH, Ziel, Chod, zW1, z1, true, (z1 - 6f, z1), (zW1, zW1 + 4.5f));
         Asfalt("tunel", AX - 5.6f, AX + 5.6f, AS1 - 20f, AS1);   // jezdnia w tunelu (portal i ściany: etap 2)
+        zjazdy.Add((1, ParkAleja0, ParkAleja1));   // wjazd na parking przy warsztatach
         PrzekrojZ("Aleja Południowa (do tunelu)", AX, AH, Ziel, Chod, AS1, zW0, true, (zW0 - 6f, zW0), (AS1, AS1 + 14f), (PrzystanekZ - 10f, PrzystanekZ + 6f));
         // skrzyżowanie z Warsztatową: jezdnia alei przez wylot, krawężniki po zachodniej stronie, po wschodniej wylot ulicy
         Asfalt("Aleja Południowa × Warsztatowa", AX - AH, AX + AH, zW0, zW1);
@@ -617,8 +652,11 @@ public static class BraxRegionMiastoB
         Trawa("L6 za pierzeją zach. Alei Południowej", -162f, LicoW - 16f, ZboczeZ, RZ - RPlac);
         Trawa("L7 park zach. Alei Południowej", LicoW - 16f, LicoW, ZboczeZ, -14f, true);
         for (float z = AS1 + 6f; z < -20f; z += 11f) Drzewo(new Vector3(LicoW - 7f + ((int)z % 3), YC - .03f, z));
-        Trawa("L8 park wsch. Alei Południowej", LicoE, -112f, ZboczeZ, zW0);
-        Trawa("L9 za warsztatami (do skarpy)", -112f, -61.4f, ZboczeZ, zb, true);
+        Trawa("L8 park wsch. Alei Południowej (pd.)", LicoE, ParkX0, ZboczeZ, ParkAleja0);
+        Trawa("L8 park wsch. Alei Południowej (pn.)", LicoE, ParkX0, ParkAleja1, zW0);
+        Trawa("L9 za warsztatami (do skarpy)", -112f, -61.4f, ZboczeZ, ParkZ0, true);
+        Trawa("L9 za warsztatami (przy parkingu)", -112f, -61.4f, ParkZ1, zb, true);
+        Trawa("L9 na wschód od parkingu", ParkX1, -61.4f, ParkZ0, ParkZ1, true);
         Trawa("L10 między warsztatami a placem B", -72f, -61.4f, zb, zW0);
         for (float x = -106f; x < -66f; x += 9f) Drzewo(new Vector3(x, YC - .03f, zb - 6f));
         // między ul. Warsztatową a pierzeją płd. ulicy głównej: plac ustawek (w Warsztaty), trawnik za pierzeją, skwerek przy Wiaduktowej
@@ -640,6 +678,51 @@ public static class BraxRegionMiastoB
             Pozniej("kosz", () => BraxRegionMeble.Kosz(root, NaPodlozu(new Vector3(-70.95f - .3f * K, YC - .03f, zz + 2.2f * K)), 90f));
         }
         for (float z = 66f; z < 118f; z += 26f) { float zz = z; Pozniej("latarnia parkowa", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(-61.45f - .5f, YC, zz))); latarnie++; }); }
+    }
+
+    // parking przy warsztatach: asfalt na poziomie chodnika z liniami stanowisk W WYCIĘCIACH (zasada 15:40), wjazd od chodnika
+    // alei (pas L8), stanowiska do MiejscaParkingu (auta zaparkowane — krok ruchu, na końcu budowy); wyposażenie w etapie 3
+    static void Parking()
+    {
+        float w = 2.5f * K, d = 5f * K, xs = ParkX0 + .6f; const int N = 12;
+        var linie = new List<Rect>();
+        foreach (var (zA, zB) in new[] { (ParkAleja1, ParkAleja1 + d), (ParkAleja0 - d, ParkAleja0) })
+            for (int i = 0; i <= N; i++) { float x = xs + i * w; linie.Add(Rect.MinMaxRect(x - .06f, zA + (zA == ParkAleja1 ? .1f : 0f), x + .06f, zB - (zB == ParkAleja0 ? .1f : 0f))); }
+        var top = new BraxRegionMeble.Bud(); var paint = new BraxRegionMeble.Bud();
+        Wstawki("Parking przy warsztatach", Rect.MinMaxRect(ParkX0, ParkZ0, ParkX1, ParkZ1), YC, linie, asfalt, farba, top, paint);
+        Wstawki("Parking: wjazd od alei", Rect.MinMaxRect(LicoE, ParkAleja0, ParkX0, ParkAleja1), YC, new List<Rect>(), asfalt, farba, top, paint);
+        top.Obiekt("Parking przy warsztatach: asfalt", root, asfalt, false, false);
+        paint.Obiekt("Parking przy warsztatach: linie stanowisk (farba w wycięciach)", root, farba, false, false);
+        for (int i = 0; i < N; i++)
+        {
+            float x = xs + (i + .5f) * w;
+            MiejscaParkingu.Add((new Vector3(x, YC, ParkAleja1 + d * .5f), Vector3.forward, new Vector2(w, d)));
+            MiejscaParkingu.Add((new Vector3(x, YC, ParkAleja0 - d * .5f), Vector3.back, new Vector2(w, d)));
+        }
+        // wyposażenie (na gotowym podłożu): latarnie między drzewami, znak P przy wjeździe, kosz
+        foreach (float x in new[] { -101.5f, -83.5f })
+        {
+            float xx = x;
+            Pozniej("latarnia parkingu", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(xx, YC, ParkZ1 + .7f))); latarnie++; });
+            Pozniej("latarnia parkingu", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(xx, YC, ParkZ0 - .7f))); latarnie++; });
+        }
+        Pozniej("znak P", () => ZnakParking(NaPodlozu(new Vector3(LicoE + 1f, YC, ParkAleja0 - .8f))));
+        Pozniej("kosz parkingu", () => BraxRegionMeble.Kosz(root, NaPodlozu(new Vector3(ParkX0 - .8f, YC, ParkAleja1 + .8f)), 0f));
+        BraxRegion.Note("miasto B: parking przy warsztatach — stanowisk " + MiejscaParkingu.Count + " (" + w.ToString("F2") + " × " + d.ToString("F2") + " m), wjazd z Alei Południowej z " + ParkAleja0 + "…" + ParkAleja1);
+    }
+
+    // znak D-18 „parking” (niebieska tablica, białe P) na słupku ocynkowanym, lico do jadących aleją na północ (−z → widać od południa)
+    static void ZnakParking(Vector3 p)
+    {
+        var g = new GameObject("Znak D-18 PARKING"); g.transform.SetParent(root, false);
+        var slup = new BraxRegionMeble.Bud(); slup.Cyl(p, p + Vector3.up * 2.6f * K, .03f * K, 10);
+        slup.Obiekt("Znak: słupek", g.transform, stal, false, true);
+        var t = new BraxRegionMeble.Bud(); var c = p + Vector3.up * 2.25f * K;
+        t.MinMax(c + new Vector3(-.3f * K, -.3f * K, -.035f), c + new Vector3(.3f * K, .3f * K, -.015f));
+        t.Obiekt("Znak: tablica (niebieska)", g.transform, BraxCityMaterials.Surface("Znak: niebieski odblask", new Color(.05f, .25f, .62f), .35f), false, false);
+        BraxRegionMeble.Napis(g.transform, "P", c + new Vector3(0f, -.17f * K, -.04f), Vector3.back, .4f * K, Color.white);
+        BraxRegionMeble.Napis(g.transform, "WARSZTATY", c + new Vector3(0f, -.42f * K, -.04f), Vector3.back, .07f * K, Color.white);
+        BraxRegionMeble.Kolizja(g.transform, "Znak kolizja", p + Vector3.up * 1.3f * K, new Vector3(.1f, 2.6f * K, .1f));
     }
 
     // =====================================================================================================================

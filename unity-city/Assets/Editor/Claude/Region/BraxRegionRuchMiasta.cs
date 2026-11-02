@@ -38,6 +38,7 @@ public static partial class BraxClaudeOsiedle
                 try { var s = PrzygotujAuto(src, tmp); if (s != null) szablony.Add(s); } catch (Exception e) { Debug.LogError("BRAXHORN_RUCH_MIASTO_B model " + src.name + ": " + e.Message); }
             }
             if (szablony.Count > 0) AutaMiastaB(szablony);
+            if (szablony.Count > 0) ParkingMiastaB(szablony);
             UnityEngine.Object.DestroyImmediate(tmp.gameObject);
             foreach (var n in rep.notes) Debug.Log("BRAXHORN_RUCH_MIASTO_B " + n);
         }
@@ -47,6 +48,25 @@ public static partial class BraxClaudeOsiedle
             BraxTrasyAut.RondoPromien = rpPrev; BraxTrasyAut.RondoJezdnia = rjPrev;
             groups.Clear();
         }
+    }
+
+    // Auta zaparkowane miasta B: stanowiska parkingu przy warsztatach (BraxRegionMiastoB.MiejscaParkingu) przez gotowy
+    // AutaZaparkowane osiedla (zajętość ~55 %, kontrola kolizji, bez świateł i spalin) — wspólna lista MiejscaParkingowe
+    // podmieniona na czas wywołania i przywrócona.
+    static void ParkingMiastaB(List<AutoSzablon> szablony)
+    {
+        var miejsca = BraxRegionMiastoB.MiejscaParkingu;
+        if (miejsca.Count == 0) { Debug.Log("BRAXHORN_RUCH_MIASTO_B parking: brak stanowisk (krok miasta B nie zbudował parkingu)"); return; }
+        var zapas = MiejscaParkingowe.ToList();
+        var g = group;
+        try
+        {
+            MiejscaParkingowe.Clear();
+            foreach (var m in miejsca) MiejscaParkingowe.Add(new MiejsceParkingowe { srodek = m.c, przod = m.przod, rozmiar = m.rozmiar, przyScianie = false });
+            group = "Miasto B: auta zaparkowane";
+            AutaZaparkowane(szablony);
+        }
+        finally { MiejscaParkingowe.Clear(); MiejscaParkingowe.AddRange(zapas); group = g; }
     }
 
     static void AutaMiastaB(List<AutoSzablon> szablony)
