@@ -43,6 +43,7 @@ public static partial class BraxClaudeOsiedle
         Guard("ludzie: ławki", () => LudzieNaLawkach(rnd));
         Guard("ludzie: kierowcy i pasażerowie", () => KierowcyAut(rnd));
         Guard("ludzie: przechodnie", () => PrzechodnieRocketbox(rnd));
+        Debug.Log("BRAXHORN_LUDZIE_KOPIE_KLIPOW " + kopieKlipow + " (oczekiwane 0: klip nazwany jak plik; >0 = wspólne kopie .anim, nie w scenie)");
         string msg = "BRAXHORN_LUDZIE postacie=" + rbPostacie.Count + " przechodnie=" + rbPrzechodnie + " obsada=" + rbObsada + " kierowcy=" + rbKierowcy +
                      " bledy_kosci=" + rbBledyKosci + " tpoza=" + rbTpoza + " siedzacy=" + rbSiedzacy + " pary=" + rbPary + " inni=" + rbInni + " razem=" + rbLudzie +
                      " klipy=" + rbKlipy.Count + " wzrost_bohatera=" + WzrostBohatera.ToString("F2");

@@ -220,7 +220,7 @@ public static partial class BraxClaudeOsiedle
         if (n == 0) { rep.notes.Add("DO POPRAWKI: ludzie — klip " + key + " bez krzywych kości"); return null; }
         dst.EnsureQuaternionContinuity();
         v = Mathf.Sqrt(dx * dx + dz * dz) / len;
-        string p = RbOut + "/klip_" + Safe(key) + ".anim";
+        string p = RbOut + "/" + Safe(key) + ".anim";   // nazwa pliku = nazwa klipu = klucz (AddClip bez kopii — patrz DodajKlipy)
         if (AssetDatabase.LoadAssetAtPath<AnimationClip>(p)) AssetDatabase.DeleteAsset(p);
         AssetDatabase.CreateAsset(dst, p);
         return dst;
@@ -285,10 +285,24 @@ public static partial class BraxClaudeOsiedle
         return rbKlipy.ContainsKey(k) ? k : null;
     }
     static string[] Klipy(Osoba o, params string[] bazy) => bazy.Select(b => Klip(o, b)).Where(k => k != null).Distinct().ToArray();
+    // AddClip(klip, nazwa) z nazwą INNĄ niż klip.name = pełna kopia klipu zapisana w scenie przy KAŻDEJ osobie (build 14:
+    // 1695 kopii, 1,6 GB). Klip musi się nazywać jak klucz; jeśli nie (inny plik FBX) — JEDNA wspólna kopia jako plik .anim.
+    static int kopieKlipow;
     static void DodajKlipy(Osoba o, IEnumerable<string> klucze)
     {
         foreach (var k in klucze.Where(q => q != null).Distinct())
-            if (rbKlipy.TryGetValue(k, out var c) && !o.anim.GetClip(k)) o.anim.AddClip(c, k);
+        {
+            if (!rbKlipy.TryGetValue(k, out var c) || o.anim.GetClip(k)) continue;
+            if (c.name != k)
+            {
+                string p = RbOut + "/" + Safe(k) + ".anim";
+                var kopia = AssetDatabase.LoadAssetAtPath<AnimationClip>(p);
+                if (!kopia || kopia.name != k) { kopia = UnityEngine.Object.Instantiate(c); AssetDatabase.CreateAsset(kopia, p); }
+                if (kopia.name != k) { rep.notes.Add("DO POPRAWKI: ludzie — klip " + k + " ma nazwę pliku " + kopia.name + " (znaki spoza liter/cyfr) — kopia w scenie"); }
+                rbKlipy[k] = c = kopia; kopieKlipow++;
+            }
+            o.anim.AddClip(c, k);
+        }
     }
     static void Pozuj(Osoba o, string klip, float t)
     {

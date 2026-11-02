@@ -15,7 +15,21 @@ public sealed class BraxRocketboxImport : AssetPostprocessor
 {
     public const string Root = "Assets/Source/Rocketbox/";
 
-    public override uint GetVersion() { return 3; }
+    public override uint GetVersion() { return 4; }
+
+    // 2.11 (dyspozytor): klip w pliku FBX nazywa się jak take z 3ds Max, a generator dodaje go postaci pod nazwą PLIKU.
+    // Animation.AddClip(klip, inna_nazwa) robi PEŁNĄ KOPIĘ klipu w scenie — dla każdej osoby osobno (build 14: 1695 kopii,
+    // 1,6 GB w plikach scen, APK 969 MB, zdjęcia WebGL nie wystartowały). Klip nazywa się teraz dokładnie jak plik.
+    void OnPreprocessAnimation()
+    {
+        if (!assetPath.StartsWith(Root, System.StringComparison.Ordinal) || !assetPath.Contains("/Animations/")) return;
+        var mi = (ModelImporter)assetImporter;
+        var klipy = mi.defaultClipAnimations;
+        if (klipy == null || klipy.Length == 0) return;
+        string nazwa = System.IO.Path.GetFileNameWithoutExtension(assetPath);
+        for (int i = 0; i < klipy.Length; i++) { klipy[i].name = klipy.Length == 1 ? nazwa : nazwa + "_" + i; klipy[i].wrapMode = WrapMode.Loop; klipy[i].loopTime = true; }
+        mi.clipAnimations = klipy;
+    }
 
     void OnPreprocessModel()
     {
