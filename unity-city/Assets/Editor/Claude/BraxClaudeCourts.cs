@@ -114,7 +114,65 @@ public static class BraxClaudeCourts
         AssetDatabase.CreateAsset(m, path); return m;
     }
 
-    // ---------------- linie (płaskie pasy na nawierzchni, 8 mm nad nią; żadne dwa się nie nakładają) ----------------
+    // ---------------- LINIE W TEKSTURZE NAWIERZCHNI (A 2.11; właściciel 15:40 „NIGDY nic nie nakładamy”) ----------------
+    // Obchód boisk: linie leżały 8 mm NAD trawą i akrylem (nakładka — migotanie z daleka). Teraz te same trójkąty linii (pasy, łuki,
+    // punkty) są rasteryzowane do maski 2048 × 1024 (≈ 1.5 cm na piksel, 4 próbki na piksel), a nawierzchnię rysuje shader
+    // Braxhorn/BoiskoLinie (kopia CityStaticPBR + maska): farba linii jest W tej samej płaszczyźnie co nawierzchnia.
+    static void Dolacz(UlSiatka cel, UlSiatka z)
+    {
+        int o = cel.v.Count;
+        cel.v.AddRange(z.v); cel.n.AddRange(z.n); cel.t.AddRange(z.t); cel.uv.AddRange(z.uv); cel.c.AddRange(z.c);
+        foreach (int i in z.i) cel.i.Add(i + o);
+    }
+    static Material NawierzchniaZLiniami(Material baza, UlSiatka linie, float x0, float x1, float z0, float z1, string klucz, Report rep)
+    {
+        const string dir = "Assets/PlayableGenerated/ClaudeCourts"; Directory.CreateDirectory(dir);
+        var sh = Shader.Find("Braxhorn/BoiskoLinie");
+        if (!sh) { rep.notes.Add("BRAK shadera Braxhorn/BoiskoLinie — nawierzchnia " + klucz + " bez linii (nie nakładamy płytek)"); return baza; }
+        const int MW = 2048, MH = 1024; var cov = new float[MW * MH];
+        float sx = MW / (x1 - x0), sz = MH / (z1 - z0);
+        Vector2 P(Vector3 w) => new Vector2((w.x - x0) * sx, (w.z - z0) * sz);
+        float E(Vector2 a, Vector2 b, Vector2 q) => (b.x - a.x) * (q.y - a.y) - (b.y - a.y) * (q.x - a.x);
+        for (int t = 0; t + 2 < linie.i.Count; t += 3)
+        {
+            Vector2 a = P(linie.v[linie.i[t]]), b = P(linie.v[linie.i[t + 1]]), c = P(linie.v[linie.i[t + 2]]);
+            float ar = E(a, b, c); if (Mathf.Abs(ar) < 1e-6f) continue; float sg = Mathf.Sign(ar);
+            int mx0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.x, Mathf.Min(b.x, c.x)))), mx1 = Mathf.Min(MW - 1, Mathf.CeilToInt(Mathf.Max(a.x, Mathf.Max(b.x, c.x))));
+            int my0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.y, Mathf.Min(b.y, c.y)))), my1 = Mathf.Min(MH - 1, Mathf.CeilToInt(Mathf.Max(a.y, Mathf.Max(b.y, c.y))));
+            for (int y = my0; y <= my1; y++)
+                for (int x = mx0; x <= mx1; x++)
+                {
+                    int hit = 0;
+                    for (int q = 0; q < 4; q++)
+                    {
+                        var pq = new Vector2(x + .25f + .5f * (q & 1), y + .25f + .5f * (q >> 1));
+                        if (E(b, c, pq) * sg >= 0f && E(c, a, pq) * sg >= 0f && E(a, b, pq) * sg >= 0f) hit++;
+                    }
+                    if (hit > 0) cov[y * MW + x] += hit * .25f;
+                }
+        }
+        var px = new Color[MW * MH]; for (int i = 0; i < px.Length; i++) { float v = Mathf.Clamp01(cov[i]); px[i] = new Color(v, v, v, 1f); }
+        string png = dir + "/linie_" + klucz + ".png";
+        var tx = new Texture2D(MW, MH, TextureFormat.RGB24, false); tx.SetPixels(px); tx.Apply(); File.WriteAllBytes(png, tx.EncodeToPNG()); UnityEngine.Object.DestroyImmediate(tx);
+        AssetDatabase.ImportAsset(png, ImportAssetOptions.ForceSynchronousImport);
+        if (AssetImporter.GetAtPath(png) is TextureImporter imp)
+        {
+            imp.sRGBTexture = false; imp.wrapMode = TextureWrapMode.Clamp; imp.mipmapEnabled = true; imp.filterMode = FilterMode.Trilinear; imp.anisoLevel = 8;
+            imp.maxTextureSize = 2048; imp.textureCompression = TextureImporterCompression.Compressed; imp.SaveAndReimport();
+        }
+        var mask = AssetDatabase.LoadAssetAtPath<Texture2D>(png);
+        var m = new Material(sh) { name = "Boisko: nawierzchnia z liniami (" + klucz + ")" };
+        m.CopyPropertiesFromMaterial(baza);
+        m.SetTexture("_Linie", mask); m.SetVector("_LinieObszar", new Vector4(x0, z0, 1f / (x1 - x0), 1f / (z1 - z0)));
+        m.SetColor("_LinieKolor", new Color(.93f, .93f, .91f)); m.SetFloat("_LinieSzorstkosc", .75f);
+        string mp = dir + "/nawierzchnia_" + klucz + ".mat"; if (AssetDatabase.LoadAssetAtPath<Material>(mp)) AssetDatabase.DeleteAsset(mp);
+        AssetDatabase.CreateAsset(m, mp);
+        rep.notes.Add("linie " + klucz + " w teksturze nawierzchni: " + (linie.i.Count / 3) + " trójkątów → maska " + MW + "×" + MH);
+        Debug.Log("BRAXHORN_MIASTO_A_BOISKA linie " + klucz + " w teksturze (maska " + MW + "×" + MH + ", trójkątów " + (linie.i.Count / 3) + ", nakładek 0)");
+        return m;
+    }
+
+    // ---------------- linie (geometria do maski; w scenie nie ma osobnych płytek linii) ----------------
     static void Pas(UlSiatka s, float x0, float z0, float x1, float z1, float y)
     {
         if (x1 - x0 < .002f || z1 - z0 < .002f) return;
@@ -130,7 +188,7 @@ public static class BraxClaudeCourts
         float sx0 = x0 - bramkaD - .5f, sx1 = x1 + bramkaD + .5f, sz0 = z0 - 1.5f, sz1 = z1 + 1.5f;   // płyta z wybiegiem
         // nawierzchnia: sztuczna trawa w pasach (kolor wierzchołków), boki płyty 2.5 cm, obrzeże betonowe
         var trawa = BraxUliceKit.TexPlik("boisko: sztuczna trawa", OS, "grass004", 1.1f, new Color(.55f, .92f, .48f), new Color(.20f, .48f, .18f), .9f);
-        var st = BraxUliceKit.S(trawa); int pas = 0;
+        var st = new UlSiatka(); int pas = 0;     // nawierzchnia: materiał z maską linii dopiero po narysowaniu linii (niżej)
         for (float x = sx0; x < sx1 - .001f; x += 2.6f, pas++)
         {
             float xe = Mathf.Min(x + 2.6f, sx1); st.kolor = pas % 2 == 0 ? BraxUliceKit.C(1f, 1f, 1f) : BraxUliceKit.C(.90f, .94f, .88f);
@@ -145,8 +203,8 @@ public static class BraxClaudeCourts
         // kolizja nawierzchni (piłka i gracz): płyta pod trawą
         var kol = new GameObject("Boisko piłkarskie: nawierzchnia (kolizja)"); kol.transform.SetParent(root, false);
         var bc = kol.AddComponent<BoxCollider>(); bc.center = new Vector3((sx0 + sx1) * .5f, yS - .05f, (sz0 + sz1) * .5f); bc.size = new Vector3(sx1 - sx0, .1f, sz1 - sz0);
-        // linie
-        var l = BraxUliceKit.S(Biala); float h = w * .5f;
+        // linie: do maski w teksturze nawierzchni (NIE jako płytki nad trawą)
+        var l = new UlSiatka(); float h = w * .5f;
         Pas(l, x0 - h, z0 - h, x1 + h, z0 + h, yL); Pas(l, x0 - h, z1 - h, x1 + h, z1 + h, yL);           // boczne (pełne)
         Pas(l, x0 - h, z0 + h, x0 + h, z1 - h, yL); Pas(l, x1 - h, z0 + h, x1 + h, z1 - h, yL);           // bramkowe (między bocznymi)
         float R = 3f * k, rs = .12f;                                                                      // koło środkowe r 3 m × k
@@ -172,6 +230,7 @@ public static class BraxClaudeCourts
             float xp = xg + sg * (bramkaD + .4f);
             Ogrodzenie(root, new Vector3(xp, g, z0 - 1.2f), new Vector3(xp, g, z1 + 1.2f), 4.5f, Siatka("krata", .125f, new Color(.2f, .22f, .2f)), "piłkochwyt");
         }
+        Dolacz(BraxUliceKit.S(NawierzchniaZLiniami(trawa, l, sx0, sx1, sz0, sz1, "pilka", rep)), st);
         // balustrada wzdłuż boków (1.2 m × k), wejścia na wprost pawilonu (południe) i ławek (północ)
         float bz0 = sz0 - .25f, bz1 = sz1 + .25f;
         foreach (float bz in new[] { bz0, bz1 })
@@ -293,11 +352,16 @@ public static class BraxClaudeCourts
         float w = 1.0f * k, hh = .7f * k, y0 = 1.0f * k;
         foreach (float sg in new[] { -1f, 1f }) s.Rura(at + R * sg * w * .5f, at + R * sg * w * .5f + Vector3.up * (y0 + hh + .05f), .03f, 8);
         s.OBox(at + Vector3.up * (y0 + hh * .5f), R, Vector3.up, N, w + .06f, hh + .06f, .03f);
-        var f = at + Vector3.up * (y0 + hh * .5f) + N * .016f;
-        tlo.Quad(f - R * w * .5f - Vector3.up * hh * .5f, f + R * w * .5f - Vector3.up * hh * .5f, f + R * w * .5f + Vector3.up * hh * .5f, f - R * w * .5f + Vector3.up * hh * .5f, N);
+        // lico tablicy: biała płyta 1.2 cm PRZED ramą (bryła, nie naklejka 1 mm), tekst i wiersze regulaminu jako bryły 1 cm
+        var f = at + Vector3.up * (y0 + hh * .5f) + N * (.015f + .012f);
+        tlo.OBox(f - N * .006f, R, Vector3.up, N, w, hh, .012f, true);
         var czarne = BraxUliceKit.Mat("tablica regulaminu: litery", new Color(.08f, .08f, .09f), .5f);
-        BraxUliceKit.Napis3D(tekst, f + Vector3.up * (hh * .32f), N, .07f * k, .004f, czarne, czarne);
-        for (int i = 0; i < 6; i++) BraxUliceKit.S(czarne).Quad(f + N * .002f - R * w * .4f + Vector3.up * (hh * .15f - i * .07f * k), f + N * .002f + R * w * (.4f - (i % 3) * .1f) + Vector3.up * (hh * .15f - i * .07f * k), f + N * .002f + R * w * (.4f - (i % 3) * .1f) + Vector3.up * (hh * .15f - i * .07f * k + .018f), f + N * .002f - R * w * .4f + Vector3.up * (hh * .15f - i * .07f * k + .018f), N);
+        BraxUliceKit.Napis3D(tekst, f + Vector3.up * (hh * .32f), N, .07f * k, .01f, czarne, czarne);
+        for (int i = 0; i < 6; i++)
+        {
+            float dl = w * (.8f - (i % 3) * .1f);
+            BraxUliceKit.S(czarne).OBox(f + N * .005f - R * w * .4f + R * dl * .5f + Vector3.up * (hh * .15f - i * .07f * k), R, Vector3.up, N, dl, .012f, .01f, true);
+        }
     }
 
     // ---------------- koszykówka ----------------
@@ -307,7 +371,7 @@ public static class BraxClaudeCourts
         float yS = g + .02f, yL = yS + .008f;
         float sx0 = cx - hl - 1.5f, sx1 = cx + hl + 1.5f, sz0 = cz - hw - 1.5f, sz1 = cz + hw + 1.5f;
         var akryl = BraxUliceKit.Mat("boisko do kosza: akryl (kolory z wierzchołków)", Color.white, .7f);
-        var s = BraxUliceKit.S(akryl);
+        var s = new UlSiatka();     // nawierzchnia: materiał z maską linii po narysowaniu linii
         Color32 wybieg = BraxUliceKit.C(.20f, .42f, .30f), pole = BraxUliceKit.C(.16f, .30f, .52f), trzy = BraxUliceKit.C(.80f, .42f, .18f);
         float kD = 5.8f * k, kW = 4.9f * k * .5f;      // pole trzech sekund
         // nawierzchnia jedną płaszczyzną: siatka komórek, kolor wg obszaru (bez nakładania)
@@ -329,8 +393,8 @@ public static class BraxClaudeCourts
         ob.Box(new Vector3(sx1, g - .02f, sz0), new Vector3(sx1 + .12f, yS + .02f, sz1), 4);
         var kol = new GameObject("Boisko do koszykówki: nawierzchnia (kolizja)"); kol.transform.SetParent(root, false);
         var bc = kol.AddComponent<BoxCollider>(); bc.center = new Vector3(cx, yS - .05f, cz); bc.size = new Vector3(sx1 - sx0, .1f, sz1 - sz0);
-        // linie (białe, 5 cm × k), styk krawędziami
-        var l = BraxUliceKit.S(Biala);
+        // linie (białe, 5 cm × k), styk krawędziami — do maski w teksturze nawierzchni
+        var l = new UlSiatka();
         float x0 = cx - hl, x1 = cx + hl, z0 = cz - hw, z1 = cz + hw;
         Pas(l, x0 - h, z0 - h, x1 + h, z0 + h, yL); Pas(l, x0 - h, z1 - h, x1 + h, z1 + h, yL);
         Pas(l, x0 - h, z0 + h, x0 + h, z1 - h, yL); Pas(l, x1 - h, z0 + h, x1 + h, z1 - h, yL);
@@ -364,9 +428,9 @@ public static class BraxClaudeCourts
             var tbl = BraxUliceKit.S(BraxUliceKit.Mat("kosz: tablica (laminat biały)", new Color(.94f, .94f, .93f), .3f));
             tbl.Box(new Vector3(xt - .025f, yt0, cz - tbW * .5f), new Vector3(xt + .025f, yt0 + tbH, cz + tbW * .5f));
             var ram = BraxUliceKit.S(BraxUliceKit.Mat("kosz: ramka i kwadrat tablicy (czerwone)", new Color(.72f, .16f, .12f), .5f));
-            float fx = xt - sg * .03f, kw = .59f * k * .5f, ky0 = yr + .15f * k * 0f, ky1 = ky0 + .45f * k, t = .05f;
-            ram.Box(new Vector3(fx - .004f, ky0, cz - kw), new Vector3(fx + .004f, ky0 + t, cz + kw)); ram.Box(new Vector3(fx - .004f, ky1 - t, cz - kw), new Vector3(fx + .004f, ky1, cz + kw));
-            ram.Box(new Vector3(fx - .004f, ky0 + t, cz - kw), new Vector3(fx + .004f, ky1 - t, cz - kw + t)); ram.Box(new Vector3(fx - .004f, ky0 + t, cz + kw - t), new Vector3(fx + .004f, ky1 - t, cz + kw));
+            float fx = xt - sg * .031f, kw = .59f * k * .5f, ky0 = yr + .15f * k * 0f, ky1 = ky0 + .45f * k, t = .05f;
+            ram.Box(new Vector3(fx - .006f, ky0, cz - kw), new Vector3(fx + .006f, ky0 + t, cz + kw)); ram.Box(new Vector3(fx - .006f, ky1 - t, cz - kw), new Vector3(fx + .006f, ky1, cz + kw));
+            ram.Box(new Vector3(fx - .006f, ky0 + t, cz - kw), new Vector3(fx + .006f, ky1 - t, cz - kw + t)); ram.Box(new Vector3(fx - .006f, ky0 + t, cz + kw - t), new Vector3(fx + .006f, ky1 - t, cz + kw));
             // obręcz Ø 0.45 m × k, 0.15 m × k przed tablicą, mocowanie, siatka z linek
             var obr = BraxUliceKit.S(BraxUliceKit.Mat("kosz: obręcz (stal pomarańczowa)", new Color(.88f, .36f, .08f), .4f, .6f));
             float rr = .225f * k, xr = xt - sg * (.15f * k + rr);
@@ -386,6 +450,7 @@ public static class BraxClaudeCourts
             cs.AddComponent<BoxCollider>().size = new Vector3(.34f, 2.4f, .34f);
             kosze.Add(new Vector3(xr, yr, cz)); tablice.Add(new Vector3(xt, yt0 + tbH * .5f, cz));
         }
+        Dolacz(BraxUliceKit.S(NawierzchniaZLiniami(akryl, l, sx0, sx1, sz0, sz1, "kosz", rep)), s);
         // ogrodzenie dookoła (3 m × k) z furtką od południa (od strony pawilonu i wiaty)
         float fz0 = sz0 - .3f, fz1 = sz1 + .3f, fx0 = sx0 - .3f, fx1 = sx1 + .3f, fw = 3f * k; var krata = Siatka("krata", .125f, new Color(.2f, .22f, .2f));
         Ogrodzenie(root, new Vector3(fx0, g, fz0), new Vector3(fx1, g, fz0), fw, krata, "ogrodzenie kosza", (cx - fx0) - 1.0f, (cx - fx0) + 1.0f);
@@ -462,14 +527,15 @@ public static class BraxClaudeCourts
         }
         // tablica segregacji na murze
         var tl = BraxUliceKit.Mat("wiata: tablica segregacji (biała)", new Color(.94f, .94f, .92f), .5f);
-        var ts = BraxUliceKit.S(tl); var cz = (z0 + t) + .005f;
-        ts.Quad(new Vector3(x0 + scD * .5f - .7f, H - .9f, cz), new Vector3(x0 + scD * .5f + .7f, H - .9f, cz), new Vector3(x0 + scD * .5f + .7f, H - .35f, cz), new Vector3(x0 + scD * .5f - .7f, H - .35f, cz), Vector3.forward);
+        // tablica: płyta 1.2 cm na murze (tył przy murze — bryła, nie naklejka 5 mm), litery i pola kolorów jako bryły 6–10 mm
+        var ts = BraxUliceKit.S(tl); var cz = (z0 + t) + .012f;
+        ts.OBox(new Vector3(x0 + scD * .5f, H - .625f, cz - .006f), Vector3.right, Vector3.up, Vector3.forward, 1.4f, .55f, .012f, true);
         var czarne = BraxUliceKit.Mat("tablica regulaminu: litery", new Color(.08f, .08f, .09f), .5f);
-        BraxUliceKit.Napis3D("SEGREGUJ", new Vector3(x0 + scD * .5f, H - .58f, cz + .002f), Vector3.forward, .16f, .006f, czarne, czarne);
+        BraxUliceKit.Napis3D("SEGREGUJ", new Vector3(x0 + scD * .5f, H - .58f, cz), Vector3.forward, .16f, .01f, czarne, czarne);
         int ci = 0; foreach (var p in poj)
         {
             var m = BraxUliceKit.Mat("pojemnik: " + p.co, p.kol, .5f); float xa = x0 + scD * .5f - .62f + ci * .26f;
-            BraxUliceKit.S(m).Quad(new Vector3(xa, H - .84f, cz + .003f), new Vector3(xa + .22f, H - .84f, cz + .003f), new Vector3(xa + .22f, H - .7f, cz + .003f), new Vector3(xa, H - .7f, cz + .003f), Vector3.forward); ci++;
+            BraxUliceKit.S(m).OBox(new Vector3(xa + .11f, H - .77f, cz + .004f), Vector3.right, Vector3.up, Vector3.forward, .22f, .14f, .008f, true); ci++;
         }
         rep.shelter = true;
     }
