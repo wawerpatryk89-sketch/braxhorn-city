@@ -109,6 +109,7 @@ public static partial class BraxClaudeOsiedle
             new UlicaA { id = "S1", alongX = false, c = -43f, a0 = -19f, a1 = RondoZ, cw = 2.5f, green = .3f, walkNeg = 2f, walkPos = 0f, centerLine = false },
             new UlicaA { id = "S2", alongX = false, c = 43.6f, a0 = -19f, a1 = RondoZ, cw = 2.5f, green = .3f, walkNeg = 0f, walkPos = 2f, centerLine = false },
         };
+        try { SzerokosciUlicA(); } catch (Exception e) { Debug.LogError("BRAXHORN_DROGI_SZEROKOSC DO POPRAWKI: " + e.Message); }
         wezly = new List<WezelA>();
         foreach (var u in ulice.Where(q => q.alongX))
             foreach (var v in ulice.Where(q => !q.alongX))
@@ -646,5 +647,39 @@ public static partial class BraxClaudeOsiedle
         if (Physics.CheckSphere(zp + Vector3.up * 1.5f, .3f, ~0, QueryTriggerInteraction.Ignore)) zp.z += .9f;
         ZnakPionowy(zp, Vector3.forward, "D-18");
         rep.notes.Add("parking przy parku x " + (s * 58f) + ": " + n + " zatok (" + (sciana ? "0.8 m od ściany siłowni, odbojnice" : "od strony łąki") + "), chodnik do alei parku, zebra przy wejściu");
+    }
+
+    // E3a (build 45, pomiar): ile miejsca jest za chodnikiem każdej ulicy A (do pierwszej kolizji: płot, mur, budynek, słup)
+    // — promienie co 4 m wzdłuż ulicy (bez 12 m przy węzłach), na wysokości 0.5 i 1.2 m, do 4 m od zewnętrznej krawędzi
+    // chodnika. Cel jezdni 2 × 3.5 × K. Build 45 tylko MIERZY i zapisuje tabelę (poszerzenie przesuwa krawężniki, chodniki,
+    // zatoki, zebry, sygnalizację i trasy — osobny etap; płoty działek nie wszędzie mają kolizje, więc pomiar to górna granica).
+    static void SzerokosciUlicA()
+    {
+        Physics.SyncTransforms();
+        float cel = 3.5f * K; const int maska = ~((1 << 8) | (1 << 29) | (1 << 2));
+        foreach (var u in ulice)
+        {
+            float dN = 4f, dP = 4f; int n = 0;
+            for (float a = u.a0 + 12f; a <= u.a1 - 12f; a += 4f)
+            {
+                bool przyWezle = ulice.Any(v => v != u && v.alongX != u.alongX && Mathf.Abs(a - v.c) < 12f && u.c >= v.a0 - 1f && u.c <= v.a1 + 1f);
+                if (przyWezle) continue;
+                n++;
+                foreach (int sd in new[] { -1, 1 })
+                {
+                    float kraw = (sd < 0 ? u.HalfNeg : u.HalfPos);
+                    foreach (float y in new[] { .5f, 1.2f })
+                    {
+                        var start = u.P(a, sd * kraw, y); var dir = u.Wpoprzek * sd;
+                        float wolne = Physics.Raycast(start, dir, out var hit, 4f, maska, QueryTriggerInteraction.Ignore) ? hit.distance : 4f;
+                        if (sd < 0) dN = Mathf.Min(dN, wolne); else dP = Mathf.Min(dP, wolne);
+                    }
+                }
+            }
+            float bylo = 2f * u.cw, mozna = 2f * (u.cw + Mathf.Max(0f, Mathf.Min(dN, dP) - .3f)), brak = Mathf.Max(0f, 2f * cel - mozna);
+            Debug.Log("BRAXHORN_DROGI_SZEROKOSC ulica=" + (u.nazwa ?? u.id) + " było=" + bylo.ToString("F2") + " jest=" + bylo.ToString("F2") + " (bez zmian w 45) możliwe=" + Mathf.Min(mozna, 2f * cel).ToString("F2")
+                + " cel=" + (2f * cel).ToString("F2") + " brak_miejsca=" + brak.ToString("F2") + " chodnik −/+ " + u.walkNeg.ToString("F1") + "/" + u.walkPos.ToString("F1") + " (≥ " + (1.5f * K).ToString("F2") + ")"
+                + " zieleń −/+ " + u.greenNeg.ToString("F1") + "/" + u.greenPos.ToString("F1") + " wolne za chodnikiem −/+ " + dN.ToString("F1") + "/" + dP.ToString("F1") + " m (próbek " + n + ")");
+        }
     }
 }
