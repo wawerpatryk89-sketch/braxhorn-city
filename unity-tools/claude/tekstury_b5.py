@@ -193,16 +193,17 @@ def hospital_sign(out):
     img.save(out)
 
 def arena_sign(out):
-    """Hala walk 2048×384: czerń z czerwonym gradientem, ośmiokąt po bokach, HALA WALK białym, OKTAGON na czerwono."""
+    """Hala walk 2048×384: czerń z czerwonym gradientem, ośmiokąt po bokach, ARENA BRAXHORN białym, OSIEDLE na czerwono
+    (decyzja właściciela 2.11, 00:12: miejsca walk Ligi = „ARENA BRAXHORN”; słów Oktagon/Octagon nie używać — znak zastrzeżony)."""
     W, H = 2048, 384
     img = _grad(W, H, (12, 10, 12), (40, 6, 10)); d = ImageDraw.Draw(img)
     d.rectangle([8, 8, W - 9, H - 9], outline=(200, 30, 36), width=10)
     for cx in (200, W - 200):
         R = 130; pts = [(cx + R * math.cos(math.pi / 8 + k * math.pi / 4), H / 2 + R * math.sin(math.pi / 8 + k * math.pi / 4)) for k in range(8)]
         d.polygon(pts, fill=(30, 30, 34), outline=(230, 230, 236)); d.line(pts + [pts[0]], fill=(200, 30, 36), width=8)
-    f, size = _fit(d, "HALA WALK", FB, 200, W - 620)
-    tw = d.textlength("HALA WALK", font=f); d.text(((W - tw) / 2, 40), "HALA WALK", font=f, fill=(250, 250, 250))
-    f2 = font(FB, 80); t2 = "O K T A G O N"; tw2 = d.textlength(t2, font=f2); d.text(((W - tw2) / 2, 262), t2, font=f2, fill=(226, 40, 46))
+    f, size = _fit(d, "ARENA BRAXHORN", FB, 200, W - 620)
+    tw = d.textlength("ARENA BRAXHORN", font=f); d.text(((W - tw) / 2, 40), "ARENA BRAXHORN", font=f, fill=(250, 250, 250))
+    f2 = font(FB, 80); t2 = "O S I E D L E"; tw2 = d.textlength(t2, font=f2); d.text(((W - tw2) / 2, 262), t2, font=f2, fill=(226, 40, 46))
     img.save(out)
 
 def _octagon(d, cx, cy, R, **kw):
@@ -224,7 +225,7 @@ def octagon_mat(out):
     d.ellipse([c - R, c - R, c + R, c + R], fill=(18, 18, 20)); d.ellipse([c - R + 18, c - R + 18, c + R - 18, c + R - 18], outline=(196, 26, 32), width=16)
     f, size = _fit(d, "BRAXHORN", FB, 190, 2 * R - 120); tw = d.textlength("BRAXHORN", font=f)
     d.text((c - tw / 2, c - size * .72), "BRAXHORN", font=f, fill=(246, 246, 244))
-    f2 = font(FB, 70); t2 = "O C T A G O N"; tw2 = d.textlength(t2, font=f2); d.text((c - tw2 / 2, c + size * .45), t2, font=f2, fill=(214, 40, 46))
+    f2 = font(FB, 70); t2 = "A R E N A"; tw2 = d.textlength(t2, font=f2); d.text((c - tw2 / 2, c + size * .45), t2, font=f2, fill=(214, 40, 46))
     f3 = font(FB, 92)
     for t, y in (("BRAXHORN CITY", 330), ("BRAXHORN CITY", W - 330 - 92)):
         tw3 = d.textlength(t, font=f3); d.text((c - tw3 / 2, y), t, font=f3, fill=(70, 70, 76))
@@ -249,7 +250,7 @@ def chain_link(out):
     img.save(out)
 
 def octagon_banner(out):
-    """Baner pionowy 512×1024: czerń → bordo, ośmiokąt u góry, BRAXHORN pionowo, OCTAGON u dołu."""
+    """Baner pionowy 512×1024: czerń → bordo, ośmiokąt u góry, BRAXHORN pionowo, ARENA u dołu (bez słowa Octagon — decyzja 2.11)."""
     W, H = 512, 1024
     img = _grad(W, H, (14, 12, 14), (70, 8, 14)); d = ImageDraw.Draw(img)
     d.rectangle([10, 10, W - 11, H - 11], outline=(200, 30, 36), width=8)
@@ -258,7 +259,7 @@ def octagon_banner(out):
     txt = Image.new("RGBA", (680, 150), (0, 0, 0, 0)); dt = ImageDraw.Draw(txt)
     f, size = _fit(dt, "BRAXHORN", FB, 130, 660); tw = dt.textlength("BRAXHORN", font=f); dt.text(((680 - tw) / 2, 4), "BRAXHORN", font=f, fill=(248, 248, 248, 255))
     rot = txt.rotate(90, expand=True); img.paste(rot, (int(W / 2 - rot.width / 2), 320), rot)
-    f2 = font(FB, 48); t2 = "OCTAGON"; d.text(((W - d.textlength(t2, font=f2)) / 2, H - 90), t2, font=f2, fill=(226, 40, 46))
+    f2 = font(FB, 48); t2 = "ARENA"; d.text(((W - d.textlength(t2, font=f2)) / 2, H - 90), t2, font=f2, fill=(226, 40, 46))
     img.save(out)
 
 def brand_sign(out, w=1024, h=256):
