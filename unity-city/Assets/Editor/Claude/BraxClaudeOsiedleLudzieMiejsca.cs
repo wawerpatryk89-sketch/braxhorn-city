@@ -53,6 +53,7 @@ public static partial class BraxClaudeOsiedle
                      " klipy=" + rbKlipy.Count + " wzrost_bohatera=" + WzrostBohatera.ToString("F2");
         Debug.Log(msg); rep.notes.Add(msg);
         string Stat(List<float> l) => l.Count == 0 ? "—" : "n=" + l.Count + " śr " + l.Average().ToString("F3") + " min " + l.Min().ToString("F3") + " max " + l.Max().ToString("F3");
+        Debug.Log("BRAXHORN_LUDZIE_REKWIZYTY plecaki=0 (klocek z 3 brył bez szelek wyłączony; pominięto " + rbPlecakiPominiete + " losowań) torby=zaokrąglone z paskiem, kubki/telefony/czapki/okulary bez zmian");
         Debug.Log("BRAXHORN_SKALA ludzie: k świata=" + K.ToString("F3") + " baza ludzi=" + WzrostBazaLudzi.ToString("F2") + " m (#44: 2.27) mężczyźni " + Stat(wzrostyM) + " kobiety " + Stat(wzrostyK)
             + " (oczekiwane: mężczyźni 2.202–2.270, kobiety 2.145–2.213)");
     }

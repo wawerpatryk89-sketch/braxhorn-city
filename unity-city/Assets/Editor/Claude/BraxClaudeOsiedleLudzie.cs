@@ -59,6 +59,13 @@ public static partial class BraxClaudeOsiedle
     }
 
     static readonly string[] Cywile = { "Male_Adult", "Female_Adult", "Business", "Sports" };
+    // E13 (build 45, właściciel 20:42: „ludzie na majtkach chodzą po osiedlu — oni na plażę do miasta”): stroje PLAŻOWE —
+    // pomiar udziału skóry w teksturze *_body_color (barwa skóry z twarzy *_head_color, jak maska ubrań w fetch_rocketbox):
+    // Sports_Male_01 90 % (kąpielówki, bez koszulki), Sports_Female_01 79 % (bikini, boso); reszta 3–48 % (ubrani).
+    // Na osiedlu wykluczeni ze WSZYSTKICH ról (przechodnie, mieszkańcy, obsada, kierowcy, pasażerowie, podróżni). Miasto bez zmian.
+    public static readonly string[] Plazowe = { "Sports_Male_01", "Sports_Female_01" };
+    static bool Plazowy(RbPostac p) => Plazowe.Contains(p.nazwa);
+    static int rbPlazowiPominieci;
     static readonly Rola RolaPrzechodzien = new Rola { nazwa = "przechodzień", postaci = Cywile, czapka = .18f, okulary = .18f, plecak = .14f, torba = .14f, kubek = .1f };
     static readonly Rola RolaImpreza = new Rola { nazwa = "gość klubu", postaci = new[] { "Female_Party", "Female_Adult", "Male_Adult" } };
     static readonly Rola RolaObsluga = new Rola { nazwa = "obsługa", postaci = new[] { "Male_Adult", "Female_Adult" }, kolor = new Color(.12f, .12f, .13f) };
@@ -92,6 +99,7 @@ public static partial class BraxClaudeOsiedle
     static bool LadujRocketbox()
     {
         if (rbZaladowane) return rbPostacie.Count > 0;
+        rbWlosySprawdzone = 0; rbWlosyPoprawione = 0; rbWlosyUwagi.Clear(); rbPlecakiPominiete = 0;
         rbZaladowane = true; rbPostacie = new List<RbPostac>(); rbKlipy = new Dictionary<string, AnimationClip>(); rbPredkosc = new Dictionary<string, float>();
         rbBledyKosci = rbTpoza = rbLudzie = rbPrzechodnie = rbObsada = rbKierowcy = rbSiedzacy = rbPary = rbInni = 0; rbKolejka.Clear(); akcSiatki.Clear(); akcMat.Clear();
         if (!RocketboxDostepny()) return false;
@@ -124,7 +132,17 @@ public static partial class BraxClaudeOsiedle
                 var nk = norm != null ? AssetDatabase.LoadAssetAtPath<Texture2D>(norm) : null;
                 if (ck) m.SetTexture("_MainTex", ck); else rep.notes.Add("ludzie: " + go.name + " — brak tekstury koloru dla " + mn);
                 if (nk) { m.SetTexture("_BumpMap", nk); m.EnableKeyword("_NORMALMAP"); }
-                m.SetFloat("_Glossiness", low.Contains("head") ? .38f : low.Contains("equipment") || low.Contains("pistol") || low.Contains("helmet") ? .45f : .28f);
+                m.SetFloat("_Glossiness", opac ? .1f : low.Contains("head") ? .38f : low.Contains("equipment") || low.Contains("pistol") || low.Contains("helmet") ? .45f : .28f);
+                if (opac)
+                {   // E15 (build 45): niebiesko-białe plamy na włosach = odbicie nieba (gładkość 0.28, karty dwustronne, Fresnel pod
+                    // kątem) + biała tekstura domyślna, gdy brak pliku krycia. Gładkość włosów 0.1; brak tekstury = karta wyłączona z alfą 0.
+                    rbWlosySprawdzone++;
+                    var imp = kolor != null ? AssetImporter.GetAtPath(kolor) as TextureImporter : null;
+                    bool alfaOk = ck && imp && imp.alphaIsTransparency && imp.DoesSourceTextureHaveAlpha();
+                    if (!ck) { m.SetTexture("_MainTex", Texture2D.blackTexture); m.SetColor("_Color", new Color(0, 0, 0, 0)); rbWlosyUwagi.Add(go.name + " " + mn + ": brak tekstury — karta ukryta"); }
+                    else if (!alfaOk) rbWlosyUwagi.Add(go.name + " " + mn + ": tekstura bez alfy/dylatacji (" + System.IO.Path.GetFileName(kolor) + ")");
+                    rbWlosyPoprawione++;
+                }
                 if (m.HasProperty("_Metallic")) m.SetFloat("_Metallic", 0f);
                 if (opac && !wlosy)
                 {
@@ -173,6 +191,8 @@ public static partial class BraxClaudeOsiedle
             }
         }
         int m0 = rbPostacie.Count(q => !q.kobieta);
+        Debug.Log("BRAXHORN_LUDZIE_WLOSY sprawdzone=" + rbWlosySprawdzone + " poprawione=" + rbWlosyPoprawione + " (gładkość 0.28 → 0.10, odbicie nieba na kartach włosów)" + (rbWlosyUwagi.Count > 0 ? " uwagi: " + string.Join("; ", rbWlosyUwagi) : ""));
+        Debug.Log("BRAXHORN_LUDZIE_STROJE osiedle: ubrani=" + rbPostacie.Count(q => !Plazowy(q)) + " plażowi_wykluczeni=" + rbPostacie.Count(Plazowy) + " (" + string.Join(", ", rbPostacie.Where(Plazowy).Select(q => q.nazwa)) + ") — reguła tylko osiedla; w mieście bez zmian");
         Debug.Log("BRAXHORN_LUDZIE paczka: postaci " + rbPostacie.Count + " (szkielet męski " + m0 + ", żeński " + (rbPostacie.Count - m0) + "), klipów " + rbKlipy.Count +
                   ", prędkości chodu: " + string.Join(", ", rbPredkosc.Select(kv => kv.Key + " " + kv.Value.ToString("F2"))));
         TestKosci();
@@ -313,9 +333,9 @@ public static partial class BraxClaudeOsiedle
     // ---------------- fabryka osoby ----------------
     static RbPostac WybierzPostac(Rola r, System.Random rnd)
     {
-        var kand = rbPostacie.Where(p => r.postaci == null || r.postaci.Any(x => p.nazwa.StartsWith(x))).ToList();
-        if (kand.Count == 0) kand = rbPostacie.Where(p => Cywile.Any(x => p.nazwa.StartsWith(x))).ToList();
-        if (kand.Count == 0) kand = rbPostacie;
+        var kand = rbPostacie.Where(p => !Plazowy(p) && (r.postaci == null || r.postaci.Any(x => p.nazwa.StartsWith(x)))).ToList();
+        if (kand.Count == 0) kand = rbPostacie.Where(p => !Plazowy(p) && Cywile.Any(x => p.nazwa.StartsWith(x))).ToList();
+        if (kand.Count == 0) kand = rbPostacie.Where(p => !Plazowy(p)).ToList();
         if (kand.Count == 0) return null;
         // po kolei z losowym przesunięciem — różne postacie obok siebie, każda użyta
         rbKolejka.TryGetValue(r.nazwa, out int n); rbKolejka[r.nazwa] = n + 1 + (rnd.NextDouble() < .3 ? 1 : 0);
@@ -378,6 +398,7 @@ public static partial class BraxClaudeOsiedle
     }
 
     // ---------------- akcesoria (siatki z kodu, przypięte do kości) ----------------
+    static int rbWlosySprawdzone, rbWlosyPoprawione; static readonly List<string> rbWlosyUwagi = new List<string>();
     static readonly Dictionary<string, Mesh> akcSiatki = new Dictionary<string, Mesh>();
     static readonly Dictionary<string, Material> akcMat = new Dictionary<string, Material>();
 
@@ -416,6 +437,28 @@ public static partial class BraxClaudeOsiedle
                 for (int i = 0; i <= seg; i++) { float a = i * Mathf.PI * 2f / seg; v.Add(c + new Vector3(Mathf.Cos(a) * rx, h, Mathf.Sin(a) * rz)); n.Add(Vector3.up); uv.Add(new Vector2(.5f + Mathf.Cos(a) * .5f, .5f + Mathf.Sin(a) * .5f)); }
                 for (int i = 0; i < seg; i++) tri[sub].AddRange(new[] { cK, cK + 2 + i, cK + 1 + i });
             }
+        }
+        // zaokrąglony prostopadłościan (superelipsoida, e = 0.35: płaskie ściany, okrągłe krawędzie) o półwymiarach r
+        public void Zaokraglony(Vector3 c, Vector3 r, float e, int segU, int segV, int sub = 0)
+        {
+            int k0 = v.Count;
+            float S(float x, float p) => Mathf.Sign(x) * Mathf.Pow(Mathf.Abs(x), p);
+            for (int j = 0; j <= segV; j++)
+                for (int i = 0; i <= segU; i++)
+                {
+                    float th = -Mathf.PI * .5f + j * Mathf.PI / segV, ph = i * Mathf.PI * 2f / segU;
+                    float cx = Mathf.Cos(th) * Mathf.Cos(ph), cy = Mathf.Sin(th), cz = Mathf.Cos(th) * Mathf.Sin(ph);
+                    var q = new Vector3(S(Mathf.Cos(th), e) * S(Mathf.Cos(ph), e), S(Mathf.Sin(th), e), S(Mathf.Cos(th), e) * S(Mathf.Sin(ph), e));
+                    v.Add(c + Vector3.Scale(q, r));
+                    var nn = new Vector3(S(Mathf.Cos(th), 2f - e) * S(Mathf.Cos(ph), 2f - e) / r.x, S(Mathf.Sin(th), 2f - e) / r.y, S(Mathf.Cos(th), 2f - e) * S(Mathf.Sin(ph), 2f - e) / r.z);
+                    n.Add(nn.sqrMagnitude > 1e-12f ? nn.normalized : new Vector3(cx, cy, cz)); uv.Add(new Vector2(i / (float)segU, j / (float)segV));
+                }
+            for (int j = 0; j < segV; j++)
+                for (int i = 0; i < segU; i++)
+                {
+                    int a = k0 + j * (segU + 1) + i, b2 = a + segU + 1;
+                    tri[sub].AddRange(new[] { a, b2, a + 1, a + 1, b2, b2 + 1 });
+                }
         }
         // pół elipsoidy (kopuła) nad c
         public void Kopula(Vector3 c, Vector3 r, int segU, int segV, int sub = 0)
@@ -475,9 +518,14 @@ public static partial class BraxClaudeOsiedle
                 b.Box(new Vector3(0, -.08f, -.08f), new Vector3(.24f, .17f, .04f), Quaternion.identity);
                 b.Box(new Vector3(0, .21f, .02f), new Vector3(.1f, .02f, .03f), Quaternion.identity);
                 break;
-            case "torba":             // torba w dłoni: góra (uchwyt) w y = 0
-                b.Box(new Vector3(0, -.15f, 0), new Vector3(.30f, .22f, .1f), Quaternion.identity);
-                b.Box(new Vector3(0, -.03f, 0), new Vector3(.02f, .06f, .012f), Quaternion.identity);
+            case "torba":             // torba w dłoni (build 45: zaokrąglona bryła zamiast klocka): korpus z zaokrąglonymi krawędziami, pasek-uchwyt łukiem
+                b.Zaokraglony(new Vector3(0, -.15f, 0), new Vector3(.15f, .11f, .05f), .35f, 14, 10);
+                for (int i = 0; i < 8; i++)
+                {
+                    float a0 = Mathf.PI * i / 8f, a1 = Mathf.PI * (i + 1) / 8f;
+                    var p0 = new Vector3(Mathf.Cos(a0) * .06f, -.04f + Mathf.Sin(a0) * .05f, 0); var p1 = new Vector3(Mathf.Cos(a1) * .06f, -.04f + Mathf.Sin(a1) * .05f, 0);
+                    b.Box((p0 + p1) * .5f, new Vector3((p1 - p0).magnitude + .002f, .01f, .012f), Quaternion.FromToRotation(Vector3.right, p1 - p0));
+                }
                 break;
         }
         var m = b.Siatka("Ludzie: akcesorium " + id);
@@ -570,12 +618,19 @@ public static partial class BraxClaudeOsiedle
                 Akcesorium(o, "torba", o.dlonL, c + fd * .02f * o.s, Quaternion.LookRotation(Vector3.ProjectOnPlane(F, fd).normalized, -fd), kol, AkcMaterial("torba (kolor)", Color.white, .45f));
             }
         }
-        else if (rnd.NextDouble() < rola.plecak && o.spine2)
+        else if (PlecakiWlaczone && rnd.NextDouble() < rola.plecak && o.spine2)
         {
             var kol = new[] { new Color(.1f, .1f, .11f), new Color(.14f, .22f, .38f), new Color(.45f, .12f, .1f), new Color(.3f, .34f, .22f) }[rnd.Next(4)];
             Akcesorium(o, "plecak", o.spine2, o.spine2.position - F * .19f * o.s - Vector3.up * .06f * o.s, Quaternion.LookRotation(F, Vector3.up), kol, AkcMaterial("plecak (kolor)", Color.white, .3f));
         }
+        else if (!PlecakiWlaczone && rola.plecak > 0f) rbPlecakiPominiete++;
     }
+
+    // E15 (build 45, zdjęcie właściciela: „zielony prostopadłościan na plecach”): plecak z brył (3 klocki, bez szelek, odstaje
+    // od pleców — wygląda jak zaślepka) WYŁĄCZONY, dopóki nie będzie plecaka z szelkami dopasowanego do pleców postaci
+    // (pomiar skóry pleców). Torba w dłoni: zaokrąglona bryła z paskiem zamiast klocka.
+    const bool PlecakiWlaczone = false;
+    static int rbPlecakiPominiete;
 
     // ---------------- osoba z gotowym zachowaniem ----------------
     static readonly string[] KlipyPostoj = { "idle_neutral_01", "idle_neutral_02", "idle_neutral_03", "idle_look_around_01", "idle_waiting_01" };
