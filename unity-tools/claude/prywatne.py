@@ -9,10 +9,15 @@ Hasło: sekret repozytorium BRAXHORN_KEYSTORE_PASS (w CI zmienna KLUCZ). Nigdy w
   ruchy_brax         surowe animacje Mixamo z dawnego dev/anims/{brax,extra,extra2,gym} (65 FBX)
   ruchy_wlasciciela  paczki ruchów właściciela: nyxa/, xd/, nina/ (FBX bez skóry)
   nina_1..3          trzy FBX Mixamo „ze skórą” z paczki nina (każdy ~32 MB, osobno — limit GitHuba 100 MB na plik)
+  osiedle_*          modele ze Sketchfaba do osiedla (CC-BY; pliki osób trzecich w publicznym repo tylko zaszyfrowane):
+                     osiedle_wnetrza (bar, loże, hokery, szkło, automaty, szatnia, szpital, karetka). Już przetworzone
+                     (GLB + _tekstury/…), odszyfrowane do Assets/Source/Prywatne/Osiedle/<paczka>/. Autorzy: unity-city/Prywatne/
+                     <paczka>_CREDITS.md. Brak klucza/paczki = osiedle buduje z kodu (log BRAXHORN_OSIEDLE_ASSETY brak …).
 
 Tryby:
   python3 unity-tools/claude/prywatne.py                       CI przed Unity: odszyfrowuje patryk + ruchy_brax + ruchy_wlasciciela,
                                                                przygotowuje Assets/Source/Prywatne (poza gitem). Bez klucza → Brax.
+                                                               Potem paczki osiedla (osiedle_*) → Assets/Source/Prywatne/Osiedle/<paczka>/.
   KLUCZ=… python3 unity-tools/claude/prywatne.py szyfruj NAZWA KATALOG   paczka z zawartości KATALOGU (ścieżki względne)
   KLUCZ=… python3 unity-tools/claude/prywatne.py sprawdz                 odszyfrowanie na próbę + lista plików każdej paczki
   KLUCZ=… python3 unity-tools/claude/prywatne.py rozpakuj NAZWA CEL      odszyfrowanie paczki do katalogu CEL (właściciel)
@@ -208,7 +213,51 @@ def przygotuj_patryka(staging):
     return True
 
 
+# Paczki modeli osiedla: każda osobno (< 90 MB po kompresji — limit GitHuba 100 MB na plik).
+PACZKI_OSIEDLA = ("osiedle_wnetrza",)
+
+
+def paczki_modeli(podkatalog, nazwy, opis):
+    """Paczki modeli → Assets/Source/Prywatne/<podkatalog>/<paczka>/. Każda osobno; błąd jednej nie rusza pozostałych
+    ani Patryka. Nigdy nie wywraca buildu (generator buduje wtedy z kodu i loguje brak)."""
+    if not klucz():
+        print(f"BRAXHORN_PRYWATNE {opis}: brak klucza — bez modeli Sketchfab")
+        return
+    ok, brak = [], []
+    for nazwa in nazwy:
+        cel = CEL / podkatalog / nazwa
+        try:
+            tar = odszyfruj(nazwa)
+            if tar is None:
+                brak.append(nazwa)
+                continue
+            with tar:
+                n = rozpakuj(tar, cel)
+            mb = sum(p.stat().st_size for p in cel.rglob("*") if p.is_file()) / 1048576
+            glb = len(list(cel.glob("*.glb")))
+            ok.append(f"{nazwa}({n} plików, {glb} glb, {mb:.1f} MB)")
+            if glb == 0:
+                print(f"BRAXHORN_PRYWATNE {opis}: {nazwa} bez .glb — DO POPRAWKI")
+        except Exception as e:   # build idzie dalej bez tej paczki
+            print(f"BRAXHORN_PRYWATNE {opis}: {nazwa} DO POPRAWKI: {type(e).__name__}: {e}")
+            shutil.rmtree(cel, ignore_errors=True)
+            brak.append(nazwa)
+    print(f"BRAXHORN_PRYWATNE {opis}: odszyfrowane={len(ok)}/{len(nazwy)} [{', '.join(ok)}]"
+          + (f" brak=[{', '.join(brak)}]" if brak else ""))
+
+
+def osiedle():
+    paczki_modeli("Osiedle", PACZKI_OSIEDLA, "osiedle")
+
+
 def ci():
+    try:
+        patryk_i_ruchy()
+    finally:
+        osiedle()
+
+
+def patryk_i_ruchy():
     if not klucz():
         print("BRAXHORN_PRYWATNE brak klucza (sekret BRAXHORN_KEYSTORE_PASS) — build z Braxem")
         return
@@ -235,12 +284,14 @@ def ci():
                         ruchy += 1
             if ruchy == 0:
                 print("BRAXHORN_PRYWATNE brak ruchów — Patryk bez animacji = Brax")
-                shutil.rmtree(CEL, ignore_errors=True)
+                for sub in ("patryk", "ruchy"):
+                    shutil.rmtree(CEL / sub, ignore_errors=True)
                 patryk = False
         print(f"BRAXHORN_PRYWATNE odszyfrowane={len(ok)}/3 [{', '.join(ok)}] patryk={'tak' if patryk else 'nie'} ruchy_do_unity={ruchy}")
     except Exception as e:   # build idzie dalej z Braxem
         print(f"BRAXHORN_PRYWATNE DO POPRAWKI: {type(e).__name__}: {e} — build z Braxem")
-        shutil.rmtree(CEL, ignore_errors=True)
+        for sub in ("patryk", "ruchy"):
+            shutil.rmtree(CEL / sub, ignore_errors=True)
     finally:
         shutil.rmtree(staging, ignore_errors=True)
 

@@ -1,0 +1,22 @@
+# osiedle_wnetrza — modele wnętrz osiedla (paczka zaszyfrowana: osiedle_wnetrza.tar.gz.enc)
+
+Odszyfrowywane w CI przez `unity-tools/claude/prywatne.py` do `Assets/Source/Prywatne/Osiedle/osiedle_wnetrza/` (poza gitem).
+Pliki w repo tylko zaszyfrowane (zasada projektu: modele osób trzecich nie leżą jawnie w publicznym repo). Licencje CC-BY 4.0 —
+autorzy MUSZĄ być w ekranie Autorzy w grze (Resources/braxhorn_autorzy.txt).
+Przetworzenie offline (2.11): gltfpack (uproszczenie, bez kwantyzacji), tekstury ≤ 1024 jako pliki `_tekstury/<model>/` (Unity kompresuje),
+warianty grafik automatu: `_tekstury/kasyno_automat_warianty/` (braxhorn_niebieski/zielony/czerwony, vegas_czerwony × pas/tablica/ekran).
+
+| Plik | Tytuł | Autor | Licencja | Źródło | Zmiany |
+|---|---|---|---|---|---|
+| bar_butelki_helyeouka.glb | Whiskey and Wine Low-Poly Bottles | Helyeouka (https://sketchfab.com/Helyeouka) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/whiskey-and-wine-low-poly-bottles-99999f032f624e8cb05651f041dbf8eb | tekstury ≤ 1024 jako pliki; bez zmian geometrii |
+| bar_hoker_skora_nosteam.glb | Leather High Bar Stool | Nosakhae (https://sketchfab.com/NosTeam) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/leather-high-bar-stool-b117e9bb6647471cbba974430dfd3726 | tekstury ≤ 1024 jako pliki; 73k → 3.6k trójkątów |
+| bar_lampa_markpeters.glb | Bar Ceiling Light - 2048px² | Mark Peters (https://sketchfab.com/mark-peters) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/bar-ceiling-light-2048px2-2ba27702aabe4d37822956a2b7bf43d8 | tekstury ≤ 1024 jako pliki; 8.3k → 2.5k trójkątów |
+| bar_polki_butelki_windupbird.glb | Bar with bottles | windupbird (https://sketchfab.com/windupbird) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/bar-with-bottles-acdb303e9849401f95a973469e0310c3 | tekstury ≤ 1024 jako pliki; 57k → 13k trójkątów, butelki osobno |
+| bar_szklo_saandy.glb | Bar Glasses | Saandy (https://sketchfab.com/Saandy) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/bar-glasses-c466971661f04251b159319b7dcc50a5 | tekstury ≤ 1024 jako pliki; 44k → 7k trójkątów |
+| kasyno_automat_nermin.glb | Slot-machine | nermin (https://sketchfab.com/nermin) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/slot-machine-b853ed93538a4405949800ab501606d8 | tekstury ≤ 1024 jako pliki; grafika automatu 1 (motyw filmowy, cudza marka) zastąpiona własną BRAXHORN; warianty kolorów własne |
+| loze_chesterfield_moet.glb | Chesterfield Lounge Set | Jakoza (https://sketchfab.com/Moe.T) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/chesterfield-lounge-set-36ac2ea9644c4988ad780f3022fd4616 | tekstury ≤ 1024 jako pliki; 267k → 11k trójkątów |
+| loze_stolik_marmur_3dtech.glb | Round side coffee table marble top | 3DTechDesign (https://sketchfab.com/3DTechDesignCo.Ltd) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/round-side-coffee-table-marble-top-49e5ede6a16d4dd39386d6aa705fdbeb | tekstury ≤ 1024 jako pliki; 15k → 5.4k trójkątów |
+| pojazd_karetka_shvan_zhabotinsky.glb | Shvan '92 Ambulance - Low Poly model | Daniel Zhabotinsky (https://sketchfab.com/DanielZhabotinsky) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/shvan-92-ambulance-low-poly-model-2856dd3c61f940909dced9a5c0379484 | tekstury ≤ 1024 jako pliki; bez zmian geometrii |
+| szatnia_plaszcz_3decraft.glb | Wool Coat | 3DECraft (https://sketchfab.com/3DECraft) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/wool-coat-216b5f7332b5475099c930c29acf9f37 | tekstury ≤ 1024 jako pliki; 25k → 3k trójkątów, metki marki zamazane w teksturze, nazwy materiałów zmienione |
+| szatnia_wieszak_roh3d.glb | Wood Clothes Hanger | tedpermana (https://sketchfab.com/tedpermana) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/wood-clothes-hanger-3b5ada364d634aa18007f9c8d8dc79ce | tekstury ≤ 1024 jako pliki; 1.1k → 0.6k trójkątów |
+| szpital_sala_uguryksk.glb | Hospital Room | Uğur Yakışık (https://sketchfab.com/UgurYksk) | CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/) | https://sketchfab.com/3d-models/hospital-room-39d5f1555a26402ab1a54ffbaa8afec1 | tekstury ≤ 1024 jako pliki; bez zmian geometrii |

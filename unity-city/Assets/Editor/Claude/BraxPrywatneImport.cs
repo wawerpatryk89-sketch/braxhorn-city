@@ -15,6 +15,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
     void OnPreprocessModel()
     {
         if (!assetPath.StartsWith(Katalog)) return;
+        if (assetPath.StartsWith(Katalog + "Osiedle/")) return;   // modele osiedla ze Sketchfaba (glTF) — własne ustawienia
         var mi = assetImporter as ModelImporter;
         if (mi == null) return;
         mi.materialImportMode = ModelImporterMaterialImportMode.None;
@@ -43,6 +44,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
     void OnPreprocessTexture()
     {
         if (!assetPath.StartsWith(Katalog)) return;
+        if (assetPath.StartsWith(Katalog + "Osiedle/")) return;   // BraxOsiedleAssetyTekstury
         var ti = assetImporter as TextureImporter;
         if (ti == null) return;
         string n = Path.GetFileNameWithoutExtension(assetPath).ToLowerInvariant();
