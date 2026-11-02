@@ -88,7 +88,7 @@ internal static class BraxMiastoWyspa
         BraxUliceKit.UstawGrupe("Wyspa: arena BRAXHORN");
         Arena();
         BraxUliceKit.UstawGrupe("Wyspa: bar, ringi, punkt widokowy", 80f);
-        Plaze(z, m); BarPlazowy(); Ringi(); PunktWidokowy();
+        Plaze(z, m); BarPlazowy(); Ringi(); PunktWidokowy(); PlacWejsciowy();
         int nz = z.Emit(root, "Wyspa: przystań i plaża");
         int siatek = BraxUliceKit.Zapisz(root, "wyspa");
         int palm = Palmy(), krz = Krzewy();
@@ -304,7 +304,7 @@ internal static class BraxMiastoWyspa
                     Czlowiek("Kasa ARENY", "kibic w kolejce", "stoi", kp + N * 1.45f + Rr * (s < 5f ? .3f : -.3f), -N, KlStoi);
                 }
                 Miejsca["arena_wejscie"] = a + Rr * dl * .5f + N * 3f + Vector3.up * y0;
-                foreach (float s in new[] { dl * .5f - 6.6f, dl * .5f + 6.6f }) Czlowiek("Wejście ARENY", "ochrona", "stoi", a + Rr * s + N * 1.2f + Vector3.up * y0, N, KlStoi);
+                foreach (float s in new[] { dl * .5f - 2.1f, dl * .5f + 2.1f }) Czlowiek("Wejście ARENY", "ochrona", "stoi", a + Rr * s + N * 2.0f + Vector3.up * y0, N, KlStoi);
             }
         }
         // DACH (A 2.11 16:04 „dach stalowy / membranowy”): wieniec betonowy na koronie attyki, belka obwodowa, 8 żeber stalowych
@@ -976,6 +976,169 @@ internal static class BraxMiastoWyspa
         BraxMiastoA.Akcja(root, "wyspa_bar", "ZAMÓW", "Barman: Lemoniada, kokos, coś zimnego przed galą?", new Vector3(c.x, c.y, c.z - d * .5f - 1.2f), 2f);
     }
 
+    // ---------------- PLAC WEJŚCIOWY ARENY (A 2.11 16:04 „arena festiwalowa”): pylon z napisem, telebimy plenerowe z zapowiedzią
+    // walki, brama z bramkami biletowymi (tor środkowy w osi deptaka), flagi, 3 food trucki z obsługą. Wszystko stoi na płytach
+    // placu (wysokość z placu), kolizje na bryłach; między elementami wolne przejścia ≥ 1.1 m.
+    static void PlacWejsciowy()
+    {
+        float y = W + PlacH, zc = CZ + Plac.y, xw = CX + Plac.x + 4f - ArenaR * Mathf.Cos(Mathf.PI / 8f);   // lico ściany wejścia
+        var czarny = BraxMiastoA.Mat("Plac areny: stal czarna", new Color(.05f, .05f, .055f), .45f, .6f);
+        var stal = BraxMiastoA.Mat("Plac areny: stal nierdzewna", new Color(.62f, .63f, .65f), .3f, .9f);
+        var led = BraxMiastoA.Swieci("Arena: pas LED zielony (marka)", new Color(.45f, 1f, .2f), new Color(.8f, 2.2f, .3f));
+        var lit = BraxMiastoA.Swieci("Arena: litery szyldu (podświetlane)", Color.white, new Color(2f, 2f, 2f));
+        var boki = BraxMiastoA.Mat("Arena: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f);
+        void KolO(string nazwa, Vector3 srodek, Vector3 przod, Vector3 rozmiar)
+        {
+            var g = new GameObject(nazwa); g.transform.SetParent(kol, false); g.transform.position = srodek;
+            przod.y = 0f; g.transform.rotation = Quaternion.LookRotation(przod.normalized, Vector3.up); g.AddComponent<BoxCollider>().size = rozmiar;
+        }
+        // 1) PYLON „ARENA BRAXHORN” przy końcu deptaka (9 m, podświetlane litery z obu stron, pas LED)
+        {
+            var p = new Vector3(CX + Plac.x - PlacR + 4.5f, y, zc - 7f); float hp = 9f, wp = 3.4f, dp = .7f;
+            BraxUliceKit.S(czarny).OBox(p + Vector3.up * hp * .5f, Vector3.forward, Vector3.up, Vector3.right, wp, hp, dp);
+            KolO("kolizja: pylon areny", p + Vector3.up * hp * .5f, Vector3.right, new Vector3(wp, hp, dp));
+            foreach (float sx in new[] { -1f, 1f })
+            {
+                var n = Vector3.right * sx; var lico = p + n * dp * .5f;
+                float c1 = .62f, w1 = BraxUliceKit.SzerokoscNapisu("ARENA", c1); if (w1 > wp - .5f) c1 *= (wp - .5f) / w1;
+                float c2 = .5f, w2 = BraxUliceKit.SzerokoscNapisu("BRAXHORN", c2); if (w2 > wp - .4f) c2 *= (wp - .4f) / w2;
+                BraxUliceKit.Napis3D("ARENA", lico + Vector3.up * 6.9f, n, c1, .12f, lit, boki);
+                BraxUliceKit.Napis3D("BRAXHORN", lico + Vector3.up * 6.0f, n, c2, .12f, lit, boki);
+                BraxUliceKit.S(led).OBox(lico + Vector3.up * 5.6f + n * .02f, Vector3.forward, Vector3.up, n, wp - .4f, .08f, .04f, true);
+            }
+            Miejsca["arena_pylon"] = p - Vector3.right * 2f;
+        }
+        // 2) TELEBIMY PLENEROWE (7.2 × 4.5 m na dwóch słupach) — przód to sam obraz (ściana szafy), tył czarna szafa
+        string zap = Zapowiedz(); int nT = 0;
+        foreach (float sz in new[] { -1f, 1f })
+        {
+            var p = new Vector3(CX + Plac.x - PlacR + 7f, y, zc + sz * 12f); var N = new Vector3(-1f, 0f, -sz * .22f).normalized; var Rv = Vector3.Cross(N, Vector3.up);
+            float tw = 7.2f, th = 4.5f, tb0 = 3.4f, tg = .5f;
+            var srodek = p + Vector3.up * (tb0 + th * .5f) - N * tg * .5f;
+            BraxUliceKit.S(czarny).OBox(srodek, Rv, Vector3.up, -N, tw + .2f, th + .2f, tg, true);   // szafa BEZ przodu — przodem jest obraz
+            // lico szafy: obraz w płaszczyźnie przodu, wokół ramka z czterech listew (przed płaszczyzną, obok obrazu — nie na nim)
+            BraxMiastoA.Obraz(root, "telebim plenerowy " + (sz < 0 ? "płd." : "płn."), zap, p + Vector3.up * tb0 - Rv * tw * .5f, Rv, tw, th, N, 1.0f);
+            var cE = p + Vector3.up * (tb0 + th * .5f) + N * .03f; var ram = BraxUliceKit.S(czarny);
+            foreach (float o in new[] { -1f, 1f })
+            {
+                ram.OBox(cE + Vector3.up * o * (th * .5f + .05f), Rv, Vector3.up, N, tw + .2f, .1f, .06f);
+                ram.OBox(cE + Rv * o * (tw * .5f + .05f), Rv, Vector3.up, N, .1f, th, .06f);
+            }
+            foreach (float o in new[] { -1f, 1f }) BraxUliceKit.S(czarny).Rura(p + Rv * o * 2.6f - N * tg * .5f, p + Rv * o * 2.6f - N * tg * .5f + Vector3.up * tb0, .16f, 12);
+            foreach (float o in new[] { -1f, 1f }) KolO("kolizja: słup telebimu", p + Rv * o * 2.6f - N * tg * .5f + Vector3.up * tb0 * .5f, N, new Vector3(.35f, tb0, .35f));
+            nT++;
+        }
+        // 3) BRAMA WEJŚCIOWA z bramkami biletowymi: belka z napisem na dwóch słupach, 8 szafek bramek (szklane skrzydła
+        //    schowane — tory otwarte), tor środkowy w osi deptaka
+        {
+            float xg = xw - 7.5f, hb = 4.6f, half = 8.6f;
+            foreach (float sz in new[] { -1f, 1f })
+            {
+                var sp = new Vector3(xg, y, zc + sz * half);
+                BraxUliceKit.S(czarny).OBox(sp + Vector3.up * hb * .5f, Vector3.forward, Vector3.up, Vector3.right, .45f, hb, .45f);
+                KolO("kolizja: słup bramy", sp + Vector3.up * hb * .5f, Vector3.right, new Vector3(.45f, hb, .45f));
+            }
+            var belka = new Vector3(xg, y + hb - .45f, zc);
+            BraxUliceKit.S(czarny).OBox(belka, Vector3.forward, Vector3.up, Vector3.right, 2f * half - .45f, .9f, .5f);
+            float cg = .42f, wg = BraxUliceKit.SzerokoscNapisu("ARENA BRAXHORN · WEJŚCIE", cg); if (wg > 2f * half - 1.4f) cg *= (2f * half - 1.4f) / wg;
+            BraxUliceKit.Napis3D("ARENA BRAXHORN · WEJŚCIE", belka + Vector3.left * .25f - Vector3.up * .22f, Vector3.left, cg, .06f, lit, boki);
+            BraxUliceKit.S(led).OBox(belka + Vector3.left * .27f + Vector3.up * .38f, Vector3.forward, Vector3.up, Vector3.left, 2f * half - .6f, .06f, .04f, true);
+            var szkloCz = BraxMiastoA.Mat("Plac areny: szkło bramek (czarne)", new Color(.03f, .03f, .035f), .08f, .3f);
+            int nb = 0;
+            for (int k = -4; k <= 4; k++)
+            {
+                if (k == 0) continue;
+                float zz = zc + (k > 0 ? k - .5f : k + .5f) * 1.4f;      // szafki co 1.4 m, tor 1.15 m, środek wolny
+                var cp = new Vector3(xg, y, zz);
+                BraxUliceKit.S(stal).OBox(cp + Vector3.up * .48f, Vector3.forward, Vector3.up, Vector3.right, .25f, .96f, 1.4f);
+                BraxUliceKit.S(szkloCz).OBox(cp + Vector3.up * .975f, Vector3.forward, Vector3.up, Vector3.right, .23f, .03f, 1.36f, false, true);
+                BraxUliceKit.S(led).OBox(cp + Vector3.up * .995f + Vector3.left * .5f, Vector3.forward, Vector3.up, Vector3.right, .08f, .01f, .2f, false, true);
+                KolO("kolizja: szafka bramki", cp + Vector3.up * .5f, Vector3.right, new Vector3(.25f, 1f, 1.4f));
+                nb++;
+            }
+            // barierki między skrajnymi szafkami a słupami — wejście tylko torami bramek
+            foreach (float sz in new[] { -1f, 1f })
+            {
+                Vector3 b0 = new Vector3(xg, y, zc + sz * 5.2f), b1 = new Vector3(xg, y, zc + sz * 8.3f);
+                BraxUliceKit.S(stal).Rura(b0 + Vector3.up * 1.05f, b1 + Vector3.up * 1.05f, .025f, 8); BraxUliceKit.S(stal).Rura(b0 + Vector3.up * .3f, b1 + Vector3.up * .3f, .02f, 8);
+                for (int k = 0; k <= 4; k++) { var bp = Vector3.Lerp(b0, b1, k / 4f); BraxUliceKit.S(stal).Rura(bp, bp + Vector3.up * 1.05f, .022f, 6); }
+                for (int k = 1; k < 26; k++) { var bp = Vector3.Lerp(b0, b1, k / 26f); BraxUliceKit.S(stal).Rura(bp + Vector3.up * .3f, bp + Vector3.up * 1.05f, .009f, 4); }
+                KolO("kolizja: barierka bramy", (b0 + b1) * .5f + Vector3.up * .55f, Vector3.right, new Vector3(3.1f, 1.1f, .1f));
+            }
+            BraxMiastoA.Akcja(root, "arena_bramki", "POKAŻ BILET", "Bramki ARENY BRAXHORN: bilet zeskanowany — zapraszamy na galę.", new Vector3(xg - 1.2f, y, zc), 1.8f);
+            Miejsca["arena_bramki"] = new Vector3(xg - 1.2f, y, zc);
+            Czlowiek("Bramki ARENY", "bileter", "stoi", new Vector3(xg + 1.1f, y, zc + 1.4f), Vector3.left, KlStoi);
+            Czlowiek("Bramki ARENY", "bileter", "stoi", new Vector3(xg + 1.1f, y, zc - 1.4f), Vector3.left, KlStoi);
+        }
+        // 4) FLAGI (8 m maszty, flagi marki zielono-czarne, sztywny płat 2 cm)
+        var ziel = BraxMiastoA.Mat("Plac areny: flaga (zieleń marki)", new Color(.28f, .72f, .14f), .8f);
+        var czern = BraxMiastoA.Mat("Plac areny: flaga (czerń)", new Color(.04f, .04f, .045f), .8f);
+        int nF = 0;
+        foreach (float sz in new[] { -1f, 1f })
+            foreach (float zo in new[] { 10.4f, 12.8f, 15.2f })
+            {
+                var fp = new Vector3(xw - 4.2f, y, zc + sz * zo);
+                BraxUliceKit.S(stal).Rura(fp, fp + Vector3.up * 8f, .055f, 10); BraxUliceKit.S(stal).Walec(fp, .2f, .05f, 14);
+                BraxUliceKit.S(stal).Rura(fp + Vector3.up * 8f, fp + Vector3.up * 8.12f, .08f, 10);
+                var fc = fp + Vector3.up * 7.2f + Vector3.forward * sz * .97f;
+                BraxUliceKit.S(ziel).OBox(fc + Vector3.up * .3f, Vector3.forward, Vector3.up, Vector3.right, 1.8f, .6f, .02f);
+                BraxUliceKit.S(czern).OBox(fc - Vector3.up * .3f, Vector3.forward, Vector3.up, Vector3.right, 1.8f, .6f, .02f);
+                KolO("kolizja: maszt flagi", fp + Vector3.up * 1.5f, Vector3.right, new Vector3(.15f, 3f, .15f));
+                nF++;
+            }
+        // 5) FOOD TRUCKI (5.4 × 2.3 m, kabina, otwarte okno wydawki z daszkiem, lada, zaplecze, szyld na dachu, obsługa)
+        var trucki = new[]
+        {
+            (new Vector3(CX + Plac.x - 26f, y, zc + 19f), Vector3.back, "BURGERY", new Color(.12f, .42f, .2f)),
+            (new Vector3(CX + Plac.x - 19f, y, zc + 19f), Vector3.back, "KAWA · LODY", new Color(.92f, .9f, .86f)),
+            (new Vector3(CX + Plac.x - 14f, y, zc - 17f), Vector3.forward, "KOKOS · SOKI", new Color(.85f, .45f, .1f)),
+        };
+        int nTr = 0;
+        foreach (var (p, f, tekst, kolor) in trucki)
+        {
+            nTr++;
+            var s = Vector3.Cross(Vector3.up, f); float L = 5.4f, Wd = 2.3f, Lb = L - 1.5f, sb = -.75f;
+            Vector3 T(float u, float yy, float v) => p + s * u + Vector3.up * yy + f * v;
+            var lak = BraxUliceKit.S(BraxMiastoA.Mat("Food truck: lakier " + tekst, kolor, .35f, .2f));
+            var wn = BraxUliceKit.S(BraxMiastoA.Mat("Food truck: wnętrze (stal)", new Color(.55f, .56f, .58f), .35f, .8f));
+            var szk = BraxUliceKit.S(BraxMiastoA.Mat("Food truck: szyby (ciemne)", new Color(.05f, .07f, .08f), .08f, .3f));
+            var opona = BraxUliceKit.S(BraxMiastoA.Mat("Food truck: opony", new Color(.03f, .03f, .03f), .9f));
+            lak.OBox(T(0, .65f, 0), s, Vector3.up, f, L, .3f, Wd);                                            // podłoga / podwozie
+            lak.OBox(T(L * .5f - .75f, 1.25f, 0), s, Vector3.up, f, 1.5f, .9f, Wd);                           // kabina dół
+            szk.OBox(T(L * .5f - .8f, 2.1f, 0), s, Vector3.up, f, 1.3f, .8f, Wd - .1f);                       // kabina szyby
+            lak.OBox(T(L * .5f - .8f, 2.55f, 0), s, Vector3.up, f, 1.3f, .1f, Wd - .1f);                      // dach kabiny
+            lak.OBox(T(sb, 1.65f, -Wd * .5f + .03f), s, Vector3.up, f, Lb, 1.7f, .06f);                       // ściana tylna
+            lak.OBox(T(sb, 1.1f, Wd * .5f - .03f), s, Vector3.up, f, Lb, .6f, .06f);                          // ściana pod okienkiem
+            lak.OBox(T(-L * .5f + .03f, 1.65f, 0), s, Vector3.up, f, .06f, 1.7f, Wd - .12f);                  // ściana tylna (koniec)
+            lak.OBox(T(L * .5f - 1.53f, 1.65f, 0), s, Vector3.up, f, .06f, 1.7f, Wd - .12f);                  // przegroda za kabiną
+            foreach (float u in new[] { -L * .5f + .125f, L * .5f - 1.5f - .125f }) lak.OBox(T(u, 1.95f, Wd * .5f - .03f), s, Vector3.up, f, .25f, 1.1f, .06f);   // słupki okna
+            lak.OBox(T(sb, 2.55f, 0), s, Vector3.up, f, Lb, .1f, Wd);                                          // dach
+            wn.OBox(T(sb, 1.425f, Wd * .5f - .1f), s, Vector3.up, f, Lb - .55f, .04f, .5f);                    // lada (wystaje 15 cm)
+            wn.OBox(T(sb, 1.25f, -Wd * .5f + .38f), s, Vector3.up, f, Lb - .3f, .9f, .6f);                     // blat roboczy przy ścianie tylnej
+            BraxUliceKit.S(czarny).OBox(T(sb - .9f, 1.88f, -Wd * .5f + .38f), s, Vector3.up, f, .5f, .35f, .45f);   // ekspres / grill
+            BraxUliceKit.S(BraxMiastoA.Swieci("Food truck: listwa LED wnętrza", Color.white, new Color(1.4f, 1.4f, 1.3f))).OBox(T(sb, 2.47f, Wd * .5f - .25f), s, Vector3.up, f, Lb - .6f, .03f, .06f);
+            // daszek okna (uchylony 15° na zewnątrz), szyld na dachu z literami od strony klientów
+            var fr = (f * Mathf.Cos(15f * Mathf.Deg2Rad) + Vector3.up * Mathf.Sin(15f * Mathf.Deg2Rad)).normalized; var br = Vector3.Cross(fr, s).normalized; if (br.y < 0) br = -br;
+            lak.OBox(T(sb, 2.5f, Wd * .5f) + fr * .55f, s, br, fr, Lb - .1f, .04f, 1.1f);
+            BraxUliceKit.S(czarny).OBox(T(sb, 2.95f, 0), s, Vector3.up, f, Lb - .4f, .7f, .08f);
+            float ct = .26f, wt = BraxUliceKit.SzerokoscNapisu(tekst, ct); if (wt > Lb - .7f) ct *= (Lb - .7f) / wt;
+            BraxUliceKit.Napis3D(tekst, T(sb, 2.82f, .04f), f, ct, .03f, lit, boki);
+            foreach (float u in new[] { -L * .5f + .9f, L * .5f - .9f }) foreach (float v in new[] { -1f, 1f }) opona.Rura(T(u, .38f, v * (Wd * .5f - .3f)), T(u, .38f, v * (Wd * .5f - .02f)), .38f, 16);
+            // kolizje: podwozie, kabina, ściany (wnętrze wolne — tam stoi obsługa)
+            KolO("kolizja: food truck podwozie", T(0, .4f, 0), f, new Vector3(L, .8f, Wd));
+            KolO("kolizja: food truck kabina", T(L * .5f - .75f, 1.7f, 0), f, new Vector3(1.5f, 1.8f, Wd));
+            KolO("kolizja: food truck tył", T(sb, 1.65f, -Wd * .5f + .03f), f, new Vector3(Lb, 1.7f, .1f));
+            KolO("kolizja: food truck lada", T(sb, 1.1f, Wd * .5f - .1f), f, new Vector3(Lb, .65f, .3f));
+            KolO("kolizja: food truck koniec", T(-L * .5f + .03f, 1.65f, 0), f, new Vector3(.1f, 1.7f, Wd));
+            string id = "wyspa_food_" + nTr;
+            BraxMiastoA.Akcja(root, id, "ZAMÓW", tekst + ": Proszę bardzo — na gali w ARENIE głodny nie będziesz.", T(sb, 0f, Wd * .5f + 1.1f), 1.6f);
+            Miejsca[id] = T(sb, 0f, Wd * .5f + 1.1f);
+            Czlowiek("Food truck " + tekst, "obsługa", "stoi", T(sb, .8f, -.15f), f, KlLada);
+            Czlowiek("Food truck " + tekst, "klient", "stoi", T(sb + .6f, 0f, Wd * .5f + 1.0f), -f, KlStoi);
+        }
+        BraxMiastoA.Log("WYSPA plac wejściowy areny: pylon, telebimów " + nT + ", brama z bramkami, flag " + nF + ", food trucków " + nTr);
+    }
+
     // ---------------- dwa ringi plenerowe na mniejsze walki (nie nasze) ----------------
     static void Ringi()
     {
@@ -1144,7 +1307,7 @@ internal static class BraxMiastoWyspa
         var g = new GameObject("Wyspa z daleka: teren"); g.transform.SetParent(sr, false); g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = BraxMiastoA.Mat("Wyspa z daleka (kolory z wierzchołków)", Color.white, .9f); r.shadowCastingMode = ShadowCastingMode.Off;
         var a = new UlSiatka(); var c = AC; a.kolor = BraxUliceKit.C(.75f, .78f, .8f);
-        for (int i = 0; i < 8; i++) { float a0 = i * Mathf.PI / 4f, a1 = (i + 1) * Mathf.PI / 4f; var p0 = c + new Vector3(Mathf.Cos(a0), 0, Mathf.Sin(a0)) * (ArenaR - 1f); var p1 = c + new Vector3(Mathf.Cos(a1), 0, Mathf.Sin(a1)) * (ArenaR - 1f); a.Quad(p0, p1, p1 + Vector3.up * 12.5f, p0 + Vector3.up * 12.5f, (p0 + p1 - 2 * c).normalized); a.Tri(c + Vector3.up * 12.5f, p1 + Vector3.up * 12.5f, p0 + Vector3.up * 12.5f, Vector3.up); }
+        for (int i = 0; i < 8; i++) { float a0 = i * Mathf.PI / 4f, a1 = (i + 1) * Mathf.PI / 4f; var p0 = c + new Vector3(Mathf.Cos(a0), 0, Mathf.Sin(a0)) * (ArenaR - 1f); var p1 = c + new Vector3(Mathf.Cos(a1), 0, Mathf.Sin(a1)) * (ArenaR - 1f); a.Quad(p0, p1, p1 + Vector3.up * 12.5f, p0 + Vector3.up * 12.5f, (p0 + p1 - 2 * c).normalized); a.kolor = BraxUliceKit.C(.93f, .93f, .91f); a.Tri(c + Vector3.up * 16.5f, p1 + Vector3.up * 12.5f, p0 + Vector3.up * 12.5f, Vector3.up); a.kolor = BraxUliceKit.C(.75f, .78f, .8f); }   // dach membranowy (stożek)
         var ga = BraxMiastoA.Obiekt(sr, "Wyspa z daleka: arena", a, BraxMiastoA.Mat("Wyspa z daleka (kolory z wierzchołków)", Color.white, .9f));
         var ukr = sr.gameObject.AddComponent<BraxWyspaDaleko>(); ukr.srodek = new Vector3(CX, 0, CZ); ukr.blizej = 230f; ukr.renderery = new Renderer[] { r, ga.GetComponent<Renderer>() };
     }
@@ -1166,7 +1329,7 @@ internal static class BraxMiastoWyspa
             int s = rnd.Next(t.Length - 1); var p = Vector3.Lerp(t[s], t[s + 1], (float)rnd.NextDouble());
             Czlowiek("Deptak wyspy", "spacerowicz", "spacer", p, k % 2 == 0 ? t[s + 1] - t[s] : t[s] - t[s + 1], KlSpacer, t);
         }
-        var pl = new Vector3(CX + Plac.x - 27f, W + PlacH, CZ + Plac.y);     // plac przed wejściem (ściana areny x ≈ Plac.x − 18)
+        var pl = new Vector3(CX + Plac.x - 30f, W + PlacH, CZ + Plac.y);     // plac przed wejściem (ściana areny x ≈ Plac.x − 18)
         foreach (var o in new[] { new Vector2(-2f, 6f), new Vector2(-1f, 7f), new Vector2(3f, -6.5f), new Vector2(-5f, -5f), new Vector2(-4.2f, -5.8f) })
             Czlowiek("Plac przed ARENĄ", "kibic", "stoi", pl + new Vector3(o.x, 0, o.y), new Vector3(1f, 0, -o.y * .1f), KlStoi);
     }
