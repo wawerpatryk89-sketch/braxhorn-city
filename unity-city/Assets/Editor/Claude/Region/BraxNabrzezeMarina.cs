@@ -57,6 +57,7 @@ public static class BraxNabrzezeMarina
         Molo(z, root, kol, m, deski, pale);
         Trap(z, kol, m, deski, aluminium);
         Pomosty(z, root, kol, m, deski, plywak, aluminium);
+        PomostyDE(z, kol, m, deski, plywak, aluminium);
         Bosmanat(z, root, kol, m);
         int n = z.Emit(root, "Marina", false);
         int lodzie = Lodzie(portRoot, kol, m);
@@ -202,7 +203,7 @@ public static class BraxNabrzezeMarina
         // niewidzialne krawędzie: wschód (przy jachtach), zachód między palcami, końce; skutery — krawędź zachodnia
         Krawedz(kol, new Vector3(x1 + .1f, 0, PomZ0), new Vector3(x1 + .1f, 0, PomZ1), pok);
         Krawedz(kol, new Vector3(PomX0, 0, PomZ0 - .1f), new Vector3(x1, 0, PomZ0 - .1f), pok);
-        Krawedz(kol, new Vector3(PomX0, 0, PomZ1 + .1f), new Vector3(x1, 0, PomZ1 + .1f), pok);
+        // (północny koniec pomostu A przechodzi w pomost poprzeczny E — bez krawędzi)
         float zc = PomZ0;
         var ciecia = new List<(float, float)>(palceZach) { (TrapZ - 1.2f, TrapZ + 1.2f), (sz0, sz1) };
         ciecia.Sort((a, b) => a.Item1.CompareTo(b.Item1));
@@ -222,6 +223,31 @@ public static class BraxNabrzezeMarina
         Miejsca["marina_pomost_jachty"] = new Vector3(x1 - .9f, pok, 62f);
         Miejsca["marina_pomost_motorowki"] = new Vector3(PomX0 + .8f, pok, 38f);
         Miejsca["marina_pomost_skutery"] = new Vector3(sx0 + 1.2f, ps, 58.6f);
+    }
+
+    // ---------------- A 2.11: pomost poprzeczny E i drugi pomost pływający D (jachty w rzędach jak w prawdziwej marinie) ----------------
+    public const float DX0 = 136f;
+    public static float DX1 => DX0 + 2.5f * BraxNabrzeze.K;
+    static void PomostyDE(BraxNabrzeze.Zbior z, Transform kol, BraxNabrzezeMebel.Mat m, Material deski, Material plywak, Material alu)
+    {
+        float pok = Poklad, ez1 = PomZ1 + 2.6f;
+        Pomost(z, kol, m, deski, plywak, PomX0, DX1, PomZ1, ez1, pok);         // E: od pomostu A do D (wzdłuż x)
+        Pomost(z, kol, m, deski, plywak, DX0, DX1, PomZ0, PomZ1, pok);          // D: równoległy do A
+        for (float zz = PomZ0 + 2f; zz < PomZ1; zz += 15f) z[alu].Rura(new Vector3(DX1 - .3f, -5f, zz), new Vector3(DX1 - .3f, pok + 2.4f * K, zz), .18f, 12);
+        Krawedz(kol, new Vector3(PomX0, 0, ez1 + .1f), new Vector3(DX1, 0, ez1 + .1f), pok);
+        Krawedz(kol, new Vector3(PomX1, 0, PomZ1 - .1f), new Vector3(DX0, 0, PomZ1 - .1f), pok);
+        Krawedz(kol, new Vector3(PomX0 - .1f, 0, PomZ1), new Vector3(PomX0 - .1f, 0, ez1), pok);
+        Krawedz(kol, new Vector3(DX1 + .1f, 0, PomZ0), new Vector3(DX1 + .1f, 0, ez1), pok);
+        Krawedz(kol, new Vector3(DX0 - .1f, 0, PomZ0), new Vector3(DX0 - .1f, 0, PomZ1), pok);
+        Krawedz(kol, new Vector3(DX0, 0, PomZ0 - .1f), new Vector3(DX1, 0, PomZ0 - .1f), pok);
+        for (float zz = PomZ0 + 8f; zz < PomZ1 - 2f; zz += 12f)
+        {
+            var p = new Vector3((DX0 + DX1) * .5f, pok, zz);
+            z[m.bialy].BoxMM(p + new Vector3(-.15f, 0, -.15f) * K, p + new Vector3(.15f * K, 1.0f * K, .15f * K));
+            z[m.zielen].BoxMM(p + new Vector3(-.17f * K, 1.0f * K, -.17f * K), p + new Vector3(.17f * K, 1.08f * K, .17f * K));
+            BraxNabrzeze.Kol(kol, "Słupek energetyczny", p + Vector3.up * .6f, new Vector3(.4f, 1.2f, .4f) * K);
+        }
+        Miejsca["marina_pomost_D"] = new Vector3((DX0 + DX1) * .5f, pok, 50f);
     }
 
     // ---------------- bosmanat na bulwarze (x 66.5…72.5, z 61.5…68) ----------------
@@ -283,6 +309,19 @@ public static class BraxNabrzezeMarina
             var v = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1), new Vector3(0, 0, zc), 180f, burtaX: x1 + .45f, zachod: false);
             if (v) { n++; Cumy(z, cumy, odbij, v, new Vector3(x1, pok, zc), true); }
         }
+        // D: jachty po obu stronach pomostu D (burtą, dziobem na południe — wypływają na otwartą wodę ku wyspie)
+        foreach (float zc in new[] { 64f, 36f })
+        {
+            var vz = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1), new Vector3(0, 0, zc), 180f, burtaX: DX0 - .45f, zachod: true);
+            if (vz) { n++; Cumy(z, cumy, odbij, vz, new Vector3(DX0, pok, zc), true); }
+            var vw = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1), new Vector3(0, 0, zc - 3f), 180f, burtaX: DX1 + .45f, zachod: false);
+            if (vw) { n++; Cumy(z, cumy, odbij, vw, new Vector3(DX1, pok, zc - 3f), true); }
+        }
+        // motorówka do rejsu na wyspę — burtą do pomostu poprzecznego E (od północy), dziobem na wschód (prosto na wolną wodę)
+        {
+            var vr = Lodz(portRoot, Riva, "Marina: motorówka (rejs na wyspę)", new Vector3(125f, 0, PomZ1 + 2.6f + .45f + 1.65f), 90f);
+            if (vr) { n++; vr.wejscie = vr.transform.InverseTransformPoint(new Vector3(125f, W, PomZ1 + 2.0f)); Cumy(z, cumy, odbij, vr, new Vector3(125f, pok, PomZ1 + 2.6f), true); }
+        }
         // B: motorówki rufą do pomostu głównego, w boksach między palcami, dziobem na zachód
         float[] boksy = { 32.6f, 37.8f, 43.0f };
         int k = 0;
@@ -334,7 +373,7 @@ public static class BraxNabrzezeMarina
         var bw = BraxRegion.Bounds(go);
         float pol = t.dlug * K * .5f, szer = Mathf.Min(bw.size.x, bw.size.z);
         Vector3 cel = c;
-        if (!float.IsNaN(burtaX)) cel.x = burtaX + szer * .5f + .05f;            // burta przy pomoście (odbijacze 0,35 m)
+        if (!float.IsNaN(burtaX)) cel.x = zachod && burtaX > PomX1 + 1f ? burtaX - szer * .5f - .05f : burtaX + szer * .5f + .05f;   // burta przy pomoście (odbijacze 0,35 m); A 2.11: łódź na zachód od pomostu D
         if (!float.IsNaN(rufaX)) cel.x = rufaX - pol;                              // rufa przy pomoście, dziób na zachód
         v.transform.position = new Vector3(cel.x, W, cel.z);
         var vessel = v.AddComponent<BraxVessel>();
@@ -345,7 +384,7 @@ public static class BraxNabrzezeMarina
         // miejsce gracza: kokpit / siodło — promień w dół na tymczasowe kolizje modelu
         vessel.seat = Siedzenie(go, v.transform, t);
         // miejsce wejścia (AKCJA „WSIĄDŹ”): przy burcie od pomostu (jacht) albo przy rufie (motorówka, skuter)
-        vessel.wejscie = !float.IsNaN(burtaX) ? v.transform.InverseTransformPoint(new Vector3(burtaX - .9f, W, cel.z - pol * .25f))
+        vessel.wejscie = !float.IsNaN(burtaX) ? v.transform.InverseTransformPoint(new Vector3(zachod && burtaX > PomX1 + 1f ? burtaX + .9f : burtaX - .9f, W, cel.z - pol * .25f))
                                               : new Vector3(0, 0, -pol - .9f);
         vessel.moor = v.transform.position; vessel.moorYaw = yaw;
         Fale(v.transform, vessel);
