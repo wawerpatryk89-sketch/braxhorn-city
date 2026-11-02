@@ -22,6 +22,9 @@ public static class BraxRejonBuildu
 {
     const string PlikCI = "rejon-ci.txt";
     public const string Znacznik = "Assets/PlayableGenerated/pamiec-rejonu.json";
+    // Pliki pisane przez Unity poza PlayableGenerated i czytane po buildzie (unity-tools/kickboxing/package.py) — są w ścieżkach
+    // pamięci w workflow; tu sprawdzane, żeby trafienie bez nich nie wywaliło joba (recenzja 2.11, K1).
+    static readonly string[] Wymagane = { "Assets/Source/Premium/unity-premium-report.json", "Assets/Source/Premium/source-refinements.json" };
 
     // Ustawienia projektu (ProjectSettings) zmieniane przez kod generatora (siłownia, osiedle, miasto). Zapisane w znaczniku —
     // przy trafieniu porównane z przywróconymi ProjectSettings i w razie różnicy ustawione ze znacznika (zabezpieczenie).
@@ -38,6 +41,7 @@ public static class BraxRejonBuildu
     {
         public string rejon, klucz, platforma, commit, utworzono;
         public string[] sceny;
+        public string[] zaleznosci;   // wszystkie zasoby, których potrzebują sceny (recenzja 2.11: pliki generatora poza PlayableGenerated)
         public bool ustawieniaNaDysku;
         public Ustawienia ustawienia;
     }
@@ -136,7 +140,9 @@ public static class BraxRejonBuildu
             // flaga z końca generowania; gdy Unity zapisało ProjectSettings dopiero przy wyjściu, przywrócone mają już kolor liniowy
             : !s.ustawieniaNaDysku && s.ustawienia != null && (int)PlayerSettings.colorSpace != s.ustawienia.przestrzenBarw ? "ustawienia projektu (ProjectSettings) nie zapisały się na dysk w buildzie, który generował świat"
             : s.ustawienia == null || s.sceny == null || s.sceny.Length == 0 ? "znacznik bez scen / ustawień"
-            : s.sceny.FirstOrDefault(p => !File.Exists(p)) is string brak ? "brak sceny " + brak : null;
+            : s.sceny.FirstOrDefault(p => !File.Exists(p)) is string brak ? "brak sceny " + brak
+            : (s.zaleznosci ?? new string[0]).FirstOrDefault(p => !File.Exists(p)) is string brakZ ? "brak zasobu sceny " + brakZ + " (nie wrócił z pamięci)"
+            : Wymagane.FirstOrDefault(p => !File.Exists(p)) is string brakW ? "brak pliku " + brakW + " (czyta go pakowanie playera)" : null;
         if (powod != null)
         {
             Debug.LogWarning("BRAXHORN_PAMIEC rejon=" + rejon + " odrzucona: " + powod + " — usuwam przywrócone Assets/PlayableGenerated i generuję od nowa");
@@ -164,6 +170,19 @@ public static class BraxRejonBuildu
         catch (Exception e) { Debug.LogWarning("DO POPRAWKI: czyszczenie odrzuconej pamięci rejonu: " + e.Message); }
     }
 
+    // Zasoby, od których zależą sceny rejonu (bez skryptów i pakietów — te są w repo / w Unity). Brak któregokolwiek po
+    // przywróceniu = świat odrzucony i pełne generowanie (zamiast cicho zerwanej referencji, np. odbić nieba).
+    static string[] Zaleznosci(string[] sceny)
+    {
+        try
+        {
+            return AssetDatabase.GetDependencies(sceny, true)
+                .Where(p => p.StartsWith("Assets/") && !p.EndsWith(".cs") && !p.EndsWith(".unity"))
+                .Distinct().OrderBy(p => p).ToArray();
+        }
+        catch (Exception e) { Debug.LogWarning("DO POPRAWKI: zależności scen do znacznika pamięci: " + e.Message); return new string[0]; }
+    }
+
     // Na końcu udanego builda z pełnym generowaniem: znacznik świata (workflow zapisze pamięć podręczną po udanym jobie).
     public static void ZapiszZnacznik(BuildTarget target, string[] sceny, string commit, DateTime startBuildu)
     {
@@ -179,7 +198,7 @@ public static class BraxRejonBuildu
                     && (File.GetLastWriteTimeUtc(ps) >= startBuildu.AddSeconds(-5) || File.ReadAllText(ps).Contains("m_ActiveColorSpace: " + (int)PlayerSettings.colorSpace));
             }
             catch { }
-            var s = new Stan { rejon = rejon, klucz = Klucz, platforma = target.ToString(), commit = commit, utworzono = DateTime.UtcNow.ToString("u", CultureInfo.InvariantCulture), sceny = sceny, ustawieniaNaDysku = naDysku, ustawienia = Teraz() };
+            var s = new Stan { rejon = rejon, klucz = Klucz, platforma = target.ToString(), commit = commit, utworzono = DateTime.UtcNow.ToString("u", CultureInfo.InvariantCulture), sceny = sceny, zaleznosci = Zaleznosci(sceny), ustawieniaNaDysku = naDysku, ustawienia = Teraz() };
             File.WriteAllText(Znacznik, JsonUtility.ToJson(s, true));
             if (naDysku) Debug.Log("BRAXHORN_PAMIEC rejon=" + rejon + " zapisany znacznik świata (klucz " + Klucz + ", scen " + sceny.Length + ") — workflow zapisze pamięć po udanym jobie" + (PamiecWlaczona ? "" : " (ten rejon bez pamięci w CI)"));
             else Debug.LogWarning("BRAXHORN_PAMIEC UWAGA: ProjectSettings nie zapisały się przy SaveAssets — przy trafieniu liczy się zapis przy wyjściu z Unity (sprawdzane po przestrzeni barw; inaczej świat odrzucony = pełne generowanie)");

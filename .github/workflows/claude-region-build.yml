@@ -258,6 +258,9 @@ jobs:
           unity-city/Assets/PlayableGenerated
           unity-city/Assets/**/*.meta
           unity-city/ProjectSettings
+          unity-city/Assets/Source/Premium/unity-premium-report.json
+          unity-city/Assets/Source/Premium/source-refinements.json
+          unity-city/Assets/Source/Claude/Osiedle/sky/niebo_odbicia.jpg
         key: ${{ steps.rejon.outputs.klucz }}
     - name: Wynik pamieci rejonu (trafienie = bez generowania rejonu w Unity)
       if: steps.rejon.outputs.pamiec == 'tak'
@@ -265,11 +268,15 @@ jobs:
         echo "BRAXHORN_PAMIEC_CI rejon=${{ steps.rejon.outputs.rejon }} z_pamięci=${{ steps.pamiec.outputs.cache-hit == 'true' && 'tak' || 'nie' }} klucz=${{ steps.rejon.outputs.klucz }}"
         echo "BRAXHORN_CZAS etap=przywrocenie_pamieci s=$(( $(date +%s) - T_PAMIEC ))"
         du -sh unity-city/Assets/PlayableGenerated 2>/dev/null || echo 'swiat rejonu: brak w pamieci (pelne generowanie, zapis po udanym jobie)'
-    - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+    - name: Tydzien (klucz pamieci Library - jeden wpis na tydzien zamiast nowego 6 GB przy kazdym commicie)
+      id: tydzien
+      run: echo "t=$(date -u +%G-w%V)" >> "$GITHUB_OUTPUT"
+    - name: Pamiec podreczna Library Unity (odczyt; zapis osobnym krokiem raz na tydzien - limit 10 GB na repo)
+      id: biblioteka
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
         path: unity-city/Library
-        key: claude-library-webgl-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.sha }}
+        key: claude-library-webgl-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ steps.tydzien.outputs.t }}
         restore-keys: claude-library-webgl-${{ hashFiles('unity-city/Packages/manifest.json') }}-
     - name: Miejsce na dysku dla obrazu Unity i pliku wymiany (runner ma ~14 GB wolne)
       run: |
@@ -343,6 +350,12 @@ jobs:
         du -sh unity-city/Library/* 2>/dev/null | sort -h | tail -8 || true
         du -sh unity-city/Assets/PlayableGenerated/* 2>/dev/null | sort -h | tail -10 || true
         cat unity-city/Assets/PlayableGenerated/pamiec-rejonu.json 2>/dev/null || echo 'brak znacznika swiata rejonu (rejon oba albo generowanie nieukonczone)'
+    - name: Zapis pamieci Library Unity (raz na tydzien; trafienie dokladne = bez zapisu)
+      if: success() && steps.biblioteka.outputs.cache-hit != 'true'
+      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: unity-city/Library
+        key: ${{ steps.biblioteka.outputs.cache-primary-key }}
     - name: Raport portu z edytora Unity
       if: always()
       run: |
@@ -550,6 +563,9 @@ jobs:
           unity-city/Assets/PlayableGenerated
           unity-city/Assets/**/*.meta
           unity-city/ProjectSettings
+          unity-city/Assets/Source/Premium/unity-premium-report.json
+          unity-city/Assets/Source/Premium/source-refinements.json
+          unity-city/Assets/Source/Claude/Osiedle/sky/niebo_odbicia.jpg
         key: ${{ steps.rejon.outputs.klucz }}
     - name: Wynik pamieci rejonu (trafienie = bez generowania rejonu w Unity)
       if: steps.rejon.outputs.pamiec == 'tak'
@@ -557,12 +573,8 @@ jobs:
         echo "BRAXHORN_PAMIEC_CI rejon=${{ steps.rejon.outputs.rejon }} z_pamięci=${{ steps.pamiec.outputs.cache-hit == 'true' && 'tak' || 'nie' }} klucz=${{ steps.rejon.outputs.klucz }}"
         echo "BRAXHORN_CZAS etap=przywrocenie_pamieci s=$(( $(date +%s) - T_PAMIEC ))"
         du -sh unity-city/Assets/PlayableGenerated 2>/dev/null || echo 'swiat rejonu: brak w pamieci (pelne generowanie, zapis po udanym jobie)'
-    - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
-      with:
-        path: unity-city/Library
-        key: claude-library-android-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.sha }}
-        restore-keys: claude-library-android-${{ hashFiles('unity-city/Packages/manifest.json') }}-
+    # Pamiec Library dla APK wylaczona (build 14): w 13.1 „Cache not found” — 7 GB Androida + 6 GB WebGL nie miesci sie
+    # w limicie 10 GB na repo, wpis byl wypierany, a kazdy build i tak wysylal 7 GB. Miejsce zostaje dla pamieci rejonu.
     - name: Miejsce na dysku dla obrazu Unity i pliku wymiany (runner ma ~14 GB wolne)
       run: |
         df -h / | tail -1
