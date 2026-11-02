@@ -230,6 +230,11 @@ public static partial class BraxClaudeOsiedle
             O("KOMISARIAT — dyżurny", RolaPolicja, "policja", new Vector3(lk.x + 1.0f * k, YC, lk.z - .95f * k), 0f);
             O("KOMISARIAT — policjant przed wejściem", RolaPolicja, "policja", new Vector3(BraxRegionMiastoB.Komisariat.center.x + 3.2f * k, YC, BraxRegionMiastoB.Komisariat.yMax + 1.6f), 0f);
             O("SZPITAL — rejestracja", RolaRecepcja, "recepcja", new Vector3(ls.x + 1.0f * k, YC, ls.z - .95f * k), 0f);
+            // CENTRUM (ETAP 3): recepcje holi 6 wieżowców; GALERIA: informacja i baristka w pasażu
+            foreach (var w in BraxRegionMiastoB.WiezeCentrum) { var lw = BraxRegionTylyB.LadaHolu(w); O("CENTRUM — recepcja wieżowca", RolaRecepcja, "recepcja", new Vector3(lw.x + 1.0f * k, YC, lw.z - .95f * k), 0f); }
+            var gl = BraxRegionMiastoB.Galeria; var lg = BraxRegionTylyB.LadaHolu(gl);
+            O("GALERIA — informacja", RolaRecepcja, "recepcja", new Vector3(lg.x + 1f + 1.0f * k, YC, lg.z - .95f * k), 0f);
+            O("GALERIA — baristka", RolaObsluga, "barista", new Vector3(gl.xMin + 4f - 1.2f, YC, lg.z + .8f), 90f);
             O("SZPITAL — lekarz w izbie przyjęć", RolaMedyk, "medyk", new Vector3(BraxRegionMiastoB.Szpital.center.x - 4f, YC, BraxRegionMiastoB.Szpital.yMax - 3.5f), 200f);
             // ławki miasta B: część zajęta (jedna osoba na ławkę)
             bool MojaB(Transform t)
@@ -243,7 +248,7 @@ public static partial class BraxClaudeOsiedle
             var g = Group("Ludzie / na ławkach (miasto B)");
             foreach (var seat in lawki.OrderBy(_ => rnd.Next()).ToList())
             {
-                if (siedz >= 14) break;
+                if (siedz >= 18) break;
                 if (rnd.NextDouble() < .55) continue;
                 var F = seat.transform.forward; F.y = 0f; F.Normalize(); var R = Vector3.Cross(Vector3.up, F);
                 var pnt = seat.transform.position + F * .04f; pnt.y = seat.surfaceY;
@@ -254,7 +259,7 @@ public static partial class BraxClaudeOsiedle
             var s = SiecMiastaB();
             var start = Enumerable.Range(0, s.w.Count).Where(j => !s.zebry.Contains(j) && s.sas[j].Count > 0 && Wolne(s.w[j])).ToList();
             var gp = Group("Ludzie / przechodnie (miasto B)");
-            for (int i = 0; i < 32 && start.Count > 0; i++)
+            for (int i = 0; i < 44 && start.Count > 0; i++)   // 32 (ETAP 2) + 12 na ul. Zachodnią, CENTRUM i GALERIĘ
             {
                 int st = start[rnd.Next(start.Count)];
                 var (pts, pr) = Trasa(s, st, rnd);
@@ -264,7 +269,7 @@ public static partial class BraxClaudeOsiedle
             int ileLawekB = lawki.Count;
             int wezlow = s.w.Count;
             int przejsc = s.zebry.Count / 2;
-            Debug.Log("BRAXHORN_LUDZIE_MIASTO_B obsada=" + obs + "/9 na_lawkach=" + siedz + " (ławek B " + ileLawekB + ") przechodnie=" + prz +
+            Debug.Log("BRAXHORN_LUDZIE_MIASTO_B obsada=" + obs + "/17 na_lawkach=" + siedz + " (ławek B " + ileLawekB + ") przechodnie=" + prz +
                       " siec: węzłów " + wezlow + ", przejść po zebrach " + przejsc);
             foreach (var n in rep.notes) Debug.Log("BRAXHORN_LUDZIE_MIASTO_B " + n);
         }
@@ -317,6 +322,12 @@ public static partial class BraxClaudeOsiedle
         O(-66.2f, gN + 1.8f, -66.2f, 118f);
         // ul. Zachodnia (ETAP 2): chodniki od placu ronda do placu pętli ZACHÓD (wejścia komisariatu i szpitala przy chodniku płd.)
         O(-148f, 38f, BraxRegionMiastoB.ZachX0, 38f); O(-148f, 19f, BraxRegionMiastoB.ZachX0, 19f);
+        // CENTRUM (ETAP 3): przejście z ul. Zachodniej (x −216) i między wieżowcami, aleje A1 (z 86) i A2 (z 116), łącznik do pętli PÓŁNOC
+        O(-216f, 38f, -216f, 59f); O(-216f, 59f, -228f, 59f); O(-228f, 59f, -228f, 86f);
+        O(-260f, 86f, -149.5f, 86f); O(-149.5f, 86f, xw, 80f); O(-260f, 116f, -158f, 116f);
+        O(-260f, 86f, -260f, 116f); O(-228f, 86f, -228f, 116f); O(-160f, 86f, -160f, 116f);
+        // GALERIA: przejście z ul. Zachodniej (x −216) i przedpole
+        O(-216f, 19f, -216f, -4.5f); O(-260f, -4.5f, -198f, -4.5f);
         // styki odcinków
         for (int i = 0; i < s.w.Count; i++)
             for (int j = i + 1; j < s.w.Count; j++)

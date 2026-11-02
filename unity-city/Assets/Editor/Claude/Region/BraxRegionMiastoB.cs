@@ -43,13 +43,28 @@ public static class BraxRegionMiastoB
     public const float ZachX0 = PetlaZX + PetlaPlac;     // −218: zachodni koniec (krawędź placu pętli)
     public static readonly Rect Komisariat = Rect.MinMaxRect(-214f, -1f, -186f, RZ - 12f);   // front (lico) z 16.5, wejście od ulicy
     public static readonly Rect Szpital = Rect.MinMaxRect(-184f, -1f, -156f, RZ - 12f);
+    // ETAP 3: CENTRUM (biznes) na północ od ul. Zachodniej — plac z płyt x −262…−156, z 58…120, dwa rzędy wieżowców wejściem na +z
+    // (rząd 1 z 60…80 → aleja A1 z 80…92, rząd 2 z 92…112 → aleja A2 z 112…120); GALERIA za komisariatem (front z −8, przedpole do
+    // placu pętli ZACHÓD). Wysokości 80…200 m × k (22…54 kondygnacje).
+    public static readonly Rect PlacCentrum = Rect.MinMaxRect(-262f, 58f, -156f, 120f);
+    public static readonly Rect[] WiezeCentrum =
+    {
+        Rect.MinMaxRect(-258f, 60f, -232f, 80f), Rect.MinMaxRect(-224f, 60f, -198f, 80f), Rect.MinMaxRect(-190f, 60f, -164f, 80f),
+        Rect.MinMaxRect(-258f, 92f, -232f, 112f), Rect.MinMaxRect(-224f, 92f, -198f, 112f), Rect.MinMaxRect(-190f, 92f, -164f, 112f),
+    };
+    public static readonly Rect Galeria = Rect.MinMaxRect(-250f, -38f, -196f, -8f);
+    static readonly Rect PrzedpoleGalerii = Rect.MinMaxRect(-262f, -8f, -196f, -1f);
+    static readonly Rect DojscieGalerii = Rect.MinMaxRect(-262f, -1f, -214f, RZ - PetlaPlac);           // z −1…6.5 do placu pętli
+    static readonly Rect PrzejscieDoGalerii = Rect.MinMaxRect(-218f, RZ - PetlaPlac, -214f, RZ - 12f);  // z 6.5…16.5 (ul. Zachodnia → galeria)
+    static readonly Rect PrzejscieDoCentrum = Rect.MinMaxRect(-218f, RZ + 12f, -214f, 58f);            // z 40.5…58 (ul. Zachodnia → plac)
+    static readonly Rect PrzejscieCentrumPetla = Rect.MinMaxRect(-156f, 82f, AX - PetlaPlac - 3f, 92f);  // aleja A1 → pętla PÓŁNOC
     // parking przy warsztatach (za warsztatami, wjazd z Alei Południowej przez zjazd we wschodnim pasie zieleni): 2 rzędy po 12
     // stanowisk prostopadłych 2.5 × 5 m × k, aleja manewrowa 6 m; powierzchnia na poziomie chodnika
     public const float ParkX0 = -112f, ParkX1 = -72f, ParkZ0 = -66f, ParkZ1 = -46f, ParkAleja0 = -59f, ParkAleja1 = -53f;
     public static readonly List<(Vector3 c, Vector3 przod, Vector2 rozmiar)> MiejscaParkingu = new List<(Vector3, Vector3, Vector2)>();
 
     static Transform root;
-    static Material asfalt, plyty, plytyCiemne, krawMat, farba, granit, beton, stal, cegla;
+    static Material asfalt, plyty, plytyCiemne, krawMat, farba, granit, beton, stal, cegla, granitPlac;
     static readonly List<string> usuniete = new List<string>();
     static readonly List<string> kroki = new List<string>();
     static int drzewa, latarnie, zebry, sygnalizatory;
@@ -102,6 +117,7 @@ public static class BraxRegionMiastoB
         Krok("2. budynki: pierzeje alej (kamienice z detalami)", Pierzeje);
         Krok("2. budynki: warsztaty (jeden otwarty) i plac ustawek", Warsztaty);
         Krok("2. budynki: komisariat policji i szpital miejski (ul. Zachodnia)", () => BraxRegionTylyB.BudynkiZachodu(world, cityRoot, Komisariat, Szpital));
+        Krok("2. budynki: CENTRUM — 6 wieżowców i GALERIA (ETAP 3)", () => BraxRegionTylyB.Centrum(world, cityRoot, WiezeCentrum, Galeria));
         Krok("2. budowle: portal tunelu i zbocze", WyjazdNaOsiedle);
         Krok("3. wyposażenie na gotowym podłożu (drzewa, latarnie, ławki, słupki, rzeźba)", Wyposazenie);
         Krok("3. sygnalizacja na wysięgnikach i znaki", Sygnalizacja);
@@ -239,6 +255,7 @@ public static class BraxRegionMiastoB
         beton = BraxRegionMeble.Tex("Miasto B: beton", 2.0f, new Color(.78f, .77f, .74f), .9f, "concrete_floor_02", "concrete_pavement_02", "concrete_wall_008");
         stal = BraxCityMaterials.Surface("Miasto B: stal ocynkowana", new Color(.58f, .60f, .62f), .5f, .7f);
         cegla = BraxRegionMeble.Tex("Miasto B: cegła warsztatów", 1.0f, new Color(.85f, .74f, .68f), .9f, "red_brick_03", "brick_wall_001", "brick_wall_10");
+        granitPlac = BraxRegionMeble.Tex("Miasto B: płyty granitowe placu CENTRUM", 1.2f, new Color(.66f, .65f, .63f), .85f, "granite_tile_02", "concrete_pavers_03", "concrete_pavement_02");
     }
 
     // =====================================================================================================================
@@ -372,6 +389,14 @@ public static class BraxRegionMiastoB
     }
     static void Chodnik(string n, float x0, float x1, float z0, float z1) => Plyta("Chodnik: " + n, plyty, x0, x1, z0, z1, YC, .3f - YA);
     static void Kraweznik(float x0, float x1, float z0, float z1) => Plyta("Krawężnik", krawMat, x0, x1, z0, z1, YC, .3f - YA);
+    // trawnik/chodnik na prostokącie bez wskazanych prostokątów (podział bez nakładania — Odejmij)
+    static void TrawaBez(string n, Rect a, bool laka, params Rect[] bez)
+    {
+        var l = new List<Rect> { a };
+        foreach (var b in bez) l = l.SelectMany(x => Odejmij(x, b)).ToList();
+        foreach (var r in l) Trawa(n, r.xMin, r.xMax, r.yMin, r.yMax, laka);
+    }
+    static void ChodnikR(string n, Rect r) => Chodnik(n, r.xMin, r.xMax, r.yMin, r.yMax);
     static void Trawa(string n, float x0, float x1, float z0, float z1, bool laka = false)
     {
         if (x1 - x0 < .6f || z1 - z0 < .6f) return;
@@ -714,20 +739,34 @@ public static class BraxRegionMiastoB
         // zachód (ETAP 2: ul. Zachodnia, pętla ZACHÓD, komisariat, szpital, pierzeja płn.) — prostokąty bez nakładania
         float zL = RZ - 12f, zP = RZ + 12f, wx0 = BraxMiastoGranice.X0, pzx0 = PetlaZX - PetlaPlac;
         Trawa("L1 za pierzeją zach. Alei Północnej", -156f, LicoW - 16f, RZ + RPlac, PetlaZ - PetlaPlac);
-        Trawa("L2 na zachód od pętli", -156f, AX - PetlaPlac - 3f, PetlaZ - PetlaPlac, 126f, true);
-        Trawa("Z-a za komisariatem i szpitalem (do skarpy)", wx0, LicoW - 16f, ZboczeZ, Komisariat.yMin, true);
-        Trawa("Z-b pod pętlą ZACHÓD", wx0, Komisariat.xMin, Komisariat.yMin, RZ - PetlaPlac);
-        Trawa("Z-c między pętlą a komisariatem", ZachX0, Komisariat.xMin, RZ - PetlaPlac, zL);
+        TrawaBez("L2 na zachód od pętli", Rect.MinMaxRect(-156f, PetlaZ - PetlaPlac, AX - PetlaPlac - 3f, 126f), true, PrzejscieCentrumPetla);
+        TrawaBez("Z-a za komisariatem i szpitalem (do skarpy)", Rect.MinMaxRect(wx0, ZboczeZ, LicoW - 16f, Komisariat.yMin), true, Galeria, PrzedpoleGalerii);
+        TrawaBez("Z-b pod pętlą ZACHÓD", Rect.MinMaxRect(wx0, Komisariat.yMin, Komisariat.xMin, RZ - PetlaPlac), false, DojscieGalerii);
+        ChodnikR("przejście ul. Zachodnia → galeria", PrzejscieDoGalerii);
+        ChodnikR("przedpole galerii", PrzedpoleGalerii); ChodnikR("dojście do galerii od pętli ZACHÓD", DojscieGalerii);
         Trawa("Z-d między komisariatem a szpitalem", Komisariat.xMax, Szpital.xMin, Komisariat.yMin, zL);
         Trawa("Z-e między szpitalem a pierzeją alei", Szpital.xMax, LicoW - 16f, Szpital.yMin, RZ - RPlac);
         Chodnik("narożnik pd.-zach. ronda (przed fryzjerem)", Szpital.xMax, ZachX1, RZ - RPlac, zL);
         Trawa("Z-g na zachód od pętli", wx0, pzx0, RZ - PetlaPlac, RZ + PetlaPlac);
-        Trawa("Z-h między pętlą a pierzeją płn.", ZachX0, ZachX0 + 4f, zP, RZ + PetlaPlac);
+        ChodnikR("przejście ul. Zachodnia → plac CENTRUM", PrzejscieDoCentrum);
         Chodnik("narożnik pn.-zach. ronda (przed apteką)", -156f, ZachX1, zP, RZ + RPlac);
-        Trawa("Z-j na północ od pętli", wx0, ZachX0 + 4f, RZ + PetlaPlac, 126f, true);
-        Trawa("Z-k za pierzeją płn. ul. Zachodniej", ZachX0 + 4f, -156f, zP + 16f, 126f, true);
-        for (float x = wx0 + 12f; x < -160f; x += 15f) { Drzewo(new Vector3(x, YC - .03f, -9f)); Drzewo(new Vector3(x + 7f, YC - .03f, -38f)); Drzewo(new Vector3(x, YC - .03f, -66f)); }
-        for (float x = wx0 + 10f; x < -162f; x += 16f) { Drzewo(new Vector3(x, YC - .03f, 76f)); Drzewo(new Vector3(x + 8f, YC - .03f, 108f)); }
+        TrawaBez("Z-j na północ od pętli", Rect.MinMaxRect(wx0, RZ + PetlaPlac, ZachX0 + 4f, 126f), true, PlacCentrum, PrzejscieDoCentrum);
+        TrawaBez("Z-k za pierzeją płn. ul. Zachodniej", Rect.MinMaxRect(ZachX0 + 4f, zP + 16f, -156f, 126f), true, PlacCentrum);
+        ChodnikR("przejście aleja A1 → pętla PÓŁNOC", PrzejscieCentrumPetla);
+        // plac CENTRUM: płyty wokół wieżowców (bez płyt pod budynkami — posadzki holi leżą w poziomie placu)
+        foreach (var r in WiezeCentrum.Aggregate(new List<Rect> { PlacCentrum }, (l, w) => l.SelectMany(x => Odejmij(x, w)).ToList()))
+            Plyta("Plac CENTRUM: płyty", granitPlac, r.xMin, r.xMax, r.yMin, r.yMax, YC, .3f - YA);
+        for (float x = wx0 + 12f; x < -160f; x += 15f) { Drzewo(new Vector3(x, YC - .03f, -48f)); Drzewo(new Vector3(x + 7f, YC - .03f, -60f)); Drzewo(new Vector3(x, YC - .03f, -74f)); }
+        for (float x = -184f; x < -158f; x += 9f) Drzewo(new Vector3(x, YC - .03f, -18f));   // na wschód od galerii
+        // aleje placu CENTRUM: drzewa w kratach, latarnie, ławki (wyposażenie — etap 3)
+        foreach (float zA in new[] { 89f, 118f })
+            for (float x = -256f; x < -158f; x += 12f)
+            {
+                float xx = x, za = zA;
+                Pozniej("drzewo w kracie (CENTRUM)", () => { var p = NaPodlozu(new Vector3(xx, YC, za)); BraxRegionMeble.KrataDrzewa(root, p); DrzewoTeraz(p); });
+                Pozniej("latarnia (CENTRUM)", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(xx + 6f, YC, za))); latarnie++; });
+                if (za < 100f) Pozniej("ławka (CENTRUM)", () => BraxRegionMeble.Lawka(root, NaPodlozu(new Vector3(xx + 3f, YC, za - .6f * K)), 180f));
+            }
         Trawa("L3 na wschód od pętli", AX + PetlaPlac + 3f, LicoE + 16f, PetlaZ - PetlaPlac, 126f, true);
         Trawa("L4 na północ od pętli", AX - PetlaPlac - 3f, AX + PetlaPlac + 3f, PetlaZ + PetlaPlac, 126f, true);
         Trawa("L7 park zach. Alei Południowej", LicoW - 16f, LicoW, ZboczeZ, -14f, true);

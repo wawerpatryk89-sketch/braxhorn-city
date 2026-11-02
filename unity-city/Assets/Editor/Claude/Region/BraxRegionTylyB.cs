@@ -74,6 +74,40 @@ public static class BraxRegionTylyB
         Krok("2. budynki: szpital miejski (ul. Zachodnia)", () => Wiezowiec(szpital));
         Krok("punkty świata (komisariat, szpital)", ZapiszPunkty);
     }
+    // ETAP 3: CENTRUM — 6 wieżowców 80…200 m × k (22…54 kondygnacje) wejściem na +z (aleje placu CENTRUM) i GALERIA (3 kondygnacje:
+    // pasaż z kawiarnią, fitness club, biura). Ten sam generator; w każdym wieżowcu hol z ladą i windą, piętro biurowe, w najwyższym
+    // PANORAMA na ostatnim piętrze.
+    public static void Centrum(BraxCityWorld world, Transform cityRoot, Rect[] w, Rect gal)
+    {
+        swiat = world; punkty.Clear();
+        root = BraxRegion.Root(cityRoot, "CLAUDE miasto B obszar: CENTRUM — wieżowce i galeria");
+        if (!granit) Materialy();
+        var nazwy = new[] { "ORION TOWER", "CITY GATE", "MERIDIAN", "SKY ONE", "BRAXHORN TRADE CENTER", "PANORAMA PLAZA" };
+        var pietra = new[] { 22, 30, 26, 46, 54, 38 };
+        var kolory = new[] { new Color(.52f, .55f, .58f), new Color(.20f, .22f, .25f), new Color(.62f, .56f, .46f), new Color(.30f, .38f, .46f), new Color(.12f, .13f, .15f), new Color(.70f, .70f, .68f) };
+        for (int i = 0; i < w.Length && i < nazwy.Length; i++)
+        {
+            var r = w[i]; int n = pietra[i];
+            var d = new Def
+            {
+                nazwa = nazwy[i], korona = nazwy[i], idDrzwi = "CENTRUM_" + (i + 1), x0 = r.xMin, x1 = r.xMax, z0 = r.yMin, z1 = r.yMax, pietra = n,
+                szyb = new Vector2(r.center.x, r.yMin + 5f), lizena = kolory[i],
+                uzytkowe = new Dictionary<int, Rodzaj> { { 0, Rodzaj.Lobby }, { 3, Rodzaj.Biura } }
+            };
+            if (n >= 54) { d.uzytkowe[n] = Rodzaj.Konferencja; d.nazwy[n] = "PANORAMA"; }
+            var dd = d; Krok("2. budynki: CENTRUM — " + d.nazwa + " (" + (n + 1) + " kondygnacji)", () => Wiezowiec(dd));
+        }
+        var g = new Def
+        {
+            nazwa = "GALERIA BRAXHORN", korona = "GALERIA BRAXHORN", idDrzwi = "GALERIA", x0 = gal.xMin, x1 = gal.xMax, z0 = gal.yMin, z1 = gal.yMax, pietra = 2,
+            szyb = new Vector2(gal.center.x, gal.yMin + 5f), lizena = new Color(.58f, .44f, .30f), recepcja = "INFORMACJA",
+            uzytkowe = new Dictionary<int, Rodzaj> { { 0, Rodzaj.LobbyKawiarnia }, { 1, Rodzaj.Fitness }, { 2, Rodzaj.Biura } },
+            nazwy = new Dictionary<int, string> { { 0, "PASAŻ · KAWIARNIA" }, { 1, "FITNESS CLUB" }, { 2, "BIURA GALERII" } }
+        };
+        Krok("2. budynki: GALERIA BRAXHORN", () => Wiezowiec(g));
+        Krok("punkty świata (CENTRUM, GALERIA)", ZapiszPunkty);
+    }
+
     // środek lady holu (do obsady): ten sam wzór co Lobby (bez kawiarni)
     public static Vector3 LadaHolu(Rect b)
     {
@@ -345,7 +379,7 @@ public static class BraxRegionTylyB
         }
         // dach: płyta, urządzenia (agregaty), maszt z anteną, napis korony
         M(beton).MinMax(new Vector3(d.x0 + .3f, top - .3f, d.z0 + .3f), new Vector3(d.x1 - .3f, top + .05f, d.z1 - .3f));
-        for (int i = 0; i < 3; i++) M(stalNierdz).MinMax(new Vector3(d.x0 + 4f + i * 9f, top + .05f, d.z0 + 3f), new Vector3(d.x0 + 4f + i * 9f + 3.2f * K, top + 1.9f * K, d.z0 + 3f + 1.8f * K));
+        for (int i = 0; i < 3 && d.x0 + 4f + i * 9f + 3.2f * K < d.x1 - 1f; i++) M(stalNierdz).MinMax(new Vector3(d.x0 + 4f + i * 9f, top + .05f, d.z0 + 3f), new Vector3(d.x0 + 4f + i * 9f + 3.2f * K, top + 1.9f * K, d.z0 + 3f + 1.8f * K));
         var mast = new Vector3((d.x0 + d.x1) * .5f + 6f, top + .05f, (d.z0 + d.z1) * .5f);
         M(alu).Cyl(mast, mast + Vector3.up * 12f * K, .12f * K, 10, .05f * K);
         for (int i = 0; i < 4; i++) M(alu).Cyl(mast + Vector3.up * (5f + i * 1.6f) * K - Vector3.right * .8f * K, mast + Vector3.up * (5f + i * 1.6f) * K + Vector3.right * .8f * K, .02f * K, 6);
