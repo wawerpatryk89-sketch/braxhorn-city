@@ -20,7 +20,10 @@ public static partial class BraxClaudeOsiedle
     public static readonly List<Przejscie> Przejscia = new List<Przejscie>();
     public static readonly List<SkrzyzowanieInfo> SkrzyzowaniaInfo = new List<SkrzyzowanieInfo>();
 
-    public static float WzrostBohatera = 1.80f;
+    // Miarą świata jest BRAX (właściciel 2.11 10:39–10:43: „Brax wygląda idealnie — pod niego ma być wszystko”; „mnożnik ma być
+    // wszystko tak jak pod Braxa”). Ta sama skala na osiedlu (gracz Patryk 2.27 m) i w mieście (gracz Brax).
+    public const float WzrostBraxa = 2.33f;
+    public static float WzrostBohatera = WzrostBraxa;
     public static float K => WzrostBohatera / 1.80f;
 
     public const string FotelKierowcy = "BRAXHORN fotel kierowcy", FotelPasazera = "BRAXHORN fotel pasażera";
@@ -35,8 +38,10 @@ public static partial class BraxClaudeOsiedle
             foreach (var r in p.GetComponentsInChildren<Renderer>(true)) { if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds); }
             if (any && b.size.y > 1.2f && b.size.y < 3.2f) WzrostBohatera = b.size.y;
         }
-        if (WzrostZModelu > 1.2f && WzrostZModelu < 3.2f) WzrostBohatera = WzrostZModelu;   // build 14: Patryk — wzrost z siatki w pozie spoczynkowej (bounds w pozie Idle zaniżają/zawyżają)
-        Debug.Log("BRAXHORN_SKALA wzrost bohatera " + WzrostBohatera.ToString("F2") + " m, k = " + K.ToString("F3"));
+        float gracz = WzrostBohatera;                                         // zmierzony gracz (tylko do logu)
+        if (WzrostZModelu > 1.2f && WzrostZModelu < 3.2f) gracz = WzrostZModelu;
+        WzrostBohatera = WzrostBraxa;                                          // świat zawsze pod Braxa
+        Debug.Log("BRAXHORN_SKALA wzrost bohatera " + WzrostBohatera.ToString("F2") + " m (miara świata = Brax), k = " + K.ToString("F3") + ", gracz w scenie " + gracz.ToString("F2") + " m");
         return WzrostBohatera;
     }
 

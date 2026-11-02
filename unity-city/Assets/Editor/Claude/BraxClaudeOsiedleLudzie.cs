@@ -17,7 +17,7 @@ using UnityEngine.Rendering;
 //  • TEST BEZ DEFORMACJI (każdy build): długości kości (od stawu rodzica anatomicznego; udo od miednicy) w pozie
 //    spoczynkowej vs 8 klatek każdego klipu na obu szkieletach — zmiana > 2 % = błąd; klip, który nie rusza kośćmi
 //    = błąd; ręce poziomo w klatkach chodu/biegu (T-poza) = błąd. Log: BRAXHORN_LUDZIE_KOSCI bledy=N tpoza=N.
-//  • SKALA: wzrost osoby = (0.93–1.05) × WzrostBohatera (kobiety niżej w przedziale, mężczyźni wyżej) — jednolita
+//  • SKALA: wzrost osoby = (0.945–1.0) × WzrostBohatera (= Brax 2.33 m) (kobiety niżej w przedziale, mężczyźni wyżej) — jednolita
 //    skala modelu, bez zmiany proporcji („tusza” pominięta: nierówna skala kości = deformacja).
 //  • WYGLĄD: odcień ubrań (maska w alfie tekstury ciała, MaterialPropertyBlock — BraxWyglad), mundury bez odcienia;
 //    akcesoria z kodu przypięte do kości: czapka z daszkiem, okulary, plecak, torba, kubek kawy, telefon.
@@ -325,8 +325,9 @@ public static partial class BraxClaudeOsiedle
     static Osoba NowaOsoba(Rola rola, Transform parent, string nazwa, Vector3 pos, float yaw, System.Random rnd, RbPostac wymus = null)
     {
         var p = wymus ?? WybierzPostac(rola, rnd); if (p == null) return null;
-        float H = Mathf.Clamp(WzrostBohatera, 1.5f, 2.2f);
-        float u = (float)rnd.NextDouble(), mnoz = p.kobieta ? Mathf.Lerp(.93f, .99f, u) : Mathf.Lerp(.96f, 1.05f, u);
+        // właściciel 2.11 10:43: każdy człowiek „mniej więcej jak Brax” (2.33 m), różnice kilku cm; kobiety trochę niżej
+        float H = Mathf.Clamp(WzrostBohatera, 1.5f, 2.45f);
+        float u = (float)rnd.NextDouble(), mnoz = p.kobieta ? Mathf.Lerp(.945f, .975f, u) : Mathf.Lerp(.97f, 1.0f, u);
         var o = new Osoba { p = p, wzrost = H * mnoz, pl = p.kobieta ? "f_" : "m_" };
         o.s = o.wzrost / p.wys;
         o.root = new GameObject(nazwa + " · " + p.nazwa); o.root.transform.SetParent(parent, false);

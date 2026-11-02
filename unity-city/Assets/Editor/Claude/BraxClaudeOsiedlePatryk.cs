@@ -30,6 +30,7 @@ public static partial class BraxClaudeOsiedle
     const string PatrykKatalog = PrywatneZrodla + "/patryk", PatrykRuchy = PrywatneZrodla + "/ruchy", PatrykWynik = "Assets/PlayableGenerated/Patryk";
     // Dokładny wzrost postaci gracza (siatka w pozie spoczynkowej × skala) — ZmierzBohatera bierze go zamiast bounds.
     public static float WzrostZModelu = float.NaN;
+    public const float WzrostPatrykaWGrze = 2.27f;   // Brax 2.33 m — Patryk trochę niższy (decyzja właściciela 2.11)
 
     struct PatrykKlip { public string nazwa; public bool petla, wMiejscu; public string[] zrodla; }
     static PatrykKlip PK(string n, bool petla, bool wMiejscu, params string[] z) => new PatrykKlip { nazwa = n, petla = petla, wMiejscu = wMiejscu, zrodla = z };
@@ -112,8 +113,10 @@ public static partial class BraxClaudeOsiedle
             if (v.Length == 0) { var b = smr.bounds; minY = b.min.y; maxY = b.max.y; }
             float h0 = maxY - minY;
             if (!(h0 > .05f)) throw new Exception("niepoprawna wysokość modelu " + h0);
-            bool zModelu = h0 >= 1.7f && h0 <= 1.95f;
-            float skala = zModelu ? 1f : 1.82f / h0, wzrost = h0 * skala;
+            // właściciel 2.11 10:39–10:43: „pod Braxa ma być wszystko … Brax może być wyższy od Patryka, ale trochę” — świat w skali Braxa (2.33 m),
+            // Patryk w grze 2.27 m (model ×skala; proporcje bez zmian, kości bez zmian — test kości liczy spoczynek przed skalą)
+            bool zModelu = false;
+            float skala = WzrostPatrykaWGrze / h0, wzrost = WzrostPatrykaWGrze;
 
             var kosci = hips.GetComponentsInChildren<Transform>(true).ToList();   // od korzenia w dół (rodzic przed dzieckiem)
             var spoczynek = kosci.Select(t => new PatrykStan { t = t, r = t.localRotation, p = t.localPosition }).ToList();
@@ -184,7 +187,7 @@ public static partial class BraxClaudeOsiedle
             Debug.Log("BRAXHORN_PATRYK model=" + Path.GetFileName(model) + " (" + v.Length + " wierzch., " + kosci.Count + " kości, awatar Humanoid "
                 + (avatar ? "isHuman=" + avatar.isHuman + " isValid=" + avatar.isValid : "brak") + ", poza modelu: ramiona " + ramiona.ToString("F0") + "° od pionu"
                 + (ramiona > 75f ? " = T" : ramiona > 35f ? " = A" : " = swobodna (nie T/A — klipy przenoszone geometrycznie)") + ")"
-                + " wzrost=" + wzrost.ToString("F2") + " m" + (zModelu ? " (z modelu)" : " (model " + h0.ToString("F2") + " m poza 1.70–1.95 → przeskalowano ×" + skala.ToString("F3") + " do 1.82 m — WŁAŚCICIEL MA PODAĆ SWÓJ WZROST)")
+                + " wzrost=" + wzrost.ToString("F2") + " m" + " (model " + h0.ToString("F2") + " m ×" + skala.ToString("F3") + " → skala Braxa: Patryk " + WzrostPatrykaWGrze.ToString("F2") + " m, Brax " + WzrostBraxa.ToString("F2") + " m)"
                 + " kapsuła=" + (cialo ? cialo.height.ToString("F2") + "×" + cialo.radius.ToString("F2") : "—")
                 + " klipy=" + klipy.Count + " [" + string.Join(", ", opis) + "] bledy_kosci=" + bledy);
             return hero;
