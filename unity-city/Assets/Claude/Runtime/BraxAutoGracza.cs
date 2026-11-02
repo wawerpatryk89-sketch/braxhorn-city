@@ -15,6 +15,26 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     public AudioClip silnik;
     public float Predkosc => predkosc;
     public Vector3 przesuniecieGracza; // authored from the actual CarIdle hips, in car space
+    // Build 45 (E9): drzwi kierowcy na zawiasie (BraxClaudeAutoPatryka) — otwierają się przy wsiadaniu/wysiadaniu, zamykają za graczem.
+    public Transform drzwi; public Vector3 osDrzwi = Vector3.up; public float katDrzwi = 65f;
+    // Build 45 (E6/E11): poza Patryka za kierownicą — odchylenie tułowia i pochylenie głowy dobrane w buildzie (zapas nad głową ≥ 0).
+    public Transform kregoslupGracza, glowaGracza; public float odchylenie, pochylenieGlowy;
+    float wagaPozy; Quaternion drzwiZamk; bool drzwiZap; Quaternion poKorekcie; bool maKorekte;
+    IEnumerator Drzwi(float od, float doK, float czas)
+    {
+        if (!drzwi) yield break;
+        if (!drzwiZap) { drzwiZamk = drzwi.localRotation; drzwiZap = true; }
+        for (float t = 0; t < 1f; t += Time.deltaTime / czas)
+        { float u = Mathf.SmoothStep(od, doK, t); drzwi.localRotation = drzwiZamk * Quaternion.AngleAxis(katDrzwi * u, osDrzwi); yield return null; }
+        drzwi.localRotation = drzwiZamk * Quaternion.AngleAxis(katDrzwi * doK, osDrzwi);
+    }
+    void LateUpdate()
+    {
+        if (!gracz || !kregoslupGracza || wagaPozy <= 0f || (odchylenie == 0f && pochylenieGlowy == 0f)) return;
+        if (maKorekte && Quaternion.Dot(kregoslupGracza.localRotation, poKorekcie) > .9999999f) return;   // animacja nie nadpisała
+        BraxMieszkaniec.PozaWAucie(kregoslupGracza, glowaGracza, transform.right, odchylenie * wagaPozy, pochylenieGlowy * wagaPozy);
+        poKorekcie = kregoslupGracza.localRotation; maKorekte = true;
+    }
     public bool Zajety => gracz;
     public bool WTrakcie => przejscie;
     public Vector3 Podejscie => Drzwi(-1);
@@ -81,16 +101,20 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
             yield return null;
         }
         p.transform.position=door;
+        p.clips.CrossFade("Idle",.2f);
+        yield return Drzwi(0f,1f,.55f);                                         // E9: drzwi otwierają się przed wsiadaniem
         p.clips.CrossFade("CarIdle",.55f);
         Vector3 end=transform.TransformPoint(przesuniecieGracza);
         for(float t=0;t<1f;t+=Time.deltaTime/.9f)
         {
             if(!p)yield break;
-            float u=Mathf.SmoothStep(0,1,t);
+            float u=Mathf.SmoothStep(0,1,t); wagaPozy=u;
             p.transform.SetPositionAndRotation(Vector3.Lerp(door,end,u),transform.rotation);
             yield return null;
         }
+        wagaPozy=1f;
         p.transform.SetParent(transform,true); p.transform.SetPositionAndRotation(end,transform.rotation);
+        yield return Drzwi(1f,0f,.5f);                                          // i zamykają się za graczem
         przejscie=false; if(audioSilnika){audioSilnika.volume=.45f;audioSilnika.Play();}
     }
     const float Skora=.04f;
@@ -177,15 +201,19 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     }
     IEnumerator Wyjdz(Vector3 point)
     {
-        przejscie=true; var p=gracz; var from=p.transform.position; p.transform.SetParent(null,true);
+        przejscie=true; var p=gracz; var from=p.transform.position;
+        yield return Drzwi(0f,1f,.5f);                                          // E9: drzwi otwierają się przed wyjściem
+        p.transform.SetParent(null,true);
         p.clips.CrossFade("Idle",.65f);
-        for(float t=0;t<1;t+=Time.deltaTime/.7f){p.transform.position=Vector3.Lerp(from,point,Mathf.SmoothStep(0,1,t));yield return null;}
+        for(float t=0;t<1;t+=Time.deltaTime/.7f){float u=Mathf.SmoothStep(0,1,t);wagaPozy=1f-u;p.transform.position=Vector3.Lerp(from,point,u);yield return null;}
+        wagaPozy=0f;
         Odlacz(point);
+        yield return Drzwi(1f,0f,.5f);                                          // i zamykają się za graczem
     }
-    public void PrzedTeleportem() { StopAllCoroutines(); Odlacz(startWejscia); }
+    public void PrzedTeleportem() { StopAllCoroutines(); if (drzwi && drzwiZap) drzwi.localRotation = drzwiZamk; Odlacz(startWejscia); }
     void Odlacz(Vector3 point)
     {
-        if(!gracz)return;var p=gracz;gracz=null;przejscie=false;predkosc=0;wejscie=Vector2.zero;
+        if(!gracz)return;var p=gracz;gracz=null;przejscie=false;predkosc=0;wejscie=Vector2.zero;wagaPozy=0f;maKorekte=false;
         p.transform.SetParent(null,true);
         if(scenaGracza.IsValid()&&scenaGracza.isLoaded&&p.gameObject.scene!=scenaGracza)SceneManager.MoveGameObjectToScene(p.gameObject,scenaGracza);
         BraxPose.Get(p).Set(BraxPose.Mode.None,null);p.clips.Play("Idle");p.transform.position=point;p.autoGracza=null;p.body.enabled=true;
