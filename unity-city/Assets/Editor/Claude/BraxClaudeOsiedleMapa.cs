@@ -48,7 +48,15 @@ public static partial class BraxClaudeOsiedle
         foreach (var (fx, fz) in new[] { (86f, -42f), (86f, 14f), (-86f, -42f), (-86f, 14f), (86f, 64f), (-86f, 64f) }) Prost(fx - 20f, fx + 20f, fz - 15f, fz + 15f, obiekt);
         foreach (var hs in Houses) Prost(hs.x - 11.5f, hs.x + 11.5f, hs.z - hs.hd, hs.z + hs.hd, dzialka);
         foreach (var hs in Houses) Prost(hs.x - 6f, hs.x + 6f, hs.z - 5f, hs.z + 5f, budynek);
-        Prost(-12f, 12f, -46f, -30f, budynek);                         // willa Codexa (Wiśniowa 4)
+        if (StacjaWlaczona)                                             // E21: stacja paliw + myjnia zamiast willi Codexa i Poznańskiej 5
+        {
+            Prost(SX0, SX1, SZ0 + 1.5f, SZ1 - 3f, asf);
+            Prost(-31.5f, -.5f, -42.5f, -29f, obiekt);                  // wiata
+            Prost(-36.5f, -21f, -60.5f, -49f, budynek);                  // sklep stacji
+            Prost(-19f, 5.5f, -62f, -48.5f, obiekt);                    // myjnia
+        }
+        else Prost(-12f, 12f, -46f, -30f, budynek);                    // willa Codexa (Wiśniowa 4)
+        if (WarsztatWlaczony) { Prost(WX0, WX1, -42f, -28.5f, asf); Prost(23f, 47f, -54f, -42f, budynek); }   // E32: warsztat zamiast garaży-kontenerów
         Prost(74f, 98f, -78f, -60f, obiekt);                           // siłownia A (za kasynem)
         // drogi A (DrogiA)
         if (ulice != null)

@@ -74,6 +74,7 @@ public static class BraxTestNaprawOsiedla
     // ---------------- build 45: testy nowych funkcji (bez sceny) ----------------
     static void Build45()
     {
+        { var st = BraxClaudeOsiedle.KontrolaUkladuStacji(); Require(st == null, "stacja paliw (E21): " + st); }   // wykonawca B, build 45b — test miękki
         // E3c: poślizg auta po przeszkodzie i skręt zależny od prędkości
         var wzdluz = BraxAutoGracza.Slizg(new Vector3(.3f, 0, 1).normalized, Vector3.left, out float utrata);   // ściana po prawej (normalna w lewo), jazda lekko skosem
         Require(wzdluz.x == 0f && wzdluz.z > .3f && utrata > .15f && utrata < .85f, "ślizg wzdłuż ściany (bez wjazdu w ścianę, część prędkości)");
