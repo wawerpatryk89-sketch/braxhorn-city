@@ -16,7 +16,13 @@ using UnityEngine;
 public static class BraxTrasyAut
 {
     public sealed class Ulica { public string id; public bool wzdluzX; public float c, a0, a1, cw, half; }
-    public sealed class Wezel { public float x, z; public bool rondo; public int rodzaj; public Ulica ux, uz; public int indeks; }
+    public sealed class Wezel
+    {
+        public float x, z; public bool rondo; public int rodzaj; public Ulica ux, uz; public int indeks;
+        // E3b: promień łuku krawężnika w narożniku [ (sx>0 ? 1 : 0) + (sz>0 ? 2 : 0) ] i odległość linii zatrzymania od środka
+        // na ramieniu [0 E, 1 W, 2 N, 3 S] (za zebrą); 0 = jak dawniej (narożnik prosty, linia za chodnikiem ulicy poprzecznej)
+        public float[] luk = new float[4], stop = new float[4];
+    }
     public sealed class Definicja { public string nazwa; public Vector2[] punkty; public bool petla, ukryteKonce; public int obszar; public float y; }
     public sealed class Wynik
     {
@@ -201,6 +207,10 @@ public static class BraxTrasyAut
         // linia zatrzymania: przed zebrą ulicy poprzecznej (zebra w pasie chodnika — półszerokość ulicy poprzecznej)
         Ulica poprzIn = uin.wzdluzX ? w.uz : w.ux, poprzOut = uout.wzdluzX ? w.uz : w.ux;
         mm.dStop = (poprzIn != null ? poprzIn.half : uout.half) + .6f;
+        {   // E3b: ramię, z którego auto wjeżdża (−din od środka) — linia zatrzymania za zebrą przesuniętą za łuk
+            var od = -din; int arm = Mathf.Abs(od.x) > Mathf.Abs(od.y) ? (od.x > 0 ? 0 : 1) : (od.y > 0 ? 2 : 3);
+            if (w.stop != null && w.stop[arm] > 0f) mm.dStop = w.stop[arm] + .6f;
+        }
         mm.dWyj = (poprzOut != null ? poprzOut.cw : uin.cw) + .5f;
         var A = cur - din * Ein + rin * lin; var B = cur + dout * Eout + rout * lout;
         if (w.rondo)
@@ -244,6 +254,10 @@ public static class BraxTrasyAut
             // w prawo: narożnik wewnętrzny = róg skrzyżowania po prawej
             mm.zwrot = 1;
             var corner = cur + rin * uin.cw + rout * uout.cw;
+            // E3b: łuk krawężnika w tym narożniku (środek łuku Ck, promień Rk) — tor koncentryczny, ≥ 1 m od krawężnika
+            var qd = corner - cur; int qi = (qd.x > 0 ? 1 : 0) + (qd.y > 0 ? 2 : 0);
+            float Rk = w.luk != null ? w.luk[qi] : 0f; var Ck = corner + (rin + rout) * Rk;
+            float Rpref = Rk > 0f ? Rk + (lin + lout) * .5f : 5.5f, Rgora = Rk > 0f ? Rk + Mathf.Max(lin, lout) + 3f : 6.5f;
             // odsunięcie do osi przed łukiem (d1, do 1 m — na wąskiej uliczce kierowca zajmuje też kawałek drugiego pasa)
             // i za łukiem (d2); wybór: największy promień przy najmniejszym odsunięciu, z miejscem na łagodne przejście
             float bestR = -1f, b1 = 0f, b2 = 0f, bestOcena = -1e9f;
@@ -252,19 +266,24 @@ public static class BraxTrasyAut
                 {
                     float d1 = Mathf.Min(d1r, Mathf.Max(0f, lin - .6f)), d2 = Mathf.Min(d2r, Mathf.Max(0f, lout - .7f));
                     if (d1 < d1r - .01f || d2 < d2r - .01f) continue;
-                    float Rr = 6.5f;
+                    float Rr = Rgora; bool znal = false;
                     for (; Rr >= 3.7f; Rr -= .1f)
                     {
                         var C = cur + rin * (lin - d1 + Rr) + rout * (lout - d2 + Rr);
-                        if ((corner - C).magnitude <= Rr - 1f) break;
+                        if ((Ck - C).magnitude > Rr - Rk - 1f) continue;              // bok auta ≥ 1 m od krawężnika (łuku albo rogu)
+                        float tt1 = lout - d2 + Rr, tt2 = lin - d1 + Rr;
+                        if (Ein - tt1 < 4.5f * d1 + .01f || Eout - tt2 < 4.5f * d2 + .01f) continue;   // miejsce na dojazd i wyjazd
+                        if (Rk <= 0f || Rr <= Rpref + .05f) { znal = true; break; }      // przy łuku: największy ≤ preferowanego (koncentryczny)
                     }
-                    if (Rr < 3.7f) continue;
-                    float t1 = lout - d2 + Rr, t2 = lin - d1 + Rr;
-                    if (Ein - t1 < 4.5f * d1 + .01f || Eout - t2 < 4.5f * d2 + .01f) continue;
-                    float ocena = Mathf.Min(Rr, 5.5f) - 1.5f * (d1 + d2);
+                    if (!znal) continue;
+                    float ocena = Rk > 0f ? -Mathf.Abs(Rr - Rpref) - 1.5f * (d1 + d2) : Mathf.Min(Rr, 5.5f) - 1.5f * (d1 + d2);
                     if (ocena > bestOcena) { bestOcena = ocena; bestR = Rr; b1 = d1; b2 = d2; }
                 }
-            if (bestR < 0f) { bestR = 3.7f; b1 = b2 = 0f; log.Add("trasa " + trasa + ": ciasny skręt w prawo (" + cur.x + ", " + cur.y + ") — promień 3,7 m"); }
+            if (bestR < 0f)
+            {
+                bestR = Rk > 0f ? Rpref : 3.7f; b1 = b2 = 0f;
+                log.Add("trasa " + trasa + ": ciasny skręt w prawo (" + cur.x + ", " + cur.y + ") — promień " + bestR.ToString("F1") + " m" + (Rk > 0f ? " (koncentrycznie z łukiem krawężnika " + Rk.ToString("F1") + " m, za mało prostej)" : ""));
+            }
             var Cc = cur + rin * (lin - b1 + bestR) + rout * (lout - b2 + bestR);
             var T1 = Cc - rin * bestR; var T2 = Cc - rout * bestR;
             float tIn = lout - b2 + bestR, tOut = lin - b1 + bestR;

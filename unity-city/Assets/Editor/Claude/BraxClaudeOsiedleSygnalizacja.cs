@@ -30,7 +30,7 @@ public static partial class BraxClaudeOsiedle
         foreach (var r in Ramiona(w))
         {
             var u = r.u; float cw = u.cw; int os = u.alongX ? 0 : 1;
-            float a0 = r.o.cw + r.o.kerb + .25f, a1 = r.o.HalfS(r.s);
+            var (a0, a1) = ZebraRamienia(w, r);   // E3b: zebra (i linia zatrzymania, słupy) za końcem łuku krawężnika
             int sR = (int)Mathf.Sign(Vector3.Dot(r.R, u.Wpoprzek));
             // linia zatrzymania i strzałka „prosto” na pasie wlotu (prawa strona jadących do węzła)
             { var (x0, x1, z0, z1) = RectR(c, r, a1 + 1.0f, a1 + 1.4f, .1f, cw - .05f); Farba(x0, x1, z0, z1); }

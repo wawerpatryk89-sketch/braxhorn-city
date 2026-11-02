@@ -163,7 +163,16 @@ public static partial class BraxClaudeOsiedle
             {
                 var ux = ulice.FirstOrDefault(u => u.alongX && Mathf.Abs(u.c - w.z) < .1f); var uz = ulice.FirstOrDefault(u => !u.alongX && Mathf.Abs(u.c - w.x) < .1f);
                 if (ux == null || uz == null) continue;
-                wz.Add(new BraxTrasyAut.Wezel { x = w.x, z = w.z, rondo = w.rondo, ux = mapa[ux], uz = mapa[uz] });
+                var bw = new BraxTrasyAut.Wezel { x = w.x, z = w.z, rondo = w.rondo, ux = mapa[ux], uz = mapa[uz] };
+                // E3b: łuki krawężników i linie zatrzymania za zebrami (te same dane co geometria dróg)
+                foreach (int sx in new[] { -1, 1 }) foreach (int sz in new[] { -1, 1 }) bw.luk[(sx > 0 ? 1 : 0) + (sz > 0 ? 2 : 0)] = LukNaroznika(w, sx, sz);
+                if (!w.rondo)
+                    foreach (var r in Ramiona(w))
+                    {
+                        int arm = Mathf.Abs(r.dir.x) > .5f ? (r.dir.x > 0 ? 0 : 1) : (r.dir.z > 0 ? 2 : 3);
+                        bw.stop[arm] = ZebraNaRamieniuJest(w, r) ? ZebraRamienia(w, r).a1 : Mathf.Max(r.o.HalfS(r.s), r.o.cw + LukRamienia(w, r));
+                    }
+                wz.Add(bw);
                 if (w.rondo) rondoAuta = new Vector3(w.x, 0f, w.z);
             }
         var bm = new BraxTrasyAut.Ulica { id = "B", wzdluzX = true, c = StreetZ, a0 = X0 + .6f, a1 = X1 - .6f, cw = Carriage, half = Half };
@@ -178,6 +187,7 @@ public static partial class BraxClaudeOsiedle
         BraxTrasyAut.RondoJezdnia = RondoJezdnia;
         var wy = BraxTrasyAut.Generuj(ul, wz, defs);
         foreach (var l in wy.log) rep.notes.Add("trasy aut: " + l);
+        Guard("ruch: kontrola toru skrętu (E3b)", () => KontrolaToruSkretu(wy, 1.8f * K, 4.5f * K));   // auto osobowe × K
         if (wy.trasy.Count == 0) { rep.notes.Add("DO POPRAWKI: brak tras aut"); return; }
         Debug.Log("BRAXHORN_RUCH_TRASY tras " + wy.trasy.Count + ", punktów " + wy.punkty.Count + ", zdarzeń " + wy.zdarzenia.Count + ", skrzyżowań " + wy.wezly.Count + " (ze światłami " + swiatla + "): " +
                   string.Join("; ", wy.trasy.Select(t => t.nazwa + " " + t.dl.ToString("F0") + " m")));

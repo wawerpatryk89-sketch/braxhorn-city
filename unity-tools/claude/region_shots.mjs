@@ -201,6 +201,11 @@ const VIEWS = [
   ['B45_E3a_uliczka_S1', '-44.3,0.1,20,180,12,12', 'estate'],
   ['DETAL_ulica_kraweznik_chodnik_wisniowa', '-63.5,0.1,0,90,20,3', 'estate'],
   ['DETAL_ulica_oznakowanie_w_wycieciu', '-2,0.1,-13,0,40,2.5', 'estate'],
+  // --- runda 3 (E3b): łuki krawężników na skrzyżowaniach ---
+  ['B45_E3b_skrzyzowanie_B1_Poznanska', '0,0.1,-19,200,30,12', 'estate'],
+  ['B45_E3b_skrzyzowanie_B3_Bydgoska', '58,0.1,86,225,30,12', 'estate'],
+  ['DETAL_luk_kraweznika_fugi', '6.8,0.1,-12.2,225,20,3.5', 'estate'],
+  ['DETAL_luk_chodnik_zebra', '12,0.1,-14,200,25,4', 'estate'],
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],

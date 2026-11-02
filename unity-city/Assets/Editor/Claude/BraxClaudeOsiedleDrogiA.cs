@@ -123,6 +123,7 @@ public static partial class BraxClaudeOsiedle
                              : Mathf.Abs(v.c) < .1f && (Mathf.Abs(u.c - 86f) < .1f || Mathf.Abs(u.c + 19f) < .1f) ? RodzajWezla.Swiatla : RodzajWezla.Zwykly;
                     wezly.Add(w);
                 }
+        try { LukiNaroznikow(); } catch (Exception e) { lukNaroznika.Clear(); Debug.LogError("BRAXHORN_DROGI_LUKI DO POPRAWKI: " + e.Message); }   // E3b: promienie łuków krawężników
 
         // 1) wycięcie z siatek Codexa: stare nawierzchnie (płasko, y < 0.13), wszystko, co stoi na nowych jezdniach i chodnikach
         //    (latarnie, kosze, słupy tablic — do 6.5 m), parkingi; domów nie ruszamy (pas starego B2 pod domami pominięty)
@@ -235,10 +236,18 @@ public static partial class BraxClaudeOsiedle
         var cross = wezly.Where(w => u.alongX ? Mathf.Abs(w.z - u.c) < .1f : Mathf.Abs(w.x - u.c) < .1f)
                          .Select(w => (pos: u.alongX ? w.x : w.z, w)).OrderBy(q => q.pos).ToList();
         UlicaA Other(WezelA w) => u.alongX ? w.uz : w.ux;
-        (float lo, float hi) Zajete(float pos, WezelA w, float d, bool chodnik)
+        (float lo, float hi) Zajete(float pos, WezelA w, float d, bool chodnik, int strona = 0)
         {
             if (w.rondo) { float r = chodnik ? RondoChodnik : RondoJezdnia + .22f; float a = Mathf.Sqrt(Mathf.Max(0f, r * r - d * d)); return (pos - a, pos + a); }
-            var o = Other(w); return (pos - o.HalfNeg, pos + o.HalfPos);
+            var o = Other(w); float lo = pos - o.HalfNeg, hi = pos + o.HalfPos;
+            // E3b: przy łuku narożnika prosty krawężnik i chodnik zaczynają się za końcem łuku (jezdnia poprzeczna + promień)
+            foreach (int st in strona == 0 ? new[] { -1, 1 } : new[] { strona })
+            {
+                float rLo = u.alongX ? LukNaroznika(w, -1, st) : LukNaroznika(w, st, -1), rHi = u.alongX ? LukNaroznika(w, 1, st) : LukNaroznika(w, st, 1);
+                if (rLo > 0f) lo = Mathf.Min(lo, pos - o.cw - rLo);
+                if (rHi > 0f) hi = Mathf.Max(hi, pos + o.cw + rHi);
+            }
+            return (lo, hi);
         }
         float A0 = float.IsNaN(u.asf0) ? u.a0 : u.asf0, A1 = float.IsNaN(u.asf1) ? u.a1 : u.asf1;
         // 1) jezdnia
@@ -273,7 +282,7 @@ public static partial class BraxClaudeOsiedle
             var runs = new List<(float, float)>(); float c0 = u.a0;
             foreach (var (pos, w) in cross)
             {
-                var (lo, hi) = Zajete(pos, w, dIn, typ == 3);
+                var (lo, hi) = Zajete(pos, w, dIn, typ == 3, (int)sgn);
                 if (!w.rondo)
                 {
                     // T: ulica poprzeczna nie sięga na tę stronę osi — pasek ciągły
@@ -309,7 +318,10 @@ public static partial class BraxClaudeOsiedle
                     blok.Add((lo - 17f, hi + 17f));
                     foreach (float sg in new[] { -1f, 1f })
                     {
-                        float s0 = sg > 0 ? hi + 1.4f : lo - 1.4f, s1 = s0 + sg * 15f;
+                        // linia zatrzymania za zebrą ramienia (E3b: zebra za końcem łuku)
+                        var ram = new Ramie { dir = u.alongX ? new Vector3(sg, 0, 0) : new Vector3(0, 0, sg), u = u, o = Other(w), s = (int)sg };
+                        float zk = ZebraRamienia(w, ram).a1;
+                        float s0 = pos + sg * (zk + 1.4f), s1 = s0 + sg * 15f;
                         float x0 = Mathf.Max(Mathf.Min(s0, s1), A0), x1 = Mathf.Min(Mathf.Max(s0, s1), A1);
                         if (x1 - x0 > 1f) { var a = u.P(x0, -.06f); var b = u.P(x1, .06f); Farba(a.x, b.x, a.z, b.z); }
                     }
@@ -408,6 +420,8 @@ public static partial class BraxClaudeOsiedle
                 bool walkX = (sz > 0 ? ux.walkPos : ux.walkNeg) > 0, walkZ = (sx > 0 ? uz.walkPos : uz.walkNeg) > 0;
                 if (!walkX && !walkZ) continue;
                 if (!armX || !armZ) continue;    // T: po stronie bez ramienia chodnik ulicy przelotowej jest ciągły
+                float lukR = LukNaroznika(w, sx, sz);
+                if (lukR > 0f) { NaroznikLuk(w, sx, sz, lukR); continue; }   // E3b: łuk krawężnika zamiast narożnika pod kątem prostym
                 float x0 = w.x + sx * kx, x1 = w.x + sx * hx, z0 = w.z + sz * kz, z1 = w.z + sz * hz;
                 if (Mathf.Abs(x1 - x0) > .05f && Mathf.Abs(z1 - z0) > .05f) BoxMinMax(Pavers, Mathf.Min(x0, x1), Mathf.Max(x0, x1), 0, .14f, Mathf.Min(z0, z1), Mathf.Max(z0, z1));
                 if (Mathf.Abs(hx - kx) > .05f) BoxMinMax(KerbStone, Mathf.Min(w.x + sx * kx, w.x + sx * hx), Mathf.Max(w.x + sx * kx, w.x + sx * hx), 0, .16f, Mathf.Min(w.z + sz * ux.cw, w.z + sz * kz), Mathf.Max(w.z + sz * ux.cw, w.z + sz * kz));
@@ -417,7 +431,7 @@ public static partial class BraxClaudeOsiedle
         foreach (var r in Ramiona(w))
         {
             if (!swiatla && !w.Pelne && !r.Trzon(w)) continue;
-            float a0 = r.o.cw + r.o.kerb + .25f, a1 = r.o.HalfS(r.s);
+            var (a0, a1) = ZebraRamienia(w, r);   // E3b: przy łuku — za końcem łuku
             if (a1 - a0 < 1.5f) continue;
             ZebraNaRamieniu(w.C, r, a0, a1, swiatla, !swiatla);
         }
@@ -427,7 +441,7 @@ public static partial class BraxClaudeOsiedle
             if (string.IsNullOrEmpty(u.nazwa)) continue;
             int sx = w.x <= 0 ? 1 : -1, sz = 1;
             if (!(sx > 0 ? (w.E && uz.walkPos > 0) : (w.W && uz.walkNeg > 0))) sx = -sx;
-            var p = new Vector3(w.x + sx * (uz.HalfS(sx) - .35f), 0, w.z + sz * (ux.HalfS(sz) - .35f));
+            var p = TablicaWLuku(w, sx, sz) ?? new Vector3(w.x + sx * (uz.HalfS(sx) - .35f), 0, w.z + sz * (ux.HalfS(sz) - .35f));   // E3b: w łuku chodnika
             TablicaUlicy(u.nazwa, p, u.alongX);
         }
         SkrzyzowaniaInfo.Add(new SkrzyzowanieInfo { srodek = new Vector3(w.x, YAsf, w.z), promien = Mathf.Max(ux.Half, uz.Half), rodzaj = swiatla ? RodzajSkrzyzowania.ZeSwiatlami : RodzajSkrzyzowania.Zwykle });
