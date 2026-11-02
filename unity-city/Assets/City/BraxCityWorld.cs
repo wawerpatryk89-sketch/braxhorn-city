@@ -44,7 +44,7 @@ public sealed class BraxCityWorld : MonoBehaviour
         {
             if(loading)return "WCZYTYWANIE DZIELNICY…";
             var p=player.transform.position;
-            if(player.vessel)return "ZEJDŹ · "+player.vessel.label;
+            if(player.vessel)return "WYSIĄDŹ · "+player.vessel.label;   // 2.11: „wsiądź” / „wysiądź” (łódź)
             if(player.seat)return "WSTAŃ";
             var vessel=BraxVessel.Nearest(p,3.2f);
             if(vessel)return "WSIĄDŹ · "+vessel.label;
