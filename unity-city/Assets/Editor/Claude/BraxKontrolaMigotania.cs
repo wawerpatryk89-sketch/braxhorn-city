@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
@@ -19,15 +20,76 @@ using Debug = UnityEngine.Debug;
 public static class BraxKontrolaMigotania
 {
     struct Prost { public int pl; public float u0, u1, v0, v1; }
-    sealed class Pl { public int pow, os, znak; public float d, pole; }
-    sealed class Pow { public Renderer r; public int sub; public string nazwa; public float pole; }
-    sealed class Para { public int a, b, plA, plB; public float pole, dd; public Vector3 gdzie; }
+    sealed class Pl { public int pow, os, znak; public float d, pole; public List<Vector2[]> tri; }
+    sealed class Pow { public Renderer r; public int sub; public string nazwa; public float pole; public Material mat; public bool silownia; }
+    sealed class Para { public int a, b, plA, plB; public float pole, dd; public Vector3 gdzie; public HashSet<(int, int)> plany; }
+    sealed class Wykrycie { public List<Pow> pows = new List<Pow>(); public List<Pl> pls = new List<Pl>(); public List<Para> lista; public long trojkaty; public int renderery, kubelki, prostokaty; public bool przerwane; }
+
+    // C3 (właściciel 2.11: „wyjście z siłowni: futryna migocze — od tygodnia nie zrobione; elewacja migocze”). Siłownia jest
+    // strefą chronioną (zatwierdzona) — przesuwanie jej części było zabronione, więc pary przy drzwiach wyjścia i na elewacji
+    // zostawały. Teraz w strefie siłowni (+2 m: elewacja, wyjście, chodnik przed drzwiami) DOLNA warstwa jest WYCINANA dokładnie
+    // pod górną (odejmowanie trójkątów — wzór z osiedla, BraxWycinanieSiatki, ccaeaa1): ościeżnica/futryna na ścianie → ściana
+    // pod futryną wycięta; dwie płaszczyzny elewacji w jednej płaszczyźnie → większa wycięta pod mniejszą. Wygląd bez zmian
+    // (usuwane jest tylko to, co i tak zasłonięte), nic nie jest przesuwane. Ruchome (skrzydło drzwi siłowni, BraxCityDoor,
+    // animacje) i warstwy z alfą przed tłem — bez cięcia (raport). Log BRAXHORN_SILOWNIA_MIGOTANIE pary_przed=… pary_po=….
+    public static Bounds StrefaSilowni()
+    {
+        var b = new Bounds(); b.SetMinMax(new Vector3(-19f, -.5f, -17f), new Vector3(19f, 10f, 21.7f));
+        if (BraxKontrola.JestStrefa) b = BraxKontrola.StrefaChroniona;
+        b.Expand(4f); return b;   // ±2 m: elewacja od ulicy, wyjście, chodnik i schody przed drzwiami
+    }
+    static Bounds strefa; static bool tylkoStrefa;
+    static readonly Dictionary<Renderer, LODGroup> lody = new Dictionary<Renderer, LODGroup>();
+    static LODGroup Lod(Renderer r) { if (!lody.TryGetValue(r, out var g)) lody[r] = g = r.GetComponentInParent<LODGroup>(); return g; }
 
     public static void Wykonaj(Scene scena, BraxKontrola.Spis spis)
     {
         try { Kamera(); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: kontrola migotania — kamera: " + e.Message); }
-        float t0 = BraxKontrola.Sekundy, limit = 60f;
-        var pows = new List<Pow>(); var pls = new List<Pl>(); var prosty = new List<Prost>(1 << 16);
+        float t0 = BraxKontrola.Sekundy;
+        lody.Clear();
+        strefa = StrefaSilowni(); tylkoStrefa = false;
+        var W = Wykryj(scena, 60f);
+        var pows = W.pows; var pls = W.pls; var lista = W.lista;
+        // naprawa
+        var ruch = new Dictionary<Renderer, (int os, float delta)>();
+        float Teraz(Pow w, Pl pl) => Pozycja(pl) + (ruch.TryGetValue(w.r, out var rr) && rr.os == pl.os ? (pl.znak == 1 ? rr.delta : -rr.delta) : 0f);
+        int popr = 0;
+        foreach (var p in lista)
+        {
+            var A = pows[p.a]; var B = pows[p.b]; var pa = pls[p.plA]; var pb = pls[p.plB];
+            if (A.silownia && B.silownia && strefa.Contains(p.gdzie)) continue;     // strefa siłowni: wycinanie niżej, bez przesuwania
+            if (Mathf.Abs(Teraz(A, pa) - Teraz(B, pb)) >= .0195f) continue;   // już rozsunięte (np. przy poprzedniej parze)
+            bool mniejszaA = A.pole <= B.pole;
+            var (m1, pm1, o1, po1) = mniejszaA ? (A, pa, B, pb) : (B, pb, A, pa);
+            if (!Przesun(m1, pm1, Teraz(o1, po1), ruch, spis)) Przesun(o1, po1, Teraz(m1, pm1), ruch, spis);
+        }
+        var nierozwiazane = new List<Para>();
+        foreach (var p in lista)
+        {
+            var A = pows[p.a]; var B = pows[p.b];
+            if (Mathf.Abs(Teraz(A, pls[p.plA]) - Teraz(B, pls[p.plB])) >= .0195f) popr++; else nierozwiazane.Add(p);
+        }
+        Physics.SyncTransforms();
+        var sb = new StringBuilder("BRAXHORN_MIGOTANIE " + BraxKontrola.Obszar + ": pary=" + lista.Count + " poprawione=" + popr + " (przesunięte powierzchnie " + ruch.Count +
+            ", renderery " + W.renderery + ", trójkąty osiowe " + W.trojkaty + ", prostokąty " + W.prostokaty + ", kubełki " + W.kubelki + ", czas " + (BraxKontrola.Sekundy - t0).ToString("F1") + " s" + (W.przerwane ? ", PRZERWANE limitem czasu" : "") + "; pary LOD0↔LOD1 tego samego obiektu pominięte — nie rysują się razem)");
+        sb.Append("\nBRAXHORN_MIGOTANIE nierozwiązane (największe, do zdjęć):");
+        foreach (var p in nierozwiazane.Where(p => !(pows[p.a].silownia && pows[p.b].silownia && strefa.Contains(p.gdzie))).Take(20))
+        {
+            string l = "  " + pows[p.a].nazwa + " ↔ " + pows[p.b].nazwa + " odstęp " + (p.dd * 100f).ToString("F1") + " cm, wspólne " + p.pole.ToString("F2") + " m² " + BraxKontrola.F(p.gdzie);
+            sb.Append('\n').Append(l); BraxKontrola.Zapisz("migotanie: " + l.Trim());
+        }
+        foreach (var kv in ruch.Take(200)) BraxKontrola.Zapisz("migotanie: przesunięto " + kv.Key.name + " o " + (kv.Value.delta * 100f).ToString("F1") + " cm wzdłuż " + "XYZ"[kv.Value.os]);
+        Debug.Log(sb.ToString());
+        // C3: siłownia — wycięcie dolnej warstwy (przed/po)
+        try { Silownia(scena, W, ruch); }
+        catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_SILOWNIA_MIGOTANIE — wycinanie: " + e); }
+        lody.Clear();
+    }
+
+    static Wykrycie Wykryj(Scene scena, float limit)
+    {
+        var W = new Wykrycie(); float t0 = BraxKontrola.Sekundy;
+        var pows = W.pows; var pls = W.pls; var prosty = new List<Prost>(1 << 16);
         var plIdx = new Dictionary<(int, int, int, int), int>();
         var indeks = new Dictionary<long, List<int>>();
         var bylyProst = new HashSet<(int, int, int, int, int)>();
@@ -39,6 +101,8 @@ public static class BraxKontrolaMigotania
             {
                 if (BraxKontrola.Sekundy - t0 > limit * .6f) { przerwane = true; break; }
                 if (!BraxKontrola.Widoczny(r) || r.gameObject.layer == BraxKontrola.WarstwaKamery || BraxKontrola.Roslina2(r)) continue;
+                bool wSilowni = r.bounds.Intersects(strefa);
+                if (tylkoStrefa && !wSilowni) continue;
                 var mf = r.GetComponent<MeshFilter>(); var mesh = mf ? mf.sharedMesh : null;
                 if (!mesh || !BraxKontrola.Dane(mesh, out var v, out _)) continue;
                 var m = r.transform.localToWorldMatrix; var wv = new Vector3[v.Length];
@@ -50,7 +114,7 @@ public static class BraxKontrolaMigotania
                     if (t.Length > 3000000) continue;
                     int pow = pows.Count; float polePow = 0;
                     var mat = s < r.sharedMaterials.Length ? r.sharedMaterials[s] : r.sharedMaterial;
-                    pows.Add(new Pow { r = r, sub = s, nazwa = r.name + (mat && mat.name != r.name ? " [" + mat.name + "]" : "") });
+                    pows.Add(new Pow { r = r, sub = s, mat = mat, silownia = wSilowni, nazwa = r.name + (mat && mat.name != r.name ? " [" + mat.name + "]" : "") });
                     for (int i = 0; i + 2 < t.Length; i += 3)
                     {
                         Vector3 a = wv[t[i]], b = wv[t[i + 1]], c = wv[t[i + 2]];
@@ -63,7 +127,8 @@ public static class BraxKontrolaMigotania
                         float v0 = Mathf.Min(V(a, os), Mathf.Min(V(b, os), V(c, os))), v1 = Mathf.Max(V(a, os), Mathf.Max(V(b, os), V(c, os)));
                         if (u1 - u0 < .02f || v1 - v0 < .02f) continue;
                         var kp = (pow, os, znak, Mathf.RoundToInt(d * 1000f));
-                        if (!plIdx.TryGetValue(kp, out int pl)) { pl = pls.Count; plIdx[kp] = pl; pls.Add(new Pl { pow = pow, os = os, znak = znak, d = d }); }
+                        if (!plIdx.TryGetValue(kp, out int pl)) { pl = pls.Count; plIdx[kp] = pl; pls.Add(new Pl { pow = pow, os = os, znak = znak, d = d, tri = wSilowni ? new List<Vector2[]>() : null }); }
+                        if (wSilowni) pls[pl].tri.Add(new[] { new Vector2(U(a, os), V(a, os)), new Vector2(U(b, os), V(b, os)), new Vector2(U(c, os), V(c, os)) });   // C3: do wycinania pod górną warstwą
                         // dwa trójkąty czworokąta mają ten sam prostokąt — raz
                         if (!bylyProst.Add((pl, Mathf.RoundToInt(u0 * 200f), Mathf.RoundToInt(u1 * 200f), Mathf.RoundToInt(v0 * 200f), Mathf.RoundToInt(v1 * 200f)))) continue;
                         float pole = (u1 - u0) * (v1 - v0); pls[pl].pole += pole; polePow += pole;
@@ -106,6 +171,8 @@ public static class BraxKontrolaMigotania
                     var B = prosty[tmp[k].id]; var plB = pls[B.pl];
                     if (plA.pow == plB.pow) continue;
                     float dd = Mathf.Abs(plA.d - plB.d); if (dd >= .02f) continue;
+                    var ra = pows[plA.pow].r; var rb = pows[plB.pow].r;
+                    if (ra != rb) { var la = Lod(ra); if (la && la == Lod(rb)) continue; }   // LOD0 ↔ LOD1 tego samego obiektu — nigdy razem na ekranie
                     float iu0 = Mathf.Max(A.u0, B.u0), iu1 = Mathf.Min(A.u1, B.u1), iv0 = Mathf.Max(A.v0, B.v0), iv1 = Mathf.Min(A.v1, B.v1);
                     if (iu1 <= iu0 || iv1 <= iv0) continue;
                     // para prostokątów widziana w kilku komórkach — liczona w komórce lewego dolnego rogu części wspólnej
@@ -115,40 +182,134 @@ public static class BraxKontrolaMigotania
                     float pole = (iu1 - iu0) * (iv1 - iv0);
                     if (pole > p.pole * .5f || p.pole == 0) p.gdzie = Swiat(os, plA.d, (iu0 + iu1) * .5f, (iv0 + iv1) * .5f);
                     p.pole += pole; if (pole > .01f) p.dd = Mathf.Min(p.dd, dd);
+                    if (pows[plA.pow].silownia && pows[plB.pow].silownia) (p.plany ?? (p.plany = new HashSet<(int, int)>())).Add(plA.pow == key.Item1 ? (A.pl, B.pl) : (B.pl, A.pl));
                 }
             }
         }
         indeks.Clear();
-        var lista = pary.Values.Where(p => p.pole >= .02f).OrderByDescending(p => p.pole).ToList();
-        // naprawa
-        var ruch = new Dictionary<Renderer, (int os, float delta)>();
-        float Teraz(Pow w, Pl pl) => Pozycja(pl) + (ruch.TryGetValue(w.r, out var rr) && rr.os == pl.os ? (pl.znak == 1 ? rr.delta : -rr.delta) : 0f);
-        int popr = 0;
-        foreach (var p in lista)
+        W.lista = pary.Values.Where(p => p.pole >= .02f).OrderByDescending(p => p.pole).ToList();
+        W.trojkaty = trojkaty; W.renderery = renderery; W.kubelki = kubelki; W.prostokaty = prosty.Count; W.przerwane = przerwane;
+        return W;
+    }
+
+    // ---------------- C3: siłownia — wycięcie dolnej warstwy pod górną ----------------
+    static bool Przezroczysty(Material m)
+    {
+        if (!m) return false;
+        if (m.renderQueue >= 2450) return true;
+        if (m.IsKeywordEnabled("_ALPHATEST_ON") || m.IsKeywordEnabled("_ALPHABLEND_ON") || m.IsKeywordEnabled("_ALPHAPREMULTIPLY_ON")) return true;
+        if (m.HasProperty("_Mode") && m.GetFloat("_Mode") > .5f && m.shader && m.shader.name == "Standard") return true;
+        string sh = m.shader ? m.shader.name.ToLowerInvariant() : "";
+        return sh.Contains("transparent") || sh.Contains("cutout") || sh.Contains("fade");
+    }
+    static readonly System.Text.RegularExpressions.Regex Szklo = new System.Text.RegularExpressions.Regex(@"szk|szyb|glass|okn|window|glazing", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    static readonly Type[] Ruchome = { typeof(Rigidbody), typeof(Animation), typeof(Animator), typeof(BraxCityDoor), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxGymPlayer), typeof(BraxAuto) };
+    static readonly HashSet<Transform> ruchomeKorzenie = new HashSet<Transform>();
+    static bool Ruchomy(Renderer r)
+    {
+        foreach (var t in Ruchome) if (r.GetComponentInParent(t)) return true;
+        foreach (var k in ruchomeKorzenie) if (k && r.transform.IsChildOf(k)) return true;
+        return false;
+    }
+    static (Renderer, Renderer) Klucz2(Renderer a, Renderer b) => a.GetInstanceID() < b.GetInstanceID() ? (a, b) : (b, a);
+    const string Folder = "Assets/PlayableGenerated/KontrolaMigotania";
+    static int zapisane;
+    static string Bezpieczna(string s) { var sb = new StringBuilder(); foreach (char c in s) sb.Append(char.IsLetterOrDigit(c) ? c : '_'); return sb.Length > 40 ? sb.ToString(0, 40) : sb.ToString(); }
+
+    static void Silownia(Scene scena, Wykrycie W, Dictionary<Renderer, (int os, float delta)> ruch)
+    {
+        // ruchome części siłowni bez komponentów: skrzydło drzwi wyjścia (BraxGymPlayer.door, obracane w Update) i worki
+        ruchomeKorzenie.Clear();
+        foreach (var root in scena.GetRootGameObjects())
+            foreach (var g in root.GetComponentsInChildren<BraxGymPlayer>(true))
+            {
+                if (g.door) ruchomeKorzenie.Add(g.door);
+                if (g.bags != null) foreach (var b in g.bags) if (b) ruchomeKorzenie.Add(b);
+            }
+        var przed = W.lista.Where(p => W.pows[p.a].silownia && W.pows[p.b].silownia && strefa.Contains(p.gdzie)).ToList();
+        var powody = new Dictionary<(Renderer, Renderer), string>();
+        var zadania = new Dictionary<(Renderer, int, int, int, int), (float d, List<Vector2[]> gorne, HashSet<string> nad)>();
+        int paryCiete = 0;
+        foreach (var p in przed)
         {
-            var A = pows[p.a]; var B = pows[p.b]; var pa = pls[p.plA]; var pb = pls[p.plB];
-            if (Mathf.Abs(Teraz(A, pa) - Teraz(B, pb)) >= .0195f) continue;   // już rozsunięte (np. przy poprzedniej parze)
-            bool mniejszaA = A.pole <= B.pole;
-            var (m1, pm1, o1, po1) = mniejszaA ? (A, pa, B, pb) : (B, pb, A, pa);
-            if (!Przesun(m1, pm1, Teraz(o1, po1), ruch, spis)) Przesun(o1, po1, Teraz(m1, pm1), ruch, spis);
+            var A = W.pows[p.a]; var B = W.pows[p.b];
+            if (p.plany == null) continue;
+            string powod = null; int dodane = 0;
+            foreach (var (ia, ib) in p.plany)
+            {
+                var pa = W.pls[ia]; var pb = W.pls[ib];
+                if (pa.tri == null || pb.tri == null) continue;
+                float ea = Pozycja(pa), eb = Pozycja(pb);
+                Pow ciety, gorny; Pl plC, plG;
+                if (Mathf.Abs(ea - eb) < .001f)
+                {   // ta sama płaszczyzna: podkład (większy, np. ściana) wycięty pod nakładką (mniejszą, np. futryna, lizena)
+                    bool aPodklad = A.pole >= B.pole;
+                    (ciety, plC, gorny, plG) = aPodklad ? (A, pa, B, pb) : (B, pb, A, pa);
+                    if (Przezroczysty(gorny.mat)) { powod = "nakładka z alfą w tej samej płaszczyźnie (" + gorny.nazwa + ")"; continue; }
+                }
+                else
+                {   // różne płaszczyzny (< 2 cm): tylna wycięta pod przednią
+                    bool aPrzod = ea > eb;
+                    (gorny, plG, ciety, plC) = aPrzod ? (A, pa, B, pb) : (B, pb, A, pa);
+                    if (Przezroczysty(gorny.mat))
+                    {
+                        if (!Przezroczysty(ciety.mat) && gorny.mat && Szklo.IsMatch(gorny.mat.name + " " + gorny.r.name)) { var t = (ciety, plC); (ciety, plC) = (gorny, plG); (gorny, plG) = t; }   // szkło przed ramą: tniemy szkło
+                        else { powod = "przednia warstwa z alfą (" + gorny.nazwa + ") — tła nie wycinam (byłaby dziura)"; continue; }
+                    }
+                }
+                if (Ruchomy(ciety.r) || Ruchomy(gorny.r)) { powod = "ruchoma część (skrzydło drzwi, worek, winda…) — bez wycinania"; continue; }
+                if (ruch.ContainsKey(ciety.r) || ruch.ContainsKey(gorny.r)) { powod = "już rozsunięte przesunięciem"; continue; }
+                var key = (ciety.r, ciety.sub, plC.os, plC.znak, Mathf.RoundToInt(plC.d * 1000f));
+                if (!zadania.TryGetValue(key, out var z)) zadania[key] = z = (plC.d, new List<Vector2[]>(), new HashSet<string>());
+                z.gorne.AddRange(plG.tri); z.nad.Add(gorny.nazwa);
+                dodane++;
+            }
+            if (dodane > 0) paryCiete++;
+            else if (powod != null) powody[Klucz2(A.r, B.r)] = powod;
         }
-        var nierozwiazane = new List<Para>();
-        foreach (var p in lista)
+        if (!AssetDatabase.IsValidFolder("Assets/PlayableGenerated")) AssetDatabase.CreateFolder("Assets", "PlayableGenerated");
+        if (!AssetDatabase.IsValidFolder(Folder)) AssetDatabase.CreateFolder("Assets/PlayableGenerated", "KontrolaMigotania");
+        int powierzchnie = 0, trojkaty = 0; float pole = 0; var opisy = new List<string>();
+        foreach (var grupa in zadania.GroupBy(kv => kv.Key.Item1))
         {
-            var A = pows[p.a]; var B = pows[p.b];
-            if (Mathf.Abs(Teraz(A, pls[p.plA]) - Teraz(B, pls[p.plB])) >= .0195f) popr++; else nierozwiazane.Add(p);
+            var r = grupa.Key; var mf = r ? r.GetComponent<MeshFilter>() : null; if (!mf || !mf.sharedMesh) continue;
+            var oryginal = mf.sharedMesh; var mesh = oryginal; int zmian = 0; float usuniete = 0; var nad = new HashSet<string>();
+            try
+            {
+                foreach (var kv in grupa)
+                {
+                    var (_, sub, os, znak, _) = kv.Key; var z = kv.Value;
+                    var nowa = BraxWycinanieSiatki.OdejmijTrojkaty(mesh, r.transform.localToWorldMatrix, sub, os, znak, z.d, .002f, z.gorne, out int ch, out float p0, out float p1);
+                    if (!nowa) continue;
+                    if (mesh != oryginal) UnityEngine.Object.DestroyImmediate(mesh);
+                    mesh = nowa; zmian += ch; usuniete += p0 - p1; nad.UnionWith(z.nad);
+                }
+            }
+            catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_SILOWNIA_MIGOTANIE — wycinanie " + r.name + ": " + e.Message); if (mesh != oryginal) UnityEngine.Object.DestroyImmediate(mesh); continue; }
+            if (mesh == oryginal) continue;
+            mesh.name = oryginal.name + " (bez nakładania)";
+            BraxZapisAssetu.Utworz(mesh, Folder + "/silownia_" + Bezpieczna(r.name) + "_" + (zapisane++) + ".asset");
+            mf.sharedMesh = mesh;                                   // tylko ten renderer (siatka bywa wspólna); kolizje bez zmian
+            powierzchnie++; trojkaty += zmian; pole += usuniete;
+            opisy.Add(r.name + ": wycięte " + usuniete.ToString("F2") + " m² (" + zmian + " trójkątów) pod: " + string.Join(", ", nad.Take(4)) + (nad.Count > 4 ? " …" : "") + " " + BraxKontrola.F(r.bounds.center));
         }
         Physics.SyncTransforms();
-        var sb = new StringBuilder("BRAXHORN_MIGOTANIE " + BraxKontrola.Obszar + ": pary=" + lista.Count + " poprawione=" + popr + " (przesunięte powierzchnie " + ruch.Count +
-            ", renderery " + renderery + ", trójkąty osiowe " + trojkaty + ", prostokąty " + prosty.Count + ", kubełki " + kubelki + ", czas " + (BraxKontrola.Sekundy - t0).ToString("F1") + " s" + (przerwane ? ", PRZERWANE limitem czasu" : "") + ")");
-        sb.Append("\nBRAXHORN_MIGOTANIE nierozwiązane (największe, do zdjęć):");
-        foreach (var p in nierozwiazane.Take(20))
-        {
-            string l = "  " + pows[p.a].nazwa + " ↔ " + pows[p.b].nazwa + " odstęp " + (p.dd * 100f).ToString("F1") + " cm, wspólne " + p.pole.ToString("F2") + " m² " + BraxKontrola.F(p.gdzie);
-            sb.Append('\n').Append(l); BraxKontrola.Zapisz("migotanie: " + l.Trim());
-        }
-        foreach (var kv in ruch.Take(200)) BraxKontrola.Zapisz("migotanie: przesunięto " + kv.Key.name + " o " + (kv.Value.delta * 100f).ToString("F1") + " cm wzdłuż " + "XYZ"[kv.Value.os]);
-        Debug.Log(sb.ToString());
+        // po: ponowne wykrycie tylko w strefie siłowni
+        tylkoStrefa = true; Wykrycie po;
+        try { po = Wykryj(scena, 30f); } finally { tylkoStrefa = false; }
+        var zostaly = po.lista.Where(p => po.pows[p.a].silownia && po.pows[p.b].silownia && strefa.Contains(p.gdzie)).ToList();
+        var sb = new StringBuilder("BRAXHORN_SILOWNIA_MIGOTANIE pary_przed=" + przed.Count + " pary_po=" + zostaly.Count + " pary_po_powyżej_0.1m²=" + zostaly.Count(p => p.pole > .1f)
+            + " wycięte_pary=" + paryCiete + " powierzchnie=" + powierzchnie + " trójkątów=" + trojkaty + " pole_usunięte=" + pole.ToString("F2") + " m² przesunięte=0 (strefa " + BraxKontrola.F(strefa.min) + " … " + BraxKontrola.F(strefa.max) + ")");
+        sb.Append("\n  PRZED (największe):");
+        foreach (var p in przed.Take(25)) sb.Append("\n    ").Append(W.pows[p.a].nazwa + " ↔ " + W.pows[p.b].nazwa + " odstęp " + (p.dd * 100f).ToString("F1") + " cm, " + p.pole.ToString("F2") + " m² " + BraxKontrola.F(p.gdzie));
+        sb.Append("\n  WYCIĘTE:");
+        foreach (var l in opisy.Take(40)) sb.Append("\n    ").Append(l);
+        sb.Append("\n  ZOSTAŁY:");
+        foreach (var p in zostaly.Take(25))
+            sb.Append("\n    ").Append(po.pows[p.a].nazwa + " ↔ " + po.pows[p.b].nazwa + " odstęp " + (p.dd * 100f).ToString("F1") + " cm, " + p.pole.ToString("F2") + " m² " + BraxKontrola.F(p.gdzie)
+                + (powody.TryGetValue(Klucz2(po.pows[p.a].r, po.pows[p.b].r), out var pw) ? " — " + pw : ""));
+        foreach (var l in opisy.Take(200)) BraxKontrola.Zapisz("migotanie siłowni: " + l);
+        if (zostaly.Count(p => p.pole > .1f) > 0) Debug.LogWarning(sb.ToString()); else Debug.Log(sb.ToString());
     }
 
     static float Pozycja(Pl p) => p.znak == 1 ? p.d : -p.d;                 // położenie wzdłuż normalnej (przód = większe)

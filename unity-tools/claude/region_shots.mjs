@@ -269,6 +269,10 @@ const VIEWS = [
   ['DETAL_M_kamienica_parter', '-352,0.2,103,180,10,5'],           // parter kamienicy: cokół, witryny, styk z chodnikiem
   ['DETAL_M_wieza_wejscie', '-450,0.2,40,180,8,6'],                // wejście wieży centrum: drzwi, zadaszenie, styk z płytami
   ['DETAL_M_krata_drzewa_lawka', '-372,0.2,10.5,0,50,3'],          // krata drzewa, ławka, kosz na promenadzie
+  // C3 (2.11): migotanie siłowni — futryna wyjścia (z hali i z zewnątrz) i elewacja od ulicy (BRAXHORN_SILOWNIA_MIGOTANIE)
+  ['DETAL_silownia_futryna_wyjscie', '6,0.2,11.4,180,6,2.5'],      // futryna drzwi wyjścia od strony hali, styk ze ścianą
+  ['DETAL_silownia_futryna_zewnatrz', '6,0.2,11.4,0,6,3'],         // ta sama futryna od zewnątrz (drzwi otwarte przy podejściu)
+  ['DETAL_silownia_elewacja', '0,0.2,24,0,12,10'],                 // elewacja siłowni od ulicy: płaszczyzny ścian, lizeny, gzyms
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],
