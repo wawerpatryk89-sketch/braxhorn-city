@@ -8,11 +8,13 @@ using UnityEngine;
 // pada przy wczytywaniu (80%, przed pierwszym Awake); miasto — 30–36 od wielu buildów, pada tak samo. Brakujący skrypt
 // powstaje, gdy klasa MonoBehaviour leży w pliku o innej nazwie (Unity nie zapisuje wtedy odwołania do skryptu w scenie),
 // a dane takiego komponentu w APK nie mają opisu typu → czytanie sceny na telefonie się wykoleja.
-// Przed każdym BuildPlayer: każda scena paczki jest otwierana, komponenty bez skryptu usuwane, scena zapisywana.
-// Dziennik CI: BRAXHORN_BRAKUJACE_SKRYPTY — liczba i nazwy obiektów (od teraz ma być 0; inna liczba = do poprawy w kodzie).
+// Przed każdym BuildPlayer: każda scena paczki (także obszary doczytywane i kwadraty) jest otwierana i sprawdzana.
+// 2.11, 01:10 (decyzja dyspozytora po konsultacji właściciela): BRAMKA TWARDA — jeśli jakakolwiek scena ma komponent bez
+// skryptu, build się ZATRZYMUJE (wyjątek, bez APK), zamiast po cichu usuwać komponent (usunięcie zabrałoby funkcję, np.
+// siedzisko). Dziennik CI: BRAXHORN_BRAKUJACE_SKRYPTY <scena>: N — nazwy obiektów; wymagane 0 we wszystkich scenach.
 public static class BraxBrakujaceSkrypty
 {
-    public static int Usun(IEnumerable<string> sceny)
+    public static int Sprawdz(IEnumerable<string> sceny)
     {
         int razem = 0;
         // otwarte, zapisane wcześniej sceny z niezapisanymi zmianami — zapis, żeby otwarcie kolejnej ich nie porzuciło
@@ -31,15 +33,14 @@ public static class BraxBrakujaceSkrypty
                 {
                     int m = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject);
                     if (m <= 0) continue;
-                    GameObjectUtility.RemoveMonoBehavioursWithMissingScript(t.gameObject);
-                    n += m; if (nazwy.Count < 12) nazwy.Add(t.name);
+                    n += m; if (nazwy.Count < 20) nazwy.Add(t.name);
                 }
-            if (n > 0) { EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene); }
             Debug.Log("BRAXHORN_BRAKUJACE_SKRYPTY " + System.IO.Path.GetFileNameWithoutExtension(path) + ": " + n +
-                      (n > 0 ? " usunięte (DO POPRAWKI w kodzie: klasa w pliku o innej nazwie) — " + string.Join(" | ", nazwy) : ""));
+                      (n > 0 ? " — BŁĄD (klasa MonoBehaviour w pliku o innej nazwie albo usunięta): " + string.Join(" | ", nazwy) : ""));
             razem += n;
         }
-        AssetDatabase.SaveAssets();
+        Debug.Log("BRAXHORN_BRAKUJACE_SKRYPTY razem: " + razem);
+        if (razem > 0) throw new System.InvalidOperationException("BRAXHORN_BRAKUJACE_SKRYPTY: " + razem + " komponentów bez skryptu — build ZATRZYMANY (telefon nie wczyta takiej sceny: „level is corrupted [Position out of bounds]”)");
         return razem;
     }
 }

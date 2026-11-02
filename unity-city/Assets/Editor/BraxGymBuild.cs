@@ -84,7 +84,7 @@ public static class BraxGymBuild
         bool useDefault=PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
         var apis=PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
         BuildReport last=null,ok=null;var summary=new List<string>();
-        try{BraxBrakujaceSkrypty.Usun(variants.SelectMany(v=>v.scenes));}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bramka brakujących skryptów: "+e);}   // 1.11, 22:20: brakujące skrypty = awaria wczytywania na telefonie
+        BraxBrakujaceSkrypty.Sprawdz(variants.SelectMany(v=>v.scenes));   // bramka twarda: >0 = wyjątek, build stop   // 1.11, 22:20: brakujące skrypty = awaria wczytywania na telefonie
         foreach(var v in variants)
         {
             if(v.scenes.Any(p=>!File.Exists(p))){summary.Add(v.tag+": brak sceny");continue;}
@@ -366,7 +366,7 @@ public static class BraxGymBuild
                     : new[]{BraxCityBuild.CreateEstate(sourceCommit)})
             : new[]{scenePath};
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
-        try{BraxBrakujaceSkrypty.Usun(scenePaths);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bramka brakujących skryptów: "+e);}   // 1.11, 22:20: jak wyżej (WebGL / zdjęcia CI też bez brakujących skryptów)
+        BraxBrakujaceSkrypty.Sprawdz(scenePaths);   // bramka twarda (WebGL / zdjęcia CI też)   // 1.11, 22:20: jak wyżej (WebGL / zdjęcia CI też bez brakujących skryptów)
         string output,location;
         if(target==BuildTarget.Android)
         {
