@@ -31,7 +31,9 @@ public sealed class BraxAuto : MonoBehaviour
     public AudioClip silnik, klakson;
     public static readonly List<BraxAuto> Wszystkie = new List<BraxAuto>();
 
-    AudioSource dzwiek;
+    AudioSource dzwiek, dzwiekKlakson;
+    // runda 4: auta AI delikatnie — głośność bazowa 0.3, zanik z odległością do zera (krzywa), wygaszanie zamiast urwania
+    public const float GlosAI = .3f, ZasiegAI = 50f;
     // E19 (build 45): cień auta tylko do 20 m × K (histereza), silnik grają tylko 4 najbliższe auta (limit źródeł audio).
     public const int SilnikiMax = 4; public const float CienAutaOdl = 20f * 1.294f;
     static int klatkaAudio = -1; static readonly float[] najblizsze = { float.MaxValue, float.MaxValue, float.MaxValue, float.MaxValue }; static float progAudio = float.MaxValue;
@@ -50,8 +52,9 @@ public sealed class BraxAuto : MonoBehaviour
         {
             // dźwięk 3D: słychać z ok. 40 m, głośniej z bliska; ton rośnie z prędkością (właściciel 1.11: „auta niech mają dźwięk”)
             dzwiek = gameObject.AddComponent<AudioSource>(); dzwiek.clip = silnik; dzwiek.loop = true; dzwiek.spatialBlend = 1f;
-            dzwiek.rolloffMode = AudioRolloffMode.Logarithmic; dzwiek.minDistance = 3.5f; dzwiek.maxDistance = 45f; dzwiek.dopplerLevel = .4f;
-            dzwiek.volume = .55f; dzwiek.priority = 160; dzwiek.pitch = .8f; dzwiek.time = Random.value * silnik.length * .9f;
+            dzwiek.rolloffMode = AudioRolloffMode.Custom; dzwiek.SetCustomCurve(AudioSourceCurveType.CustomRolloff, BraxDzwiekiAuta.KrzywaZaniku());
+            dzwiek.minDistance = 3.5f; dzwiek.maxDistance = ZasiegAI; dzwiek.dopplerLevel = .4f;
+            dzwiek.volume = 0f; dzwiek.priority = 160; dzwiek.pitch = .8f; dzwiek.time = Random.value * silnik.length * .9f;
         }
         Swiatla(stop, false); Swiatla(migL, false); Swiatla(migP, false);
         dymR = new Renderer[dym.Length]; dymFaza = new float[dym.Length]; dymMpb = new MaterialPropertyBlock();
@@ -141,8 +144,10 @@ public sealed class BraxAuto : MonoBehaviour
         for (int i = 0; i < najblizsze.Length; i++) if (odl < najblizsze[i]) { for (int j = najblizsze.Length - 1; j > i; j--) najblizsze[j] = najblizsze[j - 1]; najblizsze[i] = odl; break; }
         if (dzwiek)
         {
-            if (odl < 55f && odl <= progAudio + .5f) { if (!dzwiek.isPlaying) dzwiek.Play(); grajaTeraz++; }
-            else if (dzwiek.isPlaying) dzwiek.Pause();
+            bool gra = odl < ZasiegAI && odl <= progAudio + .5f;
+            if (gra) { if (!dzwiek.isPlaying) dzwiek.Play(); grajaTeraz++; }
+            if (dt > 0f) dzwiek.volume = Mathf.MoveTowards(dzwiek.volume, gra ? GlosAI : 0f, dt * .75f);   // wejście/wyjście z listy najbliższych — wygaszenie ~0.4 s
+            if (!gra && dzwiek.isPlaying && dzwiek.volume <= .001f) dzwiek.Pause();
             if (dzwiek.isPlaying && dt > 0f)
                 dzwiek.pitch = Mathf.Lerp(dzwiek.pitch, .78f + Mathf.Clamp01(st.v / Mathf.Max(1f, vmax)) * .75f + (st.a > .5f ? .08f : 0f), 1f - Mathf.Exp(-dt * 3f));
         }
@@ -152,8 +157,8 @@ public sealed class BraxAuto : MonoBehaviour
             st.klakson = false;
             if (klakson && odl < 45f)
             {
-                if (!dzwiek) { dzwiek = gameObject.AddComponent<AudioSource>(); dzwiek.spatialBlend = 1f; dzwiek.minDistance = 4f; dzwiek.maxDistance = 50f; dzwiek.rolloffMode = AudioRolloffMode.Logarithmic; }
-                dzwiek.PlayOneShot(klakson, .9f);
+                if (!dzwiekKlakson) { dzwiekKlakson = gameObject.AddComponent<AudioSource>(); dzwiekKlakson.spatialBlend = 1f; dzwiekKlakson.minDistance = 4f; dzwiekKlakson.maxDistance = 50f; dzwiekKlakson.rolloffMode = AudioRolloffMode.Logarithmic; dzwiekKlakson.playOnAwake = false; }
+                dzwiekKlakson.PlayOneShot(klakson, .9f);   // osobne źródło (głośność silnika AI jest wygaszana)
             }
         }
     }

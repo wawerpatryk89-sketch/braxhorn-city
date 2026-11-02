@@ -45,7 +45,9 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     float predkosc, kierownica, obrotKol, ostatnieSterowanie;
     bool przejscie;
     Vector3 startWejscia;
-    AudioSource audioSilnika;
+    AudioSource audioSilnika, audioEfekty;
+    // runda 4 (dźwięki pojazdów): 0 zgaszony, 1 odpalanie, 2 pracuje, 3 gaszenie — ton i głośność od prędkości tylko w stanie 2
+    int silnikStan; float silnikGlos;
     Rigidbody cialo;
     readonly RaycastHit[] hits = new RaycastHit[32];
     readonly Collider[] overlaps = new Collider[32];
@@ -57,7 +59,10 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     {
         if (!obrys) obrys = GetComponent<BoxCollider>();
         cialo=GetComponent<Rigidbody>();
-        if (silnik) { audioSilnika=gameObject.AddComponent<AudioSource>(); audioSilnika.clip=silnik; audioSilnika.loop=true; audioSilnika.spatialBlend=1; audioSilnika.minDistance=4; audioSilnika.maxDistance=45; audioSilnika.playOnAwake=false; }
+        if (silnik) { audioSilnika=gameObject.AddComponent<AudioSource>(); audioSilnika.clip=silnik; audioSilnika.loop=true; audioSilnika.spatialBlend=1; audioSilnika.minDistance=4; audioSilnika.maxDistance=45; audioSilnika.playOnAwake=false;
+            audioSilnika.rolloffMode=AudioRolloffMode.Custom; audioSilnika.SetCustomCurve(AudioSourceCurveType.CustomRolloff,BraxDzwiekiAuta.KrzywaZaniku()); }
+        audioEfekty=gameObject.AddComponent<AudioSource>(); audioEfekty.spatialBlend=1; audioEfekty.minDistance=2; audioEfekty.maxDistance=30; audioEfekty.playOnAwake=false;
+        audioEfekty.rolloffMode=AudioRolloffMode.Custom; audioEfekty.SetCustomCurve(AudioSourceCurveType.CustomRolloff,BraxDzwiekiAuta.KrzywaZaniku());
     }
     bool Obcy(Collider c) => c && !c.transform.IsChildOf(transform) && !(gracz && c.transform.IsChildOf(gracz.transform));
     Vector3 Drzwi(int strona) => transform.TransformPoint(new Vector3(strona*(obrys.size.x*.5f+.65f),0,fotel ? transform.InverseTransformPoint(fotel.position).z : 0));
@@ -102,6 +107,7 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         }
         p.transform.position=door;
         p.clips.CrossFade("Idle",.2f);
+        Efekt(BraxDzwiekiAuta.DrzwiOtwKlip,.7f);                                 // runda 4: klik zamka
         yield return Drzwi(0f,1f,.55f);                                         // E9: drzwi otwierają się przed wsiadaniem
         p.clips.CrossFade("CarIdle",.55f);
         Vector3 end=transform.TransformPoint(przesuniecieGracza);
@@ -115,7 +121,9 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         wagaPozy=1f;
         p.transform.SetParent(transform,true); p.transform.SetPositionAndRotation(end,transform.rotation);
         yield return Drzwi(1f,0f,.5f);                                          // i zamykają się za graczem
-        przejscie=false; if(audioSilnika){audioSilnika.volume=.45f;audioSilnika.Play();}
+        Efekt(BraxDzwiekiAuta.DrzwiTrzaskKlip,.9f);                              // runda 4: trzask drzwi → odpalanie → jałowy
+        yield return Odpal();
+        przejscie=false;
     }
     const float Skora=.04f;
     // Maks. skręt kół (°): 38 do 2 m/s, liniowo do 12 przy prędkości maksymalnej (stabilnie na prostej, ciasno na parkingu).
@@ -185,7 +193,12 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         obrotKol=Mathf.Repeat(obrotKol+predkosc*dt/Mathf.Max(.1f,promienKola)*Mathf.Rad2Deg,360);
         foreach(var wheel in kola)if(wheel)wheel.localRotation=Quaternion.Euler(obrotKol,0,0);
         foreach(var pivot in skret)if(pivot)pivot.localRotation=Quaternion.Euler(0,BraxAuto.KatKola(kierownica,rozstaw,transform.InverseTransformPoint(pivot.position).x),0);
-        if(audioSilnika)audioSilnika.pitch=.8f+Mathf.Abs(predkosc)/Mathf.Max(1,maxPredkosc)*.7f;
+        if(audioSilnika&&silnikStan==2)   // runda 4: ton i głośność od prędkości (przy przyspieszaniu ciut wyżej)
+        {
+            float u=Mathf.Clamp01(Mathf.Abs(predkosc)/Mathf.Max(1,maxPredkosc)), gaz=Mathf.Abs(wejscie.y)>.1f?.06f:0f;
+            audioSilnika.pitch=Mathf.Lerp(audioSilnika.pitch,.8f+u*.75f+gaz,1f-Mathf.Exp(-dt*4f));
+            audioSilnika.volume=Mathf.Lerp(audioSilnika.volume,silnikGlos+u*.3f+gaz,1f-Mathf.Exp(-dt*3f));
+        }
     }
     bool MiejsceWyjscia(out Vector3 point)
     {
@@ -202,6 +215,8 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     IEnumerator Wyjdz(Vector3 point)
     {
         przejscie=true; var p=gracz; var from=p.transform.position;
+        yield return Zgas();                                                    // runda 4: zgaszenie (opadający ton), potem drzwi
+        Efekt(BraxDzwiekiAuta.DrzwiOtwKlip,.7f);
         yield return Drzwi(0f,1f,.5f);                                          // E9: drzwi otwierają się przed wyjściem
         p.transform.SetParent(null,true);
         p.clips.CrossFade("Idle",.65f);
@@ -209,6 +224,7 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         wagaPozy=0f;
         Odlacz(point);
         yield return Drzwi(1f,0f,.5f);                                          // i zamykają się za graczem
+        Efekt(BraxDzwiekiAuta.DrzwiTrzaskKlip,.9f);
     }
     public void PrzedTeleportem() { StopAllCoroutines(); if (drzwi && drzwiZap) drzwi.localRotation = drzwiZamk; Odlacz(startWejscia); }
     void Odlacz(Vector3 point)
@@ -217,6 +233,29 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         p.transform.SetParent(null,true);
         if(scenaGracza.IsValid()&&scenaGracza.isLoaded&&p.gameObject.scene!=scenaGracza)SceneManager.MoveGameObjectToScene(p.gameObject,scenaGracza);
         BraxPose.Get(p).Set(BraxPose.Mode.None,null);p.clips.Play("Idle");p.transform.position=point;p.autoGracza=null;p.body.enabled=true;
-        if(audioSilnika)audioSilnika.Stop();
+        if(audioSilnika)audioSilnika.Stop(); silnikStan=0;
+    }
+    // ---------------- runda 4: dźwięki auta gracza (synteza BraxDzwiekiAuta) ----------------
+    void Efekt(AudioClip c, float g) { if (audioEfekty && c) audioEfekty.PlayOneShot(c, g); }
+    IEnumerator Odpal()
+    {
+        if (!audioSilnika) yield break;
+        silnikStan = 1; silnikGlos = .42f;
+        int w = Random.Range(0, 5); Efekt(BraxDzwiekiAuta.RozrusznikKlip(w), .85f);
+        yield return new WaitForSeconds(BraxDzwiekiAuta.CzasRozrusznika(w) + .22f);   // rozrusznik, zapłon „łapie”
+        audioSilnika.volume = 0f; audioSilnika.pitch = 1.05f; audioSilnika.Play();         // pętla jałowego z wyskoku obrotów
+        for (float t = 0; t < 1f; t += Time.deltaTime / .6f)
+        { audioSilnika.volume = Mathf.Lerp(0f, silnikGlos, Mathf.Clamp01(t * 2f)); audioSilnika.pitch = Mathf.Lerp(1.05f, .8f, t); yield return null; }
+        audioSilnika.volume = silnikGlos; audioSilnika.pitch = .8f; silnikStan = 2;
+    }
+    IEnumerator Zgas()
+    {
+        if (!audioSilnika || silnikStan == 0) yield break;
+        silnikStan = 3; Efekt(BraxDzwiekiAuta.ZgaszenieKlip, .7f);
+        float v0 = audioSilnika.volume, p0 = audioSilnika.pitch;
+        for (float t = 0; t < 1f; t += Time.deltaTime / .55f)
+        { audioSilnika.volume = Mathf.Lerp(v0, 0f, t); audioSilnika.pitch = Mathf.Lerp(p0, .45f, t); yield return null; }
+        audioSilnika.Stop(); silnikStan = 0;
+        yield return new WaitForSeconds(.45f);                                   // dogasa (klip zgaszenia ~1 s)
     }
 }

@@ -132,5 +132,17 @@ public static partial class BraxClaudeOsiedle
         var zf = fo.AddComponent<BraxZrodloPetli>(); zf.glosnosc = .25f; zf.minOdl = 2f * K; zf.zasieg = 25f * K;
         Debug.Log("BRAXHORN_FONTANNA dźwięk: głośność 0.25 (było 0.55), min " + zf.minOdl.ToString("F1") + " m, zasięg " + zf.zasieg.ToString("F1") + " m, krzywa do zera");
         rep.notes.Add("dźwięki: silnik w " + auta + " autach, tło (ptaki, wiatr, szum miasta) — synteza przy buildzie");
+        // runda 4: dźwięki pojazdów — synteza w grze (BraxDzwiekiAuta), tu tylko pomiar klipów do logu
+        int ai = 0, gr = 0; foreach (var a in Object.FindObjectsByType<BraxAuto>(FindObjectsInactive.Include, FindObjectsSortMode.None)) if (a.silnik) ai++;
+        foreach (var a in Object.FindObjectsByType<BraxAutoGracza>(FindObjectsInactive.Include, FindObjectsSortMode.None)) if (a.silnik) gr++;
+        float Rms(float[] x) { double q = 0; foreach (var v in x) q += v * v; return x.Length > 0 ? Mathf.Sqrt((float)(q / x.Length)) : 0f; }
+        var roz = new System.Collections.Generic.List<string>();
+        for (int k = 0; k < 5; k++) { var x = BraxDzwiekiAuta.Rozrusznik(k); roz.Add((BraxDzwiekiAuta.CzasRozrusznika(k)).ToString("F1") + "+zapłon=" + (x.Length / (float)BraxDzwiekiAuta.SR).ToString("F2") + "s rms " + Rms(x).ToString("F2")); }
+        var zg = BraxDzwiekiAuta.Zgaszenie(); var dO = BraxDzwiekiAuta.DrzwiOtw(); var dT = BraxDzwiekiAuta.DrzwiTrzask();
+        Debug.Log("BRAXHORN_DZWIEKI_POJAZDOW auto_gracza_z_silnikiem=" + gr + " (wsiadanie: drzwi klik → trzask → rozrusznik → zapłon → jałowy; wysiadanie: zgaszenie → klik → trzask; ton 0.8–1.55 i głośność 0.42–0.72 od prędkości)"
+                  + " auta_AI_z_silnikiem=" + ai + " (grają " + BraxAuto.SilnikiMax + " najbliższe, głośność " + BraxAuto.GlosAI.ToString("F2") + ", zanik krzywą do zera na " + BraxAuto.ZasiegAI.ToString("F0") + " m, wygaszanie ~0.4 s)"
+                  + " rozruszniki=[" + string.Join("; ", roz) + "] zgaszenie=" + (zg.Length / (float)BraxDzwiekiAuta.SR).ToString("F2") + "s rms " + Rms(zg).ToString("F2")
+                  + " drzwi_otw=" + (dO.Length / (float)BraxDzwiekiAuta.SR).ToString("F2") + "s drzwi_trzask=" + (dT.Length / (float)BraxDzwiekiAuta.SR).ToString("F2") + "s rms " + Rms(dT).ToString("F2")
+                  + " źródło=synteza w kodzie (bez nagrań)");
     }
 }
