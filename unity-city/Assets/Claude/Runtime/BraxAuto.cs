@@ -19,13 +19,15 @@ public sealed class BraxAuto : MonoBehaviour
     public Transform[] kola = new Transform[0];    // obracające się części kół (LP, PP, LT, PT)
     public Transform[] skret = new Transform[0];   // osie skrętu przednich kół
     public Renderer[] stop = new Renderer[0], migL = new Renderer[0], migP = new Renderer[0];
-    public ParticleSystem dym;
+    public Transform[] dym = new Transform[0];     // kłęby spalin: płytki zwrócone do kamery (moduł cząsteczek jest w projekcie wyłączony — build 14 padł na ParticleSystem)
+    public float dymSkala = 1f;                    // skala świata (k) z generatora
     public AudioClip silnik, klakson;
     public static readonly List<BraxAuto> Wszystkie = new List<BraxAuto>();
 
     AudioSource dzwiek;
     float katKol, skretAkt, przechyl, pochyl, kierPoprz;
     bool stopWl, migWl, dymWl;
+    Renderer[] dymR; float[] dymFaza; MaterialPropertyBlock dymMpb; static Camera kam;
 
     void OnEnable() { Wszystkie.Add(this); }
     void OnDisable() { Wszystkie.Remove(this); }
@@ -40,7 +42,9 @@ public sealed class BraxAuto : MonoBehaviour
             dzwiek.volume = .55f; dzwiek.priority = 160; dzwiek.pitch = .8f; dzwiek.time = Random.value * silnik.length * .9f;
         }
         Swiatla(stop, false); Swiatla(migL, false); Swiatla(migP, false);
-        if (dym) { dym.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); dymWl = false; }
+        dymR = new Renderer[dym.Length]; dymFaza = new float[dym.Length]; dymMpb = new MaterialPropertyBlock();
+        for (int i = 0; i < dym.Length; i++) { dymR[i] = dym[i] ? dym[i].GetComponent<Renderer>() : null; if (dymR[i]) dymR[i].enabled = false; dymFaza[i] = (i + Random.value * .5f) / Mathf.Max(1, dym.Length); }
+        dymWl = false;
     }
 
     static void Swiatla(Renderer[] r, bool wl) { if (r == null) return; foreach (var x in r) if (x) x.enabled = wl; }
@@ -82,15 +86,27 @@ public sealed class BraxAuto : MonoBehaviour
             Swiatla(migL, m1 && st.migacz < 0); Swiatla(migP, m1 && st.migacz > 0);
         }
         // spaliny: blisko, mocniej przy ruszaniu
-        if (dym)
+        if (dym.Length > 0 && dymR != null)
         {
-            if (bardzo)
+            if (bardzo && dt > 0f)
             {
-                if (!dymWl) { dym.Play(); dymWl = true; }
-                var em = dym.emission;
-                em.rateOverTime = 1.6f + st.v * .25f + (st.a > .4f && st.v < 5f ? 9f * st.a : 0f);
+                if (!dymWl) { dymWl = true; foreach (var r in dymR) if (r) r.enabled = true; }
+                if (!kam) kam = Camera.main;
+                float sila = Mathf.Clamp01(.3f + st.v * .03f + (st.a > .4f && st.v < 5f ? .55f * st.a : 0f));   // mocniej przy ruszaniu
+                float zasieg = .35f + Mathf.Min(st.v, 6f) * .3f;                                              // w ruchu smuga dłuższa
+                for (int i = 0; i < dym.Length; i++)
+                {
+                    var tr = dym[i]; if (!tr) continue;
+                    float t = dymFaza[i] = Mathf.Repeat(dymFaza[i] + dt / 1.4f, 1f);
+                    tr.localPosition = new Vector3(Mathf.Sin((i + 1) * 2.3f + t * 3f) * .05f * t, .16f * t, zasieg * t) * dymSkala;
+                    float sk = Mathf.Lerp(.1f, .5f, t) * dymSkala; tr.localScale = new Vector3(sk, sk, sk);
+                    if (kam) tr.rotation = kam.transform.rotation;
+                    float al = (1f - t) * (1f - t) * sila * .45f;
+                    dymMpb.SetColor("_TintColor", new Color(.5f, .5f, .5f, al)); dymMpb.SetColor("_Color", new Color(.85f, .85f, .85f, al));
+                    if (dymR[i]) dymR[i].SetPropertyBlock(dymMpb);
+                }
             }
-            else if (dymWl) { dym.Stop(true, ParticleSystemStopBehavior.StopEmitting); dymWl = false; }
+            else if (dymWl) { dymWl = false; foreach (var r in dymR) if (r) r.enabled = false; }
         }
         // silnik
         if (dzwiek)

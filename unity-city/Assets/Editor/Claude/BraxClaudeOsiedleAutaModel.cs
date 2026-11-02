@@ -500,18 +500,13 @@ public static partial class BraxClaudeOsiedle
         }
         var g = new GameObject("spaliny"); g.transform.SetParent(nad, false);
         g.transform.localPosition = p; g.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);   // emisja do tyłu (−z auta)
-        var ps = g.AddComponent<ParticleSystem>();
-        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-        var main = ps.main; main.loop = true; main.playOnAwake = false; main.startLifetime = new ParticleSystem.MinMaxCurve(1.2f, 1.8f);
-        main.startSpeed = new ParticleSystem.MinMaxCurve(.25f, .5f); main.startSize = new ParticleSystem.MinMaxCurve(.1f * K, .2f * K);
-        main.startColor = new Color(.6f, .6f, .62f, .14f); main.simulationSpace = ParticleSystemSimulationSpace.World; main.maxParticles = 30; main.gravityModifier = -.03f;
-        var em = ps.emission; em.rateOverTime = 2f;
-        var sh = ps.shape; sh.shapeType = ParticleSystemShapeType.Cone; sh.angle = 12f; sh.radius = .03f;
-        var sol = ps.sizeOverLifetime; sol.enabled = true; sol.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, .6f, 1f, 2.6f));
-        var col = ps.colorOverLifetime; col.enabled = true;
-        var gr = new Gradient(); gr.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) }, new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(.6f, .3f), new GradientAlphaKey(0f, 1f) });
-        col.color = gr;
-        var rr = g.GetComponent<ParticleSystemRenderer>(); rr.sharedMaterial = MatDym(); rr.shadowCastingMode = ShadowCastingMode.Off; rr.receiveShadows = false;
+        // bez modułu cząsteczek (wyłączony w projekcie): 4 kłęby = płytki z miękką teksturą; ruch, rozrost i zanik liczy BraxAuto blisko gracza
+        for (int i = 0; i < 4; i++)
+        {
+            var k = new GameObject("kłąb " + i); k.transform.SetParent(g.transform, false); k.transform.localScale = Vector3.one * .1f * K;
+            k.AddComponent<MeshFilter>().sharedMesh = QuadSwiatla();
+            var rr = k.AddComponent<MeshRenderer>(); rr.sharedMaterial = MatDym(); rr.shadowCastingMode = ShadowCastingMode.Off; rr.receiveShadows = false; rr.enabled = false;
+        }
     }
 
     // Lakier: materiał bez tekstury koloru o nazwie lakieru/karoserii, największa powierzchnia nadwozia (≥ 4 %).

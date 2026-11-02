@@ -206,7 +206,7 @@ public static partial class BraxClaudeOsiedle
                     a.stop = Szukaj(a.nadwozie, "światło STOP L", "światło STOP P");
                     a.migL = Szukaj(a.nadwozie, "kierunkowskaz tył L", "kierunkowskaz przód L");
                     a.migP = Szukaj(a.nadwozie, "kierunkowskaz tył P", "kierunkowskaz przód P");
-                    var d = a.nadwozie.Find("spaliny"); if (d) a.dym = d.GetComponent<ParticleSystem>();
+                    var d = a.nadwozie.Find("spaliny"); if (d) { var kl = new List<Transform>(); foreach (Transform t in d) kl.Add(t); a.dym = kl.ToArray(); a.dymSkala = K; }
                 }
                 a.klakson = klakson;
                 var bc = o.AddComponent<BoxCollider>(); bc.center = sz.obrys.center; bc.size = sz.obrys.size;
