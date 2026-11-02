@@ -43,7 +43,7 @@ TEXTURES = {
     "brick_wall_10": "cegła pod muralem siłowni A (ta sama co w siłowni miasta R1)",
     "marble_01": "marmur łazienek w willach na sprzedaż (build 5)",
     "leather_red_02": "skóra worka bokserskiego w domowej siłowni willi (build 5)",
-    "rock_face": "skała na zboczu wzgórza nad tunelem i głazy za płotem (build 14)",
+    "rock_boulder_dry": "skała na zboczu wzgórza nad tunelem i głazy za płotem (build 14, jasny wapień jak skały na panoramie)",
 }
 MODELS = [
     "ClassicNightstand_01",   # wille: szafki nocne w sypialni (build 5)

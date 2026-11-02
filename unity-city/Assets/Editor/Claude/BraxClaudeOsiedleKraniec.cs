@@ -214,9 +214,9 @@ public static partial class BraxClaudeOsiedle
         if (File.Exists(T("grass004"))) m.SetTexture("_MainTex", Map(T("grass004"), false, true));
         var g = Grass; if (g) m.SetColor("_Color", g.color * new Color(1.02f, 1.02f, .96f, 1f));
         m.SetFloat("_Tile", 3f);
-        string skala = File.Exists(T("rock_face")) ? "rock_face" : "rough_block_wall";
+        string skala = File.Exists(T("rock_boulder_dry")) ? "rock_boulder_dry" : "rough_block_wall";
         if (File.Exists(T(skala))) m.SetTexture("_RockTex", Map(T(skala), false, true));
-        m.SetFloat("_RockTile", skala == "rock_face" ? 6f : 3f);
+        m.SetFloat("_RockTile", skala == "rock_boulder_dry" ? 4.5f : 3f);
         if (File.Exists(T("brown_mud_leaves_01"))) m.SetTexture("_SoilTex", Map(T("brown_mud_leaves_01"), false, true));
         m.SetFloat("_MglaOd", .58f); m.SetFloat("_MglaDo", 420f);
         PasmoNaMaterial(m);
