@@ -88,7 +88,9 @@ internal static class BraxMiastoWyspa
         BraxUliceKit.UstawGrupe("Wyspa: arena BRAXHORN");
         Arena();
         BraxUliceKit.UstawGrupe("Wyspa: bar, ringi, punkt widokowy", 80f);
-        Plaze(z, m); BarPlazowy(); Ringi(); PunktWidokowy(); PlacWejsciowy();
+        Plaze(z, m); BarPlazowy(); Ringi(); PunktWidokowy();
+        BraxUliceKit.UstawGrupe("Wyspa: plac wejściowy areny (pylon, telebimy, brama, flagi, food trucki)", 240f);   // widać z morza
+        PlacWejsciowy();
         int nz = z.Emit(root, "Wyspa: przystań i plaża");
         int siatek = BraxUliceKit.Zapisz(root, "wyspa");
         int palm = Palmy(), krz = Krzewy();
