@@ -261,6 +261,14 @@ const VIEWS = [
   ['M_C_14_port_drobnicowiec', '78,0.35,-36,0,14,22'],             // drobnicowiec przy nabrzeżu B, dźwig i kontenerowiec A w tle
   ['M_C_15_kontenerowiec_z_tarasu', '60,120.55,52,270,4,8'],       // kontenerowiec na redzie (x 720) z tarasu BRAXHORN TOWER
   ['M_C_16_dzielnice_z_gory', '-520,0.2,28.5,90,55,140'],          // nowe dzielnice z góry (siatka ulic, kwartały, wieże)
+  // ZBLIŻENIA DETALI (zasada właściciela 2.11 21:53: przed wysłaniem sprawdzamy wszystkie detale) — 2–6 m od detalu, nisko
+  ['DETAL_M_kraweznik_chodnik_aleja', '-350,0.2,33.5,0,35,4'],     // krawężnik z łączeniami, płyty chodnika z fugami, pas zieleni
+  ['DETAL_M_szyny_w_asfalcie', '-520,0.2,-62,90,60,2.5'],          // szyna rowkowa w wycięciu asfaltu (bez nakładki), styk z jezdnią
+  ['DETAL_M_wiata_przystanku', '-326,0.2,11,180,12,4'],            // wiata, ławka, rozkład, krawężnik peronu
+  ['DETAL_M_hydrant_chodnik_c1', '-444,0.2,44,270,25,3'],          // hydrant na chodniku, płyty, krawężnik
+  ['DETAL_M_kamienica_parter', '-352,0.2,103,180,10,5'],           // parter kamienicy: cokół, witryny, styk z chodnikiem
+  ['DETAL_M_wieza_wejscie', '-450,0.2,40,180,8,6'],                // wejście wieży centrum: drzwi, zadaszenie, styk z płytami
+  ['DETAL_M_krata_drzewa_lawka', '-372,0.2,10.5,0,50,3'],          // krata drzewa, ławka, kosz na promenadzie
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],
