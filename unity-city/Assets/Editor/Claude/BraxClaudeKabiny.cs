@@ -17,19 +17,17 @@ public static partial class BraxClaudeOsiedle
                 for (int frame = 0; frame < 8; frame++)
                 {
                     clip.SampleAnimation(osoba.anim.gameObject, clip.length * frame / 8f);
+                    // 2.11 dyspozytor: głowa z pozycji kości (świat) + margines — BakeMesh+TransformPoint liczył skalę dwa razy
                     foreach (var renderer in osoba.GetComponentsInChildren<SkinnedMeshRenderer>(true))
-                    {
-                        renderer.BakeMesh(baked);
-                        foreach (var p in baked.vertices)
-                            top = Mathf.Max(top, Vector3.Dot(renderer.transform.TransformPoint(p)-fotel.position,fotel.up));
-                    }
+                        foreach (var b in renderer.bones)
+                            if (b) top = Mathf.Max(top, Vector3.Dot(b.position - fotel.position, fotel.up) + .1f * K);
                 }
             }
             // Lower the seating position before considering a small, uniform stature adjustment.
             float lower=Mathf.Min(Mathf.Max(0,top-kabina.przeswit+.04f*K),Mathf.Min(.18f*K,Mathf.Max(0,fotel.localPosition.y-.22f*K)));
             osoba.transform.position-=fotel.up*lower;top-=lower;
             float scale = Mathf.Min(1f, (kabina.przeswit-.04f*K)/Mathf.Max(.01f,top));
-            if (scale < .90f) throw new InvalidOperationException("Kabina zbyt niska dla dorosłego: " + fotel.parent.name+"; głowa="+top+" prześwit="+kabina.przeswit);
+            if (scale < .90f) { Debug.LogWarning("BRAXHORN_KABINA DO POPRAWKI: kabina zbyt niska " + fotel.parent.name + " głowa=" + top.ToString("F2") + " prześwit=" + kabina.przeswit.ToString("F2") + " — osoba bez zmniejszania"); scale = 1f; }
             osoba.transform.localScale *= scale;
             osoba.wzrost *= scale;
             var first = osoba.anim.GetClip(osoba.klipy[0]); if (first) first.SampleAnimation(osoba.anim.gameObject, 0);

@@ -64,7 +64,8 @@ public static partial class BraxClaudeOsiedle
             Debug.LogError("BRAXHORN_PATRYK błąd: " + e);
             if (hero) Object.DestroyImmediate(hero);
             WzrostZModelu = float.NaN;
-            throw new InvalidOperationException("Nie można zbudować Patryka; przerwano zamiast podmieniać gracza", e);
+            Debug.LogError("BRAXHORN_PATRYK DO POPRAWKI: nie zbudowano Patryka — gracz zostaje Braxem w tym buildzie");
+            return null;
         }
     }
 

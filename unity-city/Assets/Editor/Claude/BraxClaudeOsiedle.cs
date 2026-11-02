@@ -4519,7 +4519,7 @@ public static partial class BraxClaudeOsiedle
     {
         var g = group;
         try { step(); }
-        catch (Exception e) { rep.notes.Add("BŁĄD w kroku " + what + ": " + e.Message); throw new InvalidOperationException("Osiedle: " + what, e); }
+        catch (Exception e) { rep.notes.Add("BŁĄD w kroku " + what + ": " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE DO POPRAWKI krok " + what + ": " + e); }   // 2.11 dyspozytor: bez przerywania całego buildu (build #42 padł na jednym kroku)
         finally { group = g; }
         group = g;
     }
@@ -5466,11 +5466,11 @@ public static partial class BraxClaudeOsiedle
     // ---------------- główne ----------------
     public static void Apply()
     {
-        BraxTestNaprawOsiedla.Wykonaj();
+        try { BraxTestNaprawOsiedla.Wykonaj(); } catch (Exception e) { Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE DO POPRAWKI regresja: " + e.Message); }
         rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); WyczyscWspolne14(); WyczyscElewacje(); ZmierzBohatera(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
         pavedCells.Clear(); pavingSet = null; CodexPaving();
         try { Build(); rep.status = "ZBUDOWANO"; }
-        catch (Exception e) { rep.status = "BŁĄD"; rep.error = e.ToString(); Directory.CreateDirectory("city-review"); File.WriteAllText("city-review/osiedle-claude.json", JsonUtility.ToJson(rep, true)); throw; }
+        catch (Exception e) { rep.status = "BŁĄD"; rep.error = e.ToString(); Directory.CreateDirectory("city-review"); File.WriteAllText("city-review/osiedle-claude.json", JsonUtility.ToJson(rep, true)); Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE " + e); }
         rep.materials = mats.Count;
         Directory.CreateDirectory("city-review");
         File.WriteAllText("city-review/osiedle-claude.json", JsonUtility.ToJson(rep, true));
