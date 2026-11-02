@@ -74,6 +74,40 @@ public static partial class BraxClaudeOsiedle
         finally { MiejscaParkingowe.Clear(); MiejscaParkingowe.AddRange(zapas); group = g; }
     }
 
+    // TAKSÓWKA (właściciel: „taksówki” w ruchu miasta): lakier żółty zamiast wylosowanego, kogut TAXI na dachu (świecący, napis
+    // z obu stron) — dzieci auta bez flag static (jadą z autem).
+    static Material lakierTaxi;
+    static bool Taksowka(GameObject o, AutoSzablon sz)
+    {
+        if (!sz.lakier) return false;
+        if (!lakierTaxi)
+        {
+            var c = new Color(.95f, .72f, .05f);
+            lakierTaxi = new Material(sz.lakier) { name = "Auto: lakier taxi (żółty)" };
+            if (lakierTaxi.HasProperty("baseColorFactor")) lakierTaxi.SetVector("baseColorFactor", new Vector4(c.r, c.g, c.b, 1f));
+            if (lakierTaxi.HasProperty("_Color")) lakierTaxi.SetColor("_Color", c);
+            if (lakierTaxi.HasProperty("_BaseColor")) lakierTaxi.SetColor("_BaseColor", c);
+            AssetDatabase.CreateAsset(lakierTaxi, Out + "/auto_lakier_taxi_miasto_b.mat");
+        }
+        int zm = 0;
+        foreach (var rr in o.GetComponentsInChildren<Renderer>(true))
+        {
+            var ms = rr.sharedMaterials; bool z = false;
+            for (int i = 0; i < ms.Length; i++) if (ms[i] && ms[i].name.StartsWith(sz.lakier.name, StringComparison.Ordinal)) { ms[i] = lakierTaxi; z = true; zm++; }
+            if (z) rr.sharedMaterials = ms;
+        }
+        if (zm == 0) return false;
+        var nad = o.transform.Find("nadwozie"); var rodzic = nad ? nad : o.transform;
+        var b = sz.obrys; float k = K, y = b.max.y;
+        var kog = new BraxRegionMeble.Bud();
+        kog.MinMax(new Vector3(b.center.x - .42f * k, y, b.center.z - .14f * k), new Vector3(b.center.x + .42f * k, y + .2f * k, b.center.z + .14f * k));
+        var g = kog.Obiekt("Taksówka: kogut TAXI", rodzic, BraxRegionMeble.Swiecacy("Taksówka: kogut (świeci)", new Color(1f, .93f, .55f), 1.1f), false, false);
+        foreach (var (zz, f) in new[] { (b.center.z + .15f * k, Vector3.forward), (b.center.z - .15f * k, Vector3.back) })
+            BraxRegionMeble.Napis(rodzic, "TAXI", new Vector3(b.center.x, y + .1f * k, zz), f, .12f * k, new Color(.05f, .05f, .05f));
+        foreach (var t in rodzic.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
+        return g;
+    }
+
     static void AutaMiastaB(List<AutoSzablon> szablony)
     {
         const float YA = .003f;
@@ -113,13 +147,14 @@ public static partial class BraxClaudeOsiedle
         var ra = mg.AddComponent<BraxRuchAut>();
         ra.punkty = wy.punkty.ToArray(); ra.trasy = wy.trasy.ToArray(); ra.zdarzenia = wy.zdarzenia.ToArray(); ra.wezly = wy.wezly.ToArray(); ra.ziarno = 2111;
         var rnd = new System.Random(2111); var pula = PulaAut(szablony); var klakson = Klakson();
-        var auta = new List<BraxAuto>();
+        var auta = new List<BraxAuto>(); int taksowki = 0;
         int[] ile = { 2, 2, 2, 2 };
         for (int r = 0; r < wy.trasy.Count; r++)
             for (int k = 0; k < (r < ile.Length ? ile[r] : 1); k++)
             {
                 var sz2 = pula[rnd.Next(pula.Count)];
                 var o = AutoInstancja(sz2, root, "Auto w ruchu (miasto) · " + sz2.id + (AutaNC.Contains(sz2.id) ? " (DO WYMIANY PRZED SPRZEDAŻĄ)" : ""), rnd, out var kolor);
+                if (k == 0 && (r == 0 || r == 3) && Taksowka(o, sz2)) { o.name = "Taksówka (miasto) · " + sz2.id; taksowki++; }
                 var a = o.AddComponent<BraxAuto>();
                 a.trasaNr = r; a.sStart = wy.trasy[r].dl * (k + .3f) / Mathf.Max(1, ile[Mathf.Min(r, ile.Length - 1)]); a.trasa = PunktyTrasy(wy, r);
                 a.vmax = 9.0f + (float)rnd.NextDouble() * 2.2f;   // 32–40 km/h w mieście
@@ -151,7 +186,7 @@ public static partial class BraxClaudeOsiedle
         foreach (var a in auta) st.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax);
         st.UstawStart();
         var wt = st.Test(600f, .1f, p => BraxRegionMiastoB.NaJezdni(p));
-        Debug.Log("BRAXHORN_RUCH_MIASTO_B aut=" + auta.Count + " tras=" + wy.trasy.Count + " test 600 s: zakleszczenia=" + wt.zakleszczenia + " nachodzenia=" + wt.nachodzenia +
+        Debug.Log("BRAXHORN_RUCH_MIASTO_B aut=" + auta.Count + " (taksówek " + taksowki + ") tras=" + wy.trasy.Count + " test 600 s: zakleszczenia=" + wt.zakleszczenia + " nachodzenia=" + wt.nachodzenia +
                   " poza_droga=" + wt.pozaDroga + " przejazdy skrzyżowań=" + wt.przejazdyWezlow + " śr. prędkość " + (wt.sredniaV * 3.6f).ToString("F0") + " km/h");
     }
 }
