@@ -1,0 +1,89 @@
+name: Unity 6 WebGL - verify deployed preview
+on:
+  push:
+    branches: [codex/vercel-unity6-webgl-20261102]
+    paths: ['.github/workflows/unity6-vercel-live-check.yml']
+  workflow_dispatch:
+    inputs:
+      preview_commit:
+        description: Full commit SHA of the prepared preview branch
+        required: true
+        default: 'e03b28b38ae1ae1d1b006cef7c809d6924f568ec'
+permissions:
+  contents: read
+  deployments: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PREVIEW_SHA: ${{ inputs.preview_commit || 'e03b28b38ae1ae1d1b006cef7c809d6924f568ec' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/vercel
+          persist-credentials: false
+      - name: Resolve the actual Preview URL from GitHub deployment records
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json,os,re,subprocess,time,urllib.parse
+          sha=os.environ['PREVIEW_SHA']
+          assert re.fullmatch('[a-f0-9]{40}',sha)
+          repo='repos/'+os.environ['GITHUB_REPOSITORY']
+          def api(path): return json.loads(subprocess.check_output(['gh','api',repo+'/'+path]))
+          for attempt in range(40):
+              deployments=api('deployments?sha='+sha+'&per_page=30')
+              for d in deployments:
+                  if d['sha']!=sha or d.get('production_environment') or d.get('environment','').lower()=='production': continue
+                  states=api('deployments/'+str(d['id'])+'/statuses')
+                  if not states: continue
+                  s=states[0]
+                  url=s.get('environment_url') or s.get('target_url')
+                  if s['state']!='success' or not url: continue
+                  parsed=urllib.parse.urlsplit(url)
+                  assert parsed.scheme=='https' and parsed.hostname.endswith('.vercel.app') and not parsed.username
+                  url='https://'+parsed.netloc
+                  print('VERCEL_PREVIEW_URL',url)
+                  with open(os.environ['GITHUB_ENV'],'a') as f:f.write('PREVIEW_URL='+url+'\n')
+                  with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('Verified deployment record: '+url+'\n')
+                  raise SystemExit(0)
+              time.sleep(10)
+          raise SystemExit('No successful Preview deployment URL found for this exact SHA')
+          PY
+      - name: Check deployed proof and Unity response headers
+        run: |
+          python3 - <<'PY'
+          import json,os,urllib.request
+          url=os.environ['PREVIEW_URL']
+          proof=json.load(urllib.request.urlopen(url+'/deployment-proof.json',timeout=60))
+          assert proof['engine']=='Unity 6' and proof['target']=='preview'
+          assert proof['sourceCommit']=='5623047e2713a25ffc885a2d3037b5f8727fd606'
+          paths=['/','/unity-gym/','/unity-gym/city-transport.js']
+          for suffix in ('.loader.js','.wasm.unityweb','.part000'):
+              paths.append('/'+next(p for p in proof['files'] if p.endswith(suffix)))
+          for p in paths:
+              with urllib.request.urlopen(urllib.request.Request(url+p,method='HEAD'),timeout=60) as r:
+                  print('HTTP_CHECK',r.status,p,r.headers.get('Content-Type'),r.headers.get('Content-Encoding'))
+                  assert r.status==200
+                  if p=='/': assert urllib.parse.urlsplit(r.url).path=='/unity-gym/'
+                  if p.endswith('.js'): assert 'javascript' in r.headers.get('Content-Type','')
+                  if '.unityweb' in p: assert 'text/html' not in r.headers.get('Content-Type','')
+          PY
+      - name: Install browser with Unity AAC support
+        run: |
+          npm install --prefix unity-tools/vercel --no-save --ignore-scripts playwright@1.56.1
+          unity-tools/vercel/node_modules/.bin/playwright install --with-deps chrome
+      - name: Run the actual player from Vercel
+        run: node unity-tools/vercel/smoke.mjs
+      - name: Preserve live verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity6-vercel-live-${{ github.run_id }}
+          path: |
+            unity-webgl-smoke.json
+            unity-webgl-smoke.png
+          if-no-files-found: warn
+          retention-days: 14
