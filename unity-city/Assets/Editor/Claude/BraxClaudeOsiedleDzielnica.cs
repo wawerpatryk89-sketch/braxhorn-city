@@ -136,7 +136,7 @@ public static partial class BraxClaudeOsiedle
                 if (!r || Chroniony(r.transform)) continue;
                 var b = r.bounds;
                 if (plot.Contains(b.min) && plot.Contains(b.max) && b.size.x < 1.2f)
-                { dzlUsunieteLista.Add(Sciezka(r.transform) + " (płot końca ulicy)"); UnityEngine.Object.DestroyImmediate(r.gameObject); dzlUsuniete++; }
+                { dzlUsunieteLista.Add(DzlSciezka(r.transform) + " (płot końca ulicy)"); UnityEngine.Object.DestroyImmediate(r.gameObject); dzlUsuniete++; }
             }
         foreach (var v in DzlObjetosciCiecia())
         {
@@ -150,7 +150,7 @@ public static partial class BraxClaudeOsiedle
                     var b = r.bounds; if (!b.Intersects(v)) continue;
                     if (v.Contains(b.min) && v.Contains(b.max))
                     {
-                        dzlUsunieteLista.Add(Sciezka(r.transform));
+                        dzlUsunieteLista.Add(DzlSciezka(r.transform));
                         var go = r.gameObject;
                         if (go.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(go);
                         else { var mf = go.GetComponent<MeshFilter>(); UnityEngine.Object.DestroyImmediate(r); if (mf) UnityEngine.Object.DestroyImmediate(mf); }
@@ -175,7 +175,7 @@ public static partial class BraxClaudeOsiedle
         foreach (var s in dzlUsunieteLista.Take(60)) Debug.Log("BRAXHORN_DZIELNICA usunięte: " + s);
         DzlNota("usunięte stare: obiekty " + dzlUsuniete + ", siatki wycięte " + dzlWyciete + ", kolizje " + dzlKolizjeWyciete + (dzlUsunieteLista.Count > 60 ? " (lista w logu skrócona do 60)" : ""));
     }
-    static string Sciezka(Transform t) { var s = t.name; for (var p = t.parent; p && s.Length < 120; p = p.parent) s = p.name + "/" + s; return s; }
+    static string DzlSciezka(Transform t) { var s = t.name; for (var p = t.parent; p && s.Length < 120; p = p.parent) s = p.name + "/" + s; return s; }
 
     // ---------------- materiały dzielnicy (Standard → na końcu CityStaticPBR) ----------------
     static Material DzlAsfalt => Pbr("dzl asfalt jezdni", "asphalt_04", 3.5f, new Color(.40f, .40f, .41f), .9f);

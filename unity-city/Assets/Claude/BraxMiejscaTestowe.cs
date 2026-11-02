@@ -61,9 +61,9 @@ public static class BraxMiejscaTestowe
             if (!kat[1].Exists(m => m.nazwa.ToLowerInvariant().Contains("market")))
                 kat[1].Insert(0, new Miejsce { kategoria = "market", nazwa = "Market (osiedle B, pierzeja sklepów)", pozycja = new Vector3(x0 + 4.5f * unit, .3f, z), yaw = 180f });
         }
-        // miasto: wjazd do tunelu na osiedle (koniec wiaduktu, jak przyjazd z osiedla — BraxCityWorld.CityPortal)
+        // miasto: wjazd do tunelu na osiedle (koniec Alei Południowej, jak przyjazd z osiedla — BraxCityWorld.CityPortal; wiadukt usunięty 2.11)
         if (w != null && w.area == "city" && kat[9].Count == 0)
-            kat[9].Add(new Miejsce { kategoria = "tunel", nazwa = "Tunel na osiedle (koniec wiaduktu)", pozycja = new Vector3(-66.2f, 8.3f, -70.5f), yaw = 180f });
+            kat[9].Add(new Miejsce { kategoria = "tunel", nazwa = "Tunel na osiedle (koniec Alei Południowej)", pozycja = new Vector3(-126f, .3f, -78f), yaw = 180f });
         foreach (var l in kat) wynik.AddRange(l);
         wynik.AddRange(reszta);
         foreach (var m in wynik) m.klucz = "miejsce." + m.kategoria;   // klucz tłumaczenia raz (bez sklejania napisów co klatkę)

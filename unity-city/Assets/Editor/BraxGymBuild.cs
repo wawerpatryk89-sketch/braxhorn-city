@@ -362,8 +362,6 @@ public static class BraxGymBuild
         {
             try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Wyspa",BraxClaudeObszary.PoNazwach(scene,"CLAUDE wyspa*"),140f,240f,Generated);}
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: wyspa jako osobny obszar: "+e);}
-            // Dzielnica zachodnia (2.11): osobny obszar doczytywany 90 m przed granicą, zwalniany 180 m za nią; w scenie głównej zostają bryły z daleka.
-            try{BraxClaudeObszary.Wydziel(scene,BraxClaudeOsiedle.DzlScena,BraxClaudeObszary.PoNazwach(scene,BraxClaudeOsiedle.DzlKorzen),90f,180f,Generated);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: dzielnica jako osobny obszar: "+e);}
             try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE"),45f,110f,Generated);}
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: podział miasta na obszary: "+e);}
             // MIASTO W KWADRATACH (1.11, 19:00; decyzja właściciela „świat w kwadratach”): telefon padał w trakcie wczytywania

@@ -63,7 +63,6 @@ public static class BraxRegionHoryzont
         Krok("teren 3D za granicą", Teren);
         Krok("las za granicą (karty + drzewa przy granicy)", Las);
         Krok("granica grywalna z kolizją", Granica);
-        Krok("wiadukt dalej na północ + zamknięcie pomostu", WiaduktDalej);
         BraxRegion.Note("horyzont: " + string.Join("; ", kroki));
         Debug.Log("BRAXHORN_HORYZONT_MIASTO prostokąt x " + BraxMiastoGranice.X0 + "…" + BraxMiastoGranice.X1 + " z " + BraxMiastoGranice.Z0 + "…" + BraxMiastoGranice.Z1 +
                   " wycięcia=" + BraxMiastoGranice.Wyciecia.Length + " teren: pól " + polaTerenu + " siatek " + siatki + " karty lasu " + karty + " drzewa 3D " + drzewa3D +
@@ -442,17 +441,7 @@ public static class BraxRegionHoryzont
         if (dw < 40f) h = Mathf.Min(h, Mathf.Lerp(-1.5f, h, S01(0f, 40f, dw)));
         // południowy wschód: dolina schodzi do morza (ujście potoku), mniej wzgórz
         h *= 1f - .55f * polud * S01(-80f, 40f, x);
-        // korytarz wiaduktu (północ): łąka pod przęsłami (≤ 3.5 m pod pomostem 8.16), przed tunelem wzgórze rośnie
-        // ponad pomost (≥ 24 m nad portalem), droga wchodzi w przekop i w portal
-        if (z > BraxMiastoGranice.Z1 - 20f)
-        {
-            var o = WiaduktOs(Mathf.Min(z, WiaduktPortalZ));
-            float dx = Mathf.Abs(x - o.x);
-            if (z < WiaduktPortalZ - 70f) h = Mathf.Lerp(h, Mathf.Min(h, 3.5f), 1f - S01(8f, 34f, dx));
-            float wzg = (24f + 9f * S01(WiaduktPortalZ, WiaduktPortalZ + 90f, z)) * S01(WiaduktPortalZ - 80f, WiaduktPortalZ, z) * (1f - S01(45f, 150f, dx));
-            h = Mathf.Max(h, wzg);
-            if (z < WiaduktPortalZ) h = Mathf.Min(h, Mathf.Lerp(5f, 200f, S01(8f, 24f, dx)));   // przekop przed portalem
-        }
+        // (2.11, B: wiadukt usunięty — bez korytarza i przekopu na północy)
         // brzeg morza: skalisty, schodzi pod wodę (woda miasta y −1.7)
         float brzeg = -3.4f + 3.4f * S01(-14f, 10f, lad);   // na linii brzegu ok. −1.3 m (woda −1.7 zaczyna się tuż dalej)
         h = brzeg + h * S01(8f, 110f, lad);
@@ -754,8 +743,8 @@ public static class BraxRegionHoryzont
                 odc.Add((new Vector2(gx0 + i0 * c, ze), new Vector2(gx0 + i * c, ze), new Vector2(0, typ)));
             }
         }
-        // portal tunelu wiaduktu (mur x −77.5…−54.9 na z = −74) — tam granicę robi sam mur „tyłów”
-        var portal = new Rect(-78f, BraxMiastoGranice.Z0 - 3f, 24f, 6f);
+        // portal tunelu wyjazdu na osiedle (BraxRegionMiastoB: mur portalu x −148…−104 na z = −84…−85.4) — tam granicę robi mur portalu
+        var portal = BraxMiastoGranice.PortalTunelu;
         var gp = new GameObject("Granica miasta (murek z balustradą, płot lasu)").transform; gp.SetParent(root, false);
         var kamien = MetrowyPbr("Granica: kamień murku", 1f, null, "rough_block_wall", "rock_wall_08", "concrete_wall_008") ?? BraxCityMaterials.Surface("Granica: kamień", new Color(.58f, .56f, .52f), .9f);
         var stal = BraxRegion.Fitting("Granica: stal balustrady (grafit)", new Color(.16f, .17f, .18f), .45f, .75f);
@@ -821,7 +810,7 @@ public static class BraxRegionHoryzont
         Zapisz(gp, "Granica: balustrada stalowa", bal, stal);
         Zapisz(gp, "Granica: płot lasu (drewno)", plot, drewno);
         Debug.Log("BRAXHORN_HORYZONT_MIASTO granica: odcinków " + odcinkiGranicy + ", " + dlugoscGranicy.ToString("0") + " m (murek z balustradą: zachód/południe, płot lasu: północ/wycięcia), " +
-                  "kolizja 3 m w linii ogrodzenia, przerwa na portal tunelu x −78…−54 (mur „tyłów”), od strony morza granicą jest woda");
+                  "kolizja 3 m w linii ogrodzenia, przerwa na portal tunelu (mur portalu, BraxMiastoGranice.PortalTunelu), od strony morza granicą jest woda");
     }
 
     // =====================================================================================================================

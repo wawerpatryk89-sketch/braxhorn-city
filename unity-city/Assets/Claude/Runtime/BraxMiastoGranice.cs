@@ -9,19 +9,22 @@ using UnityEngine;
 // Klasa statyczna (nie MonoBehaviour) — dostępna z kodu edytora i z gry.
 public static class BraxMiastoGranice
 {
-    // ---- prostokąt grywalny (ląd + akwen zatoki) — STAN BAZY 4a02329 (bez galerii i dzielnicy) ----
-    // Po scaleniu galerii i dzielnicy: X0 = −296, wycięcie NW = (X0, 121) … (−60, Z1) — patrz scratchpad/plan/GRANICE.md.
-    public const float X0 = -135f;   // zachód: za starą wieżą 191 (x −125…−111); ulica główna kończy się dziś na −104
+    // ---- prostokąt grywalny (ląd + akwen zatoki) — ETAP 1 rozbudowy (B, 2.11: rondo (−126, 28.5), Aleja Północna i Południowa) ----
+    // Rozbudowa w kolejnych etapach zmienia TYLKO te liczby i wycięcia (reszta horyzontu przelicza się sama).
+    public const float X0 = -162f;   // zachód: za pierzejami zachodnimi alej (lico x −138, tył −154) i trawnikami do −162
     public const float X1 = 170f;    // wschód: za cyplem plaży (do 150) i mariną (do 166); dalej otwarte morze (wyspa = obszar nabrzeża)
-    public const float Z0 = -74f;    // południe: koniec posadzki tyłów i portal tunelu wiaduktu (lico z = −74); dalej wzgórze „tyłów”
+    public const float Z0 = -85.45f; // południe: tył muru portalu tunelu na końcu Alei Południowej (lico portalu z = −84)
     public const float Z1 = 180f;    // północ: za lasem za plażą (z 160…174) i łąką
 
     // ---- wycięcia: części prostokąta, które NIE są grywalne (teren i las wchodzą do środka, granica idzie dookoła) ----
-    // (x0, z0, szerokość, długość). Dziś: las na północny zachód od wiaduktu (za ulicą galerii z 111.6…118.4).
-    public static readonly Rect[] Wyciecia = { Rect.MinMaxRect(X0, 121f, -60f, Z1) };
+    // Las na północny zachód (za pętlą Alei Północnej, z ≥ 126) i wzgórze za placem wieżowców (na płd. od z −68, na wschód od x −61.4).
+    public static readonly Rect[] Wyciecia = { Rect.MinMaxRect(X0, 126f, -40f, Z1), Rect.MinMaxRect(-61.4f, Z0, 84f, -68f) };
+
+    // ---- portal tunelu wyjazdu na osiedle (mur portalu w poprzek końca Alei Południowej): przerwa w ogrodzeniu granicy ----
+    public static readonly Rect PortalTunelu = Rect.MinMaxRect(-148.5f, Z0 - 3f, -103.5f, Z0 + 3f);
 
     // ---- wzgórze z tunelem wykonawcy „tyły” (jego siatka i kolizja; mój teren pod nim leży niżej i nie wystaje) ----
-    public static readonly Rect WzgorzeTylow = Rect.MinMaxRect(-112f, -126f, -20f, -74f);
+    public static readonly Rect WzgorzeTylow = Rect.MinMaxRect(-206f, -157.5f, -60f, -85.45f);   // zbocze nad tunelem (BraxRegionMiastoB.Zbocze)
 
     // ---- linia brzegu (ląd na zachód od niej, morze na wschód) ----
     // Nabrzeże portu i promenada x = 84 (woda miasta od x = 84), cypel plaży i łąka do x = 150 od z ≈ 112.

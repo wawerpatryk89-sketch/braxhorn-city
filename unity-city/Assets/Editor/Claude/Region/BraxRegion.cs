@@ -50,7 +50,8 @@ public static class BraxRegion
         Step("morze bez łąki i lasu nad wodą", () => BraxRegionSea.Apply(root));
         Step("wyspa na morzu (oktagon Ligi, pomost, otwarta)", () => BraxRegionIsland.Apply(root));
         Step("pawilon sportowy (szatnia + sala walk)", () => BraxRegionPavilion.Apply(world, root));
-        Step("tyły siłowni: plac, wieżowce A/B, wiadukt z portalem, warsztaty", () => BraxRegionBackyard.Apply(world, root));
+        // Tyły od nowa (B, 2.11): plac wieżowców, park, nabrzeże, wieżowce A/B z lobby, windą i piętrami użytkowymi (zastępuje BraxRegionBackyard).
+        Step("tyły B: plac wieżowców, park, nabrzeże, wieżowce A i B (lobby, winda, piętra użytkowe)", () => BraxRegionTylyB.Apply(world, root));
         Step("taras wieżowca: kwiaty i rośliny", () => BraxRegionTerrace.Apply(root));
         Step("wnętrza: Nutrition i NOVA", () => BraxRegionInteriors.Apply(root));
         Step("interior mapping: pokoje za oknami budynków nieużytkowych", () => BraxRegionInteriorMap.Apply(root));
@@ -59,8 +60,10 @@ public static class BraxRegion
         Step("mieszkanie Braxa nad NOVA (klatka od ulicy, biedny pokój z aneksem i łazienką)", () => BraxRegionBraxFlat.Apply(world, root));
         Step("stare drzewa-atrapy (kule na patykach) → prawdziwe drzewa", () => BraxRegionOldTrees.Apply(root));
         Step("zieleń naturalna i mała architektura", () => BraxRegionVegetation.Apply(root));
-        // DZIELNICA ZACHODNIA (2.11, właściciel: „miasto za małe”, komisariat, szpital, wieżowce) — osobny korzeń, po zieleni, przed siedziskami i kontrolami.
-        Step("dzielnica zachodnia (ulice, komisariat, szpital, wieżowce, bank)", () => BraxClaudeOsiedle.DzielnicaZachodnia(world));
+        // ROZBUDOWA MIASTA (B, 2.11): wiadukt usunięty → skrzyżowanie w poziomie ulic + rondo, aleje w prawo i w lewo, pierzeje.
+        // Po zieleni (jej resztki na terenie rozbudowy są wycinane), przed siedziskami, horyzontem i trawnikiem miasta.
+        // (Dzielnica zachodnia z WIP — ETAP 2, po dopasowaniu do ronda i alej; do tego czasu krok wyłączony.)
+        Step("miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa, pierzeje, warsztaty", () => BraxRegionMiastoB.Apply(world, root));
         // Lampy wnętrz: CityStaticPBR liczy światła punktowe tylko ze slotów „vertex light” (ForceVertex).
         Step("siedziska: sofy, ławki, hokery, leżaki → BraxSeat", () => BraxRegionSeats.Apply(root));
         Step("horyzont: niebo bez lustra, teren za granicą, granica, wiadukt dalej", () => BraxRegionHoryzont.Apply(world, root));
