@@ -127,7 +127,10 @@ public static partial class BraxClaudeOsiedle
         o.ptaki = Ptaki(); o.wiatr = WiatrLiscie(); o.szum = SzumMiasta();
         o.parki = new[] { MinMax(-55f, 55f, -5f, 30f, -99f, -67f), MinMax(X0, X1, -5f, 30f, ParkZ0, FenceA) };   // Park Wiśniowy, park centralny
         var fo = new GameObject("szum fontanny"); fo.transform.SetParent(go.transform, false); fo.transform.position = new Vector3(AxisX + 6f, 1f, -132f);
-        fo.AddComponent<BraxZrodloPetli>().glosnosc = .55f;
+        // build 45 (właściciel 20:51: „za głośny z bliska”): 45 % poprzedniej głośności (0.55 → 0.25), pełna do 2 m × K, łagodnie
+        // do zera na 25 m × K — rozmowa z graczem (głos 1.0, spatialBlend 0.35) wyraźnie głośniejsza 2–3 m × K od misy
+        var zf = fo.AddComponent<BraxZrodloPetli>(); zf.glosnosc = .25f; zf.minOdl = 2f * K; zf.zasieg = 25f * K;
+        Debug.Log("BRAXHORN_FONTANNA dźwięk: głośność 0.25 (było 0.55), min " + zf.minOdl.ToString("F1") + " m, zasięg " + zf.zasieg.ToString("F1") + " m, krzywa do zera");
         rep.notes.Add("dźwięki: silnik w " + auta + " autach, tło (ptaki, wiatr, szum miasta) — synteza przy buildzie");
     }
 }
