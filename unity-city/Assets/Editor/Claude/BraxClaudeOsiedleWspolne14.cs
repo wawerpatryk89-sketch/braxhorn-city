@@ -35,6 +35,7 @@ public static partial class BraxClaudeOsiedle
             foreach (var r in p.GetComponentsInChildren<Renderer>(true)) { if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds); }
             if (any && b.size.y > 1.2f && b.size.y < 3.2f) WzrostBohatera = b.size.y;
         }
+        if (WzrostZModelu > 1.2f && WzrostZModelu < 3.2f) WzrostBohatera = WzrostZModelu;   // build 14: Patryk — wzrost z siatki w pozie spoczynkowej (bounds w pozie Idle zaniżają/zawyżają)
         Debug.Log("BRAXHORN_SKALA wzrost bohatera " + WzrostBohatera.ToString("F2") + " m, k = " + K.ToString("F3"));
         return WzrostBohatera;
     }
