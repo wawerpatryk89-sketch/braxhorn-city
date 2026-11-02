@@ -5472,7 +5472,7 @@ public static partial class BraxClaudeOsiedle
     // ---------------- główne ----------------
     public static void Apply()
     {
-        rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
+        rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); WyczyscWspolne14(); ZmierzBohatera(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
         pavedCells.Clear(); pavingSet = null; CodexPaving();
         try { Build(); rep.status = "ZBUDOWANO"; }
         catch (Exception e) { rep.status = "BŁĄD"; rep.error = e.Message; Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE " + e); }
