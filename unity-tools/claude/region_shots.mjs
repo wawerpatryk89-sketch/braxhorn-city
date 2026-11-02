@@ -125,7 +125,10 @@ async function settle(page) {
 const results = [];
 const PART = +(process.env.SHOT_PART || 0), PARTS = +(process.env.SHOT_PARTS || 1);
 const ONLY = (process.env.SHOT_ONLY || '').split(',').filter(Boolean);
-const MINE = ONLY.length ? VIEWS.filter(v => ONLY.includes(v[0])) : VIEWS.filter((v, k) => k % PARTS === PART);
+// Rejon buildu (CI, build 14 — rejony osobno): osiedle → tylko ujęcia osiedla ('estate'), miasto → tylko miasta, oba → wszystkie.
+const REJON = (process.env.SHOT_REJON || 'oba').toLowerCase();
+const POOL = VIEWS.filter(v => REJON === 'osiedle' ? v[2] === 'estate' : REJON === 'miasto' ? (v[2] || 'city') === 'city' : true);
+const MINE = ONLY.length ? POOL.filter(v => ONLY.includes(v[0])) : POOL.filter((v, k) => k % PARTS === PART);
 const save = () => fs.writeFileSync(path.join(out, `results-${PART}.json`), JSON.stringify({results, log}, null, 1));
 for (let i = 0; i < MINE.length; i += 6) {
   const chunk = MINE.slice(i, i + 6);

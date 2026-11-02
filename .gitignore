@@ -8,3 +8,6 @@ unity-city/Assets/Claude/Audio/willa_muzyka.ogg*
 unity-city/braxhorn.keystore
 unity-city/braxhorn.keystore.pass
 unity-city/braxhorn.versioncode
+
+# rejon buildu CI (pisze unity-tools/claude/rejon_buildu.py przed Unity)
+unity-city/rejon-ci.txt
