@@ -59,12 +59,13 @@ public static partial class BraxClaudeOsiedle
                 if (u.alongX) Prost(u.a0, u.a1, u.c - hn, u.c + hp, chodnik); else Prost(u.c - hn, u.c + hp, u.a0, u.a1, chodnik);
             }
             foreach (var u in ulice) { if (u.alongX) Prost(u.a0, u.a1, u.c - u.cw, u.c + u.cw, asf); else Prost(u.c - u.cw, u.c + u.cw, u.a0, u.a1, asf); }
-            Kolo(0f, 39f, RondoJezdnia, RondoChodnik, chodnik); Kolo(0f, 39f, RondoWyspa, RondoJezdnia, asf); Kolo(0f, 39f, 0f, RondoWyspa, park);
+            Kolo(0f, RondoZ, RondoJezdnia, RondoChodnik, chodnik); Kolo(0f, RondoZ, RondoOpaska, RondoJezdnia, asf); Kolo(0f, RondoZ, 0f, RondoOpaska, park);   // build 14: rondo na z 42
             foreach (float s in new[] { -1f, 1f })
             {
-                foreach (var (a, b) in new[] { (-21.4f, -4.6f), (34.6f, 45.4f), (82.4f, 95.6f) }) Prost(s * 64f, s * 107.5f, a, b, asf);
-                Prost(s * 55f, s * 66.6f, -95f, -62f, asf);
+                foreach (var (a, b) in LotyBulwarow) Prost(s * 64f, s * 107.5f, a, b, asf);
+                Prost(s * 53f, s * 64.1f, -95f, -62f, asf);
             }
+            Prost(AxisX + Half, 26.2f, -162.4f, -150.8f, asf);   // parking pawilonu B
         }
         Prost(-4.7f, 4.7f, 97.5f, 110f, asf);   // tunel do miasta
         // obrys

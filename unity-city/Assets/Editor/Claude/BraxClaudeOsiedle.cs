@@ -5605,6 +5605,7 @@ public static partial class BraxClaudeOsiedle
         Guard("okna z pokojami w starych domach A", () => FakeRoomsA(estate));
         Guard("komisariat — nowe wnętrze", () => PoliceInterior(estate, physics));
         Guard("drzewa z chodników", () => TreesOffPaving(physics));
+        Guard("ulice: parking i przejścia B, wyposażenie, strefy zatrzymania, kontrola (BraxClaudeOsiedleUlice)", UliceOsiedla);   // build 14 „drogi”
         Guard("korony drzew z dala od budynków", PruneCrowns);
         Guard("kraniec mapy: teren dookoła zamiast pustki", KraniecMapy);
         // 7) trawa w 3D na wszystkich trawnikach parku i osiedla B (po wszystkim, co zajmuje ziemię)
