@@ -212,8 +212,9 @@ public static partial class BraxClaudeOsiedle
         const float bx0 = 68.6f, bx1 = 81.4f;
         float zB1 = Z0 + .5f * K, zL1 = zB1 + 1.0f * K, zC1 = zL1 + .65f * K, hB = .95f * K, hC = 1.1f * K, kick = .1f * K, xs = bx0 + 1.0f;
         // zaplecze: cokół cofnięty 6 cm, szafki orzech, blat marmur
-        BoxMinMax(black, bx0, bx1, yF, yF + kick, Z0 + .02f, zB1 - .06f);
+        BoxMinMax(black, bx0, bx1, yF, yF + kick, Z0 + .02f, zB1 - .06f, false);
         BoxMinMax(walnut, bx0, bx1, yF + kick, yF + hB, Z0 + .02f, zB1, false);
+        Collider(new Vector3((bx0 + bx1) * .5f, (yF + yF + hB) * .5f, (Z0 + .02f + zB1) * .5f), new Vector3(bx1 - bx0, hB, zB1 - Z0 - .02f));
         BoxMinMax(marbleK, bx0 - .03f, bx1 + .03f, yF + hB, yF + hB + .04f, Z0 + .02f, zB1 + .03f, false, true);
         Mebel("bar: zaplecze", new Bounds(new Vector3((bx0 + bx1) * .5f, yF + hB * .5f, (Z0 + zB1) * .5f), new Vector3(bx1 - bx0, hB, zB1 - Z0 - .02f)));
         // lustro i półki nad zapleczem
@@ -270,8 +271,9 @@ public static partial class BraxClaudeOsiedle
         }
         catch (Exception e) { Debug.LogError("BRAXHORN_DYSKOTEKA napis BAR DO POPRAWKI: " + e.Message); }
         // lada: cokół cofnięty, korpus lakier + mosiężny pas, blat z podświetlanego onyksu, szyna robocza od strony barmanów
-        BoxMinMax(black, xs, bx1, yF, yF + kick, zL1 + .06f, zC1 - .06f);
+        BoxMinMax(black, xs, bx1, yF, yF + kick, zL1 + .06f, zC1 - .06f, false);
         BoxMinMax(lacquer, xs, bx1, yF + kick, yF + hC, zL1, zC1, false);
+        Collider(new Vector3((xs + bx1) * .5f, yF + hC * .5f, (zL1 + zC1) * .5f), new Vector3(bx1 - xs, hC, zC1 - zL1));
         BoxMinMax(brass, xs, bx1, yF + kick + .02f, yF + kick + .05f, zC1, zC1 + .008f, false);
         BoxMinMax(onyx, xs - .05f, bx1 + .05f, yF + hC, yF + hC + .05f, zL1 - .05f, zC1 + .14f, false, true);
         BoxMinMax(steel, xs, bx1 - .7f, yF + .88f * K, yF + .9f * K, zL1 - .2f, zL1, false, true);
