@@ -285,6 +285,9 @@ const VIEWS = [
   ['DETAL_wyspa_kraweznik_aleja', '1230,4,82,90,40,2.5'],          // krawężnik z fugami, kostka chodnika, styk z dojściem
   ['DETAL_wyspa_deptak_plazy', '1200,1.5,-70,90,25,3'],            // deski deptaku na legarach, styk z piaskiem
   ['DETAL_wyspa_punkt_widokowy', '1200,10,30,180,15,6'],           // punkt widokowy na kamiennym cokole (bez „latającej płyty”)
+  // C4 (2.11): szyby bez „mlecznego plastiku” — tło lekko przyciemnione + odbicie nieba (BRAXHORN_SZYBY)
+  ['DETAL_szyby_witryna_sport', '19,0.2,104,0,8,3.5'],             // witryna BRAXHORN SPORT: przez szybę wnętrze, odbicie nieba
+  ['DETAL_szyby_wejscie_tower', '59,0.2,33,180,6,3.5'],            // przeszklone wejście i lobby BRAXHORN TOWER
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],
