@@ -9,8 +9,13 @@ using UnityEngine.SceneManagement;
 // Gdy gracz podejdzie bliżej niż „wczytaj” do granicy obszaru, scena wczytuje się w tle (LoadSceneAsync Additive, niski
 // priorytet wątku — gra idzie dalej, bez czarnego ekranu); gdy odejdzie dalej niż „zwolnij”, scena jest zwalniana
 // i pamięć oddawana (Resources.UnloadUnusedAssets). Jedna operacja naraz. Gracz nigdy nie zostaje w zwalnianej scenie.
+// Build 14 (właściciel 2.11: park i osiedle B pojawiały się kilkanaście metrów przed postacią): obszar z progiem
+// „wczytaj” ≥ OdStartu wczytuje się OD RAZU po starcie sceny rejonu (w tle, bez czekania na podejście gracza), a z progiem
+// „zwolnij” ≥ Nigdy nie jest nigdy zwalniany. Osiedle: BraxhornEstate_Poludnie (≈71 MB) — od startu i na stałe.
+// Miasto (nabrzeże) bez zmian: progi metrowe jak dotąd.
 public sealed class BraxObszary : MonoBehaviour
 {
+    public const float OdStartu = 1000000f, Nigdy = 10000000f;
     [Serializable] public sealed class Obszar
     {
         public string scena;
@@ -28,6 +33,28 @@ public sealed class BraxObszary : MonoBehaviour
     {
         Application.backgroundLoadingPriority = ThreadPriority.Low;
         foreach (var o in obszary) o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
+        if (BraxStartTest.Wylaczony("obszary")) return;
+        // obszary „od startu”: wczytywanie zaczyna się w pierwszej klatce sceny, jeden po drugim (bez czekania na gracza)
+        StartCoroutine(OdStartuWszystkie());
+    }
+
+    IEnumerator OdStartuWszystkie()
+    {
+        foreach (var o in obszary)
+        {
+            if (o == null || o.wczytaj < OdStartu || o.wczytany || string.IsNullOrEmpty(o.scena)) continue;
+            if (!Application.CanStreamedLevelBeLoaded(o.scena)) { Debug.Log("BRAXHORN_OBSZAR od startu: brak sceny " + o.scena + " w paczce"); continue; }
+            while (zajety) yield return null;
+            if (o.wczytany) continue;
+            float t0 = Time.realtimeSinceStartup;
+            Debug.Log("BRAXHORN_OBSZAR od startu: " + o.scena + " — wczytywanie w tle (zwalnianie: " + (o.zwolnij >= Nigdy ? "nigdy" : o.zwolnij + " m") + ")");
+            // na czas pierwszego wczytania więcej czasu klatki na włączanie obiektów (10 ms zamiast 2 ms) — park ma być gotowy,
+            // zanim gracz dojdzie od tunelu do bramy parku (≈190 m); potem z powrotem niski priorytet
+            Application.backgroundLoadingPriority = ThreadPriority.Normal;
+            yield return StartCoroutine(Wczytaj(o));
+            Application.backgroundLoadingPriority = ThreadPriority.Low;
+            Debug.Log("BRAXHORN_OBSZAR od startu: " + o.scena + (o.wczytany ? " wczytany po " + (Time.realtimeSinceStartup - t0).ToString("0.0") + " s" : " — NIE wczytany"));
+        }
     }
 
     bool zamrozony;
@@ -55,7 +82,7 @@ public sealed class BraxObszary : MonoBehaviour
             float d = Mathf.Sqrt(o.granice.SqrDistance(p));
             if (cam) d = Mathf.Min(d, Mathf.Sqrt(o.granice.SqrDistance(cam.transform.position)));
             if (!o.wczytany && d < o.wczytaj) { StartCoroutine(Wczytaj(o)); return; }
-            if (o.wczytany && d > o.zwolnij) { StartCoroutine(Zwolnij(o)); return; }
+            if (o.wczytany && o.zwolnij < Nigdy && d > o.zwolnij) { StartCoroutine(Zwolnij(o)); return; }
         }
     }
 
