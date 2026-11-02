@@ -25,7 +25,8 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
             mi.animationType = ModelImporterAnimationType.Human;
             mi.importAnimation = false;
             mi.optimizeGameObjects = false;
-            mi.isReadable = false;
+            mi.isReadable = true;                                   // pomiar wzrostu z wierzchołków (10 tys. — ~1 MB, bez znaczenia)
+            mi.importTangents = ModelImporterTangents.CalculateMikk;  // mapa normalnych w Braxhorn/HeroPremium
         }
         else
         {
