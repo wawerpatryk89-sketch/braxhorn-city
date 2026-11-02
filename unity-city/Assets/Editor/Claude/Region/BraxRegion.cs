@@ -59,6 +59,8 @@ public static class BraxRegion
         Step("mieszkanie Braxa nad NOVA (klatka od ulicy, biedny pokój z aneksem i łazienką)", () => BraxRegionBraxFlat.Apply(world, root));
         Step("stare drzewa-atrapy (kule na patykach) → prawdziwe drzewa", () => BraxRegionOldTrees.Apply(root));
         Step("zieleń naturalna i mała architektura", () => BraxRegionVegetation.Apply(root));
+        // DZIELNICA ZACHODNIA (2.11, właściciel: „miasto za małe”, komisariat, szpital, wieżowce) — osobny korzeń, po zieleni, przed siedziskami i kontrolami.
+        Step("dzielnica zachodnia (ulice, komisariat, szpital, wieżowce, bank)", () => BraxClaudeOsiedle.DzielnicaZachodnia(world));
         // Lampy wnętrz: CityStaticPBR liczy światła punktowe tylko ze slotów „vertex light” (ForceVertex).
         Step("siedziska: sofy, ławki, hokery, leżaki → BraxSeat", () => BraxRegionSeats.Apply(root));
         Step("lampy wnętrz w trybie ForceVertex", () => InteriorLights(root));

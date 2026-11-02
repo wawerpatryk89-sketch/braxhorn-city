@@ -21,7 +21,9 @@ using UnityEngine.Rendering;
 //  • POD MISJE: obiekty „BRAXHORN misja: …” (zleceniodawca, cel, czynność) + notatka w raporcie.
 public static partial class BraxClaudeOsiedle
 {
-    static float Ku => Mathf.Clamp(K, .95f, 1.10f);
+    // 2.11 10:39 (decyzja skali: świat pod Braxa, k = 1.294 STAŁE, „wszystko × k”) — bez obcinania do 0.95–1.10 (było przy k ≈ 1.01);
+    // biblioteka dotąd niepodpięta na osiedlu, pierwszy użytkownik: dzielnica zachodnia miasta (sale wymiarowane pod k = 1.294).
+    static float Ku => K;
     static int uRzeczy, uMisje, uSondy;
     static readonly List<string> uMisjeLista = new List<string>();
 
