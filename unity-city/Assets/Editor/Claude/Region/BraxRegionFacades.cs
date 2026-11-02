@@ -21,6 +21,7 @@ public static class BraxRegionFacades
 {
     public static void Apply(Transform cityRoot)
     {
+        Krok("pierzeje ulicy od nowa", () => BraxUlicePierzeje.Apply(cityRoot));
         Krok("obraz w lobby BRAXHORN TOWER", () => LobbyPicture(cityRoot));
     }
 
