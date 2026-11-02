@@ -7,11 +7,13 @@ using UnityEngine;
 // firmy; ma tam stać statek, kontenerowiec/barka na kontenery”; 16:00: „PORT i METRO to mają być priorytety… tam jest
 // największy syf”. Audyt §12: płot „TEREN PORTU”, za nim jeden rząd kontenerów jak ściana, plac z trawnika, turkusowej płyty
 // i cegły, nabrzeże bez polerów i odbojnic, dźwig bez statku.
-// ZDJĘTE (BraxMiastoA.Wyczysc): wszystko w obrysie placu x 66.05…83.9, z −40…17.4, y −0.25…14 (źródło miasta: płot, brama,
+// GRANICA Z B (B_ETAP1: plac wieżowców x ≤ 66, z −35…−6; nabrzeże B x 84, z −68…−31): port od z −30.5 (wcześniej −40 —
+// zachodził 9 m na nabrzeże B). Dźwig (krok „port: dźwig nad statkiem”) stoi na z −29…−21 — tam bez kontenerów.
+// ZDJĘTE (BraxMiastoA.Wyczysc): wszystko w obrysie placu x 66.05…83.9, z −30.5…17.4, y −0.25…14 (źródło miasta: płot, brama,
 // nawierzchnie, kontenery; renowacja: „ściana kontenerów” z BraxCityEnvironment, palety, drobiazgi) — przed budową.
 // NOWE (× k, poziom placu 0.15 jak bulwar): nawierzchnia z płyt betonowych z oznakowaniem w płaszczyźnie (pasy, pola
 // kontenerów — osobne pola tej samej płaszczyzny, bez nakładania), oczep nabrzeża z żółtą krawędzią, polery co 10 m,
-// odbojnice gumowe na licu nabrzeża, drabinki; ZACUMOWANY KONTENEROWIEC 54 × 12 m (kadłub, pas antyporostowy, burta,
+// odbojnice gumowe na licu nabrzeża, drabinki; ZACUMOWANY KONTENEROWIEC 46 × 12 m (kadłub, pas antyporostowy, burta,
 // pokład, zrębnice, kontenery w 2 sekcjach × 3 rzędy × 2–3 warstwy, nadbudówka z mostkiem i skrzydłami, komin, maszt
 // z radarem, nazwa na dziobie), cumy dziobowe, rufowe i szpringi do polerów, TRAP z poręczami (wejście na pokład);
 // stosy kontenerów 20' i 40' (2–4 warstwy, różne kolory, numery, przetłoczenia i drzwi z ryglami); ciągniki terminalowe
@@ -20,7 +22,7 @@ using UnityEngine;
 // Punkty akcji pod misje: biuro (zleceniodawca), trap statku, strażnik bramy, magazyn.
 internal static class BraxMiastoPort
 {
-    const float Y = .15f, QX = 84f, X0 = 66.05f, Z0 = -40f, Z1 = 17.4f;   // poziom placu, lico nabrzeża, obrys placu
+    const float Y = .15f, QX = 84f, X0 = 66.05f, Z0 = -30.5f, Z1 = 17.4f;   // poziom placu, lico nabrzeża, obrys placu
     const float W = -1.7f;
     static float K => BraxMiastoA.K;
     static Transform root, kol;
@@ -40,7 +42,7 @@ internal static class BraxMiastoPort
         BraxUliceKit.UstawGrupe("Port: biuro, brama, ogrodzenie, maszty", 140f);
         Biuro(); Brama(); Maszty(); Ciagniki();
         int siatek = BraxUliceKit.Zapisz(root, "port");
-        BraxMiastoA.Log("PORT: plac " + (QX - X0).ToString("F0") + "×" + (Z1 - Z0).ToString("F0") + " m, kontenerów " + kont + ", kontenerowiec 54×12 m przy nabrzeżu, biuro, brama, siatek " + siatek + "; zdjęte: " + usun);
+        BraxMiastoA.Log("PORT: plac " + (QX - X0).ToString("F0") + "×" + (Z1 - Z0).ToString("F0") + " m, kontenerów " + kont + ", kontenerowiec 46×12 m przy nabrzeżu, biuro, brama, siatek " + siatek + "; zdjęte: " + usun);
     }
 
     // ---------------- nawierzchnia z oznakowaniem W PŁASZCZYŹNIE (pola, nie naklejki) ----------------
@@ -79,7 +81,7 @@ internal static class BraxMiastoPort
 
     static IEnumerable<Rect> Bloki()
     {
-        yield return Rect.MinMaxRect(67.0f, -39.2f, 76.9f, -31.0f);   // blok A: kontenery 20'
+        yield return Rect.MinMaxRect(67.2f, -1.5f, 75.1f, 5.15f);     // blok A: kontenery 20' (wzdłuż x, 2 rzędy) między blokiem B a biurem
         yield return Rect.MinMaxRect(67.0f, -19.0f, 76.9f, -2.8f);    // blok B: kontenery 40'
     }
 
@@ -98,7 +100,7 @@ internal static class BraxMiastoPort
         BraxUliceKit.S(zolty).Quad(new Vector3(QX - .1f, Y + .2f, Z0), new Vector3(QX + .15f, Y + .2f, Z0), new Vector3(QX + .15f, Y + .2f, Z1), new Vector3(QX - .1f, Y + .2f, Z1), Vector3.up);
         BraxMiastoA.Kol(kol, "oczep nabrzeża", new Vector3(83.3f, Y, Z0), new Vector3(QX + .15f, Y + .2f, Z1));
         // polery co 10 m (kształt grzybkowy) i odbojnice D co 5 m na licu
-        for (float z = Z0 + 4f; z < Z1 - 1f; z += 10f)
+        for (float z = Z0 + 4.5f; z < Z1 - 1f; z += 10f)
         {
             var p = new Vector3(83.75f, Y + .2f, z);
             var s = BraxUliceKit.S(zeliwo);
@@ -146,20 +148,21 @@ internal static class BraxMiastoPort
         int n = 0; var rng = new System.Random(4120); float B = 2.44f * K, H = 2.59f * K, gap = .3f;
         foreach (var (blok, czterdz) in new[] { (Bloki().First(), false), (Bloki().Last(), true) })
         {
-            float L = (czterdz ? 12.19f : 6.06f) * K;
-            for (float x = blok.xMin + B * .5f; x <= blok.xMax - B * .5f + .01f; x += B + gap)
-                for (float z = blok.yMin + L * .5f; z <= blok.yMax - L * .5f + .01f; z += L + .5f)
+            float L = (czterdz ? 12.19f : 6.06f) * K; bool wzdluzZ = czterdz;   // 40' wzdłuż z, 20' wzdłuż x
+            float dx = wzdluzZ ? B : L, dz = wzdluzZ ? L : B, kx = wzdluzZ ? B + gap : L + .5f, kz = wzdluzZ ? L + .5f : B + gap;
+            for (float x = blok.xMin + dx * .5f; x <= blok.xMax - dx * .5f + .01f; x += kx)
+                for (float z = blok.yMin + dz * .5f; z <= blok.yMax - dz * .5f + .01f; z += kz)
                 {
-                    int h = 2 + rng.Next(3);
-                    for (int lv = 0; lv < h; lv++) { Kontener(new Vector3(x, Y + lv * H, z), czterdz, true, n, KolKont[rng.Next(KolKont.Length)]); n++; }
-                    BraxMiastoA.Kol(kol, "stos kontenerów", new Vector3(x - B * .5f, Y, z - L * .5f), new Vector3(x + B * .5f, Y + h * H, z + L * .5f));
+                    int h = 2 + rng.Next(czterdz ? 3 : 2);
+                    for (int lv = 0; lv < h; lv++) { Kontener(new Vector3(x, Y + lv * H, z), czterdz, wzdluzZ, n, KolKont[rng.Next(KolKont.Length)]); n++; }
+                    BraxMiastoA.Kol(kol, "stos kontenerów", new Vector3(x - dx * .5f, Y, z - dz * .5f), new Vector3(x + dx * .5f, Y + h * H, z + dz * .5f));
                 }
         }
         return n;
     }
 
     // ---------------- kontenerowiec przy nabrzeżu ----------------
-    const float SX0 = 84.6f, SX1 = 96.6f, SZ0 = -38f, SZ1 = 16f;
+    const float SX0 = 84.6f, SX1 = 96.6f, SZ0 = -30f, SZ1 = 16f;   // 46 m (rufa z −30 — granica z nabrzeżem B)
     static float Deck => W + 3.2f;   // pokład 3.2 m nad wodą (1.5 — trap z nabrzeża 0.35)
     static void Statek()
     {
@@ -220,7 +223,7 @@ internal static class BraxMiastoPort
         // zrębnice ładowni i kontenery na pokładzie: 2 sekcje 40' × 3 rzędy × 2–3 warstwy
         float B = 2.44f * K, H = 2.59f * K, L = 12.19f * K; var rng = new System.Random(77);
         int nr = 900;
-        foreach (float zc in new[] { -18.6f, -2.2f })
+        foreach (float zc in new[] { -11.6f, 4.7f })
         {
             BraxUliceKit.S(granat).Box(new Vector3(cx - 4.4f, Deck, zc - L * .5f - .3f), new Vector3(cx + 4.4f, Deck + .9f, zc + L * .5f + .3f), 4);
             for (int r = -1; r <= 1; r++)
@@ -263,7 +266,7 @@ internal static class BraxMiastoPort
         var lina = BraxMiastoA.Mat("Statek: cumy (lina poliamidowa)", new Color(.85f, .82f, .7f), .9f);
         void Cuma(Vector3 a, Vector3 b) { var prev = a; for (int q = 1; q <= 10; q++) { float t = q / 10f; var p = Vector3.Lerp(a, b, t) + Vector3.down * (.9f * 4f * t * (1 - t)); BraxUliceKit.S(lina).Rura(prev, p, .045f, 6, false); prev = p; } }
         Cuma(new Vector3(SX0 + 1f, Deck + 1.1f, 13f), new Vector3(83.75f, Y + .5f, 14f));
-        Cuma(new Vector3(SX0 + 1f, Deck + 1.1f, SZ0 + 1.5f), new Vector3(83.75f, Y + .5f, Z0 + 4f));
+        Cuma(new Vector3(SX0 + 1f, Deck + 1.1f, SZ0 + 1.5f), new Vector3(83.75f, Y + .5f, Z0 + 4.5f));
         Cuma(new Vector3(SX0 + .5f, Deck + 1.1f, -6f), new Vector3(83.75f, Y + .5f, -16f));
         Cuma(new Vector3(SX0 + .5f, Deck + 1.1f, -14f), new Vector3(83.75f, Y + .5f, -6f));
         // TRAP z nabrzeża na pokład (ramp 3.6 m z listwami i poręczami), otwór w nadburciu przy trapie
@@ -393,7 +396,7 @@ internal static class BraxMiastoPort
     {
         var stal = BraxMiastoA.Mat("Port: stal ocynkowana", new Color(.62f, .63f, .64f), .45f, .85f);
         var lampa = BraxMiastoA.Swieci("Port: naświetlacze masztów", new Color(.95f, .95f, .9f), new Color(.6f, .6f, .55f));
-        foreach (var p in new[] { new Vector3(82.6f, Y, 1f), new Vector3(82.6f, Y, -36f) })
+        foreach (var p in new[] { new Vector3(82.6f, Y, 1f), new Vector3(82.6f, Y, -28f) })
         {
             BraxUliceKit.S(stal).Walec(p, .5f, .3f, 12); BraxUliceKit.S(stal).Rura(p + Vector3.up * .3f, p + Vector3.up * 22f, .22f, 12);
             BraxUliceKit.S(stal).Box(p + new Vector3(-1.4f, 21.6f, -1.4f), p + new Vector3(1.4f, 21.8f, 1.4f));
