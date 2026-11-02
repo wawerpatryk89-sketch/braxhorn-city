@@ -244,6 +244,23 @@ const VIEWS = [
   ['M_B_57_centrum_z_ronda', '-120,0.2,40,119,24,30'],
   ['M_B_58_galeria', '-223,0.2,-3,0,12,12'],
   ['M_B_59_centrum_z_tarasu_toweru', '60,120.55,52,90,6,6'],
+  // etap „assety” (2.11): nowe dzielnice ze Sketchfaba na NASZYCH drogach, statki, sprzęt siłowni, bramki metra, autobus, tramwaj
+  ['M_C_01_aleja_z_petli_zachod', '-268,0.2,26,90,8,14'],          // Aleja Centralna z wlotu pętli ZACHÓD na zachód (ATLANTA na zamknięciu osi)
+  ['M_C_02_dzielnica_ny_z_ulicy', '-352,0.2,103,180,12,14'],       // kamienice nowojorskie (city3) z ul. Nowojorskiej
+  ['M_C_03_centrum_z_ulicy_c1', '-450,0.2,45,180,14,20'],          // wieże centrum (city5) z ul. C1 na północ
+  ['M_C_04_london_z_alei', '-342,0.2,34,180,22,24'],               // LONDON (216 m) z alei
+  ['M_C_05_atlanta_z_c3', '-746,0.2,28.5,90,30,32'],               // ATLANTA (274 m) z ul. C3, reklama BRAXHORN SPORT na koronie
+  ['M_C_06_kinnaird_bank_z_promenady', '-337,0.2,8,0,10,14'],      // bank KINNAIRD, bankomaty, promenada
+  ['M_C_07_przystanek_autobus', '-326,0.2,11,180,8,11'],           // wiata + autobus na przystanku ALEJA CENTRALNA
+  ['M_C_08_tramwaj_przystanek', '-485,0.2,-76,180,8,12'],          // tramwaj T1 na torowisku w nawierzchni, peron, wiata
+  ['M_C_09_torowisko_z_bliska', '-520,0.2,-60,0,45,6'],            // szyny rowkowe w wycięciach asfaltu (bez nakładek)
+  ['M_C_10_skrzyzowanie_aleja_c1', '-436,0.2,22,90,10,12'],        // sygnalizacja na wysięgnikach, zebry w nawierzchni
+  ['M_C_11_sport_sprzet', '19,0.2,101.5,0,15,5'],                  // BRAXHORN SPORT: sprzęt w witrynie (pozycja sklepu z logu BRAXHORN SPORT)
+  ['M_C_12_fitness_park_tower', '-44,11.4,-40,90,10,5'],           // PARK TOWER p.2: bieżnie i ławka z modeli (to samo ujęcie co M_B_21)
+  ['M_C_13_bramki_metra', '66,-3.6,28.5,90,6,5'],                  // bramki biletowe (model) w hali metra
+  ['M_C_14_port_drobnicowiec', '78,0.35,-36,0,14,22'],             // drobnicowiec przy nabrzeżu B, dźwig i kontenerowiec A w tle
+  ['M_C_15_kontenerowiec_z_tarasu', '60,120.55,52,270,4,8'],       // kontenerowiec na redzie (x 720) z tarasu BRAXHORN TOWER
+  ['M_C_16_dzielnice_z_gory', '-520,0.2,28.5,90,55,140'],          // nowe dzielnice z góry (siatka ulic, kwartały, wieże)
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],
