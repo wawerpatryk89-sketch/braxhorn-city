@@ -122,6 +122,13 @@ public static partial class BraxClaudeOsiedle
     }
     static bool Wolne(Vector3 p, float r = .22f) => !Physics.CheckCapsule(p + Vector3.up * (r + .25f), p + Vector3.up * 1.6f, r, ~0, QueryTriggerInteraction.Ignore);
     static bool WidacProsto(Vector3 a, Vector3 b) => !Physics.Linecast(a + Vector3.up * .9f, b + Vector3.up * .9f, ~0, QueryTriggerInteraction.Ignore);
+    // E31: przejście człowieka (kapsuła r 0.3 m od 0.6 do 1.6 m nad chodnikiem) między punktami — bez budynku, płotu, słupa, ławki
+    static int siecPrzerwane;
+    static bool CzystyOdcinek(Vector3 a, Vector3 b, float r = .3f)
+    {
+        var d = b - a; d.y = 0f; float L = d.magnitude; if (L < .05f) return true; d /= L;
+        return !Physics.CapsuleCast(a + Vector3.up * (r + .3f), a + Vector3.up * 1.6f, r, d, L, ~((1 << 8) | (1 << 29) | (1 << 2)), QueryTriggerInteraction.Ignore);
+    }
 
     static SiecPieszych BudujSiec()
     {
@@ -145,6 +152,7 @@ public static partial class BraxClaudeOsiedle
         odc.Add((new Vector3(AxisX + rPl, .04f, zc + .6f), new Vector3(X1 - 6f, .04f, zc + .6f)));
         odc.Add((new Vector3(30f, .04f, zc + 2.4f), new Vector3(30f, .04f, FenceA - 1.6f)));
         int seg = 0, odrzucone = 0;
+        siecPrzerwane = 0;
         foreach (var (a, b) in odc)
         {
             float len = Vector3.Distance(a, b); if (len < 3f) continue;
@@ -153,9 +161,24 @@ public static partial class BraxClaudeOsiedle
             int zle = pts.Count(q => !Wolne(q)), jezdnia = pts.Count(NaJezdni);
             bool przezGranice = (a.z - GranicaObszarow) * (b.z - GranicaObszarow) < 0f;
             if (zle > pts.Count * .4f || jezdnia > 0 || przezGranice) { odrzucone++; continue; }
-            int prev = -1;
-            foreach (var q in pts) { int id = s.Dodaj(q, seg); if (prev >= 0) s.Polacz(prev, id, false); prev = id; }
-            s.konce.Add(s.w.Count - pts.Count); s.konce.Add(s.w.Count - 1);
+            // E31 (runda 4): łączone tylko sąsiednie WOLNE punkty z czystym przejściem kapsuły między nimi — odcinek, który
+            // przechodzi przez budynek, płot albo słup, rozpada się na kawałki (każdy kawałek = osobny odcinek z końcami)
+            int prev = -1, pierwszy = -1;
+            for (int k = 0; k < pts.Count; k++)
+            {
+                var q = pts[k];
+                bool ok = Wolne(q) && (prev < 0 || CzystyOdcinek(s.w[prev], q));
+                if (!ok)
+                {
+                    if (prev >= 0) { s.konce.Add(pierwszy); s.konce.Add(prev); seg++; siecPrzerwane++; }
+                    prev = -1;
+                    if (!Wolne(q)) continue;
+                }
+                int id = s.Dodaj(q, seg);
+                if (prev >= 0) s.Polacz(prev, id, false); else pierwszy = id;
+                prev = id;
+            }
+            if (prev >= 0) { s.konce.Add(pierwszy); s.konce.Add(prev); }
             seg++;
         }
         // plac fontanny: pierścień wokół misy (między rabatami), połączony z alejami
@@ -180,7 +203,7 @@ public static partial class BraxClaudeOsiedle
             foreach (int j in kand)
             {
                 bool granica = (pe.z - GranicaObszarow) * (s.w[j].z - GranicaObszarow) < 0f;
-                if (granica || PrzezJezdnie(pe, s.w[j]) || !WidacProsto(pe, s.w[j])) continue;
+                if (granica || PrzezJezdnie(pe, s.w[j]) || !WidacProsto(pe, s.w[j]) || !CzystyOdcinek(pe, s.w[j])) continue;   // E31: kapsuła, nie cienka linia
                 s.Polacz(e, j, false); narozniki++; break;
             }
         }
@@ -284,8 +307,10 @@ public static partial class BraxClaudeOsiedle
         return (pts.ToArray(), arr);
     }
 
+    static int trasyOdcinki, trasyPrzezBudynek;
     static void PrzechodnieRocketbox(System.Random rnd)
     {
+        trasyOdcinki = trasyPrzezBudynek = 0;
         var s = BudujSiec();
         int ile = Mathf.RoundToInt(66 * GestoscOsiedle);         // build 13: 22 przechodniów → ×3 (właściciel 21:01)
         var start = Enumerable.Range(0, s.w.Count).Where(j => s.segOd[j] >= 0 && s.sas[j].Count > 0 && Wolne(s.w[j])).ToList();
@@ -297,10 +322,15 @@ public static partial class BraxClaudeOsiedle
             var pula = (k % 5 < 3 && A.Count > 0) || B.Count == 0 ? A : B;
             int st = pula[rnd.Next(pula.Count)];
             var (pts, prz) = Trasa(s, st, rnd);
+            // E31: kontrola trasy (odcinki chodnika kapsułą; przejścia przez jezdnię węższą — słupki przy zebrach) — obcięcie na pierwszym złym
+            int zly = -1;
+            for (int q = 0; q + 1 < pts.Length && zly < 0; q++) { trasyOdcinki++; if (!CzystyOdcinek(pts[q], pts[q + 1], prz[q] ? .2f : .3f)) zly = q; }
+            if (zly >= 0) { trasyPrzezBudynek++; System.Array.Resize(ref pts, zly + 1); System.Array.Resize(ref prz, zly + 1); }
             if (pts.Length < 2) continue;
             NowyPrzechodzien(s.w[st].z > GranicaObszarow ? gA : gB, pts, prz, rnd, k + 1);
         }
         rep.notes.Add("ludzie: przechodniów " + rbPrzechodnie + " (osiedle A " + gA.childCount + ", park i B " + gB.childCount + ")");
+        Debug.Log("BRAXHORN_PIESI_TRASY odcinków=" + trasyOdcinki + " przez_budynek_przed=" + trasyPrzezBudynek + " przez_budynek=0 (trasy obcięte na pierwszym złym odcinku) sieć: odcinki chodnika przerwane na przeszkodzie=" + siecPrzerwane);
     }
 
     // ---------------- ławki ----------------
