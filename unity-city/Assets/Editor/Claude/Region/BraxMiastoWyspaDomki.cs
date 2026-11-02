@@ -603,26 +603,19 @@ internal static partial class BraxMiastoWyspa
     // =================================================================================================================
     static void MorzeOtwarte(Transform cityRoot)
     {
-        var r = BraxRegion.Root(cityRoot, "CLAUDE A: morze otwarte do wyspy (woda, dno)");
+        // pkt 15a: morze bez krawędzi — siatka wody za kamerą (BraxMorzeZaKamera, w scenie głównej; poza wodą portu x 84…884)
+        var r = BraxRegion.Root(cityRoot, "CLAUDE A: akwen — morze za kamerą, dno, granica (BraxAkwen)");
         Material woda = AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/CityRebuildWater/HarbourWater.mat");
-        if (!woda) foreach (var mr in Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None)) if (mr.sharedMaterial && mr.sharedMaterial.name.Contains("HarbourWater")) { woda = mr.sharedMaterial; break; }
-        const float x0 = 884f, x1 = 1720f, z0 = -340f, z1 = 460f; const int n = 8;
-        if (woda)
-        {
-            var v = new List<Vector3>(); var nn = new List<Vector3>(); var uv = new List<Vector2>(); var t = new List<int>();
-            for (int i = 0; i <= n; i++) for (int j = 0; j <= n; j++) { var p = new Vector3(Mathf.Lerp(x0, x1, i / (float)n), W, Mathf.Lerp(z0, z1, j / (float)n)); v.Add(p); nn.Add(Vector3.up); uv.Add(new Vector2(p.x, p.z)); }
-            for (int i = 0; i < n; i++) for (int j = 0; j < n; j++) { int a = i * (n + 1) + j, b = a + n + 1; t.AddRange(new[] { a, a + 1, b + 1, a, b + 1, b }); }
-            var mesh = new Mesh { name = "Morze otwarte do wyspy" }; mesh.SetVertices(v); mesh.SetNormals(nn); mesh.SetUVs(0, uv); mesh.SetTriangles(t, 0); mesh.RecalculateBounds();
-            var bnd = mesh.bounds; bnd.Expand(new Vector3(0, .4f, 0)); mesh.bounds = bnd;
-            BraxZapisAssetu.Utworz(mesh, BraxMiastoA.Out + "/Wyspa/morze_otwarte.asset");
-            var g = new GameObject("Morze otwarte (x 884–1720)"); g.transform.SetParent(r, false); g.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var mr2 = g.AddComponent<MeshRenderer>(); mr2.sharedMaterial = woda; mr2.shadowCastingMode = ShadowCastingMode.Off;
-        }
-        else BraxMiastoA.Log("WYSPA DO POPRAWKI: brak materiału HarbourWater — morze za x 884 bez wody");
-        var dno = new GameObject("Morze otwarte: dno (kolizja)"); dno.transform.SetParent(r, false);
+        if (!woda) foreach (var mr in Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None)) if (mr.sharedMaterial && (mr.sharedMaterial.name.Contains("HarbourWater") || mr.sharedMaterial.name.Contains("harbour water"))) { woda = mr.sharedMaterial; break; }
+        if (woda) { var g = new GameObject("BRAXHORN morze za kamerą"); g.transform.SetParent(r, false); var mz = g.AddComponent<BraxMorzeZaKamera>(); mz.woda = woda; }
+        else BraxMiastoA.Log("WYSPA DO POPRAWKI: brak materiału wody portu — morze za kamerą bez materiału");
+        // dno (kolizja) pod całym akwenem poza wodą portu (tam dno ma BraxRegionSea), głęboko — łodzie go nie „widzą”
+        const float x0 = 884f, x1 = BraxAkwen.TwardaX + 100f, z0 = BraxAkwen.TwardaZS - 100f, z1 = BraxAkwen.TwardaZN + 100f;
+        var dno = new GameObject("Akwen: dno (kolizja)"); dno.transform.SetParent(r, false);
         var bc = dno.AddComponent<BoxCollider>(); bc.center = new Vector3((x0 + 16f + x1) * .5f, -7.5f, (z0 + z1) * .5f); bc.size = new Vector3(x1 - x0 - 16f, 1f, z1 - z0);
         foreach (var st in Object.FindObjectsByType<BraxWodaGlebia>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-        { st.morze = Rect.MinMaxRect(84f, -520f, x1, 470f); EditorUtility.SetDirty(st); }
+        { st.morze = Rect.MinMaxRect(84f, z0, x1, z1); EditorUtility.SetDirty(st); }
+        Debug.Log("BRAXHORN_AKWEN granica_miekka=x " + BraxAkwen.MiekkaX + " / z " + BraxAkwen.MiekkaZS + "…" + BraxAkwen.MiekkaZN + " / brzeg " + BraxAkwen.BrzegMiekki + " m twarda=x " + BraxAkwen.TwardaX + " / z " + BraxAkwen.TwardaZS + "…" + BraxAkwen.TwardaZN + " / brzeg " + BraxAkwen.BrzegTwardy + " m woda_za_kamera=" + (woda ? "tak" : "NIE") + " siatka_bezpieczenstwa=tak (BraxGymPlayer, co 1 s) petla_wybrzeza=nie (po 01:00)");
     }
 
     // =================================================================================================================

@@ -191,7 +191,12 @@ public sealed class BraxGymPlayer : MonoBehaviour
         Vector3 moveDir=jumping&&direction.sqrMagnitude<.01f?transform.forward:direction.normalized;
         Vector3 step=(moveDir*speed+Vector3.up*vertical)*dt;
         int n=Mathf.Max(1,Mathf.CeilToInt(step.magnitude/.16f));for(int i=0;i<n;i++)body.Move(step/n);
-        if(transform.position.y<(cityWorld?-20f:-3f))Command("reset");
+        // SIATKA BEZPIECZEŃSTWA (pkt 15c): ostatnia bezpieczna pozycja co 1 s; spadek w pustkę / poza świat → powrót tam
+        if(cityWorld&&Time.time>=bezpNast){bezpNast=Time.time+1f;var bp=transform.position;if(body.isGrounded&&!seat&&bp.y>-19f&&BraxAkwen.Prad(bp)<1f){bezpieczna=bp;bezpJest=true;}}
+        bool pustka=cityWorld&&!body.isGrounded&&vertical<-9f&&transform.position.y<BraxAkwen.WodaY-5f&&!Physics.Raycast(transform.position,Vector3.down,6f,~(1<<8),QueryTriggerInteraction.Ignore);
+        bool poza=cityWorld&&BraxAkwen.Prad(transform.position)>=1.6f;
+        if(cityWorld&&bezpJest&&(pustka||poza||transform.position.y<-20f)){Debug.Log("BRAXHORN_SIATKA_BEZP powrót z "+transform.position.ToString("F1")+" ("+(pustka?"spadek w pustkę":poza?"poza akwenem":"poniżej świata")+") na "+bezpieczna.ToString("F1"));TravelTo(bezpieczna+Vector3.up*.1f);}
+        else if(transform.position.y<(cityWorld?-20f:-3f))Command("reset");
         if(!cityWorld&&transform.position.z>20.2f){body.enabled=false;var q=transform.position;q.z=20.2f;transform.position=q;body.enabled=true;}
         if(hitPending&&Time.time>=hitAt){hitPending=false;HitBag();OnCios?.Invoke(transform.position,transform.forward,action=="Kick");}
         if(!acting)
@@ -251,6 +256,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     // dociągania zależy od kąta: postać biegnąca w bok / w stronę kamery jej nie zawraca (sterowanie jest względem kamery —
     // inaczej postać kręciłaby się w kółko), biegnąca do przodu ustawia kamerę za plecami. Na łodzi zawsze za rufą.
     private float lastLook=-99f,camSpeed,camNear=-1f;private Vector3 camPrevPos;private bool camPrevOk;
+    private Vector3 bezpieczna;private bool bezpJest;private float bezpNast;   // siatka bezpieczeństwa (pkt 15c)
     private float joyRefYaw,joyStart=-99f;private bool joyHeld;
     // Kamera za plecami (E22 z osiedla): wygładzenie powrotu za plecy — stała czasu 0.32 s, martwa strefa 4°, maks. 220°/s.
     public const float ZaPlecamiTau=.32f,ZaPlecamiMartwa=4f,ZaPlecamiMaks=220f;

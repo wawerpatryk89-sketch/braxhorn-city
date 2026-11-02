@@ -152,6 +152,16 @@ public sealed class BraxVessel : MonoBehaviour
         // ster działa tylko przy ruchu (strumień wody na sterze / dyszy), przy prędkości przelotowej najmocniej
         float steerEff = Mathf.Clamp01(Mathf.Abs(speed) / (maxSpeed * .25f));
         float steer = move.x * turnRate * steerEff * (speed < 0 ? -1f : 1f);
+        // AKWEN (pkt 15): w pasie miękkim silny prąd — łódź zwalnia i jest łagodnie obracana do środka akwenu, komunikat
+        float prad = BraxAkwen.Prad(transform.position, out var doSrodka);
+        if (prad > 0f)
+        {
+            BraxAkwen.Komunikat(prad);
+            float kat = Mathf.DeltaAngle(transform.eulerAngles.y, Quaternion.LookRotation(doSrodka).eulerAngles.y);
+            steer += Mathf.Clamp(kat, -60f, 60f) * Mathf.Clamp01(prad) * 1.2f;
+            float vMax = maxSpeed * Mathf.Lerp(1f, .25f, Mathf.Clamp01(prad));
+            if (speed > vMax) speed = Mathf.MoveTowards(speed, vMax, dt * accel * 2f);
+        }
         yawVel = Mathf.Lerp(yawVel, steer, 1f - Mathf.Exp(-dt * (sit ? 4f : 1.6f)));    // jacht: bezwładny
         float yaw = transform.eulerAngles.y + yawVel * dt;
         var fwd = Quaternion.Euler(0, yaw, 0) * Vector3.forward; var right = Quaternion.Euler(0, yaw, 0) * Vector3.right;
@@ -160,6 +170,7 @@ public sealed class BraxVessel : MonoBehaviour
         var next = transform.position + (fwd * speed + right * side) * dt;
         // ląd / pomost / boje przed dziobem i przy burtach → zatrzymanie
         var probe = next + fwd * (length * .5f + .6f) * Mathf.Sign(speed == 0 ? 1 : speed);
+        if (BraxAkwen.Prad(next) >= 1f && BraxAkwen.Prad(next) > prad) { speed = 0; side = 0; next = transform.position; }   // twarda granica akwenu
         if (Lad(probe) || Lodz(probe))
         {
             if (Mathf.Abs(speed) > 3f) Debug.Log("BRAXHORN_LODZ uderzenie w brzeg/pomost: " + label + " v=" + speed.ToString("F1"));
