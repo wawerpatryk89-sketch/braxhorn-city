@@ -2,6 +2,10 @@
 // Nasycenie liczone w przestrzeni liniowej wokół luminancji: c' = Y + (c - Y) * _Saturation — chmury (szare/białe,
 // c ≈ Y) zostają białe, błękit robi się żywszy. Wartość z pomiaru zdjęć z gry (build 2: błękit sRGB 109/126/152,
 // nasycenie 0.28) → cel nasycenie 0.50 (sRGB 87/127/176) → _Saturation 2.1. Nic nie świeci (to niebo, tło).
+// Build 14 (właściciel: „za płotami realna panorama — góry, lasy, pola, z każdej strony inny widok, żadnych sztucznych
+// rzeczy”): pod niebem pas krajobrazu z prawdziwego zdjęcia 360° (OsiedlePanorama.cginc) sklejony po masce ziemi —
+// nad górami nasze niebo z płynącymi chmurami i słońcem gry (góry zasłaniają słońce), poniżej linii gór krajobraz.
+// Bez pasa (_PasmoJest 0) jak dawniej: poniżej horyzontu kolor mgły.
 Shader "Braxhorn/OsiedleNiebo"
 {
     Properties
@@ -14,6 +18,17 @@ Shader "Braxhorn/OsiedleNiebo"
         _SloRozmiar ("Słońce: promień (stopnie)", Range(0, 5)) = 1.1
         _SloKolor ("Słońce: kolor", Color) = (1, .97, .88, 1)
         _SloPoswiata ("Słońce: poświata", Range(0, 2)) = .55
+        [NoScaleOffset] _Pasmo ("Pas krajobrazu (RGBA, A = ziemia)", 2D) = "black" {}
+        _PasmoJest ("Pas krajobrazu włączony", Float) = 0
+        _PasmoSrodek ("Środek walca panoramy (xyz)", Vector) = (0, 0, -67, 0)
+        _PasmoPromien ("Promień walca (m)", Float) = 2500
+        _PasmoU0 ("Przesunięcie u (obrót krajobrazu)", Float) = .02
+        _PasmoGora ("Górna elewacja pasa (st.)", Float) = 35
+        _PasmoDol ("Dolna elewacja pasa (st.)", Float) = -10
+        _PasmoJasnosc ("Jasność krajobrazu", Float) = 1
+        _PasmoNasycenie ("Nasycenie krajobrazu", Float) = 1.2
+        _PasmoMgla ("Mgiełka przy horyzoncie", Range(0, 1)) = .12
+        _PasmoMglaKolor ("Kolor mgiełki", Color) = (.6, .66, .75, 1)
     }
     SubShader
     {
@@ -24,11 +39,12 @@ Shader "Braxhorn/OsiedleNiebo"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 2.0
+            #pragma target 3.0
             #include "UnityCG.cginc"
+            #include "OsiedlePanorama.cginc"
             sampler2D _MainTex;
             half _Exposure, _Saturation, _SloPoswiata;
-            float _Rotation, _Chmury, _SloRozmiar;
+            float _Rotation, _Chmury, _SloRozmiar, _PasmoJest;
             half4 _SloKolor;
             struct appdata_t { float4 vertex : POSITION; UNITY_VERTEX_INPUT_INSTANCE_ID };
             struct v2f { float4 vertex : SV_POSITION; float3 texcoord : TEXCOORD0; float3 ruch : TEXCOORD1; UNITY_VERTEX_OUTPUT_STEREO };
@@ -74,9 +90,18 @@ Shader "Braxhorn/OsiedleNiebo"
                 half tarcza = smoothstep(cos(rr * 1.35), cos(rr), cs);
                 half poswiata = (pow(saturate(cs), 48.0) * .22 + pow(saturate(cs), 700.0) * .65) * _SloPoswiata;
                 c = lerp(c, _SloKolor.rgb * 1.5, tarcza) + _SloKolor.rgb * poswiata;
-                // poniżej horyzontu (za płotem / poza zasięgiem kamery na NISKIEJ): kolor mgły zamiast nieba „pod ziemią”
-                half ny = normalize(i.texcoord).y;
-                c = lerp(c, unity_FogColor.rgb, saturate((0.03 - ny) / 0.16));
+                if (_PasmoJest > .5)
+                {
+                    // krajobraz z prawdziwego zdjęcia: góry, lasy, pola (maska A) — zasłania niebo i słońce
+                    half4 land = PanoramaKierunek(_WorldSpaceCameraPos, wd);
+                    c = lerp(c, land.rgb, land.a);
+                }
+                else
+                {
+                    // poniżej horyzontu (za płotem / poza zasięgiem kamery na NISKIEJ): kolor mgły zamiast nieba „pod ziemią”
+                    half ny = normalize(i.texcoord).y;
+                    c = lerp(c, unity_FogColor.rgb, saturate((0.03 - ny) / 0.16));
+                }
                 return half4(c, 1);
             }
             ENDCG

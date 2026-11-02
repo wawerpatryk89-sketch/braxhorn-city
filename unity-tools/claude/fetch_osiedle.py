@@ -43,6 +43,7 @@ TEXTURES = {
     "brick_wall_10": "cegła pod muralem siłowni A (ta sama co w siłowni miasta R1)",
     "marble_01": "marmur łazienek w willach na sprzedaż (build 5)",
     "leather_red_02": "skóra worka bokserskiego w domowej siłowni willi (build 5)",
+    "rock_face": "skała na zboczu wzgórza nad tunelem i głazy za płotem (build 14)",
 }
 MODELS = [
     "ClassicNightstand_01",   # wille: szafki nocne w sypialni (build 5)
@@ -290,6 +291,22 @@ def main() -> int:
     img(get(sky)).convert("RGB").resize((4096, 2048), Image.LANCZOS).save(ROOT / "sky" / "niebo_4k.jpg", quality=92)
     report["textures"]["sky"] = "kloofendal_48d_partly_cloudy_puresky (Poly Haven CC0)"
     print("SKY OK")
+    # Build 14 — panorama dookoła osiedla (właściciel: „góry, lasy, pola, z każdej strony inny widok”): prawdziwe zdjęcie 360°
+    # Poly Haven „Alps Field” (CC0, Andreas Mischok), pas horyzontu −10°…+35° 4096×512 z maską ziemi i sylwetką miasta na
+    # północy (panorama_osiedla.py). Brak = niebo jak dotąd (shader bez pasa), nie błąd buildu.
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+        import panorama_osiedla as _pan
+        Image.MAX_IMAGE_PIXELS = None
+        eq = img(get(files("alps_field")["tonemapped"]["url"]))
+        info = _pan.build(eq, ROOT / "sky" / "panorama_pasmo.png", ROOT / "sky" / "panorama_pasmo.json")
+        report["textures"]["panorama"] = "alps_field (Poly Haven CC0): " + json.dumps(info, ensure_ascii=False)
+        print("PANORAMA OK", info)
+        del eq
+    except Exception as e:  # noqa: BLE001
+        report["textures"]["panorama"] = "BRAK: " + repr(e)
+        print("PANORAMA BRAK", repr(e))
     # Szyldy sklepów (bez świecenia): grafit, ciepłe białe litery, cienka ramka. Czcionka DejaVu (Ubuntu).
     from PIL import ImageDraw, ImageFont
     font_path = next((p for p in ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -363,6 +380,11 @@ def main() -> int:
     tb5.brand_sign(ROOT / "signs" / "braxhorn_arena.png"); tb5.gold_sign(ROOT / "signs" / "recepcja_braxhorn.png", "BRAXHORN"); tb5.packaging(ROOT / "signs" / "opakowania.png")
     tb5.gold_sign(ROOT / "signs" / "tur_pod_zamosciem.png", "TUR POD ZAMOŚCIEM", 2048, 384)
     tb5.name_plaque(ROOT / "signs" / "rodzina_wawer.png"); tb5.address_plate(ROOT / "signs" / "poznanska_2.png"); tb5.street_plate(ROOT / "signs" / "ul_poznanska.png", "POZNAŃSKA"); tb5.street_plate(ROOT / "signs" / "ul_wisniowa.png", "WIŚNIOWA"); tb5.street_plate(ROOT / "signs" / "ul_bydgoska.png", "BYDGOSKA"); tb5.parking_sign(ROOT / "signs" / "znak_parking.png")   # dom Wawerów (właściciel 21:00)   # nazwa osiedla (właściciel 31.10, 20:55)
+    try:
+        import panorama_osiedla as _pan2
+        _pan2.znak_wkrotce(ROOT / "signs" / "szlaban_wkrotce.png")   # build 14: tablica na szlabanie tunelu (koniec rejonu)
+    except Exception as e:  # noqa: BLE001
+        print("ZNAK WKROTCE BRAK", repr(e))
     tb5.club_sign(ROOT / "signs" / "dyskoteka.png"); tb5.boxing_sign(ROOT / "signs" / "sala_bokserska.png"); tb5.shake_menu(ROOT / "signs" / "menu_shake.png")   # 1.11: szyld klubu, sala bokserska, menu Shake Baru
     print("TEKSTURY BUILD 5 OK")
     # Źdźbła trawy: atlas 2048x512 = 4 odmiany kępy (świeża, ciemniejsza, z suchszymi końcówkami, gęsta niska).
