@@ -88,6 +88,7 @@ public static partial class BraxClaudeOsiedle
         {
             if (!d || d.leaves == null || Klasa(d.id) != KlasaDrzwi.Wejscie) continue;
             string bud = d.id.Split('-')[0];
+            (Vector3, Vector3, Quaternion)[] stan = null; var nowe = new List<GameObject>();
             try
             {
                 Bounds ob = default; bool jest = false; Vector3 prawo = d.transform.right, przod = d.transform.forward;
@@ -117,8 +118,9 @@ public static partial class BraxClaudeOsiedle
                 var pc = new Vector3(ob.center.x, 0f, ob.center.z) + przod * off;   // środek otworu w płaszczyźnie środka ściany (y = 0)
                 var q = Quaternion.LookRotation(przod, Vector3.up);
                 // stan do cofnięcia
-                var stan = d.leaves.Select(l => (l.position, l.localScale, l.localRotation)).ToArray();
-                var nowe = new List<GameObject>();
+                stan = d.leaves.Select(l => (l.position, l.localScale, l.localRotation)).ToArray();
+                bool niski = H < Hn + ram + .02f;                      // otwór niższy niż cel — wysokość skrzydeł bez zmian, bez nadproża
+                float Hd = niski ? H : Hn;
                 GameObject Klocek(string nazwa, Material[] m, Vector3 srodek, Vector3 rozm)
                 {
                     var g = new GameObject(nazwa + " — " + d.id); g.transform.SetParent(root, false); g.transform.SetPositionAndRotation(srodek, q);
@@ -131,17 +133,18 @@ public static partial class BraxClaudeOsiedle
                 {
                     var doS = ob.center - l.position; doS.y = 0f; float s = Mathf.Sign(Vector3.Dot(doS, prawo));
                     l.position += prawo * s * (W - Wn) * .5f;
-                    l.localScale = Vector3.Scale(l.localScale, new Vector3(Wn / W, Hn / H, 1f));
+                    l.localScale = Vector3.Scale(l.localScale, new Vector3(Wn / W, Hd / H, 1f));
                 }
                 // wstawki (zamurowanie) i ościeżnica
                 float boki = (W - Wn) * .5f - ram;
                 foreach (int sgn in new[] { -1, 1 })
                 {
                     if (boki > .02f) Klocek("wstawka w otworze (bok)", mat, pc + prawo * sgn * (Wn * .5f + ram + boki * .5f) + Vector3.up * (y0 - .05f + (H + .1f) * .5f), new Vector3(boki, H + .1f, T));   // 5 cm w posadzkę i w nadproże — bez szczeliny
-                    Klocek("ościeżnica (słupek)", stal, pc + prawo * sgn * (Wn * .5f + ram * .5f) + Vector3.up * (y0 - .02f + (Hn + ram + .02f) * .5f), new Vector3(ram, Hn + ram + .02f, T + .06f));
+                    float hj = niski ? H + .02f : Hn + ram + .02f;
+                    Klocek("ościeżnica (słupek)", stal, pc + prawo * sgn * (Wn * .5f + ram * .5f) + Vector3.up * (y0 - .02f + hj * .5f), new Vector3(ram, hj, T + .06f));
                 }
-                Klocek("ościeżnica (nadproże)", stal, pc + Vector3.up * (y0 + Hn + ram * .5f), new Vector3(Wn + 2f * ram, ram, T + .06f));
-                float gora = H - Hn - ram;
+                if (!niski) Klocek("ościeżnica (nadproże)", stal, pc + Vector3.up * (y0 + Hn + ram * .5f), new Vector3(Wn + 2f * ram, ram, T + .06f));
+                float gora = niski ? 0f : H - Hn - ram;
                 if (gora > .02f) Klocek("wstawka w otworze (nad drzwiami)", mat, pc + Vector3.up * (y0 + Hn + ram + (gora + .05f) * .5f), new Vector3(Wn + 2f * ram, gora + .05f, T));
                 // BEZPIECZNIK: skrzydła na próbę otwarte, kapsuła gracza w środku nowego otworu
                 Physics.SyncTransforms();
@@ -160,10 +163,16 @@ public static partial class BraxClaudeOsiedle
                     continue;
                 }
                 zwezone++;
-                Debug.Log("BRAXHORN_DRZWI typ=wejście szer=" + Wn.ToString("F2") + " wys=" + Hn.ToString("F2") + " budynek=" + bud + " id=" + d.id + " (przed " + przed + " m; skrzydła 2 × " + (Wn * .5f).ToString("F2")
+                Debug.Log("BRAXHORN_DRZWI typ=wejście szer=" + Wn.ToString("F2") + " wys=" + Hd.ToString("F2") + " budynek=" + bud + " id=" + d.id + " (przed " + przed + " m; skrzydła 2 × " + (Wn * .5f).ToString("F2")
                           + " m; wstawki: boki " + Mathf.Max(0f, boki).ToString("F2") + " m, góra " + Mathf.Max(0f, gora).ToString("F2") + " m, grubość " + T.ToString("F2") + " m, materiał " + (mPlus ? mPlus.name : "—") + " / " + (mMinus ? mMinus.name : "—") + ")");
             }
-            catch (Exception e) { Debug.LogError("BRAXHORN_DRZWI DO POPRAWKI zwężenie " + d.id + ": " + e.Message); }
+            catch (Exception e)
+            {
+                // cofnięcie wszystkiego — wejście zostaje jak było
+                foreach (var g in nowe) if (g) UnityEngine.Object.DestroyImmediate(g);
+                if (stan != null) for (int i = 0; i < d.leaves.Length && i < stan.Length; i++) if (d.leaves[i]) { d.leaves[i].position = stan[i].Item1; d.leaves[i].localScale = stan[i].Item2; d.leaves[i].localRotation = stan[i].Item3; }
+                cofniete++; Debug.LogError("BRAXHORN_DRZWI DO POPRAWKI zwężenie " + d.id + " COFNIĘTE (wyjątek): " + e.Message);
+            }
         }
         Debug.Log("BRAXHORN_WEJSCIA_ZWEZENIE zwezone=" + zwezone + " pominiete=" + pominiete + " cofniete=" + cofniete + " (cel otworu " + Wn.ToString("F2") + " × " + Hn.ToString("F2") + " m = 1.8 × 2.2 m × K; tylne -rear bez zmian w 45)");
         rep.notes.Add("E29b: zwężone wejścia " + zwezone + ", pominięte " + pominiete + ", cofnięte " + cofniete);
