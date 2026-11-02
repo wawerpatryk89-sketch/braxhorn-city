@@ -16,17 +16,19 @@ using UnityEngine.SceneManagement;
 public static class BraxUstawienia
 {
     const string KMuzyka = "braxhorn_ui_muzyka", KEfekty = "braxhorn_ui_efekty", KCzulosc = "braxhorn_ui_czulosc",
-                 KPrzyciski = "braxhorn_ui_przyciski", KLicznik = "braxhorn_ui_licznik";
+                 KPrzyciski = "braxhorn_ui_przyciski", KLicznik = "braxhorn_ui_licznik", KZaPlecami = "braxhorn_ui_kamera_za_plecami";
     static bool wczytane;
     static float muzyka = 1f, efekty = 1f, czulosc = 1f;   // domyślnie jak dotąd (100 % / 100 %): bez zmiany brzmienia, dopóki gracz nie ruszy suwaków
     static int przyciski = 1;
-    static bool licznik;
+    static bool licznik, zaPlecami = true;
 
     public static float Muzyka { get { Wczytaj(); return muzyka; } set { Wczytaj(); muzyka = Mathf.Clamp01(value); ZastosujDzwiek(); } }
     public static float Efekty { get { Wczytaj(); return efekty; } set { Wczytaj(); efekty = Mathf.Clamp01(value); ZastosujDzwiek(); } }
     public static float Czulosc { get { Wczytaj(); return czulosc; } set { Wczytaj(); czulosc = Mathf.Clamp(value, .3f, 2.5f); } }
     public static int Przyciski { get { Wczytaj(); return przyciski; } set { Wczytaj(); przyciski = Mathf.Clamp(value, 0, 2); Wersja++; } }
     public static bool Licznik { get { Wczytaj(); return licznik; } set { Wczytaj(); licznik = value; } }
+    // E22 (build 45, właściciel 21:02: „kamera miała być zawsze za plecami”): domyślnie WŁ.
+    public static bool KameraZaPlecami { get { Wczytaj(); return zaPlecami; } set { Wczytaj(); zaPlecami = value; BraxGymPlayer.AutoCamera = value; } }
     public static int Wersja { get; private set; }   // zmiana rozmiaru przycisków = nowy układ ekranu
     public static float SkalaPrzyciskow => Przyciski == 0 ? .8f : Przyciski == 2 ? 1.25f : 1f;
     public static string NazwaPrzyciskow => BraxTeksty.T(Przyciski == 0 ? "ust.male" : Przyciski == 2 ? "ust.duze" : "ust.srednie");
@@ -45,6 +47,7 @@ public static class BraxUstawienia
             czulosc = Mathf.Clamp(PlayerPrefs.GetFloat(KCzulosc, 1f), .3f, 2.5f);
             przyciski = Mathf.Clamp(PlayerPrefs.GetInt(KPrzyciski, 1), 0, 2);
             licznik = PlayerPrefs.GetInt(KLicznik, 0) == 1;
+            zaPlecami = PlayerPrefs.GetInt(KZaPlecami, 1) == 1; BraxGymPlayer.AutoCamera = zaPlecami;
         }
         catch { }
     }
@@ -55,7 +58,7 @@ public static class BraxUstawienia
         try
         {
             PlayerPrefs.SetFloat(KMuzyka, muzyka); PlayerPrefs.SetFloat(KEfekty, efekty); PlayerPrefs.SetFloat(KCzulosc, czulosc);
-            PlayerPrefs.SetInt(KPrzyciski, przyciski); PlayerPrefs.SetInt(KLicznik, licznik ? 1 : 0); PlayerPrefs.Save();
+            PlayerPrefs.SetInt(KPrzyciski, przyciski); PlayerPrefs.SetInt(KLicznik, licznik ? 1 : 0); PlayerPrefs.SetInt(KZaPlecami, zaPlecami ? 1 : 0); PlayerPrefs.Save();
         }
         catch { }
     }

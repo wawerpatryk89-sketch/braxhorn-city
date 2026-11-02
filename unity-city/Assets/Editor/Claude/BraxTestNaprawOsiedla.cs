@@ -114,6 +114,11 @@ public static class BraxTestNaprawOsiedla
             Require(!BraxWycinanieSiatki.OdejmijTrojkaty(grunt, Matrix4x4.identity, -1, 1, 0, 0f, .002f, plyta, out _, out _, out _), "przeciwny zwrot — bez zmian");
         }
         finally { UnityEngine.Object.DestroyImmediate(grunt); if (wynik) UnityEngine.Object.DestroyImmediate(wynik); }
-        Debug.Log("BRAXHORN_REGRESJA build45: PASS (ślizg auta, skręt, próby kabiny, rodzaj kabiny, mapa dachu, poza w aucie, głos, fontanna, Ogg, odejmowanie trójkątów)");
+        // E22: kamera za plecami — martwa strefa, ograniczona prędkość, zbieżność, przejście przez ±180°
+        Require(BraxGymPlayer.KrokZaPlecy(0f, 3f, 1f / 60f) == 0f, "kamera: martwa strefa 4°");
+        float yaw = 0f; for (int i = 0; i < 120; i++) { float prev = yaw; yaw = BraxGymPlayer.KrokZaPlecy(yaw, 90f, 1f / 60f); Require(yaw - prev <= BraxGymPlayer.ZaPlecamiMaks / 60f + 1e-4f, "kamera: maks. 220°/s"); }
+        Require(Mathf.Abs(90f - yaw) <= BraxGymPlayer.ZaPlecamiMartwa + .01f, "kamera: wraca za plecy w ~2 s");
+        Require(BraxGymPlayer.KrokZaPlecy(170f, -170f, 1f / 60f) > 170f, "kamera: najkrótsza droga przez 180°");
+        Debug.Log("BRAXHORN_REGRESJA build45: PASS (ślizg auta, skręt, próby kabiny, rodzaj kabiny, mapa dachu, poza w aucie, głos, fontanna, Ogg, odejmowanie trójkątów, kamera za plecami)");
     }
 }

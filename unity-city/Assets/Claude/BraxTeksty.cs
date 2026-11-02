@@ -105,6 +105,7 @@ public static class BraxTeksty
         { "ust.auto", new[] { "automatycznie dla tego telefonu: {0} ({1})", "automatic for this phone: {0} ({1})" } },
         { "ust.reczny", new[] { "wybrane ręcznie (zapamiętane) · automatycznie byłoby: {0}", "chosen manually (saved) · automatic would be: {0}" } },
         { "ust.jezyk", new[] { "JĘZYK", "LANGUAGE" } },
+        { "ust.kamera", new[] { "KAMERA ZA PLECAMI", "CAMERA BEHIND" } },
         { "ust.polski", new[] { "POLSKI", "POLSKI" } },
         { "ust.english", new[] { "ENGLISH", "ENGLISH" } },
         // test
