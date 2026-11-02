@@ -216,6 +216,11 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
+      run: |
+        # sparse checkout po sciezkach (bez calego repo), TGA 2048 -> PNG (kolor 1024, normalne 512), w alfie ciala maska ubran
+        python3 unity-tools/claude/fetch_rocketbox.py || echo "DO POPRAWKI: Rocketbox nie pobrany - przechodnie z build 13"
+        du -sh unity-city/Assets/Source/Rocketbox || true
     - name: Odchudzanie modeli pod telefon (tekstury z .glb jako pliki do kompresji, uproszczenie ciezkich skanow) + ekran Autorzy
       run: |
         # ludzie i auta z wersji przeglądarkowej (meshopt + KTX2) → zwykłe .glb dla glTFast (bez pakietów meshopt/KTX)
@@ -464,6 +469,11 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
+      run: |
+        # sparse checkout po sciezkach (bez calego repo), TGA 2048 -> PNG (kolor 1024, normalne 512), w alfie ciala maska ubran
+        python3 unity-tools/claude/fetch_rocketbox.py || echo "DO POPRAWKI: Rocketbox nie pobrany - przechodnie z build 13"
+        du -sh unity-city/Assets/Source/Rocketbox || true
     - name: Odchudzanie modeli pod telefon (tekstury z .glb jako pliki do kompresji, uproszczenie ciezkich skanow) + ekran Autorzy
       run: |
         # ludzie i auta z wersji przeglądarkowej (meshopt + KTX2) → zwykłe .glb dla glTFast (bez pakietów meshopt/KTX)
