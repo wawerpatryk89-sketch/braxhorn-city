@@ -97,6 +97,22 @@ public static class BraxRegionTylyB
             if (n >= 54) { d.uzytkowe[n] = Rodzaj.Konferencja; d.nazwy[n] = "PANORAMA"; }
             var dd = d; Krok("2. budynki: CENTRUM — " + d.nazwa + " (" + (n + 1) + " kondygnacji)", () => Wiezowiec(dd));
         }
+        // sylwetki z daleka (scena główna, niepodzielne): bryły 0.5 m w głąb od lica do korony — widać CENTRUM z siłowni i z tarasu
+        Krok("CENTRUM: sylwetki z daleka (BraxSylwetkiZDaleka)", () =>
+        {
+            var sr = new GameObject("CLAUDE miasto B: CENTRUM z daleka").transform; sr.SetParent(cityRoot, false); sr.position = Vector3.zero;
+            sr.gameObject.AddComponent<LODGroup>();
+            var b = new BraxRegionMeble.Bud(); Bounds ob = default; bool jest = false;
+            for (int i = 0; i < w.Length && i < pietra.Length; i++)
+            {
+                var r = w[i]; float top = Y(pietra[i]) + Hf + 2.4f * K;
+                var lo = new Vector3(r.xMin + .5f, YC, r.yMin + .5f); var hi = new Vector3(r.xMax - .5f, top, r.yMax - .5f);
+                b.MinMax(lo, hi);
+                var bb = new Bounds(); bb.SetMinMax(lo, hi); if (!jest) { ob = bb; jest = true; } else ob.Encapsulate(bb);
+            }
+            var g2 = b.Obiekt("CENTRUM z daleka: sylwetki wieżowców", sr, BraxCityMaterials.Surface("CENTRUM z daleka: szkło ciemne", new Color(.20f, .25f, .30f), .5f, .3f), false, false);
+            var z = sr.gameObject.AddComponent<BraxSylwetkiZDaleka>(); z.sylwetka = g2 ? g2.GetComponent<Renderer>() : null; z.obszar = ob; z.ukryjBlizej = 100f;
+        });
         var g = new Def
         {
             nazwa = "GALERIA BRAXHORN", korona = "GALERIA BRAXHORN", idDrzwi = "GALERIA", x0 = gal.xMin, x1 = gal.xMax, z0 = gal.yMin, z1 = gal.yMax, pietra = 2,
