@@ -314,16 +314,28 @@ public sealed class BraxGymPlayer : MonoBehaviour
         }
         else if(Physics.SphereCast(cameraTarget,.26f,dir,out RaycastHit hit,viewDistance,mask,QueryTriggerInteraction.Ignore))near=Mathf.Max(.35f,hit.distance-.12f);
         position=cameraTarget+dir*near;
+        // build 45: cienka ściana, w której kula startuje (drzwi, ościeżnica) — promień od celu do kamery też ją widzi
+        if(Physics.Linecast(cameraTarget,position,out RaycastHit line,mask,QueryTriggerInteraction.Ignore)&&CameraObstacle(line.collider)){near=Mathf.Min(near,Mathf.Max(.35f,line.distance-.2f));position=cameraTarget+dir*near;}
         for(int k=0;k<4&&near>.36f&&CameraBlocked(position,mask);k++){near=Mathf.Max(.35f,near*.72f);position=cameraTarget+dir*near;}
         // przeszkoda znika (minięty pień, róg) — kamera odjeżdża płynnie (3.5 m/s), a nie skokiem; do przeszkody — od razu
         if(snap||camNear<0f||near<camNear)camNear=near;else{camNear=Mathf.MoveTowards(camNear,near,dt*3.5f);near=camNear;position=cameraTarget+dir*near;}
         view.transform.position=position;view.transform.LookAt(cameraTarget);
-        bool close=near<1.1f;
+        // build 45 (E8, nagranie: kamera „w głowie” Patryka przy drzwiach): postać chowana też wtedy, gdy kamera jest blisko CIAŁA
+        // (kapsuła od stóp do czubka głowy), a nie tylko blisko celu na 1.65 m — Patryk 2.27 m ma głowę wyżej niż cel kamery
+        bool close=near<1.1f||(!autoGracza&&OdlegloscOdCiala(view.transform.position)<.55f);
         if(close!=hiddenClose){hiddenClose=close;foreach(var r in visual.GetComponentsInChildren<Renderer>(true))r.shadowCastingMode=close?UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly:UnityEngine.Rendering.ShadowCastingMode.On;}
         if(contactShadow){var p=transform.position;
             if(cityWorld&&Physics.Raycast(p+Vector3.up*.25f,Vector3.down,out RaycastHit floor,30,~((1<<8)|(1<<29)),QueryTriggerInteraction.Ignore))p.y=floor.point.y+.018f;
             else p.y=body.isGrounded?transform.position.y+.018f:.018f;
             contactShadow.position=p;}
+    }
+    // Odległość punktu od powierzchni kapsuły ciała gracza (CharacterController; bez niego — pion 0–2.3 m, r 0.3).
+    public float OdlegloscOdCiala(Vector3 p)
+    {
+        float r=body?body.radius:.3f, h=body?body.height:2.3f; var c=transform.position+(body?body.center-Vector3.up*h*.5f:Vector3.zero);
+        Vector3 a=c+Vector3.up*r, b=c+Vector3.up*Mathf.Max(r,h-r), ab=b-a;
+        float t=Mathf.Clamp01(Vector3.Dot(p-a,ab)/Mathf.Max(1e-6f,ab.sqrMagnitude));
+        return Vector3.Distance(p,a+ab*t)-r;
     }
     public void ReviewView(string text)
     {

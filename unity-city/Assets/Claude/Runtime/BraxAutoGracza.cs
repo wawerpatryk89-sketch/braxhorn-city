@@ -93,6 +93,21 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         p.transform.SetParent(transform,true); p.transform.SetPositionAndRotation(end,transform.rotation);
         przejscie=false; if(audioSilnika){audioSilnika.volume=.45f;audioSilnika.Play();}
     }
+    const float Skora=.04f;
+    // Maks. skręt kół (°): 38 do 2 m/s, liniowo do 12 przy prędkości maksymalnej (stabilnie na prostej, ciasno na parkingu).
+    public static float MaksSkret(float v, float vmax) => Mathf.Lerp(38f, 12f, Mathf.Clamp01((Mathf.Abs(v) - 2f) / Mathf.Max(1f, vmax - 2f)));
+    // Poślizg po przeszkodzie: ruch rzutowany na płaszczyznę styku (bez składowej pionowej), utrata prędkości 15–85 %
+    // zależnie od kąta (czołowo — prawie stop, po styczności — mało). Czysta funkcja — test BraxTestNaprawOsiedla.
+    public static Vector3 Slizg(Vector3 ruch, Vector3 normalna, out float utrata)
+    {
+        normalna.y = 0f;
+        if (normalna.sqrMagnitude < 1e-6f || ruch.sqrMagnitude < 1e-10f) { utrata = ruch.sqrMagnitude < 1e-10f ? 0f : .85f; return Vector3.zero; }
+        normalna.Normalize();
+        float czolowo = Mathf.Clamp01(-Vector3.Dot(ruch.normalized, normalna));
+        utrata = Mathf.Lerp(.15f, .85f, czolowo);
+        var w = Vector3.ProjectOnPlane(ruch, normalna); w.y = 0f;
+        return w * (1f - utrata);
+    }
     public void Steruj(Vector2 move) { wejscie=Vector2.ClampMagnitude(move,1); ostatnieSterowanie=Time.unscaledTime; }
     bool Grunt(Vector3 pos, out float y)
     {
@@ -110,21 +125,39 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         if(Time.unscaledTime-ostatnieSterowanie>.15f) wejscie=Vector2.zero;
         float desired=wejscie.y*(wejscie.y>=0?maxPredkosc:maxPredkosc*.3f);
         predkosc=Mathf.MoveTowards(predkosc,desired,dt*(Mathf.Abs(desired)<Mathf.Abs(predkosc)?9f:4f));
-        kierownica=Mathf.MoveTowards(kierownica,wejscie.x*32f,dt*85f);
+        // build 45 (właściciel: „zakręty ciężko się wchodzi”): skręt kół do 38° przy małej prędkości, malejący z prędkością
+        kierownica=Mathf.MoveTowards(kierownica,wejscie.x*MaksSkret(predkosc,maxPredkosc),dt*95f);
         float yaw=predkosc/Mathf.Max(1,rozstaw)*Mathf.Tan(kierownica*Mathf.Deg2Rad)*Mathf.Rad2Deg*dt;
         var rot=rotation*Quaternion.Euler(0,yaw,0);
-        Vector3 delta=(rot*Vector3.forward)*predkosc*dt, next=position+delta;
+        Vector3 delta=(rot*Vector3.forward)*predkosc*dt;
         var half=obrys.size*.5f; half.y=Mathf.Max(.2f,half.y-.16f);
-        var center=position+rotation*obrys.center+Vector3.up*.16f;
-        int n=Physics.BoxCastNonAlloc(center,half,delta.sqrMagnitude>1e-8f?delta.normalized:transform.forward,hits,rot,delta.magnitude+.08f,Mask,QueryTriggerInteraction.Ignore);
-        bool blocked=n==hits.Length;
-        for(int i=0;i<n;i++) if(Obcy(hits[i].collider)) blocked=true;
-        n=Physics.OverlapBoxNonAlloc(next+rot*obrys.center+Vector3.up*.16f,half,overlaps,rot,Mask,QueryTriggerInteraction.Ignore);
-        if(n==overlaps.Length)blocked=true;
-        for(int i=0;i<n;i++)if(Obcy(overlaps[i]))blocked=true;
+        // ruch z poślizgiem wzdłuż przeszkody (build 45: wcześniej każda kolizja = predkosc 0 i auto stawało w miejscu):
+        // do miejsca styku, reszta ruchu rzutowana na płaszczyznę styku (poziomo), prędkość traci część zależną od kąta uderzenia
+        Vector3 ruch=delta; bool obrot=true; float utrataSuma=0f;
+        for(int proba=0;proba<2&&ruch.sqrMagnitude>1e-8f;proba++)
+        {
+            var center=position+rotation*obrys.center+Vector3.up*.16f;
+            int n=Physics.BoxCastNonAlloc(center,half,ruch.normalized,hits,rot,ruch.magnitude+Skora,Mask,QueryTriggerInteraction.Ignore);
+            float najblizej=float.PositiveInfinity; Vector3 normalna=Vector3.zero;
+            for(int i=0;i<n;i++) if(Obcy(hits[i].collider)&&hits[i].distance<najblizej){najblizej=hits[i].distance;normalna=hits[i].normal;}
+            if(n==hits.Length){najblizej=0f;normalna=-ruch.normalized;}
+            if(float.IsPositiveInfinity(najblizej))break;                                  // wolne
+            if(najblizej<=1e-4f){ obrot=false; }                                            // start w styku — bez obrotu w ścianę
+            float doStyku=Mathf.Max(0f,najblizej-Skora);
+            var przed=ruch.normalized*Mathf.Min(doStyku,ruch.magnitude);
+            var reszta=ruch-przed;
+            ruch=przed+Slizg(reszta,normalna,out float utrata);
+            utrataSuma=Mathf.Max(utrataSuma,utrata);
+        }
+        if(utrataSuma>0f) predkosc*=1f-utrataSuma;
+        var next=position+ruch; var rotNext=obrot?rot:rotation;
+        int m=Physics.OverlapBoxNonAlloc(next+rotNext*obrys.center+Vector3.up*.16f,half,overlaps,rotNext,Mask,QueryTriggerInteraction.Ignore);
+        bool blocked=m==overlaps.Length;
+        for(int i=0;i<m;i++)if(Obcy(overlaps[i]))blocked=true;
+        if(blocked&&obrot){ rotNext=rotation; m=Physics.OverlapBoxNonAlloc(next+rotNext*obrys.center+Vector3.up*.16f,half,overlaps,rotNext,Mask,QueryTriggerInteraction.Ignore); blocked=m==overlaps.Length; for(int i=0;i<m;i++)if(Obcy(overlaps[i]))blocked=true; }
         if(!Grunt(next,out float ground) || Mathf.Abs(ground-position.y)>.35f) blocked=true;
-        if(blocked) predkosc=0;
-        else {next.y=ground;cialo.MovePosition(next);cialo.MoveRotation(rot);}
+        if(blocked) predkosc*=.5f;                                                          // zaklinowane: hamuje, nie staje w miejscu od razu
+        else {next.y=ground;cialo.MovePosition(next);cialo.MoveRotation(rotNext);}
         obrotKol=Mathf.Repeat(obrotKol+predkosc*dt/Mathf.Max(.1f,promienKola)*Mathf.Rad2Deg,360);
         foreach(var wheel in kola)if(wheel)wheel.localRotation=Quaternion.Euler(obrotKol,0,0);
         foreach(var pivot in skret)if(pivot)pivot.localRotation=Quaternion.Euler(0,BraxAuto.KatKola(kierownica,rozstaw,transform.InverseTransformPoint(pivot.position).x),0);
