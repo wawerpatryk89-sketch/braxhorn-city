@@ -2312,6 +2312,7 @@ public static partial class BraxClaudeOsiedle
         for (int k = 0; k < 4; k++) Tuft(Pw(W - 3f + Mathf.Cos(k * 1.7f) * 1.1f, 0, 3.4f + Mathf.Sin(k * 1.7f) * 1.1f));
         Shrub(Pw(gl0 + .6f, 0, f0 - .9f), .38f, index * 31f);
         Shrub(Pw(gl1 - .4f, 0, f0 - .9f), .4f, index * 53f);
+        ElewacjaWilli(index, Pw, Wax, door0, door1, f0, garageOn, g0, g1, label);   // build 14: kinkiet, numer, donica, lampy garażu
         rep.villas++;
     }
 
@@ -2573,14 +2574,11 @@ public static partial class BraxClaudeOsiedle
             BoxMinMax(Frame, a + .6f, b - .6f, 3.5f, 3.58f, zf - .06f, zf + .01f, false);
             BoxMinMax(Frame, a + .6f, d0, .3f, .38f, zf - .06f, zf + .01f, false); BoxMinMax(Frame, d0 + 1.8f, b - .6f, .3f, .38f, zf - .06f, zf + .01f, false);
             // drzwi automatyczne otwarte (wejście bez skrzydła)
-            // markiza (stal) i szyld nad nią
-            BoxMinMax(Frame, a + .4f, b - .4f, 3.62f, 3.72f, zf - 1.6f, zf, false, true);
-            // 1.11 (właściciel 18:32: „listwa przecina napisy”): szyld 3.2–4.7 m przechodził przez markizę (3.62–3.72 m) —
-            // teraz cały nad markizą (spód 3.78 m), proporcje 4:1, najwyżej 0.95 m wysokości
-            { float sw = Mathf.Min(Mathf.Min(6f, unit - 2f), .95f * 4f), sh = sw / 4f;
-              Sign(shops[k], new Vector3((a + b) * .5f, 3.78f + sh * .5f, zf - .12f), sw, sh, Vector3.back); }
+            // build 14 (zdjęcie 22:35: „szyldy na tablicach przykręconych do czarnej ramy”): zamiast stalowej płyty 3.62 m i tablicy
+            // na niej — markizy w paski, szklany daszek nad drzwiami, litery przestrzenne, kaseton na wysięgniku (BraxClaudeOsiedleElewacje)
+            LokalPierzei(k, shops[k], a, b, d0, zf, x0, PY);
             // okna apartamentów: front (za balkonem) i tył (od parku) z balkonami francuskimi
-            for (float x = a + 1.4f; x < b - 1.2f; x += 3.2f)
+            for (float x = a + 1.4f; x < b - 1.2f && x + 2.06f < x1 - .3f; x += 3.2f)   // build 14: ostatnie okno nie wystaje za szczyt
             {
                 BoxMinMax(FlatGlass, x, x + 2.0f, H0 + .6f, H0 + 2.9f, zf + .77f, zf + .83f, false);
                 BoxMinMax(Frame, x - .06f, x + 2.06f, H0 + 2.9f, H0 + 2.97f, zf + .75f, zf + .84f, false);
@@ -2625,6 +2623,7 @@ public static partial class BraxClaudeOsiedle
             if (Tree(new Vector3(x, 0, zb + 5.5f), 7.5f + (float)treeRnd.NextDouble() * 1.5f, x * 13f)) rep.plotTrees++;
             Bush(new Vector3(x + 5f, 0, zb + 2.2f), 1.8f, x * 7f);
         }
+        Guard("pierzeja B: gzymsy, pilastry, okna z zasłonami, tył, schody pożarowe", () => ElewacjaPierzei(x0, x1, zf, zb, H0, H1, shops.Length));
         rep.shops = shops.Length;
     }
 
@@ -2702,7 +2701,7 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(Stucco, cx - 7.6f, cx + 7.6f, 3.2f, 3.5f, Mathf.Min(pz0, pz1) - .9f, Mathf.Max(pz0, pz1) + .3f, false, true);
         float face = pz0 - dir * .02f;
         BoxMinMax(ShopGlass, cx - 5.5f, cx + 5.5f, .3f, 2.9f, Mathf.Min(face, face - dir * .05f), Mathf.Max(face, face - dir * .05f), false);
-        Sign("kort", new Vector3(cx + 6f, 2.5f, cz - dir * 9.12f), 5f, 1.25f, new Vector3(0, 0, -dir));
+        SzyldKortu(gx, gate, dir);   // build 14: brama z napisem zamiast tablicy na siatce
         // zieleń klubu: szpaler drzew za kortem i krzewy przy ogrodzeniu
         for (float x = cx - 15f; x <= cx + 15f; x += 7.5f) if (Tree(new Vector3(x, 0, cz + dir * 12.5f + (x > cx - 8 && x < cx + 8 ? dir * 6f : 0)), 7.2f + (float)treeRnd.NextDouble(), x * 11f)) rep.plotTrees++;
         for (float x = cx - 16f; x <= cx + 16f; x += 3.2f) if (Mathf.Abs(x - gx) > 2.2f && !IsHard(x, cz - dir * 9.9f, .5f)) Bush(new Vector3(x, 0, cz - dir * 9.9f), 1.2f, x * 5f);
@@ -2724,7 +2723,7 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(Glass, x - 1.2f, x + 1.2f, .9f, 2.3f, z + 1.58f, z + 1.63f, false);
         BoxMinMax(Wood, x - .6f, x + .6f, .02f, 2.62f, z - 1.66f, z - 1.58f, false);                    // drzwi 1.2 × 2.6 m (jedna miara)
         BoxMinMax(Frame, x - .66f, x + .66f, 2.62f, 2.68f, z - 1.68f, z - 1.58f, false, true);
-        Sign("ochrona", new Vector3(x, 2.5f, z + 1.68f), 1.8f, .45f, Vector3.forward);
+        SzyldOchrony(x, z);   // build 14: litery przestrzenne
     }
 
     // Elewacje budynków Codexa (kasyno, dyskoteka, komisariat, szpital, sala bokserska, hala walk):
@@ -4394,7 +4393,7 @@ public static partial class BraxClaudeOsiedle
         var peach = Pbr("tynk brzoskwiniowy (dom Wawerów)", "white_stucco_02", 2.5f, new Color(.96f, .79f, .64f));
         var roof = Pbr("blachodachówka czerwona", "clay_roof_tiles_02", 2.2f, new Color(.86f, .36f, .25f), .85f);
         var brown = Plain("okleina orzech (okna, drzwi, rynny)", new Color(.26f, .15f, .08f), .45f);
-        var glass = Plain("szyba ciemna z odbiciem", new Color(.07f, .09f, .11f), .95f, .2f);
+        var glass = Glass;   // build 14 (zdjęcie 23:01: czarne prostokąty okien): „pokój za szybą” jak w innych domach
         var sill = Plain("parapet szary", new Color(.62f, .62f, .60f), .4f);
         var soffit = Plain("podbitka brązowa", new Color(.30f, .19f, .11f), .3f);
         var brick = Plain("cegła komina", new Color(.50f, .20f, .14f), .2f);
@@ -4528,6 +4527,7 @@ public static partial class BraxClaudeOsiedle
         // przy ulicy wschodniej (three.js (51, −22)). Stare tablice (3.2 × 0.6 m, y 2.75, dwustronne) wycięte, nowe granatowe.
         CutVolumes(estate, physics, new List<Bounds> { MinMax(-7.7f, -4.3f, 2.38f, 3.12f, 81.84f, 82.16f), MinMax(-52.7f, -49.3f, 2.38f, 3.12f, -22.16f, -21.84f) });
         // 1.11: nowe tablice ulic (polski wzór, na własnym słupku na narożniku) stawia DrogiA — stare słupy Codexa wycięte
+        ElewacjaWawer();   // build 14: opaski okien, latarenki, balkon od ogrodu (BraxClaudeOsiedleElewacje)
         rep.notes.Add("dom rodziny Wawerów (Poznańska 2): działka dom-08, dom 10 × 14 m z dachem czterospadowym, ganek, markiza, płot ze słupami i przęsłami, tuje, świerk");
     }
 
@@ -4684,7 +4684,7 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(Concrete, dX - dw, dX + dw, 0, .02f, fz0 - .3f, fz1 + .05f, false);                       // próg (między ścianą hali a obudową)
         BoxMinMax(Frame, dX - dw - .08f, dX + dw + .08f, dh - .05f, dh + .08f, fz0, fz1 + .05f, false, true);   // nadproże (ze spodem)
         foreach (float sx in new[] { dX - dw - .08f, dX + dw }) BoxMinMax(Frame, sx, sx + .08f, 0, dh, fz0, fz1 + .05f, false);   // ościeżnica
-        BoxMinMax(Frame, dX - 1.6f, dX + 1.6f, 3.3f, 3.42f, fz1, fz1 + 1.4f, false, true);                    // daszek
+        DaszekSzklany("A siłownia", new Vector3(dX, 3.36f, fz1), Vector3.forward, 3.4f, 1.4f, 2.7f, .55f); WejscieSilowni(dX, fz1);   // build 14: szklany daszek (bez płyty kamery), kinkiety
         BoxMinMax(Plinth, hx0 - t - .04f, dX - dw - .08f, 0, .5f, fz1, fz1 + .04f, false); BoxMinMax(Plinth, dX + dw + .08f, hx1 + t + .04f, 0, .5f, fz1, fz1 + .04f, false);
         BoxMinMax(Frame, hx0 - t - .1f, hx1 + t + .1f, H, H + .25f, hzP - t - .1f, fz1 + .1f, false, true);
         BoxMinMax(Gravel, hx0, hx1, H - .2f, H - .1f, hzP, hzS, false);
@@ -4694,9 +4694,9 @@ public static partial class BraxClaudeOsiedle
         // (proporcje tekstury 4:1) na 3.75–5.15 m: nad daszkiem (linia wzroku nad jego krawędzią: 3.49 m > 3.42 m) i w kadrze.
         const float sW = 5.6f, sH = 1.4f, sY0 = 3.75f;
         for (float x = hx0 + 3f; x < hx1 - 2f; x += 6f) if (Mathf.Abs(x - dX) > sW * .5f + .35f) BoxMinMax(Plinth, x - .25f, x + .25f, 0, H, fz1, fz1 + .2f, false);   // pilastry (nie przez szyld)
-        Sign("braxhorn", new Vector3(dX, sY0 + sH * .5f, fz1 + .12f), sW, sH, Vector3.forward);
+        SzyldSilowniFront(dX, sY0, fz1, sW - .2f);   // build 14: litery przestrzenne zamiast tablicy
         // drugi szyld od parku (ściana południowa, zachodnia część: widać go z polany siłowni plenerowej, x 47–69 bez drzew)
-        Sign("braxhorn", new Vector3(hx0 - t + 7.4f, 6.6f, hzP - t - .12f), 12f, 3f, Vector3.back);
+        SzyldSilowniPark(new Vector3(hx0 - t + 7.4f, 0f, hzP - t), 5.45f);
         // plac przed wejściem: od ściany do fartucha kasyna (z -61.5) i na zachód do ścieżki osiedla A (x 55)
         Top(Slabs, 55f, hx1 + t, fz1, -61.5f, .05f);
         Planter(new Vector3(dX - 3.2f, .05f, fz1 + .8f), 2.2f, .7f, 701, 1, 0); Planter(new Vector3(dX + 3.2f, .05f, fz1 + .8f), 2.2f, .7f, 702, 1, 0);
@@ -5472,7 +5472,7 @@ public static partial class BraxClaudeOsiedle
     // ---------------- główne ----------------
     public static void Apply()
     {
-        rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); WyczyscWspolne14(); ZmierzBohatera(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
+        rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); WyczyscWspolne14(); WyczyscElewacje(); ZmierzBohatera(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
         pavedCells.Clear(); pavingSet = null; CodexPaving();
         try { Build(); rep.status = "ZBUDOWANO"; }
         catch (Exception e) { rep.status = "BŁĄD"; rep.error = e.Message; Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE " + e); }
@@ -5536,7 +5536,7 @@ public static partial class BraxClaudeOsiedle
         Guard("dom rodziny Wawerów (Poznańska 2)", () => WawerHouse(estate, physics));
         CivicFacades();
         Guard("kasyno — bogate wejście", () => CasinoEntrance(estate, physics));
-        Guard("szyldy budynków (policja, szpital, hala walk)", () => CivicSigns(estate));
+        Guard("szyldy premium budynków A (litery przestrzenne, kasetony, szklane daszki zamiast daszków Codexa)", () => SzyldyBudynkowA(estate, physics));   // build 14 (zamiast CivicSigns)
         Guard("kasyno — przedsionek luksusowy", CasinoFoyer);
         Guard("wylot tunelu z miasta", () => CityTunnelPortal(estate, physics));
         Guard("drogi osiedla A od nowa (skrzyżowania, zebry, rondo, parkingi, tablice)", () => DrogiA(estate, physics));
@@ -5608,6 +5608,7 @@ public static partial class BraxClaudeOsiedle
         Guard("ulice: parking i przejścia B, wyposażenie, strefy zatrzymania, kontrola (BraxClaudeOsiedleUlice)", UliceOsiedla);   // build 14 „drogi”
         Guard("korony drzew z dala od budynków", PruneCrowns);
         Guard("kraniec mapy: teren dookoła zamiast pustki", KraniecMapy);
+        Guard("elewacje i szyldy: detale A, kontrola zasłonięcia, scalanie z LOD", () => ElewacjeKoniec(estate, physics));   // build 14 (BraxClaudeOsiedleSzyldy/Elewacje)
         // 7) trawa w 3D na wszystkich trawnikach parku i osiedla B (po wszystkim, co zajmuje ziemię)
         group = "Trawa 3D";
         Guard("trawa 3D (kępy instancjami, maska ziemi)", () => GrassField(X0 + .4f, X1 - .4f, SouthZ + .4f, FenceA - .4f));
