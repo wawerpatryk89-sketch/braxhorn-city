@@ -65,9 +65,14 @@ jobs:
       - name: Check deployed proof and Unity response headers
         run: |
           python3 - <<'PY'
-          import json,os,urllib.request
+          import json,os,urllib.request,urllib.parse
           url=os.environ['PREVIEW_URL']
-          proof=json.load(urllib.request.urlopen(url+'/deployment-proof.json',timeout=60))
+          with urllib.request.urlopen(url+'/deployment-proof.json',timeout=60) as response:
+              if urllib.parse.urlsplit(response.url).hostname != urllib.parse.urlsplit(url).hostname:
+                  raise SystemExit('BLOCKED: Preview requires Vercel authentication; authorize this project before live QA')
+              if 'application/json' not in response.headers.get('Content-Type',''):
+                  raise SystemExit('BLOCKED: expected Unity proof JSON, received '+response.headers.get('Content-Type','unknown'))
+              proof=json.load(response)
           assert proof['engine']=='Unity 6' and proof['target']=='preview'
           assert proof['sourceCommit']=='5623047e2713a25ffc885a2d3037b5f8727fd606'
           paths=['/','/unity-gym/','/unity-gym/city-transport.js']
