@@ -378,7 +378,13 @@ public sealed class BraxTouchControls : MonoBehaviour
         // przyciski walki
         if (OnFoot)
         {
-            BraxGui.PrzyciskKolowy(G(cCios), rC, BraxIkony.Piesc, Wcis(PCios), BraxGui.Trafienie);
+            if (BraxSport.PilkaWRekach)   // piłka do kosza w rękach: CIOS = rzut (2.11 właściciel nie znalazł rzutu) — napis RZUT zamiast pięści
+            {
+                BraxGui.PrzyciskKolowy(G(cCios), rC, null, Wcis(PCios), BraxGui.Akcent);
+                var gc = G(cCios);
+                BraxGui.Napis(new Rect(gc.x - rC, gc.y - rC, rC * 2f, rC * 2f), "RZUT", BraxGui.Styl(Mathf.RoundToInt(rC * .46f), true, TextAnchor.MiddleCenter), BraxGui.Biel);
+            }
+            else BraxGui.PrzyciskKolowy(G(cCios), rC, BraxIkony.Piesc, Wcis(PCios), BraxGui.Trafienie);
             BraxGui.PrzyciskKolowy(G(cKop), rS, BraxIkony.But, Wcis(PKop), BraxGui.Trafienie);
             BraxGui.PrzyciskKolowy(G(cSkok), rS, BraxIkony.Skok, Wcis(PSkok), BraxGui.Akcent);
         }

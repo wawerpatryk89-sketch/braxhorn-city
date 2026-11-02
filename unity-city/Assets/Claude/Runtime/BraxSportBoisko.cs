@@ -25,6 +25,9 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
     public Vector3[] tablice = new Vector3[0];    // kosz: środki tablic
     public float siatkaDol = 1.43f, siatkaGora = 2.43f, siatkaPol = 3.5f;   // siatkówka (wysokości bezwzględne)
     public float bramkaSzer = 3f, bramkaWys = 1.5f, bramkaGl = 1f;
+    // Skala świata (miasto 2.11, właściciel: „umówiliśmy się na skalę wszystkiego — piłka też”): generator miasta ustawia
+    // k = 1.294 (BraxClaudeOsiedle.K) — promienie piłek, obręczy, kolizje obręczy i tablic rosną × k. Osiedle: 1 (bez zmian).
+    public float skala = 1f;
 
     public static readonly System.Collections.Generic.List<BraxSportBoisko> Wszystkie = new System.Collections.Generic.List<BraxSportBoisko>();
     public bool Na { get; private set; }        // gracz w strefie tego boiska (boiska mogą się nakładać: bramki na boisku do kosza)
@@ -72,6 +75,8 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
     void Start()
     {
         osX.y = 0f; if (osX.sqrMagnitude < 1e-4f) osX = Vector3.right; osX.Normalize();
+        if (skala < .5f || skala > 3f) skala = 1f;
+        float k = skala;
         osZ = Vector3.Cross(osX, Vector3.up);
         kolizje = new GameObject("kolizje gry").transform; kolizje.SetParent(transform, false);
         // nawierzchnia dla piłek: jeśli pod boiskiem nie ma kolizji na wysokości nawierzchni — cienka płyta
@@ -85,43 +90,43 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
         switch (gra)
         {
             case Gra.Kosz:
-                r = .12f;
-                foreach (var c in cele) for (int k = 0; k < 16; k++) { float a = k * Mathf.PI / 8f; KolKula(c + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * .23f, .02f); }   // obręcz Ø 0.46 z 16 kul
-                foreach (var b in tablice) Kol(b, new Vector3(.05f, 1.05f, 1.8f));
+                r = .12f * k;
+                foreach (var c in cele) for (int j = 0; j < 16; j++) { float a = j * Mathf.PI / 8f; KolKula(c + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * .23f * k, .02f * k); }   // obręcz Ø 0.46 × k z 16 kul
+                foreach (var b in tablice) Kol(b, new Vector3(.05f, 1.05f, 1.8f) * k);
                 for (int i = 0; i < cele.Length && i < tablice.Length; i++)   // mocowanie obręczy do tablicy
                 {
                     var c = cele[i]; var b = tablice[i]; var mid = new Vector3((c.x + b.x) * .5f, c.y - .03f, (c.z + b.z) * .5f);
-                    var dd = b - c; dd.y = 0f; float len = Mathf.Max(.05f, dd.magnitude - .23f);
-                    var mm = c + dd.normalized * (.23f + len * .5f); mm.y = c.y - .03f;
-                    KolObr(mm, new Vector3(.12f, .04f, len), Quaternion.LookRotation(dd.normalized));
+                    var dd = b - c; dd.y = 0f; float len = Mathf.Max(.05f, dd.magnitude - .23f * k);
+                    var mm = c + dd.normalized * (.23f * k + len * .5f); mm.y = c.y - .03f * k;
+                    KolObr(mm, new Vector3(.12f * k, .04f * k, len), Quaternion.LookRotation(dd.normalized));
                 }
-                Pilki(1, .12f, .6f, .82f, 0, "piłka do koszykówki");
+                Pilki(1, .12f * k, .6f, .82f, 0, "piłka do koszykówki");
                 break;
             case Gra.Nozna:
-                r = .11f;
+                r = .11f * k;
                 foreach (var g in cele)
                 {
                     var n = g - srodek; n.y = 0f; n.Normalize(); var s = Vector3.Cross(Vector3.up, n); var q = Quaternion.LookRotation(n);
                     float w = bramkaSzer, h = bramkaWys, d = bramkaGl;
                     foreach (int sg in new[] { -1, 1 })
                     {
-                        KolObr(g + s * sg * w * .5f + n * .05f + Vector3.up * h * .5f, new Vector3(.1f, h, .1f), q);          // słupek
+                        KolObr(g + s * sg * w * .5f + n * .05f * k + Vector3.up * h * .5f, new Vector3(.1f * k, h, .1f * k), q);   // słupek
                         KolObr(g + s * sg * w * .5f + n * d * .5f + Vector3.up * h * .5f, new Vector3(.04f, h, d), q);        // siatka boczna
                     }
-                    KolObr(g + n * .05f + Vector3.up * h, new Vector3(w, .1f, .1f), q);                                      // poprzeczka
+                    KolObr(g + n * .05f * k + Vector3.up * h, new Vector3(w, .1f * k, .1f * k), q);                          // poprzeczka
                     KolObr(g + n * d + Vector3.up * h * .5f, new Vector3(w, h, .05f), q);                                    // siatka tylna
                     KolObr(g + n * d * .5f + Vector3.up * h, new Vector3(w, .04f, d), q);                                    // siatka górna
                 }
-                Pilki(1, .11f, .43f, .62f, 1, "piłka nożna");
+                Pilki(1, .11f * k, .43f, .62f, 1, "piłka nożna");
                 break;
             case Gra.Siatkowka:
-                r = .105f;
-                Kol(new Vector3(srodek.x, (siatkaDol + siatkaGora) * .5f, srodek.z), new Vector3(.04f, siatkaGora - siatkaDol, siatkaPol * 2f));
-                Pilki(1, .105f, .27f, .6f, 2, "piłka do siatkówki");
+                r = .105f * k;
+                Kol(new Vector3(srodek.x, (siatkaDol + siatkaGora) * .5f, srodek.z), new Vector3(.04f * k, siatkaGora - siatkaDol, siatkaPol * 2f));
+                Pilki(1, .105f * k, .27f, .6f, 2, "piłka do siatkówki");
                 break;
             default:
-                r = .033f;
-                Pilki(3, .033f, .057f, .74f, 3, "piłka tenisowa");
+                r = .033f * k;
+                Pilki(3, .033f * k, .057f, .74f, 3, "piłka tenisowa");
                 for (int i = 0; i < pilki.Length; i++) Schowaj(i);
                 break;
         }
@@ -129,7 +134,7 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
         gotowe = true;
     }
 
-    Vector3 Srodek(int i) => new Vector3(srodek.x, podloga + r + .02f, srodek.z) + osZ * (i * .4f) + (gra == Gra.Siatkowka ? osX * pol.x * .5f : gra == Gra.Nozna ? osZ * 2.5f : Vector3.zero);
+    Vector3 Srodek(int i) => new Vector3(srodek.x, podloga + r + .02f, srodek.z) + osZ * (i * .4f * skala) + (gra == Gra.Siatkowka ? osX * pol.x * .5f : gra == Gra.Nozna ? osZ * 2.5f : Vector3.zero);
 
     void Kol(Vector3 c, Vector3 size) => KolObr(c, size, Quaternion.LookRotation(osZ));   // lokalne x = osX
     void KolObr(Vector3 c, Vector3 size, Quaternion q)
@@ -268,7 +273,7 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
                         {
                             float yPrev = pos.y - v.y * Time.fixedDeltaTime;
                             var h = pos - c; h.y = 0f;
-                            if (yPrev > c.y && pos.y <= c.y && h.magnitude < .2f)
+                            if (yPrev > c.y && pos.y <= c.y && h.magnitude < .2f * skala)
                             {
                                 int pts = rzut3 ? 3 : 2; liczony = true;
                                 BraxSport.KoszPunkty += pts; BraxSport.KoszTrafione++;
@@ -352,6 +357,7 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
         b.linearVelocity = Vector3.zero; b.angularVelocity = Vector3.zero;
         b.isKinematic = true; b.interpolation = RigidbodyInterpolation.None; kule[0].enabled = false;
         BraxSport.PilkaWRekach = b.transform; kozBlend = 0f;
+        BraxSport.Pokaz("CIOS = RZUT DO KOSZA", 1.8f);   // 2.11: właściciel nie znalazł rzutu — podpowiedź przy podniesieniu
     }
 
     void Pusc(Vector3? predkosc = null)
@@ -380,11 +386,11 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
         else
         {
             var c = cele[best]; var hz = c - gt.position; hz.y = 0f; float d = hz.magnitude;
-            rzut3 = d > 6.75f;
+            rzut3 = d > 6.75f * skala;
             float szansa = Mathf.Clamp(.9f - .065f * d, .2f, .88f);
             var cel = c + Vector3.up * .03f;
-            if (Random.value < szansa) cel += new Vector3(Random.Range(-.015f, .015f), 0f, Random.Range(-.015f, .015f));
-            else { float a = Random.value * Mathf.PI * 2f; cel += new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * Random.Range(.2f, .36f); }   // pudło: w obręcz / tablicę
+            if (Random.value < szansa) cel += new Vector3(Random.Range(-.015f, .015f), 0f, Random.Range(-.015f, .015f)) * skala;
+            else { float a = Random.value * Mathf.PI * 2f; cel += new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * Random.Range(.2f, .36f) * skala; }   // pudło: w obręcz / tablicę
             float T = Mathf.Clamp(.8f + .09f * d, .85f, 1.6f);   // wysoki łuk (kąt wejścia ok. 50°)
             v = Balist(p0, cel, T);
         }
