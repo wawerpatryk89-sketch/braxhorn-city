@@ -1,148 +1,88 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-// BRAXHORN CITY — cypel: stara łąka i las z prostokąta plaży, zatoka bez niewidzialnej podłogi, las za plażą.
-//
-// Diagnoza (build 62be06c, zdjęcia 13–17): jachty „zatopione w trawie”, pomost widoczny tylko palami.
-// W oryginalnym mieście (braxhorn-city.glb, po lustrze X glTFast) półwysep leśny leży NAD wodą:
-//   CityMesh_257  łąka   x -60..150  y -0.6..0   z 112.5..240  (kolor 0.48/0.55/0.35 = zielony)
-//   CityMesh_195/200/206/208/209/210/211  las i skarpy  x 0..135  y -24..35  z 94..229
-// Decyzja właściciela (31.10, film): CAŁY ten narożnik (x 84..150, z 112.5..160) to plaża, za nią dużo drzew,
-// marina w zatoce na południe. Piasek stawia BraxHarborBeachBuild.CapeBeach; tu:
-//  1) łąka, sosny i skarpy wycięte z prostokąta plaży (razem z pasem lądu x 66..84 za promenadą),
-//  2) kolizje oryginału w tych bryłach,
-//  3) niewidzialna „Original virtual floor” y=0 usunięta nad zatoką i przy wschodnim brzegu → dno −2.6 m (woda po pas),
-//  4) pas drzew (Poly Haven, pełna jakość) za plażą: północ z 160..174 i zachód x 50..66.
+// BRAXHORN CITY — MORZE (przebudowa 2.11, wykonawca „nabrzeże”). Zgłoszenie: zdjęcie CI 13.1 nr 35 — Brax STOI NA WODZIE
+// (na wyspę dało się dojść pieszo po morzu).
+// Przyczyna: źródłowe miasto ma niewidzialną podłogę y = 0 (BaseFloor, „Original virtual floor”) pod całą mapą, także
+// pod morzem x 84…884. Stara wersja tego kroku usuwała ją tylko w zatoce (x 84…166) — reszta morza była „chodnikiem”.
+// Teraz:
+//  1) podłoga y=0 usunięta nad CAŁYM morzem (x ≥ 84), z wyjątkiem łąki starego miasta na północy (x 84…150, z 178…240),
+//     na której stoi las — tam podłoga zostaje (las ma po czym chodzić);
+//  2) dno morza: kolizja głęboko (y −7) — na plaży, falochronie i wyspie stoją ich własne kolizje terenu;
+//  3) strażnik głębokiej wody (BraxWodaGlebia, runtime): kąpiel po pas przy plaży, głębiej → powrót na suchy ląd;
+//  4) las za plażą: drzewa na ściółce plaży (z 168…177) — teren stawia BraxNabrzezePlaza (stare cięcia łąki i lasu z tego
+//     kroku przeniesione tam: wycinamy całe źródło w prostokącie plaży, zanim położymy nowy teren).
+// Poziom wody: y = −1.7 (BraxCityWaterBuild.WaterY).
 public static class BraxRegionSea
 {
-    const float Shore = 84.3f, East = BraxHarborBeachBuild.CapeX1, Z0 = BraxHarborBeachBuild.CapeZ0, Z1 = BraxHarborBeachBuild.CapeZ1 + 2f;
-    const float LandX0 = 66f, LandZ0 = 113.7f;   // od 113.7: krawężnik promenady (CityMesh_232/233) sięga z=113.6
-
     public static void Apply(Transform root)
     {
-        var original = BraxClaudeGround.SourceCity;
         var physics = BraxClaudeGround.SourcePhysics;
-        if (!original) { BraxRegion.Note("cypel: brak hierarchii oryginału (SourceCity), pomijam"); return; }
-        string outDir = BraxRegion.Out + "/Cuts";
-        Directory.CreateDirectory(outDir);
-
-        // 1) Łąka, las i skarpy w prostokącie plaży nad wodą (x 84.3..150, z 112.5..162, cała wysokość).
-        var sea = new Bounds(new Vector3((Shore + East) * .5f, 20f, (Z0 + Z1) * .5f), new Vector3(East - Shore, 90f, Z1 - Z0));
-        int seaMeshes = Cut(original, sea, outDir, "cape_beach");
-        // 2) Sosny i krzaki nad lądową częścią plaży (x 66..84.3, z 113.7..162), od −0.3 m w górę.
-        var land = new Bounds(new Vector3((LandX0 + Shore) * .5f, 30f, (LandZ0 + Z1) * .5f), new Vector3(Shore - LandX0, 60.6f, Z1 - LandZ0));
-        int landMeshes = Cut(original, land, outDir, "beach_trees");
-        // 3) Kolizje oryginału (siatki fizyki bez renderera) w tych samych bryłach.
-        int colTris = CutColliders(physics, sea) + CutColliders(physics, land);
-        // 4) Niewidzialna podłoga y=0 nad wodą: zatoka na południe od cypla (x 84.3..166, z 60..112.5) i wschodni brzeg
-        //    (x 150..166, z 112.5..162) → dno morza 2.6 m pod lustrem (woda po pas). Pod piaskiem podłoga zostaje
-        //    tylko tam, gdzie piasek leży wyżej (plateau), a pod spadkiem (6 m od brzegu) też ją usuwamy.
+        if (!physics) { BraxRegion.Note("morze: brak kolizji źródła (SourcePhysics), pomijam"); return; }
+        // 1) podłoga y=0 nad morzem
         int boxes = 0;
         foreach (var fl in new[]
         {
-            new Bounds(new Vector3((Shore + 166f) * .5f, -.09f, (60f + Z0 + 7f) * .5f), new Vector3(166f - Shore, .6f, Z0 + 7f - 60f)),       // zatoka + 7 m spadku
-            new Bounds(new Vector3((East - 7f + 166f) * .5f, -.09f, (Z0 + Z1) * .5f), new Vector3(166f - East + 7f, .6f, Z1 - Z0)),           // wschód + 7 m spadku
+            Bx(84f, 900f, -520f, 178f),     // całe morze na południe od lasu (zatoka, marina, port, wyspa, otwarte morze)
+            Bx(150f, 900f, 178f, 470f),     // na wschód od łąki
+            Bx(84f, 150f, 240f, 470f),      // za łąką
         })
         {
             try { boxes += BraxCityMeshCut.SubtractBoxColliders(physics, fl); }
-            catch (Exception e) { BraxRegion.Note("cypel: podłoga nad wodą: " + e.Message); }
+            catch (Exception e) { BraxRegion.Note("morze: podłoga nad wodą: " + e.Message); }
         }
-        Seabed(root, "CLAUDE dno zatoki (woda po pas)", new Vector3((Shore + 166f) * .5f, -2.75f, (60f + Z0) * .5f), new Vector3(166f - Shore, .3f, Z0 - 60f));
-        Seabed(root, "CLAUDE dno przy wschodnim brzegu", new Vector3((East + 166f) * .5f, -2.75f, (Z0 + Z1) * .5f), new Vector3(166f - East, .3f, Z1 - Z0));
-
-        // 5) Las za plażą: pas drzew na północ (z 160..174, x 84..150) i na zachód (x 50..66, z 114..162), pełna jakość.
+        // 2) dno morza (głęboko; płycizny, plaża i wyspa mają własne kolizje terenu)
+        var dno = new GameObject("CLAUDE morze: dno (kolizja)"); dno.transform.SetParent(root, false);
+        var bc = dno.AddComponent<BoxCollider>(); bc.center = new Vector3(492f, -7.5f, -25f); bc.size = new Vector3(816f, 1f, 990f);
+        // 3) strażnik głębokiej wody (bez renderera i kolizji — zostaje w scenie głównej przy podziale na obszary)
+        var g = new GameObject("BRAXHORN nabrzeże: głęboka woda (powrót na brzeg)"); g.transform.SetParent(root, false);
+        var straz = g.AddComponent<BraxWodaGlebia>(); straz.woda = BraxNabrzeze.Woda;
+        // 4) las za plażą
         int trees = TreeBelt(root);
-
-        BraxRegion.Note("cypel: wycięte siatki łąki/lasu z plaży " + seaMeshes + " + nad piaskiem " + landMeshes
-                        + ", trójkątów kolizji " + colTris + ", podłóg nad wodą " + boxes + ", drzew za plażą " + trees);
+        BraxRegion.Note("morze: usunięte podłogi y=0 nad wodą " + boxes + ", dno y −7, strażnik głębokiej wody, drzew za plażą " + trees + ", poziom wody y " + BraxNabrzeze.Woda);
+        Debug.Log("BRAXHORN_MORZE podłoga nad wodą usunięta (" + boxes + " brył), woda y " + BraxNabrzeze.Woda + ", dno y −7, strażnik głębokości " + straz.glebokosc + " m");
     }
 
-    static void Seabed(Transform root, string name, Vector3 center, Vector3 size)
-    {
-        var bed = new GameObject(name); bed.transform.SetParent(root, false);
-        var bc = bed.AddComponent<BoxCollider>(); bc.center = center; bc.size = size;
-        GameObjectUtility.SetStaticEditorFlags(bed, StaticEditorFlags.BatchingStatic);
-    }
+    static Bounds Bx(float x0, float x1, float z0, float z1)
+    { var b = new Bounds(); b.SetMinMax(new Vector3(x0, -.45f, z0), new Vector3(x1, .02f, z1)); return b; }
 
     static int TreeBelt(Transform root)
     {
-        var trees = new List<GameObject>();
-        foreach (var id in new[] { "island_tree_03", "pine_tree_01", "fir_tree_01" }) { var m = BraxRegion.Model(id); if (m) trees.Add(m); }
+        var drzewo = BraxRegion.Model("drzewo_verdant");
         var shrubs = new List<GameObject>();
         foreach (var id in new[] { "shrub_01", "shrub_02", "shrub_03", "park_shrub" }) { var m = BraxRegion.Model(id); if (m) shrubs.Add(m); }
-        if (trees.Count == 0) { BraxRegion.Note("cypel: brak modeli drzew"); return 0; }
+        if (!drzewo) { BraxRegion.Note("las za plażą: brak modelu drzewa"); return 0; }
         var parent = BraxRegion.Root(root, "CLAUDE las za plażą");
         Physics.SyncTransforms();
         int planted = 0, bushes = 0;
         var spots = new List<Vector3>();
-        // dwa rzędy na północ od plaży (przesunięte o pół kroku), co 5 m z losowym rozrzutem
-        for (float x = 86f; x <= 148f; x += 5f) { spots.Add(new Vector3(x + BraxRegion.Range(-1.2f, 1.2f), 0, 162.5f + BraxRegion.Range(-.8f, .8f))); spots.Add(new Vector3(x + 2.5f + BraxRegion.Range(-1.2f, 1.2f), 0, 168f + BraxRegion.Range(-1.5f, 1.5f))); }
-        // rząd na zachód (za pasem lądu, przy promenadzie)
-        for (float z = 115f; z <= 160f; z += 5.5f) spots.Add(new Vector3(58f + BraxRegion.Range(-3f, 3f), 0, z + BraxRegion.Range(-1f, 1f)));
+        for (float x = 67f; x <= 146f; x += 5.2f)
+        {
+            spots.Add(new Vector3(x + BraxRegion.Range(-1.4f, 1.4f), 0, 169.5f + BraxRegion.Range(-1f, 1f)));
+            spots.Add(new Vector3(x + 2.6f + BraxRegion.Range(-1.4f, 1.4f), 0, 175f + BraxRegion.Range(-1.2f, 1.2f)));
+        }
         foreach (var s in spots)
         {
-            RaycastHit hit; if (!BraxRegion.Ground(s.x, s.z, -1f, 3f, out hit)) continue;
-            if (BraxRegion.Under(hit.collider.transform, "BRAXHORN PORT")) continue;      // nie na piasku
+            if (s.x > BraxNabrzezePlaza.LiniaWody(s.z) - 9f) continue;                 // nie przy wodzie
+            if (s.x < BraxNabrzezePlaza.MurX && s.z < BraxNabrzezePlaza.Z1 + 1.5f) continue;   // nie na bulwarze
+            RaycastHit hit; if (!BraxRegion.Ground(s.x, s.z, -1.5f, 3f, out hit)) continue;
             if (!BraxRegion.Free(hit.point + Vector3.up * 5f, new Vector3(2.2f, 8f, 2.2f))) continue;
-            var o = BraxRegion.Put(parent, BraxRegion.Pick(trees), "Las za plażą: drzewo", hit.point, BraxRegion.Range(0, 360), BraxRegion.Range(.9f, 1.15f), false, 16f);
+            var o = BraxRegion.Put(parent, drzewo, "Las za plażą: drzewo", hit.point, BraxRegion.Range(0, 360), BraxRegion.Range(.9f, 1.15f), false, 16f);
             if (!o) continue;
             var c = new GameObject("Las za plażą: pień kolizja").AddComponent<CapsuleCollider>();
             c.transform.SetParent(parent, false); c.transform.position = hit.point + Vector3.up * 1.5f; c.radius = .35f; c.height = 3f;
             planted++;
             if (shrubs.Count > 0 && planted % 2 == 0)
             {
-                var sp = hit.point + new Vector3(BraxRegion.Range(-2.5f, 2.5f), 0, BraxRegion.Range(1.5f, 3f));
-                RaycastHit h2; if (BraxRegion.Ground(sp.x, sp.z, -1f, 3f, out h2) && !BraxRegion.Under(h2.collider.transform, "BRAXHORN PORT")
-                    && BraxRegion.Free(h2.point + Vector3.up * 1f, new Vector3(1.8f, 1.4f, 1.8f)))
+                var sp = hit.point + new Vector3(BraxRegion.Range(-2.5f, 2.5f), 0, BraxRegion.Range(-3f, -1.5f));
+                RaycastHit h2;
+                if (BraxRegion.Ground(sp.x, sp.z, -1.5f, 3f, out h2) && BraxRegion.Free(h2.point + Vector3.up * 1f, new Vector3(1.8f, 1.4f, 1.8f)))
                     if (BraxRegion.Put(parent, BraxRegion.Pick(shrubs), "Las za plażą: krzew", h2.point, BraxRegion.Range(0, 360), BraxRegion.Range(.9f, 1.3f), false, 2.4f, .04f)) bushes++;
             }
         }
         BraxRegion.Rep.trees += planted; BraxRegion.Rep.shrubs += bushes;
         return planted;
-    }
-
-    static int Cut(Transform original, Bounds volume, string outDir, string label)
-    {
-        try { return BraxCityMeshCut.Subtract(original, volume, outDir, label); }
-        catch (Exception e) { BraxRegion.Note("cypel: " + label + ": " + e.Message); return 0; }
-    }
-
-    // Siatki kolizji bez renderera: usuwamy trójkąty, których środek leży w bryle.
-    static int CutColliders(Transform physics, Bounds volume)
-    {
-        if (!physics) return 0;
-        int removedTotal = 0;
-        foreach (var col in physics.GetComponentsInChildren<MeshCollider>(true))
-        {
-            if (!col.sharedMesh || col.GetComponent<MeshRenderer>() || !col.bounds.Intersects(volume)) continue;
-            var src = col.sharedMesh; Vector3[] v;
-            try { v = src.vertices; } catch { continue; }
-            if (v == null || v.Length == 0) continue;
-            var M = col.transform.localToWorldMatrix;
-            var w = v.Select(p => M.MultiplyPoint3x4(p)).ToArray();
-            var copy = UnityEngine.Object.Instantiate(src); copy.name = src.name + "_kolizja_bez_plazy";
-            int removed = 0;
-            for (int s = 0; s < src.subMeshCount; s++)
-            {
-                var tris = src.GetTriangles(s); var keep = new List<int>(tris.Length);
-                for (int i = 0; i < tris.Length; i += 3)
-                {
-                    var c = (w[tris[i]] + w[tris[i + 1]] + w[tris[i + 2]]) / 3f;
-                    if (volume.Contains(c)) { removed++; continue; }
-                    keep.Add(tris[i]); keep.Add(tris[i + 1]); keep.Add(tris[i + 2]);
-                }
-                copy.SetTriangles(keep, s);
-            }
-            if (removed == 0) { UnityEngine.Object.DestroyImmediate(copy); continue; }
-            string p = BraxRegion.Out + "/Cuts/" + Guid.NewGuid().ToString("N").Substring(0, 8) + "_kolizja.asset";
-            AssetDatabase.CreateAsset(copy, p);
-            col.sharedMesh = copy;
-            removedTotal += removed;
-        }
-        return removedTotal;
     }
 }

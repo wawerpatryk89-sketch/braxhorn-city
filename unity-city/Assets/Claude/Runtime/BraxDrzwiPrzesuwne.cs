@@ -1,56 +1,71 @@
 using UnityEngine;
 
-// BRAXHORN — DRZWI AUTOMATYCZNE PRZESUWNE (wejścia do wieżowców, lobby; wykonawca B, 2.11).
-// Właściciel 15:10: „gracz wchodzi idąc — drzwi automatyczne otwierają się przed nim, bez progu do przeskakiwania”.
-// Dwa skrzydła szklane rozsuwane w lokalnej osi X obiektu (lewe −X, prawe +X). Czujnik: gracz (lub przechodzień z listy
-// BraxDrzwiPrzesuwne.Czujniki) bliżej niż `zasieg` od środka drzwi i |Δy| < 2 m → otwarcie w 0.6 s; po 1.2 s pustki zamknięcie.
-// Skrzydła mają własne kolizje (zamknięte drzwi blokują), otwarte — kolizja jedzie ze skrzydłem do kieszeni. Sprawdzanie co 0.1 s.
-// Klasa = plik; bez pól w #if.
+// DRZWI AUTOMATYCZNE PRZESUWNE (wnętrza miasta 2.11; właściciel: „w Tower drzwi się nawet nie otwierają — przechodzę przez
+// nie”). Jak w prawdziwym biurowcu / metrze: czujnik nad drzwiami — gracz w promieniu `promien` (i na tym samym poziomie)
+// → skrzydła odjeżdżają na boki (lokalne przesunięcie `przesuniecie[i]`), po odejściu same się zamykają.
+// Kolizja `blokada` jest włączona, dopóki drzwi nie są otwarte w ponad połowie — przez zamknięte szkło nie da się przejść.
+// Sprawdzanie co 0.1 s, ruch skrzydeł tylko w trakcie otwierania/zamykania (bez pracy w spoczynku).
+// Tylko pola publiczne bez #if (zasada 2), klasa w pliku o tej samej nazwie (zasada 1).
 public sealed class BraxDrzwiPrzesuwne : MonoBehaviour
 {
-    public Transform skrzydloL, skrzydloP;
-    public float przesuw = 1.0f;     // o ile odjeżdża każde skrzydło (m)
-    public float zasieg = 2.6f;      // promień czujnika (m)
-    public string nazwa = "WEJŚCIE";
+    public string etykieta = "DRZWI";
+    public Transform[] skrzydla = new Transform[0];
+    public Vector3[] przesuniecie = new Vector3[0];
+    public Collider[] blokady = new Collider[0];
+    public float promien = 3.4f;
+    public float czasRuchu = .7f;
+    public bool zawszeOtwarte;          // np. drzwi wagonu metra na postoju
 
-    Vector3 l0, p0; float otw, cel, pusto, nast;
+    Vector3[] start;
+    float stan, cel, nast;
+    bool ruch = true;
     static Transform gracz; static float szukaj;
 
     void Awake()
     {
-        if (skrzydloL) l0 = skrzydloL.localPosition;
-        if (skrzydloP) p0 = skrzydloP.localPosition;
-        nast = Random.value * .1f;
-    }
-
-    static Transform Gracz()
-    {
-        if (gracz) return gracz;
-        if (Time.unscaledTime < szukaj) return null;
-        szukaj = Time.unscaledTime + 1f;
-        var p = FindAnyObjectByType<BraxGymPlayer>(); if (p) gracz = p.transform;
-        return gracz;
+        start = new Vector3[skrzydla.Length];
+        for (int i = 0; i < skrzydla.Length; i++) if (skrzydla[i]) start[i] = skrzydla[i].localPosition;
+        if (zawszeOtwarte) { stan = cel = 1f; Ustaw(); }
     }
 
     void Update()
     {
-        if (Time.time >= nast)
+        if (!zawszeOtwarte && Time.time >= nast)
         {
-            nast = Time.time + .1f;
-            var g = Gracz();
-            bool blisko = false;
-            if (g)
+            nast = Time.time + .1f + Random.value * .02f;
+            float nowy = Blisko() ? 1f : 0f;
+            if (nowy != cel)
             {
-                var v = g.position - transform.position; float dy = Mathf.Abs(v.y); v.y = 0;
-                blisko = dy < 2f && v.magnitude < zasieg;
+                cel = nowy; ruch = true;
+                BraxDzwiekiSwiata.Drzwi(transform.position, cel > .5f);
+                Debug.Log("BRAXHORN_DRZWI_AUTO " + (cel > .5f ? "otwarte" : "zamknięte") + ": " + etykieta);
             }
-            if (blisko) { cel = 1f; pusto = 0f; }
-            else if (cel > .5f) { pusto += .1f; if (pusto >= 1.2f) cel = 0f; }
         }
-        if (Mathf.Abs(otw - cel) < .0001f) return;
-        otw = Mathf.MoveTowards(otw, cel, Time.deltaTime / .6f);
-        float s = Mathf.SmoothStep(0f, 1f, otw) * przesuw;
-        if (skrzydloL) skrzydloL.localPosition = l0 + Vector3.left * s;
-        if (skrzydloP) skrzydloP.localPosition = p0 + Vector3.right * s;
+        if (!ruch) return;
+        stan = Mathf.MoveTowards(stan, cel, Time.deltaTime / Mathf.Max(.05f, czasRuchu));
+        Ustaw();
+        if (stan == cel) ruch = false;
+    }
+
+    void Ustaw()
+    {
+        float t = stan * stan * (3f - 2f * stan);   // łagodny start i hamowanie
+        for (int i = 0; i < skrzydla.Length; i++)
+            if (skrzydla[i] && i < przesuniecie.Length) skrzydla[i].localPosition = start[i] + przesuniecie[i] * t;
+        foreach (var b in blokady) if (b) b.enabled = stan < .55f;
+    }
+
+    bool Blisko()
+    {
+        if (!gracz && Time.unscaledTime >= szukaj)
+        {
+            szukaj = Time.unscaledTime + 1f;
+            var p = FindAnyObjectByType<BraxGymPlayer>(); if (p) gracz = p.transform;
+        }
+        if (!gracz) return false;
+        var v = gracz.position - transform.position;
+        if (Mathf.Abs(v.y) > 2.6f) return false;
+        v.y = 0f;
+        return v.sqrMagnitude < promien * promien;
     }
 }

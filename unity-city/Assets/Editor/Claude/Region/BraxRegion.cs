@@ -48,18 +48,24 @@ public static class BraxRegion
 
         // Najpierw morze: stara łąka i las znad wody (jachty „w trawie”), zanim zieleń szuka trawników.
         Step("morze bez łąki i lasu nad wodą", () => BraxRegionSea.Apply(root));
-        Step("wyspa na morzu (oktagon Ligi, pomost, otwarta)", () => BraxRegionIsland.Apply(root));
-        Step("pawilon sportowy (szatnia + sala walk)", () => BraxRegionPavilion.Apply(world, root));
-        // Tyły od nowa (B, 2.11): plac wieżowców, park, nabrzeże, wieżowce A/B z lobby, windą i piętrami użytkowymi (zastępuje BraxRegionBackyard).
+        // A 2.11: stara wyspa (stożek z łatami, BraxRegionIsland) wyłączona — wyspa od nowa wg Vacation Island (MIT) na siatce
+        Step("A: WYSPA wypoczynkowa z ARENĄ BRAXHORN (siatka wg Vacation Island, przystań, plaża, bar)", () => BraxMiastoWyspa.Apply(root));
+        // A 2.11: pawilon z ringiem („SZATNIA · SALA WALK”) usunięty z miasta (sala walk = ARENA BRAXHORN na wyspie) → sklep sportowy
+        Step("A: BRAXHORN SPORT — sklep sportowy z szatnią graczy", () => BraxMiastoSport.Apply(root));
+        // Tyły od nowa (B, 2.11): plac wieżowców, park, nabrzeże, wieżowce A/B z lobby, windą i piętrami użytkowymi (zastępuje BraxRegionBackyard; wiadukt usunięty).
         Step("tyły B: plac wieżowców, park, nabrzeże, wieżowce A i B (lobby, winda, piętra użytkowe)", () => BraxRegionTylyB.Apply(world, root));
         Step("taras wieżowca: kwiaty i rośliny", () => BraxRegionTerrace.Apply(root));
         // BRAXHORN TOWER przy ulicy (B, 2.11 16:00): stare lobby/winda/taras zdjęte, nowe lobby, winda BraxWinda, apartament, taras.
         Step("Tower przy ulicy (B): lobby, drzwi automatyczne, winda, apartament, taras na dachu", () => BraxRegionTylyB.TowerQuay(world, root));
-        Step("wnętrza: Nutrition i NOVA", () => BraxRegionInteriors.Apply(root));
+        // A 2.11: stare wykończenie Nutrition/NOVA (BraxRegionInteriors) wyłączone — oba lokale od nowa (kroki A po mieszkaniu Braxa)
         Step("interior mapping: pokoje za oknami budynków nieużytkowych", () => BraxRegionInteriorMap.Apply(root));
         Step("elewacje ulicy: prawdziwe okna, gzymsy, obraz w lobby", () => BraxRegionFacades.Apply(root));
         Step("sonda: blok nad NOVA (dane do mieszkania Braxa)", () => BraxClaudeNovaProbe.Apply());
         Step("mieszkanie Braxa nad NOVA (klatka od ulicy, biedny pokój z aneksem i łazienką)", () => BraxRegionBraxFlat.Apply(world, root));
+        Step("A: CLUB NOVA od nowa (fasada, wejście bez progu, sala premium, efekty)", () => BraxMiastoNova.Apply(root));
+        Step("A: BRAXHORN NUTRITION od nowa (mural na ścianie, sklep premium)", () => BraxMiastoNutrition.Apply(root));
+        Step("A: ulica główna — wyposażenie (drzewa w kratach, ławki, kosze, stojaki, słupki, tablice nazw) i ekrany LED", () => BraxMiastoUlica.Apply(root));
+        Step("A: kontrola migotania pierzei i lokali (pary < 2 cm → stara powierzchnia wycięta)", () => BraxMiastoA.KontrolaUlicy(root));
         Step("stare drzewa-atrapy (kule na patykach) → prawdziwe drzewa", () => BraxRegionOldTrees.Apply(root));
         Step("zieleń naturalna i mała architektura", () => BraxRegionVegetation.Apply(root));
         // ROZBUDOWA MIASTA (B, 2.11): wiadukt usunięty → skrzyżowanie w poziomie ulic + rondo, aleje w prawo i w lewo, pierzeje.

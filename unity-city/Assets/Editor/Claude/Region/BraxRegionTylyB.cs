@@ -476,7 +476,7 @@ public static class BraxRegionTylyB
             GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
             return t;
         }
-        var dr = h.gameObject.AddComponent<BraxDrzwiPrzesuwne>();
+        var dr = h.gameObject.AddComponent<BraxDrzwiAutomatyczne>();
         dr.skrzydloL = Skrzydlo("Skrzydło lewe", -dw * .25f); dr.skrzydloP = Skrzydlo("Skrzydło prawe", dw * .25f);
         dr.przesuw = dw * .5f - .05f; dr.zasieg = 2.8f; dr.nazwa = d.nazwa;
         // wycieraczka wpuszczona w posadzkę holu (w wycięciu posadzki: posadzka holu ma otwór w tym miejscu — Kondygnacja 0)
@@ -945,7 +945,7 @@ public static class BraxRegionTylyB
                 var col = t.gameObject.AddComponent<BoxCollider>(); col.center = new Vector3(0, 1.43f, 0); col.size = new Vector3(dw * .5f, 2.86f, .08f);
                 GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0); return t;
             }
-            var dr = h.gameObject.AddComponent<BraxDrzwiPrzesuwne>();
+            var dr = h.gameObject.AddComponent<BraxDrzwiAutomatyczne>();
             dr.skrzydloL = Skr("Skrzydło lewe", -dw * .25f); dr.skrzydloP = Skr("Skrzydło prawe", dw * .25f); dr.przesuw = dw * .5f - .04f; dr.zasieg = 2.8f; dr.nazwa = "BRAXHORN TOWER";
             // wyposażenie lobby: recepcja (zach.), poczekalnia (wsch.), tablica pięter przy windzie, rośliny
             var lada = new BraxRegionMeble.Bud(); var blat = new BraxRegionMeble.Bud();
