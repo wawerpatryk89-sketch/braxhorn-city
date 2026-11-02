@@ -9,7 +9,7 @@ using UnityEngine;
 // a tu nie ma czego przeliczać.
 //   • modele: bez animacji, bez kształtów mimiki, materiały z FBX tylko jako nazwy podsiatek (tekstury przypisuje
 //     generator — BraxClaudeOsiedleLudzie), skala z pliku (cm → m);
-//   • animacje: Legacy, redukcja klatek (błąd 0.4°, 0.4 %), pętla;
+//   • animacje: Legacy, redukcja klatek (błąd 0.4°, 0.4 %) + kompresja (poza chodem/biegiem), pętla;
 //   • tekstury: kolor 1024, normalne 512 (NormalMap), włosy (opacity) z alfą; kompresja platformy (ETC2/ASTC, DXT).
 public sealed class BraxRocketboxImport : AssetPostprocessor
 {
@@ -33,7 +33,10 @@ public sealed class BraxRocketboxImport : AssetPostprocessor
             mi.importAnimation = true;
             mi.materialImportMode = ModelImporterMaterialImportMode.None;
             mi.resampleCurves = true;
-            mi.animationCompression = ModelImporterAnimationCompression.KeyframeReduction;   // bez kompresji: krzywe czytelne dla kopii „w miejscu” i testu kości
+            // chód i bieg (krótkie, ~1 s): bez kompresji — generator czyta krzywe i robi kopię „w miejscu”; reszta (postoje,
+            // rozmowy, siedzenie, taniec — 4–47 s, w sumie ~20 min ruchu) z kompresją Unity: kilka razy mniej pamięci telefonu
+            string nazwa = System.IO.Path.GetFileNameWithoutExtension(assetPath);
+            mi.animationCompression = nazwa.Contains("_walk_") || nazwa.Contains("_run_") ? ModelImporterAnimationCompression.KeyframeReduction : ModelImporterAnimationCompression.KeyframeReductionAndCompression;
             mi.animationRotationError = .4f; mi.animationPositionError = .4f; mi.animationScaleError = .8f;
             mi.animationWrapMode = WrapMode.Loop;
         }
