@@ -331,7 +331,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         {
             string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
             if(cityWorld){if(!string.IsNullOrEmpty(cityWorld.Context))context=cityWorld.Context;else if(context=="ULICA — KOLEJNY ETAP")context="";}
-            if(vessel)context="ZEJDŹ · "+vessel.label;
+            if(vessel)context="WYSIĄDŹ · "+vessel.label;
             if(seat)context="WSTAŃ";
             return context;
         }
