@@ -138,6 +138,14 @@ const VIEWS = [
   ['N14_D19_b_parking', '5,0.2,-158.5,180,14,9', 'estate'],
   ['N14_D21_b_plac_pawilonu', '8,0.2,-191.25,180,10,7', 'estate'],
   ['N14_K01_kasyno_ruletka', '73,.06,-31.5,0,12,3', 'estate'],
+  // build 45 runda 2 — ZBLIŻENIA DETALI (kamera ~2–3 m × K od mebla/ściany, oczy): listwy, fugi, gniazdka, oprawy
+  ['DETAL_dyskoteka_bar', '75,.06,3.3,0,6,2.4', 'estate'],
+  ['DETAL_dyskoteka_bar_butelki', '72.2,.06,2.9,0,14,1.6', 'estate'],
+  ['DETAL_dyskoteka_loze', '71.4,.06,10.6,90,8,2.4', 'estate'],
+  ['DETAL_dyskoteka_loze_wyspa', '80.8,.06,12.5,90,8,2.4', 'estate'],
+  ['DETAL_dyskoteka_dj', '98.6,.11,12,270,4,2.6', 'estate'],
+  ['DETAL_dyskoteka_szatnia', '94.0,.06,26.3,270,4,2.2', 'estate'],
+  ['DETAL_dyskoteka_wyjscie', '86,.06,2.8,0,2,2.4', 'estate'],
   ['N14_T01_witryna_kawiarni', '30.25,.3,-183.8,180,12,8', 'estate'],
   ['N14_T02_witryna_marketu', '42.55,.3,-183.8,180,12,8', 'estate'],
   // elewacje (oko → szyld z raportu, przeliczone: gracz na linii patrzenia, kamera za nim)

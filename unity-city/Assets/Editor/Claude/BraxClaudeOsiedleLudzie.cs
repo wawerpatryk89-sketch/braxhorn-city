@@ -53,7 +53,7 @@ public static partial class BraxClaudeOsiedle
     {
         public string nazwa;
         public string[] postaci;              // początki nazw postaci Rocketbox (null = cywile)
-        public bool odcien = true, kobietyMniej, czapkaSluzbowa;
+        public bool odcien = true, kobietyMniej, czapkaSluzbowa, sluchawki;   // sluchawki: DJ (build 45 runda 2)
         public Color? kolor;                  // jeden kolor ubrań (koszula / mundur roli)
         public float czapka, okulary, plecak, torba, kubek, telefon;   // prawdopodobieństwa akcesoriów
     }
@@ -502,6 +502,14 @@ public static partial class BraxClaudeOsiedle
                 b.Walec(new Vector3(0, .055f, .012f), .118f, .124f, .028f, 18, 0, true);
                 b.Box(new Vector3(0, .004f, .128f), new Vector3(.15f, .008f, .07f), Quaternion.Euler(16f, 0, 0), 1);
                 break;
+            case "sluchawki":         // słuchawki DJ-a: pałąk łukiem nad głową (od ucha do ucha), dwie muszle na uszach; góra głowy w y = 0
+                for (int i = 0; i < 8; i++)
+                {
+                    float a0 = Mathf.PI * i / 8f, a1 = Mathf.PI * (i + 1) / 8f, xm = (Mathf.Cos(a0) + Mathf.Cos(a1)) * .5f * .088f, ym = -.09f + (Mathf.Sin(a0) + Mathf.Sin(a1)) * .5f * .1f;
+                    b.Box(new Vector3(xm, ym, 0), new Vector3(.03f, .012f, .028f), Quaternion.Euler(0, 0, (a0 + a1) * .5f * Mathf.Rad2Deg - 90f));
+                }
+                foreach (float x in new[] { -.094f, .094f }) b.Box(new Vector3(x, -.115f, .005f), new Vector3(.032f, .078f, .07f), Quaternion.identity);
+                break;
             case "okulary":           // szkła na wysokości oczu (rozstaw 6.6 cm), mostek, zauszniki do tyłu
                 foreach (float x in new[] { -.033f, .033f }) { b.Box(new Vector3(x, 0, 0), new Vector3(.052f, .036f, .005f), Quaternion.identity); b.Box(new Vector3(x * 2.06f, .006f, -.055f), new Vector3(.004f, .006f, .11f), Quaternion.identity); }
                 b.Box(new Vector3(0, .008f, 0), new Vector3(.016f, .005f, .005f), Quaternion.identity);
@@ -576,6 +584,8 @@ public static partial class BraxClaudeOsiedle
                        AkcMaterial("czapka (kolor)", Color.white, .25f), AkcMaterial("daszek czarny", new Color(.03f, .03f, .035f), .7f));
         else if (!dlugieWlosy && rnd.NextDouble() < rola.czapka)
             Akcesorium(o, "czapka", o.glowa, srodek - U * .072f * o.s, Quaternion.LookRotation(F, U), PaletaUbran[rnd.Next(PaletaUbran.Length)], AkcMaterial("czapka (kolor)", Color.white, .25f));
+        if (rola.sluchawki)
+            Akcesorium(o, "sluchawki", o.glowa, srodek - F * .005f * o.s, Quaternion.LookRotation(F, U), null, AkcMaterial("słuchawki czarne", new Color(.03f, .03f, .035f), .6f));
         if (rnd.NextDouble() < rola.okulary)
             Akcesorium(o, "okulary", o.glowa, oczy + F * .028f * o.s, Quaternion.LookRotation(F, U), null, AkcMaterial("okulary czarne", new Color(.02f, .02f, .025f), .85f));
     }

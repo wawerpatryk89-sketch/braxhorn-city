@@ -19,6 +19,7 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     public BraxMieszkaniec rozmowca;            // para rozmawiająca (lider = ten, który ma rozmowce i lider = true)
     public bool lider;
     public bool siedzi, wAucie, obsluga;
+    public bool wnetrze;   // build 45 runda 2: postać we wnętrzu (dyskoteka) — bez cienia (światła sali bez cieni, słońce przez dach), mniej kosztu na telefonie
     public string rola = "";                   // barman, recepcja, kasjer, ochrona, policja, lekarz, … — kwestie POGADAJ
     public Transform glowa, szyja, kregoslup, ramieL, ramieP;
     public float korektaRak;                   // stopnie: uniesienie ramion do przodu (kierowca)
@@ -70,7 +71,7 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         float d2 = BraxLudzie.OdlKamery2(transform.position);
         bool b2 = wAucie ? d2 < 35f * 35f && BraxLudzie.Animuj(d2) : BraxLudzie.Animuj(d2);
         if (b2 != blisko) { blisko = b2; if (anim) anim.enabled = blisko; }
-        if (Time.time >= nastDetale) { nastDetale = Time.time + .4f + (GetInstanceID() & 7) * .03f; if (skory == null) skory = GetComponentsInChildren<Renderer>(true); detale = BraxLudzie.Detale(skory, d2, detale); }   // E19: cień/kości wg odległości
+        if (Time.time >= nastDetale) { nastDetale = Time.time + .4f + (GetInstanceID() & 7) * .03f; if (skory == null) skory = GetComponentsInChildren<Renderer>(true); detale = BraxLudzie.Detale(skory, wnetrze ? Mathf.Max(d2, (BraxLudzie.CienOdl + 3f) * (BraxLudzie.CienOdl + 3f)) : d2, detale); }   // E19: cień/kości wg odległości (wnętrze: bez cienia)
         if (!blisko) { if (Time.time < nast) return; nast = Time.time + .5f; }
         float dt = Mathf.Min(Time.time - ostatni, 1f); ostatni = Time.time;
         lean = Mathf.MoveTowards(lean, leanCel, 120f * dt); leanCel = Mathf.MoveTowards(leanCel, 0f, 16f * dt);

@@ -487,26 +487,10 @@ public static partial class BraxClaudeOsiedle
             }
             else rep.notes.Add("ludzie: szpital — brak wolnego miejsca w holu, bez lekarza");
         }
-        // dyskoteka: barmani za barem (przodem do sali), szatniarz, ochroniarz przed wejściem (od ulicy, obok drzwi)
-        Obsada("dyskoteka — barman", RolaObsluga, "barman", new Vector3(68.3f, 0, 13.2f), 90f, rnd, lada, .06f);
-        Obsada("dyskoteka — barmanka", RolaObsluga, "barman", new Vector3(68.3f, 0, 8.4f), 90f, rnd, lada, .06f);
-        Obsada("dyskoteka — szatnia", RolaObsluga, "szatnia", new Vector3(97.9f, 0, 26.3f), 270f, rnd, stoi, .06f);
-        Obsada("dyskoteka — ochrona przy wejściu", RolaOchrona, "ochrona", new Vector3(89.5f, 0, 30.1f), 0f, rnd, new[] { "idle_neutral_01", "idle_waiting_01", "idle_look_around_01" });
-        // goście klubu: przy barze z drinkiem, na parkiecie tańczą (twarzą do sceny DJ na wschodzie)
-        foreach (float z in new[] { 9.8f, 15.8f })
-        {
-            var p = new Vector3(71.35f, .06f, z); if (!Wolne(p)) continue;
-            var m = NowyMieszkaniec(RolaImpreza, Group("Ludzie / dyskoteka"), "Przy barze", p, 270f, rnd, new[] { "drink_drinking", "idle_neutral_01" }, kubek: false);
-            if (m) rbInni++;
-        }
-        var taniec = new[] { "dancing_cool", "dancing_neutral", "dancing_silly", "cheer_01" };
-        for (int k = 0; k < 9; k++)
-        {
-            var p = new Vector3(87.6f + (k % 3) * 4.2f + (float)rnd.NextDouble() * 1.4f, .11f, 7.6f + (k / 3) * 3.7f + (float)rnd.NextDouble() * 1.4f);
-            if (!Wolne(p)) continue;
-            var m = NowyMieszkaniec(RolaImpreza, Group("Ludzie / dyskoteka"), "Tańczy", p, 90f + (float)(rnd.NextDouble() * 100 - 50), rnd, taniec);
-            if (m) { m.zmianaMin = 8f; m.zmianaMax = 20f; rbInni++; }
-        }
+        // dyskoteka (build 45 runda 2): barmani przy stanowiskach nalewania, DJ w słuchawkach, ochrona, szatnia, goście przy
+        // barze, w lożach i na parkiecie, rozmowy w przejściach — BraxClaudeOsiedleDyskoteka.DyskotekaLudzie
+        try { DyskotekaLudzie(rnd, lada, stoi); }
+        catch (Exception e) { Debug.LogError("BRAXHORN_DYSKOTEKA DO POPRAWKI: ludzie — " + e.Message); }
     }
 
     // ---------------- kierowcy i pasażerowie ----------------

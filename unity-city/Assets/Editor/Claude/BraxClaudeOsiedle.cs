@@ -5281,18 +5281,7 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(lacquer, sx0, X1, 0f, sH, sz0, sz1);
         BoxMinMax(trim, sx0 - .01f, sx0 + .02f, sH - .06f, sH, sz0, sz1, false);
         BoxMinMax(lacquer, 102f, 104.2f, 0f, sH * 2f / 3f, sz1, sz1 + .3f); BoxMinMax(lacquer, 102f, 104.2f, 0f, sH / 3f, sz1 + .3f, sz1 + .6f);
-        BoxMinMax(lacquer, 102.2f, 102.9f, sH, sH + 1.0f, 10.5f, 13.5f);
-        BoxMinMax(steel, 102.15f, 102.95f, sH + 1.0f, sH + 1.04f, 10.45f, 13.55f, false);
-        Sign("braxhorn_arena", new Vector3(102.18f, sH + .5f, 12f), 2.6f, .65f, Vector3.left, false);
-        Sign("wzmacniacz", new Vector3(102.92f, sH + .78f, 12f), .9f, .27f, Vector3.right, false);
-        foreach (float tz in new[] { 11.0f, 13.0f })
-        {
-            var tc = new Vector3(102.55f, sH + 1.04f, tz);
-            Cylinder(chromeK, tc, .17f, .02f, 24, true, false);
-            Cylinder(Plain("płyta winylowa", new Color(.015f, .015f, .02f), .7f), tc + Vector3.up * .02f, .15f, .005f, 24, true, false);
-            Cylinder(Plain("naklejka płyty", new Color(.62f, .1f, .12f), .3f), tc + Vector3.up * .025f, .05f, .002f, 16, true, false);
-        }
-        BoxMinMax(steel, 102.35f, 102.75f, sH + 1.04f, sH + 1.1f, 11.7f, 12.3f, false);
+        // konsola DJ premium (mikser dj_mixer.glb, ściana LED, lasery, kula) — KlubPremium (build 45 runda 2)
         foreach (float kz in new[] { 7.4f, 15.8f })
         {
             BoxMinMax(lacquer, 101.2f, 101.9f, sH, sH + 1.8f, kz, kz + .8f);
@@ -5312,33 +5301,7 @@ public static partial class BraxClaudeOsiedle
         for (float x = tx0 + 1.4f; x < tx1 - 1f; x += 2.2f) foreach (float z in new[] { tz0 + .15f, tz1 - .15f }) Cylinder(lacquer, new Vector3(x, ty0 - .32f, z), .12f, .32f, 10, true, false);
         for (float z = tz0 + 1.6f; z < tz1 - 1f; z += 2.4f) foreach (float x in new[] { tx0 + .15f, tx1 - .15f }) Cylinder(lacquer, new Vector3(x, ty0 - .32f, z), .12f, .32f, 10, true, false);
 
-        // BAR przy ścianie zachodniej: lada 16 m z czarnym marmurem, podnóżek, hokery (chrom + skóra), za ladą szafki, lustro,
-        // trzy szklane półki z butelkami, szyld BAR
-        const float bx0 = 69.4f, bx1 = 70.2f, bz0 = 5f, bz1 = 21f;
-        BoxMinMax(lacquer, bx0, bx1, yF, 1.1f, bz0, bz1);
-        BoxMinMax(marbleK, bx0 - .1f, bx1 + .15f, 1.1f, 1.15f, bz0 - .05f, bz1 + .05f, false, true);
-        BoxMinMax(trim, bx1, bx1 + .01f, .9f, .95f, bz0, bz1, false);
-        Tube(chromeK, new Vector3(bx1 + .2f, .25f, bz0 + .2f), new Vector3(bx1 + .2f, .25f, bz1 - .2f), .025f, 8);
-        for (float z = bz0 + .6f; z < bz1 - .3f; z += 1.2f)
-        {
-            var sc = new Vector3(bx1 + .55f, yF, z);
-            Cylinder(chromeK, sc, .2f, .03f, 16, true, false);
-            Cylinder(chromeK, sc + Vector3.up * .03f, .03f, .7f, 8, false, false);
-            Cylinder(leatherK, sc + Vector3.up * .73f, .19f, .07f, 16, true, false);
-            Collider(sc + Vector3.up * .4f, new Vector3(.4f, .8f, .4f));
-        }
-        BoxMinMax(lacquer, X0, X0 + .55f, yF, .95f, bz0 + 1f, bz1 - 1f);
-        BoxMinMax(marbleK, X0, X0 + .58f, .95f, .99f, bz0 + 1f, bz1 - 1f, false);
-        BoxMinMax(mirrorK, X0 + .012f, X0 + .02f, 1.05f, 2.45f, bz0 + 1f, bz1 - 1f, false);
-        var bottleCols = new[] { Plain("butelka zielona", new Color(.08f, .32f, .14f), .85f), Plain("butelka bursztyn", new Color(.45f, .22f, .05f), .85f), Plain("butelka bezbarwna", new Color(.75f, .80f, .80f), .9f) };
-        for (int sh = 0; sh < 3; sh++)
-        {
-            float y = 1.2f + sh * .42f;
-            BoxMinMax(GlassClear, X0 + .02f, X0 + .32f, y - .02f, y, bz0 + 1f, bz1 - 1f, false, true);
-            int k = 0;
-            for (float z = bz0 + 1.15f; z < bz1 - 1.1f; z += .26f, k++) Cylinder(bottleCols[(k + sh) % 3], new Vector3(X0 + .17f, y, z), .035f, .27f + (k % 3) * .03f, 8, true, false);
-        }
-        Sign("bar_kasyna", new Vector3(X0 + .03f, 3.1f, (bz0 + bz1) * .5f), 3.6f, .9f, Vector3.right);
+        // BAR: stary bar przy ścianie zachodniej zwalony (build 45 runda 2) — bar premium pod ścianą południową w KlubPremium
 
         // SZATNIA = OSOBNE POMIESZCZENIE (build 45, E30(3) — właściciel 21:11/21:23: „szatnia do przebudowy — osobne pomieszczenie”,
         // stojak sklepowy odpada, wieszaki z kodu). Narożnik x 96–105.82, z 23.5–28.82: ściany do sufitu (jak sala), od sali tylko
@@ -5348,22 +5311,16 @@ public static partial class BraxClaudeOsiedle
         // obrót ±4°, ~25 % wieszaków pustych. Szatniarz za ladą (obsada „dyskoteka — szatnia”). Stara biała ścianka i klocki-okrycia zwalone.
         Szatnia(wallM, lacquer, marbleK, chromeK, steel, yF, yC, X1, Z1);
 
-        // LOŻE: sofy przy ścianie tylnej (po obu stronach wyjścia) i przy froncie (zachodnia część), niskie stoliki przed sofami
-        if (offSofa)
-        {
-            foreach (float x in new[] { 72.5f, 77.5f, 92.5f, 97.0f }) { Put(offSofa, new Vector3(x, yF, Z0 + .5f), 0f, .03f, true); if (coffeeTable) Put(coffeeTable, new Vector3(x, yF, Z0 + 1.85f), 0f, .03f, true); }
-            foreach (float x in new[] { 72.5f, 77.5f }) { Put(offSofa, new Vector3(x, yF, Z1 - .5f), 180f, .03f, true); if (coffeeTable) Put(coffeeTable, new Vector3(x, yF, Z1 - 1.85f), 180f, .03f, true); }
-        }
-        // build 45 (E29c, właściciel: „fioletowe przegródki między sofami wyglądają jak porzucone deski”) — płyty-przegródki usunięte
-        // ŚWIATŁA kolorowe (ForceVertex, bez cieni): 4 nad parkietem, 2 nad barem, scena, szatnia, loże
+        // BAR PREMIUM, 15 LÓŻ, DJ PREMIUM, DETALE (build 45 runda 2, E28/E30) — stare sofy-loże i ich stoliki zwalone
+        try { KlubPremium(wallM, lacquer, steel, chromeK, marbleK, leatherK, mirrorK, X0, X1, Z0, Z1, yF, yC, dA, dB, dH, sH); }
+        catch (Exception e) { klub = null; Debug.LogError("BRAXHORN_DYSKOTEKA DO POPRAWKI: klub premium — " + e.Message + "\n" + e.StackTrace); }
+        // ŚWIATŁA kolorowe (ForceVertex, bez cieni): 4 nad parkietem, scena, szatnia, strefa lóż (bar — 2 w KlubPremium)
         foreach (var (p, c) in new[] { (new Vector3(89.5f, 5.0f, 9f), new Color(1f, .25f, .8f)), (new Vector3(96.5f, 5.0f, 9f), new Color(.2f, .85f, 1f)), (new Vector3(89.5f, 5.0f, 15f), new Color(.55f, .3f, 1f)), (new Vector3(96.5f, 5.0f, 15f), new Color(1f, .62f, .2f)) })
             PointLamp(p, 9f, 1.3f, c);
-        foreach (float z in new[] { 9f, 17f }) PointLamp(new Vector3(71f, 3.8f, z), 8f, .9f, new Color(1f, .78f, .55f));
         PointLamp(new Vector3(103.5f, 3.6f, 12f), 7f, 1.0f, new Color(.35f, .45f, 1f));
         PointLamp(new Vector3(100.5f, 3.4f, 26f), 6f, .8f, new Color(1f, .92f, .8f));
-        foreach (float x in new[] { 75f, 95f }) PointLamp(new Vector3(x, 3.4f, 1.6f), 7f, .8f, new Color(.8f, .3f, 1f));
-        PointLamp(new Vector3(75f, 3.4f, 26.5f), 7f, .8f, new Color(.8f, .3f, 1f));
-        rep.notes.Add("dyskoteka: klub od nowa (parkiet 14 × 12 m, scena DJ, bar 16 m, 6 lóż, szatnia, 13 świateł ForceVertex), stare wnętrze wycięte, kolizji wyłączonych: " + offCols);
+        foreach (var p in new[] { new Vector3(70.5f, 3.4f, 15f), new Vector3(76.5f, 3.6f, 12.5f), new Vector3(74f, 3.4f, 25.5f), new Vector3(94.7f, 3.4f, 2.2f) }) PointLamp(p, 7.5f, .85f, new Color(1f, .55f, .75f));
+        rep.notes.Add("dyskoteka: klub od nowa (parkiet 14 × 12 m, scena DJ premium, bar premium pod ścianą S, " + (klub != null ? klub.loze : 0) + " lóż, szatnia, 12 świateł ForceVertex), stare wnętrze wycięte, kolizji wyłączonych: " + offCols);
     }
 
     // ---------------- osiedle A: zastępcze klocki, manekiny, okna budynków-klocków ----------------
