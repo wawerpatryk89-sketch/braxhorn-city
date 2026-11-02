@@ -303,17 +303,18 @@ public static class BraxNabrzezeMarina
         var cumy = BraxNabrzeze.Kolor("Marina: cuma (lina poliestrowa)", new Color(.88f, .87f, .82f), .9f);
         var odbij = BraxNabrzeze.Kolor("Marina: odbijacz", new Color(.08f, .16f, .32f), .5f);
         float x1 = PomX1, pok = Poklad;
-        // A: jachty burtą do pomostu (wschód), dziobem na południe
-        foreach (float zc in new[] { 62f, 35f })
+        // A: jachty burtą do pomostu (wschód), dziobem na południe. C2 (właściciel 2.11 22:35 „nie można wypłynąć jachtami, za mały
+        // port”): jachty stały w rzędzie jeden za drugim w kanale 20 m między pomostami A i D (z obu stron) — jacht 26 m nie miał jak
+        // wyjść ani zawrócić (przed dziobem drugi jacht). Teraz w każdej linii JEDEN jacht dziobem do wyjścia: A-wschód z 35
+        // (kanał A–D wolny, ~14 m), D-wschód z 36 (otwarta woda na wschód) — wychodzą na południe i skręcają w tor wodny ku wyspie.
+        foreach (float zc in new[] { 35f })
         {
             var v = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1), new Vector3(0, 0, zc), 180f, burtaX: x1 + .45f, zachod: false);
             if (v) { n++; Cumy(z, cumy, odbij, v, new Vector3(x1, pok, zc), true); }
         }
-        // D: jachty po obu stronach pomostu D (burtą, dziobem na południe — wypływają na otwartą wodę ku wyspie)
-        foreach (float zc in new[] { 64f, 36f })
+        // D: jacht po wschodniej stronie pomostu D (burtą, dziobem na południe — od razu otwarta woda ku wyspie)
+        foreach (float zc in new[] { 39f })
         {
-            var vz = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1), new Vector3(0, 0, zc), 180f, burtaX: DX0 - .45f, zachod: true);
-            if (vz) { n++; Cumy(z, cumy, odbij, vz, new Vector3(DX0, pok, zc), true); }
             var vw = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1), new Vector3(0, 0, zc - 3f), 180f, burtaX: DX1 + .45f, zachod: false);
             if (vw) { n++; Cumy(z, cumy, odbij, vw, new Vector3(DX1, pok, zc - 3f), true); }
         }

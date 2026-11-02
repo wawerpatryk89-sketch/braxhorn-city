@@ -60,11 +60,11 @@ const VIEWS = [
   ['17d_marina_skutery', '118.5,-0.5,72,90,12,6'],
   ['18_marina_z_plazy', '135,0.3,113,20,14,12'],
   ['30_wyspa_z_plazy', '140,0.4,120,270,10,12'],
-  ['31_wyspa_pomost', '262,-0.5,62,270,10,10'],
-  ['32_wyspa_plaza', '288,2,62,270,12,10'],
-  ['33_wyspa_polana', '300,4,81,270,12,10'],
-  ['34_wyspa_wzgorze', '330,14,60,90,14,10'],
-  ['35_wyspa_z_wody', '240,0.1,100,300,10,12'],
+  ['31_wyspa_pomost', '1020,-0.45,42,270,10,10'],          // C2: wyspa przeniesiona (środek 1200, 40)
+  ['32_wyspa_plaza', '1062,2,42,270,12,10'],
+  ['33_wyspa_polana', '1100,4,61,270,12,10'],
+  ['34_wyspa_wzgorze', '1215,12,40,90,14,10'],
+  ['35_wyspa_z_wody', '1000,0.1,80,300,10,12'],
   ['19_port_kontenery', '76,0.2,2,0,14,12'],
   ['19b_port_dzwig', '60,0.2,-10,270,14,12'],
   ['20_metro_peron', '70,-7.1,59.5,270,12,9'],
@@ -169,10 +169,10 @@ const VIEWS = [
   ['N14_A07_ulica_B', '-20.0,0.1,-193.0,68,2,21.6', 'estate'],
   ['N14_A08_szlaban_bez_aut', '0.0,0.1,97.0,180,4,17.0', 'estate'],
   // MIASTO 2.11 (przebudowa A i B): od siłowni po wyspę (A), wiadukt→rondo, aleje, wieżowce, centrum, ruch, ludzie (B)
-  ['M_A_arena_plac', '336,3.5,62,270,12,24'],
-  ['M_A_arena_szatnia_braxa', '383,3,65.3,270,10,2'],
-  ['M_A_arena_trybuny', '364,4,55,0,10,12'],
-  ['M_A_arena_tunel', '378,3,62,90,8,6'],
+  ['M_A_arena_plac', '1136,3.5,42,270,12,24'],
+  ['M_A_arena_szatnia_braxa', '1183,3,45.3,270,10,2'],
+  ['M_A_arena_trybuny', '1164,4,35,0,10,12'],
+  ['M_A_arena_tunel', '1178,3,42,90,8,6'],
   ['M_A_boisko_kosz_linie', '39,0.5,80,180,35,14'],
   ['M_A_boisko_pilka_linie', '10,0.5,80,180,35,16'],
   ['M_A_marina_jachty', '130,1,50,270,20,30'],
@@ -195,9 +195,9 @@ const VIEWS = [
   ['M_A_ulica_lawki_drzewa', '-20,1,22,90,10,12'],
   ['M_A_ulica_pierzeja_pld', '0,4,20.6,0,10,14'],
   ['M_A_ulica_pierzeja_pln', '0,4,36,180,10,14'],
-  ['M_A_wyspa_plaza', '345,1,0,225,12,30'],
-  ['M_A_wyspa_przystan', '310,1,62,270,12,25'],
-  ['M_A_wyspa_z_miasta', '400,5,60,270,8,260'],
+  ['M_A_wyspa_plaza', '1170,1,-60,225,12,30'],
+  ['M_A_wyspa_przystan', '1110,1,42,270,12,25'],
+  ['M_A_wyspa_z_miasta', '1200,5,40,270,8,260'],
   ['M_B_01_skrzyzowanie_po_wiadukcie', '-50,0.2,28.5,90,12,14'],
   ['M_B_02_rondo_z_ulicy', '-96,0.2,28.5,90,14,16'],
   ['M_B_03_aleja_polnocna', '-116,0.35,56,180,12,12'],
@@ -273,6 +273,18 @@ const VIEWS = [
   ['DETAL_silownia_futryna_wyjscie', '6,0.2,11.4,180,6,2.5'],      // futryna drzwi wyjścia od strony hali, styk ze ścianą
   ['DETAL_silownia_futryna_zewnatrz', '6,0.2,11.4,0,6,3'],         // ta sama futryna od zewnątrz (drzwi otwarte przy podejściu)
   ['DETAL_silownia_elewacja', '0,0.2,24,0,12,10'],                 // elewacja siłowni od ulicy: płaszczyzny ścian, lizeny, gzyms
+  // C2 (2.11): wyspa ~1 km od miasta (środek 1200, 40): dopływanie, plaża premium (południe), ośrodek domków (północ), chodniki
+  ['M_W_01_doplywanie_z_przystani', '1014,-0.45,42,270,8,12'],    // z głowicy pomostu: tablica WYSPA, przystań, wyspa przed dziobem
+  ['M_W_02_plaza_premium_rzedy', '1200,1,-70,0,14,12'],           // rzędy leżaków z parasolami, ratownik, boje kąpieliska
+  ['M_W_03_plaza_deptak_wzdluz', '1235,1.5,-78,90,10,12'],        // deptak z desek wzdłuż plaży, latarnie, ławki, zaplecze
+  ['M_W_04_domki_aleja_A1', '1215,4,85,270,10,12'],               // aleja A1: domki po obu stronach, krawężniki, latarnie
+  ['M_W_05_domki_aleja_A3', '1225,4,125,270,12,12'],              // aleja A3 (północ)
+  ['M_W_06_recepcja_i_plac_zabaw', '1176,3.5,88,180,10,10'],      // recepcja ośrodka od alei A1
+  ['M_W_07_tor_wodny_z_mariny', '143,-0.5,24,270,6,10'],          // z pomostu D: tor wodny (boje) na wschód, jacht dziobem do wyjścia
+  ['DETAL_wyspa_domek_okno', '1214,4.5,79,0,5,3'],                 // okno domku: rama, szpros, parapet, okiennice, rynna
+  ['DETAL_wyspa_kraweznik_aleja', '1230,4,82,90,40,2.5'],          // krawężnik z fugami, kostka chodnika, styk z dojściem
+  ['DETAL_wyspa_deptak_plazy', '1200,1.5,-70,90,25,3'],            // deski deptaku na legarach, styk z piaskiem
+  ['DETAL_wyspa_punkt_widokowy', '1200,10,30,180,15,6'],           // punkt widokowy na kamiennym cokole (bez „latającej płyty”)
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],

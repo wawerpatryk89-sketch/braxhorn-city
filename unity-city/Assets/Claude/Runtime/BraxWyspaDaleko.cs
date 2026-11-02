@@ -8,6 +8,8 @@ public sealed class BraxWyspaDaleko : MonoBehaviour
     public Vector3 srodek;
     public float blizej = 230f;
     public Renderer[] renderery = new Renderer[0];
+    // C2/M10: sylwetka gaśnie, gdy scena wyspy jest wczytana (nigdy obie naraz — „latające płyty”); dystans = zapas
+    public string scena = "";
 
     Transform gracz; float nast;
 
@@ -20,6 +22,7 @@ public sealed class BraxWyspaDaleko : MonoBehaviour
         if (!cam) return;
         var d = cam.position - srodek; d.y = 0f;
         bool widac = d.sqrMagnitude > blizej * blizej;
+        if (widac && !string.IsNullOrEmpty(scena) && UnityEngine.SceneManagement.SceneManager.GetSceneByName(scena).isLoaded) widac = false;
         foreach (var r in renderery) if (r && r.enabled != widac) r.enabled = widac;
     }
 }

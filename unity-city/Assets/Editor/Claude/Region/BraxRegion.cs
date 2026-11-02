@@ -59,6 +59,8 @@ public static class BraxRegion
         Step("Tower przy ulicy (B): lobby, drzwi automatyczne, winda, apartament, taras na dachu", () => BraxRegionTylyB.TowerQuay(world, root));
         // Etap „assety” (2.11): statki ze Sketchfaba — drobnicowiec przy nabrzeżu B (poza dźwigiem i mariną), kontenerowiec na redzie.
         Step("assety: port — drobnicowiec przy nabrzeżu B, kontenerowiec na redzie", () => BraxMiastoAssety.Port(root));
+        // C2: tor wodny mariny → wyspa (~1 km): boje, kontrola kolizji na trasie i wyjść łodzi, mapa miasta z WYSPĄ (po statkach)
+        Step("C2: tor wodny do wyspy, wyjścia łodzi z mariny, mapa miasta", () => BraxMiastoWyspa.TorWodny(root));
         // A 2.11: stare wykończenie Nutrition/NOVA (BraxRegionInteriors) wyłączone — oba lokale od nowa (kroki A po mieszkaniu Braxa)
         Step("interior mapping: pokoje za oknami budynków nieużytkowych", () => BraxRegionInteriorMap.Apply(root));
         Step("elewacje ulicy: prawdziwe okna, gzymsy, obraz w lobby", () => BraxRegionFacades.Apply(root));

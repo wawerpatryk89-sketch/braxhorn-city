@@ -22,10 +22,16 @@ using UnityEngine.Rendering;
 // tunel i szatnie zawodników — czerwony i niebieski narożnik); plaża z leżakami i parasolami w rzędach, ratownik, bar
 // plażowy, dwa ringi plenerowe na mniejsze walki (nie nasze), palmy, krzewy, skały. Punkty akcji pod misje.
 // Osobny obszar doczytywany (korzeń „CLAUDE wyspa…” → BraxClaudeObszary); w scenie głównej sylwetka z daleka.
-internal static class BraxMiastoWyspa
+// C2 (właściciel 2.11: „wyspa za mała, źle zaprogramowana, nie premium… ma być DALEJ — trzeba do niej dopłynąć… pół wyspy
+// w plaży… reszta — domki letniskowe dla odwiedzających… chodniki, bez aut”): wyspa ~1 km od brzegu miasta (środek x 1200,
+// brzeg miasta x 84–150), ląd ~300 × 300 m (brzeg r 150 ± szum fBm Vacation Island), POŁUDNIE = plaża premium (szeroki,
+// łagodny piasek do wody, rzędy leżaków, ratownicy, deptak z desek, przebieralnie, WC, wypożyczalnia, bar), PÓŁNOC I WSCHÓD
+// = ośrodek domków letniskowych (BraxMiastoWyspaDomki.cs: domki, chodniki z krawężnikami, recepcja, sklep, plac zabaw).
+// ARENA BRAXHORN, plac i przystań — bez zmian (przeniesione razem z wyspą, te same współrzędne względem środka).
+internal static partial class BraxMiastoWyspa
 {
-    public const float CX = 400f, CZ = 60f, W = -1.7f;          // środek wyspy, lustro wody
-    const float Shore = 92f, Peak = 30f, ShoreExp = 1.7f, MaxDepth = 12f, Shelf = 36f;
+    public const float CX = 1200f, CZ = 40f, W = -1.7f;         // środek wyspy (~1 km od brzegu miasta), lustro wody
+    const float Shore = 150f, MaxDepth = 12f, Shelf = 30f;
     static readonly Vector2 Plac = new Vector2(-40f, 2f);           // środek placu areny (lokalnie względem CX, CZ)
     const float PlacR = 36f, PlacH = 3.6f;                          // promień płaskiego placu, wysokość nad wodą
     const float ArenaR = 24f;                                       // promień opisany ośmioboku areny
@@ -52,21 +58,23 @@ internal static class BraxMiastoWyspa
     public static float H(float x, float z)
     {
         float r = Mathf.Sqrt(x * x + z * z);
-        float warp = Fbm(x * .0075f, z * .0075f, 3, .5f) * 16f + Fbm(x * .023f, z * .023f, 2, .5f) * 5f;
+        // naturalny brzeg: promień zaburzony szumem fBm (Vacation Island), skala dopasowana do większej wyspy
+        float warp = Fbm(x * .0055f, z * .0055f, 3, .5f) * 22f + Fbm(x * .017f, z * .017f, 2, .5f) * 6f;
         float rr = r + warp, y;
-        if (rr < Shore) { float u = 1f - rr / Shore; y = Peak * Mathf.Pow(u, ShoreExp); }
+        if (rr < Shore)
+        {
+            float u = 1f - rr / Shore;
+            float s = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((-z - 5f) / 45f));          // 1 = południe (plaża), 0 = północ i wschód (domki)
+            float plaza = 2.4f * Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(u / .42f));      // szeroki, łagodny piasek: 1 m na ~30 m
+            float domki = 4.6f * Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(u / .30f));      // taras pod ośrodek domków ~4.6 m nad wodą
+            float wzg = Mathf.Max(0f, u - .55f) / .45f; wzg = 7f * wzg * wzg;              // łagodne wzgórze w środku (punkt widokowy)
+            y = Mathf.Lerp(domki, plaza, s) + wzg;
+            float land = Mathf.Clamp01(u / .15f);
+            y += Fbm(x * .021f, z * .021f, 4, .5f) * Mathf.Lerp(.9f, .3f, s) * land + Fbm(x * .07f, z * .07f, 3, .5f) * .12f * land;
+        }
         else { float v = rr - Shore; y = -MaxDepth * Mathf.Pow(1f - Mathf.Exp(-v / Shelf), 1.2f); }
-        y -= Gauss(x, z, 52f, 50f, 30f) * 5.5f;      // laguna wcięta w plażę NE
-        y += Gauss(x, z, 70f, -40f, 20f) * 12f;      // skalisty cypel (wschód)
-        y += Gauss(x, z, 30f, -30f, 26f) * 9f;       // drugi szczyt
-        float inland = Mathf.Clamp01((Shore - rr) / 50f);
-        y += (Ridged(x * .0105f, z * .0105f, 4) - .48f) * 20f * Mathf.Pow(inland, 1.25f);
-        y += (Ridged(x * .030f + 40f, z * .030f - 25f, 3) - .5f) * 6f * Mathf.Pow(inland, 1.6f);
-        float land = Mathf.Clamp01((y - 1f) / 6f);
-        y += Fbm(x * .021f, z * .021f, 4, .5f) * 2.4f * land + Fbm(x * .07f, z * .07f, 3, .5f) * .6f * land;
         y += Fbm(x * .018f, z * .018f, 3, .5f) * .6f * Mathf.Clamp01(-y / 4f);
-        y += Gauss(x, z, Plac.x, Plac.y, 45f) * 6f;   // ląd pod placem i przystanią (zachód, od strony miasta)
-        // płaski plac areny (z łagodną skarpą 12 m)
+        // płaski plac areny (z łagodną skarpą 12 m) — arena bez zmian
         float dp = Vector2.Distance(new Vector2(x, z), Plac);
         if (dp < PlacR) y = PlacH;
         else if (dp < PlacR + 12f) y = Mathf.Lerp(PlacH, y, Mathf.SmoothStep(0, 1, (dp - PlacR) / 12f));
@@ -76,7 +84,7 @@ internal static class BraxMiastoWyspa
 
     public static void Apply(Transform cityRoot)
     {
-        Miejsca.Clear(); osoby.Clear(); deptak.Clear(); zajete.Clear(); zapowiedz = null; BraxUliceKit.Start(); BraxMiastoA.WyczyscPamiec();
+        Miejsca.Clear(); osoby.Clear(); deptak.Clear(); zajete.Clear(); zapowiedz = null; BraxUliceKit.Start(); BraxMiastoA.WyczyscPamiec(); StartC2();
         // stara wyspa (gdyby krok był jeszcze gdzieś wołany) — zdjęta
         var stara = cityRoot.Find("CLAUDE wyspa (oktagon Ligi, otwarta)"); if (stara) BraxUliceKit.Usun(stara.gameObject, "stara wyspa (stożek z łatami)");
         root = BraxRegion.Root(cityRoot, "CLAUDE wyspa — ARENA BRAXHORN (wypoczynkowa)");
@@ -89,21 +97,28 @@ internal static class BraxMiastoWyspa
         Arena();
         BraxUliceKit.UstawGrupe("Wyspa: bar, ringi, punkt widokowy", 80f);
         Plaze(z, m); BarPlazowy(); Ringi(); PunktWidokowy();
+        // C2: plaża premium (deptak z desek, przebieralnie, WC, wypożyczalnia, bar na plaży, flagi ratowników, kąpiący się)
+        // i ośrodek domków letniskowych (domki, chodniki z krawężnikami, latarnie, ławki, recepcja, sklep, plac zabaw) — każdy krok osobno
+        try { BraxUliceKit.UstawGrupe("Wyspa: plaża premium", 120f); PlazaPremium(z, m); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI plaża premium: " + e); }
+        try { BraxUliceKit.UstawGrupe("Wyspa: domki letniskowe", 120f); Osrodek(z, m); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI ośrodek domków: " + e); }
+        try { TablicaWyspa(z, m); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI tablica WYSPA: " + e); }
         BraxUliceKit.UstawGrupe("Wyspa: plac wejściowy areny (pylon, telebimy, brama, flagi, food trucki)", 240f);   // widać z morza
         PlacWejsciowy();
         int nz = z.Emit(root, "Wyspa: przystań i plaża");
         int siatek = BraxUliceKit.Zapisz(root, "wyspa");
         int palm = Palmy(), krz = Krzewy();
-        Sylwetka(cityRoot);
+        try { Sylwetka(cityRoot); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI sylwetka: " + e); }
+        try { MorzeOtwarte(cityRoot); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI morze otwarte: " + e); }
         Punkty();
         Spacerowicze(); Ludzie();     // na końcu (kolejność budowy): ludzie po wszystkim
+        try { RaportWyspy(tris, palm); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI raport: " + e); }
         BraxMiastoA.Log("WYSPA: teren " + tris + " trójkątów, przystań x " + xPomostu.ToString("F0") + ", palm " + palm + ", krzewów/skał " + krz + ", siatek " + siatek + "+" + nz + " (ARENA BRAXHORN z dachem membranowym, trybunami z przejściami i lożami VIP, szatnią Braxa i tunelem; plaże dookoła, 3 ratowników, bar, 2 ringi, punkt widokowy)");
     }
 
     // ---------------- teren: jedna siatka, plac w osobnej podsiatce (bez nakładania) ----------------
     static int Teren()
     {
-        const float step = 2f, ext = 150f; int n = Mathf.RoundToInt(ext * 2 / step) + 1;
+        const float step = 2.5f, ext = 240f; int n = Mathf.RoundToInt(ext * 2 / step) + 1;   // C2: wyspa ~300 m + szelf
         var Hh = new float[n, n];
         for (int i = 0; i < n; i++) for (int j = 0; j < n; j++) Hh[i, j] = H(-ext + i * step, -ext + j * step);
         var v = new List<Vector3>(); var col = new List<Color>(); var uv2 = new List<Vector2>(); var idx = new int[n, n];
@@ -118,7 +133,9 @@ internal static class BraxMiastoWyspa
                 float d = (h + .2f) / 1.9f, damp = Mathf.Exp(-d * d) * 2f;
                 float grass = Mathf.Clamp01((h - 2f) / 3f) * Mathf.Clamp01((41f - steep) / 13f) * Mathf.Clamp01(b1 * 1.2f + b2 * .7f + 1.25f) * 6f;
                 float rock = Mathf.Max(Mathf.Clamp01((steep - 24f) / 12f), Mathf.Clamp01((h - 26f) / 10f));
-                rock = Mathf.Max(rock, Gauss(x, zz, 70f, -40f, 16f) * 1.4f) * Mathf.Clamp01(b1 * 1.2f + 1.05f) * 3f;
+                rock = rock * Mathf.Clamp01(b1 * 1.2f + 1.05f) * 3f;
+                float poludnie = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((-zz - 10f) / 40f));   // C2: plaża na południu — piasek, nie trawa
+                grass *= 1f - .9f * poludnie * Mathf.Clamp01((3.4f - h) / 1.2f);
                 float tot = sand + damp + grass + rock;
                 idx[i, j] = v.Count; v.Add(new Vector3(CX + x, W + h, CZ + zz));
                 col.Add(new Color(sand / tot, damp / tot, grass / tot, rock / tot));
@@ -155,7 +172,7 @@ internal static class BraxMiastoWyspa
     {
         float pz = CZ + Plac.y;                          // oś pomostu i deptaka (ta sama co plac areny)
         // brzeg w osi: pierwszy punkt od zachodu, gdzie teren wychodzi nad wodę
-        float xs = CX - 150f; for (float x = CX - 150f; x < CX + Plac.x; x += .5f) if (Y(x, pz) > W + .1f) { xs = x; break; }
+        float xs = CX - 240f; for (float x = CX - 240f; x < CX + Plac.x; x += .5f) if (Y(x, pz) > W + .1f) { xs = x; break; }
         float deck = W + 1.25f;                           // pokład pomostu (1.25 m nad wodą)
         float x0 = xs - 34f, x1 = xs + 1f, hw = 1.6f * K; // pomost: 35 m w morze, szer. 3.2 m × k
         var deski = BraxNabrzeze.Mat("Wyspa: deski pomostu (egzotyk)", 1.5f, new Color(.85f, .74f, .6f), "wood_planks_grey", "wooden_planks", "wood_planks");
@@ -759,9 +776,11 @@ internal static class BraxMiastoWyspa
     // wzdłuż brzegu, tylko na piasku (wysokość 0.4–4.8 m, spadek < 11°, z dala od placu i deptaka). Przerwy: przystań (zachód),
     // skalisty cypel (wschód) i 4 naturalne zatoczki ze skałami między plażami. 3 wieżyczki ratowników z bojami kąpieliska,
     // prysznice, kosze. Leżaki bez ręczników (nic nie leży na niczym), oparcie od strony lądu — leży się przodem do morza.
-    static readonly float[] Zatoczki = { 22f, 98f, 146f, 274f };
-    const float CypelOd = 308f, CypelDo = 352f;
-    static readonly float[] Ratownicy = { 228f, 52f, 122f };
+    // C2: plaża = POŁUDNIOWA połowa wyspy (kąty 195…345°); zatoczki ze skałami tylko na północy (brzeg ośrodka domków)
+    static readonly float[] Zatoczki = { 30f, 75f, 120f, 160f };
+    const float CypelOd = -1f, CypelDo = -1f;
+    const float PlazaOd = 195f, PlazaDo = 345f;
+    static readonly float[] Ratownicy = { 222f, 270f, 318f };
     // miejsca zajęte przez wyposażenie plaży (palmy, krzewy i skały stawiane później omijają je — nic nie stoi w niczym)
     static readonly List<(Vector2 p, float r)> zajete = new List<(Vector2 p, float r)>();
     static void Zajmij(Vector3 p, float r) => zajete.Add((new Vector2(p.x, p.z), r));
@@ -770,13 +789,13 @@ internal static class BraxMiastoWyspa
     static float LiniaWody(float ang)
     {
         float cx = Mathf.Cos(ang * Mathf.Deg2Rad), cz = Mathf.Sin(ang * Mathf.Deg2Rad), rs = 30f;
-        while (rs < 150f && H(cx * rs, cz * rs) > .1f) rs += .5f;
+        while (rs < 240f && H(cx * rs, cz * rs) > .1f) rs += .5f;
         return rs;
     }
-    static bool Plazowo(float ang) => KatOd(ang, 180f) > 11f && !(ang >= CypelOd && ang <= CypelDo) && Zatoczki.All(z => KatOd(ang, z) > 7f);
+    static bool Plazowo(float ang) => ang >= PlazaOd && ang <= PlazaDo && KatOd(ang, 180f) > 11f && !(ang >= CypelOd && ang <= CypelDo) && Zatoczki.All(z => KatOd(ang, z) > 7f);
     static bool Piasek(Vector2 p)
     {
-        float h = H(p.x, p.y); if (h < .4f || h > 4.8f) return false;
+        float h = H(p.x, p.y); if (h < .2f || h > 4.8f) return false;
         float gx = H(p.x + 1f, p.y) - H(p.x - 1f, p.y), gz = H(p.x, p.y + 1f) - H(p.x, p.y - 1f);
         if (Mathf.Sqrt(gx * gx + gz * gz) * .5f > .2f) return false;
         if (Vector2.Distance(p, Plac) < PlacR + 7f) return false;
@@ -810,7 +829,7 @@ internal static class BraxMiastoWyspa
             if (Plazowo(ang) && odRatownika)
             {
                 var t = Vector3.Cross(Vector3.up, d);
-                foreach (float odl in new[] { 9f, 16f })
+                foreach (float odl in new[] { 12f, 19f, 26f })   // C2: trzy rzędy na szerokiej plaży
                 {
                     var p2 = new Vector2(d.x, d.z) * (rs - odl); if (!Piasek(p2)) continue;
                     var p = new Vector3(CX + p2.x, 0, CZ + p2.y); p.y = Y(p.x, p.z);
@@ -829,7 +848,7 @@ internal static class BraxMiastoWyspa
                 }
                 if (kolumna % 4 == 1)
                 {
-                    var p2 = new Vector2(d.x, d.z) * (rs - 21.5f);
+                    var p2 = new Vector2(d.x, d.z) * (rs - 31f);
                     if (Piasek(p2)) { var p = new Vector3(CX + p2.x, 0, CZ + p2.y); p.y = Y(p.x, p.z); BraxNabrzezeMebel.Kosz(z, str, m, p); nK++; Zajmij(p, .6f); }
                 }
             }
@@ -842,13 +861,14 @@ internal static class BraxMiastoWyspa
             float a = lg[k], rs = LiniaWody(a); var d = new Vector3(Mathf.Cos(a * Mathf.Deg2Rad), 0, Mathf.Sin(a * Mathf.Deg2Rad)); var t = Vector3.Cross(Vector3.up, d);
             var p = NaBrzegu(a, 12f); p.y -= .05f;
             var w = BraxHarborBeachBuild.Postaw(root, "lifeguard_tower.glb", "Wyspa: wieżyczka ratownika " + (k + 1), p, 6.2f, Quaternion.LookRotation(d).eulerAngles.y + 180f);
-            if (w) { var bb = BraxRegion.Bounds(w); BraxNabrzeze.Kol(kol, "Wieżyczka ratownika", bb.center, bb.size * .85f); nR++; Zajmij(bb.center, Mathf.Max(bb.extents.x, bb.extents.z) + .5f); }
+            if (w) { var bb = BraxRegion.Bounds(w); BraxNabrzeze.Kol(kol, "Wieżyczka ratownika", bb.center, bb.size * .85f); nR++; Zajmij(bb.center, Mathf.Max(bb.extents.x, bb.extents.z) + .5f); FlagaRatownika(z, m, bb, d, t); }
+            wiezyczki.Add((p, d));
             Zajmij(p + d * 3f, 1.2f);
             string id = k == 0 ? "wyspa_ratownik" : "wyspa_ratownik_" + (k + 1);
             Miejsca[id] = p + d * 3f;
             BraxMiastoA.Akcja(root, id, "POROZMAWIAJ", "Ratownik: Kąpielisko strzeżone do żółtych boi. Za bojami pływają łodzie.", p + d * 3.5f, 2f);
             Czlowiek("Plaża wyspy", "ratownik", "stoi", p + d * 2.6f + t * .8f, d, KlStoi);
-            var pr = new Vector3(CX, 0, CZ) + d * (rs - 20f) + t * 4f; pr.y = Y(pr.x, pr.z);
+            var pr = new Vector3(CX, 0, CZ) + d * (rs - 33f) + t * 4f; pr.y = Y(pr.x, pr.z);
             if (Piasek(new Vector2(pr.x - CX, pr.z - CZ)) && !Zajete(pr.x, pr.z, .8f)) { BraxNabrzezeMebel.Prysznic(z, str, m, pr, Quaternion.LookRotation(d).eulerAngles.y); nS++; Zajmij(pr, 1.0f); }
             for (int b = -3; b <= 3; b++)
             {
@@ -872,7 +892,8 @@ internal static class BraxMiastoWyspa
                     if (BraxRegion.Put(zs, sk[rnd.Next(sk.Count)], "Wyspa: skała zatoczki", p + Vector3.down * .35f, (float)rnd.NextDouble() * 360f, 1.2f + (float)rnd.NextDouble() * 1.1f, true, 3.4f)) nSk++;
                 }
         }
-        BraxMiastoA.Log("WYSPA plaże dookoła: parasoli " + nP + ", leżaków " + nL + ", ratowników " + nR + ", pryszniców " + nS + ", koszy " + nK + ", boi " + nB + ", skał w zatoczkach " + nSk);
+        nLezaki = nL;
+        BraxMiastoA.Log("WYSPA plaża (południe): parasoli " + nP + ", leżaków " + nL + ", ratowników " + nR + ", pryszniców " + nS + ", koszy " + nK + ", boi " + nB + ", skał w zatoczkach " + nSk);
     }
 
     // ---------------- ZAPOWIEDŹ WALKI (tekstura z kodu: krój liter przestrzennych, puste pola na nazwiska) ----------------
@@ -960,15 +981,15 @@ internal static class BraxMiastoWyspa
     }
 
     // ---------------- bar plażowy (strzecha, lada, hokery, półki) ----------------
-    static void BarPlazowy()
+    static void BarPlazowy() => BarPlazowy(new Vector3(CX + Plac.x - 18f, W + PlacH, CZ + Plac.y - 22f), "wyspa_bar", "BEACH BAR BRAXHORN");   // na placu (płasko), róg południowo-zachodni
+    static void BarPlazowy(Vector3 c, string id, string szyld)   // C2: także bar na plaży (podest do piasku — cokół 60 cm w dół)
     {
-        var c = new Vector3(CX + Plac.x - 18f, W + PlacH, CZ + Plac.y - 22f);   // na placu (płasko), róg południowo-zachodni
         var drewno = BraxMiastoA.Tex("Wyspa: bar drewno", 1.2f, new Color(.8f, .65f, .48f), new Color(.5f, .38f, .26f), .7f, "wood_planks_grey", "wooden_planks");
         var strzecha = BraxMiastoA.Mat("Wyspa: strzecha (trzcina)", new Color(.62f, .52f, .32f), .95f);
         var blat = BraxMiastoA.Mat("Wyspa: blat baru (teak)", new Color(.45f, .3f, .18f), .45f);
         float w = 6f, d = 4f, h = 2.9f;
         var dz = BraxUliceKit.S(drewno);
-        dz.Box(new Vector3(c.x - w * .5f, c.y - .2f, c.z - d * .5f), new Vector3(c.x + w * .5f, c.y + .15f, c.z + d * .5f), 0);   // podłoga baru (podest 15 cm)
+        dz.Box(new Vector3(c.x - w * .5f, c.y - .6f, c.z - d * .5f), new Vector3(c.x + w * .5f, c.y + .15f, c.z + d * .5f), 0);   // podłoga baru (podest 15 cm, cokół do terenu)
         foreach (var o in new[] { new Vector2(-1, -1), new Vector2(1, -1), new Vector2(-1, 1), new Vector2(1, 1) }) dz.Rura(new Vector3(c.x + o.x * (w * .5f - .15f), c.y + .15f, c.z + o.y * (d * .5f - .15f)), new Vector3(c.x + o.x * (w * .5f - .15f), c.y + h, c.z + o.y * (d * .5f - .15f)), .12f, 10);
         // dach czterospadowy ze strzechy (nawis 0.8 m)
         var s = BraxUliceKit.S(strzecha); float yd = c.y + h, ov = .8f, ap = 1.8f;
@@ -994,9 +1015,9 @@ internal static class BraxMiastoWyspa
             if (Mathf.RoundToInt(x - (c.x - w * .5f + .8f)) % 2 == 0 && x < c.x + 1f) Czlowiek("Bar plażowy", "gość baru", "siedzi", p + Vector3.up * (.74f * K + .06f), Vector3.forward, KlSiedzi);
         }
         foreach (float o in new[] { -1.2f, 1.2f }) Czlowiek("Bar plażowy", "barman", "stoi", new Vector3(c.x + o, c.y + .15f, c.z - .45f), Vector3.back, KlLada);
-        BraxUliceKit.Napis3D("BEACH BAR BRAXHORN", new Vector3(c.x, yd - .45f, c.z - d * .5f - ov + .02f), Vector3.back, .26f, .04f, BraxMiastoA.Swieci("Arena: litery szyldu (podświetlane)", Color.white, new Color(2f, 2f, 2f)), BraxMiastoA.Mat("Arena: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f));
-        Miejsca["wyspa_bar"] = c + Vector3.back * 3f;
-        BraxMiastoA.Akcja(root, "wyspa_bar", "ZAMÓW", "Barman: Lemoniada, kokos, coś zimnego przed galą?", new Vector3(c.x, c.y, c.z - d * .5f - 1.2f), 2f);
+        BraxUliceKit.Napis3D(szyld, new Vector3(c.x, yd - .45f, c.z - d * .5f - ov + .02f), Vector3.back, .26f, .04f, BraxMiastoA.Swieci("Arena: litery szyldu (podświetlane)", Color.white, new Color(2f, 2f, 2f)), BraxMiastoA.Mat("Arena: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f));
+        Miejsca[id] = c + Vector3.back * 3f;
+        BraxMiastoA.Akcja(root, id, "ZAMÓW", "Barman: Lemoniada, kokos, coś zimnego przed galą?", new Vector3(c.x, c.y, c.z - d * .5f - 1.2f), 2f);
     }
 
     // ---------------- PLAC WEJŚCIOWY ARENY (A 2.11 16:04 „arena festiwalowa”): pylon z napisem, telebimy plenerowe z zapowiedzią
@@ -1196,6 +1217,26 @@ internal static class BraxMiastoWyspa
         var c = new Vector3(CX + best.x, W + hb, CZ + best.z);
         var drewno = BraxMiastoA.Tex("Wyspa: bar drewno", 1.2f, new Color(.8f, .65f, .48f), new Color(.5f, .38f, .26f), .7f, "wood_planks_grey", "wooden_planks");
         float r = 3.2f, y = c.y + .4f;
+        // M10 (klatki właściciela 52–56 s: „latająca płyta” nad wzgórzem = pokład punktu widokowego na słupkach nad stromym
+        // zboczem, widziany od spodu): pokład na pełnym kamiennym cokole (12 boków od terenu do pokładu, bez prześwitu).
+        {
+            float yMin = c.y; for (int i = 0; i < 24; i++) { float a = i * 15f * Mathf.Deg2Rad; yMin = Mathf.Min(yMin, Y(c.x + Mathf.Cos(a) * (r + .3f), c.z + Mathf.Sin(a) * (r + .3f))); }
+            y = Mathf.Max(y, c.y + .25f);
+            var kam = BraxMiastoA.Tex("Wyspa: cokół punktu widokowego (kamień)", 1.5f, new Color(.8f, .78f, .74f), new Color(.55f, .53f, .5f), .9f, "white_sandstone_blocks_02", "concrete_wall_008");
+            var ck = new UlSiatka();
+            for (int i = 0; i < 12; i++)
+            {
+                float a0 = i * 30f * Mathf.Deg2Rad, a1 = (i + 1) * 30f * Mathf.Deg2Rad;
+                var p0 = new Vector3(c.x + Mathf.Cos(a0) * (r + .05f), 0, c.z + Mathf.Sin(a0) * (r + .05f)); var p1 = new Vector3(c.x + Mathf.Cos(a1) * (r + .05f), 0, c.z + Mathf.Sin(a1) * (r + .05f));
+                var nn = ((p0 + p1) * .5f - new Vector3(c.x, 0, c.z)).normalized;
+                ck.Quad(new Vector3(p0.x, yMin - .4f, p0.z), new Vector3(p1.x, yMin - .4f, p1.z), new Vector3(p1.x, y - .06f, p1.z), new Vector3(p0.x, y - .06f, p0.z), nn);
+            }
+            BraxMiastoA.Obiekt(root, "Punkt widokowy: cokół (do terenu)", ck, kam, true);
+            BraxMiastoA.Kol(kol, "cokół punktu widokowego", new Vector3(c.x - r * .8f, yMin - .4f, c.z - r * .8f), new Vector3(c.x + r * .8f, y - .15f, c.z + r * .8f));
+            // schody z terenu na pokład od strony wejścia (i = 9: 270°, czyli −z)
+            float hS = y - Y(c.x, c.z - r - 1.5f);
+            if (hS > .2f) { var zs = new BraxNabrzeze.Zbior(); BraxNabrzezeMebel.Schody(zs, kol, BraxNabrzezeMebel.Materialy(), new Vector3(c.x, y, c.z - r), Vector3.back, 1.4f * K, Y(c.x, c.z - r - 1.5f)); zs.Emit(root, "Punkt widokowy: schody"); }
+        }
         for (int i = 0; i < 6; i++) { float a = i * 60f * Mathf.Deg2Rad; var p = c + new Vector3(Mathf.Cos(a) * (r - .2f), 0, Mathf.Sin(a) * (r - .2f)); BraxUliceKit.S(drewno).Rura(p - Vector3.up * 1.5f, new Vector3(p.x, y, p.z), .12f, 8); }
         var dek = new UlSiatka(); for (int i = 0; i < 12; i++) { float a0 = i * 30f * Mathf.Deg2Rad, a1 = (i + 1) * 30f * Mathf.Deg2Rad; dek.Tri(new Vector3(c.x, y, c.z), c + new Vector3(Mathf.Cos(a1) * r, y - c.y, Mathf.Sin(a1) * r), c + new Vector3(Mathf.Cos(a0) * r, y - c.y, Mathf.Sin(a0) * r), Vector3.up); }
         BraxMiastoA.Obiekt(root, "Punkt widokowy: pokład", dek, drewno, true);
@@ -1223,14 +1264,14 @@ internal static class BraxMiastoWyspa
         for (int v = 0; v < 3; v++) odmiany.Add(Palma(v));
         var zr = new GameObject("Wyspa: palmy").transform; zr.SetParent(root, false);
         var rng = new System.Random(4100); int n = 0;
-        for (float x = -110f; x <= 110f; x += 7f)
-            for (float zz = -110f; zz <= 110f; zz += 7f)
+        for (float x = -190f; x <= 190f; x += 9f)      // C2: większa wyspa — rzadsza siatka (budżet telefonu)
+            for (float zz = -190f; zz <= 190f; zz += 9f)
             {
                 float px = x + (float)(rng.NextDouble() - .5) * 4.5f, pz = zz + (float)(rng.NextDouble() - .5) * 4.5f, h = H(px, pz);
                 if (h < .8f || h > 16f) continue;
                 if (Vector2.Distance(new Vector2(px, pz), Plac) < PlacR + 3f) continue;
                 if (Mathf.Abs(pz - Plac.y) < 4f && px < Plac.x) continue;                 // deptak
-                if (Zajete(CX + px, CZ + pz, 1.0f)) continue;                               // leżaki, parasole, ratownicy, prysznice
+                if (Zajete(CX + px, CZ + pz, 1.6f)) continue;                               // leżaki, parasole, ratownicy, prysznice
                 float gest = h < 6f ? .3f : .12f;   // 2.11 recenzja: budżet telefonu (było .5/.2 → ~1000 rendererów palm) if (rng.NextDouble() > gest) continue;
                 float hx = H(px + 1, pz) - H(px - 1, pz), hz = H(px, pz + 1) - H(px, pz - 1); if (Mathf.Sqrt(hx * hx + hz * hz) * .5f > .6f) continue;
                 var o = odmiany[rng.Next(odmiany.Count)];
@@ -1300,9 +1341,9 @@ internal static class BraxMiastoWyspa
         var sk = new List<GameObject>(); foreach (var id in new[] { "coast_rocks_01", "coast_rocks_03", "boulder_01", "namaqualand_boulder_02" }) { var mm = BraxRegion.Model(id); if (mm) sk.Add(mm); }
         var zr = new GameObject("Wyspa: krzewy i skały").transform; zr.SetParent(root, false);
         var rng = new System.Random(91); int n = 0;
-        for (int i = 0; i < 260 && n < 70; i++)
+        for (int i = 0; i < 520 && n < 110; i++)
         {
-            float x = (float)(rng.NextDouble() * 200 - 100), zz = (float)(rng.NextDouble() * 200 - 100), h = H(x, zz);
+            float x = (float)(rng.NextDouble() * 340 - 170), zz = (float)(rng.NextDouble() * 340 - 170), h = H(x, zz);
             if (Vector2.Distance(new Vector2(x, zz), Plac) < PlacR + 4f || (Mathf.Abs(zz - Plac.y) < 4f && x < Plac.x)) continue;
             if (Zajete(CX + x, CZ + zz, 1.6f)) continue;
             bool skala = h > 10f && rng.NextDouble() < .4 || (h > -.3f && h < .6f && rng.NextDouble() < .15);
@@ -1318,14 +1359,14 @@ internal static class BraxMiastoWyspa
     static void Sylwetka(Transform cityRoot)
     {
         var sr = BraxRegion.Root(cityRoot, "CLAUDE A: wyspa z daleka (sylwetka)");
-        const float step = 8f, ext = 140f; int n = Mathf.RoundToInt(ext * 2 / step) + 1;
+        const float step = 10f, ext = 200f; int n = Mathf.RoundToInt(ext * 2 / step) + 1;
         var s = new UlSiatka(); var idx = new int[n, n];
         for (int i = 0; i < n; i++) for (int j = 0; j < n; j++)
             {
                 float x = -ext + i * step, zz = -ext + j * step, h = H(x, zz);
                 float sand = Mathf.Clamp01((7f - h) / 5f), rock = Mathf.Clamp01((h - 24f) / 8f);
                 s.kolor = h < 3f ? BraxUliceKit.C(.84f, .76f, .6f) : rock > .5f ? BraxUliceKit.C(.5f, .48f, .44f) : BraxUliceKit.C(.22f, .38f, .14f);
-                idx[i, j] = s.Wierzcholki; s.v.Add(new Vector3(CX + x * .985f, W + h - .8f, CZ + zz * .985f)); s.n.Add(Vector3.up); s.t.Add(new Vector4(1, 0, 0, 1)); s.uv.Add(new Vector2(x, zz)); s.c.Add(s.kolor);
+                idx[i, j] = s.Wierzcholki; s.v.Add(new Vector3(CX + x * .975f, W + h - 1.6f, CZ + zz * .975f));   // C2/M10: pod prawdziwym terenem (gdyby oba były naraz) s.n.Add(Vector3.up); s.t.Add(new Vector4(1, 0, 0, 1)); s.uv.Add(new Vector2(x, zz)); s.c.Add(s.kolor);
             }
         for (int i = 0; i < n - 1; i++) for (int j = 0; j < n - 1; j++) { s.i.AddRange(new[] { idx[i, j], idx[i, j + 1], idx[i + 1, j + 1], idx[i, j], idx[i + 1, j + 1], idx[i + 1, j] }); }
         var mesh = s.Zbuduj("A: wyspa z daleka"); mesh.RecalculateNormals();
@@ -1335,7 +1376,7 @@ internal static class BraxMiastoWyspa
         var a = new UlSiatka(); var c = AC; a.kolor = BraxUliceKit.C(.75f, .78f, .8f);
         for (int i = 0; i < 8; i++) { float a0 = i * Mathf.PI / 4f, a1 = (i + 1) * Mathf.PI / 4f; var p0 = c + new Vector3(Mathf.Cos(a0), 0, Mathf.Sin(a0)) * (ArenaR - 1f); var p1 = c + new Vector3(Mathf.Cos(a1), 0, Mathf.Sin(a1)) * (ArenaR - 1f); a.Quad(p0, p1, p1 + Vector3.up * 12.5f, p0 + Vector3.up * 12.5f, (p0 + p1 - 2 * c).normalized); a.kolor = BraxUliceKit.C(.93f, .93f, .91f); a.Tri(c + Vector3.up * 16.5f, p1 + Vector3.up * 12.5f, p0 + Vector3.up * 12.5f, Vector3.up); a.kolor = BraxUliceKit.C(.75f, .78f, .8f); }   // dach membranowy (stożek)
         var ga = BraxMiastoA.Obiekt(sr, "Wyspa z daleka: arena", a, BraxMiastoA.Mat("Wyspa z daleka (kolory z wierzchołków)", Color.white, .9f));
-        var ukr = sr.gameObject.AddComponent<BraxWyspaDaleko>(); ukr.srodek = new Vector3(CX, 0, CZ); ukr.blizej = 230f; ukr.renderery = new Renderer[] { r, ga.GetComponent<Renderer>() };
+        var ukr = sr.gameObject.AddComponent<BraxWyspaDaleko>(); ukr.srodek = new Vector3(CX, 0, CZ); ukr.blizej = 260f; ukr.scena = "BraxhornCity_Wyspa"; ukr.renderery = new Renderer[] { r, ga.GetComponent<Renderer>() };
     }
 
     static readonly List<Vector3> deptak = new List<Vector3>();
