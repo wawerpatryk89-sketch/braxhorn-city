@@ -84,19 +84,23 @@ public sealed class BraxVessel : MonoBehaviour
     {
         if (!rider) return false;
         Vector3 best = Vector3.zero; bool found = false; float bd = 99f;
+        // A 2.11: szukanie wzdłuż całego kadłuba (środek, dziób, rufa) — długi jacht dobity dziobem albo burtą do pomostu
+        var fw = transform.forward; fw.y = 0f; fw.Normalize();
+        foreach (float wz in new[] { 0f, .38f, -.38f, .2f, -.2f })
         for (int i = 0; i < 16; i++)
         {
             float a = i * Mathf.PI * 2f / 16f;
-            for (float r = 1.2f; r <= Mathf.Max(4.5f, width * .5f + 2.5f); r += .6f)
+            for (float r = 1.2f; r <= Mathf.Max(4.5f, width * .5f + 3f); r += .6f)
             {
-                var o = transform.position + new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r);
+                var o = transform.position + fw * (length * wz) + new Vector3(Mathf.Cos(a) * r, 0, Mathf.Sin(a) * r);
                 RaycastHit hit;
                 if (!Physics.Raycast(o + Vector3.up * 6f, Vector3.down, out hit, 12f, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore)) continue;
                 if (hit.point.y < waterY + .15f) continue;                 // dno pod wodą — nie
                 if (hit.collider.transform.IsChildOf(transform)) continue;  // własny kadłub — nie
                 if (hit.normal.y < .7f) continue;                          // ściana, skała — nie
                 if (Physics.CheckCapsule(hit.point + Vector3.up * .5f, hit.point + Vector3.up * 1.9f, .3f, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore)) continue;   // miejsce zajęte (krawędź, słupek)
-                if (r < bd) { bd = r; best = hit.point; found = true; }
+                float score = r + Mathf.Abs(wz) * length * .5f;
+                if (score < bd) { bd = score; best = hit.point; found = true; }
             }
         }
         if (!found) return false;

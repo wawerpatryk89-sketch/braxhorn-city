@@ -48,7 +48,8 @@ public static class BraxRegion
 
         // Najpierw morze: stara łąka i las znad wody (jachty „w trawie”), zanim zieleń szuka trawników.
         Step("morze bez łąki i lasu nad wodą", () => BraxRegionSea.Apply(root));
-        Step("wyspa na morzu (oktagon Ligi, pomost, otwarta)", () => BraxRegionIsland.Apply(root));
+        // A 2.11: stara wyspa (stożek z łatami, BraxRegionIsland) wyłączona — wyspa od nowa wg Vacation Island (MIT) na siatce
+        Step("A: WYSPA wypoczynkowa z ARENĄ BRAXHORN (siatka wg Vacation Island, przystań, plaża, bar)", () => BraxMiastoWyspa.Apply(root));
         // A 2.11: pawilon z ringiem („SZATNIA · SALA WALK”) usunięty z miasta (sala walk = ARENA BRAXHORN na wyspie) → sklep sportowy
         Step("A: BRAXHORN SPORT — sklep sportowy z szatnią graczy", () => BraxMiastoSport.Apply(root));
         Step("tyły siłowni: plac, wieżowce A/B, wiadukt z portalem, warsztaty", () => BraxRegionBackyard.Apply(world, root));

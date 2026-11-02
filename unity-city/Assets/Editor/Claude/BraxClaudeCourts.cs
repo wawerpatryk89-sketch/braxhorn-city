@@ -187,7 +187,7 @@ public static class BraxClaudeCourts
         rep.football = true; rep.court1 = new Vector3(cx, yS, cz); rep.size1 = new Vector2(hx * 2, hz * 2);
         // gra: piłka nożna × k
         var b = new GameObject("Gra: piłka nożna (podwórko)").AddComponent<BraxSportBoisko>(); b.transform.SetParent(root, false);
-        b.gra = BraxSportBoisko.Gra.Nozna; b.skala = k; b.srodek = new Vector3(cx, yS, cz); b.osX = Vector3.right; b.pol = new Vector2(hx, hz); b.strefa = new Vector2(hx + 2.5f, hz + 2f);
+        b.gra = BraxSportBoisko.Gra.Nozna; b.srodek = new Vector3(cx, yS, cz); b.osX = Vector3.right; b.pol = new Vector2(hx, hz); b.strefa = new Vector2(hx + 2.5f, hz + 2f);
         b.cele = new[] { new Vector3(x0, yS, cz), new Vector3(x1, yS, cz) }; b.bramkaSzer = bramkaW; b.bramkaWys = bramkaH; b.bramkaGl = bramkaD;
     }
 
@@ -396,7 +396,7 @@ public static class BraxClaudeCourts
         foreach (float dx in new[] { -4f, 4f }) { Lawka(root, new Vector3(cx + dx, yS, fz1 - .65f), 180f, "Ławka przy boisku do koszykówki"); rep.benches++; }
         rep.basketball = true; rep.court2 = new Vector3(cx, yS, cz); rep.size2 = new Vector2(hl * 2, hw * 2);
         var b = new GameObject("Gra: koszykówka (podwórko)").AddComponent<BraxSportBoisko>(); b.transform.SetParent(root, false);
-        b.gra = BraxSportBoisko.Gra.Kosz; b.skala = k; b.srodek = new Vector3(cx, yS, cz); b.osX = Vector3.right; b.pol = new Vector2(hl, hw); b.strefa = new Vector2(hl + 1.5f, hw + 1.5f);
+        b.gra = BraxSportBoisko.Gra.Kosz; b.srodek = new Vector3(cx, yS, cz); b.osX = Vector3.right; b.pol = new Vector2(hl, hw); b.strefa = new Vector2(hl + 1.5f, hw + 1.5f);
         b.cele = kosze.ToArray(); b.tablice = tablice.ToArray();
     }
 

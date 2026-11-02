@@ -267,7 +267,7 @@ public static class BraxNabrzezeMarina
 
     // ---------------- łodzie przy pomostach ----------------
     struct Typ { public string plik, label; public float dlug, zanurzenie, vmax, skret, przysp; public bool siedzi; }
-    static readonly Typ Jacht = new Typ { plik = "yacht.glb", label = "JACHT", dlug = 20f, zanurzenie = .11f, vmax = 7.5f, skret = 22f, przysp = 1.6f, siedzi = false };
+    static readonly Typ Jacht = new Typ { plik = "yacht.glb", label = "JACHT", dlug = 20f, zanurzenie = .11f, vmax = 7.5f, skret = 22f, przysp = 1.6f, siedzi = true };   // A 2.11: „płynę SIEDZĄC jak człowiek” — fotel sternika
     static readonly Typ Riva = new Typ { plik = "bateau_riva_boat.glb", label = "MOTORÓWKA", dlug = 8.2f, zanurzenie = .21f, vmax = 13f, skret = 45f, przysp = 3.5f, siedzi = true };
     static readonly Typ Skuter = new Typ { plik = "jetski_01.glb", label = "SKUTER", dlug = 3.3f, zanurzenie = .17f, vmax = 17f, skret = 95f, przysp = 6.5f, siedzi = true };
 
@@ -388,7 +388,7 @@ public static class BraxNabrzezeMarina
         if (nasze.Count > 0) y = t.label == "SKUTER" ? nasze.Last() : nasze.First();
         foreach (var c in tmp) UnityEngine.Object.DestroyImmediate(c);
         if (float.IsNaN(y)) y = W + (t.label == "JACHT" ? 1.6f : t.label == "MOTORÓWKA" ? .9f : .8f) * K;
-        float ly = y - W + (t.label == "MOTORÓWKA" ? .42f * K : 0f);   // motorówka: siedzisko nad podłogą kokpitu
+        float ly = y - W + (t.label == "MOTORÓWKA" ? .42f * K : t.label == "JACHT" ? .45f * K : 0f);   // motorówka / jacht: siedzisko (fotel sternika) nad podłogą kokpitu
         return new Vector3(0, ly, zl);
     }
 
