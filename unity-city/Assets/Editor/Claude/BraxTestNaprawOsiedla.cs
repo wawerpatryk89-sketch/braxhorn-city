@@ -21,6 +21,7 @@ public static class BraxTestNaprawOsiedla
     }
     public static void Wykonaj()
     {
+        { var st = BraxClaudeOsiedle.KontrolaUkladuStacji(); Require(st == null, "stacja paliw (E21): " + st); }   // wykonawca B, build 45b
         Require(BraxAuto.KatKola(0,3,.8f)==0, "koła prosto");
         Require(BraxAuto.KatKola(25,3,.8f)>BraxAuto.KatKola(25,3,-.8f), "wewnętrzne koło skręca mocniej");
         Require(Mathf.Abs(BraxAuto.KatKola(25,3,.8f)+BraxAuto.KatKola(-25,3,-.8f))<.0001f, "symetria skrętu");
