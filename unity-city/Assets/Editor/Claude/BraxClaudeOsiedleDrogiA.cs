@@ -67,7 +67,7 @@ public static partial class BraxClaudeOsiedle
 
     const float RondoZ = 42f;
     const float RondoJezdnia = 12.5f, RondoOpaska = 6.6f, RondoWyspa = 4.6f, RondoChodnik = 15.8f;
-    const float YAsf = .055f, YFarba = .075f;   // farba 2 cm nad asfaltem (zasada: nic nie migocze)
+    const float YAsf = .055f, YFarba = .075f;   // farba rysowana 2 cm nad asfaltem, na końcu dróg wycinana w asfalcie po kształcie i kładziona na lico (runda 4, BraxClaudeOsiedleOznakowanie)
 
     static List<UlicaA> ulice;
     static List<WezelA> wezly;

@@ -142,16 +142,14 @@ public static partial class BraxClaudeOsiedle
     static int FarbaWWycieciach()
     {
         farbaOdroczona = false;
-        int n = 0, ciete = 0;
+        int n = 0;
         var g = group; group = GrupaFarbyA;
-        foreach (var (x0, x1, z0, z1) in farbaOdroczonaLista)
-        {
-            ciete += WytnijZGrupy((gr, m) => m == Asphalt && gr.StartsWith("Osiedle A"), MinMax(x0, x1, YAsf - .02f, YAsf + .02f, z0, z1));
-            Top(Paint, x0, x1, z0, z1, YAsf); n++;
-        }
+        foreach (var (x0, x1, z0, z1) in farbaOdroczonaLista) { Top(Paint, x0, x1, z0, z1, YFarba); n++; }
         group = g;
         farbaOdroczonaLista.Clear();
-        Debug.Log("BRAXHORN_DROGI_OZNAKOWANIE w_wycięciach=" + n + " prostokątów (trójkątów asfaltu przyciętych " + ciete + ") wielokąty_2cm_nad_asfaltem=pozostają");
+        // runda 4: całe oznakowanie A (prostokąty, strzałki, „zęby”, szewrony, linie ronda po łuku) w wycięciach — po kształcie
+        var (wc, poza, pr, po) = OznakowanieWWycieciach(GrupaFarbyA, gr => gr.StartsWith("Osiedle A"), YAsf);
+        Debug.Log("BRAXHORN_DROGI_OZNAKOWANIE etap=drogi_A prostokąty=" + n + " trójkąty_farby_w_wycięciach=" + wc + " poza_asfaltem=" + poza + " trójkąty_asfaltu " + pr + "→" + po);
         return n;
     }
 }

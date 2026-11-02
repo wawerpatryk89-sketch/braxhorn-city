@@ -26,7 +26,7 @@ public static partial class BraxClaudeOsiedle
         var g0 = group;
         zatokiB = podjazdyB = slupkiN = hydrantyN = przystankiN = barierkiN = koszeN = kratyN = 0;
         int farbaB = PrzeniesFarbe("Osiedle B / ulice", GrupaFarbyB, .006f);
-        rep.notes.Add("część B: oznakowanie poziome podniesione o 6 mm (2.2 cm nad asfaltem), bez cieni — " + farbaB + " trójkątów");
+        rep.notes.Add("część B: oznakowanie poziome przeniesione do grupy bez cieni (" + farbaB + " trójkątów) — na końcu kroku w wycięciach asfaltu");
         Guard("drogi A: tablica PARK WIŚNIOWY z nowego chodnika", TablicaParkuA);
         Guard("drogi B: parking pawilonu", ParkingPawilonuB);
         Guard("drogi B: podjazdy willi", PodjazdyB);
@@ -34,6 +34,14 @@ public static partial class BraxClaudeOsiedle
         Guard("ulice: wyposażenie A i B", Wyposazenie);
         Guard("drogi: strefy zatrzymania (rondo, przejścia)", KomponentStref);
         Guard("drogi: kontrola", KontrolaDrog);
+        // runda 4: oznakowanie A dodane po drogach (zygzaki P-17 przystanków) i całe oznakowanie B — w wycięciach asfaltu
+        Guard("drogi: oznakowanie w wycięciach (A po wyposażeniu, B)", () =>
+        {
+            var a = OznakowanieWWycieciach(GrupaFarbyA, gr => gr.StartsWith("Osiedle A"), YAsf);
+            var b = OznakowanieWWycieciach(GrupaFarbyB, gr => gr.StartsWith("Osiedle B"), YB);
+            Debug.Log("BRAXHORN_DROGI_OZNAKOWANIE etap=ulice A_dodatkowe=" + a.wciete + " (poza asfaltem " + a.poza + ") B=" + b.wciete + " (poza asfaltem " + b.poza + ", trójkąty asfaltu B " + b.asfaltPrzed + "→" + b.asfaltPo + ")");
+            OznakowanieKontrola("po_ulicach");
+        });
         Debug.Log("BRAXHORN_DROGI rondo=(0," + RondoZ + ") jezdnia r " + RondoOpaska + "–" + RondoJezdnia + " m, opaska z kostki, wyspa r " + RondoWyspa + " (kwiaty, krzewy, środek wolny na cokół), wloty=4 (P-13, A-7+C-12)"
                   + ", zebry=" + Przejscia.Count + " (ze światłami " + Przejscia.Count(p => p.zeSwiatlami) + ")"
                   + ", zatoki=" + MiejscaParkingowe.Count + " (A " + zatokiA + ", B parking " + zatokiB + ", podjazdy willi B " + podjazdyB + ")"
