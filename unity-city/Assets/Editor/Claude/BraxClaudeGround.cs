@@ -49,8 +49,8 @@ public static class BraxClaudeGround
         m.SetFloat("_Tile", tile); m.SetColor("_Color", tint);
         m.SetFloat("_MacroMix", macroMix); m.SetFloat("_BumpScale", bump);
         string p = Out + "/" + name.Replace(' ', '_').Replace(':', '_') + ".mat";
-        if (File.Exists(p)) AssetDatabase.DeleteAsset(p);
-        AssetDatabase.CreateAsset(m, p);
+        // C1: bez usuwania istniejącego pliku (usunięcie = różowe obiekty, które już go używają) — BraxZapisAssetu
+        BraxZapisAssetu.Utworz(m, p);
         return m;
     }
 
@@ -179,7 +179,7 @@ public static class BraxClaudeGround
             if (removed == 0) { UnityEngine.Object.DestroyImmediate(copy); continue; }
             Directory.CreateDirectory(Out);
             string p = Out + "/" + Guid.NewGuid().ToString("N").Substring(0, 8) + "_cut.asset";
-            AssetDatabase.CreateAsset(copy, p);
+            BraxZapisAssetu.Utworz(copy, p);
             foreach (var col in mf.GetComponents<MeshCollider>()) if (col.sharedMesh == src) col.sharedMesh = copy;
             mf.sharedMesh = copy;
             report.cutTriangles += removed; report.cutMeshes++; report.cutMeshNames.Add(mf.name);
@@ -215,7 +215,7 @@ public static class BraxClaudeGround
             if (removed == 0) { UnityEngine.Object.DestroyImmediate(copy); continue; }
             Directory.CreateDirectory(Out);
             string cp = Out + "/" + Guid.NewGuid().ToString("N").Substring(0, 8) + "_colcut.asset";
-            AssetDatabase.CreateAsset(copy, cp);
+            BraxZapisAssetu.Utworz(copy, cp);
             col.sharedMesh = copy;
             report.cutTriangles += removed; report.cutMeshes++; report.cutMeshNames.Add("kolizja: " + col.name);
         }

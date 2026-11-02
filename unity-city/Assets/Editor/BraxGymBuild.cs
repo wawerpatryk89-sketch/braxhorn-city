@@ -238,7 +238,7 @@ public static class BraxGymBuild
                     foreach(var name in new[]{"_Cull","_CullMode","_CullModeForward"})if(m.HasProperty(name)){t.SetFloat("_Cull",m.GetFloat(name));break;}
                     t.SetFloat("_VertexColor",1);
                     string assetName=new string(m.name.Select(c=>char.IsLetterOrDigit(c)||c=='_'?c:'_').ToArray());
-                    AssetDatabase.CreateAsset(t,Generated+"/"+assetName+".mat");
+                    BraxZapisAssetu.Utworz(t,Generated+"/"+assetName+".mat");
                     t.name=m.name;EditorUtility.SetDirty(t);cache[m]=t;tuned++;
                     Debug.Log("GYM_MATERIAL "+m.name+" shader="+m.shader.name+" texture="+textureName+" color="+t.color);
                 }
@@ -292,7 +292,7 @@ public static class BraxGymBuild
             var source=imported.FirstOrDefault(c=>c.name==kv.Value)??imported.FirstOrDefault(c=>Clean(c.name)==Clean(kv.Value));
             if(!source)throw new Exception("Original animation absent: "+kv.Value);
             var clip=UnityEngine.Object.Instantiate(source);clip.name=kv.Key;clip.legacy=true;clip.wrapMode=kv.Key=="Idle"||kv.Key=="Walk"||kv.Key=="Run"?WrapMode.Loop:WrapMode.Once;
-            AssetDatabase.CreateAsset(clip,Generated+"/"+kv.Key+".anim");animation.AddClip(clip,kv.Key);
+            BraxZapisAssetu.Utworz(clip,Generated+"/"+kv.Key+".anim");animation.AddClip(clip,kv.Key);
         }
         animation.clip=animation.GetClip("Idle");animation.Play("Idle");animation.Sample();
         var camera=new GameObject("Player camera").AddComponent<Camera>();camera.tag="MainCamera";camera.fieldOfView=55;camera.nearClipPlane=.1f;camera.farClipPlane=100;camera.allowHDR=false;camera.allowMSAA=true;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.14f,.18f,.20f);camera.gameObject.AddComponent<AudioListener>();
@@ -300,8 +300,8 @@ public static class BraxGymBuild
         var light=new GameObject("Soft neutral light for moving character").AddComponent<Light>();light.type=LightType.Directional;light.color=new Color(1,.96f,.9f);light.intensity=.75f;light.transform.rotation=Quaternion.Euler(55,-25,0);light.shadows=LightShadows.None;
         var fill=new GameObject("Soft interior fill").AddComponent<Light>();fill.type=LightType.Point;fill.transform.position=new Vector3(0,5,0);fill.range=26;fill.intensity=.6f;fill.color=new Color(.87f,.91f,1f);fill.shadows=LightShadows.None;
         var tex=new Texture2D(64,64,TextureFormat.RGBA32,false);tex.wrapMode=TextureWrapMode.Clamp;
-        for(int y=0;y<64;y++)for(int x=0;x<64;x++){float r=new Vector2((x-31.5f)/31.5f,(y-31.5f)/31.5f).magnitude;tex.SetPixel(x,y,new Color(0,0,0,Mathf.Pow(Mathf.Clamp01(1-r),1.6f)*.5f));}tex.Apply();AssetDatabase.CreateAsset(tex,Generated+"/ContactShadow.asset");
-        var shadowMat=new Material(Shader.Find("Unlit/Transparent"));shadowMat.mainTexture=tex;AssetDatabase.CreateAsset(shadowMat,Generated+"/ContactShadow.mat");
+        for(int y=0;y<64;y++)for(int x=0;x<64;x++){float r=new Vector2((x-31.5f)/31.5f,(y-31.5f)/31.5f).magnitude;tex.SetPixel(x,y,new Color(0,0,0,Mathf.Pow(Mathf.Clamp01(1-r),1.6f)*.5f));}tex.Apply();BraxZapisAssetu.Utworz(tex,Generated+"/ContactShadow.asset");
+        var shadowMat=new Material(Shader.Find("Unlit/Transparent"));shadowMat.mainTexture=tex;BraxZapisAssetu.Utworz(shadowMat,Generated+"/ContactShadow.mat");
         var shadow=GameObject.CreatePrimitive(PrimitiveType.Quad);shadow.name="Soft player contact shadow";UnityEngine.Object.DestroyImmediate(shadow.GetComponent<Collider>());shadow.transform.rotation=Quaternion.Euler(90,0,0);shadow.transform.localScale=new Vector3(1.6f,1.4f,1);shadow.GetComponent<Renderer>().sharedMaterial=shadowMat;shadow.layer=8;
         var runtime=player.AddComponent<BraxGymPlayer>();runtime.visual=hero.transform;runtime.body=body;runtime.view=camera;runtime.clips=animation;runtime.door=door.transform;runtime.bags=bags.ToArray();runtime.contactShadow=shadow.transform;runtime.buildId=Environment.GetEnvironmentVariable("GITHUB_SHA")??"unity-gym";
         QualitySettings.antiAliasing=4;QualitySettings.pixelLightCount=2;QualitySettings.shadows=ShadowQuality.Disable;QualitySettings.anisotropicFiltering=AnisotropicFiltering.ForceEnable;
@@ -352,6 +352,8 @@ public static class BraxGymBuild
         if(!osiedle)try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
         if(!osiedle)try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         if(!osiedle)BraxRejonBuildu.Czas("obrobka_siatek",tObr,fullCity?"rejon=miasto":"rejon=silownia");
+        // C1 (2.11, różowe jachty/żurawie/budka): kontrola końcowa — renderery z materiałem NULL / bez shadera (cel 0), przed zapisem.
+        if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pamiec(scene,"przed_zapisem_sceny");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrola braku materiałów (pamięć): "+e);}
         // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,
         // doczytywaną w tle 45 m przed granicą i zwalnianą 110 m od niej (BraxObszary). Scena startowa = centrum.
         string scenePath=osiedle?null:Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!osiedle&&!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
@@ -387,6 +389,8 @@ public static class BraxGymBuild
             }
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: kwadraty miasta: "+e);}
         }
+        // C1: to samo na zapisanych plikach wszystkich scen miasta (po podziale na obszary i kwadraty) — odwołania do materiałów.
+        if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pliki(ScenyMiasta(scenePath),"pliki_scen_miasta");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrola braku materiałów (pliki scen): "+e);}
         if(fullCity&&!osiedle)BraxRejonBuildu.Czas("generowanie",tMiasto,"rejon=miasto z_pamięci=nie");   // miasto + remont siłowni + obróbka + obszary
         string sourceCommit=runtime.buildId;
         // Estate review boots directly into the EXISTING city estate scene with the

@@ -275,7 +275,7 @@ public static class BraxWnetrzaKit
         var sh = Shader.Find("Braxhorn/CitySignText");
         if (sh)
         {
-            if (!napisMat) { Directory.CreateDirectory(Out); napisMat = new Material(sh) { name = "wnętrza: napisy" }; napisMat.mainTexture = tm.font.material.mainTexture; AssetDatabase.CreateAsset(napisMat, Out + "/napisy.mat"); }
+            if (!napisMat) { Directory.CreateDirectory(Out); napisMat = new Material(sh) { name = "wnętrza: napisy" }; napisMat.mainTexture = tm.font.material.mainTexture; BraxZapisAssetu.Utworz(napisMat, Out + "/napisy.mat"); }
             obj.GetComponent<MeshRenderer>().sharedMaterial = napisMat;
         }
         obj.AddComponent<BraxCitySignText>();
@@ -310,7 +310,7 @@ public static class BraxWnetrzaKit
                 r.shadowCastingMode = wnetrze ? ShadowCastingMode.Off : ShadowCastingMode.On; r.receiveShadows = !wnetrze;
                 r.lightProbeUsage = LightProbeUsage.Off; r.reflectionProbeUsage = ReflectionProbeUsage.Off;
                 GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.OccludeeStatic | StaticEditorFlags.OccluderStatic);
-                AssetDatabase.CreateAsset(mesh, Out + "/" + Bezpieczna(etykieta) + "_" + (seria++).ToString("D5") + ".asset");
+                BraxZapisAssetu.Utworz(mesh, Out + "/" + Bezpieczna(etykieta) + "_" + (seria++).ToString("D5") + ".asset");
                 n++;
             }
         }
@@ -462,7 +462,7 @@ public static class BraxWnetrzaKit
             Directory.CreateDirectory(Out);
             var m = new Material(sh) { name = "Wnętrza: " + nazwa }; m.enableInstancing = true;
             if (tex) m.mainTexture = tex; m.SetColor("_Tint", tint);
-            AssetDatabase.CreateAsset(m, Out + "/ekran_" + Bezpieczna(nazwa) + ".mat");
+            BraxZapisAssetu.Utworz(m, Out + "/ekran_" + Bezpieczna(nazwa) + ".mat");
             return cache[key] = m;
         }
 
@@ -475,7 +475,7 @@ public static class BraxWnetrzaKit
             if (!sh) return cache[key] = Plain(nazwa + " (bez shadera)", kolor, .4f);
             Directory.CreateDirectory(Out);
             var m = new Material(sh) { name = "Wnętrza: " + nazwa }; m.SetColor("_Tint", kolor); m.SetFloat("_Moc", moc);
-            AssetDatabase.CreateAsset(m, Out + "/promien_" + Bezpieczna(nazwa) + ".mat");
+            BraxZapisAssetu.Utworz(m, Out + "/promien_" + Bezpieczna(nazwa) + ".mat");
             return cache[key] = m;
         }
 

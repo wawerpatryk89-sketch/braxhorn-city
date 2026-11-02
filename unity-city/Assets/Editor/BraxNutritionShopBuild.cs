@@ -67,7 +67,7 @@ public static class BraxNutritionShopBuild
         m.SetVector("_ShopLightB",new Vector4(23.0f,4.11f,16.0f,8));
         m.SetColor("_ShopColourA",new Color(5.8f,5.35f,4.65f));
         m.SetColor("_ShopColourB",new Color(5.8f,5.35f,4.65f));
-        AssetDatabase.CreateAsset(m,Output+"/material_"+(materialSerial++)+".mat");
+        BraxZapisAssetu.Utworz(m,Output+"/material_"+(materialSerial++)+".mat");
         converted[source]=m;return m;
     }
     static Material Finish(string name,Color colour,float roughness=.8f,float metal=0)
@@ -104,7 +104,7 @@ public static class BraxNutritionShopBuild
         text.color=color;text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         var shader=Shader.Find("Braxhorn/CitySignText");if(!shader)throw new InvalidOperationException("Nutrition lettering shader missing");
         var m=new Material(shader){name="Nutrition depth-tested text",mainTexture=text.font.material.mainTexture};
-        AssetDatabase.CreateAsset(m,Output+"/text_"+(materialSerial++)+".mat");
+        BraxZapisAssetu.Utworz(m,Output+"/text_"+(materialSerial++)+".mat");
         g.GetComponent<MeshRenderer>().sharedMaterial=m;g.AddComponent<BraxCitySignText>();return text;
     }
     static void BrandPanel(Transform root,Vector3 at,float width,Material backing,Material art)

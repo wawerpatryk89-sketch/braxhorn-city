@@ -111,7 +111,7 @@ public static class BraxClaudeCourts
         m.SetTexture("_MainTex", tex); m.SetTextureScale("_MainTex", Vector2.one / oczko); m.SetColor("_Color", kolor);
         m.SetFloat("_Roughness", .8f); m.SetFloat("_Metallic", klucz == "romb" ? .5f : 0f); m.SetFloat("_AlphaClip", 1); m.SetFloat("_Cutoff", .5f); m.SetFloat("_Cull", 0);
         m.renderQueue = 2450; m.SetOverrideTag("RenderType", "TransparentCutout"); m.doubleSidedGI = true;
-        AssetDatabase.CreateAsset(m, path); return m;
+        BraxZapisAssetu.Utworz(m, path); return m;
     }
 
     // ---------------- LINIE W TEKSTURZE NAWIERZCHNI (A 2.11; właściciel 15:40 „NIGDY nic nie nakładamy”) ----------------
@@ -165,8 +165,8 @@ public static class BraxClaudeCourts
         m.CopyPropertiesFromMaterial(baza);
         m.SetTexture("_Linie", mask); m.SetVector("_LinieObszar", new Vector4(x0, z0, 1f / (x1 - x0), 1f / (z1 - z0)));
         m.SetColor("_LinieKolor", new Color(.93f, .93f, .91f)); m.SetFloat("_LinieSzorstkosc", .75f);
-        string mp = dir + "/nawierzchnia_" + klucz + ".mat"; if (AssetDatabase.LoadAssetAtPath<Material>(mp)) AssetDatabase.DeleteAsset(mp);
-        AssetDatabase.CreateAsset(m, mp);
+        string mp = dir + "/nawierzchnia_" + klucz + ".mat";   // C1: bez usuwania (BraxZapisAssetu)
+        BraxZapisAssetu.Utworz(m, mp);
         rep.notes.Add("linie " + klucz + " w teksturze nawierzchni: " + (linie.i.Count / 3) + " trójkątów → maska " + MW + "×" + MH);
         Debug.Log("BRAXHORN_MIASTO_A_BOISKA linie " + klucz + " w teksturze (maska " + MW + "×" + MH + ", trójkątów " + (linie.i.Count / 3) + ", nakładek 0)");
         return m;
@@ -315,7 +315,7 @@ public static class BraxClaudeCourts
         {
             if (siatki.TryGetValue(kl, out var m) && m) return m;
             var s = new UlSiatka(); f(s); m = s.Zbuduj("Ulice: " + kl); Directory.CreateDirectory(BraxUliceKit.Out);
-            AssetDatabase.CreateAsset(m, BraxUliceKit.Out + "/" + BraxUliceKit.Bezpieczna(kl) + ".asset"); siatki[kl] = m; return m;
+            BraxZapisAssetu.Utworz(m, BraxUliceKit.Out + "/" + BraxUliceKit.Bezpieczna(kl) + ".asset"); siatki[kl] = m; return m;
         }
         float L = 1.8f * k, H = .45f * k, D = .45f * k;
         var listwy = M("ławka listwy", s =>
@@ -573,7 +573,7 @@ public static class BraxClaudeCourts
             czarny.Rura(c + new Vector3(-.03f, kr, 0), c + new Vector3(.03f, kr, 0), kr, 10);
             czarny.Box(c + new Vector3(-.035f, kr, -.03f), c + new Vector3(.035f, yk, .03f));
         }
-        Mesh Zapis(UlSiatka x, string n) { var m = x.Zbuduj("Ulice: pojemnik " + co + " " + n); Directory.CreateDirectory(BraxUliceKit.Out); AssetDatabase.CreateAsset(m, BraxUliceKit.Out + "/pojemnik_" + BraxUliceKit.Bezpieczna(co + "_" + n) + ".asset"); return m; }
+        Mesh Zapis(UlSiatka x, string n) { var m = x.Zbuduj("Ulice: pojemnik " + co + " " + n); Directory.CreateDirectory(BraxUliceKit.Out); BraxZapisAssetu.Utworz(m, BraxUliceKit.Out + "/pojemnik_" + BraxUliceKit.Bezpieczna(co + "_" + n) + ".asset"); return m; }
         var a = new GameObject("korpus"); a.transform.SetParent(g.transform, false); a.AddComponent<MeshFilter>().sharedMesh = Zapis(s, "korpus"); a.AddComponent<MeshRenderer>().sharedMaterial = korpus;
         var b = new GameObject("kółka i uchwyty"); b.transform.SetParent(g.transform, false); b.AddComponent<MeshFilter>().sharedMesh = Zapis(czarny, "kola"); b.AddComponent<MeshRenderer>().sharedMaterial = BraxUliceKit.Mat("pojemnik: guma i tworzywo czarne", new Color(.05f, .05f, .05f), .7f);
         var bc = g.AddComponent<BoxCollider>(); bc.center = new Vector3(0, h * .5f, 0); bc.size = new Vector3(w, h, d);

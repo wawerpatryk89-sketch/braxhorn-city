@@ -127,7 +127,7 @@ public static partial class BraxClaudeOsiedle
     static int mbN;
     static GameObject Wstaw(MB mb, string name, Material[] ms, Transform parent, Vector3 pos)
     {
-        var mesh = mb.Siatka(name); AssetDatabase.CreateAsset(mesh, Out + "/mb_" + (mbN++) + ".asset");
+        var mesh = mb.Siatka(name); BraxZapisAssetu.Utworz(mesh, Out + "/mb_" + (mbN++) + ".asset");
         var g = new GameObject(name); g.transform.SetParent(parent, false); g.transform.position = pos;
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterials = ms; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
@@ -142,7 +142,7 @@ public static partial class BraxClaudeOsiedle
         m.SetFloat("_Glossiness", gloss); m.SetFloat("_Metallic", 0f);
         string nm = Tex + "leather_red_02/normal.jpg";
         if (File.Exists(nm)) { m.SetTexture("_BumpMap", Map(nm, true, false)); m.EnableKeyword("_NORMALMAP"); m.SetFloat("_BumpScale", bump); m.mainTextureScale = new Vector2(1, 1); }
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = 1f; return m;
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = 1f; return m;
     }
     static Material Chrom => Plain("chrom (okucia, gryfy)", new Color(.86f, .87f, .89f), .9f, 1f);
     static Material GumaCzarna => Plain("guma talerzy i hantli", new Color(.045f, .045f, .05f), .32f);
@@ -245,7 +245,7 @@ public static partial class BraxClaudeOsiedle
             float a = q * 60f * Mathf.Deg2Rad; var d = new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a));
             mb.Pud(2, d * (R + .002f) + Vector3.up * ((-gora - .2f - dol + .2f) * .5f), new Vector3(.005f, dol - gora - .4f, .006f), Quaternion.LookRotation(d));
         }
-        var mesh = mb.Siatka("worek premium (łańcuch, okucia, skóra)"); AssetDatabase.CreateAsset(mesh, Out + "/worek_premium.asset");
+        var mesh = mb.Siatka("worek premium (łańcuch, okucia, skóra)"); BraxZapisAssetu.Utworz(mesh, Out + "/worek_premium.asset");
         var ms = new[] { skora, wzm, szew, Chrom, Akcent };
         worekMesh = mesh; worekMats = ms;
         foreach (float z in new[] { -8.4f, -5.4f, -2.4f, .6f }) Worek(new Vector3(gx + 14f, Y, gz + z));
@@ -296,7 +296,7 @@ public static partial class BraxClaudeOsiedle
             var l = go.AddComponent<BraxLina>(); l.a = a; l.b = b; l.naZewnatrz = nz; l.wysokosci = new[] { 1.30f, 1.62f, 1.94f, 2.26f }; l.promien = .024f; l.maksUgiecie = .2f;
             l.Zbuduj();
             var mesh = go.GetComponent<MeshFilter>().sharedMesh;
-            if (mesh) { AssetDatabase.CreateAsset(mesh, Out + "/liny_ringu_" + id + ".asset"); rep.meshes++; rep.triangles += mesh.triangles.Length / 3; }
+            if (mesh) { BraxZapisAssetu.Utworz(mesh, Out + "/liny_ringu_" + id + ".asset"); rep.meshes++; rep.triangles += mesh.triangles.Length / 3; }
             GameObjectUtility.SetStaticEditorFlags(go, 0);
             // kolizja boku za liną (przejście wejścia na ring zostaje otwarte)
             var c = (a0 + b0) * .5f + nz * .28f; float len = Vector3.Distance(a0, b0);
@@ -448,7 +448,7 @@ public static partial class BraxClaudeOsiedle
         // 3 piłki luzem z fizyką (Brax je popycha i kopie) — z dala od przejść
         var kulaSiatka = new MB(2); kulaSiatka.Kula(0, Vector3.zero, .17f, 20, .3f);
         kulaSiatka.Lathe(1, Vector3.zero, new[] { new Vector2(.172f, .012f), new Vector2(.172f, -.012f) }, 20, .3f, Quaternion.Euler(0, 0, 90f));
-        var kulaMesh = kulaSiatka.Siatka("piłka lekarska (fizyka)"); AssetDatabase.CreateAsset(kulaMesh, Out + "/pilka_lekarska.asset");
+        var kulaMesh = kulaSiatka.Siatka("piłka lekarska (fizyka)"); BraxZapisAssetu.Utworz(kulaMesh, Out + "/pilka_lekarska.asset");
         int pilki = 0;
         foreach (var (x, z, m) in new[] { (10.2f, -4.2f, 0), (9.3f, -2.9f, 1), (2.6f, -1.2f, 2) })
         {

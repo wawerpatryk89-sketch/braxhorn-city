@@ -63,7 +63,7 @@ public static partial class BraxClaudeOsiedle
             var go = new GameObject("Liny ringu (sala bokserska) — " + id); go.transform.SetParent(Group(group), false);
             go.AddComponent<MeshFilter>(); var mr = go.AddComponent<MeshRenderer>(); mr.sharedMaterial = biala; mr.shadowCastingMode = ShadowCastingMode.Off;
             var l = go.AddComponent<BraxLina>(); l.a = a; l.b = b; l.naZewnatrz = nz; l.wysokosci = wys; l.promien = .024f; l.maksUgiecie = .2f; l.Zbuduj();
-            var mesh = go.GetComponent<MeshFilter>().sharedMesh; if (mesh) UnityEditor.AssetDatabase.CreateAsset(mesh, Out + "/liny_boks_" + id + ".asset");
+            var mesh = go.GetComponent<MeshFilter>().sharedMesh; if (mesh) BraxZapisAssetu.Utworz(mesh, Out + "/liny_boks_" + id + ".asset");
             UnityEditor.GameObjectUtility.SetStaticEditorFlags(go, 0);
             var c = (a0 + b0) * .5f + nz * .28f; float len = Vector3.Distance(a0, b0);
             var col = new GameObject("kolizja lin " + id); col.transform.SetParent(colliders, false); col.transform.position = new Vector3(c.x, rh + .85f, c.z);

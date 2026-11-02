@@ -56,7 +56,7 @@ public static partial class BraxClaudeOsiedle
         m.SetFloat("_MeanGamma", info.meanGamma); m.SetFloat("_MeanLinear", info.meanLinear); m.SetFloat("_Cutoff", .45f);
         var b = klasterLiscie[0].bounds;
         m.SetVector("_Center", b.center + new Vector3(0, b.extents.y * .15f, 0)); m.SetVector("_Radius", b.extents);
-        AssetDatabase.CreateAsset(m, Out + "/liscie_galazki.mat"); mats["drzewa gałązki"] = m; tile[m] = 1f;
+        BraxZapisAssetu.Utworz(m, Out + "/liscie_galazki.mat"); mats["drzewa gałązki"] = m; tile[m] = 1f;
         klasterMat = m;
         return true;
     }

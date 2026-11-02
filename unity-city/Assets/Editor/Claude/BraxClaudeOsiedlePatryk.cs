@@ -242,7 +242,7 @@ public static partial class BraxClaudeOsiedle
         mat.SetFloat("_BumpScale", normal ? .85f : 0f); mat.SetFloat("_RoughnessFloor", .42f); if (orm) mat.SetFloat("_MetallicScale", .30f); mat.SetFloat("_OcclusionStrength", .8f);
         string sc = PatrykWynik + "/PatrykORM.mat";
         if (AssetDatabase.LoadAssetAtPath<Material>(sc)) AssetDatabase.DeleteAsset(sc);
-        AssetDatabase.CreateAsset(mat, sc);
+        BraxZapisAssetu.Utworz(mat, sc);
         return mat;
     }
 
@@ -405,7 +405,7 @@ public static partial class BraxClaudeOsiedle
             klip.EnsureQuaternionContinuity();
             string cel = PatrykWynik + "/" + k.nazwa + ".anim";
             if (AssetDatabase.LoadAssetAtPath<AnimationClip>(cel)) AssetDatabase.DeleteAsset(cel);
-            AssetDatabase.CreateAsset(klip, cel);
+            BraxZapisAssetu.Utworz(klip, cel);
             uwagi = (reczne != null ? " (krzywe ręcznie)" : "") + (k.wMiejscu && dryf.magnitude > .05f ? " (w miejscu, dryf " + dryf.magnitude.ToString("F2") + " m)" : "")
                 + " " + dl.ToString("F1") + " s, biodra ×" + skalaB.ToString("F2") + (Mathf.Abs(Quaternion.Angle(yaw, Quaternion.identity)) > 1f ? ", obrót źródła " + yaw.eulerAngles.y.ToString("F0") + "°" : "");
             return klip;

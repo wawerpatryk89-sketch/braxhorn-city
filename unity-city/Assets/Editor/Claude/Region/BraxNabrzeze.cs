@@ -196,7 +196,7 @@ public static class BraxNabrzeze
                 {
                     var mesh = part.Zbuduj("scal " + name + " " + kv.Key.name);
                     string path = Out + "/scal_" + Bezpieczna(name) + "_" + (serial++).ToString("D4") + ".asset";
-                    AssetDatabase.CreateAsset(mesh, path);
+                    BraxZapisAssetu.Utworz(mesh, path);
                     var g = new GameObject(name + " · " + kv.Key.name);
                     g.transform.SetParent(parent, false);
                     g.AddComponent<MeshFilter>().sharedMesh = mesh;
@@ -240,7 +240,7 @@ public static class BraxNabrzeze
     public static GameObject Obiekt(Transform parent, string name, Mesh mesh, Material m, bool kolizja, bool cienie = false)
     {
         string path = Out + "/" + Bezpieczna(name) + "_" + (serial++).ToString("D4") + ".asset";
-        AssetDatabase.CreateAsset(mesh, path);
+        BraxZapisAssetu.Utworz(mesh, path);
         var g = new GameObject(name); g.transform.SetParent(parent, false);
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = m;
@@ -285,7 +285,7 @@ public static class BraxNabrzeze
         if (!litery)
         {
             var sh = Shader.Find("Braxhorn/CitySignText");
-            if (sh) { litery = new Material(sh) { name = "Nabrzeże: litery z testem głębi" }; litery.mainTexture = tm.font.material.mainTexture; AssetDatabase.CreateAsset(litery, Out + "/litery.mat"); }
+            if (sh) { litery = new Material(sh) { name = "Nabrzeże: litery z testem głębi" }; litery.mainTexture = tm.font.material.mainTexture; BraxZapisAssetu.Utworz(litery, Out + "/litery.mat"); }
         }
         if (litery) g.GetComponent<MeshRenderer>().sharedMaterial = litery;
         g.AddComponent<BraxCitySignText>();
@@ -384,7 +384,7 @@ public static class BraxNabrzeze
         m.SetFloat("_TPiasek", tPiasek);
         if (!p) { m.SetColor("_KPiasek", new Color(.86f, .78f, .62f)); m.SetColor("_KMokry", new Color(.62f, .55f, .44f)); }
         m.enableInstancing = false;
-        AssetDatabase.CreateAsset(m, Out + "/" + Bezpieczna(name) + ".mat");
+        BraxZapisAssetu.Utworz(m, Out + "/" + Bezpieczna(name) + ".mat");
         Log("materiał terenu " + name + ": piasek " + (p ? "fotoskan" : "BRAK") + ", mokry " + (mk ? "fotoskan" : "BRAK") + ", trawa " + (t ? t.name : "BRAK") + ", skała " + (s ? s.name : "BRAK"));
         return m;
     }
@@ -433,7 +433,7 @@ public static class BraxNabrzeze
         var m = new Material(sh) { name = name };
         m.SetTexture("_Szum", SzumPiany()); m.SetFloat("_Tryb", lodz ? 1 : 0); m.SetFloat("_Okres", okres);
         m.renderQueue = 3010;
-        AssetDatabase.CreateAsset(m, Out + "/" + Bezpieczna(name) + ".mat");
+        BraxZapisAssetu.Utworz(m, Out + "/" + Bezpieczna(name) + ".mat");
         return m;
     }
 

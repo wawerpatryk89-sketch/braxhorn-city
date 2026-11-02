@@ -43,7 +43,7 @@ public static class BraxCityWaterBuild
         if(!File.Exists(Template))throw new FileNotFoundException("Durable harbour water shader source is missing",Template);
         var previous=parent.Find(RootName);
         if(previous)UnityEngine.Object.DestroyImmediate(previous.gameObject);
-        if(AssetDatabase.IsValidFolder(Output))AssetDatabase.DeleteAsset(Output);
+        BraxZapisAssetu.UsunFolder(Output,"woda portu");
         Directory.CreateDirectory(Output);
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         string shaderPath=Output+"/HarbourWater.shader";
@@ -64,7 +64,7 @@ public static class BraxCityWaterBuild
         Color horizon=RenderSettings.ambientEquatorColor,zenith=RenderSettings.ambientSkyColor;
         if(horizon.maxColorComponent>.01f)material.SetColor("_SkyHorizon",horizon);
         if(zenith.maxColorComponent>.01f)material.SetColor("_SkyZenith",Color.Lerp(zenith,new Color(.22f,.36f,.49f),.35f));
-        AssetDatabase.CreateAsset(material,Output+"/HarbourWater.mat");
+        BraxZapisAssetu.Utworz(material,Output+"/HarbourWater.mat");
         var root=new GameObject(RootName).transform;root.SetParent(parent,false);root.position=Vector3.zero;
         var patches=new List<Rect>();
         // Eight 32x64 m near-quay patches, two-metre grid. A shared analytic
@@ -104,7 +104,7 @@ public static class BraxCityWaterBuild
         string name="Harbour water patch "+patches.Count.ToString("D2");
         var mesh=new Mesh{name=name};mesh.vertices=vertices;mesh.normals=normals;mesh.uv=uv;mesh.triangles=triangles;mesh.RecalculateBounds();
         var displacedBounds=mesh.bounds;displacedBounds.Expand(new Vector3(0,.1f,0));mesh.bounds=displacedBounds;
-        AssetDatabase.CreateAsset(mesh,Output+"/WaterPatch_"+patches.Count.ToString("D2")+".asset");
+        BraxZapisAssetu.Utworz(mesh,Output+"/WaterPatch_"+patches.Count.ToString("D2")+".asset");
         var obj=new GameObject(name);obj.transform.SetParent(root,false);obj.AddComponent<MeshFilter>().sharedMesh=mesh;
         var renderer=obj.AddComponent<MeshRenderer>();renderer.sharedMaterial=material;
         renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;

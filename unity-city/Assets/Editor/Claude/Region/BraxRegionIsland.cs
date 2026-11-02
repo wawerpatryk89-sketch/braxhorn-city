@@ -58,7 +58,7 @@ public static class BraxRegionIsland
 
     public static void Apply(Transform cityRoot)
     {
-        if (AssetDatabase.IsValidFolder(Out)) AssetDatabase.DeleteAsset(Out);
+        BraxZapisAssetu.UsunFolder(Out, "stara wyspa");
         Directory.CreateDirectory(Out);
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         var root = BraxRegion.Root(cityRoot, "CLAUDE wyspa (oktagon Ligi, otwarta)");
@@ -95,7 +95,7 @@ public static class BraxRegionIsland
             var mesh = new Mesh { name = "Wyspa teren " + kv.Key, indexFormat = IndexFormat.UInt32 };
             mesh.vertices = verts; mesh.uv = uv; mesh.triangles = kv.Value.ToArray();
             mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
-            AssetDatabase.CreateAsset(mesh, Out + "/teren_" + kv.Key + ".asset");
+            BraxZapisAssetu.Utworz(mesh, Out + "/teren_" + kv.Key + ".asset");
             var o = new GameObject(kv.Key == 0 ? "Wyspa: piasek" : kv.Key == 1 ? "Wyspa: trawa" : "Wyspa: skały");
             o.transform.SetParent(root, false);
             o.AddComponent<MeshFilter>().sharedMesh = mesh;

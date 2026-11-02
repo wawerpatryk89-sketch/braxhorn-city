@@ -80,7 +80,7 @@ public static partial class BraxClaudeOsiedle
         if (m.HasProperty("baseColorFactor")) m.SetVector("baseColorFactor", new Vector4(c.r, c.g, c.b, 1f));   // glTFast trzyma tu kolor sRGB
         if (m.HasProperty("_Color")) m.SetColor("_Color", c);
         if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", c);
-        AssetDatabase.CreateAsset(m, Out + "/auto_lakier_" + Safe(baza.name) + "_" + kolor + ".mat");
+        BraxZapisAssetu.Utworz(m, Out + "/auto_lakier_" + Safe(baza.name) + "_" + kolor + ".mat");
         lakiery[(baza, kolor)] = m; return m;
     }
     static int LosujKolor(System.Random rnd)

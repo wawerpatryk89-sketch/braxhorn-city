@@ -162,7 +162,7 @@ public static class BraxRegion
                 var mesh = filter ? filter.sharedMesh : null;
                 if (!mesh || seen.Contains(mesh) || AssetDatabase.Contains(mesh)) continue;
                 seen.Add(mesh);
-                AssetDatabase.CreateAsset(mesh, Out + "/Meshes/region_" + (serial++).ToString("D5") + ".asset");
+                BraxZapisAssetu.Utworz(mesh, Out + "/Meshes/region_" + (serial++).ToString("D5") + ".asset");
                 saved++;
             }
         }
@@ -327,7 +327,7 @@ public static class BraxRegion
             c2.SetFloat("_AlphaClip", cutout ? 1 : 0); c2.SetFloat("_Cutoff", cutout ? (src.HasProperty("_Cutoff") ? Mathf.Clamp01(src.GetFloat("_Cutoff")) : .5f) : 0);
             c2.SetFloat("_Transparent", 0); c2.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One); c2.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero); c2.SetFloat("_ZWrite", 1);
             c2.renderQueue = cutout ? 2450 : 2000; c2.SetOverrideTag("RenderType", cutout ? "TransparentCutout" : "Opaque");
-            AssetDatabase.CreateAsset(c2, NowaSciezkaMaterialu(src));
+            BraxZapisAssetu.Utworz(c2, NowaSciezkaMaterialu(src));
             return c2;
         }
         var sh = Shader.Find(BraxCityMaterials.ShaderName);
@@ -362,7 +362,7 @@ public static class BraxRegion
         c.SetFloat("_ZWrite", mode == 2 ? 0 : 1);
         c.renderQueue = mode == 2 ? 3000 : mode == 1 ? 2450 : 2000;
         c.SetOverrideTag("RenderType", mode == 2 ? "Transparent" : mode == 1 ? "TransparentCutout" : "Opaque");
-        AssetDatabase.CreateAsset(c, NowaSciezkaMaterialu(src));
+        BraxZapisAssetu.Utworz(c, NowaSciezkaMaterialu(src));
         return c;
     }
 

@@ -818,7 +818,7 @@ public static class BraxUlicePierzeje
         if (meble.TryGetValue(klucz, out var m) && m) return m;
         var s = new UlSiatka(); buduj(s); m = s.Zbuduj("Ulice: " + klucz);
         System.IO.Directory.CreateDirectory(BraxUliceKit.Out);
-        AssetDatabase.CreateAsset(m, BraxUliceKit.Out + "/mebel_" + BraxUliceKit.Bezpieczna(klucz) + ".asset");
+        BraxZapisAssetu.Utworz(m, BraxUliceKit.Out + "/mebel_" + BraxUliceKit.Bezpieczna(klucz) + ".asset");
         meble[klucz] = m; return m;
     }
     static GameObject Mebel(string nazwa, Transform rodzic, Mesh mesh, Material mat, Vector3 at, float yaw)

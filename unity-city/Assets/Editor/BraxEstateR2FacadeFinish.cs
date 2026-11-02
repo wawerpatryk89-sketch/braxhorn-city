@@ -57,7 +57,7 @@ public static class BraxEstateR2FacadeFinish
                     if(polished.HasProperty("_BaseColor"))polished.SetColor("_BaseColor",tint);
                     if(polished.HasProperty("_Metallic"))polished.SetFloat("_Metallic",0f);
                     if(polished.HasProperty("_Glossiness"))polished.SetFloat("_Glossiness",0.14f);
-                    AssetDatabase.CreateAsset(polished,directory+"/R2Wall_"+name+".mat");
+                    BraxZapisAssetu.Utworz(polished,directory+"/R2Wall_"+name+".mat");
                     clones.Add(name,polished);
                 }
                 // A material clone leaves imported original geometry, openings,

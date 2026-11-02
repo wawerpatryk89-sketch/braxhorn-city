@@ -273,7 +273,7 @@ internal static class BraxMiastoA
         var m = new Material(sh) { name = "A: " + nazwa };
         ustaw?.Invoke(m);
         Directory.CreateDirectory(Out + "/Materialy");
-        AssetDatabase.CreateAsset(m, Out + "/Materialy/" + BraxUliceKit.Bezpieczna(nazwa) + ".mat");
+        BraxZapisAssetu.Utworz(m, Out + "/Materialy/" + BraxUliceKit.Bezpieczna(nazwa) + ".mat");
         wlasne[nazwa] = m; return m;
     }
     public static void WyczyscPamiec() => wlasne.Clear();
@@ -283,7 +283,7 @@ internal static class BraxMiastoA
     {
         Directory.CreateDirectory(Out + "/Siatki");
         var mesh = s.Zbuduj("A: " + nazwa);
-        AssetDatabase.CreateAsset(mesh, AssetDatabase.GenerateUniqueAssetPath(Out + "/Siatki/" + BraxUliceKit.Bezpieczna(nazwa) + ".asset"));
+        BraxZapisAssetu.Utworz(mesh, AssetDatabase.GenerateUniqueAssetPath(Out + "/Siatki/" + BraxUliceKit.Bezpieczna(nazwa) + ".asset"));
         var g = new GameObject(nazwa); g.transform.SetParent(rodzic, false);
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = m;
@@ -293,7 +293,7 @@ internal static class BraxMiastoA
     public static GameObject Obiekt(Transform rodzic, string nazwa, Mesh mesh, Material m)
     {
         Directory.CreateDirectory(Out + "/Siatki");
-        AssetDatabase.CreateAsset(mesh, AssetDatabase.GenerateUniqueAssetPath(Out + "/Siatki/" + BraxUliceKit.Bezpieczna(nazwa) + ".asset"));
+        BraxZapisAssetu.Utworz(mesh, AssetDatabase.GenerateUniqueAssetPath(Out + "/Siatki/" + BraxUliceKit.Bezpieczna(nazwa) + ".asset"));
         var g = new GameObject(nazwa); g.transform.SetParent(rodzic, false);
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = m; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false;

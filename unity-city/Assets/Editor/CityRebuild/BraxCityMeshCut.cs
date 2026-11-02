@@ -117,7 +117,7 @@ public static class BraxCityMeshCut
             mesh.subMeshCount=submeshes.Count;for(int i=0;i<submeshes.Count;i++)mesh.SetTriangles(submeshes[i],i);
             mesh.RecalculateBounds();
             var path=AssetDatabase.GenerateUniqueAssetPath(outputDirectory+"/"+filter.name+"_"+label+".asset");
-            AssetDatabase.CreateAsset(mesh,path);filter.sharedMesh=mesh;
+            BraxZapisAssetu.Utworz(mesh,path);filter.sharedMesh=mesh;
             foreach(var collider in filter.GetComponents<MeshCollider>())collider.sharedMesh=mesh;
         }
         Debug.Log("CITY_RENOVATION_CUT "+label+" meshes="+altered+" volume="+volume);

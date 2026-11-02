@@ -21,7 +21,7 @@ public static class BraxClaudeGlosniki
         if (!AssetDatabase.IsValidFolder(Dir)) { Directory.CreateDirectory(Dir); AssetDatabase.ImportAsset(Dir); }
         m = new Material(Shader.Find("Standard")) { name = "Głośnik: " + nazwa, color = c };
         m.SetFloat("_Glossiness", gloss); m.SetFloat("_Metallic", metalicznosc);
-        AssetDatabase.CreateAsset(m, path);
+        BraxZapisAssetu.Utworz(m, path);
         return m;
     }
 

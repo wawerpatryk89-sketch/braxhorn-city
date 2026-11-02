@@ -144,7 +144,7 @@ public static class BraxRegionGym
         if (m.HasProperty("_Glossiness")) m.SetFloat("_Glossiness", 1f - roughness);
         if (m.HasProperty("_Roughness")) m.SetFloat("_Roughness", roughness);
         Directory.CreateDirectory(BraxRegion.Out + "/Materials");
-        AssetDatabase.CreateAsset(m, BraxRegion.Out + "/Materials/worek-" + name.Replace(' ', '_').Replace(':', '_') + ".mat");
+        BraxZapisAssetu.Utworz(m, BraxRegion.Out + "/Materials/worek-" + name.Replace(' ', '_').Replace(':', '_') + ".mat");
         return m;
     }
 

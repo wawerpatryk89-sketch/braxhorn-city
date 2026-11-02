@@ -176,7 +176,7 @@ public static class BraxRegionTrawa
             float sk = sy > .005f ? .10f / sy : 1f; m.SetVector("_SoilTint", new Vector4(sk, sk, sk, 1f));
         }
         m.SetFloat("_SoilMix", 0f);
-        AssetDatabase.CreateAsset(m, Out + "/" + (laka ? "laka" : "trawnik") + ".mat");
+        BraxZapisAssetu.Utworz(m, Out + "/" + (laka ? "laka" : "trawnik") + ".mat");
         mats[key] = m; return m;
     }
 
@@ -296,7 +296,7 @@ public static class BraxRegionTrawa
         var mesh = new Mesh { name = "Trawnik " + nazwa, indexFormat = v.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
         mesh.SetVertices(v); mesh.SetNormals(n); mesh.SetUVs(0, uv); mesh.SetTriangles(t, 0);
         mesh.RecalculateBounds(); mesh.RecalculateTangents();
-        AssetDatabase.CreateAsset(mesh, Out + "/trawnik_" + nTrawnikow.ToString("D3") + "_" + Bezpieczna(nazwa) + ".asset");
+        BraxZapisAssetu.Utworz(mesh, Out + "/trawnik_" + nTrawnikow.ToString("D3") + "_" + Bezpieczna(nazwa) + ".asset");
         return mesh;
     }
 
@@ -407,7 +407,7 @@ public static class BraxRegionTrawa
         for (int s = 0; s < subs.Count; s++) copy.SetTriangles(subs[s], s);
         copy.SetTriangles(sciany, subs.Count);
         mats2.Add(Ziemia);
-        AssetDatabase.CreateAsset(copy, Out + "/bez_scian_" + nStarych.ToString("D3") + ".asset");
+        BraxZapisAssetu.Utworz(copy, Out + "/bez_scian_" + nStarych.ToString("D3") + ".asset");
         foreach (var col in r.GetComponents<MeshCollider>()) if (col.sharedMesh == src) col.sharedMesh = copy;
         mf.sharedMesh = copy; r.sharedMaterials = mats2.ToArray();
         nScian += moved / 3;
@@ -546,7 +546,7 @@ public static class BraxRegionTrawa
         if (list.Count == 0 || !owner) return;
         var dane = ScriptableObject.CreateInstance<BraxClaudeTrawaDane>();
         dane.kepy = list.ToArray(); dane.y = ys.ToArray(); dane.wysokosc = .32f; dane.granicaLaki = .15f;
-        AssetDatabase.CreateAsset(dane, Out + "/kepy_" + nKep.ToString("D7") + ".asset");
+        BraxZapisAssetu.Utworz(dane, Out + "/kepy_" + nKep.ToString("D7") + ".asset");
         var go = new GameObject("Trawa 3D (kępy, instancje)"); go.transform.SetParent(owner, false);
         go.transform.localPosition = Vector3.zero; go.transform.localRotation = Quaternion.identity;
         var tr = go.AddComponent<BraxClaudeTrawa>(); tr.dane = dane; tr.siatka = siatka; tr.material = mat;
@@ -587,7 +587,7 @@ public static class BraxRegionTrawa
         if (grassMeanLin.y > .005f && cm.x > .002f && cm.y > .002f && cm.z > .002f)
             tip = new Vector4(Mathf.Clamp(grassMeanLin.x * 1.15f / cm.x, 0f, 4f), Mathf.Clamp(grassMeanLin.y * 1.15f / cm.y, 0f, 4f), Mathf.Clamp(grassMeanLin.z * 1.15f / cm.z, 0f, 4f), 1f);
         m.SetVector("_TipTint", tip);
-        AssetDatabase.CreateAsset(m, Out + "/kepy_trawy.mat"); mats["kępy"] = m;
+        BraxZapisAssetu.Utworz(m, Out + "/kepy_trawy.mat"); mats["kępy"] = m;
         Notatka("kępy: karty " + nCells + ", odcień kart " + ((Vector3)(Vector4)tip).ToString("F2"));
         return m;
     }
@@ -630,7 +630,7 @@ public static class BraxRegionTrawa
         var m = new Mesh { name = "kępa miasta (3 płaszczyzny, 6 trójkątów)" };
         m.SetVertices(v); m.SetUVs(0, uv); m.SetNormals(nr); m.SetTriangles(idx, 0);
         m.bounds = new Bounds(new Vector3(0, .5f, 0), new Vector3(3f, 1.2f, 3f));
-        AssetDatabase.CreateAsset(m, path);
+        BraxZapisAssetu.Utworz(m, path);
         return m;
     }
 }

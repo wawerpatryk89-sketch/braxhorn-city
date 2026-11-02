@@ -59,7 +59,7 @@ public static class BraxCitySkyAuthoring
         if(mat.HasProperty("_Rotation"))mat.SetFloat("_Rotation",0f);
         if(mat.HasProperty("_ImageType"))mat.SetFloat("_ImageType",0f);
         if(mat.HasProperty("_Mapping"))mat.SetFloat("_Mapping",0f);
-        AssetDatabase.CreateAsset(mat,SkyPath);
+        BraxZapisAssetu.Utworz(mat,SkyPath);
         RenderSettings.skybox=mat;
         camera.clearFlags=CameraClearFlags.Skybox;
         camera.backgroundColor=new Color(.40f,.59f,.73f);

@@ -46,7 +46,7 @@ public static class BraxClaudeBezSwiecenia
                 if (!own && !runtime)
                 {
                     target = new Material(m) { name = m.name + " (bez świecenia)" };
-                    AssetDatabase.CreateAsset(target, AssetDatabase.GenerateUniqueAssetPath(Out + "/" + Safe(m.name) + ".mat"));
+                    BraxZapisAssetu.Utworz(target, AssetDatabase.GenerateUniqueAssetPath(Out + "/" + Safe(m.name) + ".mat"));
                     rep.kopie++;
                 }
                 Dim(target);

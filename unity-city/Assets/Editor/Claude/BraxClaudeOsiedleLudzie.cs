@@ -138,8 +138,8 @@ public static partial class BraxClaudeOsiedle
                     if (imp && imp.DoesSourceTextureHaveAlpha()) p.maska = true;
                 }
                 string mp = RbOut + "/" + Safe(go.name + "_" + mn) + ".mat";
-                if (AssetDatabase.LoadAssetAtPath<Material>(mp)) AssetDatabase.DeleteAsset(mp);
-                AssetDatabase.CreateAsset(m, mp); mats[i] = m;
+                // C1: bez usuwania istniejącego pliku (usunięcie = różowe postacie, które już go używają) — BraxZapisAssetu
+                BraxZapisAssetu.Utworz(m, mp); mats[i] = m;
             }
             p.mats = mats; p.ciala = ciala.ToArray();
             // wymiary i przód w pozie spoczynkowej
@@ -221,8 +221,8 @@ public static partial class BraxClaudeOsiedle
         dst.EnsureQuaternionContinuity();
         v = Mathf.Sqrt(dx * dx + dz * dz) / len;
         string p = RbOut + "/" + Safe(key) + ".anim";   // nazwa pliku = nazwa klipu = klucz (AddClip bez kopii — patrz DodajKlipy)
-        if (AssetDatabase.LoadAssetAtPath<AnimationClip>(p)) AssetDatabase.DeleteAsset(p);
-        AssetDatabase.CreateAsset(dst, p);
+        // C1: bez usuwania istniejącego klipu (postacie, które już go używają, straciłyby animację) — BraxZapisAssetu
+        BraxZapisAssetu.Utworz(dst, p);
         return dst;
     }
 
@@ -297,7 +297,7 @@ public static partial class BraxClaudeOsiedle
             {
                 string p = RbOut + "/" + Safe(k) + ".anim";
                 var kopia = AssetDatabase.LoadAssetAtPath<AnimationClip>(p);
-                if (!kopia || kopia.name != k) { kopia = UnityEngine.Object.Instantiate(c); AssetDatabase.CreateAsset(kopia, p); }
+                if (!kopia || kopia.name != k) { kopia = UnityEngine.Object.Instantiate(c); BraxZapisAssetu.Utworz(kopia, p); }
                 if (kopia.name != k) { rep.notes.Add("DO POPRAWKI: ludzie — klip " + k + " ma nazwę pliku " + kopia.name + " (znaki spoza liter/cyfr) — kopia w scenie"); }
                 rbKlipy[k] = c = kopia; kopieKlipow++;
             }
@@ -481,8 +481,8 @@ public static partial class BraxClaudeOsiedle
         }
         var m = b.Siatka("Ludzie: akcesorium " + id);
         string p = RbOut + "/akcesorium_" + id + ".asset";
-        if (AssetDatabase.LoadAssetAtPath<Mesh>(p)) AssetDatabase.DeleteAsset(p);
-        AssetDatabase.CreateAsset(m, p);
+        // C1: bez usuwania istniejącej siatki — BraxZapisAssetu
+        BraxZapisAssetu.Utworz(m, p);
         return akcSiatki[id] = m;
     }
 
@@ -492,8 +492,8 @@ public static partial class BraxClaudeOsiedle
         var m = new Material(Shader.Find("Standard")) { name = "Ludzie: " + id, color = c };
         m.SetFloat("_Glossiness", gl);
         string p = RbOut + "/akcesorium_" + Safe(id) + ".mat";
-        if (AssetDatabase.LoadAssetAtPath<Material>(p)) AssetDatabase.DeleteAsset(p);
-        AssetDatabase.CreateAsset(m, p);
+        // C1: bez usuwania istniejącego materiału — BraxZapisAssetu
+        BraxZapisAssetu.Utworz(m, p);
         return akcMat[id] = m;
     }
 

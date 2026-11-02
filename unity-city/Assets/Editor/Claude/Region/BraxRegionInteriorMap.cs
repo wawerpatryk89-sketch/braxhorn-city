@@ -23,7 +23,7 @@ public static class BraxRegionInteriorMap
         Directory.CreateDirectory(BraxRegion.Out + "/Materials");
         string path = BraxRegion.Out + "/Materials/interior-map.mat";
         var m = AssetDatabase.LoadAssetAtPath<Material>(path);
-        if (!m) { m = new Material(shader) { name = "Interior mapping: pokoje za oknami" }; AssetDatabase.CreateAsset(m, path); }
+        if (!m) { m = new Material(shader) { name = "Interior mapping: pokoje za oknami" }; BraxZapisAssetu.Utworz(m, path); }
         m.shader = shader;
         m.SetTexture("_WallTex", wall); m.SetTexture("_FloorTex", floor); m.SetTexture("_CeilTex", wall);
         m.SetVector("_RoomSize", new Vector4(4.8f, 3.2f, 5.0f, 0));

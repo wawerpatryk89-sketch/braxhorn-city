@@ -443,7 +443,7 @@ public static class BraxRegionTylyB
         m.SetFloat("_CellW", 1.5f * K * 2f); m.SetFloat("_Depth", 5f * K); m.SetFloat("_RoomLight", .66f);
         m.SetColor("_Tint", new Color(.80f, .88f, .93f)); m.SetFloat("_Curtains", .3f);
         Directory.CreateDirectory(BraxRegion.Out + "/Materials");
-        AssetDatabase.CreateAsset(m, BraxRegion.Out + "/Materials/wiezowiec_okna_" + d.idDrzwi + ".mat");
+        BraxZapisAssetu.Utworz(m, BraxRegion.Out + "/Materials/wiezowiec_okna_" + d.idDrzwi + ".mat");
         return m;
     }
 

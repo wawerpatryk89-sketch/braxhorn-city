@@ -86,7 +86,7 @@ public static class BraxMiastoAssety
             Directory.CreateDirectory(BraxRegion.Out + "/Materials");
             string path;
             do path = BraxRegion.Out + "/Materials/assety-" + (nMat++) + ".mat"; while (File.Exists(path));
-            AssetDatabase.CreateAsset(kopia, path);
+            BraxZapisAssetu.Utworz(kopia, path);
             c = kopia;
         }
         materialy[src] = c;

@@ -168,7 +168,7 @@ public static class BraxGymReferenceRebuild
             var printShader = Shader.Find("Braxhorn/WorldPrintedText");
             if (!printShader) throw new InvalidOperationException("Depth-tested world signage shader is missing.");
             worldText = new Material(printShader) { name = "World printed lettering", mainTexture = font.material.mainTexture };
-            AssetDatabase.CreateAsset(worldText, folder + "/WorldPrintedText.mat");
+            BraxZapisAssetu.Utworz(worldText, folder + "/WorldPrintedText.mat");
             var textBinding = root.gameObject.AddComponent<BraxGymWorldText>();
             textBinding.font = font; textBinding.printMaterial = worldText;
         }
@@ -200,7 +200,7 @@ public static class BraxGymReferenceRebuild
                 paintTexture.filterMode = FilterMode.Trilinear;
                 paintTexture.anisoLevel = 4;
                 paintTexture.Apply(true, false);
-                AssetDatabase.CreateAsset(paintTexture, folder + "/OwnerApprovedMuralTexture.asset");
+                BraxZapisAssetu.Utworz(paintTexture, folder + "/OwnerApprovedMuralTexture.asset");
                 textures.Add(name, paintTexture);
                 return paintTexture;
             }
@@ -234,7 +234,7 @@ public static class BraxGymReferenceRebuild
         {
             var m = new Material(Shader.Find("Standard")) { name = name, color = color, enableInstancing = true };
             m.SetFloat("_Glossiness", 1 - roughness); m.SetFloat("_Metallic", metallic);
-            AssetDatabase.CreateAsset(m, folder + "/" + Safe(name) + ".mat"); materials.Add(name, m); return m;
+            BraxZapisAssetu.Utworz(m, folder + "/" + Safe(name) + ".mat"); materials.Add(name, m); return m;
         }
 
         void SetNormal(Material m, Texture2D map, float strength)
@@ -348,7 +348,7 @@ public static class BraxGymReferenceRebuild
                 var world = floor.transform.TransformPoint(p); return new Vector2(world.x, world.z) / 2f;
             }).ToArray();
             floorMesh.RecalculateTangents();
-            AssetDatabase.CreateAsset(floorMesh, folder + "/OriginalHallRubberUV.asset");
+            BraxZapisAssetu.Utworz(floorMesh, folder + "/OriginalHallRubberUV.asset");
             floor.sharedMesh = floorMesh;
             // A deliberate base detail, not a continuous neon wash.
             for (int side = -1; side <= 1; side += 2)
@@ -395,7 +395,7 @@ public static class BraxGymReferenceRebuild
             mesh.subMeshCount = outer.Count > 0 ? 2 : 1; mesh.SetTriangles(inner, 0);
             if (outer.Count > 0) mesh.SetTriangles(outer, 1);
             mesh.RecalculateBounds(); mesh.RecalculateTangents();
-            AssetDatabase.CreateAsset(mesh, folder + "/BrickUV_" + Safe(filter.name) + ".asset"); filter.sharedMesh = mesh;
+            BraxZapisAssetu.Utworz(mesh, folder + "/BrickUV_" + Safe(filter.name) + ".asset"); filter.sharedMesh = mesh;
             renderer.sharedMaterials = outer.Count > 0 ? new[] { brick, original } : new[] { brick }; renderer.gameObject.layer = 10;
         }
 
@@ -609,7 +609,7 @@ public static class BraxGymReferenceRebuild
             material.SetTexture("_BrickTex", RequiredTexture("BrickAlbedo.jpg"));
             material.SetTexture("_BumpMap", RequiredTexture("BrickNormal.png", true));
             material.SetFloat("_PaintOpacity", .92f);
-            AssetDatabase.CreateAsset(material, folder + "/PaintedBrickMural.mat");
+            BraxZapisAssetu.Utworz(material, folder + "/PaintedBrickMural.mat");
 
             // Approved flat reference is 1536:614; preserve its exact aspect.
             // World +X appears camera LEFT at the existing front entrance, so
@@ -800,7 +800,7 @@ public static class BraxGymReferenceRebuild
             }
             var texture = ControlTexture("StaticContactGrounding", 128, 128, pixels);
             var material = new Material(Shader.Find("Unlit/Transparent")) { name = "Static soft contact", mainTexture = texture };
-            AssetDatabase.CreateAsset(material, folder + "/StaticContactGrounding.mat");
+            BraxZapisAssetu.Utworz(material, folder + "/StaticContactGrounding.mat");
             Action<Transform, Vector3, float, float> footprint = (parent, p, width, depth) => {
                 var mesh = new Mesh { vertices = new[] {
                     new Vector3(-width / 2, 0, -depth / 2), new Vector3(width / 2, 0, -depth / 2),
@@ -915,7 +915,7 @@ public static class BraxGymReferenceRebuild
         {
             mesh.name = name; mesh.RecalculateBounds();
             if (mesh.tangents.Length != mesh.vertexCount) mesh.RecalculateTangents();
-            AssetDatabase.CreateAsset(mesh, folder + "/Mesh_" + (assetNumber++).ToString("D4") + ".asset");
+            BraxZapisAssetu.Utworz(mesh, folder + "/Mesh_" + (assetNumber++).ToString("D4") + ".asset");
             var t = Group(parent, name); t.gameObject.AddComponent<MeshFilter>().sharedMesh = mesh;
             var r = t.gameObject.AddComponent<MeshRenderer>(); r.sharedMaterial = material; r.shadowCastingMode = ShadowCastingMode.Off;
             report.generatedMeshes++; report.generatedTriangles += mesh.triangles.Length / 3; return t;
@@ -988,7 +988,7 @@ public static class BraxGymReferenceRebuild
             if (!shader) throw new InvalidOperationException("Controlled brand print shader missing.");
             var material = new Material(shader) { name = name, mainTexture = image };
             if (material.HasProperty("_Color")) material.color = tint;
-            AssetDatabase.CreateAsset(material, folder + "/Decal_" + Safe(name) + ".mat");
+            BraxZapisAssetu.Utworz(material, folder + "/Decal_" + Safe(name) + ".mat");
             var mesh = new Mesh { vertices = new[] { new Vector3(-width / 2, -height / 2, 0), new Vector3(width / 2, -height / 2, 0), new Vector3(width / 2, height / 2, 0), new Vector3(-width / 2, height / 2, 0) }, uv = new[] { Vector2.zero, Vector2.right, Vector2.one, Vector2.up }, triangles = new[] { 0, 2, 1, 0, 3, 2 } };
             mesh.RecalculateNormals(); var t = MeshObject(parent, name, mesh, material); t.localPosition = p; t.localRotation = Quaternion.LookRotation(-normal, up);
         }
@@ -1088,7 +1088,7 @@ public static class BraxGymReferenceRebuild
             mesh.SetVertices(v.Select(x => x.p).ToList()); mesh.SetNormals(v.Select(x => x.n).ToList()); mesh.SetTangents(v.Select(x => x.tangent).ToList());
             mesh.SetUVs(0, v.Select(x => x.uv).ToList()); mesh.SetUVs(1, v.Select(x => x.uv2).ToList()); mesh.SetColors(v.Select(x => x.color).ToList());
             mesh.SetTriangles(Enumerable.Range(0, v.Count).ToArray(), 0); mesh.RecalculateBounds();
-            AssetDatabase.CreateAsset(mesh, folder + "/SourceCut_" + Safe(filter.name) + ".asset"); filter.sharedMesh = mesh;
+            BraxZapisAssetu.Utworz(mesh, folder + "/SourceCut_" + Safe(filter.name) + ".asset"); filter.sharedMesh = mesh;
             report.sourceMeshesClipped++; report.removedSourceTriangles += oldTriangles - v.Count / 3;
         }
     }

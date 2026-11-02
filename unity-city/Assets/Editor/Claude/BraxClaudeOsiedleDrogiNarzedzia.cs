@@ -188,7 +188,7 @@ public static partial class BraxClaudeOsiedle
         var go = new GameObject(name); go.transform.SetParent(parent, false);
         var mesh = new Mesh { name = "Drogi " + name };
         mesh.SetVertices(s.v); mesh.SetNormals(s.n); mesh.SetTriangles(s.i, 0); mesh.RecalculateBounds();
-        AssetDatabase.CreateAsset(mesh, Out + "/drogi_siatka_" + (siatkiDrog++) + ".asset");
+        BraxZapisAssetu.Utworz(mesh, Out + "/drogi_siatka_" + (siatkiDrog++) + ".asset");
         go.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = go.AddComponent<MeshRenderer>(); r.sharedMaterial = m; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false;
         return r;
@@ -207,7 +207,7 @@ public static partial class BraxClaudeOsiedle
             m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
         }
         else { m.color = new Color(c.r * .16f + .02f, c.g * .16f + .02f, c.b * .16f + .02f); m.SetFloat("_Glossiness", .9f); m.SetFloat("_Metallic", .1f); }
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe(nazwa) + ".mat");
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe(nazwa) + ".mat");
         mats[nazwa] = m; tile[m] = 1f; return m;
     }
 }

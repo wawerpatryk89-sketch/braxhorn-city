@@ -158,7 +158,7 @@ public static partial class BraxCityMaterials
             UnityEngine.Object.DestroyImmediate(material);
             material = previous;
         }
-        else AssetDatabase.CreateAsset(material, path);
+        else BraxZapisAssetu.Utworz(material, path);
         EditorUtility.SetDirty(material);
         Materials[key] = material;
         return material;

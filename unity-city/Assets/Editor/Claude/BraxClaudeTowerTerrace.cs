@@ -269,7 +269,7 @@ public static class BraxClaudeTowerTerrace
             m.SetTexture("_MainTex", t); m.SetFloat("_Mode", 1); m.EnableKeyword("_ALPHATEST_ON");
             m.SetFloat("_Cutoff", .4f); m.SetFloat("_Glossiness", .15f); m.renderQueue = 2450;
             Directory.CreateDirectory("Assets/PlayableGenerated/ClaudeTower");
-            AssetDatabase.CreateAsset(m, "Assets/PlayableGenerated/ClaudeTower/lobby-logo.mat");
+            BraxZapisAssetu.Utworz(m, "Assets/PlayableGenerated/ClaudeTower/lobby-logo.mat");
             var q = GameObject.CreatePrimitive(PrimitiveType.Quad); q.name = "Lobby: logo BRAXHORN";
             UnityEngine.Object.DestroyImmediate(q.GetComponent<Collider>());
             q.transform.SetParent(root, false);

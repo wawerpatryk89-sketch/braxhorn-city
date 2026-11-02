@@ -164,7 +164,7 @@ public static class BraxRegionMeble
         var m = new Material(src) { name = nazwa + " (emisja)" };
         m.SetColor("_EmissionColor", c * moc); m.EnableKeyword("_EMISSION");
         Directory.CreateDirectory(BraxRegion.Out + "/Materials");
-        AssetDatabase.CreateAsset(m, BraxRegion.Out + "/Materials/emisja_" + mats.Count + ".mat");
+        BraxZapisAssetu.Utworz(m, BraxRegion.Out + "/Materials/emisja_" + mats.Count + ".mat");
         mats["emisja|" + nazwa] = m; return m;
     }
 

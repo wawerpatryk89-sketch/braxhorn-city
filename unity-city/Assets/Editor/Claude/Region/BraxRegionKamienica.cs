@@ -115,7 +115,7 @@ public static class BraxRegionKamienica
             m.SetFloat("_Variant", wariant); m.SetFloat("_Variants", warianty); m.SetFloat("_CellH", cellH); m.SetFloat("_Floor0", floor0);
             m.SetFloat("_CellW", cellW); m.SetFloat("_Depth", 4.2f * K); m.SetFloat("_RoomLight", .62f);
             Directory.CreateDirectory(BraxRegion.Out + "/Materials");
-            AssetDatabase.CreateAsset(m, BraxRegion.Out + "/Materials/kamienica_okno_" + cache.Count + ".mat");
+            BraxZapisAssetu.Utworz(m, BraxRegion.Out + "/Materials/kamienica_okno_" + cache.Count + ".mat");
         }
         cache[key] = m; return m;
     }
@@ -131,7 +131,7 @@ public static class BraxRegionKamienica
         t.SetPixels(px); t.Apply(true);
         Directory.CreateDirectory(BraxRegion.Out + "/Materials");
         string p = BraxRegion.Out + "/Materials/markiza_" + cache.Count + ".asset";
-        AssetDatabase.CreateAsset(t, p);
+        BraxZapisAssetu.Utworz(t, p);
         var m = BraxCityMaterials.Textured("Kamienica: markiza " + nazwa, t, null, null, 1f);
         m.SetFloat("_Roughness", .85f); m.SetFloat("_Cull", 0f);
         cache["paski|" + nazwa] = m; return m;

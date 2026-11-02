@@ -161,7 +161,7 @@ internal static class BraxUliceKit
                 g = new GameObject(kv.Key.Item1).transform; g.SetParent(rodzic, false); grupy[kv.Key.Item1] = g;
             }
             var mesh = s.Zbuduj(prefiks + " / " + kv.Key.Item1 + " / " + kv.Key.Item2.name);
-            AssetDatabase.CreateAsset(mesh, Out + "/" + Bezpieczna(prefiks) + "_" + (plik++).ToString("D5") + ".asset");
+            BraxZapisAssetu.Utworz(mesh, Out + "/" + Bezpieczna(prefiks) + "_" + (plik++).ToString("D5") + ".asset");
             var go = new GameObject(kv.Key.Item2.name); go.transform.SetParent(g, false);
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
             var r = go.AddComponent<MeshRenderer>(); r.sharedMaterial = kv.Key.Item2;
@@ -238,7 +238,7 @@ internal static class BraxUliceKit
             m.SetFloat("_Floor0", floor0); m.SetFloat("_Depth", glebokosc); m.SetFloat("_Curtains", .55f);
             if (m.HasProperty("_OffsetU")) m.SetFloat("_OffsetU", offsetU);
             m.enableInstancing = true;
-            AssetDatabase.CreateAsset(m, Out + "/Materialy/okno_" + okna.Count + ".mat");
+            BraxZapisAssetu.Utworz(m, Out + "/Materialy/okno_" + okna.Count + ".mat");
         }
         okna[klucz] = m; return m;
     }

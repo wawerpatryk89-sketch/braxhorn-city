@@ -77,7 +77,7 @@ public static partial class BraxClaudeOsiedle
         m.SetTexture("_MetallicGlossMap", Map(d + "mg.png", false, false)); m.EnableKeyword("_METALLICGLOSSMAP");
         m.SetFloat("_GlossMapScale", GlossScale(id, d + "mg.png", smooth)); m.SetFloat("_Metallic", metal);
         m.SetTexture("_OcclusionMap", Map(d + "ao.jpg", false, false)); m.SetFloat("_OcclusionStrength", 1f);
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat");
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe(key) + ".mat");
         mats[key] = m; tile[m] = metres; return m;
     }
     // Gładkość liczona, nie na oko: build czyta średnią kanału A mapy mg.png (gładkość = 1 - szorstkość fotoskanu)
@@ -149,7 +149,7 @@ public static partial class BraxClaudeOsiedle
         if (mats.TryGetValue(key, out var have)) return have;
         var m = new Material(Shader.Find("Standard")) { name = "Osiedle: " + key, color = c, enableInstancing = true };
         m.SetFloat("_Glossiness", smooth); m.SetFloat("_Metallic", metal);
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat");
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe(key) + ".mat");
         mats[key] = m; tile[m] = 1f; return m;
     }
     static string Safe(string s) => new string(s.Select(ch => char.IsLetterOrDigit(ch) ? ch : '_').ToArray());
@@ -226,7 +226,7 @@ public static partial class BraxClaudeOsiedle
                 rep.notes.Add("ziemia: średnia tekstury Y " + sy.ToString("0.000") + " → mnożnik " + sk.ToString("0.00"));
             }
             m.SetFloat("_SoilMix", 0f);
-            AssetDatabase.CreateAsset(m, Out + "/trawnik.mat"); mats["trawnik"] = m; tile[m] = 3.5f; grassMat = m; return m;
+            BraxZapisAssetu.Utworz(m, Out + "/trawnik.mat"); mats["trawnik"] = m; tile[m] = 3.5f; grassMat = m; return m;
         }
     }
     static Material grassMat;
@@ -242,7 +242,7 @@ public static partial class BraxClaudeOsiedle
             Material m;
             if (sh) m = new Material(sh) { name = "Osiedle: woda (ruchoma tafla)" };
             else { rep.notes.Add("brak shadera Braxhorn/OsiedleWoda — Standard"); m = new Material(Shader.Find("Standard")) { name = "Osiedle: woda", color = new Color(.18f, .42f, .52f) }; m.SetFloat("_Glossiness", .96f); }
-            AssetDatabase.CreateAsset(m, Out + "/woda.mat"); mats["woda"] = m; tile[m] = 1f; return m;
+            BraxZapisAssetu.Utworz(m, Out + "/woda.mat"); mats["woda"] = m; tile[m] = 1f; return m;
         }
     }
     // Materiał z pierwszą teksturą koloru z importu glTFast (różne nazwy właściwości w zależności od shadera).
@@ -267,7 +267,7 @@ public static partial class BraxClaudeOsiedle
         m.SetVector("_Center", meshBounds.center + new Vector3(0, meshBounds.extents.y * .15f, 0));
         m.SetVector("_Radius", meshBounds.extents);
         if (src && src.HasProperty("alphaCutoff")) m.SetFloat("_Cutoff", Mathf.Clamp(src.GetFloat("alphaCutoff"), .3f, .6f));
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe("liscie " + key) + ".mat"); mats[key] = m; tile[m] = 1f; return m;
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe("liscie " + key) + ".mat"); mats[key] = m; tile[m] = 1f; return m;
     }
     // Tekstury drzewa wyjęte z GLB przy pobieraniu (fetch_osiedle.py) — importowane skompresowane (glTFast trzyma je bez kompresji).
     static Texture TreeTex(string file, bool normal)
@@ -291,7 +291,7 @@ public static partial class BraxClaudeOsiedle
         var n = TreeTex("kora_n.png", true) ?? SrcTex(src, "normalTexture", "_BumpMap", "_NormalMap");
         if (n) { m.SetTexture("_BumpMap", n); m.EnableKeyword("_NORMALMAP"); m.SetFloat("_BumpScale", .8f); }
         m.SetFloat("_Glossiness", .08f);
-        AssetDatabase.CreateAsset(m, Out + "/kora.mat"); mats["pień"] = m; tile[m] = 1f; return m;
+        BraxZapisAssetu.Utworz(m, Out + "/kora.mat"); mats["pień"] = m; tile[m] = 1f; return m;
     }
     // Źdźbła trawy i kwiaty (kępy z dwóch skrzyżowanych kart): wycięcie alfą, wiatr, zanik z odległością.
     static Material ClumpMat(string key, string png, float wind, float macroMix, Color tint, float fadeStart, float fadeEnd)
@@ -312,7 +312,7 @@ public static partial class BraxClaudeOsiedle
             foreach (var p in new[] { "_Tile", "_MacroTile", "_MacroMix", "_DryMix", "_Stripe", "_StripeMix" }) if (grassMat.HasProperty(p)) m.SetFloat(p, grassMat.GetFloat(p));
             if (grassMat.HasProperty("_Dry")) m.SetColor("_Dry", grassMat.GetColor("_Dry"));
         }
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = 1f; return m;
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = 1f; return m;
     }
     static Material Blades => ClumpMat("trawa 3D źdźbła", "zdzbla.png", .035f, .8f, new Color(.80f, .90f, .74f), 16f, 30f);
     static Material Blooms => ClumpMat("kwiaty rabat", "kwiaty.png", .05f, 0f, Color.white, 34f, 60f);
@@ -328,7 +328,7 @@ public static partial class BraxClaudeOsiedle
         var m = new Material(sh) { name = "Osiedle: " + key };
         m.SetTexture("_Rooms", AssetDatabase.LoadAssetAtPath<Texture2D>(path));
         m.SetFloat("_Variant", variant); m.SetFloat("_Variants", variants); m.SetFloat("_CellH", cellH); m.SetFloat("_Floor0", floor0);
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = 1f; rep.fakeRoomMaterials++; return m;
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = 1f; rep.fakeRoomMaterials++; return m;
     }
     static Material Glass => OknoMat("okna z pokojami (domy)", 0, 5, 3.4f, 0f);
     static Material ShopGlass => OknoMat("witryny z wnętrzem sklepu", 5, 3, 4.2f, 0f);
@@ -349,7 +349,7 @@ public static partial class BraxClaudeOsiedle
             m.SetInt("_SrcBlend", (int)BlendMode.One); m.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha); m.SetInt("_ZWrite", 0);
             m.DisableKeyword("_ALPHATEST_ON"); m.DisableKeyword("_ALPHABLEND_ON"); m.EnableKeyword("_ALPHAPREMULTIPLY_ON");
             m.renderQueue = 3000; m.SetOverrideTag("RenderType", "Transparent");
-            AssetDatabase.CreateAsset(m, Out + "/szklo_balustrad.mat"); mats["szkło balustrad"] = m; tile[m] = 1f; return m;
+            BraxZapisAssetu.Utworz(m, Out + "/szklo_balustrad.mat"); mats["szkło balustrad"] = m; tile[m] = 1f; return m;
         }
     }
 
@@ -602,7 +602,7 @@ public static partial class BraxClaudeOsiedle
             var mesh = new Mesh { name = "Osiedle " + kv.Key.Item1 + " / " + kv.Key.Item2.name, indexFormat = IndexFormat.UInt32 };
             mesh.SetVertices(b.v); mesh.SetNormals(b.n); mesh.SetTangents(b.t); mesh.SetUVs(0, b.uv); mesh.SetTriangles(b.i, 0);
             mesh.RecalculateBounds();
-            AssetDatabase.CreateAsset(mesh, Out + "/mesh_" + (n++) + ".asset");
+            BraxZapisAssetu.Utworz(mesh, Out + "/mesh_" + (n++) + ".asset");
             var g = new GameObject(kv.Key.Item2.name); g.transform.SetParent(parent, false);
             g.AddComponent<MeshFilter>().sharedMesh = mesh;
             var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = kv.Key.Item2;
@@ -640,7 +640,7 @@ public static partial class BraxClaudeOsiedle
             var mesh = new Mesh { name = "Kępy " + kv.Key.Item3.name + " " + kv.Key.Item1 + "_" + kv.Key.Item2, indexFormat = c.v.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
             mesh.SetVertices(c.v); mesh.SetUVs(0, c.uv); mesh.SetNormals(Enumerable.Repeat(Vector3.up, c.v.Count).ToList()); mesh.SetTriangles(c.i, 0);
             mesh.RecalculateBounds(); var bb = mesh.bounds; bb.Expand(new Vector3(.3f, .2f, .3f)); mesh.bounds = bb;
-            AssetDatabase.CreateAsset(mesh, Out + "/kepy_" + (clumpMeshes++) + ".asset");
+            BraxZapisAssetu.Utworz(mesh, Out + "/kepy_" + (clumpMeshes++) + ".asset");
             var g = new GameObject(kv.Key.Item3.name); g.transform.SetParent(Group(kv.Key.Item3 == Blooms ? "Kwiaty rabat" : "Trawa 3D"), false);
             g.AddComponent<MeshFilter>().sharedMesh = mesh;
             var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = kv.Key.Item3; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
@@ -771,7 +771,7 @@ public static partial class BraxClaudeOsiedle
                 foreach (var (prop, v) in new[] { ("_SrcBlend", 1f), ("_DstBlend", 0f), ("_ZWrite", 1f), ("_Mode", 0f), ("_Surface", 0f), ("_AlphaCutoff", 0f) }) if (m.HasProperty(prop)) m.SetFloat(prop, v);
                 foreach (var kw in new[] { "_ALPHABLEND_ON", "_ALPHAPREMULTIPLY_ON", "_ALPHATEST_ON", "_BUILTIN_ALPHATEST_ON", "_BUILTIN_TRANSPARENT_RECEIVE_SHADOWS", "_SURFACE_TYPE_TRANSPARENT" }) m.DisableKeyword(kw);
                 foreach (var cp in new[] { "_Color", "baseColorFactor", "_BaseColor" }) if (m.HasProperty(cp)) { var c = m.GetColor(cp); c.a = 1f; m.SetColor(cp, c); }
-                AssetDatabase.CreateAsset(m, Out + "/" + Safe("opaque " + m0.name + " " + (++opaqueN)) + ".mat");
+                BraxZapisAssetu.Utworz(m, Out + "/" + Safe("opaque " + m0.name + " " + (++opaqueN)) + ".mat");
                 ms[i] = m; fixedM++;
             }
             r.sharedMaterials = ms;
@@ -1210,7 +1210,7 @@ public static partial class BraxClaudeOsiedle
         m.SetFloat("_NoRecolor", 1f); m.SetFloat("_Gain", 1.05f); m.SetFloat("_Sphere", 0f); m.SetFloat("_Up", .55f); m.SetFloat("_InnerDark", 0f);
         m.SetFloat("_Cutoff", src.HasProperty("alphaCutoff") ? Mathf.Clamp(src.GetFloat("alphaCutoff"), .2f, .6f) : .3f);
         m.SetFloat("_Wind", .006f); m.SetFloat("_Wrap", .55f); m.SetFloat("_Trans", .25f);
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe("roslina " + src.name) + ".mat"); plantMats[src] = m; mats["roślina " + src.name] = m; return m;
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe("roslina " + src.name) + ".mat"); plantMats[src] = m; mats["roślina " + src.name] = m; return m;
     }
     // Wysokość powierzchni mebla w punkcie (promień w dół na tymczasowe kolizje siatki tego mebla) — obwiednia daje najwyższy punkt
     // (np. fałda obrusa 0.873 m), a środek stołu jest niżej (0.81–0.83 m): wazon i karteczka stoją wtedy na blacie, nie w powietrzu.
@@ -1360,7 +1360,7 @@ public static partial class BraxClaudeOsiedle
         var m = new Mesh { name = "kępa (3 płaszczyzny, 6 trójkątów)" };
         m.SetVertices(v); m.SetUVs(0, uv); m.SetNormals(nr); m.SetTriangles(idx, 0);
         m.bounds = new Bounds(new Vector3(0, .5f, 0), new Vector3(3f, 1.2f, 3f));   // szerokość karty skaluje shader (do 2,7 × wysokość)
-        AssetDatabase.CreateAsset(m, Out + "/kepa.asset");
+        BraxZapisAssetu.Utworz(m, Out + "/kepa.asset");
         return m;
     }
     // Średni kolor nieprzezroczystych pikseli (liniowo, ważony alfą).
@@ -1458,9 +1458,9 @@ public static partial class BraxClaudeOsiedle
         if (grassMeanLin.y > .005f && cm.x > .002f && cm.y > .002f && cm.z > .002f)
             tip = new Vector4(Mathf.Clamp(grassMeanLin.x * 1.15f / cm.x, 0f, 4f), Mathf.Clamp(grassMeanLin.y * 1.15f / cm.y, 0f, 4f), Mathf.Clamp(grassMeanLin.z * 1.15f / cm.z, 0f, 4f), 1f);
         m.SetVector("_TipTint", tip);
-        AssetDatabase.CreateAsset(m, Out + "/kepy_trawy.mat"); mats["kępy instancje"] = m;
+        BraxZapisAssetu.Utworz(m, Out + "/kepy_trawy.mat"); mats["kępy instancje"] = m;
         var dane = ScriptableObject.CreateInstance<BraxClaudeTrawaDane>(); dane.kepy = list.ToArray(); dane.y = ys.ToArray(); dane.wysokosc = .32f; dane.granicaLaki = .15f;
-        AssetDatabase.CreateAsset(dane, Out + "/kepy_dane.asset");
+        BraxZapisAssetu.Utworz(dane, Out + "/kepy_dane.asset");
         var go = new GameObject("Trawa 3D (kępy, instancje)"); go.transform.SetParent(Group(group), false);
         var tr = go.AddComponent<BraxClaudeTrawa>(); tr.dane = dane; tr.siatka = KepaMesh(); tr.material = m;
         rep.notes.Add("trawa 3D: " + list.Count + " kęp — murawa " + nMur + ", łąka " + nLaka + " (kandydatów " + kepyKand.Count + " + " + lakaKand.Count + "), karty " + nCells
@@ -2324,7 +2324,7 @@ public static partial class BraxClaudeOsiedle
         var imp = AssetImporter.GetAtPath(path) as TextureImporter; if (!imp) { rep.notes.Add("brak szyldu " + id); return Frame; }
         imp.sRGBTexture = true; imp.mipmapEnabled = true; imp.wrapMode = TextureWrapMode.Clamp; imp.maxTextureSize = 1024; imp.SaveAndReimport();
         var m = new Material(Shader.Find("Standard")) { name = "Osiedle: " + key, mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path) };
-        m.SetFloat("_Glossiness", .35f); AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = 1f; return m;
+        m.SetFloat("_Glossiness", .35f); BraxZapisAssetu.Utworz(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = 1f; return m;
     }
     // Muzyka (Assets/Claude/Audio): klip do komponentów sceny (referencja trafia do buildu). Brak pliku = null.
     static AudioClip AudioAsset(string file)
@@ -2378,7 +2378,7 @@ public static partial class BraxClaudeOsiedle
         imp.sRGBTexture = true; imp.mipmapEnabled = true; imp.wrapMode = TextureWrapMode.Repeat; imp.maxTextureSize = 512; imp.SaveAndReimport();
         var m = new Material(Shader.Find("Standard")) { name = "Osiedle: " + key, color = cols[i], mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path), enableInstancing = true };
         m.SetFloat("_Glossiness", .4f);
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = .32f; return m;
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = .32f; return m;
     }
     // Butik zamknięty (szyby bielone, tabliczka WKRÓTCE OTWARCIE) do czasu prawdziwych modeli ubrań — zlecenie 31.10:
     // „ubrania = kolorowe klocki (zakaz właściciela) — wieszaki z realnymi modelami albo lokal zamknięty do czasu modeli”.
@@ -2855,7 +2855,7 @@ public static partial class BraxClaudeOsiedle
         var imp = AssetImporter.GetAtPath(path) as TextureImporter; if (!imp) { rep.notes.Add("brak tekstury " + id); return Frame; }
         imp.sRGBTexture = true; imp.mipmapEnabled = true; imp.wrapMode = TextureWrapMode.Repeat; imp.maxTextureSize = 1024; imp.anisoLevel = 4; imp.SaveAndReimport();
         var m = new Material(Shader.Find("Standard")) { name = "Osiedle: " + key, mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path) };
-        m.SetFloat("_Glossiness", gloss); AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = metres; return m;
+        m.SetFloat("_Glossiness", gloss); BraxZapisAssetu.Utworz(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = metres; return m;
     }
 
     // Przedsionek kasyna (zdjęcie 57: szare ściany i płytki — „nie pasuje do luksusu”). Przestrzeń z three.js civic.js: x 66.2–105.8,
@@ -3397,14 +3397,14 @@ public static partial class BraxClaudeOsiedle
             }
         var tex = new Texture2D(W, H, TextureFormat.RGBA32, true) { name = "woda fontanny strugi", wrapMode = TextureWrapMode.Repeat };
         tex.SetPixels32(px); tex.Apply(true);
-        AssetDatabase.CreateAsset(tex, Out + "/woda_strugi.asset");
+        BraxZapisAssetu.Utworz(tex, Out + "/woda_strugi.asset");
         // Standard „Transparent” (jak szkło balustrad — ten sam wariant shadera w buildzie): woda połyskuje odbiciem nieba
         var m = new Material(Shader.Find("Standard")) { name = "Osiedle: woda fontanny struga", color = new Color(.86f, .94f, 1f, .75f), mainTexture = tex };
         m.SetFloat("_Mode", 3); m.SetFloat("_Glossiness", .9f); m.SetFloat("_Metallic", 0f);
         m.SetInt("_SrcBlend", (int)BlendMode.One); m.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha); m.SetInt("_ZWrite", 0);
         m.DisableKeyword("_ALPHATEST_ON"); m.DisableKeyword("_ALPHABLEND_ON"); m.EnableKeyword("_ALPHAPREMULTIPLY_ON");
         m.renderQueue = 3000; m.SetOverrideTag("RenderType", "Transparent");
-        AssetDatabase.CreateAsset(m, Out + "/woda_fontanny_struga.mat"); mats["woda fontanny struga"] = m; tile[m] = 1f; return m;
+        BraxZapisAssetu.Utworz(m, Out + "/woda_fontanny_struga.mat"); mats["woda fontanny struga"] = m; tile[m] = 1f; return m;
     }
     static int waterMeshes;
     // Powierzchnia obrotowa wokół osi pionowej przez c: profil (r, y), v — współrzędna tekstury wzdłuż biegu wody; obie strony.
@@ -3436,7 +3436,7 @@ public static partial class BraxClaudeOsiedle
         }
         var mesh = new Mesh { name = "fontanna " + name };
         mesh.SetVertices(vs); mesh.SetNormals(nr); mesh.SetUVs(0, uv); mesh.SetTriangles(idx, 0); mesh.RecalculateBounds();
-        AssetDatabase.CreateAsset(mesh, Out + "/fontanna_woda_" + (waterMeshes++) + ".asset");
+        BraxZapisAssetu.Utworz(mesh, Out + "/fontanna_woda_" + (waterMeshes++) + ".asset");
         var g = new GameObject("fontanna: " + name); g.transform.SetParent(Group(group), false); g.transform.position = c;
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var mr = g.AddComponent<MeshRenderer>(); mr.sharedMaterial = FountainStreamMat();
@@ -3488,7 +3488,7 @@ public static partial class BraxClaudeOsiedle
             }
             if (copy)
             {
-                AssetDatabase.CreateAsset(copy, Out + "/cut_" + Safe(mf.name) + "_" + (cutAssets++) + ".asset");   // build 5: numer — kolejne cięcia tej samej siatki nie nadpisują pliku
+                BraxZapisAssetu.Utworz(copy, Out + "/cut_" + Safe(mf.name) + "_" + (cutAssets++) + ".asset");   // build 5: numer — kolejne cięcia tej samej siatki nie nadpisują pliku
                 mf.sharedMesh = copy; var mc = mf.GetComponent<MeshCollider>(); if (mc) mc.sharedMesh = copy;
                 rep.oldFenceTrianglesRemoved += removed; rep.notes.Add("remont A: " + mf.name + " -" + removed + " trójkątów");
             }
@@ -3630,7 +3630,7 @@ public static partial class BraxClaudeOsiedle
         var m = new Material(shader) { name = "Osiedle: niebo z chmurami" };
         m.SetTexture("_MainTex", tex); m.SetFloat("_Mapping", 1); m.SetFloat("_ImageType", 0); m.SetFloat("_Exposure", 1.05f); m.SetFloat("_Rotation", 40f);
         if (m.HasProperty("_Saturation")) m.SetFloat("_Saturation", 2.1f);
-        AssetDatabase.CreateAsset(m, Out + "/niebo.mat");
+        BraxZapisAssetu.Utworz(m, Out + "/niebo.mat");
         RenderSettings.skybox = m;
         // odbicia nieba w szkle, wodzie i gładkich materiałach: kopia panoramy jako cubemapa (bez wypalania światła)
         const string cubePath = "Assets/Source/Claude/Osiedle/sky/niebo_odbicia.jpg";
@@ -3940,7 +3940,7 @@ public static partial class BraxClaudeOsiedle
         var m = new Material(Shader.Find("Standard")) { name = "Osiedle: " + key, mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path) };
         m.SetFloat("_Mode", 1f); m.SetFloat("_Cutoff", .5f); m.EnableKeyword("_ALPHATEST_ON"); m.SetOverrideTag("RenderType", "TransparentCutout"); m.renderQueue = 2450;
         m.SetFloat("_Glossiness", .45f); m.SetFloat("_Metallic", .6f);
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = metres; return m;
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe(key) + ".mat"); mats[key] = m; tile[m] = metres; return m;
     }
     static void PointLamp(Vector3 p, float range, float intensity, Color c)
     {
@@ -4101,7 +4101,7 @@ public static partial class BraxClaudeOsiedle
             pi.AddRange(new[] { 0, t1, t0, 1, b0, b1, t0, t1, b1, t0, b1, b0 });
         }
         pm.SetVertices(pv); pm.SetTriangles(pi, 0); pm.RecalculateNormals(); pm.RecalculateBounds();
-        AssetDatabase.CreateAsset(pm, Out + "/oktagon_podest_kolizja.asset");
+        BraxZapisAssetu.Utworz(pm, Out + "/oktagon_podest_kolizja.asset");
         var pg = new GameObject("kolizja podestu oktagonu"); pg.transform.SetParent(colliders, false); pg.AddComponent<MeshCollider>().sharedMesh = pm;
         // schody do furtki (3 × 0.2 m) + rampa kolizji
         float zs = cz + ap;
@@ -4262,7 +4262,7 @@ public static partial class BraxClaudeOsiedle
                         if (nm.HasProperty("_RoughnessInfluence")) nm.SetFloat("_RoughnessInfluence", .9f);
                         if (nm.HasProperty("_NormalMap") && nm.GetTexture("_NormalMap")) floorNormal = true;
                     }
-                    AssetDatabase.CreateAsset(nm, Out + "/silowniaA_" + done.Count + "_" + Safe(m.name) + (wall ? "_grafit" : "_faktura") + ".mat");
+                    BraxZapisAssetu.Utworz(nm, Out + "/silowniaA_" + done.Count + "_" + Safe(m.name) + (wall ? "_grafit" : "_faktura") + ".mat");
                     done[m] = nm;
                 }
                 ms[k] = nm; if (wall) w++; else f++;
@@ -4344,7 +4344,7 @@ public static partial class BraxClaudeOsiedle
             var needles = new Material(leafSrc) { name = "Osiedle: iglaki (tuje, świerk)" };
             foreach (var pn in new[] { "_Leaf", "_Leaf2", "_Color" })
                 if (needles.HasProperty(pn)) needles.SetColor(pn, needles.GetColor(pn) * new Color(.52f, .66f, .58f));
-            AssetDatabase.CreateAsset(needles, Out + "/iglaki.mat"); mats["iglaki"] = needles; have = needles;
+            BraxZapisAssetu.Utworz(needles, Out + "/iglaki.mat"); mats["iglaki"] = needles; have = needles;
         }
         var root = new GameObject(spruce ? "Świerk" : "Tuja"); root.transform.SetParent(Group(group), false);
         var mb = bushMesh.bounds; var rs = new List<Renderer>();
@@ -4569,7 +4569,7 @@ public static partial class BraxClaudeOsiedle
         {
             var mesh = new Mesh { indexFormat = IndexFormat.UInt32, name = name + " / " + kv.Key.name };
             mesh.CombineMeshes(kv.Value.ToArray(), true, true);
-            AssetDatabase.CreateAsset(mesh, Out + "/scal_" + (mergeN++) + ".asset");
+            BraxZapisAssetu.Utworz(mesh, Out + "/scal_" + (mergeN++) + ".asset");
             var g = new GameObject(kv.Key.name); g.transform.SetParent(parent, false);
             g.AddComponent<MeshFilter>().sharedMesh = mesh;
             var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = kv.Key; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
@@ -4728,7 +4728,7 @@ public static partial class BraxClaudeOsiedle
         var art = new Texture2D(2, 2, TextureFormat.RGB24, true) { name = "mural BRAXHORN STREET FIGHTER (oryginalne piksele)" };
         if (!ImageConversion.LoadImage(art, bytes, false) || art.width != 1536 || art.height != 614) { rep.notes.Add("siłownia A: mural nie wczytał się 1536×614"); return; }
         art.wrapMode = TextureWrapMode.Clamp; art.filterMode = FilterMode.Trilinear; art.anisoLevel = 4; art.Apply(true, false);
-        AssetDatabase.CreateAsset(art, Out + "/mural_silowni.asset");
+        BraxZapisAssetu.Utworz(art, Out + "/mural_silowni.asset");
         // stara nakładka na ścianie tylnej (sprawdzenie jak w R1: szerokość ≥ 30 m, z −13.1…−12.7 w układzie hali)
         var old = gym.GetComponentsInChildren<MeshRenderer>(true).FirstOrDefault(r => r.name == "Gym_Mesh_71"); bool removed = false;
         if (old)
@@ -4743,7 +4743,7 @@ public static partial class BraxClaudeOsiedle
         if (File.Exists(bd + "albedo.jpg")) { m.SetTexture("_BrickTex", Map(bd + "albedo.jpg", false, true)); m.SetTexture("_BumpMap", Map(bd + "normal.jpg", true, false)); }
         else rep.notes.Add("siłownia A: brak cegły brick_wall_10 — mural bez cegły pod farbą");
         m.SetFloat("_PaintOpacity", .92f);
-        AssetDatabase.CreateAsset(m, Out + "/mural_silowni.mat");
+        BraxZapisAssetu.Utworz(m, Out + "/mural_silowni.mat");
         const float w = 19.2f, h = 7.675f, cx = -3.4f, cy = 4.48f;
         var mesh = new Mesh
         {
@@ -4756,7 +4756,7 @@ public static partial class BraxClaudeOsiedle
         };
         mesh.RecalculateNormals(); mesh.RecalculateBounds();
         mesh.tangents = new[] { new Vector4(1, 0, 0, 1), new Vector4(1, 0, 0, 1), new Vector4(1, 0, 0, 1), new Vector4(1, 0, 0, 1) };   // audyt: cegła (uv2) idzie w +x — bez odbicia rzeźby (jak R1 bez przeliczania)
-        AssetDatabase.CreateAsset(mesh, Out + "/mural_silowni_siatka.asset");
+        BraxZapisAssetu.Utworz(mesh, Out + "/mural_silowni_siatka.asset");
         var go = new GameObject("Mural BRAXHORN STREET FIGHTER (farba na ścianie tylnej)"); go.transform.SetParent(gym, false);
         go.transform.localPosition = new Vector3(cx, cy, -12.986f);
         go.AddComponent<MeshFilter>().sharedMesh = mesh;
@@ -4826,7 +4826,7 @@ public static partial class BraxClaudeOsiedle
         var m = new Mesh { name = "róża (płatki + łodyga)" };
         m.SetVertices(v); m.SetUVs(0, uv); m.subMeshCount = 2; m.SetTriangles(petals, 0); m.SetTriangles(green, 1);
         m.RecalculateNormals(); m.RecalculateBounds();
-        AssetDatabase.CreateAsset(m, Out + "/roza.asset");
+        BraxZapisAssetu.Utworz(m, Out + "/roza.asset");
         return roseMesh = m;
     }
     static void RoseBouquet(Vector3 mouth, int count, int seed)
@@ -4899,7 +4899,7 @@ public static partial class BraxClaudeOsiedle
         if (muralTex)
         {
             var mm = new Material(Shader.Find("Standard")) { name = "Osiedle: mural Nutrition", mainTexture = muralTex }; mm.SetFloat("_Glossiness", .2f);
-            AssetDatabase.CreateAsset(mm, Out + "/mural_nutrition.mat");
+            BraxZapisAssetu.Utworz(mm, Out + "/mural_nutrition.mat");
             int sw = muralTex.width, sh = muralTex.height;
             var mimp = AssetImporter.GetAtPath("Assets/Source/Claude/Osiedle/models/nutrition_kit/nutrition-mural.jpg") as TextureImporter;
             if (mimp) mimp.GetSourceTextureWidthAndHeight(out sw, out sh);                   // proporcje z pliku (import NPOT skaluje do 2048×1024)
@@ -5349,7 +5349,7 @@ public static partial class BraxClaudeOsiedle
             var inv = mf.transform.worldToLocalMatrix; var nv = new Vector3[w.Length];
             for (int i = 0; i < w.Length; i++) nv[i] = inv.MultiplyPoint3x4(w[i] - Vector3.up * (minY[owner[i]] + .05f));
             var copy = UnityEngine.Object.Instantiate(mf.sharedMesh); copy.name = mf.sharedMesh.name + "_na_trawie"; copy.vertices = nv; copy.RecalculateBounds();
-            AssetDatabase.CreateAsset(copy, Out + "/glazy_" + (grounded++) + ".asset");
+            BraxZapisAssetu.Utworz(copy, Out + "/glazy_" + (grounded++) + ".asset");
             mf.sharedMesh = copy; var mc = mf.GetComponent<MeshCollider>(); if (mc) mc.sharedMesh = copy;
         }
         // 3) boisko do kosza (three.js (−28, −83) → Unity x 14–42, z −90.5…−75.5): stare linie leżały 1 mm nad nawierzchnią

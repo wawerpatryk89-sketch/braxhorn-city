@@ -85,7 +85,7 @@ public static class BraxClaudeSiatki
                     var so = new SerializedObject(c);
                     var p = so.FindProperty("m_IsReadable");
                     if (p != null) { p.boolValue = false; so.ApplyModifiedPropertiesWithoutUndo(); }
-                    AssetDatabase.CreateAsset(c, file);
+                    BraxZapisAssetu.Utworz(c, file);
                     created++;
                 }
                 kopie[m] = c;

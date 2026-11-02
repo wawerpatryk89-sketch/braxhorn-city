@@ -140,7 +140,7 @@ public static partial class BraxCityMaterials
                             copy = existing;
                             EditorUtility.SetDirty(existing);
                         }
-                        else AssetDatabase.CreateAsset(copy,path);
+                        else BraxZapisAssetu.Utworz(copy,path);
                         saved = true;
                         if (!Application.isBatchMode) Undo.RecordObject(filter,"Bake authored city lighting");
                         filter.sharedMesh = copy;

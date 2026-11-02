@@ -92,7 +92,7 @@ public static class BraxCityBuild
                     if(!string.IsNullOrEmpty(role.lightMap)){material.SetTexture("_OriginalLight",LinearTexture(role.lightMap));material.SetFloat("_UseLight",1);material.SetFloat("_LightGain",role.lightMapGain);}
                     if(role.transparent){material.SetFloat("_SrcBlend",(float)BlendMode.SrcAlpha);material.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);material.SetFloat("_ZWrite",0);material.renderQueue=3000;material.SetOverrideTag("RenderType","Transparent");}
                     else if(role.alphaTest>0){material.renderQueue=2450;material.SetOverrideTag("RenderType","TransparentCutout");}
-                    AssetDatabase.CreateAsset(material,Output+"/"+name+".mat");converted[original]=material;
+                    BraxZapisAssetu.Utworz(material,Output+"/"+name+".mat");converted[original]=material;
                 }
                 mats[i]=material;
             }

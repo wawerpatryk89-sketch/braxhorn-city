@@ -260,7 +260,7 @@ internal static class BraxMiastoPort
         // kadłub: kolizja (pokład chodliwy) — prostopadłościan części cylindrycznej + dziób z kolizji wypukłej
         BraxMiastoA.Kol(kol, "kadłub (pokład)", new Vector3(SX0, yb, SZ0), new Vector3(SX1, Deck, 6f));
         var dz = new UlSiatka(); for (float z = 6f; z < SZ1; z += 1f) { float a = Pol(z), b = Pol(z + 1f); dz.Quad(new Vector3(cx - a, yb, z), new Vector3(cx + a, yb, z), new Vector3(cx + b, Deck, z + 1f), new Vector3(cx - b, Deck, z + 1f), Vector3.up); }
-        var dm = dz.Zbuduj("A: dziób statku (kolizja)"); AssetDatabase.CreateAsset(dm, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Port_dziob_kolizja.asset"));
+        var dm = dz.Zbuduj("A: dziób statku (kolizja)"); BraxZapisAssetu.Utworz(dm, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Port_dziob_kolizja.asset"));
         var dc = new GameObject("kolizja: dziób"); dc.transform.SetParent(kol, false); var mc = dc.AddComponent<MeshCollider>(); mc.sharedMesh = dm; mc.convex = true;
         BraxMiastoA.Kol(kol, "nadburcie prawe", new Vector3(SX1 - .15f, Deck, SZ0), new Vector3(SX1, Deck + 1.1f, 6f));
         BraxMiastoA.Kol(kol, "nadburcie lewe", new Vector3(SX0, Deck, SZ0), new Vector3(SX0 + .15f, Deck + 1.1f, -10f));

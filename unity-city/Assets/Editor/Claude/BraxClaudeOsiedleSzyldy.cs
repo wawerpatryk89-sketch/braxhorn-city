@@ -487,7 +487,7 @@ public static partial class BraxClaudeOsiedle
                 foreach (var k in pm) { var b = batches[k]; int off = v.Count; v.AddRange(b.v); nn.AddRange(b.n); tt.AddRange(b.t); uv.AddRange(b.uv); foreach (var i in b.i) ii.Add(i + off); }
                 var mesh = new Mesh { name = gr.Key + " / " + mat.name, indexFormat = IndexFormat.UInt32 };
                 mesh.SetVertices(v); mesh.SetNormals(nn); mesh.SetTangents(tt); mesh.SetUVs(0, uv); mesh.SetTriangles(ii, 0); mesh.RecalculateBounds();
-                AssetDatabase.CreateAsset(mesh, Out + "/elew_" + (elewN++) + ".asset");
+                BraxZapisAssetu.Utworz(mesh, Out + "/elew_" + (elewN++) + ".asset");
                 var g = new GameObject(mat.name); g.transform.SetParent(parent, false);
                 g.AddComponent<MeshFilter>().sharedMesh = mesh;
                 var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = mat; r.receiveShadows = true;

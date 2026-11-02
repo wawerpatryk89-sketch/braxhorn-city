@@ -476,7 +476,7 @@ public static partial class BraxClaudeOsiedle
             var mesh = new Mesh { name = "Dzielnica " + kv.Key.Item1 + " / " + kv.Key.Item2.name, indexFormat = b.v.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
             mesh.SetVertices(b.v); mesh.SetNormals(b.n); mesh.SetTangents(b.t); mesh.SetUVs(0, b.uv); mesh.SetTriangles(b.i, 0);
             mesh.RecalculateBounds();
-            AssetDatabase.CreateAsset(mesh, DzlOut + "/siatka_" + (dzlFlushN++).ToString("D4") + ".asset");
+            BraxZapisAssetu.Utworz(mesh, DzlOut + "/siatka_" + (dzlFlushN++).ToString("D4") + ".asset");
             var g = new GameObject(kv.Key.Item2.name); g.transform.SetParent(parent, false);
             g.AddComponent<MeshFilter>().sharedMesh = mesh;
             var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = kv.Key.Item2;
@@ -529,13 +529,13 @@ public static partial class BraxClaudeOsiedle
                 r.SetFloat("_ZWrite", blend ? 0 : 1); r.renderQueue = blend ? 3000 : cut ? 2450 : 2000;
                 r.SetOverrideTag("RenderType", blend ? "Transparent" : cut ? "TransparentCutout" : "Opaque");
                 if (blend) r.SetFloat("_ReflectionStrength", .6f);
-                AssetDatabase.CreateAsset(r, DzlOut + "/mat_" + (dzlMatN++).ToString("D3") + "_" + Safe(r.name) + ".mat");
+                BraxZapisAssetu.Utworz(r, DzlOut + "/mat_" + (dzlMatN++).ToString("D3") + "_" + Safe(r.name) + ".mat");
             }
         }
         else if (path.StartsWith("Assets/PlayableGenerated/ClaudeOsiedle/", StringComparison.Ordinal))
         {
             r = new Material(m) { name = m.name.Replace("Osiedle: ", "Dzielnica: ") };
-            AssetDatabase.CreateAsset(r, DzlOut + "/mat_" + (dzlMatN++).ToString("D3") + "_" + Safe(r.name) + ".mat");
+            BraxZapisAssetu.Utworz(r, DzlOut + "/mat_" + (dzlMatN++).ToString("D3") + "_" + Safe(r.name) + ".mat");
         }
         else if (!path.StartsWith(DzlOut, StringComparison.Ordinal) && !BraxCityMaterials.IsCityMaterial(m)) r = BraxRegion.CityMaterial(m);
         dzlMatyMiasta[m] = r; return r;
@@ -546,7 +546,7 @@ public static partial class BraxClaudeOsiedle
         if (dzlMatyWnetrz.TryGetValue(m, out var have)) return have;
         var r = new Material(m) { name = m.name + " (wnętrze)" };
         r.SetFloat("_SunIntensity", 0f); r.SetFloat("_AmbientIntensity", .55f);
-        AssetDatabase.CreateAsset(r, DzlOut + "/mat_" + (dzlMatN++).ToString("D3") + "_wn_" + Safe(m.name) + ".mat");
+        BraxZapisAssetu.Utworz(r, DzlOut + "/mat_" + (dzlMatN++).ToString("D3") + "_wn_" + Safe(m.name) + ".mat");
         dzlMatyWnetrz[m] = r; return r;
     }
     static bool DzlJestWnetrzem(Transform t)
@@ -606,7 +606,7 @@ public static partial class BraxClaudeOsiedle
         mesh.SetVertices(v); mesh.SetNormals(nn); mesh.SetUVs(0, uv); mesh.subMeshCount = subs.Count;
         for (int i = 0; i < subs.Count; i++) mesh.SetTriangles(subs[i], i);
         mesh.RecalculateBounds(); mesh.RecalculateTangents();
-        AssetDatabase.CreateAsset(mesh, DzlOut + "/z_daleka.asset");
+        BraxZapisAssetu.Utworz(mesh, DzlOut + "/z_daleka.asset");
         var old = GameObject.Find(DzlZDalekaNazwa); if (old) UnityEngine.Object.DestroyImmediate(old);
         var g = new GameObject(DzlZDalekaNazwa);
         g.AddComponent<MeshFilter>().sharedMesh = mesh;

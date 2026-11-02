@@ -87,7 +87,7 @@ public static partial class BraxClaudeOsiedle
             if (lakierTaxi.HasProperty("baseColorFactor")) lakierTaxi.SetVector("baseColorFactor", new Vector4(c.r, c.g, c.b, 1f));
             if (lakierTaxi.HasProperty("_Color")) lakierTaxi.SetColor("_Color", c);
             if (lakierTaxi.HasProperty("_BaseColor")) lakierTaxi.SetColor("_BaseColor", c);
-            AssetDatabase.CreateAsset(lakierTaxi, Out + "/auto_lakier_taxi_miasto_b.mat");
+            BraxZapisAssetu.Utworz(lakierTaxi, Out + "/auto_lakier_taxi_miasto_b.mat");
         }
         int zm = 0;
         foreach (var rr in o.GetComponentsInChildren<Renderer>(true))

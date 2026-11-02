@@ -317,7 +317,7 @@ public static class BraxRegionPavilion
         var m = new Material(Shader.Find("Standard")) { name = "Pawilon: logo BRAXHORN" };
         m.SetTexture("_MainTex", t); m.SetFloat("_Mode", 1); m.EnableKeyword("_ALPHATEST_ON");
         m.SetFloat("_Cutoff", .4f); m.SetFloat("_Glossiness", .15f); m.renderQueue = 2450;
-        AssetDatabase.CreateAsset(m, BraxRegion.Out + "/Materials/pavilion-logo.mat");
+        BraxZapisAssetu.Utworz(m, BraxRegion.Out + "/Materials/pavilion-logo.mat");
         var q = GameObject.CreatePrimitive(PrimitiveType.Quad); q.name = "Pawilon: logo BRAXHORN";
         UnityEngine.Object.DestroyImmediate(q.GetComponent<Collider>());
         q.transform.SetParent(root, false);

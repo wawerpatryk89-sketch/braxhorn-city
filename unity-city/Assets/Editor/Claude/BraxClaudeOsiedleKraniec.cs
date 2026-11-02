@@ -195,7 +195,7 @@ public static partial class BraxClaudeOsiedle
         mesh.SetTriangles(i, 0);
         if (n == null) mesh.RecalculateNormals();
         mesh.RecalculateBounds(); if (granice.HasValue) mesh.bounds = granice.Value;
-        AssetDatabase.CreateAsset(mesh, Out + "/kraniec_" + (krSiatki++) + ".asset");
+        BraxZapisAssetu.Utworz(mesh, Out + "/kraniec_" + (krSiatki++) + ".asset");
         var g = new GameObject("Kraniec: " + nazwa); g.transform.SetParent(Group(group), false);
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = m;
@@ -221,7 +221,7 @@ public static partial class BraxClaudeOsiedle
         m.SetFloat("_MglaOd", .58f); m.SetFloat("_MglaDo", 420f);
         PasmoNaMaterial(m);
         m.SetFloat("_PasmoJest", pasmo ? 1f : 0f);   // bez pasa panoramy: tylko mgła sceny (nie czarny kolor)
-        AssetDatabase.CreateAsset(m, Out + "/teren_za_plotem.mat"); mats["teren za płotem"] = m; tile[m] = 1f;
+        BraxZapisAssetu.Utworz(m, Out + "/teren_za_plotem.mat"); mats["teren za płotem"] = m; tile[m] = 1f;
         rep.notes.Add("teren: skała " + skala);
         return krTeren = m;
     }
@@ -388,7 +388,7 @@ public static partial class BraxClaudeOsiedle
         m.SetFloat("_MglaOd", .58f); m.SetFloat("_MglaDo", 420f);
         PasmoNaMaterial(m);
         m.SetFloat("_PasmoJest", pasmo ? 1f : 0f);
-        AssetDatabase.CreateAsset(m, Out + "/dalszy_las.mat"); mats["dalszy las"] = m; tile[m] = 1f; krLas = m;
+        BraxZapisAssetu.Utworz(m, Out + "/dalszy_las.mat"); mats["dalszy las"] = m; tile[m] = 1f; krLas = m;
         var rnd = new System.Random(6464);
         float R(float a, float b) => a + (float)rnd.NextDouble() * (b - a);
         var reg = new Dictionary<string, (List<Vector3> v, List<Vector2> uv, List<Vector2> uv2, List<int> i)>();

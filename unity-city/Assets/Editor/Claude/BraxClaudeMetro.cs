@@ -585,7 +585,7 @@ public static class BraxClaudeMetro
     {
         var sm = new BraxCitySystemMesh(); sm.Box(Vector3.zero, s);
         var m = sm.Build("skrzydło bramki"); Directory.CreateDirectory(W.Out);
-        AssetDatabase.CreateAsset(m, AssetDatabase.GenerateUniqueAssetPath(W.Out + "/skrzydlo_bramki.asset"));
+        BraxZapisAssetu.Utworz(m, AssetDatabase.GenerateUniqueAssetPath(W.Out + "/skrzydlo_bramki.asset"));
         return m;
     }
 

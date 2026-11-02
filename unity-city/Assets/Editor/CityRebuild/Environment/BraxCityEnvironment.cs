@@ -35,7 +35,7 @@ public static class BraxCityEnvironment
             throw new InvalidOperationException("Environment parent must preserve metre scale and Unity axes");
         var previous=parent.Find("City finished outdoor details");
         if(previous)UnityEngine.Object.DestroyImmediate(previous.gameObject);
-        if(AssetDatabase.IsValidFolder(Output))AssetDatabase.DeleteAsset(Output);
+        BraxZapisAssetu.UsunFolder(Output,"otoczenie miasta");
         Directory.CreateDirectory(Output);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);meshIndex=0;
         var root=new GameObject("City finished outdoor details").transform;root.SetParent(parent,false);root.position=Vector3.zero;
         Materials();
@@ -89,9 +89,9 @@ public static class BraxCityEnvironment
         var shader=Shader.Find("Standard");if(!shader)throw new InvalidOperationException("Built-in Standard shader is missing");
         glass=new Material(shader){name="Bus laminated glass"};glass.color=new Color(.57f,.69f,.74f,.18f);
         glass.SetFloat("_Mode",3);glass.SetFloat("_SrcBlend",(float)BlendMode.SrcAlpha);glass.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);glass.SetFloat("_ZWrite",0);glass.SetFloat("_Glossiness",.35f);
-        glass.EnableKeyword("_ALPHABLEND_ON");glass.SetOverrideTag("RenderType","Transparent");glass.renderQueue=3000;AssetDatabase.CreateAsset(glass,Output+"/BusGlass.mat");
+        glass.EnableKeyword("_ALPHABLEND_ON");glass.SetOverrideTag("RenderType","Transparent");glass.renderQueue=3000;BraxZapisAssetu.Utworz(glass,Output+"/BusGlass.mat");
         var fontShader=Shader.Find("Braxhorn/CitySignText");if(!fontShader)throw new InvalidOperationException("City world text shader is missing");
-        fontMaterial=new Material(fontShader){name="Environment depth tested lettering"};AssetDatabase.CreateAsset(fontMaterial,Output+"/Lettering.mat");
+        fontMaterial=new Material(fontShader){name="Environment depth tested lettering"};BraxZapisAssetu.Utworz(fontMaterial,Output+"/Lettering.mat");
     }
 
     private static GameObject Emit(string name,Transform parent,BraxCitySystemMesh data,Material material,bool solid=false)
@@ -106,7 +106,7 @@ public static class BraxCityEnvironment
             else uv[i]=new Vector2(p.x,p.y);
         }
         mesh.uv=uv;mesh.RecalculateTangents();
-        AssetDatabase.CreateAsset(mesh,Output+"/mesh_"+(meshIndex++).ToString("D3")+".asset");
+        BraxZapisAssetu.Utworz(mesh,Output+"/mesh_"+(meshIndex++).ToString("D3")+".asset");
         var obj=new GameObject(name);obj.transform.SetParent(parent,false);obj.AddComponent<MeshFilter>().sharedMesh=mesh;obj.AddComponent<MeshRenderer>().sharedMaterial=material;
         if(solid)obj.AddComponent<MeshCollider>().sharedMesh=mesh;
         var flags=StaticEditorFlags.BatchingStatic|StaticEditorFlags.OccludeeStatic;

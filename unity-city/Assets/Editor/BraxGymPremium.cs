@@ -14,7 +14,7 @@ public static class BraxGymPremium
     static readonly Dictionary<string,Texture2D> textures=new Dictionary<string,Texture2D>();
     static readonly Color Black=new Color(.065f,.072f,.080f);
     static readonly Color Green=new Color(.34f,.69f,.10f);
-    static Material Save(Material m,string name){m.name=name;AssetDatabase.CreateAsset(m,folder+"/"+name+".mat");return m;}
+    static Material Save(Material m,string name){m.name=name;BraxZapisAssetu.Utworz(m,folder+"/"+name+".mat");return m;}
     static Texture2D Texture(string name,bool normal=false,bool linear=false)
     {
         string cacheKey=name+"|"+normal+"|"+linear;
@@ -38,7 +38,7 @@ public static class BraxGymPremium
     }
     static GameObject MeshObject(Transform parent,string name,Mesh mesh,Material m)
     {
-        mesh.RecalculateBounds();AssetDatabase.CreateAsset(mesh,folder+"/mesh-"+(meshId++)+".asset");
+        mesh.RecalculateBounds();BraxZapisAssetu.Utworz(mesh,folder+"/mesh-"+(meshId++)+".asset");
         var o=new GameObject(name);o.transform.SetParent(parent,false);o.AddComponent<MeshFilter>().sharedMesh=mesh;
         var r=o.AddComponent<MeshRenderer>();r.sharedMaterial=m;r.shadowCastingMode=ShadowCastingMode.Off;detailCount++;return o;
     }

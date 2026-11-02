@@ -60,7 +60,7 @@ public static class BraxRegionInteriors
                         if (t.HasProperty("_ARM")) { t.SetTexture("_ARM", plaster.GetTexture("_ARM")); t.SetTextureScale("_ARM", plaster.GetTextureScale("_ARM")); }
                         if (t.HasProperty("_Color")) t.SetColor("_Color", new Color(.95f, .93f, .89f));
                         foreach (var kw in plaster.shaderKeywords) t.EnableKeyword(kw);
-                        AssetDatabase.CreateAsset(t, BraxRegion.Out + "/Materials/nutrition-plaster-" + swapped.Count + ".mat");
+                        BraxZapisAssetu.Utworz(t, BraxRegion.Out + "/Materials/nutrition-plaster-" + swapped.Count + ".mat");
                         swapped[m] = t;
                     }
                     mats[i] = t; changed = true; walls++;
@@ -131,7 +131,7 @@ public static class BraxRegionInteriors
         try { brick = BraxRegion.Pbr("Nutrition: cegła pod muralem", 3f, null, "brick_wall_001", "brick_wall_02", "red_brick_03", "brick_wall_008"); } catch (Exception) { }
         if (brick && brick.GetTexture("_BumpMap")) { m.SetTexture("_BumpMap", brick.GetTexture("_BumpMap")); m.SetTextureScale("_BumpMap", new Vector2(width / 3f, height / 3f)); m.SetFloat("_BumpScale", .6f); m.SetFloat("_NormalEncoding", brick.GetFloat("_NormalEncoding")); }
         Directory.CreateDirectory(BraxRegion.Out + "/Materials");
-        AssetDatabase.CreateAsset(m, BraxRegion.Out + "/Materials/nutrition-mural.mat");
+        BraxZapisAssetu.Utworz(m, BraxRegion.Out + "/Materials/nutrition-mural.mat");
         // Cienka płyta 1 cm na ścianie; UV w metrach → skala tekstury = 1/rozmiar, żeby obraz zajął całą płytę raz.
         var mesh = new Mesh { name = "Nutrition mural" };
         float hw = width * .5f, hh = height * .5f;
@@ -142,7 +142,7 @@ public static class BraxRegionInteriors
         mesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };
         mesh.RecalculateTangents(); mesh.RecalculateBounds();
         Directory.CreateDirectory(BraxRegion.Out + "/Meshes");
-        AssetDatabase.CreateAsset(mesh, BraxRegion.Out + "/Meshes/nutrition-mural.asset");
+        BraxZapisAssetu.Utworz(mesh, BraxRegion.Out + "/Meshes/nutrition-mural.asset");
         var g = new GameObject("Nutrition: mural Brax na ceglanej ścianie");
         g.transform.SetParent(root, false); g.transform.position = center;
         g.AddComponent<MeshFilter>().sharedMesh = mesh;

@@ -31,7 +31,7 @@ public static class BraxRegionFlicker
                     o.name = m.name + " (offset)";
                     o.SetFloat("_OffsetFactor", -1f);
                     o.SetFloat("_OffsetUnits", -1f);
-                    AssetDatabase.CreateAsset(o, BraxRegion.Out + "/Materials/offset_" + swapped.Count + ".mat");
+                    BraxZapisAssetu.Utworz(o, BraxRegion.Out + "/Materials/offset_" + swapped.Count + ".mat");
                     swapped[m] = o;
                 }
                 mats[i] = o;
@@ -63,7 +63,7 @@ public static class BraxRegionFlicker
         if (shader3d)
         {
             var template = new Material(shader3d) { name = "Napis 3D: szablon z testem głębi" };
-            AssetDatabase.CreateAsset(template, BraxRegion.Out + "/Materials/signage-3d-text.mat");
+            BraxZapisAssetu.Utworz(template, BraxRegion.Out + "/Materials/signage-3d-text.mat");
             signage.depthTested = template;
         }
         else BraxRegion.Note("brak shadera Braxhorn/Text3D, napisy zostają z ZTest Always");

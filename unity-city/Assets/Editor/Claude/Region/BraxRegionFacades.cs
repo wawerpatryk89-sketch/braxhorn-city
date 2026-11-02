@@ -46,7 +46,7 @@ public static class BraxRegionFacades
         var frameM = BraxCityMaterials.Surface("Lobby: rama obrazu", new Color(.12f, .11f, .1f), .5f, .2f);
         var canvas = new Material(Shader.Find(BraxCityMaterials.ShaderName)) { name = "Lobby: obraz Brax" };
         canvas.SetTexture("_MainTex", tex); canvas.SetColor("_Color", Color.white); canvas.SetFloat("_Roughness", .85f); canvas.SetFloat("_Metallic", 0f);
-        Directory.CreateDirectory(BraxRegion.Out + "/Materials"); AssetDatabase.CreateAsset(canvas, BraxRegion.Out + "/Materials/lobby-picture.mat");
+        Directory.CreateDirectory(BraxRegion.Out + "/Materials"); BraxZapisAssetu.Utworz(canvas, BraxRegion.Out + "/Materials/lobby-picture.mat");
         var rot = Quaternion.LookRotation(-normal, Vector3.up);
         var g = new GameObject("Lobby: obraz Brax w ramie"); g.transform.SetParent(root, false);
         g.transform.position = at + normal * .06f + Vector3.up * (2.1f - 2.0f); g.transform.rotation = rot;

@@ -100,7 +100,7 @@ public static class BraxCityArchitecture
             data.Quad(new Vector3(xx[i],yy[j],0),new Vector3(xx[i+1],yy[j],0),new Vector3(xx[i+1],yy[j+1],0),new Vector3(xx[i],yy[j+1],0));
         }
         var mesh=data.Build("Source-equivalent planar window panel");mesh.uv=mesh.vertices.Select(map).ToArray();mesh.RecalculateTangents();
-        AssetDatabase.CreateAsset(mesh,Output+"/planar_"+(serial++)+".asset");planarWalls.Add(source,mesh);
+        BraxZapisAssetu.Utworz(mesh,Output+"/planar_"+(serial++)+".asset");planarWalls.Add(source,mesh);
         Debug.Log("CITY_EXACT_PLANAR_OPTIMISATION "+source.name+" "+source.triangles.Length/3+" -> "+mesh.triangles.Length/3+" triangles; outline/aperture/UV retained");return mesh;
     }
     static Transform Group(string name,Transform parent,Vector3 at,Quaternion rotation)
@@ -450,7 +450,7 @@ public static class BraxCityArchitecture
         tm.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         var shader=Shader.Find("Braxhorn/CitySignText");if(!shader)throw new InvalidOperationException("City text shader missing");
         var mat=new Material(shader){name="Depth tested lettering "+serial};mat.mainTexture=tm.font.material.mainTexture;
-        AssetDatabase.CreateAsset(mat,Output+"/lettering_"+(serial++)+".mat");obj.GetComponent<MeshRenderer>().sharedMaterial=mat;
+        BraxZapisAssetu.Utworz(mat,Output+"/lettering_"+(serial++)+".mat");obj.GetComponent<MeshRenderer>().sharedMaterial=mat;
         obj.AddComponent<BraxCitySignText>();
     }
     // Separate spatial batches, never one indivisible district mesh.
@@ -509,7 +509,7 @@ public static class BraxCityArchitecture
                     continue;
                 }
                 var path=Output+"/persistent_"+(serial++).ToString("D6")+".asset";
-                AssetDatabase.CreateAsset(mesh,path);
+                BraxZapisAssetu.Utworz(mesh,path);
                 persisted++;
             }
         }

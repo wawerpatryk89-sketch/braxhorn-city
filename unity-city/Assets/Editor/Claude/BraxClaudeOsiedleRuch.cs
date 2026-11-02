@@ -45,7 +45,7 @@ public static partial class BraxClaudeOsiedle
         }
         if (n == 0) { rep.notes.Add("DO POPRAWKI: klip " + name + " nie pasuje do szkieletu " + key); return null; }
         dst.EnsureQuaternionContinuity();
-        AssetDatabase.CreateAsset(dst, path);
+        BraxZapisAssetu.Utworz(dst, path);
         return dst;
     }
 

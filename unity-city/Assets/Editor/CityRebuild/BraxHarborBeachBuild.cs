@@ -61,7 +61,7 @@ public static class BraxHarborBeachBuild
         if (!cityRoot) throw new ArgumentNullException(nameof(cityRoot));
         var previous = cityRoot.Find(RootName);
         if (previous) UnityEngine.Object.DestroyImmediate(previous.gameObject);
-        foreach (var dir in new[] { Generated, BraxNabrzeze.Out }) if (AssetDatabase.IsValidFolder(dir)) AssetDatabase.DeleteAsset(dir);
+        foreach (var dir in new[] { Generated, BraxNabrzeze.Out }) BraxZapisAssetu.UsunFolder(dir, "nabrzeże");
         BraxNabrzeze.Usuniete.Clear();
         BraxNabrzeze.Przygotuj();
         var root = new GameObject(RootName).transform;

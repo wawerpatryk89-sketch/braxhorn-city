@@ -59,7 +59,7 @@ public static class BraxEstateR2ApprovedRoofs
         mat.EnableKeyword("_METALLICGLOSSMAP");
         mat.enableInstancing=true;
         if(twoSided)mat.SetFloat("_Cull",0f);
-        AssetDatabase.CreateAsset(mat,directory+"/R2"+key+".mat");
+        BraxZapisAssetu.Utworz(mat,directory+"/R2"+key+".mat");
         return mat;
     }
     public static void Apply()

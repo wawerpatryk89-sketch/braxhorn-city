@@ -126,12 +126,12 @@ public static class BraxGymReferenceEquipment
         var mesh=new Mesh{name=label+" reflective glass"};
         mesh.vertices=new[]{new Vector3(-.5f,-.5f,0),new Vector3(.5f,-.5f,0),new Vector3(.5f,.5f,0),new Vector3(-.5f,.5f,0)};
         mesh.uv=new[]{Vector2.zero,Vector2.right,Vector2.one,Vector2.up};mesh.triangles=new[]{0,1,2,0,2,3};
-        mesh.RecalculateNormals();mesh.RecalculateBounds();AssetDatabase.CreateAsset(mesh,folder+"/"+label+"Mirror.asset");
+        mesh.RecalculateNormals();mesh.RecalculateBounds();BraxZapisAssetu.Utworz(mesh,folder+"/"+label+"Mirror.asset");
         anchor.AddComponent<MeshFilter>().sharedMesh=mesh;
         var shader=Shader.Find("Braxhorn/GymPlanarMirror");if(!shader)throw new InvalidOperationException("Live mirror shader missing.");
         var material=new Material(shader){name=label+" live reflective glass"};
         Vector3 n=anchor.transform.forward;material.SetVector("_MirrorPlane",new Vector4(n.x,n.y,n.z,-Vector3.Dot(n,anchor.transform.position)));
-        AssetDatabase.CreateAsset(material,folder+"/"+label+"Mirror.mat");
+        BraxZapisAssetu.Utworz(material,folder+"/"+label+"Mirror.mat");
         var renderer=anchor.AddComponent<MeshRenderer>();renderer.sharedMaterial=material;renderer.shadowCastingMode=ShadowCastingMode.Off;
         anchor.layer=9;camera.cullingMask|=1<<9;
         var mirror=anchor.AddComponent<BraxGymPlanarMirror>();mirror.sourceCamera=camera;mirror.mirrorRenderer=renderer;

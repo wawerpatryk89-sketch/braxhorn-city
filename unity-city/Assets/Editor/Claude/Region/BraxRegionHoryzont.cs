@@ -347,7 +347,7 @@ public static class BraxRegionHoryzont
         if (!sh) throw new InvalidOperationException("brak shadera Braxhorn/MiastoNiebo");
         nieboMat = new Material(sh) { name = "BRAXHORN CITY niebo i panorama 360° (horyzont)" };
         UstawTlo(nieboMat);
-        AssetDatabase.CreateAsset(nieboMat, OutDir + "/niebo_miasta.mat");
+        BraxZapisAssetu.Utworz(nieboMat, OutDir + "/niebo_miasta.mat");
         RenderSettings.skybox = nieboMat;
         foreach (var cam in UnityEngine.Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (cam && cam.targetTexture == null && cam.clearFlags == CameraClearFlags.SolidColor && cam.CompareTag("MainCamera")) cam.clearFlags = CameraClearFlags.Skybox;
@@ -510,7 +510,7 @@ public static class BraxRegionHoryzont
         var ziemia = Albedo(2048, OsTex + "brown_mud_leaves_01/albedo.jpg", BraxRegion.PH + "textures/brown_mud_leaves_01/diffuse.jpg");
         if (ziemia) m.SetTexture("_SoilTex", ziemia);
         m.SetFloat("_MglaOd", .6f); m.SetFloat("_MglaDo", 470f);
-        AssetDatabase.CreateAsset(m, OutDir + "/teren_za_granica.mat");
+        BraxZapisAssetu.Utworz(m, OutDir + "/teren_za_granica.mat");
         return terenMat = m;
     }
 
@@ -569,7 +569,7 @@ public static class BraxRegionHoryzont
         mesh.SetTriangles(i, 0);
         if (n == null) mesh.RecalculateNormals();
         mesh.RecalculateBounds(); if (granice.HasValue) mesh.bounds = granice.Value;
-        AssetDatabase.CreateAsset(mesh, OutDir + "/siatka_" + (siatki++).ToString("D3") + ".asset");
+        BraxZapisAssetu.Utworz(mesh, OutDir + "/siatka_" + (siatki++).ToString("D3") + ".asset");
         var g = new GameObject("Horyzont: " + nazwa); g.transform.SetParent(parent, false);
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = m;
@@ -598,7 +598,7 @@ public static class BraxRegionHoryzont
             var m = new Material(sh) { name = "Miasto: las za granicą (karty drzew)" };
             m.SetTexture("_MainTex", AssetDatabase.LoadAssetAtPath<Texture2D>(lasPng)); m.SetFloat("_Cutoff", .45f); m.SetFloat("_Jasnosc", .92f);
             UstawTlo(m); m.SetFloat("_MglaOd", .6f); m.SetFloat("_MglaDo", 470f);
-            AssetDatabase.CreateAsset(m, OutDir + "/las_karty.mat"); lasMat = m;
+            BraxZapisAssetu.Utworz(m, OutDir + "/las_karty.mat"); lasMat = m;
             var kaw = new Dictionary<(int, int), (List<Vector3> v, List<Vector2> uv, List<Vector2> uv2, List<int> i)>();
             var G = BraxMiastoGranice.Prostokat;
             for (int k = 0; k < 60000 && karty < 2600; k++)
@@ -685,7 +685,7 @@ public static class BraxRegionHoryzont
         if (b.v.Count == 0 || !m) return null;
         var mesh = new Mesh { name = "Horyzont " + nazwa, indexFormat = b.v.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
         mesh.SetVertices(b.v); mesh.SetNormals(b.n); mesh.SetUVs(0, b.uv); mesh.SetTriangles(b.i, 0); mesh.RecalculateBounds(); mesh.RecalculateTangents();
-        AssetDatabase.CreateAsset(mesh, OutDir + "/siatka_" + (siatki++).ToString("D3") + ".asset");
+        BraxZapisAssetu.Utworz(mesh, OutDir + "/siatka_" + (siatki++).ToString("D3") + ".asset");
         var g = new GameObject(nazwa); g.transform.SetParent(parent, false);
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = m;

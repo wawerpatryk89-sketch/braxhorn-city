@@ -236,7 +236,7 @@ public static partial class BraxClaudeOsiedle
         m.uv = new[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 1) };
         m.triangles = new[] { 0, 2, 1, 0, 3, 2 };   // przód płytki na −z
         m.RecalculateBounds();
-        AssetDatabase.CreateAsset(m, Out + "/auta_plytka_swiatla.asset");
+        BraxZapisAssetu.Utworz(m, Out + "/auta_plytka_swiatla.asset");
         quadSwiatla = m; return m;
     }
     static Material MatSwiatla(bool stop)
@@ -244,7 +244,7 @@ public static partial class BraxClaudeOsiedle
         if (stop && matStop) return matStop; if (!stop && matMigacz) return matMigacz;
         var sh = Shader.Find("Unlit/Color") ?? Shader.Find("Standard");
         var m = new Material(sh) { name = stop ? "Auto: światło STOP" : "Auto: kierunkowskaz", color = stop ? new Color(1f, .06f, .04f) : new Color(1f, .55f, .05f), enableInstancing = true };
-        AssetDatabase.CreateAsset(m, Out + "/" + (stop ? "auta_stop.mat" : "auta_migacz.mat"));
+        BraxZapisAssetu.Utworz(m, Out + "/" + (stop ? "auta_stop.mat" : "auta_migacz.mat"));
         if (stop) matStop = m; else matMigacz = m; return m;
     }
     static Material MatDym()
@@ -259,11 +259,11 @@ public static partial class BraxClaudeOsiedle
                 px[y * 64 + x] = new Color32(235, 235, 235, (byte)(a * 255));
             }
         tex.SetPixels32(px); tex.Apply();
-        AssetDatabase.CreateAsset(tex, Out + "/auta_spaliny.asset");
+        BraxZapisAssetu.Utworz(tex, Out + "/auta_spaliny.asset");
         var sh = Shader.Find("Legacy Shaders/Particles/Alpha Blended") ?? Shader.Find("Particles/Standard Unlit") ?? Shader.Find("Mobile/Particles/Alpha Blended");
         var m = new Material(sh) { name = "Auto: spaliny", mainTexture = tex };
         if (m.HasProperty("_TintColor")) m.SetColor("_TintColor", new Color(.5f, .5f, .5f, .5f));
-        AssetDatabase.CreateAsset(m, Out + "/auta_spaliny.mat");
+        BraxZapisAssetu.Utworz(m, Out + "/auta_spaliny.mat");
         matDym = m; return m;
     }
 
@@ -321,7 +321,7 @@ public static partial class BraxClaudeOsiedle
                 if (tris.Count == 0) continue;
                 var mesh = SiatkaKola(A, tris, kolo.c, out var mats);
                 if (!mesh) continue;
-                AssetDatabase.CreateAsset(mesh, Out + "/auto_" + Safe(src.name) + "_kolo_" + nazwy[i] + "_" + (autoSiatki++) + ".asset");
+                BraxZapisAssetu.Utworz(mesh, Out + "/auto_" + Safe(src.name) + "_kolo_" + nazwy[i] + "_" + (autoSiatki++) + ".asset");
                 obr.gameObject.AddComponent<MeshFilter>().sharedMesh = mesh;
                 var r = obr.gameObject.AddComponent<MeshRenderer>(); r.sharedMaterials = mats; r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true;
                 foreach (var tr in tris) { if (!usun.TryGetValue(tr.cz, out var hs)) usun[tr.cz] = hs = new HashSet<long>(); hs.Add(((long)tr.sub << 32) | (uint)tr.t); }
@@ -338,7 +338,7 @@ public static partial class BraxClaudeOsiedle
                 }
                 if (zostalo == 0) { UnityEngine.Object.DestroyImmediate(nowa); UnityEngine.Object.DestroyImmediate(c.mr); UnityEngine.Object.DestroyImmediate(c.mf); continue; }
                 nowa.RecalculateBounds();
-                AssetDatabase.CreateAsset(nowa, Out + "/auto_" + Safe(src.name) + "_nadwozie_" + (autoSiatki++) + ".asset");
+                BraxZapisAssetu.Utworz(nowa, Out + "/auto_" + Safe(src.name) + "_nadwozie_" + (autoSiatki++) + ".asset");
                 c.mf.sharedMesh = nowa;
             }
             sz.rozstaw = Mathf.Max(1.5f, (A.kola[0].c.z + A.kola[1].c.z) * .5f - (A.kola[2].c.z + A.kola[3].c.z) * .5f);

@@ -29,7 +29,7 @@ public static partial class BraxClaudeOsiedle
         m.name = "Osiedle: tunel " + key;
         if (!string.IsNullOrEmpty(tex) && System.IO.File.Exists(Tex + tex + "/albedo.jpg")) m.mainTexture = Map(Tex + tex + "/albedo.jpg", false, true);
         m.SetColor("_Color", c); m.SetFloat("_Jasnosc", jasnosc);
-        AssetDatabase.CreateAsset(m, Out + "/" + Safe("tunel " + key) + ".mat"); mats["tunel " + key] = m; tile[m] = kafel; return m;
+        BraxZapisAssetu.Utworz(m, Out + "/" + Safe("tunel " + key) + ".mat"); mats["tunel " + key] = m; tile[m] = kafel; return m;
     }
 
     // Światło wnętrza w punkcie p o normalnej n (liniowo): dzień przez portal i od wylotu, lampy po obu stronach co 4 m.
@@ -76,7 +76,7 @@ public static partial class BraxClaudeOsiedle
         var mesh = new Mesh { name = "Tunel " + nazwa, indexFormat = s.v.Count > 65000 ? IndexFormat.UInt32 : IndexFormat.UInt16 };
         mesh.SetVertices(s.v); mesh.SetUVs(0, s.uv); mesh.SetColors(s.c); mesh.SetTriangles(s.i, 0);
         mesh.RecalculateNormals(); mesh.RecalculateBounds();
-        AssetDatabase.CreateAsset(mesh, Out + "/tunel_" + (tunelSiatki++) + ".asset");
+        BraxZapisAssetu.Utworz(mesh, Out + "/tunel_" + (tunelSiatki++) + ".asset");
         var g = new GameObject("tunel: " + nazwa); g.transform.SetParent(Group(group), false);
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = m; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false;
@@ -252,7 +252,7 @@ public static partial class BraxClaudeOsiedle
         for (float x = -.05f; x > -9.8f; x -= .5f, pas++) Prost(pas % 2 == 0 ? tr : tw, Mathf.Max(-9.8f, x - .5f), x, -.045f, .045f, -.035f, .035f);
         var mesh = new Mesh { name = "Szlaban ramię" }; mesh.subMeshCount = 2;
         mesh.SetVertices(vb); mesh.SetNormals(nb); mesh.SetUVs(0, ub); mesh.SetTriangles(tw, 0); mesh.SetTriangles(tr, 1); mesh.RecalculateBounds();
-        AssetDatabase.CreateAsset(mesh, Out + "/szlaban_ramie.asset");
+        BraxZapisAssetu.Utworz(mesh, Out + "/szlaban_ramie.asset");
         ramie.AddComponent<MeshFilter>().sharedMesh = mesh;
         var mr = ramie.AddComponent<MeshRenderer>(); mr.sharedMaterials = new[] { white, red }; mr.shadowCastingMode = ShadowCastingMode.On;
         // tablica „MIASTO · WKRÓTCE” pod środkiem ramienia (z obu stron), obraca się z ramieniem
@@ -268,7 +268,7 @@ public static partial class BraxClaudeOsiedle
             if (sz < 0) ti.AddRange(new[] { k, k + 2, k + 1, k, k + 3, k + 2 }); else ti.AddRange(new[] { k, k + 1, k + 2, k, k + 2, k + 3 });
         }
         var tmesh = new Mesh { name = "Szlaban tablica" }; tmesh.SetVertices(tv); tmesh.SetNormals(tn); tmesh.SetUVs(0, tu); tmesh.SetTriangles(ti, 0); tmesh.RecalculateBounds();
-        AssetDatabase.CreateAsset(tmesh, Out + "/szlaban_tablica.asset");
+        BraxZapisAssetu.Utworz(tmesh, Out + "/szlaban_tablica.asset");
         tab.AddComponent<MeshFilter>().sharedMesh = tmesh; tab.AddComponent<MeshRenderer>().sharedMaterial = tm;
         // blokada: cały wjazd między obramieniami portalu (gracz nie przejdzie bokiem ramienia)
         var blok = new GameObject("szlaban: blokada"); blok.transform.SetParent(colliders, false); blok.transform.position = new Vector3(0, 1.5f, 98.65f);

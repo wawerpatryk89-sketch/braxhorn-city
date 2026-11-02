@@ -30,7 +30,7 @@ public static class BraxCitySystemsBuild
             throw new InvalidOperationException("City systems parent must preserve Unity metre scale and axes");
         var previous = parent.Find("City mission access systems");
         if (previous) UnityEngine.Object.DestroyImmediate(previous.gameObject);
-        if (AssetDatabase.IsValidFolder(Output)) AssetDatabase.DeleteAsset(Output);
+        BraxZapisAssetu.UsunFolder(Output, "systemy miasta");
         Directory.CreateDirectory(Output); AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport); assetIndex = 0;
         var root = new GameObject("City mission access systems").transform;
         root.SetParent(parent,false); root.position=Vector3.zero; root.rotation=Quaternion.identity;
@@ -53,7 +53,7 @@ public static class BraxCitySystemsBuild
         if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor",color);
         if (material.HasProperty("_Glossiness")) material.SetFloat("_Glossiness",.24f);
         if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness",.24f);
-        AssetDatabase.CreateAsset(material,Output+"/"+name+".mat"); return material;
+        BraxZapisAssetu.Utworz(material,Output+"/"+name+".mat"); return material;
     }
 
     private static Material Lens(string name, Color color)
@@ -61,7 +61,7 @@ public static class BraxCitySystemsBuild
         var shader=Shader.Find("Braxhorn/CitySignalLens");
         if (!shader) throw new InvalidOperationException("City signal lens shader is missing");
         var material=new Material(shader){name=name}; material.SetColor("_Color",color);
-        AssetDatabase.CreateAsset(material,Output+"/"+name+".mat"); return material;
+        BraxZapisAssetu.Utworz(material,Output+"/"+name+".mat"); return material;
     }
 
     private static void PrepareMaterials(Material metal, Material concrete)
@@ -81,7 +81,7 @@ public static class BraxCitySystemsBuild
         if(!fontShader)throw new InvalidOperationException("Depth tested city sign shader is missing");
         signText=new Material(fontShader){name="City sign depth tested text"};
         signText.mainTexture=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf").material.mainTexture;
-        AssetDatabase.CreateAsset(signText,Output+"/CitySignText.mat");
+        BraxZapisAssetu.Utworz(signText,Output+"/CitySignText.mat");
     }
 
     private static BraxMissionReservations PrepareReservations(BraxCityWorld world, Transform parent)
@@ -112,7 +112,7 @@ public static class BraxCitySystemsBuild
     private static GameObject MeshObject(string name, Transform parent, BraxCitySystemMesh data, Material material, bool solid=false, bool isStatic=true)
     {
         var obj=new GameObject(name); obj.transform.SetParent(parent,false);
-        var mesh=data.Build(name); AssetDatabase.CreateAsset(mesh,Output+"/mesh_"+(assetIndex++).ToString("D3")+".asset");
+        var mesh=data.Build(name); BraxZapisAssetu.Utworz(mesh,Output+"/mesh_"+(assetIndex++).ToString("D3")+".asset");
         obj.AddComponent<MeshFilter>().sharedMesh=mesh; obj.AddComponent<MeshRenderer>().sharedMaterial=material;
         if (solid) obj.AddComponent<MeshCollider>().sharedMesh=mesh;
         if (isStatic) GameObjectUtility.SetStaticEditorFlags(obj,StaticEditorFlags.BatchingStatic|StaticEditorFlags.OccludeeStatic|StaticEditorFlags.OccluderStatic);

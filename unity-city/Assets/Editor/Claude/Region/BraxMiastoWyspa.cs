@@ -140,7 +140,7 @@ internal static class BraxMiastoWyspa
         mesh.SetVertices(v); mesh.SetColors(col); mesh.SetUVs(0, v.ConvertAll(p => new Vector2(p.x, p.z))); mesh.SetUVs(1, uv2);
         mesh.subMeshCount = 2; mesh.SetTriangles(tT, 0); mesh.SetTriangles(tP, 1);
         mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
-        AssetDatabase.CreateAsset(mesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/teren.asset"));
+        BraxZapisAssetu.Utworz(mesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/teren.asset"));
         var mT = BraxNabrzeze.Teren("Wyspa: teren (piasek, mokry piasek, roślinność, skała)", new Color(.62f, .78f, .45f), 2.2f);
         var mP = BraxMiastoA.Tex("Wyspa: plac areny (płyty granitowe)", 2.0f, new Color(.88f, .86f, .82f), new Color(.66f, .64f, .6f), .7f, "granite_tile_02", "granite_tile", "concrete_floor_02");
         var g = new GameObject("Wyspa: teren"); g.transform.SetParent(root, false);
@@ -359,7 +359,7 @@ internal static class BraxMiastoWyspa
         }
         // kolizja posadzki: wypukły ośmiobok (pudło kwadratowe wystawałoby na plac w narożnikach)
         var fm = new UlSiatka(); for (int i = 0; i < nb; i++) { var a = Wsp(i, R - .3f); var b = Wsp(i + 1, R - .3f); fm.Quad(a + Vector3.up * (y0 - .1f), b + Vector3.up * (y0 - .1f), b + Vector3.up * (y0 + .15f), a + Vector3.up * (y0 + .15f), Vector3.up); }
-        var fmesh = fm.Zbuduj("A: posadzka areny (kolizja)"); AssetDatabase.CreateAsset(fmesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/posadzka_kolizja.asset"));
+        var fmesh = fm.Zbuduj("A: posadzka areny (kolizja)"); BraxZapisAssetu.Utworz(fmesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/posadzka_kolizja.asset"));
         var kd = new GameObject("kolizja: posadzka areny"); kd.transform.SetParent(kol, false); var kdm = kd.AddComponent<MeshCollider>(); kdm.sharedMesh = fmesh; kdm.convex = true;
         // podjazdy 1:10 przed drzwiami (posadzka hali 15 cm nad placem — wejście idąc, bez progu)
         {
@@ -506,7 +506,7 @@ internal static class BraxMiastoWyspa
             for (int q = 0; q < szczyt; q++) Stopien(RA(q) + rz * .5f, RA(q + 1), F + (q + 1) * hz, F + (q + 1.5f) * hz);
             Miejsca["arena_przejscie_" + i] = c + dr * (r0 - .6f) + Vector3.up * F;
         }
-        var tkm = tk.Zbuduj("A: trybuny (kolizja)"); AssetDatabase.CreateAsset(tkm, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/trybuny_kolizja.asset"));
+        var tkm = tk.Zbuduj("A: trybuny (kolizja)"); BraxZapisAssetu.Utworz(tkm, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/trybuny_kolizja.asset"));
         var tkg = new GameObject("kolizja: trybuny (bryła)"); tkg.transform.SetParent(kol, false); tkg.AddComponent<MeshCollider>().sharedMesh = tkm;
         // widownia (co ~3. fotel) — dla etapu ludzi; limit pod telefon
         for (int w = 0; w < widownia.Count; w += widownia.Count > 180 ? 2 : 1) Czlowiek("Trybuny ARENY", "kibic", "siedzi", widownia[w].p, widownia[w].f, KlKibic);
@@ -565,7 +565,7 @@ internal static class BraxMiastoWyspa
         // kolizja podestu (wypukła siatka ośmiokąta)
         var pm = new UlSiatka(); for (int i = 0; i < 8; i++) { var a = Kw(i, rc + .6f); var b = Kw(i + 1, rc + .6f); pm.Quad(a + Vector3.up * F, b + Vector3.up * F, b + Vector3.up * (F + hp), a + Vector3.up * (F + hp), Vector3.up); }
         var pc0 = new GameObject("kolizja: podest klatki"); pc0.transform.SetParent(kol, false); var pmesh = pm.Zbuduj("A: podest klatki (kolizja)");
-        AssetDatabase.CreateAsset(pmesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/podest_kolizja.asset"));
+        BraxZapisAssetu.Utworz(pmesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/podest_kolizja.asset"));
         var mc = pc0.AddComponent<MeshCollider>(); mc.sharedMesh = pmesh; mc.convex = true;
         // NAROŻNIKI: stołek i wiaderko trenera przy narożniku czerwonym i niebieskim (na posadzce przy podeście)
         foreach (var (kat, czer) in new[] { (czerw, true), (nieb, false) })
@@ -1289,7 +1289,7 @@ internal static class BraxMiastoWyspa
             var a0 = R(0); var a1 = R(1f);
             lo.Quad(a0 - side * .2f, a0 + side * .2f, a1 + side * .9f, a1 - side * .9f, Vector3.up);
         }
-        Mesh Zapisz(UlSiatka s, string n) { var m = s.Zbuduj("A: palma " + v + " " + n); AssetDatabase.CreateAsset(m, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/palma_" + v + "_" + n + ".asset")); return m; }
+        Mesh Zapisz(UlSiatka s, string n) { var m = s.Zbuduj("A: palma " + v + " " + n); BraxZapisAssetu.Utworz(m, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/palma_" + v + "_" + n + ".asset")); return m; }
         return (Zapisz(p, "pien"), Zapisz(l, "liscie"), Zapisz(lo, "lod"));
     }
 
@@ -1329,7 +1329,7 @@ internal static class BraxMiastoWyspa
             }
         for (int i = 0; i < n - 1; i++) for (int j = 0; j < n - 1; j++) { s.i.AddRange(new[] { idx[i, j], idx[i, j + 1], idx[i + 1, j + 1], idx[i, j], idx[i + 1, j + 1], idx[i + 1, j] }); }
         var mesh = s.Zbuduj("A: wyspa z daleka"); mesh.RecalculateNormals();
-        AssetDatabase.CreateAsset(mesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/sylwetka.asset"));
+        BraxZapisAssetu.Utworz(mesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/sylwetka.asset"));
         var g = new GameObject("Wyspa z daleka: teren"); g.transform.SetParent(sr, false); g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = BraxMiastoA.Mat("Wyspa z daleka (kolory z wierzchołków)", Color.white, .9f); r.shadowCastingMode = ShadowCastingMode.Off;
         var a = new UlSiatka(); var c = AC; a.kolor = BraxUliceKit.C(.75f, .78f, .8f);
