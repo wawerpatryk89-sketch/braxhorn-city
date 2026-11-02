@@ -4,4 +4,4 @@
 #   oba     — jak przed buildem 14 (miasto + osiedle w jednym przebiegu, warianty z apk-warianty.txt)
 # Drugie słowo „bez-pamieci” = wymuś pełne generowanie (bez pamięci podręcznej wygenerowanego rejonu).
 # Ręczne uruchomienie (workflow_dispatch) ma własne wejście „rejon” — ten plik wtedy się nie liczy.
-osiedle
+miasto
