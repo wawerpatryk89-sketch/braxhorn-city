@@ -227,6 +227,22 @@ internal static class BraxMiastoWyspa
                 z[m.drewno].Rura(a, b, .035f, 6);
                 if (i % 2 == 0) z[m.drewno].Rura(new Vector3(prof[i].x, prof[i].y, pz + sz * hw), a, .04f, 6);
             }
+        // zejście z deptaka na płyty placu: pochylnia z desek 1:10 (bez stopnia; ostatnia deska 1.5 cm nad płytą — nie w jej płaszczyźnie)
+        {
+            var e = prof[prof.Count - 1]; float yPl = W + PlacH, dh = e.y - yPl;
+            if (dh > .03f)
+            {
+                float lr = dh * 10f;
+                for (float t = 0; t < lr; t += .15f)
+                {
+                    float x = e.x + t + .07f, y = e.y - dh * (t + .07f) / lr; if (y < yPl + .015f) break;
+                    z[deski].Box(new Vector3(x, y - .03f, pz), new Vector3(.14f, .06f, hw * 2f));
+                }
+                var kr = new GameObject("kolizja: pochylnia deptaka"); kr.transform.SetParent(kol, false);
+                kr.transform.position = new Vector3(e.x + lr * .5f, (e.y + yPl) * .5f - .1f, pz); kr.transform.rotation = Quaternion.Euler(0, 0, -Mathf.Atan2(dh, lr) * Mathf.Rad2Deg);
+                kr.AddComponent<BoxCollider>().size = new Vector3(Mathf.Sqrt(lr * lr + dh * dh) + .02f, .2f, hw * 2f);
+            }
+        }
         // przejście z deptaka na plac (deptak kończy się 25 cm nad płytami → stopień ≤ 0.3 m)
         Miejsca["wyspa_przystan"] = new Vector3(x0 + 1f, deck, pz);
         Miejsca["wyspa_deptak"] = new Vector3((x1 + xa) * .5f, prof[prof.Count / 2].y, pz);
