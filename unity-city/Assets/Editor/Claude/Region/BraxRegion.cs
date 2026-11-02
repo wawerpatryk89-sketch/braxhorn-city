@@ -327,8 +327,7 @@ public static class BraxRegion
             c2.SetFloat("_AlphaClip", cutout ? 1 : 0); c2.SetFloat("_Cutoff", cutout ? (src.HasProperty("_Cutoff") ? Mathf.Clamp01(src.GetFloat("_Cutoff")) : .5f) : 0);
             c2.SetFloat("_Transparent", 0); c2.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One); c2.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero); c2.SetFloat("_ZWrite", 1);
             c2.renderQueue = cutout ? 2450 : 2000; c2.SetOverrideTag("RenderType", cutout ? "TransparentCutout" : "Opaque");
-            Directory.CreateDirectory(Out + "/Materials");
-            AssetDatabase.CreateAsset(c2, Out + "/Materials/model-" + cityMaterials.Count + ".mat");
+            AssetDatabase.CreateAsset(c2, NowaSciezkaMaterialu(src));
             return c2;
         }
         var sh = Shader.Find(BraxCityMaterials.ShaderName);
@@ -363,9 +362,23 @@ public static class BraxRegion
         c.SetFloat("_ZWrite", mode == 2 ? 0 : 1);
         c.renderQueue = mode == 2 ? 3000 : mode == 1 ? 2450 : 2000;
         c.SetOverrideTag("RenderType", mode == 2 ? "Transparent" : mode == 1 ? "TransparentCutout" : "Opaque");
-        Directory.CreateDirectory(Out + "/Materials");
-        AssetDatabase.CreateAsset(c, Out + "/Materials/model-" + cityMaterials.Count + ".mat");
+        AssetDatabase.CreateAsset(c, NowaSciezkaMaterialu(src));
         return c;
+    }
+
+    // RÓŻOWE JACHTY (właściciel 2.11, 22:20): plik materiału nazywany był model-<liczba w słowniku>. Apply czyści słownik
+    // (cityMaterials.Clear) i liczy od 0 — materiały zrobione WCZEŚNIEJ (nabrzeże: jachty, motorówki, skutery; plaża portu)
+    // były nadpisywane materiałami regionu z innymi teksturami (np. mapa ORM jako kolor = róż). Teraz: licznik globalny
+    // (nigdy nie zerowany) + nazwa źródła + kontrola istnienia pliku — żaden zapis nie nadpisuje innego materiału.
+    static int nPlikMat;
+    static string NowaSciezkaMaterialu(Material src)
+    {
+        Directory.CreateDirectory(Out + "/Materials");
+        var sb = new System.Text.StringBuilder();
+        foreach (char ch in src ? src.name : "?") sb.Append(char.IsLetterOrDigit(ch) ? ch : '_');
+        string nazwa = sb.Length > 32 ? sb.ToString(0, 32) : sb.ToString(), path;
+        do path = Out + "/Materials/model-" + (nPlikMat++) + "-" + nazwa + ".mat"; while (File.Exists(path));
+        return path;
     }
 
     static void CopyMap(Material src, Material dst, string from, string to)
