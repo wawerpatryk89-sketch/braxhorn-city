@@ -15,7 +15,7 @@ using UnityEngine.Rendering;
 //  • jazda i pierwszeństwo: BraxRuchAut / BraxRuchAutSym (ta sama symulacja w grze i w teście przy buildzie);
 //  • test przy buildzie: 10 min ruchu krokiem 0,1 s bez renderu → BRAXHORN_RUCH_TEST zakleszczenia/nachodzenia/poza_droga;
 //  • zaparkowane: zatoki z etapu dróg (MiejscaParkingowe), inaczej dotychczasowe miejsca z kontrolą kolizji i odstępem
-//    ≥ 0,5 m od ściany; ~30 % miejsc wolnych, różne modele i kolory, każde prosto w swojej zatoce, przodem do alejki.
+//    ≥ 0,5 m od ściany; ~45 % miejsc wolnych (dyspozytor 2.11: zajętość 40–60 % wg audytu), różne modele i kolory, każde prosto w swojej zatoce, przodem do alejki.
 public static partial class BraxClaudeOsiedle
 {
     // Supersamochody z kogutem i napisem POLICE (Marussia „enforcer”, Diablo z belką świateł) — nie jako zwykłe auta
@@ -270,7 +270,7 @@ public static partial class BraxClaudeOsiedle
         int ok = 0, wolne = 0, odrzSciana = 0, odrzAuto = 0, za = 0; var kolory = new Dictionary<string, int>(); var modele = new Dictionary<string, int>();
         foreach (var m in miejsca)
         {
-            if (rnd.NextDouble() < .3) { wolne++; continue; }   // ok. 30 % miejsc wolnych
+            if (rnd.NextDouble() < .45) { wolne++; continue; }   // ok. 45 % miejsc wolnych = zajętość ~55 % (audyt 1.11: 40–60 %, parkingi były przepełnione; mniej ciężkich modeli dla telefonu)
             AutoSzablon sz = null; Vector3 c = default;
             for (int proba = 0; proba < 8 && sz == null; proba++)
             {
