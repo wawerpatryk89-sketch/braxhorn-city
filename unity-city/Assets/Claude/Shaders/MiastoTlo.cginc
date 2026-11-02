@@ -29,6 +29,13 @@ float _NieboObrot;                 // radiany: obrót obrazu nieba wokół pionu
 half _NieboEkspozycja, _NieboNasycenie;
 float _NieboChmury;                // radiany na sekundę: ruch górnej części nieba
 float4 _SloKierunek;               // kierunek DO słońca (świat)
+// NIEBO (C / M8, właściciel 2.11: „w dzień nisko przy horyzoncie duża żółta tarcza z teksturą jak księżyc”): słońce ZDJĘCIA nieba
+// (nisko, przepalone, z pierścieniami kompresji JPG = „kratery”) jest wymazane z obrazu — także z warstwy płynących chmur,
+// która obracała je po niebie (blada „druga tarcza”, film09) — a słońce miasta rysowane jest jako czysta tarcza bez tekstury
+// w kierunku światła sceny (_SloKierunek). _SloObraz: xyz = kierunek słońca na obrazie (rama obrazu), w = cos promienia maski
+// (0 = bez maski); _SloTarcza: x = cos promienia tarczy, y = jasność tarczy (0 = bez tarczy).
+float4 _SloObraz;
+float4 _SloTarcza;
 
 sampler2D _Pasmo;                  // pas gór ze zdjęcia (RGBA, A = ziemia)
 float4 _PasmoSrodek;               // xyz: środek walców (środek prostokąta miasta, y = 0)
@@ -78,7 +85,24 @@ inline half3 MT_NieboProbka(float3 d, float obrot, float katPiksela)
     float2 uv = MT_NieboUV(d, obrot);
     float c = max(sqrt(saturate(1.0 - d.y * d.y)), 0.03);
     float du = katPiksela / (MT_2PI * c), dv = katPiksela / MT_PI;
-    return tex2Dgrad(_NieboTex, uv, float2(du, 0), float2(0, dv)).rgb;
+    half3 kol = tex2Dgrad(_NieboTex, uv, float2(du, 0), float2(0, dv)).rgb;
+    if (_SloObraz.w > 0.5)
+    {
+        // słońce obrazu w świecie: obrót wokół pionu o „obrot” (lon świata = lon obrazu + obrot)
+        float co = cos(obrot), so = sin(obrot);
+        float3 s = float3(_SloObraz.x * co - _SloObraz.z * so, _SloObraz.y, _SloObraz.x * so + _SloObraz.z * co);
+        float ca = dot(d, s);
+        if (ca > _SloObraz.w)
+        {
+            float R = acos(_SloObraz.w);
+            float3 t = normalize(d - s * ca + float3(1e-5, 0, 1e-5));
+            float3 d2 = s * cos(R * 1.35) + t * sin(R * 1.35);          // niebo z pierścienia tuż za tarczą
+            half3 f = tex2Dlod(_NieboTex, float4(MT_NieboUV(d2, obrot), 0, 2)).rgb;
+            half k = smoothstep(_SloObraz.w, lerp(_SloObraz.w, 1.0, 0.35), ca);
+            kol = lerp(kol, f, k);
+        }
+    }
+    return kol;
 }
 
 // niebo (tylko górna półkula; poniżej horyzontu — kolor przy samym horyzoncie)
@@ -92,7 +116,15 @@ inline half3 MT_Niebo(float3 d, float katPiksela)
         half3 b = MT_NieboProbka(g, _NieboObrot + fmod(_Time.y * _NieboChmury, MT_2PI), katPiksela);
         a = lerp(a, b, w);
     }
-    return MT_Nasyc(a, _NieboNasycenie) * _NieboEkspozycja;
+    a = MT_Nasyc(a, _NieboNasycenie) * _NieboEkspozycja;
+    if (_SloTarcza.y > 0.0)
+    {   // słońce miasta: czysta, jasna tarcza z miękką poświatą (bez tekstury), tam skąd pada światło sceny
+        float cs = dot(g, normalize(_SloKierunek.xyz));
+        half disc = smoothstep(_SloTarcza.x, lerp(_SloTarcza.x, 1.0, 0.3), cs);
+        half glow = pow(saturate(cs), 1400.0) * 0.30 + pow(saturate(cs), 90.0) * 0.05;
+        a += half3(1.0, 0.97, 0.90) * (disc * _SloTarcza.y + glow);
+    }
+    return a;
 }
 
 // barwa powietrza (mgiełki) w danym azymucie: kolor nieba tuż nad horyzontem (rozmyty) + stały kolor mgiełki

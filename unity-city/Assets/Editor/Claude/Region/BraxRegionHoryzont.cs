@@ -52,6 +52,7 @@ public static class BraxRegionHoryzont
     public static void Apply(BraxCityWorld world, Transform cityRoot)
     {
         usuniete.Clear(); kroki.Clear(); drzewa.Clear();
+        sloZnane = false;
         siatki = polaTerenu = karty = drzewa3D = odcinkiGranicy = przesla = 0; dlugoscGranicy = 0;
         nieboMat = terenMat = lasMat = obiektMat = null; nieboTex = pasmoTex = grzbietyTex = makroTex = trawaTex = null;
         Directory.CreateDirectory(OutDir);
@@ -282,6 +283,56 @@ public static class BraxRegionHoryzont
         return null;
     }
 
+    // M8 (właściciel 2.11 22:30: „w dzień nisko przy horyzoncie duża żółta tarcza z teksturą jak księżyc”): słońce ZDJĘCIA nieba
+    // (Kloofendal: nisko, przepalone, JPG robi z niego pierścienie = „kratery”) — wyszukane w pliku (najjaśniejsza plama w górnej
+    // połowie), w shaderze wymazane z obu warstw nieba (stałej i płynących chmur, która obracała drugą, bladą tarczę po niebie).
+    // Słońce miasta: czysta tarcza 0.6° z poświatą w kierunku światła sceny (wysoko, zgodnie z cieniami). Raz na build.
+    static Vector4 sloObraz; static bool sloZnane;
+    static void SlonceObrazu(Material m)
+    {
+        var sun = BraxCityMaterials.SunDirection.normalized;
+        m.SetVector("_SloTarcza", new Vector4(Mathf.Cos(.6f * Mathf.Deg2Rad), 1.6f, 0, 0));
+        if (!sloZnane)
+        {
+            sloZnane = true; sloObraz = Vector4.zero;
+            string p = nieboTex ? AssetDatabase.GetAssetPath(nieboTex) : null;
+            if (string.IsNullOrEmpty(p) || !File.Exists(p)) { Debug.LogWarning("BRAXHORN_NIEBO brak pliku obrazu nieba — słońce obrazu bez maski"); }
+            else
+            {
+                var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                if (t.LoadImage(File.ReadAllBytes(p)))
+                {
+                    int Wt = t.width, Ht = t.height; var px = t.GetPixels32(); float best = -1; int bi = 0, bj = 0;
+                    for (int j = Ht / 2; j < Ht; j += 2) for (int i = 0; i < Wt; i += 2) { var c = px[j * Wt + i]; float L = c.r * .3f + c.g * .59f + c.b * .11f; if (L > best) { best = L; bi = i; bj = j; } }
+                    // rdzeń tarczy: piksele ≥ 97 % maksimum w promieniu 10° od najjaśniejszego
+                    float lonB = (.5f - (bi + .5f) / Wt) * Mathf.PI * 2f, latB = ((bj + .5f) / Ht - .5f) * Mathf.PI;
+                    var dB = new Vector3(Mathf.Cos(latB) * Mathf.Cos(lonB), Mathf.Sin(latB), Mathf.Cos(latB) * Mathf.Sin(lonB));
+                    Vector3 suma = Vector3.zero; float pole = 0; float cos10 = Mathf.Cos(10f * Mathf.Deg2Rad);
+                    for (int j = Ht / 2; j < Ht; j++)
+                    {
+                        float lat = ((j + .5f) / Ht - .5f) * Mathf.PI; if (Mathf.Abs(lat - latB) > .2f) continue;
+                        for (int i = 0; i < Wt; i++)
+                        {
+                            var c = px[j * Wt + i]; float L = c.r * .3f + c.g * .59f + c.b * .11f; if (L < best * .97f) continue;
+                            float lon = (.5f - (i + .5f) / Wt) * Mathf.PI * 2f;
+                            var d = new Vector3(Mathf.Cos(lat) * Mathf.Cos(lon), Mathf.Sin(lat), Mathf.Cos(lat) * Mathf.Sin(lon));
+                            if (Vector3.Dot(d, dB) < cos10) continue;
+                            float a = Mathf.Cos(lat) * (2f * Mathf.PI / Wt) * (Mathf.PI / Ht); suma += d * a; pole += a;
+                        }
+                    }
+                    var s = pole > 0 ? (suma / pole).normalized : dB;
+                    float rc = Mathf.Sqrt(Mathf.Max(pole, 1e-8f) / Mathf.PI) * Mathf.Rad2Deg;   // promień rdzenia (°)
+                    float R = Mathf.Clamp(rc * 2.6f, 1.6f, 7f);
+                    sloObraz = new Vector4(s.x, s.y, s.z, Mathf.Cos(R * Mathf.Deg2Rad));
+                    Debug.Log("BRAXHORN_NIEBO słońce obrazu: jasność " + best.ToString("F0") + "/255, elewacja " + (Mathf.Asin(s.y) * Mathf.Rad2Deg).ToString("F1") + "°, rdzeń " + rc.ToString("F2") + "°, maska " + R.ToString("F1")
+                              + "° (wymazane z obu warstw nieba); słońce miasta: tarcza 0.6° bez tekstury, elewacja " + (Mathf.Asin(sun.y) * Mathf.Rad2Deg).ToString("F1") + "° (zgodnie ze światłem sceny); obraz " + Wt + "×" + Ht + " " + p);
+                }
+                UnityEngine.Object.DestroyImmediate(t);
+            }
+        }
+        m.SetVector("_SloObraz", sloObraz);
+    }
+
     // =====================================================================================================================
     // 2) niebo
     static void UstawTlo(Material m)
@@ -294,6 +345,7 @@ public static class BraxRegionHoryzont
         m.SetFloat("_NieboObrot", lonSlonca - lonObrazu);
         m.SetFloat("_NieboEkspozycja", 1f); m.SetFloat("_NieboNasycenie", 1.3f); m.SetFloat("_NieboChmury", .0035f);
         m.SetVector("_SloKierunek", new Vector4(sun.x, sun.y, sun.z, 0));
+        try { SlonceObrazu(m); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_NIEBO słońce obrazu: " + e.Message); }
         var info = new PasmoInfo();
         try { if (File.Exists(PasmoJson)) JsonUtility.FromJsonOverwrite(File.ReadAllText(PasmoJson), info); } catch { }
         m.SetTexture("_Pasmo", pasmoTex); m.SetFloat("_PasmoJest", pasmoTex ? 1f : 0f);

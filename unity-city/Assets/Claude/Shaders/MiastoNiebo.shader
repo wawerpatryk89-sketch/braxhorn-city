@@ -12,6 +12,8 @@ Shader "Braxhorn/MiastoNiebo"
         _NieboNasycenie ("Nasycenie", Float) = 1.3
         _NieboChmury ("Ruch chmur (rad/s)", Float) = .0035
         _SloKierunek ("Kierunek do słońca", Vector) = (-.45, .78, -.42, 0)
+        _SloObraz ("Słońce na obrazie nieba (xyz, w = cos maski)", Vector) = (0, 0, 0, 0)
+        _SloTarcza ("Tarcza słońca (x = cos promienia, y = jasność)", Vector) = (0.99994, 0, 0, 0)
         [NoScaleOffset] _Pasmo ("Góry ze zdjęcia (RGBA)", 2D) = "black" {}
         _PasmoJest ("Góry włączone", Float) = 0
         _PasmoSrodek ("Środek walców", Vector) = (17, 0, 49, 0)

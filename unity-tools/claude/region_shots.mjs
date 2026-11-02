@@ -288,6 +288,9 @@ const VIEWS = [
   // C4 (2.11): szyby bez „mlecznego plastiku” — tło lekko przyciemnione + odbicie nieba (BRAXHORN_SZYBY)
   ['DETAL_szyby_witryna_sport', '19,0.2,104,0,8,3.5'],             // witryna BRAXHORN SPORT: przez szybę wnętrze, odbicie nieba
   ['DETAL_szyby_wejscie_tower', '59,0.2,33,180,6,3.5'],            // przeszklone wejście i lobby BRAXHORN TOWER
+  // M8 (2.11): niebo bez „księżyca z kraterami” — słońce zdjęcia wymazane, czysta tarcza słońca w kierunku światła (BRAXHORN_NIEBO)
+  ['DETAL_niebo_horyzont_slonca', '60,120.55,52,45,-25,6'],         // z tarasu Tower w stronę słońca: horyzont bez żółtej tarczy
+  ['DETAL_niebo_z_ulicy', '30,0.2,28,45,-30,4'],                    // z ulicy pod słońce: niebo, chmury, bez drugiej tarczy
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],
