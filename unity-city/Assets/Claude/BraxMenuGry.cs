@@ -89,7 +89,7 @@ public sealed class BraxMenuGry
         float pad = s * .05f, top = Naglowek(BraxTeksty.T("menu.ustawienia"));
         float x = sa.x + pad, w = sa.width - 2 * pad; if (w > s * 2f) { x += (w - s * 2f) * .5f; w = s * 2f; }
         bool poziom = sa.width > sa.height * 1.2f;
-        int wierszy = 7;   // grafika zajmuje dwa
+        int wierszy = 8;   // grafika zajmuje dwa; + kamera za plecami
         float rh = Mathf.Min(s * .115f, (sa.yMax - pad * .6f - top) / (poziom ? wierszy : wierszy * 2f)), gap = rh * .14f;
         float lw = poziom ? w * .36f : w, cx = poziom ? x + lw : x, cw = poziom ? w - lw : w;
         float y = top;
@@ -114,6 +114,8 @@ public sealed class BraxMenuGry
         BraxGui.Napis(new Rect(rg.x + s * .01f, rg.y + rh - gap * .6f, rg.width, rg.height - rh + gap), NotaGrafiki(), BraxGui.Styl(Mathf.RoundToInt(s * .022f), false, TextAnchor.UpperLeft, true), BraxGui.Szary, false);
         int j = Wybor(Wiersz(BraxTeksty.T("ust.jezyk")), (int)BraxTeksty.Aktualny, BraxTeksty.T("ust.polski"), BraxTeksty.T("ust.english"), null);
         if (j != (int)BraxTeksty.Aktualny) BraxTeksty.Ustaw((BraxTeksty.Jezyk)j);
+        int kp = Wybor(Wiersz(BraxTeksty.T("ust.kamera")), BraxUstawienia.KameraZaPlecami ? 1 : 0, BraxTeksty.T("test.wyl"), BraxTeksty.T("test.wl"), null);
+        if ((kp == 1) != BraxUstawienia.KameraZaPlecami) BraxUstawienia.KameraZaPlecami = kp == 1;
     }
 
     void Test(BraxGymPlayer g)

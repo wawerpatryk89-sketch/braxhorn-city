@@ -171,6 +171,13 @@ public sealed class BraxGymPlayer : MonoBehaviour
         speed=Mathf.MoveTowards(speed,target,dt*15f);
         Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
         Vector3 forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
+        // Kamera za plecami (z osiedla, E22 / 755cabe; właściciel 2.11 22:35 „kamera ZAWSZE za plecami”): kierunek z joysticka
+        // liczony od kamery z CHWILI wciśnięcia (gdy kamera obraca się za postacią, trzymany „w bok” nie kręci postaci w kółko);
+        // przeciąganie palcem w trakcie — od bieżącej kamery.
+        bool joy=mag>=.12f;
+        if(joy&&(!joyHeld||Time.unscaledTime-lastLook<.15f)){joyRefYaw=Mathf.Atan2(forward.x,forward.z)*Mathf.Rad2Deg;if(!joyHeld)joyStart=Time.unscaledTime;}
+        joyHeld=joy;
+        if(AutoCamera&&joy){var q=Quaternion.Euler(0,joyRefYaw,0);right=q*Vector3.right;forward=q*Vector3.forward;}
         Vector3 direction=right*move.x+forward*move.y;
         if(direction.sqrMagnitude>.01f && (!acting||jumping))transform.rotation=Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(direction),1-Mathf.Exp(-dt*12f));
         if(jumpPending)
@@ -244,6 +251,15 @@ public sealed class BraxGymPlayer : MonoBehaviour
     // dociągania zależy od kąta: postać biegnąca w bok / w stronę kamery jej nie zawraca (sterowanie jest względem kamery —
     // inaczej postać kręciłaby się w kółko), biegnąca do przodu ustawia kamerę za plecami. Na łodzi zawsze za rufą.
     private float lastLook=-99f,camSpeed,camNear=-1f;private Vector3 camPrevPos;private bool camPrevOk;
+    private float joyRefYaw,joyStart=-99f;private bool joyHeld;
+    // Kamera za plecami (E22 z osiedla): wygładzenie powrotu za plecy — stała czasu 0.32 s, martwa strefa 4°, maks. 220°/s.
+    public const float ZaPlecamiTau=.32f,ZaPlecamiMartwa=4f,ZaPlecamiMaks=220f;
+    public static float KrokZaPlecy(float yaw,float cel,float dt)
+    {
+        float d=Mathf.DeltaAngle(yaw,cel); if(Mathf.Abs(d)<ZaPlecamiMartwa)return yaw;
+        float krok=d*(1f-Mathf.Exp(-dt/ZaPlecamiTau)); float max=ZaPlecamiMaks*dt;
+        return yaw+Mathf.Clamp(krok,-max,max);
+    }
     private void AutoYaw(float dt,bool snap)
     {
         Vector3 pos=transform.position;
@@ -251,8 +267,20 @@ public sealed class BraxGymPlayer : MonoBehaviour
         Vector3 dv=pos-camPrevPos;dv.y=0;camPrevPos=pos;
         float v=dv.magnitude/dt;if(v<25f)camSpeed=Mathf.Lerp(camSpeed,v,1-Mathf.Exp(-dt*6f));   // teleport (> 25 m/s) pomijany
         if(!AutoCamera||reviewEnabled||paused||seat)return;
-        float since=Time.unscaledTime-lastLook;if(since<AutoCameraDelay)return;
+        float since=Time.unscaledTime-lastLook;
         bool water=vessel;
+        if(!water)
+        {   // pieszo ZAWSZE za plecami — w ruchu yaw podąża za kierunkiem postaci (0.32 s, martwa strefa 4°); po rozejrzeniu
+            // palcem powrót po 1.5 s bez ruchu kamery albo od razu, gdy postać rusza (joystick wciśnięty po rozejrzeniu).
+            // Łódź: bez zmian (niżej, za rufą).
+            if(since<AutoCameraDelay&&!(joyHeld&&joyStart>lastLook))return;
+            if(camSpeed<.35f)return;                                              // przy staniu kamera się nie kręci
+            Vector3 fw=transform.forward;fw.y=0;if(fw.sqrMagnitude<.01f)return;
+            yaw=KrokZaPlecy(yaw,Mathf.Atan2(-fw.x,-fw.z)*Mathf.Rad2Deg,dt);
+            pitch=Mathf.Lerp(pitch,Mathf.Clamp(pitch,8f,32f),1-Mathf.Exp(-dt*1.5f));
+            return;
+        }
+        if(since<AutoCameraDelay)return;
         if(camSpeed<(water?.8f:.6f))return;
         Vector3 f=water?vessel.transform.forward:transform.forward;f.y=0;if(f.sqrMagnitude<.01f)return;
         float wantYaw=Mathf.Atan2(-f.x,-f.z)*Mathf.Rad2Deg;   // kamera po przeciwnej stronie niż przód postaci
