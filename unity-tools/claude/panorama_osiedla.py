@@ -203,6 +203,9 @@ def build(eq_image, out_png, out_json, seed=2026):
             "horyzont_srgb": [round(float(v), 4) for v in hor],
             "linia_max_st": round(float(el_of_row(line.min())), 1), "linia_min_st": round(float(el_of_row(line.max())), 1)}
     pathlib.Path(out_json).write_text(json.dumps(info, indent=1, ensure_ascii=False))
+    (pathlib.Path(out_png).parent / "CREDITS.md").write_text(
+        "# Niebo i panorama osiedla\n\nNiebo z chmurami: Poly Haven „Kloofendal 48d Partly Cloudy (Pure Sky)” (CC0).\n"
+        "Panorama gór, lasów i pól: Poly Haven „Alps Field”, autor Andreas Mischok (CC0); dorysowana sylwetka miasta.\n", encoding="utf-8")
     return info
 
 
