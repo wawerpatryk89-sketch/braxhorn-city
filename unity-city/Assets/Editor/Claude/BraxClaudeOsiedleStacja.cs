@@ -7,7 +7,8 @@ using UnityEngine;
 // w ogóle są” → 21:03: „może być myjnia i stacja benzynowa, dobre miejsce”). Oba budynki ZWALONE (siatki Codexa wycięte w obrysach
 // razem z tarasem, płotem i słupkami bramy, kolizje budynków usunięte, drzwi z manifestu: contact-front, contact-garden, villa-front,
 // villa-terrace, villa-bathroom usunięte, punkty podróży domu/willi zastąpione stacją i myjnią). Nawierzchnia od nowa.
-// Działka: x −37…13, z −64…−25.4 (od chodnika ulicy B1 do 3 m przed Parkiem Wiśniowym). Stare drzewa Codexa (±18, −29) zostają.
+// Działka: x −37…13, z −64…−25.4 (od chodnika ulicy B1 do 3 m przed Parkiem Wiśniowym). Stare drzewo Codexa (−18, −29) stało na krawędzi
+// wiaty — zwalone z budynkami; drzewo (18, −29) między stacją a warsztatem zostaje.
 //   • STACJA: wiata 31 × 13.5 m (prześwit 4.5 m × K) na 3 wyspach z dystrybutorami (po 2 pistolety z wężami na stronę, słupki
 //     ochronne), rynny i rury spustowe w słupach, oprawy LED w podsufitce; sklep 15.5 × 11.5 m (12 × 9 m × K): witryna z ramami,
 //     drzwi przesuwne (otwarte), cokół, attyka z obróbką, opaski i parapety, rury spustowe; wewnątrz posadzka z płytek z fugą,
@@ -80,9 +81,10 @@ public static partial class BraxClaudeOsiedle
 
     static List<Bounds> StacjaObrysyZwalenia() => new List<Bounds>
     {
-        // drzewo Codexa (−18, −29) zostaje: pas x −21.2…−14.8 wycinany dopiero od z −31.2
+        // cała działka: oba budynki, taras, płot, słupki bramy i stare drzewo Codexa (−18, −29) — stało pniem na krawędzi wiaty
+        // (rzut z liczb kodu: korona 2.7–7.4 m przecinała gzyms wiaty 5.8–7.1 m), drzewo (18, −29) między stacją a warsztatem zostaje;
         // y od 0.01: „Original virtual floor” (y −0.18…0) NIE jest cięta — podłoga z kolizją zostaje pod nową nawierzchnią
-        MinMax(SX0, -21.2f, .01f, 14f, SZ0, -25.5f), MinMax(-21.2f, -14.8f, .01f, 14f, SZ0, -31.2f), MinMax(-14.8f, SX1, .01f, 14f, SZ0, -25.5f),
+        MinMax(SX0, SX1, .01f, 14f, SZ0, -25.5f),
     };
 
     // Układ stacji (te same liczby co w krokach budowy) — test w BraxTestNaprawOsiedla przed generowaniem osiedla.
@@ -98,9 +100,11 @@ public static partial class BraxClaudeOsiedle
         for (int i = 0; i < b.Length; i++)
             for (int j = i + 1; j < b.Length; j++)
                 if (b[i].x0 < b[j].x1 - .01f && b[j].x0 < b[i].x1 - .01f && b[i].z0 < b[j].z1 - .01f && b[j].z0 < b[i].z1 - .01f) return b[i].co + " nachodzi na " + b[j].co;
-        // pasy przy wyspach (wyspa 1.55 m, z −36.53…−34.97) ≥ 4.5 m; zjazdy omijają latarnię B1 (x −31) i stare drzewo (x −18)
+        // pasy przy wyspach (wyspa 1.55 m, z −36.53…−34.97) ≥ 4.5 m; zjazdy omijają latarnię B1 (x −31)
         if (-29f - (-34.97f) < 4.5f || -36.53f - (-42.5f) < 4.5f) return "pas przy wyspie węższy niż 4.5 m";
-        foreach (var (a, c) in new[] { (-29.5f, -23f), (4.5f, 11f) }) if (c - a < 6f || (a < -30.4f && c > -31.6f) || (a < -16.5f && c > -19.5f)) return "zjazd koliduje";
+        foreach (var (a, c) in new[] { (-29.5f, -23f), (4.5f, 11f) }) if (c - a < 6f || (a < -30.4f && c > -31.6f)) return "zjazd koliduje z latarnią";
+        // drzewo Codexa (18, −29), korona r ≈ 2.6 m, zostaje między działkami: ani stacja (do x 13), ani warsztat (od x 21.5) go nie ruszają
+        if (SX1 > 18f - 2.7f || WX0 < 18f + 2.7f) return "działka nachodzi na drzewo (18, −29)";
         // warsztat (E32): działka obok stacji (między nimi stare drzewo Codexa x 18), budynek 24 × 12 m w działce, plac do z −42
         if (WX0 < SX1 + 5f) return "warsztat nachodzi na stację";
         if (23f < WX0 || 47f > WX1 || -54f < WZ0 || -42f > WZ1) return "budynek warsztatu poza działką";
