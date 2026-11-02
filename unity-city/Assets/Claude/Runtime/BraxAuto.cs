@@ -11,8 +11,9 @@ using UnityEngine;
 // Fotele: dzieci „BRAXHORN fotel kierowcy” / „BRAXHORN fotel pasażera” w nadwoziu (miejsce dla ludzi — inny etap).
 public sealed class BraxAuto : MonoBehaviour
 {
-    public int trasa;
+    public int trasaNr;                            // indeks trasy w BraxRuchAut
     public float sStart, vmax = 8.5f;
+    public Vector3[] trasa = new Vector3[0];       // punkty trasy co ~3 m (tylko do odczytu, np. MENU → UTKNĄŁEM szuka najbliższej drogi)
     public float dl = 4.6f, szer = 1.9f, rozstaw = 2.7f, osTyl = -1.3f, promienKola = .33f;
     public Transform nadwozie;
     public Transform[] kola = new Transform[0];    // obracające się części kół (LP, PP, LT, PT)

@@ -23,7 +23,7 @@ public sealed class BraxRuchAut : MonoBehaviour
         float szer = 1.6f, dl = 3.5f;
         foreach (var a in auta) if (a) { szer = Mathf.Max(szer, a.szer); dl = Mathf.Max(dl, a.dl); }
         sym = new BraxRuchAutSym(punkty, trasy, zdarzenia, wezly, ziarno, szer, dl);
-        foreach (var a in auta) if (a) sym.Dodaj(a.trasa, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax); else sym.Dodaj(0, 0f, 4.5f, 1.9f, 2.7f, -1.3f, 8f);
+        foreach (var a in auta) if (a) sym.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax); else sym.Dodaj(0, 0f, 4.5f, 1.9f, 2.7f, -1.3f, 8f);
         sym.UstawStart();
         sym.widoczne = Widoczne;
         for (int i = 0; i < auta.Length; i++) if (auta[i]) auta[i].Ustaw(sym.auta[i], 0f, 999f, true);

@@ -195,7 +195,7 @@ public static partial class BraxClaudeOsiedle
                 var sz = pula[rnd.Next(pula.Count)];
                 var o = AutoInstancja(sz, Group(group), "Auto w ruchu · " + sz.id + (AutaNC.Contains(sz.id) ? " (DO WYMIANY PRZED SPRZEDAŻĄ)" : ""), rnd, out var kolor);
                 var a = o.AddComponent<BraxAuto>();
-                a.trasa = r; a.sStart = wy.trasy[r].dl * (k + .3f) / ile;
+                a.trasaNr = r; a.sStart = wy.trasy[r].dl * (k + .3f) / ile; a.trasa = PunktyTrasy(wy, r);
                 a.vmax = (wy.trasy[r].obszar == 0 ? 7.6f : 8.2f) + (float)rnd.NextDouble() * 1.8f;   // 27–36 km/h na osiedlu
                 a.dl = sz.dl; a.szer = sz.szerNadw + .04f; a.rozstaw = sz.rozstaw; a.osTyl = sz.osTyl; a.promienKola = sz.promienKola;
                 a.nadwozie = o.transform.Find("nadwozie");
@@ -220,13 +220,13 @@ public static partial class BraxClaudeOsiedle
         float szerMax = auta.Max(a => a.szer), dlMax = auta.Max(a => a.dl);
         // 4) położenia startowe (te same, które policzy gra) — scena wygląda tak samo przed uruchomieniem
         var s0 = new BraxRuchAutSym(ra.punkty, ra.trasy, ra.zdarzenia, ra.wezly, ra.ziarno, szerMax, dlMax);
-        foreach (var a in auta) s0.Dodaj(a.trasa, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax);
+        foreach (var a in auta) s0.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax);
         s0.UstawStart();
         for (int i = 0; i < auta.Count; i++) auta[i].transform.SetPositionAndRotation(s0.auta[i].poz, Quaternion.LookRotation(s0.auta[i].kier));
         rep.notes.Add("auta w ruchu: " + auta.Count + " na " + wy.trasy.Count + " trasach (" + string.Join(", ", opis.Select(kv => kv.Key + " ×" + kv.Value)) + ")");
         // 5) test ruchu: 10 min czasu gry krokiem 0,1 s, bez renderu
         var st = new BraxRuchAutSym(ra.punkty, ra.trasy, ra.zdarzenia, ra.wezly, ra.ziarno, szerMax, dlMax);
-        foreach (var a in auta) st.Dodaj(a.trasa, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax);
+        foreach (var a in auta) st.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax);
         st.UstawStart();
         var zdarz = new List<string>(); st.naZakleszczenie = o => { if (zdarz.Count < 8) zdarz.Add(o); };
         var t0 = DateTime.Now;
@@ -237,6 +237,17 @@ public static partial class BraxClaudeOsiedle
                        ", czas testu " + (DateTime.Now - t0).TotalSeconds.ToString("F1") + " s)";
         Debug.Log(wynik); rep.notes.Add(wynik.Replace("BRAXHORN_RUCH_TEST ", "test ruchu: "));
         foreach (var z in zdarz) Debug.Log("BRAXHORN_RUCH_TEST_ZDARZENIE " + z);
+    }
+
+    // Punkty trasy co ~3 m (pole BraxAuto.trasa — czytane przez MENU → UTKNĄŁEM jako „droga”); trasa otwarta: tam i z powrotem,
+    // żeby odcinek „ostatni → pierwszy” nie przecinał posesji.
+    static Vector3[] PunktyTrasy(BraxTrasyAut.Wynik wy, int r)
+    {
+        var t = wy.trasy[r]; int co = Mathf.Max(1, Mathf.RoundToInt(3f / Mathf.Max(.1f, t.krok)));
+        var l = new List<Vector3>();
+        for (int i = 0; i < t.ile; i += co) l.Add(wy.punkty[t.start + i]);
+        if (!t.petla) { l.Add(wy.punkty[t.start + t.ile - 1]); for (int i = l.Count - 2; i >= 0; i--) l.Add(l[i]); }
+        return l.ToArray();
     }
 
     static void AutaZaparkowane(List<AutoSzablon> szablony)
