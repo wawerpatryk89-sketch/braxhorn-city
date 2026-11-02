@@ -26,6 +26,10 @@ public static partial class BraxClaudeOsiedle
             rep = new Report(); groups.Clear(); group = "Miasto B: ruch aut";
             var stary = cityRoot.Find("CLAUDE miasto B: ruch aut"); if (stary) UnityEngine.Object.DestroyImmediate(stary.gameObject);
             root = new GameObject("CLAUDE miasto B: ruch aut").transform; root.SetParent(cityRoot, false); root.position = Vector3.zero;
+            // NIEPODZIELNY przy podziale miasta na kwadraty 150 m (BraxGymBuild → BraxClaudeObszary.WObszarze: poddrzewo z LODGroup
+            // jest całe w obszarze albo całe zostaje): zarządca BraxRuchAut odwołuje się do aut — rozdzielone między sceny straciłyby
+            // odwołania (auta stałyby w miejscu). Pusta LODGroup (bez poziomów) niczego nie ukrywa.
+            root.gameObject.AddComponent<LODGroup>();
             colliders = new GameObject("kolizje").transform; colliders.SetParent(root, false);
             lakiery.Clear(); szablonSwiatla.Clear(); quadSwiatla = null; matStop = matMigacz = matDym = null; autoSiatki = 0;
             var modele = AutaModele();
@@ -167,6 +171,7 @@ public static partial class BraxClaudeOsiedle
             rep = new Report(); groups.Clear(); group = "Miasto B: ludzie";
             var stary = cityRoot.Find("CLAUDE miasto B: ludzie"); if (stary) UnityEngine.Object.DestroyImmediate(stary.gameObject);
             root = new GameObject("CLAUDE miasto B: ludzie").transform; root.SetParent(cityRoot, false); root.position = Vector3.zero;
+            root.gameObject.AddComponent<LODGroup>();   // niepodzielny przy podziale na kwadraty (jak ruch aut): przechodzień idzie przez wiele kwadratów
             colliders = new GameObject("kolizje").transform; colliders.SetParent(root, false);
             if (!LadujRocketbox()) { Debug.Log("BRAXHORN_LUDZIE_MIASTO_B brak paczki Rocketbox — bez ludzi"); return; }
             Physics.SyncTransforms();
