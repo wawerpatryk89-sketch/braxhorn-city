@@ -40,7 +40,7 @@ public static class BraxKontrolaMigotania
 
     // Obrys ARENY BRAXHORN (osiedle, ustawia BraxClaudeOsiedle.ArenaInterior) — z elewacją, szyldem i banerami.
     public static Bounds? Arena;
-    public const float Prog = .02f, ProgArena = .03f, PoleMin = .02f, PoleArena = .05f;
+    public const float Prog = .02f, ProgArena = .03f, PoleMin = .02f, PoleArena = .05f;   // osiedle: 3 cm wszędzie, w arenie pole > 0.05 m²
     static bool WArenie(Vector3 p) => Arena.HasValue && BraxKontrola.Obszar == "osiedle" && Arena.Value.Contains(p);
 
     // POSADZKI (właściciel 20:42: „Kasyno mruga podłoga” — zasada ogólna: posadzka nigdy nie leży na gruncie). Jedna funkcja po
@@ -139,6 +139,14 @@ public static class BraxKontrolaMigotania
         }
         foreach (var l in wynik.opisy.Take(300)) BraxKontrola.Zapisz("migotanie: " + l);
         Debug.Log(sb.ToString());
+        // E26 (build 45): raport per lokal/grupa (kasyno — sala, VIP, biuro, WC; hala walk; klub; komisariat; sklepy; wille…)
+        string Lokal(Wykrycie x, Para p) { var ga = Grupa(x.pows[p.a].r.transform); var gb = Grupa(x.pows[p.b].r.transform); return ga.StartsWith("Osiedle") || !gb.StartsWith("Osiedle") ? ga : gb; }
+        var przedL = w.lista.GroupBy(p => Lokal(w, p)).ToDictionary(g => g.Key, g => g.Count());
+        var poL = po.lista.GroupBy(p => Lokal(po, p)).ToDictionary(g => g.Key, g => g.Count());
+        var wn = new StringBuilder("BRAXHORN_WNETRZA_MIGOTANIE (próg 3 cm, lokale/grupy z parami przed wycięciem):");
+        foreach (var kv in przedL.OrderByDescending(kv => kv.Value).Take(40))
+            wn.Append("\n  lokal=").Append(kv.Key).Append(" pary_przed=").Append(kv.Value).Append(" po=").Append(poL.TryGetValue(kv.Key, out var ile) ? ile : 0);
+        Debug.Log(wn.ToString());
         if (Arena.HasValue)
         {
             var przed = w.lista.Where(p => p.arena).ToList(); var zostaly = po.lista.Where(p => p.arena).ToList();
@@ -245,7 +253,7 @@ public static class BraxKontrolaMigotania
                     float dd = Mathf.Abs(plA.d - plB.d); if (dd >= ProgArena) continue;
                     float iu0 = Mathf.Max(A.u0, B.u0), iu1 = Mathf.Min(A.u1, B.u1), iv0 = Mathf.Max(A.v0, B.v0), iv1 = Mathf.Min(A.v1, B.v1);
                     if (iu1 <= iu0 || iv1 <= iv0) continue;
-                    if (dd >= Prog && !WArenie(Swiat(os, plA.d, (iu0 + iu1) * .5f, (iv0 + iv1) * .5f))) continue;   // 2–3 cm liczy się tylko w arenie
+                    if (dd >= Prog && BraxKontrola.Obszar != "osiedle") continue;   // build 45: na osiedlu próg 3 cm wszędzie (wnętrza: dywany, panele, sufity — E26), miasto 2 cm
                     // para prostokątów widziana w kilku komórkach — liczona w komórce lewego dolnego rogu części wspólnej
                     if (Mathf.FloorToInt(iu0 / 4f) != cu || Mathf.FloorToInt(iv0 / 4f) != cv) continue;
                     var key = plA.pow < plB.pow ? (plA.pow, plB.pow) : (plB.pow, plA.pow);
