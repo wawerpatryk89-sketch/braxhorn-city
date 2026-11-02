@@ -20,7 +20,7 @@ using M = BraxWnetrzaKit.Mat;
 //      balustrady, pylon z „M” i nazwą stacji, oświetlenie;
 //    • hala biletowa (antresola −4.6) pod jezdnią: biletomaty, kasa z okienkiem, bramki z szybkami (otwierają się przed
 //      graczem), mapy linii, tablice odjazdów, kierunkowskazy, kamery, gaśnica, wyjścia ewakuacyjne;
-//    • schody stałe i ruchome (stoją) z antresoli na peron wyspowy −11.2 (81 m, 2 tory);
+//    • schody stałe i ruchome (JADĄ w górę — BraxSchodyRuchome, A 2.11) z antresoli na peron wyspowy −11.2 (81 m, 2 tory);
 //    • peron: krawędź z granitu, żółta linia, ławki, kosze, tablice, mapy, reklamy, kamery, gaśnice, zegary, SOS;
 //    • POCIĄG ZAWSZE STOI przy peronie 1: 3 wagony, drzwi od peronu otwarte, w środku siedzenia, poręcze, mapa trasy;
 //    • tory w obie strony w tunele, które gasną w ciemności (bez świateł na końcu).
@@ -632,22 +632,29 @@ public static class BraxClaudeMetro
         // przegroda między schodami a ruchomymi
         W.MM(mStal, xBot, 58.2f, yP, yP + .02f, 28.75f, 28.85f);
 
-        // schody ruchome (stoją): z 28.95–31.25, nachylenie 30°, płaskie odcinki na końcach
+        // schody ruchome (jadą w górę): z 28.95–31.25, nachylenie 30°, płaskie odcinki na końcach
         float ez0 = 28.95f, ez1 = 31.25f, ezc = (ez0 + ez1) * .5f, stepW = 1.0f * K;
         float xTop = 58.6f, xTopPlat = xTop - 1.3f, h = yM - yP, run = h / Mathf.Tan(30f * Mathf.Deg2Rad);
         float xBotPlat = xTopPlat - run, xBotEnd = xBotPlat - 1.3f;
         var pT = new Vector3(xTopPlat, yM, ezc); var pB = new Vector3(xBotPlat, yP, ezc);
-        // stopnie (ząbki) na skosie
+        // stopnie na skosie — A 2.11: osobna TAŚMA, która JEDZIE w górę (BraxSchodyRuchome: przesuw o jeden stopień w kółko,
+        // stopień nr nSt czeka schowany pod płytą dolną, górny chowa się pod płytą górną — ruch ciągły). Żółte pasy boczne
+        // 4 cm są częścią wierzchu stopnia (trzy pola obok siebie), nie paskiem 2 mm nad nim.
         int nSt = Mathf.CeilToInt(run / (.4f * K * .866f));
-        float dx = run / nSt, dy = h / nSt;
-        for (int i = 0; i < nSt; i++)
+        float dx = run / nSt, dy = h / nSt, zA = ezc - stepW * .5f, zB = ezc + stepW * .5f;
+        var tasma = new GameObject("metro: schody ruchome — taśma stopni (jedzie w górę)").transform; tasma.SetParent(podziemie, false);
+        var sAl = new UlSiatka(); var sZo = new UlSiatka();
+        for (int i = 0; i <= nSt; i++)
         {
             float x = xTopPlat - i * dx; float y = yM - (i + 1) * dy;
-            W.MM(mAluminium, x - dx, x, y - .02f, y, ezc - stepW * .5f, ezc + stepW * .5f);
-            W.MM(mAluminium, x - dx - .005f, x - dx + .005f, y, y + dy, ezc - stepW * .5f, ezc + stepW * .5f);
-            W.MM(mZolty, x - dx, x - dx + .04f, y - .001f, y + .002f, ezc - stepW * .5f, ezc - stepW * .5f + .04f);
-            W.MM(mZolty, x - dx, x - dx + .04f, y - .001f, y + .002f, ezc + stepW * .5f - .04f, ezc + stepW * .5f);
+            sAl.Box(new Vector3(x - dx, y - .02f, zA + .04f), new Vector3(x, y, zB - .04f));
+            sZo.Box(new Vector3(x - dx, y - .02f, zA), new Vector3(x, y, zA + .04f));
+            sZo.Box(new Vector3(x - dx, y - .02f, zB - .04f), new Vector3(x, y, zB));
+            sAl.Box(new Vector3(x - .005f, y, zA), new Vector3(x + .005f, y + dy - .02f, zB));      // podstopnica: tył stopnia, do spodu stopnia wyżej
         }
+        BraxMiastoA.Obiekt(tasma, "metro: taśma schodów ruchomych (aluminium)", sAl, mAluminium);
+        BraxMiastoA.Obiekt(tasma, "metro: taśma schodów ruchomych (żółte pasy boczne)", sZo, BraxUliceKit.Mat("metro: pasy boczne stopni (żółte)", new Color(.88f, .70f, .06f), .75f));
+        var ruch = tasma.gameObject.AddComponent<BraxSchodyRuchome>(); ruch.krok = new Vector3(dx, dy, 0f); ruch.predkosc = .5f;
         W.MM(mAluminium, xTopPlat, xTop, yM - .02f, yM + .01f, ezc - stepW * .5f, ezc + stepW * .5f);
         W.MM(mAluminium, xBotEnd, xBotPlat, yP - .02f, yP + .01f, ezc - stepW * .5f, ezc + stepW * .5f);
         W.MM(mZolty, xTop - .25f, xTop, yM + .01f, yM + .015f, ezc - stepW * .5f, ezc + stepW * .5f);   // grzebienie
