@@ -22,6 +22,42 @@ public sealed class BraxSeat : MonoBehaviour
         return best;
     }
 
+    // SIEDZENIE BEZ BUJANIA (zgłoszenie z47, 2.11 — „Brax siedzi na krzesełku i się buja”). Przyczyna: w trakcie siedzenia
+    // gracz grał pętlę klipu „Idle” (postawa bokserska z ugięciem kolan i kołysaniem bioder), a poza z kodu (BraxPose) celuje
+    // tylko kości kończyn i kręgosłupa — biodra (korzeń szkieletu) dalej chodziły w rytm klipu, więc całe ciało się bujało.
+    // Do tego wysokość bioder była stała (0.95 m — model sprzed skali Braxa 2.33 m), więc postać wisiała nad siedziskiem.
+    // Teraz: przy siadaniu klip „Idle” jest ZATRZYMANY na pierwszej klatce (prędkość 0 pilnowana co klatkę, dopóki gracz
+    // siedzi — BraxGymPlayer przy wejściu w siedzenie przełącza na „Idle” jeden raz), a wysokość bioder jest MIERZONA na
+    // szkielecie (kość Hips nad stopami), staw biodrowy ląduje 5.5 % wzrostu nad siedziskiem (jak u człowieka). Dla każdego
+    // siedziska w grze (ławki, krzesła, sofy, hokery) — jedna klasa.
+    float hipsZmierzone = -1f;
+    Transform kosc;
+
+    static Transform Biodra(BraxGymPlayer p)
+    {
+        if (!p || !p.visual) return null;
+        foreach (var t in p.visual.GetComponentsInChildren<Transform>(true))
+        {
+            string n = t.name; int i = n.LastIndexOf(':'); if (i >= 0) n = n.Substring(i + 1);
+            if (n == "Hips") return t;
+        }
+        return null;
+    }
+
+    void Zamroz(BraxGymPlayer p, bool zeroCzasu)
+    {
+        if (!p || !p.clips) return;
+        var st = p.clips["Idle"]; if (st == null) return;
+        if (zeroCzasu) st.time = 0f;
+        st.speed = 0f;
+    }
+
+    void Update()
+    {
+        if (!rider) return;
+        Zamroz(rider, false);   // BraxGymPlayer w siedzeniu ustawia „Idle” z prędkością 1 — tu zostaje 0 (bez bujania)
+    }
+
     public void Use(BraxGymPlayer p)
     {
         if (rider || !p) return;
@@ -30,9 +66,16 @@ public sealed class BraxSeat : MonoBehaviour
         var fwd = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
         if (!lie)
         {
-            p.transform.position = new Vector3(transform.position.x, surfaceY - hipsAboveRoot, transform.position.z) - fwd * .1f;
+            kosc = Biodra(p);
+            if (kosc) hipsZmierzone = Mathf.Clamp(kosc.position.y - p.transform.position.y, .5f, 1.6f);
+            float hips = hipsZmierzone > 0f ? hipsZmierzone : hipsAboveRoot;
+            float wzrost = hips / .53f;                     // biodra stojąc ≈ 53 % wzrostu
+            float nadSiedziskiem = .055f * wzrost;          // staw biodrowy siedzącego ≈ 5.5 % wzrostu nad siedziskiem
+            p.transform.position = new Vector3(transform.position.x, surfaceY + nadSiedziskiem - hips, transform.position.z) - fwd * .1f;
             p.transform.rotation = Quaternion.LookRotation(fwd);
             BraxPose.Get(p).Set(BraxPose.Mode.Sit, transform);
+            Zamroz(p, true);
+            Debug.Log("BRAXHORN_SIEDZENIE " + label + " biodra=" + hips.ToString("F2") + " m (zmierzone=" + (hipsZmierzone > 0f) + ") siedzisko y=" + surfaceY.ToString("F2") + " klip Idle zatrzymany (bez bujania)");
         }
         else
         {
@@ -48,6 +91,7 @@ public sealed class BraxSeat : MonoBehaviour
         if (!rider) return;
         var p = rider; rider = null;
         BraxPose.Get(p).Set(BraxPose.Mode.None, null);
+        if (p.clips && p.clips["Idle"] != null) p.clips["Idle"].speed = 1f;
         p.transform.rotation = Quaternion.Euler(0, beforeRot.eulerAngles.y, 0);
         p.transform.position = before;
         p.body.enabled = true; p.seat = null;

@@ -50,8 +50,11 @@ public static class BraxRegion
         Step("morze bez łąki i lasu nad wodą", () => BraxRegionSea.Apply(root));
         Step("wyspa na morzu (oktagon Ligi, pomost, otwarta)", () => BraxRegionIsland.Apply(root));
         Step("pawilon sportowy (szatnia + sala walk)", () => BraxRegionPavilion.Apply(world, root));
-        Step("tyły siłowni: plac, wieżowce A/B, wiadukt z portalem, warsztaty", () => BraxRegionBackyard.Apply(world, root));
+        // Tyły od nowa (B, 2.11): plac wieżowców, park, nabrzeże, wieżowce A/B z lobby, windą i piętrami użytkowymi (zastępuje BraxRegionBackyard).
+        Step("tyły B: plac wieżowców, park, nabrzeże, wieżowce A i B (lobby, winda, piętra użytkowe)", () => BraxRegionTylyB.Apply(world, root));
         Step("taras wieżowca: kwiaty i rośliny", () => BraxRegionTerrace.Apply(root));
+        // BRAXHORN TOWER przy ulicy (B, 2.11 16:00): stare lobby/winda/taras zdjęte, nowe lobby, winda BraxWinda, apartament, taras.
+        Step("Tower przy ulicy (B): lobby, drzwi automatyczne, winda, apartament, taras na dachu", () => BraxRegionTylyB.TowerQuay(world, root));
         Step("wnętrza: Nutrition i NOVA", () => BraxRegionInteriors.Apply(root));
         Step("interior mapping: pokoje za oknami budynków nieużytkowych", () => BraxRegionInteriorMap.Apply(root));
         Step("elewacje ulicy: prawdziwe okna, gzymsy, obraz w lobby", () => BraxRegionFacades.Apply(root));
@@ -59,9 +62,19 @@ public static class BraxRegion
         Step("mieszkanie Braxa nad NOVA (klatka od ulicy, biedny pokój z aneksem i łazienką)", () => BraxRegionBraxFlat.Apply(world, root));
         Step("stare drzewa-atrapy (kule na patykach) → prawdziwe drzewa", () => BraxRegionOldTrees.Apply(root));
         Step("zieleń naturalna i mała architektura", () => BraxRegionVegetation.Apply(root));
+        // ROZBUDOWA MIASTA (B, 2.11): wiadukt usunięty → skrzyżowanie w poziomie ulic + rondo, aleje w prawo i w lewo, pierzeje.
+        // Po zieleni (jej resztki na terenie rozbudowy są wycinane), przed siedziskami, horyzontem i trawnikiem miasta.
+        // (Dzielnica zachodnia z WIP — ETAP 2, po dopasowaniu do ronda i alej; do tego czasu krok wyłączony.)
+        Step("miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa, pierzeje, warsztaty", () => BraxRegionMiastoB.Apply(world, root));
         // Lampy wnętrz: CityStaticPBR liczy światła punktowe tylko ze slotów „vertex light” (ForceVertex).
         Step("siedziska: sofy, ławki, hokery, leżaki → BraxSeat", () => BraxRegionSeats.Apply(root));
+        Step("horyzont: niebo bez lustra, teren za granicą, granica", () => BraxRegionHoryzont.Apply(world, root));
         Step("lampy wnętrz w trybie ForceVertex", () => InteriorLights(root));
+        // Trawnik miasta (tyły, 2.11): podmiana starej trawy w miejscu, maska ziemi pod drzewami, kępy 3D — po wszystkich trawnikach.
+        Step("trawnik miasta (materiał, maska ziemi, kępy, bez trawy na ścianach)", () => BraxRegionTrawa.Zakoncz(root));
+        // Na końcu (jak na budowie, 16:04): ruch aut i ludzie miasta B na gotowych nawierzchniach i wyposażeniu (B, ETAP 2).
+        Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => BraxClaudeOsiedle.RuchMiastaB(root));
+        Step("ludzie miasta (B): obsada, ławki, przechodnie po chodnikach i zebrach", () => BraxClaudeOsiedle.LudzieMiastaB(root));
         // Na końcu: przesunięcie głębi dla wszystkiego, co dobudowane (anty-migotanie).
         Step("anty-migotanie (offset głębi, trilinear)", () => BraxRegionFlicker.Apply(root));
 
@@ -105,6 +118,9 @@ public static class BraxRegion
             foreach (var r in scope.GetComponentsInChildren<MeshRenderer>(true))
             {
                 if (r.enabled) continue;
+                // światła stop, migacze i dym aut (BraxAuto) są wyłączone do czasu jazdy — zostają (B, ruch aut miasta)
+                bool auto = false; for (var t = r.transform; t && !auto; t = t.parent) auto = t.GetComponent<BraxAuto>();
+                if (auto) continue;
                 var mf = r.GetComponent<MeshFilter>();
                 bool colliderUsesMesh = false;
                 if (mf && mf.sharedMesh) foreach (var mc in r.GetComponents<MeshCollider>()) if (mc.enabled && mc.sharedMesh == mf.sharedMesh) colliderUsesMesh = true;

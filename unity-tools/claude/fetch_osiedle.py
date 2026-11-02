@@ -387,6 +387,11 @@ def main() -> int:
         print("ZNAK WKROTCE BRAK", repr(e))
     tb5.club_sign(ROOT / "signs" / "dyskoteka.png"); tb5.boxing_sign(ROOT / "signs" / "sala_bokserska.png"); tb5.shake_menu(ROOT / "signs" / "menu_shake.png")   # 1.11: szyld klubu, sala bokserska, menu Shake Baru
     print("TEKSTURY BUILD 5 OK")
+    try:   # build 15 „usługi”: tabliczki, ekrany, sukna stołów, koło ruletki (szpital, komisariat, kasyno, klub)
+        import tekstury_uslugi as _us15
+        _us15.wszystkie(ROOT / "signs")
+    except Exception as e:  # noqa: BLE001
+        print("TEKSTURY USLUGI BRAK", repr(e))
     # Źdźbła trawy: atlas 2048x512 = 4 odmiany kępy (świeża, ciemniejsza, z suchszymi końcówkami, gęsta niska).
     import math, random
     rnd = random.Random(31)

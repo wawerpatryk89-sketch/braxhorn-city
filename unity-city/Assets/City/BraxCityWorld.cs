@@ -30,7 +30,7 @@ public sealed class BraxCityWorld : MonoBehaviour
     // wnętrze do z=−88) i wylot tunelu na północnym końcu osiedla A (portal z=99.5, wnętrze do z=113). Wejście w głąb
     // tunelu (8 m za portalem) samo wczytuje drugi rejon; przy portalu przycisk AKCJA mówi, dokąd prowadzi tunel.
     // Przyjazd: wylot tunelu po drugiej stronie, kamera za plecami, przodem do wyjścia.
-    static readonly Vector3 CityPortal=new Vector3(-66.2f,8.16f,-74f), EstatePortal=new Vector3(0f,.08f,99.5f);
+    static readonly Vector3 CityPortal=new Vector3(-126f,.003f,-84f), EstatePortal=new Vector3(0f,.08f,99.5f);   // 2.11 (B): wiadukt usunięty — tunel na końcu Alei Południowej (BraxRegionMiastoB)
     // Paczka APK z jednym rejonem (właściciel 1.11: „rozdziel mi osiedle od miasta”): tunel działa tylko, gdy drugi rejon jest w paczce.
     static bool Available(string scene)=>Application.CanStreamedLevelBeLoaded(scene);
     bool InCityTunnel(Vector3 p,float depth)=>area=="city"&&!waterfrontPreview&&Available("BraxhornEstate")&&Mathf.Abs(p.x-CityPortal.x)<4.8f&&p.y>CityPortal.y-1.2f&&p.z<CityPortal.z+2f-depth&&p.z>CityPortal.z-16f;
