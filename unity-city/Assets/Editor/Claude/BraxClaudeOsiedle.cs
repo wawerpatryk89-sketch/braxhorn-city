@@ -5097,6 +5097,107 @@ public static partial class BraxClaudeOsiedle
                       + lamps + " lamp, pokój przesłuchań (stół na środku, 3 krzesła), 2 cele 4.0 × 4.9 m, sufit bez dziury, parkiet");
     }
     static Material PbrFloor => Pbr("posadzka komisariatu", "large_grey_tiles", 2.4f, new Color(.95f, .95f, .95f));
+    static void Szatnia(Material wallM, Material lacquer, Material marbleK, Material chromeK, Material steel, float yF, float yC, float X1, float Z1)
+    {
+        const float sx0 = 96f, sz0 = 23.5f, lz0 = 24.6f, lz1 = 28.0f, okno = 2.3f;
+        // ściany do sufitu: od sceny (z 23.35–23.5) i od sali (x 95.85–96.0) z okienkiem nad ladą
+        BoxMinMax(wallM, sx0 - .15f, X1, yF, yC, sz0 - .15f, sz0);
+        BoxMinMax(wallM, sx0 - .15f, sx0, yF, yC, sz0, lz0 - .05f);
+        BoxMinMax(wallM, sx0 - .15f, sx0, yF, yC, lz1 + .05f, Z1);
+        BoxMinMax(wallM, sx0 - .15f, sx0, okno, yC, lz0 - .05f, lz1 + .05f);
+        BoxMinMax(lacquer, sx0 - .15f, sx0 + .6f, yF, 1.05f, lz0 - .05f, lz1 + .05f);                                   // lada (front od sali)
+        BoxMinMax(marbleK, sx0 - .3f, sx0 + .65f, 1.05f, 1.1f, lz0 - .1f, lz1 + .1f, false, true);                       // blat okienka
+        var drewno = Plain("szatnia drewno orzech", new Color(.36f, .24f, .15f), .35f);
+        var mosiadz = Plain("szatnia mosiądz numerków", new Color(.72f, .56f, .28f), .7f, .9f);
+        var kolory = new[] { Plain("okrycie czarne", new Color(.04f, .04f, .045f), .15f), Plain("okrycie granat", new Color(.08f, .10f, .22f), .15f),
+            Plain("okrycie grafit", new Color(.18f, .18f, .2f), .15f), Plain("okrycie wielbłądzi", new Color(.55f, .40f, .24f), .15f),
+            Plain("okrycie butelkowa zieleń", new Color(.06f, .20f, .12f), .15f), Plain("okrycie bordo", new Color(.32f, .05f, .08f), .15f) };
+        var rnd = new System.Random(2330);
+        float yR = yF + 1.75f * K, rz0 = sz0 + .1f, rz1 = Z1 - .1f, krok = .09f * K;
+        int wieszaki = 0, okrycia = 0;
+        foreach (float rx in new[] { 98.9f, 101.4f, 103.9f })
+        {
+            Tube(chromeK, new Vector3(rx, yR, rz0), new Vector3(rx, yR, rz1), .018f * K, 10);                              // drążek
+            foreach (float z in new[] { rz0, rz1 }) BoxMinMax(steel, rx - .03f, rx + .03f, yR - .06f, yR + .45f * K, z - .05f, z + .05f, false);   // wsporniki w ścianach
+            BoxMinMax(drewno, rx - .2f * K, rx + .2f * K, yR + .33f * K, yR + .35f * K, rz0, rz1, false, true);           // półka na czapki
+            for (float z = rz0 + .15f; z <= rz1 - .15f; z += krok)
+            {
+                wieszaki++;
+                var hak = new Vector3(rx + (float)(rnd.NextDouble() - .5) * .02f, yR, z + (float)(rnd.NextDouble() - .5) * .02f);
+                float yaw = (float)(rnd.NextDouble() * 8.0 - 4.0);
+                Wieszak(drewno, chromeK, mosiadz, hak, yaw);
+                if (rnd.NextDouble() < .25) continue;                                                                   // część pusta
+                bool plaszcz = rnd.NextDouble() < .6;
+                Okrycie(kolory[rnd.Next(kolory.Length)], hak + Vector3.down * .07f * K, yaw, plaszcz ? 1.0f * K : .68f * K);
+                okrycia++;
+            }
+            Collider(new Vector3(rx, (yF + yR) * .5f, (rz0 + rz1) * .5f), new Vector3(.75f * K, yR - yF, rz1 - rz0));
+        }
+        Sign("szatnia", new Vector3(sx0 - .2f, okno + .45f, (lz0 + lz1) * .5f), 2.4f, .6f, Vector3.left);
+        Debug.Log("BRAXHORN_SZATNIA dyskoteka: osobne pomieszczenie " + (X1 - sx0).ToString("F1") + " × " + (Z1 - sz0).ToString("F1") + " m, ściany do sufitu, lada-okienko, rzędy 3, drążek " + yR.ToString("F2")
+                  + " m, wieszaki " + wieszaki + " (co " + (krok * 100f).ToString("F0") + " cm), okrycia " + okrycia + " (z kodu, 6 kolorów), stojak „Wardrobe Rack” nieużyty");
+    }
+    // drewniany wieszak: łuk ramion w poprzek drążka (oś x), haczyk chromowany do drążka, numerek mosiężny
+    static void Wieszak(Material drewno, Material chrom, Material mosiadz, Vector3 hak, float yaw)
+    {
+        var q = Quaternion.Euler(0, yaw, 0); float w = .21f * K, y0 = -.07f * K;
+        Vector3 P(float x, float y) => hak + q * new Vector3(x, y, 0);
+        for (int i = 0; i < 3; i++)
+        {
+            float a = -1f + i * 2f / 3f, b = -1f + (i + 1) * 2f / 3f;
+            Tube(drewno, P(a * w, y0 - Mathf.Abs(a) * .03f * K), P(b * w, y0 - Mathf.Abs(b) * .03f * K), .009f * K, 4);
+        }
+        Tube(chrom, P(0, y0), P(0, -.004f), .0025f * K, 4);
+        Cylinder(mosiadz, hak + q * new Vector3(0, y0 - .045f * K, .006f), .012f * K, .003f, 6, true, false);
+    }
+    // płaszcz / kurtka na wieszaku: korpus z pierścieni (eliptyczny przekrój, ramiona opadają od szyi, dół lekko rozszerzony),
+    // rękawy w dół przy bokach, kołnierz — jedna podsiatka koloru; zamknięty górą i dołem.
+    static void Okrycie(Material m, Vector3 gora, float yaw, float dl)
+    {
+        var q = Quaternion.Euler(0, yaw, 0); const int N = 10, R = 4;   // ~160 trójkątów na okrycie (telefon)
+        float ws = .22f * K, wh = .26f * K, ds = .07f * K, dh = .095f * K, opad = .07f * K;
+        var bt = B(m); int k0 = bt.v.Count;
+        for (int j = 0; j <= R; j++)
+        {
+            float t = j / (float)R, w = Mathf.Lerp(ws, wh, t), d = Mathf.Lerp(ds, dh, t), y = -t * dl;
+            for (int i = 0; i < N; i++)
+            {
+                float a = i * Mathf.PI * 2f / N, cx = Mathf.Cos(a), cz = Mathf.Sin(a);
+                float yy = y - (j == 0 ? opad * Mathf.Pow(Mathf.Abs(cx), 1.5f) : j == 1 ? opad * .4f * Mathf.Abs(cx) : 0f);
+                var p = gora + q * new Vector3(cx * w, yy, cz * d);
+                bt.v.Add(p); bt.n.Add(q * new Vector3(cx / w, 0, cz / d).normalized); bt.t.Add(new Vector4(0, 1, 0, 1)); bt.uv.Add(new Vector2(i / (float)N, t * dl));
+            }
+        }
+        for (int j = 0; j < R; j++)
+            for (int i = 0; i < N; i++)
+            {
+                int a = k0 + j * N + i, b = k0 + j * N + (i + 1) % N, c = a + N, e = b + N;
+                bt.i.AddRange(new[] { a, b, c, b, e, c });   // przód na zewnątrz (normalna = cross(b − a, c − a))
+            }
+        // góra (ramiona do szyi) i dół
+        foreach (var (pierscien, y, n) in new[] { (0, .015f * K, Vector3.up), (R, -dl, Vector3.down) })
+        {
+            int c0 = bt.v.Count; bt.v.Add(gora + q * new Vector3(0, y, 0)); bt.n.Add(q * n); bt.t.Add(new Vector4(1, 0, 0, 1)); bt.uv.Add(new Vector2(.5f, .5f));
+            for (int i = 0; i < N; i++)
+            {
+                int a = k0 + pierscien * N + i, b = k0 + pierscien * N + (i + 1) % N;
+                if (n.y > 0) bt.i.AddRange(new[] { c0, b, a }); else bt.i.AddRange(new[] { c0, a, b });
+            }
+        }
+        // rękawy: od końca ramion w dół przy bokach (trochę z przodu), kołnierz przy szyi
+        foreach (int s in new[] { -1, 1 })
+        {
+            var r0 = gora + q * new Vector3(s * (ws + .02f * K), -opad - .02f * K, .02f * K);
+            var r1 = gora + q * new Vector3(s * (wh + .015f * K), -opad - .62f * dl, .035f * K);
+            Tube(m, r0, r1, .048f * K, 6);
+        }
+        for (int i = 0; i < 4; i++)
+        {
+            float a0 = Mathf.PI * (.15f + i * .175f) * 2f, a1 = Mathf.PI * (.15f + (i + 1) * .175f) * 2f;
+            Tube(m, gora + q * new Vector3(Mathf.Cos(a0) * .075f * K, .01f * K, Mathf.Sin(a0) * .05f * K), gora + q * new Vector3(Mathf.Cos(a1) * .075f * K, .01f * K, Mathf.Sin(a1) * .05f * K), .018f * K, 5);
+        }
+    }
+
     static Material InteriorPaint => Pbr("ściany wnętrz farba", "painted_plaster_wall", 2.2f, new Color(.93f, .92f, .89f));
 
     // ---------------- dyskoteka: klub od nowa ----------------
@@ -5239,21 +5340,13 @@ public static partial class BraxClaudeOsiedle
         }
         Sign("bar_kasyna", new Vector3(X0 + .03f, 3.1f, (bz0 + bz1) * .5f), 3.6f, .9f, Vector3.right);
 
-        // SZATNIA przy wejściu (narożnik x 96–105.8, z 23.5–28.8): lada wzdłuż z, za nią dwa drążki z wieszakami i okryciami,
-        // ścianka od strony sceny, szyld SZATNIA podwieszony nad ladą
-        BoxMinMax(InteriorPaint, 96f, X1, yF, 3.0f, 23.35f, 23.5f);
-        BoxMinMax(lacquer, 96f, 96.6f, yF, 1.05f, 24.6f, 28.0f); BoxMinMax(marbleK, 95.9f, 96.65f, 1.05f, 1.1f, 24.55f, 28.05f, false, true);   // przejście obsługi 1.1 m przy ściance
-        var coatCols = new[] { Plain("okrycie czarne", new Color(.04f, .04f, .045f), .2f), Plain("okrycie granat", new Color(.08f, .10f, .22f), .2f), Plain("okrycie camel", new Color(.55f, .40f, .24f), .2f), Plain("okrycie bordo", new Color(.32f, .05f, .08f), .2f) };
-        foreach (float rx in new[] { 99.2f, 102.6f })
-        {
-            foreach (float rz in new[] { 24.0f, 28.4f }) Tube(chromeK, new Vector3(rx, yF, rz), new Vector3(rx, 1.85f, rz), .025f, 8);
-            Tube(chromeK, new Vector3(rx, 1.85f, 24.0f), new Vector3(rx, 1.85f, 28.4f), .02f, 8);
-            int c = 0;
-            for (float z = 24.3f; z < 28.15f; z += .32f, c++) BoxMinMax(coatCols[(c + (int)rx) % 4], rx - .23f, rx + .23f, .85f + (c % 2) * .08f, 1.8f, z - .035f, z + .035f, false);
-            Collider(new Vector3(rx, .95f, 26.2f), new Vector3(.5f, 1.9f, 4.4f));
-        }
-        Sign("szatnia", new Vector3(95.95f, 2.65f, 26.3f), 2.4f, .6f, Vector3.left);
-        foreach (float rz in new[] { 25.4f, 27.2f }) Cylinder(steel, new Vector3(95.98f, 2.98f, rz), .012f, yC - 2.98f, 6, false, false);
+        // SZATNIA = OSOBNE POMIESZCZENIE (build 45, E30(3) — właściciel 21:11/21:23: „szatnia do przebudowy — osobne pomieszczenie”,
+        // stojak sklepowy odpada, wieszaki z kodu). Narożnik x 96–105.82, z 23.5–28.82: ściany do sufitu (jak sala), od sali tylko
+        // lada-okienko (z 24.6–28.0, blat marmur 1.1 m, otwór do 2.3 m); w środku 3 rzędy drążków (chrom, wsporniki w ścianach),
+        // jeden poziom 1.75 m × K, półka na czapki nad drążkiem, drewniane wieszaki co 9 cm × K z mosiężnymi numerkami, okrycia
+        // z kodu — płaszcze i kurtki WISZĄCE (ramiona na wieszaku, rękawy w dół, kołnierz; miękka bryła, nie pudełko), 6 kolorów,
+        // obrót ±4°, ~25 % wieszaków pustych. Szatniarz za ladą (obsada „dyskoteka — szatnia”). Stara biała ścianka i klocki-okrycia zwalone.
+        Szatnia(wallM, lacquer, marbleK, chromeK, steel, yF, yC, X1, Z1);
 
         // LOŻE: sofy przy ścianie tylnej (po obu stronach wyjścia) i przy froncie (zachodnia część), niskie stoliki przed sofami
         if (offSofa)
@@ -5261,7 +5354,7 @@ public static partial class BraxClaudeOsiedle
             foreach (float x in new[] { 72.5f, 77.5f, 92.5f, 97.0f }) { Put(offSofa, new Vector3(x, yF, Z0 + .5f), 0f, .03f, true); if (coffeeTable) Put(coffeeTable, new Vector3(x, yF, Z0 + 1.85f), 0f, .03f, true); }
             foreach (float x in new[] { 72.5f, 77.5f }) { Put(offSofa, new Vector3(x, yF, Z1 - .5f), 180f, .03f, true); if (coffeeTable) Put(coffeeTable, new Vector3(x, yF, Z1 - 1.85f), 180f, .03f, true); }
         }
-        foreach (float x in new[] { 70.1f, 75.0f, 80.0f, 90.0f, 94.8f, 99.4f }) BoxMinMax(trim, x - .03f, x + .03f, yF, 1.2f, Z0 + .02f, Z0 + 1.0f, false);   // przegródki lóż
+        // build 45 (E29c, właściciel: „fioletowe przegródki między sofami wyglądają jak porzucone deski”) — płyty-przegródki usunięte
         // ŚWIATŁA kolorowe (ForceVertex, bez cieni): 4 nad parkietem, 2 nad barem, scena, szatnia, loże
         foreach (var (p, c) in new[] { (new Vector3(89.5f, 5.0f, 9f), new Color(1f, .25f, .8f)), (new Vector3(96.5f, 5.0f, 9f), new Color(.2f, .85f, 1f)), (new Vector3(89.5f, 5.0f, 15f), new Color(.55f, .3f, 1f)), (new Vector3(96.5f, 5.0f, 15f), new Color(1f, .62f, .2f)) })
             PointLamp(p, 9f, 1.3f, c);
