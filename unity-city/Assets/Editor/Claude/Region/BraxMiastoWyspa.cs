@@ -889,7 +889,7 @@ internal static partial class BraxMiastoWyspa
                     float a = a0 + ((float)rnd.NextDouble() - .5f) * 10f, rs = LiniaWody(a), r = rs + ((float)rnd.NextDouble() - .55f) * 9f;
                     var p = new Vector3(CX + Mathf.Cos(a * Mathf.Deg2Rad) * r, 0, CZ + Mathf.Sin(a * Mathf.Deg2Rad) * r); p.y = Y(p.x, p.z);
                     if (p.y < W - 1.4f || Zajete(p.x, p.z, 1.8f)) continue;
-                    if (BraxRegion.Put(zs, sk[rnd.Next(sk.Count)], "Wyspa: skała zatoczki", p + Vector3.down * .35f, (float)rnd.NextDouble() * 360f, 1.2f + (float)rnd.NextDouble() * 1.1f, true, 3.4f)) nSk++;
+                    if (Skala(zs, sk[rnd.Next(sk.Count)], "Wyspa: skała zatoczki", p, (float)rnd.NextDouble() * 360f, 1.2f + (float)rnd.NextDouble() * 1.1f, 3.4f, 6f, true)) nSk++;
                 }
         }
         nLezaki = nL;
@@ -1283,6 +1283,7 @@ internal static partial class BraxMiastoWyspa
                 var l1 = new GameObject("z daleka"); l1.transform.SetParent(g.transform, false); l1.AddComponent<MeshFilter>().sharedMesh = o.lod; var r1 = l1.AddComponent<MeshRenderer>(); r1.sharedMaterial = lisc; r1.shadowCastingMode = ShadowCastingMode.Off;
                 var lg = g.AddComponent<LODGroup>(); lg.SetLODs(new[] { new LOD(.08f, new Renderer[] { rp, rl }), new LOD(.012f, new Renderer[] { rp, r1 }) }); lg.RecalculateBounds();
                 var c = g.AddComponent<CapsuleCollider>(); c.center = Vector3.up * 2f; c.radius = .25f; c.height = 4f;
+                Zajmij(g.transform.position, .8f);                                         // skały stawiane później omijają pnie
                 n++;
             }
         pien.enableInstancing = true; lisc.enableInstancing = true;
@@ -1338,7 +1339,11 @@ internal static partial class BraxMiastoWyspa
     static int Krzewy()
     {
         var krz = new List<GameObject>(); foreach (var id in new[] { "shrub_01", "shrub_02", "shrub_03" }) { var mm = BraxRegion.Model(id); if (mm) krz.Add(mm); }
-        var sk = new List<GameObject>(); foreach (var id in new[] { "coast_rocks_01", "coast_rocks_03", "boulder_01", "namaqualand_boulder_02" }) { var mm = BraxRegion.Model(id); if (mm) sk.Add(mm); }
+        // M10 / przegląd nr 1 (film01 0:48–1:00: „czarne i szaro-białe płyty skał wiszą nad stokiem, pnie palm przez nie przechodzą”):
+        // skały brzegowe (coast_rocks — płaskie, warstwowe półki kilkanaście metrów) stawiane na stoku wzgórza wisiały nad nim.
+        // W głębi lądu tylko głazy; każda skała osadzona na NAJNIŻSZYM punkcie terenu pod sobą (bez prześwitu), szer. ≤ 4.5 m,
+        // omija pnie palm (Zajmij w Palmy).
+        var sk = new List<GameObject>(); foreach (var id in new[] { "boulder_01", "namaqualand_boulder_02" }) { var mm = BraxRegion.Model(id); if (mm) sk.Add(mm); }
         var zr = new GameObject("Wyspa: krzewy i skały").transform; zr.SetParent(root, false);
         var rng = new System.Random(91); int n = 0;
         for (int i = 0; i < 520 && n < 110; i++)
@@ -1349,7 +1354,8 @@ internal static partial class BraxMiastoWyspa
             bool skala = h > 10f && rng.NextDouble() < .4 || (h > -.3f && h < .6f && rng.NextDouble() < .15);
             var list = skala ? sk : krz; if (list.Count == 0 || h < -.3f || h > 24f) continue;
             if (!skala && h < 3f) continue;
-            if (BraxRegion.Put(zr, list[rng.Next(list.Count)], skala ? "Wyspa: skała" : "Wyspa: krzew", new Vector3(CX + x, W + h - (skala ? .3f : .05f), CZ + zz), (float)rng.NextDouble() * 360f, .8f + (float)rng.NextDouble() * .6f, skala, skala ? 2.5f : 1.6f * K)) n++;
+            if (skala) { if (Skala(zr, list[rng.Next(list.Count)], "Wyspa: skała", new Vector3(CX + x, W + h, CZ + zz), (float)rng.NextDouble() * 360f, .8f + (float)rng.NextDouble() * .6f, 2.5f, 4.5f, true)) n++; }   // M10/nr 1: skała posadzona na najniższym punkcie pod sobą
+            else if (BraxRegion.Put(zr, list[rng.Next(list.Count)], "Wyspa: krzew", new Vector3(CX + x, W + h - .05f, CZ + zz), (float)rng.NextDouble() * 360f, .8f + (float)rng.NextDouble() * .6f, false, 1.6f * K)) n++;
         }
         foreach (var rr in zr.GetComponentsInChildren<Renderer>(true)) rr.shadowCastingMode = ShadowCastingMode.Off;   // 2.11 recenzja: krzewy i skały bez cieni (telefon)
         return n;

@@ -22,6 +22,23 @@ internal static partial class BraxMiastoWyspa
         wiezyczki.Clear(); nDomki = nLatarnie = nLawki = nKosze = nPrzebieralnie = nKapiacy = nRowerki = nDeski = nKrawezniki = nLezaki = 0;
         mChodnika = mDeptakuPlazy = 0; recepcja = sklep = placZabaw = Vector3.zero;
     }
+    /// <summary>Skała osadzona na terenie bez prześwitu: spód na najniższym punkcie terenu pod obrysem (część od strony stoku
+    /// w ziemi), szerokość ≤ maxW, kolizja na bryle; zajęte miejsce zapisane (palmy i krzewy omijają). Null, gdy koliduje.</summary>
+    static GameObject Skala(Transform parent, GameObject model, string label, Vector3 at, float yaw, float scale, float maxH, float maxW, bool kolizja)
+    {
+        var o = BraxRegion.Put(parent, model, label, at, yaw, scale, false, maxH);
+        if (!o) return null;
+        var b = BraxRegion.Bounds(o); float wmax = Mathf.Max(b.size.x, b.size.z);
+        if (wmax > maxW) { o.transform.localScale *= maxW / wmax; b = BraxRegion.Bounds(o); }
+        float yMin = 999f; for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) yMin = Mathf.Min(yMin, Y(at.x + i * b.extents.x * .95f, at.z + j * b.extents.z * .95f));
+        o.transform.position += new Vector3(at.x - b.center.x, yMin - .15f - b.min.y, at.z - b.center.z);
+        b = BraxRegion.Bounds(o);
+        float rr = Mathf.Max(b.extents.x, b.extents.z);
+        if (Zajete(b.center.x, b.center.z, rr * .8f)) { Object.DestroyImmediate(o); return null; }
+        if (kolizja) BraxNabrzeze.Kol(kol, label, b.center, b.size * .9f);
+        Zajmij(b.center, rr);
+        return o;
+    }
     static Vector3 Sw(float lx, float lz) => new Vector3(CX + lx, Y(CX + lx, CZ + lz), CZ + lz);   // punkt świata na terenie (lokalne x, z)
     // czworokąt licem do „chce” (bez pomyłek w kolejności wierzchołków)
     static void Q(BraxNabrzeze.Siatka s, Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 chce)
