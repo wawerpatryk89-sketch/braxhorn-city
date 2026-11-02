@@ -1,139 +1,87 @@
-using System;
 using System.Collections;
-using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 // EKRAN STARTOWY APK (1.11, Opus; porady Google/Unity: „najpierw lekka scena, ciężka doczytywana w tle”).
 // Scena 0 w APK jest pusta (ta kamera + ten skrypt), więc ekran pojawia się od razu, zanim telefon zacznie wczytywać
-// miasto / osiedle (scena 1). Na ekranie:
-//   • powód poprzedniego zamknięcia aplikacji wg Androida (ApplicationExitInfo, Android 11+): BRAK PAMIĘCI (system zabił
-//     grę), AWARIA NATYWNA (np. sterownik grafiki), AWARIA JAVA, ZAWIESZENIE (ANR), ZABITA SYGNAŁEM… + zajęta pamięć
-//     (PSS/RSS) w chwili zamknięcia — diagnoza bez kabla i bez logcat;
-//   • etap, na którym zatrzymał się poprzedni start (BraxStartLog);
-//   • model telefonu, RAM, grafika (Vulkan / OpenGL ES), pamięć karty;
-//   • pasek wczytywania sceny 1 (LoadSceneAsync).
-// Gdy poprzedni start się nie udał, ekran czeka 8 s (czas na zrzut ekranu) albo do dotknięcia.
+// miasto / osiedle (scena 1).
+// BUILD 14 (właściciel 21:45: „co ty zrobiłeś” — ekran TEST MIASTA z 8 przełącznikami nic nie dawał, bo wyłączanie działało
+// dopiero po wczytaniu, a awaria była w trakcie): przełączniki USUNIĘTE (razem z BraxStartTest). Zamiast nich ładny ekran
+// wczytywania (BraxEkranWczytywania): logo, nazwa rejonu, pasek postępu, wskazówka. Diagnostyka (dziennik poprzedniego
+// startu, model telefonu, RAM, grafika) UKRYTA — pokazuje się po przytrzymaniu palca 3 s albo sama, gdy poprzedni start
+// się nie udał (wtedy jak dotąd: czeka na dotyk, max 20 s — czas na zrzut ekranu). Dziennik startu (BraxStartLog) zostaje.
+// Wczytywanie z allowSceneActivation = false: dane sceny wczytane do 90% → wpis „2b 90% dane wczytane” → dopiero wtedy
+// włączenie sceny → „2- … pierwsze Awake” (BraxStartZnacznik). Wiadomo dokładnie, czy telefon pada przy wczytywaniu
+// danych, czy przy włączaniu sceny (tekstury/siatki na GPU, Awake).
 public sealed class BraxStart : MonoBehaviour
 {
     public static bool Pokazuje { get; private set; }
-    string wyjscie = "", urzadzenie = "", status = "PRZYGOTOWANIE…";
-    float postep;
-    bool czekaNaDotyk, test;
-    GUIStyle tytul, tekst, maly, przycisk;
+    string status = "", podtytul = "", wskazowka = "", urzadzenie = "", diag = "";
+    float postep, trzyma, nastDiag;
+    bool problem, czekaNaDotyk, pokazDiag;
 
     IEnumerator Start()
     {
         Pokazuje = true;
         Application.targetFrameRate = 30;
-        wyjscie = PowodyZamkniecia();
+        status = BraxTeksty.T("start.przygotowanie");
         urzadzenie = SystemInfo.deviceModel + " · RAM " + SystemInfo.systemMemorySize + " MB · " + SystemInfo.graphicsDeviceType +
-                     " · " + SystemInfo.graphicsDeviceName + " (" + SystemInfo.graphicsMemorySize + " MB) · Android API " + Api();
-        bool problem = !string.IsNullOrEmpty(BraxStartLog.Poprzedni) || wyjscie.Contains("BRAK PAMIĘCI") || wyjscie.Contains("AWARIA") || wyjscie.Contains("ZAWIESZENIE") || wyjscie.Contains("SYGNAŁ");
+                     " · " + SystemInfo.graphicsDeviceName + " (" + SystemInfo.graphicsMemorySize + " MB) · " + SystemInfo.operatingSystem;
+        wskazowka = BraxTeksty.Wskazowka(Random.Range(0, BraxTeksty.LiczbaWskazowek));
+        problem = !string.IsNullOrEmpty(BraxStartLog.Poprzedni);
         BraxStartLog.Etap("1b ekran startowy");
+        string nazwa = SceneManager.sceneCountInBuildSettings >= 2 ? System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(1)) : "";
+        podtytul = nazwa.StartsWith("BraxhornEstate") ? BraxTeksty.T("start.osiedle") : nazwa.StartsWith("BraxhornCity") ? BraxTeksty.T("start.miasto") : "";
+        Debug.Log("BRAXHORN_UI ekran wczytywania: scena " + nazwa + (problem ? " · poprzedni start NIEUDANY — diagnostyka widoczna, czeka na dotyk" : " · diagnostyka ukryta (przytrzymanie 3 s)") +
+                  " · język " + BraxTeksty.Aktualny + " · " + urzadzenie);
+        OdswiezDiag();
         if (problem)
         {
-            czekaNaDotyk = true; status = "POPRZEDNI START SIĘ NIE UDAŁ — ZRÓB ZRZUT EKRANU. DOTKNIJ, ŻEBY WCZYTAĆ GRĘ";
+            pokazDiag = true; czekaNaDotyk = true; status = BraxTeksty.T("start.nieudany");
             float until = Time.realtimeSinceStartup + 20f;
             while (czekaNaDotyk && Time.realtimeSinceStartup < until) { if (Input.touchCount > 0 || Input.GetMouseButtonDown(0)) break; yield return null; }
+            czekaNaDotyk = false;
         }
-        else yield return new WaitForSecondsRealtime(.4f);
-        czekaNaDotyk = false;
-        if (SceneManager.sceneCountInBuildSettings < 2) { status = "BRAK SCENY GRY W PACZCE"; yield break; }
-        string nazwa = System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(1));
-        if (nazwa == "BraxhornCity" && Application.platform == RuntimePlatform.Android)   // tylko telefon (WebGL i zdjęcia CI bez zmian)
-        {
-            // TEST MIASTA (BraxStartTest): palec z poprzedniego ekranu puszczony, zanim pokażą się przyciski
-            while (Input.touchCount > 0) yield return null;
-            yield return new WaitForSecondsRealtime(.3f);
-            status = "TEST MIASTA: ZAZNACZ, CO WYŁĄCZYĆ (ALBO NIC), I DOTKNIJ „WCZYTAJ MIASTO”";
-            test = true;
-            while (test) yield return null;   // przycisk WCZYTAJ MIASTO w OnGUI
-            BraxStartLog.Etap("1c test miasta: wyłączone " + BraxStartTest.Opis());
-        }
-        status = "WCZYTYWANIE: " + nazwa + (BraxStartTest.Wylaczone.Count > 0 ? " · BEZ: " + BraxStartTest.Opis() : "");
+        else yield return new WaitForSecondsRealtime(.35f);
+        if (SceneManager.sceneCountInBuildSettings < 2) { status = BraxTeksty.T("start.brak_sceny"); yield break; }
+        status = podtytul.Length > 0 ? BraxTeksty.T("start.wczytywanie") : BraxTeksty.T("start.wczytywanie") + " · " + nazwa;   // nazwa rejonu jest już pod logo
         BraxStartLog.Etap("2a wczytywanie sceny " + nazwa);
         yield return Resources.UnloadUnusedAssets();
         var op = SceneManager.LoadSceneAsync(1, LoadSceneMode.Single);
-        if (op == null) { status = "NIE MOŻNA WCZYTAĆ SCENY " + nazwa; yield break; }
-        // 1.11: postęp co 10% do dziennika (build 9 pokazał tylko „2a” — teraz widać, przy ilu procentach i przy jakiej pamięci pada)
+        if (op == null) { status = BraxTeksty.F("start.blad_sceny", nazwa); yield break; }
+        op.allowSceneActivation = false;
+        // postęp co 10% do dziennika (build 9 pokazał tylko „2a” — widać, przy ilu procentach i przy jakiej pamięci pada)
         int zapisane = -1;
-        while (!op.isDone)
+        while (op.progress < .9f)
         {
-            postep = op.progress; int dz = Mathf.FloorToInt(postep * 10f);
-            if (dz > zapisane) { zapisane = dz; BraxStartLog.Etap(dz >= 9 ? "2b dane wczytane (90%), włączanie sceny " + nazwa : "2a postęp " + dz * 10 + "%"); }
+            postep = op.progress / .9f * .92f;
+            int dz = Mathf.FloorToInt(op.progress * 10f);
+            if (dz > zapisane) { zapisane = dz; BraxStartLog.Etap("2a postęp " + dz * 10 + "%"); }
             yield return null;
         }
+        postep = .95f;
+        BraxStartLog.Etap("2b 90% dane wczytane: " + nazwa);
+        status = BraxTeksty.T("start.uruchamianie");
+        yield return null; yield return null;   // klatka z paskiem 95% i wpisem w dzienniku, zanim telefon zajmie się włączaniem
+        postep = 1f;
+        BraxStartLog.Etap("2c włączanie sceny " + nazwa + " (allowSceneActivation)");
+        op.allowSceneActivation = true;
+        while (!op.isDone) yield return null;
     }
 
-    void OnDestroy() { Pokazuje = false; }
-
-    void OnGUI()
+    void Update()
     {
-        float s = Mathf.Min(Screen.width, Screen.height);
-        if (tytul == null)
-        {
-            tytul = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, fontSize = Mathf.RoundToInt(s * .07f) };
-            tekst = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.UpperLeft, wordWrap = true, fontSize = Mathf.RoundToInt(s * .032f) };
-            maly = new GUIStyle(tekst) { fontSize = Mathf.RoundToInt(s * .026f) };
-            tytul.normal.textColor = new Color(.55f, .9f, .25f); tekst.normal.textColor = new Color(.92f, .9f, .86f); maly.normal.textColor = new Color(.7f, .7f, .68f);
-        }
-        var old = GUI.color; GUI.color = Color.black; GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture); GUI.color = old;
-        if (test) { EkranTestu(s); return; }
-        float w = Screen.width * .9f, x = (Screen.width - w) * .5f, y = Screen.height * .05f;
-        GUI.Label(new Rect(0, y, Screen.width, s * .1f), "BRAXHORN CITY", tytul); y += s * .12f;
-        GUI.Label(new Rect(x, y, w, s * .08f), status, tekst); y += s * .09f;
-        // pasek wczytywania
-        GUI.color = new Color(.2f, .2f, .2f); GUI.DrawTexture(new Rect(x, y, w, s * .02f), Texture2D.whiteTexture);
-        GUI.color = new Color(.55f, .9f, .25f); GUI.DrawTexture(new Rect(x, y, w * Mathf.Clamp01(postep / .9f), s * .02f), Texture2D.whiteTexture);
-        GUI.color = old; y += s * .05f;
-        string diag = "";
-        if (!string.IsNullOrEmpty(BraxStartLog.Poprzedni)) diag += BraxStartLog.Poprzedni + "\n";
-        if (!string.IsNullOrEmpty(wyjscie)) diag += wyjscie;
-        if (diag.Length > 0) { GUI.Label(new Rect(x, y, w, Screen.height - y - s * .12f), diag, tekst); }
-        GUI.Label(new Rect(x, Screen.height - s * .1f, w, s * .09f), urzadzenie, maly);
+        // przytrzymanie palca (albo myszy) 3 s: pokaż / ukryj diagnostykę
+        if (pokazDiag && Time.unscaledTime > nastDiag) OdswiezDiag();
+        bool dotyk = Input.touchCount > 0 || Input.GetMouseButton(0);
+        if (!dotyk) { trzyma = 0f; return; }
+        float przed = trzyma; trzyma += Time.unscaledDeltaTime;
+        if (przed < 3f && trzyma >= 3f) { pokazDiag = !pokazDiag; OdswiezDiag(); BraxStartLog.Etap("1d diagnostyka " + (pokazDiag ? "pokazana" : "ukryta") + " (przytrzymanie 3 s)"); }
     }
 
-    // Ekran testu miasta: dziennik poprzedniego startu u góry, pod nim 8 przełączników (2 kolumny) i WCZYTAJ MIASTO.
-    void EkranTestu(float s)
-    {
-        float H = Screen.height, W = Screen.width, w = W * .92f, x = (W - w) * .5f;
-        if (przycisk == null)
-        {
-            przycisk = new GUIStyle(GUI.skin.button) { fontSize = Mathf.RoundToInt(s * .036f), fontStyle = FontStyle.Bold, wordWrap = true };
-            przycisk.normal.textColor = przycisk.hover.textColor = przycisk.active.textColor = new Color(.95f, .94f, .9f);
-        }
-        GUI.Label(new Rect(0, H * .01f, W, H * .08f), "BRAXHORN CITY", tytul);
-        GUI.Label(new Rect(x, H * .09f, w, H * .08f), status, tekst);
-        string diag = string.IsNullOrEmpty(BraxStartLog.Poprzedni) ? "Poprzedni start: bez problemu (albo pierwsze uruchomienie)." : BraxStartLog.Poprzedni;
-        GUI.Label(new Rect(x, H * .17f, w, H * .25f), diag, maly);
-        var cz = BraxStartTest.Czesci;
-        float bw = (w - s * .03f) * .5f, bh = H * .085f, y0 = H * .43f;
-        var old = GUI.color;
-        for (int i = 0; i < cz.Length; i++)
-        {
-            bool off = BraxStartTest.Wylaczony(cz[i].klucz);
-            var r = new Rect(x + (i % 2) * (bw + s * .03f), y0 + (i / 2) * (bh + H * .012f), bw, bh);
-            GUI.color = off ? new Color(1f, .45f, .35f) : old;
-            if (GUI.Button(r, (off ? "WYŁĄCZONE · " : "") + cz[i].opis, przycisk))
-            { if (off) BraxStartTest.Wylaczone.Remove(cz[i].klucz); else BraxStartTest.Wylaczone.Add(cz[i].klucz); }
-        }
-        GUI.color = new Color(.55f, .9f, .25f);
-        float yb = y0 + 4 * (bh + H * .012f) + H * .01f;
-        if (GUI.Button(new Rect(x, yb, w, Mathf.Min(H * .11f, H - yb - H * .01f)), BraxStartTest.Wylaczone.Count == 0 ? "WCZYTAJ MIASTO (WSZYSTKO WŁĄCZONE)" : "WCZYTAJ MIASTO · BEZ: " + BraxStartTest.Wylaczone.Count, przycisk))
-            test = false;
-        GUI.color = old;
-    }
-
-    // Poziom API Androida z SystemInfo.operatingSystem („Android OS 15 / API-35 (…)”) — bez JNI: moduł AndroidJNI jest
-    // w tym projekcie wyłączony (build 7: CS1069 AndroidJavaClass → APK się nie zbudowało).
-    static int Api()
-    {
-        var m = System.Text.RegularExpressions.Regex.Match(SystemInfo.operatingSystem ?? "", @"API-(\d+)");
-        return m.Success ? int.Parse(m.Groups[1].Value) : 0;
-    }
-
-    static string Nazwa(int r)
+    // Powód zamknięcia wg Androida (ApplicationExitInfo.getReason, Android 11+) — do wpięcia, gdy w projekcie wróci moduł
+    // AndroidJNI (dziś wyłączony: włączenie = pełny reimport biblioteki w CI). Tabela gotowa, żeby nie pisać jej drugi raz.
+    public static string PowodZamkniecia(int r)
     {
         switch (r)
         {
@@ -156,8 +104,18 @@ public sealed class BraxStart : MonoBehaviour
         }
     }
 
-    // Powód zamknięcia wg Androida (ApplicationExitInfo) wymaga modułu AndroidJNI (com.unity.modules.androidjni), który jest
-    // w projekcie wyłączony; włączenie zmienia manifest pakietów = pełny reimport biblioteki w CI (+1–1.5 h). Do zrobienia razem
-    // z następną zmianą pakietów (Addressables). Do tego czasu: etap poprzedniego startu z BraxStartLog + dane telefonu.
-    static string PowodyZamkniecia() => "";
+    void OdswiezDiag()
+    {
+        nastDiag = Time.unscaledTime + 1f;
+        diag = (string.IsNullOrEmpty(BraxStartLog.Poprzedni) ? BraxTeksty.T("start.poprzedni_ok") : BraxStartLog.Poprzedni) + "\n\n" +
+               BraxTeksty.T("start.dziennik") + "\n" + BraxStartLog.Ostatnie(6) + "\n\n" + urzadzenie;
+    }
+
+    void OnDestroy() { Pokazuje = false; }
+
+    void OnGUI()
+    {
+        GUI.depth = -20;
+        BraxEkranWczytywania.Rysuj(postep, status, podtytul, wskazowka, diag, pokazDiag, !problem);
+    }
 }

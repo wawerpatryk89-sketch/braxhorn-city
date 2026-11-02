@@ -1,319 +1,446 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-// BRAXHORN CITY — sterowanie dotykowe w aplikacji Android (bez warstwy HTML). Przebudowa 31.10 (właściciel 18:35:
-// „nie ma joysticka, bieg/skok/kop/cios chujowo, nie mogę wyjść z siłowni, zamula”).
-// Ten sam protokół co strona WWW: MoveInput "x,y", LookInput "dx,dy", Command (punch/kick/jump/action/pause/reset).
-//  • Joystick (lewa część ekranu): okrągła podstawa i gałka; w spoczynku półprzezroczysty w lewym dolnym rogu,
-//    po dotknięciu przeskakuje pod kciuk. Wychylenie do krawędzi = bieg (gracz biegnie od 76% wychylenia).
-//  • Kamera: przeciąganie palcem po prawej części ekranu (poza przyciskami).
-//  • Przyciski okrągłe po prawej: CIOS (duży), KOP, SKOK. Bez przycisku BIEG (właściciel 1.11, 18:37): lekkie wychylenie
-//    joysticka = chód, mocne (do krawędzi) = bieg — płynnie, bez przełącznika.
-//    Obsługa z Input.touches (każdy palec osobno), NIE z IMGUI — IMGUI widzi tylko pierwszy palec, więc stary
-//    układ nie reagował na przycisk, gdy drugi palec trzymał joystick.
-//  • AKCJA: duży przycisk nad prawymi przyciskami z napisem z gry (OTWÓRZ DRZWI, WSIĄDŹ · MOTORÓWKA, USIĄDŹ · SOFA,
-//    WEJDŹ NA OSIEDLE…) — pojawia się tylko, gdy jest co zrobić (BraxGymPlayer.Context: drzwi siłowni też).
-//  • Na łodzi / skuterze / jachcie: joystick = gaz i ster, zamiast ciosów jest ZEJDŹ. Siedząc / leżąc: WSTAŃ.
-//  • MENU: wróć do gry, tryb grafiki NISKA / ŚREDNIA / WYSOKA (BraxGrafika), licznik FPS, od nowa.
+// BRAXHORN CITY — sterowanie dotykowe w aplikacji Android (bez warstwy HTML).
+// Przebudowa 31.10 (właściciel 18:35: „nie ma joysticka, bieg/skok/kop/cios chujowo”), BUILD 14 od nowa wygląd
+// (właściciel 1.11 20:49, zdjęcie przy kasynie: „przyciski za duże i brzydkie → mniejsze, nowocześniejsze, jak w topowych
+// grach mobilnych: półprzezroczyste koła z ikonami, cienka obwódka, delikatny cień, 60–70 % obecnego rozmiaru; joystick
+// dyskretny; MENU jako mała ikona; nie zasłaniać postaci i drogi”):
+//  • Joystick (lewa część ekranu): sam pierścień + półprzezroczysta gałka; w spoczynku w lewym dolnym rogu, po dotknięciu
+//    przeskakuje pod kciuk. Lekkie wychylenie = chód, mocne (do krawędzi) = bieg — płynnie, bez przycisku BIEG.
+//  • Kamera: przeciąganie palcem po prawej części ekranu (czułość z USTAWIEŃ); sama wraca za plecy (BraxGymPlayer).
+//  • Prawy róg: CIOS (pięść, największy), KOP (but), SKOK (strzałka) w ćwiartce koła; AKCJA = pigułka z dłonią i nazwą
+//    czynności z gry (POGADAJ, USIĄDŹ · SOFA, OTWÓRZ DRZWI…), tylko gdy jest co zrobić. Na łodzi / siedząc: tylko AKCJA.
+//  • MENU: mała ikona w prawym górnym rogu (albo przycisk „wstecz” telefonu) → BraxMenuGry.
+//  • Rozmiar przycisków: MENU → USTAWIENIA (małe / średnie / duże). Wszystko w strefie bezpiecznej (Screen.safeArea).
+// Obsługa z Input.touches (każdy palec osobno), NIE z IMGUI — IMGUI widzi tylko pierwszy palec. IMGUI tylko rysuje
+// (i obsługuje menu). Polecenia idą przez SendMessage do obiektu gracza — tak samo jak ze strony WWW (BraxClaudeAkcja:
+// wieża w willi, BraxNovaMusic: pauza muzyki dostają ten sam przycisk).
+// Wydajność: układ liczony tylko przy zmianie ekranu / rozmiaru, napis AKCJI odpytywany co 0.12 s, ruch joysticka wysyłany
+// tylko przy zmianie (siatka 0.02, napisy z pamięci podręcznej), HUD rysowany tylko w zdarzeniu Repaint.
+// Przeglądarka (WebGL) z ?qa=1: komponent tworzony do zdjęć CI, ale nic nie rysuje, dopóki strona nie wyśle
+// BraxSend('ReviewUi', tryb) — BraxInterfejsQa.
 public sealed class BraxTouchControls : MonoBehaviour
 {
-    const float LookScale = .55f;
-    BraxGymPlayer player;
-    int joyId = -1, lookId = -1;
-    Vector2 joyOrigin, joyNow, lookLast;      // współrzędne ekranu (Y w górę)
-    float R, B, b, m, gap;
-    bool runLock, paused, showFps;
-    bool credits; int creditsPage; string[] creditLines; GUIStyle creditStyle;   // MENU → AUTORZY (licencja CC BY 4.0)
-    bool mapa; GUIStyle mapLab;   // MENU → MAPA (BraxMapa: obraz rejonu z góry, pozycja Braxa, podpisane miejsca)
-    float fpsT, fpsShown; int fpsN;
-    float nextFind, hintUntil;
-    Texture2D disc, ring;
-    GUIStyle lab, labBig, menuBtn, menuTitle, small;
-    // przyciski: środek w ekranie (Y w górę) i promień
-    Vector2 cPunch, cKick, cJump, cRun, cMenu; float rMenu;
-    Rect rAction;                             // GUI (Y w dół)
-    float flashPunch, flashKick, flashJump, flashAction;
-    readonly int[] btnFinger = { -1, -1, -1, -1, -1, -1 };
+    static BraxTouchControls inst;
+    public static bool Qa { get; private set; }
+    static string podglad = "";
 
-#if UNITY_ANDROID && !UNITY_EDITOR
+    BraxGymPlayer player;
+    public BraxGymPlayer Gracz => player;
+    BraxMenuGry menu;
+    bool paused, trybZdjec, ukryty;
+    float trybZdjecOd, nextFind, podpowiedzDo;
+    // palce
+    int joyId = -1, lookId = -1;
+    Vector2 joyOrigin, joyNow, lookLast;            // ekran (y w górę)
+    const int PCios = 0, PKop = 1, PSkok = 2, PAkcja = 3, PMenu = 4;
+    readonly int[] palec = { -1, -1, -1, -1, -1 };
+    readonly float[] blysk = new float[5];
+    // układ (ekran, y w górę)
+    float s, m, gap, rC, rS, R, rMenu;
+    Vector2 cCios, cKop, cSkok, cMenu, joyRest;
+    Rect akcjaG;                                     // pigułka AKCJA (IMGUI, y w dół)
+    int ukW, ukH, ukWersja = -1; Rect ukSafe;
+    // napis AKCJI
+    string kontekst = "", kontekstEkran = "", kontekstZmierzony; float kontekstSzer, nastKontekst; bool grajek;
+    // ruch
+    int ruchX, ruchY;
+    readonly Dictionary<int, string> ruchTeksty = new Dictionary<int, string>();
+    // licznik kl./s, pamięć, straż klatek (WYSOKA na telefonie)
+    float fpsT, fpsPokaz, strazT; int fpsN, strazN, obnizenie;
+    public string LicznikTekst { get; private set; } = "";
+    // komunikat
+    string komunikat = ""; float komunikatDo, komunikatOd;
+    int scenaZalogowana = -1;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Boot()
     {
+        bool android = Application.platform == RuntimePlatform.Android;
+        Qa = Application.platform == RuntimePlatform.WebGLPlayer && UrlQa();
+        if (!android && !Qa) return;
         if (FindAnyObjectByType<BraxTouchControls>()) return;
-        var g = new GameObject("BRAXHORN sterowanie dotykowe (Android)");
+        var g = new GameObject("BRAXHORN sterowanie dotykowe");
         DontDestroyOnLoad(g);
         g.AddComponent<BraxTouchControls>();
     }
-#endif
+
+    static bool UrlQa()
+    {
+        var u = Application.absoluteURL ?? "";
+        int q = u.IndexOf('?'); if (q < 0) return false;
+        foreach (var v in u.Substring(q + 1).Split('&', '#')) if (v == "qa=1") return true;
+        return false;
+    }
 
     void Awake()
     {
+        inst = this;
+        useGUILayout = false;   // bez GUILayout: IMGUI pomija przebieg Layout (mniej pracy i alokacji co klatkę)
+        menu = new BraxMenuGry(this);
+        if (Qa) return;
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
         Input.multiTouchEnabled = true;
         Input.simulateMouseWithTouches = false;   // przyciski gry liczone z dotyku; IMGUI tylko rysuje (i menu)
-        disc = Circle(128, false); ring = Circle(128, true);
-        hintUntil = Time.unscaledTime + 10f;
+        BraxUstawienia.ZastosujDzwiek();
     }
 
-    static Texture2D Circle(int n, bool hollow)
+    // ---------------- podgląd do zdjęć CI (WebGL ?qa=1) ----------------
+    public static void Podglad(string tryb)
     {
-        var t = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
-        var px = new Color32[n * n]; float c = (n - 1) * .5f;
-        for (int y = 0; y < n; y++)
-            for (int x = 0; x < n; x++)
-            {
-                float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c)) / c;    // 0 środek, 1 krawędź
-                float a = Mathf.Clamp01((1f - d) * c * .5f);                          // wygładzona krawędź ~2 px
-                if (hollow) a *= Mathf.Clamp01((d - .86f) * c * .5f);                // pierścień 14% promienia
-                px[y * n + x] = new Color32(255, 255, 255, (byte)(a * 255));
-            }
-        t.SetPixels32(px); t.Apply(false, true); return t;
+        podglad = (tryb ?? "").Trim().ToLowerInvariant();
+        if (podglad == "wyl" || podglad == "off") podglad = "";
+        if (!inst) return;
+        var mn = inst.menu;
+        switch (podglad)
+        {
+            case "menu": mn.Otworz(BraxMenuGry.Ekran.Glowne); break;
+            case "ustawienia": mn.Otworz(BraxMenuGry.Ekran.Ustawienia); break;
+            case "test": BraxUstawienia.Licznik = true; mn.Otworz(BraxMenuGry.Ekran.Test); break;
+            case "teleport": mn.Otworz(BraxMenuGry.Ekran.Teleport); break;
+            case "mapa": mn.Otworz(BraxMenuGry.Ekran.Mapa); break;
+            case "zdjecia": inst.trybZdjecOd = Time.unscaledTime; break;
+        }
+        Debug.Log("BRAXHORN_UI podgląd interfejsu: " + (podglad.Length > 0 ? podglad : "wyłączony"));
     }
+    bool PodgladMenu => Qa && (podglad == "menu" || podglad == "ustawienia" || podglad == "test" || podglad == "teleport" || podglad == "mapa");
 
-    void Layout()
-    {
-        float w = Screen.width, h = Screen.height, s = Mathf.Min(w, h);
-        m = s * .05f; gap = s * .03f; R = s * .16f; B = s * .22f; b = s * .165f;
-        cPunch = new Vector2(w - m - B * .5f, m + B * .5f);
-        cKick = new Vector2(cPunch.x - B * .5f - gap - b * .5f, m + b * .5f);
-        cJump = new Vector2(w - m - b * .5f, cPunch.y + B * .5f + gap + b * .5f);
-        cRun = new Vector2(cKick.x - b * .15f, cJump.y + b * .1f);
-        float aw = s * .62f, ah = b * .62f;
-        rAction = new Rect(w - m - aw, h - (cJump.y + b * .5f + gap * 1.3f) - ah, aw, ah);
-        rMenu = s * .065f; cMenu = new Vector2(w - m - rMenu, h - m * .6f - rMenu);
-    }
-
+    // ---------------- szukanie gracza, dziennik sceny ----------------
     void Find()
     {
         if (player || Time.unscaledTime < nextFind) return;
         nextFind = Time.unscaledTime + .5f;
         player = FindAnyObjectByType<BraxGymPlayer>();
+        if (!player) return;
+        joyId = lookId = -1; paused = false; trybZdjec = false; ruchX = ruchY = 0;
+        for (int i = 0; i < palec.Length; i++) palec[i] = -1;
+        if (podpowiedzDo <= 0f) podpowiedzDo = Time.unscaledTime + 9f;
+        if (Qa && !player.GetComponent<BraxInterfejsQa>()) player.gameObject.AddComponent<BraxInterfejsQa>();
     }
 
-    bool InCircle(Vector2 p, Vector2 c, float r) => (p - c).sqrMagnitude <= r * r;
-    bool InRect(Vector2 p, Rect r) => r.Contains(new Vector2(p.x, Screen.height - p.y));
-    bool OnFoot => player && !player.vessel && !player.seat;
-    string Context => player ? player.Context : "";
+    void LogSceny()
+    {
+        int h = player.gameObject.scene.handle;
+        if (h == scenaZalogowana) return;
+        scenaZalogowana = h;
+        var sa = Screen.safeArea;
+        int miejsc = 0; try { miejsc = BraxMiejscaTestowe.Lista(player).Count; } catch { }
+        Debug.Log("BRAXHORN_UI scena " + player.gameObject.scene.name + ": sterowanie " + (Qa ? "podgląd CI (WebGL ?qa=1)" : "dotykowe") +
+                  " · ekran " + Screen.width + "×" + Screen.height + " (bezpieczny " + Mathf.RoundToInt(sa.x) + "," + Mathf.RoundToInt(sa.y) + " " + Mathf.RoundToInt(sa.width) + "×" + Mathf.RoundToInt(sa.height) + ")" +
+                  " · język " + BraxTeksty.Aktualny + " · przyciski " + BraxUstawienia.NazwaPrzyciskow + " ×" + BraxUstawienia.SkalaPrzyciskow.ToString("0.00") +
+                  " · czułość " + BraxUstawienia.Czulosc.ToString("0.0") + " · muzyka " + Mathf.RoundToInt(BraxUstawienia.Muzyka * 100) + "% · efekty " + Mathf.RoundToInt(BraxUstawienia.Efekty * 100) + "%" +
+                  " · grafika " + BraxGrafika.Nazwy[(int)BraxGrafika.Aktualny] + (BraxGrafika.Reczny ? " (ręcznie)" : " (auto: " + BraxProfilTelefonu.Powod + ")") +
+                  " · kamera: za plecami po " + BraxGymPlayer.AutoCameraDelay + " s, near ≥ " + BraxClaudeKamera.MinBlisko +
+                  " · drzwi " + BraxCityDoor.All.Count + " (same się zamykają po " + BraxCityDoor.ZamykanieS + " s)" +
+                  " · miejsca teleportu " + miejsc + " · menu: WRÓĆ, USTAWIENIA, MAPA, ZGŁOŚ, UTKNĄŁEM, TRYB ZDJĘĆ, TEST, AUTORZY");
+    }
 
+    // ---------------- układ ----------------
+    void Uklad()
+    {
+        var saG = BraxGui.BezpiecznyProstokat();
+        int w = Screen.width, h = Screen.height, ver = BraxUstawienia.Wersja;
+        if (w == ukW && h == ukH && ver == ukWersja && saG == ukSafe) return;
+        ukW = w; ukH = h; ukWersja = ver; ukSafe = saG;
+        var sa = new Rect(saG.x, h - saG.yMax, saG.width, saG.height);   // ekran, y w górę
+        s = Mathf.Min(w, h);
+        float k = BraxUstawienia.SkalaPrzyciskow;
+        m = s * .045f; gap = s * .024f * k;
+        rC = s * .074f * k;            // CIOS: średnica 0.148 s (dawniej 0.22 s → 67 %)
+        rS = s * .056f * k;            // KOP / SKOK: 0.112 s (dawniej 0.165 s → 68 %)
+        R = s * .125f * k;             // joystick (dawniej 0.16 s)
+        rMenu = s * .036f * Mathf.Sqrt(k);
+        cCios = new Vector2(sa.xMax - m - rC, sa.yMin + m + rC);
+        float d = rC + gap + rS;
+        cKop = cCios + new Vector2(Mathf.Cos(188f * Mathf.Deg2Rad), Mathf.Sin(188f * Mathf.Deg2Rad)) * d;
+        cSkok = cCios + new Vector2(Mathf.Cos(97f * Mathf.Deg2Rad), Mathf.Sin(97f * Mathf.Deg2Rad)) * d;
+        joyRest = new Vector2(sa.xMin + m + R * 1.05f, sa.yMin + m + R * 1.05f);
+        cMenu = new Vector2(sa.xMax - m * .6f - rMenu, sa.yMax - m * .6f - rMenu);
+        kontekstZmierzony = null;   // szerokość pigułki do przeliczenia
+    }
+
+    bool OnFoot => player && !player.vessel && !player.seat;
+    bool AkcjaWidoczna => kontekstEkran.Length > 0;
+    static bool W(Vector2 p, Vector2 c, float r) => (p - c).sqrMagnitude <= r * r;
+    bool WAkcji(Vector2 p) { var g = new Vector2(p.x, Screen.height - p.y); var r = akcjaG; r.xMin -= gap * .4f; r.yMin -= gap * .4f; r.xMax += gap * .4f; r.yMax += gap * .4f; return r.Contains(g); }
+
+    // ---------------- pętla ----------------
     void Update()
     {
         Find();
-        Layout();
-        fpsN++; fpsT += Time.unscaledDeltaTime; if (fpsT >= .5f) { fpsShown = fpsN / fpsT; fpsN = 0; fpsT = 0; }
+        if (!Qa) { BraxUstawienia.Pilnuj(); StrazKlatek(); }
+        Licznik();
         if (!player) return;
+        LogSceny();
+        Uklad();
+        if (Time.unscaledTime >= nastKontekst)
+        {
+            nastKontekst = Time.unscaledTime + .12f;
+            kontekst = player.Context ?? "";
+            grajek = kontekst.Length == 0 && BraxClaudeGrajek.Blisko;
+            if (Qa && podglad == "przyciski" && kontekst.Length == 0) kontekst = "POGADAJ";
+            kontekstEkran = grajek ? BraxTeksty.T("hud.muzyka") : BraxTeksty.Kontekst(kontekst);
+        }
+        if (Qa) return;
+        if (Input.GetKeyDown(KeyCode.Escape)) { if (!paused) Pauza(true); else if (menu.Wstecz()) Pauza(false); return; }
         if (paused) { joyId = lookId = -1; return; }
+        if (trybZdjec)
+        {
+            for (int i = 0; i < Input.touchCount; i++)
+                if (Input.GetTouch(i).phase == TouchPhase.Began && Time.unscaledTime > trybZdjecOd + .3f) { trybZdjec = false; Debug.Log("BRAXHORN_UI tryb zdjęć: koniec"); break; }
+            return;
+        }
         for (int i = 0; i < Input.touchCount; i++)
         {
             var t = Input.GetTouch(i); var p = t.position;
             if (t.phase == TouchPhase.Began)
             {
-                if (InCircle(p, cMenu, rMenu * 1.4f)) { Pause(true); return; }
-                if (!string.IsNullOrEmpty(Context) && InRect(p, rAction)) { player.Command("action"); flashAction = Time.unscaledTime + .18f; continue; }
+                if (W(p, cMenu, rMenu * 1.6f)) { blysk[PMenu] = Time.unscaledTime + .15f; Pauza(true); return; }
+                if (AkcjaWidoczna && WAkcji(p)) { palec[PAkcja] = t.fingerId; Polecenie("action", PAkcja); continue; }
                 if (OnFoot)
                 {
-                    if (InCircle(p, cPunch, B * .55f)) { player.Command("punch"); flashPunch = Time.unscaledTime + .15f; continue; }
-                    if (InCircle(p, cKick, b * .58f)) { player.Command("kick"); flashKick = Time.unscaledTime + .15f; continue; }
-                    if (InCircle(p, cJump, b * .58f)) { player.Command("jump"); flashJump = Time.unscaledTime + .15f; continue; }
+                    int b = Przycisk(p);
+                    if (b >= 0) { palec[b] = t.fingerId; Polecenie(b == PCios ? "punch" : b == PKop ? "kick" : "jump", b); continue; }
                 }
-                if (p.x < Screen.width * .45f && joyId < 0) { joyId = t.fingerId; joyOrigin = p; joyNow = p; }
-                else if (p.x >= Screen.width * .45f && lookId < 0) { lookId = t.fingerId; lookLast = p; }
+                float granica = ukSafe.x + ukSafe.width * .45f;
+                if (p.x < granica && joyId < 0) { joyId = t.fingerId; joyOrigin = p; joyNow = p; }
+                else if (p.x >= granica && lookId < 0) { lookId = t.fingerId; lookLast = p; }
             }
             else if (t.phase == TouchPhase.Moved || t.phase == TouchPhase.Stationary)
             {
-                if (t.fingerId == joyId) { joyNow = p; SendMove(); }
-                else if (t.fingerId == lookId && t.phase == TouchPhase.Moved)
+                if (t.fingerId == joyId) { joyNow = p; WyslijRuch(); }
+                else if (t.fingerId == lookId && t.phase == TouchPhase.Stationary) player.LookDelta(0f, 0f);   // palec trzyma kamerę: bez powrotu za plecy
+                else if (t.fingerId == lookId)
                 {
-                    var d = (p - lookLast) * LookScale; lookLast = p;
-                    // 1.11 (właściciel: „jak robię w prawo, to mi w lewo przestawia”): przesunięcie palca w prawo obraca widok w prawo
-                    player.LookInput(F(-d.x) + "," + F(-d.y));
+                    var d = p - lookLast; lookLast = p;
+                    // 1.11: przesunięcie palca w prawo obraca widok w prawo; czułość 1.0 = 0.121°/px przy ekranie 1080 px (jak dotąd)
+                    float k = .121f * 1080f / Mathf.Max(320f, s) * BraxUstawienia.Czulosc;
+                    player.LookDelta(d.x * k, -d.y * k * .727f);
                 }
             }
             else if (t.phase == TouchPhase.Ended || t.phase == TouchPhase.Canceled)
             {
-                if (t.fingerId == joyId) { joyId = -1; player.MoveInput("0,0"); }
+                if (t.fingerId == joyId) { joyId = -1; Stop(); }
                 else if (t.fingerId == lookId) lookId = -1;
+                for (int b = 0; b < palec.Length; b++) if (palec[b] == t.fingerId) palec[b] = -1;
             }
         }
-        if (Input.touchCount == 0 && joyId >= 0) { joyId = -1; player.MoveInput("0,0"); }
+        if (Input.touchCount == 0)
+        {
+            if (joyId >= 0) { joyId = -1; Stop(); }
+            lookId = -1; for (int b = 0; b < palec.Length; b++) palec[b] = -1;
+        }
     }
 
-    void SendMove()
+    // najbliższy przycisk walki pod palcem (strefy dotyku nieco większe niż koła, ale się nie dublują)
+    int Przycisk(Vector2 p)
+    {
+        int best = -1; float bd = 1f;
+        float dc = (p - cCios).magnitude / (rC * 1.18f), dk = (p - cKop).magnitude / (rS * 1.28f), ds = (p - cSkok).magnitude / (rS * 1.28f);
+        if (dc < bd) { bd = dc; best = PCios; }
+        if (dk < bd) { bd = dk; best = PKop; }
+        if (ds < bd) { best = PSkok; }
+        return best;
+    }
+
+    void Polecenie(string key, int przycisk)
+    {
+        blysk[przycisk] = Time.unscaledTime + .16f;
+        player.gameObject.SendMessage("Command", key, SendMessageOptions.DontRequireReceiver);
+    }
+
+    void WyslijRuch()
     {
         var d = Vector2.ClampMagnitude((joyNow - joyOrigin) / R, 1f);
         if (d.magnitude < .08f) d = Vector2.zero;
-        player.MoveInput(F(d.x) + "," + F(d.y));
+        int qx = Mathf.RoundToInt(d.x * 50f), qy = Mathf.RoundToInt(d.y * 50f);
+        if (qx == ruchX && qy == ruchY) return;
+        ruchX = qx; ruchY = qy;
+        int klucz = (qx + 50) * 101 + (qy + 50);
+        if (!ruchTeksty.TryGetValue(klucz, out var tekst)) ruchTeksty[klucz] = tekst = F(qx / 50f) + "," + F(qy / 50f);
+        player.MoveInput(tekst);
     }
+    void Stop() { ruchX = ruchY = 0; if (player) player.MoveInput("0,0"); }
+    static string F(float v) => v.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
 
-    static string F(float v) => v.ToString("F3", System.Globalization.CultureInfo.InvariantCulture);
-
-    void Pause(bool on)
+    // ---------------- menu, tryb zdjęć, zgłoszenie, komunikaty ----------------
+    public void Pauza(bool on)
     {
+        if (Qa) { if (!on) podglad = ""; return; }
         if (paused == on || !player) return;
-        paused = on; credits = false; mapa = false; joyId = lookId = -1; player.MoveInput("0,0"); player.Command("pause");
+        paused = on; joyId = lookId = -1; Stop();
+        for (int b = 0; b < palec.Length; b++) palec[b] = -1;
+        player.gameObject.SendMessage("Command", "pause", SendMessageOptions.DontRequireReceiver);
+        if (on) { menu.Otworz(); Input.simulateMouseWithTouches = true; }    // w menu IMGUI ma reagować na dotyk
+        else { BraxUstawienia.Zapisz(); Input.simulateMouseWithTouches = false; }
     }
 
-    void Styles()
+    public void TrybZdjec()
     {
-        if (lab != null) return;
-        float s = Mathf.Min(Screen.width, Screen.height);
-        lab = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, fontSize = Mathf.RoundToInt(s * .036f) };
-        lab.normal.textColor = Color.white;
-        labBig = new GUIStyle(lab) { fontSize = Mathf.RoundToInt(s * .042f), wordWrap = true };
-        small = new GUIStyle(lab) { fontSize = Mathf.RoundToInt(s * .028f), fontStyle = FontStyle.Normal };
-        menuBtn = new GUIStyle(GUI.skin.button) { fontSize = Mathf.RoundToInt(s * .042f), fontStyle = FontStyle.Bold };
-        menuBtn.normal.textColor = Color.white; menuBtn.hover.textColor = Color.white; menuBtn.active.textColor = new Color(.7f, 1f, .4f);
-        menuTitle = new GUIStyle(lab) { fontSize = Mathf.RoundToInt(s * .06f) };
+        Pauza(false);
+        trybZdjec = true; trybZdjecOd = Time.unscaledTime;
+        Debug.Log("BRAXHORN_UI tryb zdjęć: interfejs ukryty do dotknięcia");
     }
 
-    // kolory: biel z cieniem, akcent zielony BRAXHORN (jak na stronie), czerwień ciosu
-    static readonly Color Ink = new Color(1f, 1f, 1f, .9f), Glass = new Color(.06f, .07f, .07f, .45f),
-        Accent = new Color(.55f, 1f, .2f, .95f), Hot = new Color(1f, .35f, .25f, .95f);
-
-    void DrawDisc(Vector2 c, float r, Color fill, Color edge, string text, GUIStyle st)
+    public void Zglos()
     {
-        var rect = new Rect(c.x - r, Screen.height - c.y - r, r * 2, r * 2);
-        var old = GUI.color;
-        GUI.color = fill; GUI.DrawTexture(rect, disc);
-        GUI.color = edge; GUI.DrawTexture(rect, ring);
-        GUI.color = Ink; if (!string.IsNullOrEmpty(text)) GUI.Label(rect, text, st);
-        GUI.color = old;
+        if (ukryty) return;
+        StartCoroutine(BraxZgloszenie.Zrob(player, h => ukryty = h, msg => Komunikat(msg, 6f)));
     }
 
+    public void Komunikat(string tekst, float sekundy)
+    {
+        if (string.IsNullOrEmpty(tekst)) return;
+        komunikat = tekst; komunikatOd = Time.unscaledTime; komunikatDo = Time.unscaledTime + sekundy;
+    }
+
+    public void ResetStrazy() { obnizenie = 0; strazT = 0; strazN = 0; }
+
+    // licznik kl./s i pamięci: liczony co 0.5 s (napis tworzony tylko wtedy, nie co klatkę)
+    void Licznik()
+    {
+        fpsN++; fpsT += Time.unscaledDeltaTime;
+        if (fpsT < .5f) return;
+        fpsPokaz = fpsN / fpsT; fpsN = 0; fpsT = 0;
+        if (!BraxUstawienia.Licznik) { if (LicznikTekst.Length > 0) LicznikTekst = ""; return; }
+        long uzyw = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() >> 20, rez = UnityEngine.Profiling.Profiler.GetTotalReservedMemoryLong() >> 20;
+        LicznikTekst = BraxTeksty.F("test.pamiec", Mathf.RoundToInt(fpsPokaz), uzyw + " / " + rez + " MB") + " · " + BraxGrafika.Nazwy[(int)BraxGrafika.Aktualny] +
+                       " · cel " + Application.targetFrameRate + " · RAM " + SystemInfo.systemMemorySize + " MB";
+    }
+
+    // WYSOKA na telefonie: Dimensity 8350 po kilku minutach się grzeje (test Beebom: 32 % stabilności) — średnia z 8 s
+    // poniżej 50 kl./s → cel 45, potem poniżej 38 → 30. Po zmianie sceny BraxGrafika wraca do 60 — obniżenie wraca też.
+    void StrazKlatek()
+    {
+        strazT += Time.unscaledDeltaTime; strazN++;
+        if (strazT < 8f) return;
+        float fps = strazN / strazT; strazT = 0; strazN = 0;
+        if (!Application.isMobilePlatform || BraxGrafika.Aktualny != BraxGrafika.Tryb.Wysoka || !player || paused) return;
+        int cel = Application.targetFrameRate;
+        if (obnizenie > 0 && cel > obnizenie) { Application.targetFrameRate = obnizenie; return; }
+        int nowy = cel >= 60 && fps < 50f ? 45 : cel == 45 && fps < 38f ? 30 : 0;
+        if (nowy == 0) return;
+        obnizenie = nowy; Application.targetFrameRate = nowy;
+        Debug.Log("BRAXHORN_UI grafika WYSOKA: średnio " + fps.ToString("0") + " kl./s przy celu " + cel + " → cel " + nowy + " kl./s (telefon się grzeje)");
+    }
+
+    // ---------------- rysowanie ----------------
     void OnGUI()
     {
+        if (ukryty) return;
+        if (Qa && podglad == "wczytywanie")
+        {
+            GUI.depth = -30;
+            BraxEkranWczytywania.Rysuj(.62f, BraxTeksty.T("start.wczytywanie"), BraxTeksty.T("start.osiedle"), BraxTeksty.Wskazowka(1), "", false, true);
+            return;
+        }
         if (!player) return;
-        Styles(); Layout();
-        float now = Time.unscaledTime, s = Mathf.Min(Screen.width, Screen.height);
-        if (paused) { Menu(s); return; }
+        if (Qa && podglad.Length == 0) return;   // przeglądarka bez podglądu: strona ma własne sterowanie
+        if (paused || PodgladMenu)
+        {
+            GUI.depth = -10;
+            menu.Rysuj(player);
+            Toast();
+            return;
+        }
+        GUI.depth = 0;
+        if (Event.current.type != EventType.Repaint) return;
+        if (trybZdjec || (Qa && podglad == "zdjecia"))
+        {
+            float a = Mathf.Clamp01(1.6f - (Time.unscaledTime - trybZdjecOd));   // podpowiedź znika po 1.6 s (czyste zdjęcie)
+            if (a > 0f) Pasek(BraxTeksty.T("hud.zdjecia"), ukSafe.y + s * .04f, a);
+            return;
+        }
+        Hud();
+        Toast();
+    }
+
+    Vector2 G(Vector2 ekran) => new Vector2(ekran.x, Screen.height - ekran.y);
+    bool Wcis(int b) => palec[b] >= 0 || Time.unscaledTime < blysk[b];
+
+    void Hud()
+    {
         // MENU (prawy górny róg)
-        DrawDisc(cMenu, rMenu, Glass, Ink, "MENU", small);
-        // joystick: w spoczynku w lewym dolnym rogu, przy dotyku pod kciukiem
-        Vector2 jc = joyId >= 0 ? joyOrigin : new Vector2(m + R * 1.25f, m + R * 1.25f);
-        Vector2 knob = joyId >= 0 ? jc + Vector2.ClampMagnitude(joyNow - joyOrigin, R) : jc;
-        float alpha = joyId >= 0 ? 1f : .55f;
-        DrawDisc(jc, R, new Color(.06f, .07f, .07f, .35f * alpha), new Color(1, 1, 1, .7f * alpha), "", lab);
-        DrawDisc(knob, R * .42f, new Color(1, 1, 1, .55f * alpha), new Color(1, 1, 1, .9f * alpha), "", lab);
-        if (player.vessel) GUI.Label(new Rect(jc.x - R, Screen.height - jc.y - R * 1.55f, R * 2, R * .4f), "GAZ: w górę · STER: w bok", small);
-        // prawa strona
+        BraxGui.PrzyciskKolowy(G(cMenu), rMenu, BraxIkony.Menu, Wcis(PMenu), BraxGui.Akcent, .92f);
+        // joystick
+        bool akt = joyId >= 0;
+        Vector2 jc = akt ? joyOrigin : joyRest;
+        Vector2 knob = akt ? jc + Vector2.ClampMagnitude(joyNow - joyOrigin, R) : jc;
+        float a = akt ? 1f : .6f;
+        BraxGui.Kolo(G(jc), R * 1.08f, BraxIkony.Cien, new Color(0f, 0f, 0f, .16f * a));
+        BraxGui.Kolo(G(jc), R, BraxIkony.Kolo, new Color(BraxGui.Szklo.r, BraxGui.Szklo.g, BraxGui.Szklo.b, .2f * a));
+        BraxGui.Kolo(G(jc), R, BraxIkony.PierscienCienki, new Color(1f, 1f, 1f, .5f * a));
+        BraxGui.Kolo(G(knob), R * .42f, BraxIkony.Kolo, new Color(1f, 1f, 1f, (akt ? .42f : .3f)));
+        BraxGui.Kolo(G(knob), R * .42f, BraxIkony.PierscienCienki, new Color(1f, 1f, 1f, .85f * a));
+        if (player.vessel) Pasek(BraxTeksty.T("hud.lodz"), Screen.height - jc.y - R * 1.75f, .9f, jc.x);
+        // przyciski walki
         if (OnFoot)
         {
-            DrawDisc(cPunch, B * .5f, now < flashPunch ? Hot : Glass, Ink, "CIOS", labBig);
-            DrawDisc(cKick, b * .5f, now < flashKick ? Hot : Glass, Ink, "KOP", lab);
-            DrawDisc(cJump, b * .5f, now < flashJump ? Accent : Glass, Ink, "SKOK", lab);
+            BraxGui.PrzyciskKolowy(G(cCios), rC, BraxIkony.Piesc, Wcis(PCios), BraxGui.Trafienie);
+            BraxGui.PrzyciskKolowy(G(cKop), rS, BraxIkony.But, Wcis(PKop), BraxGui.Trafienie);
+            BraxGui.PrzyciskKolowy(G(cSkok), rS, BraxIkony.Skok, Wcis(PSkok), BraxGui.Akcent);
         }
-        string ctx = Context;
-        if (!string.IsNullOrEmpty(ctx))
-        {
-            var old = GUI.color;
-            GUI.color = now < flashAction ? new Color(.4f, .8f, .15f, .95f) : new Color(.12f, .3f, .05f, .82f);
-            GUI.DrawTexture(new Rect(rAction.x - rAction.height * .5f, rAction.y, rAction.height, rAction.height), disc);
-            GUI.DrawTexture(new Rect(rAction.xMax - rAction.height * .5f, rAction.y, rAction.height, rAction.height), disc);
-            GUI.DrawTexture(new Rect(rAction.x, rAction.y, rAction.width, rAction.height), Texture2D.whiteTexture);
-            GUI.color = Ink; GUI.Label(rAction, ctx, labBig); GUI.color = old;
-        }
-        if (now < hintUntil) GUI.Label(new Rect(0, s * .03f, Screen.width, s * .06f), "lewy kciuk: ruch (do krawędzi = bieg)  ·  prawy: kamera", small);
-        if (showFps) GUI.Label(new Rect(m * .5f, m * .4f, s * .4f, s * .06f), Mathf.RoundToInt(fpsShown) + " FPS · " + BraxGrafika.Nazwy[(int)BraxGrafika.Aktualny], small);
+        // AKCJA: pigułka z dłonią i nazwą czynności
+        if (AkcjaWidoczna) Akcja();
+        else akcjaG = new Rect(-1000, -1000, 0, 0);
+        // podpowiedź na start, licznik
+        float y = ukSafe.y + m * .5f;
+        if (BraxUstawienia.Licznik && LicznikTekst.Length > 0) { Pasek(LicznikTekst, y, 1f); y += s * .055f; }
+        float pa = Mathf.Clamp01(podpowiedzDo - Time.unscaledTime);
+        if (pa > 0f) Pasek(BraxTeksty.T("hud.podpowiedz"), y, pa);
     }
 
-    void Menu(float s)
+    void Akcja()
     {
-        Input.simulateMouseWithTouches = true;   // w menu IMGUI ma reagować na dotyk
-        var old = GUI.color;
-        GUI.color = new Color(0, 0, 0, .72f); GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture); GUI.color = old;
-        if (credits) { Credits(s); return; }
-        if (mapa) { Mapa(s); return; }
-        float w = s * 1.1f, x = (Screen.width - w) * .5f, y = Screen.height * .1f, h = s * .12f, g = s * .03f;
-        GUI.Label(new Rect(0, y, Screen.width, h), "BRAXHORN CITY · PAUZA", menuTitle); y += h + g;
-        if (GUI.Button(new Rect(x, y, w, h), "WRÓĆ DO GRY", menuBtn)) { Input.simulateMouseWithTouches = false; Pause(false); return; }
-        y += h + g;
-        GUI.Label(new Rect(x, y, w, h * .6f), "GRAFIKA", lab); y += h * .6f;
-        float bw = (w - 2 * g) / 3f;
-        for (int i = 0; i < 3; i++)
-        {
-            bool on = (int)BraxGrafika.Aktualny == i;
-            GUI.color = on ? Accent : Color.white;
-            if (GUI.Button(new Rect(x + i * (bw + g), y, bw, h), on ? "[ " + BraxGrafika.Nazwy[i] + " ]" : BraxGrafika.Nazwy[i], menuBtn)) BraxGrafika.Ustaw((BraxGrafika.Tryb)i);
-            GUI.color = old;
-        }
-        y += h + g * .5f;
-        GUI.Label(new Rect(x, y, w, h * .5f), "NISKA: słabszy telefon · ŚREDNIA: telefon 30 kl./s · WYSOKA: komputer", small); y += h * .5f + g;
-        if (GUI.Button(new Rect(x, y, (w - g) * .5f, h), showFps ? "FPS: WŁ." : "FPS: WYŁ.", menuBtn)) showFps = !showFps;
-        if (GUI.Button(new Rect(x + (w + g) * .5f, y, (w - g) * .5f, h), "OD NOWA (SIŁOWNIA)", menuBtn)) { Input.simulateMouseWithTouches = false; Pause(false); player.Command("reset"); }
-        y += h + g;
-        bool jestMapa = BraxMapa.Aktywna;
-        GUI.enabled = jestMapa;
-        if (GUI.Button(new Rect(x, y, (w - g) * .5f, h), jestMapa ? "MAPA" : "MAPA (wkrótce)", menuBtn)) mapa = true;
-        GUI.enabled = true;
-        if (GUI.Button(new Rect(x + (w + g) * .5f, y, (w - g) * .5f, h), "AUTORZY", menuBtn)) { credits = true; creditsPage = 0; }
+        float k = BraxUstawienia.SkalaPrzyciskow, h = s * .078f * k;
+        var st = BraxGui.Styl(Mathf.RoundToInt(h * .36f), true, TextAnchor.MiddleLeft);
+        if (kontekstZmierzony != kontekstEkran) { kontekstZmierzony = kontekstEkran; kontekstSzer = BraxGui.Szerokosc(kontekstEkran, st); }   // porównanie treści (nowy napis co 0.12 s)
+        float prawy = cSkok.x - rS - gap, lewyMin = ukSafe.x + ukSafe.width * .47f;
+        float w = Mathf.Clamp(kontekstSzer + h * 1.45f, h * 2.6f, Mathf.Max(h * 2.6f, prawy - lewyMin));
+        float yc = Screen.height - cSkok.y;
+        akcjaG = new Rect(prawy - w, yc - h * .5f, w, h);
+        bool wc = Wcis(PAkcja);
+        BraxGui.Zaokraglony(new Rect(akcjaG.x - h * .06f, akcjaG.y + h * .04f, akcjaG.width + h * .12f, akcjaG.height + h * .08f), h * .56f, new Color(0f, 0f, 0f, .2f));
+        BraxGui.Pigulka(akcjaG, wc ? new Color(BraxGui.Akcent.r, BraxGui.Akcent.g, BraxGui.Akcent.b, .75f) : new Color(.1f, .2f, .05f, .55f));
+        BraxGui.ObrysZaokraglony(akcjaG, h * .5f, new Color(BraxGui.Akcent.r, BraxGui.Akcent.g, BraxGui.Akcent.b, wc ? 1f : .75f));
+        float ik = h * .56f;
+        BraxGui.Tekstura(new Rect(akcjaG.x + h * .3f, akcjaG.center.y - ik * .5f, ik, ik), BraxIkony.Dlon, BraxGui.Biel);
+        var old = st.clipping; st.clipping = TextClipping.Clip;
+        BraxGui.Napis(new Rect(akcjaG.x + h * .3f + ik + h * .18f, akcjaG.y, akcjaG.width - ik - h * .78f, akcjaG.height), kontekstEkran, st, BraxGui.Biel);
+        st.clipping = old;
     }
 
-    // Mapa: obraz rejonu dopasowany do ekranu, podpisy miejsc, strzałka Braxa (pozycja + kierunek). Północ (+z) u góry.
-    void Mapa(float s)
+    // ciemna pigułka z jednym wierszem tekstu, wyśrodkowana w poziomie (albo wokół x)
+    void Pasek(string tekst, float y, float alfa, float x = -1f)
     {
-        var m = BraxMapa.Aktywna; if (!m || !m.obraz) { mapa = false; return; }
-        if (mapLab == null) { mapLab = new GUIStyle(small) { fontStyle = FontStyle.Bold, fontSize = Mathf.RoundToInt(s * .026f), wordWrap = false }; }
-        float bh = s * .1f, top = s * .04f, availH = Screen.height - top - bh * 1.5f, availW = Screen.width - s * .08f;
-        float asp = (float)m.obraz.width / m.obraz.height, mh = Mathf.Min(availH, availW / asp), mw = mh * asp;
-        var r = new Rect((Screen.width - mw) * .5f, top, mw, mh);
-        GUI.DrawTexture(r, m.obraz, ScaleMode.StretchToFill);
-        Vector2 Ekran(Vector2 uv) => new Vector2(r.x + uv.x * r.width, r.y + (1f - uv.y) * r.height);
-        var old = GUI.color;
-        foreach (var mi in m.miejsca)
-        {
-            var e = Ekran(new Vector2((mi.xz.x - m.swiat.x) / m.swiat.width, (mi.xz.y - m.swiat.y) / m.swiat.height));
-            var size = mapLab.CalcSize(new GUIContent(mi.nazwa));
-            var lr = new Rect(e.x - size.x * .5f - 4, e.y - size.y * .5f, size.x + 8, size.y);
-            GUI.color = new Color(0, 0, 0, .55f); GUI.DrawTexture(lr, Texture2D.whiteTexture);
-            GUI.color = Color.white; GUI.Label(lr, mi.nazwa, mapLab);
-        }
-        // Brax: zielona kropka i strzałka kierunku
-        var pe = Ekran(m.NaObraz(player.transform.position));
-        float ds = s * .035f;
-        float yaw = player.transform.eulerAngles.y;
-        var mat = GUI.matrix;
-        GUIUtility.RotateAroundPivot(yaw, pe);
-        GUI.color = Accent; GUI.DrawTexture(new Rect(pe.x - ds * .25f, pe.y - ds * 1.1f, ds * .5f, ds * .9f), Texture2D.whiteTexture);
-        GUI.matrix = mat;
-        GUI.color = Accent; GUI.DrawTexture(new Rect(pe.x - ds * .5f, pe.y - ds * .5f, ds, ds), disc);
-        GUI.color = old;
-        GUI.Label(new Rect(r.x, r.y + s * .01f, r.width, s * .05f), m.tytul + "  ·  zielona kropka = Ty", small);
-        if (GUI.Button(new Rect((Screen.width - s * .6f) * .5f, Screen.height - bh * 1.25f, s * .6f, bh), "ZAMKNIJ", menuBtn)) mapa = false;
+        var st = BraxGui.Styl(Mathf.RoundToInt(s * .026f), true, TextAnchor.MiddleCenter);
+        float w = BraxGui.Szerokosc(tekst, st) + s * .05f, h = s * .046f;
+        float cx = x < 0f ? ukSafe.center.x : x;
+        var r = new Rect(cx - w * .5f, y, w, h);
+        BraxGui.Pigulka(r, new Color(0f, 0f, 0f, .42f * alfa));
+        BraxGui.Napis(r, tekst, st, new Color(1f, 1f, 1f, .95f * alfa), false);
     }
 
-    // Ekran „Autorzy”: tekst z Resources/braxhorn_autorzy.txt (unity-tools/claude/autorzy.py zbiera CREDITS.md i metadane
-    // modeli w każdym buildzie). Strony zamiast przewijania — IMGUI na dotyku nie przewija ScrollView palcem.
-    void Credits(float s)
+    // komunikat (zapisano zgłoszenie, przeniesiono…): pod górną krawędzią, gaśnie w 0.4 s
+    void Toast()
     {
-        if (creditLines == null)
-        {
-            var ta = Resources.Load<TextAsset>("braxhorn_autorzy");
-            creditLines = (ta ? ta.text : "BRAXHORN CITY — AUTORZY\n(brak listy w tym buildzie)").Replace("\r", "").Split('\n');
-        }
-        if (creditStyle == null) creditStyle = new GUIStyle(small) { alignment = TextAnchor.UpperLeft, wordWrap = true, richText = false };
-        float w = Mathf.Min(Screen.width - s * .1f, s * 1.9f), x = (Screen.width - w) * .5f, top = Screen.height * .06f, h = s * .11f, g = s * .025f;
-        float areaH = Screen.height - top - h * 2.2f;
-        // strona = tyle linii, ile mieści się w polu (wysokość z zawijaniem liczona przez IMGUI)
-        int start = 0, page = 0, end = 0;
-        while (true)
-        {
-            float used = 0; end = start;
-            while (end < creditLines.Length)
-            {
-                float lh = creditStyle.CalcHeight(new GUIContent(creditLines[end].Length == 0 ? " " : creditLines[end]), w);
-                if (used + lh > areaH && end > start) break;
-                used += lh; end++;
-            }
-            if (page == creditsPage || end >= creditLines.Length) break;
-            start = end; page++;
-        }
-        creditsPage = page;
-        var text = string.Join("\n", creditLines, start, end - start);
-        GUI.Label(new Rect(x, top, w, areaH), text, creditStyle);
-        float y = Screen.height - h * 1.6f, bw = (w - 2 * g) / 3f;
-        GUI.enabled = creditsPage > 0;
-        if (GUI.Button(new Rect(x, y, bw, h), "WSTECZ", menuBtn)) creditsPage--;
-        GUI.enabled = end < creditLines.Length;
-        if (GUI.Button(new Rect(x + bw + g, y, bw, h), "DALEJ", menuBtn)) creditsPage++;
-        GUI.enabled = true;
-        if (GUI.Button(new Rect(x + 2 * (bw + g), y, bw, h), "ZAMKNIJ", menuBtn)) credits = false;
+        float t = Time.unscaledTime;
+        if (t > komunikatDo || komunikat.Length == 0 || Event.current.type != EventType.Repaint) return;
+        float a = Mathf.Clamp01((komunikatDo - t) / .4f) * Mathf.Clamp01((t - komunikatOd) / .15f);
+        var st = BraxGui.Styl(Mathf.RoundToInt(s * .028f), true, TextAnchor.MiddleCenter, true);
+        float w = Mathf.Min(ukSafe.width * .86f, s * 1.6f), h = BraxGui.Wysokosc(komunikat, st, w - s * .06f) + s * .04f;
+        var r = new Rect(ukSafe.center.x - w * .5f, ukSafe.y + s * .12f, w, h);
+        BraxGui.Zaokraglony(r, s * .022f, new Color(.06f, .09f, .05f, .9f * a));
+        BraxGui.ObrysZaokraglony(r, s * .022f, new Color(BraxGui.Akcent.r, BraxGui.Akcent.g, BraxGui.Akcent.b, .8f * a));
+        BraxGui.Napis(new Rect(r.x + s * .03f, r.y, r.width - s * .06f, r.height), komunikat, st, new Color(1f, 1f, 1f, a), false);
+    }
+
+    void OnApplicationPause(bool pauza)
+    {
+        if (!pauza || Qa) return;
+        BraxUstawienia.Zapisz();
+        if (player && joyId >= 0) { joyId = -1; Stop(); }
     }
 }

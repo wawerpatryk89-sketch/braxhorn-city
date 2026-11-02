@@ -3,7 +3,8 @@ using UnityEngine.SceneManagement;
 
 // BRAXHORN — 3 tryby grafiki dla całej gry (decyzja właściciela 31.10, 18:35): NISKA / ŚREDNIA / WYSOKA.
 // Wybór w menu (BraxTouchControls) albo klawisz F1/F2/F3 na komputerze; zapamiętany (PlayerPrefs).
-// Domyślnie: telefon z < 6 GB RAM → NISKA, inny telefon → ŚREDNIA, komputer → WYSOKA.
+// Domyślnie (build 14): wg telefonu — BraxProfilTelefonu (Edge 60 Pro / mocna grafika → WYSOKA, moto g86 → ŚREDNIA,
+// < 5 GB RAM → NISKA), komputer → WYSOKA. Wybór ręczny z MENU → USTAWIENIA ma pierwszeństwo (zapamiętany).
 // Każdy tryb ustawia naraz: cienie (jakość, zasięg, kaskady), wygładzanie krawędzi, LOD (lodBias = jak daleko
 // modele trzymają pełny detal), tekstury (pełne / połowa), rozdzielczość renderu na telefonie, limit klatek,
 // zasięg kamery, zasięg trawy 3D na osiedlu. Stosowane po każdym wczytaniu sceny (miasto ↔ osiedle), bo gracz
@@ -16,7 +17,9 @@ public sealed class BraxGrafika : MonoBehaviour
     public enum Tryb { Niska = 0, Srednia = 1, Wysoka = 2 }
     public static Tryb Aktualny { get; private set; } = Tryb.Srednia;
     public static readonly string[] Nazwy = { "NISKA", "ŚREDNIA", "WYSOKA" };
-    const string Klucz = "braxhorn_grafika_b5";   // nowy klucz: wybór z APK d260250 nie przechodzi do tej wersji
+    // build 14: nowy klucz — automatyczny tryb wg telefonu (BraxProfilTelefonu) zaczyna od zera, zapamiętany jest tylko wybór ręczny z MENU
+    const string Klucz = "braxhorn_grafika_b14";
+    public static bool Reczny { get; private set; }   // true = gracz wybrał w MENU (zapamiętane), false = automatycznie wg telefonu
     static BraxGrafika inst;
     static int natW, natH;
     int doZastosowania = 2;          // ile klatek po wczytaniu sceny jeszcze raz nadpisać (gracz w Start ustawia 60 kl./s)
@@ -39,17 +42,23 @@ public sealed class BraxGrafika : MonoBehaviour
         // Telefon: domyślnie NISKA (audyt 31.10: 1.1 GB tekstur, część z .glb nieskompresowana — limit mip ½ przed pierwszą
         // sceną = ¼ pamięci tekstur; bez cieni w czasie rzeczywistym). ŚREDNIA / WYSOKA do wybrania w MENU i zapamiętane,
         // ale na telefonie żaden tryb nie zdejmuje limitu tekstur (Mip) — zapamiętany wybór nie może już zamknąć gry na starcie.
-        int domyslny = Application.isMobilePlatform ? 0 : 2;
-        int t = domyslny;
-        try { t = PlayerPrefs.GetInt(Klucz, domyslny); } catch { }
-        Aktualny = (Tryb)Mathf.Clamp(t, 0, 2);
+        // build 14 (właściciel 21:42–21:46): domyślnie wg telefonu — Edge 60 Pro / mocna grafika = WYSOKA, moto g86 = ŚREDNIA,
+        // < 5 GB RAM = NISKA (BraxProfilTelefonu). Tekstury na telefonie i tak zawsze z limitem mip (Mip), więc wyższy tryb
+        // nie zwiększa pamięci tekstur przy starcie.
+        int domyslny = BraxProfilTelefonu.Domyslny();
+        int t = -1;
+        try { t = PlayerPrefs.GetInt(Klucz, -1); } catch { }
+        Reczny = t >= 0;
+        Aktualny = (Tryb)Mathf.Clamp(Reczny ? t : domyslny, 0, 2);
+        Debug.Log("BRAXHORN_UI grafika: " + Nazwy[(int)Aktualny] + (Reczny ? " (wybór ręczny)" : " (automatycznie: " + BraxProfilTelefonu.Powod + ")") +
+                  " · " + SystemInfo.deviceModel + " · " + SystemInfo.graphicsDeviceName + " · RAM " + SystemInfo.systemMemorySize + " MB");
         SceneManager.sceneLoaded += (s, m) => doZastosowania = 2;
         Zastosuj();
     }
 
     public static void Ustaw(Tryb t)
     {
-        Aktualny = t;
+        Aktualny = t; Reczny = true;
         try { PlayerPrefs.SetInt(Klucz, (int)t); PlayerPrefs.Save(); } catch { }
         rozdzielczoscUstawiona = false;
         if (inst) { inst.doZastosowania = 2; inst.Zastosuj(); }
@@ -90,6 +99,19 @@ public sealed class BraxGrafika : MonoBehaviour
                 Rozdzielczosc(tel ? .85f : 1f); Klatki(tel ? 30 : 60); Zasieg(420f); Trawa(22f, 30f);
                 break;
             default:
+                if (tel)
+                {
+                    // build 14: WYSOKA na telefonie flagowym (Edge 60 Pro, cel 60 kl./s): miękkie cienie 2048 do 70 m w 2 kaskadach,
+                    // LOD ×1.5, dalszy zasięg, bez odbić w czasie rzeczywistym (Dimensity 8350 szybko się grzeje — test Beebom 32 %
+                    // stabilności); przy spadku klatek BraxTouchControls sam schodzi z 60 do 45 / 30 kl./s.
+                    QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.High;
+                    QualitySettings.shadowDistance = 70f; QualitySettings.shadowCascades = 2; QualitySettings.shadowProjection = ShadowProjection.StableFit;
+                    QualitySettings.lodBias = 1.5f; Mip(0);
+                    QualitySettings.pixelLightCount = 5; QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
+                    QualitySettings.realtimeReflectionProbes = false; QualitySettings.softParticles = false; QualitySettings.skinWeights = SkinWeights.FourBones;
+                    Klatki(60); Zasieg(700f); Trawa(32f, 42f);
+                    break;
+                }
                 QualitySettings.shadows = ShadowQuality.All; QualitySettings.shadowResolution = ShadowResolution.VeryHigh;
                 QualitySettings.shadowDistance = 120f; QualitySettings.shadowCascades = 4; QualitySettings.shadowProjection = ShadowProjection.StableFit;
                 Msaa(4); QualitySettings.lodBias = 2.2f; Mip(0);

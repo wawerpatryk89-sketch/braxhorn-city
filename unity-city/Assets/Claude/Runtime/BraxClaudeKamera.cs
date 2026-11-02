@@ -14,7 +14,11 @@ using UnityEngine;
 [RequireComponent(typeof(Camera))]
 public class BraxClaudeKamera : MonoBehaviour
 {
-    public float daleko = .25f, blisko = .1f, wejscie = .05f, wyjscie = .25f, cienie = 60f;
+    // build 14: przy ścianie 0.15 m zamiast 0.1 m (zlecenie „sterowanie”: nearClipPlane ≥ 0.15 — 1.5× dokładniejsza głębia
+    // także we wnętrzach); kolizja kamery gracza ma teraz kulę 0.26 m + dosunięcie przy ścianie bocznej (BraxGymPlayer),
+    // więc róg bliskiej płaszczyzny (0.24 m przy 20:9) nie wchodzi w ścianę.
+    public const float MinBlisko = .15f;
+    public float daleko = .25f, blisko = .15f, wejscie = .05f, wyjscie = .25f, cienie = 60f;
     Camera cam;
     bool przyScianie;
 
@@ -31,7 +35,7 @@ public class BraxClaudeKamera : MonoBehaviour
         float t = Mathf.Tan(cam.fieldOfView * .5f * Mathf.Deg2Rad), a = cam.aspect;
         float rog = daleko * Mathf.Sqrt(1f + t * t + t * t * a * a);          // odległość rogu bliskiej płaszczyzny od kamery
         przyScianie = Physics.CheckSphere(transform.position, rog + (przyScianie ? wyjscie : wejscie), ~(1 << 8), QueryTriggerInteraction.Ignore);
-        float n = przyScianie ? blisko : daleko;
+        float n = Mathf.Max(MinBlisko, przyScianie ? blisko : daleko);
         if (cam.nearClipPlane != n) cam.nearClipPlane = n;
     }
 }
