@@ -307,7 +307,8 @@ public sealed class BraxTouchControls : MonoBehaviour
         if (!BraxUstawienia.Licznik) { if (LicznikTekst.Length > 0) LicznikTekst = ""; return; }
         long uzyw = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong() >> 20, rez = UnityEngine.Profiling.Profiler.GetTotalReservedMemoryLong() >> 20;
         LicznikTekst = BraxTeksty.F("test.pamiec", Mathf.RoundToInt(fpsPokaz), uzyw + " / " + rez + " MB") + " · " + BraxGrafika.Nazwy[(int)BraxGrafika.Aktualny] +
-                       " · cel " + Application.targetFrameRate + " · RAM " + SystemInfo.systemMemorySize + " MB";
+                       " · cel " + Application.targetFrameRate + " · RAM " + SystemInfo.systemMemorySize + " MB" +
+                       " · ludzie " + BraxLudzie.Aktywni + "/" + BraxLudzie.Limit + " · auta " + BraxAuto.Wszystkie.Count + " (silniki " + BraxAuto.GrajaceSilniki + ")";   // E19
     }
 
     // WYSOKA na telefonie: Dimensity 8350 po kilku minutach się grzeje (test Beebom: 32 % stabilności) — średnia z 8 s

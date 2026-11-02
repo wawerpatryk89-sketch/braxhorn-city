@@ -53,6 +53,14 @@ public static partial class BraxClaudeOsiedle
                      " klipy=" + rbKlipy.Count + " wzrost_bohatera=" + WzrostBohatera.ToString("F2");
         Debug.Log(msg); rep.notes.Add(msg);
         string Stat(List<float> l) => l.Count == 0 ? "—" : "n=" + l.Count + " śr " + l.Average().ToString("F3") + " min " + l.Min().ToString("F3") + " max " + l.Max().ToString("F3");
+        {   // E19 (build 45): stan wydajności postaci i aut w scenie (koszt runtime ograniczany odległością w BraxLudzie / BraxAuto)
+            int ludzie = UnityEngine.Object.FindObjectsByType<BraxMieszkaniec>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length + UnityEngine.Object.FindObjectsByType<BraxPieszy>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+            int skinned = UnityEngine.Object.FindObjectsByType<SkinnedMeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+            var auta = UnityEngine.Object.FindObjectsByType<BraxAuto>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Debug.Log("BRAXHORN_WYDAJNOSC ludzie=" + ludzie + " skinned=" + skinned + " auta=" + auta.Length + " zrodla_audio_silnikow=" + auta.Count(a => a.silnik) + " (grają najbliższe " + BraxAuto.SilnikiMax + ")"
+                + " LOD_ludzi=nie (cull: animacja do " + BraxLudzie.PromienMax + " m, limit " + BraxLudzie.LimitMax + "→" + BraxLudzie.LimitMin + " przy < 35 kl./s) cienie_postaci_zasieg=" + BraxLudzie.CienOdl.ToString("F1") + " m"
+                + " skóra_2_kości_od=" + BraxLudzie.DwieKosciOdl.ToString("F1") + " m cienie_aut_zasieg=" + BraxAuto.CienAutaOdl.ToString("F1") + " m");
+        }
         Debug.Log("BRAXHORN_LUDZIE_REKWIZYTY plecaki=0 (klocek z 3 brył bez szelek wyłączony; pominięto " + rbPlecakiPominiete + " losowań) torby=zaokrąglone z paskiem, kubki/telefony/czapki/okulary bez zmian");
         Debug.Log("BRAXHORN_SKALA ludzie: k świata=" + K.ToString("F3") + " baza ludzi=" + WzrostBazaLudzi.ToString("F2") + " m (#44: 2.27) mężczyźni " + Stat(wzrostyM) + " kobiety " + Stat(wzrostyK)
             + " (oczekiwane: mężczyźni 2.202–2.270, kobiety 2.145–2.213)");
