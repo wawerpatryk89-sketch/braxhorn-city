@@ -30,7 +30,7 @@ Shader "Braxhorn/OsiedleKepki"
         LOD 200
         Cull Off
         CGPROGRAM
-        #pragma surface surf Lambert alphatest:_Cutoff addshadow vertex:vert
+        #pragma surface surf Lambert alphatest:_Cutoff addshadow vertex:vert dithercrossfade
         #pragma target 3.0
         sampler2D _MainTex, _GroundTex;
         fixed4 _Color, _GroundColor, _Dry;

@@ -4,13 +4,13 @@ using UnityEditor;
 // Ustawienia importu prywatnych zasobów właściciela (Assets/Source/Prywatne — odszyfrowane w CI przez
 // unity-tools/claude/prywatne.py, poza gitem). Ustawiane PRZED pierwszym importem (bez ponownego importu 30 MB FBX):
 //   patryk/*.fbx  — Humanoid (awatar z modelu, kontrola w BRAXHORN_PATRYK), bez materiałów i animacji z pliku;
-//   ruchy/**.fbx  — Legacy, krzywe bez kompresji (źródło przenoszenia na kości Patryka, BraxClaudeOsiedlePatryk);
+//   ruchy/**.fbx  — Humanoid, krzywe bez kompresji (źródło przenoszenia na kości Patryka, BraxClaudeOsiedlePatryk);
 //   *.png         — najwyżej 2K (telefon), mipmapy, kompresja wysokiej jakości; normalne i ORM liniowo.
 public sealed class BraxPrywatneImport : AssetPostprocessor
 {
     const string Katalog = "Assets/Source/Prywatne/";
 
-    public override uint GetVersion() { return 1; }
+    public override uint GetVersion() { return 2; }
 
     void OnPreprocessModel()
     {
@@ -23,6 +23,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
         if (assetPath.StartsWith(Katalog + "patryk/"))
         {
             mi.animationType = ModelImporterAnimationType.Human;
+            mi.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
             mi.importAnimation = false;
             mi.optimizeGameObjects = false;
             mi.isReadable = true;                                   // pomiar wzrostu z wierzchołków (10 tys. — ~1 MB, bez znaczenia)
@@ -30,7 +31,9 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
         }
         else
         {
-            mi.animationType = ModelImporterAnimationType.Legacy;
+            mi.animationType = ModelImporterAnimationType.Human;
+            mi.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+            mi.optimizeGameObjects = false;
             mi.importAnimation = true;
             mi.resampleCurves = true;
             mi.animationCompression = ModelImporterAnimationCompression.Off;

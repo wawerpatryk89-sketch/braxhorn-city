@@ -1,0 +1,404 @@
+{
+  "kwestie": [
+    {
+      "tekst": "Ale dziś słońce, co?",
+      "id": "e42df86ba016b781"
+    },
+    {
+      "tekst": "Ale forma, szacun!",
+      "id": "a2842ccb40ec39c6"
+    },
+    {
+      "tekst": "Auć!",
+      "id": "a550d50cb6e0f641"
+    },
+    {
+      "tekst": "Ała!",
+      "id": "655648c79881a37a"
+    },
+    {
+      "tekst": "Brzmi nieźle.",
+      "id": "89bf539ec3fbdab0"
+    },
+    {
+      "tekst": "Byłem. Truskawkowy daje radę.",
+      "id": "85aaefcc0f7a56bf"
+    },
+    {
+      "tekst": "Byłeś w nowym Shake Barze?",
+      "id": "50f40c53e36f70d6"
+    },
+    {
+      "tekst": "Cappuccino jak zawsze?",
+      "id": "a4c48b3169bbd6dc"
+    },
+    {
+      "tekst": "Chciałbym. Ale ceny kosmos.",
+      "id": "afa650067aaac685"
+    },
+    {
+      "tekst": "Co podać?",
+      "id": "2326b17269621377"
+    },
+    {
+      "tekst": "Co się dzieje?!",
+      "id": "7c69ae8a3da0b4cc"
+    },
+    {
+      "tekst": "Co ty robisz?!",
+      "id": "99dfabf6f6d327a6"
+    },
+    {
+      "tekst": "Cześć, mistrzu!",
+      "id": "f403c25aee8e740e"
+    },
+    {
+      "tekst": "Dobry wieczór! Coś do picia?",
+      "id": "35a9f6efaf22bc80"
+    },
+    {
+      "tekst": "Dobry wieczór! Numerek proszę.",
+      "id": "e489e9f2ee3075b9"
+    },
+    {
+      "tekst": "Dobry wieczór.",
+      "id": "74bf4c6edd84a1ab"
+    },
+    {
+      "tekst": "Dobry wieczór. Żetony?",
+      "id": "ebd501e52d5c245d"
+    },
+    {
+      "tekst": "Dzień dobry!",
+      "id": "66e61f8b97f9ba9e"
+    },
+    {
+      "tekst": "Dzień dobry! Kawa?",
+      "id": "9fe852d68057ea57"
+    },
+    {
+      "tekst": "Dzień dobry! W czym mogę pomóc?",
+      "id": "d4b83631391ce14e"
+    },
+    {
+      "tekst": "Dzień dobry. Coś się stało?",
+      "id": "6f3131781e4b7659"
+    },
+    {
+      "tekst": "Dzień dobry. Rejestracja jest na wprost.",
+      "id": "914903d3fcd49e07"
+    },
+    {
+      "tekst": "Dzięki!",
+      "id": "05a6456d520b6b48"
+    },
+    {
+      "tekst": "Dzięki, dobrze wiedzieć.",
+      "id": "9ac185a7ab367844"
+    },
+    {
+      "tekst": "Dzięki, trzymaj się.",
+      "id": "9dd8b17c31c1974e"
+    },
+    {
+      "tekst": "Dzwonię na policję!",
+      "id": "82773fe2de04e5d3"
+    },
+    {
+      "tekst": "Ej! Zostaw go!",
+      "id": "3d11cab60bf8db78"
+    },
+    {
+      "tekst": "Ej, co jest?!",
+      "id": "3ae4589313a7b6e2"
+    },
+    {
+      "tekst": "Elo! Co tam?",
+      "id": "c93922244a6e4e11"
+    },
+    {
+      "tekst": "Fajnie, że zrobili to rondo.",
+      "id": "cc43a770fd1add18"
+    },
+    {
+      "tekst": "Fontanna w parku znowu działa. Dzieciaki mają frajdę.",
+      "id": "418629022b5e260a"
+    },
+    {
+      "tekst": "Gdzie tu jest komisariat?",
+      "id": "12bdc92db99d5a17"
+    },
+    {
+      "tekst": "Grasz dziś w kosza?",
+      "id": "a779ebd28853135a"
+    },
+    {
+      "tekst": "Hej!",
+      "id": "447750f9fcf8f825"
+    },
+    {
+      "tekst": "Hej! Spokojnie!",
+      "id": "6b9be4867732e472"
+    },
+    {
+      "tekst": "Hej! Tu nie wolno!",
+      "id": "48111f35ff087bb0"
+    },
+    {
+      "tekst": "Idziesz jutro na siłownię?",
+      "id": "e90e64ab35b98cf0"
+    },
+    {
+      "tekst": "Jak skończę robotę. Wpadaj o szóstej.",
+      "id": "8dfe7562a6db6d7a"
+    },
+    {
+      "tekst": "Jasne, zapraszam na trening.",
+      "id": "2af4fd1b1bd9befa"
+    },
+    {
+      "tekst": "Jeszcze cię dorwę!",
+      "id": "f19f0c6eb2d96ddb"
+    },
+    {
+      "tekst": "Komisariat, słucham.",
+      "id": "9cd3698470a24853"
+    },
+    {
+      "tekst": "Kupujesz tę willę na sprzedaż?",
+      "id": "ae12cce5f0619be3"
+    },
+    {
+      "tekst": "Kurtkę zostawiamy?",
+      "id": "cc79ff9f2602e45e"
+    },
+    {
+      "tekst": "Lista gości? Żartuję, wchodź.",
+      "id": "8d2a886862640968"
+    },
+    {
+      "tekst": "Mapę osiedla masz w menu. Ja bym się tu bez niej zgubił.",
+      "id": "61a8999199444bcc"
+    },
+    {
+      "tekst": "Miłego dnia!",
+      "id": "4024322dbfe82415"
+    },
+    {
+      "tekst": "Mój syn chce trenować kick-boxing. Przyjmujecie dzieciaki?",
+      "id": "6f43100a7869bf55"
+    },
+    {
+      "tekst": "Na Poznańskiej zrobili rondo. W końcu nie stoi się w korku pod tunelem.",
+      "id": "19e8f1d88f25b1e6"
+    },
+    {
+      "tekst": "Na Wiśniowej, za skrzyżowaniem.",
+      "id": "cb992b0553d85cb3"
+    },
+    {
+      "tekst": "Na korcie ktoś zostawił wyrzutnię piłek. Można poodbijać.",
+      "id": "00d1055d005fbb07"
+    },
+    {
+      "tekst": "Nara!",
+      "id": "c9af10b9e92d3afd"
+    },
+    {
+      "tekst": "Następny proszę.",
+      "id": "581c4173d92369fa"
+    },
+    {
+      "tekst": "No ba.",
+      "id": "40d883d71d2df67e"
+    },
+    {
+      "tekst": "No to trzeba sprawdzić.",
+      "id": "2d624aa7bd6392a8"
+    },
+    {
+      "tekst": "No, wcześniej był tu chaos.",
+      "id": "4d0fdad9e541bdd4"
+    },
+    {
+      "tekst": "O matko!",
+      "id": "102734189a925dcf"
+    },
+    {
+      "tekst": "O, cześć!",
+      "id": "ed56577fe840f804"
+    },
+    {
+      "tekst": "Odbiło ci?!",
+      "id": "193df344e909bea4"
+    },
+    {
+      "tekst": "Pogoda dziś jak marzenie. Aż chce się pobiegać.",
+      "id": "61e51fa6b711db29"
+    },
+    {
+      "tekst": "Polecam dziś sernik.",
+      "id": "00827f38754280b3"
+    },
+    {
+      "tekst": "Policja!",
+      "id": "d65619bf83b4ea57"
+    },
+    {
+      "tekst": "Pomocy!",
+      "id": "83f820594159a0bc"
+    },
+    {
+      "tekst": "Powodzenia!",
+      "id": "6c6cb18884fe2dcc"
+    },
+    {
+      "tekst": "Proszę poczekać, zaraz ktoś podejdzie.",
+      "id": "f960489963c2cd4f"
+    },
+    {
+      "tekst": "Proszę poczekać, zaraz pana poproszą.",
+      "id": "8fc48b74259df5f0"
+    },
+    {
+      "tekst": "Proszę się uspokoić!",
+      "id": "7b9a73e7bf34b693"
+    },
+    {
+      "tekst": "Proszę wyjść!",
+      "id": "1707f1ece03097aa"
+    },
+    {
+      "tekst": "Psychol!",
+      "id": "eb333b25e8acd736"
+    },
+    {
+      "tekst": "Płatność kartą?",
+      "id": "fd492a2ddbe0e6ec"
+    },
+    {
+      "tekst": "Rano, przed pracą.",
+      "id": "0ad907a17bfaa99a"
+    },
+    {
+      "tekst": "Siema!",
+      "id": "4221e8565b1f1422"
+    },
+    {
+      "tekst": "Spokojnie, człowieku!",
+      "id": "9c1ad1768724d6ee"
+    },
+    {
+      "tekst": "Szejk czy coś mocniejszego?",
+      "id": "d9a7d37d6d287f6c"
+    },
+    {
+      "tekst": "Słyszałem. Brax ma podobno wystąpić.",
+      "id": "1cb50c872d694014"
+    },
+    {
+      "tekst": "Słyszałeś o gali w hali walk?",
+      "id": "a26c4191a15cdf27"
+    },
+    {
+      "tekst": "Słyszałeś? Za kasynem jest siłownia BRAXHORN. Podobno sprzęt jak w zawodowym klubie.",
+      "id": "6adb359e30d02b3b"
+    },
+    {
+      "tekst": "Te Porsche? Pewnie ktoś z kasyna.",
+      "id": "82c6740ca781fe33"
+    },
+    {
+      "tekst": "To do zobaczenia!",
+      "id": "de0d93ace8266f24"
+    },
+    {
+      "tekst": "To się widzimy.",
+      "id": "303c128e1450985a"
+    },
+    {
+      "tekst": "To trzeba iść!",
+      "id": "9498d16ad29ef984"
+    },
+    {
+      "tekst": "Trening dziś był?",
+      "id": "387f030a2e8fce0b"
+    },
+    {
+      "tekst": "Trzymaj się ode mnie z daleka!",
+      "id": "21f03dc9e9ed9728"
+    },
+    {
+      "tekst": "Trzymaj się!",
+      "id": "c559ec078651a432"
+    },
+    {
+      "tekst": "Tunelem dojdziesz do miasta. Tam dopiero się dzieje.",
+      "id": "b5649dbfc5fe1580"
+    },
+    {
+      "tekst": "Uciekajmy!",
+      "id": "1a5109a3db4d3eed"
+    },
+    {
+      "tekst": "W Parku Wiśniowym chłopaki grają w kosza. Wpadnij, może trafisz za trzy.",
+      "id": "f79f3cdb03631f41"
+    },
+    {
+      "tekst": "W Shake Barze robią najlepsze szejki na osiedlu. Spróbuj bananowego.",
+      "id": "a4e3e01c4047b6b3"
+    },
+    {
+      "tekst": "W hali walk szykują galę. Ludzie już pytają o bilety.",
+      "id": "d976f8ba1fcc7f12"
+    },
+    {
+      "tekst": "W kasynie wczoraj ktoś rozbił bank. Cała dzielnica o tym gada.",
+      "id": "02830d772b11700f"
+    },
+    {
+      "tekst": "Wariat!",
+      "id": "b7bdc6c71a77cae6"
+    },
+    {
+      "tekst": "Widziałeś nowe auta na parkingu?",
+      "id": "3cf563266ac678cc"
+    },
+    {
+      "tekst": "Widzieliście to?!",
+      "id": "a4e75e0227f60c0f"
+    },
+    {
+      "tekst": "Witamy w kasynie. Ile wymieniamy?",
+      "id": "c48c2e2db3768b2b"
+    },
+    {
+      "tekst": "Witamy! Karnet czy wejście jednorazowe?",
+      "id": "129775f59c0eab04"
+    },
+    {
+      "tekst": "Wpadnę, zobaczę.",
+      "id": "6e7a21f38ee48fd8"
+    },
+    {
+      "tekst": "Wreszcie. Cały tydzień lało.",
+      "id": "107e8d6642071342"
+    },
+    {
+      "tekst": "Wzywam ochronę!",
+      "id": "66ab64c09b4685a1"
+    },
+    {
+      "tekst": "Zapraszam, tylko bez awantur.",
+      "id": "a6750f80c13ea196"
+    },
+    {
+      "tekst": "Zgłoszę to na policję!",
+      "id": "3fabcef9aa9a8d3a"
+    },
+    {
+      "tekst": "Zostaw mnie!",
+      "id": "5b0d10405f5f0210"
+    }
+  ]
+}

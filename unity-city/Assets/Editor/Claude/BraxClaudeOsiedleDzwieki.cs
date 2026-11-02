@@ -121,6 +121,7 @@ public static partial class BraxClaudeOsiedle
         var silnik = Silnik();
         int auta = 0;
         foreach (var a in Object.FindObjectsByType<BraxAuto>(FindObjectsInactive.Include, FindObjectsSortMode.None)) { a.silnik = silnik; auta++; }
+        foreach (var a in Object.FindObjectsByType<BraxAutoGracza>(FindObjectsInactive.Include, FindObjectsSortMode.None)) { a.silnik = silnik; auta++; }
         var go = new GameObject("BRAXHORN dźwięki otoczenia (ptaki, wiatr, miasto)"); go.transform.SetParent(Group("Osiedle / dźwięki"), false);
         var o = go.AddComponent<BraxOtoczenie>();
         o.ptaki = Ptaki(); o.wiatr = WiatrLiscie(); o.szum = SzumMiasta();

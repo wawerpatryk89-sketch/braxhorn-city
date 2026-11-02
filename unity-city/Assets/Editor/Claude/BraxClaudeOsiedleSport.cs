@@ -35,7 +35,7 @@ public static partial class BraxClaudeOsiedle
     static BraxSportBoisko NoweBoisko(Transform sport, string nazwa, BraxSportBoisko.Gra gra)
     {
         var go = new GameObject(nazwa); go.transform.SetParent(sport, false);
-        var b = go.AddComponent<BraxSportBoisko>(); b.gra = gra; return b;
+        var b = go.AddComponent<BraxSportBoisko>(); b.gra = gra; b.jednostkiNaMetr = K; return b;
     }
 
     // ---------------- koszykówka ----------------
@@ -59,8 +59,8 @@ public static partial class BraxClaudeOsiedle
         }
         var b = NoweBoisko(sport, "boisko do koszykówki (park Wiśniowy)", BraxSportBoisko.Gra.Kosz);
         b.srodek = new Vector3(cx, .08f, cz); b.osX = Vector3.right; b.pol = new Vector2(hx, hz); b.strefa = new Vector2(hx + 2.5f, hz + 2.5f);
-        b.cele = new[] { new Vector3(cx - hx + 1.575f, 3.05f, cz), new Vector3(cx + hx - 1.575f, 3.05f, cz) };
-        b.tablice = new[] { new Vector3(cx - hx + 1.2f, 3.425f, cz), new Vector3(cx + hx - 1.2f, 3.425f, cz) };
+        b.cele = new[] { new Vector3(cx - hx + 1.575f * K, .08f + 3.05f * K, cz), new Vector3(cx + hx - 1.575f * K, .08f + 3.05f * K, cz) };
+        b.tablice = new[] { new Vector3(cx - hx + 1.2f * K, .08f + 3.425f * K, cz), new Vector3(cx + hx - 1.2f * K, .08f + 3.425f * K, cz) };
         return "kosz w Parku Wiśniowym (2 obręcze z kolizją, piłka" + (wylaczone > 0 ? ", " + wylaczone + " kolizji starego kosza wyłączonych" : "") + ")";
     }
 
@@ -78,7 +78,7 @@ public static partial class BraxClaudeOsiedle
             var b = NoweBoisko(sport, "boisko do siatkówki (willa)", BraxSportBoisko.Gra.Siatkowka);
             b.srodek = new Vector3(c.x, c00.y, c.z); b.osX = poprz.normalized;
             b.pol = new Vector2(poprz.magnitude * .5f, wzdl.magnitude * .5f); b.strefa = b.pol + new Vector2(1.6f, 1.2f);
-            b.siatkaDol = 1.43f; b.siatkaGora = 2.43f; b.siatkaPol = wzdl.magnitude * .5f + .45f;
+            b.siatkaDol = 1.43f * K; b.siatkaGora = 2.43f * K; b.siatkaPol = wzdl.magnitude * .5f + .45f;
             n++;
         }
         return n > 0 ? "siatkówka przy willi (" + n + ")" : "siatkówka: brak boiska (willa bez boiska?)";
@@ -164,12 +164,12 @@ public static partial class BraxClaudeOsiedle
         if (ok) { gdzie = "trawnik Parku Centralnego (" + bx.ToString("0") + ", " + bz.ToString("0") + ")"; sportTrawa.Add(Rect.MinMaxRect(bx - L * .5f - gl - .5f, bz - W * .5f - .5f, bx + L * .5f + gl + .5f, bz + W * .5f + .5f)); }
         else { bx = 28f; bz = -83f; gy = .08f; gdzie = "boisko do kosza w Parku Wiśniowym (brak wolnego trawnika)"; }   // bramki na liniach pod koszami
         float half = ok ? L * .5f : 13.9f - gl;
-        foreach (int s in new[] { -1, 1 }) Bramka(bx + s * half, gy, bz, s, 3f, 1.5f, gl);
+        foreach (int s in new[] { -1, 1 }) Bramka(bx + s * half, gy, bz, s, 3f * K, 1.5f * K, gl);
         var b = NoweBoisko(sport, "bramki do piłki nożnej", BraxSportBoisko.Gra.Nozna);
         b.srodek = new Vector3(bx, gy, bz); b.osX = Vector3.right; b.pol = new Vector2(half, ok ? W * .5f : 7.4f);
         b.strefa = new Vector2(half + gl + 2.5f, (ok ? W * .5f : 7.4f) + 2.5f);
         b.cele = new[] { new Vector3(bx - half, gy, bz), new Vector3(bx + half, gy, bz) };
-        b.bramkaSzer = 3f; b.bramkaWys = 1.5f; b.bramkaGl = gl;
+        b.bramkaSzer = 3f * K; b.bramkaWys = 1.5f * K; b.bramkaGl = gl;
         return "piłka nożna: 2 bramki — " + gdzie;
     }
 

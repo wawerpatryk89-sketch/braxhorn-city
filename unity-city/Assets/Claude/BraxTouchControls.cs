@@ -161,7 +161,7 @@ public sealed class BraxTouchControls : MonoBehaviour
         kontekstZmierzony = null;   // szerokość pigułki do przeliczenia
     }
 
-    bool OnFoot => player && !player.vessel && !player.seat;
+    bool OnFoot => player && !player.vessel && !player.seat && !player.autoGracza;
     bool AkcjaWidoczna => kontekstEkran.Length > 0;
     static bool W(Vector2 p, Vector2 c, float r) => (p - c).sqrMagnitude <= r * r;
     bool WAkcji(Vector2 p) { var g = new Vector2(p.x, Screen.height - p.y); var r = akcjaG; r.xMin -= gap * .4f; r.yMin -= gap * .4f; r.xMax += gap * .4f; r.yMax += gap * .4f; return r.Contains(g); }

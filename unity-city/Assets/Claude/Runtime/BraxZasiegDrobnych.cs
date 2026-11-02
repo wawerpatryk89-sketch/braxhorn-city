@@ -94,8 +94,15 @@ public sealed class BraxZasiegDrobnych : MonoBehaviour
             lods[last].screenRelativeTransitionHeight = nowy;
             for (int i = last - 1; i >= 0; i--) lods[i].screenRelativeTransitionHeight = Mathf.Max(w.prog[i], lods[i + 1].screenRelativeTransitionHeight + .0005f);
             w.g.SetLODs(lods);
-            w.g.fadeMode = LODFadeMode.CrossFade;
-            w.g.animateCrossFading = true;
+            // Never overlap two opaque LODs if either shader lacks the dither crossfade variant.
+            bool fade = true;
+            foreach (var lod in lods) foreach (var r in lod.renderers)
+                if (r) foreach (var m in r.sharedMaterials)
+                    if (m && m.shader && m.shader.name != "Standard" && m.shader.name != "Standard (Specular setup)"
+                        && m.shader.name != "Braxhorn/OsiedleLiscie" && m.shader.name != "Braxhorn/OsiedleKepki"
+                        && m.shader.name != "Braxhorn/OsiedleKepyInst") fade = false;
+            w.g.fadeMode = fade ? LODFadeMode.CrossFade : LODFadeMode.None;
+            w.g.animateCrossFading = fade;
             zmienione++;
         }
         Debug.Log("BRAXHORN_ZASIEG " + powod + ": grup LOD " + wpisy.Count + ", przeliczone " + zmienione + " (kępy z gaśnięciem " + kepy + "), wnętrza bez zmian " + wnetrza +

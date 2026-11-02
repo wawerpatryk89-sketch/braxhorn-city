@@ -20,8 +20,7 @@ public static partial class BraxClaudeOsiedle
     public static readonly List<Przejscie> Przejscia = new List<Przejscie>();
     public static readonly List<SkrzyzowanieInfo> SkrzyzowaniaInfo = new List<SkrzyzowanieInfo>();
 
-    // Miarą świata jest BRAX (właściciel 2.11 10:39–10:43: „Brax wygląda idealnie — pod niego ma być wszystko”; „mnożnik ma być
-    // wszystko tak jak pod Braxa”). Ta sama skala na osiedlu (gracz Patryk 2.27 m) i w mieście (gracz Brax).
+    // Bieżący gracz wyznacza skalę: Patryk 2.27 jednostki reprezentuje 1.80 m.
     public const float WzrostBraxa = 2.33f;
     public static float WzrostBohatera = WzrostBraxa;
     public static float K => WzrostBohatera / 1.80f;
@@ -40,8 +39,8 @@ public static partial class BraxClaudeOsiedle
         }
         float gracz = WzrostBohatera;                                         // zmierzony gracz (tylko do logu)
         if (WzrostZModelu > 1.2f && WzrostZModelu < 3.2f) gracz = WzrostZModelu;
-        WzrostBohatera = WzrostBraxa;                                          // świat zawsze pod Braxa
-        Debug.Log("BRAXHORN_SKALA wzrost bohatera " + WzrostBohatera.ToString("F2") + " m (miara świata = Brax), k = " + K.ToString("F3") + ", gracz w scenie " + gracz.ToString("F2") + " m");
+        WzrostBohatera = WzrostZModelu > 1.2f ? WzrostZModelu : WzrostBraxa; // Patryk zachowuje wielkość; 1.80 m jest miarą proporcji
+        Debug.Log("BRAXHORN_SKALA wzrost bohatera " + WzrostBohatera.ToString("F2") + " jednostek (odpowiednik 1.80 m), k = " + K.ToString("F3") + ", gracz w scenie " + gracz.ToString("F2") + " m");
         return WzrostBohatera;
     }
 

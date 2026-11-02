@@ -44,6 +44,7 @@ public sealed class BraxCityWorld : MonoBehaviour
         {
             if(loading)return "WCZYTYWANIE DZIELNICY…";
             var p=player.transform.position;
+            if(player.autoGracza)return player.autoGracza.Kontekst(p);
             if(player.vessel)return "ZEJDŹ · "+player.vessel.label;
             if(player.seat)return "WSTAŃ";
             var vessel=BraxVessel.Nearest(p,3.2f);
@@ -101,6 +102,7 @@ public sealed class BraxCityWorld : MonoBehaviour
     {
         if(loading)return true;
         var p=player.transform.position;
+        if(player.autoGracza){player.autoGracza.Wykonaj(p);return true;}
         if(player.vessel){player.vessel.Dismount();return true;}
         if(player.seat){player.seat.Leave();return true;}
         var vessel=BraxVessel.Nearest(p,3.2f);

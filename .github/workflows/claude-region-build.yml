@@ -4,6 +4,7 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
     branches:
     - claude/region-20261030
     - claude/miasto-opus-20261031
+    - codex/estate-flicker-patryk-voices-20261102
     paths:
     - unity-city/**
     - unity-tools/claude/**
@@ -34,7 +35,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   source-imports:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -57,7 +58,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -93,7 +94,7 @@ jobs:
       actions: read
     outputs:
       rejon: ${{ steps.rejon.outputs.rejon }}
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102')
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
@@ -407,7 +408,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102')
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -721,7 +722,7 @@ jobs:
 
   shots:
     needs: combined-unity6
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102')
     runs-on: ubuntu-latest
     timeout-minutes: 100
     strategy:
@@ -749,7 +750,7 @@ jobs:
         npm install --no-save --ignore-scripts playwright@1.56.1
         npx playwright install --with-deps chromium
     - name: Zdjecia z prawdziwego playera (czesc ${{ matrix.part }} z 3)
-      continue-on-error: true
+      continue-on-error: ${{ github.ref != 'refs/heads/codex/estate-flicker-patryk-voices-20261102' }}
       timeout-minutes: 80
       env:
         SHOT_PART: ${{ matrix.part }}
@@ -758,7 +759,11 @@ jobs:
       run: |
         # tylko ujecia budowanego rejonu (osiedle → 'estate', miasto → 'city', oba → wszystkie)
         t=$(date +%s); r=0
-        node unity-tools/claude/region_shots.mjs || r=$?
+        if [ "$GITHUB_REF" = 'refs/heads/codex/estate-flicker-patryk-voices-20261102' ]; then
+          node unity-tools/claude/estate_repair_review.mjs || r=$?
+        else
+          node unity-tools/claude/region_shots.mjs || r=$?
+        fi
         echo "BRAXHORN_CZAS etap=zdjecia czesc=${{ matrix.part }} rejon=${SHOT_REJON:-oba} s=$(( $(date +%s) - t ))"
         exit $r
     - name: Zdjecia do wydania

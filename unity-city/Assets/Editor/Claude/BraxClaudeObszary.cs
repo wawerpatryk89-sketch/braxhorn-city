@@ -17,7 +17,7 @@ using UnityEngine.SceneManagement;
 // woda i słońce. Drzwi działają przez rejestr BraxCityDoor.All. Doczytywanie: BraxObszary (runtime).
 public static class BraxClaudeObszary
 {
-    static readonly Type[] Zostaja = { typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(Camera), typeof(BraxObszary), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxNutritionCounter) };
+    static readonly Type[] Zostaja = { typeof(BraxGymPlayer), typeof(BraxCityWorld), typeof(Camera), typeof(BraxObszary), typeof(BraxCityElevator), typeof(BraxVessel), typeof(BraxNutritionCounter), typeof(BraxAutoGracza), typeof(BraxAuto), typeof(BraxRuchAut) };
 
     static bool MaZostajace(Transform t) => Zostaja.Any(z => t.GetComponentInChildren(z, true));
 
@@ -46,6 +46,8 @@ public static class BraxClaudeObszary
         var res = new List<Transform>();
         void Zbierz(Transform t)
         {
+            // Keep a vehicle/controller together with its entire hierarchy.
+            if(Zostaja.Any(z=>t.GetComponent(z)))return;
             if (!Granice(t, out var b)) return;
             if (obszar.Contains(b.min) && obszar.Contains(b.max) && !MaZostajace(t) && !(t.GetComponent<Light>() && t.GetComponent<Light>().type == LightType.Directional))
             { res.Add(t); return; }
@@ -98,6 +100,12 @@ public static class BraxClaudeObszary
         var part = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
         foreach (var w in wezly) SceneManager.MoveGameObjectToScene(w.gameObject, part);
         bool krzyzMain = EditorSceneManager.DetectCrossSceneReferences(main), krzyzPart = EditorSceneManager.DetectCrossSceneReferences(part);
+        if (krzyzMain || krzyzPart)
+        {
+            foreach (var w in wezly) SceneManager.MoveGameObjectToScene(w.gameObject, main);
+            EditorSceneManager.CloseScene(part, true); SceneManager.SetActiveScene(main);
+            throw new InvalidOperationException("Podział " + nazwaSceny + ": odwołania między scenami; obiekty pozostawiono razem");
+        }
         string path = folder + "/" + nazwaSceny + ".unity";
         if (!EditorSceneManager.SaveScene(part, path)) throw new Exception("Zapis sceny obszaru nieudany: " + path);
         EditorSceneManager.CloseScene(part, true);

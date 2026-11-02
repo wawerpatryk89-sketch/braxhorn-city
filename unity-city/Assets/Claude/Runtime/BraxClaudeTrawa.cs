@@ -15,6 +15,7 @@ public class BraxClaudeTrawa : MonoBehaviour
     public Mesh siatka;
     public Material material;
     public float kawalek = 9f, zasiegMurawy = 22f, zasiegLaki = 30f, zwolnijPo = 45f;
+    [Min(1)] public int przygotujNaKlatke = 2;
 
     int[][] idxM = new int[0][], idxL = new int[0][];          // kawałek → indeksy kęp w dane.kepy
     Matrix4x4[][][] macM = new Matrix4x4[0][][], macL = new Matrix4x4[0][][];   // kawałek → porcje ≤ 1023 (null = nie policzone)
@@ -72,6 +73,21 @@ public class BraxClaudeTrawa : MonoBehaviour
         GeometryUtility.CalculateFrustumPlanes(cam, plaszczyzny);
         Vector3 p = cam.transform.position; float r = kawalek * .75f;   // promień kawałka (pół przekątnej 0.707 × bok)
         float zm2 = (zasiegMurawy + r) * (zasiegMurawy + r), zl2 = (zasiegLaki + r) * (zasiegLaki + r), zw2 = (zasiegLaki + zwolnijPo) * (zasiegLaki + zwolnijPo);
+        // Prepare nearest chunks ahead of visibility, with a bounded allocation budget.
+        // Turning the camera used to allocate every newly visible chunk in one frame.
+        float prewarm = zasiegLaki + r + kawalek * 2f;
+        for (int n = 0; n < Mathf.Max(1, przygotujNaKlatke); n++)
+        {
+            int best = -1; float closest = prewarm * prewarm;
+            for (int i = 0; i < granice.Length; i++)
+            {
+                if (macM[i] != null && macL[i] != null) continue;
+                var c = granice[i].center; float d = (c.x-p.x)*(c.x-p.x) + (c.z-p.z)*(c.z-p.z);
+                if (d < closest) { best = i; closest = d; }
+            }
+            if (best < 0) break;
+            macM[best] = Policz(idxM[best]); macL[best] = Policz(idxL[best]);
+        }
         int kep = 0, wyw = 0, wPam = 0;
         for (int i = 0; i < granice.Length; i++)
         {
@@ -79,14 +95,12 @@ public class BraxClaudeTrawa : MonoBehaviour
             if (d2 > zw2) { macM[i] = null; macL[i] = null; continue; }
             if (macM[i] != null || macL[i] != null) wPam++;
             if (d2 > zl2 || !GeometryUtility.TestPlanesAABB(plaszczyzny, granice[i])) continue;
-            if (d2 <= zm2 && idxM[i].Length > 0)
+            if (d2 <= zm2 && idxM[i].Length > 0 && macM[i] != null)
             {
-                if (macM[i] == null) macM[i] = Policz(idxM[i]);
                 foreach (var arr in macM[i]) { Graphics.DrawMeshInstanced(siatka, 0, material, arr, arr.Length, null, ShadowCastingMode.Off, true, 0, null, LightProbeUsage.Off); kep += arr.Length; wyw++; }
             }
-            if (idxL[i].Length > 0)
+            if (idxL[i].Length > 0 && macL[i] != null)
             {
-                if (macL[i] == null) macL[i] = Policz(idxL[i]);
                 foreach (var arr in macL[i]) { Graphics.DrawMeshInstanced(siatka, 0, material, arr, arr.Length, null, ShadowCastingMode.Off, true, 0, null, LightProbeUsage.Off); kep += arr.Length; wyw++; }
             }
         }

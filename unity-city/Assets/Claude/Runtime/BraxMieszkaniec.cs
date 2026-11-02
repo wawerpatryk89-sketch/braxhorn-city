@@ -4,7 +4,7 @@ using UnityEngine;
 // MIESZKANIEC W MIEJSCU (build 14, właściciel 21:01: „ludzie mają być wszędzie obstawieni… musi się coś dziać”):
 // obsada lokali (za ladą: recepcja, bar, kawiarnia, kasa), ochroniarz przed klubem, policjanci, lekarz i pielęgniarka,
 // ludzie siedzący na ławkach, pary rozmawiające z gestami, osoby z telefonem, tańczący, kierowcy i pasażerowie aut.
-// Klipy Rocketbox (Legacy) zmieniane co kilka–kilkanaście sekund; para: mówi / słucha na zmianę z dymkami.
+// Klipy Rocketbox (Legacy) zmieniane co kilka–kilkanaście sekund; para: mówi / słucha na zmianę z polskim głosem.
 // Gracz blisko: obsługa patrzy na niego i wita; AKCJA = POGADAJ (kwestia roli). Ciosy: trafiony wzdryga się (odchylenie
 // tułowia — tylko obrót kości, klip reakcji), krzyczy; obsługa woła o spokój; świadkowie odwracają głowę.
 // Kierowca: siedzi (klip siedzenia przy stole), ręce lekko uniesione do kierownicy — obrót ramion po animacji (bez
@@ -29,7 +29,6 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     bool blisko = true, mowiTeraz;
     int wariant;
     Quaternion obrot0;
-    AudioSource glos;
 
     public Vector3 Pozycja => transform.position;
     public bool MozeReagowac => isActiveAndEnabled && !wAucie;
@@ -124,7 +123,7 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
             for (int k = 0; k < kwestie.Length && rozmowca; k++)
             {
                 var kto = k % 2 == 0 ? this : rozmowca; var sluch = k % 2 == 0 ? rozmowca : this;
-                float czas = 1.8f + kwestie[k].Length * .05f;
+                float czas = BraxDymki.Czas(kwestie[k], kto.ton);
                 kto.mowiTeraz = true; sluch.mowiTeraz = false;
                 kto.Graj(Los(kto.mowi) ?? Los(kto.klipy), .4f); sluch.Graj(Los(sluch.slucha) ?? Los(sluch.klipy), .4f);
                 kto.patrzCel = sluch.patrzCel = .5f; kto.patrzNa = sluch.transform.position; sluch.patrzNa = kto.transform.position;
@@ -147,7 +146,7 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
             if (reakcje.Length > 0) { var k = reakcje[wariant % reakcje.Length]; if (anim && anim[k]) { anim[k].time = 0f; anim.CrossFade(k, .1f); anim[k].speed = 1.4f; } }
             nastZmiana = Time.time + 3f;
         }
-        Powiedz(obsluga ? BraxLudzie.Los(BraxLudzie.Obsluga) : BraxLudzie.Los(BraxLudzie.Okrzyki), 2f, BraxLudzie.Krzyk(wariant));
+        Powiedz(obsluga ? BraxLudzie.Los(BraxLudzie.Obsluga) : BraxLudzie.Los(BraxLudzie.Okrzyki), 2f);
         BraxDzwiekiSwiata.Uderzenie(transform.position + Vector3.up * wzrost * (siedzi ? .5f : .75f), kop ? 7f : 5f, 2);
     }
 
@@ -159,14 +158,13 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
             var d = g - transform.position; d.y = 0f; if (d.sqrMagnitude > .01f) transform.rotation = Quaternion.LookRotation(d);
         }
         if (ktosTrafiony && odl < 10f && Random.value < (obsluga ? .5f : .25f))
-            Powiedz(obsluga ? BraxLudzie.Los(BraxLudzie.Obsluga) : BraxLudzie.Los(BraxLudzie.Swiadkowie), 2f, BraxLudzie.Krzyk(wariant + 2));
+            Powiedz(obsluga ? BraxLudzie.Los(BraxLudzie.Obsluga) : BraxLudzie.Los(BraxLudzie.Swiadkowie), 2f);
     }
 
     // ---------------- mowa ----------------
     void Powiedz(string tekst, float czas, AudioClip klip = null)
     {
-        BraxDymki.Pokaz(transform, tekst, czas, (siedzi ? wzrost * .72f : wzrost) + .4f);
-        BraxLudzie.Glos(gameObject, ref glos, klip ? klip : BraxDymki.Gwar(), ton, klip ? .7f : .5f, klip ? 0f : Mathf.Min(czas * .55f, 1.1f));
+        BraxDymki.Powiedz(transform, tekst, ton);
     }
 
     string Powitanie()
@@ -204,11 +202,11 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     IEnumerator Pogadaj(Transform gracz)
     {
         mowiTeraz = true; doKiedyPatrzy = Time.time + 7f; patrzNa = gracz.position;
-        string w = obsluga ? Powitanie() : BraxDymki.Los(BraxDymki.Wiesci); float c1 = 2f + w.Length * .045f;
+        string w = obsluga ? Powitanie() : BraxDymki.Los(BraxDymki.Wiesci); float c1 = BraxDymki.Czas(w, ton);
         if (!siedzi) Graj(Los(mowi) ?? Los(klipy), .3f);
         Powiedz(w, c1); yield return new WaitForSeconds(c1 + .2f);
-        string o = BraxDymki.Los(BraxDymki.OdpowiedziBraxa); BraxDymki.Pokaz(gracz, o, 2.4f, 2.55f); yield return new WaitForSeconds(2.5f);
-        Powiedz(BraxDymki.Los(BraxDymki.Pozegnania), 2f); yield return new WaitForSeconds(1.8f);
+        string o = BraxDymki.Los(BraxDymki.OdpowiedziBraxa); BraxDymki.Pokaz(gracz, o, 2.4f, 2.55f); yield return new WaitForSeconds(BraxDymki.Czas(o) + .2f);
+        string koniec = BraxDymki.Los(BraxDymki.Pozegnania); Powiedz(koniec, 2f); yield return new WaitForSeconds(BraxDymki.Czas(koniec, ton) + .2f);
         mowiTeraz = false;
     }
 }

@@ -66,6 +66,7 @@ public static partial class BraxClaudeOsiedle
         if (szablony.Count > 0)
         {
             Guard("auta w ruchu (trasy, pierwszeństwo, test ruchu)", () => AutaWRuchu(szablony));
+            Guard("prywatne auto Patryka pod areną", () => AutoPatryka(szablony));
             Guard("auta zaparkowane (zatoki, kolory, kolizje)", () => AutaZaparkowane(szablony));
         }
         else rep.notes.Add("DO POPRAWKI: żaden model auta nie przygotowany");
@@ -237,6 +238,7 @@ public static partial class BraxClaudeOsiedle
                        ", czas testu " + (DateTime.Now - t0).TotalSeconds.ToString("F1") + " s)";
         Debug.Log(wynik); rep.notes.Add(wynik.Replace("BRAXHORN_RUCH_TEST ", "test ruchu: "));
         foreach (var z in zdarz) Debug.Log("BRAXHORN_RUCH_TEST_ZDARZENIE " + z);
+        if(wt.nachodzenia>0)throw new InvalidOperationException("Ruch aut: test wykrył "+wt.nachodzenia+" przecięć samochodów");
     }
 
     // Punkty trasy co ~3 m (pole BraxAuto.trasa — czytane przez MENU → UTKNĄŁEM jako „droga”); trasa otwarta: tam i z powrotem,

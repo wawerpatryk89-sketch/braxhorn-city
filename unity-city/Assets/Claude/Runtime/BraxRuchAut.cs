@@ -45,6 +45,11 @@ public sealed class BraxRuchAut : MonoBehaviour
         if (!kam) kam = Camera.main;
         if (!gracz && Time.time > szukaj) { var p = FindAnyObjectByType<BraxGymPlayer>(); if (p) gracz = p.transform; szukaj = Time.time + 2f; }
         sym.graczJest = gracz; if (gracz) sym.gracz = gracz.position;
+        sym.zewnetrzne.Clear();
+        foreach (var car in BraxAutoGracza.Wszystkie)
+            if (car && car.obrys) sym.zewnetrzne.Add(new BraxRuchAutSym.ObrysZewnetrzny {
+                srodek=car.transform.TransformPoint(car.obrys.center), przod=car.transform.forward,
+                polSzer=car.obrys.size.x*.5f, polDl=car.obrys.size.z*.5f });
         float dt = Mathf.Min(Time.deltaTime, .1f);
         sym.Krok(dt);
         Vector3 kp = kam ? kam.transform.position : new Vector3(1e6f, 0f, 1e6f);

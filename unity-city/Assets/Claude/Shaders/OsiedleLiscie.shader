@@ -33,7 +33,7 @@ Shader "Braxhorn/OsiedleLiscie"
         LOD 200
         Cull Off
         CGPROGRAM
-        #pragma surface surf Leaf alphatest:_Cutoff addshadow vertex:vert
+        #pragma surface surf Leaf alphatest:_Cutoff addshadow vertex:vert dithercrossfade
         #pragma target 3.0
         sampler2D _MainTex;
         fixed4 _Leaf, _Leaf2;

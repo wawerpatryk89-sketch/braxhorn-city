@@ -274,6 +274,16 @@ public static partial class BraxClaudeOsiedle
         var nad = new GameObject("nadwozie").transform; nad.SetParent(go.transform, false);
         var inst = (GameObject)UnityEngine.Object.Instantiate(src, nad, false); inst.name = src.name;
         inst.transform.localPosition = Vector3.zero;
+        // Author explicit built-in materials with preserved glTF maps/UVs. Imported glTF shader
+        // variants on these cars showed magenta on the phone; use the existing project converter.
+        foreach (var renderer in inst.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            var materials = renderer.sharedMaterials;
+            for (int i = 0; i < materials.Length; i++)
+                if (materials[i] && materials[i].HasProperty("baseColorFactor") && materials[i].HasProperty("roughnessFactor"))
+                    materials[i] = BraxCityMaterials.Imported(materials[i]);
+            renderer.sharedMaterials = materials;
+        }
         foreach (var smr in inst.GetComponentsInChildren<SkinnedMeshRenderer>(true)) smr.enabled = false;
         var A = AnalizujAuto(go.transform);
         if (A == null || A.S.x < 1e-5f) { UnityEngine.Object.DestroyImmediate(go); return null; }
@@ -358,6 +368,8 @@ public static partial class BraxClaudeOsiedle
         float xF = .21f * sz.szerNadw;
         var fk = new GameObject(FotelKierowcy).transform; fk.SetParent(nad, false); fk.localPosition = new Vector3(-xF, hSiedz, zF);
         var fp = new GameObject(FotelPasazera).transform; fp.SetParent(nad, false); fp.localPosition = new Vector3(xF, hSiedz, zF);
+        foreach (var seat in new[] { fk, fp })
+            seat.gameObject.AddComponent<BraxFotelAuta>().przeswit = PrzeswitKabiny(A,seat.localPosition,hSiedz);
         // 7) światła i spaliny
         Swiatla(A, sz, nad);
         Spaliny(A, sz, nad);
@@ -369,6 +381,29 @@ public static partial class BraxClaudeOsiedle
         foreach (var t in go.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
         rep.notes.Add("auto " + src.name + ": " + sz.dl.ToString("F2") + " × " + sz.szerNadw.ToString("F2") + " × " + sz.wys.ToString("F2") + " m, przód " + sz.przod + ", kół " + sz.kol + ", lakier " + (sz.lakier ? sz.lakier.name : "—") + ";" + sz.uwagi);
         return sz;
+    }
+
+    // Sample the roof above a head-sized footprint, rather than using the tallest point of the entire car.
+    static float PrzeswitKabiny(AnalizaAuta car,Vector3 seat,float seatY)
+    {
+        float roof=car.mx.y;
+        foreach(var offset in new[]{Vector2.zero,new Vector2(-.12f,0),new Vector2(.12f,0),new Vector2(0,-.12f),new Vector2(0,.12f)})
+        {
+            float x=seat.x+offset.x*K,z=seat.z+offset.y*K,top=float.NegativeInfinity;
+            foreach(var part in car.cz)foreach(var indices in part.tri)for(int i=0;i+2<indices.Length;i+=3)
+            {
+                var a=part.w[indices[i]];var b=part.w[indices[i+1]];var c=part.w[indices[i+2]];
+                float den=(b.z-c.z)*(a.x-c.x)+(c.x-b.x)*(a.z-c.z);
+                if(Mathf.Abs(den)<1e-8f)continue;
+                float u=((b.z-c.z)*(x-c.x)+(c.x-b.x)*(z-c.z))/den;
+                float v=((c.z-a.z)*(x-c.x)+(a.x-c.x)*(z-c.z))/den;
+                if(u<0||v<0||u+v>1)continue;
+                float y=u*a.y+v*b.y+(1-u-v)*c.y;
+                if(y>seatY+.4f*K)top=Mathf.Max(top,y);
+            }
+            if(!float.IsNegativeInfinity(top))roof=Mathf.Min(roof,top);
+        }
+        return Mathf.Max(.2f,roof-seatY-.08f*K);
     }
 
     static Mesh SiatkaKola(AnalizaAuta A, List<(int cz, int sub, int t)> tris, Vector3 srodek, out Material[] mats)

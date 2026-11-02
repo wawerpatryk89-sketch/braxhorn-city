@@ -2257,10 +2257,10 @@ public static partial class BraxClaudeOsiedle
                     BoxL(sandV, va0, va1, 0, .06f, vw0, vw1, false);
                     foreach (var (la0, la1, lw0, lw1) in new[] { (va0, va1, vw0, vw0 + .05f), (va0, va1, vw1 - .05f, vw1), (va0, va0 + .05f, vw0, vw1), (va1 - .05f, va1, vw0, vw1), (va0, va1, vwm - .025f, vwm + .025f) })
                         BoxL(Paint, la0, la1, .06f, .066f, lw0, lw1, false);
-                    foreach (float pa in new[] { va0 - .5f, va1 + .5f }) { var post = Pw(pa, 0, vwm); Cylinder(white, post, .05f, 2.55f, 12, true, false); Collider(post + Vector3.up * 1.27f, new Vector3(.12f, 2.55f, .12f)); }   // nie „pp” (zajęte w bloku basenu)
-                    for (float pa = va0 - .45f; pa <= va1 + .451f; pa += .2f) BoxL(net, pa - .006f, pa + .006f, 1.43f, 2.38f, vwm - .006f, vwm + .006f, false);
-                    for (float y = 1.43f; y < 2.38f; y += .19f) BoxL(net, va0 - .45f, va1 + .45f, y - .006f, y + .006f, vwm - .006f, vwm + .006f, false, true);
-                    BoxL(white, va0 - .45f, va1 + .45f, 2.38f, 2.43f, vwm - .03f, vwm + .03f, false, true);
+                    foreach (float pa in new[] { va0 - .5f, va1 + .5f }) { var post = Pw(pa, 0, vwm); Cylinder(white, post, .05f, (2.55f * K), 12, true, false); Collider(post + Vector3.up * (1.27f * K), new Vector3(.12f, (2.55f * K), .12f)); }   // nie „pp” (zajęte w bloku basenu)
+                    for (float pa = va0 - .45f; pa <= va1 + .451f; pa += .2f) BoxL(net, pa - .006f, pa + .006f, (1.43f * K), (2.38f * K), vwm - .006f, vwm + .006f, false);
+                    for (float y = (1.43f * K); y < (2.38f * K); y += .19f * K) BoxL(net, va0 - .45f, va1 + .45f, y - .006f, y + .006f, vwm - .006f, vwm + .006f, false, true);
+                    BoxL(white, va0 - .45f, va1 + .45f, (2.38f * K), (2.43f * K), vwm - .03f, vwm + .03f, false, true);
                     siatkowkaRogi.Add(new[] { Pw(va0, .06f, vw0), Pw(va1, .06f, vw0), Pw(va0, .06f, vw1) });   // gra w siatkówkę (BraxClaudeOsiedleSport)
                 }
             }
@@ -3457,8 +3457,8 @@ public static partial class BraxClaudeOsiedle
     }
 
     // ---------------- stary płot południowy osiedla A ----------------
-    // Wycina z zbiorczych siatek osiedla A trójkąty leżące w całości w którejś z brył (stare płoty,
-    // sztuczne żywopłoty) i wyłącza ich stare kolizje. Jedno przejście po siatkach.
+    // Przycina także trójkąty przecinające granice brył: długie płoty i stare nawierzchnie
+    // nie mogą przetrwać pod nowymi jezdniami. UV i materiały zostają zachowane.
     static int cutAssets;
     static void CutVolumes(Transform estate, Transform physics, List<Bounds> vols)
     {
@@ -3469,23 +3469,7 @@ public static partial class BraxClaudeOsiedle
             var src = mf.sharedMesh; Vector3[] v3;
             try { v3 = src.vertices; } catch { rep.notes.Add("nieczytelna siatka " + src.name); continue; }
             if (v3 == null || v3.Length == 0) continue;
-            var M = mf.transform.localToWorldMatrix; var w = v3.Select(p => M.MultiplyPoint3x4(p)).ToArray();
-            bool Inside(int a, int b, int c) { foreach (var v in hit) if (v.Contains(w[a]) && v.Contains(w[b]) && v.Contains(w[c])) return true; return false; }
-            Mesh copy = null; int removed = 0;
-            for (int s = 0; s < src.subMeshCount; s++)
-            {
-                var tri = src.GetTriangles(s); var keep = new List<int>(tri.Length);
-                for (int k = 0; k < tri.Length; k += 3)
-                {
-                    if (Inside(tri[k], tri[k + 1], tri[k + 2])) { removed++; continue; }
-                    keep.Add(tri[k]); keep.Add(tri[k + 1]); keep.Add(tri[k + 2]);
-                }
-                if (keep.Count != tri.Length)
-                {
-                    if (!copy) { copy = UnityEngine.Object.Instantiate(src); copy.name = src.name + "_remont"; }
-                    copy.SetTriangles(keep, s);
-                }
-            }
+            Mesh copy = BraxWycinanieSiatki.Wytnij(src, mf.transform.localToWorldMatrix, hit, out int removed);
             if (copy)
             {
                 AssetDatabase.CreateAsset(copy, Out + "/cut_" + Safe(mf.name) + "_" + (cutAssets++) + ".asset");   // build 5: numer — kolejne cięcia tej samej siatki nie nadpisują pliku
@@ -3497,8 +3481,7 @@ public static partial class BraxClaudeOsiedle
             foreach (var c in physics.GetComponentsInChildren<BoxCollider>(true))
             {
                 var b = c.bounds; if (!c.enabled || b.size.y > 2.2f) continue;
-                if (vols.Any(v => { var e = v; e.Expand(new Vector3(.3f, .6f, .3f)); return e.Contains(b.min) && e.Contains(b.max); }))
-                { c.enabled = false; rep.oldFenceCollidersDisabled++; }
+                if (BraxWycinanieSiatki.WytnijKolizje(c, vols)) rep.oldFenceCollidersDisabled++;
             }
     }
     static Bounds MinMax(float x0, float x1, float y0, float y1, float z0, float z1)
@@ -4536,7 +4519,8 @@ public static partial class BraxClaudeOsiedle
     {
         var g = group;
         try { step(); }
-        catch (Exception e) { rep.notes.Add("BŁĄD w kroku " + what + ": " + e.Message); Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE krok " + what + ": " + e); }
+        catch (Exception e) { rep.notes.Add("BŁĄD w kroku " + what + ": " + e.Message); throw new InvalidOperationException("Osiedle: " + what, e); }
+        finally { group = g; }
         group = g;
     }
     // ---------------- centrum sportowe B: siłownia BRAXHORN i BRAXHORN Nutrition (kopie z miasta) ----------------
@@ -5374,6 +5358,9 @@ public static partial class BraxClaudeOsiedle
             float ox = cx + s * 12.5f;
             CutVolumes(estate, physics, new List<Bounds> { MinMax(Mathf.Min(ox - s * .6f, ox + s * 1.95f), Mathf.Max(ox - s * .6f, ox + s * 1.95f), -.02f, 4.1f, cz - 1.0f, cz + 1.0f) });
             if (physics) foreach (var c in physics.GetComponentsInChildren<Collider>(true)) { var b = c.bounds; if (c.enabled && b.size.x < .5f && b.size.z < .5f && Mathf.Abs(b.center.x - (ox + s * 1.7f)) < .4f && Mathf.Abs(b.center.z - cz) < .4f) c.enabled = false; }
+            var koszStart = batches.ToDictionary(q => q.Key, q => q.Value.v.Count);
+            var koszKol = new HashSet<Collider>(colliders.GetComponentsInChildren<Collider>(true));
+            Vector3 KoszP(Vector3 p) => new Vector3(xe + (p.x - xe) * K, .08f + p.y * K, cz + (p.z - cz) * K);
             var post = new Vector3(xe + s * 1.0f, .04f, cz);
             Cylinder(Steel, post, .09f, 3.45f, 12, true, true);
             BoxMinMax(Steel, Mathf.Min(post.x, xe - s * 1.2f), Mathf.Max(post.x, xe - s * 1.2f), 3.2f, 3.3f, cz - .06f, cz + .06f, false, true);
@@ -5391,6 +5378,13 @@ public static partial class BraxClaudeOsiedle
                 float a = k * Mathf.PI / 4f;
                 Tube(netW, rc + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * .23f, rc + new Vector3(Mathf.Cos(a + .5f) * .15f, -.42f, Mathf.Sin(a + .5f) * .15f), .006f, 4);
             }
+            foreach (var kv in batches)
+            {
+                int first = koszStart.TryGetValue(kv.Key, out int count) ? count : 0;
+                for (int i = first; i < kv.Value.v.Count; i++) kv.Value.v[i] = KoszP(kv.Value.v[i]);
+            }
+            foreach (var col in colliders.GetComponentsInChildren<BoxCollider>(true))
+                if (!koszKol.Contains(col)) { col.transform.position = KoszP(col.transform.position); col.size *= K; }
         }
         // 4) „stelaż huśtawki” bez siedzisk (Codex: 3 ramy x −8/−11/−14, słupki z −89 i −92, belka 2.6 m) — huśtawki dowieszone:
         //    na każdej belce siedzisko na dwóch łańcuchach (bujanie wzdłuż x), pod spodem nawierzchnia z gumy
@@ -5472,10 +5466,11 @@ public static partial class BraxClaudeOsiedle
     // ---------------- główne ----------------
     public static void Apply()
     {
+        BraxTestNaprawOsiedla.Wykonaj();
         rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); WyczyscWspolne14(); WyczyscElewacje(); ZmierzBohatera(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
         pavedCells.Clear(); pavingSet = null; CodexPaving();
         try { Build(); rep.status = "ZBUDOWANO"; }
-        catch (Exception e) { rep.status = "BŁĄD"; rep.error = e.Message; Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE " + e); }
+        catch (Exception e) { rep.status = "BŁĄD"; rep.error = e.ToString(); Directory.CreateDirectory("city-review"); File.WriteAllText("city-review/osiedle-claude.json", JsonUtility.ToJson(rep, true)); throw; }
         rep.materials = mats.Count;
         Directory.CreateDirectory("city-review");
         File.WriteAllText("city-review/osiedle-claude.json", JsonUtility.ToJson(rep, true));

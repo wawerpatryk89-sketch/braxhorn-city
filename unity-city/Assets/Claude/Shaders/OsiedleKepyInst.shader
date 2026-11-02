@@ -49,7 +49,7 @@ Shader "Braxhorn/OsiedleKepyInst"
         Cull Off
         CGPROGRAM
         // addshadow: głębia kamery (cienie ekranowe) z tym samym kształtem kęp co w obrazie
-        #pragma surface surf Standard vertex:vert alphatest:_Cutoff fullforwardshadows addshadow
+        #pragma surface surf Standard vertex:vert alphatest:_Cutoff fullforwardshadows addshadow dithercrossfade
         #pragma multi_compile_instancing
         #pragma instancing_options assumeuniformscaling
         #pragma target 3.5

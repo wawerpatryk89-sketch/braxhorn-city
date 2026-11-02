@@ -69,7 +69,7 @@ public sealed class BraxObszary : MonoBehaviour
         bool wSrodku = false;
         foreach (var o in obszary)
             if (o != null && !o.wczytany && Application.CanStreamedLevelBeLoaded(o.scena) && o.granice.Contains(player.transform.position)) wSrodku = true;
-        if (wSrodku && !zamrozony && !player.vessel && player.body && player.body.enabled) { player.body.enabled = false; zamrozony = true; next = 0; }
+        if (wSrodku && !zamrozony && !player.vessel && !player.autoGracza && player.body && player.body.enabled) { player.body.enabled = false; zamrozony = true; next = 0; }
         if (!wSrodku && zamrozony) { if (player.body) player.body.enabled = true; zamrozony = false; }
         if (Time.unscaledTime < next || zajety) return;
         next = Time.unscaledTime + .25f;
@@ -89,12 +89,15 @@ public sealed class BraxObszary : MonoBehaviour
     IEnumerator Wczytaj(Obszar o)
     {
         zajety = true; o.w_toku = true; Laduje++;
+        try
+        {
         BraxStartLog.Etap("obszar: wczytywanie " + o.scena);
         var op = SceneManager.LoadSceneAsync(o.scena, LoadSceneMode.Additive);
         if (op != null) { op.priority = 0; yield return op; }
         o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
         BraxStartLog.Etap("obszar wczytany " + o.scena);
-        Laduje--; o.w_toku = false; zajety = false;
+        }
+        finally { if (zajety) Laduje = Mathf.Max(0, Laduje - 1); o.w_toku = false; zajety = false; }
     }
 
     IEnumerator Zwolnij(Obszar o)
@@ -102,6 +105,8 @@ public sealed class BraxObszary : MonoBehaviour
         var sc = SceneManager.GetSceneByName(o.scena);
         if (!sc.isLoaded) { o.wczytany = false; yield break; }
         zajety = true; Laduje++;
+        try
+        {
         // gracz (np. po zejściu z łodzi) nie może zostać w zwalnianej scenie
         if (player && player.gameObject.scene == sc && !player.transform.parent)
             SceneManager.MoveGameObjectToScene(player.gameObject, gameObject.scene);
@@ -109,9 +114,10 @@ public sealed class BraxObszary : MonoBehaviour
         if (op != null) yield return op;
         yield return Resources.UnloadUnusedAssets();
         o.wczytany = false;
-        Laduje--; zajety = false;
+        }
+        finally { if (zajety) Laduje = Mathf.Max(0, Laduje - 1); zajety = false; }
     }
 
     // Przejście tunelem: wszystkie doczytane obszary idą razem ze sceną rejonu (BraxSceneTransit zwalnia wszystkie sceny).
-    void OnDestroy() { if (zajety) Laduje = Mathf.Max(0, Laduje - 1); }
+    void OnDestroy() { if (zajety) Laduje = Mathf.Max(0, Laduje - 1); zajety = false; if (zamrozony && player && player.body) player.body.enabled = true; }
 }

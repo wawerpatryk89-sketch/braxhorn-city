@@ -166,13 +166,14 @@ public sealed class BraxGrafika : MonoBehaviour
     // Trawa 3D osiedla (BraxClaudeTrawa) — zasięg murawy i łąki; w mieście komponentu nie ma (pętla nic nie robi).
     static void Trawa(float murawa, float laka)
     {
-        foreach (var mb in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
+        foreach (var mb in FindObjectsByType<BraxClaudeTrawa>(FindObjectsSortMode.None))
         {
-            if (!mb || mb.GetType().Name != "BraxClaudeTrawa") continue;
-            var t = mb.GetType();
-            var fm = t.GetField("zasiegMurawy"); var fl = t.GetField("zasiegLaki");
-            if (fm != null) fm.SetValue(mb, murawa);
-            if (fl != null) fl.SetValue(mb, laka);
+            mb.zasiegMurawy = murawa; mb.zasiegLaki = laka;
+            if (!mb.material) continue;
+            // CPU culling must finish after the shader fade, including low quality.
+            // Previously low quality culled at 12/18 m while the shader still drew at 22/30 m.
+            mb.material.SetFloat("_Near", murawa * (10f/22f)); mb.material.SetFloat("_Mid", murawa * (18f/22f)); mb.material.SetFloat("_Far", murawa);
+            mb.material.SetFloat("_NearL", laka * .4f); mb.material.SetFloat("_MidL", laka * (25f/30f)); mb.material.SetFloat("_FarL", laka);
         }
     }
 }

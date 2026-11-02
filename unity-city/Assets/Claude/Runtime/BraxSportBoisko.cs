@@ -17,6 +17,7 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
 {
     public enum Gra { Kosz, Nozna, Siatkowka, Tenis }
     public Gra gra;
+    public float jednostkiNaMetr = 1f;
     public Vector3 srodek;                       // środek pola gry; y = nawierzchnia
     public Vector3 osX = Vector3.right;          // długa oś (siatkówka, tenis: prostopadle do siatki)
     public Vector2 pol = new Vector2(10, 5);     // półwymiary pola gry (wzdłuż osX, w poprzek)
@@ -85,20 +86,20 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
         switch (gra)
         {
             case Gra.Kosz:
-                r = .12f;
-                foreach (var c in cele) for (int k = 0; k < 16; k++) { float a = k * Mathf.PI / 8f; KolKula(c + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * .23f, .02f); }   // obręcz Ø 0.46 z 16 kul
-                foreach (var b in tablice) Kol(b, new Vector3(.05f, 1.05f, 1.8f));
+                r = .12f * jednostkiNaMetr;
+                foreach (var c in cele) for (int k = 0; k < 16; k++) { float a = k * Mathf.PI / 8f; KolKula(c + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * (.23f * jednostkiNaMetr), .02f * jednostkiNaMetr); }   // obręcz Ø 0.46 z 16 kul
+                foreach (var b in tablice) Kol(b, new Vector3(.05f, 1.05f, 1.8f) * jednostkiNaMetr);
                 for (int i = 0; i < cele.Length && i < tablice.Length; i++)   // mocowanie obręczy do tablicy
                 {
                     var c = cele[i]; var b = tablice[i]; var mid = new Vector3((c.x + b.x) * .5f, c.y - .03f, (c.z + b.z) * .5f);
-                    var dd = b - c; dd.y = 0f; float len = Mathf.Max(.05f, dd.magnitude - .23f);
-                    var mm = c + dd.normalized * (.23f + len * .5f); mm.y = c.y - .03f;
+                    var dd = b - c; dd.y = 0f; float len = Mathf.Max(.05f, dd.magnitude - .23f * jednostkiNaMetr);
+                    var mm = c + dd.normalized * (.23f * jednostkiNaMetr + len * .5f); mm.y = c.y - .03f;
                     KolObr(mm, new Vector3(.12f, .04f, len), Quaternion.LookRotation(dd.normalized));
                 }
-                Pilki(1, .12f, .6f, .82f, 0, "piłka do koszykówki");
+                Pilki(1, r, .6f, .82f, 0, "piłka do koszykówki");
                 break;
             case Gra.Nozna:
-                r = .11f;
+                r = .11f * jednostkiNaMetr;
                 foreach (var g in cele)
                 {
                     var n = g - srodek; n.y = 0f; n.Normalize(); var s = Vector3.Cross(Vector3.up, n); var q = Quaternion.LookRotation(n);
@@ -112,16 +113,16 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
                     KolObr(g + n * d + Vector3.up * h * .5f, new Vector3(w, h, .05f), q);                                    // siatka tylna
                     KolObr(g + n * d * .5f + Vector3.up * h, new Vector3(w, .04f, d), q);                                    // siatka górna
                 }
-                Pilki(1, .11f, .43f, .62f, 1, "piłka nożna");
+                Pilki(1, r, .43f, .62f, 1, "piłka nożna");
                 break;
             case Gra.Siatkowka:
-                r = .105f;
+                r = .105f * jednostkiNaMetr;
                 Kol(new Vector3(srodek.x, (siatkaDol + siatkaGora) * .5f, srodek.z), new Vector3(.04f, siatkaGora - siatkaDol, siatkaPol * 2f));
-                Pilki(1, .105f, .27f, .6f, 2, "piłka do siatkówki");
+                Pilki(1, r, .27f, .6f, 2, "piłka do siatkówki");
                 break;
             default:
-                r = .033f;
-                Pilki(3, .033f, .057f, .74f, 3, "piłka tenisowa");
+                r = .033f * jednostkiNaMetr;
+                Pilki(3, r, .057f, .74f, 3, "piłka tenisowa");
                 for (int i = 0; i < pilki.Length; i++) Schowaj(i);
                 break;
         }
@@ -242,6 +243,7 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
         foreach (var b in pilki) if (b && !b.isKinematic) b.Sleep();
         Na = false; if (BraxSport.Aktywne == this) BraxSport.Aktywne = null;
         if (gra == Gra.Tenis) BraxSport.Rakieta = false;
+        graczF = false; graczVel = Vector3.zero;
         akcja = false; ciag = 0;
     }
 
@@ -333,14 +335,14 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
         var l = Lok(gt.position);
         if (Mathf.Abs(l.x) > strefa.x + 6f || Mathf.Abs(l.y) > strefa.y + 6f || gracz.seat || gracz.vessel) { Pusc(); return; }
         var b = pilki[0]; Vector3 F = Plasko(gt.forward), R = Vector3.Cross(Vector3.up, F), p = gt.position;
-        float biodra = p.y + .98f;
+        float biodra = p.y + .98f * jednostkiNaMetr;
         kozBlend = Mathf.MoveTowards(kozBlend, graczV > .35f && BraxSport.RzutFaza < .05f ? 1f : 0f, Time.deltaTime * 4f);
         faza += Mathf.Max(graczV, 1.2f * kozBlend) * Time.deltaTime / 1.35f;           // jedno odbicie na ok. 1.35 m (dwa kroki)
         float h = podloga + r + (biodra - podloga - r) * Mathf.Abs(Mathf.Cos(faza * Mathf.PI));
-        var trzym = p + F * .42f + Vector3.up * 1.02f;
-        var koz = p + F * .42f + R * .3f; koz.y = h;
+        var trzym = p + F * (.42f * jednostkiNaMetr) + Vector3.up * (1.02f * jednostkiNaMetr);
+        var koz = p + F * (.42f * jednostkiNaMetr) + R * (.3f * jednostkiNaMetr); koz.y = h;
         var cel = Vector3.Lerp(trzym, koz, kozBlend);
-        cel = Vector3.Lerp(cel, p + F * .25f + Vector3.up * 2.2f, BraxSport.RzutFaza);   // przed rzutem nad głowę
+        cel = Vector3.Lerp(cel, p + F * (.25f * jednostkiNaMetr) + Vector3.up * (2.2f * jednostkiNaMetr), BraxSport.RzutFaza);   // przed rzutem nad głowę
         b.transform.position = cel;
         b.transform.Rotate(R, graczV * Time.deltaTime * 330f, Space.World);
         BraxSport.PilkaWRekach = b.transform; BraxSport.Kozluje = kozBlend > .5f;

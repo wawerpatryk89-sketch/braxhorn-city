@@ -9,7 +9,7 @@ using UnityEngine;
 // auto czeka na pieszego). Idzie prawą stroną chodnika, omija przeszkody i ludzi (sprawdzenie przed sobą co 0.3 s),
 // przed graczem staje. Na końcu trasy zawraca. Czasem przystaje (rozgląda się, telefon, kawa).
 // ROZMOWY (18:35): mija gracza — czasem się wita; AKCJA = POGADAJ; dwóch przechodniów obok siebie czasem staje
-// i rozmawia — z gestami (klipy rozmowy Rocketbox: mówi / słucha na zmianę) i dymkami (BraxDymki).
+// i rozmawia — z gestami (klipy rozmowy Rocketbox: mówi / słucha na zmianę) i polskim głosem (BraxDymki).
 // CIOSY (21:59 / 22:00): trafiony — odrzut w kierunku ciosu, odchylenie tułowia (tylko obrót kości), łapie się za głowę
 // / zgina (klip reakcji wylosowany dla osoby — każdy reaguje inaczej), okrzyk; potem UCIECZKA biegiem od gracza
 // z oglądaniem się za siebie (obrót głowy), czasem krzyk z daleka; przez minutę omija gracza szerokim łukiem.
@@ -41,7 +41,6 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     Vector3 leanOs = Vector3.right, patrzNa, odrzut, kierUcieczki;
     bool blisko = true, krzyczZDaleka;
     Transform gracz, rozmowca;
-    AudioSource glos;
     static readonly List<BraxPieszy> wszyscy = new List<BraxPieszy>();
 
     public Vector3 Pozycja => transform.position;
@@ -224,8 +223,8 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         if (Time.time < doKiedy || Time.time < nastSprawdz) return;
         nastSprawdz = Time.time + .3f;
         bool stop = BraxStrefyZatrzymania.CzyStop(transform.position, cel, true);
-        if (!stop && t < 6f && seg >= 0 && seg < trasa.Length - 1) stop = AutoBlisko((trasa[seg] + trasa[seg + 1]) * .5f);
-        if (stop && t < 25f) return;
+        if (!stop && seg >= 0 && seg < trasa.Length - 1) stop = AutoBlisko((trasa[seg] + trasa[seg + 1]) * .5f);
+        if (stop) return; // czas oczekiwania nigdy nie unieważnia czerwonego światła
         stan = Stan.Idzie; patrzCel = 0f;
         Graj(chod, .25f, predkosc / Mathf.Max(.3f, predkoscKlipu));
     }
@@ -272,7 +271,7 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         var doGracza = g - transform.position; doGracza.y = 0f; if (doGracza.sqrMagnitude > .01f) transform.rotation = Quaternion.LookRotation(doGracza);
         if (reakcje != null && reakcje.Length > 0) { var k = reakcje[wariant % reakcje.Length]; if (anim && anim[k]) { anim[k].time = 0f; anim.CrossFade(k, .1f); anim[k].speed = 1.4f; } }
         else Graj(stoi, .1f);
-        Powiedz(BraxLudzie.Los(BraxLudzie.Okrzyki), 1.8f, BraxLudzie.Krzyk(wariant));
+        Powiedz(BraxLudzie.Los(BraxLudzie.Okrzyki), 1.8f);
         BraxDzwiekiSwiata.Uderzenie(transform.position + Vector3.up * wzrost * .75f, kop ? 7f : 5f, 2);
         patrzCel = 1f; patrzNa = g;
     }
@@ -329,7 +328,7 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
                 krzyczZDaleka = false;
                 stan = Stan.Patrzy; doKiedy = Time.time + 2.2f; patrzCel = 1f; patrzNa = gracz.position;
                 Graj(Los(reakcje, stoi), .3f);
-                Powiedz(BraxLudzie.Los(BraxLudzie.ZDystansu), 2.2f, BraxLudzie.Krzyk(wariant + 1));
+                Powiedz(BraxLudzie.Los(BraxLudzie.ZDystansu), 2.2f);
                 return;
             }
             Wroc();
@@ -354,7 +353,7 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         if (ktosTrafiony && odl < 7f && Random.value < .35f) { unikaDo = Time.time + 30f; ZacznijUcieczke(Random.Range(3f, 6f)); return; }
         stan = Stan.Patrzy; doKiedy = Time.time + Random.Range(2f, 4.5f); patrzCel = 1f; patrzNa = g;
         Graj(Los(postoje, stoi), .3f);
-        if (ktosTrafiony && odl < 10f && Random.value < .3f) Powiedz(BraxLudzie.Los(BraxLudzie.Swiadkowie), 2f, BraxLudzie.Krzyk(wariant + 2));
+        if (ktosTrafiony && odl < 10f && Random.value < .3f) Powiedz(BraxLudzie.Los(BraxLudzie.Swiadkowie), 2f);
     }
 
     void KrokPatrzy(float dt)
@@ -402,8 +401,7 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     // ---------------- mowa ----------------
     void Powiedz(string tekst, float czas, AudioClip klip = null)
     {
-        BraxDymki.Pokaz(transform, tekst, czas, wzrost + .4f);
-        BraxLudzie.Glos(gameObject, ref glos, klip ? klip : BraxDymki.Gwar(), ton, klip ? .7f : .5f, klip ? 0f : Mathf.Min(czas * .55f, 1.1f));
+        BraxDymki.Powiedz(transform, tekst, ton);
     }
 
     // dwóch przechodniów blisko siebie (do 2.4 m), obaj wolni — czasem staną i pogadają
@@ -430,7 +428,7 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         {
             if (!Rozmawia(x) || !Rozmawia(y)) break;
             var kto = k % 2 == 0 ? x : y; var sluch = k % 2 == 0 ? y : x;
-            float czas = 1.6f + kwestie[k].Length * .045f;
+            float czas = BraxDymki.Czas(kwestie[k], kto.ton);
             kto.Graj(kto.Los(kto.mowi, kto.stoi), .3f); sluch.Graj(sluch.Los(sluch.slucha, sluch.stoi), .3f);
             kto.Powiedz(kwestie[k], czas);
             yield return new WaitForSeconds(czas + .3f);
@@ -462,14 +460,14 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     IEnumerator PogadajZGraczem()
     {
         stan = Stan.Rozmowa; rozmowca = gracz;
-        string w = BraxDymki.Los(BraxDymki.Wiesci); float c1 = 2f + w.Length * .045f;
+        string w = BraxDymki.Los(BraxDymki.Wiesci); float c1 = BraxDymki.Czas(w, ton);
         Graj(Los(mowi, stoi), .3f);
         Powiedz(w, c1); yield return new WaitForSeconds(c1 + .2f);
         if (stan != Stan.Rozmowa) yield break;
         Graj(Los(slucha, stoi), .3f);
-        string o = BraxDymki.Los(BraxDymki.OdpowiedziBraxa); BraxDymki.Pokaz(gracz, o, 2.4f, 2.55f); yield return new WaitForSeconds(2.5f);
+        string o = BraxDymki.Los(BraxDymki.OdpowiedziBraxa); BraxDymki.Pokaz(gracz, o, 2.4f, 2.55f); yield return new WaitForSeconds(BraxDymki.Czas(o) + .2f);
         if (stan != Stan.Rozmowa) yield break;
-        Powiedz(BraxDymki.Los(BraxDymki.Pozegnania), 2f); yield return new WaitForSeconds(1.8f);
+        string koniec = BraxDymki.Los(BraxDymki.Pozegnania); Powiedz(koniec, 2f); yield return new WaitForSeconds(BraxDymki.Czas(koniec, ton) + .2f);
         if (stan != Stan.Rozmowa) yield break;
         stan = Stan.Idzie; rozmowca = null; nastPowitanie = Time.time + 60f; nastRozmowa = Time.time + 30f;
         Graj(chod, .3f, predkosc / Mathf.Max(.3f, predkoscKlipu));

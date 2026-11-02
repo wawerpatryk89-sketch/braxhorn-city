@@ -7,30 +7,18 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
-// PATRYK — POSTAĆ GRACZA NA OSIEDLU (build 14, decyzja właściciela 1.11/2.11). Brax zostaje w projekcie „na poczekalni”
-// (miasto bez zmian; na osiedlu wraca sam, gdy brak odszyfrowanych plików albo cokolwiek pójdzie źle).
-//
-// Źródła (prywatne, repo publiczne): CI odszyfrowuje unity-city/Prywatne/*.tar.gz.enc kluczem z sekretów
-// (unity-tools/claude/prywatne.py) do Assets/Source/Prywatne (poza gitem):
-//   patryk/Patryk.fbx                 — model z Tripo (1 siatka, ~10 tys. wierzchołków, 65 kości Mixamo), import Humanoid
-//                                        (awatar z modelu — tylko kontrola; gra odtwarza klipy Legacy jak u Braxa)
-//   patryk/Patryk_{BaseColor,Normal,ORM}.png — tekstury 2K (4K z FBX zmniejszone w CI; ORM = 1 / chropowatość / metal)
-//   ruchy/<grupa>/<ruch>.fbx          — surowe animacje Mixamo (Legacy), te same co u Braxa + paczki właściciela
-//
-// Animacje: BraxGymPlayer gra klipy Legacy Idle / Walk / Run / Punch / Kick / Jump. Model Patryka NIE stoi w T-pozie
-// (ramiona ~24° od pionu), szkielet źródeł Mixamo — w T-pozie, inne proporcje. Dlatego klipy są przenoszone na kości Patryka
-// geometrycznie: (1) spoczynek Patryka wyrównany do spoczynku źródła — każda kość obrócona tak, by kierunek do dziecka był
-// jak w źródle (biodra / klatka / dłonie: pełna rama z dwóch osi); (2) w każdej klatce obrót świata kości Patryka =
-// obrót świata kości źródła × stała korekta z kroku 1; (3) zapis TYLKO obrotów lokalnych (+ pozycja bioder przeskalowana
-// do wysokości bioder Patryka). Długości kości Patryka nie mogą się zmienić — sprawdza to test kości (8 klatek każdego
-// klipu, odchyłka > 2 % = błąd; T-poza w Idle/Walk/Run = błąd). Jakikolwiek błąd → Brax.
+// Patryk: wymagany gracz osiedla. Wysokość na ekranie pozostaje taka jak w buildzie 41.
+// Prywatne modele i animacje są odszyfrowywane wyłącznie przez istniejący krok CI.
+// Źródła i model są Humanoid; Unity przenosi anatomiczną pozę i zapisuje klipy Legacy
+// dla BraxGymPlayer. Oryginalna hierarchia i bindposes zostają zachowane.
+// Idle = spokojna poza modelu, CombatIdle = garda dopiero po ciosie. Błąd zatrzymuje build.
 public static partial class BraxClaudeOsiedle
 {
     public const string PrywatneZrodla = "Assets/Source/Prywatne";
     const string PatrykKatalog = PrywatneZrodla + "/patryk", PatrykRuchy = PrywatneZrodla + "/ruchy", PatrykWynik = "Assets/PlayableGenerated/Patryk";
     // Dokładny wzrost postaci gracza (siatka w pozie spoczynkowej × skala) — ZmierzBohatera bierze go zamiast bounds.
     public static float WzrostZModelu = float.NaN;
-    public const float WzrostPatrykaWGrze = 2.27f;   // Brax 2.33 m — Patryk trochę niższy (decyzja właściciela 2.11)
+    public const float WzrostPatrykaWGrze = 2.27f;   // 2.27 jednostki gry reprezentują 1.80 m; nie zmniejszać widocznego gracza
 
     struct PatrykKlip { public string nazwa; public bool petla, wMiejscu; public string[] zrodla; }
     static PatrykKlip PK(string n, bool petla, bool wMiejscu, params string[] z) => new PatrykKlip { nazwa = n, petla = petla, wMiejscu = wMiejscu, zrodla = z };
@@ -39,7 +27,7 @@ public static partial class BraxClaudeOsiedle
     // i Kicking były w miejscu — przesuwa gracza fizyka BraxGymPlayer).
     static readonly PatrykKlip[] KlipyPatryka =
     {
-        PK("Idle", true, true, "brax/Idle.fbx"),
+        PK("CombatIdle", true, true, "brax/Idle.fbx"),
         PK("Walk", true, true, "extra/Walking.fbx", "nyxa/Walking.fbx", "extra2/Walking.fbx"),
         PK("Run", true, true, "extra/Running.fbx", "extra2/Unarmed Run Forward.fbx"),
         PK("Punch", false, false, "brax/Jab Cross (1).fbx", "xd/Jab Cross.fbx"),
@@ -55,7 +43,7 @@ public static partial class BraxClaudeOsiedle
         PK("Dodging", false, false, "extra/Dodging.fbx", "nyxa/Dodging.fbx"),
         PK("Block", false, false, "extra/Center Block.fbx", "xd/Center Block.fbx", "xd/Blocking.fbx", "nyxa/Right Block.fbx"),
     };
-    static readonly string[] PatrykWymagane = { "Idle", "Walk", "Run", "Punch", "Kick", "Jump" };
+    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Run", "Punch", "Kick", "Jump" };
 
     // „mixamorig:LeftArm”, „mixamorig1:LeftArm”, „mixamorigLeftArm” → „LeftArm”
     static string PatrykKosc(string n)
@@ -65,7 +53,7 @@ public static partial class BraxClaudeOsiedle
         return n;
     }
 
-    // Postać gracza na osiedle: Patryk (dziecko obiektu gracza, warstwa 8, Animation z klipami Legacy) albo null = Brax.
+    // Postać osiedla: wymagany Patryk; błąd importu zatrzymuje build, bez ukrytej podmiany na Braxa.
     public static GameObject PatrykBohater(Transform gracz, CharacterController cialo)
     {
         WzrostZModelu = float.NaN;
@@ -73,10 +61,10 @@ public static partial class BraxClaudeOsiedle
         try { hero = PatrykZbuduj(gracz, cialo); return hero; }
         catch (Exception e)
         {
-            Debug.LogWarning("BRAXHORN_PATRYK fallback=Brax błąd: " + e);
+            Debug.LogError("BRAXHORN_PATRYK błąd: " + e);
             if (hero) Object.DestroyImmediate(hero);
             WzrostZModelu = float.NaN;
-            return null;
+            throw new InvalidOperationException("Nie można zbudować Patryka; przerwano zamiast podmieniać gracza", e);
         }
     }
 
@@ -85,9 +73,9 @@ public static partial class BraxClaudeOsiedle
     static GameObject PatrykZbuduj(Transform gracz, CharacterController cialo)
     {
         string model = Directory.Exists(PatrykKatalog) ? Directory.GetFiles(PatrykKatalog, "*.fbx").Select(p => p.Replace('\\', '/')).OrderBy(p => p).FirstOrDefault() : null;
-        if (model == null) { Debug.Log("BRAXHORN_PATRYK model=brak (nieodszyfrowany — sekret BRAXHORN_KEYSTORE_PASS?) → postać gracza: Brax"); return null; }
+        if (model == null) throw new InvalidOperationException("Brak odszyfrowanego modelu Patryka");
         var wzor = AssetDatabase.LoadAssetAtPath<GameObject>(model);
-        if (!wzor) { Debug.LogWarning("BRAXHORN_PATRYK model=nie zaimportowany " + model + " → Brax"); return null; }
+        if (!wzor) throw new InvalidOperationException("Nie zaimportowano modelu Patryka: " + model);
         var avatar = AssetDatabase.LoadAllAssetsAtPath(model).OfType<Avatar>().FirstOrDefault();
 
         var hero = Object.Instantiate(wzor); hero.name = "Patryk";
@@ -100,12 +88,6 @@ public static partial class BraxClaudeOsiedle
             if (!smr) throw new Exception("brak siatki ze szkieletem w " + model);
             var hips = hero.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => PatrykKosc(t.name) == "Hips");
             if (!hips) throw new Exception("brak kości Hips");
-            // BraxGymPlayer.JumpHips porównuje hips.localPosition.y — rodzic bioder musi mieć oś Y w górę
-            if (!hips.parent || Vector3.Angle(hips.parent.up, Vector3.up) > .5f)
-            {
-                var k = new GameObject("Patryk szkielet"); k.transform.SetParent(hero.transform, false); hips.SetParent(k.transform, true);
-            }
-
             // --- wzrost w pozie spoczynkowej (wierzchołki siatki = poza wiązania) ---
             var v = smr.sharedMesh.vertices; var m = smr.transform.localToWorldMatrix;
             float minY = float.MaxValue, maxY = float.MinValue;
@@ -132,11 +114,12 @@ public static partial class BraxClaudeOsiedle
             foreach (var r in hero.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 int n = r.sharedMesh ? Mathf.Max(1, r.sharedMesh.subMeshCount) : Mathf.Max(1, r.sharedMaterials.Length);
+                r.quality = SkinQuality.Bone4;
                 r.sharedMaterials = Enumerable.Repeat(mat, n).ToArray(); r.updateWhenOffscreen = true; r.shadowCastingMode = ShadowCastingMode.Off;
             }
 
             // --- klipy przeniesione na kości Patryka ---
-            var klipy = new List<AnimationClip>(); var opis = new List<string>();
+            var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek), PatrykPozaStala(hero,spoczynek,"CarIdle",true) }; var opis = new List<string>();
             foreach (var k in KlipyPatryka)
             {
                 AnimationClip gotowy = null;
@@ -146,7 +129,7 @@ public static partial class BraxClaudeOsiedle
                     if (!File.Exists(sciezka)) continue;
                     try
                     {
-                        gotowy = PatrykPrzenies(hero, hips, kosci, spoczynek, minY, sciezka, k, out string uwagi);
+                        gotowy = PatrykHumanoid(hero, avatar, hips, kosci, spoczynek, sciezka, k, out string uwagi);
                         opis.Add(k.nazwa + "←" + z + uwagi);
                         break;
                     }
@@ -246,185 +229,6 @@ public static partial class BraxClaudeOsiedle
         return mat;
     }
 
-    // Dziecko kości wyznaczające jej kierunek + opcjonalna para boczna (pełna rama: biodra, klatka, dłonie).
-    static bool PatrykKierunek(Transform t, List<Transform> kosci, out Transform dziecko, out Transform lewy, out Transform prawy)
-    {
-        string n = PatrykKosc(t.name); dziecko = lewy = prawy = null;
-        Transform D(string x) { foreach (Transform c in t) if (PatrykKosc(c.name) == x) return c; return null; }
-        if (n == "Hips") { dziecko = D("Spine"); lewy = D("LeftUpLeg"); prawy = D("RightUpLeg"); }
-        else if (n == "LeftHand" || n == "RightHand")
-        {
-            string s = n.Substring(0, n.Length - 4);
-            dziecko = D(s + "HandMiddle1") ?? D(s + "HandIndex1") ?? D(s + "HandRing1");
-            lewy = D(s + "HandIndex1"); prawy = D(s + "HandPinky1") ?? D(s + "HandRing1");
-            if (lewy == dziecko || prawy == dziecko) lewy = prawy = null;
-        }
-        else
-        {
-            dziecko = D("Neck");
-            if (dziecko) { lewy = D("LeftShoulder"); prawy = D("RightShoulder"); }
-            else
-            {
-                Transform jedyny = null; int ile = 0;
-                foreach (Transform c in t) if (kosci.Contains(c)) { jedyny = c; ile++; }
-                if (ile == 1) dziecko = jedyny;
-                else if (ile > 1) dziecko = t.Cast<Transform>().Where(kosci.Contains).OrderByDescending(c => c.GetComponentsInChildren<Transform>(true).Length).First();
-            }
-        }
-        if (!(lewy && prawy)) lewy = prawy = null;
-        return dziecko;
-    }
-
-    // Próbka klipu źródłowego na instancji źródła. reczne = krzywe czytane z AnimationUtility (gdy SampleAnimation nie zadziała).
-    sealed class PatrykKrzywa { public Transform t; public int pole, os; public AnimationCurve c; }
-    static List<PatrykKrzywa> PatrykKrzywe(AnimationClip clip, GameObject src)
-    {
-        var l = new List<PatrykKrzywa>();
-        foreach (var b in AnimationUtility.GetCurveBindings(clip))
-        {
-            if (b.type != typeof(Transform)) continue;
-            var t = string.IsNullOrEmpty(b.path) ? src.transform : src.transform.Find(b.path); if (!t) continue;
-            string p = b.propertyName; int pole = p.StartsWith("m_LocalRotation") ? 0 : p.StartsWith("m_LocalPosition") ? 1 : p.StartsWith("localEulerAngles") ? 2 : -1;
-            if (pole < 0) continue;
-            int os = "xyzw".IndexOf(p[p.Length - 1]); if (os < 0) continue;
-            l.Add(new PatrykKrzywa { t = t, pole = pole, os = os, c = AnimationUtility.GetEditorCurve(clip, b) });
-        }
-        return l;
-    }
-    static void PatrykProbka(AnimationClip clip, GameObject src, float czas, List<PatrykKrzywa> reczne)
-    {
-        if (reczne == null) { clip.SampleAnimation(src, czas); return; }
-        var rot = new Dictionary<Transform, Vector4>(); var eul = new Dictionary<Transform, Vector3>(); var pos = new Dictionary<Transform, Vector3>();
-        foreach (var k in reczne)
-        {
-            float v = k.c.Evaluate(czas);
-            if (k.pole == 0) { var q = rot.TryGetValue(k.t, out var x) ? x : new Vector4(k.t.localRotation.x, k.t.localRotation.y, k.t.localRotation.z, k.t.localRotation.w); q[k.os] = v; rot[k.t] = q; }
-            else if (k.pole == 1) { var p = pos.TryGetValue(k.t, out var x) ? x : k.t.localPosition; p[k.os] = v; pos[k.t] = p; }
-            else if (k.os < 3) { var e = eul.TryGetValue(k.t, out var x) ? x : k.t.localEulerAngles; e[k.os] = v; eul[k.t] = e; }
-        }
-        foreach (var kv in rot) { var q = kv.Value.normalized; kv.Key.localRotation = new Quaternion(q.x, q.y, q.z, q.w); }
-        foreach (var kv in eul) kv.Key.localRotation = Quaternion.Euler(kv.Value);
-        foreach (var kv in pos) kv.Key.localPosition = kv.Value;
-    }
-
-    // podloga = wysokość stóp Patryka (najniższy wierzchołek w spoczynku) w układzie obiektu Patryka (instancja w (0,0,0), skala 1).
-    static AnimationClip PatrykPrzenies(GameObject hero, Transform hipsT, List<Transform> kosci, List<PatrykStan> spoczynek, float podloga, string sciezka, PatrykKlip k, out string uwagi)
-    {
-        var wzor = AssetDatabase.LoadAssetAtPath<GameObject>(sciezka); if (!wzor) throw new Exception("nie zaimportowany");
-        var zrodlo = AssetDatabase.LoadAllAssetsAtPath(sciezka).OfType<AnimationClip>().Where(c => !c.name.StartsWith("__preview__")).OrderByDescending(c => c.length).FirstOrDefault();
-        if (!zrodlo || zrodlo.length <= 0f) throw new Exception("brak klipu w pliku");
-        var src = Object.Instantiate(wzor);
-        try
-        {
-            src.transform.position = Vector3.zero; src.transform.rotation = Quaternion.identity; src.transform.localScale = Vector3.one;
-            foreach (var a in src.GetComponentsInChildren<Animator>(true)) Object.DestroyImmediate(a);
-            var mapa = new Dictionary<string, Transform>();
-            foreach (var t in src.GetComponentsInChildren<Transform>(true)) { string nk = PatrykKosc(t.name); if (!mapa.ContainsKey(nk)) mapa[nk] = t; }
-            Transform Z(Transform t) => t && mapa.TryGetValue(PatrykKosc(t.name), out var s) ? s : null;
-            var sHips = Z(hipsT); if (!sHips) throw new Exception("źródło bez Hips");
-            var sL = mapa.TryGetValue("LeftUpLeg", out var a1) ? a1 : null; var sR = mapa.TryGetValue("RightUpLeg", out var a2) ? a2 : null;
-            if (!sL || !sR) throw new Exception("źródło bez nóg");
-            var pary = kosci.Select(t => new KeyValuePair<Transform, Transform>(t, Z(t))).Where(p => p.Value).ToList();
-            if (pary.Count < 40) throw new Exception("za mało wspólnych kości (" + pary.Count + ")");
-
-            // Spoczynek źródła (T-poza Mixamo) — przód z nóg: prawo = RightUpLeg − LeftUpLeg, przód = prawo × góra.
-            PatrykSpoczynek(spoczynek);
-            Vector3 przod = Vector3.Cross(sR.position - sL.position, Vector3.up); przod.y = 0f;
-            var yaw = Quaternion.Euler(0f, przod.sqrMagnitude > 1e-8f ? Vector3.SignedAngle(przod, Vector3.forward, Vector3.up) : 0f, 0f);
-            var ws0 = pary.ToDictionary(p => p.Key, p => p.Value.rotation);
-            // Biodra: wysokość nad stopami skalowana proporcją wysokości bioder (Patryk / źródło); w poziomie od spoczynku.
-            Vector3 sRest = yaw * (sHips.position - src.transform.position), tRest = hipsT.position - hero.transform.position;
-            float biodraS = sRest.y, biodraT = tRest.y - podloga;
-            if (biodraS < 1e-3f || biodraT < 1e-3f) throw new Exception("biodra na ziemi w spoczynku (źródło " + biodraS + ", Patryk " + biodraT + ")");
-            float skalaB = biodraT / biodraS;
-
-            // (1) Spoczynek Patryka wyrównany kierunkami kości do spoczynku źródła (od korzenia w dół). Źródło stoi tu w spoczynku.
-            foreach (var p in pary)
-            {
-                var t = p.Key;
-                if (!PatrykKierunek(t, kosci, out var tc, out var tl, out var tr)) continue;
-                var sc = Z(tc); if (!sc) continue;
-                Vector3 dt = tc.position - t.position, ds = yaw * (sc.position - p.Value.position);
-                if (dt.sqrMagnitude < 1e-12f || ds.sqrMagnitude < 1e-12f) continue;
-                Quaternion A;
-                var sl = Z(tl); var sr = Z(tr);
-                if (tl && tr && sl && sr)
-                {
-                    Vector3 bt = tr.position - tl.position, bs = yaw * (sr.position - sl.position);
-                    A = Quaternion.LookRotation(ds, bs) * Quaternion.Inverse(Quaternion.LookRotation(dt, bt));
-                }
-                else A = Quaternion.FromToRotation(dt, ds);
-                t.rotation = A * t.rotation;
-            }
-            var korekta = pary.ToDictionary(p => p.Key, p => Quaternion.Inverse(yaw * ws0[p.Key]) * p.Key.rotation);
-            PatrykSpoczynek(spoczynek);
-
-            // Czy SampleAnimation rusza źródło? Jeśli nie (zła ścieżka korzenia) — krzywe ręcznie.
-            float dl = zrodlo.length;
-            List<PatrykKrzywa> reczne = null;
-            if (PatrykRuch(zrodlo, src, pary, ws0, dl, null) < .5f)
-            {
-                reczne = PatrykKrzywe(zrodlo, src);
-                if (PatrykRuch(zrodlo, src, pary, ws0, dl, reczne) < .5f) throw new Exception("klip źródłowy bez ruchu (SampleAnimation i krzywe)");
-            }
-            Vector3 PS(float czas) { PatrykProbka(zrodlo, src, czas, reczne); return yaw * (sHips.position - src.transform.position); }
-            Vector3 p0 = PS(0f), p1 = PS(dl);
-            Vector3 dryf = k.wMiejscu ? new Vector3(p1.x - p0.x, 0f, p1.z - p0.z) : Vector3.zero;
-
-            // (2) Klatki 30/s: obrót świata kości Patryka = yaw × obrót źródła × korekta; biodra × (biodra Patryka / biodra źródła).
-            int n = Mathf.Max(2, Mathf.RoundToInt(dl * 30f) + 1);
-            var czasy = new float[n]; var obroty = pary.Select(_ => new Quaternion[n]).ToArray(); var biodra = new Vector3[n];
-            for (int i = 0; i < n; i++)
-            {
-                float czas = i == n - 1 ? dl : Mathf.Min(dl, i / 30f); czasy[i] = czas;
-                Vector3 ps = PS(czas) - dryf * (czas / dl);
-                hipsT.position = hero.transform.position + new Vector3(tRest.x + (ps.x - sRest.x) * skalaB, podloga + ps.y * skalaB, tRest.z + (ps.z - sRest.z) * skalaB);
-                for (int j = 0; j < pary.Count; j++) pary[j].Key.rotation = yaw * pary[j].Value.rotation * korekta[pary[j].Key];
-                for (int j = 0; j < pary.Count; j++)
-                {
-                    var q = pary[j].Key.localRotation;
-                    if (i > 0 && Quaternion.Dot(q, obroty[j][i - 1]) < 0f) q = new Quaternion(-q.x, -q.y, -q.z, -q.w);   // ciągłość znaku
-                    obroty[j][i] = q;
-                }
-                biodra[i] = hipsT.localPosition;
-            }
-            PatrykSpoczynek(spoczynek);
-
-            // (3) Klip Legacy: tylko obroty lokalne (+ pozycja bioder). Kości bez ruchu — 2 klucze (stały obrót we wszystkich klipach,
-            // żeby przenikanie Legacy nie zostawiało kości z poprzedniego klipu).
-            var klip = new AnimationClip { name = k.nazwa, legacy = true, frameRate = 30f, wrapMode = k.petla ? WrapMode.Loop : WrapMode.Once };
-            for (int j = 0; j < pary.Count; j++)
-            {
-                string sc = AnimationUtility.CalculateTransformPath(pary[j].Key, hero.transform);
-                var q = obroty[j];
-                bool staly = q.All(x => Quaternion.Angle(x, q[0]) < .05f);
-                for (int o = 0; o < 4; o++) klip.SetCurve(sc, typeof(Transform), "localRotation." + "xyzw"[o], PatrykKrzywaZ(czasy, q.Select(x => x[o]).ToArray(), staly));
-            }
-            string sh = AnimationUtility.CalculateTransformPath(hipsT, hero.transform);
-            for (int o = 0; o < 3; o++) klip.SetCurve(sh, typeof(Transform), "localPosition." + "xyz"[o], PatrykKrzywaZ(czasy, biodra.Select(x => x[o]).ToArray(), false));
-            klip.EnsureQuaternionContinuity();
-            string cel = PatrykWynik + "/" + k.nazwa + ".anim";
-            if (AssetDatabase.LoadAssetAtPath<AnimationClip>(cel)) AssetDatabase.DeleteAsset(cel);
-            AssetDatabase.CreateAsset(klip, cel);
-            uwagi = (reczne != null ? " (krzywe ręcznie)" : "") + (k.wMiejscu && dryf.magnitude > .05f ? " (w miejscu, dryf " + dryf.magnitude.ToString("F2") + " m)" : "")
-                + " " + dl.ToString("F1") + " s, biodra ×" + skalaB.ToString("F2") + (Mathf.Abs(Quaternion.Angle(yaw, Quaternion.identity)) > 1f ? ", obrót źródła " + yaw.eulerAngles.y.ToString("F0") + "°" : "");
-            return klip;
-        }
-        finally { Object.DestroyImmediate(src); }
-    }
-
-    // Największy kąt (°) między spoczynkiem a pozą źródła w połowie i na końcu klipu (czy próbkowanie w ogóle działa).
-    static float PatrykRuch(AnimationClip clip, GameObject src, List<KeyValuePair<Transform, Transform>> pary, Dictionary<Transform, Quaternion> ws0, float dl, List<PatrykKrzywa> reczne)
-    {
-        float max = 0f;
-        foreach (float czas in new[] { dl * .5f, dl * .27f, dl })
-        {
-            PatrykProbka(clip, src, czas, reczne);
-            foreach (var p in pary) max = Mathf.Max(max, Quaternion.Angle(ws0[p.Key], p.Value.rotation));
-        }
-        return max;
-    }
-
     static AnimationCurve PatrykKrzywaZ(float[] t, float[] v, bool staly)
     {
         if (staly || t.Length < 2) return new AnimationCurve(new Keyframe(0f, v[0], 0f, 0f), new Keyframe(Mathf.Max(t[t.Length - 1], 1f / 30f), v[0], 0f, 0f));
@@ -438,7 +242,7 @@ public static partial class BraxClaudeOsiedle
         return new AnimationCurve(kl);
     }
 
-    // ZERO deformacji: długość każdej kości (od rodzica) w 8 klatkach każdego klipu = spoczynek (±2 %); T-poza w Idle/Walk/Run = błąd.
+    // Kontrola długości kości (nie zastępuje oceny deformacji skóry na nagraniu): długość każdej kości (od rodzica) w 8 klatkach każdego klipu = spoczynek (±2 %); T-poza w Idle/Walk/Run = błąd.
     static int PatrykTestKosci(GameObject hero, List<Transform> kosci, List<PatrykStan> spoczynek, List<AnimationClip> klipy, out string raport)
     {
         PatrykSpoczynek(spoczynek);
@@ -456,14 +260,15 @@ public static partial class BraxClaudeOsiedle
                     if (kv.Value < 1e-5f) continue;
                     float odch = Mathf.Abs((kv.Key.position - kv.Key.parent.position).magnitude / kv.Value - 1f);
                     if (odch > maxOdch) maxOdch = odch;
-                    if (odch > .02f) bk++;
+                    if (float.IsNaN(odch) || float.IsInfinity(odch) || odch > .02f) bk++;
                 }
                 if (PatrykKatRamion(kosci) > 70f) tpoza++;
                 foreach (var s in spoczynek) ruch = Mathf.Max(ruch, Quaternion.Angle(s.r, s.t.localRotation));
             }
+            if (c.name == "Idle" && PatrykKatRamion(kosci) > 40f) { bledy++; uwagi.Add("Idle: ramiona nie są opuszczone"); }
             if (bk > 0) { bledy += bk; uwagi.Add(c.name + ": " + bk + " kości > 2 %"); }
             if ((c.name == "Idle" || c.name == "Walk" || c.name == "Run") && tpoza == 8) { bledy++; uwagi.Add(c.name + ": T-poza"); }
-            if (ruch < 1f) { bledy++; uwagi.Add(c.name + ": bez ruchu (poza spoczynkowa)"); }
+            if (c.name != "Idle" && ruch < 1f) { bledy++; uwagi.Add(c.name + ": bez ruchu (poza spoczynkowa)"); }
             PatrykSpoczynek(spoczynek);
         }
         raport = "(klipy=" + klipy.Count + " × 8 klatek, kości=" + dl0.Count + ", max odchyłka " + (maxOdch * 100f).ToString("F3") + " %, próg 2 %)" + (uwagi.Count > 0 ? " " + string.Join("; ", uwagi) : "");

@@ -11,6 +11,13 @@ using UnityEngine;
 // Fotele: dzieci „BRAXHORN fotel kierowcy” / „BRAXHORN fotel pasażera” w nadwoziu (miejsce dla ludzi — inny etap).
 public sealed class BraxAuto : MonoBehaviour
 {
+    // Ackermann: the inside front wheel turns further than the outside wheel.
+    public static float KatKola(float angle, float wheelbase, float side)
+    {
+        if (Mathf.Abs(angle)<.01f) return 0;
+        float sign=Mathf.Sign(angle), radius=wheelbase/Mathf.Tan(Mathf.Abs(angle)*Mathf.Deg2Rad);
+        return sign*Mathf.Atan2(wheelbase,Mathf.Max(.2f,radius-sign*side))*Mathf.Rad2Deg;
+    }
     public int trasaNr;                            // indeks trasy w BraxRuchAut
     public float sStart, vmax = 8.5f;
     public Vector3[] trasa = new Vector3[0];       // punkty trasy co ~3 m (tylko do odczytu, np. MENU → UTKNĄŁEM szuka najbliższej drogi)
@@ -65,8 +72,7 @@ public sealed class BraxAuto : MonoBehaviour
             var q = Quaternion.Euler(katKol, 0f, 0f);
             foreach (var k in kola) if (k) k.localRotation = q;
             skretAkt = Mathf.Lerp(skretAkt, st.skret, 1f - Mathf.Exp(-dt * 10f));
-            var qs = Quaternion.Euler(0f, skretAkt, 0f);
-            foreach (var s in skret) if (s) s.localRotation = qs;
+            foreach (var s in skret) if (s) s.localRotation = Quaternion.Euler(0f,KatKola(skretAkt,rozstaw,transform.InverseTransformPoint(s.position).x),0f);
             // przechyły: w zakręcie nadwozie pochyla się na zewnątrz łuku, przy hamowaniu „nurkuje”
             if (nadwozie)
             {

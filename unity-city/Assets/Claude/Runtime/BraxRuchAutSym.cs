@@ -58,6 +58,14 @@ public sealed class BraxRuchAutSym
     public Action<string> naZakleszczenie;   // opis zakleszczenia (log CI)
     public Func<Vector3, bool> widoczne;   // kamera (null = test bez kamery: nic nie jest widoczne)
     public bool graczJest; public Vector3 gracz;
+    public struct ObrysZewnetrzny { public Vector3 srodek, przod; public float polSzer, polDl; }
+    public readonly List<ObrysZewnetrzny> zewnetrzne = new List<ObrysZewnetrzny>();
+    public bool ZajeteZewnetrznie(Vector3 p, Vector3 f, float hw, float hl)
+    {
+        foreach (var b in zewnetrzne)
+            if (Mathf.Abs(p.y-b.srodek.y)<3f && Prost(p,f,hw,hl,b.srodek,b.przod,b.polSzer,b.polDl)) return true;
+        return false;
+    }
     public bool pytajStrefy = true;
     public int zakleszczenia, przestawienia, nowePrzejazdy, przejazdyWezlow;
     public float czas;
@@ -280,10 +288,8 @@ public sealed class BraxRuchAutSym
             if (b == a) continue;
             float dx = b.poz.x - p.x, dz = b.poz.z - p.z, r = (a.dl + b.dl) * .5f + 1f;
             if (dx * dx + dz * dz > r * r) continue;
-            // blokuj, jeśli po kroku obrysy się stykają, chyba że auta już wcześniej wyraźnie na siebie nachodziły
-            // (wtedy krok może je rozdzielić); lekkie stykanie się nie pozwala wejść głębiej
-            if (Prost(p, k, a.szer * .5f - .03f, a.dl * .5f - .03f, b.poz, b.kier, b.szer * .5f, b.dl * .5f) &&
-                !Prost(a.poz, a.kier, a.szer * .5f - .15f, a.dl * .5f - .15f, b.poz, b.kier, b.szer * .5f - .15f, b.dl * .5f - .15f)) return b.id;
+            // Nie dopuść do wejścia głębiej w inne auto. Zakleszczenia rozwiązuje kontrolowane przestawienie poza widokiem.
+            if (Prost(p, k, a.szer * .5f - .03f, a.dl * .5f - .03f, b.poz, b.kier, b.szer * .5f, b.dl * .5f)) return b.id;
         }
         return -1;
     }
@@ -296,15 +302,16 @@ public sealed class BraxRuchAutSym
         foreach (var a in auta) a.poz = new Vector3(1e6f + a.id * 100f, 0f, 1e6f);
         foreach (var a in auta)
         {
-            float L = tr[a.trasa].dl; float s0 = a.s;
+            float L = tr[a.trasa].dl; float s0 = a.s; bool znalezione = false;
             for (int k = 0; k < 80; k++)
             {
                 float s = tr[a.trasa].petla ? Rep(s0 + k * 6f, L) : Mathf.Clamp(s0 + k * 6f, 2f, L - 20f);
                 Poza(a, s, out var p, out var kk);
                 if (!DalekoOdWezlow(p, 14f)) continue;
                 if (Nachodzi(a, p, kk, .5f, 4f, null)) continue;
-                a.s = s; break;
+                a.s = s; znalezione = true; break;
             }
+            if (!znalezione) throw new InvalidOperationException("Brak bezkolizyjnego miejsca startowego auta " + a.id + " na trasie " + a.trasa);
             Poza(a, a.s, out a.poz, out a.kier);
             a.v = Mathf.Min(a.vmax, VProf(a.trasa, a.s + a.rozstaw)) * .6f;
         }
@@ -469,6 +476,10 @@ public sealed class BraxRuchAutSym
             Przeszkoda(Mathf.Max(0f, wolneAuto - .5f), 1.4f, P_AUTO, u, .3f);
         }
         // b) bramka skrzyżowania / ronda
+        // Full player car footprint, including a parked car. A point at the rider's hips is not sufficient.
+        for (int k = 0; k <= n; k++)
+            if (ZajeteZewnetrznie(probkiS[k], probkiK[k], a.szer*.5f+.15f, a.dl*.5f+.3f))
+            { Przeszkoda(Mathf.Max(0,k-.5f),1.4f,P_GRACZ,true,.3f); break; }
         bool czekaNaLinii = false;
         if (a.bramka >= 0)
         {
@@ -650,7 +661,9 @@ public sealed class BraxRuchAutSym
             {
                 Poza(a, a.s + ds, out var np, out var nk);
                 int kol = NoweNachodzenie(a, np, nk);
-                if (kol >= 0) { ds = 0f; v = 0f; a.blokada = kol; }
+                if (ZajeteZewnetrznie(np,nk,a.szer*.5f+.08f,a.dl*.5f+.08f))
+                { ds=0; v=0; a.powod=P_GRACZ; a.uprawnione=true; a.blokada=-1; }
+                else if (kol >= 0) { ds = 0f; v = 0f; a.blokada = kol; }
                 else { a.poz = np; a.kier = nk; a.blokada = -1; }
             }
             a.s += ds; a.zapas -= ds;
@@ -684,6 +697,7 @@ public sealed class BraxRuchAutSym
             if (!ukryty && !DalekoOdWezlow(p, 16f)) continue;
             if (!ukryty && widoczne != null && widoczne(p)) continue;
             if (Nachodzi(a, p, k, .4f, 6f, a)) continue;
+            if (ZajeteZewnetrznie(p,k,a.szer*.5f+.4f,a.dl*.5f+3f)) continue;
             a.trasa = r; a.s = s; a.poz = p; a.kier = k; a.obszar = tr[r].obszar;
             a.v = ukryty ? Mathf.Min(a.vmax, 6f) : 0f; a.vPrev = a.v; a.a = 0f; a.vCel = a.v; a.zapas = 0f;
             a.rez = -1; a.bramka = -1; a.tStoi = a.tCzeka = a.tGracz = 0f; a.przestawiony = true; a.powod = P_WOLNA;
