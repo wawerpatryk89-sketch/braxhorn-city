@@ -38,7 +38,7 @@ public sealed class BraxDymki : MonoBehaviour
         if (!cel || string.IsNullOrEmpty(tekst)) return 0f;
         var clip = Klip(tekst, ton); if (!clip) return 0f;
         var camera = Camera.main;
-        if (camera && (camera.transform.position - cel.position).sqrMagnitude > 26f * 26f) return clip.length;
+        if (camera && (camera.transform.position - cel.position).sqrMagnitude > (BraxGlosPostaci.MaxOdl + 2f) * (BraxGlosPostaci.MaxOdl + 2f)) return clip.length;   // build 45: zasięg głosu 24 m × K
         var voice = cel.GetComponent<BraxGlosPostaci>();
         if (!voice) voice = cel.gameObject.AddComponent<BraxGlosPostaci>();
         voice.Mow(clip);
