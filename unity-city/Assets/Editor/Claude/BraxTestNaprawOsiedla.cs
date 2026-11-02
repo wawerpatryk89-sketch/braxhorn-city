@@ -115,6 +115,33 @@ public static class BraxTestNaprawOsiedla
             Require(!BraxWycinanieSiatki.OdejmijTrojkaty(grunt, Matrix4x4.identity, -1, 1, 0, 0f, .002f, plyta, out _, out _, out _), "przeciwny zwrot — bez zmian");
         }
         finally { UnityEngine.Object.DestroyImmediate(grunt); if (wynik) UnityEngine.Object.DestroyImmediate(wynik); }
+        // Runda 2 (audyt 9f658d4): drzwi bez ściany — wejścia nigdy nie są usuwane automatycznie; test zapasowy siatką
+        Require(BraxClaudeOsiedle.Klasa("club-front") == BraxClaudeOsiedle.KlasaDrzwi.Wejscie && BraxClaudeOsiedle.Klasa("hospital-front-door") == BraxClaudeOsiedle.KlasaDrzwi.Wejscie, "drzwi …-front = wejście");
+        Require(BraxClaudeOsiedle.Klasa("club-hall") == BraxClaudeOsiedle.KlasaDrzwi.Wewnetrzne && BraxClaudeOsiedle.Klasa("police-office") == BraxClaudeOsiedle.KlasaDrzwi.Wewnetrzne
+                && BraxClaudeOsiedle.Klasa("hospital-room-3") == BraxClaudeOsiedle.KlasaDrzwi.Wewnetrzne && BraxClaudeOsiedle.Klasa("villa-bathroom") == BraxClaudeOsiedle.KlasaDrzwi.Wewnetrzne
+                && BraxClaudeOsiedle.Klasa("gym-rear") == BraxClaudeOsiedle.KlasaDrzwi.Wewnetrzne, "drzwi wewnętrzne: -hall, -office, -room-*, -bathroom, -rear");
+        Require(BraxClaudeOsiedle.Klasa("casino-vip") == BraxClaudeOsiedle.KlasaDrzwi.Nieznane && BraxClaudeOsiedle.Klasa(null) == BraxClaudeOsiedle.KlasaDrzwi.Nieznane, "inne id — nieznane (nieusuwane)");
+        bool bylo = BraxClaudeOsiedle.JedyneWejscia.Contains("gym-rear"); BraxClaudeOsiedle.JedyneWejscia.Add("gym-rear");
+        Require(BraxClaudeOsiedle.Klasa("gym-rear") == BraxClaudeOsiedle.KlasaDrzwi.Wejscie, "-rear jako jedyne wejście (E25) = chronione");
+        if (!bylo) BraxClaudeOsiedle.JedyneWejscia.Remove("gym-rear");
+        Require(BraxClaudeOsiedle.OdcinekTrojkat(new Vector3(.2f, .2f, -1), new Vector3(.2f, .2f, 1), Vector3.zero, Vector3.right, Vector3.up), "odcinek przez trójkąt");
+        Require(!BraxClaudeOsiedle.OdcinekTrojkat(new Vector3(.2f, .2f, -1), new Vector3(.2f, .2f, -.1f), Vector3.zero, Vector3.right, Vector3.up), "odcinek przed trójkątem");
+        Require(!BraxClaudeOsiedle.OdcinekTrojkat(new Vector3(.8f, .8f, -1), new Vector3(.8f, .8f, 1), Vector3.zero, Vector3.right, Vector3.up), "odcinek obok trójkąta");
+        var scianaTest = new GameObject("test ściany drzwi"); var salaTest = new GameObject("test sali bez ściany");
+        try
+        {
+            // ściana 4 × 3 m w płaszczyźnie z = 0 (bez kolizji) i „sala”: podłoga + sufit 3 m (obrys ≥ 1.6 m, ale bez ściany w punkcie)
+            var ms = new Mesh(); ms.vertices = new[] { new Vector3(-2, 0, 0), new Vector3(2, 0, 0), new Vector3(2, 3, 0), new Vector3(-2, 3, 0) }; ms.triangles = new[] { 0, 2, 1, 0, 3, 2 }; ms.RecalculateBounds();
+            scianaTest.AddComponent<MeshFilter>().sharedMesh = ms; scianaTest.AddComponent<MeshRenderer>();
+            var mp = new Mesh(); mp.vertices = new[] { new Vector3(-3, 0, -3), new Vector3(3, 0, -3), new Vector3(3, 0, 3), new Vector3(-3, 0, 3), new Vector3(-3, 3, -3), new Vector3(3, 3, -3), new Vector3(3, 3, 3), new Vector3(-3, 3, 3) };
+            mp.triangles = new[] { 0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7 }; mp.RecalculateBounds();
+            salaTest.transform.position = new Vector3(20, 0, 0); salaTest.AddComponent<MeshFilter>().sharedMesh = mp; salaTest.AddComponent<MeshRenderer>();
+            var lista = new[] { scianaTest.GetComponent<MeshFilter>(), salaTest.GetComponent<MeshFilter>() };
+            Require(BraxClaudeOsiedle.ScianaWSiatce(new Vector3(1, 1.2f, 0), Vector3.forward, .45f, lista, out _), "ściana w siatce bez kolizji = ściana (drzwi zostają, kolizja dołożona)");
+            Require(!BraxClaudeOsiedle.ScianaWSiatce(new Vector3(6, 1.2f, 0), Vector3.forward, .45f, lista, out _), "obok ściany — brak");
+            Require(!BraxClaudeOsiedle.ScianaWSiatce(new Vector3(20, 1.2f, 0), Vector3.forward, .45f, lista, out _), "sam obrys sali ≥ 1.6 m (bez trójkąta ściany) — brak ściany");
+        }
+        finally { UnityEngine.Object.DestroyImmediate(scianaTest); UnityEngine.Object.DestroyImmediate(salaTest); }
         // E4b: kto zagaduje — ~1 na 6 (stała osobowość), limity osoby/globalny, nie gdy gracz biegnie/jedzie; krzywa głośności
         int zag = 0; for (int i = 0; i < 6000; i++) if (BraxLudzie.Zagadujacy(BraxLudzie.Ziarno("Przechodzień " + i, new Vector3(i * .7f, 0, -i * 1.3f)))) zag++;
         Require(zag > 6000 / 8 && zag < 6000 / 5, "zagaduje ~1 na 6 osób (" + zag + "/6000)");
