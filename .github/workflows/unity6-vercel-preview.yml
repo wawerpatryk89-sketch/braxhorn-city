@@ -1,0 +1,118 @@
+name: Unity 6 WebGL - verified Vercel preview only
+
+on:
+  push:
+    branches: [codex/vercel-unity6-webgl-20261102]
+    paths: ['unity-tools/vercel/**', '.github/workflows/unity6-vercel-preview.yml', 'vercel.json']
+  workflow_dispatch:
+    inputs:
+      source_run:
+        description: Successful claude-region-build run ID
+        required: true
+        default: '41351314859'
+      source_commit:
+        description: Full source SHA from that run
+        required: true
+        default: '5623047e2713a25ffc885a2d3037b5f8727fd606'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: unity6-vercel-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      actions: read
+    env:
+      SOURCE_RUN: ${{ inputs.source_run || '41351314859' }}
+      SOURCE_COMMIT: ${{ inputs.source_commit || '5623047e2713a25ffc885a2d3037b5f8727fd606' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: unity-tools/vercel
+          persist-credentials: false
+      - name: Test the packaging and production guards
+        run: python3 -m unittest discover -s unity-tools/vercel -p 'test_*.py' -v
+      - name: Download the exact successful Unity 6 WebGL artifact and verify archive SHA256
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python3 unity-tools/vercel/fetch.py --run "$SOURCE_RUN" --commit "$SOURCE_COMMIT"
+          --output "$RUNNER_TEMP/unity-artifact"
+      - name: Verify Unity binaries, streaming parts, checksums and every entry asset path
+        run: >-
+          python3 unity-tools/vercel/prepare.py --source "$RUNNER_TEMP/unity-artifact"
+          --output "$RUNNER_TEMP/unity-site" --commit "$SOURCE_COMMIT" --run "$SOURCE_RUN"
+      - name: Check the exact Vercel build command
+        env:
+          VERCEL_ENV: preview
+        run: node "$RUNNER_TEMP/unity-site/verify-preview.cjs"
+      - name: Install the pinned browser test dependency
+        run: |
+          npm install --prefix unity-tools/vercel --no-save --ignore-scripts playwright@1.56.1
+          unity-tools/vercel/node_modules/.bin/playwright install --with-deps chromium
+      - name: Launch the real Unity player in Chromium WebGL2
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory "$RUNNER_TEMP/unity-site/unity-webgl" > "$RUNNER_TEMP/unity-http.log" 2>&1 &
+          server=$!
+          trap 'kill "$server"' EXIT
+          for n in $(seq 1 20); do curl -fsS http://127.0.0.1:8765/unity-gym/ -o /dev/null && break || sleep 1; done
+          node unity-tools/vercel/smoke.mjs
+      - name: Preserve verification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: unity6-vercel-evidence-${{ github.run_id }}
+          path: |
+            unity-webgl-smoke.json
+            unity-webgl-smoke.png
+            ${{ runner.temp }}/unity-site/unity-webgl/deployment-proof.json
+            ${{ runner.temp }}/unity-http.log
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publish only a new artifact branch for Vercel Preview
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/unity-site"
+          branch="preview/unity6-webgl-${SOURCE_COMMIT:0:12}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          case "$branch" in preview/unity6-webgl-*) ;; *) exit 1 ;; esac
+          git init -b "$branch"
+          git config user.name 'wawerpatryk89-sketch'
+          git config user.email 'wawerpatryk89@gmail.com'
+          git config credential.helper '!gh auth git-credential'
+          git remote add origin "https://github.com/$GITHUB_REPOSITORY.git"
+          git add vercel.json verify-preview.cjs unity-webgl
+          git commit -m "preview(Unity6): verified WebGL artifact $SOURCE_COMMIT"
+          git push origin "HEAD:refs/heads/$branch"
+          sha=$(git rev-parse HEAD)
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "UNITY6_PREVIEW_BRANCH $branch $sha"
+          echo "Preview source: $SOURCE_COMMIT (run $SOURCE_RUN)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Branch: $branch; artifact commit: $sha. Production was not published." >> "$GITHUB_STEP_SUMMARY"
+      - name: Observe Vercel status without treating an absent deployment as success
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_SHA: ${{ steps.publish.outputs.sha }}
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 40); do
+            gh api "repos/$GITHUB_REPOSITORY/commits/$PREVIEW_SHA/status" > "$RUNNER_TEMP/vercel-status.json"
+            state=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); s=[x for x in d["statuses"] if x["context"]=="Vercel"]; print(s[0]["state"] if s else "missing")' "$RUNNER_TEMP/vercel-status.json")
+            if [ "$state" = success ]; then cat "$RUNNER_TEMP/vercel-status.json"; exit 0; fi
+            if [ "$state" = failure ] || [ "$state" = error ]; then cat "$RUNNER_TEMP/vercel-status.json"; exit 1; fi
+            sleep 15
+          done
+          echo '::error::No successful Vercel deployment. Verify project access and Git integration; artifact branch is ready.'
+          exit 1

@@ -1,25 +1,8 @@
 {
-  "outputDirectory": "public",
-  "cleanUrls": true,
-  "headers": [
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)\\.wasm",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/wasm"
-        }
-      ]
-    }
-  ],
-  "buildCommand": "node dev/tools/assemble-assets.cjs"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": null,
+  "outputDirectory": "unity-webgl",
+  "git": { "deploymentEnabled": false }
 }
