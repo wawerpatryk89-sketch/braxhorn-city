@@ -349,6 +349,8 @@ public static class BraxGymBuild
         // MIASTO (2.11, właściciel: „wszystko do poprawy… migotanie, miasto”): te same kontrole co na osiedlu — skala względem bohatera,
         // umieszczenie, kolizje, MIGOTANIE (rozsunięcie płaskich warstw), listy pomieszczeń, robot kolizji. Przed BezSwiecenia/Siatki (siatki do odczytu).
         if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrole jakości (miasto): "+e);}
+        // P0.1 (2.11 23:05, „metro nie do wejścia”): obce kolizje w przejściach stacji wyłączone + test przejścia obu wejść
+        if(fullCity&&!osiedle)try{BraxClaudeMetro.KontrolaPrzejscia();}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_METRO_PRZEJSCIE: "+e);}
         // C4 (2.11, „szyby globalnie”): szkło bez mleka — przezroczyste z odbiciem nieba, fasady bez wnętrza refleksyjne (BRAXHORN_SZYBY)
         if(fullCity&&!osiedle)try{BraxSzyby.Wykonaj(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: szyby (miasto): "+e);}
         if(!osiedle)try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}

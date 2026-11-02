@@ -80,7 +80,9 @@ public static class BraxClaudeMetro
     {
         mPosadzka = M.Tex("metro posadzka granit", 1.2f, new Color(.80f, .80f, .80f), .62f, 0f, "granite_tile_02", "granite_tile");
         mPosadzkaJasna = M.Tex("metro krawędź peronu granit jasny", .9f, new Color(1.05f, 1.04f, 1.0f), .6f, 0f, "granite_tile", "granite_tile_02");
-        mSciana = M.Tex("metro okładzina ścian (płytki)", 1.2f, new Color(.97f, .97f, .95f), .5f, 0f, "square_tiles", "floor_tiles_06", "rectangular_facade_tiles");
+        // P0.1 (właściciel 23:05: „kafelki szachownica w szybie”): okładzina wielkoformatowa (płyty 2.4 m, jasny kamień/tynk
+        // architektoniczny) zamiast drobnych kwadratów w dwóch odcieniach — szyb zejścia i hala tym samym wykończeniem
+        mSciana = M.Tex("metro okładzina ścian (płyty wielkoformatowe)", 2.4f, new Color(.95f, .95f, .93f), .42f, 0f, "rectangular_facade_tiles", "white_plaster_02", "granite_tile", "square_tiles");
         mLamperia = M.Tex("metro cokół ścian granit grafit", 1.2f, new Color(.30f, .31f, .33f), .55f, 0f, "granite_tile_02", "granite_tile");
         mSufit = M.Plain("metro sufit panele aluminiowe", new Color(.80f, .81f, .82f), .5f, .35f);
         mBelka = M.Plain("metro belki i obramowania grafit", new Color(.20f, .21f, .23f), .55f, .4f);
@@ -217,6 +219,90 @@ public static class BraxClaudeMetro
         rep.punktyAkcji = podziemie.GetComponentsInChildren<BraxPunktAkcji>(true).Length;
         rep.peron = "x " + PX0 + "…" + PX1 + ", z " + zPS + "…" + zPN + ", y " + yP;
         rep.wejscia = "płn. x " + EX0 + "…76.6 z " + EZ[1] + "…" + (EZ[1] + EW) + "; płd. x " + EX0 + "…76.6 z " + EZ[0] + "…" + (EZ[0] + EW);
+    }
+
+    // ---------------- P0.1: TEST PRZEJŚCIA (właściciel 23:05: „schody kończą się ślepym podestem”, a w logu BUILT) ----------------
+    // Na końcu buildu miasta (scena kompletna): 1) obce kolizje (nie należące do stacji) w objętościach przejść — zejścia pod
+    // terenem, dół schodów, antresola, peron — WYŁĄCZONE (log z nazwą i miejscem); 2) przejście kapsułą gracza (r 0.33, 2.25 m,
+    // stopień 0.4) co 0.5 m po trasie chodnik → schody → dół szybu → antresola → bramki → schody na peron → peron, dla OBU
+    // wejść; podłoga promieniem w dół. Log BRAXHORN_METRO_PRZEJSCIE wejscie=płn ok|zablokowane:<kolizja @ miejsce> (cel: oba ok).
+    public static void KontrolaPrzejscia()
+    {
+        if (!zewnatrz || !podziemie) { Debug.LogWarning("BRAXHORN_METRO_PRZEJSCIE brak stacji (krok metra nie zbudował korzeni)"); return; }
+        Physics.SyncTransforms();
+        float xEnd = EX0 + (12 - 1 + 11 - 1) * .30f * K + 1.5f * K;
+        bool Wlasna(Collider c) => c.transform.IsChildOf(zewnatrz) || c.transform.IsChildOf(podziemie);
+        const int maska = ~((1 << 8) | (1 << 2) | (1 << 29) | (1 << 31));
+        // 1) obce kolizje w przejściach
+        var obj = new List<Bounds> { Bryla(xEnd + .1f, MX1 - .1f, yM + .05f, yMc - .05f, MZ0 + .1f, MZ1 - .1f), Bryla(MX0 + .1f, MX1 - .1f, yM + .05f, yMc - .05f, MZ0 + .1f, MZ1 - .1f), Bryla(PX0, PX1, yP + .05f, yHc - .1f, zPS, zPN) };
+        foreach (float z0 in EZ) obj.Add(Bryla(EX0 + .1f, xEnd + .1f, yM + .05f, -.25f, z0 + .2f, z0 + EW - .2f));
+        var obce = new List<string>();
+        foreach (var b in obj)
+            foreach (var c in Physics.OverlapBox(b.center, b.extents, Quaternion.identity, maska, QueryTriggerInteraction.Ignore))
+            {
+                if (!c || !c.enabled || Wlasna(c) || c.GetComponentInParent<BraxGymPlayer>()) continue;
+                obce.Add(c.name + " (" + (c.transform.parent ? c.transform.parent.name : "-") + ") " + c.bounds.center.ToString("F1") + " " + c.bounds.size.ToString("F1"));
+                c.enabled = false;
+            }
+        Physics.SyncTransforms();
+        // 2) przejście kapsułą
+        string Kapsula(Vector3 stopa)
+        {
+            var hits = Physics.OverlapCapsule(stopa + Vector3.up * (.33f + .4f), stopa + Vector3.up * (2.25f - .33f), .33f, maska, QueryTriggerInteraction.Ignore);
+            foreach (var c in hits)
+            {
+                if (!c || c.name.Contains("blokada przejścia") || c.GetComponentInParent<BraxDrzwiPrzesuwne>() || c.GetComponentInParent<BraxCityDoor>() || c.GetComponentInParent<BraxGymPlayer>()) continue;
+                return c.name + " (" + (c.transform.parent ? c.transform.parent.name : "-") + ")";
+            }
+            return null;
+        }
+        float Wolny(float x, float y, float za, float zb, float pref)
+        {
+            float best = float.NaN, bd = 1e9f;
+            for (float z = za; z <= zb; z += .1f) if (Kapsula(new Vector3(x, y, z)) == null && Mathf.Abs(z - pref) < bd) { bd = Mathf.Abs(z - pref); best = z; }
+            return best;
+        }
+        string Idz(List<Vector3> pkt, out float metry)
+        {
+            metry = 0; float y = pkt[0].y;
+            for (int i = 0; i + 1 < pkt.Count; i++)
+            {
+                var a = pkt[i]; var b = pkt[i + 1]; var d = b - a; d.y = 0; float L = d.magnitude; if (L < .01f) continue;
+                for (float s = 0; s <= L; s += .5f)
+                {
+                    var q = a + d / L * s;
+                    if (!Physics.Raycast(new Vector3(q.x, y + 1.0f, q.z), Vector3.down, out var hit, 4.5f, maska, QueryTriggerInteraction.Ignore))
+                        return "brak podłogi @" + new Vector3(q.x, y, q.z).ToString("F1");
+                    if (hit.point.y > y + .45f) return "próg/ściana " + hit.collider.name + " @" + hit.point.ToString("F1");
+                    y = hit.point.y;
+                    var k = Kapsula(new Vector3(q.x, y, q.z));
+                    if (k != null) return k + " @" + new Vector3(q.x, y, q.z).ToString("F1");
+                    metry += .5f;
+                }
+            }
+            return null;
+        }
+        var wyniki = new List<string>(); int ok = 0;
+        foreach (float z0 in EZ)
+        {
+            bool pln = z0 > 28f; float zc = z0 + EW * .5f, zIn = pln ? EZ[1] - 1.0f : EZ[0] + EW + 1.0f;
+            float zBr = Wolny(GX, yM, MZ0 + .5f, MZ1 - .5f, 28.45f);
+            float zSt = Wolny(WX1 + .6f, yM, WZ0 + .4f, WZ1 - .4f, 27.15f);
+            string wynik;
+            if (float.IsNaN(zBr)) wynik = "zablokowane: bramki — brak wolnego przejścia na linii x " + GX;
+            else if (float.IsNaN(zSt)) wynik = "zablokowane: wejście na schody na peron (x " + (WX1 + .6f).ToString("F1") + ")";
+            else
+            {
+                var trasa = new List<Vector3> { new Vector3(EX0 - 4f, yS, zc), new Vector3(EX0 - .3f, yS, zc), new Vector3(xEnd + 1.0f, yM, zc), new Vector3(xEnd + 1.0f, yM, zIn),
+                    new Vector3(GX + 3f, yM, zIn), new Vector3(GX + 1.5f, yM, zBr), new Vector3(GX - 1.5f, yM, zBr), new Vector3(WX1 + 1.0f, yM, zSt), new Vector3(WX0 - 1.5f, yP, zSt), new Vector3(20f, yP, 28.5f) };
+                var r = Idz(trasa, out float m);
+                wynik = r == null ? "ok (" + m.ToString("F0") + " m)" : "zablokowane:" + r + " po " + m.ToString("F0") + " m";
+                if (r == null) ok++;
+            }
+            wyniki.Add("wejscie=" + (pln ? "płn" : "płd") + " " + wynik);
+        }
+        string linia = "BRAXHORN_METRO_PRZEJSCIE " + string.Join(" | ", wyniki) + " (cel: oba ok) obce_kolizje_wylaczone=" + obce.Count + (obce.Count > 0 ? " [" + string.Join("; ", obce.Take(20)) + "]" : "");
+        if (ok == EZ.Length) Debug.Log(linia); else Debug.LogWarning(linia);
     }
 
     static Bounds Bryla(float x0, float x1, float y0, float y1, float z0, float z1)
