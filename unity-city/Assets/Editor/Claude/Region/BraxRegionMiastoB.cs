@@ -35,6 +35,7 @@ public static class BraxRegionMiastoB
     public const float SZ = -19f, SH = 3f, SX1 = -61.4f;   // ul. Warsztatowa
     public const float GZ = 28.5f, GH = 4.5f;              // ulica główna
     const float YA = .003f, YC = .15f;
+    static readonly float[] WlotyRonda = { 0f, 90f, 270f };   // kąty wlotów ronda (0 = +x E, 90 = +z N, 270 = −z S)
     // parking przy warsztatach (za warsztatami, wjazd z Alei Południowej przez zjazd we wschodnim pasie zieleni): 2 rzędy po 12
     // stanowisk prostopadłych 2.5 × 5 m × k, aleja manewrowa 6 m; powierzchnia na poziomie chodnika
     public const float ParkX0 = -112f, ParkX1 = -72f, ParkZ0 = -66f, ParkZ1 = -46f, ParkAleja0 = -59f, ParkAleja1 = -53f;
@@ -325,10 +326,28 @@ public static class BraxRegionMiastoB
     public static bool NaJezdni(Vector3 p)
     {
         var q = new Vector2(p.x, p.z);
-        foreach (var (_, r) in asfalty) { var rr = r; rr.xMin -= .3f; rr.yMin -= .3f; rr.xMax += .3f; rr.yMax += .3f; if (rr.Contains(q)) return true; }
+        // kwadraty placów ronda i pętli są zarejestrowane jako asfalt (pod chodnikiem placu) — jezdnią jest tylko pierścień i wloty
+        foreach (var (n, r) in asfalty)
+        {
+            if (n == "rondo (pierścień i wloty)" || n == "pętla PÓŁNOC") continue;
+            var rr = r; rr.xMin -= .3f; rr.yMin -= .3f; rr.xMax += .3f; rr.yMax += .3f; if (rr.Contains(q)) return true;
+        }
         if (Rect.MinMaxRect(-104.5f, 23.7f, 66f, 33.3f).Contains(q)) return true;
         foreach (var c in new[] { new Vector2(RX, RZ), new Vector2(AX, PetlaZ) }) { float d = Vector2.Distance(q, c); if (d >= RWyspa - .3f && d <= RJezdnia + .3f) return true; }
+        // wloty w kwadratach placów (od pierścienia do krawędzi placu, pół jezdni + 0.3 m)
+        foreach (var (c, kat, hj) in WlotyPlacow())
+        {
+            var d = new Vector2(Mathf.Cos(kat * Mathf.Deg2Rad), Mathf.Sin(kat * Mathf.Deg2Rad)); var v = q - c;
+            float wz = Vector2.Dot(v, d), wp = Mathf.Abs(d.x * v.y - d.y * v.x);
+            if (wz >= RWyspa && wz <= RPlac + .3f && wp <= hj + .3f) return true;
+        }
         return false;
+    }
+
+    static IEnumerable<(Vector2 c, float kat, float hj)> WlotyPlacow()
+    {
+        foreach (var k in WlotyRonda) yield return (new Vector2(RX, RZ), k, AH);
+        yield return (new Vector2(AX, PetlaZ), 270f, AH);
     }
 
     // a − b (prostokąty osiowe) → do 4 prostokątów
@@ -433,8 +452,7 @@ public static class BraxRegionMiastoB
         var c = new Vector2(RX, RZ);
         Asfalt("rondo (pierścień i wloty)", RX - RPlac, RX + RPlac, RZ - RPlac, RZ + RPlac);
         // wloty: E (ulica główna), N, S (aleje); W — ETAP 2 (do tego czasu chodnik przez cały zachód placu)
-        var wloty = new[] { 0f, 90f, 270f };
-        PlacZPierscieniem("rondo", c, RJezdnia, RPlac, wloty, AH);
+        PlacZPierscieniem("rondo", c, RJezdnia, RPlac, WlotyRonda, AH);
         // wyspa: krawężnik (pierścień 0.25 m, wys. 0.15), trawnik (dysk 3 cm niżej), drzewo i rzeźba
         var kraw = new BraxRegionMeble.Bud(); Pierscien(kraw, c, RWyspa - Kr, RWyspa, YC, 64);
         kraw.Obiekt("Rondo: krawężnik wyspy", root, krawMat, false, false);
