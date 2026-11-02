@@ -75,6 +75,14 @@ def main():
         lines.append("— " + str(f.parent.relative_to(SRC)).replace("\\", "/") + " —")
         lines.extend(body)
         lines.append("")
+    # build 45: autorzy paczek zaszyfrowanych (unity-city/Prywatne/*_CREDITS.md — sam tekst jest jawny; modele odszyfrowuje CI)
+    for f in sorted((ROOT / "unity-city" / "Prywatne").glob("*_CREDITS.md")):
+        body = plain(f.read_text(encoding="utf-8", errors="replace"))
+        if not body:
+            continue
+        lines.append("— Prywatne/" + f.name.replace("_CREDITS.md", "") + " —")
+        lines.extend(body)
+        lines.append("")
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
     print(f"ekran Autorzy: {len(lines)} linii → {OUT.relative_to(ROOT)}")
