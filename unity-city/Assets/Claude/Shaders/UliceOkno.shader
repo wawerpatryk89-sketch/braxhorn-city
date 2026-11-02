@@ -84,6 +84,9 @@ Shader "Braxhorn/UliceOkno"
                 col = lerp(col, float3(.74, .73, .71), step(length(lc), .07));
             }
             col *= lerp(1, .55, h.z);
+            // część pokoi z zapalonym światłem (ciepłe, jaśniejsze) — właściciel 2.11: „okna JASNE… część zapalona”
+            float zap = step(.7, frac(id * 29.3));
+            col = lerp(col, col * float3(1.65, 1.45, 1.05), zap);
             // firanki po bokach i żaluzje u góry (w części pokoi)
             float cur = step(id, _Curtains) * lerp(.08, .22, frac(id * 3.7));
             float3 fabric = lerp(float3(.93, .91, .86), float3(.72, .68, .62), frac(id * 5.1)) * (.9 + .1 * sin(p.x * 140));

@@ -98,6 +98,109 @@ internal static class BraxMiastoA
         return r0;
     }
 
+    // ---------------- KONTROLA MIGOTANIA: pary powierzchni w odległości < 2 cm ----------------
+    struct Tr { public int r; public int os; public float c; public Vector2 lo, hi; }
+    /// <summary>Szuka par trójkątów osiowych (ściany, podłogi) o tej samej normalnej, w odstępie &lt; 2 cm i nakładających się
+    /// (≥ 1 cm² wspólnego pola), z których jeden należy do NOWEJ geometrii (nowy(transform) == true), drugi do starej.
+    /// napraw = true: STARA powierzchnia jest wycinana w miejscu nakładania (zasada „starą zwalić, nie nakładać”); potem
+    /// liczenie od nowa. Log: BRAXHORN_MIASTO_A_MIGOTANIE &lt;etykieta&gt; pary=N (po naprawie) [przed naprawą=M].</summary>
+    public static int KontrolaMigotania(Transform[] korzenie, Bounds obszar, Func<Transform, bool> nowy, string etykieta, bool napraw)
+    {
+        int przed = -1, po = 0; var opis = new List<string>();
+        for (int przebieg = 0; przebieg < (napraw ? 2 : 1); przebieg++)
+        {
+            var rs = new List<MeshRenderer>(); var isNew = new List<bool>();
+            foreach (var k in korzenie) if (k) foreach (var r in k.GetComponentsInChildren<MeshRenderer>(true))
+                    {
+                        if (!r || !r.enabled || !r.gameObject.activeInHierarchy || !r.bounds.Intersects(obszar)) continue;
+                        var mf = r.GetComponent<MeshFilter>(); if (!mf || !mf.sharedMesh) continue;
+                        bool przezroczysty = r.sharedMaterials.Any(m => m && m.renderQueue >= 2900);   // szkło/promienie: nie z-fight w sensie głębi
+                        if (przezroczysty) continue;
+                        rs.Add(r); isNew.Add(nowy(r.transform));
+                    }
+            var stare = new Dictionary<(int, int, int), List<Tr>>(); var nowe = new List<Tr>();
+            for (int ri = 0; ri < rs.Count; ri++)
+            {
+                var r = rs[ri]; var mf = r.GetComponent<MeshFilter>(); var m = mf.sharedMesh; if (!m.isReadable) continue;
+                var v = m.vertices; var t = m.triangles; var M = r.transform.localToWorldMatrix;
+                var w = new Vector3[v.Length]; for (int i = 0; i < v.Length; i++) w[i] = M.MultiplyPoint3x4(v[i]);
+                for (int i = 0; i + 2 < t.Length; i += 3)
+                {
+                    var a = w[t[i]]; var b = w[t[i + 1]]; var c = w[t[i + 2]];
+                    var n = Vector3.Cross(b - a, c - a); float ar = n.magnitude; if (ar < 2e-4f) continue; n /= ar;
+                    int os; float sg;
+                    if (Mathf.Abs(n.x) > .999f) { os = 0; sg = Mathf.Sign(n.x); } else if (Mathf.Abs(n.y) > .999f) { os = 1; sg = Mathf.Sign(n.y); } else if (Mathf.Abs(n.z) > .999f) { os = 2; sg = Mathf.Sign(n.z); } else continue;
+                    float cc = (a[os] + b[os] + c[os]) / 3f;
+                    int u = os == 0 ? 2 : 0, q = os == 1 ? 2 : 1;
+                    var lo = new Vector2(Mathf.Min(a[u], Mathf.Min(b[u], c[u])), Mathf.Min(a[q], Mathf.Min(b[q], c[q])));
+                    var hi = new Vector2(Mathf.Max(a[u], Mathf.Max(b[u], c[u])), Mathf.Max(a[q], Mathf.Max(b[q], c[q])));
+                    var tr = new Tr { r = ri, os = os * 2 + (sg > 0 ? 1 : 0), c = cc, lo = lo, hi = hi };
+                    if (isNew[ri]) nowe.Add(tr);
+                    else
+                    {
+                        var key = (tr.os, Mathf.RoundToInt(cc * 100f), 0);
+                        if (!stare.TryGetValue(key, out var l)) stare[key] = l = new List<Tr>();
+                        l.Add(tr);
+                    }
+                }
+            }
+            int pary = 0; var ciecia = new List<(MeshRenderer, Bounds)>();
+            foreach (var tn in nowe)
+            {
+                int c0 = Mathf.RoundToInt(tn.c * 100f);
+                for (int dc = -2; dc <= 2; dc++)
+                {
+                    if (!stare.TryGetValue((tn.os, c0 + dc, 0), out var l)) continue;
+                    foreach (var to in l)
+                    {
+                        if (Mathf.Abs(to.c - tn.c) >= .02f) continue;
+                        float ox = Mathf.Min(tn.hi.x, to.hi.x) - Mathf.Max(tn.lo.x, to.lo.x), oy = Mathf.Min(tn.hi.y, to.hi.y) - Mathf.Max(tn.lo.y, to.lo.y);
+                        if (ox < .01f || oy < .01f) continue;
+                        pary++;
+                        if (opis.Count < 12 && przebieg == 0) opis.Add(rs[to.r].name + " ↔ " + rs[tn.r].name + " @" + (tn.os / 2 == 0 ? "x" : tn.os / 2 == 1 ? "y" : "z") + "=" + tn.c.ToString("F2"));
+                        if (napraw && przebieg == 0)
+                        {
+                            int os = tn.os / 2, u = os == 0 ? 2 : 0, q = os == 1 ? 2 : 1;
+                            var lo3 = Vector3.zero; var hi3 = Vector3.zero;
+                            lo3[os] = to.c - .03f; hi3[os] = to.c + .03f;
+                            lo3[u] = Mathf.Max(tn.lo.x, to.lo.x) - .005f; hi3[u] = Mathf.Min(tn.hi.x, to.hi.x) + .005f;
+                            lo3[q] = Mathf.Max(tn.lo.y, to.lo.y) - .005f; hi3[q] = Mathf.Min(tn.hi.y, to.hi.y) + .005f;
+                            var bb = new Bounds(); bb.SetMinMax(lo3, hi3); ciecia.Add((rs[to.r], bb));
+                        }
+                    }
+                }
+            }
+            if (przebieg == 0) przed = pary; else po = pary;
+            if (!napraw) po = pary;
+            if (napraw && przebieg == 0)
+            {
+                // wycięcie starej powierzchni w miejscu nakładania (scalone per renderer, żeby nie ciąć tej samej siatki tysiące razy)
+                Directory.CreateDirectory(Out + "/Ciecia");
+                foreach (var g in ciecia.GroupBy(x => x.Item1))
+                {
+                    var lista = g.Select(x => x.Item2).ToList();
+                    // scal pudła w jednej płaszczyźnie w większe (do 64 cięć na renderer)
+                    while (lista.Count > 64) { var a = lista[lista.Count - 1]; lista.RemoveAt(lista.Count - 1); var b = lista[lista.Count - 1]; b.Encapsulate(a); lista[lista.Count - 1] = b; }
+                    foreach (var bb in lista)
+                    {
+                        if (!g.Key) continue;
+                        try { BraxCityMeshCut.Subtract(g.Key.transform, bb, Out + "/Ciecia", "migotanie_" + etykieta); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_MIASTO_A_MIGOTANIE cięcie " + g.Key.name + ": " + e.Message); }
+                    }
+                }
+                if (pary == 0) { po = 0; break; }
+            }
+        }
+        Debug.Log("BRAXHORN_MIASTO_A_MIGOTANIE " + etykieta + " pary=" + po + (napraw ? " (przed naprawą=" + przed + ", stara powierzchnia wycięta w miejscu nakładania)" : "") + (opis.Count > 0 ? " — przykłady: " + string.Join("; ", opis) : ""));
+        return po;
+    }
+
+    /// <summary>Krok regionu: kontrola migotania w pierzejach ulicy głównej i lokalach A (z naprawą: wycięcie starej powierzchni).</summary>
+    public static void KontrolaUlicy(Transform cityRoot)
+    {
+        Func<Transform, bool> nowy = t => BraxRegion.Under(t, "CLAUDE ulice: pierzeje") || BraxRegion.Under(t, "CLAUDE A:");
+        KontrolaMigotania(new[] { cityRoot, BraxClaudeGround.SourceCity }, Obj(-110f, 70f, -1f, 70f, 8f, 64f), nowy, "pierzeje_i_lokale_ulicy", true);
+    }
+
     // ---------------- kolizje ----------------
     public static GameObject Kol(Transform rodzic, string nazwa, Vector3 a, Vector3 b)
     {

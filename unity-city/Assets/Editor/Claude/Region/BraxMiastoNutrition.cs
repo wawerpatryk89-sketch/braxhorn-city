@@ -80,8 +80,11 @@ internal static class BraxMiastoNutrition
         st.Box(new Vector3(14.6f, 3.5f, z), new Vector3(25.9f, 3.58f, z + .14f), 16);
         float cap = .52f, w = BraxUliceKit.SzerokoscNapisu("BRAXHORN NUTRITION", cap); if (w > 8.6f) cap *= 8.6f / w;
         BraxUliceKit.Napis3D("BRAXHORN NUTRITION", new Vector3(21.7f, 3.92f, z), Vector3.forward, cap, .1f, zielone, boki);
-        BraxMiastoA.Obraz(root, "Nutrition logo (kaseton)", "Assets/CityRebuild/Brand/brand-badge.png", new Vector3(16.75f, 3.72f, z + .12f), Vector3.left, 1.1f, 1.1f, Vector3.forward, .55f);
-        BraxUliceKit.S(alu).Box(new Vector3(15.6f, 3.66f, z), new Vector3(16.8f, 4.88f, z + .1f), 16);
+        // logo-kaseton: rama-pierścień (bez płyty za obrazem), obraz 8 cm przed okładziną
+        BraxMiastoA.Obraz(root, "Nutrition logo (kaseton)", "Assets/CityRebuild/Brand/brand-badge.png", new Vector3(16.75f, 3.72f, z + .08f), Vector3.left, 1.1f, 1.1f, Vector3.forward, .55f);
+        var ra = BraxUliceKit.S(alu);
+        ra.Box(new Vector3(15.59f, 3.66f, z), new Vector3(15.65f, 4.88f, z + .12f), 16); ra.Box(new Vector3(16.75f, 3.66f, z), new Vector3(16.81f, 4.88f, z + .12f), 16);
+        ra.Box(new Vector3(15.65f, 3.66f, z), new Vector3(16.75f, 3.72f, z + .12f), 16); ra.Box(new Vector3(15.65f, 4.82f, z), new Vector3(16.75f, 4.88f, z + .12f), 16);
         // daszek nad wejściem (szkło na stali, dół 3.05 m)
         st.Box(new Vector3(DX0 - .4f, 3.05f, z), new Vector3(DX1 + .4f, 3.15f, z + 1.2f), 16);
         BraxUliceKit.S(biale).Box(new Vector3(DX0 - .38f, 3.02f, z + 1.12f), new Vector3(DX1 + .38f, 3.05f, z + 1.18f));
@@ -120,7 +123,7 @@ internal static class BraxMiastoNutrition
         BraxMiastoA.Pokoj(posadzka, tynk, sufit, X0, X1, Z0, Z1, F, C, new[] { new[] { otwMural }, null, otwFrontOdSrodka, null });
         BraxMiastoA.Obraz(root, "MURAL BRAXHORN (byk) na ścianie", "Assets/CityRebuild/Brand/nutrition-mural.jpg", new Vector3(mx0, my0, Z0), Vector3.right, mw, mh, Vector3.forward, 0f, .85f);
         // posadzka pod drzwiami do lica fasady (wejście równo z chodnikiem)
-        BraxUliceKit.S(posadzka).Quad(new Vector3(DX0, F, Z1), new Vector3(DX1, F, Z1), new Vector3(DX1, F, Front + .15f), new Vector3(DX0, F, Front + .15f), Vector3.up);
+        BraxUliceKit.S(posadzka).Quad(new Vector3(DX0, F, Z1), new Vector3(DX1, F, Z1), new Vector3(DX1, F, Front), new Vector3(DX0, F, Front), Vector3.up);   // do linii zabudowy — dalej chodnik
         BraxMiastoA.Kol(kol, "posadzka sklepu", new Vector3(X0, F - .3f, Z0), new Vector3(X1, F, Front + .15f));
         BraxMiastoA.Kol(kol, "sufit sklepu", new Vector3(X0, C, Z0), new Vector3(X1, C + .2f, Z1));
         BraxMiastoA.Kol(kol, "ściana tylna", new Vector3(X0, F, Z0 - .2f), new Vector3(X1, C, Z0));

@@ -97,7 +97,6 @@ internal static class BraxMiastoNova
         var listwaCiepla = BraxMiastoA.Swieci("NOVA: listwa LED ciepła", new Color(1f, .9f, .75f), new Color(1.6f, 1.25f, .8f));
         var litery = BraxMiastoA.Swieci("NOVA: litery szyldu (podświetlane)", Color.white, new Color(2.0f, 1.8f, 2.1f));
         var boki = BraxMiastoA.Mat("NOVA: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f);
-        var dywan = BraxMiastoA.Mat("NOVA: czerwony chodnik (wykładzina)", new Color(.45f, .04f, .06f), .95f);
         var welur = BraxMiastoA.Mat("NOVA: lina aksamitna bordo", new Color(.42f, .03f, .08f), .9f);
         var chrom = BraxMiastoA.Mat("NOVA: chrom słupków", new Color(.85f, .86f, .88f), .12f, 1f);
         float y0 = F, yG = 5.05f, z = 35.95f;   // lico okładziny 15 cm przed dawną linią fasady
@@ -158,8 +157,7 @@ internal static class BraxMiastoNova
         // portal drzwi klatki (kamienna opaska — drzwi mieszkania zostają)
         g.Box(new Vector3(32.9f, F, z - .06f), new Vector3(33.02f, 2.6f, z), 32); g.Box(new Vector3(34.23f, F, z - .06f), new Vector3(34.35f, 2.6f, z), 32);
         g.Box(new Vector3(32.9f, 2.48f, z - .06f), new Vector3(34.35f, 2.6f, z), 32);
-        // czerwony chodnik (2.2 cm nad płytami chodnika — nie przykleja się do nich) od krawężnika do drzwi
-        BraxUliceKit.S(dywan).Box(new Vector3(40.7f, F + .002f, 33.75f), new Vector3(43.3f, F + .022f, 36.2f));
+        // (czerwony chodnik NIE kładziony — zasada właściciela 15:40: nic nie leży na istniejącej powierzchni)
         // KOLEJKA: słupki chromowane co 1.25 m z aksamitną liną (zwis), 1.35 m od fasady, wolny chodnik od strony ulicy
         var ch = BraxUliceKit.S(chrom); var wl = BraxUliceKit.S(welur);
         float qz = 34.6f, ph = 1.0f * K; var slupki = new List<float>();
@@ -190,8 +188,10 @@ internal static class BraxMiastoNova
     {
         var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(plik);
         var rama = BraxMiastoA.Mat("NOVA: rama kasetonu (aluminium czarne)", new Color(.04f, .04f, .045f), .4f, .6f);
-        var r = BraxUliceKit.S(rama); float z = lewyDol.z;
-        r.Box(new Vector3(lewyDol.x - .06f, lewyDol.y - .06f, z - .1f), new Vector3(lewyDol.x + w + .06f, lewyDol.y + h + .06f, z), 32);
+        // kaseton: sama rama-pierścień 12 cm (bez płyty tylnej za plakatem — nic w płaszczyźnie plakatu ani tuż za nim)
+        var r = BraxUliceKit.S(rama); float z = lewyDol.z; float x0 = lewyDol.x, y0 = lewyDol.y;
+        r.Box(new Vector3(x0 - .06f, y0 - .06f, z - .12f), new Vector3(x0, y0 + h + .06f, z), 32); r.Box(new Vector3(x0 + w, y0 - .06f, z - .12f), new Vector3(x0 + w + .06f, y0 + h + .06f, z), 32);
+        r.Box(new Vector3(x0, y0 - .06f, z - .12f), new Vector3(x0 + w, y0, z), 32); r.Box(new Vector3(x0, y0 + h, z - .12f), new Vector3(x0 + w, y0 + h + .06f, z), 32);
         if (!tex) { BraxMiastoA.Log("NOVA: brak pliku plakatu " + plik); return; }
         var m = BraxMiastoA.ZShadera(BraxCityMaterials.ShaderName, "NOVA kaseton " + nazwa, mm =>
         {
@@ -202,7 +202,7 @@ internal static class BraxMiastoNova
         float asp = tex.width / (float)Mathf.Max(1, tex.height), want = w / h, u0 = 0, u1 = 1, v0 = 0, v1 = 1;
         if (asp > want) { float k = want / asp; u0 = .5f - k * .5f; u1 = .5f + k * .5f; } else { float k = asp / want; v0 = .5f - k * .5f; v1 = .5f + k * .5f; }
         var mesh = new Mesh { name = "NOVA kaseton " + nazwa };
-        float zf = z - .12f;
+        float zf = z - .08f;
         mesh.vertices = new[] { new Vector3(lewyDol.x, lewyDol.y, zf), new Vector3(lewyDol.x + w, lewyDol.y, zf), new Vector3(lewyDol.x + w, lewyDol.y + h, zf), new Vector3(lewyDol.x, lewyDol.y + h, zf) };
         mesh.uv = new[] { new Vector2(u0, v0), new Vector2(u1, v0), new Vector2(u1, v1), new Vector2(u0, v1) };
         mesh.normals = Enumerable.Repeat(Vector3.back, 4).ToArray(); mesh.colors = Enumerable.Repeat(Color.white, 4).ToArray();
@@ -226,8 +226,8 @@ internal static class BraxMiastoNova
         var otwSala = new[] { Rect.MinMaxRect(40.0f - PX0, F, 44.0f - PX0, F + 3.2f) };
         BraxMiastoA.Pokoj(posadzka, sciana, sufit, PX0, PX1, WewFront, 41.6f, F, C, new[] { otwFront, null, otwSala, null });
         // podłoga przedsionka sięga do drzwi (pod skrzydłami, bez progu) — płyta pod ościeżem
-        BraxUliceKit.S(posadzka).Quad(new Vector3(40.8f, F, 35.95f), new Vector3(43.2f, F, 35.95f), new Vector3(43.2f, F, WewFront), new Vector3(40.8f, F, WewFront), Vector3.up);
-        BraxUliceKit.S(posadzka).Box(new Vector3(40.8f, F - .25f, 35.95f), new Vector3(43.2f, F, WewFront), 8);   // czoło płyty
+        // (od linii zabudowy 36.1 — dalej, do lica okładziny 35.95, leży chodnik; NIC na nim nie kładziemy)
+        BraxUliceKit.S(posadzka).Quad(new Vector3(40.8f, F, FrontZ), new Vector3(43.2f, F, FrontZ), new Vector3(43.2f, F, WewFront), new Vector3(40.8f, F, WewFront), Vector3.up);
         BraxMiastoA.Kol(kol, "posadzka przedsionka", new Vector3(PX0, F - .3f, 35.9f), new Vector3(PX1, F, 41.6f));
         BraxMiastoA.Kol(kol, "sufit przedsionka", new Vector3(PX0, C, WewFront), new Vector3(PX1, C + .2f, 41.6f));
         BraxMiastoA.Kol(kol, "ściana przedsionka zachód", new Vector3(SX1, F, WewFront), new Vector3(PX0, C, 41.6f));

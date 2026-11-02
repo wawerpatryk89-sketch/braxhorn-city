@@ -44,6 +44,8 @@ public static class BraxUlicePierzeje
         public BraxCityArchitecture.Building b; public Vector3 A, R, N; public float W, H, yTop; public int pietra, bays; public float bay;
         public bool front; public Styl st; public Lokal lok; public float drzwiS = -1f; public bool wiezowiec;
         public int ulica = 0;   // bok: −1 = koniec od ulicy przy s = 0, +1 = przy s = W (narożnik z frontem), 0 = front
+        public bool gora;        // A 2.11: tylko piętra nad lokalem (nadbudowa NOVA / Nutrition / brama podwórka) — parter robi lokal
+        public Rect szkloOkien;  // okna w tym prostokącie (s, y) ze szkłem przezroczystym (mieszkanie Braxa — widok z pokoju)
         public Vector3 P(float s, float y, float d) => A + R * s + Vector3.up * y + N * d;
     }
 
@@ -105,11 +107,166 @@ public static class BraxUlicePierzeje
             Drzwi(bg, b, lok, f);
             gotowe.Add(lok.szyld + " nr " + lok.numer);
         }
+        // A 2.11 (właściciel 15:39–15:40: „elewacja od siłowni CAŁA wymieniona… starą zwalić, nie nakładać”): stare bryły,
+        // których lico leżało w płaszczyźnie nowej elewacji (dach „Weatherproof roof”, grafitowe „shared structural return”
+        // na styku sąsiadów — pas pod attyką i pionowe pasy na granicach budynków = migotanie), zdjęte i postawione od nowa
+        // 6 cm za elewacją.
+        int skrocone = 0;
+        foreach (var b in BraxCityArchitecture.StreetBuildings)
+        {
+            if (b.id == "quay_corner") continue;
+            var bg = cityRoot.Find("Building " + b.id); if (!bg) continue;
+            foreach (Transform c in bg.Cast<Transform>().ToArray())
+                if (c.name == "Weatherproof roof" || c.name == "West shared graphite structural return" || c.name == "East shared graphite structural return")
+                    if (Cofnij(c, b.far ? b.z0 : b.z1, b.far ? 1f : -1f)) skrocone++;
+        }
+        // NADBUDOWY nad lokalami (Nutrition, NOVA, brama podwórka): stara elewacja od ulicy zdjęta, nowa w tym samym generatorze
+        // (bez parteru — parter to lokal A), boki i dach nadbudowy cofnięte 6 cm za lico. NOVA osobno (pod grupą nadbudowy —
+        // mieszkanie Braxa odczytuje z niej okna: okna mieszkania ze szkłem przezroczystym).
+        var nadbudowy = new List<(string id, float x0, float x1, float z0, float z1, float baseY, int floors, bool far, int styl)>
+        {
+            ("BRAXHORN NUTRITION", 14.5f, 26f, 11.6f, 20.6f, 5.1f, 6, false, 0),
+            ("Courtyard gateway", 2f, 18f, 36.1f, 48f, 4.6f, 6, true, 1),
+        };
+        foreach (var n in nadbudowy) Nadbudowa(cityRoot, n.id, n.x0, n.x1, n.z0, n.z1, n.baseY, n.floors, n.far, n.styl, Rect.zero, ref skrocone);
         int siatek = BraxUliceKit.Zapisz(root, "pierzeje");
+        var gNova = cityRoot.Find("NOVA preserved interior upper storeys");
+        if (gNova)
+        {
+            BraxUliceKit.Start();
+            Nadbudowa(cityRoot, "NOVA", 32f, 52f, 36.1f, 62f, 5.1f, 5, true, 2, Rect.MinMaxRect(6.2f, Parter, 12.6f, Parter + Kond), ref skrocone);
+            siatek += BraxUliceKit.Zapisz(gNova, "pierzeje_nova_gora");
+        }
+        BraxRegion.Note("pierzeje: cofnięte stare bryły w płaszczyźnie elewacji: " + skrocone);
         string usun = string.Join("; ", BraxUliceKit.Usuniete.GroupBy(x => x).Select(g => g.Key + (g.Count() > 1 ? " ×" + g.Count() : "")));
         BraxRegion.Note("pierzeje: budynków " + gotowe.Count + " (" + string.Join(", ", gotowe) + "), okien " + nOkien + ", witryn " + nWitryn + ", boków " + nBokow + ", lokali urządzonych " + nLokali + ", siatek " + siatek);
         Debug.Log("BRAXHORN_ULICE_PIERZEJE budynki=" + gotowe.Count + " okna=" + nOkien + " witryny=" + nWitryn + " boki=" + nBokow + " lokale=" + nLokali + " siatki=" + siatek + " k=" + BraxUliceKit.K.ToString("F3"));
         Debug.Log("BRAXHORN_ULICE_USUNIETE pierzeje: " + BraxUliceKit.Usuniete.Count + " obiektów — " + usun);
+    }
+
+    // Stara bryła z licem w płaszczyźnie elewacji: zdjęta (DestroyImmediate) i postawiona od nowa krótsza o 6 cm od ulicy.
+    static bool Cofnij(Transform t, float zUlicy, float wGlab)
+    {
+        var mr = t.GetComponent<MeshRenderer>(); if (!mr) return false;
+        var bb = mr.bounds; var mat = mr.sharedMaterial;
+        float zNear = Mathf.Abs(bb.min.z - zUlicy) < Mathf.Abs(bb.max.z - zUlicy) ? bb.min.z : bb.max.z;
+        if (Mathf.Abs(zNear - zUlicy) > .05f) return false;
+        var lo = bb.min; var hi = bb.max;
+        if (wGlab > 0) lo.z = zUlicy + .06f; else hi.z = zUlicy - .06f;
+        if (hi.z - lo.z < .05f) return false;
+        string nazwa = t.name; var parent = t.parent;
+        BraxUliceKit.Usun(t.gameObject, "lico w płaszczyźnie elewacji (migotanie) — cofnięte 6 cm: " + nazwa);
+        if (mat) BraxCityArchitecture.Box(nazwa + " (cofnięte 6 cm za elewację)", parent, (lo + hi) * .5f, hi - lo, mat, false);
+        return true;
+    }
+
+    static void Nadbudowa(Transform cityRoot, string id, float x0, float x1, float z0, float z1, float baseY, int floors, bool far, int styl, Rect szklo, ref int skrocone)
+    {
+        var g = cityRoot.Find(id + " preserved interior upper storeys");
+        if (!g) { BraxRegion.Note("pierzeje: brak nadbudowy " + id); return; }
+        var stara = g.Find(far ? "Upper rear" : "Upper front");
+        if (stara) BraxUliceKit.Usun(stara.gameObject, "stara elewacja nadbudowy od ulicy " + id);
+        foreach (Transform c in g.Cast<Transform>().ToArray())
+            if (c.name == "Upper side west" || c.name == "Upper side east" || c.name == "Upper roof")
+                if (Cofnij(c, far ? z0 : z1, far ? 1f : -1f)) skrocone++;
+        var b = new BraxCityArchitecture.Building("nadbudowa_" + id, id, x0, x1, z0, z1, floors, far);
+        var lok = new Lokal("", "nadbudowa", 0, styl);
+        var f = Front(b, lok, false);
+        f.gora = true; f.szkloOkien = szklo;
+        f.A = new Vector3(f.A.x, baseY - Parter, f.A.z);
+        f.pietra = floors + 1; f.yTop = Parter + f.pietra * Kond; f.H = Parter + 3.75f + floors * 3.2f + .75f;
+        BraxUliceKit.UstawGrupe("CLAUDE A: elewacja nadbudowy " + id);
+        Elewacja(f, null);
+        nBokow++;
+    }
+
+    // DETALE WZORCA URBAN CITY (× k): klimatyzatory pod częścią okien pięter (wsporniki, kratka wentylatora), schody pożarowe
+    // na bokach widocznych z ulicy (podesty z kraty na każdym piętrze, balustrady, biegi skośne, wsporniki, drabina opuszczana
+    // kończąca się 3 m nad chodnikiem), na dachu kominy z czapą i nasadami, anteny (maszt, Yagi, talerz). Bez płaszczyzn
+    // na płaszczyznach: każdy element to bryła odsunięta od muru (wsporniki dotykają muru krawędzią).
+    static void Detale(Fasada f, List<Otwor> otwory)
+    {
+        float k = BraxUliceKit.K; var st = f.st; var z = BraxUliceKit.S(st.zelazo);
+        int ziarno = Mathf.Abs((f.lok.szyld + f.b.id + (f.front ? "F" : "B")).GetHashCode());
+        var rng = new System.Random(ziarno);
+        // klimatyzatory (front, piętra od 2.): ok. 1 na 8 okien, pod parapetem
+        if (f.front && !f.wiezowiec)
+        {
+            var obud = BraxUliceKit.Mat("klimatyzator: obudowa biała", new Color(.86f, .87f, .86f), .5f, .1f);
+            var krat = BraxUliceKit.Mat("klimatyzator: kratka wentylatora", new Color(.18f, .19f, .2f), .5f, .5f);
+            foreach (var o in otwory)
+            {
+                if (o.witryna || o.drzwi || o.r.yMin < Parter + Kond + .5f || rng.NextDouble() > .13) continue;
+                float c = o.r.center.x, y1 = o.r.yMin - .2f, w = .8f * k, h = .55f * k, d = .3f * k;
+                var cc = f.P(c, y1 - h * .5f, .06f + d * .5f);
+                BraxUliceKit.S(obud).OBox(cc, f.R, Vector3.up, f.N, w, h, d);
+                var kr = BraxUliceKit.S(krat); var fc = f.P(c - w * .18f, y1 - h * .5f, .06f + d + .005f);
+                kr.OBox(fc, f.R, Vector3.up, f.N, h * .7f, h * .7f, .01f);
+                foreach (float sx in new[] { c - w * .4f, c + w * .4f })
+                { z.Rura(f.P(sx, y1 - h, 0f), f.P(sx, y1 - h, .06f + d), .012f, 6); z.Rura(f.P(sx, y1 - h - .35f, 0f), f.P(sx, y1 - h, .06f + d * .9f), .01f, 6); }
+            }
+        }
+        // schody pożarowe na boku widocznym z ulicy (środkowe przęsło), od 1. piętra w górę
+        if (!f.front && !f.gora && f.N.x < -.5f && f.pietra >= 4 && f.bays >= 3)   // tylko boki zachodnie (przy wiadukcie i na końcu ulicy — wolne pole, bez siłowni)
+        {
+            int bay = f.bays / 2; float s0 = bay * f.bay + .15f, s1 = (bay + 1) * f.bay - .15f, dep = 1.25f;
+            var krata = BraxUliceKit.Mat("schody pożarowe: krata podestu", new Color(.08f, .085f, .09f), .6f, .5f);
+            for (int fl = 0; fl < f.pietra; fl++)
+            {
+                float y = Parter + fl * Kond - .06f;
+                BraxUliceKit.S(krata).OBox(f.P((s0 + s1) * .5f, y, .05f + dep * .5f), f.R, Vector3.up, f.N, s1 - s0, .05f, dep);
+                float yr = y + 1.0f * k;
+                z.Rura(f.P(s0, yr, .05f + dep), f.P(s1, yr, .05f + dep), .022f, 6);
+                z.Rura(f.P(s0, y + .5f * k, .05f + dep), f.P(s1, y + .5f * k, .05f + dep), .015f, 6);
+                foreach (float sx in new[] { s0, s1 }) { z.Rura(f.P(sx, yr, .05f), f.P(sx, yr, .05f + dep), .022f, 6); }
+                for (float sx = s0; sx <= s1 + .01f; sx += .3f) z.Rura(f.P(sx, y + .03f, .05f + dep), f.P(sx, yr, .05f + dep), .01f, 4, false);
+                // wsporniki (zastrzały do muru)
+                foreach (float sx in new[] { s0 + .1f, s1 - .1f }) z.Rura(f.P(sx, y - .9f, 0f), f.P(sx, y - .03f, .05f + dep - .1f), .025f, 6);
+                if (fl == f.pietra - 1) break;
+                // bieg schodów do następnego podestu (w lewej połowie podestu, wzdłuż elewacji)
+                float a0 = s0 + .1f, a1 = (s0 + s1) * .5f, b0 = y + .05f, b1 = y + Kond, dz = .05f + dep * .5f;
+                int stop = 12;
+                for (int i = 0; i < 2; i++) { float dd = dz + (i == 0 ? -.3f : .3f); z.Rura(f.P(a1, b0, dd), f.P(a0, b1, dd), .02f, 6); }
+                for (int i = 1; i < stop; i++)
+                {
+                    float t = i / (float)stop, sx = Mathf.Lerp(a1, a0, t), sy = Mathf.Lerp(b0, b1, t);
+                    BraxUliceKit.S(krata).OBox(f.P(sx, sy, dz), f.R, Vector3.up, f.N, .2f, .03f, .6f);
+                }
+            }
+            // drabina opuszczana z 1. podestu: kończy się 3 m nad chodnikiem
+            float ld = (s0 + s1) * .5f + .3f;
+            foreach (float dd in new[] { .05f + dep - .2f, .05f + dep - .6f }) z.Rura(f.P(ld, Parter - .06f, dd), f.P(ld, 3.0f, dd), .018f, 6);
+            for (float y = 3.1f; y < Parter - .1f; y += .3f) z.Rura(f.P(ld, y, .05f + dep - .6f), f.P(ld, y, .05f + dep - .2f), .012f, 4, false);
+        }
+        // dach: kominy z czapą i nasadami (2–3 na budynek), antena co drugi budynek, talerz satelitarny
+        if (!f.front && !f.gora || f.wiezowiec) return;   // na budynkach z wieżowcem dach zajmuje wieża
+        var komin = st.cegla ? st.sciana : st.detal;
+        var czapa = BraxUliceKit.Mat("komin: czapa betonowa", new Color(.55f, .55f, .53f), .9f);
+        var blacha = BraxUliceKit.Mat("blacha tytanowo-cynkowa (rury, obróbki)", new Color(.46f, .48f, .49f), .5f, .7f);
+        int ile = f.W > 13f ? 3 : 2;
+        for (int i = 0; i < ile; i++)
+        {
+            float sc = f.W * (i + .5f) / ile + (float)(rng.NextDouble() - .5) * 1.2f, dd = -(1.6f + (float)rng.NextDouble() * 1.4f), w = .75f * k, hk = 1.5f + (float)rng.NextDouble() * .6f;
+            var cc = f.P(sc, f.H - .7f + hk * .5f, dd);
+            BraxUliceKit.S(komin).OBox(cc, f.R, Vector3.up, f.N, w, hk, w);
+            BraxUliceKit.S(czapa).OBox(f.P(sc, f.H - .7f + hk + .05f, dd), f.R, Vector3.up, f.N, w + .12f, .1f, w + .12f);
+            foreach (float o2 in new[] { -.16f, .16f }) BraxUliceKit.S(czapa).Walec(f.P(sc + o2, f.H - .7f + hk + .1f, dd), .09f, .32f, 10);
+        }
+        if (rng.NextDouble() < .55)
+        {
+            float sa = f.W * (.3f + (float)rng.NextDouble() * .4f), da = -3.2f;
+            var p0 = f.P(sa, f.H - .5f, da); var p1 = p0 + Vector3.up * 3.6f;
+            BraxUliceKit.S(blacha).Rura(p0, p1, .03f, 8);
+            for (int i = 0; i < 4; i++) { var py = p1 - Vector3.up * (.25f + i * .28f); BraxUliceKit.S(blacha).Rura(py - f.R * (.55f - i * .08f), py + f.R * (.55f - i * .08f), .009f, 4); }
+            if (rng.NextDouble() < .6)
+            {
+                var pd = f.P(sa + 1.2f, f.H + .3f, da + .4f);
+                BraxUliceKit.S(blacha).Rura(pd - Vector3.up * .8f, pd, .025f, 6);
+                var kier = (f.N * .6f + Vector3.up * .5f).normalized;
+                BraxUliceKit.S(czapa).Rura(pd, pd + kier * .06f, .38f * k * .5f, 14);
+                BraxUliceKit.S(blacha).Rura(pd + kier * .06f, pd + kier * .45f, .01f, 4);
+            }
+        }
     }
 
     // ---------------- style ----------------
@@ -215,7 +372,7 @@ public static class BraxUlicePierzeje
         var otwory = new List<Otwor>();
         int drzwiBay = f.front ? Mathf.Clamp(Mathf.FloorToInt(f.drzwiS / f.bay), 0, f.bays - 1) : -1;
         // --- parter ---
-        if (f.front)
+        if (f.front && !f.gora)
         {
             otwory.Add(new Otwor { r = Rect.MinMaxRect(f.drzwiS - 1.17f, Chodnik, f.drzwiS + 1.17f, 3.2f), gleb = .3f, drzwi = true });
             for (int i = 0; i < f.bays; i++)
@@ -228,7 +385,7 @@ public static class BraxUlicePierzeje
                 otwory.Add(new Otwor { r = Rect.MinMaxRect(s0, .62f, s1, 3.05f), gleb = GlebWitryny, witryna = true });
             }
         }
-        else
+        else if (!f.front)
         {
             // bok: parter z mniejszymi oknami w osiach (zaplecze lokalu), z kratami
             for (int i = 0; i < f.bays; i++)
@@ -250,10 +407,10 @@ public static class BraxUlicePierzeje
             }
         }
         // --- mur z otworami (jedna płaszczyzna, bez nakładek) ---
-        float yMur = f.H - .1f;
-        var xs = new SortedSet<float> { 0f, f.W }; var ys = new SortedSet<float> { Chodnik, Parter, yMur };
+        float yMur = f.H - .1f, yDol = f.gora ? Parter : Chodnik;
+        var xs = new SortedSet<float> { 0f, f.W }; var ys = new SortedSet<float> { yDol, Parter, yMur };
         foreach (var o in otwory) { xs.Add(o.r.xMin); xs.Add(o.r.xMax); ys.Add(o.r.yMin); ys.Add(o.r.yMax); }
-        var X = xs.Where(x => x >= 0f && x <= f.W).ToArray(); var Y = ys.Where(y => y >= Chodnik && y <= yMur).ToArray();
+        var X = xs.Where(x => x >= 0f && x <= f.W).ToArray(); var Y = ys.Where(y => y >= yDol && y <= yMur).ToArray();
         for (int i = 0; i < X.Length - 1; i++)
             for (int j = 0; j < Y.Length - 1; j++)
             {
@@ -275,31 +432,33 @@ public static class BraxUlicePierzeje
         }
         // --- okna mieszkań ---
         float offU = f.A.x * f.N.z - f.A.z * f.N.x;   // dot(A, T), T = (N.z, 0, −N.x) — jak w shaderze UliceOkno
-        var szybaPokoj = BraxUliceKit.OknoPokoj(f.bay, Kond, Parter, 0, 5, 4.2f, offU);
-        var szybaSklep = f.wiezowiec || !f.front ? BraxUliceKit.OknoPokoj(f.bay, 3.6f, Chodnik, f.lok.wariantWitryny, 1, 3.8f, offU) : BraxUliceKit.SzkloPrzezroczyste;
+        var szybaPokoj = BraxUliceKit.OknoPokoj(f.bay, Kond, Parter + f.A.y, 0, 5, 4.2f, offU);
+        var szybaSklep = f.wiezowiec || !f.front ? BraxUliceKit.OknoPokoj(f.bay, 3.6f, Chodnik + f.A.y, f.lok.wariantWitryny, 1, 3.8f, offU) : BraxUliceKit.SzkloPrzezroczyste;
+        var szkloMieszkania = BraxUliceKit.Mat("szkło okna mieszkania (glass, przezroczyste)", new Color(.62f, .70f, .72f, .2f), .05f, .1f);
         var aluminium = BraxUliceKit.Mat("aluminium witryn grafit", new Color(.09f, .10f, .105f), .4f, .55f);
         foreach (var o in otwory)
         {
             if (o.drzwi) continue;
             if (o.witryna) { Witryna(f, o, szybaSklep, aluminium); nWitryn++; continue; }
-            Okno(f, o, szybaPokoj, !f.front && o.r.yMax < Parter); nOkien++;
+            Okno(f, o, f.szkloOkien.width > 0f && f.szkloOkien.Contains(o.r.center) ? szkloMieszkania : szybaPokoj, !f.front && o.r.yMax < Parter); nOkien++;
         }
+        // --- detale wzorca (właściciel 15:20: „od razu DETALE wszędzie”): klimatyzatory, schody pożarowe, kominy i anteny ---
+        Detale(f, otwory);
         // --- lizeny na krawędziach (cokół lizeny głębszy), cokół między nimi ---
         foreach (float s0 in new[] { 0f, f.W - Lizena })
         {
-            OBox(f, st.cokol, s0, s0 + Lizena, Chodnik, .62f, 0f, .09f);
-            OBox(f, st.cegla ? st.detal : st.sciana, s0, s0 + Lizena, .62f, f.yTop, 0f, .06f);
+            if (!f.gora) OBox(f, st.cokol, s0, s0 + Lizena, Chodnik, .62f, 0f, .09f);
+            OBox(f, st.cegla ? st.detal : st.sciana, s0, s0 + Lizena, f.gora ? Parter : .62f, f.yTop, 0f, .06f);
         }
         float pasDrzwi0 = f.front ? f.drzwiS - 1.17f : -1f, pasDrzwi1 = f.front ? f.drzwiS + 1.17f : -1f;
-        if (f.front)
+        if (f.front && !f.gora)
         {
             OBox(f, st.cokol, Lizena, pasDrzwi0, Chodnik, .62f, 0f, .04f);
             OBox(f, st.cokol, pasDrzwi1, f.W - Lizena, Chodnik, .62f, 0f, .04f);
         }
-        else OBox(f, st.cokol, Lizena, f.W - Lizena, Chodnik, .62f, 0f, .04f);
+        else if (!f.gora) OBox(f, st.cokol, Lizena, f.W - Lizena, Chodnik, .62f, 0f, .04f);
         // --- gzyms nad parterem (dwie warstwy, bez wspólnych płaszczyzn) ---
-        OBox(f, st.detal, 0f, f.W, 3.50f, 3.62f, 0f, .13f);
-        OBox(f, st.detal, 0f, f.W, 3.62f, 3.84f, 0f, .26f);
+        if (!f.gora) { OBox(f, st.detal, 0f, f.W, 3.50f, 3.62f, 0f, .13f); OBox(f, st.detal, 0f, f.W, 3.62f, 3.84f, 0f, .26f); }
         // --- gzymsy kondygnacyjne ---
         if (st.gzymsyPieter) for (int fl = 1; fl < f.pietra; fl++) { float yF = Parter + fl * Kond; OBox(f, st.detal, 0f, f.W, yF - .05f, yF + .07f, 0f, .05f); }
         // --- gzyms wieńczący z kroksztynami, attyka, czapa ---
@@ -315,7 +474,7 @@ public static class BraxUlicePierzeje
         if (f.ulica == -1) BraxUliceKit.S(st.detal).Box(f.P(-.06f, yMur, 0f), f.P(.32f, f.H, .06f));
         if (f.ulica == 1) BraxUliceKit.S(st.detal).Box(f.P(f.W - .32f, yMur, 0f), f.P(f.W + .06f, f.H, .06f));
         // --- rura spustowa (front: lewa krawędź) ---
-        if (f.front)
+        if (f.front && !f.gora)
         {
             var blacha = BraxUliceKit.Mat("blacha tytanowo-cynkowa (rury, obróbki)", new Color(.46f, .48f, .49f), .5f, .7f);
             var rs = BraxUliceKit.S(blacha); float rr = .05f * k, sd = .15f, dd = .13f;
@@ -325,7 +484,7 @@ public static class BraxUlicePierzeje
             rs.Rura(f.P(sd, yt - .05f, dd), f.P(sd, yt + .1f, .3f), rr, 8);              // przejście przez okap do rynny
         }
         // --- kolizja parteru (witryny i filary; bez otworu drzwi) ---
-        if (f.front)
+        if (f.front && !f.gora)
         {
             KolizjaPas(f, kolizje, 0f, pasDrzwi0); KolizjaPas(f, kolizje, pasDrzwi1, f.W);
         }

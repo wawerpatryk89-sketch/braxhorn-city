@@ -149,8 +149,11 @@ internal static class BraxMiastoSport
         // szyld z liter przestrzennych na pasie nad witryną + logo
         float zs = z0 - .02f;
         BraxUliceKit.Napis3D("BRAXHORN SPORT", new Vector3(DXc + .9f, H - .12f, zs), Vector3.back, .5f, .1f, biale, boki);
-        BraxMiastoA.Obraz(root, "BRAXHORN SPORT logo", "Assets/CityRebuild/Brand/brand-badge.png", new Vector3(DXc - 5.6f, H - .25f, zs - .05f), Vector3.right, .78f, .78f, Vector3.back, .5f);
-        BraxUliceKit.S(alu).Box(new Vector3(DXc - 5.65f, H - .3f, zs - .04f), new Vector3(DXc - 4.77f, H + .58f, zs), 32);
+        // logo-kaseton: rama-pierścień (bez płyty za obrazem), obraz 6 cm przed okładziną
+        BraxMiastoA.Obraz(root, "BRAXHORN SPORT logo", "Assets/CityRebuild/Brand/brand-badge.png", new Vector3(DXc - 5.6f, H - .25f, zs - .06f), Vector3.right, .78f, .78f, Vector3.back, .5f);
+        var ra = BraxUliceKit.S(alu);
+        ra.Box(new Vector3(DXc - 5.66f, H - .31f, zs - .1f), new Vector3(DXc - 5.6f, H + .59f, zs), 32); ra.Box(new Vector3(DXc - 4.82f, H - .31f, zs - .1f), new Vector3(DXc - 4.76f, H + .59f, zs), 32);
+        ra.Box(new Vector3(DXc - 5.6f, H - .31f, zs - .1f), new Vector3(DXc - 4.82f, H - .25f, zs), 32); ra.Box(new Vector3(DXc - 5.6f, H + .53f, zs - .1f), new Vector3(DXc - 4.82f, H + .59f, zs), 32);
         BraxUliceKit.S(zielone).Box(new Vector3(x0 + .4f, H - .37f, zs - .04f), new Vector3(x1 - .4f, H - .33f, zs));
         // daszek nad wejściem (dół 3.0 m)
         var bl = BraxUliceKit.S(blacha);
