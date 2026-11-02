@@ -69,11 +69,12 @@ public static class BraxRegion
         // Lampy wnętrz: CityStaticPBR liczy światła punktowe tylko ze slotów „vertex light” (ForceVertex).
         Step("siedziska: sofy, ławki, hokery, leżaki → BraxSeat", () => BraxRegionSeats.Apply(root));
         Step("horyzont: niebo bez lustra, teren za granicą, granica", () => BraxRegionHoryzont.Apply(world, root));
-        // Na końcu (jak na budowie): ruch aut miasta B na gotowych jezdniach, ze światłami (B, ETAP 2).
-        Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => BraxClaudeOsiedle.RuchMiastaB(root));
         Step("lampy wnętrz w trybie ForceVertex", () => InteriorLights(root));
         // Trawnik miasta (tyły, 2.11): podmiana starej trawy w miejscu, maska ziemi pod drzewami, kępy 3D — po wszystkich trawnikach.
         Step("trawnik miasta (materiał, maska ziemi, kępy, bez trawy na ścianach)", () => BraxRegionTrawa.Zakoncz(root));
+        // Na końcu (jak na budowie, 16:04): ruch aut i ludzie miasta B na gotowych nawierzchniach i wyposażeniu (B, ETAP 2).
+        Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => BraxClaudeOsiedle.RuchMiastaB(root));
+        Step("ludzie miasta (B): obsada, ławki, przechodnie po chodnikach i zebrach", () => BraxClaudeOsiedle.LudzieMiastaB(root));
         // Na końcu: przesunięcie głębi dla wszystkiego, co dobudowane (anty-migotanie).
         Step("anty-migotanie (offset głębi, trilinear)", () => BraxRegionFlicker.Apply(root));
 
@@ -117,6 +118,9 @@ public static class BraxRegion
             foreach (var r in scope.GetComponentsInChildren<MeshRenderer>(true))
             {
                 if (r.enabled) continue;
+                // światła stop, migacze i dym aut (BraxAuto) są wyłączone do czasu jazdy — zostają (B, ruch aut miasta)
+                bool auto = false; for (var t = r.transform; t && !auto; t = t.parent) auto = t.GetComponent<BraxAuto>();
+                if (auto) continue;
                 var mf = r.GetComponent<MeshFilter>();
                 bool colliderUsesMesh = false;
                 if (mf && mf.sharedMesh) foreach (var mc in r.GetComponents<MeshCollider>()) if (mc.enabled && mc.sharedMesh == mf.sharedMesh) colliderUsesMesh = true;

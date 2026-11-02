@@ -987,6 +987,35 @@ public static class BraxRegionMiastoB
         Physics.SyncTransforms();
         SkrzyzowanieT(null, new Vector3(WX, YA, GZ), GH, WH, J1, 0f);
         SkrzyzowanieT(null, new Vector3(AX, YA, SZ), SH, AH, J2, 20f);
+        // przejścia bez świateł (wloty ronda i pętli): auta ustępują pieszym — strefy zatrzymania przed pasami w obu kierunkach
+        var zs = new List<Vector3>(); var zp = new List<Vector3>(); var ss = new List<Vector3>(); var sk = new List<Vector3>(); var szb = new List<int>();
+        void ZebraBezSwiatel(Vector3 c, Vector3 dir, float hj)
+        {
+            var R = Vector3.Cross(Vector3.up, dir).normalized; float w = 4f * K * .5f;
+            int i = zs.Count; zs.Add(c);
+            var pol = R * (hj + Kr + .8f) + dir * w; zp.Add(new Vector3(Mathf.Abs(pol.x), 2f, Mathf.Abs(pol.z)));
+            // R = prawa ręka jadącego w stronę +dir (Cross(up, dir)) — ruch prawostronny: pas +dir po stronie +R, pas −dir po −R
+            ss.Add(c - dir * (w + 2.5f) + R * hj * .5f); sk.Add(dir); szb.Add(i);
+            ss.Add(c + dir * (w + 2.5f) - R * hj * .5f); sk.Add(-dir); szb.Add(i);
+        }
+        // rondo i pętla: „ustąp pierwszeństwa” na pasie wjazdowym (−R ramienia), kontrola pierścienia pod prąd (ruch przeciwnie do
+        // wskazówek zegara: auto nadjeżdża od kąta ramienia −40°) — jak strefy ronda osiedla (BraxClaudeOsiedleDrogiA)
+        var rs = new List<Vector3>(); var rk = new List<Vector3>(); var rc = new List<Vector3>();
+        void Wlot(Vector3 srodek, Vector3 dir, float hj)
+        {
+            var R = Vector3.Cross(Vector3.up, dir).normalized;
+            rs.Add(srodek + dir * (RJezdnia + 2.4f) - R * hj * .5f); rk.Add(-dir);
+            float phi = Mathf.Atan2(dir.z, dir.x) - 40f * Mathf.Deg2Rad, rm = (RWyspa + RJezdnia) * .5f;
+            rc.Add(srodek + new Vector3(Mathf.Cos(phi), 0f, Mathf.Sin(phi)) * rm + Vector3.up * .8f);
+        }
+        var cR = new Vector3(RX, YA, RZ); var cP = new Vector3(AX, YA, PetlaZ);
+        foreach (var (dir, hj) in new[] { (Vector3.right, GH), (Vector3.forward, AH), (Vector3.back, AH) }) { ZebraBezSwiatel(cR + dir * (RPlac + 3f), dir, hj); Wlot(cR, dir, hj); }
+        ZebraBezSwiatel(cP + Vector3.back * (PetlaPlac + 3f), Vector3.back, AH); Wlot(cP, Vector3.back, AH);
+        var gz = new GameObject("Strefy zatrzymania: przejścia bez świateł i wloty ronda/pętli"); gz.transform.SetParent(root, false);
+        var sd = gz.AddComponent<BraxStrefyDrogowe>();
+        sd.zebraSrodek = zs.ToArray(); sd.zebraPolowa = zp.ToArray(); sd.stopSrodek = ss.ToArray(); sd.stopKierunek = sk.ToArray(); sd.stopZebra = szb.ToArray();
+        sd.rondoSrodek = rs.ToArray(); sd.rondoKierunek = rk.ToArray(); sd.rondoKontrola = rc.ToArray();
+        Debug.Log("BRAXHORN_MIASTO_B_STREFY przejścia_bez_świateł=" + zs.Count + " strefy_aut=" + ss.Count + " wloty_ronda=" + rs.Count);
         foreach (var (dir, hj) in new[] { (Vector3.right, GH), (Vector3.forward, AH), (Vector3.back, AH) })
         {
             var c = new Vector3(RX, YA, RZ) + dir * (RPlac + 3f);
