@@ -121,6 +121,15 @@ public static partial class BraxClaudeOsiedle
 
             // --- klipy przeniesione na kości Patryka ---
             var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek), PatrykPozaStala(hero,spoczynek,"CarIdle",true) }; var opis = new List<string>();
+            // E2 (build 45): awatar z wymuszonej T-pozy; wybór na podstawie próbnego Walk/Run (mniej naruszeń nóg)
+            Avatar tPoza = null; string opisT = "";
+            try { tPoza = PatrykAwatarTPoza(wzor, avatar, model, out opisT); }
+            catch (Exception e) { Debug.LogError("BRAXHORN_PATRYK_NOGI DO POPRAWKI: awatar z T-pozy nie powstał (" + e.Message + ") — przenoszenie awatarem z importu"); }
+            string raportAw = "";
+            try { avatar = PatrykWybierzAwatar(hero, avatar, tPoza, hips, kosci, spoczynek, out raportAw); }
+            catch (Exception e) { raportAw = "wybór awatara: błąd " + e.Message + " — import"; }
+            finally { PatrykSpoczynek(spoczynek); }
+            Debug.Log("BRAXHORN_PATRYK_NOGI awatar " + raportAw + (opisT.Length > 0 ? " (" + opisT + ")" : ""));
             foreach (var k in KlipyPatryka)
             {
                 AnimationClip gotowy = null;
@@ -149,6 +158,14 @@ public static partial class BraxClaudeOsiedle
             // --- test kości: 8 klatek każdego klipu vs spoczynek (> 2 % = błąd), T-poza w Idle/Walk/Run = błąd ---
             int bledy = PatrykTestKosci(hero, kosci, spoczynek, klipy, out string raportTestu);
             Debug.Log("BRAXHORN_PATRYK_KOSCI bledy=" + bledy + " " + raportTestu);
+            // E2: test nóg na zapisanych klipach Legacy (to, co gra gracz): 16 klatek chodu i biegu
+            foreach (var c in klipy.Where(q => q.name == "Walk" || q.name == "Run"))
+            {
+                var w = PatrykTestNog(hero, kosci, spoczynek, c);
+                bool ok = w.stopaPonad == 0 && w.koloTyl == 0 && w.przeprost == 0 && w.wBok == 0;
+                string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=" + (avatar == tPoza ? "T-poza" : "import") + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
+                if (ok) Debug.Log(l); else Debug.LogError(l + " — DO POPRAWKI");
+            }
             if (bledy > 0) throw new Exception("test kości: " + bledy + " błędów — " + raportTestu);
 
             anim.clip = anim.GetClip("Idle"); anim.Play("Idle"); anim.Sample();
