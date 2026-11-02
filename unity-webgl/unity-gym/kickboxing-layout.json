@@ -1,0 +1,80 @@
+{
+    "revision": "kickboxing-reference-annex-02",
+    "coordinateSystem": "Unity metres, existing glTF X mirror retained",
+    "annexMin": {
+        "x": -25.5,
+        "y": 0.0,
+        "z": -3.0
+    },
+    "annexMax": {
+        "x": -18.0,
+        "y": 3.0999999046325685,
+        "z": 8.0
+    },
+    "portalMin": {
+        "x": -18.799999237060548,
+        "y": 0.0,
+        "z": 4.199999809265137
+    },
+    "portalMax": {
+        "x": -17.600000381469728,
+        "y": 2.700000047683716,
+        "z": 6.0
+    },
+    "mainDoorBefore": {
+        "x": 6.800000190734863,
+        "y": 0.0,
+        "z": 11.5600004196167
+    },
+    "mainDoorAfter": {
+        "x": 6.800000190734863,
+        "y": 0.0,
+        "z": 11.5600004196167
+    },
+    "ringCenterBefore": {
+        "x": -9.0,
+        "y": 0.9200000166893005,
+        "z": -5.5
+    },
+    "ringCenterAfter": {
+        "x": -9.0,
+        "y": 0.9200000166893005,
+        "z": -5.5
+    },
+    "sourceMeshesClipped": 10,
+    "removedSourceTriangles": 7219,
+    "generatedMeshes": 75,
+    "generatedTriangles": 186296,
+    "privacyRays": 15120,
+    "privacyBlocked": 15120,
+    "privacyWithAllDoorsOpen": true,
+    "originalEntrancePreserved": true,
+    "originalRingPositionPreserved": true,
+    "billboardArtworkInstalled": false,
+    "muralArtworkInstalled": true,
+    "physicalIPhoneValidated": false,
+    "registeredDoors": [
+        "gym-backrooms",
+        "gym-locker",
+        "gym-wc"
+    ],
+    "requiredAssets": [
+        "BrickAlbedo.jpg",
+        "BrickNormal.png",
+        "BrickARM.jpg",
+        "RubberAlbedo.jpg",
+        "RubberNormal.png",
+        "RubberARM.jpg",
+        "WoodAlbedo.jpg",
+        "WoodNormal.png",
+        "WoodARM.jpg",
+        "MuralPaint.jpg",
+        "Mark.png",
+        "Wordmark.png"
+    ],
+    "pending": [
+        "physical iPhone performance test",
+        "visual acceptance of brick mural in compiled Unity",
+        "visual inspection of assembled fixtures"
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "engine": "Unity6",
+    "stage": "whole-shop-awaiting-runtime-and-owner-acceptance",
+    "source": "Original owner-authorized BRAXHORN Nutrition mesh kit and artwork",
+    "installedProducts": 137,
+    "installedShelvingBays": 8,
+    "renderers": 15,
+    "triangles": 390296,
+    "originalAssetsPreserved": true,
+    "sharedPlayerFileChanged": false,
+    "phoneAccepted": false,
+    "visualAccepted": false,
+    "servicePoint": {
+        "x": 20.600000381469728,
+        "y": 0.15000000596046449,
+        "z": 14.600000381469727
+    }
+}

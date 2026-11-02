@@ -1,0 +1,327 @@
+{
+  "browserSourceCommit": "260a5897472d42d099766da48e708859bba6c3dc",
+  "exporterCommit": "148cb8d9d3f1fbddaf25f7b4672ac4555e16bc71",
+  "productionWrites": false,
+  "files": [
+    {
+      "path": "dev/src/view.js",
+      "sha256": "0e57f4b1b67d58006871183235c84aaa9955a46828b324e3b16bfa27dae2687e"
+    },
+    {
+      "path": "dev/src/sound.js",
+      "sha256": "cbf5b28548f149fe68e912515ddd00d8bb5eb23160c75ef642ba7f032674f13f"
+    },
+    {
+      "path": "dev/src/template.html",
+      "sha256": "9a52dceeb0b11321652754db6f6b30f54b6fdea871d9272446c3f0e1033e1573"
+    },
+    {
+      "path": "dev/src/frame-time.js",
+      "sha256": "8e2c3fb204e186df5e6c7e7b3bfeaa50483293ec3f93b21e882afb94bfde8203"
+    },
+    {
+      "path": "dev/src/grade.js",
+      "sha256": "cbd9b2070dfd2094b126506fba8a66f9c6d1cc12a30338125a523d956825cbc9"
+    },
+    {
+      "path": "dev/src/people.js",
+      "sha256": "f3399bb74b12e1a676db0ab384d5bd5f37983fe37ecb66d930d08b531ac9dd90"
+    },
+    {
+      "path": "dev/src/story.js",
+      "sha256": "e715c03e190eafc2563134a8e694bba2a6ff198cb825f8e406bf39422b279cb3"
+    },
+    {
+      "path": "dev/src/meshcol.js",
+      "sha256": "2f7db7f7ee0c9a771cb6d236ea53304cefb3d26de7423a419892fe8d352050e2"
+    },
+    {
+      "path": "dev/src/env.js",
+      "sha256": "413c12c7228d839f6d2c45794d1ff7444dc63e047d3f34686985fa2348b73860"
+    },
+    {
+      "path": "dev/src/interiors.js",
+      "sha256": "944890823ba7252d13366d934edbab3bdc10056063ff8538f4d776d602c30d13"
+    },
+    {
+      "path": "dev/src/district.js",
+      "sha256": "b539701235384138c7627caaf45b20e19520050f934d4f25fc62a98dc29b48e1"
+    },
+    {
+      "path": "dev/src/gym.js",
+      "sha256": "747ebb94230d9cb6d37bcd016ceab378ae0718bde62bdd9e1883e4825fc504ce"
+    },
+    {
+      "path": "dev/src/citytex.js",
+      "sha256": "163cc8b591419dc9c93bc797ddffdd19750617450b7ac10a8144c1d57209d2f9"
+    },
+    {
+      "path": "dev/src/main.js",
+      "sha256": "7d1d3c8fa05433ef41f6b0d07b40d06def47efa1820be3c2e2f58681c2dcaaf5"
+    },
+    {
+      "path": "dev/src/ui.js",
+      "sha256": "ca909ea123faeff13763e210b1b1cbc03dbfadd7513a4ff1700f24e367cc5430"
+    },
+    {
+      "path": "dev/src/assets.js",
+      "sha256": "4f4d69aa49c7a10b71a49ea800c54d1658bd73af2270b99301167543a7b07448"
+    },
+    {
+      "path": "dev/src/gymfloor.js",
+      "sha256": "1a84e00ab132d5fc6ce0039372fbb76cd103d3bfe8582461c375ec1649adac10"
+    },
+    {
+      "path": "dev/src/traffic.js",
+      "sha256": "310ea7ddf3a295d2da269f7c32a10604d3463df7d8542f6b6ae368df50b495f0"
+    },
+    {
+      "path": "dev/src/crypt.js",
+      "sha256": "ae8b65b8ac7a41a91439532ea990d8138549b4e2e79392d0e39ac270f7ba24e5"
+    },
+    {
+      "path": "dev/src/bake.js",
+      "sha256": "5be5349fe85a83ea1c2607884956ddd657c9085cc81e63714d15e2923376e047"
+    },
+    {
+      "path": "dev/src/floor.js",
+      "sha256": "a82c390f6ffd8bb8898a29874476b6128ced4dca12dadadc5ba64138420dc265"
+    },
+    {
+      "path": "dev/src/world.js",
+      "sha256": "996e59dce0c5251c530a72b5a1b349b97f7f7aa0cbc35bf5fc99c03f2152b85c"
+    },
+    {
+      "path": "dev/src/textures.js",
+      "sha256": "4753787313cc2cf5dc9b46805ee9072614e0c4a0241c852ebb151405abe385de"
+    },
+    {
+      "path": "dev/src/fighter.js",
+      "sha256": "d81a7b064109a4cf2c6c3437b224975a59b3efcd6ffbe2c43066711a301b8a0c"
+    },
+    {
+      "path": "dev/src/street.js",
+      "sha256": "46ab53aa579c54a01f8bfdc06968959bb9e33fa8965ec7ebfa9fe41c822017d4"
+    },
+    {
+      "path": "dev/shared/district-travel.js",
+      "sha256": "114af83e45bff7176f4ae54721083dc8b6aef7dff0bed0b46e3468f3df138604"
+    },
+    {
+      "path": "dev/shared/player-controls.js",
+      "sha256": "77c54c2a5588df0837d070ce268e6c2c534776891f326e0fb7af148dab9f58f8"
+    },
+    {
+      "path": "dev/osiedle/build.py",
+      "sha256": "0fbf87a5b56c04ef8789d01e01d34ad8c1360f11d07d77dfc5c4ef93d106ccf6"
+    },
+    {
+      "path": "dev/osiedle/player-world.js",
+      "sha256": "ffe8a60b88567c7d6995623242c3514e03f81f484c66db5a84d9be26cfacb56b"
+    },
+    {
+      "path": "dev/osiedle/level.js",
+      "sha256": "3c504bd09b6a0fb22dad906b42012653be3e9febe6c94524cdb37551efc8e060"
+    },
+    {
+      "path": "dev/osiedle/doors.js",
+      "sha256": "b4104a9fa15becfb92546e8c49560ef580e1e6dadbca44db0f15dc360fe6f279"
+    },
+    {
+      "path": "dev/osiedle/check.cjs",
+      "sha256": "e6e09df54a65cd043006655e62dd0721b73f0109668c88cfad864360df7b2b8c"
+    },
+    {
+      "path": "dev/osiedle/civic.js",
+      "sha256": "058ad6d2c608236eb4f3015960f97ebc296c60a616f4fe01fdd24241028765a9"
+    },
+    {
+      "path": "dev/osiedle/main.js",
+      "sha256": "07ddde64d9a2eb979f957f677ef79afb0857b33fb0a828d8511d56cab117a343"
+    },
+    {
+      "path": "dev/osiedle/arenas.js",
+      "sha256": "1ca12a139b39f9fc556ea7d29fe60d1a99aae1aa4927504e3789bc820163e01c"
+    },
+    {
+      "path": "dev/osiedle/entrances.js",
+      "sha256": "6b966148ba33b531adad05f1538850bc0b5f6d3196b8ca5d0449fa24e995b889"
+    },
+    {
+      "path": "dev/osiedle/life.js",
+      "sha256": "81ba8bd0f6ad5e318dc728ab8bd50ed3864918941e4e98ca5e1e7aed8a2746e6"
+    },
+    {
+      "path": "dev/osiedle/layout.js",
+      "sha256": "ef8c884a0369f4d5e5d1861aa6a7bcd0db4ade5ce00f9b181df670fae6178905"
+    },
+    {
+      "path": "dev/osiedle/vegetation.js",
+      "sha256": "53899030d7f4c7bffa439310daafbe40a2748aaee25d7eb48a2897fe212b24a8"
+    },
+    {
+      "path": "dev/osiedle/world.js",
+      "sha256": "8d226efd2163b6d7fda7fdaca97370a5e942209e92ea88ee954d41035c4e0631"
+    },
+    {
+      "path": "dev/osiedle/assets/manifest.json",
+      "sha256": "84039f3319f80fc63ccef594dbea9ac311d792b35aac79a80a681f8017507f31"
+    },
+    {
+      "path": "dev/osiedle/review/report.json",
+      "sha256": "a2f470d23ab194b76bfeeba51ea0dbb3542c68e9edfe6ddc0de96aae2ab2a5c7"
+    },
+    {
+      "path": "dev/osiedle/review/layout.json",
+      "sha256": "871638290598b2c4c452952ac5de6653d791d2920d7bc9aec1356fc0260b911e"
+    },
+    {
+      "path": "dev/osiedle/tools/pack_textures.py",
+      "sha256": "561a867d7bc2d88465516bc671600f31dae9d05e71a22ee1b0b6f2b10d7b865b"
+    },
+    {
+      "path": "dev/osiedle/tools/draw_plan.py",
+      "sha256": "79a43208153a8acc7fa48924a45d7a0e15af95947ba1518aad39cd61d7e7aad8"
+    },
+    {
+      "path": "dev/osiedle/tools/export_forest.py",
+      "sha256": "8e9419d428be0fd470b725893419648e326692cca945cf1fee482d767d151be4"
+    },
+    {
+      "path": "dev/osiedle/tools/export_hospital.py",
+      "sha256": "9e0ad7f3e75f154b9a71bc3006ffb57e832dee9c1bf88a2f4aafffbd8ead78c6"
+    },
+    {
+      "path": "dev/deploy/asset-parts.json",
+      "sha256": "6004a44ccd5a56900da24e12843cb03d55347f8e7ee7cfeb3f79d0dc19d623c7"
+    },
+    {
+      "path": "dev/tools/build_quick.py",
+      "sha256": "9f1d48583d9e11f3f5f468e0a0684dd4cc743a4e4af354896d0a56d365089b68"
+    },
+    {
+      "path": "dev/tools/build_web.py",
+      "sha256": "b22bb4a9f43e8961be7848e0a38ed5bdeb17cdb1a6565ea294473ce781038719"
+    },
+    {
+      "path": "dev/tools/build.py",
+      "sha256": "fbeb04653ecad9a8db47f16b864b5da4ffd070deb713058f76b15308d938c5dd"
+    },
+    {
+      "path": "dev/tools/run_inspect.mjs",
+      "sha256": "3e20604d7d95c1ebc405643f50807f185c5693ffef83cc9cd3a76cbeb7da35d8"
+    },
+    {
+      "path": "dev/tools/inspect_assets.html",
+      "sha256": "1936ae7f55cac5234180197f86dd2c79e60f3dddd22b4b2930b8383fe317a0af"
+    },
+    {
+      "path": "dev/tools/check_integration.cjs",
+      "sha256": "40d5f903a346befdcecb94fb06cf318d25c0fe3c2e9f0b04d4a2c0b96388378b"
+    },
+    {
+      "path": "dev/tools/mktex.py",
+      "sha256": "febc9a03edb0824612d441f7106f6c134eb673668c221a9f704bd49a0f0f0b2d"
+    },
+    {
+      "path": "dev/tools/check_stale_bake.cjs",
+      "sha256": "311fc63d49c987d19b9af8db9cddb4980ef975de04112ebc84dbca1d1efbb707"
+    },
+    {
+      "path": "dev/tools/sg2mr.py",
+      "sha256": "56b8761a87ca9e654e4b3d6244976f4dd9dca0ab1d3c7e55e2eb8569dbcc6fd2"
+    },
+    {
+      "path": "dev/tools/run_shot.mjs",
+      "sha256": "6ceebc9486c8f1866b9e42b0f500c80b17257a1295127cf80d809daab65a1429"
+    },
+    {
+      "path": "dev/tools/check_estate_doors.cjs",
+      "sha256": "6d05cc659694e213bab16ae6a84a79a6e2f0e6bb54e2b671f2449d6e36886126"
+    },
+    {
+      "path": "dev/tools/assemble-assets.cjs",
+      "sha256": "9b58600d6603bad6894e826b1c06e26f188af9f33a151f3625cee46c8164382e"
+    },
+    {
+      "path": "dev/tools/export_fight_clips.js",
+      "sha256": "de3296aae4e8af3e8e75b8ab67919dfebdf5ea77b9bc0da4c9750568c72e8599"
+    },
+    {
+      "path": "dev/tools/run_shot2.mjs",
+      "sha256": "09789d392a476b90137e7373fab387f29e590d017a5b01650e14e4fbea69daca"
+    },
+    {
+      "path": "dev/tools/play.mjs",
+      "sha256": "9a9fbbe0b27d39e6e1e4406b854e5fdf00632cc467630ee487501249e37f6cdc"
+    },
+    {
+      "path": "dev/tools/run_convert.mjs",
+      "sha256": "5a05b683095f600341eae14deb0678e6fd00b5a73590a8d492a05637d587dfef"
+    },
+    {
+      "path": "dev/tools/pipeline.js",
+      "sha256": "3ca1d684f1fd3d940ee52886803896a8682ae755e534609382fa2c2efa50b9e5"
+    },
+    {
+      "path": "dev/tools/run_js.mjs",
+      "sha256": "220bc37ee75a3b8863b68c8aaaa1741e17e4f20dc4e20273bb455b8d0e3d41e7"
+    },
+    {
+      "path": "dev/tools/nodes.html",
+      "sha256": "c6ee6ced769f32c63bdcde3b45f7bfc85eaaf5855da97abade18a49653f35b45"
+    },
+    {
+      "path": "dev/tools/run_nodes.mjs",
+      "sha256": "9833ac64696d3f51ab01d61acfe81a6ff3e6526a4f2f42e54804dc2b4f277710"
+    },
+    {
+      "path": "dev/tools/run_inspect2.mjs",
+      "sha256": "ab9b3ede9ce01da917effa06e71ed446ce3ed83bee130237c2eb84dcddab9987"
+    },
+    {
+      "path": "dev/tools/convert.html",
+      "sha256": "24d2a66d62dedad3b26076d61296f681bcc5ebc5a378fd7d6938c201cc907d73"
+    },
+    {
+      "path": "dev/tools/check_arena_finish.cjs",
+      "sha256": "e9973090d67e9fa238eee32bc3761277ad6cc17312b929cfc67f573f8afed82a"
+    },
+    {
+      "path": "dev/tools/inspect.html",
+      "sha256": "236186d488c6507e24265a46492467bf5566db118e61d0e23d93a0be6a4a0a3a"
+    },
+    {
+      "path": "dev/tools/check_resume.cjs",
+      "sha256": "1072bc680ecd5c2e2d5f177c22a476aadb1626d7c01a4db24abfbdf6888ba2e5"
+    },
+    {
+      "path": "dev/tools/check_estate_player.cjs",
+      "sha256": "6a685c592882a194ba01017853a9235a4e7520dfb512a43e7587e67a0706a358"
+    },
+    {
+      "path": "dev/tools/play2.mjs",
+      "sha256": "de5991985ad1e596bd2527c826b6badc5303ece8703f1c00157602216207750b"
+    },
+    {
+      "path": "dev/tools/bake_gym.json",
+      "sha256": "884090ecedb9f6808ccf93d9f5b5c9b841c40d9c2731cb53b359a00547026294"
+    },
+    {
+      "path": "dev/tools/shot2.html",
+      "sha256": "8cf31775f0708e87ee74e370f573daaad65858c9b96064840317dcc1896fec8e"
+    },
+    {
+      "path": "dev/tools/shot.html",
+      "sha256": "9e57d9b17ccddee55ab7ba434a13f0c2c0f20f2bf9512cae619e436c62adb608"
+    },
+    {
+      "path": "dev/tools/survey.py",
+      "sha256": "f002138f4dab72ac8c7e38dcf2f85269d18c565acad439403462a751fd813f54"
+    },
+    {
+      "path": "dev/tools/run_eval.mjs",
+      "sha256": "4727567cbdc03710c7ce201b9e428ead7765665b6d497682ef64dc6c618c50fe"
+    }
+  ]
+}

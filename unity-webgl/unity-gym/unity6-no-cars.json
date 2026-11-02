@@ -1,0 +1,16 @@
+{
+    "area": "city",
+    "engine": "Unity6",
+    "status": "ORIGINAL_STATIC_VEHICLES_HIDDEN_IN_TEST",
+    "sourceCityMeshes": 724,
+    "firstCarMesh": 271,
+    "lastCarMesh": 667,
+    "disabledMeshes": 397,
+    "disabledRenderers": 397,
+    "skippedCarCollisionBoxes": 5,
+    "sourceAssetsUnchanged": true,
+    "cityArchitectureUnchanged": true,
+    "approvedGymUnchanged": true,
+    "originalBraxUnchanged": true,
+    "productionUnchanged": true
+}
