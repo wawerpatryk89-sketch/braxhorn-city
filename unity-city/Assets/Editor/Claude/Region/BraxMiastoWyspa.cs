@@ -76,7 +76,7 @@ internal static class BraxMiastoWyspa
 
     public static void Apply(Transform cityRoot)
     {
-        Miejsca.Clear(); osoby.Clear(); deptak.Clear(); zapowiedz = null; BraxUliceKit.Start(); BraxMiastoA.WyczyscPamiec();
+        Miejsca.Clear(); osoby.Clear(); deptak.Clear(); zajete.Clear(); zapowiedz = null; BraxUliceKit.Start(); BraxMiastoA.WyczyscPamiec();
         // stara wyspa (gdyby krok był jeszcze gdzieś wołany) — zdjęta
         var stara = cityRoot.Find("CLAUDE wyspa (oktagon Ligi, otwarta)"); if (stara) BraxUliceKit.Usun(stara.gameObject, "stara wyspa (stożek z łatami)");
         root = BraxRegion.Root(cityRoot, "CLAUDE wyspa — ARENA BRAXHORN (wypoczynkowa)");
@@ -744,6 +744,10 @@ internal static class BraxMiastoWyspa
     static readonly float[] Zatoczki = { 22f, 98f, 146f, 274f };
     const float CypelOd = 308f, CypelDo = 352f;
     static readonly float[] Ratownicy = { 228f, 52f, 122f };
+    // miejsca zajęte przez wyposażenie plaży (palmy, krzewy i skały stawiane później omijają je — nic nie stoi w niczym)
+    static readonly List<(Vector2 p, float r)> zajete = new List<(Vector2 p, float r)>();
+    static void Zajmij(Vector3 p, float r) => zajete.Add((new Vector2(p.x, p.z), r));
+    static bool Zajete(float wx, float wz, float r) { var q = new Vector2(wx, wz); foreach (var (p, rr) in zajete) if ((p - q).sqrMagnitude < (r + rr) * (r + rr)) return true; return false; }
     static float KatOd(float a, float b) => Mathf.Abs(Mathf.Repeat(a - b + 180f, 360f) - 180f);
     static float LiniaWody(float ang)
     {
@@ -792,12 +796,12 @@ internal static class BraxMiastoWyspa
                 {
                     var p2 = new Vector2(d.x, d.z) * (rs - odl); if (!Piasek(p2)) continue;
                     var p = new Vector3(CX + p2.x, 0, CZ + p2.y); p.y = Y(p.x, p.z);
-                    BraxNabrzezeMebel.Parasol(z, str, m, plotna[nP % plotna.Length], p, 2f + (nP % 3)); nP++;
+                    BraxNabrzezeMebel.Parasol(z, str, m, plotna[nP % plotna.Length], p, 2f + (nP % 3)); nP++; Zajmij(p, 1.6f);
                     float yawL = Quaternion.LookRotation(-d).eulerAngles.y;     // oparcie od lądu: leży się przodem do morza
                     foreach (float s in new[] { -1.05f, 1.05f })
                     {
                         var lp = p + t * s * K + d * 1.2f * K; lp.y = Y(lp.x, lp.z) + .01f;
-                        BraxNabrzezeMebel.Lezak(z, str, m, null, lp, yawL); nL++;
+                        BraxNabrzezeMebel.Lezak(z, str, m, null, lp, yawL); nL++; Zajmij(lp, 1.4f);
                         if (rnd.NextDouble() < .35)
                         {
                             var sp = lp + Quaternion.Euler(0, yawL, 0) * new Vector3(0, .32f * K + .04f * K, -1.95f * K * .12f);
@@ -808,7 +812,7 @@ internal static class BraxMiastoWyspa
                 if (kolumna % 4 == 1)
                 {
                     var p2 = new Vector2(d.x, d.z) * (rs - 21.5f);
-                    if (Piasek(p2)) { var p = new Vector3(CX + p2.x, 0, CZ + p2.y); p.y = Y(p.x, p.z); BraxNabrzezeMebel.Kosz(z, str, m, p); nK++; }
+                    if (Piasek(p2)) { var p = new Vector3(CX + p2.x, 0, CZ + p2.y); p.y = Y(p.x, p.z); BraxNabrzezeMebel.Kosz(z, str, m, p); nK++; Zajmij(p, .6f); }
                 }
             }
             ang += krok; kolumna++;
@@ -820,13 +824,14 @@ internal static class BraxMiastoWyspa
             float a = lg[k], rs = LiniaWody(a); var d = new Vector3(Mathf.Cos(a * Mathf.Deg2Rad), 0, Mathf.Sin(a * Mathf.Deg2Rad)); var t = Vector3.Cross(Vector3.up, d);
             var p = NaBrzegu(a, 12f); p.y -= .05f;
             var w = BraxHarborBeachBuild.Postaw(root, "lifeguard_tower.glb", "Wyspa: wieżyczka ratownika " + (k + 1), p, 6.2f, Quaternion.LookRotation(d).eulerAngles.y + 180f);
-            if (w) { var bb = BraxRegion.Bounds(w); BraxNabrzeze.Kol(kol, "Wieżyczka ratownika", bb.center, bb.size * .85f); nR++; }
+            if (w) { var bb = BraxRegion.Bounds(w); BraxNabrzeze.Kol(kol, "Wieżyczka ratownika", bb.center, bb.size * .85f); nR++; Zajmij(bb.center, Mathf.Max(bb.extents.x, bb.extents.z) + .5f); }
+            Zajmij(p + d * 3f, 1.2f);
             string id = k == 0 ? "wyspa_ratownik" : "wyspa_ratownik_" + (k + 1);
             Miejsca[id] = p + d * 3f;
             BraxMiastoA.Akcja(root, id, "POROZMAWIAJ", "Ratownik: Kąpielisko strzeżone do żółtych boi. Za bojami pływają łodzie.", p + d * 3.5f, 2f);
             Czlowiek("Plaża wyspy", "ratownik", "stoi", p + d * 2.6f + t * .8f, d, KlStoi);
             var pr = new Vector3(CX, 0, CZ) + d * (rs - 20f) + t * 4f; pr.y = Y(pr.x, pr.z);
-            if (Piasek(new Vector2(pr.x - CX, pr.z - CZ))) { BraxNabrzezeMebel.Prysznic(z, str, m, pr, Quaternion.LookRotation(d).eulerAngles.y); nS++; }
+            if (Piasek(new Vector2(pr.x - CX, pr.z - CZ)) && !Zajete(pr.x, pr.z, .8f)) { BraxNabrzezeMebel.Prysznic(z, str, m, pr, Quaternion.LookRotation(d).eulerAngles.y); nS++; Zajmij(pr, 1.0f); }
             for (int b = -3; b <= 3; b++)
             {
                 float ab = a + b * 8f / (rs + 28f) * Mathf.Rad2Deg; var bp = new Vector3(CX + Mathf.Cos(ab * Mathf.Deg2Rad) * (LiniaWody(ab) + 28f), W, CZ + Mathf.Sin(ab * Mathf.Deg2Rad) * (LiniaWody(ab) + 28f));
@@ -845,7 +850,7 @@ internal static class BraxMiastoWyspa
                 {
                     float a = a0 + ((float)rnd.NextDouble() - .5f) * 10f, rs = LiniaWody(a), r = rs + ((float)rnd.NextDouble() - .55f) * 9f;
                     var p = new Vector3(CX + Mathf.Cos(a * Mathf.Deg2Rad) * r, 0, CZ + Mathf.Sin(a * Mathf.Deg2Rad) * r); p.y = Y(p.x, p.z);
-                    if (p.y < W - 1.4f) continue;
+                    if (p.y < W - 1.4f || Zajete(p.x, p.z, 1.8f)) continue;
                     if (BraxRegion.Put(zs, sk[rnd.Next(sk.Count)], "Wyspa: skała zatoczki", p + Vector3.down * .35f, (float)rnd.NextDouble() * 360f, 1.2f + (float)rnd.NextDouble() * 1.1f, true, 3.4f)) nSk++;
                 }
         }
@@ -1207,6 +1212,7 @@ internal static class BraxMiastoWyspa
                 if (h < .8f || h > 16f) continue;
                 if (Vector2.Distance(new Vector2(px, pz), Plac) < PlacR + 3f) continue;
                 if (Mathf.Abs(pz - Plac.y) < 4f && px < Plac.x) continue;                 // deptak
+                if (Zajete(CX + px, CZ + pz, 1.0f)) continue;                               // leżaki, parasole, ratownicy, prysznice
                 float gest = h < 6f ? .5f : .2f; if (rng.NextDouble() > gest) continue;
                 float hx = H(px + 1, pz) - H(px - 1, pz), hz = H(px, pz + 1) - H(px, pz - 1); if (Mathf.Sqrt(hx * hx + hz * hz) * .5f > .6f) continue;
                 var o = odmiany[rng.Next(odmiany.Count)];
@@ -1280,6 +1286,7 @@ internal static class BraxMiastoWyspa
         {
             float x = (float)(rng.NextDouble() * 200 - 100), zz = (float)(rng.NextDouble() * 200 - 100), h = H(x, zz);
             if (Vector2.Distance(new Vector2(x, zz), Plac) < PlacR + 4f || (Mathf.Abs(zz - Plac.y) < 4f && x < Plac.x)) continue;
+            if (Zajete(CX + x, CZ + zz, 1.6f)) continue;
             bool skala = h > 10f && rng.NextDouble() < .4 || (h > -.3f && h < .6f && rng.NextDouble() < .15);
             var list = skala ? sk : krz; if (list.Count == 0 || h < -.3f || h > 24f) continue;
             if (!skala && h < 3f) continue;
