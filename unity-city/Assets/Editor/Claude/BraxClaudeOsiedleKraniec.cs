@@ -24,7 +24,7 @@ using UnityEngine.Rendering;
 public static partial class BraxClaudeOsiedle
 {
     const float KrNorth = 101f;                       // północna krawędź trawy osiedla A (portal tunelu z = 99.5)
-    const float KrX0 = -114.5f, KrX1 = 114.5f, KrZ0 = -236.5f;   // prostokąt osiedla; dalej teren za płotem
+    const float KrX0 = -114f, KrX1 = 114f, KrZ0 = -236f;         // prostokąt trawy osiedla (B: X0…X1, SouthZ) — teren za płotem styka się z nią bez szczeliny
     static Texture2D pasmo;
     static Material krTeren, krLas;
     static readonly List<Vector3> krDrzewa = new List<Vector3>();   // drzewa za płotem (ściółka pod koronami)

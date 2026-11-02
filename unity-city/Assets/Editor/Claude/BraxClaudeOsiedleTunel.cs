@@ -95,7 +95,7 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(Asphalt, -TunHalf, TunHalf, 0, .06f, TunPz - 4f, TunZ0, false);
         // 1) płot obwodowy (z ≈ 99.05) i tablica Codexa (z 97.8) sprzed portalu; pas betonu na miejscu płotu
         int przed = rep.oldFenceTrianglesRemoved;
-        CutVolumes(estate, physics, new List<Bounds> { MinMax(-7.6f, 7.6f, -.05f, 1.75f, 98.55f, 99.45f), MinMax(-3.4f, 3.4f, 1.4f, 3.05f, 97.5f, 98.1f) });
+        if (estate) CutVolumes(estate, physics, new List<Bounds> { MinMax(-7.6f, 7.6f, -.05f, 1.75f, 98.55f, 99.45f), MinMax(-3.4f, 3.4f, 1.4f, 3.05f, 97.5f, 98.1f) });
         int plot = rep.oldFenceTrianglesRemoved - przed;
         BoxMinMax(Concrete, -8.2f, -TunHalf, 0, .035f, 98.5f, 99.5f, false); BoxMinMax(Concrete, TunHalf, 8.2f, 0, .035f, 98.5f, 99.5f, false);
 

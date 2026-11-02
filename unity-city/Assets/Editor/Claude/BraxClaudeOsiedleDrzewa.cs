@@ -144,7 +144,7 @@ public static partial class BraxClaudeOsiedle
         var (przes, zmn, usun, mapa) = KoronyOdBudynkow(estate, physics);
         rep.notes.Add("drzewa: " + zamienione + " koron z gałązek (było: trójkąty), " + krzewy + " krzewów, " + kodeks + " drzew zamiast starych Codexa; korony przy budynkach: przesunięte " + przes + ", zmniejszone " + zmn + ", usunięte " + usun);
         Debug.Log("BRAXHORN_DRZEWA zamienione=" + zamienione + " usunięte_z_dachów=" + usun + " przesunięte=" + przes + " zmniejszone=" + zmn +
-                  " krzewy=" + krzewy + " stare_codexa=" + stare.Count + "→" + kodeks + " komórek_budynków=" + mapa + " (liście: gałązki, LOD0 " + klasterLiscie[0].triangles.Length / 3 + " trójkątów)");
+                  " krzewy=" + krzewy + " stare_codexa=" + stare.Count + "→" + kodeks + " komórek_budynków=" + mapa + " (liście: gałązki, LOD0 " + klasterLiscie[0].GetIndexCount(0) / 3 + " trójkątów)");
     }
 
     // Mapa wysokości budynków: komórka 1 m → najwyższy punkt geometrii budynku (próbkowane trójkąty powyżej 1.8 m).

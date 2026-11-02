@@ -33,6 +33,9 @@ half4 PanoramaKierunek(float3 cam, float3 dir)
     s.rgb = max(0, y + (s.rgb - y) * _PasmoNasycenie) * _PasmoJasnosc;
     // mgiełka powietrza przy samym horyzoncie (dalekie stoki lekko jaśniejsze i bardziej niebieskie)
     s.rgb = lerp(s.rgb, _PasmoMglaKolor.rgb, _PasmoMgla * (1 - smoothstep(0.0, 14.0, el)));
+    // ziemia tuż pod horyzontem (za zasięgiem kamery) zamglona jak osiedle ~200 m dalej (mgła sceny ~40 %) — brzeg zasięgu
+    // kamery w głębi osiedla nie odcina się od zdjęcia
+    s.rgb = lerp(s.rgb, _PasmoMglaKolor.rgb, .36 * (1 - smoothstep(-1.5, 1.0, el)));
     return s;
 }
 
