@@ -44,6 +44,7 @@ public static class BraxKontrola
     public static void Wszystko(Scene scena, string obszar)
     {
         zegar = Stopwatch.StartNew(); Obszar = obszar; raport.Clear(); Wyczysc();
+        try { UstawStrefe(scena); } catch (Exception e) { JestStrefa = false; Debug.LogWarning("DO POPRAWKI: kontrola — strefa chroniona: " + e.Message); }
         try { BraxClaudeOsiedle.ZmierzBohatera(); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: kontrola — pomiar bohatera: " + e.Message); }
         Physics.SyncTransforms();                        // kolizje generatora ustawione po dodaniu — granice aktualne przed spisem
         Spis spis = null;
@@ -184,8 +185,30 @@ public static class BraxKontrola
     {
         if (!t) return false;
         if (chronCache.TryGetValue(t, out var c)) return c;
-        c = Chronione.IsMatch(Norm(t.name)) || WChronionym(t.parent);
+        c = Chronione.IsMatch(Norm(t.name)) || WChronionym(t.parent) || WStrefie(t);
         chronCache[t] = c; return c;
+    }
+    // MIASTO (2.11): zatwierdzona siłownia to korzeń „braxhorn-original-gym” + osobne obiekty obok (sofa z biblioteki, worki,
+    // wykończenie ringu, mural…) — wszystko, czego renderer leży w bryle siłowni, jest nietykalne (tylko raport).
+    public static bool JestStrefa; public static Bounds StrefaChroniona;
+    static bool WStrefie(Transform t)
+    {
+        if (!JestStrefa) return false;
+        var r = t.GetComponent<Renderer>();
+        return r && StrefaChroniona.Contains(r.bounds.center);
+    }
+    static void UstawStrefe(Scene scena)
+    {
+        JestStrefa = false;
+        foreach (var root in scena.GetRootGameObjects())
+        {
+            if (root.name != "braxhorn-original-gym") continue;
+            bool any = false; Bounds b = default;
+            foreach (var r in root.GetComponentsInChildren<Renderer>(true)) { if (!any) { b = r.bounds; any = true; } else b.Encapsulate(r.bounds); }
+            if (!any) continue;
+            b.Expand(1f); StrefaChroniona = b; JestStrefa = true;
+            Debug.Log("BRAXHORN_KONTROLA strefa chroniona (zatwierdzona siłownia): " + F(b.min) + " … " + F(b.max));
+        }
     }
     public static readonly Regex Roslina = new Regex(@"\b(lisc\w*|leaf|leaves|foliage|koron\w*|crown\w*|igliw\w*|needle\w*|grass\w*|traw\w*|kep\w*|tuft\w*|flower\w*|kwiat\w*|roz[ay]|platk\w*|petal\w*|bloom\w*|blooms|krzew\w*|bush\w*|shrub\w*|hedge\w*|zywoplot\w*|plant|plants|rosl\w*)\b");
 
@@ -501,6 +524,7 @@ public static class BraxKontrola
 
         void Dodaj(Transform t, Typ typ, string tekst, List<Renderer> rs, Bounds b, bool chroniony)
         {
+            if (JestStrefa && StrefaChroniona.Contains(b.center)) chroniony = true;
             var j = new Jednostka { t = t, typ = typ, tekst = tekst, rs = rs, b = b, chroniony = chroniony, opis = Sciezka(t) };
             j.Odswiez();
             jednostki.Add(j); poTransform[t] = j;

@@ -346,6 +346,9 @@ public static class BraxGymBuild
         // (osiedle: scena siłowni nie idzie do paczki — bez obróbki i bez zapisu)
         if(!osiedle){var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
         var tObr=DateTime.UtcNow;
+        // MIASTO (2.11, właściciel: „wszystko do poprawy… migotanie, miasto”): te same kontrole co na osiedlu — skala względem bohatera,
+        // umieszczenie, kolizje, MIGOTANIE (rozsunięcie płaskich warstw), listy pomieszczeń, robot kolizji. Przed BezSwiecenia/Siatki (siatki do odczytu).
+        if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrole jakości (miasto): "+e);}
         if(!osiedle)try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
         if(!osiedle)try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         if(!osiedle)BraxRejonBuildu.Czas("obrobka_siatek",tObr,fullCity?"rejon=miasto":"rejon=silownia");
