@@ -77,6 +77,12 @@ public static partial class BraxRegionMiastoB
     public static bool NoweDzielnice => true;     // teren nowych dzielnic (drogi i kwartały) budowany zawsze; modele — gdy są paczki
 
     static void NdLog(string s) => Debug.Log("BRAXHORN_MIASTO_ASSETY " + s);
+    // każdy krok budowy osobno (zasada 5): błąd = log „DO POPRAWKI”, następne kroki idą dalej
+    static void NdKrok(string nazwa, Action a)
+    {
+        try { a(); }
+        catch (Exception e) { BraxMiastoAssety.Bledy++; Debug.LogError("BRAXHORN_MIASTO_ASSETY " + nazwa + " DO POPRAWKI: " + e); }
+    }
 
     // =====================================================================================================================
     // 0) stare na terenie nowych dzielnic (zasada 11:00 „zdejmij stare, połóż nowe”) — dziś nic tam nie ma (grunt źródła kończy
@@ -116,8 +122,17 @@ public static partial class BraxRegionMiastoB
     //    kwartały z płyt, skwer, pas zieleni, plac Atlanty, ścieżka za rzędem B. Wszystko prostokątami stykającymi się krawędzią.
     static void NoweDzielniceNawierzchnie()
     {
-        ndRootStart = root.childCount; ndLatarnie = ndDrzewa = ndZebry = 0; ndWstawkiToru.Clear(); ndBudynki.Clear();
-        NdUsunStare();
+        ndRootStart = root.childCount; ndLatarnie = ndDrzewa = ndZebry = ndMigotanie = 0; ndWstawkiToru.Clear(); ndBudynki.Clear();
+        NdKrok("usunięcie starego na terenie nowych dzielnic", NdUsunStare);
+        NdKrok("nawierzchnie: aleja, ulice, skrzyżowania", NdUlice);
+        NdKrok("nawierzchnie: kwartały, plac Atlanty, ciąg pieszy", NdKwartaly);
+        NdKrok("teren: skwer zachodni, pas zieleni, peron tramwaju", NdZielen);
+        NdKrok("wyposażenie ulic (latarnie, drzewa w kratach, ławki — na gotowym podłożu)", NdWyposazenieUlic);
+        NdLog("nawierzchnie: aleja 4 odcinki, ulice C0–C3, Nowojorska, Tramwajowa, skrzyżowań " + NdSkrzyzowania().Count() + ", kwartały A/B/C, plac Atlanty, skwer, pas zieleni");
+    }
+
+    static void NdUlice()
+    {
         // --- ALEJA (profil alei B — PrzekrojX2: asfalt odcinka, krawężniki, pasy zieleni z drzewami i latarniami, chodniki) ---
         // przerwy w zieleni: przejścia (zebry przy skrzyżowaniach i przy wlocie pętli), peron przystanku autobusowego
         float zebraA = AH + Kr + .6f, zebraB = zebraA + 4f * K;   // zebra wlotu skrzyżowania: od 5.35 do 10.53 m od środka
@@ -146,7 +161,11 @@ public static partial class BraxRegionMiastoB
             else PrzekrojX("ul. Tramwajowa", NS1, AH, Chod, NC[i + 1] + NPR, NC[i] - NPR);
         }
         // --- SKRZYŻOWANIA: asfalt środka, odcinki asfaltu do początku przekrojów, narożniki (krawężnik + płyty) ---
-        foreach (var (c, c2, ramiona, prZ, nazwa) in NdSkrzyzowania()) NdSkrzyzowanie(c, c2, ramiona, prZ, nazwa);
+        foreach (var (c, c2, ramiona, prZ, nazwa) in NdSkrzyzowania()) NdKrok("skrzyżowanie " + nazwa, () => NdSkrzyzowanie(c, c2, ramiona, prZ, nazwa));
+    }
+
+    static void NdKwartaly()
+    {
         // --- KWARTAŁY (płyty jak chodniki B) ---
         for (int i = 0; i < 3; i++)
         {
@@ -157,6 +176,10 @@ public static partial class BraxRegionMiastoB
         Chodnik("rząd B ul. Nowojorskiej (płyty)", NC[3] - NPR, NC[0] + NPR, RzB0, RzB1);
         Chodnik("ciąg pieszy za rzędem B (płyty)", NXA, NC[0] + NPR, RzB1, NZ1);
         Plyta("Plac ATLANTA: płyty granitowe", granitPlac, NXA, NC[3] - NPR, NS1 - NPR, RzB1, YC, .3f - YA);
+    }
+
+    static void NdZielen()
+    {
         // --- ZIELEŃ: skwer zachodni (między pętlą a ul. C0), pas zieleni na południu ---
         Trawa("Skwer zachodni (płn.)", NC[0] + NPR, NX, RZ + APR, NZ1);
         Trawa("Skwer zachodni (płd.)", NC[0] + NPR, NX, NS1 - NPR, RZ - APR);
@@ -165,8 +188,6 @@ public static partial class BraxRegionMiastoB
         for (float z = RZ + APR + 8f; z < NZ1 - 6f; z += 14f) { Drzewo(new Vector3(-283f + ((int)z % 3), YC - .03f, z)); Drzewo(new Vector3(-269f, YC - .03f, z + 7f)); ndDrzewa += 2; }
         for (float z = NS1 - NPR + 8f; z < RZ - APR - 6f; z += 14f) { Drzewo(new Vector3(-283f, YC - .03f, z)); Drzewo(new Vector3(-269f + ((int)z % 3), YC - .03f, z + 7f)); ndDrzewa += 2; }
         for (float x = NXA + 10f; x < NX - 10f; x += 16f) { if (PeronTramwaju.xMin - 4f < x && x < PeronTramwaju.xMax + 4f) continue; Drzewo(new Vector3(x, YC - .03f, -79f + ((int)(x * .1f) % 3))); ndDrzewa++; }
-        NdWyposazenieUlic();
-        NdLog("nawierzchnie: aleja " + odcinki.Count + " odcinki, ulice C0–C3, Nowojorska, Tramwajowa, skrzyżowań " + NdSkrzyzowania().Count() + ", kwartały A/B/C, plac Atlanty, skwer, pas zieleni");
     }
 
     static readonly Rect PeronTramwaju = Rect.MinMaxRect(-512f, NS1 - NPR - 6f, -458f, NS1 - NPR);   // płyty przystanku za chodnikiem
@@ -266,7 +287,7 @@ public static partial class BraxRegionMiastoB
     static void NoweDzielniceOznakowanie(Farba f)
     {
         var moja = new Farba();
-        for (int i = 0; i < 4; i++) SkrzyzowanieT(moja, new Vector3(NC[i], YA, RZ), AH, AH, NdWlotyAlei(i), 0f);
+        for (int i = 0; i < 4; i++) { int ii = i; NdKrok("oznakowanie Aleja × C" + i, () => SkrzyzowanieT(moja, new Vector3(NC[ii], YA, RZ), AH, AH, NdWlotyAlei(ii), 0f)); }
         foreach (var (c, c2, ram, prZ, nazwa) in NdSkrzyzowania())
         {
             if (Mathf.Approximately(c2, RZ)) continue;
@@ -290,7 +311,7 @@ public static partial class BraxRegionMiastoB
             if (Niepuste(w)) ndWstawkiToru.Add((w, 0));
             foreach (var reszta in Odejmij(q, TorRect)) if (Niepuste(reszta)) f.r.Add(reszta);
         }
-        NdTorowisko();
+        NdKrok("torowisko w nawierzchni ul. Tramwajowej", NdTorowisko);
         NdLog("oznakowanie: zebr bez świateł " + ndZebry + " + na 15 wlotach alei z sygnalizacją, pasów farby " + moja.r.Count + " — W WYCIĘCIACH asfaltu; wstawek toru " + ndWstawkiToru.Count);
     }
 
