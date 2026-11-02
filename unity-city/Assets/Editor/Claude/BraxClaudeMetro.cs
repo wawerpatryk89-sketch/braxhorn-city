@@ -187,6 +187,15 @@ public static class BraxClaudeMetro
         Pociag();
         rep.siatki += W.Zapisz("metro_stacja");
 
+        // A 2.11 (właściciel: „NIC NIE NAKŁADAMY na nic”): oznakowanie, żółte linie, noski stopni, pasy i ramki leżały 2–12 mm
+        // na ścianach / posadzce / pudłach wagonów. Pod każdym takim elementem powierzchnia pod spodem jest WYCINANA (element
+        // siedzi w otworze, nie na powierzchni) — ta sama kontrola co w pierzejach, log BRAXHORN_MIASTO_A_MIGOTANIE metro.
+        BraxMiastoA.KontrolaMigotania(new[] { zewnatrz, podziemie }, Bryla(TW0 - 10f, TW1 + 10f, -20f, 8f, 5f, 55f), t =>
+        {
+            var r = t.GetComponent<Renderer>(); var n = r && r.sharedMaterial ? r.sharedMaterial.name.ToLowerInvariant() : "";
+            return n.Contains("oznakowanie") || n.Contains("żółta linia") || n.Contains("nosek") || n.Contains("pas linii") || n.Contains("klosz") || n.Contains("czarne ramy");
+        }, "metro", true);
+
         // 5) widoczność (stacja rysowana tylko, gdy kamera/gracz pod ziemią albo przy wejściach) i zasięg kamery pod ziemią
         var wid = podziemie.gameObject.AddComponent<BraxWidocznoscWnetrza>(); wid.nazwa = "metro M1 NABRZEŻE";
         wid.strefy = new[] { Bryla(TW0 - 5f, TW1 + 5f, -16f, -.55f, 14f, 43f), Bryla(56f, 90f, -.55f, 14f, 8f, 48f) };

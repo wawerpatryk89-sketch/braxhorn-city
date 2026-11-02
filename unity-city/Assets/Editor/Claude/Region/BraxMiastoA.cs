@@ -163,8 +163,10 @@ internal static class BraxMiastoA
                             int os = tn.os / 2, u = os == 0 ? 2 : 0, q = os == 1 ? 2 : 1;
                             var lo3 = Vector3.zero; var hi3 = Vector3.zero;
                             lo3[os] = to.c - .03f; hi3[os] = to.c + .03f;
-                            lo3[u] = Mathf.Max(tn.lo.x, to.lo.x) - .005f; hi3[u] = Mathf.Min(tn.hi.x, to.hi.x) + .005f;
-                            lo3[q] = Mathf.Max(tn.lo.y, to.lo.y) - .005f; hi3[q] = Mathf.Min(tn.hi.y, to.hi.y) + .005f;
+                            // wycięcie 3 mm mniejsze niż wspólne pole: nowa powierzchnia zakrywa krawędź wycięcia (bez szczeliny)
+                            lo3[u] = Mathf.Max(tn.lo.x, to.lo.x) + .003f; hi3[u] = Mathf.Min(tn.hi.x, to.hi.x) - .003f;
+                            lo3[q] = Mathf.Max(tn.lo.y, to.lo.y) + .003f; hi3[q] = Mathf.Min(tn.hi.y, to.hi.y) - .003f;
+                            if (hi3[u] <= lo3[u] || hi3[q] <= lo3[q]) continue;
                             var bb = new Bounds(); bb.SetMinMax(lo3, hi3); ciecia.Add((rs[to.r], bb));
                         }
                     }

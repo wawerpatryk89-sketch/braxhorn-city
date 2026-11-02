@@ -633,10 +633,17 @@ public static class BraxUlicePierzeje
                                           : BraxUliceKit.Mat("kaseton: lico grafit (podświetlenie nocą)", new Color(.08f, .09f, .10f), .4f);
             float s = f.W - Lizena * .5f, y = Parter + 1.6f, wys = .95f, dl = .9f, gr = .16f, dyst = .14f;
             var t = f.R; var c = f.P(s, y, dyst + dl * .5f);
-            BraxUliceKit.S(rama).OBox(c, f.N, Vector3.up, t, dl, wys, gr);
+            // kaseton: rama-obwód (4 listwy), a lica kasetonu to SAME tła z treścią (nic przyklejonego do lica)
+            {
+                var rr0 = BraxUliceKit.S(rama);
+                rr0.OBox(c + Vector3.up * (wys * .5f - .02f), f.N, Vector3.up, t, dl, .04f, gr);
+                rr0.OBox(c - Vector3.up * (wys * .5f - .02f), f.N, Vector3.up, t, dl, .04f, gr);
+                rr0.OBox(c + f.N * (dl * .5f - .02f), f.N, Vector3.up, t, .04f, wys - .08f, gr);
+                rr0.OBox(c - f.N * (dl * .5f - .02f), f.N, Vector3.up, t, .04f, wys - .08f, gr);
+            }
             foreach (float sg in new[] { 1f, -1f })
             {
-                var fn = t * sg; var fc = c + fn * (gr * .5f + .006f);
+                var fn = t * sg; var fc = c + fn * (gr * .5f);
                 var rr = Vector3.Cross(Vector3.up, -fn).normalized;
                 BraxUliceKit.S(tlo).Quad(fc - rr * (dl * .5f - .04f) - Vector3.up * (wys * .5f - .04f), fc + rr * (dl * .5f - .04f) - Vector3.up * (wys * .5f - .04f), fc + rr * (dl * .5f - .04f) + Vector3.up * (wys * .5f - .04f), fc - rr * (dl * .5f - .04f) + Vector3.up * (wys * .5f - .04f), fn);
                 if (lok.typ == "apteka")
@@ -662,9 +669,12 @@ public static class BraxUlicePierzeje
             var emalia = BraxUliceKit.Mat("tabliczka adresowa: emalia biała", new Color(.94f, .94f, .92f), .25f);
             var granat = BraxUliceKit.Mat("tabliczka adresowa: granat", new Color(.08f, .14f, .32f), .3f, .1f);
             float s = Mathf.Min(f.drzwiS + 1.17f + .38f, f.W - Lizena - .25f), y = 2.35f, pw = .30f * k, ph = .22f * k;
-            OBox(f, granat, s - pw * .5f, s + pw * .5f, y - ph * .5f, y + ph * .5f, 0f, .018f);
-            OBox(f, emalia, s - pw * .5f + .02f, s + pw * .5f - .02f, y - ph * .5f + .02f, y + ph * .5f - .02f, .018f, .024f);
-            BraxUliceKit.Napis3D(f.lok.numer.ToString(), f.P(s, y - .09f, .024f), f.N, .18f, .01f, granat, granat, .17f, .1f);
+            // ramka granatowa (pierścień) i pole emaliowane w jej otworze — jedno lico, nic na niczym
+            float a0 = s - pw * .5f, a1 = s + pw * .5f, b0 = y - ph * .5f, b1 = y + ph * .5f;
+            OBox(f, granat, a0, a0 + .02f, b0, b1, 0f, .018f); OBox(f, granat, a1 - .02f, a1, b0, b1, 0f, .018f);
+            OBox(f, granat, a0 + .02f, a1 - .02f, b0, b0 + .02f, 0f, .018f); OBox(f, granat, a0 + .02f, a1 - .02f, b1 - .02f, b1, 0f, .018f);
+            OBox(f, emalia, a0 + .02f, a1 - .02f, b0 + .02f, b1 - .02f, 0f, .018f);
+            BraxUliceKit.Napis3D(f.lok.numer.ToString(), f.P(s, y - .09f, .018f), f.N, .18f, .01f, granat, granat, .17f, .1f);
         }
     }
 
