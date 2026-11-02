@@ -87,8 +87,21 @@ def glosnosc(wejscie, filtr):
 
 def obrobka(wejscie, wyjscie, kodek, rate, filtr=FILTR):
     m = glosnosc(wejscie, filtr)
-    ln = ('loudnorm=I=-16:TP=-1.5:LRA=11:linear=true:measured_I={input_i}:measured_TP={input_tp}:'
-          'measured_LRA={input_lra}:measured_thresh={input_thresh}:offset={target_offset}').format(**m)
+    try:
+        ok = all(abs(float(m[k])) < 1e6 for k in ('input_i', 'input_tp', 'input_lra', 'input_thresh', 'target_offset')) and float(m['input_i']) > -70
+    except (ValueError, KeyError):
+        ok = False
+    if ok:
+        ln = ('loudnorm=I=-16:TP=-1.5:LRA=11:linear=true:measured_I={input_i}:measured_TP={input_tp}:'
+              'measured_LRA={input_lra}:measured_thresh={input_thresh}:offset={target_offset}').format(**m)
+    else:
+        # bardzo krótka kwestia („Dobry.”, < 0.4 s — loudnorm nie zmierzy głośności zintegrowanej): wzmocnienie ze średniego
+        # poziomu (volumedetect) do ~−19 dB RMS (dla mowy ≈ −16 LUFS) + ogranicznik −1.5 dBTP
+        r = subprocess.run(['ffmpeg', '-hide_banner', '-nostats', '-i', str(wejscie), '-af', filtr + ',volumedetect', '-f', 'null', '-'],
+                           check=True, capture_output=True, text=True)
+        sr = re.search(r'mean_volume: (-?[\d.]+) dB', r.stderr)
+        g = max(-10.0, min(20.0, -19.0 - float(sr.group(1)))) if sr else 0.0
+        ln = 'volume=%.2fdB,alimiter=limit=0.84' % g
     subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(wejscie), '-af', filtr + ',' + ln,
                     '-ar', str(rate), '-ac', '1'] + kodek + [str(wyjscie)], check=True)
 

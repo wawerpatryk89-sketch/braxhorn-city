@@ -1,404 +1,1464 @@
 {
   "kwestie": [
     {
+      "tekst": "Ach, te samochody. Kiedyś było ciszej.",
+      "id": "6c3f90ebdcded725",
+      "sytuacja": "StarszySasiad"
+    },
+    {
       "tekst": "Ale dziś słońce, co?",
-      "id": "e42df86ba016b781"
+      "id": "e42df86ba016b781",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Ale dziś upał, co?",
+      "id": "15e2e33e104cca61",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Ale forma, szacun!",
-      "id": "a2842ccb40ec39c6"
+      "id": "a2842ccb40ec39c6",
+      "sytuacja": "Powitania"
     },
     {
       "tekst": "Auć!",
-      "id": "a550d50cb6e0f641"
+      "id": "a550d50cb6e0f641",
+      "sytuacja": "Okrzyki"
     },
     {
       "tekst": "Ała!",
-      "id": "655648c79881a37a"
+      "id": "655648c79881a37a",
+      "sytuacja": "Okrzyki"
+    },
+    {
+      "tekst": "Bananowy znowu się skończył?",
+      "id": "489dc616fdbb0085",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Bez awantur, proszę.",
+      "id": "d941ac2cb45cd74e",
+      "sytuacja": "Ochroniarz"
+    },
+    {
+      "tekst": "Brax trenuje dziś do późna.",
+      "id": "45a427cb2ef679bd",
+      "sytuacja": "Arena"
     },
     {
       "tekst": "Brzmi nieźle.",
-      "id": "89bf539ec3fbdab0"
+      "id": "89bf539ec3fbdab0",
+      "sytuacja": "OdpowiedziBraxa"
+    },
+    {
+      "tekst": "Butik ma się otworzyć lada dzień. Witryny już gotowe.",
+      "id": "5c515c7650c50b67",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Byłem w mieście, sporo roboty.",
+      "id": "49825646b9e7aa3e",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Byłem. Truskawkowy daje radę.",
-      "id": "85aaefcc0f7a56bf"
+      "id": "85aaefcc0f7a56bf",
+      "sytuacja": "MiedzySoba"
     },
     {
       "tekst": "Byłeś w nowym Shake Barze?",
-      "id": "50f40c53e36f70d6"
+      "id": "50f40c53e36f70d6",
+      "sytuacja": "MiedzySoba"
     },
     {
       "tekst": "Cappuccino jak zawsze?",
-      "id": "a4c48b3169bbd6dc"
+      "id": "a4c48b3169bbd6dc",
+      "sytuacja": "obsługa:barista"
     },
     {
       "tekst": "Chciałbym. Ale ceny kosmos.",
-      "id": "afa650067aaac685"
+      "id": "afa650067aaac685",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Chętnie z nim posparuję.",
+      "id": "5f63d6823ae119aa",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Ciepły wieczór, co?",
+      "id": "e1e4b9fcac8be576",
+      "sytuacja": "MijanieWieczor"
     },
     {
       "tekst": "Co podać?",
-      "id": "2326b17269621377"
+      "id": "2326b17269621377",
+      "sytuacja": "obsługa:barman"
     },
     {
       "tekst": "Co się dzieje?!",
-      "id": "7c69ae8a3da0b4cc"
+      "id": "7c69ae8a3da0b4cc",
+      "sytuacja": "Swiadkowie"
     },
     {
       "tekst": "Co ty robisz?!",
-      "id": "99dfabf6f6d327a6"
+      "id": "99dfabf6f6d327a6",
+      "sytuacja": "Okrzyki"
+    },
+    {
+      "tekst": "Codziennie, rano i wieczorem.",
+      "id": "eb9c8adc7d518bb8",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Coś jeszcze?",
+      "id": "75874eb6bf4ebe20",
+      "sytuacja": "Sklep"
+    },
+    {
+      "tekst": "Czemu nie, w sobotę w parku.",
+      "id": "39537c0dfa7bb55a",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Cześć, Patryk!",
+      "id": "b731fab8c1e78702",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Cześć, co słychać?",
+      "id": "21bd4da697231267",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Cześć, cześć.",
+      "id": "52ae5a3d18a588e1",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Cześć, lecę!",
+      "id": "40fb3891ba47a9fb",
+      "sytuacja": "PozegnaniaWiecej"
     },
     {
       "tekst": "Cześć, mistrzu!",
-      "id": "f403c25aee8e740e"
+      "id": "f403c25aee8e740e",
+      "sytuacja": "Powitania"
+    },
+    {
+      "tekst": "Cześć.",
+      "id": "63f218d4820b02e1",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Daleko się wybierasz?",
+      "id": "55e5ed53a9b7575b",
+      "sytuacja": "Parking"
+    },
+    {
+      "tekst": "Do jutra!",
+      "id": "751195a1b99d25f8",
+      "sytuacja": "PozegnaniaWiecej"
+    },
+    {
+      "tekst": "Do zobaczenia na gali!",
+      "id": "1c578121d9a0df32",
+      "sytuacja": "PozegnaniaWiecej"
+    },
+    {
+      "tekst": "Dobra, pamiętam.",
+      "id": "9a79ffe04cb33bdb",
+      "sytuacja": "OdpowiedziPatryka"
+    },
+    {
+      "tekst": "Dobranoc, sąsiad.",
+      "id": "177ad8f5638241c6",
+      "sytuacja": "MijanieWieczor"
     },
     {
       "tekst": "Dobry wieczór! Coś do picia?",
-      "id": "35a9f6efaf22bc80"
+      "id": "35a9f6efaf22bc80",
+      "sytuacja": "obsługa:barman"
     },
     {
       "tekst": "Dobry wieczór! Numerek proszę.",
-      "id": "e489e9f2ee3075b9"
+      "id": "e489e9f2ee3075b9",
+      "sytuacja": "obsługa:szatnia"
+    },
+    {
+      "tekst": "Dobry wieczór! Z treningu?",
+      "id": "478d6a52b1379210",
+      "sytuacja": "MijanieWieczor"
+    },
+    {
+      "tekst": "Dobry wieczór, sąsiedzie.",
+      "id": "44a591e9c8e9e6e2",
+      "sytuacja": "MijanieWieczor"
     },
     {
       "tekst": "Dobry wieczór.",
-      "id": "74bf4c6edd84a1ab"
+      "id": "74bf4c6edd84a1ab",
+      "sytuacja": "MijanieWieczor"
+    },
+    {
+      "tekst": "Dobry wieczór. Zapraszam do środka.",
+      "id": "afbcca4368adb249",
+      "sytuacja": "Ochroniarz"
     },
     {
       "tekst": "Dobry wieczór. Żetony?",
-      "id": "ebd501e52d5c245d"
+      "id": "ebd501e52d5c245d",
+      "sytuacja": "obsługa:kasyno"
+    },
+    {
+      "tekst": "Dobry, kawa już była?",
+      "id": "f0b304283b1e729b",
+      "sytuacja": "MijanieRano"
+    },
+    {
+      "tekst": "Dobry.",
+      "id": "02a448f1a9021b49",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Dzieciaki pytały, czy pokażesz im parę ciosów.",
+      "id": "a4d571358b69f7e3",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Dzieciaki znowu grały w piłkę pod oknami.",
+      "id": "f2f69966d892d46d",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Dzień dobry panu.",
+      "id": "a5bca3f1e1acf0e1",
+      "sytuacja": "Mijanie"
     },
     {
       "tekst": "Dzień dobry!",
-      "id": "66e61f8b97f9ba9e"
+      "id": "66e61f8b97f9ba9e",
+      "sytuacja": "Powitania"
     },
     {
       "tekst": "Dzień dobry! Kawa?",
-      "id": "9fe852d68057ea57"
+      "id": "9fe852d68057ea57",
+      "sytuacja": "obsługa:barista"
     },
     {
       "tekst": "Dzień dobry! W czym mogę pomóc?",
-      "id": "d4b83631391ce14e"
+      "id": "d4b83631391ce14e",
+      "sytuacja": "obsługa:recepcja"
+    },
+    {
+      "tekst": "Dzień dobry! Wcześnie dziś.",
+      "id": "a6b948512e6a7e41",
+      "sytuacja": "MijanieRano"
+    },
+    {
+      "tekst": "Dzień dobry! Ładny poranek.",
+      "id": "1c7d45724af300c5",
+      "sytuacja": "MijanieRano"
+    },
+    {
+      "tekst": "Dzień dobry, chłodno dziś rano.",
+      "id": "88c43a925499659a",
+      "sytuacja": "MijanieRano"
+    },
+    {
+      "tekst": "Dzień dobry, coś podać?",
+      "id": "748b3b9d213112f6",
+      "sytuacja": "Sklep"
+    },
+    {
+      "tekst": "Dzień dobry, do pracy?",
+      "id": "2b48da76cf2756b0",
+      "sytuacja": "MijanieRano"
+    },
+    {
+      "tekst": "Dzień dobry, jak zdrowie?",
+      "id": "7f46ab2bd8254295",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Dzień dobry, sąsiedzie.",
+      "id": "6a5d66eac4dad960",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Dzień dobry.",
+      "id": "098452123674746e",
+      "sytuacja": "Mijanie"
     },
     {
       "tekst": "Dzień dobry. Coś się stało?",
-      "id": "6f3131781e4b7659"
+      "id": "6f3131781e4b7659",
+      "sytuacja": "obsługa:policja"
     },
     {
       "tekst": "Dzień dobry. Rejestracja jest na wprost.",
-      "id": "914903d3fcd49e07"
+      "id": "914903d3fcd49e07",
+      "sytuacja": "obsługa:lekarz"
+    },
+    {
+      "tekst": "Dzień dobry. Ładnie się tu zrobiło.",
+      "id": "fe530abed949ca34",
+      "sytuacja": "StarszySasiad"
     },
     {
       "tekst": "Dzięki!",
-      "id": "05a6456d520b6b48"
+      "id": "05a6456d520b6b48",
+      "sytuacja": "MiedzySoba"
     },
     {
       "tekst": "Dzięki, dobrze wiedzieć.",
-      "id": "9ac185a7ab367844"
+      "id": "9ac185a7ab367844",
+      "sytuacja": "OdpowiedziBraxa"
+    },
+    {
+      "tekst": "Dzięki, jesteś złoty.",
+      "id": "c17e083f18c9c6ae",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Dzięki, jutro pójdę.",
+      "id": "bf0e1224bc7bade6",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Dzięki, trzymaj się.",
-      "id": "9dd8b17c31c1974e"
+      "id": "9dd8b17c31c1974e",
+      "sytuacja": "OdpowiedziBraxa"
+    },
+    {
+      "tekst": "Dzięki, wpadnę.",
+      "id": "5ae1548f22b5bbf7",
+      "sytuacja": "OdpowiedziPatryka"
+    },
+    {
+      "tekst": "Dziękuję, zapraszam ponownie.",
+      "id": "7ff13210dcb7c1a0",
+      "sytuacja": "Sklep"
+    },
+    {
+      "tekst": "Dziś dzień nóg. Nie wiem, jak wrócę do domu.",
+      "id": "6d77b07c4eb2fc11",
+      "sytuacja": "Arena"
     },
     {
       "tekst": "Dzwonię na policję!",
-      "id": "82773fe2de04e5d3"
+      "id": "82773fe2de04e5d3",
+      "sytuacja": "Swiadkowie"
     },
     {
       "tekst": "Ej! Zostaw go!",
-      "id": "3d11cab60bf8db78"
+      "id": "3d11cab60bf8db78",
+      "sytuacja": "Swiadkowie"
     },
     {
       "tekst": "Ej, co jest?!",
-      "id": "3ae4589313a7b6e2"
+      "id": "3ae4589313a7b6e2",
+      "sytuacja": "Okrzyki"
     },
     {
       "tekst": "Elo! Co tam?",
-      "id": "c93922244a6e4e11"
+      "id": "c93922244a6e4e11",
+      "sytuacja": "Powitania"
+    },
+    {
+      "tekst": "Elo, sąsiad.",
+      "id": "05d22e6e3370145b",
+      "sytuacja": "Mijanie"
     },
     {
       "tekst": "Fajnie, że zrobili to rondo.",
-      "id": "cc43a770fd1add18"
+      "id": "cc43a770fd1add18",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Fontanna w parku wieczorem ładnie wygląda.",
+      "id": "49bf37b6ada2cccf",
+      "sytuacja": "WiesciWiecej"
     },
     {
       "tekst": "Fontanna w parku znowu działa. Dzieciaki mają frajdę.",
-      "id": "418629022b5e260a"
+      "id": "418629022b5e260a",
+      "sytuacja": "Wiesci"
+    },
+    {
+      "tekst": "Gala w ARENIE już niedługo. Szykujesz się?",
+      "id": "e454b181df05406a",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Gdzie się kupuje bilety na galę?",
+      "id": "b7422dc24161bd24",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Gdzie tu jest komisariat?",
-      "id": "12bdc92db99d5a17"
+      "id": "12bdc92db99d5a17",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Gotówka czy karta?",
+      "id": "2fca4d311eb5af0c",
+      "sytuacja": "Sklep"
     },
     {
       "tekst": "Grasz dziś w kosza?",
-      "id": "a779ebd28853135a"
+      "id": "a779ebd28853135a",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Grill w sobotę? Zapraszam.",
+      "id": "46713bad4672fe14",
+      "sytuacja": "Sasiedzi"
     },
     {
       "tekst": "Hej!",
-      "id": "447750f9fcf8f825"
+      "id": "447750f9fcf8f825",
+      "sytuacja": "Powitania"
     },
     {
       "tekst": "Hej! Spokojnie!",
-      "id": "6b9be4867732e472"
+      "id": "6b9be4867732e472",
+      "sytuacja": "Okrzyki"
     },
     {
       "tekst": "Hej! Tu nie wolno!",
-      "id": "48111f35ff087bb0"
+      "id": "48111f35ff087bb0",
+      "sytuacja": "Obsluga"
+    },
+    {
+      "tekst": "Hej, Patryk! Długo cię nie było.",
+      "id": "5f9682d8f1462ced",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Hej, jak leci?",
+      "id": "fb130fab0a684c55",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Hej, sąsiad!",
+      "id": "898d0b26c8f0fa3a",
+      "sytuacja": "Mijanie"
     },
     {
       "tekst": "Idziesz jutro na siłownię?",
-      "id": "e90e64ab35b98cf0"
+      "id": "e90e64ab35b98cf0",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Idziesz na galę do ARENY?",
+      "id": "8d65bac48a791a63",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Idziesz na trening?",
+      "id": "17dc42ded903df0d",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Ile dziś na klatę?",
+      "id": "e8ee8bb426c4770f",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Ja tam wolę się wyspać.",
+      "id": "18c4478ecadf4e6e",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Jak marzenie.",
+      "id": "313952fb8ee0e2b9",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Jak się mieszka? Wszystko w porządku?",
+      "id": "916da2d5eb2d4f20",
+      "sytuacja": "Sasiedzi"
     },
     {
       "tekst": "Jak skończę robotę. Wpadaj o szóstej.",
-      "id": "8dfe7562a6db6d7a"
+      "id": "8dfe7562a6db6d7a",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Jak tam auto, jeździ?",
+      "id": "b4878b17fa4beffd",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Jak zawsze o tej porze.",
+      "id": "a584434671e15876",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Jasne, co tam?",
+      "id": "895382579fb91d43",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Jasne, nie przegapię.",
+      "id": "b4e2e4086e60a876",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Jasne, sąsiedzie.",
+      "id": "8e5abccf892fda5c",
+      "sytuacja": "OdpowiedziPatryka"
     },
     {
       "tekst": "Jasne, zapraszam na trening.",
-      "id": "2af4fd1b1bd9befa"
+      "id": "2af4fd1b1bd9befa",
+      "sytuacja": "OdpowiedziBraxa"
     },
     {
       "tekst": "Jeszcze cię dorwę!",
-      "id": "f19f0c6eb2d96ddb"
+      "id": "f19f0c6eb2d96ddb",
+      "sytuacja": "ZDystansu"
+    },
+    {
+      "tekst": "Już ciemno się robi.",
+      "id": "1619f1e2cf8551f1",
+      "sytuacja": "MijanieWieczor"
+    },
+    {
+      "tekst": "Karta zbliżeniowo, proszę przyłożyć.",
+      "id": "7da50829254ecef0",
+      "sytuacja": "Sklep"
+    },
+    {
+      "tekst": "Kasyno zmieniło godziny otwarcia. Teraz do rana.",
+      "id": "52b5076c44e4d74c",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Kasyno znowu otwarte do rana.",
+      "id": "b2d4d0993e266144",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Kawa na wynos czy na miejscu?",
+      "id": "d4f214c8dc3ffd6a",
+      "sytuacja": "Sklep"
+    },
+    {
+      "tekst": "Kiedy sparing?",
+      "id": "6815b3150f0c1ae2",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Komisariat szuka świadków wczorajszej stłuczki na rondzie.",
+      "id": "9ef7b4482bb1c0f2",
+      "sytuacja": "WiesciWiecej"
     },
     {
       "tekst": "Komisariat, słucham.",
-      "id": "9cd3698470a24853"
+      "id": "9cd3698470a24853",
+      "sytuacja": "obsługa:policja"
+    },
+    {
+      "tekst": "Ktoś mi zastawił wyjazd.",
+      "id": "a108d6529e35971d",
+      "sytuacja": "Parking"
+    },
+    {
+      "tekst": "Ktoś parkuje pod moją bramą. Nie wiesz kto?",
+      "id": "72248001eab1ed0f",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Ktoś zostawił rower przy parku. Stoi tam od tygodnia.",
+      "id": "755dfb2dba20dd6d",
+      "sytuacja": "WiesciWiecej"
     },
     {
       "tekst": "Kupujesz tę willę na sprzedaż?",
-      "id": "ae12cce5f0619be3"
+      "id": "ae12cce5f0619be3",
+      "sytuacja": "MiedzySoba"
     },
     {
       "tekst": "Kurtkę zostawiamy?",
-      "id": "cc79ff9f2602e45e"
+      "id": "cc79ff9f2602e45e",
+      "sytuacja": "obsługa:szatnia"
+    },
+    {
+      "tekst": "Kwiaty w tym roku pięknie zakwitły.",
+      "id": "5eff88f03f07eb50",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Kłaniam się, sąsiedzie.",
+      "id": "0b982c36b9de1304",
+      "sytuacja": "StarszySasiad"
     },
     {
       "tekst": "Lista gości? Żartuję, wchodź.",
-      "id": "8d2a886862640968"
+      "id": "8d2a886862640968",
+      "sytuacja": "obsługa:ochrona"
+    },
+    {
+      "tekst": "Mamy dziś promocję na wodę.",
+      "id": "ef6eb88d18c0b396",
+      "sytuacja": "Sklep"
     },
     {
       "tekst": "Mapę osiedla masz w menu. Ja bym się tu bez niej zgubił.",
-      "id": "61a8999199444bcc"
+      "id": "61a8999199444bcc",
+      "sytuacja": "Wiesci"
     },
     {
       "tekst": "Miłego dnia!",
-      "id": "4024322dbfe82415"
+      "id": "4024322dbfe82415",
+      "sytuacja": "Pozegnania"
+    },
+    {
+      "tekst": "Może jakiś deser do kawy?",
+      "id": "ddf554d348989dde",
+      "sytuacja": "Sklep"
+    },
+    {
+      "tekst": "Mój pies znowu uciekł do ogrodu obok. Przepraszam.",
+      "id": "66dd67962ce5afbb",
+      "sytuacja": "Sasiedzi"
     },
     {
       "tekst": "Mój syn chce trenować kick-boxing. Przyjmujecie dzieciaki?",
-      "id": "6f43100a7869bf55"
+      "id": "6f43100a7869bf55",
+      "sytuacja": "Wiesci"
+    },
+    {
+      "tekst": "Mówią, że w ARENIE BRAXHORN będzie walka wieczoru. Bilety schodzą jak ciepłe bułki.",
+      "id": "f3d3a8606484d5e7",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Mówią, że w willach na południu wprowadza się nowa rodzina.",
+      "id": "ee2238541aab6ae5",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Mądry człowiek.",
+      "id": "41b158e15b28df99",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Młody człowieku, nie biegaj tak szybko.",
+      "id": "74eeaf0c632f3b43",
+      "sytuacja": "StarszySasiad"
+    },
+    {
+      "tekst": "Na Bydgoskiej ktoś znowu zaparkował na chodniku.",
+      "id": "89e10f3c39f59645",
+      "sytuacja": "WiesciWiecej"
     },
     {
       "tekst": "Na Poznańskiej zrobili rondo. W końcu nie stoi się w korku pod tunelem.",
-      "id": "19e8f1d88f25b1e6"
+      "id": "19e8f1d88f25b1e6",
+      "sytuacja": "Wiesci"
     },
     {
       "tekst": "Na Wiśniowej, za skrzyżowaniem.",
-      "id": "cb992b0553d85cb3"
+      "id": "cb992b0553d85cb3",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Na boisku w parku w sobotę jest turniej. Zapisy u trenera.",
+      "id": "843fdb27cef9af86",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Na gali będzie pełna hala.",
+      "id": "0fcc54248bd13208",
+      "sytuacja": "Arena"
     },
     {
       "tekst": "Na korcie ktoś zostawił wyrzutnię piłek. Można poodbijać.",
-      "id": "00d1055d005fbb07"
+      "id": "00d1055d005fbb07",
+      "sytuacja": "Wiesci"
+    },
+    {
+      "tekst": "Na korcie tenisowym wieczorem jest wolne. Można pograć.",
+      "id": "4a9436dc22a16b2e",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Na parkingu przy parku zawsze jest miejsce.",
+      "id": "0c499b4690027ba6",
+      "sytuacja": "Parking"
+    },
+    {
+      "tekst": "Na razie!",
+      "id": "1cd2651968b0e991",
+      "sytuacja": "PozegnaniaWiecej"
+    },
+    {
+      "tekst": "Na sali bokserskiej przyszedł nowy worek. Podobno twardy jak beton.",
+      "id": "ee39757d61bbb6aa",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Na worku trzeba pracować codziennie.",
+      "id": "8775238722725c6b",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Najlepiej w ARENIE, przy wejściu.",
+      "id": "3de4c2a1226e993c",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Najwyższy czas, wieczorem ciemno.",
+      "id": "a18704d0fe0e00ca",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Nara!",
-      "id": "c9af10b9e92d3afd"
+      "id": "c9af10b9e92d3afd",
+      "sytuacja": "Pozegnania"
     },
     {
       "tekst": "Następny proszę.",
-      "id": "581c4173d92369fa"
+      "id": "581c4173d92369fa",
+      "sytuacja": "obsługa:kasjer"
+    },
+    {
+      "tekst": "Nic, tak tylko pytam, co u ciebie.",
+      "id": "568b67cf0f2680f4",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Nie zostawiaj auta na zebrze, policja pilnuje.",
+      "id": "fbc9454bc9b09936",
+      "sytuacja": "Parking"
     },
     {
       "tekst": "No ba.",
-      "id": "40d883d71d2df67e"
+      "id": "40d883d71d2df67e",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "No hej.",
+      "id": "7fcf3c3143de96f7",
+      "sytuacja": "Mijanie"
     },
     {
       "tekst": "No to trzeba sprawdzić.",
-      "id": "2d624aa7bd6392a8"
+      "id": "2d624aa7bd6392a8",
+      "sytuacja": "OdpowiedziBraxa"
+    },
+    {
+      "tekst": "No właśnie.",
+      "id": "2cca13e18ec2451f",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "No, trening był ciężki.",
+      "id": "38b345eb21d8c9e7",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "No, trzeba będzie.",
+      "id": "7473a4dec2f5557f",
+      "sytuacja": "OdpowiedziPatryka"
     },
     {
       "tekst": "No, wcześniej był tu chaos.",
-      "id": "4d0fdad9e541bdd4"
+      "id": "4d0fdad9e541bdd4",
+      "sytuacja": "MiedzySoba"
     },
     {
       "tekst": "O matko!",
-      "id": "102734189a925dcf"
+      "id": "102734189a925dcf",
+      "sytuacja": "Swiadkowie"
+    },
+    {
+      "tekst": "O, Patryk! Siema!",
+      "id": "c598fe8670dc3943",
+      "sytuacja": "Mijanie"
     },
     {
       "tekst": "O, cześć!",
-      "id": "ed56577fe840f804"
+      "id": "ed56577fe840f804",
+      "sytuacja": "Powitania"
+    },
+    {
+      "tekst": "O, ranny ptaszek.",
+      "id": "b8aa64d4e762deff",
+      "sytuacja": "MijanieRano"
+    },
+    {
+      "tekst": "O, sąsiad! Jak tam ogródek?",
+      "id": "0767fd28476cfe45",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Ochrona w ARENIE już ćwiczy wpuszczanie widzów.",
+      "id": "224dab7aec9575d0",
+      "sytuacja": "Arena"
     },
     {
       "tekst": "Odbiło ci?!",
-      "id": "193df344e909bea4"
+      "id": "193df344e909bea4",
+      "sytuacja": "Okrzyki"
+    },
+    {
+      "tekst": "Ostatnie dwa rogaliki, zostawić?",
+      "id": "c2f8946dba10c45f",
+      "sytuacja": "Sklep"
+    },
+    {
+      "tekst": "Paczka przyszła do ciebie, wzięłam ją do siebie.",
+      "id": "ebb244d9d95f33f7",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Pamiętaj o gardzie, Patryk.",
+      "id": "028c0c1daf4d4511",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Pamiętam, jak tu sadzili te wiśnie.",
+      "id": "54fc3e0ee364d1f6",
+      "sytuacja": "StarszySasiad"
+    },
+    {
+      "tekst": "Paragon do torby?",
+      "id": "cd5ac029b3aba58e",
+      "sytuacja": "Sklep"
+    },
+    {
+      "tekst": "Patryk, masz chwilę?",
+      "id": "1bd148403db94559",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Pewnie, tylko się przebiorę.",
+      "id": "77e1a457e162738c",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Po treningu shake z Shake Baru to podstawa.",
+      "id": "a1807473fc23b073",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Podobno na Wiśniowej będą sadzić nowe drzewa.",
+      "id": "75000889b035ec48",
+      "sytuacja": "WiesciWiecej"
     },
     {
       "tekst": "Pogoda dziś jak marzenie. Aż chce się pobiegać.",
-      "id": "61e51fa6b711db29"
+      "id": "61e51fa6b711db29",
+      "sytuacja": "Wiesci"
+    },
+    {
+      "tekst": "Pogoda na zmianę, kolano mnie boli.",
+      "id": "4a3a7294d800d1cb",
+      "sytuacja": "StarszySasiad"
+    },
+    {
+      "tekst": "Pokażesz mi kiedyś?",
+      "id": "acb23aecc275ddbf",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Polecam dziś sernik.",
-      "id": "00827f38754280b3"
+      "id": "00827f38754280b3",
+      "sytuacja": "obsługa:barista"
     },
     {
       "tekst": "Policja!",
-      "id": "d65619bf83b4ea57"
+      "id": "d65619bf83b4ea57",
+      "sytuacja": "Okrzyki"
     },
     {
       "tekst": "Pomocy!",
-      "id": "83f820594159a0bc"
+      "id": "83f820594159a0bc",
+      "sytuacja": "Okrzyki"
     },
     {
       "tekst": "Powodzenia!",
-      "id": "6c6cb18884fe2dcc"
+      "id": "6c6cb18884fe2dcc",
+      "sytuacja": "Pozegnania"
+    },
+    {
+      "tekst": "Pozdrów rodzinkę!",
+      "id": "0e18a31f2100424b",
+      "sytuacja": "PozegnaniaWiecej"
+    },
+    {
+      "tekst": "Proszę bardzo, reszta się zgadza.",
+      "id": "d1b875c66523b13d",
+      "sytuacja": "Sklep"
     },
     {
       "tekst": "Proszę poczekać, zaraz ktoś podejdzie.",
-      "id": "f960489963c2cd4f"
+      "id": "f960489963c2cd4f",
+      "sytuacja": "obsługa:policja"
     },
     {
       "tekst": "Proszę poczekać, zaraz pana poproszą.",
-      "id": "8fc48b74259df5f0"
+      "id": "8fc48b74259df5f0",
+      "sytuacja": "obsługa:lekarz"
+    },
+    {
+      "tekst": "Proszę przechodzić.",
+      "id": "89bb7b5d0be68941",
+      "sytuacja": "Ochroniarz"
     },
     {
       "tekst": "Proszę się uspokoić!",
-      "id": "7b9a73e7bf34b693"
+      "id": "7b9a73e7bf34b693",
+      "sytuacja": "Obsluga"
+    },
+    {
+      "tekst": "Proszę uważać na siebie.",
+      "id": "b53041a3b35f21cd",
+      "sytuacja": "StarszySasiad"
     },
     {
       "tekst": "Proszę wyjść!",
-      "id": "1707f1ece03097aa"
+      "id": "1707f1ece03097aa",
+      "sytuacja": "Obsluga"
+    },
+    {
+      "tekst": "Proszę, smacznego!",
+      "id": "2f18b8b8ff99a0c6",
+      "sytuacja": "Sklep"
+    },
+    {
+      "tekst": "Przekażę im, będą zachwyceni.",
+      "id": "8a78fc7607a53705",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Przy arenie zawsze ktoś stoi na dwóch miejscach.",
+      "id": "f4f4f9e93dd51a54",
+      "sytuacja": "Parking"
     },
     {
       "tekst": "Psychol!",
-      "id": "eb333b25e8acd736"
+      "id": "eb333b25e8acd736",
+      "sytuacja": "ZDystansu"
+    },
+    {
+      "tekst": "Pół godziny skakanki i jestem padnięty.",
+      "id": "ffea3b8f6d00caf3",
+      "sytuacja": "Arena"
     },
     {
       "tekst": "Płatność kartą?",
-      "id": "fd492a2ddbe0e6ec"
+      "id": "fd492a2ddbe0e6ec",
+      "sytuacja": "obsługa:kasjer"
+    },
+    {
+      "tekst": "Płot trzeba by pomalować przed zimą.",
+      "id": "e2991819396273f4",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Rano najlepiej się biega.",
+      "id": "5d060dcee756a9c8",
+      "sytuacja": "MijanieRano"
     },
     {
       "tekst": "Rano, przed pracą.",
-      "id": "0ad907a17bfaa99a"
+      "id": "0ad907a17bfaa99a",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Reklamówka potrzebna?",
+      "id": "eece7051e24c8ed7",
+      "sytuacja": "Sklep"
+    },
+    {
+      "tekst": "Ring na sali bokserskiej świeżo naciągnięty.",
+      "id": "3d46245921842e87",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Rozciągnij się, bo jutro będzie bolało.",
+      "id": "a04205acbb727e08",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Shake Bar ma nowy smak. Czekoladowy z orzechami.",
+      "id": "e7f8d68db54efc0b",
+      "sytuacja": "WiesciWiecej"
     },
     {
       "tekst": "Siema!",
-      "id": "4221e8565b1f1422"
+      "id": "4221e8565b1f1422",
+      "sytuacja": "Powitania"
+    },
+    {
+      "tekst": "Siema, wszystko gra?",
+      "id": "6252b51fb04f5a60",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Siema.",
+      "id": "4e332a89b37b3149",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Siemanko!",
+      "id": "38facffb916d2750",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Silnik ci ładnie chodzi.",
+      "id": "437f824da6a680ed",
+      "sytuacja": "Parking"
+    },
+    {
+      "tekst": "Spoko, ogarnę to.",
+      "id": "2ca3e30d36e015b6",
+      "sytuacja": "OdpowiedziPatryka"
+    },
+    {
+      "tekst": "Spokojnego wieczoru!",
+      "id": "d34a32bdb33a33fb",
+      "sytuacja": "PozegnaniaWiecej"
     },
     {
       "tekst": "Spokojnie, człowieku!",
-      "id": "9c1ad1768724d6ee"
+      "id": "9c1ad1768724d6ee",
+      "sytuacja": "Swiadkowie"
+    },
+    {
+      "tekst": "Spokojnie, pilnuję.",
+      "id": "2e47da202d7bf24a",
+      "sytuacja": "Ochroniarz"
+    },
+    {
+      "tekst": "Szacun. Ja ledwo raz w tygodniu.",
+      "id": "73dc7879a1764f42",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Szejk czy coś mocniejszego?",
-      "id": "d9a7d37d6d287f6c"
+      "id": "d9a7d37d6d287f6c",
+      "sytuacja": "obsługa:barman"
+    },
+    {
+      "tekst": "Szpital szuka krwiodawców. Można się zgłosić w rejestracji.",
+      "id": "1add15be6e39d217",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Sąsiad z naprzeciwka kupił nowe auto. Cała ulica się gapi.",
+      "id": "22b9e7d23ca49d45",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Sąsiedzie, masz może klucz do altanki?",
+      "id": "b95b723a26f7ba0a",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Sąsiedzie, pomożesz mi wnieść szafę?",
+      "id": "a0e4cb16f5de5017",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Sąsiedzie, pożyczysz drabinę?",
+      "id": "b5d5f3487e085fb1",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Słyszałem, że chcesz walczyć na gali.",
+      "id": "68842138a84a585d",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Słyszałem. Brax ma podobno wystąpić.",
-      "id": "1cb50c872d694014"
+      "id": "1cb50c872d694014",
+      "sytuacja": "MiedzySoba"
     },
     {
       "tekst": "Słyszałeś o gali w hali walk?",
-      "id": "a26c4191a15cdf27"
+      "id": "a26c4191a15cdf27",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Słyszałeś tę burzę w nocy?",
+      "id": "335cf955d050eed5",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Słyszałeś, że przy rondzie mają postawić nowe latarnie?",
+      "id": "565a5cdda85ab558",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Słyszałeś? Za kasynem jest siłownia BRAXHORN. Podobno sprzęt jak w zawodowym klubie.",
-      "id": "6adb359e30d02b3b"
+      "id": "6adb359e30d02b3b",
+      "sytuacja": "Wiesci"
     },
     {
       "tekst": "Te Porsche? Pewnie ktoś z kasyna.",
-      "id": "82c6740ca781fe33"
+      "id": "82c6740ca781fe33",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Te sportowe auta to jednak coś.",
+      "id": "a613bff5ea266f50",
+      "sytuacja": "Parking"
+    },
+    {
+      "tekst": "Ten nowy w siłowni to podobno były zawodnik.",
+      "id": "a93eb897405e859d",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "To do zobaczenia!",
-      "id": "de0d93ace8266f24"
+      "id": "de0d93ace8266f24",
+      "sytuacja": "Pozegnania"
+    },
+    {
+      "tekst": "To dobrze, że wróciłeś.",
+      "id": "12d5cbb06080c105",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "To pij dużo wody.",
+      "id": "030ca2167d790be2",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "To się widzimy.",
-      "id": "303c128e1450985a"
+      "id": "303c128e1450985a",
+      "sytuacja": "MiedzySoba"
     },
     {
       "tekst": "To trzeba iść!",
-      "id": "9498d16ad29ef984"
+      "id": "9498d16ad29ef984",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "To widzimy się na trybunach.",
+      "id": "6b34adab7cbe007d",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Trawa znowu do koszenia.",
+      "id": "4c2a949ba1079d66",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Trener mówił, że masz dobrą gardę.",
+      "id": "eba1f43edb1e3b26",
+      "sytuacja": "Arena"
     },
     {
       "tekst": "Trening dziś był?",
-      "id": "387f030a2e8fce0b"
+      "id": "387f030a2e8fce0b",
+      "sytuacja": "Powitania"
+    },
+    {
+      "tekst": "Trening rano, robota, i znowu trening.",
+      "id": "ff50aa9a41f4c4c9",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Trenujesz jeszcze w BRAXHORN?",
+      "id": "2fa9b27f407672cf",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Trzymaj się ode mnie z daleka!",
-      "id": "21f03dc9e9ed9728"
+      "id": "21f03dc9e9ed9728",
+      "sytuacja": "ZDystansu"
     },
     {
       "tekst": "Trzymaj się!",
-      "id": "c559ec078651a432"
+      "id": "c559ec078651a432",
+      "sytuacja": "Pozegnania"
+    },
+    {
+      "tekst": "Trzymam kciuki.",
+      "id": "9d95bbf51a47d066",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Tunelem dojdziesz do miasta. Tam dopiero się dzieje.",
-      "id": "b5649dbfc5fe1580"
+      "id": "b5649dbfc5fe1580",
+      "sytuacja": "Wiesci"
+    },
+    {
+      "tekst": "Tylko uważaj na nos.",
+      "id": "28938dbb19a4c3a7",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Uciekajmy!",
-      "id": "1a5109a3db4d3eed"
+      "id": "1a5109a3db4d3eed",
+      "sytuacja": "Swiadkowie"
+    },
+    {
+      "tekst": "Udanego treningu!",
+      "id": "a3621ab0d5e3e03b",
+      "sytuacja": "PozegnaniaWiecej"
+    },
+    {
+      "tekst": "Ulica przy parku jest w remoncie. Lepiej objechać.",
+      "id": "62f3ec29e09ab601",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Umyłeś auto? Błyszczy się jak nowe.",
+      "id": "749faec8c65e209f",
+      "sytuacja": "Parking"
+    },
+    {
+      "tekst": "Uszanowanie.",
+      "id": "d7ca8ad59add0bbb",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Uważaj na schodach, mokro.",
+      "id": "8e0c70727c3c0547",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Uważaj na siebie!",
+      "id": "399f13686ab2131d",
+      "sytuacja": "PozegnaniaWiecej"
+    },
+    {
+      "tekst": "Uważaj na słupki przy wjeździe.",
+      "id": "c2d100eacf2df9f8",
+      "sytuacja": "Parking"
+    },
+    {
+      "tekst": "Uważaj, tu się ciasno parkuje.",
+      "id": "55e30ed00c9f3c32",
+      "sytuacja": "Parking"
     },
     {
       "tekst": "W Parku Wiśniowym chłopaki grają w kosza. Wpadnij, może trafisz za trzy.",
-      "id": "f79f3cdb03631f41"
+      "id": "f79f3cdb03631f41",
+      "sytuacja": "Wiesci"
+    },
+    {
+      "tekst": "W Shake Barze był dziś tłum.",
+      "id": "491261170b939586",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "W Shake Barze robią najlepsze szejki na osiedlu. Spróbuj bananowego.",
-      "id": "a4e3e01c4047b6b3"
+      "id": "a4e3e01c4047b6b3",
+      "sytuacja": "Wiesci"
     },
     {
       "tekst": "W hali walk szykują galę. Ludzie już pytają o bilety.",
-      "id": "d976f8ba1fcc7f12"
+      "id": "d976f8ba1fcc7f12",
+      "sytuacja": "Wiesci"
     },
     {
       "tekst": "W kasynie wczoraj ktoś rozbił bank. Cała dzielnica o tym gada.",
-      "id": "02830d772b11700f"
+      "id": "02830d772b11700f",
+      "sytuacja": "Wiesci"
+    },
+    {
+      "tekst": "W kawiarni mają nowe ciasto. Ludzie stoją w kolejce.",
+      "id": "552fad9a24dee23c",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "W klatce trzeba mieć głowę na karku.",
+      "id": "2b715a0a68ca4c33",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "W klubie w piątek gra nowy DJ. Ma być tłum.",
+      "id": "3b25190e4de1852d",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "W markecie jest promocja na owoce. Warto zajrzeć.",
+      "id": "bf9f07eee019f7bf",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "W mieście za tunelem jest teraz festyn. Głośno do późna.",
+      "id": "cfd48600d5811e7d",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "W parku centralnym ktoś karmi kaczki przy fontannie.",
+      "id": "645aca5eefd4ba89",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "W siłowni BRAXHORN jest nowy trener od zapasów.",
+      "id": "8b85b69cc2ec2607",
+      "sytuacja": "WiesciWiecej"
     },
     {
       "tekst": "Wariat!",
-      "id": "b7bdc6c71a77cae6"
+      "id": "b7bdc6c71a77cae6",
+      "sytuacja": "Okrzyki"
+    },
+    {
+      "tekst": "Wejście tylko dla gości.",
+      "id": "6ca4dcd330a68ef4",
+      "sytuacja": "Ochroniarz"
+    },
+    {
+      "tekst": "Widziałem twoją walkę. Mocny prawy!",
+      "id": "f60216c6c128ee40",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Widziałem, w końcu działa.",
+      "id": "afa7a38a36e43c32",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Widziałeś nowe auta na parkingu?",
-      "id": "3cf563266ac678cc"
+      "id": "3cf563266ac678cc",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Widziałeś nowe rękawice w siłowni?",
+      "id": "5f14399279f751ad",
+      "sytuacja": "Arena"
+    },
+    {
+      "tekst": "Widziałeś, jak w parku naprawili fontannę?",
+      "id": "a5dcd75cf0a3fad9",
+      "sytuacja": "Wymiany"
     },
     {
       "tekst": "Widzieliście to?!",
-      "id": "a4e75e0227f60c0f"
+      "id": "a4e75e0227f60c0f",
+      "sytuacja": "Swiadkowie"
+    },
+    {
+      "tekst": "Wieczorem było głośno na ulicy. Też słyszałeś?",
+      "id": "90ffc7489fe9c712",
+      "sytuacja": "Sasiedzi"
+    },
+    {
+      "tekst": "Wieczorem jest podświetlona.",
+      "id": "646f8c392c5c65a9",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Wieczorem na rondzie jest korek.",
+      "id": "c4e394ecbab2085d",
+      "sytuacja": "Parking"
+    },
+    {
+      "tekst": "Wieczorem w ARENIE trenują zawodnicy przed galą. Można popatrzeć.",
+      "id": "41cf45639bd693aa",
+      "sytuacja": "WiesciWiecej"
+    },
+    {
+      "tekst": "Wieczorkiem na spacer?",
+      "id": "1695c42cad8d681a",
+      "sytuacja": "MijanieWieczor"
+    },
+    {
+      "tekst": "Witam sąsiada!",
+      "id": "58f88d34f5f0b70f",
+      "sytuacja": "Mijanie"
+    },
+    {
+      "tekst": "Witam.",
+      "id": "e15facf062289bd8",
+      "sytuacja": "Mijanie"
     },
     {
       "tekst": "Witamy w kasynie. Ile wymieniamy?",
-      "id": "c48c2e2db3768b2b"
+      "id": "c48c2e2db3768b2b",
+      "sytuacja": "obsługa:kasyno"
     },
     {
       "tekst": "Witamy! Karnet czy wejście jednorazowe?",
-      "id": "129775f59c0eab04"
+      "id": "129775f59c0eab04",
+      "sytuacja": "obsługa:recepcja"
+    },
+    {
+      "tekst": "Wpadaj, kiedy chcesz!",
+      "id": "5b60016750c370ce",
+      "sytuacja": "PozegnaniaWiecej"
     },
     {
       "tekst": "Wpadnę, zobaczę.",
-      "id": "6e7a21f38ee48fd8"
+      "id": "6e7a21f38ee48fd8",
+      "sytuacja": "OdpowiedziBraxa"
     },
     {
       "tekst": "Wreszcie. Cały tydzień lało.",
-      "id": "107e8d6642071342"
+      "id": "107e8d6642071342",
+      "sytuacja": "MiedzySoba"
+    },
+    {
+      "tekst": "Wszystko w porządku?",
+      "id": "cfb9edc02838355b",
+      "sytuacja": "Ochroniarz"
     },
     {
       "tekst": "Wzywam ochronę!",
-      "id": "66ab64c09b4685a1"
+      "id": "66ab64c09b4685a1",
+      "sytuacja": "Obsluga"
+    },
+    {
+      "tekst": "Za moich czasów to tu było pole.",
+      "id": "6b92b008d38df2e2",
+      "sytuacja": "StarszySasiad"
+    },
+    {
+      "tekst": "Zapisałem się na kickboxing. Trzymaj kciuki.",
+      "id": "9c05a3a6ae6c55be",
+      "sytuacja": "Arena"
     },
     {
       "tekst": "Zapraszam, tylko bez awantur.",
-      "id": "a6750f80c13ea196"
+      "id": "a6750f80c13ea196",
+      "sytuacja": "obsługa:ochrona"
+    },
+    {
+      "tekst": "Zaraz podam, chwileczkę.",
+      "id": "06923ae91e867406",
+      "sytuacja": "Sklep"
     },
     {
       "tekst": "Zgłoszę to na policję!",
-      "id": "3fabcef9aa9a8d3a"
+      "id": "3fabcef9aa9a8d3a",
+      "sytuacja": "ZDystansu"
+    },
+    {
+      "tekst": "Zobaczymy, co trener powie.",
+      "id": "94129d6bc7ce2009",
+      "sytuacja": "Wymiany"
+    },
+    {
+      "tekst": "Zobaczymy.",
+      "id": "3c147b42208096a7",
+      "sytuacja": "OdpowiedziPatryka"
     },
     {
       "tekst": "Zostaw mnie!",
-      "id": "5b0d10405f5f0210"
+      "id": "5b0d10405f5f0210",
+      "sytuacja": "Okrzyki"
+    },
+    {
+      "tekst": "Ładne auto, sąsiad!",
+      "id": "b11579c48b891119",
+      "sytuacja": "Parking"
+    },
+    {
+      "tekst": "Świeże pieczywo dopiero przyszło.",
+      "id": "b5e48a1b774f96e2",
+      "sytuacja": "Sklep"
     }
   ]
 }
