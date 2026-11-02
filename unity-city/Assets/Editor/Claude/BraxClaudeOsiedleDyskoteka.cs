@@ -594,8 +594,11 @@ public static partial class BraxClaudeOsiedle
         foreach (var (zf, s) in new[] { (Z0, 1f), (Z1, -1f) })
         {
             float f0 = zf + s * .012f, f1 = zf + s * .06f, zmin = Mathf.Min(f0, f1), zmax = Mathf.Max(f0, f1);
-            BoxMinMax(steel, dA - .1f, dA, yF, dH + .1f, zmin, zmax, false); BoxMinMax(steel, dB, dB + .1f, yF, dH + .1f, zmin, zmax, false);
-            BoxMinMax(steel, dA - .1f, dB + .1f, dH, dH + .1f, zmin, zmax, false, true); oscieznice++;
+            if (s > 0f)   // wejście z ulicy (club-front, z 28.82) — ościeżnicę dostaje przy zwężeniu bramy (E29b, BraxClaudeOsiedleBramy)
+            {
+                BoxMinMax(steel, dA - .1f, dA, yF, dH + .1f, zmin, zmax, false); BoxMinMax(steel, dB, dB + .1f, yF, dH + .1f, zmin, zmax, false);
+                BoxMinMax(steel, dA - .1f, dB + .1f, dH, dH + .1f, zmin, zmax, false, true); oscieznice++;
+            }
             float zz = zf + s * .09f;
             BoxMinMax(exitG, 86f - .3f * K, 86f + .3f * K, dH + .18f, dH + .18f + .17f * K, Mathf.Min(zf + s * .03f, zz), Mathf.Max(zf + s * .03f, zz), false, true);
             try { var g0 = group; SzyldLitery("dyskoteka", "wyjście " + (s > 0 ? "S" : "N"), "WYJŚCIE", new Vector3(86f, dH + .18f + .045f * K, zz), new Vector3(0, 0, s), .075f * K, MatLicoBiale, MatBokiCzarne, .006f, .004f); group = g0; }
