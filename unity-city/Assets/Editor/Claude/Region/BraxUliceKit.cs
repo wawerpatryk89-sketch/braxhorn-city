@@ -361,6 +361,39 @@ internal static class BraxUliceKit
         }
         return wTot;
     }
+    /// <summary>Ten sam krój narysowany W TEKSTURZE (ekrany, telebimy — napis jest obrazem, nie nakładką): px — piksele
+    /// (wiersz 0 = dół), cx — środek napisu, by — linia bazowa, cap — wysokość wersalika (wszystko w pikselach).</summary>
+    public static void NapisWTeksturze(Color[] px, int W, int H, string tekst, float cx, float by, float cap, Color kolor, float s = .15f, float track = .14f)
+    {
+        Krojownia();
+        float wTot = SzerokoscNapisu(tekst, cap, s, track), x = cx - wTot * .5f, sw = s * cap, kk = (1f - s) * cap;
+        foreach (char c0 in tekst)
+        {
+            char ch = char.ToUpperInvariant(c0);
+            if (ch == ' ' || !glify.TryGetValue(ch, out var g)) { x += OdstepSlow * cap; continue; }
+            float x0 = x;
+            Vector2 P(Vector2 q) => new Vector2(x0 + sw * .5f + q.x * kk, by + sw * .5f + q.y * kk);
+            foreach (var kr in g.kreski) for (int q = 0; q < kr.Length - 1; q++) OdcinekWTeksturze(px, W, H, P(kr[q]), P(kr[q + 1]), sw * .5f, kolor, false);
+            foreach (var d in g.kropki) { var p = P(d); OdcinekWTeksturze(px, W, H, p, p, sw * .575f, kolor, true); }
+            x += (g.w * (1f - s) + s) * cap + track * cap;
+        }
+    }
+    static void OdcinekWTeksturze(Color[] px, int W, int H, Vector2 a, Vector2 b, float r, Color kol, bool kwadrat)
+    {
+        int x0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.x, b.x) - r - 1)), x1 = Mathf.Min(W - 1, Mathf.CeilToInt(Mathf.Max(a.x, b.x) + r + 1));
+        int y0 = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(a.y, b.y) - r - 1)), y1 = Mathf.Min(H - 1, Mathf.CeilToInt(Mathf.Max(a.y, b.y) + r + 1));
+        var ab = b - a; float L2 = Mathf.Max(ab.sqrMagnitude, 1e-6f);
+        for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++)
+            {
+                var p = new Vector2(x + .5f, y + .5f); float d;
+                if (kwadrat) d = Mathf.Max(Mathf.Abs(p.x - a.x), Mathf.Abs(p.y - a.y));
+                else { float t = Mathf.Clamp01(Vector2.Dot(p - a, ab) / L2); d = (p - (a + ab * t)).magnitude; }
+                float cov = Mathf.Clamp01(r - d + .5f) * kol.a; if (cov <= 0f) continue;
+                int i = y * W + x; var c = px[i];
+                px[i] = new Color(Mathf.Lerp(c.r, kol.r, cov), Mathf.Lerp(c.g, kol.g, cov), Mathf.Lerp(c.b, kol.b, cov), 1f);
+            }
+    }
     static void Kreska(Vector2[] pts, Func<Vector2, Vector3> P, Vector3 nn, float sw, float depth, Material lico, Material boki)
     {
         int m = pts.Length; if (m < 2) return;
