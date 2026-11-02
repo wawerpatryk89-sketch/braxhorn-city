@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 // E29b (build 45 runda 2, właściciel: „drzwi jak do garażu”): bramy Codexa 4 × 3 m na WEJŚCIACH budynków publicznych
@@ -13,6 +14,7 @@ using UnityEngine;
 // jak było. Log BRAXHORN_DRZWI typ=wejście szer=… wys=… budynek=… (przed → po), podsumowanie BRAXHORN_WEJSCIA_ZWEZENIE.
 public static partial class BraxClaudeOsiedle
 {
+    static int klocekN;
     static Mesh KlocekSiatka(Vector3 s)
     {
         var v = new List<Vector3>(); var n = new List<Vector3>(); var uv = new List<Vector2>(); var tr = new List<int>(); var trTyl = new List<int>();
@@ -33,6 +35,7 @@ public static partial class BraxClaudeOsiedle
         F(Vector3.up, Vector3.right, Vector3.forward, s.x, s.z); F(Vector3.down, Vector3.right, Vector3.forward, s.x, s.z);
         var m = new Mesh { name = "wstawka " + s.x.ToString("F2") + "×" + s.y.ToString("F2") + "×" + s.z.ToString("F2") };
         m.SetVertices(v); m.SetNormals(n); m.SetUVs(0, uv); m.subMeshCount = 2; m.SetTriangles(tr, 0); m.SetTriangles(trTyl, 1); m.RecalculateBounds(); m.RecalculateTangents();
+        AssetDatabase.CreateAsset(m, Out + "/wstawka_" + (++klocekN) + ".asset");   // siatka zapisana jak reszta osiedla
         return m;
     }
 
