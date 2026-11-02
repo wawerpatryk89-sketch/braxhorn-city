@@ -217,7 +217,7 @@ public static class BraxCityBuild
         var animation=hero.GetComponentInChildren<Animation>(true);if(!animation)animation=hero.AddComponent<Animation>();animation.playAutomatically=false;
         foreach(var name in new[]{"Idle","Walk","Run","Punch","Kick","Jump"}){var clip=AssetDatabase.LoadAssetAtPath<AnimationClip>(Generated+"/"+name+".anim");if(!clip)throw new Exception("Original animation absent "+name);animation.AddClip(clip,name);}
         animation.clip=animation.GetClip("Idle");animation.Play("Idle");animation.Sample();
-        var camera=new GameObject("Estate manual player camera").AddComponent<Camera>();camera.tag="MainCamera";camera.fieldOfView=55;camera.nearClipPlane=.1f;camera.farClipPlane=330;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.64f,.73f,.79f);camera.allowMSAA=true;BraxHeroRefinements.CharacterLights(camera);camera.allowHDR=false;camera.gameObject.AddComponent<AudioListener>();
+        var camera=new GameObject("Estate manual player camera").AddComponent<Camera>();camera.tag="MainCamera";camera.fieldOfView=55;camera.nearClipPlane=.15f;camera.farClipPlane=330;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.64f,.73f,.79f);camera.allowMSAA=true;BraxHeroRefinements.CharacterLights(camera);camera.allowHDR=false;camera.gameObject.AddComponent<AudioListener>();
         RenderSettings.ambientMode=AmbientMode.Trilight;RenderSettings.ambientSkyColor=new Color(.55f,.63f,.71f);RenderSettings.ambientEquatorColor=new Color(.38f,.44f,.43f);RenderSettings.ambientGroundColor=new Color(.23f,.27f,.22f);RenderSettings.fog=false;
         var sun=new GameObject("Estate daylight").AddComponent<Light>();sun.type=LightType.Directional;sun.intensity=1.08f;sun.color=new Color(1,.97f,.92f);sun.transform.rotation=Quaternion.Euler(48,-35,0);sun.shadows=LightShadows.Soft;sun.shadowStrength=.67f;sun.shadowBias=.04f;sun.shadowNormalBias=.25f;
         RenderSettings.sun=sun;QualitySettings.shadows=ShadowQuality.All;QualitySettings.shadowDistance=42;QualitySettings.shadowResolution=ShadowResolution.Medium;QualitySettings.shadowCascades=2;
@@ -229,6 +229,7 @@ public static class BraxCityBuild
         BraxEstateR2FacadeFinish.Apply();
         // Osiedle R2 (Opus): remont A, Park Centralny, osiedle B, wille, kasyno, komisariat, siłownia A, trawa, wylot tunelu z miasta.
         BraxClaudeOsiedle.Apply();
+        try{BraxKontrola.Wszystko(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrole jakości (osiedle): "+e);}   // build 14: skala, umieszczenie, kolizje, migotanie, pomieszczenia, robot — przed BezSwiecenia/Siatki (siatki jeszcze do odczytu)
         {var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
         try{BraxClaudeBezSwiecenia.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (osiedle): "+e);}
         try{BraxClaudeSiatki.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
