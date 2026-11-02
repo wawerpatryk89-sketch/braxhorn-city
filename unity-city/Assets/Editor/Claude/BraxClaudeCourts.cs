@@ -354,13 +354,13 @@ public static class BraxClaudeCourts
             float th = Mathf.Asin(zc / R3) * Mathf.Rad2Deg, srod = sg < 0 ? 0f : 180f;
             l.Pierscien(new Vector3(xb, yL, cz), R3 - h, R3 + h, srod - th, srod + th, 64);
             // kosz: słup 1 m × k za linią końcową, wysięgnik, tablica (lico 1.2 m × k od linii), obręcz na 3.05 m × k
-            float xs = xe + sg * 1.0f * k, xt = xe - sg * 1.2f * k, yr = g + 3.05f * k, yt0 = g + 2.9f * k, tbW = 1.8f * k, tbH = 1.05f * k;
+            float xSl = xe + sg * 1.0f * k, xt = xe - sg * 1.2f * k, yr = g + 3.05f * k, yt0 = g + 2.9f * k, tbW = 1.8f * k, tbH = 1.05f * k;
             var stal = BraxUliceKit.S(Stal);
-            stal.Box(new Vector3(xs - .1f, g, cz - .1f), new Vector3(xs + .1f, yt0 + .5f, cz + .1f), 4);
-            stal.Box(new Vector3(Mathf.Min(xs, xt) + (sg < 0 ? .1f : .03f), yt0 + .25f, cz - .06f), new Vector3(Mathf.Max(xs, xt) - (sg < 0 ? .03f : .1f), yt0 + .37f, cz + .06f));
-            stal.Rura(new Vector3(xs, g + 2.2f * k, cz), new Vector3(xt + sg * .06f, yt0 + .3f, cz), .035f, 8);   // zastrzał
+            stal.Box(new Vector3(xSl - .1f, g, cz - .1f), new Vector3(xSl + .1f, yt0 + .5f, cz + .1f), 4);
+            stal.Box(new Vector3(Mathf.Min(xSl, xt) + (sg < 0 ? .1f : .03f), yt0 + .25f, cz - .06f), new Vector3(Mathf.Max(xSl, xt) - (sg < 0 ? .03f : .1f), yt0 + .37f, cz + .06f));
+            stal.Rura(new Vector3(xSl, g + 2.2f * k, cz), new Vector3(xt + sg * .06f, yt0 + .3f, cz), .035f, 8);   // zastrzał
             var oslona = BraxUliceKit.S(BraxUliceKit.Mat("kosz: osłona słupa (pianka granatowa)", new Color(.10f, .16f, .35f), .8f));
-            oslona.Box(new Vector3(xs - .16f, g + .05f, cz - .16f), new Vector3(xs + .16f, g + 1.9f * k, cz + .16f), 4);
+            oslona.Box(new Vector3(xSl - .16f, g + .05f, cz - .16f), new Vector3(xSl + .16f, g + 1.9f * k, cz + .16f), 4);
             var tbl = BraxUliceKit.S(BraxUliceKit.Mat("kosz: tablica (laminat biały)", new Color(.94f, .94f, .93f), .3f));
             tbl.Box(new Vector3(xt - .025f, yt0, cz - tbW * .5f), new Vector3(xt + .025f, yt0 + tbH, cz + tbW * .5f));
             var ram = BraxUliceKit.S(BraxUliceKit.Mat("kosz: ramka i kwadrat tablicy (czerwone)", new Color(.72f, .16f, .12f), .5f));
@@ -382,7 +382,7 @@ public static class BraxClaudeCourts
                 var bot2 = new Vector3(xr + Mathf.Cos(a - Mathf.PI / 6f) * rr * .55f, yr - .42f * k, cz + Mathf.Sin(a - Mathf.PI / 6f) * rr * .55f);
                 siat.Rura(top, bot2, .005f * k, 4, false);
             }
-            var cs = new GameObject("Kosz: słup (kolizja)"); cs.transform.SetParent(root, false); cs.transform.position = new Vector3(xs, g + 1.2f, cz);
+            var cs = new GameObject("Kosz: słup (kolizja)"); cs.transform.SetParent(root, false); cs.transform.position = new Vector3(xSl, g + 1.2f, cz);
             cs.AddComponent<BoxCollider>().size = new Vector3(.34f, 2.4f, .34f);
             kosze.Add(new Vector3(xr, yr, cz)); tablice.Add(new Vector3(xt, yt0 + tbH * .5f, cz));
         }

@@ -325,7 +325,7 @@ public static class BraxNabrzezePlaza
                 {
                     float tx = x - 1.6f * K, tz = zz + .4f;
                     var rot = Quaternion.Euler(0, 75f + nPar * 11f, 0);
-                    z[nPar % 2 == 0 ? m.recznik0 : m.recznik1].Box(new Vector3(tx, Wysokosc(tx, tz) + .012f, tz), new Vector3(.8f * K, .014f, 1.7f * K), rot);
+                    z[nPar % 2 == 0 ? m.recznik0 : m.recznik1].Box(new Vector3(tx, Wysokosc(tx, tz) + .035f, tz), new Vector3(.8f * K, .014f, 1.7f * K), rot);
                 }
             }
         // budka ratownika (model CC0, wys. 6,2 m — ok. 4,8 m × k), przodem do kąpieliska (na wschód), maszt z flagą

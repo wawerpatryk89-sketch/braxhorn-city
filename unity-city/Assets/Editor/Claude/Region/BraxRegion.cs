@@ -49,14 +49,17 @@ public static class BraxRegion
         // Najpierw morze: stara łąka i las znad wody (jachty „w trawie”), zanim zieleń szuka trawników.
         Step("morze bez łąki i lasu nad wodą", () => BraxRegionSea.Apply(root));
         Step("wyspa na morzu (oktagon Ligi, pomost, otwarta)", () => BraxRegionIsland.Apply(root));
-        Step("pawilon sportowy (szatnia + sala walk)", () => BraxRegionPavilion.Apply(world, root));
+        // A 2.11: pawilon z ringiem („SZATNIA · SALA WALK”) usunięty z miasta (sala walk = ARENA BRAXHORN na wyspie) → sklep sportowy
+        Step("A: BRAXHORN SPORT — sklep sportowy z szatnią graczy", () => BraxMiastoSport.Apply(root));
         Step("tyły siłowni: plac, wieżowce A/B, wiadukt z portalem, warsztaty", () => BraxRegionBackyard.Apply(world, root));
         Step("taras wieżowca: kwiaty i rośliny", () => BraxRegionTerrace.Apply(root));
-        Step("wnętrza: Nutrition i NOVA", () => BraxRegionInteriors.Apply(root));
+        // A 2.11: stare wykończenie Nutrition/NOVA (BraxRegionInteriors) wyłączone — oba lokale od nowa (kroki A po mieszkaniu Braxa)
         Step("interior mapping: pokoje za oknami budynków nieużytkowych", () => BraxRegionInteriorMap.Apply(root));
         Step("elewacje ulicy: prawdziwe okna, gzymsy, obraz w lobby", () => BraxRegionFacades.Apply(root));
         Step("sonda: blok nad NOVA (dane do mieszkania Braxa)", () => BraxClaudeNovaProbe.Apply());
         Step("mieszkanie Braxa nad NOVA (klatka od ulicy, biedny pokój z aneksem i łazienką)", () => BraxRegionBraxFlat.Apply(world, root));
+        Step("A: CLUB NOVA od nowa (fasada, wejście bez progu, sala premium, efekty)", () => BraxMiastoNova.Apply(root));
+        Step("A: BRAXHORN NUTRITION od nowa (mural na ścianie, sklep premium)", () => BraxMiastoNutrition.Apply(root));
         Step("stare drzewa-atrapy (kule na patykach) → prawdziwe drzewa", () => BraxRegionOldTrees.Apply(root));
         Step("zieleń naturalna i mała architektura", () => BraxRegionVegetation.Apply(root));
         // Lampy wnętrz: CityStaticPBR liczy światła punktowe tylko ze slotów „vertex light” (ForceVertex).

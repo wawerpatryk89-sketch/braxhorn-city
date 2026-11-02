@@ -418,10 +418,10 @@ public static class BraxClaudeMetro
         W.MM(mSciana, xEndS + .2f, MX1 + .3f, yM, yMc, MZ1, MZ1 + .3f, true);
         W.MM(mSciana, xEndS + .2f, MX1 + .3f, yM, yMc, MZ0 - .3f, MZ0, true);
         for (float x = MX0 + 1.5f; x < MX1 - 1f; x += 3.2f)
-            foreach (float z in new[] { 23.0f, 28.45f, 34.0f })
+            foreach (float zL in new[] { 23.0f, 28.45f, 34.0f })
             {
-                bool wPasie = (z < EZ[0] + EW || z > EZ[1]) && x + 1.1f > EX0 - .3f && x - 1.1f < xEndS;
-                if (!wPasie) W.MM(mKlosz, x - 1.1f, x + 1.1f, yMc - .02f, yMc, z - .09f, z + .09f);
+                bool wPasie = (zL < EZ[0] + EW || zL > EZ[1]) && x + 1.1f > EX0 - .3f && x - 1.1f < xEndS;
+                if (!wPasie) W.MM(mKlosz, x - 1.1f, x + 1.1f, yMc - .02f, yMc, zL - .09f, zL + .09f);
             }
         for (float x = MX0 + 3f; x < MX1; x += 6f)
         {

@@ -30,8 +30,13 @@ public static class BraxClaudeNovaClub
     static Transform root;
     static float floorY, ceilY;
 
+    // 2.11 (wykonawca A): klub NOVA budowany od nowa w kroku regionu BraxMiastoNova — stare wyposażenie (klocek-konsola,
+    // stożki, kula pikselowa) nie powstaje wcale (zasada „zdejmij stare, połóż nowe”).
+    static readonly bool Zastapiony = true;
+
     public static void Apply()
     {
+        if (Zastapiony) { Debug.Log("BRAXHORN_MIASTO_A_USUNIETE krok BraxClaudeNovaClub wyłączony (NOVA od nowa: BraxMiastoNova)"); return; }
         if (!BraxClaudeTowerTerrace.Enabled) return;
         rep = new Report();
         try { Build(); rep.status = "BUILT"; }
