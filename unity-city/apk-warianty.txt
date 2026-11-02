@@ -1,1 +1,7 @@
+# Warianty APK (BraxGymBuild.BuildAndroidSeparately); komentarz od „#” do końca linii.
+# Rejon buildu (unity-city/rejon-buildu.txt albo wejście „rejon” ręcznego uruchomienia) wybiera warianty sam:
+#   osiedle → braxhorn-osiedle
+#   miasto  → braxhorn-miastogl (OpenGL ES 3 — działa na telefonie właściciela); Vulkan „miasto” tylko na żądanie:
+#             dopisz słowo miasto w linii z wariantami poniżej
+#   oba     → lista poniżej, w tej kolejności (osiedle / calosc / miasto / miastogl; pusta = wszystkie)
 osiedle miastogl

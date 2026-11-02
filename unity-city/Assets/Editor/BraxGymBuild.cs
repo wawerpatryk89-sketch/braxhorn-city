@@ -39,10 +39,16 @@ public static class BraxGymBuild
     static string[] WithAreas(string[] scenes)
     {
         var list=scenes.ToList();
-        foreach(var a in new[]{Generated+"/BraxhornCity_Nabrzeze.unity",Generated+"/BraxhornCity_Wyspa.unity",Generated+"/BraxhornEstate_Poludnie.unity"})
+        // + kwadraty miasta BraxhornCity_K* (1.11): bez nich WebGL (zdjęcia CI) nie miał wydzielonych kwadratów miasta
+        foreach(var a in new[]{Generated+"/BraxhornCity_Nabrzeze.unity",Generated+"/BraxhornCity_Wyspa.unity",Generated+"/BraxhornEstate_Poludnie.unity"}.Concat(Kwadraty()))
             if(File.Exists(a)&&!list.Contains(a))list.Add(a);
         return list.ToArray();
     }
+    static string[] Kwadraty()=>Directory.Exists(Generated)?Directory.GetFiles(Generated,"BraxhornCity_K*.unity").Select(f=>f.Replace('\\','/')).OrderBy(f=>f).ToArray():new string[0];
+    // Sceny rejonu w paczce (build 14, rejony osobno): miasto = scena główna (siłownia + centrum) + nabrzeże + wyspa + kwadraty;
+    // osiedle = osiedle A (wjazd z tunelu) + południe doczytywane w tle.
+    static string[] ScenyMiasta(string cityScene)=>new[]{cityScene,Generated+"/BraxhornCity_Nabrzeze.unity",Generated+"/BraxhornCity_Wyspa.unity"}.Concat(Kwadraty()).Where(p=>p!=null&&File.Exists(p)).ToArray();
+    static string[] ScenyOsiedla(string estateScene)=>new[]{estateScene,Generated+"/BraxhornEstate_Poludnie.unity"}.Where(p=>p!=null&&File.Exists(p)).ToArray();
     // Lekka scena startowa APK: czarna kamera + BraxStart (wczytuje scenę 1 w tle i pokazuje diagnozę poprzedniego startu).
     static string CreateStartScene()
     {
@@ -58,7 +64,7 @@ public static class BraxGymBuild
     // OSOBNE APK (właściciel 1.11): braxhorn-osiedle.apk — samo osiedle Tur pod Zamościem (2 obszary) do szybkiego wglądu;
     // braxhorn-calosc.apk — całość: miasto (2 obszary) + tunel + osiedle (2 obszary). Różne id = obie naraz na telefonie.
     // Kolejne BuildPlayer korzystają z tej samej kompilacji IL2CPP i tekstur (Library), więc dochodzi ~20–30 min na paczkę.
-    static BuildReport BuildAndroidSeparately(string cityScene,string estateScene,string output)
+    static BuildReport BuildAndroidSeparately(string cityScene,string estateScene,string output,string rejon="oba")
     {
         // Scena 0 = lekki ekran startowy (BraxStart: powód poprzedniego zamknięcia wg Androida, pasek wczytywania),
         // scena 1 = rejon (obszar startowy), scena 2 = drugi obszar rejonu doczytywany w tle (BraxObszary).
@@ -78,9 +84,15 @@ public static class BraxGymBuild
         // Które APK budować: plik unity-city/apk-warianty.txt (osiedle / calosc / miasto / miastogl); brak pliku = wszystkie.
         // Właściciel 1.11, 07:09 „tyle kurwa czasu” — testujesz osiedle, budujemy tylko osiedle (~40 min mniej).
         string wybor="";try{if(File.Exists("apk-warianty.txt"))wybor=File.ReadAllText("apk-warianty.txt").ToLowerInvariant();}catch{}
-        var wybrane=wybor.Split(new[]{' ','\n','\r','\t',','},StringSplitOptions.RemoveEmptyEntries).Where(w=>!w.StartsWith("#")).ToArray();
+        // komentarz „#” do końca linii pomijany w całości (wcześniej słowa z komentarza mogły zostać wzięte za warianty)
+        wybor=string.Join("\n",wybor.Split('\n').Select(l=>{int h=l.IndexOf('#');return h>=0?l.Substring(0,h):l;}));
+        var wybrane=wybor.Split(new[]{' ','\n','\r','\t',','},StringSplitOptions.RemoveEmptyEntries).ToArray();
+        // REJON BUILDU (build 14, rejony osobno): osiedle → tylko „osiedle”; miasto → „miastogl” (GL działa na telefonie
+        // właściciela) + „miasto” (Vulkan) tylko na żądanie — słowo „miasto” w apk-warianty.txt; oba → lista z pliku jak dotąd.
+        if(rejon=="osiedle")wybrane=new[]{"osiedle"};
+        else if(rejon=="miasto")wybrane=new[]{"miastogl"}.Concat(wybrane.Contains("miasto")?new[]{"miasto"}:new string[0]).ToArray();
         // kolejność budowania jak w pliku (pierwszy wariant idzie do pobrania najwcześniej)
-        if(wybrane.Length>0){var wszystkie=variants;variants=wybrane.Select(w=>wszystkie.FirstOrDefault(v=>v.tag==w)).Where(v=>v!=null).ToArray();Debug.Log("BRAXHORN_APK wybrane warianty: "+string.Join(", ",variants.Select(v=>v.tag)));}
+        if(wybrane.Length>0){var wszystkie=variants;variants=wybrane.Select(w=>wszystkie.FirstOrDefault(v=>v.tag==w)).Where(v=>v!=null).ToArray();Debug.Log("BRAXHORN_APK wybrane warianty: "+string.Join(", ",variants.Select(v=>v.tag))+" (rejon "+rejon+")");}
         bool useDefault=PlayerSettings.GetUseDefaultGraphicsAPIs(BuildTarget.Android);
         var apis=PlayerSettings.GetGraphicsAPIs(BuildTarget.Android);
         BuildReport last=null,ok=null;var summary=new List<string>();
@@ -88,13 +100,16 @@ public static class BraxGymBuild
         foreach(var v in variants)
         {
             if(v.scenes.Any(p=>!File.Exists(p))){summary.Add(v.tag+": brak sceny");continue;}
+            if(v.scenes.Length<2){summary.Add(v.tag+": brak scen rejonu (sam ekran startowy)");continue;}   // Pack pomija brakujące sceny
             EditorBuildSettings.scenes=v.scenes.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();
             PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android,v.id);
             PlayerSettings.productName=v.name;
             if(v.gl){PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,false);PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,new[]{GraphicsDeviceType.OpenGLES3});}
             else{PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,useDefault);if(!useDefault)PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,apis);}
             AssetDatabase.SaveAssets();
+            var tApk=DateTime.UtcNow;
             var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=v.scenes,target=BuildTarget.Android,locationPathName=Path.Combine(output,"braxhorn-"+v.tag+".apk"),options=BuildOptions.None});
+            BraxRejonBuildu.Czas("apk_"+v.tag,tApk);
             SizeReport(r);
             try{File.Copy(Path.Combine(Generated,"build-size.txt"),Path.Combine(Generated,"build-size-"+v.tag+".txt"),true);}catch{}
             summary.Add(v.tag+": "+r.summary.result+" "+(r.summary.totalSize/(1024*1024))+" MB");
@@ -180,10 +195,24 @@ public static class BraxGymBuild
 
     private static void BuildInternal(bool fullCity,bool integrated,bool renovation=false,BuildTarget target=BuildTarget.WebGL)
     {
+        var t0=DateTime.UtcNow;
+        // REJON BUILDU (build 14, właściciel: rejony OSOBNO — osiedle i miasto jako osobne buildy). Plik rejon-ci.txt pisze
+        // workflow (unity-tools/claude/rejon_buildu.py); bez pliku = „oba” jak dotąd. Dotyczy tylko paczki regionu
+        // (BuildRenovation / BuildRenovationAndroid); Build / BuildCity / BuildIntegrated bez zmian.
+        // osiedle = siłownia tylko jako baza postaci (materiały, animacje Braxa) + osiedle, BEZ miasta i remontu siłowni;
+        // miasto = siłownia + miasto, BEZ osiedla (istniejąca ścieżka BRAX_DISTRICTS=city).
+        string rejon=renovation&&fullCity?BraxRejonBuildu.Rejon:"oba";
+        bool osiedle=rejon=="osiedle",miasto=rejon=="miasto";
+        if(miasto)Environment.SetEnvironmentVariable("BRAX_DISTRICTS","city");
+        Debug.Log("BRAXHORN_REJON "+rejon+" ("+target+")");
+        BraxRejonBuildu.Sekundy("edytor_i_import_startowy",EditorApplication.timeSinceStartup);   // od startu Unity do tej metody
         if(fullCity&&target==BuildTarget.WebGL)EditorUserBuildSettings.webGLBuildSubtarget=WebGLTextureSubtarget.ETC2;
         Directory.CreateDirectory(Generated);AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         try{BraxClaudeGlbTekstury.Sprawdz();}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrola tekstur .glb: "+e);}
-        if(renovation)BraxNutritionShopBuild.ValidateSources();
+        // PAMIĘĆ PODRĘCZNA REJONU: trafienie = sceny i zasoby rejonu z buildu o tym samym kluczu → bez generowania.
+        if(rejon!="oba"&&BraxRejonBuildu.ZPamieci(target,out var zPamieci)){BuildZPamieci(rejon,target,zPamieci,t0);return;}
+        if(renovation&&!osiedle)BraxNutritionShopBuild.ValidateSources();
+        var tGym=DateTime.UtcNow;
         var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
         var gym=ImportModel("Assets/Source/braxhorn-original-gym.glb");
         var world=JsonUtility.FromJson<WorldData>(File.ReadAllText("Assets/Source/gym-collisions.json"));
@@ -278,10 +307,15 @@ public static class BraxGymBuild
         QualitySettings.antiAliasing=4;QualitySettings.pixelLightCount=2;QualitySettings.shadows=ShadowQuality.Disable;QualitySettings.anisotropicFiltering=AnisotropicFiltering.ForceEnable;
         PlayerSettings.colorSpace=ColorSpace.Linear;PlayerSettings.companyName="Braxhorn";PlayerSettings.productName="Braxhorn Gym";PlayerSettings.defaultScreenWidth=1280;PlayerSettings.defaultScreenHeight=720;
         PlayerSettings.WebGL.compressionFormat=WebGLCompressionFormat.Gzip;PlayerSettings.WebGL.decompressionFallback=true;PlayerSettings.WebGL.template="APPLICATION:Default";
+        // Przejście na kolor liniowy przeimportowuje tekstury (build 13: ~820 tekstur, 23 min) — osobny pomiar w logu CI.
+        {var tb=DateTime.UtcNow;AssetDatabase.Refresh();BraxRejonBuildu.Czas("przestrzen_barw_linear",tb);}
         BraxGymPremium.Apply(gym,hero,bags.ToArray(),camera,light,fill,Generated);
         BraxHeroRefinements.Apply(hero,bags.ToArray(),camera,Generated);
-        if(fullCity)BraxCityBuild.AttachCity(runtime,integrated,renovation);
-        if(renovation)
+        BraxRejonBuildu.Czas("silownia_baza",tGym);   // siłownia: materiały, animacje i postać Braxa (baza także dla osiedla)
+        var tMiasto=DateTime.UtcNow;
+        // osiedle: bez miasta i bez remontu siłowni (siłownia jest częścią rejonu miasto; osiedle bierze z niej tylko bazę postaci)
+        if(fullCity&&!osiedle)BraxCityBuild.AttachCity(runtime,integrated,renovation);
+        if(renovation&&!osiedle)
         {
             // Exact accepted mural/ring/annex authoring; one original player.
             BraxGymReferenceRebuild.Apply(gym,solids.transform,runtime,Generated);
@@ -309,16 +343,19 @@ public static class BraxGymBuild
         // Sufity dla kamery (właściciel 1.11, 18:19): kamera nie wychodzi nad pomieszczenie (płyty kolizji tylko dla kamery, warstwa 29).
         // (w mieście włączymy po znalezieniu przyczyny wywalania — teraz nic nowego w scenie miasta)
         // try{BraxClaudeSufity.Renderery(scene);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: sufity dla kamery: "+e.Message);}
-        {var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
-        try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
-        try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
+        // (osiedle: scena siłowni nie idzie do paczki — bez obróbki i bez zapisu)
+        if(!osiedle){var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
+        var tObr=DateTime.UtcNow;
+        if(!osiedle)try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
+        if(!osiedle)try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
+        if(!osiedle)BraxRejonBuildu.Czas("obrobka_siatek",tObr,fullCity?"rejon=miasto":"rejon=silownia");
         // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,
         // doczytywaną w tle 45 m przed granicą i zwalnianą 110 m od niej (BraxObszary). Scena startowa = centrum.
-        string scenePath=Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
+        string scenePath=osiedle?null:Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!osiedle&&!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
         // Podział na obszary PO zapisie sceny głównej (build 7: Unity nie tworzy sceny dodatkowej obok niezapisanej).
         // Wyspa osobno (właściciel 1.11, 01:43: „wyspa mogła być oddzielona i załadować się w trakcie płynięcia”): ~90 m morza
         // od mariny, skuter ~15 m/s → wczytanie zaczyna się 140 m przed brzegiem wyspy (zaraz po wypłynięciu), zwolnienie 240 m.
-        if(fullCity&&renovation)
+        if(fullCity&&renovation&&!osiedle)
         {
             try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Wyspa",BraxClaudeObszary.PoNazwach(scene,"CLAUDE wyspa*"),140f,240f,Generated);}
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: wyspa jako osobny obszar: "+e);}
@@ -345,6 +382,7 @@ public static class BraxGymBuild
             }
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: kwadraty miasta: "+e);}
         }
+        if(fullCity&&!osiedle)BraxRejonBuildu.Czas("generowanie",tMiasto,"rejon=miasto z_pamięci=nie");   // miasto + remont siłowni + obróbka + obszary
         string sourceCommit=runtime.buildId;
         // Estate review boots directly into the EXISTING city estate scene with the
         // SAME BraxGymPlayer, original rig, material, clips and mobile controls.
@@ -358,15 +396,39 @@ public static class BraxGymBuild
         // BRAX_DISTRICTS=city: paczka samego regionu R1 (miasto bez sceny osiedla) — budżet mobilny, osiedle idzie osobną paczką.
         bool cityOnly=renovation&&BraxCityBuild.CityOnly();
         if(cityOnly)Debug.Log("BRAXHORN_DISTRICTS city-only: scena osiedla pominięta w tej paczce");
-        string[] scenePaths=fullCity
+        string estate=null;
+        if(fullCity&&!cityOnly){var tOs=DateTime.UtcNow;estate=BraxCityBuild.CreateEstate(sourceCommit);BraxRejonBuildu.Czas("generowanie",tOs,"rejon=osiedle z_pamięci=nie");}
+        string[] scenePaths=osiedle
+            ? ScenyOsiedla(estate)
+            : fullCity
             ? (cityOnly
-                ? new[]{scenePath,Generated+"/BraxhornCity_Nabrzeze.unity",Generated+"/BraxhornCity_Wyspa.unity"}.Where(File.Exists).ToArray()
+                ? ScenyMiasta(scenePath)
                 : integrated
-                    ? WithAreas(BraxUnityDistrictRegistry.Resolve(scenePath,BraxCityBuild.CreateEstate(sourceCommit)))
-                    : new[]{BraxCityBuild.CreateEstate(sourceCommit)})
+                    ? WithAreas(BraxUnityDistrictRegistry.Resolve(scenePath,estate))
+                    : new[]{estate})
             : new[]{scenePath};
+        var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
+        Paczka(rejon,fullCity,integrated,renovation,target,scenePath,scenePaths,sourceCommit,report,t0,false);
+    }
+
+    // Rejon z pamięci podręcznej CI (BraxRejonBuildu): sceny i zasoby z udanego buildu o tym samym kluczu (kod generatora +
+    // źródła + Unity + rejon + platforma). Nic nie jest generowane — ustawienia platformy, bramka brakujących skryptów,
+    // tekstury (ustawienia importu z .meta z pamięci) i paczka jak po pełnym generowaniu.
+    static void BuildZPamieci(string rejon,BuildTarget target,string[] sceny,DateTime t0)
+    {
+        BraxRejonBuildu.Sekundy("generowanie",0,"rejon="+rejon+" z_pamięci=tak");
+        string commit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"unity-gym";
+        string city=rejon=="miasto"?Generated+"/BraxhornCity.unity":null;
+        Paczka(rejon,true,true,true,target,city,sceny,commit,new Report{unity=Application.unityVersion,commit=commit,animationNames=new string[0]},t0,true);
+    }
+
+    // Paczka (APK / WebGL) z gotowych scen — wspólna dla świeżo wygenerowanego rejonu i rejonu z pamięci podręcznej.
+    static void Paczka(string rejon,bool fullCity,bool integrated,bool renovation,BuildTarget target,string scenePath,string[] scenePaths,string sourceCommit,Report report,DateTime t0,bool zPamieci)
+    {
+        if(scenePaths==null||scenePaths.Length==0||scenePaths.Any(p=>p==null))throw new Exception("Brak scen rejonu "+rejon+" do paczki");
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
         BraxBrakujaceSkrypty.Sprawdz(scenePaths);   // bramka twarda (WebGL / zdjęcia CI też)   // 1.11, 22:20: jak wyżej (WebGL / zdjęcia CI też bez brakujących skryptów)
+        bool cityOnly=renovation&&BraxCityBuild.CityOnly();
         string output,location;
         if(target==BuildTarget.Android)
         {
@@ -391,7 +453,7 @@ public static class BraxGymBuild
                     PlayerSettings.Android.keystorePass=pass;PlayerSettings.Android.keyaliasName="braxhorn";PlayerSettings.Android.keyaliasPass=pass;
                     Debug.Log("BRAXHORN_PODPIS: własny klucz (aktualizacja bez odinstalowania)");
                 }
-                else Debug.LogWarning("BRAXHORN_PODPIS: brak klucza — klucz debug");
+                else{PlayerSettings.Android.useCustomKeystore=false;Debug.LogWarning("BRAXHORN_PODPIS: brak klucza — klucz debug");}   // (ProjectSettings z pamięci rejonu mogą mieć włączony własny klucz)
                 if(File.Exists("braxhorn.versioncode")&&int.TryParse(File.ReadAllText("braxhorn.versioncode").Trim(),out int vc)&&vc>0){PlayerSettings.Android.bundleVersionCode=vc;PlayerSettings.bundleVersion="1.0."+vc;}
             }
             catch(Exception e){Debug.LogWarning("DO POPRAWKI: podpis APK: "+e.Message);}
@@ -416,21 +478,27 @@ public static class BraxGymBuild
         // WSZYSTKIE ~1400 tekstur i build zdjęć przekroczył limit 2 h — dlatego per plik, tylko ~190 tekstur.
         EditorUserBuildSettings.overrideMaxTextureSize=0;
         EditorUserBuildSettings.overrideTextureCompression=UnityEditor.Build.OverrideTextureCompression.NoOverride;
+        var tTex=DateTime.UtcNow;
         CapFacadeTextures(target);
+        BraxRejonBuildu.Czas("obrobka_tekstur",tTex);
         BuildReport result;
-        if(target==BuildTarget.Android&&renovation&&fullCity&&!cityOnly&&scenePaths.Length>=2)
-            result=BuildAndroidSeparately(scenePath,Generated+"/BraxhornEstate.unity",output);
+        // osiedle / miasto: zawsze osobne APK (ekran startowy + rejon, wariant wg rejonu); oba: jak dotąd
+        if(target==BuildTarget.Android&&renovation&&fullCity&&(rejon!="oba"||(!cityOnly&&scenePaths.Length>=2)))
+            result=BuildAndroidSeparately(scenePath,Generated+"/BraxhornEstate.unity",output,rejon);
         else
         {
+            var tb=DateTime.UtcNow;
             result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenePaths,target=target,locationPathName=location,options=BuildOptions.None});
+            BraxRejonBuildu.Czas(target==BuildTarget.Android?"apk":"webgl",tb);
             SizeReport(result);
         }
         if(result.summary.result!=BuildResult.Succeeded)throw new Exception("Playable Unity build failed "+result.summary.result);
-        var report=new Report{unity=Application.unityVersion,commit=sourceCommit,gymMeshes=renderers.Length,originalClips=imported.Length,colliders=n,matteSurfaces=tuned,animationNames=mappings.Values.ToArray()};
         File.WriteAllText(Path.Combine(output,"playable.json"),JsonUtility.ToJson(report,true));
-        if(fullCity)BraxCityBuild.WriteReport(output,sourceCommit);
-        if(integrated&&!cityOnly)BraxUnityDistrictRegistry.WriteBuildReceipt(output,sourceCommit,scenePaths.Where(p=>!p.Contains("_Nabrzeze")&&!p.Contains("_Wyspa")&&!p.Contains("_Poludnie")).ToArray());   // rejestr: tylko rejony, bez doczytywanych obszarów
-        if(renovation)BraxCityRebuild.WriteReport(output);
+        if(fullCity&&!zPamieci&&rejon!="osiedle")BraxCityBuild.WriteReport(output,sourceCommit);   // raport obszarów z tego przebiegu (samo osiedle = 1 obszar → fałszywe DO POPRAWKI)
+        if(integrated&&!cityOnly&&rejon=="oba")BraxUnityDistrictRegistry.WriteBuildReceipt(output,sourceCommit,scenePaths.Where(p=>!p.Contains("_Nabrzeze")&&!p.Contains("_Wyspa")&&!p.Contains("_Poludnie")&&!p.Contains("BraxhornCity_K")).ToArray());   // rejestr: tylko rejony, bez doczytywanych obszarów
+        if(renovation&&rejon!="osiedle")BraxCityRebuild.WriteReport(output);
+        if(!zPamieci&&rejon!="oba")BraxRejonBuildu.ZapiszZnacznik(target,scenePaths,sourceCommit,t0);
+        BraxRejonBuildu.Czas("unity_razem",t0,"rejon="+rejon+" z_pamięci="+(zPamieci?"tak":"nie"));
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }
 }

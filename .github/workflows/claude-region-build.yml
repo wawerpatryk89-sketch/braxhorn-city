@@ -8,10 +8,27 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
     - unity-city/**
     - unity-tools/claude/**
     - .github/workflows/claude-region-build.yml
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      rejon:
+        description: 'Rejon buildu: osiedle (bez miasta) | miasto (bez osiedla) | oba (jak przed buildem 14). Push: plik unity-city/rejon-buildu.txt'
+        type: choice
+        options:
+        - osiedle
+        - miasto
+        - oba
+        default: osiedle
+      pamiec:
+        description: 'Pamiec podreczna wygenerowanego rejonu (odznacz = wymus pelne generowanie)'
+        type: boolean
+        default: true
 permissions:
   contents: read
   actions: read
+env:
+  # Rejony z pamiecia podreczna wygenerowanego swiata (actions/cache, ~0.5-1 GB na platforme). Miasto dopisac dopiero
+  # po pomiarze rozmiaru (krok „Rozmiar Library i swiata rejonu”) — limit 10 GB na repo, a Library zajmuje juz ~7-9 GB na job.
+  PAMIEC_REJONOW: osiedle
 concurrency:
   group: claude-region-${{ github.sha }}
   cancel-in-progress: true
@@ -74,6 +91,8 @@ jobs:
     permissions:
       contents: write
       actions: read
+    outputs:
+      rejon: ${{ steps.rejon.outputs.rejon }}
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
     runs-on: ubuntu-latest
     timeout-minutes: 300
@@ -228,11 +247,45 @@ jobs:
         node unity-tools/claude/dekoduj_glb.mjs public/assets/cars-src unity-city/Assets/Source/Claude/Auta || echo "DO POPRAWKI: dekodowanie aut"
         python3 unity-tools/claude/autorzy.py
         python3 unity-tools/claude/odchudzanie_modeli.py
-    - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
+    - name: Rejon buildu i klucz pamieci rejonu (PO wszystkich krokach przygotowujacych zasoby, PRZED Unity)
+      id: rejon
+      env:
+        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
+        WEJSCIE_PAMIEC: ${{ github.event.inputs.pamiec }}
+      run: |
+        t=$(date +%s)
+        python3 -I unity-tools/claude/rejon_buildu.py --platforma webgl --unity 6000.0.58f2
+        cat unity-city/rejon-ci.txt
+        echo "BRAXHORN_CZAS etap=klucz_rejonu s=$(( $(date +%s) - t ))"
+        echo "T_PAMIEC=$(date +%s)" >> "$GITHUB_ENV"
+    - name: Pamiec podreczna wygenerowanego rejonu (sceny i zasoby rejonu + .meta + ProjectSettings; klucz = kod generatora + zrodla + Unity + rejon)
+      id: pamiec
+      if: steps.rejon.outputs.pamiec == 'tak'
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
+        path: |
+          unity-city/Assets/PlayableGenerated
+          unity-city/Assets/**/*.meta
+          unity-city/ProjectSettings
+          unity-city/Assets/Source/Premium/unity-premium-report.json
+          unity-city/Assets/Source/Premium/source-refinements.json
+          unity-city/Assets/Source/Claude/Osiedle/sky/niebo_odbicia.jpg
+        key: ${{ steps.rejon.outputs.klucz }}
+    - name: Wynik pamieci rejonu (trafienie = bez generowania rejonu w Unity)
+      if: steps.rejon.outputs.pamiec == 'tak'
+      run: |
+        echo "BRAXHORN_PAMIEC_CI rejon=${{ steps.rejon.outputs.rejon }} z_pamięci=${{ steps.pamiec.outputs.cache-hit == 'true' && 'tak' || 'nie' }} klucz=${{ steps.rejon.outputs.klucz }}"
+        echo "BRAXHORN_CZAS etap=przywrocenie_pamieci s=$(( $(date +%s) - T_PAMIEC ))"
+        du -sh unity-city/Assets/PlayableGenerated 2>/dev/null || echo 'swiat rejonu: brak w pamieci (pelne generowanie, zapis po udanym jobie)'
+    - name: Tydzien (klucz pamieci Library - jeden wpis na tydzien zamiast nowego 6 GB przy kazdym commicie)
+      id: tydzien
+      run: echo "t=$(date -u +%G-w%V)" >> "$GITHUB_OUTPUT"
+    - name: Pamiec podreczna Library Unity (odczyt; zapis osobnym krokiem raz na tydzien - limit 10 GB na repo)
+      id: biblioteka
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
         path: unity-city/Library
-        key: claude-library-webgl-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.sha }}
+        key: claude-library-webgl-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ steps.tydzien.outputs.t }}
         restore-keys: claude-library-webgl-${{ hashFiles('unity-city/Packages/manifest.json') }}-
     - name: Miejsce na dysku dla obrazu Unity i pliku wymiany (runner ma ~14 GB wolne)
       run: |
@@ -261,6 +314,8 @@ jobs:
         versioning: None
         allowDirtyBuild: true
     - name: Verify actual Unity player output and complete Nutrition receipt
+      env:
+        REJON: ${{ steps.rejon.outputs.rejon }}
       run: |
         python3 - <<'PY'
         import json,os,pathlib
@@ -270,13 +325,22 @@ jobs:
         for pattern in ('*.loader.js','*.data*','*.framework.js*','*.wasm*'):
             files=list((root/'Build').glob(pattern))
             assert len(files)==1 and files[0].stat().st_size>0,(pattern,files)
-        receipt=json.loads(pathlib.Path('unity-city/Assets/PlayableGenerated/Nutrition/shop-receipt.json').read_text())
-        assert receipt['installedProducts']>=130 and receipt['installedShelvingBays']==8
-        print('ACTUAL_UNITY6_NUTRITION_PLAYER_OUTPUT_VERIFIED',identity['commit'],receipt['installedProducts'])
+        if os.environ.get('REJON')=='osiedle':
+            # samo osiedle: bez miasta, wiec bez sklepu Nutrition w paczce
+            print('ACTUAL_UNITY6_PLAYER_OUTPUT_VERIFIED rejon=osiedle',identity['commit'])
+        else:
+            receipt=json.loads(pathlib.Path('unity-city/Assets/PlayableGenerated/Nutrition/shop-receipt.json').read_text())
+            assert receipt['installedProducts']>=130 and receipt['installedShelvingBays']==8
+            print('ACTUAL_UNITY6_NUTRITION_PLAYER_OUTPUT_VERIFIED',identity['commit'],receipt['installedProducts'])
         PY
     - name: Package separate test player with the current iOS streaming loader
       id: package
-      run: python3 unity-tools/kickboxing/package.py
+      run: |
+        # samo osiedle: bez remontu silowni = brak raportu ukladu silowni, ktory package.py kopiuje do paczki — zaslepka na czas pakowania
+        L=unity-city/Assets/PlayableGenerated/ReferenceRebuild/layout-report.json; Z=0
+        if [ ! -f "$L" ]; then mkdir -p "$(dirname "$L")"; echo '{"rejon":"${{ steps.rejon.outputs.rejon }}","silownia":"nie budowana w tym rejonie"}' > "$L"; Z=1; fi
+        python3 unity-tools/kickboxing/package.py
+        if [ $Z = 1 ]; then rm -f "$L"; rmdir --ignore-fail-on-non-empty "$(dirname "$L")"; fi
     - name: Preserve compiled test player for immediate Nutrition review
       if: always() && !cancelled() && steps.package.outcome == 'success'
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -285,6 +349,22 @@ jobs:
         path: unity-preview/
         if-no-files-found: error
         retention-days: 14
+    - name: Rozmiar Library i swiata rejonu (do decyzji o pamieci podrecznej; limit 10 GB na repo)
+      if: always()
+      run: |
+        # bez hasel w zapisywanych ustawieniach (Unity ich nie zapisuje — tu tylko pewnosc przed zapisem pamieci podrecznej)
+        sed -i -E '/^\s*(AndroidKeystorePass|AndroidKeyaliasPass):/d' unity-city/ProjectSettings/ProjectSettings.asset 2>/dev/null || true
+        grep -h "m_ActiveColorSpace" unity-city/ProjectSettings/ProjectSettings.asset 2>/dev/null || echo 'ProjectSettings.asset: brak albo binarny'
+        du -sh unity-city/Library unity-city/Assets/PlayableGenerated unity-city/ProjectSettings 2>/dev/null || true
+        du -sh unity-city/Library/* 2>/dev/null | sort -h | tail -8 || true
+        du -sh unity-city/Assets/PlayableGenerated/* 2>/dev/null | sort -h | tail -10 || true
+        cat unity-city/Assets/PlayableGenerated/pamiec-rejonu.json 2>/dev/null || echo 'brak znacznika swiata rejonu (rejon oba albo generowanie nieukonczone)'
+    - name: Zapis pamieci Library Unity (raz na tydzien; trafienie dokladne = bez zapisu)
+      if: success() && steps.biblioteka.outputs.cache-hit != 'true'
+      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: unity-city/Library
+        key: ${{ steps.biblioteka.outputs.cache-primary-key }}
     - name: Raport portu z edytora Unity
       if: always()
       run: |
@@ -481,12 +561,38 @@ jobs:
         node unity-tools/claude/dekoduj_glb.mjs public/assets/cars-src unity-city/Assets/Source/Claude/Auta || echo "DO POPRAWKI: dekodowanie aut"
         python3 unity-tools/claude/autorzy.py
         python3 unity-tools/claude/odchudzanie_modeli.py
-    - name: Pamiec podreczna Library Unity (szybsze kolejne buildy)
+    - name: Rejon buildu i klucz pamieci rejonu (PO wszystkich krokach przygotowujacych zasoby, PRZED Unity)
+      id: rejon
+      env:
+        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
+        WEJSCIE_PAMIEC: ${{ github.event.inputs.pamiec }}
+      run: |
+        t=$(date +%s)
+        python3 -I unity-tools/claude/rejon_buildu.py --platforma android --unity 6000.0.58f2
+        cat unity-city/rejon-ci.txt
+        echo "BRAXHORN_CZAS etap=klucz_rejonu s=$(( $(date +%s) - t ))"
+        echo "T_PAMIEC=$(date +%s)" >> "$GITHUB_ENV"
+    - name: Pamiec podreczna wygenerowanego rejonu (sceny i zasoby rejonu + .meta + ProjectSettings; klucz = kod generatora + zrodla + Unity + rejon)
+      id: pamiec
+      if: steps.rejon.outputs.pamiec == 'tak'
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
-        path: unity-city/Library
-        key: claude-library-android-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.sha }}
-        restore-keys: claude-library-android-${{ hashFiles('unity-city/Packages/manifest.json') }}-
+        path: |
+          unity-city/Assets/PlayableGenerated
+          unity-city/Assets/**/*.meta
+          unity-city/ProjectSettings
+          unity-city/Assets/Source/Premium/unity-premium-report.json
+          unity-city/Assets/Source/Premium/source-refinements.json
+          unity-city/Assets/Source/Claude/Osiedle/sky/niebo_odbicia.jpg
+        key: ${{ steps.rejon.outputs.klucz }}
+    - name: Wynik pamieci rejonu (trafienie = bez generowania rejonu w Unity)
+      if: steps.rejon.outputs.pamiec == 'tak'
+      run: |
+        echo "BRAXHORN_PAMIEC_CI rejon=${{ steps.rejon.outputs.rejon }} z_pamięci=${{ steps.pamiec.outputs.cache-hit == 'true' && 'tak' || 'nie' }} klucz=${{ steps.rejon.outputs.klucz }}"
+        echo "BRAXHORN_CZAS etap=przywrocenie_pamieci s=$(( $(date +%s) - T_PAMIEC ))"
+        du -sh unity-city/Assets/PlayableGenerated 2>/dev/null || echo 'swiat rejonu: brak w pamieci (pelne generowanie, zapis po udanym jobie)'
+    # Pamiec Library dla APK wylaczona (build 14): w 13.1 „Cache not found” — 7 GB Androida + 6 GB WebGL nie miesci sie
+    # w limicie 10 GB na repo, wpis byl wypierany, a kazdy build i tak wysylal 7 GB. Miejsce zostaje dla pamieci rejonu.
     - name: Miejsce na dysku dla obrazu Unity i pliku wymiany (runner ma ~14 GB wolne)
       run: |
         df -h / | tail -1
@@ -557,6 +663,16 @@ jobs:
         androidExportType: androidPackage
         versioning: None
         allowDirtyBuild: true
+    - name: Rozmiar Library i swiata rejonu (do decyzji o pamieci podrecznej; limit 10 GB na repo)
+      if: always()
+      run: |
+        # bez hasel w zapisywanych ustawieniach (Unity ich nie zapisuje — tu tylko pewnosc przed zapisem pamieci podrecznej)
+        sed -i -E '/^\s*(AndroidKeystorePass|AndroidKeyaliasPass):/d' unity-city/ProjectSettings/ProjectSettings.asset 2>/dev/null || true
+        grep -h "m_ActiveColorSpace" unity-city/ProjectSettings/ProjectSettings.asset 2>/dev/null || echo 'ProjectSettings.asset: brak albo binarny'
+        du -sh unity-city/Library unity-city/Assets/PlayableGenerated unity-city/ProjectSettings 2>/dev/null || true
+        du -sh unity-city/Library/* 2>/dev/null | sort -h | tail -8 || true
+        du -sh unity-city/Assets/PlayableGenerated/* 2>/dev/null | sort -h | tail -10 || true
+        cat unity-city/Assets/PlayableGenerated/pamiec-rejonu.json 2>/dev/null || echo 'brak znacznika swiata rejonu (rejon oba albo generowanie nieukonczone)'
     - name: Raport portu z edytora Unity
       if: always()
       run: |
@@ -638,7 +754,13 @@ jobs:
       env:
         SHOT_PART: ${{ matrix.part }}
         SHOT_PARTS: 3
-      run: node unity-tools/claude/region_shots.mjs
+        SHOT_REJON: ${{ needs.combined-unity6.outputs.rejon }}
+      run: |
+        # tylko ujecia budowanego rejonu (osiedle → 'estate', miasto → 'city', oba → wszystkie)
+        t=$(date +%s); r=0
+        node unity-tools/claude/region_shots.mjs || r=$?
+        echo "BRAXHORN_CZAS etap=zdjecia czesc=${{ matrix.part }} rejon=${SHOT_REJON:-oba} s=$(( $(date +%s) - t ))"
+        exit $r
     - name: Zdjecia do wydania
       if: always()
       env:

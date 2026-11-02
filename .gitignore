@@ -15,3 +15,6 @@ unity-city/braxhorn.versioncode
 # prywatne zasoby właściciela odszyfrowane w CI (repo publiczne — w gicie tylko unity-city/Prywatne/*.tar.gz.enc)
 unity-city/Assets/Source/Prywatne/
 unity-city/Assets/Source/Prywatne.meta
+
+# rejon buildu CI (pisze unity-tools/claude/rejon_buildu.py przed Unity)
+unity-city/rejon-ci.txt
