@@ -6,7 +6,8 @@ using UnityEngine;
 // KABINA AUTA (build 45, właściciel 2.11 20:28: „każdy człowiek powinien się zmieścić do auta”). Ludzie i auta są w tej
 // samej skali (×K) — człowiek ~1.80 m mieści się w każdym normalnym aucie; w sportowym dzięki niżej osadzonemu siedzisku
 // i odchylonemu oparciu. Skala osoby = 1.0 ZAWSZE (build 44 zmniejszał do 0.904 — zakaz), bez dobierania niższych osób
-// i bez zostawiania pustych aut z tego powodu. Kolejność (najmniejsza zmiana pozy pierwsza):
+// i bez zostawiania pustych aut z tego powodu. Korekta 21:15: kto mieści się w pozie z #44 — bez żadnej zmiany. Dalej
+// (tylko przy braku miejsca) kolejność — najmniejsza zmiana pozy pierwsza:
 //   1) miednica osadzona w siedzisku: zagłębienie poduszki 3 → 4.5 → 6 cm × K,
 //   2) odchylenie tułowia (od Bip01 Spine) od bazowego dla kabiny do maksymalnego co 1° (sportowe 25–30°, osobowe 18–22°,
 //      dostawcze 8–12° — BraxFotelAuta.Rodzaj z realnej wysokości auta),
@@ -27,7 +28,9 @@ public static partial class BraxClaudeOsiedle
     // Kolejne próby pozy: (odchylenie °, zagłębienie m świata, dodatkowe pochylenie głowy °).
     public static List<(float odch, float zagl, float poch)> KabinaProby(float baza, float max, float k)
     {
-        var l = new List<(float, float, float)>();
+        // właściciel 21:15: „ludzie już dobrze siedzą w samochodach” — najpierw poza z #44 bez zmian (0°, bez zagłębienia);
+        // odchylenie i zagłębienie dopiero, gdy głowa nie mieści się pod dachem
+        var l = new List<(float, float, float)> { (0f, 0f, 0f) };
         foreach (float z in new[] { .03f, .045f, .06f }) l.Add((baza, z * k, 0f));
         for (float o = baza + 1f; o <= max + .01f; o += 1f) l.Add((o, .06f * k, 0f));
         foreach (float p in new[] { 5f, 10f }) l.Add((max, .06f * k, p));
