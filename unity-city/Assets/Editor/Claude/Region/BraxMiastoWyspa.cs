@@ -699,19 +699,19 @@ internal static class BraxMiastoWyspa
         // STÓŁ SĘDZIÓW I KOMENTATORÓW przy klatce od strony holu: 7 m, laptopy, mikrofony, 5 krzeseł przodem do klatki
         {
             var dw = ((Wsp(wej, R) + Wsp(wej + 1, R)) * .5f - c).WithY0().normalized; var rw = Vector3.Cross(Vector3.up, dw);
-            float vt = 9.4f, lt = 7f, ht = .76f * K;
+            float vt = 9.4f, lt = 6.4f, ht = .76f * K;     // 6.4 m: ≥ 0.6 m od czoła loży VIP na styku sektorów
             Vector3 Q(float u, float v, float y) => c + rw * u + dw * v + Vector3.up * (F + y);
             var mat = BraxUliceKit.S(BraxMiastoA.Mat("Arena: stół sędziów (czarny mat)", new Color(.05f, .05f, .055f), .6f));
             mat.OBox(Q(0f, vt, ht - .025f), rw, Vector3.up, dw, lt, .05f, .8f);
             mat.OBox(Q(0f, vt - .36f, (ht - .05f) * .5f), rw, Vector3.up, dw, lt, ht - .05f, .04f);
             foreach (float o in new[] { -1f, 1f }) mat.OBox(Q(o * (lt * .5f - .02f), vt + .03f, (ht - .05f) * .5f), dw, Vector3.up, rw, .74f, ht - .05f, .04f);
             BraxUliceKit.S(led).OBox(Q(0f, vt - .39f, ht - .2f), rw, Vector3.up, dw, lt - .2f, .05f, .02f, true);
-            BraxUliceKit.Napis3D("SĘDZIOWIE", Q(-1.4f, vt - .38f, .22f), -dw, .13f, .015f, bialeLit, boki);
-            BraxUliceKit.Napis3D("KOMENTATORZY", Q(2.1f, vt - .38f, .22f), -dw, .13f, .015f, bialeLit, boki);
+            BraxUliceKit.Napis3D("SĘDZIOWIE", Q(-1.3f, vt - .38f, .22f), -dw, .13f, .015f, bialeLit, boki);
+            BraxUliceKit.Napis3D("KOMENTATORZY", Q(1.95f, vt - .38f, .22f), -dw, .13f, .015f, bialeLit, boki);
             KolO("kolizja: stół sędziów", Q(0f, vt, ht * .5f), dw, new Vector3(lt, ht, .8f));
             var ekran = BraxUliceKit.S(BraxMiastoA.Swieci("Arena: ekrany laptopów", new Color(.25f, .35f, .45f), new Color(.35f, .5f, .65f)));
             var krM = BraxUliceKit.S(BraxMiastoA.Mat("Arena: krzesła stołu (czarne)", new Color(.06f, .06f, .065f), .5f));
-            float[] us = { -2.8f, -1.4f, 0f, 1.4f, 2.8f };
+            float[] us = { -2.6f, -1.3f, 0f, 1.3f, 2.6f };
             for (int k = 0; k < us.Length; k++)
             {
                 float u = us[k]; bool kom = k >= 3;
