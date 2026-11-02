@@ -3399,8 +3399,8 @@ public static partial class BraxClaudeOsiedle
         tex.SetPixels32(px); tex.Apply(true);
         AssetDatabase.CreateAsset(tex, Out + "/woda_strugi.asset");
         // Standard „Transparent” (jak szkło balustrad — ten sam wariant shadera w buildzie): woda połyskuje odbiciem nieba
-        var m = new Material(Shader.Find("Standard")) { name = "Osiedle: woda fontanny struga", color = new Color(.86f, .94f, 1f, .75f), mainTexture = tex };
-        m.SetFloat("_Mode", 3); m.SetFloat("_Glossiness", .9f); m.SetFloat("_Metallic", 0f);
+        var m = new Material(Shader.Find("Standard")) { name = "Osiedle: woda fontanny struga", color = new Color(.9f, .96f, 1f, .55f), mainTexture = tex };
+        m.SetFloat("_Mode", 3); m.SetFloat("_Glossiness", .55f); m.SetFloat("_Metallic", 0f);   // build 45: mniej „szkła”, jasne grzbiety strug z tekstury
         m.SetInt("_SrcBlend", (int)BlendMode.One); m.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha); m.SetInt("_ZWrite", 0);
         m.DisableKeyword("_ALPHATEST_ON"); m.DisableKeyword("_ALPHABLEND_ON"); m.EnableKeyword("_ALPHAPREMULTIPLY_ON");
         m.renderQueue = 3000; m.SetOverrideTag("RenderType", "Transparent");
@@ -3437,7 +3437,7 @@ public static partial class BraxClaudeOsiedle
         var mesh = new Mesh { name = "fontanna " + name };
         mesh.SetVertices(vs); mesh.SetNormals(nr); mesh.SetUVs(0, uv); mesh.SetTriangles(idx, 0); mesh.RecalculateBounds();
         AssetDatabase.CreateAsset(mesh, Out + "/fontanna_woda_" + (waterMeshes++) + ".asset");
-        var g = new GameObject("fontanna: " + name); g.transform.SetParent(Group(group), false); g.transform.position = c;
+        var g = new GameObject("fontanna: woda — " + name); g.transform.SetParent(Group(group), false); g.transform.position = c;
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var mr = g.AddComponent<MeshRenderer>(); mr.sharedMaterial = FountainStreamMat();
         mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = false; mr.lightProbeUsage = LightProbeUsage.Off;
@@ -3448,12 +3448,17 @@ public static partial class BraxClaudeOsiedle
     {
         // dysza: wierzch na 1.95 m; strumień do 2.8 m, parasol opada na taflę górnej czaszy (r 1.0, 1.81 m)
         FountainSheet("strumień", fc, new[] { .035f, .03f, .022f }, new[] { 1.95f, 2.4f, 2.8f }, new[] { 0f, .8f, 1.5f }, 10, 2f, new Vector2(0f, -1.8f));
-        FountainSheet("parasol", fc, new[] { .02f, .22f, .5f, .78f, .96f }, new[] { 2.84f, 2.8f, 2.58f, 2.2f, 1.83f }, new[] { 0f, .35f, .85f, 1.45f, 2.0f }, 24, 4f, new Vector2(0f, -1.3f));
+        // build 45 (E14, zdjęcie właściciela: „ogromna szklana kopuła”): obiekt nazywał się „fontanna: parasol” — kontrola skali
+        // (BraxKontrolaSkali, typ „parasol” = parasol ogrodowy 2.2–2.6 m) powiększyła go 1.01 → 2.77 m (×2.74) i dodała mu kolizję.
+        // Nazwa bez słowa „parasol” (z „woda” = nie mebel), materiał mniej szklisty (gładkość 0.55, krycie 0.55).
+        FountainSheet("opad z dyszy na czaszę", fc, new[] { .02f, .22f, .5f, .78f, .96f }, new[] { 2.84f, 2.8f, 2.58f, 2.2f, 1.83f }, new[] { 0f, .35f, .85f, 1.45f, 2.0f }, 24, 4f, new Vector2(0f, -1.3f));
         // przelew: z krawędzi górnej czaszy (r 1.15, 1.8 m) kurtyną do dolnej misy (tafla 0.42 m), lekko rozchylony
         FountainSheet("przelew", fc, new[] { 1.16f, 1.2f, 1.26f, 1.31f }, new[] { 1.8f, 1.48f, .95f, .44f }, new[] { 0f, .5f, 1.4f, 2.3f }, 32, 8f, new Vector2(0f, -1.0f));
         // piana na tafli dolnej misy pod kurtyną (rozchodzi się na zewnątrz)
         FountainSheet("piana", fc, new[] { 1.2f, 1.45f, 1.8f }, new[] { .445f, .445f, .445f }, new[] { 0f, .3f, .7f }, 32, 10f, new Vector2(.03f, -.35f));
-        rep.notes.Add("fontanna: płynąca woda z siatek (strumień, parasol, przelew, piana) — tekstura przesuwana BraxClaudeWoda, bez cząsteczek");
+        rep.notes.Add("fontanna: płynąca woda z siatek (strumień, opad na czaszę, przelew, piana) — tekstura przesuwana BraxClaudeWoda, bez cząsteczek");
+        Debug.Log("BRAXHORN_FONTANNA misa=r 3.60 m h 0.55 m czasza=r 1.15 m na 1.60–1.80 m opad_r=0.96 m (≤ czasza 1.15) wysokosc_strumienia=2.84 m, przelew do tafli 0.42 m, "
+                  + "nazwy „fontanna: woda — …” (kontrola skali nie bierze wody za parasol ogrodowy; #44: ×2.74 + kolizja)");
     }
 
     // ---------------- stary płot południowy osiedla A ----------------
