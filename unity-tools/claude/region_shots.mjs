@@ -146,6 +146,10 @@ const VIEWS = [
   ['DETAL_dyskoteka_dj', '98.6,.11,12,270,4,2.6', 'estate'],
   ['DETAL_dyskoteka_szatnia', '94.0,.06,26.3,270,4,2.2', 'estate'],
   ['DETAL_dyskoteka_wyjscie', '86,.06,2.8,0,2,2.4', 'estate'],
+  ['DETAL_wejscie_dyskoteka', '86,.1,31.6,0,4,2.6', 'estate'],
+  ['DETAL_wejscie_kasyno', '86,.1,-24.4,0,4,2.6', 'estate'],
+  ['DETAL_wejscie_arena', '-86,.1,83.5,0,4,2.6', 'estate'],
+  ['DETAL_kasyno_przejscie_vip', '85.6,.06,-48.8,0,6,2.2', 'estate'],
   ['N14_T01_witryna_kawiarni', '30.25,.3,-183.8,180,12,8', 'estate'],
   ['N14_T02_witryna_marketu', '42.55,.3,-183.8,180,12,8', 'estate'],
   // elewacje (oko → szyld z raportu, przeliczone: gracz na linii patrzenia, kamera za nim)
