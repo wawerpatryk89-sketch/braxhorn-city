@@ -5678,6 +5678,7 @@ public static partial class BraxClaudeOsiedle
         Guard("sufity dla kamery (blokada nad pomieszczeniami)", SufityKamery);
         // build 14 (dyspozytor przy scalaniu): kontrole jakości PRZED ludźmi — kontrola skaluje/przesuwa ławki i meble, a ludzie
         // siedzący są wstawiani na stałe na wysokości ławki; po kontroli siadają na już poprawionych. Siatki są jeszcze do odczytu.
+        Guard("kasyno: automaty — spis starych w sali gier (E34), nowe za flagą", KasynoAutomaty);
         Guard("drzwi bez ściany (manifest Codexa po przebudowie wnętrz) — usunięte", DrzwiBezSciany);
         Guard("posadzki — grunt wycięty pod posadzkami wszystkich lokali (posadzka nigdy nie leży na gruncie)", () => BraxKontrolaMigotania.Posadzki(UnityEngine.SceneManagement.SceneManager.GetActiveScene()));
         Guard("kontrole jakości: skala, umieszczenie, kolizje, migotanie, pomieszczenia, robot", () => BraxKontrola.Wszystko(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), "osiedle"));

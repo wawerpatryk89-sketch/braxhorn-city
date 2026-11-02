@@ -52,7 +52,7 @@ public static class BraxTeksty
     {
         { "OTWÓRZ DRZWI", "OPEN DOOR" }, { "ZAMKNIJ DRZWI", "CLOSE DOOR" }, { "USIĄDŹ", "SIT" }, { "POŁÓŻ SIĘ", "LIE DOWN" },
         { "WSTAŃ", "STAND UP" }, { "WSIĄDŹ", "BOARD" }, { "ZEJDŹ", "GET OFF" }, { "POGADAJ", "TALK" }, { "WRÓĆ DO MIASTA", "BACK TO THE CITY" },
-        { "WEJDŹ", "ENTER" }, { "ZAMÓW", "ORDER" }, { "TUNEL", "TUNNEL" }, { "WCZYTYWANIE DZIELNICY…", "LOADING DISTRICT…" }, { "ULICA — KOLEJNY ETAP", "STREET — NEXT STAGE" },
+        { "WEJDŹ", "ENTER" }, { "ZAMÓW", "ORDER" }, { "ZAGRAJ", "PLAY" }, { "TUNEL", "TUNNEL" }, { "WCZYTYWANIE DZIELNICY…", "LOADING DISTRICT…" }, { "ULICA — KOLEJNY ETAP", "STREET — NEXT STAGE" },
     };
     public static string Kontekst(string pl)
     {
