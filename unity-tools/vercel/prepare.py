@@ -150,9 +150,12 @@ def prepare(source, dest, commit, run):
     require(not dest.exists(), 'Output already exists; refusing overwrite')
     target = dest / 'unity-webgl' / 'unity-gym'
     shutil.copytree(source, target)
+    icon = source / 'TemplateData/favicon.ico'
+    if icon.is_file():
+        shutil.copyfile(icon, dest / 'unity-webgl/favicon.ico')
     proof.update(sourceRun=str(run), target='preview', productionChanged=False)
     proof['files'] = {p.relative_to(dest / 'unity-webgl').as_posix(): sha256(p)
-                      for p in target.rglob('*') if p.is_file()}
+                      for p in (dest / 'unity-webgl').rglob('*') if p.is_file()}
     (dest / 'unity-webgl' / 'deployment-proof.json').write_text(json.dumps(proof, indent=2) + '\n')
     (dest / 'vercel.json').write_text(json.dumps(config(), indent=2) + '\n')
     shutil.copyfile(pathlib.Path(__file__).with_name('verify-preview.cjs'), dest / 'verify-preview.cjs')

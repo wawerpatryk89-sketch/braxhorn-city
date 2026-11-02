@@ -58,8 +58,8 @@ jobs:
       - name: Install the pinned browser test dependency
         run: |
           npm install --prefix unity-tools/vercel --no-save --ignore-scripts playwright@1.56.1
-          unity-tools/vercel/node_modules/.bin/playwright install --with-deps chromium
-      - name: Launch the real Unity player in Chromium WebGL2
+          unity-tools/vercel/node_modules/.bin/playwright install --with-deps chrome
+      - name: Launch the real Unity player in Chrome WebGL2 with AAC support
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 --directory "$RUNNER_TEMP/unity-site/unity-webgl" > "$RUNNER_TEMP/unity-http.log" 2>&1 &
           server=$!

@@ -3,15 +3,21 @@ import fs from 'node:fs/promises';
 
 const base = process.env.PREVIEW_URL || 'http://127.0.0.1:8765';
 const report = { url: base, runtimePassed: false, errors: [], failedRequests: [], consoleErrors: [] };
-const browser = await chromium.launch({ channel: 'chromium', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+// Unity WebGL imports audio as AAC. The bundled open-source Chromium omits
+// proprietary media codecs; use branded Chrome and fail if AAC is unavailable.
+const browser = await chromium.launch({ channel: 'chrome', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  report.browser = browser.version();
+  report.aacSupport = await page.evaluate(() => document.createElement('audio').canPlayType('audio/mp4; codecs="mp4a.40.2"'));
+  if (!report.aacSupport) throw new Error('Test browser lacks AAC required by Unity WebGL');
   page.on('pageerror', error => report.errors.push({message:error.message,stack:error.stack}));
   page.on('console', message => { if (message.type() === 'error') report.consoleErrors.push(message.text()); });
   await page.addInitScript(() => {
     window.__mediaDiagnostics = [];
     const original = HTMLMediaElement.prototype.play;
     HTMLMediaElement.prototype.play = function (...args) {
+      window.__mediaDiagnostics.push({src:(this.currentSrc || this.src || '').slice(0,160),event:'play'});
       this.addEventListener('error', () => window.__mediaDiagnostics.push({
         src: (this.currentSrc || this.src || '').slice(0, 160),
         code: this.error?.code, message: this.error?.message

@@ -15,7 +15,9 @@ Workflow `unity6-vercel-preview.yml`:
 3. Umieszcza niezmieniony player w `unity-webgl/unity-gym/`. Zachowuje
    `<base href="/unity-gym/">`; Vercel przekierowuje `/` do `/unity-gym/`.
    Nie stosuje przekierowania brakujących assetów do HTML.
-4. Testuje rzeczywiste uruchomienie Unity w Chromium. Błąd blokuje publikację.
+4. Testuje rzeczywiste uruchomienie Unity w Google Chrome z obsługą AAC.
+   Zwykły Chromium Playwright nie zawiera wszystkich kodeków audio Unity.
+   Błąd blokuje publikację.
 5. Tworzy nową, niezależną gałąź `preview/unity6-webgl-<sha>-<run>-<attempt>`
    z samymi sprawdzonymi plikami i konfiguracją. Istniejąca integracja Vercel Git
    publikuje tę gałąź jako Preview. Brak statusu Vercel nie oznacza sukcesu.
