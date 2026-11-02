@@ -31,6 +31,9 @@ internal static class BraxMiastoPort
     {
         BraxUliceKit.Start(); BraxMiastoA.WyczyscPamiec();
         var usun = BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(X0, QX - .1f, -.25f, 14f, Z0, Z1), "port_kontenerowy", portRoot);
+        // pas starego placu z −40…−30.5 (przy granicy z B): zdjęte tylko to, co stoi NAD gruntem (stare kontenery, płot, ściana
+        // kontenerów) — nawierzchni nie ruszamy (B buduje tam swoje nabrzeże/plac później; bez dziury, jeśli tam nic nie postawi)
+        usun += "; pas przy B: " + BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(X0, QX - .1f, .22f, 14f, -40f, Z0), "port_pas_przy_B", portRoot);
         root = new GameObject("CLAUDE A: port kontenerowy (od nowa)").transform; root.SetParent(portRoot, false);
         kol = new GameObject("kolizje").transform; kol.SetParent(root, false);
         BraxUliceKit.UstawGrupe("Port: nawierzchnia i nabrzeże");
