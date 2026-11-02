@@ -1,33 +1,37 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// AUTO W RUCHU (właściciel 1.11: „żeby się ruch toczył — ludzi i samochodów”). Jedzie po zamkniętej trasie (prawy pas,
-// skrzyżowania łukami, rondo przeciwnie do wskazówek zegara), dokładnie po linii trasy (bez zjeżdżania), zwalnia w zakrętach,
-// staje przed Braxem i przed autem z przodu. Koła kręcą się wokół osi poprzecznej auta. Daleko od kamery — co 0,2 s.
+// AUTO W RUCHU (build 14; właściciel 1.11 „żeby się ruch toczył”, zdjęcia z buildu 12: auta tyłem, obrót w miejscu, koła
+// stoją). Jazdę liczy BraxRuchAut / BraxRuchAutSym (jedna symulacja dla wszystkich aut); tu tylko wygląd i dźwięk:
+//  • nadwozie ustawione po modelu rowerowym (tylna oś na torze, przód po łuku), lekkie przechyły w zakrętach i przy hamowaniu;
+//  • koła kręcą się zgodnie z prędkością (promień koła zmierzony z geometrii), przednie skręcają;
+//  • blisko kamery (~30 m): światła STOP przy hamowaniu i postoju, kierunkowskaz przed skrętem (miga 1,5 Hz), spaliny
+//    (kilka cząsteczek, mocniej przy ruszaniu), klakson, gdy gracz stoi na jezdni;
+//  • dźwięk silnika (BraxClaudeOsiedleDzwieki → silnik), ton z prędkości; daleko — cisza.
+// Fotele: dzieci „BRAXHORN fotel kierowcy” / „BRAXHORN fotel pasażera” w nadwoziu (miejsce dla ludzi — inny etap).
 public sealed class BraxAuto : MonoBehaviour
 {
-    public Vector3[] trasa;
-    public float vmax = 8f, vZakret = 4f, start;
-    public Transform[] kola = new Transform[0];
-    public float promienKola = .33f;
-    public AudioClip silnik;           // pętla silnika (BraxClaudeOsiedleDzwieki), wysokość tonu z prędkości
-    AudioSource dzwiek;
+    public int trasaNr;                            // indeks trasy w BraxRuchAut
+    public float sStart, vmax = 8.5f;
+    public Vector3[] trasa = new Vector3[0];       // punkty trasy co ~3 m (tylko do odczytu, np. MENU → UTKNĄŁEM szuka najbliższej drogi)
+    public float dl = 4.6f, szer = 1.9f, rozstaw = 2.7f, osTyl = -1.3f, promienKola = .33f;
+    public Transform nadwozie;
+    public Transform[] kola = new Transform[0];    // obracające się części kół (LP, PP, LT, PT)
+    public Transform[] skret = new Transform[0];   // osie skrętu przednich kół
+    public Renderer[] stop = new Renderer[0], migL = new Renderer[0], migP = new Renderer[0];
+    public ParticleSystem dym;
+    public AudioClip silnik, klakson;
     public static readonly List<BraxAuto> Wszystkie = new List<BraxAuto>();
-    float[] cum; float dl, s, v; int seg;
-    Transform gracz;
-    static Camera kam;
-    float nast;
+
+    AudioSource dzwiek;
+    float katKol, skretAkt, przechyl, pochyl, kierPoprz;
+    bool stopWl, migWl, dymWl;
 
     void OnEnable() { Wszystkie.Add(this); }
     void OnDisable() { Wszystkie.Remove(this); }
 
     void Start()
     {
-        if (trasa == null || trasa.Length < 2) { enabled = false; return; }
-        cum = new float[trasa.Length + 1];
-        for (int i = 0; i < trasa.Length; i++) cum[i + 1] = cum[i] + Vector3.Distance(trasa[i], trasa[(i + 1) % trasa.Length]);
-        dl = cum[trasa.Length]; s = Mathf.Repeat(start, dl); v = vmax * .5f;
-        Ustaw(0f, true);
         if (silnik)
         {
             // dźwięk 3D: słychać z ok. 40 m, głośniej z bliska; ton rośnie z prędkością (właściciel 1.11: „auta niech mają dźwięk”)
@@ -35,76 +39,76 @@ public sealed class BraxAuto : MonoBehaviour
             dzwiek.rolloffMode = AudioRolloffMode.Logarithmic; dzwiek.minDistance = 3.5f; dzwiek.maxDistance = 45f; dzwiek.dopplerLevel = .4f;
             dzwiek.volume = .55f; dzwiek.priority = 160; dzwiek.pitch = .8f; dzwiek.time = Random.value * silnik.length * .9f;
         }
+        Swiatla(stop, false); Swiatla(migL, false); Swiatla(migP, false);
+        if (dym) { dym.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); dymWl = false; }
     }
 
-    void Update()
-    {
-        if (cum == null) return;
-        float dt = Time.deltaTime;
-        if (!kam) kam = Camera.main;
-        if (kam && (kam.transform.position - transform.position).sqrMagnitude > 120f * 120f)
-        { if (dzwiek && dzwiek.isPlaying) dzwiek.Pause(); if (Time.time < nast) return; dt = .2f; nast = Time.time + .2f; }
-        else if (dzwiek && kam)
-        {
-            bool blisko = (kam.transform.position - transform.position).sqrMagnitude < 55f * 55f;   // dalej cisza (zamiast szumu 12 aut naraz)
-            if (blisko && !dzwiek.isPlaying) dzwiek.Play(); else if (!blisko && dzwiek.isPlaying) dzwiek.Pause();
-        }
-        if (!gracz) { var p = FindAnyObjectByType<BraxGymPlayer>(); if (p) gracz = p.transform; }
-        // prędkość: zakręt przed nami (kąt trasy w ciągu 10 m), przeszkody
-        Vector3 f0 = Kierunek(s), f1 = Kierunek(s + 10f);
-        float want = Vector3.Angle(f0, f1) > 20f ? vZakret : vmax;
-        float przed = Przeszkoda(transform.position, f0);
-        if (przed < 12f) want = Mathf.Min(want, Mathf.Max(0f, (przed - 5f) * 1.1f));
-        v = Mathf.MoveTowards(v, want, (want < v ? 8f : 2.5f) * dt);
-        s += v * dt;
-        Ustaw(dt, false);
-        if (dzwiek) dzwiek.pitch = Mathf.Lerp(dzwiek.pitch, .78f + Mathf.Clamp01(v / Mathf.Max(1f, vmax)) * .75f + (want > v + .5f ? .08f : 0f), 1f - Mathf.Exp(-dt * 3f));
-        if (kola.Length > 0 && v > .01f)
-        {
-            float deg = v * dt / promienKola * Mathf.Rad2Deg;
-            foreach (var k in kola) if (k) k.Rotate(transform.right, deg, Space.World);
-        }
-    }
+    static void Swiatla(Renderer[] r, bool wl) { if (r == null) return; foreach (var x in r) if (x) x.enabled = wl; }
 
-    void Ustaw(float dt, bool odRazu)
+    // Wywoływane przez BraxRuchAut co klatkę.
+    public void Ustaw(BraxRuchAutSym.Auto st, float dt, float odl, bool skok)
     {
-        s = Mathf.Repeat(s, dl);
-        if (s < cum[seg]) seg = 0;
-        while (seg < trasa.Length - 1 && s > cum[seg + 1]) seg++;
-        Vector3 p0 = trasa[seg], p1 = trasa[(seg + 1) % trasa.Length];
-        float t = Mathf.InverseLerp(cum[seg], cum[seg + 1], s);
-        transform.position = Vector3.Lerp(p0, p1, t);
-        var dir = Kierunek(s);
-        if (dir.sqrMagnitude > 1e-4f)
+        var rot = Quaternion.LookRotation(st.kier, Vector3.up);
+        float zmianaKier = 0f;
+        if (dt > 1e-4f && !skok) zmianaKier = Mathf.DeltaAngle(kierPoprz, rot.eulerAngles.y) / dt;   // [°/s], + = w prawo
+        kierPoprz = rot.eulerAngles.y;
+        transform.SetPositionAndRotation(st.poz, rot);
+        bool blisko = odl < 60f, bardzo = odl < 32f;
+        if (blisko && dt > 0f)
         {
-            var q = Quaternion.LookRotation(dir);
-            transform.rotation = odRazu ? q : Quaternion.Slerp(transform.rotation, q, Mathf.Clamp01(dt * 8f));
+            // koła: obrót wokół osi poprzecznej (dodatni = toczenie do przodu), przednie skręcają
+            katKol = Mathf.Repeat(katKol + st.v * dt / Mathf.Max(.12f, promienKola) * Mathf.Rad2Deg, 360f);
+            var q = Quaternion.Euler(katKol, 0f, 0f);
+            foreach (var k in kola) if (k) k.localRotation = q;
+            skretAkt = Mathf.Lerp(skretAkt, st.skret, 1f - Mathf.Exp(-dt * 10f));
+            var qs = Quaternion.Euler(0f, skretAkt, 0f);
+            foreach (var s in skret) if (s) s.localRotation = qs;
+            // przechyły: w zakręcie nadwozie pochyla się na zewnątrz łuku, przy hamowaniu „nurkuje”
+            if (nadwozie)
+            {
+                float boczne = st.v * zmianaKier * Mathf.Deg2Rad;                    // przyspieszenie boczne [m/s²]
+                przechyl = Mathf.Lerp(przechyl, Mathf.Clamp(boczne * .55f, -2.2f, 2.2f), 1f - Mathf.Exp(-dt * 4f));
+                pochyl = Mathf.Lerp(pochyl, Mathf.Clamp(-st.a * .32f, -1.2f, 1.6f), 1f - Mathf.Exp(-dt * 5f));
+                nadwozie.localRotation = Quaternion.Euler(pochyl, 0f, przechyl);
+            }
         }
-    }
-
-    // kierunek trasy w punkcie s (wygładzony: z odcinka przed i po)
-    Vector3 Kierunek(float at)
-    {
-        at = Mathf.Repeat(at, dl);
-        int i = 0; while (i < trasa.Length - 1 && at > cum[i + 1]) i++;
-        var d = trasa[(i + 1) % trasa.Length] - trasa[i]; d.y = 0f;
-        return d.normalized;
-    }
-
-    float Przeszkoda(Vector3 pos, Vector3 fwd)
-    {
-        float best = 99f;
-        if (gracz)
+        // światła STOP i kierunkowskazy tylko blisko
+        bool s1 = bardzo && st.hamuje;
+        if (s1 != stopWl) { stopWl = s1; Swiatla(stop, s1); }
+        bool m1 = bardzo && st.migacz != 0 && Mathf.Repeat(Time.time * 1.5f + GetInstanceID() * .137f, 1f) < .5f;
+        if (m1 != migWl || (m1 && st.migacz != 0))
         {
-            var g = gracz.position - pos; g.y = 0f; float a = Vector3.Dot(g, fwd);
-            if (a > 0f && a < best && Vector3.Cross(fwd, g).magnitude < 2.6f) best = a;
+            migWl = m1;
+            Swiatla(migL, m1 && st.migacz < 0); Swiatla(migP, m1 && st.migacz > 0);
         }
-        foreach (var o in Wszystkie)
+        // spaliny: blisko, mocniej przy ruszaniu
+        if (dym)
         {
-            if (o == this) continue;
-            var g = o.transform.position - pos; g.y = 0f; float a = Vector3.Dot(g, fwd);
-            if (a > 0f && a < best && Vector3.Cross(fwd, g).magnitude < 1.9f && Vector3.Dot(o.transform.forward, fwd) > -.2f) best = a;
+            if (bardzo)
+            {
+                if (!dymWl) { dym.Play(); dymWl = true; }
+                var em = dym.emission;
+                em.rateOverTime = 1.6f + st.v * .25f + (st.a > .4f && st.v < 5f ? 9f * st.a : 0f);
+            }
+            else if (dymWl) { dym.Stop(true, ParticleSystemStopBehavior.StopEmitting); dymWl = false; }
         }
-        return best;
+        // silnik
+        if (dzwiek)
+        {
+            if (odl < 55f) { if (!dzwiek.isPlaying) dzwiek.Play(); }
+            else if (dzwiek.isPlaying) dzwiek.Pause();
+            if (dzwiek.isPlaying && dt > 0f)
+                dzwiek.pitch = Mathf.Lerp(dzwiek.pitch, .78f + Mathf.Clamp01(st.v / Mathf.Max(1f, vmax)) * .75f + (st.a > .5f ? .08f : 0f), 1f - Mathf.Exp(-dt * 3f));
+        }
+        // klakson (gracz na jezdni)
+        if (st.klakson)
+        {
+            st.klakson = false;
+            if (klakson && odl < 45f)
+            {
+                if (!dzwiek) { dzwiek = gameObject.AddComponent<AudioSource>(); dzwiek.spatialBlend = 1f; dzwiek.minDistance = 4f; dzwiek.maxDistance = 50f; dzwiek.rolloffMode = AudioRolloffMode.Logarithmic; }
+                dzwiek.PlayOneShot(klakson, .9f);
+            }
+        }
     }
 }
