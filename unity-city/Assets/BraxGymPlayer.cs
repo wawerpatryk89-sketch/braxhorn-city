@@ -101,8 +101,17 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         if(paused)return;var p=values.Split(',');
         if(p.Length>=2 && float.TryParse(p[0],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float dx) && float.TryParse(p[1],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float dy))
-        {yaw-=dx*.22f;pitch=Mathf.Clamp(pitch+dy*.16f,-32f,70f);}   // 1.11: kamera wyżej w górę (patrzenie na budynki, niebo) i bardziej z góry
+        {yaw-=dx*.22f;pitch=Mathf.Clamp(pitch+dy*.16f,-32f,70f);lastLook=Time.unscaledTime;}   // 1.11: kamera wyżej w górę (patrzenie na budynki, niebo) i bardziej z góry
     }
+    // Obrót kamery palcem bez napisów (sterowanie dotykowe APK, build 14): stopnie w poziomie i w pionie, bez alokacji.
+    public void LookDelta(float dYaw,float dPitch)
+    {
+        if(paused)return;
+        yaw+=dYaw;pitch=Mathf.Clamp(pitch+dPitch,-32f,70f);lastLook=Time.unscaledTime;
+    }
+    // Kamera wraca za plecy sama (MENU może kiedyś wyłączyć); do odczytu w dzienniku UI.
+    public static bool AutoCamera=true;
+    public const float AutoCameraDelay=1.5f;
     public void Command(string key)
     {
         if(!ready)return;
@@ -229,19 +238,55 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(reviewEnabled||Time.unscaledTime>=stateAt){stateAt=Time.unscaledTime+.16f;Report();}
     }
     private bool hiddenClose;
+    // KAMERA ZA PLECAMI (build 14; właściciel 20:45, zmiana zasady „kamerę obraca tylko gracz”): kamera sama, płynnie
+    // obraca się za postacią w ruchu (pieszo, łodzią); gracz może ją obracać palcem, a 1.5 s po ostatnim obrocie ręcznym
+    // dociąganie za plecy wraca stopniowo (0.8 s narastania). Przy staniu kamera się nie kręci (właściciel). Pieszo siła
+    // dociągania zależy od kąta: postać biegnąca w bok / w stronę kamery jej nie zawraca (sterowanie jest względem kamery —
+    // inaczej postać kręciłaby się w kółko), biegnąca do przodu ustawia kamerę za plecami. Na łodzi zawsze za rufą.
+    private float lastLook=-99f,camSpeed,camNear=-1f;private Vector3 camPrevPos;private bool camPrevOk;
+    private void AutoYaw(float dt,bool snap)
+    {
+        Vector3 pos=transform.position;
+        if(snap||!camPrevOk||dt<1e-4f){camPrevPos=pos;camPrevOk=true;camSpeed=0;return;}
+        Vector3 dv=pos-camPrevPos;dv.y=0;camPrevPos=pos;
+        float v=dv.magnitude/dt;if(v<25f)camSpeed=Mathf.Lerp(camSpeed,v,1-Mathf.Exp(-dt*6f));   // teleport (> 25 m/s) pomijany
+        if(!AutoCamera||reviewEnabled||paused||seat)return;
+        float since=Time.unscaledTime-lastLook;if(since<AutoCameraDelay)return;
+        bool water=vessel;
+        if(camSpeed<(water?.8f:.6f))return;
+        Vector3 f=water?vessel.transform.forward:transform.forward;f.y=0;if(f.sqrMagnitude<.01f)return;
+        float wantYaw=Mathf.Atan2(-f.x,-f.z)*Mathf.Rad2Deg;   // kamera po przeciwnej stronie niż przód postaci
+        float delta=Mathf.DeltaAngle(yaw,wantYaw);
+        float w=water?1f:Mathf.Clamp01(Mathf.Cos(delta*Mathf.Deg2Rad));
+        float ramp=Mathf.Clamp01((since-AutoCameraDelay)/.8f);
+        float v01=Mathf.Clamp01(camSpeed/(water?7f:5.2f));
+        float rate=(water?1.8f:Mathf.Lerp(.3f,1.2f,v01*v01))*w*ramp;   // 1/s: chód łagodnie, bieg szybciej
+        float max=(water?100f:85f)*dt;
+        yaw+=Mathf.Clamp(delta*(1-Mathf.Exp(-dt*rate)),-max,max);
+        // pochylenie: skrajne (z dołu / z góry) wraca do wygodnego zakresu 8–32°
+        pitch=Mathf.Lerp(pitch,Mathf.Clamp(pitch,8f,32f),1-Mathf.Exp(-dt*.9f*ramp*w));
+    }
     private void UpdateCamera(float dt)
     {
+        bool snap=dt>=.5f;   // Start, reset, teleport: kamera od razu na miejscu
+        AutoYaw(dt,snap);
         Vector3 want=transform.position+Vector3.up*1.65f;
-        cameraTarget=Vector3.Lerp(cameraTarget,want,1-Mathf.Exp(-dt*12f));
+        cameraTarget=Vector3.Lerp(cameraTarget,want,1-Mathf.Exp(-dt*10f));   // build 14: lekkie opóźnienie za postacią (10/s)
         float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
         Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*distance;
         Vector3 position=cameraTarget+offset;
         // Kamera (audyt filmów właściciela 1.11): nie wchodzi w ściany, szyby, korony drzew i lampy — kolidują z nią też
         // przeszkody „tylko dla kamery” (warstwa 29: korony, klosze, szkło balustrad; gracz przez nie przechodzi).
         // Gdy ściana podsuwa kamerę bliżej niż 1.1 m, Brax znika z obrazu (zostaje jego cień) — pokój widać, a nie plecy.
+        // Build 14: kula 0.26 m (róg bliskiej płaszczyzny 0.15 m przy FOV 55° i 20:9 = 0.24 m od kamery) + dosunięcie, gdy
+        // ściana boczna jest tuż przy kamerze (SphereCast nie widzi przeszkody, w której startuje — wąskie przejścia).
+        const int mask=~(1<<8);Vector3 dir=offset.normalized;
         float near=distance;
-        if(Physics.SphereCast(cameraTarget,.24f,offset.normalized,out RaycastHit hit,distance,~(1<<8),QueryTriggerInteraction.Ignore))near=Mathf.Max(.35f,hit.distance-.12f);
-        position=cameraTarget+offset.normalized*near;
+        if(Physics.SphereCast(cameraTarget,.26f,dir,out RaycastHit hit,distance,mask,QueryTriggerInteraction.Ignore))near=Mathf.Max(.35f,hit.distance-.12f);
+        position=cameraTarget+dir*near;
+        for(int k=0;k<4&&near>.36f&&Physics.CheckSphere(position,.22f,mask,QueryTriggerInteraction.Ignore);k++){near=Mathf.Max(.35f,near*.72f);position=cameraTarget+dir*near;}
+        // przeszkoda znika (minięty pień, róg) — kamera odjeżdża płynnie (3.5 m/s), a nie skokiem; do przeszkody — od razu
+        if(snap||camNear<0f||near<camNear)camNear=near;else{camNear=Mathf.MoveTowards(camNear,near,dt*3.5f);near=camNear;position=cameraTarget+dir*near;}
         view.transform.position=position;view.transform.LookAt(cameraTarget);
         bool close=near<1.1f;
         if(close!=hiddenClose){hiddenClose=close;foreach(var r in visual.GetComponentsInChildren<Renderer>(true))r.shadowCastingMode=close?UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly:UnityEngine.Rendering.ShadowCastingMode.On;}
