@@ -6,7 +6,8 @@ using UnityEngine;
 //  • MiejscaParkingowe — wypełnia etap dróg/parkingów (zatoki z liniami i krawężnikiem), czyta etap aut (auta zaparkowane);
 //  • Przejscia — wypełnia etap dróg (zebry), czytają auta (zatrzymanie) i przechodnie (przechodzenie przez jezdnię);
 //  • SkrzyzowaniaInfo — wypełnia etap dróg (rondo / zwykłe / ze światłami), czyta etap aut (pierwszeństwo, łuki);
-//  • WzrostBohatera / K — miara skali świata: k = H / 1.80 m (zasada właściciela: „miarą świata jest postać gracza”).
+//  • WzrostBohatera / K — miara skali świata: k = WzrostBraxa / 1.80 m = 1.294 (właściciel 2.11: „pod Braxa ma być wszystko”;
+//    gracz osiedla Patryk 2.27 m jest TYLKO graczem, nie miarą — build 45 przywraca 4a02329 po zmianie GPT w 2e63785).
 // Konwencja nazw dla innych etapów: w każdym aucie w ruchu dziecko „BRAXHORN fotel kierowcy” (pozycja i obrót siedzenia
 // kierowcy) — etap ludzi sadza tam kierowcę; „BRAXHORN fotel pasażera” analogicznie.
 public static partial class BraxClaudeOsiedle
@@ -20,7 +21,9 @@ public static partial class BraxClaudeOsiedle
     public static readonly List<Przejscie> Przejscia = new List<Przejscie>();
     public static readonly List<SkrzyzowanieInfo> SkrzyzowaniaInfo = new List<SkrzyzowanieInfo>();
 
-    // Bieżący gracz wyznacza skalę: Patryk 2.27 jednostki reprezentuje 1.80 m.
+    // Miarą świata jest BRAX (właściciel 2.11 10:39–10:43: „Brax wygląda idealnie — pod niego ma być wszystko”; „mnożnik ma być
+    // wszystko tak jak pod Braxa”). Ta sama skala na osiedlu (gracz Patryk 2.27 m) i w mieście (gracz Brax).
+    // Build 44 (GPT 2e63785) liczył świat od Patryka (k = 1.261) — przywrócone (build 45): k = 2.33 / 1.80 = 1.294 zawsze.
     public const float WzrostBraxa = 2.33f;
     public static float WzrostBohatera = WzrostBraxa;
     public static float K => WzrostBohatera / 1.80f;
@@ -39,8 +42,8 @@ public static partial class BraxClaudeOsiedle
         }
         float gracz = WzrostBohatera;                                         // zmierzony gracz (tylko do logu)
         if (WzrostZModelu > 1.2f && WzrostZModelu < 3.2f) gracz = WzrostZModelu;
-        WzrostBohatera = WzrostZModelu > 1.2f ? WzrostZModelu : WzrostBraxa; // Patryk zachowuje wielkość; 1.80 m jest miarą proporcji
-        Debug.Log("BRAXHORN_SKALA wzrost bohatera " + WzrostBohatera.ToString("F2") + " jednostek (odpowiednik 1.80 m), k = " + K.ToString("F3") + ", gracz w scenie " + gracz.ToString("F2") + " m");
+        WzrostBohatera = WzrostBraxa;                                          // świat zawsze pod Braxa (gracz nie zmienia miary)
+        Debug.Log("BRAXHORN_SKALA wzrost bohatera " + WzrostBohatera.ToString("F2") + " m (miara świata = Brax), k = " + K.ToString("F3") + ", gracz w scenie " + gracz.ToString("F2") + " m");
         return WzrostBohatera;
     }
 

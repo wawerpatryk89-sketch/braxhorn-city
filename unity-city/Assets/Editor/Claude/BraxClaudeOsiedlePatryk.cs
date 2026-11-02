@@ -18,7 +18,7 @@ public static partial class BraxClaudeOsiedle
     const string PatrykKatalog = PrywatneZrodla + "/patryk", PatrykRuchy = PrywatneZrodla + "/ruchy", PatrykWynik = "Assets/PlayableGenerated/Patryk";
     // Dokładny wzrost postaci gracza (siatka w pozie spoczynkowej × skala) — ZmierzBohatera bierze go zamiast bounds.
     public static float WzrostZModelu = float.NaN;
-    public const float WzrostPatrykaWGrze = 2.27f;   // 2.27 jednostki gry reprezentują 1.80 m; nie zmniejszać widocznego gracza
+    public const float WzrostPatrykaWGrze = 2.27f;   // Patryk w grze 2.27 m (trochę niższy od Braxa 2.33 m); miarą świata jest Brax, nie Patryk
 
     struct PatrykKlip { public string nazwa; public bool petla, wMiejscu; public string[] zrodla; }
     static PatrykKlip PK(string n, bool petla, bool wMiejscu, params string[] z) => new PatrykKlip { nazwa = n, petla = petla, wMiejscu = wMiejscu, zrodla = z };
