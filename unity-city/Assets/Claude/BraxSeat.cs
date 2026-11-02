@@ -52,10 +52,12 @@ public sealed class BraxSeat : MonoBehaviour
         st.speed = 0f;
     }
 
-    void Update()
+    // Bez Update na każdej ławce (recenzja 2.11: setki ławek i krzeseł × Update co klatkę na telefonie) — pilnowanie
+    // zatrzymanej pozy działa tylko, gdy ktoś siedzi (korutyna kończy się sama po Leave). BraxGymPlayer w siedzeniu ustawia
+    // „Idle” z prędkością 1 — tu zostaje 0 (bez bujania).
+    System.Collections.IEnumerator Trzymaj()
     {
-        if (!rider) return;
-        Zamroz(rider, false);   // BraxGymPlayer w siedzeniu ustawia „Idle” z prędkością 1 — tu zostaje 0 (bez bujania)
+        while (rider) { Zamroz(rider, false); yield return null; }
     }
 
     public void Use(BraxGymPlayer p)
@@ -84,6 +86,7 @@ public sealed class BraxSeat : MonoBehaviour
             p.transform.rotation = Quaternion.LookRotation(Vector3.up, -fwd);
             BraxPose.Get(p).Set(BraxPose.Mode.Lie, transform);
         }
+        StartCoroutine(Trzymaj());
     }
 
     public void Leave()

@@ -197,7 +197,7 @@ public sealed class BraxWinda : MonoBehaviour, IBraxInterakcja
                             var cc = g.body; bool on = cc && cc.enabled;
                             if (cc) cc.enabled = false;
                             g.transform.position += Vector3.up * dy;
-                            if (cc) cc.enabled = on;
+                            Physics.SyncTransforms(); if (cc) cc.enabled = on;
                             g.MoveInput("0,0");
                         }
                         pietro = cel; Podswietl();

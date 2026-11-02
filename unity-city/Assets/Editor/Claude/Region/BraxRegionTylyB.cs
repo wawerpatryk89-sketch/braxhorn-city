@@ -41,7 +41,7 @@ public static class BraxRegionTylyB
         Krok("1. nawierzchnie: plac, park, kwatery, mur nabrzeża", Plac);
         Krok("2. budynki: wieżowiec A (BRAXHORN OFFICE)", () => Wiezowiec(A()));
         Krok("2. budynki: wieżowiec B (PARK TOWER)", () => Wiezowiec(B()));
-        Krok("3. wyposażenie placu: drzewa, ławki, kosze, latarnie, barierka, pachołki", () => { Physics.SyncTransforms(); foreach (var a in pozniej) a(); pozniej.Clear(); });
+        Krok("3. wyposażenie placu: drzewa, ławki, kosze, latarnie, barierka, pachołki", () => { Physics.SyncTransforms(); foreach (var a in pozniej) { try { a(); } catch (System.Exception e) { Debug.LogWarning("DO POPRAWKI: tyły B — wyposażenie: " + e.Message); } } pozniej.Clear(); });
         Krok("punkty świata (wejścia, piętra, sejf, trasa ochrony)", ZapiszPunkty);
         Debug.Log("BRAXHORN_MIASTO_B_TYLY ławek=" + ileLawek + " drzew=" + ileDrzew + " pięter użytkowych=" + ilePieter + " wnętrz=" + ileWnetrz +
                   " posadzki: granit szorstkość ≥ 0.8 (lustra=0) usunięte=" + usuniete.Count);
