@@ -39,7 +39,7 @@ public static partial class BraxClaudeOsiedle
         Collider(new Vector3(67.1f, 3.4f, -34.62f), new Vector3(1.85f, 6.8f, .2f)); Collider(new Vector3(104.9f, 3.4f, -34.62f), new Vector3(1.85f, 6.8f, .2f));
         // pas za salą: posadzka, ściany, sufit
         Top(plytki, X0, X1, ZB, ZS, FY + .004f);
-        BoxMinMax(farba, X0, X1, FY, CY, ZS - .03f, ZS, true);                                                 // zakrywa czarne lico sali gier
+        PrzejscieSalaZaplecze(estate, physics, farba, X0, X1, FY, CY, ZS);                                    // zakrywa czarne lico sali gier; E27(1): przejście z sali (BraxClaudeOsiedleKasynoPrzejscie)
         BoxMinMax(farba, X0, 84f, FY, CY, ZB, ZB + .03f, false); BoxMinMax(farba, 88f, X1, FY, CY, ZB, ZB + .03f, false);
         BoxMinMax(farba, 84f, 88f, 3.1f, CY, ZB, ZB + .03f, false);
         BoxMinMax(farba, X0, X0 + .03f, FY, CY, ZB, ZS, false); BoxMinMax(farba, X1 - .03f, X1, FY, CY, ZB, ZS, false);

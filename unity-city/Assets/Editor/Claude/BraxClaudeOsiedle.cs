@@ -5680,6 +5680,7 @@ public static partial class BraxClaudeOsiedle
         // siedzący są wstawiani na stałe na wysokości ławki; po kontroli siadają na już poprawionych. Siatki są jeszcze do odczytu.
         Guard("wejścia: zwężenie bram Codexa do 1.8 × 2.2 m × K (E29b, z bezpiecznikiem przejścia)", ZwezenieBram);
         Guard("kasyno: automaty — spis starych w sali gier (E34), nowe za flagą", KasynoAutomaty);
+        Guard("kasyno: drzwi od zaułka zamknięte (TYLKO DLA PERSONELU), gdy jest przejście z sali", ZaulekZamkniety);
         Guard("drzwi bez ściany (manifest Codexa po przebudowie wnętrz) — usunięte", DrzwiBezSciany);
         Guard("posadzki — grunt wycięty pod posadzkami wszystkich lokali (posadzka nigdy nie leży na gruncie)", () => BraxKontrolaMigotania.Posadzki(UnityEngine.SceneManagement.SceneManager.GetActiveScene()));
         Guard("kontrole jakości: skala, umieszczenie, kolizje, migotanie, pomieszczenia, robot", () => BraxKontrola.Wszystko(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), "osiedle"));
