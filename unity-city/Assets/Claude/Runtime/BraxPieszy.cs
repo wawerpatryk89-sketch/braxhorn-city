@@ -40,7 +40,34 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     float lean, leanCel, patrzWaga, patrzCel, nastObejrzenie, predkoscUcieczki, nastGrunt;
     Vector3 leanOs = Vector3.right, patrzNa, odrzut, kierUcieczki;
     Renderer[] skory; byte detale = 255; float nastDetale;   // E19 (build 45)
-    int zagadujacy = -1; Vector3 startPoz;                    // E4b: stała osobowość (−1 = jeszcze nie policzona)
+    int zagadujacy = -1; Vector3 startPoz;
+    // E16 (build 45, właściciel: „ludzie stojący na pasach nachodzą na siebie”): MIEJSCA OCZEKIWANIA przy zebrze — sloty wzdłuż
+    // krawężnika (co 0.6 m × K w bok: 0, +1, −1, +2, −2) w 3 rzędach (co 0.7 m × K w głąb chodnika), pierwszy rząd 0.3 m × K od
+    // krawędzi jezdni; każdy czekający zajmuje wolny slot, gdy brak — staje w kolejce dalej na chodniku.
+    public const float SlotBok = .6f * BraxGlosPostaci.K, SlotRzad = .7f * BraxGlosPostaci.K, SlotKrawedz = .3f * BraxGlosPostaci.K;
+    public const int SlotyWRzedzie = 5, SlotyRzedy = 3;
+    static readonly Dictionary<long, BraxPieszy[]> sloty = new Dictionary<long, BraxPieszy[]>();
+    long slotKlucz; int slotNr = -1; Vector3 slotCel;
+    public static Vector3 SlotPozycja(int nr, Vector3 krawedz, Vector3 przod, Vector3 prawo)
+    {
+        int rzad = nr / SlotyWRzedzie, kol = nr % SlotyWRzedzie; int[] boki = { 0, 1, -1, 2, -2 };
+        return krawedz - przod * (SlotKrawedz + rzad * SlotRzad) + prawo * (boki[kol] * SlotBok);
+    }
+    static long KluczSlotu(Vector3 p, Vector3 przod) { unchecked { return ((long)Mathf.RoundToInt(p.x * 2f) << 34) ^ ((long)Mathf.RoundToInt(p.z * 2f) << 4) ^ (przod.x + przod.z > 0f ? 1 : 2); } }
+    void ZajmijSlot(Vector3 krawedz, Vector3 przod)
+    {
+        ZwolnijSlot(); przod.y = 0f; przod = przod.sqrMagnitude > 1e-4f ? przod.normalized : transform.forward; var prawo = Vector3.Cross(Vector3.up, przod);
+        slotKlucz = KluczSlotu(krawedz, przod);
+        if (!sloty.TryGetValue(slotKlucz, out var t)) sloty[slotKlucz] = t = new BraxPieszy[SlotyWRzedzie * SlotyRzedy];
+        for (int k = 0; k < t.Length; k++) if (!t[k] || t[k].stan != Stan.Czeka || t[k].slotKlucz != slotKlucz || t[k].slotNr != k) { t[k] = this; slotNr = k; slotCel = SlotPozycja(k, krawedz, przod, prawo); slotCel.y = transform.position.y; return; }
+        slotNr = -1; slotCel = SlotPozycja(t.Length + (GetInstanceID() & 3), krawedz, przod, prawo); slotCel.y = transform.position.y;   // kolejka dalej na chodniku
+    }
+    void ZwolnijSlot()
+    {
+        if (slotNr >= 0 && sloty.TryGetValue(slotKlucz, out var t) && slotNr < t.Length && t[slotNr] == this) t[slotNr] = null;
+        slotNr = -1;
+    }
+    void OnDestroy() { ZwolnijSlot(); }                    // E4b: stała osobowość (−1 = jeszcze nie policzona)
     static readonly Vector3[] Treningi = { new Vector3(-86f, 0f, 64f), new Vector3(86f, 0f, 64f), new Vector3(85f, 0f, -77f) };   // ARENA, sala bokserska, siłownia A
     bool BlizejAreny() { foreach (var t in Treningi) if ((transform.position - t).sqrMagnitude < 35f * 35f) return true; return false; }
     bool blisko = true, krzyczZDaleka;
@@ -162,7 +189,12 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
             if (nastepny < 0 || nastepny >= trasa.Length) { kier = -kier; nastepny = i + kier; if (Random.value < .6f) { Postoj(Random.Range(2f, 7f)); i = nastepny; return; } }
             int seg = kier > 0 ? i : i - 1;
             i = nastepny;
-            if (seg >= 0 && seg < przejscie.Length && przejscie[seg]) { stan = Stan.Czeka; czekaOd = Time.time; doKiedy = Time.time + Random.Range(.6f, 1.4f); Graj(stoi, .3f); return; }
+            if (seg >= 0 && seg < przejscie.Length && przejscie[seg])
+            {
+                stan = Stan.Czeka; czekaOd = Time.time; doKiedy = Time.time + Random.Range(.6f, 1.4f); Graj(stoi, .3f);
+                ZajmijSlot(trasa[Mathf.Clamp(i - kier, 0, trasa.Length - 1)], trasa[i] - trasa[Mathf.Clamp(i - kier, 0, trasa.Length - 1)]);   // E16
+                return;
+            }
             if (Random.value < .04f) Postoj(Random.Range(3f, 9f));
             return;
         }
@@ -236,11 +268,18 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         Obroc(cel, dt, 4f);
         float t = Time.time - czekaOd;
         patrzCel = .9f; patrzNa = transform.position + Prawo(cel) * ((int)(t / .9f) % 2 == 0 ? -6f : 6f) + cel.normalized * 2f;
+        // E16: dojście na swoje miejsce oczekiwania (bez wchodzenia w innych czekających)
+        if (slotCel != Vector3.zero)
+        {
+            var ds = slotCel - transform.position; ds.y = 0f;
+            if (ds.magnitude > .08f) { float kr = Mathf.Min(ds.magnitude, predkosc * .8f * dt); transform.position += ds.normalized * kr; Graj(ds.magnitude > .25f ? chod : stoi, .25f, .6f); return; }
+        }
         if (Time.time < doKiedy || Time.time < nastSprawdz) return;
         nastSprawdz = Time.time + .3f;
         bool stop = BraxStrefyZatrzymania.CzyStop(transform.position, cel, true);
         if (!stop && seg >= 0 && seg < trasa.Length - 1) stop = AutoBlisko((trasa[seg] + trasa[seg + 1]) * .5f);
         if (stop) return; // czas oczekiwania nigdy nie unieważnia czerwonego światła
+        ZwolnijSlot(); slotCel = Vector3.zero;
         stan = Stan.Idzie; patrzCel = 0f;
         Graj(chod, .25f, predkosc / Mathf.Max(.3f, predkoscKlipu));
     }

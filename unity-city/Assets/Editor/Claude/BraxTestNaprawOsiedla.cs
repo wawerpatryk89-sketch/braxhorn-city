@@ -125,11 +125,15 @@ public static class BraxTestNaprawOsiedla
         Require(BraxGlosPostaci.Krzywa(1f) == 1f && BraxGlosPostaci.Krzywa(BraxGlosPostaci.Cisza + 1f) == 0f && BraxGlosPostaci.Krzywa(8f) > BraxGlosPostaci.Krzywa(12f) && BraxGlosPostaci.Krzywa(12f) > 0f, "głośność: wyraźnie blisko, płynnie ciszej, cisza dalej");
         BraxGlosPostaci.Ustawienia(BraxGlosPostaci.Rodzaj.Mijanie, false, out _, out float gm); BraxGlosPostaci.Ustawienia(BraxGlosPostaci.Rodzaj.Tlo, false, out _, out float gt); BraxGlosPostaci.Ustawienia(BraxGlosPostaci.Rodzaj.Rozmowa, false, out _, out float gr);
         Require(gr > gm && gm > gt, "rozmowa głośniej niż mijanie, mijanie głośniej niż tło");
+        // E16: miejsca oczekiwania przy zebrze — odstęp ≥ 0.6 m × K, wszystkie ≥ 0.3 m × K od krawędzi jezdni (na chodniku)
+        var sl = new List<Vector3>(); for (int k = 0; k < BraxPieszy.SlotyWRzedzie * BraxPieszy.SlotyRzedy; k++) sl.Add(BraxPieszy.SlotPozycja(k, Vector3.zero, Vector3.forward, Vector3.right));
+        float minOdl = float.MaxValue; for (int a = 0; a < sl.Count; a++) { Require(sl[a].z <= -BraxPieszy.SlotKrawedz + 1e-4f, "slot na chodniku"); for (int b = a + 1; b < sl.Count; b++) minOdl = Mathf.Min(minOdl, Vector3.Distance(sl[a], sl[b])); }
+        Require(minOdl >= .6f * 1.294f - 1e-3f, "sloty przy zebrze co ≥ 0.6 m × K (min " + minOdl.ToString("F2") + ")");
         // E22: kamera za plecami — martwa strefa, ograniczona prędkość, zbieżność, przejście przez ±180°
         Require(BraxGymPlayer.KrokZaPlecy(0f, 3f, 1f / 60f) == 0f, "kamera: martwa strefa 4°");
         float yaw = 0f; for (int i = 0; i < 120; i++) { float prev = yaw; yaw = BraxGymPlayer.KrokZaPlecy(yaw, 90f, 1f / 60f); Require(yaw - prev <= BraxGymPlayer.ZaPlecamiMaks / 60f + 1e-4f, "kamera: maks. 220°/s"); }
         Require(Mathf.Abs(90f - yaw) <= BraxGymPlayer.ZaPlecamiMartwa + .01f, "kamera: wraca za plecy w ~2 s");
         Require(BraxGymPlayer.KrokZaPlecy(170f, -170f, 1f / 60f) > 170f, "kamera: najkrótsza droga przez 180°");
-        Debug.Log("BRAXHORN_REGRESJA build45: PASS (ślizg auta, skręt, próby kabiny, rodzaj kabiny, mapa dachu, poza w aucie, głos, fontanna, Ogg, odejmowanie trójkątów, kamera za plecami, kto zagaduje, krzywa głosu)");
+        Debug.Log("BRAXHORN_REGRESJA build45: PASS (ślizg auta, skręt, próby kabiny, rodzaj kabiny, mapa dachu, poza w aucie, głos, fontanna, Ogg, odejmowanie trójkątów, kamera za plecami, kto zagaduje, krzywa głosu, sloty przy zebrze)");
     }
 }
