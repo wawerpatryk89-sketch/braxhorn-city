@@ -232,7 +232,7 @@ public static class BraxCityRebuild
         BraxClaudeGround.SourceCity=original;BraxClaudeGround.SourcePhysics=physics;
         if(Environment.GetEnvironmentVariable("BRAX_HARBOR_BEACH_SOURCE_READY")=="1" ||
            System.IO.File.Exists("Assets/Source/HarborBeach/ENABLE_TEST_BUILD.txt"))
-            BraxHarborBeachBuild.Apply(root);
+            { try { BraxHarborBeachBuild.Apply(root); } catch (Exception e) { Debug.LogError("BRAXHORN_NABRZEZE DO POPRAWKI: " + e); } }   // 2.11: błąd nabrzeża nie przerywa sceny
         // Prawdziwa trawa w całym mieście (tylko testowy build Claude).
         BraxClaudeGround.ReplaceGrass(root);
         BraxClaudeTrees.Apply(root);

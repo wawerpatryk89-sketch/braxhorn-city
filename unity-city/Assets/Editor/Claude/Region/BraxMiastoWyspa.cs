@@ -1231,7 +1231,7 @@ internal static class BraxMiastoWyspa
                 if (Vector2.Distance(new Vector2(px, pz), Plac) < PlacR + 3f) continue;
                 if (Mathf.Abs(pz - Plac.y) < 4f && px < Plac.x) continue;                 // deptak
                 if (Zajete(CX + px, CZ + pz, 1.0f)) continue;                               // leżaki, parasole, ratownicy, prysznice
-                float gest = h < 6f ? .5f : .2f; if (rng.NextDouble() > gest) continue;
+                float gest = h < 6f ? .3f : .12f;   // 2.11 recenzja: budżet telefonu (było .5/.2 → ~1000 rendererów palm) if (rng.NextDouble() > gest) continue;
                 float hx = H(px + 1, pz) - H(px - 1, pz), hz = H(px, pz + 1) - H(px, pz - 1); if (Mathf.Sqrt(hx * hx + hz * hz) * .5f > .6f) continue;
                 var o = odmiany[rng.Next(odmiany.Count)];
                 var g = new GameObject("Palma"); g.transform.SetParent(zr, false);
@@ -1310,6 +1310,7 @@ internal static class BraxMiastoWyspa
             if (!skala && h < 3f) continue;
             if (BraxRegion.Put(zr, list[rng.Next(list.Count)], skala ? "Wyspa: skała" : "Wyspa: krzew", new Vector3(CX + x, W + h - (skala ? .3f : .05f), CZ + zz), (float)rng.NextDouble() * 360f, .8f + (float)rng.NextDouble() * .6f, skala, skala ? 2.5f : 1.6f * K)) n++;
         }
+        foreach (var rr in zr.GetComponentsInChildren<Renderer>(true)) rr.shadowCastingMode = ShadowCastingMode.Off;   // 2.11 recenzja: krzewy i skały bez cieni (telefon)
         return n;
     }
 

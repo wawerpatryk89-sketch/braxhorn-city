@@ -200,9 +200,25 @@ public sealed class BraxVessel : MonoBehaviour
         }
     }
 
+    void Zwolnij()
+    {
+        var p = rider; rider = null; speed = 0; side = 0;
+        home = transform.position; baseYaw = transform.eulerAngles.y;
+        if (!p) return;
+        BraxPose.Get(p).Set(BraxPose.Mode.None, null);
+        if (p.transform.parent == transform) p.transform.SetParent(null, true);
+        if (riderScene.IsValid() && riderScene.isLoaded && p.gameObject.scene != riderScene)
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(p.gameObject, riderScene);
+        if (p.body) p.body.enabled = true;
+        if (p.vessel == this) p.vessel = null;
+        Debug.Log("BRAXHORN_LODZ zwolniona bez zejścia (reset/podróż): " + label);
+    }
+
     /// <summary>Zacumowany pojazd lekko kołysze się na fali.</summary>
     void Update()
     {
+        // 2.11 recenzja: reset albo szybka podróż w trakcie rejsu odpinają gracza bez zejścia — zwolnij łódź i pozę
+        if (rider && (rider.vessel != this || (rider.transform.position - transform.position).sqrMagnitude > 1600f)) Zwolnij();
         if (rider) return;
         if (speed != 0) speed = 0;
         Fale(0, false);
