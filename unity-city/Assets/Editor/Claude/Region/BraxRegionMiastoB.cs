@@ -43,24 +43,56 @@ public static class BraxRegionMiastoB
     static int drzewa, latarnie, zebry, sygnalizatory;
     public static readonly List<Vector3> SkrzyzowaniaZeSwiatlami = new List<Vector3>();
 
+    // wyposażenie odłożone do etapu 3 (stawiane na gotowej nawierzchni) i rejestr kolizji nawierzchni (do pomiaru wysokości)
+    static readonly List<(string co, Action a)> wyposazenie = new List<(string, Action)>();
+    static readonly HashSet<Collider> nawierzchnie = new HashSet<Collider>();
+    static void Pozniej(string co, Action a) => wyposazenie.Add((co, a));
+    static void Nawierzchnia(GameObject g) { if (g) foreach (var c in g.GetComponentsInChildren<Collider>(true)) nawierzchnie.Add(c); }
+    static void Nawierzchnia(Collider c) { if (c) nawierzchnie.Add(c); }
+    // wysokość gotowej nawierzchni pod punktem (najwyższa trafiona nawierzchnia z rejestru); brak = wartość domyślna (i log)
+    static int bezPodloza;
+    static float Podloze(float x, float z, float dom)
+    {
+        float best = float.NegativeInfinity;
+        foreach (var h in Physics.RaycastAll(new Vector3(x, 60f, z), Vector3.down, 70f, ~0, QueryTriggerInteraction.Ignore))
+            if (nawierzchnie.Contains(h.collider) && h.point.y > best) best = h.point.y;
+        if (float.IsNegativeInfinity(best)) { bezPodloza++; if (bezPodloza <= 6) Debug.LogWarning("BRAXHORN_MIASTO_B brak nawierzchni pod (" + x.ToString("0.0") + ", " + z.ToString("0.0") + ") — wysokość domyślna " + dom); return dom; }
+        return best;
+    }
+    static Vector3 NaPodlozu(Vector3 p) { p.y = Podloze(p.x, p.z, p.y); return p; }
+    static void Wyposazenie()
+    {
+        Physics.SyncTransforms();
+        int ok = 0;
+        foreach (var (co, a) in wyposazenie) { try { a(); ok++; } catch (Exception e) { Debug.LogError("BRAXHORN_MIASTO_B wyposażenie " + co + ": " + e); } }
+        BraxRegion.Note("miasto B: wyposażenie na podłożu " + ok + "/" + wyposazenie.Count + ", bez nawierzchni pod spodem: " + bezPodloza);
+        wyposazenie.Clear();
+    }
+
     public static void Apply(BraxCityWorld world, Transform cityRoot)
     {
-        usuniete.Clear(); kroki.Clear(); SkrzyzowaniaZeSwiatlami.Clear(); asfalty.Clear(); drzewa = latarnie = zebry = sygnalizatory = 0; MigotaniePary = 0;
+        usuniete.Clear(); kroki.Clear(); SkrzyzowaniaZeSwiatlami.Clear(); asfalty.Clear(); wyposazenie.Clear(); nawierzchnie.Clear(); drzewa = latarnie = zebry = sygnalizatory = 0; MigotaniePary = 0;
         BraxRegionKamienica.Zeruj();
         root = BraxRegion.Root(cityRoot, "CLAUDE miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa");
         Krok("usunięcie wiaduktu, płotu końca ulicy i gruntu-lustra", () => UsunStare(cityRoot));
         Krok("materiały", Materialy);
-        Krok("rondo (pierścień, wyspa, chodniki)", Rondo);
-        Krok("Aleja Północna i pętla", AlejaPolnocna);
-        Krok("Aleja Południowa do tunelu", AlejaPoludniowa);
-        Krok("ul. Wiaduktowa (po wiadukcie) i ul. Warsztatowa", UliceBoczne);
-        Krok("teren między ulicami (trawniki, place, skwer)", Teren);
-        Krok("pierzeje alej (kamienice z detalami)", Pierzeje);
-        Krok("warsztaty (jeden otwarty) i plac ustawek", Warsztaty);
-        Krok("przystanek autobusowy", Przystanek);
-        Krok("wyjazd na osiedle: szlaban, znak, tunel w zboczu", WyjazdNaOsiedle);
-        Krok("sygnalizacja i oznakowanie", Oznakowanie);
-        Krok("rejestracja jezdni dla ruchu (RUCH_API)", RejestracjaRuchu);
+        // KOLEJNOŚĆ JAK NA BUDOWIE (właściciel 16:04): 1) teren i nawierzchnie (grunt → jezdnia → krawężnik → chodnik → oznakowanie
+        // w nawierzchni), 2) budynki, 3) wyposażenie ulicy (drzewa, latarnie, ławki, słupki, znaki, sygnalizacja, przystanek) —
+        // każdy element postawiony na GOTOWYM podłożu (wysokość z promienia w dół na nawierzchnię), 4) ruch (krok osobny, później).
+        Krok("1. nawierzchnie: rondo (pierścień, wyspa, chodniki)", Rondo);
+        Krok("1. nawierzchnie: Aleja Północna i pętla", AlejaPolnocna);
+        Krok("1. nawierzchnie: Aleja Południowa do tunelu", AlejaPoludniowa);
+        Krok("1. nawierzchnie: ul. Wiaduktowa i ul. Warsztatowa", UliceBoczne);
+        Krok("1. teren między ulicami (trawniki, place, skwer)", Teren);
+        Krok("1. jezdnie z oznakowaniem w wycięciach nawierzchni", PlanOznakowania);
+        Krok("2. budynki: pierzeje alej (kamienice z detalami)", Pierzeje);
+        Krok("2. budynki: warsztaty (jeden otwarty) i plac ustawek", Warsztaty);
+        Krok("2. budowle: portal tunelu i zbocze", WyjazdNaOsiedle);
+        Krok("3. wyposażenie na gotowym podłożu (drzewa, latarnie, ławki, słupki, rzeźba)", Wyposazenie);
+        Krok("3. sygnalizacja na wysięgnikach i znaki", Sygnalizacja);
+        Krok("3. przystanek autobusowy", Przystanek);
+        Krok("3. szlaban i znak OSIEDLE", SzlabanIZnak);
+        Krok("4. rejestracja jezdni dla ruchu (RUCH_API)", RejestracjaRuchu);
         BraxRegionKamienica.Raport();
         BraxRegion.Note("miasto B: " + string.Join("; ", kroki));
         Debug.Log("BRAXHORN_MIASTO_B_UKLAD rondo=(" + RX + "," + RZ + ") R=" + RJezdnia + " aleja_pn x=" + AX + " z " + (RZ + 13.8f).ToString("0.0") + "…" + PetlaZ +
@@ -201,7 +233,7 @@ public static class BraxRegionMiastoB
         if (x1 - x0 < .01f || z1 - z0 < .01f) return;
         var b = new BraxRegionMeble.Bud(); b.MinMax(new Vector3(x0, top - grub, z0), new Vector3(x1, top, z1));
         b.Obiekt(n, root, m, false, false);
-        if (kolizja) BraxRegionMeble.Kolizja(root, n + " kolizja", new Vector3((x0 + x1) * .5f, top - grub * .5f, (z0 + z1) * .5f), new Vector3(x1 - x0, grub, z1 - z0));
+        if (kolizja) Nawierzchnia(BraxRegionMeble.Kolizja(root, n + " kolizja", new Vector3((x0 + x1) * .5f, top - grub * .5f, (z0 + z1) * .5f), new Vector3(x1 - x0, grub, z1 - z0)));
     }
     // ASFALT Z OZNAKOWANIEM W WYCIĘCIACH (zasada 15:40 „nigdy nic nie nakładamy”): jezdnie są tylko rejestrowane, a na końcu
     // (BudujAsfalt) powstaje górna powierzchnia asfaltu z OTWORAMI w miejscach farby i farba dokładnie w tych otworach, na tej
@@ -244,7 +276,7 @@ public static class BraxRegionMiastoB
         bTop.Quad(P(a.xMax, y, a.yMax), P(a.xMin, y, a.yMax), P(a.xMin, y - grub, a.yMax), P(a.xMax, y - grub, a.yMax));
         bTop.Quad(P(a.xMin, y, a.yMax), P(a.xMin, y, a.yMin), P(a.xMin, y - grub, a.yMin), P(a.xMin, y - grub, a.yMax));
         bTop.Quad(P(a.xMax, y, a.yMin), P(a.xMax, y, a.yMax), P(a.xMax, y - grub, a.yMax), P(a.xMax, y - grub, a.yMin));
-        if (kolizja) BraxRegionMeble.Kolizja(root, n + " kolizja", new Vector3(a.center.x, y - grub * .5f, a.center.y), new Vector3(a.width, grub, a.height));
+        if (kolizja) Nawierzchnia(BraxRegionMeble.Kolizja(root, n + " kolizja", new Vector3(a.center.x, y - grub * .5f, a.center.y), new Vector3(a.width, grub, a.height)));
     }
 
     static void BudujAsfalt(Farba f)
@@ -299,7 +331,7 @@ public static class BraxRegionMiastoB
     static void Trawa(string n, float x0, float x1, float z0, float z1, bool laka = false)
     {
         if (x1 - x0 < .6f || z1 - z0 < .6f) return;
-        BraxRegionTrawa.Trawnik(root, n, Rect.MinMaxRect(x0, z0, x1, z1), YC - .03f, null, true, true, laka);
+        Nawierzchnia(BraxRegionTrawa.Trawnik(root, n, Rect.MinMaxRect(x0, z0, x1, z1), YC - .03f, null, true, true, laka));
         // pod trawnikiem ziemia (bez lustra pod spodem, kolizja trawnika jest płaska)
         Plyta("Podłoże trawnika: " + n, beton, x0, x1, z0, z1, YC - .06f, .3f, false);
     }
@@ -362,10 +394,10 @@ public static class BraxRegionMiastoB
         // wyspa: krawężnik (pierścień 0.25 m, wys. 0.15), trawnik (dysk 3 cm niżej), drzewo i rzeźba
         var kraw = new BraxRegionMeble.Bud(); Pierscien(kraw, c, RWyspa - Kr, RWyspa, YC, 64);
         kraw.Obiekt("Rondo: krawężnik wyspy", root, krawMat, false, false);
-        var trawa = Dysk("Rondo: trawnik wyspy", c, RWyspa - Kr, YC - .03f, 64);
+        var trawa = Dysk("Rondo: trawnik wyspy", c, RWyspa - Kr, YC - .03f, 64); Nawierzchnia(trawa);
         BraxRegionTrawa.Teren(trawa.GetComponent<MeshRenderer>(), true, false);
         Plyta("Rondo: podłoże wyspy", beton, RX - RWyspa, RX + RWyspa, RZ - RWyspa, RZ + RWyspa, YC - .06f, .3f, false);
-        Rzezba(new Vector3(RX, YC - .03f, RZ));
+        Pozniej("rzeźba", () => Rzezba(NaPodlozu(new Vector3(RX, YC - .03f, RZ))));
         foreach (var a in new[] { 40f, 160f, 280f }) { var p = c + new Vector2(Mathf.Cos(a * Mathf.Deg2Rad), Mathf.Sin(a * Mathf.Deg2Rad)) * 4.6f; Drzewo(new Vector3(p.x, YC - .03f, p.y)); }
         // latarnie na narożnikach placu
         foreach (var a in new[] { 45f, 135f, 225f, 315f })
@@ -417,8 +449,8 @@ public static class BraxRegionMiastoB
             if (gA.wlot) { float tr = Mathf.Sqrt(Mathf.Max(0f, R * R - (Mathf.Abs(oA) - Kr) * (Mathf.Abs(oA) - Kr))); KlinGora(kraw, c + dA * tr + nA * (oA - Mathf.Sign(oA) * Kr), c + dA * S + nA * (oA - Mathf.Sign(oA) * Kr), c + dA * S + nA * oA, c + dA * tA + nA * oA, YC); }
             if (gB.wlot) { float tr = Mathf.Sqrt(Mathf.Max(0f, R * R - (Mathf.Abs(oB) - Kr) * (Mathf.Abs(oB) - Kr))); KlinGora(kraw, c + dB * tB + nB * oB, c + dB * S + nB * oB, c + dB * S + nB * (oB - Mathf.Sign(oB) * Kr), c + dB * tr + nB * (oB - Mathf.Sign(oB) * Kr), YC); }
         }
-        var gp = plyta.Obiekt("Plac: chodnik " + n, root, plyty, true, false);
-        kraw.Obiekt("Plac: krawężnik " + n, root, krawMat, true, false);
+        Nawierzchnia(plyta.Obiekt("Plac: chodnik " + n, root, plyty, true, false));
+        Nawierzchnia(kraw.Obiekt("Plac: krawężnik " + n, root, krawMat, true, false));
     }
 
     static Vector2 Kier(float stopnie) => new Vector2(Mathf.Cos(stopnie * Mathf.Deg2Rad), Mathf.Sin(stopnie * Mathf.Deg2Rad));
@@ -497,7 +529,7 @@ public static class BraxRegionMiastoB
         Asfalt("pętla PÓŁNOC", AX - PetlaPlac, AX + PetlaPlac, PetlaZ - PetlaPlac, PetlaZ + PetlaPlac);
         PlacZPierscieniem("pętla PÓŁNOC", c, PetlaR, PetlaPlac, new[] { 270f }, AH);
         var kraw = new BraxRegionMeble.Bud(); Pierscien(kraw, c, PetlaWyspa - Kr, PetlaWyspa, YC, 48); kraw.Obiekt("Pętla: krawężnik wyspy", root, krawMat, false, false);
-        var tr = Dysk("Pętla: trawnik wyspy", c, PetlaWyspa - Kr, YC - .03f, 48); BraxRegionTrawa.Teren(tr.GetComponent<MeshRenderer>(), true, false);
+        var tr = Dysk("Pętla: trawnik wyspy", c, PetlaWyspa - Kr, YC - .03f, 48); Nawierzchnia(tr); BraxRegionTrawa.Teren(tr.GetComponent<MeshRenderer>(), true, false);
         Plyta("Pętla: podłoże wyspy", beton, AX - PetlaWyspa, AX + PetlaWyspa, PetlaZ - PetlaWyspa, PetlaZ + PetlaWyspa, YC - .06f, .3f, false);
         Drzewo(new Vector3(AX, YC - .03f, PetlaZ));
         // chodniki wzdłuż pierzei poza przekrojem między placem a pętlą: pierzeje stoją od lica
@@ -511,6 +543,7 @@ public static class BraxRegionMiastoB
         float zW0 = SZ - SH - Kr - 2.5f, zW1 = SZ + SH + Kr + 2.5f;   // wylot ul. Warsztatowej z chodnikami: −24.75 … −13.25
         // od ronda do Warsztatowej (z −13.25 … 6.5) i od Warsztatowej do tunelu (z −84 … −24.75)
         PrzekrojZ("Aleja Południowa", AX, AH, Ziel, Chod, zW1, z1, true, (z1 - 6f, z1), (zW1, zW1 + 4.5f));
+        Asfalt("tunel", AX - 5.6f, AX + 5.6f, AS1 - 20f, AS1);   // jezdnia w tunelu (portal i ściany: etap 2)
         PrzekrojZ("Aleja Południowa (do tunelu)", AX, AH, Ziel, Chod, AS1, zW0, true, (zW0 - 6f, zW0), (AS1, AS1 + 14f), (PrzystanekZ - 10f, PrzystanekZ + 6f));
         // skrzyżowanie z Warsztatową: jezdnia alei przez wylot, krawężniki po zachodniej stronie, po wschodniej wylot ulicy
         Asfalt("Aleja Południowa × Warsztatowa", AX - AH, AX + AH, zW0, zW1);
@@ -552,9 +585,12 @@ public static class BraxRegionMiastoB
         Chodnik("ul. Warsztatowa pn. (wsch.)", WX + WH + Kr, SX1 + Kr, SZ + SH + Kr, SZ + SH + Kr + 2.5f);
         // koniec Warsztatowej: krawężnik poprzeczny i plac z granitu do placu wieżowców (x −61.4 … −58)
         Kraweznik(SX1, SX1 + Kr, SZ - SH, SZ + SH);   // krawężnik poprzeczny na końcu jezdni; dalej plac wieżowców (BraxRegionTylyB, od x −61.15)
-        var sl = new BraxRegionMeble.Bud();
-        for (float z = SZ - SH + .6f; z <= SZ + SH - .5f; z += 1.5f) BraxRegionMeble.Slupek(root, sl, new Vector3(SX1 + 1.0f, YC, z));
-        sl.Obiekt("Słupki blokujące wjazd na plac", root, stal, false, true);
+        Pozniej("słupki", () =>
+        {
+            var sl = new BraxRegionMeble.Bud();
+            for (float z = SZ - SH + .6f; z <= SZ + SH - .5f; z += 1.5f) BraxRegionMeble.Slupek(root, sl, NaPodlozu(new Vector3(SX1 + 1.0f, YC, z)));
+            sl.Obiekt("Słupki blokujące wjazd na plac", root, stal, false, true);
+        });
     }
 
     // =====================================================================================================================
@@ -588,11 +624,12 @@ public static class BraxRegionMiastoB
         for (float z = 54f; z < 120f; z += 12f) { Drzewo(new Vector3(-75f, YC - .03f, z)); Drzewo(new Vector3(-57f, YC - .03f, z + 6f)); }
         for (float z = 60f; z < 118f; z += 24f)
         {
-            BraxRegionMeble.Lawka(root, new Vector3(-70.95f - .45f * K, YC - .03f, z), 90f);
-            BraxRegionMeble.Lawka(root, new Vector3(-61.45f + .45f * K, YC - .03f, z + 12f), -90f);
-            BraxRegionMeble.Kosz(root, new Vector3(-70.95f - .3f * K, YC - .03f, z + 2.2f * K), 90f);
+            float zz = z;
+            Pozniej("ławka", () => BraxRegionMeble.Lawka(root, NaPodlozu(new Vector3(-70.95f - .45f * K, YC - .03f, zz)), 90f));
+            Pozniej("ławka", () => BraxRegionMeble.Lawka(root, NaPodlozu(new Vector3(-61.45f + .45f * K, YC - .03f, zz + 12f)), -90f));
+            Pozniej("kosz", () => BraxRegionMeble.Kosz(root, NaPodlozu(new Vector3(-70.95f - .3f * K, YC - .03f, zz + 2.2f * K)), 90f));
         }
-        for (float z = 66f; z < 118f; z += 26f) { BraxRegionMeble.Latarnia(root, new Vector3(-61.45f - .5f, YC, z)); latarnie++; }
+        for (float z = 66f; z < 118f; z += 26f) { float zz = z; Pozniej("latarnia parkowa", () => { BraxRegionMeble.Latarnia(root, NaPodlozu(new Vector3(-61.45f - .5f, YC, zz))); latarnie++; }); }
     }
 
     // =====================================================================================================================
@@ -736,10 +773,10 @@ public static class BraxRegionMiastoB
         var linie = new List<Rect> { Rect.MinMaxRect(px0 + 1f, pz0 + 1f, px1 - 1f, pz0 + 1.08f), Rect.MinMaxRect(px0 + 1f, pz1 - 1.08f, px1 - 1f, pz1 - 1f),
                                      Rect.MinMaxRect(px0 + 1f, pz0 + 1f, px0 + 1.08f, pz1 - 1f), Rect.MinMaxRect(px1 - 1.08f, pz0 + 1f, px1 - 1f, pz1 - 1f) };
         var pt = new BraxRegionMeble.Bud(); var pl = new BraxRegionMeble.Bud();
-        Wstawki("Plac ustawek", Rect.MinMaxRect(px0, pz0, px1, pz1), YC, linie, asfalt, farba, pt, pl, .3f - YA);
+        Wstawki("Plac ustawek", Rect.MinMaxRect(px0, pz0, px1, pz1), YC, linie, asfalt, farba, pt, pl, .3f - YA);   // nawierzchnia przed ławkami (ławki: etap 3)
         pt.Obiekt("Plac ustawek: nawierzchnia (asfalt)", root, asfalt, false, false);
         pl.Obiekt("Plac ustawek: linie (farba w wycięciach)", root, farba, false, false);
-        for (float x = px0 + 3f; x < px1 - 2f; x += 6.5f) BraxRegionMeble.Lawka(root, new Vector3(x, YC, pz1 + .1f + .3f * K), 180f, "Ławka kibiców");
+        for (float x = px0 + 3f; x < px1 - 2f; x += 6.5f) { float xx = x; Pozniej("ławka kibiców", () => BraxRegionMeble.Lawka(root, NaPodlozu(new Vector3(xx, YC, pz1 + .1f + .3f * K)), 180f, "Ławka kibiców")); }
         world_point("R1_PLAC_USTAWEK", "plac ustawek 3 na 3", new Vector3((px0 + px1) * .5f, YC, (pz0 + pz1) * .5f));
     }
 
@@ -801,11 +838,12 @@ public static class BraxRegionMiastoB
 
     // =====================================================================================================================
     // 8) wyjazd na osiedle: znak kierunku, szlaban z budką, portal tunelu w zboczu (wzgórze = teren za granicą, portal tutaj)
-    static void WyjazdNaOsiedle()
+    static void SzlabanIZnak()
     {
-        var g = new GameObject("Wyjazd na osiedle (szlaban, znak OSIEDLE, tunel)").transform; g.SetParent(root, false);
+        Physics.SyncTransforms();
+        var g = new GameObject("Wyjazd na osiedle: szlaban i znak OSIEDLE").transform; g.SetParent(root, false);
         // znak drogowskazowy E-2 (niebieski) „OSIEDLE ↓” na chodniku wsch. przy z −58
-        var sl = new BraxRegionMeble.Bud(); var p0 = new Vector3(AX + AH + Kr + .6f, YC, -58f);
+        var sl = new BraxRegionMeble.Bud(); var p0 = NaPodlozu(new Vector3(AX + AH + Kr + .6f, YC, -58f));
         sl.Cyl(p0, p0 + Vector3.up * 3.2f * K, .04f * K, 10);
         sl.Obiekt("Znak OSIEDLE: słup", g, stal, false, true);
         var tb = new BraxRegionMeble.Bud(); tb.MinMax(p0 + new Vector3(-1.5f * K, 2.3f * K, -.03f), p0 + new Vector3(.2f * K, 3.1f * K, .03f));
@@ -815,11 +853,11 @@ public static class BraxRegionMiastoB
         // szlaban z budką przy z −72 (ramię w poprzek jezdni, biało-czerwone)
         float zs = -72f;
         var bud = new BraxRegionMeble.Bud(); var ram = new BraxRegionMeble.Bud(); var czer = new BraxRegionMeble.Bud();
-        var bp = new Vector3(AX + AH + Kr + 1.4f * K, YC, zs);
+        var bp = NaPodlozu(new Vector3(AX + AH + Kr + 1.4f * K, YC, zs));
         bud.MinMax(bp + new Vector3(-.8f * K, 0, -1.0f * K), bp + new Vector3(.8f * K, 2.6f * K, 1.0f * K));
         bud.Obiekt("Szlaban: budka strażnika", g, BraxRegionKamienica.Tynk().sciana, false, true);
         BraxRegionMeble.Kolizja(g, "Budka kolizja", bp + Vector3.up * 1.3f * K, new Vector3(1.6f * K, 2.6f * K, 2.0f * K));
-        var pod = new Vector3(AX + AH + .5f, YA, zs);
+        var pod = NaPodlozu(new Vector3(AX + AH + .5f, YA, zs));
         ram.MinMax(pod + new Vector3(-.25f, 0, -.25f), pod + new Vector3(.25f, 1.05f * K, .25f));
         for (int i = 0; i < 8; i++)
         {
@@ -830,6 +868,11 @@ public static class BraxRegionMiastoB
         czer.Obiekt("Szlaban: ramię (czerwień)", g, BraxCityMaterials.Surface("Szlaban: czerwień", new Color(.75f, .06f, .05f), .4f), false, true);
         BraxRegionMeble.Kolizja(g, "Szlaban kolizja (zamknięty — osiedle w osobnej paczce)", new Vector3(AX, .6f, zs), new Vector3(AH * 2f, 1.2f, .3f));
         BraxRegionMeble.Napis(g, "OSIEDLE — WJAZD ZAMKNIĘTY", new Vector3(AX, 1.45f * K, zs + .1f), Vector3.forward, .18f * K, new Color(.95f, .9f, .2f));
+    }
+
+    static void WyjazdNaOsiedle()
+    {
+        var g = new GameObject("Wyjazd na osiedle: portal tunelu i zbocze").transform; g.SetParent(root, false);
         // portal tunelu (lico z = AS1): kamienny mur z łukiem, nadproże, czarne wnętrze 18 m z jezdnią, ściany zbocza
         var kam = BraxRegionMeble.Tex("Tunel: kamień portalu", 1.2f, new Color(.78f, .76f, .72f), .9f, "rough_block_wall", "white_sandstone_blocks_02", "rock_boulder_dry");
         var mur = new BraxRegionMeble.Bud();
@@ -848,7 +891,6 @@ public static class BraxRegionMiastoB
         tun.MinMax(new Vector3(AX - W * .5f, Hs, zp - 20f), new Vector3(AX + W * .5f, Hs + .4f, zp - 1.4f));
         tun.MinMax(new Vector3(AX - W * .5f, -.3f, zp - 20.4f), new Vector3(AX + W * .5f, Hs, zp - 20f));
         tun.Obiekt("Tunel: wnętrze", g, ciemny, false, false);
-        Asfalt("tunel", AX - W * .5f + .4f, AX + W * .5f - .4f, zp - 20f, zp);
         BraxRegionMeble.Kolizja(g, "Tunel kolizja koniec", new Vector3(AX, 3f, zp - 19f), new Vector3(W, 6f, .6f));
         var opr = new BraxRegionMeble.Bud(); for (float z = zp - 3f; z > zp - 19f; z -= 4f) opr.MinMax(new Vector3(AX - .6f, Hs - .12f, z - .4f), new Vector3(AX + .6f, Hs - .02f, z + .4f));
         opr.Obiekt("Tunel: oprawy", g, BraxRegionMeble.Swiecacy("Tunel: oprawa sodowa", new Color(1f, .78f, .45f), .9f), false, false);
@@ -898,7 +940,7 @@ public static class BraxRegionMiastoB
     static Material czW, czO, zoW, zoO, ziW, ziO, czarny, tarcza;
     sealed class Sz { public BraxRegionMeble.Bud czA = new BraxRegionMeble.Bud(), zoA = new BraxRegionMeble.Bud(), ziA = new BraxRegionMeble.Bud(), czB = new BraxRegionMeble.Bud(), zoB = new BraxRegionMeble.Bud(), ziB = new BraxRegionMeble.Bud(), pCz = new BraxRegionMeble.Bud(), pZi = new BraxRegionMeble.Bud(), obud = new BraxRegionMeble.Bud(), slup = new BraxRegionMeble.Bud(), biel = new BraxRegionMeble.Bud(), zolty = new BraxRegionMeble.Bud(); }
 
-    static void Oznakowanie()
+    static void PlanOznakowania()
     {
         czW = BraxRegionMeble.Swiecacy("Sygnalizator: czerwone (świeci)", new Color(1f, .07f, .04f), 2.2f); czO = BraxCityMaterials.Surface("Sygnalizator: czerwone (zgaszone)", new Color(.22f, .03f, .02f), .2f);
         zoW = BraxRegionMeble.Swiecacy("Sygnalizator: żółte (świeci)", new Color(1f, .6f, .04f), 2.2f); zoO = BraxCityMaterials.Surface("Sygnalizator: żółte (zgaszone)", new Color(.22f, .14f, .02f), .2f);
@@ -907,15 +949,14 @@ public static class BraxRegionMiastoB
         tarcza = BraxCityMaterials.Surface("Sygnalizator: obwódka tarczy biała", new Color(.9f, .9f, .88f), .5f);
         var farbaB = new Farba();
         // J1: ulica główna × ul. Wiaduktowa (T: E, W, S) — oś A = x (główna), oś B = z (Wiaduktowa)
-        SkrzyzowanieT(farbaB, new Vector3(WX, YA, GZ), GH, WH, new[] { (Vector3.right, GH, 3.1f), (Vector3.left, GH, 3.1f), (Vector3.back, WH, 1.6f) }, 0f);
+        SkrzyzowanieT(farbaB, new Vector3(WX, YA, GZ), GH, WH, J1, 0f);
         // J2: Aleja Płd. × ul. Warsztatowa (T: N, S, E) — oś A = x (Warsztatowa), oś B = z (aleja)
-        SkrzyzowanieT(farbaB, new Vector3(AX, YA, SZ), SH, AH, new[] { (Vector3.forward, AH, Chod), (Vector3.back, AH, Chod), (Vector3.right, SH, 2.5f) }, 20f);
+        SkrzyzowanieT(farbaB, new Vector3(AX, YA, SZ), SH, AH, J2, 20f);
         // zebry na wlotach ronda (bez świateł, D-6 + A-7 + C-12) — 6 m od krawędzi placu
         foreach (var (dir, hj) in new[] { (Vector3.right, GH), (Vector3.forward, AH), (Vector3.back, AH) })
         {
             var c = new Vector3(RX, YA, RZ) + dir * (RPlac + 3f);
             Zebra(farbaB, c, dir, hj);
-            ZnakRonda(c - Vector3.Cross(Vector3.up, dir) * (hj + Kr + .5f) + dir * 4f, dir);   // po prawej wjeżdżających, lico do nich
         }
         // oś ulicy głównej przed J1: linia ciągła 15 m po obu stronach (zamiast usuniętych kresek), dalej przerywana do ronda
         foreach (float sg in new[] { -1f, 1f })
@@ -926,6 +967,22 @@ public static class BraxRegionMiastoB
         for (float z = RZ - RPlac - 10f; z > SZ + SH + 18f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
         for (float z = SZ - SH - 18f; z > AS1 + 16f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
         BudujAsfalt(farbaB);
+    }
+
+    static readonly (Vector3 dir, float hj, float chod)[] J1 = { (Vector3.right, GH, 3.1f), (Vector3.left, GH, 3.1f), (Vector3.back, WH, 1.6f) };
+    static readonly (Vector3 dir, float hj, float chod)[] J2 = { (Vector3.forward, AH, Chod), (Vector3.back, AH, Chod), (Vector3.right, SH, 2.5f) };
+
+    // etap 3: sprzęt sygnalizacji (słupy na gotowym chodniku) i znaki ronda
+    static void Sygnalizacja()
+    {
+        Physics.SyncTransforms();
+        SkrzyzowanieT(null, new Vector3(WX, YA, GZ), GH, WH, J1, 0f);
+        SkrzyzowanieT(null, new Vector3(AX, YA, SZ), SH, AH, J2, 20f);
+        foreach (var (dir, hj) in new[] { (Vector3.right, GH), (Vector3.forward, AH), (Vector3.back, AH) })
+        {
+            var c = new Vector3(RX, YA, RZ) + dir * (RPlac + 3f);
+            ZnakRonda(NaPodlozu(c - Vector3.Cross(Vector3.up, dir) * (hj + Kr + .5f) + dir * 4f + Vector3.up * YC), dir);   // po prawej wjeżdżających, lico do nich
+        }
     }
 
     static void Zebra(Farba f, Vector3 c, Vector3 dir, float hj)
@@ -941,8 +998,23 @@ public static class BraxRegionMiastoB
     }
 
     // skrzyżowanie typu T z sygnalizacją: wloty (kierunek OD środka, połowa jezdni wlotu, szerokość chodnika)
+    // f != null: TYLKO oznakowanie (zebry, linie zatrzymania) — etap 1, przed budową asfaltu (farba w wycięciach);
+    // f == null: TYLKO sprzęt (słupy z wysięgnikami, sygnalizatory, przyciski, sterowanie) — etap 3, na gotowym chodniku.
     static void SkrzyzowanieT(Farba f, Vector3 c, float hjX, float hjZ, (Vector3 dir, float hj, float chod)[] wloty, float przes)
     {
+        if (f != null)
+        {
+            foreach (var (dir, hj, chod) in wloty)
+            {
+                var R = Vector3.Cross(Vector3.up, dir).normalized;
+                float poprzeczna = Mathf.Abs(dir.x) > .5f ? hjZ : hjX;
+                float zebraOd = poprzeczna + Kr + .6f, zebraW = 4f * K, stop = zebraOd + zebraW + 1.0f;
+                Zebra(f, c + dir * (zebraOd + zebraW * .5f), dir, hj);
+                var s0 = c + dir * stop - R * .05f; var s1 = c + dir * (stop + .5f) - R * (hj - .1f);
+                f.MinMax(s0, s1);
+            }
+            return;
+        }
         var sz = new Sz();
         var stopS = new List<Vector3>(); var stopK = new List<Vector3>(); var stopO = new List<int>();
         var pS = new List<Vector3>(); var pK = new List<Vector3>();
@@ -954,14 +1026,10 @@ public static class BraxRegionMiastoB
             float zebraOd = poprzeczna + Kr + .6f, zebraW = 4f * K, stop = zebraOd + zebraW + 1.0f;
             int os = Mathf.Abs(dir.x) > .5f ? 0 : 1;
             var zc = c + dir * (zebraOd + zebraW * .5f);
-            Zebra(f, zc, dir, hj);
-            // linia zatrzymania (0.5 m) na pasie wjazdowym (strona −R)
-            var s0 = c + dir * stop - R * .05f; var s1 = c + dir * (stop + .5f) - R * (hj - .1f);
-            f.MinMax(new Vector3(Mathf.Min(s0.x, s1.x), YA + .02f, Mathf.Min(s0.z, s1.z)), new Vector3(Mathf.Max(s0.x, s1.x), YA + .021f, Mathf.Max(s0.z, s1.z)));
-            // słup z wysięgnikiem po prawej stronie wjeżdżających (−R), tuż za linią zatrzymania (na chodniku)
-            var baza = c + dir * (stop + .8f) - R * (hj + Kr + .6f); baza.y = YC;
+            // słup z wysięgnikiem po prawej stronie wjeżdżających (−R), tuż za linią zatrzymania (na gotowym chodniku)
+            var baza = c + dir * (stop + .8f) - R * (hj + Kr + .6f); baza.y = Podloze(baza.x, baza.z, YC);
             Slup(sz, baza, 6.3f * K, .09f);
-            var koniec = c + dir * (stop + .8f) - R * (hj * .5f); koniec.y = YC + 6.0f * K;
+            var koniec = c + dir * (stop + .8f) - R * (hj * .5f); koniec.y = baza.y + 6.0f * K;
             sz.slup.Cyl(baza + Vector3.up * 6.0f * K, koniec, .055f, 10);
             sz.slup.Cyl(baza + Vector3.up * 5.2f * K, Vector3.Lerp(baza + Vector3.up * 6.0f * K, koniec, .45f), .03f, 8);
             Glowica(sz, koniec - Vector3.up * (.62f * K + .06f), dir, os);
@@ -971,7 +1039,7 @@ public static class BraxRegionMiastoB
             // sygnalizatory dla pieszych na obu końcach zebry
             foreach (int sd in new[] { 1, -1 })
             {
-                var pole = c + dir * (zebraOd - .35f) + R * sd * (hj + Kr + .45f); pole.y = YC;
+                var pole = c + dir * (zebraOd - .35f) + R * sd * (hj + Kr + .45f); pole.y = Podloze(pole.x, pole.z, YC);
                 Slup(sz, pole, 3.0f * K, .06f);
                 var fwd = -R * sd;
                 GlowicaPiesi(sz, pole + fwd * (.09f + .2f * K) + Vector3.up * 2.45f * K, fwd);
@@ -1070,7 +1138,8 @@ public static class BraxRegionMiastoB
 
     // =====================================================================================================================
     // drzewa i latarnie
-    static void Drzewo(Vector3 p)
+    static void Drzewo(Vector3 p) => Pozniej("drzewo", () => DrzewoTeraz(NaPodlozu(p)));
+    static void DrzewoTeraz(Vector3 p)
     {
         var src = BraxRegion.Model("drzewo_verdant");
         if (!src) return;
@@ -1083,9 +1152,10 @@ public static class BraxRegionMiastoB
     }
 
     // latarnia uliczna z wysięgnikiem: słup 8 m × k, wysięgnik nad jezdnię (dir), oprawa LED (nie świeci w dzień)
-    static void Latarnia(Vector3 p, Vector3 dir, float wysieg)
+    static void Latarnia(Vector3 p, Vector3 dir, float wysieg) => Pozniej("latarnia", () => LatarniaTeraz(NaPodlozu(p), dir, wysieg));
+    static void LatarniaTeraz(Vector3 p, Vector3 dir, float wysieg)
     {
-        dir.y = 0; dir.Normalize(); p.y = Mathf.Max(p.y, YC - .03f);
+        dir.y = 0; dir.Normalize();
         var g = new GameObject("Latarnia uliczna"); g.transform.SetParent(root, false);
         var b = new BraxRegionMeble.Bud(); float h = 8f * K;
         b.Cyl(p, p + Vector3.up * .6f * K, .14f * K, 14, .11f * K);

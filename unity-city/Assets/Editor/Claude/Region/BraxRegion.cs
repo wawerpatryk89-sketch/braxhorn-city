@@ -53,6 +53,8 @@ public static class BraxRegion
         // Tyły od nowa (B, 2.11): plac wieżowców, park, nabrzeże, wieżowce A/B z lobby, windą i piętrami użytkowymi (zastępuje BraxRegionBackyard).
         Step("tyły B: plac wieżowców, park, nabrzeże, wieżowce A i B (lobby, winda, piętra użytkowe)", () => BraxRegionTylyB.Apply(world, root));
         Step("taras wieżowca: kwiaty i rośliny", () => BraxRegionTerrace.Apply(root));
+        // BRAXHORN TOWER przy ulicy (B, 2.11 16:00): stare lobby/winda/taras zdjęte, nowe lobby, winda BraxWinda, apartament, taras.
+        Step("Tower przy ulicy (B): lobby, drzwi automatyczne, winda, apartament, taras na dachu", () => BraxRegionTylyB.TowerQuay(world, root));
         Step("wnętrza: Nutrition i NOVA", () => BraxRegionInteriors.Apply(root));
         Step("interior mapping: pokoje za oknami budynków nieużytkowych", () => BraxRegionInteriorMap.Apply(root));
         Step("elewacje ulicy: prawdziwe okna, gzymsy, obraz w lobby", () => BraxRegionFacades.Apply(root));
