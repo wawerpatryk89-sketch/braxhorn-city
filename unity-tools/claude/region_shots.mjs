@@ -220,6 +220,7 @@ const VIEWS = [
   ['DETAL_wyspa_kibice_rzedy', '1164,4.5,30,0,10,4'],
   ['WYSPA_plaza_ludzie', '1170,1,-60,225,12,18'],
   ['WYSPA_zielen_drzewa', '1215,14,40,90,25,12'],
+  ['DETAL_wyspa_arena_wc_wejscie', '1150,1.6,36.5,90,10,5'],
   ['DETAL_wyspa_palma_lisc', '1062,3,42,270,20,4'],
   // pkt 46: mieszkanie Braxa nad NOVA (brama, klatka, przedpokój, salon z aneksem, łazienka, sypialnia)
   ['BRAX_mieszkanie_brama', '33.68,1.6,35.9,180,8,5'],

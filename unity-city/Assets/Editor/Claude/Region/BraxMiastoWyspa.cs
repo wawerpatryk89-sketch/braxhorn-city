@@ -763,6 +763,104 @@ internal static partial class BraxMiastoWyspa
             }
             Miejsca["arena_stol_sedziow"] = Q(0f, vt + 1.4f, 0f);
         }
+        // TOALETY AREN (koordynator 02:43: „pełne pomieszczenie, męska i damska”): dwa pawilony w holu po bokach przejścia
+        // z wejścia do klatki (hol = bok wejścia, normalna −x: v → x = c.x − v, u → z = c.z + u); wejścia od przejścia,
+        // ściany dwuwarstwowe (beton od holu, płytki od środka — bez nakładania), strop, kabiny z drzwiami i WC, pisuary
+        // z przegrodą, umywalki na blacie z bateriami, lustra, suszarka, kosz, oświetlenie, napisy nad wejściami. × K.
+        try
+        {
+            var plyt = BraxMiastoA.Tex("Arena WC: płytki ścian", .6f, new Color(.96f, .96f, .95f), new Color(.92f, .92f, .9f), .3f, "square_tiles", "rectangular_facade_tiles", "granite_tile");
+            var cer = BraxMiastoA.Mat("Arena WC: ceramika", new Color(.96f, .96f, .95f), .2f);
+            var hpl = BraxMiastoA.Mat("Arena WC: płyty HPL kabin (grafit)", new Color(.16f, .17f, .18f), .5f, .1f);
+            var chr = BraxMiastoA.Mat("Arena WC: chrom", new Color(.84f, .85f, .87f), .12f, .95f);
+            var blat = BraxMiastoA.Mat("Arena WC: blat umywalek (konglomerat)", new Color(.2f, .2f, .21f), .35f, .1f);
+            var lustroM = BraxMiastoA.Mat("Arena WC: lustro", new Color(.8f, .85f, .88f), .02f, 1f);
+            var panelL = BraxUliceKit.S(BraxMiastoA.Swieci("Arena WC: panel świetlny", new Color(.95f, .95f, .92f), new Color(1.5f, 1.5f, 1.45f)));
+            float vA = 15.0f, vB = 19.0f, uA = 2.6f, uB = 5.9f, hW = 2.9f, tW = .12f, dW = .9f * K, dH = 2.1f * K;
+            float yF = F;
+            Vector3 PW(float u, float v, float y) => new Vector3(c.x - v, yF + y, c.z + u);
+            void Bx(UlSiatka sm, float u0, float u1, float v0, float v1, float y0b, float y1b)
+            { var a1 = PW(Mathf.Min(u0, u1), Mathf.Max(v0, v1), y0b); var b1 = PW(Mathf.Max(u0, u1), Mathf.Min(v0, v1), y1b); sm.Box(Vector3.Min(a1, b1), Vector3.Max(a1, b1)); }
+            void KolB(string n, float u0, float u1, float v0, float v1, float y0b, float y1b)
+            { var a1 = PW(Mathf.Min(u0, u1), Mathf.Max(v0, v1), y0b); var b1 = PW(Mathf.Max(u0, u1), Mathf.Min(v0, v1), y1b); BraxMiastoA.Kol(kol, n, Vector3.Min(a1, b1), Vector3.Max(a1, b1)); }
+            foreach (float sg in new[] { -1f, 1f })
+            {
+                bool dam = sg < 0; string nazwa = dam ? "WC DAMSKA" : "WC MĘSKA";
+                float ui = sg * uA, uo = sg * uB;                                   // ściana od przejścia (z wejściem) i zewnętrzna
+                var bet = BraxUliceKit.S(beton); var pl = BraxUliceKit.S(plyt);
+                float dv0 = (vA + vB) * .5f - dW * .5f, dv1 = dv0 + dW;                // drzwi w ścianie od przejścia
+                // ściana od przejścia: beton (od holu) + płytki (od środka), otwór drzwi
+                foreach (var (v0, v1) in new[] { (vA, dv0), (dv1, vB) })
+                { Bx(bet, ui, ui + sg * .08f, v0, v1, 0f, hW); Bx(pl, ui + sg * .08f, ui + sg * tW, v0, v1, 0f, hW); KolB("Arena WC: ściana", ui, ui + sg * tW, v0, v1, 0f, hW); }
+                Bx(bet, ui, ui + sg * .08f, dv0, dv1, dH, hW); Bx(pl, ui + sg * .08f, ui + sg * tW, dv0, dv1, dH, hW);
+                // ściana zewnętrzna i dwie ściany poprzeczne (v = vA od klatki, v = vB od wejścia)
+                Bx(bet, uo - sg * .08f, uo, vA, vB, 0f, hW); Bx(pl, uo - sg * tW, uo - sg * .08f, vA + tW, vB - tW, 0f, hW); KolB("Arena WC: ściana zewn.", uo - sg * tW, uo, vA, vB, 0f, hW);
+                foreach (var (va, vb) in new[] { (vA, vA + .08f), (vB - .08f, vB) })
+                {
+                    Bx(bet, ui, uo, va, vb, 0f, hW); KolB("Arena WC: ściana poprz.", ui, uo, va, vb, 0f, hW);
+                    float vt2 = va < vA + .05f ? vA + .08f : vB - .12f;
+                    Bx(pl, ui + sg * tW, uo - sg * tW, vt2, vt2 + .04f, 0f, hW);
+                }
+                Bx(bet, ui - sg * .05f, uo + sg * .05f, vA - .05f, vB + .05f, hW, hW + .15f);                     // strop
+                Bx(panelL, ui + sg * .6f, uo - sg * .6f, vA + .8f, vB - .8f, hW - .02f, hW);                     // panel świetlny pod stropem
+                // ościeżnica drzwi (grafit) i napis nad wejściem (od strony przejścia)
+                var hpk = BraxUliceKit.S(hpl);
+                Bx(hpk, ui - sg * .03f, ui + sg * (tW + .03f), dv0 - .06f, dv0, 0f, dH + .06f); Bx(hpk, ui - sg * .03f, ui + sg * (tW + .03f), dv1, dv1 + .06f, 0f, dH + .06f);
+                Bx(hpk, ui - sg * .03f, ui + sg * (tW + .03f), dv0 - .06f, dv1 + .06f, dH, dH + .06f);
+                BraxRegionMeble.Napis(root, nazwa, PW(ui - sg * .035f, (vA + vB) * .5f, dH + .35f), new Vector3(0, 0, -sg), .22f, Color.white);
+                // wnętrze
+                float uiI = ui + sg * tW, uoI = uo - sg * tW, vAi = vA + .12f, vBi = vB - .12f;
+                var ce = BraxUliceKit.S(cer); var ch = BraxUliceKit.S(chr);
+                void Wc(float uc, float vc)                                            // WC przodem do −sg (od ściany zewnętrznej)
+                {
+                    ce.Walec(PW(uc, vc, 0f), .16f, .3f, 16); ce.Walec(PW(uc - sg * .03f, vc, .3f), .2f, .1f, 18);
+                    BraxUliceKit.S(hpl).Walec(PW(uc - sg * .03f, vc, .4f), .205f, .02f, 18);
+                    Bx(ce, uoI - sg * .17f, uoI, vc - .2f, vc + .2f, .45f, .85f);       // zbiornik przy ścianie
+                    ch.Walec(PW(uoI - sg * .08f, vc, .85f), .03f, .01f, 10);
+                }
+                void Kabina(float v0, float v1)                                        // kabina: przegrody HPL na nóżkach, drzwi uchylone
+                {
+                    float uf = uoI - sg * 1.5f;
+                    foreach (float vv in new[] { v0, v1 }) Bx(hpk, uf, uoI, vv - .015f, vv + .015f, .15f, 2.15f);
+                    Bx(hpk, uf - sg * .015f, uf + sg * .015f, v0 + .015f, v0 + .3f, .15f, 2.15f);           // front stały
+                    var drz = BraxUliceKit.S(hpl); var a = PW(uf - sg * .015f, v0 + .32f, .15f); var b = PW(uf + sg * .015f, v1 - .02f, 2.15f);
+                    drz.Box(Vector3.Min(a, b), Vector3.Max(a, b));                                                         // drzwi kabiny (zamknięte)
+                    ch.Rura(PW(uf - sg * .02f, v1 - .12f, 1.0f), PW(uf - sg * .07f, v1 - .12f, 1.0f), .01f, 6);           // gałka / wskaźnik zajętości
+                    foreach (float vv in new[] { v0, v1 }) ch.Walec(PW(uf, vv, 0f), .025f, .15f, 8);    // nóżki
+                    Wc((uf + uoI) * .5f + sg * .25f, (v0 + v1) * .5f);
+                    ch.Rura(PW(uoI - sg * .02f, (v0 + v1) * .5f + .32f, .75f), PW(uoI - sg * .12f, (v0 + v1) * .5f + .32f, .75f), .008f, 6);  // uchwyt papieru
+                }
+                if (dam) { Kabina(vAi, vAi + 1.25f); Kabina(vAi + 1.25f, vAi + 2.5f); }
+                else
+                {
+                    foreach (float vv in new[] { vAi + .45f, vAi + 1.25f })            // pisuary z przegrodą
+                    {
+                        Bx(ce, uoI - sg * .3f, uoI, vv - .2f, vv + .2f, .55f, 1.15f);
+                        ch.Rura(PW(uoI - sg * .05f, vv, 1.15f), PW(uoI - sg * .05f, vv, 1.35f), .012f, 8);
+                    }
+                    Bx(hpk, uoI - sg * .55f, uoI, vAi + .83f, vAi + .86f, .5f, 1.7f);
+                    Kabina(vAi + 1.7f, vAi + 2.9f);
+                }
+                // umywalki na blacie przy ścianie v = vB, lustro, suszarka, kosz
+                float bu0 = uiI + sg * .1f, bu1 = uiI + sg * 1.5f;
+                Bx(BraxUliceKit.S(blat), bu0, bu1, vBi - .5f, vBi, .82f, .87f); KolB("Arena WC: blat", bu0, bu1, vBi - .5f, vBi, 0f, .87f);
+                Bx(BraxUliceKit.S(blat), bu0, bu1, vBi - .5f, vBi, .05f, .1f);
+                foreach (float uu in new[] { bu0 + sg * .4f, bu0 + sg * 1.0f })
+                {
+                    ce.Walec(PW(uu, vBi - .25f, .87f), .19f, .1f, 20);
+                    ch.Rura(PW(uu, vBi - .04f, .87f), PW(uu, vBi - .04f, 1.1f), .013f, 8); ch.Rura(PW(uu, vBi - .04f, 1.1f), PW(uu, vBi - .2f, 1.06f), .011f, 8);
+                }
+                Bx(BraxUliceKit.S(lustroM), bu0, bu1, vBi - .015f, vBi, 1.15f, 2.0f);
+                Bx(hpk, bu0 - sg * .02f, bu1 + sg * .02f, vBi - .025f, vBi - .015f, 2.0f, 2.04f);
+                Bx(BraxUliceKit.S(chr), bu1 + sg * .15f, bu1 + sg * .45f, vBi - .12f, vBi, 1.1f, 1.45f);           // suszarka
+                ch.Walec(PW(bu1 + sg * .7f, vBi - .2f, 0f), .16f, .6f, 14);                                             // kosz
+                BraxRegion.Warm(root, "Arena WC: światło (" + nazwa + ")", PW((ui + uo) * .5f, (vA + vB) * .5f, hW - .4f), .6f, 5f);
+                Miejsca[dam ? "arena_wc_damska" : "arena_wc_meska"] = PW(ui - sg * .6f, (vA + vB) * .5f, 0f);
+            }
+            BraxMiastoA.Log("WYSPA arena: toalety damska i męska (pawilony w holu, " + (uB - uA).ToString("F1") + " × " + (vB - vA).ToString("F1") + " m, kabiny, pisuary, umywalki, lustra)");
+        }
+        catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI toalety areny: " + e.Message); }
+
         // światła hali (wyjątek: hala sportowa — ForceVertex przez BraxRegion.InteriorLights)
         BraxRegion.Warm(root, "Arena: światło nad klatką", c + Vector3.up * (y0 + 7f), 2.6f, 14f);
         foreach (var p in new[] { Wsp(1, 14f), Wsp(5, 14f), Wsp(3, 14f), Wsp(7, 14f) }) BraxRegion.Warm(root, "Arena: światło trybun", p + Vector3.up * (y0 + 9f - p.y), 1.4f, 14f);
