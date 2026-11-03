@@ -143,9 +143,40 @@ def main() -> int:
     with Image.open(d / "kloofendal_8k.jpg") as hd:
         report["sky"] = {"id": sky_id, "hd": list(hd.size), "zapas": [4096, 2048]}
         print("SKY", sky_id, "HD", hd.size, "OK")
+    # 3.11 (właściciel: „znaki normalne prawdziwe na drogach… nie można tego pobrać?”): polskie znaki drogowe — wzory urzędowe
+    # z Wikimedia Commons („PL road sign <kod>.svg”, domena publiczna), PNG 960 px (standardowa szerokość miniatury Commons) z przezroczystym tłem (kształt tarczy w alfie).
+    # Brak któregoś = ostrzeżenie (gra stawia wtedy znak z kodu i loguje DO POPRAWKI), build nie pada.
+    dz = ROOT / "znaki_pl"
+    dz.mkdir(parents=True, exist_ok=True)
+    znaki_ok, znaki_brak = [], []
+    for kod in ["A-7", "A-16", "B-1", "B-2", "B-20", "B-36", "C-2", "C-9", "C-12", "D-1", "D-3", "D-6", "D-18"]:
+        out = dz / f"{kod}.png"
+        if out.exists() and out.stat().st_size > 1500:
+            znaki_ok.append(kod); continue
+        url = f"https://commons.wikimedia.org/wiki/Special:FilePath/PL_road_sign_{kod}.svg?width=960"
+        data = None
+        for proba in range(3):
+            try:
+                with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+                    data = r.read()
+                break
+            except Exception as exc:  # noqa: BLE001
+                print(f"ZNAK {kod} próba {proba + 1}: {exc}")
+                time.sleep(4 * (proba + 1))
+        try:
+            im = Image.open(io.BytesIO(data)).convert("RGBA") if data else None
+        except Exception as exc:  # noqa: BLE001
+            print(f"ZNAK {kod}: nie obraz ({exc})"); im = None
+        if im is None or im.getextrema()[3][0] > 10:   # bez przezroczystego tła = nie wzór tarczy
+            znaki_brak.append(kod); continue
+        im.save(out)
+        znaki_ok.append(kod)
+    (dz / "ZRODLO.txt").write_text("Polskie znaki drogowe: Wikimedia Commons, pliki „PL road sign <kod>.svg” (wzory urzędowe, domena publiczna).\n")
+    report["znaki_pl"] = {"ok": znaki_ok, "brak": znaki_brak}
+    print("ZNAKI_PL ok", len(znaki_ok), "brak", znaki_brak)
     (ROOT / "polyhaven-receipt.json").write_text(json.dumps(report, indent=1))
     (ROOT / "LICENSE-CC0.txt").write_text(
-        "Wszystkie pliki w tym katalogu pochodzą z https://polyhaven.com i są na licencji CC0.\n")
+        "Pliki w tym katalogu pochodzą z https://polyhaven.com (CC0); wyjątek: znaki_pl/ — Wikimedia Commons, domena publiczna (znaki_pl/ZRODLO.txt).\n")
     return 0
 
 

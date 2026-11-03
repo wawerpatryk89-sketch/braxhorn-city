@@ -99,7 +99,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     public static void Apply(BraxCityWorld world, Transform cityRoot)
     {
         usuniete.Clear(); kroki.Clear(); SkrzyzowaniaZeSwiatlami.Clear(); asfalty.Clear(); wyposazenie.Clear(); nawierzchnie.Clear(); zjazdy.Clear(); MiejscaParkingu.Clear(); drzewa = latarnie = zebry = sygnalizatory = 0; MigotaniePary = 0;
-        BraxRegionKamienica.Zeruj();
+        BraxRegionKamienica.Zeruj(); BraxZnakiPL.Zeruj();
         root = BraxRegion.Root(cityRoot, "CLAUDE miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa");
         Krok("usunięcie wiaduktu, płotu końca ulicy i gruntu-lustra", () => UsunStare(cityRoot));
         Krok("materiały", Materialy);
@@ -867,6 +867,8 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     // znak D-18 „parking” (niebieska tablica, białe P) na słupku ocynkowanym, lico do jadących aleją na północ (−z → widać od południa)
     static void ZnakParking(Vector3 p)
     {
+        if (BraxZnakiPL.Slup(root, "Znak D-18 PARKING (wzór urzędowy)", p, Vector3.back, "D-18")) return;
+        Debug.LogWarning("DO POPRAWKI: BRAXHORN_ZNAKI_PL brak wzoru D-18 — znak parkingu z kodu");
         var g = new GameObject("Znak D-18 PARKING"); g.transform.SetParent(root, false);
         var slup = new BraxRegionMeble.Bud(); slup.Cyl(p, p + Vector3.up * 2.6f * K, .03f * K, 10);
         slup.Obiekt("Znak: słupek", g.transform, stal, false, true);
@@ -1276,6 +1278,23 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             var c = new Vector3(RX, YA, RZ) + dir * (RPlac + 3f);
             ZnakRonda(NaPodlozu(c - Vector3.Cross(Vector3.up, dir) * (hj + Kr + .5f) + dir * 4f + Vector3.up * YC), dir);   // po prawej wjeżdżających, lico do nich
         }
+        // 3.11 (właściciel: „znaki normalne prawdziwe na drogach”): wloty obu pętli też jak rondo (A-7 + C-12), a przy każdym
+        // przejściu bez świateł D-6 po prawej stronie jadących w obu kierunkach (lico do nadjeżdżających), tuż przed pasami
+        foreach (var (cc, dir, hj) in new[] { (cP + Vector3.back * (PetlaPlac + 3f), Vector3.back, AH), (cWz + Vector3.right * (PetlaPlac + 3f), Vector3.right, AH) })
+            ZnakRonda(NaPodlozu(cc - Vector3.Cross(Vector3.up, dir) * (hj + Kr + .5f) + dir * 4f + Vector3.up * YC), dir);
+        int nD6 = 0;
+        for (int i = 0; i < zs.Count; i++)
+        {
+            var dir = sk[2 * i]; var R = Vector3.Cross(Vector3.up, dir).normalized;
+            float hj = Mathf.Abs(Vector3.Dot(new Vector3(zp[i].x, 0, zp[i].z), R)) - Kr - .8f;   // połowa jezdni (zebraPolowa = R·(hj+Kr+.8) + dir·w)
+            float w = 4f * K * .5f;
+            foreach (float sg in new[] { 1f, -1f })   // sg = +1: jadący +dir (prawa = +R) — znak przed pasami, lico −dir
+            {
+                var p = zs[i] + R * (sg * (hj + Kr + .45f)) - dir * (sg * (w + .35f)); p.y = YC;
+                if (BraxZnakiPL.Slup(root, "Znak D-6 przejście dla pieszych (wzór urzędowy)", NaPodlozu(p), -dir * sg, "D-6")) nD6++;
+            }
+        }
+        Debug.Log("BRAXHORN_MIASTO_B_ZNAKI D-6 przy przejściach bez świateł: " + nD6 + "; " + BraxZnakiPL.Raport());
     }
 
     static void Zebra(Farba f, Vector3 c, Vector3 dir, float hj)
@@ -1412,7 +1431,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
 
     static void ZnakRonda(Vector3 p, Vector3 przod)
     {
-        // słupek z A-7 (ustąp pierwszeństwa) i C-12 (ruch okrężny) — tarcze z kodu (kolory znaków), × k
+        // słupek z A-7 (ustąp pierwszeństwa) i C-12 (ruch okrężny) — PRAWDZIWE wzory (BraxZnakiPL); z kodu tylko, gdy brak pliku wzoru
+        { var pp = p; pp.y = YC; if (BraxZnakiPL.Slup(root, "Znaki ronda A-7 + C-12 (wzory urzędowe)", pp, przod, "A-7", "C-12")) return; }
+        Debug.LogWarning("DO POPRAWKI: BRAXHORN_ZNAKI_PL brak wzorów A-7/C-12 — znaki ronda z kodu");
         var g = new GameObject("Znaki ronda A-7 + C-12"); g.transform.SetParent(root, false);
         var sl = new BraxRegionMeble.Bud(); p.y = YC; sl.Cyl(p, p + Vector3.up * 2.9f * K, .03f * K, 10); sl.Obiekt("Znak: słupek", g.transform, stal, false, true);
         var rot = Quaternion.LookRotation(przod);
