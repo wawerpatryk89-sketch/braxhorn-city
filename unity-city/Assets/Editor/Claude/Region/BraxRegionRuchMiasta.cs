@@ -236,7 +236,7 @@ public static partial class BraxClaudeOsiedle
     // jezdni miasta B są usuwane razem z kolizjami (drogi przejezdne). Port (brama z podniesionym szlabanem) i osiedle — bez zmian.
     static void ZaporyNaJezdni(Transform cityRoot)
     {
-        string[] slowa = { "ogrodz", "płot", "plot ", "fence", "barier", "barrier", "szlaban", "zapora", "siatka ogrodz", "chain", "kratownica ogrodz", "pachoł", "pachol", "traffic cone", "traffic_cone", "jersey", "kozioł", "kozlo", "roadblock", "road block" };
+        string[] slowa = { "ogrodz", "płot", "plot ", "fence", "barier", "barrier", "szlaban", "zapora", "siatka ogrodz", "chain", "kratownica ogrodz", "pachoł", "pachol", "traffic cone", "traffic_cone", "jersey", "kozioł", "kozlo", "roadblock", "road block", "znak", "road sign", "traffic sign", "sign post", "signpost", "sign_" };   // znaki: tylko gdy słup stoi NA jezdni (właściciel 3.11: „znaki na środku ulicy”)
         // właściciel 3.11 10:21 (zdjęcie): siatka + szlaban + blok + pachołki w poprzek ulicy — NaJezdni zna tylko jezdnie miasta B;
         // teraz jezdnia także z nawierzchni pod punktem (materiał / obiekt „asfalt|jezdnia|asphalt|road”, nie chodnik).
         bool Jezdnia(Vector3 q)
@@ -263,7 +263,10 @@ public static partial class BraxClaudeOsiedle
             if (L < 2f)
             {   // pachołek / blok / kozioł na jezdni (nie przy krawędzi): środek i ±0.8 m z jezdnią
                 var c0 = b.center; var pq = dlX ? new Vector3(0, 0, .8f) : new Vector3(.8f, 0, 0);
-                if (L > .15f && b.size.y < 1.6f && Jezdnia(c0) && Jezdnia(c0 + pq) && Jezdnia(c0 - pq)) { usun.Add(r.gameObject); opis.Add(r.name + " @" + c0.ToString("F0") + " (drobna przeszkoda)"); }
+                bool znak = n.Contains("znak") || n.Contains("sign");
+                var pq2 = dlX ? new Vector3(.8f, 0, 0) : new Vector3(0, 0, .8f);   // znak: jezdnia także w drugiej osi (nie pas zieleni / chodnik)
+                if (znak ? (b.size.y < 4.5f && Jezdnia(c0) && Jezdnia(c0 + pq) && Jezdnia(c0 - pq) && Jezdnia(c0 + pq2) && Jezdnia(c0 - pq2))
+                         : (L > .15f && b.size.y < 1.6f && Jezdnia(c0) && Jezdnia(c0 + pq) && Jezdnia(c0 - pq))) { usun.Add(r.gameObject); opis.Add(r.name + " @" + c0.ToString("F0") + " (drobna przeszkoda)"); }
                 continue;
             }
             int na = 0;
