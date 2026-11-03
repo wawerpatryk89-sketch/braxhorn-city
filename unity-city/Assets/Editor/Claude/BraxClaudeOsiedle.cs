@@ -2499,7 +2499,8 @@ public static partial class BraxClaudeOsiedle
                     if (oc) { var b0 = RB(oc); oc.transform.localScale *= K; var b1 = RB(oc); oc.transform.position += new Vector3(b0.center.x - b1.center.x, b0.min.y - b1.min.y, b0.center.z - b1.center.z); }
                 }
             else for (int c2 = 0; c2 < 6; c2++) Cylinder(Pal(c2 % 2 == 0 ? 5 : 7), new Vector3(a + 3.2f + c2 * .3f, 1.07f, lz - .15f), .1f, .06f, 12, true, false);
-            BoxMinMax(Steel, b - 4.5f, b - 3.6f, 1.05f, 1.55f, lz - .2f, lz + .3f, false);   // ekspres
+            // 3.11 15:02 („co to jest w sklepie”): szary klocek „ekspresu” tylko bez paczki towaru — klocek zamiast maszyny = zakaz
+            if (!BraxOsiedleTowar.Jest) BoxMinMax(Steel, b - 4.5f, b - 3.6f, 1.05f, 1.55f, lz - .2f, lz + .3f, false);   // ekspres
             var menuK = BraxOsiedleTowar.Postaw(Group(group), "menu_1", "Kawiarnia: menu z cenami (grafika właściciela)", new Vector3((a + b) * .5f, 1.95f, zb - .03f - .015f * K), 180f);
             if (!menuK)
             {
