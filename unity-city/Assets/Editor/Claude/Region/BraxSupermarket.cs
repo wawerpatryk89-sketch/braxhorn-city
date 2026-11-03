@@ -166,6 +166,12 @@ public static class BraxSupermarket
         for (float x = -hw + 2.5f * K; x < hw - 2f * K; x += 3.5f * K)
             for (float z = 2.5f * K; z < D - 1.5f * K; z += 3.5f * K) sL.Box(new Vector3(x - .6f * K, H - .04f, z - .15f * K), new Vector3(x + .6f * K, H, z + .15f * K), 8);
 
+        void Obj(string n, UlSiatka s, Material m, bool cien)
+        {
+            if (s.Wierzcholki == 0) return;
+            var g = BraxMiastoA.Obiekt(t, "Supermarket " + nr + ": " + n, s, m, cien);
+            GameObjectUtility.SetStaticEditorFlags(g, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic | (cien ? StaticEditorFlags.OccluderStatic : 0));
+        }
         // ---- wyposażenie (modele) ----
         int towar = 0;
         var wyp = new GameObject("Wyposażenie supermarketu " + nr).transform; wyp.SetParent(t, false);
@@ -192,13 +198,39 @@ public static class BraxSupermarket
             towar += tw.GetComponentsInChildren<Renderer>(true).Length;
         }
         // lodówki pod tylną ścianą (front modelu = −z → w stronę sklepu)
+        // REGAŁ CHŁODNICZY (otwarty, wielopółkowy) przy tylnej ścianie: mięso, wędliny, sery, ryby (właściciel 13:56); reszta ściany — lodówki
+        float zw = D - Grub, cA0 = -hw + Grub + .4f, cB0 = cA0 + 9f * K, cA = lustro ? -cB0 : cA0, cB = lustro ? -cA0 : cB0;
+        {
+            var sCh = new UlSiatka(); float dC = .95f * K, y1 = Podloga + .45f * K, y2 = Podloga + 1.0f * K, y3 = Podloga + 1.45f * K, yK = Podloga + 2.05f * K;
+            sCh.Box(new Vector3(cA, Podloga, zw - dC), new Vector3(cB, y1, zw), 32);                                   // podstawa z wanną ekspozycji
+            sCh.Box(new Vector3(cA, y1, zw - .08f * K), new Vector3(cB, yK, zw), 32);                                  // plecy
+            sCh.Box(new Vector3(cA + .02f, y2 - .03f, zw - .08f * K - .55f * K), new Vector3(cB - .02f, y2, zw - .08f * K));   // półka 2
+            sCh.Box(new Vector3(cA + .02f, y3 - .03f, zw - .08f * K - .42f * K), new Vector3(cB - .02f, y3, zw - .08f * K));   // półka 3
+            sCh.Box(new Vector3(cA, yK, zw - .6f * K), new Vector3(cB, yK + .15f * K, zw), 32);                         // daszek
+            sCh.Box(new Vector3(cA - .04f, Podloga, zw - dC), new Vector3(cA, yK + .15f * K, zw), 32);                  // boki
+            sCh.Box(new Vector3(cB, Podloga, zw - dC), new Vector3(cB + .04f, yK + .15f * K, zw), 32);
+            sL.Box(new Vector3(cA + .05f, yK - .03f, zw - .58f * K), new Vector3(cB - .05f, yK, zw - .5f * K), 8);    // listwa LED pod daszkiem
+            Obj("regał chłodniczy (mięso, wędliny, sery)", sCh, BraxUliceKit.Mat("Supermarket: regał chłodniczy (blacha biała)", new Color(.93f, .94f, .95f), .35f, .3f), true);
+            Kol("regał chłodniczy", new Vector3(cA - .04f, Podloga, zw - dC), new Vector3(cB + .04f, yK + .15f * K, zw));
+            var twC = BraxSklepyTowar.Korzen(wyp, "supermarket " + nr + " chłodnia");
+            BraxSklepyTowar.Polka("ch_dol", twC, Swiat(cA + .06f, y1 + .004f, zw - dC * .5f), t.right, t.forward, cB - cA - .12f, rng, .5f * K);
+            BraxSklepyTowar.Polka("ch_srodek", twC, Swiat(cA + .06f, y2 + .004f, zw - .08f * K - .275f * K), t.right, t.forward, cB - cA - .12f, rng, .4f * K);
+            BraxSklepyTowar.Polka("ch_gora", twC, Swiat(cA + .06f, y3 + .004f, zw - .08f * K - .21f * K), t.right, t.forward, cB - cA - .12f, rng, .5f * K);
+            BraxSklepyTowar.Zakoncz(twC, "supermarket " + nr + " chłodnia");
+            towar += twC.GetComponentsInChildren<Renderer>(true).Length;
+            BraxRegionMeble.Napis(t, "MIĘSO · WĘDLINY · SERY", Swiat((cA + cB) * .5f, yK + .7f * K, zw - .02f), -t.forward, .32f * K, new Color(.55f, .12f, .10f));
+        }
         var lod = BraxMiastoAssety.Model("miasto_sklepy", "lodowka");
         if (lod)
         {
             float sz = .854f * K + .02f, zl = D - Grub - .944f * K * .5f - .03f; int n = 0;
-            for (float x = -hw + Grub + .4f + sz * .5f; x < hw - Grub - .4f - sz * .5f; x += sz, n++)
-                BraxMiastoAssety.Postaw(wyp, lod, "Lodówka " + (n + 1), Swiat(x, Podloga, zl), yaw0, 1f, true, true);
-            Kol("lodówki", new Vector3(-hw + Grub + .4f, Podloga, zl - .944f * K * .5f), new Vector3(hw - Grub - .4f, Podloga + 2.184f * K, zl + .944f * K * .5f));
+            for (float x = -hw + Grub + .4f + sz * .5f; x < hw - Grub - .4f - sz * .5f; x += sz)
+            {
+                if (x + sz * .5f > cA - .1f && x - sz * .5f < cB + .1f) continue;
+                BraxMiastoAssety.Postaw(wyp, lod, "Lodówka " + (++n), Swiat(x, Podloga, zl), yaw0, 1f, true, true);
+            }
+            float kA = lustro ? -hw + Grub + .4f : cB + .1f, kB = lustro ? cA - .1f : hw - Grub - .4f;
+            Kol("lodówki", new Vector3(kA, Podloga, zl - .944f * K * .5f), new Vector3(kB, Podloga + 2.184f * K, zl + .944f * K * .5f));
         }
         // kasy (3 podwójne) między wejściem a alejkami; w kopii lustrzanej obrócone
         var kasa = BraxMiastoAssety.Model("miasto_sklepy", "kasa");
@@ -228,12 +260,6 @@ public static class BraxSupermarket
         BraxSklepyTowar.Wozki(wyp, kol, przed, -doSciany, 4);
 
         // siatki do sceny
-        void Obj(string n, UlSiatka s, Material m, bool cien)
-        {
-            if (s.Wierzcholki == 0) return;
-            var g = BraxMiastoA.Obiekt(t, "Supermarket " + nr + ": " + n, s, m, cien);
-            GameObjectUtility.SetStaticEditorFlags(g, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic | (cien ? StaticEditorFlags.OccluderStatic : 0));
-        }
         Obj("posadzka", sP, mPos, false); Obj("ściany", sS, mSc, true); Obj("elewacja i dach", sF, mFas, true); Obj("ramy witryny", sR, mRam, true);
         Obj("szyby witryny", sG, mSz, false); Obj("oprawy LED", sL, mLamp, false); Obj("podświetlenie szyldu", sPas, mPas, false); Obj("stoły warzyw", sT, mDrew, true);
         BraxMiastoA.DrzwiPrzesuwne(t, "SUPERMARKET BRAXHORN " + nr, Swiat(xe, Podloga, .11f), t.right, wd, hd, mSz, mRam);

@@ -29,6 +29,10 @@ public static class BraxSklepyTowar
         "sm_a" => new[] { "sk:mleko*4", "ph:russian_food_cans_01", "sk:mleko*4" },
         "sm_b" => new[] { "ph:long_life_food", "sk:mleko*4", "ph:CheeseBox_01", "ph:russian_food_cans_01" },
         "sm_c" => new[] { "ph:wine_bottles_01", "ph:multi_cleaner_bottle", "ph:bleach_bottle", "ph:wine_bottles_01" },
+        // regał chłodniczy supermarketu (właściciel 13:56: mięsa, wędliny, sery, ryby)
+        "ch_dol" => new[] { "sk:losos", "sk:mieso*2", "sk:ser_dojrzewajacy*2", "sk:stek*3", "sk:kurczak_surowy", "sk:mieso*2" },
+        "ch_srodek" => new[] { "sk:kielbaski_paczka*3", "sk:parowki*3", "sk:ser_klin*4", "sk:mieso*2" },
+        "ch_gora" => new[] { "sk:parowki*3", "sk:kielbaski_paczka*3", "sk:ser_klin*4", "sk:ser_dojrzewajacy" },
         _ => null
     };
 
