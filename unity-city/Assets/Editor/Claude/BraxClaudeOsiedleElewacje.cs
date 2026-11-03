@@ -195,8 +195,11 @@ public static partial class BraxClaudeOsiedle
         // bez paczki — litery przestrzenne jak dotąd
         string plikSz = kind == "apteka" ? "szyld_apteka" : kind == "nutrition" ? "szyld_nutrition" : kind == "kawiarnia" ? "szyld_kawiarnia" : kind == "market" ? "szyld_supermarket" : null;
         var szM = plikSz != null && BraxOsiedleTowar.Jest ? BraxOsiedleTowar.Model(plikSz) : null;
+        // 3.11 16:18 (właściciel: „konkurencja Wawer i jeszcze jedna Sobczak”): kawiarnia = SOBCZAK (konkurencja) — szyld z grafiki
+        // sobczak_kawiarnia (3:1) na pasie szyldowym; bez grafiki — szyld z arkusza / litery jak dotąd
+        if (kind == "kawiarnia" && SzyldPanel("sobczak_kawiarnia", new Vector3(cx, 3.825f, zf - .075f) + n * .01f, n, 1.47f, .49f)) szM = null;
         var szO = szM ? BraxOsiedleAssety.Postaw(Group(group), szM, "szyld " + plikSz + " (grafika właściciela)", new Vector3(cx, 3.6f, zf - .075f - .07f), Quaternion.LookRotation(n).eulerAngles.y, 2.55f / K, null, false) : null;
-        if (!szO) SzyldLitery(bud, tekst, tekst, new Vector3(cx, 3.63f, zf - .075f), n, cap, lico, boki, .07f, .015f, kind == "nutrition" ? MatLico("zielone BRAXHORN", new Color(.36f, .78f, .18f)) : null, .17f);
+        if (!szO && !(kind == "kawiarnia" && plikSz != null && szM == null && BraxOsiedleTowar.Jest)) SzyldLitery(bud, tekst, tekst, new Vector3(cx, 3.63f, zf - .075f), n, cap, lico, boki, .07f, .015f, kind == "nutrition" ? MatLico("zielone BRAXHORN", new Color(.36f, .78f, .18f)) : null, .17f);
         // kaseton na wysięgniku przy pilastrze lewej krawędzi lokalu (lico pilastra z = zf − 0.1)
         float xb = k == 0 ? x0 + .3f : a;
         if (blade != null)
