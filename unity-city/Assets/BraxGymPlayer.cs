@@ -307,7 +307,9 @@ public sealed class BraxGymPlayer : MonoBehaviour
         Vector3 want=transform.position+Vector3.up*1.65f;
         cameraTarget=Vector3.Lerp(cameraTarget,want,1-Mathf.Exp(-dt*10f));   // build 14: lekkie opóźnienie za postacią (10/s)
         float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
-        Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*distance;
+        // właściciel 3.11 10:39: na jachcie „kamera ze środka, za kierownicą” — blisko za głową sternika (najwyżej 2.2 m)
+        float dist=vessel&&vessel.label=="JACHT"?Mathf.Min(distance,2.2f):distance;
+        Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*dist;
         Vector3 position=cameraTarget+offset;
         // Kamera (audyt filmów właściciela 1.11): nie wchodzi w ściany, szyby, korony drzew i lampy — kolidują z nią też
         // przeszkody „tylko dla kamery” (warstwa 29: korony, klosze, szkło balustrad; gracz przez nie przechodzi).
@@ -315,8 +317,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
         // Build 14: kula 0.26 m (róg bliskiej płaszczyzny 0.15 m przy FOV 55° i 20:9 = 0.24 m od kamery) + dosunięcie, gdy
         // ściana boczna jest tuż przy kamerze (SphereCast nie widzi przeszkody, w której startuje — wąskie przejścia).
         const int mask=~(1<<8);Vector3 dir=offset.normalized;
-        float near=distance;
-        if(Physics.SphereCast(cameraTarget,.26f,dir,out RaycastHit hit,distance,mask,QueryTriggerInteraction.Ignore))near=Mathf.Max(.35f,hit.distance-.12f);
+        float near=dist;
+        if(Physics.SphereCast(cameraTarget,.26f,dir,out RaycastHit hit,dist,mask,QueryTriggerInteraction.Ignore))near=Mathf.Max(.35f,hit.distance-.12f);
         position=cameraTarget+dir*near;
         for(int k=0;k<4&&near>.36f&&Physics.CheckSphere(position,.22f,mask,QueryTriggerInteraction.Ignore);k++){near=Mathf.Max(.35f,near*.72f);position=cameraTarget+dir*near;}
         // przeszkoda znika (minięty pień, róg) — kamera odjeżdża płynnie (3.5 m/s), a nie skokiem; do przeszkody — od razu
