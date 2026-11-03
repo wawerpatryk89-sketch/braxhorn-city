@@ -244,7 +244,10 @@ public static class BraxClaudeMetro
         foreach (var b in obj)
             foreach (var c in Physics.OverlapBox(b.center, b.extents, Quaternion.identity, maska, QueryTriggerInteraction.Ignore))
             {
-                if (!c || !c.enabled || Wlasna(c) || c.GetComponentInParent<BraxGymPlayer>()) continue;
+                // pudełko dodane przez kontrolę kolizji (BraxKontrolaKolizji) jest dzieckiem elementu stacji, ale stacja ma własne
+                // kolizje — w przejściu to obca przeszkoda (build 57c1767: „próg/ściana BRAXHORN kolizja (kontrola)” po 8 m schodów)
+                bool zKontroli = c && c.name == "BRAXHORN kolizja (kontrola)";
+                if (!c || !c.enabled || (Wlasna(c) && !zKontroli) || c.GetComponentInParent<BraxGymPlayer>()) continue;
                 obce.Add(c.name + " (" + (c.transform.parent ? c.transform.parent.name : "-") + ") " + c.bounds.center.ToString("F1") + " " + c.bounds.size.ToString("F1"));
                 c.enabled = false;
             }
