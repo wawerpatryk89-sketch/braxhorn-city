@@ -1390,7 +1390,9 @@ internal static partial class BraxMiastoWyspa
         var lisc = BraxMiastoA.Mat("Wyspa: liście palmy (dwustronne)", new Color(.62f, .80f, .50f), .8f);
         lisc.SetFloat("_Cull", 0f); EditorUtility.SetDirty(lisc);
         var drzewo = BraxRegion.Model("drzewo_verdant"); int nDrzew = 0;
-        var palmaM = BraxMiastoAssety.Model("miasto_palmy", "palma"); int nPalm = 0;
+        // dwa gatunki palm z paczki właściciela (12:10 palm_hp_4, 12:12 „Realistic Palm Tree” — „żeby pomieszać”)
+        var palmy = new[] { BraxMiastoAssety.Model("miasto_palmy", "palma"), BraxMiastoAssety.Model("miasto_palmy", "palma2") }.Where(x => x).ToArray();
+        GameObject palmaM = palmy.Length > 0 ? palmy[0] : null; int nPalm = 0;
         var odmiany = new List<(Mesh p, Mesh l, Mesh lod)>();
         for (int v = 0; v < 3; v++) odmiany.Add(Palma(v));
         var zr = new GameObject("Wyspa: palmy").transform; zr.SetParent(root, false);
@@ -1410,7 +1412,7 @@ internal static partial class BraxMiastoWyspa
                 if (h < 4.5f && palmaM)
                 {
                     var pt = new Vector3(CX + px, W + h - .12f, CZ + pz);
-                    var t = BraxMiastoAssety.Postaw(zr, palmaM, "Palma (model właściciela)", pt, (float)rng.NextDouble() * 360f, .8f + (float)rng.NextDouble() * .35f, false, true);
+                    var t = BraxMiastoAssety.Postaw(zr, palmy[rng.Next(palmy.Length)], "Palma (model właściciela)", pt, (float)rng.NextDouble() * 360f, .8f + (float)rng.NextDouble() * .35f, false, true);
                     if (t)
                     {
                         // bez statycznego łączenia (100+ palm × 3 LOD = setki MB kopii siatek) — instancje GPU
