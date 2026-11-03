@@ -35,7 +35,7 @@ internal static partial class BraxMiastoWyspa
 
     static void ArenaPremium()
     {
-        apDrobne.Clear(); apKol = apElem = apMiejsc = apKibice = 0;
+        apDrobne.Clear(); apKol = apElem = apMiejsc = apKibice = 0; int rootKol0 = root.GetComponentsInChildren<Collider>(true).Length, rootObj0 = root.GetComponentsInChildren<Transform>(true).Length;
         apC = AC; apY0 = apC.y; apC.y = 0f; apF = apY0 + .15f; apAp = ArenaR * Mathf.Cos(Mathf.PI / 8f);
         apWej = 3; float best = 1f;
         for (int i = 0; i < 8; i++) { var mid = ((Wk(i, ArenaR) + Wk(i + 1, ArenaR)) * .5f - apC).normalized; if (mid.x < best) { best = mid.x; apWej = i; } }
@@ -56,11 +56,11 @@ internal static partial class BraxMiastoWyspa
         foreach (int i in new[] { 1, 5, 2, 6, 0, 4 }) BraxRegion.Warm(root, "Arena: światło trybun", Wk(i, 14f) + Vector3.up * (apY0 + 9f), 1.3f, 14f);
         BraxRegion.Warm(root, "Arena: światło holu", ApHolP(18f, 0f, 4f), 1.2f, 10f);
         Miejsca["arena_srodek"] = apC + Vector3.up * (apF + .9f * K);
-        int nKol = kolLicz();
-        Debug.Log("BRAXHORN_ARENA premium: miejsc " + miejsc + " (krzesełka instancje GPU), kibiców " + apKibice + " (≤150), kolizji " + nKol + ", elementów " + apElem + ", miejsc ludzi/punktów " + apMiejsc + ", wejście bok " + apWej + ", tunel bok " + apTun);
+        int nKol = root.GetComponentsInChildren<Collider>(true).Length - rootKol0;   // kolizje areny (ściany, trybuny, klatka, drzwi, bramki, meble)
+        Debug.Log("BRAXHORN_ARENA premium: miejsc " + miejsc + " (krzesełka instancje GPU), kibiców " + apKibice + " (≤150), kolizji " + nKol + ", elementów " + apElem + " (obiektów sceny " + (root.GetComponentsInChildren<Transform>(true).Length - rootObj0) + "), miejsc ludzi/punktów " + apMiejsc + ", wejście bok " + apWej + ", tunel bok " + apTun);
         BraxMiastoA.Log("WYSPA arena PREMIUM: miejsc " + miejsc + ", kibiców " + apKibice + ", kolizji " + nKol + ", elementów " + apElem);
     }
-    static int kolLicz() => kol ? kol.GetComponentsInChildren<Collider>(true).Length : apKol;
+    static int kolLicz() => kol ? kol.GetComponentsInChildren<Collider>(true).Length : 0;
 
     // ---------------- geometria ośmioboku ----------------
     static Vector3 Wk(int i, float r) { float a = (i + .5f) * Mathf.PI / 4f; return new Vector3(apC.x + Mathf.Cos(a) * r, 0f, apC.z + Mathf.Sin(a) * r); }
