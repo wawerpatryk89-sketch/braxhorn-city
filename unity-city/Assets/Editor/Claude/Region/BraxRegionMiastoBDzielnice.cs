@@ -391,6 +391,11 @@ public static partial class BraxRegionMiastoB
     {
         Physics.SyncTransforms();
         var g = BraxRegion.Root(cityRoot, "CLAUDE nowe dzielnice: budynki (Sketchfab)");
+        // WŁAŚCICIEL 3.11 10:24 (zdjęcia): z dalszej odległości zamiast budynków gołe bryły (sylwetki), bo kwadraty 150 m
+        // z prawdziwymi budynkami wczytują się dopiero 120 m przed. Teraz budynki (bryły z LOD) zostają w scenie głównej:
+        // pusta LODGroup na korzeniu = BraxClaudeObszary.WObszarze nie dzieli korzenia na kwadraty (jak sylwetki). Sylwetki
+        // niepotrzebne — nie powstają. Koszt: tekstury dzielnic stale w pamięci (~60 MB ASTC) — pomiar w BRAXHORN_KWADRATY.
+        if (!g.GetComponent<LODGroup>()) g.gameObject.AddComponent<LODGroup>();
         var wezly = new Dictionary<string, GameObject>();   // instancje dzielnic (jedna kopia, węzły rozdzielane po budynkach)
         int ok = 0, brak = 0, nSzklo = 0;
         foreach (var b in NoweBudynki)
@@ -434,7 +439,7 @@ public static partial class BraxRegionMiastoB
             catch (Exception e) { BraxMiastoAssety.Blad("budynek " + b.id, e); }
         }
         foreach (var k in wezly.Values) if (k) UnityEngine.Object.DestroyImmediate(k);   // niewykorzystane jednostki (U14, kliny) nie idą do sceny
-        try { NdSylwetki(cityRoot); } catch (Exception e) { BraxMiastoAssety.Blad("sylwetki z daleka", e); }
+        // sylwetki z daleka wyłączone (budynki zostają w scenie głównej — patrz wyżej)
         try { NdMigotanieBudynkow(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
         NdLog("szkło fasad: " + nSzklo + " materiałów na budynkach zamienione na szkło refleksyjne (czarny metal / szyby przed pustą bryłą)");
         NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", bez modelu " + brak + " (paczka nieodszyfrowana — kwartał zostaje z płytami)" : ""));

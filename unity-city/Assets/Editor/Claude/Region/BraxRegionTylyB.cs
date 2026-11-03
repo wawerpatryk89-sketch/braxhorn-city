@@ -110,7 +110,7 @@ public static class BraxRegionTylyB
                 b.MinMax(lo, hi);
                 var bb = new Bounds(); bb.SetMinMax(lo, hi); if (!jest) { ob = bb; jest = true; } else ob.Encapsulate(bb);
             }
-            var g2 = b.Obiekt("CENTRUM z daleka: sylwetki wieżowców", sr, BraxCityMaterials.Surface("CENTRUM z daleka: szkło ciemne", new Color(.20f, .25f, .30f), .5f, .3f), false, false);
+            var g2 = b.Obiekt("CENTRUM z daleka: sylwetki wieżowców", sr, BraxCityMaterials.Surface("CENTRUM z daleka: szkło fasady (refleksyjne)", new Color(.30f, .37f, .42f), .1f, .85f) /* właściciel 3.11: z daleka czarne bryły — teraz szkło jak wieżowce */, false, false);
             var z = sr.gameObject.AddComponent<BraxSylwetkiZDaleka>(); z.sylwetka = g2 ? g2.GetComponent<Renderer>() : null; z.obszar = ob; z.ukryjBlizej = 100f;
         });
         var g = new Def
