@@ -1,0 +1,50 @@
+name: City 58 - inspect existing APK (no Unity build)
+on:
+  push:
+    branches: [codex/city58-startup-update-20261104]
+    paths:
+      - .github/workflows/city58-apk-diagnosis.yml
+      - unity-tools/claude/check_apk_scene_bounds.py
+  workflow_dispatch:
+permissions:
+  contents: write # GitHub requires push access to read a draft release.
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: unity-tools/claude/check_apk_scene_bounds.py
+          sparse-checkout-cone-mode: false
+      - name: Download the exact existing build 58 from its private draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p diagnostic
+          gh release download claude-region-preview --repo "$GITHUB_REPOSITORY" --pattern braxhorn-miastogl-874f194.apk --dir diagnostic
+          gh release download claude-region-preview --repo "$GITHUB_REPOSITORY" --pattern build-size-android-miastogl-874f194.txt --dir diagnostic
+          echo '69592f179a12d2628dd77cbba7737d1cb35d8eea1842c200a65b7a3463b72e44  diagnostic/braxhorn-miastogl-874f194.apk' | sha256sum --check --strict
+      - name: Verify ZIP and serialized scene ranges
+        run: |
+          set -o pipefail
+          python3 unity-tools/claude/check_apk_scene_bounds.py diagnostic/braxhorn-miastogl-874f194.apk | tee diagnostic/scene-bounds.json
+      - name: Package identity and certificate (public certificate, no private key)
+        if: always()
+        run: |
+          sdk=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          "$sdk/apksigner" verify --print-certs diagnostic/braxhorn-miastogl-874f194.apk | tee diagnostic/certificate.txt
+          "$sdk/aapt" dump badging diagnostic/braxhorn-miastogl-874f194.apk > diagnostic/badging.txt
+          head -1 diagnostic/badging.txt | tee diagnostic/package.txt
+          rm diagnostic/badging.txt
+      - name: Retain diagnostic text only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city58-apk-diagnosis
+          path: |
+            diagnostic/*.json
+            diagnostic/*.txt
+          retention-days: 7
+          if-no-files-found: warn
