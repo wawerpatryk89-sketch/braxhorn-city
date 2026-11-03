@@ -22,6 +22,7 @@ public static class BraxKontrolaMiastaDetale
         try { Napisy(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_NAPISY_KOLIZJE DO POPRAWKI " + e.Message); }
         try { PrzedDrzwiami(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_DRZEWA_DRZWI DO POPRAWKI " + e.Message); }
         try { Wiszace(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_MEBLE_WISZACE DO POPRAWKI " + e.Message); }
+        try { LampyBezSciany(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_LAMPY_BEZ_SCIANY DO POPRAWKI " + e.Message); }
         try { Lady(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_LADY_KOLIZJE DO POPRAWKI " + e.Message); }
         try { Hydranty(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_HYDRANTY DO POPRAWKI " + e.Message); }
         Physics.SyncTransforms();
@@ -130,6 +131,37 @@ public static class BraxKontrolaMiastaDetale
     // ---------------- meble w powietrzu ----------------
     static readonly string[] Meble = { "stół", "stol", "stolik", "table", "blat", "krzes", "chair", "ławk", "lawk", "bench", "sofa", "kanap", "biurk", "desk", "parasol", "umbrella", "hoker", "stool", "fotel" };
     static readonly string[] NieMeble = { "półk", "polk", "shelf", "kinkiet", "lamp", "obraz", "tablic", "szafka wisz", "tv", "telewiz", "nadwozie", "auto", "kierowc", "fotel kierowcy", "fotel pasażera", "zawias", "wisz" };
+
+    // właściciel 3.11 10:44 (zdjęcie): latarnia ścienna (na wysięgniku) stoi w powietrzu, bez ściany i bez słupa. Lampa / latarnia /
+    // kinkiet do 1.6 m wysokości, na zewnątrz (nic nad nią), dół ≥ 0.8 m nad podłożem, bez podparcia i bez ściany w promieniu 0.4 m
+    // (4 promienie poziome na wysokości środka) — usuwana. Bezpiecznik: > 40 = nic nie usuwam (lista w logu).
+    static readonly string[] Lampy = { "latarn", "lantern", "kinkiet", "wall lamp", "wall_lamp", "walllamp", "sconce", "lampa ścienna", "lampa scienna" };
+    static void LampyBezSciany(Transform root)
+    {
+        var kand = root.GetComponentsInChildren<Transform>(true).Where(t => { string n = Nazwa(t); return Lampy.Any(n.Contains) && t.GetComponentInChildren<Renderer>(true); }).ToList();
+        var zb = new HashSet<Transform>(kand);
+        kand = kand.Where(t => { for (var q = t.parent; q; q = q.parent) if (zb.Contains(q)) return false; return true; }).ToList();
+        var usun = new List<GameObject>(); var opis = new List<string>();
+        foreach (var t in kand)
+        {
+            var b = Obrys(t.gameObject); if (b.size.y > 1.6f || b.size.x > 2f || b.size.z > 2f) continue;
+            var wl = new HashSet<Collider>(t.GetComponentsInChildren<Collider>(true));
+            float dol = 99f;
+            foreach (var h in Physics.RaycastAll(new Vector3(b.center.x, b.min.y + .01f, b.center.z), Vector3.down, 6f, ~0, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance))
+            { if (wl.Contains(h.collider)) continue; dol = h.distance; break; }
+            if (dol < .8f) continue;                                                                  // stoi / leży na czymś
+            if (Physics.RaycastAll(b.center, Vector3.up, 8f, ~0, QueryTriggerInteraction.Ignore).Any(h => !wl.Contains(h.collider))) continue;   // pod stropem (lampa wisząca)
+            bool sciana = false;
+            foreach (var d in new[] { Vector3.forward, Vector3.back, Vector3.left, Vector3.right })
+                foreach (var h in Physics.RaycastAll(b.center, d, Mathf.Max(b.extents.x, b.extents.z) + .4f, ~0, QueryTriggerInteraction.Ignore))
+                    if (!wl.Contains(h.collider)) { sciana = true; break; }
+            if (sciana) continue;
+            usun.Add(t.gameObject); opis.Add(t.name + " " + (dol * 100f).ToString("F0") + " cm nad podłożem, bez ściany @" + b.center.ToString("F0"));
+        }
+        if (usun.Count > 40) { Debug.LogWarning("BRAXHORN_DETALE_BEZPIECZNIK lampy bez ściany: " + usun.Count + " — NIC nie usuwam: " + string.Join("; ", opis.Take(15))); usun.Clear(); }
+        foreach (var g in usun) if (g) UnityEngine.Object.DestroyImmediate(g);
+        Debug.Log("BRAXHORN_LAMPY_BEZ_SCIANY usuniete=" + usun.Count + " sprawdzone=" + kand.Count + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(20)) + "]" : ""));
+    }
 
     static void Wiszace(Transform root)
     {
