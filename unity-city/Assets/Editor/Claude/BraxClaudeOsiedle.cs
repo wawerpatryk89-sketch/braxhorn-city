@@ -5678,6 +5678,7 @@ public static partial class BraxClaudeOsiedle
         Guard("kwiaty na trawnikach", () => FlowerPatches(X0 + .4f, X1 - .4f, SouthZ + .4f, FenceA - .4f));
 
         Guard("jedno wejście dla gości: audyt drzwi, drugie wejście zamknięte (runda 5; BraxClaudeOsiedleWejscia)", JednoWejscie);
+        Guard("zakaz klocków: audyt przed scaleniem (runda 5; BraxClaudeOsiedleKlocki)", KlockiAudyt);
         Guard("oznakowanie: kontrola nakładek przed scaleniem (runda 4)", () => OznakowanieKontrola("koniec"));
         Flush();
         FlushClumps();
@@ -5694,6 +5695,7 @@ public static partial class BraxClaudeOsiedle
         Guard("stacja paliw: kasjer (E21)", StacjaKasjer);
         Guard("warsztat: mechanicy (E32)", WarsztatMechanicy);
         Guard("salon samochodowy: obsada i pasażer schodów ruchomych", SalonObsada);
+        Guard("sklepy: pracownik za ladą wszędzie (runda 5)", ObsadaSklepow);
 
         // 6) punkty podróży (TravelPoint) do nowych miejsc
         var world = UnityEngine.Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(w => w.area == "estate");

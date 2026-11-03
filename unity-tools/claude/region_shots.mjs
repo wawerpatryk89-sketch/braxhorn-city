@@ -228,6 +228,9 @@ const VIEWS = [
   ['DETAL_wulkanizacja_kolo_napis', '45.9,1.5,-48,90,55,1.4', 'estate'],
   ['DETAL_wulkanizacja_szyld_brama', '43.8,5.6,-42,0,5,9', 'estate'],
   ['DETAL_warsztat_zlom', '30,0.6,-56.2,180,25,4', 'estate'],
+  // runda 5 (B): pracownik za ladą (Nutrition w pierzei B, biuro przyjęć warsztatu)
+  ['DETAL_sklep_nutrition_sprzedawca', '23.3,1.4,-177.6,270,5,3.5', 'estate'],
+  ['DETAL_warsztat_biuro_przyjecie', '26.2,1.4,-50,0,8,3.2', 'estate'],
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],
