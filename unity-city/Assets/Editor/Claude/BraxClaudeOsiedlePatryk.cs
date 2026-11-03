@@ -137,14 +137,25 @@ public static partial class BraxClaudeOsiedle
                 {
                     string sciezka = PatrykRuchy + "/" + z;
                     if (!File.Exists(sciezka)) continue;
-                    try
-                    {
-                        gotowy = PatrykHumanoid(hero, avatar, hips, kosci, spoczynek, sciezka, k, out string uwagi);
-                        opis.Add(k.nazwa + "←" + z + uwagi);
-                        break;
-                    }
-                    catch (Exception e) { Debug.LogWarning("BRAXHORN_PATRYK klip " + k.nazwa + " z " + z + ": " + e.Message); }
+                    // 3.11: oba przeniesienia (Humanoid i różnica od T-pozy), zostaje to z mniejszą liczbą naruszeń testu nóg
+                    AnimationClip h = null, r = null; string uh = "", ur = "";
+                    try { h = PatrykHumanoid(hero, avatar, hips, kosci, spoczynek, sciezka, k, out uh, false); }
+                    catch (Exception e) { uh = " Humanoid: " + e.Message; }
                     finally { PatrykSpoczynek(spoczynek); }
+                    try { r = PatrykRoznica(hero, hips, kosci, spoczynek, sciezka, k, out ur); }
+                    catch (Exception e) { ur = " różnica: " + e.Message; }
+                    finally { PatrykSpoczynek(spoczynek); }
+                    if (!h && !r) { Debug.LogWarning("BRAXHORN_PATRYK klip " + k.nazwa + " z " + z + ":" + uh + ur); continue; }
+                    var wh = h ? PatrykTestNog(hero, kosci, spoczynek, h) : null; var wr = r ? PatrykTestNog(hero, kosci, spoczynek, r) : null;
+                    bool roz = r && (!h || wr.Kara <= wh.Kara);
+                    var wyb = roz ? r : h;
+                    ZapiszKlipPatryka(wyb);
+                    gotowy = AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + k.nazwa + ".anim");
+                    opis.Add(k.nazwa + "←" + z + (roz ? ur : " Humanoid"));
+                    Debug.Log("BRAXHORN_PATRYK_NOGI klip=" + k.nazwa + " wybór=" + (roz ? "RÓŻNICA" : "HUMANOID") + " kara Humanoid=" + (wh != null ? wh.Kara.ToString() : "—")
+                              + " różnica=" + (wr != null ? wr.Kara.ToString() : "—") + (wr != null ? " | różnica: " + wr.Opis() : "") + (wh != null ? " | Humanoid: " + wh.Opis() : ""));
+                    PatrykSpoczynek(spoczynek);
+                    break;
                 }
                 if (gotowy) klipy.Add(gotowy);
                 else Debug.LogWarning("BRAXHORN_PATRYK brak klipu " + k.nazwa);
