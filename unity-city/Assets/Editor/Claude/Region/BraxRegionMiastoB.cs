@@ -562,7 +562,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             else granice.Add((k, 0f, false, 0));
         }
         // ćwiartki: od granicy „lewej” kąta k do granicy „prawej” kąta k+90
-        var plyta = new BraxRegionMeble.Bud(); var kraw = new BraxRegionMeble.Bud();
+        var plyta = new BraxRegionMeble.Bud(); var kraw = new BraxRegionMeble.Bud(); var trawnik = new BraxRegionMeble.Bud();
         foreach (var k in new[] { 0f, 90f, 180f, 270f })
         {
             var gA = granice.Where(g => Mathf.Abs(Mathf.DeltaAngle(g.kat, k)) < 1f).OrderByDescending(g => g.off).First();      // lewa krawędź wlotu k (albo podział)
@@ -579,7 +579,27 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             int segs = Mathf.Max(4, Mathf.CeilToInt((k1 - k0) / (2.5f * Mathf.Deg2Rad)));
             for (int i = 1; i < segs; i++) { float t = Mathf.Lerp(k0, k1, i / (float)segs); obrys.Add(c + new Vector2(Mathf.Cos(t), Mathf.Sin(t)) * Ro); }
             obrys.Add(B_in); obrys.Add(B_out);
-            for (int i = 0; i + 1 < obrys.Count; i++) TrojkatGora(plyta, rog, obrys[i], obrys[i + 1], YC);
+            // WŁAŚCICIEL 3.11 10:58 („rondo okrągłe, ale za nim kwadrat”): zamiast kwadratu z płyt — chodnik 4.5 m po okręgu
+            // (i 3 m wzdłuż wlotów), a narożnik placu trawnikiem (3 cm niżej, jak wyspa ronda). Pas chodnika: pasy czworokątów
+            // między obrysem pierścienia a łukiem R + 4.5 m; trawnik: wachlarz od narożnika do łuku.
+            {
+                const float Pas = 4.5f, Wzdl = 3f;
+                float oA2 = oA + (gA.wlot ? Wzdl : 0f), oB2 = oB + (gB.wlot ? Wzdl : 0f), Rb = Ro + Pas;
+                float tA2 = Mathf.Sqrt(Mathf.Max(0f, Rb * Rb - oA2 * oA2)), tB2 = Mathf.Sqrt(Mathf.Max(0f, Rb * Rb - oB2 * oB2));
+                Vector2 A_c = c + dA * Mathf.Min(tA2, S) + nA * oA2, B_c = c + dB * Mathf.Min(tB2, S) + nB * oB2;
+                Vector2 A_o2 = c + dA * S + nA * oA2, B_o2 = c + dB * S + nB * oB2;
+                float q0 = Mathf.Atan2(A_c.y - c.y, A_c.x - c.x), q1 = Mathf.Atan2(B_c.y - c.y, B_c.x - c.x);
+                while (q1 < q0) q1 += Mathf.PI * 2f;
+                var zew = new List<Vector2> { A_o2, A_c };
+                for (int i = 1; i < segs; i++) { float t = Mathf.Lerp(q0, q1, i / (float)segs); zew.Add(c + new Vector2(Mathf.Cos(t), Mathf.Sin(t)) * Rb); }
+                zew.Add(B_c); zew.Add(B_o2);
+                for (int i = 0; i + 1 < obrys.Count; i++)
+                {
+                    TrojkatGora(plyta, zew[i], obrys[i], obrys[i + 1], YC);          // ściana od jezdni (krawędź obrysu)
+                    TrojkatGora(plyta, obrys[i + 1], zew[i + 1], zew[i], YC);        // ściana od trawnika (krawędź łuku)
+                }
+                for (int i = 0; i + 1 < zew.Count; i++) TrojkatTrawa(trawnik, rog, zew[i], zew[i + 1], YC - .03f);
+            }
             // krawężnik: łuk R…R+Kr i (dla wlotów) linie wzdłuż jezdni wlotu od pierścienia do brzegu placu
             for (int i = 0; i < segs; i++)
             {
@@ -591,6 +611,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             if (gB.wlot) { float tr = Mathf.Sqrt(Mathf.Max(0f, R * R - (Mathf.Abs(oB) - Kr) * (Mathf.Abs(oB) - Kr))); KlinGora(kraw, c + dB * tB + nB * oB, c + dB * S + nB * oB, c + dB * S + nB * (oB - Mathf.Sign(oB) * Kr), c + dB * tr + nB * (oB - Mathf.Sign(oB) * Kr), YC); }
         }
         Nawierzchnia(plyta.Obiekt("Plac: chodnik " + n, root, plyty, true, false));
+        { var gt = trawnik.Obiekt("Plac: trawnik narożników " + n, root, BraxRegionTrawa.Material, true, false); if (gt) { foreach (var r in gt.GetComponentsInChildren<MeshRenderer>(true)) r.shadowCastingMode = ShadowCastingMode.Off; Nawierzchnia(gt); } }
         Nawierzchnia(kraw.Obiekt("Plac: krawężnik " + n, root, krawMat, true, false));
     }
 
@@ -606,6 +627,14 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         // ściana boczna krawędzi zewnętrznej p–q (krawężnik pierścienia jej nie zasłania od strony jezdni — jest ścianą chodnika)
         var P0 = new Vector3(P.x, y - .3f, P.z); var Q0 = new Vector3(Q.x, y - .3f, Q.z);
         b.Quad(P, Q, Q0, P0); b.Quad(Q, P, P0, Q0);
+    }
+    // trójkąt trawnika: sama powierzchnia (normalna w górę), bez ścian
+    static void TrojkatTrawa(BraxRegionMeble.Bud b, Vector2 a, Vector2 p, Vector2 q, float y)
+    {
+        if (Vector2.Distance(p, q) < 1e-4f || Vector2.Distance(a, p) < 1e-4f || Vector2.Distance(a, q) < 1e-4f) return;
+        var A = new Vector3(a.x, y, a.y); var P = new Vector3(p.x, y, p.y); var Q = new Vector3(q.x, y, q.y);
+        if (Vector3.Cross(P - A, Q - A).y < 0) { var t = P; P = Q; Q = t; }
+        b.Tri(A, P, Q);
     }
     static void KlinGora(BraxRegionMeble.Bud b, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float y)
     {
