@@ -166,7 +166,7 @@ public static class BraxClaudeMetro
         {
             var otw = new Bounds(new Vector3((EX0 + 76.7f) * .5f, -.15f, z0 + EW * .5f), new Vector3(76.7f - EX0, 1.5f, EW));
             rep.otwory += W.Otwor(cityRoot, otw, "metro_zejscie_" + z0.ToString("F1"), zewnatrz);
-            var wiata = new Bounds(new Vector3((EX0 - .3f + 77.3f) * .5f, 3f, z0 + EW * .5f), new Vector3(77.3f - EX0 + .3f, 6f, EW + .6f));
+            var wiata = new Bounds(new Vector3((EX0 - 1.6f + 77.3f) * .5f, 3f, z0 + EW * .5f), new Vector3(77.3f - EX0 + 1.6f, 6f, EW + .6f));   // + głowica schodów ruchomych na chodniku
             rep.uprzatniete.AddRange(W.Uprzatnij(cityRoot, wiata, zewnatrz));
         }
         foreach (var b in new[] {
@@ -289,7 +289,7 @@ public static class BraxClaudeMetro
         var wyniki = new List<string>(); int ok = 0;
         foreach (float z0 in WEJSCIA)
         {
-            bool pln = z0 > 28f; float zc = z0 + EW * .5f, zIn = pln ? EZ[1] - 1.0f : EZ[0] + EW + 1.0f;
+            bool pln = z0 > 28f; float zc = ZcSchodow(z0), zIn = pln ? EZ[1] - 1.0f : EZ[0] + EW + 1.0f;
             float zBr = Wolny(GX, yM, MZ0 + .5f, MZ1 - .5f, 28.45f);
             float zSt = Wolny(WX1 + .6f, yM, WZ0 + .4f, WZ1 - .4f, 27.15f);
             string wynik;
@@ -302,6 +302,12 @@ public static class BraxClaudeMetro
                 var r = Idz(trasa, out float m);
                 wynik = r == null ? "ok (" + m.ToString("F0") + " m)" : "zablokowane:" + r + " po " + m.ToString("F0") + " m";
                 if (r == null) ok++;
+                // schody ruchome obok (jadą w dół; test idzie po ich rampie): chodnik → głowica → bieg → antresola → bramki
+                float ze = ER_Os(z0);
+                var trasaR = new List<Vector3> { new Vector3(EX0 - 3.5f, yS, ze), new Vector3(EX0 + .4f, yS, ze), new Vector3(xEnd - .3f, yM, ze), new Vector3(xEnd + 1.0f, yM, ze),
+                    new Vector3(xEnd + 1.0f, yM, zIn), new Vector3(GX + 3f, yM, zIn), new Vector3(GX + 1.5f, yM, zBr), new Vector3(GX - 1.5f, yM, zBr) };
+                var rr = Idz(trasaR, out float mR);
+                wyniki.Add("schody_ruchome=" + (rr == null ? "ok (" + mR.ToString("F0") + " m)" : "zablokowane:" + rr + " po " + mR.ToString("F0") + " m"));
             }
             wyniki.Add("wejscie=" + (pln ? "płn" : "płd") + " " + wynik);
             // wolny chodnik obok wejścia (cel ≥ 2.5 m·k z jednej strony): promień poziomy 1 m nad chodnikiem w obie strony od pasa
@@ -425,17 +431,20 @@ public static class BraxClaudeMetro
     // ---------------- wejścia z ulicy ----------------
     static void Wejscie(float z0, bool polnoc)
     {
-        float zc = z0 + EW * .5f, szer = EW - .3f;           // bieg 3.1 m (2.4·k), ściany po .15
+        // pkt 58: pas dzielony — schody stałe (płd. część) i obok schody ruchome (płn. część, jadą w dół)
+        float zc = z0 + EW * .5f, zcS = ZcSchodow(z0), szer = SzerSchodow(z0);
         float wz = (yS - yM) / 23f, st = .30f * K;
         var dir = Vector3.right;
-        var g1 = new Vector3(EX0, yS, zc);
+        var g1 = new Vector3(EX0, yS, zcS);
         var s1 = Bieg(g1, dir, szer, 12, wz, st);              // bieg 1: 12 wzniosów
         float spocz = 1.5f * K;
         var g2 = s1 + dir * spocz;                            // spocznik
-        W.MM(mStopien, s1.x, g2.x, s1.y - .32f, s1.y, zc - szer * .5f, zc + szer * .5f);
-        W.KolizjaMM(s1.x - .2f, g2.x, s1.y - .3f, s1.y, zc - szer * .5f, zc + szer * .5f);
+        W.MM(mStopien, s1.x, g2.x, s1.y - .32f, s1.y, zcS - szer * .5f, zcS + szer * .5f);
+        W.KolizjaMM(s1.x - .2f, g2.x, s1.y - .3f, s1.y, zcS - szer * .5f, zcS + szer * .5f);
         var d2 = Bieg(g2, dir, szer, 11, wz, st);              // bieg 2: 11 wzniosów → antresola
         float xEnd = d2.x;                                     // ~76.6
+        try { SchodyRuchome("metro: schody ruchome chodnik → antresola", EX0 - .9f, 1f, yS, yM, ER_Os(z0), ER_STOPIEN, false, 30f, true); }
+        catch (Exception e) { Debug.LogWarning("BRAXHORN_SCHODY_RUCHOME chodnik → antresola DO POPRAWKI " + e.Message); }
         // ściany boczne szybu nad terenem: murek z granitu + balustrada szklana z pochwytem (1.1·k)
         float hBal = 1.1f * K, hMur = .55f;
         foreach (float s in new[] { -1f, 1f })
@@ -449,7 +458,7 @@ public static class BraxClaudeMetro
                 W.Rura(mStal, new Vector3(x, yS + hMur + .05f, zw), new Vector3(x, yS + hBal, zw), .018f * K, 8);
             W.KolizjaMM(EX0 - .05f, xEnd + .2f, yS, yS + hBal, zw - .08f, zw + .08f);
             // poręcze przy biegach (0.9·k nad noskami), po obu stronach
-            float zp = zc + s * (szer * .5f - .07f);
+            float zp = zcS + s * (szer * .5f - .07f);
             Porecz(new Vector3(EX0 - .3f, yS, zp), new Vector3(s1.x, s1.y + wz, zp), .9f * K);
             Porecz(new Vector3(g2.x, g2.y, zp), new Vector3(xEnd, yM + wz, zp), .9f * K);
         }
@@ -767,55 +776,11 @@ public static class BraxClaudeMetro
         // przegroda między schodami a ruchomymi
         W.MM(mStal, xBot, 58.2f, yP, yP + .02f, 28.75f, 28.85f);
 
-        // schody ruchome (jadą w górę): z 28.95–31.25, nachylenie 30°, płaskie odcinki na końcach
+        // schody ruchome (jadą w górę): z 28.95–31.25, nachylenie 30° — pkt 58: wspólny wykonawca SchodyRuchome (jazda, poręcz UV, dźwięk)
         float ez0 = 28.95f, ez1 = 31.25f, ezc = (ez0 + ez1) * .5f, stepW = 1.0f * K;
-        float xTop = 58.6f, xTopPlat = xTop - 1.3f, h = yM - yP, run = h / Mathf.Tan(30f * Mathf.Deg2Rad);
-        float xBotPlat = xTopPlat - run, xBotEnd = xBotPlat - 1.3f;
-        var pT = new Vector3(xTopPlat, yM, ezc); var pB = new Vector3(xBotPlat, yP, ezc);
-        // stopnie na skosie — A 2.11: osobna TAŚMA, która JEDZIE w górę (BraxSchodyRuchome: przesuw o jeden stopień w kółko,
-        // stopień nr nSt czeka schowany pod płytą dolną, górny chowa się pod płytą górną — ruch ciągły). Żółte pasy boczne
-        // 4 cm są częścią wierzchu stopnia (trzy pola obok siebie), nie paskiem 2 mm nad nim.
-        int nSt = Mathf.CeilToInt(run / (.4f * K * .866f));
-        float dx = run / nSt, dy = h / nSt, zA = ezc - stepW * .5f, zB = ezc + stepW * .5f;
-        var tasma = new GameObject("metro: schody ruchome — taśma stopni (jedzie w górę)").transform; tasma.SetParent(podziemie, false);
-        var sAl = new UlSiatka(); var sZo = new UlSiatka();
-        for (int i = 0; i <= nSt; i++)
-        {
-            float x = xTopPlat - i * dx; float y = yM - (i + 1) * dy;
-            sAl.Box(new Vector3(x - dx, y - .02f, zA + .04f), new Vector3(x, y, zB - .04f));
-            sZo.Box(new Vector3(x - dx, y - .02f, zA), new Vector3(x, y, zA + .04f));
-            sZo.Box(new Vector3(x - dx, y - .02f, zB - .04f), new Vector3(x, y, zB));
-            sAl.Box(new Vector3(x - .005f, y, zA), new Vector3(x + .005f, y + dy - .02f, zB));      // podstopnica: tył stopnia, do spodu stopnia wyżej
-        }
-        BraxMiastoA.Obiekt(tasma, "metro: taśma schodów ruchomych (aluminium)", sAl, mAluminium);
-        BraxMiastoA.Obiekt(tasma, "metro: taśma schodów ruchomych (żółte pasy boczne)", sZo, BraxUliceKit.Mat("metro: pasy boczne stopni (żółte)", new Color(.88f, .70f, .06f), .75f));
-        var ruch = tasma.gameObject.AddComponent<BraxSchodyRuchome>(); ruch.krok = new Vector3(dx, dy, 0f); ruch.predkosc = .5f;
-        W.MM(mAluminium, xTopPlat, xTop, yM - .02f, yM + .01f, ezc - stepW * .5f, ezc + stepW * .5f);
-        W.MM(mAluminium, xBotEnd, xBotPlat, yP - .02f, yP + .01f, ezc - stepW * .5f, ezc + stepW * .5f);
-        W.MM(mZolty, xTop - .25f, xTop, yM + .01f, yM + .015f, ezc - stepW * .5f, ezc + stepW * .5f);   // grzebienie
-        W.MM(mZolty, xBotEnd, xBotEnd + .25f, yP + .01f, yP + .015f, ezc - stepW * .5f, ezc + stepW * .5f);
-        W.Rampa(pT + Vector3.right * .1f, pB + Vector3.left * .1f, stepW);
-        W.KolizjaMM(xBotEnd - .3f, xBotPlat, yP - .3f, yP + .01f, ezc - stepW * .5f, ezc + stepW * .5f);
-        // kratownica (obudowa boczna) i balustrady szklane z poręczą ruchomą (gumową)
-        var sk = Quaternion.LookRotation((pB - pT).normalized);
-        float L = Vector3.Distance(pT, pB);
-        foreach (float s in new[] { -1f, 1f })
-        {
-            float zz = ezc + s * (stepW * .5f + .12f);
-            W.OBox(mStal, (pT + pB) * .5f + new Vector3(0, -.35f, zz - ezc), new Vector3(.24f, 1.1f, L + .4f), sk);
-            W.MM(mStal, xTopPlat, xTop + .3f, yM - .8f, yM + .12f, zz - .12f, zz + .12f);
-            W.MM(mStal, xBotEnd - .3f, xBotPlat, yP - .1f, yP + .12f, zz - .12f, zz + .12f);
-            float hb = .95f * K;
-            W.OBox(mSzklo, (pT + pB) * .5f + new Vector3(0, hb * .5f + .1f, zz - ezc), new Vector3(.02f, hb - .1f, L), sk);
-            W.MM(mSzklo, xTopPlat, xTop, yM + .12f, yM + hb, zz - .01f, zz + .01f);
-            W.MM(mSzklo, xBotEnd, xBotPlat, yP + .12f, yP + hb, zz - .01f, zz + .01f);
-            var a = new Vector3(xTop + .2f, yM + hb + .05f, zz); var b0 = new Vector3(xTopPlat, yM + hb + .05f, zz);
-            var c0 = new Vector3(xBotPlat, yP + hb + .05f, zz); var d0 = new Vector3(xBotEnd - .2f, yP + hb + .05f, zz);
-            W.Rura(mPoreczGuma, a, b0, .04f, 8); W.Rura(mPoreczGuma, b0, c0, .04f, 8); W.Rura(mPoreczGuma, c0, d0, .04f, 8);
-            W.Kolizja((pT + pB) * .5f + new Vector3(0, hb * .5f, zz - ezc), new Vector3(.1f, hb, L), sk);
-        }
-        // spód kratownicy (od strony peronu płn.) — okładzina
-        W.OBox(mStal, (pT + pB) * .5f + new Vector3(0, -.95f, 0), new Vector3(stepW + .5f, .1f, L), sk);
+        float xTop = 58.6f, xTopPlat = xTop - 1.3f, xBotPlat = xTopPlat - (yM - yP) / Mathf.Tan(30f * Mathf.Deg2Rad);
+        try { SchodyRuchome("metro: schody ruchome antresola → peron", xTop, -1f, yM, yP, ezc, stepW, true, 30f, false); }
+        catch (Exception e) { Debug.LogWarning("BRAXHORN_SCHODY_RUCHOME antresola → peron DO POPRAWKI " + e.Message); }
         foreach (float x in new[] { xBotPlat + 1f, (xBotPlat + xTopPlat) * .5f })
         {
             float t = Mathf.InverseLerp(xBotPlat, xTopPlat, x); float yy = Mathf.Lerp(yP, yM, t) - 1.0f;
@@ -825,6 +790,180 @@ public static class BraxClaudeMetro
         Wiszaca(new Vector3(xBot - 1.5f, yHc - .6f, 26.4f), Vector3.left, 1.2f, .6f, aPeron2, aPeron2, yHc);
         Wiszaca(new Vector3(xBot - 1.5f, yHc - .6f, 30.6f), Vector3.left, 1.2f, .6f, aPeron1, aPeron1, yHc);
         Wiszaca(new Vector3(xBot - 3.6f, yHc - .65f, 28.5f), Vector3.left, 3.2f, .4f, aWyjN, aWyjS, yHc);
+    }
+
+    // ---------------- schody ruchome (pkt 58): wspólny wykonawca dla wejścia z chodnika i antresola → peron ----------------
+    static readonly float ER_STOPIEN = .8f * K;                                                  // stopień 800 mm × K
+    static float ER_Os(float z0) => z0 + EW - .17f - .24f - ER_STOPIEN * .5f;          // oś schodów ruchomych w pasie wejścia (płn. część)
+    static float SchodyZ1(float z0) => ER_Os(z0) - ER_STOPIEN * .5f - .24f - .085f;    // płn. krawędź schodów stałych (osłona między)
+    static float ZcSchodow(float z0) => (z0 + .15f + SchodyZ1(z0)) * .5f;
+    static float SzerSchodow(float z0) => SchodyZ1(z0) - (z0 + .15f);
+    static Material mPoreczRuchoma, mStopienZolty;
+    public static int SchodyRuchomeLiczba;
+
+    static void MMx(Material m, float xa, float xb, float y0, float y1, float z0, float z1, bool kol = false)
+        => W.MM(m, Mathf.Min(xa, xb), Mathf.Max(xa, xb), y0, y1, z0, z1, kol);
+
+    static Material PoreczRuchoma()
+    {
+        if (mPoreczRuchoma) return mPoreczRuchoma;
+        try
+        {
+            string dir = BraxMiastoA.Out + "/Metro"; Directory.CreateDirectory(dir);
+            var tex = new Texture2D(64, 8, TextureFormat.RGBA32, true) { name = "metro poręcz ruchoma — guma ze znakiem", wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Bilinear };
+            var px = new Color32[64 * 8];
+            for (int y = 0; y < 8; y++)
+                for (int x = 0; x < 64; x++)
+                {
+                    byte c = 15;
+                    if (x < 2) c = 7;                                                    // szew taśmy
+                    if (x >= 22 && x < 42 && (y == 3 || y == 4)) c = 120;               // wytłoczony znak producenta (jasny pasek)
+                    if ((x == 46 || x == 50) && y >= 2 && y <= 5) c = 120;
+                    px[y * 64 + x] = new Color32(c, c, (byte)(c + 1), 255);
+                }
+            tex.SetPixels32(px); tex.Apply(true);
+            BraxZapisAssetu.Utworz(tex, dir + "/porecz_ruchoma_guma.asset");
+            var m = new Material(mPoreczGuma) { name = "metro poręcz ruchoma guma (przewijana)" };
+            m.SetTexture("_MainTex", tex); m.SetColor("_Color", Color.white);
+            BraxZapisAssetu.Utworz(m, dir + "/porecz_ruchoma.mat");
+            mPoreczRuchoma = m;
+        }
+        catch (Exception e) { Debug.LogWarning("BRAXHORN_SCHODY_RUCHOME poręcz DO POPRAWKI " + e.Message); mPoreczRuchoma = mPoreczGuma; }
+        return mPoreczRuchoma;
+    }
+
+    /// <summary>Rura wzdłuż łamanej z UV wzdłuż długości (u = metry / okres) — poręcz przewijana.</summary>
+    static Mesh RuraUV(List<Vector3> pts, float r, int boki, float okres, string nazwa)
+    {
+        var v = new List<Vector3>(); var n = new List<Vector3>(); var uv = new List<Vector2>(); var t = new List<int>();
+        float s = 0f;
+        for (int i = 0; i < pts.Count; i++)
+        {
+            if (i > 0) s += Vector3.Distance(pts[i - 1], pts[i]);
+            Vector3 d = i == 0 ? pts[1] - pts[0] : i == pts.Count - 1 ? pts[i] - pts[i - 1] : (pts[i + 1] - pts[i]).normalized + (pts[i] - pts[i - 1]).normalized;
+            d.Normalize();
+            var a = Vector3.Cross(d, Vector3.forward); if (a.sqrMagnitude < 1e-6f) a = Vector3.Cross(d, Vector3.up); a.Normalize();
+            var b = Vector3.Cross(a, d).normalized;
+            for (int k = 0; k <= boki; k++)
+            {
+                float f = k * Mathf.PI * 2f / boki; var nn = a * Mathf.Cos(f) + b * Mathf.Sin(f);
+                v.Add(pts[i] + nn * r); n.Add(nn); uv.Add(new Vector2(s / okres, k / (float)boki));
+            }
+        }
+        for (int i = 0; i + 1 < pts.Count; i++)
+            for (int k = 0; k < boki; k++)
+            {
+                int a0 = i * (boki + 1) + k, a1 = a0 + 1, b0 = a0 + boki + 1, b1 = b0 + 1;
+                t.Add(a0); t.Add(b0); t.Add(a1); t.Add(a1); t.Add(b0); t.Add(b1);
+            }
+        var m = new Mesh { name = nazwa };
+        m.SetVertices(v); m.SetNormals(n); m.SetUVs(0, uv); m.SetTriangles(t, 0); m.RecalculateBounds();
+        return m;
+    }
+
+    /// <summary>Schody ruchome wzdłuż osi x. xTop: zewnętrzny koniec płyty górnej, sx: kierunek „w dół biegu” wzdłuż x (±1).
+    /// Taśma stopni z żółtymi krawędziami (przód + boki) przesuwana w pętli, podstopnice, płyty spocznikowe z grzebieniami
+    /// (zęby nad stopniami), osłony boczne inox (kratownica), balustrada szklana, poręcz gumowa przewijana (UV) z zawrotami
+    /// w głowicach, zaokrąglone noski osłon, spód kratownicy; kolizje: rampa biegu, płyty, balustrady. Jazda + dźwięk:
+    /// BraxSchodyRuchomeJazda. oslonaPld: pionowa osłona pod kratownicą od strony −z (zamyka przestrzeń pod biegiem).</summary>
+    static void SchodyRuchome(string nazwa, float xTop, float sx, float yTop, float yBot, float ezc, float stepW, bool wGore, float kat, bool oslonaPld)
+    {
+        float h = yTop - yBot, run = h / Mathf.Tan(kat * Mathf.Deg2Rad), plat = 1.3f;
+        float xTopPlat = xTop + sx * plat, xBotPlat = xTopPlat + sx * run, xBotEnd = xBotPlat + sx * plat;
+        var pT = new Vector3(xTopPlat, yTop, ezc); var pB = new Vector3(xBotPlat, yBot, ezc);
+        float zA = ezc - stepW * .5f, zB = ezc + stepW * .5f;
+        if (!mStopienZolty) mStopienZolty = BraxUliceKit.Mat("metro: pasy boczne stopni (żółte)", new Color(.88f, .70f, .06f), .75f);
+        // 1) taśma stopni (jedzie): w górę stopnie 0…n (n schowany pod płytą dolną), w dół −1…n−1 (−1 schowany pod płytą górną)
+        int nSt = Mathf.CeilToInt(run / (.4f * K * .866f));
+        float dx = run / nSt, dy = h / nSt;
+        var tasma = new GameObject(nazwa + " — taśma stopni (" + (wGore ? "jedzie w górę" : "jedzie w dół") + ")").transform; tasma.SetParent(W.Grupa, false);
+        var sAl = new UlSiatka(); var sZo = new UlSiatka();
+        void BoxX(UlSiatka u, float xa, float xb, float y0, float y1, float z0, float z1) => u.Box(new Vector3(Mathf.Min(xa, xb), y0, z0), new Vector3(Mathf.Max(xa, xb), y1, z1));
+        for (int i = wGore ? 0 : -1; i <= (wGore ? nSt : nSt - 1); i++)
+        {
+            float xs = xTopPlat + sx * i * dx, xf = xs + sx * dx, y = yTop - (i + 1) * dy;
+            float xp = xf - sx * .05f;                                                         // żółta krawędź przednia 5 cm
+            BoxX(sAl, xp, xs, y - .02f, y, zA + .04f, zB - .04f);
+            BoxX(sZo, xf, xp, y - .02f, y, zA + .04f, zB - .04f);
+            BoxX(sZo, xf, xs, y - .02f, y, zA, zA + .04f);
+            BoxX(sZo, xf, xs, y - .02f, y, zB - .04f, zB);
+            BoxX(sAl, xs - .005f, xs + .005f, y, y + dy - .02f, zA, zB);                     // podstopnica do spodu stopnia wyżej
+            for (float zr = zA + .1f; zr < zB - .1f; zr += .09f)                                // ryflowanie podstopnicy (żeberka)
+                BoxX(sAl, xs, xs + sx * .012f, y + .02f, y + dy - .04f, zr, zr + .02f);
+        }
+        BraxMiastoA.Obiekt(tasma, nazwa + ": taśma (aluminium)", sAl, mAluminium);
+        BraxMiastoA.Obiekt(tasma, nazwa + ": taśma (żółte krawędzie)", sZo, mStopienZolty);
+        var ruch = tasma.gameObject.AddComponent<BraxSchodyRuchome>();
+        ruch.krok = wGore ? new Vector3(-sx * dx, dy, 0f) : new Vector3(sx * dx, -dy, 0f); ruch.predkosc = .5f;
+        // 2) płyty spocznikowe (aluminium) + płyty grzebieniowe (żółte) z zębami nad stopniami
+        foreach (var (xe, xk, y, dk) in new[] { (xTop, xTopPlat, yTop, sx), (xBotEnd, xBotPlat, yBot, -sx) })
+        {
+            float xg = xk - dk * .18f;                                                          // płyta grzebieniowa 18 cm od linii stopni
+            MMx(mAluminium, xe, xg, y - .02f, y + .01f, zA, zB);
+            MMx(mZolty, xg, xk, y - .02f, y + .012f, zA, zB);
+            for (float zt = zA + .015f; zt < zB - .01f; zt += .03f)
+                MMx(mZolty, xk, xk + dk * .05f, y - .004f, y + .008f, zt - .004f, zt + .004f);
+            for (float zr = zA + .06f; zr < zB - .05f; zr += .06f)                              // ryflowanie płyty
+                MMx(mStal, xe + dk * .08f, xg - dk * .03f, y + .01f, y + .014f, zr, zr + .012f);
+            MMx(mStal, xe - dk * .06f, xe, y - .02f, y + .012f, zA, zB);                       // listwa progowa inox
+            W.KolizjaMM(Mathf.Min(xe, xk), Mathf.Max(xe, xk), y - .3f, y + .01f, zA, zB);
+        }
+        W.Rampa(pT - Vector3.right * (sx * .1f), pB + Vector3.right * (sx * .1f), stepW);
+        // 3) osłony boczne inox (kratownica), balustrady szklane, noski głowic, poręcz przewijana
+        var sk = Quaternion.LookRotation((pB - pT).normalized);
+        float L = Vector3.Distance(pT, pB), hb = .95f * K, ra = .14f;
+        var porecze = new List<Renderer>();
+        foreach (float s in new[] { -1f, 1f })
+        {
+            float zz = ezc + s * (stepW * .5f + .12f);
+            W.OBox(mStal, (pT + pB) * .5f + new Vector3(0, -.35f, zz - ezc), new Vector3(.24f, 1.1f, L + .4f), sk);
+            MMx(mStal, xTopPlat, xTop - sx * .3f, yTop - .8f, yTop + .12f, zz - .12f, zz + .12f);
+            MMx(mStal, xBotPlat, xBotEnd + sx * .3f, yBot - .1f, yBot + .12f, zz - .12f, zz + .12f);
+            W.Rura(mStal, new Vector3(xTop - sx * .3f, yTop, zz - .115f), new Vector3(xTop - sx * .3f, yTop, zz + .115f), .12f, 12);
+            W.Rura(mStal, new Vector3(xBotEnd + sx * .3f, yBot, zz - .115f), new Vector3(xBotEnd + sx * .3f, yBot, zz + .115f), .12f, 12);
+            W.OBox(mSzklo, (pT + pB) * .5f + new Vector3(0, hb * .5f + .1f, zz - ezc), new Vector3(.02f, hb - .1f, L), sk);
+            MMx(mSzklo, xTopPlat, xTop, yTop + .12f, yTop + hb, zz - .01f, zz + .01f);
+            MMx(mSzklo, xBotEnd, xBotPlat, yBot + .12f, yBot + hb, zz - .01f, zz + .01f);
+            W.Kolizja((pT + pB) * .5f + new Vector3(0, hb * .5f, zz - ezc), new Vector3(.1f, hb, L), sk);
+            W.KolizjaMM(Mathf.Min(xTopPlat, xTop - sx * .4f), Mathf.Max(xTopPlat, xTop - sx * .4f), yTop, yTop + hb, zz - .12f, zz + .12f);
+            W.KolizjaMM(Mathf.Min(xBotPlat, xBotEnd + sx * .4f), Mathf.Max(xBotPlat, xBotEnd + sx * .4f), yBot, yBot + hb, zz - .12f, zz + .12f);
+            // poręcz: zawrót w głowicy górnej → bieg → zawrót w głowicy dolnej (u wzdłuż długości)
+            float yH = yTop + hb + .05f, yHb = yBot + hb + .05f, xe = xTop - sx * .2f, xeB = xBotEnd + sx * .2f;
+            var pts = new List<Vector3> { new Vector3(xe + sx * .25f, yH - 2f * ra, zz) };
+            for (int k = 0; k <= 6; k++) { float th = Mathf.Lerp(-90f, 90f, k / 6f) * Mathf.Deg2Rad; pts.Add(new Vector3(xe - sx * ra * Mathf.Cos(th), yH - ra + ra * Mathf.Sin(th), zz)); }
+            pts.Add(new Vector3(xTopPlat, yH, zz)); pts.Add(new Vector3(xBotPlat, yHb, zz));
+            for (int k = 0; k <= 6; k++) { float th = Mathf.Lerp(90f, -90f, k / 6f) * Mathf.Deg2Rad; pts.Add(new Vector3(xeB + sx * ra * Mathf.Cos(th), yHb - ra + ra * Mathf.Sin(th), zz)); }
+            pts.Add(new Vector3(xeB - sx * .25f, yHb - 2f * ra, zz));
+            var por = BraxMiastoA.Obiekt(tasma, nazwa + ": poręcz ruchoma " + (s < 0 ? "lewa" : "prawa"), RuraUV(pts, .04f, 10, .5f, nazwa + " poręcz"), PoreczRuchoma());
+            porecze.Add(por.GetComponent<Renderer>());
+        }
+        W.OBox(mStal, (pT + pB) * .5f + new Vector3(0, -.95f, 0), new Vector3(stepW + .5f, .1f, L), sk);   // spód kratownicy
+        // 4) osłona pod kratownicą (strona −z): skośny pas pod kratownicą + pionowe płyty co 0.5 m od posadzki (zachodzą na pas
+        //    1 cm przed nim — bez wspólnej płaszczyzny), pod spocznikiem górnym płyta do spodu osłony spocznika
+        if (oslonaPld)
+        {
+            float zo1 = zA - .24f - .02f, zo0 = zo1 - .06f, tg = Mathf.Tan(kat * Mathf.Deg2Rad);
+            W.OBox(mSciana, (pT + pB) * .5f + new Vector3(0, -1.3f, (zo0 + zo1) * .5f - ezc), new Vector3(.06f, 1.1f, L), sk, true);
+            float Linia(float x) => Mathf.Clamp(yTop - sx * (x - xTopPlat) * tg, yBot, yTop);
+            float xa = Mathf.Min(xTop, xBotPlat), xb = Mathf.Max(xTop, xBotPlat);
+            for (float x = xa; x < xb - .01f; x += .5f)
+            {
+                float xm = Mathf.Min(x + .5f, xb), xd = sx > 0 ? xm : x, xu = sx > 0 ? x : xm;
+                bool spocz = sx * (xu - xTopPlat) < 0f;
+                float yp = sx * (xd - xTopPlat) <= 0f ? yTop - .8f : Linia(xd) - 1.676f;
+                if (spocz) yp = Mathf.Min(yp, yTop - .8f);
+                if (yp - yBot < .2f) continue;
+                W.MM(mSciana, x, xm, yBot, yp, zo0 - .01f, zo1 - .01f, true);
+                W.MM(mLamperia, x, xm, yBot, yBot + .25f, zo0 - .03f, zo0 - .01f);               // cokół na licu (od strony schodów)
+            }
+        }
+        var jazda = new GameObject(nazwa + " — napęd i jazda (BraxSchodyRuchomeJazda)").AddComponent<BraxSchodyRuchomeJazda>();
+        jazda.transform.SetParent(W.Grupa, false);
+        jazda.gora = pT; jazda.dol = pB; jazda.szer = stepW; jazda.wGore = wGore; jazda.predkosc = .5f; jazda.okresPoreczy = .5f; jazda.porecze = porecze.ToArray();
+        SchodyRuchomeLiczba++;
+        Debug.Log("BRAXHORN_SCHODY_RUCHOME " + nazwa + " kierunek=" + (wGore ? "gora" : "dol") + " stopnie=" + (nSt + 1) + " stopien_m=" + stepW.ToString("F2")
+            + " wznios_m=" + h.ToString("F2") + " bieg_m=" + run.ToString("F2") + " kat=" + kat + " x " + Mathf.Min(xTop, xBotEnd).ToString("F1") + "…" + Mathf.Max(xTop, xBotEnd).ToString("F1")
+            + " z " + (zA - .24f).ToString("F2") + "…" + (zB + .24f).ToString("F2") + " poręcz_uv=" + (mPoreczRuchoma && mPoreczRuchoma != mPoreczGuma ? "tak" : "NIE") + " jazda=tak dźwięk=tak");
     }
 
     // ---------------- hala peronowa ----------------

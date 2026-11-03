@@ -189,6 +189,12 @@ const VIEWS = [
   ['DETAL_metro_czolo_pociagu', '59,-10,35.6,150,6,4'],
   ['DETAL_metro_szafka_hydrantowa', '43.9,-3.3,33.6,90,6,2'],
   ['DETAL_metro_drzwi_techniczne', '65.9,-3.3,22.2,270,4,2'],
+  // METRO pkt 58: schody ruchome (chodnik → antresola jadą w dół, antresola → peron w górę)
+  ['METRO_schody_ruchome_wejscie', '66.2,.9,35.07,270,25,4'],
+  ['METRO_schody_ruchome_antresola_dol', '75.5,-3.6,35.07,90,10,2.5'],
+  ['DETAL_metro_grzebien_gora', '66.9,.2,35.07,270,45,1.6'],
+  ['DETAL_metro_porecz_glowica', '65.4,1.3,35.71,225,10,1.8'],
+  ['DETAL_metro_schody_ruchome_peron', '45.9,-10.9,30.1,270,35,2'],
   ['M_A_metro_wejscie', '68,0.35,34.3,270,12,9'],
   ['M_A_nova_sala', '41,1.8,50,180,5,8'],
   ['M_A_nova_wejscie', '42,1.8,36,180,5,9'],
