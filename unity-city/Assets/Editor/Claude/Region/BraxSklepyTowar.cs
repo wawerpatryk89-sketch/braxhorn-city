@@ -42,6 +42,8 @@ public static class BraxSklepyTowar
         "sm_a" => new[] { "sk:mleko*4", "ph:russian_food_cans_01", "sk:mleko*4" },
         "sm_b" => new[] { "ph:long_life_food", "sk:mleko*4", "ph:CheeseBox_01", "ph:russian_food_cans_01" },
         "sm_c" => new[] { "ph:wine_bottles_01", "ph:multi_cleaner_bottle", "ph:bleach_bottle", "ph:wine_bottles_01" },
+        // księgarnia (3.11 14:41): rzędy książek z grzbietami z grafik właściciela (po 10 książek w modelu)
+        "ksiegarnia" => new[] { "sk:ksiazki_01", "sk:ksiazki_02", "sk:ksiazki_03", "sk:ksiazki_04", "sk:ksiazki_05", "sk:ksiazki_06", "sk:ksiazki_07", "sk:ksiazki_08" },
         // apteka: 24 leki BRAXHORN PHARMA (etykiety właściciela 3.11 14:00, pudełka leki.py), po kilka sztuk obok siebie
         "apteka" => new[] { "sk:lek_01*3", "sk:lek_02*3", "sk:lek_03*4", "sk:lek_04*3", "sk:lek_05*3", "sk:lek_06*4", "sk:lek_07*3", "sk:lek_08*3", "sk:lek_09*4", "sk:lek_10*3", "sk:lek_11*3", "sk:lek_12*4", "sk:lek_13*3", "sk:lek_14*3", "sk:lek_15*4", "sk:lek_16*3", "sk:lek_17*3", "sk:lek_18*4", "sk:lek_19*3", "sk:lek_20*3", "sk:lek_21*4", "sk:lek_22*3", "sk:lek_23*3", "sk:lek_24*4" },
         // regał chłodniczy supermarketu (właściciel 13:56: mięsa, wędliny, sery, ryby)
@@ -61,6 +63,7 @@ public static class BraxSklepyTowar
         "bistro" => new[] { "sk:hamburger*2", "sk:frytki*2", "sk:kurczak", "sk:szawarma*2" },
         "bar" => new[] { "sk:kebab", "sk:frytki", "sk:hamburger" },
         "market" => new[] { "sk:mleko*3" },
+        "ksiegarnia" => new[] { "sk:okladka_6", "sk:okladka_1", "sk:okladka_7", "sk:okladka_3" },
         "apteka" => new[] { "sk:lek_01*2", "sk:lek_13", "sk:lek_20*2" },
         _ => null
     };

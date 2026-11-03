@@ -157,7 +157,9 @@ internal static class BraxMiastoBillboardy
     static Material Grafika(string nr, float domyslnaProporcja, out float proporcja)
     {
         proporcja = domyslnaProporcja;
-        string plik = Dir + nr + ".jpg";
+        // 3.11 14:37: nowe grafiki właściciela (paczka miasto_sklepy/billboardy) mają pierwszeństwo przed starymi
+        string nowy = "Assets/Source/Prywatne/Miasto/miasto_sklepy/billboardy/" + nr + ".jpg";
+        string plik = File.Exists(nowy) ? nowy : Dir + nr + ".jpg";
         try
         {
             if (File.Exists(plik))
