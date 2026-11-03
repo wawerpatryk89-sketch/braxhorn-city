@@ -276,6 +276,8 @@ public static partial class BraxClaudeOsiedle
                 case "dyskoteka":
                 {
                     var mag = new Color(.82f, .14f, .62f);
+                    // szyld neonowy z grafiki właściciela (3.11 15:52, PULS CLUB · BRAXHORN, 3:1); bez paczki — litery 3D
+                    if (SzyldPanel("puls_club", new Vector3(cx, 4.3f, lico + fwd.z * .02f + fwd.x * .02f), fwd, 3.9f, 1.3f)) break;
                     SzyldLitery(bud, "PULS CLUB (nazwa osiedla, 3.11 15:47 — inna niż NOVA w mieście)", "PULS CLUB", new Vector3(cx, 4.25f, lico), fwd, .95f, MatLico("magenta", mag), MatBokiCzarne, .13f, .06f);
                     SzyldLitery(bud, "CLUB · DJ · DANCE", "CLUB · DJ · DANCE", new Vector3(cx, 3.6f, lico), fwd, .24f, MatLicoBiale, MatBoki("fiolet", new Color(.40f, .10f, .52f)), .05f, .04f);
                     break;

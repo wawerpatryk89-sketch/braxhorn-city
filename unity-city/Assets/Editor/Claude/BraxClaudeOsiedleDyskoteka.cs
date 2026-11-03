@@ -468,10 +468,9 @@ public static partial class BraxClaudeOsiedle
         float xW = X0 + .09f;
         foreach (float z in new[] { 6.3f, 10.6f, 14.9f, 19.2f, 23.5f }) Loza(new Vector3(xW, 0, z), Vector3.right, true);
         foreach (float x in new[] { 71.6f, 75.9f }) Loza(new Vector3(x, 0, Z1 - .09f), Vector3.back, true);
-        BoxMinMax(lacquer, 76.35f, 76.65f, yF, yF + 1.2f * K, 6.0f, 19.0f);                                                     // ścianka wyspy
-        BoxMinMax(brass, 76.32f, 76.68f, yF + 1.2f * K, yF + 1.2f * K + .03f, 5.97f, 19.03f, false, true);
-        Mebel("wyspa: ścianka", new Bounds(new Vector3(76.5f, yF + .6f * K, 12.5f), new Vector3(.3f, 1.2f * K, 13f)));
-        foreach (float z in new[] { 8.2f, 12.5f, 16.8f }) { Loza(new Vector3(76.35f, 0, z), Vector3.left, false); Loza(new Vector3(76.65f, 0, z), Vector3.right, false); }
+        // 3.11 15:53 (właściciel): „żadnej ściany na dyskotece — loże w U, jedno U, drugie U, stoliki między”: ścianka wyspy usunięta,
+        // loże wyspy stoją oparciami do siebie (sofa + 2 fotele = U wokół stolika), 1.2 m × K przejścia między kolejnymi U
+        foreach (float z in new[] { 8.2f, 12.5f, 16.8f }) { Loza(new Vector3(76.3f, 0, z), Vector3.left, false); Loza(new Vector3(76.7f, 0, z), Vector3.right, false); }
         foreach (float x in new[] { 92.5f, 96.9f }) Loza(new Vector3(x, 0, Z0 + .09f), Vector3.forward, false);
         klub.loze = lozeN;
 

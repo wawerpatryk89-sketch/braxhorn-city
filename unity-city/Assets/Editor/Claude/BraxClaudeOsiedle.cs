@@ -5763,6 +5763,7 @@ public static partial class BraxClaudeOsiedle
         Guard("oznakowanie: kontrola nakładek przed scaleniem (runda 4)", () => OznakowanieKontrola("koniec"));
         Flush();
         FlushClumps();
+        Guard("tunel: wnętrze wolne od terenu i trawy (3.11 — ściana z trawy w otworze)", TunelWolny);
         Guard("sufity dla kamery (blokada nad pomieszczeniami)", SufityKamery);
         // build 14 (dyspozytor przy scalaniu): kontrole jakości PRZED ludźmi — kontrola skaluje/przesuwa ławki i meble, a ludzie
         // siedzący są wstawiani na stałe na wysokości ławki; po kontroli siadają na już poprawionych. Siatki są jeszcze do odczytu.

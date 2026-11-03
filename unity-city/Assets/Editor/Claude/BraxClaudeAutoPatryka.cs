@@ -65,7 +65,7 @@ public static partial class BraxClaudeOsiedle
                 if(!fotel||!kab){kandydaci.Add((t,false,default,false,id+": brak fotela"));continue;}
                 var drzwi=DrzwiKierowcy(t.go,fotel,out var ob);
                 WynikKabiny w=default; bool miesci=false;
-                foreach(var (odch,zagl,poch) in KabinaProby(kab.odchylenieBaza,Mathf.Min(30f,kab.odchylenieMax),K))
+                foreach(var (odch,zagl,poch) in KabinaProby(kab.odchylenieBaza,42f,K))   // 3.11: Patryk 2.33 m (= Brax) — fotel sportowy do 42°
                 {
                     var rot=fotel.rotation; player.transform.SetPositionAndRotation(fotel.position+fotel.up*(.08f*K-zagl)-rot*hipsOffset,rot);
                     anim.GetClip("CarIdle").SampleAnimation(anim.gameObject,0);
@@ -101,6 +101,10 @@ public static partial class BraxClaudeOsiedle
             if(Physics.CheckBox(spot.srodek+Vector3.up*(.3f+half.y),half,rotation,~0,QueryTriggerInteraction.Ignore))continue;
             var go=AutoInstancja(template,Group("Auto Patryka / ARENA BRAXHORN"),"Auto Patryka · tylko gracz",new System.Random(180),out var color);
             go.transform.SetPositionAndRotation(spot.srodek,rotation);
+            // 3.11 (właściciel: „auto ma pasować pod Patryka, nie on pod auto”): gdy nawet przy 42° brakuje miejsca nad głową,
+            // auto Patryka powiększone równomiernie o brakującą wysokość kabiny (siedzisko→dach ≈ 0.85 m × K), max +25 %
+            if(!wybrany.miesci){float f=Mathf.Clamp(1f+(-wybrany.w.zapas)/(.85f*K),1f,1.25f);go.transform.localScale*=f;
+                Debug.Log("BRAXHORN_AUTO_PATRYKA auto ×"+f.ToString("F2")+" (brak "+(-wybrany.w.zapas*100f).ToString("F1")+" cm nad głową przy "+wybrany.w.odchylenie.ToString("F0")+"°)");}
             var box=go.AddComponent<BoxCollider>();box.center=template.obrys.center;box.size=template.obrys.size;
             var rb=go.AddComponent<Rigidbody>();rb.isKinematic=true;rb.useGravity=false;rb.interpolation=RigidbodyInterpolation.Interpolate;
             var car=go.AddComponent<BraxAutoGracza>();car.obrys=box;
