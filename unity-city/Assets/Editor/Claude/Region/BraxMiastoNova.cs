@@ -566,7 +566,12 @@ internal static class BraxMiastoNova
         BraxMiastoA.Akcja(root, "nova_dj", "POROZMAWIAJ Z DJ-em", "DJ: Zamówienia muzyczne po północy. Teraz leci set rezydenta.", new Vector3(43.9f, top, 58.7f), 1.5f);
         // ekran LED za DJ-em (10 cm przed ścianą) z ramą
         float ez = HZ1 - .12f;
-        BraxUliceKit.S(ekranM).Quad(new Vector3(RX1 + 1f, F + .9f, ez), new Vector3(RX0 - 1f, F + .9f, ez), new Vector3(RX0 - 1f, C - .35f, ez), new Vector3(RX1 + 1f, C - .35f, ez), Vector3.back);
+        // 3.11 15:59 (właściciel): MURAL NOVA CLUB za DJ-em (grafika z czatu, 3:1) zamiast wzoru LED; bez paczki — ekran LED
+        {
+            float mw = RX1 - RX0 + 2f, mhMax = C - .35f - (F + .9f), mh = mw / 3f; if (mh > mhMax) { mh = mhMax; mw = mh * 3f; }
+            if (!BraxMiastoBillboardy.Mural(root, "mural_nova", new Vector3((RX0 + RX1) * .5f, F + .9f + mhMax * .5f, ez - .005f), Vector3.back, mw, mh))
+                BraxUliceKit.S(ekranM).Quad(new Vector3(RX1 + 1f, F + .9f, ez), new Vector3(RX0 - 1f, F + .9f, ez), new Vector3(RX0 - 1f, C - .35f, ez), new Vector3(RX1 + 1f, C - .35f, ez), Vector3.back);
+        }
         BraxUliceKit.S(glosnik).Box(new Vector3(RX0 - 1.08f, F + .82f, ez), new Vector3(RX1 + 1.08f, C - .27f, HZ1 - .01f), 32);   // obudowa (lico ekranu 2 cm przed nią… ekran leży w otworze obudowy)
         // głośniki liniowe (podwieszone, 8 modułów w łuku) i suby przed podestem
         foreach (float x in new[] { RX0 - .3f, RX1 + .3f })

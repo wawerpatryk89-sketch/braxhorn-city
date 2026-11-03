@@ -183,6 +183,23 @@ internal static class BraxMiastoBillboardy
         return pusta;
     }
 
+    /// <summary>Mural / szyld z paczki grafik właściciela (Assets/Source/Prywatne/Grafiki/szyldy/plik.jpg), podświetlony emisją.
+    /// Zwraca false, gdy brak pliku (paczka nieodszyfrowana) — wtedy zostaje to, co było.</summary>
+    public static bool Mural(Transform g, string plik, Vector3 c, Vector3 n, float w, float h)
+    {
+        string p = "Assets/Source/Prywatne/Grafiki/szyldy/" + plik + ".jpg";
+        if (!File.Exists(p)) { Debug.Log("BRAXHORN_MURAL brak " + p); return false; }
+        AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceSynchronousImport);
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(p); if (!tex) return false;
+        var m = new Material(Shader.Find("Standard")) { name = "mural_" + plik, mainTexture = tex };
+        m.SetFloat("_Glossiness", .3f); m.EnableKeyword("_EMISSION"); m.SetTexture("_EmissionMap", tex); m.SetColor("_EmissionColor", new Color(.55f, .55f, .55f));
+        m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+        string dir = W.Out + "/Nosniki"; Directory.CreateDirectory(dir);
+        BraxZapisAssetu.Utworz(m, dir + "/mural_" + plik + ".mat");
+        Plakat(g, "mural " + plik, c, n, w, h, m);
+        Debug.Log("BRAXHORN_MURAL " + plik + " " + w.ToString("F1") + "×" + h.ToString("F2") + " m");
+        return true;
+    }
     /// <summary>Plakat: quad z UV 0…1, przód = n (obraz nieodbity dla patrzącego od strony n).</summary>
     static void Plakat(Transform g, string nazwa, Vector3 c, Vector3 n, float w, float h, Material m)
     {

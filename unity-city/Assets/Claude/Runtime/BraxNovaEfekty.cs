@@ -23,6 +23,7 @@ public sealed class BraxNovaEfekty : MonoBehaviour
     static readonly Color[] Barwy = { new Color(1f, .15f, .75f), new Color(.25f, .45f, 1f), new Color(.6f, .2f, 1f), new Color(.15f, .95f, .85f), new Color(1f, .35f, .2f) };
 
     Quaternion[] laserStart, glowStart;
+    BraxStrob strob;   // 3.11 15:58 (właściciel): lasery i snopy głowic mrugają w zmiennym tempie (wspólny wzór z PULS CLUB)
     Transform gracz; float szukaj, czas, aktywny, kat;
 
     void Awake()
@@ -32,6 +33,10 @@ public sealed class BraxNovaEfekty : MonoBehaviour
         glowStart = new Quaternion[glowice.Length];
         for (int i = 0; i < glowice.Length; i++) if (glowice[i]) glowStart[i] = glowice[i].localRotation;
         Shader.SetGlobalFloat(idAkt, 0f);
+        strob = new BraxStrob();
+        foreach (var x in lasery) strob.Dodaj(BraxStrob.Wiazki(x, "wachlarz", "promie", "wiązk", "laser beam"));
+        foreach (var x in glowice) strob.Dodaj(BraxStrob.Wiazki(x, "snop", "stożek", "promie", "wiązk", "wachlarz", "beam"));
+        Debug.Log("BRAXHORN_NOVA mruganie: źródeł " + strob.Ile);
     }
 
     bool Blisko()
@@ -52,6 +57,7 @@ public sealed class BraxNovaEfekty : MonoBehaviour
         Shader.SetGlobalFloat(idAkt, aktywny);
         if (aktywny <= 0f) return;
         czas += Time.deltaTime;
+        strob.Krok(czas, Time.deltaTime);
         float beat = czas * bpm / 60f;
         Shader.SetGlobalFloat(idCzas, czas);
         Shader.SetGlobalFloat(idBeat, beat);
