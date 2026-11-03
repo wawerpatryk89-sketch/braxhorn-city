@@ -2477,10 +2477,22 @@ public static partial class BraxClaudeOsiedle
             float lz = zb - 2.2f;
             BoxMinMax(WoodDark, a + 2f, b - 2f, FY, 1.0f, lz - .35f, lz + .35f); BoxMinMax(Concrete, a + 1.95f, b - 1.95f, 1.0f, 1.05f, lz - .45f, lz + .45f, false);
             BoxMinMax(GlassClear, a + 3f, a + 5f, 1.05f, 1.5f, lz - .4f, lz + .1f, false);
-            for (int c2 = 0; c2 < 6; c2++) Cylinder(Pal(c2 % 2 == 0 ? 5 : 7), new Vector3(a + 3.2f + c2 * .3f, 1.07f, lz - .15f), .1f, .06f, 12, true, false);
+            var ciasto1 = Model("carrot_cake"); var ciasto2 = Model("strawberry_chocolate_cake"); var rogal = Model("croissant");
+            if (ciasto1 || ciasto2 || rogal)
+                for (int c2 = 0; c2 < 4; c2++)
+                {
+                    var src = c2 % 2 == 0 ? (ciasto1 ? ciasto1 : ciasto2) : (rogal ? rogal : ciasto2);
+                    var oc = Put(src, new Vector3(a + 3.25f + c2 * .45f, 1.06f, lz - .15f), c2 * 40f, .02f, false);
+                    if (oc) { var b0 = RB(oc); oc.transform.localScale *= K; var b1 = RB(oc); oc.transform.position += new Vector3(b0.center.x - b1.center.x, b0.min.y - b1.min.y, b0.center.z - b1.center.z); }
+                }
+            else for (int c2 = 0; c2 < 6; c2++) Cylinder(Pal(c2 % 2 == 0 ? 5 : 7), new Vector3(a + 3.2f + c2 * .3f, 1.07f, lz - .15f), .1f, .06f, 12, true, false);
             BoxMinMax(Steel, b - 4.5f, b - 3.6f, 1.05f, 1.55f, lz - .2f, lz + .3f, false);   // ekspres
-            BoxMinMax(Plain("tablica menu", new Color(.10f, .11f, .10f), .2f), a + 3f, b - 3f, 2.0f, 3.0f, zb - .06f, zb - .02f, false);
-            for (int r2 = 0; r2 < 5; r2++) BoxMinMax(Paint, a + 3.4f, a + 3.4f + 2f + (float)rnd.NextDouble() * 3f, 2.75f - r2 * .15f, 2.79f - r2 * .15f, zb - .07f, zb - .065f, false);
+            var menuK = BraxOsiedleTowar.Postaw(Group(group), "menu_1", "Kawiarnia: menu z cenami (grafika właściciela)", new Vector3((a + b) * .5f, 1.95f, zb - .03f - .015f * K), 180f);
+            if (!menuK)
+            {
+                BoxMinMax(Plain("tablica menu", new Color(.10f, .11f, .10f), .2f), a + 3f, b - 3f, 2.0f, 3.0f, zb - .06f, zb - .02f, false);
+                for (int r2 = 0; r2 < 5; r2++) BoxMinMax(Paint, a + 3.4f, a + 3.4f + 2f + (float)rnd.NextDouble() * 3f, 2.75f - r2 * .15f, 2.79f - r2 * .15f, zb - .07f, zb - .065f, false);
+            }
             // właściciel 17:16: krzesła stały przy samym wejściu (stolik na osi drzwi 2.2 m od witryny) — strefa 2.5 m za drzwiami
             // i przejście drzwi → lada wolne; stoliki dwoma rzędami przy ścianach bocznych (od 3.2 m), krzesła przodem do stolika,
             // dosunięte (0.62 m od środka blatu), z kolizją
@@ -2495,6 +2507,7 @@ public static partial class BraxClaudeOsiedle
         }
         else if (kind == "market")   // market: trzy regały wyspowe z towarem, lodówki pod tylną ścianą, kasa przy wejściu
         {
+            Transform twM = null;
             foreach (float gx in new[] { cx - 3.6f, cx, cx + 3.6f })
             {
                 float g0 = zf + 3.2f, g1 = zb - 3f;
@@ -2504,6 +2517,13 @@ public static partial class BraxClaudeOsiedle
                     {
                         float y = .25f + sh * .4f, xs = gx + side * .5f;
                         BoxMinMax(Frame, Mathf.Min(xs, xs + side * .3f), Mathf.Max(xs, xs + side * .3f), y - .03f, y, g0, g1, false);
+                        if (BraxOsiedleTowar.Jest)   // 3.11: towar z etykiet właściciela (jak w mieście), bez klocków
+                        {
+                            if (twM == null) twM = new GameObject("Market: towar (paczka miasto_sklepy)").transform;
+                            twM.SetParent(Group(group), true);
+                            BraxOsiedleTowar.Polka("sm_g" + ((Mathf.RoundToInt(gx * 7f) + sh * 3 + (side > 0 ? 1 : 0)) % 9 + 9) % 9, twM, new Vector3(xs + side * .15f, y + .004f, g0 + .05f), Vector3.forward, -side * Vector3.right, g1 - g0 - .15f, rnd, .37f);
+                            continue;
+                        }
                         for (float z = g0 + .05f; z < g1 - .1f;)
                         {
                             float w = .08f + (float)rnd.NextDouble() * .12f, hh = .12f + (float)rnd.NextDouble() * .2f;
@@ -2513,7 +2533,13 @@ public static partial class BraxClaudeOsiedle
             }
             BoxMinMax(Steel, a + 1f, b - 1f, FY, 2.1f, zb - .8f, zb, true);
             BoxMinMax(GlassClear, a + 1.05f, b - 1.05f, .25f, 2.0f, zb - .83f, zb - .8f, false);
-            for (float x = a + 1.3f; x < b - 1.3f; x += .18f) for (int sh = 0; sh < 3; sh++) Cylinder(Pal(rnd.Next(6)), new Vector3(x, .32f + sh * .58f, zb - .5f), .045f, .28f, 8, true, false);
+            if (BraxOsiedleTowar.Jest)
+            {   // lodówki: kartony mleka i soków, butelki — zamiast kolorowych walców
+                if (twM == null) { twM = new GameObject("Market: towar (paczka miasto_sklepy)").transform; twM.SetParent(Group(group), true); }
+                for (int sh = 0; sh < 3; sh++) BraxOsiedleTowar.Polka("os_lodowka", twM, new Vector3(a + 1.3f, .3f + sh * .58f, zb - .5f), Vector3.right, Vector3.forward, b - a - 2.6f, rnd, .52f);
+            }
+            else for (float x = a + 1.3f; x < b - 1.3f; x += .18f) for (int sh = 0; sh < 3; sh++) Cylinder(Pal(rnd.Next(6)), new Vector3(x, .32f + sh * .58f, zb - .5f), .045f, .28f, 8, true, false);
+            if (twM != null) BraxOsiedleTowar.Zakoncz(twM, "market osiedla");
             // kasa przy wejściu, ale z boku drzwi (1.6 m od ościeżnicy — strefa za drzwiami wolna, właściciel 17:16)
             BoxMinMax(Frame, b - 3.6f, b - .8f, FY, .9f, zf + 1.5f, zf + 2.2f); BoxMinMax(Concrete, b - 3.65f, b - .75f, .9f, .95f, zf + 1.45f, zf + 2.25f, false);
             BoxMinMax(Frame, b - 1.5f, b - 1.0f, .95f, 1.3f, zf + 1.6f, zf + 2.0f, false);   // kasa
@@ -4922,7 +4948,13 @@ public static partial class BraxClaudeOsiedle
             for (int row = 0; row < 4; row++) for (int col = 0; col < 3; col++)
             {
                 var local = new Vector3(-.5f + col * .5f, .364f + row * .51f, .03f);
-                if (KitPart(prod[((row + variant + col) % 3 + 3) % 3], shop, at + q * local, yaw + (col - 1) * 6f)) items++;   // % w C# zachowuje znak (z < 0)
+                if (BraxOsiedleTowar.Jest)
+                {   // 3.11: odżywki BRAXHORN SPORT NUTRITION z etykiet właściciela: dół kubły whey, wyżej worki 1 kg i małe kubły
+                    int v = ((row * 3 + col + variant) % 6 + 6) % 6;
+                    string plik = row == 0 ? "odz_whey_" + (v % 4 + 1) : row == 1 ? (v % 2 == 0 ? "odz_kg_" + new[] { 1, 3, 4 }[v % 3] : "odz_mala_" + (v + 1)) : (row == 2 ? "odz_mala_" + (v + 1) : "odz_dod_" + (v + 1));
+                    if (BraxOsiedleTowar.Postaw(shop, plik, "Nutrition: " + plik, at + q * local, yaw + (col - 1) * 6f) != null) items++;
+                }
+                else if (KitPart(prod[((row + variant + col) % 3 + 3) % 3], shop, at + q * local, yaw + (col - 1) * 6f)) items++;   // % w C# zachowuje znak (z < 0)
             }
             Collider(at + Vector3.up * 1.2f, Mathf.Abs(Mathf.Sin(yaw * Mathf.Deg2Rad)) > .5f ? new Vector3(.4f, 2.4f, 1.62f) : new Vector3(1.62f, 2.4f, .4f));
         }
@@ -4931,7 +4963,7 @@ public static partial class BraxClaudeOsiedle
         for (float x = a + 2.2f; x <= b - 2.2f + .01f; x += 1.7f) Bay(new Vector3(x, FY, zb - .3f), 180f, (int)(x * 5));
         // wyspa na środku z produktami, lada przy wejściu po prawej
         var isl = KitPart("DisplayIsland", shop, new Vector3(cx - .5f, FY, zf + 6.8f), 0f);
-        if (isl) { Collider(new Vector3(cx - .5f, .6f, zf + 6.8f), new Vector3(1.7f, 1.0f, .9f)); for (int k2 = 0; k2 < 3; k2++) if (KitPart(prod[k2], shop, new Vector3(cx - 1.0f + k2 * .5f, FY + .96f, zf + 6.8f), k2 * 20f)) items++; }
+        if (isl) { Collider(new Vector3(cx - .5f, .6f, zf + 6.8f), new Vector3(1.7f, 1.0f, .9f)); for (int k2 = 0; k2 < 3; k2++) if (BraxOsiedleTowar.Jest ? BraxOsiedleTowar.Postaw(shop, "odz_whey_" + (k2 + 1), "Nutrition: wyspa whey", new Vector3(cx - 1.0f + k2 * .5f, FY + .96f, zf + 6.8f), k2 * 20f) != null : KitPart(prod[k2], shop, new Vector3(cx - 1.0f + k2 * .5f, FY + .96f, zf + 6.8f), k2 * 20f)) items++; }
         if (KitPart("Counter", shop, new Vector3(b - 1.6f, FY, zf + 2.4f), 270f)) Collider(new Vector3(b - 1.6f, .6f, zf + 2.4f), new Vector3(.9f, 1.2f, 2.8f));
         int lamps = 0;
         foreach (float x in new[] { cx - 2.6f, cx + 2.6f }) foreach (float z in new[] { zf + 3.5f, zf + 7.5f, zf + 11.0f }) if (KitPart("LinearPendant", shop, new Vector3(x, ceilY - .72f, z), 0f)) lamps++;

@@ -65,6 +65,7 @@ MODELS = [
     "mid_century_lounge_chair",  # wille na sprzedaż: fotel klubowy (6.1 tys. trójkątów)
     "Ottoman_01",             # podnóżek (4.2 tys.)
     "potted_plant_04",        # rośliny w donicach (6.1 tys.)
+    "carrot_cake", "strawberry_chocolate_cake", "croissant",   # 3.11: witryna kawiarni (zamiast walców)
     "planter_box_01",         # donice na tarasie (8.1 tys.)
     "sofa_03",                # wille: sofa salonu (8.0 tys.)
     "lantern_chandelier_01",  # wille: żyrandol nad stołem (6.0 tys., nie świeci)
