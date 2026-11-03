@@ -869,10 +869,29 @@ public static partial class BraxClaudeOsiedle
     {
         if (!SalonWlaczony || salonObsada.Count == 0) return;
         if (rbPostacie == null || rbPostacie.Count == 0) { Debug.Log("BRAXHORN_SALON obsada=0 (brak paczki Rocketbox)"); return; }
-        var rnd = new System.Random(5151); int n = 0;
+        var rnd = new System.Random(5151); int n = 0, nrSprz = 0; string patryk = "brak", monika = "brak";
         foreach (var (p, yaw, kto) in salonObsada)
         {
-            BraxMieszkaniec m = kto == "klient"
+            BraxMieszkaniec m = null;
+            if (kto == "sprzedawca")
+            {
+                // właściciel 01:38: salonami i nieruchomościami w całej grze zajmują się PATRYK i MONIKA — dwa główne stanowiska
+                var miejsce = new GameObject("Salon: stanowisko " + (nrSprz == 0 ? "Patryk" : "Monika")).transform;
+                miejsce.SetParent(Group("Osiedle A / salon — ludzie"), false); miejsce.position = p; miejsce.rotation = Quaternion.Euler(0, yaw, 0);
+                if (nrSprz == 0)
+                {
+                    var kopia = SalonPatrykKopia(miejsce);
+                    if (kopia) { patryk = "model"; n++; }
+                    else { m = Obsada("salon — Patryk (zastępczy)", RolaSprzedawca, "sprzedawca", p, yaw, rnd, new[] { "documents_idle", "idle_neutral_01" }, p.y); if (m) { m.transform.SetParent(miejsce, true); patryk = "zastępczy"; n++; } }
+                }
+                else
+                {   // Monika: modelu jeszcze nie ma — tymczasowa postać w eleganckim stroju (granat), do podmiany w tym miejscu
+                    m = Obsada("salon — Monika (zastępcza, do podmiany)", RolaMonikaZastepcza, "sprzedawca", p, yaw, rnd, new[] { "documents_idle", "idle_neutral_01", "gestic_talk_relaxed_01" }, p.y);
+                    if (m) { m.transform.SetParent(miejsce, true); monika = "zastępczy"; n++; }
+                }
+                nrSprz++; continue;
+            }
+            m = kto == "klient"
                 ? NowyMieszkaniec(RolaPrzechodzien, Group("Osiedle A / salon — ludzie"), "salon — klient", p, yaw, rnd, KlipyPostoj)
                 : Obsada("salon — " + kto, kto == "doradca serwisu" ? RolaObsluga : RolaSprzedawca, kto, p, yaw, rnd, new[] { "documents_idle", "idle_neutral_01", "gestic_talk_neutral_01" }, p.y);
             if (m) n++;
@@ -884,6 +903,25 @@ public static partial class BraxClaudeOsiedle
             var m = NowyMieszkaniec(RolaPrzechodzien, Group("Osiedle A / salon — ludzie"), "salon — jedzie schodami ruchomymi", start, 180f, rnd, KlipyPostoj);
             if (m) { salonSchody.pasazer = m.transform; pas = 1; }
         }
-        Debug.Log("BRAXHORN_SALON obsada=" + n + "/" + salonObsada.Count + " pasażer_schodów=" + pas + " (sprzedawcy 2 na piętrze, kierownik 1, barista 1, doradca serwisu 1, klienci 2)");
+        Debug.Log("BRAXHORN_SALON sprzedawcy=Patryk(" + patryk + "),Monika(" + monika + ") obsada=" + n + "/" + salonObsada.Count + " pasażer_schodów=" + pas + " (stanowiska Patryk i Monika na piętrze, kierownik, barista, doradca serwisu, klienci 2)");
+    }
+    static readonly Rola RolaMonikaZastepcza = new Rola { nazwa = "Monika (zastępcza)", postaci = new[] { "Business_Female", "Female_Adult" }, kolor = new Color(.08f, .1f, .2f) };
+    // Patryk przy biurku: kopia zbudowanego bohatera (prywatny model odszyfrowany w CI — w repo nic), klip Idle, warstwa domyślna.
+    static GameObject SalonPatrykKopia(Transform miejsce)
+    {
+        var gracz = GameObject.Find("BraxhornPlayer"); var hero = gracz ? gracz.transform.Find("Patryk") : null;
+        if (!hero) { Debug.Log("BRAXHORN_SALON Patryk: brak modelu bohatera (brak klucza lub paczki) — postać zastępcza"); return null; }
+        var k = Object.Instantiate(hero.gameObject); k.name = "Patryk (sprzedawca)";
+        k.transform.SetParent(miejsce, false); k.transform.localRotation = Quaternion.identity; k.transform.localScale = hero.lossyScale;
+        foreach (var t in k.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = 0;
+        foreach (var r in k.GetComponentsInChildren<SkinnedMeshRenderer>(true)) { r.updateWhenOffscreen = false; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; }
+        var an = k.GetComponent<Animation>();
+        if (an && an.GetClip("Idle")) { an.clip = an.GetClip("Idle"); an.playAutomatically = true; an.wrapMode = WrapMode.Loop; an.Play("Idle"); an.Sample(); an.cullingType = AnimationCullingType.BasedOnRenderers; }
+        // stopy na posadzce (lokalna pozycja bohatera = przesunięcie stóp względem kapsuły)
+        k.transform.localPosition = Vector3.zero;
+        var smr = k.GetComponentInChildren<SkinnedMeshRenderer>(true);
+        if (smr) { var b = smr.bounds; k.transform.position += Vector3.up * (miejsce.position.y - b.min.y); }
+        Collider(miejsce.position + Vector3.up * 1.1f, new Vector3(.6f, 2.2f, .6f));
+        return k;
     }
 }
