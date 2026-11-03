@@ -40,8 +40,9 @@ internal static class BraxMiastoPort
         Nawierzchnia(); Nabrzeze();
         BraxUliceKit.UstawGrupe("Port: kontenery", 160f);
         int kont = Kontenery();
-        BraxUliceKit.UstawGrupe("Port: statek");
-        Statek();
+        // WŁAŚCICIEL 3.11 10:41 (zdjęcie): kontenerowiec z kodu (bryły kontenerów, kadłub z prostopadłościanów) — „zjebanie
+        // wygląda”; zasada: źle i nie da się porządnie → usunąć. Nabrzeże zostaje wolne (dźwig, polery), statek tylko z modelu.
+        BraxMiastoA.Log("PORT: statek z kodu WYŁĄCZONY (właściciel 3.11 — klocki)");
         BraxUliceKit.UstawGrupe("Port: biuro, brama, ogrodzenie, maszty", 140f);
         Biuro(); Brama(); Maszty(); Ciagniki();
         int siatek = BraxUliceKit.Zapisz(root, "port");

@@ -29,6 +29,7 @@ public static class BraxMiastoAssety
     public static bool Jest(string paczka) => Directory.Exists(Baza + paczka) && Directory.GetFiles(Baza + paczka, "*.glb").Length > 0;
 
     /// <summary>Model z paczki (import glTFast). null = brak (zgłoszone raz w logu).</summary>
+    const bool KontenerowiecNaRedzie = false;
     public static GameObject Model(string paczka, string plik)
     {
         string p = Baza + paczka + "/" + plik + ".glb";
@@ -282,7 +283,9 @@ public static class BraxMiastoAssety
         catch (Exception e) { Blad("PORT drobnicowiec", e); }
         try
         {
-            var m = Model("miasto_port", "statek_kontenerowiec");
+            // WŁAŚCICIEL 3.11 10:24 („jak ten statek tak się rysuje, to lepiej, żeby go nie było”) — kontenerowiec na redzie wyłączony
+            var m = KontenerowiecNaRedzie ? Model("miasto_port", "statek_kontenerowiec") : null;
+            if (!KontenerowiecNaRedzie) Log("PORT: kontenerowiec na redzie WYŁĄCZONY (właściciel 3.11)");
             if (m)
             {
                 var o = Postaw(root, m, "Statek: kontenerowiec na redzie", Vector3.zero, 90f, 1f, true, false);
