@@ -267,8 +267,14 @@ public static class BraxSupermarket
         // plakaty promocji z grafik właściciela (3.11 14:37) na ścianie bocznej od strony kas, w ramach 0,6 × 0,9 m × K
         for (int i = 0; i < 3; i++)
         {
-            var pl = BraxMiastoAssety.Model("miasto_sklepy", "plakat_0" + (i + 1)); if (!pl) break;
             float xw = L(-hw + Grub + .02f * K * .5f + .005f);
+            // 3.11 16:27 (właściciel): w lokalu WAWER plakaty WAWER (drugi supermarket), towar mieszany
+            if (nr == 2)
+            {
+                var nPl = Quaternion.Euler(0f, yaw0 + (lustro ? -90f : 90f), 0f) * Vector3.forward;
+                if (BraxMiastoBillboardy.Mural(wyp, "wawer_plakat_" + (i % 2 + 1), Swiat(xw, Podloga + 1.7f * K, (3.5f + i * 2.6f) * K) + nPl * .02f, nPl, .6f * K, .9f * K)) continue;
+            }
+            var pl = BraxMiastoAssety.Model("miasto_sklepy", "plakat_0" + (i + 1)); if (!pl) break;
             BraxMiastoAssety.Postaw(wyp, pl, "Plakat promocji " + (i + 1), Swiat(xw, Podloga + 1.25f * K, (3.5f + i * 2.6f) * K), yaw0 + (lustro ? -90f : 90f), 1f, true, false);
         }
         // siatki do sceny
