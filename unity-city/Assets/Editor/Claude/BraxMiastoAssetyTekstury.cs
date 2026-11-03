@@ -16,13 +16,16 @@ public sealed class BraxMiastoAssetyTekstury : AssetPostprocessor
         t.sRGBTexture = !System.IO.Path.GetFileNameWithoutExtension(assetPath).EndsWith("__lin");
         t.mipmapEnabled = true; t.isReadable = false; t.anisoLevel = 4;
         t.alphaSource = TextureImporterAlphaSource.FromInput; t.alphaIsTransparency = false;
-        t.maxTextureSize = 2048; t.textureCompression = TextureImporterCompression.Compressed;
+        // 3.11 (właściciel: „kontenerowiec… jest 4K”): statki HD (paczki miasto_statki*) — kolory 4096, dane 2048, wyższa jakość kompresji
+        bool hd = assetPath.Contains("/Miasto/miasto_statki"), dane = System.IO.Path.GetFileNameWithoutExtension(assetPath).EndsWith("__lin");
+        int maks = hd && !dane ? 4096 : 2048;
+        t.maxTextureSize = maks; t.textureCompression = hd ? TextureImporterCompression.CompressedHQ : TextureImporterCompression.Compressed;
         foreach (var platform in new[] { "Android", "WebGL" })
         {
             var ps = t.GetPlatformTextureSettings(platform);
-            ps.name = platform; ps.overridden = true; ps.maxTextureSize = 2048;
+            ps.name = platform; ps.overridden = true; ps.maxTextureSize = maks;
             ps.format = TextureImporterFormat.Automatic; ps.textureCompression = TextureImporterCompression.Compressed;
-            ps.compressionQuality = 50;
+            ps.compressionQuality = hd ? 100 : 50;
             t.SetPlatformTextureSettings(ps);
         }
     }

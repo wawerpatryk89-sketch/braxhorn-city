@@ -124,6 +124,64 @@ public static class BraxMiastoAssety
 
     public static Bounds Granice(GameObject o) => BraxRegion.Bounds(o);
 
+    /// <summary>LODGroup z węzłów „…_LOD0/1/2” (paczki miasto_statki* — statki_hd.py); progi = wysokość na ekranie.</summary>
+    public static void LodyZWezlow(GameObject o, float[] progi)
+    {
+        var lv = new List<LOD>(); var wszystkie = o.GetComponentsInChildren<Transform>(true);
+        for (int k = 0; k < 3; k++)
+        {
+            var t = wszystkie.FirstOrDefault(x => x.name.EndsWith("_LOD" + k));
+            if (!t) break;
+            lv.Add(new LOD(progi[Mathf.Min(k, progi.Length - 1)], t.GetComponentsInChildren<Renderer>(true)));
+        }
+        if (lv.Count < 2) { Log("LOD: " + o.name + " — brak węzłów _LOD (jedna siatka)"); return; }
+        var lg = o.GetComponent<LODGroup>(); if (!lg) lg = o.AddComponent<LODGroup>();
+        lg.SetLODs(lv.ToArray()); lg.RecalculateBounds();
+    }
+
+    /// <summary>Kolizja kadłuba nad wodą (łodzie i skuter się o nią opierają) — jak przy drobnicowcu.</summary>
+    static void KadlubKolizja(Transform root, string nazwa, Bounds b, float woda)
+    {
+        var kad = new GameObject(nazwa).AddComponent<BoxCollider>(); kad.transform.SetParent(root, false);
+        kad.transform.position = new Vector3(b.center.x, woda + 3.5f * K * .5f, b.center.z); kad.size = new Vector3(b.size.x * .92f, 3.5f * K + 2f, b.size.z * .9f);
+    }
+
+    /// <summary>Ile punktów siatki 9×9 pod obrysem leży na lądzie (BraxMiastoGranice).</summary>
+    static int LadPod(Bounds b)
+    {
+        int n = 0;
+        for (int i = 0; i <= 8; i++) for (int j = 0; j <= 8; j++) if (BraxMiastoGranice.Lad(Mathf.Lerp(b.min.x + 1f, b.max.x - 1f, i / 8f), Mathf.Lerp(b.min.z, b.max.z, j / 8f))) n++;
+        return n;
+    }
+
+    // KONTENER 20′ (model właściciela „freight shipping container — rusted”, proporcje ISO 6.06 × 2.59 × 2.44 m × K, 3 LOD):
+    // instancje GPU (bez statycznego łączenia), 4 odcienie lakieru (mnożnik koloru na rdzawej blasze — różne firmy).
+    static readonly Color[] OdcienieKont = { Color.white, new Color(.72f, .82f, 1f), new Color(1f, .8f, .72f), new Color(.8f, .95f, .8f) };
+    static readonly Dictionary<(Material, int), Material> kontMat = new Dictionary<(Material, int), Material>();
+    public static GameObject Kontener20(Transform parent, Vector3 podstawa, float yaw, int odcien)
+    {
+        var m = Model("miasto_statki2", "kontener_20");
+        if (!m) return null;
+        var o = Postaw(parent, m, "Kontener 20′", podstawa, yaw, 1f, false, true);
+        LodyZWezlow(o, new[] { .10f, .03f, .004f });
+        int w = ((odcien % OdcienieKont.Length) + OdcienieKont.Length) % OdcienieKont.Length;
+        foreach (var r in o.GetComponentsInChildren<Renderer>(true))
+        {
+            GameObjectUtility.SetStaticEditorFlags(r.gameObject, StaticEditorFlags.OccludeeStatic);
+            r.sharedMaterials = r.sharedMaterials.Select(src =>
+            {
+                if (!src) return src;
+                if (kontMat.TryGetValue((src, w), out var have) && have) return have;
+                var c = new Material(src) { name = src.name + " (kontener odcień " + w + ")", enableInstancing = true };
+                if (c.HasProperty("_Color")) c.SetColor("_Color", c.GetColor("_Color") * OdcienieKont[w]);
+                Directory.CreateDirectory("Assets/PlayableGenerated/Kontenery");
+                BraxZapisAssetu.Utworz(c, "Assets/PlayableGenerated/Kontenery/kontener_" + kontMat.Count + ".mat");
+                kontMat[(src, w)] = c; return c;
+            }).ToArray();
+        }
+        return o;
+    }
+
     /// <summary>Kolizja pudełkowa wokół obiektu (osie świata) — budynki, pojazdy, sprzęt.</summary>
     public static BoxCollider Kolizja(Transform parent, GameObject o, string nazwa, float wezej = 0f)
     {
@@ -263,7 +321,29 @@ public static class BraxMiastoAssety
         if (!Jest("miasto_port")) { Log("PORT: brak paczki miasto_port — bez statków ze Sketchfaba"); return; }
         var root = BraxRegion.Root(cityRoot, "CLAUDE assety: statki (drobnicowiec przy nabrzeżu B, kontenerowiec na redzie)");
         float woda = BraxMiastoGranice.PoziomMorza;
+        // 3.11 (właściciel 11:49: „ten zardzewiały… realistyczny mega… lepiej go dać przy porcie, do załadunku kontenerów, bo pusty”):
+        // MASOWIEC ze skanu (190 m × K, 2 żurawie pokładowe, 3 LOD, tekstura 4K) przy nabrzeżu B zamiast drobnicowca — pusty
+        // (zanurzenie balastowe 6 m × K). Drobnicowiec tylko, gdy paczki miasto_statki brak.
+        bool masowiec = false;
         try
+        {
+            var m = Model("miasto_statki", "statek_masowiec");
+            if (m)
+            {
+                var o = Postaw(root, m, "Statek: masowiec przy nabrzeżu B (zardzewiały, pusty — do załadunku)", Vector3.zero, -90f, 1f, true, true);
+                LodyZWezlow(o, new[] { .30f, .08f, .004f });
+                var b = Granice(o);
+                float zanurzenie = 6.0f * K, rufaZ = -33f, burtaX = 84.08f + .55f;
+                o.transform.position += new Vector3(burtaX - b.min.x, (woda - zanurzenie) - b.min.y, rufaZ - b.max.z);
+                b = Granice(o);
+                KadlubKolizja(root, "Masowiec: kolizja kadłuba", b, woda);
+                int lad = LadPod(b);
+                Log("PORT: masowiec (skan) " + b.size.z.ToString("0") + " × " + b.size.x.ToString("0") + " m, x " + b.min.x.ToString("0.0") + "…" + b.max.x.ToString("0.0") + ", z " + b.min.z.ToString("0") + "…" + b.max.z.ToString("0") + (lad > 0 ? " — DO POPRAWKI: ląd pod kadłubem w " + lad + " punktach" : ""));
+                masowiec = true;
+            }
+        }
+        catch (Exception e) { Blad("PORT masowiec", e); }
+        if (!masowiec) try
         {
             var m = Model("miasto_port", "statek_drobnicowiec");
             if (m)
@@ -281,9 +361,43 @@ public static class BraxMiastoAssety
             }
         }
         catch (Exception e) { Blad("PORT drobnicowiec", e); }
+        // 3.11 (właściciel 11:46: „kontenerowiec zjebałeś… on jest 4K”): KONTENEROWIEC w jakości oryginału (189 tys. trójkątów,
+        // tekstury 4K, 3 LOD) na kotwicy ~250 m przed portem (za długi na nabrzeże — 323 m), równolegle do brzegu, poza torem
+        // wodnym na wyspę (z 40–60). WYCIECZKOWIEC (atrapa, logo BRAXHORN CRUISES) na redzie, wzdłuż x, poza torem.
         try
         {
-            // WŁAŚCICIEL 3.11 10:24 („jak ten statek tak się rysuje, to lepiej, żeby go nie było”) — kontenerowiec na redzie wyłączony
+            var m = Model("miasto_statki", "statek_kontenerowiec");
+            if (m)
+            {
+                var o = Postaw(root, m, "Statek: kontenerowiec na kotwicy przed portem", Vector3.zero, -90f, 1f, true, false);
+                LodyZWezlow(o, new[] { .25f, .07f, .003f });
+                var b = Granice(o); var cel = new Vector3(330f, 0f, -150f);
+                o.transform.position += new Vector3(cel.x - b.center.x, (woda - 12f * K) - b.min.y, cel.z - b.center.z);
+                b = Granice(o);
+                for (int i = 0; i < 10 && LadPod(b) > 0; i++) { o.transform.position += Vector3.right * 40f; b = Granice(o); }
+                KadlubKolizja(root, "Kontenerowiec: kolizja kadłuba", b, woda);
+                Log("PORT: kontenerowiec HD na kotwicy " + b.size.z.ToString("0") + " × " + b.size.x.ToString("0") + " m, środek (" + b.center.x.ToString("0") + ", " + b.center.z.ToString("0") + ")");
+            }
+        }
+        catch (Exception e) { Blad("PORT kontenerowiec HD", e); }
+        try
+        {
+            var m = Model("miasto_statki2", "statek_wycieczkowiec");
+            if (m)
+            {
+                var o = Postaw(root, m, "Statek: wycieczkowiec BRAXHORN CRUISES na redzie", Vector3.zero, 0f, 1f, true, false);
+                LodyZWezlow(o, new[] { .22f, .06f, .003f });
+                var b = Granice(o); var cel = new Vector3(650f, 0f, 175f);
+                o.transform.position += new Vector3(cel.x - b.center.x, (woda - 9.3f * K) - b.min.y, cel.z - b.center.z);
+                b = Granice(o);
+                KadlubKolizja(root, "Wycieczkowiec: kolizja kadłuba", b, woda);
+                Log("PORT: wycieczkowiec na redzie " + b.size.x.ToString("0") + " × " + b.size.z.ToString("0") + " m, środek (" + b.center.x.ToString("0") + ", " + b.center.z.ToString("0") + "), z " + b.min.z.ToString("0") + "…" + b.max.z.ToString("0"));
+            }
+        }
+        catch (Exception e) { Blad("PORT wycieczkowiec", e); }
+        try
+        {
+            // stary kontenerowiec (1024 px, zdecymowany) — wyłączony na stałe
             var m = KontenerowiecNaRedzie ? Model("miasto_port", "statek_kontenerowiec") : null;
             if (!KontenerowiecNaRedzie) Log("PORT: kontenerowiec na redzie WYŁĄCZONY (właściciel 3.11)");
             if (m)
