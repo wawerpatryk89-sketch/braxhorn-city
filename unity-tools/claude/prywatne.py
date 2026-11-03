@@ -12,7 +12,9 @@ Hasło: sekret repozytorium BRAXHORN_KEYSTORE_PASS (w CI zmienna KLUCZ). Nigdy w
   miasto_*           modele ze Sketchfaba do miasta (etap „assety” 2.11; licencje Free Standard/CC-BY — surowych plików nie wolno
                      rozpowszechniać): miasto_centrum (city5 — wieże), miasto_kamienice (city3), miasto_wiezowce (Atlanta, London,
                      Kinnaird), miasto_wyposazenie (TampaJoey), miasto_pojazdy (autobus, tramwaj), miasto_port (statki),
-                     miasto_silownia_metro (sprzęt siłowni, bramka metra). Już przetworzone (GLB + _tekstury/…), odszyfrowane
+                     miasto_silownia_metro (sprzęt siłowni, bramka metra), miasto_znaki (tarcze znaków 3D, paczka „Traffic Signs —
+                     European (UK)” od właściciela 3.11; lico podmieniane na wzór polski w BraxZnakiPL), miasto_statki (kontenerowiec
+                     4K i zardzewiały masowiec — skan, 3 LOD), miasto_statki2 (wycieczkowiec z logo BRAXHORN, kontener 20′). Już przetworzone (GLB + _tekstury/…), odszyfrowane
                      do Assets/Source/Prywatne/Miasto/<paczka>/. Brak klucza/paczki = miasto bez tych modeli (generator to loguje).
 
 Tryby:
@@ -216,7 +218,7 @@ def przygotuj_patryka(staging):
 
 # Paczki modeli miasta (etap „assety”): każda osobno (< 90 MB po kompresji — limit GitHuba 100 MB na plik).
 PACZKI_MIASTA = ("miasto_centrum", "miasto_kamienice", "miasto_wiezowce", "miasto_wyposazenie", "miasto_pojazdy",
-                 "miasto_port", "miasto_silownia_metro")
+                 "miasto_port", "miasto_silownia_metro", "miasto_znaki", "miasto_statki", "miasto_statki2")
 
 
 def miasto():

@@ -39,7 +39,8 @@ internal static class BraxMiastoPort
         BraxUliceKit.UstawGrupe("Port: nawierzchnia i nabrzeże");
         Nawierzchnia(); Nabrzeze();
         BraxUliceKit.UstawGrupe("Port: kontenery", 160f);
-        int kont = Kontenery();
+        kontModel = kontKod = 0; int kont = Kontenery();
+        BraxMiastoA.Log("PORT: kontenery z modelu (20′) " + kontModel + ", z kodu " + kontKod);
         // WŁAŚCICIEL 3.11 10:41 (zdjęcie): kontenerowiec z kodu (bryły kontenerów, kadłub z prostopadłościanów) — „zjebanie
         // wygląda”; zasada: źle i nie da się porządnie → usunąć. Nabrzeże zostaje wolne (dźwig, polery), statek tylko z modelu.
         BraxMiastoA.Log("PORT: statek z kodu WYŁĄCZONY (właściciel 3.11 — klocki)");
@@ -122,9 +123,26 @@ internal static class BraxMiastoPort
 
     // ---------------- kontenery (20' i 40', × k): przetłoczenia, drzwi z ryglami, numery ----------------
     static readonly Color32[] KolKont = { BraxUliceKit.C(.62f, .12f, .08f), BraxUliceKit.C(.12f, .25f, .52f), BraxUliceKit.C(.15f, .38f, .2f), BraxUliceKit.C(.85f, .45f, .1f), BraxUliceKit.C(.55f, .56f, .57f), BraxUliceKit.C(.88f, .88f, .86f), BraxUliceKit.C(.45f, .12f, .38f) };
+    static int kontModel, kontKod;
     static void Kontener(Vector3 dolSrodek, bool czterdziesci, bool wzdluzZ, int nr, Color32 kolor)
     {
         float L = (czterdziesci ? 12.19f : 6.06f) * K, B = 2.44f * K, H = 2.59f * K;
+        // 3.11 (właściciel 11:42 — model kontenera; „kontenerowiec z tymi kontenerami normalnie przy porcie”): PRAWDZIWY kontener
+        // 20′ z modelu (BraxMiastoAssety.Kontener20); 40′ = dwa 20′ czołami (szczelina 7 cm). Z kodu tylko, gdy brak paczki.
+        float yaw = (wzdluzZ ? 90f : 0f) + (nr % 2 == 0 ? 0f : 180f);
+        var ax0 = wzdluzZ ? Vector3.forward : Vector3.right;
+        if (!czterdziesci)
+        {
+            if (BraxMiastoAssety.Kontener20(root, dolSrodek, yaw, nr * 7 + 3)) { kontModel++; return; }
+        }
+        else
+        {
+            var a1 = BraxMiastoAssety.Kontener20(root, dolSrodek - ax0 * (3.03f * K + .035f), yaw, nr * 7 + 3);
+            var a2 = a1 ? BraxMiastoAssety.Kontener20(root, dolSrodek + ax0 * (3.03f * K + .035f), yaw, nr * 7 + 3) : null;
+            if (a1 && a2) { kontModel += 2; return; }
+            if (a1) Object.DestroyImmediate(a1);
+        }
+        kontKod++;
         var blacha = BraxMiastoA.Mat("Port: blacha kontenerów (kolory z wierzchołków)", Color.white, .65f, .35f);
         var ciemna = BraxMiastoA.Mat("Port: rygle i naroża kontenerów", new Color(.12f, .12f, .13f), .55f, .5f);
         var s = BraxUliceKit.S(blacha); s.kolor = kolor;

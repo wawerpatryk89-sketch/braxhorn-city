@@ -151,7 +151,7 @@ public static class BraxRegionTylyB
             }
         }
         if (swiat) swiat.additionalTowerElevators = swiat.additionalTowerElevators.Where(e => e).ToArray();
-        // oryginał w strefie: tylko grunt (y < 3), nie budynki pierzei
+        // oryginał w strefie: tylko grunt (y < 3), nie budynki pierzei; 3.11: ściany budynków > 4 m zostają (biurowiec przy parku wisiał)
         var objetosci = new[] { Bx(-61.4f, 58f, -3f, 3f, -68f, -6.3f), Bx(58f, 83.9f, -3f, 3f, -68f, -35.2f) };
         var korzenie = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
         int n = 0;
@@ -160,7 +160,7 @@ public static class BraxRegionTylyB
             {
                 if (!g || g.transform == root || g.name.StartsWith("braxhorn-original-gym") || g.GetComponent<BraxGymPlayer>() || g.GetComponent<Camera>()) continue;
                 if (g.name.StartsWith("CLAUDE miasto B")) continue;
-                try { n += BraxCityMeshCut.Subtract(g.transform, v, BraxRegion.Out + "/Cuts", "tylyB"); } catch (Exception e) { usuniete.Add("cięcie " + g.name + ": " + e.Message); }
+                try { n += BraxCityMeshCut.Subtract(g.transform, v, BraxRegion.Out + "/Cuts", "tylyB", true); } catch (Exception e) { usuniete.Add("cięcie " + g.name + ": " + e.Message); }
             }
         usuniete.Add("grunt oryginału w strefie: wycięte siatki " + n);
     }
