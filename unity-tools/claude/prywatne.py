@@ -248,11 +248,34 @@ def miasto():
           + (f" brak=[{', '.join(brak)}]" if brak else ""))
 
 
+def grafiki():
+    """Grafiki właściciela (ekran startowy, billboardy; obrazy z postaciami — tylko zaszyfrowane) → Assets/Source/Prywatne/
+    Grafiki/ (Resources/BraxStart.jpg = ekran startowy). Nigdy nie wywraca buildu: bez paczki gra startuje bez ekranu."""
+    if not klucz():
+        print("BRAXHORN_PRYWATNE grafiki: brak klucza — gra bez ekranu startowego")
+        return
+    cel = CEL / "Grafiki"
+    try:
+        tar = odszyfruj("grafiki")
+        if tar is None:
+            return
+        with tar:
+            n = rozpakuj(tar, cel)
+        start = (cel / "Resources" / "BraxStart.jpg").exists()
+        print(f"BRAXHORN_PRYWATNE grafiki: {n} plików, ekran startowy={'tak' if start else 'NIE — DO POPRAWKI'}")
+    except Exception as e:   # build idzie dalej bez grafik
+        print(f"BRAXHORN_PRYWATNE grafiki DO POPRAWKI: {type(e).__name__}: {e}")
+        shutil.rmtree(cel, ignore_errors=True)
+
+
 def ci():
     try:
         patryk_i_ruchy()
     finally:
-        miasto()
+        try:
+            miasto()
+        finally:
+            grafiki()
 
 
 def patryk_i_ruchy():
