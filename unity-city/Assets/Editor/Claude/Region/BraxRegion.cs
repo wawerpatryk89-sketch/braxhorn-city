@@ -84,11 +84,13 @@ public static class BraxRegion
         Step("lampy wnętrz w trybie ForceVertex", () => InteriorLights(root));
         // Trawnik miasta (tyły, 2.11): podmiana starej trawy w miejscu, maska ziemi pod drzewami, kępy 3D — po wszystkich trawnikach.
         Step("trawnik miasta (materiał, maska ziemi, kępy, bez trawy na ścianach)", () => BraxRegionTrawa.Zakoncz(root));
+        // pkt 26 / 38 (przed ludźmi i autami — nikt nie siedzi na usuniętej ławce): zakaz klocków — audyt grup z gołych prymitywów, pojazdy z klocków usunięte (BRAXHORN_KLOCKI).
+        Step("audyt klocków (pojazdy i maszyny z prymitywów — usunięte, reszta na liście)", () => BraxKontrolaKlockow.Wykonaj(root));
+        // pkt 2 / 3 / 4 / 31b: napisy nachodzące, przeszkody przed drzwiami, meble w powietrzu, lady bez kolizji (naprawa + logi).
+        Step("kontrole detali miasta (napisy, drzwi, meble, lady)", () => BraxKontrolaMiastaDetale.Wykonaj(root));
         // Na końcu (jak na budowie, 16:04): ruch aut i ludzie miasta B na gotowych nawierzchniach i wyposażeniu (B, ETAP 2).
         Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => BraxClaudeOsiedle.RuchMiastaB(root));
         Step("ludzie miasta (B): obsada, ławki, przechodnie po chodnikach i zebrach", () => BraxClaudeOsiedle.LudzieMiastaB(root));
-        // pkt 26 / 38: zakaz klocków — audyt grup z gołych prymitywów, pojazdy z klocków usunięte (BRAXHORN_KLOCKI).
-        Step("audyt klocków (pojazdy i maszyny z prymitywów — usunięte, reszta na liście)", () => BraxKontrolaKlockow.Wykonaj(root));
         // Na końcu: przesunięcie głębi dla wszystkiego, co dobudowane (anty-migotanie).
         Step("anty-migotanie (offset głębi, trilinear)", () => BraxRegionFlicker.Apply(root));
 

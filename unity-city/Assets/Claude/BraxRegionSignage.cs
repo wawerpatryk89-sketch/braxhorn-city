@@ -12,11 +12,24 @@ public sealed class BraxRegionSignage : MonoBehaviour
     public int replaced;
     readonly Dictionary<Font, Material> perFont = new Dictionary<Font, Material>();
 
+    // pkt 3 (właściciel: „WINDA DACH” na szyldzie APTEKI, napisy podwójne): obszary miasta są doczytywane w trakcie gry
+    // (BraxObszary) — ich TextMesh nie istniały w Awake i zostawały z ZTest Always (prześwitywały przez ściany). Teraz
+    // podmiana także dla każdej doczytanej sceny.
     void Awake()
     {
         if (!depthTested) { enabled = false; return; }
+        Podmien(null);
+        Font.textureRebuilt += OnRebuilt;
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += Wczytana;
+    }
+
+    void Wczytana(UnityEngine.SceneManagement.Scene sc, UnityEngine.SceneManagement.LoadSceneMode tryb) { Podmien(sc); }
+
+    void Podmien(UnityEngine.SceneManagement.Scene? tylko)
+    {
         foreach (var tm in FindObjectsByType<TextMesh>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
+            if (tylko.HasValue && tm.gameObject.scene != tylko.Value) continue;
             var font = tm.font; var mr = tm.GetComponent<MeshRenderer>();
             if (!font || !mr || !font.material) continue;
             Material m;
@@ -26,13 +39,13 @@ public sealed class BraxRegionSignage : MonoBehaviour
                 m.mainTexture = font.material.mainTexture;
                 perFont[font] = m;
             }
+            if (mr.sharedMaterial == m) continue;
             mr.sharedMaterial = m;
             replaced++;
         }
-        Font.textureRebuilt += OnRebuilt;
     }
 
-    void OnDestroy() { Font.textureRebuilt -= OnRebuilt; }
+    void OnDestroy() { Font.textureRebuilt -= OnRebuilt; UnityEngine.SceneManagement.SceneManager.sceneLoaded -= Wczytana; }
 
     void OnRebuilt(Font font)
     {

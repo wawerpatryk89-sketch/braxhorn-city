@@ -39,6 +39,22 @@ public static class BraxKontrolaMigotania
         b.Expand(4f); return b;   // ±2 m: elewacja od ulicy, wyjście, chodnik i schody przed drzwiami
     }
     static Bounds strefa; static bool tylkoStrefa;
+    // pkt 5 / 49 / 27 (właściciel: „mozaika” — dwie elewacje w jednej płaszczyźnie): ta sama zasada wycinania dolnej warstwy
+    // także na kamienicach przy BRAXHORN NUTRITION i lewej przy BRAXHORN GYM oraz w alejce przy BANKU (miasto B).
+    // Tylko w scenach miasta (osiedle: sama strefa siłowni nie istnieje — bez zmian).
+    static Bounds[] strefy = new Bounds[0];
+    static Bounds[] Strefy()
+    {
+        var l = new List<Bounds> { StrefaSilowni() };
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.StartsWith("BraxhornCity", StringComparison.Ordinal))
+            foreach (var (a, b) in new[] { (new Vector3(12f, -.5f, 4f), new Vector3(50f, 34f, 46f)),          // kamienica z BRAXHORN NUTRITION i sąsiednie
+                                           (new Vector3(-50f, -.5f, -22f), new Vector3(-16f, 34f, 26f)),      // lewa kamienica przy BRAXHORN GYM
+                                           (new Vector3(-121f, -.5f, 44f), new Vector3(-90f, 40f, 76f)) })   // alejka przy BANKU (Aleja Północna 1)
+            { var x = new Bounds(); x.SetMinMax(a, b); l.Add(x); }
+        return l.ToArray();
+    }
+    static bool WStrefie(Vector3 p) { foreach (var b in strefy) if (b.Contains(p)) return true; return false; }
+    static bool WStrefie(Bounds r) { foreach (var b in strefy) if (b.Intersects(r)) return true; return false; }
     static readonly Dictionary<Renderer, LODGroup> lody = new Dictionary<Renderer, LODGroup>();
     static LODGroup Lod(Renderer r) { if (!lody.TryGetValue(r, out var g)) lody[r] = g = r.GetComponentInParent<LODGroup>(); return g; }
 
@@ -47,7 +63,7 @@ public static class BraxKontrolaMigotania
         try { Kamera(); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: kontrola migotania — kamera: " + e.Message); }
         float t0 = BraxKontrola.Sekundy;
         lody.Clear();
-        strefa = StrefaSilowni(); tylkoStrefa = false;
+        strefa = StrefaSilowni(); strefy = Strefy(); tylkoStrefa = false;
         var W = Wykryj(scena, 60f);
         var pows = W.pows; var pls = W.pls; var lista = W.lista;
         // naprawa
@@ -57,7 +73,7 @@ public static class BraxKontrolaMigotania
         foreach (var p in lista)
         {
             var A = pows[p.a]; var B = pows[p.b]; var pa = pls[p.plA]; var pb = pls[p.plB];
-            if (A.silownia && B.silownia && strefa.Contains(p.gdzie)) continue;     // strefa siłowni: wycinanie niżej, bez przesuwania
+            if (A.silownia && B.silownia && WStrefie(p.gdzie)) continue;     // strefa siłowni: wycinanie niżej, bez przesuwania
             if (Mathf.Abs(Teraz(A, pa) - Teraz(B, pb)) >= .0195f) continue;   // już rozsunięte (np. przy poprzedniej parze)
             bool mniejszaA = A.pole <= B.pole;
             var (m1, pm1, o1, po1) = mniejszaA ? (A, pa, B, pb) : (B, pb, A, pa);
@@ -73,7 +89,7 @@ public static class BraxKontrolaMigotania
         var sb = new StringBuilder("BRAXHORN_MIGOTANIE " + BraxKontrola.Obszar + ": pary=" + lista.Count + " poprawione=" + popr + " (przesunięte powierzchnie " + ruch.Count +
             ", renderery " + W.renderery + ", trójkąty osiowe " + W.trojkaty + ", prostokąty " + W.prostokaty + ", kubełki " + W.kubelki + ", czas " + (BraxKontrola.Sekundy - t0).ToString("F1") + " s" + (W.przerwane ? ", PRZERWANE limitem czasu" : "") + "; pary LOD0↔LOD1 tego samego obiektu pominięte — nie rysują się razem)");
         sb.Append("\nBRAXHORN_MIGOTANIE nierozwiązane (największe, do zdjęć):");
-        foreach (var p in nierozwiazane.Where(p => !(pows[p.a].silownia && pows[p.b].silownia && strefa.Contains(p.gdzie))).Take(20))
+        foreach (var p in nierozwiazane.Where(p => !(pows[p.a].silownia && pows[p.b].silownia && WStrefie(p.gdzie))).Take(20))
         {
             string l = "  " + pows[p.a].nazwa + " ↔ " + pows[p.b].nazwa + " odstęp " + (p.dd * 100f).ToString("F1") + " cm, wspólne " + p.pole.ToString("F2") + " m² " + BraxKontrola.F(p.gdzie);
             sb.Append('\n').Append(l); BraxKontrola.Zapisz("migotanie: " + l.Trim());
@@ -101,7 +117,7 @@ public static class BraxKontrolaMigotania
             {
                 if (BraxKontrola.Sekundy - t0 > limit * .6f) { przerwane = true; break; }
                 if (!BraxKontrola.Widoczny(r) || r.gameObject.layer == BraxKontrola.WarstwaKamery || BraxKontrola.Roslina2(r)) continue;
-                bool wSilowni = r.bounds.Intersects(strefa);
+                bool wSilowni = WStrefie(r.bounds);
                 if (tylkoStrefa && !wSilowni) continue;
                 var mf = r.GetComponent<MeshFilter>(); var mesh = mf ? mf.sharedMesh : null;
                 if (!mesh || !BraxKontrola.Dane(mesh, out var v, out _)) continue;
@@ -226,7 +242,7 @@ public static class BraxKontrolaMigotania
                 if (g.door) ruchomeKorzenie.Add(g.door);
                 if (g.bags != null) foreach (var b in g.bags) if (b) ruchomeKorzenie.Add(b);
             }
-        var przed = W.lista.Where(p => W.pows[p.a].silownia && W.pows[p.b].silownia && strefa.Contains(p.gdzie)).ToList();
+        var przed = W.lista.Where(p => W.pows[p.a].silownia && W.pows[p.b].silownia && WStrefie(p.gdzie)).ToList();
         var powody = new Dictionary<(Renderer, Renderer), string>();
         var zadania = new Dictionary<(Renderer, int, int, int, int), (float d, List<Vector2[]> gorne, HashSet<string> nad)>();
         int paryCiete = 0;
@@ -297,9 +313,9 @@ public static class BraxKontrolaMigotania
         // po: ponowne wykrycie tylko w strefie siłowni
         tylkoStrefa = true; Wykrycie po;
         try { po = Wykryj(scena, 30f); } finally { tylkoStrefa = false; }
-        var zostaly = po.lista.Where(p => po.pows[p.a].silownia && po.pows[p.b].silownia && strefa.Contains(p.gdzie)).ToList();
+        var zostaly = po.lista.Where(p => po.pows[p.a].silownia && po.pows[p.b].silownia && WStrefie(p.gdzie)).ToList();
         var sb = new StringBuilder("BRAXHORN_SILOWNIA_MIGOTANIE pary_przed=" + przed.Count + " pary_po=" + zostaly.Count + " pary_po_powyżej_0.1m²=" + zostaly.Count(p => p.pole > .1f)
-            + " wycięte_pary=" + paryCiete + " powierzchnie=" + powierzchnie + " trójkątów=" + trojkaty + " pole_usunięte=" + pole.ToString("F2") + " m² przesunięte=0 (strefa " + BraxKontrola.F(strefa.min) + " … " + BraxKontrola.F(strefa.max) + ")");
+            + " wycięte_pary=" + paryCiete + " powierzchnie=" + powierzchnie + " trójkątów=" + trojkaty + " pole_usunięte=" + pole.ToString("F2") + " m² przesunięte=0 stref_ciecia=" + strefy.Length + " (strefa siłowni " + BraxKontrola.F(strefa.min) + " … " + BraxKontrola.F(strefa.max) + ")");
         sb.Append("\n  PRZED (największe):");
         foreach (var p in przed.Take(25)) sb.Append("\n    ").Append(W.pows[p.a].nazwa + " ↔ " + W.pows[p.b].nazwa + " odstęp " + (p.dd * 100f).ToString("F1") + " cm, " + p.pole.ToString("F2") + " m² " + BraxKontrola.F(p.gdzie));
         sb.Append("\n  WYCIĘTE:");
