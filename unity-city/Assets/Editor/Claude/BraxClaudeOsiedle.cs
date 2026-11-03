@@ -2621,6 +2621,14 @@ public static partial class BraxClaudeOsiedle
             else if (!lodM) for (float x = a + 1.3f; x < b - 1.3f; x += .18f) for (int sh = 0; sh < 3; sh++) Cylinder(Pal(rnd.Next(6)), new Vector3(x, .32f + sh * .58f, zb - .5f), .045f, .28f, 8, true, false);
             if (twM != null) BraxOsiedleTowar.Zakoncz(twM, "market osiedla");
             // kasa przy wejściu, ale z boku drzwi (1.6 m od ościeżnicy — strefa za drzwiami wolna, właściciel 17:16)
+            // wózki przed wejściem (3 wsunięte jeden w drugi) i 2 w środku przy kasie — jak w mieście
+            if (BraxOsiedleTowar.Jest && BraxOsiedleTowar.Model("wozek"))
+            {
+                var tw2 = new GameObject("Market: wózki").transform; tw2.SetParent(Group(group), true);
+                for (int i = 0; i < 3; i++) BraxOsiedleTowar.Postaw(tw2, "wozek", "Market: wózek przed wejściem " + (i + 1), new Vector3(b - 1.0f - i * .32f * K, FY, zf - 1.5f), 90f, true);
+                Collider(new Vector3(b - 1.0f - .32f * K, FY + .5f * K, zf - 1.5f), new Vector3(1.6f * K, 1f * K, .7f * K));
+                for (int i = 0; i < 2; i++) BraxOsiedleTowar.Postaw(tw2, "wozek", "Market: wózek w środku " + (i + 1), new Vector3(a + 1.2f + i * .32f * K, FY, zf + 1.2f), 90f, true);
+            }
             if (kasaM)
             {
                 var tk = new GameObject("Market: kasa (paczka miasto_sklepy)").transform; tk.SetParent(Group(group), true);
