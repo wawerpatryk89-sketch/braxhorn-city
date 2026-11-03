@@ -209,6 +209,16 @@ const VIEWS = [
   // runda 5 (B): GOLASY — ludzie na chodniku i przy przejściu z bliska (stroje, odcienie ubrań)
   ['DETAL_ludzie_stroje_chodnik', '20,1.2,-13.2,200,8,5', 'estate'],
   ['DETAL_ludzie_stroje_przejscie', '12,1.2,-14,160,8,7', 'estate'],
+  // runda 5 (B): SALON SAMOCHODOWY (narożnik B1 × Wiśniowa) — fasady, plac, totem, wnętrze, schody ruchome, antresola
+  ['B45_salon_od_B1', '-43.5,4,-37,0,8,16', 'estate'],
+  ['B45_salon_od_Wisniowej', '-49.1,5,-48,270,5,11', 'estate'],
+  ['DETAL_salon_plac_totem_tablice', '-47,1.4,-30,0,10,5', 'estate'],
+  ['DETAL_salon_drzwi_brama_daszek', '-44,2.2,-37.6,0,6,5', 'estate'],
+  ['DETAL_salon_schody_ruchome', '-38.3,2.6,-43,0,12,4.5', 'estate'],
+  ['DETAL_salon_schody_kamienne', '-40.3,2.4,-43,0,10,4.5', 'estate'],
+  ['DETAL_salon_talerz_obrotowy', '-45.6,1,-42.2,90,15,5', 'estate'],
+  ['DETAL_salon_antresola_bar', '-46.7,6.6,-56.8,0,10,4', 'estate'],
+  ['DETAL_salon_attyka_gzyms', '-43,10.5,-37.6,0,-5,7', 'estate'],
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],

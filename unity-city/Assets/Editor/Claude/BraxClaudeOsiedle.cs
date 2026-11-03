@@ -5603,6 +5603,7 @@ public static partial class BraxClaudeOsiedle
         Guard("Poznańska 5 — okna i drzwi", () => Poznanska5(estate, physics));
         Guard("stacja paliw + myjnia (E21: zamiast Poznańskiej 5 i willi Codexa; BraxClaudeOsiedleStacja)", () => StacjaIMyjnia(estate, physics));
         Guard("warsztat (E32: zamiast garaży-kontenerów Codexa; BraxClaudeOsiedleWarsztat)", () => Warsztat(estate, physics));
+        Guard("salon samochodowy (runda 5: narożnik B1 × Wiśniowa; BraxClaudeOsiedleSalon)", () => SalonSamochodowy(estate, physics));
         Guard("siłownia A (za kasynem)", () => GymA(86f, -66f));
         Guard("kasyno — zaplecze od zaułka (korytarz, sala VIP poker, biuro, WC) i zaułek serwisowy", () => ZapleczeKasyna(estate, physics));
         Guard("muzyka (kasyno, siłownia A)", MusicZones);
@@ -5690,6 +5691,7 @@ public static partial class BraxClaudeOsiedle
         Guard("ludzie: przechodnie, obsada, kierowcy (Rocketbox)", LudzieNaOsiedlu);   // build 14 „ludzie”: po wnętrzach, ławkach i autach
         Guard("stacja paliw: kasjer (E21)", StacjaKasjer);
         Guard("warsztat: mechanicy (E32)", WarsztatMechanicy);
+        Guard("salon samochodowy: obsada i pasażer schodów ruchomych", SalonObsada);
 
         // 6) punkty podróży (TravelPoint) do nowych miejsc
         var world = UnityEngine.Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(w => w.area == "estate");

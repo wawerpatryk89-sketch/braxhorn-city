@@ -68,6 +68,7 @@ public static partial class BraxClaudeOsiedle
             Guard("auta w ruchu (trasy, pierwszeństwo, test ruchu)", () => AutaWRuchu(szablony));
             Guard("prywatne auto Patryka pod areną", () => AutoPatryka(szablony));
             Guard("auta zaparkowane (zatoki, kolory, kolizje)", () => AutaZaparkowane(szablony));
+            Guard("salon samochodowy: auta na talerzach, antresoli i placu", () => SalonAuta(szablony));
         }
         else rep.notes.Add("DO POPRAWKI: żaden model auta nie przygotowany");
         UnityEngine.Object.DestroyImmediate(tmp.gameObject);
