@@ -104,21 +104,37 @@ def inspect_apk(path):
         bad = apk.testzip()
         if bad:
             report['errors'].append('ZIP CRC failure: ' + bad)
+        groups = collections.defaultdict(list)
         for entry in apk.infolist():
-            if not re.fullmatch(r'assets/bin/Data/(level\d+|sharedassets\d+\.assets|resources\.assets|globalgamemanagers(?:\.assets)?)', entry.filename):
+            match = re.fullmatch(r'(assets/bin/Data/(?:level\d+|sharedassets\d+\.assets|resources\.assets|globalgamemanagers(?:\.assets)?))(?:\.split(\d+))?', entry.filename)
+            if not match:
                 continue
+            groups[match[1]].append((int(match[2]) if match[2] is not None else -1, entry))
+        for name, parts in sorted(groups.items()):
             try:
-                with apk.open(entry) as stream:
-                    header = stream.read(48)
-                    if len(header) != 48:
-                        raise ValueError('truncated header')
-                    data_offset = struct.unpack_from('>q', header, 32)[0]
-                    if not 48 <= data_offset <= min(entry.file_size, 128 * 1024 * 1024):
-                        raise ValueError(f'invalid/unsupported metadata offset {data_offset}')
-                    data = header + stream.read(data_offset - 48)
-                report['scenes'][entry.filename] = inspect_scene(data, entry.file_size)
+                parts.sort(key=lambda p: p[0])
+                indices = [p[0] for p in parts]
+                if indices != [-1] and indices != list(range(len(parts))):
+                    raise ValueError(f'missing, duplicated or mixed split segments: {indices}')
+                actual_size = sum(entry.file_size for _, entry in parts)
+                data, need = bytearray(), 48
+                for _, entry in parts:
+                    with apk.open(entry) as stream:
+                        while len(data) < need:
+                            block = stream.read(need - len(data))
+                            if not block:
+                                break
+                            data.extend(block)
+                            if len(data) == 48:
+                                need = struct.unpack_from('>q', data, 32)[0]
+                                if not 48 <= need <= min(actual_size, 128 * 1024 * 1024):
+                                    raise ValueError(f'invalid/unsupported metadata offset {need}')
+                    if len(data) == need and need > 48:
+                        break
+                report['scenes'][name] = inspect_scene(bytes(data), actual_size)
+                report['scenes'][name]['segments'] = len(parts)
             except (ValueError, UnicodeError, struct.error) as exc:
-                report['errors'].append(entry.filename + ': ' + str(exc))
+                report['errors'].append(name + ': ' + str(exc))
         if 'assets/bin/Data/level1' not in report['scenes']:
             report['errors'].append('level1 not successfully inspected')
     return report

@@ -61,6 +61,21 @@ class BoundsTest(unittest.TestCase):
                 apk.writestr('assets/bin/Data/level0', scene())
             self.assertIn('level1 not successfully inspected', checker.inspect_apk(path)['errors'])
 
+    def test_android_split_files_and_gap(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / 'test.apk'
+            data = scene()
+            with zipfile.ZipFile(path, 'w') as apk:
+                for i in reversed(range(13)):
+                    apk.writestr(f'assets/bin/Data/level1.split{i}', data[i*40:(i+1)*40])
+            report = checker.inspect_apk(path)
+            self.assertEqual(report['errors'], [])
+            self.assertEqual(report['scenes']['assets/bin/Data/level1']['segments'], 13)
+            with zipfile.ZipFile(path, 'w') as apk:
+                apk.writestr('assets/bin/Data/level1.split0', data[:256])
+                apk.writestr('assets/bin/Data/level1.split2', data[256:])
+            self.assertTrue(any('missing, duplicated' in error for error in checker.inspect_apk(path)['errors']))
+
 
 if __name__ == '__main__':
     unittest.main()
