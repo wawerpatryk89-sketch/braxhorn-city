@@ -241,10 +241,49 @@ public sealed class BraxVessel : MonoBehaviour
     }
 
     /// <summary>Zacumowany pojazd lekko kołysze się na fali.</summary>
+    // WŁAŚCICIEL 3.11 11:00: „motorówki, skutery — wszystko ma mieć odgłos”. Silnik syntezowany w grze (bez nagrań i licencji):
+    // skuter — wysoki dwusuw, motorówka — V8 niżej, jacht — diesel z dudnieniem; ton i głośność rosną z prędkością.
+    // Gra, gdy ktoś płynie; łódź zacumowana — cicho. Pętla 2 s (całe okresy tonu + przenikanie końców).
+    AudioSource silnikA;
+    static readonly System.Collections.Generic.Dictionary<string, AudioClip> klipySilnika = new System.Collections.Generic.Dictionary<string, AudioClip>();
+    static AudioClip KlipSilnika(string typ)
+    {
+        if (klipySilnika.TryGetValue(typ, out var c) && c) return c;
+        const int SR = 22050; const float DL = 2f; int n = (int)(SR * DL);
+        float f0 = typ == "SKUTER" ? 95f : typ == "MOTORÓWKA" ? 62f : 38f;   // f0 × 2 s = całe okresy (pętla bez trzasku)
+        float ostrosc = typ == "SKUTER" ? 10f : typ == "MOTORÓWKA" ? 6f : 4f, szum = typ == "SKUTER" ? .45f : .3f;
+        var x = new float[n]; var rnd = new System.Random(typ.GetHashCode()); float lp = 0f;
+        for (int i = 0; i < n; i++)
+        {
+            float t = i / (float)SR, w = 2f * Mathf.PI * f0 * t;
+            float ton = Mathf.Sin(w) * .45f + Mathf.Sin(2f * w) * .25f + Mathf.Sin(3f * w) * .12f + Mathf.Sin(.5f * w) * (typ == "JACHT" ? .3f : .08f);
+            float zaplon = Mathf.Pow(Mathf.Max(0f, Mathf.Sin(w)), ostrosc) * .55f;
+            lp += ((float)(rnd.NextDouble() * 2.0 - 1.0) - lp) * .09f;
+            x[i] = Mathf.Clamp((ton * .55f + zaplon + lp * szum) * .55f, -1f, 1f);
+        }
+        int fade = SR / 20; for (int i = 0; i < fade; i++) { float k = i / (float)fade; x[n - fade + i] = x[n - fade + i] * (1f - k) + x[i] * k; }
+        c = AudioClip.Create("Silnik łodzi: " + typ, n, 1, SR, false); c.SetData(x, 0); klipySilnika[typ] = c; return c;
+    }
+    void DzwiekSilnika()
+    {
+        bool plynie = rider || Mathf.Abs(speed) > .3f;
+        if (!plynie) { if (silnikA && silnikA.isPlaying) silnikA.Pause(); return; }
+        if (!silnikA)
+        {
+            silnikA = gameObject.AddComponent<AudioSource>(); silnikA.clip = KlipSilnika(label); silnikA.loop = true; silnikA.spatialBlend = 1f;
+            silnikA.rolloffMode = AudioRolloffMode.Logarithmic; silnikA.minDistance = 4f; silnikA.maxDistance = 120f; silnikA.dopplerLevel = .3f; silnikA.priority = 90;
+        }
+        float v01 = Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(.1f, maxSpeed));
+        silnikA.pitch = Mathf.Lerp(.75f, label == "SKUTER" ? 1.9f : 1.5f, v01);
+        silnikA.volume = Mathf.Lerp(.35f, .95f, v01);
+        if (!silnikA.isPlaying) silnikA.Play();
+    }
+
     void Update()
     {
         // 2.11 recenzja: reset albo szybka podróż w trakcie rejsu odpinają gracza bez zejścia — zwolnij łódź i pozę
         if (rider && (rider.vessel != this || (rider.transform.position - transform.position).sqrMagnitude > 1600f)) Zwolnij();
+        DzwiekSilnika();
         if (rider) return;
         if (speed != 0) speed = 0;
         Fale(0, false);

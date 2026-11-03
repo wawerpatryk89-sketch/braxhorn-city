@@ -470,7 +470,7 @@ public static class BraxNabrzezeMarina
         if (nasze.Count > 0) y = t.label == "SKUTER" ? nasze.Last() : nasze.First();
         foreach (var c in tmp) UnityEngine.Object.DestroyImmediate(c);
         if (float.IsNaN(y)) y = W + (t.label == "JACHT" ? 1.6f : t.label == "MOTORÓWKA" ? .9f : .8f) * K;
-        float ly = y - W + (t.label == "MOTORÓWKA" ? .42f * K : t.label == "JACHT" ? .45f * K : 0f);   // motorówka / jacht: siedzisko (fotel sternika) nad podłogą kokpitu
+        float ly = y - W + (t.label == "MOTORÓWKA" ? .42f * K : t.label == "JACHT" ? .45f * K : .4f * K);   // skuter (zdjęcie właściciela 3.11 10:56: Brax zapadnięty w siodło po pas) — biodra nad siodłem   // motorówka / jacht: siedzisko (fotel sternika) nad podłogą kokpitu
         return new Vector3(0, ly, zl);
     }
 
