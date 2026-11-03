@@ -274,10 +274,10 @@ public static class BraxRegionHoryzont
         var and = imp.GetPlatformTextureSettings("Android"); and.name = "Android"; and.overridden = true; and.maxTextureSize = 8192;
         and.format = TextureImporterFormat.ASTC_5x5; and.compressionQuality = 100; imp.SetPlatformTextureSettings(and);
         var web = imp.GetPlatformTextureSettings("WebGL"); web.name = "WebGL"; web.overridden = true; web.maxTextureSize = 8192;
-        web.format = TextureImporterFormat.DXT1; web.compressionQuality = 100; imp.SetPlatformTextureSettings(web);
+        web.format = TextureImporterFormat.ETC2_RGB4; web.compressionQuality = 100; imp.SetPlatformTextureSettings(web);   // WebGL: ETC2 (iPhone — subtarget ETC2; DXT byłby rozpakowany do RGBA = 180 MB)
         imp.SaveAndReimport();
         var t = AssetDatabase.LoadAssetAtPath<Texture2D>(p);
-        if (t) Debug.Log("BRAXHORN_NIEBO HD: " + p + " " + t.width + "x" + t.height + " (Android ASTC 5x5, WebGL DXT1, mipmapy)");
+        if (t) Debug.Log("BRAXHORN_NIEBO HD: " + p + " " + t.width + "x" + t.height + " (Android ASTC 5x5, WebGL ETC2, mipmapy)");
         return t;
     }
 
@@ -397,7 +397,7 @@ public static class BraxRegionHoryzont
         var stare = RenderSettings.skybox;
         // 3.11 (właściciel: „panorama w HD, 360°”, „niebo kwadratowe”): dotąd brany był obraz STAREGO skyboxa (2048×1024,
         // ETC2 — rozciągnięty 7× na ekranie telefonu = kwadraty). Teraz najpierw HD z Poly Haven (8192×4096, ASTC 5×5 /
-        // DXT1 WebGL, mipmapy przez tex2Dgrad), potem 4K, stary skybox tylko gdy brak plików.
+        // ETC2 WebGL, mipmapy przez tex2Dgrad), potem 4K, stary skybox tylko gdy brak plików.
         nieboTex = NieboHD("Assets/Source/Claude/PolyHaven/sky/kloofendal_8k.jpg") ?? NieboHD("Assets/Source/Claude/PolyHaven/sky/kloofendal_4k.jpg");
         if (!nieboTex && stare && stare.HasProperty("_MainTex")) { nieboTex = stare.GetTexture("_MainTex") as Texture2D; Debug.LogWarning("DO POPRAWKI: BRAXHORN_NIEBO brak HD z Poly Haven — stary obraz nieba " + (nieboTex ? nieboTex.width + "x" + nieboTex.height : "brak")); }
         if (!nieboTex) nieboTex = Albedo(4096, "Assets/CityRebuild/Waterfront/daylight-sky.jpg", "Assets/Source/Claude/Osiedle/sky/niebo_4k.jpg");
