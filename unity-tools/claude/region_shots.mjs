@@ -222,6 +222,13 @@ const VIEWS = [
   ['WYSPA_zielen_drzewa', '1215,14,40,90,25,12'],
   ['DETAL_wyspa_arena_wc_wejscie', '1150,1.6,36.5,90,10,5'],
   ['DETAL_wyspa_palma_lisc', '1062,3,42,270,20,4'],
+  // arena premium (BraxMiastoWyspaArena.cs): fasada z wejściem, hol z kasami, krzesełka trybun, oktagon, szatnia, dach z kratownicami
+  ['DETAL_arena_fasada_wejscie', '1142,7,42,270,8,30'],
+  ['DETAL_arena_hol_kasy', '1148,3,42,90,10,6'],
+  ['DETAL_arena_trybuny_krzeselka', '1164,4,55,180,15,8'],
+  ['DETAL_arena_klatka', '1164,3.8,42,90,25,12'],
+  ['DETAL_arena_szatnia', '1183,3,45.8,270,10,2.5'],
+  ['DETAL_arena_dach_kratownice', '1164,16,42,45,35,45'],
   // pkt 46: mieszkanie Braxa nad NOVA (brama, klatka, przedpokój, salon z aneksem, łazienka, sypialnia)
   ['BRAX_mieszkanie_brama', '33.68,1.6,35.9,180,8,5'],
   ['DETAL_mieszkanie_domofon', '34.68,1.4,35.92,180,5,1.2'],
