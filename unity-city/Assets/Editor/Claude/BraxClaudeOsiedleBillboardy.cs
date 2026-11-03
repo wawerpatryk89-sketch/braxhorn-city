@@ -43,7 +43,8 @@ public static partial class BraxClaudeOsiedle
     {
         var r = Vector3.Cross(Vector3.up, -n).normalized; var u = Vector3.up; var sb = new SiatkaSalonu();
         sb.Quad(0, c - r * w * .5f - u * h * .5f, c + r * w * .5f - u * h * .5f, c + r * w * .5f + u * h * .5f, c - r * w * .5f + u * h * .5f, n);
-        var mesh = sb.Zapisz("plakat " + nazwa + " " + c.x.ToString("F0") + "_" + c.z.ToString("F0"));
+        // Dwa lica pylonu mogą mieć tę samą zaokrągloną pozycję. Kierunek i pełna pozycja odróżniają ich siatki.
+        var mesh = sb.Zapisz("plakat " + nazwa + " " + c.ToString("F3") + " " + n.ToString("F3"));
         SalonObiekt(nazwa, g, mesh, new[] { m }, Vector3.zero);
     }
     static bool BillWolne(Vector3 p, float rx, float rz, float h, float yaw) =>

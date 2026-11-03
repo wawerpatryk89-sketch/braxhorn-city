@@ -9,6 +9,7 @@ public sealed class BraxGrafikiImport : AssetPostprocessor
 {
     const string Katalog = "Assets/Source/Prywatne/Grafiki/";
     public override int GetPostprocessOrder() { return 200; }
+    public override uint GetVersion() { return 1; }
 
     void OnPreprocessTexture()
     {
@@ -26,12 +27,12 @@ public sealed class BraxGrafikiImport : AssetPostprocessor
         ti.anisoLevel = ekran ? 0 : 4;
         // budżet APK (miasto ~813 MB): billboardy w świecie 1024 i ASTC 6×6; murale oglądane z bliska (02, 19) i ekran startowy 2048
         string plik = System.IO.Path.GetFileNameWithoutExtension(assetPath);
-        bool zBliska = ekran || plik == "02" || plik == "19";
+        bool zBliska = ekran || plik == "02" || plik == "19" || assetPath.Contains("/szyldy/");
         ti.maxTextureSize = zBliska ? 2048 : 1024;
         ti.isReadable = false;
         ti.textureCompression = TextureImporterCompression.CompressedHQ;
         var a = ti.GetPlatformTextureSettings("Android");
-        a.overridden = true; a.maxTextureSize = ti.maxTextureSize; a.format = ekran ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6; a.compressionQuality = 100;
+        a.overridden = true; a.maxTextureSize = ti.maxTextureSize; a.format = zBliska ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6; a.compressionQuality = 50;
         ti.SetPlatformTextureSettings(a);
         var ign = typeof(TextureImporter).GetProperty("ignoreMipmapLimit");   // jakość „niska” nie zmniejsza grafik
         if (ign != null && ign.CanWrite) ign.SetValue(ti, true);

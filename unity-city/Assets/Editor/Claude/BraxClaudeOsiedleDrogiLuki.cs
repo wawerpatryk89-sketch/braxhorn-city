@@ -221,7 +221,7 @@ public static partial class BraxClaudeOsiedle
         Physics.SyncTransforms();
         int punkty = 0, kolizje = 0; var przyklady = new Dictionary<string, int>();
         const int maska = ~((1 << 8) | (1 << 29) | (1 << 2));
-        var buf = new Collider[16];
+        var buf = new Collider[64];
         foreach (var t in wy.trasy)
         {
             for (int i = t.start; i + 2 < t.start + t.ile; i += 2)
@@ -229,7 +229,9 @@ public static partial class BraxClaudeOsiedle
                 var p = wy.punkty[i]; var q = wy.punkty[i + 2]; var f = q - p; f.y = 0f; if (f.sqrMagnitude < 1e-4f) continue;
                 punkty++;
                 var c = (p + q) * .5f + Vector3.up * (.08f + .7f);
-                int nh = Physics.OverlapBoxNonAlloc(c, new Vector3(szer * .5f - .05f, .7f, Mathf.Min(dl * .5f, 1.2f)), buf, Quaternion.LookRotation(f.normalized), maska, QueryTriggerInteraction.Ignore);
+                // Pełny samochód: dawny limit 1,2 m badał tylko środkowe 2,4 m
+                // i pomijał zderzaki oraz narożniki auta długości ponad 6 m.
+                int nh = Physics.OverlapBoxNonAlloc(c, new Vector3(szer * .5f, .7f, dl * .5f), buf, Quaternion.LookRotation(f.normalized), maska, QueryTriggerInteraction.Ignore);
                 for (int k = 0; k < nh; k++)
                 {
                     var col = buf[k]; if (!col || col.bounds.size.x > 60f || col.bounds.size.z > 60f) continue;   // podłogi

@@ -81,7 +81,7 @@ public sealed class BraxRuchAutSym
     public BraxRuchAutSym(Vector3[] punkty, BraxTrasaAut[] trasy, BraxZdarzenieAut[] zdarzenia, BraxWezelAut[] wezly, int ziarno, float szerMax = 2.05f, float dlMax = 5f, float vZakret = 0f)
     {
         this.vZakret = vZakret;
-        szerAut = Mathf.Clamp(szerMax, 1.6f, 2.6f); dlAut = Mathf.Clamp(dlMax, 3.5f, 6.5f);
+        szerAut = Mathf.Max(szerMax, 1.6f); dlAut = Mathf.Max(dlMax, 3.5f);
         pkt = punkty ?? new Vector3[0]; tr = trasy ?? new BraxTrasaAut[0]; wz = wezly ?? new BraxWezelAut[0];
         zd = zdarzenia != null ? (BraxZdarzenieAut[])zdarzenia.Clone() : new BraxZdarzenieAut[0];   // kopia — linie zatrzymania są tu przesuwane
         rnd = new System.Random(ziarno);
@@ -193,7 +193,8 @@ public sealed class BraxRuchAutSym
                     {
                         foreach (var q in ob)
                         {
-                            float dx = p.c.x - q.c.x, dz = p.c.z - q.c.z; if (dx * dx + dz * dz > 30f) continue;
+                            float dx = p.c.x - q.c.x, dz = p.c.z - q.c.z;
+                            if (dx * dx + dz * dz > (dl + .2f) * (dl + .2f) + (szer + .2f) * (szer + .2f)) continue;
                             if (Prost(p.c, p.f, szer * .5f + .1f, dl * .5f + .1f, q.c, q.f, szer * .5f + .1f, dl * .5f + .1f)) { k = true; break; }
                         }
                         if (k) break;
@@ -226,7 +227,8 @@ public sealed class BraxRuchAutSym
                     for (float s = zd[f].s0 - przod + 1f; s <= s1 + tyl; s += .5f)
                     {
                         var q = Poz(zd[f].trasa, s);
-                        float dx = q.c.x - w.c.x, dz = q.c.z - w.c.z; if (dx * dx + dz * dz > 36f) continue;
+                        float dx = q.c.x - w.c.x, dz = q.c.z - w.c.z;
+                        if (dx * dx + dz * dz > (dl + .3f) * (dl + .3f) + (szer + .3f) * (szer + .3f)) continue;
                         if (Prost(w.c, w.f, szer * .5f + .15f, dl * .5f + .15f, q.c, q.f, szer * .5f + .15f, dl * .5f + .15f)) { kol = true; break; }
                     }
                 }

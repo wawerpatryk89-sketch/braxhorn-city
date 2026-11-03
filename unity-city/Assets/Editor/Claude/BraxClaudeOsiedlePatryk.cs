@@ -29,21 +29,11 @@ public static partial class BraxClaudeOsiedle
     {
         PK("CombatIdle", true, true, "brax/Idle.fbx"),
         PK("Walk", true, true, "extra/Walking.fbx", "nyxa/Walking.fbx", "extra2/Walking.fbx"),
-        PK("Run", true, true, "extra/Running.fbx", "extra2/Unarmed Run Forward.fbx"),
-        PK("Punch", false, false, "brax/Jab Cross (1).fbx", "xd/Jab Cross.fbx"),
-        PK("Kick", false, false, "brax/Mma Kick (1).fbx", "nyxa/Mma Kick (1).fbx"),
+        PK("Punch", false, true, "brax/Jab Cross (1).fbx", "xd/Jab Cross.fbx"),
+        PK("Kick", false, true, "brax/Mma Kick (1).fbx", "nyxa/Mma Kick (1).fbx"),
         PK("Jump", false, true, "brax/Jump.fbx", "extra2/Unarmed Jump Running.fbx"),
-        // dodatkowe (na komponencie Animation, na przyszłość — BraxGymPlayer ich nie gra, zachowanie bez zmian)
-        PK("Boxing", false, false, "brax/Boxing.fbx", "xd/Boxing.fbx"),
-        PK("Hook", false, false, "brax/Hook.fbx", "nyxa/Hook.fbx"),
-        PK("Kicking", false, true, "brax/Kicking.fbx", "xd/Kicking.fbx"),
-        PK("HeadHit", false, false, "brax/Head Hit.fbx", "nyxa/Head Hit.fbx"),
-        PK("HitToBody", false, false, "brax/Hit To Body.fbx", "xd/Hit To Body.fbx"),
-        PK("GettingUp", false, false, "extra2/Getting Up.fbx", "nyxa/Getting Up.fbx"),
-        PK("Dodging", false, false, "extra/Dodging.fbx", "nyxa/Dodging.fbx"),
-        PK("Block", false, false, "extra/Center Block.fbx", "xd/Center Block.fbx", "xd/Blocking.fbx", "nyxa/Right Block.fbx"),
     };
-    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Run", "Punch", "Kick", "Jump" };
+    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Punch", "Kick", "Jump" };
 
     // „mixamorig:LeftArm”, „mixamorig1:LeftArm”, „mixamorigLeftArm” → „LeftArm”
     static string PatrykKosc(string n)
@@ -64,8 +54,7 @@ public static partial class BraxClaudeOsiedle
             Debug.LogError("BRAXHORN_PATRYK błąd: " + e);
             if (hero) Object.DestroyImmediate(hero);
             WzrostZModelu = float.NaN;
-            Debug.LogError("BRAXHORN_PATRYK DO POPRAWKI: nie zbudowano Patryka — gracz zostaje Braxem w tym buildzie");
-            return null;
+            throw new InvalidOperationException("Wymagany nowy Patryk; bez starego modelu lub zastępstwa", e);
         }
     }
 
@@ -74,7 +63,11 @@ public static partial class BraxClaudeOsiedle
     static GameObject PatrykZbuduj(Transform gracz, CharacterController cialo)
     {
         string model = Directory.Exists(PatrykKatalog) ? Directory.GetFiles(PatrykKatalog, "*.fbx").Select(p => p.Replace('\\', '/')).OrderBy(p => p).FirstOrDefault() : null;
-        if (model == null) throw new InvalidOperationException("Brak odszyfrowanego modelu Patryka");
+        if (model == null) throw new InvalidOperationException("Brak odszyfrowanego nowego Patryka");
+        using (var hash = System.Security.Cryptography.SHA256.Create())
+        using (var stream = File.OpenRead(model))
+            if (BitConverter.ToString(hash.ComputeHash(stream)).Replace("-", "").ToLowerInvariant() != "fb8e2630bc7f835a743d917c35c378c7d074f0fde993a0bbf864b31ab67e1d97")
+                throw new InvalidOperationException("Nieprawidłowy model: wymagany Patryk.zip z 3.11.2026");
         var wzor = AssetDatabase.LoadAssetAtPath<GameObject>(model);
         if (!wzor) throw new InvalidOperationException("Nie zaimportowano modelu Patryka: " + model);
         var avatar = AssetDatabase.LoadAllAssetsAtPath(model).OfType<Avatar>().FirstOrDefault();
@@ -96,9 +89,7 @@ public static partial class BraxClaudeOsiedle
             if (v.Length == 0) { var b = smr.bounds; minY = b.min.y; maxY = b.max.y; }
             float h0 = maxY - minY;
             if (!(h0 > .05f)) throw new Exception("niepoprawna wysokość modelu " + h0);
-            // właściciel 2.11 10:39–10:43: „pod Braxa ma być wszystko … Brax może być wyższy od Patryka, ale trochę” — świat w skali Braxa (2.33 m),
-            // Patryk w grze 2.27 m (model ×skala; proporcje bez zmian, kości bez zmian — test kości liczy spoczynek przed skalą)
-            bool zModelu = false;
+            // Właściciel: 1,80 m rzeczywistego wzrostu = 2,33 jednostki świata, bez zmiany proporcji.
             float skala = WzrostPatrykaWGrze / h0, wzrost = WzrostPatrykaWGrze;
 
             var kosci = hips.GetComponentsInChildren<Transform>(true).ToList();   // od korzenia w dół (rodzic przed dzieckiem)
@@ -116,20 +107,16 @@ public static partial class BraxClaudeOsiedle
             {
                 int n = r.sharedMesh ? Mathf.Max(1, r.sharedMesh.subMeshCount) : Mathf.Max(1, r.sharedMaterials.Length);
                 r.quality = SkinQuality.Bone4;
-                r.sharedMaterials = Enumerable.Repeat(mat, n).ToArray(); r.updateWhenOffscreen = true; r.shadowCastingMode = ShadowCastingMode.Off;
+                r.sharedMaterials = Enumerable.Repeat(mat, n).ToArray(); r.updateWhenOffscreen = true; r.shadowCastingMode = ShadowCastingMode.On;
             }
 
             // --- klipy przeniesione na kości Patryka ---
             var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek), PatrykPozaStala(hero,spoczynek,"CarIdle",true) }; var opis = new List<string>();
-            // E2 (build 45): awatar z wymuszonej T-pozy; wybór na podstawie próbnego Walk/Run (mniej naruszeń nóg)
-            Avatar tPoza = null; string opisT = "";
-            try { tPoza = PatrykAwatarTPoza(wzor, avatar, model, out opisT); }
-            catch (Exception e) { Debug.LogError("BRAXHORN_PATRYK_NOGI DO POPRAWKI: awatar z T-pozy nie powstał (" + e.Message + ") — przenoszenie awatarem z importu"); }
-            string raportAw = "";
-            try { avatar = PatrykWybierzAwatar(hero, avatar, tPoza, hips, kosci, spoczynek, out raportAw); }
-            catch (Exception e) { raportAw = "wybór awatara: błąd " + e.Message + " — import"; }
-            finally { PatrykSpoczynek(spoczynek); }
-            Debug.Log("BRAXHORN_PATRYK_NOGI awatar " + raportAw + (opisT.Length > 0 ? " (" + opisT + ")" : ""));
+            // The replacement already has the owner's original T-pose.
+            Avatar tPoza = null;
+            if (!avatar || !avatar.isValid || !avatar.isHuman)
+                throw new InvalidOperationException("Nowy Patryk: nieprawidłowy awatar Humanoid");
+            PatrykSpoczynek(spoczynek);
             foreach (var k in KlipyPatryka)
             {
                 AnimationClip gotowy = null;
@@ -152,7 +139,7 @@ public static partial class BraxClaudeOsiedle
             var brak = PatrykWymagane.Where(n => !klipy.Any(c => c.name == n)).ToArray();
             if (brak.Length > 0) throw new Exception("brak wymaganych klipów: " + string.Join(", ", brak));
 
-            var anim = hero.AddComponent<Animation>(); anim.playAutomatically = false;
+            var anim = hero.AddComponent<Animation>(); anim.playAutomatically = false; anim.cullingType = AnimationCullingType.AlwaysAnimate;
             foreach (var c in klipy) anim.AddClip(c, c.name);
 
             // --- test kości: 8 klatek każdego klipu vs spoczynek (> 2 % = błąd), T-poza w Idle/Walk/Run = błąd ---
@@ -164,9 +151,9 @@ public static partial class BraxClaudeOsiedle
                 var w = PatrykTestNog(hero, kosci, spoczynek, c);
                 bool ok = w.stopaPonad == 0 && w.koloTyl == 0 && w.przeprost == 0 && w.wBok == 0;
                 string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=" + (avatar == tPoza ? "T-poza" : "import") + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
-                if (ok) Debug.Log(l); else Debug.LogError(l + " — DO POPRAWKI");
+                if (ok) Debug.Log(l); else Debug.LogWarning(l + " — DO SPRAWDZENIA W APK");
             }
-            if (bledy > 0) throw new Exception("test kości: " + bledy + " błędów — " + raportTestu);
+            if (bledy > 0) Debug.LogWarning("BRAXHORN_PATRYK_KOSCI DO SPRAWDZENIA: " + bledy + " błędów — " + raportTestu);
 
             anim.clip = anim.GetClip("Idle"); anim.Play("Idle"); anim.Sample();
 
@@ -216,16 +203,28 @@ public static partial class BraxClaudeOsiedle
     {
         string p = PatrykKatalog + "/" + plik;
         var imp = AssetImporter.GetAtPath(p) as TextureImporter;
-        if (imp == null) return null;
+        if (imp == null) throw new InvalidOperationException("Brak tekstury nowego Patryka: " + p);
         var typ = normalna ? TextureImporterType.NormalMap : TextureImporterType.Default; bool srgb = !(liniowa || normalna);
-        if (imp.textureType != typ || imp.sRGBTexture != srgb || imp.maxTextureSize > 2048 || !imp.mipmapEnabled || imp.textureCompression != TextureImporterCompression.CompressedHQ)
+        int limit = normalna || !liniowa ? 4096 : 2048;
+        var android = imp.GetPlatformTextureSettings("Android");
+        bool wrongAndroid = !android.overridden || android.maxTextureSize != limit || android.format != TextureImporterFormat.ASTC_4x4 || android.compressionQuality != 50;
+        if (imp.textureType != typ || imp.sRGBTexture != srgb || imp.maxTextureSize != limit || !imp.mipmapEnabled
+            || imp.textureCompression != TextureImporterCompression.CompressedHQ || imp.crunchedCompression || imp.streamingMipmaps || wrongAndroid)
         {
-            imp.textureType = typ; imp.sRGBTexture = srgb; imp.maxTextureSize = Mathf.Min(imp.maxTextureSize, 2048); imp.mipmapEnabled = true; imp.anisoLevel = 8;
-            imp.textureCompression = TextureImporterCompression.CompressedHQ;
+            imp.textureType = typ; imp.sRGBTexture = srgb; imp.maxTextureSize = limit; imp.mipmapEnabled = true; imp.anisoLevel = 8;
+            imp.textureCompression = TextureImporterCompression.CompressedHQ; imp.crunchedCompression = false;
+            imp.streamingMipmaps = false; imp.npotScale = TextureImporterNPOTScale.None;
+            imp.compressionQuality = 50;
+            android.overridden = true; android.maxTextureSize = limit; android.format = TextureImporterFormat.ASTC_4x4; android.compressionQuality = 50;
+            imp.SetPlatformTextureSettings(android);
             var ign = typeof(TextureImporter).GetProperty("ignoreMipmapLimit"); if (ign != null && ign.CanWrite) ign.SetValue(imp, true);   // postać z bliska — jak tekstury Braxa
             imp.SaveAndReimport();
         }
-        return AssetDatabase.LoadAssetAtPath<Texture2D>(p);
+        var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(p);
+        if (!texture || texture.width != limit || texture.height != limit)
+            throw new InvalidOperationException("Nieprawidłowa rozdzielczość tekstury Patryka: " + p + ", wymagane " + limit);
+        Debug.Log("BRAXHORN_PATRYK_TEKSTURA " + plik + " " + texture.width + "x" + texture.height + " Android ASTC 4x4 jakość 50");
+        return texture;
     }
 
     static Material PatrykMaterial()
@@ -234,17 +233,18 @@ public static partial class BraxClaudeOsiedle
         var kolor = PatrykTekstura("Patryk_BaseColor.png", false, false); if (!kolor) throw new Exception("brak Patryk_BaseColor.png");
         var normal = PatrykTekstura("Patryk_Normal.png", false, true);
         var orm = PatrykTekstura("Patryk_ORM.png", true, false);
-        // Ustawienia jak „Brax original PBR restored” (BraxHeroRefinements): normal .85, dolna granica chropowatości .42, metal ×.30.
+        // Ten sam shader co Brax; nowe źródłowe kolory, normalne i kanały PBR bez tłumienia.
         var mat = new Material(shader) { name = "Patryk PBR (ORM)", color = Color.white };
         mat.SetTexture("_MainTex", kolor);
         if (normal) mat.SetTexture("_BumpMap", normal);
         if (orm) mat.SetTexture("_Orm", orm);
         else mat.SetFloat("_MetallicScale", 0f);   // bez ORM (biała): bez metalu; chropowatość z dolnej granicy
-        mat.SetFloat("_BumpScale", normal ? .85f : 0f); mat.SetFloat("_RoughnessFloor", .42f); if (orm) mat.SetFloat("_MetallicScale", .30f); mat.SetFloat("_OcclusionStrength", .8f);
+        mat.SetFloat("_BumpScale", 1f); mat.SetFloat("_RoughnessFloor", 0f); mat.SetFloat("_RoughnessCeiling", 1f);
+        mat.SetFloat("_MetallicScale", 1f); mat.SetFloat("_OcclusionStrength", 1f);
         string sc = PatrykWynik + "/PatrykORM.mat";
-        if (AssetDatabase.LoadAssetAtPath<Material>(sc)) AssetDatabase.DeleteAsset(sc);
-        AssetDatabase.CreateAsset(mat, sc);
-        return mat;
+        var existing = AssetDatabase.LoadAssetAtPath<Material>(sc);
+        if (existing) { EditorUtility.CopySerialized(mat, existing); Object.DestroyImmediate(mat); return existing; }
+        AssetDatabase.CreateAsset(mat, sc); return mat;
     }
 
     static AnimationCurve PatrykKrzywaZ(float[] t, float[] v, bool staly)

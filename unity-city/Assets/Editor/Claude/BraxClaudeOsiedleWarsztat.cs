@@ -62,12 +62,9 @@ public static partial class BraxClaudeOsiedle
         KrawFugi(false, WX0 + .1f, -42f, -28.5f); KrawFugi(false, WX1 - .1f, -42f, -28.5f);
         OdplywLiniowy(29.5f, 47f, -41.6f, true);   // przed bramami, w asfalcie placu (plac do z −42)
         Kratka(23.5f, -40f); Studzienka(44f, -37.5f);
-        // 4 miejsca postojowe 2.5 × 5 m × K przodem do alejki (z −35…−28.5), linie w wycięciach; dane dla etapu aut
-        float sw = 2.5f * K, sl = 5f * K, sz0 = -28.6f - sl;
-        for (int k = 0; k <= 4; k++) ZnakWycieciu(29f + k * sw - .06f, 29f + k * sw + .06f, sz0, -28.7f);
-        for (int k = 0; k < 4; k++)
-            MiejscaParkingowe.Add(new MiejsceParkingowe { srodek = new Vector3(29f + (k + .5f) * sw, YS, sz0 + sl * .5f), przod = Vector3.back, rozmiar = new Vector2(sw, sl), przyScianie = true });
-        StDetal("warsztat", "plac: miejsca w wycięciach", 4);
+        // Zatoki równoległe zostawiają 9.5 m przed bramami; prostopadłe po przeskalowaniu zwężały plac do 6.3 m.
+        int miejsca = RzadZatokRownoleglych(true, 28.5f, 47f, -28.6f, -1f, true);
+        StDetal("warsztat", "plac: miejsca równoległe", miejsca);
 
         // 3) budynek
         group = "Osiedle A / warsztat — budynek";

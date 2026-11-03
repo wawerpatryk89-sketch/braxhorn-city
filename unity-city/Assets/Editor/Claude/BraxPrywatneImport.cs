@@ -5,12 +5,13 @@ using UnityEditor;
 // unity-tools/claude/prywatne.py, poza gitem). Ustawiane PRZED pierwszym importem (bez ponownego importu 30 MB FBX):
 //   patryk/*.fbx  — Humanoid (awatar z modelu, kontrola w BRAXHORN_PATRYK), bez materiałów i animacji z pliku;
 //   ruchy/**.fbx  — Humanoid, krzywe bez kompresji (źródło przenoszenia na kości Patryka, BraxClaudeOsiedlePatryk);
-//   *.png         — najwyżej 2K (telefon), mipmapy, kompresja wysokiej jakości; normalne i ORM liniowo.
+//   patryk/*.png  — Color/Normal 4K, ORM 2K, Android ASTC 4×4, jakość 50; normalne i ORM liniowo.
+//   pozostałe png — najwyżej 2K, kompresja jakości 50.
 public sealed class BraxPrywatneImport : AssetPostprocessor
 {
     const string Katalog = "Assets/Source/Prywatne/";
 
-    public override uint GetVersion() { return 2; }
+    public override uint GetVersion() { return 5; }
 
     void OnPreprocessModel()
     {
@@ -50,6 +51,18 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
         string n = Path.GetFileNameWithoutExtension(assetPath).ToLowerInvariant();
         ti.maxTextureSize = 2048; ti.mipmapEnabled = true; ti.anisoLevel = 8;
         ti.textureCompression = TextureImporterCompression.CompressedHQ;
+        ti.compressionQuality = 50;
+        if(assetPath.StartsWith(Katalog+"patryk/"))
+        {
+            ti.maxTextureSize = n.Contains("basecolor") || n.Contains("normal") ? 4096 : 2048;
+            ti.textureCompression = TextureImporterCompression.CompressedHQ;
+            ti.crunchedCompression = false;
+            ti.npotScale = TextureImporterNPOTScale.None;
+            ti.streamingMipmaps = false;
+            var a = ti.GetPlatformTextureSettings("Android");
+            a.overridden = true; a.maxTextureSize = ti.maxTextureSize; a.format = TextureImporterFormat.ASTC_4x4; a.compressionQuality = 50;
+            ti.SetPlatformTextureSettings(a);
+        }
         if (n.Contains("normal")) { ti.textureType = TextureImporterType.NormalMap; ti.sRGBTexture = false; }
         else if (n.Contains("orm") || n.Contains("rough") || n.Contains("metal")) { ti.textureType = TextureImporterType.Default; ti.sRGBTexture = false; }
         else { ti.textureType = TextureImporterType.Default; ti.sRGBTexture = true; }

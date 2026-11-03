@@ -50,11 +50,11 @@ public sealed class BraxRuchAut : MonoBehaviour
         foreach (var car in BraxAutoGracza.Wszystkie)
             if (car && car.obrys) sym.zewnetrzne.Add(new BraxRuchAutSym.ObrysZewnetrzny {
                 srodek=car.transform.TransformPoint(car.obrys.center), przod=car.transform.forward,
-                polSzer=car.obrys.size.x*.5f, polDl=car.obrys.size.z*.5f });
+                polSzer=car.obrys.size.x*Mathf.Abs(car.obrys.transform.lossyScale.x)*.5f, polDl=car.obrys.size.z*Mathf.Abs(car.obrys.transform.lossyScale.z)*.5f });
         foreach (var bus in BraxAutobus.Wszystkie)   // runda 6 (E23): autobus jako przeszkoda dla aut AI
             if (bus && bus.obrys) sym.zewnetrzne.Add(new BraxRuchAutSym.ObrysZewnetrzny {
                 srodek=bus.transform.TransformPoint(bus.obrys.center), przod=bus.transform.forward,
-                polSzer=bus.obrys.size.x*.5f, polDl=bus.obrys.size.z*.5f });
+                polSzer=bus.obrys.size.x*Mathf.Abs(bus.obrys.transform.lossyScale.x)*.5f, polDl=bus.obrys.size.z*Mathf.Abs(bus.obrys.transform.lossyScale.z)*.5f });
         float dt = Mathf.Min(Time.deltaTime, .1f);
         sym.Krok(dt);
         Vector3 kp = kam ? kam.transform.position : new Vector3(1e6f, 0f, 1e6f);

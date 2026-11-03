@@ -26,8 +26,10 @@ public static partial class BraxClaudeOsiedle
     const float SouthZ = -236f;
     const float AxisX = -20f;                      // oś: brama osiedla A -> aleja parku -> ulica B
     const float StreetZ = -193f;                   // oś ulicy głównej osiedla B
-    const float Carriage = 3.5f, Kerb = .2f, Green = .7f, Walk = 2.3f;
-    static float Half => Carriage + Kerb + Green + Walk; // 6.7 m od osi do granicy działek
+    // Ta sama miara co auta i bohater: pas 3,5 m rzeczywistych, nie 3,5 jednostki świata.
+    static float Carriage => 3.5f * K;
+    const float Kerb = .2f, Green = .7f, Walk = 2.3f;
+    static float Half => Carriage + Kerb + Green + Walk;
 
     [Serializable] sealed class Report
     {
@@ -5675,6 +5677,7 @@ public static partial class BraxClaudeOsiedle
     // ---------------- główne ----------------
     public static void Apply()
     {
+        ruchZweryfikowany = false; bladRuchu = null;
         try { BraxTestNaprawOsiedla.Wykonaj(); } catch (Exception e) { Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE DO POPRAWKI regresja: " + e.Message); }
         rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); WyczyscWspolne14(); WyczyscElewacje(); ZmierzBohatera(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
         pavedCells.Clear(); pavingSet = null; CodexPaving();
@@ -5872,3 +5875,4 @@ public static partial class BraxClaudeOsiedle
         AssetDatabase.SaveAssets();
     }
 }
+

@@ -73,13 +73,13 @@ public sealed class BraxAutobus : MonoBehaviour
         return Vector3.Lerp(sciezka[lo - 1], sciezka[lo], Mathf.Clamp01((x - odc[lo - 1]) / d));
     }
     // ustawienie nadwozia: oś przednia i tylna na ścieżce (bez „ślizgu” tyłu w zakrętach)
-    void Ustaw()
+    void Poza(float dystans, out Vector3 poz, out Vector3 kier)
     {
-        var przod = P(s + dl * .25f, out _); var tyl = P(s - dl * .25f, out _);
-        var f = przod - tyl; f.y = 0f; if (f.sqrMagnitude < 1e-6f) P(s, out f);
-        transform.position = (przod + tyl) * .5f;
-        if (f.sqrMagnitude > 1e-6f) transform.rotation = Quaternion.LookRotation(f.normalized, Vector3.up);
+        var przod = P(dystans + dl * .25f, out _); var tyl = P(dystans - dl * .25f, out _);
+        var f = przod - tyl; f.y = 0f; if (f.sqrMagnitude < 1e-6f) P(dystans, out f);
+        poz = (przod + tyl) * .5f; kier = f.sqrMagnitude > 1e-6f ? f.normalized : transform.forward;
     }
+    void Ustaw() { Poza(s, out var p, out var f); transform.SetPositionAndRotation(p, Quaternion.LookRotation(f, Vector3.up)); }
     bool Widoczny() { if (rend != null) foreach (var r in rend) if (r && r.isVisible) return true; return false; }
 
     void Update()
@@ -101,24 +101,39 @@ public sealed class BraxAutobus : MonoBehaviour
             if (d >= 0f) cel = Mathf.Min(cel, Mathf.Sqrt(2f * hamowanie * .8f * Mathf.Max(0f, d)));
             if (d < .3f && v < .6f) { v = 0f; tPostoj = 0f; drzwiOtw = true; Graj(); return; }
         }
-        // przeszkody przed autobusem: auta AI i gracz w pasie 2 m szerokości, do 10 m od przodu
-        if (Przed(out float odl)) cel = Mathf.Min(cel, Mathf.Max(0f, (odl - 2.5f) * .8f));
+        // Pełne obrysy pojazdów na trasie w zasięgu drogi hamowania oraz aktywne linie zatrzymania.
+        bool przeszkoda = Przed(out float odl);
+        if (przeszkoda) cel = Mathf.Min(cel, Mathf.Sqrt(2f * hamowanie * Mathf.Max(0f, odl - 1.4f)));
         v = Mathf.MoveTowards(v, Mathf.Max(0f, cel), (cel > v ? przyspieszenie : hamowanie * (cel < v - 3f ? 1.4f : 1f)) * dt);
-        s += v * dt; if (!petla) s = Mathf.Min(s, L);
+        float krok = v * dt;
+        if (przeszkoda && krok > Mathf.Max(0f, odl - .25f)) { krok = Mathf.Max(0f, odl - .25f); v = krok / dt; }
+        s += krok; if (!petla) s = Mathf.Min(s, L);
         Ustaw();
         foreach (var k in kola) if (k) k.Rotate(transform.right, v * dt / Mathf.Max(.1f, rKola) * Mathf.Rad2Deg, Space.World);
     }
     bool Przed(out float odl)
     {
-        float o = float.MaxValue; var f = transform.forward; var c = transform.position;
-        void Sprawdz(Vector3 p)
+        // Mierzymy obrys całego nadwozia po zakrzywionej trasie, nie punkt środka auta przed autobusem.
+        float zasieg = Mathf.Max(12f, v * v / (2f * Mathf.Max(.1f, hamowanie)) + 4f);
+        for (float d = 0f; d <= zasieg; d += .5f)
         {
-            var d = p - c; float wz = Vector3.Dot(d, f), wx = Vector3.Dot(d, transform.right);
-            if (wz > dl * .5f && wz < dl * .5f + 10f && Mathf.Abs(wx) < 1.6f) o = Mathf.Min(o, wz - dl * .5f);
+            Poza(s + d, out var c, out var f);
+            bool Trafia(Vector3 p, Vector3 kier, float hw, float hl) => Mathf.Abs(c.y - p.y) < 3f
+                && BraxRuchAutSym.Prost(c, f, szer * .5f + .1f, dl * .5f + .1f, p, kier, hw, hl);
+            bool kol = false;
+            if (ruch && ruch.Symulacja != null)
+                foreach (var a in ruch.Symulacja.auta) if (Trafia(a.poz, a.kier, a.szer * .5f, a.dl * .5f)) { kol = true; break; }
+            if (!kol) foreach (var a in BraxAutoGracza.Wszystkie)
+                if (a && a.obrys && Trafia(a.transform.TransformPoint(a.obrys.center), a.transform.forward,
+                    a.obrys.size.x * Mathf.Abs(a.transform.lossyScale.x) * .5f, a.obrys.size.z * Mathf.Abs(a.transform.lossyScale.z) * .5f)) { kol = true; break; }
+            if (!kol) foreach (var a in Wszystkie)
+                if (a && a != this && Trafia(a.transform.position, a.transform.forward, a.szer * .5f, a.dl * .5f)) { kol = true; break; }
+            if (!kol && gracz && !gracz.autoGracza) kol = Trafia(gracz.transform.position, Vector3.forward, .45f, .45f);
+            var przod = P(s + d + dl * .5f, out var kierPrzodu);
+            if (kol || BraxStrefyZatrzymania.CzyStop(przod, kierPrzodu, false))
+            { odl = Mathf.Max(0f, d - .5f); return true; }
         }
-        if (ruch && ruch.Symulacja != null) foreach (var a in ruch.Symulacja.auta) Sprawdz(a.poz);
-        if (gracz) Sprawdz(gracz.transform.position);
-        odl = o; return o < float.MaxValue;
+        odl = float.PositiveInfinity; return false;
     }
     void Postoj(float dt)
     {

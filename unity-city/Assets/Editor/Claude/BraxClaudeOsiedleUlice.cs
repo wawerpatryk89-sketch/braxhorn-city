@@ -73,11 +73,12 @@ public static partial class BraxClaudeOsiedle
 
     // ---------------- część B ----------------
     // Parking dla klientów pawilonu handlowego (pierzeja sklepów B): za budynkiem (x −13.3…26.2, z −162.4…−150.8), wjazd
-    // z ulicy N-S. Rząd zatok od strony parku (przodem do alejki), alejka 6.6 m, za nią pas obsługi (drzwi serwisowe sklepów).
+    // z ulicy N-S. Rząd zatok równoległych od strony parku; przejazd 7.72 jednostki, za nim pas obsługi sklepów.
     static void ParkingPawilonuB()
     {
         group = "Osiedle B / parking pawilonu";
-        float xE = AxisX + Half, x1 = 26.2f, z0 = -162.4f, z1 = -150.8f, e0 = -159.0f, e1 = -153.0f;
+        float xE = AxisX + Half, x1 = 26.2f, z0 = -162.4f, z1 = -150.8f;
+        float e0 = (z0 + z1) * .5f - Carriage, e1 = (z0 + z1) * .5f + Carriage;
         // drzewa i łąka z miejsca parkingu (sadzone przy pawilonie przed tym krokiem)
         int drzewa = 0;
         foreach (var tr in trees.ToList())
@@ -87,7 +88,7 @@ public static partial class BraxClaudeOsiedle
             Object.DestroyImmediate(tr.go); if (tr.trunk) Object.DestroyImmediate(tr.trunk); trees.Remove(tr); drzewa++;
         }
         lakaKand.RemoveAll(p => p.x > xE - .5f && p.x < x1 + .8f && p.y > z0 - .8f && p.y < z1 + .8f);
-        // zjazd: krawężnik i chodnik ulicy N-S wycięte na 6 m, krawężnik obniżony, przez zieleń asfalt, chodnik obniżony
+        // zjazd: krawężnik i chodnik ulicy N-S wycięte na 2*Carriage, przez zieleń asfalt, chodnik obniżony
         float kx0 = AxisX + Carriage, kx1 = kx0 + Kerb, gx1 = kx1 + Green;
         var wyc = new Bounds(); wyc.SetMinMax(new Vector3(kx0 - .02f, -.1f, e0), new Vector3(xE + .02f, .5f, e1));
         WytnijZGrupy((gr, m) => gr == "Osiedle B / ulice" && (m == KerbStone || m == Pavers), wyc);
@@ -109,7 +110,9 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(KerbStone, x1, x1 + .2f, 0, .16f, z0, z1);
         BoxMinMax(KerbStone, xE, xE + .2f, 0, .16f, z0, e0); BoxMinMax(KerbStone, xE, xE + .2f, 0, .16f, e1, z1);
         int n0 = MiejscaParkingowe.Count;
-        zatokiB += RzadZatokX(xE + 4f, x1 - .5f, z1, -1f, false);
+        // Plac ma tylko 11,6 jednostki głębokości. Prostopadła zatoka 5,5*K
+        // zostawiała 4,48 na manewr; równoległa zostawia 7,72.
+        zatokiB += RzadZatokRownoleglych(true, xE + 5.5f * K, x1 - .5f, z1, -1f, false);
         // latarnie od strony pasa obsługi, znak D-18 przy wjeździe (dla jadących ulicą N-S na północ), kosz z klapą
         foreach (float lx in new[] { -6f, 8f, 22f }) { var p = new Vector3(lx, 0, z0 - .55f); if (Wolne(p, .35f, 1.5f)) Lamp(p, 0f); }
         ZnakPionowy(new Vector3(AxisX + Carriage + Kerb + Green * .5f, 0, e0 - .8f), Vector3.back, "D-18");
@@ -146,7 +149,9 @@ public static partial class BraxClaudeOsiedle
         {
             float W = u1 - u0, Wm = Mathf.Min(W - 13f, 18f), s0 = (W - (Wm + 6.5f)) * .5f, g0 = s0 + Wm, g1 = g0 + 6.5f;
             bool mirror = i % 2 == 1; float ac = (g0 + g1) * .5f, x = mirror ? u1 - ac : u0 + ac;
-            Zatoka(new Vector3(x, .04f, front + dir * 3.8f), new Vector3(0, 0, dir), true); podjazdyB++;
+            // Brama stoi 7 jednostek od granicy: bufor 0,25 z obu stron,
+            // bez obrysu miejsca przechodzącego przez bramę garażu.
+            Zatoka(new Vector3(x, .04f, front + dir * 3.5f), new Vector3(0, 0, dir), true, 6.5f); podjazdyB++;
         }
     }
 
@@ -451,3 +456,4 @@ public static partial class BraxClaudeOsiedle
         rep.notes.Add("kontrola dróg: przeszkody na jezdniach " + naJezdni + ", zatoki zajęte " + zajete + "/" + sprawdzone + ", ściana bliżej 0.8 m: " + ciasne);
     }
 }
+

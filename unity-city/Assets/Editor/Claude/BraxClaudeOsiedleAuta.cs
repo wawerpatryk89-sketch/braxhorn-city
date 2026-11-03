@@ -18,6 +18,8 @@ using UnityEngine.Rendering;
 //    ≥ 0,5 m od ściany; ~45 % miejsc wolnych (dyspozytor 2.11: zajętość 40–60 % wg audytu), różne modele i kolory, każde prosto w swojej zatoce, przodem do alejki.
 public static partial class BraxClaudeOsiedle
 {
+    static bool ruchZweryfikowany;
+    static string bladRuchu;
     // Supersamochody z kogutem i napisem POLICE (Marussia „enforcer”, Diablo z belką świateł) — nie jako zwykłe auta
     // ani radiowozy (właściciel 23:38: „radiowóz = zwykły radiowóz, nie supersamochód z naklejką POLICE”).
     static readonly string[] AutaPominiete = { "car_mar", "car_dia" };
@@ -49,6 +51,7 @@ public static partial class BraxClaudeOsiedle
     static void Auta()
     {
         lakiery.Clear(); szablonSwiatla.Clear(); quadSwiatla = null; matStop = matMigacz = matDym = null; autoSiatki = 0;
+        raportSkaliAut.Clear();
         var modele = AutaModele(); if (modele.Count == 0) return;
         var tmp = new GameObject("auta — szablony (tymczasowe)").transform;
         var szablony = new List<AutoSzablon>();
@@ -65,6 +68,7 @@ public static partial class BraxClaudeOsiedle
         }
         if (szablony.Count > 0)
         {
+            RaportSkaliAut(szablony);
             Guard("auta w ruchu (trasy, pierwszeństwo, test ruchu)", () => AutaWRuchu(szablony));
             Guard("prywatne auto Patryka pod areną", () => AutoPatryka(szablony));
             Guard("auta zaparkowane (zatoki, kolory, kolizje)", () => AutaZaparkowane(szablony));
@@ -196,7 +200,6 @@ public static partial class BraxClaudeOsiedle
         BraxTrasyAut.RondoJezdnia = RondoJezdnia;
         var wy = BraxTrasyAut.Generuj(ul, wz, defs);
         foreach (var l in wy.log) rep.notes.Add("trasy aut: " + l);
-        Guard("ruch: kontrola toru skrętu (E3b)", () => KontrolaToruSkretu(wy, 1.8f * K, 4.5f * K));   // auto osobowe × K
         if (wy.trasy.Count == 0) { rep.notes.Add("DO POPRAWKI: brak tras aut"); return; }
         Debug.Log("BRAXHORN_RUCH_TRASY tras " + wy.trasy.Count + ", punktów " + wy.punkty.Count + ", zdarzeń " + wy.zdarzenia.Count + ", skrzyżowań " + wy.wezly.Count + " (ze światłami " + swiatla + "): " +
                   string.Join("; ", wy.trasy.Select(t => t.nazwa + " " + t.dl.ToString("F0") + " m")));
@@ -218,7 +221,7 @@ public static partial class BraxClaudeOsiedle
                 var a = o.AddComponent<BraxAuto>();
                 a.trasaNr = r; a.sStart = wy.trasy[r].dl * (k + .3f) / ile; a.trasa = PunktyTrasy(wy, r);
                 a.vmax = (wy.trasy[r].obszar == 0 ? 7.6f : 8.2f) + (float)rnd.NextDouble() * 1.8f;   // 27–36 km/h na osiedlu
-                a.dl = sz.dl; a.szer = sz.szerNadw + .04f; a.rozstaw = sz.rozstaw; a.osTyl = sz.osTyl; a.promienKola = sz.promienKola;
+                a.dl = sz.dl; a.szer = sz.szer + .04f; a.rozstaw = sz.rozstaw; a.osTyl = sz.osTyl; a.promienKola = sz.promienKola;
                 a.nadwozie = o.transform.Find("nadwozie");
                 a.kola = new[] { "LP", "PP", "LT", "PT" }.Select(n => o.transform.Find("koło " + n + "/obrót")).Where(t => t).ToArray();
                 a.skret = new[] { "LP", "PP" }.Select(n => o.transform.Find("koło " + n)).Where(t => t).ToArray();
@@ -239,6 +242,7 @@ public static partial class BraxClaudeOsiedle
         }
         ra.auta = auta.ToArray();
         float szerMax = auta.Max(a => a.szer), dlMax = auta.Max(a => a.dl);
+        Guard("ruch: kontrola toru skrętu", () => KontrolaToruSkretu(wy, szerMax, dlMax));
         // 4) położenia startowe (te same, które policzy gra) — scena wygląda tak samo przed uruchomieniem
         var s0 = new BraxRuchAutSym(ra.punkty, ra.trasy, ra.zdarzenia, ra.wezly, ra.ziarno, szerMax, dlMax, ra.vZakret);
         foreach (var a in auta) s0.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax);
@@ -258,6 +262,8 @@ public static partial class BraxClaudeOsiedle
                        ", zakręty: limit " + (ra.vZakret * 3.6f).ToString("F1") + " km/h (15 × K), maks. " + (wt.vZakretMax * 3.6f).ToString("F1") + " km/h, za_szybko=" + wt.zaSzybkoWZakrecie + "/" + wt.probkiZakretu + " próbek" +
                        ", czas testu " + (DateTime.Now - t0).TotalSeconds.ToString("F1") + " s)";
         Debug.Log(wynik); rep.notes.Add(wynik.Replace("BRAXHORN_RUCH_TEST ", "test ruchu: "));
+        ruchZweryfikowany = true;
+        bladRuchu = wt.nachodzenia > 0 || wt.pozaDroga > 0 || wt.zakleszczenia > 0 ? wynik : null;
         foreach (var z in zdarz) Debug.Log("BRAXHORN_RUCH_TEST_ZDARZENIE " + z);
         if(wt.nachodzenia>0)Debug.LogError("BRAXHORN_RUCH_TEST DO POPRAWKI: test wykrył "+wt.nachodzenia+" przecięć samochodów");
     }
@@ -301,7 +307,7 @@ public static partial class BraxClaudeOsiedle
             for (int proba = 0; proba < 8 && sz == null; proba++)
             {
                 var k = pula[rnd.Next(pula.Count)];
-                if (k.dl > m.dl + .2f || k.szerNadw > m.szer - .15f) { za++; continue; }
+                if (k.dl + .2f > m.dl || k.szer + .8f * K > m.szer) { za++; continue; }
                 // położenie w osi zatoki: środek, a gdy z przodu lub z tyłu jest ściana/słupek — przesunięcie o 0,2–0,6 m,
                 // tak by z obu końców zostało ≥ 0,5 m (fizyka od 0,3 m w górę — krawężniki, odbojnice i płyty są niżej)
                 var rot = Quaternion.LookRotation(m.przod);
@@ -309,6 +315,7 @@ public static partial class BraxClaudeOsiedle
                 bool wolneMiejsce = false; Vector3 cc = m.c;
                 foreach (float off in new[] { 0f, .2f, -.2f, .4f, -.4f, .6f, -.6f })
                 {
+                    if (Mathf.Abs(off) + k.dl * .5f + .1f > m.dl * .5f) continue;
                     cc = m.c + m.przod * off;
                     if (!Physics.CheckBox(cc + Vector3.up * (.3f + half.y), half, rot, ~0, QueryTriggerInteraction.Ignore)) { wolneMiejsce = true; break; }
                 }
@@ -336,3 +343,4 @@ public static partial class BraxClaudeOsiedle
         Debug.Log(opis); rep.notes.Add(opis.Replace("BRAXHORN_AUTA_PARKING ", "auta zaparkowane: "));
     }
 }
+

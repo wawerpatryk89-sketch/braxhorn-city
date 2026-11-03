@@ -22,7 +22,7 @@ Tryby:
   KLUCZ=… python3 unity-tools/claude/prywatne.py sprawdz                 odszyfrowanie na próbę + lista plików każdej paczki
   KLUCZ=… python3 unity-tools/claude/prywatne.py rozpakuj NAZWA CEL      odszyfrowanie paczki do katalogu CEL (właściciel)
 
-Build nigdy nie pada przez ten skrypt: każdy błąd = komunikat i gra z Braxem (BRAXHORN_PRYWATNE …).
+Osiedle wymaga nowego Patryka: błąd modelu lub animacji zatrzymuje przygotowanie aktualizacji.
 """
 import hashlib
 import io
@@ -168,7 +168,7 @@ def fbx_tekstury(path):
     return out
 
 
-def przygotuj_patryka(staging):
+def przygotuj_patryka_miasto(staging):
     from PIL import Image  # Pillow instalowany w kroku „Prepare unchanged player…”
     fbx = sorted((staging / "patryk").glob("*.fbx"))
     if not fbx:
@@ -208,6 +208,64 @@ def przygotuj_patryka(staging):
     b = do2k(metal.convert("L")).resize(rozmiar, Image.Resampling.LANCZOS) if metal is not None else Image.new("L", rozmiar, 0)
     Image.merge("RGB", (Image.new("L", rozmiar, 255), g, b)).save(dst / "Patryk_ORM.png")
     print(f"BRAXHORN_PRYWATNE Patryk: FBX {fbx[0].stat().st_size / 1048576:.1f} MB, tekstury 2K: kolor, "
+          f"normal={'tak' if normal is not None else 'brak'}, ORM (chropowatość={'mapa' if rough is not None else 'stała'}, "
+          f"metal={'mapa' if metal is not None else '0'})")
+    return True
+
+def przygotuj_patryka(staging):
+    from PIL import Image  # Pillow instalowany w kroku „Prepare unchanged player…”
+    fbx = sorted((staging / "patryk").glob("*.fbx"))
+    if len(fbx) != 1 or hashlib.sha256(fbx[0].read_bytes()).hexdigest() != "fb8e2630bc7f835a743d917c35c378c7d074f0fde993a0bbf864b31ab67e1d97":
+        raise ValueError("Wymagany nowy Patryk.zip z 3.11.2026; stary model wycofany")
+    dst = CEL / "patryk"
+    # Usuń wyłącznie wygenerowaną kopię poprzedniej postaci, nigdy źródłową paczkę.
+    if dst.exists():
+        shutil.rmtree(dst)
+    dst.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(fbx[0], dst / "Patryk.fbx")
+    # Nowy eksport ma oryginały także w katalogu .fbm. Weryfikacja bajtów
+    # zapobiega cichej podmianie map lub użyciu starej, mniejszej tekstury.
+    expected = {
+        "Color.png": "8b0cf4736e771bddf1ae71e61b48da39ca241106624de263c6d0106008e57ced",
+        "Normal.png": "dc5a8ea5b277f13404a03b8a62b7d943367ef6676270410f596f510265f783f4",
+        "Patryk_roughness.PNG": "29bdaa8e3170015ccaf7670d33f30de6177f3fb82faa1e5e8ded80a766ffa883",
+        "Patryk_metallic.PNG": "da4e601c36031e514abad412cb350d52275fda67430b68116d9c9b676707541a",
+    }
+    obrazy = {}
+    for name, checksum in expected.items():
+        candidates = [p for p in (staging / "patryk").rglob("*") if p.is_file() and p.name == name]
+        if len(candidates) != 1:
+            raise ValueError("Brak lub duplikat oryginalnej mapy: " + name)
+        data = candidates[0].read_bytes()
+        if hashlib.sha256(data).hexdigest() != checksum:
+            raise ValueError("Zmieniona oryginalna mapa: " + name)
+        with Image.open(io.BytesIO(data)) as im:
+            if im.size != (4096, 4096):
+                raise ValueError("Źródłowa mapa nie jest 4K: " + name)
+        obrazy[name] = data
+
+    def znajdz(*slowa):
+        for k, v in obrazy.items():
+            if any(s in k.lower() for s in slowa):
+                return Image.open(io.BytesIO(v))
+        return None
+
+    def do2k(im):
+        if max(im.size) > 2048:
+            im = im.resize((2048, 2048) if im.size[0] == im.size[1] else (min(2048, im.size[0]), min(2048, im.size[1])), Image.Resampling.LANCZOS)
+        return im
+
+    (dst / "Patryk_BaseColor.png").write_bytes(obrazy["Color.png"])
+    (dst / "Patryk_Normal.png").write_bytes(obrazy["Normal.png"])
+    normal = znajdz("normal")
+    # ORM jak u Braxa (shader Braxhorn/HeroPremium): R = okluzja (brak mapy → 1), G = chropowatość, B = metaliczność
+    rough = znajdz("rough")
+    metal = znajdz("metal")
+    rozmiar = (2048, 2048)
+    g = do2k(rough.convert("L")).resize(rozmiar, Image.Resampling.LANCZOS) if rough is not None else Image.new("L", rozmiar, 214)
+    b = do2k(metal.convert("L")).resize(rozmiar, Image.Resampling.LANCZOS) if metal is not None else Image.new("L", rozmiar, 0)
+    Image.merge("RGB", (Image.new("L", rozmiar, 255), g, b)).save(dst / "Patryk_ORM.png")
+    print(f"BRAXHORN_PRYWATNE Patryk: FBX {fbx[0].stat().st_size / 1048576:.1f} MB, tekstury Color/Normal 4K, ORM 2K: kolor, "
           f"normal={'tak' if normal is not None else 'brak'}, ORM (chropowatość={'mapa' if rough is not None else 'stała'}, "
           f"metal={'mapa' if metal is not None else '0'})")
     return True
@@ -281,9 +339,17 @@ def ci():
 
 
 def patryk_i_ruchy():
+    from rejon_buildu import wybierz_rejon
+    rejon = wybierz_rejon(ROOT / "unity-city")[0]
+    osiedle_build = rejon in ("osiedle", "oba")
     if not klucz():
-        print("BRAXHORN_PRYWATNE brak klucza (sekret BRAXHORN_KEYSTORE_PASS) — build z Braxem")
+        if osiedle_build:
+            raise RuntimeError("Brak klucza do wymaganej postaci osiedla")
+        print("BRAXHORN_PRYWATNE brak klucza — prywatne postacie niezaimportowane")
         return
+    if osiedle_build:
+        from import_patryk_transfer import restore
+        restore()
     staging = pathlib.Path(tempfile.mkdtemp(prefix="braxhorn-prywatne-", dir=os.environ.get("RUNNER_TEMP") or None))
     ok = []
     try:
@@ -294,7 +360,7 @@ def patryk_i_ruchy():
             with tar:
                 n = rozpakuj(tar, staging)
             ok.append(f"{nazwa}({n})")
-        patryk = "patryk" in " ".join(ok) and przygotuj_patryka(staging)
+        patryk = przygotuj_patryka(staging) if osiedle_build else przygotuj_patryka_miasto(staging)
         ruchy = 0
         if patryk:
             for grupa, pliki in RUCHY_DO_UNITY.items():
@@ -306,15 +372,13 @@ def patryk_i_ruchy():
                         shutil.copyfile(src, d / src.name)
                         ruchy += 1
             if ruchy == 0:
-                print("BRAXHORN_PRYWATNE brak ruchów — Patryk bez animacji = Brax")
-                for sub in ("patryk", "ruchy"):
-                    shutil.rmtree(CEL / sub, ignore_errors=True)
-                patryk = False
+                raise RuntimeError("Brak animacji nowego Patryka")
         print(f"BRAXHORN_PRYWATNE odszyfrowane={len(ok)}/3 [{', '.join(ok)}] patryk={'tak' if patryk else 'nie'} ruchy_do_unity={ruchy}")
-    except Exception as e:   # build idzie dalej z Braxem
-        print(f"BRAXHORN_PRYWATNE DO POPRAWKI: {type(e).__name__}: {e} — build z Braxem")
+    except Exception as e:
+        print(f"BRAXHORN_PRYWATNE DO POPRAWKI: {type(e).__name__}: {e}")
         for sub in ("patryk", "ruchy"):
             shutil.rmtree(CEL / sub, ignore_errors=True)
+        raise
     finally:
         shutil.rmtree(staging, ignore_errors=True)
 

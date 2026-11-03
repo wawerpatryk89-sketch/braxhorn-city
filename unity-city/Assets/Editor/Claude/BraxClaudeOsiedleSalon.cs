@@ -68,7 +68,7 @@ public static partial class BraxClaudeOsiedle
         group = g0;
         Physics.SyncTransforms();
         Debug.Log("BRAXHORN_SALON działka x " + SAX0.ToString("F2") + "…" + SAX1 + " z " + SAZ0 + "…" + SAZ1.ToString("F2") + " zwalone=" + zwalone + " showroom=" + (SBX1 - SBX0).ToString("F1") + "×" + (SBZ1 - SBZ0).ToString("F1") +
-                  " m kondygnacje=2 (4.2 m × K = " + (4.2f * K).ToString("F2") + ") wys_do_attyki=" + (SYR + 1.15f).ToString("F2") + " talerze_obrotowe=" + SalonTalerze.Length + " auta_antresola=" + SalonAntresolaAuta.Length + " schody_stałe=1 schody_ruchome=1 plac_auta=" + SalonPlacX.Length + " tablice_cen=" + SalonPlacX.Length + " (0 zł) wejscia_klientow=1 brama_aut=" + (3.5f * K).ToString("F2") + "×" + SGH.ToString("F2") +
+                  " m kondygnacje=2 (4.2 m × K = " + (4.2f * K).ToString("F2") + ") wys_do_attyki=" + (SYR + 1.6f * K).ToString("F2") + " talerze_obrotowe=" + SalonTalerze.Length + " auta_antresola=" + SalonAntresolaAuta.Length + " schody_stałe=1 schody_ruchome=1 plac_auta=" + SalonPlacX.Length + " tablice_cen=" + SalonPlacX.Length + " (0 zł) wejscia_klientow=1 brama_aut=" + (3.5f * K).ToString("F2") + "×" + SGH.ToString("F2") +
                   " (zamknięta) drzwi_zaplecza=1 (zamknięte) narożnik_łuk_R=" + (salonNarR > 0 ? (salonNarR + 2.95f).ToString("F2") + " kostka_r=" + salonNarR.ToString("F2") : "brak (narożnik prosty)") + " układ=" + (uklad ?? "ok"));
         Debug.Log("BRAXHORN_DETALE obiekt=salon razem=" + saDetale + " [" + string.Join(", ", saDetaleOpis) + "]");
         rep.notes.Add("salon samochodowy (runda 5): narożnik B1 × Wiśniowa, showroom " + (SBX1 - SBX0).ToString("F1") + " × " + (SBZ1 - SBZ0).ToString("F1") + " m, plac z 3 autami, detale " + saDetale);
@@ -262,7 +262,7 @@ public static partial class BraxClaudeOsiedle
     static void SalonBryla()
     {
         group = "Osiedle A / salon — bryła";
-        float x0 = SBX0, x1 = SBX1, z0 = SBZ0, z1 = SBZ1, yR = SYR, yA = yR + .35f + .8f; const float t = .3f;
+        float x0 = SBX0, x1 = SBX1, z0 = SBZ0, z1 = SBZ1, yR = SYR, yA = yR + 1.6f * K; const float t = .3f;
         var okl = Pbr("salon: okładzina elewacji", "exterior_wall_cladding_02", 2.4f, new Color(.78f, .79f, .80f));
         var tynk = Pbr("salon: tynk wewnętrzny", "white_stucco_02", 2.5f, new Color(.95f, .95f, .95f));
         var graf = SaMat("pas attyki grafit", new Color(.13f, .14f, .15f), .5f, .4f); var obr = obrTotemu;
@@ -292,9 +292,9 @@ public static partial class BraxClaudeOsiedle
         SaDetal("bryła", "gzyms międzykondygnacyjny z obróbką");
         var lit = StSwiatlo("salon: litery attyki", new Color(.96f, .97f, 1f));
         // szyldy z grafiki BRAXHORN MOTORS · SALON SAMOCHODOWY (3:1) na attyce; bez grafiki — litery 3D
-        if (!SzyldPanel("salon_szyld", new Vector3(x0 - .06f, yR + .55f, (z0 + z1) * .5f), Vector3.left, 3.0f, 1.0f))
+        if (!SzyldPanel("salon_szyld", new Vector3(x0 - .06f, (yR + yA) * .5f, (z0 + z1) * .5f), Vector3.left, 4.5f * K, 1.5f * K))
             Napis3D("SALON SAMOCHODOWY", new Vector3(x0 - .06f, yR + .4f, (z0 + z1) * .5f), Vector3.left, .55f, .06f, lit, graf, .15f, .14f, true);
-        if (!SzyldPanel("salon_szyld", new Vector3((x0 + x1) * .5f, yR + .55f, z1 + .06f), Vector3.forward, 3.0f, 1.0f))
+        if (!SzyldPanel("salon_szyld", new Vector3((x0 + x1) * .5f, (yR + yA) * .5f, z1 + .06f), Vector3.forward, 4.5f * K, 1.5f * K))
             Napis3D("BRAXHORN MOTORS", new Vector3((x0 + x1) * .5f, yR + .4f, z1 + .06f), Vector3.forward, .5f, .06f, lit, graf, .15f, .14f, true);
         SaDetal("bryła", "litery podświetlane na attyce", 2);
         // fasady szklane na całą wysokość: rygle 2.6, pas stropu (gzyms), piętro 2.6 nad antresolą
@@ -423,7 +423,15 @@ public static partial class BraxClaudeOsiedle
     static Material SalonZapisz(Material m, string nazwa)
     {
         string p = Out + "/" + Safe("salon " + nazwa) + ".mat";
-        if (UnityEditor.AssetDatabase.LoadAssetAtPath<Material>(p)) UnityEditor.AssetDatabase.DeleteAsset(p);
+        var existing = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>(p);
+        if (existing)
+        {
+            // Drugie lico szyldu nie może niszczyć materiału przypisanego pierwszemu.
+            UnityEditor.EditorUtility.CopySerialized(m, existing);
+            UnityEngine.Object.DestroyImmediate(m);
+            UnityEditor.EditorUtility.SetDirty(existing);
+            return existing;
+        }
         UnityEditor.AssetDatabase.CreateAsset(m, p); return m;
     }
     static Material SalonMatOsobny(string nazwa, Color c, float smooth, float metal, Color? emisja = null)
@@ -462,7 +470,14 @@ public static partial class BraxClaudeOsiedle
             for (int i = 0; i < sub.Count; i++) m.SetTriangles(sub[i], i);
             m.RecalculateBounds(); m.RecalculateTangents();
             string p = Out + "/" + Safe("salon " + nazwa) + ".asset";
-            if (UnityEditor.AssetDatabase.LoadAssetAtPath<Mesh>(p)) UnityEditor.AssetDatabase.DeleteAsset(p);
+            var existing = UnityEditor.AssetDatabase.LoadAssetAtPath<Mesh>(p);
+            if (existing)
+            {
+                UnityEditor.EditorUtility.CopySerialized(m, existing);
+                UnityEngine.Object.DestroyImmediate(m);
+                UnityEditor.EditorUtility.SetDirty(existing);
+                return existing;
+            }
             UnityEditor.AssetDatabase.CreateAsset(m, p); return m;
         }
     }

@@ -237,6 +237,7 @@ jobs:
     - name: Prywatne zasoby wlasciciela - Patryk i ruchy Mixamo (paczki zaszyfrowane, klucz tylko w sekretach; bez klucza gra Brax)
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
       run: python3 unity-tools/claude/prywatne.py
     - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
       run: |
@@ -551,6 +552,7 @@ jobs:
     - name: Prywatne zasoby wlasciciela - Patryk i ruchy Mixamo (paczki zaszyfrowane, klucz tylko w sekretach; bez klucza gra Brax)
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
       run: python3 unity-tools/claude/prywatne.py
     - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
       run: |
@@ -616,6 +618,7 @@ jobs:
     - name: Pamiec Library Unity dla Androida - rozpakowanie
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        REJON: ${{ steps.rejon.outputs.rejon }}
       run: |
         set -o pipefail
         T0=$(date +%s); P="$RUNNER_TEMP/library-android.tar.zst.enc"
@@ -625,11 +628,13 @@ jobs:
           if openssl enc -d -aes-256-cbc -pbkdf2 -in "$P" -pass env:KLUCZ | zstd -d -T0 | tar -x --skip-old-files -C unity-city; then
             echo "BRAXHORN_PAMIEC_LIBRARY android=tak klucz=${{ steps.bibl_and.outputs.cache-matched-key }} s=$(( $(date +%s) - T0 ))"
           else
-            echo "BRAXHORN_PAMIEC_LIBRARY android=blad_rozpakowania (import od zera)"; rm -rf unity-city/Library
+            echo "BRAXHORN_PAMIEC_LIBRARY android=blad_rozpakowania"; rm -rf unity-city/Library
+            echo '::warning::Nie udało się odczytać Library. Kontynuacja z importem zasobów.'
           fi
           rm -f "$P"
         else
-          echo "BRAXHORN_PAMIEC_LIBRARY android=nie (import od zera, zapis po udanym buildzie)"
+          echo "BRAXHORN_PAMIEC_LIBRARY android=nie"
+          echo '::warning::Brak zapisanej Library albo klucza. Kontynuacja z importem zasobów.'
         fi
         du -sh unity-city/Library 2>/dev/null || true
         df -h / | tail -1
@@ -750,6 +755,19 @@ jobs:
           for i in 1 2 3 4 5 6; do gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber "$f" && { ok=1; break; }; sleep 30; done
           if [ $ok = 0 ]; then gh release view "$REL" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -qx "$f" || { echo "NIE WYSLANO $f"; exit 1; }; fi
         done
+    - name: Raport kontroli aktualizacji osiedla
+      if: always()
+      continue-on-error: true
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: osiedle-diagnostyka-${{ github.sha }}
+        retention-days: 7
+        if-no-files-found: warn
+        path: |
+          unity-city/city-review/*.txt
+          unity-city/city-review/*.json
+          city-review/*.txt
+          city-review/*.json
     - name: Pamiec Library Unity dla Androida - pakowanie (po udanym buildzie, zaszyfrowana)
       if: success()
       env:

@@ -16,15 +16,15 @@ public static partial class BraxClaudeOsiedle
     static AnimationClip PatrykPozaStala(GameObject hero, List<PatrykStan> rest, string name, bool driving)
     {
         PatrykSpoczynek(rest);
+        Transform Bone(string n) => PatrykZnajdz(rest.Select(s=>s.t),n);
+        void Aim(string a, string b, Vector3 target)
+        {
+            var from=Bone(a);var to=Bone(b);
+            if(!from||!to)throw new InvalidOperationException("Brak kości pozy: "+a+" / "+b);
+            from.rotation=Quaternion.FromToRotation(to.position-from.position,target)*from.rotation;
+        }
         if (driving)
         {
-            Transform Bone(string n) => PatrykZnajdz(rest.Select(s=>s.t),n);
-            void Aim(string a, string b, Vector3 target)
-            {
-                var from=Bone(a);var to=Bone(b);
-                if(!from||!to)throw new InvalidOperationException("Brak kości pozy kierowcy: "+a+" / "+b);
-                from.rotation=Quaternion.FromToRotation(to.position-from.position,target)*from.rotation;
-            }
             // Bake rotations once in the original hierarchy. Bone translations and lengths are unchanged.
             Aim("Spine","Spine1",new Vector3(0,.98f,.16f));
             foreach(var side in new[]{"Left","Right"})
@@ -36,6 +36,19 @@ public static partial class BraxClaudeOsiedle
                 Aim(side+"ForeArm",side+"Hand",new Vector3(0,.12f,.98f));
                 var foot=Bone(side+"Foot");var toe=Bone(side+"ToeBase");
                 if(foot&&toe)Aim(side+"Foot",side+"ToeBase",Vector3.forward);
+            }
+        }
+        else
+        {
+            var left=Bone("LeftArm"); var right=Bone("RightArm");
+            if(!left||!right)throw new InvalidOperationException("Brak ramion nowego Patryka");
+            Vector3 rightAxis=Vector3.ProjectOnPlane(right.position-left.position,Vector3.up).normalized;
+            Vector3 forward=Vector3.Cross(rightAxis,Vector3.up);
+            foreach(var side in new[]{"Left","Right"})
+            {
+                Vector3 outward=rightAxis*(side=="Right"?1f:-1f);
+                Aim(side+"Arm",side+"ForeArm",Vector3.down+outward*.18f);
+                Aim(side+"ForeArm",side+"Hand",Vector3.down+outward*.10f+forward*.12f);
             }
         }
         var clip = new AnimationClip { name = name, legacy = true, frameRate = 30, wrapMode = WrapMode.Loop };
@@ -92,6 +105,10 @@ public static partial class BraxClaudeOsiedle
             graph.Play();
             reader = new HumanPoseHandler(animator.avatar, source.transform);
             writer = new HumanPoseHandler(avatar, hero.transform);
+            PatrykSpoczynek(rest);
+            HumanPose targetRest = new HumanPose();
+            writer.GetHumanPose(ref targetRest);
+            Vector3 hipsRest = hips.localPosition;
             HumanPose pose = new HumanPose();
             Vector3 Sample(float time)
             {
@@ -99,8 +116,7 @@ public static partial class BraxClaudeOsiedle
                 reader.GetHumanPose(ref pose);
                 return pose.bodyPosition;
             }
-            Vector3 first = Sample(0), last = Sample(clip.length);
-            Vector3 drift = spec.wMiejscu ? new Vector3(last.x-first.x, 0, last.z-first.z) : Vector3.zero;
+            Vector3 first = Sample(0);
             int count = Mathf.CeilToInt(clip.length * 30) + 1;
             var times = new float[count];
             var rotations = bones.Select(_ => new Quaternion[count]).ToArray();
@@ -108,9 +124,12 @@ public static partial class BraxClaudeOsiedle
             for (int i = 0; i < count; i++)
             {
                 float t = Mathf.Min(i / 30f, clip.length); times[i] = t;
-                Sample(t); pose.bodyPosition -= drift * (t / clip.length);
+                Vector3 motion = Sample(t) - first;
+                if (spec.wMiejscu) { motion.x = 0; motion.z = 0; }
+                pose.bodyPosition = targetRest.bodyPosition + motion;
                 PatrykSpoczynek(rest);
                 writer.SetHumanPose(ref pose);
+                if(spec.wMiejscu) hips.localPosition=new Vector3(hipsRest.x,hips.localPosition.y,hipsRest.z);
                 for (int b = 0; b < bones.Count; b++)
                 {
                     var q = bones[b].localRotation;

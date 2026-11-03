@@ -164,17 +164,42 @@ public static partial class BraxClaudeOsiedle
         return Mathf.Abs(s.x) / Mathf.Max(.01f, b.size.x) > Mathf.Abs(s.z) / Mathf.Max(.01f, b.size.z) ? new Vector3(-Mathf.Sign(s.x), 0, 0) : new Vector3(0, 0, -Mathf.Sign(s.z));
     }
     // kopia JEDNEJ części zestawu (pozostałe usunięte), skala, przód w kierunku „przod”, podstawa w p.y, środek w (p.x, p.z)
-    static GameObject Czesc(GameObject zrodlo, int idx, string nazwa, Vector3 p, Vector3 przod, float skala)
+    static GameObject Czesc(GameObject zrodlo, int idx, string nazwa, Vector3 p, Vector3 przod, float skala, float szerokoscRealna = 0f)
     {
         var o = (GameObject)UnityEngine.Object.Instantiate(zrodlo, Group(group), false);
         o.name = nazwa; o.transform.position = Vector3.zero; o.transform.rotation = zrodlo.transform.localRotation; o.transform.localScale = zrodlo.transform.localScale * skala;   // korzeń Sketchfab: obrót Z→Y zostaje
+        bool toFotel = szerokoscRealna > 0f && idx == 1;
         var cz = BraxOsiedleAssety.Czesci(o);
+        if (szerokoscRealna > 0f)
+        {
+            // Eksport Chesterfield: największa gałąź to ZESTAW, druga to pojedyncza sofa.
+            // Fotel jest mniejszą z dwóch siatek zestawu. Nie ustawiamy całego zestawu jako jednego siedziska.
+            if (cz.Count != 3 || cz[0].GetComponentsInChildren<MeshFilter>(true).Length != 2)
+                throw new InvalidOperationException("Zmieniona struktura paczki Chesterfield — wymagany pomiar mebli");
+            var sofa = cz[1];
+            var fotel = cz[0].GetComponentsInChildren<MeshFilter>(true)
+                .OrderBy(m => { var bb = BraxOsiedleAssety.Granice(m.transform); return Mathf.Max(bb.size.x, bb.size.z); }).First().transform;
+            var wybrany = idx == 0 ? sofa : fotel;
+            foreach (var mf in o.GetComponentsInChildren<MeshFilter>(true))
+                if (mf.transform != wybrany && !mf.transform.IsChildOf(wybrany))
+                { var rr = mf.GetComponent<Renderer>(); if (rr) UnityEngine.Object.DestroyImmediate(rr); UnityEngine.Object.DestroyImmediate(mf); }
+            cz = new List<Transform> { wybrany }; idx = 0;
+        }
         if (idx >= cz.Count) { UnityEngine.Object.DestroyImmediate(o); return null; }
         var keep = cz[idx];
         for (int i = 0; i < cz.Count; i++) if (i != idx && cz[i]) UnityEngine.Object.DestroyImmediate(cz[i].gameObject);
         var f0 = PrzodMebla(keep);
         o.transform.rotation = Quaternion.Euler(0, Vector3.SignedAngle(f0, przod, Vector3.up), 0) * zrodlo.transform.localRotation;
         var b = BraxOsiedleAssety.Granice(o);
+        if (szerokoscRealna > 0f)
+        {
+            var bok = Vector3.Cross(Vector3.up, przod);
+            float szer = Mathf.Abs(bok.x) * b.size.x + Mathf.Abs(bok.z) * b.size.z;
+            o.transform.localScale *= toFotel ? .8f * K / Mathf.Max(.0001f, b.size.y) : szerokoscRealna * K / Mathf.Max(.0001f, szer);
+            b = BraxOsiedleAssety.Granice(o);
+            if (b.size.y < .65f * K || b.size.y > 1.15f * K)
+                throw new InvalidOperationException(nazwa + ": niewłaściwa orientacja/wysokość " + b.size.y);
+        }
         o.transform.position += new Vector3(p.x - b.center.x, p.y - b.min.y, p.z - b.center.z);
         BraxOsiedleAssety.Przygotuj(o, true);
         return o;
@@ -227,12 +252,13 @@ public static partial class BraxClaudeOsiedle
             try
             {
                 var tmp = (GameObject)UnityEngine.Object.Instantiate(polki); tmp.transform.position = Vector3.zero; tmp.transform.rotation = polki.transform.localRotation;
-                var hs = tmp.GetComponentsInChildren<Renderer>(true).Where(r => r.name.StartsWith("Object") || r.name.StartsWith("Box") || r.transform.parent && (r.transform.parent.name.StartsWith("Object") || r.transform.parent.name.StartsWith("Box")))
-                            .Select(r => r.bounds.size.y).Where(h => h > 1e-4f).OrderBy(h => h).ToList();
+                var hs = BraxOsiedleAssety.Czesci(tmp)
+                    .Where(t => t.name.StartsWith("Object") || t.name.StartsWith("Box"))
+                    .Select(t => BraxOsiedleAssety.Granice(t).size.y).Where(h => h > 1e-4f).ToList();
                 var bt0 = BraxOsiedleAssety.Granice(tmp); UnityEngine.Object.DestroyImmediate(tmp);
-                float s = hs.Count >= 3 ? .30f * K / hs[hs.Count / 2] : 2.4f * K / Mathf.Max(1e-4f, Mathf.Max(bt0.size.x, bt0.size.z));
+                if (hs.Count < 3) throw new InvalidOperationException("Nie znaleziono całych butelek na regale");
+                float s = Mathf.Min(.33f * K / hs.Max(), 1.75f * K / Mathf.Max(.0001f, bt0.size.y));
                 float wr = Mathf.Max(bt0.size.x, bt0.size.z) * s;
-                if (wr < 1.0f || wr > 6.5f) { s = 2.4f * K / Mathf.Max(1e-4f, Mathf.Max(bt0.size.x, bt0.size.z)); wr = 2.4f * K; }
                 float yaw = bt0.size.x >= bt0.size.z ? 0f : 90f;
                 int n = Mathf.Clamp(Mathf.FloorToInt((bx1 - bx0 - .4f) / (wr + .15f)), 1, 4);
                 for (int i = 0; i < n; i++)
@@ -379,23 +405,18 @@ public static partial class BraxClaudeOsiedle
         var zestaw = BraxOsiedleAssety.ModelWnetrz("loze_chesterfield_moet");
         var stolik = BraxOsiedleAssety.ModelWnetrz("loze_stolik_marmur_3dtech");
         if (!zestaw) modeleBrak++; if (!stolik) modeleBrak++;
-        float skalaZ = 0f; int idxSofa = 0, idxFotel = -1;
+        float skalaZ = zestaw ? 1f : 0f; int idxSofa = 0, idxFotel = 1;
         if (zestaw)
         {
             try
             {
                 var tmp = (GameObject)UnityEngine.Object.Instantiate(zestaw); tmp.transform.position = Vector3.zero; tmp.transform.rotation = zestaw.transform.localRotation;
                 var cz = BraxOsiedleAssety.Czesci(tmp);
-                if (cz.Count >= 2)
+                if (cz.Count == 3)
                 {
-                    var bs = BraxOsiedleAssety.Granice(cz[0]); float ws = Mathf.Max(bs.size.x, bs.size.z);
-                    skalaZ = 2.0f * K / Mathf.Max(1e-4f, ws);
-                    for (int i = 1; i < cz.Count && idxFotel < 0; i++)
-                    {
-                        var bf = BraxOsiedleAssety.Granice(cz[i]); float wf = Mathf.Max(bf.size.x, bf.size.z);
-                        if (wf > .3f * ws && wf < .7f * ws && bf.size.y > .6f * bs.size.y) idxFotel = i;
-                    }
+                    skalaZ = 1f; // każda pojedyncza siatka jest skalowana osobno w Czesc
                 }
+                else throw new InvalidOperationException("Nieprawidłowy zestaw Chesterfield");
                 BraxOsiedleAssety.Log("loże: zestaw chesterfield części=" + cz.Count + " sofa=0 fotel=" + idxFotel + " skala=" + skalaZ.ToString("F3"));
                 UnityEngine.Object.DestroyImmediate(tmp);
             }
@@ -420,7 +441,7 @@ public static partial class BraxClaudeOsiedle
             var cs = sciana + f * (sofaD * .5f);
             if (panelSciana) OBox(panel, sciana - f * .03f + Vector3.up * (yF + .6f * K + .55f), new Vector3(sofaW + .4f, 1.1f + .2f * K, .06f), Quaternion.LookRotation(f).eulerAngles.y);
             // sofa
-            GameObject so = skalaZ > 0f ? Czesc(zestaw, idxSofa, "loża " + lozeN + ": sofa chesterfield", cs + Vector3.up * yF, f, skalaZ) : null;
+            GameObject so = skalaZ > 0f ? Czesc(zestaw, idxSofa, "loża " + lozeN + ": sofa chesterfield", cs + Vector3.up * yF, f, skalaZ, 2f) : null;
             Bounds bS;
             float glS = sofaD;
             if (so)
@@ -439,9 +460,15 @@ public static partial class BraxClaudeOsiedle
             foreach (int sgn in new[] { -1, 1 })
             {
                 var ca = ct + r * sgn * (tR + gap + armD * .5f); var fa = -r * sgn;
-                GameObject fo = skalaZ > 0f && idxFotel > 0 ? Czesc(zestaw, idxFotel, "loża " + lozeN + ": fotel", ca + Vector3.up * yF, fa, skalaZ) : null;
+                GameObject fo = skalaZ > 0f && idxFotel > 0 ? Czesc(zestaw, idxFotel, "loża " + lozeN + ": fotel", ca + Vector3.up * yF, fa, skalaZ, .95f) : null;
                 Bounds bA;
-                if (fo) { modeleUzyte++; bA = BraxOsiedleAssety.Granice(fo); }
+                if (fo)
+                {
+                    modeleUzyte++; bA = BraxOsiedleAssety.Granice(fo);
+                    float glA = Mathf.Abs(fa.x) * bA.size.x + Mathf.Abs(fa.z) * bA.size.z;
+                    var celA = ct + r * sgn * (tR + gap + glA * .5f);
+                    fo.transform.position += celA - ca; ca = celA; bA = BraxOsiedleAssety.Granice(fo);
+                }
                 else { SofaKod(ca, fa, armW, armD); bA = Obrys(ca, fa, armW, armD, yF, yF + .83f * K); }
                 Collider(bA.center, new Vector3(bA.size.x * .94f, bA.size.y, bA.size.z * .94f)); Mebel("loża " + lozeN + " fotel", bA);
                 float yA = fo ? bA.min.y + bA.size.y * .58f : yF + seatH;
@@ -466,12 +493,12 @@ public static partial class BraxClaudeOsiedle
             foreach (int sgn in new[] { -1, 1 }) Cylinder(glassM, ct + Vector3.up * yt + r * .12f * K + f * sgn * .08f * K, .03f * K, .1f * K, 10, false, false);
         }
         float xW = X0 + .09f;
-        foreach (float z in new[] { 6.3f, 10.6f, 14.9f, 19.2f, 23.5f }) Loza(new Vector3(xW, 0, z), Vector3.right, true);
-        foreach (float x in new[] { 71.6f, 75.9f }) Loza(new Vector3(x, 0, Z1 - .09f), Vector3.back, true);
+        foreach (float z in new[] { 8f, 15.1f, 22.2f }) Loza(new Vector3(xW, 0, z), Vector3.right, true);
+        foreach (float x in new[] { 74f, 81f }) Loza(new Vector3(x, 0, Z1 - .09f), Vector3.back, true);
         // 3.11 15:53 (właściciel): „żadnej ściany na dyskotece — loże w U, jedno U, drugie U, stoliki między”: ścianka wyspy usunięta,
         // loże wyspy stoją oparciami do siebie (sofa + 2 fotele = U wokół stolika), 1.2 m × K przejścia między kolejnymi U
-        foreach (float z in new[] { 8.2f, 12.5f, 16.8f }) { Loza(new Vector3(76.3f, 0, z), Vector3.left, false); Loza(new Vector3(76.7f, 0, z), Vector3.right, false); }
-        foreach (float x in new[] { 92.5f, 96.9f }) Loza(new Vector3(x, 0, Z0 + .09f), Vector3.forward, false);
+        foreach (float z in new[] { 8.2f, 15.4f, 22.6f }) { Loza(new Vector3(76.3f, 0, z), Vector3.left, false); Loza(new Vector3(76.7f, 0, z), Vector3.right, false); }
+        foreach (float x in new[] { 91.5f, 99f }) Loza(new Vector3(x, 0, Z0 + .09f), Vector3.forward, false);
         klub.loze = lozeN;
 
         // ================= DJ PREMIUM =================
@@ -510,7 +537,7 @@ public static partial class BraxClaudeOsiedle
         }
         klub.dj = new Vector3(103.2f, sH, 12f);
         // ściana LED za DJ-em: osobny obiekt (tekstura z kodu w BraxKlubEfekty), rama ze stali
-        float lz0 = 7.6f, lz1 = 16.4f, ly0 = sH + .3f, ly1 = sH + .3f + 4.4f, lx = X1 - .06f;
+        float lz0 = Z0, lz1 = Z1, ly0 = yF, ly1 = yC, lx = X1 - .06f;
         var mQuad = new Mesh(); mQuad.SetVertices(new List<Vector3> { new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(0, 1, 1), new Vector3(0, 1, 0) });
         mQuad.SetNormals(new List<Vector3> { Vector3.left, Vector3.left, Vector3.left, Vector3.left });
         mQuad.SetUVs(0, new List<Vector2> { new Vector2(1, 0), new Vector2(0, 0), new Vector2(0, 1), new Vector2(1, 1) });
@@ -520,10 +547,10 @@ public static partial class BraxClaudeOsiedle
         if (!ledM.IsKeywordEnabled("_EMISSION")) { ledM.EnableKeyword("_EMISSION"); ledM.SetColor("_EmissionColor", Color.white * 1.5f); ledM.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None; EditorUtility.SetDirty(ledM); }
         // 3.11 15:57 (właściciel): MURAL PULS CLUB za DJ-em (grafika z czatu, 3:1) zamiast wzoru LED — pełna szerokość, w ramie stalowej
         var mural = SzyldObraz("mural_puls");
-        if (mural) { float hm = (lz1 - lz0) / 3f; ly0 = sH + .3f + (4.4f - hm) * .5f; ly1 = ly0 + hm; Debug.Log("BRAXHORN_DYSKOTEKA mural za DJ-em: " + (lz1 - lz0).ToString("F1") + "×" + hm.ToString("F2") + " m"); }
+        if (!mural) throw new InvalidOperationException("Brak wymaganej grafiki mural_puls");
+        Debug.Log("BRAXHORN_DYSKOTEKA mural cała ściana: " + (lz1 - lz0).ToString("F2") + "×" + (ly1 - ly0).ToString("F2") + " m");
         var led = Obiekt(root, mural ? "DJ: mural PULS CLUB (grafika właściciela)" : "DJ: ściana LED", klubSiatki["ekran LED"], mural ? mural : ledM, new Vector3(lx, ly0, lz0), Quaternion.identity, new Vector3(1, ly1 - ly0, lz1 - lz0));
-        foreach (var (a0, a1, b0, b1) in new[] { (ly1, ly1 + .08f, lz0 - .08f, lz1 + .08f), (ly0 - .08f, ly0, lz0 - .08f, lz1 + .08f), (ly0, ly1, lz0 - .08f, lz0), (ly0, ly1, lz1, lz1 + .08f) })
-            BoxMinMax(steel, lx - .02f, X1 - .015f, a0, a1, b0, b1, false);
+        // Mural jest wykończeniem całej ściany, bez ramy ekranu.
         // lasery na kolumnach sceny (model laser_light.glb bez jego wiązek — wiązki z kodu, addytywne, wygasające)
         var laser = Nova("laser_light.glb");
         var mWiazki = Wachlarz("wachlarz lasera", 16f, .012f, new[] { -18f, -12f, -6f, 0f, 6f, 12f, 18f });

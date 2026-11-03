@@ -559,16 +559,16 @@ public static partial class BraxClaudeOsiedle
     }
 
     // Miejsce parkingowe: dane dla etapu aut + zgodność wstecz (miejscaA: środek, obrót).
-    static void Zatoka(Vector3 srodek, Vector3 przod, bool przyScianie)
+    static void Zatoka(Vector3 srodek, Vector3 przod, bool przyScianie, float dlugosc = 0f)
     {
         przod.y = 0; przod.Normalize();
-        MiejscaParkingowe.Add(new MiejsceParkingowe { srodek = srodek, przod = przod, rozmiar = new Vector2(2.5f * Ks, 5f * Ks), przyScianie = przyScianie });
+        MiejscaParkingowe.Add(new MiejsceParkingowe { srodek = srodek, przod = przod, rozmiar = new Vector2(3f * K, dlugosc > 0f ? dlugosc : 5.5f * K), przyScianie = przyScianie });
         miejscaA.Add((srodek, Mathf.Atan2(przod.x, przod.z) * Mathf.Rad2Deg));
     }
     // Rząd zatok prostopadłych wzdłuż x: tył zatok na zTyl, przód (alejka) w kierunku sgn (±z). Linie, odbojnice, dane.
     static int RzadZatokX(float xa, float xb, float zTyl, float sgn, bool przyScianie)
     {
-        float w = 2.5f * Ks, L = 5f * Ks; int n = Mathf.FloorToInt((xb - xa + .01f) / w); if (n <= 0) return 0;
+        float w = 3f * K, L = 5.5f * K; int n = Mathf.FloorToInt((xb - xa + .01f) / w); if (n <= 0) return 0;
         float zPrz = zTyl + sgn * L;
         for (int k = 0; k <= n; k++) { float x = xa + k * w; Farba(x - .06f, x + .06f, zTyl, zPrz); }
         for (int k = 0; k < n; k++)
@@ -581,7 +581,7 @@ public static partial class BraxClaudeOsiedle
     }
     static int RzadZatokZ(float za, float zb, float xTyl, float sgn, bool przyScianie)
     {
-        float w = 2.5f * Ks, L = 5f * Ks; int n = Mathf.FloorToInt((zb - za + .01f) / w); if (n <= 0) return 0;
+        float w = 3f * K, L = 5.5f * K; int n = Mathf.FloorToInt((zb - za + .01f) / w); if (n <= 0) return 0;
         float xPrz = xTyl + sgn * L;
         for (int k = 0; k <= n; k++) { float z = za + k * w; Farba(xTyl, xPrz, z - .06f, z + .06f); }
         for (int k = 0; k < n; k++)
@@ -613,8 +613,18 @@ public static partial class BraxClaudeOsiedle
         if (j1 > z1 + .01f) { BoxMinMax(KerbStone, ex0, ex1, 0, .16f, z1, j1); BoxMinMax(KerbStone, Mathf.Min(xIn - side * .2f, xIn - side * 1.2f), Mathf.Max(xIn - side * .2f, xIn - side * 1.2f), 0, .16f, z1, z1 + .2f); }
         jezdnieKontrola.Add((xa, xb, z0, z1));
         int n = 0;
-        float sx0 = Mathf.Min(side * 69f, side * 104.5f), sx1 = Mathf.Max(side * 69f, side * 104.5f);
-        foreach (var (a, b, sgn) in rzedy) n += RzadZatokX(sx0, sx1, sgn > 0 ? a : b, sgn, false);
+        float poczatekZatok = Mathf.Max(69f, Mathf.Abs(xIn) + 5.5f * K);
+        float sx0 = Mathf.Min(side * poczatekZatok, side * 104.5f), sx1 = Mathf.Max(side * poczatekZatok, side * 104.5f);
+        // Najpierw rezerwujemy przejazd, potem zatoki. Dawne dwa rzędy po przeskalowaniu zjadały alejkę.
+        float alejka = 5.5f * K, glebokosc = z1 - z0;
+        int maxRzedow = Mathf.FloorToInt((glebokosc - alejka) / (5.5f * K));
+        if (maxRzedow > 0)
+            foreach (var (a, b, sgn) in rzedy.Take(maxRzedow)) n += RzadZatokX(sx0, sx1, sgn > 0 ? a : b, sgn, false);
+        else
+        {
+            var row = rzedy[0]; float tyl = row.sgn > 0 ? row.a : row.b;
+            n = RzadZatokRownoleglych(true, sx0, sx1, tyl, row.sgn, false);
+        }
         zatokiA += n;
         // latarnie na krawędzi bez zatok albo za krawężnikiem rzędu (na placu), oprawą nad parking
         foreach (float lx in new[] { 74f, 90f, 104f })
@@ -629,6 +639,28 @@ public static partial class BraxClaudeOsiedle
         if (Physics.CheckSphere(zp + Vector3.up * 1.5f, .3f, ~0, QueryTriggerInteraction.Ignore)) zp.z = z0 - .75f;
         ZnakPionowy(zp, new Vector3(-side, 0, 0), "D-18");
         rep.notes.Add("parking " + (side > 0 ? "E" : "W") + " przy bulwarze z " + bulwar.c + ": " + n + " zatok");
+    }
+
+    static int RzadZatokRownoleglych(bool wzdluzX, float a, float b, float tyl, float sgn, bool sciana)
+    {
+        float w = 3f * K, dl = 7f * K; int n = Mathf.FloorToInt((b - a) / dl);
+        float przod = tyl + sgn * w;
+        for (int k = 0; k <= n; k++)
+        {
+            float p = a + k * dl;
+            if (wzdluzX) Farba(p - .06f, p + .06f, tyl, przod);
+            else Farba(tyl, przod, p - .06f, p + .06f);
+        }
+        if (wzdluzX) Farba(a, a + n * dl, przod - .06f, przod + .06f);
+        else Farba(przod - .06f, przod + .06f, a, a + n * dl);
+        for (int k = 0; k < n; k++)
+        {
+            float p = a + (k + .5f) * dl, c = (tyl + przod) * .5f;
+            // Strona kierowcy od alejki.
+            Zatoka(wzdluzX ? new Vector3(p, YAsf, c) : new Vector3(c, YAsf, p),
+                wzdluzX ? new Vector3(sgn, 0, 0) : new Vector3(0, 0, -sgn), sciana, dl);
+        }
+        return n;
     }
 
     // Parking przy parku na końcu Wiśniowej / Bydgoskiej (z −62 … −95): alejka 6.1 m (x ±53…±59.1), rząd zatok od strony
@@ -649,7 +681,7 @@ public static partial class BraxClaudeOsiedle
         foreach (var (a, b) in new[] { (52.8f, 55f), (61f, 64.3f) })                // od ulicy poza jezdnią
             BoxMinMax(KerbStone, Mathf.Min(s * a, s * b), Mathf.Max(s * a, s * b), 0, .16f, z1 - .2f, z1);
         bool sciana = s > 0;    // siłownia A (x 64.9…107, z −94.75…−66)
-        int n = RzadZatokZ(-94.2f, z1 - 1f, xT, -s, sciana);
+        int n = RzadZatokRownoleglych(false, -94.2f, z1 - 1f, xT, -s, sciana);
         zatokiA += n;
         if (sciana) BoxMinMax(Pavers, Mathf.Min(s * 64.3f, s * 64.88f), Mathf.Max(s * 64.3f, s * 64.88f), 0, .14f, z0 - .2f, z1);
         // chodnik od strony parku + plac przy alei z −99

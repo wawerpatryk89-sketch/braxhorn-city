@@ -162,13 +162,15 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         float yaw=predkosc/Mathf.Max(1,rozstaw)*Mathf.Tan(kierownica*Mathf.Deg2Rad)*Mathf.Rad2Deg*dt;
         var rot=rotation*Quaternion.Euler(0,yaw,0);
         Vector3 delta=(rot*Vector3.forward)*predkosc*dt;
-        var half=obrys.size*.5f; half.y=Mathf.Max(.2f,half.y-.16f);
+        var scale=transform.lossyScale;
+        var half=Vector3.Scale(obrys.size,new Vector3(Mathf.Abs(scale.x),Mathf.Abs(scale.y),Mathf.Abs(scale.z)))*.5f; half.y=Mathf.Max(.2f,half.y-.16f);
+        var centerOffset=Vector3.Scale(obrys.center,scale);
         // ruch z poślizgiem wzdłuż przeszkody (build 45: wcześniej każda kolizja = predkosc 0 i auto stawało w miejscu):
         // do miejsca styku, reszta ruchu rzutowana na płaszczyznę styku (poziomo), prędkość traci część zależną od kąta uderzenia
         Vector3 ruch=delta; bool obrot=true; float utrataSuma=0f;
         for(int proba=0;proba<2&&ruch.sqrMagnitude>1e-8f;proba++)
         {
-            var center=position+rotation*obrys.center+Vector3.up*.16f;
+            var center=position+rotation*centerOffset+Vector3.up*.16f;
             int n=Physics.BoxCastNonAlloc(center,half,ruch.normalized,hits,rot,ruch.magnitude+Skora,Mask,QueryTriggerInteraction.Ignore);
             float najblizej=float.PositiveInfinity; Vector3 normalna=Vector3.zero;
             for(int i=0;i<n;i++) if(Obcy(hits[i].collider)&&hits[i].distance<najblizej){najblizej=hits[i].distance;normalna=hits[i].normal;}
@@ -183,16 +185,16 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         }
         if(utrataSuma>0f) predkosc*=1f-utrataSuma;
         var next=position+ruch; var rotNext=obrot?rot:rotation;
-        int m=Physics.OverlapBoxNonAlloc(next+rotNext*obrys.center+Vector3.up*.16f,half,overlaps,rotNext,Mask,QueryTriggerInteraction.Ignore);
+        int m=Physics.OverlapBoxNonAlloc(next+rotNext*centerOffset+Vector3.up*.16f,half,overlaps,rotNext,Mask,QueryTriggerInteraction.Ignore);
         bool blocked=m==overlaps.Length;
         for(int i=0;i<m;i++)if(Obcy(overlaps[i]))blocked=true;
-        if(blocked&&obrot){ rotNext=rotation; m=Physics.OverlapBoxNonAlloc(next+rotNext*obrys.center+Vector3.up*.16f,half,overlaps,rotNext,Mask,QueryTriggerInteraction.Ignore); blocked=m==overlaps.Length; for(int i=0;i<m;i++)if(Obcy(overlaps[i]))blocked=true; }
+        if(blocked&&obrot){ rotNext=rotation; m=Physics.OverlapBoxNonAlloc(next+rotNext*centerOffset+Vector3.up*.16f,half,overlaps,rotNext,Mask,QueryTriggerInteraction.Ignore); blocked=m==overlaps.Length; for(int i=0;i<m;i++)if(Obcy(overlaps[i]))blocked=true; }
         if(!Grunt(next,out float ground) || Mathf.Abs(ground-position.y)>.35f) blocked=true;
         if(blocked) predkosc*=.5f;                                                          // zaklinowane: hamuje, nie staje w miejscu od razu
         else {next.y=ground;cialo.MovePosition(next);cialo.MoveRotation(rotNext);}
         obrotKol=Mathf.Repeat(obrotKol+predkosc*dt/Mathf.Max(.1f,promienKola)*Mathf.Rad2Deg,360);
         foreach(var wheel in kola)if(wheel)wheel.localRotation=Quaternion.Euler(obrotKol,0,0);
-        foreach(var pivot in skret)if(pivot)pivot.localRotation=Quaternion.Euler(0,BraxAuto.KatKola(kierownica,rozstaw,transform.InverseTransformPoint(pivot.position).x),0);
+        foreach(var pivot in skret)if(pivot)pivot.localRotation=Quaternion.Euler(0,BraxAuto.KatKola(kierownica,rozstaw,transform.InverseTransformPoint(pivot.position).x*Mathf.Abs(transform.lossyScale.x)),0);
         if(audioSilnika&&silnikStan==2)   // runda 4: ton i głośność od prędkości (przy przyspieszaniu ciut wyżej)
         {
             float u=Mathf.Clamp01(Mathf.Abs(predkosc)/Mathf.Max(1,maxPredkosc)), gaz=Mathf.Abs(wejscie.y)>.1f?.06f:0f;

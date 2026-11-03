@@ -316,7 +316,7 @@ public static partial class BraxClaudeOsiedle
     static void StacjaWiata()
     {
         group = "Osiedle A / stacja paliw — wiata";
-        float x0 = -31.5f, x1 = -.5f, z0 = -42.5f, z1 = -29f, yP = 4.5f * K, yG = yP + 1.25f;
+        float x0 = -31.5f, x1 = -.5f, z0 = -42.5f, z1 = -29f, yP = 4.5f * K, yG = yP + 1.65f * K;
         var biel = StMat("panel wiaty czarny połysk BRAXHORN", new Color(.05f, .05f, .06f), .75f, .3f); /* 3.11: stacja nie „siwa” — czerń jak szyld */ var pas = StMat("pas wiaty grafit", new Color(.16f, .17f, .19f), .5f, .3f);
         var obr = StMat("obróbka blacharska", new Color(.62f, .63f, .65f), .5f, .6f); var spod = StMat("podsufitka wiaty", new Color(.86f, .87f, .88f), .4f);
         var led = StSwiatlo("oprawa LED wiaty", new Color(1f, .98f, .92f));
@@ -403,9 +403,9 @@ public static partial class BraxClaudeOsiedle
         }
         StDetal("wyspy", "pistolety z wężami", pistolety); StDetal("wyspy", "słupki ochronne", slupki); StDetal("wyspy", "kątowniki krawędzi", 3);
         // pas wiaty: grafika BRAXHORN · STACJA PALIW (3:1) po obu stronach; bez grafiki — złote litery
-        if (!SzyldPanel("stacja_pas", new Vector3((x0 + x1) * .5f, yP + .77f, z1 + .01f), Vector3.forward, 2.4f, .8f))
+        if (!SzyldPanel("stacja_pas", new Vector3((x0 + x1) * .5f, (yP + .38f + yG - .06f) * .5f, z1 + .01f), Vector3.forward, 4.5f * K, yG - yP - .54f))
             Napis3D("BRAXHORN", new Vector3((x0 + x1) * .5f, yP + .52f, z1 + .01f), Vector3.forward, .55f, .06f, StSwiatlo("napis BRAXHORN złoty", new Color(1f, .72f, .18f)), pas, .15f, .14f, true);
-        if (!SzyldPanel("stacja_pas", new Vector3((x0 + x1) * .5f, yP + .77f, z0 - .01f), Vector3.back, 2.4f, .8f))
+        if (!SzyldPanel("stacja_pas", new Vector3((x0 + x1) * .5f, (yP + .38f + yG - .06f) * .5f, z0 - .01f), Vector3.back, 4.5f * K, yG - yP - .54f))
             Napis3D("BRAXHORN", new Vector3((x0 + x1) * .5f, yP + .52f, z0 - .01f), Vector3.back, .55f, .06f, StSwiatlo("napis BRAXHORN złoty", new Color(1f, .72f, .18f)), pas, .15f, .14f, true);
     }
 
@@ -429,7 +429,14 @@ public static partial class BraxClaudeOsiedle
     public static bool SzyldPanel(string plik, Vector3 c, Vector3 n, float w, float h)
     {
         var m = SzyldObraz(plik); if (!m) return false;
+        // Cała grafika zachowuje proporcje, a panel mieści się w dostępnej powierzchni.
+        if (m.mainTexture)
+        {
+            float ratio = (float)m.mainTexture.width / m.mainTexture.height;
+            if (w / h > ratio) w = h * ratio; else h = w / ratio;
+        }
         BillPlakat(Group(group), "szyld " + plik, c + n * .006f, n, w, h, m);
+        Rejestruj(plik, c + n * .006f, n, w, h);
         szyldyObraz++; Debug.Log("BRAXHORN_SZYLDY_GRAFIKI " + plik + " " + w.ToString("F2") + "×" + h.ToString("F2") + " m w " + c.ToString("F1"));
         return true;
     }

@@ -64,15 +64,16 @@ public static partial class BraxClaudeOsiedle
                 var fotel=t.go.GetComponentsInChildren<Transform>(true).FirstOrDefault(q=>q.name==FotelKierowcy); var kab=fotel?fotel.GetComponent<BraxFotelAuta>():null;
                 if(!fotel||!kab){kandydaci.Add((t,false,default,false,id+": brak fotela"));continue;}
                 var drzwi=DrzwiKierowcy(t.go,fotel,out var ob);
-                WynikKabiny w=default; bool miesci=false;
+                WynikKabiny w=new WynikKabiny { zapas=float.NegativeInfinity }; bool miesci=false;
                 foreach(var (odch,zagl,poch) in KabinaProby(kab.odchylenieBaza,42f,K))   // 3.11: Patryk 2.33 m (= Brax) — fotel sportowy do 42°
                 {
                     var rot=fotel.rotation; player.transform.SetPositionAndRotation(fotel.position+fotel.up*(.08f*K-zagl)-rot*hipsOffset,rot);
                     anim.GetClip("CarIdle").SampleAnimation(anim.gameObject,0);
                     BraxMieszkaniec.PozaWAucie(spine,head,player.transform.right,odch,KabinaWzrok*odch+poch);
-                    w=new WynikKabiny{zapas=float.PositiveInfinity,odchylenie=odch,zaglebienie=zagl,pochylenie=poch};
-                    ZapasPozy(skora,new Renderer[0],fotel,kab,ref w);
-                    if(w.zapas>=0f){miesci=true;break;}
+                    var proba=new WynikKabiny{zapas=float.PositiveInfinity,odchylenie=odch,zaglebienie=zagl,pochylenie=poch};
+                    ZapasPozy(skora,new Renderer[0],fotel,kab,ref proba);
+                    if(proba.zapas>w.zapas)w=proba;
+                    if(proba.zapas>=0f){miesci=true;break;}
                 }
                 kandydaci.Add((t,drzwi.Count>0,w,miesci,id+": drzwi="+(drzwi.Count>0?"tak ("+drzwi.Count+" węzłów)":"nie")+" kabina="+kab.kabina+" zapas="+w.zapas.ToString("F3")+" odchylenie="+w.odchylenie.ToString("F0")+"°"));
             }
@@ -89,28 +90,35 @@ public static partial class BraxClaudeOsiedle
         if(wybor.t==null){Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: brak sportowego modelu — kandydaci: "+string.Join("; ",kandydaci.Select(k=>k.opis)));return;}
         var template=wybor.t; var wybrany=kandydaci.First(k=>k.t==template);
         Debug.Log("BRAXHORN_AUTO_PATRYKA wybór="+template.id+" powód="+wybor.Item2+" kandydaci: "+string.Join("; ",kandydaci.Select(k=>k.opis)));
-        if(!wybrany.miesci)Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: Patryk nie mieści się w "+template.id+" przy 30° — brakuje "+(-wybrany.w.zapas*100f).ToString("F1")+" cm");
+        if(!wybrany.miesci)Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: Patryk nie mieści się w "+template.id+" przy najlepszym odchyleniu "+wybrany.w.odchylenie.ToString("F0")+"° — brakuje "+(-wybrany.w.zapas*100f/K).ToString("F1")+" cm rzeczywistych");
 
+        // Model ma już realną długość * K. Dodatkowe +25% robiło z 4,95 m
+        // samochodu pojazd długości 6,19 m rzeczywistych i psuło dobór dróg.
+        // Zostaw najlepszą zmierzoną pozycję siedzenia; jej brak miejsca trafia do diagnostyki.
+        const float skalaAuta = 1f;
         Physics.SyncTransforms();
         foreach(var spot in MiejscaParkingowe.OrderBy(m=>(new Vector3(m.srodek.x,0,m.srodek.z)-WejscieAreny).sqrMagnitude))
         {
             if((new Vector3(spot.srodek.x,0,spot.srodek.z)-WejscieAreny).magnitude>40f)break;
-            if(template.dl>spot.rozmiar.y+.2f || template.szerNadw>spot.rozmiar.x-.15f)continue;
+            if(template.dl*skalaAuta+.2f>spot.rozmiar.y || template.szer*skalaAuta+.8f*K>spot.rozmiar.x)continue;
             var rotation=Quaternion.LookRotation(spot.przod);
-            var half=new Vector3(template.szer*.5f+.05f,Mathf.Max(.2f,(template.wys-.3f)*.5f),template.dl*.5f+.2f);
+            var half=new Vector3(template.szer*skalaAuta*.5f+.05f,Mathf.Max(.2f,(template.wys*skalaAuta-.3f)*.5f),template.dl*skalaAuta*.5f+.2f);
             if(Physics.CheckBox(spot.srodek+Vector3.up*(.3f+half.y),half,rotation,~0,QueryTriggerInteraction.Ignore))continue;
+            var fotelSzablonu = template.go.GetComponentsInChildren<Transform>(true).First(t => t.name == FotelKierowcy);
+            float zDrzwi = template.go.transform.InverseTransformPoint(fotelSzablonu.position).z;
+            var wejscie = spot.srodek + rotation * (new Vector3(-(template.obrys.size.x * .5f + .65f), 0, zDrzwi) * skalaAuta);
+            float promien = player.body.radius, wysokosc = player.body.height;
+            if (Physics.CheckCapsule(wejscie + Vector3.up * (promien + .08f), wejscie + Vector3.up * (wysokosc - promien),
+                promien, ~0, QueryTriggerInteraction.Ignore)) continue;
             var go=AutoInstancja(template,Group("Auto Patryka / ARENA BRAXHORN"),"Auto Patryka · tylko gracz",new System.Random(180),out var color);
             go.transform.SetPositionAndRotation(spot.srodek,rotation);
-            // 3.11 (właściciel: „auto ma pasować pod Patryka, nie on pod auto”): gdy nawet przy 42° brakuje miejsca nad głową,
-            // auto Patryka powiększone równomiernie o brakującą wysokość kabiny (siedzisko→dach ≈ 0.85 m × K), max +25 %
-            if(!wybrany.miesci){float f=Mathf.Clamp(1f+(-wybrany.w.zapas)/(.85f*K),1f,1.25f);go.transform.localScale*=f;
-                Debug.Log("BRAXHORN_AUTO_PATRYKA auto ×"+f.ToString("F2")+" (brak "+(-wybrany.w.zapas*100f).ToString("F1")+" cm nad głową przy "+wybrany.w.odchylenie.ToString("F0")+"°)");}
+            Debug.Log("BRAXHORN_AUTO_PATRYKA skala_dodatkowa=1.000 dl="+template.dl.ToString("F3")+" szer_z_lusterkami="+template.szer.ToString("F3")+" K="+K.ToString("F4"));
             var box=go.AddComponent<BoxCollider>();box.center=template.obrys.center;box.size=template.obrys.size;
             var rb=go.AddComponent<Rigidbody>();rb.isKinematic=true;rb.useGravity=false;rb.interpolation=RigidbodyInterpolation.Interpolate;
             var car=go.AddComponent<BraxAutoGracza>();car.obrys=box;
             car.fotel=go.GetComponentsInChildren<Transform>().First(t=>t.name==FotelKierowcy);
-            car.przesuniecieGracza=go.transform.InverseTransformPoint(car.fotel.position)+Vector3.up*(.08f*K-wybrany.w.zaglebienie)-hipsOffset;
-            car.rozstaw=template.rozstaw;car.promienKola=template.promienKola;
+            car.przesuniecieGracza=go.transform.InverseTransformPoint(car.fotel.position + car.fotel.up*(.08f*K-wybrany.w.zaglebienie) - rotation*hipsOffset);
+            car.rozstaw=template.rozstaw*skalaAuta;car.promienKola=template.promienKola*skalaAuta;
             car.kola=new[]{"LP","PP","LT","PT"}.Select(n=>go.transform.Find("koło "+n+"/obrót")).Where(t=>t).ToArray();
             car.skret=new[]{"LP","PP"}.Select(n=>go.transform.Find("koło "+n)).Where(t=>t).ToArray();
             // poza Patryka za kierownicą (jak ludzie w kabinach): odchylenie od kręgu Spine, głowa — LateUpdate auta

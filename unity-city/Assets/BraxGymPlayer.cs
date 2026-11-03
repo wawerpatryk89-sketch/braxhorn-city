@@ -13,6 +13,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public Transform contactShadow;
     public string buildId;
     public bool ready;
+    public bool walkOnly, playFullActionClips;
+    public bool hideWhenCameraClose = true;
     public BraxCityWorld cityWorld;
     public Vector3 worldSpawn=new Vector3(1.5f,.08f,2.8f);
     public int trainingHits;
@@ -130,7 +132,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             yaw=0;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
             action="Idle";clips.Play("Idle");UpdateCamera(1f);Report();return;
         }
-        if(key=="run"){runEnabled=!runEnabled;Report();return;}
+        if(key=="run"){if(!walkOnly)runEnabled=!runEnabled;Report();return;}
         if(key=="sound"){soundEnabled=!soundEnabled;return;}
         if(paused)return;
         if(key=="action")
@@ -150,7 +152,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if ((name=="Punch" || name=="Kick") && clips["CombatIdle"]!=null && !BraxSport.Aktywne) combatUntil=Time.time+8f;
         action=name;clips[name].wrapMode=WrapMode.Once;clips[name].speed=rate;
         clips.CrossFade(name,.10f,PlayMode.StopAll);
-        actionEnd=Time.time+Mathf.Min(clips[name].length/rate,name=="Punch"?1.25f:name=="Kick"?1.1f:1.2f);
+        actionEnd=Time.time+(playFullActionClips?clips[name].length/rate:Mathf.Min(clips[name].length/rate,name=="Punch"?1.25f:name=="Kick"?1.1f:1.2f));
         hitAt=Time.time+contact/rate;hitPending=contact>=0;Report();
     }
     private void Update()
@@ -178,7 +180,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         bool acting=Time.time<actionEnd;
         bool jumping=acting&&action=="Jump";   // w skoku: pęd zostaje, sterowanie lekkie
         float mag=move.magnitude;   // 1.11: chód przy lekkim wychyleniu (0.9–2.1 m/s), płynnie w bieg przy mocnym (do 5.2 m/s), bez przycisku BIEG
-        float naJoy=mag<.12f?0f:mag<.7f?Mathf.Lerp(.9f,2.1f,(mag-.12f)/.58f):(runEnabled?Mathf.Lerp(2.1f,5.2f,Mathf.SmoothStep(0f,1f,(mag-.7f)/.22f)):2.1f);
+        float naJoy=mag<.12f?0f:mag<.7f?Mathf.Lerp(.9f,2.1f,(mag-.12f)/.58f):(!walkOnly&&runEnabled?Mathf.Lerp(2.1f,5.2f,Mathf.SmoothStep(0f,1f,(mag-.7f)/.22f)):2.1f);
         float target=jumping?speed:!acting?naJoy:0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
         Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
@@ -348,7 +350,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         view.transform.position=position;view.transform.LookAt(cameraTarget);
         // build 45 (E8, nagranie: kamera „w głowie” Patryka przy drzwiach): postać chowana też wtedy, gdy kamera jest blisko CIAŁA
         // (kapsuła od stóp do czubka głowy), a nie tylko blisko celu na 1.65 m — Patryk 2.27 m ma głowę wyżej niż cel kamery
-        bool close=near<1.1f||(!autoGracza&&OdlegloscOdCiala(view.transform.position)<.55f);
+        bool close=hideWhenCameraClose&&(near<1.1f||(!autoGracza&&OdlegloscOdCiala(view.transform.position)<.55f));
         if(close!=hiddenClose){hiddenClose=close;foreach(var r in visual.GetComponentsInChildren<Renderer>(true))r.shadowCastingMode=close?UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly:UnityEngine.Rendering.ShadowCastingMode.On;}
         if(contactShadow){var p=transform.position;
             if(cityWorld&&Physics.Raycast(p+Vector3.up*.25f,Vector3.down,out RaycastHit floor,30,~((1<<8)|(1<<29)),QueryTriggerInteraction.Ignore))p.y=floor.point.y+.018f;
