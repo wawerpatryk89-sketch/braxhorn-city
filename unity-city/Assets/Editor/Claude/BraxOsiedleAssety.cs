@@ -110,12 +110,14 @@ public static class BraxOsiedleAssety
         if (!zrodlo) return null;
         var o = (GameObject)UnityEngine.Object.Instantiate(zrodlo, parent, false);
         o.name = nazwa;
-        o.transform.position = Vector3.zero; o.transform.rotation = Quaternion.Euler(0f, yaw, 0f); o.transform.localScale = Vector3.one;
+        // 3.11 15:28 (hokery bokiem, kieliszki ogromne): korzeń modeli Sketchfab ma obrót −90° X (Z→Y) i skalę — zachować je, yaw dokładany na wierzch
+        var r0 = zrodlo.transform.localRotation; var s0 = zrodlo.transform.localScale;
+        o.transform.position = Vector3.zero; o.transform.rotation = Quaternion.Euler(0f, yaw, 0f) * r0; o.transform.localScale = s0;
         var b = Granice(o);
         float s = 1f;
         if (szerokoscRealna.HasValue) s = szerokoscRealna.Value * K / Mathf.Max(1e-4f, Mathf.Max(b.size.x, b.size.z));
         else if (wysokoscRealna.HasValue) s = wysokoscRealna.Value * K / Mathf.Max(1e-4f, b.size.y);
-        o.transform.localScale = Vector3.one * s;
+        o.transform.localScale = s0 * s;
         b = Granice(o);
         o.transform.position += new Vector3(p.x - b.center.x, p.y - b.min.y, p.z - b.center.z);
         Przygotuj(o, cienie);

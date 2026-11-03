@@ -167,13 +167,13 @@ public static partial class BraxClaudeOsiedle
     static GameObject Czesc(GameObject zrodlo, int idx, string nazwa, Vector3 p, Vector3 przod, float skala)
     {
         var o = (GameObject)UnityEngine.Object.Instantiate(zrodlo, Group(group), false);
-        o.name = nazwa; o.transform.position = Vector3.zero; o.transform.rotation = Quaternion.identity; o.transform.localScale = zrodlo.transform.localScale * skala;
+        o.name = nazwa; o.transform.position = Vector3.zero; o.transform.rotation = zrodlo.transform.localRotation; o.transform.localScale = zrodlo.transform.localScale * skala;   // korzeń Sketchfab: obrót Z→Y zostaje
         var cz = BraxOsiedleAssety.Czesci(o);
         if (idx >= cz.Count) { UnityEngine.Object.DestroyImmediate(o); return null; }
         var keep = cz[idx];
         for (int i = 0; i < cz.Count; i++) if (i != idx && cz[i]) UnityEngine.Object.DestroyImmediate(cz[i].gameObject);
         var f0 = PrzodMebla(keep);
-        o.transform.rotation = Quaternion.Euler(0, Vector3.SignedAngle(f0, przod, Vector3.up), 0);
+        o.transform.rotation = Quaternion.Euler(0, Vector3.SignedAngle(f0, przod, Vector3.up), 0) * zrodlo.transform.localRotation;
         var b = BraxOsiedleAssety.Granice(o);
         o.transform.position += new Vector3(p.x - b.center.x, p.y - b.min.y, p.z - b.center.z);
         BraxOsiedleAssety.Przygotuj(o, true);
@@ -226,7 +226,7 @@ public static partial class BraxClaudeOsiedle
         {
             try
             {
-                var tmp = (GameObject)UnityEngine.Object.Instantiate(polki); tmp.transform.position = Vector3.zero; tmp.transform.rotation = Quaternion.identity;
+                var tmp = (GameObject)UnityEngine.Object.Instantiate(polki); tmp.transform.position = Vector3.zero; tmp.transform.rotation = polki.transform.localRotation;
                 var hs = tmp.GetComponentsInChildren<Renderer>(true).Where(r => r.name.StartsWith("Object") || r.name.StartsWith("Box") || r.transform.parent && (r.transform.parent.name.StartsWith("Object") || r.transform.parent.name.StartsWith("Box")))
                             .Select(r => r.bounds.size.y).Where(h => h > 1e-4f).OrderBy(h => h).ToList();
                 var bt0 = BraxOsiedleAssety.Granice(tmp); UnityEngine.Object.DestroyImmediate(tmp);
@@ -286,7 +286,7 @@ public static partial class BraxClaudeOsiedle
         float hYaw = 0f; bool hFront = false;
         if (hoker)
         {
-            var tmp = (GameObject)UnityEngine.Object.Instantiate(hoker); tmp.transform.position = Vector3.zero; tmp.transform.rotation = Quaternion.identity;
+            var tmp = (GameObject)UnityEngine.Object.Instantiate(hoker); tmp.transform.position = Vector3.zero; tmp.transform.rotation = hoker.transform.localRotation;
             var f0 = PrzodMebla(tmp.transform); UnityEngine.Object.DestroyImmediate(tmp);
             hYaw = Vector3.SignedAngle(f0, Vector3.back, Vector3.up); hFront = true;
         }
@@ -384,7 +384,7 @@ public static partial class BraxClaudeOsiedle
         {
             try
             {
-                var tmp = (GameObject)UnityEngine.Object.Instantiate(zestaw); tmp.transform.position = Vector3.zero; tmp.transform.rotation = Quaternion.identity;
+                var tmp = (GameObject)UnityEngine.Object.Instantiate(zestaw); tmp.transform.position = Vector3.zero; tmp.transform.rotation = zestaw.transform.localRotation;
                 var cz = BraxOsiedleAssety.Czesci(tmp);
                 if (cz.Count >= 2)
                 {
