@@ -217,8 +217,11 @@ def przygotuj_patryka(staging):
 
 
 # Paczki modeli miasta (etap „assety”): każda osobno (< 90 MB po kompresji — limit GitHuba 100 MB na plik).
+# 3.11 18:42 (właściciel: „usuń te statki szybko, będziemy mieli… duże statki później”): miasto_statki i miasto_statki2
+# POZA BUILDEM — sam ich import trwał ok. 3 h z 6 h (log ed77a39: 106 + 74 min, obrazy 4K po 10–12 min). Wracają później
+# (zmniejszone offline), po zapisie pamięci Library. Generator bez nich: port bez dużych statków, kontenery z innego modelu.
 PACZKI_MIASTA = ("miasto_centrum", "miasto_kamienice", "miasto_wiezowce", "miasto_wyposazenie", "miasto_pojazdy",
-                 "miasto_port", "miasto_silownia_metro", "miasto_znaki", "miasto_statki", "miasto_statki2", "miasto_palmy",
+                 "miasto_port", "miasto_silownia_metro", "miasto_znaki", "miasto_palmy",
                  "miasto_jedzenie", "miasto_sklepy")
 
 
