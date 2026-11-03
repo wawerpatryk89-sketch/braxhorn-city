@@ -57,6 +57,9 @@ const VIEWS = [
   // 3.11: wieża ratownika z kodu (BraxNabrzezeRatownik, środek słupów ~127.3, 140; pokład ~y 2.0): z plaży (schody, kabina) i z balkonu na morze
   ['DETAL_plaza_wieza_ratownika', '127.3,0.8,140,225,10,11'],
   ['DETAL_plaza_wieza_ratownika_z_platformy', '130.8,3.2,140,270,5,3'],
+  // 3.11: bulwar — miejsce po PUNKCIE DOSTAW i garażach (wycięte ze źródła), mur podwórka z cegły PBR × k
+  ['DETAL_bulwar_po_punkcie_dostaw', '81.4,1.2,82.7,0,15,8'],
+  ['DETAL_bulwar_mur_cegla', '64.6,1.6,70,90,8,4'],
   ['17_marina_zejscie', '120,0.1,119,0,14,8'],
   ['17b_marina_pomost', '120,-0.5,104,0,12,9'],
   ['17c_marina_jachty', '122,-0.5,84,270,12,9'],
