@@ -587,7 +587,7 @@ public static partial class BraxRegionMiastoB
             if (t)
             {
                 t.SetParent(root, false); t.name = "Wiata przystanku ALEJA CENTRALNA (model)";
-                t.position = NaPodlozu(new Vector3(PrzystBusX - 8f, YC, RZ - APR + .2f)); t.rotation = Quaternion.Euler(0, 180f, 0); t.localScale = Vector3.one * K;
+                t.position = NaPodlozu(new Vector3(PrzystBusX - 8f, YC, RZ - APR + .2f)); t.rotation = Quaternion.identity;   // właściciel 3.11: „stoi odwrotnie” — model: tylna ściana −z, otwarta +z (do jezdni na płn.); było 180° t.localScale = Vector3.one * K;
                 BraxMiastoAssety.Przygotuj(t.gameObject); BraxMiastoAssety.Kolizja(root, t.gameObject, "Wiata kolizja", .3f);
             }
             UnityEngine.Object.DestroyImmediate(kopia);
