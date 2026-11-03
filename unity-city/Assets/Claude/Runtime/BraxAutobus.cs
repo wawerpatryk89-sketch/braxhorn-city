@@ -1,0 +1,146 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+// AUTOBUS OSIEDLA (runda 6, E23). Jedzie po ścieżce (linia prawego pasa z tras ruchu, BraxRuchAut), zatrzymuje się przy
+// przystankach drzwiami przy wiacie, otwiera drzwi (skrzydła odsuwane), wypuszcza pasażera (pojawia się przy drzwiach
+// i odchodzi 1.5 m w stronę wiaty), zabiera czekających (znikają przy drzwiach po kolei), zamyka drzwi i rusza.
+// Ruch: przyspieszenie / hamowanie, w zakrętach do vZakret, hamuje za autami AI (BraxRuchAut) i przed graczem; auta AI
+// widzą autobus jako przeszkodę (BraxRuchAut dodaje Wszystkie do obrysów zewnętrznych). Ścieżka otwarta (linia B):
+// na końcu autobus czeka, aż zniknie z kadru, i wjeżdża od początku (jak auta B na ślepej ulicy).
+public sealed class BraxAutobus : MonoBehaviour
+{
+    public static readonly List<BraxAutobus> Wszystkie = new List<BraxAutobus>();
+    [System.Serializable] public class Przystanek
+    {
+        public string nazwa; public float s; public float postoj = 9f;
+        public Transform[] czekajacy = new Transform[0];   // znikają przy drzwiach (wsiadają)
+        public Transform[] wysiadajacy = new Transform[0]; // nieaktywni do przyjazdu; wysiadają i zostają przy wiacie
+        public Vector3 wiata;
+    }
+    public Vector3[] sciezka = new Vector3[0];
+    public bool petla = true;
+    public Przystanek[] przystanki = new Przystanek[0];
+    public Transform[] skrzydla = new Transform[0];   // drzwi: skrzydła przesuwane wzdłuż boku (lokalne +z / −z naprzemiennie)
+    public Transform[] kola = new Transform[0];
+    public Transform drzwiPunkt;                       // punkt przy przednich drzwiach (na chodniku)
+    public float dl = 10.3f, szer = 3.1f, vmax = 10.8f, vZakret = 5.4f, przyspieszenie = 1.2f, hamowanie = 2.4f, rKola = .65f;
+    public BoxCollider obrys;
+    public float s, v;
+
+    float[] odc; float L; int nast; float tPostoj = -1f; bool drzwiOtw; float drzwiStan; Vector3[] skrzydlaZamk; BraxRuchAut ruch; BraxGymPlayer gracz; float szukaj;
+    Renderer[] rend;
+
+    void OnEnable() { if (!Wszystkie.Contains(this)) Wszystkie.Add(this); }
+    void OnDisable() { Wszystkie.Remove(this); }
+
+    void Start()
+    {
+        if (sciezka == null || sciezka.Length < 2) { enabled = false; return; }
+        odc = new float[sciezka.Length]; L = 0f;
+        for (int i = 1; i < sciezka.Length; i++) { L += Vector3.Distance(sciezka[i - 1], sciezka[i]); odc[i] = L; }
+        skrzydlaZamk = new Vector3[skrzydla.Length]; for (int i = 0; i < skrzydla.Length; i++) if (skrzydla[i]) skrzydlaZamk[i] = skrzydla[i].localPosition;
+        rend = GetComponentsInChildren<Renderer>();
+        foreach (var p in przystanki) foreach (var w in p.wysiadajacy) if (w) w.gameObject.SetActive(false);
+        nast = NastepnyPrzystanek(s);
+        Ustaw();
+    }
+    int NastepnyPrzystanek(float od)
+    {
+        int best = -1; float bd = float.MaxValue;
+        for (int i = 0; i < przystanki.Length; i++) { float d = przystanki[i].s - od; if (d < -.5f) d += petla ? L : 1e6f; if (d < bd) { bd = d; best = i; } }
+        return best;
+    }
+    Vector3 P(float x, out Vector3 kier)
+    {
+        if (petla) { x %= L; if (x < 0) x += L; } else x = Mathf.Clamp(x, 0f, L);
+        int lo = 1, hi = sciezka.Length - 1;
+        while (lo < hi) { int m = (lo + hi) / 2; if (odc[m] < x) lo = m + 1; else hi = m; }
+        float d = Mathf.Max(1e-4f, odc[lo] - odc[lo - 1]); kier = (sciezka[lo] - sciezka[lo - 1]) / d;
+        return Vector3.Lerp(sciezka[lo - 1], sciezka[lo], Mathf.Clamp01((x - odc[lo - 1]) / d));
+    }
+    // ustawienie nadwozia: oś przednia i tylna na ścieżce (bez „ślizgu” tyłu w zakrętach)
+    void Ustaw()
+    {
+        var przod = P(s + dl * .25f, out _); var tyl = P(s - dl * .25f, out _);
+        var f = przod - tyl; f.y = 0f; if (f.sqrMagnitude < 1e-6f) P(s, out f);
+        transform.position = (przod + tyl) * .5f;
+        if (f.sqrMagnitude > 1e-6f) transform.rotation = Quaternion.LookRotation(f.normalized, Vector3.up);
+    }
+    bool Widoczny() { if (rend != null) foreach (var r in rend) if (r && r.isVisible) return true; return false; }
+
+    void Update()
+    {
+        float dt = Mathf.Min(Time.deltaTime, .1f); if (dt <= 0f || odc == null) return;
+        if (!ruch) ruch = FindAnyObjectByType<BraxRuchAut>();
+        if (!gracz && Time.time > szukaj) { gracz = FindAnyObjectByType<BraxGymPlayer>(); szukaj = Time.time + 2f; }
+        Drzwi(dt);
+        if (tPostoj >= 0f) { Postoj(dt); return; }
+        // koniec ścieżki otwartej: czeka poza kadrem i wjeżdża od nowa
+        if (!petla && s >= L - .05f) { v = 0f; if (!Widoczny()) { s = 0f; nast = NastepnyPrzystanek(0f); Ustaw(); } return; }
+        float cel = vmax;
+        // zakręt przed nami (kąt między kierunkiem teraz i za 12 m)
+        P(s, out var k0); P(s + 12f, out var k1); if (Vector3.Angle(k0, k1) > 25f) cel = Mathf.Min(cel, vZakret);
+        // przystanek: hamowanie do zera w punkcie postoju
+        if (nast >= 0)
+        {
+            float d = przystanki[nast].s - s; if (petla && d < -1f) d += L;
+            if (d >= 0f) cel = Mathf.Min(cel, Mathf.Sqrt(2f * hamowanie * .8f * Mathf.Max(0f, d)));
+            if (d < .3f && v < .6f) { v = 0f; tPostoj = 0f; drzwiOtw = true; return; }
+        }
+        // przeszkody przed autobusem: auta AI i gracz w pasie 2 m szerokości, do 10 m od przodu
+        if (Przed(out float odl)) cel = Mathf.Min(cel, Mathf.Max(0f, (odl - 2.5f) * .8f));
+        v = Mathf.MoveTowards(v, Mathf.Max(0f, cel), (cel > v ? przyspieszenie : hamowanie * (cel < v - 3f ? 1.4f : 1f)) * dt);
+        s += v * dt; if (!petla) s = Mathf.Min(s, L);
+        Ustaw();
+        foreach (var k in kola) if (k) k.Rotate(transform.right, v * dt / Mathf.Max(.1f, rKola) * Mathf.Rad2Deg, Space.World);
+    }
+    bool Przed(out float odl)
+    {
+        float o = float.MaxValue; var f = transform.forward; var c = transform.position;
+        void Sprawdz(Vector3 p)
+        {
+            var d = p - c; float wz = Vector3.Dot(d, f), wx = Vector3.Dot(d, transform.right);
+            if (wz > dl * .5f && wz < dl * .5f + 10f && Mathf.Abs(wx) < 1.6f) o = Mathf.Min(o, wz - dl * .5f);
+        }
+        if (ruch && ruch.Symulacja != null) foreach (var a in ruch.Symulacja.auta) Sprawdz(a.poz);
+        if (gracz) Sprawdz(gracz.transform.position);
+        odl = o; return o < float.MaxValue;
+    }
+    void Postoj(float dt)
+    {
+        var p = przystanki[nast]; tPostoj += dt;
+        // wysiadanie: po 1 s pierwszy wysiadający pojawia się przy drzwiach i odchodzi 1.5 m w stronę wiaty
+        for (int i = 0; i < p.wysiadajacy.Length; i++)
+        {
+            var w = p.wysiadajacy[i]; if (!w) continue; float t0 = 1f + i * 1.2f;
+            if (tPostoj >= t0 && !w.gameObject.activeSelf && drzwiPunkt) { w.position = drzwiPunkt.position; w.gameObject.SetActive(true); }
+            if (w.gameObject.activeSelf && tPostoj < t0 + 1.6f && drzwiPunkt)
+            {
+                var cel = Vector3.Lerp(drzwiPunkt.position, p.wiata, .5f); cel.y = w.position.y;
+                w.position = Vector3.MoveTowards(w.position, cel, dt * 1.1f);
+                var kier = cel - w.position; kier.y = 0; if (kier.sqrMagnitude > 1e-4f) w.rotation = Quaternion.LookRotation(kier);
+            }
+        }
+        // wsiadanie: czekający znikają przy drzwiach po kolei (od 3 s)
+        for (int i = 0; i < p.czekajacy.Length; i++)
+        {
+            var c = p.czekajacy[i]; if (!c || !c.gameObject.activeSelf) continue;
+            float t0 = 3f + i * 1.3f;
+            if (tPostoj >= t0 - 1.2f && drzwiPunkt) { var cel = drzwiPunkt.position; cel.y = c.position.y; c.position = Vector3.MoveTowards(c.position, cel, dt * 1.3f); var kier = cel - c.position; kier.y = 0; if (kier.sqrMagnitude > 1e-4f) c.rotation = Quaternion.LookRotation(kier); }
+            if (tPostoj >= t0) c.gameObject.SetActive(false);
+        }
+        if (tPostoj >= p.postoj - 1.2f) drzwiOtw = false;
+        if (tPostoj >= p.postoj)
+        {
+            // zamiana ról: wysiadający czekają na następny autobus, czekający (w autobusie) wysiądą na kolejnym okrążeniu
+            var t = p.czekajacy; p.czekajacy = p.wysiadajacy; p.wysiadajacy = t;
+            tPostoj = -1f; s += .4f; nast = NastepnyPrzystanek(s);
+        }
+    }
+    void Drzwi(float dt)
+    {
+        drzwiStan = Mathf.MoveTowards(drzwiStan, drzwiOtw ? 1f : 0f, dt / .9f);
+        for (int i = 0; i < skrzydla.Length; i++)
+            if (skrzydla[i]) skrzydla[i].localPosition = skrzydlaZamk[i] + new Vector3(.06f * Mathf.Clamp01(drzwiStan * 3f), 0f, (i % 2 == 0 ? 1f : -1f) * .55f * drzwiStan);
+    }
+}

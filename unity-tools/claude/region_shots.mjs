@@ -237,6 +237,10 @@ const VIEWS = [
   ['DETAL_kasyno_hol_lawka_wieszak', '86,1.2,-51.5,180,10,3.5', 'estate'],
   ['DETAL_kasyno_biuro_sejf', '79.6,0.6,-56.45,270,15,2.2', 'estate'],
   ['DETAL_dyskoteka_konsola_dj', '101.5,1.6,12,270,10,3.5', 'estate'],
+  // runda 6 (B): E23 przystanki z nazwami i autobusy (autobus w ruchu — w kadrze, jeśli akurat stoi na przystanku)
+  ['DETAL_przystanek_A1_nazwa', '8.4,2.2,9.8,270,8,6', 'estate'],
+  ['DETAL_przystanek_A3', '8.4,1.6,66.5,270,8,6.5', 'estate'],
+  ['DETAL_przystanek_B2', '15,1.6,-185.3,180,8,6.5', 'estate'],
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],

@@ -216,9 +216,24 @@ public static partial class BraxClaudeOsiedle
             if (ok) { Hydrant(p); hydrantyN++; }
         }
         // 3) przystanki autobusowe z wiatą (A: Poznańska w obie strony, B: ulica główna przy klubie tenisowym)
-        Przystanek(new Vector3(8.4f, 0, 9.8f), Vector3.left, new Vector3(4.85f, 0, 15.6f), Vector3.back, 3.8f, 4.45f, 2f, 17f, false);
-        Przystanek(new Vector3(-8.4f, 0, 2.6f), Vector3.right, new Vector3(-4.85f, 0, -3.2f), Vector3.forward, -4.45f, -3.8f, -6f, 9f, false);
-        Przystanek(new Vector3(10f, 0, StreetZ - Half - 1.0f), Vector3.forward, new Vector3(14.2f, 0, StreetZ - Carriage - Kerb - Green * .5f), Vector3.left, StreetZ - 3.35f, StreetZ - 2.7f, 1f, 17f, true);
+        // E23 (runda 6): przystanki z nazwami (robocze) i dane linii autobusowych (BraxClaudeOsiedleAutobus): A = 3, B = 2
+        przystankiLinii.Clear();
+        bool PrzystanekLinii(string nazwa, Vector3 c, Vector3 f, Vector3 znak, Vector3 znakLico, float d0, float d1, float s0, float s1, bool wzdluzX, Vector3 ruch)
+        {
+            int n0 = przystankiN;
+            Przystanek(c, f, znak, znakLico, d0, d1, s0, s1, wzdluzX);
+            if (przystankiN == n0) return false;
+            NazwaPrzystanku(c, f, nazwa); przystankiLinii.Add((nazwa, c, ruch, wzdluzX)); return true;
+        }
+        PrzystanekLinii("OSIEDLE A 1", new Vector3(8.4f, 0, 9.8f), Vector3.left, new Vector3(4.85f, 0, 15.6f), Vector3.back, 3.8f, 4.45f, 2f, 17f, false, Vector3.forward);
+        PrzystanekLinii("OSIEDLE A 2", new Vector3(-8.4f, 0, 2.6f), Vector3.right, new Vector3(-4.85f, 0, -3.2f), Vector3.forward, -4.45f, -3.8f, -6f, 9f, false, Vector3.back);
+        foreach (float za in new[] { 66.5f, 72f, 61f })   // pierwsze wolne miejsce (wiata sprawdza kolizje)
+            if (PrzystanekLinii("OSIEDLE A 3", new Vector3(8.4f, 0, za), Vector3.left, new Vector3(4.85f, 0, za + 5.8f), Vector3.back, 3.8f, 4.45f, za - 7.8f, za + 7.2f, false, Vector3.forward)) break;
+        PrzystanekLinii("OSIEDLE B 1", new Vector3(10f, 0, StreetZ - Half - 1.0f), Vector3.forward, new Vector3(14.2f, 0, StreetZ - Carriage - Kerb - Green * .5f), Vector3.left, StreetZ - 3.35f, StreetZ - 2.7f, 1f, 17f, true, Vector3.right);
+        foreach (float xb in new[] { 15f, 30f, 3f, 40f })
+            if (PrzystanekLinii("OSIEDLE B 2", new Vector3(xb, 0, StreetZ + Half + 1.0f), Vector3.back, new Vector3(xb - 4.2f, 0, StreetZ + Carriage + Kerb + Green * .5f), Vector3.right, StreetZ + 2.7f, StreetZ + 3.35f, xb - 7f, xb + 9f, true, Vector3.left)) break;
+        int pA = przystankiLinii.Count(q => q.nazwa.StartsWith("OSIEDLE A")), pB = przystankiLinii.Count(q => q.nazwa.StartsWith("OSIEDLE B"));
+        Debug.Log("BRAXHORN_PRZYSTANKI A=" + pA + " B=" + pB + " (wymóg A ≥ 3, B ≥ 2) [" + string.Join("; ", przystankiLinii.Select(q => q.nazwa + " @" + q.c.ToString("F1"))) + "] — wiata ze szkłem, ławka, rozkład, kosz, D-15, P-17 w wycięciu, nazwa; zatoki fizycznej brak (chodniki A 2.1 m — przystanek przykrawężnikowy)");
         // 4) barierki U-12a przy przejściach do Parku Wiśniowego (wejście z parkingów — dzieci z parku)
         foreach (var z in zebry.Where(ParkowaZebra))
             foreach (int sd in new[] { 1, -1 })
@@ -318,6 +333,22 @@ public static partial class BraxClaudeOsiedle
 
     // Przystanek: wiata (stal + szkło, dach), posadzka z płyt połączona z chodnikiem, ławka, rozkład jazdy, kosz z klapą,
     // znak D-15 przy krawężniku, żółta linia przystankowa P-17 na pasie (d0..d1 w poprzek — x albo z, s0..s1 wzdłuż).
+    public static readonly List<(string nazwa, Vector3 c, Vector3 ruch, bool b)> przystankiLinii = new List<(string, Vector3, Vector3, bool)>();
+    // tablica z nazwą przystanku nad dachem wiaty (granat, białe litery) + rozkład jazdy z liniami
+    static void NazwaPrzystanku(Vector3 c, Vector3 f, string nazwa)
+    {
+        float k = Ks, w = 3.2f * k, d = 1.5f * k, h = 2.45f * k; c.y = 0f;
+        var R = Vector3.Cross(Vector3.up, f).normalized; float yaw = Mathf.Atan2(f.x, f.z) * Mathf.Rad2Deg;
+        var g = group; group = GrupaWyposazenia(c);
+        var granat = Plain("tablica przystanku granat", new Color(.06f, .12f, .32f), .5f);
+        var p = c + Vector3.up * (h + .1f * k + .2f) + f * (d * .5f + .2f * k);
+        OBox(Frame, p - Vector3.up * .17f, new Vector3(.05f, .14f, .05f), yaw);
+        OBox(granat, p + Vector3.up * .05f, new Vector3(w * .62f, .28f, .05f), yaw);
+        Napis3D(nazwa, p + Vector3.up * .05f + f * .026f, f, .11f, .008f, ZnBialy, granat, .15f, .14f, true);
+        var rp = c + R * (w * .5f - .1f) - f * .1f * k + Vector3.up * 1.62f * k;   // na rozkładzie: nazwa przystanku
+        Napis3D("ROZKŁAD", rp + R * -.012f, -R, .035f, .002f, granat, granat, .15f, .14f, true);
+        group = g;
+    }
     static void Przystanek(Vector3 c, Vector3 f, Vector3 znak, Vector3 znakLico, float d0, float d1, float s0, float s1, bool wzdluzX)
     {
         float k = Ks, w = 3.2f * k, d = 1.5f * k, h = 2.45f * k;

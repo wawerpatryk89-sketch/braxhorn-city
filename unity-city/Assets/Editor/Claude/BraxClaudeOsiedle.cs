@@ -5696,6 +5696,7 @@ public static partial class BraxClaudeOsiedle
         Guard("warsztat: mechanicy (E32)", WarsztatMechanicy);
         Guard("salon samochodowy: obsada i pasażer schodów ruchomych", SalonObsada);
         Guard("sklepy: pracownik za ladą wszędzie (runda 5)", ObsadaSklepow);
+        Guard("autobusy: pasażerowie na przystankach (E23)", AutobusPasazerowie);
 
         // 6) punkty podróży (TravelPoint) do nowych miejsc
         var world = UnityEngine.Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(w => w.area == "estate");
