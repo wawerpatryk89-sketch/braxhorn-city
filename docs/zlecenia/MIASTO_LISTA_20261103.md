@@ -469,3 +469,12 @@ Do zrobienia:
   murki z cegły na dachu (klocki), lustrzana tafla na placu, migająca elewacja wieży przy placu z pawilonem (tyły B)
 - ❌ skala całego świata — w nocy był tylko audyt (BRAXHORN_SKALA lista), bez poprawek
 - ❌ wejście na jacht pieszo (teraz WSIĄDŹ przy trapie), miasto wszerz (właściciel: później)
+
+## DO ZROBIENIA — zapamiętane (właściciel 3.11 12:17)
+- **Aleje palm wzdłuż chodników**: „grube” palmy z paczki właściciela (palm_hp_4 → `miasto_palmy/palma.glb`, 3 LOD, 13 m × K)
+  ustawić szpalerem wzdłuż chodników (w misach z trawnikiem — BraxMisyDrzew), potem ogólne przerobienie zieleni miasta.
+- Kolejka na poniedziałek (3.11): rowery i skutery do jazdy + wypożyczalnia skuterów, wózek widłowy do jazdy na placu portu;
+  plac portu (magazyn, budka ochrony, podmisja firmy kontenerowej); jacht z wnętrzem do zwiedzania (paczka gotowa offline:
+  scratchpad/port_hd/jacht_wnetrze.glb, logo Sea Ray zamalowane — nie wdrożony); cegły zamiast szyb w blokach podwórka
+  (x 26.9–63.1 / z 99.5–113.5 i x −35.7…−13.1 / z 50.9–113.5); stare billboardy i powtarzający się napis NOVA MUSIC;
+  skala rekwizytów źródła miasta (1:1 → × K, z kolizjami); szersze drogi i zaokrąglone narożniki; znikający skuter wodny.
