@@ -95,7 +95,7 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(mur, xb, x1 - t, yE, yE + .25f, z0 + t, z1 - t, false, true);         // strop hali
         BoxMinMax(Plinth, x0 - .04f, x1 + .04f, 0, .45f, z0 - .04f, z0, false); BoxMinMax(Plinth, x0 - .04f, x0, 0, .45f, z0, z1 + .04f, false); BoxMinMax(Plinth, x1, x1 + .04f, 0, .45f, z0, z1 + .04f, false);
         ObwodBez(obr, x0, x1, z0, z1, t, yA, yA + .05f, .04f);
-        BoxMinMax(pas, x0 - .06f, x1 + .06f, yE - .1f, yE + .25f, z1, z1 + .06f, false);   // gzyms frontu
+        BoxMinMax(pas, x0 - .06f, x1 + .06f, yE - .1f, yA, z1, z1 + .06f, false);   // 3.11 (premium): pas grafitowy frontu od gzymsu po attykę — pod szyldy
         BoxMinMax(StMat("membrana dachu", new Color(.35f, .36f, .37f), .2f), x0 + t, x1 - t, yE + .25f, yE + .3f, z0 + t, z1 - t, false);
         StDetal("warsztat", "cokół, attyka z obróbką, gzyms frontu");
         // okno biura w ścianie bocznej zachodniej (opaska, parapet zewnętrzny, rama, szyba)
@@ -143,9 +143,12 @@ public static partial class BraxClaudeOsiedle
             Tube(obr, new Vector3(rx, .25f, z0 - .12f), new Vector3(rx, .08f, z0 - .4f), .05f, 10);
         }
         StDetal("warsztat", "leje i rury spustowe", 3);
-        Napis3D("WARSZTAT", new Vector3(xb + bw, yE + .3f, z1), Vector3.forward, .26f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
-        Napis3D("WULKANIZACJA", new Vector3(xb + bw * 2.5f, yE + .3f, z1), Vector3.forward, .2f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
-        Napis3D("BIURO", new Vector3((x0 + xb) * .5f, yE + .32f, z1), Vector3.forward, .2f, .04f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
+        // 3.11 (właściciel: warsztat szary, małe napisy): szyldy z grafik właściciela na pasie grafitowym; bez grafik — litery
+        if (!SzyldPanel("warsztat_szyld", new Vector3(xb + bw, yE + .25f, z1 + .06f), Vector3.forward, 2.6f, .65f))
+            Napis3D("WARSZTAT", new Vector3(xb + bw, yE + .3f, z1 + .06f), Vector3.forward, .26f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
+        if (!SzyldPanel("wulkanizacja_szyld", new Vector3(xb + bw * 2.5f, yE + .25f, z1 + .06f), Vector3.forward, 2.6f, .65f))
+            Napis3D("WULKANIZACJA", new Vector3(xb + bw * 2.5f, yE + .3f, z1 + .06f), Vector3.forward, .2f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
+        Napis3D("BIURO", new Vector3((x0 + xb) * .5f, yE + .32f, z1 + .06f), Vector3.forward, .2f, .04f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
 
         // 4) wnętrze: posadzka, biuro przyjęć, hala (podnośnik, opony, wózek, stół)
         group = "Osiedle A / warsztat — wnętrze";

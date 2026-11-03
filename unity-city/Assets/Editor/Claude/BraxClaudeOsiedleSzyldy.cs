@@ -266,11 +266,18 @@ public static partial class BraxClaudeOsiedle
                     // ARENA BRAXHORN: białe litery z czerwonymi bokami 1 m na czarnej listwie (przed pilastrami), pod spodem OSIEDLE;
                     // pionowy czerwony kaseton ARENA na wysięgniku przy pilastrze (jak na zdjęciu-wzorcu)
                     var red = new Color(.66f, .05f, .06f);
-                    SzyldLitery(bud, "ARENA BRAXHORN", "ARENA BRAXHORN", new Vector3(cx, 4.2f, pil), fwd, .9f, MatLicoBiale, MatBoki("czerwone", red), .14f, .07f, MatBokiCzarne, .15f, .11f);
-                    SzyldLitery(bud, "OSIEDLE", "OSIEDLE", new Vector3(cx, 3.56f, lico), fwd, .3f, MatLicoBiale, MatBoki("czerwone", red), .06f, .04f);
+                    // 3.11 16:06 (właściciel: „Arena BRAXHORN?” — szyldy premium z grafik): szyld główny 4:1 i banery 1:4 z paczki grafik;
+                    // bez grafik — litery 3D jak dotąd
+                    if (!SzyldPanel("arena_szyld", new Vector3(cx, 4.6f, pil) + fwd * .03f, fwd, 8f, 2f))
+                    {
+                        SzyldLitery(bud, "ARENA BRAXHORN", "ARENA BRAXHORN", new Vector3(cx, 4.2f, pil), fwd, .9f, MatLicoBiale, MatBoki("czerwone", red), .14f, .07f, MatBokiCzarne, .15f, .11f);
+                        SzyldLitery(bud, "OSIEDLE", "OSIEDLE", new Vector3(cx, 3.56f, lico), fwd, .3f, MatLicoBiale, MatBoki("czerwone", red), .06f, .04f);
+                    }
                     Wysiegnik(bud, "ARENA (wysięgnik pionowy)", new Vector3(cx + 10f, 5.0f, pil), fwd, .1f, .74f, 3.1f, .2f, MatKaseton("czerwony arena", red), MatBokiCzarne, "ARENA", .42f, true, MatLicoBiale, MatBokiCzarne);
                     // banery LIGA na wysięgnikach przy skrajnych pilastrach (płótno na drążkach, litery pionowo)
-                    foreach (float s in new[] { -15f, 15f }) BanerPionowy(bud, "baner LIGA " + (s < 0 ? "L" : "P"), new Vector3(cx + s, 5.0f, pil), fwd, .9f, 3.0f, Plain("baner płótno czerwone", red, .15f), "LIGA", .4f);
+                    foreach (float s in new[] { -15f, 15f })
+                        if (!SzyldPanel("arena_baner", new Vector3(cx + s, 5.0f, pil) + fwd * .03f, fwd, .9f, 3.6f))
+                            BanerPionowy(bud, "baner LIGA " + (s < 0 ? "L" : "P"), new Vector3(cx + s, 5.0f, pil), fwd, .9f, 3.0f, Plain("baner płótno czerwone", red, .15f), "LIGA", .4f);
                     break;
                 }
                 case "dyskoteka":
