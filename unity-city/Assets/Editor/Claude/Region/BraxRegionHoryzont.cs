@@ -259,6 +259,28 @@ public static class BraxRegionHoryzont
         return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }
 
+    // Niebo HD: pełna rozdzielczość pliku (do 8192), wysoka jakość kompresji na telefon i WebGL (bez ETC2-kwadratów).
+    static Texture2D NieboHD(string p)
+    {
+        if (!File.Exists(p)) return null;
+        AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceSynchronousImport);
+        var imp = AssetImporter.GetAtPath(p) as TextureImporter;
+        if (!imp) return null;
+        imp.textureType = TextureImporterType.Default; imp.textureShape = TextureImporterShape.Texture2D; imp.sRGBTexture = true;
+        imp.mipmapEnabled = true; imp.wrapModeU = TextureWrapMode.Repeat; imp.wrapModeV = TextureWrapMode.Clamp;
+        imp.filterMode = FilterMode.Trilinear; imp.anisoLevel = 2; imp.npotScale = TextureImporterNPOTScale.None;
+        imp.alphaSource = TextureImporterAlphaSource.None; imp.maxTextureSize = 8192;
+        imp.textureCompression = TextureImporterCompression.CompressedHQ; imp.compressionQuality = 100;
+        var and = imp.GetPlatformTextureSettings("Android"); and.name = "Android"; and.overridden = true; and.maxTextureSize = 8192;
+        and.format = TextureImporterFormat.ASTC_5x5; and.compressionQuality = 100; imp.SetPlatformTextureSettings(and);
+        var web = imp.GetPlatformTextureSettings("WebGL"); web.name = "WebGL"; web.overridden = true; web.maxTextureSize = 8192;
+        web.format = TextureImporterFormat.DXT1; web.compressionQuality = 100; imp.SetPlatformTextureSettings(web);
+        imp.SaveAndReimport();
+        var t = AssetDatabase.LoadAssetAtPath<Texture2D>(p);
+        if (t) Debug.Log("BRAXHORN_NIEBO HD: " + p + " " + t.width + "x" + t.height + " (Android ASTC 5x5, WebGL DXT1, mipmapy)");
+        return t;
+    }
+
     static Texture2D Albedo(int max, params string[] sciezki)
     {
         foreach (var p in sciezki)
@@ -373,8 +395,12 @@ public static class BraxRegionHoryzont
     static void Niebo()
     {
         var stare = RenderSettings.skybox;
-        if (stare && stare.HasProperty("_MainTex")) nieboTex = stare.GetTexture("_MainTex") as Texture2D;
-        if (!nieboTex) nieboTex = Albedo(4096, "Assets/Source/Claude/PolyHaven/sky/kloofendal_4k.jpg", "Assets/CityRebuild/Waterfront/daylight-sky.jpg", "Assets/Source/Claude/Osiedle/sky/niebo_4k.jpg");
+        // 3.11 (właściciel: „panorama w HD, 360°”, „niebo kwadratowe”): dotąd brany był obraz STAREGO skyboxa (2048×1024,
+        // ETC2 — rozciągnięty 7× na ekranie telefonu = kwadraty). Teraz najpierw HD z Poly Haven (8192×4096, ASTC 5×5 /
+        // DXT1 WebGL, mipmapy przez tex2Dgrad), potem 4K, stary skybox tylko gdy brak plików.
+        nieboTex = NieboHD("Assets/Source/Claude/PolyHaven/sky/kloofendal_8k.jpg") ?? NieboHD("Assets/Source/Claude/PolyHaven/sky/kloofendal_4k.jpg");
+        if (!nieboTex && stare && stare.HasProperty("_MainTex")) { nieboTex = stare.GetTexture("_MainTex") as Texture2D; Debug.LogWarning("DO POPRAWKI: BRAXHORN_NIEBO brak HD z Poly Haven — stary obraz nieba " + (nieboTex ? nieboTex.width + "x" + nieboTex.height : "brak")); }
+        if (!nieboTex) nieboTex = Albedo(4096, "Assets/CityRebuild/Waterfront/daylight-sky.jpg", "Assets/Source/Claude/Osiedle/sky/niebo_4k.jpg");
         if (nieboTex)
         {
             var imp = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(nieboTex)) as TextureImporter;

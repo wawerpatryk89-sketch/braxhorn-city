@@ -121,9 +121,11 @@ def main() -> int:
         print("TEX grass004 (ambientCG) OK")
     # Niebo: to samo co dziś w mieście (kloofendal_48d_partly_cloudy_puresky z biblioteki właściciela),
     # ale ostre: 4096x2048 zamiast 2048x1024 (wersja tonemapped JPG z Poly Haven).
+    # 3.11 (właściciel: „panorama w HD, 360 stopni, zajebista”, „niebo kwadratowe”): w grze było 2048x1024 (stary skybox),
+    # teraz HD 8192x4096 (albo pełna szerokość pliku tonemapped, jeśli mniejsza) + 4096x2048 jako zapas.
     sky_id = "kloofendal_48d_partly_cloudy_puresky"
     d = ROOT / "sky"
-    if (d / "kloofendal_4k.jpg").exists():
+    if (d / "kloofendal_8k.jpg").exists() and (d / "kloofendal_4k.jpg").exists():
         print("SKY SKIP (jest)")
     else:
         f = files(sky_id)
@@ -131,12 +133,16 @@ def main() -> int:
         d.mkdir(parents=True, exist_ok=True)
         raw = d / "sky_full.jpg"
         raw.write_bytes(get(url))
+        Image.MAX_IMAGE_PIXELS = None
         im = Image.open(raw).convert("RGB")
-        im = im.resize((4096, 2048), Image.LANCZOS)
-        im.save(d / "kloofendal_4k.jpg", quality=92)
+        print("SKY źródło tonemapped", im.size)
+        w8 = min(8192, im.size[0] // 2 * 2)
+        im.resize((w8, w8 // 2), Image.LANCZOS).save(d / "kloofendal_8k.jpg", quality=95, subsampling=0)
+        im.resize((4096, 2048), Image.LANCZOS).save(d / "kloofendal_4k.jpg", quality=92)
         raw.unlink()
-    report["sky"] = {"id": sky_id, "size": [4096, 2048]}
-    print("SKY", sky_id, "4096x2048 OK")
+    with Image.open(d / "kloofendal_8k.jpg") as hd:
+        report["sky"] = {"id": sky_id, "hd": list(hd.size), "zapas": [4096, 2048]}
+        print("SKY", sky_id, "HD", hd.size, "OK")
     (ROOT / "polyhaven-receipt.json").write_text(json.dumps(report, indent=1))
     (ROOT / "LICENSE-CC0.txt").write_text(
         "Wszystkie pliki w tym katalogu pochodzą z https://polyhaven.com i są na licencji CC0.\n")
