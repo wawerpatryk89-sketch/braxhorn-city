@@ -669,7 +669,7 @@ internal static partial class BraxMiastoWyspa
             + " srodek=(" + CX + ", " + CZ + ") lad=" + (lx1 - lx0).ToString("F0") + "×" + (lz1 - lz0).ToString("F0") + " m (" + ladM2.ToString("F0") + " m²)"
             + " plaza_m2=" + plazaM2.ToString("F0") + " domki=" + nDomki + " lezaki=" + nLezaki + " ratownicy=" + wiezyczki.Count + " przebieralnie=" + nPrzebieralnie
             + " chodniki_m=" + mChodnika.ToString("F0") + " krawezniki=" + nKrawezniki + " deptak_plazy_m=" + mDeptakuPlazy.ToString("F0") + " latarnie=" + nLatarnie + " lawki=" + nLawki
-            + " kapiacy_sie=" + nKapiacy + " palmy=" + palm + " teren_trojkatow=" + tris + " auta=0 arena=bez_zmian(przeniesiona)"
+            + " kapiacy_sie=" + nKapiacy + " palmy=" + palm + " teren_trojkatow=" + tris + " auta=0 arena=premium(BraxMiastoWyspaArena)"
             + " plyty_nad_terenem=" + plyty.Count + (plyty.Count > 0 ? " [" + string.Join(" | ", plyty.Take(12)) + "]" : "");
         Debug.Log(linia); BraxRegion.Note(linia);
     }
