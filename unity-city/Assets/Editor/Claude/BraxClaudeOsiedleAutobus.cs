@@ -144,6 +144,51 @@ public static partial class BraxClaudeOsiedle
         return bus;
     }
 
+    // AUTOBUS Z MODELU (koordynator 02:5x): paczka miasto_pojazdy/autobus.glb (MAN 12 m, CC BY 4.0, logo usunięte) — skala na
+    // 12 m × K długości × skalaZmiesci (dobierana tak, by nadwozie mieściło się na jezdni w łukach linii), przód +z jak w mieście
+    // (yaw 90 = na wschód). Drzwi: węzły modelu z „door”/„drzwi” w nazwie = skrzydła; bez nich — tylko postój + dźwięk drzwi.
+    static float busSkala = 1f; static string busModel = "kod";
+    static BraxAutobus AutobusZModelu(string nazwa, Transform rodzic, GameObject src, float dlCel)
+    {
+        var root = new GameObject(nazwa); root.transform.SetParent(rodzic, false);
+        var o = (GameObject)Object.Instantiate(src, root.transform, false); o.name = "model autobusu (miasto_pojazdy/autobus.glb)";
+        o.transform.localRotation = Quaternion.identity; o.transform.localScale = Vector3.one;
+        var rs = o.GetComponentsInChildren<Renderer>(true); if (rs.Length == 0) { Object.DestroyImmediate(root); return null; }
+        var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        float dl0 = Mathf.Max(b.size.z, .1f); if (b.size.x > b.size.z * 1.5f) { o.transform.localRotation = Quaternion.Euler(0, 90f, 0); dl0 = b.size.x; }   // dłuższa oś = przód
+        o.transform.localScale = Vector3.one * (dlCel / dl0);
+        rs = o.GetComponentsInChildren<Renderer>(true); b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+        o.transform.position += new Vector3(root.transform.position.x - b.center.x, root.transform.position.y - b.min.y, root.transform.position.z - b.center.z);
+        foreach (var t in o.GetComponentsInChildren<Transform>(true)) UnityEditor.GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
+        foreach (var r in rs) { r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; r.receiveShadows = true; }
+        foreach (var c in o.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(c);
+        var bus = root.AddComponent<BraxAutobus>();
+        float hw = b.size.x * .5f, L = b.size.z;
+        var skrzydla = o.GetComponentsInChildren<Transform>(true).Where(t => { var n = t.name.ToLowerInvariant(); return (n.Contains("door") || n.Contains("drzwi")) && t.GetComponent<Renderer>(); }).ToArray();
+        var dp = new GameObject("punkt drzwi (chodnik)").transform; dp.SetParent(root.transform, false); dp.localPosition = new Vector3(hw + 1.1f, .14f, L * .5f - 1.2f);
+        var bc = root.AddComponent<BoxCollider>(); bc.center = new Vector3(0, b.size.y * .5f, 0); bc.size = new Vector3(b.size.x, b.size.y, L);
+        var rb = root.AddComponent<Rigidbody>(); rb.isKinematic = true; rb.useGravity = false;
+        bus.skrzydla = skrzydla; bus.kola = new Transform[0]; bus.drzwiPunkt = dp; bus.obrys = bc;
+        bus.dl = L; bus.szer = b.size.x; bus.vmax = 30f / 3.6f * K; bus.vZakret = 12f / 3.6f * K;
+        return bus;
+    }
+    // dopasowanie skali: nadwozie (narożniki i środki boków) na jezdni w łukach ścieżki — próbki co 2 m, limit 3000 na skalę
+    static float AutobusZmiesci(Vector3[] pts, float dl, float szer, out int poza)
+    {
+        float[] odc = new float[pts.Length]; for (int i = 1; i < pts.Length; i++) odc[i] = odc[i - 1] + Vector3.Distance(pts[i - 1], pts[i]);
+        float L = odc[odc.Length - 1];
+        Vector3 P(float x) { x = Mathf.Clamp(x, 0f, L); int i = System.Array.FindIndex(odc, q => q >= x); if (i < 1) i = 1; return Vector3.Lerp(pts[i - 1], pts[i], Mathf.InverseLerp(odc[i - 1], odc[i], x)); }
+        poza = 0; int n = 0;
+        for (float s = dl * .5f; s < L - dl * .5f && n < 3000; s += 2f, n++)
+        {
+            var a = P(s + dl * .25f); var t = P(s - dl * .25f); var f = a - t; f.y = 0; if (f.sqrMagnitude < 1e-6f) continue; f.Normalize();
+            var r = Vector3.Cross(Vector3.up, f); var c = (a + t) * .5f;
+            foreach (var (u, v) in new[] { (.5f, .48f), (-.5f, .48f), (.5f, -.48f), (-.5f, -.48f), (.5f, 0f), (-.5f, 0f) })
+                if (!NaJezdniAut(c + r * (u * szer - Mathf.Sign(u) * .15f) + f * (v * dl))) { poza++; break; }
+        }
+        return poza;
+    }
+
     // wołane z Auta() po AutaWRuchu: ścieżki z tras ruchu, przystanki na ścieżce, kontrola „na jezdni”
     static void Autobusy()
     {
@@ -165,7 +210,23 @@ public static partial class BraxClaudeOsiedle
         {
             var pts = Sciezka(trasa, out bool petla); if (pts == null) { opis.Add(nazwa + ": brak trasy „" + trasa + "”"); continue; }
             float[] odc = new float[pts.Length]; for (int i = 1; i < pts.Length; i++) odc[i] = odc[i - 1] + Vector3.Distance(pts[i - 1], pts[i]);
-            var bus = AutobusNowy(nazwa, rodzic, kolor); bus.sciezka = pts; bus.petla = petla;
+            var src = BraxOsiedleAssety.Model("miasto_pojazdy", "autobus");
+            BraxAutobus bus = null;
+            if (src)
+            {
+                if (busModel != "glb")
+                {   // skala dobierana raz (najgorsza linia = A, łuki 90° i rondo): 1.0, 0.9, 0.8, 0.7 × (12 m × K)
+                    var tA = ra.trasy.FirstOrDefault(q => q.nazwa == "A pętla Poznańska–Bydgoska (zgodnie)");
+                    var ptsA = tA.ile > 1 ? ra.punkty.Skip(tA.start).Take(tA.ile).ToArray() : pts;
+                    busSkala = .7f; var proby = new List<string>();
+                    foreach (float sk in new[] { 1f, .9f, .8f, .7f }) { AutobusZmiesci(ptsA, 12f * K * sk, 2.55f * K * sk, out int pp); proby.Add(sk.ToString("F1") + ":" + pp); if (pp == 0) { busSkala = sk; break; } }
+                    busModel = "glb"; Debug.Log("BRAXHORN_AUTOBUS skala_dopasowana=" + busSkala.ToString("F1") + " × (12 m × K) = " + (12f * K * busSkala).ToString("F2") + " m (próby skala:próbki_poza_jezdnią " + string.Join(", ", proby) + ")");
+                }
+                bus = AutobusZModelu(nazwa, rodzic, src, 12f * K * busSkala);
+            }
+            if (!bus) { bus = AutobusNowy(nazwa, rodzic, kolor); busModel = "kod"; }
+            bus.sciezka = pts; bus.petla = petla;
+            float drzwiPrzod = bus.drzwiPunkt ? bus.drzwiPunkt.localPosition.z : BusDrzwi1;
             // przystanki: wiata do 9 m od ścieżki, kierunek ruchu zgodny; postój tak, by przednie drzwi były przy wiacie
             var lista = new List<BraxAutobus.Przystanek>();
             foreach (var p in przystankiLinii)
@@ -179,7 +240,7 @@ public static partial class BraxClaudeOsiedle
                     if (od < best) { best = od; sb = odc[i - 1] + t; }
                 }
                 if (sb < 0f) continue;
-                lista.Add(new BraxAutobus.Przystanek { nazwa = p.nazwa, s = Mathf.Max(0f, sb - BusDrzwi1), wiata = p.c + Vector3.up * .14f });
+                lista.Add(new BraxAutobus.Przystanek { nazwa = p.nazwa, s = Mathf.Max(0f, sb - drzwiPrzod), wiata = p.c + Vector3.up * .14f });
             }
             bus.przystanki = lista.OrderBy(q => q.s).ToArray(); bus.s = 0f;
             var f0 = pts[1] - pts[0]; f0.y = 0f; bus.transform.position = pts[0]; if (f0.sqrMagnitude > 1e-6f) bus.transform.rotation = Quaternion.LookRotation(f0.normalized);
@@ -193,7 +254,10 @@ public static partial class BraxClaudeOsiedle
             autobusy.Add(bus);
             opis.Add(nazwa + ": trasa „" + trasa + "” " + odc[odc.Length - 1].ToString("F0") + " m" + (petla ? " (pętla)" : " (otwarta)") + ", przystanki: " + (lista.Count > 0 ? string.Join(", ", lista.Select(q => q.nazwa)) : "BRAK — DO POPRAWKI"));
         }
-        Debug.Log("BRAXHORN_AUTOBUS autobusy=" + autobusy.Count + " model=" + BusL.ToString("F2") + "×" + BusW.ToString("F2") + "×" + BusH.ToString("F2") + " m (midi 8 × 2.4 × 2.9 m × K) drzwi=2 (dwuskrzydłowe) koła=4 [" + string.Join("; ", opis) + "] — linii A↔B brak: droga przez parki (E17) niezbudowana");
+        var b0 = autobusy.FirstOrDefault();
+        Debug.Log("BRAXHORN_AUTOBUS model=" + busModel + " autobusy=" + autobusy.Count + " wymiary=" + (b0 ? b0.dl.ToString("F2") + "×" + b0.szer.ToString("F2") : "—") + " m" +
+                  (busModel == "glb" ? " (miasto_pojazdy/autobus.glb, 12 m × K × " + busSkala.ToString("F1") + ", skrzydła drzwi z modelu: " + (b0 ? b0.skrzydla.Length : 0) + (b0 && b0.skrzydla.Length == 0 ? " — drzwi: postój + dźwięk" : "") + ")" : " (awaryjny z kodu: midi 8 × 2.4 × 2.9 m × K — brak paczki/klucza)") +
+                  " [" + string.Join("; ", opis) + "] — linii A↔B brak: droga przez parki (E17) niezbudowana");
         Debug.Log("BRAXHORN_AUTOBUS_TRASA próbki=" + probki + " poza_jezdnią=" + poza);
     }
 
@@ -220,6 +284,14 @@ public static partial class BraxClaudeOsiedle
                 if (mw) { wy.Add(mw.transform); n++; }
                 p.czekajacy = cz.ToArray(); p.wysiadajacy = wy.ToArray(); juz[p.nazwa] = (p.czekajacy, p.wysiadajacy);
             }
-        Debug.Log("BRAXHORN_AUTOBUS pasażerowie=" + n + " (2 czekających + 1 wysiadający na przystanek; wsiadanie = znikanie przy drzwiach, wysiadanie = pojawienie się przy drzwiach)");
+        int kier = 0;
+        foreach (var bus in autobusy)
+        {   // kierowca: przód po lewej, siedzisko ~1.0 m nad jezdnią (podłoga autobusu niska + podest kierowcy), w czapce służbowej
+            var t = bus.transform; float hw = bus.szer * .5f;
+            var siedz = t.TransformPoint(new Vector3(-hw + .75f, 1.0f, bus.dl * .5f - 1.55f));
+            var m = Siedzacy(RolaKierowcaAutobusu, t, "kierowca autobusu", siedz, t.forward, rnd, new[] { "sit_chair_breathe_01", "sit_chair_idle_neutral_02" });
+            if (m) kier++;
+        }
+        Debug.Log("BRAXHORN_AUTOBUS pasażerowie=" + n + " kierowcy=" + kier + " (2 czekających + 1 wysiadający na przystanek; wsiadanie = znikanie przy drzwiach, wysiadanie = pojawienie się przy drzwiach)");
     }
 }

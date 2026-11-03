@@ -28,7 +28,20 @@ public sealed class BraxAutobus : MonoBehaviour
     public float s, v;
 
     float[] odc; float L; int nast; float tPostoj = -1f; bool drzwiOtw; float drzwiStan; Vector3[] skrzydlaZamk; BraxRuchAut ruch; BraxGymPlayer gracz; float szukaj;
-    Renderer[] rend;
+    Renderer[] rend; AudioSource dzwiek; static AudioClip syk;
+    // dźwięk drzwi pneumatycznych (syk 0.7 s: szum filtrowany z opadającą obwiednią + klik zamka) — synteza, bez nagrań
+    static AudioClip Syk()
+    {
+        if (syk) return syk;
+        const int sr = 22050; int n = (int)(.7f * sr); var x = new float[n]; var r = new System.Random(31); float lp = 0f, hp = 0f, prev = 0f;
+        for (int i = 0; i < n; i++)
+        {
+            float t = i / (float)sr, w = (float)(r.NextDouble() * 2 - 1); lp += .35f * (w - lp); hp = .92f * (hp + lp - prev); prev = lp;
+            x[i] = hp * Mathf.Clamp01(t / .03f) * Mathf.Exp(-t * 4.5f) * .8f + (t > .62f && t < .64f ? (float)(r.NextDouble() * 2 - 1) * .6f : 0f);
+        }
+        syk = AudioClip.Create("autobus: drzwi (syk)", n, 1, sr, false); syk.SetData(x, 0); return syk;
+    }
+    void Graj() { if (dzwiek) dzwiek.PlayOneShot(Syk(), .8f); }
 
     void OnEnable() { if (!Wszystkie.Contains(this)) Wszystkie.Add(this); }
     void OnDisable() { Wszystkie.Remove(this); }
@@ -40,6 +53,7 @@ public sealed class BraxAutobus : MonoBehaviour
         for (int i = 1; i < sciezka.Length; i++) { L += Vector3.Distance(sciezka[i - 1], sciezka[i]); odc[i] = L; }
         skrzydlaZamk = new Vector3[skrzydla.Length]; for (int i = 0; i < skrzydla.Length; i++) if (skrzydla[i]) skrzydlaZamk[i] = skrzydla[i].localPosition;
         rend = GetComponentsInChildren<Renderer>();
+        dzwiek = gameObject.AddComponent<AudioSource>(); dzwiek.spatialBlend = 1f; dzwiek.rolloffMode = AudioRolloffMode.Linear; dzwiek.minDistance = 3f; dzwiek.maxDistance = 30f; dzwiek.dopplerLevel = 0f; dzwiek.playOnAwake = false;
         foreach (var p in przystanki) foreach (var w in p.wysiadajacy) if (w) w.gameObject.SetActive(false);
         nast = NastepnyPrzystanek(s);
         Ustaw();
@@ -85,7 +99,7 @@ public sealed class BraxAutobus : MonoBehaviour
         {
             float d = przystanki[nast].s - s; if (petla && d < -1f) d += L;
             if (d >= 0f) cel = Mathf.Min(cel, Mathf.Sqrt(2f * hamowanie * .8f * Mathf.Max(0f, d)));
-            if (d < .3f && v < .6f) { v = 0f; tPostoj = 0f; drzwiOtw = true; return; }
+            if (d < .3f && v < .6f) { v = 0f; tPostoj = 0f; drzwiOtw = true; Graj(); return; }
         }
         // przeszkody przed autobusem: auta AI i gracz w pasie 2 m szerokości, do 10 m od przodu
         if (Przed(out float odl)) cel = Mathf.Min(cel, Mathf.Max(0f, (odl - 2.5f) * .8f));
@@ -129,7 +143,7 @@ public sealed class BraxAutobus : MonoBehaviour
             if (tPostoj >= t0 - 1.2f && drzwiPunkt) { var cel = drzwiPunkt.position; cel.y = c.position.y; c.position = Vector3.MoveTowards(c.position, cel, dt * 1.3f); var kier = cel - c.position; kier.y = 0; if (kier.sqrMagnitude > 1e-4f) c.rotation = Quaternion.LookRotation(kier); }
             if (tPostoj >= t0) c.gameObject.SetActive(false);
         }
-        if (tPostoj >= p.postoj - 1.2f) drzwiOtw = false;
+        if (tPostoj >= p.postoj - 1.2f && drzwiOtw) { drzwiOtw = false; Graj(); }
         if (tPostoj >= p.postoj)
         {
             // zamiana ról: wysiadający czekają na następny autobus, czekający (w autobusie) wysiądą na kolejnym okrążeniu
@@ -141,6 +155,10 @@ public sealed class BraxAutobus : MonoBehaviour
     {
         drzwiStan = Mathf.MoveTowards(drzwiStan, drzwiOtw ? 1f : 0f, dt / .9f);
         for (int i = 0; i < skrzydla.Length; i++)
-            if (skrzydla[i]) skrzydla[i].localPosition = skrzydlaZamk[i] + new Vector3(.06f * Mathf.Clamp01(drzwiStan * 3f), 0f, (i % 2 == 0 ? 1f : -1f) * .55f * drzwiStan);
+            if (skrzydla[i])
+            {   // przesunięcie w układzie autobusu (na zewnątrz +x, wzdłuż ±z) przeliczone na układ rodzica skrzydła (model może mieć inne osie i skalę)
+                var w = transform.TransformVector(new Vector3(.06f * Mathf.Clamp01(drzwiStan * 3f), 0f, (i % 2 == 0 ? 1f : -1f) * .55f * drzwiStan));
+                var par = skrzydla[i].parent; skrzydla[i].localPosition = skrzydlaZamk[i] + (par ? par.InverseTransformVector(w) : w);
+            }
     }
 }
