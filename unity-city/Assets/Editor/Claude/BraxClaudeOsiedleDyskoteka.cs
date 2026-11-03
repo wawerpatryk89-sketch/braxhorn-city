@@ -478,7 +478,13 @@ public static partial class BraxClaudeOsiedle
         // ================= DJ PREMIUM =================
         const float cx0 = 101.55f, cx1 = 102.45f, cz0 = 9.9f, cz1 = 14.1f;
         float hK = 1.0f * K;
-        BoxMinMax(lacquer, cx0, cx1, sH, sH + hK, cz0, cz1);
+        // runda 5 (klocki): konsola z cokołem cofniętym, fazą górnej krawędzi i frontem z 3 płycin (fugi 8 mm), blat stalowy z okapem
+        var ciemnyK = Plain("cokół konsoli DJ", new Color(.04f, .04f, .045f), .3f);
+        BoxMinMax(ciemnyK, cx0 + .05f, cx1 - .05f, sH, sH + .1f, cz0 + .05f, cz1 - .05f);
+        BoxMinMax(lacquer, cx0, cx1, sH + .1f, sH + hK - .03f, cz0, cz1);
+        BoxMinMax(lacquer, cx0 + .015f, cx1 - .015f, sH + hK - .03f, sH + hK, cz0 + .015f, cz1 - .015f, false);
+        for (int q = 1; q < 3; q++) { float fz = cz0 + q * (cz1 - cz0) / 3f; BoxMinMax(ciemnyK, cx0 - .003f, cx0, sH + .22f, sH + hK - .14f, fz - .004f, fz + .004f, false); }
+        foreach (float pz2 in new[] { cz0 + .5f, cz1 - .5f }) Cylinder(Plain("przelotka kabli", new Color(.06f, .06f, .07f), .4f), new Vector3((cx0 + cx1) * .5f + .25f, sH + hK + .03f, pz2), .03f, .004f, 12, true, false);
         BoxMinMax(steel, cx0 - .03f, cx1 + .03f, sH + hK, sH + hK + .03f, cz0 - .03f, cz1 + .03f, false, true);
         BoxMinMax(ledAmber, cx0 - .012f, cx0, sH + .15f, sH + .19f, cz0 + .1f, cz1 - .1f, false);
         BoxMinMax(ledAmber, cx0 - .012f, cx0, sH + hK - .12f, sH + hK - .08f, cz0 + .1f, cz1 - .1f, false);

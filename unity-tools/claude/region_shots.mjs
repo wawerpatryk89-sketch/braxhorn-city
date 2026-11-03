@@ -236,6 +236,7 @@ const VIEWS = [
   ['DETAL_boks_lawka_hala', '73,0.6,78.5,180,20,2.8', 'estate'],
   ['DETAL_kasyno_hol_lawka_wieszak', '86,1.2,-51.5,180,10,3.5', 'estate'],
   ['DETAL_kasyno_biuro_sejf', '79.6,0.6,-56.45,270,15,2.2', 'estate'],
+  ['DETAL_dyskoteka_konsola_dj', '101.5,1.6,12,270,10,3.5', 'estate'],
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],
