@@ -97,40 +97,66 @@ public static partial class BraxClaudeOsiedle
                 for (int cz = Mathf.FloorToInt(farby[f].z0 / OznKom); cz <= Mathf.FloorToInt(farby[f].z1 / OznKom); cz++)
                 { var key = KomKlucz(cx, cz); if (!farbaKom.TryGetValue(key, out var l)) farbaKom[key] = l = new List<int>(); l.Add(f); }
         // jeden przebieg po asfalcie: każdy trójkąt asfaltu minus wszystkie trójkąty farby, które go dotykają
-        int przed = 0, po = 0; var kand = new HashSet<int>();
+        int przed = 0, po = 0, przerwaneTr = 0; var nieWyciete = new HashSet<int>(); bool czasMinal = false; var zegar = System.Diagnostics.Stopwatch.StartNew();
         WierzD W(Batch b, int q) => new WierzD { p = b.v[q], n = b.n[q], t = b.t[q], uv = b.uv[q] };
         foreach (var b in asf)
         {
             var nv = new List<Vector3>(b.v.Count); var nn = new List<Vector3>(b.v.Count); var nt = new List<Vector4>(b.v.Count); var nu = new List<Vector2>(b.v.Count); var ni = new List<int>(b.i.Count);
             int Dodaj(WierzD w) { nv.Add(w.p); nn.Add(w.n); nt.Add(w.t); nu.Add(w.uv); return nv.Count - 1; }
-            for (int k = 0; k + 2 < b.i.Count; k += 3)
+            // prowadzący (3.11, build 51fda47 zabity OOM po 19 min w tym kroku): duży trójkąt asfaltu pod wieloma trójkątami farby
+            // mnożył kawałki wykładniczo. Teraz: (1) trójkąt dotykający > 10 trójkątów farby dzielony na 4 (do głębokości 6),
+            // (2) limit 96 kawałków na trójkąt i 180 s na cały krok — po przekroczeniu trójkąt asfaltu zostaje cały, a jego farba
+            // NIE schodzi na lico (zostaje 6 mm nad asfaltem zamiast migotać) — log BRAXHORN_DROGI_OZNAKOWANIE_BUDZET.
+            void Tnij(WierzD a0, WierzD a1, WierzD a2, int gl)
             {
-                przed++;
-                var t0 = W(b, b.i[k]); var t1 = W(b, b.i[k + 1]); var t2 = W(b, b.i[k + 2]);
-                float x0 = Mathf.Min(t0.p.x, Mathf.Min(t1.p.x, t2.p.x)), x1 = Mathf.Max(t0.p.x, Mathf.Max(t1.p.x, t2.p.x)), z0 = Mathf.Min(t0.p.z, Mathf.Min(t1.p.z, t2.p.z)), z1 = Mathf.Max(t0.p.z, Mathf.Max(t1.p.z, t2.p.z));
-                kand.Clear();
+                float x0 = Mathf.Min(a0.p.x, Mathf.Min(a1.p.x, a2.p.x)), x1 = Mathf.Max(a0.p.x, Mathf.Max(a1.p.x, a2.p.x));
+                float z0 = Mathf.Min(a0.p.z, Mathf.Min(a1.p.z, a2.p.z)), z1 = Mathf.Max(a0.p.z, Mathf.Max(a1.p.z, a2.p.z));
+                var kd = new HashSet<int>();
                 for (int cx = Mathf.FloorToInt(x0 / OznKom); cx <= Mathf.FloorToInt(x1 / OznKom); cx++)
                     for (int cz = Mathf.FloorToInt(z0 / OznKom); cz <= Mathf.FloorToInt(z1 / OznKom); cz++)
-                        if (farbaKom.TryGetValue(KomKlucz(cx, cz), out var l)) foreach (int f in l) { var F = farby[f]; if (F.x1 > x0 && F.x0 < x1 && F.z1 > z0 && F.z0 < z1) kand.Add(f); }
-                var kawalki = new List<List<WierzD>> { new List<WierzD> { t0, t1, t2 } };
-                foreach (int f in kand)
+                        if (farbaKom.TryGetValue(KomKlucz(cx, cz), out var l)) foreach (int f in l) { var F = farby[f]; if (F.x1 > x0 && F.x0 < x1 && F.z1 > z0 && F.z0 < z1) kd.Add(f); }
+                if (kd.Count > 10 && gl < 6 && !czasMinal)
                 {
-                    var F = farby[f]; var nowe = new List<List<WierzD>>();
-                    foreach (var kw in kawalki) OdejmijTrojkat(kw, F.a, F.c, F.d, nowe);
-                    kawalki = nowe;
-                    if (kawalki.Count == 0) break;
+                    var m01 = LerpW(a0, a1, .5f); var m12 = LerpW(a1, a2, .5f); var m20 = LerpW(a2, a0, .5f);
+                    Tnij(a0, m01, m20, gl + 1); Tnij(m01, a1, m12, gl + 1); Tnij(m20, m12, a2, gl + 1); Tnij(m01, m12, m20, gl + 1);
+                    return;
+                }
+                var kawalki = new List<List<WierzD>> { new List<WierzD> { a0, a1, a2 } };
+                bool przerwane = czasMinal;
+                if (!przerwane)
+                    foreach (int f in kd)
+                    {
+                        var F = farby[f]; var nowe = new List<List<WierzD>>();
+                        foreach (var kw in kawalki) OdejmijTrojkat(kw, F.a, F.c, F.d, nowe);
+                        kawalki = nowe;
+                        if (kawalki.Count == 0) break;
+                        if (kawalki.Count > 96) { przerwane = true; break; }
+                    }
+                if (przerwane)
+                {
+                    foreach (int f in kd) nieWyciete.Add(f);
+                    kawalki = new List<List<WierzD>> { new List<WierzD> { a0, a1, a2 } };
+                    przerwaneTr++;
                 }
                 foreach (var kw in kawalki)
                 {
-                    int s = Dodaj(kw[0]);
-                    for (int q = 1; q + 1 < kw.Count; q++) { ni.Add(s); ni.Add(Dodaj(kw[q])); ni.Add(Dodaj(kw[q + 1])); po++; }
+                    int s0 = Dodaj(kw[0]);
+                    for (int q = 1; q + 1 < kw.Count; q++) { ni.Add(s0); ni.Add(Dodaj(kw[q])); ni.Add(Dodaj(kw[q + 1])); po++; }
                 }
+            }
+            for (int k = 0; k + 2 < b.i.Count; k += 3)
+            {
+                przed++;
+                if (!czasMinal && zegar.Elapsed.TotalSeconds > 180) czasMinal = true;
+                Tnij(W(b, b.i[k]), W(b, b.i[k + 1]), W(b, b.i[k + 2]), 0);
             }
             b.v.Clear(); b.v.AddRange(nv); b.n.Clear(); b.n.AddRange(nn); b.t.Clear(); b.t.AddRange(nt); b.uv.Clear(); b.uv.AddRange(nu); b.i.Clear(); b.i.AddRange(ni);
         }
         // farba na lico asfaltu
-        foreach (var F in farby) foreach (int q in new[] { F.i0, F.i1, F.i2 }) { var p = F.b.v[q]; p.y = yAsf; F.b.v[q] = p; }
-        return (farby.Count, poza, przed, po);
+        for (int f = 0; f < farby.Count; f++) { if (nieWyciete.Contains(f)) continue; var F = farby[f]; foreach (int q in new[] { F.i0, F.i1, F.i2 }) { var p = F.b.v[q]; p.y = yAsf; F.b.v[q] = p; } }
+        Debug.Log("BRAXHORN_DROGI_OZNAKOWANIE_BUDZET grupa=" + grupaFarby + " czas_s=" + zegar.Elapsed.TotalSeconds.ToString("F1") + " trójkąty_asfaltu=" + przed + "→" + po
+                  + " przerwane_trójkąty=" + przerwaneTr + " farba_niewycięta=" + nieWyciete.Count + "/" + farby.Count + (czasMinal ? " LIMIT_CZASU — DO POPRAWKI" : ""));
+        return (farby.Count - nieWyciete.Count, poza, przed, po);
     }
 
     // Kontrola nakładek: poziome trójkąty farby nad asfaltem (wszystkie grupy) — 4 mm … 5 cm nad licem asfaltu pod środkiem.

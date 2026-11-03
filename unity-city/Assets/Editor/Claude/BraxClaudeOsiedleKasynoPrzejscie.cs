@@ -18,30 +18,47 @@ public static partial class BraxClaudeOsiedle
     {
         kasynoPrzejscie = false;
         float w = 1.0f * K, h = 2.1f * K, ram = .08f, cx = 85.6f;
-        float dx0 = cx - w * .5f - ram, dx1 = cx + w * .5f + ram, dh = FY + h + ram;
         bool zajete = false; string powod = "";
+        // prowadzący (3.11, build 51fda47: „kolizja przed otworem” przy x 85.6 — przejście nie powstało): kilka pozycji wzdłuż
+        // ściany holu zaplecza (±2.4 m), pierwsza wolna; w logu nazwa tego, co blokuje
+        (bool, string) Test(float c)
+        {
+            float d0 = c - w * .5f - ram, d1 = c + w * .5f + ram;
+            if (d0 < X0 + .3f || d1 > X1 - .3f) return (true, "poza ścianą zaplecza");
+            Physics.SyncTransforms();
+            var strefa = MinMax(d0, d1, FY + .2f, FY + h, -50.74f, -49.2f);   // przed licem sali (ściana modelu do −50.75 wycinana)
+            var kol = Physics.OverlapBox(strefa.center, strefa.extents, Quaternion.identity, ~((1 << 8) | (1 << 29) | (1 << 2)), QueryTriggerInteraction.Ignore);
+            if (kol.Length > 0) return (true, "kolizja przed otworem: " + string.Join(", ", kol.Take(3).Select(k => k.name)));
+            foreach (var mf in estate.GetComponentsInChildren<MeshFilter>(true))
+            {
+                var r = mf.GetComponent<MeshRenderer>(); var m = mf.sharedMesh; if (!r || !m || !m.isReadable || !r.bounds.Intersects(strefa)) continue;
+                var M = mf.transform.localToWorldMatrix; var v = m.vertices; var tr = m.triangles;
+                for (int i = 0; i + 2 < tr.Length; i += 3)
+                {
+                    Vector3 a = M.MultiplyPoint3x4(v[tr[i]]), b = M.MultiplyPoint3x4(v[tr[i + 1]]), cc = M.MultiplyPoint3x4(v[tr[i + 2]]);
+                    if (strefa.Contains((a + b + cc) / 3f)) return (true, "siatka " + mf.name + " przed otworem");
+                    foreach (var px in new[] { c - .4f, c, c + .4f })
+                        foreach (var py in new[] { FY + .5f, FY + 1.6f })
+                            if (OdcinekTrojkat(new Vector3(px, py, -50.74f), new Vector3(px, py, -49.2f), a, b, cc)) return (true, "siatka " + mf.name + " na drodze przejścia");
+                }
+            }
+            return (false, "");
+        }
+        var proby = new List<string>();
         try
         {
-            Physics.SyncTransforms();
-            var strefa = MinMax(dx0, dx1, FY + .2f, FY + h, -50.74f, -49.2f);   // przed licem sali (ściana modelu do −50.75 wycinana)
-            if (Physics.CheckBox(strefa.center, strefa.extents, Quaternion.identity, ~((1 << 8) | (1 << 29) | (1 << 2)), QueryTriggerInteraction.Ignore)) { zajete = true; powod = "kolizja przed otworem"; }
-            if (!zajete)
-                foreach (var mf in estate.GetComponentsInChildren<MeshFilter>(true))
-                {
-                    var r = mf.GetComponent<MeshRenderer>(); var m = mf.sharedMesh; if (!r || !m || !m.isReadable || !r.bounds.Intersects(strefa)) continue;
-                    var M = mf.transform.localToWorldMatrix; var v = m.vertices; var tr = m.triangles;
-                    for (int i = 0; i + 2 < tr.Length && !zajete; i += 3)
-                    {
-                        Vector3 a = M.MultiplyPoint3x4(v[tr[i]]), b = M.MultiplyPoint3x4(v[tr[i + 1]]), c = M.MultiplyPoint3x4(v[tr[i + 2]]);
-                        if (strefa.Contains((a + b + c) / 3f)) { zajete = true; powod = "siatka " + mf.name + " przed otworem"; break; }
-                        foreach (var px in new[] { cx - .4f, cx, cx + .4f })
-                            foreach (var py in new[] { FY + .5f, FY + 1.6f })
-                                if (OdcinekTrojkat(new Vector3(px, py, -50.74f), new Vector3(px, py, -49.2f), a, b, c)) { zajete = true; powod = "siatka " + mf.name + " na drodze przejścia"; break; }
-                    }
-                    if (zajete) break;
-                }
+            zajete = true;
+            foreach (float c in new[] { 85.6f, 84.4f, 86.8f, 83.2f, 88.0f })
+            {
+                var (z, pw) = Test(c);
+                if (!z) { cx = c; zajete = false; break; }
+                proby.Add("x " + c.ToString("F1") + ": " + pw);
+            }
+            powod = string.Join("; ", proby);
         }
         catch (Exception e) { zajete = true; powod = "błąd testu: " + e.Message; }
+        float dx0 = cx - w * .5f - ram, dx1 = cx + w * .5f + ram, dh = FY + h + ram;
+        if (!zajete) Debug.Log("BRAXHORN_KASYNO przejście sala gier → zaplecze x " + cx.ToString("F1") + (proby.Count > 0 ? " (zajęte wcześniej: " + string.Join("; ", proby) + ")" : ""));
         if (zajete)
         {
             BoxMinMax(farba, X0, X1, FY, CY, ZS - .03f, ZS, true);
