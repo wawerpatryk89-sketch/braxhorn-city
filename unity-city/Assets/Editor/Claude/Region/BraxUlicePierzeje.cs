@@ -785,6 +785,7 @@ public static class BraxUlicePierzeje
                         float dA = gd + sg * .02f, dB = gd + sg * gw * .5f;
                         sk.Box(W(gs0 + .03f, y - .02f, dA), W(gs0 + Lg - .03f, y, dB));
                         if (p == 3) continue;
+                        if (prawdziwy) { BraxSklepyTowar.Polka(lok.typ, tw, W(gs0 + .07f, y + .004f, gd + sg * gw * .25f), f.R, -sg * f.N, Lg - .14f, rng); continue; }
                         for (float x = gs0 + .07f; x < gs0 + Lg - .12f;)
                         {
                             float wsz = .07f + (float)rng.NextDouble() * .12f, h = .1f + (float)rng.NextDouble() * .16f;

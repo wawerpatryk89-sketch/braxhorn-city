@@ -29,6 +29,8 @@ public static class BraxSklepyTowar
         "sm_a" => new[] { "sk:mleko*4", "ph:russian_food_cans_01", "sk:mleko*4" },
         "sm_b" => new[] { "ph:long_life_food", "sk:mleko*4", "ph:CheeseBox_01", "ph:russian_food_cans_01" },
         "sm_c" => new[] { "ph:wine_bottles_01", "ph:multi_cleaner_bottle", "ph:bleach_bottle", "ph:wine_bottles_01" },
+        // apteka: 24 leki BRAXHORN PHARMA (etykiety właściciela 3.11 14:00, pudełka leki.py), po kilka sztuk obok siebie
+        "apteka" => new[] { "sk:lek_01*3", "sk:lek_02*3", "sk:lek_03*4", "sk:lek_04*3", "sk:lek_05*3", "sk:lek_06*4", "sk:lek_07*3", "sk:lek_08*3", "sk:lek_09*4", "sk:lek_10*3", "sk:lek_11*3", "sk:lek_12*4", "sk:lek_13*3", "sk:lek_14*3", "sk:lek_15*4", "sk:lek_16*3", "sk:lek_17*3", "sk:lek_18*4", "sk:lek_19*3", "sk:lek_20*3", "sk:lek_21*4", "sk:lek_22*3", "sk:lek_23*3", "sk:lek_24*4" },
         // regał chłodniczy supermarketu (właściciel 13:56: mięsa, wędliny, sery, ryby)
         "ch_dol" => new[] { "sk:losos", "sk:mieso*2", "sk:ser_dojrzewajacy*2", "sk:stek*3", "sk:kurczak_surowy", "sk:mieso*2" },
         "ch_srodek" => new[] { "sk:kielbaski_paczka*3", "sk:parowki*3", "sk:ser_klin*4", "sk:mieso*2" },
@@ -46,6 +48,7 @@ public static class BraxSklepyTowar
         "bistro" => new[] { "sk:hamburger*2", "sk:frytki*2", "sk:kurczak", "sk:szawarma*2" },
         "bar" => new[] { "sk:kebab", "sk:frytki", "sk:hamburger" },
         "market" => new[] { "sk:mleko*3" },
+        "apteka" => new[] { "sk:lek_01*2", "sk:lek_13", "sk:lek_20*2" },
         _ => null
     };
 
