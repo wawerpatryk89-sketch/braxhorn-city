@@ -228,6 +228,9 @@ const VIEWS = [
   ['DETAL_mieszkanie_kuchnia', '42.5,6.3,43.0,180,10,2.4'],
   ['DETAL_mieszkanie_lazienka', '39.3,6.2,42.4,180,10,2.4'],
   ['DETAL_mieszkanie_sypialnia', '49.2,5.9,42.0,180,15,3.5'],
+  // siłownia Braxa: sprzęt dokładany w wolnych miejscach hali (pozycje w logu BRAXHORN_SILOWNIA_WYPOSAZENIE)
+  ['DETAL_silownia_braxa_hala', '0,1.6,-3,90,18,12'],
+  ['DETAL_silownia_braxa_ciezary', '6,1.2,4,180,20,6'],
   ['M_A_metro_wejscie', '68,0.35,34.3,270,12,9'],
   ['M_A_nova_sala', '41,1.8,50,180,5,8'],
   ['M_A_nova_wejscie', '42,1.8,36,180,5,9'],
