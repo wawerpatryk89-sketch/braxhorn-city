@@ -317,7 +317,7 @@ public static partial class BraxClaudeOsiedle
     {
         group = "Osiedle A / stacja paliw — wiata";
         float x0 = -31.5f, x1 = -.5f, z0 = -42.5f, z1 = -29f, yP = 4.5f * K, yG = yP + 1.25f;
-        var biel = StMat("panel wiaty biały", new Color(.93f, .94f, .95f), .55f, .2f); var pas = StMat("pas wiaty grafit", new Color(.16f, .17f, .19f), .5f, .3f);
+        var biel = StMat("panel wiaty czarny połysk BRAXHORN", new Color(.05f, .05f, .06f), .75f, .3f); /* 3.11: stacja nie „siwa” — czerń jak szyld */ var pas = StMat("pas wiaty grafit", new Color(.16f, .17f, .19f), .5f, .3f);
         var obr = StMat("obróbka blacharska", new Color(.62f, .63f, .65f), .5f, .6f); var spod = StMat("podsufitka wiaty", new Color(.86f, .87f, .88f), .4f);
         var led = StSwiatlo("oprawa LED wiaty", new Color(1f, .98f, .92f));
         // dach: podsufitka, gzyms (pas dolny grafit, pas górny biały), obróbka attyki, płyta dachu ze spadkiem do rynien
@@ -325,6 +325,7 @@ public static partial class BraxClaudeOsiedle
         ObwodBez(pas, x0, x1, z0, z1, .12f, yP, yP + .35f, 0f, true);
         ObwodBez(biel, x0, x1, z0, z1, .12f, yP + .35f, yG - .06f, 0f);
         ObwodBez(obr, x0, x1, z0, z1, .12f, yG - .06f, yG, .03f);   // obróbka attyki (kapinos)
+        ObwodBez(StSwiatlo("pas LED wiaty pomarańczowy", new Color(1f, .55f, .08f)), x0, x1, z0, z1, .12f, yP + .33f, yP + .38f, .015f);   // linia LED jak na szyldzie
         BoxMinMax(StMat("membrana dachu", new Color(.35f, .36f, .37f), .2f), x0 + .12f, x1 - .12f, yP + .04f, yP + .3f, z0 + .12f, z1 - .12f, false);
         StDetal("wiata", "gzyms dwupasmowy + obróbka attyki");
         // oprawy LED w podsufitce (wpuszczone: lico oprawy = lico podsufitki od dołu)
@@ -468,7 +469,7 @@ public static partial class BraxClaudeOsiedle
     {
         group = "Osiedle A / stacja paliw — sklep";
         float x0 = -36.5f, x1 = -21f, z0 = -60.5f, z1 = -49f, yF = .17f, yC = 3.4f * K, yA = yC + 1.1f; const float t = .3f;
-        var sciana = Pbr("stacja: tynk sklepu", "white_stucco_02", 2.5f, new Color(.92f, .93f, .94f));
+        var sciana = Pbr("stacja: okładzina sklepu grafit", "white_stucco_02", 2.5f, new Color(.24f, .24f, .26f));   // 3.11: grafit zamiast szarej bieli
         var obr = StMat("obróbka blacharska", new Color(.62f, .63f, .65f), .5f, .6f); var pas = StMat("pas wiaty grafit", new Color(.16f, .17f, .19f), .5f, .3f);
         // płyty przed sklepem z krawężnikiem (fuga co 1 m × K)
         BoxMinMax(Pavers, x0 - .5f, x1 + .5f, 0, .14f, z1, -47.7f, true);
@@ -633,7 +634,7 @@ public static partial class BraxClaudeOsiedle
     {
         group = "Osiedle A / myjnia — hala";
         float x0 = -4f, x1 = 5.5f, z0 = -62f, z1 = -48.5f, yH = 4.2f * K, yA = yH + .6f;
-        var panel = StMat("panel ściany myjni", new Color(.86f, .88f, .9f), .55f, .2f); var obr = StMat("obróbka blacharska", new Color(.62f, .63f, .65f), .5f, .6f);
+        var panel = StMat("panel ściany myjni granat BRAXHORN", new Color(.06f, .15f, .30f), .62f, .3f); var obr = StMat("obróbka blacharska", new Color(.62f, .63f, .65f), .5f, .6f);
         var nieb = StMat("konstrukcja portalu", new Color(.08f, .3f, .62f), .55f, .4f); var szcz = StMat("szczotka myjni", new Color(.2f, .45f, .85f), .2f);
         PanelSciana(false, x0 + .15f, z0, z1, 0, yA, .3f, panel); PanelSciana(false, x1 - .15f, z0, z1, 0, yA, .3f, panel); PanelSciana(true, z0 + .15f, x0 + .3f, x1 - .3f, 0, yA, .3f, panel);
         BoxMinMax(panel, x0 + .3f, x1 - .3f, yH, yA, z1 - .3f, z1, true, true);                        // nadproże bramy (od góry otworu — bez szczeliny)
@@ -707,7 +708,7 @@ public static partial class BraxClaudeOsiedle
     {
         group = "Osiedle A / myjnia — stanowiska";
         float x0 = -19f, x1 = -6f, z0 = -60.5f, z1 = -48.5f, yH = 3.6f * K;
-        var panel = StMat("panel ściany myjni", new Color(.86f, .88f, .9f), .55f, .2f); var obr = StMat("obróbka blacharska", new Color(.62f, .63f, .65f), .5f, .6f);
+        var panel = StMat("panel ściany myjni granat BRAXHORN", new Color(.06f, .15f, .30f), .62f, .3f); var obr = StMat("obróbka blacharska", new Color(.62f, .63f, .65f), .5f, .6f);
         var nieb = StMat("konstrukcja portalu", new Color(.08f, .3f, .62f), .55f, .4f);
         // zadaszenie na słupach stalowych, przegrody (tył i między stanowiskami) z paneli z fugą
         foreach (float sx in new[] { x0 + .15f, (x0 + x1) * .5f, x1 - .15f })
