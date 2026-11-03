@@ -2430,6 +2430,7 @@ public static partial class BraxClaudeOsiedle
             // dwie lodówki z napojami przy prawej ścianie, stoliki z krzesłami przy oknie i ścianie. Strefa 2.5 m za drzwiami
             // i przejście drzwi → lada wolne (właściciel 17:16), krzesła przodem do stolików, dosunięte.
             float ceilY = H0 - .35f, zp = zf + 9.0f, bz = zp - 1.6f, sd0 = b - 2.8f, sd1 = b - 1.6f, c0 = a + 1.2f, c1 = sd0 - .6f;
+            Transform twS = null;
             var wallP = InteriorPaint;
             BoxMinMax(wallP, a, sd0, FY, ceilY, zp, zp + .15f); BoxMinMax(wallP, sd1, b, FY, ceilY, zp, zp + .15f);
             BoxMinMax(wallP, sd0, sd1, FY + 2.65f, ceilY, zp, zp + .15f, false, true);
@@ -2448,6 +2449,12 @@ public static partial class BraxClaudeOsiedle
             for (int s2 = 0; s2 < 3; s2++)
             {
                 float y = .55f + s2 * .5f; BoxMinMax(Concrete, c0, c1, y, y + .03f, zp - .45f, zp - .05f, false);
+                if (BraxOsiedleTowar.Jest)
+                {   // 3.11: odżywki BRAXHORN SPORT NUTRITION z etykiet właściciela zamiast kolorowych walców
+                    if (twS == null) { twS = new GameObject("Shake bar: odżywki (paczka miasto_sklepy)").transform; twS.SetParent(Group(group), true); }
+                    BraxOsiedleTowar.Polka(s2 == 0 ? "odz_dol" : s2 == 1 ? "odz_polka" : "odz_gora", twS, new Vector3(c0 + .25f, y + .034f, zp - .25f), Vector3.right, Vector3.forward, c1 - c0 - .45f, rnd, .46f);
+                    continue;
+                }
                 for (float x = c0 + .3f; x < c1 - .2f; x += .26f)
                 {
                     bool tub = (s2 + (int)(x * 3)) % 3 == 0;
@@ -2462,8 +2469,14 @@ public static partial class BraxClaudeOsiedle
             {
                 BoxMinMax(Steel, b - .75f, b - .1f, FY, 2.1f, fz - .45f, fz + .45f);
                 BoxMinMax(GlassClear, b - .78f, b - .75f, .3f, 1.95f, fz - .4f, fz + .4f, false);
-                for (int sh = 0; sh < 4; sh++) for (float z = fz - .33f; z < fz + .34f; z += .11f) Cylinder(sh % 2 == 0 ? bottleG : bottleO, new Vector3(b - .6f, .4f + sh * .38f, z), .035f, .26f, 8, true, false);
+                if (BraxOsiedleTowar.Jest)
+                {   // napoje z etykiet właściciela (butelki, kartony) zamiast kolorowych walców
+                    if (twS == null) { twS = new GameObject("Shake bar: odżywki (paczka miasto_sklepy)").transform; twS.SetParent(Group(group), true); }
+                    for (int sh = 0; sh < 4; sh++) BraxOsiedleTowar.Polka("os_lodowka", twS, new Vector3(b - .45f, .37f + sh * .38f, fz - .36f), Vector3.forward, Vector3.right, .72f, rnd, .34f);
+                }
+                else for (int sh = 0; sh < 4; sh++) for (float z = fz - .33f; z < fz + .34f; z += .11f) Cylinder(sh % 2 == 0 ? bottleG : bottleO, new Vector3(b - .6f, .4f + sh * .38f, z), .035f, .26f, 8, true, false);
             }
+            if (twS != null) BraxOsiedleTowar.Zakoncz(twS, "shake bar osiedla");
             // stoliki: przy oknie i przy lewej ścianie (poza przejściem drzwi → lada), krzesła przodem do stolika (wzdłuż z)
             foreach (var (tx, tz) in new[] { (a + 1.7f, zf + 2.8f), (a + 1.7f, zf + 4.8f), (b - 3.0f, zf + 4.6f) })
             {
