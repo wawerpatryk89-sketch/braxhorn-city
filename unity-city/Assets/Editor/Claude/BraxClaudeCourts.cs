@@ -59,8 +59,8 @@ public static class BraxClaudeCourts
         Pilkarskie(root, g, rep);
         BraxUliceKit.UstawGrupe("Boisko do koszykówki");
         Koszykowka(root, g2, rep);
-        BraxUliceKit.UstawGrupe("Wiata śmietnikowa", 70f);
-        Wiata(root, gw, rep);
+        // właściciel 3.11 10:44 (zdjęcie): wiata śmietnikowa „na środku” podwórka, na przejściu — wyłączona (miejsce wolne)
+        rep.notes.Add("wiata śmietnikowa WYŁĄCZONA (właściciel 3.11 — stała na środku przejścia)");
         int n = BraxUliceKit.Zapisz(root, "boiska");
         rep.notes.Add("siatek " + n + ", k = " + K.ToString("F3"));
     }

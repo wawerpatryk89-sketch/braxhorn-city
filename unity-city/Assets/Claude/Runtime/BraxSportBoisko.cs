@@ -145,6 +145,7 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
 
     void Pilki(int n, float rr, float masa, float odbicie, int tex, string nazwa)
     {
+        rr *= 1.294f;   // właściciel 3.11 10:44: „skala” — piłka × K jak cały świat (kosz 0.24 m → 0.31 m średnicy)
         pilki = new Rigidbody[n]; kule = new SphereCollider[n]; poprzVy = new float[n]; lezy = new float[n]; zwrocona = new bool[n]; wGrze = new bool[n];
         var mat = new PhysicsMaterial(nazwa) { bounciness = odbicie, dynamicFriction = .45f, staticFriction = .55f, bounceCombine = PhysicsMaterialCombine.Maximum, frictionCombine = PhysicsMaterialCombine.Average };
         Material wyglad = null;
