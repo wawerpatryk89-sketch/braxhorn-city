@@ -291,6 +291,10 @@ const VIEWS = [
   // M8 (2.11): niebo bez „księżyca z kraterami” — słońce zdjęcia wymazane, czysta tarcza słońca w kierunku światła (BRAXHORN_NIEBO)
   ['DETAL_niebo_horyzont_slonca', '60,120.55,52,45,-25,6'],         // z tarasu Tower w stronę słońca: horyzont bez żółtej tarczy
   ['DETAL_niebo_z_ulicy', '30,0.2,28,45,-30,4'],                    // z ulicy pod słońce: niebo, chmury, bez drugiej tarczy
+  // PANORAMA 3D (pkt 7, 7b, 15d): pierścień horyzontu z brył — archipelag, nasza wyspa, wzgórza i góry; bez naklejki i smug
+  ['DETAL_panorama_archipelag', '60,120.55,52,270,-6,3'],          // z tarasu Tower na morze: wyspy 3D, latarnia, nasza wyspa
+  ['DETAL_panorama_lad', '58,120.55,52,90,-6,3'],                  // z tarasu Tower na ląd: wzgórza z polami i wsiami, lasy, góry
+  ['DETAL_panorama_z_pomostu', '138,-0.6,22,270,2,5'],             // z pomostu D przy wodzie: archipelag na horyzoncie
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],

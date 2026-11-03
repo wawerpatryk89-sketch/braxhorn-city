@@ -1385,6 +1385,37 @@ internal static partial class BraxMiastoWyspa
         var ukr = sr.gameObject.AddComponent<BraxWyspaDaleko>(); ukr.srodek = new Vector3(CX, 0, CZ); ukr.blizej = 260f; ukr.scena = "BraxhornCity_Wyspa"; ukr.renderery = new Renderer[] { r, ga.GetComponent<Renderer>() };
     }
 
+    /// <summary>PANORAMA (pkt 7): nasza wyspa do pierścienia horyzontu — siatka w prawdziwej skali wokół środka (CX, CZ), podstawa
+    /// na lustrze wody (y 0 lokalnie), kolory jak teren (piasek, łąka/las, skała), lekka mgiełka w alfie; arena (ośmiobok z dachem).</summary>
+    public static Mesh SylwetkaPierscien()
+    {
+        const float step = 8f, ext = 230f; int n = Mathf.RoundToInt(ext * 2 / step) + 1;
+        var v = new List<Vector3>(); var c = new List<Color32>(); var t = new List<int>(); var idx = new int[n, n]; var hh = new float[n, n];
+        Color32 K(float r, float g, float b) => new Color32((byte)(r * 255), (byte)(g * 255), (byte)(b * 255), 38);
+        for (int i = 0; i < n; i++) for (int j = 0; j < n; j++)
+            {
+                float x = -ext + i * step, zz = -ext + j * step, h = H(x, zz); hh[i, j] = h;
+                idx[i, j] = v.Count; v.Add(new Vector3(x, Mathf.Max(h, -1.5f), zz));
+                float las = Mathf.PerlinNoise(x * .02f + 5f, zz * .02f + 9f);
+                c.Add(h < 2.6f ? K(.80f, .74f, .58f) : las > .55f ? K(.17f, .27f, .13f) : K(.36f, .47f, .23f));
+            }
+        for (int i = 0; i < n - 1; i++) for (int j = 0; j < n - 1; j++)
+            {
+                if (hh[i, j] < -1f && hh[i + 1, j] < -1f && hh[i, j + 1] < -1f && hh[i + 1, j + 1] < -1f) continue;
+                t.AddRange(new[] { idx[i, j], idx[i, j + 1], idx[i + 1, j + 1], idx[i, j], idx[i + 1, j + 1], idx[i + 1, j] });
+            }
+        // arena: ośmiobok ścian (szkło fasady ciemne) z dachem membranowym (jasny stożek)
+        var ac = new Vector3(Plac.x + 4f, PlacH, Plac.y); int b0 = v.Count;
+        for (int i = 0; i < 8; i++) { float a = i * Mathf.PI / 4f; var p = ac + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * (ArenaR - 1f); v.Add(p); c.Add(K(.25f, .3f, .34f)); v.Add(p + Vector3.up * 12.5f); c.Add(K(.25f, .3f, .34f)); }
+        for (int i = 0; i < 8; i++) { int a0 = b0 + i * 2, a1 = b0 + ((i + 1) % 8) * 2; t.AddRange(new[] { a0, a0 + 1, a1 + 1, a0, a1 + 1, a1 }); }
+        int r0 = v.Count; for (int i = 0; i < 8; i++) { float a = i * Mathf.PI / 4f; v.Add(ac + new Vector3(Mathf.Cos(a), 0, Mathf.Sin(a)) * (ArenaR - .5f) + Vector3.up * 12.5f); c.Add(K(.86f, .87f, .86f)); }
+        int top = v.Count; v.Add(ac + Vector3.up * 16.5f); c.Add(K(.92f, .92f, .9f));
+        for (int i = 0; i < 8; i++) t.AddRange(new[] { r0 + i, top, r0 + (i + 1) % 8 });
+        var m = new Mesh { name = "Nasza wyspa (panorama)", indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+        m.SetVertices(v); m.SetColors(c); m.SetTriangles(t, 0); m.RecalculateNormals(); m.RecalculateBounds();
+        return m;
+    }
+
     static readonly List<Vector3> deptak = new List<Vector3>();
     // spacerowicze na deptaku (przystań → plac → wejście do areny) i kibice czekający na placu
     static void Spacerowicze()
