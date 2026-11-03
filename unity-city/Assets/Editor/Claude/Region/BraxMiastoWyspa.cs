@@ -1258,8 +1258,12 @@ internal static partial class BraxMiastoWyspa
     static int Palmy()
     {
         var pien = BraxMiastoA.Mat("Wyspa: pień palmy (kolory pierścieni)", Color.white, .9f);
-        var lisc = BraxMiastoA.Mat("Wyspa: liście palmy (dwustronne)", Color.white, .65f);
+        // wyspa (koordynator 02:5x): „blade” palmy — liście z kolorów wierzchołków mnożone przez głęboką zieleń (pełniejszy
+        // kolor, mniej połysku); w głębi lądu (poza pasem plaży, teren ≥ 4.5 m) zamiast palm drzewa liściaste z miasta (ten sam
+        // model co w alejach — drzewo_verdant), palmy zostają przy plaży.
+        var lisc = BraxMiastoA.Mat("Wyspa: liście palmy (dwustronne)", new Color(.62f, .80f, .50f), .8f);
         lisc.SetFloat("_Cull", 0f); EditorUtility.SetDirty(lisc);
+        var drzewo = BraxRegion.Model("drzewo_verdant"); int nDrzew = 0;
         var odmiany = new List<(Mesh p, Mesh l, Mesh lod)>();
         for (int v = 0; v < 3; v++) odmiany.Add(Palma(v));
         var zr = new GameObject("Wyspa: palmy").transform; zr.SetParent(root, false);
@@ -1274,6 +1278,17 @@ internal static partial class BraxMiastoWyspa
                 if (Zajete(CX + px, CZ + pz, 1.6f)) continue;                               // leżaki, parasole, ratownicy, prysznice
                 float gest = h < 6f ? .3f : .12f;   // 2.11 recenzja: budżet telefonu (było .5/.2 → ~1000 rendererów palm) if (rng.NextDouble() > gest) continue;
                 float hx = H(px + 1, pz) - H(px - 1, pz), hz = H(px, pz + 1) - H(px, pz - 1); if (Mathf.Sqrt(hx * hx + hz * hz) * .5f > .6f) continue;
+                if (drzewo && h >= 4.5f)
+                {
+                    var pt = new Vector3(CX + px, W + h - .1f, CZ + pz);
+                    var t = BraxRegion.Put(zr, drzewo, "Drzewo liściaste (jak w alejach miasta)", pt, (float)rng.NextDouble() * 360f, .85f + (float)rng.NextDouble() * .3f, false, 6.5f * K);
+                    if (t)
+                    {
+                        var kc = new GameObject("kolizja: pień drzewa"); kc.transform.SetParent(t.transform, true); kc.transform.position = pt + Vector3.up * 1.2f;
+                        var cc = kc.AddComponent<CapsuleCollider>(); cc.radius = .22f; cc.height = 2.4f;
+                        Zajmij(pt, 1.2f); nDrzew++; n++; continue;
+                    }
+                }
                 var o = odmiany[rng.Next(odmiany.Count)];
                 var g = new GameObject("Palma"); g.transform.SetParent(zr, false);
                 g.transform.position = new Vector3(CX + px, W + h - .15f, CZ + pz); g.transform.rotation = Quaternion.Euler(0, (float)rng.NextDouble() * 360f, 0);
@@ -1287,6 +1302,7 @@ internal static partial class BraxMiastoWyspa
                 n++;
             }
         pien.enableInstancing = true; lisc.enableInstancing = true;
+        BraxMiastoA.Log("WYSPA zieleń: palm przy plaży " + (n - nDrzew) + ", drzew liściastych w głębi lądu " + nDrzew + (drzewo ? "" : " (brak modelu drzewo_verdant — same palmy)"));
         return n;
     }
 
