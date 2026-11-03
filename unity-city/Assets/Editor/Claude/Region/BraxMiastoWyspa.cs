@@ -96,8 +96,10 @@ internal static partial class BraxMiastoWyspa
         float xPomostu = Przystan(z, m);
         // WŁAŚCICIEL 3.11 10:11: arena „z kwadratów” (bryły z kodu) — usunięta razem z placem wejściowym, toaletami i kibicami.
         // Wróci tylko jako arena premium z prawdziwych modeli (zlecenie: pkt 57). Plac zostaje pustą polaną.
+        // 3.11: ARENA PREMIUM (BraxMiastoWyspaArena.cs) zamiast starej Arena() — ta zostaje wyłączona (ArenaWlaczona = false);
+        // plac wejściowy ze starymi food truckami i budkami NIE wraca (właściciel 10:47 „tragedia”) — przed wejściem ławki, latarnie, zieleń
         if (ArenaWlaczona) { BraxUliceKit.UstawGrupe("Wyspa: arena BRAXHORN"); Arena(); }
-        else BraxMiastoA.Log("WYSPA arena: WYŁĄCZONA (właściciel 3.11 — bryły z kodu), plac wejściowy i kibice też");
+        else { BraxMiastoA.Log("WYSPA arena: stara (bryły z kodu) WYŁĄCZONA — stawiam ARENĘ PREMIUM"); ArenaPremium(); }
         BraxUliceKit.UstawGrupe("Wyspa: bar, ringi, punkt widokowy", 80f);
         Plaze(z, m); BarPlazowy(); Ringi(); PunktWidokowy();
         // C2: plaża premium (deptak z desek, przebieralnie, WC, wypożyczalnia, bar na plaży, flagi ratowników, kąpiący się)
