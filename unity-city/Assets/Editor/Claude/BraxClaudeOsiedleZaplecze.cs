@@ -58,11 +58,10 @@ public static partial class BraxClaudeOsiedle
         Sign("biuro", new Vector3(xBiuro + .07f, 2.98f, dBiuro), 1.9f, .38f, Vector3.right);
         Sign("wc", new Vector3(xWc + .07f, 2.98f, dWc), .55f, .32f, Vector3.right);
         // HOL (x 80.5–91.5): ławka i wieszak przy ścianie sali, kosz; strefa 2.5 m za drzwiami (z −56.8…−54.3) wolna
-        BoxMinMax(Plain("ławka holu dąb", new Color(.45f, .33f, .22f), .4f), 82.0f, 84.0f, .42f, .47f, ZS - .5f, ZS - .1f, false, true);
-        foreach (float x in new[] { 82.2f, 83.8f }) BoxMinMax(Steel, x - .03f, x + .03f, FY, .42f, ZS - .45f, ZS - .15f, false);
-        Collider(new Vector3(83f, .25f, ZS - .3f), new Vector3(2f, .5f, .4f));
-        BoxMinMax(Steel, 86.5f, 89.5f, 1.75f, 1.8f, ZS - .1f, ZS - .03f, false);
-        for (float x = 86.7f; x < 89.4f; x += .4f) BoxMinMax(Chrom, x - .012f, x + .012f, 1.62f, 1.78f, ZS - .16f, ZS - .1f, false);
+        LawkaX(Plain("ławka holu dąb", new Color(.45f, .33f, .22f), .4f), 82.0f, 84.0f, ZS - .3f, .47f - FY, FY);   // runda 5: ławka z deskami, fazą i ramą (bez klocka)
+        BoxMinMax(Plain("deska wieszaka orzech", new Color(.32f, .2f, .12f), .45f), 86.5f, 89.5f, 1.62f, 1.84f, ZS - .055f, ZS - .03f, false, true);   // runda 5: deska z haczykami
+        BoxMinMax(Chrom, 86.52f, 89.48f, 1.82f, 1.835f, ZS - .062f, ZS - .055f, false);
+        for (float x = 86.7f; x < 89.4f; x += .4f) { Tube(Chrom, new Vector3(x, 1.72f, ZS - .055f), new Vector3(x, 1.77f, ZS - .16f), .01f, 8); Cylinder(Chrom, new Vector3(x, 1.765f, ZS - .165f), .018f, .02f, 10, true, false); Tube(Chrom, new Vector3(x, 1.69f, ZS - .055f), new Vector3(x, 1.65f, ZS - .12f), .008f, 6); }
         Bin(new Vector3(90.8f, FY, ZS - .35f));
         // SALA VIP (x 91.5–105.8): dywan, boazeria do 1.1 m ze złotą listwą, tapeta bordo, stół owalny 2.8 × 1.4 m, 8 krzeseł
         Top(dywan, xVip + .06f, X1 - .03f, ZB + .03f, ZS - .03f, FY + .01f);
@@ -91,7 +90,7 @@ public static partial class BraxClaudeOsiedle
         if (offArm) Put(offArm, new Vector3(72.9f, FY, -54.3f), 90f, .03f, true);
         if (offShelf) foreach (float z in new[] { -55.9f, -52.2f }) Put(offShelf, new Vector3(70.3f, FY, z), 90f, .03f, true);
         if (offSofa) Put(offSofa, new Vector3(77.5f, FY, ZS - .55f), 180f, .03f, true);
-        BoxMinMax(Steel, 79.6f, 80.3f, FY, 1.0f, ZB + .05f, ZB + .65f, true); BoxMinMax(Chrom, 79.55f, 79.6f, .55f, .62f, ZB + .3f, ZB + .4f, false);   // sejf
+        Sejf(new Vector3(79.6f, 0, ZB + .35f), Vector3.left, .6f, .7f, 1.0f - FY, FY);   // runda 5: sejf z drzwiami, tarczą szyfru, rączką, zawiasami, cokołem
         // WC (x 66.2–69.8, drzwi z biura): płytki do 1.6 m, miska przy ścianie sali, umywalka z lustrem przy ścianie tylnej
         BoxMinMax(PoolTiles, X0 + .03f, X0 + .045f, FY, 1.6f, ZB, ZS, false); BoxMinMax(PoolTiles, X0, xWc - .06f, FY, 1.6f, ZS - .045f, ZS - .03f, false);
         BoxMinMax(PoolTiles, X0, xWc - .06f, FY, 1.6f, ZB + .03f, ZB + .045f, false);
