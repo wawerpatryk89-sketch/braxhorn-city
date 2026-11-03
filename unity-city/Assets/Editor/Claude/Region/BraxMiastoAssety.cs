@@ -289,7 +289,10 @@ public static class BraxMiastoAssety
                 var b = Granice(o);
                 o.transform.position += new Vector3(720f - b.center.x, (woda - 12f * K) - b.min.y, 120f - b.center.z);
                 b = Granice(o);
-                Log("PORT: kontenerowiec na redzie " + b.size.z.ToString("0") + " m, środek (" + b.center.x.ToString("0") + ", " + b.center.z.ToString("0") + ")");
+                // właściciel 3.11 (nagranie): motorówka przepływała PRZEZ kadłub — kolizja kadłuba jak przy drobnicowcu
+                var kad = new GameObject("Kontenerowiec: kolizja kadłuba").AddComponent<BoxCollider>(); kad.transform.SetParent(root, false);
+                kad.transform.position = new Vector3(b.center.x, woda + 3.5f * K * .5f, b.center.z); kad.size = new Vector3(b.size.x * .92f, 3.5f * K + 2f, b.size.z * .9f);
+                Log("PORT: kontenerowiec na redzie " + b.size.z.ToString("0") + " m, środek (" + b.center.x.ToString("0") + ", " + b.center.z.ToString("0") + "), kolizja kadłuba " + kad.size.x.ToString("0") + " × " + kad.size.z.ToString("0") + " m");
             }
         }
         catch (Exception e) { Blad("PORT kontenerowiec", e); }

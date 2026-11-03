@@ -82,6 +82,7 @@ internal static partial class BraxMiastoWyspa
     }
     public static float Y(float wx, float wz) => W + H(wx - CX, wz - CZ);
 
+    const bool ArenaWlaczona = false;   // właściciel 3.11 10:11 — patrz Apply
     public static void Apply(Transform cityRoot)
     {
         Miejsca.Clear(); osoby.Clear(); deptak.Clear(); zajete.Clear(); zapowiedz = null; BraxUliceKit.Start(); BraxMiastoA.WyczyscPamiec(); StartC2();
@@ -93,8 +94,10 @@ internal static partial class BraxMiastoWyspa
         int tris = Teren();
         var z = new BraxNabrzeze.Zbior(); var m = BraxNabrzezeMebel.Materialy();
         float xPomostu = Przystan(z, m);
-        BraxUliceKit.UstawGrupe("Wyspa: arena BRAXHORN");
-        Arena();
+        // WŁAŚCICIEL 3.11 10:11: arena „z kwadratów” (bryły z kodu) — usunięta razem z placem wejściowym, toaletami i kibicami.
+        // Wróci tylko jako arena premium z prawdziwych modeli (zlecenie: pkt 57). Plac zostaje pustą polaną.
+        if (ArenaWlaczona) { BraxUliceKit.UstawGrupe("Wyspa: arena BRAXHORN"); Arena(); }
+        else BraxMiastoA.Log("WYSPA arena: WYŁĄCZONA (właściciel 3.11 — bryły z kodu), plac wejściowy i kibice też");
         BraxUliceKit.UstawGrupe("Wyspa: bar, ringi, punkt widokowy", 80f);
         Plaze(z, m); BarPlazowy(); Ringi(); PunktWidokowy();
         // C2: plaża premium (deptak z desek, przebieralnie, WC, wypożyczalnia, bar na plaży, flagi ratowników, kąpiący się)
@@ -102,8 +105,7 @@ internal static partial class BraxMiastoWyspa
         try { BraxUliceKit.UstawGrupe("Wyspa: plaża premium", 120f); PlazaPremium(z, m); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI plaża premium: " + e); }
         try { BraxUliceKit.UstawGrupe("Wyspa: domki letniskowe", 120f); Osrodek(z, m); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI ośrodek domków: " + e); }
         try { TablicaWyspa(z, m); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI tablica WYSPA: " + e); }
-        BraxUliceKit.UstawGrupe("Wyspa: plac wejściowy areny (pylon, telebimy, brama, flagi, food trucki)", 240f);   // widać z morza
-        PlacWejsciowy();
+        if (ArenaWlaczona) { BraxUliceKit.UstawGrupe("Wyspa: plac wejściowy areny (pylon, telebimy, brama, flagi, food trucki)", 240f); PlacWejsciowy(); }
         int nz = z.Emit(root, "Wyspa: przystań i plaża");
         int siatek = BraxUliceKit.Zapisz(root, "wyspa");
         int palm = Palmy(), krz = Krzewy();
@@ -1376,7 +1378,7 @@ internal static partial class BraxMiastoWyspa
                 if (Zajete(CX + px, CZ + pz, 1.6f)) continue;                               // leżaki, parasole, ratownicy, prysznice
                 float gest = h < 6f ? .3f : .12f;   // 2.11 recenzja: budżet telefonu (było .5/.2 → ~1000 rendererów palm) if (rng.NextDouble() > gest) continue;
                 float hx = H(px + 1, pz) - H(px - 1, pz), hz = H(px, pz + 1) - H(px, pz - 1); if (Mathf.Sqrt(hx * hx + hz * hz) * .5f > .6f) continue;
-                if (drzewo && h >= 4.5f)
+                if (drzewo)   // właściciel 3.11 10:15: zero palm z kodu („sztuczne”) — prawdziwy model drzewa wszędzie
                 {
                     var pt = new Vector3(CX + px, W + h - .1f, CZ + pz);
                     var t = BraxRegion.Put(zr, drzewo, "Drzewo liściaste (jak w alejach miasta)", pt, (float)rng.NextDouble() * 360f, .85f + (float)rng.NextDouble() * .3f, false, 6.5f * K);
