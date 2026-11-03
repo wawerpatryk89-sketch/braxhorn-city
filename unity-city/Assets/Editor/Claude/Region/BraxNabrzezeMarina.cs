@@ -295,7 +295,7 @@ public static class BraxNabrzezeMarina
         z[m.stalCiemna].BoxMM(new Vector3(x1 - .2f, yOk, hz0), new Vector3(x1 - .1f, yOk + .06f, hz1));                               // rygiel okienka
         z[m.stalCiemna].BoxMM(new Vector3(x1 - .2f, y + h - .3f, z0), new Vector3(x1, y + h, z1));
         foreach (float zz in new[] { z0 + .25f, 62.9f, hz0, hz1, 66.7f, z1 - .25f }) z[m.stalCiemna].BoxMM(new Vector3(x1 - .2f, y + 1.05f * K, zz - .04f), new Vector3(x1 - .1f, y + h - .3f, zz + .04f));
-        BosmanatKiosk(root, x1, yLada, z0 + .4f, z1 - .4f, hz0, hz1);
+        BosmanatKiosk(root, kol, x1, yLada, z0 + .4f, z1 - .4f, hz0, hz1);
         // wnętrze widoczne przez szybę: biurko, mapy na ścianie, radio VHF
         z[m.drewno].BoxMM(new Vector3(x0 + .6f, y + .3f, z0 + .6f), new Vector3(x0 + 1.4f, y + .75f * K, z1 - .6f));
         z[BraxNabrzeze.Kolor("Bosmanat: mapa morska", new Color(.75f, .82f, .86f), .9f)].BoxMM(new Vector3(x0 + .26f, y + 1.3f * K, z0 + 1.2f), new Vector3(x0 + .28f, y + 2.0f * K, z1 - 1.2f));
@@ -322,7 +322,7 @@ public static class BraxNabrzezeMarina
     // (wooden_cutting_board), bułki (hamburger_buns), owoce (food_apple_01, lemon, food_pears_asian_01) na talerzu
     // (carved_wooden_plate), tablica-potykacz (standing_chalkboard_01). Pobiera je fetch_region.py (wpisy opcjonalne);
     // brak modelu = miejsce puste (log). Sprzedawca = bosman z BraxRegionRuchMiasta (71.3, bulwar + 0.3, 64.8, przodem na wschód).
-    static void BosmanatKiosk(Transform root, float x1, float yLada, float za, float zb, float hz0, float hz1)
+    static void BosmanatKiosk(Transform root, Transform kol, float x1, float yLada, float za, float zb, float hz0, float hz1)
     {
         var lada = BraxNabrzeze.Mat("Bosmanat: lada okienka (dąb olejowany)", 1.2f, new Color(.9f, .8f, .66f), "wood_floor", "wood_planks", "wooden_planks");
         var stal = BraxNabrzeze.Kolor("Bosmanat: wsporniki lady (stal grafit)", new Color(.16f, .17f, .18f), .45f, .6f);
@@ -362,10 +362,30 @@ public static class BraxNabrzezeMarina
         }
         // tablica-potykacz z menu na bulwarze przed okienkiem (model z kolizją)
         var tab = BraxRegion.Model("standing_chalkboard_01");
-        if (tab && BraxRegion.Put(root, tab, "Bosmanat: tablica menu (potykacz)", new Vector3(x1 + 1.9f, BraxNabrzeze.Bulwar, hz0 - 1.4f), 60f, K, true)) ok++; else if (!tab) { brak++; braki.Add("standing_chalkboard_01"); }
+        if (tab && BraxRegion.Put(root, tab, "Bosmanat: tablica menu (potykacz)", new Vector3(x1 + 1.6f, BraxNabrzeze.Bulwar, hz1 + 2.2f), 120f, K, true)) ok++; else if (!tab) { brak++; braki.Add("standing_chalkboard_01"); }
+        // WÓZEK Z JEDZENIEM właściciela (AVIKA Street Food Cart, CC BY; paczka miasto_jedzenie — baner BRAXHORN GRILL po polsku,
+        // marka z torebek zamalowana) na bulwarze na południe od bosmanatu (z 56…61, poza masztem bandery z 62.4), front na wschód
+        string woz = "brak paczki miasto_jedzenie";
+        try
+        {
+            var mw = BraxMiastoAssety.Jest("miasto_jedzenie") ? BraxMiastoAssety.Model("miasto_jedzenie", "wozek_jedzenie") : null;
+            if (mw)
+            {
+                var p = new Vector3(75.2f, BraxNabrzeze.Bulwar, 58.5f);
+                var o = BraxMiastoAssety.Postaw(root, mw, "Bosmanat: wózek z jedzeniem BRAXHORN GRILL (model właściciela)", p, 90f, 1f, true, true);
+                var b = BraxMiastoAssety.Granice(o); o.transform.position += new Vector3(p.x - b.center.x, p.y - b.min.y, p.z - b.center.z); b = BraxMiastoAssety.Granice(o);
+                BraxMiastoAssety.Kolizja(kol, o, "Wózek z jedzeniem kolizja", .05f);
+                var sp = new GameObject("BRAXHORN obsada: obsługa wózka z jedzeniem (grill)").transform; sp.SetParent(root, false);
+                sp.position = new Vector3(b.min.x - .45f, BraxNabrzeze.Bulwar, p.z); sp.rotation = Quaternion.Euler(0f, 90f, 0f);
+                BraxMiastoA.Akcja(root, "wozek_grill", "KUP HOT DOGA", "Sprzedawca: Kiełbaska z grilla czy hot dog? Dziewięć złotych, z musztardą albo keczupem.", new Vector3(b.max.x + 1.0f, BraxNabrzeze.Bulwar, p.z), 1.8f);
+                Miejsca["wozek_grill"] = new Vector3(b.max.x + 1.0f, BraxNabrzeze.Bulwar, p.z);
+                woz = "x " + b.min.x.ToString("F2") + "…" + b.max.x.ToString("F2") + ", z " + b.min.z.ToString("F2") + "…" + b.max.z.ToString("F2") + ", wys. " + b.size.y.ToString("F2") + " m";
+            }
+        }
+        catch (System.Exception e) { woz = "DO POPRAWKI " + e.Message; }
         BraxMiastoA.Akcja(root, "bosmanat_przekaski", "KUP PRZEKĄSKĘ", "Bosman: Rogalik, bułka, owoce — co podać?", new Vector3(x1 + 1.1f * K, BraxNabrzeze.Bulwar, (hz0 + hz1) * .5f), 1.6f);
         Miejsca["bosmanat_kiosk"] = new Vector3(x1 + 1.1f * K, BraxNabrzeze.Bulwar, (hz0 + hz1) * .5f);
-        Debug.Log("BRAXHORN_BOSMANAT_KIOSK lada x " + (x1 - wTyl).ToString("F2") + "…" + (x1 + wPrzod).ToString("F2") + ", okienko z " + hz0 + "…" + hz1 + ", modeli Poly Haven " + ok + (brak > 0 ? ", brak: " + string.Join(", ", braki.Distinct()) : "") + ", sprzedawca: bosman (BraxRegionRuchMiasta)");
+        Debug.Log("BRAXHORN_BOSMANAT_KIOSK lada x " + (x1 - wTyl).ToString("F2") + "…" + (x1 + wPrzod).ToString("F2") + ", okienko z " + hz0 + "…" + hz1 + ", modeli Poly Haven " + ok + (brak > 0 ? ", brak: " + string.Join(", ", braki.Distinct()) : "") + ", sprzedawca: bosman (BraxRegionRuchMiasta); wózek z jedzeniem: " + woz);
     }
 
     // ---------------- łodzie przy pomostach ----------------
