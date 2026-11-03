@@ -446,6 +446,35 @@ internal static partial class BraxMiastoWyspa
         var stol = P(w * .25f, 0, d * .5f + tD * .5f);
         z[deskaT].Box(stol + Vector3.up * .72f, new Vector3(.8f, .04f, .8f), rot); z[m.stalCiemna].Rura(stol, stol + Vector3.up * .7f, .03f, 6);
         foreach (float o in new[] { -.75f, .75f }) { var kp = stol + rg * o; z[deskaT].Box(kp + Vector3.up * .45f, new Vector3(.45f, .04f, .45f), rot); z[deskaT].Box(kp + Vector3.up * .7f + rg * Mathf.Sign(o) * .2f, new Vector3(.04f, .5f, .45f), rot); foreach (var (a, b) in new[] { (-.2f, -.2f), (.2f, -.2f), (-.2f, .2f), (.2f, .2f) }) z[m.stalCiemna].Rura(kp + rg * a + fw * b, kp + rg * a + fw * b + Vector3.up * .43f, .015f, 5); }
+        // SKLEP · KAWIARNIA (audyt wyspy: „sklep z obsługą i wyposażeniem”): stoisko na tarasie — lada z blatem i kasą,
+        // lodówka z napojami (szklane drzwi, półki, butelki), skrzynki z owocami przy balustradzie, sprzedawca za ladą, klient
+        if (tabliczka == "SKLEP")
+        {
+            var bialyS = BraxMiastoA.Mat("Wyspa sklep: biel (lada, lodówka)", new Color(.94f, .94f, .92f), .4f);
+            var szkloS = BraxMiastoA.Mat("Wyspa sklep: szkło lodówki", new Color(.6f, .75f, .8f), .05f, .3f);
+            var kol3 = new[] { BraxMiastoA.Mat("Wyspa sklep: owoce i butelki czerwone", new Color(.75f, .12f, .1f), .45f), BraxMiastoA.Mat("Wyspa sklep: owoce i butelki żółte", new Color(.92f, .75f, .15f), .45f), BraxMiastoA.Mat("Wyspa sklep: owoce i butelki zielone", new Color(.35f, .6f, .18f), .45f) };
+            float lz = d * .5f;
+            z[bialyS].Box(P(-2.6f, .48f, lz + 1.3f), new Vector3(1.8f, .96f, .55f), rot);
+            z[deskaT].Box(P(-2.6f, .98f, lz + 1.3f), new Vector3(1.9f, .04f, .65f), rot);
+            z[deskaT].Box(P(-2.6f, .45f, lz + 1.585f), new Vector3(1.7f, .7f, .02f), rot);                          // front lady (deska)
+            z[m.stalCiemna].Box(P(-2.0f, 1.1f, lz + 1.2f), new Vector3(.35f, .2f, .3f), rot);                        // kasa
+            z[bialyS].Box(P(-3.9f, .95f, lz + .4f), new Vector3(.7f, 1.9f, .6f), rot);                               // lodówka
+            z[szkloS].Box(P(-3.9f, 1.0f, lz + .715f), new Vector3(.6f, 1.6f, .02f), rot);
+            for (int i = 0; i < 4; i++)
+            {
+                z[m.stalCiemna].Box(P(-3.9f, .3f + i * .4f, lz + .5f), new Vector3(.6f, .02f, .35f), rot);
+                for (int j = 0; j < 4; j++) z[kol3[(i + j) % 3]].Rura(P(-4.12f + j * .15f, .31f + i * .4f, lz + .55f), P(-4.12f + j * .15f, .53f + i * .4f, lz + .55f), .032f, 8);
+            }
+            foreach (float x in new[] { -3.95f, -3.35f })
+            {
+                z[deskaT].Box(P(x, .2f, lz + 2.35f), new Vector3(.5f, .3f, .4f), rot);
+                for (int k2 = 0; k2 < 6; k2++) z[kol3[(k2 + (x < -3.6f ? 0 : 1)) % 3]].Rura(P(x - .15f + (k2 % 3) * .15f, .36f, lz + 2.27f + (k2 / 3) * .15f), P(x - .15f + (k2 % 3) * .15f, .44f, lz + 2.27f + (k2 / 3) * .15f), .055f, 10);
+            }
+            BraxNabrzeze.Kol(kol, "Lada sklepu", P(-2.6f, .5f, lz + 1.3f), new Vector3(1.9f, 1f, .65f), rot.eulerAngles.y);
+            BraxNabrzeze.Kol(kol, "Lodówka sklepu", P(-3.9f, .95f, lz + .4f), new Vector3(.7f, 1.9f, .6f), rot.eulerAngles.y);
+            Czlowiek("Sklep ośrodka", "sprzedawca (obsługa)", "stoi", P(-2.6f, 0f, lz + .75f), fw, KlStoi);
+            Czlowiek("Sklep ośrodka", "klient", "stoi", P(-2.3f, 0f, lz + 2.05f), -fw, KlStoi);
+        }
         // 5) kolizje bryły i tarasu
         BraxNabrzeze.Kol(kol, "Domek " + tabliczka, P(0, h * .5f + .02f, 0), new Vector3(w, h + .04f, d), rot.eulerAngles.y);
         BraxNabrzeze.Kol(kol, "Taras domku " + tabliczka, P(0, -.25f, d * .5f + tD * .5f), new Vector3(w, .5f, tD), rot.eulerAngles.y);
