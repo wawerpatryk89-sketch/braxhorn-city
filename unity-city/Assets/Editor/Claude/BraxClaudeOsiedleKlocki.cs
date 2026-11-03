@@ -38,7 +38,9 @@ public static partial class BraxClaudeOsiedle
             if (mn < .25f || mx > 6.5f || b.size.y > 3.2f || b.min.y > .6f) continue;
             string nazwa = mf.name, nl = nazwa.ToLowerInvariant();
             if (!r.enabled || nl.StartsWith("braxhorn") || nl.Contains("kolizj") || nl.Contains("marker") || nl.Contains("punkt") || nl.Contains("trigger") || mf.GetComponentInParent<CharacterController>()) continue;
-            if (mesh.name == "Cube")
+            // prowadzący (audyt 3.11): usuwamy TYLKO prymityw nazwany jak mebel/pojazd/maszyna — ściany, murki, garaże, słupki
+            // i inne bryły z „Cube” zostają (inaczej dziury w zabudowie); reszta tylko na liście do przejrzenia
+            if (mesh.name == "Cube" && KlockiSlowa.Any(nl.Contains))
             {
                 foreach (var c in Object.FindObjectsByType<BoxCollider>(FindObjectsInactive.Include, FindObjectsSortMode.None).ToArray())
                     if (c && c.gameObject != mf.gameObject && (c.bounds.center - b.center).sqrMagnitude < .01f && (c.bounds.size - b.size).sqrMagnitude < .01f) Object.DestroyImmediate(c);
