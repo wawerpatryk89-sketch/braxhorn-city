@@ -205,6 +205,12 @@ const VIEWS = [
   ['DETAL_elewacja_bank_alejka', '-110,5,68,180,10,8'],
   ['DETAL_tower_recepcja_lada', '53.6,1.0,44.3,270,15,3'],
   ['DETAL_misa_drzewa_zielona', '-10,.3,22.8,0,50,2.2'],
+  // pkt 59: BRAXHORN FITNESS Nyxy (lokal „gallery”, ul. Portowa płn.)
+  ['DETAL_fitness_szyld', '-4,3.8,36,180,10,7'],
+  ['DETAL_fitness_recepcja', '-2.8,1.1,38.3,180,10,1.5'],
+  ['DETAL_fitness_mural', '-5.73,2.0,43.0,180,0,3.2'],
+  ['DETAL_fitness_szatnia', '0.5,1.2,41.0,270,8,1.6'],
+  ['DETAL_fitness_cardio', '-8.2,1.0,38.0,0,15,1.3'],
   ['M_A_metro_wejscie', '68,0.35,34.3,270,12,9'],
   ['M_A_nova_sala', '41,1.8,50,180,5,8'],
   ['M_A_nova_wejscie', '42,1.8,36,180,5,9'],

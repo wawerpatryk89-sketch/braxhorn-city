@@ -63,7 +63,7 @@ public static class BraxUlicePierzeje
         { "workshop",            new Lokal("WARSZTAT ROWEROWY", "warsztat", 23, 2) },
         { "estate_corner",       new Lokal("KAWIARNIA", "kawiarnia", 25, 0) { markiza = true, markizaA = BraxUliceKit.C(.32f, .20f, .13f), markizaB = BraxUliceKit.C(.90f, .84f, .72f), wariantWitryny = 6 } },
         { "bakery",              new Lokal("PIEKARNIA", "piekarnia", 6, 4) { markiza = true, markizaA = BraxUliceKit.C(.62f, .38f, .12f), markizaB = BraxUliceKit.C(.95f, .92f, .84f) } },
-        { "gallery",             new Lokal("GALERIA SZTUKI", "galeria", 10, 3) { wariantWitryny = 5 } },
+        { "gallery",             new Lokal("BRAXHORN FITNESS", "fitness", 10, 3) { wysiegnik = true, licoSzyldu = new Color(.93f, .45f, .62f), wariantWitryny = 5 } },   // pkt 59: fitness Nyxy (wcześniej GALERIA SZTUKI)
         { "office_entrance",     new Lokal("POCZTA", "poczta", 12, 1) { wysiegnik = true, licoSzyldu = new Color(.95f, .78f, .10f) } },
         { "apartments_1",        new Lokal("KSIĘGARNIA", "ksiegarnia", 14, 0) { wariantWitryny = 3 } },
         { "apartments_2",        new Lokal("CUKIERNIA", "cukiernia", 16, 5) { markiza = true, markizaA = BraxUliceKit.C(.78f, .45f, .55f), markizaB = BraxUliceKit.C(.97f, .95f, .93f) } },
@@ -103,7 +103,13 @@ public static class BraxUlicePierzeje
             if (BokZachod.Contains(b.id)) { var s = Bok(b, lok, true); BraxUliceKit.UstawGrupe("Elewacja boczna " + lok.szyld); Elewacja(s, kolizje); nBokow++; }
             if (BokWschod.Contains(b.id)) { var s = Bok(b, lok, false); BraxUliceKit.UstawGrupe("Elewacja boczna " + lok.szyld); Elewacja(s, kolizje); nBokow++; }
             // wnętrze Bar 24 robi wykonawca „galeria” (ETAP-GALERIA p. 4) — tu tylko fasada
-            if (!wiez && b.id != "bar") { BraxUliceKit.UstawGrupe("Wnętrze lokalu " + lok.szyld, 45f); Wnetrze(f, bg, kolizje); nLokali++; }
+            if (!wiez && b.id != "bar")
+            {
+                BraxUliceKit.UstawGrupe("Wnętrze lokalu " + lok.szyld, 45f);
+                if (lok.typ == "fitness") { try { BraxMiastoFitness.Buduj(bg, f.A + f.R * f.drzwiS); } catch (System.Exception e) { Debug.LogWarning("BRAXHORN_FITNESS DO POPRAWKI " + e); } }
+                else Wnetrze(f, bg, kolizje);
+                nLokali++;
+            }
             Drzwi(bg, b, lok, f);
             gotowe.Add(lok.szyld + " nr " + lok.numer);
         }
