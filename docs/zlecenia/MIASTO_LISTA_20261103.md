@@ -442,3 +442,30 @@ Do wpisania w claude/braxhorn-city-ZASADA-DETALE.md po 01:00.
 - (02:42) AUTOBUS — GRACZ WSIADA: na przystanku, gdy autobus stoi z otwartymi drzwiami → kontekst „WSIĄDŹ” (bilet — EKONOMIA,
   teraz 0 zł), Brax siada w środku (jak w aucie: seat), kamera za plecami/wewnątrz, jazda trasą, na każdym przystanku
   „WYSIĄDŹ”. NPC wsiadają i wysiadają jak teraz. Osiedle i miasto. (zlecenie GPT, osiedle pkt 1)
+
+## 3.11 rano (10:00–10:50) — nagrania i zdjęcia właściciela z APK 57c1767 (build 23:22) — STATUS
+Zrobione w kodzie (gałąź miasta, niewysłane do 3.11 ~10:50, niesprawdzone na obrazie):
+- ✅ metro: wejście blokowało pudełko kontroli kolizji (8372b2b)
+- ✅ nowe dzielnice: czarne ściany/okna (szkło jako czarny metal, szyby przed pustą bryłą) → szkło refleksyjne (7487db9);
+  gołe bryły z daleka → budynki stale w scenie, sylwetki wyłączone; sylwetki CENTRUM szkło (021a063)
+- ✅ wyspa: arena z brył wyłączona (+ plac, food trucki, toalety, kibice); palmy z kodu → drzewo z modelu (d4fdf43)
+- ✅ arena premium — w toku u pomocnika (osobna gałąź claude/miasto-pomoc-ruch, do scalenia)
+- ✅ kontenerowiec na redzie wyłączony (słaby model 1 MB + metal = ciemny); kontenerowiec z kodu w porcie A wyłączony (86e6dbb)
+- ✅ siatki/szlabany/pachołki/bloki w poprzek każdej jezdni (231df07); znaki stojące na jezdni (be1e25b)
+- ✅ marina: 5 boksów przy D + pomost F z boksami + odnoga G, jachty rufą do pomostu, trap (f4aa9b7, e3d9d53)
+- ✅ skuter okrakiem, motorówka w fotelu (a657119); jacht: kamera blisko za sterem (b92872d)
+- ✅ autobus: ciemne szyby modeli → szkło z odbiciem (ac1aca4); wiata przystanku przodem do jezdni (033c28c)
+- ✅ migotanie elewacji: wycinanie w całym mieście z budżetem (15bd43c)
+- ✅ ludzie: cofnięty adaptacyjny limit (1e550ff), 16 par rozmawiających z dymkami (33194e7), limit animowanych 52,
+  18 aut w ruchu zamiast 8 (da74293)
+- ✅ podwórko: wiata śmietnikowa ze środka przejścia wyłączona, piłki × K (9edc5f9); latarnie ścienne bez ściany (5845c9c)
+- ✅ „Utknąłem”: cel tylko pod gołym niebem (2f8ba28)
+- ✅ CI: zdjęcia w 12 częściach (było 3 → zrobiło się 57 z 218 ujęć) (d5bd95f)
+Do zrobienia:
+- ❌ nowe dzielnice: ruch aut (trasy przez Aleję Centralną i C0–C3) i przechodnie; rondo „kwadratowe”; prawdziwe znaki drogowe
+- ❌ wyspa: drzewa różnych gatunków + prawdziwe palmy (skany Poly Haven odchudzone pod telefon), większy pomost pod jacht
+  (zlecony pomocnikowi po arenie)
+- ❌ czerwona cegła widoczna w oknach (szyby przezroczyste przed murem — BraxSzyby: przezroczyste tylko z wnętrzem), czerwone
+  murki z cegły na dachu (klocki), lustrzana tafla na placu, migająca elewacja wieży przy placu z pawilonem (tyły B)
+- ❌ skala całego świata — w nocy był tylko audyt (BRAXHORN_SKALA lista), bez poprawek
+- ❌ wejście na jacht pieszo (teraz WSIĄDŹ przy trapie), miasto wszerz (właściciel: później)
