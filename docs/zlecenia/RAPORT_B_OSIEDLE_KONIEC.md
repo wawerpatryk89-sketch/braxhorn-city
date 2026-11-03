@@ -99,3 +99,39 @@ kompilacji przy pustym wyniku = normalne, to końcowy `grep -v`).
 - `scratchpad/salon/kolo_podglad.png` — podgląd siatki koła 205/55 R16 × K
 - `scratchpad/plan/rb_stroje_arkusz.jpg` — tekstury strojów Rocketbox (golasy)
 - `scratchpad/plan/STACJA_WARSZTAT_RZUT.png`, `scratchpad/plan/ROZBUDOWA_B_PLAN.png`
+
+## 7. Runda 6 (3.11, po 02:18) — dopisek
+
+Stan: HEAD `a5e0413` na `claude/osiedle-45b`, drzewo czyste, nic nie wypchnięte; kompilacja `kompiluj_45b.sh` i bramka
+`brama_modulow.sh` przed każdym commitem: pusty wynik. Wszystko **niesprawdzone w Unity (CI)**.
+
+### Commity rundy 6
+
+| commit | jedno zdanie |
+|---|---|
+| `7096627` | E23: przystanki z nazwami (OSIEDLE A 1/2/3, OSIEDLE B 1/2), nowe A 3 i B 2, autobus z kodu (awaryjny) i `BraxAutobus`: jazda po trasie ruchu, postój drzwiami przy wiacie, wysiadanie/wsiadanie, auta AI widzą autobus. |
+| `9134b4e` | Billboardy osiedla 02, 04, 05, 13, 14, 08 tylko na nośnikach (citylight, rama na płaskim murze, tablica na słupach), brak grafiki = pusta rama. |
+| `a5e0413` | Autobus z modelu `miasto_pojazdy/autobus.glb` (12 m × K × skala dopasowana do łuków), kierowca w środku, skrzydła drzwi z węzłów modelu, syk drzwi; autobus z kodu zostaje awaryjny. |
+
+### Logi do sprawdzenia w CI (runda 6)
+
+- `BRAXHORN_PRZYSTANKI A=… B=…` (wymóg A ≥ 3, B ≥ 2)
+- `BRAXHORN_AUTOBUS model=glb|kod`, `skala_dopasowana=…`, `kierowcy=…`, `pasażerowie=…`; `BRAXHORN_AUTOBUS_TRASA poza_jezdnią=…`
+- `BRAXHORN_BILLBOARDY postawione=… brak_grafiki=…` (lista miejsc; „PUSTA RAMA” = brak pliku NN.jpg)
+- Ujęcia: `DETAL_przystanek_*`, `DETAL_billboard_*`
+
+### Czego NIE zrobiłem (runda 6)
+
+- **E24 Żuk** — model `car_zuk.glb` to jedna siatka z JEDNYM materiałem i atlasem tekstur w KTX2 (Basis): szyby i lakier są tylko w teksturze, bez dekodera nie da się ich wydzielić. Do zrobienia: zrzut atlasu z Unity (RenderTexture + ReadPixels) albo dekoder Basis, klasyfikacja trójkątów po kolorze tekstury (szyby → osobna podsiatka ze szkłem, lakier → czyste warianty), wnętrze z kodu (fotele, deska, kierownica) i polska tablica. Miejsce: `Editor/Claude/BraxClaudeOsiedleAutaModel.cs` → `PrzygotujAuto` (szablon `car_zuk`).
+- **Audio stref pozostałych sal** (szpital, komisariat, sala bokserska, arena, lokale pierzei B, wille) — dopisać prostopadłościany sal do listy `strefy` w `Editor/Claude/BraxClaudeOsiedleAudioStref.cs` → `AudioStref()`, rodzaje dźwięku w `Claude/Runtime/BraxDzwiekiStref.cs`.
+- **E16** (piesi się mijają) i **E20b** (ganki i schody z kolizją; log NIE `BRAXHORN_WEJSCIA` — zajęty) — bez zmian względem sekcji 3.
+- **Linia autobusowa A↔B** — drogi przez parki (E17) nie ma; są dwie linie: A (pętla Poznańska–Bydgoska: A 1, A 3) i B (ulica główna, po autobusie na kierunek: B 1, B 2). Po zbudowaniu E17 wystarczy nowa trasa w `BraxTrasyAut.TrasyOsiedla` i jej nazwa w `Autobusy()` (`Editor/Claude/BraxClaudeOsiedleAutobus.cs`).
+
+### Ryzyka (runda 6)
+
+- **Autobus w łukach:** 12 m × K = 15.5 m na łukach 90° (promień pasa ~9.5 m) i na rondzie. Skala jest dobierana przed budową sprawdzeniem nadwozia na jezdni (1.0 → 0.7), a wynik trafia do logu. Przy skali < 1 autobus jest proporcjonalnie mniejszy. Tył nadwozia może zahaczać o narożnik chodnika — do obejrzenia w filmie.
+- **Przystanki bez zatoki:** chodniki A mają 2.1 m, więc przystanki są przykrawężnikowe (P-17 na pasie). Autobus stoi na pasie, a auta AI za nim hamują (obrys zewnętrzny); wyprzedzania nie ma.
+- **Drzwi modelu:** węzły z „door/drzwi” są przesuwane w układzie autobusu. Jeśli model ma drzwi po lewej albo inaczej podzielone, ruch może wyglądać źle. Wtedy w `AutobusZModelu` trzeba wyłączyć `skrzydla` (zostaje sam syk drzwi).
+- **Kierowca:** siedzisko liczone z wymiarów (1.0 m nad jezdnią, przód po lewej). Przy innym wnętrzu modelu może wisieć albo przenikać — do obejrzenia.
+- **Billboardy:** miejsca z list kandydatów są sprawdzane fizyką. Jeśli żaden kandydat nie przejdzie, pozycja wypada (log). Ramy stawiam tylko na płaskim, nieszklanym licu.
+- **Pasażerowie:** wsiadanie to znikanie przy drzwiach, wysiadanie to pojawienie się przy drzwiach i 1.5 m kroku. Grupy czekających i wysiadających zamieniają się po każdym postoju.
