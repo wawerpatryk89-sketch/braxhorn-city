@@ -292,6 +292,8 @@ public static partial class BraxClaudeOsiedle
                 case "sala bokserska":
                 {
                     var red = new Color(.66f, .05f, .06f);
+                    // 3.11 16:08: szyld BRAXHORN BOXING z grafiki właściciela (3:1) zamiast liter; bez paczki — litery 3D
+                    if (SzyldPanel("boxing_szyld", new Vector3(cx, 4.45f, pil) + fwd * .03f, fwd, 6f, 2f)) break;
                     SzyldLitery(bud, "SALA BOKSERSKA", "SALA BOKSERSKA", new Vector3(cx, 4.25f, pil), fwd, .85f, MatLicoBiale, MatBokiCzarne, .12f, .07f, MatLico("czerwone", red));
                     SzyldLitery(bud, "BRAXHORN BOXING", "BRAXHORN BOXING", new Vector3(cx, 3.58f, lico), fwd, .26f, MatLico("czerwone", red), MatBokiCzarne, .06f, .04f);
                     break;
