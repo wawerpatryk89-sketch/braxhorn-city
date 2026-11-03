@@ -54,6 +54,9 @@ const VIEWS = [
   ['14_podworko_zielen', '10,0.2,92,0,14,12'],
   ['15_plaza_na_morze', '88,0.4,133,270,14,12'],
   ['16_plaza_piasek', '78,0.4,125,0,16,12'],
+  // 3.11: wieża ratownika z kodu (BraxNabrzezeRatownik, środek słupów ~127.3, 140; pokład ~y 2.0): z plaży (schody, kabina) i z balkonu na morze
+  ['DETAL_plaza_wieza_ratownika', '127.3,0.8,140,225,10,11'],
+  ['DETAL_plaza_wieza_ratownika_z_platformy', '130.8,3.2,140,270,5,3'],
   ['17_marina_zejscie', '120,0.1,119,0,14,8'],
   ['17b_marina_pomost', '120,-0.5,104,0,12,9'],
   ['17c_marina_jachty', '122,-0.5,84,270,12,9'],

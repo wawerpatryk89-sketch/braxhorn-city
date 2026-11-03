@@ -83,7 +83,7 @@ internal static partial class BraxMiastoWyspa
 
     // ---------------- kształty (wyciągnięcie profilu, toczenie, prostokąt zaokrąglony) ----------------
     /// <summary>Profil zamknięty (a wzdłuż wprzod, b wzdłuż gora) wyciągnięty wzdłuż os na długość dl; dekle wachlarzem od środka.</summary>
-    static void Wyciag(UlSiatka s, Vector2[] pr, Vector3 o, Vector3 os, Vector3 gora, Vector3 wprzod, float dl, bool dekle = true)
+    internal static void Wyciag(UlSiatka s, Vector2[] pr, Vector3 o, Vector3 os, Vector3 gora, Vector3 wprzod, float dl, bool dekle = true)
     {
         float pole = 0; for (int i = 0; i < pr.Length; i++) { var p = pr[i]; var q = pr[(i + 1) % pr.Length]; pole += p.x * q.y - q.x * p.y; }
         float zn = pole >= 0 ? 1f : -1f;
@@ -97,20 +97,20 @@ internal static partial class BraxMiastoWyspa
             if (dekle) { s.Tri(P(sr, 0), P(p, 0), P(q, 0), -os); s.Tri(P(sr, dl), P(q, dl), P(p, dl), os); }
         }
     }
-    static Vector2[] PZ(float w, float h, float r, Vector2 sr, int seg = 3)
+    internal static Vector2[] PZ(float w, float h, float r, Vector2 sr, int seg = 3)
     {
         r = Mathf.Min(r, Mathf.Min(w, h) * .5f - .0005f); var l = new List<Vector2>();
         var c = new[] { new Vector2(w * .5f - r, h * .5f - r), new Vector2(-w * .5f + r, h * .5f - r), new Vector2(-w * .5f + r, -h * .5f + r), new Vector2(w * .5f - r, -h * .5f + r) };
         for (int k = 0; k < 4; k++) for (int j = 0; j <= seg; j++) { float a = (k * 90f + j * 90f / seg) * Mathf.Deg2Rad; l.Add(sr + c[k] + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * r); }
         return l.ToArray();
     }
-    static Vector2[] Obrot(Vector2[] p, float stopnie, Vector2 wokol)
+    internal static Vector2[] Obrot(Vector2[] p, float stopnie, Vector2 wokol)
     {
         float c = Mathf.Cos(stopnie * Mathf.Deg2Rad), s = Mathf.Sin(stopnie * Mathf.Deg2Rad);
         return p.Select(q => { var d = q - wokol; return wokol + new Vector2(d.x * c - d.y * s, d.x * s + d.y * c); }).ToArray();
     }
     /// <summary>Bryła obrotowa: profil (r, y) od dołu przez bok po wierzch, oś pionowa w p; sx/sz — owal.</summary>
-    static void Toczenie(UlSiatka s, Vector2[] pr, Vector3 p, int seg, float sx = 1f, float sz = 1f, Vector3? przod = null)
+    internal static void Toczenie(UlSiatka s, Vector2[] pr, Vector3 p, int seg, float sx = 1f, float sz = 1f, Vector3? przod = null)
     {
         var f = przod ?? Vector3.forward; f.y = 0; f.Normalize(); var r = Vector3.Cross(Vector3.up, f);
         Vector3 Dd(float t) => r * (Mathf.Cos(t) * sx) + f * (Mathf.Sin(t) * sz);
