@@ -444,6 +444,25 @@ public static partial class BraxClaudeOsiedle
                 if (pts.Length < 2) continue;
                 if (NowyPrzechodzien(gp, pts, pr, rnd, 900 + i)) prz++;
             }
+            // WŁAŚCICIEL 3.11 10:34 („ludzie mają rozmawiać”): stojące PARY rozmawiające na chodnikach miasta B — jak na osiedlu
+            // (BraxMieszkaniec lider + rozmówca: kwestie w dymkach co kilka sekund, widoczne do 24 m). Miejsca: węzły sieci pieszych
+            // (nie zebry), 1.6 m obok węzła (nie w osi przejścia), wolne od kolizji i poza jezdnią. Najwyżej 16 par.
+            int parRozm = 0; var gRozm = Group("Ludzie / rozmowy (miasto B)");
+            foreach (int j in Enumerable.Range(0, s.w.Count).Where(j => !s.zebry.Contains(j)).OrderBy(_ => rnd.Next()).ToList())
+            {
+                if (parRozm >= 16) break;
+                float yaw = (float)rnd.NextDouble() * 360f; var bok = Quaternion.Euler(0, yaw, 0) * Vector3.forward;
+                var p0 = s.w[j] + bok * 1.6f;
+                var os = Quaternion.Euler(0, yaw + 90f, 0) * Vector3.forward; float d = Mathf.Lerp(1.05f, 1.3f, (float)rnd.NextDouble());
+                Vector3 a1 = p0 - os * d * .5f, b1 = p0 + os * d * .5f;
+                if (!Wolne(a1, .3f) || !Wolne(b1, .3f) || BraxRegionMiastoB.NaJezdni(a1) || BraxRegionMiastoB.NaJezdni(b1)) continue;
+                var para = new GameObject("Rozmowa (para, miasto B)").transform; para.SetParent(gRozm, false); para.position = p0;
+                var m1 = NowyMieszkaniec(RolaPrzechodzien, para, "Rozmawia", a1, Quaternion.LookRotation(b1 - a1).eulerAngles.y, rnd, KlipySlucha, kubek: rnd.NextDouble() < .25);
+                var m2 = NowyMieszkaniec(RolaPrzechodzien, para, "Rozmawia", b1, Quaternion.LookRotation(a1 - b1).eulerAngles.y, rnd, KlipySlucha);
+                if (!m1 || !m2) { UnityEngine.Object.DestroyImmediate(para.gameObject); continue; }
+                m1.rozmowca = m2; m2.rozmowca = m1; m1.lider = true; parRozm++;
+            }
+            Debug.Log("BRAXHORN_LUDZIE_ROZMOWY miasto B: par rozmawiających " + parRozm + "/16 (dymki do 24 m) + przechodnie zaczepiają się w ruchu");
             int ileLawekB = lawki.Count;
             int wezlow = s.w.Count;
             int przejsc = s.zebry.Count / 2;
