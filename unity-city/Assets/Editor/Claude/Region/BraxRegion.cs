@@ -311,6 +311,7 @@ public static class BraxRegion
         return c;
     }
 
+    public static int szybyPojazdow;   // ciemne szyby modeli zamienione na szkło z odbiciem (log w BRAXHORN_SZYBY / notatce)
     static Material ConvertGltf(Material src)
     {
         if (BraxCityMaterials.IsCityMaterial(src)) return src;
@@ -372,6 +373,21 @@ public static class BraxRegion
         c.SetFloat("_ZWrite", mode == 2 ? 0 : 1);
         c.renderQueue = mode == 2 ? 3000 : mode == 1 ? 2450 : 2000;
         c.SetOverrideTag("RenderType", mode == 2 ? "Transparent" : mode == 1 ? "TransparentCutout" : "Opaque");
+        // właściciel 3.11 (nagrania): autobus i pojazdy z czarnymi bokami — przyciemniane szyby modeli (czarny kolor, alfa .7–.8)
+        // przed ciemnym wnętrzem = czarna plama. Ciemna półprzezroczysta bez tekstury = szyba: przyciemnienie + odbicie nieba
+        // (jak BraxSzyby.Przezroczyste), przemnożona alfa.
+        if (mode == 2 && !c.GetTexture("_MainTex"))
+        {
+            var bc = src.GetColor("baseColorFactor");
+            if (bc.grayscale < .1f)
+            {
+                c.SetColor("_Color", new Color(.035f, .05f, .055f, Mathf.Clamp(bc.a, .3f, .55f)));
+                c.SetFloat("_Roughness", .06f); c.SetFloat("_Metallic", 0f);
+                if (c.HasProperty("_ReflectionStrength")) c.SetFloat("_ReflectionStrength", 1f);
+                c.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                szybyPojazdow++;
+            }
+        }
         BraxZapisAssetu.Utworz(c, NowaSciezkaMaterialu(src));
         return c;
     }
