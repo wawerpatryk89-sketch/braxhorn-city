@@ -277,6 +277,7 @@ public static class BraxRegionKamienica
                 float yb = d ? 0f : cok;
                 // szyba witryny / drzwi w głębi (wnęka 0.18 m × k)
                 B(M[st.witryna], s, a0, a1, yb, fryz0, -Lic, -Glab);
+                if (!d) B(M[st.cokol], s, a0, a1, 0f, yb, -Lic, .04f);   // cokół pod witryną (do 3.11 brakowało — dziura do wnętrza pod każdą witryną)
                 if (d) B(M[st.cokol], s, a0, a1, -.02f, .02f, -Glab - .02f, .03f);   // próg granitowy (posadzka + 2 cm, bez progu do przeskakiwania)
                 if (!detal) continue;
                 // rama: ościeżnica, słupki, naświetle
@@ -375,8 +376,10 @@ public static class BraxRegionKamienica
         var gr = new List<float> { 0f };
         foreach (var o in osie) { gr.Add(o - Ow * .5f); gr.Add(o + Ow * .5f); }
         gr.Add(L);
-        // filary między oknami (pełna wysokość pasma okien)
-        for (int i = 0; i + 1 < gr.Count; i += 2) B(M[sciana], s, gr[i], gr[i + 1], yo, yg, -Lic, 0f);
+        // filary między oknami — od podłogi pasma (fy0) do nadproża (yg). BŁĄD do 3.11: filary zaczynały się od parapetu (yo),
+        // więc między oknami od podłogi do parapetu ściany nie było — dziury w elewacji na każdym piętrze (właściciel 3.11 11:11:
+        // czarne i białe prostokąty między oknami = widok do pustego wnętrza / na wylot)
+        for (int i = 0; i + 1 < gr.Count; i += 2) B(M[sciana], s, gr[i], gr[i + 1], fy0, yg, -Lic, 0f);
         // podokienniki i nadproża (pełna długość, z przerwą na drzwi balkonowe)
         for (int i = 0; i < osie.Count; i++)
         {
