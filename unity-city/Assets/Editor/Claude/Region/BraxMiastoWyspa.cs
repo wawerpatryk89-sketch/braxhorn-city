@@ -1390,6 +1390,7 @@ internal static partial class BraxMiastoWyspa
         var lisc = BraxMiastoA.Mat("Wyspa: liście palmy (dwustronne)", new Color(.62f, .80f, .50f), .8f);
         lisc.SetFloat("_Cull", 0f); EditorUtility.SetDirty(lisc);
         var drzewo = BraxRegion.Model("drzewo_verdant"); int nDrzew = 0;
+        var palmaM = BraxMiastoAssety.Model("miasto_palmy", "palma"); int nPalm = 0;
         var odmiany = new List<(Mesh p, Mesh l, Mesh lod)>();
         for (int v = 0; v < 3; v++) odmiany.Add(Palma(v));
         var zr = new GameObject("Wyspa: palmy").transform; zr.SetParent(root, false);
@@ -1404,6 +1405,27 @@ internal static partial class BraxMiastoWyspa
                 if (Zajete(CX + px, CZ + pz, 1.6f)) continue;                               // leżaki, parasole, ratownicy, prysznice
                 float gest = h < 6f ? .3f : .12f;   // 2.11 recenzja: budżet telefonu (było .5/.2 → ~1000 rendererów palm) if (rng.NextDouble() > gest) continue;
                 float hx = H(px + 1, pz) - H(px - 1, pz), hz = H(px, pz + 1) - H(px, pz - 1); if (Mathf.Sqrt(hx * hx + hz * hz) * .5f > .6f) continue;
+                // właściciel 3.11 12:10 (paczka „palm_hp_4”): PRAWDZIWA PALMA przy plaży (teren < 4.5 m), w głębi lądu drzewa
+                // liściaste — „różne gatunki, palmy, nie palmy”. Model: 13 m × K, 3 LOD, liście z maską alfa (paczka miasto_palmy).
+                if (h < 4.5f && palmaM)
+                {
+                    var pt = new Vector3(CX + px, W + h - .12f, CZ + pz);
+                    var t = BraxMiastoAssety.Postaw(zr, palmaM, "Palma (model właściciela)", pt, (float)rng.NextDouble() * 360f, .8f + (float)rng.NextDouble() * .35f, false, true);
+                    if (t)
+                    {
+                        // bez statycznego łączenia (100+ palm × 3 LOD = setki MB kopii siatek) — instancje GPU
+                        foreach (var r in t.GetComponentsInChildren<Renderer>(true))
+                        {
+                            GameObjectUtility.SetStaticEditorFlags(r.gameObject, StaticEditorFlags.OccludeeStatic);
+                            foreach (var mt in r.sharedMaterials) if (mt && !mt.enableInstancing) { mt.enableInstancing = true; EditorUtility.SetDirty(mt); }
+                            if (r.name.IndexOf("LOD2", System.StringComparison.Ordinal) >= 0 || r.transform.parent && r.transform.parent.name.EndsWith("_LOD2")) r.shadowCastingMode = ShadowCastingMode.Off;
+                        }
+                        BraxMiastoAssety.LodyZWezlow(t, new[] { .25f, .08f, .012f });
+                        var kc = new GameObject("kolizja: pień palmy"); kc.transform.SetParent(t.transform, true); kc.transform.position = pt + Vector3.up * 2f;
+                        var cc = kc.AddComponent<CapsuleCollider>(); cc.radius = .3f; cc.height = 4f;
+                        Zajmij(pt, 1.2f); nPalm++; n++; continue;
+                    }
+                }
                 if (drzewo)   // właściciel 3.11 10:15: zero palm z kodu („sztuczne”) — prawdziwy model drzewa wszędzie
                 {
                     var pt = new Vector3(CX + px, W + h - .1f, CZ + pz);
@@ -1428,7 +1450,7 @@ internal static partial class BraxMiastoWyspa
                 n++;
             }
         pien.enableInstancing = true; lisc.enableInstancing = true;
-        BraxMiastoA.Log("WYSPA zieleń: palm przy plaży " + (n - nDrzew) + ", drzew liściastych w głębi lądu " + nDrzew + (drzewo ? "" : " (brak modelu drzewo_verdant — same palmy)"));
+        BraxMiastoA.Log("WYSPA zieleń: palm z modelu (palm_hp_4) " + nPalm + ", palm z kodu " + (n - nDrzew - nPalm) + ", drzew liściastych " + nDrzew + (drzewo ? "" : " (brak modelu drzewo_verdant — same palmy)"));
         return n;
     }
 
