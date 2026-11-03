@@ -1,0 +1,36 @@
+name: Osiedle - private asset import preparation
+on:
+  push:
+    branches: [codex/osiedle-private-import-20261103]
+    paths: [.github/workflows/osiedle-private-import.yml, unity-tools/claude/prepare_private_import.py]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            unity-tools/claude
+            unity-city/Prywatne
+      - run: python3 -m pip install --disable-pip-version-check numpy==2.2.6
+      - name: Prepare encrypted key and geometry dimensions
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/claude/prepare_private_import.py
+      - name: Check patched Unity image availability
+        run: |
+          if docker manifest inspect unityci/editor:ubuntu-6000.0.85f2-android-3 > /dev/null; then
+            echo available > preparation-output/unity-6000.0.85f2-android.txt
+          else
+            echo unavailable > preparation-output/unity-6000.0.85f2-android.txt
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: osiedle-private-import-preparation
+          path: preparation-output/
+          retention-days: 3
+          if-no-files-found: error
