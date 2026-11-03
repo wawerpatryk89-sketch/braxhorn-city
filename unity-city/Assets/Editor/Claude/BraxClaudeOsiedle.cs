@@ -2501,6 +2501,9 @@ public static partial class BraxClaudeOsiedle
             else for (int c2 = 0; c2 < 6; c2++) Cylinder(Pal(c2 % 2 == 0 ? 5 : 7), new Vector3(a + 3.2f + c2 * .3f, 1.07f, lz - .15f), .1f, .06f, 12, true, false);
             // 3.11 15:02 („co to jest w sklepie”): szary klocek „ekspresu” tylko bez paczki towaru — klocek zamiast maszyny = zakaz
             if (!BraxOsiedleTowar.Jest) BoxMinMax(Steel, b - 4.5f, b - 3.6f, 1.05f, 1.55f, lz - .2f, lz + .3f, false);   // ekspres
+            // lokal SOBCZAK — plakaty SOBCZAK na ścianie bocznej
+            SzyldPanel("sobczak_plakat_1", new Vector3(b - .02f, FY + 1.75f, zf + 4.4f), Vector3.left, .6f * K, .9f * K);
+            SzyldPanel("sobczak_plakat_4", new Vector3(a + .02f, FY + 1.75f, zf + 6.8f), Vector3.right, .6f * K, .9f * K);
             var menuK = BraxOsiedleTowar.Postaw(Group(group), "menu_1", "Kawiarnia: menu z cenami (grafika właściciela)", new Vector3((a + b) * .5f, 1.95f, zb - .03f - .015f * K), 180f);
             if (!menuK)
             {
@@ -2559,6 +2562,8 @@ public static partial class BraxClaudeOsiedle
             Collider(new Vector3((lx0 + lx1) * .5f, FY + .52f, lz), new Vector3(lx1 - lx0, 1.04f, .7f));
             BraxOsiedleTowar.Polka("apteka_lada", tw, new Vector3(lx0 + .3f, FY + 1.04f, lz - .3f), Vector3.right, Vector3.forward, 1.2f, rnd, .3f);
             BraxOsiedleTowar.Zakoncz(tw, "apteka osiedla");
+            // lokal SOBCZAK — plakat SOBCZAK nad regałem bocznym
+            SzyldPanel("sobczak_plakat_2", new Vector3(b - .02f, FY + 2.75f, zf + 4.5f), Vector3.left, .6f * K, .9f * K);
             Debug.Log("BRAXHORN_APTEKA_OSIEDLA lokal x " + a.ToString("F1") + "…" + b.ToString("F1") + ": regał za ladą 7 półek, 2 regały boczne × 5, lada z blatem");
         }
         else if (kind == "market")   // market: trzy regały wyspowe z towarem, lodówki pod tylną ścianą, kasa przy wejściu
@@ -2621,6 +2626,9 @@ public static partial class BraxClaudeOsiedle
             else if (!lodM) for (float x = a + 1.3f; x < b - 1.3f; x += .18f) for (int sh = 0; sh < 3; sh++) Cylinder(Pal(rnd.Next(6)), new Vector3(x, .32f + sh * .58f, zb - .5f), .045f, .28f, 8, true, false);
             if (twM != null) BraxOsiedleTowar.Zakoncz(twM, "market osiedla");
             // kasa przy wejściu, ale z boku drzwi (1.6 m od ościeżnicy — strefa za drzwiami wolna, właściciel 17:16)
+            // 3.11 16:27 (właściciel): lokal WAWER — plakaty WAWER na ścianie bocznej (towar mieszany)
+            SzyldPanel("wawer_plakat_1", new Vector3(a + .02f, FY + 1.75f, zf + 5f), Vector3.right, .6f * K, .9f * K);
+            SzyldPanel("wawer_plakat_2", new Vector3(a + .02f, FY + 1.75f, zf + 8f), Vector3.right, .6f * K, .9f * K);
             // wózki przed wejściem (3 wsunięte jeden w drugi) i 2 w środku przy kasie — jak w mieście
             if (BraxOsiedleTowar.Jest && BraxOsiedleTowar.Model("wozek"))
             {
