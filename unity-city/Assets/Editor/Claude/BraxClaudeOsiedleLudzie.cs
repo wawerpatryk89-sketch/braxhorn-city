@@ -65,9 +65,24 @@ public static partial class BraxClaudeOsiedle
     // Na osiedlu wykluczeni ze WSZYSTKICH ról (przechodnie, mieszkańcy, obsada, kierowcy, pasażerowie, podróżni). Miasto bez zmian.
     public static readonly string[] Plazowe = { "Sports_Male_01", "Sports_Female_01" };
     static bool Plazowy(RbPostac p) => Plazowe.Contains(p.nazwa);
+    // GOLASY (runda 5, koordynator 04:00: „zero ludzi w strojach kąpielowych albo bez ubrań poza basenem/plażą”): obok strojów
+    // plażowych także stroje imprezowe Female_Party_* (top na ramiączkach z widocznym stanikiem + krótkie szorty, siateczkowa
+    // sukienka; nogi i ramiona odsłonięte) — tylko WEWNĄTRZ klubu (rola gość klubu); na ulicach, ławkach i w parach nie.
+    // Do tego paleta odcieni ubrań bez barw podobnych do skóry (terakota, beż): biały top przebarwiony na kolor skóry z daleka
+    // wyglądał jak goły tors. Kontrola przy każdej osobie: BRAXHORN_LUDZIE_STROJE poza_plaza=… odcien_skory=….
+    static bool Odslonieta(RbPostac p) => Plazowy(p) || p.nazwa.StartsWith("Female_Party");
+    static bool PodobnyDoSkory(Color c)
+    {
+        Color.RGBToHSV(c, out float h, out float sat, out float v); h *= 360f;
+        return h <= 50f && sat >= .2f && sat <= .72f && v >= .45f;
+    }
+    static int strojePozaPlaza, strojeOdcienSkory, strojeKlub;
+    static readonly List<string> strojeUwagi = new List<string>();
     static int rbPlazowiPominieci;
     static readonly Rola RolaPrzechodzien = new Rola { nazwa = "przechodzień", postaci = Cywile, czapka = .18f, okulary = .18f, plecak = .14f, torba = .14f, kubek = .1f };
-    static readonly Rola RolaImpreza = new Rola { nazwa = "gość klubu", postaci = new[] { "Female_Party", "Female_Adult", "Male_Adult" } };
+    static readonly Rola RolaImpreza = new Rola { nazwa = "gość klubu", postaci = new[] { "Female_Party", "Female_Adult", "Male_Adult" } };   // tylko wnętrze klubu
+    // na zewnątrz (ławki, pary) zamiast gościa klubu: strój wyjściowy bez Female_Party
+    static readonly Rola RolaWyjsciowa = new Rola { nazwa = "strój wyjściowy", postaci = new[] { "Female_Adult", "Male_Adult", "Business" }, okulary = .2f, torba = .2f };
     static readonly Rola RolaObsluga = new Rola { nazwa = "obsługa", postaci = new[] { "Male_Adult", "Female_Adult" }, kolor = new Color(.12f, .12f, .13f) };
     static readonly Rola RolaKucharz = new Rola { nazwa = "kucharz", postaci = new[] { "Chef" }, odcien = false };
     static readonly Rola RolaRecepcja = new Rola { nazwa = "recepcja", postaci = new[] { "Business_Female", "Business_Male", "Female_Adult" }, odcien = false };
@@ -79,10 +94,10 @@ public static partial class BraxClaudeOsiedle
     static readonly Rola RolaKierowcaAutobusu = new Rola { nazwa = "kierowca autobusu", postaci = new[] { "Male_Adult", "Business_Male" }, czapkaSluzbowa = true, kolor = new Color(.10f, .16f, .32f) };
     static readonly Color[] PaletaUbran =
     {
-        new Color(.12f, .18f, .34f), new Color(.35f, .36f, .38f), new Color(.62f, .56f, .44f), new Color(.30f, .34f, .20f),
+        new Color(.12f, .18f, .34f), new Color(.35f, .36f, .38f), new Color(.26f, .30f, .36f), new Color(.30f, .34f, .20f),   // beż → grafit-niebieski (beż = skóra z daleka)
         new Color(.45f, .10f, .12f), new Color(.24f, .38f, .58f), new Color(.08f, .08f, .09f), new Color(.86f, .85f, .82f),
         new Color(.40f, .26f, .16f), new Color(.14f, .32f, .24f), new Color(.70f, .52f, .14f), new Color(.52f, .30f, .44f),
-        new Color(.62f, .66f, .70f), new Color(.80f, .42f, .30f),
+        new Color(.62f, .66f, .70f), new Color(.16f, .40f, .44f),   // terakota → morski (terakota na białym topie = goły tors)
     };
 
     static List<RbPostac> rbPostacie;
@@ -101,7 +116,7 @@ public static partial class BraxClaudeOsiedle
         if (rbZaladowane) return rbPostacie.Count > 0;
         rbWlosySprawdzone = 0; rbWlosyPoprawione = 0; rbWlosyUwagi.Clear(); rbPlecakiPominiete = 0;
         rbZaladowane = true; rbPostacie = new List<RbPostac>(); rbKlipy = new Dictionary<string, AnimationClip>(); rbPredkosc = new Dictionary<string, float>();
-        rbBledyKosci = rbTpoza = rbLudzie = rbPrzechodnie = rbObsada = rbKierowcy = rbSiedzacy = rbPary = rbInni = 0; rbKolejka.Clear(); akcSiatki.Clear(); akcMat.Clear();
+        rbBledyKosci = rbTpoza = rbLudzie = rbPrzechodnie = rbObsada = rbKierowcy = rbSiedzacy = rbPary = rbInni = 0; rbKolejka.Clear(); strojePozaPlaza = strojeOdcienSkory = strojeKlub = 0; strojeUwagi.Clear(); akcSiatki.Clear(); akcMat.Clear();
         if (!RocketboxDostepny()) return false;
         Directory.CreateDirectory(RbOut);
         var ubranie = Shader.Find("Braxhorn/LudzieUbranie"); var wlosy = Shader.Find("Braxhorn/LudzieWlosy"); var std = Shader.Find("Standard");
@@ -333,9 +348,11 @@ public static partial class BraxClaudeOsiedle
     // ---------------- fabryka osoby ----------------
     static RbPostac WybierzPostac(Rola r, System.Random rnd)
     {
-        var kand = rbPostacie.Where(p => !Plazowy(p) && (r.postaci == null || r.postaci.Any(x => p.nazwa.StartsWith(x)))).ToList();
-        if (kand.Count == 0) kand = rbPostacie.Where(p => !Plazowy(p) && Cywile.Any(x => p.nazwa.StartsWith(x))).ToList();
-        if (kand.Count == 0) kand = rbPostacie.Where(p => !Plazowy(p)).ToList();
+        bool klub = r == RolaImpreza;   // stroje imprezowe tylko w klubie; plażowe nigdzie na osiedlu
+        bool Dozwolony(RbPostac p) => klub ? !Plazowy(p) : !Odslonieta(p);
+        var kand = rbPostacie.Where(p => Dozwolony(p) && (r.postaci == null || r.postaci.Any(x => p.nazwa.StartsWith(x)))).ToList();
+        if (kand.Count == 0) kand = rbPostacie.Where(p => Dozwolony(p) && Cywile.Any(x => p.nazwa.StartsWith(x))).ToList();
+        if (kand.Count == 0) kand = rbPostacie.Where(p => Dozwolony(p)).ToList();
         if (kand.Count == 0) return null;
         // po kolei z losowym przesunięciem — różne postacie obok siebie, każda użyta
         rbKolejka.TryGetValue(r.nazwa, out int n); rbKolejka[r.nazwa] = n + 1 + (rnd.NextDouble() < .3 ? 1 : 0);
@@ -380,6 +397,9 @@ public static partial class BraxClaudeOsiedle
                 if (rnd.NextDouble() < .2) o.wyglad.sila = 0f;            // część w oryginalnych kolorach paczki
             }
         }
+        // kontrola strojów (każda osoba osiedla)
+        if (Odslonieta(p)) { if (rola == RolaImpreza && !Plazowy(p)) strojeKlub++; else { strojePozaPlaza++; strojeUwagi.Add(nazwa + " " + p.nazwa); } }
+        if (o.wyglad.sila > 0f && PodobnyDoSkory(o.wyglad.odcien)) { strojeOdcienSkory++; strojeUwagi.Add(nazwa + " odcień skóry " + o.wyglad.odcien); }
         rbLudzie++;
         return o;
     }

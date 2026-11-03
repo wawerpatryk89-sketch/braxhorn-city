@@ -206,6 +206,9 @@ const VIEWS = [
   ['B45_E3b_skrzyzowanie_B3_Bydgoska', '58,0.1,86,225,30,12', 'estate'],
   ['DETAL_luk_kraweznika_fugi', '6.8,0.1,-12.2,225,20,3.5', 'estate'],
   ['DETAL_luk_chodnik_zebra', '12,0.1,-14,200,25,4', 'estate'],
+  // runda 5 (B): GOLASY — ludzie na chodniku i przy przejściu z bliska (stroje, odcienie ubrań)
+  ['DETAL_ludzie_stroje_chodnik', '20,1.2,-13.2,200,8,5', 'estate'],
+  ['DETAL_ludzie_stroje_przejscie', '12,1.2,-14,160,8,7', 'estate'],
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],

@@ -53,6 +53,11 @@ public static partial class BraxClaudeOsiedle
                      " bledy_kosci=" + rbBledyKosci + " tpoza=" + rbTpoza + " siedzacy=" + rbSiedzacy + " pary=" + rbPary + " inni=" + rbInni + " razem=" + rbLudzie +
                      " klipy=" + rbKlipy.Count + " wzrost_bohatera=" + WzrostBohatera.ToString("F2");
         Debug.Log(msg); rep.notes.Add(msg);
+        int paletaSkora = PaletaUbran.Count(PodobnyDoSkory);
+        string st = "BRAXHORN_LUDZIE_STROJE poza_plaza=" + strojePozaPlaza + " odcien_skory=" + strojeOdcienSkory + " paleta_skora=" + paletaSkora +
+                    " impreza_w_klubie=" + strojeKlub + " (plażowe: " + string.Join(", ", Plazowe) + "; Female_Party tylko w klubie)" +
+                    (strojeUwagi.Count > 0 ? " uwagi: " + string.Join("; ", strojeUwagi.Take(12)) : "");
+        Debug.Log(st); rep.notes.Add(st);
         string Stat(List<float> l) => l.Count == 0 ? "—" : "n=" + l.Count + " śr " + l.Average().ToString("F3") + " min " + l.Min().ToString("F3") + " max " + l.Max().ToString("F3");
         {   // E19 (build 45): stan wydajności postaci i aut w scenie (koszt runtime ograniczany odległością w BraxLudzie / BraxAuto)
             int ludzie = UnityEngine.Object.FindObjectsByType<BraxMieszkaniec>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length + UnityEngine.Object.FindObjectsByType<BraxPieszy>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
@@ -365,7 +370,7 @@ public static partial class BraxClaudeOsiedle
             foreach (float o in miejsca)
             {
                 var p = l.c + l.R * o; p.y = l.y;
-                var m = Siedzacy(rnd.NextDouble() < .15 ? RolaImpreza : RolaPrzechodzien, g, "Na ławce", p, l.F, rnd, new[] { "sit_chair_breathe_01", "sit_chair_idle_neutral_02" });
+                var m = Siedzacy(rnd.NextDouble() < .15 ? RolaWyjsciowa : RolaPrzechodzien, g, "Na ławce", p, l.F, rnd, new[] { "sit_chair_breathe_01", "sit_chair_idle_neutral_02" });
                 if (m) n++;
             }
         }
@@ -409,7 +414,7 @@ public static partial class BraxClaudeOsiedle
             Vector3 a = p0 - os * d * .5f, b = p0 + os * d * .5f;
             if (!Wolne(a, .28f) || !Wolne(b, .28f) || NaJezdni(a) || NaJezdni(b)) { rep.notes.Add("ludzie: para przy " + p0 + " — miejsce zajęte, pominięta"); continue; }
             var para = new GameObject("Rozmowa (para)").transform; para.SetParent(g, false); para.position = p0;
-            var r1 = rnd.NextDouble() < .2 ? RolaImpreza : RolaPrzechodzien;
+            var r1 = rnd.NextDouble() < .2 ? RolaWyjsciowa : RolaPrzechodzien;   // GOLASY: nie gość klubu na ulicy
             var m1 = NowyMieszkaniec(r1, para, "Rozmawia", a, Quaternion.LookRotation(b - a).eulerAngles.y, rnd, KlipySlucha, kubek: rnd.NextDouble() < .25);
             var m2 = NowyMieszkaniec(RolaPrzechodzien, para, "Rozmawia", b, Quaternion.LookRotation(a - b).eulerAngles.y, rnd, KlipySlucha);
             if (!m1 || !m2) { UnityEngine.Object.DestroyImmediate(para.gameObject); continue; }
