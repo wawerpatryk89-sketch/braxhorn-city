@@ -84,6 +84,8 @@ public static class BraxUtknalem
             if (!Physics.Raycast(k + Vector3.up * 2.2f, Vector3.down, out RaycastHit hit, 5f, Maska, QueryTriggerInteraction.Ignore)) continue;
             if (hit.normal.y < .7f) continue;
             Vector3 gp = hit.point;
+            // właściciel 3.11 (nagranie): po „Utknąłem” czarny ekran — cel pod dachem / pod ziemią (metro, wnętrze). Tylko pod gołym niebem.
+            if (Physics.Raycast(gp + Vector3.up * 2.6f, Vector3.up, 60f, Maska, QueryTriggerInteraction.Ignore)) continue;
             if (Physics.CheckCapsule(gp + Vector3.up * (r + .12f), gp + Vector3.up * Mathf.Max(r + .13f, h - r), r * .95f, Maska, QueryTriggerInteraction.Ignore)) continue;
             wynik = gp + Vector3.up * .08f; return true;
         }
