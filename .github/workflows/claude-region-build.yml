@@ -442,6 +442,21 @@ jobs:
           '
         persist-credentials: false
         lfs: false
+    - name: Sprawdz staly podpis i numer aktualizacji PRZED kompilacja
+      env:
+        KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
+        KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: |
+        set -euo pipefail
+        [ -n "$KS" ] && [ -n "$KP" ] || { echo '::error::Brak stalego klucza podpisu. Nie budujemy niezgodnego APK debug.'; exit 1; }
+        umask 077
+        printf '%s' "$KS" | base64 -d > unity-city/braxhorn.keystore
+        printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+        cert=$(keytool -exportcert -alias braxhorn -keystore unity-city/braxhorn.keystore -storepass:env KP -rfc | openssl x509 -noout -fingerprint -sha256 | cut -d= -f2 | tr -d ':' | tr '[:upper:]' '[:lower:]')
+        [ "$cert" = f3829d496e1bf4890ec64af78170c7e8b8696d1e49d4122df2b4fc1c80bd5ffe ] || { echo '::error::Certyfikat rozni sie od wersji 58. Aktualizacja zainstalowanej aplikacji bylaby odrzucona.'; exit 1; }
+        [ "$GITHUB_RUN_NUMBER" -gt 58 ] || { echo '::error::Numer aktualizacji musi byc wyzszy niz 58.'; exit 1; }
+        echo "$GITHUB_RUN_NUMBER" > unity-city/braxhorn.versioncode
+        echo "Podpis zgodny z wersja 58, nowy versionCode=$GITHUB_RUN_NUMBER"
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py
@@ -567,33 +582,14 @@ jobs:
       env:
         WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
         WEJSCIE_PAMIEC: ${{ github.event.inputs.pamiec }}
+        PAMIEC_REJONOW: osiedle miasto
       run: |
         t=$(date +%s)
         python3 -I unity-tools/claude/rejon_buildu.py --platforma android --unity 6000.0.58f2
         cat unity-city/rejon-ci.txt
         echo "BRAXHORN_CZAS etap=klucz_rejonu s=$(( $(date +%s) - t ))"
         echo "T_PAMIEC=$(date +%s)" >> "$GITHUB_ENV"
-    - name: Pamiec podreczna wygenerowanego rejonu (sceny i zasoby rejonu + .meta + ProjectSettings; klucz = kod generatora + zrodla + Unity + rejon)
-      id: pamiec
-      if: steps.rejon.outputs.pamiec == 'tak'
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
-      with:
-        path: |
-          unity-city/Assets/PlayableGenerated
-          unity-city/Assets/**/*.meta
-          unity-city/ProjectSettings
-          unity-city/Assets/Source/Premium/unity-premium-report.json
-          unity-city/Assets/Source/Premium/source-refinements.json
-          unity-city/Assets/Source/Claude/Osiedle/sky/niebo_odbicia.jpg
-        key: ${{ steps.rejon.outputs.klucz }}
-    - name: Wynik pamieci rejonu (trafienie = bez generowania rejonu w Unity)
-      if: steps.rejon.outputs.pamiec == 'tak'
-      run: |
-        echo "BRAXHORN_PAMIEC_CI rejon=${{ steps.rejon.outputs.rejon }} z_pamięci=${{ steps.pamiec.outputs.cache-hit == 'true' && 'tak' || 'nie' }} klucz=${{ steps.rejon.outputs.klucz }}"
-        echo "BRAXHORN_CZAS etap=przywrocenie_pamieci s=$(( $(date +%s) - T_PAMIEC ))"
-        du -sh unity-city/Assets/PlayableGenerated 2>/dev/null || echo 'swiat rejonu: brak w pamieci (pelne generowanie, zapis po udanym jobie)'
-    # Pamiec Library dla APK wylaczona (build 14): w 13.1 „Cache not found” — 7 GB Androida + 6 GB WebGL nie miesci sie
-    # w limicie 10 GB na repo, wpis byl wypierany, a kazdy build i tak wysylal 7 GB. Miejsce zostaje dla pamieci rejonu.
+    # Generated world is stored inside the encrypted cache below, not in a separate public cache.
     - name: Miejsce na dysku dla obrazu Unity i pliku wymiany (runner ma ~14 GB wolne)
       run: |
         df -h / | tail -1
@@ -608,8 +604,10 @@ jobs:
       uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
         path: ${{ runner.temp }}/library-android.tar.zst.enc
-        key: library-android-v1-${{ github.run_id }}
+        key: library-android-v2-6000.0.58f2-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}
         restore-keys: |
+          library-android-v2-6000.0.58f2-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-
+          library-android-v2-6000.0.58f2-${{ steps.rejon.outputs.rejon }}-
           library-android-v1-
     - name: Pamiec Library Unity dla Androida - rozpakowanie
       env:
@@ -621,10 +619,20 @@ jobs:
           echo "pamiec Library: $(( $(stat -c %s "$P") / 1048576 )) MB"
           # --skip-old-files: pliki .meta z repozytorium zostają; wracają tylko .meta plików tworzonych w CI (te same GUID co
           # w zapisanej Library — bez tego Unity nadaje nowe GUID i importuje wszystko od zera mimo pamięci)
-          if openssl enc -d -aes-256-cbc -pbkdf2 -in "$P" -pass env:KLUCZ | zstd -d -T0 | tar -x --skip-old-files -C unity-city; then
+          restore_cache() {
+            case '${{ steps.bibl_and.outputs.cache-matched-key }}' in
+              library-android-v1-*) tar -x --skip-old-files -C unity-city ;;
+              *)
+                args=()
+                [ '${{ steps.rejon.outputs.pamiec }}' = tak ] || args+=(--no-world)
+                python3 unity-tools/claude/android_build_cache.py restore --scope '6000.0.58f2-Android-${{ steps.rejon.outputs.rejon }}' --key '${{ steps.rejon.outputs.klucz }}' "${args[@]}"
+                ;;
+            esac
+          }
+          if openssl enc -d -aes-256-cbc -pbkdf2 -in "$P" -pass env:KLUCZ | zstd -d -T0 | restore_cache; then
             echo "BRAXHORN_PAMIEC_LIBRARY android=tak klucz=${{ steps.bibl_and.outputs.cache-matched-key }} s=$(( $(date +%s) - T0 ))"
           else
-            echo "BRAXHORN_PAMIEC_LIBRARY android=blad_rozpakowania (import od zera)"; rm -rf unity-city/Library
+            echo "BRAXHORN_PAMIEC_LIBRARY blad_rozpakowania — zatrzymano przed kompilacja (nie uzywamy czesciowych danych)"; exit 1
           fi
           rm -f "$P"
         else
@@ -670,17 +678,6 @@ jobs:
         chmod +x "$RUNNER_TEMP/straznik.sh"
         nohup "$RUNNER_TEMP/straznik.sh" > "$RUNNER_TEMP/straznik.out" 2>&1 &
         echo "straznik uruchomiony"
-    - name: Wlasny klucz podpisu APK (aktualizacja bez odinstalowania; klucz tylko w sekretach repozytorium)
-      env:
-        KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
-        KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
-      run: |
-        if [ -n "$KS" ] && [ -n "$KP" ]; then
-          echo "$KS" | base64 -d > unity-city/braxhorn.keystore && printf '%s' "$KP" > unity-city/braxhorn.keystore.pass && echo "klucz podpisu: OK"
-        else
-          echo "klucz podpisu: brak sekretow BRAXHORN_KEYSTORE_B64 / BRAXHORN_KEYSTORE_PASS - podpis kluczem debug (trzeba odinstalowac przed instalacja)"
-        fi
-        echo "$GITHUB_RUN_NUMBER" > unity-city/braxhorn.versioncode
     - name: Kompilacja aplikacji Android (APK) z tej samej sceny
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
       env:
@@ -695,6 +692,18 @@ jobs:
         androidExportType: androidPackage
         versioning: None
         allowDirtyBuild: true
+    - name: Zachowaj log Unity i pomiary etapow (takze przy awarii)
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: android-build-diagnostics-${{ github.run_id }}
+        path: |
+          unity-city/Logs/
+          build/Android/*.log
+          unity-city/Assets/PlayableGenerated/build-size*.txt
+          unity-city/Assets/PlayableGenerated/pamiec-rejonu.json
+        retention-days: 7
+        if-no-files-found: warn
     - name: Rozmiar Library i swiata rejonu (do decyzji o pamieci podrecznej; limit 10 GB na repo)
       if: always()
       run: |
@@ -761,19 +770,21 @@ jobs:
         rm -rf build/Android || true
         df -h / | tail -1
         [ -n "$KLUCZ" ] || { echo 'brak klucza - bez zapisu pamieci Library'; exit 0; }
-        # Library + pliki .meta (GUID) zasobów tworzonych w CI (paczki, PolyHaven, Rocketbox, obrazy miasta — nie ma ich
-        # w repozytorium): log WebGL ed77a39 — pamięć 5,6 GB przywrócona, a i tak 8787 importów, bo co build nowe GUID.
-        (cd unity-city && find Assets -name '*.meta' -not -path 'Assets/PlayableGenerated*' > "$RUNNER_TEMP/zapis.lst" && echo Library >> "$RUNNER_TEMP/zapis.lst")
-        echo "pliki .meta w zapisie: $(( $(wc -l < "$RUNNER_TEMP/zapis.lst") - 1 ))"
-        sudo tar -C unity-city -cf - --exclude=Library/Bee --exclude=Library/Il2cppBuildCache -T "$RUNNER_TEMP/zapis.lst" | zstd -T0 -3 | \
+        # Keep Bee native objects and IL2CPP outputs. Gradle projects/signing files are excluded by the packer.
+        python3 unity-tools/claude/android_build_cache.py pack --scope '6000.0.58f2-Android-${{ steps.rejon.outputs.rejon }}' --key '${{ steps.rejon.outputs.klucz }}' | zstd -T0 -3 | \
           openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:KLUCZ -out "$RUNNER_TEMP/library-android.tar.zst.enc"
+        if [ "$(stat -c %s "$RUNNER_TEMP/library-android.tar.zst.enc")" -gt 9663676416 ]; then
+          echo '::warning::Cache exceeds 9 GiB; keeping the APK, skipping oversized cache upload.'
+          rm "$RUNNER_TEMP/library-android.tar.zst.enc"
+          exit 0
+        fi
         echo "BRAXHORN_PAMIEC_LIBRARY zapis=$(( $(stat -c %s "$RUNNER_TEMP/library-android.tar.zst.enc") / 1048576 )) MB s=$(( $(date +%s) - T0 ))"
     - name: Pamiec Library Unity dla Androida - zapis
       if: success()
       uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
         path: ${{ runner.temp }}/library-android.tar.zst.enc
-        key: library-android-v1-${{ github.run_id }}
+        key: library-android-v2-6000.0.58f2-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}
     needs: [source-imports, cc0-assets]
 
   shots:

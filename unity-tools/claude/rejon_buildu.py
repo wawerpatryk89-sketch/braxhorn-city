@@ -7,7 +7,7 @@ Właściciel 2.11: „aktualizacja, a nie budowanie całego świata od nowa za k
   1. wybiera rejon buildu: wejście ręcznego uruchomienia (WEJSCIE_REJON) albo plik unity-city/rejon-buildu.txt
      (pierwsze słowo: osiedle | miasto | oba; brak pliku = osiedle; słowo „bez-pamieci” = wymuś pełne generowanie),
   2. liczy KLUCZ świata rejonu = SHA-256 wszystkiego, od czego zależy wynik generatora tego rejonu:
-       • cały kod C# i shadery w unity-city/Assets (edytor + gra) OPRÓCZ plików generatora drugiego rejonu
+       • kod C# i shadery w unity-city/Assets (edytor + gra) OPRÓCZ START_PO_GENEROWANIU oraz plików generatora drugiego rejonu
          (listy TYLKO poniżej; plik z tych list, do którego odwołuje się kod wchodzący do klucza, wraca do klucza sam),
        • wszystkie dane w unity-city/Assets (modele, tekstury, dźwięki, .json — także pobrane i odszyfrowane w CI przed
          tym krokiem, łącznie z tym, co kroki przygotowania zapisały w Assets/PlayableGenerated) i pliki .meta obecne
@@ -32,6 +32,15 @@ import sys
 
 WERSJA = '1'
 REJONY = ('osiedle', 'miasto', 'oba')
+
+# The start scene is recreated by CreateStartScene AFTER a cached city is restored.
+# These three files are menu/bootstrap code only and never generate the city.
+# A startup/logging repair must not invalidate the entire generated world.
+START_PO_GENEROWANIU = {
+    'Assets/Claude/BraxStart.cs',
+    'Assets/Claude/BraxStartLog.cs',
+    'Assets/Claude/BraxEkranStartowy.cs',
+}
 
 # Pliki generatora WYŁĄCZNIE drugiego rejonu (ścieżki względem unity-city/). Kod gry (Assets/Claude, Assets/City, …),
 # pliki wspólne edytora (BraxGymBuild, BraxCityBuild, BraxClaudeSiatki, BraxClaudeBezSwiecenia, BraxClaudeObszary,
@@ -195,7 +204,7 @@ def klucz(uc: pathlib.Path, rejon: str, platforma: str, unity: str):
     wz = wzorce(rejon)
     poza = [r for r in wszystkie if pasuje(r, wz)]
     zbior_poza = set(poza)
-    w_kluczu = [r for r in wszystkie if r not in zbior_poza]
+    w_kluczu = [r for r in wszystkie if r not in zbior_poza and r not in START_PO_GENEROWANIU]
     # Bezpiecznik: plik drugiego rejonu, do którego odwołuje się kod z klucza (poza ZNANE), wraca do klucza.
     # (Nie wykrywa wywołań bez nazwy typu między plikami jednej klasy częściowej — tylko Typ.Członek i nazwy typów.)
     teksty = {r: czysty((uc / r).read_text(encoding='utf-8', errors='replace')) for r in wszystkie if r.endswith('.cs')}

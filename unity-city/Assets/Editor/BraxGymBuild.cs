@@ -461,19 +461,16 @@ public static class BraxGymBuild
             // 1.11 (właściciel: „muszę odinstalować i zainstalować ponownie — nie może się aktualizować?”): każdy build CI
             // podpisywał APK nowym kluczem debug → Android odrzucał aktualizację. Stały klucz z sekretów repozytorium
             // (CI zapisuje go do braxhorn.keystore) + rosnący numer wersji (numer przebiegu CI) = zwykła aktualizacja.
-            try
-            {
-                if(File.Exists("braxhorn.keystore")&&File.Exists("braxhorn.keystore.pass"))
-                {
-                    string pass=File.ReadAllText("braxhorn.keystore.pass").Trim();
-                    PlayerSettings.Android.useCustomKeystore=true;PlayerSettings.Android.keystoreName=Path.GetFullPath("braxhorn.keystore");
-                    PlayerSettings.Android.keystorePass=pass;PlayerSettings.Android.keyaliasName="braxhorn";PlayerSettings.Android.keyaliasPass=pass;
-                    Debug.Log("BRAXHORN_PODPIS: własny klucz (aktualizacja bez odinstalowania)");
-                }
-                else{PlayerSettings.Android.useCustomKeystore=false;Debug.LogWarning("BRAXHORN_PODPIS: brak klucza — klucz debug");}   // (ProjectSettings z pamięci rejonu mogą mieć włączony własny klucz)
-                if(File.Exists("braxhorn.versioncode")&&int.TryParse(File.ReadAllText("braxhorn.versioncode").Trim(),out int vc)&&vc>0){PlayerSettings.Android.bundleVersionCode=vc;PlayerSettings.bundleVersion="1.0."+vc;}
-            }
-            catch(Exception e){Debug.LogWarning("DO POPRAWKI: podpis APK: "+e.Message);}
+            if(!File.Exists("braxhorn.keystore")||!File.Exists("braxhorn.keystore.pass"))
+                throw new InvalidOperationException("BRAXHORN_PODPIS: brak stałego klucza — zatrzymano, aby nie wydać APK niezgodnego z aktualizacją");
+            string pass=File.ReadAllText("braxhorn.keystore.pass").Trim();
+            if(string.IsNullOrEmpty(pass))throw new InvalidOperationException("BRAXHORN_PODPIS: puste hasło klucza");
+            if(!File.Exists("braxhorn.versioncode")||!int.TryParse(File.ReadAllText("braxhorn.versioncode").Trim(),out int vc)||vc<=0)
+                throw new InvalidOperationException("BRAXHORN_WERSJA: brak poprawnego numeru wersji");
+            PlayerSettings.Android.useCustomKeystore=true;PlayerSettings.Android.keystoreName=Path.GetFullPath("braxhorn.keystore");
+            PlayerSettings.Android.keystorePass=pass;PlayerSettings.Android.keyaliasName="braxhorn";PlayerSettings.Android.keyaliasPass=pass;
+            PlayerSettings.Android.bundleVersionCode=vc;PlayerSettings.bundleVersion="1.0."+vc;
+            Debug.Log("BRAXHORN_PODPIS: stały klucz wymagany, versionCode="+vc);
             PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
             PlayerSettings.productName="Braxhorn City";
             EditorUserBuildSettings.buildAppBundle=false;
