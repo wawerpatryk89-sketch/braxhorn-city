@@ -115,7 +115,7 @@ public static class BraxPanorama
     // wyspa archipelagu (prawdziwa skala, podstawa na lustrze wody y = 0 lokalnie)
     static Mesh Wyspa(float R, float hPeak, float D, float ziarno, bool latarnia, bool wies)
     {
-        var s = new S(); int n = 30; float ext = R * 1.35f, mg0 = Mathf.Clamp01(.18f + .42f * (D - 2800f) / 3500f);
+        var s = new S(); int n = 44; float ext = R * 1.35f, mg0 = Mathf.Clamp01(.18f + .42f * (D - 2800f) / 3500f);
         float H(float x, float z)
         {
             float r = Mathf.Sqrt(x * x + z * z), warp = N(x / R * 1.3f + ziarno, z / R * 1.3f) * R * .28f, rr = r + warp;
@@ -168,7 +168,7 @@ public static class BraxPanorama
     // (środek pierścienia = kamera), podstawa y = 0 (poziom lądu)
     static Mesh Pasmo(float D, float glab, float dk, float a, float hMin, float hMax, int plan, float ziarno)
     {
-        var s = new S(); int nA = 26, nR = 9; float mg0 = plan == 1 ? .22f : plan == 2 ? .42f : .62f;
+        var s = new S(); int nA = 44, nR = 18; float mg0 = plan == 1 ? .22f : plan == 2 ? .42f : .62f;
         var idx = new int[nA + 1, nR + 1]; float Dc = D + glab * .5f; var cS = new Vector3(Mathf.Cos(a) * Dc, 0f, Mathf.Sin(a) * Dc);   // środek pasa (lokalne 0)
         for (int i = 0; i <= nA; i++)
             for (int j = 0; j <= nR; j++)

@@ -84,6 +84,30 @@ Shader "Braxhorn/MiastoDal"
                 return o;
             }
             half3 Lin(half3 c) { return GammaToLinearSpace(c); }
+            // 3.11 (właściciel: „zajebisty widok z dachu wieżowca”): szachownica pól z daleka — działki ~160 × 90 m z różnymi
+            // uprawami, miedze z krzakami, zagajniki śródpolne; gaśnie z bliska (tam trawa) i przy rozmiarze piksela (bez migotania)
+            float md_hash(float2 p) { p = frac(p * float2(123.34, 456.21)); p += dot(p, p + 45.32); return frac(p.x * p.y); }
+            float md_noise(float2 p)
+            {
+                float2 i = floor(p), f = frac(p); f = f * f * (3.0 - 2.0 * f);
+                return lerp(lerp(md_hash(i), md_hash(i + float2(1, 0)), f.x), lerp(md_hash(i + float2(0, 1)), md_hash(i + float2(1, 1)), f.x), f.y);
+            }
+            half3 md_pola(half3 g, float2 p, float px, float d)
+            {
+                float a = .42; float2 q = float2(p.x * cos(a) - p.y * sin(a), p.x * sin(a) + p.y * cos(a));
+                float2 dz = q / float2(160.0, 90.0); float2 id = floor(dz + float2(md_noise(q / 400.0) * .6, 0)); float2 fr = frac(dz);
+                float u = md_hash(id);
+                half3 t = u < .25 ? half3(.92, 1.05, .82) : u < .45 ? half3(1.18, 1.08, .70) : u < .6 ? half3(1.25, 1.0, .72)
+                        : u < .75 ? half3(.82, .98, .78) : u < .87 ? half3(1.05, .86, .66) : half3(1.0, 1.1, .9);
+                float zas = smoothstep(120.0, 420.0, d) * saturate(1.6 - px / 45.0);
+                half3 c = g * lerp(half3(1, 1, 1), t, zas * .85);
+                float sred = saturate(1.6 - px / 14.0);
+                float miedza = (1.0 - smoothstep(.0, .025, min(min(fr.x, 1 - fr.x) * 1.8, min(fr.y, 1 - fr.y)))) * sred * zas;
+                c = lerp(c, c * half3(.62, .78, .58), miedza * .8);
+                float zag = step(.88, md_hash(id + 7.7)) * smoothstep(.45, .75, md_noise(q / 9.0)) * zas;
+                c = lerp(c, c * half3(.45, .62, .42), zag);
+                return c;
+            }
             fixed4 frag (v2f i) : SV_Target
             {
                 float3 n = normalize(i.n);
@@ -106,6 +130,7 @@ Shader "Braxhorn/MiastoDal"
                     blisko *= lerp(0.85, 1.15, saturate(lumM * 4.0));
                     half3 g = lerp(blisko, m.rgb, smoothstep(70.0, 260.0, d));
                     g = lerp(g, g * _FieldColor.rgb, i.col.b);
+                    g = md_pola(g, wp.xz, max(length(gx), length(gy)), d);
                     half3 c = g;
                     if (i.col.g > 0.01)
                     {
