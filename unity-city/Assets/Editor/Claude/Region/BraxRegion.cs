@@ -87,6 +87,8 @@ public static class BraxRegion
         // Na końcu (jak na budowie, 16:04): ruch aut i ludzie miasta B na gotowych nawierzchniach i wyposażeniu (B, ETAP 2).
         Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => BraxClaudeOsiedle.RuchMiastaB(root));
         Step("ludzie miasta (B): obsada, ławki, przechodnie po chodnikach i zebrach", () => BraxClaudeOsiedle.LudzieMiastaB(root));
+        // pkt 26 / 38: zakaz klocków — audyt grup z gołych prymitywów, pojazdy z klocków usunięte (BRAXHORN_KLOCKI).
+        Step("audyt klocków (pojazdy i maszyny z prymitywów — usunięte, reszta na liście)", () => BraxKontrolaKlockow.Wykonaj(root));
         // Na końcu: przesunięcie głębi dla wszystkiego, co dobudowane (anty-migotanie).
         Step("anty-migotanie (offset głębi, trilinear)", () => BraxRegionFlicker.Apply(root));
 

@@ -202,6 +202,69 @@ public static partial class BraxClaudeOsiedle
 // człowieku). Animacje tylko blisko kamery (BraxLudzie, jak na osiedlu). Trenerzy i ćwiczący w siłowni — poza tym krokiem.
 public static partial class BraxClaudeOsiedle
 {
+    // pkt 33 / 37 (skala × K, Brax 2.33 m): audyt drzwi (skrzydło ≥ 2.1 m × K − 15 cm) i siedzisk (0.45 m × K ± 0.12 nad podłogą
+    // przed siedziskiem) w całej scenie miasta; log z listą niezgodnych (naprawa po obejrzeniu listy — bez zgadywania skali).
+    static void AudytSkali()
+    {
+        Physics.SyncTransforms();
+        var bledy = new List<string>(); int drzwi = 0, siedzisk = 0;
+        float hDrzwi = 2.1f * K - .15f, hSiedz = .45f * K;
+        foreach (var d in UnityEngine.Object.FindObjectsByType<BraxCityDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (d.leaves == null) continue;
+            foreach (var l in d.leaves)
+            {
+                if (!l) continue; var rs = l.GetComponentsInChildren<Renderer>(true); if (rs.Length == 0) continue;
+                var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); drzwi++;
+                if (b.size.y < hDrzwi) bledy.Add("drzwi " + (string.IsNullOrEmpty(d.label) ? d.name : d.label) + " h=" + b.size.y.ToString("F2") + " (≥" + hDrzwi.ToString("F2") + ") @" + b.center.ToString("F0"));
+            }
+        }
+        foreach (var q in UnityEngine.Object.FindObjectsByType<BraxSeat>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (q.lie) continue;
+            var f = q.transform.forward; f.y = 0f; if (f.sqrMagnitude < 1e-4f) f = Vector3.forward; f.Normalize();
+            var o = q.transform.position + f * .7f; o.y = q.surfaceY + .3f;
+            if (!Physics.Raycast(o, Vector3.down, out var hit, 3f, ~0, QueryTriggerInteraction.Ignore)) continue;
+            float h = q.surfaceY - hit.point.y; siedzisk++;
+            if (Mathf.Abs(h - hSiedz) > .12f) bledy.Add("siedzisko " + q.label + " h=" + h.ToString("F2") + " (" + hSiedz.ToString("F2") + "±0.12) @" + q.transform.position.ToString("F0"));
+        }
+        string linia = "BRAXHORN_SKALA niezgodne=" + bledy.Count + " drzwi=" + drzwi + " siedzisk=" + siedzisk + (bledy.Count > 0 ? " [" + string.Join("; ", bledy.Take(30)) + (bledy.Count > 30 ? "; …" : "") + "]" : "");
+        if (bledy.Count == 0) Debug.Log(linia); else Debug.LogWarning(linia);
+    }
+
+    // pkt 42 (właściciel: „siatka przez całą jezdnię za placem z BANKIEM”): ogrodzenia / siatki / bariery / szlabany leżące w poprzek
+    // jezdni miasta B są usuwane razem z kolizjami (drogi przejezdne). Port (brama z podniesionym szlabanem) i osiedle — bez zmian.
+    static void ZaporyNaJezdni(Transform cityRoot)
+    {
+        string[] slowa = { "ogrodz", "płot", "plot ", "fence", "barier", "barrier", "szlaban", "zapora", "siatka ogrodz", "chain", "kratownica ogrodz" };
+        var usun = new List<GameObject>(); var opis = new List<string>(); int zostalo = 0;
+        foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            string n = r.name.ToLowerInvariant() + " " + (r.sharedMaterial ? r.sharedMaterial.name.ToLowerInvariant() : "");
+            if (!slowa.Any(n.Contains)) continue;
+            bool port = false; for (var q = r.transform; q; q = q.parent) if (q.name.StartsWith("Port", StringComparison.Ordinal) || q.name.Contains("PORT") || q.name.Contains("osiedl")) { port = true; break; }
+            if (port) continue;
+            var b = r.bounds; if (b.size.y > 4f) continue;
+            bool dlX = b.size.x >= b.size.z; float L = dlX ? b.size.x : b.size.z; if (L < 2f) continue;
+            int na = 0;
+            for (int i = 0; i <= 12; i++)
+            {
+                float t = i / 12f; var p = b.center;
+                if (dlX) p.x = Mathf.Lerp(b.min.x, b.max.x, t); else p.z = Mathf.Lerp(b.min.z, b.max.z, t);
+                if (BraxRegionMiastoB.NaJezdni(p)) na++;
+            }
+            if (na < 3) continue;
+            usun.Add(r.gameObject); opis.Add(r.name + " @" + b.center.ToString("F0") + " dł " + L.ToString("F1") + " na_jezdni " + na + "/13");
+        }
+        foreach (var g in usun.Distinct())
+        {
+            if (!g) continue;
+            foreach (var c in g.GetComponentsInChildren<Collider>(true)) UnityEngine.Object.DestroyImmediate(c);
+            if (g.transform.childCount == 0) UnityEngine.Object.DestroyImmediate(g); else { var r = g.GetComponent<MeshRenderer>(); if (r) UnityEngine.Object.DestroyImmediate(r); zostalo++; }
+        }
+        Debug.Log("BRAXHORN_DROGI_ZAPORY usuniete=" + usun.Count + " (z dziećmi, tylko renderer: " + zostalo + ")" + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(20)) + "]" : "") + " szlaban_tunelu=usunięty tunel=oświetlony_62m_bez_czarnej_ściany");
+    }
+
     public static void LudzieMiastaB(Transform cityRoot)
     {
         var repPrev = rep; var rootPrev = root; var colPrev = colliders; var groupPrev = group;
@@ -271,6 +334,19 @@ public static partial class BraxClaudeOsiedle
             int przejsc = s.zebry.Count / 2;
             Debug.Log("BRAXHORN_LUDZIE_MIASTO_B obsada=" + obs + "/17 na_lawkach=" + siedz + " (ławek B " + ileLawekB + ") przechodnie=" + prz +
                       " siec: węzłów " + wezlow + ", przejść po zebrach " + przejsc);
+            // pkt 41: kierowca w każdym jadącym aucie (te same fotele i klipy co na osiedlu); zaparkowane puste
+            try
+            {
+                KierowcyAut(rnd);
+                var jad = UnityEngine.Object.FindObjectsByType<BraxAuto>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                int bez = jad.Count(a => !a.GetComponentsInChildren<Transform>(true).Any(t => t.name.StartsWith("Kierowca", StringComparison.Ordinal)));
+                Debug.Log("BRAXHORN_AUTA_KIEROWCY jadace=" + jad.Length + " jadace_bez=" + bez + " kierowcow=" + rbKierowcy + (bez > 0 ? " (cel 0 — auto bez węzła „" + FotelKierowcy + "”?)" : ""));
+            }
+            catch (Exception e) { Debug.LogWarning("BRAXHORN_AUTA_KIEROWCY DO POPRAWKI " + e.Message); }
+            Debug.Log(RaportStrojow());
+            Debug.Log(RaportSkaliLudzi());
+            try { AudytSkali(); } catch (Exception e) { Debug.LogWarning("BRAXHORN_SKALA DO POPRAWKI " + e.Message); }
+            try { ZaporyNaJezdni(cityRoot); } catch (Exception e) { Debug.LogWarning("BRAXHORN_DROGI_ZAPORY DO POPRAWKI " + e.Message); }
             foreach (var n in rep.notes) Debug.Log("BRAXHORN_LUDZIE_MIASTO_B " + n);
         }
         finally { rep = repPrev; root = rootPrev; colliders = colPrev; group = groupPrev; groups.Clear(); }

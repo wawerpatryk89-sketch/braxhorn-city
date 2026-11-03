@@ -38,6 +38,7 @@ public static partial class BraxClaudeOsiedle
         public bool kobieta;                  // szkielet żeński (animacje f_*)
         public Material[] mats;
         public int[] ciala = new int[0];      // indeksy materiałów ciała (ubrania z maską)
+        public float skora = -1f;             // pkt 19: udział skóry w teksturze ciała (alfa maski 0), −1 = nieznany
         public bool maska;
         public float wys = 1.8f, podstawa;    // wysokość i spód siatki w pozie spoczynkowej (skala 1)
         public Quaternion korekta = Quaternion.identity;   // obrót modelu, żeby patrzył w +z
@@ -70,6 +71,46 @@ public static partial class BraxClaudeOsiedle
     static readonly Rola RolaKierowca = new Rola { nazwa = "kierowca", postaci = new[] { "Male_Adult", "Female_Adult", "Business" }, okulary = .25f };
     // MECHANIZM ROLI (dyspozytor 01:28 — autobusy w mieście później): kierowca autobusu = czapka służbowa + koszula granat
     static readonly Rola RolaKierowcaAutobusu = new Rola { nazwa = "kierowca autobusu", postaci = new[] { "Male_Adult", "Business_Male" }, czapkaSluzbowa = true, kolor = new Color(.10f, .16f, .32f) };
+    // ---- pkt 19 / 52 (właściciel: „golasy w mieście — ZERO”): tylko w scenach miasta (BraxhornCity*), osiedle bez zmian ----
+    // a) odcienie ubrań podobne do skóry (beż, łosoś, brąz, musztarda) dawały wrażenie nagości — w mieście pomijane;
+    // b) postać z dużym udziałem skóry w teksturze ciała (stroje kąpielowe / sportowe skąpe) poza plażą → zamiana na ubraną,
+    //    a gdy brak ubranej w roli — osoba nie powstaje. Plaża: przy porcie (x 84…190, z 100…178) i wyspa (x > 900).
+    const float ProgSkory = .45f;
+    static bool WMiescie => UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.StartsWith("BraxhornCity", StringComparison.Ordinal);
+    static bool NaPlazy(Vector3 p) => (p.x > 84f && p.x < 190f && p.z > 100f && p.z < 178f) || p.x > 900f;
+    static int strojeZamienione, strojeUsuniete, strojePoza, odcienieSkory, miastoOsob; static float miastoWzrost;
+    static readonly HashSet<string> skapoUbrane = new HashSet<string>();
+    static bool PodobnyDoSkory(Color c)
+    {
+        Color.RGBToHSV(c, out float h, out float sa, out float v);
+        return v > .12f && ((h <= .125f && sa >= .18f && sa <= .86f) || (h >= .96f && sa >= .18f && sa <= .6f));
+    }
+    static float UdzialSkory(string png)
+    {
+        try
+        {
+            var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            if (!t.LoadImage(File.ReadAllBytes(png))) return -1f;
+            var px = t.GetPixels32(); int n = 0, sk = 0;
+            for (int i = 0; i < px.Length; i += 7) { var c = px[i]; if (c.r + c.g + c.b < 30) continue; n++; if (c.a < 128) sk++; }
+            UnityEngine.Object.DestroyImmediate(t);
+            return n > 0 ? sk / (float)n : -1f;
+        }
+        catch { return -1f; }
+    }
+    public static string RaportStrojow()
+    {
+        var top = rbPostacie == null ? "" : string.Join(", ", rbPostacie.Where(q => q.skora >= 0f).OrderByDescending(q => q.skora).Take(8).Select(q => q.nazwa + " " + q.skora.ToString("F2")));
+        return "BRAXHORN_LUDZIE_STROJE poza_plaza=" + strojePoza + " zamienione=" + strojeZamienione + " usuniete=" + strojeUsuniete + " odcienie_skory_pominiete=" + odcienieSkory
+            + " prog_skory=" + ProgSkory.ToString("F2") + " skapo_ubrane_postacie=" + skapoUbrane.Count + (skapoUbrane.Count > 0 ? " [" + string.Join(", ", skapoUbrane.Take(12)) + "]" : "")
+            + " najwiecej_skory: " + top;
+    }
+    public static string RaportSkaliLudzi()
+    {
+        float sr = miastoOsob > 0 ? miastoWzrost / miastoOsob : 0f;
+        return "BRAXHORN_LUDZIE_SKALA miasto_sr=" + sr.ToString("F2") + " osob=" + miastoOsob + " osiedle_sr=" + (WzrostBraxa * .97f).ToString("F2") + " (ten sam wzór NowaOsoba: 0.945–1.0 × Brax) brax=" + WzrostBraxa.ToString("F2");
+    }
+
     static readonly Color[] PaletaUbran =
     {
         new Color(.12f, .18f, .34f), new Color(.35f, .36f, .38f), new Color(.62f, .56f, .44f), new Color(.30f, .34f, .20f),
@@ -94,6 +135,7 @@ public static partial class BraxClaudeOsiedle
         if (rbZaladowane) return rbPostacie.Count > 0;
         rbZaladowane = true; rbPostacie = new List<RbPostac>(); rbKlipy = new Dictionary<string, AnimationClip>(); rbPredkosc = new Dictionary<string, float>();
         rbBledyKosci = rbTpoza = rbLudzie = rbPrzechodnie = rbObsada = rbKierowcy = rbSiedzacy = rbPary = rbInni = 0; rbKolejka.Clear(); akcSiatki.Clear(); akcMat.Clear();
+        strojeZamienione = strojeUsuniete = strojePoza = odcienieSkory = miastoOsob = 0; miastoWzrost = 0f; skapoUbrane.Clear();
         if (!RocketboxDostepny()) return false;
         Directory.CreateDirectory(RbOut);
         var ubranie = Shader.Find("Braxhorn/LudzieUbranie"); var wlosy = Shader.Find("Braxhorn/LudzieWlosy"); var std = Shader.Find("Standard");
@@ -135,7 +177,7 @@ public static partial class BraxClaudeOsiedle
                 {
                     ciala.Add(i);
                     var imp = kolor != null ? AssetImporter.GetAtPath(kolor) as TextureImporter : null;
-                    if (imp && imp.DoesSourceTextureHaveAlpha()) p.maska = true;
+                    if (imp && imp.DoesSourceTextureHaveAlpha()) { p.maska = true; p.skora = Mathf.Max(p.skora, UdzialSkory(kolor)); }
                 }
                 string mp = RbOut + "/" + Safe(go.name + "_" + mn) + ".mat";
                 // C1: bez usuwania istniejącego pliku (usunięcie = różowe postacie, które już go używają) — BraxZapisAssetu
@@ -325,10 +367,21 @@ public static partial class BraxClaudeOsiedle
     static Osoba NowaOsoba(Rola rola, Transform parent, string nazwa, Vector3 pos, float yaw, System.Random rnd, RbPostac wymus = null)
     {
         var p = wymus ?? WybierzPostac(rola, rnd); if (p == null) return null;
+        bool miasto = WMiescie;
+        if (miasto && !NaPlazy(pos) && p.skora > ProgSkory)
+        {
+            skapoUbrane.Add(p.nazwa);
+            var ubrani = rbPostacie.Where(q => q.skora <= ProgSkory && q.kobieta == p.kobieta && (rola.postaci == null || rola.postaci.Any(x => q.nazwa.StartsWith(x)))).ToList();
+            if (ubrani.Count == 0) ubrani = rbPostacie.Where(q => q.skora <= ProgSkory && Cywile.Any(x => q.nazwa.StartsWith(x))).ToList();
+            if (ubrani.Count == 0) { strojeUsuniete++; return null; }
+            p = ubrani[rnd.Next(ubrani.Count)]; strojeZamienione++;
+        }
+        if (miasto && !NaPlazy(pos) && p.skora > ProgSkory) strojePoza++;
         // właściciel 2.11 10:43: każdy człowiek „mniej więcej jak Brax” (2.33 m), różnice kilku cm; kobiety trochę niżej
         float H = Mathf.Clamp(WzrostBohatera, 1.5f, 2.45f);
         float u = (float)rnd.NextDouble(), mnoz = p.kobieta ? Mathf.Lerp(.945f, .975f, u) : Mathf.Lerp(.97f, 1.0f, u);
         var o = new Osoba { p = p, wzrost = H * mnoz, pl = p.kobieta ? "f_" : "m_" };
+        if (miasto) { miastoOsob++; miastoWzrost += o.wzrost; }
         o.s = o.wzrost / p.wys;
         o.root = new GameObject(nazwa + " · " + p.nazwa); o.root.transform.SetParent(parent, false);
         o.root.transform.SetPositionAndRotation(pos, Quaternion.Euler(0, yaw, 0));
@@ -355,6 +408,7 @@ public static partial class BraxClaudeOsiedle
             {
                 var c = PaletaUbran[rnd.Next(PaletaUbran.Length)];
                 if (p.nazwa.StartsWith("Business")) c = new[] { PaletaUbran[0], PaletaUbran[1], PaletaUbran[6], PaletaUbran[8] }[rnd.Next(4)];
+                if (miasto && PodobnyDoSkory(c)) { var bez = PaletaUbran.Where(q => !PodobnyDoSkory(q)).ToArray(); c = bez[rnd.Next(bez.Length)]; odcienieSkory++; }
                 o.wyglad.odcien = c; o.wyglad.sila = Mathf.Lerp(.5f, .85f, (float)rnd.NextDouble());
                 if (rnd.NextDouble() < .2) o.wyglad.sila = 0f;            // część w oryginalnych kolorach paczki
             }

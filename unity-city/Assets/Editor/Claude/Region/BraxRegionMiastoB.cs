@@ -1079,24 +1079,8 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         tb.Obiekt("Znak OSIEDLE: tablica", g, BraxCityMaterials.Surface("Znak: niebieski E-2", new Color(.04f, .2f, .55f), .35f), false, false);
         BraxRegionMeble.Napis(g, "OSIEDLE  ↓  TUNEL", p0 + new Vector3(-.65f * K, 2.7f * K, .05f), Vector3.forward, .2f * K, Color.white);
         BraxRegionMeble.Kolizja(g, "Znak kolizja", p0 + Vector3.up * 1.6f * K, new Vector3(.12f, 3.2f * K, .12f));
-        // szlaban z budką przy z −72 (ramię w poprzek jezdni, biało-czerwone)
-        float zs = -72f;
-        var bud = new BraxRegionMeble.Bud(); var ram = new BraxRegionMeble.Bud(); var czer = new BraxRegionMeble.Bud();
-        var bp = NaPodlozu(new Vector3(AX + AH + Kr + 1.4f * K, YC, zs));
-        bud.MinMax(bp + new Vector3(-.8f * K, 0, -1.0f * K), bp + new Vector3(.8f * K, 2.6f * K, 1.0f * K));
-        bud.Obiekt("Szlaban: budka strażnika", g, BraxRegionKamienica.Tynk().sciana, false, true);
-        BraxRegionMeble.Kolizja(g, "Budka kolizja", bp + Vector3.up * 1.3f * K, new Vector3(1.6f * K, 2.6f * K, 2.0f * K));
-        var pod = NaPodlozu(new Vector3(AX + AH + .5f, YA, zs));
-        ram.MinMax(pod + new Vector3(-.25f, 0, -.25f), pod + new Vector3(.25f, 1.05f * K, .25f));
-        for (int i = 0; i < 8; i++)
-        {
-            float x0 = pod.x - .2f - i * 1.05f, x1 = x0 - 1.05f;
-            (i % 2 == 0 ? czer : ram).MinMax(new Vector3(x1, .95f * K, zs - .06f), new Vector3(x0, 1.05f * K, zs + .06f));
-        }
-        ram.Obiekt("Szlaban: słupek i ramię (biel)", g, BraxCityMaterials.Surface("Szlaban: biel", new Color(.92f, .92f, .9f), .4f), false, true);
-        czer.Obiekt("Szlaban: ramię (czerwień)", g, BraxCityMaterials.Surface("Szlaban: czerwień", new Color(.75f, .06f, .05f), .4f), false, true);
-        BraxRegionMeble.Kolizja(g, "Szlaban kolizja (zamknięty — osiedle w osobnej paczce)", new Vector3(AX, .6f, zs), new Vector3(AH * 2f, 1.2f, .3f));
-        BraxRegionMeble.Napis(g, "OSIEDLE — WJAZD ZAMKNIĘTY", new Vector3(AX, 1.45f * K, zs + .1f), Vector3.forward, .18f * K, new Color(.95f, .9f, .2f));
+        // pkt 42 (właściciel): szlaban „WJAZD ZAMKNIĘTY” w poprzek jezdni = błąd — usunięty razem z budką i kolizją; droga do tunelu
+        // otwarta. Za portalem tunel długi i oświetlony; bez osiedla w aplikacji BraxTunelZawrot zawraca gracza z komunikatem.
     }
 
     static void WyjazdNaOsiedle()
@@ -1113,15 +1097,30 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         mur.Obiekt("Tunel: portal kamienny", g, kam, false, true);
         BraxRegionMeble.Kolizja(g, "Portal kolizja L", new Vector3(AX - 14f, 6f, zp - .7f), new Vector3(16f, 13f, 1.4f));
         BraxRegionMeble.Kolizja(g, "Portal kolizja P", new Vector3(AX + 14f, 6f, zp - .7f), new Vector3(16f, 13f, 1.4f));
-        var ciemny = BraxCityMaterials.Surface("Tunel: wnętrze (beton w cieniu)", new Color(.05f, .05f, .055f), .95f);
+        // pkt 42: bez czarnej ściany — wnętrze z betonu (jasne lico), 62 m z oprawami co 4 m, jezdnia za dawnym końcem (z −20…−62),
+        // chodniki techniczne z krawężnikiem, odboje; koniec daleko (zawrót gracza przy 6 m: BraxTunelZawrot)
+        var beton = BraxRegionMeble.Tex("Tunel: beton ścian (płyty)", 2.4f, new Color(.62f, .61f, .58f), .85f, "concrete_wall_008", "concrete_wall_004", "rough_block_wall");
+        float Lt = 62f;
         var tun = new BraxRegionMeble.Bud();
-        tun.MinMax(new Vector3(AX - W * .5f, -.3f, zp - 20f), new Vector3(AX - W * .5f + .4f, Hs, zp - 1.4f));
-        tun.MinMax(new Vector3(AX + W * .5f - .4f, -.3f, zp - 20f), new Vector3(AX + W * .5f, Hs, zp - 1.4f));
-        tun.MinMax(new Vector3(AX - W * .5f, Hs, zp - 20f), new Vector3(AX + W * .5f, Hs + .4f, zp - 1.4f));
-        tun.MinMax(new Vector3(AX - W * .5f, -.3f, zp - 20.4f), new Vector3(AX + W * .5f, Hs, zp - 20f));
-        tun.Obiekt("Tunel: wnętrze", g, ciemny, false, false);
-        BraxRegionMeble.Kolizja(g, "Tunel kolizja koniec", new Vector3(AX, 3f, zp - 19f), new Vector3(W, 6f, .6f));
-        var opr = new BraxRegionMeble.Bud(); for (float z = zp - 3f; z > zp - 19f; z -= 4f) opr.MinMax(new Vector3(AX - .6f, Hs - .12f, z - .4f), new Vector3(AX + .6f, Hs - .02f, z + .4f));
+        tun.MinMax(new Vector3(AX - W * .5f, -.3f, zp - Lt), new Vector3(AX - W * .5f + .4f, Hs, zp - 1.4f));
+        tun.MinMax(new Vector3(AX + W * .5f - .4f, -.3f, zp - Lt), new Vector3(AX + W * .5f, Hs, zp - 1.4f));
+        tun.MinMax(new Vector3(AX - W * .5f, Hs, zp - Lt), new Vector3(AX + W * .5f, Hs + .4f, zp - 1.4f));
+        tun.MinMax(new Vector3(AX - W * .5f, -.3f, zp - Lt - .4f), new Vector3(AX + W * .5f, Hs, zp - Lt));
+        tun.Obiekt("Tunel: wnętrze", g, beton, false, false);
+        var jezd = new BraxRegionMeble.Bud(); jezd.MinMax(new Vector3(AX - W * .5f + .4f, YA - .3f, zp - Lt), new Vector3(AX + W * .5f - .4f, YA, zp - 20f));
+        jezd.Obiekt("Tunel: jezdnia (za dawnym końcem)", g, BraxCityMaterials.Surface("Tunel: asfalt", new Color(.16f, .16f, .17f), .9f), false, true);
+        var odb = new BraxRegionMeble.Bud();
+        foreach (float sx in new[] { -1f, 1f })
+        {
+            float xw = AX + sx * (W * .5f - .4f);
+            odb.MinMax(new Vector3(Mathf.Min(xw, xw - sx * .9f), YA, zp - Lt), new Vector3(Mathf.Max(xw, xw - sx * .9f), YA + .2f, zp - 20f));   // chodnik techniczny
+            odb.MinMax(new Vector3(Mathf.Min(xw, xw - sx * .06f), YA + .2f, zp - Lt), new Vector3(Mathf.Max(xw, xw - sx * .06f), YA + .55f, zp - 1.4f));   // odbój przy ścianie
+        }
+        odb.Obiekt("Tunel: chodniki techniczne i odboje", g, BraxRegionMeble.Tex("Tunel: beton chodnika", 1.2f, new Color(.7f, .69f, .66f), .9f, "concrete_floor_02", "concrete_wall_004"), false, true);
+        BraxRegionMeble.Kolizja(g, "Tunel kolizja koniec", new Vector3(AX, 3f, zp - Lt + .3f), new Vector3(W, 6f, .6f));
+        var zaw = new GameObject("Tunel: zawrót bez osiedla (BraxTunelZawrot)").AddComponent<BraxTunelZawrot>(); zaw.transform.SetParent(g, false);
+        zaw.portal = new Vector3(AX, YA, zp); zaw.polSzer = W * .5f - .2f; zaw.glebokosc = 6f; zaw.dlugosc = Lt; zaw.powrot = new Vector3(AX, YA + .14f, zp + 3.5f); zaw.yawPowrotu = 180f;
+        var opr = new BraxRegionMeble.Bud(); for (float z = zp - 3f; z > zp - Lt + 1f; z -= 4f) opr.MinMax(new Vector3(AX - .6f, Hs - .12f, z - .4f), new Vector3(AX + .6f, Hs - .02f, z + .4f));
         opr.Obiekt("Tunel: oprawy", g, BraxRegionMeble.Swiecacy("Tunel: oprawa sodowa", new Color(1f, .78f, .45f), .9f), false, false);
         BraxRegionMeble.Napis(g, "TUNEL · OSIEDLE", new Vector3(AX, Hs + 2.6f, zp + .05f), Vector3.forward, .6f * K, new Color(.92f, .9f, .85f));
         // zbocze nad portalem: siatka terenu (łąka) od z = AS1 w głąb, do 26 m, szer. ±60 m — zakrywa koniec (dalej teren horyzontu)

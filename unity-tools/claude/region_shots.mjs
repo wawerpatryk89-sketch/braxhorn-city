@@ -195,6 +195,10 @@ const VIEWS = [
   ['DETAL_metro_grzebien_gora', '66.9,.2,35.07,270,45,1.6'],
   ['DETAL_metro_porecz_glowica', '65.4,1.3,35.71,225,10,1.8'],
   ['DETAL_metro_schody_ruchome_peron', '45.9,-10.9,30.1,270,35,2'],
+  // pkt 42: wyjazd na osiedle bez szlabanu, tunel oświetlony bez czarnej ściany
+  ['DROGI_wyjazd_osiedle_bez_szlabanu', '-126,1.2,-72,0,10,10'],
+  ['DROGI_tunel_osiedle_wnetrze', '-126,2.5,-90,0,5,12'],
+  ['DETAL_tunel_chodnik_odboj', '-130.5,.5,-106,0,20,4'],
   ['M_A_metro_wejscie', '68,0.35,34.3,270,12,9'],
   ['M_A_nova_sala', '41,1.8,50,180,5,8'],
   ['M_A_nova_wejscie', '42,1.8,36,180,5,9'],
