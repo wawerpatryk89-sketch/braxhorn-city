@@ -227,12 +227,16 @@ public static class BraxNabrzezeMarina
 
     // ---------------- A 2.11: pomost poprzeczny E i drugi pomost pływający D (jachty w rzędach jak w prawdziwej marinie) ----------------
     public const float DX0 = 136f;
+    static readonly float[] PalceD = { 22.5f, 34.5f, 46.5f, 58.5f, 70.5f, 82.5f };   // palce boksów D (co 12 m)
+    const float PalecDl = 12f;
     public static float DX1 => DX0 + 2.5f * BraxNabrzeze.K;
     static void PomostyDE(BraxNabrzeze.Zbior z, Transform kol, BraxNabrzezeMebel.Mat m, Material deski, Material plywak, Material alu)
     {
         float pok = Poklad, ez1 = PomZ1 + 2.6f;
         Pomost(z, kol, m, deski, plywak, PomX0, DX1, PomZ1, ez1, pok);         // E: od pomostu A do D (wzdłuż x)
         Pomost(z, kol, m, deski, plywak, DX0, DX1, PomZ0, PomZ1, pok);          // D: równoległy do A
+        // WŁAŚCICIEL 3.11 10:18: BOKSY — palce pomostu D na wschód; jachty rufą do D między palcami, dziobem na otwartą wodę
+        foreach (float zf in PalceD) Pomost(z, kol, m, deski, plywak, DX1, DX1 + PalecDl, zf - .5f * K, zf + .5f * K, pok);
         for (float zz = PomZ0 + 2f; zz < PomZ1; zz += 15f) z[alu].Rura(new Vector3(DX1 - .3f, -5f, zz), new Vector3(DX1 - .3f, pok + 2.4f * K, zz), .18f, 12);
         Krawedz(kol, new Vector3(PomX0, 0, ez1 + .1f), new Vector3(DX1, 0, ez1 + .1f), pok);
         Krawedz(kol, new Vector3(PomX1, 0, PomZ1 - .1f), new Vector3(DX0, 0, PomZ1 - .1f), pok);
@@ -312,12 +316,28 @@ public static class BraxNabrzezeMarina
             var v = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1), new Vector3(0, 0, zc), 180f, burtaX: x1 + .45f, zachod: false);
             if (v) { n++; Cumy(z, cumy, odbij, v, new Vector3(x1, pok, zc), true); }
         }
-        // D: jacht po wschodniej stronie pomostu D (burtą, dziobem na południe — od razu otwarta woda ku wyspie)
-        foreach (float zc in new[] { 39f })
+        // D-WSCHÓD: BOKSY (właściciel 3.11 10:17–10:18: „kto ci kazał usuwać jachty… zrobić boksy, że wpływają pomiędzy”) —
+        // jachty rufą do pomostu D między palcami, dziobem na wschód (otwarta woda) — każdy wypływa prosto, bez zawracania.
+        // Z pomostu na rufę trap (deska z poręczami); WSIĄDŹ przy trapie. Woda zajęta (kolizje) = boks pusty z logiem.
+        int nBoks = 0;
+        for (int i = 0; i + 1 < PalceD.Length; i++)
         {
-            var vw = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1), new Vector3(0, 0, zc - 3f), 180f, burtaX: DX1 + .45f, zachod: false);
-            if (vw) { n++; Cumy(z, cumy, odbij, vw, new Vector3(DX1, pok, zc - 3f), true); }
+            float zc = (PalceD[i] + PalceD[i + 1]) * .5f, pol = Jacht.dlug * K * .5f;
+            Physics.SyncTransforms();
+            var zaj = Physics.OverlapBox(new Vector3(DX1 + .5f + pol, W + 1.5f, zc), new Vector3(pol, 1.2f, 3.2f), Quaternion.identity, ~(1 << 4), QueryTriggerInteraction.Ignore);
+            if (zaj.Length > 0) { BraxNabrzeze.Log("MARINA boks D" + (i + 1) + ": woda zajęta (" + zaj[0].name + ") — jacht pominięty"); continue; }
+            var vb = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1) + " (boks D" + (i + 1) + ")", new Vector3(0, 0, zc), 90f, rufaX: DX1 + .5f, dziobWschod: true);
+            if (!vb) continue;
+            n++; nBoks++;
+            Cumy(z, cumy, odbij, vb, new Vector3(DX1, pok, zc), false);
+            z[m.drewno].BoxMM(new Vector3(DX1 - .2f, pok - .02f, zc - .3f * K), new Vector3(DX1 + 1.3f, pok + .04f, zc + .3f * K));          // trap: deska
+            foreach (float sz in new[] { -.3f * K, .3f * K })
+            {
+                z[m.stalCiemna].BoxMM(new Vector3(DX1 - .2f, pok + .9f * K, zc + sz - .02f), new Vector3(DX1 + 1.3f, pok + .93f * K, zc + sz + .02f));   // poręcz
+                foreach (float xs in new[] { DX1 - .15f, DX1 + 1.25f }) z[m.stalCiemna].BoxMM(new Vector3(xs - .02f, pok, zc + sz - .02f), new Vector3(xs + .02f, pok + .92f * K, zc + sz + .02f));
+            }
         }
+        BraxNabrzeze.Log("MARINA boksy D: jachtów " + nBoks + "/" + (PalceD.Length - 1) + " (rufą do pomostu D, dziobem na otwartą wodę, trap z pomostu)");
         // motorówka do rejsu na wyspę — burtą do pomostu poprzecznego E (od północy), dziobem na wschód (prosto na wolną wodę)
         {
             var vr = Lodz(portRoot, Riva, "Marina: motorówka (rejs na wyspę)", new Vector3(125f, 0, PomZ1 + 2.6f + .45f + 1.65f), 90f);
@@ -345,7 +365,7 @@ public static class BraxNabrzezeMarina
 
     /// <summary>Model łodzi w skali × k, dziobem w kierunku yaw (0 = +z), w wodzie na swoim zanurzeniu. burtaX: burta przy x
     /// (jacht przy pomoście od wschodu); rufaX: rufa przy x (łódź dziobem na zachód). Zwraca BraxVessel.</summary>
-    static BraxVessel Lodz(Transform portRoot, Typ t, string name, Vector3 c, float yaw, float burtaX = float.NaN, bool zachod = true, float rufaX = float.NaN)
+    static BraxVessel Lodz(Transform portRoot, Typ t, string name, Vector3 c, float yaw, float burtaX = float.NaN, bool zachod = true, float rufaX = float.NaN, bool dziobWschod = false)
     {
         var model = BraxHarborBeachBuild.Model(t.plik);
         if (!model) { BraxNabrzeze.Log("brak modelu " + t.plik); return null; }
@@ -375,7 +395,7 @@ public static class BraxNabrzezeMarina
         float pol = t.dlug * K * .5f, szer = Mathf.Min(bw.size.x, bw.size.z);
         Vector3 cel = c;
         if (!float.IsNaN(burtaX)) cel.x = zachod && burtaX > PomX1 + 1f ? burtaX - szer * .5f - .05f : burtaX + szer * .5f + .05f;   // burta przy pomoście (odbijacze 0,35 m); A 2.11: łódź na zachód od pomostu D
-        if (!float.IsNaN(rufaX)) cel.x = rufaX - pol;                              // rufa przy pomoście, dziób na zachód
+        if (!float.IsNaN(rufaX)) cel.x = dziobWschod ? rufaX + pol : rufaX - pol;   // rufa przy pomoście, dziób na zachód (boksy D: na wschód)
         v.transform.position = new Vector3(cel.x, W, cel.z);
         var vessel = v.AddComponent<BraxVessel>();
         vessel.label = t.label; vessel.waterY = W; vessel.draft = 0f;
