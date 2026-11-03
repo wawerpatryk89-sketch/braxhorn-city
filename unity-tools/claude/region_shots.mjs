@@ -204,6 +204,7 @@ const VIEWS = [
   ['DETAL_elewacja_gym_lewa', '-30,6,22,0,20,10'],
   ['DETAL_elewacja_bank_alejka', '-110,5,68,180,10,8'],
   ['DETAL_tower_recepcja_lada', '53.6,1.0,44.3,270,15,3'],
+  ['DETAL_misa_drzewa_zielona', '-10,.3,22.8,0,50,2.2'],
   ['M_A_metro_wejscie', '68,0.35,34.3,270,12,9'],
   ['M_A_nova_sala', '41,1.8,50,180,5,8'],
   ['M_A_nova_wejscie', '42,1.8,36,180,5,9'],

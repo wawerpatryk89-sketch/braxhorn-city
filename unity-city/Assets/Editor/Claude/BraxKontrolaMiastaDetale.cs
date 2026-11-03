@@ -23,6 +23,7 @@ public static class BraxKontrolaMiastaDetale
         try { PrzedDrzwiami(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_DRZEWA_DRZWI DO POPRAWKI " + e.Message); }
         try { Wiszace(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_MEBLE_WISZACE DO POPRAWKI " + e.Message); }
         try { Lady(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_LADY_KOLIZJE DO POPRAWKI " + e.Message); }
+        try { Hydranty(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_HYDRANTY DO POPRAWKI " + e.Message); }
         Physics.SyncTransforms();
     }
 
@@ -187,5 +188,21 @@ public static class BraxKontrolaMiastaDetale
             dodane++; opis.Add(t.name + " @" + b.center.ToString("F0"));
         }
         Debug.Log("BRAXHORN_LADY_KOLIZJE dodane=" + dodane + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(20)) + "]" : ""));
+    }
+
+    // pkt 2: dwa hydranty obok siebie (ul. z DELIKATESAMI) → jeden (w promieniu 4 m zostaje pierwszy, reszta usunięta z kolizjami)
+    static void Hydranty(Transform root)
+    {
+        var h = root.GetComponentsInChildren<Transform>(true).Where(t => Nazwa(t).Contains("hydrant") && !Nazwa(t).Contains("szafk") && t.GetComponentInChildren<Renderer>(true)).ToList();
+        var zb = new HashSet<Transform>(h);
+        h = h.Where(t => { for (var q = t.parent; q; q = q.parent) if (zb.Contains(q)) return false; return true; }).OrderBy(t => t.position.x).ThenBy(t => t.position.z).ToList();
+        var zostaja = new List<Vector3>(); var opis = new List<string>(); int usun = 0;
+        foreach (var t in h)
+        {
+            var p = Obrys(t.gameObject).center;
+            if (zostaja.Any(q => (new Vector2(q.x - p.x, q.z - p.z)).magnitude < 4f && Mathf.Abs(q.y - p.y) < 2f)) { opis.Add(t.name + " @" + p.ToString("F0")); UnityEngine.Object.DestroyImmediate(t.gameObject); usun++; }
+            else zostaja.Add(p);
+        }
+        Debug.Log("BRAXHORN_HYDRANTY zostaja=" + zostaja.Count + " usuniete_duplikaty=" + usun + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(10)) + "]" : ""));
     }
 }

@@ -87,14 +87,30 @@ internal static class BraxMiastoUlica
     {
         // chodnik pod kratą ZDJĘTY (krata i ściółka w jego miejscu, nie na nim)
         { float a0 = .75f * K; BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(p.x - a0, p.x + a0, p.y - .12f, p.y + .04f, p.z - a0, p.z + a0), "krata_drzewa", root); }
-        // krata żeliwna 1.5 × 1.5 m × k (pierścienie promieniste), wierzch 1 cm nad chodnikiem — chodnik pod nią wycina kontrola migotania
-        float a = .75f * K; var zel = BraxUliceKit.S(BraxMiastoA.Mat("Ulica: krata drzewa (żeliwo)", new Color(.12f, .12f, .13f), .55f, .6f));
-        zel.Box(new Vector3(p.x - a, p.y - .04f, p.z - a), new Vector3(p.x + a, p.y + .01f, p.z - a + .08f)); zel.Box(new Vector3(p.x - a, p.y - .04f, p.z + a - .08f), new Vector3(p.x + a, p.y + .01f, p.z + a));
-        zel.Box(new Vector3(p.x - a, p.y - .04f, p.z - a + .08f), new Vector3(p.x - a + .08f, p.y + .01f, p.z + a - .08f)); zel.Box(new Vector3(p.x + a - .08f, p.y - .04f, p.z - a + .08f), new Vector3(p.x + a, p.y + .01f, p.z + a - .08f));
-        for (int i = 0; i < 4; i++) { float r = .25f + i * .14f; zel.Pierscien(new Vector3(p.x, p.y + .01f, p.z), r, r + .035f, 0, 360, 28); }
-        for (int i = 0; i < 12; i++) { float an = i * 30f * Mathf.Deg2Rad; var d = new Vector3(Mathf.Cos(an), 0, Mathf.Sin(an)); zel.Box(new Vector3(p.x, p.y - .03f, p.z) + d * .2f - Vector3.Cross(Vector3.up, d) * .015f, new Vector3(p.x, p.y + .008f, p.z) + d * (a - .06f) + Vector3.Cross(Vector3.up, d) * .015f); }
-        // ściółka pod kratą (8 cm niżej niż chodnik — widać ją przez szczeliny)
-        BraxUliceKit.S(BraxMiastoA.Mat("Ulica: ściółka (kora)", new Color(.22f, .15f, .1f), .95f)).Quad(new Vector3(p.x - a, p.y - .08f, p.z - a), new Vector3(p.x + a, p.y - .08f, p.z - a), new Vector3(p.x + a, p.y - .08f, p.z + a), new Vector3(p.x - a, p.y - .08f, p.z + a), Vector3.up);
+        // pkt 2 (właściciel: „jak jest drzewo na mieście, to ma być zielono koło drzewa”): zamiast żeliwnej kraty ZIELONA MISA —
+        // obrzeże z granitowych krawężników (po 2 elementy na bok, fuga 4 mm, wierzch 2 cm nad chodnikiem), wewnątrz okrywa
+        // zielona 3 cm poniżej chodnika (w wycięciu chodnika, nie na nim) i kępy bylin (niskie walce z liśćmi w dwóch odcieniach).
+        float a = .75f * K, bw = .12f;
+        var granit = BraxUliceKit.S(BraxMiastoA.Mat("Ulica: obrzeże misy drzewa (granit)", new Color(.62f, .61f, .58f), .7f, 0f));
+        foreach (var (x0, x1, z0, z1) in new[] { (p.x - a, p.x + a, p.z - a, p.z - a + bw), (p.x - a, p.x + a, p.z + a - bw, p.z + a), (p.x - a, p.x - a + bw, p.z - a + bw, p.z + a - bw), (p.x + a - bw, p.x + a, p.z - a + bw, p.z + a - bw) })
+        {
+            bool wzdX = x1 - x0 > z1 - z0;
+            float mid = wzdX ? (x0 + x1) * .5f : (z0 + z1) * .5f;
+            foreach (var (u0, u1) in new[] { (wzdX ? x0 : z0, mid - .002f), (mid + .002f, wzdX ? x1 : z1) })
+                granit.Box(wzdX ? new Vector3(u0, p.y - .15f, z0) : new Vector3(x0, p.y - .15f, u0), wzdX ? new Vector3(u1, p.y + .02f, z1) : new Vector3(x1, p.y + .02f, u1));
+        }
+        var okr = BraxUliceKit.S(BraxMiastoA.Tex("Ulica: okrywa zielona misy drzewa", 1.2f, new Color(.85f, 1f, .8f), new Color(.20f, .36f, .14f), .95f, "leafy_grass", "aerial_grass_rock", "forest_floor"));
+        float cIn = a - bw;
+        okr.Quad(new Vector3(p.x - cIn, p.y - .03f, p.z - cIn), new Vector3(p.x - cIn, p.y - .03f, p.z + cIn), new Vector3(p.x + cIn, p.y - .03f, p.z + cIn), new Vector3(p.x + cIn, p.y - .03f, p.z - cIn), Vector3.up);
+        var lis1 = BraxUliceKit.S(BraxMiastoA.Mat("Ulica: byliny misy (liście)", new Color(.16f, .40f, .12f), .9f, 0f));
+        var lis2 = BraxUliceKit.S(BraxMiastoA.Mat("Ulica: byliny misy (liście jasne)", new Color(.32f, .52f, .18f), .9f, 0f));
+        for (int i = 0; i < 6; i++)
+        {
+            float an = (i * 60f + 20f) * Mathf.Deg2Rad, rr = cIn * .62f;
+            var q = new Vector3(p.x + Mathf.Cos(an) * rr, p.y - .03f, p.z + Mathf.Sin(an) * rr);
+            (i % 2 == 0 ? lis1 : lis2).Walec(q, .13f * K, .18f + .05f * (i % 3), 9);
+            (i % 2 == 0 ? lis2 : lis1).Walec(q + new Vector3(.07f, 0f, .05f), .08f * K, .26f + .04f * (i % 2), 7);
+        }
         BraxMiastoA.Kol(kol, "krata drzewa", new Vector3(p.x - a, p.y - .3f, p.z - a), new Vector3(p.x + a, p.y, p.z + a));
         var m = BraxRegion.Model("drzewo_verdant");
         if (!m) return false;
