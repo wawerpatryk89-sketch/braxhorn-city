@@ -218,7 +218,10 @@ internal static class BraxMiastoNutrition
         for (int i = 0; i < 8; i++) { var b = new Vector3(X1 - .3f, yb, lz1 - .2f - i * .09f); tw.kolor = marka[1]; tw.Rura(b, b + Vector3.up * .14f, .035f, 8); }
         tw.kolor = BraxUliceKit.Bialy;
         BraxUliceKit.Napis3D("SHAKE BAR", new Vector3(X1, 2.65f, (lz0 + lz1) * .5f), Vector3.left, .26f, .05f, zielone, boki);
-        BraxUliceKit.Napis3D("WANILIA · CZEKOLADA · TRUSKAWKA", new Vector3(X1, 2.25f, (lz0 + lz1) * .5f), Vector3.left, .1f, .02f, BraxMiastoA.Swieci("Nutrition: litery białe podświetlane", Color.white, new Color(1.6f, 1.6f, 1.6f)), boki);
+        // menu shake baru z grafiki właściciela (3.11 14:37) na ścianie nad blatem roboczym; bez grafiki — dawny napis smaków
+        var menuSB = odzywki ? BraxMiastoAssety.Model("miasto_sklepy", "menu_2") : null;
+        if (menuSB) BraxMiastoAssety.Postaw(root, menuSB, "Nutrition: menu SHAKE BAR", new Vector3(X1 - .02f - .015f * K, 1.35f, (lz0 + lz1) * .5f), 270f, 1f, true, false);
+        else BraxUliceKit.Napis3D("WANILIA · CZEKOLADA · TRUSKAWKA", new Vector3(X1, 2.25f, (lz0 + lz1) * .5f), Vector3.left, .1f, .02f, BraxMiastoA.Swieci("Nutrition: litery białe podświetlane", Color.white, new Color(1.6f, 1.6f, 1.6f)), boki);
         // PODESTY EKSPOZYCYJNE (dąb + biały blat) z piramidami puszek — przodem do wejścia
         foreach (var c0 in new[] { new Vector3(18.2f, F, 16.3f), new Vector3(21.4f, F, 16.3f) })
         {
@@ -230,11 +233,15 @@ internal static class BraxMiastoNutrition
                     for (int j = 0; j < 3 - w; j++)
                     {
                         var p = c0 + new Vector3(-.6f + (i + w * .5f) * .4f, yy + w * .28f * K, -.3f + (j + w * .5f) * .3f);
+                        var mt = odzywki ? BraxMiastoAssety.Model("miasto_sklepy", "odz_whey_" + (1 + (i + 2 * j + w) % 4)) : null;   // piramida prawdziwych kubłów whey 2 kg
+                        if (mt) { BraxMiastoAssety.Postaw(root, mt, "Nutrition: kubeł whey na podeście", p, 0f, 1f, true, false); continue; }
                         tw.kolor = marka[(i + j + w) % 3]; tw.Rura(p, p + Vector3.up * .28f * K, .1f * K, 10);
                     }
             tw.kolor = BraxUliceKit.Bialy;
             BraxMiastoA.Kol(kol, "podest ekspozycyjny", c0 + new Vector3(-.93f, 0, -.63f), c0 + new Vector3(.93f, .55f * K + .03f, .63f));
         }
+        var plakatN = odzywki ? BraxMiastoAssety.Model("miasto_sklepy", "plakat_05") : null;
+        if (plakatN) BraxMiastoAssety.Postaw(root, plakatN, "Nutrition: plakat KREATYNA", new Vector3(X1 - .02f - .01f * K, F + 1.15f, Z0 + 7.2f), 270f, 1f, true, false);
         // rośliny w donicach (Poly Haven CC0, jeśli pobrane) przy witrynach
         var roslina = BraxRegion.Model("potted_plant_02", "potted_plant_04");
         if (roslina) foreach (var p in new[] { new Vector3(X0 + .6f, F, Z1 - .45f), new Vector3(X1 - .55f, F, Z1 - .45f) }) BraxRegion.Put(root, roslina, "Nutrition: roślina w donicy", p, 30f, 1f, true, 1.5f * K);
