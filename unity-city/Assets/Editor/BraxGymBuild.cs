@@ -351,6 +351,8 @@ public static class BraxGymBuild
         if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrole jakości (miasto): "+e);}
         // P0.1 (2.11 23:05, „metro nie do wejścia”): obce kolizje w przejściach stacji wyłączone + test przejścia obu wejść
         if(fullCity&&!osiedle)try{BraxClaudeMetro.KontrolaPrzejscia();}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_METRO_PRZEJSCIE: "+e);}
+        // 3.11 (właściciel 10:53): trawnik w wycięciu nawierzchni przy każdym drzewie i palmie na chodniku / placu / asfalcie
+        if(fullCity&&!osiedle)try{BraxMisyDrzew.Wykonaj(scene);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_MISY_DRZEW: "+e);}
         // C4 (2.11, „szyby globalnie”): szkło bez mleka — przezroczyste z odbiciem nieba, fasady bez wnętrza refleksyjne (BRAXHORN_SZYBY)
         if(fullCity&&!osiedle)try{BraxSzyby.Wykonaj(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: szyby (miasto): "+e);}
         if(!osiedle)try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
