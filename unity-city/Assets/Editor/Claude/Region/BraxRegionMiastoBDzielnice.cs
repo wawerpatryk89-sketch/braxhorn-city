@@ -392,7 +392,7 @@ public static partial class BraxRegionMiastoB
         Physics.SyncTransforms();
         var g = BraxRegion.Root(cityRoot, "CLAUDE nowe dzielnice: budynki (Sketchfab)");
         var wezly = new Dictionary<string, GameObject>();   // instancje dzielnic (jedna kopia, węzły rozdzielane po budynkach)
-        int ok = 0, brak = 0;
+        int ok = 0, brak = 0, nSzklo = 0;
         foreach (var b in NoweBudynki)
         {
             try
@@ -418,6 +418,7 @@ public static partial class BraxRegionMiastoB
                     bryla = tb.GetComponentsInChildren<Renderer>(true); dach = td ? td.GetComponentsInChildren<Renderer>(true) : new Renderer[0];
                 }
                 BraxMiastoAssety.Przygotuj(bud.gameObject, true, true);
+                nSzklo += NdSzklo(bud.gameObject);
                 foreach (var r in dach) r.shadowCastingMode = ShadowCastingMode.Off;
                 // LOD: urządzenia dachowe do 12 % wysokości ekranu, bryła do 0.6 %
                 var lod = bud.gameObject.AddComponent<LODGroup>();
@@ -435,7 +436,38 @@ public static partial class BraxRegionMiastoB
         foreach (var k in wezly.Values) if (k) UnityEngine.Object.DestroyImmediate(k);   // niewykorzystane jednostki (U14, kliny) nie idą do sceny
         try { NdSylwetki(cityRoot); } catch (Exception e) { BraxMiastoAssety.Blad("sylwetki z daleka", e); }
         try { NdMigotanieBudynkow(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
+        NdLog("szkło fasad: " + nSzklo + " materiałów na budynkach zamienione na szkło refleksyjne (czarny metal / szyby przed pustą bryłą)");
         NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", bez modelu " + brak + " (paczka nieodszyfrowana — kwartał zostaje z płytami)" : ""));
+    }
+
+    // WŁAŚCICIEL 3.11 10:12–10:19 (nagrania): „czarne budynki, gdzie są okna”. W modelach Sketchfaba szkło fasad było
+    // (a) metalem bez tekstury z ciemnym kolorem (CityGenbasic_rough_metal_dark — kolor 0,0,0; CityGenblack_) — metal z albedo
+    // ≈ 0 nic nie odbija = czarna ściana; (b) szybą półprzezroczystą (CityGenGlass, alfa .25) przed pustą bryłą = czarna dziura.
+    // Oba → szkło fasady refleksyjne jak wieżowce miasta (BraxSzyby.Refleksyjne: stalowo-niebieskie, odbicie nieba).
+    // Okna malowane w teksturach elewacji zostają. Środki budynków nie są robione (właściciel: „środek nie musi być”).
+    static Material ndSzklo;
+    static int NdSzklo(GameObject o)
+    {
+        if (!ndSzklo)
+        {
+            ndSzklo = BraxCityMaterials.Surface("Nowe dzielnice: szkło fasady (refleksyjne)", new Color(.30f, .37f, .42f), .1f, .85f);
+            if (ndSzklo.HasProperty("_ReflectionStrength")) ndSzklo.SetFloat("_ReflectionStrength", .95f);
+        }
+        int n = 0;
+        foreach (var r in o.GetComponentsInChildren<Renderer>(true))
+        {
+            var ms = r.sharedMaterials; bool zm = false;
+            for (int i = 0; i < ms.Length; i++)
+            {
+                var m = ms[i]; if (!m || m == ndSzklo) continue;
+                bool szklo = m.name.IndexOf("glass", StringComparison.OrdinalIgnoreCase) >= 0;
+                bool ciemnyMetal = m.HasProperty("_Metallic") && m.GetFloat("_Metallic") >= .8f && m.HasProperty("_MainTex") && !m.GetTexture("_MainTex")
+                                   && m.HasProperty("_Color") && m.GetColor("_Color").grayscale < .2f;
+                if (szklo || ciemnyMetal) { ms[i] = ndSzklo; zm = true; n++; }
+            }
+            if (zm) r.sharedMaterials = ms;
+        }
+        return n;
     }
 
     // sylwetki z daleka: bryły lica × wysokość (0.5 m w głąb), jedna siatka na kwadrat 150 m, wszystkie pod jednym korzeniem
@@ -445,7 +477,7 @@ public static partial class BraxRegionMiastoB
         if (ndBudynki.Count == 0) return;
         var sr = new GameObject("CLAUDE nowe dzielnice: sylwetki z daleka").transform; sr.SetParent(cityRoot, false); sr.position = Vector3.zero;
         sr.gameObject.AddComponent<LODGroup>();
-        var mat = BraxCityMaterials.Surface("Nowe dzielnice z daleka: bryły (szkło ciemne / cegła)", new Color(.22f, .24f, .27f), .55f, .2f);
+        var mat = BraxCityMaterials.Surface("Nowe dzielnice z daleka: bryły (jasny kamień w mgiełce)", new Color(.52f, .51f, .49f), .8f, 0f);   // było .22 — z daleka czarne bloki (właściciel 3.11)
         var grupy = new Dictionary<(int, int), (BraxRegionMeble.Bud b, Bounds ob)>();
         foreach (var o in ndBudynki)
         {
