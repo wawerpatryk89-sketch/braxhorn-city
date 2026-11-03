@@ -110,7 +110,7 @@ public static partial class BraxClaudeOsiedle
         {
             if (!d.id.EndsWith("-rear", StringComparison.OrdinalIgnoreCase)) continue;
             string bud = d.id.Split('-')[0];
-            if (bud == "club" || bud == "casino" || !fronty.Contains(bud)) { zostaja.Add(d.id + (bud == "club" ? " (dyskoteka: 2 wejścia)" : bud == "casino" ? " (kasyno: osobno)" : " (brak wejścia od frontu)")); continue; }
+            if (bud == "club" || bud == "casino" || bud == "gym" || !fronty.Contains(bud)) { zostaja.Add(d.id + (bud == "club" ? " (dyskoteka: 2 wejścia)" : bud == "casino" ? " (kasyno: osobno)" : bud == "gym" ? " (siłownia A: wejście od parku pod szyldem BRAXHORN KICKBOXING — właściciel 3.11 15:15)" : " (brak wejścia od frontu)")); continue; }
             d.enabled = false; zamk++;
             Debug.Log("BRAXHORN_DRZWI typ=serwisowe budynek=" + bud + " id=" + d.id + " zamknięte na stałe (E25: jedno wejście — front)");
         }
