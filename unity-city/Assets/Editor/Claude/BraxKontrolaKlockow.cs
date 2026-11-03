@@ -50,7 +50,8 @@ public static class BraxKontrolaKlockow
             var rs = t.GetComponentsInChildren<Renderer>(true); var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
             string sc = Sciezka(t, root), wpis = sc + " (" + kl + "/" + all + " prymitywów, " + b.size.x.ToString("F1") + "×" + b.size.y.ToString("F1") + "×" + b.size.z.ToString("F1") + " m)";
             string n = sc.ToLowerInvariant();
-            if (Pojazdy.Any(n.Contains)) { usuniete.Add(wpis); doUsun.Add(t.gameObject); }
+            bool grywalny = t.GetComponentInChildren<BraxAuto>(true) || t.GetComponentInChildren<BraxVessel>(true);   // auta i łodzie gracza nigdy
+            if (Pojazdy.Any(n.Contains) && !grywalny) { usuniete.Add(wpis); doUsun.Add(t.gameObject); }
             else lista.Add(wpis);
         }
         foreach (var g in doUsun) if (g) UnityEngine.Object.DestroyImmediate(g);

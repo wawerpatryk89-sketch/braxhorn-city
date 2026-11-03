@@ -251,7 +251,10 @@ public static partial class BraxClaudeOsiedle
             {
                 float t = i / 12f; var p = b.center;
                 if (dlX) p.x = Mathf.Lerp(b.min.x, b.max.x, t); else p.z = Mathf.Lerp(b.min.z, b.max.z, t);
-                if (BraxRegionMiastoB.NaJezdni(p)) na++;
+                // prowadzący (audyt 3.11): liczy się tylko punkt z jezdnią PO OBU stronach zapory (zapora w poprzek / na środku
+                // jezdni) — balustrady i barierki wzdłuż krawędzi (wiadukt, nabrzeże, chodnik) zostają
+                var pr = dlX ? new Vector3(0, 0, 1.5f) : new Vector3(1.5f, 0, 0);
+                if (BraxRegionMiastoB.NaJezdni(p) && BraxRegionMiastoB.NaJezdni(p + pr) && BraxRegionMiastoB.NaJezdni(p - pr)) na++;
             }
             if (na < 3) continue;
             usun.Add(r.gameObject); opis.Add(r.name + " @" + b.center.ToString("F0") + " dł " + L.ToString("F1") + " na_jezdni " + na + "/13");

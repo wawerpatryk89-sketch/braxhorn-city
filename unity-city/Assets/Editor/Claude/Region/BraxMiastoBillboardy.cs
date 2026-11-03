@@ -106,6 +106,16 @@ internal static class BraxMiastoBillboardy
         }).ToList();
         var zb = new HashSet<Transform>(t);
         t = t.Where(x => { for (var q = x.parent; q; q = q.parent) if (zb.Contains(q)) return false; return true; }).ToList();
+        // prowadzący (audyt 3.11): usuwamy tylko obiekty wielkości reklamy (≤ 14 m, ≤ 24 renderery) — grupa o nazwie z „reklam”/
+        // „artwork” obejmująca np. całą fasadę zostaje (tylko log)
+        int zostawione = 0;
+        t = t.Where(x =>
+        {
+            var rs = x.GetComponentsInChildren<Renderer>(true); var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            bool ok = rs.Length <= 24 && Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z)) <= 14f;
+            if (!ok) { zostawione++; Debug.Log("BRAXHORN_BILLBOARDY stara grupa ZOSTAWIONA (za duża do automatu): " + x.name + " " + b.size.ToString("F1")); }
+            return ok;
+        }).ToList();
         foreach (var x in t) if (x) UnityEngine.Object.DestroyImmediate(x.gameObject);
         return t.Count;
     }
