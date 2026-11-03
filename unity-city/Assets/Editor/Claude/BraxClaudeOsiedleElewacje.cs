@@ -167,6 +167,8 @@ public static partial class BraxClaudeOsiedle
         string tekst, blade; Material lico, boki, p1, p2, kas, bladeLico, bladeL, bladeB; float cap = .42f; Color pas;
         switch (kind)
         {
+            case "apteka": tekst = "APTEKA"; pas = new Color(.04f, .30f, .16f); lico = MatLicoBiale; boki = MatBoki("zielone apteki", new Color(.10f, .55f, .30f)); p1 = Pas("zieleń", new Color(.10f, .52f, .30f)); p2 = Pas("biel apteki", new Color(.94f, .95f, .93f));
+                kas = MatBoki("zielone apteki", new Color(.10f, .55f, .30f)); blade = "+"; bladeLico = MatKaseton("zielony apteki", new Color(.10f, .58f, .32f)); bladeL = MatLicoBiale; bladeB = MatBokiStal; break;
             case "butik": tekst = "NYXA"; cap = .46f; pas = new Color(.05f, .05f, .055f); lico = MatZloto; boki = MatBokiCzarne; p1 = Pas("czerń", new Color(.07f, .07f, .08f)); p2 = Pas("krem", new Color(.90f, .86f, .76f));
                 kas = MatBokiCzarne; blade = "NYXA"; bladeLico = MatKaseton("czarny butik", new Color(.06f, .06f, .065f)); bladeL = MatZloto; bladeB = MatZloto; break;
             case "shake": tekst = "SHAKE BAR"; pas = new Color(.05f, .22f, .20f); lico = MatLicoBiale; boki = MatBoki("miętowe", new Color(.24f, .62f, .52f)); p1 = Pas("mięta", new Color(.36f, .74f, .62f)); p2 = bialePas;

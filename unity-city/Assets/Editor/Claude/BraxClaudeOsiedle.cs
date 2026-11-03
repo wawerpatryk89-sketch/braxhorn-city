@@ -2519,6 +2519,48 @@ public static partial class BraxClaudeOsiedle
                 }
             Planter(new Vector3(a + .8f, FY, zf + .8f), .8f, .8f, 811, 2, 3); Planter(new Vector3(b - .8f, FY, zf + .8f), .8f, .8f, 812, 0, 1);
         }
+        else if (kind == "apteka")   // 3.11 15:59 (właściciel): APTEKA BRAXHORN w lokalu po butiku NYXA — regały ścienne z lekami, lada z blatem
+        {
+            var lak = Plain("regał apteczny biały lakier", new Color(.95f, .95f, .94f), .45f);
+            var zielen = Plain("apteka zielony akcent", new Color(.10f, .55f, .30f), .4f);
+            var blat = Pbr("blat lady apteki (marmur)", "marble_01", 1.2f, new Color(.97f, .97f, .96f), .85f);
+            var korpus = Pbr("lada apteki orzech", "wood_floor", 1.4f, new Color(.62f, .48f, .36f), .5f);
+            var tw = new GameObject("Apteka: towar (paczka miasto_sklepy)").transform; tw.SetParent(Group(group), true);
+            // regał ścienny: deski co dh od h0, boki co ~1.2 m, plecy; towar z paczki na każdej desce
+            void RegalScienny(Vector3 p0, Vector3 wzdl, Vector3 wglab, float dl, float gl, int poz, float h0, float dh)
+            {
+                Vector3 p1 = p0 + wzdl * dl + wglab * gl;
+                float x0 = Mathf.Min(p0.x, p1.x), x1 = Mathf.Max(p0.x, p1.x), z0 = Mathf.Min(p0.z, p1.z), z1 = Mathf.Max(p0.z, p1.z);
+                var tyl = p0 + wglab * gl;   // plecy przy ścianie
+                BoxMinMax(lak, Mathf.Min(tyl.x, (tyl + wzdl * dl).x) - (Mathf.Abs(wglab.x) > .5f ? .01f : 0f), Mathf.Max(tyl.x, (tyl + wzdl * dl).x) + (Mathf.Abs(wglab.x) > .5f ? .01f : 0f),
+                          FY, FY + h0 + dh * poz, Mathf.Min(tyl.z, (tyl + wzdl * dl).z) - (Mathf.Abs(wglab.z) > .5f ? .01f : 0f), Mathf.Max(tyl.z, (tyl + wzdl * dl).z) + (Mathf.Abs(wglab.z) > .5f ? .01f : 0f), false);
+                BoxMinMax(zielen, x0, x1, FY, FY + .12f, z0, z1, true);                                   // cokół
+                for (int i = 0; i <= poz; i++) { float y = FY + h0 + i * dh; BoxMinMax(lak, x0, x1, y - .025f, y, z0, z1, false); }
+                int nb = Mathf.Max(1, Mathf.RoundToInt(dl / 1.2f));
+                for (int j = 0; j <= nb; j++)
+                {
+                    var q = p0 + wzdl * (dl * j / nb); var q1 = q + wglab * gl;
+                    BoxMinMax(lak, Mathf.Min(q.x, q1.x) - .012f, Mathf.Max(q.x, q1.x) + .012f, FY, FY + h0 + dh * poz, Mathf.Min(q.z, q1.z) - .012f, Mathf.Max(q.z, q1.z) + .012f, false);
+                }
+                for (int i = 0; i < poz; i++) BraxOsiedleTowar.Polka("apteka", tw, p0 + wzdl * .03f + Vector3.up * (FY + h0 + i * dh), wzdl, wglab, dl - .06f, rnd, dh - .07f);
+            }
+            // za ladą: regał na całej tylnej ścianie (7 półek do 2.3 m); po bokach sali regały samoobsługowe (5 półek)
+            RegalScienny(new Vector3(a + .5f, 0f, zb - .4f), Vector3.right, Vector3.forward, b - a - 1f, .38f, 7, .35f, .3f);
+            RegalScienny(new Vector3(a + .42f, 0f, zf + 2.6f), Vector3.forward, Vector3.left, zb - zf - 6.4f, .38f, 5, .3f, .34f);
+            RegalScienny(new Vector3(b - .42f, 0f, zf + 2.6f), Vector3.forward, Vector3.right, zb - zf - 6.4f, .38f, 5, .3f, .34f);
+            // lada: korpus z orzecha z frontem w 3 płycinach, cokół cofnięty, marmurowy blat z okapem; przejście dla farmaceuty przy b
+            float lz = zb - 2.6f, lx0 = a + 1.4f, lx1 = b - 2.2f;
+            BoxMinMax(Plain("cokół lady", new Color(.12f, .12f, .13f), .3f), lx0 + .05f, lx1 - .05f, FY, FY + .1f, lz - .25f, lz + .3f, true);
+            BoxMinMax(korpus, lx0, lx1, FY + .1f, FY + 1.0f, lz - .3f, lz + .3f, true);
+            float pw = (lx1 - lx0 - .2f) / 3f;
+            for (int i = 0; i < 3; i++) BoxMinMax(korpus, lx0 + .1f + i * pw + .05f, lx0 + .1f + (i + 1) * pw - .05f, FY + .2f, FY + .9f, lz - .32f, lz - .3f, false);   // płyciny
+            BoxMinMax(zielen, lx0, lx1, FY + .93f, FY + .97f, lz - .305f, lz - .3f, false);                                         // zielony pas
+            BoxMinMax(blat, lx0 - .04f, lx1 + .04f, FY + 1.0f, FY + 1.04f, lz - .36f, lz + .34f, false);
+            Collider(new Vector3((lx0 + lx1) * .5f, FY + .52f, lz), new Vector3(lx1 - lx0, 1.04f, .7f));
+            BraxOsiedleTowar.Polka("apteka_lada", tw, new Vector3(lx0 + .3f, FY + 1.04f, lz - .3f), Vector3.right, Vector3.forward, 1.2f, rnd, .3f);
+            BraxOsiedleTowar.Zakoncz(tw, "apteka osiedla");
+            Debug.Log("BRAXHORN_APTEKA_OSIEDLA lokal x " + a.ToString("F1") + "…" + b.ToString("F1") + ": regał za ladą 7 półek, 2 regały boczne × 5, lada z blatem");
+        }
         else if (kind == "market")   // market: trzy regały wyspowe z towarem, lodówki pod tylną ścianą, kasa przy wejściu
         {
             Transform twM = null;
@@ -2617,7 +2659,7 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(Gravel, x0 + .2f, x1 - .2f, H0, H0 + .05f, zf + .05f, zf + .8f, false);     // posadzka balkonów
         BoxMinMax(GlassClear, x0 + .2f, x1 - .2f, H0 + .05f, H0 + 1.05f, zf + .05f, zf + .09f, false);
         BoxMinMax(Frame, x0 + .2f, x1 - .2f, H0 + 1.05f, H0 + 1.1f, zf + .03f, zf + .11f, false);
-        string[] shops = { "butik", "shake", "nutrition", "kawiarnia", "market" };   // Nutrition obok Shake Baru (dokument PREFABY)
+        string[] shops = { BraxOsiedleTowar.Jest ? "apteka" : "butik", "shake", "nutrition", "kawiarnia", "market" };   // 3.11 15:59: apteka w lokalu NYXA (z paczką towaru)   // Nutrition obok Shake Baru (dokument PREFABY)
         float unit = (x1 - x0) / shops.Length;
         for (int k = 0; k < shops.Length; k++)
         {
