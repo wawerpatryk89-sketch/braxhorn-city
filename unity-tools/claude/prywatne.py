@@ -214,7 +214,7 @@ def przygotuj_patryka(staging):
 
 
 # Paczki modeli osiedla: każda osobno (< 90 MB po kompresji — limit GitHuba 100 MB na plik).
-PACZKI_OSIEDLA = ("osiedle_wnetrza",)
+PACZKI_OSIEDLA = ("osiedle_wnetrza", "miasto_pojazdy")   # miasto_pojazdy: autobus (E23) — ta sama paczka co w mieście
 
 
 def paczki_modeli(podkatalog, nazwy, opis):
