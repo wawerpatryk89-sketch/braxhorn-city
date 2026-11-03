@@ -88,6 +88,8 @@ public static class BraxRegion
         Step("audyt klocków (pojazdy i maszyny z prymitywów — usunięte, reszta na liście)", () => BraxKontrolaKlockow.Wykonaj(root));
         // pkt 2 / 3 / 4 / 31b: napisy nachodzące, przeszkody przed drzwiami, meble w powietrzu, lady bez kolizji (naprawa + logi).
         Step("kontrole detali miasta (napisy, drzwi, meble, lady)", () => BraxKontrolaMiastaDetale.Wykonaj(root));
+        // pkt 48 / 48b: stare reklamy usunięte, nośniki z grafikami właściciela (billboardy, citylighty, mural 19).
+        Step("nośniki reklamowe (billboardy, citylighty, mural przy siłowni)", () => BraxMiastoBillboardy.Apply(root));
         // Na końcu (jak na budowie, 16:04): ruch aut i ludzie miasta B na gotowych nawierzchniach i wyposażeniu (B, ETAP 2).
         Step("ruch aut miasta (B): pętle przez rondo, aleje, Wiaduktową i Warsztatową", () => BraxClaudeOsiedle.RuchMiastaB(root));
         Step("ludzie miasta (B): obsada, ławki, przechodnie po chodnikach i zebrach", () => BraxClaudeOsiedle.LudzieMiastaB(root));

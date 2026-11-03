@@ -144,10 +144,7 @@ internal static class BraxMiastoNova
         lm.Box(new Vector3(38.36f, 3.62f, pz - .03f), new Vector3(38.4f, 4.86f, z)); lm.Box(new Vector3(45.6f, 3.62f, pz - .03f), new Vector3(45.64f, 4.86f, z));
         float cap = .74f, w = BraxUliceKit.SzerokoscNapisu("CLUB NOVA", cap); if (w > 6.6f) cap *= 6.6f / w;
         BraxUliceKit.Napis3D("CLUB NOVA", new Vector3(42f, 3.86f, pz), Vector3.back, cap, .12f, litery, boki);
-        // kasetony plakatów (podświetlane) na pasie toalet i przy klatce
-        Plakat(new Vector3(47.7f, 1.05f, z), 1.9f, 2.5f, "Assets/CityRebuild/Brand/brax-fighter.jpg", "plakat walki");
-        Plakat(new Vector3(50.35f, 1.05f, z), 1.9f, 2.5f, "Assets/CityRebuild/Brand/training.png", "plakat treningu");
-        Plakat(new Vector3(36.3f, 1.05f, z), 1.6f, 2.2f, "Assets/CityRebuild/Brand/brand-wide.png", "plakat marki");
+        // pkt 48b (właściciel 01:01): plakaty i banery na klubie NOVA USUNIĘTE — reklama tylko na nośnikach (BraxMiastoBillboardy)
         // kinkiety przy wejściu
         foreach (float x in new[] { 40.25f, 43.75f })
         {

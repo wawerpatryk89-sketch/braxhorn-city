@@ -211,6 +211,10 @@ const VIEWS = [
   ['DETAL_fitness_mural', '-5.73,2.0,43.0,180,0,3.2'],
   ['DETAL_fitness_szatnia', '0.5,1.2,41.0,270,8,1.6'],
   ['DETAL_fitness_cardio', '-8.2,1.0,38.0,0,15,1.3'],
+  // pkt 48 / 48b: nośniki (miejsca 09/12/06/10 szukane fizyką przy buildzie — pozycje w logu BRAXHORN_BILLBOARDY)
+  ['DETAL_billboard_citylight_nova', '27.6,1.4,34.0,180,8,2.5'],
+  ['DETAL_billboard_mural_silownia', '12.1,2.3,20.7,0,8,6'],
+  ['DETAL_billboard_rondo', '-126,7,28.5,0,25,12'],
   ['M_A_metro_wejscie', '68,0.35,34.3,270,12,9'],
   ['M_A_nova_sala', '41,1.8,50,180,5,8'],
   ['M_A_nova_wejscie', '42,1.8,36,180,5,9'],

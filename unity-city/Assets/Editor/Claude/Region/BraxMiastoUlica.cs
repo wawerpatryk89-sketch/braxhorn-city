@@ -188,6 +188,7 @@ internal static class BraxMiastoUlica
     static int Ekrany(Transform cityRoot)
     {
         int n = 0;
+        if (n == 0) return 0;   // pkt 48b (właściciel): grafiki NIGDY na wieżowcach — ekrany LED na wieżach wyłączone (nośniki: BraxMiastoBillboardy)
         var plany = new[] { ("corner_store", "brand-poster.png", false), ("restaurant", "brax-fighter.jpg", true), ("hotel", "nyxa-pink.jpg", true), ("gallery", "brand-poster.png", true) };   // ekran na ścianie wolnej od sąsiedniej wieży, w osi ulicy
         foreach (var (id, plik, naWschod) in plany)
         {
