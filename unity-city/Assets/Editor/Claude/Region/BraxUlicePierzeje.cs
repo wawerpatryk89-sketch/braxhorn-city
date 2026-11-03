@@ -810,6 +810,15 @@ public static class BraxUlicePierzeje
         if (prawdziwy)
         {   // towar na ladzie (za kasą, przodem do klienta) i wózki przy wejściu marketu (wsunięte, równolegle do witryny, od drzwi w stronę wolnej ściany)
             BraxSklepyTowar.Lada(lok.typ, tw, W(ladaS0 + .75f, y0 + ladaH, ladaD - ladaG * .5f), f.R, -f.N, ladaS1 - ladaS0 - .85f, rng);
+            // tablica menu z grafiki właściciela (3.11 14:37) wisząca nad ladą na dwóch prętach, przodem do klienta
+            string menu = lok.typ == "kawiarnia" ? "menu_1" : lok.typ == "pizzeria" ? "menu_3" : lok.typ == "bar" ? "menu_4" : null;
+            var mm = menu != null && BraxMiastoAssety.Jest("miasto_sklepy") ? BraxMiastoAssety.Model("miasto_sklepy", menu) : null;
+            if (mm)
+            {
+                float sc = (ladaS0 + ladaS1) * .5f, dm = ladaD - ladaG * .5f, yGora = ySuf - .1f;
+                BraxMiastoAssety.Postaw(tw, mm, "Menu nad ladą: " + lok.szyld, W(sc, yGora - .675f * k, dm), Quaternion.LookRotation(f.N, Vector3.up).eulerAngles.y, 1f, true, false);
+                foreach (float o in new[] { -.45f * k, .45f * k }) BraxUliceKit.S(blat).Rura(W(sc + o, yGora, dm), W(sc + o, ySuf, dm), .004f, 4);
+            }
             if (lok.typ == "market")
             {
                 bool wPrawo = f.drzwiS + 1.0f + 1.6f * k < sIn1 - .3f;

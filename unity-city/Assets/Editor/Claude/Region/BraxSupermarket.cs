@@ -262,6 +262,13 @@ public static class BraxSupermarket
         if (BraxRegion.Ground(przed.x, przed.z, przed.y - 2f, przed.y + .5f, out var gPrzed)) przed.y = gPrzed.point.y;   // chodnik przed halą (do 0.6 m niżej)
         BraxSklepyTowar.Wozki(wyp, kol, przed, -doSciany, 4);
 
+        // plakaty promocji z grafik właściciela (3.11 14:37) na ścianie bocznej od strony kas, w ramach 0,6 × 0,9 m × K
+        for (int i = 0; i < 3; i++)
+        {
+            var pl = BraxMiastoAssety.Model("miasto_sklepy", "plakat_0" + (i + 1)); if (!pl) break;
+            float xw = L(-hw + Grub + .02f * K * .5f + .005f);
+            BraxMiastoAssety.Postaw(wyp, pl, "Plakat promocji " + (i + 1), Swiat(xw, Podloga + 1.25f * K, (3.5f + i * 2.6f) * K), yaw0 + (lustro ? -90f : 90f), 1f, true, false);
+        }
         // siatki do sceny
         Obj("posadzka", sP, mPos, false); Obj("ściany", sS, mSc, true); Obj("elewacja i dach", sF, mFas, true); Obj("ramy witryny", sR, mRam, true);
         Obj("szyby witryny", sG, mSz, false); Obj("oprawy LED", sL, mLamp, false); Obj("podświetlenie szyldu", sPas, mPas, false); Obj("stoły warzyw", sT, mDrew, true);
