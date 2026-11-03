@@ -70,6 +70,7 @@ public static class BraxKontrolaMiastaDetale
                 var mniejszy = A.pole <= B.pole ? A : B;
                 usun.Add(mniejszy.g); opis.Add("„" + A.tekst + "” × „" + B.tekst + "” → usunięty „" + mniejszy.tekst + "” @" + mniejszy.b.center.ToString("F0"));
             }
+        if (usun.Count > 40) { Debug.LogWarning("BRAXHORN_DETALE_BEZPIECZNIK za dużo do usunięcia (" + usun.Count + ") — podejrzenie błędu wykrywania, NIC nie usuwam, tylko lista: " + string.Join("; ", usun.Take(15).Select(g => g ? g.name : "?"))); usun.Clear(); }   // prowadzący (audyt 3.11)
         foreach (var g in usun) if (g) UnityEngine.Object.DestroyImmediate(g);
         Debug.Log("BRAXHORN_NAPISY_KOLIZJE przed=" + przed + " po=0 usuniete=" + usun.Count + " napisow=" + napisy.Count + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(25)) + "]" : "")
             + " (napisy 3D wtopione w elewacje — Napis3D — poza tą kontrolą)");
@@ -121,6 +122,7 @@ public static class BraxKontrolaMiastaDetale
                 usun.Add(t.gameObject); opis.Add(t.name + " przed „" + d.nazwa + "” @" + p.ToString("F0")); break;
             }
         }
+        if (usun.Count > 40) { Debug.LogWarning("BRAXHORN_DETALE_BEZPIECZNIK za dużo do usunięcia (" + usun.Count + ") — podejrzenie błędu wykrywania, NIC nie usuwam, tylko lista: " + string.Join("; ", usun.Take(15).Select(g => g ? g.name : "?"))); usun.Clear(); }   // prowadzący (audyt 3.11)
         foreach (var g in usun) if (g) UnityEngine.Object.DestroyImmediate(g);
         Debug.Log("BRAXHORN_DRZEWA_DRZWI przeniesione=0 usuniete=" + usun.Count + " drzwi=" + drzwi.Count + " (cel 0 kolizji)" + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(30)) + "]" : ""));
     }
@@ -161,6 +163,7 @@ public static class BraxKontrolaMiastaDetale
             if (podparty || najblizej > 2.9f || (!sufit && najblizej > 1.5f)) continue;   // podparty / nad pustką / na zewnątrz bez kolizji gruntu — nie ruszam
             usun.Add(t.gameObject); opis.Add(t.name + " " + (najblizej * 100f).ToString("F0") + " cm nad podłożem @" + b.center.ToString("F0"));
         }
+        if (usun.Count > 40) { Debug.LogWarning("BRAXHORN_DETALE_BEZPIECZNIK za dużo do usunięcia (" + usun.Count + ") — podejrzenie błędu wykrywania, NIC nie usuwam, tylko lista: " + string.Join("; ", usun.Take(15).Select(g => g ? g.name : "?"))); usun.Clear(); }   // prowadzący (audyt 3.11)
         foreach (var g in usun) if (g) UnityEngine.Object.DestroyImmediate(g);
         Debug.Log("BRAXHORN_MEBLE_WISZACE usuniete=" + usun.Count + " sprawdzone=" + kandydaci.Count + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(30)) + "]" : "") + " (cel 0 wiszących)");
     }
