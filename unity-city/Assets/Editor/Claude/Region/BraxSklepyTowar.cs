@@ -25,6 +25,10 @@ public static class BraxSklepyTowar
         "market" => new[] { "sk:mleko*5", "ph:long_life_food", "ph:russian_food_cans_01", "ph:wine_bottles_01", "ph:CheeseBox_01", "sk:mleko*5", "ph:multi_cleaner_bottle", "ph:bleach_bottle" },
         "kawiarnia" => new[] { "ph:tea_set_01", "ph:jug_01", "ph:wooden_bowl_01", "ph:ceramic_vase_01" },
         "pizzeria" or "bar" or "bistro" => new[] { "ph:wine_bottles_01", "ph:jug_01", "ph:wine_bottles_01", "ph:russian_food_cans_01" },
+        // supermarket (BraxSupermarket): trzy typy segmentów regału-wyspy (różne odstępy półek)
+        "sm_a" => new[] { "sk:mleko*4", "ph:russian_food_cans_01", "sk:mleko*4" },
+        "sm_b" => new[] { "ph:long_life_food", "sk:mleko*4", "ph:CheeseBox_01", "ph:russian_food_cans_01" },
+        "sm_c" => new[] { "ph:wine_bottles_01", "ph:multi_cleaner_bottle", "ph:bleach_bottle", "ph:wine_bottles_01" },
         _ => null
     };
 
@@ -60,7 +64,7 @@ public static class BraxSklepyTowar
     }
 
     /// <summary>Stawia spec (z „*n”) od punktu p w kierunku wzdl; wglab = w głąb (od klienta). Zwraca zajętą długość.</summary>
-    static float Postaw(string spec, Transform parent, Vector3 p, Vector3 wzdl, Vector3 wglab, float zostalo, System.Random rng)
+    static float Postaw(string spec, Transform parent, Vector3 p, Vector3 wzdl, Vector3 wglab, float zostalo, System.Random rng, float maxWys = 99f)
     {
         int n = 1, gw = spec.IndexOf('*');
         if (gw > 0) { n = int.Parse(spec.Substring(gw + 1)); spec = spec.Substring(0, gw); }
@@ -75,7 +79,7 @@ public static class BraxSklepyTowar
             if (!o) break;
             var b = BraxRegion.Bounds(o);
             float ext = Mathf.Abs(b.size.x * wzdl.x) + Mathf.Abs(b.size.z * wzdl.z);
-            if (uzyte + ext > zostalo) { UnityEngine.Object.DestroyImmediate(o); break; }
+            if (uzyte + ext > zostalo || b.size.y > maxWys) { UnityEngine.Object.DestroyImmediate(o); break; }
             Vector3 cel = p + wzdl * (uzyte + ext * .5f);
             o.transform.position += new Vector3(cel.x - b.center.x, p.y - b.min.y, cel.z - b.center.z);
             foreach (var r in o.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = ShadowCastingMode.Off;
@@ -84,21 +88,21 @@ public static class BraxSklepyTowar
         return uzyte;
     }
 
-    static void Rzad(string[] a, Transform parent, Vector3 start, Vector3 wzdl, Vector3 wglab, float dl, float odstep, System.Random rng)
+    static void Rzad(string[] a, Transform parent, Vector3 start, Vector3 wzdl, Vector3 wglab, float dl, float odstep, System.Random rng, float maxWys = 99f)
     {
         if (a == null || a.Length == 0) return;
         float x = 0f; int i = rng.Next(a.Length), puste = 0;
         while (x < dl - .08f && puste < a.Length)
         {
-            float u = Postaw(a[i++ % a.Length], parent, start + wzdl * x, wzdl, wglab, dl - x, rng);
+            float u = Postaw(a[i++ % a.Length], parent, start + wzdl * x, wzdl, wglab, dl - x, rng, maxWys);
             if (u <= 0f) { puste++; x += .05f; continue; }
             puste = 0; x += u + odstep;
         }
     }
 
     /// <summary>Jedna półka regału: start = lewy koniec półki na wierzchu, w połowie głębokości.</summary>
-    public static void Polka(string typ, Transform parent, Vector3 start, Vector3 wzdl, Vector3 wglab, float dl, System.Random rng)
-        => Rzad(Polki(typ), parent, start, wzdl, wglab, dl, .05f, rng);
+    public static void Polka(string typ, Transform parent, Vector3 start, Vector3 wzdl, Vector3 wglab, float dl, System.Random rng, float maxWys = 99f)
+        => Rzad(Polki(typ), parent, start, wzdl, wglab, dl, .05f, rng, maxWys);
 
     /// <summary>Towar na ladzie (od startu wzdłuż lady), przodem do klienta.</summary>
     public static void Lada(string typ, Transform parent, Vector3 start, Vector3 wzdl, Vector3 wglab, float dl, System.Random rng)
