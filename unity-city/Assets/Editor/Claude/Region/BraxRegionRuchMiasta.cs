@@ -236,7 +236,21 @@ public static partial class BraxClaudeOsiedle
     // jezdni miasta B są usuwane razem z kolizjami (drogi przejezdne). Port (brama z podniesionym szlabanem) i osiedle — bez zmian.
     static void ZaporyNaJezdni(Transform cityRoot)
     {
-        string[] slowa = { "ogrodz", "płot", "plot ", "fence", "barier", "barrier", "szlaban", "zapora", "siatka ogrodz", "chain", "kratownica ogrodz" };
+        string[] slowa = { "ogrodz", "płot", "plot ", "fence", "barier", "barrier", "szlaban", "zapora", "siatka ogrodz", "chain", "kratownica ogrodz", "pachoł", "pachol", "traffic cone", "traffic_cone", "jersey", "kozioł", "kozlo", "roadblock", "road block" };
+        // właściciel 3.11 10:21 (zdjęcie): siatka + szlaban + blok + pachołki w poprzek ulicy — NaJezdni zna tylko jezdnie miasta B;
+        // teraz jezdnia także z nawierzchni pod punktem (materiał / obiekt „asfalt|jezdnia|asphalt|road”, nie chodnik).
+        bool Jezdnia(Vector3 q)
+        {
+            if (BraxRegionMiastoB.NaJezdni(q)) return true;
+            foreach (var h in Physics.RaycastAll(q + Vector3.up * 3f, Vector3.down, 7f, ~0, QueryTriggerInteraction.Ignore))
+            {
+                var rr = h.collider.GetComponent<Renderer>();
+                string t = (h.collider.name + " " + (rr && rr.sharedMaterial ? rr.sharedMaterial.name : "")).ToLowerInvariant();
+                if (t.Contains("chodnik") || t.Contains("sidewalk") || t.Contains("pavement") || t.Contains("krawęż") || t.Contains("curb")) return false;
+                if (t.Contains("asfalt") || t.Contains("jezdni") || t.Contains("asphalt") || t.Contains("road")) return true;
+            }
+            return false;
+        }
         var usun = new List<GameObject>(); var opis = new List<string>(); int zostalo = 0;
         foreach (var r in cityRoot.GetComponentsInChildren<MeshRenderer>(true))
         {
@@ -245,7 +259,13 @@ public static partial class BraxClaudeOsiedle
             bool port = false; for (var q = r.transform; q; q = q.parent) if (q.name.StartsWith("Port", StringComparison.Ordinal) || q.name.Contains("PORT") || q.name.Contains("osiedl")) { port = true; break; }
             if (port) continue;
             var b = r.bounds; if (b.size.y > 4f) continue;
-            bool dlX = b.size.x >= b.size.z; float L = dlX ? b.size.x : b.size.z; if (L < 2f) continue;
+            bool dlX = b.size.x >= b.size.z; float L = dlX ? b.size.x : b.size.z;
+            if (L < 2f)
+            {   // pachołek / blok / kozioł na jezdni (nie przy krawędzi): środek i ±0.8 m z jezdnią
+                var c0 = b.center; var pq = dlX ? new Vector3(0, 0, .8f) : new Vector3(.8f, 0, 0);
+                if (L > .15f && b.size.y < 1.6f && Jezdnia(c0) && Jezdnia(c0 + pq) && Jezdnia(c0 - pq)) { usun.Add(r.gameObject); opis.Add(r.name + " @" + c0.ToString("F0") + " (drobna przeszkoda)"); }
+                continue;
+            }
             int na = 0;
             for (int i = 0; i <= 12; i++)
             {
@@ -254,7 +274,7 @@ public static partial class BraxClaudeOsiedle
                 // prowadzący (audyt 3.11): liczy się tylko punkt z jezdnią PO OBU stronach zapory (zapora w poprzek / na środku
                 // jezdni) — balustrady i barierki wzdłuż krawędzi (wiadukt, nabrzeże, chodnik) zostają
                 var pr = dlX ? new Vector3(0, 0, 1.5f) : new Vector3(1.5f, 0, 0);
-                if (BraxRegionMiastoB.NaJezdni(p) && BraxRegionMiastoB.NaJezdni(p + pr) && BraxRegionMiastoB.NaJezdni(p - pr)) na++;
+                if (Jezdnia(p) && Jezdnia(p + pr) && Jezdnia(p - pr)) na++;
             }
             if (na < 3) continue;
             usun.Add(r.gameObject); opis.Add(r.name + " @" + b.center.ToString("F0") + " dł " + L.ToString("F1") + " na_jezdni " + na + "/13");
