@@ -3524,7 +3524,7 @@ public static partial class BraxClaudeOsiedle
         // build 45 (E14, zdjęcie właściciela: „ogromna szklana kopuła”): obiekt nazywał się „fontanna: parasol” — kontrola skali
         // (BraxKontrolaSkali, typ „parasol” = parasol ogrodowy 2.2–2.6 m) powiększyła go 1.01 → 2.77 m (×2.74) i dodała mu kolizję.
         // Nazwa bez słowa „parasol” (z „woda” = nie mebel), materiał mniej szklisty (gładkość 0.55, krycie 0.55).
-        FountainSheet("opad z dyszy na czaszę", fc, new[] { .02f, .22f, .5f, .78f, .96f }, new[] { 2.84f, 2.8f, 2.58f, 2.2f, 1.83f }, new[] { 0f, .35f, .85f, 1.45f, 2.0f }, 24, 4f, new Vector2(0f, -1.3f));
+        // 3.11 15:12 („fontanna bez zmian od trzech buildów”): opad z dyszy wyglądał jak szklana kopuła — usunięty; zostaje strumień, przelew i piana
         // przelew: z krawędzi górnej czaszy (r 1.15, 1.8 m) kurtyną do dolnej misy (tafla 0.42 m), lekko rozchylony
         FountainSheet("przelew", fc, new[] { 1.16f, 1.2f, 1.26f, 1.31f }, new[] { 1.8f, 1.48f, .95f, .44f }, new[] { 0f, .5f, 1.4f, 2.3f }, 32, 8f, new Vector2(0f, -1.0f));
         // piana na tafli dolnej misy pod kurtyną (rozchodzi się na zewnątrz)

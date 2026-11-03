@@ -291,9 +291,12 @@ public static partial class BraxClaudeOsiedle
         var rnd = new System.Random(1402); var pula = PulaAut(szablony);
         var stoja = new List<(Vector3 c, Vector3 f, float hw, float hl)>();
         int ok = 0, wolne = 0, odrzSciana = 0, odrzAuto = 0, za = 0; var kolory = new Dictionary<string, int>(); var modele = new Dictionary<string, int>();
+        int nrM = 0;
         foreach (var m in miejsca)
         {
-            if (rnd.NextDouble() < .45) { wolne++; continue; }   // ok. 45 % miejsc wolnych = zajętość ~55 % (audyt 1.11: 40–60 %, parkingi były przepełnione; mniej ciężkich modeli dla telefonu)
+            // 3.11 15:11 („między samochodami ma być przejście, wszędzie, na każdym parkingu”): zajęte co trzecie miejsce —
+            // każde auto ma obok wolną zatokę (przejście do drzwi), także auto Patryka stawiane później na wolnym miejscu
+            if (nrM++ % 3 != 0) { wolne++; continue; }   // ok. 45 % miejsc wolnych = zajętość ~55 % (audyt 1.11: 40–60 %, parkingi były przepełnione; mniej ciężkich modeli dla telefonu)
             AutoSzablon sz = null; Vector3 c = default;
             for (int proba = 0; proba < 8 && sz == null; proba++)
             {
