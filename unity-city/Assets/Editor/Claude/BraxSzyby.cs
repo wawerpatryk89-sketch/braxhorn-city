@@ -85,6 +85,39 @@ public static class BraxSzyby
             }
             catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_SZYBY " + m.name + ": " + e.Message); }
         }
+        // WŁAŚCICIEL 3.11 10:45 (zdjęcie: czerwona cegła w oknach) — szyba przezroczysta tuż przed murem (fasada bez wnętrza) pokazuje
+        // mur zamiast pokoju. Dla każdej przezroczystej szyby (płaskiej, grubość < 0.3 m): promienie w obie strony od środka — gdy
+        // w ≤ 0.35 m z którejkolwiek strony jest przeszkoda, ta szyba dostaje kopię materiału jako szkło refleksyjne (nieprzezroczyste).
+        int bezWnetrza = 0; var kopie = new Dictionary<Material, Material>();
+        Physics.SyncTransforms();
+        foreach (var kv in uzycia)
+        {
+            var m = kv.Key; if (!m || m.shader.name != Pbr || !Przezroczysta(m)) continue;
+            foreach (var r in kv.Value)
+            {
+                if (!r) continue;
+                var b = r.bounds; var sz = b.size; Vector3 os;
+                if (sz.x < .3f && sz.x < sz.z) os = Vector3.right; else if (sz.z < .3f) os = Vector3.forward; else continue;
+                bool mur = false;
+                foreach (var d in new[] { os, -os })
+                    foreach (var h in Physics.RaycastAll(b.center, d, .35f, ~0, QueryTriggerInteraction.Ignore))   // 0.35 m: mur tuż za szybą (witryny z regałami dalej — zostają przezroczyste)
+                        if (h.collider && !h.collider.transform.IsChildOf(r.transform) && h.distance > .02f) { mur = true; break; }
+                if (!mur) continue;
+                if (!kopie.TryGetValue(m, out var mr))
+                {
+                    mr = new Material(m) { name = m.name + " (refleksyjne — mur za szybą)" };
+                    Refleksyjne(mr);
+                    mr.SetFloat("_Transparent", 0); mr.SetFloat("_SrcBlend", (float)BlendMode.One); mr.SetFloat("_DstBlend", (float)BlendMode.Zero); mr.SetFloat("_ZWrite", 1);
+                    mr.renderQueue = 2000; mr.SetOverrideTag("RenderType", "Opaque");
+                    if (!AssetDatabase.IsValidFolder("Assets/PlayableGenerated")) AssetDatabase.CreateFolder("Assets", "PlayableGenerated");
+                    if (!AssetDatabase.IsValidFolder("Assets/PlayableGenerated/Szyby")) AssetDatabase.CreateFolder("Assets/PlayableGenerated", "Szyby");
+                    BraxZapisAssetu.Utworz(mr, "Assets/PlayableGenerated/Szyby/szyba_mur_" + kopie.Count + ".mat");
+                    kopie[m] = mr;
+                }
+                var ms = r.sharedMaterials; for (int i = 0; i < ms.Length; i++) if (ms[i] == m) ms[i] = mr; r.sharedMaterials = ms; bezWnetrza++;
+            }
+        }
+        lista.Append(" | szyby przed murem → refleksyjne: ").Append(bezWnetrza);
         int obiekty = uzycia.Values.Sum(l => l.Count);
         Debug.Log("BRAXHORN_SZYBY " + obszar + " materialy=" + uzycia.Count + " obiekty=" + obiekty + " zmienione=" + (przez + refl) + " (przezroczyste " + przez + ", refleksyjne " + refl + ", z teksturą bez zmian " + pominiete + "; renderery sceny " + renderery + ")" + lista
                   + "\nBRAXHORN_SZYBY największe szyby przezroczyste (do zdjęć): " + string.Join(" | ", duze.OrderByDescending(d => d.pole).Take(15).Select(d => d.opis)));
