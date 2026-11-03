@@ -84,7 +84,16 @@ public static class BraxPanorama
             var g = niebo.GetVector("_GrzbietyR"); niebo.SetVector("_GrzbietyR", new Vector4(g.x, g.y, 0f, 0f));
             EditorUtility.SetDirty(niebo);
         }
-        string log = "BRAXHORN_PANORAMA wyspy=" + nWysp + " latarnie=" + nLatarni + " nasza_wyspa=tak wzgorza=" + nWzg + " gory=" + nGor + " pominiete_na_ladzie=" + pominiete
+        // wydajność (koordynator 03:xx): pierścień nigdy nie rzuca ani nie odbiera cieni, bez kolizji, bez sond odbić/światła
+        int bezCienia = 0, kolizjeUsuniete = 0;
+        foreach (var rr in root.GetComponentsInChildren<Renderer>(true))
+        {
+            if (rr.shadowCastingMode != ShadowCastingMode.Off || rr.receiveShadows) bezCienia++;
+            rr.shadowCastingMode = ShadowCastingMode.Off; rr.receiveShadows = false;
+            rr.lightProbeUsage = LightProbeUsage.Off; rr.reflectionProbeUsage = ReflectionProbeUsage.Off;
+        }
+        foreach (var cc in root.GetComponentsInChildren<Collider>(true)) { UnityEngine.Object.DestroyImmediate(cc); kolizjeUsuniete++; }
+        string log = "BRAXHORN_PANORAMA wyspy=" + nWysp + " poprawione_cienie=" + bezCienia + " kolizje_usuniete=" + kolizjeUsuniete + " latarnie=" + nLatarni + " nasza_wyspa=tak wzgorza=" + nWzg + " gory=" + nGor + " pominiete_na_ladzie=" + pominiete
             + " pasmo_zdjecia=wylaczone grzbiety_2D=wylaczone smugi=0 (pierścień 3D z kamerą, głębia za sceną)";
         Debug.Log(log); BraxRegion.Note(log);
     }
