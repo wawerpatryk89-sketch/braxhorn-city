@@ -422,6 +422,7 @@ public static partial class BraxClaudeOsiedle
             var lada = new[] { "work_mid", "idle_neutral_01", "idle_neutral_02", "idle_look_around_01" };
             void O(string gdzie, Rola r, string kw, Vector3 p, float yaw) { if (Obsada(gdzie, r, kw, p, yaw, rnd, lada)) obs++; }
             O("BRAXHORN TOWER — recepcja", RolaRecepcja, "recepcja", new Vector3(52.7f, YC, 45.4f), 90f);                 // lada x 53.2…54.1, z 42.1…46.5
+            O("BOSMANAT — bosman w okienku", RolaObsluga, "recepcja", new Vector3(71.3f, BraxNabrzeze.Bulwar + .3f, 64.8f), 90f);   // (podłoga na cokole 0.3 m) właściciel 3.11 11:01: „mógłby ktoś pracować” — za ladą okienka (front na wschód)
             O("BRAXHORN OFFICE — recepcja", RolaRecepcja, "recepcja", new Vector3(48.3f, YC, -40.35f), 0f);              // lada z −39.6…−38.7, wejście od +z
             O("PARK TOWER — recepcja", RolaRecepcja, "recepcja", new Vector3(-26.8f, YC, -42.35f), 0f);
             O("PARK TOWER — kawiarnia", RolaObsluga, "barista", new Vector3(-51.2f, YC, -40.35f), 90f);                  // bar x −50.5…−49.5
