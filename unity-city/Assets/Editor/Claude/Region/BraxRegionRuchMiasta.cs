@@ -444,7 +444,7 @@ public static partial class BraxClaudeOsiedle
                 var auta = UnityEngine.Object.FindObjectsByType<BraxAuto>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 int cullNie = smr.Count(x => { var an = x.GetComponentInParent<Animation>(); return an && an.cullingType != AnimationCullingType.BasedOnRenderers; });
                 Debug.Log("BRAXHORN_WYDAJNOSC miasto ludzie=" + ludzie + " skinned=" + smr.Length + " animacje_bez_cullingu=" + cullNie + " auta=" + auta.Length + " zrodla_audio_silnikow=" + auta.Count(x => x.silnik) + " (grają najbliższe " + BraxAuto.SilnikiMax + ")"
-                    + " animowani_limit=" + BraxLudzie.LimitMax + "→" + BraxLudzie.LimitMin + " przy < 35 kl./s (powrót > 42) cienie_postaci_zasieg=" + BraxLudzie.CienOdl.ToString("F1") + " m skóra_2_kości_od=" + BraxLudzie.DwieKosciOdl.ToString("F1") + " m cienie_aut_zasieg=" + BraxAuto.CienAutaOdl.ToString("F1") + " m");
+                    + " animowani_limit=" + BraxLudzie.LimitMax + " stały (bez adaptacji do kl./s) cienie_postaci_zasieg=" + BraxLudzie.CienOdl.ToString("F1") + " m skóra_2_kości_od=" + BraxLudzie.DwieKosciOdl.ToString("F1") + " m cienie_aut_zasieg=" + BraxAuto.CienAutaOdl.ToString("F1") + " m");
             }
             catch (Exception e) { Debug.LogWarning("BRAXHORN_WYDAJNOSC DO POPRAWKI " + e.Message); }
             Debug.Log(RaportStrojow());

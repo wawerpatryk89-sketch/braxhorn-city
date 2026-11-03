@@ -39,11 +39,11 @@ public static class BraxLudzie
 
     // E19 (osiedle e60e8e6, miasto 3.11): koszt postaci zależny od odległości od kamery.
     //  • cień tylko do 20 m × K (histereza 2 m), dalej bez cienia, • skóra 2 kości/wierzchołek dalej niż 32 m × K (4 blisko),
-    //  • ADAPTACJA: średnio < 35 kl./s przez ~3 s → limit animowanych osób −8 (min. 16), > 42 kl./s → wraca do 40.
+    //  • BEZ adaptacji limitu animowanych osób do kl./s (właściciel 3.11 10:05: ludzie mają normalnie rozmawiać —
+    //    obniżanie limitu zamrażało rozmowy dalszych osób); limit stały 40 jak przed E19.
     public const float CienOdl = 20f * 1.294f, DwieKosciOdl = 32f * 1.294f;
-    public const int LimitMax = 40, LimitMin = 16;
+    public const int LimitMax = 40;
     public static int Aktywni => wPromieniuPoprz;
-    static float fpsSr = 60f, fpsOd = 0f;
     public static byte Detale(Renderer[] r, float d2, byte stan)
     {
         if (r == null) return stan;
@@ -66,14 +66,6 @@ public static class BraxLudzie
     {
         if (Time.frameCount != klatka)
         {
-            float dtk = Time.unscaledDeltaTime;
-            if (dtk > 1e-4f && dtk < .5f) fpsSr = Mathf.Lerp(fpsSr, 1f / dtk, 1f - Mathf.Exp(-dtk / 1.5f));
-            if (Time.unscaledTime > fpsOd)
-            {
-                fpsOd = Time.unscaledTime + 3f;
-                if (fpsSr < 35f && Limit > LimitMin) Limit = Mathf.Max(LimitMin, Limit - 8);
-                else if (fpsSr > 42f && Limit < LimitMax) Limit = Mathf.Min(LimitMax, Limit + 4);
-            }
             klatka = Time.frameCount; wPromieniuPoprz = wPromieniu; wPromieniu = 0;
             if (wPromieniuPoprz > Limit) Promien = Mathf.Max(18f, Promien - 2f);
             else if (wPromieniuPoprz < Limit - 6) Promien = Mathf.Min(PromienMax, Promien + 1f);
