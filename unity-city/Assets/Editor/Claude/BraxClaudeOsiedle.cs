@@ -5677,6 +5677,7 @@ public static partial class BraxClaudeOsiedle
         Guard("trawa 3D (kępy instancjami, maska ziemi)", () => GrassField(X0 + .4f, X1 - .4f, SouthZ + .4f, FenceA - .4f));
         Guard("kwiaty na trawnikach", () => FlowerPatches(X0 + .4f, X1 - .4f, SouthZ + .4f, FenceA - .4f));
 
+        Guard("jedno wejście dla gości: audyt drzwi, drugie wejście zamknięte (runda 5; BraxClaudeOsiedleWejscia)", JednoWejscie);
         Guard("oznakowanie: kontrola nakładek przed scaleniem (runda 4)", () => OznakowanieKontrola("koniec"));
         Flush();
         FlushClumps();
