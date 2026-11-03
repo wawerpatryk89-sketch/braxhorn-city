@@ -11,7 +11,7 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -38,6 +38,39 @@ jobs:
           "$sdk/aapt" dump badging diagnostic/braxhorn-miastogl-874f194.apk > diagnostic/badging.txt
           head -1 diagnostic/badging.txt | tee diagnostic/package.txt
           rm diagnostic/badging.txt
+      - name: Run the unchanged ARM64 APK on an Android emulator for full logcat
+        timeout-minutes: 12
+        run: |
+          set -euo pipefail
+          sudo chmod a+rw /dev/kvm
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'system-images;android-35;google_apis;x86_64'
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd --force --name city58 --package 'system-images;android-35;google_apis;x86_64'
+          "$ANDROID_HOME/emulator/emulator" -avd city58 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 6144 -cores 4 > diagnostic/emulator.txt 2>&1 &
+          booted=0
+          for i in $(seq 1 90); do
+            if [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; then booted=1; break; fi
+            sleep 3
+          done
+          [ "$booted" = 1 ] || { echo 'Emulator did not boot; runtime test inconclusive'; exit 1; }
+          adb shell getprop ro.product.cpu.abilist | tee diagnostic/abis.txt
+          grep -q arm64-v8a diagnostic/abis.txt || { echo 'No ARM64 translation; runtime test inconclusive'; exit 1; }
+          adb shell input keyevent 82
+          adb install diagnostic/braxhorn-miastogl-874f194.apk
+          adb logcat -c
+          adb shell monkey -p com.braxhorn.miastogl -c android.intent.category.LAUNCHER 1
+          # The original build starts loading before START is tapped; capture that exact failure path.
+          for i in $(seq 1 60); do
+            sleep 3
+            adb logcat -d -v threadtime > diagnostic/logcat.txt
+            if grep -qE 'Position out of bounds|Fatal signal|FATAL EXCEPTION' diagnostic/logcat.txt; then break; fi
+          done
+          adb shell dumpsys activity exit-info com.braxhorn.miastogl > diagnostic/exit-info.txt
+          adb shell pidof com.braxhorn.miastogl > diagnostic/pid.txt || true
+          if grep -qE 'Position out of bounds|Fatal signal|FATAL EXCEPTION' diagnostic/logcat.txt; then
+            echo 'Existing APK reproduced a runtime failure; inspect logcat.txt'
+            exit 1
+          fi
+          echo 'Capture finished; a live process alone does not prove gameplay works.'
       - name: Retain diagnostic text only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
