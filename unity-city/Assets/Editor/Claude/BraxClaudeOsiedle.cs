@@ -5607,6 +5607,7 @@ public static partial class BraxClaudeOsiedle
         Guard("siłownia A (za kasynem)", () => GymA(86f, -66f));
         Guard("kasyno — zaplecze od zaułka (korytarz, sala VIP poker, biuro, WC) i zaułek serwisowy", () => ZapleczeKasyna(estate, physics));
         Guard("muzyka (kasyno, siłownia A)", MusicZones);
+        Guard("audio stref: dźwięk pomieszczeń przez otwory (runda 5; BraxClaudeOsiedleAudioStref)", AudioStref);
         group = "Ogrodzenie";
         // furtka x 51.6–55.4: siłownia plenerowa w parku ↔ wschodnia ścieżka osiedla A (x 52–55, od z -101) ↔ siłownia A
         FenceX(X0, X1, FenceA, 1.6f, (AxisX - 4f, AxisX + 4f), (28f, 32f), (51.6f, 55.4f));
