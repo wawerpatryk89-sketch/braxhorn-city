@@ -212,10 +212,10 @@ internal static partial class BraxMiastoWyspa
                 if (spod) sm.Quad(A0 + Vector3.up * ya, B0 + Vector3.up * ya, B1 + Vector3.up * ya, A1 + Vector3.up * ya, Vector3.down);
             }
             Pryzma(pn, -ApWew, lzF, yG, yA, true, true);
-            Pryzma(al, -ApWew, lzF + .32f, yA, yA + .22f, true, false);
+            Pryzma(al, -ApWew, lzF + .32f, yA, yA + .22f, true, true);
             BraxUliceKit.S(apLed).OBox(P(dl * .5f, yG + .35f, lzF + .02f), Rr, Vector3.up, N, dl - 2f * ApColRad - .2f, .08f, .04f, true);
             // słup narożny (aluminium polerowane) — zakrywa styk przęseł dwóch boków
-            al.Rura(Wk(i, ArenaR) + Vector3.up * (y0 - .05f), Wk(i, ArenaR) + Vector3.up * (yA + .22f), ApColRad, 18);
+            al.Rura(Wk(i, ArenaR) + Vector3.up * (y0 - .05f), Wk(i, ArenaR) + Vector3.up * yA, ApColRad, 18);   // wierzch pod gzymsem (nie w jego płaszczyźnie)
             // ściana wewnętrzna (grafit akustyczny) 0.6 m za licem — oprócz boku wejścia (hol widać przez szkło)
             float dIn = dl - 2f * ApWew * tg; float sIn(float s) => s - ApWew * tg;
             var otwIn = new List<Rect>(); if (ewak || sluz) otwIn.Add(Rect.MinMaxRect(sIn(S(4) + lzW * .5f), F, sIn(S(5) - lzW * .5f), F + hd));

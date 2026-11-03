@@ -61,6 +61,7 @@ const VIEWS = [
   ['18_marina_z_plazy', '135,0.3,113,20,14,12'],
   ['30_wyspa_z_plazy', '140,0.4,120,270,10,12'],
   ['31_wyspa_pomost', '1020,-0.45,42,270,10,10'],          // C2: wyspa przeniesiona (środek 1200, 40)
+  ['DETAL_wyspa_pomost_glowica_jacht', '999,0.5,42,270,15,24'],   // 3.11: pomost 53 m, głowica T 34 m (lico pod jacht 26 m: odbijacze, knagi)
   ['32_wyspa_plaza', '1062,2,42,270,12,10'],
   ['33_wyspa_polana', '1100,4,61,270,12,10'],
   ['34_wyspa_wzgorze', '1215,12,40,90,14,10'],
