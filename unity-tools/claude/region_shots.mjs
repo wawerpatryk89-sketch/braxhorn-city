@@ -61,6 +61,7 @@ const VIEWS = [
   ['18_marina_z_plazy', '135,0.3,113,20,14,12'],
   ['30_wyspa_z_plazy', '140,0.4,120,270,10,12'],
   ['31_wyspa_pomost', '1020,-0.45,42,270,10,10'],          // C2: wyspa przeniesiona (środek 1200, 40)
+  ['DETAL_wyspa_pomost_glowica_jacht', '999,0.5,42,270,15,24'],   // 3.11: pomost 53 m, głowica T 34 m (lico pod jacht 26 m: odbijacze, knagi)
   ['32_wyspa_plaza', '1062,2,42,270,12,10'],
   ['33_wyspa_polana', '1100,4,61,270,12,10'],
   ['34_wyspa_wzgorze', '1215,12,40,90,14,10'],
@@ -220,8 +221,15 @@ const VIEWS = [
   ['DETAL_wyspa_kibice_rzedy', '1164,4.5,30,0,10,4'],
   ['WYSPA_plaza_ludzie', '1170,1,-60,225,12,18'],
   ['WYSPA_zielen_drzewa', '1215,14,40,90,25,12'],
-  ['DETAL_wyspa_arena_wc_wejscie', '1150,1.6,36.5,90,10,5'],
+  ['DETAL_wyspa_arena_wc_wejscie', '1144.8,3.4,45.6,180,10,5'],   // arena premium: drzwi WC damskiej od holu
   ['DETAL_wyspa_palma_lisc', '1062,3,42,270,20,4'],
+  // arena premium (BraxMiastoWyspaArena.cs): fasada z wejściem, hol z kasami, krzesełka trybun, oktagon, szatnia, dach z kratownicami
+  ['DETAL_arena_fasada_wejscie', '1142,7,42,270,8,30'],
+  ['DETAL_arena_hol_kasy', '1148,3,42,90,10,6'],
+  ['DETAL_arena_trybuny_krzeselka', '1164,4,55,180,15,8'],
+  ['DETAL_arena_klatka', '1164,3.8,42,90,25,12'],
+  ['DETAL_arena_szatnia', '1183,3,45.8,270,10,2.5'],
+  ['DETAL_arena_dach_kratownice', '1164,16,42,45,35,45'],
   // pkt 46: mieszkanie Braxa nad NOVA (brama, klatka, przedpokój, salon z aneksem, łazienka, sypialnia)
   ['BRAX_mieszkanie_brama', '33.68,1.6,35.9,180,8,5'],
   ['DETAL_mieszkanie_domofon', '34.68,1.4,35.92,180,5,1.2'],
