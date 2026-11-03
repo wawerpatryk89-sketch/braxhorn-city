@@ -163,7 +163,9 @@ public static class BraxSupermarket
         sPas.Box(new Vector3(sx0, yA - .24f * K, -.06f), new Vector3(sx1, yA - .18f * K, 0f), 32);
         // szyld-kaseton z grafiki właściciela (3.11 14:33, paczka miasto_sklepy/szyld_supermarket: 6 m × K, front +z → na zewnątrz)
         var szyld = BraxMiastoAssety.Model("miasto_sklepy", "szyld_supermarket");
-        if (szyld) BraxMiastoAssety.Postaw(t, szyld, "Szyld: SUPERMARKET BRAXHORN (kaseton)", Swiat(0f, ys - .58f * K, -.1f), t.eulerAngles.y + 180f, 1f, true, false);
+        // 3.11 16:20 (właściciel: trzy firmy — BRAXHORN, WAWER, SOBCZAK): drugi supermarket = WAWER SUPERMARKET (grafika z arkusza)
+        if (nr == 2 && BraxMiastoBillboardy.Mural(t, "wawer_supermarket", Swiat(0f, ys - .58f * K + .6f * K, -.12f), -t.forward, 6f * K, 1.2f * K)) { }
+        else if (szyld) BraxMiastoAssety.Postaw(t, szyld, "Szyld: SUPERMARKET BRAXHORN (kaseton)", Swiat(0f, ys - .58f * K, -.1f), t.eulerAngles.y + 180f, 1f, true, false);
         else BraxRegionMeble.Napis(t, "SUPERMARKET BRAXHORN", Swiat(0f, ys - .35f * K, -.08f), -t.forward, .95f * K, new Color(.98f, .96f, .90f));
         // oprawy LED pod sufitem (siatka)
         for (float x = -hw + 2.5f * K; x < hw - 2f * K; x += 3.5f * K)

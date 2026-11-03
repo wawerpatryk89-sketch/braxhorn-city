@@ -583,6 +583,7 @@ public static class BraxUlicePierzeje
     }
 
     // ---------------- szyldy, markizy, wysięgniki, numery ----------------
+    static Transform szyldyFirm;
     static void Szyldy(Fasada f)
     {
         var lok = f.lok; float k = BraxUliceKit.K;
@@ -593,8 +594,19 @@ public static class BraxUlicePierzeje
         float maxW = f.W - 2f * Lizena - .8f, cap = .26f;
         float w = BraxUliceKit.SzerokoscNapisu(lok.szyld, cap); if (w > maxW) { cap *= maxW / w; w = maxW; }
         float sc = Mathf.Clamp(f.drzwiS, Lizena + w * .5f + .2f, f.W - Lizena - w * .5f - .2f);
+        // 3.11 16:20 (właściciel: trzy firmy — BRAXHORN, WAWER, SOBCZAK — na wszystkie usługi): szyld z grafiki firmy (arkusz 5:1),
+        // jeśli jest w paczce grafik; inaczej litery przestrzenne jak dotąd
+        string firma = lok.typ == "apteka" ? "sobczak_apteka" : lok.typ == "piekarnia" ? "sobczak_piekarnia" : lok.typ == "cukiernia" ? "sobczak_cukiernia"
+                     : lok.typ == "kawiarnia" ? "sobczak_kawiarnia" : lok.typ == "warzywniak" ? "sobczak_warzywa" : lok.typ == "market" ? "wawer_delikatesy" : null;
+        float wG = Mathf.Min(maxW, 2.6f), hG = wG / 5f;
+        if (firma != null)
+        {
+            if (!szyldyFirm) szyldyFirm = new GameObject("CLAUDE: szyldy firm z grafik (WAWER, SOBCZAK)").transform;
+            if (BraxMiastoBillboardy.Mural(szyldyFirm, firma, f.P(sc, 3.33f, .06f), f.N, wG, hG)) { OBox(f, listwa, sc - wG * .5f - .06f, sc + wG * .5f + .06f, 3.33f - hG * .5f - .04f, 3.33f + hG * .5f + .04f, 0f, .05f); goto poSzyldzie; }
+        }
         OBox(f, listwa, sc - w * .5f - .25f, sc + w * .5f + .25f, 3.26f, 3.40f, 0f, .045f);
         BraxUliceKit.Napis3D(lok.szyld, f.P(sc, 3.215f, .045f), f.N, cap, .07f, lico, boki);
+        poSzyldzie:
         // markizy nad witrynami (dół falbany 2.52 m — Brax 2.33 m przechodzi)
         if (lok.markiza)
         {

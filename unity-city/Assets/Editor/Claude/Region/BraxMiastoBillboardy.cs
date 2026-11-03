@@ -197,6 +197,7 @@ internal static class BraxMiastoBillboardy
         string dir = W.Out + "/Nosniki"; Directory.CreateDirectory(dir);
         BraxZapisAssetu.Utworz(m, dir + "/mural_" + plik + ".mat");
         Plakat(g, "mural " + plik, c, n, w, h, m);
+        var ch = g.Find("mural " + plik); if (ch) ch.SetPositionAndRotation(Vector3.zero, Quaternion.identity);   // siatka w układzie świata (rodzic może być obrócony)
         Debug.Log("BRAXHORN_MURAL " + plik + " " + w.ToString("F1") + "×" + h.ToString("F2") + " m");
         return true;
     }
