@@ -22,7 +22,7 @@ using M = BraxWnetrzaKit.Mat;
 //      graczem), mapy linii, tablice odjazdów, kierunkowskazy, kamery, gaśnica, wyjścia ewakuacyjne;
 //    • schody stałe i ruchome (JADĄ w górę — BraxSchodyRuchome, A 2.11) z antresoli na peron wyspowy −11.2 (81 m, 2 tory);
 //    • peron: krawędź z granitu, żółta linia, ławki, kosze, tablice, mapy, reklamy, kamery, gaśnice, zegary, SOS;
-//    • POCIĄG ZAWSZE STOI przy peronie 1: 3 wagony, drzwi od peronu otwarte, w środku siedzenia, poręcze, mapa trasy;
+//    • POCIĄG ZAWSZE STOI przy peronie 1: pobrany model metro_train (2 wagony czołami na zewnątrz, drzwi zamknięte); bez modelu — wagony z kodu;
 //    • tory w obie strony w tunele, które gasną w ciemności (bez świateł na końcu).
 // Skala Braxa k = 1.294: stopnie 0.16·k × 0.30·k, poręcze 0.9·k, drzwi wagonu 1.3·k × 1.95·k, siedziska 0.45·k…
 public static class BraxClaudeMetro
@@ -45,6 +45,10 @@ public static class BraxClaudeMetro
     const float EX0 = 66.5f;                           // początek zejść z chodników (koniec ulicy x = 66)
     static readonly float[] EZ = { 20.5f, 32.6f };     // pasy zejść: płd. z 20.5–23.9, płn. z 32.6–36.0 (szer. 3.4)
     const float EW = 3.4f;
+    // pkt 1 (dopisek 23.11): JEDNO wejście — płn. pas (z 32.6–36.0) przy wieżowcu, obok wolny chodnik (pomiar w KontrolaPrzejscia).
+    // Pas płd. (z 20.5–23.9) zamknięty: chodnik nad nim nie jest cięty (wraca cały), pod nim zamknięte pomieszczenie techniczne.
+    static readonly float[] WEJSCIA = { 32.6f };
+    static bool Wejscie(float z0) => Array.IndexOf(WEJSCIA, z0) >= 0;
     const float TW0 = -70f, TW1 = 112f;                // końce tuneli
 
     [Serializable] sealed class Raport
@@ -158,7 +162,7 @@ public static class BraxClaudeMetro
         ZamknijStaryWykop(cityRoot);
 
         // 3) otwory w chodniku (zejścia) + uprzątnięcie drobnych rzeczy z miejsca budowy + kolizje pod ziemią
-        foreach (float z0 in EZ)
+        foreach (float z0 in WEJSCIA)
         {
             var otw = new Bounds(new Vector3((EX0 + 76.7f) * .5f, -.15f, z0 + EW * .5f), new Vector3(76.7f - EX0, 1.5f, EW));
             rep.otwory += W.Otwor(cityRoot, otw, "metro_zejscie_" + z0.ToString("F1"), zewnatrz);
@@ -173,9 +177,9 @@ public static class BraxClaudeMetro
 
         // 4) budowa
         W.Start(zewnatrz); W.Wnetrze = false; W.Komorka = 12f;
-        foreach (float z0 in EZ) Wejscie(z0, z0 > 28f);
+        foreach (float z0 in WEJSCIA) Wejscie(z0, z0 > 28f);
         W.Wnetrze = true;
-        foreach (float z0 in EZ) ZejscieWnetrze(z0, z0 > 28f);       // ściany szybu schodów poniżej terenu (wnętrze)
+        foreach (float z0 in WEJSCIA) ZejscieWnetrze(z0, z0 > 28f);       // ściany szybu schodów poniżej terenu (wnętrze)
         rep.siatki += W.Zapisz("metro_wejscia");
 
         W.Start(podziemie); W.Komorka = 14f;
@@ -211,14 +215,14 @@ public static class BraxClaudeMetro
         W.Punkt("metro_vestibule", "metro_vestibule", new Vector3(70.5f, yM, 28.25f));
         W.Punkt("metro_station_boundary", "metro_station_boundary", new Vector3(GX, yM, 28.5f));
         W.Punkt("metro_peron", "metro_peron", new Vector3(20f, yP, 28.5f));
-        W.Punkt("metro_pociag", "metro_pociag", new Vector3(25f, yP, zTn));
+        W.Punkt("metro_pociag", "metro_pociag", new Vector3(40f, yP, zPN - .9f));     // przy drzwiach pociągu (peron 1)
         rep.bryly = W.Bryly; rep.trojkaty = W.Trojkaty; rep.kolizje = W.Kolizje; rep.obsada = W.Obsady.Count;
         rep.uwagi.AddRange(W.Braki);
         rep.lampy = podziemie.GetComponentsInChildren<Light>(true).Length + zewnatrz.GetComponentsInChildren<Light>(true).Length;
         rep.siedziska = podziemie.GetComponentsInChildren<BraxSeat>(true).Length;
         rep.punktyAkcji = podziemie.GetComponentsInChildren<BraxPunktAkcji>(true).Length;
         rep.peron = "x " + PX0 + "…" + PX1 + ", z " + zPS + "…" + zPN + ", y " + yP;
-        rep.wejscia = "płn. x " + EX0 + "…76.6 z " + EZ[1] + "…" + (EZ[1] + EW) + "; płd. x " + EX0 + "…76.6 z " + EZ[0] + "…" + (EZ[0] + EW);
+        rep.wejscia = "płn. x " + EX0 + "…76.6 z " + EZ[1] + "…" + (EZ[1] + EW) + " (jedyne); płd. z " + EZ[0] + "…" + (EZ[0] + EW) + " zamknięte — chodnik cały, pod nim pom. techniczne";
     }
 
     // ---------------- P0.1: TEST PRZEJŚCIA (właściciel 23:05: „schody kończą się ślepym podestem”, a w logu BUILT) ----------------
@@ -235,7 +239,7 @@ public static class BraxClaudeMetro
         const int maska = ~((1 << 8) | (1 << 2) | (1 << 29) | (1 << 31));
         // 1) obce kolizje w przejściach
         var obj = new List<Bounds> { Bryla(xEnd + .1f, MX1 - .1f, yM + .05f, yMc - .05f, MZ0 + .1f, MZ1 - .1f), Bryla(MX0 + .1f, MX1 - .1f, yM + .05f, yMc - .05f, MZ0 + .1f, MZ1 - .1f), Bryla(PX0, PX1, yP + .05f, yHc - .1f, zPS, zPN) };
-        foreach (float z0 in EZ) obj.Add(Bryla(EX0 + .1f, xEnd + .1f, yM + .05f, -.25f, z0 + .2f, z0 + EW - .2f));
+        foreach (float z0 in WEJSCIA) obj.Add(Bryla(EX0 + .1f, xEnd + .1f, yM + .05f, -.25f, z0 + .2f, z0 + EW - .2f));
         var obce = new List<string>();
         foreach (var b in obj)
             foreach (var c in Physics.OverlapBox(b.center, b.extents, Quaternion.identity, maska, QueryTriggerInteraction.Ignore))
@@ -283,7 +287,7 @@ public static class BraxClaudeMetro
             return null;
         }
         var wyniki = new List<string>(); int ok = 0;
-        foreach (float z0 in EZ)
+        foreach (float z0 in WEJSCIA)
         {
             bool pln = z0 > 28f; float zc = z0 + EW * .5f, zIn = pln ? EZ[1] - 1.0f : EZ[0] + EW + 1.0f;
             float zBr = Wolny(GX, yM, MZ0 + .5f, MZ1 - .5f, 28.45f);
@@ -300,15 +304,53 @@ public static class BraxClaudeMetro
                 if (r == null) ok++;
             }
             wyniki.Add("wejscie=" + (pln ? "płn" : "płd") + " " + wynik);
+            // wolny chodnik obok wejścia (cel ≥ 2.5 m·k z jednej strony): promień poziomy 1 m nad chodnikiem w obie strony od pasa
+            try
+            {
+                float xm = (EX0 + 76.6f) * .5f, cel = 2.5f * K;
+                float Wolne(float z, float kier) => Physics.Raycast(new Vector3(xm, yS + 1f, z), new Vector3(0f, 0f, kier), out var h, 15f, ~0, QueryTriggerInteraction.Ignore) ? h.distance : 15f;
+                float wPln = Wolne(z0 + EW + .05f, 1f), wPld = Wolne(z0 - .05f, -1f);
+                wyniki.Add("chodnik_obok płn=" + wPln.ToString("F1") + " m płd=" + wPld.ToString("F1") + " m (cel ≥ " + cel.ToString("F2") + ") " + (Mathf.Max(wPln, wPld) >= cel ? "ok" : "ZA WĄSKI"));
+            }
+            catch (Exception e) { wyniki.Add("chodnik_obok DO POPRAWKI " + e.Message); }
         }
-        string linia = "BRAXHORN_METRO_PRZEJSCIE " + string.Join(" | ", wyniki) + " (cel: oba ok) obce_kolizje_wylaczone=" + obce.Count + (obce.Count > 0 ? " [" + string.Join("; ", obce.Take(20)) + "]" : "");
-        if (ok == EZ.Length) Debug.Log(linia); else Debug.LogWarning(linia);
+        string linia = "BRAXHORN_METRO_PRZEJSCIE " + string.Join(" | ", wyniki) + " (cel: jedno wejście ok) obce_kolizje_wylaczone=" + obce.Count + (obce.Count > 0 ? " [" + string.Join("; ", obce.Take(20)) + "]" : "");
+        if (ok == WEJSCIA.Length) Debug.Log(linia); else Debug.LogWarning(linia);
     }
 
     static Bounds Bryla(float x0, float x1, float y0, float y1, float z0, float z1)
         => new Bounds(new Vector3((x0 + x1) * .5f, (y0 + y1) * .5f, (z0 + z1) * .5f), new Vector3(x1 - x0, y1 - y0, z1 - z0));
 
     // ---------------- teren po starym metrze ----------------
+    /// <summary>Pas dawnego zejścia (pkt 1: zostaje jedno wejście): ściana zewnętrzna domknięta, ściany szczytowe, w zachodniej
+    /// drzwi techniczne z ościeżnicą, klamką, samozamykaczem i napisem; cokół na licach. Za ścianą zamknięte pomieszczenie.</summary>
+    static void PasZamkniety(float z0, float xEnd, bool pln)
+    {
+        float zA = pln ? z0 - .25f : z0, zB = pln ? z0 + EW : z0 + EW + .25f;           // od ściany obudowy do ściany zewnętrznej
+        // brakujący odcinek ściany zewnętrznej (styk z istniejącymi: x EX0−.3 i xEnd+.2, bez zakładki)
+        if (pln) W.MM(mSciana, EX0 - .3f, xEnd + .2f, yM, yMc, MZ1, MZ1 + .3f, true);
+        else W.MM(mSciana, EX0 - .3f, xEnd + .2f, yM, yMc, MZ0 - .3f, MZ0, true);
+        W.MM(mSciana, EX0 - .6f, EX0 - .3f, yM, yMc, zA, zB, true);                   // szczyt zachodni (z drzwiami)
+        W.MM(mSciana, xEnd, xEnd + .25f, yM, yMc, zA, zB, true);                      // szczyt wschodni
+        float lA = zA + (pln ? 0f : .02f), lB = zB - (pln ? .02f : 0f);               // bez zakładki z cokołem ściany zewnętrznej
+        W.MM(mLamperia, EX0 - .62f, EX0 - .58f, yM, yM + .3f, lA, lB);
+        W.MM(mLamperia, xEnd + .23f, xEnd + .27f, yM, yM + .3f, lA, lB);
+        float zc = z0 + EW * .5f, dw = .9f * K * .5f, dh = 2.0f * K, xf = EX0 - .6f;
+        W.MM(mDrzwiTech, xf - .04f, xf + .03f, yM + .3f, yM + dh, zc - dw, zc + dw);   // skrzydło (nad cokołem — brak nakładania)
+        W.MM(mDrzwiTech, xf - .04f, xf + .03f, yM + .02f, yM + .3f, zc - dw, zc + dw);
+        W.MM(mStal, xf - .07f, xf + .03f, yM, yM + dh + .06f, zc - dw - .06f, zc - dw);  // ościeżnica
+        W.MM(mStal, xf - .07f, xf + .03f, yM, yM + dh + .06f, zc + dw, zc + dw + .06f);
+        W.MM(mStal, xf - .07f, xf + .03f, yM + dh, yM + dh + .06f, zc - dw, zc + dw);
+        float yk = yM + 1.05f * K;
+        W.Rura(mStal, new Vector3(xf - .04f, yk, zc + dw - .14f), new Vector3(xf - .1f, yk, zc + dw - .14f), .022f, 10);   // rozeta
+        W.Rura(mStal, new Vector3(xf - .1f, yk, zc + dw - .14f), new Vector3(xf - .1f, yk, zc + dw - .3f), .013f, 8);      // klamka
+        W.MM(mStal, xf - .07f, xf - .04f, yk - .12f, yk - .07f, zc + dw - .17f, zc + dw - .11f);                           // wkładka
+        W.MM(mStalCiemna, xf - .1f, xf - .04f, yM + dh - .12f, yM + dh - .04f, zc - .3f, zc + .1f);                         // samozamykacz
+        W.Rura(mStalCiemna, new Vector3(xf - .08f, yM + dh - .08f, zc + .1f), new Vector3(xf - .08f, yM + dh + .03f, zc + .4f), .012f, 6);
+        W.Napis("POMIESZCZENIE TECHNICZNE", new Vector3(xf - .075f, yM + dh + .22f, zc), Vector3.left, .1f, Color.white);
+        W.Napis("WSTĘP TYLKO DLA OBSŁUGI", new Vector3(xf - .045f, yM + 1.55f * K, zc), Vector3.left, .055f, new Color(.95f, .8f, .2f));
+    }
+
     static void ZamknijStaryWykop(Transform cityRoot)
     {
         // nawierzchnia jak bulwar (ten sam materiał co „Promenade paving”), kolizja z wierzchem na wysokości chodnika
@@ -507,6 +549,7 @@ public static class BraxClaudeMetro
         W.MM(mSufit, MX0, MX1, yMc, yMc + .05f, EZ[0] + EW, EZ[1]);
         foreach (float z0 in EZ)
         {
+            if (!Wejscie(z0)) { W.MM(mSufit, MX0, MX1, yMc, yMc + .05f, z0, z0 + EW); continue; }   // pas zamknięty: sufit ciągły
             W.MM(mSufit, MX0, EX0 - .3f, yMc, yMc + .05f, z0, z0 + EW);
             W.MM(mSufit, xEndS, MX1, yMc, yMc + .05f, z0, z0 + EW);
         }
@@ -515,12 +558,12 @@ public static class BraxClaudeMetro
         for (float x = MX0 + 1.5f; x < MX1 - 1f; x += 3.2f)
             foreach (float zL in new[] { 23.0f, 28.45f, 34.0f })
             {
-                bool wPasie = (zL < EZ[0] + EW || zL > EZ[1]) && x + 1.1f > EX0 - .3f && x - 1.1f < xEndS;
+                bool wPasie = (zL < EZ[0] + EW || zL > EZ[1]) && x + 1.1f > EX0 - .3f && x - 1.1f < xEndS;   // zejście albo zamknięte pom. techniczne
                 if (!wPasie) W.MM(mKlosz, x - 1.1f, x + 1.1f, yMc - .02f, yMc, zL - .09f, zL + .09f);
             }
         for (float x = MX0 + 3f; x < MX1; x += 6f)
         {
-            if (x > EX0 - .5f && x < xEndS + .3f) { W.MM(mBelka, x - .2f, x + .2f, yMc - .35f, yMc, EZ[0] + EW, EZ[1]); continue; }
+            if (x > EX0 - .5f && x < xEndS + .3f) { W.MM(mBelka, x - .2f, x + .2f, yMc - .35f, yMc, Wejscie(EZ[0]) ? EZ[0] + EW : MZ0, Wejscie(EZ[1]) ? EZ[1] : MZ1); continue; }
             W.MM(mBelka, x - .2f, x + .2f, yMc - .35f, yMc, MZ0, MZ1);
         }
         // ściany: zachodnia, wschodnia, północna i południowa (z wyjątkiem pasów zejść, które mają własne ściany)
@@ -534,6 +577,7 @@ public static class BraxClaudeMetro
         W.MM(mSciana, EX0 - .3f, xEnd, yM, yMc, EZ[1] - .25f, EZ[1], true);
         foreach (float zf in new[] { EZ[0] + EW + .25f, EZ[1] - .25f })
             W.MM(mLamperia, EX0 - .3f, xEnd, yM, yM + .3f, zf - .02f, zf + .02f);
+        foreach (float z0 in EZ) if (!Wejscie(z0)) PasZamkniety(z0, xEnd, z0 > 28f);
         // cokół na ścianach zewnętrznych
         W.MM(mLamperia, MX0, EX0, yM, yM + .3f, MZ1 - .02f, MZ1);
         W.MM(mLamperia, MX0, EX0, yM, yM + .3f, MZ0, MZ0 + .02f);
@@ -1029,13 +1073,45 @@ public static class BraxClaudeMetro
 
     static void Gasnica(Vector3 at, Vector3 n)
     {
-        // szafka hydrantowo-gaśnicza: czerwona skrzynka z szybką + znak
-        var q = Quaternion.LookRotation(n);
-        var c = at + Vector3.up * (1.0f * K) + n * .1f;
-        W.OBox(mCzerwony, c, new Vector3(.55f, .75f, .2f), q);
-        W.OBox(mSzklo, c + n * .105f, new Vector3(.45f, .6f, .01f), q);
-        W.Walec(mCzerwony, at + n * .12f + Vector3.up * (.75f * K), .08f, .45f, 10);
-        Tab(c + Vector3.up * .55f + n * .002f, n, .3f, .3f, aGasnica);
+        // pkt 1c: SZAFKA HYDRANTOWA naścienna (hydrant wewnętrzny 25 z wężem półsztywnym) + gaśnica na wieszaku obok.
+        // Wymiary prawdziwe × K: szafka 0.63 × 0.73 × 0.25 m; skrzynka stalowa (dno, boki, góra), drzwi z ramą i szybą,
+        // w środku zwijadło z wężem, zawór, prądownica; zawiasy, zamek, piktogram nad szafką, gaśnica 6 kg z wężykiem.
+        var q = Quaternion.LookRotation(n); var bok = Vector3.Cross(Vector3.up, n).normalized;
+        float w = .63f * K, h = .73f * K, d = .25f * K, t = .02f;
+        var dol = at + Vector3.up * (.75f * K);                       // spód szafki 0.75 m nad posadzką
+        Vector3 C(float x, float y, float z) => dol + bok * x + Vector3.up * y + n * z;
+        W.OBox(mCzerwony, C(0, h * .5f, .01f), new Vector3(w, h, .02f), q);                         // plecy
+        W.OBox(mCzerwony, C(-w * .5f + t * .5f, h * .5f, d * .5f), new Vector3(t, h, d), q);        // boki
+        W.OBox(mCzerwony, C(w * .5f - t * .5f, h * .5f, d * .5f), new Vector3(t, h, d), q);
+        W.OBox(mCzerwony, C(0, t * .5f, d * .5f), new Vector3(w - 2 * t, t, d), q);                 // dno
+        W.OBox(mCzerwony, C(0, h - t * .5f, d * .5f), new Vector3(w - 2 * t, t, d), q);             // góra
+        // drzwi: rama 4 cm (czerwona) wokół szyby, szyba lekko cofnięta (nic nie leży na niczym)
+        float fz = d + .012f, r = .045f;
+        W.OBox(mCzerwony, C(0, h - r * .5f, fz), new Vector3(w, r, .024f), q);
+        W.OBox(mCzerwony, C(0, r * .5f, fz), new Vector3(w, r, .024f), q);
+        W.OBox(mCzerwony, C(-w * .5f + r * .5f, h * .5f, fz), new Vector3(r, h - 2 * r, .024f), q);
+        W.OBox(mCzerwony, C(w * .5f - r * .5f, h * .5f, fz), new Vector3(r, h - 2 * r, .024f), q);
+        W.OBox(mSzklo, C(0, h * .5f, fz - .004f), new Vector3(w - 2 * r, h - 2 * r, .006f), q);
+        foreach (float zy in new[] { .15f, h - .15f })                                               // zawiasy (lewa) i zamek (prawa)
+            W.Rura(mStal, C(-w * .5f - .006f, zy - .04f, fz), C(-w * .5f - .006f, zy + .04f, fz), .009f, 8);
+        W.OBox(mStalCiemna, C(w * .5f - r * .5f, h * .5f, fz + .016f), new Vector3(.022f, .06f, .01f), q);
+        // wnętrze: zwijadło (bęben + tarcze), wąż w zwojach, zawór na rurze zasilającej, prądownica w uchwycie
+        var os = C(-.04f, h * .52f, .02f);
+        W.Rura(mStalCiemna, os, os + n * (d * .55f), .04f, 12);
+        foreach (float zz in new[] { .03f, d * .62f }) W.Rura(mCzerwony, os + n * zz, os + n * (zz + .008f), h * .36f, 20, true);
+        for (int i = 0; i < 4; i++) W.Rura(mGuma, os + n * (.05f + i * .035f), os + n * (.05f + i * .035f + .03f), h * (.17f + i * .025f), 18, true);
+        W.Rura(mStal, C(w * .5f - .07f, -.05f, .05f), C(w * .5f - .07f, h * .28f, .05f), .018f, 10);            // rura zasilająca
+        W.Walec(mStal, C(w * .5f - .07f, h * .28f, .05f) - Vector3.up * .02f, .03f, .07f, 10);                    // zawór
+        W.Rura(mCzerwony, C(w * .5f - .07f, h * .28f + .05f, .05f), C(w * .5f - .07f, h * .28f + .05f, .1f), .006f, 6);   // pokrętło
+        W.Rura(mStalCiemna, C(w * .5f - .09f, h * .62f, .1f), C(w * .5f - .09f, h * .9f, .1f), .02f, 8);          // prądownica
+        W.Napis("HYDRANT", C(0, h + .08f, .012f), n, .07f, new Color(.85f, .1f, .08f));
+        Tab(C(0, h + .26f, .002f), n, .22f, .22f, aGasnica);
+        // gaśnica na wieszaku obok (spód 0.15 m nad posadzką)
+        var g = at + bok * (w * .5f + .28f) + n * .1f;
+        W.OBox(mStalCiemna, g + Vector3.up * (.95f * K) - n * .085f, new Vector3(.08f, .1f, .01f), q);            // wieszak
+        W.Walec(mCzerwony, g + Vector3.up * (.15f * K), .08f, .48f * K, 14);
+        W.Walec(mStalCiemna, g + Vector3.up * (.15f * K + .48f * K), .03f, .06f, 8);                              // zawór
+        W.Rura(mCzarny, g + Vector3.up * (.15f * K + .5f * K) + bok * .03f, g + Vector3.up * (.15f * K + .2f * K) + bok * .09f, .012f, 6);
     }
 
     static void Kamera(Vector3 at, Vector3 kier)
@@ -1047,7 +1123,83 @@ public static class BraxClaudeMetro
     }
 
     // ---------------- pociąg (3 wagony, zawsze stoi przy peronie 1) ----------------
+    const string ModelPociagu = "Assets/Source/Claude/Metro/metro_train.glb";   // CC BY 4.0 kane_sk06 (CREDITS.md)
+
     static void Pociag()
+    {
+        // pkt 1c: na peronie stoi POBRANY model pociągu; brak modelu / błąd → dawny wagon z kodu (log mówi, który wariant)
+        try
+        {
+            AssetDatabase.ImportAsset(ModelPociagu, ImportAssetOptions.ForceSynchronousImport);
+            var zrodlo = AssetDatabase.LoadAssetAtPath<GameObject>(ModelPociagu);
+            if (zrodlo && PociagModel(zrodlo)) return;
+            Debug.LogWarning("BRAXHORN_METRO_POCIAG model=brak (" + ModelPociagu + ") — wagony z kodu");
+        }
+        catch (Exception e) { Debug.LogWarning("BRAXHORN_METRO_POCIAG DO POPRAWKI " + e.Message + " — wagony z kodu"); }
+        PociagZKodu();
+    }
+
+    static Bounds Granice(GameObject o, Func<Renderer, bool> filtr)
+    {
+        bool jest = false; var b = new Bounds(o.transform.position, Vector3.zero);
+        foreach (var r in o.GetComponentsInChildren<Renderer>(true))
+        {
+            if (filtr != null && !filtr(r)) continue;
+            if (!jest) { b = r.bounds; jest = true; } else b.Encapsulate(r.bounds);
+        }
+        return b;
+    }
+
+    static string NazwyMat(Renderer r) => string.Join(" ", r.sharedMaterials.Where(m => m).Select(m => m.name.ToLowerInvariant()));
+
+    /// <summary>Dwa wagony modelu czołami na zewnątrz (jednostka dwuczłonowa) na torze płn. przy peronie 1. Skala z prawdziwej
+    /// szerokości pudła 2.8 m × K, ograniczona prześwitem do krawędzi peronu (wózki nie wchodzą w lico peronu). Koła na główce
+    /// szyny. Kolizja pudła (bryła), drzwi zamknięte — pociąg stoi. Kierunek czoła z elementów czoła (reflektory / szyba czołowa).</summary>
+    static bool PociagModel(GameObject zrodlo)
+    {
+        var o = (GameObject)UnityEngine.Object.Instantiate(zrodlo);
+        o.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity); o.transform.localScale = Vector3.one;
+        var cale = Granice(o, null);
+        Func<Renderer, bool> pudlo = r => NazwyMat(r).Contains("side");
+        var bP = Granice(o, pudlo); if (bP.size.sqrMagnitude < 1e-6f) bP = cale;
+        bool dlZ = cale.size.z >= cale.size.x;
+        float szerP = dlZ ? bP.size.x : bP.size.z, szerC = dlZ ? cale.size.x : cale.size.z;
+        // czoło: środek elementów czoła względem środka bryły wzdłuż długiej osi (domyślnie +z modelu)
+        var bC = Granice(o, r => { var n = NazwyMat(r); return n.Contains("mirror.001") || n.Contains("aistandardsurface"); });
+        float zn = dlZ ? bC.center.z - cale.center.z : bC.center.x - cale.center.x;
+        bool czoloZnane = bC.size.sqrMagnitude > 1e-6f && Mathf.Abs(zn) > (dlZ ? cale.size.z : cale.size.x) * .25f;
+        var czolo = dlZ ? new Vector3(0f, 0f, czoloZnane ? Mathf.Sign(zn) : 1f) : new Vector3(czoloZnane ? Mathf.Sign(zn) : 1f, 0f, 0f);
+        UnityEngine.Object.DestroyImmediate(o);
+        if (szerP < 1e-4f || cale.size.y < 1e-4f) return false;
+
+        float s = Mathf.Min(2.8f * K / szerP, (2f * (zTn - zPN) - .12f) / szerC);
+        float L = (dlZ ? cale.size.z : cale.size.x) * s, gap = .9f;
+        float yawCzola = Mathf.Atan2(czolo.x, czolo.z) * Mathf.Rad2Deg;
+        float xWsch = PX1 - 3f;                                      // czoło 3 m przed ścianą końcową hali
+        int n2 = 0; float gora = 0f, podloga = 0f;
+        for (int i = 0; i < 2; i++)
+        {
+            float cx = xWsch - L * .5f - i * (L + gap);
+            float yaw = (i == 0 ? 90f : -90f) - yawCzola;            // wagon 0 czołem na wschód (+x), wagon 1 na zachód
+            var w = (GameObject)UnityEngine.Object.Instantiate(zrodlo, W.Grupa, false);
+            w.name = "metro M1 — wagon " + (101 + i) + " (model metro_train, CC BY kane_sk06)";
+            w.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0f, yaw, 0f)); w.transform.localScale = Vector3.one * s;
+            var b = Granice(w, null); var bp = Granice(w, pudlo); if (bp.size.sqrMagnitude < 1e-6f) bp = b;
+            w.transform.position = new Vector3(cx - b.center.x, yR - b.min.y, zTn - bp.center.z);
+            BraxMiastoAssety.Przygotuj(w, true, true);
+            b = Granice(w, null); bp = Granice(w, pudlo); if (bp.size.sqrMagnitude < 1e-6f) bp = b;
+            W.KolizjaMM(b.min.x + .1f, b.max.x - .1f, yR + .3f, bp.max.y, bp.min.z, bp.max.z);
+            gora = b.max.y; podloga = bp.min.y; n2++; rep.wagony++;
+            if (b.min.x < PX0 + .5f || b.max.z > zN - .1f || b.min.z < zPN - .02f)
+                Debug.LogWarning("BRAXHORN_METRO_POCIAG wagon " + i + " poza skrajnią: " + b.min.ToString("F2") + "…" + b.max.ToString("F2"));
+        }
+        Debug.Log("BRAXHORN_METRO_POCIAG model=metro_train wagony=" + n2 + " skala=" + s.ToString("F4") + " dlugosc_m=" + L.ToString("F1")
+            + " szer_pudla_m=" + (szerP * s).ToString("F2") + " gora_nad_szyna_m=" + (gora - yR).ToString("F2") + " spod_pudla_nad_szyna_m=" + (podloga - yR).ToString("F2")
+            + " peron_nad_szyna_m=" + (yP - yR).ToString("F2") + " czolo=" + (czoloZnane ? "z modelu" : "domyslne +z") + " os_dluga=" + (dlZ ? "z" : "x"));
+        return n2 == 2;
+    }
+
+    static void PociagZKodu()
     {
         float L = 24.6f, gap = .8f;
         float xStart = PX1 - .6f - L * .5f;   // wagon 1 (czoło wschodnie) przy końcu peronu pod antresolą
