@@ -46,7 +46,7 @@ public static class BraxClaudeMetro
     static readonly float[] EZ = { 20.5f, 32.6f };     // pasy zejść: płd. z 20.5–23.9, płn. z 32.6–36.0 (szer. 3.4)
     const float EW = 3.4f;
     // pkt 1 (dopisek 23.11): JEDNO wejście — płn. pas (z 32.6–36.0) przy wieżowcu, obok wolny chodnik (pomiar w KontrolaPrzejscia).
-    // Pas płd. (z 20.5–23.9) zamknięty: chodnik nad nim nie jest cięty (wraca cały), pod nim zamknięte pomieszczenie techniczne.
+    // Pas płd. (z 20.5–23.9) zamknięty: chodnik nad nim nie jest cięty (wraca cały), pod nim pełny grunt (hala go omija ciągłą ścianą).
     static readonly float[] WEJSCIA = { 32.6f };
     static bool Wejscie(float z0) => Array.IndexOf(WEJSCIA, z0) >= 0;
     const float TW0 = -70f, TW1 = 112f;                // końce tuneli
@@ -222,7 +222,7 @@ public static class BraxClaudeMetro
         rep.siedziska = podziemie.GetComponentsInChildren<BraxSeat>(true).Length;
         rep.punktyAkcji = podziemie.GetComponentsInChildren<BraxPunktAkcji>(true).Length;
         rep.peron = "x " + PX0 + "…" + PX1 + ", z " + zPS + "…" + zPN + ", y " + yP;
-        rep.wejscia = "płn. x " + EX0 + "…76.6 z " + EZ[1] + "…" + (EZ[1] + EW) + " (jedyne); płd. z " + EZ[0] + "…" + (EZ[0] + EW) + " zamknięte — chodnik cały, pod nim pom. techniczne";
+        rep.wejscia = "płn. x " + EX0 + "…76.6 z " + EZ[1] + "…" + (EZ[1] + EW) + " (jedyne); płd. z " + EZ[0] + "…" + (EZ[0] + EW) + " zamknięte — chodnik cały, pod nim grunt, ściana hali ciągła";
     }
 
     // ---------------- P0.1: TEST PRZEJŚCIA (właściciel 23:05: „schody kończą się ślepym podestem”, a w logu BUILT) ----------------
@@ -328,33 +328,17 @@ public static class BraxClaudeMetro
         => new Bounds(new Vector3((x0 + x1) * .5f, (y0 + y1) * .5f, (z0 + z1) * .5f), new Vector3(x1 - x0, y1 - y0, z1 - z0));
 
     // ---------------- teren po starym metrze ----------------
-    /// <summary>Pas dawnego zejścia (pkt 1: zostaje jedno wejście): ściana zewnętrzna domknięta, ściany szczytowe, w zachodniej
-    /// drzwi techniczne z ościeżnicą, klamką, samozamykaczem i napisem; cokół na licach. Za ścianą zamknięte pomieszczenie.</summary>
+    /// <summary>Pas dawnego zejścia (pkt 1, właściciel 01:39: „nie ma zostać nic”): pod chodnikiem pełny grunt, bez pomieszczeń,
+    /// drzwi i wnęk. Hala antresoli omija ten pas: ściana obudowy (z okładziną i cokołem) jest jej ścianą, a na obu końcach pasa
+    /// ściany szczytowe z tą samą okładziną i cokołem domykają lico — ciągła ściana bez otworów.</summary>
     static void PasZamkniety(float z0, float xEnd, bool pln)
     {
-        float zA = pln ? z0 - .25f : z0, zB = pln ? z0 + EW : z0 + EW + .25f;           // od ściany obudowy do ściany zewnętrznej
-        // brakujący odcinek ściany zewnętrznej (styk z istniejącymi: x EX0−.3 i xEnd+.2, bez zakładki)
-        if (pln) W.MM(mSciana, EX0 - .3f, xEnd + .2f, yM, yMc, MZ1, MZ1 + .3f, true);
-        else W.MM(mSciana, EX0 - .3f, xEnd + .2f, yM, yMc, MZ0 - .3f, MZ0, true);
-        W.MM(mSciana, EX0 - .6f, EX0 - .3f, yM, yMc, zA, zB, true);                   // szczyt zachodni (z drzwiami)
+        float zA = pln ? z0 - .25f : z0, zB = pln ? z0 + EW : z0 + EW + .25f;           // od ściany obudowy do lica zewnętrznego
+        W.MM(mSciana, EX0 - .6f, EX0 - .3f, yM, yMc, zA, zB, true);                   // szczyt zachodni (lico od hali)
         W.MM(mSciana, xEnd, xEnd + .25f, yM, yMc, zA, zB, true);                      // szczyt wschodni
         float lA = zA + (pln ? 0f : .02f), lB = zB - (pln ? .02f : 0f);               // bez zakładki z cokołem ściany zewnętrznej
         W.MM(mLamperia, EX0 - .62f, EX0 - .58f, yM, yM + .3f, lA, lB);
         W.MM(mLamperia, xEnd + .23f, xEnd + .27f, yM, yM + .3f, lA, lB);
-        float zc = z0 + EW * .5f, dw = .9f * K * .5f, dh = 2.0f * K, xf = EX0 - .6f;
-        W.MM(mDrzwiTech, xf - .04f, xf + .03f, yM + .3f, yM + dh, zc - dw, zc + dw);   // skrzydło (nad cokołem — brak nakładania)
-        W.MM(mDrzwiTech, xf - .04f, xf + .03f, yM + .02f, yM + .3f, zc - dw, zc + dw);
-        W.MM(mStal, xf - .07f, xf + .03f, yM, yM + dh + .06f, zc - dw - .06f, zc - dw);  // ościeżnica
-        W.MM(mStal, xf - .07f, xf + .03f, yM, yM + dh + .06f, zc + dw, zc + dw + .06f);
-        W.MM(mStal, xf - .07f, xf + .03f, yM + dh, yM + dh + .06f, zc - dw, zc + dw);
-        float yk = yM + 1.05f * K;
-        W.Rura(mStal, new Vector3(xf - .04f, yk, zc + dw - .14f), new Vector3(xf - .1f, yk, zc + dw - .14f), .022f, 10);   // rozeta
-        W.Rura(mStal, new Vector3(xf - .1f, yk, zc + dw - .14f), new Vector3(xf - .1f, yk, zc + dw - .3f), .013f, 8);      // klamka
-        W.MM(mStal, xf - .07f, xf - .04f, yk - .12f, yk - .07f, zc + dw - .17f, zc + dw - .11f);                           // wkładka
-        W.MM(mStalCiemna, xf - .1f, xf - .04f, yM + dh - .12f, yM + dh - .04f, zc - .3f, zc + .1f);                         // samozamykacz
-        W.Rura(mStalCiemna, new Vector3(xf - .08f, yM + dh - .08f, zc + .1f), new Vector3(xf - .08f, yM + dh + .03f, zc + .4f), .012f, 6);
-        W.Napis("POMIESZCZENIE TECHNICZNE", new Vector3(xf - .075f, yM + dh + .22f, zc), Vector3.left, .1f, Color.white);
-        W.Napis("WSTĘP TYLKO DLA OBSŁUGI", new Vector3(xf - .045f, yM + 1.55f * K, zc), Vector3.left, .055f, new Color(.95f, .8f, .2f));
     }
 
     static void ZamknijStaryWykop(Transform cityRoot)
@@ -558,7 +542,6 @@ public static class BraxClaudeMetro
         W.MM(mSufit, MX0, MX1, yMc, yMc + .05f, EZ[0] + EW, EZ[1]);
         foreach (float z0 in EZ)
         {
-            if (!Wejscie(z0)) { W.MM(mSufit, MX0, MX1, yMc, yMc + .05f, z0, z0 + EW); continue; }   // pas zamknięty: sufit ciągły
             W.MM(mSufit, MX0, EX0 - .3f, yMc, yMc + .05f, z0, z0 + EW);
             W.MM(mSufit, xEndS, MX1, yMc, yMc + .05f, z0, z0 + EW);
         }
@@ -572,7 +555,7 @@ public static class BraxClaudeMetro
             }
         for (float x = MX0 + 3f; x < MX1; x += 6f)
         {
-            if (x > EX0 - .5f && x < xEndS + .3f) { W.MM(mBelka, x - .2f, x + .2f, yMc - .35f, yMc, Wejscie(EZ[0]) ? EZ[0] + EW : MZ0, Wejscie(EZ[1]) ? EZ[1] : MZ1); continue; }
+            if (x > EX0 - .5f && x < xEndS + .3f) { W.MM(mBelka, x - .2f, x + .2f, yMc - .35f, yMc, EZ[0] + EW, EZ[1]); continue; }
             W.MM(mBelka, x - .2f, x + .2f, yMc - .35f, yMc, MZ0, MZ1);
         }
         // ściany: zachodnia, wschodnia, północna i południowa (z wyjątkiem pasów zejść, które mają własne ściany)

@@ -185,10 +185,10 @@ const VIEWS = [
   // METRO pkt 1/1b/1c (jedno wejście, pas płd. zamknięty, pobrany model pociągu, szafka hydrantowa)
   ['METRO_pociag_model', '40,-9.4,36.1,180,8,9'],
   ['METRO_chodnik_pld_caly', '71,.5,22.2,0,28,8'],
-  ['METRO_antresola_pas_zamkniety', '65.8,-3.4,22.2,270,8,4'],
+  ['METRO_antresola_sciana_ciagla', '62.5,-3.0,22.2,250,8,5'],
   ['DETAL_metro_czolo_pociagu', '59,-10,35.6,150,6,4'],
   ['DETAL_metro_szafka_hydrantowa', '43.9,-3.3,33.6,90,6,2'],
-  ['DETAL_metro_drzwi_techniczne', '65.9,-3.3,22.2,270,4,2'],
+  ['DETAL_metro_sciana_okladzina_cokol', '65.9,-4.2,22.2,270,20,1.8'],
   // METRO pkt 58: schody ruchome (chodnik → antresola jadą w dół, antresola → peron w górę)
   ['METRO_schody_ruchome_wejscie', '66.2,.9,35.07,270,25,4'],
   ['METRO_schody_ruchome_antresola_dol', '75.5,-3.6,35.07,90,10,2.5'],
