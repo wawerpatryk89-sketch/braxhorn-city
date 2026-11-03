@@ -295,6 +295,11 @@ const VIEWS = [
   ['DETAL_panorama_archipelag', '60,120.55,52,270,-6,3'],          // z tarasu Tower na morze: wyspy 3D, latarnia, nasza wyspa
   ['DETAL_panorama_lad', '58,120.55,52,90,-6,3'],                  // z tarasu Tower na ląd: wzgórza z polami i wsiami, lasy, góry
   ['DETAL_panorama_z_pomostu', '138,-0.6,22,270,2,5'],             // z pomostu D przy wodzie: archipelag na horyzoncie
+  // KRAWĘDZIE ŚWIATA (pkt 20): każda z sensem — morze (archipelag, sztorm dalej), wybrzeże (pętla w mgle), ląd (granica, wzgórza 3D)
+  ['KONIEC_wschod', '1330,1,40,270,4,8'],                          // ze wschodniego brzegu wyspy: otwarte morze, archipelag 3D
+  ['KONIEC_polnoc', '-100,0.2,170,180,8,6'],                       // północna granica miasta: płot lasu, za nim wzgórza 3D
+  ['KONIEC_poludnie', '-200,0.2,-75,0,8,6'],                       // południowa granica: murek, wzgórze tunelu, dalej plany 3D
+  ['KONIEC_lad', '-860,0.2,50,90,8,6'],                            // zachodnia granica: balustrada, pola i wsie 3D, góry
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],

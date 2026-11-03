@@ -171,6 +171,15 @@ public sealed class BraxVessel : MonoBehaviour
         // ląd / pomost / boje przed dziobem i przy burtach → zatrzymanie
         var probe = next + fwd * (length * .5f + .6f) * Mathf.Sign(speed == 0 ? 1 : speed);
         if (BraxAkwen.Prad(next) >= 1f && BraxAkwen.Prad(next) > prad) { speed = 0; side = 0; next = transform.position; }   // twarda granica akwenu
+        // pętla wybrzeża (pkt 15b′): w połowie pasa mgły przeniesienie na drugi koniec akwenu — kurs i prędkość bez zmian
+        bool przeniesiono = false;
+        if (BraxAkwen.Petla(next, out var celPetli))
+        {
+            var q = transform.rotation; var pol = new Vector3(width * .5f + .3f, 1.5f, length * .5f + .3f);
+            for (int k = 0; k < 8 && Physics.CheckBox(celPetli + Vector3.up * 1.6f, pol, q, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore); k++) celPetli.x += 25f;
+            Debug.Log("BRAXHORN_AKWEN_PETLA " + label + " z " + next.ToString("F0") + " na " + celPetli.ToString("F0"));
+            next = celPetli; przeniesiono = true; BraxAkwen.Ciemno = Time.unscaledTime + .4f;
+        }
         if (Lad(probe) || Lodz(probe))
         {
             if (Mathf.Abs(speed) > 3f) Debug.Log("BRAXHORN_LODZ uderzenie w brzeg/pomost: " + label + " v=" + speed.ToString("F1"));
@@ -187,12 +196,18 @@ public sealed class BraxVessel : MonoBehaviour
                           + (sit ? 7f : 2.5f) * hump + Mathf.Clamp(acc, -4f, 4f) * (sit ? .9f : .3f);
         float wantRoll = Mathf.Atan2(hr - h, width * .5f) * Mathf.Rad2Deg * .6f
                          + yawVel * v01 * (sit ? -.22f : .05f);                     // skuter/motorówka do środka, jacht lekko na zewnątrz
+        if (prad > 0f && BraxAkwen.Rodzaj == 1)
+        {   // sztorm: wysokie fale — kołysanie i dziób w górę/dół rosną z prądem
+            float sz = Mathf.Clamp01(prad * 1.4f);
+            wantRoll += Mathf.Sin(Time.time * 1.9f) * 16f * sz; wantPitch += Mathf.Sin(Time.time * 1.3f + 1f) * 8f * sz;
+        }
         pitchS = Mathf.Lerp(pitchS, wantPitch, 1f - Mathf.Exp(-dt * 3f));
         rollS = Mathf.Lerp(rollS, Mathf.Clamp(wantRoll, -24f, 24f), 1f - Mathf.Exp(-dt * 3f));
         heave = Mathf.Lerp(heave, sit ? v01 * .12f : 0f, 1f - Mathf.Exp(-dt * 2f));   // w ślizgu kadłub wynurza się
         next.y = waterY + h - draft + heave;
         transform.position = next;
         transform.rotation = Quaternion.Euler(-pitchS, yaw, rollS);
+        if (przeniesiono && rider) rider.SnapKamera();
         Fale(v01, speed > 0);
     }
 

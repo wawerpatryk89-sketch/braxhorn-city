@@ -339,6 +339,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
         yaw=v[3];pitch=Mathf.Clamp(v[4],-32f,70f);distance=Mathf.Clamp(v[5],.8f,12f);
         cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);Report();
     }
+    // pętla akwenu (pkt 15b′): kamera od razu przy graczu po przeniesieniu łodzi (bez przelotu przez 2 km)
+    public void SnapKamera(){camPrevOk=false;cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);}
     public void TravelTo(Vector3 position)
     {
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";

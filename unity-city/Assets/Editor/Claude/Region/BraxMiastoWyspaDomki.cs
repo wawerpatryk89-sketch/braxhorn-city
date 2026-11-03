@@ -715,6 +715,25 @@ internal static partial class BraxMiastoWyspa
                   + (nKol > 0 ? " [" + string.Join(", ", kolizje.OrderByDescending(k => k.Value).Take(15).Select(k => k.Key + "×" + k.Value)) + "]" : "")
                   + "\nBRAXHORN_TOR_WODNY wyjscia_lodzi: " + string.Join(" | ", wyjscia));
         try { MapaMiasta(cityRoot, start, cel); } catch (System.Exception e) { Debug.LogWarning("DO POPRAWKI: mapa miasta: " + e); }
+        // pkt 15b′ / 20: test przeniesień pętli wybrzeża (miejsce docelowe wolne od kolizji) i zestawienie krawędzi świata
+        try
+        {
+            int okP = 0, wsz = 0; var zle = new List<string>();
+            foreach (float zp in new[] { BraxAkwen.PetlaN + BraxAkwen.PasMgly * .5f + 5f, BraxAkwen.PetlaS - BraxAkwen.PasMgly * .5f - 5f })
+                for (float x = BraxMiastoGranice.Brzeg(zp) + BraxAkwen.BrzegMiekki + 10f; x < BraxAkwen.MiekkaX - 40f; x += 150f)
+                {
+                    wsz++; if (!BraxAkwen.Petla(new Vector3(x, W, zp), out var dst)) { zle.Add("brak przeniesienia " + x.ToString("F0")); continue; }
+                    if (Physics.CheckBox(dst + Vector3.up * 1.6f, new Vector3(4f, 1.5f, 14f), Quaternion.identity, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore)) zle.Add("kolizja w " + dst.ToString("F0"));
+                    else if (BraxAkwen.Prad(dst) > 0f && BraxAkwen.Rodzaj != 0) zle.Add("cel w pasie granicy " + dst.ToString("F0"));
+                    else okP++;
+                }
+            Debug.Log("BRAXHORN_AKWEN_PETLA przeniesienia_test=" + (okP == wsz ? "ok" : "BLAD") + " (" + okP + "/" + wsz + ")" + (zle.Count > 0 ? " [" + string.Join("; ", zle.Take(8)) + "]" : ""));
+            Debug.Log("BRAXHORN_KRAWEDZIE wschod=sztorm (x " + BraxAkwen.MiekkaX + "–" + BraxAkwen.TwardaX + ": ciemno, deszcz, wiatr, fale, prąd zawraca) + archipelag 3D na horyzoncie"
+                + " | polnoc=petla w mgle (z " + BraxAkwen.PetlaN + "–" + (BraxAkwen.PetlaN + BraxAkwen.PasMgly) + " → południe) | poludnie=petla w mgle (z " + BraxAkwen.PetlaS + "–" + (BraxAkwen.PetlaS - BraxAkwen.PasMgly) + " → północ)"
+                + " | brzeg poza miastem=prad " + BraxAkwen.BrzegMiekki + " m od linii brzegu | lad=granica z kolizją (murek z balustradą, płot lasu) + teren 3D 520 m + pierścień wzgórz i gór 3D"
+                + " | siatka_bezp=tak | dziury=niesprawdzane (obwodnica/tory/rzeka na granicy lądu — niezrobione)");
+        }
+        catch (System.Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_AKWEN_PETLA: " + e.Message); }
     }
 
     // MAPA MIASTA (MENU → MAPA): ląd, woda, marina, wyspa (plaża, ośrodek, arena), tor wodny przerywaną linią, podpisy
