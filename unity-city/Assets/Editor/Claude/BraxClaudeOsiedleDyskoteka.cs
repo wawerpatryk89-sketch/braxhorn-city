@@ -518,7 +518,10 @@ public static partial class BraxClaudeOsiedle
         if (!(klubSiatki.TryGetValue("ekran LED", out var mLed) && mLed)) ZapiszSiatke("ekran LED", mQuad);
         var ledM = Plain("klub ściana LED (wzór z kodu)", Color.black, .2f);
         if (!ledM.IsKeywordEnabled("_EMISSION")) { ledM.EnableKeyword("_EMISSION"); ledM.SetColor("_EmissionColor", Color.white * 1.5f); ledM.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None; EditorUtility.SetDirty(ledM); }
-        var led = Obiekt(root, "DJ: ściana LED", klubSiatki["ekran LED"], ledM, new Vector3(lx, ly0, lz0), Quaternion.identity, new Vector3(1, ly1 - ly0, lz1 - lz0));
+        // 3.11 15:57 (właściciel): MURAL PULS CLUB za DJ-em (grafika z czatu, 3:1) zamiast wzoru LED — pełna szerokość, w ramie stalowej
+        var mural = SzyldObraz("mural_puls");
+        if (mural) { float hm = (lz1 - lz0) / 3f; ly0 = sH + .3f + (4.4f - hm) * .5f; ly1 = ly0 + hm; Debug.Log("BRAXHORN_DYSKOTEKA mural za DJ-em: " + (lz1 - lz0).ToString("F1") + "×" + hm.ToString("F2") + " m"); }
+        var led = Obiekt(root, mural ? "DJ: mural PULS CLUB (grafika właściciela)" : "DJ: ściana LED", klubSiatki["ekran LED"], mural ? mural : ledM, new Vector3(lx, ly0, lz0), Quaternion.identity, new Vector3(1, ly1 - ly0, lz1 - lz0));
         foreach (var (a0, a1, b0, b1) in new[] { (ly1, ly1 + .08f, lz0 - .08f, lz1 + .08f), (ly0 - .08f, ly0, lz0 - .08f, lz1 + .08f), (ly0, ly1, lz0 - .08f, lz0), (ly0, ly1, lz1, lz1 + .08f) })
             BoxMinMax(steel, lx - .02f, X1 - .015f, a0, a1, b0, b1, false);
         // lasery na kolumnach sceny (model laser_light.glb bez jego wiązek — wiązki z kodu, addytywne, wygasające)
@@ -575,7 +578,7 @@ public static partial class BraxClaudeOsiedle
             glowice.Add(piv); tylkoOtwarte.Add(piv.gameObject);
         }
         var ef = new GameObject("dyskoteka: efekty klubu (BraxKlubEfekty)").AddComponent<BraxKlubEfekty>(); ef.transform.SetParent(root, false);
-        ef.ekranLed = led.GetComponent<Renderer>(); ef.kula = kula; ef.lasery = lasery.ToArray(); ef.glowice = glowice.ToArray(); ef.tylkoGdyOtwarte = tylkoOtwarte.ToArray();
+        ef.ekranLed = mural ? null : led.GetComponent<Renderer>(); ef.kula = kula; ef.lasery = lasery.ToArray(); ef.glowice = glowice.ToArray(); ef.tylkoGdyOtwarte = tylkoOtwarte.ToArray();
         ef.srodek = new Vector3((X0 + X1) * .5f, 2f, (Z0 + Z1) * .5f); ef.promien = 34f;
         // ochrona w sali przy wejściu (poza strefą 2.5 m za drzwiami)
         klub.ochrona = new Vector3(dB + 2.8f, yF, Z1 - 2.6f);

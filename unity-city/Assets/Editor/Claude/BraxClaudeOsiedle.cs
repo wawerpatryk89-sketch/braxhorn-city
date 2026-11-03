@@ -2949,6 +2949,14 @@ public static partial class BraxClaudeOsiedle
         var cream = Plain("sufit kremowy", new Color(.93f, .88f, .78f), .2f);
         var rope = Plain("lina aksamitna czerwona", new Color(.42f, .03f, .05f), .25f);
         Top(marble, x0, x1, zb + .01f, zf - .01f, yF);
+        // 3.11 15:16 (właściciel: „co tu robi ten stół w tym miejscu” — ruletka przy KASA · ŻETONY i stół przy ZAKŁADY): stoły
+        // starej sali kasyna (siatka osiedla) w obrysie przedsionka wycięte (0.25–1.25 m nad posadzką, 0.6 m od ścian)
+        {
+            var est = GameObject.Find("braxhorn-estate")?.transform; var phys = GameObject.Find("Original estate collisions")?.transform;
+            int przedS = rep.oldFenceTrianglesRemoved;
+            if (est) CutVolumes(est, phys, new List<Bounds> { MinMax(x0 + .6f, x1 - .6f, yF + .25f, 1.25f, zb + .6f, zf - .6f) });
+            Debug.Log("BRAXHORN_KASYNO przedsionek: stare stoły wycięte, trójkątów=" + (rep.oldFenceTrianglesRemoved - przedS));
+        }
         Top(carpet, 84.8f, 87.2f, -32.6f, zf - .02f, yF + .008f); Top(carpet, 84.8f, 91.2f, zb + .03f, -32.6f, yF + .008f);
         // ściana z drzwiami (lico +z): boazeria do 1.2 m, złota listwa, tapeta do sufitu; nad drzwiami tapeta; złota rama drzwi
         foreach (var (a0, a1) in new[] { (x0, dx0), (dx1, x1) })
