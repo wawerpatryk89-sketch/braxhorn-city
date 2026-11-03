@@ -343,11 +343,15 @@ public static partial class BraxClaudeOsiedle
     static void SzyldSilowniFront(float dX, float sY0, float fz1, float maxW)
     {
         float cap = .8f; while (SzerokoscNapisu("BRAXHORN", cap) > maxW && cap > .4f) cap -= .02f;
-        SzyldLitery("A siłownia", "BRAXHORN (front)", "BRAXHORN", new Vector3(dX, sY0 + .42f, fz1), Vector3.forward, cap, MatLicoBiale, MatBokiCzarne, .12f, .05f);
-        SzyldLitery("A siłownia", "KICKBOXING (front)", "KICKBOXING", new Vector3(dX, sY0, fz1), Vector3.forward, .26f, MatLico("zielone BRAXHORN", new Color(.36f, .78f, .18f)), MatBokiCzarne, .05f, .04f);
+        // 16:20 (właściciel: drugi klub = przeciwnik): siłownia A z kickboxingiem = WAWER FIGHT CLUB, gdy jest grafika z arkusza
+        if (SzyldPanel("wawer_fight", new Vector3(dX, sY0 + .3f, fz1) + Vector3.forward * .03f, Vector3.forward, 3f, .6f)) wawerFight = true;
+        else SzyldLitery("A siłownia", "BRAXHORN (front)", "BRAXHORN", new Vector3(dX, sY0 + .42f, fz1), Vector3.forward, cap, MatLicoBiale, MatBokiCzarne, .12f, .05f);
+        if (!wawerFight) SzyldLitery("A siłownia", "KICKBOXING (front)", "KICKBOXING", new Vector3(dX, sY0, fz1), Vector3.forward, .26f, MatLico("zielone BRAXHORN", new Color(.36f, .78f, .18f)), MatBokiCzarne, .05f, .04f);
     }
+    static bool wawerFight;
     static void SzyldSilowniPark(Vector3 srodek, float yBaza)
     {
+        if (SzyldPanel("wawer_fight", new Vector3(srodek.x, yBaza + .5f, srodek.z) + Vector3.back * .03f, Vector3.back, 6f, 1.2f)) return;
         SzyldLitery("A siłownia", "BRAXHORN (od parku)", "BRAXHORN", new Vector3(srodek.x, yBaza + .65f, srodek.z), Vector3.back, 1.5f, MatLicoBiale, MatBokiCzarne, .16f, .06f);
         SzyldLitery("A siłownia", "KICKBOXING (od parku)", "KICKBOXING", new Vector3(srodek.x, yBaza, srodek.z), Vector3.back, .45f, MatLico("zielone BRAXHORN", new Color(.36f, .78f, .18f)), MatBokiCzarne, .07f, .05f);
     }
