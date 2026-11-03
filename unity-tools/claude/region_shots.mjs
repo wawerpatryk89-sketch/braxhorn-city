@@ -215,6 +215,10 @@ const VIEWS = [
   ['DETAL_billboard_citylight_nova', '27.6,1.4,34.0,180,8,2.5'],
   ['DETAL_billboard_mural_silownia', '12.1,2.3,20.7,0,8,6'],
   ['DETAL_billboard_rondo', '-126,7,28.5,0,25,12'],
+  // wyspa: kibice na trybunach, ludzie na plaży, obsada (miejsca z kroków wyspy → postacie)
+  ['WYSPA_arena_kibice', '1164,5,35,0,18,12'],
+  ['DETAL_wyspa_kibice_rzedy', '1164,4.5,30,0,10,4'],
+  ['WYSPA_plaza_ludzie', '1170,1,-60,225,12,18'],
   ['M_A_metro_wejscie', '68,0.35,34.3,270,12,9'],
   ['M_A_nova_sala', '41,1.8,50,180,5,8'],
   ['M_A_nova_wejscie', '42,1.8,36,180,5,9'],

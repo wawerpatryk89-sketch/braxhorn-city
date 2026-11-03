@@ -268,6 +268,95 @@ public static partial class BraxClaudeOsiedle
         Debug.Log("BRAXHORN_DROGI_ZAPORY usuniete=" + usun.Count + " (z dziećmi, tylko renderer: " + zostalo + ")" + (opis.Count > 0 ? " [" + string.Join("; ", opis.Take(20)) + "]" : "") + " szlaban_tunelu=usunięty tunel=oświetlony_62m_bez_czarnej_ściany");
     }
 
+    // ---- MIEJSCA LUDZI z innych kroków (wyspa: „osoba: poza · rola · gdzie”; wnętrza: „BRAXHORN obsada: rola”) ----
+    // Wcześniej nikt ich nie zamieniał na postacie (arena bez kibiców, plaża i fitness bez ludzi). Postacie wyspy idą pod korzeń
+    // wyspy (scena BraxhornCity_Wyspa — nie wiszą nad morzem, gdy wyspa niewczytana). Widownia ≤ 150 (telefon): bliskie rzędy
+    // animowane, dalsze w pozie (budżet BraxLudzie.Animuj). Poza „leży” — brak klipu: osoba siedzi na leżaku.
+    static readonly Rola RolaRatownik = new Rola { nazwa = "ratownik", postaci = new[] { "Sports", "Male_Adult" }, kolor = new Color(.78f, .08f, .07f) };
+    static readonly Rola RolaSport = new Rola { nazwa = "zawodnik / trener", postaci = new[] { "Sports" } };
+    static Rola RolaDla(string r)
+    {
+        r = r.ToLowerInvariant();
+        if (r.Contains("ochron")) return RolaOchrona;
+        if (r.Contains("ratownik")) return RolaRatownik;
+        if (r.Contains("recepcj") || r.Contains("kasjer") || r.Contains("bileter")) return RolaRecepcja;
+        if (r.Contains("barman") || r.Contains("obsług") || r.Contains("sędzia") || r.Contains("dyżurny")) return RolaObsluga;
+        if (r.Contains("trener") || r.Contains("zawodni") || r.Contains("klientka") || r.Contains("nyxa")) return RolaSport;
+        return RolaPrzechodzien;
+    }
+    static void LudzieZMiejsc(Transform cityRoot, System.Random rnd)
+    {
+        string[] stoi = { "idle_neutral_01", "idle_neutral_02", "idle_look_around_01" };
+        string[] siedzi = { "sit_chair_breathe_01", "sit_chair_idle_neutral_02" };
+        int kibice = 0, inni = 0, obsada = 0, pominiete = 0;
+        var wyspa = cityRoot.Cast<Transform>().FirstOrDefault(t => t.name.StartsWith("CLAUDE wyspa", StringComparison.Ordinal));
+        var miejsca = wyspa ? wyspa.Cast<Transform>().FirstOrDefault(t => t.name.StartsWith("Wyspa: miejsca ludzi", StringComparison.Ordinal)) : null;
+        if (miejsca)
+        {
+            var gW = new GameObject("Wyspa: ludzie (kibice, plaża, obsada)").transform; gW.SetParent(wyspa, false);
+            var lista = miejsca.Cast<Transform>().ToList();
+            int nKib = lista.Count(t => t.name.Contains("· kibic ·")), krokKib = Mathf.Max(1, Mathf.CeilToInt(nKib / 150f)), iKib = 0;
+            foreach (var t in lista)
+            {
+                var cz = t.name.Substring("osoba: ".Length).Split(new[] { " · " }, StringSplitOptions.None);
+                if (cz.Length < 3) { pominiete++; continue; }
+                string poza = cz[0], rola = cz[1], gdzie = cz[2];
+                bool kib = rola == "kibic" && poza == "siedzi";
+                if (kib && (iKib++ % krokKib) != 0) continue;
+                var R = RolaDla(rola);
+                BraxMieszkaniec m = null;
+                if (poza == "siedzi" || poza == "leży") m = Siedzacy(R, gW, gdzie + " — " + rola, t.position, t.forward, rnd, siedzi);
+                else m = NowyMieszkaniec(R, gW, gdzie + " — " + rola, t.position, t.eulerAngles.y, rnd, stoi);
+                if (!m) { pominiete++; continue; }
+                if (kib) kibice++; else inni++;
+            }
+        }
+        // miejsca obsady z wnętrz (metro, fitness Nyxy) — stoją, przodem jak znacznik
+        var gO = Group("Ludzie / obsada wnętrz (metro, fitness)");
+        foreach (var t in cityRoot.GetComponentsInChildren<Transform>(true).Where(x => x.name.StartsWith("BRAXHORN obsada: ", StringComparison.Ordinal)).ToList())
+        {
+            string rola = t.name.Substring("BRAXHORN obsada: ".Length);
+            var m = rola.Contains("mata") ? Siedzacy(RolaDla(rola), gO, rola, t.position + Vector3.up * .02f, t.forward, rnd, siedzi)
+                                          : NowyMieszkaniec(RolaDla(rola), gO, rola, t.position, t.eulerAngles.y, rnd, stoi);
+            if (m) obsada++; else pominiete++;
+        }
+        Debug.Log("BRAXHORN_LUDZIE_WYSPA kibice=" + kibice + " inni=" + inni + " obsada_wnetrz=" + obsada + " pominiete=" + pominiete + (miejsca ? "" : " (brak miejsc wyspy)"));
+    }
+
+    // ---- AUDYT WYSPY (właściciel: „sprawdź ją 10 razy”): lista kontrolna z nazw obiektów i materiałów pod korzeniem wyspy ----
+    static void KompletWyspy(Transform cityRoot)
+    {
+        var wyspa = cityRoot.Cast<Transform>().FirstOrDefault(t => t.name.StartsWith("CLAUDE wyspa", StringComparison.Ordinal));
+        if (!wyspa) { Debug.LogWarning("BRAXHORN_WYSPA_KOMPLET brak wyspy"); return; }
+        var tekst = new List<string>();
+        foreach (var t in wyspa.GetComponentsInChildren<Transform>(true)) tekst.Add(t.name.ToLowerInvariant());
+        foreach (var r in wyspa.GetComponentsInChildren<Renderer>(true)) foreach (var m in r.sharedMaterials) if (m) tekst.Add(m.name.ToLowerInvariant());
+        int Ile(params string[] w) => tekst.Count(x => w.Any(x.Contains));
+        int ludzie = wyspa.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length;
+        var pozycje = new (string grupa, string co, int ile, int min)[]
+        {
+            ("plaża", "piasek", Ile("piasek", "piask"), 1), ("plaża", "wieżyczka ratownika", Ile("ratownik"), 1), ("plaża", "flaga", Ile("flag"), 1),
+            ("plaża", "boje kąpieliska", Ile("boj"), 1), ("plaża", "leżaki", Ile("leżak", "lezak"), 1), ("plaża", "parasole", Ile("parasol"), 1),
+            ("plaża", "prysznice", Ile("prysznic"), 1), ("plaża", "przebieralnie", Ile("przebieral"), 1), ("plaża", "WC (budynek)", Ile("wc", "toalet"), 1),
+            ("plaża", "bar plażowy", Ile("bar plaż", "beach bar"), 1), ("plaża", "wypożyczalnia", Ile("wypożycz", "wypozycz"), 1), ("plaża", "kosze", Ile("kosz"), 1),
+            ("plaża", "ławki", Ile("ławk", "lawk"), 1), ("plaża", "kładki / deptak", Ile("kładk", "deptak", "pomost z desek"), 1), ("plaża", "oświetlenie", Ile("latarn", "lamp", "oprawa"), 1),
+            ("ośrodek", "domki", Ile("domek"), 22), ("ośrodek", "recepcja", Ile("recepcj"), 1), ("ośrodek", "sklep", Ile("sklep"), 1), ("ośrodek", "plac zabaw", Ile("plac zabaw", "huśtaw", "zjeżdżal"), 1),
+            ("ośrodek", "chodniki", Ile("chodnik"), 1), ("ośrodek", "krawężniki", Ile("krawęż", "krawez"), 1), ("ośrodek", "zieleń (krzewy)", Ile("krzew", "shrub"), 1),
+            ("przystań", "pomost", Ile("pomost", "przystań"), 1), ("przystań", "cumowanie (polery / knagi)", Ile("poler", "knag", "cum"), 1), ("przystań", "tablica WYSPA", Ile("tablica wyspa", "wyspa: tablica"), 1),
+            ("arena", "trybuny", Ile("trybun"), 1), ("arena", "fotele", Ile("fotel"), 1), ("arena", "loże VIP", Ile("vip", "loż"), 1), ("arena", "klatka / oktagon", Ile("klatk"), 1),
+            ("arena", "ring z linami", Ile("lin ring", "ring:", "ringi"), 1), ("arena", "narożniki", Ile("narożn"), 1), ("arena", "stół sędziów", Ile("sędzi"), 1),
+            ("arena", "telebim", Ile("telebim"), 1), ("arena", "rampa świateł", Ile("rampa", "kratownic"), 1), ("arena", "tunel zawodników", Ile("tunel"), 1),
+            ("arena", "szatnie", Ile("szatni"), 1), ("arena", "kasy", Ile("kas"), 1), ("arena", "toalety w arenie", Ile("arena: wc", "arena: toalet", "toalety areny"), 1),
+            ("zieleń", "palmy", Ile("palm"), 1), ("zieleń", "drzewa Poly Haven (pine/fir/island_tree)", Ile("pine_tree", "fir_tree", "island_tree"), 1),
+            ("zieleń", "krzewy Poly Haven", Ile("shrub_0"), 1), ("skały", "coast_rocks / boulder / cliff", Ile("coast_rocks", "boulder", "coastal_cliff", "skał", "skal"), 1),
+            ("brzeg", "piana", Ile("pian"), 1),
+        };
+        var brak = pozycje.Where(q => q.ile < q.min).Select(q => q.grupa + ": " + q.co + " (" + q.ile + "/" + q.min + ")").ToList();
+        string linia = "BRAXHORN_WYSPA_KOMPLET jest=" + (pozycje.Length - brak.Count) + "/" + pozycje.Length + " ludzie=" + ludzie + " auta=" + wyspa.GetComponentsInChildren<BraxAuto>(true).Length
+            + " | " + string.Join(", ", pozycje.Select(q => q.co + "=" + q.ile)) + (brak.Count > 0 ? " | BRAKI: " + string.Join("; ", brak) : "");
+        if (brak.Count == 0) Debug.Log(linia); else Debug.LogWarning(linia);
+    }
+
     public static void LudzieMiastaB(Transform cityRoot)
     {
         var repPrev = rep; var rootPrev = root; var colPrev = colliders; var groupPrev = group;
@@ -346,6 +435,8 @@ public static partial class BraxClaudeOsiedle
                 Debug.Log("BRAXHORN_AUTA_KIEROWCY jadace=" + jad.Length + " jadace_bez=" + bez + " kierowcow=" + rbKierowcy + (bez > 0 ? " (cel 0 — auto bez węzła „" + FotelKierowcy + "”?)" : ""));
             }
             catch (Exception e) { Debug.LogWarning("BRAXHORN_AUTA_KIEROWCY DO POPRAWKI " + e.Message); }
+            try { LudzieZMiejsc(cityRoot, rnd); } catch (Exception e) { Debug.LogWarning("BRAXHORN_LUDZIE_WYSPA DO POPRAWKI " + e); }
+            try { KompletWyspy(cityRoot); } catch (Exception e) { Debug.LogWarning("BRAXHORN_WYSPA_KOMPLET DO POPRAWKI " + e.Message); }
             Debug.Log(RaportStrojow());
             Debug.Log(RaportSkaliLudzi());
             try { AudytSkali(); } catch (Exception e) { Debug.LogWarning("BRAXHORN_SKALA DO POPRAWKI " + e.Message); }
