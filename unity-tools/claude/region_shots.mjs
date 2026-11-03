@@ -241,6 +241,9 @@ const VIEWS = [
   ['DETAL_przystanek_A1_nazwa', '8.4,2.2,9.8,270,8,6', 'estate'],
   ['DETAL_przystanek_A3', '8.4,1.6,66.5,270,8,6.5', 'estate'],
   ['DETAL_przystanek_B2', '15,1.6,-185.3,180,8,6.5', 'estate'],
+  // runda 6 (B): billboardy osiedla (citylight przy przystanku A 1, tablica WILLA MISTRZA)
+  ['DETAL_billboard_08_przystanek', '8.4,1.4,12.8,0,6,4', 'estate'],
+  ['DETAL_billboard_14_wille', '38,2.6,-200.9,0,5,7', 'estate'],
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],
