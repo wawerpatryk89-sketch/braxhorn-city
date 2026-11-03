@@ -146,10 +146,10 @@ public static partial class BraxClaudeOsiedle
         // 3.11 (właściciel: warsztat szary, małe napisy): szyldy z grafik właściciela na pasie grafitowym; bez grafik — litery
         if (!SzyldPanel("warsztat_szyld", new Vector3(xb + bw, yE + .25f, z1 + .06f), Vector3.forward, 1.98f, .66f))
             Napis3D("WARSZTAT", new Vector3(xb + bw, yE + .3f, z1 + .06f), Vector3.forward, .26f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
-        // 3.11 16:15 (właściciel: „porób konkurencję”, „Kruk będzie”): wulkanizacja = KRUK (konkurencja obok BRAXHORN SERWIS);
-        // szyld z grafiki kruk_wulkanizacja, bez niej — litery KRUK WULKANIZACJA (żółte na granacie)
-        if (!SzyldPanel("kruk_wulkanizacja", new Vector3(xb + bw * 2.5f, yE + .25f, z1 + .06f), Vector3.forward, 1.98f, .66f))
-            Napis3D("KRUK WULKANIZACJA", new Vector3(xb + bw * 2.5f, yE + .3f, z1 + .06f), Vector3.forward, .17f, .05f, StSwiatlo("napis KRUK żółty", new Color(1f, .82f, .12f)), StMat("pas KRUK granat", new Color(.05f, .09f, .22f), .5f, .3f), .15f, .14f, true);
+        // 3.11 16:15 (właściciel: „porób konkurencję”, „Kruk będzie”, 16:17 „Wawer konkurencja jednak”): wulkanizacja = WAWER (konkurencja obok BRAXHORN SERWIS);
+        // szyld z grafiki wawer_wulkanizacja, bez niej — litery WAWER WULKANIZACJA (żółte na granacie)
+        if (!SzyldPanel("wawer_wulkanizacja", new Vector3(xb + bw * 2.5f, yE + .25f, z1 + .06f), Vector3.forward, 1.98f, .66f))
+            Napis3D("WAWER WULKANIZACJA", new Vector3(xb + bw * 2.5f, yE + .3f, z1 + .06f), Vector3.forward, .17f, .05f, StSwiatlo("napis WAWER żółty", new Color(1f, .82f, .12f)), StMat("pas WAWER granat", new Color(.05f, .09f, .22f), .5f, .3f), .15f, .14f, true);
         if (false)
             Napis3D("WULKANIZACJA", new Vector3(xb + bw * 2.5f, yE + .3f, z1 + .06f), Vector3.forward, .2f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
         Napis3D("BIURO", new Vector3((x0 + xb) * .5f, yE + .32f, z1 + .06f), Vector3.forward, .2f, .04f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
