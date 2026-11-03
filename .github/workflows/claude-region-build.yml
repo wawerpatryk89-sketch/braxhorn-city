@@ -727,7 +727,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        part: [0, 1, 2]
+        part: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]   # 3.11: 218 ujęć miasta — przy 3 częściach zdążyło 57 (~19 na część w 80 min), nowe dzielnice bez zdjęć
     permissions:
       contents: write
       actions: read
@@ -748,12 +748,12 @@ jobs:
       run: |
         npm install --no-save --ignore-scripts playwright@1.56.1
         npx playwright install --with-deps chromium
-    - name: Zdjecia z prawdziwego playera (czesc ${{ matrix.part }} z 3)
+    - name: Zdjecia z prawdziwego playera (czesc ${{ matrix.part }} z 12)
       continue-on-error: true
       timeout-minutes: 80
       env:
         SHOT_PART: ${{ matrix.part }}
-        SHOT_PARTS: 3
+        SHOT_PARTS: 12
         SHOT_REJON: ${{ needs.combined-unity6.outputs.rejon }}
       run: |
         # tylko ujecia budowanego rejonu (osiedle → 'estate', miasto → 'city', oba → wszystkie)
