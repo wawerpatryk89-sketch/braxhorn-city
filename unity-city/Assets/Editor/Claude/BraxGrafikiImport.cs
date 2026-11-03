@@ -24,11 +24,14 @@ public sealed class BraxGrafikiImport : AssetPostprocessor
         ti.wrapMode = TextureWrapMode.Clamp;
         ti.filterMode = FilterMode.Bilinear;
         ti.anisoLevel = ekran ? 0 : 4;
-        ti.maxTextureSize = 2048;
+        // budżet APK (miasto ~813 MB): billboardy w świecie 1024 i ASTC 6×6; murale oglądane z bliska (02, 19) i ekran startowy 2048
+        string plik = System.IO.Path.GetFileNameWithoutExtension(assetPath);
+        bool zBliska = ekran || plik == "02" || plik == "19";
+        ti.maxTextureSize = zBliska ? 2048 : 1024;
         ti.isReadable = false;
         ti.textureCompression = TextureImporterCompression.CompressedHQ;
         var a = ti.GetPlatformTextureSettings("Android");
-        a.overridden = true; a.maxTextureSize = 2048; a.format = TextureImporterFormat.ASTC_4x4; a.compressionQuality = 100;
+        a.overridden = true; a.maxTextureSize = ti.maxTextureSize; a.format = ekran ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6; a.compressionQuality = 100;
         ti.SetPlatformTextureSettings(a);
         var ign = typeof(TextureImporter).GetProperty("ignoreMipmapLimit");   // jakość „niska” nie zmniejsza grafik
         if (ign != null && ign.CanWrite) ign.SetValue(ti, true);
