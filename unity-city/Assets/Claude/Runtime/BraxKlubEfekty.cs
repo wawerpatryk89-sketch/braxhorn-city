@@ -15,16 +15,8 @@ public sealed class BraxKlubEfekty : MonoBehaviour
 
     const int W = 48, H = 24;
     Texture2D tex; Color32[] px; float nastLed; Quaternion[] bazaL, bazaG; bool widoczne = true;
-    // 3.11 15:18 (właściciel): lasery i stożki MRUGAJĄ w zmiennym tempie — tylko wiązki (materiały „klub wiązka/stożek”), oprawy zostają
-    Renderer[] wL, wG; float faza;
-    static Renderer[] Wiazki(Transform[] t)
-    {
-        var l = new System.Collections.Generic.List<Renderer>();
-        if (t != null) foreach (var x in t) if (x) foreach (var r in x.GetComponentsInChildren<Renderer>(true))
-                    if (r.sharedMaterial && (r.sharedMaterial.name.Contains("wiązka") || r.sharedMaterial.name.Contains("stożek"))) l.Add(r);
-        return l.ToArray();
-    }
-    static void Pokaz(Renderer[] r, bool on) { foreach (var x in r) if (x && x.enabled != on) x.enabled = on; }
+    // 3.11 15:18/15:58 (właściciel): lasery i stożki MRUGAJĄ w zmiennym tempie — wspólny wzór BraxStrob (też NOVA w mieście)
+    BraxStrob strob;
 
     void Start()
     {
@@ -38,7 +30,9 @@ public sealed class BraxKlubEfekty : MonoBehaviour
             Rysuj(0f);
         }
         bazaL = Baza(lasery); bazaG = Baza(glowice);
-        wL = Wiazki(lasery); wG = Wiazki(glowice);
+        strob = new BraxStrob();
+        if (lasery != null) foreach (var x in lasery) strob.Dodaj(BraxStrob.Wiazki(x, "wiązka", "stożek"));
+        if (glowice != null) foreach (var x in glowice) strob.Dodaj(BraxStrob.Wiazki(x, "wiązka", "stożek"));
     }
     static Quaternion[] Baza(Transform[] t)
     {
@@ -65,15 +59,7 @@ public sealed class BraxKlubEfekty : MonoBehaviour
         if (glowice != null)
             for (int i = 0; i < glowice.Length; i++)
                 if (glowice[i]) glowice[i].localRotation = bazaG[i] * Quaternion.Euler(Mathf.Sin(t * .7f + i * 2.1f) * 24f, 0f, Mathf.Cos(t * .5f + i * 1.3f) * 24f);
-        // tempo 96–150 BPM (wolna fala ~100 s + krótsza ~25 s); takt 8 uderzeń: 0–3 błysk na uderzenie, 4–5 stroboskop ×4,
-        // 6 przerwa (ciemno, stożki wracają w połowie), 7 pełne światło; stożki przesunięte o pół taktu względem laserów
-        float bpm = 123f + 18f * Mathf.Sin(t * .063f) + 9f * Mathf.Sin(t * .25f);
-        faza += dt * bpm / 60f;
-        int u = (int)faza % 8; float f = faza - Mathf.Floor(faza);
-        bool l = u <= 3 ? f < .55f : u <= 5 ? (f * 4f) % 1f < .5f : u == 7;
-        int u2 = (u + 4) % 8;
-        bool gS = u2 <= 3 ? f < .8f : u2 <= 5 ? (f * 2f) % 1f < .6f : u2 == 6 ? f > .5f : true;
-        Pokaz(wL, l); Pokaz(wG, gS);
+        strob.Krok(t, dt);
         if (tex && t >= nastLed) { nastLed = t + 1f / 12f; Rysuj(t); }
     }
 
