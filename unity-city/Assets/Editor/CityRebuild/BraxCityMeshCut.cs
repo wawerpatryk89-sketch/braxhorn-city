@@ -57,7 +57,9 @@ public static class BraxCityMeshCut
             if(Distance(a,cut,plane)<-Epsilon&&Distance(b,cut,plane)<-Epsilon&&Distance(c,cut,plane)<-Epsilon)return true;
         return false;
     }
-    public static int Subtract(Transform root, Bounds volume, string outputDirectory, string label)
+    // keepTallWalls (3.11, właściciel: „biurowiec wisi w powietrzu” przy parku tyłów): wycięcie „tylko gruntu” zostawia ściany
+    // (|n.y| < 0.5) siatek wyższych niż 4 m — budynek na granicy strefy nie traci parteru.
+    public static int Subtract(Transform root, Bounds volume, string outputDirectory, string label, bool keepTallWalls = false)
     {
         Directory.CreateDirectory(outputDirectory);AssetDatabase.Refresh();
         int altered=0;
@@ -65,6 +67,7 @@ public static class BraxCityMeshCut
         {
             var renderer=filter.GetComponent<MeshRenderer>();var source=filter.sharedMesh;
             if(!renderer||!renderer.enabled||!source||!renderer.bounds.Intersects(volume))continue;
+            bool tall=keepTallWalls&&renderer.bounds.size.y>4f;
             var positions=source.vertices;var normals=source.normals;var tangents=source.tangents;
             var uv=source.uv;var uv2=source.uv2;var colors=source.colors;
             var vertices=new Vertex[positions.Length];
@@ -90,6 +93,7 @@ public static class BraxCityMeshCut
                 for(int j=0;j<input.Length;j+=3)
                 {
                     var a=vertices[input[j]];var b=vertices[input[j+1]];var c=vertices[input[j+2]];
+                    if(tall){var wn=Vector3.Cross(b.world-a.world,c.world-a.world);if(wn.sqrMagnitude>1e-12f&&Mathf.Abs(wn.normalized.y)<.5f){indices.Add(add(a));indices.Add(add(b));indices.Add(add(c));continue;}}
                     if(TriangleOutside(a.world,b.world,c.world,volume)){indices.Add(add(a));indices.Add(add(b));indices.Add(add(c));continue;}
                     // Successive outside pieces are disjoint. The final inside
                     // polygon is discarded, so no triangles cross the opening.
