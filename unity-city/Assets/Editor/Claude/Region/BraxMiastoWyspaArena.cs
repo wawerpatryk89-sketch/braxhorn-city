@@ -272,7 +272,7 @@ internal static partial class BraxMiastoWyspa
         var gr = BraxUliceKit.S(apGranit); float L = 1.6f;
         var m0 = P(p0, y0, -.25f); var m1 = P(p1, y0, -.25f);
         gr.Quad(m0 + N * (L + .25f), m1 + N * (L + .25f), m1 + Vector3.up * .15f, m0 + Vector3.up * .15f, (Vector3.up * L + N * .15f).normalized);
-        gr.Tri(m0 + N * (L + .25f), m0 + Vector3.up * .15f, m0 + N * .25f, -Rr); gr.Tri(m1 + N * (L + .25f), m1 + N * .25f, m1 + Vector3.up * .15f, Rr);
+        gr.Tri(m0 + N * (L + .25f), m0 + Vector3.up * .15f, m0, -Rr); gr.Tri(m1 + N * (L + .25f), m1, m1 + Vector3.up * .15f, Rr);
         var r = new GameObject("kolizja: podjazd wejścia areny"); r.transform.SetParent(kol, false);
         r.transform.position = P((p0 + p1) * .5f, y0 + .05f, L * .5f - .1f); r.transform.rotation = Quaternion.LookRotation(N, Vector3.up) * Quaternion.Euler(Mathf.Atan2(.15f, L) * Mathf.Rad2Deg, 0, 0);
         r.AddComponent<BoxCollider>().size = new Vector3(p1 - p0, .1f, L + .5f); apKol++;
@@ -684,6 +684,26 @@ internal static partial class BraxMiastoWyspa
             m.SetFloat("_AlphaClip", 1f); m.SetFloat("_Cutoff", .5f); m.SetFloat("_Cull", 0f); m.renderQueue = 2450; m.SetOverrideTag("RenderType", "TransparentCutout");
         });
     }
+    static Material ApLogoMaty()
+    {
+        try
+        {
+            string path = BraxMiastoA.Out + "/Wyspa/arena_mata_logo.png"; const int n = 512;
+            var px = new Color[n * n]; var tlo = new Color(.2f, .52f, .12f); var bial = new Color(.95f, .95f, .93f);
+            for (int y = 0; y < n; y++) for (int x = 0; x < n; x++)
+            {
+                float dx = x - n * .5f, dy = y - n * .5f, r = Mathf.Sqrt(dx * dx + dy * dy);
+                px[y * n + x] = r > n * .44f && r < n * .46f ? bial : tlo;   // okrąg logo
+            }
+            BraxUliceKit.NapisWTeksturze(px, n, n, "BRAXHORN", n * .5f, n * .5f - 22f, 46f, bial);
+            var t = new Texture2D(n, n, TextureFormat.RGBA32, false); t.SetPixels(px); t.Apply(); File.WriteAllBytes(path, t.EncodeToPNG()); Object.DestroyImmediate(t);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+            if (AssetImporter.GetAtPath(path) is TextureImporter imp) { imp.wrapMode = TextureWrapMode.Clamp; imp.maxTextureSize = 512; imp.textureCompression = TextureImporterCompression.Compressed; imp.SaveAndReimport(); }
+            var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path); if (!tex) return null;
+            return BraxMiastoA.ZShadera(BraxCityMaterials.ShaderName, "Arena premium: środek maty (logo BRAXHORN w teksturze)", m => { m.SetTexture("_MainTex", tex); m.SetColor("_Color", Color.white); m.SetFloat("_Roughness", .7f); m.SetFloat("_Metallic", 0f); });
+        }
+        catch (System.Exception e) { BraxMiastoA.Log("WYSPA arena: logo maty DO POPRAWKI " + e.Message); return null; }
+    }
     static void ApKlatka()
     {
         BraxUliceKit.UstawGrupe("Wyspa: arena premium — klatka");
@@ -694,7 +714,7 @@ internal static partial class BraxMiastoWyspa
         var stalP = BraxUliceKit.S(BraxMiastoA.Mat("Arena premium: pas słupków (stal grafit)", new Color(.2f, .2f, .21f), .5f, .6f));
         var mata = BraxMiastoA.Mat("Arena: mata klatki (winyl)", new Color(.88f, .88f, .86f), .7f);
         var mataZ = BraxMiastoA.Mat("Arena premium: środek maty (zieleń BRAXHORN)", new Color(.2f, .52f, .12f), .7f);
-        var mm = new UlSiatka(); var mz = new UlSiatka(); float rZ = 1.6f;
+        var mm = new UlSiatka(); var mz = new UlSiatka(); float rZ = 2.4f;
         for (int i = 0; i < 8; i++)
         {
             Vector3 Y(Vector3 v) => v + Vector3.up * yT;
@@ -702,10 +722,11 @@ internal static partial class BraxMiastoWyspa
             winyl.Quad(Y(Kw(i, rc + ps)), Y(Kw(i + 1, rc + ps)), Y(Kw(i + 1, rc + fa)), Y(Kw(i, rc + fa)), Vector3.up);       // fartuch
             stalP.Quad(Y(Kw(i, rc - ps)), Y(Kw(i + 1, rc - ps)), Y(Kw(i + 1, rc + ps)), Y(Kw(i, rc + ps)), Vector3.up);        // pas słupków
             mm.Quad(Y(Kw(i, rZ)), Y(Kw(i + 1, rZ)), Y(Kw(i + 1, rc - ps)), Y(Kw(i, rc - ps)), Vector3.up);                    // mata (pierścień)
-            mz.Tri(new Vector3(c.x, yT, c.z), Y(Kw(i + 1, rZ)), Y(Kw(i, rZ)), Vector3.up);                                    // środek maty
+            int kz = mz.v.Count; mz.Tri(new Vector3(c.x, yT, c.z), Y(Kw(i + 1, rZ)), Y(Kw(i, rZ)), Vector3.up);               // środek maty (logo w teksturze)
+            for (int q = kz; q < mz.v.Count; q++) mz.uv[q] = new Vector2((mz.v[q].x - c.x) / (2f * rZ) + .5f, (mz.v[q].z - c.z) / (2f * rZ) + .5f);
             cz.Rura(Kw(i, rc + fa) + Vector3.up * (yT - .03f), Kw(i + 1, rc + fa) + Vector3.up * (yT - .03f), .045f, 8);     // obrzeże fartucha (wałek)
         }
-        BraxMiastoA.Obiekt(root, "Klatka: mata (z wycięciem pod pas słupków)", mm, mata, true); BraxMiastoA.Obiekt(root, "Klatka: środek maty", mz, mataZ, true);
+        BraxMiastoA.Obiekt(root, "Klatka: mata (z wycięciem pod pas słupków)", mm, mata, true); BraxMiastoA.Obiekt(root, "Klatka: środek maty (logo BRAXHORN)", mz, ApLogoMaty() ?? mataZ, true);
         var siat = new UlSiatka(); var sMat = ApSiatkaMat(); const float oko = .13f;
         var gb = BraxUliceKit.S(BraxMiastoA.Mat("Arena: osłony klatki (pianka)", new Color(.06f, .06f, .06f), .8f));
         var gbC = BraxUliceKit.S(BraxMiastoA.Mat("Arena: osłona narożnika czerwonego", new Color(.72f, .07f, .07f), .7f));
@@ -888,7 +909,7 @@ internal static partial class BraxMiastoWyspa
                 D(apChrom).Rura(kr + Vector3.up * .06f, kr + Vector3.up * .5f * K, .025f, 8);
                 Toczenie(D(apCzarny), new[] { new Vector2(0, .5f * K), new Vector2(.22f, .5f * K), new Vector2(.24f, .5f * K + .04f), new Vector2(.22f, .5f * K + .08f), new Vector2(0, .5f * K + .08f) }, kr, 14);
                 Wyciag(D(apCzarny), Obrot(PZ(.05f, .42f, .02f, new Vector2(-.25f, .5f * K + .35f)), 8f, new Vector2(-.25f, .5f * K + .1f)), kr - Vector3.Cross(Vector3.up, ws) * .2f, Vector3.Cross(Vector3.up, ws), Vector3.up, ws, .4f);
-                Czlowiek("Kasa ARENY", "kasjer", "stoi", kr, ws, KlLada);
+                Czlowiek("Kasa ARENY", "kasjer", "siedzi", kr + Vector3.up * (.5f * K + .08f), ws, KlSiedzi);
             }
             BraxMiastoA.Akcja(root, su < 0 ? "arena_kasa" : "arena_kasa_2", "KUP BILET", "Kasa ARENY BRAXHORN: bilety na galę mistrzowską — sektor A–F.", start + Vector3.right * 1.0f + ws * .9f, 1.6f);
             Czlowiek("Kasa ARENY", "kibic w kolejce", "stoi", start + Vector3.right * 1.2f + ws * .75f, -ws, KlStoi);
@@ -1008,13 +1029,13 @@ internal static partial class BraxMiastoWyspa
         }
         // wyposażenie szatni
         var lak = D(BraxMiastoA.Mat("Arena: szafki szatni (stal lakierowana)", new Color(.2f, .21f, .23f), .45f, .4f));
-        var lakD = D(BraxMiastoA.Mat("Arena premium: drzwiczki szafek (stal lakierowana)", new Color(.26f, .27f, .29f), .4f, .4f));
         var stol = D(BraxMiastoA.Mat("Arena premium: stół do masażu (skaj czarny)", new Color(.07f, .07f, .075f), .55f));
         foreach (float sg in new[] { 1f, -1f })
         {
             bool brax = sg > 0; string kto = brax ? "SZATNIA BRAXA" : "SZATNIA GOŚCI";
             float zw = cz + sg * zs;   // lico ściany zewnętrznej od środka
             var ws = new Vector3(0, 0, -sg);
+            var lakD = D(brax ? BraxMiastoA.Mat("Arena premium: drzwiczki szafek Braxa (czerwień)", new Color(.55f, .07f, .06f), .4f, .3f) : BraxMiastoA.Mat("Arena premium: drzwiczki szafek gości (granat)", new Color(.08f, .15f, .42f), .4f, .3f));
             // szafki: korpus z daszkiem skośnym (profil), drzwiczki osobno ze szczelinami, uchwyty
             float lx0 = x0 + t + .5f, lx1 = x1 - .3f, dp = .5f, hl = 1.8f * K; int nl = Mathf.FloorToInt((lx1 - lx0) / .5f); float lw = (lx1 - lx0) / nl;
             Wyciag(lak, new[] { new Vector2(0, 0), new Vector2(dp - .06f, 0), new Vector2(dp - .06f, .1f), new Vector2(dp, .1f), new Vector2(dp, hl), new Vector2(0, hl + .18f) }, new Vector3(lx0, F + .02f, zw), Vector3.right, Vector3.up, ws, lx1 - lx0);
