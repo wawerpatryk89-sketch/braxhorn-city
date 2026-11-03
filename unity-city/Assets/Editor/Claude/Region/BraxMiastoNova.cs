@@ -58,6 +58,15 @@ internal static class BraxMiastoNova
         raport.Add(BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(SX1 + .02f, 52.0f, .16f, 5.05f, 34.6f, 36.55f), "nova_front_klub", flat));
         raport.Add(BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(32.0f, SX1 + .02f, .16f, 5.05f, 34.6f, 36.2f), "nova_front_klatka", flat));
         int stare = 0; foreach (var t in stareKlub) if (t) { BraxUliceKit.Usun(t.gameObject, "stare wyposażenie NOVA"); stare++; }
+        // 3.11 (właściciel: „dyskoteka… nie można wejść”): STARE wejście źródła (BraxCityVenueDoors „NOVA_SOURCE_ENTRY” + czarne
+        // stalowe skrzydło z BraxClaudeVenues) stało na zawiasie z kolizją 2.1 × 2.7 m w osi nowych drzwi automatycznych (z 36.08
+        // vs 36.28) — zamknięte drzwi w przejściu. Zdjęte razem z wpisem w świecie (wejście = drzwi automatyczne).
+        int stareDrzwi = 0;
+        foreach (var d in Object.FindObjectsByType<BraxCityDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (d && d.id == "NOVA_SOURCE_ENTRY") { Object.DestroyImmediate(d.gameObject); stareDrzwi++; }
+        var swiatNova = Object.FindFirstObjectByType<BraxCityWorld>(FindObjectsInactive.Include);
+        if (swiatNova && swiatNova.doors != null) swiatNova.doors = swiatNova.doors.Where(x => x).ToArray();
+        raport.Add("stare drzwi wejścia źródła (NOVA_SOURCE_ENTRY): " + stareDrzwi);
         root = BraxRegion.Root(cityRoot, "CLAUDE A: CLUB NOVA (od nowa)");
         kol = new GameObject("kolizje").transform; kol.SetParent(root, false);
 

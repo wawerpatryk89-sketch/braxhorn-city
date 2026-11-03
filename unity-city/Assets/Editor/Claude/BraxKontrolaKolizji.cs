@@ -36,12 +36,21 @@ public static class BraxKontrolaKolizji
             if (!d) continue; drzwiPkt.Add(d.transform.position);
             if (d.leaves != null) foreach (var l in d.leaves) if (l) { var rr = l.GetComponentInChildren<Renderer>(true); drzwiPkt.Add(rr ? rr.bounds.center : l.position); }
         }
+        // 3.11 (dyskoteka „nie można wejść”): także drzwi automatyczne przesuwne (BraxDrzwiPrzesuwne — NOVA, arena, wieżowce,
+        // szpital, komisariat): środek otworu i skrzydła; skrzydła tych drzwi nigdy nie dostają pudełka kontroli
+        var skrzydlaPrzes = new HashSet<Transform>();
+        foreach (var d in UnityEngine.Object.FindObjectsByType<BraxDrzwiPrzesuwne>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!d) continue; drzwiPkt.Add(d.transform.position + Vector3.up * 1.2f);
+            foreach (var r in d.GetComponentsInChildren<Renderer>(true)) { drzwiPkt.Add(r.bounds.center); skrzydlaPrzes.Add(r.transform); }
+        }
         foreach (var j in spis.jednostki)
         {
             try
             {
                 if (j.chroniony) { chronione++; continue; }
                 if (j.typ != null && (j.typ.nazwa == "drzwi" || j.typ.wisi)) continue;
+                if (j.rs.Any(r => r && (skrzydlaPrzes.Contains(r.transform) || r.GetComponentInParent<BraxDrzwiPrzesuwne>()))) { przyDrzwiach++; continue; }
                 if (j.rs.All(BraxKontrola.Roslina2)) continue;
                 j.Odswiez();
                 var b = j.b;
