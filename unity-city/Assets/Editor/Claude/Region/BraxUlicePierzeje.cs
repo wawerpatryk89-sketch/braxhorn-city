@@ -597,7 +597,7 @@ public static class BraxUlicePierzeje
         // 3.11 16:20 (właściciel: trzy firmy — BRAXHORN, WAWER, SOBCZAK — na wszystkie usługi): szyld z grafiki firmy (arkusz 5:1),
         // jeśli jest w paczce grafik; inaczej litery przestrzenne jak dotąd
         string firma = lok.typ == "apteka" ? "sobczak_apteka" : lok.typ == "piekarnia" ? "sobczak_piekarnia" : lok.typ == "cukiernia" ? "sobczak_cukiernia"
-                     : lok.typ == "kawiarnia" ? "sobczak_kawiarnia" : lok.typ == "warzywniak" ? "sobczak_warzywa" : lok.typ == "market" ? "wawer_delikatesy" : null;
+                     : lok.typ == "kawiarnia" ? "sobczak_kawiarnia" : lok.typ == "warzywniak" ? "sobczak_warzywa" : lok.typ == "market" ? "sobczak_delikatesy" : null;   // 16:34: właściciel dał SOBCZAK DELIKATESY
         float wG = Mathf.Min(maxW, 2.6f), hG = wG / 5f;
         if (firma != null)
         {
