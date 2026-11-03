@@ -140,7 +140,7 @@ public static class BraxUlicePierzeje
         if (gNova)
         {
             BraxUliceKit.Start();
-            Nadbudowa(cityRoot, "NOVA", 32f, 52f, 36.1f, 62f, 5.1f, 5, true, 2, Rect.MinMaxRect(6.2f, Parter, 12.6f, Parter + Kond), ref skrocone);
+            Nadbudowa(cityRoot, "NOVA", 32f, 52f, 36.1f, 62f, 5.1f, 5, true, 2, Rect.MinMaxRect(6.2f, Parter, 19.4f, Parter + Kond), ref skrocone);   // pkt 46: mieszkanie Braxa x 38.2…51.4
             siatek += BraxUliceKit.Zapisz(gNova, "pierzeje_nova_gora");
         }
         BraxRegion.Note("pierzeje: cofnięte stare bryły w płaszczyźnie elewacji: " + skrocone);
