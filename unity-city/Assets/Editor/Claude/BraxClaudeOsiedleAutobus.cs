@@ -219,7 +219,8 @@ public static partial class BraxClaudeOsiedle
                     var tA = ra.trasy.FirstOrDefault(q => q.nazwa == "A pętla Poznańska–Bydgoska (zgodnie)");
                     var ptsA = tA.ile > 1 ? ra.punkty.Skip(tA.start).Take(tA.ile).ToArray() : pts;
                     busSkala = .7f; var proby = new List<string>();
-                    foreach (float sk in new[] { 1f, .9f, .8f, .7f }) { AutobusZmiesci(ptsA, 12f * K * sk, 2.55f * K * sk, out int pp); proby.Add(sk.ToString("F1") + ":" + pp); if (pp == 0) { busSkala = sk; break; } }
+                    { AutobusZmiesci(ptsA, 12f * K, 2.55f * K, out int pp); proby.Add("1.0:" + pp); busSkala = 1f;   // właściciel 3.11 02:42: autobus ZAWSZE pełny 12 m × K — nie pomniejszamy; łuki do poszerzenia
+                      if (pp > 0) Debug.LogWarning("BRAXHORN_AUTOBUS DO POPRAWKI łuki na trasie A za ciasne dla 12 m × K (próbki poza jezdnią: " + pp + ") — poszerzyć łuki krawężników na trasie autobusu (zlecenie GPT)"); }
                     busModel = "glb"; Debug.Log("BRAXHORN_AUTOBUS skala_dopasowana=" + busSkala.ToString("F1") + " × (12 m × K) = " + (12f * K * busSkala).ToString("F2") + " m (próby skala:próbki_poza_jezdnią " + string.Join(", ", proby) + ")");
                 }
                 bus = AutobusZModelu(nazwa, rodzic, src, 12f * K * busSkala);
