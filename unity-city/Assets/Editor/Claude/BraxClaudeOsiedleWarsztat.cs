@@ -144,9 +144,9 @@ public static partial class BraxClaudeOsiedle
         }
         StDetal("warsztat", "leje i rury spustowe", 3);
         // 3.11 (właściciel: warsztat szary, małe napisy): szyldy z grafik właściciela na pasie grafitowym; bez grafik — litery
-        if (!SzyldPanel("warsztat_szyld", new Vector3(xb + bw, yE + .25f, z1 + .06f), Vector3.forward, 2.6f, .65f))
+        if (!SzyldPanel("warsztat_szyld", new Vector3(xb + bw, yE + .25f, z1 + .06f), Vector3.forward, 1.98f, .66f))
             Napis3D("WARSZTAT", new Vector3(xb + bw, yE + .3f, z1 + .06f), Vector3.forward, .26f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
-        if (!SzyldPanel("wulkanizacja_szyld", new Vector3(xb + bw * 2.5f, yE + .25f, z1 + .06f), Vector3.forward, 2.6f, .65f))
+        if (!SzyldPanel("wulkanizacja_szyld", new Vector3(xb + bw * 2.5f, yE + .25f, z1 + .06f), Vector3.forward, 1.98f, .66f))
             Napis3D("WULKANIZACJA", new Vector3(xb + bw * 2.5f, yE + .3f, z1 + .06f), Vector3.forward, .2f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
         Napis3D("BIURO", new Vector3((x0 + xb) * .5f, yE + .32f, z1 + .06f), Vector3.forward, .2f, .04f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
 
