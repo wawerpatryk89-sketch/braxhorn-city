@@ -75,7 +75,7 @@ public sealed class BraxVessel : MonoBehaviour
         player.transform.localPosition = sit ? seat - Vector3.up * sitLower : seat;
         player.transform.localRotation = Quaternion.identity;
         speed = 0; yawVel = 0; side = 0;
-        if (sit) BraxPose.Get(player).Set(BraxPose.Mode.Ride, transform);
+        if (sit) BraxPose.Get(player).Set(label == "MOTORÓWKA" ? BraxPose.Mode.Ster : BraxPose.Mode.Ride, transform);   // skuter okrakiem, motorówka w fotelu
         Debug.Log("BRAXHORN_LODZ wsiadł: " + label + " " + name);
     }
 

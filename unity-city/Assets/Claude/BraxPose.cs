@@ -10,7 +10,7 @@ using UnityEngine;
 /// </summary>
 public sealed class BraxPose : MonoBehaviour
 {
-    public enum Mode { None, Ride, Sit, Lie, Drink }
+    public enum Mode { None, Ride, Sit, Lie, Drink, Ster }
     public Mode mode;
     public Transform anchor;         // obiekt, względem którego liczona jest poza (pojazd, siedzisko)
     public float weight;             // 0..1 — płynne wejście/wyjście z pozy
@@ -81,12 +81,20 @@ public sealed class BraxPose : MonoBehaviour
         float w = weight;
         switch (mode)
         {
-            case Mode.Ride:   // skuter / motorówka: siedzi, pochylony, ręce na kierownicy, kolana zgięte, stopy na podnóżkach
+            case Mode.Ride:   // SKUTER (właściciel 3.11: „ma normalnie siedzieć”): okrakiem — uda na boki siodła i w dół, łydki w dół
+                              // i lekko do tyłu (stopy w zagłębieniach po bokach), tułów pochylony, ręce na kierownicy
                 Aim(spine, chest ? chest : head, U * .82f + F * .5f, w);
-                Aim(lUp, lLeg, F * .95f - U * .3f + R * -.12f, w); Aim(rUp, rLeg, F * .95f - U * .3f + R * .12f, w);
-                Aim(lLeg, lFoot, -U * .85f + F * .3f, w); Aim(rLeg, rFoot, -U * .85f + F * .3f, w);
+                Aim(lUp, lLeg, F * .62f - U * .5f + R * -.6f, w); Aim(rUp, rLeg, F * .62f - U * .5f + R * .6f, w);
+                Aim(lLeg, lFoot, -U * .95f - F * .2f + R * -.08f, w); Aim(rLeg, rFoot, -U * .95f - F * .2f + R * .08f, w);
                 Aim(lArm, lFore, F * .55f - U * .6f + R * -.25f, w); Aim(rArm, rFore, F * .55f - U * .6f + R * .25f, w);
                 Aim(lFore, lHand, F * .95f - U * .12f, w); Aim(rFore, rHand, F * .95f - U * .12f, w);
+                break;
+            case Mode.Ster:   // MOTORÓWKA: fotel sternika — wyprostowany, uda w przód, łydki w dół, ręce do koła sterowego przed sobą
+                Aim(spine, chest ? chest : head, U * .95f + F * .2f, w);
+                Aim(lUp, lLeg, F * .98f - U * .08f + R * -.14f, w); Aim(rUp, rLeg, F * .98f - U * .08f + R * .14f, w);
+                Aim(lLeg, lFoot, -U * .92f + F * .18f, w); Aim(rLeg, rFoot, -U * .92f + F * .18f, w);
+                Aim(lArm, lFore, F * .6f - U * .55f + R * -.18f, w); Aim(rArm, rFore, F * .6f - U * .55f + R * .18f, w);
+                Aim(lFore, lHand, F * .9f + U * .1f + R * .15f, w); Aim(rFore, rHand, F * .9f + U * .1f + R * -.15f, w);
                 break;
             case Mode.Sit:    // sofa / ławka / hoker: wyprostowany, uda w przód, łydki w dół, dłonie na udach
                 Aim(spine, chest ? chest : head, U * .97f + F * .12f, w);
