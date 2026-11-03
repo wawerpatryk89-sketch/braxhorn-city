@@ -25,6 +25,11 @@ public sealed class BraxAuto : MonoBehaviour
     public static readonly List<BraxAuto> Wszystkie = new List<BraxAuto>();
 
     AudioSource dzwiek;
+    // E19 (osiedle e60e8e6, miasto 3.11): cień auta tylko do 20 m × K (histereza), silnik grają tylko 4 najbliższe auta.
+    public const int SilnikiMax = 4; public const float CienAutaOdl = 20f * 1.294f;
+    static int klatkaAudio = -1; static readonly float[] najblizsze = { float.MaxValue, float.MaxValue, float.MaxValue, float.MaxValue }; static float progAudio = float.MaxValue;
+    public static int GrajaceSilniki { get; private set; } static int grajaTeraz;
+    Renderer[] cienie; bool cienWl = true;
     float katKol, skretAkt, przechyl, pochyl, kierPoprz;
     bool stopWl, migWl, dymWl;
     Renderer[] dymR; float[] dymFaza; MaterialPropertyBlock dymMpb; static Camera kam;
@@ -108,10 +113,29 @@ public sealed class BraxAuto : MonoBehaviour
             }
             else if (dymWl) { dymWl = false; foreach (var r in dymR) if (r) r.enabled = false; }
         }
-        // silnik
+        // cień tylko blisko (E19) — tylko części, które w buildzie rzucały cień (bez świateł, spalin)
+        bool cien = cienWl ? odl < CienAutaOdl + 3f : odl < CienAutaOdl;
+        if (cien != cienWl)
+        {
+            cienWl = cien;
+            if (cienie == null)
+            {
+                var l = new List<Renderer>();
+                foreach (var r in GetComponentsInChildren<Renderer>(true)) if (r && r.shadowCastingMode != UnityEngine.Rendering.ShadowCastingMode.Off) l.Add(r);
+                cienie = l.ToArray();
+            }
+            foreach (var r in cienie) if (r) r.shadowCastingMode = cien ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+        // silnik: tylko SilnikiMax najbliższych (próg z poprzedniej klatki)
+        if (Time.frameCount != klatkaAudio)
+        {
+            klatkaAudio = Time.frameCount; progAudio = najblizsze[SilnikiMax - 1]; GrajaceSilniki = grajaTeraz; grajaTeraz = 0;
+            for (int i = 0; i < najblizsze.Length; i++) najblizsze[i] = float.MaxValue;
+        }
+        for (int i = 0; i < najblizsze.Length; i++) if (odl < najblizsze[i]) { for (int j = najblizsze.Length - 1; j > i; j--) najblizsze[j] = najblizsze[j - 1]; najblizsze[i] = odl; break; }
         if (dzwiek)
         {
-            if (odl < 55f) { if (!dzwiek.isPlaying) dzwiek.Play(); }
+            if (odl < 55f && odl <= progAudio + .5f) { if (!dzwiek.isPlaying) dzwiek.Play(); grajaTeraz++; }
             else if (dzwiek.isPlaying) dzwiek.Pause();
             if (dzwiek.isPlaying && dt > 0f)
                 dzwiek.pitch = Mathf.Lerp(dzwiek.pitch, .78f + Mathf.Clamp01(st.v / Mathf.Max(1f, vmax)) * .75f + (st.a > .5f ? .08f : 0f), 1f - Mathf.Exp(-dt * 3f));

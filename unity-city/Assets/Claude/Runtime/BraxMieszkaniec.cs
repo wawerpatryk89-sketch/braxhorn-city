@@ -25,6 +25,7 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     public float ton = 1f, wzrost = 1.8f;
 
     float nastZmiana, nast, ostatni, lean, leanCel, patrzWaga, patrzCel, doKiedyPatrzy, nastPowitanie, nastRozgl;
+    Renderer[] skory; byte detale = 255; float nastDetale;   // E19
     Vector3 leanOs = Vector3.right, patrzNa;
     bool blisko = true, mowiTeraz;
     int wariant;
@@ -64,6 +65,7 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         float d2 = BraxLudzie.OdlKamery2(transform.position);
         bool b2 = wAucie ? d2 < 35f * 35f && BraxLudzie.Animuj(d2) : BraxLudzie.Animuj(d2);
         if (b2 != blisko) { blisko = b2; if (anim) anim.enabled = blisko; }
+        if (Time.time >= nastDetale) { nastDetale = Time.time + .4f + (GetInstanceID() & 7) * .03f; if (skory == null) skory = GetComponentsInChildren<Renderer>(true); detale = BraxLudzie.Detale(skory, d2, detale); }   // E19: cień/kości wg odległości
         if (!blisko) { if (Time.time < nast) return; nast = Time.time + .5f; }
         float dt = Mathf.Min(Time.time - ostatni, 1f); ostatni = Time.time;
         lean = Mathf.MoveTowards(lean, leanCel, 120f * dt); leanCel = Mathf.MoveTowards(leanCel, 0f, 16f * dt);

@@ -37,6 +37,7 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     Stan stan = Stan.Idzie;
     int i, kier = 1, zablokowany, wariant;
     float doKiedy, nast, ostatni, nastRozmowa, nastPowitanie, nastSprawdz, przeszedl, objazd, objazdDo, unikaDo, czekaOd;
+    Renderer[] skory; byte detale = 255; float nastDetale;   // E19
     float lean, leanCel, patrzWaga, patrzCel, nastObejrzenie, predkoscUcieczki, nastGrunt;
     Vector3 leanOs = Vector3.right, patrzNa, odrzut, kierUcieczki;
     bool blisko = true, krzyczZDaleka;
@@ -87,6 +88,7 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         float d2 = BraxLudzie.OdlKamery2(transform.position);
         bool b2 = BraxLudzie.Animuj(d2);
         if (b2 != blisko) { blisko = b2; if (anim) anim.enabled = blisko; }
+        if (Time.time >= nastDetale) { nastDetale = Time.time + .4f + (GetInstanceID() & 7) * .03f; if (skory == null) skory = GetComponentsInChildren<Renderer>(true); detale = BraxLudzie.Detale(skory, d2, detale); }   // E19: cień/kości wg odległości
         float dt;
         if (!blisko)
         {

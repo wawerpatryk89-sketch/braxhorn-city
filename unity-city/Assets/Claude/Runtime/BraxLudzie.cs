@@ -37,11 +37,43 @@ public static class BraxLudzie
         if (!gracz) { var p = Object.FindAnyObjectByType<BraxGymPlayer>(); if (p) gracz = p.transform; }
     }
 
+    // E19 (osiedle e60e8e6, miasto 3.11): koszt postaci zależny od odległości od kamery.
+    //  • cień tylko do 20 m × K (histereza 2 m), dalej bez cienia, • skóra 2 kości/wierzchołek dalej niż 32 m × K (4 blisko),
+    //  • ADAPTACJA: średnio < 35 kl./s przez ~3 s → limit animowanych osób −8 (min. 16), > 42 kl./s → wraca do 40.
+    public const float CienOdl = 20f * 1.294f, DwieKosciOdl = 32f * 1.294f;
+    public const int LimitMax = 40, LimitMin = 16;
+    public static int Aktywni => wPromieniuPoprz;
+    static float fpsSr = 60f, fpsOd = 0f;
+    public static byte Detale(Renderer[] r, float d2, byte stan)
+    {
+        if (r == null) return stan;
+        float d = Mathf.Sqrt(d2);
+        bool cien = stan != 255 && (stan & 1) != 0 ? d < CienOdl + 2f : d < CienOdl;
+        bool dwie = stan != 255 && (stan & 2) != 0 ? d > DwieKosciOdl - 2f : d > DwieKosciOdl;
+        byte nowy = (byte)((cien ? 1 : 0) | (dwie ? 2 : 0));
+        if (nowy == stan) return stan;
+        foreach (var x in r)
+        {
+            if (!x) continue;
+            x.shadowCastingMode = cien ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
+            if (x is SkinnedMeshRenderer smr) smr.quality = dwie ? SkinQuality.Bone2 : SkinQuality.Bone4;
+        }
+        return nowy;
+    }
+
     // Czy osoba w tej odległości (kwadrat, od kamery) ma być animowana w tej klatce.
     public static bool Animuj(float d2)
     {
         if (Time.frameCount != klatka)
         {
+            float dtk = Time.unscaledDeltaTime;
+            if (dtk > 1e-4f && dtk < .5f) fpsSr = Mathf.Lerp(fpsSr, 1f / dtk, 1f - Mathf.Exp(-dtk / 1.5f));
+            if (Time.unscaledTime > fpsOd)
+            {
+                fpsOd = Time.unscaledTime + 3f;
+                if (fpsSr < 35f && Limit > LimitMin) Limit = Mathf.Max(LimitMin, Limit - 8);
+                else if (fpsSr > 42f && Limit < LimitMax) Limit = Mathf.Min(LimitMax, Limit + 4);
+            }
             klatka = Time.frameCount; wPromieniuPoprz = wPromieniu; wPromieniu = 0;
             if (wPromieniuPoprz > Limit) Promien = Mathf.Max(18f, Promien - 2f);
             else if (wPromieniuPoprz < Limit - 6) Promien = Mathf.Min(PromienMax, Promien + 1f);
