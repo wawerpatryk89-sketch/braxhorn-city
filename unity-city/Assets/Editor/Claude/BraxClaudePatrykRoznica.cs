@@ -41,6 +41,34 @@ public static partial class BraxClaudeOsiedle
         var clip = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
             .Where(c => !c.name.StartsWith("__preview__")).OrderByDescending(c => c.length).FirstOrDefault();
         if (!prefab || !clip || clip.length <= 0) throw new InvalidOperationException("brak klipu: " + path);
+        return PatrykRoznicaZ(hero, hips, bones, rest, prefab, clip, spec, out info);
+    }
+
+    // Właściciel 3.11 15:05: „Brax ma szkielet Tripo, Patryk ma szkielet Tripo” — ten sam szkielet (nazwy kości mixamorig, poza
+    // spoczynkowa różni się o kilka stopni). Źródłem są więc klipy samego Braxa z BraxOriginal.glb (te, które w grze działają),
+    // przeniesione kość w kość tą samą różnicą od pozy spoczynkowej.
+    static readonly Dictionary<string, string> PatrykKlipyBraxa = new Dictionary<string, string>
+    {
+        { "CombatIdle", "Idle" }, { "Walk", "Walking" }, { "Run", "Running" }, { "Punch", "Jab Cross (1)" }, { "Kick", "Mma Kick (1)" },
+        { "Jump", "Jump" }, { "Boxing", "Boxing" }, { "Hook", "Hook" },
+    };
+    const string BraxZrodloGlb = "Assets/Source/BraxOriginal.glb";
+
+    static AnimationClip PatrykZBraxa(GameObject hero, Transform hips, List<Transform> bones, List<PatrykStan> rest, PatrykKlip spec, out string info)
+    {
+        info = "";
+        if (!PatrykKlipyBraxa.TryGetValue(spec.nazwa, out var nazwa)) return null;
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BraxZrodloGlb) ?? AssetDatabase.LoadAllAssetsAtPath(BraxZrodloGlb).OfType<GameObject>().FirstOrDefault();
+        var clip = AssetDatabase.LoadAllAssetsAtPath(BraxZrodloGlb).OfType<AnimationClip>().FirstOrDefault(c => c.name == nazwa)
+                   ?? AssetDatabase.LoadAllAssetsAtPath(BraxZrodloGlb).OfType<AnimationClip>().FirstOrDefault(c => c.name.EndsWith(nazwa));
+        if (!prefab || !clip || clip.length <= 0) throw new InvalidOperationException("brak klipu Braxa „" + nazwa + "” w " + BraxZrodloGlb);
+        var r = PatrykRoznicaZ(hero, hips, bones, rest, prefab, clip, spec, out info);
+        info = " klip Braxa „" + nazwa + "” (szkielet Tripo)" + info;
+        return r;
+    }
+
+    static AnimationClip PatrykRoznicaZ(GameObject hero, Transform hips, List<Transform> bones, List<PatrykStan> rest, GameObject prefab, AnimationClip clip, PatrykKlip spec, out string info)
+    {
         var source = Object.Instantiate(prefab);
         PlayableGraph graph = default;
         try
@@ -70,7 +98,8 @@ public static partial class BraxClaudeOsiedle
             Vector3 hipsRest = hips.position;
             float stopy = Mathf.Min(C("LeftFoot") ? C("LeftFoot").position.y : hipsRest.y, C("RightFoot") ? C("RightFoot").position.y : hipsRest.y);
             float skala = Mathf.Max(.05f, hipsRest.y - stopy) / Mathf.Max(.05f, zrHipsRest.y - Mathf.Min(Z("LeftFoot") ? Z("LeftFoot").position.y : 0f, Z("RightFoot") ? Z("RightFoot").position.y : 0f));
-            // odtwarzanie źródła: Humanoid przez Animator, inaczej SampleAnimation
+            // odtwarzanie źródła: Humanoid przez Animator, inaczej SampleAnimation (klipy Braxa: Legacy z glTFast)
+            foreach (var an in source.GetComponentsInChildren<Animation>(true)) an.playAutomatically = false;
             var animator = source.GetComponent<Animator>(); AnimationClipPlayable playable = default;
             bool human = clip.humanMotion && animator && animator.avatar && animator.isHuman;
             if (human)

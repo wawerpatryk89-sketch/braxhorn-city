@@ -36,7 +36,7 @@ public static partial class BraxClaudeOsiedle
     static float SGX0 => -48.7f; static float SGX1 => SGX0 + 3.5f * K; static float SGH => 2.6f * K;
     static float SDX0 => SGX1 + .3f; static float SDX1 => SDX0 + 2.2f * K; static float SDH => 2.3f * K;
     // miejsca aut na placu
-    static readonly float[] SalonPlacX = { -48.4f, -44.4f, -40.4f };
+    static readonly float[] SalonPlacX = { -47.6f, -38.5f };   // 3.11 15:04: przejście do drzwi klientów (x −43.9…−41.0) wolne — auta po bokach, 6.6 m luzu
     const float SalonPlacZ = -33.6f;
     static Vector3 salonNarSrodek; static float salonNarR;                    // ćwiartka kostki na narożniku (R = 0: narożnik prosty)
     static int saDetale; static readonly List<string> saDetaleOpis = new List<string>();
@@ -203,20 +203,7 @@ public static partial class BraxClaudeOsiedle
             Cylinder(Steel, p + Vector3.up * (.9f * K), .05f, .02f, 14, true, false);
         }
         SaDetal("plac", "słupki z odblaskiem", 3);
-        // tablice cen (0 zł: miejsce na cenę — EKONOMIA), w przerwach między autami, przodem do B1
-        var bialy = SaMat("tablica ceny", new Color(.96f, .96f, .95f), .4f); var napis = SaMat("napis ceny", new Color(.08f, .09f, .1f), .3f);
-        foreach (float ax in SalonPlacX)
-        {
-            float tx = ax + 2.0f, tz = SalonPlacZ + 3.4f;
-            BoxMinMax(Steel, tx - .3f, tx + .3f, .14f, .16f, tz - .2f, tz + .2f, false);              // stopa
-            Tube(Steel, new Vector3(tx, .16f, tz), new Vector3(tx, .95f * K, tz), .025f, 8);
-            BoxMinMax(Frame, tx - .34f, tx + .34f, .95f * K, .95f * K + .5f, tz - .03f, tz + .01f, false);
-            BoxMinMax(bialy, tx - .31f, tx + .31f, .95f * K + .03f, .95f * K + .47f, tz + .01f, tz + .02f, false);
-            Napis3D("CENA", new Vector3(tx, .95f * K + .36f, tz + .02f), Vector3.forward, .06f, .004f, napis, napis, .15f, .14f, true);
-            Napis3D("0 ZŁ", new Vector3(tx, .95f * K + .12f, tz + .02f), Vector3.forward, .14f, .006f, SaMat("napis ceny czerwony", new Color(.7f, .05f, .05f), .3f), napis, .15f, .14f, true);
-            Collider(new Vector3(tx, .55f, tz), new Vector3(.68f, 1.1f, .4f));
-        }
-        SaDetal("plac", "tablice cen 0 zł", SalonPlacX.Length);
+        // tablice cen: stawiane w SalonAuta przed maską auta (cena realna wg modelu), nie w przejściu
         // maszty oświetlenia placu (6 m, wysięgnik, oprawa LED świecąca w dół)
         var opr = StSwiatlo("salon: oprawa placu", new Color(1f, .98f, .92f));
         foreach (var (mx, mz, kx) in new[] { (xa + .35f, -34.4f, 1f), (x1 - .25f, -31.0f, -1f) })
@@ -238,8 +225,8 @@ public static partial class BraxClaudeOsiedle
             BoxMinMax(graf, tx - w, tx + w, .3f, h, tz - d, tz + d, true);
             BoxMinMax(obrTotemu, tx - w - .02f, tx + w + .02f, h, h + .04f, tz - d - .02f, tz + d + .02f, false);
             BoxMinMax(pole, tx - w + .08f, tx + w - .08f, h - 1.1f, h - .15f, tz + d, tz + d + .005f, false);
-            Napis3D("SALON", new Vector3(tx, h - .78f, tz + d + .005f), Vector3.forward, .2f, .01f, graf, graf, .15f, .14f, true);
-            Napis3D("AUTO", new Vector3(tx, h - .48f, tz + d + .005f), Vector3.forward, .14f, .01f, graf, graf, .15f, .14f, true);
+            Napis3D("MOTORS", new Vector3(tx, h - .78f, tz + d + .005f), Vector3.forward, .2f, .01f, graf, graf, .15f, .14f, true);
+            Napis3D("BRAXHORN", new Vector3(tx, h - .48f, tz + d + .005f), Vector3.forward, .14f, .01f, graf, graf, .15f, .14f, true);
             var em = new Vector3(tx, h - 1.75f, tz + d + .03f); var srebro = SaMat("emblemat srebro", new Color(.78f, .79f, .8f), .8f, .9f);
             for (int k = 0; k < 20; k++)
             {
@@ -300,7 +287,7 @@ public static partial class BraxClaudeOsiedle
         SaDetal("bryła", "gzyms międzykondygnacyjny z obróbką");
         var lit = StSwiatlo("salon: litery attyki", new Color(.96f, .97f, 1f));
         Napis3D("SALON SAMOCHODOWY", new Vector3(x0 - .06f, yR + .4f, (z0 + z1) * .5f), Vector3.left, .55f, .06f, lit, graf, .15f, .14f, true);
-        Napis3D("SALON AUT", new Vector3((x0 + x1) * .5f, yR + .4f, z1 + .06f), Vector3.forward, .5f, .06f, lit, graf, .15f, .14f, true);
+        Napis3D("BRAXHORN MOTORS", new Vector3((x0 + x1) * .5f, yR + .4f, z1 + .06f), Vector3.forward, .5f, .06f, lit, graf, .15f, .14f, true);
         SaDetal("bryła", "litery podświetlane na attyce", 2);
         // fasady szklane na całą wysokość: rygle 2.6, pas stropu (gzyms), piętro 2.6 nad antresolą
         var rygle = new[] { 2.6f, yg0 - .02f, yg1 + .02f, SF1 + 2.6f };
@@ -858,9 +845,26 @@ public static partial class BraxClaudeOsiedle
             var bc = o.AddComponent<BoxCollider>(); bc.center = sz.obrys.center; bc.size = sz.obrys.size;
             LodAuta(o, .02f);
             if (m.rodzic) o.transform.SetParent(m.rodzic, true);                                   // obraca się z talerzem
+            if (m.gdzie == "plac") SalonCena(m.c.x, m.c.z + sz.dl * .5f + .8f, SalonCeny.TryGetValue(sz.id, out var cena) ? cena : "189 000 ZŁ");
             ok++; opis.Add(m.gdzie + ": " + sz.id + " " + kolor + " dł " + sz.dl.ToString("F2"));
         }
         Debug.Log("BRAXHORN_SALON auta=" + ok + "/" + miejsca.Count + " [" + string.Join("; ", opis) + "]");
+    }
+
+    // ceny realne (zasada EKONOMIA: realne zł, bez marek) — tabliczka przed maską, przodem do ulicy B1
+    static readonly Dictionary<string, string> SalonCeny = new Dictionary<string, string>
+    { { "car_918", "1 890 000 ZŁ" }, { "car_r8", "689 000 ZŁ" }, { "car_rev", "2 450 000 ZŁ" }, { "car_mus", "289 000 ZŁ" }, { "car_s4", "219 000 ZŁ" }, { "car_dc", "159 000 ZŁ" }, { "car_gmc", "249 000 ZŁ" } };
+    static void SalonCena(float tx, float tz, string cena)
+    {
+        var bialy = SaMat("tablica ceny", new Color(.96f, .96f, .95f), .4f); var napis = SaMat("napis ceny", new Color(.08f, .09f, .1f), .3f);
+        BoxMinMax(Steel, tx - .3f, tx + .3f, .14f, .16f, tz - .2f, tz + .2f, false);
+        Tube(Steel, new Vector3(tx, .16f, tz), new Vector3(tx, .95f * K, tz), .025f, 8);
+        BoxMinMax(Frame, tx - .5f, tx + .5f, .95f * K, .95f * K + .5f, tz - .03f, tz + .01f, false);
+        BoxMinMax(bialy, tx - .47f, tx + .47f, .95f * K + .03f, .95f * K + .47f, tz + .01f, tz + .02f, false);
+        Napis3D("BRAXHORN MOTORS", new Vector3(tx, .95f * K + .37f, tz + .02f), Vector3.forward, .05f, .004f, napis, napis, .15f, .14f, true);
+        Napis3D(cena, new Vector3(tx, .95f * K + .13f, tz + .02f), Vector3.forward, .1f, .006f, SaMat("napis ceny czerwony", new Color(.7f, .05f, .05f), .3f), napis, .15f, .14f, true);
+        Collider(new Vector3(tx, .55f, tz), new Vector3(.3f, 1.1f, .3f));
+        SaDetal("plac", "tablica ceny " + cena);
     }
 
     // ---------------- obsada (po kroku ludzi) ----------------

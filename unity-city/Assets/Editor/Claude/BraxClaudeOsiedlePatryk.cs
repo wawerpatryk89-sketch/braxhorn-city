@@ -18,7 +18,7 @@ public static partial class BraxClaudeOsiedle
     const string PatrykKatalog = PrywatneZrodla + "/patryk", PatrykRuchy = PrywatneZrodla + "/ruchy", PatrykWynik = "Assets/PlayableGenerated/Patryk";
     // Dokładny wzrost postaci gracza (siatka w pozie spoczynkowej × skala) — ZmierzBohatera bierze go zamiast bounds.
     public static float WzrostZModelu = float.NaN;
-    public const float WzrostPatrykaWGrze = 2.27f;   // Patryk w grze 2.27 m (trochę niższy od Braxa 2.33 m); miarą świata jest Brax, nie Patryk
+    public const float WzrostPatrykaWGrze = 2.33f;   // właściciel 3.11 15:07: Patryk i Brax to po 1,80 m — w grze identyczni: 1,80 × K 1,294 = 2,33 m (było 2,27 = błąd)
 
     struct PatrykKlip { public string nazwa; public bool petla, wMiejscu; public string[] zrodla; }
     static PatrykKlip PK(string n, bool petla, bool wMiejscu, params string[] z) => new PatrykKlip { nazwa = n, petla = petla, wMiejscu = wMiejscu, zrodla = z };
@@ -97,7 +97,7 @@ public static partial class BraxClaudeOsiedle
             float h0 = maxY - minY;
             if (!(h0 > .05f)) throw new Exception("niepoprawna wysokość modelu " + h0);
             // właściciel 2.11 10:39–10:43: „pod Braxa ma być wszystko … Brax może być wyższy od Patryka, ale trochę” — świat w skali Braxa (2.33 m),
-            // Patryk w grze 2.27 m (model ×skala; proporcje bez zmian, kości bez zmian — test kości liczy spoczynek przed skalą)
+            // Patryk w grze 2.33 m = Brax (model ×skala; proporcje bez zmian, kości bez zmian — test kości liczy spoczynek przed skalą)
             bool zModelu = false;
             float skala = WzrostPatrykaWGrze / h0, wzrost = WzrostPatrykaWGrze;
 
@@ -133,6 +133,12 @@ public static partial class BraxClaudeOsiedle
             foreach (var k in KlipyPatryka)
             {
                 AnimationClip gotowy = null;
+                // 3.11 15:05: najpierw klip samego Braxa (ten sam szkielet Tripo) — zostaje, chyba że plik FBX da mniej naruszeń nóg
+                AnimationClip bx = null; string ub = ""; NogiWynik wb = null;
+                try { bx = PatrykZBraxa(hero, hips, kosci, spoczynek, k, out ub); }
+                catch (Exception e) { ub = " Brax: " + e.Message; Debug.LogWarning("BRAXHORN_PATRYK_NOGI klip=" + k.nazwa + ub); }
+                finally { PatrykSpoczynek(spoczynek); }
+                if (bx) { wb = PatrykTestNog(hero, kosci, spoczynek, bx); PatrykSpoczynek(spoczynek); }
                 foreach (var z in k.zrodla)
                 {
                     string sciezka = PatrykRuchy + "/" + z;
@@ -148,14 +154,22 @@ public static partial class BraxClaudeOsiedle
                     if (!h && !r) { Debug.LogWarning("BRAXHORN_PATRYK klip " + k.nazwa + " z " + z + ":" + uh + ur); continue; }
                     var wh = h ? PatrykTestNog(hero, kosci, spoczynek, h) : null; var wr = r ? PatrykTestNog(hero, kosci, spoczynek, r) : null;
                     bool roz = r && (!h || wr.Kara <= wh.Kara);
-                    var wyb = roz ? r : h;
+                    var wyb = roz ? r : h; int kWyb = roz ? wr.Kara : wh.Kara;
+                    bool brax = bx && wb.Kara <= kWyb;
+                    if (brax) wyb = bx;
                     ZapiszKlipPatryka(wyb);
                     gotowy = AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + k.nazwa + ".anim");
-                    opis.Add(k.nazwa + "←" + z + (roz ? ur : " Humanoid"));
-                    Debug.Log("BRAXHORN_PATRYK_NOGI klip=" + k.nazwa + " wybór=" + (roz ? "RÓŻNICA" : "HUMANOID") + " kara Humanoid=" + (wh != null ? wh.Kara.ToString() : "—")
-                              + " różnica=" + (wr != null ? wr.Kara.ToString() : "—") + (wr != null ? " | różnica: " + wr.Opis() : "") + (wh != null ? " | Humanoid: " + wh.Opis() : ""));
+                    opis.Add(k.nazwa + "←" + (brax ? "Brax" + ub : z + (roz ? ur : " Humanoid")));
+                    Debug.Log("BRAXHORN_PATRYK_NOGI klip=" + k.nazwa + " wybór=" + (brax ? "BRAX" : roz ? "RÓŻNICA" : "HUMANOID") + " kara Brax=" + (wb != null ? wb.Kara.ToString() : "—")
+                              + " Humanoid=" + (wh != null ? wh.Kara.ToString() : "—")
+                              + " różnica=" + (wr != null ? wr.Kara.ToString() : "—") + (wb != null ? " | Brax: " + wb.Opis() : "") + (wr != null ? " | różnica: " + wr.Opis() : "") + (wh != null ? " | Humanoid: " + wh.Opis() : ""));
                     PatrykSpoczynek(spoczynek);
                     break;
+                }
+                if (!gotowy && bx)   // brak plików FBX — sam klip Braxa
+                {
+                    ZapiszKlipPatryka(bx); gotowy = AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + k.nazwa + ".anim");
+                    opis.Add(k.nazwa + "←Brax" + ub); Debug.Log("BRAXHORN_PATRYK_NOGI klip=" + k.nazwa + " wybór=BRAX (jedyne źródło) " + wb.Opis());
                 }
                 if (gotowy) klipy.Add(gotowy);
                 else Debug.LogWarning("BRAXHORN_PATRYK brak klipu " + k.nazwa);

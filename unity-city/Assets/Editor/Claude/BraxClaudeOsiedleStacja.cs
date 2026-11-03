@@ -303,10 +303,12 @@ public static partial class BraxClaudeOsiedle
         float L = 4f * K, w = .15f * K;
         ZnakWycieciu(x, x + L * .62f, z - w, z + w);
         // grot jako schodki prostokątów (każdy w wycięciu) — bez trójkątów naklejanych
-        for (int k = 0; k < 6; k++)
+        // 3.11 15:02 („co to za strzałki”): 6 schodków wyglądało jak klocki — 28 pasków po ~5 cm, krawędź grotu gładka z kamery
+        const int n = 28;
+        for (int k = 0; k < n; k++)
         {
-            float x0 = x + L * .62f + k * L * .38f / 6f, half = (.6f * K) * (1f - k / 6f);
-            ZnakWycieciu(x0, x0 + L * .38f / 6f, z - half, z + half);
+            float x0 = x + L * .62f + k * L * .38f / n, half = (.6f * K) * (1f - (k + .5f) / n);
+            ZnakWycieciu(x0, x0 + L * .38f / n, z - half, z + half);
         }
     }
 
@@ -399,8 +401,8 @@ public static partial class BraxClaudeOsiedle
             BoxMinMax(StMat("kosz stacji", new Color(.25f, .27f, .3f), .5f, .4f), x + 1.1f, x + 1.55f, YS + .2f, YS + 1.15f, wz - .22f, wz + .22f, true);
         }
         StDetal("wyspy", "pistolety z wężami", pistolety); StDetal("wyspy", "słupki ochronne", slupki); StDetal("wyspy", "kątowniki krawędzi", 3);
-        Napis3D("STACJA PALIW", new Vector3((x0 + x1) * .5f, yP + .52f, z1 + .01f), Vector3.forward, .55f, .06f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
-        Napis3D("STACJA PALIW", new Vector3((x0 + x1) * .5f, yP + .52f, z0 - .01f), Vector3.back, .55f, .06f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
+        Napis3D("BRAXHORN", new Vector3((x0 + x1) * .5f, yP + .52f, z1 + .01f), Vector3.forward, .55f, .06f, StSwiatlo("napis BRAXHORN złoty", new Color(1f, .72f, .18f)), pas, .15f, .14f, true);
+        Napis3D("BRAXHORN", new Vector3((x0 + x1) * .5f, yP + .52f, z0 - .01f), Vector3.back, .55f, .06f, StSwiatlo("napis BRAXHORN złoty", new Color(1f, .72f, .18f)), pas, .15f, .14f, true);
     }
 
     // ---------------- pylon cenowy (bez marek) ----------------
@@ -418,7 +420,7 @@ public static partial class BraxClaudeOsiedle
         {
             float f = z + s * d * .5f; var n = s > 0 ? Vector3.forward : Vector3.back;
             BoxMinMax(tlo, x - w * .45f, x + w * .45f, h * .18f, h * .78f, Mathf.Min(f, f + s * .01f), Mathf.Max(f, f + s * .01f), false);
-            Napis3D("PALIWO", new Vector3(x, h * .84f, f), n, .32f, .04f, biel, obud, .16f, .12f, true);
+            Napis3D("BRAXHORN", new Vector3(x, h * .84f, f), n, .19f, .04f, StSwiatlo("napis BRAXHORN złoty", new Color(1f, .72f, .18f)), obud, .16f, .12f, true);
             for (int k = 0; k < ceny.Length; k++)
             {
                 float y = h * .7f - k * h * .13f;
@@ -613,7 +615,7 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(StMat("terminal myjni", new Color(.15f, .2f, .3f), .6f, .3f), x0 + .6f, x0 + 1.0f, YS + .2f, 1.5f * K, z1 + .3f, z1 + .7f, true);
         BoxMinMax(StSwiatlo("ekran terminala", new Color(.4f, .8f, 1f)), x0 + 1.0f, x0 + 1.02f, 1.1f * K, 1.35f * K, z1 + .35f, z1 + .65f, false);
         var pk = new GameObject("BRAXHORN punkt interakcji: mycie (myjnia automatyczna)"); pk.transform.SetParent(Group(group), false); pk.transform.position = new Vector3((x0 + x1) * .5f, YS, z1 + 2f); stPunkty++;
-        Napis3D("MYJNIA", new Vector3((x0 + x1) * .5f, yH + .12f, z1 + .01f), Vector3.forward, .38f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), nieb, .15f, .14f, true);
+        Napis3D("MYJNIA BRAXHORN", new Vector3((x0 + x1) * .5f, yH + .12f, z1 + .01f), Vector3.forward, .3f, .05f, StSwiatlo("napis myjni turkus", new Color(.2f, .85f, 1f)), nieb, .15f, .14f, true);
     }
     static void OdplywLiniowyBeton(float unused, float a0, float a1, float c)
     {
