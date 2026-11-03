@@ -173,6 +173,7 @@ public sealed class BraxTouchControls : MonoBehaviour
         if (!Qa) { BraxUstawienia.Pilnuj(); StrazKlatek(); }
         Licznik();
         if (!player) return;
+        if (BraxEkranStartowy.Aktualizuj(this)) return;   // ekran startowy (raz po uruchomieniu): sterowanie gry czeka na START
         LogSceny();
         Uklad();
         if (Time.unscaledTime >= nastKontekst)
@@ -277,6 +278,9 @@ public sealed class BraxTouchControls : MonoBehaviour
         else { BraxUstawienia.Zapisz(); Input.simulateMouseWithTouches = false; }
     }
 
+    // ekran startowy → USTAWIENIA: menu jest już otwarte (pauza), przełącz na wskazany ekran
+    public void OtworzEkran(BraxMenuGry.Ekran e) { Pauza(true); menu.Otworz(e); }
+
     public void TrybZdjec()
     {
         Pauza(false);
@@ -339,6 +343,7 @@ public sealed class BraxTouchControls : MonoBehaviour
         }
         if (!player) return;
         if (Qa && podglad.Length == 0) return;   // przeglądarka bez podglądu: strona ma własne sterowanie
+        if (BraxEkranStartowy.Czeka) { GUI.depth = -50; BraxEkranStartowy.Rysuj(); return; }
         if (paused || PodgladMenu)
         {
             GUI.depth = -10;
