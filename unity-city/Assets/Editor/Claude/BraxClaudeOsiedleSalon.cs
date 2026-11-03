@@ -224,6 +224,10 @@ public static partial class BraxClaudeOsiedle
             BoxMinMax(Concrete, tx - w - .1f, tx + w + .1f, .14f, .3f, tz - d - .1f, tz + d + .1f, true);
             BoxMinMax(graf, tx - w, tx + w, .3f, h, tz - d, tz + d, true);
             BoxMinMax(obrTotemu, tx - w - .02f, tx + w + .02f, h, h + .04f, tz - d - .02f, tz + d + .02f, false);
+            // grafika totemu BRAXHORN MOTORS · SALON · SERWIS (1:3) na całe lico; bez grafiki — pole świetlne, litery, emblemat
+            if (SzyldPanel("salon_pylon", new Vector3(tx, h - .1f - (2f * w - .1f) * 1.5f, tz + d), Vector3.forward, 2f * w - .1f, (2f * w - .1f) * 3f))
+            { SaDetal("plac", "totem: grafika BRAXHORN MOTORS"); }
+            else {
             BoxMinMax(pole, tx - w + .08f, tx + w - .08f, h - 1.1f, h - .15f, tz + d, tz + d + .005f, false);
             Napis3D("MOTORS", new Vector3(tx, h - .78f, tz + d + .005f), Vector3.forward, .2f, .01f, graf, graf, .15f, .14f, true);
             Napis3D("BRAXHORN", new Vector3(tx, h - .48f, tz + d + .005f), Vector3.forward, .14f, .01f, graf, graf, .15f, .14f, true);
@@ -237,6 +241,7 @@ public static partial class BraxClaudeOsiedle
             Tube(srebro, em + new Vector3(0, -.3f, 0), em + new Vector3(0, 0, 0), .025f, 6);
             Napis3D("SALON SAMOCHODOWY", new Vector3(tx, 1.0f, tz + d + .005f), Vector3.forward, .06f, .004f, srebro, srebro, .15f, .14f, true);
             SaDetal("plac", "totem: cokół, pole świetlne, napis, emblemat pierścieniowy, obróbka");
+            }
         }
     }
     static Material obrTotemu => SaMat("obróbka blacharska", new Color(.62f, .63f, .65f), .5f, .6f);
@@ -286,8 +291,11 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(obr, x0 - .14f, x1 + .14f, yg1, yg1 + .03f, z1 - .07f, z1 + .14f, false); BoxMinMax(obr, x0 - .14f, x0 - .07f, yg1, yg1 + .03f, z0 + t, z1 - .07f, false); BoxMinMax(obr, x1 + .07f, x1 + .14f, yg1, yg1 + .03f, z0 + t, z1 - .07f, false);
         SaDetal("bryła", "gzyms międzykondygnacyjny z obróbką");
         var lit = StSwiatlo("salon: litery attyki", new Color(.96f, .97f, 1f));
-        Napis3D("SALON SAMOCHODOWY", new Vector3(x0 - .06f, yR + .4f, (z0 + z1) * .5f), Vector3.left, .55f, .06f, lit, graf, .15f, .14f, true);
-        Napis3D("BRAXHORN MOTORS", new Vector3((x0 + x1) * .5f, yR + .4f, z1 + .06f), Vector3.forward, .5f, .06f, lit, graf, .15f, .14f, true);
+        // szyldy z grafiki BRAXHORN MOTORS · SALON SAMOCHODOWY (3:1) na attyce; bez grafiki — litery 3D
+        if (!SzyldPanel("salon_szyld", new Vector3(x0 - .06f, yR + .55f, (z0 + z1) * .5f), Vector3.left, 3.0f, 1.0f))
+            Napis3D("SALON SAMOCHODOWY", new Vector3(x0 - .06f, yR + .4f, (z0 + z1) * .5f), Vector3.left, .55f, .06f, lit, graf, .15f, .14f, true);
+        if (!SzyldPanel("salon_szyld", new Vector3((x0 + x1) * .5f, yR + .55f, z1 + .06f), Vector3.forward, 3.0f, 1.0f))
+            Napis3D("BRAXHORN MOTORS", new Vector3((x0 + x1) * .5f, yR + .4f, z1 + .06f), Vector3.forward, .5f, .06f, lit, graf, .15f, .14f, true);
         SaDetal("bryła", "litery podświetlane na attyce", 2);
         // fasady szklane na całą wysokość: rygle 2.6, pas stropu (gzyms), piętro 2.6 nad antresolą
         var rygle = new[] { 2.6f, yg0 - .02f, yg1 + .02f, SF1 + 2.6f };

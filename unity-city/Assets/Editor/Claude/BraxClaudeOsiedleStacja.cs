@@ -401,8 +401,36 @@ public static partial class BraxClaudeOsiedle
             BoxMinMax(StMat("kosz stacji", new Color(.25f, .27f, .3f), .5f, .4f), x + 1.1f, x + 1.55f, YS + .2f, YS + 1.15f, wz - .22f, wz + .22f, true);
         }
         StDetal("wyspy", "pistolety z wężami", pistolety); StDetal("wyspy", "słupki ochronne", slupki); StDetal("wyspy", "kątowniki krawędzi", 3);
-        Napis3D("BRAXHORN", new Vector3((x0 + x1) * .5f, yP + .52f, z1 + .01f), Vector3.forward, .55f, .06f, StSwiatlo("napis BRAXHORN złoty", new Color(1f, .72f, .18f)), pas, .15f, .14f, true);
-        Napis3D("BRAXHORN", new Vector3((x0 + x1) * .5f, yP + .52f, z0 - .01f), Vector3.back, .55f, .06f, StSwiatlo("napis BRAXHORN złoty", new Color(1f, .72f, .18f)), pas, .15f, .14f, true);
+        // pas wiaty: grafika BRAXHORN · STACJA PALIW (3:1) po obu stronach; bez grafiki — złote litery
+        if (!SzyldPanel("stacja_pas", new Vector3((x0 + x1) * .5f, yP + .77f, z1 + .01f), Vector3.forward, 2.4f, .8f))
+            Napis3D("BRAXHORN", new Vector3((x0 + x1) * .5f, yP + .52f, z1 + .01f), Vector3.forward, .55f, .06f, StSwiatlo("napis BRAXHORN złoty", new Color(1f, .72f, .18f)), pas, .15f, .14f, true);
+        if (!SzyldPanel("stacja_pas", new Vector3((x0 + x1) * .5f, yP + .77f, z0 - .01f), Vector3.back, 2.4f, .8f))
+            Napis3D("BRAXHORN", new Vector3((x0 + x1) * .5f, yP + .52f, z0 - .01f), Vector3.back, .55f, .06f, StSwiatlo("napis BRAXHORN złoty", new Color(1f, .72f, .18f)), pas, .15f, .14f, true);
+    }
+
+    // ---------------- szyldy z grafik właściciela (czat, 3.11 15:40) ----------------
+    // Grafiki w zaszyfrowanej paczce „grafiki” → Assets/Source/Prywatne/Grafiki/szyldy/<plik>.jpg. Panel na licu bryły (płaski szyld,
+    // podświetlony emisją). Brak paczki = dotychczasowe litery 3D.
+    const string SzyldyDir = "Assets/Source/Prywatne/Grafiki/szyldy/";
+    static int szyldyObraz, szyldyBrak;
+    public static Material SzyldObraz(string plik)
+    {
+        string p = SzyldyDir + plik + ".jpg";
+        if (!System.IO.File.Exists(p)) { szyldyBrak++; Debug.Log("BRAXHORN_SZYLDY_GRAFIKI brak " + p + " — litery 3D"); return null; }
+        UnityEditor.AssetDatabase.ImportAsset(p, UnityEditor.ImportAssetOptions.ForceSynchronousImport);
+        var tex = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>(p); if (!tex) { szyldyBrak++; return null; }
+        var m = new Material(Shader.Find("Standard")) { name = "szyld grafika " + plik, mainTexture = tex };
+        m.SetFloat("_Glossiness", .35f);
+        m.EnableKeyword("_EMISSION"); m.SetTexture("_EmissionMap", tex); m.SetColor("_EmissionColor", new Color(.6f, .6f, .6f));
+        m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+        return SalonZapisz(m, "szyld " + plik);
+    }
+    public static bool SzyldPanel(string plik, Vector3 c, Vector3 n, float w, float h)
+    {
+        var m = SzyldObraz(plik); if (!m) return false;
+        BillPlakat(Group(group), "szyld " + plik, c + n * .006f, n, w, h, m);
+        szyldyObraz++; Debug.Log("BRAXHORN_SZYLDY_GRAFIKI " + plik + " " + w.ToString("F2") + "×" + h.ToString("F2") + " m w " + c.ToString("F1"));
+        return true;
     }
 
     // ---------------- pylon cenowy (bez marek) ----------------
@@ -419,6 +447,8 @@ public static partial class BraxClaudeOsiedle
         foreach (int s in new[] { -1, 1 })
         {
             float f = z + s * d * .5f; var n = s > 0 ? Vector3.forward : Vector3.back;
+            // grafika pylonu BRAXHORN z cenami (1:3) na całe lico; bez grafiki — tło, litery i cyfry z kodu
+            { float pw = w * .94f, ph = pw * 3f; if (SzyldPanel("stacja_pylon", new Vector3(x, h - .25f - ph * .5f, f), n, pw, ph)) continue; }
             BoxMinMax(tlo, x - w * .45f, x + w * .45f, h * .18f, h * .78f, Mathf.Min(f, f + s * .01f), Mathf.Max(f, f + s * .01f), false);
             Napis3D("BRAXHORN", new Vector3(x, h * .84f, f), n, .19f, .04f, StSwiatlo("napis BRAXHORN złoty", new Color(1f, .72f, .18f)), obud, .16f, .12f, true);
             for (int k = 0; k < ceny.Length; k++)
@@ -557,6 +587,20 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(st, x0, x1, yF, yF + .1f, z0, z1, true);
         BoxMinMax(st, x0, x1, yF + .1f, yF + h, (z0 + z1) * .5f - .02f, (z0 + z1) * .5f + .02f, false);
         var kol = new[] { new Color(.85f, .3f, .1f), new Color(.2f, .5f, .8f), new Color(.9f, .85f, .2f), new Color(.3f, .65f, .3f), new Color(.75f, .2f, .5f) };
+        // 3.11 („żadnych kolorowych klocków”): z paczką towaru — prawdziwe produkty BRAXHORN na półkach (jak w markecie)
+        if (BraxOsiedleTowar.Jest)
+        {
+            var tw = new GameObject("Stacja: towar (paczka miasto_sklepy)").transform; tw.SetParent(Group(group), true);
+            var rng = new System.Random(4100 + (int)(x0 * 10f)); int lv = 0;
+            for (float y = yF + .1f; y < yF + h - .2f; y += .42f, lv++)
+            {
+                BoxMinMax(st, x0, x1, y, y + .025f, z0, z1, false);
+                BraxOsiedleTowar.Polka("sm_g" + ((lv * 2 + (int)Mathf.Abs(x0)) % 9), tw, new Vector3(x0 + .05f, y + .025f, z0 + .03f), Vector3.right, Vector3.forward, x1 - x0 - .1f, rng, .36f);
+                if (obustronny) BraxOsiedleTowar.Polka("sm_g" + ((lv * 2 + 1 + (int)Mathf.Abs(x0)) % 9), tw, new Vector3(x0 + .05f, y + .025f, z1 - .03f), Vector3.right, Vector3.back, x1 - x0 - .1f, rng, .36f);
+            }
+            BraxOsiedleTowar.Zakoncz(tw, "sklep stacji");
+            return;
+        }
         for (float y = yF + .1f; y < yF + h - .2f; y += .42f)
         {
             BoxMinMax(st, x0, x1, y, y + .025f, z0, z1, false);
@@ -603,11 +647,32 @@ public static partial class BraxClaudeOsiedle
         // portal na szynach, 3 szczotki (2 pionowe, 1 pozioma)
         foreach (float rx in new[] { x0 + .9f, x1 - .9f }) BoxMinMax(Steel, rx - .06f, rx + .06f, YS - .01f, YS + .05f, z0 + .6f, z1 - 1f, false);
         float pz = -55.5f, pw = .25f;
-        BoxMinMax(nieb, x0 + .7f, x0 + 1.1f, YS, yH - .4f, pz - pw, pz + pw, true); BoxMinMax(nieb, x1 - 1.1f, x1 - .7f, YS, yH - .4f, pz - pw, pz + pw, true);
-        BoxMinMax(nieb, x0 + .7f, x1 - .7f, yH - .8f, yH - .4f, pz - pw, pz + pw, false, true);
-        Cylinder(szcz, new Vector3(x0 + 1.8f, YS + .1f, pz + .9f), .55f, 2.6f * K, 18, true, false); Cylinder(szcz, new Vector3(x1 - 1.8f, YS + .1f, pz + .9f), .55f, 2.6f * K, 18, true, false);
-        Tube(szcz, new Vector3(x0 + 1.4f, yH - 1.4f, pz - .9f), new Vector3(x1 - 1.4f, yH - 1.4f, pz - .9f), .5f, 18);
-        BoxMinMax(StSwiatlo("lampki portalu", new Color(.2f, 1f, .4f)), x0 + 1.2f, x1 - 1.2f, yH - .75f, yH - .7f, pz + pw, pz + pw + .02f, false);
+        // 3.11 15:02 („myjnia ma być funkcjonalna”): portal i szczotki jako osobne obiekty — BraxMyjnia rusza je, gdy auto gracza stoi w hali
+        {
+            float cx = (x0 + x1) * .5f;
+            var pr = new GameObject("Myjnia: portal (ruchomy)").transform; pr.SetParent(Group(group), false); pr.position = new Vector3(cx, 0f, z1 - 2.2f);
+            Transform Bryla(PrimitiveType t, string n, Material m, Vector3 lp, Vector3 sc, Vector3 eul)
+            {
+                var g = GameObject.CreatePrimitive(t); g.name = n; UnityEngine.Object.DestroyImmediate(g.GetComponent<Collider>());
+                g.transform.SetParent(pr, false); g.transform.localPosition = lp; g.transform.localRotation = Quaternion.Euler(eul); g.transform.localScale = sc;
+                var r = g.GetComponent<MeshRenderer>(); r.sharedMaterial = m; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                return g.transform;
+            }
+            float hN = yH - .4f - YS;
+            Bryla(PrimitiveType.Cube, "noga lewa", nieb, new Vector3(x0 + .9f - cx, YS + hN * .5f, 0f), new Vector3(.4f, hN, pw * 2f), Vector3.zero);
+            Bryla(PrimitiveType.Cube, "noga prawa", nieb, new Vector3(x1 - .9f - cx, YS + hN * .5f, 0f), new Vector3(.4f, hN, pw * 2f), Vector3.zero);
+            Bryla(PrimitiveType.Cube, "belka", nieb, new Vector3(0f, yH - .6f, 0f), new Vector3(x1 - x0 - 1.4f, .4f, pw * 2f), Vector3.zero);
+            Bryla(PrimitiveType.Cube, "lampki", StSwiatlo("lampki portalu", new Color(.2f, 1f, .4f)), new Vector3(0f, yH - .725f, pw + .01f), new Vector3(x1 - x0 - 2.4f, .05f, .02f), Vector3.zero);
+            float hS = 2.6f * K;
+            var p1 = Bryla(PrimitiveType.Cylinder, "szczotka pionowa lewa", szcz, new Vector3(x0 + 1.8f - cx, YS + .1f + hS * .5f, .9f), new Vector3(1.1f, hS * .5f, 1.1f), Vector3.zero);
+            var p2 = Bryla(PrimitiveType.Cylinder, "szczotka pionowa prawa", szcz, new Vector3(x1 - 1.8f - cx, YS + .1f + hS * .5f, .9f), new Vector3(1.1f, hS * .5f, 1.1f), Vector3.zero);
+            var po = Bryla(PrimitiveType.Cylinder, "szczotka pozioma", szcz, new Vector3(0f, yH - 1.4f, -.9f), new Vector3(1f, (x1 - x0 - 2.8f) * .5f, 1f), new Vector3(0f, 0f, 90f));
+            var my = pr.gameObject.AddComponent<BraxMyjnia>();
+            my.portal = pr; my.pion = new[] { p1, p2 }; my.poziom = po;
+            my.strefaSrodek = new Vector3(cx, YS, (z0 + z1) * .5f); my.strefaRozmiar = new Vector3(x1 - x0 - .6f, 3f, z1 - z0 - 1f);
+            my.zStart = z1 - 2.2f; my.zKoniec = z0 + 2.2f;
+            Debug.Log("BRAXHORN_MYJNIA portal ruchomy: szyny z " + my.zStart.ToString("F1") + "…" + my.zKoniec.ToString("F1") + ", szczotki 2 pionowe + 1 pozioma, start po wjeździe auta gracza");
+        }
         StDetal("myjnia", "portal na szynach + 3 szczotki");
         OdplywLiniowyBeton(-56.5f + 4f, z0 + .5f, z1 - .5f, (x0 + x1) * .5f);
         // panel sterowania z terminalem przy wjeździe (od strony kierowcy — lewa strona wjazdu)
@@ -615,7 +680,17 @@ public static partial class BraxClaudeOsiedle
         BoxMinMax(StMat("terminal myjni", new Color(.15f, .2f, .3f), .6f, .3f), x0 + .6f, x0 + 1.0f, YS + .2f, 1.5f * K, z1 + .3f, z1 + .7f, true);
         BoxMinMax(StSwiatlo("ekran terminala", new Color(.4f, .8f, 1f)), x0 + 1.0f, x0 + 1.02f, 1.1f * K, 1.35f * K, z1 + .35f, z1 + .65f, false);
         var pk = new GameObject("BRAXHORN punkt interakcji: mycie (myjnia automatyczna)"); pk.transform.SetParent(Group(group), false); pk.transform.position = new Vector3((x0 + x1) * .5f, YS, z1 + 2f); stPunkty++;
-        Napis3D("MYJNIA BRAXHORN", new Vector3((x0 + x1) * .5f, yH + .12f, z1 + .01f), Vector3.forward, .3f, .05f, StSwiatlo("napis myjni turkus", new Color(.2f, .85f, 1f)), nieb, .15f, .14f, true);
+        if (!SzyldPanel("myjnia_szyld", new Vector3((x0 + x1) * .5f, yH + .3f, z1 + .01f), Vector3.forward, 1.68f, .56f))
+            Napis3D("MYJNIA BRAXHORN", new Vector3((x0 + x1) * .5f, yH + .12f, z1 + .01f), Vector3.forward, .3f, .05f, StSwiatlo("napis myjni turkus", new Color(.2f, .85f, 1f)), nieb, .15f, .14f, true);
+        // tablica z cennikiem przy wjeździe (2:3) na dwóch słupkach, przodem do wjeżdżających (3 m przed bramą, lewa strona)
+        if (SzyldObraz("myjnia_tablica"))
+        {
+            float tx = x0 + .9f, tz = z1 + 3f, tw = 1.1f * K, th = tw * 1.5f, ty = YS + .5f * K;
+            foreach (float sx in new[] { -1f, 1f }) Cylinder(Steel, new Vector3(tx + sx * (tw * .5f - .06f), YS, tz - .05f), .04f, ty + th - YS, 10, true, false);
+            BoxMinMax(StMat("rama tablicy myjni", new Color(.08f, .1f, .14f), .5f, .5f), tx - tw * .5f - .04f, tx + tw * .5f + .04f, ty - .04f, ty + th + .04f, tz - .09f, tz - .01f, false);
+            SzyldPanel("myjnia_tablica", new Vector3(tx, ty + th * .5f, tz - .01f), Vector3.forward, tw, th);
+            Collider(new Vector3(tx, YS + (ty + th - YS) * .5f, tz - .05f), new Vector3(tw + .1f, ty + th - YS, .2f));
+        }
     }
     static void OdplywLiniowyBeton(float unused, float a0, float a1, float c)
     {
