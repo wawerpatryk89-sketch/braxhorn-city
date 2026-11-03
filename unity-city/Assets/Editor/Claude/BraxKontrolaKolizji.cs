@@ -28,6 +28,14 @@ public static class BraxKontrolaKolizji
         var dodaneTypy = new Dictionary<string, int>();
         Transform wspolny = null;
         Physics.SyncTransforms();
+        // 3.11 (metro „nie da się wejść”, dyskoteka „nie można wejść”): pudełko kontroli nie powstaje w przejściu drzwi —
+        // punkty skrzydeł wszystkich drzwi (BraxCityDoor), promień = pół obrysu pudełka + 1.2 m
+        var drzwiPkt = new List<Vector3>(); int przyDrzwiach = 0;
+        foreach (var d in UnityEngine.Object.FindObjectsByType<BraxCityDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!d) continue; drzwiPkt.Add(d.transform.position);
+            if (d.leaves != null) foreach (var l in d.leaves) if (l) { var rr = l.GetComponentInChildren<Renderer>(true); drzwiPkt.Add(rr ? rr.bounds.center : l.position); }
+        }
         foreach (var j in spis.jednostki)
         {
             try
@@ -66,6 +74,9 @@ public static class BraxKontrolaKolizji
                     if (ymax - ymin >= 1.6f && dl >= .7f && Pusty(j, c, kat, dl, sz, ymin, ymax)) { otwory++; BraxKontrola.Zapisz("kolizje: pominięty kształt z otworem " + j.opis + " " + BraxKontrola.F(j.Podstawa)); continue; }
                     if (dl >= .8f && Schody(j)) { schody++; BraxKontrola.Zapisz("kolizje: pominięte schody " + j.opis + " " + BraxKontrola.F(j.Podstawa)); continue; }
                 }
+                { float pr = Mathf.Max(dl, sz) * .5f + 1.2f; bool blok = false;
+                  foreach (var dp in drzwiPkt) { if (Mathf.Abs(dp.y - (ymin + ymax) * .5f) > 3f) continue; var dd = new Vector2(dp.x - c.x, dp.z - c.y); if (dd.sqrMagnitude < pr * pr) { blok = true; break; } }
+                  if (blok) { przyDrzwiach++; BraxKontrola.Zapisz("kolizje: pominięta przy drzwiach " + j.opis + " " + BraxKontrola.F(j.Podstawa)); continue; } }
                 // nowa kolizja: dziecko mebla (jedzie z nim przy podziale sceny), przy niejednolitej skali rodzica — wspólny korzeń
                 var g = new GameObject("BRAXHORN kolizja (kontrola)");
                 var ls = j.t.lossyScale; float s = (Mathf.Abs(ls.x) + Mathf.Abs(ls.y) + Mathf.Abs(ls.z)) / 3f;
@@ -86,7 +97,7 @@ public static class BraxKontrolaKolizji
         }
         Physics.SyncTransforms();
         Debug.Log("BRAXHORN_KOLIZJE " + BraxKontrola.Obszar + ": dodane=" + dodane + " (" + string.Join(", ", dodaneTypy.OrderByDescending(x => x.Value).Select(x => x.Key + " " + x.Value)) + ")" +
-                  ", już z kolizją " + maja + ", pominięte: nad 2.3 m " + nad + ", drobne " + male + ", płaskie " + plaskie + ", z otworem " + otwory + ", schody " + schody + ", chronione " + chronione);
+                  ", już z kolizją " + maja + ", pominięte: nad 2.3 m " + nad + ", drobne " + male + ", płaskie " + plaskie + ", z otworem " + otwory + ", schody " + schody + ", chronione " + chronione + ", przy drzwiach (bez pudełka) " + przyDrzwiach);
     }
 
     // kolizja własna (komponent w meblu) albo osobna kolizja pokrywająca ≥ 50 % obrysu pasu 0–2 m
