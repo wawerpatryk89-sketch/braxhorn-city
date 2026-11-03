@@ -65,7 +65,7 @@ public static class BraxRegion
         Step("interior mapping: pokoje za oknami budynków nieużytkowych", () => BraxRegionInteriorMap.Apply(root));
         Step("elewacje ulicy: prawdziwe okna, gzymsy, obraz w lobby", () => BraxRegionFacades.Apply(root));
         Step("sonda: blok nad NOVA (dane do mieszkania Braxa)", () => BraxClaudeNovaProbe.Apply());
-        Step("mieszkanie Braxa nad NOVA (klatka od ulicy, biedny pokój z aneksem i łazienką)", () => BraxRegionBraxFlat.Apply(world, root));
+        Step("mieszkanie Braxa nad NOVA (brama i klatka od ulicy, mieszkanie urządzone: przedpokój, łazienka, salon z aneksem, sypialnia)", () => BraxRegionBraxFlat.Apply(world, root));
         Step("A: CLUB NOVA od nowa (fasada, wejście bez progu, sala premium, efekty)", () => BraxMiastoNova.Apply(root));
         Step("A: BRAXHORN NUTRITION od nowa (mural na ścianie, sklep premium)", () => BraxMiastoNutrition.Apply(root));
         Step("A: ulica główna — wyposażenie (drzewa w kratach, ławki, kosze, stojaki, słupki, tablice nazw) i ekrany LED", () => BraxMiastoUlica.Apply(root));

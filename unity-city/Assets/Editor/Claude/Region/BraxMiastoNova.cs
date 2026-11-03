@@ -102,7 +102,7 @@ internal static class BraxMiastoNova
         float y0 = F, yG = 5.05f, z = 35.95f;   // lico okładziny 15 cm przed dawną linią fasady
         // okładzina: otwory — wejście do klubu, drzwi klatki (zostają), kasetony plakatów
         var drzwiKlubu = Rect.MinMaxRect(40.8f - 32f, F, 43.2f - 32f, F + 2.6f * 1.0f + .25f);
-        var drzwiKlatki = Rect.MinMaxRect(33.02f - 32f, F, 34.23f - 32f, 2.48f);
+        var drzwiKlatki = Rect.MinMaxRect(33.0f - 32f, F, 34.36f - 32f, 3.01f);   // pkt 46: brama klatki 1.16 × 2.72 m (× K) z ościeżnicą
         var s = BraxUliceKit.S(kamien);
         // lico (okładzina 15 cm przed starą linią — bok przy x 32 domyka)
         BraxMiastoA.Sciana(s, new Vector3(32f, 0, z), Vector3.right, Vector3.back, 20f, .75f, yG, new[] { drzwiKlubu, drzwiKlatki }, .15f + .40f, s);
@@ -110,7 +110,7 @@ internal static class BraxMiastoNova
         s.Quad(new Vector3(52f, .75f, z), new Vector3(52f, .75f, 36.1f), new Vector3(52f, yG, 36.1f), new Vector3(52f, yG, z), Vector3.right);
         // cokół granitowy (2 cm przed okładziną), z przerwami na drzwi
         var g = BraxUliceKit.S(granit);
-        foreach (var (a, b) in new[] { (32f, 33.02f), (34.23f, 40.8f), (43.2f, 52f) })
+        foreach (var (a, b) in new[] { (32f, 33.0f), (34.36f, 40.8f), (43.2f, 52f) })
             g.Box(new Vector3(a, F, z - .02f), new Vector3(b, .75f, 36.1f), 4 | 32);
         // mosiężne lizeny co ok. 2.4 m (poza drzwiami i panelem szyldu), cienkie listwy LED w fugach
         var m = BraxUliceKit.S(mosiadz);
@@ -152,8 +152,8 @@ internal static class BraxMiastoNova
             BraxUliceKit.S(listwaCiepla).Box(new Vector3(x - .05f, 2.04f, z - .1f), new Vector3(x + .05f, 2.46f, z - .06f));
         }
         // portal drzwi klatki (kamienna opaska — drzwi mieszkania zostają)
-        g.Box(new Vector3(32.9f, F, z - .06f), new Vector3(33.02f, 2.6f, z), 32); g.Box(new Vector3(34.23f, F, z - .06f), new Vector3(34.35f, 2.6f, z), 32);
-        g.Box(new Vector3(32.9f, 2.48f, z - .06f), new Vector3(34.35f, 2.6f, z), 32);
+        g.Box(new Vector3(32.88f, F, z - .06f), new Vector3(33.0f, 3.13f, z), 32); g.Box(new Vector3(34.36f, F, z - .06f), new Vector3(34.48f, 3.13f, z), 32);
+        g.Box(new Vector3(32.88f, 3.01f, z - .06f), new Vector3(34.48f, 3.13f, z), 32);
         // (czerwony chodnik NIE kładziony — zasada właściciela 15:40: nic nie leży na istniejącej powierzchni)
         // KOLEJKA: słupki chromowane co 1.25 m z aksamitną liną (zwis), 1.35 m od fasady, wolny chodnik od strony ulicy
         var ch = BraxUliceKit.S(chrom); var wl = BraxUliceKit.S(welur);
@@ -175,7 +175,8 @@ internal static class BraxMiastoNova
         // lina zamykająca kolejkę przy drzwiach (wejście przez bramkę ochrony) i kolizja liny (nie przechodzi się „pod liną”)
         BraxMiastoA.Kol(kol, "lina kolejki", new Vector3(slupki[0], F, qz - .05f), new Vector3(slupki[slupki.Count - 1], F + ph - .1f, qz + .05f));
         BraxMiastoA.Kol(kol, "fasada NOVA zachód", new Vector3(32f, F, z), new Vector3(33.0f, yG, 36.5f));
-        BraxMiastoA.Kol(kol, "fasada NOVA klatka–wejście", new Vector3(34.25f, F, z), new Vector3(40.8f, yG, 36.5f));
+        BraxMiastoA.Kol(kol, "fasada NOVA klatka–wejście", new Vector3(34.36f, F, z), new Vector3(40.8f, yG, 36.5f));
+        BraxMiastoA.Kol(kol, "fasada NOVA nad bramą klatki", new Vector3(33.0f, 3.01f, z), new Vector3(34.36f, yG, 36.5f));
         BraxMiastoA.Kol(kol, "fasada NOVA wschód", new Vector3(43.2f, F, z), new Vector3(52f, yG, 36.5f));
         BraxMiastoA.Kol(kol, "nadproże wejścia", new Vector3(40.8f, F + 2.98f, z), new Vector3(43.2f, yG, 36.5f));
         BraxMiastoA.Akcja(root, "nova_ochrona", "POROZMAWIAJ", "Ochrona: Wejście z kolejki, bez odzieży sportowej. Dziś w środku gra rezydent.", new Vector3(44.1f, F, 35.0f), 1.8f);
