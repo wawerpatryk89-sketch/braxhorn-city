@@ -192,7 +192,7 @@ public static class BraxSupermarket
                     {
                         float wolne = (k + 1 < s.y.Length ? s.y[k + 1] - s.y[k] - .03f : .45f) * K;
                         var start = Swiat(x + sg * .22f * K, Podloga + s.y[k] * K + .004f, zc + (s.z0 + .03f) * K);
-                        BraxSklepyTowar.Polka(s.typ, tw, start, t.forward, -sg * t.right, (s.z1 - s.z0 - .06f) * K, rng, wolne);
+                        BraxSklepyTowar.Polka(BraxSklepyTowar.Ma("sm_g" + i) ? "sm_g" + i : s.typ, tw, start, t.forward, -sg * t.right, (s.z1 - s.z0 - .06f) * K, rng, wolne);
                     }
             BraxSklepyTowar.Zakoncz(tw, "supermarket " + nr + " regał " + (i + 1));
             towar += tw.GetComponentsInChildren<Renderer>(true).Length;

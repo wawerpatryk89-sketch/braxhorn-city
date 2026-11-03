@@ -142,12 +142,15 @@ internal static class BraxMiastoNutrition
         cz.Box(new Vector3(X0, F, rz0 - .04f), new Vector3(X0 + rd, F + rh, rz0), 1); cz.Box(new Vector3(X0, F, rz1), new Vector3(X0 + rd, F + rh, rz1 + .04f), 1);
         cz.Box(new Vector3(X0, F, rz0), new Vector3(X0 + rd, F + .12f, rz1), 1 | 4);             // cokół regału
         string[] dzialy = { "BIAŁKO", "KREATYNA", "PRZEDTRENINGÓWKI", "BATONY", "AKCESORIA" };
+        // 3.11 14:17: prawdziwe odżywki BRAXHORN SPORT NUTRITION z etykiet właściciela (kubły, worki gainera) zamiast walców z kolorów
+        bool odzywki = BraxMiastoAssety.Jest("miasto_sklepy"); var twN = odzywki ? BraxSklepyTowar.Korzen(root, "BRAXHORN NUTRITION — ściana produktów") : null;
         for (int p = 0; p < 5; p++)
         {
             float y = F + .12f + p * (rh - .3f) / 4f;
             pl.Box(new Vector3(X0 + .04f, y - .03f, rz0), new Vector3(X0 + rd, y, rz1), 1);
             BraxUliceKit.S(led).Box(new Vector3(X0 + rd - .04f, y - .05f, rz0), new Vector3(X0 + rd - .01f, y - .03f, rz1));
             if (p == 4) break;
+            if (odzywki) { BraxSklepyTowar.Polka(p == 0 ? "odz_dol" : p == 3 ? "odz_gora" : "odz_polka", twN, new Vector3(X0 + .27f, y + .004f, rz0 + .1f), Vector3.forward, Vector3.left, rz1 - rz0 - .25f, rng, (rh - .3f) / 4f - .02f); continue; }
             for (float zq = rz0 + .1f; zq < rz1 - .15f;)
             {
                 int typ = (p + (int)((zq - rz0) / 2.4f)) % 4;
@@ -164,6 +167,7 @@ internal static class BraxMiastoNutrition
             }
         }
         tw.kolor = BraxUliceKit.Bialy;
+        if (odzywki) BraxSklepyTowar.Zakoncz(twN, "BRAXHORN NUTRITION");
         BraxMiastoA.Kol(kol, "ściana produktów", new Vector3(X0, F, rz0 - .04f), new Vector3(X0 + rd, F + rh, rz1 + .04f));
         // napisy działów NA ŚCIANIE nad regałem (litery przestrzenne na tynku, nie w powietrzu)
         float seg = (rz1 - rz0) / 3f;
