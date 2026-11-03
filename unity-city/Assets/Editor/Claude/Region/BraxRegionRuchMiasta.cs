@@ -136,6 +136,29 @@ public static partial class BraxClaudeOsiedle
             new BraxTrasyAut.Definicja { nazwa = "M pętla przez Aleję Północną (zawracanie na rondzie PÓŁNOC)", petla = true, y = YA, punkty = new[] { P(RONDO), P(PETLA), P(RONDO), P(J1), P(W), P(J2) } },
             new BraxTrasyAut.Definicja { nazwa = "M pętla przez ul. Zachodnią (zawracanie na pętli ZACHÓD)", petla = true, y = YA, punkty = new[] { P(RONDO), P(PETLA_W), P(RONDO), P(J2), P(W), P(J1) } },
         };
+        // WŁAŚCICIEL 3.11 10:15 („gdzie ruch na ulicy?”) — NOWE DZIELNICE: siatka ulic z buildu (log „nawierzchnie: aleja 4 odcinki,
+        // ulice C0–C3, Nowojorska, Tramwajowa, skrzyżowań 12”): Aleja Centralna (z = RZ), ul. Nowojorska (z = NN1), ul. Tramwajowa
+        // (z = NS1) × ulice C0…C3 (x = NC). Pętle wokół kwartałów, osobne od pętli miasta B (bez łączenia przez pętlę ZACHÓD).
+        // Skrzyżowania zwykłe (rodzaj 0) — sygnalizację i linie zatrzymania mają już strefy drogowe dzielnic (BraxStrefyDrogowe).
+        {
+            var NC = BraxRegionMiastoB.NC; float nn = BraxRegionMiastoB.NN1, ns = BraxRegionMiastoB.NS1, npr = BraxRegionMiastoB.NPR, apr = BraxRegionMiastoB.APR;
+            var AC = new BraxTrasyAut.Ulica { id = "NOWE Aleja Centralna", wzdluzX = true, c = rz, a0 = NC[3], a1 = NC[0], cw = ah, half = apr };
+            var NY = new BraxTrasyAut.Ulica { id = "NOWE ul. Nowojorska", wzdluzX = true, c = nn, a0 = NC[3], a1 = NC[0], cw = ah, half = npr };
+            var TR = new BraxTrasyAut.Ulica { id = "NOWE ul. Tramwajowa", wzdluzX = true, c = ns, a0 = NC[3], a1 = NC[0], cw = ah, half = npr };
+            ul.Add(AC); ul.Add(NY); ul.Add(TR);
+            var nA = new BraxTrasyAut.Wezel[4]; var nN = new BraxTrasyAut.Wezel[4]; var nT = new BraxTrasyAut.Wezel[4];
+            for (int i = 0; i < 4; i++)
+            {
+                var C = new BraxTrasyAut.Ulica { id = "NOWE C" + i, wzdluzX = false, c = NC[i], a0 = ns, a1 = nn, cw = ah, half = npr }; ul.Add(C);
+                nA[i] = new BraxTrasyAut.Wezel { x = NC[i], z = rz, ux = AC, uz = C }; nN[i] = new BraxTrasyAut.Wezel { x = NC[i], z = nn, ux = NY, uz = C };
+                nT[i] = new BraxTrasyAut.Wezel { x = NC[i], z = ns, ux = TR, uz = C };
+                wz.Add(nA[i]); wz.Add(nN[i]); wz.Add(nT[i]);
+            }
+            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C0–C1 północ", petla = true, y = YA, punkty = new[] { P(nA[0]), P(nN[0]), P(nN[1]), P(nA[1]) } });
+            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C2–C3 północ", petla = true, y = YA, punkty = new[] { P(nA[2]), P(nN[2]), P(nN[3]), P(nA[3]) } });
+            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla C1–C2 południe", petla = true, y = YA, punkty = new[] { P(nA[2]), P(nT[2]), P(nT[1]), P(nA[1]) } });
+            defs.Add(new BraxTrasyAut.Definicja { nazwa = "N pętla duża (Aleja, C3, Tramwajowa, C0)", petla = true, y = YA, punkty = new[] { P(nA[0]), P(nA[1]), P(nA[2]), P(nA[3]), P(nT[3]), P(nT[2]), P(nT[1]), P(nT[0]) } });
+        }
         // rondo miasta: tor jazdy w osi pierścienia (7.5…14.5 m → 11 m), krawędź zewnętrzna 14.5 m (obie pętle ronda tej samej wielkości)
         BraxTrasyAut.RondoPromien = (BraxRegionMiastoB.RWyspa + BraxRegionMiastoB.RJezdnia) * .5f; BraxTrasyAut.RondoJezdnia = BraxRegionMiastoB.RJezdnia;
         var wy = BraxTrasyAut.Generuj(ul, wz, defs);
@@ -148,7 +171,7 @@ public static partial class BraxClaudeOsiedle
         ra.punkty = wy.punkty.ToArray(); ra.trasy = wy.trasy.ToArray(); ra.zdarzenia = wy.zdarzenia.ToArray(); ra.wezly = wy.wezly.ToArray(); ra.ziarno = 2111;
         var rnd = new System.Random(2111); var pula = PulaAut(szablony); var klakson = Klakson();
         var auta = new List<BraxAuto>(); int taksowki = 0;
-        int[] ile = { 5, 5, 4, 4 };   // właściciel 3.11 10:15: „gdzie ruch na ulicy, samochody zniknęły” — było 2 na trasę (8 aut w całym mieście B)
+        int[] ile = { 5, 5, 4, 4, 2, 2, 2, 3 };   // + 4 pętle nowych dzielnic; właściciel 3.11 10:15: „gdzie ruch na ulicy, samochody zniknęły” — było 2 na trasę (8 aut w całym mieście B)
         for (int r = 0; r < wy.trasy.Count; r++)
             for (int k = 0; k < (r < ile.Length ? ile[r] : 1); k++)
             {
@@ -463,6 +486,30 @@ public static partial class BraxClaudeOsiedle
                 m1.rozmowca = m2; m2.rozmowca = m1; m1.lider = true; parRozm++;
             }
             Debug.Log("BRAXHORN_LUDZIE_ROZMOWY miasto B: par rozmawiających " + parRozm + "/16 (dymki do 24 m) + przechodnie zaczepiają się w ruchu");
+            // NOWE DZIELNICE (właściciel 3.11: „dwóch ludzi tylko”): pary rozmawiające na chodnikach Alei Centralnej i Nowojorskiej,
+            // w połowie każdego odcinka między ulicami C (obie strony) — do 12 par.
+            int parNowe = 0;
+            {
+                var NC = BraxRegionMiastoB.NC; float rzA = BraxRegionMiastoB.RZ, nn = BraxRegionMiastoB.NN1;
+                float offA = BraxRegionMiastoB.APR - BraxRegionMiastoB.Chod * .5f, offN = BraxRegionMiastoB.NPR - BraxRegionMiastoB.Chod * .5f;
+                for (int i = 0; i + 1 < NC.Length; i++)
+                    foreach (var (zc, off) in new[] { (rzA, offA), (nn, offN) })
+                        foreach (float sgn in new[] { -1f, 1f })
+                        {
+                            float xm = (NC[i] + NC[i + 1]) * .5f + (float)(rnd.NextDouble() - .5) * 20f;
+                            var p0 = new Vector3(xm, 0f, zc + sgn * off);
+                            if (Physics.Raycast(p0 + Vector3.up * 5f, Vector3.down, out var hg, 10f, ~0, QueryTriggerInteraction.Ignore)) p0.y = hg.point.y; else continue;
+                            float d = Mathf.Lerp(1.05f, 1.3f, (float)rnd.NextDouble());
+                            Vector3 a1 = p0 - Vector3.right * d * .5f, b1 = p0 + Vector3.right * d * .5f;
+                            if (!Wolne(a1, .3f) || !Wolne(b1, .3f) || BraxRegionMiastoB.NaJezdni(a1) || BraxRegionMiastoB.NaJezdni(b1)) continue;
+                            var para = new GameObject("Rozmowa (para, nowe dzielnice)").transform; para.SetParent(gRozm, false); para.position = p0;
+                            var m1 = NowyMieszkaniec(RolaPrzechodzien, para, "Rozmawia", a1, 90f, rnd, KlipySlucha, kubek: rnd.NextDouble() < .25);
+                            var m2 = NowyMieszkaniec(RolaPrzechodzien, para, "Rozmawia", b1, -90f, rnd, KlipySlucha);
+                            if (!m1 || !m2) { UnityEngine.Object.DestroyImmediate(para.gameObject); continue; }
+                            m1.rozmowca = m2; m2.rozmowca = m1; m1.lider = true; parNowe++;
+                        }
+            }
+            Debug.Log("BRAXHORN_LUDZIE_ROZMOWY nowe dzielnice: par " + parNowe + "/12");
             int ileLawekB = lawki.Count;
             int wezlow = s.w.Count;
             int przejsc = s.zebry.Count / 2;
