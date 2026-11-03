@@ -180,7 +180,8 @@ internal static partial class BraxMiastoWyspa
             for (int k = 0; k < nBay; k++)
             {
                 float u0 = S(k) + lzW * .5f + .001f, u1 = S(k + 1) - lzW * .5f - .001f, w = u1 - u0, um = (u0 + u1) * .5f;
-                if (k == 0) u0 = .3f; if (k == nBay - 1) u1 = dl - .3f;   // skraj przęsła w słupie narożnym (bez szczeliny) w = u1 - u0; um = (u0 + u1) * .5f;
+                if (k == 0) u0 = .3f; if (k == nBay - 1) u1 = dl - .3f;   // skraj przęsła w słupie narożnym (bez szczeliny)
+                w = u1 - u0; um = (u0 + u1) * .5f;                         // (przegląd 3.11: przeliczenie było w komentarzu — szczelina przy słupie)
                 void Szyba(float ya, float yb) { if (yb - ya > .02f) szk.OBox(P(um, (ya + yb) * .5f, -g - .01f), Rr, Vector3.up, N, w, yb - ya, .02f); }
                 if (!(Portal(k) || DrzwiB(k))) Szyba(y0 + cok, tr1 - .04f);
                 Szyba(tr1 + .04f, sp0); Szyba(sp1, tr2 - .04f); Szyba(tr2 + .04f, yG);
@@ -1085,16 +1086,15 @@ internal static partial class BraxMiastoWyspa
     {
         BraxUliceKit.UstawGrupe("Wyspa: arena premium — plac przed wejściem");
         float y = apY0, xw = apC.x - apAp; int n = 0;
-        var gran = D(apGranit); var dab = D(apDab); var stal = D(apStal);
-        var ziel = D(BraxMiastoA.Mat("Arena premium: krzewy w donicach (zieleń)", new Color(.18f, .36f, .12f), .9f));
+        var dab = D(apDab); var stal = D(apStal);
         foreach (float sz in new[] { -1f, 1f })
             for (int k = 0; k < 3; k++)
             {
                 var p = new Vector3(xw - 4.5f - k * 4.2f, y, apC.z + sz * 7f);
-                // donica granitowa (profil fazowany) z krzewem (bryła toczona, nieregularna)
-                Toczenie(gran, new[] { new Vector2(0, 0), new Vector2(.62f, 0), new Vector2(.7f, .06f), new Vector2(.7f, .52f), new Vector2(.62f, .55f), new Vector2(0, .55f) }, p, 16);
-                Toczenie(ziel, new[] { new Vector2(0, .55f), new Vector2(.55f, .58f), new Vector2(.68f, .85f), new Vector2(.6f, 1.15f), new Vector2(.35f, 1.35f), new Vector2(0, 1.4f) }, p, 10, 1f, .92f);
-                KolAA("donica", p + new Vector3(-.7f, 0, -.7f), p + new Vector3(.7f, .55f, .7f));
+                // roślina w donicy: PRAWDZIWY model Poly Haven (przegląd 3.11: krzew toczony z jednolitej zieleni = „kulka” — zdjęty);
+                // bez modelu nie stawiamy nic (żadnych zastępczych brył)
+                var rosl = BraxRegion.Model("potted_plant_04", "potted_plant_02");
+                if (rosl && BraxRegion.Put(root, rosl, "Arena premium: plac — roślina w donicy", p, k * 47f + (sz > 0 ? 20f : 200f), 1f, true, 1.6f * K)) n++;
                 // ławka: siedzisko z listew na wspornikach stalowych, przodem do osi
                 var b = p + Vector3.right * 2.6f; var fw = new Vector3(0, 0, -sz); float hb = .45f * K;
                 for (int s = 0; s < 4; s++) Wyciag(dab, PZ(.09f, .04f, .012f, new Vector2(0, hb - .02f)), b + Vector3.left * .9f + fw * (s - 1.5f) * .11f, Vector3.right, Vector3.up, Vector3.forward, 1.8f);
@@ -1105,10 +1105,9 @@ internal static partial class BraxMiastoWyspa
                 Toczenie(stal, new[] { new Vector2(0, 0), new Vector2(.12f, 0), new Vector2(.12f, .05f), new Vector2(.07f, .1f), new Vector2(.05f, 4.6f), new Vector2(0, 4.6f) }, l, 10);
                 Toczenie(D(BraxMiastoA.Swieci("Arena premium: klosz latarni", new Color(1f, .95f, .85f), new Color(1.8f, 1.6f, 1.3f))), new[] { new Vector2(0, 4.45f), new Vector2(.22f, 4.5f), new Vector2(.24f, 4.62f), new Vector2(0, 4.66f) }, l, 14);
                 KolA("latarnia placu", l + Vector3.up * 2.3f, Vector3.forward, new Vector3(.25f, 4.6f, .25f));
-                n++;
             }
-        BraxMiastoA.Log("WYSPA arena premium: plac przed wejściem — " + n + " × (donica z zielenią, ławka, latarnia); bez food trucków i budek");
-        apElem += n * 3;
+        BraxMiastoA.Log("WYSPA arena premium: plac przed wejściem — 6 × (ławka, latarnia), roślin w donicach (model Poly Haven) " + n + "; bez food trucków i budek");
+        apElem += 12 + n;
     }
 
     static void ApZapiszDrobne()
