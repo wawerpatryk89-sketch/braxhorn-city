@@ -66,6 +66,8 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     # czajnik, szafa, regał, krzesło, stół, budzik, kartony, skrzynka, konserwy, goła żarówka, radio
     "old_bed_frame", "Television_01", "electric_stove", "vintage_microwave", "vintage_electric_kettle", "painted_wooden_cabinet_02",
     "Shelf_01", "WoodenTable_03", "alarm_clock_01", "cardboard_box_01", "plastic_crate_01", "russian_food_cans_01", "lightbulb_01", "boombox",
+    # 3.11 bosmanat — okienko z przekąskami (sprawdzone w API Poly Haven 3.11: hot-doga nie ma; są rogaliki, bułki, owoce)
+    "croissant", "hamburger_buns", "food_apple_01", "lemon", "food_pears_asian_01", "carved_wooden_plate", "wooden_cutting_board",
 ]
 
 
