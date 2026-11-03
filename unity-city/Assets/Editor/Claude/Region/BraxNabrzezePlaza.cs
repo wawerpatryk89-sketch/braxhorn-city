@@ -323,13 +323,19 @@ public static class BraxNabrzezePlaza
                 }
                 // (ręczniki leżące na piasku USUNIĘTE — zasada właściciela 15:40: nic nie leży płasko na istniejącej powierzchni)
             }
-        // budka ratownika (model CC0, wys. 6,2 m — ok. 4,8 m × k), przodem do kąpieliska (na wschód), maszt z flagą
+        // budka ratownika (model CC0/CC BY lifeguard_tower.glb), przodem do kąpieliska (na wschód), maszt z flagą.
+        // Właściciel 3.11 10:52 / 11:47: „przemalować i trochę powiększyć”, „nie da się wejść” — skala × k (pokład 2.4 m × k),
+        // konstrukcja biała, kabina czerwona, kolizje wejścia wg geometrii modelu (BraxNabrzezeRatownik)
         float bx = LiniaWody(140f) - 9f, bz = 140f;
-        var budka = BraxHarborBeachBuild.Postaw(root, "lifeguard_tower.glb", "Plaża: budka ratownika", new Vector3(bx, Wysokosc(bx, bz) - .05f, bz), 6.2f, -90f);
+        var budka = BraxHarborBeachBuild.Postaw(root, "lifeguard_tower.glb", "Plaża: budka ratownika (× k)", new Vector3(bx, Wysokosc(bx, bz) - .05f, bz), BraxNabrzezeRatownik.WysModelu * BraxNabrzezeRatownik.Skala, -90f);
         if (budka)
         {
-            var bb = BraxRegion.Bounds(budka);
-            BraxNabrzeze.Kol(kol, "Budka ratownika", bb.center, bb.size * .9f);
+            int nk = 0; float yP = 0f;
+            try { BraxNabrzezeRatownik.Przemaluj(budka); nk = BraxNabrzezeRatownik.Wejscie(budka, kol, out yP); }
+            catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_NABRZEZE budka ratownika (malowanie / wejście): " + e); nk = 0; }
+            if (nk == 0) { var bb = BraxRegion.Bounds(budka); BraxNabrzeze.Kol(kol, "Budka ratownika", bb.center, bb.size * .9f); }
+            else Miejsca["plaza_ratownik_poklad"] = new Vector3(bx, yP, bz);
+            BraxNabrzeze.Log("budka ratownika: skala " + BraxNabrzezeRatownik.Skala.ToString("F3") + " m/jedn. (pokład " + (2.4f * K).ToString("F2") + " m nad piaskiem), kolizji wejścia " + nk + (nk == 0 ? " — kolizja-pudło" : ""));
         }
         Miejsca["plaza_ratownik"] = new Vector3(bx + 3.5f, Wysokosc(bx + 3.5f, bz), bz);
         var maszt = new Vector3(bx - 1.5f, Wysokosc(bx - 1.5f, bz + 4f), bz + 4f);
@@ -338,9 +344,7 @@ public static class BraxNabrzezePlaza
         z[m.bialy].Quad(flaga, flaga + new Vector3(1.0f * K, -.05f, .1f), flaga + new Vector3(1.0f * K, -.7f * K, .1f), flaga + new Vector3(0, -.7f * K, 0));
         z[m.bialy].Quad(flaga + new Vector3(0, -.7f * K, 0), flaga + new Vector3(1.0f * K, -.7f * K, .1f), flaga + new Vector3(1.0f * K, -.05f, .1f), flaga);
         BraxNabrzeze.Kol(kol, "Maszt flagi", maszt + Vector3.up * 2f, new Vector3(.2f, 4f, .2f));
-        // deska ratownicza oparta o budkę + koło ratunkowe przy wodzie
-        var deska = new Vector3(bx + 2.4f, Wysokosc(bx + 2.4f, bz - 2.6f) + .9f * K, bz - 2.6f);
-        z[m.czerwony].Box(deska, new Vector3(.55f * K, .09f * K, 2.6f * K), Quaternion.Euler(-68f, 90f, 0));
+        // koło ratunkowe przy wodzie (deska ratownicza — kształtowana, przy wieży: BraxNabrzezeRatownik)
         BraxNabrzezeMebel.KoloRatunkowe(z, root, m, new Vector3(bx + 5f, Wysokosc(bx + 5f, bz + 2f), bz + 2f), -90f);
         // prysznice i kosze u stóp zejść, przy rampie
         foreach (float s in Schody)
@@ -370,7 +374,7 @@ public static class BraxNabrzezePlaza
             }
         }
         BraxRegion.Rep.beachProps += nPar + nLez;
-        BraxNabrzeze.Log("plaża: parasoli " + nPar + ", leżaków " + nLez + ", kęp trawy " + nt + ", budka ratownika " + (budka ? "tak" : "BRAK"));
+        BraxNabrzeze.Log("plaża: parasoli " + nPar + ", leżaków " + nLez + ", kęp trawy " + nt + ", budka ratownika " + (budka ? "tak (× k, przemalowana)" : "BRAK"));
     }
 
     // ---------------- kąpielisko: boje na linie i niewidzialna granica (także dla łodzi) ----------------

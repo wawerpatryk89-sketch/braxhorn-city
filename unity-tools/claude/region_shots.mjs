@@ -54,6 +54,13 @@ const VIEWS = [
   ['14_podworko_zielen', '10,0.2,92,0,14,12'],
   ['15_plaza_na_morze', '88,0.4,133,270,14,12'],
   ['16_plaza_piasek', '78,0.4,125,0,16,12'],
+  // 3.11: budka ratownika (model × k, przemalowana, wejście po schodach; środek ~127.3, 140; pokład ~y 1.9): z plaży i z pokładu na morze
+  ['DETAL_plaza_wieza_ratownika', '127.3,1.0,140,225,10,13'],
+  ['DETAL_plaza_wieza_ratownika_z_platformy', '130.8,3.1,142.1,270,5,4'],
+  // 3.11: bulwar — miejsce po PUNKCIE DOSTAW i garażach (wycięte ze źródła), mur podwórka z cegły PBR × k
+  ['DETAL_bulwar_po_punkcie_dostaw', '81.4,1.2,82.7,0,15,8'],
+  ['DETAL_bulwar_mur_cegla', '64.6,1.6,70,90,8,4'],
+  ['DETAL_bosmanat_okienko_wozek', '73.8,1.4,61.5,45,10,7'],   // okienko z przekąskami i wózek BRAXHORN GRILL (paczka miasto_jedzenie)
   ['17_marina_zejscie', '120,0.1,119,0,14,8'],
   ['17b_marina_pomost', '120,-0.5,104,0,12,9'],
   ['17c_marina_jachty', '122,-0.5,84,270,12,9'],
