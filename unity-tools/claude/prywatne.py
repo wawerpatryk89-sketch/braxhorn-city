@@ -219,7 +219,7 @@ def przygotuj_patryka(staging):
 # Paczki modeli miasta (etap „assety”): każda osobno (< 90 MB po kompresji — limit GitHuba 100 MB na plik).
 PACZKI_MIASTA = ("miasto_centrum", "miasto_kamienice", "miasto_wiezowce", "miasto_wyposazenie", "miasto_pojazdy",
                  "miasto_port", "miasto_silownia_metro", "miasto_znaki", "miasto_statki", "miasto_statki2", "miasto_palmy",
-                 "miasto_jedzenie")
+                 "miasto_jedzenie", "miasto_sklepy")
 
 
 def miasto():

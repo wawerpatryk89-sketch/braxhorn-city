@@ -68,6 +68,9 @@ MODELS_1K = [  # mała architektura, wyposażenie, kamienie
     "Shelf_01", "WoodenTable_03", "alarm_clock_01", "cardboard_box_01", "plastic_crate_01", "russian_food_cans_01", "lightbulb_01", "boombox",
     # 3.11 bosmanat — okienko z przekąskami (sprawdzone w API Poly Haven 3.11: hot-doga nie ma; są rogaliki, bułki, owoce)
     "croissant", "hamburger_buns", "food_apple_01", "lemon", "food_pears_asian_01", "carved_wooden_plate", "wooden_cutting_board",
+    # 3.11 13:27 towar w sklepach ulicy (BraxSklepyTowar; lista z katalogu Poly Haven 3.11): piekarnia, cukiernia, warzywniak, delikatesy, kawiarnia, bary
+    "bananas", "carrot_cake", "strawberry_chocolate_cake", "long_life_food", "wine_bottles_01", "CheeseBox_01", "multi_cleaner_bottle",
+    "bleach_bottle", "wicker_basket_01", "wicker_basket_02", "tea_set_01", "jug_01", "wooden_bowl_01", "ceramic_vase_01",
 ]
 
 

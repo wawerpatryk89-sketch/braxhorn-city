@@ -703,6 +703,8 @@ public static class BraxUlicePierzeje
         var towar = BraxUliceKit.Mat("towar na półkach (kolory z wierzchołków)", Color.white, .55f);
         var lampa = BraxUliceKit.Mat("oprawy sufitowe (podświetlenie nocą)", new Color(.96f, .95f, .90f), .3f);
         var rng = new System.Random(lok.numer * 7919);
+        // 3.11: w lokalach spożywczych prawdziwy towar (BraxSklepyTowar) zamiast kolorowych klocków na półkach
+        bool prawdziwy = BraxSklepyTowar.Zastepuje(lok.typ); Transform tw = prawdziwy ? BraxSklepyTowar.Korzen(bg, lok.szyld) : null;
         Color32 Kol(float r, float g, float bb) => BraxUliceKit.C(r, g, bb);
         Color32 KolTowaru()
         {
@@ -731,6 +733,7 @@ public static class BraxUlicePierzeje
                 float y = y0 + .12f + p * (wys - .2f) / Mathf.Max(1, polek - 1);
                 sk.Box(P(.03f, y - .025f, .0f), P(dl - .03f, y, glb - .02f));
                 if (p == polek - 1) break;
+                if (prawdziwy) { BraxSklepyTowar.Polka(lok.typ, tw, P(.06f, y + .004f, (glb - .02f) * .5f), wzdl, wglab, dl - .12f, rng); continue; }
                 float x = .06f;
                 while (x < dl - .12f)
                 {
@@ -803,6 +806,15 @@ public static class BraxUlicePierzeje
         }
         // kasa na ladzie
         st.kolor = Kol(.15f, .15f, .16f); st.Box(W(ladaS0 + .3f, y0 + ladaH, ladaD - .15f), W(ladaS0 + .62f, y0 + ladaH + .22f, ladaD - .45f)); st.kolor = BraxUliceKit.Bialy;
+        if (prawdziwy)
+        {   // towar na ladzie (za kasą, przodem do klienta) i wózki przy wejściu marketu (wsunięte, równolegle do witryny, od drzwi w stronę wolnej ściany)
+            BraxSklepyTowar.Lada(lok.typ, tw, W(ladaS0 + .75f, y0 + ladaH, ladaD - ladaG * .5f), f.R, -f.N, ladaS1 - ladaS0 - .85f, rng);
+            if (lok.typ == "market")
+            {
+                bool wPrawo = f.drzwiS + 1.0f + 1.6f * k < sIn1 - .3f;
+                BraxSklepyTowar.Wozki(tw, kolizje, W(f.drzwiS + (wPrawo ? .95f : -.95f), y0, -.6f), wPrawo ? f.R : -f.R, 2);
+            }
+        }
         // lampy sufitowe (panele)
         for (float s = sIn0 + 1.4f; s < sIn1 - .8f; s += 2.6f)
             foreach (float d in new[] { -1.8f, dTyl + 1.9f }) BraxUliceKit.S(lampa).Box(W(s - .5f, ySuf - .05f, d + .3f), W(s + .5f, ySuf, d - .3f), 8);
@@ -815,6 +827,7 @@ public static class BraxUlicePierzeje
         }
         if (lok.typ == "bar")
             for (float s = ladaS0 + .35f; s < ladaS1 - .2f; s += .7f) Hoker(W(s, y0, ladaD + .45f), bg);
+        if (prawdziwy) BraxSklepyTowar.Zakoncz(tw, lok.szyld);
         BraxUliceKit.Punkt("ulica_" + b.id + "_lada", "za ladą: " + lok.szyld + " — miejsce zleceniodawcy (sprzedawca / właściciel lokalu)", W((ladaS0 + ladaS1) * .5f, y0, ladaD - ladaG - .55f));
     }
 
