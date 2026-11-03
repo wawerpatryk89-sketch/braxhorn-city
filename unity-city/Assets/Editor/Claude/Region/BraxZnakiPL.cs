@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Debug = UnityEngine.Debug;
 
 // PRAWDZIWE POLSKIE ZNAKI DROGOWE (właściciel 3.11 10:32: „Znaki normalne prawdziwe! Na drogach”, 10:58: „nie masz prawdziwych
 // znaków drogowych? Nie można tego pobrać?”). Tarcze z urzędowych wzorów (Wikimedia Commons „PL road sign *.svg”, domena
@@ -16,15 +17,22 @@ public static class BraxZnakiPL
     const float K = 1.294f;
     const string Dir = "Assets/Source/Claude/PolyHaven/znaki_pl/";
     const string Out = "Assets/PlayableGenerated/ZnakiPL";
-    sealed class Wzor { public Material przod, tyl; public Mesh plyta; public float w, h; }
+    sealed class Wzor { public Material przod, tyl; public Material[] mats; public Mesh plyta; public float w, h, d = .012f; public bool z3D; }
+    // tarcze 3D z paczki właściciela „Traffic Signs — European (UK)” (3.11, zaszyfrowana miasto_znaki): płyta z obrzeżem i tyłem
+    // z modelu, LICO podmienione na polski wzór urzędowy (ten sam kształt tarczy). Brak paczki/modelu = płyta płaska z wycięciem.
+    const string Paczka = "Assets/Source/Prywatne/Miasto/miasto_znaki/Plyty/";
+    static readonly Dictionary<string, string> ZPaczki = new Dictionary<string, string> {
+        { "A-7", "Give_way_v2" }, { "A-16", "Pedestrians" }, { "B-1", "Vehicles_prohibited" }, { "B-2", "No_entry_v2" }, { "B-20", "Stop_v2" },
+        { "B-36", "No_stopping_v2" }, { "C-9", "Pass_right" }, { "C-12", "Roundabout_v2" }, { "D-1", "Main_road" }, { "D-6", "Crosswalk_v2" }, { "D-18", "Parking_place" } };
+    public static int Tarcze3D;
     static readonly Dictionary<string, Wzor> cache = new Dictionary<string, Wzor>();
     static Material stalOcynk, obejma;
     public static int Slupy, Tarcze, Brak;
     static readonly List<string> brakTypow = new List<string>();
 
-    public static void Zeruj() { Slupy = Tarcze = Brak = 0; brakTypow.Clear(); cache.Clear(); stalOcynk = obejma = null; }
+    public static void Zeruj() { Slupy = Tarcze = Brak = Tarcze3D = 0; brakTypow.Clear(); cache.Clear(); stalOcynk = obejma = null; }
     public static bool Jest(string typ) => File.Exists(Dir + typ + ".png");
-    public static string Raport() => "BRAXHORN_ZNAKI_PL słupów=" + Slupy + " tarcz=" + Tarcze + " brak_wzoru=" + Brak + (brakTypow.Count > 0 ? " [" + string.Join(", ", brakTypow) + "]" : "");
+    public static string Raport() => "BRAXHORN_ZNAKI_PL słupów=" + Slupy + " tarcz=" + Tarcze + " (3D z paczki: " + Tarcze3D + ")" + " brak_wzoru=" + Brak + (brakTypow.Count > 0 ? " [" + string.Join(", ", brakTypow) + "]" : "");
 
     // szerokość tarczy (m, przed × K): A — bok trójkąta 0.9; D-1 (romb) — przekątna 0.85; pozostałe 0.6
     static float Szer(string typ) => typ.StartsWith("A") ? .9f : typ == "D-1" ? .85f : .6f;
@@ -86,9 +94,56 @@ public static class BraxZnakiPL
         m.SetTriangles(new[] { 0, 1, 2, 0, 2, 3 }, 0); m.SetTriangles(new[] { 4, 5, 6, 4, 6, 7 }, 1);
         m.RecalculateBounds(); m.RecalculateTangents();
         BraxZapisAssetu.Utworz(m, Out + "/" + typ + "_plyta.asset");
-        wz.plyta = m;
+        wz.plyta = m; wz.mats = new[] { wz.przod, wz.tyl };
+        try { Plyta3D(typ, wz, asp); } catch (System.Exception ex) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_ZNAKI_PL tarcza 3D " + typ + ": " + ex.Message); }
         cache[typ] = wz;
         return wz;
+    }
+
+    // Model płyty z paczki: wierzchołki przeliczone do układu tarczy (lico +z, góra +y, środek w 0, skala do wymiaru polskiego
+    // znaku × K); podsiatka lica = polski wzór (bez wycinania alfą — kształt daje sama płyta), reszta = blacha ocynkowana.
+    static void Plyta3D(string typ, Wzor wz, float aspWzoru)
+    {
+        if (!ZPaczki.TryGetValue(typ, out var plik)) return;
+        string fbx = Paczka + plik + ".fbx";
+        if (!File.Exists(fbx)) return;
+        AssetDatabase.ImportAsset(fbx, ImportAssetOptions.ForceSynchronousImport);
+        if (AssetImporter.GetAtPath(fbx) is ModelImporter mi && (!mi.bakeAxisConversion || !mi.isReadable || mi.importAnimation))
+        {
+            mi.bakeAxisConversion = true; mi.isReadable = true; mi.importAnimation = false; mi.importBlendShapes = false; mi.importCameras = false; mi.importLights = false;
+            mi.useFileScale = true; mi.globalScale = 1f; mi.SaveAndReimport();
+        }
+        var src = AssetDatabase.LoadAssetAtPath<GameObject>(fbx);
+        var mf = src ? src.GetComponentInChildren<MeshFilter>(true) : null; var mr = mf ? mf.GetComponent<MeshRenderer>() : null;
+        if (!mf || !mf.sharedMesh || !mr) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_ZNAKI_PL " + plik + ": brak siatki w modelu"); return; }
+        var src_m = mf.sharedMesh; var M = src.transform.worldToLocalMatrix * mf.transform.localToWorldMatrix;
+        int lico = -1; var sm = mr.sharedMaterials;
+        for (int i = 0; i < sm.Length && i < src_m.subMeshCount; i++) if (sm[i] && !sm[i].name.StartsWith("Metal")) lico = i;
+        if (lico < 0) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_ZNAKI_PL " + plik + ": nie znaleziono podsiatki lica"); return; }
+        var V = src_m.vertices; var N = src_m.normals; var T = src_m.GetTriangles(lico);
+        Vector3 n = Vector3.zero;
+        for (int i = 0; i + 2 < T.Length; i += 3) { var a = M.MultiplyPoint3x4(V[T[i]]); var b = M.MultiplyPoint3x4(V[T[i + 1]]); var c = M.MultiplyPoint3x4(V[T[i + 2]]); n += Vector3.Cross(b - a, c - a); }
+        n.y = 0f; if (n.sqrMagnitude < 1e-10f) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_ZNAKI_PL " + plik + ": lico nie jest pionowe"); return; }
+        n.Normalize();
+        var R = Quaternion.Inverse(Quaternion.LookRotation(n, Vector3.up));
+        var P = new Vector3[V.Length]; Vector3 mn = Vector3.one * 1e9f, mx = Vector3.one * -1e9f;
+        for (int i = 0; i < V.Length; i++) { P[i] = R * M.MultiplyPoint3x4(V[i]); mn = Vector3.Min(mn, P[i]); mx = Vector3.Max(mx, P[i]); }
+        var roz = mx - mn; var sr = (mn + mx) * .5f;
+        float aspPlyty = roz.y / Mathf.Max(roz.x, 1e-4f);
+        if (Mathf.Abs(aspPlyty / aspWzoru - 1f) > .12f) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_ZNAKI_PL " + plik + ": proporcje płyty " + aspPlyty.ToString("F2") + " ≠ wzór " + typ + " " + aspWzoru.ToString("F2") + " — płyta płaska"); return; }
+        float sc = Szer(typ) * K / roz.x;
+        var nN = new Vector3[V.Length];
+        for (int i = 0; i < V.Length; i++) { P[i] = (P[i] - sr) * sc; nN[i] = N != null && N.Length == V.Length ? (R * M.MultiplyVector(N[i])).normalized : Vector3.forward; }
+        var m = new Mesh { name = "Znak " + typ + " — tarcza 3D (" + plik + ")" };
+        m.vertices = P; m.normals = nN; m.uv = src_m.uv; m.subMeshCount = src_m.subMeshCount;
+        for (int k = 0; k < src_m.subMeshCount; k++) m.SetTriangles(src_m.GetTriangles(k), k);
+        m.RecalculateBounds(); m.RecalculateTangents();
+        BraxZapisAssetu.Utworz(m, Out + "/" + typ + "_tarcza3D.asset");
+        var licoMat = Nowy("Znak " + typ + " — lico (tarcza 3D)", wz.przod.mainTexture as Texture2D, .45f, 0f, Color.white);
+        licoMat.SetFloat("_AlphaClip", 0f); licoMat.SetFloat("_Cutoff", 0f); licoMat.renderQueue = -1; EditorUtility.SetDirty(licoMat);
+        var blacha = BraxCityMaterials.Surface("Znak: tył i obrzeże tarczy (blacha ocynkowana)", new Color(.6f, .62f, .64f), .5f, .8f);
+        var mats = new Material[m.subMeshCount]; for (int k = 0; k < mats.Length; k++) mats[k] = k == lico ? licoMat : blacha;
+        wz.plyta = m; wz.mats = mats; wz.w = roz.x * sc; wz.h = roz.y * sc; wz.d = roz.z * sc; wz.z3D = true;
     }
 
     /// <summary>Słupek ocynkowany z tarczami (typy od góry). stopa — punkt na chodniku; przod — dokąd patrzy lico
@@ -114,9 +169,10 @@ public static class BraxZnakiPL
         {
             var (typ, wz) = lista[i];
             var t = new GameObject("Znak " + typ); t.transform.SetParent(g.transform, false);
-            t.transform.localPosition = new Vector3(0f, y + wz.h * .5f, d); t.transform.localRotation = Quaternion.identity;
+            t.transform.localPosition = new Vector3(0f, y + wz.h * .5f, d + (wz.z3D ? wz.d * .5f : 0f)); t.transform.localRotation = Quaternion.identity;
             t.AddComponent<MeshFilter>().sharedMesh = wz.plyta;
-            var mr = t.AddComponent<MeshRenderer>(); mr.sharedMaterials = new[] { wz.przod, wz.tyl };
+            var mr = t.AddComponent<MeshRenderer>(); mr.sharedMaterials = wz.mats;
+            if (wz.z3D) Tarcze3D++;
             mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = true;
             GameObjectUtility.SetStaticEditorFlags(t, StaticEditorFlags.BatchingStatic | StaticEditorFlags.OccludeeStatic);
             // obejmy: 2 na tarczę (¼ i ¾ wysokości), od słupka do tyłu tarczy

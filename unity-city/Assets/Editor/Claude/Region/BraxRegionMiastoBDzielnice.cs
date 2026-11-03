@@ -284,20 +284,23 @@ public static partial class BraxRegionMiastoB
     // 1b) OZNAKOWANIE W NAWIERZCHNI (wywoływane z PlanOznakowania przed BudujAsfalt): skrzyżowania alei z sygnalizacją (zebry,
     //     linie zatrzymania — SkrzyzowanieT B), zebry na skrzyżowaniach ul. Nowojorskiej i Tramwajowej, zebra wlotu zach. pętli,
     //     osie przerywane. Część farby leżąca na jezdni z torowiskiem idzie do wstawek toru (asfalt toru budowany tu, osobno).
+    // zebry bez świateł nowych dzielnic — przy nich D-6 (BraxRegionMiastoB.Sygnalizacja, etap 3, gdy chodniki już stoją)
+    static readonly List<(Vector3 c, Vector3 dir, float hj)> ZebryBezSwiatelNd = new List<(Vector3, Vector3, float)>();
     static void NoweDzielniceOznakowanie(Farba f)
     {
-        var moja = new Farba();
+        var moja = new Farba(); ZebryBezSwiatelNd.Clear();
         for (int i = 0; i < 4; i++) { int ii = i; NdKrok("oznakowanie Aleja × C" + i, () => SkrzyzowanieT(moja, new Vector3(NC[ii], YA, RZ), AH, AH, NdWlotyAlei(ii), 0f)); }
         foreach (var (c, c2, ram, prZ, nazwa) in NdSkrzyzowania())
         {
             if (Mathf.Approximately(c2, RZ)) continue;
             float d = AH + Kr + .6f + 2f * K;
-            if (ram[1]) { Zebra(moja, new Vector3(c + d, YA, c2), Vector3.right, AH); ndZebry++; }
-            if (ram[3]) { Zebra(moja, new Vector3(c - d, YA, c2), Vector3.left, AH); ndZebry++; }
-            if (ram[0]) { Zebra(moja, new Vector3(c, YA, c2 + d), Vector3.forward, AH); ndZebry++; }
-            if (ram[2]) { Zebra(moja, new Vector3(c, YA, c2 - d), Vector3.back, AH); ndZebry++; }
+            if (ram[1]) { Zebra(moja, new Vector3(c + d, YA, c2), Vector3.right, AH); ndZebry++; ZebryBezSwiatelNd.Add((new Vector3(c + d, YA, c2), Vector3.right, AH)); }
+            if (ram[3]) { Zebra(moja, new Vector3(c - d, YA, c2), Vector3.left, AH); ndZebry++; ZebryBezSwiatelNd.Add((new Vector3(c - d, YA, c2), Vector3.left, AH)); }
+            if (ram[0]) { Zebra(moja, new Vector3(c, YA, c2 + d), Vector3.forward, AH); ndZebry++; ZebryBezSwiatelNd.Add((new Vector3(c, YA, c2 + d), Vector3.forward, AH)); }
+            if (ram[2]) { Zebra(moja, new Vector3(c, YA, c2 - d), Vector3.back, AH); ndZebry++; ZebryBezSwiatelNd.Add((new Vector3(c, YA, c2 - d), Vector3.back, AH)); }
         }
         Zebra(moja, new Vector3(PetlaZX - PetlaPlac - 3f, YA, RZ), Vector3.left, AH); ndZebry++;   // wlot zachodni pętli ZACHÓD
+        ZebryBezSwiatelNd.Add((new Vector3(PetlaZX - PetlaPlac - 3f, YA, RZ), Vector3.left, AH));
         // osie: przerywane (3 m kreska, 4 m przerwy), 20 m od środków skrzyżowań bez kresek (linie zatrzymania, zebry)
         void OsX(float z, float xa, float xb) { for (float x = xb - 3f; x - 3f > xa; x -= 7f) moja.MinMax(new Vector3(x - 3f, YA, z - .06f), new Vector3(x, YA, z + .06f)); }
         void OsZ(float x, float za, float zb) { for (float z = za + 3f; z + 3f < zb; z += 7f) moja.MinMax(new Vector3(x - .06f, YA, z), new Vector3(x + .06f, YA, z + 3f)); }

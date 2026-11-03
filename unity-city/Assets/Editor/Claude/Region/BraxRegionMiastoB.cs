@@ -1294,6 +1294,15 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
                 if (BraxZnakiPL.Slup(root, "Znak D-6 przejście dla pieszych (wzór urzędowy)", NaPodlozu(p), -dir * sg, "D-6")) nD6++;
             }
         }
+        foreach (var (zc, dir, hj) in ZebryBezSwiatelNd)   // nowe dzielnice
+        {
+            var R = Vector3.Cross(Vector3.up, dir).normalized; float w = 4f * K * .5f;
+            foreach (float sg in new[] { 1f, -1f })
+            {
+                var p = zc + R * (sg * (hj + Kr + .45f)) - dir * (sg * (w + .35f)); p.y = YC;
+                if (BraxZnakiPL.Slup(root, "Znak D-6 przejście dla pieszych (wzór urzędowy)", NaPodlozu(p), -dir * sg, "D-6")) nD6++;
+            }
+        }
         Debug.Log("BRAXHORN_MIASTO_B_ZNAKI D-6 przy przejściach bez świateł: " + nD6 + "; " + BraxZnakiPL.Raport());
     }
 
