@@ -466,16 +466,11 @@ internal static partial class BraxMiastoWyspa
     static Mesh ApKrzeselko()
     {
         var pl = new UlSiatka(); var me = new UlSiatka(); float h = .45f * K, bw = .44f * K * .5f, sw = .46f * K;
-        var prof = new[] { new Vector2(-.25f, h - .032f), new Vector2(-.24f, h - .012f), new Vector2(-.08f, h - .006f), new Vector2(.12f, h - .002f), new Vector2(.22f, h), new Vector2(.258f, h - .016f), new Vector2(.266f, h - .038f), new Vector2(.245f, h - .056f), new Vector2(.12f, h - .054f), new Vector2(-.24f, h - .05f) };
-        // siedzisko w 3 częściach: środek prosty, boki zwężone (zaokrąglone narożniki w planie)
-        Wyciag(pl, prof, new Vector3(-sw * .5f + .03f, 0, 0), Vector3.right, Vector3.up, Vector3.forward, sw - .06f);
-        foreach (float sg in new[] { -1f, 1f })
-        {
-            var p2 = prof.Select(q => new Vector2(q.x * .9f, h - .028f + (q.y - (h - .028f)) * .8f)).ToArray();
-            Wyciag(pl, p2, new Vector3(sg < 0 ? -sw * .5f : sw * .5f - .03f, 0, -.004f), Vector3.right, Vector3.up, Vector3.forward, .03f);
-        }
+        // siedzisko: profil z niecką i zaokrąglonym noskiem (budżet telefonu: ~150 trójkątów na krzesełko)
+        var prof = new[] { new Vector2(-.25f, h - .032f), new Vector2(-.2f, h - .01f), new Vector2(.12f, h - .002f), new Vector2(.22f, h), new Vector2(.262f, h - .024f), new Vector2(.245f, h - .056f), new Vector2(-.24f, h - .05f) };
+        Wyciag(pl, prof, new Vector3(-sw * .5f, 0, 0), Vector3.right, Vector3.up, Vector3.forward, sw);
         // oparcie: powłoka gięta (wklęsła ku siedzącemu), grubość 3 cm, pochylona do tyłu
-        const int nu = 8, nv = 4; float gr = .03f;
+        const int nu = 6, nv = 2; float gr = .03f;
         Vector3 Op(float s, float t) => new Vector3(s * bw, h + .07f + t * .36f * K, -.23f - t * .11f + .055f * s * s);
         Vector3 Nf(float s, float t) { var ds = new Vector3(bw, 0, .11f * s); var dt = new Vector3(0, .36f * K, -.11f); return Vector3.Cross(ds, dt).normalized; }
         for (int i = 0; i < nu; i++) for (int j = 0; j < nv; j++)
@@ -496,10 +491,10 @@ internal static partial class BraxMiastoWyspa
             foreach (var (s, nn) in new[] { (1f, Vector3.right), (-1f, Vector3.left) }) pl.Quad(Op(s, t0), Op(s, t1), Op(s, t1) - Nf(s, t1) * gr, Op(s, t0) - Nf(s, t0) * gr, nn);
         }
         // stal: noga z kotwą (płyta), poprzeczka pod siedziskiem, wspornik oparcia
-        me.Rura(new Vector3(0, 0, -.14f), new Vector3(0, h - .055f, -.07f), .032f, 8);
-        me.Walec(new Vector3(0, 0, -.14f), .085f, .012f, 8);
-        me.Rura(new Vector3(-sw * .38f, h - .068f, -.06f), new Vector3(sw * .38f, h - .068f, -.06f), .016f, 6);
-        me.Rura(new Vector3(0, h - .06f, -.2f), Op(0, .25f) - Nf(0, .25f) * (gr + .012f), .018f, 6);
+        me.Rura(new Vector3(0, .012f, -.14f), new Vector3(0, h - .055f, -.07f), .032f, 6, false);
+        me.Walec(new Vector3(0, 0, -.14f), .085f, .012f, 6);
+        me.Rura(new Vector3(-sw * .38f, h - .068f, -.06f), new Vector3(sw * .38f, h - .068f, -.06f), .016f, 4, false);
+        me.Rura(new Vector3(0, h - .06f, -.2f), Op(0, .25f) - Nf(0, .25f) * (gr + .012f), .018f, 4, false);
         var m1 = pl.Zbuduj("plastik"); var m2 = me.Zbuduj("stal");
         var m = new Mesh { name = "A: arena premium — krzesełko trybun (siedzisko + stal)" };
         m.CombineMeshes(new[] { new CombineInstance { mesh = m1, transform = Matrix4x4.identity }, new CombineInstance { mesh = m2, transform = Matrix4x4.identity } }, false, false);
