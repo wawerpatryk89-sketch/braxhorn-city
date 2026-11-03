@@ -93,7 +93,8 @@ jobs:
       actions: read
     outputs:
       rejon: ${{ steps.rejon.outputs.rejon }}
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    # 3.11 18:40 (właściciel): BEZ ZDJĘĆ CI — „to tylko czas zajmuje”. Job (i shots) wyłączony.
+    if: false && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
@@ -600,6 +601,37 @@ jobs:
         sudo apt-get clean || true
         sudo docker image prune --all --force || true
         df -h / | tail -1
+    # 3.11 18:40 (właściciel: „aktualizacja, nie cały świat od nowa”): Library Unity (wczytane pliki) zapisywana po udanym
+    # buildzie i przywracana w następnym — import tylko zmienionych plików. Zaszyfrowana (prywatne paczki), klucz z sekretów.
+    - name: Pamiec Library Unity dla Androida - odczyt
+      id: bibl_and
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: ${{ runner.temp }}/library-android.tar.zst.enc
+        key: library-android-v1-${{ github.run_id }}
+        restore-keys: |
+          library-android-v1-
+    - name: Pamiec Library Unity dla Androida - rozpakowanie
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: |
+        set -o pipefail
+        T0=$(date +%s); P="$RUNNER_TEMP/library-android.tar.zst.enc"
+        if [ -f "$P" ] && [ -n "$KLUCZ" ]; then
+          echo "pamiec Library: $(( $(stat -c %s "$P") / 1048576 )) MB"
+          # --skip-old-files: pliki .meta z repozytorium zostają; wracają tylko .meta plików tworzonych w CI (te same GUID co
+          # w zapisanej Library — bez tego Unity nadaje nowe GUID i importuje wszystko od zera mimo pamięci)
+          if openssl enc -d -aes-256-cbc -pbkdf2 -in "$P" -pass env:KLUCZ | zstd -d -T0 | tar -x --skip-old-files -C unity-city; then
+            echo "BRAXHORN_PAMIEC_LIBRARY android=tak klucz=${{ steps.bibl_and.outputs.cache-matched-key }} s=$(( $(date +%s) - T0 ))"
+          else
+            echo "BRAXHORN_PAMIEC_LIBRARY android=blad_rozpakowania (import od zera)"; rm -rf unity-city/Library
+          fi
+          rm -f "$P"
+        else
+          echo "BRAXHORN_PAMIEC_LIBRARY android=nie (import od zera, zapis po udanym buildzie)"
+        fi
+        du -sh unity-city/Library 2>/dev/null || true
+        df -h / | tail -1
     - name: Plik wymiany 10 GB (edytor Unity + kompilacja IL2CPP na 16 GB RAM, exit 137)
       run: |
         df -h / | tail -1
@@ -717,6 +749,31 @@ jobs:
           for i in 1 2 3 4 5 6; do gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber "$f" && { ok=1; break; }; sleep 30; done
           if [ $ok = 0 ]; then gh release view "$REL" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -qx "$f" || { echo "NIE WYSLANO $f"; exit 1; }; fi
         done
+    - name: Pamiec Library Unity dla Androida - pakowanie (po udanym buildzie, zaszyfrowana)
+      if: success()
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: |
+        set -o pipefail
+        T0=$(date +%s)
+        sudo swapoff /swapfile-unity 2>/dev/null || true; sudo rm -f /swapfile-unity || true
+        sudo docker image prune --all --force >/dev/null 2>&1 || true
+        rm -rf build/Android || true
+        df -h / | tail -1
+        [ -n "$KLUCZ" ] || { echo 'brak klucza - bez zapisu pamieci Library'; exit 0; }
+        # Library + pliki .meta (GUID) zasobów tworzonych w CI (paczki, PolyHaven, Rocketbox, obrazy miasta — nie ma ich
+        # w repozytorium): log WebGL ed77a39 — pamięć 5,6 GB przywrócona, a i tak 8787 importów, bo co build nowe GUID.
+        (cd unity-city && find Assets -name '*.meta' -not -path 'Assets/PlayableGenerated*' > "$RUNNER_TEMP/zapis.lst" && echo Library >> "$RUNNER_TEMP/zapis.lst")
+        echo "pliki .meta w zapisie: $(( $(wc -l < "$RUNNER_TEMP/zapis.lst") - 1 ))"
+        sudo tar -C unity-city -cf - --exclude=Library/Bee --exclude=Library/Il2cppBuildCache -T "$RUNNER_TEMP/zapis.lst" | zstd -T0 -3 | \
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:KLUCZ -out "$RUNNER_TEMP/library-android.tar.zst.enc"
+        echo "BRAXHORN_PAMIEC_LIBRARY zapis=$(( $(stat -c %s "$RUNNER_TEMP/library-android.tar.zst.enc") / 1048576 )) MB s=$(( $(date +%s) - T0 ))"
+    - name: Pamiec Library Unity dla Androida - zapis
+      if: success()
+      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: ${{ runner.temp }}/library-android.tar.zst.enc
+        key: library-android-v1-${{ github.run_id }}
     needs: [source-imports, cc0-assets]
 
   shots:

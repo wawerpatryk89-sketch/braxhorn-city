@@ -25,7 +25,9 @@ public sealed class BraxMiastoAssetyTekstury : AssetPostprocessor
             var ps = t.GetPlatformTextureSettings(platform);
             ps.name = platform; ps.overridden = true; ps.maxTextureSize = maks;
             ps.format = TextureImporterFormat.Automatic; ps.textureCompression = TextureImporterCompression.Compressed;
-            ps.compressionQuality = hd ? 100 : 50;
+            // 3.11 18:35: jakość kompresji 100 („najlepsza”) liczyła JEDEN obraz statku 4K 10–12 min (log ed77a39: ~3 h z 6 h
+            // buildu, APK ucięte limitem GitHuba). 50 = normalna — rozdzielczość 4K zostaje, różnica na telefonie niewidoczna.
+            ps.compressionQuality = 50;
             t.SetPlatformTextureSettings(ps);
         }
     }
