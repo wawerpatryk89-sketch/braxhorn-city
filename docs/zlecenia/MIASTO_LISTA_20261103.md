@@ -418,3 +418,27 @@ Do wpisania w claude/braxhorn-city-ZASADA-DETALE.md po 01:00.
   tylko postacie z WERSJĄ ULICZNĄ (mistrzowie + wybrani kozacy). Ekipy uliczne generowane od razu w ciuchach ulicznych.
   Nowe postacie: OWIJKI zamiast rękawic (rękawice = dodatek w grze do walki). Młody bokser w rękawicach — tylko sala
   bokserska i liga. Ludzie (6 + Nina + Dany) walczą w ligach obok zwierząt; docelowo 16–18 ludzi.
+61. (02:29) POŁĄCZENIE REGIONÓW (etap po poprawkach): jedna aplikacja, regiony jako osobne sceny/paczki (Play Asset Delivery /
+    Addressables), w pamięci jeden region. Przejazd: miasto → autostrada (scena 1–2 km) → TUNEL (async: zwolnij miasto, wczytaj
+    osiedle; za wolno → korek/dłuższy tunel) → osiedle. Tak samo osiedle → obóz → miasto mistrzów (lub samolot/statek).
+    Tunel w mieście = opcja A (wyjazd na autostradę); do czasu połączenia komunikat. Port: bosman i NPC pływający łodziami — etap ekonomii.
+    (02:30) Autostrada: krajobraz wzdłuż w 3D (panoramy 3D jak horyzont miasta, nie obrazki) — „fajna zajawka”.
+62. (02:30) KOMIS UŻYWANYCH AUT w mieście (obok salonu premium, na który Braxa na start nie stać): plac z autami używanymi
+    (różne stany, ceny tańsze — EKONOMIA), budka/biuro handlarza, tablice cen, flagi/girlandy, myjka; pierwsze auto Braxa
+    kupuje się tu. Prowadzi: Patryk i Monika (biznes) albo handlarz NPC — do decyzji właściciela.
+    (02:31) Autostrada: pasy ruchu + pas awaryjny, bariery energochłonne, ekrany akustyczne, znaki i tablice kierunkowe, zjazdy
+    (na stację/MOP — dekoracyjne albo zamknięte), POLICJA na autostradzie pilnuje porządku (radiowóz, kontrola prędkości,
+    zatrzymanie za wykroczenie — mandat, EKONOMIA), ruch aut AI w obu kierunkach.
+    (02:31) Komis prowadzą PATRYK i MONIKA — rozdzieleni po biznesach (np. w mieście: jedno w komisie, drugie w biurze
+    dewelopera/salonie; na osiedlu podobnie: salon / biuro nieruchomości), ale MIESZKAJĄ RAZEM (wspólne mieszkanie/dom —
+    wieczorem wracają). Każde jako jeden egzemplarz w świecie (plan dnia: praca w jednym miejscu → dom).
+    (02:32) DECYZJA: MIASTO — PATRYK prowadzi KOMIS używanych aut, MONIKA — biuro DEWELOPERSKIE (mieszkania/nieruchomości);
+    SALON premium w mieście prowadzi ktoś inny (NPC). OSIEDLE — inaczej: Patryk salon samochodowy (jak teraz), Monika biuro
+    nieruchomości (do ustawienia). Mieszkają razem.
+- (02:40) Przy finalizacji: w docs/zlecenia/ZLECENIE_GPT_20261103.md §3 MIASTO pkt 1 = WYSPA (drzewa zamiast stożków z modeli
+  miasta, toalety areny, pełny audyt BRAXHORN_WYSPA_KOMPLET i uzupełnienie braków, arena pkt 57) — przed skalą i klockami.
+- (02:42) OSIEDLE: autobus zawsze pełny 12 m × K; jeśli log BRAXHORN_AUTOBUS DO POPRAWKI — POSZERZYĆ ŁUKI krawężników na trasie
+  autobusu A (BraxClaudeOsiedleDrogiPoszerzenie.cs / łuki E3b) — dopisać do zlecenia GPT (osiedle pkt 1).
+- (02:42) AUTOBUS — GRACZ WSIADA: na przystanku, gdy autobus stoi z otwartymi drzwiami → kontekst „WSIĄDŹ” (bilet — EKONOMIA,
+  teraz 0 zł), Brax siada w środku (jak w aucie: seat), kamera za plecami/wewnątrz, jazda trasą, na każdym przystanku
+  „WYSIĄDŹ”. NPC wsiadają i wysiadają jak teraz. Osiedle i miasto. (zlecenie GPT, osiedle pkt 1)

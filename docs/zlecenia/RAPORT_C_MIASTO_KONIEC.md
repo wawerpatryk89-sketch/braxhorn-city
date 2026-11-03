@@ -88,3 +88,62 @@ Nowe ujęcia: `METRO_*`, `DETAL_metro_*`, `DROGI_*`, `DETAL_tunel_*`, `DETAL_ele
 7. **Tunel 62 m**: sufit tunelu jest pod zboczem (wysokość zbocza ok. 13.5 m nad portalem), ale nie zostało to sprawdzone wizualnie z góry.
 8. **Fitness**: lustra i mural stoją 3 cm od lica ściany liczonego z `BraxUlicePierzeje.Wnetrze` (sIn0 = .34, głębokość 7.05). Jeśli prawdziwe lico jest gdzie indziej, wejdą w ścianę albo zawisną.
 9. **Shadery** (`MiastoPierscien.shader`, zmiany w `MiastoTlo.cginc`/`MiastoNiebo.shader`) nie były kompilowane lokalnie.
+
+## 5. RUNDA 2 (3.11, 02:18–03:30) — dopisek
+
+HEAD `09877e2` (koniec rundy), drzewo czyste, NIC nie wypchnięte. Kompilacja (`kompiluj_assety.sh`) i bramka (`brama_modulow.sh`) przed każdym commitem nic nie wypisały. Na tej gałęzi są też commity prowadzącego (`86ada29`, `bb98c36` — paczki zaszyfrowane).
+
+| commit | jedno zdanie |
+|---|---|
+| 4b2785f | Wyspa: miejsca ludzi (kibice, plaża, obsada) i znaczniki obsady metra i fitnessu są wreszcie zamieniane na postacie; jest też audyt `BRAXHORN_WYSPA_KOMPLET` z listą BRAKI. |
+| 48e6613 | Pkt 46: mieszkanie Braxa nad NOVA — brama klatki 1.16 × 2.72 m z domofonem, numerem, daszkiem i kinkietem, klatka z poręczami i skrzynkami, urządzone mieszkanie ok. 90 m² świata (przedpokój, łazienka, salon z aneksem, sypialnia, „ODPOCZNIJ” na łóżku). |
+| 264cd11 | Pkt 46: okna mieszkania przezroczyste na całym piętrze (prostokąt szkła nadbudowy NOVA poszerzony do x 51.4). |
+| 0689659 | Siłownia Braxa: sprzęt dokładany w wolnych miejscach hali (z paczki klatki, atlas, bieżnie, ławka; z kodu hantle, talerze, gryfy, ławka płaska, podłoga gumowa). |
+| b42b327 | Wyspa (a): w głębi lądu drzewa liściaste z miasta (`drzewo_verdant`) zamiast palm, palmy przy plaży z pełniejszą zielenią liści. |
+| 0715bdb | Wyspa (b): toalety w arenie — damska i męska jako pełne pomieszczenia: dwa pawilony w holu po bokach przejścia od wejścia do klatki, z kabinami, WC, pisuarami, umywalkami, lustrem, suszarką, płytkami i napisami (`BraxMiastoWyspa.Arena`, blok „TOALETY AREN”). |
+| 09877e2 | Wyspa (c): sklep ośrodka z obsługą i wyposażeniem — stoisko na tarasie (lada, kasa, lodówka z napojami, skrzynki z owocami, sprzedawca i klient; `BraxMiastoWyspaDomki.Domek`, gałąź `tabliczka == "SKLEP"`). |
+
+Nowe logi: `BRAXHORN_LUDZIE_WYSPA`, `BRAXHORN_WYSPA_KOMPLET`, `BRAXHORN_MIESZKANIE_BRAXA`, `BRAXHORN_SILOWNIA_WYPOSAZENIE` oraz „WYSPA zieleń: palm …, drzew liściastych …”.
+Nowe ujęcia: `WYSPA_*`, `DETAL_wyspa_kibice_rzedy`, `DETAL_wyspa_palma_lisc`, `BRAX_mieszkanie_*`, `DETAL_mieszkanie_*`, `DETAL_silownia_braxa_*`.
+
+### Czego NIE zrobiłem w tej rundzie (pliki i funkcje)
+- **Wyspa (b) — toalety areny**: zrobione w `0715bdb` jako dwa pawilony w holu. Wejście jest z holu (przejścia do klatki), nie z korytarza trybun, bo trybuny nie mają korytarza na parterze. Podłoga w toaletach to żywica hali, nie płytki: płytki na posadzce byłyby nakładką na żywicę.
+- **Wyspa (c) — plaża, ośrodek, przystań, arena według listy z pkt 57**: z kodu plaża ma już deptak, latarnie, ławki, kosze, WC, wypożyczalnię, bar, przebieralnie, ratowników z flagami i boje. Ośrodek ma domki, chodniki z krawężnikami, latarnie, ławki, recepcję i plac zabaw, a w `09877e2` doszło stoisko sklepu. Reszta czeka na listę BRAKI z logu `BRAXHORN_WYSPA_KOMPLET` po buildzie CI (`BraxRegionRuchMiasta.KompletWyspy`). Brakuje mat z logo w oktagonie, które wymaga podziału siatki maty, nie nakładki. Ring z linami w arenie (jest tylko oktagon, ringi plenerowe są w `Ringi()`) i trybuny instancjonowane to prace do zrobienia według pkt 57.
+- **Wyspa — drzewa Poly Haven** (pine/fir/island_tree): świadomie nie dodane, bo to skany po 2–17 mln trójkątów. Prowadzący poprosi właściciela o lekki model palmy. Liście palm z kodu są dalej kolorem wierzchołków, bez tekstury cutout.
+- **Kawiarnia 32–35** (charakter kawiarni, WC usunąć, meble przy stołach): nie zaczęte.
+- **Sklepy 38** (Poly Haven, pracownik w każdym sklepie): nie zaczęte (`BraxUlicePierzeje.Wnetrze`).
+- **Schody ewakuacyjne 30**: nie zaczęte (opis w sekcji 3 wyżej).
+- **Fitness Nyxy — więcej cardio** (rowerki, orbitreki): nie zrobione. Hol lokalu ma tylko 7.05 m głębokości, a wolnego lokalu obok nie sprawdzałem. Sąsiedzi „gallery” (x −10…2) to POCZTA (`office_entrance`, x −22…−10) i brama podwórka (x 1.5…18.5).
+- **Siłownia Braxa**: sprzęt jest tylko DOKŁADANY. Nie wymieniałem klocków ze starego modelu siłowni (`braxhorn-original-gym.glb`, `BraxGymReferenceRebuild`). Hantle i talerze są z cylindrów Unity (`BraxRegionGym.Walec`), a ring jest bez zmian.
+
+### Ryzyka tej rundy
+- **Mieszkanie**: zajmuje teraz piętro nad toaletami klubu (x 45.2…51.4). Wycięcie „pustej skorupy” w `BraxRegionBraxFlat.Apply` sięga tam dalej, co trzeba sprawdzić na ujęciach (szczególnie `BRAX_mieszkanie_salon` i `DETAL_mieszkanie_sypialnia`). Sofa, fotel, stół i inne modele Poly Haven mają kąt obrotu zgadnięty (yaw) — mogą stać tyłem. Brama ma otwór okładziny NOVA powiększony w `BraxMiastoNova` (x 33.0…34.36, do y 3.01).
+- **Ludzie wyspy i obsada**: do 150 kibiców plus obsada to dużo postaci skinned na telefonie. Animacja ma budżet, ale rysowanie nie.
+- **Siłownia**: miejsca są szukane fizyką (`BraxRegion.Free`), więc sprzęt może stanąć w nietypowym miejscu hali; pozycje są w logu.
+- **Wyspa**: drzewo `drzewo_verdant` w głębi lądu (gęstość .12–.3 na siatce 9 m) to dodatkowe renderery — sprawdzić FPS.
+
+## 6. RUNDA 3 (3.11, ok. 02:50) — płynność miasta bez utraty jakości grafiki
+
+Gałąź worktree `wtM-assety` to `claude/miasto-assety`, a nie `claude/miasto-opus-20261031` z polecenia. Nie przełączałem gałęzi: zlecenie od początku dotyczyło tego worktree i tej gałęzi. HEAD `7a66fb0`, drzewo czyste, NIC nie wypchnięte. Kompilacja i bramka przed każdym commitem nic nie wypisały.
+
+| commit | jedno zdanie |
+|---|---|
+| c0c2d55 | Pakiet wydajności E19 z osiedla (`e60e8e6`) przeniesiony do wspólnych klas runtime, których używa miasto. Obejmuje kibiców i plażę wyspy (BraxMieszkaniec), a `BRAXHORN_WYDAJNOSC` jest teraz też w logu miasta. Szczegóły niżej. |
+| 7a66fb0 | Pierścień horyzontu: wszystkie renderery bez rzucania i odbierania cieni oraz bez sond światła i odbić, kolizje usuwane; liczniki w `BRAXHORN_PANORAMA`. |
+
+Szczegóły `c0c2d55`:
+- Zmienione pliki: `BraxLudzie` (`Detale`, adaptacja limitu w `Animuj`), `BraxPieszy`, `BraxMieszkaniec`, `BraxAuto`.
+- Cień postaci tylko do 20 m × K, a skóra na 2 kościach dalej niż 32 m × K.
+- Cień aut tylko do 20 m × K, i to tylko dla części, które w buildzie rzucały cień.
+- Silniki grają tylko u 4 najbliższych aut.
+- Limit animowanych ludzi spada z 40 do 16 przy średnio < 35 kl./s, a wraca powyżej 42.
+- Przed zmianą `BraxLudzie.cs` w mieście był identyczny z osiedlem sprzed E19; pozostałe trzy pliki różniły się, więc zmiany naniosłem ręcznie w tych samych miejscach.
+
+Co ustaliłem:
+- Animacje ludzi miasta, wyspy i obsady mają `cullingType = BasedOnRenderers` (ustawiane w `NowaOsoba`), więc nie liczą się poza ekranem. Dodatkowo działa budżet odległości `BraxLudzie.Animuj`. Liczba animacji bez cullingu jest w logu `BRAXHORN_WYDAJNOSC` (`animacje_bez_cullingu=`).
+- Ustawień grafiki NIE ruszałem: BraxGrafika, shadowDistance, lodBias, MSAA, tekstury i modele są bez zmian.
+
+Czego nie zrobiłem lub nie dało się sprawdzić bez Unity:
+- „Nic nie rzuca cienia z odległości większej niż shadowDistance”: Unity sam pomija rzucających cień poza shadowDistance. Zostaje tylko przypadek dużych scalonych siatek (np. kwadraty K), których obrys sięga w zasięg cienia — wtedy w cieniu rysuje się cała siatka. Poprawka wymaga dzielenia siatek, czyli zmiany modeli, co jest zakazane — tylko odnotowuję.
+- Na urządzeniu nie mierzyłem FPS ani nie sprawdzałem histerezy cienia (miganie przy 20 m), dźwięku 4 silników ani adaptacji limitu.
+- Kibiców na wyspie może być do 150. Bez LOD postaci (brak w paczce) rysowanie skinned zostaje, a ograniczona jest tylko animacja i cień.
