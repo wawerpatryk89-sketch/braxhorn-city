@@ -432,10 +432,15 @@ public static class BraxRegion
     /// Stawia kopię modelu tak, że środek podstawy stoi w punkcie floor (y = poziom podłoża).
     /// scale: mnożnik; maxHeight > 0 ogranicza wysokość (skaluje w dół); solid: kolizja (box).
     /// </summary>
+    // 3.11 (właściciel: „W skali świata ma być wszystko… nie tylko piłka”): modele w prawdziwych metrach stawiane × K (świat
+    // pod Braxa 2.33 m) — także limit wysokości. Wyjątek: wołający, który już liczy w × K (skala = K albo skalaK: false).
+    public static int PutSkalaK, PutBezK;
     public static GameObject Put(Transform parent, GameObject source, string label, Vector3 floor, float yaw,
-                                 float scale = 1f, bool solid = true, float maxHeight = 0f, float sink = 0f)
+                                 float scale = 1f, bool solid = true, float maxHeight = 0f, float sink = 0f, bool skalaK = true)
     {
         if (!source) return null;
+        float kk = BraxClaudeOsiedle.K;
+        if (skalaK && Mathf.Abs(scale - kk) > .002f) { scale *= kk; if (maxHeight > 0f) maxHeight *= kk; PutSkalaK++; } else PutBezK++;
         var o = (GameObject)UnityEngine.Object.Instantiate(source, parent, false);
         o.name = label;
         o.transform.position = Vector3.zero;

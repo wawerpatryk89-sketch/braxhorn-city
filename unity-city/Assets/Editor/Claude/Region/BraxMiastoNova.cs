@@ -561,7 +561,7 @@ internal static class BraxMiastoNova
             for (int i = 0; i < 6; i++) BraxUliceKit.S(lmag).Box(p + new Vector3(-.28f + i * .05f, .1f, -.33f), p + new Vector3(-.25f + i * .05f, .115f, -.3f));
         }
         var mikser = BraxRegion.Model("dj_mixer") ?? (System.IO.File.Exists("Assets/Source/Claude/Nova/dj_mixer.glb") ? LoadGlb("Assets/Source/Claude/Nova/dj_mixer.glb") : null);
-        if (mikser) BraxRegion.Put(root, mikser, "Mikser DJ (dj_mixer — CC BY Astate)", new Vector3(41f, top + dh, (dz0 + dz1) * .5f), 180f, 1f, false, .14f * K);
+        if (mikser) BraxRegion.Put(root, mikser, "Mikser DJ (dj_mixer — CC BY Astate)", new Vector3(41f, top + dh, (dz0 + dz1) * .5f), 180f, 1f, false, .14f * K, 0f, false);
         else BraxUliceKit.S(konsola).Box(new Vector3(40.75f, top + dh, 57.2f), new Vector3(41.25f, top + dh + .1f, 57.85f));
         BraxMiastoA.Akcja(root, "nova_dj", "POROZMAWIAJ Z DJ-em", "DJ: Zamówienia muzyczne po północy. Teraz leci set rezydenta.", new Vector3(43.9f, top, 58.7f), 1.5f);
         // ekran LED za DJ-em (10 cm przed ścianą) z ramą
@@ -639,7 +639,7 @@ internal static class BraxMiastoNova
         var src = LoadGlb("Assets/Source/Claude/Nova/disco_ball.glb");
         if (src)
         {
-            var ball = BraxRegion.Put(piv, src, "Kula lustrzana (disco_ball — CC BY WwWuengy)", Kula - Vector3.up * d * .5f, 0f, 1f, false, d);
+            var ball = BraxRegion.Put(piv, src, "Kula lustrzana (disco_ball — CC BY WwWuengy)", Kula - Vector3.up * d * .5f, 0f, 1f, false, d, 0f, false);
             if (ball) foreach (var r in ball.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
         else
@@ -694,7 +694,7 @@ internal static class BraxMiastoNova
             pv.rotation = Quaternion.LookRotation(cel.normalized, Vector3.up) * Quaternion.Euler(18f, 0, 0);
             if (laserSrc)
             {
-                var o = BraxRegion.Put(pv, laserSrc, "Oprawa lasera (laser_light — CC BY JanoschR)", p - Vector3.up * .3f, 0f, 1f, false, .3f);
+                var o = BraxRegion.Put(pv, laserSrc, "Oprawa lasera (laser_light — CC BY JanoschR)", p - Vector3.up * .3f, 0f, 1f, false, .3f * K, 0f, false);
                 if (o) o.transform.rotation = pv.rotation * o.transform.rotation;
             }
             var col = barwy[i]; var mat = BraxMiastoA.ZShadera("Braxhorn/WnetrzaPromien", "NOVA laser " + i, m => { m.SetColor("_Tint", col); m.SetFloat("_Moc", 1.8f); });
