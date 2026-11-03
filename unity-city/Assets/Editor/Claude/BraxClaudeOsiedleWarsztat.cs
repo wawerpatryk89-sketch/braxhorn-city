@@ -116,7 +116,7 @@ public static partial class BraxClaudeOsiedle
             foreach (float gx in new[] { a - .1f, b }) BoxMinMax(Steel, gx, gx + .1f, 0, gh, z1 - t - .12f, z1 - t, false);   // prowadnice
             BoxMinMax(obr, a - .12f, b + .12f, gh, gh + .12f, z1 - .02f, z1 + .04f, false);                                // opaska nad bramą
             BoxMinMax(Concrete, a, b, 0, .15f, z1 - t, z1, true);                                                           // próg bramy w grubości muru (bez dziury do trawy)
-            if (k == 0)
+            if (k == 0 || k == 2)   // 1: warsztat (podnośnik), 3: wulkanizacja — podniesione
             {
                 BoxMinMax(seg, a, b, gh - .05f, gh, z1 - t - 4.2f, z1 - t - .1f, false, true);                              // pakiet pod stropem
                 BoxMinMax(Steel, a + .3f, a + .4f, gh, yE, z1 - t - 4.3f, z1 - t - 4.2f, false);
@@ -143,15 +143,20 @@ public static partial class BraxClaudeOsiedle
             Tube(obr, new Vector3(rx, .25f, z0 - .12f), new Vector3(rx, .08f, z0 - .4f), .05f, 10);
         }
         StDetal("warsztat", "leje i rury spustowe", 3);
-        Napis3D("WARSZTAT", new Vector3((xb + x1) * .5f, yE + .3f, z1), Vector3.forward, .26f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
+        Napis3D("WARSZTAT", new Vector3(xb + bw, yE + .3f, z1), Vector3.forward, .26f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
+        Napis3D("WULKANIZACJA", new Vector3(xb + bw * 2.5f, yE + .3f, z1), Vector3.forward, .2f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
         Napis3D("BIURO", new Vector3((x0 + xb) * .5f, yE + .32f, z1), Vector3.forward, .2f, .04f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
 
         // 4) wnętrze: posadzka, biuro przyjęć, hala (podnośnik, opony, wózek, stół)
         group = "Osiedle A / warsztat — wnętrze";
         // płyta betonowa do 0.13, na niej warstwa wykończenia (lico posadzki jedno — bez dwóch płaszczyzn na tej samej wysokości)
-        BoxMinMax(Concrete, x0 + t, x1 - t, 0, .13f, z0 + t, z1 - t, true);
+        wkKola = wkOpony = wkNapisy = wkDetale = 0; wkOpis.Clear();
+        float cKan = xb + bw * 1.5f;
+        WarsztatKanalWytnij(estate, physics, cKan);                                       // kanał w stanowisku 2 (wycięcie gruntu i kolizji)
+        BoxMinMax(Concrete, x0 + t, xb, 0, .13f, z0 + t, z1 - t, true);
         BoxMinMax(Pbr("stacja: płytki sklepu", "large_grey_tiles", 1.2f, new Color(.96f, .96f, .96f)), x0 + t, xb - t, .13f, .17f, z0 + t, z1 - t, true);
-        BoxMinMax(posadz, xb, x1 - t, .13f, .15f, z0 + t, z1 - t, true);
+        WarsztatPosadzka(xb, x1 - t, z0 + t, z1 - t, cKan, posadz);                     // hala z otworem kanału i pasem żółto-czarnym
+        WarsztatKanalBuduj(cKan);
         var listwa = StMat("listwa przypodłogowa", new Color(.3f, .3f, .31f), .4f);
         BoxMinMax(listwa, x0 + t, xb - t, .17f, .25f, z0 + t, z0 + t + .015f, false); BoxMinMax(listwa, x0 + t, x0 + t + .015f, .17f, .25f, z0 + t, z1 - t, false);
         // biuro: lada przyjęć, krzesło, regał z segregatorami, gaśnica, znak wyjścia, oprawa
@@ -169,31 +174,12 @@ public static partial class BraxClaudeOsiedle
         foreach (var (ox, oz) in new[] { ((x0 + xb) * .5f, -48f), (xb + bw * .5f, -48f), (xb + bw * 1.5f, -48f), (xb + bw * 2.5f, -48f) })
         { BoxMinMax(StMat("ramka oprawy", new Color(.5f, .5f, .52f), .5f, .6f), ox - .7f, ox + .7f, yE - .03f, yE, oz - 1.2f, oz + 1.2f, false, true); BoxMinMax(opr, ox - .65f, ox + .65f, yE - .035f, yE - .03f, oz - 1.15f, oz + 1.15f, false, true); }
         StDetal("warsztat", "biuro: lada, regał, gaśnica, WYJŚCIE, oprawy");
-        // hala: podnośnik dwukolumnowy (stanowisko 1), opony w stojaku, wózek narzędziowy, stół warsztatowy z imadłem
-        var czerw = StMat("podnośnik czerwony", new Color(.7f, .1f, .08f), .5f, .3f); float c1 = xb + bw * .5f, lz = -48.5f;
-        foreach (int s in new[] { -1, 1 })
-        {
-            float kx = c1 + s * 2.1f;
-            BoxMinMax(czerw, kx - .2f, kx + .2f, .15f, 3.6f * K, lz - .25f, lz + .25f, true);
-            BoxMinMax(Steel, kx - .3f, kx + .3f, .15f, .2f, lz - .4f, lz + .4f, false);                    // stopa z kotwami
-            foreach (int q in new[] { -1, 1 }) Tube(Steel, new Vector3(kx, 1.6f, lz + q * .15f), new Vector3(c1 + s * .5f, 1.6f, lz + q * 1.2f), .05f, 8);   // ramiona
-        }
-        BoxMinMax(czerw, c1 - 2.3f, c1 + 2.3f, 3.6f * K, 3.6f * K + .2f, lz - .1f, lz + .1f, false, true);   // belka górna
-        // opony w stojaku (stanowisko 3, przy tylnej ścianie)
-        var guma = StMat("opona", new Color(.04f, .04f, .04f), .35f);
-        float ox0 = xb + bw * 2f + .4f;
-        BoxMinMax(Steel, ox0, ox0 + 3.2f, .15f, 2.2f, z0 + t + .02f, z0 + t + .08f, false);
-        for (int k = 0; k < 5; k++) for (int r = 0; r < 2; r++)
-            Tube(guma, new Vector3(ox0 + .35f + k * .62f, .55f + r * .85f, z0 + t + .1f), new Vector3(ox0 + .35f + k * .62f, .55f + r * .85f, z0 + t + .38f), .33f, 16);
-        // wózek narzędziowy i stół warsztatowy (stanowisko 2)
-        float c2 = xb + bw * 1.5f;
-        BoxMinMax(czerw, c2 + 1.8f, c2 + 2.5f, .3f, 1.25f, z0 + t + 1.2f, z0 + t + 1.7f, true);
-        for (float y = .45f; y < 1.2f; y += .18f) BoxMinMax(Frame, c2 + 2.5f, c2 + 2.52f, y, y + .03f, z0 + t + 1.3f, z0 + t + 1.6f, false);   // uchwyty szuflad
-        BoxMinMax(Steel, c2 - 1.6f, c2 + 1.2f, .15f, 1.15f, z0 + t + .05f, z0 + t + .85f, true);
-        BoxMinMax(StMat("blat stołu buk", new Color(.68f, .5f, .32f), .4f), c2 - 1.65f, c2 + 1.25f, 1.15f, 1.2f, z0 + t, z0 + t + .9f, false);
-        BoxMinMax(Steel, c2 + .6f, c2 + .9f, 1.2f, 1.42f, z0 + t + .55f, z0 + t + .75f, false);                // imadło
-        StDetal("warsztat", "podnośnik, opony, wózek, stół z imadłem");
-        warsztatMechanicy.Add((new Vector3(c1 + .3f, .15f, lz + 2.4f), 180f)); warsztatMechanicy.Add((new Vector3(c2 - .5f, .15f, z0 + t + 1.5f), 180f));
+        // hala: strefa WARSZTAT (stanowiska 1–2) i strefa WULKANIZACJA (stanowisko 3) — BraxClaudeOsiedleWulkanizacja.cs
+        float c1 = xb + bw * .5f;
+        warsztatMechanicy.Add((new Vector3(c1 - 1.6f, .15f, -45.6f), 90f));                       // mechanik przy aucie na podnośniku
+        Guard("warsztat: wyposażenie stref (podnośnik, kanał, narzędzia, wulkanizacja, koła)", () => WarsztatWyposazenie(x0, x1, z0, z1, xb, bw, t, yE));
+        Guard("warsztat: złom na zapleczu", WarsztatZlom);
+        group = "Osiedle A / warsztat — wnętrze";
         // punkt podróży „garages” (Codex) zostaje pod tym samym id — teraz warsztat (wejście do biura)
         foreach (var w in Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             if (w.points != null) foreach (var p in w.points) if (p != null && p.id == "garages") { p.label = "Warsztat (Poznańska)"; p.position = new Vector3((dzA + dzB) * .5f, .1f, z1 + 1.5f); }
@@ -201,6 +187,9 @@ public static partial class BraxClaudeOsiedle
         group = g0;
         Debug.Log("BRAXHORN_WARSZTAT obrys x " + WX0 + "…" + WX1 + " z " + WZ0 + "…" + WZ1 + " budynek=24.0×12.0 m stanowiska=3 bramy_segmentowe=3 (1 otwarta) brama=" + gw.ToString("F2") + "×" + gh.ToString("F2") + " m podnośnik=1 opony=10 biuro_drzwi=1 miejsca_postojowe=4 mechanicy=" + warsztatMechanicy.Count + " (auto na podnośniku: brak — szablony aut z etapu ruchu)");
         Debug.Log("BRAXHORN_DETALE obiekt=warsztat razem=" + (stDetale - detale0) + " [" + string.Join(", ", stDetaleOpis) + "]");
+        Debug.Log("BRAXHORN_WARSZTAT_STREFY warsztat=stanowiska 1–2 (podnośnik dwukolumnowy z autem, kanał " + (1f * K).ToString("F2") + "×6.5 m głęb. " + (1.6f * K).ToString("F2") + ", narzędzia, olej, części, biuro przyjęć) wulkanizacja=stanowisko 3 (montażownica, wyważarka, podnośnik nożycowy, klucz pneumatyczny, stojaki, wanienka) mechanicy=" + warsztatMechanicy.Count);
+        Debug.Log("BRAXHORN_KOLA rozmiar=205/55 R16 średnica=" + (2f * KoloRo).ToString("F3") + " m (0.632 × K) szerokość=" + KoloW.ToString("F3") + " koła_na_feldze=" + wkKola + " opony=" + wkOpony + " napisy_rozmiaru=" + wkNapisy + " (bieżnik: 3 rowki obwodowe + poprzeczne co 30°, felga 5 ramion, 5 nakrętek, piasta, rant)");
+        Debug.Log("BRAXHORN_DETALE obiekt=warsztat+wulkanizacja razem=" + wkDetale + " [" + string.Join(", ", wkOpis) + "]");
     }
 
     static void WarsztatMechanicy()

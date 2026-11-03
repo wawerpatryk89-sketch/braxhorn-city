@@ -30,6 +30,17 @@ MODELS = [
     "modular_street_seating",
     "bar_chair_round_01",        # hokery w klubie NOVA
     "tree_small_02",             # prawdziwe drzewa zamiast „kulek” (odchudzane gltfpack w buildzie)
+    # --- osiedle — warsztat (runda 5, wykonawca B): wyposażenie warsztatu i wulkanizacji (1k); rdzawe felgi i stara opona
+    #     TYLKO jako złom na zapleczu warsztatu (BraxClaudeOsiedleWulkanizacja.cs)
+    "old_tyre",
+    "rusted_wheel_rim_01",
+    "rusted_wheel_rim_02",
+    "tire_pump",
+    "metal_tool_chest",
+    "metal_toolbox",
+    "tool_cart",
+    "old_military_compressor",
+    # --- koniec bloku osiedle — warsztat
     # "island_tree_01",  # skan (mln trójkątów) — w grze drzewo_verdant
     # "island_tree_02",  # skan (mln trójkątów) — w grze drzewo_verdant
     # "jacaranda_tree",  # skan (mln trójkątów) — w grze drzewo_verdant
