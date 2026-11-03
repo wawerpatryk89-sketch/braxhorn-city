@@ -144,7 +144,8 @@ public static partial class BraxClaudeOsiedle
         }
         StDetal("warsztat", "leje i rury spustowe", 3);
         // 3.11 (właściciel: warsztat szary, małe napisy): szyldy z grafik właściciela na pasie grafitowym; bez grafik — litery
-        if (!SzyldPanel("warsztat_szyld", new Vector3(xb + bw, yE + .25f, z1 + .06f), Vector3.forward, 1.98f, .66f))
+        // 3.11 16:19: cały budynek = konkurencja WAWER (WAWER AUTO SERWIS + WAWER WULKANIZACJA); BRAXHORN SERWIS w zapasie
+        if (!SzyldPanel("wawer_serwis", new Vector3(xb + bw, yE + .25f, z1 + .06f), Vector3.forward, 1.98f, .66f) && !SzyldPanel("warsztat_szyld", new Vector3(xb + bw, yE + .25f, z1 + .06f), Vector3.forward, 1.98f, .66f))
             Napis3D("WARSZTAT", new Vector3(xb + bw, yE + .3f, z1 + .06f), Vector3.forward, .26f, .05f, StSwiatlo("napis wiaty", new Color(.95f, .97f, 1f)), pas, .15f, .14f, true);
         // 3.11 16:15 (właściciel: „porób konkurencję”, „Kruk będzie”, 16:17 „Wawer konkurencja jednak”): wulkanizacja = WAWER (konkurencja obok BRAXHORN SERWIS);
         // szyld z grafiki wawer_wulkanizacja, bez niej — litery WAWER WULKANIZACJA (żółte na granacie)
