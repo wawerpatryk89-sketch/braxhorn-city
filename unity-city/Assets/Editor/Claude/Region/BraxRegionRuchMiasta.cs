@@ -148,7 +148,7 @@ public static partial class BraxClaudeOsiedle
         ra.punkty = wy.punkty.ToArray(); ra.trasy = wy.trasy.ToArray(); ra.zdarzenia = wy.zdarzenia.ToArray(); ra.wezly = wy.wezly.ToArray(); ra.ziarno = 2111;
         var rnd = new System.Random(2111); var pula = PulaAut(szablony); var klakson = Klakson();
         var auta = new List<BraxAuto>(); int taksowki = 0;
-        int[] ile = { 2, 2, 2, 2 };
+        int[] ile = { 5, 5, 4, 4 };   // właściciel 3.11 10:15: „gdzie ruch na ulicy, samochody zniknęły” — było 2 na trasę (8 aut w całym mieście B)
         for (int r = 0; r < wy.trasy.Count; r++)
             for (int k = 0; k < (r < ile.Length ? ile[r] : 1); k++)
             {

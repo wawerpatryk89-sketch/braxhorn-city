@@ -20,7 +20,7 @@ public static class BraxLudzie
 {
     public const float PromienMax = 60f;
     public static float Promien = PromienMax;
-    public static int Limit = 40;
+    public static int Limit = 52;   // 3.11: + pary rozmawiające w mieście B (ludzie mają się ruszać i rozmawiać, nie stać jak posągi)
     static int klatka = -1, wPromieniu, wPromieniuPoprz;
     static Transform kamera, gracz; static float szukaj;
     static readonly List<IBraxOsoba> osoby = new List<IBraxOsoba>();
@@ -42,7 +42,7 @@ public static class BraxLudzie
     //  • BEZ adaptacji limitu animowanych osób do kl./s (właściciel 3.11 10:05: ludzie mają normalnie rozmawiać —
     //    obniżanie limitu zamrażało rozmowy dalszych osób); limit stały 40 jak przed E19.
     public const float CienOdl = 20f * 1.294f, DwieKosciOdl = 32f * 1.294f;
-    public const int LimitMax = 40;
+    public const int LimitMax = 52;
     public static int Aktywni => wPromieniuPoprz;
     public static byte Detale(Renderer[] r, float d2, byte stan)
     {
