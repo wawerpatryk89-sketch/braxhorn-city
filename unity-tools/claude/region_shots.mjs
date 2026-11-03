@@ -231,6 +231,9 @@ const VIEWS = [
   // runda 5 (B): pracownik za ladą (Nutrition w pierzei B, biuro przyjęć warsztatu)
   ['DETAL_sklep_nutrition_sprzedawca', '23.3,1.4,-177.6,270,5,3.5', 'estate'],
   ['DETAL_warsztat_biuro_przyjecie', '26.2,1.4,-50,0,8,3.2', 'estate'],
+  // runda 5 (B): klocki → meble z detalem (sala bokserska: ławki, szafki; kasyno: hol, sejf; dyskoteka: konsola DJ)
+  ['DETAL_boks_szafki_lawka', '101.8,1.0,58.3,180,10,3.2', 'estate'],
+  ['DETAL_boks_lawka_hala', '73,0.6,78.6,0,20,2.8', 'estate'],
   ['N14_UI01_przyciski', '0,.08,20,180,10,10', 'estate', 'przyciski'],
   ['N14_UI02_menu', '0,.08,20,180,10,10', 'estate', 'menu'],
   ['N14_UI03_ustawienia', '0,.08,20,180,10,10', 'estate', 'ustawienia'],

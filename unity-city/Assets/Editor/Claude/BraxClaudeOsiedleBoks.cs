@@ -95,9 +95,7 @@ public static partial class BraxClaudeOsiedle
         // ŁAWKI pod ścianą (zachodnia za workami — nie; przy wejściu z ulicy po bokach, poza strefą drzwi x 84–88)
         foreach (var (b0, b1) in new[] { (70.0f, 76.0f), (92.0f, 98.0f) })
         {
-            BoxMinMax(dab, b0, b1, .42f, .47f, Z1 - .5f, Z1 - .1f, false, true);
-            foreach (float x in new[] { b0 + .3f, b1 - .3f }) BoxMinMax(Steel, x - .03f, x + .03f, 0, .42f, Z1 - .45f, Z1 - .15f, false);
-            Collider(new Vector3((b0 + b1) * .5f, .25f, Z1 - .3f), new Vector3(b1 - b0, .5f, .4f));
+            LawkaX(dab, b0, b1, Z1 - .3f, .47f);   // runda 5: deski z fazą i przerwami, rama w kształcie U, stopki, poprzeczka (bez klocka)
         }
         Sign("grafik", new Vector3(80.0f, 2.2f, Z1 - .05f), 3.2f, .8f, Vector3.back);
         Sign("sala_bokserska", new Vector3(86f, 4.3f, Z0 + .05f), 6.4f, 1.2f, Vector3.forward);
@@ -124,13 +122,12 @@ public static partial class BraxClaudeOsiedle
         Sign("prysznice", new Vector3(98.45f, 2.86f, pz + .06f), 1.1f, .26f, Vector3.forward); Sign("wc", new Vector3(103.4f, 2.86f, pz + .06f), .5f, .26f, Vector3.forward);
         Top(posadzka, sx0 + .06f, X1, pz + .05f, sz1 - .06f, yF + .006f);
         int szafek = 0;
-        for (float z = 57.2f; z < sz1 - .6f; z += .42f) { BoxMinMax(szafkaM, X1 - .53f, X1 - .03f, .1f, 2.0f, z - .2f, z + .2f, false); BoxMinMax(Chrom, X1 - .545f, X1 - .53f, 1.05f, 1.2f, z + .1f, z + .13f, false); szafek++; }
+        var drzwiSzafki = Plain("drzwi szafki (lakier)", new Color(.16f, .28f, .5f), .45f, .3f);   // runda 5: szafki z drzwiami, fugą, żaluzją, numerem, zamkiem, okapem
+        for (float z = 57.2f; z < sz1 - .6f; z += .42f) { Szafka(szafkaM, drzwiSzafki, new Vector3(X1 - .53f, 0, z), Vector3.left, .4f, .5f, 2.0f, szafek + 1); szafek++; }
         Collider(new Vector3(X1 - .28f, 1f, (57.0f + sz1 - .6f) * .5f), new Vector3(.52f, 2f, sz1 - .6f - 57.0f));
-        for (float x = 99.0f; x < X1 - .6f; x += .42f) { BoxMinMax(szafkaM, x - .2f, x + .2f, .1f, 2.0f, sz1 - .56f, sz1 - .06f, false); BoxMinMax(Chrom, x + .1f, x + .13f, 1.05f, 1.2f, sz1 - .575f, sz1 - .56f, false); szafek++; }
+        for (float x = 99.0f; x < X1 - .6f; x += .42f) { Szafka(szafkaM, drzwiSzafki, new Vector3(x, 0, sz1 - .56f), Vector3.back, .4f, .5f, 2.0f, szafek + 1); szafek++; }
         Collider(new Vector3((98.8f + X1 - .6f) * .5f, 1f, sz1 - .31f), new Vector3(X1 - .6f - 98.8f, 2f, .52f));
-        BoxMinMax(dab, 100.0f, 103.6f, .42f, .47f, 58.1f, 58.5f, false, true);
-        foreach (float x in new[] { 100.3f, 103.3f }) BoxMinMax(Steel, x - .03f, x + .03f, 0, .42f, 58.15f, 58.45f, false);
-        Collider(new Vector3(101.8f, .25f, 58.3f), new Vector3(3.6f, .5f, .4f));
+        LawkaX(dab, 100.0f, 103.6f, 58.3f, .47f);
         // prysznice: płytki, 2 deszczownice, szklana ścianka; WC: miska, umywalka, lustro
         Top(plytki, sx0 + .06f, px - .05f, Z0, pz - .05f, yF + .01f); Top(plytki, px + .05f, X1, Z0, pz - .05f, yF + .01f);
         BoxMinMax(plytki, sx0 + .06f, px - .05f, 0, 2.2f, Z0 + .03f, Z0 + .045f, false); BoxMinMax(plytki, px + .05f, X1, 0, 1.6f, Z0 + .03f, Z0 + .045f, false);
