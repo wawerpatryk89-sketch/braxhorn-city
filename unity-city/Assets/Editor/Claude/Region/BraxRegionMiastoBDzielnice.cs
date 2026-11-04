@@ -475,6 +475,92 @@ public static partial class BraxRegionMiastoB
             NdLog("rusztowania usunięte z " + bud.name + ": " + wyciete);
     }
 
+    // Premium city: korekta NIEKOMPLETNYCH materiałów na oryginalnej siatce GLB.
+    // Żadnej dodatkowej ściany przed starą. Tekstury autora, szkło, framugi,
+    // stal i drzwi pozostają nietknięte. PBR (Poly Haven / istniejące zasoby)
+    // zastępuje wyłącznie nieteksturowane, czarne gniazda elewacji.
+    static int NdPremiumFasada(GameObject bud, string id, string plik)
+    {
+        bool nowoczesny = id == "LONDON" || id == "ATLANTA";
+        bool klinkier = id == "KINNAIRD" || id.StartsWith("C3_", StringComparison.Ordinal);
+        string rodzina = nowoczesny ? "wieżowiec" : klinkier ? "kamienica" : "centrum";
+        Material pbr = klinkier
+            ? BraxRegionMeble.Tex("Miasto PREMIUM: istniejąca fasada klinkier",
+                1.2f, new Color(.91f, .83f, .75f), .79f,
+                "brick_wall_001", "brick_wall_10", "red_brick_03")
+            : nowoczesny
+                ? BraxRegionMeble.Tex("Miasto PREMIUM: istniejąca fasada kamień wieżowca",
+                    1.4f, new Color(.72f, .73f, .73f), .73f,
+                    "granite_tile_02", "rectangular_facade_tiles", "concrete_wall_008")
+                : BraxRegionMeble.Tex("Miasto PREMIUM: istniejąca fasada piaskowiec",
+                    1.35f, new Color(.90f, .88f, .82f), .81f,
+                    "rectangular_facade_tiles", "white_plaster_02", "white_sandstone_blocks_02");
+        bool maPbr = pbr && pbr.HasProperty("_MainTex") && pbr.GetTexture("_MainTex");
+        if (!maPbr)
+            Debug.LogError("BRAXHORN_PREMIUM_MATERIAL_BEZ_PBR " + id +
+                " (" + rodzina + "): nie ma tekstury skanu fasady w importowanych materiałach. " +
+                "Wymaga pobrania/zaimportowania oryginalnego materiału CC0 przed odbiorem jakości");
+        int naprawione = 0, pozostale = 0, teksturowane = 0;
+        foreach (var r in bud.GetComponentsInChildren<Renderer>(true))
+        {
+            if (!r) continue;
+            string nazwaMesh = r.name.ToLowerInvariant();
+            bool metalowyDetal = nazwaMesh.Contains("door") || nazwaMesh.Contains("drzwi") ||
+                nazwaMesh.Contains("frame") || nazwaMesh.Contains("rama") ||
+                nazwaMesh.Contains("balcon") || nazwaMesh.Contains("balkon") ||
+                nazwaMesh.Contains("rail") || nazwaMesh.Contains("poręcz") ||
+                nazwaMesh.Contains("sign") || nazwaMesh.Contains("szyld") ||
+                nazwaMesh.Contains("roof") || nazwaMesh.Contains("dach");
+            if (metalowyDetal) continue;
+            bool sciana = nazwaMesh.Contains("facade") || nazwaMesh.Contains("fasad") ||
+                nazwaMesh.Contains("wall") || nazwaMesh.Contains("scian") ||
+                nazwaMesh.Contains("ścian") || nazwaMesh.Contains("exterior") ||
+                nazwaMesh.Contains("parter") || nazwaMesh.Contains("ground_floor") ||
+                nazwaMesh.Contains("groundfloor") || nazwaMesh.Contains("front");
+            // Nie rozjaśniamy losowo obiektów na innych kondygnacjach: czarne
+            // partery z filmów są problemem, jeśli brakuje w nich PBR.
+            bool parter = r.bounds.min.y <= bud.transform.position.y + 4.0f * K &&
+                          r.bounds.max.y >= bud.transform.position.y + .5f * K;
+            var ms = r.sharedMaterials; bool zmieniono = false;
+            for (int i = 0; i < ms.Length; i++)
+            {
+                var m = ms[i];
+                if (!m || m == pbr || m == ndSzklo) continue;
+                string nazwa = m.name.ToLowerInvariant();
+                bool szklo = nazwa.Contains("glass") || nazwa.Contains("glaz") ||
+                             nazwa.Contains("szyb") || nazwa.Contains("window") ||
+                             nazwaMesh.Contains("glass") || nazwaMesh.Contains("window") ||
+                             nazwaMesh.Contains("okno");
+                if (szklo) continue;
+                bool tekstura = m.HasProperty("_MainTex") && m.GetTexture("_MainTex");
+                if (tekstura) { teksturowane++; continue; } // zachowaj oryginał
+                bool czarny = m.HasProperty("_Color") && m.GetColor("_Color").grayscale < .22f;
+                bool nazwanyBrak = nazwa.Contains("citygenblack") ||
+                    nazwa.Contains("basic_rough_metal_dark") ||
+                    nazwa.Contains("default_black") || nazwa.Contains("missing");
+                bool scianaMaterial = nazwa.Contains("facade") || nazwa.Contains("wall") ||
+                    nazwa.Contains("plaster") || nazwa.Contains("stone") ||
+                    nazwa.Contains("stucco");
+                bool defekt = (czarny || nazwanyBrak) &&
+                              ((sciana || scianaMaterial) && parter ||
+                               nazwanyBrak && sciana);
+                if (!defekt) continue;
+                if (!maPbr) { pozostale++; continue; }
+                ms[i] = pbr; zmieniono = true; naprawione++;
+            }
+            if (zmieniono) r.sharedMaterials = ms;
+        }
+        Debug.Log("BRAXHORN_NOWA_DZIELNICA_PREMIUM " + id + " " + rodzina +
+            " wymienione_czarne_materialy=" + naprawione +
+            " zachowane_oryginalne_PBR=" + teksturowane +
+            " bez_dostepnej_tekstury=" + pozostale +
+            " (oryginalne siatki, bez nakładania elewacji)");
+        if (pozostale > 0)
+            Debug.LogError("BRAXHORN_NOWA_DZIELNICA_NIEGOTOWA " + id +
+                           ": nadal czarne fragmenty fasad bez kompletnego PBR");
+        return naprawione;
+    }
+
     static Material ndSzklo;
     static int NdSzklo(GameObject o)
     {
