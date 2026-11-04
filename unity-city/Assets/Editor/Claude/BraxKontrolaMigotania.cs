@@ -126,6 +126,40 @@ public static class BraxKontrolaMigotania
         var wynik = Wytnij(w, spis);
         Physics.SyncTransforms();
         var po = Wykryj(scena, 60f);
+        // Raport Unity z 4.11: 3978 nakładek, 1399 po pierwszym przejściu,
+        // w tym 19 przy arenie. Drugi przebieg WYŁĄCZNIE dla dużych powierzchni
+        // nieprzezroczystych i pozostałości areny; nie dotykaj laserów,
+        // fontanny, szkła ani ruchomych obiektów. Nadal WYTNJIJ niższą warstwę,
+        // nie nakładaj materiału/płaszczyzny na istniejącą.
+        int ponowneKandydaty = 0, ponownePoprawione = 0;
+        if (!po.przerwane)
+        {
+            var grube = po.lista.Where(p => (p.arena || p.pole >= 5f)
+                && !Przezroczysty(po.pows[p.a].mat) && !Przezroczysty(po.pows[p.b].mat)).ToList();
+            ponowneKandydaty = grube.Count;
+            if (grube.Count > 0)
+            {
+                var wszystkie = po.lista;
+                po.lista = grube;  // reszta wykrycia (submeshe, płaszczyzny) bez zmian
+                var drugi = Wytnij(po, spis);
+                po.lista = wszystkie;
+                ponownePoprawione = drugi.pary;
+                if (drugi.powierzchnie > 0)
+                {
+                    wynik.pary += drugi.pary; wynik.powierzchnie += drugi.powierzchnie;
+                    wynik.trojkaty += drugi.trojkaty; wynik.pole += drugi.pole;
+                    wynik.opisy.AddRange(drugi.opisy); wynik.opisyAreny.AddRange(drugi.opisyAreny);
+                    foreach (var kv in drugi.powody) wynik.powody[kv.Key] = kv.Value;
+                    Physics.SyncTransforms();
+                    po = Wykryj(scena, 60f);
+                }
+            }
+        }
+        var nierozOpaque = po.lista.Count(p => !Przezroczysty(po.pows[p.a].mat) && !Przezroczysty(po.pows[p.b].mat));
+        Debug.Log("BRAXHORN_MIGOTANIE_POWTORKA kandydatow_opaque=" + ponowneKandydaty +
+            " prob_wyciecia=" + ponownePoprawione + " nierozwiazane_opaque=" + nierozOpaque +
+            " arena=" + po.lista.Count(p => p.arena) +
+            " (efekty przezroczyste z premedytacją nie usuwane)");
         var sb = new StringBuilder("BRAXHORN_MIGOTANIE " + BraxKontrola.Obszar + ": pary=" + w.lista.Count + " wycięte_pary=" + wynik.pary + " pary_po=" + po.lista.Count
             + " pary_po_powyżej_1m²=" + po.lista.Count(p => p.pole > 1f) + " (wycięte powierzchnie " + wynik.powierzchnie + ", trójkątów ruszonych " + wynik.trojkaty
             + ", pole usunięte " + wynik.pole.ToString("F1") + " m², przesunięte 0 — zasada: dolna warstwa wycięta; renderery " + w.renderery + ", trójkąty osiowe " + w.trojkaty
