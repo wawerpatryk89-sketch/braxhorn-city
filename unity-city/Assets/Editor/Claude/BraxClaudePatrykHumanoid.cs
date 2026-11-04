@@ -40,16 +40,28 @@ public static partial class BraxClaudeOsiedle
         }
         else
         {
-            var left=Bone("LeftArm"); var right=Bone("RightArm");
-            if(!left||!right)throw new InvalidOperationException("Brak ramion nowego Patryka");
-            Vector3 rightAxis=Vector3.ProjectOnPlane(right.position-left.position,Vector3.up).normalized;
-            Vector3 forward=Vector3.Cross(rightAxis,Vector3.up);
-            foreach(var side in new[]{"Left","Right"})
+            // 4.11, nagranie osiedla: pozycja spoczynkowa miała wykręcone ręce.
+            // Jeżeli FBX ma już naturalnie opuszczone ramiona, zachowaj jego
+            // ORYGINALNĄ pozę (bez ponownego obracania łokci i nadgarstków).
+            // T/A-pose: koryguj tylko bark/ramię; obrót przedramienia i dłoni
+            // pozostaje anatomicznym obrotem z oryginalnego modelu.
+            var left = Bone("LeftArm"); var right = Bone("RightArm");
+            if (!left || !right) throw new InvalidOperationException("Brak ramion nowego Patryka");
+            float katZrodlowy = PatrykKatRamion(rest.Select(s => s.t));
+            if (katZrodlowy > 35f)
             {
-                Vector3 outward=rightAxis*(side=="Right"?1f:-1f);
-                Aim(side+"Arm",side+"ForeArm",Vector3.down+outward*.18f);
-                Aim(side+"ForeArm",side+"Hand",Vector3.down+outward*.10f+forward*.12f);
+                Vector3 rightAxis = Vector3.ProjectOnPlane(right.position - left.position, Vector3.up).normalized;
+                if (rightAxis.sqrMagnitude < 1e-6f) throw new InvalidOperationException("Nieprawidłowa oś barków Patryka");
+                Vector3 forward = Vector3.Cross(rightAxis, Vector3.up).normalized;
+                foreach (var side in new[] { "Left", "Right" })
+                {
+                    Vector3 outward = rightAxis * (side == "Right" ? 1f : -1f);
+                    Aim(side + "Arm", side + "ForeArm", Vector3.down + outward * .18f + forward * .03f);
+                }
             }
+            Debug.Log("BRAXHORN_PATRYK_IDLE ramiona_zrodlo=" + katZrodlowy.ToString("F1") +
+                " stopni; " + (katZrodlowy <= 35f ? "oryginalna poza" : "korekta samych ramion") +
+                "; bez sztucznego skrecania przedramion i dloni");
         }
         var clip = new AnimationClip { name = name, legacy = true, frameRate = 30, wrapMode = WrapMode.Loop };
         foreach (var s in rest)
