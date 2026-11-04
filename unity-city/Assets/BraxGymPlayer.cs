@@ -154,7 +154,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
         simulationTime+=dt;
         if(seat)
         {
-            if(move.magnitude>.6f){seat.Leave();}
+            // Joystick nie wysadza Braxa z jadącego tramwaju ani nie wywołuje CharacterController.Move na wyłączonym body.
+            if(move.magnitude>.6f && !seat.tramOwner){seat.Leave();}
             else{speed=0;vertical=0;if(action!="Idle"){action="Idle";clips["Idle"].wrapMode=WrapMode.Loop;clips["Idle"].speed=1;clips.CrossFade("Idle",.16f,PlayMode.StopAll);}return;}
         }
         if(vessel)
