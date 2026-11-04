@@ -67,6 +67,24 @@ public static class BraxObozMaterials
         material.mainTextureScale=Vector2.one/widthMetres;
         return Save(material,"polyhaven-"+id);
     }
+    public static Material CampGround(Material forest, Material aggregate)
+    {
+        if (!forest || !aggregate) throw new InvalidOperationException("Brak map podłoża obozu");
+        var material = new Material(forest) { name = "Obóz / ściółka i żwirowe obrzeża" };
+        foreach (var pair in new[]{("_MainTex","_GroundColor"),("_BumpMap","_GroundNormal"),
+            ("_RoughnessTex","_GroundRoughness"),("_OcclusionTex","_GroundAO")})
+        {
+            var map = aggregate.GetTexture(pair.Item1);
+            // Optional AO uses the shader's white default; colour and normal cannot be absent.
+            if (!map && pair.Item1 != "_OcclusionTex")
+                throw new InvalidOperationException("Brak mapy żwiru: " + pair.Item1);
+            if (map) material.SetTexture(pair.Item2, map);
+        }
+        material.mainTextureScale = Vector2.one;
+        material.SetFloat("_GroundUVScale", 2);
+        material.EnableKeyword("OBOZ_GROUND_BLEND");
+        return Save(material,"camp-ground-blended");
+    }
     public static Material SignText(Font font)
     {
         var shader=Shader.Find("Braxhorn/CitySignText");

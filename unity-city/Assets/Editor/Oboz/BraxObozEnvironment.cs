@@ -113,18 +113,33 @@ public static partial class BraxObozEnvironment
     }
     static void Terrain()
     {
+        var paths = PathRectangles();
         const int n = 140; var vertices = new Vector3[(n + 1) * (n + 1)]; var uv = new Vector2[vertices.Length]; var tris = new int[n * n * 6];
+        var colors = new Color[vertices.Length];
         for (int z = 0; z <= n; z++) for (int x = 0; x <= n; x++)
         {
             float px = -210 + 420f * x / n, pz = -210 + 420f * z / n;
             float channel = Mathf.Abs(px - 72); float y = channel < 3.5f ? -.9f : channel < 5.5f ? Mathf.Lerp(-.9f, 0, (channel - 3.5f) / 2) : 0;
-            int i = z * (n + 1) + x; vertices[i] = P(px, y, pz); uv[i] = new Vector2(px / 3, pz / 3);
+            int i = z * (n + 1) + x; vertices[i] = P(px, y, pz); uv[i] = new Vector2(px * K / 3, pz * K / 3);
+            float distance = float.PositiveInfinity;
+            foreach (var path in paths)
+            {
+                float dx = Mathf.Max(path.xMin-px, 0, px-path.xMax);
+                float dz = Mathf.Max(path.yMin-pz, 0, pz-path.yMax);
+                distance = Mathf.Min(distance, Mathf.Sqrt(dx*dx+dz*dz));
+            }
+            // Source gravel at maintained path shoulders and stream banks,
+            // with soft irregular transitions to the original forest litter.
+            float noise = Mathf.PerlinNoise(px*.17f+123.4f,pz*.17f+456.7f);
+            float shoulder = 1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.3f,3.2f+noise*1.8f,distance));
+            float bank = 1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(3.5f,7+noise*2,channel));
+            colors[i] = new Color(Mathf.Max(shoulder,bank),0,0,1);
             if (x < n && z < n) { int t = (z * n + x) * 6; int j = i + n + 1; tris[t] = i; tris[t + 1] = j; tris[t + 2] = i + 1; tris[t + 3] = i + 1; tris[t + 4] = j; tris[t + 5] = j + 1; }
         }
-        var mesh = new Mesh { name = "Teren 420 m; pas strumienia" }; mesh.vertices = vertices; mesh.uv = uv; mesh.triangles = tris; mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
+        var mesh = new Mesh { name = "Teren 420 m; pas strumienia" }; mesh.vertices = vertices; mesh.uv = uv; mesh.colors = colors; mesh.triangles = tris; mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
         mesh = SaveMesh(mesh);
-        var g = Group("Podłoże — oryginalne mapy igliwia", root, Vector3.zero).gameObject;
-        g.AddComponent<MeshFilter>().sharedMesh = mesh; g.AddComponent<MeshRenderer>().sharedMaterial = ground; g.AddComponent<MeshCollider>().sharedMesh = mesh;
+        var g = Group("Podłoże — ściółka i żwirowe przejścia", root, Vector3.zero).gameObject;
+        g.AddComponent<MeshFilter>().sharedMesh = mesh; g.AddComponent<MeshRenderer>().sharedMaterial = BraxObozMaterials.CampGround(ground,gravel); g.AddComponent<MeshCollider>().sharedMesh = mesh;
         // Water surface is a material placeholder clearly kept in the draft;
         // no assertion of finished reflections or stream animation.
         var water = BraxObozMaterials.Plain("woda-robocza", new Color(.176f, .353f, .353f), .85f);
@@ -134,6 +149,10 @@ public static partial class BraxObozEnvironment
     }
     // Union of paved rectangles: one surface at intersections, flush edges at doors.
     static void Paths()
+    {
+        PavedPaths(PathRectangles());
+    }
+    static List<Rect> PathRectangles()
     {
         var paths = new List<Rect> {
             new Rect(-1.2f,-150,2.4f,300), new Rect(-101,-56.0f,101,2),
@@ -148,7 +167,7 @@ public static partial class BraxObozEnvironment
             paths.Add(new Rect(-100,z-.9f,1.9f,1.8f));
             paths.Add(new Rect(-64.9f,z-.9f,1.9f,1.8f));
         }
-        PavedPaths(paths);
+        return paths;
     }
     static void Cabin(string name, float x, float z, float yaw)
     {
