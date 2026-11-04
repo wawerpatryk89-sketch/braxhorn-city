@@ -5818,6 +5818,10 @@ public static partial class BraxClaudeOsiedle
         Guard("komisariat — nowe wnętrze", () => PoliceInterior(estate, physics));
         Guard("drzewa z chodników", () => TreesOffPaving(physics));
         Guard("ulice: parking i przejścia B, wyposażenie, strefy zatrzymania, kontrola (BraxClaudeOsiedleUlice)", UliceOsiedla);   // build 14 „drogi”
+        // 4.11: przygotowane skrypty sportu nigdy nie były wywoływane — boiska
+        // były tylko dekoracją. Obecnie tworzymy interaktywne boiska PO układzie
+        // terenów i PRZED trawą, aby maski piłki nożnej zapobiegły zarastaniu pola.
+        Guard("SPORT AKTYWNY: koszykówka, piłka nożna, tenis, siatkówka", Sport);
         Guard("korony drzew z dala od budynków", PruneCrowns);
         Guard("kraniec mapy: teren dookoła zamiast pustki", KraniecMapy);
         Guard("elewacje i szyldy: detale A, kontrola zasłonięcia, scalanie z LOD", () => ElewacjeKoniec(estate, physics));   // build 14 (BraxClaudeOsiedleSzyldy/Elewacje)
@@ -5832,6 +5836,10 @@ public static partial class BraxClaudeOsiedle
         Guard("oznakowanie: kontrola nakładek przed scaleniem (runda 4)", () => OznakowanieKontrola("koniec"));
         Flush();
         FlushClumps();
+        // 4.11: Auta() i RuchNaOsiedlu() istniały, lecz nie zostały podpięte
+        // pod budowę sceny. Uruchamiaj tylko raz, po zatokach parkingowych
+        // i po zbudowaniu budynków. Auto gracza przy arenie powstaje w Auta().
+        Guard("RUCH AKTYWNY: samochody, auto Patryka, parking, przechodnie", RuchNaOsiedlu);
         Guard("tunel: wnętrze wolne od terenu i trawy (3.11 — ściana z trawy w otworze)", TunelWolny);
         Guard("sufity dla kamery (blokada nad pomieszczeniami)", SufityKamery);
         // build 14 (dyspozytor przy scalaniu): kontrole jakości PRZED ludźmi — kontrola skaluje/przesuwa ławki i meble, a ludzie

@@ -182,9 +182,9 @@ public static partial class BraxClaudeOsiedle
             for (int axis = 0; axis < 3; axis++) result.SetCurve(hipsPath, typeof(Transform), "localPosition." + "xyz"[axis],
                 PatrykKrzywaZ(times, positions.Select(p => p[axis]).ToArray(), false));
             result.EnsureQuaternionContinuity();
-            if (!zapisz) { info = " (próba, bez zapisu)"; return result; }
+            if (!zapisz) { info = " Unity Humanoid → Legacy, bez korekty kostek"; return result; }
             ZapiszKlipPatryka(result);
-            info = " Unity Humanoid → Legacy, " + count + " próbek";
+            info = " Unity Humanoid → Legacy, " + count + " próbek; bez korekty kostek";
             return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + spec.nazwa + ".anim");
         }
         finally
@@ -316,9 +316,54 @@ public static partial class BraxClaudeOsiedle
         var w = new NogiWynik();
         PatrykSpoczynek(rest);
         Vector3 originalForward=PatrykPrzodStop(kosci);
-        for (int i = 0; i < klatek; i++) { clip.SampleAnimation(hero, clip.length * i / klatek); PatrykNogiKlatka(kosci, w, originalForward); }
+        for (int i = 0; i < klatek; i++) { clip.SampleAnimation(hero, clip.length * i / Mathf.Max(1, klatek - 1)); PatrykNogiKlatka(kosci, w, originalForward); }
         PatrykSpoczynek(rest);
         return w;
+    }
+
+    // Validate the actual baked clip for every source/avatar pair. A successful
+    // bake alone says nothing about the legs. Never repair a rejected pose by
+    // rotating only its ankles; that conceals a rig mismatch and jumps at thresholds.
+    static AnimationClip PatrykWybierzLokomocje(GameObject hero, Avatar imported, Avatar tPose,
+        Transform hips, List<Transform> bones, List<PatrykStan> rest, PatrykKlip spec, out string report)
+    {
+        var attempts = new List<string>();
+        foreach (string relative in spec.zrodla)
+        {
+            string path = PatrykRuchy + "/" + relative;
+            if (!System.IO.File.Exists(path)) { attempts.Add(relative + ": brak źródła"); continue; }
+            foreach (var (avatar, label) in new[] { (imported, "import"), (tPose, "T-poza") })
+            {
+                if (!avatar) continue;
+                AnimationClip candidate = null;
+                try
+                {
+                    candidate = PatrykHumanoid(hero, avatar, hips, bones, rest, path, spec, out _, false);
+                    // Sample at least at the bake frequency, including both endpoints.
+                    // Source mesh and bindposes stay intact.
+                    int frames = Mathf.Max(16, Mathf.CeilToInt(candidate.length * candidate.frameRate) + 1);
+                    var legs = PatrykTestNog(hero, bones, rest, candidate, frames);
+                    int errors = PatrykTestKosci(hero, bones, rest,
+                        new List<AnimationClip> { candidate }, out string boneReport);
+                    string evidence = spec.nazwa + "←" + relative + " awatar=" + label + " " + legs.Opis() + " " + boneReport;
+                    if (legs.klatki == 0 || legs.Kara != 0 || errors != 0)
+                    {
+                        attempts.Add(evidence);
+                        Debug.LogWarning("BRAXHORN_PATRYK_KANDYDAT ODRZUCONY " + evidence);
+                        continue;
+                    }
+                    report = evidence;
+                    ZapiszKlipPatryka(candidate);
+                    candidate = null; // persisted or destroyed by ZapiszKlipPatryka
+                    Debug.Log("BRAXHORN_PATRYK_KANDYDAT PASS " + evidence);
+                    return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + spec.nazwa + ".anim");
+                }
+                catch (Exception e) { attempts.Add(relative + "/" + label + ": " + e.Message); }
+                finally { if (candidate) Object.DestroyImmediate(candidate); PatrykSpoczynek(rest); }
+            }
+        }
+        throw new InvalidOperationException("Brak poprawnego ruchu " + spec.nazwa +
+            ". Nie użyto starej animacji ani sztucznego prostowania stóp. " + string.Join(" | ", attempts));
     }
 
     // Wybór awatara: próbne przeniesienie Walk i Run oboma (bez zapisu) — wygrywa mniejsza liczba naruszeń (remis: T-poza).

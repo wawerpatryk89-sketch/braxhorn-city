@@ -17,6 +17,22 @@ public static partial class BraxClaudeOsiedle
     static readonly string[] AutaSportowePatryka = { "car_rev", "car_918", "car_r8", "car_mus", "car_dc" };
     static readonly Vector3 WejscieAreny = new Vector3(-86f, 0f, 79f);
 
+    // Krytyczny test: samo istnienie modelu nie daje graczowi możliwości jazdy.
+    public static void AutoGraczaKontrola()
+    {
+        var auta = UnityEngine.Object.FindObjectsByType<BraxAutoGracza>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (auta.Length != 1)
+            throw new InvalidOperationException("BRAXHORN_AUTO_GRACZA: oczekiwano 1 jezdnego auta Patryka przy arenie, znaleziono " + auta.Length);
+        var car = auta[0];
+        if (!car || !car.fotel || !car.obrys || !car.GetComponent<Rigidbody>() || car.maxPredkosc < 5f)
+            throw new InvalidOperationException("BRAXHORN_AUTO_GRACZA: samochód jest tylko dekoracją albo bez fotela/kolizji/napędu");
+        float d = new Vector2(car.transform.position.x - WejscieAreny.x,
+                              car.transform.position.z - WejscieAreny.z).magnitude;
+        if (d > 40f) throw new InvalidOperationException("BRAXHORN_AUTO_GRACZA: samochód zbyt daleko od areny: " + d.ToString("F1") + " m");
+        Debug.Log("BRAXHORN_AUTO_GRACZA_OK auto przy BRAXHORN ARENA, d=" + d.ToString("F1") +
+            " m, fotel=tak, kolizja=tak, sterowanie=joystick, akcja=wsiądź / wysiądź");
+    }
+
     static bool CzescDrzwi(Transform t, Transform korzen)
     {
         for (var x = t; x && x != korzen; x = x.parent) if (x.name.IndexOf("door", StringComparison.OrdinalIgnoreCase) >= 0) return true;

@@ -24,11 +24,13 @@ env:
   # po pomiarze rozmiaru (krok „Rozmiar Library i swiata rejonu”) — limit 10 GB na repo, a Library zajmuje juz ~7-9 GB na job.
   PAMIEC_REJONOW: osiedle
 concurrency:
-  group: claude-region-${{ github.ref }}
-  cancel-in-progress: false
+  # Finalny test zastępuje wcześniejszy, niesprawdzony przebieg tej samej integracji.
+  # Nie dotyczy równoległych buildów Claude'a ani miasta/obozu.
+  group: claude-region-${{ github.ref }}-${{ inputs.rejon }}
+  cancel-in-progress: true
 jobs:
   source-imports:
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -51,7 +53,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104') }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -88,7 +90,7 @@ jobs:
     outputs:
       rejon: ${{ steps.rejon.outputs.rejon }}
     # 3.11 18:40 (właściciel): BEZ ZDJĘĆ CI — „to tylko czas zajmuje”. Job (i shots) wyłączony.
-    if: false && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka')
+    if: false && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104')
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
@@ -403,7 +405,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104') }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -721,6 +723,18 @@ jobs:
         androidExportType: androidPackage
         versioning: None
         allowDirtyBuild: true
+    - name: Zabezpiecz gotowy APK w Actions przed publikacja i backupem
+      id: apk_artifact
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: android-apk-${{ steps.rejon.outputs.rejon }}-${{ github.sha }}-${{ github.run_attempt }}
+        path: |
+          build/Android/braxhorn-*.apk
+          build/Android/apk-variants.txt
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 7
     - name: Rozmiar Library i swiata rejonu (do decyzji o pamieci podrecznej; limit 10 GB na repo)
       if: always()
       run: |
@@ -744,6 +758,7 @@ jobs:
         cat unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json || echo 'BRAK raportu drzwi'
         cat unity-city/Assets/PlayableGenerated/ClaudeRegion/region.json || echo 'BRAK raportu regionu'
     - name: Wgraj APK do ukrytego wydania (instalacja na Androidzie)
+      id: apk_release
       if: always() && !cancelled()
       env:
         GH_TOKEN: ${{ github.token }}
@@ -790,7 +805,8 @@ jobs:
           city-review/*.json
     - name: Sprawdz gotowy swiat niezaleznie od wyniku pakowania APK
       id: generation_checkpoint
-      if: ${{ !cancelled() && steps.rejon.outputs.pamiec == 'tak' && steps.pamiec.outputs.cache-hit != 'true' }}
+      if: ${{ !cancelled() && steps.apk_artifact.outcome == 'success' && steps.apk_release.outcome == 'success' && steps.rejon.outputs.pamiec == 'tak' && steps.pamiec.outputs.cache-hit != 'true' }}
+      continue-on-error: true
       env:
         ZONE: ${{ steps.rejon.outputs.rejon }}
         WORLD_KEY: ${{ steps.rejon.outputs.klucz }}
@@ -809,7 +825,8 @@ jobs:
           unity-city/Assets/Source/Claude/Osiedle/sky/niebo_odbicia.jpg
         key: ${{ steps.rejon.outputs.klucz }}
     - name: Preserve immutable encrypted content baseline after successful APK
-      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' && steps.apk_artifact.outcome == 'success' && steps.apk_release.outcome == 'success' }}
+      continue-on-error: true
       env:
         GH_TOKEN: ${{ github.token }}
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -821,7 +838,7 @@ jobs:
         fi
     - name: Pamiec Library Unity dla Androida - pelny zapis z Bee
       id: library_pack
-      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' && steps.apk_artifact.outcome == 'success' && steps.apk_release.outcome == 'success' }}
       continue-on-error: true
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -880,7 +897,7 @@ jobs:
 
   shots:
     needs: combined-unity6
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104') }}
     runs-on: ubuntu-latest
     timeout-minutes: 100
     strategy:
