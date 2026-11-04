@@ -1,8 +1,8 @@
 {
   "firstInstall": false,
   "privateInputsSha256": "57ccbb5fb17b248ff39a91abd549e5474796da3f102a86c08ae4f30f0f3a62f8",
-  "request": "oboz-owner-ring-entry-repair-20261104-01",
-  "sourceBaseCommit": "8dc8156937f77aeda616c13691039c824f8378a9",
+  "request": "oboz-owner-realizm-20261104-01",
+  "sourceBaseCommit": "910be191adad4bdaa90aea884cbc214446594339",
   "validationRun": null,
   "validatedSourceCommit": null,
   "phoneTested": false,
