@@ -1,3 +1,7 @@
+# PRIORYTET: DOSTAWA APK FIRST
+
+Przeczytaj [AGENTS.md](AGENTS.md) i [zasadę APK FIRST](docs/zasady/APK_FIRST_DOSTAWA_20261104.md). Najpierw zabezpieczyć i udostępnić APK, potem cache; żaden późniejszy błąd cache nie odbiera właścicielowi gotowej aplikacji.
+
 # Instrukcja dla Claude / Braxhorn City
 
 Przeczytaj i wykonuj [AGENTS.md](AGENTS.md). Najważniejsza decyzja właściciela z 4.11.2026: push i commit NIE uruchamiają buildów. Miasto, osiedle i obóz: tylko osobna ręczna decyzja właściciela i `workflow_dispatch`. Zakaz samodzielnych restartów, automatycznych wyzwalaczy i pushowania na main.
