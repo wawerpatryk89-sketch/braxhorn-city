@@ -1,0 +1,114 @@
+name: Obóz — sześć NPC kontrola ruchu
+
+on:
+  push:
+    branches: [codex/oboz-npc-life-20261104]
+    paths: [unity-tools/oboz/npc-review-request.json]
+
+permissions:
+  # GitHub only exposes draft releases to a token with push access.
+  # This workflow only downloads the existing encrypted delivery/cache.
+  contents: write
+
+concurrency:
+  group: oboz-npc-motion-review
+  cancel-in-progress: false
+
+jobs:
+  npc-motion:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Oryginalne źródła obozu z kontrolą SHA-256
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/assets.py restore
+      - name: Zweryfikowane kandydaty spokojnego chodu, biegu i postoju
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/motion_candidates.py
+      - name: Profil pamięci obozu
+        id: profile
+        run: python3 unity-tools/updates/unity_cache.py profile --zone oboz
+      - name: Przywróć zaszyfrowaną Library obozu
+        id: cache
+        continue-on-error: true
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ${{ runner.temp }}/oboz-library.tar.zst.enc
+            ${{ runner.temp }}/oboz-library.tar.zst.enc.json
+          key: ${{ steps.profile.outputs.prefix }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ steps.profile.outputs.prefix }}
+      - name: Odczytaj zgodną pamięć bazowej gałęzi obozu
+        if: ${{ steps.cache.outputs.cache-matched-key == '' }}
+        continue-on-error: true
+        run: |
+          python3 - <<'PY_CACHE'
+          import os, sys
+          from pathlib import Path
+          sys.path.insert(0,'unity-tools/updates')
+          from unity_cache import profile
+          from durable_cache import download, release_tag
+          expected=profile(Path('unity-city'),'oboz','6000.0.58f2')
+          tag=release_tag(expected,'refs/heads/gpt/oboz')
+          download(os.environ['GITHUB_REPOSITORY'],tag,Path(os.environ['RUNNER_TEMP'])/'oboz-library.tar.zst.enc',expected)
+          PY_CACHE
+      - name: Sprawdź i odszyfruj cache
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          if [ -f "$RUNNER_TEMP/oboz-library.tar.zst.enc" ]; then
+            if ! python3 unity-tools/updates/unity_cache.py restore --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"; then
+              echo '::warning::Cache obozu odrzucony; nastąpi pełny import.'
+            fi
+          else
+            echo 'BRAXHORN_PAMIEC_LIBRARY oboz=nie — pierwsze uruchomienie lub brak kopii'
+          fi
+      - name: Porównanie ruchu sześciu NPC bez budowania APK
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxObozCharacters.ReviewNpcMotion
+          versioning: None
+          allowDirtyBuild: true
+          enableGpu: true
+      - name: Kompletność pomiarów i obrazów — nie akceptacja wyglądu
+        run: |
+          python3 - <<'PY_REVIEW'
+          import json, os
+          from pathlib import Path
+          root=Path('build/NpcMotionReview')
+          report=json.loads((root/'npc-motion-review.json').read_text())
+          assert report['complete'] and not report['errors']
+          assert not report['phoneTested'] and not report['appearanceApproved']
+          assert report['unity']=='6000.0.58f2' and report['commit']==os.environ['GITHUB_SHA']
+          assert report['captureMethod']=='cpu-baked-mesh'
+          assert {c['character'] for c in report['characters']}=={'vorn','zyro','rakk','kade','gorr','mis'}
+          for character in report['characters']:
+              assert character['complete'] and not character['errors'] and len(character['cases'])==10
+              for case in character['cases']:
+                  assert len(case['frames'])==60 and len(case['captures'])==36
+                  assert all((root/p).is_file() for p in case['captures'])
+          assert len(list(root.glob('*.png')))==2160
+          print('NPC: 6 postaci, 60 porównań, 3600 próbek, 2160 obrazów; wymagana ocena wizualna')
+          PY_REVIEW
+      - name: Tylko obrazy NPC i pomiary — bez surowych źródeł
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: npc-motion-${{ github.run_id }}
+          path: |
+            build/NpcMotionReview/*.json
+            build/NpcMotionReview/*.png
+          if-no-files-found: warn
+          retention-days: 14
