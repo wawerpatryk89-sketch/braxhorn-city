@@ -89,7 +89,12 @@ public static partial class BraxClaudeOsiedle
             anim.GetClip("Idle").SampleAnimation(anim.gameObject,0);
             player.transform.SetPositionAndRotation(oldPos,oldRot);
         }
-        var ok=kandydaci.Where(k=>k.t!=null).ToList();
+        // Nie wybieraj sportowego auta, ktorego kabina pasuje, ale ktore
+        // fizycznie nie miesci sie w zadnej zatoce przy arenie.
+        var ok=kandydaci.Where(k=>k.t!=null && k.miesci &&
+            MiejscaParkingowe.Any(spot =>
+                (new Vector2(spot.srodek.x-WejscieAreny.x,spot.srodek.z-WejscieAreny.z)).sqrMagnitude<=40f*40f &&
+                k.t.dl+.2f<=spot.rozmiar.y && k.t.szer+.8f*K<=spot.rozmiar.x)).ToList();
         var wybor=ok.Where(k=>k.drzwi&&k.miesci).Select(k=>(k.t,"drzwi kierowcy wydzielone i Patryk się mieści")).FirstOrDefault();
         if(wybor.t==null)wybor=ok.Where(k=>k.miesci).Select(k=>(k.t,"mieści się, bez wydzielonych drzwi (drzwi bez animacji)")).FirstOrDefault();
         // Nie stawiaj auta wyłącznie dekoracyjnego: Patryk ma realnie mieścić
