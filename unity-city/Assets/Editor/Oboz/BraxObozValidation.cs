@@ -47,6 +47,11 @@ public static class BraxObozValidation
                 if (!n.glovesVerified) errors.Add(n.characterId + ": niepotwierdzone rękawice");
                 foreach (var activity in n.activities) if (!n.Allows(activity)) errors.Add(n.characterId + ": niedozwolone zajęcie " + activity);
             }
+            var routine=scene.GetComponent<BraxObozTrainingRoutine>();
+            if(!routine||!routine.navigationData||routine.participants.Length!=6||routine.places.Length!=6||routine.trainingBags.Length!=2)
+                errors.Add("Brak pełnego planu ruchu, worków i sparingu NPC");
+            else if(routine.participants.Distinct().Count()!=6||routine.participants.Any(n=>!n||n.routine!=routine||!n.navigation)||routine.places.Any(p=>!p))
+                errors.Add("Nieprawidłowe powiązania planu NPC");
         }
         var structuralErrors = errors.ToArray();
         var sourceIssues = new List<string>();

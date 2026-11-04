@@ -19,6 +19,7 @@ public sealed class BraxWorek : MonoBehaviour
     public float promien = .28f;     // promień worka
     public float tlumienie = .9f;    // 1/s
     public float silaCiosu = .62f, silaKopu = .95f;   // impuls prędkości kątowej (rad/s)
+    public BraxGymPlayer pauseWith; // Optional camp pause; other zones keep existing behavior.
 
     Vector2 s, v;                    // wychylenie (rad) i prędkość kątowa (rad/s)
     Quaternion spoczynek;
@@ -64,20 +65,27 @@ public sealed class BraxWorek : MonoBehaviour
     Vector3 Os(float h) => transform.position + transform.rotation * Quaternion.Inverse(spoczynek) * (Vector3.down * h);
 
     void Cios(Vector3 kto, Vector3 kierunek, bool kop)
+    { TryStrike(kto, kierunek, kop); }
+
+    public bool StrikeFromNpc(Vector3 from, Vector3 direction) => TryStrike(from, direction, false);
+
+    bool TryStrike(Vector3 kto, Vector3 kierunek, bool kop)
     {
-        if (!isActiveAndEnabled) return;
+        if (!isActiveAndEnabled || (pauseWith && pauseWith.Paused)) return false;
         var c = Os(Mathf.Lerp(gora, dol, .45f)); var d = c - kto; d.y = 0f;
         float odl = d.magnitude - promien; kierunek.y = 0f;
-        if (odl > 1.2f || kierunek.sqrMagnitude < .01f) return;
+        if (odl > 1.2f || kierunek.sqrMagnitude < .01f) return false;
         kierunek.Normalize();
-        if (d.sqrMagnitude > .0001f && Vector3.Dot(kierunek, d.normalized) < .3f) return;   // worek musi być przed Braxem
+        if (d.sqrMagnitude > .0001f && Vector3.Dot(kierunek, d.normalized) < .3f) return false;   // worek musi być przed Braxem
         float k = kop ? silaKopu : silaCiosu;
         v += new Vector2(kierunek.x, kierunek.z) * k;
         if (zrodlo && klip) { zrodlo.pitch = kop ? .85f : 1f + Random.Range(-.06f, .06f); zrodlo.PlayOneShot(klip, kop ? 1f : .8f); }
+        return true;
     }
 
     void Update()
     {
+        if (pauseWith && pauseWith.Paused) return;
         ZnajdzGracza();
         float dt = Mathf.Min(Time.deltaTime, .05f);
         bool rusza = s.sqrMagnitude > 1e-6f || v.sqrMagnitude > 1e-6f;

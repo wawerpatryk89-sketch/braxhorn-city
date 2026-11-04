@@ -388,10 +388,11 @@
       "clips": [
         {
           "name": "Idle",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Idle.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "CombatIdle",
@@ -402,17 +403,19 @@
         },
         {
           "name": "Walk",
-          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Walk.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "nyxa"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Run",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Run.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Punch",
@@ -634,10 +637,11 @@
       "clips": [
         {
           "name": "Idle",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Idle.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "CombatIdle",
@@ -648,17 +652,19 @@
         },
         {
           "name": "Walk",
-          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Walk.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "nyxa"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Run",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Run.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Punch",
@@ -877,10 +883,11 @@
       "clips": [
         {
           "name": "Idle",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Idle.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "CombatIdle",
@@ -891,17 +898,19 @@
         },
         {
           "name": "Walk",
-          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Walk.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "nyxa"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Run",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Run.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Punch",
@@ -1121,10 +1130,11 @@
       "clips": [
         {
           "name": "Idle",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Idle.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "CombatIdle",
@@ -1135,17 +1145,19 @@
         },
         {
           "name": "Walk",
-          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Walk.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "nyxa"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Run",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Run.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Punch",
@@ -1366,10 +1378,11 @@
       "clips": [
         {
           "name": "Idle",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Idle.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "CombatIdle",
@@ -1380,17 +1393,19 @@
         },
         {
           "name": "Walk",
-          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Walk.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "nyxa"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Run",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Run.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Punch",
@@ -1613,10 +1628,11 @@
       "clips": [
         {
           "name": "Idle",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Idle.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "CombatIdle",
@@ -1627,17 +1643,19 @@
         },
         {
           "name": "Walk",
-          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Walk.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "nyxa"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Run",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Run.anim",
           "loop": true,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Basic Motions",
+          "directCalibrated": true
         },
         {
           "name": "Punch",

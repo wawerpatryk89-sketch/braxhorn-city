@@ -12,6 +12,8 @@ public sealed class BraxObozArena : MonoBehaviour, IBraxInterakcja
     public bool Active { get; private set; }
     public string Status { get; private set; } = "";
     static BraxObozArena active;
+    public static bool AnyActive => active && active.Active;
+    public static bool Uses(BraxObozNpc npc) => AnyActive && active.opponent == npc;
     float playerHealth, npcHealth, remaining, attackWait, strikeLeft, recoverLeft, followThrough;
     bool strikePending;
     int playerScore, npcScore;

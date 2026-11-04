@@ -3,7 +3,7 @@ using UnityEngine;
 public enum BraxObozActivity { Rest, Training, Meal, Drink, Campfire }
 
 // Authored outdoor routes, collision-aware movement, no teleport fallback.
-public sealed class BraxObozNpc : MonoBehaviour
+public sealed partial class BraxObozNpc : MonoBehaviour
 {
     public string characterId;
     public BraxGymPlayer player;
@@ -37,6 +37,7 @@ public sealed class BraxObozNpc : MonoBehaviour
     void Update()
     {
         if (!player || !player.ready) return;
+        SyncNavigationPause();
         // The shared pause stops the player, not Time.timeScale.
         if (wasPaused != player.Paused)
         {
@@ -50,6 +51,7 @@ public sealed class BraxObozNpc : MonoBehaviour
         body.Move(Vector3.up * vertical * dt);
         if (reactionLeft > 0) { reactionLeft -= dt; return; }
         if (InSparring) return;
+        if (routine) { TickNavigation(dt); return; }
         if (route.Length == 0) { Play("Idle", true); return; }
         var point = route[routeIndex];
         if (!point) { Debug.LogError("Brak punktu trasy " + characterId, this); enabled = false; return; }

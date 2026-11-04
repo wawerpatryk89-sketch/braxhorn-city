@@ -57,6 +57,7 @@ public static class BraxObozActors
                 npcs[i]=npc;
             }
             info.npcs=npcs;
+            BraxObozTrainingSetup.Configure(info);
             foreach(var arena in info.arenas)
             {
                 arena.player=player; arena.progress=progress;
