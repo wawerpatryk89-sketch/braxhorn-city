@@ -19,11 +19,36 @@ public sealed class BraxPierscien : MonoBehaviour
     }
     public Element[] elementy = new Element[0];
     float nast;
+    Camera panoramaKamera;
+    float zasięgPrzedTarasem;
+    bool naTarasie;
 
     void LateUpdate()
     {
         var cam = Camera.main; if (!cam) return;
         var c = cam.transform.position;
+        // Pierścień 3D ma projekcję 120–500 m, a kamera startowa tylko 100 m.
+        // Zasięg podnosimy wyłącznie dla wysokich punktów widokowych, nie na ulicy.
+        if (cam != panoramaKamera)
+        {
+            panoramaKamera = cam;
+            zasięgPrzedTarasem = cam.farClipPlane;
+            naTarasie = false;
+        }
+        if (!naTarasie && c.y > 55f)
+        {
+            zasięgPrzedTarasem = cam.farClipPlane;
+            naTarasie = true;
+            Debug.Log("BRAXHORN_PANORAMA_360_TARAS widok=" + c.y.ToString("F1") +
+                      "m; zasięg 580m zamiast " + zasięgPrzedTarasem.ToString("F1") + "m");
+        }
+        if (naTarasie && c.y < 45f)
+        {
+            naTarasie = false;
+            cam.farClipPlane = zasięgPrzedTarasem;
+        }
+        if (naTarasie && cam.farClipPlane < 580f)
+            cam.farClipPlane = 580f;
         bool sprawdz = Time.unscaledTime >= nast; if (sprawdz) nast = Time.unscaledTime + .5f;
         foreach (var e in elementy)
         {
