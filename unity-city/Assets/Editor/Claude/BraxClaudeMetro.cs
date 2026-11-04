@@ -367,9 +367,23 @@ public static class BraxClaudeMetro
             W.Quad(pav, new Vector3(r.xMin, yS, r.yMin), new Vector3(r.xMin, yS, r.yMax), new Vector3(r.xMax, yS, r.yMax), new Vector3(r.xMax, yS, r.yMin));
             W.KolizjaMM(r.xMin, r.xMax, yS - .3f, yS, r.yMin, r.yMax);
         }
-        // stare pustki G5 (kolizje gruntu wycięte w BraxCityRebuild: korytarz i peron) — grunt bulwaru z powrotem
-        W.KolizjaMM(74.9f, 80.8f, yS - .3f, yS, 49.8f, 54.05f);
-        W.KolizjaMM(69.7f, 84.0f, yS - .3f, yS, 54.0f, 72.2f);
+        // Stare pustki G5 były w CI zamykane samą NIEWIDOCZNĄ kolizją. Na Androidzie
+        // po wycięciu źródłowej nawierzchni widoczna była niebieska/wodna dziura.
+        // Odtwarzamy TYLKO powierzchnię faktycznie wyciętych prostokątów G5 z
+        // BraxCityRebuild ("G5_access_corridor_void", "G5_station_platform_and_tracks_void").
+        // Nie nakładamy płyty na zachowany chodnik. Pod x >= 84.0 jest już morze,
+        // dlatego tam nawierzchnia nie może wejść.
+        foreach (var r in new[] {
+            new Rect(74.9f, 49.8f, 5.9f, 4.25f),
+            new Rect(69.7f, 54.05f, 14.29f, 18.15f)
+        })
+        {
+            W.Quad(pav,
+                new Vector3(r.xMin, yS, r.yMin), new Vector3(r.xMin, yS, r.yMax),
+                new Vector3(r.xMax, yS, r.yMax), new Vector3(r.xMax, yS, r.yMin));
+            W.KolizjaMM(r.xMin, r.xMax, yS - .3f, yS, r.yMin, r.yMax);
+        }
+        rep.uwagi.Add("G5: odtworzono wizualnie nawierzchnię + kolizję starych wykopów; kontrola zrzutu przy nadbrzeżu konieczna");
         rep.siatki += W.Zapisz("metro_stary_wykop_zamkniety");
     }
 
