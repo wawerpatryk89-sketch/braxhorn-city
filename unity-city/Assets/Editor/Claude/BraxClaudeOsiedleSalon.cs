@@ -132,6 +132,13 @@ public static partial class BraxClaudeOsiedle
             " m od wejścia do parteru, podesty i schody nie blokują trasy x=" + px);
     }
 
+    // Kontrola końcowa uruchamiana po całym generowaniu (auta, wnętrza, drzwi).
+    // Nie wystarczy pozytywny rzut 2D, bo gracz z nagrania nie mógł wejść.
+    public static void SalonKontrolaPoZbudowaniu()
+    {
+        SalonKontrolaPrzejscia();
+    }
+
     // ---------------- zwalenie ----------------
     static int SalonZwal(Transform estate, Transform physics)
     {
