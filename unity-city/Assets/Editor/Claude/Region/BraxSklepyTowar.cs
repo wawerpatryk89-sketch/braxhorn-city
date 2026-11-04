@@ -158,6 +158,17 @@ public static class BraxSklepyTowar
             lod.RecalculateBounds();
         }
         naLokal.TryGetValue(t, out int n);
-        Debug.Log("BRAXHORN_SKLEPY_TOWAR " + szyld + ": modeli " + n + (brakiId.Count > 0 ? "; brak w całym mieście: " + string.Join(", ", brakiId) : ""));
+        // Zakończenie generowania sklepu nie oznacza, że modele zostały zaimportowane.
+        // Raport QA musi wskazać puste i niedostatecznie wyposażone lokale, a nie tylko "BUILT".
+        bool wazny = szyld.IndexOf("APTEKA", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                      szyld.IndexOf("NUTRITION", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                      szyld.IndexOf("supermarket", System.StringComparison.OrdinalIgnoreCase) >= 0;
+        int minimum = wazny ? 12 : 1;
+        string status = n < minimum ? "NIEGOTOWY" : "OK";
+        string komunikat = "BRAXHORN_SKLEPY_TOWAR " + szyld + ": modeli=" + n +
+            " minimum=" + minimum + " status=" + status +
+            (brakiId.Count > 0 ? "; brakujące źródła: " + string.Join(", ", brakiId) : "");
+        if (n < minimum) Debug.LogError(komunikat);
+        else Debug.Log(komunikat);
     }
 }
