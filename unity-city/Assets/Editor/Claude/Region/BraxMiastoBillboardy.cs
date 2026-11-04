@@ -195,10 +195,47 @@ internal static class BraxMiastoBillboardy
 
     /// <summary>Mural / szyld z paczki grafik właściciela (Assets/Source/Prywatne/Grafiki/szyldy/plik.jpg), podświetlony emisją.
     /// Zwraca false, gdy brak pliku (paczka nieodszyfrowana) — wtedy zostaje to, co było.</summary>
+    // Jedyna lokalizacja źródła dla grafik właściciela. Oryginalne szyldy bywały
+    // importowane z paczki grafiki.tar.gz.enc i miasto_sklepy.tar.gz.enc.
+    // Akceptujemy JPG/PNG/JPEG i różne wielkości liter, ale NIGDY nie zgadujemy
+    // innej marki ani nie tworzymy zastępczej grafiki.
+    public static string ZnajdzOryginalnySzyld(string nazwa)
+    {
+        if (string.IsNullOrWhiteSpace(nazwa)) return null;
+        string[] katalogi =
+        {
+            "Assets/Source/Prywatne/Grafiki/szyldy",
+            "Assets/Source/Prywatne/Grafiki",
+            "Assets/Source/Prywatne/Miasto/miasto_sklepy/szyldy",
+            "Assets/Source/Prywatne/Miasto/miasto_sklepy/grafiki",
+            "Assets/Source/Prywatne/Miasto/miasto_sklepy"
+        };
+        foreach (var katalog in katalogi)
+        {
+            if (!Directory.Exists(katalog)) continue;
+            foreach (string ext in new[] { ".jpg", ".png", ".jpeg" })
+            {
+                string sciezka = katalog + "/" + nazwa + ext;
+                if (File.Exists(sciezka)) return sciezka;
+            }
+            // Windows/Android i Linux CI inaczej traktują wielkość liter.
+            // Dopasowanie po pełnej nazwie pliku, a nie części tekstu.
+            foreach (string sciezka in Directory.GetFiles(katalog, "*", SearchOption.TopDirectoryOnly).OrderBy(x => x))
+                if (Path.GetFileNameWithoutExtension(sciezka).Equals(nazwa, StringComparison.OrdinalIgnoreCase) &&
+                    new[] { ".jpg", ".png", ".jpeg" }.Contains(Path.GetExtension(sciezka).ToLowerInvariant()))
+                    return sciezka.Replace('\\', '/');
+        }
+        return null;
+    }
+
     public static bool Mural(Transform g, string plik, Vector3 c, Vector3 n, float w, float h)
     {
-        string p = "Assets/Source/Prywatne/Grafiki/szyldy/" + plik + ".jpg";
-        if (!File.Exists(p)) { Debug.Log("BRAXHORN_MURAL brak " + p); return false; }
+        string p = ZnajdzOryginalnySzyld(plik);
+        if (p == null) {
+            Debug.LogError("BRAXHORN_SZYLD_BRAK_ORIGINALU " + plik +
+                " — nie zastępujemy grafiki właściciela przypadkowym logotypem ani zwykłym napisem");
+            return false;
+        }
         AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceSynchronousImport);
         var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(p); if (!tex) return false;
         var m = new Material(Shader.Find("Standard")) { name = "mural_" + plik, mainTexture = tex };
