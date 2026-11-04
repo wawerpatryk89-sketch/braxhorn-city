@@ -132,7 +132,9 @@ public static partial class BraxClaudeOsiedle
     static string SportNozna(Transform sport)
     {
         group = "Park Centralny / bramki";
-        const float L = 18f, W = 11f, gl = 1f;   // odległość linii bramkowych, szerokość pola, głębokość bramki
+        // Szukaj bezpiecznego trawnika: pełne boisko 18×11, następnie mini 15×9/12×7.
+        // ŻADNYCH bramek nakładanych na boisko koszykówki.
+        float L = 18f, W = 11f; const float gl = 1f;
         float z0 = ParkZ0 + 3f, z1 = FenceA - 3.6f;
         var fc = new Vector2(AxisX, (ParkZ0 + FenceA - .6f) * .5f);
         var picnic = new[] { new Vector2(-80, -114), new Vector2(-48, -142), new Vector2(40, -113), new Vector2(75, -138) };
@@ -153,21 +155,31 @@ public static partial class BraxClaudeOsiedle
             return true;
         }
         float bx = 0, bz = 0; bool ok = false; float best = 1e9f;
-        for (float cz = z0; cz <= z1; cz += 1.5f)
-            for (float cx = X0 + 4f; cx <= X1 - 4f; cx += 2f)
-            {
-                float score = Mathf.Abs(cx - (AxisX + 45f)) + Mathf.Abs(cz - fc.y) * .5f;   // bliżej alei W-E i środka parku
-                if (score >= best || !Wolne(cx, cz)) continue;
-                best = score; bx = cx; bz = cz; ok = true;
-            }
-        float gy = 0f; string gdzie;
-        if (ok) { gdzie = "trawnik Parku Centralnego (" + bx.ToString("0") + ", " + bz.ToString("0") + ")"; sportTrawa.Add(Rect.MinMaxRect(bx - L * .5f - gl - .5f, bz - W * .5f - .5f, bx + L * .5f + gl + .5f, bz + W * .5f + .5f)); }
-        else { bx = 28f; bz = -83f; gy = .08f; gdzie = "boisko do kosza w Parku Wiśniowym (brak wolnego trawnika)"; }   // bramki na liniach pod koszami
-        float half = ok ? L * .5f : 13.9f - gl;
+        foreach (var rozmiar in new[] { new Vector2(18f, 11f), new Vector2(15f, 9f), new Vector2(12f, 7f) })
+        {
+            L = rozmiar.x; W = rozmiar.y; best = float.PositiveInfinity;
+            for (float cz = z0; cz <= z1; cz += 1.5f)
+                for (float cx = X0 + 4f; cx <= X1 - 4f; cx += 2f)
+                {
+                    float score = Mathf.Abs(cx - (AxisX + 45f)) + Mathf.Abs(cz - fc.y) * .5f;
+                    if (score >= best || !Wolne(cx, cz)) continue;
+                    best = score; bx = cx; bz = cz; ok = true;
+                }
+            if (ok) break;  // preferujemy większe boisko; mini tylko gdy trzeba
+        }
+        if (!ok) throw new System.InvalidOperationException(
+            "SPORT PIŁKA NOŻNA: nie znaleziono wolnego boiska nawet 12×7 m. " +
+            "Nie stawiam bramek na korcie koszykówki — wymagana osobna, wolna działka.");
+        float gy = 0f;
+        string gdzie = "osobny trawnik Parku Centralnego (" + bx.ToString("0") + ", " + bz.ToString("0") +
+            "), pole " + L.ToString("0") + "×" + W.ToString("0") + " m";
+        sportTrawa.Add(Rect.MinMaxRect(bx - L * .5f - gl - .5f, bz - W * .5f - .5f,
+            bx + L * .5f + gl + .5f, bz + W * .5f + .5f));
+        float half = L * .5f;
         foreach (int s in new[] { -1, 1 }) Bramka(bx + s * half, gy, bz, s, 3f * K, 1.5f * K, gl);
         var b = NoweBoisko(sport, "bramki do piłki nożnej", BraxSportBoisko.Gra.Nozna);
-        b.srodek = new Vector3(bx, gy, bz); b.osX = Vector3.right; b.pol = new Vector2(half, ok ? W * .5f : 7.4f);
-        b.strefa = new Vector2(half + gl + 2.5f, (ok ? W * .5f : 7.4f) + 2.5f);
+        b.srodek = new Vector3(bx, gy, bz); b.osX = Vector3.right; b.pol = new Vector2(half, W * .5f);
+        b.strefa = new Vector2(half + gl + 2.5f, W * .5f + 2.5f);
         b.cele = new[] { new Vector3(bx - half, gy, bz), new Vector3(bx + half, gy, bz) };
         b.bramkaSzer = 3f * K; b.bramkaWys = 1.5f * K; b.bramkaGl = gl;
         return "piłka nożna: 2 bramki — " + gdzie;
