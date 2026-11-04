@@ -37,7 +37,7 @@ def category(name):
     return None
 
 
-def pack(root, stream, scope, key):
+def pack(root, stream, scope, key, world_only=False):
     header = json.dumps({'format': FORMAT, 'scope': scope, 'world_key': key}).encode()
     count, total = 0, 0
     with tarfile.open(fileobj=stream, mode='w|') as archive:
@@ -49,7 +49,7 @@ def pack(root, stream, scope, key):
                 if path.is_symlink() or not path.is_file():
                     continue
                 name = path.relative_to(root).as_posix()
-                if category(name) is None:
+                if category(name) is None or (world_only and category(name) == 'library'):
                     continue
                 archive.add(path, arcname=name, recursive=False)
                 count += 1
@@ -57,7 +57,7 @@ def pack(root, stream, scope, key):
     print(f'BRAXHORN_CACHE packed files={count} raw_bytes={total}', file=sys.stderr)
 
 
-def restore(root, stream, scope, key, world_enabled=True, journal=None):
+def restore(root, stream, scope, key, world_enabled=True, journal=None, world_only=False):
     restored, skipped = 0, 0
     with tarfile.open(fileobj=stream, mode='r|') as archive:
         header = archive.next()
@@ -71,7 +71,8 @@ def restore(root, stream, scope, key, world_enabled=True, journal=None):
             if member.name == HEADER:
                 continue
             kind = category(member.name)
-            if not member.isfile() or kind is None or (kind == 'world' and not same_world):
+            if (not member.isfile() or kind is None or (kind == 'world' and not same_world)
+                    or (world_only and kind == 'library')):
                 skipped += 1
                 continue
             target = root / member.name
@@ -120,6 +121,7 @@ def main():
     parser.add_argument('--scope')
     parser.add_argument('--key')
     parser.add_argument('--no-world', action='store_true')
+    parser.add_argument('--world-only', action='store_true', help='City checkpoint only; shared unity_cache.py owns Library')
     parser.add_argument('--journal', type=pathlib.Path)
     args = parser.parse_args()
     if args.mode == 'rollback':
@@ -128,9 +130,9 @@ def main():
     if not args.scope or not args.key:
         parser.error('--scope and --key are required for pack/restore')
     if args.mode == 'pack':
-        pack(args.root, sys.stdout.buffer, args.scope, args.key)
+        pack(args.root, sys.stdout.buffer, args.scope, args.key, args.world_only)
     else:
-        restore(args.root, sys.stdin.buffer, args.scope, args.key, not args.no_world, args.journal)
+        restore(args.root, sys.stdin.buffer, args.scope, args.key, not args.no_world, args.journal, args.world_only)
 
 
 if __name__ == '__main__':

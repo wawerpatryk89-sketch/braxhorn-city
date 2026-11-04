@@ -1,0 +1,34 @@
+name: Zone update tools - cache and checkpoint tests
+on:
+  push:
+    branches:
+      - codex/city58-startup-update-20261104
+      - codex/zone-updates-20261104
+      - claude/osiedle-42-poprawka
+    paths:
+      - unity-tools/updates/**
+      - .github/workflows/zone-update-tools.yml
+      - .github/workflows/claude-region-build.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: zone-update-tools-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            unity-tools/updates
+      - name: Verify system dependencies
+        run: |
+          python3 --version
+          openssl version
+          zstd --version
+      - name: Encrypted round trip, corruption, private storage and checkpoint tests
+        run: python3 -W error::ResourceWarning -m unittest discover -s unity-tools/updates -p 'test_*.py' -v

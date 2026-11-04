@@ -7,6 +7,7 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
     paths:
     - unity-city/**
     - unity-tools/claude/**
+    - unity-tools/updates/**
     - .github/workflows/claude-region-build.yml
   workflow_dispatch:
     inputs:
@@ -30,8 +31,8 @@ env:
   # po pomiarze rozmiaru (krok „Rozmiar Library i swiata rejonu”) — limit 10 GB na repo, a Library zajmuje juz ~7-9 GB na job.
   PAMIEC_REJONOW: osiedle
 concurrency:
-  group: claude-region-${{ github.sha }}
-  cancel-in-progress: true
+  group: claude-region-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   source-imports:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
@@ -589,7 +590,7 @@ jobs:
         cat unity-city/rejon-ci.txt
         echo "BRAXHORN_CZAS etap=klucz_rejonu s=$(( $(date +%s) - t ))"
         echo "T_PAMIEC=$(date +%s)" >> "$GITHUB_ENV"
-    # Generated world is stored inside the encrypted cache below, not in a separate public cache.
+    # City generation is an encrypted exact-input checkpoint, separate from shared Library.
     - name: Miejsce na dysku dla obrazu Unity i pliku wymiany (runner ma ~14 GB wolne)
       run: |
         df -h / | tail -1
@@ -597,54 +598,95 @@ jobs:
         sudo apt-get clean || true
         sudo docker image prune --all --force || true
         df -h / | tail -1
-    # 3.11 18:40 (właściciel: „aktualizacja, nie cały świat od nowa”): Library Unity (wczytane pliki) zapisywana po udanym
-    # buildzie i przywracana w następnym — import tylko zmienionych plików. Zaszyfrowana (prywatne paczki), klucz z sekretów.
+    - name: Profil pamieci kompilacji (strefa, Unity, pakiety, wariant Androida)
+      id: library_profile
+      env:
+        ZONE: ${{ steps.rejon.outputs.rejon }}
+      run: python3 unity-tools/updates/unity_cache.py profile --zone "$ZONE"
     - name: Pamiec Library Unity dla Androida - odczyt
       id: bibl_and
+      continue-on-error: true
       uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
         path: ${{ runner.temp }}/library-android.tar.zst.enc
-        key: library-android-v2-6000.0.58f2-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}
+        key: ${{ steps.library_profile.outputs.prefix }}${{ github.run_id }}-${{ github.run_attempt }}
         restore-keys: |
-          library-android-v2-6000.0.58f2-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-
-          library-android-v2-6000.0.58f2-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}-
-          ${{ steps.rejon.outputs.rejon == 'miasto' && 'library-android-v1-41686981679' || 'library-android-no-legacy' }}
-    - name: Pamiec Library Unity dla Androida - rozpakowanie
+          ${{ steps.library_profile.outputs.prefix }}
+    - name: Trwala kopia Library gdy Actions usunelo cache
+      id: durable_download
+      if: ${{ !cancelled() && steps.bibl_and.outputs.cache-matched-key == '' }}
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ github.token }}
+        ZONE: ${{ steps.rejon.outputs.rejon }}
+      run: python3 unity-tools/updates/durable_cache.py download --zone "$ZONE" --archive "$RUNNER_TEMP/library-android.tar.zst.enc"
+    - name: Migracja starej pamieci tylko gdy nie ma nowej kopii
+      id: legacy_cache
+      if: ${{ !cancelled() && steps.bibl_and.outputs.cache-matched-key == '' && steps.durable_download.outputs.downloaded != 'true' }}
+      continue-on-error: true
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: ${{ runner.temp }}/library-android.tar.zst.enc
+        key: library-android-v1-${{ github.run_id }}
+        restore-keys: ${{ steps.rejon.outputs.rejon == 'miasto' && 'library-android-v1-41686981679' || 'library-no-compatible-legacy' }}
+    - name: Pamiec Library Unity dla Androida - sprawdzenie i rozpakowanie
+      id: library_restore
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        ZONE: ${{ steps.rejon.outputs.rejon }}
+        MATCHED_KEY: ${{ steps.bibl_and.outputs.cache-matched-key || steps.legacy_cache.outputs.cache-matched-key }}
       run: |
-        set -o pipefail
-        T0=$(date +%s); P="$RUNNER_TEMP/library-android.tar.zst.enc"
+        P="$RUNNER_TEMP/library-android.tar.zst.enc"
         if [ -f "$P" ] && [ -n "$KLUCZ" ]; then
-          echo "pamiec Library: $(( $(stat -c %s "$P") / 1048576 )) MB"
-          # --skip-old-files: pliki .meta z repozytorium zostają; wracają tylko .meta plików tworzonych w CI (te same GUID co
-          # w zapisanej Library — bez tego Unity nadaje nowe GUID i importuje wszystko od zera mimo pamięci)
-          : > "$RUNNER_TEMP/restored-cache-files.txt"
-          restore_cache() {
-            case '${{ steps.bibl_and.outputs.cache-matched-key }}' in
-              library-android-v1-*) tar -x --skip-old-files -C unity-city ;;
-              *)
-                args=()
-                [ '${{ steps.rejon.outputs.pamiec }}' = tak ] || args+=(--no-world)
-                python3 unity-tools/claude/android_build_cache.py restore --scope "6000.0.58f2-Android-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}" --key '${{ steps.rejon.outputs.klucz }}' "${args[@]}" --journal "$RUNNER_TEMP/restored-cache-files.txt"
-                ;;
-            esac
-          }
-          if openssl enc -d -aes-256-cbc -pbkdf2 -in "$P" -pass env:KLUCZ | zstd -d -T0 | restore_cache; then
-            echo "BRAXHORN_PAMIEC_LIBRARY android=tak klucz=${{ steps.bibl_and.outputs.cache-matched-key }} s=$(( $(date +%s) - T0 ))"
-          else
-            case '${{ steps.bibl_and.outputs.cache-matched-key }}' in
-              library-android-v1-*) echo 'Legacy cache extraction failed; refusing partial legacy state'; exit 1 ;;
-              *) python3 unity-tools/claude/android_build_cache.py rollback --journal "$RUNNER_TEMP/restored-cache-files.txt" ;;
-            esac
-            echo '::warning::Cache odrzucony, przywrocone pliki wycofane; poprawny build od zrodel.'
+          EXTRA=()
+          if [[ "$MATCHED_KEY" == library-android-v1-* ]]; then
+            EXTRA+=(--legacy)
+            echo '::notice::Migracja starej Library bez Bee; pełna pamięć kompilacji zostanie zapisana po buildzie.'
+          fi
+          if ! python3 unity-tools/updates/unity_cache.py restore --zone "$ZONE" --archive "$P" "${EXTRA[@]}"; then
+            echo '::warning::Library nie została przywrócona. Unity wykona ponowny import; APK nie jest blokowane przez cache.'
           fi
           rm -f "$P"
         else
-          echo "BRAXHORN_PAMIEC_LIBRARY android=nie (import od zera, zapis po udanym buildzie)"
+          echo '::warning::Brak zapisanej Library albo klucza. Pełny import może potrwać dłużej.'
         fi
-        du -sh unity-city/Library 2>/dev/null || true
+        du -sh unity-city/Library unity-city/Library/Bee 2>/dev/null || true
         df -h / | tail -1
+    - name: Zaszyfrowany checkpoint miasta - odczyt
+      id: world_cache
+      if: steps.rejon.outputs.pamiec == 'tak'
+      continue-on-error: true
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: ${{ runner.temp }}/city-world.tar.zst.enc
+        key: city-world-enc-v1-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: city-world-enc-v1-${{ steps.rejon.outputs.klucz }}-
+    - name: Przywroc sprawdzony checkpoint miasta
+      id: world_restore
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        WORLD_KEY: ${{ steps.rejon.outputs.klucz }}
+        ZONE: ${{ steps.rejon.outputs.rejon }}
+      run: |
+        set -o pipefail
+        P="$RUNNER_TEMP/city-world.tar.zst.enc"
+        if [ -f "$P" ] && [ -n "$KLUCZ" ]; then
+          : > "$RUNNER_TEMP/restored-world-files.txt"
+          if openssl enc -d -aes-256-cbc -pbkdf2 -in "$P" -pass env:KLUCZ | zstd -d -T2 | \
+            python3 unity-tools/claude/android_build_cache.py restore --world-only --scope "6000.0.58f2-Android-$ZONE" --key "$WORLD_KEY" --journal "$RUNNER_TEMP/restored-world-files.txt"; then
+            python3 unity-tools/updates/world_checkpoint.py --zone "$ZONE" --key "$WORLD_KEY" >> "$RUNNER_TEMP/world-restore.txt"
+            if grep -q 'valid=true' "$RUNNER_TEMP/world-restore.txt"; then
+              echo 'restored=true' >> "$GITHUB_OUTPUT"
+            else
+              python3 unity-tools/claude/android_build_cache.py rollback --journal "$RUNNER_TEMP/restored-world-files.txt"
+              echo '::warning::Niekompletny checkpoint odrzucony; generowanie od źródeł.'
+            fi
+          else
+            python3 unity-tools/claude/android_build_cache.py rollback --journal "$RUNNER_TEMP/restored-world-files.txt"
+            echo '::warning::Uszkodzony checkpoint odrzucony; generowanie od źródeł.'
+          fi
+          rm -f "$P"
+        fi
     - name: Plik wymiany 10 GB (edytor Unity + kompilacja IL2CPP na 16 GB RAM, exit 137)
       run: |
         df -h / | tail -1
@@ -684,6 +726,7 @@ jobs:
         nohup "$RUNNER_TEMP/straznik.sh" > "$RUNNER_TEMP/straznik.out" 2>&1 &
         echo "straznik uruchomiony"
     - name: Kompilacja aplikacji Android (APK) z tej samej sceny
+      id: unity_android
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
       env:
         UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -763,33 +806,91 @@ jobs:
           for i in 1 2 3 4 5 6; do gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber "$f" && { ok=1; break; }; sleep 30; done
           if [ $ok = 0 ]; then gh release view "$REL" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -qx "$f" || { echo "NIE WYSLANO $f"; exit 1; }; fi
         done
-    - name: Pamiec Library Unity dla Androida - pakowanie (po udanym buildzie, zaszyfrowana)
-      if: success()
+    - name: Sprawdz gotowe generowanie miasta takze po bledzie APK
+      id: generation_checkpoint
+      if: ${{ !cancelled() && steps.rejon.outputs.pamiec == 'tak' }}
+      env:
+        ZONE: ${{ steps.rejon.outputs.rejon }}
+        WORLD_KEY: ${{ steps.rejon.outputs.klucz }}
+      run: python3 unity-tools/updates/world_checkpoint.py --zone "$ZONE" --key "$WORLD_KEY"
+    - name: Zaszyfruj kompletny checkpoint miasta
+      id: world_pack
+      if: ${{ !cancelled() && steps.generation_checkpoint.outputs.valid == 'true' && steps.world_restore.outputs.restored != 'true' }}
+      continue-on-error: true
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        WORLD_KEY: ${{ steps.rejon.outputs.klucz }}
+        ZONE: ${{ steps.rejon.outputs.rejon }}
       run: |
-        set -o pipefail
-        T0=$(date +%s)
-        sudo swapoff /swapfile-unity 2>/dev/null || true; sudo rm -f /swapfile-unity || true
+        set -euo pipefail
+        [ -n "$KLUCZ" ] || { echo 'Brak klucza: nie zapisano checkpointu'; exit 0; }
+        python3 unity-tools/claude/android_build_cache.py pack --world-only --scope "6000.0.58f2-Android-$ZONE" --key "$WORLD_KEY" | zstd -T2 -3 | \
+          openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:KLUCZ -out "$RUNNER_TEMP/city-world.tar.zst.enc"
+        echo 'saved=true' >> "$GITHUB_OUTPUT"
+    - name: Zapisz zaszyfrowany checkpoint miasta
+      if: ${{ !cancelled() && steps.world_pack.outputs.saved == 'true' }}
+      continue-on-error: true
+      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: ${{ runner.temp }}/city-world.tar.zst.enc
+        key: city-world-enc-v1-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}-${{ github.run_attempt }}
+    - name: Pamiec Library Unity dla Androida - pelny zapis z Bee
+      id: library_pack
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      continue-on-error: true
+      env:
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        ZONE: ${{ steps.rejon.outputs.rejon }}
+      run: |
+        sudo swapoff /swapfile-unity 2>/dev/null || true
+        sudo rm -f /swapfile-unity || true
         sudo docker image prune --all --force >/dev/null 2>&1 || true
-        rm -rf build/Android || true
-        df -h / | tail -1
-        [ -n "$KLUCZ" ] || { echo 'brak klucza - bez zapisu pamieci Library'; exit 0; }
-        # Keep Bee native objects and IL2CPP outputs. Gradle projects/signing files are excluded by the packer.
-        python3 unity-tools/claude/android_build_cache.py pack --scope "6000.0.58f2-Android-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}" --key '${{ steps.rejon.outputs.klucz }}' | zstd -T0 -3 | \
-          openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:KLUCZ -out "$RUNNER_TEMP/library-android.tar.zst.enc"
-        if [ "$(stat -c %s "$RUNNER_TEMP/library-android.tar.zst.enc")" -gt 9663676416 ]; then
-          echo '::warning::Cache exceeds 9 GiB; keeping the APK, skipping oversized cache upload.'
-          rm "$RUNNER_TEMP/library-android.tar.zst.enc"
-          exit 0
+        # APK is retained if its upload failed. Cache cannot destroy the only copy.
+        if [ -d "$RUNNER_TEMP/wyslane" ] && compgen -G "$RUNNER_TEMP/wyslane/*" > /dev/null; then
+          while IFS= read -r marker; do
+            tag=$(basename "$marker")
+            rm -f "build/Android/braxhorn-$tag.apk"
+          done < <(find "$RUNNER_TEMP/wyslane" -maxdepth 1 -type f)
         fi
-        echo "BRAXHORN_PAMIEC_LIBRARY zapis=$(( $(stat -c %s "$RUNNER_TEMP/library-android.tar.zst.enc") / 1048576 )) MB s=$(( $(date +%s) - T0 ))"
+        sudo chown -R "$(id -u):$(id -g)" unity-city/Library unity-city/Assets
+        python3 unity-tools/updates/unity_cache.py pack --zone "$ZONE" --archive "$RUNNER_TEMP/library-android.tar.zst.enc"
     - name: Pamiec Library Unity dla Androida - zapis
-      if: success()
+      id: library_save
+      if: ${{ !cancelled() && steps.library_pack.outputs.saved == 'true' }}
+      continue-on-error: true
       uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
         path: ${{ runner.temp }}/library-android.tar.zst.enc
-        key: library-android-v2-6000.0.58f2-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}
+        key: ${{ steps.library_profile.outputs.prefix }}${{ github.run_id }}-${{ github.run_attempt }}
+    - name: Trwala zaszyfrowana kopia Library poza limitem Actions cache
+      id: durable_upload
+      if: ${{ !cancelled() && steps.library_pack.outputs.saved == 'true' }}
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ github.token }}
+        ZONE: ${{ steps.rejon.outputs.rejon }}
+      run: python3 unity-tools/updates/durable_cache.py upload --zone "$ZONE" --archive "$RUNNER_TEMP/library-android.tar.zst.enc"
+    - name: Podsumowanie faktycznego uzycia pamieci
+      if: always()
+      env:
+        RESTORED: ${{ steps.library_restore.outputs.restored }}
+        PACKED: ${{ steps.library_pack.outputs.saved }}
+        SAVED: ${{ steps.library_save.outcome }}
+        DURABLE: ${{ steps.durable_upload.outputs.saved }}
+        WORLD: ${{ steps.world_restore.outputs.restored }}
+        CHECKPOINT: ${{ steps.generation_checkpoint.outputs.valid }}
+      run: |
+        {
+          echo '### Pamięć budowania'
+          echo "- Przywrócona Library: ${RESTORED:-false}"
+          echo "- Gotowy świat z identycznych źródeł: ${WORLD:-false}"
+          echo "- Nowy sprawdzony checkpoint generowania: ${CHECKPOINT:-false}"
+          echo "- Spakowana pełna Library (w tym Bee): ${PACKED:-false}"
+          echo "- Wynik zapisu cache: ${SAVED:-skipped}"
+          echo "- Trwała zaszyfrowana kopia: ${DURABLE:-false}"
+          echo '- To są wyniki pamięci CI, nie potwierdzenie uruchomienia gry ani małej aktualizacji telefonu.'
+        } >> "$GITHUB_STEP_SUMMARY"
+        [ "$SAVED" != failure ] || echo '::warning::Zapis Library nie powiódł się. Następny build może wymagać pełnego importu.'
     needs: [source-imports, cc0-assets]
 
   shots:

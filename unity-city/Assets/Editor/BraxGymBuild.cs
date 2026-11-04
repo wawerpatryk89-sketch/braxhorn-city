@@ -499,6 +499,8 @@ public static class BraxGymBuild
         var tTex=DateTime.UtcNow;
         CapFacadeTextures(target);
         BraxRejonBuildu.Czas("obrobka_tekstur",tTex);
+        // Shared checkpoint contract 1d83c1a: validated generation survives a later APK failure.
+        if(!zPamieci&&rejon!="oba")BraxRejonBuildu.ZapiszZnacznik(target,scenePaths,sourceCommit,t0);
         BuildReport result;
         // osiedle / miasto: zawsze osobne APK (ekran startowy + rejon, wariant wg rejonu); oba: jak dotąd
         if(target==BuildTarget.Android&&renovation&&fullCity&&(rejon!="oba"||(!cityOnly&&scenePaths.Length>=2)))
@@ -515,7 +517,6 @@ public static class BraxGymBuild
         if(fullCity&&!zPamieci&&rejon!="osiedle")BraxCityBuild.WriteReport(output,sourceCommit);   // raport obszarów z tego przebiegu (samo osiedle = 1 obszar → fałszywe DO POPRAWKI)
         if(integrated&&!cityOnly&&rejon=="oba")BraxUnityDistrictRegistry.WriteBuildReceipt(output,sourceCommit,scenePaths.Where(p=>!p.Contains("_Nabrzeze")&&!p.Contains("_Wyspa")&&!p.Contains("_Poludnie")&&!p.Contains("BraxhornCity_K")).ToArray());   // rejestr: tylko rejony, bez doczytywanych obszarów
         if(renovation&&rejon!="osiedle")BraxCityRebuild.WriteReport(output);
-        if(!zPamieci&&rejon!="oba")BraxRejonBuildu.ZapiszZnacznik(target,scenePaths,sourceCommit,t0);
         BraxRejonBuildu.Czas("unity_razem",t0,"rejon="+rejon+" z_pamięci="+(zPamieci?"tak":"nie"));
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }

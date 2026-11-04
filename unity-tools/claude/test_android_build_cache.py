@@ -88,6 +88,19 @@ class CacheTests(unittest.TestCase):
             self.assertFalse((after / 'Library').exists())
             self.assertFalse((after / 'Assets/PlayableGenerated').exists())
 
+    def test_city_checkpoint_never_duplicates_shared_library(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            data = self.prepare(root / 'before')
+            after = root / 'after'
+            cache.restore(after, io.BytesIO(data), '6000.0.58f2-Android-miasto', 'world-a', world_only=True)
+            self.assertFalse((after / 'Library').exists())
+            self.assertEqual((after / 'Assets/PlayableGenerated/City.unity').read_bytes(), b'scene')
+            stream = io.BytesIO()
+            cache.pack(root / 'before', stream, 'scope', 'key', world_only=True)
+            with tarfile.open(fileobj=io.BytesIO(stream.getvalue())) as archive:
+                self.assertFalse(any(n.startswith('Library/') for n in archive.getnames()))
+
 
 if __name__ == '__main__':
     unittest.main()
