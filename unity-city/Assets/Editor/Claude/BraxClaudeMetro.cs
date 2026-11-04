@@ -1341,7 +1341,8 @@ public static class BraxClaudeMetro
         // Używamy TEGO SAMEGO optymalizowanego modelu kane_sk06 z galerii właściciela.
         // 208 MB oryginału -> 25 MB w repo (CREDITS.md: 383k -> 96k tris, tekstury 4K -> 1K).
         float skala = Mathf.Min(2.8f * K / szerP, (2f * (zTn - zPN) - .12f) / szerC);
-        float dl = (dlZ ? cale.size.z : cale.size.x) * skala, gap = .9f;
+        // Dwa człony tego samego składu: szczelina techniczna, nie dwa oddzielne pociągi.
+        float dl = (dlZ ? cale.size.z : cale.size.x) * skala, gap = .20f;
         float yawCzola = Mathf.Atan2(czolo.x, czolo.z) * Mathf.Rad2Deg;
         float xWsch = PX1 - 3f;
         var sklad = new GameObject("METRO M1 — pociąg kursujący kane_sk06 (2 wagony, 60 s)").transform;
@@ -1352,6 +1353,7 @@ public static class BraxClaudeMetro
         var dojscia = new List<Vector3>();
         bool boundsGotowe = false;
         Bounds wszystkie = default;
+        Bounds poprzedniWagon = default;
         Material rd = mPudlo;
         Material ciemny = mCzarny;
         for (int i = 0; i < 2; i++)
@@ -1381,6 +1383,23 @@ public static class BraxClaudeMetro
                 Mathf.Max(.1f, bp.size.z - .15f));
             // STARA W.KolizjaMM była statyczną ścianą na peronie, która
             // zostawałaby niewidzialna po odjeździe wagonu. Usunięta.
+            if (i == 1)
+            {
+                // Jeden skład z DWÓCH wagonów: wstaw elastyczny, ciemny łącznik
+                // pomiędzy rzeczywistymi czołami modeli, nie trzeci pojazd.
+                float szczelina = poprzedniWagon.min.x - b.max.x;
+                if (szczelina < -.20f || szczelina > .65f)
+                    throw new InvalidOperationException("BRAXHORN_METRO_M1_SPRZEG: nieprawidłowa szczelina " + szczelina.ToString("F2"));
+                var lacznik = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                lacznik.name = "M1: ciemny przegub i połączenie wagonów 101-102";
+                lacznik.transform.SetParent(sklad, false);
+                lacznik.transform.position = new Vector3((poprzedniWagon.min.x + b.max.x) * .5f, yP + 1.05f * K, zTn);
+                lacznik.transform.localScale = new Vector3(Mathf.Max(.2f, szczelina + .2f), 1.75f * K, 1.25f * K);
+                lacznik.GetComponent<MeshRenderer>().sharedMaterial = mGuma;
+                var przegubKolizja = lacznik.GetComponent<Collider>();
+                if (przegubKolizja) UnityEngine.Object.DestroyImmediate(przegubKolizja);
+            }
+            poprzedniWagon = b;
             if (!boundsGotowe) { wszystkie = b; boundsGotowe = true; }
             else wszystkie.Encapsulate(b);
             if (b.min.x < PX0 + .5f || b.max.z > zN - .1f || b.min.z < zPN - .02f)
@@ -1432,8 +1451,21 @@ public static class BraxClaudeMetro
         ruch.drzwiPrawe = otwP.ToArray();
         ruch.punktyWejscia = dojscia.ToArray();
         ruch.rozsuw = .58f * K;
-        ruch.wejscieOffsetX = Mathf.Max(60f, PX1 + 5f - wszystkie.min.x);
-        ruch.wyjazdOffsetX = Mathf.Min(-80f, PX0 - 6f - wszystkie.max.x);
+        // Po poprzedniej wersji minimum +60 m umieszczało czoło składu za końcem
+        // tunelu TW1=112 — poza wymodelowanym metrem, pod nieciętą ulicą.
+        // Obydwa położenia spoczynkowe MUSZĄ mieścić cały skład w tunelach.
+        float wjazdMin = PX1 + 4f - wszystkie.min.x;
+        float wjazdMax = TW1 - 4f - wszystkie.max.x;
+        float wyjazdMax = PX0 - 4f - wszystkie.max.x;
+        float wyjazdMin = TW0 + 4f - wszystkie.min.x;
+        if (wjazdMax < wjazdMin || wyjazdMin > wyjazdMax)
+            throw new InvalidOperationException("BRAXHORN_METRO_M1_TUNEL_ZA_KROTKI: skład nie mieści się w tunelu; nie wolno stawiać go na ulicy");
+        ruch.wejscieOffsetX = wjazdMin;
+        ruch.wyjazdOffsetX = wyjazdMax;
+        Debug.Log("BRAXHORN_METRO_M1_SKLAD_W_TUNELU wjazd=" + ruch.wejscieOffsetX.ToString("F2") +
+            " zakres=[" + wjazdMin.ToString("F2") + "," + wjazdMax.ToString("F2") + "]" +
+            " wyjazd=" + ruch.wyjazdOffsetX.ToString("F2") +
+            " zakres=[" + wyjazdMin.ToString("F2") + "," + wyjazdMax.ToString("F2") + "]");
         var npc = sklad.gameObject.AddComponent<BraxMetroM1Pasazerowie>();
         npc.pociag = ruch;
         npc.poziomPeronu = yP;
