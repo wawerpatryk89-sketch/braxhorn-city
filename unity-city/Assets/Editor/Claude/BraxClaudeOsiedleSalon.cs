@@ -36,7 +36,7 @@ public static partial class BraxClaudeOsiedle
     static float SGX0 => -48.7f; static float SGX1 => SGX0 + 3.5f * K; static float SGH => 2.6f * K; // zachowana oryginalna brama aut
     static float SDX0 => SGX1 + .3f; static float SDX1 => SDX0 + 2.0f * K; static float SDH => 2.3f * K; // 2 m swiatla dla klientow
     // miejsca aut na placu
-    static readonly float[] SalonPlacX = { -47.6f, -38.5f };   // 4.11: samochody po bokach wejścia; przejście do drzwi klientów wolne od schodów
+    static readonly float[] SalonPlacX = { -47.6f, -38.8f }; // 4.11: prawe auto było poza działką wg rzeczywistego logu Unity   // 4.11: samochody po bokach wejścia; przejście do drzwi klientów wolne od schodów
     const float SalonPlacZ = -33.6f;
     static Vector3 salonNarSrodek; static float salonNarR;                    // ćwiartka kostki na narożniku (R = 0: narożnik prosty)
     static int saDetale; static readonly List<string> saDetaleOpis = new List<string>();
@@ -58,7 +58,7 @@ public static partial class BraxClaudeOsiedle
             float R = kv.Value; salonNarSrodek = new Vector3(w.x + w.uz.cw + R, 0f, w.z - w.ux.cw - R); salonNarR = Mathf.Max(0f, R - 2.95f);
         }
         string uklad = KontrolaUkladuSalonu();
-        if (uklad != null) Debug.LogError("BRAXHORN_SALON układ DO POPRAWKI: " + uklad);
+        if (uklad != null) throw new System.InvalidOperationException("BRAXHORN_SALON układ DO POPRAWKI: " + uklad); // nie ukrywaj błędnego planu
         int zwalone = SalonZwal(estate, physics);
         Guard("salon: plac ekspozycyjny (kostka, obrzeża, odwodnienie, słupki, tablice cen, maszty, totem)", SalonPlac);
         Guard("salon: bryła showroomu (fasady szklane, brama aut, drzwi, attyka, rury spustowe)", SalonBryla);
