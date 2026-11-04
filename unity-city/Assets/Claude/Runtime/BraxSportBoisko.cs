@@ -222,6 +222,17 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
             if (a) Ignoruj();
         }
         if (!aktywne || !gt) return;
+        // Patryk w samochodzie, na łodzi albo na siedzeniu nie uczestniczy w grze.
+        // Poprzednio trzymana piłka i rakieta mogły nadal sterować jego kośćmi
+        // podczas wsiadania/wychodzenia, deformując ręce i animację jazdy.
+        if (gracz && (gracz.autoGracza || gracz.vessel || gracz.seat))
+        {
+            if (trzyma) Pusc();
+            Na = false;
+            if (BraxSport.Aktywne == this) BraxSport.Aktywne = null;
+            if (gra == Gra.Tenis) BraxSport.Rakieta = false;
+            return;
+        }
         var p = gt.position; var dv = p - graczPoprz; dv.y = 0f;
         graczV = Mathf.Lerp(graczV, dv.magnitude / Mathf.Max(Time.deltaTime, 1e-4f), .25f); graczPoprz = p;
         var l = Lok(p);
