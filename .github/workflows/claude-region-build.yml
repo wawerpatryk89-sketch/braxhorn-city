@@ -1,24 +1,15 @@
 name: Claude - region R1 na gotowo (TEST, bez publikacji)
 'on':
-  push:
-    branches:
-    - claude/region-20261030
-    - claude/miasto-opus-20261031
-    paths:
-    - unity-city/**
-    - unity-tools/claude/**
-    - unity-tools/updates/**
-    - .github/workflows/claude-region-build.yml
   workflow_dispatch:
     inputs:
       rejon:
-        description: 'Rejon buildu: osiedle (bez miasta) | miasto (bez osiedla) | oba (jak przed buildem 14). Push: plik unity-city/rejon-buildu.txt'
+        description: 'Rejon buildu: osiedle (bez miasta) | miasto (bez osiedla) | oba (jak przed buildem 14). Uruchomienie wyłącznie ręczne za zgodą właściciela'
         type: choice
         options:
         - osiedle
         - miasto
         - oba
-        default: osiedle
+        default: miasto
       pamiec:
         description: 'Pamiec podreczna wygenerowanego rejonu (odznacz = wymus pelne generowanie)'
         type: boolean
