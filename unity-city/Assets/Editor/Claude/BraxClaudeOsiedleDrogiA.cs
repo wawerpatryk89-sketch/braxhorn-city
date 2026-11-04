@@ -65,8 +65,10 @@ public static partial class BraxClaudeOsiedle
     // zebra (dla wyposażenia: słupki, D-6, strefy)
     struct ZebraA { public Vector3 c, wzdluz, wpoprzek; public float polSzer, polDl, kraw, zielen; public bool swiatla; }
 
-    const float RondoZ = 42f;
-    const float RondoJezdnia = 12.5f, RondoOpaska = 6.6f, RondoWyspa = 4.6f, RondoChodnik = 15.8f;
+    static float RondoZ = 42f;
+    // Szerszy pierścień 8.1 m (było 5.9); chodnik nadal 3.3 m.
+    // Zewnętrzny obrys r=16.6 pozostaje przed narożnikami działek domów.
+    const float RondoJezdnia = 13.3f, RondoOpaska = 5.2f, RondoWyspa = 3.6f, RondoChodnik = 16.6f;
     const float YAsf = .055f, YFarba = .075f;   // farba rysowana 2 cm nad asfaltem, na końcu dróg wycinana w asfalcie po kształcie i kładziona na lico (runda 4, BraxClaudeOsiedleOznakowanie)
 
     static List<UlicaA> ulice;
@@ -87,6 +89,7 @@ public static partial class BraxClaudeOsiedle
 
     static void DrogiA(Transform estate, Transform physics)
     {
+        RondoZ = 42f; // reset również przy ponownym generowaniu w tym samym edytorze
         group = "Osiedle A / drogi od nowa";
         chodnikiA.Clear(); miejscaA.Clear(); OsieJezdni.Clear(); zebry.Clear(); strefyRondo.Clear(); strefyZebr.Clear(); zebryProstokaty.Clear(); jezdnieKontrola.Clear();
         usunietePlyty = 0; przesunietePloty = 0; zatokiA = 0; znakiPostawione = 0;
@@ -111,6 +114,8 @@ public static partial class BraxClaudeOsiedle
         };
         farbaOdroczona = true; farbaOdroczonaLista.Clear();   // E3a (runda 3): farba prostokątna kładziona na końcu w wycięciach asfaltu
         try { PoszerzUliceA(); } catch (Exception e) { Debug.LogError("BRAXHORN_DROGI_POSZERZENIE DO POPRAWKI: " + e.Message); }   // E3a: przekrój 2 × 3.5 m × K tam, gdzie jest miejsce
+        RondoZ = ulice.First(u => u.id == "B2").c;
+        foreach (var u in ulice.Where(u => u.id == "S1" || u.id == "S2")) u.a1 = RondoZ;
         try { SzerokosciUlicA(); } catch (Exception e) { Debug.LogError("BRAXHORN_DROGI_SZEROKOSC DO POPRAWKI: " + e.Message); }
         wezly = new List<WezelA>();
         foreach (var u in ulice.Where(q => q.alongX))
@@ -136,7 +141,15 @@ public static partial class BraxClaudeOsiedle
             if (u.alongX) cut.Add(MinMax(u.a0 - .2f, u.a1 + .2f, -.06f, 6.5f, u.c - u.HalfNeg - .05f, u.c + u.HalfPos + .05f));
             else cut.Add(MinMax(u.c - u.HalfNeg - .05f, u.c + u.HalfPos + .05f, -.06f, 6.5f, u.a0 - .2f, Mathf.Min(u.a1 + .2f, 97.6f)));
         }
-        cut.Add(MinMax(-16f, 16f, -.06f, 6.5f, RondoZ - RondoChodnik - .1f, RondoZ + RondoChodnik + .1f));
+        // Wycięcie po obrysie KOŁA, nie kwadratu przecinającego narożniki działek.
+        float cutRadius = RondoChodnik + .05f;
+        for (float dz = -cutRadius; dz < cutRadius; dz += .2f)
+        {
+            float end = Mathf.Min(cutRadius, dz + .2f);
+            float near = dz <= 0f && end >= 0f ? 0f : Mathf.Min(Mathf.Abs(dz), Mathf.Abs(end));
+            float hw = Mathf.Sqrt(Mathf.Max(0f, cutRadius * cutRadius - near * near));
+            cut.Add(MinMax(-hw, hw, -.06f, 6.5f, RondoZ + dz, RondoZ + end));
+        }
         // stare bulwary Codexa do x ±112 (B2 dawniej na z 39: pod domami (±28, 27) tylko poza ich obrysem)
         foreach (float z in new[] { -19f, 86f }) cut.Add(MinMax(-113f, 113f, -.06f, .13f, z - 6.6f, z + 6.6f));
         foreach (var (x0, x1) in new[] { (-113f, -34.2f), (-20.3f, 19.4f), (36.7f, 113f) }) cut.Add(MinMax(x0, x1, -.06f, .13f, 32.4f, 35.8f));

@@ -92,7 +92,7 @@ public static partial class BraxClaudeOsiedle
         if (SSX1 > SEX0 - .1f || SEX1 > xi1 - .02f) return "schody stałe / ruchome nachodzą";
         if (SSZb - 23 * .35f < SAntZ - .01f || SSZb - 23 * .35f > SAntZ + .01f) return "schody stałe nie kończą się na krawędzi antresoli";
         if (SEZt > SAntZ - .5f || SEZt - .95f < -52f) return "górna płyta schodów ruchomych poza antresolą";
-        if (SSZb > zi1 - 1f || SEZb > zi1 - 1f) return "przed schodami < 1 m od fasady";
+        if (SSZb > zi1 - 2.3f || SEZb > zi1 - 2.3f) return "przed schodami < 2.3 m od fasady";
         foreach (var (ax, az) in SalonAntresolaAuta) if (ax - 1.6f < xi0 || az + 3.3f > SAntZ - .5f || ax + 1.6f > -42.05f) return "auto na antresoli koliduje (balustrada, krzesła)";
         foreach (float x in SalonPlacX)
         {
@@ -251,13 +251,15 @@ public static partial class BraxClaudeOsiedle
     // ---------------- bryła (2 kondygnacje × 4.2 m × K, przeszklona) ----------------
     static float SF1 => SYF + 4.2f * K;                 // poziom antresoli (lico posadzki piętra)
     static float SYR => SF1 + 4.2f * K - .35f;          // spód stropu dachu
-    const float SAntZ = -47.0f;                         // krawędź antresoli (na północ pustka na dwie kondygnacje)
-    const float SEX0 = -39.0f, SEX1 = -37.4f, SEZb = -38.9f;   // schody ruchome (obrys), dolny grzebień
-    const float SSX0 = -40.9f, SSX1 = -39.25f, SSZb = -38.95f;  // schody reprezentacyjne (obrys), pierwszy stopień
+    // Cały bieg i krawędź antresoli odsunięte od fasady o 1.3 m.
+    // Zachowane 24 stopnie, wysokość i głębokość stopnia; 2.2 m przed pochwytem.
+    const float SAntZ = -48.3f;
+    const float SEX0 = -39.0f, SEX1 = -37.4f, SEZb = -40.2f;
+    const float SSX0 = -40.9f, SSX1 = -39.25f, SSZb = -40.25f;
     static float SEZt => SEZb - 1.2f - 4.2f * K / Mathf.Tan(35f * Mathf.Deg2Rad) - 1.2f;   // górny grzebień
     static readonly (float x, float z)[] SalonTalerze = { (-45.75f, -44.1f), (-45.75f, -52.9f) }; // wolne wejście od strony B1   // obrotowe podesty parteru
     const float STalerzR = 3.10f;
-    static readonly (float x, float z)[] SalonAntresolaAuta = { (-47.2f, -51.5f), (-43.85f, -51.5f) };
+    static readonly (float x, float z)[] SalonAntresolaAuta = { (-47.2f, -52.8f), (-43.85f, -52.8f) };
     static readonly List<Transform> salonTalerzeObj = new List<Transform>();
     static BraxSchodyRuchome salonSchody;
 
@@ -850,6 +852,8 @@ public static partial class BraxClaudeOsiedle
         float r = Mathf.Clamp(WzrostPatrykaWGrze * .15f, .26f, .35f), y = SYF;
         float h = WzrostPatrykaWGrze + .04f;
         var przeszkody = new List<string>();
+        var layout=KontrolaUkladuSalonu();
+        if(layout!=null)throw new System.InvalidOperationException("Salon: nieprawidłowy układ: "+layout);
         foreach (float z in new[] { SBZ1 + .7f, SBZ1 + .22f, SBZ1 - .2f, SBZ1 - .7f, SBZ1 - 1.4f })
         {
             var low = new Vector3(x, y + r, z);
@@ -865,7 +869,7 @@ public static partial class BraxClaudeOsiedle
         }
         // Dalej niż same drzwi: pas między podestami i schodami musi być wolny
         // dla całej kapsuły Patryka (także po przebudowie wnętrza).
-        for (float z = SBZ1 - 2.5f; z >= -46.9f; z -= .4f)
+        for (float z = SBZ1 - 1.4f; z >= SAntZ + .4f; z -= .2f)
         {
             var low = new Vector3(-42.05f, y + r, z);
             var high = new Vector3(-42.05f, y + h - r, z);
@@ -873,13 +877,18 @@ public static partial class BraxClaudeOsiedle
                 if (col && col.bounds.max.y >= y + .4f)
                     przeszkody.Add("przejście w głąb: " + col.name + " z=" + z.ToString("F2"));
         }
+        // Cross the vestibule in front of BOTH stair runs, where the screenshot showed no room.
+        for(float xx=x;xx<=SEX1-.45f;xx+=.2f)
+            foreach(var col in Physics.OverlapCapsule(new Vector3(xx,y+r,SBZ1-1.2f),new Vector3(xx,y+h-r,SBZ1-1.2f),r,
+                ~((1<<8)|(1<<29)),QueryTriggerInteraction.Ignore))
+                if(col && col.bounds.max.y>=y+.4f)przeszkody.Add("przed schodami: "+col.name);
         float rise = (SF1 - SYF) / 24f;
         float szer = SSX1 - SSX0 - .16f;
         if (rise > .36f || szer < .95f)
             throw new System.InvalidOperationException("Salon: schody za strome / za wąskie dla kapsuły Patryka: stopień=" + rise.ToString("F2") + " szer=" + szer.ToString("F2"));
         if (przeszkody.Count > 0)
             throw new System.InvalidOperationException("Salon: fizycznie zablokowany korytarz od wejścia! " + string.Join("; ", przeszkody.Take(12)));
-        Debug.Log("BRAXHORN_SALON_WEJSCIE_OK kapsuła gracza r=0.31 m, 5 próbek dojścia, stopień=" +
+        Debug.Log("BRAXHORN_SALON_WEJSCIE_OK kapsuła gracza r=" + r.ToString("F2") + " m, 5 próbek dojścia, stopień=" +
                   rise.ToString("F2") + " m, szerokość schodów=" + szer.ToString("F2") + " m");
     }
 

@@ -60,11 +60,13 @@ public sealed class BraxRuchAutSym
     public bool graczJest; public Vector3 gracz;
     public struct ObrysZewnetrzny { public Vector3 srodek, przod; public float polSzer, polDl; }
     public readonly List<ObrysZewnetrzny> zewnetrzne = new List<ObrysZewnetrzny>();
+    // Scene adapter: static geometry, parked vehicles and pedestrians. Null in pure route tests.
+    public Func<Vector3, Vector3, float, float, bool> przeszkodaSceny;
     public bool ZajeteZewnetrznie(Vector3 p, Vector3 f, float hw, float hl)
     {
         foreach (var b in zewnetrzne)
             if (Mathf.Abs(p.y-b.srodek.y)<3f && Prost(p,f,hw,hl,b.srodek,b.przod,b.polSzer,b.polDl)) return true;
-        return false;
+        return przeszkodaSceny != null && przeszkodaSceny(p,f,hw,hl);
     }
     public bool pytajStrefy = true;
     public int zakleszczenia, przestawienia, nowePrzejazdy, przejazdyWezlow;
@@ -665,12 +667,20 @@ public sealed class BraxRuchAutSym
             if (ds > a.zapas) { ds = a.zapas; v = Mathf.Min(v, ds / dt); }
             if (ds > 1e-5f)
             {
-                Poza(a, a.s + ds, out var np, out var nk);
-                int kol = NoweNachodzenie(a, np, nk);
-                if (ZajeteZewnetrznie(np,nk,a.szer*.5f+.08f,a.dl*.5f+.08f))
-                { ds=0; v=0; a.powod=P_GRACZ; a.uprawnione=true; a.blokada=-1; }
-                else if (kol >= 0) { ds = 0f; v = 0f; a.blokada = kol; }
-                else { a.poz = np; a.kier = nk; a.blokada = -1; }
+                // Substeps prevent crossing a narrow obstacle or another car on a slow frame.
+                int steps=Mathf.Max(1,Mathf.CeilToInt(ds/.15f));
+                var np=a.poz;var nk=a.kier;bool stopped=false;
+                for(int step=1;step<=steps;step++)
+                {
+                    Poza(a,a.s+ds*step/steps,out var cp,out var ck);
+                    int kol=NoweNachodzenie(a,cp,ck);
+                    if(ZajeteZewnetrznie(cp,ck,a.szer*.5f+.08f,a.dl*.5f+.08f))
+                    { a.powod=P_GRACZ;a.uprawnione=true;a.blokada=-1;stopped=true;break; }
+                    if(kol>=0){a.blokada=kol;stopped=true;break;}
+                    np=cp;nk=ck;
+                }
+                if(stopped){ds=0;v=0;}
+                else {a.poz=np;a.kier=nk;a.blokada=-1;}
             }
             a.s += ds; a.zapas -= ds;
             if (tr[a.trasa].petla) a.s = Rep(a.s, tr[a.trasa].dl);

@@ -350,8 +350,10 @@ def patryk_i_ruchy():
     if osiedle_build:
         from import_patryk_transfer import restore
         restore()
-    from import_patryk_animations import install
-    install(CEL / "ruchy")
+        from import_club_assets import install as install_club
+        install_club(CEL / "Klub20261104")
+        from import_patryk_animations import install
+        install(CEL / "ruchy")
     staging = pathlib.Path(tempfile.mkdtemp(prefix="braxhorn-prywatne-", dir=os.environ.get("RUNNER_TEMP") or None))
     ok = []
     try:

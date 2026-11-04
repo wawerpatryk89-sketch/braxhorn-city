@@ -13,20 +13,43 @@ public sealed class BraxRuchAut : MonoBehaviour
     public BraxAuto[] auta = new BraxAuto[0];
     public int ziarno = 2026;
     public float vZakret;   // E3d/e: prędkość w zakręcie (ustawia generator osiedla: 15 km/h × K)
+    public float promienWlaczeniaRonda=10.6f;
 
     BraxRuchAutSym sym;
     Camera kam; Transform gracz; float szukaj;
     public BraxRuchAutSym Symulacja => sym;
+    readonly Collider[] przeszkody = new Collider[64];
+
+    bool PrzeszkodaSceny(Vector3 p, Vector3 forward, float halfWidth, float halfLength)
+    {
+        // Above road/kerbs, below car roof. Do not exclude parked cars or people.
+        int count=Physics.OverlapBoxNonAlloc(p+Vector3.up*.95f,new Vector3(halfWidth,.60f,halfLength),
+            przeszkody,Quaternion.LookRotation(forward),~(1<<29),QueryTriggerInteraction.Ignore);
+        if(count==przeszkody.Length)return true;
+        for(int i=0;i<count;i++)
+        {
+            var c=przeszkody[i];if(!c)continue;
+            var ai=c.GetComponentInParent<BraxAuto>();
+            // Moving AI cars are handled by the deterministic OBB simulation.
+            if(ai && System.Array.IndexOf(auta,ai)>=0)continue;
+            if(c.GetComponentInParent<BraxAutoGracza>() || c.GetComponentInParent<BraxAutobus>())continue;
+            if(c.bounds.max.y<=p.y+.32f)continue;
+            return true;
+        }
+        return false;
+    }
 
     void Start()
     {
         if (trasy == null || trasy.Length == 0 || auta == null || auta.Length == 0) { enabled = false; return; }
+        BraxRuchAutSym.RondoWlaczony=promienWlaczeniaRonda;
         float szer = 1.6f, dl = 3.5f;
         foreach (var a in auta) if (a) { szer = Mathf.Max(szer, a.szer); dl = Mathf.Max(dl, a.dl); }
         sym = new BraxRuchAutSym(punkty, trasy, zdarzenia, wezly, ziarno, szer, dl, vZakret);
         foreach (var a in auta) if (a) sym.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax); else sym.Dodaj(0, 0f, 4.5f, 1.9f, 2.7f, -1.3f, 8f);
         sym.UstawStart();
         sym.widoczne = Widoczne;
+        sym.przeszkodaSceny = PrzeszkodaSceny;
         for (int i = 0; i < auta.Length; i++) if (auta[i]) auta[i].Ustaw(sym.auta[i], 0f, 999f, true);
     }
 

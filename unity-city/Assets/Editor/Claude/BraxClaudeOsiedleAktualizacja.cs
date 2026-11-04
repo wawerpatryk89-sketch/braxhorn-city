@@ -55,8 +55,9 @@ public static partial class BraxClaudeOsiedle
                 bledy.Add("Brak obu poprawnych stron szyldu " + nazwa);
         var mural = renderery.FirstOrDefault(r => r.name == "DJ: mural PULS CLUB (grafika właściciela)");
         if (!mural || mural.bounds.size.z < 29f || mural.bounds.size.y < 5f) bledy.Add("Mural nie pokrywa całej ściany Puls");
-        var sofy = renderery.Where(r => r.transform.GetComponentsInParent<Transform>(true).Any(t => t.name.Contains(": sofa chesterfield"))).ToArray();
-        if (sofy.Length != 13) bledy.Add("Niekompletny układ pojedynczych sof Puls: " + sofy.Length + "/13");
+        var loze = renderery.SelectMany(r=>r.transform.GetComponentsInParent<Transform>(true))
+            .Where(t=>t.name.StartsWith("loża właściciela ",StringComparison.Ordinal)).Distinct().ToArray();
+        if (loze.Length != 14) bledy.Add("Niekompletny układ oryginalnych lóż Puls: " + loze.Length + "/14");
         var gracz = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<BraxGymPlayer>(true)).FirstOrDefault();
         if (!gracz || !gracz.visual || gracz.visual.name != "Patryk") bledy.Add("Brak nowego Patryka");
         if (!scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<BraxAutoGracza>(true)).Any()) bledy.Add("Brak dostępnego auta Patryka");
@@ -68,12 +69,12 @@ public static partial class BraxClaudeOsiedle
         System.IO.File.WriteAllLines("city-review/skala-aut-i-drog.txt", raportSkaliAut.Concat(MiejscaParkingowe.Select(m =>
             "PARKING " + m.srodek.ToString("F2") + " szerokość=" + m.rozmiar.x.ToString("F3") + " długość=" + m.rozmiar.y.ToString("F3"))));
         System.IO.File.WriteAllLines("city-review/aktualizacja-osiedla.txt", new[] {
-            "Kontrola sceny przed zapisem: szyldy=" + szyldy + ", sofy=" + sofy.Length + ", zatoki=" + MiejscaParkingowe.Count,
+            "Kontrola sceny przed zapisem: szyldy=" + szyldy + ", loze=" + loze.Length + ", zatoki=" + MiejscaParkingowe.Count,
             "Wynik: " + (bledy.Count == 0 ? "PASS" : "FAIL"),
             "Obraz, animacje, autobus w ruchu i sterowanie: wymagany test APK na urządzeniu."
         }.Concat(bledy));
         if (bledy.Count > 0) Debug.LogWarning("BRAXHORN_AKTUALIZACJA_SCENA FAIL — " + bledy.Count + " błędów:\n" + string.Join("\n", bledy.Take(20)));
-        else Debug.Log("BRAXHORN_AKTUALIZACJA_SCENA PASS szyldy=" + szyldy + " sofy=" + sofy.Length + " zatoki=" + MiejscaParkingowe.Count);
+        else Debug.Log("BRAXHORN_AKTUALIZACJA_SCENA PASS szyldy=" + szyldy + " loze=" + loze.Length + " zatoki=" + MiejscaParkingowe.Count);
     }
 
     static void TestTozsamosciMaterialu()

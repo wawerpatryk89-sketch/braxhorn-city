@@ -145,7 +145,7 @@ public static partial class BraxClaudeOsiedle
     {
         const float tol = .2f;
         float rx = p.x - rondoAuta.x, rz = p.z - rondoAuta.z, rr = Mathf.Sqrt(rx * rx + rz * rz);
-        if (rr < Mathf.Max(RondoWyspa + .25f, 6.4f) - tol) return false;   // wyspa (i opaska z kostki wokół niej)
+        if (rr < RondoOpaska - tol) return false;   // wyspa i aktualna opaska
         if (rr <= RondoJezdnia + tol) return true;
         if (ulice != null)
             foreach (var u in ulice)
@@ -198,6 +198,8 @@ public static partial class BraxClaudeOsiedle
                 if (si.rodzaj == RodzajSkrzyzowania.ZeSwiatlami && new Vector2(si.srodek.x - w.x, si.srodek.z - w.z).magnitude < 3f && !w.rondo) { w.rodzaj = 2; swiatla++; }
         var defs = BraxTrasyAut.TrasyOsiedla(ul, YAsf, .03f, X0 + 4f, X1 - 4f, StreetZ, AxisX, ParkZ0 - 3f);
         BraxTrasyAut.RondoJezdnia = RondoJezdnia;
+        BraxTrasyAut.RondoPromien = 10.2f;
+        BraxRuchAutSym.RondoWlaczony = BraxTrasyAut.RondoPromien + 1.2f;
         var wy = BraxTrasyAut.Generuj(ul, wz, defs);
         foreach (var l in wy.log) rep.notes.Add("trasy aut: " + l);
         if (wy.trasy.Count == 0) { rep.notes.Add("DO POPRAWKI: brak tras aut"); return; }
@@ -208,6 +210,7 @@ public static partial class BraxClaudeOsiedle
         var ra = mg.AddComponent<BraxRuchAut>();
         ra.punkty = wy.punkty.ToArray(); ra.trasy = wy.trasy.ToArray(); ra.zdarzenia = wy.zdarzenia.ToArray(); ra.wezly = wy.wezly.ToArray(); ra.ziarno = 2026;
         ra.vZakret = 15f / 3.6f * K;   // E3d/e: zakręty ~15 km/h × K
+        ra.promienWlaczeniaRonda = BraxRuchAutSym.RondoWlaczony;
         // 3) auta
         var rnd = new System.Random(2026); var pula = PulaAut(szablony); var klakson = Klakson();
         var auta = new List<BraxAuto>(); var opis = new Dictionary<string, int>();

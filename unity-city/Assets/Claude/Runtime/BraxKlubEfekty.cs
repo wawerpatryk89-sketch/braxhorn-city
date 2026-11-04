@@ -42,26 +42,42 @@ public sealed class BraxKlubEfekty : MonoBehaviour
 
     void Update()
     {
-        bool otwarte = BraxGodzinyOtwarcia.Otwarte("dyskoteka");
+        var kam = BraxLudzie.Kamera;
+        bool otwarte = BraxGodzinyOtwarcia.Otwarte("dyskoteka") && (!kam || (kam.position-srodek).sqrMagnitude<=promien*promien);
         if (otwarte != widoczne)
         {
             widoczne = otwarte;
             if (tylkoGdyOtwarte != null) foreach (var g in tylkoGdyOtwarte) if (g) g.SetActive(otwarte);
         }
         if (!otwarte) return;
-        var kam = BraxLudzie.Kamera;
-        if (kam && (kam.position - srodek).sqrMagnitude > promien * promien) return;
         float t = Time.time, dt = Time.deltaTime;
         if (kula) kula.Rotate(0f, 24f * dt, 0f, Space.World);
         if (lasery != null)
             for (int i = 0; i < lasery.Length; i++)
-                if (lasery[i]) lasery[i].localRotation = bazaL[i] * Quaternion.Euler(Mathf.Sin(t * .9f + i * 1.7f) * 6f, Mathf.Sin(t * .55f + i * 2.3f) * 28f, 0f);
+                if (lasery[i])
+                {
+                    lasery[i].localRotation = bazaL[i] * Quaternion.Euler(Mathf.Sin(t * .9f + i * 1.7f) * 6f, Mathf.Sin(t * .55f + i * 2.3f) * 28f, 0f);
+                    // Keep the entire fan inside the room throughout its sweep.
+                    float length=16f;
+                    foreach(float angle in FanAngles)
+                    {
+                        var d=lasery[i].rotation*Quaternion.Euler(0,angle,0)*Vector3.forward;
+                        var p=lasery[i].position;
+                        length=Mathf.Min(length,Exit(p.x,d.x,66.25f,105.7f));
+                        length=Mathf.Min(length,Exit(p.y,d.y,.2f,6.7f));
+                        length=Mathf.Min(length,Exit(p.z,d.z,-.7f,28.7f));
+                    }
+                    if(lasery[i].childCount>0)lasery[i].GetChild(0).localScale=Vector3.one*Mathf.Clamp01(length/16f);
+                }
         if (glowice != null)
             for (int i = 0; i < glowice.Length; i++)
                 if (glowice[i]) glowice[i].localRotation = bazaG[i] * Quaternion.Euler(Mathf.Sin(t * .7f + i * 2.1f) * 24f, 0f, Mathf.Cos(t * .5f + i * 1.3f) * 24f);
         strob.Krok(t, dt);
         if (tex && t >= nastLed) { nastLed = t + 1f / 12f; Rysuj(t); }
     }
+
+    static readonly float[] FanAngles={-18f,-12f,-6f,0f,6f,12f,18f};
+    static float Exit(float p,float d,float min,float max)=>Mathf.Abs(d)<1e-5f?float.PositiveInfinity:Mathf.Max(0f,((d>0f?max:min)-p)/d);
 
     // wzór ściany LED (0 = korektor, 1 = fala barw, 2 = pierścienie od środka)
     void Rysuj(float t)

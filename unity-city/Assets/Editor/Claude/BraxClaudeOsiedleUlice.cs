@@ -200,13 +200,18 @@ public static partial class BraxClaudeOsiedle
                     if (Slupek(p)) slupkiN++;
                 }
         // 2) hydranty naziemne (co ~100 m, w pasie zieleni przy krawężniku)
+        Vector3 HydrantPrzyUlicy(string id,float along,int side)
+        {
+            var u=ulice.First(q=>q.id==id);
+            return u.P(along,side*(u.cw+u.kerb+.35f));
+        }
         var hydr = new List<Vector3>
         {
-            new Vector3(-30f, 0, -19f + 3.5f + .2f + .3f), new Vector3(30f, 0, -19f - 3.5f - .2f - .3f),
-            new Vector3(-28f, 0, RondoZ + 3.5f + .2f + .3f), new Vector3(28f, 0, RondoZ - 3.5f - .2f - .2f),
-            new Vector3(-32f, 0, 86f + 3.5f + .2f + .3f), new Vector3(32f, 0, 86f - 3.5f - .2f - .3f),
-            new Vector3(4.5f + .2f + .15f, 0, 2f), new Vector3(-4.5f - .2f - .15f, 0, 66f),
-            new Vector3(-58f + 3.35f, 0, 10f), new Vector3(58f - 3.35f, 0, 25f), new Vector3(58f + 3.35f, 0, -40f), new Vector3(-58f - 3.35f, 0, 62f),
+            HydrantPrzyUlicy("B1",-30f,1),HydrantPrzyUlicy("B1",30f,-1),
+            HydrantPrzyUlicy("B2",-28f,1),HydrantPrzyUlicy("B2",28f,-1),
+            HydrantPrzyUlicy("B3",-32f,1),HydrantPrzyUlicy("B3",32f,-1),
+            HydrantPrzyUlicy("AV",2f,1),HydrantPrzyUlicy("AV",66f,-1),
+            HydrantPrzyUlicy("N1",10f,1),HydrantPrzyUlicy("N2",25f,-1),HydrantPrzyUlicy("N2",-40f,1),HydrantPrzyUlicy("N1",62f,-1),
             new Vector3(-70f, 0, StreetZ + Carriage + Kerb + Green * .5f), new Vector3(12f, 0, StreetZ - Carriage - Kerb - Green * .5f),
             new Vector3(82f, 0, StreetZ + Carriage + Kerb + Green * .5f), new Vector3(AxisX + Carriage + Kerb + Green * .5f, 0, -172f),
         };

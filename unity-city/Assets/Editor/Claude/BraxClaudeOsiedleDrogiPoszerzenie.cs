@@ -8,11 +8,10 @@ using UnityEngine;
 // krawężniki, chodniki, zebry, latarnie, sygnalizacja, parkingi bulwarów, trasy aut i pieszych) liczy się z UlicaA, więc
 // przebudowa idzie od nowa z nowym przekrojem (stara nawierzchnia nie jest przykrywana — powstaje tylko nowa).
 //  • miejsce po każdej stronie = zieleń między krawężnikiem a chodnikiem + wolne za chodnikiem (lub za krawężnikiem, gdy po tej
-//    stronie nie ma chodnika) minus 0.1 m zapasu; wolne = min z: promieni (co 2 m, 0.5 i 1.2 m nad ziemią, do 8 m, poza
-//    węzłami), obrysów działek z kodu (Houses — płoty nie wszędzie mają kolizje; działki przy B2 do ścian domów z 35.75),
+//    stronie nie ma chodnika) minus 0.1 m zapasu; wolne = min z trwałych obrysów działek z kodu (Houses — płoty nie wszędzie mają kolizje; działki przy B2 do ścian domów z 35.75),
 //    obrysów budynków (6 budynków usługowych, siłownia A) i NOWYCH obrysów ulic już poszerzonych (ulice równoległe);
 //  • chodnik nigdy węższy niż dziś (szerokość chodnika bez zmian, przesuwa się na zewnątrz tylko o tyle, ile zabraknie zieleni);
-//  • oś bez zmian (rondo, światła, tunel); wyjątek: uliczki S1/S2 (jedna strona = płot działek) — oś odsunięta od działek;
+//  • oś stała poza S1/S2 i B2; rondo oraz końce uliczek podążają za nową osią B2;
 //  • końce bulwarów B1–B3 (parkingi przed budynkami) i place przed budynkami dosunięte do nowej krawędzi Wiśniowej/Bydgoskiej;
 //  • gdzie miejsca brak — ulica węższa niż cel, z logiem (co ogranicza).
 // Log: BRAXHORN_DROGI_SZEROKOSC (przed/po dla każdej ulicy), BRAXHORN_DROGI_POSZERZENIE (podsumowanie).
@@ -41,20 +40,16 @@ public static partial class BraxClaudeOsiedle
     // Wolne miejsce za krawędzią zewnętrzną strony s ulicy u (do 8 m). Zwraca odległość i co ogranicza.
     static (float wolne, string co) WolneZa(UlicaA u, int s, float zewn, List<ProstPrzeszkoda> prost)
     {
-        const int maska = ~((1 << 8) | (1 << 29) | (1 << 2));
         float best = 8f; string co = "—";
         for (float a = u.a0 + 2f; a <= u.a1 - 2f; a += 2f)
         {
             bool wezel = ulice.Any(v => v != u && v.alongX != u.alongX && u.c >= v.a0 - 1f && u.c <= v.a1 + 1f && Mathf.Abs(a - v.c) < v.Half + 1.5f);
             bool rondo = u.alongX ? Mathf.Abs(u.c - RondoZ) < .1f && Mathf.Abs(a) < RondoChodnik + 1f : Mathf.Abs(u.c) < .1f && Mathf.Abs(a - RondoZ) < RondoChodnik + 1f;
             if (wezel || rondo) continue;
-            // promienie (kolizje: płoty, mury, słupy)
-            foreach (float y in new[] { .5f, 1.2f })
-            {
-                var start = u.P(a, s * zewn, y); var dir = u.Wpoprzek * s;
-                if (Physics.Raycast(start, dir, out var hit, 8f, maska, QueryTriggerInteraction.Ignore) && hit.distance < best)
-                { best = hit.distance; co = "kolizja " + (hit.collider ? hit.collider.name : "?") + " przy " + BraxKontrola.F(hit.point); }
-            }
+            // Pomiar przed wycięciem STAREJ sieci nie może uznawać jej latarni,
+            // krawężników i płotków za granicę nowej jezdni. DrogiA usuwa te
+            // elementy w całym nowym przekroju i odtwarza wyposażenie dalej.
+            // Granice trwałe: obrysy działek/budynków oraz sąsiednie NOWE ulice.
             // obrysy z kodu (działki, budynki) i nowe obrysy innych ulic
             float kr = u.c + s * zewn;   // współrzędna krawędzi (z dla ulicy wzdłuż x, x dla ulicy wzdłuż z)
             void Prost(string nazwa, float x0, float x1, float z0, float z1)
@@ -100,7 +95,7 @@ public static partial class BraxClaudeOsiedle
                 cap[i] = (u.WalkS(s) > 0 ? u.GreenS(s) : 0f) + Mathf.Max(0f, w - zapas);
             }
             float need = cel - u.cw;
-            bool osWolna = u.id == "S1" || u.id == "S2";
+            bool osWolna = u.id == "S1" || u.id == "S2" || u.id == "B2";
             float eN, eP;
             if (osWolna)
             {
@@ -129,7 +124,7 @@ public static partial class BraxClaudeOsiedle
         foreach (var u in ulice.Where(q => q.alongX)) { u.a0 = Mathf.Min(u.a0, kW); u.a1 = Mathf.Max(u.a1, kE); }
         bulwarKoniecW = kW; bulwarKoniecE = kE;
         Debug.Log("BRAXHORN_DROGI_POSZERZENIE ulic=" + ulice.Count + " do_celu=" + doCelu + " częściowo=" + czesc + " bez_zmian=" + bez + " cel=" + (2f * cel).ToString("F2")
-                  + " m końce_bulwarów x " + kW.ToString("F2") + " / " + kE.ToString("F2") + " (chodniki bez zwężenia, oś stała poza S1/S2)");
+                  + " m końce_bulwarów x " + kW.ToString("F2") + " / " + kE.ToString("F2") + " (chodniki bez zwężenia, oś stała poza S1/S2/B2)");
     }
     static float bulwarKoniecW = -64f, bulwarKoniecE = 64f;
 

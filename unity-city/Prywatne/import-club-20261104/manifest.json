@@ -1,0 +1,17 @@
+{
+  "zip_bytes": 1354977,
+  "zip_sha256": "bcba90be10ddfd4f831b761bd7ed0eedf201f62c9aac7836421736f1af00b7cf",
+  "encrypted_sha256": "df0e56cbb2c86837fccbbcabecd30187b8c8ad76b234c308e8caadf8842efecf",
+  "files": {
+    "raised-seating-booth.glb": "65561dc7b61e3be73a97c22e95d5cf7d742232d23fe156dd6fbbae7e2df3a9bf",
+    "polyhaven-sofa-02.glb": "538e1b64d03356beae98fe3cde70a6dbb7370b05a97b346137f4c01358a444b8",
+    "bar-table-booths.glb": "97fee9094fddace63749f0a6c6544745d0c71fe5a64c2d03baf6a6329c0c0da6"
+  },
+  "public_key_source": "GitHub Actions artifact 13275771246, import-public.pem",
+  "scene_model": "raised-seating-booth.glb",
+  "original_filenames": {
+    "raised-seating-booth.glb": "model.glb",
+    "polyhaven-sofa-02.glb": "polyhaven-sofa-02.glb",
+    "bar-table-booths.glb": "low_poly_bar_table_and_booths_set.glb"
+  }
+}

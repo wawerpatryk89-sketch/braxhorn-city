@@ -13,11 +13,10 @@ using UnityEngine.Rendering;
 //    barmanów 1.0 m × K, lada 1.1 m × K z podświetlanym kamieniem (onyks), podnóżek mosiężny, hokery (model, zapas: kod),
 //    lampy wiszące z kloszem (model, zapas: kod), szkło na zapleczu (model), napis BAR (litery przestrzenne, neon).
 //    3 stanowiska: po 5 OSOBNYCH butelek na szynie, szklanka, ciecz, strumień — BraxBarDyskoteki (nalewanie, ZAMÓW).
-//  • LOŻE: 15 (5 pod ścianą zachodnią na tapicerowanym panelu, 2 pod północną, 6 na wyspie ze ścianką x 76.5, 2 pod
-//    południową za wyjściem) — sofa chesterfield + 2 fotele w U, stolik marmurowy PRZED siedziskiem (odstęp 0.4 m × K
-//    od krawędzi siedziska); model loze_chesterfield_moet / loze_stolik_marmur_3dtech, zapas: kod.
+//  • LOŻE: 14 kompletnych raised-seating-booth.glb właściciela (4 W, 2 N, 6 wyspa, 2 S),
+//    oryginalna geometria, stolik w każdym modelu, kolizje siatek i miejsca na tylnej ławie.
 //  • DJ PREMIUM: konsola na scenie z mikserem dj_mixer.glb (NOVA), ściana LED 8.8 × 4.4 m za DJ-em (wzór z kodu —
-//    BraxKlubEfekty), 2 lasery laser_light.glb na kolumnach z wachlarzami wiązek (addytywne, z kodu, omiatają), kula
+//    BraxKlubEfekty), 4 lasery laser_light.glb na kolumnach z wachlarzami wiązek (addytywne, z kodu, omiatają), kula
 //    disco_ball.glb pod sufitem nad parkietem (obrót), 4 stożki świateł ruchomych głów z kratownicy.
 //  • DETALE (właściciel 21:52): listwy przypodłogowe, obrzeże sufitu, ościeżnice i opaski obu drzwi, znaki WYJŚCIE
 //    nad drzwiami, gaśnice przy wyjściach, gniazdka (0.3 m × K) i włączniki (1.1 m × K), kratki wentylacyjne, oprawy
@@ -446,48 +445,38 @@ public static partial class BraxClaudeOsiedle
         PointLamp(new Vector3(72.5f, 3.3f, 1.6f), 7f, .9f, new Color(1f, .8f, .55f));
         PointLamp(new Vector3(79.0f, 3.3f, 1.6f), 7f, .9f, new Color(1f, .8f, .55f));
 
-        // ================= LOŻE: SOFY USUNIĘTE =================
-        // 4.11.2026: na polecenie właściciela usunięto 42 stare sofy,
-        // ich kolizje i punkty siedzenia. Zachowano 14 stolików.
-        // Nowe sofy wyłącznie z późniejszej paczki właściciela.
-        var stolikBezSof = BraxOsiedleAssety.ModelWnetrz("loze_stolik_marmur_3dtech");
-        int stolikiBezSof = 0;
-        void StolikBezSof(Vector3 sciana, Vector3 przod)
+        // Complete original booth supplied by the owner; its table is already part of the model.
+        const string boothPath = "Assets/Source/Prywatne/Klub20261104/raised-seating-booth.glb";
+        AssetDatabase.ImportAsset(boothPath, ImportAssetOptions.ForceSynchronousImport);
+        var booth = AssetDatabase.LoadAssetAtPath<GameObject>(boothPath);
+        if(!booth)throw new InvalidOperationException("Brak modelu loży właściciela: "+boothPath);
+        int lozeN=0;
+        void Loza(Vector3 back,Vector3 forward)
         {
-            stolikiBezSof++;
-            const float glS = .9f, gap = .4f, tR = .25f;
-            Vector3 ct = sciana + przod * ((glS + gap + tR) * K);
-            GameObject o = stolikBezSof ? BraxOsiedleAssety.Postaw(root, stolikBezSof,
-                "loża " + stolikiBezSof + ": stolik bez sof", ct + Vector3.up * yF, 0f, .5f, null) : null;
-            Bounds b;
-            if (o)
-            {
-                modeleUzyte++;
-                b = BraxOsiedleAssety.Granice(o);
-            }
-            else
-            {
-                float h = .5f * K;
-                Cylinder(marbleK, ct + Vector3.up * (yF + h - .03f * K), tR * K, .03f * K, 24, true, false);
-                Cylinder(chromeK, ct + Vector3.up * yF, .04f * K, h - .03f * K, 10, false, false);
-                Cylinder(chromeK, ct + Vector3.up * yF, .2f * K, .02f * K, 20, true, false);
-                b = new Bounds(ct + Vector3.up * (yF + h * .5f), new Vector3(tR * K * 2f, h, tR * K * 2f));
-            }
-            Collider(b.center, b.size * .9f);
-            Mebel("loża " + stolikiBezSof + " stolik", b);
+            // Original width 2.41 m, depth 1.526 m; scale uniformly with the estate.
+            var center=back+forward*(.763f*K);
+            var o=BraxOsiedleAssety.Postaw(root,booth,"loża właściciela "+(++lozeN),center+Vector3.up*yF,
+                Quaternion.LookRotation(forward).eulerAngles.y,2.41f,null);
+            if(!o)throw new InvalidOperationException("Nie udało się wstawić pełnej loży");
+            foreach(var mesh in o.GetComponentsInChildren<MeshFilter>(true))
+                if(mesh.sharedMesh && mesh.sharedMesh.vertexCount>0)
+                    mesh.gameObject.AddComponent<MeshCollider>().sharedMesh=mesh.sharedMesh;
+            var b=BraxOsiedleAssety.Granice(o);Mebel("loża właściciela "+lozeN,b);modeleUzyte++;
+            // Seats on the rear velvet bench, in front of the backrest, clear of the supplied table.
+            var right=Vector3.Cross(Vector3.up,forward);
+            foreach(float x in new[]{-.65f,.65f})
+                klub.siedziska.Add((back+right*(x*K)+forward*(.35f*K)+Vector3.up*(yF+.64f*K),forward));
         }
-        float xW = X0 + .09f;
-        foreach (float z in new[] { 6.8f, 12.3f, 17.8f, 23.3f }) StolikBezSof(new Vector3(xW, 0, z), Vector3.right);
-        foreach (float x in new[] { 74f, 81f }) StolikBezSof(new Vector3(x, 0, Z1 - .09f), Vector3.back);
-        foreach (float z in new[] { 8.2f, 15.4f, 22.6f })
+        foreach(float z in new[]{6.8f,12.3f,17.8f,23.3f})Loza(new Vector3(X0+.09f,0,z),Vector3.right);
+        foreach(float x in new[]{74f,81f})Loza(new Vector3(x,0,Z1-.09f),Vector3.back);
+        foreach(float z in new[]{8.2f,15.4f,22.6f})
         {
-            StolikBezSof(new Vector3(76.3f, 0, z), Vector3.left);
-            StolikBezSof(new Vector3(76.7f, 0, z), Vector3.right);
+            Loza(new Vector3(76.3f,0,z),Vector3.left);
+            Loza(new Vector3(76.7f,0,z),Vector3.right);
         }
-        foreach (float x in new[] { 91.5f, 99f }) StolikBezSof(new Vector3(x, 0, Z0 + .09f), Vector3.forward);
-        klub.loze = 0;
-        klub.siedziska.Clear();
-        Debug.Log("BRAXHORN_DYSKOTEKA_SOFY usunięte=42 stare_chesterfield=0 nowe=oczekują stoliki=" + stolikiBezSof);
+        foreach(float x in new[]{91.5f,99f})Loza(new Vector3(x,0,Z0+.09f),Vector3.forward);
+        klub.loze=lozeN;
+        Debug.Log("BRAXHORN_DYSKOTEKA_LOZE oryginalne_modele="+lozeN+" stoliki=w_modelu stare_sofy=0");
 
         // ================= DJ PREMIUM =================
         const float cx0 = 101.55f, cx1 = 102.45f, cz0 = 9.9f, cz1 = 14.1f;
@@ -543,7 +532,7 @@ public static partial class BraxClaudeOsiedle
         var laser = Nova("laser_light.glb");
         var mWiazki = Wachlarz("wachlarz lasera", 16f, .012f, new[] { -18f, -12f, -6f, 0f, 6f, 12f, 18f });
         var lasery = new List<Transform>(); var tylkoOtwarte = new List<GameObject>();
-        foreach (var (kz, kol) in new[] { (7.8f, new Color(.1f, 1f, .2f, .5f)), (16.2f, new Color(1f, .1f, .15f, .5f)) })
+        foreach (var (kz, kol) in new[] { (7.8f, new Color(.1f, 1f, .2f, .5f)), (10.5f, new Color(.1f, .75f, 1f, .5f)), (13.5f, new Color(.85f, .1f, 1f, .5f)), (16.2f, new Color(1f, .1f, .15f, .5f)) })
         {
             var baza = new Vector3(101.55f, sH + 1.8f, kz);
             if (laser)
@@ -560,7 +549,7 @@ public static partial class BraxClaudeOsiedle
                 catch (Exception e) { Debug.LogError("BRAXHORN_DYSKOTEKA laser DO POPRAWKI: " + e.Message); }
             }
             else { BoxMinMax(black, baza.x - .12f, baza.x + .12f, baza.y, baza.y + .25f, kz - .12f, kz + .12f, false); }
-            var mat = Addytywny("klub wiązka lasera " + (kol.g > .5f ? "zielona" : "czerwona"), kol);
+            var mat = Addytywny("klub wiązka lasera " + kz.ToString("F1", System.Globalization.CultureInfo.InvariantCulture), kol);
             if (mat)
             {
                 var piv = new GameObject("DJ: wachlarz lasera").transform; piv.SetParent(root, false);
@@ -579,6 +568,23 @@ public static partial class BraxClaudeOsiedle
                 var b = BraxOsiedleAssety.Granice(o);
                 var piv = new GameObject("kula — oś obrotu").transform; piv.SetParent(root, false); piv.position = new Vector3(b.center.x, b.max.y, b.center.z);
                 o.transform.SetParent(piv, true); kula = piv;
+                int materialNr=0;
+                foreach(var renderer in o.GetComponentsInChildren<Renderer>(true))
+                {
+                    var mm=renderer.sharedMaterials;
+                    for(int i=0;i<mm.Length;i++)if(mm[i])
+                    {
+                        var m=new Material(mm[i]){name="kula: świecące lustra"};
+                        m.EnableKeyword("_EMISSION");m.SetColor("_EmissionColor",new Color(.55f,.7f,1f)*1.7f);
+                        if(m.HasProperty("_MainTex"))m.SetTexture("_EmissionMap",m.GetTexture("_MainTex"));
+                        m.globalIlluminationFlags=MaterialGlobalIlluminationFlags.None;
+                        AssetDatabase.CreateAsset(m,Out+"/klub_kula_emisja_"+(materialNr++)+".mat");mm[i]=m;
+                    }
+                    renderer.sharedMaterials=mm;
+                }
+                var halo=new GameObject("kula: światło parkietu");halo.transform.SetParent(piv,false);halo.transform.position=b.center;
+                var light=halo.AddComponent<Light>();light.type=LightType.Point;light.color=new Color(.45f,.65f,1f);light.range=6f;light.intensity=.7f;light.shadows=LightShadows.None;light.renderMode=LightRenderMode.ForceVertex;
+                tylkoOtwarte.Add(halo);
                 Tube(chromeK, new Vector3(93f, b.max.y, 12f), new Vector3(93f, yC, 12f), .008f, 6);
             }
         }
@@ -690,18 +696,50 @@ public static partial class BraxClaudeOsiedle
     }
 
     // Twarda kontrola po zakończeniu wszystkich kroków budowania osiedla.
-    // Ochrona przed sytuacją z nagrania 4.11: zamiast trzech całych sof
-    // pojawia się mały wycięty fragment siatki lub luźny fotelik.
+    // Ochrona przed niekompletnym zestawem: liczymy całe modele właściciela.
     public static void DyskotekaLozeKontrola()
     {
         if (klub == null || klub.loze < 12)
             throw new InvalidOperationException("Dyskoteka: nie zbudowano pełnego zestawu lóż premium");
-        int sofy = klubMeble.Count(x => x.co.IndexOf("sofa", StringComparison.OrdinalIgnoreCase) >= 0);
-        int stoliki = klubMeble.Count(x => x.co.Contains("stolik", StringComparison.OrdinalIgnoreCase));
-        if (sofy != klub.loze * 3 || stoliki != klub.loze)
-            throw new InvalidOperationException("Dyskoteka: niespójny układ lóż. Loże=" + klub.loze + " sofy=" + sofy + " stoliki=" + stoliki);
-        Debug.Log("BRAXHORN_LOZE_PREMIUM_OK loze=" + klub.loze + " cale_sofy=" + sofy +
-                  " stoliki=" + stoliki + " (jeden spójny układ U, bez fragmentów modeli)");
+        int models=klubMeble.Count(x=>x.co.StartsWith("loża właściciela ",StringComparison.Ordinal));
+        if(models!=14 || klub.loze!=models)
+            throw new InvalidOperationException("Dyskoteka: niekompletne oryginalne loże: "+models);
+        Debug.Log("BRAXHORN_LOZE_PREMIUM_OK kompletne_modele="+models+" stoliki=w_modelach kolizje=siatki");
+    }
+
+    static void DyskotekaSwiatlo()
+    {
+        var interior=Group("Osiedle A / dyskoteka — klub");
+        const string layerName="BraxKlubWnetrze";
+        int layer=LayerMask.NameToLayer(layerName);
+        if(layer<0)
+        {
+            var settings=AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset");
+            if(settings.Length==0)throw new InvalidOperationException("Brak TagManager dla oświetlenia klubu");
+            var tags=new SerializedObject(settings[0]);var layers=tags.FindProperty("layers");
+            var used=UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include,FindObjectsSortMode.None).Select(t=>t.gameObject.layer).ToHashSet();
+            for(int i=31;i>=9;i--)
+                if(i!=29 && !used.Contains(i) && string.IsNullOrEmpty(layers.GetArrayElementAtIndex(i).stringValue))
+                {layer=i;layers.GetArrayElementAtIndex(i).stringValue=layerName;tags.ApplyModifiedProperties();break;}
+            if(layer<0)throw new InvalidOperationException("Brak wolnej warstwy dla wnętrza klubu");
+        }
+        var lighting=interior.gameObject.AddComponent<BraxKlubSwiatlo>();lighting.warstwa=layer;
+        var surfaces=interior.GetComponentsInChildren<Renderer>(true).ToList();
+        foreach(var person in UnityEngine.Object.FindObjectsByType<BraxMieszkaniec>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+            if(person.wnetrze && lighting.sala.Contains(person.transform.position+Vector3.up))
+                surfaces.AddRange(person.GetComponentsInChildren<Renderer>(true));
+        lighting.powierzchnie=surfaces.Distinct().ToArray();
+        foreach(var r in lighting.powierzchnie)r.gameObject.layer=layer;
+        foreach(var light in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+        {
+            if(light.transform.IsChildOf(interior))
+            {
+                light.cullingMask=1<<layer;
+                if(light.name!="kula: światło parkietu")light.intensity*=.48f;
+            }
+            else light.cullingMask&=~(1<<layer);
+        }
+        Debug.Log("BRAXHORN_KLUB_SWIATLO lokalny_ambient=ciemny powierzchnie="+lighting.powierzchnie.Length+" slonce=poza_wnetrzem materialy_PBR=zachowane");
     }
 
     // ---------------- ludzie w klubie (etap ludzi) ----------------

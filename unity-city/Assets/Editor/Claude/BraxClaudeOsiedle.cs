@@ -5682,7 +5682,7 @@ public static partial class BraxClaudeOsiedle
         rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); WyczyscWspolne14(); WyczyscElewacje(); ZmierzBohatera(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
         pavedCells.Clear(); pavingSet = null; CodexPaving();
         try { Build(); rep.status = "ZBUDOWANO"; }
-        catch (Exception e) { rep.status = "BŁĄD"; rep.error = e.ToString(); Directory.CreateDirectory("city-review"); File.WriteAllText("city-review/osiedle-claude.json", JsonUtility.ToJson(rep, true)); Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE " + e); }
+        catch (Exception e) { rep.status = "BŁĄD"; rep.error = e.ToString(); Directory.CreateDirectory("city-review"); File.WriteAllText("city-review/osiedle-claude.json", JsonUtility.ToJson(rep, true)); Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE " + e); if(e is WymaganeOsiedleException)throw; }
         rep.materials = mats.Count;
         Directory.CreateDirectory("city-review");
         File.WriteAllText("city-review/osiedle-claude.json", JsonUtility.ToJson(rep, true));
@@ -5859,6 +5859,9 @@ public static partial class BraxClaudeOsiedle
         Guard("salon samochodowy: obsada i pasażer schodów ruchomych", SalonObsada);
         Guard("sklepy: pracownik za ladą wszędzie (runda 5)", ObsadaSklepow);
         Guard("autobusy: pasażerowie na przystankach (E23)", AutobusPasazerowie);
+
+        // Required deliverables: a failed check must not be swallowed by Guard.
+        SprawdzZlecenieOsiedla();
 
         // 6) punkty podróży (TravelPoint) do nowych miejsc
         var world = UnityEngine.Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None).FirstOrDefault(w => w.area == "estate");

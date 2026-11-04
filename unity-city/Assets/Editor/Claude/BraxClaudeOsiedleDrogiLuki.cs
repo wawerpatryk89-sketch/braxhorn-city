@@ -109,8 +109,9 @@ public static partial class BraxClaudeOsiedle
                                 var p = C + d * rr;
                                 foreach (var q in prost) if (p.x > q.x0 - .1f && p.x < q.x1 + .1f && p.z > q.z0 - .1f && p.z < q.z1 + .1f) { ok = false; kolizja = q.co; break; }
                                 if (!ok) break;
-                                var hit = Physics.OverlapSphere(p + Vector3.up * 1f, .2f, ~((1 << 8) | (1 << 29) | (1 << 2)), QueryTriggerInteraction.Ignore).FirstOrDefault(c => c && c.bounds.size.y < 40f);
-                                if (hit) { ok = false; kolizja = "kolizja " + hit.name + " " + BraxKontrola.F(p); break; }
+                                // Stare wyposażenie ulic jest usuwane dopiero po
+                                // wyborze łuków; nie ogranicza nowego narożnika.
+                                // Działki i budynki sprawdzono powyżej.
                             }
                         }
                         if (ok) { R = r; break; }

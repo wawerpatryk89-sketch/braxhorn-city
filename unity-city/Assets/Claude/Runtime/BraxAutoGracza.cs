@@ -15,6 +15,10 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     public AudioClip silnik;
     public float Predkosc => predkosc;
     public Vector3 przesuniecieGracza; // authored from the actual CarIdle hips, in car space
+    public Vector3 przesuniecieWejscia;
+    public Quaternion obrotWejscia = Quaternion.identity;
+    public BraxRekaKierowcy lewaReka = new BraxRekaKierowcy(), prawaReka = new BraxRekaKierowcy();
+    public bool pozaZweryfikowana;
     // Build 45 (E9): drzwi kierowcy na zawiasie (BraxClaudeAutoPatryka) — otwierają się przy wsiadaniu/wysiadaniu, zamykają za graczem.
     public Transform drzwi; public Vector3 osDrzwi = Vector3.up; public float katDrzwi = 65f;
     // Build 45 (E6/E11): poza Patryka za kierownicą — odchylenie tułowia i pochylenie głowy dobrane w buildzie (zapas nad głową ≥ 0).
@@ -30,10 +34,14 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     }
     void LateUpdate()
     {
-        if (!gracz || !kregoslupGracza || wagaPozy <= 0f || (odchylenie == 0f && pochylenieGlowy == 0f)) return;
-        if (maKorekte && Quaternion.Dot(kregoslupGracza.localRotation, poKorekcie) > .9999999f) return;   // animacja nie nadpisała
-        BraxMieszkaniec.PozaWAucie(kregoslupGracza, glowaGracza, transform.right, odchylenie * wagaPozy, pochylenieGlowy * wagaPozy);
-        poKorekcie = kregoslupGracza.localRotation; maKorekte = true;
+        if (!gracz || wagaPozy <= 0f) return;
+        if (kregoslupGracza && !(maKorekte && Quaternion.Dot(kregoslupGracza.localRotation, poKorekcie) > .9999999f))
+        {
+            BraxMieszkaniec.PozaWAucie(kregoslupGracza, glowaGracza, transform.right, odchylenie * wagaPozy, pochylenieGlowy * wagaPozy);
+            poKorekcie = kregoslupGracza.localRotation; maKorekte = true;
+        }
+        lewaReka.Ustaw(transform, wagaPozy);
+        prawaReka.Ustaw(transform, wagaPozy);
     }
     public bool Zajety => gracz;
     public bool WTrakcie => przejscie;
@@ -51,7 +59,7 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
     Rigidbody cialo;
     readonly RaycastHit[] hits = new RaycastHit[32];
     readonly Collider[] overlaps = new Collider[32];
-    const int Mask = ~((1<<8)|(1<<29));
+    const int Mask = ~(1<<29);
 
     void OnEnable() { Wszystkie.Add(this); BraxInterakcje.Dodaj(this); }
     void OnDisable() { Wszystkie.Remove(this); BraxInterakcje.Usun(this); if (gracz && !BraxSceneTransit.Busy) Odlacz(startWejscia); }
@@ -76,7 +84,8 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         if (przejscie) return true;
         if (gracz) { if (Mathf.Abs(predkosc)<.25f && MiejsceWyjscia(out var point)) StartCoroutine(Wyjdz(point)); return true; }
         var player=FindAnyObjectByType<BraxGymPlayer>();
-        if (!player || !player.clips || !player.clips.GetClip("CarIdle") || player.autoGracza || player.vessel || player.seat || !fotel || !obrys || (Drzwi(-1)-p).sqrMagnitude>6.25f) return false;
+        if (!player || !player.clips || !player.clips.GetClip("CarIdle") || !player.clips.GetClip("EnteringCar") ||
+            !lewaReka.Gotowa || !prawaReka.Gotowa || player.autoGracza || player.vessel || player.seat || !fotel || !obrys || (Drzwi(-1)-p).sqrMagnitude>6.25f) return false;
         var approach=Drzwi(-1)-player.transform.position;approach.y=0;
         if(approach.sqrMagnitude>.01f)
         {
@@ -109,13 +118,27 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         p.clips.CrossFade("Idle",.2f);
         Efekt(BraxDzwiekiAuta.DrzwiOtwKlip,.7f);                                 // runda 4: klik zamka
         yield return Drzwi(0f,1f,.55f);                                         // E9: drzwi otwierają się przed wsiadaniem
-        p.clips.CrossFade("CarIdle",.55f);
+        // The owner's full entry clip, timed to its actual length. Keep the door
+        // open until the clip and the seated-pose blend have both finished.
+        var entry = p.clips["EnteringCar"];
+        entry.wrapMode = WrapMode.ClampForever; entry.speed = 1f; entry.time = 0f;
+        p.clips.CrossFade("EnteringCar", .15f);
+        var entryRot = transform.rotation * obrotWejscia;
+        var entryEnd = transform.TransformPoint(przesuniecieWejscia);
+        var doorRot = p.transform.rotation;
         Vector3 end=transform.TransformPoint(przesuniecieGracza);
-        for(float t=0;t<1f;t+=Time.deltaTime/.9f)
+        for(float t=0;t<1f;t+=Time.deltaTime/Mathf.Max(.1f,entry.length))
         {
             if(!p)yield break;
+            float u=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.12f,.96f,t));
+            p.transform.SetPositionAndRotation(Vector3.Lerp(door,entryEnd,u),Quaternion.Slerp(doorRot,entryRot,Mathf.Clamp01(t*5f)));
+            yield return null;
+        }
+        p.clips.CrossFade("CarIdle",.3f);
+        for(float t=0;t<1f;t+=Time.deltaTime/.3f)
+        {
             float u=Mathf.SmoothStep(0,1,t); wagaPozy=u;
-            p.transform.SetPositionAndRotation(Vector3.Lerp(door,end,u),transform.rotation);
+            p.transform.SetPositionAndRotation(Vector3.Lerp(entryEnd,end,u),Quaternion.Slerp(entryRot,transform.rotation,u));
             yield return null;
         }
         wagaPozy=1f;
@@ -161,34 +184,38 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         kierownica=Mathf.MoveTowards(kierownica,wejscie.x*MaksSkret(predkosc,maxPredkosc),dt*95f);
         float yaw=predkosc/Mathf.Max(1,rozstaw)*Mathf.Tan(kierownica*Mathf.Deg2Rad)*Mathf.Rad2Deg*dt;
         var rot=rotation*Quaternion.Euler(0,yaw,0);
-        Vector3 delta=(rot*Vector3.forward)*predkosc*dt;
         var scale=transform.lossyScale;
         var half=Vector3.Scale(obrys.size,new Vector3(Mathf.Abs(scale.x),Mathf.Abs(scale.y),Mathf.Abs(scale.z)))*.5f; half.y=Mathf.Max(.2f,half.y-.16f);
         var centerOffset=Vector3.Scale(obrys.center,scale);
-        // ruch z poślizgiem wzdłuż przeszkody (build 45: wcześniej każda kolizja = predkosc 0 i auto stawało w miejscu):
-        // do miejsca styku, reszta ruchu rzutowana na płaszczyznę styku (poziomo), prędkość traci część zależną od kąta uderzenia
-        Vector3 ruch=delta; bool obrot=true; float utrataSuma=0f;
-        for(int proba=0;proba<2&&ruch.sqrMagnitude>1e-8f;proba++)
+        // Check the swept rotation before translating: a free end pose alone
+        // can miss a thin bollard crossed by a corner of the body.
+        bool Free(Vector3 at, Quaternion facing)
         {
-            var center=position+rotation*centerOffset+Vector3.up*.16f;
-            int n=Physics.BoxCastNonAlloc(center,half,ruch.normalized,hits,rot,ruch.magnitude+Skora,Mask,QueryTriggerInteraction.Ignore);
-            float najblizej=float.PositiveInfinity; Vector3 normalna=Vector3.zero;
-            for(int i=0;i<n;i++) if(Obcy(hits[i].collider)&&hits[i].distance<najblizej){najblizej=hits[i].distance;normalna=hits[i].normal;}
-            if(n==hits.Length){najblizej=0f;normalna=-ruch.normalized;}
-            if(float.IsPositiveInfinity(najblizej))break;                                  // wolne
-            if(najblizej<=1e-4f){ obrot=false; }                                            // start w styku — bez obrotu w ścianę
-            float doStyku=Mathf.Max(0f,najblizej-Skora);
-            var przed=ruch.normalized*Mathf.Min(doStyku,ruch.magnitude);
-            var reszta=ruch-przed;
-            ruch=przed+Slizg(reszta,normalna,out float utrata);
-            utrataSuma=Mathf.Max(utrataSuma,utrata);
+            int count=Physics.OverlapBoxNonAlloc(at+facing*centerOffset+Vector3.up*.16f,half,overlaps,facing,Mask,QueryTriggerInteraction.Ignore);
+            if(count==overlaps.Length)return false;
+            for(int i=0;i<count;i++)if(Obcy(overlaps[i]))return false;
+            return true;
         }
-        if(utrataSuma>0f) predkosc*=1f-utrataSuma;
-        var next=position+ruch; var rotNext=obrot?rot:rotation;
-        int m=Physics.OverlapBoxNonAlloc(next+rotNext*centerOffset+Vector3.up*.16f,half,overlaps,rotNext,Mask,QueryTriggerInteraction.Ignore);
-        bool blocked=m==overlaps.Length;
-        for(int i=0;i<m;i++)if(Obcy(overlaps[i]))blocked=true;
-        if(blocked&&obrot){ rotNext=rotation; m=Physics.OverlapBoxNonAlloc(next+rotNext*centerOffset+Vector3.up*.16f,half,overlaps,rotNext,Mask,QueryTriggerInteraction.Ignore); blocked=m==overlaps.Length; for(int i=0;i<m;i++)if(Obcy(overlaps[i]))blocked=true; }
+        var rotNext=rot;
+        int turns=Mathf.Max(1,Mathf.CeilToInt(Mathf.Abs(yaw)/1f));
+        for(int i=1;i<=turns;i++)if(!Free(position,Quaternion.Slerp(rotation,rot,(float)i/turns))) { rotNext=rotation;break; }
+        Vector3 next=position, remaining=(rotNext*Vector3.forward)*predkosc*dt;
+        float utrataSuma=0f;
+        for(int attempt=0;attempt<3 && remaining.sqrMagnitude>1e-8f;attempt++)
+        {
+            var center=next+rotNext*centerOffset+Vector3.up*.16f;
+            int n=Physics.BoxCastNonAlloc(center,half,remaining.normalized,hits,rotNext,remaining.magnitude+Skora,Mask,QueryTriggerInteraction.Ignore);
+            float distance=float.PositiveInfinity;Vector3 normal=Vector3.zero;
+            for(int i=0;i<n;i++)if(Obcy(hits[i].collider) && hits[i].distance<distance){distance=hits[i].distance;normal=hits[i].normal;}
+            if(n==hits.Length){distance=0;normal=-remaining.normalized;}
+            if(float.IsPositiveInfinity(distance)){next+=remaining;remaining=Vector3.zero;break;}
+            var travelled=remaining.normalized*Mathf.Clamp(distance-Skora,0,remaining.magnitude);
+            next+=travelled;
+            remaining=Slizg(remaining-travelled,normal,out float loss);
+            utrataSuma=Mathf.Max(utrataSuma,loss);
+        }
+        predkosc*=1f-utrataSuma;
+        bool blocked=!Free(next,rotNext);
         if(!Grunt(next,out float ground) || Mathf.Abs(ground-position.y)>.35f) blocked=true;
         if(blocked) predkosc*=.5f;                                                          // zaklinowane: hamuje, nie staje w miejscu od razu
         else {next.y=ground;cialo.MovePosition(next);cialo.MoveRotation(rotNext);}

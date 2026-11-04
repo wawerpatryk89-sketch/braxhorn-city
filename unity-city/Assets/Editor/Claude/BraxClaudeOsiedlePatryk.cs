@@ -28,16 +28,16 @@ public static partial class BraxClaudeOsiedle
     static readonly PatrykKlip[] KlipyPatryka =
     {
         PK("CombatIdle", true, true, "brax/Idle.fbx"),
-        PK("Walk", true, true, "patryk_owner/Strut Walking.fbx", "extra/Walking.fbx", "nyxa/Walking.fbx", "extra2/Walking.fbx"),
-        PK("Run", true, true, "patryk_owner/Fast Run.fbx", "extra/Running.fbx", "extra2/Unarmed Run Forward.fbx"),
+        PK("Walk", true, true, "patryk_owner/Strut Walking.fbx"),
+        PK("Run", true, true, "patryk_owner/Fast Run.fbx"),
         PK("Punch", false, true, "brax/Jab Cross (1).fbx", "xd/Jab Cross.fbx"),
         PK("Kick", false, true, "brax/Mma Kick (1).fbx", "nyxa/Mma Kick (1).fbx"),
-        PK("Jump", false, true, "patryk_owner/Jump.fbx", "brax/Jump.fbx", "extra2/Unarmed Jump Running.fbx"),
+        PK("Jump", false, true, "patryk_owner/Jump.fbx"),
         PK("EnteringCar", false, true, "patryk_owner/Entering Car.fbx"),
         PK("GoalkeeperDivingSave", false, true, "patryk_owner/Goalkeeper Diving Save.fbx"),
         PK("GoalkeeperCatch", false, true, "patryk_owner/Goalkeeper Catch.fbx"),
     };
-    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Run", "Punch", "Kick", "Jump" };
+    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Run", "Punch", "Kick", "Jump", "EnteringCar" };
 
     // „mixamorig:LeftArm”, „mixamorig1:LeftArm”, „mixamorigLeftArm” → „LeftArm”
     static string PatrykKosc(string n)
@@ -183,7 +183,7 @@ public static partial class BraxClaudeOsiedle
                         " stopa_max=" + w.stopaMax.ToString("F1") +
                         "°. Ruch nie spełnia kontroli nóg; wstrzymano wadliwą animację.");
             }
-            if (bledy > 0) Debug.LogWarning("BRAXHORN_PATRYK_KOSCI DO SPRAWDZENIA: " + bledy + " błędów — " + raportTestu);
+            if (bledy > 0) throw new InvalidOperationException("BRAXHORN_PATRYK_KOSCI: " + bledy + " błędów — " + raportTestu);
 
             var idleTest = anim.GetClip("Idle");
             idleTest.SampleAnimation(hero, 0f);
