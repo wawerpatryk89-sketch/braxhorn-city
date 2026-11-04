@@ -24,7 +24,7 @@ env:
   PAMIEC_REJONOW: osiedle
 concurrency:
   group: claude-region-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   source-imports:
     if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-audyt-20261104') }}
@@ -774,6 +774,27 @@ jobs:
           for i in 1 2 3 4 5 6; do gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber "$f" && { ok=1; break; }; sleep 30; done
           if [ $ok = 0 ]; then gh release view "$REL" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -qx "$f" || { echo "NIE WYSLANO $f"; exit 1; }; fi
         done
+    - name: ZABEZPIECZ ZATWIERDZONY APK — niezaleznie od pozniejszego cache i wydania
+      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' }}
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: osiedle-apk-${{ github.run_id }}-${{ github.run_attempt }}
+        path: |
+          build/Android/braxhorn-osiedle.apk
+          build/Android/braxhorn-miastogl.apk
+          build/Android/braxhorn-miasto.apk
+          unity-city/Assets/PlayableGenerated/build-size*.txt
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 14
+    - name: Dostawa APK w podsumowaniu osiedla
+      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' }}
+      run: |
+        echo '### APK skompilowane — dostęp do testów' >> "$GITHUB_STEP_SUMMARY"
+        echo "- Commit: \`$GITHUB_SHA\`" >> "$GITHUB_STEP_SUMMARY"
+        echo "- [APK w draft release — wymaga uprawnień właściciela](https://github.com/$GITHUB_REPOSITORY/releases/tag/untagged-9dc36278be4a6c587fa6)" >> "$GITHUB_STEP_SUMMARY"
+        echo "- [Kopia Actions artifact (gdy draft niedostępny)](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID#artifacts)" >> "$GITHUB_STEP_SUMMARY"
+        echo '- Późniejszy błąd cache/backup nie cofa kompilacji; status release i dostęp trzeba potwierdzić osobno.' >> "$GITHUB_STEP_SUMMARY"
     - name: Raport kontroli aktualizacji osiedla
       if: always()
       continue-on-error: true
@@ -808,7 +829,9 @@ jobs:
           unity-city/Assets/Source/Claude/Osiedle/sky/niebo_odbicia.jpg
         key: ${{ steps.rejon.outputs.klucz }}
     - name: Preserve immutable encrypted content baseline after successful APK
+      # Backup jest opcjonalny: nie moze uniewaznic poprawnie wydanego APK.
       if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      continue-on-error: true
       env:
         GH_TOKEN: ${{ github.token }}
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
