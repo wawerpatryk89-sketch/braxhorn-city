@@ -1116,7 +1116,24 @@ public static class BraxRegionTylyB
         p.MinMax(new Vector3(hx0, y - .3f, hz0), new Vector3(hx1, y, sz0)); p.MinMax(new Vector3(hx0, y - .3f, sz1), new Vector3(hx1, y, hz1));
         p.MinMax(new Vector3(hx0, y - .3f, sz0), new Vector3(sx0, y, sz1)); p.MinMax(new Vector3(sx1, y - .3f, sz0), new Vector3(hx1, y, sz1));
         p.Obiekt("Taras: deski", R, deska, false, false);
-        BraxRegionMeble.Kolizja(R, "Taras: kolizja", new Vector3((hx0 + hx1) * .5f, y - .15f, (hz0 + hz1) * .5f), new Vector3(hx1 - hx0, .3f, hz1 - hz0));
+        // KRYTYCZNE — poprzedni BoxCollider obejmował CAŁY dach, również
+        // otwór kabiny (niewidzialna posadzka w szybie). Odtwarzamy dokładnie
+        // cztery segmenty, które są już widoczne w geometrii tarasu.
+        // Nie nakładamy niczego na źródłową podłogę: jedynie kolizja = deski.
+        void KolTaras(string nazwa, float xa, float xb, float za, float zb)
+        {
+            if (xb <= xa || zb <= za) return;
+            BraxRegionMeble.Kolizja(R, nazwa,
+                new Vector3((xa + xb) * .5f, y - .15f, (za + zb) * .5f),
+                new Vector3(xb - xa, .3f, zb - za));
+        }
+        KolTaras("Taras: kolizja południowej części", hx0, hx1, hz0, sz0);
+        KolTaras("Taras: kolizja północnej części", hx0, hx1, sz1, hz1);
+        KolTaras("Taras: kolizja zachodniego przejścia", hx0, sx0, sz0, sz1);
+        KolTaras("Taras: kolizja wschodniego przejścia", sx1, hx1, sz0, sz1);
+        Debug.Log("BRAXHORN_TOWER_TARAS 4 segmenty podłogi; otwór windy " +
+            (sx1 - sx0).ToString("F2") + "×" + (sz1 - sz0).ToString("F2") +
+            " m bez niewidzialnej kolizji");
         // kiosk windy: daszek nad szybem (ściany szybu do y + 3.6 m)
         var ki = new BraxRegionMeble.Bud(); ki.MinMax(new Vector3(sx0 - .4f, y + 3.6f, sz0 - 1.4f), new Vector3(sx1 + .4f, y + 3.85f, sz1 + .4f)); ki.Obiekt("Taras: dach kiosku windy", R, alu, false, true);
         // balustrada szklana 1.1 m × k (słupki co 1.5 m, szyby, pochwyt) z kolizją 1.5 m
