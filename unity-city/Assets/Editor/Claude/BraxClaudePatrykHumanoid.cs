@@ -32,37 +32,6 @@ public static partial class BraxClaudeOsiedle
         return f.normalized;
     }
 
-    // Retarget Humanoid potrafi obrócić obie kostki o 150–180° mimo
-    // prawidłowej siatki i kości w modelu źródłowym. Koryguj TYLKO obroty
-    // stóp w klipach chodzenia i biegu, nie obracaj bioder, ud ani wiązań
-    // SkinMeshRenderer. Obrót wokół osi świata Y zachowuje wygięcie
-    // stopy góra/dół oraz długości kości.
-    static float PatrykWyprostujStopy(List<Transform> bones, Vector3 naturalForward)
-    {
-        Transform B(string key) => PatrykZnajdz(bones, key);
-        var lu = B("LeftUpLeg"); var ru = B("RightUpLeg");
-        if (!lu || !ru) throw new InvalidOperationException("Patryk chod/bieg: brak kości bioder");
-        Vector3 prawo = Vector3.ProjectOnPlane(ru.position - lu.position, Vector3.up);
-        if (prawo.sqrMagnitude < 1e-8f) throw new InvalidOperationException("Patryk chod/bieg: osie bioder zerowe");
-        Vector3 forward = Vector3.Cross(prawo.normalized, Vector3.up).normalized;
-        if (Vector3.Dot(forward, naturalForward) < 0f) forward = -forward;
-        float maks = 0f;
-        foreach (string side in new[] { "Left", "Right" })
-        {
-            var foot = B(side + "Foot"); var toe = B(side + "ToeBase");
-            if (!foot || !toe) throw new InvalidOperationException("Patryk chod/bieg: brak Foot/ToeBase " + side);
-            Vector3 dir = Vector3.ProjectOnPlane(toe.position - foot.position, Vector3.up);
-            if (dir.sqrMagnitude < 1e-8f) continue;
-            float delta = Vector3.SignedAngle(dir.normalized, forward, Vector3.up);
-            if (Mathf.Abs(delta) > 38f)
-            {
-                foot.rotation = Quaternion.AngleAxis(delta, Vector3.up) * foot.rotation;
-                maks = Mathf.Max(maks, Mathf.Abs(delta));
-            }
-        }
-        return maks;
-    }
-
     // Keep the model's relaxed bind pose. No fighting clip is used before an attack.
     static AnimationClip PatrykSpokojny(GameObject hero, List<PatrykStan> rest)
         => PatrykPozaStala(hero, rest, "Idle", false);
@@ -172,10 +141,6 @@ public static partial class BraxClaudeOsiedle
             writer.GetHumanPose(ref targetRest);
             Vector3 hipsRest = hips.localPosition;
             HumanPose pose = new HumanPose();
-            bool lokomocja = spec.nazwa == "Walk" || spec.nazwa == "Run";
-            PatrykSpoczynek(rest);
-            Vector3 naturalForward = PatrykPrzodStop(bones);
-            float maxObrotStopy = 0f; int poprawioneKlatki = 0;
             Vector3 Sample(float time)
             {
                 playable.SetTime(time); graph.Evaluate(0);
@@ -195,11 +160,6 @@ public static partial class BraxClaudeOsiedle
                 pose.bodyPosition = targetRest.bodyPosition + motion;
                 PatrykSpoczynek(rest);
                 writer.SetHumanPose(ref pose);
-                if (lokomocja)
-                {
-                    float obr = PatrykWyprostujStopy(bones, naturalForward);
-                    if (obr > 0f) { poprawioneKlatki++; maxObrotStopy = Mathf.Max(maxObrotStopy, obr); }
-                }
                 if(spec.wMiejscu) hips.localPosition=new Vector3(hipsRest.x,hips.localPosition.y,hipsRest.z);
                 for (int b = 0; b < bones.Count; b++)
                 {
@@ -222,14 +182,9 @@ public static partial class BraxClaudeOsiedle
             for (int axis = 0; axis < 3; axis++) result.SetCurve(hipsPath, typeof(Transform), "localPosition." + "xyz"[axis],
                 PatrykKrzywaZ(times, positions.Select(p => p[axis]).ToArray(), false));
             result.EnsureQuaternionContinuity();
-            if (!zapisz) { info = " (próba, bez zapisu), stopy: korekta " + poprawioneKlatki + "/" + count; return result; }
+            if (!zapisz) { info = " Unity Humanoid → Legacy, bez korekty kostek"; return result; }
             ZapiszKlipPatryka(result);
-            info = " Unity Humanoid → Legacy, " + count + " próbek; retarget stóp="
-                + poprawioneKlatki + "/" + count + " maks=" + maxObrotStopy.ToString("F1") + "°";
-            Debug.Log("BRAXHORN_PATRYK_STOPY_RETARGET klip=" + spec.nazwa +
-                      " poprawione_klatki=" + poprawioneKlatki +
-                      " maks_obrot=" + maxObrotStopy.ToString("F1") +
-                      "° (tylko kostki, oryginalne bindposes bez zmian)");
+            info = " Unity Humanoid → Legacy, " + count + " próbek; bez korekty kostek";
             return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + spec.nazwa + ".anim");
         }
         finally
@@ -361,9 +316,54 @@ public static partial class BraxClaudeOsiedle
         var w = new NogiWynik();
         PatrykSpoczynek(rest);
         Vector3 originalForward=PatrykPrzodStop(kosci);
-        for (int i = 0; i < klatek; i++) { clip.SampleAnimation(hero, clip.length * i / klatek); PatrykNogiKlatka(kosci, w, originalForward); }
+        for (int i = 0; i < klatek; i++) { clip.SampleAnimation(hero, clip.length * i / Mathf.Max(1, klatek - 1)); PatrykNogiKlatka(kosci, w, originalForward); }
         PatrykSpoczynek(rest);
         return w;
+    }
+
+    // Validate the actual baked clip for every source/avatar pair. A successful
+    // bake alone says nothing about the legs. Never repair a rejected pose by
+    // rotating only its ankles; that conceals a rig mismatch and jumps at thresholds.
+    static AnimationClip PatrykWybierzLokomocje(GameObject hero, Avatar imported, Avatar tPose,
+        Transform hips, List<Transform> bones, List<PatrykStan> rest, PatrykKlip spec, out string report)
+    {
+        var attempts = new List<string>();
+        foreach (string relative in spec.zrodla)
+        {
+            string path = PatrykRuchy + "/" + relative;
+            if (!System.IO.File.Exists(path)) { attempts.Add(relative + ": brak źródła"); continue; }
+            foreach (var (avatar, label) in new[] { (imported, "import"), (tPose, "T-poza") })
+            {
+                if (!avatar) continue;
+                AnimationClip candidate = null;
+                try
+                {
+                    candidate = PatrykHumanoid(hero, avatar, hips, bones, rest, path, spec, out _, false);
+                    // Sample at least at the bake frequency, including both endpoints.
+                    // Source mesh and bindposes stay intact.
+                    int frames = Mathf.Max(16, Mathf.CeilToInt(candidate.length * candidate.frameRate) + 1);
+                    var legs = PatrykTestNog(hero, bones, rest, candidate, frames);
+                    int errors = PatrykTestKosci(hero, bones, rest,
+                        new List<AnimationClip> { candidate }, out string boneReport);
+                    string evidence = spec.nazwa + "←" + relative + " awatar=" + label + " " + legs.Opis() + " " + boneReport;
+                    if (legs.klatki == 0 || legs.Kara != 0 || errors != 0)
+                    {
+                        attempts.Add(evidence);
+                        Debug.LogWarning("BRAXHORN_PATRYK_KANDYDAT ODRZUCONY " + evidence);
+                        continue;
+                    }
+                    report = evidence;
+                    ZapiszKlipPatryka(candidate);
+                    candidate = null; // persisted or destroyed by ZapiszKlipPatryka
+                    Debug.Log("BRAXHORN_PATRYK_KANDYDAT PASS " + evidence);
+                    return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + spec.nazwa + ".anim");
+                }
+                catch (Exception e) { attempts.Add(relative + "/" + label + ": " + e.Message); }
+                finally { if (candidate) Object.DestroyImmediate(candidate); PatrykSpoczynek(rest); }
+            }
+        }
+        throw new InvalidOperationException("Brak poprawnego ruchu " + spec.nazwa +
+            ". Nie użyto starej animacji ani sztucznego prostowania stóp. " + string.Join(" | ", attempts));
     }
 
     // Wybór awatara: próbne przeniesienie Walk i Run oboma (bez zapisu) — wygrywa mniejsza liczba naruszeń (remis: T-poza).

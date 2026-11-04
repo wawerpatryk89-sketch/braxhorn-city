@@ -11,7 +11,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
 {
     const string Katalog = "Assets/Source/Prywatne/";
 
-    public override uint GetVersion() { return 5; }
+    public override uint GetVersion() { return 6; }
 
     void OnPreprocessModel()
     {
@@ -27,6 +27,8 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
             mi.animationType = ModelImporterAnimationType.Human;
             mi.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
             mi.importAnimation = false;
+            mi.meshCompression = ModelImporterMeshCompression.Off;
+            mi.importNormals = ModelImporterNormals.Import; // source shading, no smoothed replacement
             mi.optimizeGameObjects = false;
             mi.isReadable = true;                                   // pomiar wzrostu z wierzchołków (10 tys. — ~1 MB, bez znaczenia)
             mi.importTangents = ModelImporterTangents.CalculateMikk;  // mapa normalnych w Braxhorn/HeroPremium
@@ -59,6 +61,7 @@ public sealed class BraxPrywatneImport : AssetPostprocessor
             ti.crunchedCompression = false;
             ti.npotScale = TextureImporterNPOTScale.None;
             ti.streamingMipmaps = false;
+            ti.convertToNormalmap = false; // supplied tangent normal, never derive a height map
             var a = ti.GetPlatformTextureSettings("Android");
             a.overridden = true; a.maxTextureSize = ti.maxTextureSize; a.format = TextureImporterFormat.ASTC_4x4; a.compressionQuality = 50;
             ti.SetPlatformTextureSettings(a);

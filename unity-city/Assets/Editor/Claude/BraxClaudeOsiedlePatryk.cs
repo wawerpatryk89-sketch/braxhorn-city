@@ -124,7 +124,7 @@ public static partial class BraxClaudeOsiedle
             {
                 tPoza = PatrykAwatarTPoza(wzor, avatar, model, out string opisTPozy);
                 awatarRuchu = PatrykWybierzAwatar(hero, avatar, tPoza, hips, kosci, spoczynek, out string porownanie);
-                Debug.Log("BRAXHORN_PATRYK_RETARGET " + opisTPozy + " | " + porownanie);
+                Debug.Log("BRAXHORN_PATRYK_RETARGET " + opisTPozy + " | " + porownanie + "; chód/bieg: osobna kontrola każdego źródła i awatara");
             }
             catch (Exception e)
             {
@@ -135,7 +135,12 @@ public static partial class BraxClaudeOsiedle
             foreach (var k in KlipyPatryka)
             {
                 AnimationClip gotowy = null;
-                foreach (var z in k.zrodla)
+                if (k.nazwa == "Walk" || k.nazwa == "Run")
+                {
+                    gotowy = PatrykWybierzLokomocje(hero, avatar, tPoza, hips, kosci, spoczynek, k, out string wybor);
+                    opis.Add(wybor);
+                }
+                else foreach (var z in k.zrodla)
                 {
                     string sciezka = PatrykRuchy + "/" + z;
                     if (!File.Exists(sciezka)) continue;
@@ -165,15 +170,15 @@ public static partial class BraxClaudeOsiedle
             {
                 var w = PatrykTestNog(hero, kosci, spoczynek, c);
                 bool ok = w.stopaPonad == 0 && w.koloTyl == 0 && w.przeprost == 0 && w.wBok == 0;
-                string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=" + (awatarRuchu == tPoza ? "T-poza" : "import") + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
+                string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=sprawdzony_dla_klipu" + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
                 if (ok) Debug.Log(l); else Debug.LogWarning(l + " — DO SPRAWDZENIA W APK");
                 // Błąd ze sprawdzonego buildu #41812927670: stopy 159°/174°.
                 // Tak duże odchylenie po retargetingu oznacza wadliwą
                 // animację — nie wydawaj APK z obróconymi butami.
-                if (w.stopaMax > 85f)
+                if (!ok || w.klatki == 0)
                     throw new InvalidOperationException("BRAXHORN_PATRYK_STOPY_BLOKADA klip=" + c.name +
                         " stopa_max=" + w.stopaMax.ToString("F1") +
-                        "° > 85°. Korygowanie kostek nie wystarczyło, wstrzymano wadliwy model w buildzie.");
+                        "°. Ruch nie spełnia kontroli nóg; wstrzymano wadliwą animację.");
             }
             if (bledy > 0) Debug.LogWarning("BRAXHORN_PATRYK_KOSCI DO SPRAWDZENIA: " + bledy + " błędów — " + raportTestu);
 
@@ -237,13 +242,15 @@ public static partial class BraxClaudeOsiedle
         var typ = normalna ? TextureImporterType.NormalMap : TextureImporterType.Default; bool srgb = !(liniowa || normalna);
         int limit = normalna || !liniowa ? 4096 : 2048;
         var android = imp.GetPlatformTextureSettings("Android");
+        var ignoreLimit = typeof(TextureImporter).GetProperty("ignoreMipmapLimit");
+        bool limited = ignoreLimit != null && ignoreLimit.CanRead && !(bool)ignoreLimit.GetValue(imp);
         bool wrongAndroid = !android.overridden || android.maxTextureSize != limit || android.format != TextureImporterFormat.ASTC_4x4 || android.compressionQuality != 50;
         if (imp.textureType != typ || imp.sRGBTexture != srgb || imp.maxTextureSize != limit || !imp.mipmapEnabled
-            || imp.textureCompression != TextureImporterCompression.CompressedHQ || imp.crunchedCompression || imp.streamingMipmaps || wrongAndroid)
+            || imp.textureCompression != TextureImporterCompression.CompressedHQ || imp.crunchedCompression || imp.streamingMipmaps || wrongAndroid || limited || imp.convertToNormalmap)
         {
             imp.textureType = typ; imp.sRGBTexture = srgb; imp.maxTextureSize = limit; imp.mipmapEnabled = true; imp.anisoLevel = 8;
             imp.textureCompression = TextureImporterCompression.CompressedHQ; imp.crunchedCompression = false;
-            imp.streamingMipmaps = false; imp.npotScale = TextureImporterNPOTScale.None;
+            imp.streamingMipmaps = false; imp.convertToNormalmap = false; imp.npotScale = TextureImporterNPOTScale.None;
             imp.compressionQuality = 50;
             android.overridden = true; android.maxTextureSize = limit; android.format = TextureImporterFormat.ASTC_4x4; android.compressionQuality = 50;
             imp.SetPlatformTextureSettings(android);
