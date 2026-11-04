@@ -6,6 +6,7 @@ using UnityEngine;
 // Wszystkie punkty trasy i przystanki sa serializowane przez generator miasta.
 // Wsiadanie przez AKCJA z peronu, wysiadanie wylacznie na postoju.
 // Niczego nie doklejamy do starej nawierzchni: fizyczne szyny buduje generator.
+[DefaultExecutionOrder(-150)] // wagon aktualizuje pasażera przed LateUpdate kamery Braxa
 [RequireComponent(typeof(Rigidbody))]
 public sealed class BraxTramwajT1 : MonoBehaviour, IBraxInterakcja
 {
