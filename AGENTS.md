@@ -11,3 +11,9 @@
 7. Raportować osobno: kod, preflight, kompilację, opublikowany APK oraz test na Androidzie. Dowód: link runu, SHA i logi. Bez testu nie deklarować, że działa.
 
 **Nadrzędna zasada:** „My decydujemy, kiedy build uruchamiamy i kiedy go naprawiamy”. Bez aktualnej zgody — **ZERO buildów i automatycznych ponowień**.
+
+## WYMÓG WŁAŚCICIELA: APK PRZED BACKUPEM — 4.11.2026
+
+Dotyczy wszystkich wykonawców i rejonów: **Miasto Mistrzów/miasto, osiedle, obóz, wyspa i arena**. Pełna reguła: https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13.
+
+**Skompilowany i zweryfikowany APK musi zostać zabezpieczony w Actions artifact i udostępniony jako testowy APK przed rozpoczęciem opcjonalnego zapisu Library, checkpointów i baz aktualizacji.** Późniejsze błędy cache/backup raportuj jako warning, nie zabieraj właścicielowi już gotowego APK. Nie kasuj jedynej kopii. W raporcie zawsze konkretny bieżący SHA, numer runu, link, wariant, package ID i informacja, czy release jest draftem wymagającym dostępu. Nie nazywaj testem Androida samej kompilacji. Nie pokazuj starych buildów jako najnowszych. Zapis polityki nie jest zgodą na build, automatyczny start ani ponowienia.
