@@ -22,7 +22,9 @@ internal static class BraxMiastoOdbior
         int J(string p) => statki.Count(v => v && v.name.StartsWith(p, StringComparison.Ordinal));
         int jachty = J("Marina: jacht"), motorowki = J("Marina: motorówka"), skutery = J("Marina: skuter wodny");
         string mar = "BRAXHORN_MIASTO_ODBIOR marina jachty=" + jachty + " motorowki=" + motorowki + " skutery=" + skutery;
-        if (jachty < 3) Blad(mar + " — NIEGOTOWE: minimum 3 jachty"); else Debug.Log(mar);
+        if (jachty < 3 || motorowki < 6 || skutery < 4)
+            Blad(mar + " — NIEGOTOWE: minimum 3 jachty, 6 motorówek i 4 skutery");
+        else Debug.Log(mar);
 
         var renderery = cityRoot.GetComponentsInChildren<MeshRenderer>(true);
         bool Mural(string nazwa) => renderery.Any(r => r && r.enabled && r.name == nazwa &&

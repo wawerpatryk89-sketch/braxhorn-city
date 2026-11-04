@@ -253,36 +253,8 @@ jobs:
       if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
       run: |
         set -euo pipefail
-        root=unity-city/Assets/Source
-        test -s "$root/Claude/Osiedle/detail/pokoje.png" || { echo '::error::Nie ma atlasu pokojow — czarne fasady, zatrzymano build'; exit 1; }
-        # Skybox może mieć wersję 8K albo 4K; dowolna poprawna wystarczy.
-        if [ ! -s "$root/Claude/PolyHaven/sky/kloofendal_8k.jpg" ] && \
-           [ ! -s "$root/Claude/PolyHaven/sky/kloofendal_4k.jpg" ]; then
-          echo '::error::Nie ma oryginalnego nieba 360 w 4K ani 8K'
-          exit 1
-        fi
-        sklep="$root/Prywatne/Miasto/miasto_sklepy"
-        test -d "$sklep" || { echo '::error::Brak odszyfrowanej paczki sklepow'; exit 1; }
-        count=0
-        for i in $(seq -w 1 24); do
-          test -s "$sklep/lek_$i.glb" || { echo "::error::Brak realnego opakowania apteki lek_$i.glb"; exit 1; }
-          count=$((count + 1))
-        done
-        for i in 1 2 3 4; do
-          test -s "$sklep/odz_whey_$i.glb" || { echo "::error::Brak etykiety/modelu odzywki odz_whey_$i.glb"; exit 1; }
-        done
-        # T1: nie wolno 5h kompilować APK bez jedynego wagonu i prawdziwych wiat.
-        test -s "$root/Prywatne/Miasto/miasto_pojazdy/tramwaj_caf.glb" || { echo '::error::Brak tramwaj_caf.glb — petla T1 bez pojazdu'; exit 1; }
-        python3 unity-tools/claude/check_tram_glb.py "$root/Prywatne/Miasto/miasto_pojazdy/tramwaj_caf.glb"
-        # M1: oryginał właściciela jest już w repo po optymalizacji 218 -> 25 MB.
-        python3 unity-tools/claude/check_metro_glb.py
-        # Szyldy i kawiarnia zostały już zweryfikowane w poprzednim kroku CI.
-        # Nie pobieramy tych samych modeli i nie wykonujemy tych samych testów dwa razy.
-        test -s "$root/Prywatne/Miasto/miasto_wyposazenie/miasto_wyposazenie.glb" || { echo '::error::Brak oryginalnych wiat tramwaju'; exit 1; }
-        # Oryginalne grafiki (JPG/JPEG/PNG, oba dostarczone katalogi) zostały
-        # już rygorystycznie zweryfikowane w check_signage.py; nie odrzucaj
-        # poprawnych plików PNG przez drugi, stary test pojedynczej ścieżki.
-        echo "BRAXHORN_MIASTO_PREFLIGHT OK: pokoje.png, niebo360=4K, leki=$count, odzywki=4, tramwaj CAF, wiaty, oba murale"
+        python3 -m unittest discover -s unity-tools/claude -p 'test_check_*.py' -q
+        python3 unity-tools/claude/check_city_assets.py
     - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
       run: |
         # sparse checkout po sciezkach (bez calego repo), TGA 2048 -> PNG (kolor 1024, normalne 512), w alfie ciala maska ubran
@@ -639,36 +611,8 @@ jobs:
       if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
       run: |
         set -euo pipefail
-        root=unity-city/Assets/Source
-        test -s "$root/Claude/Osiedle/detail/pokoje.png" || { echo '::error::Nie ma atlasu pokojow — czarne fasady, zatrzymano build'; exit 1; }
-        # Skybox może mieć wersję 8K albo 4K; dowolna poprawna wystarczy.
-        if [ ! -s "$root/Claude/PolyHaven/sky/kloofendal_8k.jpg" ] && \
-           [ ! -s "$root/Claude/PolyHaven/sky/kloofendal_4k.jpg" ]; then
-          echo '::error::Nie ma oryginalnego nieba 360 w 4K ani 8K'
-          exit 1
-        fi
-        sklep="$root/Prywatne/Miasto/miasto_sklepy"
-        test -d "$sklep" || { echo '::error::Brak odszyfrowanej paczki sklepow'; exit 1; }
-        count=0
-        for i in $(seq -w 1 24); do
-          test -s "$sklep/lek_$i.glb" || { echo "::error::Brak realnego opakowania apteki lek_$i.glb"; exit 1; }
-          count=$((count + 1))
-        done
-        for i in 1 2 3 4; do
-          test -s "$sklep/odz_whey_$i.glb" || { echo "::error::Brak etykiety/modelu odzywki odz_whey_$i.glb"; exit 1; }
-        done
-        # T1: nie wolno 5h kompilować APK bez jedynego wagonu i prawdziwych wiat.
-        test -s "$root/Prywatne/Miasto/miasto_pojazdy/tramwaj_caf.glb" || { echo '::error::Brak tramwaj_caf.glb — petla T1 bez pojazdu'; exit 1; }
-        python3 unity-tools/claude/check_tram_glb.py "$root/Prywatne/Miasto/miasto_pojazdy/tramwaj_caf.glb"
-        # M1: oryginał właściciela jest już w repo po optymalizacji 218 -> 25 MB.
-        python3 unity-tools/claude/check_metro_glb.py
-        # Szyldy i kawiarnia zostały już zweryfikowane w poprzednim kroku CI.
-        # Nie pobieramy tych samych modeli i nie wykonujemy tych samych testów dwa razy.
-        test -s "$root/Prywatne/Miasto/miasto_wyposazenie/miasto_wyposazenie.glb" || { echo '::error::Brak oryginalnych wiat tramwaju'; exit 1; }
-        # Oryginalne grafiki (JPG/JPEG/PNG, oba dostarczone katalogi) zostały
-        # już rygorystycznie zweryfikowane w check_signage.py; nie odrzucaj
-        # poprawnych plików PNG przez drugi, stary test pojedynczej ścieżki.
-        echo "BRAXHORN_MIASTO_PREFLIGHT OK: pokoje.png, niebo360=4K, leki=$count, odzywki=4, tramwaj CAF, wiaty, oba murale"
+        python3 -m unittest discover -s unity-tools/claude -p 'test_check_*.py' -q
+        python3 unity-tools/claude/check_city_assets.py
     - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
       run: |
         # sparse checkout po sciezkach (bez calego repo), TGA 2048 -> PNG (kolor 1024, normalne 512), w alfie ciala maska ubran

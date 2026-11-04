@@ -234,8 +234,11 @@ public static partial class BraxRegionMiastoB
                 t.name.IndexOf("door_right", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 t.name.IndexOf("drzwi_lew", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 t.name.IndexOf("drzwi_praw", StringComparison.OrdinalIgnoreCase) >= 0) &&
-                (t.GetComponent<MeshFilter>() || t.GetComponent<SkinnedMeshRenderer>()))
-            .Take(12).ToArray();
+                (t.GetComponentsInChildren<MeshFilter>(true).Any(f => f && f.sharedMesh) ||
+                 t.GetComponentsInChildren<SkinnedMeshRenderer>(true).Any(r => r && r.sharedMesh)))
+            .ToArray();
+        // Keep the named moving root, not both it and a nested named child.
+        doorNodes = doorNodes.Where(t => !doorNodes.Any(parent => parent != t && t.IsChildOf(parent))).ToArray();
         driver.skrzydlaDrzwi = doorNodes;
         driver.kierunkiDrzwi = new Vector3[doorNodes.Length];
         for (int i = 0; i < doorNodes.Length; i++)

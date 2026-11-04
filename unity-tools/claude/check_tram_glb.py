@@ -32,6 +32,41 @@ def load(path: pathlib.Path):
         return data
 
 
+def door_candidates(data):
+    nodes, meshes = data.get("nodes", []), data.get("meshes", [])
+    parents = {}
+    for i, node in enumerate(nodes):
+        for child in node.get("children", []):
+            if not isinstance(child, int) or not 0 <= child < len(nodes):
+                raise ValueError("Niepoprawny indeks dziecka GLB")
+            if child in parents:
+                raise ValueError("Wezel GLB ma wielu rodzicow")
+            parents[child] = i
+    def geometry(index, visiting):
+        if index in visiting:
+            raise ValueError("Cykl w hierarchii GLB")
+        node = nodes[index]
+        mesh = node.get("mesh")
+        own = isinstance(mesh, int) and 0 <= mesh < len(meshes) and bool(meshes[mesh].get("primitives"))
+        descendants = [geometry(c, visiting | {index}) for c in node.get("children", [])]
+        return own or any(descendants)
+    named = {i for i, n in enumerate(nodes) if any(key in str(n.get("name", "")).lower() for key in ROOTS)}
+    result = []
+    for i in sorted(named):
+        ancestor, seen, nested = parents.get(i), {i}, False
+        while ancestor is not None:
+            if ancestor in seen:
+                raise ValueError("Cykl w hierarchii GLB")
+            seen.add(ancestor)
+            nested |= ancestor in named
+            ancestor = parents.get(ancestor)
+        # Imported Sketchfab door names belong to parent transforms; their
+        # Object_* children hold the actual meshes. Count each moving root once.
+        if not nested and geometry(i, set()):
+            result.append((i, nodes[i]["name"]))
+    return result
+
+
 def main():
     path = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT
     if not path.is_file() or path.stat().st_size < 1024:
@@ -40,13 +75,7 @@ def main():
     nodes = data.get("nodes", [])
     meshes = data.get("meshes", [])
     names = [str(n.get("name", "")) for n in nodes]
-    candidates = [
-        (i, n["name"])
-        for i, n in enumerate(nodes)
-        if isinstance(n.get("name"), str)
-        and any(key in n["name"].lower() for key in ROOTS)
-        and isinstance(n.get("mesh"), int)
-    ]
+    candidates = door_candidates(data)
     diagnostics = {
         "plik": str(path),
         "bajty": path.stat().st_size,
@@ -60,7 +89,7 @@ def main():
     if len(candidates) < 2:
         print(
             "::error::TRAM_T1_DRZWI_NIEGOTOWE: oryginalny CAF nie ma minimum dwoch"
-            " wydzielonych siatek door_left/door_right; bez tego nie mozna"
+            " wydzielonych grup door_left/door_right z geometria; bez tego nie mozna"
             " realistycznie otwierac drzwi ani przepuszczac NPC."
         )
         return 3
