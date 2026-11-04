@@ -48,27 +48,45 @@ public static partial class BraxClaudeOsiedle
         return l;
     }
 
-    static void Auta()
+    static void Auta(bool tylkoAutoPatryka = false)
     {
         lakiery.Clear(); szablonSwiatla.Clear(); quadSwiatla = null; matStop = matMigacz = matDym = null; autoSiatki = 0;
         raportSkaliAut.Clear();
-        var modele = AutaModele(); if (modele.Count == 0) return;
+        var modele = AutaModele();
+        if (modele.Count == 0)
+        {
+            if (tylkoAutoPatryka) throw new InvalidOperationException("Osiedle: brak modeli samochodow w Assets/Source/Claude/Auta");
+            return;
+        }
         var tmp = new GameObject("auta — szablony (tymczasowe)").transform;
         var szablony = new List<AutoSzablon>();
-        foreach (var src in modele)
+        try
         {
-            if (AutaPominiete.Contains(src.name))
+            foreach (var src in modele)
             {
-                rep.notes.Add("auto " + src.name + " pominięte: supersamochód z kogutem/POLICE — nierealny jako auto osiedla i jako radiowóz");
-                Debug.Log("BRAXHORN_AUTA_POMINIETE " + src.name + " (supersamochód z kogutem / napisem POLICE)");
-                continue;
+                if (AutaPominiete.Contains(src.name))
+                {
+                    rep.notes.Add("auto " + src.name + " pominięte: supersamochód z kogutem/POLICE — nierealny jako auto osiedla i jako radiowóz");
+                    Debug.Log("BRAXHORN_AUTA_POMINIETE " + src.name + " (supersamochód z kogutem / napisem POLICE)");
+                    continue;
+                }
+                try { var s = PrzygotujAuto(src, tmp); if (s != null) szablony.Add(s); else rep.notes.Add("DO POPRAWKI: auto " + src.name + " — brak siatek"); }
+                catch (Exception e) { rep.notes.Add("DO POPRAWKI: auto " + src.name + ": " + e.Message); Debug.LogError("BRAXHORN_AUTA błąd modelu " + src.name + ": " + e); }
             }
-            try { var s = PrzygotujAuto(src, tmp); if (s != null) szablony.Add(s); else rep.notes.Add("DO POPRAWKI: auto " + src.name + " — brak siatek"); }
-            catch (Exception e) { rep.notes.Add("DO POPRAWKI: auto " + src.name + ": " + e.Message); Debug.LogError("BRAXHORN_AUTA błąd modelu " + src.name + ": " + e); }
-        }
-        if (szablony.Count > 0)
-        {
+            if (szablony.Count == 0)
+            {
+                if (tylkoAutoPatryka) throw new InvalidOperationException("Osiedle: zadnego sportowego modelu auta nie da sie przygotowac");
+                rep.notes.Add("DO POPRAWKI: żaden model auta nie przygotowany");
+                return;
+            }
             RaportSkaliAut(szablony);
+            if (tylkoAutoPatryka)
+            {
+                // Tylko jedno auto gracza. Nie dopisuj calego ruchu ani innych aut
+                // przy kazdej poprawce osiedla — chroni wyglad i wydajnosc strefy.
+                AutoPatryka(szablony);
+                return;
+            }
             Guard("auta w ruchu (trasy, pierwszeństwo, test ruchu)", () => AutaWRuchu(szablony));
             Guard("prywatne auto Patryka pod areną", () => AutoPatryka(szablony));
             Guard("auta zaparkowane (zatoki, kolory, kolizje)", () => AutaZaparkowane(szablony));
@@ -76,8 +94,24 @@ public static partial class BraxClaudeOsiedle
             Guard("warsztat: auto na podnośniku", () => WarsztatAuto(szablony));
             Guard("autobusy (E23): linie A i B, przystanki na trasie", Autobusy);
         }
-        else rep.notes.Add("DO POPRAWKI: żaden model auta nie przygotowany");
-        UnityEngine.Object.DestroyImmediate(tmp.gameObject);
+        finally { UnityEngine.Object.DestroyImmediate(tmp.gameObject); }
+    }
+
+    // Wymagane przy przygotowaniu sceny Unity 6: auto ma nie tylko istniec w kodzie,
+    // lecz stac przy arenie i miec fotel, kolizje oraz naped fizyczny.
+    public static void DodajAutoPatrykaDoOsiedla()
+    {
+        if (!UnityEngine.Object.FindAnyObjectByType<BraxAutoGracza>())
+            Auta(true);
+        var samochod = UnityEngine.Object.FindAnyObjectByType<BraxAutoGracza>();
+        if (!samochod || !samochod.fotel || !samochod.obrys || !samochod.GetComponent<Rigidbody>())
+            throw new InvalidOperationException("Osiedle: nie utworzono kompletnego samochodu gracza przy BRAXHORN ARENA");
+        var odleglosc = new Vector2(samochod.transform.position.x - WejscieAreny.x,
+                                   samochod.transform.position.z - WejscieAreny.z).magnitude;
+        if (odleglosc > 40f)
+            throw new InvalidOperationException("Osiedle: samochod Patryka jest " + odleglosc.ToString("F1") + " m od wejscia BRAXHORN ARENA");
+        Debug.Log("BRAXHORN_AUTO_GRACZA_OK sportowe auto=" + samochod.name +
+                  " / drzwi kierowcy, przy BRAXHORN ARENA (" + odleglosc.ToString("F1") + " m), gotowe do interakcji AKCJA");
     }
 
     static Material Lakieruj(Material baza, int kolor)
