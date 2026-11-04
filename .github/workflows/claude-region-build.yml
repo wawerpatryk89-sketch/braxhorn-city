@@ -257,6 +257,7 @@ jobs:
         done
         # T1: nie wolno 5h kompilować APK bez jedynego wagonu i prawdziwych wiat.
         test -s "$root/Prywatne/Miasto/miasto_pojazdy/tramwaj_caf.glb" || { echo '::error::Brak tramwaj_caf.glb — petla T1 bez pojazdu'; exit 1; }
+        python3 unity-tools/claude/check_tram_glb.py "$root/Prywatne/Miasto/miasto_pojazdy/tramwaj_caf.glb"
         test -s "$root/Prywatne/Miasto/miasto_wyposazenie/miasto_wyposazenie.glb" || { echo '::error::Brak oryginalnych wiat tramwaju'; exit 1; }
         test -s "$root/Prywatne/Grafiki/szyldy/mural_nova.jpg" || { echo '::error::Brak oryginalnego muralu za DJ NOVA'; exit 1; }
         if [ ! -s "$root/Prywatne/Grafiki/billboardy/19.jpg" ] && [ ! -s "$sklep/billboardy/19.jpg" ]; then
