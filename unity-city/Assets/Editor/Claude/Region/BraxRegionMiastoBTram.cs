@@ -252,6 +252,9 @@ public static partial class BraxRegionMiastoB
         seat.tramOwner = driver;
         seat.label = "TRAMWAJ T1"; seat.surfaceY = YA + 1.1f * K;
         driver.miejsceGracza = seat;
+        var pasazerowie = pojazd.gameObject.AddComponent<BraxTramPasazerowie>();
+        pasazerowie.tram = driver;
+        pasazerowie.limit = 2; // tylko dwie dodatkowe osoby Rocketbox blisko kamery
 
         double dl = 0d;
         for (int i = 0; i < trasa.Length; i++)
