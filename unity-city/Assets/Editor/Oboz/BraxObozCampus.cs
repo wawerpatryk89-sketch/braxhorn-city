@@ -1,0 +1,232 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
+
+// Camp-only construction in the original metre coordinates, scaled once by K.
+public static partial class BraxObozEnvironment
+{
+    static Material campusAsphalt, campusPaving, campusSteel, campusRubber, campusMark;
+    static void CampusMaterials()
+    {
+        campusAsphalt = BraxObozMaterials.PublicPbr("clean_asphalt", 2.1f);
+        campusPaving = BraxObozMaterials.PublicPbr("concrete_pavers", 1.9f);
+        campusSteel = BraxObozMaterials.Plain("campus-antracyt", new Color(.045f,.055f,.06f), .38f, .7f);
+        campusRubber = BraxObozMaterials.Plain("campus-guma", new Color(.045f,.055f,.05f), .12f);
+        campusMark = BraxObozMaterials.Plain("campus-oznaczenia", new Color(.88f,.86f,.72f), .15f);
+    }
+    static void TrainingCampus()
+    {
+        CampusMaterials();
+        var pavilion=Group("Pawilon treningowy — otwarty, bez starej siłowni",root,P(0,0,51));
+        Box(pavilion,"Podest z kostki",new Vector3(0,.055f,0),new Vector3(52,.11f,30),campusPaving);
+        foreach(float x in new[]{-25f,-12.5f,0f,12.5f,25f})
+        foreach(float z in new[]{-14f,14f})
+        {
+            Box(pavilion,"Stopa słupa",new Vector3(x,.10f,z),new Vector3(.65f,.2f,.65f),campusSteel);
+            Box(pavilion,"Słup stalowy",new Vector3(x,2.8f,z),new Vector3(.22f,5.6f,.22f),campusSteel);
+        }
+        foreach(float z in new[]{-14f,14f}) Box(pavilion,"Belka drewniana",new Vector3(0,5.55f,z),new Vector3(52,.32f,.24f),wood);
+        foreach(float x in new[]{-25f,-12.5f,0f,12.5f,25f})
+            Box(pavilion,"Wiązar dachowy",new Vector3(x,5.7f,0),new Vector3(.24f,.4f,30),wood);
+        var roof=Box(pavilion,"Dach z okapem",new Vector3(0,5.95f,0),new Vector3(53,.18f,31),campusSteel);
+        roof.transform.localRotation=Quaternion.Euler(2,0,0);
+        foreach(float x in new[]{-24f,24f})
+            Cylinder(pavilion,"Rura spustowa",new Vector3(x,5.7f,14.7f),new Vector3(x,.2f,14.7f),.055f,campusSteel);
+        Ring("Ring 2",-12,51);
+        int first=bags.Count; Bags(12,51,false,2);
+        foreach(var bag in bags.Skip(first)) covered.Add(bag.transform);
+        Sign(pavilion,"BRAXHORN · OBÓZ TRENINGOWY",new Vector3(0,4.85f,-14.2f),12);
+        Station("Rozgrzewka i mobilność",-12,30,14,8,t=>{
+            for(int i=0;i<6;i++)Box(t,"Mata treningowa",new Vector3(-5+i*2,.10f,0),new Vector3(1.4f,.04f,2.2f),burgundy);
+        });
+        Station("Drążki",35,34,12,10,t=>{
+            for(int i=0;i<3;i++){
+                float x=-3.8f+i*3.8f,h=2.25f+i*.15f;
+                foreach(float side in new[]{-1f,1f})Cylinder(t,"Słupek drążka",new Vector3(x+side*1.35f,.08f,0),new Vector3(x+side*1.35f,h,0),.065f,campusSteel,true);
+                Cylinder(t,"Drążek chwytowy",new Vector3(x-1.35f,h,0),new Vector3(x+1.35f,h,0),.018f,metal,true);
+            }
+        });
+        Station("Poręcze",35,19,12,10,t=>{
+            foreach(float lane in new[]{-3f,3f})foreach(float side in new[]{-.32f,.32f}){
+                Cylinder(t,"Poręcz chwytowa",new Vector3(lane+side,1.25f,-1.5f),new Vector3(lane+side,1.25f,1.5f),.026f,metal,true);
+                foreach(float z in new[]{-1.3f,1.3f})Cylinder(t,"Podpora poręczy",new Vector3(lane+side,.05f,z),new Vector3(lane+side,1.25f,z),.05f,campusSteel,true);
+            }
+        });
+        Station("Wskoki — trzy wysokości",35,4,12,10,t=>{
+            for(int i=0;i<3;i++){
+                float h=.3f+i*.15f,x=-3.2f+i*3.2f;
+                Box(t,"Skrzynia plyometryczna",new Vector3(x,.08f+h*.5f,0),new Vector3(.9f,h,.8f),wood);
+                Box(t,"Powierzchnia antypoślizgowa",new Vector3(x,.09f+h,0),new Vector3(.9f,.025f,.8f),campusRubber);
+            }
+        });
+        Station("Pchanie sań — dwa tory",35,-18,12,26,t=>{
+            for(int i=0;i<3;i++)Box(t,"Linia toru",new Vector3(-5+i*5,.086f,0),new Vector3(.06f,.004f,23),campusMark,false);
+            for(int i=0;i<5;i++)Box(t,"Oznaczenie odległości",new Vector3(0,.088f,-10+i*5),new Vector3(10,.004f,.05f),campusMark,false);
+            foreach(float x in new[]{-2.5f,2.5f}){
+                Box(t,"Sanie — płozy",new Vector3(x,.16f,-9),new Vector3(1.2f,.14f,1.7f),campusSteel);
+                foreach(float side in new[]{-.45f,.45f})Cylinder(t,"Uchwyt sań",new Vector3(x+side,.2f,-9.5f),new Vector3(x+side,1.2f,-9.5f),.03f,metal,true);
+                for(int j=0;j<3;j++)Cylinder(t,"Obciążenie sań",new Vector3(x,.3f+j*.09f,-8.8f),new Vector3(x,.37f+j*.09f,-8.8f),.28f,campusRubber);
+            }
+        });
+        Station("Liny treningowe",12,28,12,10,t=>{
+            for(int lane=0;lane<2;lane++)foreach(float side in new[]{-.2f,.2f}){
+                float x=-3+lane*6+side;
+                for(int j=0;j<16;j++){
+                    float z=-3+j*.4f,next=z+.4f;
+                    Cylinder(t,"Lina",new Vector3(x+Mathf.Sin(j*.7f)*.12f,.12f,z),new Vector3(x+Mathf.Sin((j+1)*.7f)*.12f,.12f,next),.025f,rope);
+                }
+                Box(t,"Kotwa lin",new Vector3(x,.25f,3.5f),new Vector3(.18f,.5f,.18f),campusSteel);
+            }
+        });
+    }
+    static void Station(string label,float x,float z,float width,float depth,Action<Transform> build)
+    {
+        var t=Group("Stanowisko · "+label,root,P(x,0,z));
+        Box(t,"Podkład",new Vector3(0,.035f,0),new Vector3(width,.07f,depth),campusPaving);
+        Box(t,"Nawierzchnia gumowa",new Vector3(0,.075f,0),new Vector3(width-.3f,.01f,depth-.3f),campusRubber,false);
+        build(t);
+        float signWidth=Mathf.Min(width-1,8);
+        foreach(float side in new[]{-1f,1f})
+            Box(t,"Podpora tablicy",new Vector3(side*signWidth*.42f,.7f,depth*.5f),new Vector3(.065f,1.4f,.065f),campusSteel);
+        Sign(t,label,new Vector3(0,1.6f,depth*.5f),signWidth);
+        // This marker records geometry only. Exercise animations are not implemented.
+        var station=t.gameObject.AddComponent<BraxObozTrainingStation>();station.label=label;
+        station.footprint=new Vector2(width,depth)*K;
+    }
+    static void Sign(Transform parent,string label,Vector3 p,float width)
+    {
+        Box(parent,"Tablica · "+label,p,new Vector3(width,.65f,.08f),campusSteel,false);
+        var text=Group("Napis · "+label,parent,(p+new Vector3(0,0,-.046f))*K).gameObject.AddComponent<TextMesh>();
+        text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        text.text=label;text.anchor=TextAnchor.MiddleCenter;text.alignment=TextAlignment.Center;text.fontSize=72;
+        text.characterSize=.38f*K*10/72;text.color=new Color(.9f,.87f,.73f);
+        text.font.RequestCharactersInTexture(label,text.fontSize,text.fontStyle);
+        float advance=0;
+        foreach(char c in label)if(text.font.GetCharacterInfo(c,out var glyph,text.fontSize,text.fontStyle))advance+=glyph.advance;
+        float measured=advance*text.characterSize/10;
+        if(measured>(width-.3f)*K)text.characterSize*=((width-.3f)*K)/measured;
+        text.GetComponent<MeshRenderer>().sharedMaterial=BraxObozMaterials.SignText(text.font);
+        text.gameObject.AddComponent<BraxCitySignText>();
+        // Lettering sits on the south face; local +X stays left-to-right there.
+        text.transform.localRotation=Quaternion.identity;
+    }
+    static void CampusArrival()
+    {
+        var t=Group("Dojazd i plac autobusowy",root,Vector3.zero);
+        Box(t,"Droga dojazdowa",new Vector3(0,.045f,-167),new Vector3(7,.09f,76),campusAsphalt);
+        // Turning forecourt: outer radius 18 m, island radius 6 m; the design
+        // envelope is a 12 x 2.6 m coach, not a claim of a tested driving model.
+        Disc(t,"Plac zawracania",new Vector3(0,.095f,-112),18,campusAsphalt,true);
+        Disc(t,"Wyspa centralna",new Vector3(0,.16f,-112),6,campusPaving,true);
+        Box(t,"Zatoka autobusu",new Vector3(21,.055f,-113),new Vector3(4,.11f,20),campusAsphalt);
+        Box(t,"Połączenie zatoki",new Vector3(14,.05f,-113),new Vector3(12,.10f,24),campusAsphalt);
+        Box(t,"Dojście pasażerów",new Vector3(26,.08f,-124),new Vector3(2.8f,.16f,52),campusPaving);
+        Box(t,"Dojście od furtki",new Vector3(16,.08f,-147),new Vector3(22,.16f,2.8f),campusPaving);
+        Box(t,"Dojście piesze przed bramą",new Vector3(6.8f,.08f,-162),new Vector3(1.8f,.16f,24),campusPaving);
+        Box(t,"Dojście od przystanku",new Vector3(15,.06f,-98),new Vector3(25,.12f,2.8f),campusPaving);
+        foreach(float x in new[]{-3.2f,3.2f})Box(t,"Linia krawędzi drogi",new Vector3(x,.092f,-169),new Vector3(.1f,.004f,70),campusMark,false);
+        for(int i=0;i<8;i++)Box(t,"Pas przejścia",new Vector3(-2.8f+i*.8f,.098f,-139),new Vector3(.4f,.004f,2.8f),campusMark,false);
+        Sign(t,"BRAXHORN · PRZYJAZDY",new Vector3(26,2.1f,-103),5);
+        foreach(float x in new[]{24f,28f})Box(t,"Podpora tablicy przyjazdów",new Vector3(x,1,-103),new Vector3(.08f,2,.08f),campusSteel);
+        foreach(float z in new[]{-146f,-134f,-122f,-110f})Lamp(t,new Vector3(28,0,z));
+        // Footpath protection, leaving boarding openings at both coach doors.
+        foreach(float z in new[]{-120f,-114f,-106f})Cylinder(t,"Słupek ochronny",new Vector3(24,.08f,z),new Vector3(24,1.05f,z),.075f,campusSteel,true);
+        foreach(float z in new[]{-120f,-114f})Bench(t,new Vector3(27,0,z));
+        var shelter=Group("Wiata dla przyjeżdżających",t,P(27,0,-114));
+        foreach(float x in new[]{-1.4f,1.4f})foreach(float z in new[]{-4f,4f})Box(shelter,"Słup wiaty",new Vector3(x,1.45f,z),new Vector3(.12f,2.9f,.12f),campusSteel);
+        Box(shelter,"Dach wiaty",new Vector3(0,2.95f,0),new Vector3(3.3f,.16f,8.6f),wood);
+        var route=Group("Trasa kontrolna autobusu — bez automatycznej jazdy",t,Vector3.zero);
+        Group("Dojazd",route,P(0,0,-195));Group("Brama",route,P(0,0,-150));
+        for(int i=0;i<=32;i++){
+            float a=Mathf.PI+i*Mathf.PI*2/32;
+            Group("Łuk "+i,route,P(Mathf.Sin(a)*12,0,-112+Mathf.Cos(a)*12));
+        }
+    }
+    static void Disc(Transform parent,string name,Vector3 center,float radius,Material mat,bool solid)
+    {
+        const int n=96;var vertices=new Vector3[n+1];var uv=new Vector2[n+1];var triangles=new int[n*3];
+        vertices[0]=center*K;uv[0]=new Vector2(center.x,center.z);
+        for(int i=0;i<n;i++){
+            float a=i*Mathf.PI*2/n;Vector3 p=center+new Vector3(Mathf.Sin(a)*radius,0,Mathf.Cos(a)*radius);
+            vertices[i+1]=p*K;uv[i+1]=new Vector2(p.x,p.z);triangles[i*3]=0;triangles[i*3+1]=i+1;triangles[i*3+2]=(i+1)%n+1;
+        }
+        var mesh=new Mesh{name=name};mesh.vertices=vertices;mesh.uv=uv;mesh.triangles=triangles;mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
+        var g=Group(name,parent,Vector3.zero).gameObject;mesh=SaveMesh(mesh);g.AddComponent<MeshFilter>().sharedMesh=mesh;g.AddComponent<MeshRenderer>().sharedMaterial=mat;
+        if(solid)g.AddComponent<MeshCollider>().sharedMesh=mesh;
+    }
+    static void CampusPerimeter()
+    {
+        var fence=Group("Ogrodzenie całego obozu",root,Vector3.zero);
+        FenceLine(fence,new Vector2(-150,-150),new Vector2(-4.2f,-150));
+        FenceLine(fence,new Vector2(4.2f,-150),new Vector2(5.8f,-150));
+        FenceLine(fence,new Vector2(7.8f,-150),new Vector2(150,-150));
+        FenceLine(fence,new Vector2(150,-150),new Vector2(150,150));
+        FenceLine(fence,new Vector2(150,150),new Vector2(-150,150));
+        FenceLine(fence,new Vector2(-150,150),new Vector2(-150,-150));
+        var gate=Group("Brama przesuwna · 8,4 m światła",root,P(0,0,-150));
+        foreach(float x in new[]{-4.5f,4.5f}){
+            Box(gate,"Filar bramy",new Vector3(x,1.65f,0),new Vector3(.5f,3.3f,.65f),campusSteel);
+            Box(gate,"Okładzina filara",new Vector3(x,1.6f,-.34f),new Vector3(.34f,2.8f,.06f),wood,false);
+        }
+        Sign(gate,"BRAXHORN · OBÓZ TRENINGOWY",new Vector3(0,5.5f,0),10);
+        foreach(float x in new[]{-5.5f,5.5f})Box(gate,"Słup oznakowania",new Vector3(x,2.85f,.5f),new Vector3(.15f,5.7f,.15f),campusSteel);
+        var leaf=Group("Skrzydło bramy",gate,Vector3.zero);
+        Box(leaf,"Rama bramy",new Vector3(0,1.15f,0),new Vector3(8.2f,2.3f,.12f),campusSteel);
+        for(int i=0;i<54;i++)Box(leaf,"Lamele bramy",new Vector3(-4+i*.15f,1.2f,-.09f),new Vector3(.095f,2.1f,.07f),wood,false);
+        CombineDecoration(leaf);
+        var controller=gate.gameObject.AddComponent<BraxObozSlidingGate>();controller.leaf=leaf;
+        controller.openOffset=Vector3.left*(8.7f*K);controller.detectionRadius=24*K;
+        var foot=Group("Furtka piesza",root,P(6.8f,0,-150));
+        var footLeaf=Group("Skrzydło furtki",foot,Vector3.zero);
+        Box(footLeaf,"Furtka",new Vector3(0,1.1f,0),new Vector3(1.8f,2.2f,.1f),wood);
+        var footController=foot.gameObject.AddComponent<BraxObozSlidingGate>();footController.leaf=footLeaf;
+        footController.openOffset=Vector3.right*(2.1f*K);footController.detectionRadius=5*K;
+        // Road end is visibly closed; there is no collider across the main gate.
+        Box(root,"Bariera końca odcinka drogi",new Vector3(0,.5f,-205),new Vector3(7.5f,1,.35f),campusSteel);
+    }
+    static void FenceLine(Transform parent,Vector2 a,Vector2 b)
+    {
+        float length=Vector2.Distance(a,b);int chunks=Mathf.CeilToInt(length/12);
+        for(int chunk=0;chunk<chunks;chunk++){
+            Vector2 p=Vector2.Lerp(a,b,chunk/(float)chunks),q=Vector2.Lerp(a,b,(chunk+1)/(float)chunks);float span=Vector2.Distance(p,q);
+            var t=Group("Przęsło ogrodzenia",parent,P((p.x+q.x)*.5f,0,(p.y+q.y)*.5f));
+            t.localRotation=Quaternion.Euler(0,-Mathf.Atan2(q.y-p.y,q.x-p.x)*Mathf.Rad2Deg,0);
+            Box(t,"Podmurówka",new Vector3(0,.12f,0),new Vector3(span,.24f,.24f),campusPaving,false);
+            foreach(float y in new[]{.45f,2.15f})Box(t,"Rygiel",new Vector3(0,y,0),new Vector3(span,.08f,.10f),campusSteel,false);
+            int posts=Mathf.CeilToInt(span/3);
+            for(int i=0;i<=posts;i++)Box(t,"Słupek",new Vector3(-span*.5f+span*i/posts,1.3f,0),new Vector3(.1f,2.6f,.1f),campusSteel,false);
+            int slats=Mathf.FloorToInt(span/.15f);
+            for(int i=0;i<slats;i++)Box(t,"Lamel drewniany",new Vector3(-span*.5f+(i+.5f)*span/slats,1.35f,-.08f),new Vector3(.095f,2.2f,.065f),wood,false);
+            t.gameObject.AddComponent<BoxCollider>().center=P(0,1.3f,0);t.GetComponent<BoxCollider>().size=P(span,2.6f,.25f);
+            CombineDecoration(t);
+        }
+    }
+    static void CombineDecoration(Transform parent)
+    {
+        var filters=parent.GetComponentsInChildren<MeshFilter>().Where(f=>f.GetComponent<MeshRenderer>()).ToArray();
+        foreach(var group in filters.GroupBy(f=>f.GetComponent<MeshRenderer>().sharedMaterial)){
+            var mesh=new Mesh{name="Geometria zbiorcza",indexFormat=IndexFormat.UInt32};
+            mesh.CombineMeshes(group.Select(f=>new CombineInstance{mesh=f.sharedMesh,transform=parent.worldToLocalMatrix*f.transform.localToWorldMatrix}).ToArray());
+            mesh.RecalculateBounds();var target=Group("Geometria · "+group.Key.name,parent,Vector3.zero).gameObject;
+            target.AddComponent<MeshFilter>().sharedMesh=SaveMesh(mesh);target.AddComponent<MeshRenderer>().sharedMaterial=group.Key;
+        }
+        foreach(var f in filters){Object.DestroyImmediate(f.GetComponent<MeshRenderer>());Object.DestroyImmediate(f);}
+    }
+    static void Lamp(Transform parent,Vector3 p)
+    {
+        Cylinder(parent,"Słup lampy",p,p+Vector3.up*3.5f,.055f,campusSteel,true);
+        Box(parent,"Oprawa",p+Vector3.up*3.5f,new Vector3(.5f,.14f,.5f),campusSteel,false);
+        var fixture=Group("Światło dojścia",parent,(p+Vector3.up*3.35f)*K).gameObject;
+        var light=fixture.AddComponent<Light>();light.type=LightType.Point;light.color=new Color(1,.84f,.65f);light.intensity=1.5f;light.range=8*K;light.shadows=LightShadows.None;
+        fixture.AddComponent<BraxObozLocalLight>().source=light;
+    }
+    static void Bench(Transform parent,Vector3 p)
+    {
+        for(int i=0;i<4;i++)Box(parent,"Deska siedziska",p+new Vector3(0,.48f,-.22f+i*.145f),new Vector3(1.8f,.07f,.12f),wood);
+        foreach(float x in new[]{-.65f,.65f})Box(parent,"Noga ławki",p+new Vector3(x,.23f,0),new Vector3(.08f,.46f,.5f),campusSteel);
+    }
+}

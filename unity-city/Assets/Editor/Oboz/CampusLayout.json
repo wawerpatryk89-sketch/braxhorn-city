@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "clearances": [
+    {"id":"pavilion", "x":0, "z":51, "width":56, "depth":34},
+    {"id":"mobility-ropes", "x":0, "z":29, "width":40, "depth":12},
+    {"id":"strength-lanes", "x":35, "z":4, "width":16, "depth":76},
+    {"id":"bus-approach", "x":0, "z":-165, "width":10, "depth":80},
+    {"id":"bus-turn", "x":0, "z":-112, "width":38, "depth":38},
+    {"id":"bus-stop", "x":24, "z":-117, "width":14, "depth":56},
+    {"id":"bus-connect", "x":14, "z":-113, "width":14, "depth":26},
+    {"id":"footpath", "x":16, "z":-147, "width":24, "depth":4},
+    {"id":"footpath-external", "x":6.8, "z":-162, "width":2, "depth":24},
+    {"id":"gate-pocket", "x":-9, "z":-150, "width":12, "depth":4}
+  ],
+  "busDesignEnvelope": {"length":12, "width":2.6, "height":4, "routeRadius":12, "outerRadius":18, "islandRadius":6, "gateWidth":8.4, "roadWidth":7},
+  "runtimeVehicleTested": false
+}

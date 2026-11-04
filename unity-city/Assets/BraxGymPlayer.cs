@@ -26,6 +26,13 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public static event Action<Vector3,Vector3,bool> OnCios;
     private Vector2 move;
     private float yaw, pitch = 19f, distance = 5.8f, vertical, speed;
+    [SerializeField] private float defaultCameraDistance=5.8f, cameraTargetHeight=1.65f;
+    public void ConfigureCamera(float metres,float targetHeight)
+    {
+        defaultCameraDistance=Mathf.Clamp(metres,1.5f,12f);
+        cameraTargetHeight=Mathf.Clamp(targetHeight,.5f,3f);
+        distance=defaultCameraDistance;
+    }
     private float actionEnd, hitAt, stateAt;
     private float regionReactionLeft;
     private string action = "Idle";
@@ -73,6 +80,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     }
     private void Start()
     {
+        distance=defaultCameraDistance;
         if (!visual || !clips || !view || !body) throw new InvalidOperationException("Missing original player or controls");
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
@@ -82,7 +90,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         bagSwing = new Vector2[bags.Length]; bagVelocity = new Vector2[bags.Length];
         bagRestRotation = new Quaternion[bags.Length];
         for(int i=0;i<bags.Length;i++)bagRestRotation[i]=bags[i].localRotation;
-        cameraTarget = transform.position + Vector3.up * 1.65f;
+        cameraTarget = transform.position + Vector3.up * cameraTargetHeight;
         Physics.IgnoreLayerCollision(8, 29, true);   // warstwa 29 = przeszkody tylko dla kamery
         if (!view.GetComponent<BraxClaudeKamera>()) view.gameObject.AddComponent<BraxClaudeKamera>();   // bliska płaszczyzna 0.25 / 0.1 m przy ścianie — też w mieście
         foreach (Transform t in visual.GetComponentsInChildren<Transform>())
@@ -130,7 +138,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(seat){seat.Leave();}
             body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,180,0);body.enabled=true;
             vertical=0;speed=0;move=Vector2.zero;actionEnd=0;regionReactionLeft=0;hitPending=false;hitAt=0;
-            yaw=0;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
+            yaw=0;pitch=19;distance=defaultCameraDistance;cameraTarget=transform.position+Vector3.up*cameraTargetHeight;
             action="Idle";clips.Play("Idle");UpdateCamera(1f);Report();return;
         }
         if(key=="run"){runEnabled=!runEnabled;Report();return;}
@@ -334,7 +342,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         bool snap=dt>=.5f;   // Start, reset, teleport: kamera od razu na miejscu
         AutoYaw(dt,snap);
-        Vector3 want=autoGracza?autoGracza.CelKamery:transform.position+Vector3.up*1.65f;
+        Vector3 want=autoGracza?autoGracza.CelKamery:transform.position+Vector3.up*cameraTargetHeight;
         cameraTarget=Vector3.Lerp(cameraTarget,want,1-Mathf.Exp(-dt*10f));   // build 14: lekkie opóźnienie za postacią (10/s)
         float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
         float viewDistance=autoGracza?Mathf.Lerp(7f,9.5f,Mathf.Clamp01(Mathf.Abs(autoGracza.Predkosc)/12f)):distance;
@@ -387,14 +395,14 @@ public sealed class BraxGymPlayer : MonoBehaviour
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;regionReactionLeft=0;hitPending=false;action="Idle";clips.Play("Idle");
         body.enabled=false;transform.position=new Vector3(v[0],v[1],v[2]);body.enabled=true;
         yaw=v[3];pitch=Mathf.Clamp(v[4],-32f,70f);distance=Mathf.Clamp(v[5],.8f,12f);
-        cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);Report();
+        cameraTarget=transform.position+Vector3.up*cameraTargetHeight;UpdateCamera(1f);Report();
     }
     public void TravelTo(Vector3 position)
     {
         if(autoGracza)autoGracza.PrzedTeleportem();
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;regionReactionLeft=0;hitPending=false;action="Idle";
         body.enabled=false;transform.position=position;body.enabled=true;clips.Play("Idle");
-        cameraTarget=position+Vector3.up*1.65f;UpdateCamera(1f);Report();
+        cameraTarget=position+Vector3.up*cameraTargetHeight;UpdateCamera(1f);Report();
     }
     // Przyjazd z drugiego rejonu (tunel): pozycja + kierunek kamery (0 = kamera na +z, patrzy na −z).
     public void TravelTo(Vector3 position,float cameraYaw){yaw=cameraYaw;pitch=19f;transform.rotation=Quaternion.Euler(0,cameraYaw+180f,0);TravelTo(position);}

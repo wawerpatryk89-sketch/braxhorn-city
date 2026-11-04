@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 // Reconstructed authoring source. Generated scene is a work in progress;
 // it is not labelled a release and no build or source-branch push is invoked.
-public static class BraxObozEnvironment
+public static partial class BraxObozEnvironment
 {
     const float K = 1.294f;
     const string Folder = "Assets/PlayableGenerated/Oboz/Environment";
@@ -80,11 +80,14 @@ public static class BraxObozEnvironment
             Cabin("Domek 1", -94, -20, 90); Cabin("Domek 2", -94, -40, 90);
             Cabin("Domek 3", -69, -20, -90); Cabin("Domek 4", -69, -40, -90);
             Ring("Ring 1", -23, 15); Octagon(0, -5);
-            var gym=BraxObozGym.Copy(root,new Vector3(0,0,53),180);arenas.Add(gym.arena);
-            bags.AddRange(gym.bags);covered.AddRange(gym.bags.Select(b=>b.transform));doors.Add(gym.door);
-            // Total: four indoor + eight roofed outdoor + twelve open = 24.
+            // Owner rejected the imported city gym. Replace its entire instance,
+            // interior, doors and collision source with camp training facilities.
+            TrainingCampus();
+            // Total: four pavilion + eight roofed outdoor + twelve open = 24.
             Bags(-23, -40, true,4); Bags(23, -40, false,6);
             ServiceBuildings();
+            CampusArrival();
+            CampusPerimeter();
             Bridge(72, -78); Bridge(72, 76);
             // The source bunker is retained without changing its mesh, origins
             // or doors. Entrance/collider conversion remains a separate audit.
@@ -124,11 +127,8 @@ public static class BraxObozEnvironment
         // no assertion of finished reflections or stream animation.
         var water = BraxObozMaterials.Plain("woda-robocza", new Color(.176f, .353f, .353f), .85f);
         Box(root, "Strumień — powierzchnia robocza", new Vector3(72, -.42f, 0), new Vector3(6, .02f, 420), water, false);
-        foreach (var a in new[] { (new Vector3(-151,2,0),new Vector3(2,4,302)), (new Vector3(151,2,0),new Vector3(2,4,302)), (new Vector3(0,2,-151),new Vector3(302,4,2)), (new Vector3(0,2,151),new Vector3(302,4,2)) })
-        {
-            var boundary = Group("Granica chodzenia 300 m", root, a.Item1 * K).gameObject;
-            boundary.AddComponent<BoxCollider>().size = a.Item2 * K;
-        }
+        // The visible perimeter supplies its own collision. No invisible wall
+        // is allowed to seal the new vehicle entrance at the south boundary.
     }
     static void Paths()
     {

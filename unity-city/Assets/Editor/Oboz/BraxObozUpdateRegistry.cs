@@ -60,7 +60,7 @@ public static class BraxObozUpdateRegistry
         foreach (string path in Directory.GetFiles("Assets", "*", SearchOption.AllDirectories)
             .Where(p => new[] { ".cs", ".shader", ".cginc", ".hlsl", ".asmdef", ".asmref", ".rsp" }.Contains(Path.GetExtension(p))))
             AddAsset(path.Replace('\\', '/'), paths, packages);
-        foreach (string path in new[] { BraxObozCharacters.ManifestPath, "Assets/Editor/Oboz/VegetationLayout.json" })
+        foreach (string path in new[] { BraxObozCharacters.ManifestPath, "Assets/Editor/Oboz/VegetationLayout.json", BraxObozCampusLayout.Path })
             AddAsset(path, paths, packages);
         foreach (string path in Directory.GetFiles("ProjectSettings", "*", SearchOption.AllDirectories)
             .Where(p => p.EndsWith(".asset", StringComparison.Ordinal) || p.EndsWith(".txt", StringComparison.Ordinal)))

@@ -167,7 +167,7 @@ public static class BraxObozBuild
         var data = new StringBuilder(Profile + "|" + Application.unityVersion);
         var paths = Directory.GetFiles("Assets", "*", SearchOption.AllDirectories)
             .Select(p => p.Replace('\\', '/')).Where(p => !p.StartsWith("Assets/PlayableGenerated/", StringComparison.Ordinal) &&
-                (p.StartsWith("Assets/Source/Prywatne/Oboz/", StringComparison.Ordinal) || p.StartsWith("Assets/Editor/Oboz/", StringComparison.Ordinal) ||
+                (p.StartsWith("Assets/Source/Prywatne/Oboz/", StringComparison.Ordinal) || p.StartsWith("Assets/Source/Public/Oboz/", StringComparison.Ordinal) || p.StartsWith("Assets/Editor/Oboz/", StringComparison.Ordinal) ||
                  new[] { ".cs", ".shader", ".cginc", ".hlsl", ".asmdef", ".asmref", ".rsp" }.Contains(Path.GetExtension(p))))
             .Concat(new[] { "Packages/manifest.json", "Packages/packages-lock.json" }).OrderBy(p => p, StringComparer.Ordinal);
         foreach (string p in paths) data.Append('|').Append(p).Append('=').Append(Hash(p));

@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "license": "CC0-1.0",
+  "provider": "Poly Haven",
+  "sources": [
+    "https://polyhaven.com/a/clean_asphalt",
+    "https://polyhaven.com/a/concrete_pavers"
+  ],
+  "files": [
+    {
+      "asset": "clean_asphalt",
+      "widthMetres": 2.1,
+      "map": "Color",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/clean_asphalt/clean_asphalt_diff_4k.jpg",
+      "bytes": 14073027,
+      "path": "unity-city/Assets/Source/Public/Oboz/clean_asphalt/Color.jpg",
+      "sha256": "f6fbda284c86947c16ba91dbaf7c57bc16ec8e5497a649cdc61ca1c9310d02af"
+    },
+    {
+      "asset": "clean_asphalt",
+      "widthMetres": 2.1,
+      "map": "NormalGL",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/clean_asphalt/clean_asphalt_nor_gl_4k.jpg",
+      "bytes": 17605037,
+      "path": "unity-city/Assets/Source/Public/Oboz/clean_asphalt/NormalGL.jpg",
+      "sha256": "ab377e661855cae41a98f5a8ae80b9954c925efa120ab7f1683eb247a20bf9a5"
+    },
+    {
+      "asset": "clean_asphalt",
+      "widthMetres": 2.1,
+      "map": "Roughness",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/clean_asphalt/clean_asphalt_rough_4k.jpg",
+      "bytes": 11455865,
+      "path": "unity-city/Assets/Source/Public/Oboz/clean_asphalt/Roughness.jpg",
+      "sha256": "1f9085e59ee5ab3c5296a70990a997af29e10ae4e958a5129852e71f0b7aaff9"
+    },
+    {
+      "asset": "clean_asphalt",
+      "widthMetres": 2.1,
+      "map": "AmbientOcclusion",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/clean_asphalt/clean_asphalt_ao_4k.jpg",
+      "bytes": 13933573,
+      "path": "unity-city/Assets/Source/Public/Oboz/clean_asphalt/AmbientOcclusion.jpg",
+      "sha256": "242fa25ffac98715d4b5c1bdd5ad71dc3c220a910b38540c02563d946bc351cb"
+    },
+    {
+      "asset": "concrete_pavers",
+      "widthMetres": 1.9,
+      "map": "Color",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_pavers/concrete_pavers_diff_4k.jpg",
+      "bytes": 12162066,
+      "path": "unity-city/Assets/Source/Public/Oboz/concrete_pavers/Color.jpg",
+      "sha256": "b4b88970ef0228c962c670c693eed2ad0315a1dd585badd682d2f5c83c807bea"
+    },
+    {
+      "asset": "concrete_pavers",
+      "widthMetres": 1.9,
+      "map": "NormalGL",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_pavers/concrete_pavers_nor_gl_4k.jpg",
+      "bytes": 12827171,
+      "path": "unity-city/Assets/Source/Public/Oboz/concrete_pavers/NormalGL.jpg",
+      "sha256": "e89c4ab8aa6fb3143614c9ef2fcc7466cbcc5bc64a580d3eac6ea97735ea2298"
+    },
+    {
+      "asset": "concrete_pavers",
+      "widthMetres": 1.9,
+      "map": "Roughness",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_pavers/concrete_pavers_rough_4k.jpg",
+      "bytes": 5140914,
+      "path": "unity-city/Assets/Source/Public/Oboz/concrete_pavers/Roughness.jpg",
+      "sha256": "49fe631adb06d2afbf9b55dd775d8e2ba0190c0344a79aa0c1000f8ddb202297"
+    },
+    {
+      "asset": "concrete_pavers",
+      "widthMetres": 1.9,
+      "map": "AmbientOcclusion",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_pavers/concrete_pavers_ao_4k.jpg",
+      "bytes": 8186536,
+      "path": "unity-city/Assets/Source/Public/Oboz/concrete_pavers/AmbientOcclusion.jpg",
+      "sha256": "09aea649c938dec9f3542557d82fbb618868ca378f51f18d23ddc108ed5d9475"
+    }
+  ]
+}

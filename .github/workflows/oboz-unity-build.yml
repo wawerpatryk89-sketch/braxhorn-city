@@ -94,6 +94,8 @@ jobs:
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: python3 unity-tools/oboz/assets.py restore
+      - name: Zweryfikowane materiały Poly Haven dla obozu
+        run: python3 unity-tools/oboz/public_materials.py
       - name: Profil pamięci obozu
         id: profile
         run: python3 unity-tools/updates/unity_cache.py profile --zone oboz

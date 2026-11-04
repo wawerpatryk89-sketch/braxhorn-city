@@ -22,6 +22,7 @@ public static class BraxObozVegetation
 
     public static void Populate(Transform parent)
     {
+        BraxObozCampusLayout.Reload();
         var layout = JsonUtility.FromJson<Layout>(File.ReadAllText("Assets/Editor/Oboz/VegetationLayout.json"));
         var atlas = JsonUtility.FromJson<Atlases>(File.ReadAllText(Source + "billboards/metadata.json"));
         if (layout.schema != 1 || Mathf.Abs(layout.worldScale-K)>.00001f || !atlas.complete || atlas.billboards.Length != 6)
@@ -33,20 +34,24 @@ public static class BraxObozVegetation
         {
             for (int i=0;i<prototypes.Length;i++)
                 prototypes[i]=Prototype(layout.prototypes[i],atlas.billboards.Single(a=>a.model==layout.prototypes[i]+"_LOD2.glb"));
+            int placedTrees=0;
             foreach (var point in layout.trees)
             {
+                if(BraxObozCampusLayout.Reserved(point.x,point.z,3))continue;
                 if (point.prototype<0 || point.prototype>=prototypes.Length) throw new InvalidOperationException("Błędny wariant drzewa");
                 var tree=Object.Instantiate(prototypes[point.prototype],forest);
                 tree.name=layout.prototypes[point.prototype]; tree.transform.localPosition=new Vector3(point.x,0,point.z)*K;
                 tree.transform.localRotation=Quaternion.Euler(0,point.yaw,0);tree.transform.localScale=Vector3.one*(point.scale*K);
+                placedTrees++;
                 if (point.solid)
                 {
                     var trunk=tree.AddComponent<CapsuleCollider>();trunk.direction=1;trunk.radius=point.prototype<3?.20f:.085f;
                     trunk.height=3;trunk.center=new Vector3(0,1.5f,0);
                 }
             }
-            Grass(parent,layout.grass);
-            Debug.Log("BRAXHORN_OBOZ las: drzewa="+layout.trees.Length+" kępy="+layout.grass.Length+"; test telefonu nadal wymagany");
+            var grass=layout.grass.Where(p=>!BraxObozCampusLayout.Reserved(p.x,p.z,.5f)).ToArray();
+            Grass(parent,grass);
+            Debug.Log("BRAXHORN_OBOZ las: drzewa="+placedTrees+" kępy="+grass.Length+"; test telefonu nadal wymagany");
         }
         finally { foreach(var p in prototypes)if(p)Object.DestroyImmediate(p); }
     }

@@ -40,6 +40,30 @@ public static class BraxObozMaterials
         material.SetFloat("_PackedORM", 1); material.SetFloat("_RoughnessFactor", .7f); material.SetFloat("_MetallicFactor", 0);
         return Save(material, "forest-ground");
     }
+    public static Material PublicPbr(string id,float widthMetres)
+    {
+        string folder="Assets/Source/Public/Oboz/"+id+"/";
+        var material=new Material(Shader.Find("Braxhorn/ObozSurface")){name="Poly Haven / "+id,enableInstancing=true};
+        foreach(var pair in new[]{("Color","_MainTex"),("NormalGL","_BumpMap"),("Roughness","_RoughnessTex"),("AmbientOcclusion","_OcclusionTex")})
+        {
+            string path=folder+pair.Item1+".jpg";
+            var importer=AssetImporter.GetAtPath(path) as TextureImporter;
+            if(!importer)throw new InvalidOperationException("Pobierz zweryfikowane mapy Poly Haven: "+path);
+            importer.maxTextureSize=4096;importer.mipmapEnabled=true;importer.anisoLevel=8;
+            var android=importer.GetPlatformTextureSettings("Android");android.name="Android";android.overridden=true;android.maxTextureSize=4096;android.format=TextureImporterFormat.ASTC_4x4;
+            importer.SetPlatformTextureSettings(android);importer.SaveAndReimport();
+            material.SetTexture(pair.Item2,Map(path,pair.Item1=="NormalGL",pair.Item1=="Color"));
+        }
+        material.SetFloat("_MetallicFactor",0);
+        material.mainTextureScale=Vector2.one/widthMetres;
+        return Save(material,"polyhaven-"+id);
+    }
+    public static Material SignText(Font font)
+    {
+        var shader=Shader.Find("Braxhorn/CitySignText");
+        if(!shader)throw new InvalidOperationException("Brak shadera tablic obozu");
+        return Save(new Material(shader){name="Obóz / napisy",mainTexture=font.material.mainTexture},"campus-napisy");
+    }
     public static Material Plain(string id, Color color, float smooth = .25f, float metallic = 0)
     {
         var material = new Material(Shader.Find("Standard")) { name = "Obóz / " + id, color = color, enableInstancing = true };

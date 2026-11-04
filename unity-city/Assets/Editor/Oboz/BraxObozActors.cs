@@ -32,11 +32,13 @@ public static class BraxObozActors
             player.bags = Array.Empty<Transform>(); player.cityWorld = world; player.worldSpawn = hero.transform.position;
             player.buildId = "OBOZ_RECOVERY_REVIEW_NOT_RELEASE"; world.player = player; info.player = player;
             BraxObozServices.BindPlayer(info);
+            foreach(var gate in info.GetComponentsInChildren<BraxObozSlidingGate>(true)) gate.player=player;
+            player.ConfigureCamera(3.5f, monikaBody.height*.62f);
             var camera = new GameObject("Main Camera"); camera.tag = "MainCamera";
             player.view = camera.AddComponent<Camera>(); player.view.nearClipPlane = .1f; player.view.farClipPlane = 600; player.view.fieldOfView = 58;
             camera.AddComponent<AudioListener>();
             var ids = new[] { "vorn", "zyro", "rakk", "kade", "gorr", "mis" };
-            var places = new[] { new Vector3(8,.06f,-126), new Vector3(9,1.01f,58.5f), new Vector3(20,.06f,-22), new Vector3(-24,.56f,15), new Vector3(-20,.06f,-22), new Vector3(0,.40f,-4) };
+            var places = new[] { new Vector3(27,.18f,-127), new Vector3(-12,.56f,51), new Vector3(20,.06f,-22), new Vector3(-24,.56f,15), new Vector3(-20,.06f,-22), new Vector3(0,.40f,-4) };
             var npcs = new BraxObozNpc[ids.Length];
             for (int i=0;i<ids.Length;i++)
             {

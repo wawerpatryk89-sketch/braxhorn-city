@@ -36,6 +36,10 @@ public static class BraxObozValidation
             foreach (var b in scene.coveredBags) if (b && !scene.bags.Any(x => x && x.transform == b)) errors.Add("Zadaszony worek nie należy do grupy 24 worków");
             if (scene.cabinDoors.Length != 4 || scene.cabinDoors.Distinct().Count() != 4 || scene.cabinDoors.Any(d => !d || d.leaves == null || d.leaves.Length == 0)) errors.Add("Cztery domki potrzebują różnych działających drzwi");
             if (scene.arenas.Length != 3 || scene.arenas.Any(a => !a)) errors.Add("Wymagane dwa ringi i oktagon");
+            if(scene.GetComponentsInChildren<BraxObozTrainingStation>(true).Length!=6)errors.Add("Wymagane sześć nowych stanowisk treningowych");
+            var gates=scene.GetComponentsInChildren<BraxObozSlidingGate>(true);
+            if(gates.Length!=2||gates.Any(g=>!g.leaf||!g.player))errors.Add("Brama i furtka muszą mieć skrzydło oraz gracza");
+            if(scene.GetComponentsInChildren<Transform>(true).Any(t=>t.name.Contains("Gym_Mesh_")||t.name.Contains("źródłowa salka")))errors.Add("Stara siłownia nadal jest w obozie");
             foreach (var n in scene.npcs.Where(n => n))
             {
                 if (!n.body || !n.clips || !n.player) errors.Add(n.characterId + ": brak sterowania/animacji");
