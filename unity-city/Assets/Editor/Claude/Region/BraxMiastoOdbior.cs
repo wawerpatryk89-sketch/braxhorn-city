@@ -47,10 +47,18 @@ internal static class BraxMiastoOdbior
             .Select(n => n.Length >= 6 ? n.Substring(0, 6) : n).Distinct().Count();
         var drzwi = budynek.GetComponentsInChildren<BraxCityDoor>(true)
             .FirstOrDefault(d => d && d.id == "R1_PUBLIC_DOOR_apothecary");
-        string log = "BRAXHORN_APTEKA_ODBIOR otwarte_wejscie=" + (drzwi != null) +
+        bool drzwiGotowe = drzwi && drzwi.gameObject.activeInHierarchy &&
+            drzwi.leaves != null && drzwi.leaves.Length > 0;
+        // Po imporcie GLB sprawdzamy nie tylko bryły, ale i przypięte tekstury.
+        // Jest to kontrola obecności tekstur; czytelność etykiet potwierdza telefon.
+        int zTeksturami = leki.Count(g => g.GetComponentsInChildren<Renderer>(true)
+            .Any(r => r && r.sharedMaterials.Any(m => m && m.GetTexturePropertyNames()
+                .Any(n => m.GetTexture(n)))));
+        string log = "BRAXHORN_APTEKA_ODBIOR czynne_drzwi=" + drzwiGotowe +
             " modele_lekow=" + leki.Length + " rozne_rodzaje=" + rodzaje +
-            " szyld=SOBCZAK/APTEKA (weryfikacja grafiki w osobnym logu)";
-        if (!drzwi || leki.Length < 12 || rodzaje < 5)
+            " z_teksturami=" + zTeksturami +
+            " szyld=SOBCZAK/APTEKA (wizualna kontrola grafiki osobno)";
+        if (!drzwiGotowe || leki.Length < 12 || rodzaje < 5 || zTeksturami < 12)
             Debug.LogError(log + " NIEGOTOWA (wymagane działające drzwi oraz opakowania z etykietami)");
         else
             Debug.Log(log + " KOD_MODELI_OK (widok i wejście nadal testuje Android)");
