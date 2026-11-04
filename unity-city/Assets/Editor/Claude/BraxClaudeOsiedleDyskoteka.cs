@@ -499,13 +499,13 @@ public static partial class BraxClaudeOsiedle
             foreach (int sgn in new[] { -1, 1 }) klub.siedziska.Add((cs + r * sgn * sofaW * .25f + f * .08f * K + Vector3.up * yS, f));
             // Oba boki prawdziwych lóż: całe oryginalne sofy Chesterfield,
             // ustawione w jednym U, siedziskami do stolika i oparciami na zewnątrz.
-            // Długość boczna 1.85 m; od końca sofy głównej zostaw ok. 8 cm,
+            // Równe wymiary sof: 2.0 m; od końca sofy głównej zostaw ok. 8 cm,
             // dzięki temu żadne oparcia ani kolizje nie przenikają przez siebie.
             foreach (int sgn in new[] { -1, 1 })
             {
                 Vector3 fa = -r * sgn;
                 var fo = Czesc(zestaw, idxSofa, "loża " + lozeN + ": sofa boczna Chesterfield",
-                    ct + Vector3.up * yF, fa, skalaZ, 1.85f);
+                    ct + Vector3.up * yF, fa, skalaZ, 2.0f);
                 if (!fo) throw new InvalidOperationException("Loża " + lozeN + ": brak bocznej sofy premium");
                 modeleUzyte++;
                 var bA = BraxOsiedleAssety.Granice(fo);
@@ -741,10 +741,27 @@ public static partial class BraxClaudeOsiedle
                 if (a.Intersects(b)) pary.Add(klubMeble[i].co + " × " + klubMeble[j].co);
             }
         Debug.Log("BRAXHORN_MEBLE_KOLIZJE lokal=dyskoteka meble=" + klubMeble.Count + " pary=" + pary.Count + (pary.Count > 0 ? " [" + string.Join("; ", pary.Take(12)) + "]" : ""));
+        if (pary.Count > 0)
+            throw new InvalidOperationException("Dyskoteka: loże premium nakładają się, nie zatwierdzam ustawienia. " + string.Join("; ", pary.Take(12)));
         Debug.Log("BRAXHORN_DETALE lokal=dyskoteka listwy=" + listwy + " gniazdka=" + gniazdka + " wlaczniki=" + wlaczniki + " kratki=" + kratki + " oprawy=" + oprawy + " gasnice=" + gasnice + " znaki_ewak=" + znaki
                   + " oscieznice=" + oscieznice + " sufit_obrzeze=tak cokoly=tak(bar, zaplecze, sofy) fugi=tak(parkiet: szczeliny 6 cm w geometrii; posadzka: żywica bez fug) parapety=— (brak okien) kratki_odplywowe=— (brak WC)");
         BraxOsiedleAssety.Log("dyskoteka: modele użyte=" + modeleUzyte + " brak=" + modeleBrak + " (brak = wersja z kodu)");
         rep.notes.Add("dyskoteka premium: bar 12.8 m pod ścianą S, " + lozeN + " lóż, DJ (LED, lasery, kula), detale; modele " + modeleUzyte + ", zapas z kodu " + modeleBrak);
+    }
+
+    // Twarda kontrola po zakończeniu wszystkich kroków budowania osiedla.
+    // Ochrona przed sytuacją z nagrania 4.11: zamiast trzech całych sof
+    // pojawia się mały wycięty fragment siatki lub luźny fotelik.
+    public static void DyskotekaLozeKontrola()
+    {
+        if (klub == null || klub.loze < 12)
+            throw new InvalidOperationException("Dyskoteka: nie zbudowano pełnego zestawu lóż premium");
+        int sofy = klubMeble.Count(x => x.co.Contains("sofa", StringComparison.OrdinalIgnoreCase));
+        int stoliki = klubMeble.Count(x => x.co.Contains("stolik", StringComparison.OrdinalIgnoreCase));
+        if (sofy != klub.loze * 3 || stoliki != klub.loze)
+            throw new InvalidOperationException("Dyskoteka: niespójny układ lóż. Loże=" + klub.loze + " sofy=" + sofy + " stoliki=" + stoliki);
+        Debug.Log("BRAXHORN_LOZE_PREMIUM_OK loze=" + klub.loze + " cale_sofy=" + sofy +
+                  " stoliki=" + stoliki + " (jeden spójny układ U, bez fragmentów modeli)");
     }
 
     // ---------------- ludzie w klubie (etap ludzi) ----------------
