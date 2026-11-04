@@ -41,12 +41,14 @@ jobs:
             unity-city/Prywatne/miasto_palmy.tar.gz.enc
             unity-city/Prywatne/miasto_silownia_metro.tar.gz.enc
             unity-city/Prywatne/import-patryk-20261103
+            unity-city/Prywatne/import-patryk-animations-20261104
             unity-city/Prywatne/ruchy_brax.tar.gz.enc
             unity-city/Prywatne/ruchy_wlasciciela.tar.gz.enc
             unity-tools/mistrzowie
             unity-tools/validation
             unity-tools/claude/prywatne.py
             unity-tools/claude/import_patryk_transfer.py
+            unity-tools/claude/import_patryk_animations.py
             unity-tools/claude/tekstury_b5.py
       - name: C# syntax and local scopes before Unity (CS0136 regression)
         run: |

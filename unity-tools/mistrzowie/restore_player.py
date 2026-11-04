@@ -75,13 +75,8 @@ def przygotuj_patryka(staging):
     return True
 
 
-ANIMATIONS = {
-    "brax": ["Idle", "Jab Cross (1)", "Mma Kick (1)", "Jump"],
-    "extra": ["Walking", "Running"],
-    "extra2": ["Walking", "Unarmed Run Forward", "Unarmed Jump Running"],
-    "nyxa": ["Walking", "Mma Kick (1)"],
-    "xd": ["Jab Cross"],
-}
+ANIMATIONS = prywatne.RUCHY_DO_UNITY
+
 REQUIRED = {
     "CombatIdle": ["brax/Idle.fbx"],
     "Walk": ["extra/Walking.fbx", "nyxa/Walking.fbx", "extra2/Walking.fbx"],
@@ -113,6 +108,8 @@ def main():
     if not prywatne.klucz():
         raise RuntimeError("Missing repository key for the required estate Patryk")
     restore()
+    from import_patryk_animations import install
+    owner_files = install(CEL / "ruchy")
     with tempfile.TemporaryDirectory(prefix="champions-patryk-") as tmp:
         staging = Path(tmp)
         for name in ("patryk", "ruchy_brax", "ruchy_wlasciciela"):
@@ -124,7 +121,7 @@ def main():
                     raise RuntimeError("Empty original package: " + name)
         przygotuj_patryka(staging)
         files = [{"path": str(target.relative_to(ROOT)), "sha256": hashlib.sha256(target.read_bytes()).hexdigest()}
-                 for target in copy_animations(staging, CEL / "ruchy")]
+                 for target in [*copy_animations(staging, CEL / "ruchy"), *owner_files]]
         for name in ("Patryk.fbx", "Patryk_BaseColor.png", "Patryk_Normal.png", "Patryk_ORM.png"):
             target = CEL / "patryk" / name
             files.append({"path": str(target.relative_to(ROOT)), "sha256": hashlib.sha256(target.read_bytes()).hexdigest()})

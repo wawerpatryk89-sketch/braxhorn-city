@@ -29,11 +29,22 @@ public static partial class BraxChampionsPatryk
     static readonly PatrykKlip[] KlipyPatryka =
     {
         PK("CombatIdle", true, true, "brax/Idle.fbx"),
-        PK("Walk", true, true, "extra/Walking.fbx", "nyxa/Walking.fbx", "extra2/Walking.fbx"),
-        PK("Run", true, true, "extra/Running.fbx", "extra2/Unarmed Run Forward.fbx"),
+        PK("Walk", true, true, "patryk_owner/Strut Walking.fbx", "extra/Walking.fbx", "nyxa/Walking.fbx", "extra2/Walking.fbx"),
+        PK("Run", true, true, "patryk_owner/Fast Run.fbx", "extra/Running.fbx", "extra2/Unarmed Run Forward.fbx"),
         PK("Punch", false, true, "brax/Jab Cross (1).fbx", "xd/Jab Cross.fbx"),
         PK("Kick", false, true, "brax/Mma Kick (1).fbx", "nyxa/Mma Kick (1).fbx"),
-        PK("Jump", false, true, "brax/Jump.fbx", "extra2/Unarmed Jump Running.fbx"),
+        PK("Jump", false, true, "patryk_owner/Jump.fbx", "brax/Jump.fbx", "extra2/Unarmed Jump Running.fbx"),
+        PK("EnteringCar", false, true, "patryk_owner/Entering Car.fbx"),
+        PK("GoalkeeperDivingSave", false, true, "patryk_owner/Goalkeeper Diving Save.fbx"),
+        PK("GoalkeeperCatch", false, true, "patryk_owner/Goalkeeper Catch.fbx"),
+        PK("Boxing", false, false, "brax/Boxing.fbx", "xd/Boxing.fbx"),
+        PK("Hook", false, false, "brax/Hook.fbx", "nyxa/Hook.fbx"),
+        PK("Kicking", false, true, "brax/Kicking.fbx", "xd/Kicking.fbx"),
+        PK("HeadHit", false, false, "brax/Head Hit.fbx", "nyxa/Head Hit.fbx"),
+        PK("HitToBody", false, false, "brax/Hit To Body.fbx", "xd/Hit To Body.fbx"),
+        PK("GettingUp", false, false, "extra2/Getting Up.fbx", "nyxa/Getting Up.fbx"),
+        PK("Dodging", false, false, "extra/Dodging.fbx", "nyxa/Dodging.fbx"),
+        PK("Block", false, false, "extra/Center Block.fbx", "xd/Center Block.fbx", "xd/Blocking.fbx", "nyxa/Right Block.fbx"),
     };
     static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Run", "Punch", "Kick", "Jump" };
 
@@ -339,4 +350,5 @@ public static partial class BraxChampionsPatryk
         return bledy;
     }
 }
+
 
