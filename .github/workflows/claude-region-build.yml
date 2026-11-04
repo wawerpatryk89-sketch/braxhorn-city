@@ -1,21 +1,11 @@
 name: Claude - region R1 na gotowo (TEST, bez publikacji)
 'on':
-  push:
-    branches:
-    - claude/region-20261030
-    - claude/miasto-opus-20261031
-    - codex/estate-flicker-patryk-voices-20261102
-    - claude/osiedle-42-poprawka
-    - codex/osiedle-integracja-sport-migotanie-20261104
-    paths:
-    - unity-city/**
-    - unity-tools/claude/**
-    - unity-tools/updates/**
-    - .github/workflows/claude-region-build.yml
+  # TYLKO RECZNIE: automatyczny push usuniety na zyczenie wlasciciela.
+  # Modyfikacja kodu nie uruchamia Unity ani Android APK.
   workflow_dispatch:
     inputs:
       rejon:
-        description: 'Rejon buildu: osiedle (bez miasta) | miasto (bez osiedla) | oba (jak przed buildem 14). Push: plik unity-city/rejon-buildu.txt'
+        description: 'Rejon buildu: osiedle (bez miasta) | miasto (bez osiedla) | oba (jak przed buildem 14). Wybierz rejon podczas recznego startu'
         type: choice
         options:
         - osiedle
