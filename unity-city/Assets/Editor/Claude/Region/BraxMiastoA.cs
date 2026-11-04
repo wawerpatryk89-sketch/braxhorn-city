@@ -293,7 +293,11 @@ internal static class BraxMiastoA
     public static GameObject Obiekt(Transform rodzic, string nazwa, Mesh mesh, Material m)
     {
         Directory.CreateDirectory(Out + "/Siatki");
-        BraxZapisAssetu.Utworz(mesh, AssetDatabase.GenerateUniqueAssetPath(Out + "/Siatki/" + BraxUliceKit.Bezpieczna(nazwa) + ".asset"));
+        // Siatka może już być zapisana przez generator (np. piana brzegu wyspy).
+        // Ponowny CreateAsset dla tego samego obiektu Unity zgłasza wyjątek.
+        // Nie kopiuj ani nie twórz drugiego GUID: zachowaj istniejący asset.
+        if (!AssetDatabase.Contains(mesh))
+            BraxZapisAssetu.Utworz(mesh, AssetDatabase.GenerateUniqueAssetPath(Out + "/Siatki/" + BraxUliceKit.Bezpieczna(nazwa) + ".asset"));
         var g = new GameObject(nazwa); g.transform.SetParent(rodzic, false);
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = m; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = false;
