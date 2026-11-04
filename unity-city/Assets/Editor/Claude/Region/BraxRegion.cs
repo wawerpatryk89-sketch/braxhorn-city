@@ -97,6 +97,9 @@ public static class BraxRegion
         Step("anty-migotanie (offset głębi, trilinear)", () => BraxRegionFlicker.Apply(root));
         // Kontrola prawdziwych wejść i dostarczonych grafik: bez usuwania nieznanych obiektów.
         Step("odbiór miasta: NOVA / Tower / mieszkanie / marina / murale", () => BraxMiastoOdbior.Wykonaj(root));
+        // Odbiór przejścia metra z prawdziwym promieniem kapsuły, a nie "BUILT".
+        // Uruchom po dodaniu całej zabudowy, żeby wykryć obce ściany, wodę i progi.
+        Step("metro M1: kontrola chodnik → ruchome/stale schody → peron", BraxClaudeMetro.KontrolaPrzejscia);
 
         // Siatki zrobione po BraxCityArchitecture.Finish nie mają plików: zapisujemy je, żeby build był deterministyczny.
         Step("utrwalenie siatek", () => PersistMeshes(root));
