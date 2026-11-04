@@ -428,8 +428,13 @@ public static partial class BraxRegionMiastoB
     {
         if (!ndSzklo)
         {
-            ndSzklo = BraxCityMaterials.Surface("Nowe dzielnice: szkło fasady (refleksyjne)", new Color(.30f, .37f, .42f), .1f, .85f);
-            if (ndSzklo.HasProperty("_ReflectionStrength")) ndSzklo.SetFloat("_ReflectionStrength", .95f);
+            // Ciemne szkło .30/.37/.42 było na Androidzie niemal czarne.
+            // Podmieniamy MATERIAŁ w istniejących szybach; żadnych nowych ścian
+            // ani przezroczystych nakładek na stare materiały.
+            ndSzklo = BraxCityMaterials.Surface("Nowe dzielnice: szkło fasady (jasne refleksyjne PBR)",
+                new Color(.50f, .60f, .68f), .16f, .56f);
+            if (ndSzklo.HasProperty("_ReflectionStrength"))
+                ndSzklo.SetFloat("_ReflectionStrength", .75f);
         }
         int n = 0;
         foreach (var r in o.GetComponentsInChildren<Renderer>(true))
