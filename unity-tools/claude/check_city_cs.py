@@ -10,6 +10,7 @@ import sys
 
 ROOT = Path("unity-city/Assets")
 MULTI_VAR = re.compile(r"^\s*var\s+[A-Za-z_]\w*\s*=.*?,\s*[A-Za-z_]\w*\s*=", re.ASCII)
+# Editor-only generator may have no committed .meta; never invent a new GUID.
 REQUIRED = (
     "Editor/Claude/BraxClaudeMetro.cs",
     "Claude/Runtime/BraxMetroM1Ruch.cs",
@@ -25,7 +26,7 @@ def main():
         path = ROOT / name
         if not path.is_file():
             errors.append(f"Brak wymaganego skryptu: {path}")
-        elif not path.with_name(path.name + ".meta").is_file():
+        elif name != "Editor/Claude/BraxClaudeMetro.cs" and not path.with_name(path.name + ".meta").is_file():
             errors.append(f"Brak GUID meta: {path}.meta")
     n = 0
     for path in ROOT.rglob("*.cs"):
