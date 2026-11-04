@@ -1,0 +1,137 @@
+{
+  "source": "Patryk anima.zip",
+  "zip_sha256": "24878e281548000edb2bbf51bc8bbf5cccedf0eb9a26ad76b168dd9537c78556",
+  "zip_bytes": 1166750,
+  "chunks": [
+    {
+      "file": "part-000.enc",
+      "bytes": 49152,
+      "sha256": "6ac7e86c490018c2a032e9df266313c8c1f47e65b3f364a0dbcc0a9a5198ec9b"
+    },
+    {
+      "file": "part-001.enc",
+      "bytes": 49152,
+      "sha256": "a61be92c97a125c7064256c6fbaf9e79b72e4265b7e6c4d4c1a53659fddf61d9"
+    },
+    {
+      "file": "part-002.enc",
+      "bytes": 49152,
+      "sha256": "66be5038061beeed67ee8ac56f3805b3ce73985c01f679bab8c5ea87939152dd"
+    },
+    {
+      "file": "part-003.enc",
+      "bytes": 49152,
+      "sha256": "7d40aca07d2311171e31bfcf260b00e6cdebcda50f6f6b85e828591e16698283"
+    },
+    {
+      "file": "part-004.enc",
+      "bytes": 49152,
+      "sha256": "0c00e96dce87b45c28dcf955d549f280b5a8ca986dfb311df7e0604a7f0b3c73"
+    },
+    {
+      "file": "part-005.enc",
+      "bytes": 49152,
+      "sha256": "6237fef00b86e51355a0004730e9e8a81382fd50631bf0f0fc385b156104d617"
+    },
+    {
+      "file": "part-006.enc",
+      "bytes": 49152,
+      "sha256": "e06c00015f6746a2443d937e905b54779b82b0a109d3ce7f5b109de87ade83ce"
+    },
+    {
+      "file": "part-007.enc",
+      "bytes": 49152,
+      "sha256": "23123f37e889485b07b5b57bbe99938aec110525d4936e76e76bf4cbb6825d28"
+    },
+    {
+      "file": "part-008.enc",
+      "bytes": 49152,
+      "sha256": "ab8379b8b68deab1d08bce64c560493751ef15e2c513075863190c4a1dddbc74"
+    },
+    {
+      "file": "part-009.enc",
+      "bytes": 49152,
+      "sha256": "74238c97969a77ad598cbb9587b73c10749a1c94e1132048295ae1dc9a45407e"
+    },
+    {
+      "file": "part-010.enc",
+      "bytes": 49152,
+      "sha256": "30a4ee7bf9df3e970e4f4e242b6325eabe2f21b1802d4b8596d0bb03c0a8c86a"
+    },
+    {
+      "file": "part-011.enc",
+      "bytes": 49152,
+      "sha256": "203550022df9cd7d4eb7c2dda6be2b39e2b8f7d47de1e111230d8bea8e8f6e1a"
+    },
+    {
+      "file": "part-012.enc",
+      "bytes": 49152,
+      "sha256": "ea0c8748d5543a1a787ad91c8ef337a23720e60a358a08adaad123097f27adf0"
+    },
+    {
+      "file": "part-013.enc",
+      "bytes": 49152,
+      "sha256": "9f03189cffe3b5d87d2bad457b631af7ddb7aba8906de4084af59920c8accc04"
+    },
+    {
+      "file": "part-014.enc",
+      "bytes": 49152,
+      "sha256": "164c286818293dfc45cdeac5d7ddb61201f6a146a8a11be1dbb54465170e33cc"
+    },
+    {
+      "file": "part-015.enc",
+      "bytes": 49152,
+      "sha256": "3e89e9946804b90b2e985d2ec5491dbab61708cc92daf79deaf0b128143e28e8"
+    },
+    {
+      "file": "part-016.enc",
+      "bytes": 49152,
+      "sha256": "86be4a15d900623947c4b2518fe7cc9ef34790655886437154065e2d2d7ecf8a"
+    },
+    {
+      "file": "part-017.enc",
+      "bytes": 49152,
+      "sha256": "2f977f3bfd8173866422ec10f07ca02d6c29d8c202b23ebc3a3dd64e4a200abc"
+    },
+    {
+      "file": "part-018.enc",
+      "bytes": 49152,
+      "sha256": "4ab7270309d9236576749a630771658d2a14b51d181ebf78e574092893beea91"
+    },
+    {
+      "file": "part-019.enc",
+      "bytes": 49152,
+      "sha256": "ac89cdbf53bb6a1e7c420178dc7b0dccc4e994419a46b74996e9db235e214b24"
+    },
+    {
+      "file": "part-020.enc",
+      "bytes": 49152,
+      "sha256": "e6f66a7048590b6adb98ef6e65be6e431b2b3550a823e0c59892841efaf37989"
+    },
+    {
+      "file": "part-021.enc",
+      "bytes": 49152,
+      "sha256": "6dd05596521a648e86feedb6ca9869d48af3d52f7a3c8cae18b730c76ceec91f"
+    },
+    {
+      "file": "part-022.enc",
+      "bytes": 49152,
+      "sha256": "6d6aade9cc98d3cbed7667c3a12fbfab0517b2cf4fd08121250a3dadb6efb942"
+    },
+    {
+      "file": "part-023.enc",
+      "bytes": 36272,
+      "sha256": "92b338e5d2550019e062239d41bc56ebf7538221817cae5030365900be7e0860"
+    }
+  ],
+  "files": {
+    "Entering Car.fbx": "6434eb2b74763c6ff6f7b1a62073dd9f6894ce2dd2ee58c9552325e1dc5d04bb",
+    "Goalkeeper Diving Save.fbx": "1fc12271df529b15b399d2e696d38fdc04c87f11ccac4335f0675d3a01f3d09d",
+    "Goalkeeper Catch.fbx": "b3a5649e0dad2ef55b28e9999fce6a48929147d9b9753b0449949695e11aabf4",
+    "Jump.fbx": "eb7a754cadfe2fe2cd2af9c0ab75488a3b29a39fbee01eb1b7d9ac9da9a10776",
+    "Strut Walking.fbx": "a87c79f903222e09fc6b56ef11d7154715cb5d58825432d816f1b6061422cb67",
+    "Fast Run.fbx": "2bb5d20016a64fd95ea2c0733960b6133ccd7468870449cde8bc9200303f190f"
+  },
+  "aesRoundTripVerified": true,
+  "ciRsaDecryptionVerified": false
+}

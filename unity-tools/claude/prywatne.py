@@ -288,6 +288,8 @@ def patryk_i_ruchy():
     if not klucz():
         print("BRAXHORN_PRYWATNE brak klucza (sekret BRAXHORN_KEYSTORE_PASS) — build z Braxem")
         return
+    from import_patryk_animations import install
+    install(CEL / "ruchy")
     staging = pathlib.Path(tempfile.mkdtemp(prefix="braxhorn-prywatne-", dir=os.environ.get("RUNNER_TEMP") or None))
     ok = []
     try:
@@ -355,3 +357,4 @@ if __name__ == "__main__":
                 print(rozpakuj(t, a[2]), "plików →", a[2])
     else:
         sys.exit(__doc__)
+

@@ -1,0 +1,59 @@
+{
+  "source": "Patryk anima.zip",
+  "clips": [
+    {
+      "action": "Walk",
+      "file": "patryk_owner/Strut Walking.fbx",
+      "scope": "shared",
+      "durationSeconds": 1.4333,
+      "boneCount": 65,
+      "sha256": "a87c79f903222e09fc6b56ef11d7154715cb5d58825432d816f1b6061422cb67",
+      "rollout": "Most compatible characters after rig-specific validation",
+      "selectionStatus": "Candidate; owner may supply another normal walk"
+    },
+    {
+      "action": "Run",
+      "file": "patryk_owner/Fast Run.fbx",
+      "scope": "shared",
+      "durationSeconds": 0.5167,
+      "boneCount": 65,
+      "sha256": "2bb5d20016a64fd95ea2c0733960b6133ccd7468870449cde8bc9200303f190f",
+      "rollout": "Most compatible characters after rig-specific validation"
+    },
+    {
+      "action": "Jump",
+      "file": "patryk_owner/Jump.fbx",
+      "scope": "Patryk",
+      "durationSeconds": 2.1667,
+      "boneCount": 65,
+      "sha256": "eb7a754cadfe2fe2cd2af9c0ab75488a3b29a39fbee01eb1b7d9ac9da9a10776"
+    },
+    {
+      "action": "EnteringCar",
+      "file": "patryk_owner/Entering Car.fbx",
+      "scope": "shared",
+      "durationSeconds": 5.45,
+      "boneCount": 65,
+      "sha256": "6434eb2b74763c6ff6f7b1a62073dd9f6894ce2dd2ee58c9552325e1dc5d04bb"
+    },
+    {
+      "action": "GoalkeeperDivingSave",
+      "file": "patryk_owner/Goalkeeper Diving Save.fbx",
+      "scope": "shared",
+      "durationSeconds": 3.2333,
+      "boneCount": 65,
+      "sha256": "1fc12271df529b15b399d2e696d38fdc04c87f11ccac4335f0675d3a01f3d09d"
+    },
+    {
+      "action": "GoalkeeperCatch",
+      "file": "patryk_owner/Goalkeeper Catch.fbx",
+      "scope": "shared",
+      "durationSeconds": 2.7333,
+      "boneCount": 65,
+      "sha256": "b3a5649e0dad2ef55b28e9999fce6a48929147d9b9753b0449949695e11aabf4"
+    }
+  ],
+  "preserveExistingClips": true,
+  "unityVerified": false,
+  "sharedActionBindings": "Future integration: retarget to each original skeleton; vehicle alignment and goalkeeper gameplay are not implemented by this source import."
+}
