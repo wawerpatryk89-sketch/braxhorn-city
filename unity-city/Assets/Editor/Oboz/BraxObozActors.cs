@@ -34,6 +34,9 @@ public static class BraxObozActors
             BraxObozServices.BindPlayer(info);
             foreach(var gate in info.GetComponentsInChildren<BraxObozSlidingGate>(true)) gate.player=player;
             player.ConfigureCamera(3.5f, monikaBody.height*.62f);
+            // Owner Jump.fbx: take-off around 0.75 s, landing around 1.42 s,
+            // full recovery through 2.583 s. Keep its natural playback rate.
+            player.ConfigureAuthoredJump(1f,.75f);
             var camera = new GameObject("Main Camera"); camera.tag = "MainCamera";
             player.view = camera.AddComponent<Camera>(); player.view.nearClipPlane = .1f; player.view.farClipPlane = 600; player.view.fieldOfView = 58;
             camera.AddComponent<AudioListener>();
@@ -66,6 +69,7 @@ public static class BraxObozActors
             }
             world.points = new[] { Point("octagon","OKTAGON",0,-5),Point("rings","RINGI",0,15),Point("cabins","DOMKI",-81,-30),Point("bags","WORKI",0,-40) };
             info.ownerAppearanceApproved=false; info.mobileRuntimeVerified=false;
+            BraxObozMaterials.WriteTextureAudit(info.transform);
             if(!EditorSceneManager.SaveScene(scene,ScenePath))throw new IOException("Nie zapisano podglądu obozu");
             var report=BraxObozValidation.Check(info);
             File.WriteAllText(BraxObozCharacters.Generated+"/review-assembly.json",JsonUtility.ToJson(report,true));

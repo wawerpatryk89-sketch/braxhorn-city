@@ -49,6 +49,7 @@ public static partial class BraxObozCharacters
         body.radius=.27f*manifest.worldScale;body.center=Vector3.up*body.height*.5f;body.stepOffset=.25f*manifest.worldScale;body.skinWidth=.035f;
         var player=root.AddComponent<BraxGymPlayer>();player.visual=visual.transform;player.body=body;
         player.clips=visual.GetComponent<Animation>();player.bags=Array.Empty<Transform>();player.ConfigureCamera(3.5f,body.height*.62f);
+        player.ConfigureAuthoredJump(1f,.75f);
         var cameraGo=new GameObject("Runtime player camera");player.view=cameraGo.AddComponent<Camera>();player.view.fieldOfView=58;cameraGo.AddComponent<AudioListener>();
         var floor=new GameObject("Temporary physics floor");var collider=floor.AddComponent<BoxCollider>();collider.size=new Vector3(100,.2f,100);floor.transform.position=Vector3.down*.1f;
         var light=new GameObject("Runtime review light").AddComponent<Light>();light.type=LightType.Directional;light.intensity=1.3f;light.transform.rotation=Quaternion.Euler(35,-30,0);
@@ -78,7 +79,7 @@ public static partial class BraxObozCharacters
                 var root=GameObject.Find(PlayReviewRoot);if(!root)throw new InvalidOperationException("Brak Moniki w scenie testowej");
                 reviewPlayer=root.GetComponent<BraxGymPlayer>();
                 reviewBones=reviewPlayer.visual.GetComponentsInChildren<Transform>(true).Where(t=>t.name.StartsWith("mixamorig",StringComparison.OrdinalIgnoreCase)).ToArray();
-                reviewCamera=new GameObject("Runtime pose camera").AddComponent<Camera>();reviewCamera.cullingMask=1<<27;
+                reviewCamera=new GameObject("Runtime pose camera").AddComponent<Camera>();reviewCamera.enabled=false;reviewCamera.cullingMask=1<<27;
                 reviewCamera.orthographic=true;reviewCamera.nearClipPlane=.01f;reviewCamera.farClipPlane=100;
                 reviewCamera.clearFlags=CameraClearFlags.SolidColor;reviewCamera.backgroundColor=new Color(.12f,.14f,.17f);
                 runtimeOutput=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/MonikaRuntimeReview"));Directory.CreateDirectory(runtimeOutput);

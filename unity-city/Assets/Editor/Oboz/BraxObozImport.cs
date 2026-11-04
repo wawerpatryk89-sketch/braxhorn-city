@@ -6,7 +6,7 @@ public sealed class BraxObozImport : AssetPostprocessor
 {
     const string Root = "Assets/Source/Prywatne/Oboz/";
     public override int GetPostprocessOrder() => 100;
-    public override uint GetVersion() => 3;
+    public override uint GetVersion() => 4;
     void OnPreprocessModel()
     {
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
@@ -44,18 +44,25 @@ public sealed class BraxObozImport : AssetPostprocessor
         // packed NormalMap convention. External GLB maps keep their source bytes.
         bool glbMap = assetPath.Contains("_textures/");
         if (glbMap) { normal = false; color = n.Contains("_color"); }
-        bool main = assetPath.Contains("/characters/monika/");
         bool surface = assetPath.Contains("/environment/materials/") || assetPath.Contains("/environment/forest-ground/");
-        int max = surface || (main && (normal || color)) ? 4096 : 2048;
+        bool vegetation = assetPath.Contains("/environment/vegetation/");
+        bool billboard = assetPath.Contains("/environment/vegetation/billboards/");
+        // Preserve source detail for every character and nearby object, not only
+        // Monika's colour map. A four-view atlas needs room for four 2K views.
+        // Upper limits do not invent detail in smaller source images.
+        int max = billboard ? 8192 : 4096;
+        t.textureShape = TextureImporterShape.Texture2D;
         t.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
         t.sRGBTexture = color; t.mipmapEnabled = true; t.anisoLevel = 8;
-        t.maxTextureSize = max; t.textureCompression = TextureImporterCompression.Compressed;
-        t.compressionQuality = surface ? 90 : 50; t.isReadable = false;
-        if (surface) { t.wrapMode = UnityEngine.TextureWrapMode.Repeat; t.filterMode = UnityEngine.FilterMode.Trilinear; }
+        t.maxTextureSize = max; t.textureCompression = TextureImporterCompression.CompressedHQ;
+        t.compressionQuality = 90; t.isReadable = false;
+        t.filterMode = UnityEngine.FilterMode.Trilinear;
+        if (surface) t.wrapMode = UnityEngine.TextureWrapMode.Repeat;
+        if (vegetation && color) t.alphaIsTransparency = true;
         var a = t.GetPlatformTextureSettings("Android");
         a.name = "Android"; a.overridden = true; a.maxTextureSize = max;
-        a.format = surface ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
-        a.compressionQuality = surface ? 90 : 50;
+        a.format = billboard ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
+        a.compressionQuality = 90;
         t.SetPlatformTextureSettings(a);
     }
 }

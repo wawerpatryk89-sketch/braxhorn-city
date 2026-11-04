@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -149,6 +150,72 @@ public static class BraxObozMaterials
         }
         Debug.Log("BRAXHORN_OBOZ materiały: renderery="+all.Length+" materiały="+materials.Length+
             "; sprawdzono referencje i błędy shaderów, odbiór wizualny nadal wymagany");
+    }
+    [Serializable] sealed class TextureRecord
+    {
+        public string asset,name,androidFormat;
+        public int width,height,sourceWidth,sourceHeight,importLimit,androidLimit;
+        public bool sourceDimensionsKnown,sourceBelowRequestedDetail,alphaCoverage;
+        public long estimatedAndroidBytesWithMips;
+    }
+    [Serializable] sealed class TextureAudit
+    {
+        public string commit,unity;
+        public bool phoneMeasured=false;
+        public long estimatedAndroidTextureBytesWithMips;
+        public TextureRecord[] textures;
+    }
+    public static void WriteTextureAudit(Transform root)
+    {
+        var materials=root.GetComponentsInChildren<Renderer>(true).SelectMany(r=>r.sharedMaterials)
+            .Concat(root.GetComponentsInChildren<BraxClaudeTrawa>(true).Select(g=>g.material))
+            .Where(m=>m).Distinct();
+        var textures=materials.SelectMany(m=>m.GetTexturePropertyNames().Select(m.GetTexture))
+            .OfType<Texture2D>().Distinct().OrderBy(AssetDatabase.GetAssetPath);
+        var records=new List<TextureRecord>();
+        foreach(var texture in textures)
+        {
+            string path=AssetDatabase.GetAssetPath(texture);
+            if(string.IsNullOrEmpty(path)||!path.StartsWith("Assets/",StringComparison.Ordinal))continue;
+            var importer=AssetImporter.GetAtPath(path) as TextureImporter;
+            var record=new TextureRecord{asset=path,name=texture.name,width=texture.width,height=texture.height,
+                androidFormat="unknown",estimatedAndroidBytesWithMips=-1};
+            if(importer)
+            {
+                importer.GetSourceTextureWidthAndHeight(out record.sourceWidth,out record.sourceHeight);
+                record.sourceDimensionsKnown=record.sourceWidth>0&&record.sourceHeight>0;
+                var android=importer.GetPlatformTextureSettings("Android");
+                record.importLimit=importer.maxTextureSize;record.androidLimit=android.overridden?android.maxTextureSize:importer.maxTextureSize;
+                record.androidFormat=android.overridden?android.format.ToString():"automatic";
+                record.alphaCoverage=importer.mipMapsPreserveCoverage;
+                bool atlas=path.Contains("/vegetation/billboards/")||path.Contains("/Vegetation/Billboard-");
+                record.sourceBelowRequestedDetail=record.sourceDimensionsKnown && (atlas
+                    ? record.sourceWidth/4<2048 || record.sourceHeight<2048
+                    : Mathf.Max(record.sourceWidth,record.sourceHeight)<4096);
+                int block=android.overridden&&android.format==TextureImporterFormat.ASTC_4x4?4:
+                    android.overridden&&android.format==TextureImporterFormat.ASTC_6x6?6:0;
+                if(block>0 && record.sourceDimensionsKnown)
+                {
+                    float scale=Mathf.Min(1,record.androidLimit/(float)Mathf.Max(record.sourceWidth,record.sourceHeight));
+                    int w=Mathf.Max(1,Mathf.RoundToInt(record.sourceWidth*scale)),h=Mathf.Max(1,Mathf.RoundToInt(record.sourceHeight*scale));
+                    record.estimatedAndroidBytesWithMips=0;
+                    while(true)
+                    {
+                        record.estimatedAndroidBytesWithMips+=(long)((w+block-1)/block)*((h+block-1)/block)*16;
+                        if(!importer.mipmapEnabled || w==1&&h==1)break;
+                        w=Mathf.Max(1,w/2);h=Mathf.Max(1,h/2);
+                    }
+                }
+            }
+            records.Add(record);
+        }
+        var report=new TextureAudit{commit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local",unity=Application.unityVersion,
+            textures=records.ToArray(),estimatedAndroidTextureBytesWithMips=records.Where(r=>r.estimatedAndroidBytesWithMips>=0).Sum(r=>r.estimatedAndroidBytesWithMips)};
+        string output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/CampLifeReview"));
+        Directory.CreateDirectory(output);File.WriteAllText(Path.Combine(output,"texture-audit.json"),JsonUtility.ToJson(report,true));
+        Debug.Log("BRAXHORN_OBOZ_TEXTURES count="+records.Count+" source_below_requested_detail="+
+            records.Count(r=>r.sourceBelowRequestedDetail)+" unknown_memory="+records.Count(r=>r.estimatedAndroidBytesWithMips<0)+
+            " estimated_android_bytes="+report.estimatedAndroidTextureBytesWithMips+" phone_measured=false");
     }
     static Material Save(Material material, string id)
     {

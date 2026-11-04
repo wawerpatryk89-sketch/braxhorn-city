@@ -11,7 +11,7 @@ pozostałe animacje pozostawić. Baza: `gpt/oboz`,
 | --- | --- | --- |
 | Walk | Brutal To Happy Walking.fbx | Pętla, ruch postaci kontroluje BraxGymPlayer |
 | Run | Running.fbx | Pętla, ruch postaci kontroluje BraxGymPlayer |
-| Jump | Jump.fbx | Jednorazowo, dotychczasowa fizyka skoku |
+| Jump | Jump.fbx | Cały klip w tempie 1×, wybicie dopasowane do źródła |
 
 Źródło: `Monika anim(1).zip`, SHA-256
 `2de9fa1ec1c72e6d49f5622a56bb7d9cf6de131728152ae9a7a0ff3fdc0f0d60`.
@@ -34,9 +34,21 @@ rotacji bez retargetingu. Wszystkie trzy wybrane klipy korzystają z istniejące
 Nazwy Walk/Run/Jump i docelowe pliki `.anim` nie zmieniają się; zapis zachowuje
 istniejące GUID. Zmiana specyfikacji i hashy źródeł unieważnia cache Moniki.
 
-Idle, CombatIdle, ciosy, kopnięcia, uniki i wszystkie inne ruchy, sześć NPC,
-model, siatka, bind poses, materiały, tekstury i wzrost nie są zmieniane.
-Nie zmieniono wspólnego BraxGymPlayer ani geometrii obozu.
+Właściciel potwierdził, że dostarczone podstawowe animacje są dobre i idealne.
+Są zatwierdzonym wzorcem; nie poprawiać ich choreografii ani nie zastępować
+podstawowymi ruchami innego dawcy. Bajty źródłowych FBX pozostają identyczne.
+Idle, CombatIdle, ciosy, kopnięcia, uniki, inne ruchy, model, siatka, bind poses
+i wzrost nie są zmieniane przez tę podmianę. Osobna poprawka jakości importu
+tekstur obozu zachowuje oryginalne obrazy i kolory.
+
+Kontynuacja po `8ee5fbe`: kontroler miał limit akcji Jump 1,2 s i wybicie
+najpóźniej po 0,3 s. To ucinało nowy klip oraz uruchamiało fizykę w trakcie
+przysiadu. Odczyt źródła ufbx (bez zmiany FBX): palce są przy podłożu do ok.
+0,75 s i wracają ok. 1,42 s; pełne odzyskanie pozy trwa do 2,583 s.
+Monika w obozie dostaje `ConfigureAuthoredJump(1f,.75f)`: pełne odtwarzanie,
+bez wczesnego wyzwolenia z odczytu bioder. Siła/grawitacja pozostają takie same.
+Nowa opcja wspólnego kontrolera jest domyślnie wyłączona dla innych graczy.
+To dopasowanie obsługi do animacji, nie edycja ruchu źródłowego.
 
 ## Dostawa i kontrola statyczna
 
@@ -62,10 +74,11 @@ Nie wykonano nowego importu/bake w Unity, Play Mode, APK ani testu telefonu.
 Nie deklarować naprawionych skręconych nóg na podstawie samych kości lub hashy.
 Przy następnym jawnie zleconym sprawdzeniu obejrzeć chód i bieg z przodu, tyłu
 i boku, kolana/stopy oraz przejścia Idle–Walk–Run–stop. Oddzielnie sprawdzić
-nowy Jump: przysiad, pojedyncze wybicie, lądowanie i powrót do Idle; źródło ma
-2.5833 s, a kontroler skaluje jego odtwarzanie do istniejącej akcji skoku.
-Dotychczasowy `ReviewMonikaRuntime` obejmuje chód/bieg, ale nie skok — jego
-zielony wynik sam nie potwierdzi Jump. Model i stroje muszą pozostać oryginalne.
+nowy Jump: przysiad, pojedyncze wybicie, lądowanie i powrót do Idle.
+`ReviewCampLife` ma teraz próbę skoku rzeczywistą komendą gracza, zapis klatek
+z kamery gry i trzech stron, wymaganie odbicia, lądowania i dalszego odtwarzania
+fazy powrotu po 2 s. Próba nie została jeszcze uruchomiona. Sam zielony wynik
+starszego `ReviewMonikaRuntime` nie potwierdza skoku. Model i stroje pozostają oryginalne.
 
 Nie zmieniono żadnego workflow ani pliku zlecenia. Sprawdzono wyzwalacze
 56 workflow w bazie: na `gpt/oboz` push uruchamia build tylko po zmianie

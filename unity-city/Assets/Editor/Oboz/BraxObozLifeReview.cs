@@ -18,6 +18,10 @@ public static partial class BraxObozCharacters
     static float lifeStart = -1, lifeSample, lifeCapture, lifePauseMove, lifePauseBag;
     static int lifeFrame = -1, lifeOrders;
     static bool lifePaused, lifeResumed;
+    static float lifeJumpAt=-1,lifeJumpFloor,lifeJumpRise;
+    static int lifeJumpCapture;
+    static bool lifeJumpClip,lifeJumpRecovery,lifeJumpLanded,lifeJumpFinished;
+    static readonly List<LifeJumpFrame> lifeJumpFrames=new List<LifeJumpFrame>();
     static BraxObozArena lifePlayerArena;
     static float lifePlayerFightAt = -1;
     static bool lifePlayerFightStarted, lifePlayerFightEnded, lifePlayerFightSuspended;
@@ -51,6 +55,9 @@ public static partial class BraxObozCharacters
         public bool complete, playModeTested, phoneTested = false, appearanceApproved = false;
         public bool manualDiagnosticCameras;
         public float simulationSeconds, wallSeconds;
+        public bool playerJumpClip,playerJumpRecovery,playerJumpLanded;
+        public float playerJumpRise;
+        public LifeJumpFrame[] playerJumpFrames;
         public float pauseDisplacement, pauseBagDegrees;
         public int rounds, roleChanges, bagStrikes, sparringStrikes, orders;
         public int spokenLines, voiceExchanges, contactSounds;
@@ -60,6 +67,13 @@ public static partial class BraxObozCharacters
         public bool playerSparringStarted, playerSparringEnded, routineSuspendedForPlayer;
         public LifeFrame[] frames;
         public string[] errors;
+    }
+    [Serializable] sealed class LifeJumpFrame
+    {
+        public float time;
+        public string clip;
+        public Vector3 position;
+        public bool grounded;
     }
     // Uses the production generator, controllers, colliders, navigation and interaction API.
     // Round length is accelerated; the test player is positioned on a mat for the
@@ -139,6 +153,7 @@ public static partial class BraxObozCharacters
             if (lifeFrame == Time.frameCount) return; lifeFrame = Time.frameCount;
             float time = Time.time - lifeStart;
             if (!lifeRoutine.Running) throw new InvalidOperationException("Plan zajęć nie działa");
+            ReviewLifeJump(time);
             if (time >= 25 && !lifePaused)
             {
                 lifePaused = true;
@@ -240,6 +255,34 @@ public static partial class BraxObozCharacters
     }
     static string ActiveLifeClip(BraxObozNpc npc)
         => npc.clips.Cast<AnimationState>().Where(s=>s.enabled).OrderByDescending(s=>s.weight).FirstOrDefault()?.name ?? "none";
+    static void ReviewLifeJump(float time)
+    {
+        if(lifeJumpFinished || time<5)return;
+        var player=lifeScene.player;
+        if(lifeJumpAt<0)
+        {
+            if(!player.body.isGrounded)return;
+            lifeJumpFloor=player.transform.position.y;lifeJumpAt=time;
+            player.MoveInput("0,0");player.Command("jump");
+        }
+        float elapsed=time-lifeJumpAt;
+        string clip=player.clips.Cast<AnimationState>().Where(s=>s.enabled).OrderByDescending(s=>s.weight).FirstOrDefault()?.name??"none";
+        lifeJumpClip|=clip=="Jump";
+        lifeJumpRecovery|=elapsed>2&&elapsed<2.5f&&clip=="Jump";
+        lifeJumpRise=Mathf.Max(lifeJumpRise,player.transform.position.y-lifeJumpFloor);
+        lifeJumpFrames.Add(new LifeJumpFrame{time=elapsed,clip=clip,position=player.transform.position,grounded=player.body.isGrounded});
+        if(lifeJumpCapture<6&&elapsed>=.35f+lifeJumpCapture*.45f)
+        {
+            string suffix=lifeJumpCapture.ToString("D2");lifeJumpCapture++;
+            CaptureRuntimeCamera(player.view,Path.Combine(lifeOutput,"monika-jump-game-"+suffix+".png"));
+            using(var snapshot=new MotionSnapshot(player.visual.gameObject))
+                foreach(string view in new[]{"front","back","side"})
+                    CaptureMotion(snapshot.renderers,lifePoseCamera,view,Path.Combine(lifeOutput,"monika-jump-"+view+"-"+suffix+".png"));
+        }
+        if(elapsed<3.1f)return;
+        lifeJumpFinished=true;
+        lifeJumpLanded=player.body.isGrounded&&Mathf.Abs(player.transform.position.y-lifeJumpFloor)<.15f&&clip!="Jump";
+    }
     static void FinishLifeReview()
     {
         EditorApplication.update -= TickLifeReview; Application.logMessageReceived -= LifeLog;
@@ -249,6 +292,10 @@ public static partial class BraxObozCharacters
             manualDiagnosticCameras=lifeCamera && lifePoseCamera && !lifeCamera.enabled && !lifePoseCamera.enabled,
             simulationSeconds=lifeStart<0?0:Mathf.Max(0,Time.time-lifeStart),
             wallSeconds=(float)(EditorApplication.timeSinceStartup-lifeWallStart) };
+        report.playerJumpClip=lifeJumpClip;report.playerJumpRecovery=lifeJumpRecovery;report.playerJumpLanded=lifeJumpLanded;
+        report.playerJumpRise=lifeJumpRise;report.playerJumpFrames=lifeJumpFrames.ToArray();
+        if(!lifeJumpFinished||!lifeJumpClip||!lifeJumpRecovery||!lifeJumpLanded||lifeJumpRise<.25f)
+            lifeErrors.Add("Niepełny skok Moniki: klip, odbicie, pełny powrót i lądowanie muszą przejść razem");
         if (lifeRoutine)
         {
             report.rounds=lifeRoutine.CompletedRounds; report.roleChanges=lifeRoutine.RoleChanges;

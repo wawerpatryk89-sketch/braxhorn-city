@@ -59,6 +59,20 @@ public static class BraxObozParkedBus
             if(!source.StartsWith(BraxCityMaterials.Generated+"/",StringComparison.Ordinal))continue;
             string target=Materials+"/"+Hash128.Compute(source)+Path.GetExtension(source);
             if(!File.Exists(target)&&!AssetDatabase.CopyAsset(source,target))throw new IOException("Nie skopiowano mapy autobusu");
+            var importer=AssetImporter.GetAtPath(target) as TextureImporter;
+            if(importer)
+            {
+                var android=importer.GetPlatformTextureSettings("Android");
+                bool changed=importer.maxTextureSize!=4096||importer.compressionQuality!=90||
+                    importer.textureCompression!=TextureImporterCompression.CompressedHQ||!importer.mipmapEnabled||
+                    importer.filterMode!=FilterMode.Trilinear||importer.anisoLevel!=8||
+                    !android.overridden||android.maxTextureSize!=4096||android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=90;
+                importer.maxTextureSize=4096;importer.compressionQuality=90;importer.textureCompression=TextureImporterCompression.CompressedHQ;
+                importer.mipmapEnabled=true;importer.filterMode=FilterMode.Trilinear;importer.anisoLevel=8;
+                android.name="Android";android.overridden=true;android.maxTextureSize=4096;
+                android.format=TextureImporterFormat.ASTC_4x4;android.compressionQuality=90;importer.SetPlatformTextureSettings(android);
+                if(changed)importer.SaveAndReimport();
+            }
             copy.SetTexture(property,AssetDatabase.LoadAssetAtPath<Texture>(target));
         }
         var existing=AssetDatabase.LoadAssetAtPath<Material>(path);

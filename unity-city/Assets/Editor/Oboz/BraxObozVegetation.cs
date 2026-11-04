@@ -49,9 +49,12 @@ public static class BraxObozVegetation
                     trunk.height=3;trunk.center=new Vector3(0,1.5f,0);
                 }
             }
-            var grass=layout.grass.Where(p=>!BraxObozCampusLayout.Reserved(p.x,p.z,.5f)).ToArray();
-            Grass(parent,grass);
-            Debug.Log("BRAXHORN_OBOZ las: drzewa="+placedTrees+" kępy="+grass.Length+"; test telefonu nadal wymagany");
+            var grass=layout.grass.Where(p=>!BraxObozCampusLayout.Reserved(p.x,p.z,.5f)).ToList();
+            int originalGrass=grass.Count;
+            AddLawnGrass(grass);
+            Grass(parent,grass.ToArray());
+            Debug.Log("BRAXHORN_OBOZ las: drzewa="+placedTrees+" kępy="+grass.Count+
+                " nowe_kepy_trawnika="+(grass.Count-originalGrass)+"; test telefonu nadal wymagany");
         }
         finally { foreach(var p in prototypes)if(p)Object.DestroyImmediate(p); }
     }
@@ -70,7 +73,7 @@ public static class BraxObozVegetation
             far.AddComponent<MeshFilter>().sharedMesh=Save(mesh,Output+name+"-billboard.asset");
             var shader=Shader.Find("Braxhorn/ObozTreeBillboard");if(!shader)throw new InvalidOperationException("Brak shadera dalekiego lasu");
             var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(Source+"billboards/"+atlas.file);if(!texture)throw new InvalidOperationException("Brak atlasu "+atlas.file);
-            var mat=new Material(shader){name=name+" — widoki źródła",enableInstancing=true};mat.mainTexture=texture;
+            var mat=new Material(shader){name=name+" — widoki źródła",enableInstancing=true};mat.mainTexture=LeafTexture(texture,.35f,1);
             var renderer=far.AddComponent<MeshRenderer>();renderer.sharedMaterial=Save(mat,Output+name+"-billboard.mat");renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;
             var lod=root.AddComponent<LODGroup>();
             // Large detailed source trees are kept close. Far views retain
@@ -96,12 +99,16 @@ public static class BraxObozVegetation
     {
         if (!source) throw new InvalidOperationException("Brak materiału roślinności");
         if(materials.TryGetValue(source,out var saved))return saved;
-        if(!source.HasProperty("baseColorFactor"))throw new InvalidOperationException("Nieobsługiwany materiał źródła "+source.name);
+        if(!source.HasProperty("baseColorFactor") || !source.HasProperty("roughnessFactor") || !source.HasProperty("metallicFactor"))
+            throw new InvalidOperationException("Nieobsługiwany materiał źródła "+source.name);
         var shader=Shader.Find(BraxCityMaterials.ShaderName);if(!shader)throw new InvalidOperationException("Brak wspólnego shadera PBR");
         var mat=new Material(shader){name=source.name+" — obóz",enableInstancing=true};
         mat.SetColor("_Color",source.GetColor("baseColorFactor"));mat.SetFloat("_Roughness",source.GetFloat("roughnessFactor"));mat.SetFloat("_Metallic",source.GetFloat("metallicFactor"));
         CopyMap(source,mat,"baseColorTexture","_MainTex");CopyMap(source,mat,"normalTexture","_BumpMap");CopyMap(source,mat,"metallicRoughnessTexture","_ARM");
-        mat.SetFloat("_NormalEncoding",0);mat.SetFloat("_UseARMForAO",0);mat.SetFloat("_BumpScale",1);
+        CopyMap(source,mat,"occlusionTexture","_OcclusionMap");
+        mat.SetFloat("_NormalEncoding",0);mat.SetFloat("_UseARMForAO",0);
+        mat.SetFloat("_BumpScale",source.HasProperty("normalTexture_scale")?source.GetFloat("normalTexture_scale"):1);
+        mat.SetFloat("_OcclusionStrength",source.HasProperty("occlusionTexture_strength")?source.GetFloat("occlusionTexture_strength"):1);
         // Foliage transparency becomes alpha test for depth sorting and mobile
         // overdraw, with source alpha intact. No texture colours are retinted.
         string type=source.GetTag("RenderType",false,"");
@@ -110,6 +117,7 @@ public static class BraxObozVegetation
             source.name.IndexOf("twig",StringComparison.OrdinalIgnoreCase)>=0 ||
             source.name.IndexOf("grass",StringComparison.OrdinalIgnoreCase)>=0;
         float cutoff=source.HasProperty("alphaCutoff")?source.GetFloat("alphaCutoff"):.35f;
+        if(foliage)mat.SetTexture("_MainTex",LeafTexture(mat.GetTexture("_MainTex"),cutoff,mat.GetColor("_Color").a));
         mat.SetFloat("_Cull",foliage?0:2);mat.doubleSidedGI=foliage;mat.SetFloat("_AlphaClip",foliage?1:0);mat.SetFloat("_Cutoff",foliage?Mathf.Clamp01(cutoff):0);
         mat.SetFloat("_Transparent",0);mat.SetFloat("_SrcBlend",1);mat.SetFloat("_DstBlend",0);mat.SetFloat("_ZWrite",1);mat.SetColor("_EmissionColor",Color.black);
         mat.renderQueue=foliage?2450:2000;mat.SetOverrideTag("RenderType",foliage?"TransparentCutout":"Opaque");
@@ -120,6 +128,69 @@ public static class BraxObozVegetation
     {
         if(!src.HasProperty(from)||!src.GetTexture(from))return;
         dst.SetTexture(to,src.GetTexture(from));dst.SetTextureScale(to,src.GetTextureScale(from));dst.SetTextureOffset(to,src.GetTextureOffset(from));
+        if(src.HasProperty(from+"_Rotation"))dst.SetVector(to+"_Rotation",src.GetVector(from+"_Rotation"));
+        if(src.HasProperty(from+"_texCoord"))
+        {
+            float uv=src.GetFloat(from+"_texCoord");
+            if(uv!=0&&uv!=1)throw new InvalidOperationException("Nieobsługiwany kanał UV roślinności: "+src.name);
+            dst.SetFloat(to+"_texCoord",uv);
+        }
+    }
+    static Texture LeafTexture(Texture texture,float cutoff,float factorAlpha)
+    {
+        if(!texture)return texture;
+        string source=AssetDatabase.GetAssetPath(texture);
+        var sourceImporter=AssetImporter.GetAtPath(source) as TextureImporter;
+        if(!sourceImporter || !sourceImporter.DoesSourceTextureHaveAlpha())return texture;
+        float threshold=Mathf.Clamp01(cutoff/Mathf.Max(.0001f,factorAlpha));
+        string role=source.Contains("/billboards/")?"Billboard-":"Leaf-";
+        string key=source+"|"+AssetDatabase.GetAssetDependencyHash(source)+"|"+
+            threshold.ToString("R",System.Globalization.CultureInfo.InvariantCulture);
+        string path=Output+role+Hash128.Compute(key)+Path.GetExtension(source);
+        if(!File.Exists(path)&&!AssetDatabase.CopyAsset(source,path))throw new IOException("Nie skopiowano maski liści: "+source);
+        var importer=AssetImporter.GetAtPath(path) as TextureImporter;
+        if(!importer)throw new InvalidOperationException("Brak importera maski liści: "+path);
+        // A generated variant protects source material references during GLB
+        // iteration and supports different alpha cutoffs on the same source map.
+        if(!importer.alphaIsTransparency || !importer.mipMapsPreserveCoverage ||
+            Mathf.Abs(importer.alphaTestReferenceValue-threshold)>=.0001f)
+        {
+            importer.alphaIsTransparency=true;importer.mipMapsPreserveCoverage=true;
+            importer.alphaTestReferenceValue=threshold;importer.SaveAndReimport();
+        }
+        var result=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if(!result)throw new InvalidOperationException("Nie zaimportowano maski liści: "+path);
+        return result;
+    }
+    static void AddLawnGrass(List<Item> points)
+    {
+        // Reuse the original blade model and Claude's local instancing on lawns
+        // that the old forest-cluster layout left empty. Fixed cells preserve
+        // deterministic scenes without touching Unity's global Random state.
+        const float spacing=1.25f;
+        var occupied=new HashSet<long>();
+        long Cell(int x,int z)=>((long)x<<32)^(uint)z;
+        foreach(var p in points)occupied.Add(Cell(Mathf.FloorToInt(p.x/spacing),Mathf.FloorToInt(p.z/spacing)));
+        var paths=BraxObozEnvironment.PathRectangles();
+        for(int iz=-82;iz<=66;iz++)for(int ix=-99;ix<=43;ix++)
+        {
+            if(occupied.Contains(Cell(ix,iz)))continue;
+            uint h=unchecked((uint)(ix+1000)*73856093u^(uint)(iz+1000)*19349663u^20261104u);
+            h^=h>>13;h=unchecked(h*1274126177u);h^=h>>16;
+            if((h&255u)<38u)continue;
+            float x=(ix+.15f+((h>>8)&255u)/255f*.7f)*spacing;
+            float z=(iz+.15f+((h>>16)&255u)/255f*.7f)*spacing;
+            if(Mathf.Max(Mathf.Abs((x+35)/100),Mathf.Abs((z+10)/105))>.88f ||
+                BraxObozCampusLayout.ReservedLawn(x,z,.8f))continue;
+            bool pathShoulder=false;
+            foreach(var path in paths)
+            {
+                float dx=Mathf.Max(path.xMin-x,0,x-path.xMax),dz=Mathf.Max(path.yMin-z,0,z-path.yMax);
+                if(dx*dx+dz*dz<4){pathShoulder=true;break;}
+            }
+            if(pathShoulder)continue;
+            points.Add(new Item{x=x,z=z,yaw=(h&65535u)*360f/65535f,scale=.72f+((h>>24)&255u)/255f*.34f});
+        }
     }
     static T Save<T>(T obj,string path) where T:Object
     {

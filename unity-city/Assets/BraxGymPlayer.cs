@@ -43,6 +43,15 @@ public sealed class BraxGymPlayer : MonoBehaviour
     // (biodra ruszają w górę po przysiadzie, najpóźniej po 0.3 s), wysokość daje tylko fizyka (klip bez własnego unoszenia bioder),
     // a w skoku Brax leci dalej z prędkością biegu i da się nim lekko sterować.
     private Transform hips; private float hipsRestY = float.NaN, hipsPrevY = float.NaN, jumpDeadline; private bool jumpPending;
+    // Opt-in timing for a region's authored jump. Zero preserves existing players.
+    [SerializeField] private float authoredJumpRate, authoredJumpTakeoff;
+    public void ConfigureAuthoredJump(float playbackRate,float takeoffSeconds)
+    {
+        if(playbackRate<=0||takeoffSeconds<0||float.IsNaN(playbackRate)||float.IsInfinity(playbackRate)||
+            float.IsNaN(takeoffSeconds)||float.IsInfinity(takeoffSeconds))
+            throw new ArgumentOutOfRangeException(nameof(playbackRate));
+        authoredJumpRate=playbackRate;authoredJumpTakeoff=takeoffSeconds;
+    }
     private float doorAngle;
     private Vector2[] bagSwing, bagVelocity;
     private Quaternion[] bagRestRotation;
@@ -153,7 +162,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(Time.time<actionEnd||regionReactionLeft>0||vessel||seat||autoGracza)return;
         if(key=="punch")StartAction("Punch",1.25f,.43f);
         else if(key=="kick")StartAction("Kick",1.2f,.60f);
-        else if(key=="jump" && body.isGrounded && !jumpPending){StartAction("Jump",1.35f,-1);jumpPending=true;jumpDeadline=Time.time+.30f;hipsPrevY=float.NaN;}
+        else if(key=="jump" && body.isGrounded && !jumpPending){StartAction("Jump",authoredJumpRate>0?authoredJumpRate:1.35f,-1);jumpPending=true;jumpDeadline=Time.time+(authoredJumpRate>0?authoredJumpTakeoff/authoredJumpRate:.30f);hipsPrevY=float.NaN;}
     }
     private void StartAction(string name,float rate,float contact)
     {
@@ -162,6 +171,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         action=name;clips[name].wrapMode=WrapMode.Once;clips[name].speed=rate;
         clips.CrossFade(name,.10f,PlayMode.StopAll);
         actionEnd=Time.time+Mathf.Min(clips[name].length/rate,name=="Punch"?1.25f:name=="Kick"?1.1f:1.2f);
+        if(name=="Jump"&&authoredJumpRate>0)actionEnd=Time.time+clips[name].length/rate;
         hitAt=Time.time+contact/rate;hitPending=contact>=0;Report();
     }
     // Optional regional reaction: existing city/estate callers are unaffected.
@@ -217,7 +227,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(jumpPending)
         {
             bool odbicie=Time.time>=jumpDeadline;
-            if(hips&&!float.IsNaN(hipsPrevY)&&Time.time>jumpDeadline-.2f&&visual.InverseTransformPoint(hips.position).y>hipsPrevY+.0015f)odbicie=true;   // koniec przysiadu
+            if(authoredJumpRate<=0&&hips&&!float.IsNaN(hipsPrevY)&&Time.time>jumpDeadline-.2f&&visual.InverseTransformPoint(hips.position).y>hipsPrevY+.0015f)odbicie=true;   // koniec przysiadu
             if(hips)hipsPrevY=visual.InverseTransformPoint(hips.position).y;
             if(odbicie){jumpPending=false;if(body.isGrounded)vertical=6.2f;}
         }

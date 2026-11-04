@@ -50,6 +50,16 @@ public static partial class BraxObozEnvironment
         g.transform.localScale = new Vector3(radius * 2, Vector3.Distance(a, b) * .5f, radius * 2) * K;
         g.GetComponent<Renderer>().sharedMaterial = material;
         if (!solid) Object.DestroyImmediate(g.GetComponent<Collider>());
+        // Match the metre-based box UVs on poles, rails and roof details.
+        // Primitive UVs otherwise stretch one whole wood map along every pole.
+        var filter=g.GetComponent<MeshFilter>();var mesh=Object.Instantiate(filter.sharedMesh);
+        var vertices=mesh.vertices;var normals=mesh.normals;var uv=mesh.uv;
+        float length=Vector3.Distance(a,b)*K,circumference=2*Mathf.PI*radius*K;
+        for(int i=0;i<vertices.Length;i++)
+            uv[i]=Mathf.Abs(normals[i].y)>.9f
+                ? new Vector2(vertices[i].x,vertices[i].z)*(2*radius*K)
+                : new Vector2(uv[i].x*circumference,(vertices[i].y*.5f+.5f)*length);
+        mesh.uv=uv;mesh.RecalculateTangents();filter.sharedMesh=SaveMesh(mesh);
         return g;
     }
     static Mesh SaveMesh(Mesh mesh)
@@ -166,7 +176,7 @@ public static partial class BraxObozEnvironment
     {
         PavedPaths(PathRectangles());
     }
-    static List<Rect> PathRectangles()
+    internal static List<Rect> PathRectangles()
     {
         var paths = new List<Rect> {
             new Rect(-1.2f,-150,2.4f,300), new Rect(-101,-56.0f,101,2),
@@ -342,7 +352,7 @@ public static partial class BraxObozEnvironment
             for(int end=0;end<2;end++)for(int j=0;j<=sides;j++) {
                 float angle=2*Mathf.PI*j/sides;
                 vertices.Add(((end==0?a:b)+radius*(Mathf.Cos(angle)*u+Mathf.Sin(angle)*v))*K);
-                uv.Add(new Vector2(j/(float)sides,end*Vector3.Distance(a,b)*K));
+                uv.Add(new Vector2(j/(float)sides*2*Mathf.PI*radius*K,end*Vector3.Distance(a,b)*K));
             }
             for(int j=0;j<sides;j++) {
                 int a0=start+j,b0=a0+sides+1;
