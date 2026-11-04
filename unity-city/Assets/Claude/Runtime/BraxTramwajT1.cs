@@ -180,6 +180,11 @@ public sealed class BraxTramwajT1 : MonoBehaviour, IBraxInterakcja
         }
     }
 
+    void LateUpdate()
+    {
+        if (miejsceGracza && miejsceGracza.Occupied) miejsceGracza.SyncTram();
+    }
+
     public string Kontekst(Vector3 p)
     {
         if (!gotowe) return "";
