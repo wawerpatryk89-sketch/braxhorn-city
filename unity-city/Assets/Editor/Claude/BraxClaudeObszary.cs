@@ -98,6 +98,11 @@ public static class BraxClaudeObszary
         var part = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
         foreach (var w in wezly) SceneManager.MoveGameObjectToScene(w.gameObject, part);
         bool krzyzMain = EditorSceneManager.DetectCrossSceneReferences(main), krzyzPart = EditorSceneManager.DetectCrossSceneReferences(part);
+        // Unity nie zapisze odwołań pomiędzy niezależnymi scenami. Nie wolno wydać
+        // APK z automatycznie wyzerowanymi referencjami — najpierw naprawić rejestrację runtime.
+        if (krzyzMain || krzyzPart)
+            throw new InvalidOperationException("BRAXHORN_OBSZAR_REFERENCJE_MIEDZY_SCENAMI " + nazwaSceny +
+                " main=" + krzyzMain + " part=" + krzyzPart + " — nie zapisano uszkodzonej sceny");
         string path = folder + "/" + nazwaSceny + ".unity";
         if (!EditorSceneManager.SaveScene(part, path)) throw new Exception("Zapis sceny obszaru nieudany: " + path);
         EditorSceneManager.CloseScene(part, true);

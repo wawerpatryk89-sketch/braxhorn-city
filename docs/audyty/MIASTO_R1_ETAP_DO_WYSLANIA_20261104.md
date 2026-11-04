@@ -20,6 +20,7 @@
 
 - [ ] W aktualnym HEAD są poprawki 3 P0 z audytu #84: T1 z kolizją zatrzymuje odbiór; brakujące budynki, niepełny PBR i rusztowania scalone zatrzymują odbiór; wejście M1 musi leżeć na lądzie i mieć drożne dojście.
 - [ ] Błędy etapów miasta B i jego podetapów nie mogą zostać ukryte pod `OK` — agregacja i jawny wyjątek na końcu generowania.
+- [ ] Sceny nabrzeża, wyspy i kwadratów nie mogą zapisywać zerwanych referencji między scenami; wykryte odwołanie cross-scene wstrzymuje build zamiast generować niekompletny obszar.
 - [ ] `check_city_cs.py` działa statycznie; jest to tylko filtr, **nie zastępuje kompilacji C# w Unity**.
 - [ ] Oryginalne zasoby pobrane i potwierdzone: 21 budynków, murale, atlas pokoi, model CAF, metro GLB, szyldy, 24 leki, 4 odżywki, ekspres i wiaty. Jeżeli brakuje źródła lub praw do użytku — raportować, nie tworzyć atrapy.
 - [ ] Sprawdzić brak `unity-city/ProjectSettings/ProjectSettings.asset` w repo: Unity używało projektu-szablonu w #84. **Nie odtwarzać samodzielnie ustawień wizualnych**; przed przyjęciem APK wykazać rzeczywiste Graphics APIs, przestrzeń kolorów, rozdzielczości, render pipeline, podpis i `applicationId`.
