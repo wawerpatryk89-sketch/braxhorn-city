@@ -1,8 +1,10 @@
 {
   "firstInstall": false,
   "privateInputsSha256": "57ccbb5fb17b248ff39a91abd549e5474796da3f102a86c08ae4f30f0f3a62f8",
-  "request": "oboz-npc-life-pass-41849184231-13e316e-20261104",
-  "validationRun": 41849184231,
-  "validatedSourceCommit": "13e316ef63a4f7d9c9b9c685ac5a8290aecc0c28",
-  "phoneTested": false
+  "request": "oboz-combined-after-6-rings-and-player-sparring-20261104",
+  "validationRun": null,
+  "validatedSourceCommit": null,
+  "phoneTested": false,
+  "validationRequired": "same-workflow Play Mode before one APK",
+  "ownerRequested": true
 }

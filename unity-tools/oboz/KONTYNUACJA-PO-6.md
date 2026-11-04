@@ -5,6 +5,11 @@ Zachowano w całości decyzję właściciela o ręcznych workflow i osobnej zgod
 na Unity/APK. Kod tej kontynuacji nie uruchamia buildu, testu Unity ani odzyskiwania.
 Miasto, osiedle, wygląd, modele i sterowanie pozostają poza zmianą.
 
+Aktualne zlecenie właściciela: połączyć tę kontynuację z zawartością #6 i
+uruchomić jeden pełny build obozu. Nowy kod wymaga nowego APK; odzysk starego
+#6 nie dostarczyłby zmian trzech aren. Zgoda na build została udzielona,
+ale samo zapisanie tego dokumentu nie oznacza, że workflow wystartował.
+
 ## Przygotowane zachowanie — jeszcze bez uruchomienia w Unity
 
 - Para NPC zmienia arenę po rundzie: oktagon → Ring 1 → Ring 2. Worki i odpoczynek
@@ -58,7 +63,7 @@ Nie ma potwierdzonego linku pobrania #6. Nie zastępować go APK #5.
 ## Zabezpieczenie i przygotowany odzysk bez kompilacji
 
 - Przyszły zatwierdzony build zapisze zweryfikowany APK jako osobny artifact
-  **przed** tworzeniem wydania. Błąd release nadal zakończy job błędem, ale nie
+  **przed** zapisem wydania. Błąd release nadal zakończy job błędem, ale nie
   usunie drogi pobrania APK. Backup nie publikuje prywatnej Library ani scen.
 - #6 zapisał pełną zaszyfrowaną Library wraz z Bee do Actions cache. Log wskazuje
   3767722736 B i SHA-256
@@ -75,6 +80,27 @@ Nie ma potwierdzonego linku pobrania #6. Nie zastępować go APK #5.
 - Istnienie APK wewnątrz cache **nie zostało jeszcze sprawdzone**. Jeśli go tam
   nie ma albo cache wygasł, odzysk zakończy się błędem bez kompilacji zastępczej.
 
+## Jedno połączone uruchomienie
+
+- `oboz-unity-build.yml` pozostaje wyłącznie ręczny i ograniczony do `gpt/oboz`.
+  Najpierw uruchamia Play Mode bieżącego SHA i sprawdza pełny raport: trzy areny,
+  sparing Moniki na każdej, uderzenia worków podczas jej walki, rotację, pauzę
+  oraz komplet 98 przypadków animacji. Brak lub błąd raportu blokuje APK.
+- Dopiero po zaliczeniu tej kontroli kompiluje jeden APK, sprawdza pakiet,
+  rosnącą wersję i stały podpis oraz zapisuje niezależny artifact z APK.
+- `publish_apk.py` nie tworzy wydania ani tagu. Zapisuje pliki z wersją i SHA
+  w istniejącym drafcie `oboz-review-latest`. Kolizja nazwy przerywa zapis,
+  zamiast nadpisywać wcześniejszy APK. Wskaźnik `release-identity.json` jest
+  aktualizowany dopiero po udanej wysyłce wszystkich plików tej wersji.
+- Obecność draftu jest sprawdzana przed kosztownym importem Unity. Kontrola
+  lokalna nie potwierdza jeszcze, że uprawnienia do uploadu w CI wystarczą.
+- Przywracanie nagrań i checkpointu obsługuje zarówno dotychczasowe wydania,
+  jak i nowe nazwy zawierające wersję oraz SHA. Kontrola SHA-256 pozostaje.
+- Domyślna gałąź `main` nie zawiera jeszcze wejścia ręcznego workflow obozu.
+  Rejestracja wymaga osobnej zmiany CI; nie przenosi kodu gry na `main`.
+  W obecnej sesji nie ma operacji `workflow_dispatch` ani zalogowanej
+  przeglądarki GitHub. Nie raportować startu bez rzeczywistego numeru runu.
+
 ## Weryfikacja tej kontynuacji
 
 - 7 testów odzyskiwania: zgodne bajty, niewłaściwy commit/APK/pakiet/wersja/
@@ -82,6 +108,9 @@ Nie ma potwierdzonego linku pobrania #6. Nie zastępować go APK #5.
   zachowanie innego istniejącego APK. Android tools są atrapami testowymi;
   nie jest to weryfikacja prawdziwego APK #6.
 - 15 dotychczasowych testów tożsamości wydania: PASS.
+- 7 testów publikacji do istniejącego draftu: PASS. Sprawdzają niezmienność
+  nazw, kolejność wskaźnika, błędy wysyłki, kolizję, draft, tożsamość i zmianę
+  bajtów APK. GitHub jest atrapą testową; nie jest to rzeczywista wysyłka.
 - Parser C# dla ośmiu zmienionych plików, YAML i Bash: PASS; nie kompilacja C#.
 - Wszystkie workflow obozu są ręczne; brak push/PR/schedule/workflow_run.
 - Play Mode trzech aren: NIEURUCHOMIONY. Odzysk #6: NIEURUCHOMIONY.

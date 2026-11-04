@@ -1,6 +1,7 @@
 """Restore exactly the reviewed Piper generation; never generate again during APK builds."""
 import hashlib
 import json
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -49,10 +50,14 @@ def main():
             subprocess.run(['gh','release','download','oboz-review-latest','--repo',REPO,'--pattern','release-identity.json','--dir',str(temp)],check=True)
             identity=json.loads((temp/'release-identity.json').read_text())
             tag=identity['releaseTag']
-            if identity.get('dialogueSha256')!=SHA256 or not tag.startswith('oboz-review-') or not tag[12:].isdigit():
+            if identity.get('dialogueSha256')!=SHA256 or (tag!='oboz-review-latest' and not re.fullmatch(r'oboz-review-[0-9]+',tag)):
                 raise ValueError('Previous release does not contain the pinned recording')
-            archive.unlink()
-            subprocess.run(['gh','release','download',tag,'--repo',REPO,'--pattern','camp-dialogue.zip','--dir',str(temp)],check=True)
+            asset=identity.get('dialogueAssetName','camp-dialogue.zip')
+            if not re.fullmatch(r'camp-dialogue(?:-[0-9]+-[0-9a-f]{7})?\.zip',asset):
+                raise ValueError('Invalid pinned dialogue asset name')
+            archive.unlink(missing_ok=True)
+            subprocess.run(['gh','release','download',tag,'--repo',REPO,'--pattern',asset,'--dir',str(temp)],check=True)
+            if asset!=archive.name: (temp/asset).replace(archive)
         stage=temp/'stage';stage.mkdir();report=unpack(archive,stage)
         for source in stage.iterdir():
             dest=target/source.name;shutil.copyfile(source,dest)

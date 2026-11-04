@@ -43,12 +43,11 @@ jobs:
           import hashlib, json, os
           from pathlib import Path
           first=os.environ['FIRST_INSTALL']=='true'
-          if os.environ['EVENT']=='push':
-              request=json.loads(Path('unity-tools/oboz/build-request.json').read_text())
-              actual=hashlib.sha256(Path('unity-tools/oboz/private-inputs.json').read_bytes()).hexdigest()
-              if request.get('privateInputsSha256')!=actual or type(request.get('firstInstall')) is not bool:
-                  raise ValueError('Zlecenie nie odpowiada bieżącej dostawie obozu')
-              first=request['firstInstall']
+          if os.environ['EVENT']!='workflow_dispatch': raise ValueError('Build wymaga ręcznego zlecenia')
+          request=json.loads(Path('unity-tools/oboz/build-request.json').read_text())
+          actual=hashlib.sha256(Path('unity-tools/oboz/private-inputs.json').read_bytes()).hexdigest()
+          if request.get('privateInputsSha256')!=actual or type(request.get('firstInstall')) is not bool:
+              raise ValueError('Zlecenie nie odpowiada bieżącej dostawie obozu')
           with open(os.environ['GITHUB_OUTPUT'],'a') as output:
               output.write('first_install='+str(first).lower()+'\n')
           PY
@@ -77,6 +76,10 @@ jobs:
         env:
           FIRST_INSTALL: ${{ steps.request.outputs.first_install }}
         run: |
+          set -euo pipefail
+          # Delivery uses the already existing draft. Fail before Unity if it is unavailable.
+          DRAFT=$(gh release view oboz-review-latest --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')
+          test "$DRAFT" = true || { echo 'Wydanie obozu musi pozostać draftem'; exit 1; }
           gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq '.[].tag_name' > "$RUNNER_TEMP/release-tags.txt"
           if grep -Fxq 'oboz-review-latest' "$RUNNER_TEMP/release-tags.txt"; then
             gh release download oboz-review-latest --repo "$GITHUB_REPOSITORY" --pattern release-identity.json --dir "$RUNNER_TEMP/previous"
@@ -166,13 +169,65 @@ jobs:
               print('BRAXHORN_OBOZ_SCENA brak wcześniejszej kopii scen')
               sys.exit(0)
           tag=data['releaseTag']
-          if not re.fullmatch(r'oboz-review-[0-9]+',tag): raise ValueError('Invalid prior release tag')
+          if tag!='oboz-review-latest' and not re.fullmatch(r'oboz-review-[0-9]+',tag): raise ValueError('Invalid prior release tag')
           folder=Path(os.environ['RUNNER_TEMP'])/'previous'
-          subprocess.run(['gh','release','download',tag,'--repo',os.environ['GITHUB_REPOSITORY'],'--pattern','oboz-world.tar.gz.enc','--dir',str(folder)],check=True)
-          path=folder/'oboz-world.tar.gz.enc'
+          asset=data.get('worldAssetName','oboz-world.tar.gz.enc')
+          if not re.fullmatch(r'oboz-world(?:-[0-9]+-[0-9a-f]{7})?\.tar\.gz\.enc',asset): raise ValueError('Invalid world asset')
+          subprocess.run(['gh','release','download',tag,'--repo',os.environ['GITHUB_REPOSITORY'],'--pattern',asset,'--dir',str(folder)],check=True)
+          path=folder/asset
           if digest(path)!=data['worldSha256']: raise ValueError('World checksum mismatch')
           subprocess.run(['python3','unity-tools/oboz/world.py','restore','--archive',str(path)],check=True)
           PY
+      - name: Rzeczywista scena, trasy i rotacja NPC bez APK
+        id: life_review
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxObozCharacters.ReviewCampLife
+          manualExit: true
+          versioning: None
+          allowDirtyBuild: true
+          enableGpu: true
+      - name: Wynik ruchu, trafień, poleceń i pauzy
+        run: |
+          python3 - <<'PY_REVIEW'
+          import json, os
+          from pathlib import Path
+          root=Path('build/CampLifeReview')
+          r=json.loads((root/'camp-life-review.json').read_text())
+          assert r['complete'] and r['playModeTested'] and not r['errors']
+          assert not r['phoneTested'] and not r['appearanceApproved']
+          assert r['commit']==os.environ['GITHUB_SHA'] and r['unity']=='6000.0.58f2'
+          assert r['rounds']>=3 and r['orders']==2
+          assert len(r['arenaRounds'])==3 and all(n>=1 for n in r['arenaRounds'])
+          assert r['playerSparringStarted'] and r['playerSparringEnded'] and r['routineSuspendedForPlayer']
+          assert len(r['playerSparringArenas'])==3 and all(r['playerSparringArenas'])
+          assert r['bagStrikesDuringPlayerSparring']>=3
+          assert r['bagStrikes']>=8 and r['sparringStrikes']>=6
+          assert r['spokenLines']>=2 and r['contactSounds']==r['sparringStrikes']
+          assert r['pauseDisplacement']<=.001 and r['pauseBagDegrees']<=.001
+          assert len(r['frames'])>=500 and len(list(root.glob('*.png')))>=100
+          print('Play Mode: trasy, rundy, trafienia, polecenia i pauza potwierdzone; wygląd wymaga oceny')
+          poses=json.loads((root/'final-pose-review.json').read_text())
+          assert poses['complete'] and len(poses['characters'])==7
+          assert all(len(c['cases'])==14 for c in poses['characters'])
+          PY_REVIEW
+      - name: Obrazy i pomiary — bez prywatnych źródeł i APK
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: camp-life-before-apk-${{ github.run_id }}
+          path: |
+            build/CampLifeReview/*.json
+            build/CampLifeReview/*.png
+          if-no-files-found: warn
+          retention-days: 14
       - name: Stały podpis APK — bez wariantu debug
         env:
           KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
@@ -235,33 +290,12 @@ jobs:
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: python3 unity-tools/oboz/world.py pack --archive "$RUNNER_TEMP/oboz-world.tar.gz.enc"
-      - name: Zapis APK do niezmiennego wydania testowego
+      - name: Zapis niezmiennych plików APK do istniejącego draft release
         run: |
-          python3 - <<'PY'
-          import json, os, subprocess, sys
-          from pathlib import Path
-          sys.path.insert(0,'unity-tools/oboz')
-          from assets import digest
-          folder=Path('build/ObozAndroid'); receipt=folder/'release-identity.json'
-          data=json.loads(receipt.read_text()); tag='oboz-review-'+str(data['versionCode'])
-          data['releaseTag']=tag; data['sourceCommit']=os.environ['GITHUB_SHA']; data['contentUpdatesReady']=False
-          dialogue=Path('build/ObozAudio/camp-dialogue.zip')
-          if not dialogue.is_file(): raise ValueError('Missing verified dialogue archive')
-          data['dialogueSha256']=digest(dialogue); data['dialogueEngine']='piper-tts==1.3.0'; data['voiceQualityApproved']=False
-          world=Path(os.environ['RUNNER_TEMP'])/'oboz-world.tar.gz.enc'
-          if world.exists(): data['worldSha256']=digest(world)
-          receipt.write_text(json.dumps(data,indent=2)+'\n')
-          repo=os.environ['GITHUB_REPOSITORY']
-          subprocess.run(['gh','release','create',tag,'--repo',repo,'--draft','--target',os.environ['GITHUB_SHA'],'--title','Obóz — test Moniką '+str(data['versionCode']),'--notes','APK Unity 6 do pierwszego testu. Niepotwierdzone działanie na telefonie. Aktualizacje zawartości niewdrożone.'],check=True)
-          files=[str(p) for p in sorted(folder.glob('*')) if p.suffix in ('.apk','.json')]
-          files.append(str(dialogue))
-          if world.exists(): files.append(str(world))
-          subprocess.run(['gh','release','upload',tag,'--repo',repo,*files],check=True)
-          tags=Path(os.environ['RUNNER_TEMP'])/'release-tags.txt'
-          if 'oboz-review-latest' not in tags.read_text().splitlines():
-              subprocess.run(['gh','release','create','oboz-review-latest','--repo',repo,'--draft','--target',os.environ['GITHUB_SHA'],'--title','Obóz — ostatni potwierdzony podpis APK','--notes','Metadane ostatniego podpisanego APK; wcześniejsze APK pozostają w osobnych wydaniach.'],check=True)
-          subprocess.run(['gh','release','upload','oboz-review-latest','--repo',repo,'--clobber',str(receipt)],check=True)
-          PY
+          python3 unity-tools/oboz/publish_apk.py \
+            --folder build/ObozAndroid \
+            --dialogue build/ObozAudio/camp-dialogue.zip \
+            --world "$RUNNER_TEMP/oboz-world.tar.gz.enc"
       - name: Usuń lokalne dane podpisu
         if: always()
         run: |

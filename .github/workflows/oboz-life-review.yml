@@ -96,10 +96,12 @@ jobs:
               print('BRAXHORN_OBOZ_SCENA brak wcześniejszej kopii scen')
               sys.exit(0)
           tag=data['releaseTag']
-          if not re.fullmatch(r'oboz-review-[0-9]+',tag): raise ValueError('Invalid prior release tag')
+          if tag!='oboz-review-latest' and not re.fullmatch(r'oboz-review-[0-9]+',tag): raise ValueError('Invalid prior release tag')
           folder=Path(os.environ['RUNNER_TEMP'])/'previous'
-          subprocess.run(['gh','release','download',tag,'--repo',os.environ['GITHUB_REPOSITORY'],'--pattern','oboz-world.tar.gz.enc','--dir',str(folder)],check=True)
-          path=folder/'oboz-world.tar.gz.enc'
+          asset=data.get('worldAssetName','oboz-world.tar.gz.enc')
+          if not re.fullmatch(r'oboz-world(?:-[0-9]+-[0-9a-f]{7})?\.tar\.gz\.enc',asset): raise ValueError('Invalid world asset')
+          subprocess.run(['gh','release','download',tag,'--repo',os.environ['GITHUB_REPOSITORY'],'--pattern',asset,'--dir',str(folder)],check=True)
+          path=folder/asset
           if digest(path)!=data['worldSha256']: raise ValueError('World checksum mismatch')
           subprocess.run(['python3','unity-tools/oboz/world.py','restore','--archive',str(path)],check=True)
           PY
