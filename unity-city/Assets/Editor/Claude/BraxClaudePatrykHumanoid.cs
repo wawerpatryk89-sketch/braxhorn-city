@@ -63,6 +63,31 @@ public static partial class BraxClaudeOsiedle
                 " stopni; " + (katZrodlowy <= 35f ? "oryginalna poza" : "korekta samych ramion") +
                 "; bez sztucznego skrecania przedramion i dloni");
         }
+        if (!driving)
+        {
+            // Osiedle, 4.11: skoryguj tylko yaw stopy w pozie Idle. Nie
+            // nadpisuj bindpose ani osi kolana, kostki i animacji biegu.
+            // Zachowaj naturalny lekki rozkrok, nie rób stóp idealnie równoległych.
+            var leftUp = Bone("LeftUpLeg"); var rightUp = Bone("RightUpLeg");
+            if (!leftUp || !rightUp) throw new InvalidOperationException("Patryk Idle: brak kości ud");
+            Vector3 rightAxis = Vector3.ProjectOnPlane(rightUp.position - leftUp.position, Vector3.up);
+            if (rightAxis.sqrMagnitude < 1e-8f) throw new InvalidOperationException("Patryk Idle: błędna oś bioder");
+            Vector3 forward = Vector3.Cross(rightAxis.normalized, Vector3.up).normalized;
+            foreach (var side in new[] { "Left", "Right" })
+            {
+                var foot = Bone(side + "Foot"); var toe = Bone(side + "ToeBase");
+                if (!foot || !toe) throw new InvalidOperationException("Patryk Idle: brak Foot/ToeBase po stronie " + side);
+                Vector3 pointing = Vector3.ProjectOnPlane(toe.position - foot.position, Vector3.up);
+                if (pointing.sqrMagnitude < 1e-8f) throw new InvalidOperationException("Patryk Idle: zerowa oś stopy " + side);
+                Vector3 desired = Quaternion.AngleAxis(side == "Left" ? -9f : 9f, Vector3.up) * forward;
+                float delta = Vector3.SignedAngle(pointing.normalized, desired, Vector3.up);
+                if (Mathf.Abs(delta) > 100f)
+                    throw new InvalidOperationException("Patryk Idle: stopa " + side + " odwrotnie ustawiona (" + delta.ToString("F0") + " stopni), wymaga korekty źródła FBX");
+                if (Mathf.Abs(delta) > 25f)
+                    foot.rotation = Quaternion.AngleAxis(delta, Vector3.up) * foot.rotation;
+                Debug.Log("BRAXHORN_PATRYK_IDLE_STOPA " + side + " korekta_yaw=" + (Mathf.Abs(delta) > 25f ? delta : 0f).ToString("F1") + "°");
+            }
+        }
         var clip = new AnimationClip { name = name, legacy = true, frameRate = 30, wrapMode = WrapMode.Loop };
         foreach (var s in rest)
         {
@@ -311,7 +336,7 @@ public static partial class BraxClaudeOsiedle
                 finally { if (c) Object.DestroyImmediate(c); PatrykSpoczynek(rest); }
             }
         }
-        var wybor = tPoza && karaT <= karaI ? tPoza : importowany;
+        var wybor = tPoza && karaT < karaI ? tPoza : importowany; // remis: zachowaj oryginalny, mniej inwazyjny awatar
         raport = "wybór=" + (wybor == tPoza ? "T-poza" : "import") + " naruszeń import=" + karaI + " T-poza=" + (tPoza ? karaT.ToString() : "—") + " | " + string.Join(" | ", linie);
         return wybor;
     }
