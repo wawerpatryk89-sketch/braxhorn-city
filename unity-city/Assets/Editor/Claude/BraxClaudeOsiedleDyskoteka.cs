@@ -225,11 +225,16 @@ public static partial class BraxClaudeOsiedle
         if (idx >= cz.Count) { UnityEngine.Object.DestroyImmediate(o); return null; }
         var keep = cz[idx];
         for (int i = 0; i < cz.Count; i++) if (i != idx && cz[i]) UnityEngine.Object.DestroyImmediate(cz[i].gameObject);
-        var f0 = PrzodSofy(keep);
+        // Dla Chesterfield mierzymy oparcie, ale pozostałe modele (np. butelki
+        // z baru) nie mają oparcia i nie mogą wywoływać błędu importu.
+        var f0 = szerokoscRealna > 0f ? PrzodSofy(keep) : PrzodMebla(keep);
         o.transform.rotation = Quaternion.Euler(0, Vector3.SignedAngle(f0, przod, Vector3.up), 0) * zrodlo.transform.localRotation;
-        var sprawdzPrzod = PrzodSofy(keep);
-        if (Vector3.Dot(sprawdzPrzod.normalized, przod.normalized) < .94f)
-            throw new InvalidOperationException(nazwa + ": sofa nadal zwrócona tyłem do stolika");
+        if (szerokoscRealna > 0f)
+        {
+            var sprawdzPrzod = PrzodSofy(keep);
+            if (Vector3.Dot(sprawdzPrzod.normalized, przod.normalized) < .94f)
+                throw new InvalidOperationException(nazwa + ": sofa nadal zwrócona tyłem do stolika");
+        }
         var b = BraxOsiedleAssety.Granice(o);
         if (szerokoscRealna > 0f)
         {
