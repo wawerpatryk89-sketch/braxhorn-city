@@ -27,3 +27,8 @@ Dla gałęzi `codex/miasto-naprawy-filmow-20261104` obowiązuje [zakres i warunk
 Dotyczy również osiedla, obozu, wyspy i BRAXHORN ARENA. Zasada dla wszystkich wykonawców: https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13.
 
 **Jeśli kompilacja Unity i walidacja APK się powiodły, właściciel musi otrzymać dostęp do tego konkretnego pliku, także gdy później zawiedzie cache, snapshot, backup lub zapis Library.** Przed backupem zapisz kopię do Actions artifact, wyślij APK do testowego wydania, sprawdź jego obecność, przekaż link do aktualnego SHA i numeru runu. Raportuj oddzielnie: Unity, podpis/wersję APK, upload oraz test telefonu. Nie deklaruj, że plik jest publicznie dostępny, jeśli wydanie jest roboczym draftem wymagającym zalogowania. Błąd opcjonalnego backupu po poprawnym APK = warning, nie blokada instalatora. Nie uruchamiaj builda ani retry bez zgody właściciela. Pokazuj wyłącznie najnowszy build z aktualnymi poprawkami.
+
+
+## Wspólny standard wykonania i napraw — 4 listopada 2026
+
+Na polecenie właściciela przed kolejną pracą przeczytaj i stosuj [standard Unity 6 dla wszystkich wykonawców](docs/zasady/STANDARD_PRACY_UNITY6_20261104.md). Zawiera przypięte wersje Claude Anthropic, wymagania PBR i 4K blisko / minimum 2K dalej, przygotowanie buildów, udokumentowane awarie i stan napraw. Dodanie instrukcji nie oznacza gotowości istniejących scen. Zachowaj bieżące zasady zlecania buildów, cudze zmiany i osobne rejony; aktualizuj gałąź z kontrolą oczekiwanego HEAD.

@@ -9,3 +9,8 @@ Przeczytaj i wykonuj [AGENTS.md](AGENTS.md). Najważniejsza decyzja właściciel
 Na bieżącej gałęzi miasta przed buildem przeczytaj także `docs/audyty/MIASTO_R1_ETAP_DO_WYSLANIA_20261104.md`. To odbiór obecnego etapu, nie całej przyszłej zabudowy. Nie uruchamiaj builda bez aktualnej zgody.
 
 Wymóg wydania aktualnego APK przed backupem: https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13. Także Miasto Mistrzów. Nie uruchamiaj samodzielnie buildu.
+
+
+## Wspólny standard wykonania i napraw — 4 listopada 2026
+
+Na polecenie właściciela przed kolejną pracą przeczytaj i stosuj [standard Unity 6 dla wszystkich wykonawców](docs/zasady/STANDARD_PRACY_UNITY6_20261104.md). Zawiera przypięte wersje Claude Anthropic, wymagania PBR i 4K blisko / minimum 2K dalej, przygotowanie buildów, udokumentowane awarie i stan napraw. Dodanie instrukcji nie oznacza gotowości istniejących scen. Zachowaj bieżące zasady zlecania buildów, cudze zmiany i osobne rejony; aktualizuj gałąź z kontrolą oczekiwanego HEAD.
