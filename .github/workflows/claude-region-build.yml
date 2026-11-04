@@ -152,6 +152,12 @@ jobs:
 
         python3 -m compileall -q unity-tools
 
+        python3 -m unittest discover -s unity-tools/kickboxing/tests -p test_fetch_retry.py -v
+
+        python3 -m unittest discover -s unity-tools/wyspa/tests -v
+
+        python3 unity-tools/wyspa/prepare_fighters.py --check
+
         python3 unity-tools/nutrition/audit_assets.py
 
         node --check unity-tools/kickboxing/check.mjs
@@ -241,10 +247,8 @@ jobs:
         python3 unity-tools/claude/check_signage.py
         python3 unity-tools/claude/fetch_cafe_equipment.py
         root=unity-city/Assets/Source
-        [ -s "$root/Claude/Cafe/espresso_machine_sobczak.glb" ] || \
-          [ -s "$root/Prywatne/Miasto/miasto_sklepy/ekspres_kolbowy.glb" ] || \
-          [ -s "$root/Prywatne/Miasto/miasto_wyposazenie/ekspres_kolbowy.glb" ] || \
-          { echo '::error::SOBCZAK KAWIARNIA bez ekspresu'; exit 1; }
+        # Use the same accepted original filenames as the equipment importer.
+        python3 -c "import runpy; m=runpy.run_path('unity-tools/claude/fetch_cafe_equipment.py'); m['private_present'](m['ESPRESSO']) or m['valid_glb']((m['OUT']/'espresso_machine_sobczak.glb').read_bytes())"
         echo "SOBCZAK KAWIARNIA: sprawdzenie sprzetu i oryginalnych szyldow PASS"
 
     - name: Bramka jakosci miasta przed drogim buildem (tylko reczny test napraw)
@@ -536,6 +540,12 @@ jobs:
 
         python3 -m compileall -q unity-tools
 
+        python3 -m unittest discover -s unity-tools/kickboxing/tests -p test_fetch_retry.py -v
+
+        python3 -m unittest discover -s unity-tools/wyspa/tests -v
+
+        python3 unity-tools/wyspa/prepare_fighters.py --check
+
         python3 unity-tools/nutrition/audit_assets.py
 
         node --check unity-tools/kickboxing/check.mjs
@@ -625,10 +635,8 @@ jobs:
         python3 unity-tools/claude/check_signage.py
         python3 unity-tools/claude/fetch_cafe_equipment.py
         root=unity-city/Assets/Source
-        [ -s "$root/Claude/Cafe/espresso_machine_sobczak.glb" ] || \
-          [ -s "$root/Prywatne/Miasto/miasto_sklepy/ekspres_kolbowy.glb" ] || \
-          [ -s "$root/Prywatne/Miasto/miasto_wyposazenie/ekspres_kolbowy.glb" ] || \
-          { echo '::error::SOBCZAK KAWIARNIA bez ekspresu'; exit 1; }
+        # Use the same accepted original filenames as the equipment importer.
+        python3 -c "import runpy; m=runpy.run_path('unity-tools/claude/fetch_cafe_equipment.py'); m['private_present'](m['ESPRESSO']) or m['valid_glb']((m['OUT']/'espresso_machine_sobczak.glb').read_bytes())"
         echo "SOBCZAK KAWIARNIA: sprawdzenie sprzetu i oryginalnych szyldow PASS"
 
     - name: Bramka jakosci miasta przed drogim buildem (tylko reczny test napraw)
@@ -713,7 +721,7 @@ jobs:
           ${{ steps.library_profile.outputs.prefix }}
     - name: Trwala kopia Library gdy Actions usunelo cache
       id: durable_download
-      if: ${{ !cancelled() && steps.bibl_and.outputs.cache-matched-key == '' }}
+      if: ${{ !cancelled() && steps.rejon.outcome == 'success' && steps.library_profile.outcome == 'success' && steps.bibl_and.outputs.cache-matched-key == '' }}
       continue-on-error: true
       env:
         GH_TOKEN: ${{ github.token }}
@@ -721,7 +729,7 @@ jobs:
       run: python3 unity-tools/updates/durable_cache.py download --zone "$ZONE" --archive "$RUNNER_TEMP/library-android.tar.zst.enc" --fallback-ref refs/heads/claude/miasto-opus-20261031
     - name: Migracja starej pamieci tylko gdy nie ma nowej kopii
       id: legacy_cache
-      if: ${{ !cancelled() && steps.bibl_and.outputs.cache-matched-key == '' && steps.durable_download.outputs.downloaded != 'true' }}
+      if: ${{ !cancelled() && steps.rejon.outcome == 'success' && steps.library_profile.outcome == 'success' && steps.bibl_and.outputs.cache-matched-key == '' && steps.durable_download.outputs.downloaded != 'true' }}
       continue-on-error: true
       uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
       with:

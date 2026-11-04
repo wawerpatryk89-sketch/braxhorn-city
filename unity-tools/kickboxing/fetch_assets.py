@@ -9,6 +9,9 @@ import json
 import pathlib
 import os
 import urllib.request
+import urllib.error
+import http.client
+import time
 from PIL import Image
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -20,8 +23,20 @@ HEADERS = {'User-Agent': 'Braxhorn-asset-review/1.0'}
 
 
 def fetch(url):
-    with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=60) as response:
-        return response.read()
+    # Retry only transient transport/server failures. Never bypass source hashes.
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=60) as response:
+                return response.read()
+        except urllib.error.HTTPError as error:
+            if error.code not in (408, 429, 500, 502, 503, 504) or attempt == 4:
+                raise
+        except (urllib.error.URLError, TimeoutError, ConnectionError, http.client.IncompleteRead):
+            if attempt == 4:
+                raise
+        delay = 2 ** (attempt + 1)
+        print('ASSET_DOWNLOAD retry=' + str(attempt + 1) + ' delay_seconds=' + str(delay))
+        time.sleep(delay)
 
 
 def save_source(spec, destination, source, author, license_url):
