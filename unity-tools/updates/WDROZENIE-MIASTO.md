@@ -13,7 +13,8 @@ Wspólne narzędzia Library i checkpointów: `1d83c1a6db4f6c71eb670e5a57bab963ce
 - ZIP/CRC oraz nagłówki i zakresy obiektów 98 plików serializowanych są poprawne. UnityPy odczytał 135501 natywnych obiektów głównej sceny; nie weryfikuje pól skryptów bez type tree.
 - Rejestr x25 w powtarzających się awariach ma wartość 180994368. To początek obiektu 136026 w `level1`: `BraxMorzeZaKamera`, Assembly-CSharp, 32 bajty. Komponent ma cztery serializowane pola w kodzie, a w APK tylko bazowy nagłówek.
 - Komponent był w `BraxAkwen.cs` wraz z klasą statyczną. Przeniesiono go do własnego pliku, z trwałym `.meta`; treść klasy zachowana bez zmian.
-- Sam test `MonoScript.GetClass()` w Unity 6000.0.58f2 akceptuje stary komponent. To NIE potwierdza przyczyny; potrzebne porównanie rzeczywistego zapisu Androida i test nowego APK.
+- Sam test `MonoScript.GetClass()` w Unity 6000.0.58f2 akceptuje stary komponent. Rzeczywista budowa paczek scen Androida odtworzyła błąd: stary komponent 32 bajty, poprawiony 68 bajtów (cztery pola). Unity podczas pakowania starej sceny zgłasza niewłaściwy/brakujący skrypt. Poprawiona scena zachowuje material, komorka, pol i bezWody po zapisie i ponownym wczytaniu. Dowód: workflow `41745527276`, krok Unity udany; krok zapisu raportu Python wymagał poprawienia praw plików po kontenerze.
+- Kontrola przed generowaniem wymaga teraz również zgodnej nazwy pliku konkretnego MonoBehaviour. Samo `GetClass()` nie wystarczało.
 - Próba emulatora nie doszła do uruchomienia aplikacji (połączenie adb). Nie jest wynikiem testu gry.
 
 Pełny prywatny bugreport nie jest dołączany do repozytorium.

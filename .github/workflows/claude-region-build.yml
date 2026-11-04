@@ -693,6 +693,8 @@ jobs:
         # /swapfile (2 GB) już istnieje na runnerze GitHuba („Text file busy”), więc osobny plik.
         sudo fallocate -l 12G /swapfile-unity && sudo chmod 600 /swapfile-unity && sudo mkswap /swapfile-unity && sudo swapon /swapfile-unity || echo 'brak miejsca na swap'
         free -g
+    - name: Narzedzie kontroli serializacji gotowego APK miasta
+      run: python3 -m pip install --disable-pip-version-check UnityPy==1.25.4
     - name: Straznik w tle - kazdy APK do wydania od razu po zbudowaniu (nie czeka na reszte wariantow)
       env:
         GH_TOKEN: ${{ github.token }}
@@ -709,6 +711,16 @@ jobs:
             tag=$(basename "$m" .gotowe); tag=${tag#braxhorn-}
             [ -f "$RUNNER_TEMP/wyslane/$tag" ] && continue
             f=build/Android/braxhorn-$tag.apk; [ -f "$f" ] || continue
+            case "$tag" in
+              miasto|miastogl|calosc)
+                [ ! -f "$RUNNER_TEMP/wyslane/$tag.invalid" ] || continue
+                if ! python3 unity-tools/claude/check_city_sea_payload.py "$f" > "build/Android/$tag-validation.json"; then
+                  touch "$RUNNER_TEMP/wyslane/$tag.invalid"
+                  echo "Odrzucono APK $tag: brak poprawnych danych komponentu morza" >> "$RUNNER_TEMP/straznik.log"
+                  continue
+                fi
+                ;;
+            esac
             cp "$f" "$RUNNER_TEMP/braxhorn-$tag-$S.apk"
             src=unity-city/Assets/PlayableGenerated/build-size-$tag.txt
             cp "$src" "$RUNNER_TEMP/build-size-android-$tag-$S.txt" 2>/dev/null || echo 'brak raportu rozmiaru' > "$RUNNER_TEMP/build-size-android-$tag-$S.txt"
@@ -748,6 +760,7 @@ jobs:
         path: |
           unity-city/Logs/
           build/Android/*.log
+          build/Android/*-validation.json
           unity-city/Assets/PlayableGenerated/build-size*.txt
           unity-city/Assets/PlayableGenerated/pamiec-rejonu.json
         retention-days: 7
@@ -789,6 +802,9 @@ jobs:
         for f in build/Android/braxhorn-*.apk; do
           [ -f "$f" ] || continue
           tag=$(basename "$f" .apk); tag=${tag#braxhorn-}
+          case "$tag" in
+            miasto|miastogl|calosc) python3 unity-tools/claude/check_city_sea_payload.py "$f" > "build/Android/$tag-validation.json" ;;
+          esac
           [ -f "$RUNNER_TEMP/wyslane/$tag" ] && { echo "$tag juz wyslany przez straznika"; continue; }
           cp "$f" braxhorn-${tag}-${GITHUB_SHA::7}.apk; FILES="$FILES braxhorn-${tag}-${GITHUB_SHA::7}.apk"
           src=unity-city/Assets/PlayableGenerated/build-size-${tag}.txt; [ -f "$src" ] || src=unity-city/Assets/PlayableGenerated/build-size.txt

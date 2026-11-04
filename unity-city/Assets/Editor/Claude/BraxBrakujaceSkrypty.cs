@@ -14,13 +14,21 @@ public static class BraxBrakujaceSkrypty
     public static void SprawdzTypy()
     {
         var typySkryptow = new HashSet<System.Type>(MonoImporter.GetAllRuntimeMonoScripts()
-            .Select(s => s.GetClass()).Where(t => t != null));
+            .Where(s => s.GetClass() != null && PoprawnaNazwa(s, s.GetClass()))
+            .Select(s => s.GetClass()));
         var bledy = TypeCache.GetTypesDerivedFrom<MonoBehaviour>()
             .Where(t => t.Assembly.GetName().Name == "Assembly-CSharp" && !t.IsAbstract && !t.ContainsGenericParameters)
             .Where(t => !typySkryptow.Contains(t)).Select(t => t.FullName).OrderBy(n => n).ToArray();
         if (bledy.Length > 0)
             throw new System.InvalidOperationException("BRAXHORN_TYPY_SKRYPTOW: brak jednoznacznego MonoScript: " + string.Join(", ", bledy));
         Debug.Log("BRAXHORN_TYPY_SKRYPTOW: OK");
+    }
+
+    static bool PoprawnaNazwa(MonoScript script, System.Type type)
+    {
+        string path = AssetDatabase.GetAssetPath(script);
+        return !path.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase) ||
+            System.IO.Path.GetFileNameWithoutExtension(path) == type.Name;
     }
 
     public static string BladKomponentu(MonoBehaviour component)
@@ -32,6 +40,10 @@ public static class BraxBrakujaceSkrypty
         if (imported != actual)
             return actual.FullName + ": MonoScript wskazuje " + (imported == null ? "null" : imported.FullName) +
                 " (" + AssetDatabase.GetAssetPath(script) + ")";
+        // Unity 6000.0.58f2 accepts the old binding in the editor but writes only
+        // the 32-byte base header into an Android bundle. Require explicit files.
+        if (!PoprawnaNazwa(script, actual))
+            return actual.FullName + ": nazwa pliku MonoScript nie odpowiada klasie (" + AssetDatabase.GetAssetPath(script) + ")";
         var path = AssetDatabase.GetAssetPath(script);
         if (path.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase) &&
             !UnityEditor.Compilation.CompilationPipeline.GetAssemblies(UnityEditor.Compilation.AssembliesType.Player)

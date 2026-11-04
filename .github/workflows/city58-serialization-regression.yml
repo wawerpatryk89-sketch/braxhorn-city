@@ -5,6 +5,7 @@ on:
     paths:
       - .github/workflows/city58-serialization-regression.yml
       - unity-tools/claude/prepare_serialization_probe.py
+      - unity-tools/claude/check_city_sea_payload.py
       - unity-tools/claude/serialization-probe/**
       - unity-city/Assets/Claude/Runtime/BraxAkwen.cs
       - unity-city/Assets/Claude/Runtime/BraxMorzeZaKamera.cs
@@ -43,6 +44,7 @@ jobs:
           allowDirtyBuild: true
       - name: Read serialized Android component sizes
         run: |
+          sudo chown -R "$(id -u):$(id -g)" serialization-probe/probe-report
           python3 -m pip install --disable-pip-version-check UnityPy==1.25.4
           python3 unity-tools/claude/serialization-probe/read_bundles.py
       - name: Keep regression evidence
