@@ -224,7 +224,17 @@ internal static class BraxUliceKit
         var sh = Shader.Find("Braxhorn/UliceOkno") ?? Shader.Find("Braxhorn/OsiedleOkno"); const string atlas = "Assets/Source/Claude/Osiedle/detail/pokoje.png";
         var imp = AssetImporter.GetAtPath(atlas) as TextureImporter;
         Material m;
-        if (!sh || !imp) m = Mat("szkło okien przyciemniane (brak atlasu pokoi)", new Color(.10f, .13f, .15f), .1f, .5f);
+        if (!sh || !imp)
+        {
+            // Atlas pokoje.png nie jest częścią jawnych źródeł miasta. Dotychczasowy
+            // fallback (RGB 0.10/0.13/0.15) dawał niemal czarne ściany bez okien.
+            // Nie generujemy fikcyjnych pokojów ani nie nakładamy ich na starą fasadę:
+            // istniejące wnęki mają materiał odbijającej, grafitowo-błękitnej szyby.
+            m = Mat("szyba fasadowa refleksyjna (BRAK atlasu pokojow)",
+                    new Color(.46f, .56f, .64f), .15f, .52f);
+            Debug.LogWarning("BRAXHORN_OKNA BRAK atlasu pokoje.png lub shadera; " +
+                             "zastąpiono wyłącznie materiał szyb, nie geometrię; prawdziwe wnętrza wymagają importu atlasu");
+        }
         else
         {
             if (!imp.alphaIsTransparency || imp.wrapMode != TextureWrapMode.Clamp)
