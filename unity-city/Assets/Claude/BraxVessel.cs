@@ -61,7 +61,7 @@ public sealed class BraxVessel : MonoBehaviour
 
     public static BraxVessel Nearest(Vector3 p, float max)
     {
-        BraxVessel best = null; float bd = max;
+        BraxVessel best = null; float bd = max + 1.3f; // zasięg większy tylko dla jachtu z trapem
         foreach (var v in All)
         {
             if (!v || v.rider) continue;
