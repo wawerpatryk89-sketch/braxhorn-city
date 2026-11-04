@@ -1,12 +1,5 @@
 name: Claude - region R1 na gotowo (TEST, bez publikacji)
 'on':
-  push:
-    branches:
-    - claude/region-20261030
-    paths:
-    - unity-city/**
-    - unity-tools/claude/**
-    - .github/workflows/claude-region-build.yml
   workflow_dispatch: {}
 permissions:
   contents: read
