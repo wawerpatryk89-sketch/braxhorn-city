@@ -1,0 +1,42 @@
+# Braxhorn City — drugie nagrania 4.11.2026 — audyt wyłącznie MIASTA (Unity 6)
+
+Źródło: siedem załączonych filmów MP4 przekazanych przez właściciela. Dwa pliki `ef7e5189-df75-400e-9a72-c88dc7834b48*.mp4` zawierają ten sam film (6 unikalnych sekwencji). Poniższe obserwacje dotyczą starego APK z filmów, NIE nowej kompilacji z gałęzi napraw. Czasy przybliżone (od 0:00).
+
+## Nowa runda oględzin
+| Film | Oględziny | Co trzeba naprawić/odebrać |
+|---|---|---|
+| v1, 0:00–0:08 | Dach Tower, barierki, panorama miasta i góry na horyzoncie. | Winda, obrys i zasięg panoramy; panorama 3D istnieje w kodzie, jakość po zmianie farClip=580 m do testu |
+| v1, 0:12–0:44 | Przy próbie windy kamera przez długi czas wypełniona ciemną ścianą i panelem drzwi. | Kamera w ciasnym szybie, kolizja wyjścia, aktywacja przycisku i przejazd — **niepotwierdzone po naprawie** |
+| v2, 0:20–0:44 | Supermarket BRAXHORN ma widoczne regały za szybami, ale czarne ogrodzenie przed witryną i wejściem. | Wyciąć tylko przeszkodę w osi drzwi, nie usuwać reszty ogrodzenia; sprawdzić dostęp i sprzedaż |
+| v3, 0:00–0:16 | Rondo z zieloną wyspą, ulice i sklepy, widać zakrzywione obrzeże ale również nieestetyczne styki. | Kwadratowe płyty pod okrągłymi wyspami usunięte z generatora Rondo/Pętla Płn./Zach.; reszta nawierzchni do testu |
+| v3, 0:16–0:44 | Pasaż ze szklanymi fasadami i wejściami, przechodnie, ławki; widoczne wystające podpory. | Sprawdzić rzeczywiste przejścia między fasadami, kolizje witryn, materiały i wnętrza |
+| v3, 0:52–1:08 | Nowe kwartały, duży ciemny parter, odsłonięte rusztowania i rozległy trawnik. | Dokończyć materiały i szkło, nie maskować ścian atrapą; identyfikacja nadmiarowych elementów modelu |
+| v4, 0:00–1:08 | Nowe ulice pomiędzy budynkami, czerwone elewacje w rusztowaniach, bardzo ciemne przeszklone partery i szczeliny. | Weryfikacja importu PBR, szyb, geometrii fasad, kolizji budynków i przebiegu chodników |
+| v5, 0:00–1:28 | Dalsze kwartały z rusztowaniami, czarne partery, nierówne wykończenie i małe wyspy zieleni przy drodze. | Nie dublować materiałów; kontrola małych trawników na asfalcie, brakujących tekstur i niedopracowanych przejść |
+| v6, 0:32–1:00 | Prostokątne jaskrawo zielone plamy w jezdni przed przejściami, miejscami nienaturalne krawężniki. | Usuwanie wyłącznie niewielkich trawników faktycznie leżących w obrębie asfaltu, zachowanie parków i pasów zieleni |
+| v6, 1:08–1:32 | Tramwaj CAF zamknięty na krótkim torze z kozłami oporowymi, nie funkcjonuje jako transport miejski. | **T1:** linia bez cofania ulicami Tramwajowa → C0 → Nowojorska → C3 → Tramwajowa, 6 przystanków, ruch + działająca interakcja Braxa, minimum 1 wagon |
+
+## Stan wykonanych poprawek kodu po tej rundzie
+
+- Rondo i dwie podobne pętle: usunięte kwadratowe betonowe podkłady pod okrągłymi trawnikami.
+- Asfalt: dodatkowy podział nakładających się prostokątów na rozłączne płaty (bez nakładania na dawną powierzchnię).
+- Drobne trawniki: selektywne zdjęcie jedynie obiektów w pełni na jezdni; bez ingerencji w duże zieleńce.
+- Supermarket: przygotowane selektywne wycięcie ogrodzenia w świetle dojścia, kontrola cięć w logu.
+- Budynki nowej dzielnicy: kolizje powiązane z rzeczywistym obiektem budynku, żeby doczytywanie/zwalnianie nie zostawiało niewidocznych ścian.
+- Tramwaj: przedłużenie ze starego krótkiego odcinka do pełnej zamkniętej pętli około 1,19 km (według wzoru geometrii), **bez fizycznego zawracania**, sześć przystanków, rzeczywisty model CAF, styki torów, rozdział jazdy/hamowania/postojów.
+- Tramwaj: `Awake` nie sprawdza pustej trasy przed inicjalizacją przez generator, właściwe uruchomienie odbywa się w `Start`.
+- Tramwaj: `BraxSeat` współpracuje z modelem wagonu, wsiadanie i wysiadanie w interakcji AKCJA; wysiadanie wyłącznie na postoju, gracz synchronizowany przed pracą kamery.
+- Tramwaj: dodatkowy komponent pasażerów Rocketbox, *warunkowo* realizuje animowane wsiadanie/wysiadanie **tylko przy wykrytych osobnych, ruchomych skrzydłach CAF**. Brak węzłów drzwi w modelu to brak funkcji, NIE wolno twierdzić, że działa. Modele/animacje muszą pochodzić z istniejących źródeł, nie z atrap.
+- Tramwaj: nowy audyt SAT porównuje obrys CAŁEGO wagonu na łukach z geometrią dostępnych budynków, wykryte kolizje są raportowane przed zatwierdzeniem APK.
+- Przed kosztownym buildem CI sprawdza zaszyfrowane źródła CAF, wiat, leków, odżywek, murali i atlasu okien. Nowa gałąź uruchamia się WYŁĄCZNIE ręcznie.
+
+## Weryfikacja obowiązkowa (bez twierdzenia, że naprawiono)
+
+1. Rzeczywista kompilacja Unity 6, kontrola błędów C# i logów `BRAXHORN_TRAM_T1_*`, `BRAXHORN_MIASTO_B_*` oraz `BRAXHORN_SUPERMARKET_*`.
+2. Oględziny nowego APK: przejazd pełnej pętli T1, brak wjazdów tramwaju w elewacje, przejezdne zakręty i skrzyżowania, bez odtwarzania asfaltu na asfalcie.
+3. Oględziny i interakcje: otwieranie **rzeczywistych** drzwi CAF, siedzenie w wagonie, możliwość wyjścia tylko na peronie; NPC wsiadają/wychodzą jeśli importer wykrył skrzydła. W razie braku — wymagana osobna praca z modelem.
+4. Nowa dzielnica: ciemne partery, rusztowania, luki, niepełne przeszklenia, błędne tekstury PBR, trawniki i kwadratowe chodniki; porównanie z filmami po pełnym imporcie.
+5. Tower: kamera po przejeździe na dach, pełne 360°, wszystkie drzwi, brak czarnych ekranów; supermarket, NOVA i apartament — swobodne wejścia.
+6. Ostatecznie Android: czas uruchomienia, zużycie RAM, FPS, brak crashów i dostępność aktualizacji strefowych.
+
+**Brak jeszcze rzeczywistego testu APK dla tej gałęzi.** Nie scalać z gałęzią miasta i nie publikować jako ukończone bez odbioru. Osiedla i obozu nie dotykać.
