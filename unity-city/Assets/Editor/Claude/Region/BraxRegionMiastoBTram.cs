@@ -157,8 +157,10 @@ public static partial class BraxRegionMiastoB
             var peron = s + prawa * (AH * .5f + Kr + 1.55f);
             peron.y = YC;
             var p = new GameObject("T1: przystanek " + (i + 1) + " " + cfg.nazwa).transform;
+            // Mesh Bud i Napis otrzymują współrzędne świata. Rodzic w (0,0,0)
+            // zapobiega PODWÓJNEMU przesunięciu wiat i tablic.
             p.SetParent(stopRoot, false);
-            p.position = peron;
+            p.localPosition = Vector3.zero;
             var znak = new BraxRegionMeble.Bud();
             znak.Cyl(peron, peron + Vector3.up * 2.9f * K, .045f * K, 12);
             znak.MinMax(peron + new Vector3(-.09f, 2.65f * K, -.09f),
