@@ -107,3 +107,18 @@ Nie oznaczają automatycznie, że dana usterka została naprawiona w Androidzie.
 - `BraxRegionTylyB.cs`: collidery szyb są dziećmi danego wieżowca, zamiast globalnego korzenia; dzięki temu mogą być doczytywane ze właściwą geometrią. Fallback okien bez `pokoje.png` jest refleksyjny, ale nie zastępuje prawdziwego atlasu i nie dowodzi obecności fikcyjnych pomieszczeń.
 - `BraxSklepyTowar.cs`: niedostateczna liczba importowanych opakowań w Nutrition/aptece/supermarkecie ma status `NIEGOTOWY`, a nie `OK`.
 - **Brak dowodu kompilacji i testu Android dla tej gałęzi.** Nie używać określenia „całe miasto naprawione” przed rzeczywistym przejściem testowym i oceną właściciela.
+
+## Dopisek — weryfikacja materiałów i wejścia na dach, 4 listopada
+
+**Nowe fakty z ukończonego builda #64 (run 41766745542, job 126367351125):**
+- Pliki `lek_01.glb`, `lek_02.glb` i `lek_24.glb` widoczne w logach ScriptedImporter. Paczka `miasto_sklepy.tar.gz.enc` faktycznie znajduje się w repo; dotychczasowy problem apteki polegał przede wszystkim na pominięciu wnętrza lokalu będącego częścią wieżowca, a nie na braku wszystkich modeli leków. Pozostałych 21 plików nie weryfikowano pojedynczo podczas tej kontroli; poprawne teksturowanie i rozmieszczenie na regałach pozostaje testem nowego buildu.
+- `Assets/Source/Claude/Osiedle/detail/pokoje.png` również BYŁ zaimportowany przez CI mimo nieobecności w jawnej strukturze gałęzi. Nie należy błędnie twierdzić, że atlasu nie ma w Androidzie. Jednak `BraxRegionInteriorMap` zameldował **0 podmienionych rendererów**; możliwe, że podstawowe elewacje zostały wcześniej zastąpione nowszymi shaderami pokoi. Wymagane obejrzenie nowych wieżowców i ich szyb.
+- `BRAXHORN_HORYZONT_MIASTO niebo: kloofendal_8k 8192x4096` i `BRAXHORN_PANORAMA wyspy=9 wzgorza=34 gory=17`: w buildzie #64 obecne rzeczywiste tekstury nieba HD i 360-stopniowy pierścień panoramy 3D; jednak kamera przy tworzeniu gracza ma `farClipPlane=100` m, a horyzont po projekcji obejmuje 120–500 m.
+
+**Zmiany przed kolejnym wspólnym testem:**
+- `BraxPierscien.cs`: kamera na tarasach od wysokości 55 m podnosi zasięg rysowania do 580 m. Po zejściu poniżej 45 m przywraca poprzedni zasięg. Nie zmienia renderingu zwykłych ulic ani metra.
+- `BraxRegionTylyB.Taras`: usunięto pełny, niewidzialny BoxCollider obejmujący dziurę szybu windy; cztery kolizje są teraz zgodne z czterema osobnymi powierzchniami tarasu. Przejście dookoła kiosku ma pozostać dostępne.
+- `BraxUlicePierzeje.AptekaWiezowca`: do bocznych regałów leków dodane kolizje; centralny korytarz do windy pozostaje bez nich. Grafiki produktów nie są przerabiane; modelom wymagane jest faktyczne zaimportowanie tekstur.
+- `BraxMiastoOdbior.cs`: raport dostępności drzwi apteki, liczby modeli i wariantów leków, obecności ich tekstur, dostępności windy do piętra 36, czterech segmentów dachu, liczby brył 3D panoramy i rzeczywistej rozdzielczości tekstury nieba.
+
+**Warunek wydania:** żaden z tych nowych zapisów nie zastępuje testu Unity 6/Android. Na docelowej Motoroli należy fizycznie przejść z ulicy przez APTEKĘ, NOVA i TOWER, wjechać na dach, obejrzeć panoramę podczas obrotu o 360°, wejść do mieszkania, zwiedzić metro i policzyć jednostki w marinie. Build przed testem uruchomić wyłącznie jako jeden zbiorczy dla miasta, bez mieszania z osiedlem i obozem.
