@@ -28,6 +28,21 @@ public sealed class BraxSportHud : MonoBehaviour
             var r = new Rect((Screen.width - w) * .5f, s * .1f, w, h);
             GUI.color = Glass; GUI.DrawTexture(r, Texture2D.whiteTexture);
             GUI.color = Ink; lab.normal.textColor = Ink; GUI.Label(r, txt, lab);
+            // Sterowanie dla Patryka — przycisk CIOS/KOP ma w sportach inne
+            // znaczenie niż w walce. Wskazówka na korcie bez dodatkowego menu.
+            string wskazowka = b.gra == BraxSportBoisko.Gra.Kosz
+                ? "AKCJA: piłka · RUCH: kozłuj · CIOS: rzut"
+                : b.gra == BraxSportBoisko.Gra.Nozna
+                    ? "RUCH: prowadź · CIOS: podaj · KOP: strzel"
+                    : b.gra == BraxSportBoisko.Gra.Tenis
+                        ? "CIOS: forhend/bekhend · AKCJA: wyrzutnia"
+                        : "AKCJA: zagrywka · CIOS: odbicie";
+            float h2 = s * .045f;
+            var help = new Rect((Screen.width - w) * .5f - s * .12f, r.yMax + s * .004f,
+                Mathf.Min(Screen.width - s * .06f, w + s * .24f), h2);
+            GUI.color = Glass; GUI.DrawTexture(help, Texture2D.whiteTexture);
+            GUI.color = Ink;
+            lab.normal.textColor = Ink; GUI.Label(help, wskazowka, lab);
         }
         if (blysk)
         {
