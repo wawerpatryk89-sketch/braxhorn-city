@@ -1,5 +1,7 @@
 # Miasto Mistrzów — mapa i przekazanie prac
 
+**Wymaganie jakości właściciela — 4.11.2026:** [sześć zdjęć pierwszego miasta i standard do przewyższenia](mistrzowie-referencje-jakosci/README.md). Miasto Mistrzów ma mieć większy detal, lepsze tekstury, cienie i oświetlenie oraz charakter luksusowego miasta: wieżowce, hotele 5★, banki, kasyna, kluby premium, baseny i sauny. Wszystko zgodnie z istniejącym planem, jego układem i zatwierdzonymi wzorami. Zdjęcia są odniesieniem jakości, nie dowodem gotowego Miasta Mistrzów.
+
 **Aktualizacja po APK #4:** [diagnoza i naprawy runu 41907419292](mistrzowie-audyt-run4-20261104.md). Run na `c30e305` zatrzymał się na kolizji trasy metra przed generowaniem Patryka i kompilacją APK. Poprawiono trasę, obudowę pod schodami, obrót źródłowego pociągu oraz import tekstur; kontrole statyczne przeszły. Nowa kompilacja Unity i test Androida pozostają niewykonane. Poniższy plan i wcześniejsze statusy są zachowane jako historia zakresu.
 
 Stan na 4 listopada 2026 r. Region tej samej gry **BRAXHORN CITY**, projekt `unity-city`, Unity **6000.0.58f2**, Built-in Render Pipeline. Gałąź robocza: `codex/miasto-mistrzow-20261104`. Odczytany kod: `47c89f05796c675d02a15982382a37ef4c5d20be`.

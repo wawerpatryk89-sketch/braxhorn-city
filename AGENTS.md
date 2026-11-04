@@ -20,6 +20,8 @@
 
 ## Miasto Mistrzów — obowiązkowy punkt startowy
 
+Wymaganie właściciela z 4.11.2026: przed oceną i dalszym wykonaniem przeczytaj [sześć zdjęć odniesienia i wymagania jakości Miasta Mistrzów](docs/zlecenia/mistrzowie-referencje-jakosci/README.md). Jakość ma przewyższać pierwsze miasto właściciela: detal, tekstury, cienie i oświetlenie; luksusowy program obiektów zachować zgodnie z istniejącym projektem. Odbioru wizualnego nie zastępuje udana kompilacja.
+
 Przed pracą w tym regionie przeczytaj [mapę i przekazanie](docs/zlecenia/MIASTO-MISTRZOW-START.md). Tam są pełny plan PDF, dwa podglądy map, aktualny rzut generatora, źródła współrzędnych, standard jakości i status pierwszego buildu. Zachowaj układ, oryginalne zasoby i skalę; dokumentacja odróżnia plan, istniejący kod i wynik sprawdzony w Unity. Powyższe zasady ręcznego uruchamiania buildów pozostają w mocy.
 
 

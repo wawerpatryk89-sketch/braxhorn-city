@@ -1,0 +1,56 @@
+{
+  "project": "BRAXHORN CITY / Miasto Mistrzów",
+  "instruction_date": "2026-11-04",
+  "role": "Pierwsze miasto właściciela — poziom jakości do przewyższenia, zgodnie z istniejącym planem Miasta Mistrzów.",
+  "modified_images": false,
+  "images": [
+    {
+      "file": "01-trawa-i-otoczenie.jpeg",
+      "original_filename": "3a7e0104-3828-48c2-a2ff-1e4d563ef5c9.jpeg",
+      "width": 2048,
+      "height": 921,
+      "bytes": 351688,
+      "sha256": "82dafcb4a79ab14685fb0f08f6bc9e76277410d6865583aaa080d37931c15349"
+    },
+    {
+      "file": "02-kamienna-elewacja.jpeg",
+      "original_filename": "76867bd0-6198-498b-9b83-eea5f584ee59.jpeg",
+      "width": 2048,
+      "height": 921,
+      "bytes": 317477,
+      "sha256": "b4cd9753141c8f102f031e59b603e012c79d3808d9c8136a1d7fb880d01225c9"
+    },
+    {
+      "file": "03-panorama-i-szklo.jpeg",
+      "original_filename": "20f4a31c-2864-4f05-93c7-b16cbda2a9c2.jpeg",
+      "width": 2048,
+      "height": 921,
+      "bytes": 329918,
+      "sha256": "cde1cb787e7f8a001bd521605f8c715076791e04aabf078c5242b2ed9359a439"
+    },
+    {
+      "file": "04-ulica-i-cegla.jpeg",
+      "original_filename": "a056fc9f-fc4a-4412-92f8-cb48e6673c5f(1).jpeg",
+      "width": 2048,
+      "height": 921,
+      "bytes": 310565,
+      "sha256": "6710a639e5e1cac25f4cabd007329232fb66c88bad89c05b457a46361816c8a5"
+    },
+    {
+      "file": "05-nutrition-witryna.jpeg",
+      "original_filename": "fd3674e7-ef39-4312-961f-348143482021(1).jpeg",
+      "width": 2048,
+      "height": 921,
+      "bytes": 292723,
+      "sha256": "ae7e35d33f132c13a09812e5ea162e5b3d4505aae31c40d18580f39a29d0e49c"
+    },
+    {
+      "file": "06-perspektywa-ulicy.jpeg",
+      "original_filename": "71165d50-91a8-4eae-b310-382610313f78(1).jpeg",
+      "width": 2048,
+      "height": 921,
+      "bytes": 369642,
+      "sha256": "2fe56e599d85ef7aad84e81d7c1825db3f20b82127f61a735075da128d704b32"
+    }
+  ]
+}
