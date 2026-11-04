@@ -238,6 +238,19 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: SOBCZAK i WAWER — wymus komplet oryginalnych szyldow i sprzet kawiarni przed Unity 6
+      if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104'
+      run: |
+        set -euo pipefail
+        python3 unity-tools/claude/check_signage.py
+        python3 unity-tools/claude/fetch_cafe_equipment.py
+        root=unity-city/Assets/Source
+        [ -s "$root/Claude/Cafe/espresso_machine_sobczak.glb" ] || \
+          [ -s "$root/Prywatne/Miasto/miasto_sklepy/ekspres_kolbowy.glb" ] || \
+          [ -s "$root/Prywatne/Miasto/miasto_wyposazenie/ekspres_kolbowy.glb" ] || \
+          { echo '::error::SOBCZAK KAWIARNIA bez ekspresu'; exit 1; }
+        echo "SOBCZAK KAWIARNIA: sprawdzenie sprzetu i oryginalnych szyldow PASS"
+
     - name: Bramka jakosci miasta przed drogim buildem (tylko reczny test napraw)
       if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104'
       run: |
