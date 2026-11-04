@@ -1,16 +1,5 @@
 name: Claude - region R1 na gotowo (TEST, bez publikacji)
 'on':
-  push:
-    branches:
-    - claude/region-20261030
-    - claude/miasto-opus-20261031
-    - codex/city62-report-permissions-20261104
-    - codex/miasto-naprawy-filmow-20261104
-    paths:
-    - unity-city/**
-    - unity-tools/claude/**
-    - unity-tools/updates/**
-    - .github/workflows/claude-region-build.yml
   workflow_dispatch:
     inputs:
       rejon:
