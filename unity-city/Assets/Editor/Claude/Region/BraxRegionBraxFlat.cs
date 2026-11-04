@@ -26,7 +26,7 @@ public static class BraxRegionBraxFlat
     const float SX0 = 32.42f, SX1 = 37.98f, SZ0 = 36.45f, SZ1 = 41.45f;
     // drzwi od ulicy (między pilastrami x 32.9 i 37.3 frontu NOVA)
     // pkt 46 (właściciel 02:22): brama klatki 0.9 × 2.1 m × K (1.16 × 2.72) w otworze okładziny NOVA (x 33.0…34.36, do y 3.01)
-    const float DX0 = 33.10f, DX1 = 34.26f, DoorH = 2.72f, FrontZ = 36.0f;
+    const float DX0 = 32.99f, DX1 = 34.49f, DoorH = 2.72f, FrontZ = 36.0f; // wejście 1.50 m, dopasowane do prawdziwego otworu NOVA
     // mieszkanie
     // pkt 46: mieszkanie na całym 1. piętrze nad wejściem i toaletami klubu (x 37.98…51.4) — ok. 90 m² świata ≈ 54 m² × K
     const float AX0 = 37.98f, AX1 = 51.4f, AZ0 = 36.45f, AZ1 = 43.4f;
@@ -100,7 +100,7 @@ public static class BraxRegionBraxFlat
         B(K, "Klatka: sufit", SX0, SX1, Ceil, Ceil + .12f, SZ0, SZ1, plaster, false);
         const int N = 13; const float tread = .25f, run = (N - 1) * tread;
         float rise = (Fl - Street) / (2 * N);
-        float f1x0 = SX0 + .05f, f1x1 = f1x0 + 1.1f, f2x0 = f1x1 + .2f, f2x1 = f2x0 + 1.1f;
+        float f1x0 = SX0 + .05f, f1x1 = f1x0 + 1.45f, f2x0 = f1x1 + .2f, f2x1 = f2x0 + 1.45f; // 2 biegi 1.45 m zamiast 1.10 m
         float zBottom = SZ0 + 1.1f, zTop = zBottom + run, yMid = Street + N * rise;
         for (int i = 0; i < N; i++)
         {
@@ -265,10 +265,8 @@ public static class BraxRegionBraxFlat
         for (int i = 0; i < 5; i++) W.Rura(chrom, new Vector3(XW - .03f, y + 1.62f, 38.15f + i * .25f), new Vector3(XW - .12f, y + 1.68f, 38.15f + i * .25f), .01f, 6);
         W.MM(grafit, AX0 + .06f, AX0 + .09f, y + .8f, y + .8f + 1.2f * k, 37.95f + .2f, 38.75f + .2f);      // rama lustra
         W.MM(szklo, AX0 + .09f, AX0 + .1f, y + .83f, y + .77f + 1.2f * k, 37.98f + .2f, 38.72f + .2f);
-        W.MM(biel, XW - .35f, XW - .02f, y + .06f, y + .85f, 37.9f - .02f, 37.9f + .9f, true);            // szafka na buty
-        W.MM(grafit, XW - .33f, XW - .04f, y, y + .06f, 37.9f, 37.9f + .88f);
-        W.MM(dab, XW - .37f, XW - .02f, y + .85f, y + .88f, 37.86f, 38.82f);
-        foreach (float z in new[] { 38.12f, 38.56f }) W.Rura(chrom, new Vector3(XW - .36f, y + .7f, z - .08f), new Vector3(XW - .36f, y + .7f, z + .08f), .007f, 6);
+        // Dawna szafka na buty wchodziła w otwór drzwi W1 (z 37.30…38.60) i blokowała postać.
+        // Usunięta razem z frontem, blatem i uchwytami; nie dokładamy innego mebla w przejściu.
         W.MM(tkaninaC, AX0 + .3f, AX0 + 1.3f, y, y + .012f, dz0 + .05f, dz1 - .1f);                      // wycieraczka
 
         // ---- ŁAZIENKA: kabina prysznicowa, WC, umywalka z szafką, lustro z oświetleniem, wieszak na ręcznik ----
