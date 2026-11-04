@@ -84,7 +84,13 @@ public static partial class BraxRegionMiastoB
     static void NdKrok(string nazwa, Action a)
     {
         try { a(); }
-        catch (Exception e) { BraxMiastoAssety.Bledy++; ndBlokery.Add(nazwa + ": " + e.Message); Debug.LogError("BRAXHORN_MIASTO_ASSETY " + nazwa + " DO POPRAWKI: " + e); }
+        catch (Exception e) { NdBlad(nazwa, e); }
+    }
+
+    static void NdBlad(string nazwa, Exception e)
+    {
+        ndBlokery.Add(nazwa + ": " + e.Message);
+        BraxMiastoAssety.Blad(nazwa, e);
     }
 
     // =====================================================================================================================
@@ -671,7 +677,7 @@ public static partial class BraxRegionMiastoB
     static void NoweDzielniceWyposazenie()
     {
         Physics.SyncTransforms();
-        for (int i = 0; i < 4; i++) { try { SkrzyzowanieT(null, new Vector3(NC[i], YA, RZ), AH, AH, NdWlotyAlei(i), 30f * i); } catch (Exception e) { BraxMiastoAssety.Blad("sygnalizacja Aleja × C" + i, e); } }
+        for (int i = 0; i < 4; i++) { try { SkrzyzowanieT(null, new Vector3(NC[i], YA, RZ), AH, AH, NdWlotyAlei(i), 30f * i); } catch (Exception e) { NdBlad("sygnalizacja Aleja × C" + i, e); } }
         // przejścia bez świateł (ul. Nowojorska, Tramwajowa, wlot zach. pętli): strefy zatrzymania aut jak u B
         try
         {
@@ -699,11 +705,11 @@ public static partial class BraxRegionMiastoB
             NdLog("strefy: przejść bez świateł " + zs.Count + " (w tym wlot zach. pętli), skrzyżowań z sygnalizacją 4 (Aleja × C0…C3)");
             ZnakRonda(NaPodlozu(cP + dirW * (PetlaPlac + 3f) - Vector3.Cross(Vector3.up, dirW) * (AH + Kr + .5f) + dirW * 4f + Vector3.up * YC), dirW);
         }
-        catch (Exception e) { BraxMiastoAssety.Blad("strefy przejść", e); }
-        try { NdPrzystanekAutobusu(); } catch (Exception e) { BraxMiastoAssety.Blad("przystanek autobusowy", e); }
-        try { NdTramwaj(); } catch (Exception e) { BraxMiastoAssety.Blad("tramwaj", e); }
-        try { NdDrobne(); } catch (Exception e) { BraxMiastoAssety.Blad("wyposażenie (hydranty, skrzynki, bankomat, kontenery)", e); }
-        try { NdKontrolaNawierzchni(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola migotania nawierzchni", e); }
+        catch (Exception e) { NdBlad("strefy przejść", e); }
+        try { NdPrzystanekAutobusu(); } catch (Exception e) { NdBlad("przystanek autobusowy", e); }
+        try { NdTramwaj(); } catch (Exception e) { NdBlad("tramwaj", e); }
+        try { NdDrobne(); } catch (Exception e) { NdBlad("wyposażenie (hydranty, skrzynki, bankomat, kontenery)", e); }
+        try { NdKontrolaNawierzchni(); } catch (Exception e) { NdBlad("kontrola migotania nawierzchni", e); }
         Debug.Log("BRAXHORN_MIASTO_ASSETY_MIGOTANIE pary=" + ndMigotanie + " (nowe dzielnice: płyty, krawężniki, trawniki, wstawki toru, podstawy budynków; asfalt i farba — w kontroli B)");
         Debug.Log("BRAXHORN_MIASTO_ASSETY_USUNIETE (" + ndUsuniete.Count + "): " + string.Join(" | ", ndUsuniete.Take(40)));
         NdLog("wyposażenie: latarni ulic " + ndLatarnie + ", drzew " + ndDrzewa + ", modeli postawionych " + BraxMiastoAssety.Postawione + ", błędów " + BraxMiastoAssety.Bledy);

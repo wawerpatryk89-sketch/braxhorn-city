@@ -16,33 +16,42 @@ public sealed class BraxSceneTransit : MonoBehaviour
     public static void Go(string scene)
     {
         if(Busy)return;
+        if(string.IsNullOrWhiteSpace(scene) || !Application.CanStreamedLevelBeLoaded(scene))
+        {
+            Debug.LogError("BRAXHORN_TRANSIT_SCENE_MISSING: " + scene);
+            return; // Validate before unloading the current playable region.
+        }
         if(!inst){var g=new GameObject("BRAXHORN przejście rejonu");DontDestroyOnLoad(g);inst=g.AddComponent<BraxSceneTransit>();}
         Busy=true;inst.StartCoroutine(inst.Run(scene));
     }
     IEnumerator Run(string scene)
     {
-        BraxStartLog.Etap("przejście tunelem do "+scene);
-        var empty=SceneManager.CreateScene("BRAXHORN przejscie "+Time.frameCount);
-        var camGo=new GameObject("kamera przejścia");
-        SceneManager.MoveGameObjectToScene(camGo,empty);
-        var cam=camGo.AddComponent<Camera>();cam.clearFlags=CameraClearFlags.SolidColor;cam.backgroundColor=Color.black;cam.cullingMask=0;
-        SceneManager.SetActiveScene(empty);
-        yield return null;
-        // rejon + jego doczytane obszary (BraxObszary): zwalniamy wszystkie sceny poza pustą
-        var doZwolnienia=new System.Collections.Generic.List<Scene>();
-        for(int i=0;i<SceneManager.sceneCount;i++){var sc=SceneManager.GetSceneAt(i);if(sc!=empty&&sc.isLoaded)doZwolnienia.Add(sc);}
-        foreach(var sc in doZwolnienia)
+        try
         {
-            var unload=SceneManager.UnloadSceneAsync(sc);
-            if(unload!=null)yield return unload;
+            BraxStartLog.Etap("przejście tunelem do "+scene);
+            var empty=SceneManager.CreateScene("BRAXHORN przejscie "+Time.frameCount);
+            var camGo=new GameObject("kamera przejścia");
+            SceneManager.MoveGameObjectToScene(camGo,empty);
+            var cam=camGo.AddComponent<Camera>();cam.clearFlags=CameraClearFlags.SolidColor;cam.backgroundColor=Color.black;cam.cullingMask=0;
+            SceneManager.SetActiveScene(empty);
+            yield return null;
+            // rejon + jego doczytane obszary (BraxObszary): zwalniamy wszystkie sceny poza pustą
+            var doZwolnienia=new System.Collections.Generic.List<Scene>();
+            for(int i=0;i<SceneManager.sceneCount;i++){var sc=SceneManager.GetSceneAt(i);if(sc!=empty&&sc.isLoaded)doZwolnienia.Add(sc);}
+            foreach(var sc in doZwolnienia)
+            {
+                var unload=SceneManager.UnloadSceneAsync(sc);
+                if(unload!=null)yield return unload;
+            }
+            yield return Resources.UnloadUnusedAssets();
+            GC.Collect();
+            var load=SceneManager.LoadSceneAsync(scene,LoadSceneMode.Single);
+            if(load==null){Busy=false;throw new InvalidOperationException("Missing original scene "+scene);}
+            yield return load;
         }
-        yield return Resources.UnloadUnusedAssets();
-        GC.Collect();
-        var load=SceneManager.LoadSceneAsync(scene,LoadSceneMode.Single);
-        if(load==null){Busy=false;throw new InvalidOperationException("Missing original scene "+scene);}
-        yield return load;
-        Busy=false;
+        finally { Busy=false; }
     }
+    void OnDestroy() { if(inst==this) { Busy=false; inst=null; } }
     void OnGUI()
     {
         if(!Busy)return;

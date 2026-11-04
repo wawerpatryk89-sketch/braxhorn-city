@@ -32,7 +32,9 @@ public sealed class BraxObszary : MonoBehaviour
     void Start()
     {
         Application.backgroundLoadingPriority = ThreadPriority.Low;
-        foreach (var o in obszary) o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
+        foreach (var o in obszary)
+            if (o != null && !string.IsNullOrEmpty(o.scena))
+                o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
         if (BraxStartTest.Wylaczony("obszary")) return;
         // obszary „od startu”: wczytywanie zaczyna się w pierwszej klatce sceny, jeden po drugim (bez czekania na gracza)
         StartCoroutine(OdStartuWszystkie());
@@ -90,15 +92,18 @@ public sealed class BraxObszary : MonoBehaviour
     {
         double startWyspy = Time.realtimeSinceStartupAsDouble;
         zajety = true; o.w_toku = true; Laduje++;
-        BraxStartLog.Etap("obszar: wczytywanie " + o.scena);
-        var op = SceneManager.LoadSceneAsync(o.scena, LoadSceneMode.Additive);
-        if (op != null) { op.priority = 0; yield return op; }
-        o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
-        BraxStartLog.Etap("obszar wczytany " + o.scena);
-        if (o.scena == "BraxhornCity_Wyspa") Debug.Log("BRAXHORN_WYSPA_STREAM load_seconds=" +
-            (Time.realtimeSinceStartupAsDouble - startWyspy).ToString("F3") + " loaded=" + o.wczytany +
-            " allocated_bytes=" + UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong());
-        Laduje--; o.w_toku = false; zajety = false;
+        try
+        {
+            BraxStartLog.Etap("obszar: wczytywanie " + o.scena);
+            var op = SceneManager.LoadSceneAsync(o.scena, LoadSceneMode.Additive);
+            if (op != null) { op.priority = 0; yield return op; }
+            o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
+            BraxStartLog.Etap("obszar wczytany " + o.scena);
+            if (o.scena == "BraxhornCity_Wyspa") Debug.Log("BRAXHORN_WYSPA_STREAM load_seconds=" +
+                (Time.realtimeSinceStartupAsDouble - startWyspy).ToString("F3") + " loaded=" + o.wczytany +
+                " allocated_bytes=" + UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong());
+        }
+        finally { o.w_toku = false; ZakonczOperacje(); }
     }
 
     IEnumerator Zwolnij(Obszar o)
@@ -107,20 +112,30 @@ public sealed class BraxObszary : MonoBehaviour
         var sc = SceneManager.GetSceneByName(o.scena);
         if (!sc.isLoaded) { o.wczytany = false; yield break; }
         zajety = true; Laduje++;
-        // gracz (np. po zejściu z łodzi) nie może zostać w zwalnianej scenie
-        if (player && player.gameObject.scene == sc && !player.transform.parent)
-            SceneManager.MoveGameObjectToScene(player.gameObject, gameObject.scene);
-        var op = SceneManager.UnloadSceneAsync(sc);
-        if (op != null) yield return op;
-        yield return Resources.UnloadUnusedAssets();
-        o.wczytany = false;
-        if (o.scena == "BraxhornCity_Wyspa") Debug.Log("BRAXHORN_WYSPA_STREAM unload_seconds=" +
-            (Time.realtimeSinceStartupAsDouble - startWyspy).ToString("F3") +
-            " allocated_bytes=" + UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong());
-        Laduje--; zajety = false;
+        try
+        {
+            // gracz (np. po zejściu z łodzi) nie może zostać w zwalnianej scenie
+            if (player && player.gameObject.scene == sc && !player.transform.parent)
+                SceneManager.MoveGameObjectToScene(player.gameObject, gameObject.scene);
+            var op = SceneManager.UnloadSceneAsync(sc);
+            if (op != null) yield return op;
+            yield return Resources.UnloadUnusedAssets();
+            o.wczytany = false;
+            if (o.scena == "BraxhornCity_Wyspa") Debug.Log("BRAXHORN_WYSPA_STREAM unload_seconds=" +
+                (Time.realtimeSinceStartupAsDouble - startWyspy).ToString("F3") +
+                " allocated_bytes=" + UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong());
+        }
+        finally { ZakonczOperacje(); }
+    }
+
+    void ZakonczOperacje()
+    {
+        if (!zajety) return;
+        Laduje = Mathf.Max(0, Laduje - 1);
+        zajety = false;
     }
 
     // Przejście tunelem: wszystkie doczytane obszary idą razem ze sceną rejonu (BraxSceneTransit zwalnia wszystkie sceny).
-    void OnDestroy() { if (zajety) Laduje = Mathf.Max(0, Laduje - 1); }
+    void OnDestroy() { ZakonczOperacje(); }
 }
 
