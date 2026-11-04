@@ -320,11 +320,34 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         // a) jezdnie B z farbą w otworach
         int nA = 0;
         var top = new BraxRegionMeble.Bud(); var paint = new BraxRegionMeble.Bud();
+        // 4.11: skrzyżowania i odcinki jezdni były dodawane do "asfalty" na tych samych
+        // współrzędnych. Kwadratowe ciemne plamy i z-fighting to nakładanie asfaltu
+        // na asfalt. Budujemy ROZŁĄCZNE płaty: stare części na przecięciu są usunięte.
+        var juz = new List<Rect>();
+        int wyeliminowane = 0;
         foreach (var (n, r) in asfalty)
         {
-            Wstawki("Jezdnia: " + n, r, YA, f.r, asfalt, farba, top, paint);
-            if (++nA % 40 == 0) { top.Obiekt("Jezdnie miasta B (asfalt)", root, asfalt, false, false); paint.Obiekt("Oznakowanie poziome (farba w wycięciach asfaltu)", root, farba, false, false); top = new BraxRegionMeble.Bud(); paint = new BraxRegionMeble.Bud(); }
+            var resztki = new List<Rect> { r };
+            foreach (var wcz in juz)
+            {
+                resztki = resztki.SelectMany(x => Odejmij(x, wcz)).Where(Niepuste).ToList();
+                if (resztki.Count == 0) break;
+            }
+            if (resztki.Count == 0) wyeliminowane++;
+            foreach (var rr in resztki)
+            {
+                Wstawki("Jezdnia: " + n, rr, YA, f.r, asfalt, farba, top, paint);
+                if (++nA % 40 == 0)
+                {
+                    top.Obiekt("Jezdnie miasta B (asfalt)", root, asfalt, false, false);
+                    paint.Obiekt("Oznakowanie poziome (farba w wycięciach asfaltu)", root, farba, false, false);
+                    top = new BraxRegionMeble.Bud(); paint = new BraxRegionMeble.Bud();
+                }
+            }
+            juz.Add(r);
         }
+        Debug.Log("BRAXHORN_MIASTO_B_ASFALT_PLATY = " + nA + " (w pelni powtorzone prostokaty=" +
+                  wyeliminowane + "); jedyne lico jezdni, brak migotania na zakladkach");
         top.Obiekt("Jezdnie miasta B (asfalt)", root, asfalt, false, false);
         paint.Obiekt("Oznakowanie poziome (farba w wycięciach asfaltu)", root, farba, false, false);
         // b) farba poza jezdniami B (ulica główna A: skrzyżowanie z Wiaduktową, zebra przy rondzie, osie) — wycięcie asfaltu A
