@@ -8,6 +8,25 @@ import hashlib,io,json,urllib.request,zipfile,time
 ROOT=Path(__file__).resolve().parents[2]
 DEST=ROOT/'unity-city/Assets/Source/Mistrzowie/Textures'
 LOCK=json.loads(Path(__file__).with_name('verified_textures.json').read_text())
+POLYHAVEN_SLUGS=('coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_02','granite_tile_02','granite_tile','rectangular_facade_tiles','concrete_floor_02','concrete_wall_008','fabric_pattern_05','teak_veneer')
+POLYHAVEN_MAPS=(('diff','jpg'),('nor_gl','exr'),('rough','exr'))
+# The provider's own blend/glTF defaults use col_01 for this fabric. Do not
+# choose an arbitrary colour variation by dictionary order.
+COLOR_KEYS={'fabric_pattern_05':'col_01'}
+
+def polyhaven_map(metadata,slug,kind,ext):
+ aliases={'diff':('Diffuse','diff'),'nor_gl':('nor_gl',),'rough':('Rough','rough')}
+ keys=(COLOR_KEYS[slug],) if kind=='diff' and slug in COLOR_KEYS else aliases[kind]
+ for key in keys:
+  item=metadata.get(key,{}).get('4k',{}).get(ext)
+  if isinstance(item,dict) and item.get('url'):
+   return item
+ raise RuntimeError(f'Poly Haven {slug}: missing {kind} 4k/{ext}; expected keys {keys}; available keys {sorted(metadata)}')
+
+def matches_source(blob,item):
+ # MD5 here is the provider's transfer checksum, not an authentication scheme.
+ return ((not item.get('size') or len(blob)==item['size']) and
+         (not item.get('md5') or hashlib.md5(blob).hexdigest()==item['md5']))
 
 def get(url):
  for attempt in range(4):
@@ -26,13 +45,16 @@ def save(name,blob,source):
 
 def main():
  DEST.mkdir(parents=True,exist_ok=True);report=[]
- for slug in ['coast_sand_02','damp_sand','clean_asphalt','concrete_pavement_02','granite_tile_02','granite_tile','rectangular_facade_tiles','concrete_floor_02','concrete_wall_008','fabric_pattern_05','teak_veneer']:
+ for slug in POLYHAVEN_SLUGS:
+  print('BRAX_MISTRZOWIE_PBR_SOURCE '+slug,flush=True)
   metadata=json.loads(get('https://api.polyhaven.com/files/'+slug))
-  for kind,ext in [('diff','jpg'),('nor_gl','exr'),('rough','exr')]:
-   key=('Diffuse' if 'Diffuse' in metadata else 'diff') if kind=='diff' else kind
-   item=metadata[key]['4k'][ext];url=item['url'];name=slug+'_'+kind+'_4k.'+ext
+  selected=[(kind,ext,polyhaven_map(metadata,slug,kind,ext)) for kind,ext in POLYHAVEN_MAPS]
+  for kind,ext,item in selected:
+   url=item['url'];name=slug+'_'+kind+'_4k.'+ext
    path=DEST/name
-   data=path.read_bytes() if path.exists() and (name not in LOCK or hashlib.sha256(path.read_bytes()).hexdigest()==LOCK[name]) else get(url)
+   data=path.read_bytes() if path.exists() else None
+   if data is None or not matches_source(data,item) or (name in LOCK and hashlib.sha256(data).hexdigest()!=LOCK[name]):data=get(url)
+   if not matches_source(data,item):raise RuntimeError(f'Poly Haven {slug}: invalid download size/checksum for {kind} 4k/{ext}')
    report.append(save(name,data,url))
  archive_url='https://ambientcg.com/get?file=Grass004_4K-JPG.zip'
  names=['Grass004_4K-JPG_'+k+'.jpg' for k in ['Color','NormalGL','Roughness']]

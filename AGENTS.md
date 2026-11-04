@@ -1,6 +1,6 @@
 # PILNE — APK FIRST (4.11.2026)
 
-**Polecenie właściciela obowiązuje wszystkich, w tym Miasto Mistrzów:** gotowy APK zabezpiecz i udostępnij PRZED cache, snapshotem i raportami. Późniejsza awaria nie może odebrać pliku. Dla Miasta Mistrzów obecnym wynikiem są scena i bundles, nie APK. Zobacz [pełną zasadę](docs/zasady/APK_FIRST_DOSTAWA_20261104.md) i [Issue #13](https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13). Nowe buildy tylko po osobnej zgodzie właściciela.
+**Polecenie właściciela obowiązuje wszystkich, w tym Miasto Mistrzów:** gotowy APK zabezpiecz i udostępnij PRZED cache, snapshotem i raportami. Późniejsza awaria nie może odebrać pliku. Miasto Mistrzów ma osobny ręczny workflow APK; stan kompilacji i dostawy sprawdzać w aktualnym przekazaniu poniżej. Zobacz [pełną zasadę](docs/zasady/APK_FIRST_DOSTAWA_20261104.md) i [Issue #13](https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13). Nowe buildy tylko po osobnej zgodzie właściciela.
 
 ---
 
@@ -17,3 +17,7 @@
 7. Raportować osobno: kod, preflight, kompilację, opublikowany APK oraz test na Androidzie. Dowód: link runu, SHA i logi. Bez testu nie deklarować, że działa.
 
 **Nadrzędna zasada:** „My decydujemy, kiedy build uruchamiamy i kiedy go naprawiamy”. Bez aktualnej zgody — **ZERO buildów i automatycznych ponowień**.
+
+## Miasto Mistrzów — obowiązkowy punkt startowy
+
+Przed pracą w tym regionie przeczytaj [mapę i przekazanie](docs/zlecenia/MIASTO-MISTRZOW-START.md). Tam są pełny plan PDF, dwa podglądy map, aktualny rzut generatora, źródła współrzędnych, standard jakości i status pierwszego buildu. Zachowaj układ, oryginalne zasoby i skalę; dokumentacja odróżnia plan, istniejący kod i wynik sprawdzony w Unity. Powyższe zasady ręcznego uruchamiania buildów pozostają w mocy.

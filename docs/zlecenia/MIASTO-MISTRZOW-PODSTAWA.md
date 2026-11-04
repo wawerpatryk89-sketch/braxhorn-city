@@ -1,5 +1,7 @@
 # Miasto Mistrzów — metro i pierwsze budynki
 
+**Punkt startowy wykonawcy:** [mapy, pełny plan, stan prac i aktualne blokery](MIASTO-MISTRZOW-START.md).
+
 Ta sama gra BRAXHORN CITY, projekt `unity-city`, Unity 6000.0.58f2, Built-in Render Pipeline. Baza: `claude/miasto-opus-20261031`, commit `f1981049a9f7e9976b7d9e84216f1747d49a8774`. Osobna scena regionu do późniejszego scalenia; nie zastępuje miasta, osiedla, obozu ani aplikacji na telefonie.
 
 ## Zakres
@@ -32,12 +34,13 @@ Model pociągu jest istniejącą zoptymalizowaną wersją z repozytorium; jego t
 
 ## Budowanie i dowód
 
-Zgodnie z `AGENTS.md` z 4.11.2026 commit/push nie uruchamia Unity. Jedynym wyzwalaczem jest `workflow_dispatch`, po odrębnej decyzji właściciela wskazującej gałąź, SHA, region i wariant. Używamy istniejącej, zarejestrowanej nazwy pliku workflow, ale jej wariant na tej gałęzi buduje tylko Miasto Mistrzów. Nie przenosić tego pliku na gałęzie miasta/osiedla ani na main. Przy przyszłym scalaniu przenosić kod regionu osobno od adaptera CI. Nie ma automatycznych ponowień.
+Zgodnie z `AGENTS.md` commit/push nie uruchamia Unity. Osobny ręczny workflow **Miasto Mistrzów — APK** (`mistrzowie-apk.yml`) został zarejestrowany na `main` przez PR #17. Pole `commit` wybiera kod gry z gałęzi Miasta Mistrzów; `main` w formularzu oznacza wersję workflow. Build wywołuje `BraxChampionsBuild.BuildAndroid`, generuje region i scenę eksploracji, kontroluje przejścia oraz zapisane referencje, a następnie buduje podpisany Android APK. Zgoda na start nie obejmuje automatycznych ponowień.
 
+Eksport edytowalnej sceny/bundles pozostaje osobnym wariantem `region` w `claude-region-build.yml` na gałęzi Miasta Mistrzów. Nie przenosić tego adaptera na gałęzie innych regionów. Pierwszy przebieg APK #1 zatrzymał się przed Unity na przygotowaniu materiałów; aktualny stan i naprawę opisuje dokument startowy.
 
-Ręczny workflow `claude-region-build.yml` na gałęzi `codex/miasto-mistrzow-20261104` przygotowuje źródła, generuje geometrię, wywołuje `BraxChampionsBuild.Build`, sprawdza przejścia po schodach promieniem/kapsułą gracza, a dopiero po zaliczeniu podstawy generuje A1 i T01. Sprawdza dojścia do budynków i drogę do oktagonu, zapisuje i ponownie otwiera scenę oraz buduje paczki sceny i zasobów transportu dla Androida. Nie zmienia Build Settings ani rozruchu istniejącej gry. Nie tworzy odrębnego APK.
+Wyniki po udanym przebiegu odpowiedniego wariantu:
 
-Wyniki:
+- APK: `mistrzowie-apk-<RUN>-<ATTEMPT>-<SOURCE_SHA>` oraz unikalne wydanie testowe; weryfikacja stałego certyfikatu, wersji i dostawy.
 
 - `mistrzowie-validation-<RUN>-<ATTEMPT>-<SHA>`: osobne raporty geometrii, kontraktu ponownego użycia, źródeł PBR i walidacji Unity.
 - `mistrzowie-region-<RUN>-<ATTEMPT>-<SHA>`: zaszyfrowana edytowalna `.unitypackage`, paczki Android i licencje; części maksymalnie 190 MiB. Łączyć części według manifestu przed odszyfrowaniem standardowym kluczem repozytorium. Nie publikować rozpakowanych prywatnych modeli.
@@ -66,11 +69,11 @@ Poprawiono odwrócone powierzchnie pasów geometrii oraz ścianek walców, a tak
 
 Raport statyczny nie jest kompilacją C#. Nie uruchomiono Unity, nie wykonano renderu akceptacyjnego ani pomiaru na telefonie. Wynik `visualAccepted` i `deviceTested` pozostaje `false`. Ręczny build musi ponownie otworzyć zapisaną scenę i powtórzyć kontrole przejść, komponentów metra i zapisanych zasobów; błędy przerywają eksport.
 
-Zasada APK FIRST z 4.11 została zachowana: zaszyfrowany wynik jest przesyłany przed dodatkowymi raportami, pod niezmienną nazwą z run ID/attempt/SHA, a jego obecność potwierdza odczyt GitHub API. Raporty i cache nie unieważniają później dostawy. Bieżący wariant nadal nie buduje APK. Workflow ma `contents: read`; drugi kanał Release nie jest w nim skonfigurowany.
+Zasada APK FIRST: po udanej kompilacji APK jest sprawdzane i przesyłane przed dodatkowymi raportami. Są dwa miejsca zapisu: Actions artifact i unikalne wydanie testowe; co najmniej jedno wymaga potwierdzenia przez API. Pierwszy nieudany przebieg nie utworzył żadnego APK.
 
 ## Patryk do chodzenia i zwiedzania — 4.11.2026
 
-Źródło: najnowszy odczytany stan `codex/osiedle-integracja-final-patryk-20261104`, commit `e93d6c01f1c64fc5527987c9a0a7a2c57daf86e8`. Model właściciela z 3.11, kolor i normalna 4K, ORM 2K, oryginalne animacje z zaszyfrowanych paczek. Generator zachowuje szkielet, bindposes, anatomię i skalę: 1,80 m nominalnie = 2,33 jednostki świata. Kapsuła ma 2,37 jednostki wysokości; korzeń gracza nie otrzymuje drugiego mnożnika K.
+Źródło: najnowszy odczytany stan `codex/osiedle-integracja-final-patryk-20261104`, commit `e93d6c01f1c64fc5527987c9a0a7a2c57daf86e8`. Model właściciela z 3.11, kolor i normalna 4K, ORM 4K bez zmniejszania map roughness/metallic, oryginalne animacje z zaszyfrowanych paczek. Generator zachowuje szkielet, bindposes, anatomię i skalę: 1,80 m nominalnie = 2,33 jednostki świata. Kapsuła ma 2,37 jednostki wysokości; korzeń gracza nie otrzymuje drugiego mnożnika K.
 
 Przeniesiono generator Patryka i najnowsze poprawki Humanoid/chodu/biegu do osobnych plików `BraxChampionsPatryk*`, z odrębnym katalogiem importu i shaderem o identycznym kodzie źródłowym jak wersja osiedla. Nie zmieniono generatora ani zasobów postaci osiedla. Wspólny `BraxGymPlayer` otrzymał potrzebne poprawki chodzenia, skoku i kamery; zachowuje API oraz dotychczasowe funkcje miasta, w tym `SnapKamera`. Nie przeniesiono samochodu, ruchu ulicznego ani logiki budowania osiedla. Granice akwenu pierwszego miasta nie ograniczają współrzędnych Miasta Mistrzów.
 
@@ -87,4 +90,4 @@ Android zachowuje istniejący HUD: lewy joystick chód/bieg, prawa strona obrót
 
 Model i źródłowe mapy są weryfikowane SHA-256 przed użyciem. Oryginalny importer wymaga poprawnych animacji i blokuje poważne błędy ustawienia stóp. Walidacja Unity po ponownym otwarciu sceny sprawdza zapisane animacje, kości, tekstury, referencje, jedną kamerę i wolny start. Kontrole metra i dojść uwzględniają teraz kapsułę Patryka 2,37 m, zamiast wcześniejszej 2,25 m.
 
-Stan tej zmiany: kod i testy statyczne; **Unity, Play Mode i Android nie zostały uruchomione**. Wynik aktualnego workflow pozostaje paczką edytowalnych scen oraz bundles, nie APK. Bundle nie dostarcza nowego kodu C# do starej aplikacji: host musi zawierać kod z tego commita. Test ruchu, animacji, kamery, schodów i zapisu scen jest wymagany przed deklaracją działania na telefonie. Szczegóły pochodzenia: `unity-tools/mistrzowie/player-source.json`.
+Stan tej zmiany: kod i testy statyczne; **Unity, Play Mode i Android nie zostały uruchomione**. Osobny workflow APK służy kompilacji aplikacji do zwiedzania; eksport edytowalnych scen/bundles pozostaje osobnym wariantem. Bundle nie dostarcza nowego kodu C# do starej aplikacji: host musi zawierać kod z tego commita. Test ruchu, animacji, kamery, schodów i zapisu scen jest wymagany przed deklaracją działania na telefonie. Szczegóły pochodzenia: `unity-tools/mistrzowie/player-source.json`.

@@ -72,6 +72,7 @@ jobs:
         run: |
           python3 -m pip install numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
           test -f /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
+          python3 unity-tools/mistrzowie/test_prepare_assets.py
           python3 unity-tools/mistrzowie/test_surface_geometry.py
           python3 unity-tools/mistrzowie/test_restore_player.py
           python3 unity-tools/mistrzowie/test_apk_delivery.py

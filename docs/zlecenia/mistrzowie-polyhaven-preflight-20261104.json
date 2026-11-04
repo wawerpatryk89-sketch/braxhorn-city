@@ -1,0 +1,659 @@
+{
+  "checkedAt": "2026-11-04T18:28:46.955991+00:00",
+  "source": "https://api.polyhaven.com/files/{asset}",
+  "assets": 11,
+  "maps": [
+    {
+      "asset": "coast_sand_02",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coast_sand_02/coast_sand_02_diff_4k.jpg",
+      "size": 10132736,
+      "md5": "fb9b4a96e55dbfdd480f02f9a72382d4"
+    },
+    {
+      "asset": "coast_sand_02",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/coast_sand_02/coast_sand_02_nor_gl_4k.exr",
+      "size": 31138911,
+      "md5": "4c333c8b608f159b81d05ab7b93e405a"
+    },
+    {
+      "asset": "coast_sand_02",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/coast_sand_02/coast_sand_02_rough_4k.exr",
+      "size": 7560075,
+      "md5": "d234f2ae0e201a60d32384fd4287191b"
+    },
+    {
+      "asset": "damp_sand",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "size": 16418724,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/damp_sand/damp_sand_diff_4k.jpg",
+      "md5": "7625496c14a592a0fb5a244457531ccd"
+    },
+    {
+      "asset": "damp_sand",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 40019967,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/damp_sand/damp_sand_nor_gl_4k.exr",
+      "md5": "752cc122c03e0f62d1d299444d9a599c"
+    },
+    {
+      "asset": "damp_sand",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 10180390,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/damp_sand/damp_sand_rough_4k.exr",
+      "md5": "e89e7b0afa19e6ad54c21197b406f4cd"
+    },
+    {
+      "asset": "clean_asphalt",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/clean_asphalt/clean_asphalt_diff_4k.jpg",
+      "md5": "2557f0739fe3f379167b9911843115eb",
+      "size": 14073027
+    },
+    {
+      "asset": "clean_asphalt",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/clean_asphalt/clean_asphalt_nor_gl_4k.exr",
+      "md5": "f4130371b763a7f8f11d89e78a7127a9",
+      "size": 35966859
+    },
+    {
+      "asset": "clean_asphalt",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/clean_asphalt/clean_asphalt_rough_4k.exr",
+      "md5": "f5d1a5b7ba62a3a0c30a722b5b3178d4",
+      "size": 11163852
+    },
+    {
+      "asset": "concrete_pavement_02",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "size": 15603885,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_pavement_02/concrete_pavement_02_diff_4k.jpg",
+      "md5": "68b0264dc659381ca0e73cc26dd9e8e3"
+    },
+    {
+      "asset": "concrete_pavement_02",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 39847837,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_pavement_02/concrete_pavement_02_nor_gl_4k.exr",
+      "md5": "2e0cd7fc92111ba9d1afc99325371f48"
+    },
+    {
+      "asset": "concrete_pavement_02",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 8124719,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_pavement_02/concrete_pavement_02_rough_4k.exr",
+      "md5": "146dcfae192ae84c295c886bb05172ac"
+    },
+    {
+      "asset": "granite_tile_02",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/granite_tile_02/granite_tile_02_diff_4k.jpg",
+      "md5": "b530f798a90eb39698cc0c67020caec5",
+      "size": 12611657
+    },
+    {
+      "asset": "granite_tile_02",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/granite_tile_02/granite_tile_02_nor_gl_4k.exr",
+      "md5": "823ea0b65c4294b5632b8d9b87591b92",
+      "size": 22492922
+    },
+    {
+      "asset": "granite_tile_02",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/granite_tile_02/granite_tile_02_rough_4k.exr",
+      "md5": "801432f770e8b1d08287049e194349c6",
+      "size": 4755488
+    },
+    {
+      "asset": "granite_tile",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "size": 12787977,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/granite_tile/granite_tile_diff_4k.jpg",
+      "md5": "2a0253486ea71ce26a3a3cd5f913edce"
+    },
+    {
+      "asset": "granite_tile",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 20323894,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/granite_tile/granite_tile_nor_gl_4k.exr",
+      "md5": "eae5c37634f1e5e3a43b3100f59d7db1"
+    },
+    {
+      "asset": "granite_tile",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 10924242,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/granite_tile/granite_tile_rough_4k.exr",
+      "md5": "b05e89ed64b900ce0dd37893fbcaec15"
+    },
+    {
+      "asset": "rectangular_facade_tiles",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rectangular_facade_tiles/rectangular_facade_tiles_diff_4k.jpg",
+      "md5": "1c830bd24d9b8fdb5a650ca7bed81a06",
+      "size": 9493498
+    },
+    {
+      "asset": "rectangular_facade_tiles",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/rectangular_facade_tiles/rectangular_facade_tiles_nor_gl_4k.exr",
+      "md5": "0cab17a4f40cd20d65392f3a5f192175",
+      "size": 34519560
+    },
+    {
+      "asset": "rectangular_facade_tiles",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/rectangular_facade_tiles/rectangular_facade_tiles_rough_4k.exr",
+      "md5": "921dd1847d7ed0fab5eae4f9bbb8ac91",
+      "size": 2722620
+    },
+    {
+      "asset": "concrete_floor_02",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "size": 12425225,
+      "md5": "48169d69989257ba6ab15dec3e2a7c62",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_floor_02/concrete_floor_02_diff_4k.jpg"
+    },
+    {
+      "asset": "concrete_floor_02",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_floor_02/concrete_floor_02_nor_gl_4k.exr",
+      "size": 29677902,
+      "md5": "26d7bfe1b18a7326ef5bbdec407422b3"
+    },
+    {
+      "asset": "concrete_floor_02",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 18542398,
+      "md5": "ea657820f3618d1855003a27202d8430",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_floor_02/concrete_floor_02_rough_4k.exr"
+    },
+    {
+      "asset": "concrete_wall_008",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "size": 11173378,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_wall_008/concrete_wall_008_diff_4k.jpg",
+      "md5": "1dd6f4682c932eceabd934a1b2997fe7"
+    },
+    {
+      "asset": "concrete_wall_008",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 19965993,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_wall_008/concrete_wall_008_nor_gl_4k.exr",
+      "md5": "d33c3a9a07b316bc8085b84ba8d3fa0b"
+    },
+    {
+      "asset": "concrete_wall_008",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 5602619,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_wall_008/concrete_wall_008_rough_4k.exr",
+      "md5": "38164629deef74d7df5dc4466428c2fe"
+    },
+    {
+      "asset": "fabric_pattern_05",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "size": 10669919,
+      "md5": "7d7c81e4ba52c3a41f8f9c992c015f16",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/fabric_pattern_05/fabric_pattern_05_col_01_4k.jpg"
+    },
+    {
+      "asset": "fabric_pattern_05",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 22612797,
+      "md5": "61e5f353d05cecb58514cd2aa0decd86",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/fabric_pattern_05/fabric_pattern_05_nor_gl_4k.exr"
+    },
+    {
+      "asset": "fabric_pattern_05",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "size": 13490185,
+      "md5": "b20d750b22522e0e60985efc761cbda1",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/fabric_pattern_05/fabric_pattern_05_rough_4k.exr"
+    },
+    {
+      "asset": "teak_veneer",
+      "kind": "diff",
+      "resolution": "4k",
+      "format": "jpg",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/teak_veneer/teak_veneer_diff_4k.jpg",
+      "md5": "2277cb770f8bab3caf6c8999a35c92fb",
+      "size": 10080072
+    },
+    {
+      "asset": "teak_veneer",
+      "kind": "nor_gl",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/teak_veneer/teak_veneer_nor_gl_4k.exr",
+      "md5": "5882005c35cda2b2c0642427b828f803",
+      "size": 19633398
+    },
+    {
+      "asset": "teak_veneer",
+      "kind": "rough",
+      "resolution": "4k",
+      "format": "exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/teak_veneer/teak_veneer_rough_4k.exr",
+      "md5": "caa585481120eda8c922051c6bd5f2db",
+      "size": 11564594
+    }
+  ],
+  "selection": "PASS",
+  "unity": "NOT_RUN",
+  "device": "NOT_RUN",
+  "downloadsVerified": 43,
+  "originalDimensions": "43 maps: 4096 x 4096",
+  "downloadStage": "PASS",
+  "unitTests": 23,
+  "verifiedFiles": [
+    {
+      "file": "coast_sand_02_diff_4k.jpg",
+      "sha256": "53e8d16ab3bd4100d75a71eb79b17e9d6c3a0464a530883057af24ba73bf7262",
+      "bytes": 10132736,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/coast_sand_02/coast_sand_02_diff_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "coast_sand_02_nor_gl_4k.exr",
+      "sha256": "6e39e9d1efcdec0afa3407db30c3b1b5b3a76912f82fe986e25109be6a494fcb",
+      "bytes": 31138911,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/coast_sand_02/coast_sand_02_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "coast_sand_02_rough_4k.exr",
+      "sha256": "4e23b8a84ab4f5528d219f111daaefbcf1ee9dbafdc0082fb6250c5d951f6e2a",
+      "bytes": 7560075,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/coast_sand_02/coast_sand_02_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "damp_sand_diff_4k.jpg",
+      "sha256": "57ac23b541f087f79e4cd2d13e58c940d1133e8131ee02291674ab577fbcd1c3",
+      "bytes": 16418724,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/damp_sand/damp_sand_diff_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "damp_sand_nor_gl_4k.exr",
+      "sha256": "15efe8ccef2b0e25d6bb0a3b4b7025ce2824a06e7d29e897772067a4c3a4332f",
+      "bytes": 40019967,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/damp_sand/damp_sand_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "damp_sand_rough_4k.exr",
+      "sha256": "0c4898885e237f0ff6169e8353093e5a82d863ffb2964fde931261bbb4c3253f",
+      "bytes": 10180390,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/damp_sand/damp_sand_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "clean_asphalt_diff_4k.jpg",
+      "sha256": "f6fbda284c86947c16ba91dbaf7c57bc16ec8e5497a649cdc61ca1c9310d02af",
+      "bytes": 14073027,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/clean_asphalt/clean_asphalt_diff_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "clean_asphalt_nor_gl_4k.exr",
+      "sha256": "5e5d625cfc8caa57a5949f1afc845ebdfce244298791e1c1d854a58286b49bbb",
+      "bytes": 35966859,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/clean_asphalt/clean_asphalt_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "clean_asphalt_rough_4k.exr",
+      "sha256": "410988cdbdb23da0ef2e3f0c5a42d6cd6efc9e309147a1122335a9cd07320601",
+      "bytes": 11163852,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/clean_asphalt/clean_asphalt_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "concrete_pavement_02_diff_4k.jpg",
+      "sha256": "65c8a9fbd2fec1d17c8bf2a2ac8f03b978580e8430571d09de38db5a442409cf",
+      "bytes": 15603885,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_pavement_02/concrete_pavement_02_diff_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "concrete_pavement_02_nor_gl_4k.exr",
+      "sha256": "51b8ab6134dea1dec8d5a76892250a97b2c3224161d35ad63daf35459b5e4811",
+      "bytes": 39847837,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_pavement_02/concrete_pavement_02_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "concrete_pavement_02_rough_4k.exr",
+      "sha256": "acc10fc8b15a002ef814556c2b53d16e531611c81c5b72e38a568c77ad655e5b",
+      "bytes": 8124719,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_pavement_02/concrete_pavement_02_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "granite_tile_02_diff_4k.jpg",
+      "sha256": "3ddc453ef1fffe5685bcfd8982ee7ea6623e47117b1a7577d3a87ebb8627d35a",
+      "bytes": 12611657,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/granite_tile_02/granite_tile_02_diff_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "granite_tile_02_nor_gl_4k.exr",
+      "sha256": "4bcd968d72746fb103f95621663d5ab48ef2430d8bd39b21084f9d8c982fcc1c",
+      "bytes": 22492922,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/granite_tile_02/granite_tile_02_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "granite_tile_02_rough_4k.exr",
+      "sha256": "2146547335a202f5e849c0bb1ec12b0ee1c7e610653add3668d535162e52cf0a",
+      "bytes": 4755488,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/granite_tile_02/granite_tile_02_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "granite_tile_diff_4k.jpg",
+      "sha256": "0df360cb6cf83605dce43fab7250dc1e75a59165ebe5e623d7a61e9afb5ae4db",
+      "bytes": 12787977,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/granite_tile/granite_tile_diff_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "granite_tile_nor_gl_4k.exr",
+      "sha256": "65c2966eb88d4a43ace5ec619f1cb5437c73c49b7792544112aeb398f85b9994",
+      "bytes": 20323894,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/granite_tile/granite_tile_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "granite_tile_rough_4k.exr",
+      "sha256": "1c99767228d4c39d7545acc7df4c80227dbd7f2b421599245cff849c688c8fb7",
+      "bytes": 10924242,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/granite_tile/granite_tile_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "rectangular_facade_tiles_diff_4k.jpg",
+      "sha256": "0e71a8e5aaf4c6b49ad66374246c6a1e2664af0c47cd7ce55beb289ffb79df99",
+      "bytes": 9493498,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/rectangular_facade_tiles/rectangular_facade_tiles_diff_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "rectangular_facade_tiles_nor_gl_4k.exr",
+      "sha256": "9807e800004a950bfcd9e65664f31621a1f65537024d52e3795fc056012af40c",
+      "bytes": 34519560,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/rectangular_facade_tiles/rectangular_facade_tiles_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "rectangular_facade_tiles_rough_4k.exr",
+      "sha256": "6a91f3f842dbcefde4ab86b26e2872a6b421205ef2ced65d3620f84707e5fb1b",
+      "bytes": 2722620,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/rectangular_facade_tiles/rectangular_facade_tiles_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "concrete_floor_02_diff_4k.jpg",
+      "sha256": "a583f2b42e921e9e85be823cc5fd59e32ab4a94a7866e196287e6651d12187d5",
+      "bytes": 12425225,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_floor_02/concrete_floor_02_diff_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "concrete_floor_02_nor_gl_4k.exr",
+      "sha256": "9fba538f61592cddc2630fb971b4414c91592ca33e32a9c8c78ea67eaf9663de",
+      "bytes": 29677902,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_floor_02/concrete_floor_02_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "concrete_floor_02_rough_4k.exr",
+      "sha256": "26b21539054414407eeb067138b076daf4e9ff7c98c87c533993707fc51d55bf",
+      "bytes": 18542398,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_floor_02/concrete_floor_02_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "concrete_wall_008_diff_4k.jpg",
+      "sha256": "9452c58ce2256afe9e96f04952712a1c22c012b61dc048ad10a18e62f6c26c63",
+      "bytes": 11173378,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_wall_008/concrete_wall_008_diff_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "concrete_wall_008_nor_gl_4k.exr",
+      "sha256": "864116f9b213c9f2df971e2ae0d36ba061fdd8022592ddd77ab8ace4f68db355",
+      "bytes": 19965993,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_wall_008/concrete_wall_008_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "concrete_wall_008_rough_4k.exr",
+      "sha256": "0f45087ebdfa7cd680f9e439f20adf3c4dedc8f4680b52e4644580bd818afc09",
+      "bytes": 5602619,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/concrete_wall_008/concrete_wall_008_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "fabric_pattern_05_diff_4k.jpg",
+      "sha256": "212a4539a73e663f5750326fd943ff6c6dac3be600bddac398492e90847deedc",
+      "bytes": 10669919,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/fabric_pattern_05/fabric_pattern_05_col_01_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "fabric_pattern_05_nor_gl_4k.exr",
+      "sha256": "14af8c4757cefce7d98e9dc1709e9c0e3da862ea718a13a78c968158b6f37716",
+      "bytes": 22612797,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/fabric_pattern_05/fabric_pattern_05_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "fabric_pattern_05_rough_4k.exr",
+      "sha256": "a6e09fc716ab0b567e75fb68cb2cd56611f5186a46cf3279ba1b7f112e0bbd2a",
+      "bytes": 13490185,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/fabric_pattern_05/fabric_pattern_05_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "teak_veneer_diff_4k.jpg",
+      "sha256": "ed3ea079387214f355a437efdbd8c7b6247246904005eadb697bc8ccdb7a6a46",
+      "bytes": 10080072,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/teak_veneer/teak_veneer_diff_4k.jpg",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "teak_veneer_nor_gl_4k.exr",
+      "sha256": "933135093d2d42e10a47c17dc47a195b5f546c2c13813f034097aa9b17930017",
+      "bytes": 19633398,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/teak_veneer/teak_veneer_nor_gl_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "teak_veneer_rough_4k.exr",
+      "sha256": "9337ade365f4e4e875c385c4ae0084f4be4baa9b92c73f98c3a47bbb71523554",
+      "bytes": 11564594,
+      "source": "https://dl.polyhaven.org/file/ph-assets/Textures/exr/4k/teak_veneer/teak_veneer_rough_4k.exr",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "Grass004_4K-JPG_Color.jpg",
+      "sha256": "2494e4ea560c093d07b45835c5f9fb36c53de9ac8aff7bfc763da79702ff19fc",
+      "bytes": 28149083,
+      "source": "owner-library:Grass004_4K-JPG.zip",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "Grass004_4K-JPG_NormalGL.jpg",
+      "sha256": "55e0aa5a47b21d438e3e13e4a65ff40afa37607b29da9866a4eb6bf61075c51c",
+      "bytes": 41508249,
+      "source": "owner-library:Grass004_4K-JPG.zip",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "Grass004_4K-JPG_Roughness.jpg",
+      "sha256": "9a06ae858f3a710b4df866415bd3e34bff3d5122f3f2a65b23e087bbde9c9332",
+      "bytes": 12315232,
+      "source": "owner-library:Grass004_4K-JPG.zip",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "Metal048A_4K-JPG_Color.jpg",
+      "sha256": "5bdb57821133f8e5366cea5b3bfc73a78df7dbbc7d4efad4c226c86db2a391e5",
+      "bytes": 10292359,
+      "source": "owner-library:Metal048A_4K-JPG.zip",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "Metal048A_4K-JPG_NormalGL.jpg",
+      "sha256": "cb57812fba4f74fc72cd598f693a4ca1161c8463432b7f940d59a14b6388f35d",
+      "bytes": 4566612,
+      "source": "owner-library:Metal048A_4K-JPG.zip",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "Metal048A_4K-JPG_Roughness.jpg",
+      "sha256": "e58f582f66b7032350433078b904b9cae2489bc049d3346d2996c63f8a582d8a",
+      "bytes": 987720,
+      "source": "owner-library:Metal048A_4K-JPG.zip",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "Metal048A_4K-JPG_Metalness.jpg",
+      "sha256": "39a6871af08d0ba215ee635167b9ebe391da9de4cb03ec1eaef965c411059c70",
+      "bytes": 93285,
+      "source": "owner-library:Metal048A_4K-JPG.zip",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "Leather037_4K-JPG_Color.jpg",
+      "sha256": "9c1f6dcb40c4102fbdf47246e9820b0217eefc1a033a652b45eca281d4b407dd",
+      "bytes": 10323076,
+      "source": "owner-library:Leather037_4K-JPG.zip",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "Leather037_4K-JPG_NormalGL.jpg",
+      "sha256": "d0d63d0d7b226917c69f759dd44043d94d34de09f9d4333a08179fa207417b66",
+      "bytes": 17802016,
+      "source": "owner-library:Leather037_4K-JPG.zip",
+      "width": 4096,
+      "height": 4096
+    },
+    {
+      "file": "Leather037_4K-JPG_Roughness.jpg",
+      "sha256": "a457084805879fc7dbc12c273efb9901d8533e88bd3ed5b14d8d7e6bcc1241f0",
+      "bytes": 6530764,
+      "source": "owner-library:Leather037_4K-JPG.zip",
+      "width": 4096,
+      "height": 4096
+    }
+  ],
+  "completedAt": "2026-11-04T18:36:42.050489+00:00",
+  "failedRun": "https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/41885950373"
+}

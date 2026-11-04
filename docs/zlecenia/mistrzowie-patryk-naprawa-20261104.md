@@ -59,7 +59,7 @@ Zakres zgody: jeden nowy build z tymi poprawkami, Miasto Mistrzów, Android APK 
 Zgoda nie obejmuje automatycznych ponowień ani innych rejonów.
 
 - Osobny workflow: **Miasto Mistrzów — APK**, `mistrzowie-apk.yml`, wyłącznie ręczny `workflow_dispatch`.
-- Wpis wymaga rejestracji na `main`, aby pojawił się osobno w GitHub Actions. Rejestracja jest oddzielnym, jednoplikiowym PR; nie scala scen ani kodu innych rejonów.
+- Wpis został zarejestrowany na `main` przez scalony PR #17. Rejestracja dodała jeden plik workflow; kod regionu pozostaje na jego gałęzi.
 - Gałąź: `codex/miasto-mistrzow-20261104`.
 - Jedno wejście `commit`: pełne SHA gry; puste oznacza aktualną gałąź Miasta Mistrzów. Domyślna wartość w PR rejestracyjnym jest przypięta do przygotowanej wersji.
 - Kod gry jest pobierany z wybranego SHA niezależnie od gałęzi formularza. Raport Unity, nazwa APK i manifest zapisują SHA gry, a `workflowCommit` oddzielnie wskazuje wersję workflow.
@@ -76,10 +76,10 @@ Zgoda nie obejmuje automatycznych ponowień ani innych rejonów.
 - Eksport edytowalnej sceny/bundles pozostaje osobnym wariantem `region`.
 
 Bieżące połączenie GitHub nie ma operacji uruchamiania nowego workflow.
-Nie uruchomiono kompilacji. Dopiero po scaleniu PR rejestracyjnego dostępny będzie osobny formularz; polecenie ręczne:
+PR #17 scalono; formularz istnieje. Pierwszy ręczny przebieg #1 pobrał poprawny kod, lecz zakończył się w przygotowaniu materiałów przed Unity. Stan naprawy i komplet map: [przekazanie](MIASTO-MISTRZOW-START.md). Nowy przebieg musi wskazywać SHA zawierające poprawkę importera; ponowienie starego runu użyłoby dawnego kodu. Przykład ręcznego startu aktualnej gałęzi z pustym polem `commit`:
 
 ```bash
-gh workflow run mistrzowie-apk.yml --repo wawerpatryk89-sketch/braxhorn-city --ref main
+gh workflow run mistrzowie-apk.yml --repo wawerpatryk89-sketch/braxhorn-city --ref codex/miasto-mistrzow-20261104 -f commit=
 ```
 
 Po buildzie trzeba sprawdzić na telefonie: wejście do sceny, joystick, obrót kamery,
