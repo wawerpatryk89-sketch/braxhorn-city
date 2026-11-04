@@ -48,8 +48,15 @@ internal static class BraxMiastoBillboardy
         });
         Krok("12 arena", () =>
         {
-            var ar = root.GetComponentsInChildren<Renderer>(true).Where(r => r.sharedMaterial && r.sharedMaterial.name.Contains("Arena: szkło fasady")).ToList();
-            if (ar.Count == 0) { opis.Add("12: brak areny"); return; }
+            // Od 3.11 arena wyspy jest budowana przez ArenaPremium; dawny materiał
+            // "Arena: szkło fasady" nie istnieje. Brak billboardu 12 w buildzie #64
+            // był skutkiem szukania tylko starej areny.
+            var ar = root.GetComponentsInChildren<Renderer>(true)
+                .Where(r => r.sharedMaterial &&
+                    (r.sharedMaterial.name.Contains("Arena premium: szyba fasady") ||
+                     r.sharedMaterial.name.Contains("Arena: szkło fasady")))
+                .ToList();
+            if (ar.Count == 0) { opis.Add("12: brak rozpoznanej fasady ARENY PREMIUM — nie stawiamy billboardu w losowym miejscu"); return; }
             var b = ar[0].bounds; foreach (var r in ar) b.Encapsulate(r.bounds);
             var wysp = root.Cast<Transform>().FirstOrDefault(t => t.name.StartsWith("CLAUDE wyspa", StringComparison.Ordinal));
             if (Szukaj(new Vector3(b.center.x, b.min.y, b.center.z), b.extents.x + 10f, b.extents.x + 26f, 6.52f, false, out var p, out float yaw))
