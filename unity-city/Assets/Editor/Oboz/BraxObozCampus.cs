@@ -149,10 +149,10 @@ public static partial class BraxObozEnvironment
     static void Disc(Transform parent,string name,Vector3 center,float radius,Material mat,bool solid)
     {
         const int n=96;var vertices=new Vector3[n+1];var uv=new Vector2[n+1];var triangles=new int[n*3];
-        vertices[0]=center*K;uv[0]=new Vector2(center.x,center.z);
+        vertices[0]=center*K;uv[0]=new Vector2(center.x,center.z)*K;
         for(int i=0;i<n;i++){
             float a=i*Mathf.PI*2/n;Vector3 p=center+new Vector3(Mathf.Sin(a)*radius,0,Mathf.Cos(a)*radius);
-            vertices[i+1]=p*K;uv[i+1]=new Vector2(p.x,p.z);triangles[i*3]=0;triangles[i*3+1]=i+1;triangles[i*3+2]=(i+1)%n+1;
+            vertices[i+1]=p*K;uv[i+1]=new Vector2(p.x,p.z)*K;triangles[i*3]=0;triangles[i*3+1]=i+1;triangles[i*3+2]=(i+1)%n+1;
         }
         var mesh=new Mesh{name=name};mesh.vertices=vertices;mesh.uv=uv;mesh.triangles=triangles;mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
         var g=Group(name,parent,Vector3.zero).gameObject;mesh=SaveMesh(mesh);g.AddComponent<MeshFilter>().sharedMesh=mesh;g.AddComponent<MeshRenderer>().sharedMaterial=mat;
@@ -230,3 +230,4 @@ public static partial class BraxObozEnvironment
         foreach(float x in new[]{-.65f,.65f})Box(parent,"Noga ławki",p+new Vector3(x,.23f,0),new Vector3(.08f,.46f,.5f),campusSteel);
     }
 }
+

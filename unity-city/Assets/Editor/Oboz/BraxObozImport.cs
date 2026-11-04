@@ -6,7 +6,7 @@ public sealed class BraxObozImport : AssetPostprocessor
 {
     const string Root = "Assets/Source/Prywatne/Oboz/";
     public override int GetPostprocessOrder() => 100;
-    public override uint GetVersion() => 1;
+    public override uint GetVersion() => 2;
     void OnPreprocessModel()
     {
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
@@ -37,14 +37,18 @@ public sealed class BraxObozImport : AssetPostprocessor
         bool glbMap = assetPath.Contains("_textures/");
         if (glbMap) { normal = false; color = n.Contains("_color"); }
         bool main = assetPath.Contains("/characters/monika/");
-        int max = main && (normal || color) ? 4096 : 2048;
+        bool surface = assetPath.Contains("/environment/materials/") || assetPath.Contains("/environment/forest-ground/");
+        int max = surface || (main && (normal || color)) ? 4096 : 2048;
         t.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
         t.sRGBTexture = color; t.mipmapEnabled = true; t.anisoLevel = 8;
         t.maxTextureSize = max; t.textureCompression = TextureImporterCompression.Compressed;
-        t.compressionQuality = 50; t.isReadable = false;
+        t.compressionQuality = surface ? 90 : 50; t.isReadable = false;
+        if (surface) { t.wrapMode = UnityEngine.TextureWrapMode.Repeat; t.filterMode = UnityEngine.FilterMode.Trilinear; }
         var a = t.GetPlatformTextureSettings("Android");
         a.name = "Android"; a.overridden = true; a.maxTextureSize = max;
-        a.format = TextureImporterFormat.ASTC_6x6; a.compressionQuality = 50;
+        a.format = surface ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
+        a.compressionQuality = surface ? 90 : 50;
         t.SetPlatformTextureSettings(a);
     }
 }
+

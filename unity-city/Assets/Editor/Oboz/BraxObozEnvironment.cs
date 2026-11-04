@@ -37,7 +37,7 @@ public static partial class BraxObozEnvironment
         var vertices = mesh.vertices; var normals = mesh.normals; var uv = new Vector2[vertices.Length];
         for (int i = 0; i < vertices.Length; i++)
         {
-            Vector3 p = Vector3.Scale(vertices[i], size), n = normals[i];
+            Vector3 p = Vector3.Scale(vertices[i], size) * K, n = normals[i];
             uv[i] = Mathf.Abs(n.y) > .9f ? new Vector2(p.x, p.z) : Mathf.Abs(n.x) > .9f ? new Vector2(p.z, p.y) : new Vector2(p.x, p.y);
         }
         mesh.uv = uv; mesh.RecalculateTangents(); mf.sharedMesh = SaveMesh(mesh);
@@ -288,3 +288,4 @@ public static partial class BraxObozEnvironment
         obj.transform.SetParent(root,false);obj.transform.localPosition=P(x,0,z);obj.transform.localScale*=K;
     }
 }
+

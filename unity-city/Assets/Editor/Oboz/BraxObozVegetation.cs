@@ -75,7 +75,9 @@ public static class BraxObozVegetation
             var lod=root.AddComponent<LODGroup>();
             // Large detailed source trees are kept close. Far views retain
             // silhouettes without drawing the heavy source canopy everywhere.
-            lod.SetLODs(new[]{new LOD(.85f,near.GetComponentsInChildren<Renderer>()),new LOD(.38f,mid.GetComponentsInChildren<Renderer>()),new LOD(.018f,new Renderer[]{renderer})});
+            // Keep real canopy geometry through the middle distance. The old
+            // .38 threshold replaced even large nearby trees with flat cards.
+            lod.SetLODs(new[]{new LOD(.40f,near.GetComponentsInChildren<Renderer>()),new LOD(.075f,mid.GetComponentsInChildren<Renderer>()),new LOD(.012f,new Renderer[]{renderer})});
             lod.fadeMode=LODFadeMode.None;lod.RecalculateBounds();return root;
         }
         catch { Object.DestroyImmediate(root);throw; }
@@ -102,8 +104,13 @@ public static class BraxObozVegetation
         mat.SetFloat("_NormalEncoding",0);mat.SetFloat("_UseARMForAO",0);mat.SetFloat("_BumpScale",1);
         // Foliage transparency becomes alpha test for depth sorting and mobile
         // overdraw, with source alpha intact. No texture colours are retinted.
-        bool foliage=source.name.IndexOf("twig",StringComparison.OrdinalIgnoreCase)>=0;
-        mat.SetFloat("_Cull",0);mat.doubleSidedGI=true;mat.SetFloat("_AlphaClip",foliage?1:0);mat.SetFloat("_Cutoff",foliage?.35f:0);
+        string type=source.GetTag("RenderType",false,"");
+        bool foliage=source.IsKeywordEnabled("_ALPHATEST_ON") || type=="TransparentCutout" ||
+            type=="Transparent" || source.renderQueue>=3000 ||
+            source.name.IndexOf("twig",StringComparison.OrdinalIgnoreCase)>=0 ||
+            source.name.IndexOf("grass",StringComparison.OrdinalIgnoreCase)>=0;
+        float cutoff=source.HasProperty("alphaCutoff")?source.GetFloat("alphaCutoff"):.35f;
+        mat.SetFloat("_Cull",foliage?0:2);mat.doubleSidedGI=foliage;mat.SetFloat("_AlphaClip",foliage?1:0);mat.SetFloat("_Cutoff",foliage?Mathf.Clamp01(cutoff):0);
         mat.SetFloat("_Transparent",0);mat.SetFloat("_SrcBlend",1);mat.SetFloat("_DstBlend",0);mat.SetFloat("_ZWrite",1);mat.SetColor("_EmissionColor",Color.black);
         mat.renderQueue=foliage?2450:2000;mat.SetOverrideTag("RenderType",foliage?"TransparentCutout":"Opaque");
         string hash=Hash128.Compute(AssetDatabase.GetAssetPath(source)+"|"+source.name).ToString();
@@ -143,3 +150,4 @@ public static class BraxObozVegetation
         finally { Object.DestroyImmediate(source); }
     }
 }
+

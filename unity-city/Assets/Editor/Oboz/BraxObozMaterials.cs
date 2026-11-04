@@ -9,12 +9,15 @@ public static class BraxObozMaterials
     const string Root = "Assets/Source/Prywatne/Oboz/environment/";
     static Texture2D Map(string path, bool normal, bool color)
     {
+        if (string.IsNullOrEmpty(path)) throw new InvalidOperationException("Brak wymaganej mapy PBR obozu");
         var importer = AssetImporter.GetAtPath(path) as TextureImporter;
         if (!importer) throw new InvalidOperationException("Brak mapy materiału: " + path);
         bool changed = importer.sRGBTexture != color || importer.textureType != (normal ? TextureImporterType.NormalMap : TextureImporterType.Default);
         importer.sRGBTexture = color; importer.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
         if (changed) importer.SaveAndReimport();
-        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if (!texture) throw new InvalidOperationException("Nie zaimportowano mapy PBR: " + path);
+        return texture;
     }
     public static Material Pbr(string id)
     {
@@ -42,6 +45,8 @@ public static class BraxObozMaterials
     }
     public static Material PublicPbr(string id,float widthMetres)
     {
+        if (widthMetres <= 0 || float.IsNaN(widthMetres) || float.IsInfinity(widthMetres))
+            throw new ArgumentOutOfRangeException(nameof(widthMetres));
         string folder="Assets/Source/Public/Oboz/"+id+"/";
         var material=new Material(Shader.Find("Braxhorn/ObozSurface")){name="Poly Haven / "+id,enableInstancing=true};
         foreach(var pair in new[]{("Color","_MainTex"),("NormalGL","_BumpMap"),("Roughness","_RoughnessTex"),("AmbientOcclusion","_OcclusionTex")})
@@ -50,7 +55,11 @@ public static class BraxObozMaterials
             var importer=AssetImporter.GetAtPath(path) as TextureImporter;
             if(!importer)throw new InvalidOperationException("Pobierz zweryfikowane mapy Poly Haven: "+path);
             importer.maxTextureSize=4096;importer.mipmapEnabled=true;importer.anisoLevel=8;
+            importer.wrapMode=TextureWrapMode.Repeat;importer.filterMode=FilterMode.Trilinear;
+            importer.textureCompression=TextureImporterCompression.CompressedHQ;
+            importer.compressionQuality=90;
             var android=importer.GetPlatformTextureSettings("Android");android.name="Android";android.overridden=true;android.maxTextureSize=4096;android.format=TextureImporterFormat.ASTC_4x4;
+            android.compressionQuality=90;
             importer.SetPlatformTextureSettings(android);importer.SaveAndReimport();
             material.SetTexture(pair.Item2,Map(path,pair.Item1=="NormalGL",pair.Item1=="Color"));
         }
@@ -80,3 +89,4 @@ public static class BraxObozMaterials
         AssetDatabase.CreateAsset(material, path); return material;
     }
 }
+
