@@ -1,11 +1,6 @@
 name: Claude - region R1 na gotowo (TEST, bez publikacji)
 'on':
-  # JEDNORAZOWY build scalonego osiedla #74 + #76; push ograniczony TYLKO do tego pliku i tej galezi.
-  push:
-    branches:
-    - codex/osiedle-integracja-sport-audyt-20261104
-    paths:
-    - .github/workflows/claude-region-build.yml
+  # AUTOMATYCZNY PUSH WYLACZONY — kolejne buildy tylko przez swiadome uruchomienie.
   workflow_dispatch:
     inputs:
       rejon:
