@@ -1,10 +1,10 @@
 """Deterministic foundation geometry for the existing Unity game. Nominal metres -> K once."""
 from pathlib import Path
-import json, math, hashlib
+import json, math, hashlib, os
 import numpy as np
 ROOT=Path(__file__).resolve().parents[2]
 REPORT=ROOT/'mistrzowie-evidence';REPORT.mkdir(exist_ok=True)
-from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO
+from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO
 SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
 K=float(np.float32(2.33)/np.float32(1.80))  # exact existing Unity float expression
 base=json.loads((Path(__file__).with_name('plan_inventory.json')).read_text())
@@ -37,7 +37,7 @@ def inside(p,r):
 
 def zone(x,z):
  if any(inside((x,z),r) for r in ENTRANCE_HOLES):return None
- if any(inside((x,z),r) for r in ENTRANCE_PATHS):return 'paving'
+ if any(inside((x,z),r) for r in ENTRANCE_PATHS+BUILDING_ACCESS):return 'paving'
  if any(inside((x,z),p) for p in plots):return 'plot_base'
  if any(inside((x,z),r) for r in walks) and (z>=-150 or x<740):return 'paving'
  if z>=-110:
@@ -72,7 +72,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+piers+ENTRANCE_HOLES+ENTRANCE_PATHS+[(50,-280,650,130),(50,-240,650,70),(50,-150,1100,30)]
+rects=plots+walks+greens+piers+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-280,650,130),(50,-240,650,70),(50,-150,1100,30)]
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
@@ -136,7 +136,7 @@ for x in XROAD:
 for x in [640,670,700,730,760]:
  for z in [115,145,175,205,225]:plant(x,z,'tree',0,'park')
 for x,z in [(850,890),(900,890),(950,890),(1000,890),(1080,890),(950,740)]:plant(x,z,'tree',0,'hotel_garden')
-layout=dict(version='2.0-infrastructure',regionId='mistrzowie',sourceCommit='f1981049a9f7e9976b7d9e84216f1747d49a8774',scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
+layout=dict(version='2.2-metro-and-buildings',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
 SRC.mkdir(parents=True,exist_ok=True)
 (SRC/'Foundation.json').write_text(json.dumps(layout,separators=(',',':')))
 # Geometric checks use the delivered vertices, not only planning rectangles.

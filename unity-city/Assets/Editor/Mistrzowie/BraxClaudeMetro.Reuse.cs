@@ -49,10 +49,21 @@ public static partial class BraxClaudeMetro
         // Source interactions have city-specific mission IDs and promises of departures.
         // Keep physical ticket gates; defer passengers, services and moving trains.
         foreach(var a in root.GetComponentsInChildren<BraxPunktAkcji>(true))UnityEngine.Object.DestroyImmediate(a);
-        foreach(var a in root.GetComponentsInChildren<BraxSchodyRuchome>(true))a.enabled=false;
-        foreach(var a in root.GetComponentsInChildren<BraxSchodyRuchomeJazda>(true))a.enabled=false;
+        foreach(var a in root.GetComponentsInChildren<BraxSchodyRuchome>(true))a.enabled=true;
+        foreach(var a in root.GetComponentsInChildren<BraxSchodyRuchomeJazda>(true))a.enabled=true;
         return root;
     }
+    public static void ChampionsParkedTrain(Transform station)
+    {
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(ModelPociagu);
+        if(!source)throw new FileNotFoundException("Original city train missing",ModelPociagu);
+        var underground=station.Find("Existing station and open tunnels");
+        if(!underground)throw new InvalidOperationException("Station template structure changed");
+        var train=new GameObject("Parked metro train | original two-car city model").transform;
+        train.SetParent(underground,false);W.Start(train);
+        if(!PociagModel(source))throw new InvalidOperationException("Existing train could not be placed; no procedural substitute");
+    }
+
     static Material Premium(string id,string slug,float tile,Color tint)
         => BraxChampionsFoundation.SourceMaterial("metro_"+id,slug,tile,tint);
 

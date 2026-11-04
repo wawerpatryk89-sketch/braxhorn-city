@@ -27,3 +27,6 @@ METRO_RAIL_Y=METRO_PLATFORM_Y-1.1
 METRO_TRACK_OFFSET=7.6/K
 TRAM_TRACK_OFFSET=3.0
 GAUGE=1.435
+# Ground-level approaches to the first two finished exterior plots. No paving in tree beds.
+BUILDING_ACCESS=[(585,667,30,58),(817,805,8,20),(710,790,73,12)]
+EXTRA_CROSSINGS=[(800,815,'z')]

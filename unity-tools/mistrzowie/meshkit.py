@@ -14,7 +14,11 @@ class Meshes:
   key=chunk+'_'+role
   m=self.data.setdefault(key,dict(id=key,role=role,positions=[],uv=[],triangles=[]))
   i=len(m['positions'])//3;m['positions']+=np.round(v*K,6).flatten().tolist()
-  m['uv']+=np.round(v[:,[0,2]] if uv is None else uv,6).flatten().tolist();m['triangles']+=[i,i+1,i+2]
+  if uv is None:
+   # Dominant-plane UVs preserve metre density on vertical walls, not collapsed XZ UVs.
+   normal=np.abs(np.cross(v[1]-v[0],v[2]-v[0]));axis=int(np.argmax(normal))
+   uv=v[:,[0,2] if axis==1 else [2,1] if axis==0 else [0,1]]
+  m['uv']+=np.round(uv,6).flatten().tolist();m['triangles']+=[i,i+1,i+2]
  def quad(self,role,a,b,c,d,uv=None):
   self.tri(role,a,b,c,None if uv is None else [uv[0],uv[1],uv[2]])
   self.tri(role,a,c,d,None if uv is None else [uv[0],uv[2],uv[3]])
@@ -30,7 +34,7 @@ class Meshes:
   ring=[r*(u*math.cos(t)+v*math.sin(t)) for t in np.linspace(0,2*math.pi,sides,endpoint=False)]
   for i in range(sides):
    p,q=ring[i],ring[(i+1)%sides]
-   self.quad(role,a+p,b+p,b+q,a+q,[(i*r,0),(i*r,length),((i+1)*r,length),((i+1)*r,0)])
+   self.quad(role,a+p,a+q,b+q,b+p,[(i*r,0),((i+1)*r,0),((i+1)*r,length),(i*r,length)])
    self.tri(role,a,a+q,a+p);self.tri(role,b,b+p,b+q)
  def slab(self,role,g,y,thick):
   if g.is_empty:return
@@ -79,7 +83,7 @@ def ribbon(mesh,role,path,offset,width,y,thick=.04):
  for i in range(len(path)-1):
   a=path[i]+normal[i]*(offset-width/2);b=path[i]+normal[i]*(offset+width/2)
   c=path[i+1]+normal[i+1]*(offset+width/2);d=path[i+1]+normal[i+1]*(offset-width/2)
-  mesh.quad(role,(a[0],y,a[1]),(d[0],y,d[1]),(c[0],y,c[1]),(b[0],y,b[1]))
+  mesh.quad(role,(a[0],y,a[1]),(b[0],y,b[1]),(c[0],y,c[1]),(d[0],y,d[1]))
   if thick>0:
-   mesh.quad(role,(b[0],y-thick,b[1]),(c[0],y-thick,c[1]),(d[0],y-thick,d[1]),(a[0],y-thick,a[1]))
-   for u,v in [(a,d),(c,b)]:mesh.quad(role,(u[0],y,u[1]),(u[0],y-thick,u[1]),(v[0],y-thick,v[1]),(v[0],y,v[1]))
+   mesh.quad(role,(a[0],y-thick,a[1]),(d[0],y-thick,d[1]),(c[0],y-thick,c[1]),(b[0],y-thick,b[1]))
+   for u,v in [(a,d),(c,b)]:mesh.quad(role,(u[0],y,u[1]),(v[0],y,v[1]),(v[0],y-thick,v[1]),(u[0],y-thick,u[1]))

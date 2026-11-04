@@ -15,7 +15,7 @@ import legacy_foundation as ground
 ROOT=Path(__file__).resolve().parents[2]
 SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
 REPORT=ROOT/'mistrzowie-evidence'
-mesh=Meshes();labels=[];walk_checks=[];objects=[]
+mesh=Meshes();labels=[];walk_checks=[];objects=[];metro_lights=[]
 
 def mark(id,kind,at):objects.append(dict(id=id,kind=kind,x=at[0],y=at[1],z=at[2]))
 def label(id,text,at,axis='x',size=.25):labels.append(dict(id=id,text=text,x=at[0],y=at[1],z=at[2],yaw=0 if axis=='x' else 90,size=size))
@@ -45,6 +45,7 @@ for x in X_ROADS:
    if not (70<=xx<=1130 and -70<=zz<=935):continue
    crossings.append((xx,zz,axis))
 for _,x,z,axis in TRAM_STOPS:crossings.append((x+25 if axis=='x' else x,z+25 if axis=='z' else z,axis))
+crossings.extend(EXTRA_CROSSINGS)
 
 def dropped(x,z):
  return any((abs(x-a)<2.7 and abs(abs(z-b)-10)<.35) if axis=='x' else (abs(z-b)<2.7 and abs(abs(x-a)-10)<.35) for a,b,axis in crossings)
@@ -140,6 +141,12 @@ for id,x,z,axis in BUS_STOPS:
   for u in [-16,16]:localbox('paint',x,z,axis,u,.007,side*8.5,.15,.012,2.8)
   localbox('paint',x,z,axis,0,.007,side*6.9,32,.012,.13)
 
+# Same north/south venue names as the approved inventory and facade signs.
+for id,name,x,z in [('WAY_A1','CHAMPION ARENA / PÓŁNOC',777,803),('WAY_A2','CHAMPION ARENA / POŁUDNIE',384,545)]:
+ mesh.bar('steel',(x,.16,z),(x,3.4,z),.06,12)
+ mesh.box('sign',(x,2.95,z),(4.8,.62,.10))
+ label(id,name,(x,2.95,z-.056),'x',.22)
+
 # Reuse complete city stations INCLUDING their existing straight tunnels and tracks.
 # Only the connecting civil route is generated here, with the exact city cross section.
 metro=rounded_route([(0,359),(765,359),(765,1000)],100,2.0,False)
@@ -161,12 +168,31 @@ for connection in connections:
   ribbon(mesh,'metro_concrete',path,lo-.15/K,.3/K,top,top-bottom+.2/K)
   ribbon(mesh,'metro_concrete',path,hi+.15/K,.3/K,top,top-bottom+.2/K)
   ribbon(mesh,'metro_concrete',path,(lo+hi)/2,hi-lo+.6/K,top+.3/K,.3/K)
-  for i in range(0,len(path),1):
-   q=path[i]+normals[i]*off
-   # Same sleeper dimensions/gauge as the city's Torowisko, following the curve.
-   a=q-normals[i]*1.0;b=q+normals[i]*1.0
-   v=np.array([normals[i,1],-normals[i,0]])*.13/K
-   mesh.quad('metro_concrete',(a[0]+v[0],METRO_RAIL_Y-.19/K,a[1]+v[1]),(b[0]+v[0],METRO_RAIL_Y-.19/K,b[1]+v[1]),(b[0]-v[0],METRO_RAIL_Y-.19/K,b[1]-v[1]),(a[0]-v[0],METRO_RAIL_Y-.19/K,a[1]-v[1]))
+  # Original city's 0.6*K sleeper spacing, full 3D concrete sleepers on curves.
+  distances=np.r_[0,np.cumsum(np.linalg.norm(np.diff(path,axis=0),axis=1))]
+  for distance in np.arange(.3/K,distances[-1],.6):
+   i=min(len(path)-2,max(0,np.searchsorted(distances,distance,side='right')-1))
+   t=(distance-distances[i])/(distances[i+1]-distances[i]);n=normals[i]*(1-t)+normals[i+1]*t;n/=np.linalg.norm(n)
+   q=path[i]*(1-t)+path[i+1]*t+n*off;tangent=np.array([n[1],-n[0]])
+   vertices=[(q+n*v+tangent*u) for u,v in [(-.13/K,-1),( .13/K,-1),(.13/K,1),(-.13/K,1)]]
+   mesh.slab('metro_concrete',Polygon(vertices),METRO_RAIL_Y-.19/K,.16/K)
+  # Outer emergency walkway, three cable trays and recessed maintenance lights.
+  walkway=off+side*2.36/K
+  ribbon(mesh,'metro_concrete',path,walkway,.72/K,METRO_RAIL_Y+.05/K,.4/K)
+  for h in [1.0,1.4,1.8]:ribbon(mesh,'metro_steel',path,off+side*2.64/K,.22/K,METRO_RAIL_Y+h/K,.05/K)
+  for light_index,distance in enumerate(np.arange(4/K,distances[-1],8/K)):
+   i=min(len(path)-2,max(0,np.searchsorted(distances,distance,side='right')-1))
+   t=(distance-distances[i])/(distances[i+1]-distances[i]);n=normals[i]*(1-t)+normals[i+1]*t;n/=np.linalg.norm(n)
+   q=path[i]*(1-t)+path[i+1]*t+n*(off+side*2.62/K);tangent=np.array([n[1],-n[0]])
+   if light_index%2==0:
+    lamp=q-n*side*.35/K
+    metro_lights.append(dict(x=float(lamp[0]),y=METRO_RAIL_Y+3.05/K,z=float(lamp[1])))
+   for role,width,height,depth,y in [('metro_steel',.66,.17,.14,3.20),('metro_light',.54,.08,.15,3.20)]:
+    # The concrete wall is behind this fitting; its light face is proud of the housing.
+    centre=q-n*side*(.10/K if role=='metro_light' else 0)
+    a=centre-tangent*width/(2*K);b=centre+tangent*width/(2*K)
+    mesh.bar(role,(a[0],METRO_RAIL_Y+y/K,a[1]),(b[0],METRO_RAIL_Y+y/K,b[1]),height/(2*K),6)
+  for rail_side in [-1,1]:ribbon(mesh,'metro_rail',path,off+rail_side*GAUGE/2,.16/K,METRO_RAIL_Y-.16/K,.03/K)
   third=off+side*(GAUGE/2+.75/K)
   ribbon(mesh,'metro_third',path,third,.24/K,METRO_RAIL_Y+.1/K,.04/K)
 # Region boundary closures only; never a cap between the three stations.
@@ -194,7 +220,7 @@ for old in ground.meshes.values():
 ground.layout['meshes']=[m for m in ground.meshes.values() if m['triangles']]
 ground.layout['entranceHoles']=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in ENTRANCE_HOLES]
 (SRC/'Foundation.json').write_text(json.dumps(ground.layout,separators=(',',':')))
-data=dict(version='2.1-reused-city-metro',scaleK=K,meshes=mesh.export(),labels=labels,objects=objects,walkChecks=walk_checks,
+data=dict(version='2.2-complete-metro-exteriors',scaleK=K,meshes=mesh.export(),labels=labels,objects=objects,walkChecks=walk_checks,metroLights=metro_lights,
  tramRoute=tram.tolist(),metroRoute=metro.tolist(),metroStations=METRO,tramStops=TRAM_STOPS,busStops=BUS_STOPS,
  counts=dict(metroStations=3,metroEntrances=3,metroTracks=2,tramTracks=2,tramPlatforms=10,busPlatforms=32,crossings=len(crossings),curbstones=curb_count))
 (SRC/'Infrastructure.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')))

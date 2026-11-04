@@ -39,6 +39,16 @@ def main():
  missing=any(not (DEST/n).exists() or hashlib.sha256((DEST/n).read_bytes()).hexdigest()!=LOCK[n] for n in names)
  z=zipfile.ZipFile(io.BytesIO(get(archive_url))) if missing else None
  for name in names:report.append(save(name,z.read(name) if z else (DEST/name).read_bytes(),'owner-library:Grass004_4K-JPG.zip'))
+ archive_url='https://ambientcg.com/get?file=Metal048A_4K-JPG.zip'
+ names=['Metal048A_4K-JPG_'+k+'.jpg' for k in ['Color','NormalGL','Roughness','Metalness']]
+ missing=any(not (DEST/n).exists() or hashlib.sha256((DEST/n).read_bytes()).hexdigest()!=LOCK[n] for n in names)
+ z=zipfile.ZipFile(io.BytesIO(get(archive_url))) if missing else None
+ for name in names:report.append(save(name,z.read(name) if z else (DEST/name).read_bytes(),'owner-library:Metal048A_4K-JPG.zip'))
+ archive_url='https://ambientcg.com/get?file=Leather037_4K-JPG.zip'
+ names=['Leather037_4K-JPG_'+k+'.jpg' for k in ['Color','NormalGL','Roughness']]
+ missing=any(not (DEST/n).exists() or hashlib.sha256((DEST/n).read_bytes()).hexdigest()!=LOCK[n] for n in names)
+ z=zipfile.ZipFile(io.BytesIO(get(archive_url))) if missing else None
+ for name in names:report.append(save(name,z.read(name) if z else (DEST/name).read_bytes(),'owner-library:Leather037_4K-JPG.zip'))
  (DEST.parent/'source-materials.json').write_text(json.dumps(report,indent=2))
  print('BRAX_MISTRZOWIE_PBR_OK maps='+str(len(report))+' original=4K')
 

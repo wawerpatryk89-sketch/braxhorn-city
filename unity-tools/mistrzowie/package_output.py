@@ -14,6 +14,6 @@ with encrypted.open('rb') as f:
  while data:=f.read(190*1024*1024):
   name=f'Mistrzowie_Foundation.tar.gz.enc.part{i:03}';(out/name).write_bytes(data)
   parts.append(dict(file=name,bytes=len(data),sha256=hashlib.sha256(data).hexdigest()));i+=1
-(out/'manifest.json').write_text(json.dumps(dict(commit=os.environ.get('GITHUB_SHA'),format='repository AES-256-CBC PBKDF2 SHA256 200000; concatenate ordered parts before decrypting',parts=parts),indent=2))
-archive.unlink();encrypted.unlink()
+(out/'manifest.json').write_text(json.dumps(dict(commit=os.environ.get('GITHUB_SHA'),runId=os.environ.get('GITHUB_RUN_ID'),attempt=os.environ.get('GITHUB_RUN_ATTEMPT'),region='mistrzowie',variant='editable-scene-and-android-bundles-NOT-APK',format='repository AES-256-CBC PBKDF2 SHA256 200000; concatenate ordered parts before decrypting',parts=parts),indent=2))
+# Keep all originals until external delivery has been confirmed; no post-build cleanup.
 print('BRAX_MISTRZOWIE_ENCRYPTED parts='+str(len(parts)))

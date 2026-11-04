@@ -12,11 +12,12 @@ public static class BraxChampionsInfrastructure
     static float K=>BraxClaudeOsiedle.K;
     [Serializable] public sealed class Station { public string id,name,axis; public float x,z,entryX,entryZ; }
     [Serializable] public sealed class Label { public string id,text; public float x,y,z,yaw,size; }
+    [Serializable] public sealed class Lamp { public float x,y,z; }
     [Serializable] public sealed class Counts { public int metroStations,metroEntrances,metroTracks,tramTracks,tramPlatforms,busPlatforms,crossings,curbstones; }
     [Serializable] public sealed class Data
     {
         public string version;public float scaleK;public BraxChampionsFoundation.MeshData[] meshes;
-        public Station[] metroStations;public Label[] labels;public Counts counts;
+        public Station[] metroStations;public Label[] labels;public Lamp[] metroLights;public Counts counts;
     }
     public static readonly List<Transform> Stations=new List<Transform>();
     public static Data Generate()
@@ -32,24 +33,46 @@ public static class BraxChampionsInfrastructure
             var v=new Vector3[m.positions.Length/3];var uv=new Vector2[v.Length];
             for(int i=0;i<v.Length;i++){v[i]=new Vector3(m.positions[i*3],m.positions[i*3+1],m.positions[i*3+2]);uv[i]=new Vector2(m.uv[i*2],m.uv[i*2+1]);}
             var mesh=new Mesh{name=m.id,indexFormat=v.Length>65535?IndexFormat.UInt32:IndexFormat.UInt16};
-            mesh.vertices=v;mesh.uv=uv;mesh.triangles=m.triangles;mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
+            mesh.vertices=v;mesh.uv=uv;mesh.triangles=m.triangles;
+            if(m.role.StartsWith("metro_"))mesh.SetUVs(3,Enumerable.Repeat(new Vector4(0,1,1.5f,2718),v.Length).ToList());
+            mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
             AssetDatabase.CreateAsset(mesh,Out+"/InfrastructureMeshes/"+m.id+".asset");
             var o=new GameObject(m.id);o.transform.SetParent(root,false);o.AddComponent<MeshFilter>().sharedMesh=mesh;
             var r=o.AddComponent<MeshRenderer>();r.sharedMaterial=material;
             if(m.role!="paint"&&m.role!="tactile"&&m.role!="rail_web")o.AddComponent<MeshCollider>().sharedMesh=mesh;
             GameObjectUtility.SetStaticEditorFlags(o,StaticEditorFlags.OccludeeStatic);
+            if(m.role.StartsWith("metro_"))
+            {
+                var cull=o.AddComponent<BraxWidocznoscWnetrza>();cull.nazwa="Metro connection "+m.id;
+                var b=r.bounds;b.Expand(new Vector3(140f,4f,140f));cull.strefy=new[]{b};
+            }
+        }
+        if(d.metroLights==null||d.metroLights.Length==0)throw new InvalidOperationException("Tunnel lighting layout missing");
+        foreach(var at in d.metroLights)
+        {
+            var o=new GameObject("Metro tunnel maintenance light");o.transform.SetParent(root,false);o.transform.position=new Vector3(at.x,at.y,at.z)*K;
+            var l=o.AddComponent<Light>();l.type=LightType.Point;l.range=11f;l.intensity=.55f;l.color=new Color(.93f,.94f,1f);
+            l.shadows=LightShadows.None;l.renderMode=LightRenderMode.ForceVertex;
+            var visibility=o.AddComponent<BraxWidocznoscWnetrza>();visibility.nazwa="Tunnel lighting";
+            visibility.strefy=new[]{new Bounds(o.transform.position,new Vector3(80,20,80))};
         }
         foreach(var l in d.labels)AddLabel(root,l.text,new Vector3(l.x,l.y,l.z)*K,l.yaw,l.size*K);
         var template=BraxClaudeMetro.ChampionsStationTemplate();Stations.Clear();
         for(int i=0;i<d.metroStations.Length;i++)
         {
             var s=d.metroStations[i];var o=UnityEngine.Object.Instantiate(template);o.name=s.id+" | "+s.name+" | reused city metro";
-            o.transform.SetParent(root,false);var q=Quaternion.Euler(0,s.axis=="x"?0:-90,0);
+            o.transform.SetParent(root,false);if(i==0)BraxClaudeMetro.ChampionsParkedTrain(o.transform);var q=Quaternion.Euler(0,s.axis=="x"?0:-90,0);
             var shift=new Vector3(s.x*K,.16f*K-.15f,s.z*K)-q*new Vector3(22.5f,0,28.5f);
             o.transform.SetPositionAndRotation(shift,q);o.transform.localScale=Vector3.one;
             foreach(var drive in o.GetComponentsInChildren<BraxSchodyRuchomeJazda>(true)){drive.gora=q*drive.gora+shift;drive.dol=q*drive.dol+shift;}
             foreach(var seat in o.GetComponentsInChildren<BraxSeat>(true))seat.surfaceY+=shift.y;
             Restyle(o,s.id,i);Stations.Add(o.transform);
+            var underground=o.transform.Find("Existing station and open tunnels");
+            var visibility=underground.gameObject.AddComponent<BraxWidocznoscWnetrza>();visibility.nazwa=s.id+" Miasto Mistrzów";
+            visibility.strefy=new[]{WorldBounds(o.transform,new Vector3(-75,-16,14),new Vector3(117,-.55f,43)),
+                WorldBounds(o.transform,new Vector3(56,-.55f,8),new Vector3(90,14,48))};
+            var range=underground.gameObject.AddComponent<BraxClaudeZasiegWnetrza>();range.zasieg=160f;
+            range.sale=new[]{WorldBounds(o.transform,new Vector3(-75,-16,14),new Vector3(117,-1.2f,43))};
         }
         UnityEngine.Object.DestroyImmediate(template);
         PersistTransientAssets(root);AssetDatabase.SaveAssets();return d;
@@ -69,13 +92,26 @@ public static class BraxChampionsInfrastructure
         var yellow=Surface("tactile",new Color(.85f,.68f,.12f),.7f,0);
         return new Dictionary<string,Material>{{"paving",paving},{"curb",stone},{"paint",Surface("paint",new Color(.88f,.88f,.84f),.7f,0)},
             {"tactile",yellow},{"steel",steel},{"rail",rail},{"rail_web",rail},{"glass",glass},{"bench",wood},{"sign",Surface("sign",new Color(.04f,.07f,.12f),.45f,.2f)},
-            {"metro_rail",rail},{"metro_concrete",concrete},{"metro_third",yellow}};
+            {"metro_rail",rail},{"metro_concrete",concrete},{"metro_third",yellow},{"metro_steel",steel},{"metro_light",TunnelLight()}};
     }
     static Material Surface(string id,Color color,float roughness,float metal)
     {
         var m=new Material(Shader.Find(BraxCityMaterials.ShaderName)){name="Mistrzowie "+id,enableInstancing=true};
         m.SetColor("_Color",color);m.SetFloat("_Roughness",roughness);m.SetFloat("_Metallic",metal);m.SetFloat("_VertexTint",0);
         m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);AssetDatabase.CreateAsset(m,Out+"/Materials/"+id+".mat");return m;
+    }
+    static Material TunnelLight()
+    {
+        var m=Surface("metro_light",new Color(.92f,.91f,.83f),.4f,0);
+        if(m.HasProperty("_EmissionColor"))m.SetColor("_EmissionColor",new Color(.42f,.43f,.37f));
+        return m;
+    }
+    static Bounds WorldBounds(Transform t,Vector3 a,Vector3 b)
+    {
+        var bounds=new Bounds(t.TransformPoint(a),Vector3.zero);
+        foreach(float x in new[]{a.x,b.x})foreach(float y in new[]{a.y,b.y})foreach(float z in new[]{a.z,b.z})
+            bounds.Encapsulate(t.TransformPoint(new Vector3(x,y,z)));
+        return bounds;
     }
     static void Restyle(GameObject station,string id,int index)
     {

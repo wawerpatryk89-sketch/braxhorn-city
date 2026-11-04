@@ -41,7 +41,7 @@ public static class BraxChampionsFoundation
         public int meshes, triangles, palms, trees, berths;
         public bool interiorsBuilt=false, yachtsPlaced=false, trafficEnabled=false, visualAccepted=false, phoneTested=false;
     }
-    sealed class MapSet { public string color,normal,arm,roughness; public float tile; }
+    sealed class MapSet { public string color,normal,arm,roughness,metalness; public float tile; }
 
     static Foundation Read()
     {
@@ -231,13 +231,17 @@ public static class BraxChampionsFoundation
         else
         {
             var rough=CopyMap(source.roughness,"roughness",id,true);var pixels=rough.GetPixels();
-            for(int i=0;i<pixels.Length;i++)pixels[i]=new Color(1,pixels[i].r,0,1);
+            Texture2D metal=string.IsNullOrEmpty(source.metalness)?null:CopyMap(source.metalness,"metalness",id,true);
+            var metals=metal?metal.GetPixels():null;
+            if(metals!=null&&metals.Length!=pixels.Length)throw new InvalidOperationException("PBR map sizes differ: "+id);
+            for(int i=0;i<pixels.Length;i++)pixels[i]=new Color(1,pixels[i].r,metals==null?0:metals[i].r,1);
             var packed=new Texture2D(rough.width,rough.height,TextureFormat.RGB24,false,true);packed.SetPixels(pixels);packed.Apply();
             string path=Output+"/Textures/"+id+"_packedARM.png";File.WriteAllBytes(path,packed.EncodeToPNG());UnityEngine.Object.DestroyImmediate(packed);
             AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
             var ti=(TextureImporter)AssetImporter.GetAtPath(path);ti.sRGBTexture=false;ti.maxTextureSize=4096;ti.mipmapEnabled=true;ti.textureCompression=TextureImporterCompression.CompressedHQ;ti.SaveAndReimport();
             arm=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
             var ri=(TextureImporter)AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(rough));ri.isReadable=false;ri.SaveAndReimport();
+            if(metal){var mi=(TextureImporter)AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(metal));mi.isReadable=false;mi.SaveAndReimport();}
         }
         m.SetTexture("_ARM",arm);
         foreach(string property in new[]{"_MainTex","_BumpMap","_ARM"})m.SetTextureScale(property,Vector2.one/source.tile);
@@ -247,6 +251,20 @@ public static class BraxChampionsFoundation
     {
         string tex=Source+"/Textures";
         var m=MaterialFor(id,new MapSet{color=FileIn(tex,slug+"_diff_4k.jpg"),normal=FileIn(tex,slug+"_nor_gl_4k.exr"),roughness=FileIn(tex,slug+"_rough_4k.exr"),tile=metres});
+        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
+    }
+    public static Material LibraryMetal(string id,Color tint)
+    {
+        string tex=Source+"/Textures",prefix="Metal048A_4K-JPG_";
+        var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
+            roughness=FileIn(tex,prefix+"Roughness.jpg"),metalness=FileIn(tex,prefix+"Metalness.jpg"),tile=.65f});
+        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
+    }
+    public static Material LibraryLeather(string id,Color tint)
+    {
+        string tex=Source+"/Textures",prefix="Leather037_4K-JPG_";
+        var m=MaterialFor(id,new MapSet{color=FileIn(tex,prefix+"Color.jpg"),normal=FileIn(tex,prefix+"NormalGL.jpg"),
+            roughness=FileIn(tex,prefix+"Roughness.jpg"),tile=.6f});
         m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
     }
 

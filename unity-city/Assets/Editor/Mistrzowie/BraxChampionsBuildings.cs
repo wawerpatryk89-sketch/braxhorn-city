@@ -1,0 +1,124 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Rendering;
+
+// Only called AFTER foundation and complete metro checks pass. Existing regions are untouched.
+public static class BraxChampionsBuildings
+{
+    const string Source="Assets/Source/Mistrzowie/",Out="Assets/PlayableGenerated/Mistrzowie/Buildings";
+    static float K=>BraxClaudeOsiedle.K;
+    [Serializable] sealed class ExteriorData { public float scaleK;public Exterior[] buildings; }
+    [Serializable] sealed class Exterior
+    {
+        public string id,name,sign;public float x,z,height,signYaw;public float[] signAnchor;
+        public BraxChampionsFoundation.MeshData[] lod0,lod1,collision;
+    }
+    [Serializable] sealed class SignData { public float scaleK;public Sign[] signs; }
+    [Serializable] sealed class Sign
+    {
+        public string id;public bool needsSculptedEmblem;public float[] emblemAnchor;
+        public BraxChampionsFoundation.MeshData[] meshes;
+    }
+    static T Read<T>(string file)
+    {
+        using(var f=File.OpenRead(Source+file))using(var zip=new GZipStream(f,CompressionMode.Decompress))
+        using(var r=new StreamReader(zip))return JsonUtility.FromJson<T>(r.ReadToEnd());
+    }
+    public static int Generate()
+    {
+        if(Directory.Exists(Out))throw new InvalidOperationException("Existing building assets must be updated without replacing GUIDs or manual edits");
+        var d=Read<ExteriorData>("Exteriors.bytes");var signs=Read<SignData>("Signs.bytes");
+        if(d==null||signs==null||d.buildings.Length!=2||Mathf.Abs(d.scaleK-K)>.00001f||Mathf.Abs(signs.scaleK-K)>.00001f)
+            throw new InvalidOperationException("Exterior source or shared scale invalid");
+        Directory.CreateDirectory(Out+"/Meshes");Directory.CreateDirectory(Out+"/Materials");Directory.CreateDirectory(Out+"/Prefabs");
+        var materials=Materials();
+        foreach(var b in d.buildings)
+        {
+            var root=new GameObject(b.id+" | "+b.name+" | exterior").transform;root.position=new Vector3(b.x,0,b.z)*K;
+            var levels=new List<LOD>();
+            foreach(var entry in new[]{b.lod0,b.lod1})
+            {
+                int level=levels.Count;var child=new GameObject("LOD"+level).transform;child.SetParent(root,false);
+                var renderers=new List<Renderer>();
+                foreach(var m in entry)renderers.Add(MeshObject(child,b.id+"_LOD"+level+"_"+m.id,m,materials[m.role],false));
+                levels.Add(new LOD(level==0?.18f:.0001f,renderers.ToArray()));
+            }
+            var group=root.gameObject.AddComponent<LODGroup>();group.SetLODs(levels.ToArray());group.RecalculateBounds();
+            var collisions=new GameObject("Permanent exterior collision, independent of LOD").transform;collisions.SetParent(root,false);
+            // Collision uses the structural low-detail surfaces; no water collision or invented interior.
+            foreach(var m in b.collision)
+            {
+                var o=new GameObject(m.id);o.transform.SetParent(collisions,false);
+                var saved=AssetDatabase.LoadAssetAtPath<Mesh>(Out+"/Meshes/"+b.id+"_LOD1_"+m.id+".asset");
+                if(!saved)throw new InvalidOperationException("Missing structural collision mesh: "+m.id);
+                o.AddComponent<MeshCollider>().sharedMesh=saved;
+            }
+            var sign=signs.signs.Single(s=>s.id==b.sign);var sr=new GameObject(b.sign+" | cast 3D lettering").transform;sr.SetParent(root,false);
+            sr.localPosition=new Vector3(b.signAnchor[0],b.signAnchor[1],b.signAnchor[2])*K;sr.localRotation=Quaternion.Euler(0,b.signYaw,0);
+            foreach(var m in sign.meshes)MeshObject(sr,b.id+"_sign_"+m.id,m,materials[m.role],false);
+            if(sign.needsSculptedEmblem)
+            {
+                var anchor=new GameObject("SOURCE_REQUIRED | approved BRAXHORN sculpted bull").transform;anchor.SetParent(sr,false);
+                anchor.localPosition=new Vector3(sign.emblemAnchor[0],sign.emblemAnchor[1],sign.emblemAnchor[2]);
+            }
+            // Save local-space reusable prefab, then restore the approved world plot position.
+            var at=root.position;root.position=Vector3.zero;
+            if(b.id=="A1")BraxChampionsArena.Generate(root);
+            var prefab=PrefabUtility.SaveAsPrefabAssetAndConnect(root.gameObject,Out+"/Prefabs/"+b.id+"_Exterior.prefab",InteractionMode.AutomatedAction);
+            root.position=at;if(!prefab)throw new IOException("Exterior prefab save failed: "+b.id);
+        }
+        AssetDatabase.SaveAssets();return d.buildings.Length;
+    }
+    static Renderer MeshObject(Transform parent,string id,BraxChampionsFoundation.MeshData d,Material material,bool collision)
+    {
+        int count=d.positions.Length/3;
+        if(d.positions.Length%3!=0||d.uv.Length!=count*2||d.triangles.Any(i=>i<0||i>=count))throw new InvalidOperationException("Invalid exterior mesh: "+id);
+        var v=new Vector3[count];var uv=new Vector2[count];
+        for(int i=0;i<count;i++){v[i]=new Vector3(d.positions[3*i],d.positions[3*i+1],d.positions[3*i+2]);uv[i]=new Vector2(d.uv[2*i],d.uv[2*i+1]);}
+        var mesh=new Mesh{name=id,indexFormat=count>65535?IndexFormat.UInt32:IndexFormat.UInt16};mesh.vertices=v;mesh.uv=uv;mesh.triangles=d.triangles;
+        mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();AssetDatabase.CreateAsset(mesh,Out+"/Meshes/"+id+".asset");
+        var o=new GameObject(id);o.transform.SetParent(parent,false);o.AddComponent<MeshFilter>().sharedMesh=mesh;
+        var r=o.AddComponent<MeshRenderer>();r.sharedMaterial=material;
+        if(collision)o.AddComponent<MeshCollider>().sharedMesh=mesh;
+        GameObjectUtility.SetStaticEditorFlags(o,StaticEditorFlags.OccludeeStatic);return r;
+    }
+    static Dictionary<string,Material> Materials()
+    {
+        var bronze=BraxChampionsFoundation.LibraryMetal("exterior_bronze",new Color(.58f,.42f,.22f));
+        var gold=BraxChampionsFoundation.LibraryMetal("sign_gold",new Color(.95f,.72f,.30f));
+        var steel=BraxChampionsFoundation.LibraryMetal("exterior_steel",new Color(.72f,.74f,.76f));
+        var stone=BraxChampionsFoundation.SourceMaterial("exterior_stone","rectangular_facade_tiles",2.4f,new Color(.91f,.87f,.79f));
+        var dark=BraxChampionsFoundation.SourceMaterial("exterior_dark_stone","granite_tile_02",1.2f,new Color(.30f,.32f,.34f));
+        var roof=BraxChampionsFoundation.LibraryMetal("exterior_roof",new Color(.30f,.32f,.34f));
+        var teak=BraxChampionsFoundation.SourceMaterial("exterior_teak","teak_veneer",1.8f,Color.white);
+        var tile=BraxChampionsFoundation.SourceMaterial("pool_tile","granite_tile",.4f,new Color(.75f,.85f,.84f));
+        var glass=Surface("facade_glass",new Color(.30f,.37f,.42f),.10f,.85f);glass.SetFloat("_ReflectionStrength",.95f);
+        var clear=Surface("clear_glass",new Color(.08f,.13f,.17f,.36f),.08f,.05f);
+        clear.SetFloat("_Transparent",1);clear.SetFloat("_SrcBlend",(float)BlendMode.One);clear.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
+        clear.SetFloat("_ZWrite",0);clear.SetFloat("_Cull",0);clear.renderQueue=3000;clear.SetOverrideTag("RenderType","Transparent");
+        var spandrel=Surface("spandrel",new Color(.07f,.10f,.13f),.32f,.55f);
+        var ivory=Surface("ivory",new Color(.91f,.88f,.80f),.7f,0);
+        var light=Surface("light",new Color(.91f,.78f,.52f),.4f,0);light.SetColor("_EmissionColor",new Color(.45f,.31f,.14f));
+        var sea=AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/Mistrzowie/Materials/sea.mat");
+        if(!sea)throw new InvalidOperationException("Existing water shader must be generated by foundation first");
+        var water=new Material(sea){name="Mistrzowie rooftop pool"};
+        water.SetColor("_DeepColor",new Color(.045f,.27f,.31f));water.SetColor("_EdgeColor",new Color(.08f,.38f,.40f));
+        water.SetFloat("_SwellStrength",0);water.SetFloat("_RippleStrength",.18f);water.SetFloat("_ReflectionMip",1.8f);
+        AssetDatabase.CreateAsset(water,Out+"/Materials/pool_water.mat");
+        return new Dictionary<string,Material>{{"stone",stone},{"dark_stone",dark},{"bronze",bronze},{"steel",steel},{"roof",roof},
+            {"teak",teak},{"pool_tile",tile},{"pool_water",water},{"facade_glass",glass},{"clear_glass",clear},{"spandrel",spandrel},
+            {"ivory",ivory},{"gold",gold},{"dark",bronze},{"accent",gold},{"light",light}};
+    }
+    static Material Surface(string id,Color color,float roughness,float metallic)
+    {
+        var shader=Shader.Find(BraxCityMaterials.ShaderName);if(!shader)throw new InvalidOperationException("Existing city shader unavailable");
+        var m=new Material(shader){name="Mistrzowie exterior "+id,enableInstancing=true};
+        m.SetColor("_Color",color);m.SetFloat("_Roughness",roughness);m.SetFloat("_Metallic",metallic);m.SetFloat("_VertexTint",0);
+        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);AssetDatabase.CreateAsset(m,Out+"/Materials/"+id+".mat");return m;
+    }
+}

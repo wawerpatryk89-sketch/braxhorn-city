@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "f47f9bacda71cb9c9b2d53560f00493caa954109",
+  "sourceFile": "unity-city/Assets/Editor/Claude/BraxClaudeOsiedle.cs",
+  "sourceMethod": "ArenaInterior",
+  "sourceMethodSHA256": "dab31d65f8085473e5dea23c8a497c3da8dafbd7c4f910992511c4cc59392e05",
+  "estateOuterNominal": [
+    40,
+    30,
+    7
+  ],
+  "newBowlNominal": [
+    120,
+    70,
+    28
+  ],
+  "newExteriorNominal": [
+    192,
+    118,
+    48
+  ],
+  "changes": [
+    "copy octagon and existing equipment",
+    "expand four-sided seating, preserve human furniture scale",
+    "Leather037 original 4K upholstery",
+    "rounded padded seats with armrests",
+    "step aisles between seating blocks"
+  ],
+  "unity": "NOT_RUN"
+}
