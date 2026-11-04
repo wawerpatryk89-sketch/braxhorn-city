@@ -33,7 +33,7 @@ Shader "Braxhorn/NabrzezeTeren"
         sampler2D _Piasek, _PiasekN, _Mokry, _Trawa, _TrawaN, _Skala, _SkalaN;
         fixed4 _KPiasek, _KMokry, _KTrawa, _KSkala;
         float _TPiasek, _TTrawa, _TSkala, _Makro, _MakroMix;
-        float4 _BraxSlady[24]; float _BraxSladyN, _BraxSladyCzas;   // ślady stóp (BraxSladyPiasek): x, z, kąt, czas
+        float4 _BraxSlady[24]; float _BraxSladyWiek[24]; float4 _BraxSladyGranice; float _BraxSladyN, _BraxSladyCzas;   // ślady stóp (BraxSladyPiasek): x, z, kąt, czas
         struct Input { float3 worldPos; float4 color : COLOR; float stromo; };
         // normalne zapisane jako zwykłe RGB (bez kompresji DXT5nm) — dekodowane ręcznie, tak samo na telefonie i w WebGL
         fixed3 Nrm(fixed4 c) { fixed3 n = c.xyz * 2 - 1; n.xy *= .8; return normalize(n); }
@@ -58,23 +58,30 @@ Shader "Braxhorn/NabrzezeTeren"
             fixed3 s = tex2D(_Skala, uS).rgb * _KSkala.rgb;
             fixed3 c = p * w.r + m * w.g + t * w.b + s * w.a;
             c = lerp(c, c * makro, _MakroMix);
-            // ślady stóp: dołek elipsy 0.17 × 0.39 m (stopa Braxa), ubity piasek ciemniejszy, brzegi dołka pochylają normalną
+            // Odcisk podeszwy: przód, wcięcie śródstopia, oddzielny obcas i bieżnik.
             float dolek = 0; float2 sp = 0;
+            bool bliskoSladow = _BraxSladyN > 0 && xz.x >= _BraxSladyGranice.x && xz.y >= _BraxSladyGranice.y
+                && xz.x <= _BraxSladyGranice.z && xz.y <= _BraxSladyGranice.w;
+            if (bliskoSladow && w.r + w.g > .5)
             for (int i = 0; i < 24; i++)
             {
                 if (i >= (int)_BraxSladyN) break;
-                float4 sl = _BraxSlady[i];
-                float2 d = xz - sl.xy;
-                if (dot(d, d) > .3) continue;
-                float cs = cos(sl.z), sn = sin(sl.z);
-                float2 l = float2(d.x * cs - d.y * sn, d.x * sn + d.y * cs) / float2(.085, .195);
-                float r2 = dot(l, l);
-                float wiek = saturate(1 - (_BraxSladyCzas - sl.w) / 45.0);
-                float m0 = saturate(1 - r2) * wiek;
-                if (m0 > dolek) { dolek = m0; float2 g = l * 2.0; sp = float2(g.x * cs + g.y * sn, -g.x * sn + g.y * cs) * wiek * step(r2, 1.0); }
+                float wiek = saturate(1 - (_BraxSladyCzas - _BraxSladyWiek[i]) / 45.0);
+                if (wiek <= 0) continue;
+                float4 sl = _BraxSlady[i]; float2 d = xz - sl.xy;
+                if (dot(d, d) > .07) continue;
+                float cs = sl.z, sn = sl.w;
+                float2 l = float2(d.x * cs - d.y * sn, d.x * sn + d.y * cs);
+                float2 front = (l - float2(0,.065)) / float2(.087,.135);
+                float2 heel = (l - float2(0,-.125)) / float2(.066,.068);
+                float edge = min(dot(front,front), dot(heel,heel));
+                float sole = saturate((1-edge)*7);
+                float tread = lerp(.45,1,step(.34,frac((l.y+abs(l.x)*.6)*42)));
+                float imprint = sole * tread * wiek;
+                if (imprint > dolek) { dolek = imprint; sp = d * (1-sole) * 16 * wiek; }
             }
             float piaskowo = saturate(w.r + w.g);
-            c *= lerp(1, .78, dolek * piaskowo);
+            c *= lerp(1, .68, dolek * piaskowo);
             fixed3 nP = Nrm(tex2D(_PiasekN, uP));
             fixed3 nT = Nrm(tex2D(_TrawaN, uT));
             fixed3 nS = Nrm(tex2D(_SkalaN, uS));
@@ -89,3 +96,4 @@ Shader "Braxhorn/NabrzezeTeren"
     }
     FallBack "Diffuse"
 }
+

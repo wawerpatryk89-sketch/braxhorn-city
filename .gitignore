@@ -18,3 +18,11 @@ unity-city/Assets/Source/Prywatne.meta
 
 # rejon buildu CI (pisze unity-tools/claude/rejon_buildu.py przed Unity)
 unity-city/rejon-ci.txt
+
+# Wyspa: prywatne klipy wynikowe obozu i lokalne raporty, nigdy surowe modele do publicznego repo.
+unity-tools/oboz/__pycache__/
+unity-tools/wyspa/__pycache__/
+unity-tools/wyspa/tests/__pycache__/
+unity-city/Assets/PlayableGenerated/Oboz/
+unity-city/Assets/PlayableGenerated/ClaudeRegion/MiastoA/Wyspa/pokaz_*.anim*
+unity-city/Logs/wyspa-p0-odbior.json

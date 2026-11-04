@@ -370,10 +370,12 @@ public static class BraxGymBuild
         // C4 (2.11, „szyby globalnie”): szkło bez mleka — przezroczyste z odbiciem nieba, fasady bez wnętrza refleksyjne (BRAXHORN_SZYBY)
         if(fullCity&&!osiedle)try{BraxSzyby.Wykonaj(scene,"miasto");}catch(Exception e){throw new InvalidOperationException("BRAXHORN_SZYBY_NIEGOTOWE",e);}
         if(!osiedle)try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
+        if(fullCity&&!osiedle) BraxWyspaOdbior.Krok("oprawy areny po globalnej obróbce", () => BraxMiastoWyspa.WykonczOprawy(scene));
         if(!osiedle)try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         if(!osiedle)BraxRejonBuildu.Czas("obrobka_siatek",tObr,fullCity?"rejon=miasto":"rejon=silownia");
         // C1 (2.11, różowe jachty/żurawie/budka): kontrola końcowa — renderery z materiałem NULL / bez shadera (cel 0), przed zapisem.
         if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pamiec(scene,"przed_zapisem_sceny");}catch(Exception e){throw new InvalidOperationException("BRAXHORN_MATERIALY_NIEGOTOWE",e);}
+        if(fullCity&&!osiedle) BraxWyspaOdbior.SprawdzScene(scene);
         // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,
         // doczytywaną w tle 45 m przed granicą i zwalnianą 110 m od niej (BraxObszary). Scena startowa = centrum.
         string scenePath=osiedle?null:Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!osiedle&&!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
@@ -461,6 +463,7 @@ public static class BraxGymBuild
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
         if(renovation&&fullCity&&rejon!="osiedle")BraxCityZoneRegistry.Write(scenePaths,sourceCommit,target);
         BraxBrakujaceSkrypty.Sprawdz(scenePaths);   // bramka twarda (WebGL / zdjęcia CI też)   // 1.11, 22:20: jak wyżej (WebGL / zdjęcia CI też bez brakujących skryptów)
+        if(fullCity&&scenePaths.Any(p=>Path.GetFileNameWithoutExtension(p)=="BraxhornCity")) BraxWyspaOdbior.SprawdzPaczke(scenePaths);
         bool cityOnly=renovation&&BraxCityBuild.CityOnly();
         string output,location;
         if(target==BuildTarget.Android)
@@ -533,3 +536,4 @@ public static class BraxGymBuild
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }
 }
+

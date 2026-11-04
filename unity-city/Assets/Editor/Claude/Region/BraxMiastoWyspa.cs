@@ -17,7 +17,7 @@ using UnityEngine.Rendering;
 // ZDJĘTE: stara wyspa (krok BraxRegionIsland — stożek z łatami, „zęby piły”, polana z obrzeżem) — krok wyłączony.
 // NOWE (× k): teren ~210 × 200 m nad wodą, plaże, laguna, wzgórze 31 m z punktem widokowym; przystań (pomost na palach,
 // głowica w kształcie T, knagi, polery, drabinki, latarnie, tablica), deptak z desek na palach od przystani do placu areny;
-// PLAC i ARENA BRAXHORN (ośmiobok 48 m, szklane ściany z lizenami, pas LED, daszek, szyld „ARENA BRAXHORN”, kasy biletowe,
+// PLAC i BRAXHORN ARENA (ośmiobok 48 m, szklane ściany z lizenami, pas LED, daszek, szyld „BRAXHORN ARENA”, kasy biletowe,
 // hol, trybuny w 6 sektorach dookoła klatki, klatka ośmiokątna na podeście z siatką, rampa świateł i telebim nad klatką,
 // tunel i szatnie zawodników — czerwony i niebieski narożnik); plaża z leżakami i parasolami w rzędach, ratownik, bar
 // plażowy, dwa ringi plenerowe na mniejsze walki (nie nasze), palmy, krzewy, skały. Punkty akcji pod misje.
@@ -27,7 +27,7 @@ using UnityEngine.Rendering;
 // brzeg miasta x 84–150), ląd ~300 × 300 m (brzeg r 150 ± szum fBm Vacation Island), POŁUDNIE = plaża premium (szeroki,
 // łagodny piasek do wody, rzędy leżaków, ratownicy, deptak z desek, przebieralnie, WC, wypożyczalnia, bar), PÓŁNOC I WSCHÓD
 // = ośrodek domków letniskowych (BraxMiastoWyspaDomki.cs: domki, chodniki z krawężnikami, recepcja, sklep, plac zabaw).
-// ARENA BRAXHORN, plac i przystań — bez zmian (przeniesione razem z wyspą, te same współrzędne względem środka).
+// BRAXHORN ARENA, plac i przystań — bez zmian (przeniesione razem z wyspą, te same współrzędne względem środka).
 internal static partial class BraxMiastoWyspa
 {
     public const float CX = 1200f, CZ = 40f, W = -1.7f;         // środek wyspy (~1 km od brzegu miasta), lustro wody
@@ -85,15 +85,16 @@ internal static partial class BraxMiastoWyspa
     const bool ArenaWlaczona = false;   // właściciel 3.11 10:11 — patrz Apply
     public static void Apply(Transform cityRoot)
     {
+        BraxWyspaOdbior.Rozpocznij();
         Miejsca.Clear(); osoby.Clear(); deptak.Clear(); zajete.Clear(); zapowiedz = null; BraxUliceKit.Start(); BraxMiastoA.WyczyscPamiec(); StartC2();
         // stara wyspa (gdyby krok był jeszcze gdzieś wołany) — zdjęta
         var stara = cityRoot.Find("CLAUDE wyspa (oktagon Ligi, otwarta)"); if (stara) BraxUliceKit.Usun(stara.gameObject, "stara wyspa (stożek z łatami)");
-        root = BraxRegion.Root(cityRoot, "CLAUDE wyspa — ARENA BRAXHORN (wypoczynkowa)");
+        root = BraxRegion.Root(cityRoot, "CLAUDE wyspa — BRAXHORN ARENA (wypoczynkowa)");
         kol = new GameObject("kolizje").transform; kol.SetParent(root, false);
         Directory.CreateDirectory(BraxMiastoA.Out + "/Wyspa");
-        int tris = Teren();
+        int tris = 0; BraxWyspaOdbior.Krok("teren i materiały plaży", () => tris = Teren());
         var z = new BraxNabrzeze.Zbior(); var m = BraxNabrzezeMebel.Materialy();
-        float xPomostu = Przystan(z, m);
+        float xPomostu = 0f; BraxWyspaOdbior.Krok("przystań i deptak", () => xPomostu = Przystan(z, m));
         // WŁAŚCICIEL 3.11 10:11: arena „z kwadratów” (bryły z kodu) — usunięta razem z placem wejściowym, toaletami i kibicami.
         // Wróci tylko jako arena premium z prawdziwych modeli (zlecenie: pkt 57). Plac zostaje pustą polaną.
         // 3.11: ARENA PREMIUM (BraxMiastoWyspaArena.cs) zamiast starej Arena() — ta zostaje wyłączona (ArenaWlaczona = false);
@@ -104,19 +105,22 @@ internal static partial class BraxMiastoWyspa
         Plaze(z, m); BarPlazowy(); Ringi(); PunktWidokowy();
         // C2: plaża premium (deptak z desek, przebieralnie, WC, wypożyczalnia, bar na plaży, flagi ratowników, kąpiący się)
         // i ośrodek domków letniskowych (domki, chodniki z krawężnikami, latarnie, ławki, recepcja, sklep, plac zabaw) — każdy krok osobno
-        try { BraxUliceKit.UstawGrupe("Wyspa: plaża premium", 120f); PlazaPremium(z, m); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI plaża premium: " + e); }
-        try { BraxUliceKit.UstawGrupe("Wyspa: domki letniskowe", 120f); Osrodek(z, m); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI ośrodek domków: " + e); }
-        try { TablicaWyspa(z, m); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI tablica WYSPA: " + e); }
+        BraxWyspaOdbior.Krok("plaża premium", () => { BraxUliceKit.UstawGrupe("Wyspa: plaża premium", 120f); PlazaPremium(z, m); WykonczenieBrzegu(); });
+        BraxWyspaOdbior.Krok("ośrodek domków", () => { BraxUliceKit.UstawGrupe("Wyspa: domki letniskowe", 120f); Osrodek(z, m); });
+        BraxWyspaOdbior.Krok("oznakowanie wyspy", () => TablicaWyspa(z, m));
         if (ArenaWlaczona) { BraxUliceKit.UstawGrupe("Wyspa: plac wejściowy areny (pylon, telebimy, brama, flagi, food trucki)", 240f); PlacWejsciowy(); }
         int nz = z.Emit(root, "Wyspa: przystań i plaża");
         int siatek = BraxUliceKit.Zapisz(root, "wyspa");
         int palm = Palmy(), krz = Krzewy();
         try { Sylwetka(cityRoot); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI sylwetka: " + e); }
-        try { MorzeOtwarte(cityRoot); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI morze otwarte: " + e); }
+        BraxWyspaOdbior.Krok("morze i ambient", () => { MorzeOtwarte(cityRoot); AmbientWyspy(); });
         Punkty();
         Spacerowicze(); Ludzie();     // na końcu (kolejność budowy): ludzie po wszystkim
-        try { RaportWyspy(tris, palm); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI raport: " + e); }
-        BraxMiastoA.Log("WYSPA: teren " + tris + " trójkątów, przystań x " + xPomostu.ToString("F0") + ", palm " + palm + ", krzewów/skał " + krz + ", siatek " + siatek + "+" + nz + " (ARENA BRAXHORN z dachem membranowym, trybunami z przejściami i lożami VIP, szatnią Braxa i tunelem; plaże dookoła, 3 ratowników, bar, 2 ringi, punkt widokowy)");
+        var kontrola = root.gameObject.AddComponent<BraxWyspaKontrola>();
+        kontrola.punkty = Miejsca.Select(p => new BraxWyspaKontrola.Punkt { nazwa = p.Key, pozycja = p.Value }).ToArray();
+        BraxWyspaOdbior.Krok("raport geometrii", () => RaportWyspy(tris, palm));
+        BraxWyspaOdbior.Krok("kontrola P0", () => BraxWyspaOdbior.Sprawdz(root));
+        BraxMiastoA.Log("WYSPA: teren " + tris + " trójkątów, przystań x " + xPomostu.ToString("F0") + ", palm " + palm + ", krzewów/skał " + krz + ", siatek " + siatek + "+" + nz + " (BRAXHORN ARENA z dachem membranowym, trybunami z przejściami i lożami VIP, szatnią Braxa i tunelem; plaże dookoła, 3 ratowników, bar, 2 ringi, punkt widokowy)");
     }
 
     // ---------------- teren: jedna siatka, plac w osobnej podsiatce (bez nakładania) ----------------
@@ -163,11 +167,21 @@ internal static partial class BraxMiastoWyspa
         mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
         BraxZapisAssetu.Utworz(mesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/teren.asset"));
         var mT = BraxNabrzeze.Teren("Wyspa: teren (piasek, mokry piasek, roślinność, skała)", new Color(.62f, .78f, .45f), 2.2f);
+        BraxWyspaOdbior.TeksturyTerenu(mT);
         var mP = BraxMiastoA.Tex("Wyspa: plac areny (płyty granitowe)", 2.0f, new Color(.88f, .86f, .82f), new Color(.66f, .64f, .6f), .7f, "granite_tile_02", "granite_tile", "concrete_floor_02");
         var g = new GameObject("Wyspa: teren"); g.transform.SetParent(root, false);
         g.AddComponent<MeshFilter>().sharedMesh = mesh;
         var r = g.AddComponent<MeshRenderer>(); r.sharedMaterials = new[] { mT, mP }; r.shadowCastingMode = ShadowCastingMode.Off; r.receiveShadows = true;
         g.AddComponent<MeshCollider>().sharedMesh = mesh;
+        var sandMask = g.AddComponent<BraxPiasekPowierzchnia>();
+        var allTriangles = tT.Concat(tP).ToArray(); sandMask.wagiTrojkatow = new byte[allTriangles.Length / 3];
+        for (int j = 0; j < allTriangles.Length; j += 3)
+        {
+            var a = col[allTriangles[j]]; var b = col[allTriangles[j + 1]]; var c = col[allTriangles[j + 2]];
+            // Drugi submesh jest placem granitowym niezależnie od koloru wierzchołków.
+            float sand = j < tT.Count ? (a.r + a.g + b.r + b.g + c.r + c.g) / 3f : 0f;
+            sandMask.wagiTrojkatow[j / 3] = (byte)Mathf.RoundToInt(Mathf.Clamp01(sand) * 255f);
+        }
         return (tT.Count + tP.Count) / 3;
     }
 
@@ -239,7 +253,7 @@ internal static partial class BraxMiastoWyspa
         BraxUliceKit.S(BraxMiastoA.Mat("Wyspa: tablica (drewno ciemne)", new Color(.25f, .18f, .12f), .7f)).Box(tab + new Vector3(-1.4f, 1.3f, -.04f), tab + new Vector3(1.4f, 2.1f, .04f));
         foreach (float d in new[] { -1.2f, 1.2f }) BraxUliceKit.S(BraxMiastoA.Mat("Wyspa: tablica (drewno ciemne)", new Color(.25f, .18f, .12f), .7f)).Box(tab + new Vector3(d - .05f, -.3f, -.05f), tab + new Vector3(d + .05f, 2.1f, .05f));
         BraxUliceKit.Napis3D("PRZYSTAŃ WYSPY", tab + new Vector3(0, 1.75f, -.04f), Vector3.back, .2f, .02f, BraxMiastoA.Mat("Wyspa: litery białe", new Color(.95f, .95f, .93f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
-        BraxUliceKit.Napis3D("ARENA BRAXHORN · PLAŻA", tab + new Vector3(0, 1.42f, -.04f), Vector3.back, .14f, .02f, BraxMiastoA.Mat("Wyspa: litery białe", new Color(.95f, .95f, .93f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
+        BraxUliceKit.Napis3D("BRAXHORN ARENA · PLAŻA", tab + new Vector3(0, 1.42f, -.04f), Vector3.back, .14f, .02f, BraxMiastoA.Mat("Wyspa: litery białe", new Color(.95f, .95f, .93f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
         // DEPTAK z desek na palach: od pomostu do placu areny (pokład 25 cm nad terenem, profil bez skoków > 0.3 m)
         float xa = CX + Plac.x - PlacR + 1f; var prof = new List<Vector2>();
         float yPrev = deck;
@@ -295,7 +309,7 @@ internal static partial class BraxMiastoWyspa
         return x0;
     }
 
-    // ---------------- ARENA BRAXHORN ----------------
+    // ---------------- BRAXHORN ARENA ----------------
     static Vector3 AC => new Vector3(CX + Plac.x + 4f, W + PlacH, CZ + Plac.y);
     static void Arena()
     {
@@ -348,13 +362,13 @@ internal static partial class BraxMiastoWyspa
                     s0 = o.xMax;
                 }
                 foreach (var o in otw)
-                    BraxMiastoA.DrzwiPrzesuwne(root, "ARENA BRAXHORN — wejście", a + Rr * o.center.x + Vector3.up * y0 - N * .2f, Rr, o.width, 2.9f, BraxUliceKit.SzkloPrzezroczyste, alu);
-                // daszek nad wejściem i szyld „ARENA BRAXHORN” z liter przestrzennych nad daszkiem
+                    BraxMiastoA.DrzwiPrzesuwne(root, "BRAXHORN ARENA — wejście", a + Rr * o.center.x + Vector3.up * y0 - N * .2f, Rr, o.width, 2.9f, BraxUliceKit.SzkloPrzezroczyste, alu);
+                // daszek nad wejściem i szyld „BRAXHORN ARENA” z liter przestrzennych nad daszkiem
                 var dc = a + Rr * dl * .5f + Vector3.up * (y0 + 3.6f) + N * 1.6f;
                 BraxUliceKit.S(alu).OBox(dc, Rr, Vector3.up, N, 15f, .25f, 3.2f);
                 BraxUliceKit.S(led).OBox(dc + N * 1.6f - Vector3.up * .14f, Rr, Vector3.up, N, 15f, .04f, .06f);
-                float cap = 1.25f, w = BraxUliceKit.SzerokoscNapisu("ARENA BRAXHORN", cap); if (w > dl - 2f) cap *= (dl - 2f) / w;
-                BraxUliceKit.Napis3D("ARENA BRAXHORN", a + Rr * dl * .5f + Vector3.up * (y0 + 4.6f) + N * .06f, N, cap, .25f, bialeLit, boki);
+                float cap = 1.25f, w = BraxUliceKit.SzerokoscNapisu("BRAXHORN ARENA", cap); if (w > dl - 2f) cap *= (dl - 2f) / w;
+                BraxUliceKit.Napis3D("BRAXHORN ARENA", a + Rr * dl * .5f + Vector3.up * (y0 + 4.6f) + N * .06f, N, cap, .25f, bialeLit, boki);
                 // kasy biletowe (2 kioski przy wejściu)
                 foreach (float s in new[] { 3.0f, dl - 3.0f })
                 {
@@ -740,8 +754,8 @@ internal static partial class BraxMiastoWyspa
                 ledP.OBox(L(sg * (uK - .02f), vb0 - .25f, 1.45f), rgt, Vector3.up, dir, .04f, 2.8f, .1f);
             }
             portal.OBox(L(0f, vb0 - .25f, 3.35f), rgt, Vector3.up, dir, 2f * uK, .9f, .4f);
-            float capP = .26f; float wP = BraxUliceKit.SzerokoscNapisu("ARENA BRAXHORN", capP); if (wP > 2f * uK + .6f) capP *= (2f * uK + .6f) / wP;
-            BraxUliceKit.Napis3D("ARENA BRAXHORN", L(0f, vb0 - .45f, 3.2f), -dir, capP, .05f, bialeLit, boki);
+            float capP = .26f; float wP = BraxUliceKit.SzerokoscNapisu("BRAXHORN ARENA", capP); if (wP > 2f * uK + .6f) capP *= (2f * uK + .6f) / wP;
+            BraxUliceKit.Napis3D("BRAXHORN ARENA", L(0f, vb0 - .45f, 3.2f), -dir, capP, .05f, bialeLit, boki);
             // wybieg z tunelu do klatki: dwie barierki (czarne panele z pasem LED na górze), otwarte na obu końcach
             float vw0 = ri + .6f + 1.4f + .35f, vw1 = vb0 - .6f, vm = (vw0 + vw1) * .5f, lw = vw1 - vw0;
             foreach (float sg in new[] { -1f, 1f })
@@ -1048,7 +1062,7 @@ internal static partial class BraxMiastoWyspa
         void Ramka(int x0, int y0, int x1, int y1, int g, Color k, float a = 1f) { Prost(x0, y0, x1, y0 + g, k, a); Prost(x0, y1 - g, x1, y1, k, a); Prost(x0, y0, x0 + g, y1, k, a); Prost(x1 - g, y0, x1, y1, k, a); }
         // pasy marki u góry i u dołu
         Prost(0, 596, Wt, 602, ziel); Prost(0, 60, Wt, 112, ziel, .92f);
-        BraxUliceKit.NapisWTeksturze(px, Wt, Ht, "ARENA BRAXHORN", Wt * .5f, 520f, 54f, Color.white);
+        BraxUliceKit.NapisWTeksturze(px, Wt, Ht, "BRAXHORN ARENA", Wt * .5f, 520f, 54f, Color.white);
         BraxUliceKit.NapisWTeksturze(px, Wt, Ht, "GALA MISTRZOWSKA · WALKA O PAS", Wt * .5f, 470f, 24f, ziel);
         // narożniki: czerwony (lewo) i niebieski (prawo) — pole na nazwisko PUSTE (wpisze je misja / etap walki)
         foreach (var (x0, kk, napis) in new[] { (56, czer, "NAROŻNIK CZERWONY"), (588, nieb, "NAROŻNIK NIEBIESKI") })
@@ -1162,7 +1176,7 @@ internal static partial class BraxMiastoWyspa
             var g = new GameObject(nazwa); g.transform.SetParent(kol, false); g.transform.position = srodek;
             przod.y = 0f; g.transform.rotation = Quaternion.LookRotation(przod.normalized, Vector3.up); g.AddComponent<BoxCollider>().size = rozmiar;
         }
-        // 1) PYLON „ARENA BRAXHORN” przy końcu deptaka (9 m, podświetlane litery z obu stron, pas LED)
+        // 1) PYLON „BRAXHORN ARENA” przy końcu deptaka (9 m, podświetlane litery z obu stron, pas LED)
         {
             var p = new Vector3(CX + Plac.x - PlacR + 4.5f, y, zc - 7f); float hp = 9f, wp = 3.4f, dp = .7f;
             BraxUliceKit.S(czarny).OBox(p + Vector3.up * hp * .5f, Vector3.forward, Vector3.up, Vector3.right, wp, hp, dp);
@@ -1210,8 +1224,8 @@ internal static partial class BraxMiastoWyspa
             }
             var belka = new Vector3(xg, y + hb - .45f, zc);
             BraxUliceKit.S(czarny).OBox(belka, Vector3.forward, Vector3.up, Vector3.right, 2f * half - .45f, .9f, .5f);
-            float cg = .42f, wg = BraxUliceKit.SzerokoscNapisu("ARENA BRAXHORN · WEJŚCIE", cg); if (wg > 2f * half - 1.4f) cg *= (2f * half - 1.4f) / wg;
-            BraxUliceKit.Napis3D("ARENA BRAXHORN · WEJŚCIE", belka + Vector3.left * .25f - Vector3.up * .22f, Vector3.left, cg, .06f, lit, boki);
+            float cg = .42f, wg = BraxUliceKit.SzerokoscNapisu("BRAXHORN ARENA · WEJŚCIE", cg); if (wg > 2f * half - 1.4f) cg *= (2f * half - 1.4f) / wg;
+            BraxUliceKit.Napis3D("BRAXHORN ARENA · WEJŚCIE", belka + Vector3.left * .25f - Vector3.up * .22f, Vector3.left, cg, .06f, lit, boki);
             BraxUliceKit.S(led).OBox(belka + Vector3.left * .27f + Vector3.up * .38f, Vector3.forward, Vector3.up, Vector3.left, 2f * half - .6f, .06f, .04f, true);
             var szkloCz = BraxMiastoA.Mat("Plac areny: szkło bramek (czarne)", new Color(.03f, .03f, .035f), .08f, .3f);
             int nb = 0;
@@ -1377,7 +1391,7 @@ internal static partial class BraxMiastoWyspa
             kf.AddComponent<BoxCollider>().size = new Vector3(Vector3.Distance(p0, p1), 1.0f * K, .1f);
         }
         Miejsca["wyspa_punkt_widokowy"] = new Vector3(c.x, y, c.z);
-        BraxMiastoA.Akcja(root, "wyspa_punkt_widokowy", "PODZIWIAJ WIDOK", "Punkt widokowy: miasto, port i ARENA BRAXHORN jak na dłoni.", new Vector3(c.x, y, c.z), 2.5f);
+        BraxMiastoA.Akcja(root, "wyspa_punkt_widokowy", "PODZIWIAJ WIDOK", "Punkt widokowy: miasto, port i BRAXHORN ARENA jak na dłoni.", new Vector3(c.x, y, c.z), 2.5f);
     }
 
     // ---------------- palmy z kodu (3 odmiany, pień z pierścieniami, liście pierzaste, LOD) ----------------
@@ -1614,3 +1628,4 @@ internal static partial class BraxMiastoWyspa
 }
 
 internal static class BraxWektory { public static Vector3 WithY0(this Vector3 v) => new Vector3(v.x, 0f, v.z); }
+

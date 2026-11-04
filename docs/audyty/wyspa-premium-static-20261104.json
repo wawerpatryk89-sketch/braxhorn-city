@@ -1,0 +1,167 @@
+{
+  "base_commit": "65ab55a9e831d289017f47c9875b193b41a26d1c",
+  "original_base_commit": "24d210d128dc1622772f32130ea1604af3dd4de0",
+  "camp_source_commit": "b98c5630b8161f62508c2e459356b9926d1836ab",
+  "branch": "codex/wyspa-arena-premium-20261104",
+  "unity_version_target": "6000.0.58f2",
+  "unity_run": false,
+  "csharp_compiler_run": false,
+  "unity_physics_probe_run": false,
+  "android_build_run": false,
+  "webgl_build_run": false,
+  "android_device_test": false,
+  "new_unity_images_or_video": false,
+  "acceptance": "NOT_ACCEPTED_UNITY_AND_ANDROID_PENDING",
+  "csharp_syntax": {
+    "tool": "tree-sitter-c-sharp",
+    "files_checked": 132,
+    "repository_source_files": 270,
+    "errors": []
+  },
+  "python_delivery_tests": {
+    "exit_code": 0,
+    "output": "test_missing_original_package_member_is_rejected (test_prepare_fighters.FighterDelivery.test_missing_original_package_member_is_rejected) ... ok\ntest_selected_sources_are_two_camp_models_and_animations (test_prepare_fighters.FighterDelivery.test_selected_sources_are_two_camp_models_and_animations) ... ok\ntest_tampered_source_is_rejected (test_prepare_fighters.FighterDelivery.test_tampered_source_is_rejected) ... ok\ntest_unknown_path_and_duplicate_member_are_rejected (test_prepare_fighters.FighterDelivery.test_unknown_path_and_duplicate_member_are_rejected) ... ok\ntest_unselected_camp_environment_is_not_extracted (test_prepare_fighters.FighterDelivery.test_unselected_camp_environment_is_not_extracted) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.058s\n\nOK\n"
+  },
+  "private_fighter_inputs": {
+    "characters": [
+      "kade",
+      "zyro"
+    ],
+    "verified_files": 25,
+    "bytes": 131155333,
+    "hashes": {
+      "animations/brax/Boxing.fbx": {
+        "path": "animations/brax/Boxing.fbx",
+        "bytes": 416880,
+        "sha256": "dc32e95cbc76cf9bb304c6a277f19bf29f73b77a9836cafaf0ffcc70b7a01b66"
+      },
+      "animations/brax/Center Block.fbx": {
+        "path": "animations/brax/Center Block.fbx",
+        "bytes": 504144,
+        "sha256": "4777dadf415f113220e9b691070c399e90207ae280c930296715040210258e7c"
+      },
+      "animations/brax/Dodging.fbx": {
+        "path": "animations/brax/Dodging.fbx",
+        "bytes": 550800,
+        "sha256": "28b046c20fab6bb28f583504730d7602fdda2bc006b454edc268660a9f8f9f3a"
+      },
+      "animations/brax/Head Hit.fbx": {
+        "path": "animations/brax/Head Hit.fbx",
+        "bytes": 328064,
+        "sha256": "b340564eb55df48b6449500dfbd37e5486a00190e1ce49ed5494f4f695b84112"
+      },
+      "animations/brax/Hit To Body.fbx": {
+        "path": "animations/brax/Hit To Body.fbx",
+        "bytes": 375984,
+        "sha256": "5fe97f7e0e064f90a052d62fd16d8ac9281a79d432dc2c30296bb235712a59fe"
+      },
+      "animations/brax/Jab Cross (1).fbx": {
+        "path": "animations/brax/Jab Cross (1).fbx",
+        "bytes": 427392,
+        "sha256": "10e3f515e6fda1ced8c432af956a1967be59ce3e30ecad7eb8f2032a2ba33458"
+      },
+      "animations/brax/Jump.fbx": {
+        "path": "animations/brax/Jump.fbx",
+        "bytes": 640928,
+        "sha256": "dbf1b89291b02066f3cebf58de820907d9e898d27355e2421c0d8c16beef2f8c"
+      },
+      "animations/brax/Mma Kick (1).fbx": {
+        "path": "animations/brax/Mma Kick (1).fbx",
+        "bytes": 427456,
+        "sha256": "4e9567a2566a5c0ac2fb179122865455caa2f2f7864d7c95e7440ed2b064c804"
+      },
+      "animations/brax/Taunt.fbx": {
+        "path": "animations/brax/Taunt.fbx",
+        "bytes": 386208,
+        "sha256": "c14044eb04428e110540b531b706282ca2307b08d25ffeeffd8bcfd0e0f13308"
+      },
+      "animations/casual/Idle.anim": {
+        "path": "animations/casual/Idle.anim",
+        "bytes": 1676528,
+        "sha256": "fc0b8326c6d584f7cefeeb86a108bf104a34bc3744b63df03a4870883a9343f4"
+      },
+      "animations/casual/Run.anim": {
+        "path": "animations/casual/Run.anim",
+        "bytes": 620335,
+        "sha256": "bae7aeba0b047661df38cbc8a32267d0ed86e6956f5a5837a88cc088c23a7a05"
+      },
+      "animations/casual/Walk.anim": {
+        "path": "animations/casual/Walk.anim",
+        "bytes": 855953,
+        "sha256": "22226ae0274e65a1924e9c01e43f59573d3d88f50ec9db62f92b2d1d0eec490c"
+      },
+      "animations/krov/Fighting Idle.fbx": {
+        "path": "animations/krov/Fighting Idle.fbx",
+        "bytes": 668784,
+        "sha256": "1bb71a9ecf7fb3e310b916ea763313bf6e3d0b6af35a4bf364126a84ba638da8"
+      },
+      "animations/nyxa/Mma Kick (1).fbx": {
+        "path": "animations/nyxa/Mma Kick (1).fbx",
+        "bytes": 439024,
+        "sha256": "23ef76b8ffcaa12a71c68f0914e812d77fa5aa5d945c253f48e9784dd95ae23d"
+      },
+      "animations/vexa/Getting Up.fbx": {
+        "path": "animations/vexa/Getting Up.fbx",
+        "bytes": 1550224,
+        "sha256": "6552275fb91788a9fc0453048bb3930055526ab93004a9fc188f833895e6df1d"
+      },
+      "characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/Color.png": {
+        "path": "characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/Color.png",
+        "bytes": 12969489,
+        "sha256": "9b024cb6a8194417ed8742ba54e91d3c224940ec4d018bbcefc4d0c1978be145"
+      },
+      "characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/Normal.png": {
+        "path": "characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/Normal.png",
+        "bytes": 6128632,
+        "sha256": "8571b152f65c036155f6ec3fba0a2425fa680d3a01e34da9127d1b15aaf09584"
+      },
+      "characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/boxer_3d_model_metallic.PNG": {
+        "path": "characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/boxer_3d_model_metallic.PNG",
+        "bytes": 3597200,
+        "sha256": "d9b05827f835b222f61209820e22f1e518ca62177c35b58c6ffae43e2b4fa38d"
+      },
+      "characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/boxer_3d_model_roughness.PNG": {
+        "path": "characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/boxer_3d_model_roughness.PNG",
+        "bytes": 4873263,
+        "sha256": "ef01dd57b566c3b8d156e77003b174734ef8f98ff40cbffc73f30d58f93bdc9d"
+      },
+      "characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbx": {
+        "path": "characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbx",
+        "bytes": 29054224,
+        "sha256": "c5da865ff886817bfca632118a8caca2f8a971d1ca0467e8b6b3c9e6e99f9964"
+      },
+      "characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/Color.png": {
+        "path": "characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/Color.png",
+        "bytes": 14203696,
+        "sha256": "e16d3c84cb0c6adfd241e3eb0a10cbd64d2d2b77952e17b6397d90c076336448"
+      },
+      "characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/Normal.png": {
+        "path": "characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/Normal.png",
+        "bytes": 6511644,
+        "sha256": "1ede0dc91aac151e08e4bff03eae76ea5560b1c0448b552400b1ec90930e01a2"
+      },
+      "characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/anthropomorphic_dog_3d_model_metallic.PNG": {
+        "path": "characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/anthropomorphic_dog_3d_model_metallic.PNG",
+        "bytes": 3600526,
+        "sha256": "e377b8d4b0e427c63ca7b90c52a34986d71b925fa395516d50e92447ba9cd368"
+      },
+      "characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/anthropomorphic_dog_3d_model_roughness.PNG": {
+        "path": "characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/anthropomorphic_dog_3d_model_roughness.PNG",
+        "bytes": 7175331,
+        "sha256": "81f7e169232242766c5709b4dad9613c67c3f33230b5a3e3e41ecee4fb6da059"
+      },
+      "characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbx": {
+        "path": "characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbx",
+        "bytes": 33172624,
+        "sha256": "9a0a188ba5ca7b3cdb4912c3d710da7b6619bd3e755c2985ad353b9b0dddcc6a"
+      }
+    },
+    "raw_assets_committed": false
+  },
+  "workflows": {
+    "files_checked": 53,
+    "matching_push_or_create_triggers": [],
+    "dispatch_invoked": false
+  },
+  "diff_check_exit_code": 0
+}

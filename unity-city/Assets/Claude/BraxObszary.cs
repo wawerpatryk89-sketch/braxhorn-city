@@ -88,17 +88,22 @@ public sealed class BraxObszary : MonoBehaviour
 
     IEnumerator Wczytaj(Obszar o)
     {
+        double startWyspy = Time.realtimeSinceStartupAsDouble;
         zajety = true; o.w_toku = true; Laduje++;
         BraxStartLog.Etap("obszar: wczytywanie " + o.scena);
         var op = SceneManager.LoadSceneAsync(o.scena, LoadSceneMode.Additive);
         if (op != null) { op.priority = 0; yield return op; }
         o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
         BraxStartLog.Etap("obszar wczytany " + o.scena);
+        if (o.scena == "BraxhornCity_Wyspa") Debug.Log("BRAXHORN_WYSPA_STREAM load_seconds=" +
+            (Time.realtimeSinceStartupAsDouble - startWyspy).ToString("F3") + " loaded=" + o.wczytany +
+            " allocated_bytes=" + UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong());
         Laduje--; o.w_toku = false; zajety = false;
     }
 
     IEnumerator Zwolnij(Obszar o)
     {
+        double startWyspy = Time.realtimeSinceStartupAsDouble;
         var sc = SceneManager.GetSceneByName(o.scena);
         if (!sc.isLoaded) { o.wczytany = false; yield break; }
         zajety = true; Laduje++;
@@ -109,9 +114,13 @@ public sealed class BraxObszary : MonoBehaviour
         if (op != null) yield return op;
         yield return Resources.UnloadUnusedAssets();
         o.wczytany = false;
+        if (o.scena == "BraxhornCity_Wyspa") Debug.Log("BRAXHORN_WYSPA_STREAM unload_seconds=" +
+            (Time.realtimeSinceStartupAsDouble - startWyspy).ToString("F3") +
+            " allocated_bytes=" + UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong());
         Laduje--; zajety = false;
     }
 
     // Przejście tunelem: wszystkie doczytane obszary idą razem ze sceną rejonu (BraxSceneTransit zwalnia wszystkie sceny).
     void OnDestroy() { if (zajety) Laduje = Mathf.Max(0, Laduje - 1); }
 }
+

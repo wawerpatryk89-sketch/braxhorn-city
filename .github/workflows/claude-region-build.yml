@@ -228,6 +228,12 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: Wyspa — KADE i ZYRO z obozu, tylko potrzebne zaszyfrowane źródła
+      if: github.event.inputs.rejon != 'osiedle'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/wyspa/prepare_fighters.py
     - name: SOBCZAK i WAWER — wymus komplet oryginalnych szyldow i sprzet kawiarni przed Unity 6
       if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
       run: |
@@ -606,6 +612,12 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
+    - name: Wyspa — KADE i ZYRO z obozu, tylko potrzebne zaszyfrowane źródła
+      if: github.event.inputs.rejon != 'osiedle'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: python3 unity-tools/wyspa/prepare_fighters.py
     - name: SOBCZAK i WAWER — wymus komplet oryginalnych szyldow i sprzet kawiarni przed Unity 6
       if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
       run: |

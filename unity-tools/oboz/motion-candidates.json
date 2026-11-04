@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "releaseTag": "oboz-transfer-key-41749904696",
+  "certificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5",
+  "wrappedKeySha256": "c4aa29e1dc2b9a991808c8de8ed7a2c12b656c22edaa848944e0d48e597462e2",
+  "package": {
+    "name": "monika-casual-motion-20261104.cms.enc",
+    "bytes": 233465,
+    "sha256": "846d8cff45095124ec7b483c468fb6c44dba2e819aef7b06560642ed34fa8d6e"
+  },
+  "files": [
+    {
+      "path": "animations/casual/Walk.anim",
+      "bytes": 855953,
+      "sha256": "22226ae0274e65a1924e9c01e43f59573d3d88f50ec9db62f92b2d1d0eec490c"
+    },
+    {
+      "path": "animations/casual/Run.anim",
+      "bytes": 620335,
+      "sha256": "bae7aeba0b047661df38cbc8a32267d0ed86e6956f5a5837a88cc088c23a7a05"
+    },
+    {
+      "path": "animations/casual/Idle.anim",
+      "bytes": 1676528,
+      "sha256": "fc0b8326c6d584f7cefeeb86a108bf104a34bc3744b63df03a4870883a9343f4"
+    }
+  ]
+}

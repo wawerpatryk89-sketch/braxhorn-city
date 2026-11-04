@@ -202,7 +202,7 @@ internal static partial class BraxMiastoWyspa
             }
         }
         // BAR NA PLAŻY (strzecha, lada, hokery, barman) — przy deptaku, środek plaży
-        try { var bc = Zaplecze(285f, 50f); float yb = bc.y; for (float a = -4f; a <= 4f; a += 2f) for (float b = -3f; b <= 3f; b += 1.5f) yb = Mathf.Max(yb, Y(bc.x + a, bc.z + b)); bc.y = yb + .05f; BarPlazowy(bc, "wyspa_bar_plaza", "BAR PLAŻOWY"); Zajmij(bc, 6f); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI bar na plaży: " + e.Message); }
+        try { var bc = Zaplecze(285f, 50f); float yb = bc.y; for (float a = -4f; a <= 4f; a += 2f) for (float b = -3f; b <= 3f; b += 1.5f) yb = Mathf.Max(yb, Y(bc.x + a, bc.z + b)); bc.y = yb + .05f; BarPlazowy(bc, "wyspa_bar_plaza", "BAR PLAŻOWY"); Zajmij(bc, 6f); } catch (System.Exception e) { throw new System.InvalidOperationException("BRAXHORN_WYSPA: bar plażowy", e); }
         // 4) LUDZIE W WODZIE przy brzegu (po pas, przed wieżyczkami — w strefie boi) i spacerujący brzegiem
         var rnd = new System.Random(5150);
         foreach (var (wp, wd) in wiezyczki)
@@ -560,7 +560,7 @@ internal static partial class BraxMiastoWyspa
         if (rec.HasValue) { recepcja = Sw(rec.Value.x, rec.Value.y); Miejsca["wyspa_recepcja"] = recepcja; BraxMiastoA.Akcja(root, "wyspa_recepcja", "ZAMELDUJ", "Recepcja ośrodka: domki na doby i tygodnie, klucze, ręczniki, rowerki wodne na plaży.", recepcja, 2.2f); Czlowiek("Recepcja", "recepcjonistka", "stoi", recepcja + new Vector3(0, 0, -.5f), Vector3.forward, KlStoi); Planuj(rec.Value, new Vector2(rec.Value.x, 45f), 1.6f * K, false, "dojście do recepcji"); }
         var sk = Domek(z, m, new Vector2(60f, 30f), new Vector2(-1, 0), 8f * K * .85f, 6f * K * .85f, 4, "SKLEP", "SKLEP · KAWIARNIA");
         if (sk.HasValue) { sklep = Sw(sk.Value.x, sk.Value.y); Miejsca["wyspa_sklep"] = sklep; BraxMiastoA.Akcja(root, "wyspa_sklep", "KUP", "Sklep ośrodka: woda, lody, krem z filtrem, pieczywo rano.", sklep, 2.2f); Planuj(sk.Value, new Vector2(45f, sk.Value.y), 1.6f * K, false, "dojście do sklepu"); }
-        try { PlacZabaw(z, m, new Vector2(62f, 65f)); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI plac zabaw: " + e.Message); }
+        try { PlacZabaw(z, m, new Vector2(62f, 65f)); } catch (System.Exception e) { throw new System.InvalidOperationException("BRAXHORN_WYSPA: plac zabaw", e); }
         // DOMKI: działki wzdłuż alej, front do chodnika; na złym terenie (woda, stromo) — pominięte
         var dzialki = new List<(Vector2 c, Vector2 fw, Vector2 aleja)>();
         foreach (float x in new[] { -6f, 14f, 30f, 76f, 96f }) dzialki.Add((new Vector2(x, 31f), new Vector2(0, 1), new Vector2(x, 45f - szer * .5f)));     // A1 południe
@@ -600,7 +600,7 @@ internal static partial class BraxMiastoWyspa
             }
         }
         // budowa wszystkich chodników (główne pierwsze — mają pierwszeństwo na skrzyżowaniach i przy dojściach)
-        for (int k = 0; k < plan.Count; k++) { try { Chodnik(z, k); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI chodnik " + plan[k].nazwa + ": " + e.Message); } }
+        for (int k = 0; k < plan.Count; k++) { try { Chodnik(z, k); } catch (System.Exception e) { throw new System.InvalidOperationException("BRAXHORN_WYSPA_P0: chodnik " + plan[k].nazwa, e); } }
         // spacerowicze po alejach (trasy wzdłuż A1 i A2)
         var tA1 = new List<Vector3>(); for (float x = Plac.x + 10f; x <= 110f; x += 12f) if (NaLadzie(x, 45f, 1.2f)) tA1.Add(Sw(x, 45f) + Vector3.up * .09f);
         var tA2 = new List<Vector3>(); for (float zz = -50f; zz <= 110f; zz += 12f) if (NaLadzie(45f, zz, 1.2f)) tA2.Add(Sw(45f, zz) + Vector3.up * .09f);
@@ -636,8 +636,16 @@ internal static partial class BraxMiastoWyspa
         var r = BraxRegion.Root(cityRoot, "CLAUDE A: akwen — morze za kamerą, dno, granica (BraxAkwen)");
         Material woda = AssetDatabase.LoadAssetAtPath<Material>("Assets/PlayableGenerated/CityRebuildWater/HarbourWater.mat");
         if (!woda) foreach (var mr in Object.FindObjectsByType<MeshRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None)) if (mr.sharedMaterial && (mr.sharedMaterial.name.Contains("HarbourWater") || mr.sharedMaterial.name.Contains("harbour water"))) { woda = mr.sharedMaterial; break; }
-        if (woda) { var g = new GameObject("BRAXHORN morze za kamerą"); g.transform.SetParent(r, false); var mz = g.AddComponent<BraxMorzeZaKamera>(); mz.woda = woda; }
-        else BraxMiastoA.Log("WYSPA DO POPRAWKI: brak materiału wody portu — morze za kamerą bez materiału");
+        if (woda) {
+            // Osobny materiał akwenu wyspy; wygląd wody portu pozostaje własnością portu.
+            woda = new Material(woda) { name = "Wyspa: spokojne morze" };
+            if (!woda.HasProperty("_RippleStrength")) throw new System.InvalidOperationException("BRAXHORN_WYSPA_P0: brak animowanych fal w shaderze wody");
+            woda.SetFloat("_RippleStrength", .45f);
+            // Gruba siatka oceanu ma fale w normalnych; nie unosimy 100-metrowych pól.
+            if (woda.HasProperty("_SwellStrength")) woda.SetFloat("_SwellStrength", 0f);
+            BraxZapisAssetu.Utworz(woda, BraxMiastoA.Out + "/Wyspa/morze_spokojne.mat");
+            var g = new GameObject("BRAXHORN morze za kamerą"); g.transform.SetParent(r, false); var mz = g.AddComponent<BraxMorzeZaKamera>(); mz.woda = woda; }
+        else throw new System.InvalidOperationException("BRAXHORN_WYSPA_P0: brak materiału otwartego morza");
         // dno (kolizja) pod całym akwenem poza wodą portu (tam dno ma BraxRegionSea), głęboko — łodzie go nie „widzą”
         const float x0 = 884f, x1 = BraxAkwen.TwardaX + 100f, z0 = BraxAkwen.TwardaZS - 100f, z1 = BraxAkwen.TwardaZN + 100f;
         var dno = new GameObject("Akwen: dno (kolizja)"); dno.transform.SetParent(r, false);
@@ -825,3 +833,4 @@ internal static partial class BraxMiastoWyspa
         Debug.Log("BRAXHORN_MAPA_MIASTA " + Wd + "×" + Hd + " px, świat x " + x0 + "…" + (x0 + w) + " z " + z0 + "…" + (z0 + h) + ", podpisów " + lista.Count + " (WYSPA, tor wodny przerywaną linią)");
     }
 }
+
