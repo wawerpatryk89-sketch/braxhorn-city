@@ -167,6 +167,13 @@ public static partial class BraxClaudeOsiedle
                 bool ok = w.stopaPonad == 0 && w.koloTyl == 0 && w.przeprost == 0 && w.wBok == 0;
                 string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=" + (awatarRuchu == tPoza ? "T-poza" : "import") + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
                 if (ok) Debug.Log(l); else Debug.LogWarning(l + " — DO SPRAWDZENIA W APK");
+                // Błąd ze sprawdzonego buildu #41812927670: stopy 159°/174°.
+                // Tak duże odchylenie po retargetingu oznacza wadliwą
+                // animację — nie wydawaj APK z obróconymi butami.
+                if (w.stopaMax > 85f)
+                    throw new InvalidOperationException("BRAXHORN_PATRYK_STOPY_BLOKADA klip=" + c.name +
+                        " stopa_max=" + w.stopaMax.ToString("F1") +
+                        "° > 85°. Korygowanie kostek nie wystarczyło, wstrzymano wadliwy model w buildzie.");
             }
             if (bledy > 0) Debug.LogWarning("BRAXHORN_PATRYK_KOSCI DO SPRAWDZENIA: " + bledy + " błędów — " + raportTestu);
 
