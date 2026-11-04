@@ -271,6 +271,12 @@ jobs:
         # T1: nie wolno 5h kompilować APK bez jedynego wagonu i prawdziwych wiat.
         test -s "$root/Prywatne/Miasto/miasto_pojazdy/tramwaj_caf.glb" || { echo '::error::Brak tramwaj_caf.glb — petla T1 bez pojazdu'; exit 1; }
         python3 unity-tools/claude/check_tram_glb.py "$root/Prywatne/Miasto/miasto_pojazdy/tramwaj_caf.glb"
+        # M1: oryginał właściciela jest już w repo po optymalizacji 218 -> 25 MB.
+        python3 unity-tools/claude/check_metro_glb.py
+        # Bez aktualnych szyldów i prawdziwego ekspresu kawiarnia / apteka
+        # nie są gotowe; zatrzymaj build PRZED uruchomieniem Unity.
+        python3 unity-tools/claude/check_signage.py
+        python3 unity-tools/claude/fetch_cafe_equipment.py
         test -s "$root/Prywatne/Miasto/miasto_wyposazenie/miasto_wyposazenie.glb" || { echo '::error::Brak oryginalnych wiat tramwaju'; exit 1; }
         # Oryginalne grafiki (JPG/JPEG/PNG, oba dostarczone katalogi) zostały
         # już rygorystycznie zweryfikowane w check_signage.py; nie odrzucaj
