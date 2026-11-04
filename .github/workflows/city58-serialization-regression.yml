@@ -28,7 +28,7 @@ jobs:
         run: |
           git fetch --depth=1 origin 874f194624e4dfead5637a4e3dfd1d3285a9cbe1
           python3 unity-tools/claude/prepare_serialization_probe.py
-      - name: Reproduce invalid script binding and verify repaired scene serialization
+      - name: Compare actual Android scene serialization before and after repair
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -37,10 +37,14 @@ jobs:
         with:
           projectPath: serialization-probe
           unityVersion: 6000.0.58f2
-          targetPlatform: StandaloneLinux64
+          targetPlatform: Android
           buildMethod: BraxSerializationProbe.Run
           versioning: None
           allowDirtyBuild: true
+      - name: Read serialized Android component sizes
+        run: |
+          python3 -m pip install --disable-pip-version-check UnityPy==1.25.4
+          python3 unity-tools/claude/serialization-probe/read_bundles.py
       - name: Keep regression evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

@@ -5,22 +5,27 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 // Isolated Unity 6 regression: old source layout and repaired source in one small
-// project, with no city assets or player build. This is not a phone gameplay test.
+// project, with no city assets or player build. Includes real Android scene bundles.
+// This is not a phone gameplay test.
 public static class BraxSerializationProbe
 {
     public static void Run()
     {
         Directory.CreateDirectory("Assets/ProbeOutput");
+        Directory.CreateDirectory("probe-report");
         AssetDatabase.Refresh();
         EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         var brokenObject = new GameObject("Baseline build 58");
         var broken = brokenObject.AddComponent<BraxProbeBaseline.BraxMorzeZaKamera>();
         string rejected = BraxBrakujaceSkrypty.BladKomponentu(broken);
-        if (rejected == null)
-            throw new Exception("Baseline was not rejected; root-cause hypothesis is not reproduced.");
-        Debug.Log("BRAXHORN_PROBE_BASELINE_REJECTED " + rejected);
-        UnityEngine.Object.DestroyImmediate(brokenObject);
+        Debug.Log("BRAXHORN_PROBE_BASELINE_BINDING " + (rejected ?? "accepted by editor"));
+        broken.komorka = 123.5f;
+        broken.pol = 13;
+        broken.bezWody = new Rect(7, 11, 31, 47);
+        const string baselinePath = "Assets/ProbeOutput/Baseline.unity";
+        if (!EditorSceneManager.SaveScene(brokenObject.scene, baselinePath)) throw new Exception("Baseline save failed");
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
         var go = new GameObject("Fixed sea component");
         var sea = go.AddComponent<BraxMorzeZaKamera>();
@@ -45,9 +50,14 @@ public static class BraxSerializationProbe
             throw new Exception("Scene roundtrip lost sea settings/material reference");
         BraxBrakujaceSkrypty.Sprawdz(new[] {scenePath});
         Debug.Log("BRAXHORN_PROBE_FIXED_ROUNDTRIP_OK: woda, komorka, pol, bezWody");
-        Directory.CreateDirectory("probe-report");
         File.WriteAllText("probe-report/serialization.txt", "Unity " + Application.unityVersion +
-            "\nBaseline rejected: " + rejected + "\nFixed scene roundtrip: all four fields preserved\n" +
+            "\nBaseline editor binding: " + (rejected ?? "accepted") + "\nFixed scene roundtrip: all four fields preserved\n" +
             "Scope: editor serialization regression, not Android runtime validation\n");
+        var manifest = BuildPipeline.BuildAssetBundles("probe-report", new[] {
+            new AssetBundleBuild { assetBundleName = "baseline", assetNames = new[] {baselinePath} },
+            new AssetBundleBuild { assetBundleName = "fixed", assetNames = new[] {scenePath} }
+        }, BuildAssetBundleOptions.ForceRebuildAssetBundle | BuildAssetBundleOptions.DisableWriteTypeTree, BuildTarget.Android);
+        if (!manifest) throw new Exception("Android scene bundle build failed");
+        Debug.Log("BRAXHORN_PROBE_ANDROID_BUNDLES_READY");
     }
 }
