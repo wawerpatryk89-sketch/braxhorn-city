@@ -1286,12 +1286,12 @@ public static class BraxClaudeMetro
         W.OBox(mCzarny, at + (q * Vector3.forward) * .15f, new Vector3(.08f, .07f, .02f), q);
     }
 
-    // ---------------- pociąg (3 wagony, zawsze stoi przy peronie 1) ----------------
+    // ---------------- pociąg M1 (2 zoptymalizowane wagony kane_sk06, kurs ~60 s przy peronie 1) ----------------
     const string ModelPociagu = "Assets/Source/Claude/Metro/metro_train.glb";   // CC BY 4.0 kane_sk06 (CREDITS.md)
 
     static void Pociag()
     {
-        // pkt 1c: na peronie stoi POBRANY model pociągu; brak modelu / błąd → dawny wagon z kodu (log mówi, który wariant)
+        // pkt 1c: wykorzystaj istniejący zoptymalizowany model (właściciel ma ten sam w Bibliotece). Brak źródła jest raportowany przed buildem, zapasowy model z kodu pozostaje wyłącznie awaryjnie.
         try
         {
             AssetDatabase.ImportAsset(ModelPociagu, ImportAssetOptions.ForceSynchronousImport);
