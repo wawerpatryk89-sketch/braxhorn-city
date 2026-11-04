@@ -15,7 +15,7 @@ import urllib.request
 
 OUT = pathlib.Path("unity-city/Assets/Source/Claude/Cafe")
 PRIVATE = pathlib.Path("unity-city/Assets/Source/Prywatne/Miasto")
-URL_MACHINE = "https://cdn.3dassets.dev/assets/22110/v1/model.glb"
+URL_MACHINE_META = "https://3dassets.dev/api/v1/assets/bakery-and-cafe-lever-espresso-machine-9c0d50a4"
 URL_PACK = "https://3dassets.dev/api/v1/packs/bakery-and-cafe"
 MAX_BYTES = 3_000_000
 ESPRESSO = ("ekspres_kolbowy", "ekspres_do_kawy", "ekspres", "coffee_machine",
@@ -104,7 +104,11 @@ def download(name, url):
 def main():
     # Najpierw rzeczywiście dostarczony przez właściciela sprzęt, nie zamieniamy go.
     if not private_present(ESPRESSO):
-        download("espresso_machine_sobczak.glb", URL_MACHINE)
+        machine_meta = json.loads(get(URL_MACHINE_META, 400_000).decode("utf-8"))
+        url = machine_meta.get("cdnUrl") or machine_meta.get("modelUrl")
+        if not isinstance(url, str) or not url.startswith("https://cdn.3dassets.dev/assets/") or not url.endswith("/model.glb"):
+            raise ValueError("Dostawca ekspresu CC0 nie zwrócił bezpośredniego CDN URL — nie zgadujemy ID modelu")
+        download("espresso_machine_sobczak.glb", url)
     if not private_present(GRINDER):
         manifest = json.loads(get(URL_PACK, 5_000_000).decode("utf-8"))
         grinder_url = find_grinder_url(manifest)
