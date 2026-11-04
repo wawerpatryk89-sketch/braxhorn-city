@@ -31,7 +31,9 @@ public static partial class BraxRegionMiastoB
     public const float APR = AH + Kr + Ziel + Chod;                    // 12 — połowa alei z zielenią i chodnikiem
     public const float NZ1 = 156f, NXA = -870f;                        // północna krawędź terenu, zachodnia krawędź placu Atlanty
     public const float RzA0 = 40.5f, RzA1 = 91f, RzB0 = 110.5f, RzB1 = 149.5f, RzC0 = -52.5f, RzC1 = 16.5f, PromenadaZ = -3.5f;
-    static readonly Rect TorRect = Rect.MinMaxRect(-600f + NPR, NS1 - AH, -450f - NPR, NS1 + AH);   // jezdnia ul. Tramwajowej z torowiskiem
+    // Cała ul. Tramwajowa C3…C0, nie tylko krótki odcinek C2–C1: 430.5 m pod dwutorowy tramwaj T1.
+    // Asfalt tej strefy powstaje WYŁĄCZNIE w NdTorowisko; zwykły asfalt B musi być wycięty przed tworzeniem siatek.
+    static readonly Rect TorRect = Rect.MinMaxRect(NC[3] + NPR, NS1 - AH, NC[0] - NPR, NS1 + AH);
     const float Rozstaw = 1.435f;                                      // rozstaw szyn (normalnotorowy) — × K w świecie Braxa
 
     sealed class Bud
@@ -153,12 +155,11 @@ public static partial class BraxRegionMiastoB
             PrzekrojZ("ul. C" + i + " (płd.)", NC[i], AH, 0f, Chod, NS1 + NPR, RZ - APR, false);
             PrzekrojZ("ul. C" + i + " (płn.)", NC[i], AH, 0f, Chod, RZ + APR, NN1 - NPR, false);
         }
-        // --- ul. Nowojorska i Tramwajowa (PrzekrojX); odcinek C1–C2 Tramwajowej bez asfaltu tu — asfalt z torowiskiem w kroku oznakowania ---
+        // --- ul. Nowojorska i Tramwajowa: cała jezdnia Tramwajowej zostanie wycięta z asfaltu w BudujAsfalt i zbudowana z szynami ---
         for (int i = 0; i < 3; i++)
         {
             PrzekrojX("ul. Nowojorska", NN1, AH, Chod, NC[i + 1] + NPR, NC[i] - NPR);
-            if (i == 1) { Kraweznik(TorRect.xMin, TorRect.xMax, NS1 - AH - Kr, NS1 - AH); Kraweznik(TorRect.xMin, TorRect.xMax, NS1 + AH, NS1 + AH + Kr); Chodnik("ul. Tramwajowa (przystanek)", TorRect.xMin, TorRect.xMax, NS1 - NPR, NS1 - AH - Kr); Chodnik("ul. Tramwajowa", TorRect.xMin, TorRect.xMax, NS1 + AH + Kr, NS1 + NPR); }
-            else PrzekrojX("ul. Tramwajowa", NS1, AH, Chod, NC[i + 1] + NPR, NC[i] - NPR);
+            PrzekrojX("ul. Tramwajowa", NS1, AH, Chod, NC[i + 1] + NPR, NC[i] - NPR);
         }
         // --- SKRZYŻOWANIA: asfalt środka, odcinki asfaltu do początku przekrojów, narożniki (krawężnik + płyty) ---
         foreach (var (c, c2, ramiona, prZ, nazwa) in NdSkrzyzowania()) NdKrok("skrzyżowanie " + nazwa, () => NdSkrzyzowanie(c, c2, ramiona, prZ, nazwa));
@@ -325,7 +326,7 @@ public static partial class BraxRegionMiastoB
         return l.ToArray();
     }
 
-    // TOROWISKO W NAWIERZCHNI ul. Tramwajowej (C1–C2): dwa tory (pas płd. — na wschód, płn. — na zachód), szyny rowkowe jako
+    // TOROWISKO W NAWIERZCHNI całej ul. Tramwajowej (C3–C0): dwa tory (pas płd. — na wschód, płn. — na zachód), szyny rowkowe jako
     // WSTAWKI w wycięciach asfaltu (główka szyny ze stali + rowek ciemny) — ta sama wysokość co asfalt, styk krawędzią (zasada
     // 15:40: nic nie leży na asfalcie). Rozstaw 1.435 m × K. Asfalt odcinka budowany tu (górna powierzchnia z otworami).
     static void NdTorowisko()
@@ -358,9 +359,10 @@ public static partial class BraxRegionMiastoB
         bWst[1].Obiekt("Torowisko: główki szyn (w wycięciach asfaltu)", root, stalSzyny, false, false);
         bWst[2].Obiekt("Torowisko: rowki szyn (w wycięciach asfaltu)", root, rowekMat, false, false);
         Nawierzchnia(BraxRegionMeble.Kolizja(root, "Jezdnia z torowiskiem kolizja", new Vector3(TorRect.center.x, YA - .15f, TorRect.center.y), new Vector3(TorRect.width, .3f, TorRect.height)));
-        // kontrola: wstawki toru parami i z asfaltem B (ten prostokąt nie jest w liście asfaltów B — sprawdzany tu)
+        // kontrola: wstawki toru parami; asfalt B, w tym wloty skrzyżowań, ma wyciętą strefę TorRect w BudujAsfalt.
         for (int i = 0; i < ndWstawkiToru.Count; i++) for (int j = i + 1; j < ndWstawkiToru.Count; j++) if (Niepuste(Przetnij(ndWstawkiToru[i].r, ndWstawkiToru[j].r))) { ndMigotanie++; Debug.LogWarning("BRAXHORN_MIASTO_ASSETY_MIGOTANIE wstawki toru " + ndWstawkiToru[i].r + " × " + ndWstawkiToru[j].r); }
-        foreach (var (n, r) in asfalty) if (Niepuste(Przetnij(r, TorRect))) { ndMigotanie++; Debug.LogWarning("BRAXHORN_MIASTO_ASSETY_MIGOTANIE asfalt toru × " + n); }
+        int rozcieteOdcinki = asfalty.Count(a => Niepuste(Przetnij(a.r, TorRect)));
+        NdLog("TRAM_T1_ODCINKI_ODCINANE: " + rozcieteOdcinki + " fragmentów planowanego asfaltu B; wycinane w BudujAsfalt, nie oznaczają migotania.");
         NdLog("torowisko: 2 tory × 2 szyny rowkowe (rozstaw " + (Rozstaw * K).ToString("0.000") + " m = 1.435 × K) x " + (TorRect.xMin + .8f).ToString("0.0") + "…" + (TorRect.xMax - .8f).ToString("0.0") + " — wstawki w wycięciach asfaltu, wstawek " + ndWstawkiToru.Count);
     }
 
@@ -616,16 +618,9 @@ public static partial class BraxRegionMiastoB
         BraxRegionMeble.Napis(root, "T1 · KRAŃCÓWKA ZACHÓD", NaPodlozu(new Vector3(-468f, YC, NS1 - NPR - .4f)) + Vector3.up * 2.6f * K, Vector3.forward, .26f * K, new Color(.95f, .95f, .92f));
         var sl = new BraxRegionMeble.Bud(); var ps = NaPodlozu(new Vector3(-468f, YC, NS1 - NPR - .5f)); sl.Cyl(ps, ps + Vector3.up * 3.1f * K, .04f * K, 10);
         sl.Box(ps + Vector3.up * 2.65f * K, new Vector3(2.6f * K, .5f * K, .06f)); sl.Obiekt("Przystanek tramwajowy: słup z tablicą", root, BraxCityMaterials.Surface("Przystanek: tablica granatowa", new Color(.06f, .14f, .32f), .5f), false, true);
-        // kozły oporowe (stal, pasy czerwono-białe) na obu końcach obu torów — bryły na asfalcie, nie płaszczyzny
-        var koz = new BraxRegionMeble.Bud(); var pas = new BraxRegionMeble.Bud();
-        foreach (float z in new[] { NS1 - AH * .5f, NS1 + AH * .5f })
-            foreach (float x in new[] { TorRect.xMin + 1.2f, TorRect.xMax - 1.2f })
-            {
-                koz.Box(new Vector3(x, YA + .45f * K, z), new Vector3(.35f * K, .9f * K, Rozstaw * K + .5f));
-                pas.Box(new Vector3(x + (x < TorRect.center.x ? .18f : -.18f) * K, YA + .62f * K, z), new Vector3(.02f, .35f * K, Rozstaw * K + .3f));
-                BraxRegionMeble.Kolizja(root, "Kozioł oporowy kolizja", new Vector3(x, YA + .45f * K, z), new Vector3(.35f * K, .9f * K, Rozstaw * K + .5f));
-            }
-        koz.Obiekt("Kozły oporowe (stal)", root, stal, false, true); pas.Obiekt("Kozły oporowe: tarcze czerwono-białe", root, BraxCityMaterials.Surface("Kozioł: tarcza czerwona", new Color(.75f, .08f, .08f), .5f), false, false);
+        // ZDJĘTO stare kozły oporowe z czterech końców. Blokowały tramwaj w krótkim odcinku C1–C2.
+        // Oba tory prowadzą teraz od C3 do C0, a T1 kursuje wahadłowo bez potrzeby zawracania modelu.
+        NdLog("TRAM_T1: zdemontowano kozły oporowe; stara krańcówka zamieniona w przystanek przelotowy");
         if (BraxMiastoAssety.Jest("miasto_wyposazenie"))
         {
             var wiata = BraxMiastoAssety.Model("miasto_wyposazenie", "miasto_wyposazenie");
@@ -640,13 +635,36 @@ public static partial class BraxRegionMiastoB
         }
         var tram = BraxMiastoAssety.Jest("miasto_pojazdy") ? BraxMiastoAssety.Model("miasto_pojazdy", "tramwaj_caf") : null;
         if (!tram) { NdLog("tramwaj: brak modelu (paczka miasto_pojazdy) — torowisko, peron i tablica bez tramwaju"); return; }
-        var o = BraxMiastoAssety.Postaw(root, tram, "Tramwaj T1 na przystanku (model CAF)", new Vector3(-463.5f - 33.9f * K * .5f, YA, zt), 0f, 1f, false, true);
+        var o = BraxMiastoAssety.Postaw(root, tram, "Tramwaj T1 — linia C3…C0 (CAF)", new Vector3(-670f, YA, zt), 0f, 1f, false, true);
+        if (!o) { NdLog("TRAM_T1_NIEGOTOWY brak modelu pojazdu"); return; }
         var b = BraxRegion.Bounds(o);
-        o.transform.position += new Vector3((-463.5f - b.max.x), YA - b.min.y, zt - b.center.z);   // przód 2.3 m przed kozłem oporowym
-        foreach (var tr in o.GetComponentsInChildren<Transform>(true)) GameObjectUtility.SetStaticEditorFlags(tr.gameObject, 0);
-        BraxMiastoAssety.Kolizja(root, o, "Tramwaj kolizja", .15f);
+        o.transform.position += new Vector3(-670f - b.center.x, YA - b.min.y, zt - b.center.z);
+        foreach (var tr in o.GetComponentsInChildren<Transform>(true))
+            GameObjectUtility.SetStaticEditorFlags(tr.gameObject, 0);
         b = BraxRegion.Bounds(o);
-        NdLog("tramwaj: CAF " + b.size.x.ToString("0.0") + " m (33.9 × K) na torze płd. z " + zt.ToString("0.00") + ", x " + b.min.x.ToString("0.0") + "…" + b.max.x.ToString("0.0") + ", koła y " + b.min.y.ToString("0.000") + " (asfalt/szyny " + YA + ")");
+        float minX = TorRect.xMin + b.size.x * .5f + 2f;
+        float maxX = TorRect.xMax - b.size.x * .5f - 2f;
+        if (maxX <= minX + 10f)
+        {
+            NdLog("TRAM_T1_NIEGOTOWY: model CAF ma " + b.size.x.ToString("F1") +
+                  " m, nie mieści się pomiędzy krańcami torów"); return;
+        }
+        // Kolizja jedzie Z WAGONEM. Stara statyczna kolizja w root miasta więziła gracza
+        // i blokowała ruch, gdy pojazd powinien odjechać. Collider na root modelu w lokalnej skali.
+        var bc = o.AddComponent<BoxCollider>();
+        var scale = o.transform.lossyScale;
+        bc.center = o.transform.InverseTransformPoint(b.center);
+        bc.size = new Vector3(b.size.x / Mathf.Max(.01f, Mathf.Abs(scale.x)),
+                              b.size.y / Mathf.Max(.01f, Mathf.Abs(scale.y)),
+                              b.size.z / Mathf.Max(.01f, Mathf.Abs(scale.z))) * .96f;
+        var rb = o.AddComponent<Rigidbody>(); rb.isKinematic = true; rb.useGravity = false;
+        var ruch = o.AddComponent<BraxTramwajT1>();
+        ruch.minX = minX; ruch.maxX = maxX; ruch.szybkosc = 7.5f; ruch.postojSekundy = 7f;
+        ruch.przystanki = new[] { minX, -485f, maxX };
+        o.transform.position = new Vector3(minX, o.transform.position.y, zt);
+        NdLog("TRAM_T1: CAF " + b.size.x.ToString("F1") + " m, linia C3…C0, torów = " + TorRect.width.ToString("F1") +
+              " m, z=" + zt.ToString("F2") + ", ruch wahadłowy x=" + minX.ToString("F1") + "…"+ maxX.ToString("F1") +
+              ", postoje: zachód, przy peronie -485 i wschód; oba końce bez kozłów oporowych");
     }
 
     // drobne: hydranty przy narożnikach ulic C, skrzynki pocztowe na promenadzie i przy ul. Nowojorskiej, bankomat przy banku
