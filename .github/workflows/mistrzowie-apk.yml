@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       commit:
-        description: 'Pełne SHA wersji gry; puste = aktualne Miasto Mistrzów'
+        description: 'Zostaw puste. Opcjonalnie pełne SHA lub nazwa gałęzi Miasta Mistrzów.'
         type: string
         required: false
         default: ''
@@ -20,21 +20,31 @@ concurrency:
 jobs:
   exploration-apk:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 355
     steps:
-      - name: Sprawdź wskazaną wersję Miasta Mistrzów
+      - name: Resolve the selected Champions source
+        id: selected
         env:
           SOURCE_COMMIT: ${{ inputs.commit }}
         run: |
-          if [[ -n "$SOURCE_COMMIT" && ! "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
-            echo '::error::Wpisz pełne 40-znakowe SHA albo pozostaw puste pole.'
-            exit 1
-          fi
+          python3 - <<'PYREF'
+          import os, re
+          branch = 'codex/miasto-mistrzow-20261104'
+          value = os.environ.get('SOURCE_COMMIT', '').strip()
+          if not value or value == branch:
+              value = os.environ['GITHUB_SHA'] if os.environ['GITHUB_REF'] == 'refs/heads/' + branch else branch
+          elif re.fullmatch('[0-9a-fA-F]{40}', value):
+              value = value.lower()
+          else:
+              raise SystemExit('Pole commit: zostaw puste albo podaj pełne SHA lub gałąź ' + branch)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('ref=' + value + '\n')
+          PYREF
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           # Pin the selected branch run to the event SHA. From main, use the
           # requested game commit (or the current Champions branch if blank).
-          ref: ${{ inputs.commit || (github.ref == 'refs/heads/codex/miasto-mistrzow-20261104' && github.sha) || 'codex/miasto-mistrzow-20261104' }}
+          ref: ${{ steps.selected.outputs.ref }}
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: |
@@ -60,6 +70,18 @@ jobs:
           printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"
           printf 'SOURCE_SHA=%s\n' "$sha" >> "$GITHUB_ENV"
           printf '## Miasto Mistrzów — wersja do zbudowania\n\nKod gry: `%s`\n\nWorkflow: `%s`\n' "$sha" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Prepare runner disk and 12 GiB Unity swap
+        run: |
+          # Keep the host Android SDK: APK certificate/identity verification needs it.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/share/swift /usr/local/share/powershell
+          sudo apt-get clean
+          sudo docker image prune --all --force
+          sudo fallocate -l 12G /swapfile-mistrzowie
+          sudo chmod 600 /swapfile-mistrzowie
+          sudo mkswap /swapfile-mistrzowie
+          sudo swapon /swapfile-mistrzowie
+          df -h /
+          free -h
       - name: Cache original public PBR source maps
         continue-on-error: true
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
@@ -72,11 +94,7 @@ jobs:
         run: |
           python3 -m pip install numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
           test -f /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
-          python3 unity-tools/mistrzowie/test_prepare_assets.py
-          python3 unity-tools/mistrzowie/test_surface_geometry.py
-          python3 unity-tools/mistrzowie/test_restore_player.py
-          python3 unity-tools/mistrzowie/test_apk_delivery.py
-          python3 unity-tools/mistrzowie/test_apk_version.py
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
           python3 unity-tools/mistrzowie/prepare_assets.py
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/restore_player.py
@@ -86,6 +104,24 @@ jobs:
           python3 unity-tools/mistrzowie/build_exteriors.py
           python3 unity-tools/mistrzowie/build_signs.py
           python3 unity-tools/mistrzowie/prepare_arena.py
+      - name: Restore isolated encrypted Champions Library
+        id: library
+        continue-on-error: true
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/champions-library.tar.zst.enc
+          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-
+      - name: Restore imported assets and source GUIDs
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: bash unity-tools/mistrzowie/library_cache.sh restore unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
+      - name: Remove restored archive and report remaining space
+        run: |
+          rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
+          df -h /
       - name: Prepare the existing signing key for the exploration APK
         env:
           KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
@@ -111,8 +147,11 @@ jobs:
           versioning: None
           allowDirtyBuild: true
       - name: Validate APK identity and existing certificate; stage immutable output
+        id: apk_stage
+        if: always() && !cancelled() && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
         run: python3 unity-tools/mistrzowie/apk_delivery.py stage
       - name: Immediately save APK as Actions artifact
+        if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
         id: apk_artifact
         continue-on-error: true
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -123,6 +162,7 @@ jobs:
           compression-level: 0
           retention-days: 30
       - name: Independently save APK as a unique test release
+        if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
         id: apk_release
         continue-on-error: true
         env:
@@ -139,6 +179,8 @@ jobs:
           PYNOTES
           gh release create "$tag" mistrzowie-apk/*.apk mistrzowie-apk/manifest.json --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --prerelease --title "Miasto Mistrzów — APK ${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}" --notes-file mistrzowie-apk/release-notes.txt
       - name: Confirm at least one real APK delivery before optional reports
+        id: apk_delivery
+        if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           APK_ARTIFACT_ID: ${{ steps.apk_artifact.outputs.artifact-id }}
@@ -146,6 +188,25 @@ jobs:
         run: |
           export APK_RELEASE_TAG="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
           python3 unity-tools/mistrzowie/apk_delivery.py verify
+      - name: Pack encrypted import cache after confirmed APK delivery
+        id: library_pack
+        if: success() && steps.apk_delivery.outcome == 'success'
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          sudo swapoff /swapfile-mistrzowie || true
+          sudo rm -f /swapfile-mistrzowie
+          sudo docker image prune --all --force
+          sudo chown -R "$(id -u):$(id -g)" unity-city/Library
+          bash unity-tools/mistrzowie/library_cache.sh save unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
+      - name: Save isolated encrypted Champions Library
+        if: success() && steps.library_pack.outcome == 'success'
+        continue-on-error: true
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/champions-library.tar.zst.enc
+          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Save validation evidence
         if: always()
         continue-on-error: true

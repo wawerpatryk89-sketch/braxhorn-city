@@ -136,6 +136,9 @@ public static class BraxChampionsBuild
             locationPathName=Path.Combine(output,"braxhorn-mistrzowie.apk"),options=BuildOptions.None});
         if(result.summary.result!=BuildResult.Succeeded)
             throw new InvalidOperationException("APK Miasta Mistrzów: "+result.summary.result+"; błędów="+result.summary.totalErrors);
+        // Like the existing city builder: mark only a completed BuildPlayer output.
+        // CI can rescue it even if Unity shutdown or a later report fails.
+        File.WriteAllText(Path.Combine(output,"braxhorn-mistrzowie.gotowe"),version.ToString());
         Debug.Log("BRAX_MISTRZOWIE_APK id=com.braxhorn.mistrzowie versionCode="+version+" bytes="+result.summary.totalSize);
     }
     static void CheckMetro(Transform station)

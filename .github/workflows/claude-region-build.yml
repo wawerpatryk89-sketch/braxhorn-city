@@ -24,7 +24,7 @@ concurrency:
 jobs:
   foundation:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 355
     steps:
       - name: Verify explicitly selected region
         env:
@@ -47,6 +47,18 @@ jobs:
             unity-tools/claude/prywatne.py
             unity-tools/claude/import_patryk_transfer.py
             unity-tools/claude/tekstury_b5.py
+      - name: Prepare runner disk and 12 GiB Unity swap
+        run: |
+          # Keep the host Android SDK: APK certificate/identity verification needs it.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/share/swift /usr/local/share/powershell
+          sudo apt-get clean
+          sudo docker image prune --all --force
+          sudo fallocate -l 12G /swapfile-mistrzowie
+          sudo chmod 600 /swapfile-mistrzowie
+          sudo mkswap /swapfile-mistrzowie
+          sudo swapon /swapfile-mistrzowie
+          df -h /
+          free -h
       - name: Cache original public PBR source maps
         continue-on-error: true
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
@@ -59,11 +71,7 @@ jobs:
         run: |
           python3 -m pip install numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
           test -f /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
-          python3 unity-tools/mistrzowie/test_prepare_assets.py
-          python3 unity-tools/mistrzowie/test_surface_geometry.py
-          python3 unity-tools/mistrzowie/test_restore_player.py
-          python3 unity-tools/mistrzowie/test_apk_delivery.py
-          python3 unity-tools/mistrzowie/test_apk_version.py
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
           python3 unity-tools/mistrzowie/prepare_assets.py
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/restore_player.py
@@ -73,6 +81,24 @@ jobs:
           python3 unity-tools/mistrzowie/build_exteriors.py
           python3 unity-tools/mistrzowie/build_signs.py
           python3 unity-tools/mistrzowie/prepare_arena.py
+      - name: Restore isolated encrypted Champions Library
+        id: library
+        continue-on-error: true
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/champions-library.tar.zst.enc
+          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-
+      - name: Restore imported assets and source GUIDs
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: bash unity-tools/mistrzowie/library_cache.sh restore unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
+      - name: Remove restored archive and report remaining space
+        run: |
+          rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
+          df -h /
       - name: Prepare the existing signing key for the exploration APK
         if: inputs.wariant != 'region'
         env:
@@ -99,10 +125,11 @@ jobs:
           versioning: None
           allowDirtyBuild: true
       - name: Validate APK identity and existing certificate; stage immutable output
-        if: inputs.wariant != 'region'
+        id: apk_stage
+        if: always() && !cancelled() && inputs.wariant != 'region' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
         run: python3 unity-tools/mistrzowie/apk_delivery.py stage
       - name: Immediately save APK as Actions artifact
-        if: inputs.wariant != 'region'
+        if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
         id: apk_artifact
         continue-on-error: true
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -113,7 +140,7 @@ jobs:
           compression-level: 0
           retention-days: 30
       - name: Independently save APK as a unique test release
-        if: inputs.wariant != 'region'
+        if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
         id: apk_release
         continue-on-error: true
         env:
@@ -130,7 +157,8 @@ jobs:
           PYNOTES
           gh release create "$tag" mistrzowie-apk/*.apk mistrzowie-apk/manifest.json --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title "Miasto Mistrzów — APK ${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}" --notes-file mistrzowie-apk/release-notes.txt
       - name: Confirm at least one real APK delivery before optional reports
-        if: inputs.wariant != 'region'
+        id: apk_delivery
+        if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           APK_ARTIFACT_ID: ${{ steps.apk_artifact.outputs.artifact-id }}
@@ -160,6 +188,25 @@ jobs:
           REGION_ARTIFACT_ID: ${{ steps.delivery.outputs.artifact-id }}
           REGION_ARTIFACT_URL: ${{ steps.delivery.outputs.artifact-url }}
         run: python3 unity-tools/mistrzowie/verify_delivery.py
+      - name: Pack encrypted import cache after confirmed APK delivery
+        id: library_pack
+        if: success() && steps.apk_delivery.outcome == 'success'
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          sudo swapoff /swapfile-mistrzowie || true
+          sudo rm -f /swapfile-mistrzowie
+          sudo docker image prune --all --force
+          sudo chown -R "$(id -u):$(id -g)" unity-city/Library
+          bash unity-tools/mistrzowie/library_cache.sh save unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
+      - name: Save isolated encrypted Champions Library
+        if: success() && steps.library_pack.outcome == 'success'
+        continue-on-error: true
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/champions-library.tar.zst.enc
+          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Save validation evidence
         if: always()
         continue-on-error: true
