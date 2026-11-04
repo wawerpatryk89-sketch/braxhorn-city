@@ -797,8 +797,9 @@ public static class BraxClaudeMetro
             W.Kolizja(c, new Vector3(.08f, h, d.magnitude), Quaternion.LookRotation(d.normalized));
         }
         BalSkos(g1, s1, 25.52f); BalSkos(g2, d2, 25.52f);
-        // przegroda między schodami a ruchomymi
-        W.MM(mStal, xBot, 58.2f, yP, yP + .02f, 28.75f, 28.85f);
+        // Poprzeczny pas stali z podłogi między schodami a ruchomymi zdjęty.
+        // Schody mają osobne balustrady; łącznik na dolnym spoczniku jest wolny.
+        Debug.Log("BRAXHORN_METRO_PRZEJSCIE_SCHODY: przejście bez poprzecznej listwy/murku");
 
         // schody ruchome (jadą w górę): z 28.95–31.25, nachylenie 30° — pkt 58: wspólny wykonawca SchodyRuchome (jazda, poręcz UV, dźwięk)
         float ez0 = 28.95f, ez1 = 31.25f, ezc = (ez0 + ez1) * .5f, stepW = 1.0f * K;
