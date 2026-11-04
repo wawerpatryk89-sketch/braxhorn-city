@@ -27,6 +27,7 @@ public static class BraxBrakujaceSkrypty
     static bool PoprawnaNazwa(MonoScript script, System.Type type)
     {
         string path = AssetDatabase.GetAssetPath(script);
+        if (string.IsNullOrEmpty(path)) return false; // transient MonoScript cannot supply player serialization data
         return !path.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase) ||
             System.IO.Path.GetFileNameWithoutExtension(path) == type.Name;
     }
@@ -43,7 +44,7 @@ public static class BraxBrakujaceSkrypty
         // Unity 6000.0.58f2 accepts the old binding in the editor but writes only
         // the 32-byte base header into an Android bundle. Require explicit files.
         if (!PoprawnaNazwa(script, actual))
-            return actual.FullName + ": nazwa pliku MonoScript nie odpowiada klasie (" + AssetDatabase.GetAssetPath(script) + ")";
+            return actual.FullName + ": brak trwałego pliku MonoScript zgodnego z klasą (" + AssetDatabase.GetAssetPath(script) + ")";
         var path = AssetDatabase.GetAssetPath(script);
         if (path.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase) &&
             !UnityEditor.Compilation.CompilationPipeline.GetAssemblies(UnityEditor.Compilation.AssembliesType.Player)

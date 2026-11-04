@@ -19,6 +19,7 @@ public static class BraxSerializationProbe
         var brokenObject = new GameObject("Baseline build 58");
         var broken = brokenObject.AddComponent<BraxProbeBaseline.BraxMorzeZaKamera>();
         string rejected = BraxBrakujaceSkrypty.BladKomponentu(broken);
+        if (rejected == null) throw new Exception("Build gate failed to reject the known broken baseline");
         Debug.Log("BRAXHORN_PROBE_BASELINE_BINDING " + (rejected ?? "accepted by editor"));
         broken.komorka = 123.5f;
         broken.pol = 13;
