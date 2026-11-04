@@ -32,6 +32,37 @@ public static partial class BraxClaudeOsiedle
         return f.normalized;
     }
 
+    // Retarget Humanoid potrafi obrócić obie kostki o 150–180° mimo
+    // prawidłowej siatki i kości w modelu źródłowym. Koryguj TYLKO obroty
+    // stóp w klipach chodzenia i biegu, nie obracaj bioder, ud ani wiązań
+    // SkinMeshRenderer. Obrót wokół osi świata Y zachowuje wygięcie
+    // stopy góra/dół oraz długości kości.
+    static float PatrykWyprostujStopy(List<Transform> bones, Vector3 naturalForward)
+    {
+        Transform B(string key) => PatrykZnajdz(bones, key);
+        var lu = B("LeftUpLeg"); var ru = B("RightUpLeg");
+        if (!lu || !ru) throw new InvalidOperationException("Patryk chod/bieg: brak kości bioder");
+        Vector3 prawo = Vector3.ProjectOnPlane(ru.position - lu.position, Vector3.up);
+        if (prawo.sqrMagnitude < 1e-8f) throw new InvalidOperationException("Patryk chod/bieg: osie bioder zerowe");
+        Vector3 forward = Vector3.Cross(prawo.normalized, Vector3.up).normalized;
+        if (Vector3.Dot(forward, naturalForward) < 0f) forward = -forward;
+        float maks = 0f;
+        foreach (string side in new[] { "Left", "Right" })
+        {
+            var foot = B(side + "Foot"); var toe = B(side + "ToeBase");
+            if (!foot || !toe) throw new InvalidOperationException("Patryk chod/bieg: brak Foot/ToeBase " + side);
+            Vector3 dir = Vector3.ProjectOnPlane(toe.position - foot.position, Vector3.up);
+            if (dir.sqrMagnitude < 1e-8f) continue;
+            float delta = Vector3.SignedAngle(dir.normalized, forward, Vector3.up);
+            if (Mathf.Abs(delta) > 38f)
+            {
+                foot.rotation = Quaternion.AngleAxis(delta, Vector3.up) * foot.rotation;
+                maks = Mathf.Max(maks, Mathf.Abs(delta));
+            }
+        }
+        return maks;
+    }
+
     // Keep the model's relaxed bind pose. No fighting clip is used before an attack.
     static AnimationClip PatrykSpokojny(GameObject hero, List<PatrykStan> rest)
         => PatrykPozaStala(hero, rest, "Idle", false);
@@ -141,6 +172,10 @@ public static partial class BraxClaudeOsiedle
             writer.GetHumanPose(ref targetRest);
             Vector3 hipsRest = hips.localPosition;
             HumanPose pose = new HumanPose();
+            bool lokomocja = spec.nazwa == "Walk" || spec.nazwa == "Run";
+            PatrykSpoczynek(rest);
+            Vector3 naturalForward = PatrykPrzodStop(bones);
+            float maxObrotStopy = 0f; int poprawioneKlatki = 0;
             Vector3 Sample(float time)
             {
                 playable.SetTime(time); graph.Evaluate(0);
@@ -160,6 +195,11 @@ public static partial class BraxClaudeOsiedle
                 pose.bodyPosition = targetRest.bodyPosition + motion;
                 PatrykSpoczynek(rest);
                 writer.SetHumanPose(ref pose);
+                if (lokomocja)
+                {
+                    float obr = PatrykWyprostujStopy(bones, naturalForward);
+                    if (obr > 0f) { poprawioneKlatki++; maxObrotStopy = Mathf.Max(maxObrotStopy, obr); }
+                }
                 if(spec.wMiejscu) hips.localPosition=new Vector3(hipsRest.x,hips.localPosition.y,hipsRest.z);
                 for (int b = 0; b < bones.Count; b++)
                 {
@@ -182,9 +222,14 @@ public static partial class BraxClaudeOsiedle
             for (int axis = 0; axis < 3; axis++) result.SetCurve(hipsPath, typeof(Transform), "localPosition." + "xyz"[axis],
                 PatrykKrzywaZ(times, positions.Select(p => p[axis]).ToArray(), false));
             result.EnsureQuaternionContinuity();
-            if (!zapisz) { info = " (próba, bez zapisu)"; return result; }
+            if (!zapisz) { info = " (próba, bez zapisu), stopy: korekta " + poprawioneKlatki + "/" + count; return result; }
             ZapiszKlipPatryka(result);
-            info = " Unity Humanoid → Legacy, " + count + " próbek";
+            info = " Unity Humanoid → Legacy, " + count + " próbek; retarget stóp="
+                + poprawioneKlatki + "/" + count + " maks=" + maxObrotStopy.ToString("F1") + "°";
+            Debug.Log("BRAXHORN_PATRYK_STOPY_RETARGET klip=" + spec.nazwa +
+                      " poprawione_klatki=" + poprawioneKlatki +
+                      " maks_obrot=" + maxObrotStopy.ToString("F1") +
+                      "° (tylko kostki, oryginalne bindposes bez zmian)");
             return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + spec.nazwa + ".anim");
         }
         finally
