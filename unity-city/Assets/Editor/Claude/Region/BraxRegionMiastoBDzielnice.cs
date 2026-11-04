@@ -308,15 +308,14 @@ public static partial class BraxRegionMiastoB
         OsX(RZ, NC[0] + 20f, PetlaZX - PetlaPlac - 9f);
         for (int i = 0; i < 3; i++) { OsX(RZ, NC[i + 1] + 20f, NC[i] - 20f); OsX(NN1, NC[i + 1] + 16f, NC[i] - 16f); OsX(NS1, NC[i + 1] + 16f, NC[i] - 16f); }
         for (int i = 0; i < 4; i++) { OsZ(NC[i], NS1 + 16f, RZ - 20f); OsZ(NC[i], RZ + 20f, NN1 - 16f); }
-        // podział: na jezdnię z torowiskiem → wstawki toru; reszta → farba B (asfalt z wycięciami)
-        foreach (var q in moja.r)
-        {
-            var w = Przetnij(q, TorRect);
-            if (Niepuste(w)) ndWstawkiToru.Add((w, 0));
-            foreach (var reszta in Odejmij(q, TorRect)) if (Niepuste(reszta)) f.r.Add(reszta);
-        }
-        NdKrok("torowisko w nawierzchni ul. Tramwajowej", NdTorowisko);
-        NdLog("oznakowanie: zebr bez świateł " + ndZebry + " + na 15 wlotach alei z sygnalizacją, pasów farby " + moja.r.Count + " — W WYCIĘCIACH asfaltu; wstawek toru " + ndWstawkiToru.Count);
+        // Oznakowanie w zwykłym asfalcie B. T1 jest tylko parą stalowych szyn
+        // 1.5 cm ponad drogą, nie budujemy drugi raz tej samej jezdni ani farby.
+        // Asfalt jest przycinany do rozłącznych płatów w BudujAsfalt.
+        foreach (var q in moja.r) f.r.Add(q);
+        NdKrok("T1: szyny na czterech ulicach zamkniętej pętli", NdTorowisko);
+        NdLog("oznakowanie: zebr bez świateł " + ndZebry +
+              " + na 15 wlotach alei z sygnalizacją, pasów farby " + moja.r.Count +
+              " — bez podwójnej geometrii asfaltu");
     }
 
     static (Vector3 dir, float hj, float chod)[] NdWlotyAlei(int i)
@@ -326,45 +325,9 @@ public static partial class BraxRegionMiastoB
         return l.ToArray();
     }
 
-    // TOROWISKO W NAWIERZCHNI całej ul. Tramwajowej (C3–C0): dwa tory (pas płd. — na wschód, płn. — na zachód), szyny rowkowe jako
-    // WSTAWKI w wycięciach asfaltu (główka szyny ze stali + rowek ciemny) — ta sama wysokość co asfalt, styk krawędzią (zasada
-    // 15:40: nic nie leży na asfalcie). Rozstaw 1.435 m × K. Asfalt odcinka budowany tu (górna powierzchnia z otworami).
-    static void NdTorowisko()
-    {
-        float roz = Rozstaw * K, glowka = .07f * K, rowek = .045f * K;
-        foreach (float zt in new[] { NS1 - AH * .5f, NS1 + AH * .5f })
-            foreach (int s in new[] { -1, 1 })
-            {
-                float zc = zt + s * (roz * .5f + glowka * .5f);
-                ndWstawkiToru.Add((Rect.MinMaxRect(TorRect.xMin + .8f, zc - glowka * .5f, TorRect.xMax - .8f, zc + glowka * .5f), 1));
-                float zr = zt + s * (roz * .5f - rowek * .5f);   // rowek po wewnętrznej stronie główki
-                ndWstawkiToru.Add((Rect.MinMaxRect(TorRect.xMin + .8f, zr - rowek * .5f, TorRect.xMax - .8f, zr + rowek * .5f), 2));
-            }
-        // farba przecinająca szyny: farba ustępuje szynie (wstawki się nie nakładają)
-        var szyny = ndWstawkiToru.Where(w => w.mat > 0).Select(w => w.r).ToList();
-        var nowe = new List<(Rect, int)>();
-        foreach (var (r, m) in ndWstawkiToru)
-        {
-            if (m > 0) { nowe.Add((r, m)); continue; }
-            var l = new List<Rect> { r }; foreach (var sz in szyny) l = l.SelectMany(x => Odejmij(x, sz)).ToList();
-            nowe.AddRange(l.Where(Niepuste).Select(x => (x, 0)));
-        }
-        ndWstawkiToru.Clear(); ndWstawkiToru.AddRange(nowe);
-        var stalSzyny = BraxCityMaterials.Surface("Tor: główka szyny (stal wyślizgana)", new Color(.62f, .62f, .62f), .25f, .9f);
-        var rowekMat = BraxCityMaterials.Surface("Tor: rowek szyny (ciemny)", new Color(.05f, .05f, .05f), .8f, .3f);
-        var bTop = new BraxRegionMeble.Bud(); var bWst = new[] { new BraxRegionMeble.Bud(), new BraxRegionMeble.Bud(), new BraxRegionMeble.Bud() };
-        NdWstawki(TorRect, YA, ndWstawkiToru, bTop, bWst);
-        bTop.Obiekt("Jezdnia z torowiskiem (asfalt, ul. Tramwajowa)", root, asfalt, false, false);
-        bWst[0].Obiekt("Torowisko: farba w wycięciach", root, farba, false, false);
-        bWst[1].Obiekt("Torowisko: główki szyn (w wycięciach asfaltu)", root, stalSzyny, false, false);
-        bWst[2].Obiekt("Torowisko: rowki szyn (w wycięciach asfaltu)", root, rowekMat, false, false);
-        Nawierzchnia(BraxRegionMeble.Kolizja(root, "Jezdnia z torowiskiem kolizja", new Vector3(TorRect.center.x, YA - .15f, TorRect.center.y), new Vector3(TorRect.width, .3f, TorRect.height)));
-        // kontrola: wstawki toru parami; asfalt B, w tym wloty skrzyżowań, ma wyciętą strefę TorRect w BudujAsfalt.
-        for (int i = 0; i < ndWstawkiToru.Count; i++) for (int j = i + 1; j < ndWstawkiToru.Count; j++) if (Niepuste(Przetnij(ndWstawkiToru[i].r, ndWstawkiToru[j].r))) { ndMigotanie++; Debug.LogWarning("BRAXHORN_MIASTO_ASSETY_MIGOTANIE wstawki toru " + ndWstawkiToru[i].r + " × " + ndWstawkiToru[j].r); }
-        int rozcieteOdcinki = asfalty.Count(a => Niepuste(Przetnij(a.r, TorRect)));
-        NdLog("TRAM_T1_ODCINKI_ODCINANE: " + rozcieteOdcinki + " fragmentów planowanego asfaltu B; wycinane w BudujAsfalt, nie oznaczają migotania.");
-        NdLog("torowisko: 2 tory × 2 szyny rowkowe (rozstaw " + (Rozstaw * K).ToString("0.000") + " m = 1.435 × K) x " + (TorRect.xMin + .8f).ToString("0.0") + "…" + (TorRect.xMax - .8f).ToString("0.0") + " — wstawki w wycięciach asfaltu, wstawek " + ndWstawkiToru.Count);
-    }
+    // T1: zamknięta pętla (Tramwajowa -> C0 -> Nowojorska -> C3).
+    // Szyny są osobnymi elementami stalowymi nad jedyną warstwą asfaltu.
+    static void NdTorowisko() => NdSzynyTramT1();
 
     // górna powierzchnia prostokąta z otworami w miejscach wstawek (każda wstawka swoim materiałem) — wariant Wstawki B
     static void NdWstawki(Rect a, float y, List<(Rect r, int mat)> wst, BraxRegionMeble.Bud bTop, BraxRegionMeble.Bud[] bW, float grub = .3f)
