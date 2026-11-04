@@ -1,7 +1,8 @@
 {
   "firstInstall": false,
   "privateInputsSha256": "57ccbb5fb17b248ff39a91abd549e5474796da3f102a86c08ae4f30f0f3a62f8",
-  "request": "oboz-combined-after-6-rings-and-player-sparring-20261104",
+  "request": "oboz-owner-start-combined-20261104-01",
+  "sourceBaseCommit": "de3b48f126803204bd5f0d15a870b52b2ac8cdd1",
   "validationRun": null,
   "validatedSourceCommit": null,
   "phoneTested": false,

@@ -1,3 +1,24 @@
+# Aktualizacja właściciela — start obozu na polecenie, 4.11.2026
+
+Nowsze polecenie właściciela dla obozu: „Masz puścić ten bulic samodzielnie,
+za każdym razem, jak będę chciał”. Wykonawca ma sam wysłać jedno zlecenie
+buildu po jednoznacznym poleceniu właściciela, bez wymagania od niego klikania
+w GitHubie lub logowania do dodatkowej usługi. Ten wyjątek dotyczy wyłącznie
+APK obozu na `gpt/oboz`; nie zmienia zasad miasta ani osiedla.
+
+Workflow obozu może uruchomić się po zmianie WYŁĄCZNIE zlecenia
+`unity-tools/oboz/build-request.json`. Każde nowe zlecenie wymaga aktualnego
+polecenia właściciela, nowego identyfikatora, `ownerRequested: true`, SHA
+sprawdzonej bazy i zgodnego manifestu dostawy. Przed wysłaniem sprawdź runy;
+nie dubluj istniejącego zlecenia. Zwykłe commity kodu, PR, merge, harmonogram
+ani błąd poprzedniego runu nie są zleceniem i nie mogą tworzyć nowego zlecenia.
+Wysłanie następuje pojedynczym commitem na sprawdzonej bazie, z kontrolą
+oczekiwanego SHA gałęzi. Ręczne `workflow_dispatch` pozostaje dostępne.
+
+Aktualnie zlecono jeden build całego połączonego obozu po #6: trzy areny,
+zachowanie NPC, dźwięki i zabezpieczenie dostawy APK. Bez samoczynnych ponowień.
+Poniższe wcześniejsze reguły nadal obowiązują poza tym konkretnym wyjątkiem.
+
 # BRAXHORN CITY — OBOWIĄZKOWA ZASADA DLA WSZYSTKICH WYKONAWCÓW (4.11.2026)
 
 **Decyzja właściciela: żadnych automatycznych buildów.** Dotyczy Claude, Codex, GPT, Work oraz wszystkich innych wykonawców; miasta, osiedla i obozu.

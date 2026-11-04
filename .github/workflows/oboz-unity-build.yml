@@ -1,6 +1,10 @@
 name: Obóz — Unity 6 APK do testu
 
 on:
+  # Owner-requested start only; normal source commits do not build an APK.
+  push:
+    branches: [gpt/oboz]
+    paths: [unity-tools/oboz/build-request.json]
   workflow_dispatch:
     inputs:
       first_install:
@@ -25,6 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          fetch-depth: 2
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             unity-city/Assets/
@@ -37,20 +42,9 @@ jobs:
         id: request
         env:
           EVENT: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
           FIRST_INSTALL: ${{ inputs.first_install }}
-        run: |
-          python3 - <<'PY'
-          import hashlib, json, os
-          from pathlib import Path
-          first=os.environ['FIRST_INSTALL']=='true'
-          if os.environ['EVENT']!='workflow_dispatch': raise ValueError('Build wymaga ręcznego zlecenia')
-          request=json.loads(Path('unity-tools/oboz/build-request.json').read_text())
-          actual=hashlib.sha256(Path('unity-tools/oboz/private-inputs.json').read_bytes()).hexdigest()
-          if request.get('privateInputsSha256')!=actual or type(request.get('firstInstall')) is not bool:
-              raise ValueError('Zlecenie nie odpowiada bieżącej dostawie obozu')
-          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
-              output.write('first_install='+str(first).lower()+'\n')
-          PY
+        run: python3 unity-tools/oboz/build_request.py
       - name: Sprawdź narzędzia Androida przed kompilacją
         run: |
           set -euo pipefail

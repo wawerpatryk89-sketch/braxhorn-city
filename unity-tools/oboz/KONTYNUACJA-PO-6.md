@@ -1,8 +1,18 @@
 # Obóz — kontynuacja po #6, 4 listopada 2026
 
+Nowsza decyzja właściciela: wykonawca ma sam uruchamiać build po jego
+jednoznacznym poleceniu. Wprowadzono więc wąski wyjątek opisany w AGENTS.md:
+zmiana osobnego zlecenia na `gpt/oboz` może rozpocząć jeden przebieg.
+Zwykłe zmiany kodu nie uruchamiają APK. Zlecenie musi mieć nowy identyfikator,
+zgodny manifest i SHA bazy równy poprzedniemu HEAD oraz rodzicowi commita.
+Kontrola odrzuca ponowne użycie identyfikatora, inną bazę i inne gałęzie.
+To udokumentowane polecenie właściciela, nie automatyczne generowanie zgód.
+Reguły miasta i osiedla nie zostały zmienione. Nowy start dotyczy całej
+połączonej wersji `de3b48f` wraz z tą zmianą sposobu zlecania.
+
 Baza zdalna: `acd2dea75103dee7cf85b65859fe284cb672d7b3` na `gpt/oboz`.
-Zachowano w całości decyzję właściciela o ręcznych workflow i osobnej zgodzie
-na Unity/APK. Kod tej kontynuacji nie uruchamia buildu, testu Unity ani odzyskiwania.
+Pierwotne scalenie zachowało ręczne workflow i nie uruchamiało Unity/APK.
+Późniejszy wyjątek na aktualne polecenie właściciela jest opisany powyżej.
 Miasto, osiedle, wygląd, modele i sterowanie pozostają poza zmianą.
 
 Aktualne zlecenie właściciela: połączyć tę kontynuację z zawartością #6 i
@@ -82,7 +92,7 @@ Nie ma potwierdzonego linku pobrania #6. Nie zastępować go APK #5.
 
 ## Jedno połączone uruchomienie
 
-- `oboz-unity-build.yml` pozostaje wyłącznie ręczny i ograniczony do `gpt/oboz`.
+- `oboz-unity-build.yml` wymaga jawnego zlecenia i jest ograniczony do `gpt/oboz`.
   Najpierw uruchamia Play Mode bieżącego SHA i sprawdza pełny raport: trzy areny,
   sparing Moniki na każdej, uderzenia worków podczas jej walki, rotację, pauzę
   oraz komplet 98 przypadków animacji. Brak lub błąd raportu blokuje APK.
@@ -96,10 +106,10 @@ Nie ma potwierdzonego linku pobrania #6. Nie zastępować go APK #5.
   lokalna nie potwierdza jeszcze, że uprawnienia do uploadu w CI wystarczą.
 - Przywracanie nagrań i checkpointu obsługuje zarówno dotychczasowe wydania,
   jak i nowe nazwy zawierające wersję oraz SHA. Kontrola SHA-256 pozostaje.
-- Domyślna gałąź `main` nie zawiera jeszcze wejścia ręcznego workflow obozu.
-  Rejestracja wymaga osobnej zmiany CI; nie przenosi kodu gry na `main`.
-  W obecnej sesji nie ma operacji `workflow_dispatch` ani zalogowanej
-  przeglądarki GitHub. Nie raportować startu bez rzeczywistego numeru runu.
+- PR #15 zarejestrował ręczne wejście workflow na `main`, bez kodu gry.
+  Bieżący wykonawca nie ma operacji `workflow_dispatch` ani zalogowanej
+  przeglądarki GitHub. Na nowsze polecenie właściciela używa osobnego pliku
+  zlecenia, bez wymogu dodatkowego logowania. Nie raportować startu bez runu.
 
 ## Weryfikacja tej kontynuacji
 
@@ -112,6 +122,9 @@ Nie ma potwierdzonego linku pobrania #6. Nie zastępować go APK #5.
   nazw, kolejność wskaźnika, błędy wysyłki, kolizję, draft, tożsamość i zmianę
   bajtów APK. GitHub jest atrapą testową; nie jest to rzeczywista wysyłka.
 - Parser C# dla ośmiu zmienionych plików, YAML i Bash: PASS; nie kompilacja C#.
-- Wszystkie workflow obozu są ręczne; brak push/PR/schedule/workflow_run.
+- Pozostałe workflow obozu są ręczne. APK może wystartować ze sprawdzonego
+  zlecenia; brak triggerów PR/schedule/workflow_run i brak startu po zmianie kodu.
+- 9 testów kontroli zlecenia: PASS; obejmują duplikat, niezgodną bazę,
+  wiele commitów, utworzenie gałęzi, brak zgody i obcy manifest/branch/event.
 - Play Mode trzech aren: NIEURUCHOMIONY. Odzysk #6: NIEURUCHOMIONY.
 - Nowe APK: NIEURUCHOMIONE. Telefon: NIETESTOWANY.
