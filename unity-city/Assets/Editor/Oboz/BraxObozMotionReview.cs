@@ -29,6 +29,7 @@ public static partial class BraxObozCharacters
         public string unity, commit, character="monika", graphics;
         public bool phoneTested=false, appearanceApproved=false, experimentOnly=true, complete=false;
         public MotionCase[] cases;
+        public string[] errors;
     }
 
     [MenuItem("BRAXHORN/Obóz/Monika — porównaj ruch bez APK")]
@@ -38,7 +39,10 @@ public static partial class BraxObozCharacters
         string output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/MonikaReview"));
         Directory.CreateDirectory(output);
         var report=new MotionReview{unity=Application.unityVersion,commit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local",graphics=SystemInfo.graphicsDeviceType.ToString()};
-        var cases=new List<MotionCase>();
+        var cases=new List<MotionCase>();var errors=new List<string>();
+        var reviewClips=spec.clips.Where(c=>new[]{"Idle","Walk","Run","Punch","Training"}.Contains(c.name)).ToList();
+        foreach(string name in new[]{"Idle","Walk","Run"})
+            reviewClips.Add(new ClipSpec{name="Casual"+name,path="Assets/Source/Prywatne/Oboz/animations/casual/"+name+".anim",loop=true,inPlace=true,donor="Basic Motions"});
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(spec.modelPath);
         var imported=AssetDatabase.LoadAllAssetsAtPath(spec.modelPath).OfType<Avatar>().FirstOrDefault();
         if(!source||!imported||!imported.isValid||!imported.isHuman)throw new InvalidOperationException("Brak modelu/awatara Moniki");
@@ -60,7 +64,7 @@ public static partial class BraxObozCharacters
                 renderer.sharedMaterials=Enumerable.Repeat(material,renderer.sharedMesh.subMeshCount).ToArray();
                 renderer.updateWhenOffscreen=true;renderer.shadowCastingMode=ShadowCastingMode.Off;
             }
-            var calibrated=CalibratedMotionAvatar(hero,imported);temp.Add(calibrated);
+            Avatar calibrated=null;
             if(SystemInfo.graphicsDeviceType==GraphicsDeviceType.Null)throw new InvalidOperationException("Brak urządzenia graficznego do dowodu wizualnego");
             var cameraGo=new GameObject("Motion review camera");temp.Add(cameraGo);var camera=cameraGo.AddComponent<Camera>();
             camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.12f,.14f,.17f);camera.orthographic=true;camera.nearClipPlane=.01f;camera.farClipPlane=100;
@@ -71,12 +75,13 @@ public static partial class BraxObozCharacters
             RenderSettings.ambientMode=AmbientMode.Flat;RenderSettings.ambientLight=new Color(.5f,.5f,.5f);
             try
             {
-                foreach(var clipSpec in spec.clips.Where(c=>new[]{"Idle","Walk","Run","Punch","Training"}.Contains(c.name)))
-                foreach(string variant in new[]{"baseline","direct","calibrated-direct"})
+                foreach(var clipSpec in reviewClips)
+                foreach(string variant in clipSpec.name.StartsWith("Casual",StringComparison.Ordinal)?new[]{"direct","calibrated-direct"}:new[]{"baseline","direct","calibrated-direct"})
                 {
                     Restore(rest);AnimationClip baked=null;
                     try
                     {
+                        if(variant=="calibrated-direct"&&!calibrated){calibrated=CalibratedMotionAvatar(hero,imported);temp.Add(calibrated);}
                         baked=variant=="baseline"?Bake(hero,imported,hips,rest,clipSpec):BakeDirectMotion(hero,variant=="direct"?imported:calibrated,hips,rest,clipSpec);
                         Validate(hero,hips,rest,baked);
                         var frames=new List<MotionFrame>();var captures=new List<string>();
@@ -96,18 +101,19 @@ public static partial class BraxObozCharacters
                         cases.Add(new MotionCase{variant=variant,clip=clipSpec.name,source=clipSpec.path,frames=frames.ToArray(),captures=captures.ToArray()});
                         Debug.Log("BRAXHORN_MONIKA_REVIEW "+variant+" "+clipSpec.name+" samples="+frames.Count);
                     }
+                    catch(Exception ex){errors.Add(variant+"/"+clipSpec.name+": "+ex.GetType().Name+": "+ex.Message);Debug.LogException(ex);}
                     finally{if(baked)Object.DestroyImmediate(baked);Restore(rest);}
                 }
             }
             finally{RenderSettings.ambientLight=previousAmbient;RenderSettings.ambientMode=previousMode;}
-            report.complete=cases.Count==15;
+            report.complete=cases.Count==21&&errors.Count==0;
         }
         finally
         {
-            report.cases=cases.ToArray();File.WriteAllText(Path.Combine(output,"motion-review.json"),JsonUtility.ToJson(report,true));
+            report.cases=cases.ToArray();report.errors=errors.ToArray();File.WriteAllText(Path.Combine(output,"motion-review.json"),JsonUtility.ToJson(report,true));
             foreach(var obj in temp)if(obj)Object.DestroyImmediate(obj);
         }
-        if(cases.Count!=15)throw new InvalidOperationException("Niepełne porównanie ruchu Moniki");
+        if(!report.complete)throw new InvalidOperationException("Niepełne porównanie ruchu Moniki: "+cases.Count+"/21; "+string.Join("; ",errors));
         Debug.Log("BRAXHORN_MONIKA_REVIEW complete=true phone_tested=false accepted_fix=false");
     }
 
@@ -152,7 +158,14 @@ public static partial class BraxObozCharacters
         try
         {
             var hd=imported.humanDescription;var transforms=copy.GetComponentsInChildren<Transform>(true);
-            Transform Bone(string human){var map=hd.human.Single(h=>h.humanName==human);return transforms.Single(t=>t.name==map.boneName);}
+            // HumanDescription uses spaces in finger names (e.g. Left Middle Proximal).
+            Transform Bone(string human,bool optional=false)
+            {
+                var maps=hd.human.Where(h=>h.humanName.Replace(" ","")==human).ToArray();
+                if(maps.Length==0&&optional)return null;
+                if(maps.Length!=1)throw new InvalidOperationException("Niejednoznaczne mapowanie kości: "+human);
+                return transforms.Single(t=>t.name==maps[0].boneName);
+            }
             void Aim(Transform from,Transform to,Vector3 direction){from.rotation=Quaternion.FromToRotation(to.position-from.position,direction)*from.rotation;}
             var right=Bone("RightUpperLeg").position-Bone("LeftUpperLeg").position;right.y=0;right.Normalize();var forward=Vector3.Cross(right,Vector3.up);
             foreach(string side in new[]{"Left","Right"})
@@ -164,9 +177,14 @@ public static partial class BraxObozCharacters
                 var toe=toes.position-foot.position;float pitch=Mathf.Clamp(toe.normalized.y,-.95f,.95f);
                 Aim(foot,toes,forward*Mathf.Sqrt(1-pitch*pitch)+Vector3.up*pitch);
                 var arm=Bone(side+"UpperArm");var forearm=Bone(side+"LowerArm");var hand=Bone(side+"Hand");var outward=side=="Left"?-right:right;
-                Aim(arm,forearm,outward);Aim(forearm,hand,outward);Aim(hand,Bone(side+"MiddleProximal"),outward);
-                var thumb=Vector3.ProjectOnPlane(Bone(side+"ThumbProximal").position-hand.position,outward);
-                arm.rotation=Quaternion.AngleAxis(Vector3.SignedAngle(thumb,forward,outward),outward)*arm.rotation;
+                Aim(arm,forearm,outward);Aim(forearm,hand,outward);
+                var middle=Bone(side+"MiddleProximal",true);if(middle)Aim(hand,middle,outward);
+                var thumbBone=Bone(side+"ThumbProximal",true);
+                if(thumbBone)
+                {
+                    var thumb=Vector3.ProjectOnPlane(thumbBone.position-hand.position,outward);
+                    if(thumb.sqrMagnitude>1e-10f)arm.rotation=Quaternion.AngleAxis(Vector3.SignedAngle(thumb,forward,outward),outward)*arm.rotation;
+                }
             }
             hd.skeleton=transforms.Select(t=>new SkeletonBone{name=t.name,position=t.localPosition,rotation=t.localRotation,scale=t.localScale}).ToArray();
             var avatar=AvatarBuilder.BuildHumanAvatar(copy,hd);

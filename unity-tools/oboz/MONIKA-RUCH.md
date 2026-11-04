@@ -25,8 +25,10 @@ Model, ubranie, tekstury, proporcje i siatka mają pozostać oryginalne.
 odtwarzanie klipu Humanoid na Monice oraz wariant bezpośredni z awatarem
 kalibrowanym na kopii szkieletu. Oryginalne bind poses i FBX nie są zmieniane.
 
-Pięć ruchów: Idle, Walk, Run, Punch, Training. Trzy warianty, 60 próbek na
-wariant/ruch; obrazy z przodu, tyłu i boku. Raport rozróżnia kompletność
+Pięć dotychczasowych ruchów: Idle, Walk, Run, Punch, Training. Trzy warianty,
+60 próbek na wariant/ruch; obrazy z przodu, tyłu i boku. Rewizja 3 dodaje
+Idle/Walk/Run z biblioteki Basic Motions (wyłącznie warianty bezpośrednie).
+Łącznie 21 porównań, 1260 pomiarów i 756 obrazów. Raport rozróżnia kompletność
 eksperymentu od akceptacji wyglądu. Sam wynik zielony nie akceptuje ruchu.
 Kierunek stopy mierzony jest tylko, gdy jej rzut na podłoże jest mierzalny.
 Obrót w boksie trzeba oceniać w kontekście ruchu, nie progiem dla chodzenia.
@@ -48,5 +50,22 @@ Pierwszy run `41822204442` nie uruchomił Unity: token `contents: read` nie
 widzi prywatnego draft release dostawy (`release not found`). Istnienie draftu
 i siedmiu paczek potwierdzono przez API. Rewizja 2 stosuje `contents: write`
 tak jak działający workflow obozu; nie dodaje żadnego zapisu do release.
+Run `41822556178` skompilował kod i zaimportował źródła, lecz zatrzymał się
+w narzędziu diagnostycznym przy mapowaniu palców podczas kalibracji awatara.
+Nie powstały obrazy porównawcze. Rewizja 3 normalizuje nazwy mapowania
+i obsługuje brak opcjonalnych palców; nie przerywa pozostałych przypadków
+po pojedynczym błędzie. Nie jest to jeszcze dowód poprawienia nóg w grze.
+
+Klipy kandydackie pochodzą z biblioteki właściciela, paczka
+`BRAXHORN_ANIMACJE_03_RUCH.zip`; SHA poszczególnych plików sprawdzono z katalogiem.
+Przekazano wyłącznie CMS AES-256-GCM/RSA-OAEP-SHA256 do istniejącego draftu
+transportowego obozu. Asset `709302192`, 233465 bajtów, SHA-256
+`846d8cff45095124ec7b483c468fb6c44dba2e819aef7b06560642ed34fa8d6e`.
+Właściciel potwierdził zgodę na przenoszenie po zatrzymaniu pierwszej próby
+przez automatyczną kontrolę. Źródła nie zostały dodane do publicznego gita.
+Przywrócenie testowe sprawdza całą paczkę, certyfikat, opakowany klucz i wszystkie
+trzy źródła przed instalacją; lokalnie odrzucono błędny hash i niebezpieczną ścieżkę.
+Odczyt cache w rewizji 3 wskazuje bazową gałąź `gpt/oboz`; kod wspólnego narzędzia
+pozostaje identyczny, a pamięć źródłowej gałęzi nie jest zapisywana ani usuwana.
 Kolejny etap po Monice: pozostała szóstka, zachowania NPC i zaparkowany autobus
 skopiowany z istniejącego zasobu miasta/osiedla.

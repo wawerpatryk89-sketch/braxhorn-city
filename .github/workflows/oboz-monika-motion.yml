@@ -26,6 +26,10 @@ jobs:
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: python3 unity-tools/oboz/assets.py restore
+      - name: Zweryfikowane kandydaty spokojnego chodu, biegu i postoju
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/motion_candidates.py
       - name: Profil pamięci obozu
         id: profile
         run: python3 unity-tools/updates/unity_cache.py profile --zone oboz
@@ -39,10 +43,20 @@ jobs:
             ${{ runner.temp }}/oboz-library.tar.zst.enc.json
           key: ${{ steps.profile.outputs.prefix }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: ${{ steps.profile.outputs.prefix }}
-      - name: Trwała kopia Library przy braku wpisu w cache
+      - name: Odczytaj zgodną pamięć bazowej gałęzi obozu
         if: ${{ steps.cache.outputs.cache-matched-key == '' }}
         continue-on-error: true
-        run: python3 unity-tools/updates/durable_cache.py download --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
+        run: |
+          python3 - <<'PY_CACHE'
+          import os, sys
+          from pathlib import Path
+          sys.path.insert(0,'unity-tools/updates')
+          from unity_cache import profile
+          from durable_cache import download, release_tag
+          expected=profile(Path('unity-city'),'oboz','6000.0.58f2')
+          tag=release_tag(expected,'refs/heads/gpt/oboz')
+          download(os.environ['GITHUB_REPOSITORY'],tag,Path(os.environ['RUNNER_TEMP'])/'oboz-library.tar.zst.enc',expected)
+          PY_CACHE
       - name: Sprawdź i odszyfruj cache
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -79,13 +93,14 @@ jobs:
           assert not report['phoneTested'] and not report['appearanceApproved']
           assert report['unity']=='6000.0.58f2' and report['graphics']!='Null'
           expected={(v,c) for v in ('baseline','direct','calibrated-direct') for c in ('Idle','Walk','Run','Punch','Training')}
+          expected|={(v,c) for v in ('direct','calibrated-direct') for c in ('CasualIdle','CasualWalk','CasualRun')}
           assert {(c['variant'],c['clip']) for c in report['cases']}==expected
           for case in report['cases']:
               assert len(case['frames'])==60 and len(case['captures'])==36
               for name in case['captures']:
                   assert Path(name).name==name and name.endswith('.png')
                   assert (root/name).is_file() and (root/name).stat().st_size>4096
-          print('MONIKA: 15 porównań, 900 pomiarów, 540 obrazów; wymagają oceny ruchu')
+          print('MONIKA: 21 porównań, 1260 pomiarów, 756 obrazów; wymagają oceny ruchu')
           PY_REVIEW
       - name: Tylko obrazy Moniki i pomiary — bez surowych źródeł
         if: always()
