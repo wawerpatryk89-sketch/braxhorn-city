@@ -521,8 +521,22 @@ public static class BraxNabrzezeMarina
         vessel.maxSpeed = t.vmax; vessel.turnRate = t.skret; vessel.accel = t.przysp;
         vessel.length = t.dlug * K; vessel.width = szer;
         vessel.sit = t.siedzi;
-        // miejsce gracza: kokpit / siodło — promień w dół na tymczasowe kolizje modelu
+        // Fotel z geometrii źródłowego GLB, nie arbitralnie środek kadłuba.
+        // Punkt seat = poziom SIEDZISKA, a nie wysokość bioder — BraxVessel
+        // kalibruje przesunięcie kości Hips względem rzeczywistego rigu.
         vessel.seat = Siedzenie(go, v.transform, t);
+        vessel.sitLower = .95f * K; // awaryjny offset tylko jeśli rig nie ma Hips
+        if (t.label == "JACHT")
+        {
+            // Dwa etapy: najpierw wejście na dostępny pokład, później ster.
+            // Płaska strefa chodzenia jest tylko w obrębie pokładu, bez
+            // doklejania kolejnych widocznych ścian/podłóg.
+            vessel.walkableDeck = true;
+            vessel.deckEntry = new Vector3(0f, vessel.seat.y - .13f * K,
+                                              -.42f * vessel.length);
+            vessel.helmCameraLocal = vessel.seat +
+                new Vector3(0f, .70f * K, -.34f * K);
+        }
         // miejsce wejścia (AKCJA „WSIĄDŹ”): przy burcie od pomostu (jacht) albo przy rufie (motorówka, skuter)
         vessel.wejscie = !float.IsNaN(burtaX) ? v.transform.InverseTransformPoint(new Vector3(zachod && burtaX > PomX1 + 1f ? burtaX + .9f : burtaX - .9f, W, cel.z - pol * .25f))
                                               : new Vector3(0, 0, -pol - .9f);
@@ -555,20 +569,67 @@ public static class BraxNabrzezeMarina
 
     static Vector3 Siedzenie(GameObject model, Transform v, Typ t)
     {
+        // RIVA: oryginalny model ma assise_4 (prawy fotel kierowcy),
+        // assise_4_1 (fotel pasażera) i compteurs (dashboard na +X).
+        // Właściciel pokazał błąd: siedzenie w osi X=0, daleko od kierownicy.
+        if (t.label == "MOTORÓWKA")
+        {
+            var seat = model.GetComponentsInChildren<Transform>(true)
+                .FirstOrDefault(x => x && x.name.Equals("assise_4", StringComparison.OrdinalIgnoreCase));
+            var dashboard = model.GetComponentsInChildren<Transform>(true)
+                .FirstOrDefault(x => x && x.name.Equals("compteurs", StringComparison.OrdinalIgnoreCase));
+            if (seat)
+            {
+                var b = BraxRegion.Bounds(seat.gameObject);
+                if (b.size.x > .10f && b.size.z > .10f)
+                {
+                    float h = b.min.y + Mathf.Min(.29f * b.size.y, .28f * K);
+                    Vector3 world = new Vector3(b.center.x, h, b.center.z);
+                    var pos = v.InverseTransformPoint(world);
+                    // Do kierownicy skierowana jest strona +Z (dziób), a model
+                    // już wcześniej został obrócony poprawnie w Lodz().
+                    if (dashboard)
+                    {
+                        var kier = BraxRegion.Bounds(dashboard.gameObject).center;
+                        Debug.Log("BRAXHORN_RIVA_KALIBRACJA: fotel=" + b.center.ToString("F2") +
+                            ", kierownica=" + kier.ToString("F2"));
+                    }
+                    Debug.Log("BRAXHORN_RIVA_FOTEL_STERNIKA local=" + pos.ToString("F2") +
+                              " (źródłowy assise_4, bez przypadkowego środka kadłuba)");
+                    return pos;
+                }
+            }
+            Debug.LogError("BRAXHORN_RIVA_BRAK_FOTELA: model nie zawiera assise_4 — pozycja wymaga ręcznej kontroli");
+        }
+
+        // SKUTER: najwyższy prawdziwy punkt siodła; JACHT: pierwszy dostępny
+        // poziom kokpitu. Przed raycast montujemy tymczasowe MeshCollidery
+        // na O R Y G I N A L N Y M modelu, usuwamy je po pomiarze.
         var tmp = new List<MeshCollider>();
-        foreach (var f in model.GetComponentsInChildren<MeshFilter>(true)) { if (!f.sharedMesh) continue; var c = f.gameObject.AddComponent<MeshCollider>(); c.sharedMesh = f.sharedMesh; tmp.Add(c); }
+        foreach (var f in model.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if (!f.sharedMesh) continue;
+            var c = f.gameObject.AddComponent<MeshCollider>();
+            c.sharedMesh = f.sharedMesh; tmp.Add(c);
+        }
         Physics.SyncTransforms();
-        float L1 = t.dlug * K;
-        float zl = t.label == "JACHT" ? -.36f * L1 : t.label == "MOTORÓWKA" ? -.08f * L1 : -.12f * L1;
+        float l = t.dlug * K;
+        float zl = t.label == "JACHT" ? -.32f * l :
+                   t.label == "MOTORÓWKA" ? .08f * l : -.12f * l;
         var p = v.TransformPoint(new Vector3(0, 0, zl));
-        float y = float.NaN;
-        var hits = Physics.RaycastAll(p + Vector3.up * 30f, Vector3.down, 40f, ~0, QueryTriggerInteraction.Collide);
-        var nasze = hits.Where(h => tmp.Contains(h.collider as MeshCollider) && h.point.y > W + .25f).Select(h => h.point.y).OrderBy(q => q).ToList();
-        if (nasze.Count > 0) y = t.label == "SKUTER" ? nasze.Last() : nasze.First();
+        var hits = Physics.RaycastAll(p + Vector3.up * 30f, Vector3.down,
+                                      40f, ~0, QueryTriggerInteraction.Collide);
+        var nasze = hits.Where(h => tmp.Contains(h.collider as MeshCollider) &&
+                                    h.point.y > W + .25f && h.normal.y > .5f)
+                        .Select(h => h.point.y).OrderBy(q => q).ToList();
+        float y = nasze.Count > 0 ?
+            (t.label == "SKUTER" ? nasze.Last() : nasze.First()) :
+            W + (t.label == "JACHT" ? 1.6f : t.label == "MOTORÓWKA" ? .9f : .8f) * K;
         foreach (var c in tmp) UnityEngine.Object.DestroyImmediate(c);
-        if (float.IsNaN(y)) y = W + (t.label == "JACHT" ? 1.6f : t.label == "MOTORÓWKA" ? .9f : .8f) * K;
-        float ly = y - W + (t.label == "MOTORÓWKA" ? .42f * K : t.label == "JACHT" ? .45f * K : .4f * K);   // skuter (zdjęcie właściciela 3.11 10:56: Brax zapadnięty w siodło po pas) — biodra nad siodłem   // motorówka / jacht: siedzisko (fotel sternika) nad podłogą kokpitu
-        return new Vector3(0, ly, zl);
+        var local = v.InverseTransformPoint(new Vector3(p.x, y, p.z));
+        Debug.Log("BRAXHORN_VESSEL_SIEDZISKO " + t.label + " local=" + local.ToString("F2") +
+                  " wykryte_lice=" + (nasze.Count > 0) + " (bez dodawania hip-offset do wysokości)");
+        return local;
     }
 
     /// <summary>Fala dziobowa i ślad za rufą (siatki z pianą; siłę ustawia BraxVessel wg prędkości) — bez cząsteczek.</summary>
