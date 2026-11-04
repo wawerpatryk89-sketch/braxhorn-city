@@ -339,9 +339,32 @@ public sealed class BraxGymPlayer : MonoBehaviour
                 transform.position + Vector3.up * .018f;
             return;
         }
+        // JACHT — kamera rzeczywiście W ŚRODKU kokpitu, za kołem sterowym.
+        // Dawna kamera TPP 2.2 m od sternika lądowała poza szybą i z boku
+        // jachtu. Kotwiczymy ją bezpośrednio w modelu sternika.
+        if (vessel && vessel.HasPilotCamera)
+        {
+            Vector3 k = vessel.transform.TransformPoint(vessel.helmCameraLocal);
+            var f = Vector3.ProjectOnPlane(vessel.transform.forward, Vector3.up);
+            if (f.sqrMagnitude < .01f) f = vessel.transform.forward;
+            view.transform.position = k;
+            view.transform.rotation = Quaternion.LookRotation(
+                f.normalized + Vector3.up * Mathf.Clamp((19f - pitch) * .012f, -.20f, .20f),
+                Vector3.up);
+            camNear = -1f;
+            // Głowa Braxa nie zasłania kamery od środka. Pozostaje jego
+            // naturalna poza przy sterze i rzucany cień, bez drugiego modelu.
+            if (!hiddenClose)
+            {
+                hiddenClose = true;
+                foreach (var rr in visual.GetComponentsInChildren<Renderer>(true))
+                    rr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+            }
+            return;
+        }
         float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
-        // właściciel 3.11 10:39: na jachcie „kamera ze środka, za kierownicą” — blisko za głową sternika (najwyżej 2.2 m)
-        float dist=vessel&&vessel.label=="JACHT"?Mathf.Min(distance,2.2f):distance;
+        // Na motorówce i skuterze zachowujemy kamerę TPP za rufą.
+        float dist=distance;
         Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*dist;
         Vector3 position=cameraTarget+offset;
         // Kamera (audyt filmów właściciela 1.11): nie wchodzi w ściany, szyby, korony drzew i lampy — kolidują z nią też
