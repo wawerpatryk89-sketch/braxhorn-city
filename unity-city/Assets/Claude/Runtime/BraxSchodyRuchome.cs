@@ -10,18 +10,25 @@ public class BraxSchodyRuchome : MonoBehaviour
     [Tooltip("Prędkość taśmy wzdłuż biegu (m/s); typowo 0.5.")]
     public float predkosc = .5f;
 
-    Vector3 start; float dlugosc;
+    Vector3 start; float dlugosc; float czasStart;
+    bool gotowe;
 
-    void Awake()
+    // AddComponent uruchamia Awake przed ustawieniem krok przez generator.
+    // Mierzenie domyślnego (.3,.2) powodowało przeskok po każdym cyklu.
+    void Start()
     {
         start = transform.localPosition;
         dlugosc = krok.magnitude;
+        czasStart = Time.time;
+        gotowe = dlugosc > .0001f;
     }
 
     void Update()
     {
-        if (dlugosc < 1e-4f) return;
-        float t = Mathf.Repeat(Time.time * predkosc, dlugosc) / dlugosc;
+        if (!gotowe) return;
+        // Cały złożony pas stanowi powtarzalną sekcję. Reset następuje
+        // dokładnie o JEDEN rzeczywisty krok, a nie o domyślną długość.
+        float t = Mathf.Repeat((Time.time - czasStart) * predkosc, dlugosc) / dlugosc;
         transform.localPosition = start + krok * t;
     }
 }
