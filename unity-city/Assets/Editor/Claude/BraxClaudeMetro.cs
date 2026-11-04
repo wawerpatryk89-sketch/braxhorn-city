@@ -175,6 +175,14 @@ public static class BraxClaudeMetro
             Bryla(TW0, PX0, yR - 1f, -6.4f, zS - .5f, zN + .5f), Bryla(PX1, TW1, yR - 1f, -6.4f, zS - .5f, zN + .5f) })   // tunele
             rep.otwory += W.Otwor(cityRoot, b, "metro_podziemie", zewnatrz);
 
+        // 3b) W istniejącym APK #64 dojście z ulicy blokowała donica wieżowca w x≈63, z≈35.
+        // Zdjąć drobne dekoracje na dojściu (model i kolizję), NIE wyłączać fasady
+        // ani całej kolizji budynku. Strefa dotyczy tylko 4.6×3.0 m przed wejściem.
+        var dojscie = Bryla(EX0 - 4.5f, EX0 + .1f, -.35f, 3.4f, EZ[1] + .3f, EZ[1] + EW - .2f);
+        var dekoracjeDojscia = W.Uprzatnij(cityRoot, dojscie, zewnatrz, 2.5f);
+        rep.uprzatniete.AddRange(dekoracjeDojscia.Select(x => "dojście metro: " + x));
+        Debug.Log("BRAXHORN_METRO_DOJSCIE usuniętych drobnych przeszkód=" + dekoracjeDojscia.Count);
+
         // 4) budowa
         W.Start(zewnatrz); W.Wnetrze = false; W.Komorka = 12f;
         foreach (float z0 in WEJSCIA) Wejscie(z0, z0 > 28f);
