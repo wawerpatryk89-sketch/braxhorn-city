@@ -33,8 +33,10 @@ env:
   # po pomiarze rozmiaru (krok „Rozmiar Library i swiata rejonu”) — limit 10 GB na repo, a Library zajmuje juz ~7-9 GB na job.
   PAMIEC_REJONOW: osiedle
 concurrency:
-  group: claude-region-${{ github.ref }}
-  cancel-in-progress: false
+  # Niebudujące commity na gałęzi napraw nie mogą blokować finalnego APK.
+  group: ${{ github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'CITY BUILD:') && 'claude-region-city-noop' || format('claude-region-{0}', github.ref) }}
+  # Tylko JAWNIE oznaczony CITY BUILD zastępuje poprzedni, nieaktualny test.
+  cancel-in-progress: ${{ github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:') }}
 jobs:
   source-imports:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:')))))
