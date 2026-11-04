@@ -66,7 +66,13 @@ def stage():
     signers = re.findall(r"Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9]+)", verification)
     if [s.lower() for s in signers] != [expected_cert]:
         raise RuntimeError("APK is not signed with the existing repository certificate")
-    sha = os.environ["GITHUB_SHA"]
+    # The Actions entry may live on main while the game is checked out at a
+    # separate, explicitly selected Champions commit. Keep both identities.
+    workflow_sha = os.environ["GITHUB_SHA"]
+    source_receipt = ROOT / "unity-city/mistrzowie.source-commit"
+    sha = source_receipt.read_text().strip() if source_receipt.is_file() else workflow_sha
+    if not all(re.fullmatch(r"[0-9a-f]{40}", value) for value in (sha, workflow_sha)):
+        raise RuntimeError("Invalid source/workflow commit receipt")
     run, attempt = os.environ["GITHUB_RUN_ID"], os.environ["GITHUB_RUN_ATTEMPT"]
     name = f"braxhorn-mistrzowie-{run}-{attempt}-{sha[:7]}.apk"
     OUT.mkdir(exist_ok=True)
@@ -74,7 +80,7 @@ def stage():
     shutil.copyfile(source, target)
     manifest = dict(file=name, sha256=digest(target), bytes=target.stat().st_size,
                     applicationId=app_id, versionCode=version, certificateSha256=expected_cert,
-                    commit=sha, runId=run, attempt=attempt, variant="mistrzowie-apk-arm64-gles3",
+                    commit=sha, workflowCommit=workflow_sha, runId=run, attempt=attempt, variant="mistrzowie-apk-arm64-gles3",
                     unity="6000.0.58f2", runtimeTested=False, visualAccepted=False)
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps(manifest))
@@ -97,7 +103,7 @@ def verify():
             artifact = api(f"repos/{repo}/actions/artifacts/{artifact_id}")
             if artifact["expired"] or artifact["size_in_bytes"] < manifest["bytes"]:
                 raise RuntimeError("Artifact expired or incomplete")
-            if artifact["workflow_run"]["head_sha"] != manifest["commit"]:
+            if artifact["workflow_run"]["head_sha"] != manifest.get("workflowCommit", manifest["commit"]):
                 raise RuntimeError("Artifact belongs to a different commit")
             delivery["artifactUrl"] = os.environ["APK_ARTIFACT_URL"]
             delivery["artifactId"] = artifact["id"]

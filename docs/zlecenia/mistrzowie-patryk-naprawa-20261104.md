@@ -42,7 +42,7 @@ Unity 6000.0 `AnimationClipPlayable`, `SetApplyFootIK`, przykłady Playables.
 - 6 testów transferu animacji/map, w tym pełne mapy syntetyczne 4096 × 4096.
 - 5 istniejących testów szyfrowanego transferu; wymagały dodania katalogu
   `repo-context/unity-tools/claude` do PYTHONPATH w niepełnym lokalnym checkout.
-- 5 testów dostawy APK: metadane, certyfikat, SHA-256, obcy commit, awaria jednego miejsca zapisu.
+- 6 testów dostawy APK: metadane, certyfikat, SHA-256, obcy commit, awaria jednego miejsca zapisu.
 - Rzeczywisty oryginał: FBX/Color/Normal identyczne bajty; po 16 777 216 texeli
   roughness i metallic identycznych z wejściem. Dowód: `mistrzowie-evidence/patryk-original-fidelity.json`.
 - Parser C# i YAML: kontrola składni, bez kompilatora Unity.
@@ -58,9 +58,12 @@ Właściciel polecił w tej sesji: „Jak to zrobisz biec bulid z tym co zrobił
 Zakres zgody: jeden nowy build z tymi poprawkami, Miasto Mistrzów, Android APK do zwiedzania.
 Zgoda nie obejmuje automatycznych ponowień ani innych rejonów.
 
-- Workflow: `claude-region-build.yml`, wyłącznie ręczny `workflow_dispatch`.
+- Osobny workflow: **Miasto Mistrzów — APK**, `mistrzowie-apk.yml`, wyłącznie ręczny `workflow_dispatch`.
+- Wpis wymaga rejestracji na `main`, aby pojawił się osobno w GitHub Actions. Rejestracja jest oddzielnym, jednoplikiowym PR; nie scala scen ani kodu innych rejonów.
 - Gałąź: `codex/miasto-mistrzow-20261104`.
-- Wejścia: `rejon=mistrzowie`, `wariant=apk`, `pamiec=false`.
+- Jedno wejście `commit`: pełne SHA gry; puste oznacza aktualną gałąź Miasta Mistrzów. Domyślna wartość w PR rejestracyjnym jest przypięta do przygotowanej wersji.
+- Kod gry jest pobierany z wybranego SHA niezależnie od gałęzi formularza. Raport Unity, nazwa APK i manifest zapisują SHA gry, a `workflowCommit` oddzielnie wskazuje wersję workflow.
+- Nie trzeba wybierać osiedla/miasta ani wariantu: to zawsze APK Miasta Mistrzów.
 - Metoda: `BraxChampionsBuild.BuildAndroid`.
 - Unity 6000.0.58f2, ARM64/IL2CPP, OpenGLES3, API minimum 24, Linear.
 - Osobny identyfikator `com.braxhorn.mistrzowie`, stały klucz repozytorium;
@@ -73,10 +76,10 @@ Zgoda nie obejmuje automatycznych ponowień ani innych rejonów.
 - Eksport edytowalnej sceny/bundles pozostaje osobnym wariantem `region`.
 
 Bieżące połączenie GitHub nie ma operacji uruchamiania nowego workflow.
-Nie uruchomiono kompilacji. Po zapisaniu commita polecenie ręczne:
+Nie uruchomiono kompilacji. Dopiero po scaleniu PR rejestracyjnego dostępny będzie osobny formularz; polecenie ręczne:
 
 ```bash
-gh workflow run claude-region-build.yml --repo wawerpatryk89-sketch/braxhorn-city --ref codex/miasto-mistrzow-20261104 -f rejon=mistrzowie -f wariant=apk -f pamiec=false
+gh workflow run mistrzowie-apk.yml --repo wawerpatryk89-sketch/braxhorn-city --ref main
 ```
 
 Po buildzie trzeba sprawdzić na telefonie: wejście do sceny, joystick, obrót kamery,

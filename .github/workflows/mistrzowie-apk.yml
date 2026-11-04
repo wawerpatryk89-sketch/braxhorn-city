@@ -1,0 +1,158 @@
+name: Miasto Mistrzów — APK
+run-name: Miasto Mistrzów — APK do zwiedzania — ${{ github.run_number }}
+
+# Register this entry on main so GitHub displays a dedicated Run workflow form.
+# The game stays on its own branch; every run records the exact checked-out SHA.
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Pełne SHA wersji gry; puste = aktualne Miasto Mistrzów'
+        type: string
+        required: false
+        default: ''
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: mistrzowie-apk
+  cancel-in-progress: false
+jobs:
+  exploration-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Sprawdź wskazaną wersję Miasta Mistrzów
+        env:
+          SOURCE_COMMIT: ${{ inputs.commit }}
+        run: |
+          if [[ -n "$SOURCE_COMMIT" && ! "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            echo '::error::Wpisz pełne 40-znakowe SHA albo pozostaw puste pole.'
+            exit 1
+          fi
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          # Pin the selected branch run to the event SHA. From main, use the
+          # requested game commit (or the current Champions branch if blank).
+          ref: ${{ inputs.commit || (github.ref == 'refs/heads/codex/miasto-mistrzow-20261104' && github.sha) || 'codex/miasto-mistrzow-20261104' }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets
+            unity-city/Packages
+            unity-city/ProjectSettings
+            unity-city/Prywatne/miasto_palmy.tar.gz.enc
+            unity-city/Prywatne/miasto_silownia_metro.tar.gz.enc
+            unity-city/Prywatne/import-patryk-20261103
+            unity-city/Prywatne/ruchy_brax.tar.gz.enc
+            unity-city/Prywatne/ruchy_wlasciciela.tar.gz.enc
+            unity-tools/mistrzowie
+            unity-tools/claude/prywatne.py
+            unity-tools/claude/import_patryk_transfer.py
+            unity-tools/claude/tekstury_b5.py
+      - name: Zapisz dokładną wersję gry przed generowaniem
+        id: source
+        run: |
+          sha="$(git rev-parse HEAD)"
+          test -f unity-tools/mistrzowie/apk_delivery.py
+          test -f unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs
+          printf '%s\n' "$sha" > unity-city/mistrzowie.source-commit
+          printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"
+          printf 'SOURCE_SHA=%s\n' "$sha" >> "$GITHUB_ENV"
+          printf '## Miasto Mistrzów — wersja do zbudowania\n\nKod gry: `%s`\n\nWorkflow: `%s`\n' "$sha" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Cache original public PBR source maps
+        continue-on-error: true
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: unity-city/Assets/Source/Mistrzowie/Textures
+          key: mistrzowie-pbr-4k-${{ hashFiles('unity-tools/mistrzowie/prepare_assets.py', 'unity-tools/mistrzowie/verified_textures.json') }}
+      - name: Geometry and source preparation
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          python3 -m pip install numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
+          test -f /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
+          python3 unity-tools/mistrzowie/test_surface_geometry.py
+          python3 unity-tools/mistrzowie/test_restore_player.py
+          python3 unity-tools/mistrzowie/test_apk_delivery.py
+          python3 unity-tools/mistrzowie/prepare_assets.py
+          python3 unity-tools/mistrzowie/restore_private.py
+          python3 unity-tools/mistrzowie/restore_player.py
+          python3 unity-tools/mistrzowie/prepare_signage.py
+          python3 unity-tools/mistrzowie/build_infrastructure.py
+          python3 unity-tools/mistrzowie/validate_contract.py
+          python3 unity-tools/mistrzowie/build_exteriors.py
+          python3 unity-tools/mistrzowie/build_signs.py
+          python3 unity-tools/mistrzowie/prepare_arena.py
+      - name: Prepare the existing signing key for the exploration APK
+        env:
+          KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
+          KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          test -n "$KS" && test -n "$KP"
+          umask 077
+          printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
+          printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+          printf '%s' "$((GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT))" > unity-city/braxhorn.versioncode
+      - name: Unity 6 - Miasto Mistrzów, Patryk i APK do zwiedzania
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxChampionsBuild.BuildAndroid
+          androidExportType: androidPackage
+          versioning: None
+          allowDirtyBuild: true
+      - name: Validate APK identity and existing certificate; stage immutable output
+        run: python3 unity-tools/mistrzowie/apk_delivery.py stage
+      - name: Immediately save APK as Actions artifact
+        id: apk_artifact
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mistrzowie-apk-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.source.outputs.sha }}
+          path: mistrzowie-apk/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - name: Independently save APK as a unique test release
+        id: apk_release
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
+          python3 - <<'PYNOTES'
+          import json, pathlib
+          m = json.loads(pathlib.Path('mistrzowie-apk/manifest.json').read_text())
+          pathlib.Path('mistrzowie-apk/release-notes.txt').write_text(
+              'Miasto Mistrzów — zwiedzanie Patrykiem, sterowanie z gry.\n\n'
+              + 'Commit: ' + m['commit'] + '\nSHA-256 APK: ' + m['sha256']
+              + '\nTest wizualny i sterowanie na urządzeniu: jeszcze niepotwierdzone.\n')
+          PYNOTES
+          gh release create "$tag" mistrzowie-apk/*.apk mistrzowie-apk/manifest.json --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --prerelease --title "Miasto Mistrzów — APK ${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}" --notes-file mistrzowie-apk/release-notes.txt
+      - name: Confirm at least one real APK delivery before optional reports
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APK_ARTIFACT_ID: ${{ steps.apk_artifact.outputs.artifact-id }}
+          APK_ARTIFACT_URL: ${{ steps.apk_artifact.outputs.artifact-url }}
+        run: |
+          export APK_RELEASE_TAG="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
+          python3 unity-tools/mistrzowie/apk_delivery.py verify
+      - name: Save validation evidence
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mistrzowie-validation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            mistrzowie-evidence/*.json
+            unity-city/Assets/Source/Mistrzowie/source-materials.json
+            unity-city/Logs/
+          if-no-files-found: warn
+          retention-days: 30

@@ -30,7 +30,9 @@ public static class BraxChampionsBuild
     static void BuildInternal(bool apk)
     {
         string reports=Path.GetFullPath("../mistrzowie-evidence");Directory.CreateDirectory(reports);
-        var report=new Report{unity=Application.unityVersion,sourceCommit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local"};
+        // The manual Actions launcher can live on main; record the checked-out game.
+        var report=new Report{unity=Application.unityVersion,sourceCommit=File.Exists("mistrzowie.source-commit")
+            ?File.ReadAllText("mistrzowie.source-commit").Trim():Environment.GetEnvironmentVariable("GITHUB_SHA")??"local"};
         try
         {
             // Same linear lighting as the main game's Android build.
