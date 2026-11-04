@@ -1,5 +1,16 @@
 # Obóz — kontynuacja po #6, 4 listopada 2026
 
+Build #7 został zlecony: run `41866983072`, SHA
+`23d54345fa3061f5c20fd73070c94c1fb4a47e0f`. Zaliczył kontrolę zlecenia,
+dostawy i przywrócenia cache; rozpoczął Play Mode. Nie jest jeszcze dowodem
+ukończenia testu, kompilacji ani dostępności APK.
+
+Na późniejsze polecenie właściciela przygotowano ratunkowy zapis istniejącego
+APK również po błędzie Unity, kontroli podpisu lub podstawowego uploadu.
+Kopia ma własny raport SHA-256 i wyników kroków; nie udaje sprawdzonego wydania.
+Ta zmiana jest na osobnej gałęzi, nie zmienia rozpoczętego #7 i nie zleca #8.
+W #7 działa dotychczasowy backup po poprawnej kontroli podpisu, przed release.
+
 Nowsza decyzja właściciela: wykonawca ma sam uruchamiać build po jego
 jednoznacznym poleceniu. Wprowadzono więc wąski wyjątek opisany w AGENTS.md:
 zmiana osobnego zlecenia na `gpt/oboz` może rozpocząć jeden przebieg.
@@ -126,5 +137,5 @@ Nie ma potwierdzonego linku pobrania #6. Nie zastępować go APK #5.
   zlecenia; brak triggerów PR/schedule/workflow_run i brak startu po zmianie kodu.
 - 9 testów kontroli zlecenia: PASS; obejmują duplikat, niezgodną bazę,
   wiele commitów, utworzenie gałęzi, brak zgody i obcy manifest/branch/event.
-- Play Mode trzech aren: NIEURUCHOMIONY. Odzysk #6: NIEURUCHOMIONY.
-- Nowe APK: NIEURUCHOMIONE. Telefon: NIETESTOWANY.
+- Play Mode trzech aren: uruchomiony w #7, wynik jeszcze niepotwierdzony.
+- Odzysk #6: NIEURUCHOMIONY. Telefon: NIETESTOWANY.

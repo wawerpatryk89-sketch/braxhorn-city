@@ -266,6 +266,7 @@ jobs:
           receipt.write_text(json.dumps(data,indent=2)+'\n')
           PY
       - name: Zachowaj zweryfikowany APK przed zapisem wydania
+        id: apk_backup
         if: ${{ !cancelled() && steps.apk_identity.outcome == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -275,6 +276,52 @@ jobs:
             build/ObozAndroid/release-identity.json
             build/ObozAndroid/build-receipt.json
             build/ObozAndroid/scene-validation.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+      - name: Przygotuj istniejący APK także po błędzie kompilacji lub weryfikacji
+        id: apk_rescue
+        if: ${{ always() && steps.unity.outcome != 'skipped' && steps.unity.outcome != '' && (steps.apk_identity.outcome != 'success' || steps.apk_backup.outcome != 'success') }}
+        continue-on-error: true
+        env:
+          UNITY_RESULT: ${{ steps.unity.outcome }}
+          IDENTITY_RESULT: ${{ steps.apk_identity.outcome }}
+          VERIFIED_BACKUP_RESULT: ${{ steps.apk_backup.outcome }}
+        run: |
+          set -euo pipefail
+          if [ ! -f build/ObozAndroid/braxhorn-oboz.apk ]; then
+            echo 'Nie powstał plik APK; dostępne pozostaną raporty błędu.'
+            exit 0
+          fi
+          sudo chown -R "$(id -u):$(id -g)" build/ObozAndroid
+          python3 - <<'PY_RESCUE'
+          import hashlib, json, os, shutil
+          from pathlib import Path
+          source=Path('build/ObozAndroid/braxhorn-oboz.apk')
+          folder=Path(os.environ['RUNNER_TEMP'])/'oboz-apk-rescue'
+          folder.mkdir(parents=True, exist_ok=True)
+          shutil.copyfile(source, folder/source.name)
+          digest=hashlib.sha256()
+          with (folder/source.name).open('rb') as stream:
+              for block in iter(lambda:stream.read(1024*1024),b''): digest.update(block)
+          report=dict(sourceCommit=os.environ['GITHUB_SHA'], sourceRun=int(os.environ['GITHUB_RUN_ID']),
+                      apkSha256=digest.hexdigest(), sizeBytes=source.stat().st_size,
+                      unityOutcome=os.environ['UNITY_RESULT'], identityOutcome=os.environ['IDENTITY_RESULT'],
+                      verifiedBackupOutcome=os.environ['VERIFIED_BACKUP_RESULT'],
+                      phoneTested=False, deliveryKind='diagnostic-apk-after-error',
+                      note='Existing APK preserved after an error. Installation and runtime are not confirmed.')
+          (folder/'apk-delivery-status.json').write_text(json.dumps(report,indent=2)+'\n')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('present=true\n')
+          PY_RESCUE
+      - name: Kopia APK po błędzie — do pobrania z jawnym statusem kontroli
+        if: ${{ always() && steps.apk_rescue.outputs.present == 'true' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oboz-apk-after-error-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/oboz-apk-rescue/braxhorn-oboz.apk
+            ${{ runner.temp }}/oboz-apk-rescue/apk-delivery-status.json
           if-no-files-found: error
           compression-level: 0
           retention-days: 14

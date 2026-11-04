@@ -1,5 +1,11 @@
 # Aktualizacja właściciela — start obozu na polecenie, 4.11.2026
 
+Wymóg dostawy: jeżeli plik APK powstał, zachowaj go do pobrania również przy
+błędzie późniejszego kroku, kompilacji lub weryfikacji. Podaj uczciwy status
+kontroli; kopii po błędzie nie nazywaj sprawdzonym wydaniem ani testem telefonu.
+Nie ukrywaj pliku wyłącznie dlatego, że cały job jest czerwony. Jeżeli APK nie
+powstał lub nie udało się zachować jego bajtów, wyjaśnij dokładnie ten brak.
+
 Nowsze polecenie właściciela dla obozu: „Masz puścić ten bulic samodzielnie,
 za każdym razem, jak będę chciał”. Wykonawca ma sam wysłać jedno zlecenie
 buildu po jednoznacznym poleceniu właściciela, bez wymagania od niego klikania
