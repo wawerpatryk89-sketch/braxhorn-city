@@ -706,7 +706,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         ZONE: ${{ steps.rejon.outputs.rejon }}
-      run: python3 unity-tools/updates/durable_cache.py download --zone "$ZONE" --archive "$RUNNER_TEMP/library-android.tar.zst.enc"
+      run: python3 unity-tools/updates/durable_cache.py download --zone "$ZONE" --archive "$RUNNER_TEMP/library-android.tar.zst.enc" --fallback-ref refs/heads/claude/miasto-opus-20261031
     - name: Migracja starej pamieci tylko gdy nie ma nowej kopii
       id: legacy_cache
       if: ${{ !cancelled() && steps.bibl_and.outputs.cache-matched-key == '' && steps.durable_download.outputs.downloaded != 'true' }}
@@ -875,7 +875,7 @@ jobs:
         cat unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json || echo 'BRAK raportu drzwi'
         cat unity-city/Assets/PlayableGenerated/ClaudeRegion/region.json || echo 'BRAK raportu regionu'
     - name: Wgraj APK do ukrytego wydania (instalacja na Androidzie)
-      if: always() && !cancelled()
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
       env:
         GH_TOKEN: ${{ github.token }}
         REL: claude-region-preview

@@ -38,3 +38,17 @@
 5. Jeśli którykolwiek warunek nie przechodzi: **jedna wspólna poprawka i ponowny AUDYT**, bez automatycznego kolejnego buildu.
 
 **Status tego audytu:** poprawki źródłowe/CI przygotowane. Wynik kolejnego rzeczywistego Unity i test na telefonie są nieznane do czasu ich przeprowadzenia. Nie ogłaszać gotowości.
+
+## Dodatkowe ustalenie audytu po sprawdzeniu istniejących wydań GitHub
+
+- Znaleziono **istniejący** zaszyfrowany snapshot miasta w wydaniu
+  `unity-ci-cache-miasto-2a1cb92dc336cbc2aebbffc0-c0d662288568`
+  utworzonym na `claude/miasto-opus-20261031` (6 plików, razem 9 525 273 200 bajtów).
+- Jego indeks zawiera dokładnie ten sam profil `library-android-v2-miasto-2a1cb92dc336cbc2aebbffc0`
+  co brakujący cache w #84; snapshot ma sprawdzone w indeksie rozmiary i deklarowane sumy SHA-256.
+- Do `durable_cache.py` dodano bezpieczny odczyt awaryjny ze starszej gałęzi. Sama zgodność
+  metadanych nie dowodzi, że pobranie i odszyfrowanie uda się w następnym CI: każda część
+  zostanie faktycznie sprawdzona SHA-256 przy pobieraniu, potem sprawdzony zostanie profil.
+- Po zakończeniu jednego cache-miss nie ma już powodów do oznaczania etapu wysłania APK jako
+  drugiej awarii — step publikacji uruchomi się tylko po sukcesie Unity.
+- Nadal brak testu Android, pełnej kompilacji i pomiaru wydajności; status = DO WERYFIKACJI.

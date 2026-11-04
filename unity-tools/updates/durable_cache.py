@@ -73,8 +73,7 @@ def download(repo, tag, archive, expected):
     except subprocess.CalledProcessError as exc:
         err = (exc.stderr or "") + " " + (exc.stdout or "")
         if "not found" in err.lower() or "404" in err:
-            print("BRAXHORN_CACHE_DURABLE no_snapshot=true — pełny import bazowy")
-            output("downloaded", "false")
+            print("BRAXHORN_CACHE_DURABLE no_snapshot=true tag=" + tag)
             return
         raise
     index = read_index(data, expected)
@@ -187,11 +186,27 @@ def main():
     parser.add_argument("--project", type=Path, default=Path("unity-city"))
     parser.add_argument("--zone", required=True)
     parser.add_argument("--archive", type=Path, required=True)
+    # Tylko do odczytu: odzyskaj snapshot z wcześniejszej gałęzi, ale WYŁĄCZNIE
+    # przy identycznym profilu Unity/Android/manifestu/rejonu i SHA-256 każdej części.
+    parser.add_argument("--fallback-ref", action="append", default=[])
     args = parser.parse_args()
     expected = profile(args.project, args.zone, "6000.0.58f2")
     repo = os.environ["GITHUB_REPOSITORY"]
-    tag = release_tag(expected, os.environ["GITHUB_REF"])
-    (download if args.command == "download" else upload)(repo, tag, args.archive, expected)
+    current_ref = os.environ["GITHUB_REF"]
+    if args.command == "upload":
+        upload(repo, release_tag(expected, current_ref), args.archive, expected)
+        return
+    for ref in dict.fromkeys([current_ref, *args.fallback_ref]):
+        if args.archive.is_file():
+            break
+        tag = release_tag(expected, ref)
+        download(repo, tag, args.archive, expected)
+        if args.archive.is_file():
+            print("BRAXHORN_CACHE_DURABLE source_ref=" + ref +
+                  " profile_verified=true sha256_verified=true")
+            return
+    output("downloaded", "false")
+    print("::warning::BRAXHORN_CACHE_DURABLE restored=false; brak zgodnego snapshotu")
 
 
 if __name__ == "__main__":
