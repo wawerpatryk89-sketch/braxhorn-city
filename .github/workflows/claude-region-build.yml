@@ -1,7 +1,11 @@
 name: Claude - region R1 na gotowo (TEST, bez publikacji)
 'on':
-  # TYLKO RECZNIE: automatyczny push usuniety na zyczenie wlasciciela.
-  # Modyfikacja kodu nie uruchamia Unity ani Android APK.
+  # JEDNORAZOWY build scalonego osiedla #74 + #76; push ograniczony TYLKO do tego pliku i tej galezi.
+  push:
+    branches:
+    - codex/osiedle-integracja-sport-audyt-20261104
+    paths:
+    - .github/workflows/claude-region-build.yml
   workflow_dispatch:
     inputs:
       rejon:
@@ -25,7 +29,7 @@ env:
   PAMIEC_REJONOW: osiedle
 concurrency:
   group: claude-region-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   source-imports:
     if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-audyt-20261104') }}
