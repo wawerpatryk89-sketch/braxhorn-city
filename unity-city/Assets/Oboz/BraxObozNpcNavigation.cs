@@ -13,6 +13,7 @@ public sealed partial class BraxObozNpc : IBraxInterakcja
     Vector3 destination;
     bool travelling;
     float noProgress;
+    float bestRemaining = float.PositiveInfinity;
 
     public void HoldRoute()
     {
@@ -32,7 +33,7 @@ public sealed partial class BraxObozNpc : IBraxInterakcja
         if (!navigation || !navigation.enabled || !navigation.isOnNavMesh) return false;
         if (!NavMesh.SamplePosition(target, out var hit, .8f, navigation.areaMask)) return false;
         EndSparring(); destination = hit.position; travelling = true; AtDestination = false;
-        NavigationBlocked = false; noProgress = 0;
+        NavigationBlocked = false; noProgress = 0; bestRemaining = float.PositiveInfinity;
         navigation.speed = jog ? walkSpeed * 1.8f : walkSpeed;
         navigation.isStopped = false;
         if (!navigation.SetDestination(destination)) { travelling = false; NavigationBlocked = true; return false; }
@@ -69,7 +70,11 @@ public sealed partial class BraxObozNpc : IBraxInterakcja
         }
         else Play("Idle", true);
         float moved = Vector3.Distance(before, transform.position); Travelled += moved;
-        noProgress = moved < .002f ? noProgress + dt : 0;
+        // Oscillating against a collider is movement, but not route progress.
+        float remaining = navigation.remainingDistance;
+        if (!float.IsInfinity(remaining) && remaining < bestRemaining - .15f)
+        { bestRemaining = remaining; noProgress = 0; }
+        else noProgress += dt;
         if (noProgress > 8 && !NavigationBlocked)
         {
             NavigationBlocked = true;

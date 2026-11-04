@@ -41,6 +41,12 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
             var npc = participants[i];
             if (!npc || !places[i] || !npc.navigation || npc.routine != this)
             { Debug.LogError("Niepełne podłączenie planu zajęć", this); enabled = false; return; }
+            // These native runtime switches are not restored by the saved scene.
+            // The capsule is the only movement owner, including steps and pause.
+            Debug.Log("BRAXHORN_OBOZ navigation_restore=" + npc.characterId +
+                " updatePosition=" + npc.navigation.updatePosition + " updateRotation=" + npc.navigation.updateRotation);
+            npc.navigation.updatePosition = false;
+            npc.navigation.updateRotation = false;
             npc.navigation.enabled = true;
             if (!npc.navigation.isOnNavMesh)
             { Debug.LogError("NPC poza siatką przejść: " + npc.characterId, this); enabled = false; return; }

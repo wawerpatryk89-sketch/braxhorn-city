@@ -28,7 +28,7 @@ public static partial class BraxObozCharacters
         public string id, clip;
         public int role, arrivals;
         public float travelled;
-        public bool arrived, blocked;
+        public bool arrived, blocked, navigationOwnsPosition, navigationOwnsRotation;
         public Vector3 position;
     }
     [Serializable] sealed class LifeFrame
@@ -146,7 +146,9 @@ public static partial class BraxObozCharacters
                     actors = lifeRoutine.participants.Select(n => new LifeActor {
                         id = n.characterId, clip = ActiveLifeClip(n), role = lifeRoutine.RoleOf(n),
                         arrivals = n.Arrivals, travelled = n.Travelled, arrived = n.AtDestination,
-                        blocked = n.NavigationBlocked, position = n.transform.position }).ToArray() });
+                        blocked = n.NavigationBlocked, position = n.transform.position,
+                        navigationOwnsPosition = n.navigation.updatePosition,
+                        navigationOwnsRotation = n.navigation.updateRotation }).ToArray() });
             }
             if (time >= lifeCapture)
             {
@@ -197,6 +199,8 @@ public static partial class BraxObozCharacters
         else lifeErrors.Add("Brak planu zajęć");
         if(!lifePaused||!lifeResumed||lifePauseMove>.001f||lifePauseBag>.001f)lifeErrors.Add("Nieprawidłowa pauza postaci/worków");
         report.complete=lifeErrors.Count==0&&lifeFrames.Count>=500;
+        if(lifeFrames.Any(f=>f.actors.Any(a=>a.navigationOwnsPosition||a.navigationOwnsRotation)))
+        {lifeErrors.Add("Nawigacja przejęła transformację kontrolera kolizji");report.complete=false;}
         report.frames=lifeFrames.ToArray(); report.errors=lifeErrors.ToArray();
         if(string.IsNullOrEmpty(lifeOutput))lifeOutput=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/CampLifeReview"));
         Directory.CreateDirectory(lifeOutput); File.WriteAllText(Path.Combine(lifeOutput,"camp-life-review.json"),JsonUtility.ToJson(report,true));
