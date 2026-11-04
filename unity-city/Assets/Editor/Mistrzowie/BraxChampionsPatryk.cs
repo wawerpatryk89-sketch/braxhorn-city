@@ -171,10 +171,9 @@ public static partial class BraxChampionsPatryk
                 // Błąd ze sprawdzonego buildu #41812927670: stopy 159°/174°.
                 // Tak duże odchylenie po retargetingu oznacza wadliwą
                 // animację — nie wydawaj APK z obróconymi butami.
-                if (w.stopaMax > 85f)
+                if (w.Nieprawidlowy)
                     throw new InvalidOperationException("BRAXHORN_PATRYK_STOPY_BLOKADA klip=" + c.name +
-                        " stopa_max=" + w.stopaMax.ToString("F1") +
-                        "° > 85°. Korygowanie kostek nie wystarczyło, wstrzymano wadliwy model w buildzie.");
+                        " " + w.Opis() + ". Wstrzymano wadliwy retarget w buildzie.");
             }
             if (bledy > 0) Debug.LogWarning("BRAXHORN_PATRYK_KOSCI DO SPRAWDZENIA: " + bledy + " błędów — " + raportTestu);
 
@@ -187,11 +186,27 @@ public static partial class BraxChampionsPatryk
             Debug.Log("BRAXHORN_PATRYK_IDLE ramiona=" + idleArms.ToString("F1") + "° od pionu (cel <30°)");
             anim.clip = idleTest; anim.Play("Idle"); anim.Sample();
 
+            // The generated standing pose rotates feet around their ankle pivots.
+            // Ground the evaluated skin, not the unanimated FBX vertex bounds.
+            float idleFloor=float.PositiveInfinity;
+            var snapshot=new Mesh();
+            try
+            {
+                foreach(var skin in hero.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    snapshot.Clear(); skin.BakeMesh(snapshot, false);
+                    foreach(var vertex in snapshot.vertices)
+                        idleFloor=Mathf.Min(idleFloor,hero.transform.InverseTransformPoint(skin.transform.TransformPoint(vertex)).y);
+                }
+            }
+            finally { Object.DestroyImmediate(snapshot); }
+            if(float.IsInfinity(idleFloor)||float.IsNaN(idleFloor))throw new InvalidOperationException("Brak pomiaru podeszew w Idle");
+
             // --- na miejsce: dziecko gracza, skala do wzrostu, stopy na podstawie kapsuły, warstwa gracza 8 ---
             hero.transform.SetParent(gracz, false);
             hero.transform.localRotation = Quaternion.identity;
             hero.transform.localScale = Vector3.one * skala;
-            hero.transform.localPosition = new Vector3(0f, -minY * skala, 0f);
+            hero.transform.localPosition = new Vector3(0f, -idleFloor * skala, 0f);
             foreach (var t in hero.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = 8;
             // Kapsuła na wzrost postaci (Brax 2.33 m miał 2.25 m; Patryk w realnym wzroście musi zmieścić się w drzwiach × k).
             if (cialo)
@@ -236,17 +251,17 @@ public static partial class BraxChampionsPatryk
         var imp = AssetImporter.GetAtPath(p) as TextureImporter;
         if (imp == null) throw new InvalidOperationException("Brak tekstury nowego Patryka: " + p);
         var typ = normalna ? TextureImporterType.NormalMap : TextureImporterType.Default; bool srgb = !(liniowa || normalna);
-        int limit = normalna || !liniowa ? 4096 : 2048;
+        const int limit = 4096; // All four source maps are 4K, including roughness/metallic.
         var android = imp.GetPlatformTextureSettings("Android");
-        bool wrongAndroid = !android.overridden || android.maxTextureSize != limit || android.format != TextureImporterFormat.ASTC_4x4 || android.compressionQuality != 50;
+        bool wrongAndroid = !android.overridden || android.maxTextureSize != limit || android.format != TextureImporterFormat.ASTC_4x4 || android.compressionQuality != 100;
         if (imp.textureType != typ || imp.sRGBTexture != srgb || imp.maxTextureSize != limit || !imp.mipmapEnabled
             || imp.textureCompression != TextureImporterCompression.CompressedHQ || imp.crunchedCompression || imp.streamingMipmaps || wrongAndroid)
         {
             imp.textureType = typ; imp.sRGBTexture = srgb; imp.maxTextureSize = limit; imp.mipmapEnabled = true; imp.anisoLevel = 8;
             imp.textureCompression = TextureImporterCompression.CompressedHQ; imp.crunchedCompression = false;
             imp.streamingMipmaps = false; imp.npotScale = TextureImporterNPOTScale.None;
-            imp.compressionQuality = 50;
-            android.overridden = true; android.maxTextureSize = limit; android.format = TextureImporterFormat.ASTC_4x4; android.compressionQuality = 50;
+            imp.compressionQuality = 100;
+            android.overridden = true; android.maxTextureSize = limit; android.format = TextureImporterFormat.ASTC_4x4; android.compressionQuality = 100;
             imp.SetPlatformTextureSettings(android);
             var ign = typeof(TextureImporter).GetProperty("ignoreMipmapLimit"); if (ign != null && ign.CanWrite) ign.SetValue(imp, true);   // postać z bliska — jak tekstury Braxa
             imp.SaveAndReimport();
@@ -254,7 +269,7 @@ public static partial class BraxChampionsPatryk
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(p);
         if (!texture || texture.width != limit || texture.height != limit)
             throw new InvalidOperationException("Nieprawidłowa rozdzielczość tekstury Patryka: " + p + ", wymagane " + limit);
-        Debug.Log("BRAXHORN_PATRYK_TEKSTURA " + plik + " " + texture.width + "x" + texture.height + " Android ASTC 4x4 jakość 50");
+        Debug.Log("BRAXHORN_PATRYK_TEKSTURA " + plik + " " + texture.width + "x" + texture.height + " Android ASTC 4x4 jakość 100");
         return texture;
     }
 

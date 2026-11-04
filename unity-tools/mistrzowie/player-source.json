@@ -68,17 +68,22 @@
     }
   ],
   "adaptations": [
-    "Patryk authoring partial class renamed to BraxChampionsPatryk; same model, bones, source animation choices and calibration.",
+    "Patryk authoring isolated under Champions; exact source model, skin bind poses and source animation files preserved.",
     "Generated output and source import paths isolated under Mistrzowie; isolated identical estate shader code.",
     "Walking, jumping and camera fixes integrated into existing BraxGymPlayer without importing the estate car or removing existing city APIs.",
     "Initial camera yaw defaults to the original behavior; Champions sets 180 degrees toward the northern arena.",
     "Only Champions bypasses the first city's fixed water boundary; reset retains grounded-position recovery.",
-    "Player-free additive region and complete standalone exploration scene are exported together. Existing Android HUD; desktop command adapter."
+    "Player-free additive region and complete standalone exploration scene are exported together. Existing Android HUD; desktop command adapter.",
+    "Walk/Run evaluate the original clips directly on a temporary Patryk Animator with target Foot IK, then bake rotations and translations at 60 Hz into the existing Legacy runtime. Removed per-frame ankle yaw snapping.",
+    "Idle resolves wrist roll from finger and thumb directions and grounds the evaluated skin. Original mesh/bind poses unchanged.",
+    "All character maps remain 4K; ORM packs exact source texels. Android ASTC 4x4 quality 100. Character receives scene lighting without the camera portrait-light stack.",
+    "Optional standalone ARM64/GLES3 APK uses the existing BraxStart loader, BraxGymPlayer and BraxTouchControls. applicationId com.braxhorn.mistrzowie; existing repository signing key required."
   ],
   "validation": {
     "unityCompiled": false,
     "playMode": false,
     "androidDevice": false,
-    "privateAssetsDecryptedLocally": false
+    "privateAssetsDecryptedLocally": false,
+    "ownerOriginalArchiveVerifiedLocally": true
   }
 }

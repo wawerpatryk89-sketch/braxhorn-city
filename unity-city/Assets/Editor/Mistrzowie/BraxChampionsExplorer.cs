@@ -38,7 +38,8 @@ public static class BraxChampionsExplorer
         camera.allowHDR = false; camera.allowMSAA = true;
         camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(.64f, .73f, .79f);
         camera.gameObject.AddComponent<AudioListener>(); camera.gameObject.AddComponent<BraxClaudeKamera>();
-        BraxHeroRefinements.CharacterLights(camera);
+        // Patryk receives the same world light as the surroundings. Camera-attached
+        // portrait lights stacked three extra directional lights on his skin only.
         var runtime = player.AddComponent<BraxGymPlayer>();
         runtime.visual = hero.transform; runtime.clips = animation; runtime.body = body; runtime.view = camera;
         runtime.bags = Array.Empty<Transform>(); runtime.buildId = buildId;
@@ -125,7 +126,7 @@ public static class BraxChampionsExplorer
                 if(!m||!m.shader||m.shader.name!="Braxhorn/ChampionsPatryk"||ShaderUtil.ShaderHasError(m.shader))throw new InvalidOperationException("Missing Patryk shader.");
                 foreach(var property in new[]{"_MainTex","_BumpMap","_Orm"})
                 {
-                    var texture=m.GetTexture(property);int size=property=="_Orm"?2048:4096;
+                    var texture=m.GetTexture(property);int size=4096;
                     if(!texture||texture.width!=size||texture.height!=size)throw new InvalidOperationException("Missing source texture: "+property);
                 }
             }

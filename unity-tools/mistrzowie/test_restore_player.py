@@ -3,7 +3,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from restore_player import REQUIRED, copy_animations, przygotuj_patryka
+from PIL import Image
+from restore_player import REQUIRED, copy_animations, przygotuj_patryka, pack_orm
 
 
 class PlayerTransferTests(unittest.TestCase):
@@ -47,6 +48,26 @@ class PlayerTransferTests(unittest.TestCase):
         (self.source / "patryk/old.fbx").write_bytes(b"wrong model")
         with self.assertRaisesRegex(ValueError, "stary model"):
             przygotuj_patryka(self.source)
+
+    def test_orm_preserves_full_resolution_and_every_data_texel(self):
+        # High-frequency asymmetric values detect downsampling, channel swaps,
+        # gamma conversion and accidental use of the alpha channel.
+        size = (4096, 4096)
+        rough = Image.frombytes("L", size, bytes(range(256)) * (4096 * 16))
+        metal = Image.frombytes("L", size, bytes(reversed(range(256))) * (4096 * 16))
+        rgba = Image.merge("RGBA", (rough, rough, rough, Image.new("L", size, 7)))
+        result = pack_orm(rgba, metal)
+        self.assertEqual(result.size, size)
+        r, g, b = result.split()
+        self.assertEqual(r.getextrema(), (255, 255))
+        self.assertEqual(g.tobytes(), rough.tobytes())
+        self.assertEqual(b.tobytes(), metal.tobytes())
+
+    def test_orm_rejects_mismatched_or_colored_maps(self):
+        with self.assertRaisesRegex(ValueError, "dimensions"):
+            pack_orm(Image.new("L", (4, 4)), Image.new("L", (2, 2)))
+        with self.assertRaisesRegex(ValueError, "grayscale"):
+            pack_orm(Image.new("RGB", (4, 4), (10, 20, 30)), Image.new("L", (4, 4)))
 
 
 if __name__ == "__main__":

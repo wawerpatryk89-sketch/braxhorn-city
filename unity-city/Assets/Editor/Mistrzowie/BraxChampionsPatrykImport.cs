@@ -5,13 +5,13 @@ using UnityEditor;
 // unity-tools/claude/prywatne.py, poza gitem). Ustawiane PRZED pierwszym importem (bez ponownego importu 30 MB FBX):
 //   patryk/*.fbx  — Humanoid (awatar z modelu, kontrola w BRAXHORN_PATRYK), bez materiałów i animacji z pliku;
 //   ruchy/**.fbx  — Humanoid, krzywe bez kompresji (źródło przenoszenia na kości Patryka, BraxClaudeOsiedlePatryk);
-//   patryk/*.png  — Color/Normal 4K, ORM 2K, Android ASTC 4×4, jakość 50; normalne i ORM liniowo.
+//   patryk/*.png  — Color/Normal/ORM 4K, Android ASTC 4×4, jakość 100; normalne i ORM liniowo.
 //   pozostałe png — najwyżej 2K, kompresja jakości 50.
 public sealed class BraxChampionsPatrykImport : AssetPostprocessor
 {
     const string Katalog = "Assets/Source/Mistrzowie/Player/";
 
-    public override uint GetVersion() { return 5; }
+    public override uint GetVersion() { return 6; }
 
     void OnPreprocessModel()
     {
@@ -54,13 +54,13 @@ public sealed class BraxChampionsPatrykImport : AssetPostprocessor
         ti.compressionQuality = 50;
         if(assetPath.StartsWith(Katalog+"patryk/"))
         {
-            ti.maxTextureSize = n.Contains("basecolor") || n.Contains("normal") ? 4096 : 2048;
+            ti.maxTextureSize = 4096; ti.compressionQuality = 100;
             ti.textureCompression = TextureImporterCompression.CompressedHQ;
             ti.crunchedCompression = false;
             ti.npotScale = TextureImporterNPOTScale.None;
             ti.streamingMipmaps = false;
             var a = ti.GetPlatformTextureSettings("Android");
-            a.overridden = true; a.maxTextureSize = ti.maxTextureSize; a.format = TextureImporterFormat.ASTC_4x4; a.compressionQuality = 50;
+            a.overridden = true; a.maxTextureSize = ti.maxTextureSize; a.format = TextureImporterFormat.ASTC_4x4; a.compressionQuality = 100;
             ti.SetPlatformTextureSettings(a);
         }
         if (n.Contains("normal")) { ti.textureType = TextureImporterType.NormalMap; ti.sRGBTexture = false; }

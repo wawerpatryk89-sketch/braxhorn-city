@@ -1,0 +1,32 @@
+{
+  "originalZipSha256": "52d7f58de8ea38f269a3d5c2b24b9667c6c8a7eb36d3784ad0366f0f3ac44b47",
+  "sourceMaps": {
+    "Patryk_BaseColor.png": {
+      "byteIdentical": true,
+      "sha256": "8b0cf4736e771bddf1ae71e61b48da39ca241106624de263c6d0106008e57ced",
+      "dimensions": [
+        4096,
+        4096
+      ]
+    },
+    "Patryk_Normal.png": {
+      "byteIdentical": true,
+      "sha256": "dc5a8ea5b277f13404a03b8a62b7d943367ef6676270410f596f510265f783f4",
+      "dimensions": [
+        4096,
+        4096
+      ]
+    },
+    "Patryk_roughness.PNG": {
+      "originalDataTexelsPreserved": true,
+      "texelsCompared": 16777216
+    },
+    "Patryk_metallic.PNG": {
+      "originalDataTexelsPreserved": true,
+      "texelsCompared": 16777216
+    }
+  },
+  "unityCompiled": false,
+  "runtimeTested": false,
+  "modelByteIdentical": true
+}

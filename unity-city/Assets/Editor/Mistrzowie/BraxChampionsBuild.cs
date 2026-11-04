@@ -4,10 +4,12 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
-// Focused additive region content build in the same Unity project, not a replacement APK.
+// Same region authoring for editable exports and the separately installed exploration APK.
 public static class BraxChampionsBuild
 {
     [Serializable] sealed class Report
@@ -22,12 +24,17 @@ public static class BraxChampionsBuild
         public BraxChampionsInfrastructure.Counts counts;
         public List<string> checks=new List<string>();
     }
-    public static void Build()
+    public static void Build() => BuildInternal(false);
+    public static void BuildAndroid() => BuildInternal(true);
+
+    static void BuildInternal(bool apk)
     {
         string reports=Path.GetFullPath("../mistrzowie-evidence");Directory.CreateDirectory(reports);
         var report=new Report{unity=Application.unityVersion,sourceCommit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local"};
         try
         {
+            // Same linear lighting as the main game's Android build.
+            PlayerSettings.colorSpace=ColorSpace.Linear;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
             BraxChampionsFoundation.Generate();
             var scene=EditorSceneManager.OpenScene(BraxChampionsFoundation.ScenePath,OpenSceneMode.Single);
@@ -60,6 +67,13 @@ public static class BraxChampionsBuild
             report.patrykClips=BraxChampionsExplorer.Validate(scene);
             CheckAssets(scene);report.explorationSceneReloadPassed=true;
             report.checks.Add("Exploration scene reopened: estate Patryk, 4K textures, saved animations, camera and clear spawn; PlayMode pending");
+            if(apk)
+            {
+                BuildExplorationApk();
+                report.status="ANDROID_APK_COMPILED_DEVICE_AND_VISUAL_REVIEW_PENDING";
+                report.checks.Add("Signed ARM64 exploration APK compiled; delivery verification runs next in CI");
+                return; // APK delivery precedes any optional export/cache work.
+            }
             string payload=Path.GetFullPath("../mistrzowie-payload");Directory.CreateDirectory(payload+"/Android");
             string graph="Assets/Source/Mistrzowie/Transit.json";
             // Split scene and source vehicle assets into separate bundles; gameplay traffic is deferred.
@@ -74,6 +88,53 @@ public static class BraxChampionsBuild
         }
         catch(Exception e){report.status="FAILED: "+e.Message;Debug.LogException(e);throw;}
         finally {File.WriteAllText(reports+"/unity-validation.json",JsonUtility.ToJson(report,true));Debug.Log("BRAX_MISTRZOWIE_UNITY "+JsonUtility.ToJson(report));}
+    }
+
+    static void BuildExplorationApk()
+    {
+        if(!File.Exists("braxhorn.keystore")||!File.Exists("braxhorn.keystore.pass"))
+            throw new InvalidOperationException("Brak stałego klucza podpisu APK");
+        string password=File.ReadAllText("braxhorn.keystore.pass").Trim();
+        if(password.Length==0||!File.Exists("braxhorn.versioncode")||
+            !int.TryParse(File.ReadAllText("braxhorn.versioncode").Trim(),out int version)||version<=0)
+            throw new InvalidOperationException("Brak konfiguracji podpisu/wersji APK");
+        PlayerSettings.companyName="Braxhorn"; PlayerSettings.productName="Braxhorn Miasto Mistrzow";
+        PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android,"com.braxhorn.mistrzowie");
+        PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android,ScriptingImplementation.IL2CPP);
+        PlayerSettings.Android.targetArchitectures=AndroidArchitecture.ARM64;
+        PlayerSettings.SetIl2CppCodeGeneration(UnityEditor.Build.NamedBuildTarget.Android,UnityEditor.Build.Il2CppCodeGeneration.OptimizeSize);
+        PlayerSettings.SetIl2CppCompilerConfiguration(UnityEditor.Build.NamedBuildTarget.Android,Il2CppCompilerConfiguration.Release);
+        PlayerSettings.Android.minSdkVersion=AndroidSdkVersions.AndroidApiLevel24;
+        PlayerSettings.Android.useAPKExpansionFiles=false;
+        PlayerSettings.Android.useCustomKeystore=true;
+        PlayerSettings.Android.keystoreName=Path.GetFullPath("braxhorn.keystore");
+        PlayerSettings.Android.keystorePass=password; PlayerSettings.Android.keyaliasName="braxhorn";
+        PlayerSettings.Android.keyaliasPass=password; PlayerSettings.Android.bundleVersionCode=version;
+        PlayerSettings.bundleVersion="1.0."+version;
+        PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
+        PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,false);
+        PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,new[]{GraphicsDeviceType.OpenGLES3});
+        EditorUserBuildSettings.buildAppBundle=false;
+        EditorUserBuildSettings.androidBuildSubtarget=MobileTextureSubtarget.ETC2;
+
+        // Reuse the game's lightweight loader, then only the Champions exploration
+        // scene. Its existing BraxTouchControls bootstrap supplies Android input.
+        var start=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
+        var camera=new GameObject("Kamera ekranu startowego").AddComponent<Camera>();
+        camera.clearFlags=CameraClearFlags.SolidColor; camera.backgroundColor=Color.black;
+        camera.cullingMask=0; camera.allowHDR=false; camera.allowMSAA=false;
+        new GameObject("BRAXHORN ekran startowy").AddComponent<BraxStart>();
+        string startPath="Assets/PlayableGenerated/Mistrzowie/Mistrzowie_Start.unity";
+        if(!EditorSceneManager.SaveScene(start,startPath))throw new IOException("Nie zapisano ekranu startowego");
+        var scenes=new[]{startPath,BraxChampionsExplorer.ScenePath};
+        EditorBuildSettings.scenes=scenes.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();
+        string output=Path.GetFullPath("../build/Android"); Directory.CreateDirectory(output);
+        AssetDatabase.SaveAssets();
+        var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenes,target=BuildTarget.Android,
+            locationPathName=Path.Combine(output,"braxhorn-mistrzowie.apk"),options=BuildOptions.None});
+        if(result.summary.result!=BuildResult.Succeeded)
+            throw new InvalidOperationException("APK Miasta Mistrzów: "+result.summary.result+"; błędów="+result.summary.totalErrors);
+        Debug.Log("BRAX_MISTRZOWIE_APK id=com.braxhorn.mistrzowie versionCode="+version+" bytes="+result.summary.totalSize);
     }
     static void CheckMetro(Transform station)
     {

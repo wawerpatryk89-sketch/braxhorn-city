@@ -15,6 +15,23 @@ import prywatne
 from import_patryk_transfer import restore
 CEL = ROOT / "unity-city/Assets/Source/Mistrzowie/Player"
 
+def pack_orm(roughness, metallic):
+    """Preserve each source data texel: R=1, G=roughness, B=metallic.
+
+    These owner maps are grayscale RGB(A). Reject color/mismatched maps rather
+    than resampling or silently converting their numeric PBR values.
+    """
+    from PIL import Image, ImageChops
+    if roughness.size != metallic.size:
+        raise ValueError("Roughness/metallic dimensions differ")
+    channels = []
+    for im in (roughness, metallic):
+        r, g, b = im.convert("RGB").split()
+        if ImageChops.difference(r, g).getbbox() or ImageChops.difference(r, b).getbbox():
+            raise ValueError("Expected original grayscale PBR map")
+        channels.append(r)
+    return Image.merge("RGB", (Image.new("L", roughness.size, 255), *channels))
+
 def przygotuj_patryka(staging):
     from PIL import Image  # Pillow instalowany w kroku „Prepare unchanged player…”
     fbx = sorted((staging / "patryk").glob("*.fbx"))
@@ -47,30 +64,13 @@ def przygotuj_patryka(staging):
                 raise ValueError("Źródłowa mapa nie jest 4K: " + name)
         obrazy[name] = data
 
-    def znajdz(*slowa):
-        for k, v in obrazy.items():
-            if any(s in k.lower() for s in slowa):
-                return Image.open(io.BytesIO(v))
-        return None
-
-    def do2k(im):
-        if max(im.size) > 2048:
-            im = im.resize((2048, 2048) if im.size[0] == im.size[1] else (min(2048, im.size[0]), min(2048, im.size[1])), Image.Resampling.LANCZOS)
-        return im
-
     (dst / "Patryk_BaseColor.png").write_bytes(obrazy["Color.png"])
     (dst / "Patryk_Normal.png").write_bytes(obrazy["Normal.png"])
-    normal = znajdz("normal")
-    # ORM jak u Braxa (shader Braxhorn/HeroPremium): R = okluzja (brak mapy → 1), G = chropowatość, B = metaliczność
-    rough = znajdz("rough")
-    metal = znajdz("metal")
-    rozmiar = (2048, 2048)
-    g = do2k(rough.convert("L")).resize(rozmiar, Image.Resampling.LANCZOS) if rough is not None else Image.new("L", rozmiar, 214)
-    b = do2k(metal.convert("L")).resize(rozmiar, Image.Resampling.LANCZOS) if metal is not None else Image.new("L", rozmiar, 0)
-    Image.merge("RGB", (Image.new("L", rozmiar, 255), g, b)).save(dst / "Patryk_ORM.png")
-    print(f"BRAXHORN_PRYWATNE Patryk: FBX {fbx[0].stat().st_size / 1048576:.1f} MB, tekstury Color/Normal 4K, ORM 2K: kolor, "
-          f"normal={'tak' if normal is not None else 'brak'}, ORM (chropowatość={'mapa' if rough is not None else 'stała'}, "
-          f"metal={'mapa' if metal is not None else '0'})")
+    with Image.open(io.BytesIO(obrazy["Patryk_roughness.PNG"])) as rough, \
+         Image.open(io.BytesIO(obrazy["Patryk_metallic.PNG"])) as metal:
+        pack_orm(rough, metal).save(dst / "Patryk_ORM.png")
+    print(f"BRAXHORN_PRYWATNE Patryk: FBX {fbx[0].stat().st_size / 1048576:.1f} MB, "
+          "Color/Normal/ORM 4K; oryginalne wartości PBR, bez zmniejszania map")
     return True
 
 

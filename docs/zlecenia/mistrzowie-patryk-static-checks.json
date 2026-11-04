@@ -1,14 +1,19 @@
 {
-  "status": "STATIC_PASS_UNITY_NOT_RUN",
+  "status": "STATIC_PASS_UNITY_AND_ANDROID_BUILD_NOT_RUN",
   "csharpSyntaxFiles": 12,
-  "newPlayerTransferTests": 4,
-  "existingEncryptedTransferTests": 4,
+  "newPlayerTransferTests": 6,
+  "existingEncryptedTransferTests": 5,
   "manualWorkflowOnly": true,
   "cityPublicMethodsPreserved": true,
-  "sourceHumanoidCalibrationPreserved": true,
+  "sourceHumanoidCalibrationPreserved": false,
   "sourceShaderPreserved": true,
   "unityCompiled": false,
   "playModeTested": false,
   "androidDeviceTested": false,
-  "privateAssetDecryption": "DEFERRED_TO_AUTHORIZED_CI"
+  "privateAssetDecryption": "DEFERRED_TO_AUTHORIZED_CI",
+  "apkDeliveryTests": 5,
+  "targetNativeLocomotionBakingImplemented": true,
+  "originalModelAndMapsVerified": true,
+  "buildDispatchCapability": "NOT_EXPOSED_IN_CURRENT_CONNECTION",
+  "ownerAuthorizedNextExplorationApk": true
 }
