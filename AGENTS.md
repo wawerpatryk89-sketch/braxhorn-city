@@ -1,3 +1,14 @@
+## Unity Essentials — obowiązek wszystkich wykonawców (5 listopada 2026, Europe/Zurich)
+
+**Decyzja właściciela: od teraz korzystamy z Unity Essentials przy każdej pracy nad grami Unity, w której jego procedury mają zastosowanie.** Dotyczy Codex, GPT, Work, Claude i innych wykonawców; BRAXHORN CITY, Miasta Mistrzów, osiedla, obozu oraz prac nad BRAXHORN ARENA. Każdy wykonawca ma zapoznać się z tą zasadą przed rozpoczęciem pracy. Zasadę należy przenosić do instrukcji kolejnych gałęzi i projektów w ramach zleconej pracy, bez nadpisywania cudzych zmian i bez samodzielnego zapisu na main.
+
+- Korzystaj z właściwych procedur wtyczki: rozpoznanie projektu, audyt techniczny, diagnoza błędów, implementacja funkcji, kontrola gotowości kompilacji oraz sprawdzanie połączenia Unity MCP. W tej instalacji Unity Essentials ma identyfikator pakietu `unity-workbench`; to ten sam produkt, nie drugie narzędzie.
+- Stosuj je do kodu C#, scen i prefabów, modeli i tekstur, materiałów i shaderów, animacji i retargetingu, fizyki i sterowania, zależności, wydajności oraz konfiguracji Androida, podpisu i dostawy APK — w zakresie faktycznie dostępnych procedur i narzędzi.
+- Przed zmianą zbierz dowody, odczytaj aktualne pliki i SHA, ustal przyczynę, przygotuj najmniejszą uzasadnioną poprawkę i sprawdź regresje. Zachowaj zatwierdzony wygląd, układ, skalę i oryginalne zasoby. Nie wyłączaj kontroli, żeby ukryć błąd.
+- Unity Essentials jest wtyczką procedur pracy dla asystenta. Samo jej użycie nie oznacza dostępu do edytora. Osobno sprawdź dostępność Unity, mostka MCP i aktywnego połączenia. Jeżeli dany wykonawca nie ma wtyczki lub połączenia, ma to uczciwie zgłosić, zastosować zapisane tu zasady i kontynuować możliwą pracę; nie deklarować fikcyjnego użycia wtyczki ani testu.
+- Raportuj oddzielnie: analizę statyczną, testy lokalne, kompilację skryptów w Unity, generowanie i ponowne otwarcie scen, kompilację Androida, weryfikację podpisu, rzeczywiście dostarczony APK oraz test na telefonie. Podaj dowody i ograniczenia.
+- Nie instaluj samodzielnie pakietów MCP ani nie zmieniaj wersji silnika tylko dlatego, że używasz Unity Essentials. Obowiązują wcześniejsze zasady zgody na zmiany zależności, ochrony projektu i ręcznych buildów. Polecenie korzystania z wtyczki **nie jest zgodą na uruchomienie buildu**.
+
 # PILNE — APK FIRST (4.11.2026)
 
 **Polecenie właściciela obowiązuje wszystkich, w tym Miasto Mistrzów:** gotowy APK zabezpiecz i udostępnij PRZED cache, snapshotem i raportami. Późniejsza awaria nie może odebrać pliku. Miasto Mistrzów ma osobny ręczny workflow APK; stan kompilacji i dostawy sprawdzać w aktualnym przekazaniu poniżej. Zobacz [pełną zasadę](docs/zasady/APK_FIRST_DOSTAWA_20261104.md) i [Issue #13](https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13). Nowe buildy tylko po osobnej zgodzie właściciela.
