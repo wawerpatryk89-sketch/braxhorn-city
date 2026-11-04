@@ -227,6 +227,7 @@ public static class BraxCityBuild
         // Osiedle R2 (Opus): remont A, Park Centralny, osiedle B, wille, kasyno, komisariat, siłownia A, trawa, wylot tunelu z miasta.
         BraxClaudeOsiedle.Apply();
         BraxClaudeOsiedle.DyskotekaLozeKontrola(); // wydanie osiedla tylko ze sprawdzonym kompletem lóż Chesterfield
+        BraxClaudeOsiedle.SalonPrzejscieKontrola(); // zakaz wydawania osiedla z zablokowanym wejsciem do salonu i schodami
         {var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
         try{BraxClaudeBezSwiecenia.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (osiedle): "+e);}
         try{BraxClaudeSiatki.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
