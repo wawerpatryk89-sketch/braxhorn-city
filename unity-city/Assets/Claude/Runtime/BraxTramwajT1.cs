@@ -34,8 +34,21 @@ public sealed class BraxTramwajT1 : MonoBehaviour, IBraxInterakcja
     BraxGymPlayer pasazer;
     public bool Stoi => gotowe && naPrzystanku >= 0 && predkosc < .08f && czekaj > 0f;
     public bool MoznaWysiasc => Stoi && otwarcie > .75f;
-    public Vector3 DrzwiSwiat => transform.position - transform.forward * (szerokoscWagonu * .5f + .25f);
-    public Vector3 WyjscieSwiat => DrzwiSwiat - transform.forward * 1.15f + Vector3.up * .2f;
+    // Strona peronu jest PRAWA względem kierunku jazdy (nie względem lokalnej osi
+    // modelu CAF, którą importer może zapisać jako +X albo +Z).
+    Vector3 NaPeron
+    {
+        get
+        {
+            if (!gotowe || obwod < .1f) return -transform.forward;
+            var d = Punkt(metry + 1.25f) - Punkt(metry - 1.25f);
+            d.y = 0f;
+            return d.sqrMagnitude > .01f ?
+                Vector3.Cross(Vector3.up, d.normalized) : -transform.forward;
+        }
+    }
+    public Vector3 DrzwiSwiat => transform.position + NaPeron * (szerokoscWagonu * .5f + .25f);
+    public Vector3 WyjscieSwiat => DrzwiSwiat + NaPeron * 1.15f + Vector3.up * .2f;
     public int IndeksPrzystanku => naPrzystanku;
 
     void Awake()
