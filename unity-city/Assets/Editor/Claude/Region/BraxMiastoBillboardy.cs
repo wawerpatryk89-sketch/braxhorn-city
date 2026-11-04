@@ -159,7 +159,10 @@ internal static class BraxMiastoBillboardy
         proporcja = domyslnaProporcja;
         // 3.11 14:37: nowe grafiki właściciela (paczka miasto_sklepy/billboardy) mają pierwszeństwo przed starymi
         string nowy = "Assets/Source/Prywatne/Miasto/miasto_sklepy/billboardy/" + nr + ".jpg";
-        string plik = File.Exists(nowy) ? nowy : Dir + nr + ".jpg";
+        // Mural 19 przy siłowni to konkretny oryginał właściciela (Brax + Nyxa).
+        // Nigdy nie podmieniaj go automatycznie na plakat z paczki sklepowej.
+        string oryginal = Dir + nr + ".jpg";
+        string plik = nr == "19" ? oryginal : (File.Exists(nowy) ? nowy : oryginal);
         try
         {
             if (File.Exists(plik))
