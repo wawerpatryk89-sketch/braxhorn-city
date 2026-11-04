@@ -86,8 +86,10 @@ public static partial class BraxClaudeOsiedle
         var ok=kandydaci.Where(k=>k.t!=null).ToList();
         var wybor=ok.Where(k=>k.drzwi&&k.miesci).Select(k=>(k.t,"drzwi kierowcy wydzielone i Patryk się mieści")).FirstOrDefault();
         if(wybor.t==null)wybor=ok.Where(k=>k.miesci).Select(k=>(k.t,"mieści się, bez wydzielonych drzwi (drzwi bez animacji)")).FirstOrDefault();
-        if(wybor.t==null)wybor=ok.Where(k=>k.drzwi).OrderByDescending(k=>k.w.zapas).Select(k=>(k.t,"żadne nie mieści — DO POPRAWKI (największy zapas z drzwiami)")).FirstOrDefault();
-        if(wybor.t==null){Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: brak sportowego modelu — kandydaci: "+string.Join("; ",kandydaci.Select(k=>k.opis)));return;}
+        // Nie stawiaj auta wyłącznie dekoracyjnego: Patryk ma realnie mieścić
+        // się w kabinie, inaczej wejście przez AKCJA będzie deformować głowę.
+        if(wybor.t==null)
+            throw new InvalidOperationException("BRAXHORN_AUTO_PATRYKA: żaden sportowy samochód nie mieści Patryka w kabinie. "+string.Join("; ",kandydaci.Select(k=>k.opis)));
         var template=wybor.t; var wybrany=kandydaci.First(k=>k.t==template);
         Debug.Log("BRAXHORN_AUTO_PATRYKA wybór="+template.id+" powód="+wybor.Item2+" kandydaci: "+string.Join("; ",kandydaci.Select(k=>k.opis)));
         if(!wybrany.miesci)Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: Patryk nie mieści się w "+template.id+" przy najlepszym odchyleniu "+wybrany.w.odchylenie.ToString("F0")+"° — brakuje "+(-wybrany.w.zapas*100f/K).ToString("F1")+" cm rzeczywistych");
@@ -145,6 +147,6 @@ public static partial class BraxClaudeOsiedle
             rep.notes.Add("Auto Patryka przy ARENA BRAXHORN: "+template.id+", "+color+", "+spot.srodek+" ("+odl.ToString("F1")+" m od wejścia); wsiadanie AKCJA (drzwi: "+drzwiOpis+"), gaz/ster joystick, wyjście po zatrzymaniu. Bez dostępu NPC.");
             Physics.SyncTransforms();return;
         }
-        Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: nie znaleziono wolnej zatoki przy ARENA BRAXHORN (40 m od wejścia)");
+        throw new InvalidOperationException("BRAXHORN_AUTO_PATRYKA: brak wolnej zatoki i dojścia do drzwi przy ARENA BRAXHORN (40 m od wejścia)");
     }
 }
