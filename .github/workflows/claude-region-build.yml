@@ -809,6 +809,24 @@ jobs:
         androidExportType: androidPackage
         versioning: None
         allowDirtyBuild: true
+    # W #91 executeMethod przerwała budowę, ale akcja oznaczyła etap jako sukces.
+    # Weryfikujemy konkretny APK, nie sam kod wyjścia z kontenera Unity.
+    - name: Upewnij się, że Unity naprawdę wygenerowało APK
+      id: verify_apk
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        shopt -s nullglob
+        apks=(build/Android/braxhorn-*.apk)
+        if [ ${#apks[@]} -eq 0 ]; then
+          echo '::error::BRAK APK po Unity: executeMethod mogła zgłosić wyjątek mimo wyniku Build succeeded. Patrz Logs i region.json.'
+          exit 1
+        fi
+        for apk in "${apks[@]}"; do
+          if [ ! -s "$apk" ]; then echo "::error::Pusty APK: $apk"; exit 1; fi
+          echo "APK obecny: $apk ($(stat -c %s "$apk") bajtów)"
+        done
     - name: Zachowaj log Unity i pomiary etapow (takze przy awarii)
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -845,7 +863,7 @@ jobs:
         cat unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json || echo 'BRAK raportu drzwi'
         cat unity-city/Assets/PlayableGenerated/ClaudeRegion/region.json || echo 'BRAK raportu regionu'
     - name: Wgraj APK do ukrytego wydania (instalacja na Androidzie)
-      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' && steps.verify_apk.outcome == 'success' }}
       env:
         GH_TOKEN: ${{ github.token }}
         REL: claude-region-preview
@@ -880,7 +898,7 @@ jobs:
           if [ $ok = 0 ]; then gh release view "$REL" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -qx "$f" || { echo "NIE WYSLANO $f"; exit 1; }; fi
         done
     - name: APK MIASTA — ZACHOWAJ PLIK PRZED CACHE I CHECKPOINTEM
-      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' && steps.verify_apk.outcome == 'success' }}
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
         name: miasto-apk-${{ github.run_id }}-${{ github.run_attempt }}
@@ -891,7 +909,7 @@ jobs:
         compression-level: 0
         retention-days: 14
     - name: Dostawa APK Miasta Mistrzow w podsumowaniu
-      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' && steps.verify_apk.outcome == 'success' }}
       run: |
         echo '### Aktualny APK miasta / Miasta Mistrzów — dla właściciela' >> "$GITHUB_STEP_SUMMARY"
         echo "- Commit: \`$GITHUB_SHA\`" >> "$GITHUB_STEP_SUMMARY"
