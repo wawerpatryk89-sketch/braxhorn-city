@@ -29,3 +29,9 @@ Zakres: tylko obóz. Monika jest graczem; NPC to VORN, ZYRO, RAKK, KADE, GORR i 
 Nie zastępuj miasta/osiedla generatorem obozu, nie scalaj całych gałęzi stref i nie restartuj cudzego buildu. Prywatne źródła, eksporty scen, sekrety i cache nie mogą trafić do publicznego gita.
 
 Zachowuj `.meta`, GUID, trwałe adresy i zapisy gry. Nie przedstawiaj podpisu APK, cache importu, rejestru zasobów ani samego kodu jako działającej aktualizacji zawartości. Osobno raportuj kontrolę kodu, uruchomienie Unity i test tej samej instalacji na telefonie.
+
+## GOTOWY APK MUSI BYĆ DOSTĘPNY WŁAŚCICIELOWI — reguła 4.11.2026
+
+**Obowiązuje także Miasto Mistrzów, miasto, osiedle, obóz, wyspę i wszystkie przyszłe rejony.** Decyzja właściciela (wspólna): https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13.
+
+Po zakończeniu kompilacji Unity i sprawdzeniu podpisu/identyfikatora/wersji **NATYCHMIAST ZABEZPIECZ APK w Actions artifact oraz testowym release, przed jakimkolwiek zapisem cache/Library/checkpoint**. Przekaż właścicielowi link do prawidłowego SHA/run i pliku; wyraźnie zaznacz dostęp tylko dla zalogowanych do draftu. Nie usuwaj jedynej kopii pliku. Awaria opcjonalnego backupu już po gotowym APK to ostrzeżenie, NIE powód do odebrania właścicielowi możliwości testowania. Jeśli publikacja release padła, wskaż bezpośrednio kopię w Actions artifact; nie zatajać jej pod czerwonym buildem. Rozróżniaj: kompilacja, podpis, upload, test na telefonie. Nie deklaruj sukcesu instalacji bez testu. Raportuj tylko najnowsze buildy zawierające bieżące poprawki. **Ta reguła nie upoważnia do samodzielnych buildów ani retry.** Istniejące wyraźne wyjątki właściciela do uruchomienia pojedynczego buildu pozostają bez zmian.
