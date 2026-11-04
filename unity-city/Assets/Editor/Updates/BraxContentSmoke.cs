@@ -65,6 +65,13 @@ public static class BraxContentSmoke
             Check(unchanged.Length > 0, "unchanged bundles retained");
             Check(unchanged.All(b => archive.GetEntry(b.name) == null), "unchanged bundles not transferred");
         }
+        string recorded = BraxContentBuild.Work + "/history-test.json";
+        File.Copy("content-patch.json", recorded);
+        BraxContentEdits.ApplyFile("content-patch.json", scenes, recorded);
+        Check(true, "already applied edit history is not replayed");
+        var changedHistory = File.ReadAllText(recorded).Replace("\"x\":1", "\"x\":9");
+        string altered = BraxContentBuild.Work + "/altered-history.json"; File.WriteAllText(altered, changedHistory);
+        Reject(() => BraxContentEdits.ApplyFile(altered, scenes, recorded), "rewritten applied history rejected");
         string install = BraxContentBuild.Work + "/installed";
         BraxContentPackage.Extract(zip, install, basis, update);
         Check(File.Exists(install + "/" + update.catalog), "valid package install");

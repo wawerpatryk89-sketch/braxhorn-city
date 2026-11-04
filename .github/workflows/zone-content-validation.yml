@@ -54,20 +54,33 @@ jobs:
           assert r['checks'] >= 12 and r['updateBytes'] < r['baselineBytes']
           print(json.dumps(r,indent=2))
           PY
+      - name: Virtual display for Unity Linux player input and graphics
+        if: matrix.target == 'StandaloneLinux64'
+        run: sudo apt-get update -qq && sudo apt-get install -y xvfb xauth libgl1-mesa-dri
       - name: Exercise actual player loading, import, restart and rollback
         if: matrix.target == 'StandaloneLinux64'
         run: |
           set -euo pipefail
+          export LIBGL_ALWAYS_SOFTWARE=1 SDL_VIDEODRIVER=x11
           export XDG_CONFIG_HOME="$RUNNER_TEMP/brax-content-probe-config"
           sudo chown -R "$(id -u):$(id -g)" build/content-probe
           chmod +x build/content-probe/Probe.x86_64
           for mode in base stage update base stage interrupted rollback; do
-            if ! timeout 110s build/content-probe/Probe.x86_64 -batchmode -nographics -probeMode "$mode" -probeZip "$PWD/build/content-probe/update.zip" -logFile "$RUNNER_TEMP/content-$mode.log"; then
+            if ! timeout 110s xvfb-run -a -s "-screen 0 1280x720x24" build/content-probe/Probe.x86_64 -batchmode -force-glcore -screen-width 640 -screen-height 360 -probeMode "$mode" -probeZip "$PWD/build/content-probe/update.zip" -logFile "$RUNNER_TEMP/content-$mode.log"; then
               tail -120 "$RUNNER_TEMP/content-$mode.log"
               exit 1
             fi
             grep "BRAX_CONTENT_RUNTIME_PASS $mode" "$RUNNER_TEMP/content-$mode.log"
           done
+      - name: Synthetic player diagnostics on failure
+        if: failure() && matrix.target == 'StandaloneLinux64'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: synthetic-content-probe
+          path: |
+            build/content-probe
+            ${{ runner.temp }}/content-*.log
+          retention-days: 1
       - name: Test receipt only (no game assets)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
