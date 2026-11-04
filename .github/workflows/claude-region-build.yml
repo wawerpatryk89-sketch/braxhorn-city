@@ -90,7 +90,7 @@ jobs:
     # 3.11 18:40 (właściciel): BEZ ZDJĘĆ CI — „to tylko czas zajmuje”. Job (i shots) wyłączony.
     if: false && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka')
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 355
     steps:
     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       with:
