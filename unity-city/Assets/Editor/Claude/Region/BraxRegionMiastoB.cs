@@ -505,7 +505,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     {
         PrzekrojX2("ul. Zachodnia", RZ, AH, Ziel, Chod, ZachX0, ZachX1, true, (ZachX1 - 6f, ZachX1), (ZachX0, ZachX0 + 6f));
         var c = new Vector2(PetlaZX, RZ);
-        Asfalt("pętla ZACHÓD", PetlaZX - PetlaPlac, PetlaZX + PetlaPlac, RZ - PetlaPlac, RZ + PetlaPlac);
+        RondoAsfalt("pętla ZACHÓD", c, PetlaWyspa, PetlaR, PetlaPlac, new[] { 0f, 180f }, AH);
         PlacZPierscieniem("pętla ZACHÓD", c, PetlaR, PetlaPlac, new[] { 0f, 180f }, AH);   // wlot zach. = Aleja Centralna (nowe dzielnice)
         var kraw = new BraxRegionMeble.Bud(); Pierscien(kraw, c, PetlaWyspa - Kr, PetlaWyspa, YC, 48); kraw.Obiekt("Pętla ZACHÓD: krawężnik wyspy", root, krawMat, false, false);
         var tr = Dysk("Pętla ZACHÓD: trawnik wyspy", c, PetlaWyspa - Kr, YC - .03f, 48); Nawierzchnia(tr); BraxRegionTrawa.Teren(tr.GetComponent<MeshRenderer>(), true, false);
@@ -552,7 +552,8 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     static void Rondo()
     {
         var c = new Vector2(RX, RZ);
-        Asfalt("rondo (pierścień i wloty)", RX - RPlac, RX + RPlac, RZ - RPlac, RZ + RPlac);
+        // Tylko rzeczywisty pierścień i cztery wloty; stary KWADRAT asfaltu ±22 m usunięty.
+        RondoAsfalt("rondo", c, RWyspa, RJezdnia, RPlac, WlotyRonda, AH);
         // wloty: E (ulica główna), N, S (aleje); W — ETAP 2 (do tego czasu chodnik przez cały zachód placu)
         PlacZPierscieniem("rondo", c, RJezdnia, RPlac, WlotyRonda, AH);
         // wyspa: krawężnik (pierścień 0.25 m, wys. 0.15), trawnik (dysk 3 cm niżej), drzewo i rzeźba
@@ -570,6 +571,50 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             var dir = new Vector3(c.x - p.x, 0, c.y - p.y).normalized;
             Latarnia(new Vector3(p.x, YC, p.y), dir, 3.4f);
         }
+    }
+
+
+    // Asfalt okrągły: dawne generatory zapisywały cały KWADRAT S×S pod
+    // kolistym rondem (czarne kwadraty na filmie). Nie przyklejamy drugiego
+    // materiału — rozcinamy geometrię na pierścień oraz wloty bez styku płaszczyzn.
+    static void RondoAsfalt(string n, Vector2 c, float r0, float r1, float S, float[] wloty, float hj)
+    {
+        var piers = new BraxRegionMeble.Bud();
+        Pierscien(piers, c, r0, r1, YA, 96);
+        var ob = piers.Obiekt("Jezdnia okrągła: " + n, root, asfalt, false, false);
+        Nawierzchnia(ob);
+        var laczniki = new BraxRegionMeble.Bud();
+        foreach (var k in wloty)
+        {
+            Vector2 d = Kier(k), v = new Vector2(-d.y, d.x);
+            for (int i = 0; i < 24; i++)
+            {
+                float a = Mathf.Lerp(-hj, hj, i / 24f), b = Mathf.Lerp(-hj, hj, (i + 1) / 24f);
+                Vector2 p0 = c + d * Mathf.Sqrt(Mathf.Max(0f, r1 * r1 - a * a)) + v * a;
+                Vector2 p1 = c + d * Mathf.Sqrt(Mathf.Max(0f, r1 * r1 - b * b)) + v * b;
+                Vector2 q0 = c + d * r1 + v * a, q1 = c + d * r1 + v * b;
+                // Łącznik w szczelinie między okręgiem a prostą x/z=r1.
+                // KlinGora orientuje UV/normalną i daje sztywną krawędź.
+                KlinGora(laczniki, p0, q0, q1, p1, YA);
+            }
+            if (Mathf.Abs(d.x) > .5f)
+            {
+                float xa = c.x + d.x * r1, xb = c.x + d.x * S;
+                Asfalt(n + " wlot " + k.ToString("F0"),
+                    Mathf.Min(xa, xb), Mathf.Max(xa, xb), c.y - hj, c.y + hj);
+            }
+            else
+            {
+                float za = c.y + d.y * r1, zb = c.y + d.y * S;
+                Asfalt(n + " wlot " + k.ToString("F0"),
+                    c.x - hj, c.x + hj, Mathf.Min(za, zb), Mathf.Max(za, zb));
+            }
+        }
+        var p = laczniki.Obiekt("Jezdnia okrągła: łączniki wlotów " + n, root, asfalt, false, false);
+        Nawierzchnia(p);
+        Debug.Log("BRAXHORN_RONDO_BEZ_KWADRATU " + n +
+            " pierścień=" + r0.ToString("F1") + "…" + r1.ToString("F1") +
+            " m, wlotów=" + wloty.Length + ", brak kwadratowego asfaltu");
     }
 
     // plac kwadratowy z pierścieniem jezdni: wachlarze chodnika między granicami (wloty: linie krawędzi jezdni ±(hj+Kr); bez
@@ -719,7 +764,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         PrzekrojZ("Aleja Północna", AX, AH, Ziel, Chod, z0, z1, true, (z0, z0 + 6f), (z1 - 6f, z1));
         // pętla na końcu (zawrotka / pętla autobusowa PÓŁNOC): kwadrat ±15, pierścień R 11, wyspa R 4.5 z drzewem
         var c = new Vector2(AX, PetlaZ);
-        Asfalt("pętla PÓŁNOC", AX - PetlaPlac, AX + PetlaPlac, PetlaZ - PetlaPlac, PetlaZ + PetlaPlac);
+        RondoAsfalt("pętla PÓŁNOC", c, PetlaWyspa, PetlaR, PetlaPlac, new[] { 270f }, AH);
         PlacZPierscieniem("pętla PÓŁNOC", c, PetlaR, PetlaPlac, new[] { 270f }, AH);
         var kraw = new BraxRegionMeble.Bud(); Pierscien(kraw, c, PetlaWyspa - Kr, PetlaWyspa, YC, 48); kraw.Obiekt("Pętla: krawężnik wyspy", root, krawMat, false, false);
         var tr = Dysk("Pętla: trawnik wyspy", c, PetlaWyspa - Kr, YC - .03f, 48); Nawierzchnia(tr); BraxRegionTrawa.Teren(tr.GetComponent<MeshRenderer>(), true, false);
