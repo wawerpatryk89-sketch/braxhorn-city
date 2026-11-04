@@ -1330,26 +1330,43 @@ public static class BraxClaudeMetro
         var probe = (GameObject)UnityEngine.Object.Instantiate(zrodlo);
         probe.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         probe.transform.localScale = Vector3.one;
+        // Importowany GLB ma dowolną oś długości (X, Y lub Z).
+        // W #91 porównywano tylko X/Z; wagon ustawiony długością w osi Y
+        // wyrastał nad ulicę i jego BoxCollider blokował wejście TOWER.
+        var surowe = Granice(probe, null);
+        if (surowe.size.sqrMagnitude < 1e-6f)
+            throw new InvalidOperationException("BRAXHORN_METRO_M1_MODEL_BEZ_GEOMETRII");
+        Quaternion ustawDoTorow = surowe.size.y > surowe.size.x && surowe.size.y > surowe.size.z
+            ? Quaternion.Euler(0f, 0f, -90f)
+            : surowe.size.z > surowe.size.x ? Quaternion.Euler(0f, 90f, 0f) : Quaternion.identity;
+        probe.transform.rotation = ustawDoTorow;
         var cale = Granice(probe, null);
         Func<Renderer, bool> pudlo = r => NazwyMat(r).Contains("side");
         var bP = Granice(probe, pudlo);
         if (bP.size.sqrMagnitude < 1e-6f) bP = cale;
-        bool dlZ = cale.size.z >= cale.size.x;
-        float szerP = dlZ ? bP.size.x : bP.size.z, szerC = dlZ ? cale.size.x : cale.size.z;
+        float szerP = bP.size.z > cale.size.z * .5f ? bP.size.z : cale.size.z;
+        float szerC = cale.size.z;
         var bC = Granice(probe, r => { var n = NazwyMat(r); return n.Contains("mirror.001") || n.Contains("aistandardsurface"); });
-        float zn = dlZ ? bC.center.z - cale.center.z : bC.center.x - cale.center.x;
-        bool czoloZnane = bC.size.sqrMagnitude > 1e-6f && Mathf.Abs(zn) > (dlZ ? cale.size.z : cale.size.x) * .25f;
-        var czolo = dlZ ? new Vector3(0f, 0f, czoloZnane ? Mathf.Sign(zn) : 1f)
-                        : new Vector3(czoloZnane ? Mathf.Sign(zn) : 1f, 0f, 0f);
+        float zn = bC.center.x - cale.center.x;
+        bool czoloZnane = bC.size.sqrMagnitude > 1e-6f && Mathf.Abs(zn) > cale.size.x * .25f;
+        float kierunekCzola = czoloZnane ? Mathf.Sign(zn) : 1f;
         UnityEngine.Object.DestroyImmediate(probe);
-        if (szerP < 1e-4f || cale.size.y < 1e-4f) return false;
+        if (szerP < 1e-4f || cale.size.y < 1e-4f || cale.size.x < 1e-4f) return false;
 
         // Używamy TEGO SAMEGO optymalizowanego modelu kane_sk06 z galerii właściciela.
         // 208 MB oryginału -> 25 MB w repo (CREDITS.md: 383k -> 96k tris, tekstury 4K -> 1K).
-        float skala = Mathf.Min(2.8f * K / szerP, (2f * (zTn - zPN) - .12f) / szerC);
-        // Dwa człony tego samego składu: szczelina techniczna, nie dwa oddzielne pociągi.
-        float dl = (dlZ ? cale.size.z : cale.size.x) * skala, gap = .20f;
-        float yawCzola = Mathf.Atan2(czolo.x, czolo.z) * Mathf.Rad2Deg;
+        // Rozmiar docelowy ograniczają: rozstaw torowiska, bok peronu i
+        // przede wszystkim sufit tunelu (nie może wystawać na ulicę).
+        float skala = Mathf.Min(2.8f * K / szerP,
+            (2f * (zTn - zPN) - .20f) / szerC,
+            (yHc - .30f - yR) / cale.size.y);
+        // Dwa człony tego samego składu: 20 cm na widoczny przegub.
+        float dl = cale.size.x * skala, gap = .20f;
+        if (!float.IsFinite(skala) || skala <= 0f ||
+            dl < 8f || 2f * dl + gap > PX1 - PX0 - 5f)
+            throw new InvalidOperationException("BRAXHORN_METRO_M1_SKALA_NIEGOTOWA: długość wagonu=" +
+                dl.ToString("F2") + ", skala=" + skala.ToString("F4") +
+                ", GLB=" + cale.size.ToString("F2"));
         float xWsch = PX1 - 3f;
         var sklad = new GameObject("METRO M1 — pociąg kursujący kane_sk06 (2 wagony, 60 s)").transform;
         sklad.SetParent(W.Grupa, false);
@@ -1365,10 +1382,12 @@ public static class BraxClaudeMetro
         for (int i = 0; i < 2; i++)
         {
             float cx = xWsch - dl * .5f - i * (dl + gap);
-            float yaw = (i == 0 ? 90f : -90f) - yawCzola;
+            // Przy obu członach kabiny na zewnątrz, wagony wzdłuż osi X toru.
+            float yaw = (i == 0 ? kierunekCzola : -kierunekCzola) > 0f ? 0f : 180f;
             var w = (GameObject)UnityEngine.Object.Instantiate(zrodlo, sklad, false);
             w.name = "metro M1 — wagon " + (101 + i) + " (autentyczny model kane_sk06 CC BY)";
-            w.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0f, yaw, 0f));
+            w.transform.SetPositionAndRotation(Vector3.zero,
+                Quaternion.Euler(0f, yaw, 0f) * ustawDoTorow);
             w.transform.localScale = Vector3.one * skala;
             var b = Granice(w, null);
             var bp = Granice(w, pudlo); if (bp.size.sqrMagnitude < 1e-6f) bp = b;
@@ -1408,9 +1427,15 @@ public static class BraxClaudeMetro
             poprzedniWagon = b;
             if (!boundsGotowe) { wszystkie = b; boundsGotowe = true; }
             else wszystkie.Encapsulate(b);
-            if (b.min.x < PX0 + .5f || b.max.z > zN - .1f || b.min.z < zPN - .02f)
-                Debug.LogError("BRAXHORN_METRO_M1_SKRAJNIA wagon " + i + " wykracza poza skrajnię: " +
-                    b.min.ToString("F2") + "…" + b.max.ToString("F2"));
+            // FAIL CLOSED: nie zapisuj nigdy wagonu przecinającego ulicę,
+            // strop, peron albo krawędź tunelu. Sam Debug.LogError nie
+            // zatrzymywał generowania wadliwego APK.
+            if (b.min.x < PX0 + .5f || b.max.x > PX1 - .5f ||
+                b.min.y < yR - .2f || b.max.y > yHc - .25f ||
+                b.max.z > zN - .1f || b.min.z < zPN - .02f)
+                throw new InvalidOperationException("BRAXHORN_METRO_M1_SKRAJNIA_NIEGOTOWA: wagon " + i +
+                    " granice=" + b.min.ToString("F2") + "…" + b.max.ToString("F2") +
+                    ", strop_y=" + yHc.ToString("F2") + ", tor_y=" + yR.ToString("F2"));
             // Stara siatka ma płaskie zamknięte drzwi (GLB bez węzłów
             // door_left/door_right, bez animacji). Tylko optyczne panele
             // przesuwne tuż przy boku od peronu. Nie deformujemy modelu.
