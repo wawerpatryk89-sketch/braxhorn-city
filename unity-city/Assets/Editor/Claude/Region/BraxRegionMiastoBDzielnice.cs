@@ -573,62 +573,9 @@ public static partial class BraxRegionMiastoB
 
     // tramwaj: przystanek przy krawężniku ul. Tramwajowej (pas płd., jazda na wschód), peron z płyt za chodnikiem, wiata (model),
     // tablica „T1 · KRAŃCÓWKA ZACHÓD”, tramwaj CAF (33.9 m × K) kołami na szynach, kozły oporowe na końcach torów.
-    static void NdTramwaj()
-    {
-        float zt = NS1 - AH * .5f;
-        var t1 = new GameObject("BRAXHORN przystanek tramwajowy: T1 KRAŃCÓWKA ZACHÓD"); t1.transform.SetParent(root, false);
-        t1.transform.position = new Vector3(-462f, YA, NS1 - AH); t1.transform.rotation = Quaternion.LookRotation(Vector3.right);
-        BraxRegionMeble.Napis(root, "T1 · KRAŃCÓWKA ZACHÓD", NaPodlozu(new Vector3(-468f, YC, NS1 - NPR - .4f)) + Vector3.up * 2.6f * K, Vector3.forward, .26f * K, new Color(.95f, .95f, .92f));
-        var sl = new BraxRegionMeble.Bud(); var ps = NaPodlozu(new Vector3(-468f, YC, NS1 - NPR - .5f)); sl.Cyl(ps, ps + Vector3.up * 3.1f * K, .04f * K, 10);
-        sl.Box(ps + Vector3.up * 2.65f * K, new Vector3(2.6f * K, .5f * K, .06f)); sl.Obiekt("Przystanek tramwajowy: słup z tablicą", root, BraxCityMaterials.Surface("Przystanek: tablica granatowa", new Color(.06f, .14f, .32f), .5f), false, true);
-        // ZDJĘTO stare kozły oporowe z czterech końców. Blokowały tramwaj w krótkim odcinku C1–C2.
-        // Oba tory prowadzą teraz od C3 do C0, a T1 kursuje wahadłowo bez potrzeby zawracania modelu.
-        NdLog("TRAM_T1: zdemontowano kozły oporowe; stara krańcówka zamieniona w przystanek przelotowy");
-        if (BraxMiastoAssety.Jest("miasto_wyposazenie"))
-        {
-            var wiata = BraxMiastoAssety.Model("miasto_wyposazenie", "miasto_wyposazenie");
-            var kopia = wiata ? (GameObject)UnityEngine.Object.Instantiate(wiata) : null; var t = kopia ? BraxMiastoAssety.Znajdz(kopia.transform, "wiata_przystanku") : null;
-            if (t)
-            {
-                t.SetParent(root, false); t.name = "Wiata przystanku tramwajowego (model)";
-                t.position = NaPodlozu(new Vector3(-478f, YC, PeronTramwaju.center.y)); t.rotation = Quaternion.identity; t.localScale = Vector3.one * K;
-                BraxMiastoAssety.Przygotuj(t.gameObject); BraxMiastoAssety.Kolizja(root, t.gameObject, "Wiata tramwaju kolizja", .3f);
-            }
-            if (kopia) UnityEngine.Object.DestroyImmediate(kopia);
-        }
-        var tram = BraxMiastoAssety.Jest("miasto_pojazdy") ? BraxMiastoAssety.Model("miasto_pojazdy", "tramwaj_caf") : null;
-        if (!tram) { NdLog("tramwaj: brak modelu (paczka miasto_pojazdy) — torowisko, peron i tablica bez tramwaju"); return; }
-        var o = BraxMiastoAssety.Postaw(root, tram, "Tramwaj T1 — linia C3…C0 (CAF)", new Vector3(-670f, YA, zt), 0f, 1f, false, true);
-        if (!o) { NdLog("TRAM_T1_NIEGOTOWY brak modelu pojazdu"); return; }
-        var b = BraxRegion.Bounds(o);
-        o.transform.position += new Vector3(-670f - b.center.x, YA - b.min.y, zt - b.center.z);
-        foreach (var tr in o.GetComponentsInChildren<Transform>(true))
-            GameObjectUtility.SetStaticEditorFlags(tr.gameObject, 0);
-        b = BraxRegion.Bounds(o);
-        float minX = TorRect.xMin + b.size.x * .5f + 2f;
-        float maxX = TorRect.xMax - b.size.x * .5f - 2f;
-        if (maxX <= minX + 10f)
-        {
-            NdLog("TRAM_T1_NIEGOTOWY: model CAF ma " + b.size.x.ToString("F1") +
-                  " m, nie mieści się pomiędzy krańcami torów"); return;
-        }
-        // Kolizja jedzie Z WAGONEM. Stara statyczna kolizja w root miasta więziła gracza
-        // i blokowała ruch, gdy pojazd powinien odjechać. Collider na root modelu w lokalnej skali.
-        var bc = o.AddComponent<BoxCollider>();
-        var scale = o.transform.lossyScale;
-        bc.center = o.transform.InverseTransformPoint(b.center);
-        bc.size = new Vector3(b.size.x / Mathf.Max(.01f, Mathf.Abs(scale.x)),
-                              b.size.y / Mathf.Max(.01f, Mathf.Abs(scale.y)),
-                              b.size.z / Mathf.Max(.01f, Mathf.Abs(scale.z))) * .96f;
-        var rb = o.AddComponent<Rigidbody>(); rb.isKinematic = true; rb.useGravity = false;
-        var ruch = o.AddComponent<BraxTramwajT1>();
-        ruch.minX = minX; ruch.maxX = maxX; ruch.szybkosc = 7.5f; ruch.postojSekundy = 7f;
-        ruch.przystanki = new[] { minX, -485f, maxX };
-        o.transform.position = new Vector3(minX, o.transform.position.y, zt);
-        NdLog("TRAM_T1: CAF " + b.size.x.ToString("F1") + " m, linia C3…C0, torów = " + TorRect.width.ToString("F1") +
-              " m, z=" + zt.ToString("F2") + ", ruch wahadłowy x=" + minX.ToString("F1") + "…"+ maxX.ToString("F1") +
-              ", postoje: zachód, przy peronie -485 i wschód; oba końce bez kozłów oporowych");
-    }
+    // Pętla T1 i wyposażenie przystanków są w osobnym pliku partial.
+    // Jedna geometria dla renderu szyn, modelu i całego ruchu (bez ślepych torów).
+    static void NdTramwaj() => NdTramT1Buduj();
 
     // drobne: hydranty przy narożnikach ulic C, skrzynki pocztowe na promenadzie i przy ul. Nowojorskiej, bankomat przy banku
     // (KINNAIRD), kontenery na śmieci w przerwach między budynkami (zaplecza). Modele TampaJoey — tylko to, czego w grze brakowało.
