@@ -1,0 +1,39 @@
+name: City 58 - serialized object diagnosis (no Unity build)
+on:
+  push:
+    branches: [codex/city58-startup-update-20261104]
+    paths:
+      - .github/workflows/city58-object-diagnosis.yml
+      - unity-tools/claude/probe_city58_objects.py
+  workflow_dispatch:
+permissions:
+  contents: write # Draft release read needs push access.
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: unity-tools/claude
+      - name: Download exact existing APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir diagnostic
+          gh release download claude-region-preview --repo "$GITHUB_REPOSITORY" --pattern braxhorn-miastogl-874f194.apk --dir diagnostic
+          echo '69592f179a12d2628dd77cbba7737d1cb35d8eea1842c200a65b7a3463b72e44  diagnostic/braxhorn-miastogl-874f194.apk' | sha256sum --check --strict
+      - name: Inspect object payloads with independent reader
+        run: |
+          set -o pipefail
+          python3 -m pip install --disable-pip-version-check UnityPy==1.25.4
+          python3 unity-tools/claude/probe_city58_objects.py diagnostic/braxhorn-miastogl-874f194.apk "$RUNNER_TEMP/city58-objects" | tee diagnostic/objects.json
+      - name: Keep diagnostic report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city58-object-report
+          path: diagnostic/*.json
+          retention-days: 7
+          if-no-files-found: warn

@@ -73,6 +73,21 @@ class CacheTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'unsafe'):
                     cache.category(path)
 
+    def test_rollback_preserves_checkout(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            data = self.prepare(root / 'before')
+            after = root / 'after'
+            meta = after / 'Assets/Source/a.png.meta'
+            meta.parent.mkdir(parents=True)
+            meta.write_bytes(b'checkout')
+            journal = root / 'restore-journal.txt'
+            cache.restore(after, io.BytesIO(data), '6000.0.58f2-Android-miasto', 'world-a', journal=journal)
+            cache.rollback(after, journal)
+            self.assertEqual(meta.read_bytes(), b'checkout')
+            self.assertFalse((after / 'Library').exists())
+            self.assertFalse((after / 'Assets/PlayableGenerated').exists())
+
 
 if __name__ == '__main__':
     unittest.main()

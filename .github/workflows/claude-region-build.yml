@@ -604,11 +604,11 @@ jobs:
       uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
         path: ${{ runner.temp }}/library-android.tar.zst.enc
-        key: library-android-v2-6000.0.58f2-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}
+        key: library-android-v2-6000.0.58f2-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}
         restore-keys: |
-          library-android-v2-6000.0.58f2-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-
-          library-android-v2-6000.0.58f2-${{ steps.rejon.outputs.rejon }}-
-          library-android-v1-
+          library-android-v2-6000.0.58f2-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-
+          library-android-v2-6000.0.58f2-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}-
+          ${{ steps.rejon.outputs.rejon == 'miasto' && 'library-android-v1-41686981679' || 'library-android-no-legacy' }}
     - name: Pamiec Library Unity dla Androida - rozpakowanie
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -619,20 +619,25 @@ jobs:
           echo "pamiec Library: $(( $(stat -c %s "$P") / 1048576 )) MB"
           # --skip-old-files: pliki .meta z repozytorium zostają; wracają tylko .meta plików tworzonych w CI (te same GUID co
           # w zapisanej Library — bez tego Unity nadaje nowe GUID i importuje wszystko od zera mimo pamięci)
+          : > "$RUNNER_TEMP/restored-cache-files.txt"
           restore_cache() {
             case '${{ steps.bibl_and.outputs.cache-matched-key }}' in
               library-android-v1-*) tar -x --skip-old-files -C unity-city ;;
               *)
                 args=()
                 [ '${{ steps.rejon.outputs.pamiec }}' = tak ] || args+=(--no-world)
-                python3 unity-tools/claude/android_build_cache.py restore --scope '6000.0.58f2-Android-${{ steps.rejon.outputs.rejon }}' --key '${{ steps.rejon.outputs.klucz }}' "${args[@]}"
+                python3 unity-tools/claude/android_build_cache.py restore --scope "6000.0.58f2-Android-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}" --key '${{ steps.rejon.outputs.klucz }}' "${args[@]}" --journal "$RUNNER_TEMP/restored-cache-files.txt"
                 ;;
             esac
           }
           if openssl enc -d -aes-256-cbc -pbkdf2 -in "$P" -pass env:KLUCZ | zstd -d -T0 | restore_cache; then
             echo "BRAXHORN_PAMIEC_LIBRARY android=tak klucz=${{ steps.bibl_and.outputs.cache-matched-key }} s=$(( $(date +%s) - T0 ))"
           else
-            echo "BRAXHORN_PAMIEC_LIBRARY blad_rozpakowania — zatrzymano przed kompilacja (nie uzywamy czesciowych danych)"; exit 1
+            case '${{ steps.bibl_and.outputs.cache-matched-key }}' in
+              library-android-v1-*) echo 'Legacy cache extraction failed; refusing partial legacy state'; exit 1 ;;
+              *) python3 unity-tools/claude/android_build_cache.py rollback --journal "$RUNNER_TEMP/restored-cache-files.txt" ;;
+            esac
+            echo '::warning::Cache odrzucony, przywrocone pliki wycofane; poprawny build od zrodel.'
           fi
           rm -f "$P"
         else
@@ -771,7 +776,7 @@ jobs:
         df -h / | tail -1
         [ -n "$KLUCZ" ] || { echo 'brak klucza - bez zapisu pamieci Library'; exit 0; }
         # Keep Bee native objects and IL2CPP outputs. Gradle projects/signing files are excluded by the packer.
-        python3 unity-tools/claude/android_build_cache.py pack --scope '6000.0.58f2-Android-${{ steps.rejon.outputs.rejon }}' --key '${{ steps.rejon.outputs.klucz }}' | zstd -T0 -3 | \
+        python3 unity-tools/claude/android_build_cache.py pack --scope "6000.0.58f2-Android-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}" --key '${{ steps.rejon.outputs.klucz }}' | zstd -T0 -3 | \
           openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:KLUCZ -out "$RUNNER_TEMP/library-android.tar.zst.enc"
         if [ "$(stat -c %s "$RUNNER_TEMP/library-android.tar.zst.enc")" -gt 9663676416 ]; then
           echo '::warning::Cache exceeds 9 GiB; keeping the APK, skipping oversized cache upload.'
@@ -784,7 +789,7 @@ jobs:
       uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
       with:
         path: ${{ runner.temp }}/library-android.tar.zst.enc
-        key: library-android-v2-6000.0.58f2-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}
+        key: library-android-v2-6000.0.58f2-arm64-etc2-il2cpp-release-size-${{ hashFiles('unity-city/Packages/*.json', 'unity-city/apk-warianty.txt') }}-${{ steps.rejon.outputs.rejon }}-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}
     needs: [source-imports, cc0-assets]
 
   shots:

@@ -57,7 +57,7 @@ def pack(root, stream, scope, key):
     print(f'BRAXHORN_CACHE packed files={count} raw_bytes={total}', file=sys.stderr)
 
 
-def restore(root, stream, scope, key, world_enabled=True):
+def restore(root, stream, scope, key, world_enabled=True, journal=None):
     restored, skipped = 0, 0
     with tarfile.open(fileobj=stream, mode='r|') as archive:
         header = archive.next()
@@ -82,6 +82,9 @@ def restore(root, stream, scope, key, world_enabled=True):
             if target.is_symlink() or any(p.is_symlink() for p in target.parents):
                 raise ValueError('cache target contains symlink')
             target.parent.mkdir(parents=True, exist_ok=True)
+            if journal:
+                with journal.open('a') as record:
+                    record.write(member.name + '\n')
             with archive.extractfile(member) as source, target.open('xb') as dest:
                 shutil.copyfileobj(source, dest, 1024 * 1024)
             restored += 1
@@ -89,18 +92,45 @@ def restore(root, stream, scope, key, world_enabled=True):
     return same_world
 
 
+def rollback(root, journal):
+    """Remove only files created by this restore; checkout/preparation files were skipped."""
+    if not journal or not journal.exists():
+        return
+    for name in reversed(journal.read_text().splitlines()):
+        if category(name) is None:
+            raise ValueError('unexpected restore journal path')
+        target = root / name
+        if target.is_symlink() or any(p.is_symlink() for p in target.parents):
+            raise ValueError('restore rollback contains symlink')
+        target.unlink(missing_ok=True)
+        parent = target.parent
+        while parent != root and parent.is_relative_to(root):
+            try:
+                parent.rmdir()
+            except OSError:
+                break
+            parent = parent.parent
+    journal.unlink()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('pack', 'restore'))
+    parser.add_argument('mode', choices=('pack', 'restore', 'rollback'))
     parser.add_argument('--root', type=pathlib.Path, default=pathlib.Path('unity-city'))
-    parser.add_argument('--scope', required=True)
-    parser.add_argument('--key', required=True)
+    parser.add_argument('--scope')
+    parser.add_argument('--key')
     parser.add_argument('--no-world', action='store_true')
+    parser.add_argument('--journal', type=pathlib.Path)
     args = parser.parse_args()
+    if args.mode == 'rollback':
+        rollback(args.root, args.journal)
+        return
+    if not args.scope or not args.key:
+        parser.error('--scope and --key are required for pack/restore')
     if args.mode == 'pack':
         pack(args.root, sys.stdout.buffer, args.scope, args.key)
     else:
-        restore(args.root, sys.stdin.buffer, args.scope, args.key, not args.no_world)
+        restore(args.root, sys.stdin.buffer, args.scope, args.key, not args.no_world, args.journal)
 
 
 if __name__ == '__main__':

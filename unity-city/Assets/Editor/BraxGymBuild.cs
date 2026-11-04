@@ -391,7 +391,9 @@ public static class BraxGymBuild
                         var c2=cell;c2.center=new Vector3(c2.center.x,0f,c2.center.z);
                         if(c2.SqrDistance(spawn)<70f*70f)continue;   // okolica siłowni zostaje w scenie startowej
                         var w=BraxClaudeObszary.WObszarze(scene,cell);if(w.Count==0)continue;
-                        if(BraxClaudeObszary.Wydziel(scene,"BraxhornCity_K"+nk.ToString("00"),w,120f,250f,Generated)!=null)nk++;
+                        // The sector identity depends on its coordinates, never on which other sectors are non-empty.
+                        string sectorName=BraxCityZoneRegistry.SectorSceneName(Mathf.RoundToInt(x/K),Mathf.RoundToInt(z/K));
+                        if(BraxClaudeObszary.Wydziel(scene,sectorName,w,120f,250f,Generated)!=null)nk++;
                     }
                 Debug.Log("BRAXHORN_KWADRATY miasto: "+nk+" kwadratów, granice miasta "+all.min.ToString("F0")+" … "+all.max.ToString("F0"));
             }
@@ -444,6 +446,7 @@ public static class BraxGymBuild
     {
         if(scenePaths==null||scenePaths.Length==0||scenePaths.Any(p=>p==null))throw new Exception("Brak scen rejonu "+rejon+" do paczki");
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
+        if(renovation&&fullCity&&rejon!="osiedle")BraxCityZoneRegistry.Write(scenePaths,sourceCommit,target);
         BraxBrakujaceSkrypty.Sprawdz(scenePaths);   // bramka twarda (WebGL / zdjęcia CI też)   // 1.11, 22:20: jak wyżej (WebGL / zdjęcia CI też bez brakujących skryptów)
         bool cityOnly=renovation&&BraxCityBuild.CityOnly();
         string output,location;
