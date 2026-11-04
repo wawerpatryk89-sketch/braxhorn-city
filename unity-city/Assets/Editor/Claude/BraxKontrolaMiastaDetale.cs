@@ -26,6 +26,51 @@ public static class BraxKontrolaMiastaDetale
         try { Lady(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_LADY_KOLIZJE DO POPRAWKI " + e.Message); }
         try { Hydranty(root); } catch (Exception e) { Debug.LogWarning("BRAXHORN_HYDRANTY DO POPRAWKI " + e.Message); }
         Physics.SyncTransforms();
+        try { WejsciaKrytyczne(); } catch (Exception e) { Debug.LogWarning("BRAXHORN_MIASTO_WEJSCIA DO POPRAWKI " + e.Message); }
+    }
+
+    // Test geometryczny drzwi z filmu. Nie usuwa ścian ani cudzego wyposażenia:
+    // raportuje pierwszy collider blokujący kapsułę Braxa na osi przejścia.
+    // Drzwi aktywne otwierają się w runtime i mogą być zamknięte podczas buildu.
+    static void WejsciaKrytyczne()
+    {
+        const float y = .15f;
+        var trasy = new (string id, float x, float z0, float z1)[]
+        {
+            ("NOVA wejście", 42.0f, 35.5f, 38.0f),
+            ("NOVA przedsionek do sali", 42.0f, 40.3f, 42.7f),
+            ("NOVA klatka mieszkania", 33.74f, 35.5f, 37.4f),
+            ("BRAXHORN NUTRITION", 21.0f, 20.0f, 22.1f),
+            ("BRAXHORN TOWER", 59.0f, 35.5f, 38.2f),
+        };
+        int wolne = 0; var problemy = new List<string>();
+        foreach (var trasa in trasy)
+        {
+            string pierwszy = null;
+            for (float z = trasa.z0; z <= trasa.z1 + .01f && pierwszy == null; z += .3f)
+            {
+                var stopa = new Vector3(trasa.x, y, z);
+                var kolizje = Physics.OverlapCapsule(stopa + Vector3.up * .64f,
+                    stopa + Vector3.up * 1.97f, .31f, ~0, QueryTriggerInteraction.Ignore);
+                foreach (var c in kolizje)
+                {
+                    if (!c || !c.enabled || c.isTrigger || c.GetComponentInParent<BraxGymPlayer>()) continue;
+                    if (c.GetComponentInParent<BraxDrzwiPrzesuwne>() ||
+                        c.GetComponentInParent<BraxDrzwiAutomatyczne>() ||
+                        c.GetComponentInParent<BraxCityDoor>()) continue; // skrzydło aktywne
+                    if (c.bounds.max.y <= y + .22f) continue; // prawdziwa posadzka pod stopami
+                    pierwszy = c.name + " @" + c.bounds.center.ToString("F1") +
+                               " punkt trasy (" + trasa.x.ToString("F2") + "," + z.ToString("F2") + ")";
+                    break;
+                }
+            }
+            if (pierwszy == null) wolne++;
+            else problemy.Add(trasa.id + " -> " + pierwszy);
+        }
+        string log = "BRAXHORN_MIASTO_WEJSCIA wolne=" + wolne + "/" + trasy.Length +
+            (problemy.Count > 0 ? " BLOKADY [" + string.Join("; ", problemy) + "]" : " wstępnie drożne (samych drzwi dynamicznych nie testowano)");
+        if (problemy.Count > 0) Debug.LogWarning(log);
+        else Debug.Log(log);
     }
 
     static Bounds Obrys(GameObject g)
