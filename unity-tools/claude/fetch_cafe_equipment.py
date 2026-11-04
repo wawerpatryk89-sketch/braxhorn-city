@@ -35,7 +35,7 @@ def main():
     chunk_size, kind = struct.unpack_from("<II", data, 12)
     if kind != 0x4E4F534A or 20 + chunk_size > len(data):
         raise SystemExit("BRAXHORN_KAWIARNIA_BLEDNY_MODEL: brak JSON GLB")
-    parsed = json.loads(data[20:20 + chunk_size].rstrip(b"\\x00 ").decode("utf-8"))
+    parsed = json.loads(data[20:20 + chunk_size].rstrip(b"\x00 ").decode("utf-8"))
     if not parsed.get("meshes"):
         raise SystemExit("BRAXHORN_KAWIARNIA_BLEDNY_MODEL: brak geometrii")
     OUT.write_bytes(data)
