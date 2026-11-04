@@ -257,7 +257,12 @@ jobs:
         set -euo pipefail
         root=unity-city/Assets/Source
         test -s "$root/Claude/Osiedle/detail/pokoje.png" || { echo '::error::Nie ma atlasu pokojow — czarne fasady, zatrzymano build'; exit 1; }
-        test -s "$root/Claude/PolyHaven/sky/kloofendal_4k.jpg" || { echo '::error::Nie ma nieba 360 4K, zatrzymano build'; exit 1; }
+        # Skybox może mieć wersję 8K albo 4K; dowolna poprawna wystarczy.
+        if [ ! -s "$root/Claude/PolyHaven/sky/kloofendal_8k.jpg" ] && \
+           [ ! -s "$root/Claude/PolyHaven/sky/kloofendal_4k.jpg" ]; then
+          echo '::error::Nie ma oryginalnego nieba 360 w 4K ani 8K'
+          exit 1
+        fi
         sklep="$root/Prywatne/Miasto/miasto_sklepy"
         test -d "$sklep" || { echo '::error::Brak odszyfrowanej paczki sklepow'; exit 1; }
         count=0
@@ -273,10 +278,8 @@ jobs:
         python3 unity-tools/claude/check_tram_glb.py "$root/Prywatne/Miasto/miasto_pojazdy/tramwaj_caf.glb"
         # M1: oryginał właściciela jest już w repo po optymalizacji 218 -> 25 MB.
         python3 unity-tools/claude/check_metro_glb.py
-        # Bez aktualnych szyldów i prawdziwego ekspresu kawiarnia / apteka
-        # nie są gotowe; zatrzymaj build PRZED uruchomieniem Unity.
-        python3 unity-tools/claude/check_signage.py
-        python3 unity-tools/claude/fetch_cafe_equipment.py
+        # Szyldy i kawiarnia zostały już zweryfikowane w poprzednim kroku CI.
+        # Nie pobieramy tych samych modeli i nie wykonujemy tych samych testów dwa razy.
         test -s "$root/Prywatne/Miasto/miasto_wyposazenie/miasto_wyposazenie.glb" || { echo '::error::Brak oryginalnych wiat tramwaju'; exit 1; }
         # Oryginalne grafiki (JPG/JPEG/PNG, oba dostarczone katalogi) zostały
         # już rygorystycznie zweryfikowane w check_signage.py; nie odrzucaj
