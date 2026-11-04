@@ -34,6 +34,8 @@ public static partial class BraxClaudeOsiedle
         Guard("ulice: wyposażenie A i B", Wyposazenie);
         Guard("drogi: strefy zatrzymania (rondo, przejścia)", KomponentStref);
         Guard("drogi: kontrola", KontrolaDrog);
+        // Sport po ukończeniu ulic/kortu, przed generacją kępek i kwiatów.
+        Guard("SPORT UŻYTKOWY: koszykówka, nożna, tenis, siatkówka", Sport);
         // runda 4: oznakowanie A dodane po drogach (zygzaki P-17 przystanków) i całe oznakowanie B — w wycięciach asfaltu
         Guard("drogi: oznakowanie w wycięciach (A po wyposażeniu, B)", () =>
         {
