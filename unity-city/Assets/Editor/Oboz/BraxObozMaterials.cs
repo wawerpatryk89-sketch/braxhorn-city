@@ -12,11 +12,13 @@ public static class BraxObozMaterials
         if (string.IsNullOrEmpty(path)) throw new InvalidOperationException("Brak wymaganej mapy PBR obozu");
         var importer = AssetImporter.GetAtPath(path) as TextureImporter;
         if (!importer) throw new InvalidOperationException("Brak mapy materiału: " + path);
-        bool changed = importer.sRGBTexture != color || importer.textureType != (normal ? TextureImporterType.NormalMap : TextureImporterType.Default);
+        bool changed = importer.textureShape != TextureImporterShape.Texture2D || importer.sRGBTexture != color || importer.textureType != (normal ? TextureImporterType.NormalMap : TextureImporterType.Default);
+        importer.textureShape = TextureImporterShape.Texture2D;
         importer.sRGBTexture = color; importer.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
         if (changed) importer.SaveAndReimport();
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-        if (!texture) throw new InvalidOperationException("Nie zaimportowano mapy PBR: " + path);
+        if (!texture) throw new InvalidOperationException("Nie zaimportowano mapy PBR jako Texture2D: " + path +
+            "; shape=" + importer.textureShape + "; mainAsset=" + AssetDatabase.LoadMainAssetAtPath(path)?.GetType().FullName);
         return texture;
     }
     public static Material Pbr(string id)
@@ -43,6 +45,27 @@ public static class BraxObozMaterials
         material.SetFloat("_PackedORM", 1); material.SetFloat("_RoughnessFactor", .7f); material.SetFloat("_MetallicFactor", 0);
         return Save(material, "forest-ground");
     }
+    // Shared by the postprocessor and material authoring: no conflicting reimports.
+    public static bool ConfigurePublicMap(TextureImporter importer, string kind)
+    {
+        bool color=kind=="Color",normal=kind=="NormalGL";
+        var type=normal?TextureImporterType.NormalMap:TextureImporterType.Default;
+        var android=importer.GetPlatformTextureSettings("Android");
+        bool changed=importer.textureShape!=TextureImporterShape.Texture2D || importer.maxTextureSize!=4096 || !importer.mipmapEnabled || importer.anisoLevel!=8 ||
+            importer.wrapMode!=TextureWrapMode.Repeat || importer.filterMode!=FilterMode.Trilinear ||
+            importer.textureCompression!=TextureImporterCompression.CompressedHQ || importer.compressionQuality!=90 ||
+            importer.sRGBTexture!=color || importer.textureType!=type || !android.overridden ||
+            android.maxTextureSize!=4096 || android.format!=TextureImporterFormat.ASTC_4x4 || android.compressionQuality!=90;
+        importer.textureShape=TextureImporterShape.Texture2D;
+        importer.maxTextureSize=4096;importer.mipmapEnabled=true;importer.anisoLevel=8;
+        importer.wrapMode=TextureWrapMode.Repeat;importer.filterMode=FilterMode.Trilinear;
+        importer.textureCompression=TextureImporterCompression.CompressedHQ;
+        importer.compressionQuality=90;importer.sRGBTexture=color;importer.textureType=type;
+        android.name="Android";android.overridden=true;android.maxTextureSize=4096;android.format=TextureImporterFormat.ASTC_4x4;
+        android.compressionQuality=90;
+        importer.SetPlatformTextureSettings(android);
+        return changed;
+    }
     public static Material PublicPbr(string id,float widthMetres)
     {
         if (widthMetres <= 0 || float.IsNaN(widthMetres) || float.IsInfinity(widthMetres))
@@ -54,22 +77,8 @@ public static class BraxObozMaterials
             string path=folder+pair.Item1+".jpg";
             var importer=AssetImporter.GetAtPath(path) as TextureImporter;
             if(!importer)throw new InvalidOperationException("Brak zweryfikowanej mapy PBR obozu: "+path);
+            if(ConfigurePublicMap(importer,pair.Item1))importer.SaveAndReimport();
             bool color=pair.Item1=="Color",normal=pair.Item1=="NormalGL";
-            var type=normal?TextureImporterType.NormalMap:TextureImporterType.Default;
-            var android=importer.GetPlatformTextureSettings("Android");
-            bool changed=importer.maxTextureSize!=4096 || !importer.mipmapEnabled || importer.anisoLevel!=8 ||
-                importer.wrapMode!=TextureWrapMode.Repeat || importer.filterMode!=FilterMode.Trilinear ||
-                importer.textureCompression!=TextureImporterCompression.CompressedHQ || importer.compressionQuality!=90 ||
-                importer.sRGBTexture!=color || importer.textureType!=type || !android.overridden ||
-                android.maxTextureSize!=4096 || android.format!=TextureImporterFormat.ASTC_4x4 || android.compressionQuality!=90;
-            importer.maxTextureSize=4096;importer.mipmapEnabled=true;importer.anisoLevel=8;
-            importer.wrapMode=TextureWrapMode.Repeat;importer.filterMode=FilterMode.Trilinear;
-            importer.textureCompression=TextureImporterCompression.CompressedHQ;
-            importer.compressionQuality=90;importer.sRGBTexture=color;importer.textureType=type;
-            android.name="Android";android.overridden=true;android.maxTextureSize=4096;android.format=TextureImporterFormat.ASTC_4x4;
-            android.compressionQuality=90;
-            importer.SetPlatformTextureSettings(android);
-            if(changed)importer.SaveAndReimport();
             material.SetTexture(pair.Item2,Map(path,normal,color));
         }
         material.SetFloat("_MetallicFactor",0);

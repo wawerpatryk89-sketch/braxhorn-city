@@ -6,7 +6,7 @@ public sealed class BraxObozImport : AssetPostprocessor
 {
     const string Root = "Assets/Source/Prywatne/Oboz/";
     public override int GetPostprocessOrder() => 100;
-    public override uint GetVersion() => 2;
+    public override uint GetVersion() => 3;
     void OnPreprocessModel()
     {
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
@@ -27,6 +27,14 @@ public sealed class BraxObozImport : AssetPostprocessor
     }
     void OnPreprocessTexture()
     {
+        // Public PBR maps need the same explicit 2D shape on the first import
+        // and after restoring old metadata. Do not rely on inferred defaults.
+        if (assetPath.StartsWith("Assets/Source/Public/Oboz/", StringComparison.Ordinal))
+        {
+            if (assetImporter is TextureImporter publicMap)
+                BraxObozMaterials.ConfigurePublicMap(publicMap, System.IO.Path.GetFileNameWithoutExtension(assetPath));
+            return;
+        }
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
         if (!(assetImporter is TextureImporter t)) return;
         string n = System.IO.Path.GetFileName(assetPath).ToLowerInvariant();
