@@ -1,8 +1,6 @@
 name: Obóz — bezpieczna dostawa źródeł
 on:
-  push:
-    branches: [gpt/oboz]
-    paths: [unity-tools/oboz/transfer-request.json]
+  workflow_dispatch:
 permissions:
   contents: write
 concurrency:

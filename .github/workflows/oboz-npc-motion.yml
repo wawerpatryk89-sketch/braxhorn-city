@@ -1,10 +1,7 @@
 name: Obóz — sześć NPC kontrola ruchu
 
 on:
-  push:
-    branches: [codex/oboz-npc-life-20261104]
-    paths: [unity-tools/oboz/npc-review-request.json]
-
+  workflow_dispatch:
 permissions:
   # GitHub only exposes draft releases to a token with push access.
   # This workflow only downloads the existing encrypted delivery/cache.

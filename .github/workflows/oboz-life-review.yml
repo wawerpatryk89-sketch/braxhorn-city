@@ -1,10 +1,7 @@
 name: Obóz — plan zajęć w Play Mode
 
 on:
-  push:
-    branches: [codex/oboz-npc-life-20261104]
-    paths: [unity-tools/oboz/life-review-request.json]
-
+  workflow_dispatch:
 permissions:
   # GitHub only exposes draft releases to a token with push access.
   # Reads prior checkpoints and keeps an encrypted cache scoped to this test branch.

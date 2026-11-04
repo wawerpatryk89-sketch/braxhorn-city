@@ -1,10 +1,7 @@
 name: Obóz — Monika kontrola ruchu
 
 on:
-  push:
-    branches: [codex/oboz-monika-motion-20261104]
-    paths: [unity-tools/oboz/motion-review-request.json]
-
+  workflow_dispatch:
 permissions:
   # GitHub only exposes draft releases to a token with push access.
   # This workflow only downloads the existing encrypted delivery/cache.
