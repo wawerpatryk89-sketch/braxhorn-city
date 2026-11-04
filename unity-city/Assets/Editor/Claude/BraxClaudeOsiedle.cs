@@ -5818,6 +5818,8 @@ public static partial class BraxClaudeOsiedle
         Guard("komisariat — nowe wnętrze", () => PoliceInterior(estate, physics));
         Guard("drzewa z chodników", () => TreesOffPaving(physics));
         Guard("ulice: parking i przejścia B, wyposażenie, strefy zatrzymania, kontrola (BraxClaudeOsiedleUlice)", UliceOsiedla);   // build 14 „drogi”
+        // Sport i ruch są wywoływane raz wewnątrz KraniecMapy().
+        // Bez drugiego wywołania: brak zdublowanych piłek, samochodów i obiektów.
         Guard("korony drzew z dala od budynków", PruneCrowns);
         Guard("kraniec mapy: teren dookoła zamiast pustki", KraniecMapy);
         Guard("elewacje i szyldy: detale A, kontrola zasłonięcia, scalanie z LOD", () => ElewacjeKoniec(estate, physics));   // build 14 (BraxClaudeOsiedleSzyldy/Elewacje)

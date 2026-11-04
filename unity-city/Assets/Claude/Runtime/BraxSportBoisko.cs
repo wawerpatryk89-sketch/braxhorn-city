@@ -214,8 +214,11 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
         {
             sprawdz = Time.unscaledTime + .5f;
             gracz = BraxSport.Gracz; gt = gracz ? gracz.transform : null;
+            // Nie włączaj sterowania grą podczas jazdy, na łodzi ani na siedzisku.
+            // Po powrocie pieszo boisko samo ponownie aktywuje piłki i animacje.
+            bool dostepny = gracz && !gracz.autoGracza && !gracz.vessel && !gracz.seat;
             bool a = false;
-            if (gt) { var d = gt.position - srodek; d.y = 0f; a = d.magnitude < 40f + Mathf.Max(strefa.x, strefa.y); }
+            if (dostepny && gt) { var d = gt.position - srodek; d.y = 0f; a = d.magnitude < 40f + Mathf.Max(strefa.x, strefa.y); }
             if (a && !aktywne) { foreach (var b in pilki) if (b && !b.isKinematic) b.WakeUp(); BraxRuchySport.Get(gracz); BraxSport.UpewnijHud(); graczPoprz = gt.position; }
             if (!a && aktywne) Uspij();
             aktywne = a;
