@@ -171,13 +171,31 @@ public sealed class BraxVessel : MonoBehaviour
         }
     }
 
+    // Nie uzależniaj sterowania od historii wejścia — wcześniejsza flaga
+    // returnedToDeck blokowała POWRÓT do steru po pierwszym wyjściu z kokpitu.
+    bool BliskoSteru()
+    {
+        if (!rider) return false;
+        Vector3 a = rider.transform.localPosition, b = seat;
+        float d = new Vector2(a.x - b.x, a.z - b.z).magnitude;
+        return d < Mathf.Max(1.25f, width * .32f);
+    }
+    bool BliskoTrapu()
+    {
+        if (!rider) return false;
+        Vector3 a = rider.transform.localPosition;
+        return new Vector2(a.x - deckEntry.x, a.z - deckEntry.z).magnitude <
+               Mathf.Max(1.25f, width * .32f);
+    }
+
     public string Interakcja()
     {
         if (!rider) return "";
         if (!walkableDeck) return "ZEJDŹ · " + label;
         if (!onDeck) return "WYJDŹ NA POKŁAD";
-        if (returnedToDeck) return "ZEJDŹ NA POMOST";
-        return "STERUJ JACHTEM";
+        if (BliskoSteru()) return "STERUJ JACHTEM";
+        if (BliskoTrapu()) return "ZEJDŹ NA POMOST";
+        return "PODEJDŹ DO STERU";
     }
 
     public bool Interact()
@@ -190,15 +208,22 @@ public sealed class BraxVessel : MonoBehaviour
             if (rider.clips && rider.clips["Idle"] != null)
                 rider.clips["Idle"].speed = 1f;
             onDeck = true; returnedToDeck = true;
-            rider.transform.localPosition = deckEntry;
+            // Po oddaniu steru nie przenoś gracza na rufę; zostaje obok kokpitu,
+            // dzięki czemu może później ponownie przejąć ster.
+            rider.transform.localPosition = new Vector3(seat.x,
+                deckEntry.y, Mathf.Clamp(seat.z - .75f, -length * .43f, length * .24f));
             rider.transform.localRotation = Quaternion.identity;
             rider.SnapKamera();
             return true;
         }
-        if (returnedToDeck) return Dismount();
-        UstawZaSterem(rider);
-        rider.SnapKamera();
-        return true;
+        if (BliskoSteru())
+        {
+            UstawZaSterem(rider);
+            rider.SnapKamera();
+            return true;
+        }
+        if (BliskoTrapu()) return Dismount();
+        return false;
     }
 
     /// <summary>Zejście: na najbliższy twardy grunt nad wodą w promieniu 4,5 m (pomost, piasek). Zwraca false, gdy za daleko od brzegu.</summary>
