@@ -163,17 +163,43 @@ internal static class BraxMiastoOdbior
         var npc = metro.GetComponent<BraxMetroM1Pasazerowie>();
         bool model = metro.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length > 0 ||
                      metro.GetComponentsInChildren<MeshRenderer>(true).Length > 10;
-        bool dlugosc = metro.wejscieOffsetX > 40f && metro.wyjazdOffsetX < -40f;
+        // Nie wymagamy dawnego +40 m: duży offset wystawiał pociąg poza tunel.
+        // Zamiast tego sprawdzamy prawdziwe obrysy DWÓCH wagonów, łącznik
+        // i to, czy na obu krańcach kursu cały skład pozostaje pod ziemią.
+        var wagony = metro.GetComponentsInChildren<Transform>(true).Where(t => t &&
+            t.parent == metro.transform &&
+            t.name.StartsWith("metro M1 — wagon ", StringComparison.Ordinal)).ToArray();
+        var lacznik = metro.transform.Find("M1: ciemny przegub i połączenie wagonów 101-102");
+        Bounds obrys = default;
+        bool saGranice = false;
+        foreach (var wagon in wagony)
+            foreach (var renderer in wagon.GetComponentsInChildren<Renderer>(true))
+                if (renderer)
+                {
+                    if (!saGranice) { obrys = renderer.bounds; saGranice = true; }
+                    else obrys.Encapsulate(renderer.bounds);
+                }
+        const float PX0 = -18f, PX1 = 63f, TW0 = -70f, TW1 = 112f;
+        bool calyWtunelu = saGranice &&
+            metro.wejscieOffsetX > 0f && metro.wyjazdOffsetX < 0f &&
+            obrys.min.x + metro.wejscieOffsetX >= PX1 + 3.9f &&
+            obrys.max.x + metro.wejscieOffsetX <= TW1 - 3.9f &&
+            obrys.min.x + metro.wyjazdOffsetX >= TW0 + 3.9f &&
+            obrys.max.x + metro.wyjazdOffsetX <= PX0 - 3.9f;
+        bool sklad = wagony.Length == 2 && lacznik != null && calyWtunelu;
         bool czas = Mathf.Abs(metro.dojazdSekundy + metro.otwieranieSekundy +
                     metro.postojSekundy + metro.zamykanieSekundy +
                     metro.odjazdSekundy + metro.ciszaSekundy - 60f) < 3f;
         bool drzwi = metro.DrzwiLiczba >= 2;
         string raport = "BRAXHORN_METRO_M1_KURS_BUDOWA model=" + model +
               " drzwi_panele=" + metro.DrzwiLiczba + " npc=" + (npc != null) +
-              " kurs_okolo_minuty=" + czas + " wjazd=" + metro.wejscieOffsetX.ToString("F1") +
+              " kurs_okolo_minuty=" + czas +
+              " wagony=" + wagony.Length + " lacznik=" + (lacznik != null) +
+              " caly_sklad_w_tunelu=" + calyWtunelu +
+              " wjazd=" + metro.wejscieOffsetX.ToString("F1") +
               " wyjazd=" + metro.wyjazdOffsetX.ToString("F1") +
               " (wizualne drzwi sceniczne, nie oryginalne animowane drzwi GLB)";
-        if (!model || !npc || !drzwi || !dlugosc || !czas)
+        if (!model || !npc || !drzwi || !sklad || !czas)
             Blad(raport + " NIEGOTOWE");
         else
             Debug.Log(raport + " GOTOWE DO TESTU W APK");

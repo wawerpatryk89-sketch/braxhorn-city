@@ -26,7 +26,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   source-imports:
-    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'))
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -49,7 +49,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'))
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'))
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -246,7 +246,7 @@ jobs:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/wyspa/prepare_fighters.py
     - name: SOBCZAK i WAWER — wymus komplet oryginalnych szyldow i sprzet kawiarni przed Unity 6
-      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
+      if: (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'
       run: |
         set -euo pipefail
         python3 unity-tools/claude/check_signage.py
@@ -255,7 +255,7 @@ jobs:
         echo "SOBCZAK KAWIARNIA: sprawdzenie sprzetu i oryginalnych szyldow PASS"
 
     - name: Bramka jakosci miasta przed drogim buildem (tylko reczny test napraw)
-      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
+      if: (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'
       run: |
         set -euo pipefail
         python3 -m unittest discover -s unity-tools/claude -p 'test_check_*.py' -q
@@ -432,7 +432,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'))
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'))
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -609,7 +609,7 @@ jobs:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/wyspa/prepare_fighters.py
     - name: SOBCZAK i WAWER — wymus komplet oryginalnych szyldow i sprzet kawiarni przed Unity 6
-      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
+      if: (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'
       run: |
         set -euo pipefail
         python3 unity-tools/claude/check_signage.py
@@ -618,7 +618,7 @@ jobs:
         echo "SOBCZAK KAWIARNIA: sprawdzenie sprzetu i oryginalnych szyldow PASS"
 
     - name: Bramka jakosci miasta przed drogim buildem (tylko reczny test napraw)
-      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
+      if: (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'
       run: |
         set -euo pipefail
         python3 -m unittest discover -s unity-tools/claude -p 'test_check_*.py' -q
@@ -809,6 +809,23 @@ jobs:
         androidExportType: androidPackage
         versioning: None
         allowDirtyBuild: true
+    - name: Zweryfikuj rzeczywisty APK (game-ci moze zwrocic falszywy sukces)
+      id: potwierdz_apk
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        shopt -s nullglob
+        apks=(build/Android/braxhorn-*.apk)
+        if [ "${#apks[@]}" -eq 0 ]; then
+          echo '::error::BRAK APK: Unity przerwalo generowanie, nie wolno raportowac sukcesu.'
+          exit 1
+        fi
+        for apk in "${apks[@]}"; do
+          [ -s "$apk" ] || { echo "::error::Pusty APK: $apk"; exit 1; }
+          unzip -tq "$apk" >/dev/null || { echo "::error::Uszkodzony APK: $apk"; exit 1; }
+          echo "BRAXHORN_APK_ZWERYFIKOWANE $apk bytes=$(stat -c%s "$apk")"
+        done
     - name: Zachowaj log Unity i pomiary etapow (takze przy awarii)
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -845,7 +862,7 @@ jobs:
         cat unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json || echo 'BRAK raportu drzwi'
         cat unity-city/Assets/PlayableGenerated/ClaudeRegion/region.json || echo 'BRAK raportu regionu'
     - name: Wgraj APK do ukrytego wydania (instalacja na Androidzie)
-      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' && steps.potwierdz_apk.outcome == 'success' }}
       env:
         GH_TOKEN: ${{ github.token }}
         REL: claude-region-preview
@@ -880,7 +897,7 @@ jobs:
           if [ $ok = 0 ]; then gh release view "$REL" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -qx "$f" || { echo "NIE WYSLANO $f"; exit 1; }; fi
         done
     - name: APK MIASTA — ZACHOWAJ PLIK PRZED CACHE I CHECKPOINTEM
-      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' && steps.potwierdz_apk.outcome == 'success' }}
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
         name: miasto-apk-${{ github.run_id }}-${{ github.run_attempt }}
@@ -891,7 +908,7 @@ jobs:
         compression-level: 0
         retention-days: 14
     - name: Dostawa APK Miasta Mistrzow w podsumowaniu
-      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' && steps.potwierdz_apk.outcome == 'success' }}
       run: |
         echo '### Aktualny APK miasta / Miasta Mistrzów — dla właściciela' >> "$GITHUB_STEP_SUMMARY"
         echo "- Commit: \`$GITHUB_SHA\`" >> "$GITHUB_STEP_SUMMARY"
@@ -936,7 +953,7 @@ jobs:
         key: city-world-enc-v1-${{ steps.rejon.outputs.klucz }}-${{ github.run_id }}-${{ github.run_attempt }}
     - name: Pamiec Library Unity dla Androida - pelny zapis z Bee
       id: library_pack
-      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' && steps.potwierdz_apk.outcome == 'success' }}
       continue-on-error: true
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
