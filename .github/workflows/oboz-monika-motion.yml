@@ -6,7 +6,9 @@ on:
     paths: [unity-tools/oboz/motion-review-request.json]
 
 permissions:
-  contents: read
+  # GitHub only exposes draft releases to a token with push access.
+  # This workflow only downloads the existing encrypted delivery/cache.
+  contents: write
 
 concurrency:
   group: oboz-monika-motion-review

@@ -44,5 +44,9 @@ i legalny obrót stopy podporowej. Następnie przejścia w Play Mode i kontrola
 na telefonie. Tych kontroli nie zastępuje kompilacja ani parser kodu.
 
 Status: narzędzie diagnostyczne; poprawka produkcyjna jeszcze nie przyjęta.
+Pierwszy run `41822204442` nie uruchomił Unity: token `contents: read` nie
+widzi prywatnego draft release dostawy (`release not found`). Istnienie draftu
+i siedmiu paczek potwierdzono przez API. Rewizja 2 stosuje `contents: write`
+tak jak działający workflow obozu; nie dodaje żadnego zapisu do release.
 Kolejny etap po Monice: pozostała szóstka, zachowania NPC i zaparkowany autobus
 skopiowany z istniejącego zasobu miasta/osiedla.
