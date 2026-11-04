@@ -495,7 +495,10 @@ public static partial class BraxRegionMiastoB
                 : BraxRegionMeble.Tex("Miasto PREMIUM: istniejąca fasada piaskowiec",
                     1.35f, new Color(.90f, .88f, .82f), .81f,
                     "rectangular_facade_tiles", "white_plaster_02", "white_sandstone_blocks_02");
-        bool maPbr = pbr && pbr.HasProperty("_MainTex") && pbr.GetTexture("_MainTex");
+        // Unity 6 / glTFast może zapisać albedo jako _MainTex, _BaseMap lub
+        // inną właściwość shadera. Sprawdzamy wszystkie sloty tekstur.
+        bool maPbr = pbr && pbr.GetTexturePropertyNames()
+            .Any(slot => pbr.GetTexture(slot));
         if (!maPbr)
             Debug.LogError("BRAXHORN_PREMIUM_MATERIAL_BEZ_PBR " + id +
                 " (" + rodzina + "): nie ma tekstury skanu fasady w importowanych materiałach. " +
@@ -532,7 +535,10 @@ public static partial class BraxRegionMiastoB
                              nazwaMesh.Contains("glass") || nazwaMesh.Contains("window") ||
                              nazwaMesh.Contains("okno");
                 if (szklo) continue;
-                bool tekstura = m.HasProperty("_MainTex") && m.GetTexture("_MainTex");
+                // Nie nadpisuj gotowego PBR (albedo/normal/ORM) tylko dlatego,
+                // że jego shader nie używa klasycznej nazwy _MainTex.
+                bool tekstura = m.GetTexturePropertyNames()
+                    .Any(slot => m.GetTexture(slot));
                 if (tekstura) { teksturowane++; continue; } // zachowaj oryginał
                 bool czarny = m.HasProperty("_Color") && m.GetColor("_Color").grayscale < .22f;
                 bool nazwanyBrak = nazwa.Contains("citygenblack") ||
