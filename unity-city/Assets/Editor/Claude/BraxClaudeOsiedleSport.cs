@@ -132,7 +132,7 @@ public static partial class BraxClaudeOsiedle
     static string SportNozna(Transform sport)
     {
         group = "Park Centralny / bramki";
-        const float L = 18f, W = 11f, gl = 1f;   // odległość linii bramkowych, szerokość pola, głębokość bramki
+        float L = 18f, W = 11f; const float gl = 1f; // pierwsza próba: duże boisko; w razie braku miejsca szukamy mniejszego, bez wycinania drzew
         float z0 = ParkZ0 + 3f, z1 = FenceA - 3.6f;
         var fc = new Vector2(AxisX, (ParkZ0 + FenceA - .6f) * .5f);
         var picnic = new[] { new Vector2(-80, -114), new Vector2(-48, -142), new Vector2(40, -113), new Vector2(75, -138) };
@@ -152,17 +152,33 @@ public static partial class BraxClaudeOsiedle
                 if (c.bounds.size.x < 60f && c.bounds.size.z < 60f) return false;                             // ławki, latarnie, kosze, krzewy z kolizją
             return true;
         }
-        float bx = 0, bz = 0; bool ok = false; float best = 1e9f;
-        for (float cz = z0; cz <= z1; cz += 1.5f)
-            for (float cx = X0 + 4f; cx <= X1 - 4f; cx += 2f)
-            {
-                float score = Mathf.Abs(cx - (AxisX + 45f)) + Mathf.Abs(cz - fc.y) * .5f;   // bliżej alei W-E i środka parku
-                if (score >= best || !Wolne(cx, cz)) continue;
-                best = score; bx = cx; bz = cz; ok = true;
-            }
+        float bx = 0, bz = 0; bool ok = false;
+        // Audyt 4.11: boisko 18x11 zawsze wpadało na boisko koszykarskie.
+        // Szukamy w istniejącym parku miejsca na pełny albo mniejszy ORLIK
+        // zamiast usuwać drzewa/ławy czy nakładać nową nawierzchnię.
+        foreach (var wymiar in new[] { new Vector2(18f, 11f), new Vector2(14f, 9f), new Vector2(12f, 7f), new Vector2(10f, 6f) })
+        {
+            L = wymiar.x; W = wymiar.y;
+            float best = 1e9f;
+            for (float cz = z0; cz <= z1; cz += 1.5f)
+                for (float cx = X0 + 4f; cx <= X1 - 4f; cx += 2f)
+                {
+                    float score = Mathf.Abs(cx - (AxisX + 45f)) + Mathf.Abs(cz - fc.y) * .5f;
+                    if (score >= best || !Wolne(cx, cz)) continue;
+                    best = score; bx = cx; bz = cz; ok = true;
+                }
+            if (ok) break;
+        }
         float gy = 0f; string gdzie;
         if (ok) { gdzie = "trawnik Parku Centralnego (" + bx.ToString("0") + ", " + bz.ToString("0") + ")"; sportTrawa.Add(Rect.MinMaxRect(bx - L * .5f - gl - .5f, bz - W * .5f - .5f, bx + L * .5f + gl + .5f, bz + W * .5f + .5f)); }
-        else { bx = 28f; bz = -83f; gy = .08f; gdzie = "boisko do kosza w Parku Wiśniowym (brak wolnego trawnika)"; }   // bramki na liniach pod koszami
+        else
+        {
+            // Zachowaj dostępność treningu nożnego w wersji osiedla, ale
+            // zgłoś konflikt stref, zamiast nazywać to pełnym boiskiem.
+            bx = 28f; bz = -83f; gy = .08f;
+            gdzie = "tymczasowo: wielofunkcyjne boisko do kosza (brak wolnego trawnika)";
+            Debug.LogWarning("BRAXHORN_SPORT_NOZNA DO POPRAWKI: brak osobnego wolnego boiska 10–18 m. Bramki na boisku do kosza; wymagane wydzielenie miejsca pod normalne boisko");
+        }
         float half = ok ? L * .5f : 13.9f - gl;
         foreach (int s in new[] { -1, 1 }) Bramka(bx + s * half, gy, bz, s, 3f * K, 1.5f * K, gl);
         var b = NoweBoisko(sport, "bramki do piłki nożnej", BraxSportBoisko.Gra.Nozna);
