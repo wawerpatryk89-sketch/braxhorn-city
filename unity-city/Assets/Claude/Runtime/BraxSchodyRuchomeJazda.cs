@@ -58,7 +58,10 @@ public sealed class BraxSchodyRuchomeJazda : MonoBehaviour
         // Na pierwszym i ostatnim 0.7 m prędkość przechodzi
         // płynnie od/do zera, bez teleportu ani szarpnięć kamery.
         float brzeg = Mathf.Min(uc, 1f - uc) * Lp;
-        float blend = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(brzeg / .7f));
+        // Minimum 55% prędkości również na końcu: inaczej prędkość -> 0
+        // i postać staje tuż przed grzebieniem zamiast wyjechać na spocznik.
+        float blend = Mathf.Lerp(.55f, 1f, Mathf.SmoothStep(0f, 1f,
+            Mathf.Clamp01(brzeg / .7f)));
         gracz.body.Move(os.normalized * (predkosc * blend * dt * (wGore ? -1f : 1f)));
     }
 
