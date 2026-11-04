@@ -875,9 +875,9 @@ public static partial class BraxClaudeOsiedle
         float rise = (SF1 - SYF) / 24f;
         float szer = SSX1 - SSX0 - .16f;
         if (rise > .36f || szer < .95f)
-            throw new InvalidOperationException("Salon: schody za strome / za wąskie dla kapsuły Patryka: stopień=" + rise.ToString("F2") + " szer=" + szer.ToString("F2"));
+            throw new System.InvalidOperationException("Salon: schody za strome / za wąskie dla kapsuły Patryka: stopień=" + rise.ToString("F2") + " szer=" + szer.ToString("F2"));
         if (przeszkody.Count > 0)
-            throw new InvalidOperationException("Salon: fizycznie zablokowany korytarz od wejścia! " + string.Join("; ", przeszkody.Take(12)));
+            throw new System.InvalidOperationException("Salon: fizycznie zablokowany korytarz od wejścia! " + string.Join("; ", przeszkody.Take(12)));
         Debug.Log("BRAXHORN_SALON_WEJSCIE_OK kapsuła gracza r=0.31 m, 5 próbek dojścia, stopień=" +
                   rise.ToString("F2") + " m, szerokość schodów=" + szer.ToString("F2") + " m");
     }

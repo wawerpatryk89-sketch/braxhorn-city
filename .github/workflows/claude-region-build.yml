@@ -26,7 +26,7 @@ env:
 concurrency:
   # Finalny test zastępuje wcześniejszy, niesprawdzony przebieg tej samej integracji.
   # Nie dotyczy równoległych buildów Claude'a ani miasta/obozu.
-  group: claude-region-refs/heads/codex/osiedle-integracja-sport-migotanie-20261104
+  group: claude-region-${{ github.ref }}-${{ inputs.rejon }}
   cancel-in-progress: true
 jobs:
   source-imports:
@@ -723,6 +723,18 @@ jobs:
         androidExportType: androidPackage
         versioning: None
         allowDirtyBuild: true
+    - name: Zabezpiecz gotowy APK w Actions przed publikacja i backupem
+      id: apk_artifact
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: android-apk-${{ steps.rejon.outputs.rejon }}-${{ github.sha }}-${{ github.run_attempt }}
+        path: |
+          build/Android/braxhorn-*.apk
+          build/Android/apk-variants.txt
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 7
     - name: Rozmiar Library i swiata rejonu (do decyzji o pamieci podrecznej; limit 10 GB na repo)
       if: always()
       run: |
@@ -746,6 +758,7 @@ jobs:
         cat unity-city/Assets/PlayableGenerated/ClaudeNova/venues.json || echo 'BRAK raportu drzwi'
         cat unity-city/Assets/PlayableGenerated/ClaudeRegion/region.json || echo 'BRAK raportu regionu'
     - name: Wgraj APK do ukrytego wydania (instalacja na Androidzie)
+      id: apk_release
       if: always() && !cancelled()
       env:
         GH_TOKEN: ${{ github.token }}
@@ -792,7 +805,8 @@ jobs:
           city-review/*.json
     - name: Sprawdz gotowy swiat niezaleznie od wyniku pakowania APK
       id: generation_checkpoint
-      if: ${{ !cancelled() && steps.rejon.outputs.pamiec == 'tak' && steps.pamiec.outputs.cache-hit != 'true' }}
+      if: ${{ !cancelled() && steps.apk_artifact.outcome == 'success' && steps.apk_release.outcome == 'success' && steps.rejon.outputs.pamiec == 'tak' && steps.pamiec.outputs.cache-hit != 'true' }}
+      continue-on-error: true
       env:
         ZONE: ${{ steps.rejon.outputs.rejon }}
         WORLD_KEY: ${{ steps.rejon.outputs.klucz }}
@@ -811,7 +825,8 @@ jobs:
           unity-city/Assets/Source/Claude/Osiedle/sky/niebo_odbicia.jpg
         key: ${{ steps.rejon.outputs.klucz }}
     - name: Preserve immutable encrypted content baseline after successful APK
-      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' && steps.apk_artifact.outcome == 'success' && steps.apk_release.outcome == 'success' }}
+      continue-on-error: true
       env:
         GH_TOKEN: ${{ github.token }}
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -823,7 +838,7 @@ jobs:
         fi
     - name: Pamiec Library Unity dla Androida - pelny zapis z Bee
       id: library_pack
-      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' && steps.apk_artifact.outcome == 'success' && steps.apk_release.outcome == 'success' }}
       continue-on-error: true
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
