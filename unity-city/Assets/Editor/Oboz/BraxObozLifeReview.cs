@@ -14,7 +14,7 @@ public static partial class BraxObozCharacters
     static BraxObozTrainingRoutine lifeRoutine;
     static Camera lifeCamera, lifePoseCamera;
     static string lifeOutput;
-    static double lifeDeadline;
+    static double lifeDeadline, lifeWallStart;
     static float lifeStart = -1, lifeSample, lifeCapture, lifePauseMove, lifePauseBag;
     static int lifeFrame = -1, lifeOrders;
     static bool lifePaused, lifeResumed;
@@ -49,6 +49,8 @@ public static partial class BraxObozCharacters
     {
         public string unity, commit, scene = BraxObozActors.ScenePath;
         public bool complete, playModeTested, phoneTested = false, appearanceApproved = false;
+        public bool manualDiagnosticCameras;
+        public float simulationSeconds, wallSeconds;
         public float pauseDisplacement, pauseBagDegrees;
         public int rounds, roleChanges, bagStrikes, sparringStrikes, orders;
         public int spokenLines, voiceExchanges, contactSounds;
@@ -85,7 +87,8 @@ public static partial class BraxObozCharacters
     static void ResumeLifeReview() { if (SessionState.GetBool(LifeKey, false)) SubscribeLifeReview(); }
     static void SubscribeLifeReview()
     {
-        lifeDeadline = EditorApplication.timeSinceStartup + 1200;
+        lifeWallStart = EditorApplication.timeSinceStartup;
+        lifeDeadline = lifeWallStart + 1200;
         EditorApplication.update -= TickLifeReview; EditorApplication.update += TickLifeReview;
         Application.logMessageReceived -= LifeLog; Application.logMessageReceived += LifeLog;
     }
@@ -108,21 +111,30 @@ public static partial class BraxObozCharacters
                 lifeOutput = Path.GetFullPath(Path.Combine(Application.dataPath, "../../build/CampLifeReview"));
                 Directory.CreateDirectory(lifeOutput);
                 lifeCamera = new GameObject("Camp review camera").AddComponent<Camera>();
+                // These cameras are rendered explicitly for evidence. Leaving them
+                // enabled also draws the scene on every Play Mode frame on llvmpipe.
+                lifeCamera.enabled = false;
                 lifeCamera.nearClipPlane = .1f; lifeCamera.farClipPlane = 400; lifeCamera.fieldOfView = 55;
                 lifeCamera.transform.position = new Vector3(34, 30, -48);
                 lifeCamera.transform.LookAt(new Vector3(0, 0, -22));
                 lifePoseCamera = new GameObject("Camp pose review camera").AddComponent<Camera>();
+                lifePoseCamera.enabled = false;
                 lifePoseCamera.cullingMask = 1 << 27; lifePoseCamera.orthographic = true;
                 lifePoseCamera.nearClipPlane = .01f; lifePoseCamera.farClipPlane = 300;
                 lifePoseCamera.clearFlags = CameraClearFlags.SolidColor;
                 lifePoseCamera.backgroundColor = new Color(.12f,.14f,.17f);
                 var bus=lifeScene.GetComponentsInChildren<Transform>().Single(t=>t.name==BraxObozParkedBus.Name);
                 var camera=new GameObject("Parked bus review camera").AddComponent<Camera>();
+                camera.enabled=false;
                 camera.nearClipPlane=.1f;camera.farClipPlane=400;camera.fieldOfView=55;
                 camera.transform.position=bus.position+new Vector3(12,7,16);camera.transform.LookAt(bus.position+Vector3.up*2);
                 CaptureRuntimeCamera(camera,Path.Combine(lifeOutput,"parked-bus.png"));Object.DestroyImmediate(camera.gameObject);
             }
             if (!lifeScene.player.ready) return;
+            // Keep the production player camera active; Camera.main, visibility and
+            // the actual player presentation must continue to behave as in the game.
+            if (lifeCamera.enabled || lifePoseCamera.enabled)
+                throw new InvalidOperationException("Kamery diagnostyczne obozu muszą renderować tylko zapis dowodów");
             if (lifeStart < 0) { lifeStart = Time.time; Time.captureDeltaTime = .05f; }
             if (lifeFrame == Time.frameCount) return; lifeFrame = Time.frameCount;
             float time = Time.time - lifeStart;
@@ -233,7 +245,10 @@ public static partial class BraxObozCharacters
         EditorApplication.update -= TickLifeReview; Application.logMessageReceived -= LifeLog;
         SessionState.SetBool(LifeKey,false); Time.captureDeltaTime = 0;
         var report = new LifeReport { unity=Application.unityVersion, commit=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local",
-            playModeTested=lifeFrames.Count>0, pauseDisplacement=lifePauseMove, pauseBagDegrees=lifePauseBag };
+            playModeTested=lifeFrames.Count>0, pauseDisplacement=lifePauseMove, pauseBagDegrees=lifePauseBag,
+            manualDiagnosticCameras=lifeCamera && lifePoseCamera && !lifeCamera.enabled && !lifePoseCamera.enabled,
+            simulationSeconds=lifeStart<0?0:Mathf.Max(0,Time.time-lifeStart),
+            wallSeconds=(float)(EditorApplication.timeSinceStartup-lifeWallStart) };
         if (lifeRoutine)
         {
             report.rounds=lifeRoutine.CompletedRounds; report.roleChanges=lifeRoutine.RoleChanges;
