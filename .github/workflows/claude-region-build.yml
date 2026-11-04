@@ -909,6 +909,25 @@ jobs:
           for i in 1 2 3 4 5 6; do gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber "$f" && { ok=1; break; }; sleep 30; done
           if [ $ok = 0 ]; then gh release view "$REL" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -qx "$f" || { echo "NIE WYSLANO $f"; exit 1; }; fi
         done
+    - name: APK MIASTA — ZACHOWAJ PLIK PRZED CACHE I CHECKPOINTEM
+      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' }}
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: miasto-apk-${{ github.run_id }}-${{ github.run_attempt }}
+        path: |
+          build/Android/braxhorn-*.apk
+          unity-city/Assets/PlayableGenerated/build-size*.txt
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 14
+    - name: Dostawa APK Miasta Mistrzow w podsumowaniu
+      if: ${{ always() && !cancelled() && steps.unity_android.outcome == 'success' }}
+      run: |
+        echo '### Aktualny APK miasta / Miasta Mistrzów — dla właściciela' >> "$GITHUB_STEP_SUMMARY"
+        echo "- Commit: \`$GITHUB_SHA\`" >> "$GITHUB_STEP_SUMMARY"
+        echo "- [Wydanie robocze — draft, wymaga uprawnień](https://github.com/$GITHUB_REPOSITORY/releases/tag/untagged-9dc36278be4a6c587fa6)" >> "$GITHUB_STEP_SUMMARY"
+        echo "- [Zabezpieczona kopia APK w Actions artifact](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID#artifacts)" >> "$GITHUB_STEP_SUMMARY"
+        echo '- Błędy późniejszych kopii Library i checkpointów to osobne ostrzeżenia; nie usuwają istniejącego APK.' >> "$GITHUB_STEP_SUMMARY"
     - name: Zachowaj raport kontroli morza po probie wysylki APK
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

@@ -15,3 +15,9 @@
 ## Aktualny etap miasta R1 — obowiązkowy przed wysyłką
 
 Dla gałęzi `codex/miasto-naprawy-filmow-20261104` obowiązuje [zakres i warunki zamknięcia R1](docs/audyty/MIASTO_R1_ETAP_DO_WYSLANIA_20261104.md). Miasto nie jest ukończone w całości: obecny etap obejmuje tylko istniejące sektory i 21 zadeklarowanych segmentów. Nie dodawać nowych kwartałów do zakresu tego testu. Przed jednym ręcznie zatwierdzonym buildem zweryfikować agregację błędów miasta B, kompletność budynków, kolizje T1, dojście do M1, referencje między scenami i prawidłowy package ID. **Zapis w repo nie oznacza pozytywnego odbioru Unity/Android.**
+
+## DOSTAWA APK — ZASADA OBOWIĄZKOWA W MIEŚCIE I MIEŚCIE MISTRZÓW
+
+Dotyczy również osiedla, obozu, wyspy i BRAXHORN ARENA. Zasada dla wszystkich wykonawców: https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13.
+
+**Jeśli kompilacja Unity i walidacja APK się powiodły, właściciel musi otrzymać dostęp do tego konkretnego pliku, także gdy później zawiedzie cache, snapshot, backup lub zapis Library.** Przed backupem zapisz kopię do Actions artifact, wyślij APK do testowego wydania, sprawdź jego obecność, przekaż link do aktualnego SHA i numeru runu. Raportuj oddzielnie: Unity, podpis/wersję APK, upload oraz test telefonu. Nie deklaruj, że plik jest publicznie dostępny, jeśli wydanie jest roboczym draftem wymagającym zalogowania. Błąd opcjonalnego backupu po poprawnym APK = warning, nie blokada instalatora. Nie uruchamiaj builda ani retry bez zgody właściciela. Pokazuj wyłącznie najnowszy build z aktualnymi poprawkami.
