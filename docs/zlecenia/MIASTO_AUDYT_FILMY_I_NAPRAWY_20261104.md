@@ -20,7 +20,8 @@ Baza: #64, GitHub Actions run 41766745542, job Android 126367351125, APK 9d82bac
 - `BraxKontrolaMigotania.cs`: rozpoznanie obszaru `miasto` poprzez kontrolę budowania zamiast nazwy sceny; wszystkie zaplanowane strefy cięcia, bez przesuwania/nakładania konkurencyjnych elewacji.
 - `BraxMiastoBillboardy.cs`: mural 19 montowany na znanym licu fasady siłowni również przy braku 20 idealnych raycastów; przy brakującym pliku nie stawiamy pustej ramy. Wymaga zrzutu kontroli położenia.
 - `BraxMiastoUlica.cs`: słup nazwy ul. Portowej przesunięty z x63.2 na x59.7, poza dojście do metra.
-- `BraxClaudeMetro.cs`: wąska strefa oczyszczania drobnych dekoracji i ich kolizji przed wejściem do metra; bez niszczenia ścian wieżowca i innych budynków.
+- `BraxClaudeMetro.cs`: wąska strefa oczyszczania drobnych dekoracji i ich kolizji przed wejściem do metra; bez niszczenia ścian wieżowca i innych budynków. PASS kontroli przejścia tylko gdy przechodnie są także schody ruchome.
+- `BraxRegionTylyB.cs`: wycięcie starej fasady i kolizji w świetle drzwi do BRAXHORN TOWER (2.12×2.86 m), bez nakładania nowego portalu na nieusuniętą ścianę.
 
 ## Wymagany test odbiorczy — jeszcze NIE wykonany
 1. Zbudować Unity 6 Android na **tej gałęzi** i sprawdzić zgodność certyfikatu/versionCode; nie ogłaszać gotowego APK przed uruchomieniem.
