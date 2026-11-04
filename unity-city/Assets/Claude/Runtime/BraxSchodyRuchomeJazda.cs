@@ -4,6 +4,7 @@ using UnityEngine;
 // góra albo dół), poręcz gumowa przewija się razem ze stopniami (UV _MainTex_ST w MaterialPropertyBlock, bez nowych materiałów),
 // napęd słychać z bliska (proceduralny szum silnika 50/100/150 Hz i stukot łańcucha stopni, dźwięk 3D, pętla bez szwu).
 // Taśmę stopni przesuwa BraxSchodyRuchome (osobny obiekt). Koszt: jedno sprawdzenie pozycji gracza na klatkę.
+[DefaultExecutionOrder(50)] // po ruchu Braxa, a przed jego kamerą LateUpdate
 public sealed class BraxSchodyRuchomeJazda : MonoBehaviour
 {
     public Vector3 gora, dol;            // świat: oś biegu przy grzebieniu górnym i dolnym (poziom stopni)
@@ -38,12 +39,19 @@ public sealed class BraxSchodyRuchomeJazda : MonoBehaviour
         var kier = poz / Lp;
         var w = new Vector2(p.x - gora.x, p.z - gora.z);
         float u = Vector2.Dot(w, kier) / Lp;
-        if (u < 0f || u > 1f) return;
+        // Płynna jazda: lekki zapas przy obu grzebieniach zapobiega
+        // skokowi ruchu, gdy kapsuła wchodzi lub wychodzi na spocznik.
+        if (u < -.02f || u > 1.02f) return;
         float bok = Mathf.Abs(kier.x * w.y - kier.y * w.x);
-        if (bok > szer * .5f) return;
-        float yS = Mathf.Lerp(gora.y, dol.y, u);
-        if (Mathf.Abs(p.y - yS) > .5f) return;
-        gracz.body.Move(os.normalized * (predkosc * dt * (wGore ? -1f : 1f)));
+        if (bok > szer * .48f) return;
+        float uc = Mathf.Clamp01(u);
+        float yS = Mathf.Lerp(gora.y, dol.y, uc);
+        if (Mathf.Abs(p.y - yS) > .64f) return;
+        // Na pierwszym i ostatnim 0.7 m prędkość przechodzi
+        // płynnie od/do zera, bez teleportu ani szarpnięć kamery.
+        float brzeg = Mathf.Min(uc, 1f - uc) * Lp;
+        float blend = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(brzeg / .7f));
+        gracz.body.Move(os.normalized * (predkosc * blend * dt * (wGore ? -1f : 1f)));
     }
 
     void Dzwiek()
