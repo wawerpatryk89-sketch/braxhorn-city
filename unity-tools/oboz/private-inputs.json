@@ -1023,7 +1023,43 @@
       "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
     }
   ],
-  "releaseTag": null,
-  "packages": [],
-  "encryptedPackagesPrepared": false
+  "releaseTag": "oboz-private-34114c7950bc",
+  "packages": [
+    {
+      "name": "oboz_34114c7950bc_000.tar.gz.enc",
+      "sha256": "72a9a65cccd3a846e67154fbb1bad90ecec2bd0737b171404d33fd6e3e40adcf",
+      "bytes": 166941216
+    },
+    {
+      "name": "oboz_34114c7950bc_001.tar.gz.enc",
+      "sha256": "a30fb6204593b683057ad385f455a8d6a35c98fe9e767ca30bcb5e444f33ff5d",
+      "bytes": 180772336
+    },
+    {
+      "name": "oboz_34114c7950bc_002.tar.gz.enc",
+      "sha256": "8406077c83dc118c7be11e5d1d5549235845d7c35bb52b3e6d1f34c41416e83a",
+      "bytes": 167620112
+    },
+    {
+      "name": "oboz_34114c7950bc_003.tar.gz.enc",
+      "sha256": "e760e1539ddbea1e5b65770caa332d98dc0f95c4b32e2646de44bc3088ad55c6",
+      "bytes": 162212208
+    },
+    {
+      "name": "oboz_34114c7950bc_004.tar.gz.enc",
+      "sha256": "2240d638b3d71f7173e1071c03253180d120f46f4da331f33871483b425692a5",
+      "bytes": 171069312
+    },
+    {
+      "name": "oboz_34114c7950bc_005.tar.gz.enc",
+      "sha256": "4233237c22a3498f86369a635d29cc7bcbb8e066bfd96e2401273d4526701e4d",
+      "bytes": 156960672
+    },
+    {
+      "name": "oboz_34114c7950bc_006.tar.gz.enc",
+      "sha256": "8cb72a13418d193223c9459d2464e16456287bfa174e0886481bec1a98154f52",
+      "bytes": 70752416
+    }
+  ],
+  "encryptedPackagesPrepared": true
 }

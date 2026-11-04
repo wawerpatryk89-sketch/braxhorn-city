@@ -1,6 +1,6 @@
 # Obóz — pierwszy APK do testu
 
-Stan: przygotowany kod procesu; Unity i APK jeszcze niewykonane. To wydanie
+Stan: dostawa źródeł zweryfikowana; zlecono pierwszy build, wynik jeszcze nieznany. To wydanie
 do oceny sceny i ruchu na telefonie, nie baza do aktualizacji Addressables.
 
 ## Zakres
@@ -19,17 +19,19 @@ do oceny sceny i ruchu na telefonie, nie baza do aktualizacji Addressables.
   wejściach generator przebudowuje scenę, zachowując istniejące GUID. Podział
   na niezależnie generowane sektory pozostaje niewdrożony.
 
-## Blokada przed pierwszym uruchomieniem
+## Zweryfikowana dostawa przed pierwszym uruchomieniem
 
 `private-inputs.json` opisuje **204 pliki, 1 148 328 099 bajtów źródeł**.
 To nie jest rozmiar APK, zaszyfrowanego archiwum ani RAM telefonu.
 Spis pomija nieużywane kopie GLB i pliki tymczasowe po kopiowaniu. Zachowuje
 oryginalne bajty wszystkich wybranych modeli, map i animacji.
 
-Nowa ścieżka nie wymaga lokalnego hasła: patrz `TRANSFER-STATUS.md`.
-Siedem paczek transportowych jest zaszyfrowanych i zapisanych; ich wysyłka do
-GitHuba pozostaje zablokowana. W lokalnym środowisku brak powiązania z `KLUCZ`;
-nie pobieramy ani nie wypisujemy sekretu.
+Dostawa została zakończona i zweryfikowana w Actions (run `41755149298`).
+Wszystkie 204 źródła zachowały oryginalne bajty. Siedem paczek jest dostępnych
+w niepublicznym szkicu `oboz-private-34114c7950bc`; kontrolne pobranie oraz
+SHA-256 przeszły. `private-inputs.json` pochodzi z artefaktu `oboz-delivery-proof`.
+Hasło podpisu nie opuszcza CI. `build-request.json` zleca pierwszy testowy APK;
+wynik kompilacji Unity i działanie na telefonie nadal wymagają sprawdzenia.
 Istniejące sekrety CI mają nazwy `BRAXHORN_KEYSTORE_PASS`,
 `BRAXHORN_KEYSTORE_B64`, `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`.
 Ich dostępność dla tego joba zostanie sprawdzona przed uruchomieniem Unity.
@@ -71,7 +73,7 @@ uruchamia tego buildu. Po sprawdzeniu całej dostawy utwórz/zmień
 }
 ```
 
-To przykład w dokumentacji; pliku wyzwalającego nie utworzono. `firstInstall`
+Plik wyzwalający istnieje po zweryfikowanej dostawie `41755149298`. `firstInstall`
 wolno ustawić na `true` tylko dla pierwszej instalacji obozu. Gdy istnieje
 poprzednia tożsamość APK, zawsze sprawdzany jest ten sam certyfikat i wyższy
 numer wersji, niezależnie od tego pola. Build może też przyjąć
