@@ -135,6 +135,13 @@ public static partial class BraxObozEnvironment
         foreach(float z in new[]{-120f,-114f})Bench(t,new Vector3(27,0,z));
         var shelter=Group("Wiata dla przyjeżdżających",t,P(27,0,-114));
         foreach(float x in new[]{-1.4f,1.4f})foreach(float z in new[]{-4f,4f})Box(shelter,"Słup wiaty",new Vector3(x,1.45f,z),new Vector3(.12f,2.9f,.12f),campusSteel);
+        foreach(float x in new[]{-1.4f,1.4f}) {
+            Box(shelter,"Oczep wiaty",new Vector3(x,2.76f,0),new Vector3(.16f,.22f,8.3f),wood,false);
+            foreach(float z in new[]{-4f,4f}) {
+                var brace=Box(shelter,"Miecz usztywniający",new Vector3(x,2.42f,z-Mathf.Sign(z)*.28f),new Vector3(.12f,.8f,.12f),wood,false);
+                brace.transform.localRotation=Quaternion.Euler(-Mathf.Sign(z)*45,0,0);
+            }
+        }
         MetalRoof(shelter,3.3f,8.6f,2.9f,.5f);
         var route=Group("Trasa kontrolna autobusu — bez automatycznej jazdy",t,Vector3.zero);
         Group("Dojazd",route,P(0,0,-195));Group("Brama",route,P(0,0,-150));
@@ -224,7 +231,12 @@ public static partial class BraxObozEnvironment
     static void Bench(Transform parent,Vector3 p)
     {
         for(int i=0;i<4;i++)Box(parent,"Deska siedziska",p+new Vector3(0,.48f,-.22f+i*.145f),new Vector3(1.8f,.07f,.12f),wood);
-        foreach(float x in new[]{-.65f,.65f})Box(parent,"Noga ławki",p+new Vector3(x,.23f,0),new Vector3(.08f,.46f,.5f),campusSteel);
+        foreach(float x in new[]{-.65f,.65f}) {
+            Box(parent,"Noga ławki",p+new Vector3(x,.23f,0),new Vector3(.08f,.46f,.5f),campusSteel);
+            Box(parent,"Wspornik oparcia",p+new Vector3(x,.69f,.24f),new Vector3(.06f,.62f,.06f),campusSteel,false);
+            Box(parent,"Podłokietnik",p+new Vector3(x,.7f,0),new Vector3(.075f,.06f,.47f),wood,false);
+        }
+        for(int i=0;i<3;i++)Box(parent,"Deska oparcia",p+new Vector3(0,.65f+i*.14f,.27f),new Vector3(1.8f,.11f,.055f),wood,false);
     }
     static void PavedPaths(List<Rect> areas)
     {

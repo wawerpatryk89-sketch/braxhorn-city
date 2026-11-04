@@ -19,7 +19,7 @@ public static partial class BraxObozEnvironment
     static readonly List<BraxWorek> bags = new List<BraxWorek>();
     static readonly List<Transform> covered = new List<Transform>();
     static readonly List<BraxObozArena> arenas = new List<BraxObozArena>();
-    static Material wood, floor, metal, gravel, ground, burgundy, dark, rope;
+    static Material wood, floor, metal, gravel, ground, burgundy, dark, rope, fabric;
     static Transform root;
     static Vector3 P(float x, float y, float z) => new Vector3(x, y, z) * K;
     static Transform Group(string name, Transform parent, Vector3 local)
@@ -68,6 +68,7 @@ public static partial class BraxObozEnvironment
         burgundy = BraxObozMaterials.Plain("bordo", new Color(.478f, .118f, .118f));
         dark = BraxObozMaterials.Plain("grafit", new Color(.09f, .10f, .11f), .4f);
         rope = BraxObozMaterials.Plain("liny", new Color(.77f, .69f, .54f), .15f);
+        fabric = BraxObozMaterials.Pbr("towel");
         var previous = SceneManager.GetActiveScene();
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive); SceneManager.SetActiveScene(scene);
         try
@@ -181,7 +182,10 @@ public static partial class BraxObozEnvironment
 
             for(int k=0;k<4;k++)Box(t,"Łóżko — noga",new Vector3(side*2.05f+(k%2-.5f)*.72f,.32f,1.6f+(k/2-.5f)*1.8f),new Vector3(.09f,.5f,.09f),wood);
             Box(t,"Łóżko — rama",new Vector3(side*2.05f,.48f,1.6f),new Vector3(1.05f,.15f,2.1f),wood);
-            Box(t,"Materac — do wykończenia tkaniną",new Vector3(side*2.05f,.61f,1.6f),new Vector3(.99f,.16f,2.02f),dark);
+            Box(t,"Materac z tkaniną",new Vector3(side*2.05f,.61f,1.6f),new Vector3(.99f,.16f,2.02f),fabric);
+            Box(t,"Poduszka",new Vector3(side*2.05f,.75f,2.32f),new Vector3(.73f,.12f,.42f),fabric,false);
+            Box(t,"Złożony koc",new Vector3(side*2.05f,.715f,.95f),new Vector3(.98f,.05f,.65f),burgundy,false);
+            Box(t,"Wezgłowie",new Vector3(side*2.05f,.64f,2.68f),new Vector3(1.05f,.48f,.08f),wood,false);
             var bed=Group("Połóż się · "+name,t,P(side*2.05f,0,1.6f)).gameObject.AddComponent<BraxSeat>();
             bed.label=name+" · łóżko";bed.lie=true;bed.surfaceY=.69f*K;bed.hipsAboveRoot=.9f*K;
         }
@@ -202,7 +206,14 @@ public static partial class BraxObozEnvironment
     {
         var t=Group(name,root,P(x,0,z));Box(t,"Podest drewniany",new Vector3(0,.24f,0),new Vector3(8.6f,.48f,8.6f),wood);
         Box(t,"Mata bez cudzych logo",new Vector3(0,.50f,0),new Vector3(8.2f,.04f,8.2f),burgundy);
-        foreach(float dx in new[]{-4f,4f})foreach(float dz in new[]{-4f,4f})Cylinder(t,"Słupek z osłoną",new Vector3(dx,.48f,dz),new Vector3(dx,2.15f,dz),.09f,dark,true);
+        foreach(float dx in new[]{-4f,4f})foreach(float dz in new[]{-4f,4f}) {
+            Cylinder(t,"Słupek ringu",new Vector3(dx,.48f,dz),new Vector3(dx,2.15f,dz),.09f,metal,true);
+            Cylinder(t,"Ochraniacz narożnika",new Vector3(dx*.97f,.72f,dz*.97f),new Vector3(dx*.97f,2.10f,dz*.97f),.16f,burgundy);
+        }
+        foreach(float side in new[]{-1f,1f}) {
+            Box(t,"Fartuch ringu",new Vector3(side*4.32f,.26f,0),new Vector3(.025f,.42f,8.6f),burgundy,false);
+            Box(t,"Fartuch ringu",new Vector3(0,.26f,side*4.32f),new Vector3(8.6f,.42f,.025f),burgundy,false);
+        }
         // A physical entrance gap stays open; the other sides use shared rope physics.
         DynamicRopes(x,z,new Vector3(-4,0,-4),new Vector3(-4,0,4),Vector3.left);
         DynamicRopes(x,z,new Vector3(4,0,-4),new Vector3(4,0,4),Vector3.right);
@@ -240,13 +251,23 @@ public static partial class BraxObozEnvironment
         for(int i=0;i<8;i++)
         {
             float a=i*Mathf.PI/4,b=(i+1)*Mathf.PI/4;var p=new Vector3(Mathf.Sin(a)*radius,0,Mathf.Cos(a)*radius);var q=new Vector3(Mathf.Sin(b)*radius,0,Mathf.Cos(b)*radius);
+            var fascia=Box(t,"Zamknięta krawędź podestu",(p+q)*.5f+Vector3.up*.175f,new Vector3(.08f,.35f,Vector3.Distance(p,q)),dark,false);
+            fascia.transform.localRotation=Quaternion.LookRotation(q-p);
             Cylinder(t,"Słupek klatki",p+Vector3.up*.35f,p+Vector3.up*2.4f,.065f,dark,true);
             if(i==3)continue; // entrance panel remains open in the reconstruction
             Cylinder(t,"Górny profil klatki",p+Vector3.up*2.35f,q+Vector3.up*2.35f,.04f,dark);
-            for(int j=0;j<=16;j++){var c=Vector3.Lerp(p,q,j/16f);Cylinder(t,"Pion siatki — roboczy",c+Vector3.up*.4f,c+Vector3.up*2.3f,.005f,metal);}
-            for(int j=0;j<12;j++)Cylinder(t,"Poziom siatki — roboczy",p+Vector3.up*(.45f+j*.16f),q+Vector3.up*(.45f+j*.16f),.005f,metal);
+            Cylinder(t,"Dolny profil klatki",p+Vector3.up*.4f,q+Vector3.up*.4f,.04f,dark);
+            CagePanel(t,p,q);
+            Cylinder(t,"Miękka osłona słupka",p+Vector3.up*.52f,p+Vector3.up*2.3f,.105f,burgundy);
             var mid=(p+q)*.5f;var col=Group("Kolizja klatki",t,(mid+Vector3.up*1.3f)*K);col.localRotation=Quaternion.LookRotation(q-p);col.gameObject.AddComponent<BoxCollider>().size=new Vector3(.08f,2.1f,Vector3.Distance(p,q))*K;
         }
+        // Approach the existing open panel; the top tread overlaps the mat edge.
+        float entryAngle=3.5f*Mathf.PI/4;
+        var entry=Group("Schody wejścia do oktagonu",t,Vector3.zero);
+        entry.localRotation=Quaternion.Euler(0,entryAngle*Mathf.Rad2Deg,0);
+        float edge=radius*Mathf.Cos(Mathf.PI/8);
+        for(int i=0;i<3;i++)Box(entry,"Stopień antypoślizgowy",new Vector3(0,(i+1)*.35f/6,edge+.7f-i*.3f),new Vector3(1.4f,(i+1)*.35f/3,.42f),dark);
+        CombineDecoration(t);
         var arena=t.gameObject.AddComponent<BraxObozArena>();arena.label="OKTAGON";arena.halfSize=new Vector2(4.8f,4.8f)*K;arenas.Add(arena);
     }
     static void Bags(float x,float z,bool roof,int columns)
@@ -261,13 +282,87 @@ public static partial class BraxObozEnvironment
         for(int row=0;row<2;row++)for(int col=0;col<columns;col++)
         {
             var pivot=Group("Worek "+(bags.Count+1),t,P(-(columns-1)*1.1f+col*2.2f,3.25f,row==0?-2:2));
-            Cylinder(pivot,"Łańcuch",Vector3.zero,new Vector3(0,-.7f,0),.015f,metal);
+            BagSuspension(pivot);
             Cylinder(pivot,"Korpus worka",new Vector3(0,-.7f,0),new Vector3(0,-2.2f,0),.28f,dark);
             Cylinder(pivot,"Górne wzmocnienie",new Vector3(0,-.7f,0),new Vector3(0,-.84f,0),.285f,burgundy);
             Cylinder(pivot,"Dolne wzmocnienie",new Vector3(0,-2.07f,0),new Vector3(0,-2.2f,0),.285f,burgundy);
+            // All decoration remains beneath the existing animated pivot.
+            Cylinder(pivot,"Szew boczny",new Vector3(.281f,-.86f,0),new Vector3(.281f,-2.05f,0),.004f,burgundy);
+            CombineDecoration(pivot);
             var collider=pivot.gameObject.AddComponent<CapsuleCollider>();collider.center=P(0,-1.45f,0);collider.height=1.5f*K;collider.radius=.28f*K;
             var bag=pivot.gameObject.AddComponent<BraxWorek>();bag.gora=.7f*K;bag.dol=2.2f*K;bag.dlugosc=1.45f*K;bag.promien=.28f*K;bags.Add(bag);if(roof)covered.Add(pivot);
         }
+    }
+    // One mesh per panel/suspension, rather than a GameObject per wire/link.
+    sealed class DetailTubes
+    {
+        readonly List<Vector3> vertices=new List<Vector3>();
+        readonly List<Vector2> uv=new List<Vector2>();
+        readonly List<int> indices=new List<int>();
+        public void Segment(Vector3 a,Vector3 b,float radius,int sides=6)
+        {
+            Vector3 axis=(b-a).normalized;
+            if((b-a).sqrMagnitude<.000001f)return;
+            Vector3 u=Vector3.Cross(axis,Mathf.Abs(axis.y)<.9f?Vector3.up:Vector3.right).normalized;
+            Vector3 v=Vector3.Cross(axis,u);
+            int start=vertices.Count;
+            for(int end=0;end<2;end++)for(int j=0;j<=sides;j++) {
+                float angle=2*Mathf.PI*j/sides;
+                vertices.Add(((end==0?a:b)+radius*(Mathf.Cos(angle)*u+Mathf.Sin(angle)*v))*K);
+                uv.Add(new Vector2(j/(float)sides,end*Vector3.Distance(a,b)*K));
+            }
+            for(int j=0;j<sides;j++) {
+                int a0=start+j,b0=a0+sides+1;
+                indices.Add(a0);indices.Add(a0+1);indices.Add(b0);
+                indices.Add(a0+1);indices.Add(b0+1);indices.Add(b0);
+            }
+        }
+        public void Save(Transform parent,string name,Material material)
+        {
+            var mesh=new Mesh{name=name,indexFormat=UnityEngine.Rendering.IndexFormat.UInt32};
+            mesh.SetVertices(vertices);mesh.SetUVs(0,uv);mesh.SetTriangles(indices,0);
+            mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
+            var g=Group(name,parent,Vector3.zero).gameObject;
+            g.AddComponent<MeshFilter>().sharedMesh=SaveMesh(mesh);
+            g.AddComponent<MeshRenderer>().sharedMaterial=material;
+        }
+    }
+    static void CagePanel(Transform parent,Vector3 a,Vector3 b)
+    {
+        float length=Vector3.Distance(a,b),height=1.9f;
+        Vector3 along=(b-a).normalized;
+        var wire=new DetailTubes();
+        // Diagonal chain-link wires clipped to the real panel rectangle.
+        foreach(float slope in new[]{-1f,1f})
+        for(float c=-length;c<=height+length;c+=.12f) {
+            float lo=Mathf.Max(0,slope>0?-c:c-height);
+            float hi=Mathf.Min(length,slope>0?height-c:c);
+            if(hi-lo<.001f)continue;
+            float offset=slope*.003f;
+            Vector3 normal=Vector3.Cross(along,Vector3.up)*offset;
+            wire.Segment(a+along*lo+Vector3.up*(.4f+slope*lo+c)+normal,
+                a+along*hi+Vector3.up*(.4f+slope*hi+c)+normal,.0025f);
+        }
+        wire.Save(parent,"Siatka rombowa ocynkowana",metal);
+    }
+    static void BagSuspension(Transform parent)
+    {
+        var chain=new DetailTubes();
+        // Alternating closed oval links, with a four-point bridle to the bag.
+        for(int link=0;link<8;link++) {
+            Vector3 center=new Vector3(0,-.025f-link*.043f,0);
+            Vector3 lateral=link%2==0?Vector3.right:Vector3.forward;
+            for(int j=0;j<12;j++) {
+                float a=j*Mathf.PI/6,b=(j+1)*Mathf.PI/6;
+                chain.Segment(center+lateral*(.018f*Mathf.Cos(a))+Vector3.up*(.029f*Mathf.Sin(a)),
+                    center+lateral*(.018f*Mathf.Cos(b))+Vector3.up*(.029f*Mathf.Sin(b)),.004f);
+            }
+        }
+        for(int arm=0;arm<4;arm++) {
+            float angle=arm*Mathf.PI/2;
+            chain.Segment(new Vector3(0,-.35f,0),new Vector3(.23f*Mathf.Cos(angle),-.72f,.23f*Mathf.Sin(angle)),.012f);
+        }
+        chain.Save(parent,"Ogniwa i czteropunktowe zawieszenie",metal);
     }
     static void ServiceBuildings()
     {
