@@ -17,7 +17,7 @@ public sealed class BraxSzlaban : MonoBehaviour, IBraxInterakcja
 
     void Start()
     {
-        dostepne = Application.CanStreamedLevelBeLoaded(miasto);
+        dostepne = BraxContent.Available(miasto);
         if (tablica) tablica.SetActive(!dostepne);
         if (blokada) blokada.enabled = true;
         BraxInterakcje.Dodaj(this);

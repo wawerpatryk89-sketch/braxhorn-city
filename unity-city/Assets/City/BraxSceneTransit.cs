@@ -33,14 +33,11 @@ public sealed class BraxSceneTransit : MonoBehaviour
         for(int i=0;i<SceneManager.sceneCount;i++){var sc=SceneManager.GetSceneAt(i);if(sc!=empty&&sc.isLoaded)doZwolnienia.Add(sc);}
         foreach(var sc in doZwolnienia)
         {
-            var unload=SceneManager.UnloadSceneAsync(sc);
-            if(unload!=null)yield return unload;
+            yield return BraxContent.Unload(sc);
         }
         yield return Resources.UnloadUnusedAssets();
         GC.Collect();
-        var load=SceneManager.LoadSceneAsync(scene,LoadSceneMode.Single);
-        if(load==null){Busy=false;throw new InvalidOperationException("Missing original scene "+scene);}
-        yield return load;
+        yield return BraxContent.Load(scene,LoadSceneMode.Single);
         Busy=false;
     }
     void OnGUI()

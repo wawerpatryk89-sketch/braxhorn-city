@@ -1,0 +1,58 @@
+name: Zone content - Unity Android bundle validation
+on:
+  push:
+    branches: [codex/zone-content-updates-20261104]
+    paths:
+      - unity-city/Assets/**
+      - unity-city/Packages/**
+      - unity-tools/updates/**
+      - .github/workflows/zone-content-validation.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: content-validation-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  unity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            unity-city/Assets
+            unity-city/Packages
+            unity-city/ProjectSettings/ProjectVersion.txt
+            unity-tools/updates
+      - name: Isolated script-only project, no private source assets
+        run: python3 unity-tools/updates/prepare_content_smoke.py
+      - name: Compile scripts, build baseline and update Android bundles
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: content-smoke
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxContentSmoke.Run
+          versioning: None
+          allowDirtyBuild: true
+      - name: Validate success receipt
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('build/content-smoke/result.json').read_text())
+          assert r['checks'] >= 12 and r['updateBytes'] < r['baselineBytes']
+          print(json.dumps(r,indent=2))
+          PY
+      - name: Test receipt only (no game assets)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: content-smoke-receipt
+          path: build/content-smoke/result.json
+          if-no-files-found: error

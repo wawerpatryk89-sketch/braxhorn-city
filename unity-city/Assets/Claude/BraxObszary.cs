@@ -43,7 +43,7 @@ public sealed class BraxObszary : MonoBehaviour
         foreach (var o in obszary)
         {
             if (o == null || o.wczytaj < OdStartu || o.wczytany || string.IsNullOrEmpty(o.scena)) continue;
-            if (!Application.CanStreamedLevelBeLoaded(o.scena)) { Debug.Log("BRAXHORN_OBSZAR od startu: brak sceny " + o.scena + " w paczce"); continue; }
+            if (!BraxContent.Available(o.scena)) { Debug.Log("BRAXHORN_OBSZAR od startu: brak sceny " + o.scena + " w paczce"); continue; }
             while (zajety) yield return null;
             if (o.wczytany) continue;
             float t0 = Time.realtimeSinceStartup;
@@ -68,7 +68,7 @@ public sealed class BraxObszary : MonoBehaviour
         // zatrzymany w miejscu, żeby nie spadł przez brak podłoża; puszczony zaraz po wczytaniu.
         bool wSrodku = false;
         foreach (var o in obszary)
-            if (o != null && !o.wczytany && Application.CanStreamedLevelBeLoaded(o.scena) && o.granice.Contains(player.transform.position)) wSrodku = true;
+            if (o != null && !o.wczytany && BraxContent.Available(o.scena) && o.granice.Contains(player.transform.position)) wSrodku = true;
         if (wSrodku && !zamrozony && !player.vessel && !player.autoGracza && player.body && player.body.enabled) { player.body.enabled = false; zamrozony = true; next = 0; }
         if (!wSrodku && zamrozony) { if (player.body) player.body.enabled = true; zamrozony = false; }
         if (Time.unscaledTime < next || zajety) return;
@@ -78,7 +78,7 @@ public sealed class BraxObszary : MonoBehaviour
         var cam = Camera.main;
         foreach (var o in obszary)
         {
-            if (o == null || string.IsNullOrEmpty(o.scena) || !Application.CanStreamedLevelBeLoaded(o.scena)) continue;
+            if (o == null || string.IsNullOrEmpty(o.scena) || !BraxContent.Available(o.scena)) continue;
             float d = Mathf.Sqrt(o.granice.SqrDistance(p));
             if (cam) d = Mathf.Min(d, Mathf.Sqrt(o.granice.SqrDistance(cam.transform.position)));
             if (!o.wczytany && d < o.wczytaj) { StartCoroutine(Wczytaj(o)); return; }
@@ -92,8 +92,7 @@ public sealed class BraxObszary : MonoBehaviour
         try
         {
         BraxStartLog.Etap("obszar: wczytywanie " + o.scena);
-        var op = SceneManager.LoadSceneAsync(o.scena, LoadSceneMode.Additive);
-        if (op != null) { op.priority = 0; yield return op; }
+        yield return BraxContent.Load(o.scena, LoadSceneMode.Additive);
         o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
         BraxStartLog.Etap("obszar wczytany " + o.scena);
         }
@@ -110,8 +109,7 @@ public sealed class BraxObszary : MonoBehaviour
         // gracz (np. po zejściu z łodzi) nie może zostać w zwalnianej scenie
         if (player && player.gameObject.scene == sc && !player.transform.parent)
             SceneManager.MoveGameObjectToScene(player.gameObject, gameObject.scene);
-        var op = SceneManager.UnloadSceneAsync(sc);
-        if (op != null) yield return op;
+        yield return BraxContent.Unload(sc);
         yield return Resources.UnloadUnusedAssets();
         o.wczytany = false;
         }

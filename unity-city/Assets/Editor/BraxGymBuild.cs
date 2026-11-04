@@ -108,7 +108,15 @@ public static class BraxGymBuild
             else{PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,useDefault);if(!useDefault)PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,apis);}
             AssetDatabase.SaveAssets();
             var tApk=DateTime.UtcNow;
-            var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=v.scenes,target=BuildTarget.Android,locationPathName=Path.Combine(output,"braxhorn-"+v.tag+".apk"),options=BuildOptions.None});
+            string[] playerScenes=v.scenes;
+            if(BraxContentBuild.Requested)
+            {
+                if(variants.Length!=1)throw new InvalidOperationException("Baza content: buduj jedną strefę i jeden wariant naraz.");
+                BraxContentBuild.Baseline(v.tag,v.scenes.Skip(1).ToArray());
+                playerScenes=new[]{start};
+                EditorBuildSettings.scenes=playerScenes.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();
+            }
+            var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=playerScenes,target=BuildTarget.Android,locationPathName=Path.Combine(output,"braxhorn-"+v.tag+".apk"),options=BuildOptions.None});
             BraxRejonBuildu.Czas("apk_"+v.tag,tApk);
             SizeReport(r);
             try{File.Copy(Path.Combine(Generated,"build-size.txt"),Path.Combine(Generated,"build-size-"+v.tag+".txt"),true);}catch{}

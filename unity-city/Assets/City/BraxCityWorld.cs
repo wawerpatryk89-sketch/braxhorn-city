@@ -32,7 +32,7 @@ public sealed class BraxCityWorld : MonoBehaviour
     // Przyjazd: wylot tunelu po drugiej stronie, kamera za plecami, przodem do wyjścia.
     static readonly Vector3 CityPortal=new Vector3(-66.2f,8.16f,-74f), EstatePortal=new Vector3(0f,.08f,99.5f);
     // Paczka APK z jednym rejonem (właściciel 1.11: „rozdziel mi osiedle od miasta”): tunel działa tylko, gdy drugi rejon jest w paczce.
-    static bool Available(string scene)=>Application.CanStreamedLevelBeLoaded(scene);
+    static bool Available(string scene)=>BraxContent.Available(scene);
     bool InCityTunnel(Vector3 p,float depth)=>area=="city"&&!waterfrontPreview&&Available("BraxhornEstate")&&Mathf.Abs(p.x-CityPortal.x)<4.8f&&p.y>CityPortal.y-1.2f&&p.z<CityPortal.z+2f-depth&&p.z>CityPortal.z-16f;
     bool InEstateTunnel(Vector3 p,float depth)=>area=="estate"&&Available("BraxhornCity")&&Mathf.Abs(p.x-EstatePortal.x)<4.8f&&p.y<3f&&p.z>EstatePortal.z-2f+depth&&p.z<EstatePortal.z+16f;
     private BraxCityDoor nearby;

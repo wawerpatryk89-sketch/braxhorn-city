@@ -18,3 +18,13 @@ unity-city/Assets/Source/Prywatne.meta
 
 # rejon buildu CI (pisze unity-tools/claude/rejon_buildu.py przed Unity)
 unity-city/rejon-ci.txt
+
+# Immutable content baselines contain private generated assets; publish encrypted only.
+unity-city/BraxContentBuild/
+unity-city/Assets/AddressableAssetsData/
+unity-city/Assets/AddressableAssetsData.meta
+unity-city/Assets/StreamingAssets/BraxContent/
+unity-city/Assets/StreamingAssets/BraxContent.meta
+unity-city/Assets/Resources/BraxContentBase.json*
+unity-city/content-mode.txt
+content-smoke/
