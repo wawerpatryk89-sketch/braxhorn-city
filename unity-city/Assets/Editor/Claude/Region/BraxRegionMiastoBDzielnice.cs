@@ -457,7 +457,9 @@ public static partial class BraxRegionMiastoB
             bool same = rr.sharedMaterials.All(m => m && Tymczasowe(m.name));
             if (!same) { if (rr.sharedMaterials.Any(m => m && Tymczasowe(m.name))) inne++; continue; }
             if (rr.transform == bud) { rr.enabled = false; continue; }
-            UnityEngine.Object.DestroyImmediate(rr.gameObject); usuniete.Add(rr.gameObject);
+            var obiekt = rr.gameObject;
+            usuniete.Add(obiekt);
+            UnityEngine.Object.DestroyImmediate(obiekt);
         }
         if (usuniete.Count > 0 || inne > 0)
             Debug.Log("BRAXHORN_NOWE_BUDYNKI_RUSZTOWANIA " + bud.name +
