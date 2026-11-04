@@ -132,7 +132,7 @@ public static partial class BraxClaudeOsiedle
     static string SportNozna(Transform sport)
     {
         group = "Park Centralny / bramki";
-        const float L = 18f, W = 11f, gl = 1f;   // odległość linii bramkowych, szerokość pola, głębokość bramki
+        float L = 18f, W = 11f; const float gl = 1f; // preferuj pełne mini boisko, potem mniejsze w wolnym trawniku   // odległość linii bramkowych, szerokość pola, głębokość bramki
         float z0 = ParkZ0 + 3f, z1 = FenceA - 3.6f;
         var fc = new Vector2(AxisX, (ParkZ0 + FenceA - .6f) * .5f);
         var picnic = new[] { new Vector2(-80, -114), new Vector2(-48, -142), new Vector2(40, -113), new Vector2(75, -138) };
@@ -160,8 +160,22 @@ public static partial class BraxClaudeOsiedle
                 if (score >= best || !Wolne(cx, cz)) continue;
                 best = score; bx = cx; bz = cz; ok = true;
             }
+        if (!ok)
+        {
+            // Stary build umieszczał bramki piłkarskie na boisku koszykówki.
+            // Spróbuj najpierw mniejszego, lecz osobnego boiska na wolnym trawniku
+            // bez wycinania drzew, ścieżek i geometrii osiedla.
+            L = 12f; W = 8f; best = 1e9f;
+            for (float cz = z0; cz <= z1; cz += 1.5f)
+                for (float cx = X0 + 4f; cx <= X1 - 4f; cx += 2f)
+                {
+                    float score = Mathf.Abs(cx - (AxisX + 45f)) + Mathf.Abs(cz - fc.y) * .5f;
+                    if (score >= best || !Wolne(cx, cz)) continue;
+                    best = score; bx = cx; bz = cz; ok = true;
+                }
+        }
         float gy = 0f; string gdzie;
-        if (ok) { gdzie = "trawnik Parku Centralnego (" + bx.ToString("0") + ", " + bz.ToString("0") + ")"; sportTrawa.Add(Rect.MinMaxRect(bx - L * .5f - gl - .5f, bz - W * .5f - .5f, bx + L * .5f + gl + .5f, bz + W * .5f + .5f)); }
+        if (ok) { gdzie = "trawnik Parku Centralnego (" + bx.ToString("0") + ", " + bz.ToString("0") + "), mini boisko " + L.ToString("0") + "×" + W.ToString("0") + " m"; sportTrawa.Add(Rect.MinMaxRect(bx - L * .5f - gl - .5f, bz - W * .5f - .5f, bx + L * .5f + gl + .5f, bz + W * .5f + .5f)); }
         else { bx = 28f; bz = -83f; gy = .08f; gdzie = "boisko do kosza w Parku Wiśniowym (brak wolnego trawnika)"; }   // bramki na liniach pod koszami
         float half = ok ? L * .5f : 13.9f - gl;
         foreach (int s in new[] { -1, 1 }) Bramka(bx + s * half, gy, bz, s, 3f * K, 1.5f * K, gl);
