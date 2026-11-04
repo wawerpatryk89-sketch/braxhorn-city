@@ -15,13 +15,13 @@ Baza: `5b9e7afb2d487ff0b5c92d79f90fffb97f70f99c`, gałąź `claude/osiedle-42-po
 
 `python3 -W error::ResourceWarning -m unittest discover -s unity-tools/updates -p 'test_*.py' -v`
 
-25 testów: pełny cykl szyfrowania/odczytu, Bee i PlayerDataCache, zachowanie GUID źródeł, zgodność profili, integralność, niebezpieczne ścieżki i dowiązania, przerwany upload, poprzednia poprawna kopia, dwie wersje cache, odrzucenie publicznego release i niekompletnego świata. Operacje GitHub w testach trwałego zapisu są symulowane; testy nie przesyłają prywatnych danych.
+32 testy: pełny cykl szyfrowania/odczytu, Bee i PlayerDataCache, zachowanie GUID źródeł, zgodność profili, integralność, niebezpieczne ścieżki i dowiązania, przerwany upload, poprzednia poprawna kopia, dwie wersje cache, odrzucenie publicznego release i niekompletnego świata oraz izolacja snapshotu content. Operacje GitHub w testach trwałego zapisu są symulowane; testy nie przesyłają prywatnych danych.
 
 Workflow `zone-update-tools.yml` sprawdza te narzędzia bez budowania kolejnego APK. Osobno należy zmierzyć odczyt/zapis rzeczywistej Library i dwa kolejne buildy Unity. Pierwszy zapis Bee nie przyspieszy kompilacji, która już się zakończyła. Należy porównać następne uruchomienie o zgodnym profilu, rozmiar archiwum i koszt transferu. Żadnego konkretnego czasu nie potwierdzono.
 
 ## Drugi etap — kod i walidacja
 
-Implementacja znajduje się na `codex/zone-content-updates-20261104` i jest sprawdzana przed przeniesieniem na gałąź osiedla.
+Kod został sprawdzony na `codex/zone-content-updates-20261104`, commit `a9ca7986cb97560d16e466f8b78ef2a168f1e82b`. Ten commit dokumentacyjny towarzyszy przeniesieniu sprawdzonej implementacji na `claude/osiedle-42-poprawka` i rozpoczęciu pierwszego bazowego APK z aktualizacjami. Nie zmienia testowanego kodu.
 
 - Addressables 2.7.6: osobna grupa dla istniejących scen oraz rozdzielone zależności. Stabilne GUID-y pochodzą z trwałego, szyfrowanego snapshotu. Content build nie uruchamia generatora całego świata ani BuildPlayer.
 - Loader podłączony do `BraxStart`, `BraxObszary`, `BraxSceneTransit`, `BraxCityWorld` i `BraxSzlaban`. Obsługuje bazę w APK, katalog aktualizacji, ładowanie i zwalnianie uchwytów scen.
@@ -30,9 +30,15 @@ Implementacja znajduje się na `codex/zone-content-updates-20261104` i jest spra
 - Historia poprawek scen pozostaje w repozytorium. Nowy bazowy APK uwzględnia tę historię, a kolejne content buildy pomijają operacje już zastosowane w bazie.
 - Workflow content obsługuje commity `[content-update]`; pełny workflow APK je pomija. Nowy bazowy APK jest potrzebny przy zmianach kodu/pakietów.
 
-32 testy Python transportu/cache/snapshotów przechodzą lokalnie i w CI. Build bazowych oraz zmienionych paczek Androida przeszedł 12 kontroli w Unity 6000.0.58f2: [run 41747579080](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/41747579080). W małym teście baza miała 870773 bajty, aktualizacja 8949 bajtów. To syntetyczny przykład, nie pomiar rzeczywistego osiedla.
+32 testy Python transportu/cache/snapshotów przechodzą lokalnie i w CI: [run 41750728409](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/41750728409).
 
-Trwa dodatkowy test prawdziwego playera Linux (ładowanie, import, restart, wycofanie). Do potwierdzenia na urządzeniu pozostają nowy bazowy APK, natywny wybór pliku Androida, wygląd i zużycie pamięci na docelowym telefonie. Aktualny build #61 używa wcześniejszej wersji i nie otrzymuje tych zmian w locie. Nie wyłączono SSO Netlify.
+Walidacja Unity 6000.0.58f2 zakończyła się sukcesem na obu platformach: [run 41750728494](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/41750728494).
+
+- Android: kompilacja wszystkich skryptów C#, budowa bazowych i zmienionych paczek, 14 kontroli manifestu/paczki/historii zmian oraz kompilacja Java wyboru pliku względem rzeczywistych bibliotek Unity i Androida (`BRAX_CONTENT_ANDROID_JAVA_PASS`).
+- Linux: zbudowany i uruchomiony player; ładowanie bazy, import, restart ze zmienioną sceną, doczytanie i zwolnienie obszaru, potwierdzenie wersji oraz powrót po przerwanym starcie. Wszystkie tryby zwróciły `BRAX_CONTENT_RUNTIME_PASS`.
+- W syntetycznym teście Androida baza miała 1029164 bajty, aktualizacja 9009 bajtów. To dowód pominięcia niezmienionych paczek w tym teście, nie pomiar rozmiaru ani czasu aktualizacji rzeczywistego osiedla.
+
+Do potwierdzenia pozostają zakończenie pełnego bazowego APK oraz test na docelowym telefonie: instalacja, natywny wybór pliku, prawdziwa poprawka mapy, wygląd i zużycie pamięci. Build #61 używa wcześniejszej wersji i nie otrzymuje tych zmian w locie. Nie wyłączono SSO Netlify.
 
 Instrukcja wykonawców: [CONTENT-UPDATES.md](CONTENT-UPDATES.md).
 

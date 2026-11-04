@@ -2,6 +2,16 @@
 
 Decyzja właściciela: wspólny sposób szybkiego budowania i dostarczania poprawek dla **miasta, osiedla i obozu**, Unity 6. Zachować wygląd, jakość modeli, sterowanie i podział pracy. Ten dokument opisuje docelowy kontrakt; nie jest potwierdzeniem wdrożenia ani pomiaru przyspieszenia.
 
+## Implementacja do wykorzystania przez wykonawców — 2026-11-04
+
+Wspólne narzędzia i integracja osiedla: [kod `a9ca7986`](https://github.com/wawerpatryk89-sketch/braxhorn-city/tree/a9ca7986cb97560d16e466f8b78ef2a168f1e82b), [szczegółowa instrukcja CONTENT-UPDATES.md](https://github.com/wawerpatryk89-sketch/braxhorn-city/blob/a9ca7986cb97560d16e466f8b78ef2a168f1e82b/unity-tools/updates/CONTENT-UPDATES.md).
+
+**Pierwszy sposób dostarczania jest prywatnym importem pliku, nie automatycznym CDN:** wykonawca publikuje `.braxupdate.zip` w draft release, właściciel pobiera go po zalogowaniu do GitHuba, a gra importuje przez systemowy wybór pliku. Bazowe paczki są w APK i działają bez sieci. SSO Netlify pozostaje włączone; token GitHuba nie trafia do gry. Wymagania HTTPS poniżej dotyczą przyszłego automatycznego pobierania.
+
+Miasto i obóz: przenieść wyłącznie współdzielone pliki wskazane w instrukcji, podłączyć własne sceny i loader oraz własny workflow. Zachować cudze zmiany i trwające buildy. Kod jest punktem integracji, a nie potwierdzeniem, że mechanizm działa już w tych dwóch strefach.
+
+Każda strefa wymaga **jednego nowego bazowego APK**, potem zgodne poprawki danych są wydawane przez `[content-update]` bez `BuildPlayer` i ponownego generowania świata. Historia `content-patch.json` jest trwała i rozszerzana na końcu; nowa baza APK nie może zgubić wcześniejszych poprawek. Zmiana C#/pakietów wymaga nowego APK. Przy każdym wydaniu podać `baseId`, rozmiar paczki, listę zmian oraz dowód testu na urządzeniu.
+
 ## Podział pracy — do przekazania wykonawcom
 
 - **Miasto:** wykonawca miasta wdraża standard na swojej aktualnej gałęzi; zachowuje rozpoczęte naprawy awarii telefonu. Nie przejmuje kodu ani zasobów osiedla. Rejestruje aktualne sceny miasta, portu, wyspy i sektorów pod stałymi adresami. Zmiana lokalnej numeracji sektorów nie może zmieniać adresów pozostałych sektorów.
@@ -11,7 +21,7 @@ Decyzja właściciela: wspólny sposób szybkiego budowania i dostarczania popra
 
 ## 1. Dwa niezależne cele
 
-**Szybszy build:** ponowne wykorzystanie importu, kompilacji i przygotowanych scen. **Mniejsza aktualizacja telefonu:** aplikacja pobiera zmienione paczki zawartości. Sam podpis APK, rosnący versionCode albo cache Library nie zapewnia drugiego celu. Addressables sam nie naprawi generatora tworzącego od nowa cały świat.
+**Szybszy build:** ponowne wykorzystanie importu, kompilacji i przygotowanych scen. **Mniejsza aktualizacja telefonu:** aplikacja importuje zmienione paczki zawartości (docelowo może je pobierać). Sam podpis APK, rosnący versionCode albo cache Library nie zapewnia drugiego celu. Addressables sam nie naprawi generatora tworzącego od nowa cały świat.
 
 ## 2. Pamięć budowania
 
