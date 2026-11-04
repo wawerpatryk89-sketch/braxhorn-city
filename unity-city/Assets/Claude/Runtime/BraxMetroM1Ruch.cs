@@ -41,6 +41,7 @@ public sealed class BraxMetroM1Ruch : MonoBehaviour
     Vector3[] lStart, pStart;
     Renderer[] renderery;
     Collider[] kolizje;
+    bool[] rendereryPoczatkowo, kolizjePoczatkowo;
     bool widoczny = true;
 
     void Start()
@@ -58,6 +59,8 @@ public sealed class BraxMetroM1Ruch : MonoBehaviour
             if (drzwiPrawe[i]) pStart[i] = drzwiPrawe[i].localPosition;
         renderery = GetComponentsInChildren<Renderer>(true);
         kolizje = GetComponentsInChildren<Collider>(true);
+        rendereryPoczatkowo = Array.ConvertAll(renderery, x => x && x.enabled);
+        kolizjePoczatkowo = Array.ConvertAll(kolizje, x => x && x.enabled);
         if (DrzwiLiczba == 0 || renderery.Length == 0)
         {
             Debug.LogError("BRAXHORN_METRO_M1_NIEGOTOWY brak scenicznych par drzwi lub rendererów");
@@ -76,8 +79,10 @@ public sealed class BraxMetroM1Ruch : MonoBehaviour
     {
         if (wl == widoczny) return;
         widoczny = wl;
-        foreach (var r in renderery) if (r) r.enabled = wl;
-        foreach (var c in kolizje) if (c) c.enabled = wl;
+        for (int i = 0; i < renderery.Length; i++)
+            if (renderery[i]) renderery[i].enabled = wl && rendereryPoczatkowo[i];
+        for (int i = 0; i < kolizje.Length; i++)
+            if (kolizje[i]) kolizje[i].enabled = wl && kolizjePoczatkowo[i];
     }
 
     void Przejdz(Etap nowy)
@@ -96,6 +101,9 @@ public sealed class BraxMetroM1Ruch : MonoBehaviour
         else if (nowy == Etap.Dojazd)
         {
             numerKursu++;
+            // Teleport z tunelu ZANIM skórki zostaną pokazane.
+            // Nie ma jednej klatki z modelem składu migniętym na zachodzie.
+            if (rb) rb.position = centrum + Vector3.right * wejscieOffsetX;
             Widocznosc(true);
         }
     }
