@@ -486,7 +486,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         PlacZPierscieniem("pętla ZACHÓD", c, PetlaR, PetlaPlac, new[] { 0f, 180f }, AH);   // wlot zach. = Aleja Centralna (nowe dzielnice)
         var kraw = new BraxRegionMeble.Bud(); Pierscien(kraw, c, PetlaWyspa - Kr, PetlaWyspa, YC, 48); kraw.Obiekt("Pętla ZACHÓD: krawężnik wyspy", root, krawMat, false, false);
         var tr = Dysk("Pętla ZACHÓD: trawnik wyspy", c, PetlaWyspa - Kr, YC - .03f, 48); Nawierzchnia(tr); BraxRegionTrawa.Teren(tr.GetComponent<MeshRenderer>(), true, false);
-        Plyta("Pętla ZACHÓD: podłoże wyspy", beton, PetlaZX - PetlaWyspa, PetlaZX + PetlaWyspa, RZ - PetlaWyspa, RZ + PetlaWyspa, YC - .06f, .3f, false);
+        // Usunięto kwadratową płytę wystającą zza okrągłej wyspy pętli zachodniej.
         Drzewo(new Vector3(PetlaZX, YC - .03f, RZ));
     }
 
@@ -537,7 +537,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         kraw.Obiekt("Rondo: krawężnik wyspy", root, krawMat, false, false);
         var trawa = Dysk("Rondo: trawnik wyspy", c, RWyspa - Kr, YC - .03f, 64); Nawierzchnia(trawa);
         BraxRegionTrawa.Teren(trawa.GetComponent<MeshRenderer>(), true, false);
-        Plyta("Rondo: podłoże wyspy", beton, RX - RWyspa, RX + RWyspa, RZ - RWyspa, RZ + RWyspa, YC - .06f, .3f, false);
+        // Nie stawiamy KWADRATOWEGO podkładu pod okrągłą wyspą: jego cztery narożniki wychodziły na asfalt. Dysk trawy ma już własną kolizję.
         Pozniej("rzeźba", () => Rzezba(NaPodlozu(new Vector3(RX, YC - .03f, RZ))));
         foreach (var a in new[] { 40f, 160f, 280f }) { var p = c + new Vector2(Mathf.Cos(a * Mathf.Deg2Rad), Mathf.Sin(a * Mathf.Deg2Rad)) * 4.6f; Drzewo(new Vector3(p.x, YC - .03f, p.y)); }
         // latarnie na narożnikach placu
@@ -700,7 +700,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         PlacZPierscieniem("pętla PÓŁNOC", c, PetlaR, PetlaPlac, new[] { 270f }, AH);
         var kraw = new BraxRegionMeble.Bud(); Pierscien(kraw, c, PetlaWyspa - Kr, PetlaWyspa, YC, 48); kraw.Obiekt("Pętla: krawężnik wyspy", root, krawMat, false, false);
         var tr = Dysk("Pętla: trawnik wyspy", c, PetlaWyspa - Kr, YC - .03f, 48); Nawierzchnia(tr); BraxRegionTrawa.Teren(tr.GetComponent<MeshRenderer>(), true, false);
-        Plyta("Pętla: podłoże wyspy", beton, AX - PetlaWyspa, AX + PetlaWyspa, PetlaZ - PetlaWyspa, PetlaZ + PetlaWyspa, YC - .06f, .3f, false);
+        // Usunięto kwadratową płytę pod okrągłą wyspą pętli północnej.
         Drzewo(new Vector3(AX, YC - .03f, PetlaZ));
         // chodniki wzdłuż pierzei poza przekrojem między placem a pętlą: pierzeje stoją od lica
         Chodnik("przed pierzeją zach. (pętla)", AX - PetlaPlac - 3f, AX - PetlaPlac, PetlaZ - PetlaPlac, PetlaZ + PetlaPlac);
