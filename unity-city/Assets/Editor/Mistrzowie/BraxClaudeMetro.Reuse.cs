@@ -40,7 +40,7 @@ public static partial class BraxClaudeMetro
         foreach(float z0 in WEJSCIA) ZejscieWnetrze(z0,z0>28f);
         W.Zapisz("mistrzowie_metro_entrance");
         W.Start(podziemie);W.Komorka=14f;
-        Antresola();SchodyNaPeron();Hala();Tory();Tunele(true);Wyposazenie();
+        Antresola();SchodyNaPeron(true);Hala();Tory();Tunele(true);Wyposazenie();
         W.Zapisz("mistrzowie_metro_station");
         var gates=root.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true);
         if(gates.Length!=7||gates.Any(g=>g.skrzydla==null||g.skrzydla.Length!=4))
@@ -61,7 +61,7 @@ public static partial class BraxClaudeMetro
         if(!underground)throw new InvalidOperationException("Station template structure changed");
         var train=new GameObject("Parked metro train | original two-car city model").transform;
         train.SetParent(underground,false);W.Start(train);
-        if(!PociagModel(source))throw new InvalidOperationException("Existing train could not be placed; no procedural substitute");
+        if(!PociagModel(source,true))throw new InvalidOperationException("Existing train could not be placed; no procedural substitute");
     }
 
     static Material Premium(string id,string slug,float tile,Color tint)
@@ -73,9 +73,12 @@ public static partial class BraxClaudeMetro
         float zc=ZcSchodow(EZ[1]);
         float xEnd=EX0+(12-1+11-1)*.30f*K+1.5f*K;
         return new[]{new Vector3(EX0-3f,yS,zc),new Vector3(EX0-.3f,yS,zc),
-            new Vector3(xEnd+1f,yM,zc),new Vector3(xEnd+1f,yM,EZ[1]-1f),
-            new Vector3(GX+3f,yM,EZ[1]-1f),new Vector3(GX+1.5f,yM,28.45f),
+            // The north wall has a bin at (71.8,32) and ticket machines at
+            // x=68.4/70.0. Use their public aisle, not their collision boxes.
+            new Vector3(xEnd+1f,yM,zc),new Vector3(xEnd+1f,yM,EZ[1]-1.7f),
+            new Vector3(GX+3f,yM,EZ[1]-1.7f),new Vector3(GX+1.5f,yM,28.45f),
             new Vector3(GX-1.5f,yM,28.45f),new Vector3(WX1+1f,yM,27.15f),
-            new Vector3(WX0-1.5f,yP,27.15f),new Vector3(20f,yP,28.5f)};
+            // Keep the platform route south of its columns, benches and bins.
+            new Vector3(WX0-1.5f,yP,27.15f),new Vector3(20f,yP,26.4f)};
     }
 }

@@ -1,5 +1,7 @@
 # Miasto Mistrzów — mapa i przekazanie prac
 
+**Aktualizacja po APK #4:** [diagnoza i naprawy runu 41907419292](mistrzowie-audyt-run4-20261104.md). Run na `c30e305` zatrzymał się na kolizji trasy metra przed generowaniem Patryka i kompilacją APK. Poprawiono trasę, obudowę pod schodami, obrót źródłowego pociągu oraz import tekstur; kontrole statyczne przeszły. Nowa kompilacja Unity i test Androida pozostają niewykonane. Poniższy plan i wcześniejsze statusy są zachowane jako historia zakresu.
+
 Stan na 4 listopada 2026 r. Region tej samej gry **BRAXHORN CITY**, projekt `unity-city`, Unity **6000.0.58f2**, Built-in Render Pipeline. Gałąź robocza: `codex/miasto-mistrzow-20261104`. Odczytany kod: `47c89f05796c675d02a15982382a37ef4c5d20be`.
 
 **Najpierw przeczytaj ten dokument, potem mapy. Plan docelowy, kod generatorów i działająca gra to różne stany. Pierwszy przebieg APK zakończył się przed uruchomieniem Unity.**

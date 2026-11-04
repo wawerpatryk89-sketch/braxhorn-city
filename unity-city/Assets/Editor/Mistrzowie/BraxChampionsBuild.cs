@@ -23,6 +23,7 @@ public static class BraxChampionsBuild
         public bool explorationSceneReloadPassed=false,playerRuntimeTested=false;
         public BraxChampionsInfrastructure.Counts counts;
         public List<string> checks=new List<string>();
+        public List<string> failures=new List<string>();
     }
     public static void Build() => BuildInternal(false);
     public static void BuildAndroid() => BuildInternal(true);
@@ -55,11 +56,7 @@ public static class BraxChampionsBuild
             var scene=EditorSceneManager.OpenScene(BraxChampionsFoundation.ScenePath,OpenSceneMode.Single);
             var d=BraxChampionsInfrastructure.Generate();report.counts=d.counts;
             Physics.SyncTransforms();
-            foreach(var t in BraxChampionsInfrastructure.Stations)
-            {
-                CheckMetro(t);
-                report.walkSamples+=CheckWalk(t);report.checks.Add(t.name+": surface-to-platform path clear");
-            }
+            CheckStations(BraxChampionsInfrastructure.Stations,report);
             CheckAssets(scene);report.foundationPassedBeforeBuildings=true;
             report.checks.Add("Foundation and all three complete metro stations validated before building generation");
             report.buildingExteriors=BraxChampionsBuildings.Generate();Physics.SyncTransforms();
@@ -72,7 +69,7 @@ public static class BraxChampionsBuild
             Physics.SyncTransforms();
             var stations=scene.GetRootGameObjects().SelectMany(o=>o.GetComponentsInChildren<Transform>(true)).Where(t=>t.name.EndsWith("| reused city metro")).ToArray();
             if(stations.Length!=3)throw new InvalidOperationException("Three saved metro stations required");
-            foreach(var t in stations){CheckMetro(t);report.walkSamples+=CheckWalk(t);}
+            CheckStations(stations,report);
             CheckExteriorAccess();report.rendererCount=CheckAssets(scene);report.sceneReloadPassed=true;
             report.checks.Add("Serialized scene reopened: meshes, scripts, colliders and materials present");
             BraxChampionsExplorer.Generate(report.sourceCommit);
@@ -170,7 +167,9 @@ public static class BraxChampionsBuild
         if((station.localScale-Vector3.one).sqrMagnitude>.000001f)throw new InvalidOperationException("Metro source was scaled twice: "+station.name);
         if(!station.Find("Existing entrance")||!station.Find("Existing station and open tunnels"))throw new InvalidOperationException("Metro entrance/underground missing");
         var gates=station.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true);
-        if(gates.Length!=7||gates.Any(g=>g.skrzydla==null||g.skrzydla.Length!=4))throw new InvalidOperationException("Seven complete ticket gates required: "+station.name);
+        if(gates.Length!=7||gates.Any(g=>g.skrzydla==null||g.skrzydla.Length!=4||g.skrzydla.Any(s=>!s)
+            ||g.przesuniecie==null||g.przesuniecie.Length!=4||g.blokady==null||g.blokady.Length==0||g.blokady.Any(c=>!c)))
+            throw new InvalidOperationException("Seven complete ticket gates required: "+station.name);
         var steps=station.GetComponentsInChildren<BraxSchodyRuchome>(true);
         var drives=station.GetComponentsInChildren<BraxSchodyRuchomeJazda>(true);
         if(steps.Length!=2||drives.Length!=2||steps.Any(x=>!x.enabled)||drives.Any(x=>!x.enabled))throw new InvalidOperationException("Two working escalator drives required: "+station.name);
@@ -183,7 +182,30 @@ public static class BraxChampionsBuild
         {
             var train=station.Find("Existing station and open tunnels/Parked metro train | original two-car city model");
             if(!train||train.Cast<Transform>().Count(t=>t.name.Contains("(model metro_train,"))!=2)throw new InvalidOperationException("Original two-car train missing at M1");
+            foreach(var car in train.Cast<Transform>().Where(t=>t.name.Contains("(model metro_train,")))
+            {
+                var renderers=car.GetComponentsInChildren<Renderer>(true);
+                if(renderers.Length==0)throw new InvalidOperationException("Empty train: "+car.name);
+                var bounds=renderers[0].bounds;foreach(var r in renderers.Skip(1))bounds.Encapsulate(r.bounds);
+                var size=bounds.size;
+                if(size.y>8f||size.x<12f||size.z>5f)
+                    throw new InvalidOperationException("Train orientation/clearance invalid: "+car.name+" size="+size);
+            }
         }
+    }
+    static void CheckStations(IEnumerable<Transform> stations,Report report)
+    {
+        int before=report.failures.Count;
+        foreach(var station in stations)
+        {
+            // Each station and each kind of check is independent. Preserve all
+            // findings in one failed run instead of stopping at the first station.
+            try { CheckMetro(station); }
+            catch(Exception e) { report.failures.Add(station.name+" structure: "+e.Message); }
+            try { report.walkSamples+=CheckWalk(station);report.checks.Add(station.name+": surface-to-platform path clear"); }
+            catch(Exception e) { report.failures.Add(station.name+" walk: "+e.Message); }
+        }
+        if(report.failures.Count>before)throw new InvalidOperationException(string.Join("\n",report.failures.Skip(before)));
     }
     static void CheckExteriorAccess()
     {
@@ -242,34 +264,46 @@ public static class BraxChampionsBuild
     {
         var local=BraxClaudeMetro.ChampionsWalkingRoute();
         var gate=station.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true)
-            .OrderBy(g=>Mathf.Abs(station.InverseTransformPoint(g.transform.position).z-28.45f)).FirstOrDefault();
+            .Where(g=>g.blokady!=null&&g.blokady.Length>0&&g.blokady[0])
+            .OrderBy(g=>Mathf.Abs(station.InverseTransformPoint(g.blokady[0].bounds.center).z-28.45f)).FirstOrDefault();
         if(!gate)throw new InvalidOperationException(station.name+" has no original ticket gates");
-        float gateZ=station.InverseTransformPoint(gate.transform.position).z;
+        // The imported model origin is not necessarily the passage centre.
+        float gateZ=station.InverseTransformPoint(gate.blokady[0].bounds.center).z;
         local[5].z=gateZ;local[6].z=gateZ;
         var route=local.Select(station.TransformPoint).ToArray();
-        float y=route[0].y;int count=0;
+        int count=0;var problems=new List<string>();
         const int mask=~((1<<8)|(1<<2)|(1<<29)|(1<<31));
         for(int i=0;i<route.Length-1;i++)
         {
             var a=route[i];var b=route[i+1];var delta=b-a;delta.y=0;float len=delta.magnitude;
             if(len<.01f)continue;
-            int steps=Mathf.CeilToInt(len/.25f);
+            int steps=Mathf.CeilToInt(len/.25f);float y=a.y;
+            var obstacles=new HashSet<Collider>();
             for(int k=0;k<=steps;k++)
             {
                 var q=Vector3.Lerp(a,b,k/(float)steps);q.y=y;
                 if(!Physics.Raycast(q+Vector3.up*.8f,Vector3.down,out var hit,2.0f,mask,QueryTriggerInteraction.Ignore))
-                    throw new InvalidOperationException(station.name+" no walk floor at "+q);
-                if(hit.point.y>y+.45f||hit.point.y<y-.55f)throw new InvalidOperationException(station.name+" walk discontinuity at "+hit.point+" / "+hit.collider.name);
+                { problems.Add("segment "+i+" no walk floor at "+q);break; }
+                if(hit.point.y>y+.45f||hit.point.y<y-.55f)
+                { problems.Add("segment "+i+" walk discontinuity at "+hit.point+" / "+ColliderPath(hit.collider));break; }
                 y=hit.point.y;q.y=y;
                 foreach(var c in Physics.OverlapCapsule(q+Vector3.up*.73f,q+Vector3.up*2.02f,.35f,mask,QueryTriggerInteraction.Ignore))
                 {
-                    if(c.GetComponentInParent<BraxDrzwiPrzesuwne>())continue; // existing automatic ticket gate
-                    throw new InvalidOperationException(station.name+" blocked walkway at "+q+" / "+c.name);
+                    var door=c.GetComponentInParent<BraxDrzwiPrzesuwne>();
+                    if(door&&door.blokady!=null&&door.blokady.Contains(c))continue; // only the opening leaf blocker; keep fixed housing collisions
+                    if(obstacles.Add(c))problems.Add("segment "+i+" blocked walkway at "+q+" local="+station.InverseTransformPoint(q)
+                        +" / "+ColliderPath(c)+" bounds="+c.bounds);
                 }
                 count++;
             }
         }
+        if(problems.Count>0)throw new InvalidOperationException(string.Join("\n",problems));
         return count;
+    }
+    static string ColliderPath(Collider c)
+    {
+        var names=new List<string>();for(var t=c.transform;t;t=t.parent)names.Add(t.name);
+        names.Reverse();return string.Join("/",names);
     }
 }
 

@@ -715,7 +715,7 @@ public static partial class BraxClaudeMetro
     }
 
     // ---------------- schody stałe i ruchome antresola → peron ----------------
-    static void SchodyNaPeron()
+    static void SchodyNaPeron(bool fitTechnicalEnclosure = false)
     {
         float szer = 3.1f, zc = 25.6f + szer * .5f;   // schody z 25.6–28.7
         float wz = (yM - yP) / 32f, st = .30f * K;
@@ -740,7 +740,20 @@ public static partial class BraxClaudeMetro
             W.MM(mLamperia, xBot + .5f, 58.2f, yP, yP + .25f, zf + s * .07f - .01f, zf + s * .07f + .01f);
         }
         Obudowa(25.5f, -1f);
-        W.MM(mSciana, 54.0f, 58.4f, yP, yM - .4f, WZ0, WZ1, true);     // pod antresolą (ściana zamykająca przestrzeń techniczną)
+        if (fitTechnicalEnclosure)
+        {
+            // Champions: the old flat-topped block cut through the descending
+            // stairs. Keep the technical enclosure, with its top below the
+            // actual first flight. All other region callers retain their geometry.
+            var rampEnd = s1 + Vector3.left * st;
+            for (float x = 54f; x < WX1; x += .25f)
+            {
+                float end = Mathf.Min(x + .25f, WX1);
+                float top = Mathf.Lerp(rampEnd.y, g1.y, Mathf.InverseLerp(rampEnd.x, g1.x, x)) - .4f;
+                W.MM(mSciana, x, end, yP, top, WZ0, WZ1, true);
+            }
+        }
+        else W.MM(mSciana, 54.0f, 58.4f, yP, yM - .4f, WZ0, WZ1, true);
         // drzwi techniczne pod schodami (od strony peronu płd.)
         W.MM(mDrzwiTech, 55.2f, 56.3f, yP, yP + 2.1f * K, 25.41f, 25.44f);
         W.MM(mStal, 56.15f, 56.2f, yP + 1.0f * K, yP + 1.05f * K, 25.38f, 25.41f);
@@ -1280,10 +1293,14 @@ public static partial class BraxClaudeMetro
     /// <summary>Dwa wagony modelu czołami na zewnątrz (jednostka dwuczłonowa) na torze płn. przy peronie 1. Skala z prawdziwej
     /// szerokości pudła 2.8 m × K, ograniczona prześwitem do krawędzi peronu (wózki nie wchodzą w lico peronu). Koła na główce
     /// szyny. Kolizja pudła (bryła), drzwi zamknięte — pociąg stoi. Kierunek czoła z elementów czoła (reflektory / szyba czołowa).</summary>
-    static bool PociagModel(GameObject zrodlo)
+    static bool PociagModel(GameObject zrodlo, bool preserveRootRotation = false)
     {
+        // metro_train.glb has a -90 degree source root and a +90 degree child.
+        // Resetting only the root stands a 27m carriage vertically. Champions
+        // applies placement yaw on top of the authored root rotation.
+        var sourceRotation = preserveRootRotation ? zrodlo.transform.localRotation : Quaternion.identity;
         var o = (GameObject)UnityEngine.Object.Instantiate(zrodlo);
-        o.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity); o.transform.localScale = Vector3.one;
+        o.transform.SetPositionAndRotation(Vector3.zero, sourceRotation); o.transform.localScale = Vector3.one;
         var cale = Granice(o, null);
         Func<Renderer, bool> pudlo = r => NazwyMat(r).Contains("side");
         var bP = Granice(o, pudlo); if (bP.size.sqrMagnitude < 1e-6f) bP = cale;
@@ -1308,7 +1325,7 @@ public static partial class BraxClaudeMetro
             float yaw = (i == 0 ? 90f : -90f) - yawCzola;            // wagon 0 czołem na wschód (+x), wagon 1 na zachód
             var w = (GameObject)UnityEngine.Object.Instantiate(zrodlo, W.Grupa, false);
             w.name = "metro M1 — wagon " + (101 + i) + " (model metro_train, CC BY kane_sk06)";
-            w.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0f, yaw, 0f)); w.transform.localScale = Vector3.one * s;
+            w.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0f, yaw, 0f) * sourceRotation); w.transform.localScale = Vector3.one * s;
             var b = Granice(w, null); var bp = Granice(w, pudlo); if (bp.size.sqrMagnitude < 1e-6f) bp = b;
             w.transform.position = new Vector3(cx - b.center.x, yR - b.min.y, zTn - bp.center.z);
             BraxMiastoAssety.Przygotuj(w, true, true);

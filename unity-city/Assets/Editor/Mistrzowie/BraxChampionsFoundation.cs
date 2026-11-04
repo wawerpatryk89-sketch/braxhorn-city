@@ -212,24 +212,22 @@ public static class BraxChampionsFoundation
         if(old){EditorUtility.CopySerialized(value,old);UnityEngine.Object.DestroyImmediate(value);EditorUtility.SetDirty(old);return old;}
         AssetDatabase.CreateAsset(value,path);return value;
     }
-    static Texture2D CopyMap(string source,string role,string id,bool readable=false)
+    static Texture2D CopyMap(string source,string role,string id)
     {
         string destination=Output+"/Textures/"+id+"_"+role+Path.GetExtension(source);
-        if(!File.Exists(destination)&&!AssetDatabase.CopyAsset(source,destination))throw new IOException("Cannot copy PBR source: "+source);
+        // Preserve an existing GUID. New copies receive final settings in
+        // BraxChampionsTextureImport before compression, not in a second import.
+        if(!File.Exists(destination))File.Copy(source,destination);
+        AssetDatabase.ImportAsset(destination,ImportAssetOptions.ForceSynchronousImport);
         var importer=(TextureImporter)AssetImporter.GetAtPath(destination);
-        // Exact RGB GL normals from the source. Do not import as packed Unity normal maps.
-        importer.textureType=TextureImporterType.Default;importer.sRGBTexture=role=="color";
-        importer.mipmapEnabled=true;importer.npotScale=TextureImporterNPOTScale.None;
-        importer.maxTextureSize=4096;importer.isReadable=readable;importer.anisoLevel=8;
-        importer.streamingMipmaps=true;importer.streamingMipmapsPriority=0;
-        importer.wrapMode=TextureWrapMode.Repeat;importer.filterMode=FilterMode.Trilinear;
-        // Explicit Android override prevents inherited lower limits or uncompressed maps.
+        if(!importer)throw new InvalidOperationException("Generated PBR importer missing: "+destination);
         var android=importer.GetPlatformTextureSettings("Android");
-        android.overridden=true;android.maxTextureSize=4096;
-        android.format=TextureImporterFormat.ASTC_4x4;android.compressionQuality=100;
-        importer.SetPlatformTextureSettings(android);
-        importer.textureCompression=readable?TextureImporterCompression.Uncompressed:TextureImporterCompression.CompressedHQ;
-        importer.SaveAndReimport();return AssetDatabase.LoadAssetAtPath<Texture2D>(destination);
+        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(destination);
+        if(!texture||texture.width!=4096||texture.height!=4096||importer.textureType!=TextureImporterType.Default
+            ||importer.sRGBTexture!=(role=="color")||!android.overridden||android.maxTextureSize!=4096
+            ||android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=100)
+            throw new InvalidOperationException("Generated PBR import contract failed: "+destination);
+        return texture;
     }
     static readonly Dictionary<string,Material> textureSets=new Dictionary<string,Material>();
     static Material MaterialFor(string id,MapSet source)

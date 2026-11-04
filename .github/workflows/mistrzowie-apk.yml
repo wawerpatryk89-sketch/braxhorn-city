@@ -108,6 +108,7 @@ jobs:
           python3 -m pip install numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
           test -f /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
+          python3 unity-tools/mistrzowie/audit_metro.py
           python3 unity-tools/mistrzowie/prepare_assets.py
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/restore_player.py
@@ -148,6 +149,7 @@ jobs:
           printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
           python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
       - name: Unity 6 - Miasto Mistrzów, Patryk i APK do zwiedzania
+        id: unity_build
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -251,25 +253,6 @@ jobs:
             mistrzowie-visual-review/
             mistrzowie-visual-player.log
           if-no-files-found: warn
-      - name: Pack encrypted import cache after confirmed APK delivery
-        id: library_pack
-        if: success() && steps.apk_delivery.outcome == 'success' && !inputs.zdjecia
-        continue-on-error: true
-        env:
-          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
-        run: |
-          sudo swapoff /swapfile-mistrzowie || true
-          sudo rm -f /swapfile-mistrzowie
-          sudo docker image prune --all --force
-          sudo chown -R "$(id -u):$(id -g)" unity-city/Library
-          bash unity-tools/mistrzowie/library_cache.sh save unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
-      - name: Save isolated encrypted Champions Library
-        if: success() && steps.library_pack.outcome == 'success'
-        continue-on-error: true
-        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
-        with:
-          path: ${{ runner.temp }}/champions-library.tar.zst.enc
-          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Save validation evidence
         if: always()
         continue-on-error: true
@@ -282,3 +265,25 @@ jobs:
             unity-city/Logs/
           if-no-files-found: warn
           retention-days: 30
+      - name: Pack encrypted imports after delivery attempts or failed Unity validation
+        id: library_pack
+        if: always() && !cancelled() && !inputs.zdjecia && (steps.apk_delivery.outcome == 'success' || steps.unity_build.outcome == 'failure')
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          # A failed scene check still leaves reusable imports. Save after the
+          # APK/evidence steps; this is never a claim that the scene passed.
+          test -d unity-city/Library
+          sudo swapoff /swapfile-mistrzowie || true
+          sudo rm -f /swapfile-mistrzowie
+          sudo docker image prune --all --force
+          sudo chown -R "$(id -u):$(id -g)" unity-city/Library
+          bash unity-tools/mistrzowie/library_cache.sh save unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
+      - name: Save isolated encrypted Champions Library
+        if: always() && !cancelled() && steps.library_pack.outcome == 'success'
+        continue-on-error: true
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/champions-library.tar.zst.enc
+          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
