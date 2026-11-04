@@ -260,6 +260,10 @@ public static partial class BraxObozEnvironment
         }
         // One renderer per material, with flush walkable surface over terrain.
         CombineDecoration(t);
+        // The slab is above the soil; physics must follow its visible top.
+        foreach(var mf in t.GetComponentsInChildren<MeshFilter>())
+            if(mf.GetComponent<MeshRenderer>().sharedMaterial==campusPaving)
+                mf.gameObject.AddComponent<MeshCollider>().sharedMesh=mf.sharedMesh;
     }
     static void MetalRoof(Transform parent,float width,float depth,float eave,float rise)
     {
@@ -331,6 +335,63 @@ public static partial class BraxObozEnvironment
         foreach(float x in new[]{-.7f,.7f})Box(trim,"Ościeżnica",new Vector3(x,1.3f,-4.12f),new Vector3(.09f,2.4f,.12f),wood,false);
         Box(trim,"Nadproże drzwi",new Vector3(0,2.52f,-4.12f),new Vector3(1.5f,.12f,.12f),wood,false);
         CombineDecoration(trim);
+    }
+    public static void ReplaceServiceRoof(Transform sourceGroup,Transform model,float width,float depth)
+    {
+        // The authored GLB joins walls, roof and furniture in StaticVisual.
+        // Strip only the known upper shell in a generated mesh copy; never
+        // edit the imported source asset or the articulated door hierarchy.
+        int removed=0;
+        foreach(var filter in model.GetComponentsInChildren<MeshFilter>())
+        {
+            bool isStatic=false;
+            for(var node=filter.transform;node && node!=model.parent;node=node.parent)
+                if(node.name=="StaticVisual"){isStatic=true;break;}
+            if(!isStatic)continue;
+            var original=filter.sharedMesh;
+            if(!original || !original.isReadable)throw new InvalidOperationException("Nieczytelna siatka zaplecza: "+sourceGroup.name);
+            var vertices=original.vertices;
+            var matrix=sourceGroup.worldToLocalMatrix*filter.transform.localToWorldMatrix;
+            var points=vertices.Select(v=>matrix.MultiplyPoint3x4(v)).ToArray();
+            var mesh=Object.Instantiate(original);int removedHere=0;
+            for(int sub=0;sub<mesh.subMeshCount;sub++)
+            {
+                if(mesh.GetTopology(sub)!=MeshTopology.Triangles)throw new InvalidOperationException("Nieobsługiwana siatka zaplecza");
+                var triangles=mesh.GetTriangles(sub);var kept=new List<int>(triangles.Length);
+                for(int i=0;i<triangles.Length;i+=3)
+                {
+                    var a=points[triangles[i]];var b=points[triangles[i+1]];var c=points[triangles[i+2]];
+                    float high=Mathf.Max(a.y,Mathf.Max(b.y,c.y));
+                    bool outside=Mathf.Max(Mathf.Abs(a.x),Mathf.Max(Mathf.Abs(b.x),Mathf.Abs(c.x)))>width*.5f+.13f ||
+                        Mathf.Max(Mathf.Abs(a.z),Mathf.Max(Mathf.Abs(b.z),Mathf.Abs(c.z)))>depth*.5f+.13f;
+                    if(high>2.901f || (high>2.80f && outside)){removedHere++;continue;}
+                    kept.Add(triangles[i]);kept.Add(triangles[i+1]);kept.Add(triangles[i+2]);
+                }
+                mesh.SetTriangles(kept,sub);
+            }
+            if(removedHere==0){Object.DestroyImmediate(mesh);continue;}
+            mesh.RecalculateBounds();filter.sharedMesh=SaveMesh(mesh);removed+=removedHere;
+        }
+        if(removed==0)throw new InvalidOperationException("Nie znaleziono starego dachu zaplecza: "+sourceGroup.name);
+        var shell=Group(sourceGroup.name+" — nowy dach",sourceGroup.parent,sourceGroup.localPosition);
+        float half=width*.5f+.45f,rise=half*.38f,eave=2.94f;
+        MetalRoof(shell,half*2,depth+.8f,eave,rise);
+        foreach(float z in new[]{-depth*.5f,depth*.5f})
+        {
+            float wallTop=eave+rise*(1-width*.5f/half);
+            var mesh=new Mesh{name="Szczyt zaplecza"};
+            var v=new[]{P(-width*.5f,2.9f,z),P(width*.5f,2.9f,z),
+                P(width*.5f,wallTop,z),P(0,eave+rise,z),P(-width*.5f,wallTop,z)};
+            mesh.vertices=v.Concat(v).ToArray();mesh.uv=mesh.vertices.Select(p=>new Vector2(p.x,p.y)).ToArray();
+            mesh.triangles=new[]{0,2,1,0,3,2,0,4,3,5,6,7,5,7,8,5,8,9};
+            mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
+            var face=Group("Szczyt z desek",shell,Vector3.zero).gameObject;
+            face.AddComponent<MeshFilter>().sharedMesh=SaveMesh(mesh);face.AddComponent<MeshRenderer>().sharedMaterial=wood;
+        }
+        foreach(float x in new[]{-width*.5f,width*.5f})foreach(float z in new[]{-depth*.5f,depth*.5f})
+            Box(shell,"Wykończenie narożnika",new Vector3(x,1.52f,z),new Vector3(.17f,2.74f,.17f),wood,false);
+        CombineDecoration(shell);
+        Debug.Log("BRAXHORN_OBOZ wymieniono dach: "+sourceGroup.name+" usunięte trójkąty="+removed);
     }
 }
 

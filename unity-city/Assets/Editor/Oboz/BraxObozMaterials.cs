@@ -48,20 +48,29 @@ public static class BraxObozMaterials
         if (widthMetres <= 0 || float.IsNaN(widthMetres) || float.IsInfinity(widthMetres))
             throw new ArgumentOutOfRangeException(nameof(widthMetres));
         string folder="Assets/Source/Public/Oboz/"+id+"/";
-        var material=new Material(Shader.Find("Braxhorn/ObozSurface")){name="Poly Haven / "+id,enableInstancing=true};
+        var material=new Material(Shader.Find("Braxhorn/ObozSurface")){name="Obóz / publiczne PBR / "+id,enableInstancing=true};
         foreach(var pair in new[]{("Color","_MainTex"),("NormalGL","_BumpMap"),("Roughness","_RoughnessTex"),("AmbientOcclusion","_OcclusionTex")})
         {
             string path=folder+pair.Item1+".jpg";
             var importer=AssetImporter.GetAtPath(path) as TextureImporter;
-            if(!importer)throw new InvalidOperationException("Pobierz zweryfikowane mapy Poly Haven: "+path);
+            if(!importer)throw new InvalidOperationException("Brak zweryfikowanej mapy PBR obozu: "+path);
+            bool color=pair.Item1=="Color",normal=pair.Item1=="NormalGL";
+            var type=normal?TextureImporterType.NormalMap:TextureImporterType.Default;
+            var android=importer.GetPlatformTextureSettings("Android");
+            bool changed=importer.maxTextureSize!=4096 || !importer.mipmapEnabled || importer.anisoLevel!=8 ||
+                importer.wrapMode!=TextureWrapMode.Repeat || importer.filterMode!=FilterMode.Trilinear ||
+                importer.textureCompression!=TextureImporterCompression.CompressedHQ || importer.compressionQuality!=90 ||
+                importer.sRGBTexture!=color || importer.textureType!=type || !android.overridden ||
+                android.maxTextureSize!=4096 || android.format!=TextureImporterFormat.ASTC_4x4 || android.compressionQuality!=90;
             importer.maxTextureSize=4096;importer.mipmapEnabled=true;importer.anisoLevel=8;
             importer.wrapMode=TextureWrapMode.Repeat;importer.filterMode=FilterMode.Trilinear;
             importer.textureCompression=TextureImporterCompression.CompressedHQ;
-            importer.compressionQuality=90;
-            var android=importer.GetPlatformTextureSettings("Android");android.name="Android";android.overridden=true;android.maxTextureSize=4096;android.format=TextureImporterFormat.ASTC_4x4;
+            importer.compressionQuality=90;importer.sRGBTexture=color;importer.textureType=type;
+            android.name="Android";android.overridden=true;android.maxTextureSize=4096;android.format=TextureImporterFormat.ASTC_4x4;
             android.compressionQuality=90;
-            importer.SetPlatformTextureSettings(android);importer.SaveAndReimport();
-            material.SetTexture(pair.Item2,Map(path,pair.Item1=="NormalGL",pair.Item1=="Color"));
+            importer.SetPlatformTextureSettings(android);
+            if(changed)importer.SaveAndReimport();
+            material.SetTexture(pair.Item2,Map(path,normal,color));
         }
         material.SetFloat("_MetallicFactor",0);
         material.mainTextureScale=Vector2.one/widthMetres;
@@ -70,7 +79,8 @@ public static class BraxObozMaterials
     public static Material CampGround(Material forest, Material aggregate)
     {
         if (!forest || !aggregate) throw new InvalidOperationException("Brak map podłoża obozu");
-        var material = new Material(forest) { name = "Obóz / ściółka i żwirowe obrzeża" };
+        var lawn = PublicPbr("Grass001",1.4f);
+        var material = new Material(forest) { name = "Obóz / trawnik, ściółka i żwirowe obrzeża" };
         foreach (var pair in new[]{("_MainTex","_GroundColor"),("_BumpMap","_GroundNormal"),
             ("_RoughnessTex","_GroundRoughness"),("_OcclusionTex","_GroundAO")})
         {
@@ -80,8 +90,12 @@ public static class BraxObozMaterials
                 throw new InvalidOperationException("Brak mapy żwiru: " + pair.Item1);
             if (map) material.SetTexture(pair.Item2, map);
         }
+        foreach (var pair in new[]{("_MainTex","_LawnColor"),("_BumpMap","_LawnNormal"),
+            ("_RoughnessTex","_LawnRoughness"),("_OcclusionTex","_LawnAO")})
+            material.SetTexture(pair.Item2,lawn.GetTexture(pair.Item1));
         material.mainTextureScale = Vector2.one;
         material.SetFloat("_GroundUVScale", 2);
+        material.SetFloat("_LawnUVScale", 3f/1.4f);
         material.EnableKeyword("OBOZ_GROUND_BLEND");
         return Save(material,"camp-ground-blended");
     }
@@ -91,11 +105,41 @@ public static class BraxObozMaterials
         if(!shader)throw new InvalidOperationException("Brak shadera tablic obozu");
         return Save(new Material(shader){name="Obóz / napisy",mainTexture=font.material.mainTexture},"campus-napisy");
     }
+    public static Material Stream()
+    {
+        var shader=Shader.Find("Braxhorn/ObozStream");
+        if(!shader)throw new InvalidOperationException("Brak shadera strumienia obozu");
+        var material=new Material(shader){name="Obóz / płynący strumień"};
+        material.SetColor("_Color",new Color(.176f,.353f,.353f,.72f));
+        material.SetFloat("_Smoothness",.88f);material.SetFloat("_RippleStrength",.055f);
+        return Save(material,"stream-water");
+    }
     public static Material Plain(string id, Color color, float smooth = .25f, float metallic = 0)
     {
         var material = new Material(Shader.Find("Standard")) { name = "Obóz / " + id, color = color, enableInstancing = true };
         material.SetFloat("_Glossiness", smooth); material.SetFloat("_Metallic", metallic);
         material.DisableKeyword("_EMISSION"); return Save(material, id);
+    }
+    public static void ValidateHierarchy(Transform root)
+    {
+        var all=root.GetComponentsInChildren<Renderer>(true);
+        if(all.Any(r=>r.sharedMaterials.Length==0 || r.sharedMaterials.Any(m=>!m)))
+            throw new InvalidOperationException("Obóz zawiera renderer bez materiału");
+        var materials=all.SelectMany(r=>r.sharedMaterials).Distinct().ToArray();
+        foreach(var material in materials)
+        {
+            if(!material.shader || ShaderUtil.ShaderHasError(material.shader))
+                throw new InvalidOperationException("Błąd shadera materiału obozu: "+material.name);
+            if(material.shader.name!="Braxhorn/ObozSurface")continue;
+            foreach(string map in new[]{"_MainTex","_BumpMap","_RoughnessTex"})
+                if(!material.GetTexture(map))throw new InvalidOperationException(material.name+": brak "+map);
+            if(!material.IsKeywordEnabled("OBOZ_GROUND_BLEND"))continue;
+            foreach(string map in new[]{"_GroundColor","_GroundNormal","_GroundRoughness",
+                "_LawnColor","_LawnNormal","_LawnRoughness","_LawnAO"})
+                if(!material.GetTexture(map))throw new InvalidOperationException(material.name+": brak "+map);
+        }
+        Debug.Log("BRAXHORN_OBOZ materiały: renderery="+all.Length+" materiały="+materials.Length+
+            "; sprawdzono referencje i błędy shaderów, odbiór wizualny nadal wymagany");
     }
     static Material Save(Material material, string id)
     {

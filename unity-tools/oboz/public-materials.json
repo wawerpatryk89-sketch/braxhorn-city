@@ -1,10 +1,11 @@
 {
   "schema": 1,
   "license": "CC0-1.0",
-  "provider": "Poly Haven",
+  "provider": "Poly Haven / ambientCG",
   "sources": [
     "https://polyhaven.com/a/clean_asphalt",
-    "https://polyhaven.com/a/concrete_pavers"
+    "https://polyhaven.com/a/concrete_pavers",
+    "https://ambientcg.com/view?id=Grass001"
   ],
   "files": [
     {
@@ -78,6 +79,46 @@
       "bytes": 8186536,
       "path": "unity-city/Assets/Source/Public/Oboz/concrete_pavers/AmbientOcclusion.jpg",
       "sha256": "09aea649c938dec9f3542557d82fbb618868ca378f51f18d23ddc108ed5d9475"
+    }
+  ],
+  "archives": [
+    {
+      "asset": "Grass001",
+      "license": "CC0-1.0",
+      "widthMetres": 1.4,
+      "url": "https://ambientcg.com/get?file=Grass001_4K-JPG.zip",
+      "bytes": 148824729,
+      "sha256": "d16ce0597e072c0718ee0da90b2a21bfa22d5c90c218b34bc7eddaa2fd304c21",
+      "files": [
+        {
+          "member": "Grass001_4K-JPG_Color.jpg",
+          "map": "Color",
+          "path": "unity-city/Assets/Source/Public/Oboz/Grass001/Color.jpg",
+          "bytes": 26284782,
+          "sha256": "0a6ce2d9e4d0fd4c92c10b8411dac06577b4166f94781161d3127cd787c9be01"
+        },
+        {
+          "member": "Grass001_4K-JPG_NormalGL.jpg",
+          "map": "NormalGL",
+          "path": "unity-city/Assets/Source/Public/Oboz/Grass001/NormalGL.jpg",
+          "bytes": 41310481,
+          "sha256": "ded7c61a940fb079b7fcd83b9ecef33fa500b1b3f8697ff2e8e5de5a5be96c9d"
+        },
+        {
+          "member": "Grass001_4K-JPG_Roughness.jpg",
+          "map": "Roughness",
+          "path": "unity-city/Assets/Source/Public/Oboz/Grass001/Roughness.jpg",
+          "bytes": 11779810,
+          "sha256": "8cbb70cf7b0fccbe5f8b9d1cf8cda103c21811f9e333a1263fa82937e1448301"
+        },
+        {
+          "member": "Grass001_4K-JPG_AmbientOcclusion.jpg",
+          "map": "AmbientOcclusion",
+          "path": "unity-city/Assets/Source/Public/Oboz/Grass001/AmbientOcclusion.jpg",
+          "bytes": 14076302,
+          "sha256": "65c7db5a889b34a86212106a0e921beab2dc5f8cde2640afe30c5ca01751ef8e"
+        }
+      ]
     }
   ]
 }

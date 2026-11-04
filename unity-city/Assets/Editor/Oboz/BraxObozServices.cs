@@ -52,6 +52,9 @@ public static class BraxObozServices
                 string key=m.name.Replace("OBOZ_","");int suffix=key.IndexOf(" (",StringComparison.Ordinal);if(suffix>=0)key=key.Substring(0,suffix);
                 if(!mats.TryGetValue(key,out var material))throw new InvalidOperationException("Nieznany materiał "+m.name);return material;
             }).ToArray();
+        float width=id=="canteen"?12:id=="sauna"?7:8;
+        float depth=id=="canteen"?9:6;
+        BraxObozEnvironment.ReplaceServiceRoof(group,model.transform,width,depth);
         foreach(var box in data.colliders)
         {
             var t=Node("Kolizja zgodna z otworami",group,V(box.position));t.localRotation=Quaternion.Euler(0,box.yaw,0);t.gameObject.AddComponent<BoxCollider>().size=V(box.size);
@@ -112,3 +115,4 @@ public static class BraxObozServices
         }
     }
 }
+

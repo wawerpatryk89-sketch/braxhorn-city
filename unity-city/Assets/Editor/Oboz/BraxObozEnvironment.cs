@@ -104,6 +104,7 @@ public static partial class BraxObozEnvironment
             RenderSettings.fog = true; RenderSettings.fogMode = FogMode.ExponentialSquared; RenderSettings.fogDensity = .003f;
             RenderSettings.fogColor = new Color(.34f, .46f, .43f);
             info.bags = bags.ToArray(); info.coveredBags = covered.ToArray(); info.cabinDoors = doors.Take(4).ToArray(); info.arenas = arenas.ToArray();
+            BraxObozMaterials.ValidateHierarchy(root);
             if (!EditorSceneManager.SaveScene(scene, ScenePath)) throw new IOException("Nie zapisano zabudowy obozu");
             File.WriteAllText(Folder + "/status.json", "{\"completeCamp\":false,\"runtimeVerified\":false,\"cabins\":4,\"bags\":24,\"coveredBags\":12,\"rings\":2,\"octagons\":1}");
             Debug.Log("BRAXHORN_OBOZ zapisano roboczą zabudowę i rozmieszczenie lasu; fort, wnętrza, audyt bunkra i pełny odbiór nadal nieukończone");
@@ -133,17 +134,30 @@ public static partial class BraxObozEnvironment
             float noise = Mathf.PerlinNoise(px*.17f+123.4f,pz*.17f+456.7f);
             float shoulder = 1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.3f,3.2f+noise*1.8f,distance));
             float bank = 1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(3.5f,7+noise*2,channel));
-            colors[i] = new Color(Mathf.Max(shoulder,bank),0,0,1);
+            // Managed lawns inside the camp fade into litter towards the forest.
+            float meadow = Mathf.Max(Mathf.Abs((px+35)/100),Mathf.Abs((pz+10)/105));
+            float lawn = 1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.75f,1.08f+(noise-.5f)*.12f,meadow));
+            colors[i] = new Color(Mathf.Max(shoulder,bank),lawn,0,1);
             if (x < n && z < n) { int t = (z * n + x) * 6; int j = i + n + 1; tris[t] = i; tris[t + 1] = j; tris[t + 2] = i + 1; tris[t + 3] = i + 1; tris[t + 4] = j; tris[t + 5] = j + 1; }
         }
         var mesh = new Mesh { name = "Teren 420 m; pas strumienia" }; mesh.vertices = vertices; mesh.uv = uv; mesh.colors = colors; mesh.triangles = tris; mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
         mesh = SaveMesh(mesh);
-        var g = Group("Podłoże — ściółka i żwirowe przejścia", root, Vector3.zero).gameObject;
+        var g = Group("Podłoże — trawnik, ściółka i żwirowe przejścia", root, Vector3.zero).gameObject;
         g.AddComponent<MeshFilter>().sharedMesh = mesh; g.AddComponent<MeshRenderer>().sharedMaterial = BraxObozMaterials.CampGround(ground,gravel); g.AddComponent<MeshCollider>().sharedMesh = mesh;
-        // Water surface is a material placeholder clearly kept in the draft;
-        // no assertion of finished reflections or stream animation.
-        var water = BraxObozMaterials.Plain("woda-robocza", new Color(.176f, .353f, .353f), .85f);
-        Box(root, "Strumień — powierzchnia robocza", new Vector3(72, -.42f, 0), new Vector3(6, .02f, 420), water, false);
+        // Short sections allow transparent sorting/culling along the stream.
+        var water=BraxObozMaterials.Stream();
+        for(int section=0;section<21;section++)
+        {
+            float z=-210+section*20;
+            var surface=new Mesh{name="Odcinek strumienia"};
+            surface.vertices=new[]{P(69,-.41f,z),P(69,-.41f,z+20),P(75,-.41f,z),P(75,-.41f,z+20)};
+            surface.uv=new[]{Vector2.zero,Vector2.up*20,Vector2.right*6,new Vector2(6,20)};
+            surface.triangles=new[]{0,1,2,2,1,3};surface.RecalculateNormals();surface.RecalculateTangents();surface.RecalculateBounds();
+            var stream=Group("Strumień — płynąca tafla",root,Vector3.zero).gameObject;
+            stream.AddComponent<MeshFilter>().sharedMesh=SaveMesh(surface);
+            var renderer=stream.AddComponent<MeshRenderer>();renderer.sharedMaterial=water;
+            renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
         // The visible perimeter supplies its own collision. No invisible wall
         // is allowed to seal the new vehicle entrance at the south boundary.
     }

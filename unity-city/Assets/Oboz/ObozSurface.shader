@@ -14,6 +14,11 @@ Shader "Braxhorn/ObozSurface"
   _GroundRoughness("Gravel roughness",2D)="white"{}
   _GroundAO("Gravel occlusion",2D)="white"{}
   _GroundUVScale("Gravel relative tiling",Float)=2
+  _LawnColor("Lawn colour",2D)="white"{}
+  _LawnNormal("Lawn normal",2D)="bump"{}
+  _LawnRoughness("Lawn roughness",2D)="white"{}
+  _LawnAO("Lawn occlusion",2D)="white"{}
+  _LawnUVScale("Lawn relative tiling",Float)=2.142857
  }
  SubShader {
   Tags {"RenderType"="Opaque"}
@@ -26,6 +31,8 @@ Shader "Braxhorn/ObozSurface"
   #if defined(OBOZ_GROUND_BLEND)
   sampler2D _GroundColor,_GroundNormal,_GroundRoughness,_GroundAO;
   float _GroundUVScale;
+  sampler2D _LawnColor,_LawnNormal,_LawnRoughness,_LawnAO;
+  float _LawnUVScale;
   #endif
   struct Input {float2 uv_MainTex; float4 color : COLOR;};
   void surf(Input IN,inout SurfaceOutputStandard o) {
@@ -33,16 +40,26 @@ Shader "Braxhorn/ObozSurface"
    o.Albedo=tex2D(_MainTex,IN.uv_MainTex).rgb;
    o.Normal=UnpackNormal(tex2D(_BumpMap,IN.uv_MainTex));
    o.Smoothness=1-saturate(lerp(rough.r,rough.g,_PackedORM)*_RoughnessFactor);
-   o.Metallic=tex2D(_MetallicTex,IN.uv_MainTex).r*_MetallicFactor;
-   o.Occlusion=tex2D(_OcclusionTex,IN.uv_MainTex).r;
    #if defined(OBOZ_GROUND_BLEND)
+   // Terrain's forest source is ORM: AO already lives in rough.r.
+   // Avoid two redundant terrain samplers on mobile hardware.
+   o.Metallic=0;
+   o.Occlusion=rough.r;
+   float lawn=saturate(IN.color.g);
+   float2 lawnUV=IN.uv_MainTex*_LawnUVScale;
+   o.Albedo=lerp(o.Albedo,tex2D(_LawnColor,lawnUV).rgb,lawn);
+   o.Normal=normalize(lerp(o.Normal,UnpackNormal(tex2D(_LawnNormal,lawnUV)),lawn));
+   o.Smoothness=lerp(o.Smoothness,1-tex2D(_LawnRoughness,lawnUV).r,lawn);
+   o.Occlusion=lerp(o.Occlusion,tex2D(_LawnAO,lawnUV).r,lawn);
    float blend=saturate(IN.color.r);
    float2 gravelUV=IN.uv_MainTex*_GroundUVScale;
    o.Albedo=lerp(o.Albedo,tex2D(_GroundColor,gravelUV).rgb,blend);
    o.Normal=normalize(lerp(o.Normal,UnpackNormal(tex2D(_GroundNormal,gravelUV)),blend));
    o.Smoothness=lerp(o.Smoothness,1-tex2D(_GroundRoughness,gravelUV).r,blend);
    o.Occlusion=lerp(o.Occlusion,tex2D(_GroundAO,gravelUV).r,blend);
-   o.Metallic=lerp(o.Metallic,0,blend);
+   #else
+   o.Metallic=tex2D(_MetallicTex,IN.uv_MainTex).r*_MetallicFactor;
+   o.Occlusion=tex2D(_OcclusionTex,IN.uv_MainTex).r;
    #endif
    o.Alpha=1;o.Emission=0;
   }
