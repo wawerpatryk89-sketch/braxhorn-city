@@ -245,10 +245,8 @@ jobs:
       run: |
         set -euo pipefail
         python3 unity-tools/claude/check_signage.py
+        python3 -m unittest discover -s unity-tools/claude -p test_fetch_cafe_equipment.py -q
         python3 unity-tools/claude/fetch_cafe_equipment.py
-        root=unity-city/Assets/Source
-        # Use the same accepted original filenames as the equipment importer.
-        python3 -c "import runpy; m=runpy.run_path('unity-tools/claude/fetch_cafe_equipment.py'); m['private_present'](m['ESPRESSO']) or m['valid_glb']((m['OUT']/'espresso_machine_sobczak.glb').read_bytes())"
         echo "SOBCZAK KAWIARNIA: sprawdzenie sprzetu i oryginalnych szyldow PASS"
 
     - name: Bramka jakosci miasta przed drogim buildem (tylko reczny test napraw)
@@ -633,10 +631,8 @@ jobs:
       run: |
         set -euo pipefail
         python3 unity-tools/claude/check_signage.py
+        python3 -m unittest discover -s unity-tools/claude -p test_fetch_cafe_equipment.py -q
         python3 unity-tools/claude/fetch_cafe_equipment.py
-        root=unity-city/Assets/Source
-        # Use the same accepted original filenames as the equipment importer.
-        python3 -c "import runpy; m=runpy.run_path('unity-tools/claude/fetch_cafe_equipment.py'); m['private_present'](m['ESPRESSO']) or m['valid_glb']((m['OUT']/'espresso_machine_sobczak.glb').read_bytes())"
         echo "SOBCZAK KAWIARNIA: sprawdzenie sprzetu i oryginalnych szyldow PASS"
 
     - name: Bramka jakosci miasta przed drogim buildem (tylko reczny test napraw)

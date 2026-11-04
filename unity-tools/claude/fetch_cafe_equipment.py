@@ -6,17 +6,24 @@ Nie ściągaj całej sceny/nowego lokalu; nie zmieniaj szyldów ani elewacji.
 Źródło młynka: https://3dassets.dev/packs/bakery-and-cafe
 Licencja obu: CC0 1.0 Universal. Pobieranie tylko przed buildem w GitHub Actions.
 """
+import hashlib
 import json
 import pathlib
 import struct
 import sys
-import urllib.parse
 import urllib.request
 
 OUT = pathlib.Path("unity-city/Assets/Source/Claude/Cafe")
 PRIVATE = pathlib.Path("unity-city/Assets/Source/Prywatne/Miasto")
-URL_MACHINE_META = "https://3dassets.dev/api/v1/assets/bakery-and-cafe-lever-espresso-machine-9c0d50a4"
-URL_PACK = "https://3dassets.dev/api/v1/packs/bakery-and-cafe"
+# Exact versioned URLs published on the two asset pages, verified 2026-11-04.
+# Build inputs must not depend on the provider's discovery API response shape.
+URL_MACHINE = "https://cdn.3dassets.dev/assets/22110/v1/model.glb"
+# https://3dassets.dev/assets/bakery-and-cafe-grinder-on-demand-4bcd3bea
+URL_GRINDER = "https://cdn.3dassets.dev/assets/22111/v1/model.glb"
+EXPECTED_SHA256 = {
+    URL_MACHINE: "c3e09b2baa05eba3eb1fec2f460fd5b2c1fcc3da789694811fc591bea803db05",
+    URL_GRINDER: "1687e650e7890f2c403803cfe11fffc199f02cddf71ec16c8689887e91ef9edd",
+}
 MAX_BYTES = 3_000_000
 ESPRESSO = ("ekspres_kolbowy", "ekspres_do_kawy", "ekspres", "coffee_machine",
             "espresso_machine", "commercial_coffee_machine", "kawiarnia_ekspres")
@@ -29,7 +36,23 @@ def private_present(names):
         for stem in names:
             f = PRIVATE / pack / (stem + ".glb")
             if f.is_file() and f.stat().st_size > 1000:
+                valid_glb(f.read_bytes())
                 print("BRAXHORN_KAWIARNIA_ORYGINAL_PRYWATNY", f)
+                return True
+    # The Unity importer also accepts a named subtree in the owner's equipment GLB.
+    combined = PRIVATE / "miasto_wyposazenie" / "miasto_wyposazenie.glb"
+    if combined.is_file():
+        gltf = valid_glb(combined.read_bytes())
+        nodes = gltf.get("nodes", [])
+        def has_mesh(index, seen):
+            if index in seen or not 0 <= index < len(nodes):
+                return False
+            seen.add(index)
+            node = nodes[index]
+            return "mesh" in node or any(has_mesh(i, seen) for i in node.get("children", []))
+        for index, node in enumerate(nodes):
+            if node.get("name", "").lower() in names and has_mesh(index, set()):
+                print("BRAXHORN_KAWIARNIA_ORYGINAL_PRYWATNY_WEZEL", combined, node["name"])
                 return True
     return False
 
@@ -59,44 +82,25 @@ def valid_glb(data):
     return gltf
 
 
-def find_grinder_url(manifest):
-    # Manifest dostawcy może być listą albo obiektem assets/models/items;
-    # szukamy WYŁĄCZNIE indywidualnego modelu "on demand espresso grinder".
-    def walk(obj):
-        if isinstance(obj, dict):
-            label = " ".join(str(obj.get(k, "")) for k in ("name", "title", "slug", "description")).lower()
-            if ("on demand espresso grinder" in label or "doser espresso grinder" in label
-                    or "espresso-grinder" in label or "espresso_grinder" in label):
-                for key in ("cdnUrl", "cdn_url", "modelUrl", "model_url", "url", "downloadUrl"):
-                    url = obj.get(key)
-                    if isinstance(url, str) and url.startswith("https://cdn.3dassets.dev/assets/") and url.endswith("/model.glb"):
-                        return url
-                for v in obj.values():
-                    if isinstance(v, str) and v.startswith("https://cdn.3dassets.dev/assets/") and v.endswith("/model.glb"):
-                        return v
-            for x in obj.values():
-                result = walk(x)
-                if result:
-                    return result
-        if isinstance(obj, list):
-            for item in obj:
-                result = walk(item)
-                if result:
-                    return result
-        return None
-    return walk(manifest)
+def checked_model(data, url):
+    gltf = valid_glb(data)
+    if hashlib.sha256(data).hexdigest() != EXPECTED_SHA256[url]:
+        raise ValueError("Suma SHA-256 modelu kawiarni niezgodna ze zweryfikowanym źródłem: " + url)
+    return gltf
 
 
 def download(name, url):
     dest = OUT / name
     if dest.is_file() and dest.stat().st_size > 1000:
-        valid_glb(dest.read_bytes())
+        checked_model(dest.read_bytes(), url)
         print("BRAXHORN_KAWIARNIA_MODEL_W_CACHE", dest)
         return
     data = get(url, MAX_BYTES)
-    gltf = valid_glb(data)
+    gltf = checked_model(data, url)
     OUT.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(data)
+    pending = dest.with_suffix(".glb.part")
+    pending.write_bytes(data)
+    pending.replace(dest)
     print("BRAXHORN_KAWIARNIA_CC0", dest, len(data), "bytes meshes=", len(gltf["meshes"]),
           "extensions=", gltf.get("extensionsUsed", []))
 
@@ -104,17 +108,9 @@ def download(name, url):
 def main():
     # Najpierw rzeczywiście dostarczony przez właściciela sprzęt, nie zamieniamy go.
     if not private_present(ESPRESSO):
-        machine_meta = json.loads(get(URL_MACHINE_META, 400_000).decode("utf-8"))
-        url = machine_meta.get("cdnUrl") or machine_meta.get("modelUrl")
-        if not isinstance(url, str) or not url.startswith("https://cdn.3dassets.dev/assets/") or not url.endswith("/model.glb"):
-            raise ValueError("Dostawca ekspresu CC0 nie zwrócił bezpośredniego CDN URL — nie zgadujemy ID modelu")
-        download("espresso_machine_sobczak.glb", url)
+        download("espresso_machine_sobczak.glb", URL_MACHINE)
     if not private_present(GRINDER):
-        manifest = json.loads(get(URL_PACK, 5_000_000).decode("utf-8"))
-        grinder_url = find_grinder_url(manifest)
-        if not grinder_url:
-            raise ValueError("Manifest CC0 nie zawiera osobnego młynka espresso — nie zastępujemy go atrapą")
-        download("coffee_grinder_sobczak.glb", grinder_url)
+        download("coffee_grinder_sobczak.glb", URL_GRINDER)
     print("BRAXHORN_KAWIARNIA_PREFLIGHT_MODELE_ZRODLA_OK")
 
 
