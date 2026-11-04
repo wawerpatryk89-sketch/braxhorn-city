@@ -32,6 +32,7 @@ internal static class BraxMiastoOdbior
         SprawdzApteke(cityRoot);
         SprawdzTaras360(cityRoot);
         SprawdzTramT1(cityRoot);
+        SprawdzMetroM1(cityRoot);
     }
 
     static void SprawdzApteke(Transform cityRoot)
@@ -130,6 +131,65 @@ internal static class BraxMiastoOdbior
         else if (drzwi < 2)
             Debug.LogWarning(raport + " — BRAK ruchomych drzwi w oryginalnym CAF; NPC nie przechodzą przez zamknięty pojazd");
         else Debug.Log(raport + " — GOTOWE W KODZIE do testu Android");
+    }
+
+    static void SprawdzMetroM1(Transform cityRoot)
+    {
+        var metro = cityRoot.GetComponentInChildren<BraxMetroM1Ruch>(true);
+        if (!metro)
+        {
+            Debug.LogError("BRAXHORN_METRO_M1_NIEGOTOWE: zamiast kursującego modelu pociągu z repo jest stara atrapa lub brak GLB");
+            return;
+        }
+        var npc = metro.GetComponent<BraxMetroM1Pasazerowie>();
+        bool model = metro.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length > 0 ||
+                     metro.GetComponentsInChildren<MeshRenderer>(true).Length > 10;
+        bool dlugosc = metro.wejscieOffsetX > 40f && metro.wyjazdOffsetX < -40f;
+        bool czas = Mathf.Abs(metro.dojazdSekundy + metro.otwieranieSekundy +
+                    metro.postojSekundy + metro.zamykanieSekundy +
+                    metro.odjazdSekundy + metro.ciszaSekundy - 60f) < 3f;
+        bool drzwi = metro.DrzwiLiczba >= 2;
+        string raport = "BRAXHORN_METRO_M1_KURS_BUDOWA model=" + model +
+              " drzwi_panele=" + metro.DrzwiLiczba + " npc=" + (npc != null) +
+              " kurs_okolo_minuty=" + czas + " wjazd=" + metro.wejscieOffsetX.ToString("F1") +
+              " wyjazd=" + metro.wyjazdOffsetX.ToString("F1") +
+              " (wizualne drzwi sceniczne, nie oryginalne animowane drzwi GLB)";
+        if (!model || !npc || !drzwi || !dlugosc || !czas)
+            Debug.LogError(raport + " NIEGOTOWE");
+        else
+            Debug.Log(raport + " GOTOWE DO TESTU W APK");
+
+        // Metra nie wolno osadzić przy ścianie ani na wodzie.
+        // Rzeczywiste przejście piesze z kamienicy do schodów i brak
+        // niebieskiej dziury muszą być potwierdzone wynikiem analizy kolizji.
+        const float wejX = 69f, yChod = .15f, zC = 34.3f;
+        bool lad = BraxMiastoGranice.Lad(wejX, zC);
+        int przeszkody = 0;
+        for (float x = wejX - 4.0f; x <= wejX - .4f; x += .45f)
+            foreach (var c in Physics.OverlapCapsule(
+                new Vector3(x, yChod + .35f, zC),
+                new Vector3(x, yChod + 2.0f, zC),
+                .30f, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore))
+            {
+                if (!c || !c.enabled || c.GetComponentInParent<BraxGymPlayer>() ||
+                    c.name.IndexOf("stairs", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    c.name.IndexOf("schod", StringComparison.OrdinalIgnoreCase) >= 0)
+                    continue;
+                // Tylko źródłowy budynek i obce przeszkody, bez balustrad metra.
+                if (c.transform.IsChildOf(metro.transform)) continue;
+                if (c.name.IndexOf("Building", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    c.name.IndexOf("ogrodzen", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    c.name.IndexOf("kamienica", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    przeszkody++;
+                    if (przeszkody < 5)
+                        Debug.LogError("BRAXHORN_METRO_M1_DOJSCIE obca przeszkoda " + c.name +
+                                       " przy x=" + x.ToString("F1"));
+                }
+            }
+        Debug.Log((lad && przeszkody == 0 ? "BRAXHORN_METRO_M1_WEJSCIE_KOD_OK " : "BRAXHORN_METRO_M1_WEJSCIE_NIEGOTOWE ") +
+              "odsuniete_x=69 (kamienica była ok. x66), na_ladzie=" + lad +
+              " przeszkody_kamienic=" + przeszkody + " — kolor nawierzchni i widok wody: odbiór Android");
     }
 
     static void SprawdzWejscie(string nazwa, float x, float y, float zA, float zB)
