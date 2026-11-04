@@ -1291,16 +1291,22 @@ public static class BraxClaudeMetro
 
     static void Pociag()
     {
-        // pkt 1c: wykorzystaj istniejący zoptymalizowany model (właściciel ma ten sam w Bibliotece). Brak źródła jest raportowany przed buildem, zapasowy model z kodu pozostaje wyłącznie awaryjnie.
+        // Tylko jeden skład dwuwagonowy z oryginalnego GLB. Nie podmieniaj
+        // nieudanego modelu na trzy kolejne wagony z kodu: dawało to duplikaty.
         try
         {
             AssetDatabase.ImportAsset(ModelPociagu, ImportAssetOptions.ForceSynchronousImport);
             var zrodlo = AssetDatabase.LoadAssetAtPath<GameObject>(ModelPociagu);
-            if (zrodlo && PociagModel(zrodlo)) return;
-            Debug.LogWarning("BRAXHORN_METRO_POCIAG model=brak (" + ModelPociagu + ") — wagony z kodu");
+            if (!zrodlo)
+                throw new InvalidOperationException("BRAXHORN_METRO_M1_SOURCE_BRAK: " + ModelPociagu);
+            if (!PociagModel(zrodlo))
+                throw new InvalidOperationException("BRAXHORN_METRO_M1_MODEL_NIEGOTOWY: nie utworzono kompletnego składu");
         }
-        catch (Exception e) { Debug.LogWarning("BRAXHORN_METRO_POCIAG DO POPRAWKI " + e.Message + " — wagony z kodu"); }
-        PociagZKodu();
+        catch (Exception e)
+        {
+            Debug.LogError("BRAXHORN_METRO_M1_NIEGOTOWY: " + e);
+            throw;
+        }
     }
 
     static Bounds Granice(GameObject o, Func<Renderer, bool> filtr)
