@@ -16,6 +16,7 @@ public static class BraxChampionsBuild
     {
         public string status="STARTED",sourceCommit,unity;
         public bool visualAccepted=false,deviceTested=false,trafficEnabled=false,sceneReloadPassed=false;
+        public bool walkChecksSkipped=false;
         public int rendererCount,walkSamples,buildingExteriors,arenaSeats,sourceImportErrors;
         public bool foundationPassedBeforeBuildings=false;public string sculptedBull="SOURCE_MODEL_REQUIRED";
         public string patrykSourceCommit=BraxChampionsExplorer.SourceCommit;
@@ -36,6 +37,8 @@ public static class BraxChampionsBuild
     }
     public static void Build() => BuildInternal(false);
     public static void BuildAndroid() => BuildInternal(true);
+    // Explicit owner-requested diagnostic build; scene colliders remain unchanged.
+    public static void BuildAndroidWithoutWalkChecks() => BuildInternal(true,false,true);
     // Explicit manual validation: generate/reopen/check scenes without player or bundles.
     public static void ValidateScenes() => BuildInternal(false,true);
 
@@ -52,14 +55,16 @@ public static class BraxChampionsBuild
         if(report.summary.result!=BuildResult.Succeeded)throw new InvalidOperationException("Visual review player build failed");
     }
 
-    static void BuildInternal(bool apk,bool validationOnly=false)
+    static void BuildInternal(bool apk,bool validationOnly=false,bool skipWalkChecks=false)
     {
         string reports=Path.GetFullPath("../mistrzowie-evidence");Directory.CreateDirectory(reports);
         // The manual Actions launcher can live on main; record the checked-out game.
-        var report=new Report{unity=Application.unityVersion,sourceCommit=File.Exists("mistrzowie.source-commit")
+        var report=new Report{walkChecksSkipped=skipWalkChecks,unity=Application.unityVersion,sourceCommit=File.Exists("mistrzowie.source-commit")
             ?File.ReadAllText("mistrzowie.source-commit").Trim():Environment.GetEnvironmentVariable("GITHUB_SHA")??"local"};
         try
         {
+            if(skipWalkChecks)
+                report.checks.Add("OWNER_REQUESTED_DIAGNOSTIC: metro and exterior walking checks SKIPPED; physical colliders unchanged; traversability NOT VALIDATED");
             report.sourceImportErrors=RecordSourceImportDiagnostics(reports);
             // Same linear lighting as the main game's Android build.
             PlayerSettings.colorSpace=ColorSpace.Linear;
@@ -70,10 +75,10 @@ public static class BraxChampionsBuild
             Physics.SyncTransforms();
             CheckStations(BraxChampionsInfrastructure.Stations,report);
             CheckAssets(scene);report.foundationPassedBeforeBuildings=true;
-            report.checks.Add("Foundation and all three complete metro stations validated before building generation");
+            report.checks.Add("Foundation and metro structure checked; walking validation status is recorded separately");
             report.buildingExteriors=BraxChampionsBuildings.Generate();Physics.SyncTransforms();
             report.arenaSeats=BraxChampionsArena.SeatCount;
-            CheckExteriorAccess();CheckAssets(scene);AssetDatabase.SaveAssets();
+            if(!skipWalkChecks)CheckExteriorAccess();CheckAssets(scene);AssetDatabase.SaveAssets();
             if(!EditorSceneManager.SaveScene(scene))throw new IOException("Scene save failed");
             // Reopen the actual serialized scene; live editor objects are not proof of saved references.
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
@@ -82,7 +87,7 @@ public static class BraxChampionsBuild
             var stations=scene.GetRootGameObjects().SelectMany(o=>o.GetComponentsInChildren<Transform>(true)).Where(t=>t.name.EndsWith("| reused city metro")).ToArray();
             if(stations.Length!=3)throw new InvalidOperationException("Three saved metro stations required");
             CheckStations(stations,report);
-            CheckExteriorAccess();report.rendererCount=CheckAssets(scene);report.sceneReloadPassed=true;
+            if(!skipWalkChecks)CheckExteriorAccess();report.rendererCount=CheckAssets(scene);report.sceneReloadPassed=true;
             report.checks.Add("Serialized scene reopened: meshes, scripts, colliders and materials present");
             BraxChampionsExplorer.Generate(report.sourceCommit);
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
@@ -116,7 +121,7 @@ public static class BraxChampionsBuild
             report.status="UNITY_SCENE_AND_ANDROID_BUNDLES_PASS_VISUAL_REVIEW_PENDING";
         }
         catch(Exception e){report.status="FAILED: "+e.Message;Debug.LogException(e);throw;}
-        finally {File.WriteAllText(reports+"/unity-validation.json",JsonUtility.ToJson(report,true));Debug.Log("BRAX_MISTRZOWIE_UNITY "+JsonUtility.ToJson(report));}
+        finally {if(skipWalkChecks)report.status+="_WALK_CHECKS_SKIPPED";File.WriteAllText(reports+"/unity-validation.json",JsonUtility.ToJson(report,true));Debug.Log("BRAX_MISTRZOWIE_UNITY "+JsonUtility.ToJson(report));}
     }
 
     static int RecordSourceImportDiagnostics(string reports)
@@ -252,6 +257,7 @@ public static class BraxChampionsBuild
             // findings in one failed run instead of stopping at the first station.
             try { CheckMetro(station); }
             catch(Exception e) { report.failures.Add(station.name+" structure: "+e.Message); }
+            if(report.walkChecksSkipped)continue;
             try { report.walkSamples+=CheckWalk(station);report.checks.Add(station.name+": surface-to-platform path clear"); }
             catch(Exception e) { report.failures.Add(station.name+" walk: "+e.Message); }
         }

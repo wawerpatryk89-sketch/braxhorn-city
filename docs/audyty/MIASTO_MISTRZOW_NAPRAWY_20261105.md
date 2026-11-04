@@ -6,6 +6,10 @@
 
 Wykorzystano procedury Unity Essentials: diagnostyka błędu, bezpieczne zmiany narzędzi edytora, ochrona serializacji i walidacja buildu. Nie ma aktywnego połączenia Unity MCP ani lokalnego edytora. Poniższe wyniki nie są kompilacją C# w Unity ani testem telefonu.
 
+## Próba diagnostyczna na późniejsze polecenie właściciela
+
+Właściciel polecił próbę APK bez kontroli kolizji przejścia. W formularzu gałęzi ustaw `etap=apk`, `kontrola_tras=false`, `zdjecia=false`. To wywołuje osobną metodę BuildAndroidWithoutWalkChecks: pomija CheckWalk metra i CheckExteriorAccess areny/hotelu, zachowując fizyczne collidery, kontrolę konstrukcji stacji, poprawność zasobów, bezpieczny spawn gracza, serializację i podpis APK. Domyślnie kontrola tras pozostaje włączona. Raport zapisuje walkChecksSkipped=true i status z sufiksem WALK_CHECKS_SKIPPED. Sukces takiej próby nie jest odbiorem przechodniości.
+
 ## Wykonane zmiany
 
 | Plik | Zmiana i jej powód |

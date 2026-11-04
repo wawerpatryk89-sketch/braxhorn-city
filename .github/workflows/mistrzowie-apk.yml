@@ -11,6 +11,10 @@ on:
         type: string
         required: false
         default: ''
+      kontrola_tras:
+        description: 'Sprawdzaj przejścia metra i areny. Wyłącz tylko dla diagnostycznej próby APK.'
+        type: boolean
+        default: true
       etap:
         description: 'apk = kompilacja APK; sceny = kontrola scen w Unity bez APK i bundles (też trwa)'
         type: choice
@@ -172,7 +176,7 @@ jobs:
           unityVersion: ${{ steps.preflight.outputs.unity }}
           customImage: ${{ steps.preflight.outputs.androidImage }}
           targetPlatform: Android
-          buildMethod: ${{ inputs.etap == 'sceny' && 'BraxChampionsBuild.ValidateScenes' || 'BraxChampionsBuild.BuildAndroid' }}
+          buildMethod: ${{ inputs.etap == 'sceny' && 'BraxChampionsBuild.ValidateScenes' || (inputs.kontrola_tras == false && 'BraxChampionsBuild.BuildAndroidWithoutWalkChecks' || 'BraxChampionsBuild.BuildAndroid') }}
           androidExportType: androidPackage
           versioning: None
           allowDirtyBuild: true
