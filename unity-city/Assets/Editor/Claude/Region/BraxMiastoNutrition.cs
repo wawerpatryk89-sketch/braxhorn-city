@@ -113,7 +113,7 @@ internal static class BraxMiastoNutrition
         var zielone = BraxMiastoA.Swieci("Nutrition: litery zielone (neon marki)", new Color(.45f, 1f, .2f), new Color(.9f, 2.4f, .35f));
         var boki = BraxMiastoA.Mat("Nutrition: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f);
         var stal = BraxMiastoA.Mat("Nutrition: stal szczotkowana", new Color(.60f, .62f, .64f), .3f, .9f);
-        var lodowka = BraxMiastoA.Swieci("Nutrition: lodówka (wnętrze podświetlone)", new Color(.85f, .92f, 1f), new Color(.45f, .55f, .65f));
+        // W sklepie odżywek nie montujemy lodówek; klient wybrał ekspozycję wyłącznie na regałach.
         // MURAL na ścianie tylnej: otwór w tynku i obraz DOKŁADNIE w płaszczyźnie ściany (żadnej tablicy, żadnej nakładki)
         float mw = 5.6f, mh = mw * 941f / 1672f, mx0 = (X0 + X1) * .5f - mw * .5f, my0 = .45f;
         // ściana tylna (z0) widziana od środka: s rośnie od x1 w stronę x0
@@ -173,28 +173,36 @@ internal static class BraxMiastoNutrition
         float seg = (rz1 - rz0) / 3f;
         for (int i = 0; i < 3; i++)
             BraxUliceKit.Napis3D(new[] { "BIAŁKO", "KREATYNA", "BATONY" }[i], new Vector3(X0, F + rh + .25f, rz0 + seg * (i + .5f)), Vector3.right, .2f, .04f, zielone, boki);
-        // LODÓWKI z napojami (ściana tylna, po bokach muralu)
+        // ŚCIANA TYLNA — REGAŁY ODŻYWEK zamiast lodówek (decyzja właściciela 4.11).
+        // Nie nakładamy nowych dekoracji na stare lodówki: cały dawny blok lodówek
+        // wraz z kolizjami został usunięty z generatora. Mural pośrodku pozostaje wolny.
+        var twT = odzywki ? BraxSklepyTowar.Korzen(root, "BRAXHORN NUTRITION — regały tylne") : null;
+        int regalyTylne = 0;
         foreach (float xa in new[] { X0 + .65f, X1 - 2.35f })
         {
-            // lodówka przeszklona: korpus (boki, góra, dół, plecy podświetlone), półki, napoje w środku, drzwi ze szkła
-            float xb = xa + 1.7f, zf = Z0 + .75f, hL = 2.1f * K;
-            cz.Box(new Vector3(xa, F, Z0), new Vector3(xa + .06f, F + hL, zf)); cz.Box(new Vector3(xb - .06f, F, Z0), new Vector3(xb, F + hL, zf));
-            cz.Box(new Vector3(xa + .06f, F, Z0), new Vector3(xb - .06f, F + .15f, zf), 4); cz.Box(new Vector3(xa + .06f, F + hL - .22f, Z0), new Vector3(xb - .06f, F + hL, zf), 8);
-            BraxUliceKit.S(lodowka).Quad(new Vector3(xa + .06f, F + .15f, Z0 + .03f), new Vector3(xb - .06f, F + .15f, Z0 + .03f), new Vector3(xb - .06f, F + hL - .22f, Z0 + .03f), new Vector3(xa + .06f, F + hL - .22f, Z0 + .03f), Vector3.forward);
-            for (int p = 0; p < 4; p++)
+            float xb = xa + 1.7f, zf = Z0 + .78f * K, hh = 2.55f * K;
+            // Prawdziwy korpus regału: oddzielny od ściany, bez przesłaniania muralu.
+            cz.Box(new Vector3(xa, F, Z0 + .05f), new Vector3(xb, F + hh, Z0 + .11f), 1);
+            foreach (float xSide in new[] { xa, xb - .055f })
+                cz.Box(new Vector3(xSide, F, Z0 + .11f), new Vector3(xSide + .055f, F + hh, zf), 1 | 4);
+            for (int p = 0; p <= 4; p++)
             {
-                float y = F + .15f + p * (hL - .4f) / 4f;
-                if (p > 0) BraxUliceKit.S(polka).Box(new Vector3(xa + .06f, y - .015f, Z0 + .05f), new Vector3(xb - .06f, y, zf - .06f));
-                for (float x = xa + .14f; x < xb - .12f; x += .105f)
-                    for (float zb = Z0 + .15f; zb < zf - .12f; zb += .16f)
-                    { tw.kolor = marka[rng.Next(marka.Length)]; tw.Rura(new Vector3(x, y + .002f, zb), new Vector3(x, y + .2f * K, zb), .032f * K, 6); }
+                float y = F + (.16f + .58f * p) * K;
+                pl.Box(new Vector3(xa + .055f, y - .045f, Z0 + .11f),
+                       new Vector3(xb - .055f, y, zf), 1 | 4);
+                if (p == 4 || !odzywki) continue;
+                string grupa = p == 0 ? "odz_dol" : p == 3 ? "odz_gora" : "odz_polka";
+                BraxSklepyTowar.Polka(grupa, twT,
+                    new Vector3(xa + .12f, y + .006f, Z0 + .44f * K),
+                    Vector3.right, Vector3.back, xb - xa - .24f, rng, .54f * K);
             }
-            tw.kolor = BraxUliceKit.Bialy;
-            BraxUliceKit.S(BraxUliceKit.SzkloPrzezroczyste).Quad(new Vector3(xa + .06f, F + .15f, zf - .02f), new Vector3(xb - .06f, F + .15f, zf - .02f), new Vector3(xb - .06f, F + hL - .22f, zf - .02f), new Vector3(xa + .06f, F + hL - .22f, zf - .02f), Vector3.forward);
-            BraxUliceKit.S(stal).Box(new Vector3((xa + xb) * .5f - .02f, F + .15f, zf - .02f), new Vector3((xa + xb) * .5f + .02f, F + hL - .22f, zf + .02f));
-            BraxUliceKit.S(stal).Rura(new Vector3((xa + xb) * .5f - .08f, F + .9f, zf + .05f), new Vector3((xa + xb) * .5f - .08f, F + 1.6f, zf + .05f), .012f, 6);
-            BraxMiastoA.Kol(kol, "lodówka", new Vector3(xa, F, Z0), new Vector3(xb, F + hL, zf + .05f));
+            BraxMiastoA.Kol(kol, "regał odżywek (zamiast lodówki)",
+                new Vector3(xa, F, Z0 + .05f), new Vector3(xb, F + hh, zf));
+            regalyTylne++;
         }
+        if (odzywki) BraxSklepyTowar.Zakoncz(twT, "BRAXHORN NUTRITION — tył");
+        BraxMiastoA.Log("NUTRITION: wymieniono 2 lodówki na " + regalyTylne +
+            " regały produktów BRAXHORN; bez modelu brak produktu jest jawny w raporcie (nie zastępować kolorowymi bryłami)");
         // LADA z kasą i SHAKE BAR (wschód): lada dębowa z kwarcowym blatem, za nią blat roboczy z blenderami, menu na ścianie
         float lx0 = X1 - 2.4f, lx1 = lx0 + .65f, lz0 = Z0 + 2.3f, lz1 = Z0 + 6.3f, lh = 1.05f * K;
         BraxUliceKit.S(dab).Box(new Vector3(lx0, F, lz0), new Vector3(lx1, F + lh - .05f, lz1), 4);
