@@ -59,7 +59,10 @@ jobs:
         run: |
           set -euo pipefail
           export XDG_CONFIG_HOME="$RUNNER_TEMP/brax-content-probe-config"
-          chmod +x build/content-probe/Probe.x86_64
+          # Unity Builder runs in a container and can leave the player owned by root.
+          # Use elevated permissions only for the executable bit, not for running the player.
+          sudo chmod +x build/content-probe/Probe.x86_64
+          test -x build/content-probe/Probe.x86_64
           for mode in base stage update base stage interrupted rollback; do
             timeout 110s build/content-probe/Probe.x86_64 -batchmode -nographics -probeMode "$mode" -probeZip "$PWD/build/content-probe/update.zip" -logFile "$RUNNER_TEMP/content-$mode.log"
             grep "BRAX_CONTENT_RUNTIME_PASS $mode" "$RUNNER_TEMP/content-$mode.log"
