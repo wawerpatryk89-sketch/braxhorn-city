@@ -1,10 +1,5 @@
 name: Zone content - private update without APK
 on:
-  push:
-    branches: [claude/osiedle-42-poprawka]
-    paths:
-      - unity-city/**
-      - unity-tools/updates/**
   workflow_dispatch:
     inputs:
       base_id:
@@ -18,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   content:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[content-update]')
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     permissions:

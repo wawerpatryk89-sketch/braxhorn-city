@@ -1,12 +1,5 @@
 name: Zone content - Unity Android bundle validation
 on:
-  push:
-    branches: [codex/zone-content-updates-20261104]
-    paths:
-      - unity-city/Assets/**
-      - unity-city/Packages/**
-      - unity-tools/updates/**
-      - .github/workflows/zone-content-validation.yml
   workflow_dispatch:
 permissions:
   contents: read
