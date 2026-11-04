@@ -53,22 +53,22 @@ public static class BraxUlicePierzeje
     // Numery: strona południowa nieparzyste, północna parzyste, od morza (wschód) na zachód.
     static readonly Dictionary<string, Lokal> Lokale = new Dictionary<string, Lokal>
     {
-        { "apothecary",          new Lokal("APTEKA", "apteka", 5, 3) { wysiegnik = true, licoSzyldu = new Color(.10f, .55f, .28f), wariantWitryny = 7 } },
-        { "corner_store",        new Lokal("DELIKATESY", "market", 7, 0) { markiza = true, markizaA = BraxUliceKit.C(.12f, .34f, .20f), markizaB = BraxUliceKit.C(.92f, .90f, .84f), wariantWitryny = 7 } },
+        { "apothecary",          new Lokal("APTEKA SOBCZAK", "apteka", 5, 3) { wysiegnik = true, licoSzyldu = new Color(.10f, .55f, .28f), wariantWitryny = 7 } },
+        { "corner_store",        new Lokal("SOBCZAK DELIKATESY", "market", 7, 0) { markiza = true, markizaA = BraxUliceKit.C(.12f, .34f, .20f), markizaB = BraxUliceKit.C(.92f, .90f, .84f), wariantWitryny = 7 } },
         { "bar",                 new Lokal("BAR 24", "bar", 13, 2) { wysiegnik = true, licoSzyldu = new Color(.92f, .70f, .22f) } },
         { "restaurant",          new Lokal("BISTRO", "bistro", 15, 4) { markiza = true, markizaA = BraxUliceKit.C(.55f, .10f, .10f), markizaB = BraxUliceKit.C(.93f, .91f, .86f), wariantWitryny = 6 } },
         { "workshop_shop",       new Lokal("KWIACIARNIA", "kwiaty", 17, 1) { markiza = true, markizaA = BraxUliceKit.C(.20f, .42f, .28f), markizaB = BraxUliceKit.C(.95f, .94f, .90f) } },
         { "hotel",               new Lokal("HOTEL", "hotel", 19, 5) { wysiegnik = true, licoSzyldu = new Color(.86f, .72f, .40f), wariantWitryny = 6 } },
         { "viaduct_corner",      new Lokal("KANTOR", "kantor", 21, 3) { wysiegnik = true, licoSzyldu = new Color(.95f, .80f, .20f) } },
         { "workshop",            new Lokal("WARSZTAT ROWEROWY", "warsztat", 23, 2) },
-        { "estate_corner",       new Lokal("KAWIARNIA", "kawiarnia", 25, 0) { markiza = true, markizaA = BraxUliceKit.C(.32f, .20f, .13f), markizaB = BraxUliceKit.C(.90f, .84f, .72f), wariantWitryny = 6 } },
-        { "bakery",              new Lokal("PIEKARNIA", "piekarnia", 6, 4) { markiza = true, markizaA = BraxUliceKit.C(.62f, .38f, .12f), markizaB = BraxUliceKit.C(.95f, .92f, .84f) } },
+        { "estate_corner",       new Lokal("SOBCZAK KAWIARNIA", "kawiarnia", 25, 0) { markiza = true, markizaA = BraxUliceKit.C(.32f, .20f, .13f), markizaB = BraxUliceKit.C(.90f, .84f, .72f), wariantWitryny = 6 } },
+        { "bakery",              new Lokal("SOBCZAK PIEKARNIA", "piekarnia", 6, 4) { markiza = true, markizaA = BraxUliceKit.C(.62f, .38f, .12f), markizaB = BraxUliceKit.C(.95f, .92f, .84f) } },
         { "gallery",             new Lokal("BRAXHORN FITNESS", "fitness", 10, 3) { wysiegnik = true, licoSzyldu = new Color(.93f, .45f, .62f), wariantWitryny = 5 } },   // pkt 59: fitness Nyxy (wcześniej GALERIA SZTUKI)
         { "office_entrance",     new Lokal("POCZTA", "poczta", 12, 1) { wysiegnik = true, licoSzyldu = new Color(.95f, .78f, .10f) } },
         { "apartments_1",        new Lokal("KSIĘGARNIA", "ksiegarnia", 14, 0) { wariantWitryny = 3 } },
-        { "apartments_2",        new Lokal("CUKIERNIA", "cukiernia", 16, 5) { markiza = true, markizaA = BraxUliceKit.C(.78f, .45f, .55f), markizaB = BraxUliceKit.C(.97f, .95f, .93f) } },
+        { "apartments_2",        new Lokal("SOBCZAK CUKIERNIA", "cukiernia", 16, 5) { markiza = true, markizaA = BraxUliceKit.C(.78f, .45f, .55f), markizaB = BraxUliceKit.C(.97f, .95f, .93f) } },
         { "apartments_3",        new Lokal("OPTYK", "optyk", 18, 4) { wysiegnik = true, licoSzyldu = new Color(.15f, .35f, .62f) } },
-        { "estate_apartments_1", new Lokal("WARZYWA OWOCE", "warzywniak", 20, 1) { markiza = true, markizaA = BraxUliceKit.C(.18f, .40f, .16f), markizaB = BraxUliceKit.C(.95f, .93f, .86f) } },
+        { "estate_apartments_1", new Lokal("SOBCZAK WARZYWA OWOCE", "warzywniak", 20, 1) { markiza = true, markizaA = BraxUliceKit.C(.18f, .40f, .16f), markizaB = BraxUliceKit.C(.95f, .93f, .86f) } },
         { "estate_apartments_2", new Lokal("PIZZERIA", "pizzeria", 22, 2) { markiza = true, markizaA = BraxUliceKit.C(.60f, .12f, .10f), markizaB = BraxUliceKit.C(.20f, .38f, .18f), wariantWitryny = 6 } },
     };
     // Boki widoczne z ulicy (bez sąsiada; analiza obrysów kolizji oryginału): zachód / wschód.
@@ -619,7 +619,15 @@ public static class BraxUlicePierzeje
         if (firma != null)
         {
             if (!szyldyFirm) throw new InvalidOperationException("Brak kontenera szyldów firmy w korzeniu miasta");
-            if (BraxMiastoBillboardy.Mural(szyldyFirm, firma, f.P(sc, 3.33f, .06f), f.N, wG, hG)) { OBox(f, listwa, sc - wG * .5f - .06f, sc + wG * .5f + .06f, 3.33f - hG * .5f - .04f, 3.33f + hG * .5f + .04f, 0f, .05f); goto poSzyldzie; }
+            if (BraxMiastoBillboardy.Mural(szyldyFirm, firma, f.P(sc, 3.33f, .06f), f.N, wG, hG))
+            {
+                OBox(f, listwa, sc - wG * .5f - .06f, sc + wG * .5f + .06f,
+                     3.33f - hG * .5f - .04f, 3.33f + hG * .5f + .04f, 0f, .05f);
+                Debug.Log("BRAXHORN_SZYLD_POTWIERDZONY " + lok.szyld + " -> " + firma);
+                goto poSzyldzie;
+            }
+            Debug.LogError("BRAXHORN_SZYLD_NIEGOTOWY: " + lok.szyld +
+                " brak oryginalnej grafiki " + firma + " w obu dostarczonych paczkach");
         }
         OBox(f, listwa, sc - w * .5f - .25f, sc + w * .5f + .25f, 3.26f, 3.40f, 0f, .045f);
         BraxUliceKit.Napis3D(lok.szyld, f.P(sc, 3.215f, .045f), f.N, cap, .07f, lico, boki);
