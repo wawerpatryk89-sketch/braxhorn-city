@@ -47,6 +47,7 @@ public static class BraxObozBuild
         var receipt = new Receipt { unity = Application.unityVersion, sourceCommit = Environment.GetEnvironmentVariable("GITHUB_SHA") ?? "local", versionCode = version };
         try
         {
+            SaveUntitledBatchScenes();
             Configure(version, password);
             var started = DateTime.UtcNow;
             receipt.generatedSceneReused = TryReuse();
@@ -80,6 +81,25 @@ public static class BraxObozBuild
             AssetDatabase.SaveAssets();
             if (receipt.apkBuilt) BraxObozUpdateRegistry.Export();
             File.WriteAllText(Path.Combine(output, "build-receipt.json"), JsonUtility.ToJson(receipt, true));
+        }
+    }
+    static void SaveUntitledBatchScenes()
+    {
+        // A fresh batch editor opens an untitled scene. Unity refuses additive
+        // NewScene/OpenScene until it has a path. Preserve it outside the APK's
+        // explicit scene list instead of discarding any scene objects.
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            var scene = SceneManager.GetSceneAt(i);
+            if (!scene.isLoaded || !string.IsNullOrEmpty(scene.path)) continue;
+            if (!Application.isBatchMode)
+                throw new InvalidOperationException("Zapisz otwartą scenę przed budowaniem obozu");
+            Directory.CreateDirectory("Assets/PlayableGenerated/Oboz");
+            AssetDatabase.Refresh();
+            string path = AssetDatabase.GenerateUniqueAssetPath("Assets/PlayableGenerated/Oboz/BuildSession.unity");
+            if (!EditorSceneManager.SaveScene(scene, path))
+                throw new IOException("Nie zapisano początkowej sceny sesji CI");
+            Debug.Log("BRAXHORN_OBOZ_SESJA zapisano scenę początkową przed generowaniem addytywnym");
         }
     }
     static void Configure(int version, string password)

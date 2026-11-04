@@ -1,0 +1,14 @@
+{
+  "previousRun": 41755738981,
+  "previousJob": 126331293164,
+  "previousResult": "failure",
+  "privateSourcesVerified": 204,
+  "ciSecretPreflightPassed": true,
+  "unityMethodExecuted": true,
+  "apkBuilt": false,
+  "rootCause": "Cannot create a new scene additively with an untitled scene unsaved.",
+  "fix": "Preserve untitled batch scenes at unique generated paths before additive authoring. Do not include session scene in the APK.",
+  "localValidation": "C# grammar and git diff --check passed",
+  "unityRegressionValidation": "New build requested; result pending",
+  "sourceBase": "205b60f1e9acf59f00a4b77f7866e92854ebe12f"
+}
