@@ -73,3 +73,37 @@ Oznaczenia: **WIDAĆ** = obserwacja z klatek nagrania Androida; **LOG** = dowód
 - Metro: brak gwarancji, że sama odbudowa starych prostokątów G5 wystarczy; po przesunięciu wejścia musi być zbadana pełna geometria połączenia z antresolą i odległość do linii wody x=84.
 - Modele `2002_grand_banks.glb`, `frickies_yacht.glb`, `super-yacht02.glb` są w Bibliotece właściciela, ale NIE zostały dopisane do publicznego repo ani APK bez optymalizacji/licencji. `Grand Banks` to 556 tys. trójkątów i wymaga LOD; `Frickies` tylko NC; `Super-Yacht` wymaga odrębnej kontroli warunków i NoAI.
 - Nie ogłaszać pełnej naprawy miasta bez rzeczywistego testu telefonu po jednym zbiorczym buildzie. Brak wdrożonego content-only update w obecnym bazowym APK; nowy C# wymaga APK.
+
+## Oględziny sześciu nagrań właściciela — niezależny rejestr usterek
+
+Poniższe czasy są przybliżonymi znacznikami z nagrań, a nie współrzędnymi miasta.
+Nie oznaczają automatycznie, że dana usterka została naprawiona w Androidzie.
+
+| Nagranie | Widoczne na klatkach | Diagnoza / zakres sprawdzenia | Stan |
+|---|---|---|---|
+| #1: 00:04–00:20 | front NOVA, otwarte wizualnie drzwi i widoczne wnętrze, próby przejścia | zweryfikować ciągłość: chodnik → drzwi → przedsionek → sala; wykonać test kapsuły i usunąć kolizje nie należące do futryny | zmiany fasady w C#, brak odbioru Android |
+| #1: 00:32–00:44 | witryny sklepowe, wejście APTEKI oraz komunikat otwierania i zamykania drzwi | **z filmu wynika, że akcja drzwi apteki reaguje**; to nie dowodzi, że leki na półkach mają właściwe etykiety. Sprawdzić kasę, gabloty i 24 modele leków | towar do kontroli |
+| #1: 00:44–01:08 | bardzo intensywny cyjan na fasadach, wejście stacji blisko ściany, miasto od strony portowej | zbadać brak atlasu pokoje.png, import materiałów szyb, powieloną geometrię i przejścia przy wejściu | częściowo zmieniono C# |
+| #2: 00:08–00:16 | wejście metra przy ścianie, schody w dół | sprawdzić pełne usunięcie starego wykopu i faktyczny promień przejścia obok elewacji | dojście zmienione, położenie do odbioru |
+| #2: 00:20 | woda/błękitny obszar po przejściu pod ziemię | możliwe odsłonięcie powierzchni wody przez brak gruntu po cięciu G5; przywrócić widoczny chodnik, nie samą kolizję | poprawiono C#, bez testu wizualnego |
+| #2: 00:28–00:48, #3: 00:00–00:04 | antresola, bramki, zejścia i peron; gracz dociera do wnętrza metra | stacja nie jest całkowicie pusta; sprawdzić połączenie wejścia, schodów i całego peronu | kontrola przejścia istnieje, brak nowego raportu |
+| #3: 00:08–00:48 | otwarty plac przy porcie, portowy statek, wieżowce i ślepa ściana | rozpoznać niedokończone ściany, wejścia i brak wykończeń nowych budynków; nie usuwać gotowego portu | nierozstrzygnięte |
+| #3: 00:56–01:08 | duża, bardzo jasna powierzchnia odblaskowa/niebieska między budynkami, obok bryły wystającej ze ściany | sprawdzić przejście woda–ląd, brak nawierzchni lub błędne wycięcie podłoża; **nie nakładać drugiej płyty na nieusuniętą** | dodatkowa korekta wycięcia podłóg nad morzem + próbkowanie, brak testu |
+| #4: 00:24–00:34 | fasada BRAXHORN GYM przy ulicy z małym szyldem | oryginalny mural nr 19 nie jest widoczny; zamocować oryginalną grafikę bez zmiany proporcji | skorygowano generator, niepotwierdzone na urządzeniu |
+| #4: 00:48–01:36 | marina: jachty, motorówki i skutery wodne; szeroka tafla wody i pomosty | minimum **3 widoczne jachty**, cel 4; 6 motorówek, skutery pozostają; tor wodny musi być drożny | zmieniono generator, bez renderowanego dowodu |
+| #5: 00:00–01:24 | ulice, przejścia dla pieszych, przyległe tereny zielone i pierzeje nowych kwartałów | sprawdzić skalę przejść, przeszkody w bramach, materiały elewacji, niepełne witryny; nie zamieniać prywatnych szyldów | częściowo zmieniono C#, brak odbioru |
+| #6: 00:00–00:36 | stare reprezentacyjne budynki obok bardzo ciemnych nowoczesnych wieżowców, widoczny nad dachem duży element wysunięty | zbadać pochodzenie wiszącego elementu nad zabytkową fasadą, nie usuwać w ciemno oryginalnego budynku; brak atlasu pokojów może wyjaśniać czarne okna | refleksyjne szyby fallback; obiekt dachu niezinwentaryzowany |
+
+### Pozostałe wymagania właściciela, bez zamiany priorytetów
+- Miasto tylko Unity 6; osiedle i obóz poza zakresem.
+- Mural BRAXHORN GYM: właściwa dostarczona grafika Brax + Nyxa. Mural NOVA za DJ-em: używać oryginalnej grafiki z Biblioteki, nie dekoracyjnej imitacji.
+- Sklep Nutrition: usunięte lodówki zastąpić prawdziwymi regałami, pełnymi rozmaitych **realnych opakowań 3D** z etykietami (kreatyna, gainery, whey, BCAA itd.); apteka analogicznie z 24 lekami; szyldy firm BRAXHORN, WAWER i SOBCZAK w odpowiednich lokalach.
+- Mieszkanie przy NOVA to mieszkanie startowe; klatka, schody i wejście do mieszkania muszą być fizycznie przechodnie. Tower i NOVA: wejść, wyjść, skorzystać z wnętrza.
+- Elewacje: usuwać stare powierzchnie przed wykończeniem; stosować materiały PBR Poly Haven, bez z-fightingu i plastikowych pozorów. Ruch, ładowanie i pamięć Androida do pomiaru.
+- Dodatkowe modele z Biblioteki: Yacht/Riva/Grand Banks (CC BY z atrybucją), Frickie's Yacht tylko referencja NC, Super-yacht02 wymaga audytu; **nie publikować** źródeł bez weryfikacji licencji i optymalizacji. Trzy jachty z jednego zoptymalizowanego źródła są bezpieczniejsze dla mobile niż kilka 500k-triangle modeli bez LOD.
+
+### Kontrola po dalszych poprawkach
+- `BraxRegionSea.cs`: źródłowa podłoga nad morzem cięta do 0.40 m zamiast 0.02 m, 25 próbek wyłapuje pozostające kolizje BaseFloor. To NIE potwierdza usunięcia wszystkich błękitnych plam.
+- `BraxRegionTylyB.cs`: collidery szyb są dziećmi danego wieżowca, zamiast globalnego korzenia; dzięki temu mogą być doczytywane ze właściwą geometrią. Fallback okien bez `pokoje.png` jest refleksyjny, ale nie zastępuje prawdziwego atlasu i nie dowodzi obecności fikcyjnych pomieszczeń.
+- `BraxSklepyTowar.cs`: niedostateczna liczba importowanych opakowań w Nutrition/aptece/supermarkecie ma status `NIEGOTOWY`, a nie `OK`.
+- **Brak dowodu kompilacji i testu Android dla tej gałęzi.** Nie używać określenia „całe miasto naprawione” przed rzeczywistym przejściem testowym i oceną właściciela.
