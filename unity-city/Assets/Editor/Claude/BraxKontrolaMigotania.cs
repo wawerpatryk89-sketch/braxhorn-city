@@ -46,7 +46,7 @@ public static class BraxKontrolaMigotania
     static Bounds[] Strefy()
     {
         var l = new List<Bounds> { StrefaSilowni() };
-        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.StartsWith("BraxhornCity", StringComparison.Ordinal))
+        if (BraxKontrola.Obszar == "miasto") // scena w CI może nie być aktywną BraxhornCity podczas audytu; obszar jest ustawiany jawnie przez BraxGymBuild
             foreach (var (a, b) in new[] { (new Vector3(12f, -.5f, 4f), new Vector3(50f, 34f, 46f)),          // kamienica z BRAXHORN NUTRITION i sąsiednie
                                            (new Vector3(-50f, -.5f, -22f), new Vector3(-16f, 34f, 26f)),      // lewa kamienica przy BRAXHORN GYM
                                            (new Vector3(-121f, -.5f, 44f), new Vector3(-90f, 40f, 76f)) })   // alejka przy BANKU (Aleja Północna 1)
