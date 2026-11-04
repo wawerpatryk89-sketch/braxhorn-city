@@ -399,8 +399,13 @@ public static partial class BraxRegionMiastoB
                 lod.RecalculateBounds();
                 // kolizja bryły: prostokąt lica × wysokość (osie świata — obroty 0/90)
                 var gr = BraxRegion.Bounds(bud.gameObject);
-                var col = new GameObject("Budynek " + b.id + " kolizja").AddComponent<BoxCollider>(); col.transform.SetParent(g, false);
-                col.transform.position = new Vector3(b.x, y + (gr.max.y - y) * .5f, b.z); col.size = new Vector3(b.w - .1f, gr.max.y - y, b.d - .1f);
+                // Kolizja nie może żyć osobno w korzeniu g, gdy pojedynczy
+                // budynek przenosi się do doczytywanego kwadratu miasta.
+                // Pozostawiona w g dawała niewidzialne ściany po unloadzie.
+                var col = new GameObject("Budynek " + b.id + " kolizja").AddComponent<BoxCollider>();
+                col.transform.position = new Vector3(b.x, y + (gr.max.y - y) * .5f, b.z);
+                col.size = new Vector3(b.w - .1f, gr.max.y - y, b.d - .1f);
+                col.transform.SetParent(bud, true); // skala świata zachowana, collider opuszcza obszar razem z budynkiem
                 ndBudynki.Add(bud.gameObject); ok++;
                 NdLog("budynek " + b.id + " (" + b.plik + (b.wezel != null ? " " + b.wezel : "") + "): środek (" + b.x.ToString("0.0") + ", " + y.ToString("0.00") + ", " + b.z.ToString("0.0") + "), obrót " + b.yaw + "°, lico " + b.w.ToString("0.0") + " × " + b.d.ToString("0.0") + " m, wys. " + (gr.max.y - y).ToString("0") + " m");
             }
