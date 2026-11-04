@@ -568,8 +568,17 @@ internal static class BraxMiastoNova
         float ez = HZ1 - .12f;
         // 3.11 15:59 (właściciel): MURAL NOVA CLUB za DJ-em (grafika z czatu, 3:1) zamiast wzoru LED; bez paczki — ekran LED
         {
-            float mw = RX1 - RX0 + 2f, mhMax = C - .35f - (F + .9f), mh = mw / 3f; if (mh > mhMax) { mh = mhMax; mw = mh * 3f; }
-            if (!BraxMiastoBillboardy.Mural(root, "mural_nova", new Vector3((RX0 + RX1) * .5f, F + .9f + mhMax * .5f, ez - .005f), Vector3.back, mw, mh))
+            // Wcześniej mural miał jedynie 9 m i zostawiał wielką pustą
+            // ścianę za DJ. Wypełniamy CAŁĄ dostępną wysokość ściany DJ
+            // oryginalnym obrazem 3:1: bez rozciągania, powielania ani cropu.
+            // Boki wielkiej sali pozostają panelami akustycznymi.
+            float mhMax = C - .24f - (F + .18f);
+            float mw = Mathf.Min(HX1 - HX0 - .60f, mhMax * 3f), mh = mw / 3f;
+            var centrum = new Vector3((RX0 + RX1) * .5f, F + .18f + mh * .5f, ez - .005f);
+            Debug.Log("BRAXHORN_NOVA_MURAL_DJ oryginalne_proporcje_3:1, szer=" +
+                mw.ToString("F2") + "m, wys=" + mh.ToString("F2") +
+                "m, bez nakładania drugiego muralu");
+            if (!BraxMiastoBillboardy.Mural(root, "mural_nova", centrum, Vector3.back, mw, mh))
                 BraxUliceKit.S(ekranM).Quad(new Vector3(RX1 + 1f, F + .9f, ez), new Vector3(RX0 - 1f, F + .9f, ez), new Vector3(RX0 - 1f, C - .35f, ez), new Vector3(RX1 + 1f, C - .35f, ez), Vector3.back);
         }
         BraxUliceKit.S(glosnik).Box(new Vector3(RX0 - 1.08f, F + .82f, ez), new Vector3(RX1 + 1.08f, C - .27f, HZ1 - .01f), 32);   // obudowa (lico ekranu 2 cm przed nią… ekran leży w otworze obudowy)
