@@ -10,7 +10,10 @@ public sealed class BraxSeat : MonoBehaviour
     public bool lie;
     public float hipsAboveRoot = .95f;    // wysokość bioder nad stopami w pozie stojącej (model Braxa)
     public float surfaceY;                // wysokość siedziska / materaca (świat)
+    // Tylko siedzisko T1: transport gracza razem z wagonem i bezpieczne wysiadanie na przystanku.
+    public BraxTramwajT1 tramOwner;
     BraxGymPlayer rider; Vector3 before; Quaternion beforeRot;
+    Vector3 tramLocalPlayer; Quaternion tramLocalRotation;
     public bool Occupied { get { return rider; } }
     void OnEnable() { All.Add(this); }
     void OnDisable() { All.Remove(this); }
@@ -18,7 +21,7 @@ public sealed class BraxSeat : MonoBehaviour
     public static BraxSeat Nearest(Vector3 p, float max)
     {
         BraxSeat best = null; float bd = max;
-        foreach (var s in All) { if (!s || s.rider) continue; var d = s.transform.position - p; d.y = 0; if (d.magnitude < bd) { bd = d.magnitude; best = s; } }
+        foreach (var s in All) { if (!s || s.rider || s.tramOwner) continue; var d = s.transform.position - p; d.y = 0; if (d.magnitude < bd) { bd = d.magnitude; best = s; } }
         return best;
     }
 
@@ -62,7 +65,7 @@ public sealed class BraxSeat : MonoBehaviour
 
     public void Use(BraxGymPlayer p)
     {
-        if (rider || !p) return;
+        if (rider || !p || (tramOwner && !tramOwner.MoznaWysiasc)) return;
         rider = p; before = p.transform.position; beforeRot = p.transform.rotation;
         p.seat = this; p.body.enabled = false;
         var fwd = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
@@ -86,17 +89,35 @@ public sealed class BraxSeat : MonoBehaviour
             p.transform.rotation = Quaternion.LookRotation(Vector3.up, -fwd);
             BraxPose.Get(p).Set(BraxPose.Mode.Lie, transform);
         }
+        if (tramOwner)
+        {
+            tramLocalPlayer = tramOwner.transform.InverseTransformPoint(p.transform.position);
+            tramLocalRotation = Quaternion.Inverse(tramOwner.transform.rotation) * p.transform.rotation;
+        }
         StartCoroutine(Trzymaj());
     }
 
-    public void Leave()
+    // Jedno wywolanie na klatke na TRAMWAJ, a nie Update na setkach siedzisk.
+    // Nie zmieniamy parent gracza (sceny additive nie moga go przypadkowo zniszczyc).
+    public void SyncTram()
+    {
+        if (!tramOwner || !rider) return;
+        rider.transform.SetPositionAndRotation(tramOwner.transform.TransformPoint(tramLocalPlayer),
+                                                tramOwner.transform.rotation * tramLocalRotation);
+    }
+
+    public void Leave() => Odpusc(false);
+    public void ForceLeave() => Odpusc(true);
+
+    void Odpusc(bool wymus)
     {
         if (!rider) return;
+        if (tramOwner && !wymus && !tramOwner.MoznaWysiasc) return; // podczas jazdy nie wyrzucaj postaci na tory
         var p = rider; rider = null;
         BraxPose.Get(p).Set(BraxPose.Mode.None, null);
         if (p.clips && p.clips["Idle"] != null) p.clips["Idle"].speed = 1f;
         p.transform.rotation = Quaternion.Euler(0, beforeRot.eulerAngles.y, 0);
-        p.transform.position = before;
+        p.transform.position = tramOwner ? tramOwner.WyjscieSwiat : before;
         p.body.enabled = true; p.seat = null;
     }
 }
