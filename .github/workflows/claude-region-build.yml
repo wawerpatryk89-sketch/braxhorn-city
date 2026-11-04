@@ -35,7 +35,7 @@ env:
   PAMIEC_REJONOW: osiedle
 concurrency:
   group: claude-region-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true  # test Patryka tylko z najnowszego commita: nie uruchamiaj dwóch drogich APK
 jobs:
   source-imports:
     if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-patryk-bieg-sportowe-auto-20261104') }}
