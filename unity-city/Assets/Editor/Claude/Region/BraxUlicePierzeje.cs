@@ -756,6 +756,12 @@ public static class BraxUlicePierzeje
             polki.Box(new Vector3(x0, y0, z0), new Vector3(x0 + .055f, y0 + h, z1));
             polki.Box(new Vector3(x1 - .055f, y0, z0), new Vector3(x1, y0 + h, z1));
             polki.Box(new Vector3(x0, y0, z0), new Vector3(x1, y0 + h, z0 + .045f)); // plecy, nie dodatkowa fasada
+            // Regały mają rzeczywistą kolizję tylko w bocznych zatokach.
+            // Centralny korytarz x=43…47 jest wolny od dekoracji i colliderek;
+            // nie blokujemy wejścia ani działającej windy wieżowca.
+            BraxRegionMeble.Kolizja(bg, "APTEKA: regał z prawdziwymi lekami",
+                new Vector3((x0 + x1) * .5f, y0 + h * .5f, (z0 + z1) * .5f),
+                new Vector3(x1 - x0, h, z1 - z0));
             for (int p = 0; p < 5; p++)
             {
                 float y = y0 + .13f + p * .55f;
