@@ -191,11 +191,11 @@ public sealed class BraxStart : MonoBehaviour
     void OnGUI()
     {
         GUI.depth = -20;
-        if (!string.IsNullOrEmpty(BraxContent.Message)) GUI.Label(new Rect(16, Screen.height - 48, Screen.width - 32, 40), BraxContent.Message);
         if (ekranStartowy)
         {
             BraxEkranStartowy.RysujObraz(!ustawienia);
             if (ustawienia) PanelUstawien();
+            if (!string.IsNullOrEmpty(BraxContent.Message)) GUI.Label(new Rect(16, Screen.height - 48, Screen.width - 32, 40), BraxContent.Message);
             return;
         }
         BraxEkranWczytywania.Rysuj(postep, status, podtytul, wskazowka, diag, pokazDiag, !problem);

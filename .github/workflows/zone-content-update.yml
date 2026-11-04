@@ -1,0 +1,101 @@
+name: Zone content - private update without APK
+on:
+  push:
+    branches: [claude/osiedle-42-poprawka]
+    paths:
+      - unity-city/**
+      - unity-tools/updates/**
+  workflow_dispatch:
+    inputs:
+      base_id:
+        description: Immutable base ID from the private baseline release
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: zone-content-update-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  content:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[content-update]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            unity-city
+            unity-tools/updates
+      - name: Read explicit baseline request
+        id: request
+        env:
+          INPUT_BASE: ${{ inputs.base_id }}
+        run: |
+          python3 - <<'PY'
+          import json,os,re
+          from pathlib import Path
+          value=os.environ.get('INPUT_BASE') or json.loads(Path('unity-city/content-update-request.json').read_text())['baseId']
+          assert re.fullmatch(r'(osiedle|miasto|miastogl|oboz)-[a-f0-9]{32}',value), 'Invalid base ID'
+          assert Path('unity-city/content-patch.json').is_file(), 'Missing content-patch.json'
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write('base='+value+'\nzone='+value.split('-')[0]+'\n')
+          PY
+      - name: Free disk space
+        run: sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+      - name: Restore immutable authored scenes and Addressables content state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          BASE_ID: ${{ steps.request.outputs.base }}
+        run: python3 unity-tools/updates/content_snapshot.py restore-base --base "$BASE_ID"
+      - name: Compute compatible Unity import cache profile
+        id: profile
+        env:
+          ZONE: ${{ steps.request.outputs.zone }}
+        run: python3 unity-tools/updates/unity_cache.py profile --project unity-city --zone "$ZONE" --unity 6000.0.58f2
+      - name: Restore encrypted Unity Library cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/library-android.tar.zst.enc
+          key: ${{ steps.profile.outputs.prefix }}content-${{ github.run_id }}
+          restore-keys: ${{ steps.profile.outputs.prefix }}
+      - name: Restore durable cache if Actions evicted it
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZONE: ${{ steps.request.outputs.zone }}
+        run: |
+          if [ ! -f ${{ runner.temp }}/library-android.tar.zst.enc ]; then
+            python3 unity-tools/updates/durable_cache.py download --zone "$ZONE" --archive ${{ runner.temp }}/library-android.tar.zst.enc
+          fi
+      - name: Import cache is optional; baseline is mandatory
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          ZONE: ${{ steps.request.outputs.zone }}
+        run: |
+          if [ -f ${{ runner.temp }}/library-android.tar.zst.enc ]; then
+            python3 unity-tools/updates/unity_cache.py restore --zone "$ZONE" --archive ${{ runner.temp }}/library-android.tar.zst.enc --unity 6000.0.58f2
+          fi
+      - name: Build changed content from saved scenes (no BuildPlayer)
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxContentBuild.UpdateFromBaseline
+          versioning: None
+          allowDirtyBuild: true
+      - name: Upload validated patch to authenticated private draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_ID: ${{ steps.request.outputs.base }}
+        run: python3 unity-tools/updates/content_snapshot.py publish-update --base "$BASE_ID"

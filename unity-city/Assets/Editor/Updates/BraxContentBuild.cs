@@ -28,7 +28,6 @@ public static class BraxContentBuild
         var settings = AddressableAssetSettingsDefaultObject.GetSettings(true);
         settings.BuildRemoteCatalog = true;
         settings.DisableCatalogUpdateOnStartup = true;
-        settings.BundleLocalCatalog = false;
         settings.OverridePlayerVersion = id;
         settings.BuildAddressablesWithPlayerBuild = AddressableAssetSettings.PlayerBuildOption.DoNotBuildWithPlayer;
         string profile = settings.activeProfileId;
@@ -139,7 +138,7 @@ public static class BraxContentBuild
             using (var writer = new StreamWriter(manifest.Open())) writer.Write(JsonUtility.ToJson(update, true));
             foreach (var f in update.files)
                 if (f.name == update.catalog || !original.TryGetValue(f.name, out var b) || !BraxContentPackage.Same(b, f))
-                    archive.CreateEntryFromFile(Output + "/" + f.name, f.name, CompressionLevel.NoCompression);
+                    archive.CreateEntryFromFile(Output + "/" + f.name, f.name, System.IO.Compression.CompressionLevel.NoCompression);
         }
         // Use the exact player validator before delivering the package.
         string check = Work + "/verify-" + Guid.NewGuid().ToString("N");
