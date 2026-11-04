@@ -47,8 +47,10 @@ public static partial class BraxClaudeOsiedle
             foreach(var side in new[]{"Left","Right"})
             {
                 Vector3 outward=rightAxis*(side=="Right"?1f:-1f);
-                Aim(side+"Arm",side+"ForeArm",Vector3.down+outward*.18f);
-                Aim(side+"ForeArm",side+"Hand",Vector3.down+outward*.10f+forward*.12f);
+                // Natural standing posture: arms beside the torso, modest elbow
+                // flex, no guard. Bone lengths and wrist bind rotations untouched.
+                Aim(side+"Arm",side+"ForeArm",Vector3.down+outward*.22f+forward*.045f);
+                Aim(side+"ForeArm",side+"Hand",Vector3.down+outward*.11f+forward*.18f);
             }
         }
         var clip = new AnimationClip { name = name, legacy = true, frameRate = 30, wrapMode = WrapMode.Loop };

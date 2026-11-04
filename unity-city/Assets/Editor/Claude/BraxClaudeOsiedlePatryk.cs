@@ -29,11 +29,12 @@ public static partial class BraxClaudeOsiedle
     {
         PK("CombatIdle", true, true, "brax/Idle.fbx"),
         PK("Walk", true, true, "extra/Walking.fbx", "nyxa/Walking.fbx", "extra2/Walking.fbx"),
+        PK("Run", true, true, "extra/Running.fbx", "extra2/Unarmed Run Forward.fbx"),
         PK("Punch", false, true, "brax/Jab Cross (1).fbx", "xd/Jab Cross.fbx"),
         PK("Kick", false, true, "brax/Mma Kick (1).fbx", "nyxa/Mma Kick (1).fbx"),
         PK("Jump", false, true, "brax/Jump.fbx", "extra2/Unarmed Jump Running.fbx"),
     };
-    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Punch", "Kick", "Jump" };
+    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Run", "Punch", "Kick", "Jump" };
 
     // „mixamorig:LeftArm”, „mixamorig1:LeftArm”, „mixamorigLeftArm” → „LeftArm”
     static string PatrykKosc(string n)
@@ -73,6 +74,7 @@ public static partial class BraxClaudeOsiedle
         var avatar = AssetDatabase.LoadAllAssetsAtPath(model).OfType<Avatar>().FirstOrDefault();
 
         var hero = Object.Instantiate(wzor); hero.name = "Patryk";
+        Avatar tPoza = null;
         try
         {
             hero.transform.position = Vector3.zero; hero.transform.rotation = Quaternion.identity; hero.transform.localScale = Vector3.one;
@@ -112,10 +114,23 @@ public static partial class BraxClaudeOsiedle
 
             // --- klipy przeniesione na kości Patryka ---
             var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek), PatrykPozaStala(hero,spoczynek,"CarIdle",true) }; var opis = new List<string>();
-            // The replacement already has the owner's original T-pose.
-            Avatar tPoza = null;
             if (!avatar || !avatar.isValid || !avatar.isHuman)
                 throw new InvalidOperationException("Nowy Patryk: nieprawidłowy awatar Humanoid");
+            // Rig mismatch was logged in build #63. Compare the imported Humanoid
+            // and a rebuilt anatomical T-pose against BOTH Walk and Run before
+            // baking Legacy clips; preserve the original mesh and bindposes.
+            Avatar awatarRuchu = avatar;
+            try
+            {
+                tPoza = PatrykAwatarTPoza(wzor, avatar, model, out string opisTPozy);
+                awatarRuchu = PatrykWybierzAwatar(hero, avatar, tPoza, hips, kosci, spoczynek, out string porownanie);
+                Debug.Log("BRAXHORN_PATRYK_RETARGET " + opisTPozy + " | " + porownanie);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("BRAXHORN_PATRYK_RETARGET T-poza niedostępna, importowany awatar: " + e.Message);
+                if (tPoza) { Object.DestroyImmediate(tPoza); tPoza = null; }
+            }
             PatrykSpoczynek(spoczynek);
             foreach (var k in KlipyPatryka)
             {
@@ -126,7 +141,7 @@ public static partial class BraxClaudeOsiedle
                     if (!File.Exists(sciezka)) continue;
                     try
                     {
-                        gotowy = PatrykHumanoid(hero, avatar, hips, kosci, spoczynek, sciezka, k, out string uwagi);
+                        gotowy = PatrykHumanoid(hero, awatarRuchu, hips, kosci, spoczynek, sciezka, k, out string uwagi);
                         opis.Add(k.nazwa + "←" + z + uwagi);
                         break;
                     }
@@ -150,12 +165,19 @@ public static partial class BraxClaudeOsiedle
             {
                 var w = PatrykTestNog(hero, kosci, spoczynek, c);
                 bool ok = w.stopaPonad == 0 && w.koloTyl == 0 && w.przeprost == 0 && w.wBok == 0;
-                string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=" + (avatar == tPoza ? "T-poza" : "import") + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
+                string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=" + (awatarRuchu == tPoza ? "T-poza" : "import") + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
                 if (ok) Debug.Log(l); else Debug.LogWarning(l + " — DO SPRAWDZENIA W APK");
             }
             if (bledy > 0) Debug.LogWarning("BRAXHORN_PATRYK_KOSCI DO SPRAWDZENIA: " + bledy + " błędów — " + raportTestu);
 
-            anim.clip = anim.GetClip("Idle"); anim.Play("Idle"); anim.Sample();
+            var idleTest = anim.GetClip("Idle");
+            idleTest.SampleAnimation(hero, 0f);
+            float idleArms = PatrykKatRamion(kosci);
+            if (idleArms > 30f)
+                throw new InvalidOperationException("Patryk: ramiona w spoczynku uniesione (" + idleArms.ToString("F1") + "°)");
+            PatrykSpoczynek(spoczynek);
+            Debug.Log("BRAXHORN_PATRYK_IDLE ramiona=" + idleArms.ToString("F1") + "° od pionu (cel <30°)");
+            anim.clip = idleTest; anim.Play("Idle"); anim.Sample();
 
             // --- na miejsce: dziecko gracza, skala do wzrostu, stopy na podstawie kapsuły, warstwa gracza 8 ---
             hero.transform.SetParent(gracz, false);
@@ -178,9 +200,10 @@ public static partial class BraxClaudeOsiedle
                 + " wzrost=" + wzrost.ToString("F2") + " m" + " (model " + h0.ToString("F2") + " m ×" + skala.ToString("F3") + " → skala Braxa: Patryk " + WzrostPatrykaWGrze.ToString("F2") + " m, Brax " + WzrostBraxa.ToString("F2") + " m)"
                 + " kapsuła=" + (cialo ? cialo.height.ToString("F2") + "×" + cialo.radius.ToString("F2") : "—")
                 + " klipy=" + klipy.Count + " [" + string.Join(", ", opis) + "] bledy_kosci=" + bledy);
+            if (tPoza) { Object.DestroyImmediate(tPoza); tPoza = null; }
             return hero;
         }
-        catch { Object.DestroyImmediate(hero); throw; }
+        catch { if (tPoza) Object.DestroyImmediate(tPoza); Object.DestroyImmediate(hero); throw; }
     }
 
     static void PatrykSpoczynek(List<PatrykStan> s) { foreach (var x in s) { x.t.localRotation = x.r; x.t.localPosition = x.p; } }

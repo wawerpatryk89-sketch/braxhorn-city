@@ -84,32 +84,51 @@ public static partial class BraxClaudeOsiedle
             player.transform.SetPositionAndRotation(oldPos,oldRot);
         }
         var ok=kandydaci.Where(k=>k.t!=null).ToList();
-        var wybor=ok.Where(k=>k.drzwi&&k.miesci).Select(k=>(k.t,"drzwi kierowcy wydzielone i Patryk się mieści")).FirstOrDefault();
-        if(wybor.t==null)wybor=ok.Where(k=>k.miesci).Select(k=>(k.t,"mieści się, bez wydzielonych drzwi (drzwi bez animacji)")).FirstOrDefault();
-        if(wybor.t==null)wybor=ok.Where(k=>k.drzwi).OrderByDescending(k=>k.w.zapas).Select(k=>(k.t,"żadne nie mieści — DO POPRAWKI (największy zapas z drzwiami)")).FirstOrDefault();
-        if(wybor.t==null){Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: brak sportowego modelu — kandydaci: "+string.Join("; ",kandydaci.Select(k=>k.opis)));return;}
+        // Build #63 chose a supercar with 22 cm of roof penetration.
+        // Head clearance takes precedence over decorative door animation.
+        var wybor=ok.Where(k=>k.miesci).OrderByDescending(k=>k.drzwi).ThenByDescending(k=>k.w.zapas)
+            .Select(k=>(k.t,"sprawdzony zapas nad głową")).FirstOrDefault();
+        if(wybor.t==null)wybor=ok.Where(k=>k.w.zapas>=-.06f).OrderByDescending(k=>k.w.zapas)
+            .Select(k=>(k.t,"mała korekta wysokości fotela (do 6 cm)")).FirstOrDefault();
+        if(wybor.t==null){Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: brak sportowego modelu z bezpieczną kabiną — kandydaci: "+string.Join("; ",kandydaci.Select(k=>k.opis)));return;}
         var template=wybor.t; var wybrany=kandydaci.First(k=>k.t==template);
-        Debug.Log("BRAXHORN_AUTO_PATRYKA wybór="+template.id+" powód="+wybor.Item2+" kandydaci: "+string.Join("; ",kandydaci.Select(k=>k.opis)));
-        if(!wybrany.miesci)Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: Patryk nie mieści się w "+template.id+" przy najlepszym odchyleniu "+wybrany.w.odchylenie.ToString("F0")+"° — brakuje "+(-wybrany.w.zapas*100f/K).ToString("F1")+" cm rzeczywistych");
+        // Lower the seated character by the measured shortfall + 1.5 cm.
+        // Do not change player scale, car dimensions or mesh proportions.
+        float obnizFotel=Mathf.Max(0f,.015f-wybrany.w.zapas);
+        Debug.Log("BRAXHORN_AUTO_PATRYKA wybór="+template.id+" powód="+wybor.Item2+" obniżenie pozycji="+obnizFotel.ToString("F3")+" kandydaci: "+string.Join("; ",kandydaci.Select(k=>k.opis)));
 
         // Model ma już realną długość * K. Dodatkowe +25% robiło z 4,95 m
         // samochodu pojazd długości 6,19 m rzeczywistych i psuło dobór dróg.
         // Zostaw najlepszą zmierzoną pozycję siedzenia; jej brak miejsca trafia do diagnostyki.
         const float skalaAuta = 1f;
         Physics.SyncTransforms();
-        foreach(var spot in MiejscaParkingowe.OrderBy(m=>(new Vector3(m.srodek.x,0,m.srodek.z)-WejscieAreny).sqrMagnitude))
+        int sprawdzone=0, zaMale=0, zastawione=0, wejscieZablokowane=0;
+        // Try the marked parking positions first, then small longitudinal
+        // offsets WITHIN those same bays (no new roads, no new parking geometry).
+        var szukane=MiejscaParkingowe
+            .SelectMany(m => new[]{0f,.35f,-.35f,.70f,-.70f}.Select(off => new MiejsceParkingowe {
+                srodek=m.srodek+m.przod*off, przod=m.przod,
+                rozmiar=new Vector2(m.rozmiar.x, m.rozmiar.y-2f*Mathf.Abs(off)),
+                przyScianie=m.przyScianie
+            }))
+            .OrderBy(m=>(new Vector3(m.srodek.x,0,m.srodek.z)-WejscieAreny).sqrMagnitude);
+        foreach(var spot in szukane)
         {
             if((new Vector3(spot.srodek.x,0,spot.srodek.z)-WejscieAreny).magnitude>40f)break;
-            if(template.dl*skalaAuta+.2f>spot.rozmiar.y || template.szer*skalaAuta+.8f*K>spot.rozmiar.x)continue;
+            sprawdzone++;
+            // A standard marked space is 3*K wide; the old +.8*K clearance
+            // was greater than its width for some correctly scaled sports cars.
+            // Door-side clearance is tested using the actual player capsule.
+            if(template.dl*skalaAuta+.2f>spot.rozmiar.y || template.szer*skalaAuta+.4f*K>spot.rozmiar.x){zaMale++;continue;}
             var rotation=Quaternion.LookRotation(spot.przod);
             var half=new Vector3(template.szer*skalaAuta*.5f+.05f,Mathf.Max(.2f,(template.wys*skalaAuta-.3f)*.5f),template.dl*skalaAuta*.5f+.2f);
-            if(Physics.CheckBox(spot.srodek+Vector3.up*(.3f+half.y),half,rotation,~0,QueryTriggerInteraction.Ignore))continue;
+            if(Physics.CheckBox(spot.srodek+Vector3.up*(.3f+half.y),half,rotation,~0,QueryTriggerInteraction.Ignore)){zastawione++;continue;}
             var fotelSzablonu = template.go.GetComponentsInChildren<Transform>(true).First(t => t.name == FotelKierowcy);
             float zDrzwi = template.go.transform.InverseTransformPoint(fotelSzablonu.position).z;
             var wejscie = spot.srodek + rotation * (new Vector3(-(template.obrys.size.x * .5f + .65f), 0, zDrzwi) * skalaAuta);
             float promien = player.body.radius, wysokosc = player.body.height;
             if (Physics.CheckCapsule(wejscie + Vector3.up * (promien + .08f), wejscie + Vector3.up * (wysokosc - promien),
-                promien, ~0, QueryTriggerInteraction.Ignore)) continue;
+                promien, ~0, QueryTriggerInteraction.Ignore)){wejscieZablokowane++;continue;}
             var go=AutoInstancja(template,Group("Auto Patryka / ARENA BRAXHORN"),"Auto Patryka · tylko gracz",new System.Random(180),out var color);
             go.transform.SetPositionAndRotation(spot.srodek,rotation);
             Debug.Log("BRAXHORN_AUTO_PATRYKA skala_dodatkowa=1.000 dl="+template.dl.ToString("F3")+" szer_z_lusterkami="+template.szer.ToString("F3")+" K="+K.ToString("F4"));
@@ -117,7 +136,7 @@ public static partial class BraxClaudeOsiedle
             var rb=go.AddComponent<Rigidbody>();rb.isKinematic=true;rb.useGravity=false;rb.interpolation=RigidbodyInterpolation.Interpolate;
             var car=go.AddComponent<BraxAutoGracza>();car.obrys=box;
             car.fotel=go.GetComponentsInChildren<Transform>().First(t=>t.name==FotelKierowcy);
-            car.przesuniecieGracza=go.transform.InverseTransformPoint(car.fotel.position + car.fotel.up*(.08f*K-wybrany.w.zaglebienie) - rotation*hipsOffset);
+            car.przesuniecieGracza=go.transform.InverseTransformPoint(car.fotel.position + car.fotel.up*(.08f*K-wybrany.w.zaglebienie-obnizFotel) - rotation*hipsOffset);
             car.rozstaw=template.rozstaw*skalaAuta;car.promienKola=template.promienKola*skalaAuta;
             car.kola=new[]{"LP","PP","LT","PT"}.Select(n=>go.transform.Find("koło "+n+"/obrót")).Where(t=>t).ToArray();
             car.skret=new[]{"LP","PP"}.Select(n=>go.transform.Find("koło "+n)).Where(t=>t).ToArray();
@@ -145,6 +164,6 @@ public static partial class BraxClaudeOsiedle
             rep.notes.Add("Auto Patryka przy ARENA BRAXHORN: "+template.id+", "+color+", "+spot.srodek+" ("+odl.ToString("F1")+" m od wejścia); wsiadanie AKCJA (drzwi: "+drzwiOpis+"), gaz/ster joystick, wyjście po zatrzymaniu. Bez dostępu NPC.");
             Physics.SyncTransforms();return;
         }
-        Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: nie znaleziono wolnej zatoki przy ARENA BRAXHORN (40 m od wejścia)");
+        Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: brak wolnej zatoki do 40 m od ARENA BRAXHORN; sprawdzone="+sprawdzone+" za_małe="+zaMale+" kolizje="+zastawione+" dojścia_zablokowane="+wejscieZablokowane);
     }
 }
