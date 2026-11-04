@@ -17,6 +17,10 @@ jobs:
   unity:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [Android, StandaloneLinux64]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -37,7 +41,7 @@ jobs:
         with:
           projectPath: content-smoke
           unityVersion: 6000.0.58f2
-          targetPlatform: Android
+          targetPlatform: ${{ matrix.target }}
           buildMethod: BraxContentSmoke.Run
           versioning: None
           allowDirtyBuild: true
@@ -50,9 +54,19 @@ jobs:
           assert r['checks'] >= 12 and r['updateBytes'] < r['baselineBytes']
           print(json.dumps(r,indent=2))
           PY
+      - name: Exercise actual player loading, import, restart and rollback
+        if: matrix.target == 'StandaloneLinux64'
+        run: |
+          set -euo pipefail
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/brax-content-probe-config"
+          chmod +x build/content-probe/Probe.x86_64
+          for mode in base stage update base stage interrupted rollback; do
+            timeout 110s build/content-probe/Probe.x86_64 -batchmode -nographics -probeMode "$mode" -probeZip "$PWD/build/content-probe/update.zip" -logFile "$RUNNER_TEMP/content-$mode.log"
+            grep "BRAX_CONTENT_RUNTIME_PASS $mode" "$RUNNER_TEMP/content-$mode.log"
+          done
       - name: Test receipt only (no game assets)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: content-smoke-receipt
+          name: content-smoke-receipt-${{ matrix.target }}
           path: build/content-smoke/result.json
           if-no-files-found: error

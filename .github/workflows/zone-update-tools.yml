@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - codex/zone-updates-20261104
+      - codex/zone-content-updates-20261104
       - claude/osiedle-42-poprawka
     paths:
       - unity-tools/updates/**

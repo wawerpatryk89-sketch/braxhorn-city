@@ -19,3 +19,6 @@ for name in ('Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt'):
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source / name, destination)
 print('Synthetic Unity project prepared; private assets were not copied.')
+
+probe = Path('unity-tools/updates/tests/BraxContentRuntimeProbe.cs')
+shutil.copy2(probe, target/'Assets/Updates/BraxContentRuntimeProbe.cs')

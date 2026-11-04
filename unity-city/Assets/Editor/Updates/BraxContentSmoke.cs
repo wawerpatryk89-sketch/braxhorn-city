@@ -22,6 +22,14 @@ public static class BraxContentSmoke
         try { action(); } catch (InvalidDataException) { rejected = true; }
         Check(rejected, name);
     }
+    static void CopyTree(string source, string destination)
+    {
+        foreach (string file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            string target = Path.Combine(destination, file.Substring(source.Length + 1));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)); File.Copy(file, target, true);
+        }
+    }
     public static void Run()
     {
         Directory.CreateDirectory("Assets/Smoke");
@@ -43,6 +51,7 @@ public static class BraxContentSmoke
         AssetDatabase.SaveAssets();
         BraxContentBuild.Baseline("smoke", scenes);
         var basis = JsonUtility.FromJson<BraxContentManifest>(File.ReadAllText(BraxContentBuild.Base + "/manifest.json"));
+        CopyTree("Library/com.unity.addressables/aa", BraxContentBuild.Work + "/baseline-aa");
         string stateHash = BraxContentPackage.Sha(BraxContentBuild.Base + "/addressables_content_state.bin");
         File.WriteAllText("content-patch.json", "{\"edits\":[{\"scene\":\"Assets/Smoke/Smoke_A.unity\",\"path\":\"Target\",\"operation\":\"transform\",\"position\":{\"x\":1,\"y\":2,\"z\":3},\"rotation\":{\"x\":0,\"y\":0,\"z\":0},\"scale\":{\"x\":1,\"y\":1,\"z\":1}}]}");
         BraxContentBuild.UpdateFromBaseline();
@@ -78,5 +87,19 @@ public static class BraxContentSmoke
         Directory.CreateDirectory("../build/content-smoke");
         File.WriteAllText("../build/content-smoke/result.json", "{\"checks\":" + checks + ",\"baselineBytes\":" + basis.files.Sum(f => f.bytes) + ",\"updateBytes\":" + new FileInfo(zip).Length + ",\"unity\":\"" + Application.unityVersion + "\",\"deviceTest\":false}");
         Debug.Log("BRAX_CONTENT_SMOKE_PASS checks=" + checks);
+        if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneLinux64)
+        {
+            Directory.Delete("Library/com.unity.addressables/aa", true);
+            CopyTree(BraxContentBuild.Work + "/baseline-aa", "Library/com.unity.addressables/aa");
+            var bootstrap = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            var probeType = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("BraxContentRuntimeProbe")).First(t => t != null);
+            new GameObject("Runtime probe").AddComponent(probeType);
+            EditorSceneManager.SaveScene(bootstrap, "Assets/Smoke/Bootstrap.unity");
+            PlayerSettings.companyName = "BraxhornValidation"; PlayerSettings.productName = "ContentProbe";
+            var result = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = new[] { "Assets/Smoke/Bootstrap.unity" },
+                target = BuildTarget.StandaloneLinux64, locationPathName = "../build/content-probe/Probe.x86_64", options = BuildOptions.Development });
+            Check(result.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded, "Linux runtime probe player");
+            File.Copy(zip, "../build/content-probe/update.zip", true);
+        }
     }
 }

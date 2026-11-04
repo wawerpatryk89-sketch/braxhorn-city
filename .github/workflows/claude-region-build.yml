@@ -37,7 +37,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   source-imports:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka')
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -60,7 +60,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka')
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -412,7 +412,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka')
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -708,6 +708,13 @@ jobs:
           echo "klucz podpisu: brak sekretow BRAXHORN_KEYSTORE_B64 / BRAXHORN_KEYSTORE_PASS - podpis kluczem debug (trzeba odinstalowac przed instalacja)"
         fi
         echo "$GITHUB_RUN_NUMBER" > unity-city/braxhorn.versioncode
+    - name: Enable the private content baseline for the estate
+      env:
+        ZONE: ${{ steps.rejon.outputs.rejon }}
+      run: |
+        if [ "$ZONE" = osiedle ] && [ -f unity-city/content-enabled.txt ]; then
+          printf 'baseline\n' > unity-city/content-mode.txt
+        fi
     - name: Kompilacja aplikacji Android (APK) z tej samej sceny
       id: unity_android
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
@@ -810,6 +817,17 @@ jobs:
           unity-city/Assets/Source/Premium/source-refinements.json
           unity-city/Assets/Source/Claude/Osiedle/sky/niebo_odbicia.jpg
         key: ${{ steps.rejon.outputs.klucz }}
+    - name: Preserve immutable encrypted content baseline after successful APK
+      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+      run: |
+        if [ -f unity-city/BraxContentBuild/base/manifest.json ]; then
+          sudo chown -R "$(id -u):$(id -g)" unity-city/BraxContentBuild unity-city/Assets unity-city/ProjectSettings
+          python3 unity-tools/updates/content_snapshot.py publish-base
+          echo 'Private content baseline preserved; future content patches use zone-content-update.yml.' >> "$GITHUB_STEP_SUMMARY"
+        fi
     - name: Pamiec Library Unity dla Androida - pelny zapis z Bee
       id: library_pack
       if: ${{ !cancelled() && steps.unity_android.outcome == 'success' }}
@@ -871,7 +889,7 @@ jobs:
 
   shots:
     needs: combined-unity6
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka')
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
     runs-on: ubuntu-latest
     timeout-minutes: 100
     strategy:

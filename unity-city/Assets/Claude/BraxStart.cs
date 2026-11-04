@@ -75,7 +75,7 @@ public sealed class BraxStart : MonoBehaviour
             if (dz > zapisane) { zapisane = dz; BraxStartLog.Etap("2a postęp " + dz * 10 + "%"); }
             yield return null;
         }
-        if (op.Failed) { status = BraxTeksty.F("start.blad_sceny", nazwa); yield break; }
+        if (op.Failed) { op.ReleaseFailure(); status = BraxTeksty.F("start.blad_sceny", nazwa); yield break; }
         postep = .95f;
         BraxStartLog.Etap("2b 90% dane wczytane: " + nazwa);
         status = BraxTeksty.T("start.uruchamianie");

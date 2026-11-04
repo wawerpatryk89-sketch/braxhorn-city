@@ -44,6 +44,7 @@ public static class BraxContentBuild
         // Explicit separate dependencies prevent a shared model/texture being
         // duplicated into every scene bundle. Sub-assets stay with their source.
         var shared = Group(settings, zone + "-shared");
+        settings.DefaultGroup = shared;
         foreach (string path in AssetDatabase.GetDependencies(scenes, true).OrderBy(p => p, StringComparer.Ordinal))
         {
             if (!path.StartsWith("Assets/", StringComparison.Ordinal) || scenes.Contains(path) ||
@@ -149,7 +150,8 @@ public static class BraxContentBuild
     {
         var paths = Directory.GetFiles("Assets", "*", SearchOption.AllDirectories)
             .Where(p => !p.Replace('\\', '/').Contains("/Editor/"))
-            .Where(p => new[] { ".cs", ".asmdef", ".asmref", ".dll", ".so", ".aar", ".java", ".shader", ".compute" }.Contains(Path.GetExtension(p)))
+            .Where(p => new[] { ".cs", ".asmdef", ".asmref", ".dll", ".so", ".aar", ".java", ".shader", ".compute" }.Contains(Path.GetExtension(p)) ||
+                (p.Replace('\\', '/').Contains("/Resources/") && p != Config && p != Config + ".meta" && !p.EndsWith(".meta")))
             .Concat(new[] { "Packages/manifest.json", "Packages/packages-lock.json" }.Where(File.Exists))
             .OrderBy(p => p, StringComparer.Ordinal);
         var text = new StringBuilder(Application.unityVersion + "\n" + EditorUserBuildSettings.activeBuildTarget + "\n" +

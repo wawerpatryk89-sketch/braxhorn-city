@@ -55,15 +55,18 @@ public sealed class BraxContent : MonoBehaviour
             if (File.Exists(Path.Combine(root, "trial")))
             {
                 current = ReadPointer("previous"); WritePointer("active", current);
+                WritePointer("pending", "");
                 File.Delete(Path.Combine(root, "trial"));
                 Message = "Przywrócono poprzednią wersję po nieudanym starcie.";
             }
             string pending = ReadPointer("pending");
             if (pending.Length > 0)
             {
-                WritePointer("previous", current); WritePointer("active", pending);
+                WritePointer("previous", current);
+                // Journal BEFORE switching the active version. A process killed
+                // at any following step can roll back and won't retry the patch.
+                WritePointer("trial", pending); WritePointer("active", pending);
                 WritePointer("pending", ""); current = pending;
-                File.WriteAllText(Path.Combine(root, "trial"), current);
             }
             if (current.Length > 0)
             {
@@ -171,6 +174,7 @@ public sealed class BraxContent : MonoBehaviour
         public bool Ready => addressable ? handle.IsDone : legacy == null || legacy.progress >= .9f;
         public bool Failed => addressable ? handle.IsDone && handle.Status != AsyncOperationStatus.Succeeded : legacy == null;
         public float Progress => addressable ? handle.PercentComplete * .9f : legacy != null ? legacy.progress : 0f;
+        public void ReleaseFailure() { if (addressable && handle.IsValid() && Failed) Addressables.Release(handle); }
         public IEnumerator Activate()
         {
             if (Failed) yield break;
@@ -218,6 +222,16 @@ public sealed class BraxContent : MonoBehaviour
         yield return new WaitForSecondsRealtime(30);
         while (handles.Values.Any(h => h.IsValid() && !h.IsDone)) yield return null;
         if (!failed && File.Exists(Path.Combine(root, "trial"))) File.Delete(Path.Combine(root, "trial"));
+        if (!failed && !Importing)
+        {
+            var keep = new HashSet<string> { current, ReadPointer("previous"), ReadPointer("pending") };
+            foreach (string directory in Directory.GetDirectories(root, "v-*"))
+            {
+                string name = Path.GetFileName(directory);
+                if (name.Length == 34 && Guid.TryParseExact(name.Substring(2), "N", out _) && !keep.Contains(name))
+                    try { Directory.Delete(directory, true); } catch (IOException) { /* retry after a later successful start */ }
+            }
+        }
     }
 
     public static void ChooseUpdate()
