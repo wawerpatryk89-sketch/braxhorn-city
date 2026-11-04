@@ -1,7 +1,9 @@
-"""Restore three verified encrypted locomotion clips selected for Monika.
+"""Restore encrypted Monika motion sources; this command does not run Unity.
 
 Uses the existing camp recipient and source verifier. No private key or raw clip
-is published, and this command does not change the production delivery manifest.
+is published. Owner Walk/Run/Jump replace only those selections; the original
+casual package remains available for Idle and comparison. Source integrity is
+not a claim that the owner's new clips have passed a Unity or phone review.
 """
 import json
 import os
@@ -12,6 +14,8 @@ import tarfile
 import tempfile
 
 import assets
+
+PACKAGES = Path(__file__).with_name('motion-packages')
 
 
 def run(args):
@@ -45,8 +49,36 @@ def extract(plain, stage, records):
     assets.verify_sources(dict(schema=1, zone='oboz', files=records), stage)
 
 
-def restore(data):
+def validate_owner(data, base):
+    if data.get('schema') != 1:
+        raise ValueError('Invalid owner motion schema')
+    for key in ('releaseTag', 'certificateSha256', 'wrappedKeySha256'):
+        if data.get(key) != base[key]:
+            raise ValueError('Owner motion must use the existing camp recipient')
+    package = data['package']
+    if not re.fullmatch(r'monika-owner-motion-[0-9]{8}\.cms\.enc', package['name']):
+        raise ValueError('Invalid owner motion filename')
+    if (type(package['bytes']) is not int or not 1 <= package['bytes'] <= 10*1024*1024
+            or not re.fullmatch(r'[0-9a-f]{64}', package['sha256'])):
+        raise ValueError('Invalid owner motion receipt')
+    expected = {'animations/monika-owner/'+name for name in
+                ('Brutal To Happy Walking.fbx', 'Running.fbx', 'Jump.fbx')}
+    if len(data['files']) != 3 or {f['path'] for f in data['files']} != expected:
+        raise ValueError('Owner delivery must contain only Walk, Run and Jump')
+    assets.validate_inventory(dict(schema=1, zone='oboz', files=data['files']))
+
+
+def verify_package(path, receipt):
+    if (path.is_symlink() or not path.is_file() or path.stat().st_size != receipt['bytes']
+            or assets.digest(path) != receipt['sha256']):
+        raise ValueError('Missing/damaged encrypted motion package: '+receipt['name'])
+
+
+def restore(data, owner):
     validate(data)
+    validate_owner(owner, data)
+    owner_cipher = PACKAGES/owner['package']['name']
+    verify_package(owner_cipher, owner['package'])
     if not os.environ.get('KLUCZ'):
         raise ValueError('Missing CI encryption binding')
     repo = os.environ['GITHUB_REPOSITORY']
@@ -56,24 +88,28 @@ def restore(data):
             run(['gh', 'release', 'download', data['releaseTag'], '--repo', repo,
                  '--pattern', name, '--dir', str(folder)])
         cert, wrapped, key = folder/'recipient.crt', folder/'recipient.pem.enc', folder/'recipient.pem'
-        cipher, plain = folder/data['package']['name'], folder/'sources.tar.gz'
         if assets.digest(cert) != data['certificateSha256'] or assets.digest(wrapped) != data['wrappedKeySha256']:
             raise ValueError('Recipient changed')
-        if cipher.stat().st_size != data['package']['bytes'] or assets.digest(cipher) != data['package']['sha256']:
-            raise ValueError('Damaged encrypted candidates')
         key.touch(mode=0o600)
         run(assets.OPENSSL+['-d', '-in', str(wrapped), '-out', str(key), '-pass', 'env:KLUCZ'])
-        run(['openssl', 'cms', '-decrypt', '-binary', '-in', str(cipher), '-inform', 'DER',
-             '-inkey', str(key), '-recip', str(cert), '-out', str(plain)])
         stage = folder/'sources'; stage.mkdir()
-        extract(plain, stage, data['files'])
-        for record in data['files']:
+        # Verify BOTH deliveries before replacing any existing source. There is
+        # no silent fallback to the old movement if the owner's delivery fails.
+        for index, (receipt, cipher) in enumerate(((data, folder/data['package']['name']), (owner, owner_cipher))):
+            verify_package(cipher, receipt['package'])
+            plain = folder/('sources-'+str(index)+'.tar.gz')
+            run(['openssl', 'cms', '-decrypt', '-binary', '-in', str(cipher), '-inform', 'DER',
+                 '-inkey', str(key), '-recip', str(cert), '-out', str(plain)])
+            extract(plain, stage, receipt['files'])
+        for record in data['files'] + owner['files']:
             target = assets.safe(assets.PRIVATE, record['path'])
             target.parent.mkdir(parents=True, exist_ok=True)
             os.replace(assets.safe(stage, record['path']), target)
-    print('MONIKA_MOTION_SOURCE verified=3 character=monika')
+    print('MONIKA_MOTION_SOURCE integrity_verified=6 character=monika owner_clips=Walk,Run,Jump owner_unity_tested=false')
 
 
 if __name__ == '__main__':
     data=json.loads((Path(__file__).with_name('motion-candidates.json')).read_text())
-    restore(data)
+    owner=json.loads((Path(__file__).with_name('monika-owner-motion.json')).read_text())
+    restore(data, owner)
+

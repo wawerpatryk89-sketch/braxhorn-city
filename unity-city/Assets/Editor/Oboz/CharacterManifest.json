@@ -159,18 +159,18 @@
         },
         {
           "name": "Walk",
-          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Walk.anim",
+          "path": "Assets/Source/Prywatne/Oboz/animations/monika-owner/Brutal To Happy Walking.fbx",
           "loop": true,
           "inPlace": true,
-          "donor": "Basic Motions",
+          "donor": "Monika — paczka właściciela 2026-11-04",
           "directCalibrated": true
         },
         {
           "name": "Run",
-          "path": "Assets/Source/Prywatne/Oboz/animations/casual/Run.anim",
+          "path": "Assets/Source/Prywatne/Oboz/animations/monika-owner/Running.fbx",
           "loop": true,
           "inPlace": true,
-          "donor": "Basic Motions",
+          "donor": "Monika — paczka właściciela 2026-11-04",
           "directCalibrated": true
         },
         {
@@ -189,10 +189,11 @@
         },
         {
           "name": "Jump",
-          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jump.fbx",
+          "path": "Assets/Source/Prywatne/Oboz/animations/monika-owner/Jump.fbx",
           "loop": false,
           "inPlace": true,
-          "donor": "brax"
+          "donor": "Monika — paczka właściciela 2026-11-04",
+          "directCalibrated": true
         },
         {
           "name": "HeadHit",

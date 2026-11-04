@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "releaseTag": "oboz-transfer-key-41749904696",
+  "certificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5",
+  "wrappedKeySha256": "c4aa29e1dc2b9a991808c8de8ed7a2c12b656c22edaa848944e0d48e597462e2",
+  "sourceArchive": "Monika anim(1).zip",
+  "sourceArchiveSha256": "2de9fa1ec1c72e6d49f5622a56bb7d9cf6de131728152ae9a7a0ff3fdc0f0d60",
+  "package": {
+    "name": "monika-owner-motion-20261104.cms.enc",
+    "bytes": 407249,
+    "sha256": "0a658bc467573ecfe3f0c07edb302b3ae2f99e966c8fa97640f307e1e053b71e"
+  },
+  "files": [
+    {
+      "path": "animations/monika-owner/Brutal To Happy Walking.fbx",
+      "bytes": 528096,
+      "sha256": "619a103135f8902347920f04aee7383086e50040029ac2b1a94c7a2bc075b831"
+    },
+    {
+      "path": "animations/monika-owner/Running.fbx",
+      "bytes": 401408,
+      "sha256": "da6f3027993fe9c1c2fdf817725657a76f7b14c63eeb6a098b1dd327816f14dd"
+    },
+    {
+      "path": "animations/monika-owner/Jump.fbx",
+      "bytes": 712432,
+      "sha256": "91198c8657dc4dd63b2c45f29cb8c625452abed55a377c475f936180152549b6"
+    }
+  ],
+  "unityTested": false,
+  "phoneTested": false
+}
