@@ -40,3 +40,15 @@
 6. Ostatecznie Android: czas uruchomienia, zużycie RAM, FPS, brak crashów i dostępność aktualizacji strefowych.
 
 **Brak jeszcze rzeczywistego testu APK dla tej gałęzi.** Nie scalać z gałęzią miasta i nie publikować jako ukończone bez odbioru. Osiedla i obozu nie dotykać.
+
+## Dodatkowe naprawy po audycie (zapisane w kodzie, NIE potwierdzone w APK)
+
+- **Tower / kamera windy:** przy rzeczywistym wejściu do kabiny automatyczny widok zza pleców zamienia się w widok w stronę drzwi na wysokości oczu. Po wyjściu przywracany jest normalny widok TPP. Minimalizuje to ryzyko czarnego ekranu z filmów v1 (0:12–0:44).
+- **Nowa dzielnica / szyby:** przy materiałach rozpoznanych jako szkło lub ciemny metal fasady zmieniany jest istniejący materiał na jaśniejsze szkło refleksyjne PBR, bez dokładania drugiej powierzchni. Nie zastępuje to ręcznej kontroli wszystkich witryn.
+- **Supermarket:** możliwe do usunięcia tylko fragmenty płotu bezpośrednio przed wejściem, reszta zachowana. Jeśli generator nie znajdzie płotu w tej samej scenie, log zgłosi brak naprawy.
+- **T1 / kamera i interakcja:** poprawiony kontekst przycisku gracza, zachowanie siedzenia podczas jazdy, inicjalizacja po zbudowaniu trasy i aktualizacja postaci przed kamerą; sześć przystanków na pełnej pętli.
+- **T1 / model drzwi:** `unity-tools/claude/check_tram_glb.py` sprawdza w binarnym `tramwaj_caf.glb`, czy rzeczywiste skrzydła istnieją jako minimum dwie odrębne siatki. Jeśli nie, build z tej testowej gałęzi zatrzyma się wcześnie (niedokończona mechanika, brak oszustwa).
+
+### Granice ukończenia
+
+Nie mamy jeszcze kompilacji Unity ani testu rzeczywistego ruchu, drzwi CAF, pasażerów Rocketbox, FPS lub załadunku miasta. Nie ma podstaw, by obiecywać, że cały tramwaj i wszystkie fasady są gotowe. Brak modeli drzwi w GLB albo kolizje na łukach = wymagane dalsze naprawy przed akceptacją.
