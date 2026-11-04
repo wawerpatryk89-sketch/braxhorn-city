@@ -176,6 +176,8 @@ def main():
         upload(repo, tag, archive, expected)
         gh('release','edit',tag,'--repo',repo,'--title','Braxhorn private content baseline: '+expected['base'])
         output('base', expected['base'])
+        archive.unlink()
+        archive.with_name(archive.name+'.json').unlink(missing_ok=True)
     else:
         if not args.base or not ID.fullmatch(args.base):
             raise ValueError('Explicit base ID required')
