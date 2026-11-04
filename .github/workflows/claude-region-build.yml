@@ -4,6 +4,7 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
     branches:
     - claude/region-20261030
     - claude/miasto-opus-20261031
+    - codex/city62-report-permissions-20261104
     paths:
     - unity-city/**
     - unity-tools/claude/**
@@ -35,7 +36,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   source-imports:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -58,7 +59,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -95,7 +96,7 @@ jobs:
     outputs:
       rejon: ${{ steps.rejon.outputs.rejon }}
     # 3.11 18:40 (właściciel): BEZ ZDJĘĆ CI — „to tylko czas zajmuje”. Job (i shots) wyłączony.
-    if: false && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: false && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104')
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
@@ -409,7 +410,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104')
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -714,7 +715,7 @@ jobs:
             case "$tag" in
               miasto|miastogl|calosc)
                 [ ! -f "$RUNNER_TEMP/wyslane/$tag.invalid" ] || continue
-                if ! python3 unity-tools/claude/check_city_sea_payload.py "$f" > "build/Android/$tag-validation.json"; then
+                if ! python3 unity-tools/claude/check_city_sea_payload.py "$f" > "$RUNNER_TEMP/sea-guard-$tag-validation.json"; then
                   touch "$RUNNER_TEMP/wyslane/$tag.invalid"
                   echo "Odrzucono APK $tag: brak poprawnych danych komponentu morza" >> "$RUNNER_TEMP/straznik.log"
                   continue
@@ -803,7 +804,7 @@ jobs:
           [ -f "$f" ] || continue
           tag=$(basename "$f" .apk); tag=${tag#braxhorn-}
           case "$tag" in
-            miasto|miastogl|calosc) python3 unity-tools/claude/check_city_sea_payload.py "$f" > "build/Android/$tag-validation.json" ;;
+            miasto|miastogl|calosc) python3 unity-tools/claude/check_city_sea_payload.py "$f" > "$RUNNER_TEMP/sea-final-$tag-validation.json"; cat "$RUNNER_TEMP/sea-final-$tag-validation.json" ;;
           esac
           [ -f "$RUNNER_TEMP/wyslane/$tag" ] && { echo "$tag juz wyslany przez straznika"; continue; }
           cp "$f" braxhorn-${tag}-${GITHUB_SHA::7}.apk; FILES="$FILES braxhorn-${tag}-${GITHUB_SHA::7}.apk"
@@ -822,6 +823,14 @@ jobs:
           for i in 1 2 3 4 5 6; do gh release upload "$REL" --repo "$GITHUB_REPOSITORY" --clobber "$f" && { ok=1; break; }; sleep 30; done
           if [ $ok = 0 ]; then gh release view "$REL" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' | grep -qx "$f" || { echo "NIE WYSLANO $f"; exit 1; }; fi
         done
+    - name: Zachowaj raport kontroli morza po probie wysylki APK
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: city-sea-validation-${{ github.run_id }}
+        path: ${{ runner.temp }}/sea-*-validation.json
+        retention-days: 7
+        if-no-files-found: warn
     - name: Sprawdz gotowe generowanie miasta takze po bledzie APK
       id: generation_checkpoint
       if: ${{ !cancelled() && steps.rejon.outputs.pamiec == 'tak' }}
@@ -911,7 +920,7 @@ jobs:
 
   shots:
     needs: combined-unity6
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031')
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104')
     runs-on: ubuntu-latest
     timeout-minutes: 100
     strategy:
