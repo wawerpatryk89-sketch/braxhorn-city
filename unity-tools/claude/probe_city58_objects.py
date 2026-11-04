@@ -27,6 +27,7 @@ def main():
                     out.write(apk.read(item))
     env = UnityPy.load(str(target))
     good, skipped, failures, probe = collections.Counter(), collections.Counter(), [], []
+    scripts = {}
     for obj in env.objects:
         if pathlib.Path(obj.assets_file.name).name != 'level1':
             continue
@@ -37,11 +38,14 @@ def main():
         try:
             if obj.type.name == 'MonoBehaviour':
                 value = obj.parse_monobehaviour_head()
+                script = value.m_Script.deref_parse_as_object()
+                row['script'] = script.m_ClassName
+                row['assembly'] = script.m_AssemblyName
+                key = (script.m_AssemblyName, script.m_ClassName)
+                stat = scripts.setdefault(key, {'assembly': key[0], 'class': key[1], 'count': 0, 'sizes': set()})
+                stat['count'] += 1
+                stat['sizes'].add(obj.byte_size)
                 if near:
-                    try:
-                        row['script'] = value.m_Script.deref_parse_as_object().m_ClassName
-                    except Exception as exc:
-                        row['script_error'] = str(exc)
                     probe.append(row.copy())
                 skipped['MonoBehaviour custom fields (no type tree)'] += 1
             else:
@@ -52,7 +56,8 @@ def main():
             if len(failures) < 100:
                 failures.append(row)
     report = {'reader': UnityPy.__version__, 'scope': 'Independent parser, not Unity runtime validation',
-              'parsed': dict(good), 'skipped': dict(skipped), 'failures_first_100': failures, 'register_probe': probe}
+              'parsed': dict(good), 'skipped': dict(skipped), 'failures_first_100': failures, 'register_probe': probe,
+              'scripts': [dict(s, sizes=sorted(s['sizes'])) for _, s in sorted(scripts.items())]}
     print(json.dumps(report, indent=2))
 
 

@@ -1,0 +1,53 @@
+name: City 58 - Unity serialization regression (no city build)
+on:
+  push:
+    branches: [codex/city58-startup-update-20261104]
+    paths:
+      - .github/workflows/city58-serialization-regression.yml
+      - unity-tools/claude/prepare_serialization_probe.py
+      - unity-tools/claude/serialization-probe/**
+      - unity-city/Assets/Claude/Runtime/BraxAkwen.cs
+      - unity-city/Assets/Claude/Runtime/BraxMorzeZaKamera.cs
+      - unity-city/Assets/Editor/Claude/BraxBrakujaceSkrypty.cs
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            unity-city/Assets/Claude/Runtime
+            unity-city/Assets/Editor/Claude
+            unity-tools/claude
+      - name: Prepare original and repaired component in an isolated project
+        run: |
+          git fetch --depth=1 origin 874f194624e4dfead5637a4e3dfd1d3285a9cbe1
+          python3 unity-tools/claude/prepare_serialization_probe.py
+      - name: Reproduce invalid script binding and verify repaired scene serialization
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: serialization-probe
+          unityVersion: 6000.0.58f2
+          targetPlatform: StandaloneLinux64
+          buildMethod: BraxSerializationProbe.Run
+          versioning: None
+          allowDirtyBuild: true
+      - name: Keep regression evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: city58-serialization-regression
+          path: |
+            serialization-probe/probe-report/
+            serialization-probe/Logs/
+          retention-days: 7
+          if-no-files-found: warn

@@ -196,6 +196,7 @@ public static class BraxGymBuild
     private static void BuildInternal(bool fullCity,bool integrated,bool renovation=false,BuildTarget target=BuildTarget.WebGL)
     {
         var t0=DateTime.UtcNow;
+        BraxBrakujaceSkrypty.SprawdzTypy(); // przed kosztownym generowaniem i użyciem cache scen
         // REJON BUILDU (build 14, właściciel: rejony OSOBNO — osiedle i miasto jako osobne buildy). Plik rejon-ci.txt pisze
         // workflow (unity-tools/claude/rejon_buildu.py); bez pliku = „oba” jak dotąd. Dotyczy tylko paczki regionu
         // (BuildRenovation / BuildRenovationAndroid); Build / BuildCity / BuildIntegrated bez zmian.
