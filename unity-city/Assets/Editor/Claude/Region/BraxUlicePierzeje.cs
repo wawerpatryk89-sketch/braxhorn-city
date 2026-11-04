@@ -825,19 +825,19 @@ public static class BraxUlicePierzeje
                             return t.gameObject;
             }
         }
-        if (rodzaj == "ekspres")
+        string cc0 = rodzaj == "ekspres"
+            ? "Assets/Source/Claude/Cafe/espresso_machine_sobczak.glb"
+            : "Assets/Source/Claude/Cafe/coffee_grinder_sobczak.glb";
+        if (System.IO.File.Exists(cc0))
         {
-            string cc0 = "Assets/Source/Claude/Cafe/espresso_machine_sobczak.glb";
-            if (System.IO.File.Exists(cc0))
+            AssetDatabase.ImportAsset(cc0, ImportAssetOptions.ForceSynchronousImport);
+            var g = AssetDatabase.LoadAssetAtPath<GameObject>(cc0) ??
+                AssetDatabase.LoadAllAssetsAtPath(cc0).OfType<GameObject>().FirstOrDefault();
+            if (g)
             {
-                AssetDatabase.ImportAsset(cc0, ImportAssetOptions.ForceSynchronousImport);
-                var g = AssetDatabase.LoadAssetAtPath<GameObject>(cc0) ??
-                    AssetDatabase.LoadAllAssetsAtPath(cc0).OfType<GameObject>().FirstOrDefault();
-                if (g)
-                {
-                    Debug.Log("BRAXHORN_KAWIARNIA_SPRZET model CC0 Spring Lever Espresso Machine — zamiast pustej kawiarni");
-                    return g;
-                }
+                Debug.Log("BRAXHORN_KAWIARNIA_SPRZET model CC0 " + rodzaj +
+                          " — oryginalne wyposażenie nie zostało odnalezione");
+                return g;
             }
         }
         Debug.LogError("BRAXHORN_KAWIARNIA_NIEGOTOWA: brak autentycznego modelu " +
