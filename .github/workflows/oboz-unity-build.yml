@@ -1,0 +1,24 @@
+name: Obóz — Unity 6 APK do testu
+
+# Registration only. Select gpt/oboz in Run workflow to use its complete pipeline.
+# This default-branch entry never imports Unity or builds a game.
+on:
+  workflow_dispatch:
+    inputs:
+      first_install:
+        description: Pierwszy APK obozu, bez wcześniejszego potwierdzonego podpisu
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  choose-camp-branch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Wybierz gałąź obozu
+        run: |
+          echo '::error::W Run workflow wybierz gpt/oboz. Ten wpis main jedynie udostępnia ręczny start obozu.'
+          exit 1
