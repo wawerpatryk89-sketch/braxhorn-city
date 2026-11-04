@@ -302,7 +302,8 @@ public static partial class BraxClaudeOsiedle
             }
             if (zleRamionaIdle > 0) { bledy++; uwagi.Add("Idle: ramiona nie są opuszczone w " + zleRamionaIdle + "/8 klatek"); }
             if (bk > 0) { bledy += bk; uwagi.Add(c.name + ": " + bk + " kości > 2 %"); }
-            if ((c.name == "Idle" || c.name == "Walk" || c.name == "Run") && tpoza == 8) { bledy++; uwagi.Add(c.name + ": T-poza"); }
+            if ((c.name == "Idle" && tpoza > 0) || ((c.name == "Walk" || c.name == "Run") && tpoza >= 2))
+            { bledy++; uwagi.Add(c.name + ": ręce nienaturalnie uniesione w " + tpoza + "/8 klatek"); }
             if (c.name != "Idle" && ruch < 1f) { bledy++; uwagi.Add(c.name + ": bez ruchu (poza spoczynkowa)"); }
             PatrykSpoczynek(spoczynek);
         }
