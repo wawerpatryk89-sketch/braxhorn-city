@@ -771,7 +771,14 @@ public static class BraxClaudeMetro
             W.MM(mLamperia, xBot + .5f, 58.2f, yP, yP + .25f, zf + s * .07f - .01f, zf + s * .07f + .01f);
         }
         Obudowa(25.5f, -1f);
-        W.MM(mSciana, 54.0f, 58.4f, yP, yM - .4f, WZ0, WZ1, true);     // pod antresolą (ściana zamykająca przestrzeń techniczną)
+        // FILM 4.11: poprzednia PEŁNA ściana z=25.4..31.5 i x=54..58.4
+        // przecinała oba biegi (schody stałe oraz ruchome) tuż przy antresoli.
+        // Zamiast osłaniać przejście kolejną płytą, WYCOFUJEMY pełną ścianę.
+        // Pozostają tylko boczne policzki poza faktycznym światłem przejścia:
+        // schody stałe z=25.6..28.7, ruchome z=28.95..31.25.
+        W.MM(mSciana, 54.0f, 58.4f, yP, yM - .4f, WZ0, 25.52f, true);
+        W.MM(mSciana, 54.0f, 58.4f, yP, yM - .4f, 31.35f, WZ1, true);
+        Debug.Log("BRAXHORN_METRO_PRZEJSCIE_SCHODY: usunięta pełna ściana techniczna; schody=25.6..28.7, ruchome=28.95..31.25 (prześwit bez paneli)");
         // drzwi techniczne pod schodami (od strony peronu płd.)
         W.MM(mDrzwiTech, 55.2f, 56.3f, yP, yP + 2.1f * K, 25.41f, 25.44f);
         W.MM(mStal, 56.15f, 56.2f, yP + 1.0f * K, yP + 1.05f * K, 25.38f, 25.41f);
