@@ -68,6 +68,9 @@ public static class BraxKontrolaSkali
 
     static Wynik Sprawdz(J j, float k)
     {
+        // Regresja 4.11: 23 ruchome stopnie salonu zostały uznane za bieżnie treningowe
+        // i powiększone z 0.38 do 1.75 m. Nigdy nie skaluj części schodów ruchomych.
+        if (j.t && j.t.GetComponentInParent<BraxSchodyRuchome>()) return null;
         var typ = j.typ;
         float lo = typ.lo1, hi = typ.hi1; var p = typ.p1;
         if (typ.kosz && (j.wewnatrz = Wewnatrz(j))) { lo = .30f; hi = .75f; }      // kosz w pomieszczeniu: 30–75 cm (biurowy … kuchenny)
