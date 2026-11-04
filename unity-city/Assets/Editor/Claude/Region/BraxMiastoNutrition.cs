@@ -150,21 +150,15 @@ internal static class BraxMiastoNutrition
             pl.Box(new Vector3(X0 + .04f, y - .03f, rz0), new Vector3(X0 + rd, y, rz1), 1);
             BraxUliceKit.S(led).Box(new Vector3(X0 + rd - .04f, y - .05f, rz0), new Vector3(X0 + rd - .01f, y - .03f, rz1));
             if (p == 4) break;
-            if (odzywki) { BraxSklepyTowar.Polka(p == 0 ? "odz_dol" : p == 3 ? "odz_gora" : "odz_polka", twN, new Vector3(X0 + .27f, y + .004f, rz0 + .1f), Vector3.forward, Vector3.left, rz1 - rz0 - .25f, rng, (rh - .3f) / 4f - .02f); continue; }
-            for (float zq = rz0 + .1f; zq < rz1 - .15f;)
-            {
-                int typ = (p + (int)((zq - rz0) / 2.4f)) % 4;
-                float r = typ == 0 ? .1f * K : typ == 1 ? .085f * K : typ == 2 ? .055f * K : .045f * K;
-                float h = typ == 0 ? .28f * K : typ == 1 ? .2f * K : typ == 2 ? .18f * K : .22f * K;
-                if (p == 3 && typ < 2) { r = .045f * K; h = .22f * K; }
-                var c = new Vector3(X0 + .27f, y, zq + r);
-                if (typ == 3 && p != 3) { tw.kolor = marka[rng.Next(marka.Length)]; tw.Box(new Vector3(X0 + .1f, y, zq), new Vector3(X0 + .4f, y + .06f * K, zq + .2f * K)); zq += .22f * K; continue; }   // batony w kartonikach
-                var kol0 = marka[rng.Next(3)]; var pas = marka[2 + rng.Next(4)];
-                tw.kolor = kol0; tw.Rura(c, c + Vector3.up * h * .35f, r, 10, true);
-                tw.kolor = pas; tw.Rura(c + Vector3.up * h * .35f, c + Vector3.up * h * .7f, r, 10, false);
-                tw.kolor = kol0; tw.Rura(c + Vector3.up * h * .7f, c + Vector3.up * h, r, 10, true);
-                zq += r * 2f + .025f;
-            }
+            // Właściciel: żadnych kolorowych walców udających opakowania.
+            // Gdy paczka modeli/etykiet jest niedostępna, półka pozostaje jawnie
+            // niewykończona i raportowana, zamiast fałszować wynik importu.
+            if (odzywki)
+                BraxSklepyTowar.Polka(p == 0 ? "odz_dol" : p == 3 ? "odz_gora" : "odz_polka",
+                    twN, new Vector3(X0 + .27f, y + .004f, rz0 + .1f),
+                    Vector3.forward, Vector3.left, rz1 - rz0 - .25f, rng, (rh - .3f) / 4f - .02f);
+            else if (p == 0)
+                BraxMiastoA.Log("NUTRITION — BRAK: miasto_sklepy. Zatrzymano atrapy; brakujące modele BRAXHORN wymagają importu.");
         }
         tw.kolor = BraxUliceKit.Bialy;
         if (odzywki) BraxSklepyTowar.Zakoncz(twN, "BRAXHORN NUTRITION");
@@ -243,7 +237,7 @@ internal static class BraxMiastoNutrition
                         var p = c0 + new Vector3(-.6f + (i + w * .5f) * .4f, yy + w * .28f * K, -.3f + (j + w * .5f) * .3f);
                         var mt = odzywki ? BraxMiastoAssety.Model("miasto_sklepy", "odz_whey_" + (1 + (i + 2 * j + w) % 4)) : null;   // piramida prawdziwych kubłów whey 2 kg
                         if (mt) { BraxMiastoAssety.Postaw(root, mt, "Nutrition: kubeł whey na podeście", p, 0f, 1f, true, false); continue; }
-                        tw.kolor = marka[(i + j + w) % 3]; tw.Rura(p, p + Vector3.up * .28f * K, .1f * K, 10);
+                        // Brak rzeczywistego modelu = brak produktu, nie zastępczy walec.
                     }
             tw.kolor = BraxUliceKit.Bialy;
             BraxMiastoA.Kol(kol, "podest ekspozycyjny", c0 + new Vector3(-.93f, 0, -.63f), c0 + new Vector3(.93f, .55f * K + .03f, .63f));
