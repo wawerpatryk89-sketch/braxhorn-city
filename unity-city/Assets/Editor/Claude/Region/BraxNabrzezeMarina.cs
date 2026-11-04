@@ -583,7 +583,14 @@ public static class BraxNabrzezeMarina
                 var b = BraxRegion.Bounds(seat.gameObject);
                 if (b.size.x > .10f && b.size.z > .10f)
                 {
-                    float h = b.min.y + Mathf.Min(.29f * b.size.y, .28f * K);
+                    // assise_4 ma duże oparcie (do y=0.615 w źródłowym GLB).
+                    // 29% AABB dawało zbyt niski fotel. Oddzielna część
+                    // assise_4_chrome_0 ma górę ramy siedziska ok. y=0.133;
+                    // to stabilniejsze odniesienie dla bioder Braxa.
+                    var rama = seat.GetComponentsInChildren<Renderer>(true)
+                        .FirstOrDefault(x => x && x.name.IndexOf("chrome", StringComparison.OrdinalIgnoreCase) >= 0);
+                    float h = rama ? rama.bounds.max.y + .055f * K :
+                        b.min.y + Mathf.Min(.39f * b.size.y, .32f * K);
                     Vector3 world = new Vector3(b.center.x, h, b.center.z);
                     var pos = v.InverseTransformPoint(world);
                     // Do kierownicy skierowana jest strona +Z (dziób), a model
