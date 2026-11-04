@@ -124,6 +124,11 @@ jobs:
           '
         persist-credentials: false
         lfs: false
+    - name: C# syntax and local scopes before Unity (CS0136 regression)
+      run: |
+        python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+        python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+        python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py
@@ -439,6 +444,11 @@ jobs:
           '
         persist-credentials: false
         lfs: false
+    - name: C# syntax and local scopes before Unity (CS0136 regression)
+      run: |
+        python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+        python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+        python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py
