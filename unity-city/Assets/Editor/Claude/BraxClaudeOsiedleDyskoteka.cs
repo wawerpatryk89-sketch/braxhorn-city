@@ -13,7 +13,7 @@ using UnityEngine.Rendering;
 //    barmanów 1.0 m × K, lada 1.1 m × K z podświetlanym kamieniem (onyks), podnóżek mosiężny, hokery (model, zapas: kod),
 //    lampy wiszące z kloszem (model, zapas: kod), szkło na zapleczu (model), napis BAR (litery przestrzenne, neon).
 //    3 stanowiska: po 5 OSOBNYCH butelek na szynie, szklanka, ciecz, strumień — BraxBarDyskoteki (nalewanie, ZAMÓW).
-//  • LOŻE: 15 (zachód, północ, wyspa, południe) — trzy kompletne moduły Chesterfield w U
+//  • LOŻE: 13 (zachód, północ, wyspa, południe) — trzy kompletne moduły Chesterfield w U
 //    bez wycinania przypadkowych MeshFilter jako fotel, stolik marmurowy pośrodku.
 //    Kierunek przodu sofy kalibrowany z geometrii, luz narożników 0.045 × K; zapas: kod.
 //  • DJ PREMIUM: konsola na scenie z mikserem dj_mixer.glb (NOVA), ściana LED 8.8 × 4.4 m za DJ-em (wzór z kodu —
@@ -515,8 +515,8 @@ public static partial class BraxClaudeOsiedle
         foreach (float z in new[] { 8f, 15.1f, 22.2f }) Loza(new Vector3(xW, 0, z), Vector3.right, true);
         foreach (float x in new[] { 74f, 81f }) Loza(new Vector3(x, 0, Z1 - .09f), Vector3.back, true);
         // 3.11 15:53 (właściciel): „żadnej ściany na dyskotece — loże w U, jedno U, drugie U, stoliki między”: ścianka wyspy usunięta,
-        // loże wyspy stoją oparciami do siebie (sofa + 2 fotele = U wokół stolika), 1.2 m × K przejścia między kolejnymi U
-        foreach (float z in new[] { 8.2f, 15.4f, 22.6f }) { Loza(new Vector3(76.3f, 0, z), Vector3.left, false); Loza(new Vector3(76.7f, 0, z), Vector3.right, false); }
+        // loże wyspy stoją oparciami do siebie (3 całe sofy = U wokół stolika), min. 1.2 m × K między rzędami
+        foreach (float z in new[] { 8.2f, 15.4f, 22.0f }) { Loza(new Vector3(76.3f, 0, z), Vector3.left, false); Loza(new Vector3(76.7f, 0, z), Vector3.right, false); }
         foreach (float x in new[] { 91.5f, 99f }) Loza(new Vector3(x, 0, Z0 + .09f), Vector3.forward, false);
         klub.loze = lozeN;
 
