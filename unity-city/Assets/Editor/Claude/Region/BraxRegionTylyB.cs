@@ -436,7 +436,13 @@ public static class BraxRegionTylyB
     static Material OknoWiezowca(Def d)
     {
         var sh = Shader.Find("Braxhorn/OsiedleOkno"); const string path = "Assets/Source/Claude/Osiedle/detail/pokoje.png";
-        if (!sh || !File.Exists(path)) return BraxCityMaterials.Surface("Wieżowiec: szyba jasna (bez atlasu pokoi)", new Color(.55f, .64f, .70f), .12f, .15f);
+        if (!sh || !File.Exists(path))
+        {
+            Debug.LogWarning("BRAXHORN_WIEZOWCE brak pokoje.png: " + d.nazwa +
+                "; prawdziwych pokojów nie można potwierdzić. Zamiast pustej/ciemnej bryły szyby refleksyjne.");
+            return BraxCityMaterials.Surface("Wieżowiec: szkło refleksyjne bez atlasu pokoi",
+                new Color(.53f, .63f, .69f), .13f, .55f);
+        }
         var m = new Material(sh) { name = "Wieżowiec: okna z pokojami " + d.nazwa };
         m.SetTexture("_Rooms", AssetDatabase.LoadAssetAtPath<Texture2D>(path));
         m.SetFloat("_Variant", 0); m.SetFloat("_Variants", 5); m.SetFloat("_CellH", Hf); m.SetFloat("_Floor0", YC + Hg);
