@@ -285,7 +285,14 @@ public static partial class BraxRegionMiastoB
         foreach (var bud in ndBudynki)
         {
             if (!bud) continue;
-            var b = BraxRegion.Bounds(bud);
+            // Testujemy rzeczywistą bryłę kolizji budynku, a nie sumę rendererów.
+            // Renderery mogą obejmować rozległe dekoracje/LOD i fałszywie
+            // zgłaszać kolizję tramwaju z fasadą stojącą poza torowiskiem.
+            var budKol = bud.GetComponentsInChildren<BoxCollider>(true)
+                .FirstOrDefault(c => c && c.name == bud.name + " kolizja");
+            if (!budKol)
+                throw new InvalidOperationException("BRAXHORN_TRAM_T1_BUDYNEK_BRAK_KOLIZJI: " + bud.name);
+            var b = budKol.bounds;
             var p = new Vector2(b.center.x, b.center.z);
             var ext = new Vector2(b.extents.x, b.extents.z);
             if (ext.x < .5f || ext.y < .5f) continue;
