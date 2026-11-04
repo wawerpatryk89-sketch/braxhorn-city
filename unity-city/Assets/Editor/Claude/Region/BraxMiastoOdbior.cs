@@ -31,6 +31,7 @@ internal static class BraxMiastoOdbior
         SprawdzWejscie("MIESZKANIE_BRAXA_KLATKA", 33.73f, .15f, 35.72f, 36.65f);
         SprawdzApteke(cityRoot);
         SprawdzTaras360(cityRoot);
+        SprawdzTramT1(cityRoot);
     }
 
     static void SprawdzApteke(Transform cityRoot)
@@ -92,6 +93,43 @@ internal static class BraxMiastoOdbior
             Debug.LogWarning(log + " — panorama jest, ale nie potwierdzono nieba minimum 4K");
         else
             Debug.Log(log + " — elementy dostępne do testu z dachu");
+    }
+
+
+    static void SprawdzTramT1(Transform cityRoot)
+    {
+        var tram = cityRoot.GetComponentInChildren<BraxTramwajT1>(true);
+        if (!tram)
+        {
+            Debug.LogError("BRAXHORN_TRAM_T1_NIEGOTOWY: brak pojazdu i dynamicznej linii");
+            return;
+        }
+        int n = tram.trasa == null ? 0 : tram.trasa.Length;
+        int p = tram.przystankiIndeksy == null ? 0 : tram.przystankiIndeksy.Length;
+        int znaki = cityRoot.GetComponentsInChildren<Transform>(true)
+            .Count(t => t && t.name.StartsWith("T1: przystanek ", StringComparison.Ordinal));
+        int szyny = cityRoot.GetComponentsInChildren<MeshRenderer>(true)
+            .Count(t => t && t.name.StartsWith("T1: szyny jezdne", StringComparison.Ordinal));
+        int drzwi = tram.skrzydlaDrzwi == null ? 0 : tram.skrzydlaDrzwi.Length;
+        float dlugosc = 0f;
+        if (n > 1) for (int i = 0; i < n; i++)
+            dlugosc += Vector3.Distance(tram.trasa[i], tram.trasa[(i + 1) % n]);
+        float domkniecie = n > 1 ? Vector3.Distance(tram.trasa[n - 1], tram.trasa[0]) : float.PositiveInfinity;
+        bool pasazerowie = tram.GetComponent<BraxTramPasazerowie>();
+        bool f = n > 100 && p == 6 && znaki == 6 && szyny >= 4 &&
+                 dlugosc > 900f && domkniecie < 3f && tram.miejsceGracza &&
+                 pasazerowie;
+        string raport = "BRAXHORN_TRAM_T1_ODBIOR pętla_m=" + dlugosc.ToString("F1") +
+            " domknięcie_m=" + domkniecie.ToString("F2") +
+            " punktów=" + n + " przystanków=" + p +
+            " znaków=" + znaki + " siatek_szyn=" + szyny +
+            " niezależne_skrzydła_drzwi=" + drzwi +
+            " siedzenie=" + (tram.miejsceGracza != null) +
+            " choreografia_NPC=" + pasazerowie;
+        if (!f) Debug.LogError(raport + " — NIEGOTOWE");
+        else if (drzwi < 2)
+            Debug.LogWarning(raport + " — BRAK ruchomych drzwi w oryginalnym CAF; NPC nie przechodzą przez zamknięty pojazd");
+        else Debug.Log(raport + " — GOTOWE W KODZIE do testu Android");
     }
 
     static void SprawdzWejscie(string nazwa, float x, float y, float zA, float zB)
