@@ -37,6 +37,7 @@ jobs:
             unity-city/ProjectSettings/
             unity-city/apk-warianty.txt
             unity-tools/updates/
+            unity-tools/validation/
             unity-tools/oboz/
       - name: Jawne zlecenie buildu z gałęzi obozu
         id: request
@@ -45,6 +46,11 @@ jobs:
           BEFORE_SHA: ${{ github.event.before }}
           FIRST_INSTALL: ${{ inputs.first_install }}
         run: python3 unity-tools/oboz/build_request.py
+      - name: C# syntax and local scopes before Unity (CS0136 regression)
+        run: |
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
       - name: Sprawdź narzędzia Androida przed kompilacją
         run: |
           set -euo pipefail
