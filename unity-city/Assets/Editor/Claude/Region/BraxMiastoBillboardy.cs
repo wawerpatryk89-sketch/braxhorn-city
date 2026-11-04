@@ -323,10 +323,27 @@ internal static class BraxMiastoBillboardy
                     if (nm.Contains("szkł") || nm.Contains("szkl") || nm.Contains("glass") || nm.Contains("witryn") || nm.Contains("drzwi") || nm.Contains("door")) { ok = false; break; }
                     traf.Add(h.point.z);
                 }
-            if (!ok || traf.Count == 0) continue;
-            traf.Sort(); float zw = traf[traf.Count / 2];
-            if (traf.Any(z => Mathf.Abs(z - zw) > .03f)) continue;
+            // Pierwotny test wymagał 20/20 trafień w dokładnie jeden collider ściany.
+            // Fasada jest rzeczywistą siatką (także bez pełnych colliderów), więc build #64
+            // wykazał "19: brak ślepego muru" mimo pustej ściany widocznej w grze.
+            // Jeśli raycast nie potwierdzi płaszczyzny, użyj zewnętrznego lica fasady
+            // z planu miasta z=20.6, NIE stawiaj nowej elewacji ani pustej ramy.
+            float zw;
+            bool zweryfikowanyMur = ok && traf.Count > 0;
+            if (zweryfikowanyMur)
+            {
+                traf.Sort(); zw = traf[traf.Count / 2];
+                zweryfikowanyMur = !traf.Any(z => Mathf.Abs(z - zw) > .03f);
+            }
+            else zw = 20.6f;
+            if (!zweryfikowanyMur)
+            {
+                if (x0 < 9f) continue; // jedyna znana ślepa ściana jest po prawej od wejścia
+                zw = 20.6f;
+                Debug.LogWarning("BRAXHORN_MURAL_19 kotwica siłowni z=20.60 z planu; raycast nie rozpoznał ściany — potwierdzić zrzutem Unity");
+            }
             var mat = Grafika("19", 1.5f, out float asp);
+            if (mat == pusta) { opis.Add("19: brak tekstury właściciela — nie montujemy pustej ramy"); return; }
             float w = Mathf.Min(x1 - x0 - .6f, 4.5f), h2 = w / asp; if (h2 > 3.0f) { h2 = 3.0f; w = h2 * asp; }
             float xc = (x0 + x1) * .5f, yb = .15f + .7f;
             var g = new GameObject("BRAXHORN mural 19 (szara ściana przy wejściu do BRAXHORN GYM)").transform; g.SetParent(rodzic, true); g.position = Vector3.zero;
