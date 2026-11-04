@@ -3,6 +3,8 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+import shutil
+import os
 import tarfile
 import tempfile
 import unittest
@@ -76,6 +78,15 @@ class TransferTests(unittest.TestCase):
         with patch.object(assets, 'MANIFEST', self.manifest), self.assertRaises(ValueError):
             transfer.validate_request(request)
 
+    def test_github_release_delivery_is_accepted_and_mixed_sources_rejected(self):
+        request = self.packed_request()
+        part = request['packages'][0]
+        part.pop('url'); part['releaseTag']='oboz-transfer-key-123'
+        with patch.object(assets, 'MANIFEST', self.manifest):
+            transfer.validate_request(request)
+            part['url']='https://example.blob.core.windows.net/a'
+            with self.assertRaises(ValueError): transfer.validate_request(request)
+
     def test_transfer_rejects_unsafe_host_name_size_and_hash(self):
         request = self.packed_request()
         with patch.object(assets, 'MANIFEST', self.manifest):
@@ -93,6 +104,42 @@ class TransferTests(unittest.TestCase):
         (self.source/'model.bin').write_bytes(b'changed')
         with patch.object(assets, 'MANIFEST', self.manifest), self.assertRaises(ValueError):
             transfer.pack(self.source, self.cert, self.receipt, self.folder/'output')
+
+    def test_ci_receives_reencrypts_and_reads_back_complete_delivery(self):
+        request = self.packed_request()
+        repo = self.folder/'repo'; repo.mkdir()
+        helper = repo/'unity-tools/claude/prywatne.py'; helper.parent.mkdir(parents=True)
+        shutil.copyfile(assets.ROOT/'unity-tools/claude/prywatne.py', helper)
+        wrapped = self.folder/'recipient.pem.enc'
+        real_run = transfer.run
+        with patch.dict(os.environ, {'KLUCZ':'test-fixture-only', 'GITHUB_REPOSITORY':'test/camp', 'GITHUB_SHA':'0'*40}):
+            real_run(assets.OPENSSL+['-salt','-in',str(self.key),'-out',str(wrapped),'-pass','env:KLUCZ'])
+            request['recipient']['wrappedKeySha256']=assets.digest(wrapped)
+            published={}
+            def fake_run(cmd):
+                if cmd[0]!='gh': return real_run(cmd)
+                if cmd[2]=='create': return
+                if cmd[2]=='upload':
+                    src=Path(cmd[-1]); published[src.name]=src.read_bytes(); return
+                name=cmd[cmd.index('--pattern')+1]
+                dest=Path(cmd[cmd.index('--dir')+1])/name
+                if name=='recipient.crt': dest.write_bytes(self.cert.read_bytes())
+                elif name=='recipient.pem.enc': dest.write_bytes(wrapped.read_bytes())
+                else: dest.write_bytes(published[name])
+            def fake_download(part,target):
+                shutil.copyfile(self.folder/'output'/part['name'],target)
+            with patch.object(assets,'ROOT',repo), patch.object(assets,'MANIFEST',self.manifest), \
+                 patch.object(transfer,'run',fake_run), patch.object(transfer,'download_part',fake_download):
+                transfer.accept(request,self.folder/'proof')
+            proof=json.loads((self.folder/'proof/delivery-proof.json').read_text())
+            self.assertEqual(proof['verifiedFiles'],1)
+            self.assertTrue(proof['readbackVerified'])
+            manifest=json.loads((self.folder/'proof/private-inputs.json').read_text())
+            encrypted=repo/'unity-city/Prywatne'/manifest['packages'][0]['name']
+            plain=self.folder/'final.tar.gz'
+            real_run(assets.OPENSSL+['-d','-in',str(encrypted),'-out',str(plain),'-pass','env:KLUCZ'])
+            with tarfile.open(plain,'r:gz') as tar:
+                self.assertEqual(tar.extractfile('model.bin').read(),(self.source/'model.bin').read_bytes())
 
     def test_pack_does_not_overwrite_existing_output(self):
         self.packed_request()

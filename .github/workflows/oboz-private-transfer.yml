@@ -38,7 +38,7 @@ jobs:
         run: python3 unity-tools/oboz/transfer.py prepare-key --output "$RUNNER_TEMP/public-recipient"
       - name: Publiczny klucz dla wysyłającego
         if: steps.request.outputs.mode == 'prepare-key'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: oboz-public-recipient
           path: ${{ runner.temp }}/public-recipient/
@@ -51,7 +51,7 @@ jobs:
         run: python3 unity-tools/oboz/transfer.py accept --request unity-tools/oboz/transfer-request.json --output "$RUNNER_TEMP/delivery-proof"
       - name: Dowód dostawy bez modeli i sekretów
         if: steps.request.outputs.mode == 'import'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: oboz-delivery-proof
           path: ${{ runner.temp }}/delivery-proof/

@@ -26,8 +26,10 @@ To nie jest rozmiar APK, zaszyfrowanego archiwum ani RAM telefonu.
 Spis pomija nieużywane kopie GLB i pliki tymczasowe po kopiowaniu. Zachowuje
 oryginalne bajty wszystkich wybranych modeli, map i animacji.
 
-Paczki nie zostały jeszcze zaszyfrowane ani dostarczone do CI. W lokalnym
-środowisku brak powiązania z `KLUCZ`; nie pobieramy ani nie wypisujemy sekretu.
+Nowa ścieżka nie wymaga lokalnego hasła: patrz `TRANSFER-STATUS.md`.
+Siedem paczek transportowych jest zaszyfrowanych i zapisanych; ich wysyłka do
+GitHuba pozostaje zablokowana. W lokalnym środowisku brak powiązania z `KLUCZ`;
+nie pobieramy ani nie wypisujemy sekretu.
 Istniejące sekrety CI mają nazwy `BRAXHORN_KEYSTORE_PASS`,
 `BRAXHORN_KEYSTORE_B64`, `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`.
 Ich dostępność dla tego joba zostanie sprawdzona przed uruchomieniem Unity.

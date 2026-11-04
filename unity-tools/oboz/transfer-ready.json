@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "mode": "import",
+  "recipient": {
+    "schema": 1,
+    "releaseTag": "oboz-transfer-key-41749904696",
+    "certificateSha256": "4a1bdb0377eaa7dd294f62e13bd6e12efd0bfa1a0249ad604ca9f2632b560fd5",
+    "wrappedKeySha256": "c4aa29e1dc2b9a991808c8de8ed7a2c12b656c22edaa848944e0d48e597462e2",
+    "runId": "41749904696"
+  },
+  "privateInputsSha256": "80761519db8f8a01ad9d06f2749f3b03405343dd26e913565d5a850a13880928",
+  "packages": [
+    {
+      "name": "camp-transfer-000.cms.enc",
+      "bytes": 167140803,
+      "sha256": "3dcd271896353a710e2bf4d8763c549592a6f8009c75a2864b9340b9bf3d6f15",
+      "releaseTag": "oboz-transfer-key-41749904696"
+    },
+    {
+      "name": "camp-transfer-001.cms.enc",
+      "bytes": 180950976,
+      "sha256": "46173832b0f7c23e15341f5264679f65c0d4958e3c069f62dfbdf5ccec2a10e8",
+      "releaseTag": "oboz-transfer-key-41749904696"
+    },
+    {
+      "name": "camp-transfer-002.cms.enc",
+      "bytes": 167817805,
+      "sha256": "ed31e541a4ae5e2ac893d5ad1acca60f1d4340dc25eb368c53d86616c0ef2e29",
+      "releaseTag": "oboz-transfer-key-41749904696"
+    },
+    {
+      "name": "camp-transfer-003.cms.enc",
+      "bytes": 162371365,
+      "sha256": "24cf6e2be6ae94666c61440f7b87ebbbc633974631f8684b2819d369341098bc",
+      "releaseTag": "oboz-transfer-key-41749904696"
+    },
+    {
+      "name": "camp-transfer-004.cms.enc",
+      "bytes": 171303347,
+      "sha256": "83fbad0993af2b31354a639dd79be02e24c1d6b3458ad06ae35323d34bc7cf93",
+      "releaseTag": "oboz-transfer-key-41749904696"
+    },
+    {
+      "name": "camp-transfer-005.cms.enc",
+      "bytes": 157130693,
+      "sha256": "e22f20edc16a57ff7b0a2e36a941d4940e88e743b24ea0791152e74f8ae6739c",
+      "releaseTag": "oboz-transfer-key-41749904696"
+    },
+    {
+      "name": "camp-transfer-006.cms.enc",
+      "bytes": 70822319,
+      "sha256": "19c73a6609ab403d6598d5427a2a8c8f0f2ef23628f24c88ef2e749773ee80ab",
+      "releaseTag": "oboz-transfer-key-41749904696"
+    }
+  ]
+}

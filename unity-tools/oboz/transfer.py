@@ -125,6 +125,10 @@ def validate_request(request):
             raise ValueError('Invalid transfer size')
         if not re.fullmatch(r'[0-9a-f]{64}', p['sha256']):
             raise ValueError('Invalid transfer checksum')
+        if 'releaseTag' in p:
+            if 'url' in p or not re.fullmatch(r'oboz-transfer-key-[0-9]+', p['releaseTag']):
+                raise ValueError('Invalid encrypted transport release')
+            continue
         u = urlparse(p['url'])
         host = u.hostname or ''
         if u.scheme != 'https' or u.username or u.password or u.port not in (None,443) or not (
@@ -134,6 +138,12 @@ def validate_request(request):
 
 
 def download_part(part, target):
+    if 'releaseTag' in part:
+        run(['gh', 'release', 'download', part['releaseTag'], '--repo', os.environ['GITHUB_REPOSITORY'],
+             '--pattern', part['name'], '--dir', str(target.parent)])
+        if target.stat().st_size != part['bytes'] or assets.digest(target) != part['sha256']:
+            raise ValueError('Incomplete or corrupt encrypted transfer')
+        return
     # URLs refer only to ciphertext. Do not print temporary bearer URLs in logs.
     h, size = hashlib.sha256(), 0
     with urlopen(part['url'], timeout=120) as source, target.open('xb') as output:
@@ -182,7 +192,7 @@ def accept(request, output):
         tag = data['releaseTag']
         run(['gh', 'release', 'create', tag, '--repo', repo, '--draft',
              '--target', os.environ['GITHUB_SHA'], '--title', 'Obóz — zweryfikowane prywatne źródła',
-             '--notes', '204 źródła; zaszyfrowane w CI dotychczasowym sekretem. Nie jest to APK.'])
+             '--notes', f"Zweryfikowane źródła: {len(expected)}; zaszyfrowane w CI dotychczasowym sekretem. Nie jest to APK."])
         check = folder/'download-check'; check.mkdir()
         for part in data['packages']:
             path = assets.ROOT/'unity-city/Prywatne'/part['name']
