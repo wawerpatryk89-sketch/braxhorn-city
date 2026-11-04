@@ -24,6 +24,7 @@ public sealed class BraxWorek : MonoBehaviour
     Vector2 s, v;                    // wychylenie (rad) i prędkość kątowa (rad/s)
     Quaternion spoczynek;
     AudioSource zrodlo;
+    bool audioPaused;
     static AudioClip klip;
     static Transform gracz; static CharacterController cialo; static float szukaj;
 
@@ -36,7 +37,7 @@ public sealed class BraxWorek : MonoBehaviour
         if (!klip) klip = Uderzenie();
     }
     void OnEnable() { BraxGymPlayer.OnCios += Cios; }
-    void OnDisable() { BraxGymPlayer.OnCios -= Cios; }
+    void OnDisable() { BraxGymPlayer.OnCios -= Cios; if(zrodlo)zrodlo.Stop(); }
 
     // Głuche „łup” w skórzany worek: krótki szum (plaśnięcie skóry) + niski ton 70→45 Hz (masa worka), szybkie wygaszenie.
     static AudioClip Uderzenie()
@@ -85,6 +86,9 @@ public sealed class BraxWorek : MonoBehaviour
 
     void Update()
     {
+        bool paused=pauseWith&&pauseWith.Paused;
+        if(audioPaused!=paused)
+        {audioPaused=paused;if(zrodlo){if(paused)zrodlo.Pause();else zrodlo.UnPause();}}
         if (pauseWith && pauseWith.Paused) return;
         ZnajdzGracza();
         float dt = Mathf.Min(Time.deltaTime, .05f);

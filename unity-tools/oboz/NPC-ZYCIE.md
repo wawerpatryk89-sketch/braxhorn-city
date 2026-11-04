@@ -79,3 +79,14 @@ Pipera 1.3.0, domyślnie darkman-medium/gosia-medium, nie płatnego API.
 HeyGen był wyłącznie propozycją i nie jest wybranym dostawcą. Dalsza próba
 powinna porównać warianty Pipera i rzeczywistą jakość nagrań. Nie raportować
 rozmów jako gotowych przed odsłuchem i integracją.
+
+### Kontrole i dźwięk — 04.11.2026
+
+- Próba `41839698409` (`6b82cd37`) skompilowała kod z modułem AI, przywróciła autobus z własnego szyfrowanego źródła i potwierdziła 30 połączeń NavMesh. Przerwana przed Play Mode: czysta sesja diagnostyczna miała Gamma, walidacja wymagała Linear. Następna próba ustawia Linear tak samo jak builder APK, bez osłabiania walidacji.
+- Autobus: oryginalny model osiedla/miasta, zaparkowana kopia 12 m × skala świata (15.528 jednostek), szerokość 3.732272; wynik kodu generatora, odbiór wizualny jeszcze oczekuje.
+- Jeden silnik głosów: lokalny Piper 1.3.0 jak `osiedle_glosy.py` na `5ea83909a1aa58b74fb9fa54cbe23a5087a3e087`. Brak płatnego API. Nie użyto HeyGen. Wspólne odtwarzanie `BraxGlosPostaci`; obóz nie wywołuje dymków ani napisów dialogowych.
+- Próbki: `41838753792`, 24 WAV, ZIP SHA-256 `02d283013c7aad0732856d226e27b8f4d2e669f3e57abe7284f64881b89ae395`.
+- Nagrania do integracji: `41841011462`, SHA `eb30b5e06b99a95948e91674070d122497e4cfdb`, 47 WAV, artifact `13328337833`, ZIP SHA-256 `35df4ccdafdff17c9ba1dd7b8119272d53c74fb84c0059f744849e389ac3d5a6`. Sprawdzono format mono PCM16, długości i SHA każdego nagrania. **Naturalność i gra aktorska niezatwierdzone; kontrola plików nie jest odsłuchem.**
+- Rozmowy: kolejka dwóch wypowiedzi, przerwy, zasięg, pauza, brak jednoczesnych rozmów; Monika wydaje zadanie przez istniejącą AKCJĘ. Tymczasowy dobór: Gosia (Monika), Darkman (Vorn/Kade), Bass (Gorr/Miś), MC Speech (Zyro/Rakk), bez zmiany wysokości głosu. Głosy NPC w 3D, Monika jako sterowany gracz według wspólnego API.
+- Trafienia: osobne syntetyczne kontakty rękawic/ciała wyzwalane przez potwierdzone trafienie; worek zachowuje własny odgłos i impuls. Nie są to nagrania prawdziwego sparingu. Audio obozu reaguje na pauzę.
+- Następna kontrola obejmuje rzeczywistą scenę oraz 14 końcowych klipów × 7 postaci (pomiar 30 faz, zdjęcia CPU w 6 fazach z trzech kierunków). Wynik i przegląd obrazów jeszcze oczekują. Nie uruchomiono kolejnego APK.

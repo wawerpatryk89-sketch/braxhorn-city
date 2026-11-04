@@ -62,6 +62,7 @@ public sealed class BraxObozArena : MonoBehaviour, IBraxInterakcja
                 {
                     playerHealth = Mathf.Max(0, playerHealth - punchDamage); npcScore++;
                     player.PlayReaction("HeadHit");
+                    var audio=player.GetComponent<BraxObozContactAudio>();if(audio)audio.Contact(false);
                     if (playerHealth <= 0) { Finish(-1); return; }
                 }
             }
@@ -89,6 +90,7 @@ public sealed class BraxObozArena : MonoBehaviour, IBraxInterakcja
         npcHealth = Mathf.Max(0, npcHealth - (kick ? kickDamage : punchDamage)); playerScore++;
         strikePending = false; attackWait = 1.1f;
         opponent.React(kick ? "HitToBody" : "HeadHit"); recoverLeft = .55f;
+        var audio=opponent.GetComponent<BraxObozContactAudio>();if(audio)audio.Contact(false);
         if (npcHealth <= 0) Finish(1);
     }
     void Finish(int result)

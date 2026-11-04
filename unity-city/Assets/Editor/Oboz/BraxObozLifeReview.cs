@@ -44,6 +44,7 @@ public static partial class BraxObozCharacters
         public bool complete, playModeTested, phoneTested = false, appearanceApproved = false;
         public float pauseDisplacement, pauseBagDegrees;
         public int rounds, roleChanges, bagStrikes, sparringStrikes, orders;
+        public int spokenLines, voiceExchanges, contactSounds;
         public LifeFrame[] frames;
         public string[] errors;
     }
@@ -53,6 +54,8 @@ public static partial class BraxObozCharacters
     {
         if (!Application.isBatchMode || EditorApplication.isPlayingOrWillChangePlaymode)
             throw new InvalidOperationException("Próba obozu wymaga izolowanej sesji batch");
+        // Match BraxObozBuild.Configure; a clean diagnostic editor defaults to Gamma.
+        PlayerSettings.colorSpace=ColorSpace.Linear;
         Directory.CreateDirectory(Generated); AssetDatabase.Refresh();
         var empty = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         EditorSceneManager.SaveScene(empty, Generated + "/LifeReviewBootstrap.unity");
@@ -61,6 +64,7 @@ public static partial class BraxObozCharacters
         var scene = Object.FindFirstObjectByType<BraxObozSceneInfo>();
         var structural = BraxObozValidation.Check(scene);
         if (!structural.structuralPassed) throw new InvalidOperationException(string.Join("; ", structural.structuralErrors));
+        ReviewFinalPoses(scene);
         // In-memory test value; production asset retains 45 seconds.
         scene.GetComponent<BraxObozTrainingRoutine>().roundSeconds = 8;
         SessionState.SetBool(LifeKey, true); SubscribeLifeReview(); EditorApplication.EnterPlaymode();
@@ -121,6 +125,7 @@ public static partial class BraxObozCharacters
             if (time >= 27 && !lifeResumed)
             {
                 lifeResumed = true;
+                if(!lifeRoutine.audio.Paused)lifeErrors.Add("Głosy nie przyjęły pauzy");
                 for (int i=0;i<6;i++) lifePauseMove = Mathf.Max(lifePauseMove, Vector3.Distance(lifePausePositions[i],lifeRoutine.participants[i].transform.position));
                 for (int i=0;i<2;i++) lifePauseBag = Mathf.Max(lifePauseBag, Quaternion.Angle(lifePauseRotations[i],lifeRoutine.trainingBags[i].transform.rotation));
                 lifeScene.player.Command("pause");
@@ -177,6 +182,12 @@ public static partial class BraxObozCharacters
         {
             report.rounds=lifeRoutine.CompletedRounds; report.roleChanges=lifeRoutine.RoleChanges;
             report.bagStrikes=lifeRoutine.BagStrikes; report.sparringStrikes=lifeRoutine.SparringStrikes; report.orders=lifeRoutine.Orders;
+            if(lifeRoutine.audio)
+            {
+                report.spokenLines=lifeRoutine.audio.SpokenLines;report.voiceExchanges=lifeRoutine.audio.Exchanges;report.contactSounds=lifeRoutine.audio.Contacts;
+                if(report.spokenLines<2||report.contactSounds!=report.sparringStrikes)lifeErrors.Add("Niepełne zdarzenia rozmów/trafień audio");
+            }
+            else lifeErrors.Add("Brak wspólnego odtwarzania głosów");
             if(report.rounds<3)lifeErrors.Add("Nie ukończono trzech rund");
             if(report.bagStrikes<8||report.sparringStrikes<6)lifeErrors.Add("Za mało rzeczywistych trafień");
             if(report.orders!=2)lifeErrors.Add("Nie potwierdzono dwóch poleceń Moniki");

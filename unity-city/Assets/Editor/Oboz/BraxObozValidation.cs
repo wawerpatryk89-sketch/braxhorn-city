@@ -55,6 +55,10 @@ public static class BraxObozValidation
                 errors.Add("Brak pełnego planu ruchu, worków i sparingu NPC");
             else if(routine.participants.Distinct().Count()!=6||routine.participants.Any(n=>!n||n.routine!=routine||!n.navigation)||routine.places.Any(p=>!p))
                 errors.Add("Nieprawidłowe powiązania planu NPC");
+            if(!routine||!routine.audio||routine.audio.lines.Length!=47||routine.audio.lines.Any(l=>!l.clip))
+                errors.Add("Niepełne nagrania polskich rozmów obozu");
+            if(scene.npcs.Any(n=>n&&!n.GetComponent<BraxObozContactAudio>()))
+                errors.Add("Brak dźwięku kontaktu w sparingu");
         }
         var structuralErrors = errors.ToArray();
         var sourceIssues = new List<string>();

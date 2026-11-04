@@ -7,7 +7,7 @@ on:
 
 permissions:
   # GitHub only exposes draft releases to a token with push access.
-  # This workflow only downloads the existing encrypted delivery/cache.
+  # Reads prior checkpoints and keeps an encrypted cache scoped to this test branch.
   contents: write
 
 concurrency:
@@ -36,6 +36,8 @@ jobs:
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: python3 unity-tools/oboz/shared_bus.py
+      - name: Te same zweryfikowane nagrania Pipera — bez ponownej generacji
+        run: python3 unity-tools/oboz/restore_dialogue.py
       - name: Profil pamięci obozu
         id: profile
         run: python3 unity-tools/updates/unity_cache.py profile --zone oboz
@@ -102,6 +104,7 @@ jobs:
           subprocess.run(['python3','unity-tools/oboz/world.py','restore','--archive',str(path)],check=True)
           PY
       - name: Rzeczywista scena, trasy i rotacja NPC bez APK
+        id: unity
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -128,9 +131,13 @@ jobs:
           assert r['commit']==os.environ['GITHUB_SHA'] and r['unity']=='6000.0.58f2'
           assert r['rounds']>=3 and r['orders']==2
           assert r['bagStrikes']>=8 and r['sparringStrikes']>=6
+          assert r['spokenLines']>=2 and r['contactSounds']==r['sparringStrikes']
           assert r['pauseDisplacement']<=.001 and r['pauseBagDegrees']<=.001
           assert len(r['frames'])>=500 and len(list(root.glob('*.png')))>=100
           print('Play Mode: trasy, rundy, trafienia, polecenia i pauza potwierdzone; wygląd wymaga oceny')
+          poses=json.loads((root/'final-pose-review.json').read_text())
+          assert poses['complete'] and len(poses['characters'])==7
+          assert all(len(c['cases'])==14 for c in poses['characters'])
           PY_REVIEW
       - name: Obrazy i pomiary — bez prywatnych źródeł i APK
         if: always()
@@ -142,3 +149,22 @@ jobs:
             build/CampLifeReview/*.png
           if-no-files-found: warn
           retention-days: 14
+      - name: Zachowaj zaszyfrowaną pamięć importu próby
+        id: save_cache
+        if: ${{ !cancelled() && steps.unity.outcome != 'skipped' && steps.unity.outcome != '' }}
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/updates/unity_cache.py pack --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
+      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        if: ${{ !cancelled() && steps.save_cache.outputs.saved == 'true' }}
+        continue-on-error: true
+        with:
+          path: |
+            ${{ runner.temp }}/oboz-library.tar.zst.enc
+            ${{ runner.temp }}/oboz-library.tar.zst.enc.json
+          key: ${{ steps.profile.outputs.prefix }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Trwała zaszyfrowana pamięć tej gałęzi testowej
+        if: ${{ !cancelled() && steps.save_cache.outputs.saved == 'true' }}
+        continue-on-error: true
+        run: python3 unity-tools/updates/durable_cache.py upload --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"

@@ -40,6 +40,9 @@ public sealed class BraxGlosPostaci : MonoBehaviour
         => Ustawienia(odlDoGracza < RozmowaOdl ? Rodzaj.Rozmowa : Rodzaj.Tlo, mowiGracz, out blend, out glosnosc);
 
     public void Mow(AudioClip clip) => Mow(clip, Rodzaj.Rozmowa);
+    // Optional lifecycle used by the camp; existing estate callers keep their behavior.
+    public void Pauza(bool paused) { if (source) { if (paused) source.Pause(); else source.UnPause(); } }
+    public void Zatrzymaj() { if (source) source.Stop(); }
     public void Mow(AudioClip clip, Rodzaj rodzaj)
     {
         if (!source)

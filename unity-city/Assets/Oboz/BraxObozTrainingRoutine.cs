@@ -11,6 +11,7 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
     public Transform[] places = new Transform[0];
     public BraxWorek[] trainingBags = new BraxWorek[0];
     public NavMeshData navigationData;
+    public BraxObozCampAudio audio;
     public float roundSeconds = 45;
     public bool Running { get; private set; }
     public int CompletedRounds { get; private set; }
@@ -74,10 +75,12 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
         int other = occupants[target]; occupants[target] = occupants[slot]; occupants[slot] = other;
         Orders++; RoleChanges += 2; AssignPlaces();
         npc.React("Taunt");
+        if(audio)audio.Order(npc,target);
         return true;
     }
     void AssignPlaces()
     {
+        if(audio)audio.StopExchange();
         sparring = strikePending = false; remaining = roundSeconds; attackWait = 1.2f; recovery = 0;
         for (int i = 0; i < 2; i++) { bagWait[i] = .5f + i * .45f; bagImpact[i] = -1; }
         for (int slot = 0; slot < 6; slot++)
@@ -130,7 +133,9 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
             if (delta.sqrMagnitude < 2.4f * 2.4f && Vector3.Dot(from.transform.forward, delta.normalized) > .6f &&
                 !Physics.Linecast(from.transform.position + Vector3.up * 1.5f, to.transform.position + Vector3.up * 1.5f, ~(1 << 8), QueryTriggerInteraction.Ignore))
             {
-                to.React(SparringStrikes % 3 == 2 ? "Block" : "HeadHit"); SparringStrikes++;
+                bool blocked=SparringStrikes % 3 == 2;
+                to.React(blocked ? "Block" : "HeadHit"); SparringStrikes++;
+                if(audio)audio.Contact(to,blocked);
             }
             recovery = Mathf.Max(.8f, followThrough); attackWait = .8f; attacker = 1 - attacker; return;
         }

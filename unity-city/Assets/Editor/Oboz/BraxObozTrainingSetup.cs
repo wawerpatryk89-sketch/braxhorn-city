@@ -23,7 +23,7 @@ public static class BraxObozTrainingSetup
         if (routine.trainingBags[0] == routine.trainingBags[1]) throw new InvalidOperationException("Dwa zajęcia wymagają różnych worków");
         var points = new[] { new Vector3(-.7f,.38f,-5)*K, new Vector3(.7f,.38f,-5)*K,
             BagPlace(routine.trainingBags[0]), BagPlace(routine.trainingBags[1]),
-            new Vector3(-7,.06f,-20)*K, new Vector3(8,.06f,-20)*K };
+            new Vector3(-7,.06f,-20)*K, new Vector3(-4,.06f,-20)*K };
         routine.places = new Transform[6];
         for (int i=0;i<6;i++)
         {
@@ -76,6 +76,7 @@ public static class BraxObozTrainingSetup
                     throw new InvalidOperationException("Brak przejścia między stanowiskami "+a+" → "+b);
         }
         finally{if(instance.valid)instance.Remove();}
+        BraxObozAudioSetup.Configure(scene,routine);
         AssetDatabase.SaveAssets();
         Debug.Log("BRAXHORN_OBOZ plan=6_postaci_2_sparing_2_worki_2_odpoczynek trasy=30_poprawnych runtime_niepotwierdzony");
     }
