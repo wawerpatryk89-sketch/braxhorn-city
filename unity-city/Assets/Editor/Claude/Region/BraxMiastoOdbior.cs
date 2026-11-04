@@ -29,6 +29,61 @@ internal static class BraxMiastoOdbior
         SprawdzWejscie("NOVA", 42.0f, .15f, 35.73f, 36.60f);
         SprawdzWejscie("TOWER", 59.0f, .15f, 35.83f, 36.88f);
         SprawdzWejscie("MIESZKANIE_BRAXA_KLATKA", 33.73f, .15f, 35.72f, 36.65f);
+        SprawdzApteke(cityRoot);
+        SprawdzTaras360(cityRoot);
+    }
+
+    static void SprawdzApteke(Transform cityRoot)
+    {
+        var budynek = cityRoot.Find("Building apothecary");
+        if (!budynek)
+        {
+            Debug.LogError("BRAXHORN_APTEKA_ODBIOR NIEGOTOWA: nie znaleziono Building apothecary");
+            return;
+        }
+        var wszystkie = budynek.GetComponentsInChildren<Transform>(true);
+        var leki = wszystkie.Where(t => t && t.name.StartsWith("Towar: lek_", StringComparison.Ordinal)).ToArray();
+        var rodzaje = leki.Select(t => t.name.Substring("Towar: ".Length))
+            .Select(n => n.Length >= 6 ? n.Substring(0, 6) : n).Distinct().Count();
+        var drzwi = budynek.GetComponentsInChildren<BraxCityDoor>(true)
+            .FirstOrDefault(d => d && d.id == "R1_PUBLIC_DOOR_apothecary");
+        string log = "BRAXHORN_APTEKA_ODBIOR otwarte_wejscie=" + (drzwi != null) +
+            " modele_lekow=" + leki.Length + " rozne_rodzaje=" + rodzaje +
+            " szyld=SOBCZAK/APTEKA (weryfikacja grafiki w osobnym logu)";
+        if (!drzwi || leki.Length < 12 || rodzaje < 5)
+            Debug.LogError(log + " NIEGOTOWA (wymagane działające drzwi oraz opakowania z etykietami)");
+        else
+            Debug.Log(log + " KOD_MODELI_OK (widok i wejście nadal testuje Android)");
+        SprawdzWejscie("APTEKA", 45.0f, .15f, 19.9f, 20.95f);
+    }
+
+    static void SprawdzTaras360(Transform cityRoot)
+    {
+        var wind = cityRoot.GetComponentsInChildren<BraxWinda>(true)
+            .FirstOrDefault(w => w && w.nazwa == "BRAXHORN TOWER");
+        bool windaNaDach = wind && wind.pietraY != null && wind.pietraY.Length > 36 &&
+                           wind.uzytkowe != null && wind.uzytkowe.Length > 36 &&
+                           wind.uzytkowe[0] && wind.uzytkowe[36];
+        var taras = cityRoot.GetComponentsInChildren<Transform>(true)
+            .FirstOrDefault(t => t && t.name == "Tower: taras widokowy na dachu");
+        int plyty = taras ? taras.GetComponentsInChildren<BoxCollider>(true)
+            .Count(c => c.name.StartsWith("Taras: kolizja", StringComparison.Ordinal)) : 0;
+        var panorama = cityRoot.GetComponentInChildren<BraxPierscien>(true);
+        int elementy = panorama && panorama.elementy != null ? panorama.elementy.Length : 0;
+        var sky = RenderSettings.skybox;
+        Texture niebo = sky && sky.HasProperty("_NieboTex") ? sky.GetTexture("_NieboTex") : null;
+        string rozdz = niebo ? niebo.width + "x" + niebo.height : "BRAK";
+        bool hd = niebo && niebo.width >= 4096 && niebo.height >= 2048;
+        string log = "BRAXHORN_TOWER_PANORAMA_360 winda_na_tarAS=" + windaNaDach +
+            " segmenty_podlogi=" + plyty + " widoki_panoramy_3D=" + elementy +
+            " niebo=" + rozdz + " HD=" + hd +
+            " (kamera na dachu 580m; brak gwarancji wyglądu bez testu Android)";
+        if (!windaNaDach || plyty != 4 || elementy < 5 || !niebo)
+            Debug.LogError(log + " — NIEGOTOWE");
+        else if (!hd)
+            Debug.LogWarning(log + " — panorama jest, ale nie potwierdzono nieba minimum 4K");
+        else
+            Debug.Log(log + " — elementy dostępne do testu z dachu");
     }
 
     static void SprawdzWejscie(string nazwa, float x, float y, float zA, float zB)
