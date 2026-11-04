@@ -6,6 +6,7 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
     - claude/miasto-opus-20261031
     - codex/estate-flicker-patryk-voices-20261102
     - claude/osiedle-42-poprawka
+    - codex/osiedle-integracja-sport-audyt-20261104
     paths:
     - unity-city/**
     - unity-tools/claude/**
@@ -37,7 +38,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   source-imports:
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-audyt-20261104') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -60,7 +61,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-audyt-20261104') }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -97,7 +98,7 @@ jobs:
     outputs:
       rejon: ${{ steps.rejon.outputs.rejon }}
     # 3.11 18:40 (właściciel): BEZ ZDJĘĆ CI — „to tylko czas zajmuje”. Job (i shots) wyłączony.
-    if: false && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka')
+    if: false && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-audyt-20261104')
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
@@ -412,7 +413,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-audyt-20261104') }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -889,7 +890,7 @@ jobs:
 
   shots:
     needs: combined-unity6
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka') }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-audyt-20261104') }}
     runs-on: ubuntu-latest
     timeout-minutes: 100
     strategy:
