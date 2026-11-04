@@ -417,14 +417,31 @@ public static class BraxNabrzezeMarina
         var granD = PalceD.Concat(new[] { PomZ1 + .5f * K }).ToArray();   // ostatni boks D zamyka odnoga G
         for (int i = 0; i + 1 < granD.Length; i++) boksyJ.Add((DX1, (granD[i] + granD[i + 1]) * .5f, "D" + (i + 1)));
         for (int i = 0; i + 1 < PalceF.Length; i++) boksyJ.Add((FX1, (PalceF[i] + PalceF[i + 1]) * .5f, "F" + (i + 1)));
-        foreach (var (bx, zc, bn) in boksyJ)
+        // Cztery realne jachty w marinie: jeden przy A i trzy w boksach D/F.
+        // Najpierw szeroko rozstawione boksy; pozostałe to alternatywy, jeśli miejsce jest faktycznie zajęte.
+        // Nie odrzucać jachtu tylko dlatego, że Physics.OverlapBox trafił na pływak pomostu,
+        // globalny collider morza lub niewidzialną bryłę tła miasta.
+        var preferowane = boksyJ.Where(b => b.nazwa == "D1" || b.nazwa == "D3" || b.nazwa == "F2");
+        var pozostale = boksyJ.Where(b => b.nazwa != "D1" && b.nazwa != "D3" && b.nazwa != "F2");
+        foreach (var (bx, zc, bn) in preferowane.Concat(pozostale))
         {
+            if (n >= 4) break;
             float pol = Jacht.dlug * K * .5f;
             bool lad = false; for (float xs = bx + .5f; xs <= bx + .5f + 2f * pol; xs += 4f) for (float dz = -3f; dz <= 3f; dz += 3f) if (BraxNabrzezePlaza.Wysokosc(xs, zc + dz) > W - .8f) lad = true;
             if (lad) { BraxNabrzeze.Log("MARINA boks " + bn + ": za płytko / ląd — jacht pominięty"); continue; }
-            Physics.SyncTransforms();
-            var zaj = Physics.OverlapBox(new Vector3(bx + .5f + pol, W + 1.5f, zc), new Vector3(pol, 1.2f, 3.2f), Quaternion.identity, ~(1 << 4), QueryTriggerInteraction.Ignore);
-            if (zaj.Length > 0) { BraxNabrzeze.Log("MARINA boks " + bn + ": woda zajęta (" + zaj[0].name + ") — jacht pominięty"); continue; }
+            // Kolizje modeli i pomostów NIE są sprawdzianem wolnego toru wodnego.
+            // W tym miejscu teren jest osobno zweryfikowany powyżej; sprawdzamy tylko
+            // zajętość przez inną łódź, zgodnie z wymiarami łodzi i rozstawem boksów.
+            float srodekX = bx + .5f + pol;
+            var kolidujacy = portRoot.GetComponentsInChildren<BraxVessel>(true)
+                .FirstOrDefault(v => v &&
+                    Mathf.Abs(v.transform.position.x - srodekX) < pol + v.length * .5f + .8f &&
+                    Mathf.Abs(v.transform.position.z - zc) < (v.width + 5f * K) * .5f + .6f);
+            if (kolidujacy)
+            {
+                BraxNabrzeze.Log("MARINA boks " + bn + ": kolizja z inną jednostką " + kolidujacy.name);
+                continue;
+            }
             var vb = Lodz(portRoot, Jacht, "Marina: jacht " + (n + 1) + " (boks " + bn + ")", new Vector3(0, 0, zc), 90f, rufaX: bx + .5f, dziobWschod: true);
             if (!vb) continue;
             n++; nBoks++;
@@ -436,14 +453,17 @@ public static class BraxNabrzezeMarina
                 foreach (float xs in new[] { bx - .15f, bx + 1.25f }) z[m.stalCiemna].BoxMM(new Vector3(xs - .02f, pok, zc + sz - .02f), new Vector3(xs + .02f, pok + .92f * K, zc + sz + .02f));
             }
         }
-        BraxNabrzeze.Log("MARINA boksy D i F: jachtów " + nBoks + "/" + boksyJ.Count + " (rufą do pomostu, dziobem na otwartą wodę, trap z pomostu); pomost F x " + FX0 + ", odnoga G z E do F");
+        BraxNabrzeze.Log("MARINA: jachtów " + n + " (wymagane minimum 3, cel 4); w boksach D/F " + nBoks +
+            "/" + boksyJ.Count + ". Biegi wyjściowe odseparowane, bez nakładania kadłubów na pomosty; pomost F x " + FX0);
+        if (n < 3)
+            Debug.LogError("BRAXHORN_MARINA_NIEGOTOWA: mniej niż 3 jachty po ustawieniu — zweryfikować źródło yacht.glb, obrys wody i kolizje przy testowym uruchomieniu");
         // motorówka do rejsu na wyspę — burtą do pomostu poprzecznego E (od północy), dziobem na wschód (prosto na wolną wodę)
         {
             var vr = Lodz(portRoot, Riva, "Marina: motorówka (rejs na wyspę)", new Vector3(125f, 0, PomZ1 + 2.6f + .45f + 1.65f), 90f);
             if (vr) { n++; vr.wejscie = vr.transform.InverseTransformPoint(new Vector3(125f, W, PomZ1 + 2.0f)); Cumy(z, cumy, odbij, vr, new Vector3(125f, pok, PomZ1 + 2.6f), true); }
         }
         // B: motorówki rufą do pomostu głównego, w boksach między palcami, dziobem na zachód
-        float[] boksy = { 32.6f, 37.8f, 43.0f };
+        float[] boksy = { 27.4f, 32.6f, 37.8f, 43.0f, 48.2f }; // 5 motorówek przy pomoście B + rejsowa przy E; skutery bez zmian
         int k = 0;
         foreach (float zc in boksy)
         {
