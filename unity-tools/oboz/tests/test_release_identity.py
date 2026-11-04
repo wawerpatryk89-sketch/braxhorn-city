@@ -39,4 +39,23 @@ class UpdateTests(unittest.TestCase):
         signing='Signer #1 certificate SHA-256 digest: '+'a'*64+'\nSigner #2 certificate SHA-256 digest: '+'b'*64
         with self.assertRaises(ValueError):m.verify_metadata("package: name='com.braxhorn.oboz' versionCode='101'",signing,101,self.previous())
 
+    def test_build_tools_37_scheme_labels(self):
+        for label in ('V1', 'V2', 'V3.0', 'V3.1', 'V4'):
+            signing=label+' Signer: certificate SHA-256 digest: '+'a'*64+'\n'
+            r=m.verify_metadata("package: name='com.braxhorn.oboz' versionCode='101'",signing,101,self.previous())
+            self.assertEqual(r['signingCertificateSha256'],'a'*64)
+    def test_build_tools_37_rejects_invalid_certificates(self):
+        prefix='V3.0 Signer: certificate SHA-256 digest: '
+        for signing in ('', prefix+'b'*64, prefix+'a'*63, prefix+'g'*64,
+                        prefix+'a'*64+'\n'+prefix+'a'*64,
+                        prefix+'a'*64+'\nV2 Signer: certificate SHA-256 digest: '+'b'*64,
+                        'Unknown Signer: certificate SHA-256 digest: '+'a'*64):
+            with self.subTest(signing=signing):
+                with self.assertRaises(ValueError):
+                    m.verify_metadata("package: name='com.braxhorn.oboz' versionCode='101'",signing,101,self.previous())
+    def test_source_stamp_is_not_application_signer(self):
+        signing='V3.0 Signer: certificate SHA-256 digest: '+'a'*64+'\nSource Stamp Signer certificate SHA-256 digest: '+'b'*64
+        self.assertEqual(m.verify_metadata("package: name='com.braxhorn.oboz' versionCode='101'",signing,101,self.previous())['signingCertificateSha256'],'a'*64)
+
 if __name__=='__main__':unittest.main()
+
