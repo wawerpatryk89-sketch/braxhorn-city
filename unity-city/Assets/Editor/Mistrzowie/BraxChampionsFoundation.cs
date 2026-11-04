@@ -115,6 +115,15 @@ public static class BraxChampionsFoundation
     [MenuItem("BRAXHORN CITY/Miasto Mistrzow/2 - Generate foundation and vegetation")]
     public static void Generate()
     {
+        // CI starts with one untitled empty scene. Unity refuses additive creation
+        // while an untitled scene is open; reuse it without discarding user objects.
+        var previous=SceneManager.GetActiveScene();
+        bool reuseEmptyScene=SceneManager.sceneCount==1&&previous.IsValid()&&previous.isLoaded
+            &&string.IsNullOrEmpty(previous.path)&&previous.rootCount==0;
+        if(!reuseEmptyScene)
+            for(int i=0;i<SceneManager.sceneCount;i++)
+                if(string.IsNullOrEmpty(SceneManager.GetSceneAt(i).path))
+                    throw new InvalidOperationException("Save untitled scenes before generating the foundation; existing objects will not be discarded.");
         // All source requirements checked before creating a scene or changing assets.
         VerifyInputs();var d=Read();var sources=Sources();var palms=Palms();var tree=Tree();
         if(File.Exists(ScenePath))throw new InvalidOperationException("Foundation scene already exists. Keep its GUID and manual edits; use a reviewed update instead of overwriting it.");
@@ -128,8 +137,7 @@ public static class BraxChampionsFoundation
             materials[pair.Key]=material;
         }
         materials["sea"]=SeaMaterial();
-        var previous=SceneManager.GetActiveScene();
-        var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Additive);
+        var scene=reuseEmptyScene?previous:EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Additive);
         SceneManager.SetActiveScene(scene);
         var report=new Report{sourceCommit=d.sourceCommit,scaleK=K,berths=d.berths.Length};
         try
@@ -188,7 +196,8 @@ public static class BraxChampionsFoundation
         }
         finally
         {
-            EditorSceneManager.CloseScene(scene,true);
+            // Keep the reused scene open (also on failure, for inspection).
+            if(!reuseEmptyScene)EditorSceneManager.CloseScene(scene,true);
             if(previous.IsValid()&&previous.isLoaded)SceneManager.SetActiveScene(previous);
         }
     }
@@ -285,3 +294,4 @@ public static class BraxChampionsFoundation
         return Save(m,Output+"/Materials/sea.mat");
     }
 }
+

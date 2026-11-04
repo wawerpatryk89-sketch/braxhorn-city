@@ -165,7 +165,14 @@ public static class BraxChampionsBuild
         foreach(var route in new[]{new[]{new Vector3(600,.16f,667),new Vector3(600,.16f,740.7f)},
             new[]{new Vector3(783,.16f,815),new Vector3(828,.16f,815)},
             new[]{new Vector3(828,.16f,815),new Vector3(832.5f,.16f,811)},
-            new[]{new Vector3(600,.16f,740.7f),new Vector3(600,.16f,800)}})
+            // The centre line crosses the 6.4m rear of the seating stairs.
+            // Enter through the existing door, use the clear side of the central
+            // aisle, then return to the octagon approach. Keep all collision checks.
+            new[]{new Vector3(600,.16f,740.7f),new Vector3(600,.16f,766.5f)},
+            new[]{new Vector3(600,.16f,766.5f),new Vector3(602,.16f,766.5f)},
+            new[]{new Vector3(602,.16f,766.5f),new Vector3(602,.16f,787)},
+            new[]{new Vector3(602,.16f,787),new Vector3(600,.16f,787)},
+            new[]{new Vector3(600,.16f,787),new Vector3(600,.16f,800)}})
         {
             var a=route[0]*k;var b=route[1]*k;int n=Mathf.CeilToInt(Vector3.Distance(a,b)/.25f);
             float previous=a.y;
@@ -234,3 +241,4 @@ public static class BraxChampionsBuild
         return count;
     }
 }
+
