@@ -1,9 +1,6 @@
 name: Obóz — Unity 6 APK do testu
 
 on:
-  push:
-    branches: [gpt/oboz]
-    paths: [unity-tools/oboz/build-request.json]
   workflow_dispatch:
     inputs:
       first_install:

@@ -1,8 +1,6 @@
 name: Obóz — odsłuch głosów wspólnego Pipera
 on:
-  push:
-    branches: [codex/oboz-npc-life-20261104]
-    paths: [unity-tools/oboz/voice-review-request.json]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:

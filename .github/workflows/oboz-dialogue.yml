@@ -1,8 +1,6 @@
 name: Obóz — rozmowy lokalnym Piperem
 on:
-  push:
-    branches: [codex/oboz-npc-life-20261104]
-    paths: [unity-tools/oboz/dialogue-request.json]
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
