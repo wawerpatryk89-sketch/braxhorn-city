@@ -229,6 +229,10 @@ internal static class BraxMiastoOdbior
               " przeszkody_kamienic=" + przeszkody +
               " brak_podlogi_przed_wejsciem=" + bezChodnika +
               " — wygląd nawierzchni i wody nadal wymaga odbioru na Androidzie");
+        if (!lad || przeszkody > 0 || bezChodnika > 0)
+            Blad("BRAXHORN_METRO_M1_WEJSCIE_NIEGOTOWE na_ladzie=" + lad +
+                " obce_przeszkody=" + przeszkody + " punkty_bez_podlogi=" + bezChodnika +
+                " — przejście musi być w całości drożne przed testem APK");
     }
 
     // Odbiór modelowy Braxa w Marinie: nie dopuszczamy do starego zdjęcia

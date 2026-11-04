@@ -75,6 +75,7 @@ public static partial class BraxRegionMiastoB
     static readonly List<string> ndUsuniete = new List<string>();
     static readonly List<(Rect r, int mat)> ndWstawkiToru = new List<(Rect, int)>();   // 0 farba, 1 główka szyny (stal), 2 rowek
     static readonly List<GameObject> ndBudynki = new List<GameObject>();
+    static readonly List<string> ndBlokery = new List<string>();
     static int ndMigotanie, ndLatarnie, ndDrzewa, ndZebry;
     public static bool NoweDzielnice => true;     // teren nowych dzielnic (drogi i kwartały) budowany zawsze; modele — gdy są paczki
 
@@ -83,7 +84,7 @@ public static partial class BraxRegionMiastoB
     static void NdKrok(string nazwa, Action a)
     {
         try { a(); }
-        catch (Exception e) { BraxMiastoAssety.Bledy++; Debug.LogError("BRAXHORN_MIASTO_ASSETY " + nazwa + " DO POPRAWKI: " + e); }
+        catch (Exception e) { BraxMiastoAssety.Bledy++; ndBlokery.Add(nazwa + ": " + e.Message); Debug.LogError("BRAXHORN_MIASTO_ASSETY " + nazwa + " DO POPRAWKI: " + e); }
     }
 
     // =====================================================================================================================
@@ -366,12 +367,13 @@ public static partial class BraxRegionMiastoB
         if (!g.GetComponent<LODGroup>()) g.gameObject.AddComponent<LODGroup>();
         var wezly = new Dictionary<string, GameObject>();   // instancje dzielnic (jedna kopia, węzły rozdzielane po budynkach)
         int ok = 0, brak = 0, nSzklo = 0;
+        var bledneModele = new List<string>();
         foreach (var b in NoweBudynki)
         {
             try
             {
-                if (!BraxMiastoAssety.Jest(b.paczka)) { brak++; continue; }
-                var model = BraxMiastoAssety.Model(b.paczka, b.plik); if (!model) { brak++; continue; }
+                if (!BraxMiastoAssety.Jest(b.paczka)) { brak++; bledneModele.Add(b.id + ": brak paczki " + b.paczka); continue; }
+                var model = BraxMiastoAssety.Model(b.paczka, b.plik); if (!model) { brak++; bledneModele.Add(b.id + ": brak modelu " + b.plik); continue; }
                 float y = Podloze(b.x, b.z, YC);
                 var bud = new GameObject("Budynek " + b.id).transform; bud.SetParent(g, false);
                 bud.position = new Vector3(b.x, y, b.z); bud.rotation = Quaternion.Euler(0, b.yaw, 0); bud.localScale = Vector3.one * K;
@@ -388,7 +390,7 @@ public static partial class BraxRegionMiastoB
                 {
                     if (!wezly.TryGetValue(b.plik, out var kopia) || !kopia) { kopia = (GameObject)UnityEngine.Object.Instantiate(model); kopia.name = b.plik + " (kopia robocza)"; wezly[b.plik] = kopia; }
                     var tb = BraxMiastoAssety.Znajdz(kopia.transform, b.wezel + "_bryla"); var td = BraxMiastoAssety.Znajdz(kopia.transform, b.wezel + "_dach");
-                    if (!tb) { NdLog("brak węzła " + b.wezel + "_bryla w " + b.plik + " — DO POPRAWKI"); UnityEngine.Object.DestroyImmediate(bud.gameObject); brak++; continue; }
+                    if (!tb) { NdLog("brak węzła " + b.wezel + "_bryla w " + b.plik + " — DO POPRAWKI"); UnityEngine.Object.DestroyImmediate(bud.gameObject); brak++; bledneModele.Add(b.id + ": brak bryły " + b.wezel); continue; }
                     foreach (var t in new[] { tb, td }) { if (!t) continue; t.SetParent(bud, false); t.localPosition = Vector3.zero; t.localRotation = Quaternion.identity; t.localScale = Vector3.one; }
                     podstawaBryly = tb; podstawaDachu = td;
                     bryla = tb.GetComponentsInChildren<Renderer>(true); dach = td ? td.GetComponentsInChildren<Renderer>(true) : new Renderer[0];
@@ -397,7 +399,7 @@ public static partial class BraxRegionMiastoB
                 // rusztowań; dwa wcześniejsze przebiegi usuwały także części
                 // architektury i zostawiały odnośniki do zniszczonych rendererów.
                 NdUsunRusztowania(bud.gameObject);
-                if (!podstawaBryly) { NdLog("PREMIUM_BRAK_BRYLY " + b.id); UnityEngine.Object.DestroyImmediate(bud.gameObject); brak++; continue; }
+                if (!podstawaBryly) { NdLog("PREMIUM_BRAK_BRYLY " + b.id); UnityEngine.Object.DestroyImmediate(bud.gameObject); brak++; bledneModele.Add(b.id + ": brak bryły modelu"); continue; }
                 BraxMiastoAssety.Przygotuj(bud.gameObject, true, true);
                 nSzklo += NdSzklo(bud.gameObject);
                 int nPremium = NdPremiumFasada(bud.gameObject, b.id, b.plik);
@@ -408,7 +410,7 @@ public static partial class BraxRegionMiastoB
                 dach = podstawaDachu ? podstawaDachu.GetComponentsInChildren<Renderer>(true)
                     .Where(r => r && r.enabled).ToArray() : new Renderer[0];
                 if (bryla.Length == 0) { Debug.LogError("BRAXHORN_NOWE_BUDYNKI_BRAK_FASAD " + b.id);
-                    UnityEngine.Object.DestroyImmediate(bud.gameObject); brak++; continue; }
+                    UnityEngine.Object.DestroyImmediate(bud.gameObject); brak++; bledneModele.Add(b.id + ": brak fasady"); continue; }
                 foreach (var r in dach) if (r) r.shadowCastingMode = ShadowCastingMode.Off;
                 var lod = bud.gameObject.AddComponent<LODGroup>();
                 lod.SetLODs(dach.Length > 0
@@ -429,13 +431,16 @@ public static partial class BraxRegionMiastoB
                 ndBudynki.Add(bud.gameObject); ok++;
                 NdLog("budynek " + b.id + " (" + b.plik + (b.wezel != null ? " " + b.wezel : "") + "): środek (" + b.x.ToString("0.0") + ", " + y.ToString("0.00") + ", " + b.z.ToString("0.0") + "), obrót " + b.yaw + "°, lico " + b.w.ToString("0.0") + " × " + b.d.ToString("0.0") + " m, wys. " + (gr.max.y - y).ToString("0") + " m");
             }
-            catch (Exception e) { BraxMiastoAssety.Blad("budynek " + b.id, e); }
+            catch (Exception e) { brak++; bledneModele.Add(b.id + ": " + e.Message); BraxMiastoAssety.Blad("budynek " + b.id, e); }
         }
         foreach (var k in wezly.Values) if (k) UnityEngine.Object.DestroyImmediate(k);   // niewykorzystane jednostki (U14, kliny) nie idą do sceny
         // sylwetki z daleka wyłączone (budynki zostają w scenie głównej — patrz wyżej)
-        try { NdMigotanieBudynkow(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
+        try { NdMigotanieBudynkow(); } catch (Exception e) { bledneModele.Add("migotanie podstaw: " + e.Message); BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
         NdLog("szkło fasad: " + nSzklo + " materiałów na budynkach zamienione na szkło refleksyjne (czarny metal / szyby przed pustą bryłą)");
-        NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", bez modelu " + brak + " (paczka nieodszyfrowana — kwartał zostaje z płytami)" : ""));
+        NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", brakujących/uszkodzonych " + brak : ""));
+        if (ok != NoweBudynki.Length || brak > 0 || bledneModele.Count > 0)
+            throw new InvalidOperationException("BRAXHORN_NOWA_DZIELNICA_NIEGOTOWA " + ok + "/" + NoweBudynki.Length +
+                " | " + string.Join(" | ", bledneModele.Take(24)));
     }
 
     // WŁAŚCICIEL 3.11 10:12–10:19 (nagrania): „czarne budynki, gdzie są okna”. W modelach Sketchfaba szkło fasad było
@@ -462,9 +467,8 @@ public static partial class BraxRegionMiastoB
             var b = BraxRegion.Bounds(t.gameObject);
             if (b.size.x * b.size.z > 5000f)
             {
-                Debug.LogError("BRAXHORN_MIASTO_RUSZTOWANIE_SCALONE " + t.name +
-                    " — wymaga naprawy źródłowego modelu, nie usuwamy fasady");
-                continue;
+                throw new InvalidOperationException("BRAXHORN_MIASTO_RUSZTOWANIE_SCALONE " + t.name +
+                    " — poprawić oryginalny GLB, nie usuwać fasady i nie wydawać APK");
             }
             Debug.Log("BRAXHORN_MIASTO_RUSZTOWANIE_ZDJETE " + t.name +
                 " z " + bud.name + " (tylko osobna siatka)");
@@ -500,9 +504,8 @@ public static partial class BraxRegionMiastoB
         bool maPbr = pbr && pbr.GetTexturePropertyNames()
             .Any(slot => pbr.GetTexture(slot));
         if (!maPbr)
-            Debug.LogError("BRAXHORN_PREMIUM_MATERIAL_BEZ_PBR " + id +
-                " (" + rodzina + "): nie ma tekstury skanu fasady w importowanych materiałach. " +
-                "Wymaga pobrania/zaimportowania oryginalnego materiału CC0 przed odbiorem jakości");
+            throw new InvalidOperationException("BRAXHORN_PREMIUM_MATERIAL_BEZ_PBR " + id +
+                " (" + rodzina + "): brak oryginalnej tekstury CC0, materiał niegotowy");
         int naprawione = 0, pozostale = 0, teksturowane = 0;
         foreach (var r in bud.GetComponentsInChildren<Renderer>(true))
         {
@@ -562,8 +565,8 @@ public static partial class BraxRegionMiastoB
             " bez_dostepnej_tekstury=" + pozostale +
             " (oryginalne siatki, bez nakładania elewacji)");
         if (pozostale > 0)
-            Debug.LogError("BRAXHORN_NOWA_DZIELNICA_NIEGOTOWA " + id +
-                           ": nadal czarne fragmenty fasad bez kompletnego PBR");
+            throw new InvalidOperationException("BRAXHORN_NOWA_DZIELNICA_NIEGOTOWA " + id +
+                           ": czarne fragmenty fasad bez kompletnego PBR=" + pozostale);
         return naprawione;
     }
 

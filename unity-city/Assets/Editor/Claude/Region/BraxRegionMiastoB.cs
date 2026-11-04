@@ -98,7 +98,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
 
     public static void Apply(BraxCityWorld world, Transform cityRoot)
     {
-        usuniete.Clear(); kroki.Clear(); SkrzyzowaniaZeSwiatlami.Clear(); asfalty.Clear(); wyposazenie.Clear(); nawierzchnie.Clear(); zjazdy.Clear(); MiejscaParkingu.Clear(); drzewa = latarnie = zebry = sygnalizatory = 0; MigotaniePary = 0;
+        usuniete.Clear(); kroki.Clear(); ndBlokery.Clear(); SkrzyzowaniaZeSwiatlami.Clear(); asfalty.Clear(); wyposazenie.Clear(); nawierzchnie.Clear(); zjazdy.Clear(); MiejscaParkingu.Clear(); drzewa = latarnie = zebry = sygnalizatory = 0; MigotaniePary = 0;
         BraxRegionKamienica.Zeruj(); BraxZnakiPL.Zeruj();
         root = BraxRegion.Root(cityRoot, "CLAUDE miasto B: rondo, aleje, ul. Wiaduktowa i Warsztatowa");
         Krok("usunięcie wiaduktu, płotu końca ulicy i gruntu-lustra", () => UsunStare(cityRoot));
@@ -138,6 +138,11 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
                   " kamienic=" + BraxRegionKamienica.Budynki + " drzew=" + drzewa + " latarni=" + latarnie + " zebr=" + zebry + " sygnalizatorow=" + sygnalizatory);
         Debug.Log("BRAXHORN_MIASTO_B_MIGOTANIE pary=" + MigotaniePary + " (nawierzchnie i oznakowanie miasta B: nic nie leży na niczym w tej samej wysokości)");
         Debug.Log("BRAXHORN_MIASTO_B_USUNIETE (" + usuniete.Count + "): " + string.Join(" | ", usuniete.Take(80)));
+        var bledneKroki = kroki.Where(s => s.Contains(": BŁĄD ")).ToArray();
+        if (bledneKroki.Length > 0 || ndBlokery.Count > 0)
+            throw new InvalidOperationException("BRAXHORN_MIASTO_B_NIEGOTOWE kroki=" + bledneKroki.Length +
+                " podetapy=" + ndBlokery.Count + " | " +
+                string.Join(" | ", bledneKroki.Concat(ndBlokery).Take(30)));
     }
 
     static void UsunMaleTrawnikiZJezdni()
