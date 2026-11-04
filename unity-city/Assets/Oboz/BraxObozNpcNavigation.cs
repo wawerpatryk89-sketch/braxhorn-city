@@ -85,6 +85,10 @@ public sealed partial class BraxObozNpc : IBraxInterakcja
     public string Kontekst(Vector3 p)
     {
         if (!routine || !routine.Running || !player || !player.ready || player.Paused) return "";
+        if (BraxObozArena.AnyActive) return "";
+        // Inside the current arena AKCJA starts sparring, regardless of registration order.
+        var arena = routine.CurrentArena;
+        if (arena && !string.IsNullOrEmpty(arena.Kontekst(p))) return "";
         Vector3 delta = p - transform.position;
         if (Mathf.Abs(delta.y) > 2 || new Vector2(delta.x, delta.z).sqrMagnitude > 8) return "";
         if (Physics.Linecast(p + Vector3.up * 1.5f, transform.position + Vector3.up * 1.5f, ~(1 << 8), QueryTriggerInteraction.Ignore)) return "";

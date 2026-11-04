@@ -51,7 +51,9 @@ public static class BraxObozValidation
                 foreach (var activity in n.activities) if (!n.Allows(activity)) errors.Add(n.characterId + ": niedozwolone zajęcie " + activity);
             }
             var routine=scene.GetComponent<BraxObozTrainingRoutine>();
-            if(!routine||!routine.navigationData||routine.participants.Length!=6||routine.places.Length!=6||routine.trainingBags.Length!=2)
+            if(!routine||!routine.navigationData||routine.participants.Length!=6||routine.places.Length!=6||routine.trainingBags.Length!=2||
+                routine.sparringPlaces.Length!=6||routine.sparringArenas.Length!=3||routine.sparringPlaces.Any(p=>!p)||
+                routine.sparringArenas.Any(a=>!a||a.trainingRoutine!=routine))
                 errors.Add("Brak pełnego planu ruchu, worków i sparingu NPC");
             else if(routine.participants.Distinct().Count()!=6||routine.participants.Any(n=>!n||n.routine!=routine||!n.navigation)||routine.places.Any(p=>!p))
                 errors.Add("Nieprawidłowe powiązania planu NPC");

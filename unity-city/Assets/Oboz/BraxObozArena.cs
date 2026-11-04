@@ -6,6 +6,7 @@ public sealed class BraxObozArena : MonoBehaviour, IBraxInterakcja
     public string label = "SPARING";
     public BraxGymPlayer player;
     public BraxObozNpc opponent;
+    public BraxObozTrainingRoutine trainingRoutine;
     public BraxObozProgress progress;
     public Vector2 halfSize = new Vector2(4.5f, 4.5f);
     public float roundSeconds = 90, hitRange = 2.1f, punchDamage = 8, kickDamage = 12;
@@ -26,14 +27,35 @@ public sealed class BraxObozArena : MonoBehaviour, IBraxInterakcja
     void OnDisable() { BraxInterakcje.Usun(this); BraxGymPlayer.OnCios -= Hit; Cancel(); }
     public string Kontekst(Vector3 p)
     {
-        if (!player || !player.ready || !opponent || !Inside(p)) return "";
+        if (!player || !player.ready || player.Paused || !Inside(p)) return "";
         if (Active) return "ZAKOŃCZ SPARING";
-        return !active && !opponent.Busy && Inside(opponent.transform.position) ? "SPARING · " + opponent.characterId.ToUpperInvariant() : "";
+        if (AnyActive) return "";
+        var candidate = SparringCandidate(p);
+        return !active && candidate ? "SPARING · " + candidate.characterId.ToUpperInvariant() : "";
+    }
+    BraxObozNpc SparringCandidate(Vector3 point)
+    {
+        if (!trainingRoutine)
+            return opponent && !opponent.Busy && Inside(opponent.transform.position) ? opponent : null;
+        if (!trainingRoutine.Running || trainingRoutine.CurrentArena != this) return null;
+        // The roster now moves. A fixed scene opponent would leave both rings unusable.
+        BraxObozNpc nearest=null; float distance=float.PositiveInfinity;
+        foreach(var npc in trainingRoutine.participants)
+        {
+            if(!npc)continue;
+            int role=trainingRoutine.RoleOf(npc);
+            if(role<0 || role>1 || npc.Reacting || !npc.AtDestination || !Inside(npc.transform.position))continue;
+            float d=(npc.transform.position-point).sqrMagnitude;
+            if(d<distance){nearest=npc;distance=d;}
+        }
+        return nearest;
     }
     public bool Wykonaj(Vector3 p)
     {
         if (string.IsNullOrEmpty(Kontekst(p))) return false;
         if (Active) { Cancel(); return true; }
+        opponent = SparringCandidate(p);
+        if (!opponent) return false;
         active = this; Active = true; playerHealth = npcHealth = 100; playerScore = npcScore = 0;
         remaining = roundSeconds; attackWait = 1.2f; recoverLeft = 0; strikePending = false;
         opponent.BeginSparring(); Status = "SPARING · " + opponent.characterId.ToUpperInvariant(); return true;

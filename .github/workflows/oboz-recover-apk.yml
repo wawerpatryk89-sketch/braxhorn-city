@@ -1,0 +1,83 @@
+name: Obóz — odzyskaj dokładny APK numer 6 bez kompilacji
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: oboz-recover-apk-41852545458
+  cancel-in-progress: false
+
+jobs:
+  recover-existing-apk:
+    # Actions cache is scoped to its source branch. No fallback to another build.
+    if: github.ref == 'refs/heads/gpt/oboz'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/oboz/
+            unity-tools/updates/
+            unity-city/Packages/
+            unity-city/apk-warianty.txt
+      - name: Pobierz istniejący raport szóstki i sprawdź jego sumę
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/13337323766/zip" > "$RUNNER_TEMP/oboz6-evidence.zip"
+          python3 - <<'PY'
+          import hashlib, os, zipfile
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP']); archive=root/'oboz6-evidence.zip'
+          if hashlib.sha256(archive.read_bytes()).hexdigest()!='e18e08651431499e4325f68fd578b94a2a819a58df725b43cbfc9bb86ff7e90c':
+              raise ValueError('Raport nie pochodzi z potwierdzonego uruchomienia #6')
+          with zipfile.ZipFile(archive) as bundle:
+              (root/'oboz6-identity.json').write_bytes(bundle.read('build/ObozAndroid/release-identity.json'))
+          PY
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ${{ runner.temp }}/oboz-library.tar.zst.enc
+            ${{ runner.temp }}/oboz-library.tar.zst.enc.json
+          key: library-android-v2-oboz-2a8d2a87bdcd3b98497055f8-b0d35c0d4bbfef14f3f7711f7800c2efea2b8e0c-41852545458-1
+          fail-on-cache-miss: true
+      - name: Odtwórz zachowane Bee bez otwierania Unity
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, os
+          from pathlib import Path
+          archive=Path(os.environ['RUNNER_TEMP'])/'oboz-library.tar.zst.enc'
+          with archive.open('rb') as stream: actual=hashlib.file_digest(stream,'sha256').hexdigest()
+          if actual!='f870c84ea41f6becfe55c2b8f0918392905eacd4fea0da072d89fb78a6b82735':
+              raise ValueError('Cache nie pochodzi z buildu #6')
+          PY
+          python3 unity-tools/updates/unity_cache.py restore --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
+      - name: Odzyskaj i ponownie zweryfikuj istniejące podpisane bajty
+        run: |
+          set -euo pipefail
+          TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          test -x "$TOOLS/aapt" && test -x "$TOOLS/apksigner"
+          python3 unity-tools/oboz/recover_apk.py \
+            --candidate unity-city/Library/Bee/Android/Prj/IL2CPP/Gradle/launcher/build/outputs/apk/release/launcher-release.apk \
+            --receipt "$RUNNER_TEMP/oboz6-identity.json" \
+            --source-sha b0d35c0d4bbfef14f3f7711f7800c2efea2b8e0c \
+            --output build/ObozRecovered \
+            --aapt "$TOOLS/aapt" --apksigner "$TOOLS/apksigner"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oboz-apk-41852545458-recovered
+          path: build/ObozRecovered/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

@@ -30,7 +30,7 @@ public sealed class BraxObozCampAudio : MonoBehaviour
             foreach (var voice in speakers.Values) if (voice) voice.Pauza(paused);
         }
         if (paused) return;
-        if (!routine.Running || routine.SuspendedForPlayer) { StopExchange(); return; }
+        if (!routine.Running) { StopExchange(); return; }
         // Audio duration is wall time: physics' 50 ms cap would stretch conversational
         // gaps on slower phones although the WAV itself still plays at normal speed.
         float dt = Time.deltaTime; wait -= dt; nextExchange -= dt;
@@ -56,6 +56,7 @@ public sealed class BraxObozCampAudio : MonoBehaviour
         for(int pass=0;pass<2;pass++)
         {
             int first=((conversation+pass)%2==0)?0:4;
+            if(first==0 && BraxObozArena.AnyActive)continue;
             BraxObozNpc a=null,b=null;
             foreach(var npc in routine.participants)
             { int role=routine.RoleOf(npc); if(role==first)a=npc;if(role==first+1)b=npc; }

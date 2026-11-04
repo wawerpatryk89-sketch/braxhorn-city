@@ -2,13 +2,15 @@ using System;
 using UnityEngine;
 using UnityEngine.AI;
 
-// Six authored places: two in the cage, two at bags, two resting nearby.
+// Two fighters rotate between the three existing arenas; bags/rest keep four places.
 // Rotating occupants share one assignment owner; an order swaps roles, never clones actors.
 public sealed class BraxObozTrainingRoutine : MonoBehaviour
 {
     public BraxGymPlayer player;
     public BraxObozNpc[] participants = new BraxObozNpc[0];
     public Transform[] places = new Transform[0];
+    public Transform[] sparringPlaces = new Transform[0];
+    public BraxObozArena[] sparringArenas = new BraxObozArena[0];
     public BraxWorek[] trainingBags = new BraxWorek[0];
     public NavMeshData navigationData;
     public BraxObozCampAudio audio;
@@ -21,6 +23,9 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
     public int Orders { get; private set; }
     public string Status { get; private set; } = "ZBIÓRKA";
     public bool SuspendedForPlayer { get; private set; }
+    public int ArenaIndex => CompletedRounds % 3;
+    public BraxObozArena CurrentArena => sparringArenas.Length == 3 ? sparringArenas[ArenaIndex] : null;
+    public int[] ArenaRounds { get; } = new int[3];
     readonly int[] occupants = { 0, 1, 2, 3, 4, 5 };
     readonly float[] bagWait = new float[2], bagImpact = { -1, -1 };
     NavMeshDataInstance navigationInstance;
@@ -34,7 +39,8 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
     }
     void Start()
     {
-        if (!player || !navigationData || participants.Length != 6 || places.Length != 6 || trainingBags.Length != 2)
+        if (!player || !navigationData || participants.Length != 6 || places.Length != 6 || trainingBags.Length != 2 ||
+            sparringPlaces.Length != 6 || sparringArenas.Length != 3)
         { Debug.LogError("Niepełny plan zajęć obozu", this); enabled = false; return; }
         for (int i = 0; i < 6; i++)
         {
@@ -76,7 +82,8 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
     }
     public bool OrderNext(BraxObozNpc npc)
     {
-        int slot = RoleOf(npc); if (!Running || slot < 0 || player.Paused) return false;
+        int slot = RoleOf(npc);
+        if (!Running || slot < 0 || player.Paused || BraxObozArena.AnyActive || SuspendedForPlayer) return false;
         int target = slot < 2 ? 4 : slot < 4 ? 0 : 2;
         int other = occupants[target]; occupants[target] = occupants[slot]; occupants[slot] = other;
         Orders++; RoleChanges += 2; AssignPlaces();
@@ -89,6 +96,7 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
         if(audio)audio.FinishCurrentTurn();
         sparring = strikePending = false; remaining = roundSeconds; attackWait = 1.2f; recovery = 0;
         for (int i = 0; i < 2; i++) { bagWait[i] = .5f + i * .45f; bagImpact[i] = -1; }
+        for (int i = 0; i < 2; i++) places[i].position = sparringPlaces[ArenaIndex * 2 + i].position;
         for (int slot = 0; slot < 6; slot++)
         {
             var npc = participants[occupants[slot]];
@@ -101,33 +109,43 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
     void Update()
     {
         if (!Running || !player || !player.ready || player.Paused) return;
+        float dt = Mathf.Min(Time.deltaTime, .05f);
         if (BraxObozArena.AnyActive)
         {
             if (!SuspendedForPlayer)
             {
                 SuspendedForPlayer = true;
-                foreach (var npc in participants) if (!BraxObozArena.Uses(npc)) npc.HoldRoute();
+                if(audio)audio.FinishCurrentTurn();
+                // Only the automatic fighting pair yields to Monika. The rest of
+                // camp keeps walking, training on bags and resting during her round.
+                for(int slot=0;slot<2;slot++)
+                {
+                    var npc=participants[occupants[slot]];
+                    if(!BraxObozArena.Uses(npc))npc.HoldRoute();
+                }
+            }
+            TickOtherStations(dt);
+            for(int slot=0;slot<2;slot++)
+            {
+                var npc=participants[occupants[slot]];
+                if(!BraxObozArena.Uses(npc))npc.Face(player.transform.position,dt);
             }
             return;
         }
         if (SuspendedForPlayer) { SuspendedForPlayer = false; AssignPlaces(); }
-        float dt = Mathf.Min(Time.deltaTime, .05f);
-        for (int i = 0; i < 2; i++) TickBag(i, dt);
-        var restingA=participants[occupants[4]];var restingB=participants[occupants[5]];
-        if(restingA.AtDestination&&restingB.AtDestination)
-        {restingA.Face(restingB.transform.position,dt);restingB.Face(restingA.transform.position,dt);}
+        TickOtherStations(dt);
         var first = participants[occupants[0]]; var second = participants[occupants[1]];
         if (!sparring)
         {
             if (!first.AtDestination || !second.AtDestination || first.Reacting || second.Reacting) return;
             first.BeginSparring(); second.BeginSparring(); sparring = true; attacker = CompletedRounds % 2;
-            Status = "SPARING · RUNDA " + (CompletedRounds + 1);
+            Status = CurrentArena.label + " · RUNDA " + (CompletedRounds + 1);
         }
         first.Face(second.transform.position, dt); second.Face(first.transform.position, dt);
         remaining -= dt;
         if (remaining <= 0)
         {
-            CompletedRounds++;
+            ArenaRounds[ArenaIndex]++; CompletedRounds++;
             int previous = occupants[0]; for (int i = 0; i < 5; i++) occupants[i] = occupants[i + 1]; occupants[5] = previous;
             RoleChanges += 6; AssignPlaces(); return;
         }
@@ -154,6 +172,12 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
         if (attackWait > 0) return;
         float length = from.Play("Punch", false, true);
         impactLeft = Mathf.Min(.43f, length * .55f); followThrough = Mathf.Max(0, length - impactLeft); strikePending = true;
+    }
+    void TickOtherStations(float dt)
+    {
+        for (int i = 0; i < 2; i++) TickBag(i, dt);
+        var a=participants[occupants[4]];var b=participants[occupants[5]];
+        if(a.AtDestination&&b.AtDestination){a.Face(b.transform.position,dt);b.Face(a.transform.position,dt);}
     }
     void TickBag(int index, float dt)
     {

@@ -178,7 +178,10 @@ public static partial class BraxObozCharacters
     static void CaptureMotion(List<MeshRenderer> renderers,Camera camera,string view,string output)
     {
         Bounds bounds=renderers[0].bounds;foreach(var r in renderers.Skip(1))bounds.Encapsulate(r.bounds);
-        var center=bounds.center;float span=Mathf.Max(bounds.size.y,1f)*1.25f;
+        var center=bounds.center;
+        // Include horizontal extent: prone GettingUp poses were cropped by a height-only frame.
+        float width=view=="side"?bounds.size.z:bounds.size.x;
+        float span=Mathf.Max(bounds.size.y,width/(512f/640f),1f)*1.25f;
         Vector3 direction=view=="front"?Vector3.forward:view=="back"?Vector3.back:Vector3.right;
         camera.transform.position=center+direction*span*3;camera.transform.LookAt(center);camera.orthographicSize=span*.5f;
         var rt=RenderTexture.GetTemporary(512,640,24,RenderTextureFormat.ARGB32);var previous=RenderTexture.active;

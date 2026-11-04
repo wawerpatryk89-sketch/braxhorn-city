@@ -18,6 +18,12 @@ public static partial class BraxObozCharacters
     static float lifeStart = -1, lifeSample, lifeCapture, lifePauseMove, lifePauseBag;
     static int lifeFrame = -1, lifeOrders;
     static bool lifePaused, lifeResumed;
+    static BraxObozArena lifePlayerArena;
+    static float lifePlayerFightAt = -1;
+    static bool lifePlayerFightStarted, lifePlayerFightEnded, lifePlayerFightSuspended;
+    static readonly bool[] lifePlayerArenas = new bool[3];
+    static int lifeFightBagStart, lifeFightBagStrikes;
+    static Vector3 lifePlayerOrigin;
     static Vector3[] lifePausePositions;
     static Quaternion[] lifePauseRotations;
     static readonly List<LifeFrame> lifeFrames = new List<LifeFrame>();
@@ -36,6 +42,7 @@ public static partial class BraxObozCharacters
         public float time;
         public bool paused;
         public int rounds, bagStrikes, sparringStrikes, orders;
+        public int arena;
         public LifeActor[] actors;
     }
     [Serializable] sealed class LifeReport
@@ -45,11 +52,16 @@ public static partial class BraxObozCharacters
         public float pauseDisplacement, pauseBagDegrees;
         public int rounds, roleChanges, bagStrikes, sparringStrikes, orders;
         public int spokenLines, voiceExchanges, contactSounds;
+        public int[] arenaRounds;
+        public bool[] playerSparringArenas;
+        public int bagStrikesDuringPlayerSparring;
+        public bool playerSparringStarted, playerSparringEnded, routineSuspendedForPlayer;
         public LifeFrame[] frames;
         public string[] errors;
     }
     // Uses the production generator, controllers, colliders, navigation and interaction API.
-    // Only round length is accelerated in the unsaved test scene. Never publishes APK/cache.
+    // Round length is accelerated; the test player is positioned on a mat for the
+    // existing sparring interaction. NPC navigation remains physical. Never publishes APK.
     public static void ReviewCampLife()
     {
         if (!Application.isBatchMode || EditorApplication.isPlayingOrWillChangePlaymode)
@@ -137,12 +149,48 @@ public static partial class BraxObozCharacters
                     throw new InvalidOperationException("Istniejące API AKCJA nie przyjęło zadania dla " + npc.characterId);
                 lifeOrders++;
             }
+            if (time >= 160 && !lifePlayerArena && !lifePlayerArenas[lifeRoutine.ArenaIndex])
+            {
+                var arena=lifeRoutine.CurrentArena;
+                var pair=lifeRoutine.participants.Where(n=>lifeRoutine.RoleOf(n)<2).ToArray();
+                bool bagReady=lifeRoutine.participants.Any(n=>lifeRoutine.RoleOf(n)>=2&&lifeRoutine.RoleOf(n)<4&&n.AtDestination);
+                if(bagReady && pair.Length==2 && pair.All(n=>n.AtDestination&&!n.Reacting))
+                {
+                    lifePlayerOrigin=lifeScene.player.transform.position;
+                    var point=arena.transform.position+new Vector3(0,.70f,1.8f)*BraxObozSceneInfo.WorldScale;
+                    lifeScene.player.body.enabled=false;lifeScene.player.transform.position=point;lifeScene.player.body.enabled=true;
+                    lifeScene.player.MoveInput("0,0");
+                    // Exercise the actual AKCJA registry, not just the arena directly.
+                    if(!BraxInterakcje.Wykonaj(point)||!arena.Active)throw new InvalidOperationException("Monika nie może dołączyć do pary w "+arena.label);
+                    int orders=lifeRoutine.Orders;
+                    if(pair[0].Wykonaj(point)||lifeRoutine.OrderNext(pair[0])||lifeRoutine.Orders!=orders)
+                        throw new InvalidOperationException("Polecenie treningowe przerywa sparing Moniki");
+                    lifePlayerArena=arena;lifePlayerFightStarted=true;lifePlayerFightAt=time;
+                    lifeFightBagStart=lifeRoutine.BagStrikes;
+                }
+            }
+            if(lifePlayerArena)
+            {
+                lifePlayerFightSuspended|=lifeRoutine.SuspendedForPlayer;
+                if(time-lifePlayerFightAt>=8)
+                {
+                    if(!lifePlayerArena.Active||!BraxInterakcje.Wykonaj(lifeScene.player.transform.position)||lifePlayerArena.Active)
+                        throw new InvalidOperationException("Nie zakończono sparingu Moniki istniejącą AKCJĄ");
+                    lifePlayerArenas[lifeRoutine.ArenaIndex]=true;
+                    int hits=lifeRoutine.BagStrikes-lifeFightBagStart;
+                    if(hits<1)throw new InvalidOperationException("Trening worków zatrzymał się podczas sparingu Moniki");
+                    lifeFightBagStrikes+=hits;
+                    lifePlayerFightEnded=true;
+                    lifePlayerArena=null;
+                    lifeScene.player.body.enabled=false;lifeScene.player.transform.position=lifePlayerOrigin;lifeScene.player.body.enabled=true;
+                }
+            }
             if (time >= lifeSample)
             {
                 lifeSample = time + .25f;
                 lifeFrames.Add(new LifeFrame { time = time, paused = lifeScene.player.Paused,
                     rounds = lifeRoutine.CompletedRounds, bagStrikes = lifeRoutine.BagStrikes,
-                    sparringStrikes = lifeRoutine.SparringStrikes, orders = lifeRoutine.Orders,
+                    sparringStrikes = lifeRoutine.SparringStrikes, orders = lifeRoutine.Orders, arena=lifeRoutine.ArenaIndex,
                     actors = lifeRoutine.participants.Select(n => new LifeActor {
                         id = n.characterId, clip = ActiveLifeClip(n), role = lifeRoutine.RoleOf(n),
                         arrivals = n.Arrivals, travelled = n.Travelled, arrived = n.AtDestination,
@@ -154,6 +202,12 @@ public static partial class BraxObozCharacters
             {
                 lifeCapture = time + 4;
                 string suffix = Mathf.RoundToInt(time*10).ToString("D5");
+                if(lifeRoutine.CurrentArena)
+                {
+                    var centre=lifeRoutine.CurrentArena.transform.position;
+                    lifeCamera.transform.position=centre+new Vector3(12,10,-15);
+                    lifeCamera.transform.LookAt(centre+Vector3.up);
+                }
                 CaptureRuntimeCamera(lifeCamera, Path.Combine(lifeOutput,"camp-"+suffix+".png"));
                 CaptureRuntimeCamera(lifeScene.player.view, Path.Combine(lifeOutput,"player-"+suffix+".png"));
                 foreach (var npc in lifeRoutine.participants)
@@ -166,9 +220,9 @@ public static partial class BraxObozCharacters
                         foreach (string view in new[]{"front","back","side"})
                             CaptureMotion(snapshot.renderers,lifePoseCamera,view,Path.Combine(lifeOutput,key+"-"+view+"-"+suffix+".png"));
                 }
-                Debug.Log("BRAXHORN_CAMP_LIFE time="+time.ToString("F1")+" rounds="+lifeRoutine.CompletedRounds+" bag="+lifeRoutine.BagStrikes+" sparring="+lifeRoutine.SparringStrikes);
+                Debug.Log("BRAXHORN_CAMP_LIFE time="+time.ToString("F1")+" arena="+lifeRoutine.ArenaIndex+" rounds="+lifeRoutine.CompletedRounds+" bag="+lifeRoutine.BagStrikes+" sparring="+lifeRoutine.SparringStrikes);
             }
-            if (time >= 240) FinishLifeReview();
+            if (time >= 420) FinishLifeReview();
         }
         catch (Exception ex) { lifeErrors.Add(ex.GetType().Name+": "+ex.Message); FinishLifeReview(); }
     }
@@ -183,6 +237,15 @@ public static partial class BraxObozCharacters
         if (lifeRoutine)
         {
             report.rounds=lifeRoutine.CompletedRounds; report.roleChanges=lifeRoutine.RoleChanges;
+            report.arenaRounds=lifeRoutine.ArenaRounds;
+            report.playerSparringArenas=lifePlayerArenas;
+            report.bagStrikesDuringPlayerSparring=lifeFightBagStrikes;
+            report.playerSparringStarted=lifePlayerFightStarted;report.playerSparringEnded=lifePlayerFightEnded;
+            report.routineSuspendedForPlayer=lifePlayerFightSuspended;
+            if(report.arenaRounds.Any(n=>n<1))lifeErrors.Add("Nie ukończono rundy we wszystkich trzech arenach");
+            if(!lifePlayerFightStarted||!lifePlayerFightEnded||!lifePlayerFightSuspended||lifeRoutine.SuspendedForPlayer)
+                lifeErrors.Add("Niepełny sparing Moniki / powrót planu zajęć");
+            if(lifePlayerArenas.Any(done=>!done))lifeErrors.Add("Monika nie sprawdziła wszystkich trzech aren");
             report.bagStrikes=lifeRoutine.BagStrikes; report.sparringStrikes=lifeRoutine.SparringStrikes; report.orders=lifeRoutine.Orders;
             if(lifeRoutine.audio)
             {

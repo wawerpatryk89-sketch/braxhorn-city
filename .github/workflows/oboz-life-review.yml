@@ -60,7 +60,10 @@ jobs:
           from durable_cache import download, release_tag
           expected=profile(Path('unity-city'),'oboz','6000.0.58f2')
           tag=release_tag(expected,'refs/heads/gpt/oboz')
-          download(os.environ['GITHUB_REPOSITORY'],tag,Path(os.environ['RUNNER_TEMP'])/'oboz-library.tar.zst.enc',expected)
+          archive=Path(os.environ['RUNNER_TEMP'])/'oboz-library.tar.zst.enc'
+          if not download(os.environ['GITHUB_REPOSITORY'],tag,archive,expected):
+              tag=release_tag(expected,'refs/heads/codex/oboz-npc-life-20261104')
+              download(os.environ['GITHUB_REPOSITORY'],tag,archive,expected)
           PY_CACHE
       - name: Sprawdź i odszyfruj cache
         env:
@@ -127,6 +130,10 @@ jobs:
           assert not r['phoneTested'] and not r['appearanceApproved']
           assert r['commit']==os.environ['GITHUB_SHA'] and r['unity']=='6000.0.58f2'
           assert r['rounds']>=3 and r['orders']==2
+          assert len(r['arenaRounds'])==3 and all(n>=1 for n in r['arenaRounds'])
+          assert r['playerSparringStarted'] and r['playerSparringEnded'] and r['routineSuspendedForPlayer']
+          assert len(r['playerSparringArenas'])==3 and all(r['playerSparringArenas'])
+          assert r['bagStrikesDuringPlayerSparring']>=3
           assert r['bagStrikes']>=8 and r['sparringStrikes']>=6
           assert r['spokenLines']>=2 and r['contactSounds']==r['sparringStrikes']
           assert r['pauseDisplacement']<=.001 and r['pauseBagDegrees']<=.001

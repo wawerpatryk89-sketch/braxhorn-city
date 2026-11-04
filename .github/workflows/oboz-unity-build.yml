@@ -197,6 +197,7 @@ jobs:
           versioning: None
           allowDirtyBuild: true
       - name: Weryfikacja gotowego podpisu, pakietu i wersji APK
+        id: apk_identity
         run: |
           set -euo pipefail
           test -x "$AAPT" && test -x "$SIGNER"
@@ -206,6 +207,28 @@ jobs:
           PREVIOUS=(--allow-first-install)
           if [ -f "$RUNNER_TEMP/previous/release-identity.json" ]; then PREVIOUS=(--previous "$RUNNER_TEMP/previous/release-identity.json"); fi
           python3 unity-tools/oboz/release_identity.py verify "${PREVIOUS[@]}" --version "$VERSION" --apk build/ObozAndroid/braxhorn-oboz.apk --aapt "$AAPT" --apksigner "$SIGNER" --output build/ObozAndroid/release-identity.json
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          receipt=Path('build/ObozAndroid/release-identity.json')
+          data=json.loads(receipt.read_text())
+          data.update(sourceCommit=os.environ['GITHUB_SHA'], sourceRun=int(os.environ['GITHUB_RUN_ID']),
+                      phoneTested=False, contentUpdatesReady=False)
+          receipt.write_text(json.dumps(data,indent=2)+'\n')
+          PY
+      - name: Zachowaj zweryfikowany APK przed zapisem wydania
+        if: ${{ !cancelled() && steps.apk_identity.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oboz-apk-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build/ObozAndroid/braxhorn-oboz.apk
+            build/ObozAndroid/release-identity.json
+            build/ObozAndroid/build-receipt.json
+            build/ObozAndroid/scene-validation.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
       - name: Zaszyfrowany zapis scen obozu
         id: world
         continue-on-error: true
