@@ -122,3 +122,12 @@ Nie oznaczają automatycznie, że dana usterka została naprawiona w Androidzie.
 - `BraxMiastoOdbior.cs`: raport dostępności drzwi apteki, liczby modeli i wariantów leków, obecności ich tekstur, dostępności windy do piętra 36, czterech segmentów dachu, liczby brył 3D panoramy i rzeczywistej rozdzielczości tekstury nieba.
 
 **Warunek wydania:** żaden z tych nowych zapisów nie zastępuje testu Unity 6/Android. Na docelowej Motoroli należy fizycznie przejść z ulicy przez APTEKĘ, NOVA i TOWER, wjechać na dach, obejrzeć panoramę podczas obrotu o 360°, wejść do mieszkania, zwiedzić metro i policzyć jednostki w marinie. Build przed testem uruchomić wyłącznie jako jeden zbiorczy dla miasta, bez mieszania z osiedlem i obozem.
+
+
+## Dokończenie przed wspólnym buildem — 4 listopada 2026
+
+- **Szyby:** `pokoje.png` nie należy do jawnych plików repozytorium, bo skrypt `unity-tools/claude/fetch_osiedle.py` generuje atlas 2048×1024 w CI. Nie wolno twierdzić, że brak w GitHubie jest dowodem braku szyb w APK. W gałęzi istnieje czytelna, refleksyjna szyba awaryjna; import i wyświetlanie atlasu trzeba zweryfikować w logu/na telefonie.
+- **Apteka:** modele `lek_01.glb`…`lek_24.glb` znajdują się w zaszyfrowanej paczce `miasto_sklepy` (potwierdzenie rzeczywistej kompletności dopiero po odszyfrowaniu w CI). Generowanie lokalu jest podłączone pod `Building apothecary` i wykorzystuje dwa regały przyścienne. Kontrola sceny mierzy także obecność tekstur na opakowaniach.
+- **Panorama 360° Tower:** `BraxPanorama` buduje obiekty horyzontu; `BraxRegionHoryzont` pobiera niebo z Poly Haven. `BraxPierscien` podnosi zasięg kamery na dachu (docelowo 580 m), a po zejściu przywraca wcześniejszy. Dotychczasowa pełna kolizja dachu zastąpiona została 4 segmentami pozostawiającymi wolny szyb windy.
+- **CI / niepotrzebne wielogodzinne buildy:** ręczny `workflow_dispatch` obsługuje tę gałąź bez automatycznego builda na push; w ręcznym teście miasta, przed kosztownym uruchomieniem Unity, sprawdzane są: atlas okien, niebo 4K, 24 modele leków, 4 warianty odżywek, oba murale. Brak pliku = jawny błąd, nie udawana kompletność.
+- **Stan dowodów:** statyczne oględziny plików nie zastępują kompilacji Unity i uruchomienia APK. Pozostało zweryfikować w grze wszystkie przejścia, rzeczywistą liczbę jednostek mariny, wysokie budynki i wystający element ponad kamienicą, materiał oraz położenie metra, z-fighting elewacji, pełne wyposażenie lokali i FPS/RAM.
