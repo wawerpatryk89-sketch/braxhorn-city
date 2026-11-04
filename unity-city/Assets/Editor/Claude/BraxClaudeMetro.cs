@@ -1360,15 +1360,20 @@ public static class BraxClaudeMetro
         float skala = Mathf.Min(2.8f * K / szerP,
             (2f * (zTn - zPN) - .20f) / szerC,
             (yHc - .30f - yR) / cale.size.y);
-        // Dwa człony tego samego składu: 20 cm na widoczny przegub.
         float dl = cale.size.x * skala, gap = .20f;
+        // Zbyt długiego kompletnego pociągu nie dublujemy. Dwa krótsze
+        // wagony łączymy jednym przegubem, o ile CAŁY skład mieści się
+        // również w obu istniejących tunelach, nie tylko na peronie.
+        float dostepnyTunel = Mathf.Min(TW1 - PX1, PX0 - TW0) - 8f;
         if (float.IsNaN(skala) || float.IsInfinity(skala) || skala <= 0f ||
-            dl < 8f || 2f * dl + gap > PX1 - PX0 - 5f)
-            throw new InvalidOperationException("BRAXHORN_METRO_M1_SKALA_NIEGOTOWA: długość wagonu=" +
-                dl.ToString("F2") + ", skala=" + skala.ToString("F4") +
-                ", GLB=" + cale.size.ToString("F2"));
+            dl < 8f || dl > dostepnyTunel)
+            throw new InvalidOperationException("BRAXHORN_METRO_M1_SKALA_NIEGOTOWA: długość modelu=" +
+                dl.ToString("F2") + ", maksymalna=" + dostepnyTunel.ToString("F2") +
+                ", skala=" + skala.ToString("F4") + ", GLB=" + cale.size.ToString("F2"));
+        int liczbaWagonow = 2f * dl + gap <= dostepnyTunel ? 2 : 1;
         float xWsch = PX1 - 3f;
-        var sklad = new GameObject("METRO M1 — pociąg kursujący kane_sk06 (2 wagony, 60 s)").transform;
+        var sklad = new GameObject("METRO M1 — pociąg kursujący kane_sk06 (" +
+            liczbaWagonow + (liczbaWagonow == 1 ? " model, 60 s)" : " wagony, 60 s)")).transform;
         sklad.SetParent(W.Grupa, false);
         sklad.position = Vector3.zero;
         var otwL = new List<Transform>();
@@ -1379,7 +1384,7 @@ public static class BraxClaudeMetro
         Bounds poprzedniWagon = default;
         Material rd = mPudlo;
         Material ciemny = mCzarny;
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < liczbaWagonow; i++)
         {
             float cx = xWsch - dl * .5f - i * (dl + gap);
             // Przy obu członach kabiny na zewnątrz, wagony wzdłuż osi X toru.
@@ -1470,7 +1475,7 @@ public static class BraxClaudeMetro
             rep.wagony++;
         }
 
-        if (rep.wagony < 2) { UnityEngine.Object.DestroyImmediate(sklad.gameObject); return false; }
+        if (rep.wagony != liczbaWagonow) { UnityEngine.Object.DestroyImmediate(sklad.gameObject); return false; }
         // M1 przejeżdża tylko po istniejącym torze i znika w ciemnym tunelu.
         // Dla długich wagonów wyjazd jest liczony od całej bryły, aby nie
         // teleportować ich, gdy ogon składu stoi jeszcze przy peronie.
@@ -1501,8 +1506,8 @@ public static class BraxClaudeMetro
         npc.pociag = ruch;
         npc.poziomPeronu = yP;
         npc.zPeron = zPN - .3f;
-        Debug.Log("BRAXHORN_METRO_M1_POCIAG_KURS: dwa autentyczne wagony, dlugosc=" +
-            wszystkie.size.x.ToString("F1") + "m, skala=" + skala.ToString("F4") +
+        Debug.Log("BRAXHORN_METRO_M1_POCIAG_KURS: elementy=" + liczbaWagonow +
+            ", dlugosc=" + wszystkie.size.x.ToString("F1") + "m, skala=" + skala.ToString("F4") +
             ", par_drzwi_scenicznych=" + otwL.Count +
             ", wjazd_offset=" + ruch.wejscieOffsetX.ToString("F1") +
             ", wyjazd_offset=" + ruch.wyjazdOffsetX.ToString("F1") +
