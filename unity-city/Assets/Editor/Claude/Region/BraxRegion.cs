@@ -95,6 +95,8 @@ public static class BraxRegion
         Step("ludzie miasta (B): obsada, ławki, przechodnie po chodnikach i zebrach", () => BraxClaudeOsiedle.LudzieMiastaB(root));
         // Na końcu: przesunięcie głębi dla wszystkiego, co dobudowane (anty-migotanie).
         Step("anty-migotanie (offset głębi, trilinear)", () => BraxRegionFlicker.Apply(root));
+        // Kontrola prawdziwych wejść i dostarczonych grafik: bez usuwania nieznanych obiektów.
+        Step("odbiór miasta: NOVA / Tower / mieszkanie / marina / murale", () => BraxMiastoOdbior.Wykonaj(root));
 
         // Siatki zrobione po BraxCityArchitecture.Finish nie mają plików: zapisujemy je, żeby build był deterministyczny.
         Step("utrwalenie siatek", () => PersistMeshes(root));
