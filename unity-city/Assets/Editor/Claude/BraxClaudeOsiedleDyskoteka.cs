@@ -756,7 +756,7 @@ public static partial class BraxClaudeOsiedle
     {
         if (klub == null || klub.loze < 12)
             throw new InvalidOperationException("Dyskoteka: nie zbudowano pełnego zestawu lóż premium");
-        int sofy = klubMeble.Count(x => x.co.Contains("sofa", StringComparison.OrdinalIgnoreCase));
+        int sofy = klubMeble.Count(x => x.co.IndexOf("sofa", StringComparison.OrdinalIgnoreCase) >= 0);
         int stoliki = klubMeble.Count(x => x.co.Contains("stolik", StringComparison.OrdinalIgnoreCase));
         if (sofy != klub.loze * 3 || stoliki != klub.loze)
             throw new InvalidOperationException("Dyskoteka: niespójny układ lóż. Loże=" + klub.loze + " sofy=" + sofy + " stoliki=" + stoliki);
