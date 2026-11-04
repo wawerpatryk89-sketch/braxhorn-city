@@ -116,15 +116,25 @@ public static partial class BraxClaudeOsiedle
             if(template.dl*skalaAuta+.2f>spot.rozmiar.y || template.szer*skalaAuta+.8f*K>spot.rozmiar.x)continue;
             var rotation=Quaternion.LookRotation(spot.przod);
             var half=new Vector3(template.szer*skalaAuta*.5f+.05f,Mathf.Max(.2f,(template.wys*skalaAuta-.3f)*.5f),template.dl*skalaAuta*.5f+.2f);
-            if(Physics.CheckBox(spot.srodek+Vector3.up*(.3f+half.y),half,rotation,~0,QueryTriggerInteraction.Ignore))continue;
-            var fotelSzablonu = template.go.GetComponentsInChildren<Transform>(true).First(t => t.name == FotelKierowcy);
-            float zDrzwi = template.go.transform.InverseTransformPoint(fotelSzablonu.position).z;
-            var wejscie = spot.srodek + rotation * (new Vector3(-(template.obrys.size.x * .5f + .65f), 0, zDrzwi) * skalaAuta);
-            float promien = player.body.radius, wysokosc = player.body.height;
-            if (Physics.CheckCapsule(wejscie + Vector3.up * (promien + .08f), wejscie + Vector3.up * (wysokosc - promien),
-                promien, ~0, QueryTriggerInteraction.Ignore)) continue;
+            var fotelSzablonu=template.go.GetComponentsInChildren<Transform>(true).First(t=>t.name==FotelKierowcy);
+            float zDrzwi=template.go.transform.InverseTransformPoint(fotelSzablonu.position).z;
+            float promien=player.body.radius, wysokosc=player.body.height;
+            // Zatoka moze miec słupek lub krawężnik w jednym narożniku.
+            // Sprawdz kilka położeń w jej granicach, nie stawiaj przez obiekty.
+            Vector3 srodek=spot.srodek; bool wolne=false;
+            foreach(float odsun in new[]{0f,-.25f,.25f,-.5f,.5f})
+            {
+                if(Mathf.Abs(odsun)+template.dl*.5f+.2f>spot.rozmiar.y*.5f)continue;
+                var p=spot.srodek+rotation*Vector3.forward*odsun;
+                if(Physics.CheckBox(p+Vector3.up*(.3f+half.y),half,rotation,~0,QueryTriggerInteraction.Ignore))continue;
+                var wejscie=p+rotation*new Vector3(-(template.obrys.size.x*.5f+.65f)*skalaAuta,0f,zDrzwi*skalaAuta);
+                if(Physics.CheckCapsule(wejscie+Vector3.up*(promien+.08f),wejscie+Vector3.up*(wysokosc-promien),
+                    promien,~0,QueryTriggerInteraction.Ignore))continue;
+                srodek=p;wolne=true;break;
+            }
+            if(!wolne)continue;
             var go=AutoInstancja(template,Group("Auto Patryka / ARENA BRAXHORN"),"Auto Patryka · tylko gracz",new System.Random(180),out var color);
-            go.transform.SetPositionAndRotation(spot.srodek,rotation);
+            go.transform.SetPositionAndRotation(srodek,rotation);
             Debug.Log("BRAXHORN_AUTO_PATRYKA skala_dodatkowa=1.000 dl="+template.dl.ToString("F3")+" szer_z_lusterkami="+template.szer.ToString("F3")+" K="+K.ToString("F4"));
             var box=go.AddComponent<BoxCollider>();box.center=template.obrys.center;box.size=template.obrys.size;
             var rb=go.AddComponent<Rigidbody>();rb.isKinematic=true;rb.useGravity=false;rb.interpolation=RigidbodyInterpolation.Interpolate;
@@ -153,9 +163,9 @@ public static partial class BraxClaudeOsiedle
                 Debug.Log("BRAXHORN_AUTO_DRZWI model="+template.id+" drzwi="+drzwiOpis+" zawias="+(nozycowe?"nożycowy (przednia krawędź, oś poprzeczna)":"przednia krawędź, oś pionowa")+" kąt="+car.katDrzwi.ToString("F0")+"° punkt="+piv.localPosition.ToString("F2"));
             }
             else Debug.Log("BRAXHORN_AUTO_DRZWI model="+template.id+" drzwi=nie zawias=— (model bez wydzielonych drzwi — wsiadanie bez animacji drzwi)");
-            float odl=(new Vector3(spot.srodek.x,0,spot.srodek.z)-WejscieAreny).magnitude;
-            Debug.Log("BRAXHORN_AUTO_PATRYKA miejsce="+spot.srodek.ToString("F2")+" (przy arenie, "+odl.ToString("F1")+" m od wejścia ARENA BRAXHORN) przód="+spot.przod.ToString("F2")+" kabina zapas="+wybrany.w.zapas.ToString("F3")+" odchylenie="+wybrany.w.odchylenie.ToString("F0")+"°");
-            rep.notes.Add("Auto Patryka przy ARENA BRAXHORN: "+template.id+", "+color+", "+spot.srodek+" ("+odl.ToString("F1")+" m od wejścia); wsiadanie AKCJA (drzwi: "+drzwiOpis+"), gaz/ster joystick, wyjście po zatrzymaniu. Bez dostępu NPC.");
+            float odl=(new Vector3(srodek.x,0,srodek.z)-WejscieAreny).magnitude;
+            Debug.Log("BRAXHORN_AUTO_PATRYKA miejsce="+srodek.ToString("F2")+" (przy arenie, "+odl.ToString("F1")+" m od wejścia ARENA BRAXHORN) przód="+spot.przod.ToString("F2")+" kabina zapas="+wybrany.w.zapas.ToString("F3")+" odchylenie="+wybrany.w.odchylenie.ToString("F0")+"°");
+            rep.notes.Add("Auto Patryka przy ARENA BRAXHORN: "+template.id+", "+color+", "+srodek+" ("+odl.ToString("F1")+" m od wejścia); wsiadanie AKCJA (drzwi: "+drzwiOpis+"), gaz/ster joystick, wyjście po zatrzymaniu. Bez dostępu NPC.");
             Physics.SyncTransforms();return;
         }
         throw new InvalidOperationException("BRAXHORN_AUTO_PATRYKA: brak wolnej zatoki i dojścia do drzwi przy ARENA BRAXHORN (40 m od wejścia)");
