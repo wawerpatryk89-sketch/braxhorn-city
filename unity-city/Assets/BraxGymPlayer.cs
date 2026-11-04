@@ -307,6 +307,27 @@ public sealed class BraxGymPlayer : MonoBehaviour
         AutoYaw(dt,snap);
         Vector3 want=transform.position+Vector3.up*1.65f;
         cameraTarget=Vector3.Lerp(cameraTarget,want,1-Mathf.Exp(-dt*10f));   // build 14: lekkie opóźnienie za postacią (10/s)
+        // Kabina windy jest dużo węższa niż standardowe 5.8 m kamery TPP.
+        // Film 4.11: wielosekundowy czarny ekran na drzwiach Tower.
+        // Tylko gdy gracz FAKTYCZNIE stoi w kabinie: widok oczu w stronę drzwi.
+        // Po wyjściu automatycznie wraca standardowa kamera zza pleców.
+        if (cityWorld && !seat && !vessel &&
+            BraxWinda.WewnatrzKabiny(transform.position, out Vector3 windaPrzod))
+        {
+            view.transform.position = transform.position + Vector3.up * 1.68f +
+                                      windaPrzod * .14f;
+            view.transform.rotation = Quaternion.LookRotation(windaPrzod, Vector3.up);
+            camNear = -1f;
+            if (!hiddenClose)
+            {
+                hiddenClose = true;
+                foreach (var rr in visual.GetComponentsInChildren<Renderer>(true))
+                    rr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+            }
+            if (contactShadow) contactShadow.position =
+                transform.position + Vector3.up * .018f;
+            return;
+        }
         float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
         // właściciel 3.11 10:39: na jachcie „kamera ze środka, za kierownicą” — blisko za głową sternika (najwyżej 2.2 m)
         float dist=vessel&&vessel.label=="JACHT"?Mathf.Min(distance,2.2f):distance;
