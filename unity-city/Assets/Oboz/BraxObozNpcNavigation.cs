@@ -71,9 +71,18 @@ public sealed partial class BraxObozNpc : IBraxInterakcja
         else Play("Idle", true);
         float moved = Vector3.Distance(before, transform.position); Travelled += moved;
         // Oscillating against a collider is movement, but not route progress.
-        float remaining = navigation.remainingDistance;
+        // updatePosition is false: measure from the actual collision controller,
+        // not the agent's cached remainingDistance after a destination change.
+        var corners = navigation.path.corners;
+        float remaining = corners.Length > 1 ? 0 : float.PositiveInfinity;
+        Vector3 routePoint = transform.position;
+        for (int i = 1; i < corners.Length; i++)
+        {
+            remaining += Vector3.Distance(routePoint, corners[i]);
+            routePoint = corners[i];
+        }
         if (!float.IsInfinity(remaining) && remaining < bestRemaining - .15f)
-        { bestRemaining = remaining; noProgress = 0; }
+        { bestRemaining = remaining; noProgress = 0; NavigationBlocked = false; }
         else noProgress += dt;
         if (noProgress > 8 && !NavigationBlocked)
         {

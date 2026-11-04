@@ -27,7 +27,6 @@ public static class BraxObozTrainingSetup
 
     public static void Configure(BraxObozSceneInfo scene)
     {
-        AddCageSteps(scene);
         var routine = scene.gameObject.AddComponent<BraxObozTrainingRoutine>(); routine.player = scene.player;
         string[] order = { "kade", "zyro", "vorn", "gorr", "rakk", "mis" };
         routine.participants = order.Select(id => scene.npcs.Single(n => n.characterId == id)).ToArray();
@@ -130,20 +129,4 @@ public static class BraxObozTrainingSetup
     }
     static Vector3 BagPlace(BraxWorek bag)
     {var p=bag.transform.position;p.y=.06f*K;p.z+=K;return p;}
-    static void AddCageSteps(BraxObozSceneInfo scene)
-    {
-        // The existing south-east opening is retained. Two low steps bridge its 35 cm platform.
-        var root=new GameObject("Dwa stopnie istniejącego wejścia klatki").transform;root.SetParent(scene.transform,false);
-        root.position=new Vector3(1.8738f,0,-9.5238f)*K;
-        root.rotation=Quaternion.LookRotation(new Vector3(-.382683f,0,.92388f));
-        var wood=BraxObozMaterials.Pbr("wood");
-        for(int i=0;i<2;i++)
-        {
-            float height=.14f*(i+1);
-            var step=GameObject.CreatePrimitive(PrimitiveType.Cube);step.name="Stopień wejścia "+(i+1);step.transform.SetParent(root,false);
-            step.transform.localPosition=new Vector3(0,height*.5f,-.9f+i*.6f)*K;
-            step.transform.localScale=new Vector3(2.6f,height,.64f)*K;
-            step.GetComponent<Renderer>().sharedMaterial=wood;
-        }
-    }
 }

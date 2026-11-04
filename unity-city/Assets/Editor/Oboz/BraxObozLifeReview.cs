@@ -267,6 +267,7 @@ public static partial class BraxObozCharacters
         report.frames=lifeFrames.ToArray(); report.errors=lifeErrors.ToArray();
         if(string.IsNullOrEmpty(lifeOutput))lifeOutput=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/CampLifeReview"));
         Directory.CreateDirectory(lifeOutput); File.WriteAllText(Path.Combine(lifeOutput,"camp-life-review.json"),JsonUtility.ToJson(report,true));
+        foreach (var error in report.errors) Debug.LogError("BRAXHORN_CAMP_LIFE failure: " + error);
         Debug.Log("BRAXHORN_CAMP_LIFE complete="+report.complete+" frames="+lifeFrames.Count+" phone_tested=false");
         EditorApplication.Exit(report.complete?0:1);
     }
