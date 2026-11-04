@@ -906,6 +906,13 @@ public static class BraxRegionTylyB
                       t.name == "CLAUDE taras widokowy wieżowca" || t.name == "CLAUDE taras: kwiaty, rabaty i pergole"))
             { usuniete.Add("Tower: " + t.name + " (" + t.GetComponentsInChildren<Renderer>(true).Length + " rendererów)"); UnityEngine.Object.DestroyImmediate(t.gameObject); }
         if (world) { world.elevator = null; world.doors = world.doors.Where(d => d).ToArray(); }
+        // Zgłoszenie 4.11: mimo nowych automatycznych drzwi Tower gracz nie mógł wejść.
+        // Źródłowa elewacja Tower zostawała przed wejściem. WYCIĄĆ jej faktyczne
+        // siatki i collidery w świetle drzwi 2.12 m × 2.86 m, NIE nakładać portalu
+        // na nienaruszoną ścianę. Reszta elewacji, okna, materiał PBR zostają.
+        var towerWejscie = BraxMiastoA.Obj(57.88f, 60.12f, .10f, 3.05f, 35.90f, 36.78f);
+        var towerCiecie = BraxMiastoA.Wyczysc(cityRoot, towerWejscie, "tower_portal_wejsciowy");
+        Debug.Log("BRAXHORN_TOWER_WEJSCIE_CIECIE " + towerCiecie);
         var T = BraxRegion.Root(cityRoot, "CLAUDE Tower B: lobby, winda, apartament, taras");
         var prev = root; root = T;
         try
