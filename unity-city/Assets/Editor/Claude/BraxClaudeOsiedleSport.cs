@@ -32,6 +32,50 @@ public static partial class BraxClaudeOsiedle
         rep.notes.Add("sport: " + string.Join("; ", opis.Where(s => !string.IsNullOrEmpty(s))));
     }
 
+    // Kontrola po wygenerowaniu sceny: sprawdza PRAWDZIWE komponenty i kości
+    // Patryka, zamiast uznawać samą obecność plików C# za gotową grę.
+    public static void SprawdzSportPatryka(BraxGymPlayer gracz)
+    {
+        if (!gracz || !gracz.visual || !gracz.clips)
+            throw new System.InvalidOperationException("OSIEDLE SPORT: brak gracza Patryka lub animacji");
+        if (gracz.walkOnly || gracz.clips.GetClip("Run") == null ||
+            gracz.clips.GetClip("Punch") == null || gracz.clips.GetClip("Kick") == null)
+            throw new System.InvalidOperationException("OSIEDLE SPORT: Patryk nie ma biegu/ciosu/kopnięcia");
+        var wymaganeKosci = new[] { "Hips", "Spine", "LeftArm", "LeftForeArm", "LeftHand",
+            "RightArm", "RightForeArm", "RightHand", "LeftUpLeg", "LeftLeg", "LeftFoot",
+            "RightUpLeg", "RightLeg", "RightFoot" };
+        var nazwy = new HashSet<string>(gracz.visual.GetComponentsInChildren<Transform>(true)
+            .Select(t => PatrykKosc(t.name)));
+        var braki = wymaganeKosci.Where(n => !nazwy.Contains(n)).ToArray();
+        if (braki.Length > 0)
+            throw new System.InvalidOperationException("OSIEDLE SPORT: brak kości Patryka " + string.Join(", ", braki));
+        if (!gracz.GetComponent<BraxRuchySport>())
+            throw new System.InvalidOperationException("OSIEDLE SPORT: ruchy kosza/tenisa nie są podłączone do Patryka");
+
+        var boiska = UnityEngine.Object.FindObjectsByType<BraxSportBoisko>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var gra in new[] { BraxSportBoisko.Gra.Kosz, BraxSportBoisko.Gra.Nozna, BraxSportBoisko.Gra.Tenis })
+        {
+            if (!boiska.Any(b => b && b.gra == gra && b.cele != null && b.cele.Length > 0 &&
+                                  b.strefa.x > 1f && b.strefa.y > 1f))
+                throw new System.InvalidOperationException("OSIEDLE SPORT: nie utworzono grywalnego boiska " + gra);
+        }
+        // Auto do zwiedzania musi istnieć jako JEZDNY obiekt z fotelem i kolizją.
+        // Brak auta przy Arenie to błąd builda, nie sukces z dekoracją.
+        var auta = UnityEngine.Object.FindObjectsByType<BraxAutoGracza>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        var prywatne = auta.FirstOrDefault(a => a && a.fotel && a.obrys &&
+            a.GetComponent<Rigidbody>() &&
+            Vector2.Distance(new Vector2(a.transform.position.x, a.transform.position.z),
+                             new Vector2(-86f, 79f)) <= 40f);
+        if (!prywatne)
+            throw new System.InvalidOperationException("OSIEDLE: brak jezdnego sportowego auta Patryka przy ARENA BRAXHORN");
+        Debug.Log("BRAXHORN_AUTO_GRACZA_OK model=" + prywatne.name + " miejsce=" + prywatne.transform.position);
+        Debug.Log("BRAXHORN_SPORT_PATRYK_OK boiska=" + boiska.Length +
+            " (kosz/nożna/tenis), rig=" + wymaganeKosci.Length +
+            " kości, Run/Punch/Kick=true, ruchy proceduralne=true, build wyłącznie osiedla");
+    }
+
     static BraxSportBoisko NoweBoisko(Transform sport, string nazwa, BraxSportBoisko.Gra gra)
     {
         var go = new GameObject(nazwa); go.transform.SetParent(sport, false);

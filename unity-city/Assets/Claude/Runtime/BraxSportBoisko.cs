@@ -225,7 +225,8 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
         var p = gt.position; var dv = p - graczPoprz; dv.y = 0f;
         graczV = Mathf.Lerp(graczV, dv.magnitude / Mathf.Max(Time.deltaTime, 1e-4f), .25f); graczPoprz = p;
         var l = Lok(p);
-        bool na = Mathf.Abs(l.x) < strefa.x && Mathf.Abs(l.y) < strefa.y && Mathf.Abs(p.y - podloga) < 3f;
+        bool pieszo = gracz && !gracz.autoGracza && !gracz.vessel && !gracz.seat;
+        bool na = pieszo && Mathf.Abs(l.x) < strefa.x && Mathf.Abs(l.y) < strefa.y && Mathf.Abs(p.y - podloga) < 3f;
         Na = na;
         if (na) { var ak = BraxSport.Aktywne; if (!ak || ak == this || !ak.Na || Ostatnio > ak.Ostatnio) BraxSport.Aktywne = this; }
         else if (BraxSport.Aktywne == this) BraxSport.Aktywne = null;
