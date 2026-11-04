@@ -5818,12 +5818,8 @@ public static partial class BraxClaudeOsiedle
         Guard("komisariat — nowe wnętrze", () => PoliceInterior(estate, physics));
         Guard("drzewa z chodników", () => TreesOffPaving(physics));
         Guard("ulice: parking i przejścia B, wyposażenie, strefy zatrzymania, kontrola (BraxClaudeOsiedleUlice)", UliceOsiedla);   // build 14 „drogi”
-        // 4.11: Sport()/RuchNaOsiedlu() istniały, ale nie były wywoływane w Build.
-        // Aktywacja DOPIERO po kortach, ParkA, willach, drogach oraz parkingach:
-        // rzeczywiste interaktywne boiska (Patryk), nie tylko dekoracje.
-        Guard("SPORT: kosz, piłka nożna, tenis i siatkówka — interakcje i animacje Patryka", Sport);
-        // Auta w ruchu / prywatny samochód Patryka: po wszystkich miejscach parkingowych.
-        Guard("RUCH: samochody osiedla i auto Patryka przy ARENA BRAXHORN", RuchNaOsiedlu);
+        // Sport i ruch są wywoływane raz wewnątrz KraniecMapy().
+        // Bez drugiego wywołania: brak zdublowanych piłek, samochodów i obiektów.
         Guard("korony drzew z dala od budynków", PruneCrowns);
         Guard("kraniec mapy: teren dookoła zamiast pustki", KraniecMapy);
         Guard("elewacje i szyldy: detale A, kontrola zasłonięcia, scalanie z LOD", () => ElewacjeKoniec(estate, physics));   // build 14 (BraxClaudeOsiedleSzyldy/Elewacje)
