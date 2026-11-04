@@ -794,6 +794,57 @@ public static class BraxUlicePierzeje
         Debug.Log("BRAXHORN_APTEKA_WIEZOWIEC fizyczne regały=2; wolny korytarz x 43..47; winda nienaruszona");
     }
 
+    // Oryginalny ekspres/ml ynek: pierwszeństwo mają modele już dostarczone przez
+    // właściciela (zaszyfrowane paczki). Nie wolno zastępować ich klockami.
+    // Dopiero gdy nie ma źródła prywatnego, używamy sprawdzonego modelu GLB CC0.
+    static GameObject ModelKawiarni(string rodzaj)
+    {
+        string[] nazwy = rodzaj == "ekspres"
+            ? new[] { "ekspres_kolbowy", "ekspres_do_kawy", "ekspres", "coffee_machine", "espresso_machine",
+                      "commercial_coffee_machine", "kawiarnia_ekspres" }
+            : new[] { "mlynek_kawy", "mlynek_do_kawy", "mlynek", "coffee_grinder", "espresso_grinder",
+                      "kawiarnia_mlynek" };
+        foreach (var paczka in new[] { "miasto_sklepy", "miasto_wyposazenie" })
+        {
+            foreach (string n in nazwy)
+                if (System.IO.File.Exists(BraxMiastoAssety.Baza + paczka + "/" + n + ".glb"))
+                {
+                    var g = BraxMiastoAssety.Model(paczka, n);
+                    if (g) { Debug.Log("BRAXHORN_KAWIARNIA_SPRZET ORYGINAL " + paczka + "/" + n); return g; }
+                }
+            // Wyposażenie bywa jednym GLB z oddzielnymi węzłami; nie importuj
+            // całej paczki do kawiarni, tylko odpowiadający maszynie obiekt.
+            if (paczka == "miasto_wyposazenie" &&
+                System.IO.File.Exists(BraxMiastoAssety.Baza + paczka + "/miasto_wyposazenie.glb"))
+            {
+                var z = BraxMiastoAssety.Model(paczka, "miasto_wyposazenie");
+                if (z)
+                    foreach (var t in z.GetComponentsInChildren<Transform>(true))
+                        if (t && nazwy.Any(n => t.name.Equals(n, StringComparison.OrdinalIgnoreCase)) &&
+                            t.GetComponentsInChildren<Renderer>(true).Length > 0)
+                            return t.gameObject;
+            }
+        }
+        if (rodzaj == "ekspres")
+        {
+            string cc0 = "Assets/Source/Claude/Cafe/espresso_machine_sobczak.glb";
+            if (System.IO.File.Exists(cc0))
+            {
+                AssetDatabase.ImportAsset(cc0, ImportAssetOptions.ForceSynchronousImport);
+                var g = AssetDatabase.LoadAssetAtPath<GameObject>(cc0) ??
+                    AssetDatabase.LoadAllAssetsAtPath(cc0).OfType<GameObject>().FirstOrDefault();
+                if (g)
+                {
+                    Debug.Log("BRAXHORN_KAWIARNIA_SPRZET model CC0 Spring Lever Espresso Machine — zamiast pustej kawiarni");
+                    return g;
+                }
+            }
+        }
+        Debug.LogError("BRAXHORN_KAWIARNIA_NIEGOTOWA: brak autentycznego modelu " +
+            rodzaj + " w paczkach prywatnych i legalnych źródłach CC0");
+        return null;
+    }
+
     // ---------------- wnętrze lokalu za witryną ----------------
     static void Wnetrze(Fasada f, Transform bg, Transform kolizje)
     {
@@ -927,6 +978,40 @@ public static class BraxUlicePierzeje
                 BraxSklepyTowar.Wozki(tw, kolizje, W(f.drzwiS + (wPrawo ? .95f : -.95f), y0, -.6f), wPrawo ? f.R : -f.R, 2);
             }
         }
+        // SOBCZAK KAWIARNIA — prawdziwy metalowy ekspres kolbowy i młynek,
+        // postawione na ISTNIEJĄCEJ ladzie, bez dodatkowych powierzchni.
+        // Wolne przejście klientów przed ladą; oryginalny szyld bez zmian.
+        if (lok.typ == "kawiarnia")
+        {
+            void UstawSprzet(string rodzaj, float s)
+            {
+                var src = ModelKawiarni(rodzaj);
+                if (!src) return;
+                Vector3 gdzie = W(s, y0 + ladaH, ladaD - ladaG * .50f);
+                float yaw = Quaternion.LookRotation(-f.N, Vector3.up).eulerAngles.y;
+                var obiekt = BraxMiastoAssety.Postaw(bg, src, "SOBCZAK KAWIARNIA — " +
+                    (rodzaj == "ekspres" ? "ekspres kolbowy PBR" : "młynek PBR"), gdzie,
+                    yaw, 1f, true, true);
+                if (!obiekt) return;
+                var b = BraxRegion.Bounds(obiekt);
+                float maks = rodzaj == "ekspres" ? 1.55f * k : .82f * k;
+                if (Mathf.Max(b.size.x, b.size.z) > maks || b.size.y > 1.2f * k)
+                {
+                    Debug.LogError("BRAXHORN_KAWIARNIA_NIEGOTOWA: " + rodzaj +
+                        " ma nieprawidłowe gabaryty " + b.size.ToString("F2") +
+                        " — nie zasłaniamy lady ani drzwi");
+                    UnityEngine.Object.DestroyImmediate(obiekt);
+                    return;
+                }
+                // Korekta tylko pivotu modelu, nie skali ani proporcji.
+                obiekt.transform.position += gdzie -
+                    new Vector3(b.center.x, b.min.y, b.center.z);
+                Debug.Log("BRAXHORN_KAWIARNIA_WYPOSAZONA " + rodzaj + " " + obiekt.name);
+            }
+            UstawSprzet("ekspres", ladaS1 - .67f * k);
+            UstawSprzet("mlynek", ladaS1 - 1.65f * k);
+        }
+
         // lampy sufitowe (panele)
         for (float s = sIn0 + 1.4f; s < sIn1 - .8f; s += 2.6f)
             foreach (float d in new[] { -1.8f, dTyl + 1.9f }) BraxUliceKit.S(lampa).Box(W(s - .5f, ySuf - .05f, d + .3f), W(s + .5f, ySuf, d - .3f), 8);
