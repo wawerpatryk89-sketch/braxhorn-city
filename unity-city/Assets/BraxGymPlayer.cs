@@ -119,7 +119,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(key=="reset")
         {
             if(vessel){transform.SetParent(null,true);vessel=null;}
-            if(seat){seat.Leave();}
+            if(seat){if(seat.tramOwner)seat.ForceLeave();else seat.Leave();}
             body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,180,0);body.enabled=true;
             vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
             yaw=0;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
