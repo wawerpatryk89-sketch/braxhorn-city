@@ -990,9 +990,9 @@ internal static partial class BraxMiastoWyspa
             ApGniazdko(new Vector3(bx1 - .2f, F + 1.1f, zF - su * .001f), new Vector3(0, 0, -su));
             BraxRegion.Warm(root, "Arena WC: światło (" + nz + ")", new Vector3((xi0 + xi1) * .5f, F + h - .4f, (zi0 + zi1) * .5f), .6f, 5f);
             Miejsca[dam ? "arena_wc_damska" : "arena_wc_meska"] = new Vector3(xi1 - .6f, F, zN - su * 1.2f); apMiejsc++;
-            string wc = dam ? "arena_wc_damska" : "arena_wc_meska";
-            Miejsca[wc + "_prog"] = new Vector3((dA + dB) * .5f, F, zN - su * .6f);
-            Miejsca[wc + "_wnetrze"] = new Vector3((dA + dB) * .5f, F, zN + su * 1f);
+            string wcId = dam ? "arena_wc_damska" : "arena_wc_meska";
+            Miejsca[wcId + "_prog"] = new Vector3((dA + dB) * .5f, F, zN - su * .6f);
+            Miejsca[wcId + "_wnetrze"] = new Vector3((dA + dB) * .5f, F, zN + su * 1f);
             ApGasnica(new Vector3(xi1 + t + .002f, F + 1.2f, zN + su * .9f), Vector3.right);
             ApGniazdko(new Vector3(xi1 + t + .001f, F + .3f * K, zN + su * 2.2f), Vector3.right);
             apElem += 4;
