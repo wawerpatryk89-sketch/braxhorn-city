@@ -1,0 +1,14 @@
+{
+  "status": "STATIC_PASS_UNITY_NOT_RUN",
+  "csharpSyntaxFiles": 12,
+  "newPlayerTransferTests": 4,
+  "existingEncryptedTransferTests": 4,
+  "manualWorkflowOnly": true,
+  "cityPublicMethodsPreserved": true,
+  "sourceHumanoidCalibrationPreserved": true,
+  "sourceShaderPreserved": true,
+  "unityCompiled": false,
+  "playModeTested": false,
+  "androidDeviceTested": false,
+  "privateAssetDecryption": "DEFERRED_TO_AUTHORIZED_CI"
+}

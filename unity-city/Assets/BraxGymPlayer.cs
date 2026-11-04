@@ -13,6 +13,10 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public Transform contactShadow;
     public string buildId;
     public bool ready;
+    // Estate Patryk exploration settings. Defaults preserve the existing city controller.
+    public bool walkOnly, playFullActionClips;
+    public bool hideWhenCameraClose = true;
+    public float initialCameraYaw;
     public BraxCityWorld cityWorld;
     public Vector3 worldSpawn=new Vector3(1.5f,.08f,2.8f);
     public int trainingHits;
@@ -25,6 +29,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private float yaw, pitch = 19f, distance = 5.8f, vertical, speed;
     private float actionEnd, hitAt, stateAt;
     private string action = "Idle";
+    private float combatUntil;
     private bool hitPending, doorOpen, paused, runEnabled = true, soundEnabled = true;
     // SKOK (właściciel 1.11, 18:23: „skok zjebany, jakiś podwójny”): klip Jump sam podnosił biodra, a fizyka od razu wybijała
     // Braxa w górę — wychodziły dwa skoki naraz (z kucnięciem w powietrzu). Teraz: wybicie dopiero w chwili odbicia w klipie
@@ -67,6 +72,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private void Start()
     {
         if (!visual || !clips || !view || !body) throw new InvalidOperationException("Missing original player or controls");
+        yaw = initialCameraYaw;
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
         clips.playAutomatically = false;
@@ -120,12 +126,12 @@ public sealed class BraxGymPlayer : MonoBehaviour
         {
             if(vessel){transform.SetParent(null,true);vessel=null;}
             if(seat){seat.Leave();}
-            body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,180,0);body.enabled=true;
+            body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,initialCameraYaw+180f,0);body.enabled=true;
             vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
-            yaw=0;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
+            yaw=initialCameraYaw;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
             action="Idle";clips.Play("Idle");UpdateCamera(1f);Report();return;
         }
-        if(key=="run"){runEnabled=!runEnabled;Report();return;}
+        if(key=="run"){if(!walkOnly)runEnabled=!runEnabled;Report();return;}
         if(key=="sound"){soundEnabled=!soundEnabled;return;}
         if(paused)return;
         if(key=="action")
@@ -142,9 +148,10 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private void StartAction(string name,float rate,float contact)
     {
         if(clips[name]==null)return;
+        if ((name=="Punch" || name=="Kick") && clips["CombatIdle"]!=null && !BraxSport.Aktywne) combatUntil=Time.time+8f;
         action=name;clips[name].wrapMode=WrapMode.Once;clips[name].speed=rate;
         clips.CrossFade(name,.10f,PlayMode.StopAll);
-        actionEnd=Time.time+Mathf.Min(clips[name].length/rate,name=="Punch"?1.25f:name=="Kick"?1.1f:1.2f);
+        actionEnd=Time.time+(playFullActionClips?clips[name].length/rate:Mathf.Min(clips[name].length/rate,name=="Punch"?1.25f:name=="Kick"?1.1f:1.2f));
         hitAt=Time.time+contact/rate;hitPending=contact>=0;Report();
     }
     private void Update()
@@ -166,7 +173,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         bool acting=Time.time<actionEnd;
         bool jumping=acting&&action=="Jump";   // w skoku: pęd zostaje, sterowanie lekkie
         float mag=move.magnitude;   // 1.11: chód przy lekkim wychyleniu (0.9–2.1 m/s), płynnie w bieg przy mocnym (do 5.2 m/s), bez przycisku BIEG
-        float naJoy=mag<.12f?0f:mag<.7f?Mathf.Lerp(.9f,2.1f,(mag-.12f)/.58f):(runEnabled?Mathf.Lerp(2.1f,5.2f,Mathf.SmoothStep(0f,1f,(mag-.7f)/.22f)):2.1f);
+        float naJoy=mag<.12f?0f:mag<.7f?Mathf.Lerp(.9f,2.1f,(mag-.12f)/.58f):(!walkOnly&&runEnabled?Mathf.Lerp(2.1f,5.2f,Mathf.SmoothStep(0f,1f,(mag-.7f)/.22f)):2.1f);
         float target=jumping?speed:!acting?naJoy:0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
         Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
@@ -183,8 +190,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(jumpPending)
         {
             bool odbicie=Time.time>=jumpDeadline;
-            if(hips&&!float.IsNaN(hipsPrevY)&&Time.time>jumpDeadline-.2f&&hips.localPosition.y>hipsPrevY+.0015f)odbicie=true;   // koniec przysiadu
-            if(hips)hipsPrevY=hips.localPosition.y;
+            if(hips&&!float.IsNaN(hipsPrevY)&&Time.time>jumpDeadline-.2f&&visual.InverseTransformPoint(hips.position).y>hipsPrevY+.0015f)odbicie=true;   // koniec przysiadu
+            if(hips)hipsPrevY=visual.InverseTransformPoint(hips.position).y;
             if(odbicie){jumpPending=false;if(body.isGrounded)vertical=6.2f;}
         }
         if(body.isGrounded&&vertical<0)vertical=-2f;vertical-=18f*dt;
@@ -192,16 +199,16 @@ public sealed class BraxGymPlayer : MonoBehaviour
         Vector3 step=(moveDir*speed+Vector3.up*vertical)*dt;
         int n=Mathf.Max(1,Mathf.CeilToInt(step.magnitude/.16f));for(int i=0;i<n;i++)body.Move(step/n);
         // SIATKA BEZPIECZEŃSTWA (pkt 15c): ostatnia bezpieczna pozycja co 1 s; spadek w pustkę / poza świat → powrót tam
-        if(cityWorld&&Time.time>=bezpNast){bezpNast=Time.time+1f;var bp=transform.position;if(body.isGrounded&&!seat&&bp.y>-19f&&BraxAkwen.Prad(bp)<1f){bezpieczna=bp;bezpJest=true;}}
-        bool pustka=cityWorld&&!body.isGrounded&&vertical<-9f&&transform.position.y<BraxAkwen.WodaY-5f&&!Physics.Raycast(transform.position,Vector3.down,6f,~(1<<8),QueryTriggerInteraction.Ignore);
-        bool poza=cityWorld&&BraxAkwen.Prad(transform.position)>=1.6f;
+        if(cityWorld&&Time.time>=bezpNast){bezpNast=Time.time+1f;var bp=transform.position;if(body.isGrounded&&!seat&&bp.y>-19f&&(cityWorld.area=="mistrzowie"||BraxAkwen.Prad(bp)<1f)){bezpieczna=bp;bezpJest=true;}}
+        bool pustka=cityWorld&&cityWorld.area!="mistrzowie"&&!body.isGrounded&&vertical<-9f&&transform.position.y<BraxAkwen.WodaY-5f&&!Physics.Raycast(transform.position,Vector3.down,6f,~(1<<8),QueryTriggerInteraction.Ignore);
+        bool poza=cityWorld&&cityWorld.area!="mistrzowie"&&BraxAkwen.Prad(transform.position)>=1.6f;
         if(cityWorld&&bezpJest&&(pustka||poza||transform.position.y<-20f)){Debug.Log("BRAXHORN_SIATKA_BEZP powrót z "+transform.position.ToString("F1")+" ("+(pustka?"spadek w pustkę":poza?"poza akwenem":"poniżej świata")+") na "+bezpieczna.ToString("F1"));TravelTo(bezpieczna+Vector3.up*.1f);}
         else if(transform.position.y<(cityWorld?-20f:-3f))Command("reset");
         if(!cityWorld&&transform.position.z>20.2f){body.enabled=false;var q=transform.position;q.z=20.2f;transform.position=q;body.enabled=true;}
         if(hitPending&&Time.time>=hitAt){hitPending=false;HitBag();OnCios?.Invoke(transform.position,transform.forward,action=="Kick");}
         if(!acting)
         {
-            string next=speed>3f?"Run":speed>.12f?"Walk":"Idle";
+            string next=speed>3f?"Run":speed>.12f?"Walk":Time.time<combatUntil && clips["CombatIdle"]!=null && !BraxSport.Aktywne?"CombatIdle":"Idle";
             if(action!=next){action=next;clips[next].wrapMode=WrapMode.Loop;clips[next].speed=1;clips.CrossFade(next,.16f,PlayMode.StopAll);}
             if(next=="Walk")clips[next].speed=Mathf.Max(.55f,speed/2f);
             if(next=="Run")clips[next].speed=Mathf.Max(.65f,speed/5f);
@@ -238,9 +245,9 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         if(!hips&&visual){foreach(var t in visual.GetComponentsInChildren<Transform>(true))if(t.name.EndsWith("Hips")){hips=t;break;}}
         if(!hips)return;
-        if(action!="Jump"&&!jumpPending){if(action=="Idle")hipsRestY=float.IsNaN(hipsRestY)?hips.localPosition.y:Mathf.Lerp(hipsRestY,hips.localPosition.y,.05f);return;}
+        if(action!="Jump"&&!jumpPending){if(action=="Idle")hipsRestY=float.IsNaN(hipsRestY)?visual.InverseTransformPoint(hips.position).y:Mathf.Lerp(hipsRestY,visual.InverseTransformPoint(hips.position).y,.05f);return;}
         if(float.IsNaN(hipsRestY))return;
-        var p=hips.localPosition;if(p.y>hipsRestY){p.y=hipsRestY;hips.localPosition=p;}
+        var p=visual.InverseTransformPoint(hips.position);if(p.y>hipsRestY){p.y=hipsRestY;hips.position=visual.TransformPoint(p);}
     }
     private void LateUpdate()
     {
@@ -320,16 +327,24 @@ public sealed class BraxGymPlayer : MonoBehaviour
         float near=dist;
         if(Physics.SphereCast(cameraTarget,.26f,dir,out RaycastHit hit,dist,mask,QueryTriggerInteraction.Ignore))near=Mathf.Max(.35f,hit.distance-.12f);
         position=cameraTarget+dir*near;
+        if(Physics.Linecast(cameraTarget,position,out RaycastHit line,mask,QueryTriggerInteraction.Ignore)){near=Mathf.Min(near,Mathf.Max(.35f,line.distance-.2f));position=cameraTarget+dir*near;}
         for(int k=0;k<4&&near>.36f&&Physics.CheckSphere(position,.22f,mask,QueryTriggerInteraction.Ignore);k++){near=Mathf.Max(.35f,near*.72f);position=cameraTarget+dir*near;}
         // przeszkoda znika (minięty pień, róg) — kamera odjeżdża płynnie (3.5 m/s), a nie skokiem; do przeszkody — od razu
         if(snap||camNear<0f||near<camNear)camNear=near;else{camNear=Mathf.MoveTowards(camNear,near,dt*3.5f);near=camNear;position=cameraTarget+dir*near;}
         view.transform.position=position;view.transform.LookAt(cameraTarget);
-        bool close=near<1.1f;
+        bool close=hideWhenCameraClose&&(near<1.1f||OdlegloscOdCiala(view.transform.position)<.55f);
         if(close!=hiddenClose){hiddenClose=close;foreach(var r in visual.GetComponentsInChildren<Renderer>(true))r.shadowCastingMode=close?UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly:UnityEngine.Rendering.ShadowCastingMode.On;}
         if(contactShadow){var p=transform.position;
             if(cityWorld&&Physics.Raycast(p+Vector3.up*.25f,Vector3.down,out RaycastHit floor,30,~((1<<8)|(1<<29)),QueryTriggerInteraction.Ignore))p.y=floor.point.y+.018f;
             else p.y=body.isGrounded?transform.position.y+.018f:.018f;
             contactShadow.position=p;}
+    }
+    public float OdlegloscOdCiala(Vector3 p)
+    {
+        float r=body?body.radius:.3f, h=body?body.height:2.3f; var c=transform.position+(body?body.center-Vector3.up*h*.5f:Vector3.zero);
+        Vector3 a=c+Vector3.up*r, b=c+Vector3.up*Mathf.Max(r,h-r), ab=b-a;
+        float t=Mathf.Clamp01(Vector3.Dot(p-a,ab)/Mathf.Max(1e-6f,ab.sqrMagnitude));
+        return Vector3.Distance(p,a+ab*t)-r;
     }
     public void ReviewView(string text)
     {
@@ -392,3 +407,4 @@ public sealed class BraxGymPlayer : MonoBehaviour
 #endif
     }
 }
+

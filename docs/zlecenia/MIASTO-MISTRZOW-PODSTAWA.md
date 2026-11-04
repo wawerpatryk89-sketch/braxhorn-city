@@ -67,3 +67,24 @@ Poprawiono odwrócone powierzchnie pasów geometrii oraz ścianek walców, a tak
 Raport statyczny nie jest kompilacją C#. Nie uruchomiono Unity, nie wykonano renderu akceptacyjnego ani pomiaru na telefonie. Wynik `visualAccepted` i `deviceTested` pozostaje `false`. Ręczny build musi ponownie otworzyć zapisaną scenę i powtórzyć kontrole przejść, komponentów metra i zapisanych zasobów; błędy przerywają eksport.
 
 Zasada APK FIRST z 4.11 została zachowana: zaszyfrowany wynik jest przesyłany przed dodatkowymi raportami, pod niezmienną nazwą z run ID/attempt/SHA, a jego obecność potwierdza odczyt GitHub API. Raporty i cache nie unieważniają później dostawy. Bieżący wariant nadal nie buduje APK. Workflow ma `contents: read`; drugi kanał Release nie jest w nim skonfigurowany.
+
+## Patryk do chodzenia i zwiedzania — 4.11.2026
+
+Źródło: najnowszy odczytany stan `codex/osiedle-integracja-final-patryk-20261104`, commit `e93d6c01f1c64fc5527987c9a0a7a2c57daf86e8`. Model właściciela z 3.11, kolor i normalna 4K, ORM 2K, oryginalne animacje z zaszyfrowanych paczek. Generator zachowuje szkielet, bindposes, anatomię i skalę: 1,80 m nominalnie = 2,33 jednostki świata. Kapsuła ma 2,37 jednostki wysokości; korzeń gracza nie otrzymuje drugiego mnożnika K.
+
+Przeniesiono generator Patryka i najnowsze poprawki Humanoid/chodu/biegu do osobnych plików `BraxChampionsPatryk*`, z odrębnym katalogiem importu i shaderem o identycznym kodzie źródłowym jak wersja osiedla. Nie zmieniono generatora ani zasobów postaci osiedla. Wspólny `BraxGymPlayer` otrzymał potrzebne poprawki chodzenia, skoku i kamery; zachowuje API oraz dotychczasowe funkcje miasta, w tym `SnapKamera`. Nie przeniesiono samochodu, ruchu ulicznego ani logiki budowania osiedla. Granice akwenu pierwszego miasta nie ograniczają współrzędnych Miasta Mistrzów.
+
+Po ręcznie zatwierdzonym generowaniu powstaną dwie kompletne sceny:
+
+| Scena w `Assets/PlayableGenerated/Mistrzowie` | Zastosowanie |
+|---|---|
+| `Mistrzowie_Foundation.unity` | Region bez gracza, do późniejszego wczytywania addytywnego |
+| `Mistrzowie_Explore.unity` | Ten sam teren z jednym Patrykiem, kamerą, światłem i sterowaniem do zwiedzania |
+
+Scenę `Mistrzowie_Explore` otwierać samodzielnie (Single), bez równoczesnego ładowania Foundation lub gracza innego regionu. Start: dojście od południa do CHAMPION ARENA — PÓŁNOC, nominalnie x=600, z=700; kierunek patrzenia na arenę. Reset wraca w to miejsce. Pięć punktów w istniejącym menu testowym: arena, wejście hotelu i trzy wejścia metra. Punkty są sprawdzane promieniem podłoża i kapsułą o rzeczywistych wymiarach Patryka.
+
+Android zachowuje istniejący HUD: lewy joystick chód/bieg, prawa strona obrót kamery, przyciski akcji/skoku i menu. Sterowanie dotykowe uruchamia istniejący `BraxTouchControls`, bez dodatkowego egzemplarza w scenie. W Unity Editor/PC: WASD lub strzałki — chód, Shift — bieg, prawy przycisk myszy — kamera, Spacja — skok, E — interakcja, R — reset, Escape — pauza. Adapter klawiatury wywołuje istniejące polecenia gracza.
+
+Model i źródłowe mapy są weryfikowane SHA-256 przed użyciem. Oryginalny importer wymaga poprawnych animacji i blokuje poważne błędy ustawienia stóp. Walidacja Unity po ponownym otwarciu sceny sprawdza zapisane animacje, kości, tekstury, referencje, jedną kamerę i wolny start. Kontrole metra i dojść uwzględniają teraz kapsułę Patryka 2,37 m, zamiast wcześniejszej 2,25 m.
+
+Stan tej zmiany: kod i testy statyczne; **Unity, Play Mode i Android nie zostały uruchomione**. Wynik aktualnego workflow pozostaje paczką edytowalnych scen oraz bundles, nie APK. Bundle nie dostarcza nowego kodu C# do starej aplikacji: host musi zawierać kod z tego commita. Test ruchu, animacji, kamery, schodów i zapisu scen jest wymagany przed deklaracją działania na telefonie. Szczegóły pochodzenia: `unity-tools/mistrzowie/player-source.json`.

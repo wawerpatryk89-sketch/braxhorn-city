@@ -1,0 +1,84 @@
+{
+  "sourceBranch": "codex/osiedle-integracja-final-patryk-20261104",
+  "sourceCommit": "e93d6c01f1c64fc5527987c9a0a7a2c57daf86e8",
+  "modelSha256": "fb8e2630bc7f835a743d917c35c378c7d074f0fde993a0bbf864b31ab67e1d97",
+  "transferZipSha256": "52d7f58de8ea38f269a3d5c2b24b9667c6c8a7eb36d3784ad0366f0f3ac44b47",
+  "worldHeight": 2.33,
+  "characterControllerHeight": 2.37,
+  "rootScale": [
+    1,
+    1,
+    1
+  ],
+  "sources": [
+    {
+      "path": "unity-city/Assets/Editor/Claude/BraxClaudeOsiedlePatryk.cs",
+      "gitSha1": "68b97c5df379c433983cdfa91628ef14c482f950",
+      "type": "blob"
+    },
+    {
+      "path": "unity-city/Assets/Editor/Claude/BraxClaudePatrykHumanoid.cs",
+      "gitSha1": "7075aa6b6709a09d31601b5efe7988d4b846cdf0",
+      "type": "blob"
+    },
+    {
+      "path": "unity-city/Assets/Editor/Claude/BraxPrywatneImport.cs",
+      "gitSha1": "de9321a5d3caa30184342f1313a25e884713b4d0",
+      "type": "blob"
+    },
+    {
+      "path": "unity-city/Assets/HeroPremium.shader",
+      "gitSha1": "29baddc5d944880fcfb9bf84db67567eaa345c98",
+      "type": "blob"
+    },
+    {
+      "path": "unity-city/Assets/BraxGymPlayer.cs",
+      "gitSha1": "8d9fb118382f82139c46113ccfbacbad6bbad038",
+      "type": "blob"
+    },
+    {
+      "path": "unity-city/Assets/Claude/Runtime/BraxClaudeKamera.cs",
+      "gitSha1": "a41f2a31b4f9df1931ae52ac1696e3ed07411cf2",
+      "type": "blob"
+    },
+    {
+      "path": "unity-tools/claude/prywatne.py",
+      "gitSha1": "5a52275fb12ff993268d64123fe6e6b0c60426fa",
+      "type": "blob"
+    },
+    {
+      "path": "unity-tools/claude/import_patryk_transfer.py",
+      "gitSha1": "32ed1f78c7bd2b710b2ce20cf68c50eed47a5d8c",
+      "type": "blob"
+    },
+    {
+      "path": "unity-city/Prywatne/import-patryk-20261103",
+      "gitSha1": "88935523f60e5bc49f166e8c8703028ba7b8a0dc",
+      "type": "tree"
+    },
+    {
+      "path": "unity-city/Prywatne/ruchy_brax.tar.gz.enc",
+      "gitSha1": "56346426a753f7224d0e454cd5f9bb665aa19b97",
+      "type": "blob"
+    },
+    {
+      "path": "unity-city/Prywatne/ruchy_wlasciciela.tar.gz.enc",
+      "gitSha1": "1e0e116b8856cf6379fe21e5ebad7d80f63effc4",
+      "type": "blob"
+    }
+  ],
+  "adaptations": [
+    "Patryk authoring partial class renamed to BraxChampionsPatryk; same model, bones, source animation choices and calibration.",
+    "Generated output and source import paths isolated under Mistrzowie; isolated identical estate shader code.",
+    "Walking, jumping and camera fixes integrated into existing BraxGymPlayer without importing the estate car or removing existing city APIs.",
+    "Initial camera yaw defaults to the original behavior; Champions sets 180 degrees toward the northern arena.",
+    "Only Champions bypasses the first city's fixed water boundary; reset retains grounded-position recovery.",
+    "Player-free additive region and complete standalone exploration scene are exported together. Existing Android HUD; desktop command adapter."
+  ],
+  "validation": {
+    "unityCompiled": false,
+    "playMode": false,
+    "androidDevice": false,
+    "privateAssetsDecryptedLocally": false
+  }
+}

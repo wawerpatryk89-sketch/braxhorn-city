@@ -16,6 +16,9 @@ public static class BraxChampionsBuild
         public bool visualAccepted=false,deviceTested=false,trafficEnabled=false,sceneReloadPassed=false;
         public int rendererCount,walkSamples,buildingExteriors,arenaSeats;
         public bool foundationPassedBeforeBuildings=false;public string sculptedBull="SOURCE_MODEL_REQUIRED";
+        public string patrykSourceCommit=BraxChampionsExplorer.SourceCommit;
+        public int patrykClips;
+        public bool explorationSceneReloadPassed=false,playerRuntimeTested=false;
         public BraxChampionsInfrastructure.Counts counts;
         public List<string> checks=new List<string>();
     }
@@ -50,15 +53,22 @@ public static class BraxChampionsBuild
             foreach(var t in stations){CheckMetro(t);report.walkSamples+=CheckWalk(t);}
             CheckExteriorAccess();report.rendererCount=CheckAssets(scene);report.sceneReloadPassed=true;
             report.checks.Add("Serialized scene reopened: meshes, scripts, colliders and materials present");
+            BraxChampionsExplorer.Generate(report.sourceCommit);
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
+            scene=EditorSceneManager.OpenScene(BraxChampionsExplorer.ScenePath,OpenSceneMode.Single);
+            Physics.SyncTransforms();
+            report.patrykClips=BraxChampionsExplorer.Validate(scene);
+            CheckAssets(scene);report.explorationSceneReloadPassed=true;
+            report.checks.Add("Exploration scene reopened: estate Patryk, 4K textures, saved animations, camera and clear spawn; PlayMode pending");
             string payload=Path.GetFullPath("../mistrzowie-payload");Directory.CreateDirectory(payload+"/Android");
             string graph="Assets/Source/Mistrzowie/Transit.json";
             // Split scene and source vehicle assets into separate bundles; gameplay traffic is deferred.
-            var builds=new[]{new AssetBundleBuild{assetBundleName="mistrzowie_foundation",assetNames=new[]{BraxChampionsFoundation.ScenePath}},
+            var builds=new[]{new AssetBundleBuild{assetBundleName="mistrzowie_foundation",assetNames=new[]{BraxChampionsFoundation.ScenePath,BraxChampionsExplorer.ScenePath}},
                 new AssetBundleBuild{assetBundleName="mistrzowie_transit_sources",assetNames=new[]{"Assets/Source/Claude/Metro/metro_train.glb",graph}}};
             var manifest=BuildPipeline.BuildAssetBundles(payload+"/Android",builds,BuildAssetBundleOptions.ChunkBasedCompression|BuildAssetBundleOptions.StrictMode,BuildTarget.Android);
             if(!manifest)throw new InvalidOperationException("Android region bundles failed");
             report.checks.Add("Unity Android scene and transit bundles built");
-            AssetDatabase.ExportPackage(new[]{BraxChampionsFoundation.ScenePath,"Assets/Source/Claude/Metro/metro_train.glb",graph,"Assets/Source/Mistrzowie/SignFont-LICENSE.txt"},payload+"/Mistrzowie_Foundation.unitypackage",ExportPackageOptions.IncludeDependencies);
+            AssetDatabase.ExportPackage(new[]{BraxChampionsFoundation.ScenePath,BraxChampionsExplorer.ScenePath,"Assets/Source/Claude/Metro/metro_train.glb",graph,"Assets/Source/Mistrzowie/SignFont-LICENSE.txt"},payload+"/Mistrzowie_Foundation.unitypackage",ExportPackageOptions.IncludeDependencies);
             File.Copy("Assets/Source/Claude/Metro/CREDITS.md",payload+"/METRO_CREDITS.md",true);
             report.status="UNITY_SCENE_AND_ANDROID_BUNDLES_PASS_VISUAL_REVIEW_PENDING";
         }
@@ -102,7 +112,7 @@ public static class BraxChampionsBuild
                 if(!Physics.Raycast(p+Vector3.up,Vector3.down,out var hit,2f,~0,QueryTriggerInteraction.Ignore)||Mathf.Abs(hit.point.y-previous)>.3f)
                     throw new InvalidOperationException("Exterior approach has a gap or excessive step at "+p);
                 previous=hit.point.y;p.y=previous;
-                if(Physics.CheckCapsule(p+Vector3.up*.73f,p+Vector3.up*1.92f,.33f,~0,QueryTriggerInteraction.Ignore))
+                if(Physics.CheckCapsule(p+Vector3.up*.73f,p+Vector3.up*2.02f,.35f,~0,QueryTriggerInteraction.Ignore))
                     throw new InvalidOperationException("Exterior approach obstructed at "+p);
             }
         }
@@ -150,7 +160,7 @@ public static class BraxChampionsBuild
                     throw new InvalidOperationException(station.name+" no walk floor at "+q);
                 if(hit.point.y>y+.45f||hit.point.y<y-.55f)throw new InvalidOperationException(station.name+" walk discontinuity at "+hit.point+" / "+hit.collider.name);
                 y=hit.point.y;q.y=y;
-                foreach(var c in Physics.OverlapCapsule(q+Vector3.up*.73f,q+Vector3.up*1.92f,.33f,mask,QueryTriggerInteraction.Ignore))
+                foreach(var c in Physics.OverlapCapsule(q+Vector3.up*.73f,q+Vector3.up*2.02f,.35f,mask,QueryTriggerInteraction.Ignore))
                 {
                     if(c.GetComponentInParent<BraxDrzwiPrzesuwne>())continue; // existing automatic ticket gate
                     throw new InvalidOperationException(station.name+" blocked walkway at "+q+" / "+c.name);
