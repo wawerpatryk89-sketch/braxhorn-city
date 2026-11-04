@@ -232,6 +232,7 @@ public static class BraxCityBuild
         // Sport i ruch są generowane pośrednio przez KraniecMapy; NIE dodawać drugi raz.
         // Kontrola realnej sceny zapobiega fałszywemu "gotowe" po cichym błędzie Guard.
         BraxClaudeOsiedle.DyskotekaLozeKontrola();
+        BraxClaudeOsiedle.SalonKontrolaPoZbudowaniu(); // po autach i meblach; blokada wydania gdy nie można przejść
         var boiska = UnityEngine.Object.FindObjectsByType<BraxSportBoisko>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach(BraxSportBoisko.Gra g in new[]{BraxSportBoisko.Gra.Kosz,BraxSportBoisko.Gra.Nozna,BraxSportBoisko.Gra.Tenis})
             if(!boiska.Any(b=>b && b.gra==g))
