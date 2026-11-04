@@ -1,0 +1,97 @@
+name: Obóz — Monika porównanie animacji
+
+on:
+  push:
+    branches: [codex/oboz-monika-motion-20261104]
+    paths: [unity-tools/oboz/motion-review-request.json]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oboz-monika-motion-review
+  cancel-in-progress: false
+
+jobs:
+  monika-motion:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Oryginalne źródła obozu z kontrolą SHA-256
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/assets.py restore
+      - name: Profil pamięci obozu
+        id: profile
+        run: python3 unity-tools/updates/unity_cache.py profile --zone oboz
+      - name: Przywróć zaszyfrowaną Library obozu
+        id: cache
+        continue-on-error: true
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ${{ runner.temp }}/oboz-library.tar.zst.enc
+            ${{ runner.temp }}/oboz-library.tar.zst.enc.json
+          key: ${{ steps.profile.outputs.prefix }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ steps.profile.outputs.prefix }}
+      - name: Trwała kopia Library przy braku wpisu w cache
+        if: ${{ steps.cache.outputs.cache-matched-key == '' }}
+        continue-on-error: true
+        run: python3 unity-tools/updates/durable_cache.py download --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
+      - name: Sprawdź i odszyfruj cache
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          if [ -f "$RUNNER_TEMP/oboz-library.tar.zst.enc" ]; then
+            if ! python3 unity-tools/updates/unity_cache.py restore --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"; then
+              echo '::warning::Cache obozu odrzucony; nastąpi pełny import.'
+            fi
+          else
+            echo 'BRAXHORN_PAMIEC_LIBRARY oboz=nie — pierwsze uruchomienie lub brak kopii'
+          fi
+      - name: Porównanie ruchu Moniki w Unity bez budowania APK
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxObozCharacters.ReviewMonika
+          versioning: None
+          allowDirtyBuild: true
+          enableGpu: true
+      - name: Kompletność pomiarów i obrazów — nie akceptacja wyglądu
+        run: |
+          python3 - <<'PY_REVIEW'
+          import json, os
+          from pathlib import Path
+          root=Path('build/MonikaReview')
+          report=json.loads((root/'motion-review.json').read_text())
+          assert report['complete'] and report['experimentOnly']
+          assert not report['phoneTested'] and not report['appearanceApproved']
+          assert report['unity']=='6000.0.58f2' and report['graphics']!='Null'
+          expected={(v,c) for v in ('baseline','direct','calibrated-direct') for c in ('Idle','Walk','Run','Punch','Training')}
+          assert {(c['variant'],c['clip']) for c in report['cases']}==expected
+          for case in report['cases']:
+              assert len(case['frames'])==60 and len(case['captures'])==36
+              for name in case['captures']:
+                  assert Path(name).name==name and name.endswith('.png')
+                  assert (root/name).is_file() and (root/name).stat().st_size>4096
+          print('MONIKA: 15 porównań, 900 pomiarów, 540 obrazów; wymagają oceny ruchu')
+          PY_REVIEW
+      - name: Tylko obrazy Moniki i pomiary — bez surowych źródeł
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: monika-motion-${{ github.run_id }}
+          path: |
+            build/MonikaReview/*.json
+            build/MonikaReview/*.png
+          if-no-files-found: warn
+          retention-days: 14

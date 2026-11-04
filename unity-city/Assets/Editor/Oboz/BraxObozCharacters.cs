@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 
 // Camp-only authoring. Uses the same Humanoid -> Legacy bridge as the estate
 // player, without touching the original mesh, bind poses or bone lengths.
-public static class BraxObozCharacters
+public static partial class BraxObozCharacters
 {
     public const string ManifestPath = "Assets/Editor/Oboz/CharacterManifest.json";
     public const string Generated = "Assets/PlayableGenerated/Oboz";
