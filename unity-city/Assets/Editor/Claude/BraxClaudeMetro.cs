@@ -312,12 +312,13 @@ public static class BraxClaudeMetro
                     new Vector3(GX + 3f, yM, zIn), new Vector3(GX + 1.5f, yM, zBr), new Vector3(GX - 1.5f, yM, zBr), new Vector3(WX1 + 1.0f, yM, zSt), new Vector3(WX0 - 1.5f, yP, zSt), new Vector3(20f, yP, 28.5f) };
                 var r = Idz(trasa, out float m);
                 wynik = r == null ? "ok (" + m.ToString("F0") + " m)" : "zablokowane:" + r + " po " + m.ToString("F0") + " m";
-                if (r == null) ok++;
+                // Odbiór metra wymaga DRÓŻNOŚCI obu przejść, nie tylko schodów stałych.
                 // schody ruchome obok (jadą w dół; test idzie po ich rampie): chodnik → głowica → bieg → antresola → bramki
                 float ze = ER_Os(z0);
                 var trasaR = new List<Vector3> { new Vector3(EX0 - 3.5f, yS, ze), new Vector3(EX0 + .4f, yS, ze), new Vector3(xEnd - .3f, yM, ze), new Vector3(xEnd + 1.0f, yM, ze),
                     new Vector3(xEnd + 1.0f, yM, zIn), new Vector3(GX + 3f, yM, zIn), new Vector3(GX + 1.5f, yM, zBr), new Vector3(GX - 1.5f, yM, zBr) };
                 var rr = Idz(trasaR, out float mR);
+                if (r == null && rr == null) ok++;
                 wyniki.Add("schody_ruchome=" + (rr == null ? "ok (" + mR.ToString("F0") + " m)" : "zablokowane:" + rr + " po " + mR.ToString("F0") + " m"));
             }
             wyniki.Add("wejscie=" + (pln ? "płn" : "płd") + " " + wynik);
