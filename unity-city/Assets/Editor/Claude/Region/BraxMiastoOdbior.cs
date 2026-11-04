@@ -163,12 +163,33 @@ internal static class BraxMiastoOdbior
         var npc = metro.GetComponent<BraxMetroM1Pasazerowie>();
         bool model = metro.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length > 0 ||
                      metro.GetComponentsInChildren<MeshRenderer>(true).Length > 10;
-        bool dlugosc = metro.wejscieOffsetX > 40f && metro.wyjazdOffsetX < -40f;
+        // Długi kompletny GLB może reprezentować jeden pociąg, a dwa krótsze
+        // modele jeden skład. Sprawdź ich rzeczywiste kolizje i zakres ruchu
+        // w obu tunelach zamiast arbitralnych offsetów >40 / <-40.
+        var brylyWagonow = metro.GetComponentsInChildren<BoxCollider>(true)
+            .Where(c => c && c.name.StartsWith("M1: kolizja ruchomego wagonu", StringComparison.Ordinal))
+            .ToArray();
+        bool wagony = brylyWagonow.Length >= 1 && brylyWagonow.Length <= 2;
+        Bounds obrys = default;
+        if (wagony)
+        {
+            obrys = brylyWagonow[0].bounds;
+            for (int i = 1; i < brylyWagonow.Length; i++) obrys.Encapsulate(brylyWagonow[i].bounds);
+        }
+        bool skrajnia = wagony && obrys.min.y > -13f && obrys.max.y < -5.25f &&
+                        obrys.min.z >= 34.18f && obrys.max.z <= 38.8f;
+        bool dlugosc = skrajnia && metro.wejscieOffsetX > 0f && metro.wyjazdOffsetX < 0f &&
+                       obrys.min.x + metro.wejscieOffsetX >= 67f - .1f &&
+                       obrys.max.x + metro.wejscieOffsetX <= 108f + .1f &&
+                       obrys.max.x + metro.wyjazdOffsetX <= -22f + .1f &&
+                       obrys.min.x + metro.wyjazdOffsetX >= -66f - .1f;
         bool czas = Mathf.Abs(metro.dojazdSekundy + metro.otwieranieSekundy +
                     metro.postojSekundy + metro.zamykanieSekundy +
                     metro.odjazdSekundy + metro.ciszaSekundy - 60f) < 3f;
         bool drzwi = metro.DrzwiLiczba >= 2;
         string raport = "BRAXHORN_METRO_M1_KURS_BUDOWA model=" + model +
+              " wagony=" + brylyWagonow.Length + " skrajnia=" + skrajnia +
+              " tunel_w_obie_strony=" + dlugosc +
               " drzwi_panele=" + metro.DrzwiLiczba + " npc=" + (npc != null) +
               " kurs_okolo_minuty=" + czas + " wjazd=" + metro.wejscieOffsetX.ToString("F1") +
               " wyjazd=" + metro.wyjazdOffsetX.ToString("F1") +
