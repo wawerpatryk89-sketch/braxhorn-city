@@ -19,7 +19,7 @@ permissions:
   contents: write
   actions: read
 concurrency:
-  group: mistrzowie-foundation-${{ github.ref }}
+  group: mistrzowie-apk
   cancel-in-progress: false
 jobs:
   foundation:
@@ -33,6 +33,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+          sparse-checkout-cone-mode: false
           sparse-checkout: |
             unity-city/Assets
             unity-city/Packages
@@ -62,6 +63,7 @@ jobs:
           python3 unity-tools/mistrzowie/test_surface_geometry.py
           python3 unity-tools/mistrzowie/test_restore_player.py
           python3 unity-tools/mistrzowie/test_apk_delivery.py
+          python3 unity-tools/mistrzowie/test_apk_version.py
           python3 unity-tools/mistrzowie/prepare_assets.py
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/restore_player.py
@@ -81,7 +83,7 @@ jobs:
           umask 077
           printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
           printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
-          printf '%s' "$((GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT))" > unity-city/braxhorn.versioncode
+          python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
       - name: Unity - generate region and build the selected output
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:

@@ -1,0 +1,301 @@
+--- a/.github/workflows/mistrzowie-apk.yml
++++ b/.github/workflows/mistrzowie-apk.yml
+@@ -76,6 +76,7 @@
+           python3 unity-tools/mistrzowie/test_surface_geometry.py
+           python3 unity-tools/mistrzowie/test_restore_player.py
+           python3 unity-tools/mistrzowie/test_apk_delivery.py
++          python3 unity-tools/mistrzowie/test_apk_version.py
+           python3 unity-tools/mistrzowie/prepare_assets.py
+           python3 unity-tools/mistrzowie/restore_private.py
+           python3 unity-tools/mistrzowie/restore_player.py
+@@ -94,7 +95,7 @@
+           umask 077
+           printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
+           printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+-          printf '%s' "$((GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT))" > unity-city/braxhorn.versioncode
++          python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
+       - name: Unity 6 - Miasto Mistrzów, Patryk i APK do zwiedzania
+         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+         env:
+--- a/.github/workflows/claude-region-build.yml
++++ b/.github/workflows/claude-region-build.yml
+@@ -19,7 +19,7 @@
+   contents: write
+   actions: read
+ concurrency:
+-  group: mistrzowie-foundation-${{ github.ref }}
++  group: mistrzowie-apk
+   cancel-in-progress: false
+ jobs:
+   foundation:
+@@ -33,6 +33,7 @@
+       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+         with:
+           persist-credentials: false
++          sparse-checkout-cone-mode: false
+           sparse-checkout: |
+             unity-city/Assets
+             unity-city/Packages
+@@ -62,6 +63,7 @@
+           python3 unity-tools/mistrzowie/test_surface_geometry.py
+           python3 unity-tools/mistrzowie/test_restore_player.py
+           python3 unity-tools/mistrzowie/test_apk_delivery.py
++          python3 unity-tools/mistrzowie/test_apk_version.py
+           python3 unity-tools/mistrzowie/prepare_assets.py
+           python3 unity-tools/mistrzowie/restore_private.py
+           python3 unity-tools/mistrzowie/restore_player.py
+@@ -81,7 +83,7 @@
+           umask 077
+           printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
+           printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+-          printf '%s' "$((GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT))" > unity-city/braxhorn.versioncode
++          python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
+       - name: Unity - generate region and build the selected output
+         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+         env:
+--- a/unity-tools/mistrzowie/apk_delivery.py
++++ b/unity-tools/mistrzowie/apk_delivery.py
+@@ -11,6 +11,7 @@
+ import subprocess
+ import sys
+ import tempfile
++import zipfile
+ 
+ ROOT = Path(__file__).resolve().parents[2]
+ OUT = ROOT / "mistrzowie-apk"
+@@ -90,6 +91,25 @@
+     return json.loads(command("gh", "api", path))
+ 
+ 
++def verify_artifact_contents(repo, artifact_id, manifest):
++    # Stream the ZIP to disk: the APK can be too large to hold twice in RAM.
++    with tempfile.TemporaryDirectory(prefix="mistrzowie-artifact-") as tmp:
++        archive = Path(tmp) / "artifact.zip"
++        with archive.open("wb") as output:
++            subprocess.run(["gh", "api", f"repos/{repo}/actions/artifacts/{artifact_id}/zip"],
++                           stdout=output, check=True)
++        with zipfile.ZipFile(archive) as bundle:
++            matches = [entry for entry in bundle.infolist() if entry.filename == manifest["file"]]
++            if len(matches) != 1 or matches[0].file_size != manifest["bytes"]:
++                raise RuntimeError("Actions artifact APK missing, duplicated or wrong size")
++            h = hashlib.sha256()
++            with bundle.open(matches[0]) as apk:
++                for block in iter(lambda: apk.read(1024 * 1024), b""):
++                    h.update(block)
++            if h.hexdigest() != manifest["sha256"]:
++                raise RuntimeError("Actions artifact APK SHA-256 differs")
++
++
+ def verify():
+     manifest = json.loads((OUT / "manifest.json").read_text())
+     apk = OUT / manifest["file"]
+@@ -105,6 +125,9 @@
+                 raise RuntimeError("Artifact expired or incomplete")
+             if artifact["workflow_run"]["head_sha"] != manifest.get("workflowCommit", manifest["commit"]):
+                 raise RuntimeError("Artifact belongs to a different commit")
++            if str(artifact["workflow_run"]["id"]) != manifest["runId"]:
++                raise RuntimeError("Artifact belongs to a different workflow run")
++            verify_artifact_contents(repo, artifact_id, manifest)
+             delivery["artifactUrl"] = os.environ["APK_ARTIFACT_URL"]
+             delivery["artifactId"] = artifact["id"]
+         except Exception as e:
+@@ -157,3 +180,4 @@
+         verify()
+     else:
+         raise SystemExit("Use stage or verify")
++
+--- a/unity-tools/mistrzowie/test_apk_delivery.py
++++ b/unity-tools/mistrzowie/test_apk_delivery.py
+@@ -7,6 +7,7 @@
+ from pathlib import Path
+ import tempfile
+ import unittest
++import zipfile
+ from unittest.mock import patch
+ 
+ import apk_delivery as delivery
+@@ -22,7 +23,7 @@
+         self.data = b"synthetic APK" * 200
+         self.name = "braxhorn-mistrzowie-test.apk"
+         self.manifest = dict(file=self.name, sha256=hashlib.sha256(self.data).hexdigest(),
+-                             bytes=len(self.data), commit="a" * 40, versionCode=8501)
++                             bytes=len(self.data), commit="a" * 40, versionCode=8501, runId="85")
+         (self.output / self.name).write_bytes(self.data)
+         (self.output / "manifest.json").write_text(json.dumps(self.manifest))
+         env = dict(GITHUB_REPOSITORY="owner/repo", APK_ARTIFACT_ID="123", APK_ARTIFACT_URL="https://github.com/artifact",
+@@ -30,10 +31,19 @@
+                    GITHUB_SHA="a" * 40, GITHUB_RUN_ID="85", GITHUB_RUN_ATTEMPT="1")
+         for p in (patch.object(delivery, "ROOT", self.root), patch.object(delivery, "OUT", self.output), patch.dict(os.environ, env)):
+             p.start(); self.addCleanup(p.stop)
++        self.remote_name, self.remote_data = self.name, self.data
++        download = patch.object(delivery.subprocess, "run", side_effect=self.download)
++        download.start(); self.addCleanup(download.stop)
++
++    def download(self, args, stdout, check):
++        self.assertTrue(check)
++        self.assertEqual(args, ["gh", "api", "repos/owner/repo/actions/artifacts/123/zip"])
++        with zipfile.ZipFile(stdout, "w") as archive:
++            archive.writestr(self.remote_name, self.remote_data)
+ 
+     def artifact(self):
+         return dict(id=123, expired=False, size_in_bytes=len(self.data)+100,
+-                    workflow_run={"head_sha": self.manifest["commit"]})
++                    workflow_run={"head_sha": self.manifest["commit"], "id": 85})
+ 
+     def release(self):
+         return dict(html_url="https://github.com/release", assets=[dict(name=self.name, size=len(self.data),
+@@ -85,6 +95,28 @@
+             self.verify()
+         api.assert_not_called()
+ 
++    def test_same_size_wrong_remote_apk_is_not_delivery(self):
++        self.remote_data = b"x" * len(self.data)
++        with patch.object(delivery, "api", side_effect=[self.artifact(), RuntimeError("no release")]), self.assertRaisesRegex(RuntimeError, "SHA-256 differs"):
++            self.verify()
++
++    def test_missing_apk_in_large_artifact_is_not_delivery(self):
++        self.remote_name = "diagnostics.log"
++        with patch.object(delivery, "api", side_effect=[self.artifact(), RuntimeError("no release")]), self.assertRaisesRegex(RuntimeError, "APK missing"):
++            self.verify()
++
++    def test_same_commit_different_run_is_rejected(self):
++        artifact = self.artifact(); artifact["workflow_run"]["id"] = 84
++        with patch.object(delivery, "api", side_effect=[artifact, RuntimeError("no release")]), self.assertRaisesRegex(RuntimeError, "different workflow run"):
++            self.verify()
++
++    def test_valid_release_survives_corrupt_artifact(self):
++        self.remote_data = b"x" * len(self.data)
++        with patch.object(delivery, "api", side_effect=[self.artifact(), self.release()]):
++            report = self.verify()
++        self.assertNotIn("artifactId", report["delivery"])
++        self.assertIn("apkUrl", report["delivery"])
++
+     def test_stage_checks_real_identity_and_certificate_receipts(self):
+         apk = self.root / "build/Android/braxhorn-mistrzowie.apk"
+         apk.parent.mkdir(parents=True); apk.write_bytes(self.data)
+@@ -110,3 +142,4 @@
+ 
+ if __name__ == "__main__":
+     unittest.main()
++
+--- a/unity-tools/mistrzowie/restore_player.py
++++ b/unity-tools/mistrzowie/restore_player.py
+@@ -38,11 +38,6 @@
+     if len(fbx) != 1 or hashlib.sha256(fbx[0].read_bytes()).hexdigest() != "fb8e2630bc7f835a743d917c35c378c7d074f0fde993a0bbf864b31ab67e1d97":
+         raise ValueError("Wymagany nowy Patryk.zip z 3.11.2026; stary model wycofany")
+     dst = CEL / "patryk"
+-    # Usuń wyłącznie wygenerowaną kopię poprzedniej postaci, nigdy źródłową paczkę.
+-    if dst.exists():
+-        shutil.rmtree(dst)
+-    dst.mkdir(parents=True, exist_ok=True)
+-    shutil.copyfile(fbx[0], dst / "Patryk.fbx")
+     # Nowy eksport ma oryginały także w katalogu .fbm. Weryfikacja bajtów
+     # zapobiega cichej podmianie map lub użyciu starej, mniejszej tekstury.
+     expected = {
+@@ -64,11 +59,17 @@
+                 raise ValueError("Źródłowa mapa nie jest 4K: " + name)
+         obrazy[name] = data
+ 
++    with Image.open(io.BytesIO(obrazy["Patryk_roughness.PNG"])) as rough, \
++         Image.open(io.BytesIO(obrazy["Patryk_metallic.PNG"])) as metal:
++        packed = io.BytesIO()
++        pack_orm(rough, metal).save(packed, format="PNG")
++    # Validate every input and encode ORM before changing existing assets.
++    # Updating fixed filenames preserves their Unity .meta GUIDs.
++    dst.mkdir(parents=True, exist_ok=True)
++    shutil.copyfile(fbx[0], dst / "Patryk.fbx")
+     (dst / "Patryk_BaseColor.png").write_bytes(obrazy["Color.png"])
+     (dst / "Patryk_Normal.png").write_bytes(obrazy["Normal.png"])
+-    with Image.open(io.BytesIO(obrazy["Patryk_roughness.PNG"])) as rough, \
+-         Image.open(io.BytesIO(obrazy["Patryk_metallic.PNG"])) as metal:
+-        pack_orm(rough, metal).save(dst / "Patryk_ORM.png")
++    (dst / "Patryk_ORM.png").write_bytes(packed.getvalue())
+     print(f"BRAXHORN_PRYWATNE Patryk: FBX {fbx[0].stat().st_size / 1048576:.1f} MB, "
+           "Color/Normal/ORM 4K; oryginalne wartości PBR, bez zmniejszania map")
+     return True
+@@ -137,3 +138,4 @@
+ 
+ if __name__ == "__main__":
+     main()
++
+--- a/unity-tools/mistrzowie/test_restore_player.py
++++ b/unity-tools/mistrzowie/test_restore_player.py
+@@ -2,6 +2,8 @@
+ from pathlib import Path
+ import tempfile
+ import unittest
++from unittest.mock import patch
++import restore_player
+ 
+ from PIL import Image
+ from restore_player import REQUIRED, copy_animations, przygotuj_patryka, pack_orm
+@@ -49,6 +51,20 @@
+         with self.assertRaisesRegex(ValueError, "stary model"):
+             przygotuj_patryka(self.source)
+ 
++    def test_missing_maps_preserve_existing_model_and_unity_guid(self):
++        (self.source / "patryk").mkdir()
++        (self.source / "patryk/Patryk.fbx").write_bytes(b"synthetic validated model")
++        target = self.target / "patryk"
++        target.mkdir(parents=True)
++        (target / "Patryk.fbx").write_bytes(b"existing model")
++        (target / "Patryk.fbx.meta").write_text("guid: existing-guid\n")
++        with patch.object(restore_player, "CEL", self.target), patch.object(restore_player.hashlib, "sha256") as hash:
++            hash.return_value.hexdigest.return_value = "fb8e2630bc7f835a743d917c35c378c7d074f0fde993a0bbf864b31ab67e1d97"
++            with self.assertRaisesRegex(ValueError, "Brak lub duplikat"):
++                przygotuj_patryka(self.source)
++        self.assertEqual((target / "Patryk.fbx").read_bytes(), b"existing model")
++        self.assertEqual((target / "Patryk.fbx.meta").read_text(), "guid: existing-guid\n")
++
+     def test_orm_preserves_full_resolution_and_every_data_texel(self):
+         # High-frequency asymmetric values detect downsampling, channel swaps,
+         # gamma conversion and accidental use of the alpha channel.
+@@ -72,3 +88,4 @@
+ 
+ if __name__ == "__main__":
+     unittest.main()
++
+--- /dev/null
++++ b/unity-tools/mistrzowie/apk_version.py
+@@ -0,0 +1,18 @@
++"""Shared APK version clock. Both workflows must use the same concurrency group."""
++import time
++
++# Seconds since 2020, with a floor above the previous workflow-local counters.
++EPOCH = 1577836800
++OFFSET = 100000000
++ANDROID_MAX = 2100000000
++
++
++def version_code(now=None):
++    value = int(time.time() if now is None else now) - EPOCH + OFFSET
++    if not OFFSET <= value <= ANDROID_MAX:
++        raise ValueError("APK version clock outside supported Android range")
++    return value
++
++
++if __name__ == "__main__":
++    print(version_code())
+--- /dev/null
++++ b/unity-tools/mistrzowie/test_apk_version.py
+@@ -0,0 +1,20 @@
++import unittest
++from apk_version import version_code, EPOCH, OFFSET, ANDROID_MAX
++
++
++class VersionTests(unittest.TestCase):
++    def test_new_build_and_retry_use_time_not_workflow_counter(self):
++        first = version_code(EPOCH + 200000000)
++        self.assertGreater(version_code(EPOCH + 200000001), first)
++        self.assertGreater(first, 8501)
++
++    def test_android_bounds(self):
++        self.assertEqual(version_code(EPOCH), OFFSET)
++        self.assertEqual(version_code(EPOCH + ANDROID_MAX - OFFSET), ANDROID_MAX)
++        for timestamp in [EPOCH - 1, EPOCH + ANDROID_MAX - OFFSET + 1]:
++            with self.assertRaises(ValueError):
++                version_code(timestamp)
++
++
++if __name__ == "__main__":
++    unittest.main()

@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+import zipfile
 from unittest.mock import patch
 
 import apk_delivery as delivery
@@ -22,7 +23,7 @@ class ApkDeliveryTests(unittest.TestCase):
         self.data = b"synthetic APK" * 200
         self.name = "braxhorn-mistrzowie-test.apk"
         self.manifest = dict(file=self.name, sha256=hashlib.sha256(self.data).hexdigest(),
-                             bytes=len(self.data), commit="a" * 40, versionCode=8501)
+                             bytes=len(self.data), commit="a" * 40, versionCode=8501, runId="85")
         (self.output / self.name).write_bytes(self.data)
         (self.output / "manifest.json").write_text(json.dumps(self.manifest))
         env = dict(GITHUB_REPOSITORY="owner/repo", APK_ARTIFACT_ID="123", APK_ARTIFACT_URL="https://github.com/artifact",
@@ -30,10 +31,19 @@ class ApkDeliveryTests(unittest.TestCase):
                    GITHUB_SHA="a" * 40, GITHUB_RUN_ID="85", GITHUB_RUN_ATTEMPT="1")
         for p in (patch.object(delivery, "ROOT", self.root), patch.object(delivery, "OUT", self.output), patch.dict(os.environ, env)):
             p.start(); self.addCleanup(p.stop)
+        self.remote_name, self.remote_data = self.name, self.data
+        download = patch.object(delivery.subprocess, "run", side_effect=self.download)
+        download.start(); self.addCleanup(download.stop)
+
+    def download(self, args, stdout, check):
+        self.assertTrue(check)
+        self.assertEqual(args, ["gh", "api", "repos/owner/repo/actions/artifacts/123/zip"])
+        with zipfile.ZipFile(stdout, "w") as archive:
+            archive.writestr(self.remote_name, self.remote_data)
 
     def artifact(self):
         return dict(id=123, expired=False, size_in_bytes=len(self.data)+100,
-                    workflow_run={"head_sha": self.manifest["commit"]})
+                    workflow_run={"head_sha": self.manifest["commit"], "id": 85})
 
     def release(self):
         return dict(html_url="https://github.com/release", assets=[dict(name=self.name, size=len(self.data),
@@ -85,6 +95,28 @@ class ApkDeliveryTests(unittest.TestCase):
             self.verify()
         api.assert_not_called()
 
+    def test_same_size_wrong_remote_apk_is_not_delivery(self):
+        self.remote_data = b"x" * len(self.data)
+        with patch.object(delivery, "api", side_effect=[self.artifact(), RuntimeError("no release")]), self.assertRaisesRegex(RuntimeError, "SHA-256 differs"):
+            self.verify()
+
+    def test_missing_apk_in_large_artifact_is_not_delivery(self):
+        self.remote_name = "diagnostics.log"
+        with patch.object(delivery, "api", side_effect=[self.artifact(), RuntimeError("no release")]), self.assertRaisesRegex(RuntimeError, "APK missing"):
+            self.verify()
+
+    def test_same_commit_different_run_is_rejected(self):
+        artifact = self.artifact(); artifact["workflow_run"]["id"] = 84
+        with patch.object(delivery, "api", side_effect=[artifact, RuntimeError("no release")]), self.assertRaisesRegex(RuntimeError, "different workflow run"):
+            self.verify()
+
+    def test_valid_release_survives_corrupt_artifact(self):
+        self.remote_data = b"x" * len(self.data)
+        with patch.object(delivery, "api", side_effect=[self.artifact(), self.release()]):
+            report = self.verify()
+        self.assertNotIn("artifactId", report["delivery"])
+        self.assertIn("apkUrl", report["delivery"])
+
     def test_stage_checks_real_identity_and_certificate_receipts(self):
         apk = self.root / "build/Android/braxhorn-mistrzowie.apk"
         apk.parent.mkdir(parents=True); apk.write_bytes(self.data)
@@ -110,3 +142,4 @@ class ApkDeliveryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

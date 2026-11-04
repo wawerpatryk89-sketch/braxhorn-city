@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "mistrzowie-apk"
@@ -90,6 +91,25 @@ def api(path):
     return json.loads(command("gh", "api", path))
 
 
+def verify_artifact_contents(repo, artifact_id, manifest):
+    # Stream the ZIP to disk: the APK can be too large to hold twice in RAM.
+    with tempfile.TemporaryDirectory(prefix="mistrzowie-artifact-") as tmp:
+        archive = Path(tmp) / "artifact.zip"
+        with archive.open("wb") as output:
+            subprocess.run(["gh", "api", f"repos/{repo}/actions/artifacts/{artifact_id}/zip"],
+                           stdout=output, check=True)
+        with zipfile.ZipFile(archive) as bundle:
+            matches = [entry for entry in bundle.infolist() if entry.filename == manifest["file"]]
+            if len(matches) != 1 or matches[0].file_size != manifest["bytes"]:
+                raise RuntimeError("Actions artifact APK missing, duplicated or wrong size")
+            h = hashlib.sha256()
+            with bundle.open(matches[0]) as apk:
+                for block in iter(lambda: apk.read(1024 * 1024), b""):
+                    h.update(block)
+            if h.hexdigest() != manifest["sha256"]:
+                raise RuntimeError("Actions artifact APK SHA-256 differs")
+
+
 def verify():
     manifest = json.loads((OUT / "manifest.json").read_text())
     apk = OUT / manifest["file"]
@@ -105,6 +125,9 @@ def verify():
                 raise RuntimeError("Artifact expired or incomplete")
             if artifact["workflow_run"]["head_sha"] != manifest.get("workflowCommit", manifest["commit"]):
                 raise RuntimeError("Artifact belongs to a different commit")
+            if str(artifact["workflow_run"]["id"]) != manifest["runId"]:
+                raise RuntimeError("Artifact belongs to a different workflow run")
+            verify_artifact_contents(repo, artifact_id, manifest)
             delivery["artifactUrl"] = os.environ["APK_ARTIFACT_URL"]
             delivery["artifactId"] = artifact["id"]
         except Exception as e:
@@ -157,3 +180,4 @@ if __name__ == "__main__":
         verify()
     else:
         raise SystemExit("Use stage or verify")
+

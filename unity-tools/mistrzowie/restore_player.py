@@ -38,11 +38,6 @@ def przygotuj_patryka(staging):
     if len(fbx) != 1 or hashlib.sha256(fbx[0].read_bytes()).hexdigest() != "fb8e2630bc7f835a743d917c35c378c7d074f0fde993a0bbf864b31ab67e1d97":
         raise ValueError("Wymagany nowy Patryk.zip z 3.11.2026; stary model wycofany")
     dst = CEL / "patryk"
-    # Usuń wyłącznie wygenerowaną kopię poprzedniej postaci, nigdy źródłową paczkę.
-    if dst.exists():
-        shutil.rmtree(dst)
-    dst.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(fbx[0], dst / "Patryk.fbx")
     # Nowy eksport ma oryginały także w katalogu .fbm. Weryfikacja bajtów
     # zapobiega cichej podmianie map lub użyciu starej, mniejszej tekstury.
     expected = {
@@ -64,11 +59,17 @@ def przygotuj_patryka(staging):
                 raise ValueError("Źródłowa mapa nie jest 4K: " + name)
         obrazy[name] = data
 
-    (dst / "Patryk_BaseColor.png").write_bytes(obrazy["Color.png"])
-    (dst / "Patryk_Normal.png").write_bytes(obrazy["Normal.png"])
     with Image.open(io.BytesIO(obrazy["Patryk_roughness.PNG"])) as rough, \
          Image.open(io.BytesIO(obrazy["Patryk_metallic.PNG"])) as metal:
-        pack_orm(rough, metal).save(dst / "Patryk_ORM.png")
+        packed = io.BytesIO()
+        pack_orm(rough, metal).save(packed, format="PNG")
+    # Validate every input and encode ORM before changing existing assets.
+    # Updating fixed filenames preserves their Unity .meta GUIDs.
+    dst.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(fbx[0], dst / "Patryk.fbx")
+    (dst / "Patryk_BaseColor.png").write_bytes(obrazy["Color.png"])
+    (dst / "Patryk_Normal.png").write_bytes(obrazy["Normal.png"])
+    (dst / "Patryk_ORM.png").write_bytes(packed.getvalue())
     print(f"BRAXHORN_PRYWATNE Patryk: FBX {fbx[0].stat().st_size / 1048576:.1f} MB, "
           "Color/Normal/ORM 4K; oryginalne wartości PBR, bez zmniejszania map")
     return True
@@ -137,3 +138,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -2,6 +2,8 @@
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+import restore_player
 
 from PIL import Image
 from restore_player import REQUIRED, copy_animations, przygotuj_patryka, pack_orm
@@ -49,6 +51,20 @@ class PlayerTransferTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "stary model"):
             przygotuj_patryka(self.source)
 
+    def test_missing_maps_preserve_existing_model_and_unity_guid(self):
+        (self.source / "patryk").mkdir()
+        (self.source / "patryk/Patryk.fbx").write_bytes(b"synthetic validated model")
+        target = self.target / "patryk"
+        target.mkdir(parents=True)
+        (target / "Patryk.fbx").write_bytes(b"existing model")
+        (target / "Patryk.fbx.meta").write_text("guid: existing-guid\n")
+        with patch.object(restore_player, "CEL", self.target), patch.object(restore_player.hashlib, "sha256") as hash:
+            hash.return_value.hexdigest.return_value = "fb8e2630bc7f835a743d917c35c378c7d074f0fde993a0bbf864b31ab67e1d97"
+            with self.assertRaisesRegex(ValueError, "Brak lub duplikat"):
+                przygotuj_patryka(self.source)
+        self.assertEqual((target / "Patryk.fbx").read_bytes(), b"existing model")
+        self.assertEqual((target / "Patryk.fbx.meta").read_text(), "guid: existing-guid\n")
+
     def test_orm_preserves_full_resolution_and_every_data_texel(self):
         # High-frequency asymmetric values detect downsampling, channel swaps,
         # gamma conversion and accidental use of the alpha channel.
@@ -72,3 +88,4 @@ class PlayerTransferTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
