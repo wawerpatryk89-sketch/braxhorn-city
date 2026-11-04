@@ -1,3 +1,9 @@
+# PILNE — APK FIRST (4.11.2026)
+
+**Polecenie właściciela obowiązuje wszystkich, w tym Miasto Mistrzów:** gotowy APK zabezpiecz i udostępnij PRZED cache, snapshotem i raportami. Późniejsza awaria nie może odebrać pliku. Dla Miasta Mistrzów obecnym wynikiem są scena i bundles, nie APK. Zobacz [pełną zasadę](docs/zasady/APK_FIRST_DOSTAWA_20261104.md) i [Issue #13](https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13). Nowe buildy tylko po osobnej zgodzie właściciela.
+
+---
+
 # BRAXHORN CITY — OBOWIĄZKOWA ZASADA DLA WSZYSTKICH WYKONAWCÓW (4.11.2026)
 
 **Decyzja właściciela: żadnych automatycznych buildów.** Dotyczy Claude, Codex, GPT, Work oraz wszystkich innych wykonawców; miasta, osiedla i obozu.
