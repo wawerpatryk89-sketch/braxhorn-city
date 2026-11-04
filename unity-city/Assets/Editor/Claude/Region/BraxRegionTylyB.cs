@@ -367,9 +367,9 @@ public static class BraxRegionTylyB
                     if (wejscie)
                     {
                         float m0 = d.szyb.x - dw * .5f - .1f, m1 = d.szyb.x + dw * .5f + .1f;
-                        KolizjaSciany(wzdX, c - zew * .2f, a0, m0, y0, gy1); KolizjaSciany(wzdX, c - zew * .2f, m1, a1, y0, gy1);
+                        KolizjaSciany(T, wzdX, c - zew * .2f, a0, m0, y0, gy1); KolizjaSciany(T, wzdX, c - zew * .2f, m1, a1, y0, gy1);
                     }
-                    else KolizjaSciany(wzdX, c - zew * .2f, a0, a1, y0, gy1);
+                    else KolizjaSciany(T, wzdX, c - zew * .2f, a0, a1, y0, gy1);
                 }
             }
             // lizeny pionowe na całej wysokości (od parteru do korony), narożniki pełne
@@ -424,12 +424,12 @@ public static class BraxRegionTylyB
         BraxRegion.Note("wieżowiec " + d.nazwa + ": kondygnacji " + (n + 1) + ", użytkowe [" + string.Join(", ", d.uzytkowe.Keys) + "], wysokość " + (top + 2.55f * K).ToString("0.0") + " m");
     }
 
-    static void KolizjaSciany(bool wzdX, float c, float a0, float a1, float y0, float y1)
+    static void KolizjaSciany(Transform budynek, bool wzdX, float c, float a0, float a1, float y0, float y1)
     {
         if (a1 - a0 < .05f) return;
         var mid = wzdX ? new Vector3((a0 + a1) * .5f, (y0 + y1) * .5f, c) : new Vector3(c, (y0 + y1) * .5f, (a0 + a1) * .5f);
         var size = wzdX ? new Vector3(a1 - a0, y1 - y0, .12f) : new Vector3(.12f, y1 - y0, a1 - a0);
-        BraxRegionMeble.Kolizja(root, "Wieżowiec: kolizja szyby", mid, size);
+        BraxRegionMeble.Kolizja(budynek, "Wieżowiec: kolizja szyby", mid, size); // collider żyje/ładuje się z właściwym budynkiem, nie z globalnym korzeniem
     }
 
     static readonly Dictionary<string, Material> oknaCache = new Dictionary<string, Material>();
