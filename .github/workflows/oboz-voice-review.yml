@@ -1,0 +1,30 @@
+name: Obóz — odsłuch głosów wspólnego Pipera
+on:
+  push:
+    branches: [codex/oboz-npc-life-20261104]
+    paths: [unity-tools/oboz/voice-review-request.json]
+permissions:
+  contents: read
+concurrency:
+  group: oboz-piper-voice-review
+  cancel-in-progress: false
+jobs:
+  voice-samples:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: To samo narzędzie lokalne co osiedle, bez płatnego API
+        run: |
+          python3 -m venv "$RUNNER_TEMP/piper"
+          "$RUNNER_TEMP/piper/bin/pip" install piper-tts==1.3.0
+          command -v ffmpeg
+      - name: Cztery głosy, dwa warianty i trzy kwestie — tylko próbki
+        run: '"$RUNNER_TEMP/piper/bin/python" unity-tools/oboz/voice_review.py'
+      - name: Nagrania i pochodzenie — bez modeli silnika
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: camp-voice-${{ github.run_id }}
+          path: build/CampVoiceReview/
+          if-no-files-found: error
+          retention-days: 14
