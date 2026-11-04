@@ -74,7 +74,7 @@ public static partial class BraxObozEnvironment
         {
             root = Group("Obóz Misia — odbudowa robocza, wymagany odbiór", null, Vector3.zero);
             var info = root.gameObject.AddComponent<BraxObozSceneInfo>();
-            Terrain(); Paths();
+            CampusMaterials(); Terrain(); Paths();
             // Main R3 anchors remain unchanged. Additional cabins/service areas
             // are reconstructed placements; appearance has not been approved.
             Cabin("Domek 1", -94, -20, 90); Cabin("Domek 2", -94, -40, 90);
@@ -131,21 +131,23 @@ public static partial class BraxObozEnvironment
         // The visible perimeter supplies its own collision. No invisible wall
         // is allowed to seal the new vehicle entrance at the south boundary.
     }
+    // Union of paved rectangles: one surface at intersections, flush edges at doors.
     static void Paths()
     {
-        Box(root,"Główna ścieżka",new Vector3(0,.012f,0),new Vector3(6,.02f,300),gravel,false);
-        Box(root,"Ścieżka do domków",new Vector3(-50,.014f,-55),new Vector3(100,.02f,3.5f),gravel,false);
-        foreach(float x in new[]{-100f,-63f})
-            Box(root,"Dojście przed wejściami domków",new Vector3(x,.014f,-35),new Vector3(3,.02f,40),gravel,false);
-        Box(root,"Ścieżka przed budynkami zaplecza",new Vector3(-61.5f,.014f,-74),new Vector3(123,.02f,3.5f),gravel,false);
-        foreach(var a in new[]{(-58f,-71.75f,4.5f),(-95f,-71f,6f),(-115f,-71f,6f)})
-            Box(root,"Dojście do drzwi zaplecza",new Vector3(a.Item1,.014f,a.Item2),new Vector3(1.8f,.02f,a.Item3),gravel,false);
-        Box(root,"Ścieżka medyczny–magazyn",new Vector3(-25,.014f,-99),new Vector3(50,.02f,3.5f),gravel,false);
-        foreach(float x in new[]{-46f,-24f})
-            Box(root,"Dojście do medycznego lub magazynu",new Vector3(x,.014f,-96),new Vector3(1.8f,.02f,6),gravel,false);
-        Box(root,"Ścieżka do bunkra",new Vector3(-37.5f,.014f,76),new Vector3(75,.02f,3.5f),gravel,false);
-        Box(root,"Podejście do fortu",new Vector3(35,.014f,76),new Vector3(70,.02f,3.5f),gravel,false);
-        Box(root,"Podejście do tartaku",new Vector3(35,.014f,-78),new Vector3(70,.02f,3.5f),gravel,false);
+        var paths = new List<Rect> {
+            new Rect(-1.2f,-150,2.4f,300), new Rect(-101,-56.0f,101,2),
+            new Rect(-101,-55,2,42), new Rect(-64,-55,2,42),
+            new Rect(-123,-75,123,2), new Rect(-50,-100,50,2),
+            new Rect(-75,75,145,2), new Rect(0,-79,70,2)
+        };
+        foreach(var a in new[]{(-58f,-74f,5f),(-95f,-74f,6f),(-115f,-74f,6f),(-46f,-99f,6f),(-24f,-99f,6f)})
+            paths.Add(new Rect(a.Item1-.9f,a.Item2,1.8f,a.Item3));
+        // Cabin landings join the reduced-width paths without a soil gap.
+        foreach(float z in new[]{-20f,-40f}) {
+            paths.Add(new Rect(-100,z-.9f,1.9f,1.8f));
+            paths.Add(new Rect(-64.9f,z-.9f,1.9f,1.8f));
+        }
+        PavedPaths(paths);
     }
     static void Cabin(string name, float x, float z, float yaw)
     {
@@ -154,16 +156,17 @@ public static partial class BraxObozEnvironment
         for(int row=0;row<14;row++)
         {
             float y=.25f+row*.19f;
-            Cylinder(t,"Bale tylnej ściany",new Vector3(-3.1f,y,4),new Vector3(3.1f,y,4),.11f,wood);
+            Box(t,"Deska tylnej elewacji",new Vector3(0,y,4),new Vector3(6.2f,.20f,.14f),wood,false);
             foreach(float side in new[]{-1f,1f})
             {
                 // The window is a real opening; no invisible solid wall behind it.
-                if(y>1.05f&&y<2.02f){Cylinder(t,"Bale przy oknie",new Vector3(side*3,y,-4.1f),new Vector3(side*3,y,-1.1f),.11f,wood);Cylinder(t,"Bale przy oknie",new Vector3(side*3,y,1.1f),new Vector3(side*3,y,4.1f),.11f,wood);}
-                else Cylinder(t,"Bale boczne",new Vector3(side*3,y,-4.1f),new Vector3(side*3,y,4.1f),.11f,wood);
-                Cylinder(t,"Bale przy wejściu",new Vector3(side*.68f,y,-4),new Vector3(side*3.1f,y,-4),.11f,wood);
+                if(y>1.05f&&y<2.02f){foreach(float end in new[]{-1f,1f})Box(t,"Deska przy oknie",new Vector3(side*3,y,end*2.6f),new Vector3(.14f,.20f,3),wood,false);}
+                else Box(t,"Deska bocznej elewacji",new Vector3(side*3,y,0),new Vector3(.14f,.20f,8.2f),wood,false);
+                Box(t,"Deska przy wejściu",new Vector3(side*1.89f,y,-4),new Vector3(2.42f,.20f,.14f),wood,false);
             }
-            if(y>2.38f)Cylinder(t,"Nadproże",new Vector3(-.68f,y,-4),new Vector3(.68f,y,-4),.11f,wood);
+            if(y>2.38f)Box(t,"Deska nad wejściem",new Vector3(0,y,-4),new Vector3(1.36f,.20f,.14f),wood,false);
         }
+        CabinFinish(t);
         // Simple colliders follow the actual openings; decorative log cylinders do not each add physics work.
         foreach(float side in new[]{-1f,1f})
         {
@@ -175,7 +178,7 @@ public static partial class BraxObozEnvironment
         ColliderBox(t,new Vector3(0,1.45f,4),new Vector3(6,2.7f,.22f)); ColliderBox(t,new Vector3(0,2.6f,-4),new Vector3(1.4f,.4f,.22f));
         foreach(float side in new[]{-1f,1f})
         {
-            var roof=Box(t,"Spadzisty dach",new Vector3(side*1.65f,3.2f,0),new Vector3(3.65f,.16f,8.8f),wood);roof.transform.localRotation=Quaternion.Euler(0,0,-side*20);
+
             for(int k=0;k<4;k++)Box(t,"Łóżko — noga",new Vector3(side*2.05f+(k%2-.5f)*.72f,.32f,1.6f+(k/2-.5f)*1.8f),new Vector3(.09f,.5f,.09f),wood);
             Box(t,"Łóżko — rama",new Vector3(side*2.05f,.48f,1.6f),new Vector3(1.05f,.15f,2.1f),wood);
             Box(t,"Materac — do wykończenia tkaniną",new Vector3(side*2.05f,.61f,1.6f),new Vector3(.99f,.16f,2.02f),dark);
@@ -184,6 +187,7 @@ public static partial class BraxObozEnvironment
         }
         Box(t,"Stół",new Vector3(1.9f,.8f,-1.7f),new Vector3(1.1f,.08f,.7f),wood);
         foreach(float dx in new[]{-.46f,.46f})foreach(float dz in new[]{-.26f,.26f})Box(t,"Noga stołu",new Vector3(1.9f+dx,.43f,-1.7f+dz),new Vector3(.07f,.7f,.07f),wood);
+        CombineDecoration(t); // Static shell only; keep the door leaf movable.
         Door(t,name+" — drzwi",new Vector3(-.63f,.17f,-4.05f),1.26f,2.22f);
         Box(t,"Stopień wejścia",new Vector3(0,.05f,-4.5f),new Vector3(1.6f,.1f,.8f),wood);
     }
@@ -253,7 +257,7 @@ public static partial class BraxObozEnvironment
             Cylinder(t,"Belka nośna",new Vector3(-7,3.4f,side*2),new Vector3(7,3.4f,side*2),.12f,wood);
             foreach(float end in new[]{-7f,7f})Cylinder(t,"Słup",new Vector3(end,0,side*2),new Vector3(end,3.4f,side*2),.13f,wood,true);
         }
-        if(roof)Box(t,"Zadaszenie",new Vector3(0,3.63f,0),new Vector3(15,.16f,6),wood);
+        if(roof)MetalRoof(t,15,6,3.63f,.65f);
         for(int row=0;row<2;row++)for(int col=0;col<columns;col++)
         {
             var pivot=Group("Worek "+(bags.Count+1),t,P(-(columns-1)*1.1f+col*2.2f,3.25f,row==0?-2:2));

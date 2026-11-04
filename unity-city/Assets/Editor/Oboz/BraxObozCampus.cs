@@ -20,26 +20,23 @@ public static partial class BraxObozEnvironment
     }
     static void TrainingCampus()
     {
-        CampusMaterials();
         var pavilion=Group("Pawilon treningowy — otwarty, bez starej siłowni",root,P(0,0,51));
-        Box(pavilion,"Podest z kostki",new Vector3(0,.055f,0),new Vector3(52,.11f,30),campusPaving);
-        foreach(float x in new[]{-25f,-12.5f,0f,12.5f,25f})
-        foreach(float z in new[]{-14f,14f})
+        Box(pavilion,"Podest z kostki",new Vector3(0,.055f,0),new Vector3(42,.11f,16),campusPaving);
+        foreach(float x in new[]{-20f,-10f,0f,10f,20f})
+        foreach(float z in new[]{-7.5f,7.5f})
         {
             Box(pavilion,"Stopa słupa",new Vector3(x,.10f,z),new Vector3(.65f,.2f,.65f),campusSteel);
             Box(pavilion,"Słup stalowy",new Vector3(x,2.8f,z),new Vector3(.22f,5.6f,.22f),campusSteel);
         }
-        foreach(float z in new[]{-14f,14f}) Box(pavilion,"Belka drewniana",new Vector3(0,5.55f,z),new Vector3(52,.32f,.24f),wood);
-        foreach(float x in new[]{-25f,-12.5f,0f,12.5f,25f})
-            Box(pavilion,"Wiązar dachowy",new Vector3(x,5.7f,0),new Vector3(.24f,.4f,30),wood);
-        var roof=Box(pavilion,"Dach z okapem",new Vector3(0,5.95f,0),new Vector3(53,.18f,31),campusSteel);
-        roof.transform.localRotation=Quaternion.Euler(2,0,0);
-        foreach(float x in new[]{-24f,24f})
-            Cylinder(pavilion,"Rura spustowa",new Vector3(x,5.7f,14.7f),new Vector3(x,.2f,14.7f),.055f,campusSteel);
+        foreach(float z in new[]{-7.5f,7.5f})
+            Box(pavilion,"Belka oczepowa",new Vector3(0,5.45f,z),new Vector3(42,.3f,.22f),wood);
+        var roofing=Group("Dach dwuspadowy i wiązary",pavilion,Vector3.zero);
+        roofing.localRotation=Quaternion.Euler(0,90,0);
+        MetalRoof(roofing,17,43,5.6f,2.2f);
         Ring("Ring 2",-12,51);
         int first=bags.Count; Bags(12,51,false,2);
         foreach(var bag in bags.Skip(first)) covered.Add(bag.transform);
-        Sign(pavilion,"BRAXHORN · OBÓZ TRENINGOWY",new Vector3(0,4.85f,-14.2f),12);
+        Sign(pavilion,"BRAXHORN · OBÓZ TRENINGOWY",new Vector3(0,4.85f,-7.7f),12);
         Station("Rozgrzewka i mobilność",-12,30,14,8,t=>{
             for(int i=0;i<6;i++)Box(t,"Mata treningowa",new Vector3(-5+i*2,.10f,0),new Vector3(1.4f,.04f,2.2f),burgundy);
         });
@@ -138,7 +135,7 @@ public static partial class BraxObozEnvironment
         foreach(float z in new[]{-120f,-114f})Bench(t,new Vector3(27,0,z));
         var shelter=Group("Wiata dla przyjeżdżających",t,P(27,0,-114));
         foreach(float x in new[]{-1.4f,1.4f})foreach(float z in new[]{-4f,4f})Box(shelter,"Słup wiaty",new Vector3(x,1.45f,z),new Vector3(.12f,2.9f,.12f),campusSteel);
-        Box(shelter,"Dach wiaty",new Vector3(0,2.95f,0),new Vector3(3.3f,.16f,8.6f),wood);
+        MetalRoof(shelter,3.3f,8.6f,2.9f,.5f);
         var route=Group("Trasa kontrolna autobusu — bez automatycznej jazdy",t,Vector3.zero);
         Group("Dojazd",route,P(0,0,-195));Group("Brama",route,P(0,0,-150));
         for(int i=0;i<=32;i++){
@@ -228,6 +225,100 @@ public static partial class BraxObozEnvironment
     {
         for(int i=0;i<4;i++)Box(parent,"Deska siedziska",p+new Vector3(0,.48f,-.22f+i*.145f),new Vector3(1.8f,.07f,.12f),wood);
         foreach(float x in new[]{-.65f,.65f})Box(parent,"Noga ławki",p+new Vector3(x,.23f,0),new Vector3(.08f,.46f,.5f),campusSteel);
+    }
+    static void PavedPaths(List<Rect> areas)
+    {
+        var t=Group("Chodniki brukowane z obrzeżem",root,Vector3.zero);
+        var xs=areas.SelectMany(r=>new[]{r.xMin,r.xMax}).Distinct().OrderBy(v=>v).ToArray();
+        var zs=areas.SelectMany(r=>new[]{r.yMin,r.yMax}).Distinct().OrderBy(v=>v).ToArray();
+        bool Inside(float x,float z)=>areas.Any(r=>r.Contains(new Vector2(x,z)));
+        for(int i=0;i<xs.Length-1;i++)for(int j=0;j<zs.Length-1;j++) {
+            float x=(xs[i]+xs[i+1])*.5f,z=(zs[j]+zs[j+1])*.5f;
+            if(!Inside(x,z))continue;
+            float w=xs[i+1]-xs[i],d=zs[j+1]-zs[j];
+            var slab=Box(t,"Kostka — ciągła skala i fuga",new Vector3(x,.025f,z),new Vector3(w,.05f,d),campusPaving,false);
+            // Absolute UV origin keeps the paving bond aligned across all cells.
+            var mf=slab.GetComponent<MeshFilter>();var mesh=Object.Instantiate(mf.sharedMesh);var uv=mesh.uv;
+            for(int v=0;v<uv.Length;v++)uv[v]+=new Vector2(x,z)*K;
+            mesh.uv=uv;mf.sharedMesh=SaveMesh(mesh);
+            if(!Inside(xs[i]-.001f,z))Box(t,"Obrzeże",new Vector3(xs[i]-.04f,.028f,z),new Vector3(.08f,.056f,d),gravel,false);
+            if(!Inside(xs[i+1]+.001f,z))Box(t,"Obrzeże",new Vector3(xs[i+1]+.04f,.028f,z),new Vector3(.08f,.056f,d),gravel,false);
+            if(!Inside(x,zs[j]-.001f))Box(t,"Obrzeże",new Vector3(x,.028f,zs[j]-.04f),new Vector3(w,.056f,.08f),gravel,false);
+            if(!Inside(x,zs[j+1]+.001f))Box(t,"Obrzeże",new Vector3(x,.028f,zs[j+1]+.04f),new Vector3(w,.056f,.08f),gravel,false);
+        }
+        // One renderer per material, with flush walkable surface over terrain.
+        CombineDecoration(t);
+    }
+    static void MetalRoof(Transform parent,float width,float depth,float eave,float rise)
+    {
+        var t=Group("Blacha na rąbek — dach, konstrukcja, odwodnienie",parent,Vector3.zero);
+        float half=width*.5f, slope=Mathf.Sqrt(half*half+rise*rise);
+        float angle=Mathf.Atan2(rise,half)*Mathf.Rad2Deg;
+        for(int side=-1;side<=1;side+=2) {
+            var plane=Group("Połać",t,P(side*half*.5f,eave+rise*.5f,0));
+            plane.localRotation=Quaternion.Euler(0,0,-side*angle);
+            Box(plane,"Pokrycie blaszane",Vector3.zero,new Vector3(slope,.035f,depth),metal,false);
+            int seams=Mathf.CeilToInt(depth/.5f);
+            for(int i=0;i<=seams;i++)
+                Box(plane,"Rąbek stojący",new Vector3(0,.038f,-depth*.5f+i*depth/seams),new Vector3(slope,.04f,.018f),metal,false);
+            foreach(float z in new[]{-depth*.5f,depth*.5f})
+                Box(plane,"Wiatrownica",new Vector3(0,-.02f,z),new Vector3(slope,.16f,.055f),metal,false);
+            Box(t,"Deska okapowa",new Vector3(side*half,eave-.1f,0),new Vector3(.1f,.22f,depth),wood,false);
+            // Open U-channel gutter; downpipes discharge outside the footprint.
+            float gutterX=side*(half+.09f);
+            Box(t,"Dno rynny",new Vector3(gutterX,eave-.16f,0),new Vector3(.15f,.015f,depth),metal,false);
+            foreach(float lip in new[]{-.075f,.075f})
+                Box(t,"Krawędź rynny",new Vector3(gutterX+lip,eave-.105f,0),new Vector3(.015f,.11f,depth),metal,false);
+            foreach(float z in new[]{-depth*.5f+.25f,depth*.5f-.25f}) {
+                Cylinder(t,"Rura spustowa",new Vector3(gutterX,eave-.16f,z),new Vector3(gutterX,.28f,z),.045f,metal);
+                Cylinder(t,"Wylewka",new Vector3(gutterX,.28f,z),new Vector3(gutterX+side*.25f,.12f,z),.045f,metal);
+            }
+        }
+        Box(t,"Obróbka kalenicy",new Vector3(0,eave+rise+.03f,0),new Vector3(.18f,.08f,depth+.08f),metal,false);
+        // Repeated timber trusses and longitudinal purlins visible from below.
+        foreach(float side in new[]{-1f,1f})
+            Box(t,"Płatew",new Vector3(side*half*.5f,eave+rise*.5f-.32f,0),new Vector3(.16f,.22f,depth),wood,false);
+        int bays=Mathf.CeilToInt(depth/3);
+        for(int i=0;i<=bays;i++) {
+            float z=-depth*.5f+.25f+(depth-.5f)*i/bays;
+            Box(t,"Pas dolny wiązara",new Vector3(0,eave-.18f,z),new Vector3(width,.24f,.14f),wood,false);
+            foreach(float side in new[]{-1f,1f}) {
+                var beam=Box(t,"Krokiew",new Vector3(side*half*.5f,eave+rise*.5f-.15f,z),new Vector3(slope,.18f,.12f),wood,false);
+                beam.transform.localRotation=Quaternion.Euler(0,0,-side*angle);
+            }
+            Box(t,"Słupek wiązara",new Vector3(0,eave+rise*.5f-.18f,z),new Vector3(.12f,rise,.12f),wood,false);
+        }
+        CombineDecoration(t);
+    }
+    static void CabinFinish(Transform cabin)
+    {
+        var trim=Group("Wykończenie domku",cabin,Vector3.zero);
+        MetalRoof(trim,7.1f,9.1f,2.85f,1.15f);
+        Box(trim,"Cokół fundamentowy",new Vector3(0,-.035f,0),new Vector3(6.3f,.15f,8.3f),gravel,false);
+        foreach(float x in new[]{-3.13f,3.13f})foreach(float z in new[]{-4.13f,4.13f})
+            Box(trim,"Deska narożna",new Vector3(x,1.5f,z),new Vector3(.17f,2.7f,.17f),wood,false);
+        foreach(float z in new[]{-4.05f,4.05f}) {
+            var mesh=new Mesh{name="Zamknięty szczyt"};
+            mesh.vertices=new[]{P(-3.15f,2.78f,z),P(3.15f,2.78f,z),P(3.15f,2.985f,z),P(0,4,z),P(-3.15f,2.985f,z)};
+            mesh.uv=mesh.vertices.Select(v=>new Vector2(v.x,v.y)).ToArray();
+            mesh.vertices=mesh.vertices.Concat(mesh.vertices).ToArray();mesh.uv=mesh.uv.Concat(mesh.uv).ToArray();
+            mesh.triangles=new[]{0,2,1,0,3,2,0,4,3,5,6,7,5,7,8,5,8,9};mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
+            var g=Group("Szczyt z desek",trim,Vector3.zero).gameObject;
+            g.AddComponent<MeshFilter>().sharedMesh=SaveMesh(mesh);g.AddComponent<MeshRenderer>().sharedMaterial=wood;
+        }
+        var glass=BraxObozMaterials.Plain("szyby-domkow",new Color(.65f,.75f,.79f,.2f),.9f);
+        glass.SetFloat("_Mode",3);glass.SetInt("_SrcBlend",1);glass.SetInt("_DstBlend",10);
+        glass.SetInt("_ZWrite",0);glass.EnableKeyword("_ALPHAPREMULTIPLY_ON");glass.SetOverrideTag("RenderType","Transparent");glass.renderQueue=3000;
+        foreach(float side in new[]{-1f,1f}) {
+            Box(trim,"Zamknięcie pod okapem",new Vector3(side*3,2.93f,0),new Vector3(.14f,.24f,8.2f),wood,false);
+            foreach(float z in new[]{-1.1f,0,1.1f})Box(trim,"Rama okienna",new Vector3(side*3.08f,1.55f,z),new Vector3(.16f,1.08f,.07f),wood,false);
+            foreach(float y in new[]{1.03f,2.07f})Box(trim,"Rama pozioma",new Vector3(side*3.08f,y,0),new Vector3(.16f,.08f,2.26f),wood,false);
+            Box(trim,"Szyba",new Vector3(side*3.07f,1.55f,0),new Vector3(.015f,.96f,2.14f),glass,false);
+            Box(trim,"Parapet",new Vector3(side*3.12f,1.0f,0),new Vector3(.36f,.055f,2.4f),metal,false);
+        }
+        foreach(float x in new[]{-.7f,.7f})Box(trim,"Ościeżnica",new Vector3(x,1.3f,-4.12f),new Vector3(.09f,2.4f,.12f),wood,false);
+        Box(trim,"Nadproże drzwi",new Vector3(0,2.52f,-4.12f),new Vector3(1.5f,.12f,.12f),wood,false);
+        CombineDecoration(trim);
     }
 }
 
