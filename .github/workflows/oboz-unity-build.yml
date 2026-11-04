@@ -100,6 +100,10 @@ jobs:
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: python3 unity-tools/oboz/motion_candidates.py
+      - name: Oryginalny autobus osiedla — kopia do zatoki obozu
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/shared_bus.py
       - name: Profil pamięci obozu
         id: profile
         run: python3 unity-tools/updates/unity_cache.py profile --zone oboz

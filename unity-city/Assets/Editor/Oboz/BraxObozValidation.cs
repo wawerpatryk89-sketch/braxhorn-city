@@ -37,6 +37,9 @@ public static class BraxObozValidation
             if (scene.cabinDoors.Length != 4 || scene.cabinDoors.Distinct().Count() != 4 || scene.cabinDoors.Any(d => !d || d.leaves == null || d.leaves.Length == 0)) errors.Add("Cztery domki potrzebują różnych działających drzwi");
             if (scene.arenas.Length != 3 || scene.arenas.Any(a => !a)) errors.Add("Wymagane dwa ringi i oktagon");
             if(scene.GetComponentsInChildren<BraxObozTrainingStation>(true).Length!=6)errors.Add("Wymagane sześć nowych stanowisk treningowych");
+            var buses=scene.GetComponentsInChildren<Transform>(true).Where(t=>t.name==BraxObozParkedBus.Name).ToArray();
+            if(buses.Length!=1||!buses[0].GetComponent<BoxCollider>()||buses[0].GetComponentsInChildren<BraxAutobus>(true).Length!=0)
+                errors.Add("Wymagany jeden zaparkowany autobus z kolizją, bez sterownika jazdy");
             var gates=scene.GetComponentsInChildren<BraxObozSlidingGate>(true);
             if(gates.Length!=2||gates.Any(g=>!g.leaf||!g.player))errors.Add("Brama i furtka muszą mieć skrzydło oraz gracza");
             if(scene.GetComponentsInChildren<Transform>(true).Any(t=>t.name.Contains("Gym_Mesh_")||t.name.Contains("źródłowa salka")))errors.Add("Stara siłownia nadal jest w obozie");

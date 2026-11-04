@@ -87,6 +87,7 @@ public static partial class BraxObozEnvironment
             Bags(-23, -40, true,4); Bags(23, -40, false,6);
             ServiceBuildings();
             CampusArrival();
+            BraxObozParkedBus.Add(root);
             CampusPerimeter();
             Bridge(72, -78); Bridge(72, 76);
             // The source bunker is retained without changing its mesh, origins

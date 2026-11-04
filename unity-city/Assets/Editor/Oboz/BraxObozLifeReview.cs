@@ -100,6 +100,11 @@ public static partial class BraxObozCharacters
                 lifePoseCamera.nearClipPlane = .01f; lifePoseCamera.farClipPlane = 300;
                 lifePoseCamera.clearFlags = CameraClearFlags.SolidColor;
                 lifePoseCamera.backgroundColor = new Color(.12f,.14f,.17f);
+                var bus=lifeScene.GetComponentsInChildren<Transform>().Single(t=>t.name==BraxObozParkedBus.Name);
+                var camera=new GameObject("Parked bus review camera").AddComponent<Camera>();
+                camera.nearClipPlane=.1f;camera.farClipPlane=400;camera.fieldOfView=55;
+                camera.transform.position=bus.position+new Vector3(12,7,16);camera.transform.LookAt(bus.position+Vector3.up*2);
+                CaptureRuntimeCamera(camera,Path.Combine(lifeOutput,"parked-bus.png"));Object.DestroyImmediate(camera.gameObject);
             }
             if (!lifeScene.player.ready) return;
             if (lifeStart < 0) { lifeStart = Time.time; Time.captureDeltaTime = .05f; }
