@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 // BRAXHORN CITY — T1: jedna zamknieta linia po ulicach nowych dzielnic.
@@ -115,4 +117,148 @@ public static partial class BraxRegionMiastoB
               ", promien lukow=" + T1R.ToString("F1") +
               " m, szyny bez podwojnego asfaltu, podzielone na male paczki do cullingu");
     }
+    // Sześć przystanków rozmieszczonych przy chodnikach obwodnicy nowych dzielnic.
+    // Dane poziome są wykorzystywane wspólnie: T1, tablice, perony, mapka i QA.
+    static readonly (string nazwa, float x, float z)[] T1Postoje =
+    {
+        ("TRAMWAJOWA ZACHÓD", -690f, NS1 - AH * .5f),
+        ("TRAMWAJOWA CENTRUM", -485f, NS1 - AH * .5f),
+        ("C0 — NOWA DZIELNICA", NC[0] + AH * .5f, 18f),
+        ("NOWOJORSKA WSCHÓD", -425f, NN1 - AH * .5f),
+        ("NOWOJORSKA ZACHÓD", -660f, NN1 - AH * .5f),
+        ("C3 — ALEJA CENTRALNA", NC[3] - AH * .5f, 18f)
+    };
+
+    static void NdTramT1Buduj()
+    {
+        var trasa = NdTrasaT1();
+        var indeksy = new int[T1Postoje.Length];
+        var nazwy = new string[T1Postoje.Length];
+        var stopRoot = new GameObject("T1: 6 przystanków, od południa przez Nowojorską").transform;
+        stopRoot.SetParent(root, false);
+        var metal = BraxCityMaterials.Surface("T1: tablice stal grafit",
+            new Color(.12f, .16f, .20f), .36f, .65f);
+        var srebro = BraxCityMaterials.Surface("T1: aluminium szczotkowane",
+            new Color(.66f, .69f, .70f), .40f, .68f);
+        var wiaty = BraxMiastoAssety.Jest("miasto_wyposazenie") ?
+            BraxMiastoAssety.Model("miasto_wyposazenie", "miasto_wyposazenie") : null;
+        int wiatyGotowe = 0;
+        for (int i = 0; i < T1Postoje.Length; i++)
+        {
+            var cfg = T1Postoje[i];
+            indeksy[i] = NdIndeksTram(trasa, cfg.x, cfg.z);
+            nazwy[i] = cfg.nazwa;
+            var s = trasa[indeksy[i]];
+            var przed = trasa[(indeksy[i] - 3 + trasa.Length) % trasa.Length];
+            var dalej = trasa[(indeksy[i] + 3) % trasa.Length];
+            var tangent = (dalej - przed).normalized;
+            var prawa = Vector3.Cross(Vector3.up, tangent).normalized;
+            // Prawa strona toru = przystanek na zewnętrznym chodniku (pojazd jedzie w jedną stronę).
+            var peron = s + prawa * (AH * .5f + Kr + 1.55f);
+            peron.y = YC;
+            var p = new GameObject("T1: przystanek " + (i + 1) + " " + cfg.nazwa).transform;
+            p.SetParent(stopRoot, false);
+            p.position = peron;
+            var znak = new BraxRegionMeble.Bud();
+            znak.Cyl(peron, peron + Vector3.up * 2.9f * K, .045f * K, 12);
+            znak.MinMax(peron + new Vector3(-.09f, 2.65f * K, -.09f),
+                        peron + new Vector3(.09f, 2.75f * K, .09f));
+            znak.Obiekt("T1: słup przystanku " + (i + 1), p, srebro, false, true);
+            BraxRegionMeble.Napis(p, "T1  " + cfg.nazwa,
+                peron + Vector3.up * 2.9f * K + prawa * .05f,
+                prawa, .17f * K, new Color(.94f, .94f, .92f));
+            // Wiata z prawdziwego pakietu. Brak paczki = jawny log, nie plastikowy zamiennik.
+            if (wiaty)
+            {
+                var kopia = (GameObject)UnityEngine.Object.Instantiate(wiaty);
+                var t = BraxMiastoAssety.Znajdz(kopia.transform, "wiata_przystanku");
+                if (t)
+                {
+                    t.SetParent(p, true);
+                    t.name = "T1: wiata " + cfg.nazwa;
+                    t.position = peron + prawa * 3.8f;
+                    t.rotation = Quaternion.LookRotation(-prawa, Vector3.up);
+                    t.localScale = Vector3.one * K;
+                    BraxMiastoAssety.Przygotuj(t.gameObject);
+                    BraxMiastoAssety.Kolizja(p, t.gameObject, "T1: kolizja wiaty " + cfg.nazwa, .25f);
+                    wiatyGotowe++;
+                }
+                UnityEngine.Object.DestroyImmediate(kopia);
+            }
+        }
+
+        // JEDEN rzeczywisty model CAF. Root i jedyna ruchoma kolizja mają skalę 1.
+        var tram = BraxMiastoAssety.Jest("miasto_pojazdy") ?
+            BraxMiastoAssety.Model("miasto_pojazdy", "tramwaj_caf") : null;
+        if (!tram)
+        {
+            Debug.LogError("BRAXHORN_TRAM_T1_NIEGOTOWY: nie wczytano tramwaj_caf z paczki miasto_pojazdy");
+            return;
+        }
+        var pojazd = new GameObject("T1 — tramwaj CAF, cała nowa dzielnica").transform;
+        pojazd.SetParent(root, false);
+        var body = BraxMiastoAssety.Postaw(pojazd, tram, "T1: oryginalny model CAF",
+            Vector3.zero, 0f, 1f, false, true);
+        if (!body) { UnityEngine.Object.DestroyImmediate(pojazd.gameObject); return; }
+        var before = BraxRegion.Bounds(body);
+        // Sprowadzamy środek bryły do zera root wagonu; tor w świecie na y=YA.
+        body.transform.position += new Vector3(-before.center.x, -before.min.y, -before.center.z);
+        foreach (var t in body.GetComponentsInChildren<Transform>(true))
+            GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
+        foreach (var c in body.GetComponentsInChildren<Collider>(true))
+            UnityEngine.Object.DestroyImmediate(c); // stare, przypadkowe collidery z importu
+        var bounds = BraxRegion.Bounds(body);
+        var kol = pojazd.gameObject.AddComponent<BoxCollider>();
+        kol.center = new Vector3(0f, bounds.size.y * .5f, 0f);
+        kol.size = bounds.size * .96f;
+        var rb = pojazd.gameObject.AddComponent<Rigidbody>();
+        rb.useGravity = false; rb.isKinematic = true;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+
+        var driver = pojazd.gameObject.AddComponent<BraxTramwajT1>();
+        driver.trasa = trasa;
+        driver.przystankiIndeksy = indeksy;
+        driver.nazwyPrzystankow = nazwy;
+        driver.szerokoscWagonu = Mathf.Min(bounds.size.x, bounds.size.z);
+        driver.modelForward = bounds.size.x > bounds.size.z ? Vector3.right : Vector3.forward;
+        driver.szybkosc = 8.5f; driver.postojSekundy = 10f;
+        driver.promienWejscia = 5.8f;
+
+        // Autentyczne (osobne) skrzydła modelu poruszamy tylko gdy model ma
+        // wyodrębnione elementy. Nie tworzymy fasadowych drzwi na wierzchu CAF.
+        var doorNodes = body.GetComponentsInChildren<Transform>(true)
+            .Where(t => t && t != body.transform && (
+                t.name.IndexOf("door_left", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                t.name.IndexOf("door_right", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                t.name.IndexOf("drzwi_lew", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                t.name.IndexOf("drzwi_praw", StringComparison.OrdinalIgnoreCase) >= 0) &&
+                (t.GetComponent<MeshFilter>() || t.GetComponent<SkinnedMeshRenderer>()))
+            .Take(12).ToArray();
+        driver.skrzydlaDrzwi = doorNodes;
+        driver.kierunkiDrzwi = new Vector3[doorNodes.Length];
+        for (int i = 0; i < doorNodes.Length; i++)
+            driver.kierunkiDrzwi[i] = i % 2 == 0 ? Vector3.left : Vector3.right;
+        if (doorNodes.Length == 0)
+            Debug.LogWarning("BRAXHORN_TRAM_T1_DRZWI_NIEGOTOWE: brak odrębnych węzłów drzwi modelu CAF");
+
+        // Prawdziwa pozująca siedząca postać gracza; widok kamery jedzie z tramwajem.
+        var sit = new GameObject("T1: miejsce pasażera").transform;
+        sit.SetParent(pojazd, false);
+        sit.localPosition = new Vector3(0f, 0f, 0f);
+        sit.localRotation = Quaternion.FromToRotation(Vector3.forward, driver.modelForward);
+        var seat = sit.gameObject.AddComponent<BraxSeat>();
+        seat.tramOwner = driver;
+        seat.label = "TRAMWAJ T1"; seat.surfaceY = YA + 1.1f * K;
+        driver.miejsceGracza = seat;
+
+        double dl = 0d;
+        for (int i = 0; i < trasa.Length; i++)
+            dl += Vector3.Distance(trasa[i], trasa[(i + 1) % trasa.Length]);
+        Debug.Log("BRAXHORN_TRAM_T1_PETLA_OK obwod=" + dl.ToString("F1") +
+            " m, stacje=" + nazwy.Length + ", wiaty=" + wiatyGotowe +
+            ", CAF=" + bounds.size.ToString("F1") +
+            ", drzwi_animowalne=" + doorNodes.Length +
+            ", wejscie AKCJA, wysiadanie tylko na stacjach");
+    }
+
 }
