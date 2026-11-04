@@ -16,6 +16,8 @@ public sealed class BraxTramwajT1 : MonoBehaviour, IBraxInterakcja
     public float postojSekundy = 9f;
     public float promienWejscia = 5.8f;
     public float szerokoscWagonu = 3.5f;
+    // Dlugosc osi prefab CAF: niektore importy sa zwrocone lokalnym X, inne Z.
+    public Vector3 modelForward = Vector3.right;
     public BraxSeat miejsceGracza;
     // Potwierdzone oddzielne elementy drzwi glTF. Jesli w modelu ich brak, QA raportuje to,
     // a wejscie AKCJA nadal dziala. Nie rysujemy na oryginale udawanych drzwi.
@@ -103,7 +105,7 @@ public sealed class BraxTramwajT1 : MonoBehaviour, IBraxInterakcja
         Vector3 d = Punkt(m + 1.5f) - Punkt(m - 1.5f);
         d.y = 0f;
         return d.sqrMagnitude < .001f ? transform.rotation :
-            Quaternion.FromToRotation(Vector3.right, d.normalized);
+            Quaternion.FromToRotation(modelForward.sqrMagnitude > .001f ? modelForward.normalized : Vector3.right, d.normalized);
     }
 
     void FixedUpdate()
