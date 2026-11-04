@@ -39,13 +39,17 @@ public static class BraxClaudeMetro
     const float zS = 18.1f, zN = 38.9f;                // wewnętrzne lica ścian zatorowych
     const float zPS = 22.8f, zPN = 34.2f;              // krawędzie peronu wyspowego (11.4 m)
     const float zTs = 20.9f, zTn = 36.1f;              // osie torów (peron 2 — płd., peron 1 — płn., pociąg)
-    const float MX0 = 43.6f, MX1 = 78.6f, MZ0 = 20.5f, MZ1 = 36.0f;   // antresola
+    const float MX0 = 43.6f, MX1 = 81.1f, MZ0 = 20.5f, MZ1 = 36.0f; // antresola przedłużona pod odsuniętym zejściem   // antresola
     const float WX0 = 44.4f, WX1 = 58.4f, WZ0 = 25.4f, WZ1 = 31.5f;   // otwór schodów w stropie antresoli
     const float GX = 63f;                              // linia bramek (strefa płatna na zachód)
-    const float EX0 = 66.5f;                           // początek zejść z chodników (koniec ulicy x = 66)
+    // Wejście było przyklejone do narożnika kamienicy przy x≈66 (nagranie nr 2).
+    // Przesuwamy CAŁE zejście 2.5 m w stronę otwartego bulwaru, ale nie do wody.
+    // Przesuwane razem: otwór, schody stałe/ruchome, zadaszenie, murki, kolizje i punkt misji.
+    const float EX0 = 69.0f;
+    static float XKoniec => EX0 + (21f * .30f + 1.5f) * K; // końcowa krawędź dolnego biegu
     static readonly float[] EZ = { 20.5f, 32.6f };     // pasy zejść: płd. z 20.5–23.9, płn. z 32.6–36.0 (szer. 3.4)
     const float EW = 3.4f;
-    // pkt 1 (dopisek 23.11): JEDNO wejście — płn. pas (z 32.6–36.0) przy wieżowcu, obok wolny chodnik (pomiar w KontrolaPrzejscia).
+    // JEDNO wejście — płn. pas (z 32.6–36.0). Zespół wejścia odsunięty w osi X od kamienicy, z wolnym chodnikiem przed dojściem.
     // Pas płd. (z 20.5–23.9) zamknięty: chodnik nad nim nie jest cięty (wraca cały), pod nim pełny grunt (hala go omija ciągłą ścianą).
     static readonly float[] WEJSCIA = { 32.6f };
     static bool Wejscie(float z0) => Array.IndexOf(WEJSCIA, z0) >= 0;
@@ -164,9 +168,9 @@ public static class BraxClaudeMetro
         // 3) otwory w chodniku (zejścia) + uprzątnięcie drobnych rzeczy z miejsca budowy + kolizje pod ziemią
         foreach (float z0 in WEJSCIA)
         {
-            var otw = new Bounds(new Vector3((EX0 + 76.7f) * .5f, -.15f, z0 + EW * .5f), new Vector3(76.7f - EX0, 1.5f, EW));
+            var otw = new Bounds(new Vector3((EX0 + XKoniec + .1f) * .5f, -.15f, z0 + EW * .5f), new Vector3(XKoniec + .1f - EX0, 1.5f, EW));
             rep.otwory += W.Otwor(cityRoot, otw, "metro_zejscie_" + z0.ToString("F1"), zewnatrz);
-            var wiata = new Bounds(new Vector3((EX0 - 1.6f + 77.3f) * .5f, 3f, z0 + EW * .5f), new Vector3(77.3f - EX0 + 1.6f, 6f, EW + .6f));   // + głowica schodów ruchomych na chodniku
+            var wiata = new Bounds(new Vector3((EX0 - 1.6f + XKoniec + .7f) * .5f, 3f, z0 + EW * .5f), new Vector3(XKoniec - EX0 + 2.3f, 6f, EW + .6f));   // + głowica schodów ruchomych na chodniku
             rep.uprzatniete.AddRange(W.Uprzatnij(cityRoot, wiata, zewnatrz));
         }
         foreach (var b in new[] {
@@ -219,7 +223,7 @@ public static class BraxClaudeMetro
         // 6) punkty misji (stare kotwice systemów przeniesione na nową stację) i raport
         W.Grupa = podziemie;
         W.Punkt("metro_entry", "metro_entry", new Vector3(EX0 - .6f, yS, EZ[1] + EW * .5f));
-        W.Punkt("metro_stairs_bottom", "metro_stairs_bottom", new Vector3(77.6f, yM, EZ[1] + EW * .5f));
+        W.Punkt("metro_stairs_bottom", "metro_stairs_bottom", new Vector3(XKoniec + 1.0f, yM, EZ[1] + EW * .5f));
         W.Punkt("metro_vestibule", "metro_vestibule", new Vector3(70.5f, yM, 28.25f));
         W.Punkt("metro_station_boundary", "metro_station_boundary", new Vector3(GX, yM, 28.5f));
         W.Punkt("metro_peron", "metro_peron", new Vector3(20f, yP, 28.5f));
@@ -230,7 +234,7 @@ public static class BraxClaudeMetro
         rep.siedziska = podziemie.GetComponentsInChildren<BraxSeat>(true).Length;
         rep.punktyAkcji = podziemie.GetComponentsInChildren<BraxPunktAkcji>(true).Length;
         rep.peron = "x " + PX0 + "…" + PX1 + ", z " + zPS + "…" + zPN + ", y " + yP;
-        rep.wejscia = "płn. x " + EX0 + "…76.6 z " + EZ[1] + "…" + (EZ[1] + EW) + " (jedyne); płd. z " + EZ[0] + "…" + (EZ[0] + EW) + " zamknięte — chodnik cały, pod nim grunt, ściana hali ciągła";
+        rep.wejscia = "płn. x " + EX0 + "…" + XKoniec.ToString("F1") + " z " + EZ[1] + "…" + (EZ[1] + EW) + " (jedyne); płd. z " + EZ[0] + "…" + (EZ[0] + EW) + " zamknięte — chodnik cały, pod nim grunt, ściana hali ciągła";
     }
 
     // ---------------- P0.1: TEST PRZEJŚCIA (właściciel 23:05: „schody kończą się ślepym podestem”, a w logu BUILT) ----------------
@@ -362,7 +366,11 @@ public static class BraxClaudeMetro
         if (!pav) { pav = M.Plain("bulwar płyty (zastępczy)", new Color(.46f, .47f, .48f), .85f); rep.uwagi.Add("brak materiału Promenade paving — zastępczy"); }
         W.Start(zewnatrz); W.Wnetrze = false;
         // stary wykop x 75–80.7, z 34.8–49.8, bez części w nowym zejściu północnym (x < 76.7, z < 36.0)
-        foreach (var r in new[] { new Rect(76.7f, 34.8f, 4.0f, 1.2f), new Rect(75f, 36.0f, 5.7f, 13.8f) })
+        foreach (var r in new[] {
+            // Zamykanie starego wykopu NIE może zakleić nowego otworu schodów!
+            new Rect(79.5f, 34.8f, 1.2f, 1.2f),
+            new Rect(75f, 36.0f, 5.7f, 13.8f)
+        })
         {
             W.Quad(pav, new Vector3(r.xMin, yS, r.yMin), new Vector3(r.xMin, yS, r.yMax), new Vector3(r.xMax, yS, r.yMax), new Vector3(r.xMax, yS, r.yMin));
             W.KolizjaMM(r.xMin, r.xMax, yS - .3f, yS, r.yMin, r.yMax);
@@ -550,7 +558,7 @@ public static class BraxClaudeMetro
         Tab(new Vector3(xEnd + .255f, yMc - .2f, zc), Vector3.right, .5f, .25f, aEwak);
         // tablica kierunku wyjścia wisząca nad przejściem z hali na spocznik (widziana od zachodu)
         float zH = polnoc ? z0 - .9f : z0 + EW + .9f;
-        Wiszaca(new Vector3(77.6f, yMc - .55f, zH), Vector3.left, 2.4f, .3f, polnoc ? aWyjN : aWyjS, polnoc ? aWyjN : aWyjS, yMc);
+        Wiszaca(new Vector3(XKoniec + 1.0f, yMc - .55f, zH), Vector3.left, 2.4f, .3f, polnoc ? aWyjN : aWyjS, polnoc ? aWyjN : aWyjS, yMc);
     }
 
     // ---------------- antresola (hala biletowa) ----------------
