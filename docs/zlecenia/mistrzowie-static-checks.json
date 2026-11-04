@@ -1,0 +1,98 @@
+{
+  "baseCommit": "f1981049a9f7e9976b7d9e84216f1747d49a8774",
+  "unity": "NOT_RUN_MANUAL_APPROVAL_REQUIRED",
+  "android": "NOT_RUN",
+  "visual": "NOT_REVIEWED_IN_UNITY",
+  "syntax": {
+    "csharp": "TREE_SITTER_PASS_NOT_COMPILATION",
+    "python": "PY_COMPILE_PASS"
+  },
+  "workflow": "WORKFLOW_DISPATCH_ONLY",
+  "reports": {
+    "geometry-checks": {
+      "status": "STATIC_GEOMETRY_CHECKS_PASSED_UNITY_NOT_RUN",
+      "scaleK": 1.2944444417953491,
+      "meshes": 100,
+      "triangles": 93840,
+      "plants": 288,
+      "palms": 165,
+      "trees": 123,
+      "berths": 80,
+      "yachts": 40,
+      "motorboats": 40,
+      "checks": [
+        "finite vertices",
+        "upward nondegenerate winding",
+        "UV cardinality",
+        "berth capacity and non-overlap",
+        "vegetation on grass with clear root disk",
+        "K applied once",
+        "marina transverse and longitudinal clear fairways"
+      ],
+      "unityCompilation": "NOT_RUN",
+      "visualAcceptance": "NOT_RUN",
+      "deviceTest": "NOT_RUN"
+    },
+    "infrastructure-checks": {
+      "status": "GEOMETRY_CHECKS_PASS_UNITY_PENDING",
+      "counts": {
+        "metroStations": 3,
+        "metroEntrances": 3,
+        "metroTracks": 2,
+        "tramTracks": 2,
+        "tramPlatforms": 10,
+        "busPlatforms": 32,
+        "crossings": 68,
+        "curbstones": 18684
+      },
+      "infrastructureMeshes": 258,
+      "triangles": 611688,
+      "tramMetres": 3265.56,
+      "metroMetres": 1363.08,
+      "checks": [
+        "continuous closed tram route",
+        "connections match existing city station track centres and height",
+        "10 tram platforms on track centreline",
+        "3 terrain openings for actual stairs",
+        "paving removed under curb ramps",
+        "asphalt cut out for rail grooves",
+        "finite nondegenerate meshes and UVs",
+        "one shared game scale"
+      ],
+      "unity": "NOT_RUN",
+      "visualQuality": "PENDING_UNITY_REVIEW"
+    },
+    "reuse-contract": {
+      "status": "STATIC_CONTRACT_PASS",
+      "checks": [
+        "city station world dimensions retained; same rail height, centres and gauge",
+        "all six source tunnel connectors lie on straight approaches, no closed station caps",
+        "three actual openings through all surface geometry, not painted entrance markers",
+        "no reserved building footprint covers a metro entrance"
+      ],
+      "unity": "SEPARATE_CI_REQUIRED"
+    }
+  },
+  "files": {
+    "unity-tools/mistrzowie/build_infrastructure.py": "27a786902d12d9665c4a8a3928e6f87105bd99cbcd2c037351c0ddafee135e30",
+    "unity-tools/mistrzowie/draw_map.py": "c13ad553de386998bd92fbfe2d0046f79879bd51c2f686865e888f6a4222a9f8",
+    "unity-tools/mistrzowie/layout.py": "d9296a8cc1353d81a2ee235bd2a6d5fc62eab8fd307b4565d3f681cca54bd5f1",
+    "unity-tools/mistrzowie/legacy_foundation.py": "4f11888045b6fd9ec6ab64104ae11925a86e0ac060465978f61c714452ccddc0",
+    "unity-tools/mistrzowie/meshkit.py": "0616f455324f82a40214afddeb584cda585dde8e90824047bf5d0a8e7cf4962f",
+    "unity-tools/mistrzowie/package_output.py": "6617a782575caa9af90c522f929bec3c2178ab9379b5cb9ffe3da40c94c31d6c",
+    "unity-tools/mistrzowie/plan_inventory.json": "e2c2a01ac8bfd3ba453248f3b7e29d121b3ea8d5427dbf7eb529ab1be120d2fe",
+    "unity-tools/mistrzowie/prepare_assets.py": "88dadc534914957e8e503090181b3a844c619bbd0d73c12319b67f07958c175e",
+    "unity-tools/mistrzowie/prepare_signage.py": "bf9b195e36bde1c24cc71dcce2b21e7aea5fba3c1d684c23409ab65d8e1ef188",
+    "unity-tools/mistrzowie/restore_private.py": "491003509b963533aa4c0aadb27335eb35484f3e572036c4ae212b29d19958e1",
+    "unity-tools/mistrzowie/validate_contract.py": "fc4c6b46a31568c323882d2796d9f20e218014b6d6be8d5e5e5332dcfe31ca4f",
+    "unity-tools/mistrzowie/verified_textures.json": "6fdfba73e8a7ac480b3e111da0e5d4160b424fa641b2fed1ca327bdecea1743f",
+    "unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs": "986edf9c47e963e05b9efd82b8ff6c57523bb03f034ba9b37801d6444eae0b1b",
+    "unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs.meta": "9af55d696def8abf662ef6b43e62db99cbab381b6f62b0f8a172a01b46d2fa2e",
+    "unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs": "6cd2678c36ec0fb4928a7d51a2260269f5864e559840d6c4e664919db3480495",
+    "unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs.meta": "7249abf257fa6d6db4e1556135970b313b1933aea008e16357b990038e9df2bb",
+    "unity-city/Assets/Editor/Mistrzowie/BraxChampionsInfrastructure.cs": "d9b94adb13fc139976ee8633479532305e0f218e4e1bd9707f785e9a432ca2a9",
+    "unity-city/Assets/Editor/Mistrzowie/BraxChampionsInfrastructure.cs.meta": "84ad51de40d6b5c6eb819defc5cf36d63b3855672332e728a1b68ecd401524f3",
+    "unity-city/Assets/Editor/Mistrzowie/BraxClaudeMetro.Reuse.cs": "fecf07e29a93a4c58d330b98e61e23d670e371a3fedd9f11b52c57a258711a8f",
+    "unity-city/Assets/Editor/Mistrzowie/BraxClaudeMetro.Reuse.cs.meta": "def9ab077bfe7690c27e7d54f2ea89bc7e9c6abb6f1234d32739b6ba31edc0ef"
+  }
+}

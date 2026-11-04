@@ -1,0 +1,440 @@
+{
+  "buildings": [
+    {
+      "id": "A1",
+      "name": "ARENA BRAXHORN",
+      "x": 600,
+      "z": 800,
+      "w": 220,
+      "d": 150,
+      "kind": "arena",
+      "height": 48
+    },
+    {
+      "id": "A2",
+      "name": "DRUGA DUŻA ARENA",
+      "x": 230,
+      "z": 520,
+      "w": 220,
+      "d": 150,
+      "kind": "arena",
+      "height": 38
+    },
+    {
+      "id": "H1",
+      "name": "BOKS",
+      "x": 145,
+      "z": 755,
+      "w": 90,
+      "d": 50,
+      "kind": "sport",
+      "height": 12
+    },
+    {
+      "id": "H2",
+      "name": "KICKBOXING",
+      "x": 280,
+      "z": 755,
+      "w": 90,
+      "d": 50,
+      "kind": "sport",
+      "height": 12
+    },
+    {
+      "id": "H3",
+      "name": "MMA",
+      "x": 875,
+      "z": 380,
+      "w": 90,
+      "d": 40,
+      "kind": "sport",
+      "height": 12
+    },
+    {
+      "id": "H4",
+      "name": "SIŁA / RUCH",
+      "x": 1030,
+      "z": 380,
+      "w": 90,
+      "d": 40,
+      "kind": "sport",
+      "height": 12
+    },
+    {
+      "id": "P1",
+      "name": "BASEN MIEJSKI + SPA",
+      "x": 520,
+      "z": 180,
+      "w": 160,
+      "d": 120,
+      "kind": "pool",
+      "height": 16
+    },
+    {
+      "id": "G1",
+      "name": "GALERIA GŁÓWNA",
+      "x": 940,
+      "z": 175,
+      "w": 170,
+      "d": 110,
+      "kind": "retail",
+      "height": 24
+    },
+    {
+      "id": "G2",
+      "name": "GALERIA MIEJSKA",
+      "x": 285,
+      "z": 250,
+      "w": 140,
+      "d": 90,
+      "kind": "retail",
+      "height": 18
+    },
+    {
+      "id": "E1",
+      "name": "KRĘGLE / BILARD",
+      "x": 685,
+      "z": 275,
+      "w": 120,
+      "d": 50,
+      "kind": "fun",
+      "height": 15
+    },
+    {
+      "id": "D1",
+      "name": "DWORZEC KOLEJOWY",
+      "x": 230,
+      "z": 130,
+      "w": 110,
+      "d": 60,
+      "kind": "transport",
+      "height": 16
+    },
+    {
+      "id": "DB",
+      "name": "TERMINAL AUTOBUSÓW",
+      "x": 125,
+      "z": 240,
+      "w": 70,
+      "d": 70,
+      "kind": "transport",
+      "height": 12
+    },
+    {
+      "id": "K12",
+      "name": "KAWIARNIA PARKOWA",
+      "x": 660,
+      "z": 210,
+      "w": 38,
+      "d": 25,
+      "kind": "fun",
+      "height": 5
+    },
+    {
+      "id": "T01",
+      "name": "HOTEL BRAXHORN / 5*",
+      "x": 885,
+      "z": 815,
+      "w": 120,
+      "d": 110,
+      "kind": "hotel",
+      "height": 150
+    },
+    {
+      "id": "T02",
+      "name": "HOTEL WAWER / 5*",
+      "x": 1030,
+      "z": 815,
+      "w": 64,
+      "d": 64,
+      "kind": "hotel",
+      "height": 130
+    },
+    {
+      "id": "T03",
+      "name": "HOTEL SOBCZAK / 5*",
+      "x": 1030,
+      "z": 710,
+      "w": 60,
+      "d": 60,
+      "kind": "hotel",
+      "height": 110
+    },
+    {
+      "id": "T04",
+      "name": "APARTAMENTY 1",
+      "x": 870,
+      "z": 570,
+      "w": 60,
+      "d": 60,
+      "kind": "rental",
+      "height": 120
+    },
+    {
+      "id": "T05",
+      "name": "APARTAMENTY 2",
+      "x": 1040,
+      "z": 570,
+      "w": 60,
+      "d": 60,
+      "kind": "rental",
+      "height": 135
+    },
+    {
+      "id": "T06",
+      "name": "APARTAMENTY 3",
+      "x": 870,
+      "z": 450,
+      "w": 60,
+      "d": 60,
+      "kind": "rental",
+      "height": 110
+    },
+    {
+      "id": "T07",
+      "name": "APARTAMENTY 4",
+      "x": 1040,
+      "z": 450,
+      "w": 60,
+      "d": 60,
+      "kind": "rental",
+      "height": 150
+    },
+    {
+      "id": "T08",
+      "name": "BANK / BIURA",
+      "x": 495,
+      "z": 570,
+      "w": 55,
+      "d": 55,
+      "kind": "tower",
+      "height": 180
+    },
+    {
+      "id": "T09",
+      "name": "FINANSE / BIURA",
+      "x": 610,
+      "z": 570,
+      "w": 55,
+      "d": 55,
+      "kind": "tower",
+      "height": 160
+    },
+    {
+      "id": "T10",
+      "name": "MEDIA / KASYNO",
+      "x": 725,
+      "z": 570,
+      "w": 55,
+      "d": 55,
+      "kind": "tower",
+      "height": 145
+    },
+    {
+      "id": "T11",
+      "name": "DUŻE KASYNO / BIURA",
+      "x": 495,
+      "z": 465,
+      "w": 120,
+      "d": 100,
+      "kind": "tower",
+      "height": 120
+    },
+    {
+      "id": "T12",
+      "name": "KLUB / BIURA",
+      "x": 610,
+      "z": 465,
+      "w": 55,
+      "d": 55,
+      "kind": "tower",
+      "height": 140
+    },
+    {
+      "id": "T13",
+      "name": "USŁUGI / KLUB",
+      "x": 725,
+      "z": 465,
+      "w": 55,
+      "d": 55,
+      "kind": "tower",
+      "height": 155
+    },
+    {
+      "id": "T14",
+      "name": "KLUB / BIURA",
+      "x": 1040,
+      "z": 280,
+      "w": 50,
+      "d": 50,
+      "kind": "tower",
+      "height": 135
+    },
+    {
+      "id": "T15",
+      "name": "HANDEL / BIURA",
+      "x": 885,
+      "z": 280,
+      "w": 50,
+      "d": 50,
+      "kind": "tower",
+      "height": 95
+    },
+    {
+      "id": "T16",
+      "name": "RESTAURACJA / BIURA",
+      "x": 1080,
+      "z": 175,
+      "w": 50,
+      "d": 70,
+      "kind": "tower",
+      "height": 100
+    },
+    {
+      "id": "T17",
+      "name": "MEDYCYNA SPORTOWA",
+      "x": 140,
+      "z": 860,
+      "w": 55,
+      "d": 55,
+      "kind": "tower",
+      "height": 80
+    },
+    {
+      "id": "T18",
+      "name": "CENTRUM LIGI",
+      "x": 290,
+      "z": 860,
+      "w": 55,
+      "d": 55,
+      "kind": "tower",
+      "height": 105
+    },
+    {
+      "id": "T19",
+      "name": "BIURA / USŁUGI",
+      "x": 150,
+      "z": 385,
+      "w": 50,
+      "d": 50,
+      "kind": "tower",
+      "height": 90
+    },
+    {
+      "id": "T20",
+      "name": "KASYNO / BIURA",
+      "x": 280,
+      "z": 385,
+      "w": 50,
+      "d": 50,
+      "kind": "tower",
+      "height": 115
+    }
+  ],
+  "tramStops": [
+    [
+      400,
+      330
+    ],
+    [
+      400,
+      500
+    ],
+    [
+      70,
+      650
+    ],
+    [
+      70,
+      800
+    ],
+    [
+      220,
+      935
+    ],
+    [
+      620,
+      935
+    ],
+    [
+      1130,
+      800
+    ],
+    [
+      1130,
+      510
+    ],
+    [
+      960,
+      330
+    ],
+    [
+      650,
+      330
+    ]
+  ],
+  "metroStations": [
+    [
+      400,
+      330
+    ],
+    [
+      800,
+      450
+    ],
+    [
+      800,
+      800
+    ]
+  ],
+  "busStopNodes": [
+    [
+      125,
+      240
+    ],
+    [
+      70,
+      500
+    ],
+    [
+      70,
+      800
+    ],
+    [
+      620,
+      935
+    ],
+    [
+      1130,
+      800
+    ],
+    [
+      1130,
+      510
+    ],
+    [
+      1130,
+      180
+    ],
+    [
+      650,
+      70
+    ],
+    [
+      400,
+      70
+    ],
+    [
+      400,
+      500
+    ],
+    [
+      800,
+      650
+    ],
+    [
+      650,
+      330
+    ]
+  ]
+}

@@ -25,7 +25,7 @@ using M = BraxWnetrzaKit.Mat;
 //    • POCIĄG ZAWSZE STOI przy peronie 1: pobrany model metro_train (2 wagony czołami na zewnątrz, drzwi zamknięte); bez modelu — wagony z kodu;
 //    • tory w obie strony w tunele, które gasną w ciemności (bez świateł na końcu).
 // Skala Braxa k = 1.294: stopnie 0.16·k × 0.30·k, poręcze 0.9·k, drzwi wagonu 1.3·k × 1.95·k, siedziska 0.45·k…
-public static class BraxClaudeMetro
+public static partial class BraxClaudeMetro
 {
     // ---------------- wymiary (świat, m) ----------------
     static float K => W.K;
@@ -1069,7 +1069,7 @@ public static class BraxClaudeMetro
     }
 
     // ---------------- tunele w obie strony (gasną w ciemności) ----------------
-    static void Tunele()
+    static void Tunele(bool otwarteKonce = false)
     {
         float yB = yR - .35f, yT = yR + 5.1f;
         foreach (var (xa, xb, kier) in new[] { (TW0, PX0, -1f), (PX1, TW1, 1f) })
@@ -1107,7 +1107,7 @@ public static class BraxClaudeMetro
                        new Vector3(xs, yR + 2.4f, zl + (zt < 28.5f ? -.13f : .13f)), .07f, 10, 6);
                 // koniec: czerń (tunel znika w ciemności)
                 float xe = kier < 0 ? xa : xb;
-                W.MM(mCzern, xe - .2f, xe + .2f, yB - .2f, yT + .3f, tz0 - .3f, tz1 + .3f, true);
+                if (!otwarteKonce) W.MM(mCzern, xe - .2f, xe + .2f, yB - .2f, yT + .3f, tz0 - .3f, tz1 + .3f, true);
             }
     }
 

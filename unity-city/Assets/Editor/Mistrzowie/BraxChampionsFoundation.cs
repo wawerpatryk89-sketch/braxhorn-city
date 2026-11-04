@@ -1,0 +1,269 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
+
+// BRAXHORN CITY: separate region, existing scale and source vegetation.
+// Built by the dedicated region CI; no runtime manager or change to another region.
+public static class BraxChampionsFoundation
+{
+    const string Source = "Assets/Source/Mistrzowie";
+    const string Output = "Assets/PlayableGenerated/Mistrzowie";
+    public const string ScenePath = Output + "/Mistrzowie_Foundation.unity";
+    const string WaterTemplate = "Assets/Editor/CityRebuild/Environment/Water/HarbourWater.shader.txt";
+    static float K => BraxClaudeOsiedle.K;
+
+    [Serializable] public sealed class Foundation
+    {
+        public string version, regionId, sourceCommit;
+        public float scaleK;
+        public MeshData[] meshes;
+        public Plant[] plants;
+        public Building[] buildings;
+        public Stop[] tramStops, metroStations, busStops;
+        public Berth[] berths;
+    }
+    [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
+    [Serializable] public sealed class Plant { public string id, kind, band; public float x,z,yaw; public int variant; }
+    [Serializable] public sealed class Building { public string id,name; public float x,z,w,d,height; }
+    [Serializable] public sealed class Stop { public float x,z; }
+    [Serializable] public sealed class Berth { public string id,kind; public float x,z,length,width; }
+    [Serializable] sealed class Report
+    {
+        public string status = "GENERATED_REQUIRES_VISUAL_AND_PHONE_REVIEW";
+        public string sourceCommit;
+        public float scaleK;
+        public int meshes, triangles, palms, trees, berths;
+        public bool interiorsBuilt=false, yachtsPlaced=false, trafficEnabled=false, visualAccepted=false, phoneTested=false;
+    }
+    sealed class MapSet { public string color,normal,arm,roughness; public float tile; }
+
+    static Foundation Read()
+    {
+        var d=JsonUtility.FromJson<Foundation>(File.ReadAllText(Source+"/Foundation.json"));
+        if(d==null || d.regionId!="mistrzowie" || Mathf.Abs(d.scaleK-K)>.00001f)
+            throw new InvalidOperationException("Region scale differs from BraxClaudeOsiedle.K; regenerate nominal geometry, never rescale imports twice.");
+        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=80)
+            throw new InvalidOperationException("Incomplete foundation manifest");
+        foreach(var m in d.meshes)
+        {
+            if(m.positions==null || m.positions.Length%3!=0 || m.uv.Length!=m.positions.Length/3*2 || m.triangles.Length%3!=0)
+                throw new InvalidOperationException("Malformed mesh: "+m.id);
+            if(m.positions.Any(x=>float.IsNaN(x)||float.IsInfinity(x)) || m.triangles.Any(i=>i<0 || i>=m.positions.Length/3))
+                throw new InvalidOperationException("Invalid mesh data: "+m.id);
+        }
+        return d;
+    }
+
+    // Resolves actual source files. Missing PBR maps are an error, never flat-colour substitutes.
+    static string FileIn(string root,params string[] names)
+    {
+        if(!Directory.Exists(root))throw new FileNotFoundException("Restore verified source directory: "+root);
+        var files=Directory.GetFiles(root,"*",SearchOption.AllDirectories);
+        foreach(var name in names)
+        {
+            var matches=files.Where(p=>string.Equals(Path.GetFileName(p),name,StringComparison.OrdinalIgnoreCase)).ToArray();
+            if(matches.Length==1)return matches[0].Replace('\\','/');
+            if(matches.Length>1)throw new InvalidOperationException("Ambiguous source "+name+" in "+root);
+        }
+        throw new FileNotFoundException("Missing PBR map in "+root+": "+string.Join(", ",names));
+    }
+    static Dictionary<string,MapSet> Sources()
+    {
+        string tex=Source+"/Textures";
+        var maps=new Dictionary<string,MapSet>();
+        foreach(string pair in new[]{"sand_dry|coast_sand_02","sand_wet|damp_sand"})
+        {
+            var a=pair.Split('|');string slug=a[1];
+            maps[a[0]]=new MapSet{color=FileIn(tex,slug+"_diff_4k.jpg"),normal=FileIn(tex,slug+"_nor_gl_4k.exr"),roughness=FileIn(tex,slug+"_rough_4k.exr"),tile=a[0]=="sand_dry"?15f:2f};
+        }
+        maps["grass"]=new MapSet{color=FileIn(tex,"Grass004_4K-JPG_Color.jpg"),normal=FileIn(tex,"Grass004_4K-JPG_NormalGL.jpg"),roughness=FileIn(tex,"Grass004_4K-JPG_Roughness.jpg"),tile=1.4f};
+        foreach(string pair in new[]{"asphalt|clean_asphalt|2.1","paving|concrete_pavement_02|1.8"})
+        {
+            var a=pair.Split('|');string slug=a[1];
+            maps[a[0]]=new MapSet{color=FileIn(tex,slug+"_diff_4k.jpg"),normal=FileIn(tex,slug+"_nor_gl_4k.exr"),roughness=FileIn(tex,slug+"_rough_4k.exr"),tile=a[0]=="asphalt"?2.1f:1.8f};
+        }
+        maps["quay"]=maps["paving"];maps["plot_base"]=maps["paving"];
+        return maps;
+    }
+    static GameObject[] Palms()
+    {
+        var p=new[]{BraxMiastoAssety.Model("miasto_palmy","palma"),BraxMiastoAssety.Model("miasto_palmy","palma2")};
+        if(p.Any(x=>!x))throw new FileNotFoundException("Restore the existing private miasto_palmy package (palma + palma2). No procedural palm replacement is permitted.");
+        return p;
+    }
+    static GameObject Tree()
+    {
+        var t=BraxRegion.Model("drzewo_verdant");
+        if(!t)throw new FileNotFoundException("Existing drzewo_verdant model is missing");
+        return t;
+    }
+    [MenuItem("BRAXHORN CITY/Miasto Mistrzow/1 - Verify foundation inputs")]
+    public static void VerifyInputs()
+    {
+        var d=Read();Sources();Palms();Tree();
+        if(!Shader.Find(BraxCityMaterials.ShaderName))throw new InvalidOperationException("Existing CityStaticPBR shader missing");
+        if(!File.Exists(WaterTemplate))throw new FileNotFoundException("Existing harbour water shader source missing",WaterTemplate);
+        Debug.Log("BRAX_MISTRZOWIE_INPUTS_OK geometry="+d.meshes.Length+" K="+K+"; visual acceptance pending");
+    }
+
+    [MenuItem("BRAXHORN CITY/Miasto Mistrzow/2 - Generate foundation and vegetation")]
+    public static void Generate()
+    {
+        // All source requirements checked before creating a scene or changing assets.
+        VerifyInputs();var d=Read();var sources=Sources();var palms=Palms();var tree=Tree();
+        if(File.Exists(ScenePath))throw new InvalidOperationException("Foundation scene already exists. Keep its GUID and manual edits; use a reviewed update instead of overwriting it.");
+        Directory.CreateDirectory(Output+"/Meshes");Directory.CreateDirectory(Output+"/Materials");Directory.CreateDirectory(Output+"/Textures");
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        var materials=new Dictionary<string,Material>();
+        var shared=new Dictionary<MapSet,Material>();
+        foreach(var pair in sources)
+        {
+            if(!shared.TryGetValue(pair.Value,out var material)){material=MaterialFor(pair.Key,pair.Value);shared.Add(pair.Value,material);}
+            materials[pair.Key]=material;
+        }
+        materials["sea"]=SeaMaterial();
+        var previous=SceneManager.GetActiveScene();
+        var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Additive);
+        SceneManager.SetActiveScene(scene);
+        var report=new Report{sourceCommit=d.sourceCommit,scaleK=K,berths=d.berths.Length};
+        try
+        {
+            var root=new GameObject("BRAXHORN | MIASTO MISTRZOW | EXTERIOR FOUNDATION").transform;
+            // Geometry is already in game units. Root transform MUST stay at identity.
+            foreach(var m in d.meshes)
+            {
+                var mesh=new Mesh{name=m.id,indexFormat=m.positions.Length/3>65535?IndexFormat.UInt32:IndexFormat.UInt16};
+                var v=new Vector3[m.positions.Length/3];var uv=new Vector2[v.Length];
+                for(int i=0;i<v.Length;i++){v[i]=new Vector3(m.positions[i*3],m.positions[i*3+1],m.positions[i*3+2]);uv[i]=new Vector2(m.uv[i*2],m.uv[i*2+1]);}
+                mesh.vertices=v;mesh.uv=uv;mesh.triangles=m.triangles;mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
+                if(m.role=="sea"){var b=mesh.bounds;b.Expand(new Vector3(0,.5f,0));mesh.bounds=b;}
+                mesh=Save(mesh,Output+"/Meshes/"+m.id+".asset");
+                var o=new GameObject(m.id);o.transform.SetParent(root,false);o.AddComponent<MeshFilter>().sharedMesh=mesh;
+                var r=o.AddComponent<MeshRenderer>();r.sharedMaterial=materials[m.role];
+                if(m.role!="sea")o.AddComponent<MeshCollider>().sharedMesh=mesh;
+                else {r.shadowCastingMode=ShadowCastingMode.Off;r.receiveShadows=false;}
+                GameObjectUtility.SetStaticEditorFlags(o,StaticEditorFlags.OccludeeStatic);
+                report.meshes++;report.triangles+=m.triangles.Length/3;
+            }
+            var vegetation=new GameObject("Zielen - ziemia i trawniki poza chodnikami").transform;vegetation.SetParent(root,false);
+            foreach(var p in d.plants)
+            {
+                Vector3 at=new Vector3(p.x*K,.16f*K,p.z*K);GameObject o;
+                if(p.kind=="palm")
+                {
+                    // Source palms are in real metres; Postaw applies the shared K once.
+                    o=BraxMiastoAssety.Postaw(vegetation,palms[p.variant%palms.Length],p.id+" Palma "+p.band,at,p.yaw,1f,false,true);
+                    BraxMiastoAssety.LodyZWezlow(o,new[]{.25f,.08f,.012f});report.palms++;
+                }
+                else
+                {
+                    o=BraxRegion.Put(vegetation,tree,p.id+" Drzewo "+p.band,at,p.yaw,1f,false,6.5f*K);report.trees++;
+                }
+                if(!o)throw new InvalidOperationException("Vegetation placement failed: "+p.id);
+                // A separate trunk capsule cannot turn the whole crown into an obstacle.
+                if(o.GetComponentsInChildren<Collider>().Length==0)
+                {
+                    var trunk=new GameObject(p.id+" trunk collision");trunk.transform.SetParent(vegetation,false);trunk.transform.position=at+Vector3.up*2*K;
+                    var cc=trunk.AddComponent<CapsuleCollider>();cc.radius=.3f*K;cc.height=4*K;
+                }
+                foreach(var r in o.GetComponentsInChildren<Renderer>(true))GameObjectUtility.SetStaticEditorFlags(r.gameObject,StaticEditorFlags.OccludeeStatic);
+            }
+            var reserves=new GameObject("PLAN - działki, przystanki, miejsca jachtów (bez modeli)").transform;reserves.SetParent(root,false);
+            foreach(var b in d.buildings)Marker(reserves,b.id+" "+b.name+" / exterior next",b.x,b.z);
+            foreach(var b in d.berths)Marker(reserves,b.id+" "+b.kind+" / berth "+b.length+"x"+b.width,b.x,b.z,-2);
+            for(int i=0;i<d.tramStops.Length;i++)Marker(reserves,"TR"+(i+1),d.tramStops[i].x,d.tramStops[i].z);
+            for(int i=0;i<d.busStops.Length;i++)Marker(reserves,"U"+(i+1),d.busStops[i].x,d.busStops[i].z);
+            for(int i=0;i<d.metroStations.Length;i++)Marker(reserves,"M"+(i+1)+" underground reserve",d.metroStations[i].x,d.metroStations[i].z,-12);
+            Marker(reserves,"WORLD_CONNECTOR_ROAD",0,330);
+            Marker(reserves,"RAIL_CORRIDOR_UNDERGROUND",600,32,-12);
+            if(!EditorSceneManager.SaveScene(scene,ScenePath))throw new IOException("Foundation scene was not saved");
+            File.WriteAllText(Output+"/foundation-report.json",JsonUtility.ToJson(report,true));AssetDatabase.Refresh();AssetDatabase.SaveAssets();
+            Debug.Log("BRAX_MISTRZOWIE_FOUNDATION "+JsonUtility.ToJson(report));
+        }
+        finally
+        {
+            EditorSceneManager.CloseScene(scene,true);
+            if(previous.IsValid()&&previous.isLoaded)SceneManager.SetActiveScene(previous);
+        }
+    }
+    static void Marker(Transform parent,string name,float x,float z,float y=0)
+    {var t=new GameObject(name).transform;t.SetParent(parent,false);t.localPosition=new Vector3(x,y,z)*K;}
+
+    static T Save<T>(T value,string path) where T:UnityEngine.Object
+    {
+        var old=AssetDatabase.LoadAssetAtPath<T>(path);
+        if(old){EditorUtility.CopySerialized(value,old);UnityEngine.Object.DestroyImmediate(value);EditorUtility.SetDirty(old);return old;}
+        AssetDatabase.CreateAsset(value,path);return value;
+    }
+    static Texture2D CopyMap(string source,string role,string id,bool readable=false)
+    {
+        string destination=Output+"/Textures/"+id+"_"+role+Path.GetExtension(source);
+        if(!File.Exists(destination)&&!AssetDatabase.CopyAsset(source,destination))throw new IOException("Cannot copy PBR source: "+source);
+        var importer=(TextureImporter)AssetImporter.GetAtPath(destination);
+        // Exact RGB GL normals from the source. Do not import as packed Unity normal maps.
+        importer.textureType=TextureImporterType.Default;importer.sRGBTexture=role=="color";
+        importer.mipmapEnabled=true;importer.npotScale=TextureImporterNPOTScale.None;
+        importer.maxTextureSize=4096;importer.isReadable=readable;importer.anisoLevel=8;
+        importer.textureCompression=readable?TextureImporterCompression.Uncompressed:TextureImporterCompression.CompressedHQ;
+        importer.SaveAndReimport();return AssetDatabase.LoadAssetAtPath<Texture2D>(destination);
+    }
+    static readonly Dictionary<string,Material> textureSets=new Dictionary<string,Material>();
+    static Material MaterialFor(string id,MapSet source)
+    {
+        if(textureSets.TryGetValue(source.color,out var shared)&&shared)
+        {
+            var copy=new Material(shared){name="Mistrzowie "+id};
+            foreach(string property in new[]{"_MainTex","_BumpMap","_ARM"})copy.SetTextureScale(property,Vector2.one/source.tile);
+            return Save(copy,Output+"/Materials/"+id+".mat");
+        }
+        var m=new Material(Shader.Find(BraxCityMaterials.ShaderName)){name="Mistrzowie "+id,enableInstancing=true};
+        m.SetTexture("_MainTex",CopyMap(source.color,"color",id));m.SetTexture("_BumpMap",CopyMap(source.normal,"normal",id));
+        m.SetFloat("_VertexTint",0);m.SetFloat("_NormalEncoding",0);m.SetFloat("_Roughness",1);m.SetFloat("_Metallic",1);m.SetFloat("_UseARMForAO",1);
+        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        Texture2D arm;
+        if(!string.IsNullOrEmpty(source.arm))arm=CopyMap(source.arm,"arm",id);
+        else
+        {
+            var rough=CopyMap(source.roughness,"roughness",id,true);var pixels=rough.GetPixels();
+            for(int i=0;i<pixels.Length;i++)pixels[i]=new Color(1,pixels[i].r,0,1);
+            var packed=new Texture2D(rough.width,rough.height,TextureFormat.RGB24,false,true);packed.SetPixels(pixels);packed.Apply();
+            string path=Output+"/Textures/"+id+"_packedARM.png";File.WriteAllBytes(path,packed.EncodeToPNG());UnityEngine.Object.DestroyImmediate(packed);
+            AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+            var ti=(TextureImporter)AssetImporter.GetAtPath(path);ti.sRGBTexture=false;ti.maxTextureSize=4096;ti.mipmapEnabled=true;ti.textureCompression=TextureImporterCompression.CompressedHQ;ti.SaveAndReimport();
+            arm=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            var ri=(TextureImporter)AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(rough));ri.isReadable=false;ri.SaveAndReimport();
+        }
+        m.SetTexture("_ARM",arm);
+        foreach(string property in new[]{"_MainTex","_BumpMap","_ARM"})m.SetTextureScale(property,Vector2.one/source.tile);
+        var saved=Save(m,Output+"/Materials/"+id+".mat");textureSets[source.color]=saved;return saved;
+    }
+    public static Material SourceMaterial(string id,string slug,float metres,Color tint)
+    {
+        string tex=Source+"/Textures";
+        var m=MaterialFor(id,new MapSet{color=FileIn(tex,slug+"_diff_4k.jpg"),normal=FileIn(tex,slug+"_nor_gl_4k.exr"),roughness=FileIn(tex,slug+"_rough_4k.exr"),tile=metres});
+        m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
+    }
+
+    static Material SeaMaterial()
+    {
+        string path=Output+"/MistrzowieSea.shader";
+        string source=File.ReadAllText(WaterTemplate);
+        const string original="Shader \"Braxhorn/HarbourWaterMobile\"";
+        if(!source.Contains(original))throw new InvalidOperationException("Water shader contract changed; review before reuse");
+        File.WriteAllText(path,source.Replace(original,"Shader \"Braxhorn/MistrzowieSea\""));
+        AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+        var shader=AssetDatabase.LoadAssetAtPath<Shader>(path);
+        if(!shader||ShaderUtil.ShaderHasError(shader))throw new InvalidOperationException("Mistrzowie sea shader import failed");
+        var m=new Material(shader){name="Mistrzowie sea"};
+        m.SetVector("_NearRectangle",new Vector4(0,-500*K,1200*K,-150*K));
+        m.SetFloat("_SwellStrength",.45f);m.SetFloat("_ReflectionStrength",.58f);
+        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        return Save(m,Output+"/Materials/sea.mat");
+    }
+}

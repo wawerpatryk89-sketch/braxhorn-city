@@ -1,0 +1,216 @@
+"""Physical street and transit infrastructure; no vehicles or building placeholders.
+Runs after legacy_foundation. All surfaces/rails/stairs are real meshes.
+"""
+from pathlib import Path
+import json,math,hashlib
+import numpy as np
+from shapely.geometry import Polygon,LineString,Point,box
+from shapely.ops import unary_union
+from shapely import constrained_delaunay_triangles
+from shapely.geometry.polygon import orient
+from layout import *
+from meshkit import Meshes,K,rounded_route,path_frames,ribbon
+import legacy_foundation as ground
+
+ROOT=Path(__file__).resolve().parents[2]
+SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
+REPORT=ROOT/'mistrzowie-evidence'
+mesh=Meshes();labels=[];walk_checks=[];objects=[]
+
+def mark(id,kind,at):objects.append(dict(id=id,kind=kind,x=at[0],y=at[1],z=at[2]))
+def label(id,text,at,axis='x',size=.25):labels.append(dict(id=id,text=text,x=at[0],y=at[1],z=at[2],yaw=0 if axis=='x' else 90,size=size))
+def local(x,z,axis,u,y,v):return (x+u,y,z+v) if axis=='x' else (x+v,y,z+u)
+def localbox(role,x,z,axis,u,y,v,w,h,d):mesh.box(role,local(x,z,axis,u,y,v),(w,h,d) if axis=='x' else (d,h,w))
+def handrail(a,b):
+ mesh.bar('steel',a,b,.034)
+ for t in np.linspace(0,1,max(2,math.ceil(math.dist(a,b)/1.5))):
+  p=np.array(a)+(np.array(b)-a)*t;mesh.bar('steel',p-[0,1.05,0],p,.025)
+
+# Asphalt boundaries determine the curb, not an unrelated second road layout.
+edges={}
+for a,b,c,d,role in ground.cells:
+ if role!='asphalt':continue
+ ring=[(a,b),(a,d),(c,d),(c,b)]
+ for u,v in zip(ring,ring[1:]+ring[:1]):
+  key=tuple(sorted((u,v)))
+  if key in edges:del edges[key]
+  else:edges[key]=(u,v)
+
+crossings=[]
+for x in X_ROADS:
+ for z in Z_ROADS:
+  if z==-70 and x in [70,1130]:continue
+  for along,axis in [(x-22,'x'),(x+22,'x'),(z-22,'z'),(z+22,'z')]:
+   xx,zz=(along,z) if axis=='x' else (x,along)
+   if not (70<=xx<=1130 and -70<=zz<=935):continue
+   crossings.append((xx,zz,axis))
+for _,x,z,axis in TRAM_STOPS:crossings.append((x+25 if axis=='x' else x,z+25 if axis=='z' else z,axis))
+
+def dropped(x,z):
+ return any((abs(x-a)<2.7 and abs(abs(z-b)-10)<.35) if axis=='x' else (abs(z-b)<2.7 and abs(abs(x-a)-10)<.35) for a,b,axis in crossings)
+
+curb_count=0
+for a,b in edges.values():
+ a=np.array(a);b=np.array(b);d=b-a;length=np.linalg.norm(d);n=np.array([-d[1],d[0]])/length
+ for u in np.arange(0,length,1):
+  ll=min(1,length-u);p=a+d/length*(u+ll/2)+n*.09
+  h=.02 if dropped(*p) else .16
+  dims=(ll-.008,.18,.18) if abs(d[0])>abs(d[1]) else (.18,.18,ll-.008)
+  if min(dims)<=0:continue
+  mesh.box('curb',(p[0],h-.09,p[1]),dims);curb_count+=1
+
+# Paint follows the same street grid. Junction centres stay clear.
+def near_junction(x,z):return min(abs(x-a) for a in X_ROADS)<16 and min(abs(z-a) for a in Z_ROADS)<16
+for axis,fixed,start,end in [('z',x,-70,935) for x in X_ROADS]+[('x',z,70,1130) for z in Z_ROADS]:
+ for v in np.arange(start,end,9):
+  x,z=(fixed,v+2) if axis=='z' else (v+2,fixed)
+  if near_junction(x,z):continue
+  for side in [-1,1]:
+   # Two vehicle lanes per direction, outside the central transit reservation.
+   localbox('paint',x,z,axis,0,.005,side*7,4,.009,.13)
+  localbox('paint',x,z,axis,0,.005,-.12,4,.009,.1)
+  localbox('paint',x,z,axis,0,.005,.12,4,.009,.1)
+ for side in [-1,1]:
+  for v in np.arange(start,end,5):
+   x,z=(fixed,v+2.4) if axis=='z' else (v+2.4,fixed)
+   if not near_junction(x,z):localbox('paint',x,z,axis,0,.005,side*9.75,4.8,.009,.10)
+
+# Raised tactile strips and dropped curb locations. Ramps replace paving below.
+ramp_polys=[]
+for number,(x,z,axis) in enumerate(crossings):
+ for q in np.arange(-9.5,10,1):localbox('paint',x,z,axis,0,.007,q,4,.012,.5)
+ for side in [-1,1]:
+  # 3m ramp: 16cm sidewalk -> 2cm dropped kerb. No raised sheet over the old walk.
+  p=[local(x,z,axis,u,0,v) for u,v in [(-2.5,side*10),(2.5,side*10),(2.5,side*13),(-2.5,side*13)]]
+  poly=Polygon([(a,c) for a,_,c in p]);ramp_polys.append(poly)
+  y=[.02,.02,.16,.16]
+  coords=[(p[i][0],y[i],p[i][2]) for i in range(4)]
+  if side<0:coords=coords[::-1]
+  # Surface normals are checked below.
+  if np.cross(np.array(coords[1])-coords[0],np.array(coords[2])-coords[0])[1]<0:coords=coords[::-1]
+  mesh.quad('paving',*coords)
+  for rib in np.linspace(-2.2,2.2,18):localbox('tactile',x,z,axis,rib,.167,side*13.5,.06,.014,.65)
+ mark('CROSS_'+str(number+1),'crossing',(x,0,z))
+
+# Rounded, closed tram loop; both tracks and all four physical rails are continuous.
+tram=rounded_route(TRAM_CORNERS,25,1.8,True);tn=path_frames(tram)
+rail_lines=[]
+for track in [-TRAM_TRACK_OFFSET,TRAM_TRACK_OFFSET]:
+ for side in [-1,1]:
+  off=track+side*GAUGE/2;line=tram+tn*off;rail_lines.append(LineString(line))
+  ribbon(mesh,'rail',tram,off,.065,.003,.065)
+  ribbon(mesh,'rail_web',tram,off,.14,-.061,.025)
+assert np.linalg.norm(tram[0]-tram[-1])<1e-8
+assert np.linalg.norm(tn[0]-tn[-1])<1e-8
+grooves=unary_union([l.buffer(.078,cap_style=2,join_style=2) for l in rail_lines])
+
+def shelter(id,x,z,axis,side,tram_stop=False):
+ base=.30 if tram_stop else .16;v=0 if tram_stop else side*14.6
+ # Four steel posts, footing plates, transparent windscreen and shallow curved roof.
+ for u in [-2.4,2.4]:
+  for vv in [v-.65,v+.65]:
+   a=local(x,z,axis,u,base,vv);b=local(x,z,axis,u,base+2.5,vv)
+   mesh.bar('steel',a,b,.045,12);localbox('steel',x,z,axis,u,base+.035,vv,.22,.07,.22)
+ roof=[]
+ for u in np.linspace(-2.8,2.8,16):roof.append((u,base+2.55+.18*(1-(u/2.8)**2)))
+ for (a,ya),(b,yb) in zip(roof,roof[1:]):
+  mesh.quad('glass',local(x,z,axis,a,ya,v-.9),local(x,z,axis,a,ya,v+.9),local(x,z,axis,b,yb,v+.9),local(x,z,axis,b,yb,v-.9))
+  for edge in [-.9,.9]:mesh.bar('steel',local(x,z,axis,a,ya,v+edge),local(x,z,axis,b,yb,v+edge),.035)
+ for u in [-1.6,0,1.6]:localbox('glass',x,z,axis,u,base+1.3,v+side*.68,1.55,2.2,.018)
+ localbox('bench',x,z,axis,0,base+.46,v+side*.25,2.8,.10,.46)
+ for u in [-1.1,1.1]:localbox('steel',x,z,axis,u,base+.22,v+side*.25,.07,.44,.34)
+ pole=local(x,z,axis,4,base,v);mesh.bar('steel',pole,np.array(pole)+[0,2.7,0],.045)
+ localbox('sign',x,z,axis,4,base+2.42,v,.60,.72,.08)
+ label(id,('TRAMWAJ' if tram_stop else 'AUTOBUS')+' '+id,local(x,z,axis,0,base+2.18,v-.72),axis,.20)
+ mark(id,'tram_stop' if tram_stop else 'bus_stop',(x,base,z))
+
+for id,x,z,axis in TRAM_STOPS:
+ localbox('paving',x,z,axis,0,.15,0,42,.30,3.2)
+ for side in [-1,1]:
+  localbox('tactile',x,z,axis,0,.307,side*1.26,39,.014,.35)
+  # Tapered pedestrian access at both platform ends.
+ for end in [-1,1]:
+  coords=[local(x,z,axis,end*21,.30,-1.6),local(x,z,axis,end*25,.02,-1.6),local(x,z,axis,end*25,.02,1.6),local(x,z,axis,end*21,.30,1.6)]
+  if np.cross(np.array(coords[1])-coords[0],np.array(coords[2])-coords[0])[1]<0:coords=coords[::-1]
+  mesh.quad('paving',*coords)
+ shelter(id,x,z,axis,1,True)
+for id,x,z,axis in BUS_STOPS:
+ for side in [-1,1]:
+  shelter(id+('A' if side>0 else 'B'),x,z,axis,side)
+  for u in [-16,16]:localbox('paint',x,z,axis,u,.007,side*8.5,.15,.012,2.8)
+  localbox('paint',x,z,axis,0,.007,side*6.9,32,.012,.13)
+
+# Reuse complete city stations INCLUDING their existing straight tunnels and tracks.
+# Only the connecting civil route is generated here, with the exact city cross section.
+metro=rounded_route([(0,359),(765,359),(765,1000)],100,2.0,False)
+station_boxes=[]
+for m in METRO:
+ pts=[station_point(m,x,z) for x in (-70,112) for z in (17,40)]
+ station_boxes.append(box(min(p[0] for p in pts),min(p[1] for p in pts),max(p[0] for p in pts),max(p[1] for p in pts)))
+ mark(m['id'],'reused_city_metro',(m['x'],METRO_PLATFORM_Y,m['z']))
+ mark(m['id']+'_ENTRY','metro_entry',(m['entryX'],PAVING_Y,m['entryZ']))
+remaining=LineString(metro).difference(unary_union(station_boxes))
+connections=list(remaining.geoms) if remaining.geom_type=='MultiLineString' else [remaining]
+for connection in connections:
+ path=np.asarray(connection.coords);normals=path_frames(path)
+ for side in [-1,1]:
+  off=side*METRO_TRACK_OFFSET
+  for rail_side in [-1,1]:ribbon(mesh,'metro_rail',path,off+rail_side*GAUGE/2,.08/K,METRO_RAIL_Y,.19/K)
+  lo,hi=sorted([side*5.7/K,side*10.4/K]);bottom=METRO_RAIL_Y-.35/K;top=METRO_RAIL_Y+5.1/K
+  ribbon(mesh,'metro_concrete',path,(lo+hi)/2,hi-lo,bottom,.2/K)
+  ribbon(mesh,'metro_concrete',path,lo-.15/K,.3/K,top,top-bottom+.2/K)
+  ribbon(mesh,'metro_concrete',path,hi+.15/K,.3/K,top,top-bottom+.2/K)
+  ribbon(mesh,'metro_concrete',path,(lo+hi)/2,hi-lo+.6/K,top+.3/K,.3/K)
+  for i in range(0,len(path),1):
+   q=path[i]+normals[i]*off
+   # Same sleeper dimensions/gauge as the city's Torowisko, following the curve.
+   a=q-normals[i]*1.0;b=q+normals[i]*1.0
+   v=np.array([normals[i,1],-normals[i,0]])*.13/K
+   mesh.quad('metro_concrete',(a[0]+v[0],METRO_RAIL_Y-.19/K,a[1]+v[1]),(b[0]+v[0],METRO_RAIL_Y-.19/K,b[1]+v[1]),(b[0]-v[0],METRO_RAIL_Y-.19/K,b[1]-v[1]),(a[0]-v[0],METRO_RAIL_Y-.19/K,a[1]-v[1]))
+  third=off+side*(GAUGE/2+.75/K)
+  ribbon(mesh,'metro_third',path,third,.24/K,METRO_RAIL_Y+.1/K,.04/K)
+# Region boundary closures only; never a cap between the three stations.
+for p,n in [(metro[0],path_frames(metro)[0]),(metro[-1],path_frames(metro)[-1])]:
+ for side in [-1,1]:
+  c=p+n*side*METRO_TRACK_OFFSET
+  mesh.box('metro_concrete',(c[0],METRO_RAIL_Y+2.3/K,c[1]),(.3/K,5.6/K,4.8/K) if abs(n[0])<.5 else (4.8/K,5.6/K,.3/K))
+
+# Replace the affected paving and asphalt faces: no buried old sidewalk under ramps,
+# and no solid asphalt obstructing recessed tram rail grooves.
+cuts={'paving':unary_union(ramp_polys),'asphalt':grooves}
+for old in ground.meshes.values():
+ role=old['role']
+ if role not in cuts:continue
+ v=np.asarray(old['positions']).reshape(-1,3)/K;indices=np.asarray(old['triangles']).reshape(-1,3)
+ old['positions']=[];old['uv']=[];old['triangles']=[]
+ for face in indices:
+  poly=Polygon(v[face][:,[0,2]])
+  result=poly.difference(cuts[role])
+  if result.is_empty:continue
+  for tri in constrained_delaunay_triangles(result).geoms:
+   q=list(orient(tri,sign=1).exterior.coords)[:3][::-1];i=len(old['positions'])//3;y=0 if role=='asphalt' else ground.height(role,*q[0])
+   for x,z in q:old['positions'] += [round(x*K,6),round(y*K,6),round(z*K,6)];old['uv'] += [x,z]
+   old['triangles'] += [i,i+1,i+2]
+ground.layout['meshes']=[m for m in ground.meshes.values() if m['triangles']]
+ground.layout['entranceHoles']=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in ENTRANCE_HOLES]
+(SRC/'Foundation.json').write_text(json.dumps(ground.layout,separators=(',',':')))
+data=dict(version='2.1-reused-city-metro',scaleK=K,meshes=mesh.export(),labels=labels,objects=objects,walkChecks=walk_checks,
+ tramRoute=tram.tolist(),metroRoute=metro.tolist(),metroStations=METRO,tramStops=TRAM_STOPS,busStops=BUS_STOPS,
+ counts=dict(metroStations=3,metroEntrances=3,metroTracks=2,tramTracks=2,tramPlatforms=10,busPlatforms=32,crossings=len(crossings),curbstones=curb_count))
+(SRC/'Infrastructure.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')))
+transit={k:data[k] for k in ['version','scaleK','tramRoute','metroRoute','metroStations','tramStops','busStops','counts']}
+transit['trafficEnabled']=False
+transit['routeCoordinates']='nominal metres; apply scaleK once; station source geometry is already world units'
+(SRC/'Transit.json').write_text(json.dumps(transit,ensure_ascii=False,separators=(',',':')))
+triangles=0
+for m in data['meshes']:
+ v=np.array(m['positions']).reshape(-1,3);t=np.array(m['triangles']).reshape(-1,3)
+ assert np.isfinite(v).all() and len(m['uv'])==len(v)*2
+ area=np.linalg.norm(np.cross(v[t[:,1]]-v[t[:,0]],v[t[:,2]]-v[t[:,0]]),axis=1)
+ assert np.min(area)>1e-9,m['id'];triangles+=len(t)
+for m in METRO:
+ assert abs(Point(m['hallX'],m['hallZ']).distance(LineString(metro)))<.01
+assert all(LineString(tram).distance(Point(x,z))<.01 for _,x,z,_ in TRAM_STOPS)
+report=dict(status='GEOMETRY_CHECKS_PASS_UNITY_PENDING',counts=data['counts'],infrastructureMeshes=len(data['meshes']),triangles=triangles,tramMetres=round(LineString(tram).length,2),metroMetres=round(LineString(metro).length,2),checks=['continuous closed tram route','connections match existing city station track centres and height','10 tram platforms on track centreline','3 terrain openings for actual stairs','paving removed under curb ramps','asphalt cut out for rail grooves','finite nondegenerate meshes and UVs','one shared game scale'],unity='NOT_RUN',visualQuality='PENDING_UNITY_REVIEW')
+(REPORT/'infrastructure-checks.json').write_text(json.dumps(report,indent=2))
+print(json.dumps(report))
