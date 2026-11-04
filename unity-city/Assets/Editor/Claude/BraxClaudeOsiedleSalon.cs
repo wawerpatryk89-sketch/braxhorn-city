@@ -33,8 +33,8 @@ public static partial class BraxClaudeOsiedle
     static float SAX0 { get { var n1 = ulice?.FirstOrDefault(q => q.id == "N1"); return n1 != null ? n1.c + n1.HalfPos + .02f : -50.95f; } }
     static float SAZ1 => Mathf.Min(-25.5f, KrawedzieB1().zChod - .02f);
     // brama aut i drzwi klientów w fasadzie północnej
-    static float SGX0 => -48.7f; static float SGX1 => SGX0 + 3.15f * K; static float SGH => 2.6f * K;
-    static float SDX0 => SGX1 + .3f; static float SDX1 => SDX0 + 2.05f * K; static float SDH => 2.3f * K;
+    static float SGX0 => -48.7f; static float SGX1 => SGX0 + 3.5f * K; static float SGH => 2.6f * K; // zachowana oryginalna brama aut
+    static float SDX0 => SGX1 + .3f; static float SDX1 => SDX0 + 2.0f * K; static float SDH => 2.3f * K; // 2 m swiatla dla klientow
     // miejsca aut na placu
     static readonly float[] SalonPlacX = { -47.6f, -38.5f };   // 4.11: samochody po bokach wejścia; przejście do drzwi klientów wolne od schodów
     const float SalonPlacZ = -33.6f;
@@ -69,7 +69,7 @@ public static partial class BraxClaudeOsiedle
         Physics.SyncTransforms();
         SalonKontrolaPrzejscia(); // pomiar fizycznej kapsuły gracza, także po wycięciu starej geometrii
         Debug.Log("BRAXHORN_SALON działka x " + SAX0.ToString("F2") + "…" + SAX1 + " z " + SAZ0 + "…" + SAZ1.ToString("F2") + " zwalone=" + zwalone + " showroom=" + (SBX1 - SBX0).ToString("F1") + "×" + (SBZ1 - SBZ0).ToString("F1") +
-                  " m kondygnacje=2 (4.2 m × K = " + (4.2f * K).ToString("F2") + ") wys_do_attyki=" + (SYR + 1.6f * K).ToString("F2") + " talerze_obrotowe=" + SalonTalerze.Length + " auta_antresola=" + SalonAntresolaAuta.Length + " schody_stałe=1 schody_ruchome=1 plac_auta=" + SalonPlacX.Length + " tablice_cen=" + SalonPlacX.Length + " (0 zł) wejscia_klientow=1 brama_aut=" + (3.15f * K).ToString("F2") + "×" + SGH.ToString("F2") +
+                  " m kondygnacje=2 (4.2 m × K = " + (4.2f * K).ToString("F2") + ") wys_do_attyki=" + (SYR + 1.6f * K).ToString("F2") + " talerze_obrotowe=" + SalonTalerze.Length + " auta_antresola=" + SalonAntresolaAuta.Length + " schody_stałe=1 schody_ruchome=1 plac_auta=" + SalonPlacX.Length + " tablice_cen=" + SalonPlacX.Length + " (0 zł) wejscia_klientow=1 brama_aut=" + (3.5f * K).ToString("F2") + "×" + SGH.ToString("F2") +
                   " (zamknięta) drzwi_zaplecza=1 (zamknięte) narożnik_łuk_R=" + (salonNarR > 0 ? (salonNarR + 2.95f).ToString("F2") + " kostka_r=" + salonNarR.ToString("F2") : "brak (narożnik prosty)") + " układ=" + (uklad ?? "ok"));
         Debug.Log("BRAXHORN_DETALE obiekt=salon razem=" + saDetale + " [" + string.Join(", ", saDetaleOpis) + "]");
         rep.notes.Add("salon samochodowy (runda 5): narożnik B1 × Wiśniowa, showroom " + (SBX1 - SBX0).ToString("F1") + " × " + (SBZ1 - SBZ0).ToString("F1") + " m, plac z 3 autami, detale " + saDetale);
@@ -278,8 +278,8 @@ public static partial class BraxClaudeOsiedle
     static float SF1 => SYF + 4.2f * K;                 // poziom antresoli (lico posadzki piętra)
     static float SYR => SF1 + 4.2f * K - .35f;          // spód stropu dachu
     const float SAntZ = -47.0f;                         // krawędź antresoli (na północ pustka na dwie kondygnacje)
-    const float SEX0 = -39.1f, SEX1 = -37.4f, SEZb = -38.9f;   // schody ruchome (obrys), dolny grzebień
-    const float SSX0 = -41.3f, SSX1 = -39.3f, SSZb = -38.95f;  // schody reprezentacyjne (obrys), pierwszy stopień
+    const float SEX0 = -39.0f, SEX1 = -37.4f, SEZb = -38.9f;   // schody ruchome odsunięte od schodów stałych
+    const float SSX0 = -40.9f, SSX1 = -39.25f, SSZb = -38.95f; // schody odsunięte od wejścia i podestu (przejście >= 1.2 m)
     static float SEZt => SEZb - 1.2f - 4.2f * K / Mathf.Tan(35f * Mathf.Deg2Rad) - 1.2f;   // górny grzebień
     static readonly (float x, float z)[] SalonTalerze = { (-45.75f, -44.1f), (-45.75f, -52.9f) }; // cofnięte od wejścia, korytarz po prawej
     const float STalerzR = 3.10f; // przejście 1.35 m pomiędzy podestem a schodami (wcześniej ok. 1.05 m)
@@ -355,7 +355,7 @@ public static partial class BraxClaudeOsiedle
             Collider(new Vector3((a + b) * .5f, h * .5f, zf), new Vector3(b - a, h, .2f));
             FasadaSzklana(true, zf, a, b, h + .12f, yR, false, rygle);
             BoxMinMax(Frame, b, SDX0, 0, yR, zf - .1f, zf + .1f, true);
-            SaDetal("bryła", "brama aut segmentowa przeszklona 3.15 × 2.6 m × K (zamknięta): rama, kaseta, rygle, uchwyt");
+            SaDetal("bryła", "brama aut segmentowa przeszklona 3.5 × 2.6 m × K (zamknięta): rama, kaseta, rygle, uchwyt");
         }
         {
             float a = SDX0, b = SDX1, h = SYF + SDH, zf = z1 - .15f;
