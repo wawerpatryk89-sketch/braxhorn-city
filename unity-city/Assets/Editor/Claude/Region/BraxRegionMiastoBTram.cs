@@ -256,6 +256,9 @@ public static partial class BraxRegionMiastoB
         pasazerowie.tram = driver;
         pasazerowie.limit = 2; // tylko dwie dodatkowe osoby Rocketbox blisko kamery
 
+        NdKontrolaT1Bryly(trasa, Mathf.Max(bounds.size.x, bounds.size.z),
+            Mathf.Min(bounds.size.x, bounds.size.z));
+
         double dl = 0d;
         for (int i = 0; i < trasa.Length; i++)
             dl += Vector3.Distance(trasa[i], trasa[(i + 1) % trasa.Length]);
@@ -264,6 +267,61 @@ public static partial class BraxRegionMiastoB
             ", CAF=" + bounds.size.ToString("F1") +
             ", drzwi_animowalne=" + doorNodes.Length +
             ", wejscie AKCJA, wysiadanie tylko na stacjach");
+    }
+
+    // Kontrola RZECZYWISTEGO bryłowego obrysu CAF podczas jazdy po łukach 26 m.
+    // SAT czterech osi na rzucie XZ: nie wystarczy sprawdzić sam środek toru,
+    // bo 34-metrowy wagon zachodzi przodem na chodnik i narożniki budynków.
+    static void NdKontrolaT1Bryly(Vector3[] trasa, float dlugosc, float szerokosc)
+    {
+        if (ndBudynki == null || trasa == null || trasa.Length < 20) return;
+        float polL = dlugosc * .5f + .3f, polW = szerokosc * .5f + .3f;
+        var coll = new List<string>();
+        int samples = 0;
+        foreach (var bud in ndBudynki)
+        {
+            if (!bud) continue;
+            var b = BraxRegion.Bounds(bud);
+            var p = new Vector2(b.center.x, b.center.z);
+            var ext = new Vector2(b.extents.x, b.extents.z);
+            if (ext.x < .5f || ext.y < .5f) continue;
+            bool trafiony = false;
+            for (int i = 0; i < trasa.Length; i += 3)
+            {
+                samples++;
+                var pos = new Vector2(trasa[i].x, trasa[i].z);
+                var v1 = trasa[(i + 3) % trasa.Length];
+                var v0 = trasa[(i + trasa.Length - 3) % trasa.Length];
+                var d = new Vector2(v1.x - v0.x, v1.z - v0.z).normalized;
+                if (d.sqrMagnitude < .001f) continue;
+                var boczny = new Vector2(-d.y, d.x);
+                var delta = p - pos;
+                // Rzut wagonu i budynku na cztery osie, zgodnie z twierdzeniem
+                // o osiach rozdzielających (SAT, OBB wagon vs AABB fasada).
+                bool Obok(Vector2 axis)
+                {
+                    float c = Mathf.Abs(Vector2.Dot(delta, axis));
+                    float a = polL * Mathf.Abs(Vector2.Dot(d, axis)) +
+                              polW * Mathf.Abs(Vector2.Dot(boczny, axis));
+                    float e = ext.x * Mathf.Abs(axis.x) + ext.y * Mathf.Abs(axis.y);
+                    return c > a + e;
+                }
+                if (Obok(d) || Obok(boczny) || Obok(Vector2.right) || Obok(Vector2.up))
+                    continue;
+                trafiony = true;
+                break;
+            }
+            if (trafiony)
+            {
+                coll.Add(bud.name);
+                Debug.LogError("BRAXHORN_TRAM_T1_BUDYNEK_KOLIZJA " + bud.name +
+                               " (kontrola całej bryły wagonu; wymagane przesunięcie toru/budynku przed APK)");
+            }
+        }
+        Debug.Log("BRAXHORN_TRAM_T1_OBRYS bryla=" + dlugosc.ToString("F1") + "x" +
+                  szerokosc.ToString("F1") + " m, próbki=" + samples +
+                  ", kolizje_z_budynkami=" + coll.Count +
+                  (coll.Count > 0 ? " | " + string.Join(", ", coll) : " — OK"));
     }
 
 }
