@@ -86,6 +86,21 @@ inline half3 MT_NieboProbka(float3 d, float obrot, float katPiksela)
     float c = max(sqrt(saturate(1.0 - d.y * d.y)), 0.03);
     float du = katPiksela / (MT_2PI * c), dv = katPiksela / MT_PI;
     half3 kol = tex2Dgrad(_NieboTex, uv, float2(du, 0), float2(0, dv)).rgb;
+    // Android: zdjęcia 360° nie zawsze mają identyczny pierwszy i ostatni
+    // pionowy pas panoramy. To daje widoczny prostokątny szew na niebie.
+    // Wyrównanie JEDYNIE wąskiego brzegu U=0/1 (poniżej 0.7% szerokości):
+    // oryginalne chmury i kolory zdjęcia pozostają bez zmian na reszcie sfery.
+    float seamDist = min(uv.x, 1.0 - uv.x);
+    const float seamWidth = 0.007;
+    if (seamDist < seamWidth)
+    {
+        half3 leftEdge = tex2Dgrad(_NieboTex, float2(.0005, uv.y),
+                                  float2(du, 0), float2(0, dv)).rgb;
+        half3 rightEdge = tex2Dgrad(_NieboTex, float2(.9995, uv.y),
+                                   float2(du, 0), float2(0, dv)).rgb;
+        half alphaSeam = 1.0 - smoothstep(0.0, seamWidth, seamDist);
+        kol = lerp(kol, .5 * (leftEdge + rightEdge), alphaSeam);
+    }
     if (_SloObraz.w > 0.5)
     {
         // słońce obrazu w świecie: obrót wokół pionu o „obrot” (lon świata = lon obrazu + obrot)
