@@ -5821,6 +5821,9 @@ public static partial class BraxClaudeOsiedle
         Guard("korony drzew z dala od budynków", PruneCrowns);
         Guard("kraniec mapy: teren dookoła zamiast pustki", KraniecMapy);
         Guard("elewacje i szyldy: detale A, kontrola zasłonięcia, scalanie z LOD", () => ElewacjeKoniec(estate, physics));   // build 14 (BraxClaudeOsiedleSzyldy/Elewacje)
+        // 4.11: boiska były narysowane, lecz zapomniano wywołać generator gry.
+        // Dopiero po zbudowaniu ParkA, kortu, willi i drzew, przed trawą oraz audytem.
+        Guard("sport Patryka: koszykówka, piłka nożna, tenis, siatkówka", Sport);
         // 7) trawa w 3D na wszystkich trawnikach parku i osiedla B (po wszystkim, co zajmuje ziemię)
         group = "Trawa 3D";
         Guard("trawa 3D (kępy instancjami, maska ziemi)", () => GrassField(X0 + .4f, X1 - .4f, SouthZ + .4f, FenceA - .4f));
