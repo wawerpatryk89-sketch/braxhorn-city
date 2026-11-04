@@ -73,7 +73,7 @@ public static class BraxKontrolaMigotania
         foreach (var p in lista)
         {
             var A = pows[p.a]; var B = pows[p.b]; var pa = pls[p.plA]; var pb = pls[p.plB];
-            if (A.silownia && B.silownia && WStrefie(p.gdzie)) continue;     // strefa siłowni: wycinanie niżej, bez przesuwania
+            if (WStrefie(p.gdzie)) continue; // ELEWACJE: bez przesuwania i nakładania. Podkład wyciąć niżej pod warstwą docelową.
             if (Mathf.Abs(Teraz(A, pa) - Teraz(B, pb)) >= .0195f) continue;   // już rozsunięte (np. przy poprzedniej parze)
             bool mniejszaA = A.pole <= B.pole;
             var (m1, pm1, o1, po1) = mniejszaA ? (A, pa, B, pb) : (B, pb, A, pa);
@@ -98,7 +98,7 @@ public static class BraxKontrolaMigotania
         Debug.Log(sb.ToString());
         // C3: siłownia — wycięcie dolnej warstwy (przed/po)
         // WŁAŚCICIEL 3.11 10:33 („elewacje, co migają, jak nie zmienione, to zmienić”): pary, których przesunięcie nie rozsunęło,
-        // też idą do WYCINANIA dolnej warstwy (zasada „nie nakładamy — wycinamy”) w całym rejonie, nie tylko w 4 strefach.
+        // też idą do WYCINANIA dolnej warstwy (zasada „nie nakładamy — wycinamy”); w strefach elewacji NIGDY nie przesuwamy obu warstw.
         try { Silownia(scena, W, ruch, nierozwiazane); }
         catch (Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_SILOWNIA_MIGOTANIE — wycinanie: " + e); }
         lody.Clear();
