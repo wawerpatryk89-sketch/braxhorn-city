@@ -6,22 +6,30 @@ using UnityEngine;
 // Zgłasza błędy bez wyłączania losowych kolizji i bez przerabiania oryginalnych grafik.
 internal static class BraxMiastoOdbior
 {
+    static int bledy;
+    static void Blad(string komunikat)
+    {
+        bledy++;
+        Debug.LogError(komunikat);
+    }
+
     public static void Wykonaj(Transform cityRoot)
     {
-        if (!cityRoot) { Debug.LogError("BRAXHORN_MIASTO_ODBIOR brak korzenia miasta"); return; }
+        bledy = 0;
+        if (!cityRoot) throw new InvalidOperationException("BRAXHORN_MIASTO_ODBIOR brak korzenia miasta");
         Physics.SyncTransforms();
         var statki = cityRoot.GetComponentsInChildren<BraxVessel>(true);
         int J(string p) => statki.Count(v => v && v.name.StartsWith(p, StringComparison.Ordinal));
         int jachty = J("Marina: jacht"), motorowki = J("Marina: motorówka"), skutery = J("Marina: skuter wodny");
         string mar = "BRAXHORN_MIASTO_ODBIOR marina jachty=" + jachty + " motorowki=" + motorowki + " skutery=" + skutery;
-        if (jachty < 3) Debug.LogError(mar + " — NIEGOTOWE: minimum 3 jachty"); else Debug.Log(mar);
+        if (jachty < 3) Blad(mar + " — NIEGOTOWE: minimum 3 jachty"); else Debug.Log(mar);
 
         var renderery = cityRoot.GetComponentsInChildren<MeshRenderer>(true);
         bool Mural(string nazwa) => renderery.Any(r => r && r.enabled && r.name == nazwa &&
             r.sharedMaterial && r.sharedMaterial.mainTexture);
         bool muralGym = Mural("mural_19"), muralNova = Mural("mural mural_nova");
         string mur = "BRAXHORN_MIASTO_ODBIOR mural_19=" + muralGym + " mural_NOVA_za_DJ=" + muralNova;
-        if (!muralGym || !muralNova) Debug.LogError(mur + " — NIEGOTOWE: brak oryginalnej grafiki na ścianie");
+        if (!muralGym || !muralNova) Blad(mur + " — NIEGOTOWE: brak oryginalnej grafiki na ścianie");
         else Debug.Log(mur);
 
         // Stopy gracza: promień 0.30 m, wysokość 2.21 m, przejście przez całe światło drzwi.
@@ -35,6 +43,13 @@ internal static class BraxMiastoOdbior
         SprawdzPojazdyWodne(cityRoot);
         SprawdzMetroM1(cityRoot);
         SprawdzStanowiskaWodne(cityRoot);
+        // Unity 6: bez rzeczywistych modeli, wejść i przejazdu nie wolno
+        // publikować regionu jako BUlLT. Błędy ze wszystkich podkontroli
+        // trafiają do jednego zbiorczego werdyktu.
+        if (bledy != 0)
+            throw new InvalidOperationException(
+                "BRAXHORN_MIASTO_ODBIOR_NIEGOTOWE blokery=" + bledy +
+                " — nie publikować APK bez korekty i powtórnego odbioru");
     }
 
     static void SprawdzApteke(Transform cityRoot)
@@ -42,7 +57,7 @@ internal static class BraxMiastoOdbior
         var budynek = cityRoot.Find("Building apothecary");
         if (!budynek)
         {
-            Debug.LogError("BRAXHORN_APTEKA_ODBIOR NIEGOTOWA: nie znaleziono Building apothecary");
+            Blad("BRAXHORN_APTEKA_ODBIOR NIEGOTOWA: nie znaleziono Building apothecary");
             return;
         }
         var wszystkie = budynek.GetComponentsInChildren<Transform>(true);
@@ -63,7 +78,7 @@ internal static class BraxMiastoOdbior
             " z_teksturami=" + zTeksturami +
             " szyld=SOBCZAK/APTEKA (wizualna kontrola grafiki osobno)";
         if (!drzwiGotowe || leki.Length < 12 || rodzaje < 5 || zTeksturami < 12)
-            Debug.LogError(log + " NIEGOTOWA (wymagane działające drzwi oraz opakowania z etykietami)");
+            Blad(log + " NIEGOTOWA (wymagane działające drzwi oraz opakowania z etykietami)");
         else
             Debug.Log(log + " KOD_MODELI_OK (widok i wejście nadal testuje Android)");
         SprawdzWejscie("APTEKA", 45.0f, .15f, 19.9f, 20.95f);
@@ -91,7 +106,7 @@ internal static class BraxMiastoOdbior
             " niebo=" + rozdz + " HD=" + hd +
             " (kamera na dachu 580m; brak gwarancji wyglądu bez testu Android)";
         if (!windaNaDach || plyty != 4 || elementy < 5 || !niebo)
-            Debug.LogError(log + " — NIEGOTOWE");
+            Blad(log + " — NIEGOTOWE");
         else if (!hd)
             Debug.LogWarning(log + " — panorama jest, ale nie potwierdzono nieba minimum 4K");
         else
@@ -104,7 +119,7 @@ internal static class BraxMiastoOdbior
         var tram = cityRoot.GetComponentInChildren<BraxTramwajT1>(true);
         if (!tram)
         {
-            Debug.LogError("BRAXHORN_TRAM_T1_NIEGOTOWY: brak pojazdu i dynamicznej linii");
+            Blad("BRAXHORN_TRAM_T1_NIEGOTOWY: brak pojazdu i dynamicznej linii");
             return;
         }
         int n = tram.trasa == null ? 0 : tram.trasa.Length;
@@ -129,7 +144,7 @@ internal static class BraxMiastoOdbior
             " niezależne_skrzydła_drzwi=" + drzwi +
             " siedzenie=" + (tram.miejsceGracza != null) +
             " choreografia_NPC=" + pasazerowie;
-        if (!f) Debug.LogError(raport + " — NIEGOTOWE");
+        if (!f) Blad(raport + " — NIEGOTOWE");
         else if (drzwi < 2)
             Debug.LogWarning(raport + " — BRAK ruchomych drzwi w oryginalnym CAF; NPC nie przechodzą przez zamknięty pojazd");
         else Debug.Log(raport + " — GOTOWE W KODZIE do testu Android");
@@ -140,7 +155,7 @@ internal static class BraxMiastoOdbior
         var metro = cityRoot.GetComponentInChildren<BraxMetroM1Ruch>(true);
         if (!metro)
         {
-            Debug.LogError("BRAXHORN_METRO_M1_NIEGOTOWE: zamiast kursującego modelu pociągu z repo jest stara atrapa lub brak GLB");
+            Blad("BRAXHORN_METRO_M1_NIEGOTOWE: zamiast kursującego modelu pociągu z repo jest stara atrapa lub brak GLB");
             return;
         }
         var npc = metro.GetComponent<BraxMetroM1Pasazerowie>();
@@ -157,7 +172,7 @@ internal static class BraxMiastoOdbior
               " wyjazd=" + metro.wyjazdOffsetX.ToString("F1") +
               " (wizualne drzwi sceniczne, nie oryginalne animowane drzwi GLB)";
         if (!model || !npc || !drzwi || !dlugosc || !czas)
-            Debug.LogError(raport + " NIEGOTOWE");
+            Blad(raport + " NIEGOTOWE");
         else
             Debug.Log(raport + " GOTOWE DO TESTU W APK");
 
@@ -185,7 +200,7 @@ internal static class BraxMiastoOdbior
                 {
                     przeszkody++;
                     if (przeszkody < 5)
-                        Debug.LogError("BRAXHORN_METRO_M1_DOJSCIE obca przeszkoda " + c.name +
+                        Blad("BRAXHORN_METRO_M1_DOJSCIE obca przeszkoda " + c.name +
                                        " przy x=" + x.ToString("F1"));
                 }
             }
@@ -203,7 +218,7 @@ internal static class BraxMiastoOdbior
                 {
                     bezChodnika++;
                     if (bezChodnika <= 7)
-                        Debug.LogError("BRAXHORN_METRO_M1_NIEBIESKA_DZIURA: brak podłogi przed wejściem @" +
+                        Blad("BRAXHORN_METRO_M1_NIEBIESKA_DZIURA: brak podłogi przed wejściem @" +
                             new Vector3(x, yChod, z).ToString("F2"));
                 }
             }
@@ -241,7 +256,7 @@ internal static class BraxMiastoOdbior
             if (!siedzisko)
             {
                 bez++;
-                Debug.LogError("BRAXHORN_MARINA_STER_NIEGOTOWY " + v.name +
+                Blad("BRAXHORN_MARINA_STER_NIEGOTOWY " + v.name +
                     " seat=" + v.seat.ToString("F2") +
                     " poklad=" + v.walkableDeck +
                     " kamera=" + v.helmCameraLocal.ToString("F2"));
@@ -252,7 +267,7 @@ internal static class BraxMiastoOdbior
             " błędne_stanowiska=" + bez +
             " (Riva: fotel assise_4; skuter: siodło; jacht: pokład + ster + kamera wewnętrzna)";
         if (jac < 3 || riv < 6 || jet < 4 || bez > 0)
-            Debug.LogError(msg + " NIEGOTOWE — nie zatwierdzać publikacji APK");
+            Blad(msg + " NIEGOTOWE — nie zatwierdzać publikacji APK");
         else
             Debug.Log(msg + " GOTOWE W KODZIE do rzeczywistego testu Android");
     }
@@ -281,7 +296,7 @@ internal static class BraxMiastoOdbior
             " (wysokość, poza i widok nadal do sprawdzenia w APK)";
         if (fotelRiva < motory.Length || siodloSkuter < skutery.Length ||
             poklady < jachty.Length || motory.Length < 1 || skutery.Length < 1 || jachty.Length < 3)
-            Debug.LogError(raport + " NIEGOTOWE");
+            Blad(raport + " NIEGOTOWE");
         else Debug.Log(raport + " KOD_GOTOWY_DO_TESTU");
     }
 
@@ -306,7 +321,7 @@ internal static class BraxMiastoOdbior
             }
         }
         if (przeszkody > 0)
-            Debug.LogError("BRAXHORN_MIASTO_ODBIOR " + nazwa + " = NIEDROŻNE, kolizje=" + przeszkody);
+            Blad("BRAXHORN_MIASTO_ODBIOR " + nazwa + " = NIEDROŻNE, kolizje=" + przeszkody);
         else Debug.Log("BRAXHORN_MIASTO_ODBIOR " + nazwa +
                        " = bez przeszkód statycznych w osi wejścia (nadal wymagany test telefonu)");
     }

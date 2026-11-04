@@ -1352,7 +1352,8 @@ public static class BraxClaudeMetro
         var dojscia = new List<Vector3>();
         bool boundsGotowe = false;
         Bounds wszystkie = default;
-        var rd = mPudlo, ciemny = mCzarny;
+        Material rd = mPudlo;
+        Material ciemny = mCzarny;
         for (int i = 0; i < 2; i++)
         {
             float cx = xWsch - dl * .5f - i * (dl + gap);

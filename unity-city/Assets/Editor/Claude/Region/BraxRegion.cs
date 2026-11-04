@@ -106,9 +106,13 @@ public static class BraxRegion
         // Budżet: nic wyłączonego nie jedzie do paczki (397 siatek aut, zastąpione elewacje, atrapy), kompresja siatek.
         Step("odchudzenie danych: wyłączone renderery i kompresja siatek", () => Slim(root));
         Note("materiały modeli → CityStaticPBR: " + converted + ", bez konwersji: " + keptForeign);
-        Rep.status = "BUILT";
+        bool krokNieudany = Rep.steps.Any(s => s.Contains(": BŁĄD "));
+        Rep.status = krokNieudany ? "NIEGOTOWE" : "BUILT";
         File.WriteAllText(Out + "/region.json", JsonUtility.ToJson(Rep, true));
         Debug.Log("BRAXHORN_CLAUDE_REGION " + JsonUtility.ToJson(Rep));
+        if (krokNieudany)
+            throw new InvalidOperationException(
+                "BRAXHORN_CLAUDE_REGION_NIEGOTOWE: co najmniej jeden etap miasta nie przeszedł; raport region.json zawiera szczegóły.");
     }
 
     // Wszystkie światła punktowe/stożkowe pod korzeniem renowacji (hol wieżowca, metro, NOVA, pawilon, sklep)

@@ -66,7 +66,17 @@ def validate_snapshot(snapshot):
 
 
 def download(repo, tag, archive, expected):
-    data = view(repo, tag)
+    # Brak wcześniejszego checkpointu jest NORMALNYM cache-miss, a nie awarią.
+    # Błąd autoryzacji/inny błąd serwera nadal zgłaszamy wykonawcy.
+    try:
+        data = view(repo, tag)
+    except subprocess.CalledProcessError as exc:
+        err = (exc.stderr or "") + " " + (exc.stdout or "")
+        if "not found" in err.lower() or "404" in err:
+            print("BRAXHORN_CACHE_DURABLE no_snapshot=true — pełny import bazowy")
+            output("downloaded", "false")
+            return
+        raise
     index = read_index(data, expected)
     archive = Path(archive)
     archive.parent.mkdir(parents=True, exist_ok=True)
