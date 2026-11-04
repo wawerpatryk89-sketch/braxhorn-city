@@ -45,7 +45,7 @@ postój i chód mają swobodne ręce. Ciosy i trening zachowują poprawną gard�
 i legalny obrót stopy podporowej. Następnie przejścia w Play Mode i kontrola
 na telefonie. Tych kontroli nie zastępuje kompilacja ani parser kodu.
 
-Status: narzędzie diagnostyczne; poprawka produkcyjna jeszcze nie przyjęta.
+Status historyczny pierwszej próby: narzędzie diagnostyczne, bez przyjętej poprawki.
 Run `41824579277` (SHA `67c3d98582ffc3d9108f5d91475b6c7e6a6de75b`)
 zakończył 21 przypadków bez wyjątków w Unity 6000.0.58f2/OpenGLCore.
 Artefakt `13318747995`, 55869775 bajtów, SHA-256
@@ -109,5 +109,25 @@ Przygotowana próba `ReviewMonikaRuntime` uruchamia rzeczywisty BraxGymPlayer
 w Play Mode w izolowanej scenie CI: postój, chód, bieg, zatrzymanie, cios,
 pauza, wznowienie i drugi cios. Zapisuje pozycje, aktywne klipy, pomiary kości,
 obrazy z kamery gracza i migawki siatki z trzech stron. Nie zapisuje sceny,
-nie buduje APK, nie akceptuje automatycznie wyglądu. Wynik tej próby jeszcze
-nie jest znany. Test telefonu poprawki nadal nie odbył się.
+nie buduje APK, nie akceptuje automatycznie wyglądu.
+
+## Wynik Play Mode i zlecenie APK
+
+Run `41828712115`, SHA `44ea2126868da68e63422613b2f7e52b0e5c5144`,
+job `monika-motion`: sukces w Unity 6000.0.58f2. Rzeczywisty BraxGymPlayer:
+360 próbek, 12.90856 m przemieszczenia, zerowy ruch podczas pauzy, bez błędów.
+Odtworzono Idle, Walk, Run, Punch i CombatIdle oraz przejścia, zatrzymanie
+i wznowienie. Artefakt `13321037925`, 41116948 bajtów, SHA-256
+`019f0e361493357ea01cee400177461b4e26827838735ecd299c679ce534b10c`:
+raport i 480 PNG (120 z rzeczywistej kamery gry, po 120 z trzech stron).
+Archiwum pobrano i sprawdzono hash. Oględziny klatek runtime nie pokazały
+wcześniejszego skręcania nóg; ręce w spokojnym chodzie/postoju są opuszczone.
+Ciosy i ich przejścia zachowują gardę. Jest to wynik izolowanej sceny Unity,
+nie test obozu na telefonie ani akceptacja wyglądu przez właściciela.
+
+Zlecono jeden APK na `gpt/oboz`, z aktualizacją istniejącej instalacji
+(`firstInstall=false`) i kontrolą tego samego podpisu oraz rosnącej wersji.
+Obejmuje poprawkę ruchu Moniki i wcześniejszy etap zabudowy z PR #7.
+Model, materiały, proporcje i wzrost Moniki są zachowane. Pozostałe sześć
+postaci nie ma jeszcze zakończonej kontroli ruchu; autobus i nowe zachowania
+NPC pozostają kolejnym etapem. Test telefonu poprawki nadal nie odbył się.
