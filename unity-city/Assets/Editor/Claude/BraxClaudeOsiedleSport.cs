@@ -60,6 +60,17 @@ public static partial class BraxClaudeOsiedle
                                   b.strefa.x > 1f && b.strefa.y > 1f))
                 throw new System.InvalidOperationException("OSIEDLE SPORT: nie utworzono grywalnego boiska " + gra);
         }
+        // Auto do zwiedzania musi istnieć jako JEZDNY obiekt z fotelem i kolizją.
+        // Brak auta przy Arenie to błąd builda, nie sukces z dekoracją.
+        var auta = UnityEngine.Object.FindObjectsByType<BraxAutoGracza>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        var prywatne = auta.FirstOrDefault(a => a && a.fotel && a.obrys &&
+            a.GetComponent<Rigidbody>() &&
+            Vector2.Distance(new Vector2(a.transform.position.x, a.transform.position.z),
+                             new Vector2(-86f, 79f)) <= 40f);
+        if (!prywatne)
+            throw new System.InvalidOperationException("OSIEDLE: brak jezdnego sportowego auta Patryka przy ARENA BRAXHORN");
+        Debug.Log("BRAXHORN_AUTO_GRACZA_OK model=" + prywatne.name + " miejsce=" + prywatne.transform.position);
         Debug.Log("BRAXHORN_SPORT_PATRYK_OK boiska=" + boiska.Length +
             " (kosz/nożna/tenis), rig=" + wymaganeKosci.Length +
             " kości, Run/Punch/Kick=true, ruchy proceduralne=true, build wyłącznie osiedla");
