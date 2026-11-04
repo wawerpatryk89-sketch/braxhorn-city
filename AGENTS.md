@@ -17,3 +17,8 @@
 Dotyczy wszystkich wykonawców i rejonów: **Miasto Mistrzów/miasto, osiedle, obóz, wyspa i arena**. Pełna reguła: https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13.
 
 **Skompilowany i zweryfikowany APK musi zostać zabezpieczony w Actions artifact i udostępniony jako testowy APK przed rozpoczęciem opcjonalnego zapisu Library, checkpointów i baz aktualizacji.** Późniejsze błędy cache/backup raportuj jako warning, nie zabieraj właścicielowi już gotowego APK. Nie kasuj jedynej kopii. W raporcie zawsze konkretny bieżący SHA, numer runu, link, wariant, package ID i informacja, czy release jest draftem wymagającym dostępu. Nie nazywaj testem Androida samej kompilacji. Nie pokazuj starych buildów jako najnowszych. Zapis polityki nie jest zgodą na build, automatyczny start ani ponowienia.
+
+
+## Wspólny standard wykonania i napraw — 4 listopada 2026
+
+Na polecenie właściciela przed kolejną pracą przeczytaj i stosuj [standard Unity 6 dla wszystkich wykonawców](docs/zasady/STANDARD_PRACY_UNITY6_20261104.md). Zawiera przypięte wersje Claude Anthropic, wymagania PBR i 4K blisko / minimum 2K dalej, przygotowanie buildów, udokumentowane awarie i stan napraw. Dodanie instrukcji nie oznacza gotowości istniejących scen. Zachowaj bieżące zasady zlecania buildów, cudze zmiany i osobne rejony; aktualizuj gałąź z kontrolą oczekiwanego HEAD.
