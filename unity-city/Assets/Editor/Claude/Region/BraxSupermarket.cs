@@ -44,10 +44,56 @@ public static class BraxSupermarket
             t.position = c; t.rotation = Quaternion.Euler(0f, yaw, 0f);
             bool lustro = i % 2 == 1;
             int towar = Zbuduj(t, lustro, i + 1);
+            // Film z 4.11: zewnętrzny płot parku przecina wejście do supermarketu.
+            // Wycinamy TYLKO szerokość ścieżki przed drzwiami, bez usuwania całego płotu.
+            UdroznijWejscie(t, lustro, i + 1);
             Physics.SyncTransforms();
             Debug.Log("BRAXHORN_SUPERMARKET kopia " + (i + 1) + ": front (środek) " + c.ToString("F1") + ", obrót " + yaw + "°, hala " + W.ToString("F1") + " × " + D.ToString("F1") + " × " + H.ToString("F1") + " m"
                       + (lustro ? ", odbicie lustrzane (wejście i kasy po drugiej stronie)" : "") + ", towar modeli " + towar + ", szukanie " + stoper.ElapsedMilliseconds + " ms");
         }
+    }
+
+    static void UdroznijWejscie(Transform sklep, bool lustro, int nr)
+    {
+        const float dlugosc = 5.8f;
+        float x = (lustro ? -1f : 1f) * (W * .5f - 5f * K);
+        Vector3 wejscie = sklep.TransformPoint(new Vector3(x, .85f * K, -2.8f * K));
+        // Prostokąt 3.2 m szerokości prowadzi od drzwi do chodnika.
+        // AABB obejmuje dowolny kąt obrotu całego modułu (0/90/180/270).
+        var f = sklep.forward * (dlugosc * .5f * K);
+        var side = sklep.right * (1.6f * K);
+        Vector3 z = wejscie - f;
+        var corners = new[] { z + side + f, z + side - f, z - side + f, z - side - f };
+        var cut = new Bounds(corners[0], Vector3.zero);
+        foreach (var p in corners) cut.Encapsulate(p);
+        cut.Expand(new Vector3(.15f, 3.0f * K, .15f));
+
+        int n = 0, mesh = 0, colliders = 0;
+        foreach (var tr in UnityEngine.Object.FindObjectsByType<Transform>(
+                     FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!tr || tr.IsChildOf(sklep) || sklep.IsChildOf(tr)) continue;
+            string nazwa = tr.name.ToLowerInvariant();
+            if (!(nazwa.Contains("fence") || nazwa.Contains("płot") ||
+                  nazwa.Contains("plot ") || nazwa.Contains("ogrodzen") ||
+                  nazwa.Contains("ogrodze"))) continue;
+            var r = tr.GetComponent<Renderer>();
+            var c = tr.GetComponent<Collider>();
+            if (!((r && r.bounds.Intersects(cut)) || (c && c.bounds.Intersects(cut)))) continue;
+            try
+            {
+                mesh += BraxCityMeshCut.Subtract(tr, cut, BraxRegion.Out + "/Cuts",
+                                                  "supermarket_wejscie_" + nr);
+                colliders += BraxCityMeshCut.SubtractBoxColliders(tr, cut);
+                n++;
+            }
+            catch (Exception e) { Debug.LogWarning("BRAXHORN_SUPERMARKET_PLOT " + tr.name + ": " + e.Message); }
+        }
+        Debug.Log("BRAXHORN_SUPERMARKET_WEJSCIE nr=" + nr + " przeszkod-ogrodzen=" + n +
+                  " wycietych_siatek=" + mesh + " wycietych_kolizji=" + colliders +
+                  " (tylko otwór przed drzwiami, bez nakładania nowych nawierzchni)");
+        if (n == 0) Debug.LogWarning("BRAXHORN_SUPERMARKET_WEJSCIE nr=" + nr +
+                    ": nie znaleziono segmentu ogrodzenia w aktualnej scenie; weryfikacja dojścia na Androidzie wymagana");
     }
 
     // ---------------- miejsce ----------------
