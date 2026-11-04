@@ -57,6 +57,14 @@ public sealed class BraxTramwajT1 : MonoBehaviour, IBraxInterakcja
         rb.isKinematic = true;
         rb.useGravity = false;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
+        // Komponent jest dodawany w generatorze i dopiero WTEDY otrzymuje punkty.
+        // Awake nie może walidować pustej trasy — wykonujemy to na Start,
+        // po serializacji parametrów w wygenerowanej scenie.
+    }
+
+    void Start()
+    {
+        if (!rb) rb = GetComponent<Rigidbody>();
         dlugosci.Clear();
         if (trasa == null || trasa.Length < 16)
         {
@@ -163,6 +171,9 @@ public sealed class BraxTramwajT1 : MonoBehaviour, IBraxInterakcja
                 float hamulec = Mathf.Sqrt(Mathf.Max(0f, 2f * 2.4f * od));
                 float cel = Mathf.Min(vmax, hamulec);
                 predkosc = Mathf.MoveTowards(predkosc, cel, (cel < predkosc ? 2.4f : 1.25f) * dt);
+                // Przy pominięciu stopu nie wolno utknąć 0.3m od platformy:
+                // ustawiamy najpierw metry dokładnie na peronie, następny FixedUpdate
+                // otworzy drzwi zamiast co klatkę odtwarzać odległość > 0.
                 if (od < .3f && predkosc < 1.15f)
                 {
                     metry = MetryPrzystanku(kolejnyPrzystanek);
