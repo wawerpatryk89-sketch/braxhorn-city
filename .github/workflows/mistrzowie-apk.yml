@@ -11,6 +11,11 @@ on:
         type: string
         required: false
         default: ''
+      zdjecia:
+        description: 'Opcjonalny dodatkowy player Linux i zdjęcia po dostarczeniu APK; wydłuża build'
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: write
   actions: read
@@ -106,8 +111,10 @@ jobs:
           python3 unity-tools/mistrzowie/restore_player.py
           python3 unity-tools/mistrzowie/prepare_signage.py
           python3 unity-tools/mistrzowie/build_infrastructure.py
+          python3 unity-tools/mistrzowie/prepare_landscape.py
           python3 unity-tools/mistrzowie/validate_contract.py
           python3 unity-tools/mistrzowie/build_exteriors.py
+          python3 unity-tools/mistrzowie/audit_layout.py
           python3 unity-tools/mistrzowie/build_signs.py
           python3 unity-tools/mistrzowie/prepare_arena.py
       - name: Restore isolated encrypted Champions Library
@@ -194,9 +201,57 @@ jobs:
         run: |
           export APK_RELEASE_TAG="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
           python3 unity-tools/mistrzowie/apk_delivery.py verify
+      - name: Optional real player for visual review after APK delivery
+        id: visual_player
+        if: success() && inputs.zdjecia && steps.apk_delivery.outcome == 'success'
+        continue-on-error: true
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: StandaloneLinux64
+          buildMethod: BraxChampionsBuild.BuildVisualReview
+          versioning: None
+          allowDirtyBuild: true
+      - name: Capture the real running player
+        if: success() && steps.visual_player.outcome == 'success'
+        continue-on-error: true
+        env:
+          LIBGL_ALWAYS_SOFTWARE: 1
+          CHAMPIONS_REVIEW_DIR: ${{ github.workspace }}/mistrzowie-visual-review
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes xvfb libgl1 libasound2t64
+          chmod +x build/VisualReview/Mistrzowie.x86_64
+          timeout 300s xvfb-run -a -s '-screen 0 1280x720x24' build/VisualReview/Mistrzowie.x86_64 --champions-review -force-glcore -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -logFile "$GITHUB_WORKSPACE/mistrzowie-visual-player.log"
+          test -s mistrzowie-visual-review/complete.txt
+          python3 - <<'PYIMAGES'
+          from pathlib import Path
+          from PIL import Image, ImageStat
+          files=list(Path('mistrzowie-visual-review').glob('*.png'))
+          assert len(files)==5, 'Five real player frames required'
+          for path in files:
+              with Image.open(path) as frame:
+                  assert frame.width >= 1000 and frame.height >= 600
+                  assert max(ImageStat.Stat(frame.convert('RGB')).stddev)>2, 'Flat or blank render: '+str(path)
+          PYIMAGES
+      - name: Save optional visual review and player log
+        if: always() && !cancelled() && inputs.zdjecia && steps.apk_delivery.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mistrzowie-visual-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            mistrzowie-visual-review/
+            mistrzowie-visual-player.log
+          if-no-files-found: warn
       - name: Pack encrypted import cache after confirmed APK delivery
         id: library_pack
-        if: success() && steps.apk_delivery.outcome == 'success'
+        if: success() && steps.apk_delivery.outcome == 'success' && !inputs.zdjecia
         continue-on-error: true
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}

@@ -14,5 +14,6 @@
   "Metal048A_4K-JPG_Metalness.jpg": "39a6871af08d0ba215ee635167b9ebe391da9de4cb03ec1eaef965c411059c70",
   "Leather037_4K-JPG_Color.jpg": "9c1f6dcb40c4102fbdf47246e9820b0217eefc1a033a652b45eca281d4b407dd",
   "Leather037_4K-JPG_NormalGL.jpg": "d0d63d0d7b226917c69f759dd44043d94d34de09f9d4333a08179fa207417b66",
-  "Leather037_4K-JPG_Roughness.jpg": "a457084805879fc7dbc12c273efb9901d8533e88bd3ed5b14d8d7e6bcc1241f0"
+  "Leather037_4K-JPG_Roughness.jpg": "a457084805879fc7dbc12c273efb9901d8533e88bd3ed5b14d8d7e6bcc1241f0",
+  "Grass004_4K-JPG_AmbientOcclusion.jpg": "1ee8a1eaf2583406b86dd87c256e04d24bd3bd3e830378f5f162bea9f04a13f4"
 }

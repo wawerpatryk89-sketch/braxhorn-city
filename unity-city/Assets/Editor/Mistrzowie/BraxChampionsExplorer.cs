@@ -64,6 +64,15 @@ public static class BraxChampionsExplorer
         // Existing Android HUD creates one persistent instance at runtime. Editor/PC uses the same player command API.
         player.AddComponent<BraxChampionsDesktopInput>().player = runtime;
         AddDaylight(rig.transform);
+        var review=rig.AddComponent<BraxChampionsVisualReview>();review.view=camera;review.player=runtime;
+        var foundation=JsonUtility.FromJson<BraxChampionsFoundation.Foundation>(File.ReadAllText("Assets/Source/Mistrzowie/Foundation.json"));var plant=foundation.plants[0];
+        review.labels=new[]{"01-map","02-arena","03-hotel","04-grass-near","05-grass-far"};
+        review.positions=new[]{new Vector3(1100,480,1050)*K,new Vector3(600,1.8f,705)*K,
+            new Vector3(817,1.8f,815)*K,new Vector3(plant.x-2,1.5f,plant.z-2)*K,
+            new Vector3(plant.x-16,2.5f,plant.z-16)*K};
+        review.targets=new[]{new Vector3(600,0,450)*K,new Vector3(600,25,800)*K,
+            new Vector3(885,22,815)*K,new Vector3(plant.x,.16f,plant.z)*K,
+            new Vector3(plant.x,.16f,plant.z)*K};
         Physics.SyncTransforms(); Validate(scene);
         AssetDatabase.SaveAssets();
         if (!EditorSceneManager.SaveScene(scene, ScenePath)) throw new IOException("Exploration scene save failed.");
@@ -146,3 +155,4 @@ public static class BraxChampionsExplorer
         return RequiredClips.Length;
     }
 }
+

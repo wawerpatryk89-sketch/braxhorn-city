@@ -1,0 +1,122 @@
+{
+  "status": "STATIC_CHECKS_PASS_UNITY_PENDING",
+  "errors": [],
+  "reservations": 33,
+  "generated": [
+    {
+      "id": "A1",
+      "centre": [
+        600,
+        800
+      ],
+      "localBounds": [
+        [
+          -110.00000031095317,
+          -0.42000025837026495,
+          -74.99999989597762
+        ],
+        [
+          110.00000031095317,
+          47.99999984072182,
+          74.99999989597762
+        ]
+      ]
+    },
+    {
+      "id": "T01",
+      "centre": [
+        885,
+        815
+      ],
+      "localBounds": [
+        [
+          -60.000000380301415,
+          -0.2499999146747178,
+          -54.99999976921049
+        ],
+        [
+          60.000000380301415,
+          149.99999979195525,
+          54.99999976921049
+        ]
+      ]
+    }
+  ],
+  "metro": [
+    {
+      "id": "M1",
+      "name": "DWORZEC",
+      "x": 400,
+      "z": 359,
+      "axis": "x",
+      "hallX": 400,
+      "hallZ": 359,
+      "entryX": 433.9914163785767,
+      "entryZ": 363.4806867044488
+    },
+    {
+      "id": "M2",
+      "name": "CENTRUM",
+      "x": 765,
+      "z": 545,
+      "axis": "z",
+      "hallX": 765,
+      "hallZ": 545,
+      "entryX": 760.5193132955512,
+      "entryZ": 578.9914163785767
+    },
+    {
+      "id": "M3",
+      "name": "ARENY / HOTELE",
+      "x": 765,
+      "z": 800,
+      "axis": "z",
+      "hallX": 765,
+      "hallZ": 800,
+      "entryX": 760.5193132955512,
+      "entryZ": 833.9914163785767
+    }
+  ],
+  "tramStops": 10,
+  "busPlatforms": 32,
+  "missingBuildings": [
+    "A2",
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "P1",
+    "G1",
+    "G2",
+    "E1",
+    "D1",
+    "DB",
+    "K12",
+    "T02",
+    "T03",
+    "T04",
+    "T05",
+    "T06",
+    "T07",
+    "T08",
+    "T09",
+    "T10",
+    "T11",
+    "T12",
+    "T13",
+    "T14",
+    "T15",
+    "T16",
+    "T17",
+    "T18",
+    "T19",
+    "T20"
+  ],
+  "planDifferences": [
+    "A1 hall 192x118 instead of PDF 220x150; reservation 220x150 instead of PDF site approx 320x240",
+    "A2 reservation 220x150 instead of PDF site approx 280x230; hall not generated",
+    "Metro centres adjusted for existing source model, not literal diagram markers",
+    "PDF TR01 near M1; code TR01 moved to x460 on east-west track"
+  ],
+  "runtime": "NOT_RUN"
+}

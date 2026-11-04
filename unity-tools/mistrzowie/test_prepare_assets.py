@@ -1,13 +1,25 @@
 """Regressions for real Poly Haven key differences; no network or Unity needed."""
+import json
+from pathlib import Path
 import hashlib
 import unittest
 
-from prepare_assets import matches_source, polyhaven_map
+from prepare_assets import matches_source, polyhaven_map, POLYHAVEN_SLUGS, POLYHAVEN_MAPS
 
 
 class PolyHavenSourceTests(unittest.TestCase):
     def entry(self, name="original"):
         return {"4k": {"exr": {"url": name}, "jpg": {"url": name}}}
+
+    def test_all_actual_provider_responses_resolve_every_required_4k_map(self):
+        fixtures=json.loads(Path(__file__).with_name('pbr-provider-preflight.json').read_text())
+        for slug in POLYHAVEN_SLUGS:
+            for kind, ext in POLYHAVEN_MAPS:
+                with self.subTest(slug=slug, kind=kind):
+                    item=polyhaven_map(fixtures[slug],slug,kind,ext)
+                    self.assertIn('/4k/',item['url'])
+                    self.assertEqual(len(item['md5']),32)
+                    self.assertGreater(item['size'],0)
 
     def test_provider_capitalized_roughness(self):
         self.assertEqual(polyhaven_map({"Rough": self.entry()}, "coast_sand_02", "rough", "exr")["url"], "original")
@@ -41,3 +53,4 @@ class PolyHavenSourceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

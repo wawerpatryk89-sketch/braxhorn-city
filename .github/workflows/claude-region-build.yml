@@ -44,9 +44,15 @@ jobs:
             unity-city/Prywatne/ruchy_brax.tar.gz.enc
             unity-city/Prywatne/ruchy_wlasciciela.tar.gz.enc
             unity-tools/mistrzowie
+            unity-tools/validation
             unity-tools/claude/prywatne.py
             unity-tools/claude/import_patryk_transfer.py
             unity-tools/claude/tekstury_b5.py
+      - name: C# syntax and local scopes before Unity (CS0136 regression)
+        run: |
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
       - name: Prepare runner disk and 12 GiB Unity swap
         run: |
           # Keep the host Android SDK: APK certificate/identity verification needs it.
@@ -77,8 +83,10 @@ jobs:
           python3 unity-tools/mistrzowie/restore_player.py
           python3 unity-tools/mistrzowie/prepare_signage.py
           python3 unity-tools/mistrzowie/build_infrastructure.py
+          python3 unity-tools/mistrzowie/prepare_landscape.py
           python3 unity-tools/mistrzowie/validate_contract.py
           python3 unity-tools/mistrzowie/build_exteriors.py
+          python3 unity-tools/mistrzowie/audit_layout.py
           python3 unity-tools/mistrzowie/build_signs.py
           python3 unity-tools/mistrzowie/prepare_arena.py
       - name: Restore isolated encrypted Champions Library

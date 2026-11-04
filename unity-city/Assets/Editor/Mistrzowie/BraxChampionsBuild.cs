@@ -27,6 +27,19 @@ public static class BraxChampionsBuild
     public static void Build() => BuildInternal(false);
     public static void BuildAndroid() => BuildInternal(true);
 
+    // Called only by the optional, manual review step AFTER APK delivery.
+    public static void BuildVisualReview()
+    {
+        if(!File.Exists(BraxChampionsExplorer.ScenePath))throw new IOException("Build the exploration scene first");
+        EditorSceneManager.OpenScene(BraxChampionsExplorer.ScenePath,OpenSceneMode.Single);
+        PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone,ScriptingImplementation.Mono2x);
+        string output=Path.GetFullPath("../build/VisualReview/Mistrzowie.x86_64");
+        Directory.CreateDirectory(Path.GetDirectoryName(output));
+        var report=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=new[]{BraxChampionsExplorer.ScenePath},
+            target=BuildTarget.StandaloneLinux64,locationPathName=output,options=BuildOptions.None});
+        if(report.summary.result!=BuildResult.Succeeded)throw new InvalidOperationException("Visual review player build failed");
+    }
+
     static void BuildInternal(bool apk)
     {
         string reports=Path.GetFullPath("../mistrzowie-evidence");Directory.CreateDirectory(reports);
@@ -132,6 +145,17 @@ public static class BraxChampionsBuild
         EditorBuildSettings.scenes=scenes.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();
         string output=Path.GetFullPath("../build/Android"); Directory.CreateDirectory(output);
         AssetDatabase.SaveAssets();
+        // Apply to every selectable quality tier of this separate APK, not to other region builders.
+        int previousQuality=QualitySettings.GetQualityLevel();
+        for(int i=0;i<QualitySettings.names.Length;i++)
+        {
+            QualitySettings.SetQualityLevel(i,false);
+            QualitySettings.streamingMipmapsActive=true;
+            QualitySettings.streamingMipmapsMemoryBudget=512;
+            QualitySettings.streamingMipmapsMaxLevelReduction=1; // 4K source: lowest resident level 2K.
+            QualitySettings.streamingMipmapsAddAllCameras=true;
+        }
+        QualitySettings.SetQualityLevel(previousQuality,false);
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenes,target=BuildTarget.Android,
             locationPathName=Path.Combine(output,"braxhorn-mistrzowie.apk"),options=BuildOptions.None});
         if(result.summary.result!=BuildResult.Succeeded)
@@ -203,6 +227,10 @@ public static class BraxChampionsBuild
                 foreach(var m in r.sharedMaterials)
                     if(!m||!m.shader||ShaderUtil.ShaderHasError(m.shader))throw new InvalidOperationException("Missing/invalid material or shader: "+r.name);
             }
+            foreach(var grass in root.GetComponentsInChildren<BraxClaudeTrawa>(true))
+                if(!grass.dane||!grass.siatka||!grass.material||!grass.material.enableInstancing||!grass.material.shader||
+                    ShaderUtil.ShaderHasError(grass.material.shader)||grass.dane.y.Length!=grass.dane.kepy.Length)
+                    throw new InvalidOperationException("Invalid saved grass instancing assets: "+grass.name);
             foreach(var f in root.GetComponentsInChildren<MeshFilter>(true))
                 if(!f.sharedMesh||f.sharedMesh.vertexCount==0||string.IsNullOrEmpty(AssetDatabase.GetAssetPath(f.sharedMesh)))throw new InvalidOperationException("Unsaved/empty mesh: "+f.name);
             foreach(var c in root.GetComponentsInChildren<MeshCollider>(true))if(!c.sharedMesh)throw new InvalidOperationException("Empty collision mesh: "+c.name);
