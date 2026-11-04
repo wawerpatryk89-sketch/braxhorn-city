@@ -52,3 +52,19 @@
 ### Granice ukończenia
 
 Nie mamy jeszcze kompilacji Unity ani testu rzeczywistego ruchu, drzwi CAF, pasażerów Rocketbox, FPS lub załadunku miasta. Nie ma podstaw, by obiecywać, że cały tramwaj i wszystkie fasady są gotowe. Brak modeli drzwi w GLB albo kolizje na łukach = wymagane dalsze naprawy przed akceptacją.
+
+## 4.11 — naprawy PREMIUM nowych budynków (bez ingerencji w osiedle / obóz)
+
+Użytkownik dodatkowo wymaga, aby wszystkie potrzebujące poprawek budynki nowej dzielnicy otrzymały wykończenie premium, **nie tylko usunięte rusztowania**. W źródłach Unity 6 nowa dzielnica obejmuje **21 modeli / segmentów** (LONDON, KINNAIRD, ATLANTA, 13 segmentów City5 i 4 segmenty City3). Potwierdzić ich rzeczywistą obecność po odszyfrowaniu paczek.
+
+Wykonano w `BraxRegionMiastoBDzielnice.cs`:
+- Usunięto **podwójny przebieg** zdejmowania rusztowań. Pozostawiono jedno ostrożne czyszczenie oddzielnych węzłów `scaffold/rusztowanie`, bez usuwania całej elewacji przez nazwę. Jeżeli rusztowanie jest scalone z budynkiem, kod zgłasza błąd i wymaga korekty źródła modelu.
+- Lista rendererów LOD jest odbudowywana **po** czyszczeniu GLB. Nie zawiera odwołań do zniszczonych elementów. Budynek bez siatki fasady jest zgłaszany jako `BRAK_FASAD` i nie otrzymuje fikcyjnej elewacji.
+- Zastosowano `NdPremiumFasada`: zmienia tylko nieteksturowane, prawie czarne **materiały prawdziwych ścian/parterów** na istniejącej siatce, z 3 różnymi rodzinami PBR: klinkier kamienic, piaskowiec kwartałów City5, granit wieżowców. Podstawą są zeskanowane tekstury CC0 już przewidziane dla miasta (`brick_wall_001`, `rectangular_facade_tiles`, `granite_tile_02`, alternatywy). Jeśli skan nie istnieje po imporcie, log `PREMIUM_MATERIAL_BEZ_PBR` oraz `NIEGOTOWA`; nie udajemy premium samym kolorem.
+- Oryginalne tekstury PBR, ozdobne drzwi, framugi, szkło, poręcze, dachy i główna architektura modeli pozostają. Poprawiono rozpoznawanie tekstur z różnych slotów shaderów (w tym `_BaseMap`), żeby nie usuwać gotowych materiałów glTFast.
+- **Zero dodatkowych płaszczyzn elewacji, zero zbędnych lamp, zero równoległych rusztowań, bez wzrostu liczby polygonów.** Nie powstają atrapy szyb ani zaklejane na ślepo szczeliny.
+- Log `BRAXHORN_NOWA_DZIELNICA_PREMIUM` wyświetla dla każdego budynku liczbę wymienionych, zachowanych i brakujących materiałów, dzięki czemu nie można raportować pozornych sukcesów.
+
+**Nierozstrzygnięte:** dokładny przebieg szczelin między ścianami, nieopisane rusztowania scalone ze źródłem oraz wszystkie ciemne partery nieoznaczone nazwami ścian wymagają oględzin rzeczywistego importu/Androida. Nie nakładać nowej bryły na starą. Pełny odbiór premium: bez czarnych okien, bez pustych prześwitów, bez z-fightingu, przechodnie bramy, jednolita jakość materiałów i prawidłowe LOD przy przejściu z daleka.
+
+**Dowód:** zmiany kodu na gałęzi `codex/miasto-naprawy-filmow-20261104`; nie jest to jeszcze render Unity 6 ani potwierdzone APK.
