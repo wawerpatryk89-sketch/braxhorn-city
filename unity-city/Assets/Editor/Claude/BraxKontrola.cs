@@ -481,6 +481,9 @@ public static class BraxKontrola
 
         void Odwiedz(Transform t, bool chroniony)
         {
+            // Elementy ruchomych schodów nie są wyposażeniem sportowym ani meblami.
+            // Poprzedni audyt skalował 23 stopnie z 0.38 m do 1.75 m.
+            if (t.GetComponent<BraxSchodyRuchome>()) return;
             var go = t.gameObject;
             if (!go.activeInHierarchy || go.layer == 8 || go.layer == WarstwaSondy) return;
             if (t.GetComponent<BraxGymPlayer>() || t.GetComponent<Camera>() || t.GetComponent<Rigidbody>() || t.GetComponent<BraxAuto>() || t.GetComponent<BraxPieszy>() || t.GetComponent<Animator>() || t.GetComponent<Animation>() || t.GetComponent<BraxCityDoor>() || drzwiSkrzydla.Contains(t)) return;
