@@ -393,6 +393,10 @@ public static partial class BraxRegionMiastoB
                 // Tylko RUSZTOWANIA po nazwie źródłowego węzła GLB, bez
                 // niszczenia elewacji, klatek, podwórek lub prawdziwych przejść.
                 NdUsunRusztowania(bud.gameObject);
+                // Film 4.11 — części nowych kwartałów miały wciąż importowane
+                // RUSZTOWANIA budowy. Usuwamy oryginalne węzły tymczasowe
+                // przed konwersją materiałów, nigdy nie nakładamy maskującej ściany.
+                NdUsunTylkoRusztowania(bud);
                 BraxMiastoAssety.Przygotuj(bud.gameObject, true, true);
                 nSzklo += NdSzklo(bud.gameObject);
                 foreach (var r in dach) r.shadowCastingMode = ShadowCastingMode.Off;
@@ -419,6 +423,47 @@ public static partial class BraxRegionMiastoB
         try { NdMigotanieBudynkow(); } catch (Exception e) { BraxMiastoAssety.Blad("kontrola podstaw budynków", e); }
         NdLog("szkło fasad: " + nSzklo + " materiałów na budynkach zamienione na szkło refleksyjne (czarny metal / szyby przed pustą bryłą)");
         NdLog("budynki: postawione " + ok + "/" + NoweBudynki.Length + (brak > 0 ? ", bez modelu " + brak + " (paczka nieodszyfrowana — kwartał zostaje z płytami)" : ""));
+    }
+
+    static void NdUsunTylkoRusztowania(Transform bud)
+    {
+        bool Tymczasowe(string nazwa)
+        {
+            if (string.IsNullOrEmpty(nazwa)) return false;
+            nazwa = nazwa.ToLowerInvariant();
+            return nazwa.Contains("scaffolding") || nazwa.Contains("scaffold") ||
+                   nazwa.Contains("rusztowan") || nazwa.Contains("rusztow") ||
+                   nazwa.Contains("temporary_building_frame") ||
+                   nazwa.Contains("construction_scaffold");
+        }
+        var czesci = bud.GetComponentsInChildren<Transform>(true)
+            .Where(t => t && t != bud && Tymczasowe(t.name)).ToArray();
+        var usuniete = new HashSet<GameObject>();
+        foreach (var t in czesci)
+        {
+            if (!t || !t.gameObject || usuniete.Contains(t.gameObject)) continue;
+            // Na poprawnie nazwanym węźle jest WYŁĄCZNIE rusztowanie,
+            // nie cały importowany budynek z fasadą i oknami.
+            if (t.GetComponentsInChildren<Renderer>(true).Length == 0) continue;
+            usuniete.Add(t.gameObject);
+            UnityEngine.Object.DestroyImmediate(t.gameObject);
+        }
+        // Jeżeli materiał wyraźnie opisuje tylko rusztowanie, usuń jego
+        // osobny renderer. Renderera z mieszanymi materiałami NIE usuwaj.
+        int inne = 0;
+        foreach (var rr in bud.GetComponentsInChildren<MeshRenderer>(true).ToArray())
+        {
+            if (!rr || rr.sharedMaterials.Length == 0) continue;
+            bool same = rr.sharedMaterials.All(m => m && Tymczasowe(m.name));
+            if (!same) { if (rr.sharedMaterials.Any(m => m && Tymczasowe(m.name))) inne++; continue; }
+            if (rr.transform == bud) { rr.enabled = false; continue; }
+            UnityEngine.Object.DestroyImmediate(rr.gameObject); usuniete.Add(rr.gameObject);
+        }
+        if (usuniete.Count > 0 || inne > 0)
+            Debug.Log("BRAXHORN_NOWE_BUDYNKI_RUSZTOWANIA " + bud.name +
+                " usunięte_osobne=" + usuniete.Count +
+                " materialy_mieszane_do_kontroli=" + inne +
+                " (nie usuwaj losowo całych fasad)");
     }
 
     // WŁAŚCICIEL 3.11 10:12–10:19 (nagrania): „czarne budynki, gdzie są okna”. W modelach Sketchfaba szkło fasad było
