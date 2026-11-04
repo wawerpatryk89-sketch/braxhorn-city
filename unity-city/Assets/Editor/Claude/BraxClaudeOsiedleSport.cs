@@ -203,4 +203,48 @@ public static partial class BraxClaudeOsiedle
         for (float z = -hw + k; z < hw - .01f; z += k) BoxMinMax(netM, x0, x1, gy + h - t, gy + h + t, gz + z - t, gz + z + t, false);  // dach
         for (float x = k; x < d - .01f; x += k) BoxMinMax(netM, gx + ox * x - t, gx + ox * x + t, gy + h - t, gy + h + t, gz - hw, gz + hw, false);
     }
+    // Nie wystarczy samo narysowanie boiska. Ten test wykonywany jest PO
+    // budowie osiedla, PRZED zapisaniem sceny i kompilacją Androida.
+    // Brak aktywnego komponentu gry blokuje APK zamiast udawać gotowy sport.
+    public static void SprawdzSport()
+    {
+        var boiska = UnityEngine.Object.FindObjectsByType<BraxSportBoisko>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        var wymagane = new[] {
+            BraxSportBoisko.Gra.Kosz,
+            BraxSportBoisko.Gra.Nozna,
+            BraxSportBoisko.Gra.Tenis
+        };
+        var brak = new List<string>();
+        foreach (var typ in wymagane)
+        {
+            var znalezione = boiska.Where(b => b && b.isActiveAndEnabled && b.gra == typ
+                && b.pol.x > 2f && b.pol.y > 2f
+                && b.cele != null && b.cele.Length >= (typ == BraxSportBoisko.Gra.Tenis ? 1 : 2)).ToArray();
+            if (znalezione.Length == 0) brak.Add(typ.ToString());
+        }
+        var gracz = UnityEngine.Object.FindAnyObjectByType<BraxGymPlayer>();
+        if (!gracz || !gracz.visual || !gracz.clips || !gracz.GetComponent<BraxRuchySport>())
+            brak.Add("animator sportowy Patryka");
+        else
+        {
+            var kosci = gracz.visual.GetComponentsInChildren<Transform>(true);
+            foreach (string n in new[] { "Hips", "LeftArm", "LeftForeArm", "LeftHand",
+                                       "RightArm", "RightForeArm", "RightHand",
+                                       "LeftUpLeg", "LeftLeg", "LeftFoot",
+                                       "RightUpLeg", "RightLeg", "RightFoot" })
+                if (!kosci.Any(t => t.name.EndsWith(n, System.StringComparison.Ordinal)))
+                    brak.Add("kość Patryka: " + n);
+            foreach (string n in new[] { "Idle", "Walk", "Run", "Punch", "Kick" })
+                if (!gracz.clips.GetClip(n)) brak.Add("animacja: " + n);
+            if (gracz.walkOnly) brak.Add("blokada biegania (walkOnly)");
+        }
+        if (brak.Count > 0)
+            throw new System.InvalidOperationException("BRAXHORN_SPORT DO POPRAWKI: " + string.Join("; ", brak));
+        Debug.Log("BRAXHORN_SPORT_QA OK: kosz, piłka nożna, tenis — aktywne komponenty; " +
+                  "Patryk ma szkielet, klipy biegu/uderzeń i BraxRuchySport. Siatkówka=" +
+                  boiska.Count(b => b && b.gra == BraxSportBoisko.Gra.Siatkowka) +
+                  "; działanie piłek i rakiety wymaga jeszcze testu w APK.");
+    }
+
 }
