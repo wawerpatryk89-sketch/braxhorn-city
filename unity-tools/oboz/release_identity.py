@@ -37,7 +37,18 @@ def verify_metadata(badging, signing, code, previous=None):
     if previous is not None:
         version_code(EPOCH, previous)
     package = re.search(r"^package: name='([^']+)' versionCode='(\d+)'", badging, re.M)
-    certificates = re.findall(r'^Signer #\d+ certificate SHA-256 digest: ([0-9a-fA-F]+)$', signing, re.M)
+    # Build Tools 37 uses scheme labels (e.g. "V3.0 Signer:") instead of
+    # "Signer #1". Cryptographic verification must still succeed before parsing.
+    certificates = []
+    for line in signing.splitlines():
+        if ' certificate SHA-256 digest:' not in line or line.startswith('Source Stamp Signer '):
+            continue
+        match = re.fullmatch(
+            r'(?:Signer #\d+|V(?:1|2|3\.0|3\.1|4) Signer:) certificate SHA-256 digest: ([0-9a-fA-F]{64})',
+            line)
+        if not match:
+            raise ValueError('Unrecognized signing certificate output')
+        certificates.append(match.group(1))
     if not package or package.group(1) != PACKAGE or int(package.group(2)) != code:
         raise ValueError('Built APK identity/version does not match the requested update')
     if len(certificates) != 1 or not re.fullmatch(r'[0-9a-fA-F]{64}', certificates[0]):
@@ -85,3 +96,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
