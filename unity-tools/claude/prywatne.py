@@ -350,6 +350,8 @@ def patryk_i_ruchy():
     if osiedle_build:
         from import_patryk_transfer import restore
         restore()
+    from import_patryk_animations import install
+    install(CEL / "ruchy")
     staging = pathlib.Path(tempfile.mkdtemp(prefix="braxhorn-prywatne-", dir=os.environ.get("RUNNER_TEMP") or None))
     ok = []
     try:
@@ -415,3 +417,4 @@ if __name__ == "__main__":
                 print(rozpakuj(t, a[2]), "plików →", a[2])
     else:
         sys.exit(__doc__)
+
