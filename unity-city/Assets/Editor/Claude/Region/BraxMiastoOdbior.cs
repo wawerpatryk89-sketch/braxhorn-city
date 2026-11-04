@@ -187,9 +187,31 @@ internal static class BraxMiastoOdbior
                                        " przy x=" + x.ToString("F1"));
                 }
             }
-        Debug.Log((lad && przeszkody == 0 ? "BRAXHORN_METRO_M1_WEJSCIE_KOD_OK " : "BRAXHORN_METRO_M1_WEJSCIE_NIEGOTOWE ") +
+        // Więcej niż samo "Lad" geograficzne: na starych nagraniach przez
+        // wycięty grunt prześwitywało niebieskie morze, mimo że collider
+        // sąsiedniego chodnika istniał. Test 3 pasów dojścia PRZED otworem.
+        int bezChodnika = 0;
+        for (float x = wejX - 5f; x < wejX - .4f; x += .55f)
+            foreach (float z in new[] { zC - .55f, zC, zC + .55f })
+            {
+                var p = new Vector3(x, yChod + 1.25f, z);
+                if (!Physics.Raycast(p, Vector3.down, out var hit, 2f,
+                    ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore) ||
+                    hit.point.y < yChod - .22f)
+                {
+                    bezChodnika++;
+                    if (bezChodnika <= 7)
+                        Debug.LogError("BRAXHORN_METRO_M1_NIEBIESKA_DZIURA: brak podłogi przed wejściem @" +
+                            new Vector3(x, yChod, z).ToString("F2"));
+                }
+            }
+        Debug.Log((lad && przeszkody == 0 && bezChodnika == 0 ?
+            "BRAXHORN_METRO_M1_WEJSCIE_KOD_OK " :
+            "BRAXHORN_METRO_M1_WEJSCIE_NIEGOTOWE ") +
               "odsuniete_x=69 (kamienica była ok. x66), na_ladzie=" + lad +
-              " przeszkody_kamienic=" + przeszkody + " — kolor nawierzchni i widok wody: odbiór Android");
+              " przeszkody_kamienic=" + przeszkody +
+              " brak_podlogi_przed_wejsciem=" + bezChodnika +
+              " — wygląd nawierzchni i wody nadal wymaga odbioru na Androidzie");
     }
 
     static void SprawdzWejscie(string nazwa, float x, float y, float zA, float zB)
