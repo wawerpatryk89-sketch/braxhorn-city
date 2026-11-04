@@ -31,7 +31,9 @@ public sealed class BraxObozCampAudio : MonoBehaviour
         }
         if (paused) return;
         if (!routine.Running || routine.SuspendedForPlayer) { StopExchange(); return; }
-        float dt = Mathf.Min(Time.deltaTime,.05f); wait -= dt; nextExchange -= dt;
+        // Audio duration is wall time: physics' 50 ms cap would stretch conversational
+        // gaps on slower phones although the WAV itself still plays at normal speed.
+        float dt = Time.deltaTime; wait -= dt; nextExchange -= dt;
         if (partnerA && partnerB && Vector3.Distance(partnerA.position,partnerB.position)>8*BraxGlosPostaci.K)
             StopExchange();
         if (pending.Count>0 && wait<=0)
@@ -99,5 +101,7 @@ public sealed class BraxObozCampAudio : MonoBehaviour
         pending.Clear(); wait=0; partnerA=partnerB=null;
         foreach(var voice in speakers.Values)if(voice)voice.Zatrzymaj();
     }
+    public void FinishCurrentTurn()
+    {pending.Clear();partnerA=partnerB=null;}
     void OnDisable(){StopExchange();}
 }

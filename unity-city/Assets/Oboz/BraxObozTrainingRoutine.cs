@@ -80,7 +80,7 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
     }
     void AssignPlaces()
     {
-        if(audio)audio.StopExchange();
+        if(audio)audio.FinishCurrentTurn();
         sparring = strikePending = false; remaining = roundSeconds; attackWait = 1.2f; recovery = 0;
         for (int i = 0; i < 2; i++) { bagWait[i] = .5f + i * .45f; bagImpact[i] = -1; }
         for (int slot = 0; slot < 6; slot++)
@@ -107,6 +107,9 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
         if (SuspendedForPlayer) { SuspendedForPlayer = false; AssignPlaces(); }
         float dt = Mathf.Min(Time.deltaTime, .05f);
         for (int i = 0; i < 2; i++) TickBag(i, dt);
+        var restingA=participants[occupants[4]];var restingB=participants[occupants[5]];
+        if(restingA.AtDestination&&restingB.AtDestination)
+        {restingA.Face(restingB.transform.position,dt);restingB.Face(restingA.transform.position,dt);}
         var first = participants[occupants[0]]; var second = participants[occupants[1]];
         if (!sparring)
         {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// Short synthetic glove/body contacts, separate from voice and bag recordings.
+// Short synthetic glove/body contacts, separate from voice and bag sounds.
 // Triggered only at the validated contact frame, never merely by starting a punch.
 public sealed class BraxObozContactAudio : MonoBehaviour
 {
