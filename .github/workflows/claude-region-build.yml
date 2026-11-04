@@ -255,12 +255,15 @@ jobs:
         for i in 1 2 3 4; do
           test -s "$sklep/odz_whey_$i.glb" || { echo "::error::Brak etykiety/modelu odzywki odz_whey_$i.glb"; exit 1; }
         done
+        # T1: nie wolno 5h kompilować APK bez jedynego wagonu i prawdziwych wiat.
+        test -s "$root/Prywatne/Miasto/miasto_pojazdy/tramwaj_caf.glb" || { echo '::error::Brak tramwaj_caf.glb — petla T1 bez pojazdu'; exit 1; }
+        test -s "$root/Prywatne/Miasto/miasto_wyposazenie/miasto_wyposazenie.glb" || { echo '::error::Brak oryginalnych wiat tramwaju'; exit 1; }
         test -s "$root/Prywatne/Grafiki/szyldy/mural_nova.jpg" || { echo '::error::Brak oryginalnego muralu za DJ NOVA'; exit 1; }
         if [ ! -s "$root/Prywatne/Grafiki/billboardy/19.jpg" ] && [ ! -s "$sklep/billboardy/19.jpg" ]; then
           echo '::error::Brak wlasciwego muralu nr 19 BRAXHORN GYM'
           exit 1
         fi
-        echo "BRAXHORN_MIASTO_PREFLIGHT OK: pokoje.png, niebo360=4K, leki=$count, odzywki=4, oba murale"
+        echo "BRAXHORN_MIASTO_PREFLIGHT OK: pokoje.png, niebo360=4K, leki=$count, odzywki=4, tramwaj CAF, wiaty, oba murale"
     - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
       run: |
         # sparse checkout po sciezkach (bez calego repo), TGA 2048 -> PNG (kolor 1024, normalne 512), w alfie ciala maska ubran
