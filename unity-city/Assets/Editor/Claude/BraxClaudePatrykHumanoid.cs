@@ -9,6 +9,29 @@ using Object = UnityEngine.Object;
 
 public static partial class BraxClaudeOsiedle
 {
+    // Model geometry and skin bind poses never change: only animation rotations.
+    // The resting toe direction distinguishes a genuine foot twist from an
+    // inverted FBX forward axis.
+    static Vector3 PatrykPrzodStop(List<Transform> bones)
+    {
+        Transform B(string name) => PatrykZnajdz(bones,name);
+        var left=B("LeftUpLeg"); var rightBone=B("RightUpLeg");
+        if(!left||!rightBone)return Vector3.forward;
+        Vector3 r=rightBone.position-left.position; r.y=0;
+        if(r.sqrMagnitude<1e-8f)return Vector3.forward;
+        Vector3 f=Vector3.Cross(r.normalized,Vector3.up);
+        Vector3 toes=Vector3.zero;
+        foreach(string side in new[]{"Left","Right"})
+        {
+            var foot=B(side+"Foot");var toe=B(side+"ToeBase");
+            if(!foot||!toe)continue;
+            var dir=toe.position-foot.position;dir.y=0;
+            if(dir.sqrMagnitude>1e-8f)toes+=dir.normalized;
+        }
+        if(toes.sqrMagnitude>1e-8f&&Vector3.Dot(toes,f)<0f)f=-f;
+        return f.normalized;
+    }
+
     // Keep the model's relaxed bind pose. No fighting clip is used before an attack.
     static AnimationClip PatrykSpokojny(GameObject hero, List<PatrykStan> rest)
         => PatrykPozaStala(hero, rest, "Idle", false);
@@ -43,7 +66,7 @@ public static partial class BraxClaudeOsiedle
             var left=Bone("LeftArm"); var right=Bone("RightArm");
             if(!left||!right)throw new InvalidOperationException("Brak ramion nowego Patryka");
             Vector3 rightAxis=Vector3.ProjectOnPlane(right.position-left.position,Vector3.up).normalized;
-            Vector3 forward=Vector3.Cross(rightAxis,Vector3.up);
+            Vector3 forward=PatrykPrzodStop(rest.Select(s=>s.t).ToList());
             foreach(var side in new[]{"Left","Right"})
             {
                 Vector3 outward=rightAxis*(side=="Right"?1f:-1f);
@@ -51,6 +74,12 @@ public static partial class BraxClaudeOsiedle
                 // flex, no guard. Bone lengths and wrist bind rotations untouched.
                 Aim(side+"Arm",side+"ForeArm",Vector3.down+outward*.22f+forward*.045f);
                 Aim(side+"ForeArm",side+"Hand",Vector3.down+outward*.11f+forward*.18f);
+                // In T-pose fingers point sideways; restore natural hanging hands.
+                if(Bone(side+"HandMiddle1"))
+                    Aim(side+"Hand",side+"HandMiddle1",Vector3.down+outward*.06f+forward*.12f);
+                // Flat feet with a small anatomical toe-out in idle.
+                if(Bone(side+"Foot")&&Bone(side+"ToeBase"))
+                    Aim(side+"Foot",side+"ToeBase",forward+outward*.07f);
             }
         }
         var clip = new AnimationClip { name = name, legacy = true, frameRate = 30, wrapMode = WrapMode.Loop };
@@ -197,6 +226,16 @@ public static partial class BraxClaudeOsiedle
             var prawo = rUp.position - lUp.position; prawo.y = 0f;
             if (prawo.sqrMagnitude < 1e-8f) throw new InvalidOperationException("uda w jednym punkcie");
             prawo.Normalize(); var przod = Vector3.Cross(prawo, Vector3.up);
+            Vector3 naturalToes=Vector3.zero;
+            foreach(var side in new[]{"Left","Right"})
+            {
+                var foot=B(side+"Foot");var toe=B(side+"Toes");
+                if(!foot||!toe)continue;
+                var dir=toe.position-foot.position;dir.y=0;
+                if(dir.sqrMagnitude>1e-8f)naturalToes+=dir.normalized;
+            }
+            if(naturalToes.sqrMagnitude>1e-8f&&Vector3.Dot(naturalToes,przod)<0f)
+                przod=-przod;
             float stopyPrzed = 0f, ramionaPrzed = 0f; int ns = 0, nr = 0;
             foreach (var s in new[] { "Left", "Right" })
             {
@@ -244,11 +283,12 @@ public static partial class BraxClaudeOsiedle
             + " zgięcie " + (klatki > 0 ? zgMin.ToString("F0") + "…" + zgMax.ToString("F0") : "—") + "° przeprost_max=" + przeprostMax.ToString("F1") + "° (>10°: " + przeprost + ")"
             + " kolano_w_bok_max=" + wBokMax.ToString("F1") + "° (>35°: " + wBok + ")";
     }
-    static void PatrykNogiKlatka(List<Transform> kosci, NogiWynik w)
+    static void PatrykNogiKlatka(List<Transform> kosci, NogiWynik w, Vector3 originalForward)
     {
         Transform K(string n) => PatrykZnajdz(kosci, n);
         var lu = K("LeftUpLeg"); var ru = K("RightUpLeg"); if (!lu || !ru) return;
         var R = ru.position - lu.position; R.y = 0f; if (R.sqrMagnitude < 1e-8f) return; R.Normalize(); var F = Vector3.Cross(R, Vector3.up);
+        if(Vector3.Dot(F,originalForward)<0f) F=-F;
         w.klatki++;
         foreach (var s in new[] { "Left", "Right" })
         {
@@ -274,7 +314,9 @@ public static partial class BraxClaudeOsiedle
     static NogiWynik PatrykTestNog(GameObject hero, List<Transform> kosci, List<PatrykStan> rest, AnimationClip clip, int klatek = 16)
     {
         var w = new NogiWynik();
-        for (int i = 0; i < klatek; i++) { clip.SampleAnimation(hero, clip.length * i / klatek); PatrykNogiKlatka(kosci, w); }
+        PatrykSpoczynek(rest);
+        Vector3 originalForward=PatrykPrzodStop(kosci);
+        for (int i = 0; i < klatek; i++) { clip.SampleAnimation(hero, clip.length * i / klatek); PatrykNogiKlatka(kosci, w, originalForward); }
         PatrykSpoczynek(rest);
         return w;
     }
