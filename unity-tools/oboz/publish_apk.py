@@ -70,11 +70,41 @@ def publish(folder, dialogue, world, repo, source_sha):
     return data
 
 
+def publish_checkpoint(folder, world, repo, source_sha):
+    """Attach an optional checkpoint only after the APK is already delivered."""
+    receipt = Path(folder) / 'release-identity.json'
+    data = json.loads(receipt.read_text())
+    world = Path(world)
+    if data.get('sourceCommit') != source_sha or data.get('releaseTag') != TAG:
+        raise ValueError('Checkpoint does not match delivered APK')
+    release = json.loads(subprocess.check_output(
+        ['gh', 'release', 'view', TAG, '--repo', repo, '--json', 'isDraft,assets'], text=True))
+    names = {a['name'] for a in release.get('assets', [])}
+    if not release.get('isDraft') or data.get('apkAssetName') not in names:
+        raise ValueError('APK must be available before checkpoint publication')
+    name = 'oboz-world-' + str(data['versionCode']) + '-' + source_sha[:7] + '.tar.gz.enc'
+    if name in names: raise ValueError('Immutable checkpoint already exists')
+    data.update(worldAssetName=name, worldSha256=digest(world))
+    with tempfile.TemporaryDirectory(prefix='oboz-checkpoint-') as temp:
+        target = Path(temp) / name
+        try: os.link(world, target)
+        except OSError: shutil.copyfile(world, target)
+        subprocess.run(['gh', 'release', 'upload', TAG, '--repo', repo, str(target)], check=True)
+        receipt.write_text(json.dumps(data, indent=2) + '\n')
+        subprocess.run(['gh', 'release', 'upload', TAG, '--repo', repo,
+                        '--clobber', str(receipt)], check=True)
+    return data
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--folder', required=True)
     parser.add_argument('--dialogue', required=True)
     parser.add_argument('--world', required=True)
+    parser.add_argument('--checkpoint-only', action='store_true')
     args = parser.parse_args()
-    result = publish(args.folder, args.dialogue, args.world, os.environ['GITHUB_REPOSITORY'], os.environ['GITHUB_SHA'])
+    if args.checkpoint_only:
+        result = publish_checkpoint(args.folder, args.world, os.environ['GITHUB_REPOSITORY'], os.environ['GITHUB_SHA'])
+    else:
+        result = publish(args.folder, args.dialogue, args.world, os.environ['GITHUB_REPOSITORY'], os.environ['GITHUB_SHA'])
     print('BRAXHORN_OBOZ_DELIVERY asset=' + result['apkAssetName'] + ' phone_tested=false')

@@ -77,6 +77,38 @@ class PublishTests(unittest.TestCase):
         self.assertNotIn('worldSha256', data)
         self.assertNotIn('worldAssetName', data)
 
+    def test_checkpoint_requires_delivered_apk(self):
+        self.data.update(releaseTag=publisher.TAG, apkAssetName='current.apk')
+        self.receipt.write_text(json.dumps(self.data))
+        with patch.object(publisher.subprocess, 'check_output', return_value=json.dumps(dict(isDraft=True, assets=[]))), \
+                patch.object(publisher.subprocess, 'run') as run:
+            with self.assertRaises(ValueError):
+                publisher.publish_checkpoint(self.folder, self.world, 'owner/repo', self.sha)
+            run.assert_not_called()
+
+    def test_checkpoint_failure_preserves_apk_pointer(self):
+        self.data.update(releaseTag=publisher.TAG, apkAssetName='current.apk')
+        self.receipt.write_text(json.dumps(self.data))
+        before = self.receipt.read_bytes()
+        with patch.object(publisher.subprocess, 'check_output', return_value=json.dumps(
+                dict(isDraft=True, assets=[dict(name='current.apk')]))), \
+                patch.object(publisher.subprocess, 'run', side_effect=subprocess.CalledProcessError(1, 'upload')):
+            with self.assertRaises(subprocess.CalledProcessError):
+                publisher.publish_checkpoint(self.folder, self.world, 'owner/repo', self.sha)
+        self.assertEqual(self.receipt.read_bytes(), before)
+
+    def test_checkpoint_upload_precedes_pointer_and_preserves_apk(self):
+        self.data.update(releaseTag=publisher.TAG, apkAssetName='current.apk')
+        self.receipt.write_text(json.dumps(self.data))
+        with patch.object(publisher.subprocess, 'check_output', return_value=json.dumps(
+                dict(isDraft=True, assets=[dict(name='current.apk')]))), \
+                patch.object(publisher.subprocess, 'run') as run:
+            data = publisher.publish_checkpoint(self.folder, self.world, 'owner/repo', self.sha)
+        self.assertEqual(data['apkAssetName'], 'current.apk')
+        self.assertEqual(data['worldSha256'], publisher.digest(self.world))
+        self.assertNotIn('--clobber', run.call_args_list[0].args[0])
+        self.assertIn('--clobber', run.call_args_list[1].args[0])
+
     def test_incorrect_identity_is_rejected(self):
         for key, value in [('sourceCommit', 'b'*40), ('applicationId', 'other.app'),
                            ('signingCertificateSha256', 'b'*64)]:

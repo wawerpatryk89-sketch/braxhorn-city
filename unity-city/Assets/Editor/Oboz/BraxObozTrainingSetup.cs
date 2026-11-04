@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
@@ -10,6 +11,19 @@ public static class BraxObozTrainingSetup
 {
     const float K = BraxObozSceneInfo.WorldScale;
     const string NavPath = BraxObozCharacters.Generated + "/CampNavigation.asset";
+
+    [Serializable] class RouteCheck
+    {
+        public string from, to, status;
+        public Vector3 start, end;
+        public bool complete;
+    }
+    [Serializable] class RouteReport
+    {
+        public string commit;
+        public bool complete, phoneTested;
+        public List<RouteCheck> routes = new List<RouteCheck>();
+    }
 
     public static void Configure(BraxObozSceneInfo scene)
     {
@@ -89,9 +103,25 @@ public static class BraxObozTrainingSetup
             }
             var destinations=routine.places.Skip(2).Concat(routine.sparringPlaces).ToArray();
             var path=new NavMeshPath();
+            var report = new RouteReport { commit = Environment.GetEnvironmentVariable("GITHUB_SHA"), complete = true };
             for(int a=0;a<destinations.Length;a++)for(int b=0;b<destinations.Length;b++)if(a!=b)
-                if(!NavMesh.CalculatePath(destinations[a].position,destinations[b].position,NavMesh.AllAreas,path)||path.status!=NavMeshPathStatus.PathComplete)
-                    throw new InvalidOperationException("Brak przejścia między stanowiskami "+a+" → "+b);
+            {
+                bool found=NavMesh.CalculatePath(destinations[a].position,destinations[b].position,NavMesh.AllAreas,path);
+                bool complete=found && path.status==NavMeshPathStatus.PathComplete;
+                report.routes.Add(new RouteCheck { from=destinations[a].name, to=destinations[b].name,
+                    start=destinations[a].position, end=destinations[b].position,
+                    status=found?path.status.ToString():"NoPath", complete=complete });
+                report.complete &= complete;
+            }
+            var output=Path.GetFullPath(Path.Combine(Application.dataPath,"../../build/CampLifeReview"));
+            Directory.CreateDirectory(output);
+            File.WriteAllText(Path.Combine(output,"navigation-review.json"),JsonUtility.ToJson(report,true));
+            if(!report.complete)
+            {
+                var failed=report.routes.First(r=>!r.complete);
+                throw new InvalidOperationException("Brak przejścia: "+failed.from+" → "+failed.to+
+                    " ("+failed.start+" → "+failed.end+", "+failed.status+"); raport navigation-review.json");
+            }
         }
         finally{if(instance.valid)instance.Remove();}
         BraxObozAudioSetup.Configure(scene,routine);

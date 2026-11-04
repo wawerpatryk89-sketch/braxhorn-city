@@ -194,6 +194,9 @@ jobs:
           import json, os
           from pathlib import Path
           root=Path('build/CampLifeReview')
+          nav=json.loads((root/'navigation-review.json').read_text())
+          assert nav['complete'] and len(nav['routes'])==90 and all(p['complete'] for p in nav['routes'])
+          assert nav['commit']==os.environ['GITHUB_SHA'] and not nav['phoneTested']
           r=json.loads((root/'camp-life-review.json').read_text())
           assert r['complete'] and r['playModeTested'] and not r['errors']
           assert not r['phoneTested'] and not r['appearanceApproved']
@@ -325,15 +328,23 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
+      - name: Zapis niezmiennych plików APK do istniejącego draft release
+        run: |
+          python3 unity-tools/oboz/publish_apk.py \
+            --folder build/ObozAndroid \
+            --dialogue build/ObozAudio/camp-dialogue.zip \
+            --world "$RUNNER_TEMP/oboz-world.tar.gz.enc"
       - name: Zaszyfrowany zapis scen obozu
         id: world
         continue-on-error: true
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: python3 unity-tools/oboz/world.py pack --archive "$RUNNER_TEMP/oboz-world.tar.gz.enc"
-      - name: Zapis niezmiennych plików APK do istniejącego draft release
+      - name: Opcjonalny checkpoint po udostępnieniu APK
+        if: ${{ steps.world.outcome == 'success' }}
+        continue-on-error: true
         run: |
-          python3 unity-tools/oboz/publish_apk.py \
+          python3 unity-tools/oboz/publish_apk.py --checkpoint-only \
             --folder build/ObozAndroid \
             --dialogue build/ObozAudio/camp-dialogue.zip \
             --world "$RUNNER_TEMP/oboz-world.tar.gz.enc"

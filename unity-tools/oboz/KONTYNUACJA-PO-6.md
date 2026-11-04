@@ -1,9 +1,28 @@
-# Obóz — kontynuacja po #6, 4 listopada 2026
+# Obóz — naprawa po #7, 4 listopada 2026
 
-Build #7 został zlecony: run `41866983072`, SHA
-`23d54345fa3061f5c20fd73070c94c1fb4a47e0f`. Zaliczył kontrolę zlecenia,
-dostawy i przywrócenia cache; rozpoczął Play Mode. Nie jest jeszcze dowodem
-ukończenia testu, kompilacji ani dostępności APK.
+#7 (`41866983072`, `23d54345fa3061f5c20fd73070c94c1fb4a47e0f`) zakończył
+się błędem budowania sceny przed Play Mode: brak pełnej trasy 0 → 8
+(pierwszy worek → Ring 2). Kompilacja APK była pominięta; nie powstał APK.
+Artifact 13342329862 zawierał tylko log inicjalizacji shader compilera.
+
+Właściciel wznowił pracę i zlecił naprawę oraz jeden build. Baza:
+`b98c5630b8161f62508c2e459356b9926d1836ab`. Brak nowszego runu przy odczycie.
+Wspólny generator ringów zostawiał 0.125*1.294 = 0.16175 m szczeliny
+między najwyższym stopniem i podestem. Korekta wydłuża wyłącznie tył tego
+stopnia do podestu, zachowując jego wysokość, szerokość i przednią krawędź.
+To hipoteza przyczyny błędu NavMesh, wymagająca potwierdzenia w Unity;
+Ring 1 wcześniej miał pełną trasę pomimo tej samej szczeliny. Nie podniesiono
+agentClimb, nie dodano teleportacji ani nie wyłączono żadnej trasy.
+Raport navigation-review.json zapisuje wszystkie 90 tras także przy błędzie.
+
+Kontrola lokalna: 55 testów narzędzi zaliczonych, gramatyka C#, YAML/bash OK.
+Przekrój geometryczny: stara szczelina 0.16175 m; nowy zakład 0.22645 m,
+przednia krawędź bez zmiany. To nie jest wykonanie NavMesh ani test telefonu.
+Warunkiem APK pozostaje rzeczywista kontrola 90 tras i Play Mode trzech aren.
+
+Dostawa: artifact i draft APK przed opcjonalnym pakowaniem scen/cache.
+Checkpoint trafia później jako osobny niezmienny asset; aktualizacja wskaźnika
+następuje po jego uploadzie. Błąd checkpointu nie usuwa gotowego APK.
 
 Na późniejsze polecenie właściciela przygotowano ratunkowy zapis istniejącego
 APK również po błędzie Unity, kontroli podpisu lub podstawowego uploadu.

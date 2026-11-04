@@ -208,7 +208,13 @@ public static partial class BraxObozEnvironment
         ColliderBox(t,new Vector3(-4,1.3f,0),new Vector3(.1f,1.6f,8));ColliderBox(t,new Vector3(4,1.3f,0),new Vector3(.1f,1.6f,8));
         ColliderBox(t,new Vector3(0,1.3f,4),new Vector3(8,1.6f,.1f));
         ColliderBox(t,new Vector3(-2.35f,1.3f,-4),new Vector3(3.3f,1.6f,.1f));ColliderBox(t,new Vector3(2.35f,1.3f,-4),new Vector3(3.3f,1.6f,.1f));
-        for(int i=0;i<3;i++)Box(t,"Schodek",new Vector3(0,.08f*(i+1),-5.2f+i*.3f),new Vector3(1.4f,.16f*(i+1),.35f),wood);
+        // Keep the first two treads and the front edge of the top tread unchanged.
+        // The old top tread ended at -4.425, leaving a 0.125*K gap before
+        // the platform edge (-4.3). Extend its back into the platform so
+        // navigation cannot see a drop to the pavilion floor between them.
+        for(int i=0;i<3;i++)Box(t,"Schodek",
+            new Vector3(0,.08f*(i+1),i==2?-4.45f:-5.2f+i*.3f),
+            new Vector3(1.4f,.16f*(i+1),i==2?.65f:.35f),wood);
         var aComp=t.gameObject.AddComponent<BraxObozArena>();aComp.label=name;aComp.halfSize=new Vector2(3.9f,3.9f)*K;arenas.Add(aComp);
     }
     static void DynamicRopes(float x,float z,Vector3 a,Vector3 b,Vector3 outward)
