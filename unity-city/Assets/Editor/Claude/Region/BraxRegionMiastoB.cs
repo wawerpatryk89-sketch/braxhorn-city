@@ -91,7 +91,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     {
         Physics.SyncTransforms();
         int ok = 0;
-        foreach (var (co, a) in wyposazenie) { try { a(); ok++; } catch (Exception e) { Debug.LogError("BRAXHORN_MIASTO_B wyposażenie " + co + ": " + e); } }
+        foreach (var (co, a) in wyposazenie) { try { a(); ok++; } catch (Exception e) { ndBlokery.Add("wyposażenie " + co + ": " + e.Message); Debug.LogError("BRAXHORN_MIASTO_B wyposażenie " + co + ": " + e); } }
         BraxRegion.Note("miasto B: wyposażenie na podłożu " + ok + "/" + wyposazenie.Count + ", bez nawierzchni pod spodem: " + bezPodloza);
         wyposazenie.Clear();
     }
@@ -179,7 +179,12 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
 
     static void Krok(string nazwa, Action a)
     {
-        try { a(); kroki.Add(nazwa + ": OK"); }
+        int blokeryPrzed = ndBlokery.Count;
+        try
+        {
+            a();
+            kroki.Add(nazwa + (ndBlokery.Count == blokeryPrzed ? ": OK" : ": BŁĄD podetapów: " + (ndBlokery.Count - blokeryPrzed)));
+        }
         catch (Exception e) { kroki.Add(nazwa + ": BŁĄD " + e.Message); Debug.LogError("BRAXHORN_MIASTO_B " + nazwa + ": " + e); }
     }
 
@@ -1349,7 +1354,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         for (float z = RZ + RPlac + 10f; z + 3f < PetlaZ - PetlaPlac - 7f; z += 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z), new Vector3(AX + .06f, YA + .021f, z + 3f));
         for (float z = RZ - RPlac - 10f; z > SZ + SH + 18f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
         for (float z = SZ - SH - 18f; z > AS1 + 16f; z -= 7f) farbaB.MinMax(new Vector3(AX - .06f, YA + .02f, z - 3f), new Vector3(AX + .06f, YA + .021f, z));
-        try { NoweDzielniceOznakowanie(farbaB); } catch (Exception e) { Debug.LogError("BRAXHORN_MIASTO_ASSETY oznakowanie nowych dzielnic DO POPRAWKI: " + e); }
+        try { NoweDzielniceOznakowanie(farbaB); } catch (Exception e) { ndBlokery.Add("oznakowanie nowych dzielnic: " + e.Message); Debug.LogError("BRAXHORN_MIASTO_ASSETY oznakowanie nowych dzielnic DO POPRAWKI: " + e); }
         BudujAsfalt(farbaB);
     }
 
