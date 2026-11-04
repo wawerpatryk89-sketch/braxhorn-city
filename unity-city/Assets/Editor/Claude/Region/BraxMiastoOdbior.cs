@@ -33,6 +33,7 @@ internal static class BraxMiastoOdbior
         SprawdzTaras360(cityRoot);
         SprawdzTramT1(cityRoot);
         SprawdzMetroM1(cityRoot);
+        SprawdzStanowiskaWodne(cityRoot);
     }
 
     static void SprawdzApteke(Transform cityRoot)
@@ -212,6 +213,47 @@ internal static class BraxMiastoOdbior
               " przeszkody_kamienic=" + przeszkody +
               " brak_podlogi_przed_wejsciem=" + bezChodnika +
               " — wygląd nawierzchni i wody nadal wymaga odbioru na Androidzie");
+    }
+
+    // Odbiór modelowy Braxa w Marinie: nie dopuszczamy do starego zdjęcia
+    // z krzywo siedzącą postacią. Sama geometria nie zastępuje testu telefonu,
+    // ale wyłapuje brak źródłowych punktów, złą wysokość i brak dostępu.
+    static void SprawdzStanowiskaWodne(Transform cityRoot)
+    {
+        var all = cityRoot.GetComponentsInChildren<BraxVessel>(true);
+        int jac = all.Count(v => v && v.label == "JACHT");
+        int riv = all.Count(v => v && v.label == "MOTORÓWKA");
+        int jet = all.Count(v => v && v.label == "SKUTER");
+        int bez = 0;
+        foreach (var v in all)
+        {
+            if (!v) continue;
+            bool siedzisko = v.seat.y > -.25f &&
+                v.seat.y < 10.5f &&
+                Mathf.Abs(v.seat.z) <= v.length * .52f;
+            if (v.label == "MOTORÓWKA")
+                siedzisko &= Mathf.Abs(v.seat.x) > .12f; // prawy fotel assise_4, nie środek kabiny
+            if (v.label == "JACHT")
+                siedzisko &= v.walkableDeck &&
+                    v.helmCameraLocal.y > v.seat.y &&
+                    Mathf.Abs(v.deckEntry.z) <= v.length * .48f;
+            if (!siedzisko)
+            {
+                bez++;
+                Debug.LogError("BRAXHORN_MARINA_STER_NIEGOTOWY " + v.name +
+                    " seat=" + v.seat.ToString("F2") +
+                    " poklad=" + v.walkableDeck +
+                    " kamera=" + v.helmCameraLocal.ToString("F2"));
+            }
+        }
+        string msg = "BRAXHORN_MARINA_PASAZER_KONTROLA jachty=" + jac +
+            " motorowki=" + riv + " skutery=" + jet +
+            " błędne_stanowiska=" + bez +
+            " (Riva: fotel assise_4; skuter: siodło; jacht: pokład + ster + kamera wewnętrzna)";
+        if (jac < 3 || riv < 6 || jet < 4 || bez > 0)
+            Debug.LogError(msg + " NIEGOTOWE — nie zatwierdzać publikacji APK");
+        else
+            Debug.Log(msg + " GOTOWE W KODZIE do rzeczywistego testu Android");
     }
 
     static void SprawdzWejscie(string nazwa, float x, float y, float zA, float zB)
