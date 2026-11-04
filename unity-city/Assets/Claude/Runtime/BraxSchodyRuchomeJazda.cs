@@ -32,8 +32,16 @@ public sealed class BraxSchodyRuchomeJazda : MonoBehaviour
             if (!r || !r.isVisible) continue;
             r.GetPropertyBlock(mpb); mpb.SetVector(ST, new Vector4(1f, 1f, off, 0f)); r.SetPropertyBlock(mpb);
         }
+    }
+
+    // Przemieszczenie gracza po jego własnym Update, aby nie walczyło z
+    // wejściem joysticka i grawitacją. Nie tworzymy drugiego CharacterControllera.
+    void LateUpdate()
+    {
+        float dt = Time.deltaTime;
+        if (dt <= 0f) return;
         if (!gracz && Time.unscaledTime > szukaj) { szukaj = Time.unscaledTime + 2f; gracz = FindFirstObjectByType<BraxGymPlayer>(); }
-        if (!gracz || !gracz.body || !gracz.body.enabled) return;
+        if (!gracz || !gracz.body || !gracz.body.enabled || gracz.seat || gracz.vessel) return;
         var p = gracz.transform.position;
         var os = dol - gora; var poz = new Vector2(os.x, os.z); float Lp = poz.magnitude; if (Lp < .1f) return;
         var kier = poz / Lp;
