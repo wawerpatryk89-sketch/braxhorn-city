@@ -1,4 +1,4 @@
-name: Obóz — Monika porównanie animacji
+name: Obóz — Monika kontrola ruchu
 
 on:
   push:
@@ -68,7 +68,7 @@ jobs:
           else
             echo 'BRAXHORN_PAMIEC_LIBRARY oboz=nie — pierwsze uruchomienie lub brak kopii'
           fi
-      - name: Porównanie ruchu Moniki w Unity bez budowania APK
+      - name: Ruch i przejścia Moniki w Play Mode bez budowania APK
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -78,7 +78,8 @@ jobs:
           projectPath: unity-city
           unityVersion: 6000.0.58f2
           targetPlatform: Android
-          buildMethod: BraxObozCharacters.ReviewMonika
+          buildMethod: BraxObozCharacters.ReviewMonikaRuntime
+          manualExit: true
           versioning: None
           allowDirtyBuild: true
           enableGpu: true
@@ -87,29 +88,25 @@ jobs:
           python3 - <<'PY_REVIEW'
           import json, os
           from pathlib import Path
-          root=Path('build/MonikaReview')
-          report=json.loads((root/'motion-review.json').read_text())
-          assert report['complete'] and report['experimentOnly']
+          root=Path('build/MonikaRuntimeReview')
+          report=json.loads((root/'runtime-review.json').read_text())
+          assert report['complete'] and report['playModeTested']
           assert not report['phoneTested'] and not report['appearanceApproved']
-          assert report['unity']=='6000.0.58f2' and report['graphics']!='Null'
-          assert report['captureMethod']=='cpu-baked-mesh'
-          expected={(v,c) for v in ('baseline','direct','calibrated-direct') for c in ('Idle','Walk','Run','Punch','Training')}
-          expected|={(v,c) for v in ('direct','calibrated-direct') for c in ('CasualIdle','CasualWalk','CasualRun')}
-          assert {(c['variant'],c['clip']) for c in report['cases']}==expected
-          for case in report['cases']:
-              assert len(case['frames'])==60 and len(case['captures'])==36
-              for name in case['captures']:
-                  assert Path(name).name==name and name.endswith('.png')
-                  assert (root/name).is_file() and (root/name).stat().st_size>4096
-          print('MONIKA: 21 porównań, 1260 pomiarów, 756 obrazów; wymagają oceny ruchu')
+          assert report['unity']=='6000.0.58f2' and report['commit']==os.environ['GITHUB_SHA']
+          assert report['captureMethod']=='cpu-baked-mesh' and report['controller']=='BraxGymPlayer'
+          assert report['distance']>5 and report['pauseDisplacement']<=.001
+          assert len(report['frames'])>=100 and not report['errors']
+          assert {'Idle','Walk','Run','Punch','CombatIdle'}<={f['clip'] for f in report['frames']}
+          assert len(list(root.glob('*.png')))>=100
+          print('MONIKA: realny kontroler, chód/bieg/zatrzymanie/cios/pauza/powtórka; obrazy wymagają oceny')
           PY_REVIEW
       - name: Tylko obrazy Moniki i pomiary — bez surowych źródeł
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: monika-motion-${{ github.run_id }}
+          name: monika-runtime-${{ github.run_id }}
           path: |
-            build/MonikaReview/*.json
-            build/MonikaReview/*.png
+            build/MonikaRuntimeReview/*.json
+            build/MonikaRuntimeReview/*.png
           if-no-files-found: warn
           retention-days: 14

@@ -1,4 +1,4 @@
-"""Restore three encrypted animation candidates for Monika's diagnostic only.
+"""Restore three verified encrypted locomotion clips selected for Monika.
 
 Uses the existing camp recipient and source verifier. No private key or raw clip
 is published, and this command does not change the production delivery manifest.
@@ -71,7 +71,7 @@ def restore(data):
             target = assets.safe(assets.PRIVATE, record['path'])
             target.parent.mkdir(parents=True, exist_ok=True)
             os.replace(assets.safe(stage, record['path']), target)
-    print('MONIKA_MOTION_CANDIDATES verified=3 production_selected=false')
+    print('MONIKA_MOTION_SOURCE verified=3 character=monika')
 
 
 if __name__ == '__main__':

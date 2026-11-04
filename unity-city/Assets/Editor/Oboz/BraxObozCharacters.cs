@@ -15,7 +15,7 @@ public static partial class BraxObozCharacters
 {
     public const string ManifestPath = "Assets/Editor/Oboz/CharacterManifest.json";
     public const string Generated = "Assets/PlayableGenerated/Oboz";
-    [Serializable] public sealed class ClipSpec { public string name, path, donor; public bool loop, inPlace; }
+    [Serializable] public sealed class ClipSpec { public string name, path, donor; public bool loop, inPlace, directCalibrated; }
     [Serializable] public sealed class CharacterSpec
     {
         public string id, name, role, modelPath, colorPath, normalPath, roughnessPath, metallicPath;
@@ -58,6 +58,7 @@ public static partial class BraxObozCharacters
     {
         var dependencies = new[] { spec.modelPath, spec.colorPath, spec.normalPath, spec.roughnessPath, spec.metallicPath,
             "Assets/Editor/Oboz/BraxObozCharacters.cs", "Assets/Editor/Oboz/BraxObozImport.cs", "Assets/Oboz/ObozCharacter.shader" }
+            .Concat(spec.clips.Any(c=>c.directCalibrated)?new[]{"Assets/Editor/Oboz/BraxObozMonikaMotion.cs"}:Array.Empty<string>())
             .Concat((spec.clips ?? Array.Empty<ClipSpec>()).Select(c => c.path)).Distinct().OrderBy(p => p);
         string input = Application.unityVersion + "|" + scale.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" + sourceReviewOnly + "|" + JsonUtility.ToJson(spec);
         foreach (string path in dependencies)
@@ -101,6 +102,7 @@ public static partial class BraxObozCharacters
         string folder = Generated + "/" + spec.id;
         Directory.CreateDirectory(folder); AssetDatabase.Refresh();
         var hero = Object.Instantiate(prefab); hero.name = spec.name;
+        Avatar calibratedMotion=null;
         hero.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         hero.transform.localScale = Vector3.one;
         try
@@ -146,9 +148,10 @@ public static partial class BraxObozCharacters
             }
             var animation = hero.AddComponent<Animation>(); animation.playAutomatically = false;
             animation.cullingType = AnimationCullingType.AlwaysAnimate;
+            if(spec.clips.Any(c=>c.directCalibrated))calibratedMotion=CalibratedMotionAvatar(hero,avatar);
             foreach (var clip in spec.clips)
             {
-                var baked = Bake(hero, avatar, hips, rest, clip);
+                var baked = clip.directCalibrated?BakeDirectMotion(hero,calibratedMotion,hips,rest,clip):Bake(hero, avatar, hips, rest, clip);
                 Validate(hero, hips, rest, baked);
                 Save(baked, folder + "/" + clip.name + ".anim");
                 animation.AddClip(AssetDatabase.LoadAssetAtPath<AnimationClip>(folder + "/" + clip.name + ".anim"), clip.name);
@@ -166,6 +169,7 @@ public static partial class BraxObozCharacters
             return hero;
         }
         catch { Object.DestroyImmediate(hero); throw; }
+        finally { if(calibratedMotion)Object.DestroyImmediate(calibratedMotion); }
     }
 
     static string BoneName(string name)

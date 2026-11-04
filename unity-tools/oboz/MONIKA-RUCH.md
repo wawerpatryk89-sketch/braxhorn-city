@@ -81,3 +81,33 @@ Odczyt cache w rewizji 3 wskazuje bazową gałąź `gpt/oboz`; kod wspólnego na
 pozostaje identyczny, a pamięć źródłowej gałęzi nie jest zapisywana ani usuwana.
 Kolejny etap po Monice: pozostała szóstka, zachowania NPC i zaparkowany autobus
 skopiowany z istniejącego zasobu miasta/osiedla.
+
+## Wynik poprawionych obrazów i wybór ruchów
+
+Run `41826624631`, SHA `380e1eb2fe47b23c1d8c55f5ab03529ffd6f5727`,
+Unity 6000.0.58f2/OpenGLCore: 21 przypadków bez błędów, zapis CPU BakeMesh.
+Artefakt `13319269380`: 56867620 bajtów, SHA-256
+`cca6e0653c069cd64fd42eeefa4a98f43bb26211d7075e1fc3ce15830165b08b`.
+Pobrano i zweryfikowano archiwum. Obrazy są zgodne z pomiarami pozy.
+Oględziny z przodu, tyłu i boku potwierdzają: dotychczasowy Walk jest chodem
+w gardzie; dotychczasowy Run krzyżuje stopy/nogi i skręca je w wybranych fazach.
+Nowe CasualIdle/Walk/Run pokazują swobodne ręce w postoju/chodzie oraz naturalne
+zgięcie nóg w biegu. Wariant calibrated-direct wybrano do dalszej próby runtime.
+Dla nowego chodu mierzalny poziomy kierunek stopy: p95 13.76°, max 24.58°
+(po kalibracji), wobec p95 39.21°, max 164.12° bez kalibracji. W biegu same
+wartości yaw bliskie 180° nie są błędem: stopa odgina się wraz ze zgiętą nogą.
+Wybór opiera się również na obrazach, nie na jednym progu kąta.
+
+Rewizja 5 zmienia tylko Idle/Walk/Run Moniki na te trzy sprawdzone źródła
+oraz bezpośredni retarget z kalibracją. Ciosy i pozostałe ruchy nadal używają
+dotychczasowej ścieżki; oryginalny FBX, siatka, bind poses, tekstury, wzrost
+oraz klipy sześciu NPC pozostają identyczne. Zwykły build obozu przywraca tę
+samą zaszyfrowaną paczkę ruchu. Wspólne narzędzia cache nie są zmienione.
+Nowy helper jest częścią zależności cache postaci stosujących tę metodę.
+
+Przygotowana próba `ReviewMonikaRuntime` uruchamia rzeczywisty BraxGymPlayer
+w Play Mode w izolowanej scenie CI: postój, chód, bieg, zatrzymanie, cios,
+pauza, wznowienie i drugi cios. Zapisuje pozycje, aktywne klipy, pomiary kości,
+obrazy z kamery gracza i migawki siatki z trzech stron. Nie zapisuje sceny,
+nie buduje APK, nie akceptuje automatycznie wyglądu. Wynik tej próby jeszcze
+nie jest znany. Test telefonu poprawki nadal nie odbył się.

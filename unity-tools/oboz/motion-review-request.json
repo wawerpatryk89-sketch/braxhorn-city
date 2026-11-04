@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "character": "monika",
-  "experiment": "original-vs-direct-vs-calibrated-direct",
-  "revision": 4,
+  "experiment": "production-player-transitions",
+  "revision": 5,
   "apk": false
 }
