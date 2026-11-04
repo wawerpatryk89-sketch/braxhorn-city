@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 public static partial class BraxObozCharacters
 {
     const string LifeKey = "Braxhorn.Camp.LifeReview";
+    const int LifeReviewTimeoutMinutes = 350;
     static BraxObozSceneInfo lifeScene;
     static BraxObozTrainingRoutine lifeRoutine;
     static Camera lifeCamera, lifePoseCamera;
@@ -102,7 +103,7 @@ public static partial class BraxObozCharacters
     static void SubscribeLifeReview()
     {
         lifeWallStart = EditorApplication.timeSinceStartup;
-        lifeDeadline = lifeWallStart + 1200;
+        lifeDeadline = lifeWallStart + LifeReviewTimeoutMinutes * 60;
         EditorApplication.update -= TickLifeReview; EditorApplication.update += TickLifeReview;
         Application.logMessageReceived -= LifeLog; Application.logMessageReceived += LifeLog;
     }
@@ -115,7 +116,7 @@ public static partial class BraxObozCharacters
     {
         try
         {
-            if (EditorApplication.timeSinceStartup > lifeDeadline) throw new TimeoutException("Próba życia obozu: limit 1200 s");
+            if (EditorApplication.timeSinceStartup > lifeDeadline) throw new TimeoutException("Próba życia obozu: limit " + LifeReviewTimeoutMinutes + " min");
             if (!EditorApplication.isPlaying) return;
             if (!lifeScene)
             {
