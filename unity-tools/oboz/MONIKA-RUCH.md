@@ -46,6 +46,18 @@ i legalny obrót stopy podporowej. Następnie przejścia w Play Mode i kontrola
 na telefonie. Tych kontroli nie zastępuje kompilacja ani parser kodu.
 
 Status: narzędzie diagnostyczne; poprawka produkcyjna jeszcze nie przyjęta.
+Run `41824579277` (SHA `67c3d98582ffc3d9108f5d91475b6c7e6a6de75b`)
+zakończył 21 przypadków bez wyjątków w Unity 6000.0.58f2/OpenGLCore.
+Artefakt `13318747995`, 55869775 bajtów, SHA-256
+`0c21bd170a025beca5cdd7777c42790c2f0d73fcfac5221dbab06de645c6bb26`
+pobrano i sprawdzono: 756 PNG i raport. Oględziny wykazały niespójność:
+np. CasualIdle mierzy przedramię 31.6° od pionu, lecz podgląd pokazuje
+uniesione ręce i szeroki rozkrok. Obrazów z tego runu nie uznano za dowód
+pozy kości. Podejrzenie: Camera.Render w jednym ticku edytora używa poprzedniego
+wyniku skinningu. Rewizja 4 renderuje tymczasową siatkę z BakeMesh (CPU),
+z bieżącej mierzonej pozy i z oryginalnym materiałem. Nie zmienia siatki źródła
+ani renderowania gry. Dodaje też pomiar pochylenia stopy, aby nie mylić
+naturalnego odgięcia nogi w biegu ze skrętem stopy w poziomie.
 Pierwszy run `41822204442` nie uruchomił Unity: token `contents: read` nie
 widzi prywatnego draft release dostawy (`release not found`). Istnienie draftu
 i siedmiu paczek potwierdzono przez API. Rewizja 2 stosuje `contents: write`

@@ -92,6 +92,7 @@ jobs:
           assert report['complete'] and report['experimentOnly']
           assert not report['phoneTested'] and not report['appearanceApproved']
           assert report['unity']=='6000.0.58f2' and report['graphics']!='Null'
+          assert report['captureMethod']=='cpu-baked-mesh'
           expected={(v,c) for v in ('baseline','direct','calibrated-direct') for c in ('Idle','Walk','Run','Punch','Training')}
           expected|={(v,c) for v in ('direct','calibrated-direct') for c in ('CasualIdle','CasualWalk','CasualRun')}
           assert {(c['variant'],c['clip']) for c in report['cases']}==expected

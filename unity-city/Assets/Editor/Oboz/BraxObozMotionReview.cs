@@ -16,6 +16,7 @@ public static partial class BraxObozCharacters
     {
         public float time, leftFootYaw, rightFootYaw, leftKneePlane, rightKneePlane;
         public float leftArmFromDown, rightArmFromDown, leftForearmFromDown, rightForearmFromDown;
+        public float leftFootPitch, rightFootPitch;
         public bool leftFootMeasurable, rightFootMeasurable;
     }
     [Serializable] sealed class MotionCase
@@ -26,7 +27,7 @@ public static partial class BraxObozCharacters
     }
     [Serializable] sealed class MotionReview
     {
-        public string unity, commit, character="monika", graphics;
+        public string unity, commit, character="monika", graphics, captureMethod="cpu-baked-mesh";
         public bool phoneTested=false, appearanceApproved=false, experimentOnly=true, complete=false;
         public MotionCase[] cases;
         public string[] errors;
@@ -91,10 +92,11 @@ public static partial class BraxObozCharacters
                             frames.Add(MeasureMotion(bones,time));
                             if(i%5==0)
                             {
+                                using(var snapshot=new MotionSnapshot(hero))
                                 foreach(var view in new[]{"front","back","side"})
                                 {
                                     string file=variant+"-"+clipSpec.name+"-"+view+"-"+i.ToString("D2")+".png";
-                                    CaptureMotion(hero,camera,view,Path.Combine(output,file));captures.Add(file);
+                                    CaptureMotion(snapshot.renderers,camera,view,Path.Combine(output,file));captures.Add(file);
                                 }
                             }
                         }
@@ -205,14 +207,51 @@ public static partial class BraxObozCharacters
             float plane=Vector3.Angle(thigh,shin)>15?Mathf.Min(Vector3.Angle(axis,right),Vector3.Angle(axis,-right)):0;
             float arm=Vector3.Angle(Bone(side+"ForeArm").position-Bone(side+"Arm").position,Vector3.down);
             float forearm=Vector3.Angle(Bone(side+"Hand").position-Bone(side+"ForeArm").position,Vector3.down);
-            if(side=="Left"){result.leftFootMeasurable=measurable;result.leftFootYaw=measurable?Vector3.Angle(flat,forward):0;result.leftKneePlane=plane;result.leftArmFromDown=arm;result.leftForearmFromDown=forearm;}
-            else{result.rightFootMeasurable=measurable;result.rightFootYaw=measurable?Vector3.Angle(flat,forward):0;result.rightKneePlane=plane;result.rightArmFromDown=arm;result.rightForearmFromDown=forearm;}
+            float pitch=Mathf.Asin(Mathf.Clamp(foot.normalized.y,-1,1))*Mathf.Rad2Deg;
+            if(side=="Left"){result.leftFootMeasurable=measurable;result.leftFootYaw=measurable?Vector3.Angle(flat,forward):0;result.leftFootPitch=pitch;result.leftKneePlane=plane;result.leftArmFromDown=arm;result.leftForearmFromDown=forearm;}
+            else{result.rightFootMeasurable=measurable;result.rightFootYaw=measurable?Vector3.Angle(flat,forward):0;result.rightFootPitch=pitch;result.rightKneePlane=plane;result.rightArmFromDown=arm;result.rightForearmFromDown=forearm;}
         }
         return result;
     }
-    static void CaptureMotion(GameObject hero,Camera camera,string view,string output)
+    // Camera.Render calls in one editor tick can reuse stale GPU skinning.
+    // BakeMesh computes the currently measured pose on CPU. Render only this
+    // temporary snapshot with the original material; never modify source meshes.
+    sealed class MotionSnapshot : IDisposable
     {
-        var renderers=hero.GetComponentsInChildren<SkinnedMeshRenderer>();Bounds bounds=renderers[0].bounds;foreach(var r in renderers.Skip(1))bounds.Encapsulate(r.bounds);
+        readonly SkinnedMeshRenderer[] sources;
+        readonly bool[] enabled;
+        readonly List<GameObject> objects=new List<GameObject>();
+        readonly List<Mesh> meshes=new List<Mesh>();
+        public readonly List<MeshRenderer> renderers=new List<MeshRenderer>();
+        public MotionSnapshot(GameObject hero)
+        {
+            sources=hero.GetComponentsInChildren<SkinnedMeshRenderer>();
+            enabled=sources.Select(r=>r.enabled).ToArray();
+            try
+            {
+                foreach(var source in sources)
+                {
+                    var mesh=new Mesh();meshes.Add(mesh);source.BakeMesh(mesh,false);mesh.RecalculateBounds();
+                    if(mesh.vertexCount!=source.sharedMesh.vertexCount)throw new InvalidOperationException("Niepełna migawka siatki Moniki");
+                    var go=new GameObject("Measured pose snapshot");objects.Add(go);go.layer=27;
+                    go.transform.SetParent(source.transform,false);
+                    go.AddComponent<MeshFilter>().sharedMesh=mesh;
+                    var renderer=go.AddComponent<MeshRenderer>();renderer.sharedMaterials=source.sharedMaterials;
+                    renderer.shadowCastingMode=ShadowCastingMode.Off;renderers.Add(renderer);source.enabled=false;
+                }
+            }
+            catch{Dispose();throw;}
+        }
+        public void Dispose()
+        {
+            foreach(var go in objects)if(go)Object.DestroyImmediate(go);
+            foreach(var mesh in meshes)if(mesh)Object.DestroyImmediate(mesh);
+            for(int i=0;i<sources.Length;i++)if(sources[i])sources[i].enabled=enabled[i];
+        }
+    }
+    static void CaptureMotion(List<MeshRenderer> renderers,Camera camera,string view,string output)
+    {
+        Bounds bounds=renderers[0].bounds;foreach(var r in renderers.Skip(1))bounds.Encapsulate(r.bounds);
         var center=bounds.center;float span=Mathf.Max(bounds.size.y,1f)*1.25f;
         Vector3 direction=view=="front"?Vector3.forward:view=="back"?Vector3.back:Vector3.right;
         camera.transform.position=center+direction*span*3;camera.transform.LookAt(center);camera.orthographicSize=span*.5f;
