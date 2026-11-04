@@ -123,10 +123,10 @@ public static partial class BraxRegionMiastoB
     {
         ("TRAMWAJOWA ZACHÓD", -690f, NS1 - AH * .5f),
         ("TRAMWAJOWA CENTRUM", -485f, NS1 - AH * .5f),
-        ("C0 — NOWA DZIELNICA", NC[0] + AH * .5f, 18f),
+        ("C0 — NOWA DZIELNICA", -300f + AH * .5f, 18f),
         ("NOWOJORSKA WSCHÓD", -425f, NN1 - AH * .5f),
         ("NOWOJORSKA ZACHÓD", -660f, NN1 - AH * .5f),
-        ("C3 — ALEJA CENTRALNA", NC[3] - AH * .5f, 18f)
+        ("C3 — ALEJA CENTRALNA", -750f - AH * .5f, 18f)
     };
 
     static void NdTramT1Buduj()
