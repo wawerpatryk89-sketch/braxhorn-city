@@ -52,3 +52,13 @@
 - Po zakończeniu jednego cache-miss nie ma już powodów do oznaczania etapu wysłania APK jako
   drugiej awarii — step publikacji uruchomi się tylko po sukcesie Unity.
 - Nadal brak testu Android, pełnej kompilacji i pomiaru wydajności; status = DO WERYFIKACJI.
+
+## Dodatkowe naprawy bezpieczeństwa po audycie
+
+- Wydawanie APK zatrzymuje się, gdy brakuje osobnej sceny nabrzeża, wyspy lub kwadratów 150×150 m. Wcześniej `Pack()` usuwał brakujące sceny z listy po cichu.
+- Wyjątki podstawowych systemów sklepu, metra, kontroli materiałów i szyb nie są już maskowane jako `DO POPRAWKI` przy tworzeniu APK miasta. Identycznie przerwanie podziału stref i opcjonalnie włączonego oryginalnego portu.
+- Trzy joby workflow mają wymóg `github.event_name == 'workflow_dispatch'` także wewnątrz warunków uruchomienia — zabezpieczenie na wypadek przypadkowego przywrócenia wyzwalacza push.
+- Z poprzedniego przebiegu brak `unity-city/ProjectSettings/ProjectSettings.asset` (jest `ProjectVersion.txt`). Kompilacja Unity działała w tym przebiegu przez projekt szablonowy; przed udostępnieniem APK trzeba potwierdzić wszystkie ustawienia grafiki, pakietu i API w logu rzeczywistego builda. **Nie generowano zastępczych ustawień graficznych.**
+- Statyczna kontrola nie wymaga `.meta` dla starego skryptu edytora `BraxClaudeMetro.cs`, którego pliku .meta nie ma w repo. Zachowano GUID-y nowych skryptów runtime.
+
+**Weryfikacja kodowa nie zastępuje Unity.** Nowe warunki mogą celowo zatrzymać kompilację przy niekompletnej scenie lub brakującym oryginalnym modelu. Nie wolno tego obchodzić wyłączaniem kontroli.

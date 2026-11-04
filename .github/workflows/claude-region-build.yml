@@ -26,7 +26,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   source-imports:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:')))))
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -49,7 +49,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:')))))
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'))
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -229,7 +229,7 @@ jobs:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
     - name: SOBCZAK i WAWER — wymus komplet oryginalnych szyldow i sprzet kawiarni przed Unity 6
-      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:')))
+      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
       run: |
         set -euo pipefail
         python3 unity-tools/claude/check_signage.py
@@ -242,7 +242,7 @@ jobs:
         echo "SOBCZAK KAWIARNIA: sprawdzenie sprzetu i oryginalnych szyldow PASS"
 
     - name: Bramka jakosci miasta przed drogim buildem (tylko reczny test napraw)
-      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:')))
+      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
       run: |
         set -euo pipefail
         root=unity-city/Assets/Source
@@ -447,7 +447,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:')))))
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'))
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -607,7 +607,7 @@ jobs:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
     - name: SOBCZAK i WAWER — wymus komplet oryginalnych szyldow i sprzet kawiarni przed Unity 6
-      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:')))
+      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
       run: |
         set -euo pipefail
         python3 unity-tools/claude/check_signage.py
@@ -620,7 +620,7 @@ jobs:
         echo "SOBCZAK KAWIARNIA: sprawdzenie sprzetu i oryginalnych szyldow PASS"
 
     - name: Bramka jakosci miasta przed drogim buildem (tylko reczny test napraw)
-      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:')))
+      if: github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'workflow_dispatch'
       run: |
         set -euo pipefail
         root=unity-city/Assets/Source
@@ -1006,7 +1006,7 @@ jobs:
 
   shots:
     needs: combined-unity6
-    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104')
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104')
     runs-on: ubuntu-latest
     timeout-minutes: 100
     strategy:

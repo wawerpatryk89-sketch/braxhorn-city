@@ -74,6 +74,17 @@ public static class BraxGymBuild
         // kwadraty miasta (BraxhornCity_K*, 1.11): dopisywane do każdej paczki z miastem
         var kw=Directory.Exists(Generated)?Directory.GetFiles(Generated,"BraxhornCity_K*.unity").Select(f=>f.Replace('\\','/')).OrderBy(f=>f).ToArray():new string[0];
         cityIsland=cityIsland+"";var cityAll=new[]{cityScene,cityArea,cityIsland}.Concat(kw).ToArray();
+        // Nie wolno tworzyć pozornie kompletnego APK miasta, jeżeli podział
+        // na nabrzeże, wyspę lub kwadraty zniknął. Poprzedni Pack() cicho
+        // odrzucał brakujące sceny, co mogło wypuścić niepełną grę.
+        if(rejon=="miasto")
+        {
+            foreach(var required in new[]{cityScene,cityArea,cityIsland})
+                if(!File.Exists(required))
+                    throw new InvalidOperationException("BRAXHORN_MIASTO_SCENA_NIEGOTOWA: "+required);
+            if(kw.Length==0)
+                throw new InvalidOperationException("BRAXHORN_KWADRATY_NIEGOTOWE: brak podziału miasta na sceny 150x150m");
+        }
         // Właściciel 1.11, 01:14: „jeden ma mieć wszystko podzielone plus extra osiedla na innym do wglądu na szybko”.
         var variants=new[]{
             new{tag="osiedle",scenes=Pack(estateScene,estateArea),gl=false,id="com.braxhorn.osiedle",name="Braxhorn Osiedle"},
@@ -350,19 +361,19 @@ public static class BraxGymBuild
         // MIASTO (2.11, właściciel: „wszystko do poprawy… migotanie, miasto”): te same kontrole co na osiedlu — skala względem bohatera,
         // umieszczenie, kolizje, MIGOTANIE (rozsunięcie płaskich warstw), listy pomieszczeń, robot kolizji. Przed BezSwiecenia/Siatki (siatki do odczytu).
         // 3.11 (właściciel 13:39–13:46): SUPERMARKET BRAXHORN — jeden moduł, 2 kopie w mieście (druga lustrzana), przed kontrolami jakości
-        if(fullCity&&!osiedle)try{BraxSupermarket.Wykonaj(scene,2);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_SUPERMARKET: "+e);}
-        if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrole jakości (miasto): "+e);}
+        if(fullCity&&!osiedle)try{BraxSupermarket.Wykonaj(scene,2);}catch(Exception e){throw new InvalidOperationException("BRAXHORN_SUPERMARKET_NIEGOTOWY",e);}
+        if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){throw new InvalidOperationException("BRAXHORN_KONTROLA_MIASTA_NIEGOTOWA",e);}
         // P0.1 (2.11 23:05, „metro nie do wejścia”): obce kolizje w przejściach stacji wyłączone + test przejścia obu wejść
-        if(fullCity&&!osiedle)try{BraxClaudeMetro.KontrolaPrzejscia();}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_METRO_PRZEJSCIE: "+e);}
+        if(fullCity&&!osiedle)try{BraxClaudeMetro.KontrolaPrzejscia();}catch(Exception e){throw new InvalidOperationException("BRAXHORN_METRO_PRZEJSCIE_NIEGOTOWE",e);}
         // 3.11 (właściciel 10:53): trawnik w wycięciu nawierzchni przy każdym drzewie i palmie na chodniku / placu / asfalcie
         if(fullCity&&!osiedle)try{BraxMisyDrzew.Wykonaj(scene);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_MISY_DRZEW: "+e);}
         // C4 (2.11, „szyby globalnie”): szkło bez mleka — przezroczyste z odbiciem nieba, fasady bez wnętrza refleksyjne (BRAXHORN_SZYBY)
-        if(fullCity&&!osiedle)try{BraxSzyby.Wykonaj(scene,"miasto");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: szyby (miasto): "+e);}
+        if(fullCity&&!osiedle)try{BraxSzyby.Wykonaj(scene,"miasto");}catch(Exception e){throw new InvalidOperationException("BRAXHORN_SZYBY_NIEGOTOWE",e);}
         if(!osiedle)try{BraxClaudeBezSwiecenia.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (miasto): "+e);}
         if(!osiedle)try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         if(!osiedle)BraxRejonBuildu.Czas("obrobka_siatek",tObr,fullCity?"rejon=miasto":"rejon=silownia");
         // C1 (2.11, różowe jachty/żurawie/budka): kontrola końcowa — renderery z materiałem NULL / bez shadera (cel 0), przed zapisem.
-        if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pamiec(scene,"przed_zapisem_sceny");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrola braku materiałów (pamięć): "+e);}
+        if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pamiec(scene,"przed_zapisem_sceny");}catch(Exception e){throw new InvalidOperationException("BRAXHORN_MATERIALY_NIEGOTOWE",e);}
         // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,
         // doczytywaną w tle 45 m przed granicą i zwalnianą 110 m od niej (BraxObszary). Scena startowa = centrum.
         string scenePath=osiedle?null:Generated+(fullCity?"/BraxhornCity.unity":"/BraxhornGym.unity");if(!osiedle&&!EditorSceneManager.SaveScene(scene,scenePath))throw new Exception("Scene save failed");
@@ -373,10 +384,10 @@ public static class BraxGymBuild
         // siatki wyspy z dnem (±150 m od środka 400, 60), brzeg lądu ~60 m dalej → 200 m od obrysu ≈ 260 m od brzegu; zwolnienie 280.
         if(fullCity&&renovation&&!osiedle)
         {
-            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Wyspa",BraxClaudeObszary.PoNazwach(scene,"CLAUDE wyspa*"),200f,280f,Generated);}
-            catch(Exception e){Debug.LogWarning("DO POPRAWKI: wyspa jako osobny obszar: "+e);}
-            try{BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE"),45f,110f,Generated);}
-            catch(Exception e){Debug.LogWarning("DO POPRAWKI: podział miasta na obszary: "+e);}
+            try{if(BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Wyspa",BraxClaudeObszary.PoNazwach(scene,"CLAUDE wyspa*"),200f,280f,Generated)==null)throw new InvalidOperationException("Brak sceny wyspy");}
+            catch(Exception e){throw new InvalidOperationException("BRAXHORN_WYSPA_STREAMING_NIEGOTOWY",e);}
+            try{if(BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE"),45f,110f,Generated)==null)throw new InvalidOperationException("Brak sceny nabrzeża");}
+            catch(Exception e){throw new InvalidOperationException("BRAXHORN_PORT_STREAMING_NIEGOTOWY",e);}
             // MIASTO W KWADRATACH (1.11, 19:00; decyzja właściciela „świat w kwadratach”): telefon padał w trakcie wczytywania
             // głównej sceny (828 MB, 68 tys. obiektów — dziennik startu: koniec na „2a wczytywanie”). Kwadraty 150 × 150 m poza
             // okolicą siłowni (start) idą do osobnych scen doczytywanych w tle 120 m przed krawędzią, zwalnianych 250 m za nią.
@@ -397,11 +408,12 @@ public static class BraxGymBuild
                         if(BraxClaudeObszary.Wydziel(scene,sectorName,w,120f,250f,Generated)!=null)nk++;
                     }
                 Debug.Log("BRAXHORN_KWADRATY miasto: "+nk+" kwadratów, granice miasta "+all.min.ToString("F0")+" … "+all.max.ToString("F0"));
+                if(nk==0)throw new InvalidOperationException("BRAXHORN_KWADRATY_NIEGOTOWE: brak scen 150x150 m; nie wydawać zbyt dużego APK");
             }
-            catch(Exception e){Debug.LogWarning("DO POPRAWKI: kwadraty miasta: "+e);}
+            catch(Exception e){throw new InvalidOperationException("BRAXHORN_KWADRATY_STREAMING_NIEGOTOWE",e);}
         }
         // C1: to samo na zapisanych plikach wszystkich scen miasta (po podziale na obszary i kwadraty) — odwołania do materiałów.
-        if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pliki(ScenyMiasta(scenePath),"pliki_scen_miasta");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: kontrola braku materiałów (pliki scen): "+e);}
+        if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pliki(ScenyMiasta(scenePath),"pliki_scen_miasta");}catch(Exception e){throw new InvalidOperationException("BRAXHORN_SCENY_MATERIALY_NIEGOTOWE",e);}
         if(fullCity&&!osiedle)BraxRejonBuildu.Czas("generowanie",tMiasto,"rejon=miasto z_pamięci=nie");   // miasto + remont siłowni + obróbka + obszary
         string sourceCommit=runtime.buildId;
         // Estate review boots directly into the EXISTING city estate scene with the
