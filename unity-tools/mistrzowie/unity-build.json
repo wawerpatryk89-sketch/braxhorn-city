@@ -1,0 +1,11 @@
+{
+  "pipeline": "20261105",
+  "unity": "6000.0.85f2",
+  "revision": "b028303d8e7d",
+  "androidImage": "unityci/editor:ubuntu-6000.0.85f2-android-3.2.2",
+  "visualImage": "unityci/editor:ubuntu-6000.0.85f2-base-3.2.2",
+  "verifiedAndroidDigest": "sha256:18ca75bc067abc575f05faf81a841f8cb064003cc1f89632db2641ce3152cf63",
+  "verifiedVisualDigest": "sha256:0ee5b98dfc7fb65808b8aec270cf910e7c0aee4873e4e2efa281e45f8c6f2c63",
+  "registryCheckedUtc": "2026-11-04",
+  "releaseNotes": "https://unity.com/releases/editor/whats-new/6000.0.85f2"
+}

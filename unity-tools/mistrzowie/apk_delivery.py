@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+from pipeline import configuration
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "mistrzowie-apk"
@@ -51,6 +52,33 @@ def parse_identity(badging):
     return match.group(1), int(match.group(2))
 
 
+def certificate_sha256():
+    cert = command("keytool", "-exportcert", "-alias", "braxhorn", "-keystore",
+                   str(ROOT / "unity-city/braxhorn.keystore"), "-storepass:file",
+                   str(ROOT / "unity-city/braxhorn.keystore.pass"), binary=True)
+    return hashlib.sha256(cert).hexdigest()
+
+
+def preflight():
+    """Read/sign a temporary CSR with the existing key; never modify the keystore."""
+    versions = {name: command(sdk_tool(name), "version").strip() for name in ("aapt", "apksigner")}
+    password = ROOT / "unity-city/braxhorn.keystore.pass"
+    if not password.is_file() or not password.read_text().strip():
+        raise RuntimeError("Missing existing signing password")
+    with tempfile.TemporaryDirectory(prefix="champions-signing-check-") as tmp:
+        # Exporting only the certificate would also accept a certificate-only
+        # entry. A CSR proves that the private key and its password are usable.
+        command("keytool", "-certreq", "-alias", "braxhorn", "-keystore",
+                str(ROOT / "unity-city/braxhorn.keystore"), "-storepass:file", str(password),
+                "-keypass:file", str(password), "-file", str(Path(tmp)/"check.csr"))
+    report = dict(status="SIGNING_KEY_AND_HOST_TOOLS_PASS_APK_NOT_BUILT",
+                  certificateSha256=certificate_sha256(), tools=versions)
+    evidence = ROOT / "mistrzowie-evidence"
+    evidence.mkdir(exist_ok=True)
+    (evidence / "signing-preflight.json").write_text(json.dumps(report, indent=2) + "\n")
+    print(json.dumps(report))
+
+
 def stage():
     source = ROOT / "build/Android/braxhorn-mistrzowie.apk"
     if not source.is_file() or source.stat().st_size < 1024:
@@ -59,10 +87,7 @@ def stage():
     expected_version = int((ROOT / "unity-city/braxhorn.versioncode").read_text().strip())
     if app_id != APP_ID or version != expected_version:
         raise RuntimeError("APK applicationId/versionCode mismatch")
-    cert = command("keytool", "-exportcert", "-alias", "braxhorn", "-keystore",
-                   str(ROOT / "unity-city/braxhorn.keystore"), "-storepass:file",
-                   str(ROOT / "unity-city/braxhorn.keystore.pass"), binary=True)
-    expected_cert = hashlib.sha256(cert).hexdigest()
+    expected_cert = certificate_sha256()
     verification = command(sdk_tool("apksigner"), "verify", "--print-certs", str(source))
     signers = re.findall(r"Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9]+)", verification)
     if [s.lower() for s in signers] != [expected_cert]:
@@ -82,7 +107,7 @@ def stage():
     manifest = dict(file=name, sha256=digest(target), bytes=target.stat().st_size,
                     applicationId=app_id, versionCode=version, certificateSha256=expected_cert,
                     commit=sha, workflowCommit=workflow_sha, runId=run, attempt=attempt, variant="mistrzowie-apk-arm64-gles3",
-                    unity="6000.0.58f2", runtimeTested=False, visualAccepted=False)
+                    unity=configuration(ROOT)['unity'], runtimeTested=False, visualAccepted=False)
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     print(json.dumps(manifest))
 
@@ -174,10 +199,12 @@ def verify():
 
 
 if __name__ == "__main__":
-    if sys.argv[1:] == ["stage"]:
+    if sys.argv[1:] == ["preflight"]:
+        preflight()
+    elif sys.argv[1:] == ["stage"]:
         stage()
     elif sys.argv[1:] == ["verify"]:
         verify()
     else:
-        raise SystemExit("Use stage or verify")
+        raise SystemExit("Use preflight, stage or verify")
 

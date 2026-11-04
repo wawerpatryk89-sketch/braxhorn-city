@@ -121,6 +121,12 @@ class ApkDeliveryTests(unittest.TestCase):
         apk = self.root / "build/Android/braxhorn-mistrzowie.apk"
         apk.parent.mkdir(parents=True); apk.write_bytes(self.data)
         project = self.root / "unity-city"; project.mkdir()
+        config = json.loads(Path(__file__).with_name('unity-build.json').read_text())
+        config_path = self.root/'unity-tools/mistrzowie/unity-build.json'
+        config_path.parent.mkdir(parents=True); config_path.write_text(json.dumps(config))
+        settings = project/'ProjectSettings'; settings.mkdir()
+        (settings/'ProjectVersion.txt').write_text(f"m_EditorVersion: {config['unity']}\n"
+            f"m_EditorVersionWithRevision: {config['unity']} ({config['revision']})\n")
         (project / "braxhorn.versioncode").write_text("8501")
         (project / "mistrzowie.source-commit").write_text("c" * 40 + "\n")
         cert = b"synthetic certificate DER"
@@ -133,6 +139,7 @@ class ApkDeliveryTests(unittest.TestCase):
         self.assertEqual(manifest["certificateSha256"], cert_sha)
         self.assertEqual(manifest["commit"], "c" * 40)
         self.assertEqual(manifest["workflowCommit"], "a" * 40)
+        self.assertEqual(manifest['unity'], config['unity'])
         self.assertIn("ccccccc", manifest["file"])
         self.assertEqual((self.output / manifest["file"]).read_bytes(), self.data)
         responses[2] = "Signer #1 certificate SHA-256 digest: " + "0" * 64

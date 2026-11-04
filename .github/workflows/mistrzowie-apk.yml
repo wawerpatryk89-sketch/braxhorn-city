@@ -1,5 +1,5 @@
 name: Miasto Mistrzów — APK
-run-name: Miasto Mistrzów — APK do zwiedzania — ${{ github.run_number }}
+run-name: Miasto Mistrzów — ${{ inputs.etap || 'apk' }} — ${{ github.run_number }}
 
 # Register this entry on main so GitHub displays a dedicated Run workflow form.
 # The game stays on its own branch; every run records the exact checked-out SHA.
@@ -11,6 +11,11 @@ on:
         type: string
         required: false
         default: ''
+      etap:
+        description: 'apk = kompilacja APK; sceny = kontrola scen w Unity bez APK i bundles (też trwa)'
+        type: choice
+        options: [apk, sceny]
+        default: apk
       zdjecia:
         description: 'Opcjonalny dodatkowy player Linux i zdjęcia po dostarczeniu APK; wydłuża build'
         type: boolean
@@ -26,6 +31,8 @@ jobs:
   exploration-apk:
     runs-on: ubuntu-latest
     timeout-minutes: 355
+    env:
+      MISTRZOWIE_PIPELINE: "20261105"
     steps:
       - name: Resolve the selected Champions source
         id: selected
@@ -78,6 +85,21 @@ jobs:
           printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"
           printf 'SOURCE_SHA=%s\n' "$sha" >> "$GITHUB_ENV"
           printf '## Miasto Mistrzów — wersja do zbudowania\n\nKod gry: `%s`\n\nWorkflow: `%s`\n' "$sha" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify source, workflow and pinned Unity configuration
+        id: preflight
+        run: python3 unity-tools/mistrzowie/pipeline.py
+      - name: Verify the existing signing key and Android tools before preparation
+        if: inputs.etap != 'sceny'
+        env:
+          KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
+          KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          test -n "$KS" && test -n "$KP"
+          umask 077
+          printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
+          printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+          python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
+          python3 unity-tools/mistrzowie/apk_delivery.py preflight
       - name: C# syntax and local scopes before Unity (CS0136 regression)
         run: |
           python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
@@ -126,9 +148,9 @@ jobs:
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: ${{ runner.temp }}/champions-library.tar.zst.enc
-          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: champions-library-android-${{ steps.preflight.outputs.unity }}-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-
+            champions-library-android-${{ steps.preflight.outputs.unity }}-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-
       - name: Restore imported assets and source GUIDs
         continue-on-error: true
         env:
@@ -138,16 +160,6 @@ jobs:
         run: |
           rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
           df -h /
-      - name: Prepare the existing signing key for the exploration APK
-        env:
-          KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
-          KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
-        run: |
-          test -n "$KS" && test -n "$KP"
-          umask 077
-          printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
-          printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
-          python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
       - name: Unity 6 - Miasto Mistrzów, Patryk i APK do zwiedzania
         id: unity_build
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
@@ -157,9 +169,10 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: unity-city
-          unityVersion: 6000.0.58f2
+          unityVersion: ${{ steps.preflight.outputs.unity }}
+          customImage: ${{ steps.preflight.outputs.androidImage }}
           targetPlatform: Android
-          buildMethod: BraxChampionsBuild.BuildAndroid
+          buildMethod: ${{ inputs.etap == 'sceny' && 'BraxChampionsBuild.ValidateScenes' || 'BraxChampionsBuild.BuildAndroid' }}
           androidExportType: androidPackage
           versioning: None
           allowDirtyBuild: true
@@ -216,7 +229,8 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: unity-city
-          unityVersion: 6000.0.58f2
+          unityVersion: ${{ steps.preflight.outputs.unity }}
+          customImage: ${{ steps.preflight.outputs.visualImage }}
           targetPlatform: StandaloneLinux64
           buildMethod: BraxChampionsBuild.BuildVisualReview
           versioning: None
@@ -263,11 +277,13 @@ jobs:
             mistrzowie-evidence/*.json
             unity-city/Assets/Source/Mistrzowie/source-materials.json
             unity-city/Logs/
+            unity-city/Packages/packages-lock.json
+            unity-city/ProjectSettings/ProjectVersion.txt
           if-no-files-found: warn
           retention-days: 30
       - name: Pack encrypted imports after delivery attempts or failed Unity validation
         id: library_pack
-        if: always() && !cancelled() && !inputs.zdjecia && (steps.apk_delivery.outcome == 'success' || steps.unity_build.outcome == 'failure')
+        if: always() && !cancelled() && !inputs.zdjecia && (steps.apk_delivery.outcome == 'success' || steps.unity_build.outcome == 'failure' || (inputs.etap == 'sceny' && steps.unity_build.outcome == 'success'))
         continue-on-error: true
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -286,4 +302,4 @@ jobs:
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: ${{ runner.temp }}/champions-library.tar.zst.enc
-          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: champions-library-android-${{ steps.preflight.outputs.unity }}-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}

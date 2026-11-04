@@ -1,10 +1,12 @@
 # Miasto Mistrzów — mapa i przekazanie prac
 
+**Aktualny stan po audycie runu #6 i naprawie:** [wykonane poprawki i dowody](../audyty/MIASTO_MISTRZOW_NAPRAWY_20261105.md). Usunięto kolizję trasy kontroli metra z kasą i dodano brakujące cztery collidery do lokalnego audytu. Konfiguracja projektu i dwóch ręcznych workflow wskazuje teraz Unity **6000.0.85f2**. Nowej wersji nie uruchomiono w Unity; nie ma nowego APK ani testu telefonu. Do następnego zatwierdzonego przebiegu wybierać **Use workflow from: `codex/miasto-mistrzow-20261104`**, z pustym polem `commit` lub pełnym SHA naprawy. Starego formularza z `main` i SHA `47c89f0…` nie używać. Dostępny jest ręczny etap `sceny`, bez kompilacji APK; również wymaga zgody na uruchomienie Unity.
+
 **Wymaganie jakości właściciela — 4.11.2026:** [sześć zdjęć pierwszego miasta i standard do przewyższenia](mistrzowie-referencje-jakosci/README.md). Miasto Mistrzów ma mieć większy detal, lepsze tekstury, cienie i oświetlenie oraz charakter luksusowego miasta: wieżowce, hotele 5★, banki, kasyna, kluby premium, baseny i sauny. Wszystko zgodnie z istniejącym planem, jego układem i zatwierdzonymi wzorami. Zdjęcia są odniesieniem jakości, nie dowodem gotowego Miasta Mistrzów.
 
 **Aktualizacja po APK #4:** [diagnoza i naprawy runu 41907419292](mistrzowie-audyt-run4-20261104.md). Run na `c30e305` zatrzymał się na kolizji trasy metra przed generowaniem Patryka i kompilacją APK. Poprawiono trasę, obudowę pod schodami, obrót źródłowego pociągu oraz import tekstur; kontrole statyczne przeszły. Nowa kompilacja Unity i test Androida pozostają niewykonane. Poniższy plan i wcześniejsze statusy są zachowane jako historia zakresu.
 
-Stan na 4 listopada 2026 r. Region tej samej gry **BRAXHORN CITY**, projekt `unity-city`, Unity **6000.0.58f2**, Built-in Render Pipeline. Gałąź robocza: `codex/miasto-mistrzow-20261104`. Odczytany kod: `47c89f05796c675d02a15982382a37ef4c5d20be`.
+Historyczny stan pierwszego przekazania, 4 listopada 2026 r.: region tej samej gry **BRAXHORN CITY**, projekt `unity-city`, Unity **6000.0.58f2**, Built-in Render Pipeline. Gałąź robocza: `codex/miasto-mistrzow-20261104`. Ówczesny kod: `47c89f05796c675d02a15982382a37ef4c5d20be`. Aktualizacja powyżej ma pierwszeństwo w sprawie wersji i uruchamiania.
 
 **Najpierw przeczytaj ten dokument, potem mapy. Plan docelowy, kod generatorów i działająca gra to różne stany. Pierwszy przebieg APK zakończył się przed uruchomieniem Unity.**
 
@@ -99,9 +101,9 @@ Patryk ma zachować twarz, sylwetkę, ubranie i kolory oryginału. Nie naprawia�
 
 Odbiór wymaga ujęć z poziomu gracza, dzień/noc, zbliżeń materiałów, spaceru do wszystkich trzech wejść metra oraz filmu Idle → Walk → Run → Idle z przodu, boku i tyłu. Osobno mierzyć FPS, pamięć, czas wejścia i przejścia między strefami. Raportować kod, kompilację, dostawę APK i test telefonu oddzielnie.
 
-## Workflow i aktualny błąd buildu
+## Historia workflow i pierwszego błędu buildu
 
-Osobny wpis [Miasto Mistrzów — APK](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/workflows/mistrzowie-apk.yml) został zarejestrowany na `main` przez PR #17. Formularz może pozostać na `main`: pole `commit` wskazuje wersję **kodu gry**, odrębną od commita workflow. Domyślny kod: `47c89f0…`; commit workflow pierwszego uruchomienia: `46309b5…`.
+Osobny wpis [Miasto Mistrzów — APK](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/workflows/mistrzowie-apk.yml) został zarejestrowany na `main` przez PR #17. Pole `commit` wskazuje wersję **kodu gry**, odrębną od commita workflow. Historyczny domyślny kod na `main`: `47c89f0…`; commit workflow pierwszego uruchomienia: `46309b5…`. Obecnie trzeba wybrać workflow z gałęzi Miasta Mistrzów: stara wersja z `main` ma niepełny checkout i przygotowanie zasobów. Samo wklejenie nowego SHA w stary formularz nie wystarczy.
 
 **Przebieg #1: FAILED przed Unity.** [Run 41885950373](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/41885950373), job `126770341262`, 4 listopada 2026, około 19:19 czasu szwajcarskiego. Checkout właściwego kodu i 17 testów Python przeszły. Krok `Geometry and source preparation` zakończył się w `prepare_assets.py:33` błędem `KeyError: 'rough'` podczas odczytu metadanych Poly Haven. Log nie podawał identyfikatora materiału. Późniejszy odczyt wszystkich 11 odpowiedzi API potwierdził klucz `Rough` zamiast `rough`, już dla pierwszego `coast_sand_02`, oraz odrębny kolor `col_01` materiału `fabric_pattern_05`. Podpisywanie, Unity oraz zapis APK zostały pominięte. Nie ma dostarczonego APK.
 
@@ -112,7 +114,7 @@ Obowiązują zasady [AGENTS.md](../../AGENTS.md): zapis kodu i dokumentacji nie 
 ## Następny wykonawca
 
 1. Przeczytaj to przekazanie, mapę SVG i pełny PDF; zachowaj układ i standard właściciela.
-2. Sprawdź aktualny SHA i status workflow. Najpierw usuń potwierdzony błąd przygotowania materiałów w zakresie zleconej naprawy.
+2. Sprawdź aktualny SHA, status workflow oraz raport naprawy po runie #6. Nie uruchamiaj buildu bez decyzji właściciela; nie wracaj do historycznego SHA ani starego workflow z `main`.
 3. W zatwierdzonym przebiegu Unity sprawdź źródła, skalę, trzy stacje i przejścia; dopiero potem oceniaj A1/T01 oraz Patryka.
 4. Oddaj materiał do oceny wizualnej; dopiero przyjęty standard rozwiń na A2, pozostałe fasady i kurort. H1/H2 oraz H3/H4 pozostają dwoma ośrodkami.
 5. Wnętrza, usługi, integracja kariery, sektory i ruch pojazdów realizuj jako kolejne uzgodnione etapy tej samej gry.

@@ -1,5 +1,7 @@
 # Miasto Mistrzów — audyt przed kolejnym APK
 
+**Późniejsza naprawa:** po tym audycie właściciel polecił poprawić kod. [Raport wykonanych zmian i testów](MIASTO_MISTRZOW_NAPRAWY_20261105.md) opisuje usunięcie kolizji kontrolnej przy kasie, rozszerzenie testów, zabezpieczenie workflow i zmianę przypiętej wersji Unity. Poniższy raport zachowuje stan sprzed naprawy; nadal nie ma potwierdzenia nowej kompilacji ani działania APK na telefonie.
+
 Data: 5 listopada 2026, Europe/Zurich (odczyty 4 listopada, UTC).  
 Repozytorium: `wawerpatryk89-sketch/braxhorn-city`.  
 Gałąź: `codex/miasto-mistrzow-20261104`.  

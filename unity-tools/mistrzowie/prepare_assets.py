@@ -7,6 +7,7 @@ from pathlib import Path
 import hashlib,io,json,urllib.request,zipfile,time
 from PIL import Image
 from pack_materials import pack, linear_mean
+from pipeline import check_launcher
 ROOT=Path(__file__).resolve().parents[2]
 DEST=ROOT/'unity-city/Assets/Source/Mistrzowie/Textures'
 LOCK=json.loads(Path(__file__).with_name('verified_textures.json').read_text())
@@ -50,6 +51,7 @@ def save(name,blob,source):
  return dict(file=name,sha256=digest,bytes=len(blob),source=source)
 
 def main():
+ check_launcher()  # Reject old main launchers before downloads or private restoration.
  DEST.mkdir(parents=True,exist_ok=True);report=[]
  for slug in POLYHAVEN_SLUGS:
   print('BRAX_MISTRZOWIE_PBR_SOURCE '+slug,flush=True)

@@ -74,9 +74,10 @@ public static partial class BraxClaudeMetro
         float xEnd=EX0+(12-1+11-1)*.30f*K+1.5f*K;
         return new[]{new Vector3(EX0-3f,yS,zc),new Vector3(EX0-.3f,yS,zc),
             // The north wall has a bin at (71.8,32) and ticket machines at
-            // x=68.4/70.0. Use their public aisle, not their collision boxes.
-            new Vector3(xEnd+1f,yM,zc),new Vector3(xEnd+1f,yM,EZ[1]-1.7f),
-            new Vector3(GX+3f,yM,EZ[1]-1.7f),new Vector3(GX+1.5f,yM,28.45f),
+            // x=68.4/70.0. The ticket booth's north wall ends at z=30.75;
+            // z=31.25 leaves .50m for the .35m capsule while clearing the bin.
+            new Vector3(xEnd+1f,yM,zc),new Vector3(xEnd+1f,yM,EZ[1]-1.35f),
+            new Vector3(GX+3f,yM,EZ[1]-1.35f),new Vector3(GX+1.5f,yM,28.45f),
             new Vector3(GX-1.5f,yM,28.45f),new Vector3(WX1+1f,yM,27.15f),
             // Keep the platform route south of its columns, benches and bins.
             new Vector3(WX0-1.5f,yP,27.15f),new Vector3(20f,yP,26.4f)};

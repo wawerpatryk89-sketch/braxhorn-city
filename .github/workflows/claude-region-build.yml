@@ -7,9 +7,9 @@ on:
         type: string
         default: mistrzowie
       wariant:
-        description: 'apk = zwiedzanie na Androidzie; region = edytowalna scena i bundles'
+        description: 'apk = Android; region = bundles; sceny = kontrola Unity bez APK i bundles'
         type: choice
-        options: [apk, region]
+        options: [apk, region, sceny]
         default: apk
       pamiec:
         description: 'Zgodność formularza istniejącego workflow; pierwszy eksport jest pełny'
@@ -25,6 +25,8 @@ jobs:
   foundation:
     runs-on: ubuntu-latest
     timeout-minutes: 355
+    env:
+      MISTRZOWIE_PIPELINE: "20261105"
     steps:
       - name: Verify explicitly selected region
         env:
@@ -50,6 +52,21 @@ jobs:
             unity-tools/claude/import_patryk_transfer.py
             unity-tools/claude/import_patryk_animations.py
             unity-tools/claude/tekstury_b5.py
+      - name: Verify source, workflow and pinned Unity configuration
+        id: preflight
+        run: python3 unity-tools/mistrzowie/pipeline.py
+      - name: Verify the existing signing key and Android tools before preparation
+        if: inputs.wariant == 'apk'
+        env:
+          KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
+          KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          test -n "$KS" && test -n "$KP"
+          umask 077
+          printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
+          printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+          python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
+          python3 unity-tools/mistrzowie/apk_delivery.py preflight
       - name: C# syntax and local scopes before Unity (CS0136 regression)
         run: |
           python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
@@ -80,6 +97,7 @@ jobs:
           python3 -m pip install numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
           test -f /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
+          python3 unity-tools/mistrzowie/audit_metro.py
           python3 unity-tools/mistrzowie/prepare_assets.py
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/restore_player.py
@@ -97,9 +115,9 @@ jobs:
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: ${{ runner.temp }}/champions-library.tar.zst.enc
-          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: champions-library-android-${{ steps.preflight.outputs.unity }}-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-
+            champions-library-android-${{ steps.preflight.outputs.unity }}-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-
       - name: Restore imported assets and source GUIDs
         continue-on-error: true
         env:
@@ -109,18 +127,8 @@ jobs:
         run: |
           rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
           df -h /
-      - name: Prepare the existing signing key for the exploration APK
-        if: inputs.wariant != 'region'
-        env:
-          KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
-          KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
-        run: |
-          test -n "$KS" && test -n "$KP"
-          umask 077
-          printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
-          printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
-          python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
       - name: Unity - generate region and build the selected output
+        id: unity_build
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -128,15 +136,16 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: unity-city
-          unityVersion: 6000.0.58f2
+          unityVersion: ${{ steps.preflight.outputs.unity }}
+          customImage: ${{ steps.preflight.outputs.androidImage }}
           targetPlatform: Android
-          buildMethod: ${{ inputs.wariant == 'region' && 'BraxChampionsBuild.Build' || 'BraxChampionsBuild.BuildAndroid' }}
+          buildMethod: ${{ inputs.wariant == 'sceny' && 'BraxChampionsBuild.ValidateScenes' || (inputs.wariant == 'region' && 'BraxChampionsBuild.Build' || 'BraxChampionsBuild.BuildAndroid') }}
           androidExportType: androidPackage
           versioning: None
           allowDirtyBuild: true
       - name: Validate APK identity and existing certificate; stage immutable output
         id: apk_stage
-        if: always() && !cancelled() && inputs.wariant != 'region' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
+        if: always() && !cancelled() && inputs.wariant == 'apk' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
         run: python3 unity-tools/mistrzowie/apk_delivery.py stage
       - name: Immediately save APK as Actions artifact
         if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
@@ -216,7 +225,7 @@ jobs:
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: ${{ runner.temp }}/champions-library.tar.zst.enc
-          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: champions-library-android-${{ steps.preflight.outputs.unity }}-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Save validation evidence
         if: always()
         continue-on-error: true
@@ -227,5 +236,7 @@ jobs:
             mistrzowie-evidence/*.json
             unity-city/Assets/Source/Mistrzowie/source-materials.json
             unity-city/Logs/
+            unity-city/Packages/packages-lock.json
+            unity-city/ProjectSettings/ProjectVersion.txt
           if-no-files-found: warn
           retention-days: 30

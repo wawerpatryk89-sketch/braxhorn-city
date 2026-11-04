@@ -16,7 +16,7 @@ public static class BraxChampionsBuild
     {
         public string status="STARTED",sourceCommit,unity;
         public bool visualAccepted=false,deviceTested=false,trafficEnabled=false,sceneReloadPassed=false;
-        public int rendererCount,walkSamples,buildingExteriors,arenaSeats;
+        public int rendererCount,walkSamples,buildingExteriors,arenaSeats,sourceImportErrors;
         public bool foundationPassedBeforeBuildings=false;public string sculptedBull="SOURCE_MODEL_REQUIRED";
         public string patrykSourceCommit=BraxChampionsExplorer.SourceCommit;
         public int patrykClips;
@@ -25,8 +25,19 @@ public static class BraxChampionsBuild
         public List<string> checks=new List<string>();
         public List<string> failures=new List<string>();
     }
+    [Serializable] sealed class ImportReport
+    {
+        public string status="SOURCE_IMPORT_DIAGNOSTICS_NOT_SCENE_ACCEPTANCE";
+        public List<ImportIssue> issues=new List<ImportIssue>();
+    }
+    [Serializable] sealed class ImportIssue
+    {
+        public string path,type,message;public int code;
+    }
     public static void Build() => BuildInternal(false);
     public static void BuildAndroid() => BuildInternal(true);
+    // Explicit manual validation: generate/reopen/check scenes without player or bundles.
+    public static void ValidateScenes() => BuildInternal(false,true);
 
     // Called only by the optional, manual review step AFTER APK delivery.
     public static void BuildVisualReview()
@@ -41,7 +52,7 @@ public static class BraxChampionsBuild
         if(report.summary.result!=BuildResult.Succeeded)throw new InvalidOperationException("Visual review player build failed");
     }
 
-    static void BuildInternal(bool apk)
+    static void BuildInternal(bool apk,bool validationOnly=false)
     {
         string reports=Path.GetFullPath("../mistrzowie-evidence");Directory.CreateDirectory(reports);
         // The manual Actions launcher can live on main; record the checked-out game.
@@ -49,6 +60,7 @@ public static class BraxChampionsBuild
             ?File.ReadAllText("mistrzowie.source-commit").Trim():Environment.GetEnvironmentVariable("GITHUB_SHA")??"local"};
         try
         {
+            report.sourceImportErrors=RecordSourceImportDiagnostics(reports);
             // Same linear lighting as the main game's Android build.
             PlayerSettings.colorSpace=ColorSpace.Linear;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
@@ -79,6 +91,11 @@ public static class BraxChampionsBuild
             report.patrykClips=BraxChampionsExplorer.Validate(scene);
             CheckAssets(scene);report.explorationSceneReloadPassed=true;
             report.checks.Add("Exploration scene reopened: estate Patryk, 4K textures, saved animations, camera and clear spawn; PlayMode pending");
+            if(validationOnly)
+            {
+                report.status="UNITY_SCENES_VALIDATED_APK_NOT_BUILT_DEVICE_REVIEW_PENDING";
+                return;
+            }
             if(apk)
             {
                 BuildExplorationApk();
@@ -100,6 +117,39 @@ public static class BraxChampionsBuild
         }
         catch(Exception e){report.status="FAILED: "+e.Message;Debug.LogException(e);throw;}
         finally {File.WriteAllText(reports+"/unity-validation.json",JsonUtility.ToJson(report,true));Debug.Log("BRAX_MISTRZOWIE_UNITY "+JsonUtility.ToJson(report));}
+    }
+
+    static int RecordSourceImportDiagnostics(string reports)
+    {
+        // glTFast 6.20 stores the useful messages in the importer's serialized
+        // reportItems. Its normal Console message only says "see inspector".
+        // Read the same data as its Inspector; do not reimport or alter models.
+        var result=new ImportReport();int errors=0;
+        foreach(var path in AssetDatabase.GetAllAssetPaths().Where(p=>p.StartsWith("Assets/Source/")
+            &&(p.EndsWith(".glb",StringComparison.OrdinalIgnoreCase)||p.EndsWith(".gltf",StringComparison.OrdinalIgnoreCase))))
+        {
+            var importer=AssetImporter.GetAtPath(path);
+            if(!importer||importer.GetType().FullName!="GLTFast.Editor.GltfImporter")continue;
+            var serialized=new SerializedObject(importer);
+            var items=serialized.FindProperty("reportItems");
+            if(items==null||!items.isArray)continue;
+            for(int i=0;i<items.arraySize;i++)
+            {
+                var item=items.GetArrayElementAtIndex(i);
+                var type=item.FindPropertyRelative("type");var code=item.FindPropertyRelative("code");
+                var messages=item.FindPropertyRelative("messages");
+                if(type==null||code==null||messages==null)continue;
+                var args=new string[messages.arraySize];
+                for(int j=0;j<args.Length;j++)args[j]=messages.GetArrayElementAtIndex(j).stringValue;
+                var level=(LogType)type.intValue;
+                var text=new GLTFast.Logging.LogItem(level,(GLTFast.Logging.LogCode)code.intValue,args).ToString();
+                result.issues.Add(new ImportIssue{path=path,type=level.ToString(),code=code.intValue,message=text});
+                if(level==LogType.Error||level==LogType.Exception||level==LogType.Assert)errors++;
+                Debug.Log("BRAX_SOURCE_IMPORT "+path+" ["+level+"] "+text);
+            }
+        }
+        File.WriteAllText(Path.Combine(reports,"source-imports.json"),JsonUtility.ToJson(result,true));
+        return errors;
     }
 
     static void BuildExplorationApk()

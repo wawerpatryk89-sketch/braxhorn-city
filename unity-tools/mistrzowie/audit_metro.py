@@ -1,7 +1,8 @@
 """Analytical regression checks against the authored metro and real train GLB.
 
 This is not a Unity Physics/renderer/device test. It covers the measured run #4
-obstruction, subsequent fixed furniture, the first stair flight and train axes.
+and #6 obstructions, authored ticket-booth colliders, fixed furniture,
+the first stair flight and train axes.
 Private ticket-gate meshes and complete scene physics remain Unity checks.
 """
 import ast
@@ -60,6 +61,38 @@ def box(name, center, size):
     return name, center-size/2, center+size/2
 
 
+def ticket_booth_fixtures():
+    """Include every solid W.MM box in the actual ticket booth source.
+
+    Run 6 hit the north wall and the counter: checking only bins and ticket
+    machines missed both. Read bounds from C# so authored changes are tested.
+    """
+    source = METRO.read_text()
+    values = source_values(source)
+    booth = source.split('// kasa biletowa (okienko)', 1)[1].split('// mapa linii', 1)[0]
+    for name, expression in re.findall(r'(kx0|kx1|kz0|kz1)\s*=\s*([^,;]+)', booth):
+        values[name] = number(expression, values)
+    result = []
+    for call in re.findall(r'W\.MM\(([^)]+)\)', booth):
+        args = [part.strip() for part in call.split(',')]
+        if args[-1] != 'true':
+            continue  # Decorative surfaces have no collider in W.MM.
+        if len(args) != 8:
+            raise ValueError('Ticket booth collider contract changed: ' + call)
+        bounds = [number(expression, values) for expression in args[1:-1]]
+        low, high = np.array(bounds[::2]), np.array(bounds[1::2])
+        if np.any(high <= low):
+            raise ValueError('Invalid ticket booth collider bounds')
+        if args[0] == 'mSciana':
+            name = 'south wall' if low[2] < values['kz0'] else 'north wall'
+        else:
+            name = {'mStalCiemna': 'counter', 'mSzklo': 'glass'}[args[0]]
+        result.append(('ticket booth ' + name, low, high))
+    if len(result) != 4:
+        raise ValueError('Review ticket booth collision coverage: expected four source boxes')
+    return result
+
+
 def fixtures():
     """Read positions from the actual source; dimensions follow W's box contract."""
     source = METRO.read_text()
@@ -95,7 +128,7 @@ def fixtures():
     assert 'x - .35f, x + .35f, yP, yHc, 28.15f, 28.85f, true' in columns
     for x in [number(n, v) for n in xs.split(',')]:
         result.append(box('platform column',[x,(v['yP']+v['yHc'])/2,28.5],[.7,v['yHc']-v['yP'],.7]))
-    return result
+    return result + ticket_booth_fixtures()
 
 
 def capsule_overlaps(feet, obstacle, radius=.35):
