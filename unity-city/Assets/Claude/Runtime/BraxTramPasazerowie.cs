@@ -61,7 +61,8 @@ public sealed class BraxTramPasazerowie : MonoBehaviour
         }
         var go = Instantiate(p.gameObject);
         go.name = "T1: pasażer " + (++numer) + " (Rocketbox)";
-        go.transform.SetParent(transform, false);
+        // Czekający na peronie MUSI pozostać w świecie miasta, nie jako dziecko jadącego tramwaju.
+        go.transform.SetParent(transform.parent, true);
         go.transform.position = tram.WyjscieSwiat + tram.transform.right * .4f;
         // Pasażer T1 nie może dalej wykonywać trasy starego przechodnia ani
         // dublować fizyki postaci na ciasnym peronie.
@@ -127,7 +128,7 @@ public sealed class BraxTramPasazerowie : MonoBehaviour
     IEnumerator Wysiada(GameObject o)
     {
         if (!o || !tram) yield break;
-        o.transform.SetParent(transform, true);
+        o.transform.SetParent(transform.parent, true);
         yield return Krok(o, tram.DrzwiSwiat, 1.2f);
         if (!o || !tram) yield break;
         yield return Krok(o, tram.WyjscieSwiat + Vector3.up * .02f, 1.2f);
