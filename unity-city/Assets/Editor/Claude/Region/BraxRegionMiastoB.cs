@@ -128,6 +128,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         Krok("3. szlaban i znak OSIEDLE", SzlabanIZnak);
         Krok("4. rejestracja jezdni dla ruchu (RUCH_API)", RejestracjaRuchu);
         Krok("4. NOWE DZIELNICE: rejestracja jezdni", NoweDzielniceRejestracja);
+        // Z nagrania v6: małe kwadraty trawy na środku jezdni, m.in. przed zebrą.
+        // Zdejmujemy tylko błędnie postawione małe wyspy trawy (bez nakładania asfaltu).
+        Krok("4. kontrola zielonych kwadratów trawnika na jezdni", UsunMaleTrawnikiZJezdni);
         BraxRegionKamienica.Raport();
         BraxRegion.Note("miasto B: " + string.Join("; ", kroki));
         Debug.Log("BRAXHORN_MIASTO_B_UKLAD rondo=(" + RX + "," + RZ + ") R=" + RJezdnia + " aleja_pn x=" + AX + " z " + (RZ + 13.8f).ToString("0.0") + "…" + PetlaZ +
@@ -135,6 +138,38 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
                   " kamienic=" + BraxRegionKamienica.Budynki + " drzew=" + drzewa + " latarni=" + latarnie + " zebr=" + zebry + " sygnalizatorow=" + sygnalizatory);
         Debug.Log("BRAXHORN_MIASTO_B_MIGOTANIE pary=" + MigotaniePary + " (nawierzchnie i oznakowanie miasta B: nic nie leży na niczym w tej samej wysokości)");
         Debug.Log("BRAXHORN_MIASTO_B_USUNIETE (" + usuniete.Count + "): " + string.Join(" | ", usuniete.Take(80)));
+    }
+
+    static void UsunMaleTrawnikiZJezdni()
+    {
+        int usun = 0, podejrzane = 0;
+        foreach (var rr in root.GetComponentsInChildren<MeshRenderer>(true).ToArray())
+        {
+            if (!rr || !rr.sharedMaterial) continue;
+            var nazwa = rr.name.ToLowerInvariant();
+            var mat = rr.sharedMaterial.name.ToLowerInvariant();
+            if (!(nazwa.Contains("traw") || nazwa.Contains("grass") ||
+                  mat.Contains("trawnik") || mat.Contains("grass"))) continue;
+            var b = rr.bounds;
+            if (b.size.x < .45f || b.size.z < .45f || b.size.x * b.size.z > 60f) continue;
+            if (Mathf.Abs(b.max.y - YC) > .25f) continue;
+            Vector3 p = b.center;
+            if (!NaJezdni(p)) continue;
+            int wAsfalcie = 0;
+            foreach (float tx in new[] { -.3f, 0f, .3f })
+                foreach (float tz in new[] { -.3f, 0f, .3f })
+                    if (NaJezdni(new Vector3(p.x + tx * b.size.x, YA, p.z + tz * b.size.z)))
+                        wAsfalcie++;
+            if (wAsfalcie < 8) { podejrzane++; continue; }
+            // Kwadrat jest w pełni na jezdni. Nie usuwamy kwater, parków ani pierścienia ronda.
+            Debug.LogWarning("BRAXHORN_MIASTO_B_ZIELONY_KWADRAT: zdjęto " + rr.name +
+                             " z asfaltu, pozycja " + p.ToString("F1") +
+                             ", wymiary " + b.size.ToString("F1"));
+            UnityEngine.Object.DestroyImmediate(rr.gameObject);
+            usun++;
+        }
+        Debug.Log("BRAXHORN_MIASTO_B_ZIELONE_PLAMY usuniete_z_asfaltu=" + usun +
+                  " podejrzane_do_odbioru=" + podejrzane + " (zieleń poza drogą zachowana)");
     }
 
     static void Krok(string nazwa, Action a)
