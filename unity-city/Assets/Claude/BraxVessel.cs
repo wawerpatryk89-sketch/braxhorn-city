@@ -195,7 +195,7 @@ public sealed class BraxVessel : MonoBehaviour
         if (!onDeck) return "WYJDŹ NA POKŁAD";
         if (BliskoSteru()) return "STERUJ JACHTEM";
         if (BliskoTrapu()) return "ZEJDŹ NA POMOST";
-        return "PODEJDŹ DO STERU";
+        return "PRZEJDŹ ZA STER";
     }
 
     public bool Interact()
@@ -216,14 +216,13 @@ public sealed class BraxVessel : MonoBehaviour
             rider.SnapKamera();
             return true;
         }
-        if (BliskoSteru())
-        {
-            UstawZaSterem(rider);
-            rider.SnapKamera();
-            return true;
-        }
-        if (BliskoTrapu()) return Dismount();
-        return false;
+        if (BliskoTrapu() && !BliskoSteru())
+            return Dismount(); // przy trapie: zejście, nie teleport do kokpitu
+        // Przy sterze albo na pozostałej części otwartego pokładu: gracz
+        // może przejąć ster przyciskiem; przycisk nie może być martwy.
+        UstawZaSterem(rider);
+        rider.SnapKamera();
+        return true;
     }
 
     /// <summary>Zejście: na najbliższy twardy grunt nad wodą w promieniu 4,5 m (pomost, piasek). Zwraca false, gdy za daleko od brzegu.</summary>
