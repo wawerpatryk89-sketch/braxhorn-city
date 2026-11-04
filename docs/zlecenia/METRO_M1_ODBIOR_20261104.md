@@ -34,3 +34,14 @@ Użytkownik zlecił poprawę **istniejącej** stacji metra, bez tworzenia nowej 
 `BRAXHORN_METRO_PRZEJSCIE`, `BRAXHORN_METRO_M1_POCIAG_KURS`, `BRAXHORN_METRO_M1_RUCH`, `BRAXHORN_METRO_M1_POSTOJ`, `BRAXHORN_METRO_M1_NPC_WSIADA`, `BRAXHORN_METRO_M1_NPC_WYSIADA`, `BRAXHORN_METRO_M1_WEJSCIE_KOD_OK`, `BRAXHORN_METRO_M1_MODEL_OK`.
 
 W sprawie nazewnictwa „bez budowania”: nie dodawano nowych tuneli ani stacji. Panele drzwi zostały dodane jako ruchomy element efektu scenicznego istniejącego modelu pociągu.
+
+## Kontrola końcowa zmian kodu — bez APK
+
+- Schody ruchome: `BraxSchodyRuchome` oblicza długość kroku w `Start`, po przypisaniu danych generatora, a nie w `Awake` z wartości domyślnej. Usunięto powód widocznego przeskoku taśmy. `BraxSchodyRuchomeJazda` przenosi gracza w `LateUpdate`, po sterowaniu postaci, bez drugiej fizyki.
+- Przejście obok schodów: pełny murek techniczny zastąpiono bocznymi fragmentami. Z podłogi na granicy biegów zdjęto dodatkową listwę stalową ciągnącą się przez całe zejście. Balustrady bezpieczeństwa po bokach pozostają.
+- Wejście z chodnika: w `BraxMiastoOdbior.SprawdzMetroM1` dodano 27 prób promieniem w dół na trzech pasach dojścia przed otworem. Brak nawierzchni lub hit niżej o ponad 22 cm zgłasza `BRAXHORN_METRO_M1_NIEBIESKA_DZIURA`. To dowód zabezpieczenia w kodzie, **nie dowód, że woda na ekranie Androida zniknęła**.
+- Pociąg: do sceny podłączona jest **jedna** implementacja `BraxMetroM1Ruch` z `BraxMetroM1Pasazerowie`; nieużywany drugi sterownik prototypowy usunięto. Sprawdzono strukturę nawiasów obydwu plików oraz generatora Unity.
+- Model ma oryginalną metalową burtę i nie ma nazwanych oddzielnych skrzydeł. Drzwi na peronie są zatem inscenizacją rozsuwanych paneli, **nie fizycznym otwarciem oryginalnej karoserii**. Przy tym zakresie nie należy obiecywać grywalnego wejścia Braxa do pociągu.
+- W CI model sprawdza `check_metro_glb.py` pod kątem geometrii/rozmiaru i jest testowany przed Unity; dojazd, animacja, panorama i brak wody **wymagają testu w nowym APK**.
+
+**Decyzja o gotowości:** modyfikacje źródłowe przygotowane do pierwszego buildu kontrolnego. Nie ogłaszać całości „ukończone i działające” przed rzeczywistą kompilacją i sprawdzeniem filmów po poprawce.
