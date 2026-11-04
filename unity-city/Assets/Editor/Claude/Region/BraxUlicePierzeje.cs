@@ -107,7 +107,16 @@ public static class BraxUlicePierzeje
             if (BokZachod.Contains(b.id)) { var s = Bok(b, lok, true); BraxUliceKit.UstawGrupe("Elewacja boczna " + lok.szyld); Elewacja(s, kolizje); nBokow++; }
             if (BokWschod.Contains(b.id)) { var s = Bok(b, lok, false); BraxUliceKit.UstawGrupe("Elewacja boczna " + lok.szyld); Elewacja(s, kolizje); nBokow++; }
             // wnętrze Bar 24 robi wykonawca „galeria” (ETAP-GALERIA p. 4) — tu tylko fasada
-            if (!wiez && b.id != "bar")
+            if (wiez && lok.typ == "apteka")
+            {
+                // #64: APTEKA była wieżowcem i przez !wiez całe wnętrze apteki
+                // pomijano. Tylko apteka: własna ekspozycja w bocznych zatokach,
+                // środkowy korytarz do czynnej windy pozostaje wolny.
+                BraxUliceKit.UstawGrupe("Wnętrze lokalu APTEKA — leki w wieżowcu", 45f);
+                AptekaWiezowca(bg, cityRoot);
+                nLokali++;
+            }
+            else if (!wiez && b.id != "bar")
             {
                 BraxUliceKit.UstawGrupe("Wnętrze lokalu " + lok.szyld, 45f);
                 if (lok.typ == "fitness") { try { BraxMiastoFitness.Buduj(bg, f.A + f.R * f.drzwiS); } catch (System.Exception e) { Debug.LogWarning("BRAXHORN_FITNESS DO POPRAWKI " + e); } }
@@ -443,7 +452,11 @@ public static class BraxUlicePierzeje
         // --- okna mieszkań ---
         float offU = f.A.x * f.N.z - f.A.z * f.N.x;   // dot(A, T), T = (N.z, 0, −N.x) — jak w shaderze UliceOkno
         var szybaPokoj = BraxUliceKit.OknoPokoj(f.bay, Kond, Parter + f.A.y, 0, 5, 4.2f, offU);
-        var szybaSklep = f.wiezowiec || !f.front ? BraxUliceKit.OknoPokoj(f.bay, 3.6f, Chodnik + f.A.y, f.lok.wariantWitryny, 1, 3.8f, offU) : BraxUliceKit.SzkloPrzezroczyste;
+        // Apteka w wieżowcu ma PRAWDZIWE regały za przezroczystą witryną.
+        // Stary warunek f.wiezowiec ustawiał tu atrapę pokoju i zasłaniał leki.
+        var szybaSklep = (f.wiezowiec && f.front && f.lok.typ == "apteka") || (f.front && !f.wiezowiec)
+            ? BraxUliceKit.SzkloPrzezroczyste
+            : BraxUliceKit.OknoPokoj(f.bay, 3.6f, Chodnik + f.A.y, f.lok.wariantWitryny, 1, 3.8f, offU);
         var szkloMieszkania = BraxUliceKit.Mat("szkło okna mieszkania (glass, przezroczyste)", new Color(.62f, .70f, .72f, .2f), .05f, .1f);
         var aluminium = BraxUliceKit.Mat("aluminium witryn grafit", new Color(.09f, .10f, .105f), .4f, .55f);
         foreach (var o in otwory)
@@ -706,6 +719,65 @@ public static class BraxUlicePierzeje
         foreach (var d in bg.GetComponentsInChildren<BraxCityDoor>(true))
             if (d.id == "R1_PUBLIC_DOOR_" + b.id) { d.label = lok.szyld; EditorUtility.SetDirty(d); }
         BraxUliceKit.Punkt("ulica_" + b.id + "_drzwi", "przed drzwiami: " + lok.szyld + " (nr " + lok.numer + ") — AKCJA = drzwi; miejsce zlecenia przy wejściu", f.P(f.drzwiS, Chodnik, 1.2f));
+    }
+
+    // APTEKA SOBCZAK — sklep pod wieżowcem (adres 5). Winda budynku nadal działa.
+    // Jest osobna ekspozycja w dwóch zatokach: wolny środek (x=43..47)
+    // zapewnia przejście od drzwi frontowych do windy przy x=45, z około 15.75.
+    static void AptekaWiezowca(Transform bg, Transform cityRoot)
+    {
+        if (!BraxMiastoAssety.Jest("miasto_sklepy"))
+        {
+            Debug.LogError("BRAXHORN_APTEKA_NIEGOTOWA: brak paczki miasto_sklepy z etykietami lek_01..24");
+            return;
+        }
+
+        // Stary biurowy wystrój tego konkretnego parteru kolidowałby z ekspozycją
+        // leków. Usuwamy tylko jego grupę DEKORACYJNĄ, nie szyb windy, kabinę,
+        // drzwi zewnętrzne ani wspólne konstrukcje wieżowca.
+        var dekoracje = cityRoot.GetComponentsInChildren<Transform>(true)
+            .FirstOrDefault(t => t.name == "Real PBR tower lobby apothecary");
+        if (dekoracje) BraxUliceKit.Usun(dekoracje.gameObject, "apteka zamiast biurowej dekoracji holu");
+
+        var material = BraxRegionMeble.Tex("APTEKA: biały laminat na regałach",
+            1.1f, new Color(.94f, .94f, .91f), .55f, "white_plaster_02", "painted_plaster_wall");
+        var stal = BraxUliceKit.Mat("APTEKA: listwy anodowane", new Color(.70f, .73f, .73f), .35f, .75f);
+        var polki = BraxUliceKit.S(material);
+        var obram = BraxUliceKit.S(stal);
+        var towar = BraxSklepyTowar.Korzen(bg, "APTEKA SOBCZAK — leki z etykietami");
+        var rng = new System.Random(20261104);
+
+        // Dwie fizyczne zatoki 3.0 m × 0.55 m, z tyłu części frontowej;
+        // nie zasłaniają szyby ani przejścia centralnego i kończą się przed windą.
+        foreach (var (x0, x1) in new[] { (38.85f, 42.05f), (48.00f, 51.20f) })
+        {
+            const float z0 = 17.85f, z1 = 18.40f;
+            float y0 = .15f, h = 2.75f;
+            polki.Box(new Vector3(x0, y0, z0), new Vector3(x0 + .055f, y0 + h, z1));
+            polki.Box(new Vector3(x1 - .055f, y0, z0), new Vector3(x1, y0 + h, z1));
+            polki.Box(new Vector3(x0, y0, z0), new Vector3(x1, y0 + h, z0 + .045f)); // plecy, nie dodatkowa fasada
+            for (int p = 0; p < 5; p++)
+            {
+                float y = y0 + .13f + p * .55f;
+                polki.Box(new Vector3(x0 + .055f, y - .045f, z0 + .045f),
+                    new Vector3(x1 - .055f, y, z1));
+                obram.Box(new Vector3(x0 + .07f, y - .052f, z1 - .025f),
+                    new Vector3(x1 - .07f, y - .046f, z1));
+                if (p == 4) continue;
+                BraxSklepyTowar.Polka("apteka", towar,
+                    new Vector3(x0 + .13f, y + .006f, (z0 + z1) * .5f),
+                    Vector3.right, Vector3.back, x1 - x0 - .26f, rng, .51f);
+            }
+        }
+
+        // Krzyż i napis wewnątrz witryny (nie na szybie; nie zastępują logo właściciela).
+        var znak = BraxUliceKit.S(BraxMiastoA.Mat("APTEKA: zielony krzyż wewnętrzny",
+            new Color(.15f, .65f, .28f), .40f));
+        znak.Box(new Vector3(40.12f, 2.99f, 18.61f), new Vector3(40.48f, 3.35f, 18.65f));
+        znak.Box(new Vector3(39.92f, 3.11f, 18.61f), new Vector3(40.68f, 3.23f, 18.65f));
+
+        BraxSklepyTowar.Zakoncz(towar, "APTEKA SOBCZAK");
+        Debug.Log("BRAXHORN_APTEKA_WIEZOWIEC fizyczne regały=2; wolny korytarz x 43..47; winda nienaruszona");
     }
 
     // ---------------- wnętrze lokalu za witryną ----------------
