@@ -213,19 +213,21 @@ public static class BraxCityBuild
         var hero=BraxClaudeOsiedle.PatrykBohater(player.transform,body);
         var animation=hero.GetComponent<Animation>();
         if(!animation)throw new Exception("New Patryk has no validated animations");
+        if (!animation.GetClip("Run")) throw new InvalidOperationException("Osiedle: wymagany prawdziwy klip Run Patryka");
         var camera=new GameObject("Estate manual player camera").AddComponent<Camera>();camera.tag="MainCamera";camera.fieldOfView=55;camera.nearClipPlane=.15f;camera.farClipPlane=330;camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.64f,.73f,.79f);camera.allowMSAA=true;BraxHeroRefinements.CharacterLights(camera);camera.allowHDR=false;camera.gameObject.AddComponent<AudioListener>();
         RenderSettings.ambientMode=AmbientMode.Trilight;RenderSettings.ambientSkyColor=new Color(.55f,.63f,.71f);RenderSettings.ambientEquatorColor=new Color(.38f,.44f,.43f);RenderSettings.ambientGroundColor=new Color(.23f,.27f,.22f);RenderSettings.fog=false;
         var sun=new GameObject("Estate daylight").AddComponent<Light>();sun.type=LightType.Directional;sun.intensity=1.08f;sun.color=new Color(1,.97f,.92f);sun.transform.rotation=Quaternion.Euler(48,-35,0);sun.shadows=LightShadows.Soft;sun.shadowStrength=.67f;sun.shadowBias=.04f;sun.shadowNormalBias=.25f;
         RenderSettings.sun=sun;QualitySettings.shadows=ShadowQuality.All;QualitySettings.shadowDistance=42;QualitySettings.shadowResolution=ShadowResolution.Medium;QualitySettings.shadowCascades=2;
         var shadow=GameObject.CreatePrimitive(PrimitiveType.Quad);shadow.name="Original Brax contact shadow";UnityEngine.Object.DestroyImmediate(shadow.GetComponent<Collider>());shadow.transform.rotation=Quaternion.Euler(90,0,0);shadow.transform.localScale=new Vector3(1.6f,1.4f,1);shadow.GetComponent<Renderer>().sharedMaterial=AssetDatabase.LoadAssetAtPath<Material>(Generated+"/ContactShadow.mat");shadow.layer=8;
         var runtime=player.AddComponent<BraxGymPlayer>();runtime.visual=hero.transform;runtime.body=body;runtime.clips=animation;runtime.view=camera;runtime.contactShadow=shadow.transform;runtime.bags=Array.Empty<Transform>();runtime.buildId=commit;runtime.worldSpawn=player.transform.position;
-        runtime.walkOnly=true;runtime.playFullActionClips=true;runtime.hideWhenCameraClose=false;
+        runtime.walkOnly=false;runtime.playFullActionClips=true;runtime.hideWhenCameraClose=false; // osiedle: pelny bieg z animacja Run
         AddArea("estate",runtime);
         // Estate-only visual pass: verified source textures on original roof meshes.
         BraxEstateR2ApprovedRoofs.Apply();
         BraxEstateR2FacadeFinish.Apply();
         // Osiedle R2 (Opus): remont A, Park Centralny, osiedle B, wille, kasyno, komisariat, siłownia A, trawa, wylot tunelu z miasta.
         BraxClaudeOsiedle.Apply();
+        BraxClaudeOsiedle.DodajAutoPatrykaDoOsiedla(); // wymagana dzialajaca instancja sportowego auta przy arenie
         {var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
         try{BraxClaudeBezSwiecenia.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (osiedle): "+e);}
         try{BraxClaudeSiatki.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
