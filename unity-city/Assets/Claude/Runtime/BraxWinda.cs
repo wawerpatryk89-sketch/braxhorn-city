@@ -57,8 +57,19 @@ public sealed class BraxWinda : MonoBehaviour, IBraxInterakcja
         Debug.Log("BRAXHORN_WINDA " + nazwa + " pięter=" + n + " użytkowe=[" + string.Join(", ", u) + "]");
     }
 
-    void OnEnable() { BraxInterakcje.Dodaj(this); }
-    void OnDisable() { BraxInterakcje.Usun(this); panel = false; }
+    // Globalne odwołanie bez FindObjectsByType co klatkę: kamera Braxa sprawdza
+    // tylko aktywne kabiny. Domyślny tryb 3. osoby poza windą bez zmian.
+    static readonly List<BraxWinda> aktywne = new List<BraxWinda>();
+    public static bool WewnatrzKabiny(Vector3 p)
+    {
+        foreach (var w in aktywne)
+            if (w && w.isActiveAndEnabled && w.kabina && w.pietraY.Length > 0 && w.WKabinie(p))
+                return true;
+        return false;
+    }
+
+    void OnEnable() { BraxInterakcje.Dodaj(this); if (!aktywne.Contains(this)) aktywne.Add(this); }
+    void OnDisable() { BraxInterakcje.Usun(this); aktywne.Remove(this); panel = false; }
 
     bool Uzytkowe(int i) => i >= 0 && i < uzytkowe.Length && uzytkowe[i];
     string Nazwa(int i) => i < pietraNazwy.Length && !string.IsNullOrEmpty(pietraNazwy[i]) ? pietraNazwy[i] : i.ToString();
