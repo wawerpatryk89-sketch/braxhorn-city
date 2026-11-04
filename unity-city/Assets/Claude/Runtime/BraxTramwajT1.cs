@@ -214,8 +214,10 @@ public sealed class BraxTramwajT1 : MonoBehaviour, IBraxInterakcja
     public string Kontekst(Vector3 p)
     {
         if (!gotowe) return "";
-        if (pasazer && pasazer.seat == miejsceGracza)
-            return MoznaWysiasc ? "WYSIADZ · TRAMWAJ T1" : "TRAMWAJ T1 · NASTEPNY PRZYSTANEK";
+        // Reaguje natychmiast po Use, a nie dopiero po cyklicznym odświeżeniu
+        // pasazer (co 1 s). Zapobiega błędnemu napisowi WSIĄDŹ dla siedzącego.
+        if (miejsceGracza && miejsceGracza.Occupied)
+            return MoznaWysiasc ? "WYSIĄDŹ · TRAMWAJ T1" : "TRAMWAJ T1 · NASTĘPNY PRZYSTANEK";
         if (!MoznaWysiasc) return "";
         Vector3 d = DrzwiSwiat - p; d.y = 0;
         return d.sqrMagnitude < promienWejscia * promienWejscia ?
