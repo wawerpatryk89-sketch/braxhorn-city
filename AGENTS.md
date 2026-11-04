@@ -62,3 +62,8 @@ Zachowuj `.meta`, GUID, trwałe adresy i zapisy gry. Nie przedstawiaj podpisu AP
 **Obowiązuje także Miasto Mistrzów, miasto, osiedle, obóz, wyspę i wszystkie przyszłe rejony.** Decyzja właściciela (wspólna): https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13.
 
 Po zakończeniu kompilacji Unity i sprawdzeniu podpisu/identyfikatora/wersji **NATYCHMIAST ZABEZPIECZ APK w Actions artifact oraz testowym release, przed jakimkolwiek zapisem cache/Library/checkpoint**. Przekaż właścicielowi link do prawidłowego SHA/run i pliku; wyraźnie zaznacz dostęp tylko dla zalogowanych do draftu. Nie usuwaj jedynej kopii pliku. Awaria opcjonalnego backupu już po gotowym APK to ostrzeżenie, NIE powód do odebrania właścicielowi możliwości testowania. Jeśli publikacja release padła, wskaż bezpośrednio kopię w Actions artifact; nie zatajać jej pod czerwonym buildem. Rozróżniaj: kompilacja, podpis, upload, test na telefonie. Nie deklaruj sukcesu instalacji bez testu. Raportuj tylko najnowsze buildy zawierające bieżące poprawki. **Ta reguła nie upoważnia do samodzielnych buildów ani retry.** Istniejące wyraźne wyjątki właściciela do uruchomienia pojedynczego buildu pozostają bez zmian.
+
+
+## Wspólny standard wykonania i napraw — 4 listopada 2026
+
+Na polecenie właściciela przed kolejną pracą przeczytaj i stosuj [standard Unity 6 dla wszystkich wykonawców](docs/zasady/STANDARD_PRACY_UNITY6_20261104.md). Zawiera przypięte wersje Claude Anthropic, wymagania PBR i 4K blisko / minimum 2K dalej, przygotowanie buildów, udokumentowane awarie i stan napraw. Dodanie instrukcji nie oznacza gotowości istniejących scen. Zachowaj bieżące zasady zlecania buildów, cudze zmiany i osobne rejony; aktualizuj gałąź z kontrolą oczekiwanego HEAD.
