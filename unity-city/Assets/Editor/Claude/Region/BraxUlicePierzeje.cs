@@ -83,6 +83,10 @@ public static class BraxUlicePierzeje
         BraxUliceKit.Start(); BraxUliceKit.WyczyscOkna(); BraxUliceKit.Usuniete.Clear();
         nOkien = nWitryn = nLokali = nBokow = 0;
         var root = BraxRegion.Root(cityRoot, "CLAUDE ulice: pierzeje (elewacje od nowa)");
+        // Grafiki WAWER / SOBCZAK muszą należeć do miasta. Dawniej kontener
+        // tworzył się przy korzeniu sceny i mógł wypaść z paczki obszaru.
+        szyldyFirm = new GameObject("CLAUDE: szyldy firm z grafik (WAWER, SOBCZAK)").transform;
+        szyldyFirm.SetParent(root, false);
         var kolizje = new GameObject("kolizje parterów i brył").transform; kolizje.SetParent(root, false);
         style = Style();
         var wieze = new HashSet<string>(BraxCityStreetSkyline.HighRises.Select(h => h.id));
@@ -601,7 +605,7 @@ public static class BraxUlicePierzeje
         float wG = Mathf.Min(maxW, 2.6f), hG = wG / 5f;
         if (firma != null)
         {
-            if (!szyldyFirm) szyldyFirm = new GameObject("CLAUDE: szyldy firm z grafik (WAWER, SOBCZAK)").transform;
+            if (!szyldyFirm) throw new InvalidOperationException("Brak kontenera szyldów firmy w korzeniu miasta");
             if (BraxMiastoBillboardy.Mural(szyldyFirm, firma, f.P(sc, 3.33f, .06f), f.N, wG, hG)) { OBox(f, listwa, sc - wG * .5f - .06f, sc + wG * .5f + .06f, 3.33f - hG * .5f - .04f, 3.33f + hG * .5f + .04f, 0f, .05f); goto poSzyldzie; }
         }
         OBox(f, listwa, sc - w * .5f - .25f, sc + w * .5f + .25f, 3.26f, 3.40f, 0f, .045f);
