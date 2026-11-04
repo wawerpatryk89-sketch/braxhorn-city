@@ -55,7 +55,7 @@ public sealed class BraxMetroM1Pasazerowie : MonoBehaviour
         if (!o) return;
         var a = o.GetComponentInChildren<Animation>(true);
         if (!a) return;
-        string klip = a[nazwa] ? nazwa : (a["Walking"] ? "Walking" : "");
+        string klip = a[nazwa] != null ? nazwa : (a["Walking"] != null ? "Walking" : "");
         if (klip.Length > 0) { a[klip].wrapMode = WrapMode.Loop; a.CrossFade(klip, .15f); }
     }
 
