@@ -582,7 +582,14 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         var piers = new BraxRegionMeble.Bud();
         Pierscien(piers, c, r0, r1, YA, 96);
         var ob = piers.Obiekt("Jezdnia okrągła: " + n, root, asfalt, false, false);
-        Nawierzchnia(ob);
+        if (ob)
+        {
+            // Stary prostokąt miał BoxCollider. Po zastąpieniu okręgiem musi
+            // powstać dokładna kolizja z siatki, inaczej auta wpadną przez rondo.
+            var mc = ob.AddComponent<MeshCollider>();
+            mc.sharedMesh = ob.GetComponent<MeshFilter>().sharedMesh;
+            Nawierzchnia(mc);
+        }
         var laczniki = new BraxRegionMeble.Bud();
         foreach (var k in wloty)
         {
@@ -611,7 +618,12 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             }
         }
         var p = laczniki.Obiekt("Jezdnia okrągła: łączniki wlotów " + n, root, asfalt, false, false);
-        Nawierzchnia(p);
+        if (p)
+        {
+            var mc = p.AddComponent<MeshCollider>();
+            mc.sharedMesh = p.GetComponent<MeshFilter>().sharedMesh;
+            Nawierzchnia(mc);
+        }
         Debug.Log("BRAXHORN_RONDO_BEZ_KWADRATU " + n +
             " pierścień=" + r0.ToString("F1") + "…" + r1.ToString("F1") +
             " m, wlotów=" + wloty.Length + ", brak kwadratowego asfaltu");
