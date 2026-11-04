@@ -1,0 +1,59 @@
+name: Obóz — bezpieczna dostawa źródeł
+on:
+  push:
+    branches: [gpt/oboz]
+    paths: [unity-tools/oboz/transfer-request.json]
+permissions:
+  contents: write
+concurrency:
+  group: oboz-private-transfer
+  cancel-in-progress: false
+jobs:
+  deliver:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            unity-tools/oboz
+            unity-tools/claude
+      - name: Sprawdź tryb zlecenia dostawy
+        id: request
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          data=json.loads(Path('unity-tools/oboz/transfer-request.json').read_text())
+          assert data['schema']==1 and data['mode'] in ('prepare-key','import')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('mode='+data['mode']+'\n')
+          PY
+      - name: Przygotuj odbiorcę bez ujawniania sekretu podpisu
+        if: steps.request.outputs.mode == 'prepare-key'
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/transfer.py prepare-key --output "$RUNNER_TEMP/public-recipient"
+      - name: Publiczny klucz dla wysyłającego
+        if: steps.request.outputs.mode == 'prepare-key'
+        uses: actions/upload-artifact@v4
+        with:
+          name: oboz-public-recipient
+          path: ${{ runner.temp }}/public-recipient/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Odbierz, sprawdź i zachowaj zaszyfrowane źródła
+        if: steps.request.outputs.mode == 'import'
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/transfer.py accept --request unity-tools/oboz/transfer-request.json --output "$RUNNER_TEMP/delivery-proof"
+      - name: Dowód dostawy bez modeli i sekretów
+        if: steps.request.outputs.mode == 'import'
+        uses: actions/upload-artifact@v4
+        with:
+          name: oboz-delivery-proof
+          path: ${{ runner.temp }}/delivery-proof/
+          if-no-files-found: error
+          retention-days: 14

@@ -112,10 +112,10 @@ def require_delivery(data):
         names.add(p['name'])
 
 
-def encrypt(data):
+def encrypt(data, source=PRIVATE):
     if not os.environ.get('KLUCZ'):
         raise ValueError('Bind KLUCZ securely before encrypting; never put the key in a file or chat')
-    verify_sources(data)
+    verify_sources(data, source)
     helper = ROOT/'unity-tools/claude/prywatne.py'
     if not helper.is_file():
         raise ValueError('Missing original shared encryption tool')
@@ -137,7 +137,7 @@ def encrypt(data):
             stage = Path(tmp)
             for entry in group:
                 dest = safe(stage, entry['path']); dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(safe(PRIVATE, entry['path']), dest)
+                shutil.copyfile(safe(source, entry['path']), dest)
             subprocess.run(['python3', str(helper), 'szyfruj', name, str(stage)], cwd=ROOT, check=True)
         with path.open('rb') as stream:
             if stream.read(8) != b'Salted__':
