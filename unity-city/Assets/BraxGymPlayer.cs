@@ -160,8 +160,19 @@ public sealed class BraxGymPlayer : MonoBehaviour
         }
         if(vessel)
         {
-            vessel.Drive(move,dt);speed=0;vertical=0;
-            if(action!="Idle"){action="Idle";clips["Idle"].wrapMode=WrapMode.Loop;clips["Idle"].speed=1;clips.CrossFade("Idle",.16f,PlayMode.StopAll);}
+            speed=0;vertical=0;
+            // Jacht: wchodzimy na pokład i możemy dojść do steru.
+            // Joystick na pokładzie rusza Braxem, NIE jachtem.
+            if(vessel.IsOnDeck) vessel.WalkDeck(move,dt);
+            else
+            {
+                vessel.Drive(move,dt);
+                if(action!="Idle" && clips["Idle"]!=null)
+                {
+                    action="Idle";clips["Idle"].wrapMode=WrapMode.Loop;
+                    clips["Idle"].speed=0f;clips.CrossFade("Idle",.16f,PlayMode.StopAll);
+                }
+            }
             return;
         }
         bool acting=Time.time<actionEnd;
@@ -391,7 +402,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         {
             string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
             if(cityWorld){if(!string.IsNullOrEmpty(cityWorld.Context))context=cityWorld.Context;else if(context=="ULICA — KOLEJNY ETAP")context="";}
-            if(vessel)context="ZEJDŹ · "+vessel.label;
+            if(vessel)context=vessel.Interakcja();
             if(seat)context=seat.tramOwner ? seat.tramOwner.Kontekst(transform.position) : "WSTAŃ";
             return context;
         }
