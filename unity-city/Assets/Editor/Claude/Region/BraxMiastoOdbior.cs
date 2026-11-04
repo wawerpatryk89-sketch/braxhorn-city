@@ -32,6 +32,7 @@ internal static class BraxMiastoOdbior
         SprawdzApteke(cityRoot);
         SprawdzTaras360(cityRoot);
         SprawdzTramT1(cityRoot);
+        SprawdzPojazdyWodne(cityRoot);
         SprawdzMetroM1(cityRoot);
         SprawdzStanowiskaWodne(cityRoot);
     }
@@ -254,6 +255,34 @@ internal static class BraxMiastoOdbior
             Debug.LogError(msg + " NIEGOTOWE — nie zatwierdzać publikacji APK");
         else
             Debug.Log(msg + " GOTOWE W KODZIE do rzeczywistego testu Android");
+    }
+
+    static void SprawdzPojazdyWodne(Transform cityRoot)
+    {
+        var statki = cityRoot.GetComponentsInChildren<BraxVessel>(true);
+        var motory = statki.Where(v => v && v.label == "MOTORÓWKA").ToArray();
+        var skutery = statki.Where(v => v && v.label == "SKUTER").ToArray();
+        var jachty = statki.Where(v => v && v.label == "JACHT").ToArray();
+
+        // Model Riva ma osobny prawy fotel sternika. X=0 to środek kadłuba,
+        // w którym Brax na zdjęciu użytkownika wyglądał, jakby klęczał.
+        int fotelRiva = motory.Count(v => v.sit &&
+            Mathf.Abs(v.seat.x) > Mathf.Max(.10f, v.width * .075f));
+        int siodloSkuter = skutery.Count(v => v.sit &&
+            v.seat.y > .20f && v.seat.z > -v.length * .5f);
+        int poklady = jachty.Count(v => v.walkableDeck &&
+            v.deckEntry.z >= -v.length * .5f &&
+            v.deckEntry.z < v.seat.z &&
+            v.helmCameraLocal.y > v.seat.y + .3f);
+        string raport = "BRAXHORN_WODA_FOTELE motorówki=" + motory.Length +
+            " fotel_sternika_z_modelu=" + fotelRiva +
+            " skutery=" + skutery.Length + " siodła=" + siodloSkuter +
+            " jachty=" + jachty.Length + " pokład_i_kamera_za_sterem=" + poklady +
+            " (wysokość, poza i widok nadal do sprawdzenia w APK)";
+        if (fotelRiva < motory.Length || siodloSkuter < skutery.Length ||
+            poklady < jachty.Length || motory.Length < 1 || skutery.Length < 1 || jachty.Length < 3)
+            Debug.LogError(raport + " NIEGOTOWE");
+        else Debug.Log(raport + " KOD_GOTOWY_DO_TESTU");
     }
 
     static void SprawdzWejscie(string nazwa, float x, float y, float zA, float zB)
