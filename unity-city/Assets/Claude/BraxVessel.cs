@@ -66,7 +66,10 @@ public sealed class BraxVessel : MonoBehaviour
         {
             if (!v || v.rider) continue;
             var d = v.BoardingPoint - p; d.y = 0;
-            if (d.magnitude < bd) { bd = d.magnitude; best = v; }
+            // Jacht: długi, wysoki kadłub i trap z pomostu. Punkt akcji
+            // musi być osiągalny z normalnego końca trapu, nie tylko z wody.
+            float zasieg = v.walkableDeck ? Mathf.Max(max, 4.5f) : max;
+            if (d.magnitude < zasieg && d.magnitude < bd) { bd = d.magnitude; best = v; }
         }
         return best;
     }
@@ -352,6 +355,7 @@ public sealed class BraxVessel : MonoBehaviour
         home = transform.position; baseYaw = transform.eulerAngles.y;
         if (!p) return;
         BraxPose.Get(p).Set(BraxPose.Mode.None, null);
+        if (p.clips && p.clips["Idle"] != null) p.clips["Idle"].speed = 1f;
         if (p.transform.parent == transform) p.transform.SetParent(null, true);
         if (riderScene.IsValid() && riderScene.isLoaded && p.gameObject.scene != riderScene)
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(p.gameObject, riderScene);
