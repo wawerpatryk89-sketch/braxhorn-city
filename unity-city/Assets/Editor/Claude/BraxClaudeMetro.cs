@@ -1362,7 +1362,7 @@ public static class BraxClaudeMetro
             (yHc - .30f - yR) / cale.size.y);
         // Dwa człony tego samego składu: 20 cm na widoczny przegub.
         float dl = cale.size.x * skala, gap = .20f;
-        if (!float.IsFinite(skala) || skala <= 0f ||
+        if (float.IsNaN(skala) || float.IsInfinity(skala) || skala <= 0f ||
             dl < 8f || 2f * dl + gap > PX1 - PX0 - 5f)
             throw new InvalidOperationException("BRAXHORN_METRO_M1_SKALA_NIEGOTOWA: długość wagonu=" +
                 dl.ToString("F2") + ", skala=" + skala.ToString("F4") +
