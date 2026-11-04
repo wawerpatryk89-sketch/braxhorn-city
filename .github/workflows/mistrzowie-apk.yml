@@ -1,5 +1,5 @@
 name: Miasto Mistrzów — APK
-run-name: Miasto Mistrzów — APK do zwiedzania — ${{ github.run_number }}
+run-name: Miasto Mistrzów — APK c95f6fe — ${{ github.run_number }}
 
 # Register this entry on main so GitHub displays a dedicated Run workflow form.
 # The game stays on its own branch; every run records the exact checked-out SHA.
@@ -7,10 +7,15 @@ on:
   workflow_dispatch:
     inputs:
       commit:
-        description: 'Pełne SHA wersji gry; puste = aktualne Miasto Mistrzów'
+        description: 'Ten formularz buduje stałą wersję c95f6fe. Pole zgodności ze starym formularzem; wartość nie zmienia wersji.'
         type: string
         required: false
-        default: '47c89f05796c675d02a15982382a37ef4c5d20be'
+        default: ''
+      zdjecia:
+        description: 'Opcjonalny dodatkowy player Linux i zdjęcia po dostarczeniu APK; wydłuża build'
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: write
   actions: read
@@ -20,21 +25,20 @@ concurrency:
 jobs:
   exploration-apk:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 355
     steps:
-      - name: Sprawdź wskazaną wersję Miasta Mistrzów
-        env:
-          SOURCE_COMMIT: ${{ inputs.commit }}
+      - name: Select reviewed Champions code c95f6fe
+        id: selected
         run: |
-          if [[ -n "$SOURCE_COMMIT" && ! "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
-            echo '::error::Wpisz pełne 40-znakowe SHA albo pozostaw puste pole.'
-            exit 1
-          fi
+          # Keep the old form input compatible, but never build its stale default.
+          # This recovery launcher is pinned to the version approved in this task.
+          printf 'ref=%s\n' 'c95f6fe055b43cc1e26f81fbe3051beec3ea9b67' >> "$GITHUB_OUTPUT"
+          echo 'Reviewed game source: c95f6fe055b43cc1e26f81fbe3051beec3ea9b67; legacy commit input is not used.'
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          # Pin the selected branch run to the event SHA. From main, use the
-          # requested game commit (or the current Champions branch if blank).
-          ref: ${{ inputs.commit || (github.ref == 'refs/heads/codex/miasto-mistrzow-20261104' && github.sha) || 'codex/miasto-mistrzow-20261104' }}
+          # The recovery launcher always checks out the reviewed game commit.
+          # Its own branch SHA is workflow provenance, not the game source.
+          ref: ${{ steps.selected.outputs.ref }}
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: |
@@ -44,11 +48,14 @@ jobs:
             unity-city/Prywatne/miasto_palmy.tar.gz.enc
             unity-city/Prywatne/miasto_silownia_metro.tar.gz.enc
             unity-city/Prywatne/import-patryk-20261103
+            unity-city/Prywatne/import-patryk-animations-20261104
             unity-city/Prywatne/ruchy_brax.tar.gz.enc
             unity-city/Prywatne/ruchy_wlasciciela.tar.gz.enc
             unity-tools/mistrzowie
+            unity-tools/validation
             unity-tools/claude/prywatne.py
             unity-tools/claude/import_patryk_transfer.py
+            unity-tools/claude/import_patryk_animations.py
             unity-tools/claude/tekstury_b5.py
       - name: Zapisz dokładną wersję gry przed generowaniem
         id: source
@@ -60,6 +67,23 @@ jobs:
           printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"
           printf 'SOURCE_SHA=%s\n' "$sha" >> "$GITHUB_ENV"
           printf '## Miasto Mistrzów — wersja do zbudowania\n\nKod gry: `%s`\n\nWorkflow: `%s`\n' "$sha" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: C# syntax and local scopes before Unity (CS0136 regression)
+        run: |
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: Prepare runner disk and 12 GiB Unity swap
+        run: |
+          # Keep the host Android SDK: APK certificate/identity verification needs it.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/share/swift /usr/local/share/powershell
+          sudo apt-get clean
+          sudo docker image prune --all --force
+          sudo fallocate -l 12G /swapfile-mistrzowie
+          sudo chmod 600 /swapfile-mistrzowie
+          sudo mkswap /swapfile-mistrzowie
+          sudo swapon /swapfile-mistrzowie
+          df -h /
+          free -h
       - name: Cache original public PBR source maps
         continue-on-error: true
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
@@ -72,18 +96,37 @@ jobs:
         run: |
           python3 -m pip install numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
           test -f /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
-          python3 unity-tools/mistrzowie/test_surface_geometry.py
-          python3 unity-tools/mistrzowie/test_restore_player.py
-          python3 unity-tools/mistrzowie/test_apk_delivery.py
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
+          python3 unity-tools/mistrzowie/audit_metro.py
           python3 unity-tools/mistrzowie/prepare_assets.py
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/restore_player.py
           python3 unity-tools/mistrzowie/prepare_signage.py
           python3 unity-tools/mistrzowie/build_infrastructure.py
+          python3 unity-tools/mistrzowie/prepare_landscape.py
           python3 unity-tools/mistrzowie/validate_contract.py
           python3 unity-tools/mistrzowie/build_exteriors.py
+          python3 unity-tools/mistrzowie/audit_layout.py
           python3 unity-tools/mistrzowie/build_signs.py
           python3 unity-tools/mistrzowie/prepare_arena.py
+      - name: Restore isolated encrypted Champions Library
+        id: library
+        continue-on-error: true
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/champions-library.tar.zst.enc
+          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-
+      - name: Restore imported assets and source GUIDs
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: bash unity-tools/mistrzowie/library_cache.sh restore unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
+      - name: Remove restored archive and report remaining space
+        run: |
+          rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
+          df -h /
       - name: Prepare the existing signing key for the exploration APK
         env:
           KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
@@ -93,8 +136,9 @@ jobs:
           umask 077
           printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
           printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
-          printf '%s' "$((GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT))" > unity-city/braxhorn.versioncode
+          python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
       - name: Unity 6 - Miasto Mistrzów, Patryk i APK do zwiedzania
+        id: unity_build
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -109,8 +153,11 @@ jobs:
           versioning: None
           allowDirtyBuild: true
       - name: Validate APK identity and existing certificate; stage immutable output
+        id: apk_stage
+        if: always() && !cancelled() && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
         run: python3 unity-tools/mistrzowie/apk_delivery.py stage
       - name: Immediately save APK as Actions artifact
+        if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
         id: apk_artifact
         continue-on-error: true
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -121,6 +168,7 @@ jobs:
           compression-level: 0
           retention-days: 30
       - name: Independently save APK as a unique test release
+        if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
         id: apk_release
         continue-on-error: true
         env:
@@ -137,6 +185,8 @@ jobs:
           PYNOTES
           gh release create "$tag" mistrzowie-apk/*.apk mistrzowie-apk/manifest.json --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --prerelease --title "Miasto Mistrzów — APK ${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}" --notes-file mistrzowie-apk/release-notes.txt
       - name: Confirm at least one real APK delivery before optional reports
+        id: apk_delivery
+        if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           APK_ARTIFACT_ID: ${{ steps.apk_artifact.outputs.artifact-id }}
@@ -144,6 +194,54 @@ jobs:
         run: |
           export APK_RELEASE_TAG="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
           python3 unity-tools/mistrzowie/apk_delivery.py verify
+      - name: Optional real player for visual review after APK delivery
+        id: visual_player
+        if: success() && inputs.zdjecia && steps.apk_delivery.outcome == 'success'
+        continue-on-error: true
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: StandaloneLinux64
+          buildMethod: BraxChampionsBuild.BuildVisualReview
+          versioning: None
+          allowDirtyBuild: true
+      - name: Capture the real running player
+        if: success() && steps.visual_player.outcome == 'success'
+        continue-on-error: true
+        env:
+          LIBGL_ALWAYS_SOFTWARE: 1
+          CHAMPIONS_REVIEW_DIR: ${{ github.workspace }}/mistrzowie-visual-review
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes xvfb libgl1 libasound2t64
+          chmod +x build/VisualReview/Mistrzowie.x86_64
+          timeout 300s xvfb-run -a -s '-screen 0 1280x720x24' build/VisualReview/Mistrzowie.x86_64 --champions-review -force-glcore -screen-width 1280 -screen-height 720 -screen-fullscreen 0 -logFile "$GITHUB_WORKSPACE/mistrzowie-visual-player.log"
+          test -s mistrzowie-visual-review/complete.txt
+          python3 - <<'PYIMAGES'
+          from pathlib import Path
+          from PIL import Image, ImageStat
+          files=list(Path('mistrzowie-visual-review').glob('*.png'))
+          assert len(files)==5, 'Five real player frames required'
+          for path in files:
+              with Image.open(path) as frame:
+                  assert frame.width >= 1000 and frame.height >= 600
+                  assert max(ImageStat.Stat(frame.convert('RGB')).stddev)>2, 'Flat or blank render: '+str(path)
+          PYIMAGES
+      - name: Save optional visual review and player log
+        if: always() && !cancelled() && inputs.zdjecia && steps.apk_delivery.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mistrzowie-visual-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            mistrzowie-visual-review/
+            mistrzowie-visual-player.log
+          if-no-files-found: warn
       - name: Save validation evidence
         if: always()
         continue-on-error: true
@@ -156,3 +254,25 @@ jobs:
             unity-city/Logs/
           if-no-files-found: warn
           retention-days: 30
+      - name: Pack encrypted imports after delivery attempts or failed Unity validation
+        id: library_pack
+        if: always() && !cancelled() && !inputs.zdjecia && (steps.apk_delivery.outcome == 'success' || steps.unity_build.outcome == 'failure')
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          # A failed scene check still leaves reusable imports. Save after the
+          # APK/evidence steps; this is never a claim that the scene passed.
+          test -d unity-city/Library
+          sudo swapoff /swapfile-mistrzowie || true
+          sudo rm -f /swapfile-mistrzowie
+          sudo docker image prune --all --force
+          sudo chown -R "$(id -u):$(id -g)" unity-city/Library
+          bash unity-tools/mistrzowie/library_cache.sh save unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
+      - name: Save isolated encrypted Champions Library
+        if: always() && !cancelled() && steps.library_pack.outcome == 'success'
+        continue-on-error: true
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/champions-library.tar.zst.enc
+          key: champions-library-android-6000.0.58f2-v1-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
