@@ -196,6 +196,7 @@ public static class BraxGymBuild
     private static void BuildInternal(bool fullCity,bool integrated,bool renovation=false,BuildTarget target=BuildTarget.WebGL)
     {
         var t0=DateTime.UtcNow;
+        BraxBrakujaceSkrypty.SprawdzTypy(); // przed kosztownym generowaniem i użyciem cache scen
         // REJON BUILDU (build 14, właściciel: rejony OSOBNO — osiedle i miasto jako osobne buildy). Plik rejon-ci.txt pisze
         // workflow (unity-tools/claude/rejon_buildu.py); bez pliku = „oba” jak dotąd. Dotyczy tylko paczki regionu
         // (BuildRenovation / BuildRenovationAndroid); Build / BuildCity / BuildIntegrated bez zmian.
@@ -391,7 +392,9 @@ public static class BraxGymBuild
                         var c2=cell;c2.center=new Vector3(c2.center.x,0f,c2.center.z);
                         if(c2.SqrDistance(spawn)<70f*70f)continue;   // okolica siłowni zostaje w scenie startowej
                         var w=BraxClaudeObszary.WObszarze(scene,cell);if(w.Count==0)continue;
-                        if(BraxClaudeObszary.Wydziel(scene,"BraxhornCity_K"+nk.ToString("00"),w,120f,250f,Generated)!=null)nk++;
+                        // The sector identity depends on its coordinates, never on which other sectors are non-empty.
+                        string sectorName=BraxCityZoneRegistry.SectorSceneName(Mathf.RoundToInt(x/K),Mathf.RoundToInt(z/K));
+                        if(BraxClaudeObszary.Wydziel(scene,sectorName,w,120f,250f,Generated)!=null)nk++;
                     }
                 Debug.Log("BRAXHORN_KWADRATY miasto: "+nk+" kwadratów, granice miasta "+all.min.ToString("F0")+" … "+all.max.ToString("F0"));
             }
@@ -444,6 +447,7 @@ public static class BraxGymBuild
     {
         if(scenePaths==null||scenePaths.Length==0||scenePaths.Any(p=>p==null))throw new Exception("Brak scen rejonu "+rejon+" do paczki");
         EditorBuildSettings.scenes=scenePaths.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();AssetDatabase.SaveAssets();
+        if(renovation&&fullCity&&rejon!="osiedle")BraxCityZoneRegistry.Write(scenePaths,sourceCommit,target);
         BraxBrakujaceSkrypty.Sprawdz(scenePaths);   // bramka twarda (WebGL / zdjęcia CI też)   // 1.11, 22:20: jak wyżej (WebGL / zdjęcia CI też bez brakujących skryptów)
         bool cityOnly=renovation&&BraxCityBuild.CityOnly();
         string output,location;
@@ -461,19 +465,16 @@ public static class BraxGymBuild
             // 1.11 (właściciel: „muszę odinstalować i zainstalować ponownie — nie może się aktualizować?”): każdy build CI
             // podpisywał APK nowym kluczem debug → Android odrzucał aktualizację. Stały klucz z sekretów repozytorium
             // (CI zapisuje go do braxhorn.keystore) + rosnący numer wersji (numer przebiegu CI) = zwykła aktualizacja.
-            try
-            {
-                if(File.Exists("braxhorn.keystore")&&File.Exists("braxhorn.keystore.pass"))
-                {
-                    string pass=File.ReadAllText("braxhorn.keystore.pass").Trim();
-                    PlayerSettings.Android.useCustomKeystore=true;PlayerSettings.Android.keystoreName=Path.GetFullPath("braxhorn.keystore");
-                    PlayerSettings.Android.keystorePass=pass;PlayerSettings.Android.keyaliasName="braxhorn";PlayerSettings.Android.keyaliasPass=pass;
-                    Debug.Log("BRAXHORN_PODPIS: własny klucz (aktualizacja bez odinstalowania)");
-                }
-                else{PlayerSettings.Android.useCustomKeystore=false;Debug.LogWarning("BRAXHORN_PODPIS: brak klucza — klucz debug");}   // (ProjectSettings z pamięci rejonu mogą mieć włączony własny klucz)
-                if(File.Exists("braxhorn.versioncode")&&int.TryParse(File.ReadAllText("braxhorn.versioncode").Trim(),out int vc)&&vc>0){PlayerSettings.Android.bundleVersionCode=vc;PlayerSettings.bundleVersion="1.0."+vc;}
-            }
-            catch(Exception e){Debug.LogWarning("DO POPRAWKI: podpis APK: "+e.Message);}
+            if(!File.Exists("braxhorn.keystore")||!File.Exists("braxhorn.keystore.pass"))
+                throw new InvalidOperationException("BRAXHORN_PODPIS: brak stałego klucza — zatrzymano, aby nie wydać APK niezgodnego z aktualizacją");
+            string pass=File.ReadAllText("braxhorn.keystore.pass").Trim();
+            if(string.IsNullOrEmpty(pass))throw new InvalidOperationException("BRAXHORN_PODPIS: puste hasło klucza");
+            if(!File.Exists("braxhorn.versioncode")||!int.TryParse(File.ReadAllText("braxhorn.versioncode").Trim(),out int vc)||vc<=0)
+                throw new InvalidOperationException("BRAXHORN_WERSJA: brak poprawnego numeru wersji");
+            PlayerSettings.Android.useCustomKeystore=true;PlayerSettings.Android.keystoreName=Path.GetFullPath("braxhorn.keystore");
+            PlayerSettings.Android.keystorePass=pass;PlayerSettings.Android.keyaliasName="braxhorn";PlayerSettings.Android.keyaliasPass=pass;
+            PlayerSettings.Android.bundleVersionCode=vc;PlayerSettings.bundleVersion="1.0."+vc;
+            Debug.Log("BRAXHORN_PODPIS: stały klucz wymagany, versionCode="+vc);
             PlayerSettings.defaultInterfaceOrientation=UIOrientation.LandscapeLeft;
             PlayerSettings.productName="Braxhorn City";
             EditorUserBuildSettings.buildAppBundle=false;
@@ -498,6 +499,8 @@ public static class BraxGymBuild
         var tTex=DateTime.UtcNow;
         CapFacadeTextures(target);
         BraxRejonBuildu.Czas("obrobka_tekstur",tTex);
+        // Shared checkpoint contract 1d83c1a: validated generation survives a later APK failure.
+        if(!zPamieci&&rejon!="oba")BraxRejonBuildu.ZapiszZnacznik(target,scenePaths,sourceCommit,t0);
         BuildReport result;
         // osiedle / miasto: zawsze osobne APK (ekran startowy + rejon, wariant wg rejonu); oba: jak dotąd
         if(target==BuildTarget.Android&&renovation&&fullCity&&(rejon!="oba"||(!cityOnly&&scenePaths.Length>=2)))
@@ -514,7 +517,6 @@ public static class BraxGymBuild
         if(fullCity&&!zPamieci&&rejon!="osiedle")BraxCityBuild.WriteReport(output,sourceCommit);   // raport obszarów z tego przebiegu (samo osiedle = 1 obszar → fałszywe DO POPRAWKI)
         if(integrated&&!cityOnly&&rejon=="oba")BraxUnityDistrictRegistry.WriteBuildReceipt(output,sourceCommit,scenePaths.Where(p=>!p.Contains("_Nabrzeze")&&!p.Contains("_Wyspa")&&!p.Contains("_Poludnie")&&!p.Contains("BraxhornCity_K")).ToArray());   // rejestr: tylko rejony, bez doczytywanych obszarów
         if(renovation&&rejon!="osiedle")BraxCityRebuild.WriteReport(output);
-        if(!zPamieci&&rejon!="oba")BraxRejonBuildu.ZapiszZnacznik(target,scenePaths,sourceCommit,t0);
         BraxRejonBuildu.Czas("unity_razem",t0,"rejon="+rejon+" z_pamięci="+(zPamieci?"tak":"nie"));
         Debug.Log("BRAXHORN_PLAYABLE_BUILD_SUCCESS "+JsonUtility.ToJson(report));
     }

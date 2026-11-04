@@ -183,7 +183,8 @@ public static class BraxRejonBuildu
         catch (Exception e) { Debug.LogWarning("DO POPRAWKI: zależności scen do znacznika pamięci: " + e.Message); return new string[0]; }
     }
 
-    // Na końcu udanego builda z pełnym generowaniem: znacznik świata (workflow zapisze pamięć podręczną po udanym jobie).
+    // Po pełnym generowaniu i kontroli scen, przed pakowaniem APK: znacznik gotowego świata.
+    // CI zachowa kompletny checkpoint także po późniejszym błędzie IL2CPP/Gradle. To nie jest sukces APK.
     public static void ZapiszZnacznik(BuildTarget target, string[] sceny, string commit, DateTime startBuildu)
     {
         string rejon = Rejon; if (rejon == "oba") return;
@@ -200,7 +201,7 @@ public static class BraxRejonBuildu
             catch { }
             var s = new Stan { rejon = rejon, klucz = Klucz, platforma = target.ToString(), commit = commit, utworzono = DateTime.UtcNow.ToString("u", CultureInfo.InvariantCulture), sceny = sceny, zaleznosci = Zaleznosci(sceny), ustawieniaNaDysku = naDysku, ustawienia = Teraz() };
             File.WriteAllText(Znacznik, JsonUtility.ToJson(s, true));
-            if (naDysku) Debug.Log("BRAXHORN_PAMIEC rejon=" + rejon + " zapisany znacznik świata (klucz " + Klucz + ", scen " + sceny.Length + ") — workflow zapisze pamięć po udanym jobie" + (PamiecWlaczona ? "" : " (ten rejon bez pamięci w CI)"));
+            if (naDysku) Debug.Log("BRAXHORN_PAMIEC rejon=" + rejon + " zapisany znacznik świata (klucz " + Klucz + ", scen " + sceny.Length + ") — checkpoint gotowy; wynik APK sprawdzany osobno" + (PamiecWlaczona ? "" : " (ten rejon bez pamięci w CI)"));
             else Debug.LogWarning("BRAXHORN_PAMIEC UWAGA: ProjectSettings nie zapisały się przy SaveAssets — przy trafieniu liczy się zapis przy wyjściu z Unity (sprawdzane po przestrzeni barw; inaczej świat odrzucony = pełne generowanie)");
         }
         catch (Exception e) { Debug.LogWarning("DO POPRAWKI: znacznik pamięci rejonu: " + e.Message); }

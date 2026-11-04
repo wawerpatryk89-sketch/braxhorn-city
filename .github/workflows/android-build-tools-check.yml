@@ -1,0 +1,23 @@
+name: Android build tools - fast checks (no Unity build)
+on:
+  push:
+    branches: [codex/city58-startup-update-20261104, claude/miasto-opus-20261031, claude/region-20261030]
+    paths:
+      - unity-tools/claude/android_build_cache.py
+      - unity-tools/claude/rejon_buildu.py
+      - unity-tools/claude/check_apk_scene_bounds.py
+      - unity-tools/claude/test_*.py
+      - .github/workflows/android-build-tools-check.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: unity-tools/claude
+      - run: python3 -m unittest discover -s unity-tools/claude -p 'test_*.py' -v

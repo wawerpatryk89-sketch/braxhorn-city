@@ -4,16 +4,55 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-// BRAMKA „BRAKUJĄCE SKRYPTY” (1.11, 22:20). Diagnoza awarii: osiedle 12 — 0 brakujących skryptów, działa; osiedle 13 — 4,
-// pada przy wczytywaniu (80%, przed pierwszym Awake); miasto — 30–36 od wielu buildów, pada tak samo. Brakujący skrypt
-// powstaje, gdy klasa MonoBehaviour leży w pliku o innej nazwie (Unity nie zapisuje wtedy odwołania do skryptu w scenie),
-// a dane takiego komponentu w APK nie mają opisu typu → czytanie sceny na telefonie się wykoleja.
-// Przed każdym BuildPlayer: każda scena paczki (także obszary doczytywane i kwadraty) jest otwierana i sprawdzana.
-// 2.11, 01:10 (decyzja dyspozytora po konsultacji właściciela): BRAMKA TWARDA — jeśli jakakolwiek scena ma komponent bez
-// skryptu, build się ZATRZYMUJE (wyjątek, bez APK), zamiast po cichu usuwać komponent (usunięcie zabrałoby funkcję, np.
-// siedzisko). Dziennik CI: BRAXHORN_BRAKUJACE_SKRYPTY <scena>: N — nazwy obiektów; wymagane 0 we wszystkich scenach.
+// Kontrola kontraktu komponentów przed generowaniem oraz po ponownym otwarciu scen.
+// Sam licznik brakujących skryptów nie wykrywa komponentu wskazującego istniejący,
+// ale niewłaściwy MonoScript (build 58: BraxMorzeZaKamera w BraxAkwen.cs).
 public static class BraxBrakujaceSkrypty
 {
+    // Typy gry muszą mieć własny, prawidłowo zaimportowany MonoScript.
+    // Nie tworzymy instancji i nie uruchamiamy Awake/OnEnable podczas tej kontroli.
+    public static void SprawdzTypy()
+    {
+        var typySkryptow = new HashSet<System.Type>(MonoImporter.GetAllRuntimeMonoScripts()
+            .Where(s => s.GetClass() != null && PoprawnaNazwa(s, s.GetClass()))
+            .Select(s => s.GetClass()));
+        var bledy = TypeCache.GetTypesDerivedFrom<MonoBehaviour>()
+            .Where(t => t.Assembly.GetName().Name == "Assembly-CSharp" && !t.IsAbstract && !t.ContainsGenericParameters)
+            .Where(t => !typySkryptow.Contains(t)).Select(t => t.FullName).OrderBy(n => n).ToArray();
+        if (bledy.Length > 0)
+            throw new System.InvalidOperationException("BRAXHORN_TYPY_SKRYPTOW: brak jednoznacznego MonoScript: " + string.Join(", ", bledy));
+        Debug.Log("BRAXHORN_TYPY_SKRYPTOW: OK");
+    }
+
+    static bool PoprawnaNazwa(MonoScript script, System.Type type)
+    {
+        string path = AssetDatabase.GetAssetPath(script);
+        if (string.IsNullOrEmpty(path)) return false; // transient MonoScript cannot supply player serialization data
+        return !path.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase) ||
+            System.IO.Path.GetFileNameWithoutExtension(path) == type.Name;
+    }
+
+    public static string BladKomponentu(MonoBehaviour component)
+    {
+        var script = MonoScript.FromMonoBehaviour(component);
+        var actual = component.GetType();
+        if (!script) return actual.FullName + ": brak MonoScript";
+        var imported = script.GetClass();
+        if (imported != actual)
+            return actual.FullName + ": MonoScript wskazuje " + (imported == null ? "null" : imported.FullName) +
+                " (" + AssetDatabase.GetAssetPath(script) + ")";
+        // Unity 6000.0.58f2 accepts the old binding in the editor but writes only
+        // the 32-byte base header into an Android bundle. Require explicit files.
+        if (!PoprawnaNazwa(script, actual))
+            return actual.FullName + ": brak trwałego pliku MonoScript zgodnego z klasą (" + AssetDatabase.GetAssetPath(script) + ")";
+        var path = AssetDatabase.GetAssetPath(script);
+        if (path.EndsWith(".cs", System.StringComparison.OrdinalIgnoreCase) &&
+            !UnityEditor.Compilation.CompilationPipeline.GetAssemblies(UnityEditor.Compilation.AssembliesType.Player)
+                .Any(a => a.name == actual.Assembly.GetName().Name))
+            return actual.FullName + ": skrypt nie należy do kompilacji gracza";
+        return null;
+    }
+
     public static int Sprawdz(IEnumerable<string> sceny)
     {
         int razem = 0;
@@ -25,22 +64,30 @@ public static class BraxBrakujaceSkrypty
         }
         foreach (var path in sceny.Where(p => !string.IsNullOrEmpty(p)).Distinct())
         {
-            if (!System.IO.File.Exists(path)) continue;
+            if (!System.IO.File.Exists(path)) throw new System.IO.FileNotFoundException("Brak sceny do kontroli", path);
             var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
             int n = 0; var nazwy = new List<string>();
             foreach (var root in scene.GetRootGameObjects())
                 foreach (var t in root.GetComponentsInChildren<Transform>(true))
                 {
                     int m = GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject);
-                    if (m <= 0) continue;
-                    n += m; if (nazwy.Count < 20) nazwy.Add(t.name);
+                    n += m;
+                    if (m > 0 && nazwy.Count < 20) nazwy.Add(t.name + ": brak skryptu");
+                    foreach (var component in t.GetComponents<MonoBehaviour>())
+                    {
+                        if (!component) continue; // policzony wyżej
+                        string blad = BladKomponentu(component);
+                        if (blad == null) continue;
+                        n++;
+                        if (nazwy.Count < 20) nazwy.Add(t.name + ": " + blad);
+                    }
                 }
             Debug.Log("BRAXHORN_BRAKUJACE_SKRYPTY " + System.IO.Path.GetFileNameWithoutExtension(path) + ": " + n +
-                      (n > 0 ? " — BŁĄD (klasa MonoBehaviour w pliku o innej nazwie albo usunięta): " + string.Join(" | ", nazwy) : ""));
+                      (n > 0 ? " — BŁĄD przypisania skryptu: " + string.Join(" | ", nazwy) : ""));
             razem += n;
         }
         Debug.Log("BRAXHORN_BRAKUJACE_SKRYPTY razem: " + razem);
-        if (razem > 0) throw new System.InvalidOperationException("BRAXHORN_BRAKUJACE_SKRYPTY: " + razem + " komponentów bez skryptu — build ZATRZYMANY (telefon nie wczyta takiej sceny: „level is corrupted [Position out of bounds]”)");
+        if (razem > 0) throw new System.InvalidOperationException("BRAXHORN_BRAKUJACE_SKRYPTY: " + razem + " komponentów z nieprawidłowym skryptem — build ZATRZYMANY przed pakowaniem");
         return razem;
     }
 }
