@@ -13,13 +13,24 @@ public sealed class BraxSylwetkiZDaleka : MonoBehaviour
     public float ukryjBlizej = 100f;
 
     float nast;
+    BraxGymPlayer gracz;
 
     void Update()
     {
         if (Time.unscaledTime < nast || !sylwetka) return;
         nast = Time.unscaledTime + .5f;
-        var kam = Camera.main; if (!kam) return;
-        var p = kam.transform.position; var c = obszar.center; c.y = p.y;
+        // Nie wszystkie androidowe kamery miasta mają tag MainCamera.
+        // Dotąd Camera.main==null pozostawiał pełne czarne bryły "z daleka" nawet
+        // obok gracza. Odległość wyznacz też ze znanej postaci Braxa.
+        var kam = Camera.main;
+        if (!kam && !gracz) gracz = FindFirstObjectByType<BraxGymPlayer>();
+        if (!kam && !gracz)
+        {
+            sylwetka.enabled = false; // brak pewnej pozycji: nie zasłaniaj prawdziwego miasta
+            return;
+        }
+        var p = kam ? kam.transform.position : gracz.transform.position;
+        var c = obszar.center; c.y = p.y;
         var b = new Bounds(c, new Vector3(obszar.size.x, 1f, obszar.size.z));
         bool widac = b.SqrDistance(p) > ukryjBlizej * ukryjBlizej;
         if (sylwetka.enabled != widac) sylwetka.enabled = widac;
