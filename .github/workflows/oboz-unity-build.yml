@@ -23,7 +23,7 @@ jobs:
   android-oboz:
     if: github.ref == 'refs/heads/gpt/oboz'
     runs-on: ubuntu-24.04
-    timeout-minutes: 350
+    timeout-minutes: 355
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
