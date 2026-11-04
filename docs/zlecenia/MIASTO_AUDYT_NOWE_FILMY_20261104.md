@@ -68,3 +68,15 @@ Wykonano w `BraxRegionMiastoBDzielnice.cs`:
 **Nierozstrzygnięte:** dokładny przebieg szczelin między ścianami, nieopisane rusztowania scalone ze źródłem oraz wszystkie ciemne partery nieoznaczone nazwami ścian wymagają oględzin rzeczywistego importu/Androida. Nie nakładać nowej bryły na starą. Pełny odbiór premium: bez czarnych okien, bez pustych prześwitów, bez z-fightingu, przechodnie bramy, jednolita jakość materiałów i prawidłowe LOD przy przejściu z daleka.
 
 **Dowód:** zmiany kodu na gałęzi `codex/miasto-naprawy-filmow-20261104`; nie jest to jeszcze render Unity 6 ani potwierdzone APK.
+
+## 4.11 — kontrola fotela motorówki, skutera i jachtu przed buildem
+
+Źródło: dodatkowy zrzut z telefonu, pokazuje Braxa siedzącego nienaturalnie w motorówce Riva. Oryginalny plik użytkownika `bateau_riva_boat.glb` zweryfikowano strukturalnie: ma oddzielne fotele `assise_4` (prawy sternika) i `assise_4_1` (pasażera), deskę `compteurs`. Stary punkt `seat` był na osi środka kadłuba. W generatorze `BraxNabrzezeMarina.cs` kotwica Braxa jest teraz oparta o `assise_4` i prawdziwy górny punkt ramy fotela, a `BraxVessel.cs` uwzględnia wysokość kości `Hips` z aktu­alnego rigu.
+
+- `MOTORÓWKA`: fotel po prawej przy sterze, tryb pozy `BraxPose.Mode.Ster`, zwykła kamera za pojazdem.
+- `SKUTER`: tryb `BraxPose.Mode.Ride`, siedzisko wyznaczane z modelu/sondy, kamera za pojazdem. Wynik wysokości wymaga wizualnej weryfikacji.
+- `JACHT`: oryginalny model `yacht.glb` to zespolona siatka bez wydzielonego koła sterowego. Przyciskiem gracz najpierw wchodzi na bezpieczny obszar pokładu i może się przemieszczać joystickiem; drugi krok przełącza go za ster, a kamera przechodzi do kokpitu z punktem `helmCameraLocal`. Możliwe jest wielokrotne powrócenie na pokład i ponowne przejęcie steru; przy trapie można zejść na pomost.
+- `BraxMiastoOdbior.SprawdzPojazdyWodne`: kontrola kodu przed buildem — czy motorówki mają rzeczywiste boczne fotele, skutery poprawny typ siedzenia, a jachty punkty pokładu i wewnętrzną kamerę.
+- **Bezpieczne ograniczenie:** na jachcie ruch postaci jest ograniczony do wyznaczonej strefy, to nie jest jeszcze pełne fizyczne wnętrze i nie można deklarować kolizji wszystkich pomieszczeń. Aparat sternika, kończyny i podłoga wymagają odbioru na telefonie.
+
+Dowód: zapisy kodu na gałęzi miasta Unity 6, **nie screenshot ze zaktualizowanego APK**. W aktualnym etapie testować rzeczywistą pozycję Braxa, widoczność zza steru, dostęp do pomostu, jazdę i kolizje. Żaden z tych efektów nie jest jeszcze potwierdzony kompilacją i Androidem.
