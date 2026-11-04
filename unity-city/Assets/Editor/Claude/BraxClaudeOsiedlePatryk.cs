@@ -74,6 +74,7 @@ public static partial class BraxClaudeOsiedle
         var avatar = AssetDatabase.LoadAllAssetsAtPath(model).OfType<Avatar>().FirstOrDefault();
 
         var hero = Object.Instantiate(wzor); hero.name = "Patryk";
+        Avatar tPoza = null; // tymczasowy awatar porównawczy, po imporcie zostanie zwolniony
         try
         {
             hero.transform.position = Vector3.zero; hero.transform.rotation = Quaternion.identity; hero.transform.localScale = Vector3.one;
@@ -113,10 +114,18 @@ public static partial class BraxClaudeOsiedle
 
             // --- klipy przeniesione na kości Patryka ---
             var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek), PatrykPozaStala(hero,spoczynek,"CarIdle",true) }; var opis = new List<string>();
-            // The replacement already has the owner's original T-pose.
-            Avatar tPoza = null;
             if (!avatar || !avatar.isValid || !avatar.isHuman)
                 throw new InvalidOperationException("Nowy Patryk: nieprawidłowy awatar Humanoid");
+            // Wcześniej porównanie T-pozy i importu było martwym kodem. Nogi ze źródłowego
+            // FBX bywają obrócone; oceniamy dwie kalibracje na REALNYCH Walk i Run.
+            try
+            {
+                tPoza = PatrykAwatarTPoza(wzor, avatar, model, out string opisTPozy);
+                Debug.Log("BRAXHORN_PATRYK_TPOZA " + opisTPozy);
+            }
+            catch (Exception e) { Debug.LogWarning("BRAXHORN_PATRYK_TPOZA niemożliwa próba: " + e.Message); }
+            Avatar wybranyAwatar = PatrykWybierzAwatar(hero, avatar, tPoza, hips, kosci, spoczynek, out string porownanie);
+            Debug.Log("BRAXHORN_PATRYK_AWATAR " + porownanie);
             PatrykSpoczynek(spoczynek);
             foreach (var k in KlipyPatryka)
             {
@@ -127,7 +136,7 @@ public static partial class BraxClaudeOsiedle
                     if (!File.Exists(sciezka)) continue;
                     try
                     {
-                        gotowy = PatrykHumanoid(hero, avatar, hips, kosci, spoczynek, sciezka, k, out string uwagi);
+                        gotowy = PatrykHumanoid(hero, wybranyAwatar, hips, kosci, spoczynek, sciezka, k, out string uwagi);
                         opis.Add(k.nazwa + "←" + z + uwagi);
                         break;
                     }
@@ -146,15 +155,19 @@ public static partial class BraxClaudeOsiedle
             // --- test kości: 8 klatek każdego klipu vs spoczynek (> 2 % = błąd), T-poza w Idle/Walk/Run = błąd ---
             int bledy = PatrykTestKosci(hero, kosci, spoczynek, klipy, out string raportTestu);
             Debug.Log("BRAXHORN_PATRYK_KOSCI bledy=" + bledy + " " + raportTestu);
-            // E2: test nóg na zapisanych klipach Legacy (to, co gra gracz): 16 klatek chodu i biegu
-            foreach (var c in klipy.Where(q => q.name == "Walk" || q.name == "Run"))
+            // Sprawdzamy GOTOWE klipy Legacy (dokładnie te, które trafią do APK).
+            // Przy złych stopach/kolanach i ramionach NIE PUBLIKUJ uszkodzonego Patryka.
+            foreach (var c in klipy.Where(q => q.name == "Idle" || q.name == "Walk" || q.name == "Run"))
             {
                 var w = PatrykTestNog(hero, kosci, spoczynek, c);
-                bool ok = w.stopaPonad == 0 && w.koloTyl == 0 && w.przeprost == 0 && w.wBok == 0;
-                string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=" + (avatar == tPoza ? "T-poza" : "import") + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
-                if (ok) Debug.Log(l); else Debug.LogWarning(l + " — DO SPRAWDZENIA W APK");
+                bool ok = w.klatki > 0 && w.stopaPonad == 0 && w.koloTyl == 0 && w.przeprost == 0 && w.wBok == 0;
+                string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=" + (wybranyAwatar == tPoza && tPoza ? "T-poza" : "import") + " " + w.Opis()
+                    + " cele: stopa<=35°, kolano do przodu, brak przeprostu>10° i zgięcia w bok>35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
+                Debug.Log(l);
+                if (!ok) throw new InvalidOperationException("Patryk: zniekształcone nogi w " + c.name + ". " + l);
             }
-            if (bledy > 0) Debug.LogWarning("BRAXHORN_PATRYK_KOSCI DO SPRAWDZENIA: " + bledy + " błędów — " + raportTestu);
+            if (bledy > 0)
+                throw new InvalidOperationException("Patryk: błędy kości/ramion w przygotowanych klipach: " + raportTestu);
 
             anim.clip = anim.GetClip("Idle"); anim.Play("Idle"); anim.Sample();
 
@@ -182,6 +195,7 @@ public static partial class BraxClaudeOsiedle
             return hero;
         }
         catch { Object.DestroyImmediate(hero); throw; }
+        finally { if (tPoza) Object.DestroyImmediate(tPoza); }
     }
 
     static void PatrykSpoczynek(List<PatrykStan> s) { foreach (var x in s) { x.t.localRotation = x.r; x.t.localPosition = x.p; } }
@@ -270,7 +284,7 @@ public static partial class BraxClaudeOsiedle
         int bledy = 0; var uwagi = new List<string>(); float maxOdch = 0f;
         foreach (var c in klipy)
         {
-            int bk = 0, tpoza = 0; float ruch = 0f;
+            int bk = 0, tpoza = 0, zleRamionaIdle = 0; float ruch = 0f;
             for (int i = 0; i < 8; i++)
             {
                 c.SampleAnimation(hero, c.length * i / 7f);
@@ -281,10 +295,12 @@ public static partial class BraxClaudeOsiedle
                     if (odch > maxOdch) maxOdch = odch;
                     if (float.IsNaN(odch) || float.IsInfinity(odch) || odch > .02f) bk++;
                 }
-                if (PatrykKatRamion(kosci) > 70f) tpoza++;
+                float katRamion = PatrykKatRamion(kosci);
+                if (katRamion > 70f) tpoza++;
+                if (c.name == "Idle" && katRamion > 40f) zleRamionaIdle++;
                 foreach (var s in spoczynek) ruch = Mathf.Max(ruch, Quaternion.Angle(s.r, s.t.localRotation));
             }
-            if (c.name == "Idle" && PatrykKatRamion(kosci) > 40f) { bledy++; uwagi.Add("Idle: ramiona nie są opuszczone"); }
+            if (zleRamionaIdle > 0) { bledy++; uwagi.Add("Idle: ramiona nie są opuszczone w " + zleRamionaIdle + "/8 klatek"); }
             if (bk > 0) { bledy += bk; uwagi.Add(c.name + ": " + bk + " kości > 2 %"); }
             if ((c.name == "Idle" || c.name == "Walk" || c.name == "Run") && tpoza == 8) { bledy++; uwagi.Add(c.name + ": T-poza"); }
             if (c.name != "Idle" && ruch < 1f) { bledy++; uwagi.Add(c.name + ": bez ruchu (poza spoczynkowa)"); }
