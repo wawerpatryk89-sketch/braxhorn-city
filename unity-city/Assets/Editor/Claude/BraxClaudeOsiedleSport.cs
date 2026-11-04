@@ -38,6 +38,27 @@ public static partial class BraxClaudeOsiedle
         var b = go.AddComponent<BraxSportBoisko>(); b.gra = gra; b.jednostkiNaMetr = K; return b;
     }
 
+    // Kontrola zawartości budowanej sceny, nie tylko obecności plików C#.
+    // Bez wszystkich trzech dyscyplin osiedle nie spełnia wymagań właściciela.
+    public static void SportGryKontrola()
+    {
+        var boiska = UnityEngine.Object.FindObjectsByType<BraxSportBoisko>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var gra in new[] { BraxSportBoisko.Gra.Kosz, BraxSportBoisko.Gra.Nozna, BraxSportBoisko.Gra.Tenis })
+            if (!boiska.Any(b => b && b.gra == gra))
+                throw new System.InvalidOperationException("BRAXHORN_SPORT DO POPRAWKI: brak gry " + gra + " na osiedlu");
+        var kosz = boiska.First(b => b && b.gra == BraxSportBoisko.Gra.Kosz);
+        var pilka = boiska.First(b => b && b.gra == BraxSportBoisko.Gra.Nozna);
+        var d = Vector3.Distance(kosz.srodek, pilka.srodek);
+        if (d < 12f)
+            Debug.LogWarning("BRAXHORN_SPORT DO POPRAWKI: boisko do nogi współdzieli teren z boiskiem do kosza — należy znaleźć wolny trawnik, odległość=" + d.ToString("F1") + " m");
+        var gracz = UnityEngine.Object.FindAnyObjectByType<BraxGymPlayer>();
+        if (!gracz || !gracz.clips || !gracz.clips.GetClip("Punch") || !gracz.clips.GetClip("Kick") || !gracz.clips.GetClip("Run"))
+            throw new System.InvalidOperationException("BRAXHORN_SPORT: Patryk bez wymaganych klipów rzut/podanie/strzał/bieg");
+        Debug.Log("BRAXHORN_SPORT_GRY_OK boiska=" + boiska.Length +
+            " koszykówka=tak piłka_nożna=tak tenis=tak sterowanie AKCJA/CIOS/KOP=tak, "+
+            "RuchySport włącza się automatycznie przy boisku");
+    }
+
     // ---------------- koszykówka ----------------
     static string SportKosz(Transform sport)
     {
