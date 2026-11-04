@@ -592,7 +592,9 @@ public static partial class BraxRegionMiastoB
                              nm.Contains("szyb") || nm.Contains("window");
                 bool oknoSiatka = rn.Contains("glass") || rn.Contains("glaz") ||
                                   rn.Contains("window") || rn.Contains("okno");
-                bool bezTekstury = !m.HasProperty("_MainTex") || !m.GetTexture("_MainTex");
+                // Nie gub albedo, jeśli glTFast/Unity używa _BaseMap lub innego slotu.
+                bool bezTekstury = !m.GetTexturePropertyNames()
+                    .Any(slot => m.GetTexture(slot));
                 bool prawieCzarny = m.HasProperty("_Color") && m.GetColor("_Color").grayscale < .21f;
                 bool ciemnyMetal = m.HasProperty("_Metallic") && m.GetFloat("_Metallic") >= .8f &&
                                    bezTekstury && prawieCzarny;
