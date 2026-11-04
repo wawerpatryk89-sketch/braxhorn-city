@@ -27,6 +27,20 @@ internal static class BraxMiastoNutrition
         BraxUliceKit.Start();
         var r1 = BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(X0 - .05f, X1 + .1f, .05f, 4.9f, Z0 - .05f, Z1 + .15f), "nutrition_wnetrze");
         var r2 = BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(14.5f, 25.97f, .16f, 5.05f, Z1 + .15f, 21.9f), "nutrition_front");
+        // Oryginalne wejście NUTRITION_SOURCE_ENTRY było stale w świecie i miało
+        // w raporcie skali skrzydło 1 cm. Zostawiamy JEDNE prawdziwe drzwi
+        // automatyczne; stare skrzydło i interakcja źródłowa są usuwane.
+        int stareDrzwi = 0;
+        foreach (var d in Object.FindObjectsByType<BraxCityDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (d && d.id == "NUTRITION_SOURCE_ENTRY")
+            {
+                Object.DestroyImmediate(d.gameObject);
+                stareDrzwi++;
+            }
+        var swiatNutrition = Object.FindFirstObjectByType<BraxCityWorld>(FindObjectsInactive.Include);
+        if (swiatNutrition && swiatNutrition.doors != null)
+            swiatNutrition.doors = swiatNutrition.doors.Where(x => x).ToArray();
+        Debug.Log("BRAXHORN_NUTRITION_STARE_DRZWI usunięto=" + stareDrzwi);
         root = BraxRegion.Root(cityRoot, "CLAUDE A: BRAXHORN NUTRITION (od nowa)");
         kol = new GameObject("kolizje").transform; kol.SetParent(root, false);
         BraxUliceKit.UstawGrupe("Nutrition fasada");
