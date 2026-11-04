@@ -60,11 +60,22 @@ public sealed class BraxWinda : MonoBehaviour, IBraxInterakcja
     // Globalne odwołanie bez FindObjectsByType co klatkę: kamera Braxa sprawdza
     // tylko aktywne kabiny. Domyślny tryb 3. osoby poza windą bez zmian.
     static readonly List<BraxWinda> aktywne = new List<BraxWinda>();
-    public static bool WewnatrzKabiny(Vector3 p)
+    public static bool WewnatrzKabiny(Vector3 p, out Vector3 doDrzwi)
     {
+        doDrzwi = Vector3.forward;
         foreach (var w in aktywne)
-            if (w && w.isActiveAndEnabled && w.kabina && w.pietraY.Length > 0 && w.WKabinie(p))
-                return true;
+        {
+            if (!w || !w.isActiveAndEnabled || !w.kabina ||
+                w.pietraY.Length == 0 || !w.WKabinie(p)) continue;
+            // Wezwanie = panel przed drzwiami, w tym samym XZ na każdym piętrze.
+            // Kamera w kabinie ma patrzeć NA DRZWI, nie na najbliższą ścianę.
+            var cel = w.wezwanie != null && w.wezwanie.Length > 0 ? w.wezwanie[0] : Vector3.zero;
+            doDrzwi = cel != Vector3.zero ? cel - w.kabina.position : -w.kabina.forward;
+            doDrzwi.y = 0f;
+            if (doDrzwi.sqrMagnitude < .02f) doDrzwi = -w.kabina.forward;
+            doDrzwi.y = 0f; doDrzwi.Normalize();
+            return true;
+        }
         return false;
     }
 
