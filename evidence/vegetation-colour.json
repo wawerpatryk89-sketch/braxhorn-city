@@ -1,0 +1,100 @@
+{
+  "reason": "Merged alpha export had linear RGB in an sRGB image",
+  "sourcePixelsPreserved": true,
+  "textures": [
+    {
+      "image": "fir_tree_01_twig_diff-fir_tree_01_twig_alpha",
+      "colorSource": "fir_tree_01_2k/textures/fir_tree_01_twig_diff_2k.png",
+      "colorSha256": "b6d450d21b2ceddfcc78e2e2cc7c492f0a20df6d89c57281c6cd0ca525d01700",
+      "alphaSource": "fir_tree_01_2k/textures/fir_tree_01_twig_alpha_2k.png",
+      "alphaSha256": "6eecd1cf1e059488be2a41d15bb3c8cb3d844765ed11be8087e6e02acd58b181",
+      "rgbaSha256": "646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539",
+      "bitDepth": 16,
+      "sourcePixelsExact": true
+    },
+    {
+      "image": "fir_sapling_medium_twigs_diff-fir_sapling_medium_twigs_alpha",
+      "colorSource": "fir_sapling_medium_2k/textures/fir_sapling_medium_twigs_diff_2k.png",
+      "colorSha256": "013b359c023bf3b879ef472e0949c7cc1d048162cf3c26e76ed0a5a599098c69",
+      "alphaSource": "fir_sapling_medium_2k/textures/fir_sapling_medium_twigs_alpha_2k.png",
+      "alphaSha256": "6eecd1cf1e059488be2a41d15bb3c8cb3d844765ed11be8087e6e02acd58b181",
+      "rgbaSha256": "b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa",
+      "bitDepth": 16,
+      "sourcePixelsExact": true
+    }
+  ],
+  "models": [
+    {
+      "file": "fir_sapling_medium_a_LOD1.glb",
+      "sha256": "8c299b5809a91d75e84dac274c1d79d611f126ec2f451b933638ed12d75dfe4d",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_sapling_medium_a_LOD2.glb",
+      "sha256": "41adab2c0cb7467cfa6d854389a1cb2da7d7fb7a0cc54fd1092bc5271034b00c",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_sapling_medium_b_LOD1.glb",
+      "sha256": "36dd71252d8392650c8b7c943d6250aeae8a5b2b2c760fc7f8fb0a238378718e",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_sapling_medium_b_LOD2.glb",
+      "sha256": "7164560d380358a564a5c5a8a091448e8c3459e4080d486d135c3b088b2d22d3",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_sapling_medium_c_LOD1.glb",
+      "sha256": "a0bbdb6d7e2b4eca07d453ae799a304e1826e5b2166ab5d79f8fd166af7403bc",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_sapling_medium_c_LOD2.glb",
+      "sha256": "fd83efe8475b0afe5eb8977aa81260634511be3d3c88a810a57b9f81fb4c771e",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_tree_01_a_LOD1.glb",
+      "sha256": "a7decf583183e4ef6f5095fd0b8e67ad42318f8f271653f719d15bd3cb978293",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_tree_01_a_LOD2.glb",
+      "sha256": "e62d868987e7e559dceba6348411bb9f2689455224f56135c2bb287ee2c1fd80",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_tree_01_b_LOD1.glb",
+      "sha256": "fddd35f741014d9d9837190d1b147f6ae2ee6df408790f19655d8d047215aff1",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_tree_01_b_LOD2.glb",
+      "sha256": "e6e4f26fd32b87158514e44245258297104b8aaedb027509edc541241344524e",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_tree_01_c_LOD1.glb",
+      "sha256": "3c2d7c397734058ff232fd8ccfeb4d9291e3d4670671375c6d50d198c12085e8",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    },
+    {
+      "file": "fir_tree_01_c_LOD2.glb",
+      "sha256": "34abf568e7d65b3b6f9c9d81e2e38bcb764a427b644e2e25d338f939f2c73b54",
+      "imagesRepacked": 1,
+      "originalGeometryBytesUnchanged": true
+    }
+  ]
+}

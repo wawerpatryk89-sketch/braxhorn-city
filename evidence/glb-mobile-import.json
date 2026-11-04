@@ -1,0 +1,905 @@
+[
+  {
+    "source": "underground_bunker.glb",
+    "sourceSha256": "887f657c3329b0c2ea292c44d68f6c155d6a8d4ee13c237dcbc36c2ee57805e8",
+    "derived": "underground_bunker__unity.glb",
+    "derivedSha256": "5138cc083a14f6405d583966e5532aaaa71d279a76303a654b767fe73cb2b6fc",
+    "binaryChunkUnchanged": true,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "underground_bunker_textures/0_Color.png",
+        "color": true,
+        "sha256": "09330a79fb87ab2fc35918448755e40ffa4b3805010a2329ea804314ac28bda2"
+      },
+      {
+        "imageIndex": 1,
+        "file": "underground_bunker_textures/1_data__lin.png",
+        "color": false,
+        "sha256": "b7d407d2bba9b9956ead284cb1af04e2bbe94360bf66d17761581498ac83b241"
+      },
+      {
+        "imageIndex": 2,
+        "file": "underground_bunker_textures/2_data__lin.jpg",
+        "color": false,
+        "sha256": "8593aeb0e0fd68cce53b77270d57b33bc7be40a2f65794742fbcef7402be0956"
+      },
+      {
+        "imageIndex": 3,
+        "file": "underground_bunker_textures/3_Color.png",
+        "color": true,
+        "sha256": "55e1695324ce976d1fdbe3a3c64f788d5f2d45c750ede9860690f076cd9e0422"
+      },
+      {
+        "imageIndex": 4,
+        "file": "underground_bunker_textures/4_data__lin.png",
+        "color": false,
+        "sha256": "e885bef3581c4309f4463b0ce2b15c1ebb063dc99080049cb5c86ca3c31a8f4b"
+      },
+      {
+        "imageIndex": 5,
+        "file": "underground_bunker_textures/5_data__lin.jpg",
+        "color": false,
+        "sha256": "437d4c1c24df69cee1f2192fb3ac888cb85e9e7449949d17c5d1d23adf197b59"
+      },
+      {
+        "imageIndex": 6,
+        "file": "underground_bunker_textures/6_Color.jpg",
+        "color": true,
+        "sha256": "1ce3188a4ef56454eac13d11b8828c97b1695c20c4c54709cd999fc0860de666"
+      },
+      {
+        "imageIndex": 7,
+        "file": "underground_bunker_textures/7_data__lin.png",
+        "color": false,
+        "sha256": "ba6b3be5917af9f884710a506604c8c7f236511d77e768406c5678db91af275d"
+      },
+      {
+        "imageIndex": 8,
+        "file": "underground_bunker_textures/8_data__lin.jpg",
+        "color": false,
+        "sha256": "ff3f9febf107abfa91216dba3abb5f8299467084c77e28d1455765290655a0a9"
+      },
+      {
+        "imageIndex": 9,
+        "file": "underground_bunker_textures/9_Color.jpg",
+        "color": true,
+        "sha256": "6d7106a0e06b6f382cebc3f10f8cb3d08ee5a0fc0fefce55f89e3cdf82152a3c"
+      },
+      {
+        "imageIndex": 10,
+        "file": "underground_bunker_textures/10_data__lin.png",
+        "color": false,
+        "sha256": "c923fa4d83832b652932756d59cba3389f10a1d61d982000cca1797b517eb6f2"
+      },
+      {
+        "imageIndex": 11,
+        "file": "underground_bunker_textures/11_data__lin.jpg",
+        "color": false,
+        "sha256": "edec29c8db50f4b627e354fcf2a03783636b399735ea0a7d4f850fe7361b108d"
+      },
+      {
+        "imageIndex": 12,
+        "file": "underground_bunker_textures/12_Color.jpg",
+        "color": true,
+        "sha256": "6a6ddf1a1aa5eb2c81855ac0ef135a90374e90bc1a9b2b5468927a0a9d1f4f3e"
+      },
+      {
+        "imageIndex": 13,
+        "file": "underground_bunker_textures/13_data__lin.png",
+        "color": false,
+        "sha256": "69ffb7f67dce67a7ab4186fa6a85f51ba1f3557f0db476f1a4dbe391a6c9e190"
+      },
+      {
+        "imageIndex": 14,
+        "file": "underground_bunker_textures/14_data__lin.jpg",
+        "color": false,
+        "sha256": "c8872cf32521cff50e2995d618ed98e4cced8cbed412dbf1d3bcb7c8e417fbc4"
+      },
+      {
+        "imageIndex": 15,
+        "file": "underground_bunker_textures/15_Color.png",
+        "color": true,
+        "sha256": "c617c2ad86cfa94132a7c3326d823d1e46003531fb5be628645d499b2180d039"
+      },
+      {
+        "imageIndex": 16,
+        "file": "underground_bunker_textures/16_data__lin.png",
+        "color": false,
+        "sha256": "8801c0544d9046a8c0940700316d3fa072dfcc28bd34affc1c0e39acc467d60e"
+      },
+      {
+        "imageIndex": 17,
+        "file": "underground_bunker_textures/17_data__lin.jpg",
+        "color": false,
+        "sha256": "a8847d9462bd89bcd2543006237a35722430c8d96bd671b2e6885c9fc09c9bd4"
+      },
+      {
+        "imageIndex": 18,
+        "file": "underground_bunker_textures/18_Color.jpg",
+        "color": true,
+        "sha256": "e92a9ade521e073c761459be1c0d9e8f7362add344b50cb949594d13de44471d"
+      },
+      {
+        "imageIndex": 19,
+        "file": "underground_bunker_textures/19_data__lin.png",
+        "color": false,
+        "sha256": "7e13761a124fea22d7845ee5fcbd04af2e121cedf831d95b5d6e6955751f40db"
+      },
+      {
+        "imageIndex": 20,
+        "file": "underground_bunker_textures/20_data__lin.jpg",
+        "color": false,
+        "sha256": "1b73c6023e0dd9fc08f02e099b396f66b92d243db04b510c04fca8e00cb8b34d"
+      },
+      {
+        "imageIndex": 21,
+        "file": "underground_bunker_textures/21_Color.jpg",
+        "color": true,
+        "sha256": "a8b22d9c3d85b420518b987d7581b60672f440d4fa2092aa247909947413c05c"
+      },
+      {
+        "imageIndex": 22,
+        "file": "underground_bunker_textures/22_data__lin.png",
+        "color": false,
+        "sha256": "c61461ebb9a563be6570f89cd7a46011f71d5c8cca38efd0ce84aa61c57be84a"
+      },
+      {
+        "imageIndex": 23,
+        "file": "underground_bunker_textures/23_data__lin.jpg",
+        "color": false,
+        "sha256": "d8b9ac2f90f59d9ac37d3a8e8d971c5685baefad91f91d1298d96e15ab01c30d"
+      },
+      {
+        "imageIndex": 24,
+        "file": "underground_bunker_textures/24_Color.png",
+        "color": true,
+        "sha256": "995499dfb135f759321862637866e210aef15f862f752e8fd781dbcc734625ca"
+      },
+      {
+        "imageIndex": 25,
+        "file": "underground_bunker_textures/25_data__lin.png",
+        "color": false,
+        "sha256": "f75da74c36d45ae22834aca787d60da5d45fbafc4694eac7297a88fe31e4dc36"
+      },
+      {
+        "imageIndex": 26,
+        "file": "underground_bunker_textures/26_Color.jpg",
+        "color": true,
+        "sha256": "4f534a232454f6228190aa09d674e41e3f20cfd02c69960547c4f8afe21b500d"
+      },
+      {
+        "imageIndex": 27,
+        "file": "underground_bunker_textures/27_data__lin.jpg",
+        "color": false,
+        "sha256": "251aef90ac16fc05b10addfb74c3eee8be6fd62328e045308f30ff2a7a79505f"
+      },
+      {
+        "imageIndex": 28,
+        "file": "underground_bunker_textures/28_Color.jpg",
+        "color": true,
+        "sha256": "d33926c624d9112c2c93586111109fe34e77233182219d7d1f4d34a737982a0f"
+      },
+      {
+        "imageIndex": 29,
+        "file": "underground_bunker_textures/29_data__lin.png",
+        "color": false,
+        "sha256": "28e11f852ccb120cf8be635bb7b754be9dd59bf1aaa40ed39f7db7a89a5da592"
+      },
+      {
+        "imageIndex": 30,
+        "file": "underground_bunker_textures/30_data__lin.jpg",
+        "color": false,
+        "sha256": "0488d8eed71b6bca9135443aa03121ca357b8b72bdb0132573c057992c850264"
+      },
+      {
+        "imageIndex": 31,
+        "file": "underground_bunker_textures/31_Color.png",
+        "color": true,
+        "sha256": "995499dfb135f759321862637866e210aef15f862f752e8fd781dbcc734625ca"
+      },
+      {
+        "imageIndex": 32,
+        "file": "underground_bunker_textures/32_data__lin.png",
+        "color": false,
+        "sha256": "6547236564e9e1289b574760099db70ad06d4c639575fc450a48ba96da1a2e7a"
+      },
+      {
+        "imageIndex": 33,
+        "file": "underground_bunker_textures/33_Color.jpg",
+        "color": true,
+        "sha256": "c8db95fcb84a5cbc06e55087c4c273df50d3400500bacb51f47ac4e43a26dca5"
+      },
+      {
+        "imageIndex": 34,
+        "file": "underground_bunker_textures/34_data__lin.png",
+        "color": false,
+        "sha256": "9f797a8e46cf94adf52fb55db423feb0001ef31f41369545caaa5ec59f01e6d4"
+      },
+      {
+        "imageIndex": 35,
+        "file": "underground_bunker_textures/35_data__lin.jpg",
+        "color": false,
+        "sha256": "7d3ddeabe41023939e29b214e6e94f77ba9379b3003108ec3113db24bfb9fbab"
+      },
+      {
+        "imageIndex": 36,
+        "file": "underground_bunker_textures/36_Color.jpg",
+        "color": true,
+        "sha256": "042de8e12b72b58d362a49e122dab3a0e0cc670876e948685c516a24c548544b"
+      },
+      {
+        "imageIndex": 37,
+        "file": "underground_bunker_textures/37_data__lin.png",
+        "color": false,
+        "sha256": "5c5e246ed90c24215ec31f1b6eee41e9cb49b5abcc80f77b406c93cc27c2e243"
+      },
+      {
+        "imageIndex": 38,
+        "file": "underground_bunker_textures/38_data__lin.jpg",
+        "color": false,
+        "sha256": "361ecc3d178e465cc613d94057e0462ec2dead9ca24ce5cb248a236925522003"
+      },
+      {
+        "imageIndex": 39,
+        "file": "underground_bunker_textures/39_Color.jpg",
+        "color": true,
+        "sha256": "8c5566caceb86f1a1f80e49144dae008c1f866f61643c0a970b5a2be555d84da"
+      },
+      {
+        "imageIndex": 40,
+        "file": "underground_bunker_textures/40_data__lin.png",
+        "color": false,
+        "sha256": "3144782c457c99a6c8267deb6439aa4590cabbce0d566df581358f7900b28599"
+      },
+      {
+        "imageIndex": 41,
+        "file": "underground_bunker_textures/41_data__lin.jpg",
+        "color": false,
+        "sha256": "22342966eec8962b156addd13523b165aa7d80d795fe1971290f9a317b4f5703"
+      },
+      {
+        "imageIndex": 42,
+        "file": "underground_bunker_textures/42_Color.jpg",
+        "color": true,
+        "sha256": "9e256a68ee4412049bce2ee36d5afbda9756708e36387a3e7c6c3503855b69e1"
+      },
+      {
+        "imageIndex": 43,
+        "file": "underground_bunker_textures/43_data__lin.png",
+        "color": false,
+        "sha256": "8a0418944c4f699d367f09571fc01e859e6f5d3af9fe1296b4aca99cfb01da65"
+      },
+      {
+        "imageIndex": 44,
+        "file": "underground_bunker_textures/44_data__lin.jpg",
+        "color": false,
+        "sha256": "0040114d2cd4a20906ba4b9738d1a71299ae95c75ee2080f2bb989ed604b10b6"
+      },
+      {
+        "imageIndex": 45,
+        "file": "underground_bunker_textures/45_Color.png",
+        "color": true,
+        "sha256": "3b2d4bbcf5236ac8015772118720dc14585c9fd971091c08def5c021c86cc6a6"
+      },
+      {
+        "imageIndex": 46,
+        "file": "underground_bunker_textures/46_Color.jpg",
+        "color": true,
+        "sha256": "d5f40b734030b5173e89d031f5c0e0a254816bf83706e68083835c965ee0d3b6"
+      },
+      {
+        "imageIndex": 47,
+        "file": "underground_bunker_textures/47_Color.jpg",
+        "color": true,
+        "sha256": "d5f40b734030b5173e89d031f5c0e0a254816bf83706e68083835c965ee0d3b6"
+      }
+    ],
+    "unityImported": false
+  },
+  {
+    "source": "update_dirt_road_through_forest.glb",
+    "sourceSha256": "508b50ff8c41671e65822c829971209d0480ebfdcf41e76035f3f4dfdcb954b6",
+    "derived": "update_dirt_road_through_forest__unity.glb",
+    "derivedSha256": "c2b31ffd3431c144d6aea4016ce74194461d03a6a130199549462bb2010b18ea",
+    "binaryChunkUnchanged": true,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "update_dirt_road_through_forest_textures/0_Color.png",
+        "color": true,
+        "sha256": "eb06b627092e9c41940bdb868f74be0470dce7fc8f706c22c05c85212acf774b"
+      },
+      {
+        "imageIndex": 1,
+        "file": "update_dirt_road_through_forest_textures/1_data__lin.png",
+        "color": false,
+        "sha256": "e9531e53f284c6e7e194863fc3b4a61ef5ee5430daed97d649c24f854289dd4e"
+      },
+      {
+        "imageIndex": 2,
+        "file": "update_dirt_road_through_forest_textures/2_Color.png",
+        "color": true,
+        "sha256": "7374106f4dc3c104119ec6be8fb9624f565bf564e7dfa5683372e983ec0596dc"
+      },
+      {
+        "imageIndex": 3,
+        "file": "update_dirt_road_through_forest_textures/3_data__lin.png",
+        "color": false,
+        "sha256": "b5fd153a90bf82364558b532878f006d514c4198a01db6ce3112f828625d923d"
+      },
+      {
+        "imageIndex": 4,
+        "file": "update_dirt_road_through_forest_textures/4_Color.png",
+        "color": true,
+        "sha256": "fccc1496e89136da31904ca4c0921ca88587be20be25dd808904903db1adde9f"
+      },
+      {
+        "imageIndex": 5,
+        "file": "update_dirt_road_through_forest_textures/5_data__lin.png",
+        "color": false,
+        "sha256": "644f3c810b3194e929436b935c81d5e610aeb0dbca42b2e70df97dd955a77caa"
+      },
+      {
+        "imageIndex": 6,
+        "file": "update_dirt_road_through_forest_textures/6_data__lin.png",
+        "color": false,
+        "sha256": "70edf5f061b99ccf717b7e7631e05693c1d2a965b0751678d8e9c203515ae3d3"
+      },
+      {
+        "imageIndex": 7,
+        "file": "update_dirt_road_through_forest_textures/7_Color.png",
+        "color": true,
+        "sha256": "d5219b4866a25a011cc9cf1328cbe3fdbd9a5f8a1d4f21bb5388257f21102e51"
+      },
+      {
+        "imageIndex": 8,
+        "file": "update_dirt_road_through_forest_textures/8_data__lin.png",
+        "color": false,
+        "sha256": "1c92082179d5235a2df55198f7afe096f33b934519ea0a2d8b8bf6dadf183369"
+      },
+      {
+        "imageIndex": 9,
+        "file": "update_dirt_road_through_forest_textures/9_data__lin.png",
+        "color": false,
+        "sha256": "77f433e273bc50008d2387174aee876ddf483b1a0b4dd48032cf4622f9737e98"
+      },
+      {
+        "imageIndex": 10,
+        "file": "update_dirt_road_through_forest_textures/10_Color.png",
+        "color": true,
+        "sha256": "0ed870d23ca471c10d1f4f7fd6bed2b6e40a2587e00c34b670d5165d5d06a303"
+      },
+      {
+        "imageIndex": 11,
+        "file": "update_dirt_road_through_forest_textures/11_data__lin.png",
+        "color": false,
+        "sha256": "1e67491b28324e71f9162baabb3e5cf6ad283aba29ba7cf5f7328a1817fda551"
+      },
+      {
+        "imageIndex": 12,
+        "file": "update_dirt_road_through_forest_textures/12_data__lin.png",
+        "color": false,
+        "sha256": "8885de558057bd284a246ff9d2a62bb0b6954075ab27e17c1589a3e5161245bc"
+      },
+      {
+        "imageIndex": 13,
+        "file": "update_dirt_road_through_forest_textures/13_Color.png",
+        "color": true,
+        "sha256": "b0781e9daa0749ca732d8b4c4bba49cf16638454cade27ac86555fff8fd0a892"
+      },
+      {
+        "imageIndex": 14,
+        "file": "update_dirt_road_through_forest_textures/14_Color.png",
+        "color": true,
+        "sha256": "a503b7cff150e306049201d41685d58a1e4b5cb7e4e3e81e469f651a638ad18a"
+      },
+      {
+        "imageIndex": 15,
+        "file": "update_dirt_road_through_forest_textures/15_data__lin.png",
+        "color": false,
+        "sha256": "f3fabc20ad0798bfe0b8826fc449de974e8e41e914c977824151cf6dda74e238"
+      },
+      {
+        "imageIndex": 16,
+        "file": "update_dirt_road_through_forest_textures/16_data__lin.png",
+        "color": false,
+        "sha256": "980173020b971441fad9eab3aafba0c4fe8ad93f2332706430af8f791eec7bd8"
+      },
+      {
+        "imageIndex": 17,
+        "file": "update_dirt_road_through_forest_textures/17_Color.png",
+        "color": true,
+        "sha256": "5d0a6fdba464c4aa7be86eed15a7bf1e3071767d5e8b7ed751af908e579ead22"
+      },
+      {
+        "imageIndex": 18,
+        "file": "update_dirt_road_through_forest_textures/18_data__lin.png",
+        "color": false,
+        "sha256": "536072df32b7ff2b6f8659f1b16a3b1f2673f5857cc66fb5164ec8b87257d021"
+      },
+      {
+        "imageIndex": 19,
+        "file": "update_dirt_road_through_forest_textures/19_data__lin.png",
+        "color": false,
+        "sha256": "1b0626913a1ebaa027aeecc8b091d670a925e79d409b58afca852c839f958711"
+      },
+      {
+        "imageIndex": 20,
+        "file": "update_dirt_road_through_forest_textures/20_Color.jpg",
+        "color": true,
+        "sha256": "eb1d4a4bb6ace867a175d6e52a540137a3e99b01ec8402edc3c6d08cb22ca0be"
+      },
+      {
+        "imageIndex": 21,
+        "file": "update_dirt_road_through_forest_textures/21_data__lin.png",
+        "color": false,
+        "sha256": "cbd1de97ed5e04ce6530089f3320c92eeee9d46478ccd6a357172e197a087000"
+      },
+      {
+        "imageIndex": 22,
+        "file": "update_dirt_road_through_forest_textures/22_data__lin.jpg",
+        "color": false,
+        "sha256": "9e5c942d9e1b58de519ff0e9b874c88796739d703366699bc8d5f4847c885b02"
+      },
+      {
+        "imageIndex": 23,
+        "file": "update_dirt_road_through_forest_textures/23_Color.png",
+        "color": true,
+        "sha256": "5c8acdad5f3e04100f837c385918b950f159d932c5f8311630f71d7290b94a74"
+      },
+      {
+        "imageIndex": 24,
+        "file": "update_dirt_road_through_forest_textures/24_data__lin.png",
+        "color": false,
+        "sha256": "5a45464698156a7fc9e1b37c6b80f5b59574b8f7cd7b8af9a505563aaf8875f3"
+      },
+      {
+        "imageIndex": 25,
+        "file": "update_dirt_road_through_forest_textures/25_Color.png",
+        "color": true,
+        "sha256": "e8ec5c19a0ae32688dffe58202bac09044d7ee6dd9969626ba878ef7d0cede13"
+      },
+      {
+        "imageIndex": 26,
+        "file": "update_dirt_road_through_forest_textures/26_data__lin.png",
+        "color": false,
+        "sha256": "bfefaa9a17bacad6f9c9e11d01d46c068055fb42e8bb2b30a853ac43d7c7d909"
+      },
+      {
+        "imageIndex": 27,
+        "file": "update_dirt_road_through_forest_textures/27_data__lin.png",
+        "color": false,
+        "sha256": "22edf185916b958098ef3ac890c7f9cb15dfa7761ec506c2de6b00d2ea99e8a7"
+      },
+      {
+        "imageIndex": 28,
+        "file": "update_dirt_road_through_forest_textures/28_Color.png",
+        "color": true,
+        "sha256": "9e1095a312c21728d5e35a0c0141ad6c529845f38261f22489f451357cf4d763"
+      },
+      {
+        "imageIndex": 29,
+        "file": "update_dirt_road_through_forest_textures/29_Color.png",
+        "color": true,
+        "sha256": "b075a0b0e3306058fb0752c1e232b5cbd7007a7aa4b069daca49c32b9fa744d3"
+      },
+      {
+        "imageIndex": 30,
+        "file": "update_dirt_road_through_forest_textures/30_data__lin.png",
+        "color": false,
+        "sha256": "c923fa151e6cc0ffcfbd04d743b434e89f1f19650501d8542b3eec4a98818521"
+      },
+      {
+        "imageIndex": 31,
+        "file": "update_dirt_road_through_forest_textures/31_data__lin.png",
+        "color": false,
+        "sha256": "d654168d4a34ce834c7eea620ccd2fcca1aa8236b96763c7a95dde909305e6c6"
+      },
+      {
+        "imageIndex": 32,
+        "file": "update_dirt_road_through_forest_textures/32_Color.png",
+        "color": true,
+        "sha256": "cb743ce9baebc82874247a4a93fc8df991928a297edb8bf39f3b7bf8afec0cb5"
+      },
+      {
+        "imageIndex": 33,
+        "file": "update_dirt_road_through_forest_textures/33_data__lin.png",
+        "color": false,
+        "sha256": "6369c03e12d0042603d4285e8f62feb5651c02fd87e60608fa8c5d2ae1df763e"
+      },
+      {
+        "imageIndex": 34,
+        "file": "update_dirt_road_through_forest_textures/34_data__lin.png",
+        "color": false,
+        "sha256": "08842e6d1a70bcceeaf8a7eeb1f1ae419fb5c707edba2b72b66947351fdad8aa"
+      },
+      {
+        "imageIndex": 35,
+        "file": "update_dirt_road_through_forest_textures/35_Color.png",
+        "color": true,
+        "sha256": "bc01053bcdd093d0a2ca504bb14699d1a516ea1e607863da7a3c6274dc4aff15"
+      },
+      {
+        "imageIndex": 36,
+        "file": "update_dirt_road_through_forest_textures/36_data__lin.png",
+        "color": false,
+        "sha256": "fabbe82be86a70ba019e228987f11e0af17d9cb0928d05ebf1340be85034b019"
+      },
+      {
+        "imageIndex": 37,
+        "file": "update_dirt_road_through_forest_textures/37_data__lin.png",
+        "color": false,
+        "sha256": "67337b92238e4762dd09bdd65ef538bac5b63a182bb3a882d59f94163fa42cb3"
+      },
+      {
+        "imageIndex": 38,
+        "file": "update_dirt_road_through_forest_textures/38_Color.png",
+        "color": true,
+        "sha256": "029079081cb5bbda711a54c3193f6d8c86c75f3eb52cc23701e41f7e9f72a3da"
+      },
+      {
+        "imageIndex": 39,
+        "file": "update_dirt_road_through_forest_textures/39_data__lin.png",
+        "color": false,
+        "sha256": "ba2246f2aca6c9435bb491b57e2aa8bea55b73c1d386f8a847f02bdb4d29790f"
+      },
+      {
+        "imageIndex": 40,
+        "file": "update_dirt_road_through_forest_textures/40_data__lin.png",
+        "color": false,
+        "sha256": "7a796ac6a44c6d65cc86cec544222ba7949b430a80f1f97c72585d3348ddc108"
+      },
+      {
+        "imageIndex": 41,
+        "file": "update_dirt_road_through_forest_textures/41_Color.png",
+        "color": true,
+        "sha256": "1e0f1bcae0b4b6a6acbd4fd083aab65641a631a1e47bf9d8366f0835f0b333e9"
+      },
+      {
+        "imageIndex": 42,
+        "file": "update_dirt_road_through_forest_textures/42_data__lin.png",
+        "color": false,
+        "sha256": "d70ef9fe7e9c23fe9c43f79659ab2f2cedff259758d1f2cf711fd3a44b763492"
+      },
+      {
+        "imageIndex": 43,
+        "file": "update_dirt_road_through_forest_textures/43_data__lin.png",
+        "color": false,
+        "sha256": "4c0869c454dcabcca6db59efd97f85a0ff72b465e9ffc073992239693c9fd853"
+      },
+      {
+        "imageIndex": 44,
+        "file": "update_dirt_road_through_forest_textures/44_Color.png",
+        "color": true,
+        "sha256": "353a0751b799a576ae84d4757ef7b8e2eeaa03fb418860121410448ea5d8c186"
+      },
+      {
+        "imageIndex": 45,
+        "file": "update_dirt_road_through_forest_textures/45_data__lin.png",
+        "color": false,
+        "sha256": "6b03f16869509698959589299151cbadd088bd1d6a9fd96a101870612353b8df"
+      },
+      {
+        "imageIndex": 46,
+        "file": "update_dirt_road_through_forest_textures/46_data__lin.png",
+        "color": false,
+        "sha256": "0182ba70af3ac56b2173462e5ca9b268c92f8638d02c6da11e09cd8eba1bfdec"
+      },
+      {
+        "imageIndex": 47,
+        "file": "update_dirt_road_through_forest_textures/47_Color.png",
+        "color": true,
+        "sha256": "89883d1077943e84e63b5fb85526b2add642af965792d3b1d28d085aff281179"
+      },
+      {
+        "imageIndex": 48,
+        "file": "update_dirt_road_through_forest_textures/48_Color.png",
+        "color": true,
+        "sha256": "1c201eebc3dede270a74c4f0e4d5f0efb216667e33e2540d72ad47bfa7e0d3fd"
+      },
+      {
+        "imageIndex": 49,
+        "file": "update_dirt_road_through_forest_textures/49_data__lin.png",
+        "color": false,
+        "sha256": "0ce30225c96846f5da914b3c6992c96de194afeb800156e24cb30a167ed28488"
+      },
+      {
+        "imageIndex": 50,
+        "file": "update_dirt_road_through_forest_textures/50_data__lin.png",
+        "color": false,
+        "sha256": "a2535919cded378f26abe0f7978da33c6a7dc32cb6427619881cd83c0dd84507"
+      },
+      {
+        "imageIndex": 51,
+        "file": "update_dirt_road_through_forest_textures/51_Color.jpg",
+        "color": true,
+        "sha256": "83f6067dd6770b1d2f5bffd7e189c0b411b24e6d6d1546d9419d1b0515e8ce3b"
+      },
+      {
+        "imageIndex": 52,
+        "file": "update_dirt_road_through_forest_textures/52_Color.jpg",
+        "color": true,
+        "sha256": "42410fe15a61eb5d401fabd2913cf2326c1b7a3dfd296ed8ef89451907546ccd"
+      },
+      {
+        "imageIndex": 53,
+        "file": "update_dirt_road_through_forest_textures/53_data__lin.png",
+        "color": false,
+        "sha256": "699cd1035f5638b12bb687233c98e85d1d5960ef585c9aafb42a0f6daaccb441"
+      },
+      {
+        "imageIndex": 54,
+        "file": "update_dirt_road_through_forest_textures/54_data__lin.jpg",
+        "color": false,
+        "sha256": "a823f7e95ae373d5f90e13dd428465756418f25926ec1d52abea80245399a809"
+      },
+      {
+        "imageIndex": 55,
+        "file": "update_dirt_road_through_forest_textures/55_Color.jpg",
+        "color": true,
+        "sha256": "6d62b9801a8f6d8bfde67a2a24b2c376b22c5478d99294821f77c7aa0789c336"
+      },
+      {
+        "imageIndex": 56,
+        "file": "update_dirt_road_through_forest_textures/56_data__lin.png",
+        "color": false,
+        "sha256": "e0dcd961881c514ddec8860dbe2100047f30ffacdd77a78abca2ea86fe131a46"
+      },
+      {
+        "imageIndex": 57,
+        "file": "update_dirt_road_through_forest_textures/57_data__lin.png",
+        "color": false,
+        "sha256": "2042de3b9d634e71804e5774947b1d1a00695e211e4aa1029899f5b9d69a5915"
+      },
+      {
+        "imageIndex": 58,
+        "file": "update_dirt_road_through_forest_textures/58_Color.jpg",
+        "color": true,
+        "sha256": "e80456f2bac7ac5c42670e4c8d8bfc286c33ae31d56d15d0df40153c953639f3"
+      },
+      {
+        "imageIndex": 59,
+        "file": "update_dirt_road_through_forest_textures/59_data__lin.png",
+        "color": false,
+        "sha256": "d8e459e79e8b021b6338cc557cc30150c2fac8514b1f7ebb855935a178909bc2"
+      },
+      {
+        "imageIndex": 60,
+        "file": "update_dirt_road_through_forest_textures/60_data__lin.jpg",
+        "color": false,
+        "sha256": "7201fb8fbc2774a4d0dc07b0e1410be68ddade66515486562692b78c1868fa0f"
+      },
+      {
+        "imageIndex": 61,
+        "file": "update_dirt_road_through_forest_textures/61_Color.png",
+        "color": true,
+        "sha256": "de127e16f33d60894d182571d6a2aacfd17a425338cb34934312e65b9676edf9"
+      },
+      {
+        "imageIndex": 62,
+        "file": "update_dirt_road_through_forest_textures/62_data__lin.png",
+        "color": false,
+        "sha256": "5e5e42d890574e873f608b6001ad7f21557902075ca074657a70065ad85e0c95"
+      },
+      {
+        "imageIndex": 63,
+        "file": "update_dirt_road_through_forest_textures/63_data__lin.jpg",
+        "color": false,
+        "sha256": "d29bba4b4348d4269d9ce8cb85a7b72dacebe9419d03dd036837639ae75dfb5d"
+      },
+      {
+        "imageIndex": 64,
+        "file": "update_dirt_road_through_forest_textures/64_Color.png",
+        "color": true,
+        "sha256": "274ad07dd44ee62abef6f5d4aa6d3cf240414fef4b327764498d3e9eda7d8e78"
+      },
+      {
+        "imageIndex": 65,
+        "file": "update_dirt_road_through_forest_textures/65_data__lin.png",
+        "color": false,
+        "sha256": "12fe525bfed99bf5726f4ed1e542324271e25197ef49af554ce0aaec8b1fe080"
+      },
+      {
+        "imageIndex": 66,
+        "file": "update_dirt_road_through_forest_textures/66_data__lin.png",
+        "color": false,
+        "sha256": "2def0cad754372ee5c34187884b60f966843872df337028478becbf9576972ec"
+      },
+      {
+        "imageIndex": 67,
+        "file": "update_dirt_road_through_forest_textures/67_Color.jpg",
+        "color": true,
+        "sha256": "cb429a382dfdd7a12f09c3a23aa67a6384a94ca74ad079bec7152056fbb024cf"
+      },
+      {
+        "imageIndex": 68,
+        "file": "update_dirt_road_through_forest_textures/68_data__lin.png",
+        "color": false,
+        "sha256": "f904f791bdc93465df97679515c20b29379f63da6e21fb96adcbcf58f430d49f"
+      },
+      {
+        "imageIndex": 69,
+        "file": "update_dirt_road_through_forest_textures/69_data__lin.jpg",
+        "color": false,
+        "sha256": "dfadca14aa2182d4ffe4fb6f4e68e77f0d212e04adb926a6c56dbc412e1cfad6"
+      }
+    ],
+    "unityImported": false
+  },
+  {
+    "source": "braxhorn-original-gym.glb",
+    "sourceSha256": "94e08cd74e471c4acacf41b8d079f5cc405cd2e8eb5bd1a5a36952251aa5c234",
+    "derived": "braxhorn-original-gym__unity.glb",
+    "derivedSha256": "0919b38a3fbd81e919900de7a546c5eec04e3238da7b83af9d91679ff4650324",
+    "binaryChunkUnchanged": true,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "braxhorn-original-gym_textures/0_Color.png",
+        "color": true,
+        "sha256": "c49988edb23248c511e5e5cacd175156abf4899282a5af7fd67740de9990ea04"
+      },
+      {
+        "imageIndex": 1,
+        "file": "braxhorn-original-gym_textures/1_Color.png",
+        "color": true,
+        "sha256": "4d6b36db20c54619c6e351cf6d2debcdf10f5839dc492c014a29cfe467a7ecf7"
+      },
+      {
+        "imageIndex": 2,
+        "file": "braxhorn-original-gym_textures/2_Color.png",
+        "color": true,
+        "sha256": "93aa509e306f54e52d6db201e57fd1c4781779775002062c05ed407b3605d83b"
+      },
+      {
+        "imageIndex": 3,
+        "file": "braxhorn-original-gym_textures/3_Color.png",
+        "color": true,
+        "sha256": "f06350f59d43b59164390b0741d8bc19915102bf945e54ab566dc0d0e4528e96"
+      },
+      {
+        "imageIndex": 4,
+        "file": "braxhorn-original-gym_textures/4_Color.png",
+        "color": true,
+        "sha256": "c5f2b7f456892a4c1befcf554d519ddd6155d06329729c05ec0b3f8cada47953"
+      },
+      {
+        "imageIndex": 5,
+        "file": "braxhorn-original-gym_textures/5_Color.png",
+        "color": true,
+        "sha256": "2996aa729429875e2135a8a3bd01485b596ee74188e225ab386eca0e8fec3c05"
+      },
+      {
+        "imageIndex": 6,
+        "file": "braxhorn-original-gym_textures/6_Color.png",
+        "color": true,
+        "sha256": "8101455d0bc38764c16cf0b2425c13731ed61861ffa888d3f563e021c52dee2e"
+      },
+      {
+        "imageIndex": 7,
+        "file": "braxhorn-original-gym_textures/7_Color.png",
+        "color": true,
+        "sha256": "fa3d10349e61b8ebfc71b66fd65a54bf4ac22489c6a35ec6784ef964685433c5"
+      },
+      {
+        "imageIndex": 8,
+        "file": "braxhorn-original-gym_textures/8_Color.png",
+        "color": true,
+        "sha256": "c5f2b7f456892a4c1befcf554d519ddd6155d06329729c05ec0b3f8cada47953"
+      },
+      {
+        "imageIndex": 9,
+        "file": "braxhorn-original-gym_textures/9_data__lin.png",
+        "color": false,
+        "sha256": "34d767754df510a8d3d93026415d6f77e751320418bc3f7641b92bf9f58a5e58"
+      },
+      {
+        "imageIndex": 10,
+        "file": "braxhorn-original-gym_textures/10_Color.png",
+        "color": true,
+        "sha256": "04f7132db3190e2c1b324bebfa515287d8f9f7cfbe2a98c13bbd6f6a737671b1"
+      },
+      {
+        "imageIndex": 11,
+        "file": "braxhorn-original-gym_textures/11_data__lin.png",
+        "color": false,
+        "sha256": "bb5a5ae1beb6568674d9f236b3f7a4c82ac62bfef365b13766bdbc93184377b1"
+      },
+      {
+        "imageIndex": 12,
+        "file": "braxhorn-original-gym_textures/12_Color.png",
+        "color": true,
+        "sha256": "fbfe63d11b1817670061aea319de439fa9aa942798bd6bd625c5dd2c014a58ac"
+      },
+      {
+        "imageIndex": 13,
+        "file": "braxhorn-original-gym_textures/13_Color.png",
+        "color": true,
+        "sha256": "cc64d9b7ed907a23910b2d3722239246e056dcb10252065ef166af9d1081b15d"
+      },
+      {
+        "imageIndex": 14,
+        "file": "braxhorn-original-gym_textures/14_Color.png",
+        "color": true,
+        "sha256": "2dba542bdd32d7e091f03e03d993d4e80f385e5ae00cf780c34d2d7fe2d851b2"
+      },
+      {
+        "imageIndex": 15,
+        "file": "braxhorn-original-gym_textures/15_Color.png",
+        "color": true,
+        "sha256": "40999568d1becf3679122dc87755ec994f42e0fa5722283dcd8fb3d43cb7218c"
+      },
+      {
+        "imageIndex": 16,
+        "file": "braxhorn-original-gym_textures/16_Color.png",
+        "color": true,
+        "sha256": "a6d6f72612a80366d10b7a0711018e21649c87bf7c00e1878ebc70e2a3d74bb7"
+      },
+      {
+        "imageIndex": 17,
+        "file": "braxhorn-original-gym_textures/17_Color.png",
+        "color": true,
+        "sha256": "40999568d1becf3679122dc87755ec994f42e0fa5722283dcd8fb3d43cb7218c"
+      },
+      {
+        "imageIndex": 18,
+        "file": "braxhorn-original-gym_textures/18_Color.png",
+        "color": true,
+        "sha256": "d7e70e8e2e34398430d28e43561073d42759fce80ab0da2126961fa606193a9d"
+      },
+      {
+        "imageIndex": 19,
+        "file": "braxhorn-original-gym_textures/19_Color.png",
+        "color": true,
+        "sha256": "3a0c6025361c9dada6a46dc149d7abe8c4e1222fab3660c62b2523b888d51095"
+      },
+      {
+        "imageIndex": 20,
+        "file": "braxhorn-original-gym_textures/20_Color.png",
+        "color": true,
+        "sha256": "3a9d3ee7b87fa5f95c60e5cafb3f55ab0b563b58a48fd8f25d067bd8ba3df4df"
+      },
+      {
+        "imageIndex": 21,
+        "file": "braxhorn-original-gym_textures/21_Color.png",
+        "color": true,
+        "sha256": "64fd636d0b1e603c54d0717a51a2c20325697fb6b41bd22a38f2277a73db08c7"
+      },
+      {
+        "imageIndex": 22,
+        "file": "braxhorn-original-gym_textures/22_Color.png",
+        "color": true,
+        "sha256": "aa62e3f19033c551762a497a146e641c607501bc34a6169f39bae8a24c75321b"
+      },
+      {
+        "imageIndex": 23,
+        "file": "braxhorn-original-gym_textures/23_Color.png",
+        "color": true,
+        "sha256": "c8a9845528488160dc0ce256dfa1cb84fac61e5b973ca44e4092af3253c119c9"
+      },
+      {
+        "imageIndex": 24,
+        "file": "braxhorn-original-gym_textures/24_Color.png",
+        "color": true,
+        "sha256": "d31e4d08b58b163274337a258ec6d25fdf00281146d0450666082128fb83b6fc"
+      },
+      {
+        "imageIndex": 25,
+        "file": "braxhorn-original-gym_textures/25_data__lin.png",
+        "color": false,
+        "sha256": "2ab02e8de335e324211e1c3b0a1183da7ffe0bb7eb85df438e864b8315814eb8"
+      },
+      {
+        "imageIndex": 26,
+        "file": "braxhorn-original-gym_textures/26_Color.png",
+        "color": true,
+        "sha256": "071cfd85a441685f1069f214164ed06f9b4fdde24ef24de54d3bc66f61f83410"
+      }
+    ],
+    "unityImported": false
+  }
+]

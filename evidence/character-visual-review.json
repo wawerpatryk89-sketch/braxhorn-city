@@ -1,0 +1,173 @@
+{
+  "method": "Blender source FBX render plus original bone rest vectors; not Unity execution",
+  "characters": [
+    {
+      "id": "monika",
+      "sourceModelSha256": "b817b4ed779a71f765c3a28909be43ff81cd663131479803ce216d10f17c9e88",
+      "glovesVerifiedFromSourceRender": true,
+      "hasGloves": false,
+      "note": "Gołe dłonie",
+      "restArmAnglesDegrees": [
+        5.572197015995905,
+        5.572195702716747
+      ],
+      "sourceTpose": true,
+      "ownerAppearanceApproved": false,
+      "unityRendered": false,
+      "views": [
+        {
+          "file": "monika_front.png",
+          "sha256": "e25bc6756624df6d6f7c93a035a9df78790eca81355afac53f27cded2dce1ecf"
+        },
+        {
+          "file": "monika_back.png",
+          "sha256": "72b5b3e6daf2f281758a590e126f77ed6a81a7062bd4a9976dbdcd5b7f99dd52"
+        }
+      ]
+    },
+    {
+      "id": "vorn",
+      "sourceModelSha256": "81bf375a7db5329a15b1aac619950a9b2e2b185fc8c2668001ff890f93596d68",
+      "glovesVerifiedFromSourceRender": true,
+      "hasGloves": false,
+      "note": "Gołe dłonie",
+      "restArmAnglesDegrees": [
+        5.040407570028785,
+        5.0403318803251285
+      ],
+      "sourceTpose": true,
+      "ownerAppearanceApproved": false,
+      "unityRendered": false,
+      "views": [
+        {
+          "file": "vorn_front.png",
+          "sha256": "1ade4ca2d2ccee4f54fd819e9daf08bb4233ac7d430a6df6a10060e0396d6cf5"
+        },
+        {
+          "file": "vorn_back.png",
+          "sha256": "6c310b26baffa7793901f17ebd4266f2ebac68c16ad77593a9acb33dcd20eb20"
+        }
+      ]
+    },
+    {
+      "id": "zyro",
+      "sourceModelSha256": "9a0a188ba5ca7b3cdb4912c3d710da7b6619bd3e755c2985ad353b9b0dddcc6a",
+      "glovesVerifiedFromSourceRender": true,
+      "hasGloves": true,
+      "note": "Czarne rękawice bez palców",
+      "restArmAnglesDegrees": [
+        4.897118122773121,
+        4.897066712036652
+      ],
+      "sourceTpose": true,
+      "ownerAppearanceApproved": false,
+      "unityRendered": false,
+      "views": [
+        {
+          "file": "zyro_front.png",
+          "sha256": "7f5eabd256f5d46af1a5f0913b3a7761933cf5efa0d4eb91fcbd121ed6382a69"
+        },
+        {
+          "file": "zyro_back.png",
+          "sha256": "dd05909e02aa77c0cc92eb82cc5ef2e39354138cc2f647505ea0be44b856e44e"
+        }
+      ]
+    },
+    {
+      "id": "rakk",
+      "sourceModelSha256": "6523822cfaea158fcb7532c69d29b1f99b8c8d611bf70b3d0115ca179245436c",
+      "glovesVerifiedFromSourceRender": true,
+      "hasGloves": false,
+      "note": "Owijki nadgarstków, gołe dłonie",
+      "restArmAnglesDegrees": [
+        3.691408988486745,
+        3.6914126688390607
+      ],
+      "sourceTpose": true,
+      "ownerAppearanceApproved": false,
+      "unityRendered": false,
+      "views": [
+        {
+          "file": "rakk_front.png",
+          "sha256": "56e8613608350d0654755673771b6171ef98a914cee320e3113f747cde6d2dbc"
+        },
+        {
+          "file": "rakk_back.png",
+          "sha256": "c8cfa9acc03453389705bf1312b3a2fb53e8669bba1cdbd1ce17cba1d8c9d539"
+        }
+      ]
+    },
+    {
+      "id": "kade",
+      "sourceModelSha256": "c5da865ff886817bfca632118a8caca2f8a971d1ca0467e8b6b3c9e6e99f9964",
+      "glovesVerifiedFromSourceRender": true,
+      "hasGloves": true,
+      "note": "Czerwone rękawice bokserskie",
+      "restArmAnglesDegrees": [
+        4.0843672900641845,
+        4.080998980031243
+      ],
+      "sourceTpose": true,
+      "ownerAppearanceApproved": false,
+      "unityRendered": false,
+      "views": [
+        {
+          "file": "kade_front.png",
+          "sha256": "1558909535a8c78ee9b002a5a5d08a528b0d614962c137c2e740e3af6bab68c2"
+        },
+        {
+          "file": "kade_back.png",
+          "sha256": "90ef8d32a2b376222c25b98eace3e49efd3ee0ca4132f72a7842eae5c413ab5f"
+        }
+      ]
+    },
+    {
+      "id": "gorr",
+      "sourceModelSha256": "d7374b62cfc481c75bc19a2ff2a2494cb78a6d2556669eb34c5ab7510d138c3a",
+      "glovesVerifiedFromSourceRender": true,
+      "hasGloves": false,
+      "note": "Owijki nadgarstków, jasne gołe dłonie wymagające korekty",
+      "restArmAnglesDegrees": [
+        12.71808035816557,
+        12.71808883090641
+      ],
+      "sourceTpose": true,
+      "ownerAppearanceApproved": false,
+      "unityRendered": false,
+      "views": [
+        {
+          "file": "gorr_front.png",
+          "sha256": "90cceb384a04ad1f6404d001885ff05dd9d1a8436168b861015503f9906b7fbf"
+        },
+        {
+          "file": "gorr_back.png",
+          "sha256": "25fc5ed2a25220d0771cbdcba1b32195d30618c05a76939b393f4f356652ec07"
+        }
+      ]
+    },
+    {
+      "id": "mis",
+      "sourceModelSha256": "df20486dcf05655417e1ef0ea33e8a1cdec459efae2d012c1213e71da3ea18cf",
+      "glovesVerifiedFromSourceRender": true,
+      "hasGloves": true,
+      "note": "Czarne rękawice bez palców; źródłowe ręce opuszczone",
+      "restArmAnglesDegrees": [
+        64.02297229573531,
+        64.022914144774
+      ],
+      "sourceTpose": false,
+      "ownerAppearanceApproved": false,
+      "unityRendered": false,
+      "views": [
+        {
+          "file": "mis_front.png",
+          "sha256": "7acce3698339ddcf7cb3caf266e2a07b378d24738cd1b087b2404c971137da5c"
+        },
+        {
+          "file": "mis_back.png",
+          "sha256": "50c67fb5529086a50bdcded48aaf659e3b00de46e9e22638e29580cfe1957af2"
+        }
+      ]
+    }
+  ]
+}

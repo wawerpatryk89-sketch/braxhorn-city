@@ -1,0 +1,161 @@
+{
+  "schema": 1,
+  "materials": [
+    {
+      "id": "wood",
+      "source": "Wood049_4K-JPG.zip",
+      "use": "Cabin structure and timber",
+      "files": [
+        {
+          "kind": "Color",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/wood/Wood049_4K-JPG_Color.jpg",
+          "sha256": "71801c66c1ddbff5e38046f368c6e837ec2161c5c14b5c43542b5d6b0acc2d4b",
+          "bytes": 12731610
+        },
+        {
+          "kind": "NormalGL",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/wood/Wood049_4K-JPG_NormalGL.jpg",
+          "sha256": "00aebc8e54fe640598ad73850541b863dcef4a06931833a386dbab1df5b26601",
+          "bytes": 27434909
+        },
+        {
+          "kind": "Roughness",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/wood/Wood049_4K-JPG_Roughness.jpg",
+          "sha256": "f44c079594593947650547fa3883e326e0770ef3837ca6fff547f95f5094e660",
+          "bytes": 10488057
+        }
+      ]
+    },
+    {
+      "id": "floor",
+      "source": "WoodFloor051_4K-JPG.zip",
+      "use": "Interior floorboards",
+      "files": [
+        {
+          "kind": "Color",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/floor/WoodFloor051_4K-JPG_Color.jpg",
+          "sha256": "d0282585a8ec84aa3f58f4081c25ca9ee12efb4c7f1c7814f89315d3af5f7a8f",
+          "bytes": 16728805
+        },
+        {
+          "kind": "NormalGL",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/floor/WoodFloor051_4K-JPG_NormalGL.jpg",
+          "sha256": "66da2ea87b9f69562d3962b90a7081c675f82b5d60ebd65e6525653fc51564ea",
+          "bytes": 14400184
+        },
+        {
+          "kind": "Roughness",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/floor/WoodFloor051_4K-JPG_Roughness.jpg",
+          "sha256": "aba1e575086e67c4cd1c40a1d3aaae368ca8d3c84f4006d91215aeac499bac96",
+          "bytes": 5626729
+        },
+        {
+          "kind": "AmbientOcclusion",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/floor/WoodFloor051_4K-JPG_AmbientOcclusion.jpg",
+          "sha256": "66ab37305500552b75a358dba39af7d05da1e9e3bb7b120af47570e8985cc5e0",
+          "bytes": 1204961
+        }
+      ]
+    },
+    {
+      "id": "gravel",
+      "source": "Ground111_4K-JPG.zip",
+      "use": "Gravel paths only; not grass",
+      "files": [
+        {
+          "kind": "Color",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/gravel/Ground111_4K-JPG_Color.jpg",
+          "sha256": "4de032aca78cfdb9e3e8b52d10545d39d3ec92c714b71badb3c8156c21f2b681",
+          "bytes": 29809251
+        },
+        {
+          "kind": "NormalGL",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/gravel/Ground111_4K-JPG_NormalGL.jpg",
+          "sha256": "fdf8707e105c9a5e0db6e8d8e242a5d9c77e47581fa85b54871c0878495645f3",
+          "bytes": 34251749
+        },
+        {
+          "kind": "Roughness",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/gravel/Ground111_4K-JPG_Roughness.jpg",
+          "sha256": "8e90094b86933ee3219c85364a23f17934bad49ac0f1fd6f9d71cd8356587c9a",
+          "bytes": 12144212
+        },
+        {
+          "kind": "AmbientOcclusion",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/gravel/Ground111_4K-JPG_AmbientOcclusion.jpg",
+          "sha256": "4eafe610bfaf4a0f82db9146a9e12e8d9c226cf6ff5ccc7990aa322310ba54f3",
+          "bytes": 11437740
+        }
+      ]
+    },
+    {
+      "id": "metal",
+      "source": "Metal063_4K-JPG.zip",
+      "use": "Worn metal hardware",
+      "files": [
+        {
+          "kind": "Color",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/metal/Metal063_4K-JPG_Color.jpg",
+          "sha256": "d9230e071fce550b3e14fa78f1cabcccd72d465176c93888edce9dca2e141148",
+          "bytes": 19779152
+        },
+        {
+          "kind": "NormalGL",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/metal/Metal063_4K-JPG_NormalGL.jpg",
+          "sha256": "6073f20419671d848b3cbb509a8d6851f8571dee5a9fb01dc8c6e1e555401a47",
+          "bytes": 5882143
+        },
+        {
+          "kind": "Roughness",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/metal/Metal063_4K-JPG_Roughness.jpg",
+          "sha256": "ee2c5e78b52cbccf434090cbb629fbe84f5a503d803a02e4595bd4e530daacb5",
+          "bytes": 12423815
+        },
+        {
+          "kind": "Metalness",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/metal/Metal063_4K-JPG_Metalness.jpg",
+          "sha256": "ab918a77f47b4f9d8bd7226072b903ec2ce4e368edec7a9d3932a328f9a728fe",
+          "bytes": 7706168
+        }
+      ]
+    },
+    {
+      "id": "towel",
+      "source": "Fabric084_4K-JPG.zip",
+      "use": "Towels only; not tent canvas",
+      "files": [
+        {
+          "kind": "Color",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/towel/Fabric084_4K-JPG_Color.jpg",
+          "sha256": "772c8412d6918d15edd523acc3c79d64db87c3ccfc6cfd2b0e6825b53bd58992",
+          "bytes": 10251518
+        },
+        {
+          "kind": "NormalGL",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/towel/Fabric084_4K-JPG_NormalGL.jpg",
+          "sha256": "40a4982347558b5539f255a4a8480bb84336d55daaa2c0d1aff0ff00ae9fa73c",
+          "bytes": 34127596
+        },
+        {
+          "kind": "Roughness",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/towel/Fabric084_4K-JPG_Roughness.jpg",
+          "sha256": "96be4e0594d73b55ece1c012a5123095915fc197a3fd0e472f4ad258be53eacb",
+          "bytes": 9936332
+        },
+        {
+          "kind": "AmbientOcclusion",
+          "path": "Assets/Source/Prywatne/Oboz/environment/materials/towel/Fabric084_4K-JPG_AmbientOcclusion.jpg",
+          "sha256": "7b60b42be5c76e84fb8f707089a8eec22de1dd60366fc5678ee7083f9edf73e0",
+          "bytes": 12906371
+        }
+      ]
+    }
+  ],
+  "runtimeVerified": false,
+  "missing": [
+    "verified forest trees with LOD",
+    "tent canvas",
+    "bunker concrete",
+    "ring canvas and ropes"
+  ]
+}

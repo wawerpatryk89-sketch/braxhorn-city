@@ -1,0 +1,101 @@
+{
+  "billboards": [
+    {
+      "model": "fir_sapling_medium_a_LOD2.glb",
+      "sourceSha256": "41adab2c0cb7467cfa6d854389a1cb2da7d7fb7a0cc54fd1092bc5271034b00c",
+      "file": "fir_sapling_medium_a_Billboard_Color.png",
+      "sha256": "2ca6d5b4ad24f4bdcf655cf70d8bd2388ddce01d0232188cd69f8582ba3e8e12",
+      "span": 9.214096145629883,
+      "centerY": 4.429853916168213,
+      "views": 4,
+      "size": [
+        2048,
+        512
+      ],
+      "capture": "source albedo plus alpha; lighting applied in Unity shader",
+      "unityRendered": false,
+      "sourceUnchanged": true
+    },
+    {
+      "model": "fir_sapling_medium_b_LOD2.glb",
+      "sourceSha256": "7164560d380358a564a5c5a8a091448e8c3459e4080d486d135c3b088b2d22d3",
+      "file": "fir_sapling_medium_b_Billboard_Color.png",
+      "sha256": "88ff86c1e94561c07a1164b8291f9badcff33c48afe266a1476248c3374451b5",
+      "span": 8.244646873474121,
+      "centerY": 3.9637725353240967,
+      "views": 4,
+      "size": [
+        2048,
+        512
+      ],
+      "capture": "source albedo plus alpha; lighting applied in Unity shader",
+      "unityRendered": false,
+      "sourceUnchanged": true
+    },
+    {
+      "model": "fir_sapling_medium_c_LOD2.glb",
+      "sourceSha256": "fd83efe8475b0afe5eb8977aa81260634511be3d3c88a810a57b9f81fb4c771e",
+      "file": "fir_sapling_medium_c_Billboard_Color.png",
+      "sha256": "67ea29149fed9b44a2b0a3c135297eb9e60363e4dd5c8f66940eea8268fdeb0f",
+      "span": 6.175146293640137,
+      "centerY": 2.968820333480835,
+      "views": 4,
+      "size": [
+        2048,
+        512
+      ],
+      "capture": "source albedo plus alpha; lighting applied in Unity shader",
+      "unityRendered": false,
+      "sourceUnchanged": true
+    },
+    {
+      "model": "fir_tree_01_a_LOD2.glb",
+      "sourceSha256": "e62d868987e7e559dceba6348411bb9f2689455224f56135c2bb287ee2c1fd80",
+      "file": "fir_tree_01_a_Billboard_Color.png",
+      "sha256": "4485652e83befb4644301c61e560f862aba015ad80fb190ffe02b2ebd18c1d73",
+      "span": 19.715328369140625,
+      "centerY": 9.478523254394531,
+      "views": 4,
+      "size": [
+        2048,
+        512
+      ],
+      "capture": "source albedo plus alpha; lighting applied in Unity shader",
+      "unityRendered": false,
+      "sourceUnchanged": true
+    },
+    {
+      "model": "fir_tree_01_b_LOD2.glb",
+      "sourceSha256": "e6e4f26fd32b87158514e44245258297104b8aaedb027509edc541241344524e",
+      "file": "fir_tree_01_b_Billboard_Color.png",
+      "sha256": "e0eef37f40bc0c93c18143122b558dd617d7c19535ca209e293757f77bec3e14",
+      "span": 14.640627136230469,
+      "centerY": 7.038763046264648,
+      "views": 4,
+      "size": [
+        2048,
+        512
+      ],
+      "capture": "source albedo plus alpha; lighting applied in Unity shader",
+      "unityRendered": false,
+      "sourceUnchanged": true
+    },
+    {
+      "model": "fir_tree_01_c_LOD2.glb",
+      "sourceSha256": "34abf568e7d65b3b6f9c9d81e2e38bcb764a427b644e2e25d338f939f2c73b54",
+      "file": "fir_tree_01_c_Billboard_Color.png",
+      "sha256": "327c553095cb5061eb1ed1f0b0f360cfab75c3342248b0248133f508e261f229",
+      "span": 15.13440040588379,
+      "centerY": 7.276154041290283,
+      "views": 4,
+      "size": [
+        2048,
+        512
+      ],
+      "capture": "source albedo plus alpha; lighting applied in Unity shader",
+      "unityRendered": false,
+      "sourceUnchanged": true
+    }
+  ],
+  "complete": true
+}

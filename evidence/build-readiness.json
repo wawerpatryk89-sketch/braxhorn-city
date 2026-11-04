@@ -1,0 +1,26 @@
+{
+  "status": "Blocked",
+  "sourceBase": "d533aa8128271c94087d34e06209db0cab3ff516",
+  "sharedToolsCommit": "1d83c1a6db4f6c71eb670e5a57bab963ce50e5c1",
+  "privateInputFiles": 204,
+  "privateInputBytes": 1148328099,
+  "privateInputManifestSha256": "80761519db8f8a01ad9d06f2749f3b03405343dd26e913565d5a850a13880928",
+  "inputIntegrityVerified": true,
+  "pythonTestsPassed": 73,
+  "workflowSyntaxVerified": true,
+  "csharpGrammarFiles": 20,
+  "unityCompilationExecuted": false,
+  "buildRequested": false,
+  "apkBuilt": false,
+  "phoneTested": false,
+  "contentUpdatesReady": false,
+  "blockers": [
+    "Encrypted source packages not prepared or delivered",
+    "No secure encryption-key binding in local environment"
+  ],
+  "limitations": [
+    "No Unity or C# compiler locally",
+    "Incomplete camp features and unapproved source deviations remain in validation.json",
+    "Real APK size and phone RAM usage not measured"
+  ]
+}

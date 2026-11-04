@@ -1,0 +1,13 @@
+{
+  "standardCommit": "38422c5f031b5f9b85a3e1981c1a8199c9f75731",
+  "standardBlob": "9fd6e212fb4baa72f453af01f316583ccfecdaa4",
+  "standardCopyExact": true,
+  "snapshotUnitTestsPassed": 13,
+  "allToolUnitTestsPassed": 73,
+  "csharpGrammarFiles": 20,
+  "unityCompilationExecuted": false,
+  "sceneExportExecuted": false,
+  "phoneContentUpdateVerified": false,
+  "sharedUpdateToolFoundOnStandardBranch": true,
+  "sharedToolsCommit": "1d83c1a6db4f6c71eb670e5a57bab963ce50e5c1"
+}

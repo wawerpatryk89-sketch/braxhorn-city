@@ -1,0 +1,104 @@
+{
+  "models": [
+    {
+      "source": "fir_sapling_medium_a_LOD1.glb",
+      "sourceSha256": "8c299b5809a91d75e84dac274c1d79d611f126ec2f451b933638ed12d75dfe4d",
+      "derivedSha256": "06f59080d8e13ae1a6163065ff37d0cc61dc5b79996346fe9b20ca9b890275cf",
+      "accessorsCompared": 12,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_sapling_medium_a_LOD2.glb",
+      "sourceSha256": "41adab2c0cb7467cfa6d854389a1cb2da7d7fb7a0cc54fd1092bc5271034b00c",
+      "derivedSha256": "525e5cc8bc2ddd32bff91f9cfa446c1ea5731ed372cbcf8dfa72c6df472b5369",
+      "accessorsCompared": 12,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_sapling_medium_b_LOD1.glb",
+      "sourceSha256": "36dd71252d8392650c8b7c943d6250aeae8a5b2b2c760fc7f8fb0a238378718e",
+      "derivedSha256": "d01d03893d2280fe98e7d9ac23521a6983016d2e6e5e700b7ac5abf2bae6a612",
+      "accessorsCompared": 12,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_sapling_medium_b_LOD2.glb",
+      "sourceSha256": "7164560d380358a564a5c5a8a091448e8c3459e4080d486d135c3b088b2d22d3",
+      "derivedSha256": "5e657f0206956bda6cda000a62552ed9677c650c09120fd49a3e71432191910f",
+      "accessorsCompared": 12,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_sapling_medium_c_LOD1.glb",
+      "sourceSha256": "a0bbdb6d7e2b4eca07d453ae799a304e1826e5b2166ab5d79f8fd166af7403bc",
+      "derivedSha256": "d7f523c03cf66432f554f586e88dd61d1b7a8bc10bc15503782649fea907bd86",
+      "accessorsCompared": 12,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_sapling_medium_c_LOD2.glb",
+      "sourceSha256": "fd83efe8475b0afe5eb8977aa81260634511be3d3c88a810a57b9f81fb4c771e",
+      "derivedSha256": "377ae3c996a253a1038aab1ec7f2865707e7fa78c68f64b3240876b816f950ac",
+      "accessorsCompared": 12,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_tree_01_a_LOD1.glb",
+      "sourceSha256": "a7decf583183e4ef6f5095fd0b8e67ad42318f8f271653f719d15bd3cb978293",
+      "derivedSha256": "86c98b531bc08e4bf3f71e45ba3173f5ef197c9bfc72876583ebaff5757b3a4c",
+      "accessorsCompared": 24,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_tree_01_a_LOD2.glb",
+      "sourceSha256": "e62d868987e7e559dceba6348411bb9f2689455224f56135c2bb287ee2c1fd80",
+      "derivedSha256": "16b00ecf88d8947334876d4ed27f7f57bc0955302e522da4e772504a94705005",
+      "accessorsCompared": 24,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_tree_01_b_LOD1.glb",
+      "sourceSha256": "fddd35f741014d9d9837190d1b147f6ae2ee6df408790f19655d8d047215aff1",
+      "derivedSha256": "1bc1af864256d30d88b5684d6bdf11ed60501f8649cc59d2c64dbf7601f96409",
+      "accessorsCompared": 24,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_tree_01_b_LOD2.glb",
+      "sourceSha256": "e6e4f26fd32b87158514e44245258297104b8aaedb027509edc541241344524e",
+      "derivedSha256": "8ecacf1c80e37a93cb7dc8bf9ad1e55c7edf903ec3375ead70d11c686c89624a",
+      "accessorsCompared": 24,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_tree_01_c_LOD1.glb",
+      "sourceSha256": "3c2d7c397734058ff232fd8ccfeb4d9291e3d4670671375c6d50d198c12085e8",
+      "derivedSha256": "e6b4d6ea80f6c66c97c0ab7f4cbf67a376ffcd05bc14a1f63263acd6e9a0846d",
+      "accessorsCompared": 23,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "fir_tree_01_c_LOD2.glb",
+      "sourceSha256": "34abf568e7d65b3b6f9c9d81e2e38bcb764a427b644e2e25d338f939f2c73b54",
+      "derivedSha256": "a990723b86b3581cda13b7dc4b3e8cc8a984170a225528ed2bb900618d136f44",
+      "accessorsCompared": 23,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "grass_bermuda_01_medium_d.glb",
+      "sourceSha256": "395322eb88ec639c9be69fc18e9a6d726625ca8e462019ee0ceb5d03bd2395ab",
+      "derivedSha256": "4eb6d30c9c4dad573d8eb5b31e3a804aa3a31f0e5fd5dbd5b12ae77f874e23f7",
+      "accessorsCompared": 4,
+      "allDecodedGeometryIdentical": true
+    },
+    {
+      "source": "grass_bermuda_01_seedling_d.glb",
+      "sourceSha256": "ab54390df71226acf05bce0b38d7c238482bd4158199c8fa7fa11929ec9347f9",
+      "derivedSha256": "0467daf8faf719d145494a6b101c3b348d0f98cbb00ae6973acd2388e0a1a97f",
+      "accessorsCompared": 4,
+      "allDecodedGeometryIdentical": true
+    }
+  ],
+  "allPassed": true,
+  "unityExecuted": false
+}

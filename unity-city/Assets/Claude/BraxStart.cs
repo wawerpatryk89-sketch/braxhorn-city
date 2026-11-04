@@ -15,6 +15,8 @@ using UnityEngine.SceneManagement;
 // danych, czy przy włączaniu sceny (tekstury/siatki na GPU, Awake).
 public sealed class BraxStart : MonoBehaviour
 {
+    // Optional label supplied by an isolated zone build; existing scenes retain their defaults.
+    public string regionTitle = "";
     public static bool Pokazuje { get; private set; }
     string status = "", podtytul = "", wskazowka = "", urzadzenie = "", diag = "";
     float postep, trzyma, nastDiag;
@@ -33,7 +35,7 @@ public sealed class BraxStart : MonoBehaviour
         problem = !string.IsNullOrEmpty(BraxStartLog.Poprzedni);
         BraxStartLog.Etap("1b ekran startowy");
         string nazwa = SceneManager.sceneCountInBuildSettings >= 2 ? System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(1)) : "";
-        podtytul = nazwa.StartsWith("BraxhornEstate") ? BraxTeksty.T("start.osiedle") : nazwa.StartsWith("BraxhornCity") ? BraxTeksty.T("start.miasto") : "";
+        podtytul = !string.IsNullOrEmpty(regionTitle) ? regionTitle : nazwa.StartsWith("BraxhornEstate") ? BraxTeksty.T("start.osiedle") : nazwa.StartsWith("BraxhornCity") ? BraxTeksty.T("start.miasto") : "";
         Debug.Log("BRAXHORN_UI ekran wczytywania: scena " + nazwa + (problem ? " · poprzedni start NIEUDANY — diagnostyka widoczna, czeka na dotyk" : " · diagnostyka ukryta (przytrzymanie 3 s)") +
                   " · język " + BraxTeksty.Aktualny + " · " + urzadzenie);
         OdswiezDiag();

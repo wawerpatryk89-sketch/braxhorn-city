@@ -1,0 +1,51 @@
+{
+  "sourceIntegrityPassed": true,
+  "checkedSourceFiles": 278,
+  "errors": [],
+  "csharpGrammar": {
+    "executed": true,
+    "files": 20,
+    "errors": []
+  },
+  "unityCompilationExecuted": false,
+  "sceneGenerationExecuted": false,
+  "playModeExecuted": false,
+  "apkBuilt": false,
+  "characterSourceIssues": {
+    "vorn": [
+      "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline"
+    ],
+    "zyro": [
+      "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline"
+    ],
+    "rakk": [
+      "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline"
+    ],
+    "kade": [
+      "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline"
+    ],
+    "gorr": [
+      "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline"
+    ],
+    "mis": [
+      "Quads outside 14000–20000 plus 500 tolerance",
+      "normalPath source is below 4K",
+      "roughnessPath source is below 4K",
+      "metallicPath source is below 4K",
+      "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline",
+      "Source is not T-pose: upper arms about 64 degrees below horizontal"
+    ]
+  },
+  "blockers": [
+    "Unity 6000.0.58f2 execution unavailable locally",
+    "Unapproved Miś source deviations",
+    "Fort, bunker architecture and service interiors not reconstructed",
+    "Forest LOD assembly, near/far lighting and phone performance not verified in Unity",
+    "Original gym copy needs reconciliation with current finishing and mural assets",
+    "NPC real heights not agreed; source models normalized near one metre",
+    "NPC daily schedule, Polish 3D voices and branding pending",
+    "GORR hand correction verified in Blender preview only, not Unity",
+    "Camp shader and geometry visual review pending",
+    "Previous save-schema migration not recovered"
+  ]
+}

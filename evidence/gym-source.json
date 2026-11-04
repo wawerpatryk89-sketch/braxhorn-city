@@ -1,0 +1,27 @@
+{
+  "archive": "original-gym-unity6-source-backup.zip",
+  "library_file_id": "libfile_8cfde9f8f8b081918c3020faccf205e9",
+  "files": [
+    {
+      "path": "Assets/Source/Prywatne/Oboz/environment/gym/braxhorn-original-gym.glb",
+      "sha256": "94e08cd74e471c4acacf41b8d079f5cc405cd2e8eb5bd1a5a36952251aa5c234",
+      "bytes": 27632424
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/environment/gym/gym-manifest.json",
+      "sha256": "cb88ac7ad2e6541cfe7d619f14a0f364a01632e0f57aa4a05206a70e71fcbe57",
+      "bytes": 13110
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/environment/gym/gym-collisions.json",
+      "sha256": "b4d5e56eab25456c2c090a885b85d295dd94979ed2759821288ae6046021bbb9",
+      "bytes": 9136
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/environment/gym/gym-export-warnings.json",
+      "sha256": "9ebe4271d207c04e803351e6e2f6e6b001e895292fd7dbfc9bf636e22dcd8259",
+      "bytes": 1427
+    }
+  ],
+  "currentGymFinishingVerified": false
+}

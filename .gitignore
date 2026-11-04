@@ -18,3 +18,33 @@ unity-city/Assets/Source/Prywatne.meta
 
 # rejon buildu CI (pisze unity-tools/claude/rejon_buildu.py przed Unity)
 unity-city/rejon-ci.txt
+
+# Obóz — lokalne źródła i wyniki importu
+/unity-city/Assets/Source/Prywatne/
+/unity-city/Assets/PlayableGenerated/
+/unity-city/Library/
+/unity-city/Temp/
+/unity-city/Logs/
+/unity-city/obj/
+/unity-city/UserSettings/
+/unity-city/ObozUpdateExport/
+/build/
+/unity-city/braxhorn.keystore*
+/unity-city/braxhorn.versioncode
+/unity-city/Prywatne/oboz_*.tar.gz.enc
+*.fbx
+*.glb
+*.blend
+*.png
+*.jpg
+*.exr
+*.wav
+*.mp3
+*.ogg
+*.apk
+*.aab
+*.keystore
+*.jks
+__pycache__/
+*.zip
+*.bundle

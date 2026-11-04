@@ -1,0 +1,257 @@
+{
+  "blender": "4.5.15 LTS",
+  "models": [
+    {
+      "sourceBlend": "fir_tree_01_2k.blend",
+      "sourceObject": "fir_tree_01_a_LOD1",
+      "file": "fir_tree_01_a_LOD1.glb",
+      "vertices": 138058,
+      "triangles": 177444,
+      "dimensions": [
+        6.58326530456543,
+        6.467047691345215,
+        18.954601287841797
+      ],
+      "sourceBlendSha256": "6c816b5fa29e8c9c08d0f6836e501cd59ab4efb84653b594701540f1d55eae69",
+      "sha256": "a7decf583183e4ef6f5095fd0b8e67ad42318f8f271653f719d15bd3cb978293",
+      "geometryDecimated": false,
+      "authoredLod": 1,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_tree_01_2k.blend",
+      "sourceObject": "fir_tree_01_a_LOD2",
+      "file": "fir_tree_01_a_LOD2.glb",
+      "vertices": 73227,
+      "triangles": 70661,
+      "dimensions": [
+        6.583094120025635,
+        6.467402458190918,
+        18.957046508789062
+      ],
+      "sourceBlendSha256": "6c816b5fa29e8c9c08d0f6836e501cd59ab4efb84653b594701540f1d55eae69",
+      "sha256": "e62d868987e7e559dceba6348411bb9f2689455224f56135c2bb287ee2c1fd80",
+      "geometryDecimated": false,
+      "authoredLod": 2,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_tree_01_2k.blend",
+      "sourceObject": "fir_tree_01_b_LOD1",
+      "file": "fir_tree_01_b_LOD1.glb",
+      "vertices": 90714,
+      "triangles": 128464,
+      "dimensions": [
+        5.631947040557861,
+        6.084495544433594,
+        14.077526092529297
+      ],
+      "sourceBlendSha256": "6c816b5fa29e8c9c08d0f6836e501cd59ab4efb84653b594701540f1d55eae69",
+      "sha256": "fddd35f741014d9d9837190d1b147f6ae2ee6df408790f19655d8d047215aff1",
+      "geometryDecimated": false,
+      "authoredLod": 1,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_tree_01_2k.blend",
+      "sourceObject": "fir_tree_01_b_LOD2",
+      "file": "fir_tree_01_b_LOD2.glb",
+      "vertices": 48164,
+      "triangles": 54927,
+      "dimensions": [
+        5.631947040557861,
+        6.084495544433594,
+        14.077526092529297
+      ],
+      "sourceBlendSha256": "6c816b5fa29e8c9c08d0f6836e501cd59ab4efb84653b594701540f1d55eae69",
+      "sha256": "e6e4f26fd32b87158514e44245258297104b8aaedb027509edc541241344524e",
+      "geometryDecimated": false,
+      "authoredLod": 2,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_tree_01_2k.blend",
+      "sourceObject": "fir_tree_01_c_LOD1",
+      "file": "fir_tree_01_c_LOD1.glb",
+      "vertices": 43277,
+      "triangles": 68879,
+      "dimensions": [
+        6.3490400314331055,
+        6.005417823791504,
+        14.545815467834473
+      ],
+      "sourceBlendSha256": "6c816b5fa29e8c9c08d0f6836e501cd59ab4efb84653b594701540f1d55eae69",
+      "sha256": "3c2d7c397734058ff232fd8ccfeb4d9291e3d4670671375c6d50d198c12085e8",
+      "geometryDecimated": false,
+      "authoredLod": 1,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_tree_01_2k.blend",
+      "sourceObject": "fir_tree_01_c_LOD2",
+      "file": "fir_tree_01_c_LOD2.glb",
+      "vertices": 22574,
+      "triangles": 31512,
+      "dimensions": [
+        6.3499040603637695,
+        6.005417823791504,
+        14.552308082580566
+      ],
+      "sourceBlendSha256": "6c816b5fa29e8c9c08d0f6836e501cd59ab4efb84653b594701540f1d55eae69",
+      "sha256": "34abf568e7d65b3b6f9c9d81e2e38bcb764a427b644e2e25d338f939f2c73b54",
+      "geometryDecimated": false,
+      "authoredLod": 2,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_sapling_medium_2k.blend",
+      "sourceObject": "fir_sapling_medium_a_LOD1",
+      "file": "fir_sapling_medium_a_LOD1.glb",
+      "vertices": 16238,
+      "triangles": 19016,
+      "dimensions": [
+        5.062528610229492,
+        5.321972846984863,
+        8.861017227172852
+      ],
+      "sourceBlendSha256": "37066f18c0d2e8d801e9441f6dad3182a03a32b039eae46ac5df32049c92d17b",
+      "sha256": "8c299b5809a91d75e84dac274c1d79d611f126ec2f451b933638ed12d75dfe4d",
+      "geometryDecimated": false,
+      "authoredLod": 1,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_sapling_medium_2k.blend",
+      "sourceObject": "fir_sapling_medium_a_LOD2",
+      "file": "fir_sapling_medium_a_LOD2.glb",
+      "vertices": 12680,
+      "triangles": 14752,
+      "dimensions": [
+        5.060654640197754,
+        5.321972846984863,
+        8.859707832336426
+      ],
+      "sourceBlendSha256": "37066f18c0d2e8d801e9441f6dad3182a03a32b039eae46ac5df32049c92d17b",
+      "sha256": "41adab2c0cb7467cfa6d854389a1cb2da7d7fb7a0cc54fd1092bc5271034b00c",
+      "geometryDecimated": false,
+      "authoredLod": 2,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_sapling_medium_2k.blend",
+      "sourceObject": "fir_sapling_medium_b_LOD1",
+      "file": "fir_sapling_medium_b_LOD1.glb",
+      "vertices": 10672,
+      "triangles": 11886,
+      "dimensions": [
+        4.946321487426758,
+        5.434919834136963,
+        7.927545070648193
+      ],
+      "sourceBlendSha256": "37066f18c0d2e8d801e9441f6dad3182a03a32b039eae46ac5df32049c92d17b",
+      "sha256": "36dd71252d8392650c8b7c943d6250aeae8a5b2b2c760fc7f8fb0a238378718e",
+      "geometryDecimated": false,
+      "authoredLod": 1,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_sapling_medium_2k.blend",
+      "sourceObject": "fir_sapling_medium_b_LOD2",
+      "file": "fir_sapling_medium_b_LOD2.glb",
+      "vertices": 8137,
+      "triangles": 8761,
+      "dimensions": [
+        4.946321487426758,
+        5.434121131896973,
+        7.927545070648193
+      ],
+      "sourceBlendSha256": "37066f18c0d2e8d801e9441f6dad3182a03a32b039eae46ac5df32049c92d17b",
+      "sha256": "7164560d380358a564a5c5a8a091448e8c3459e4080d486d135c3b088b2d22d3",
+      "geometryDecimated": false,
+      "authoredLod": 2,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_sapling_medium_2k.blend",
+      "sourceObject": "fir_sapling_medium_c_LOD1",
+      "file": "fir_sapling_medium_c_LOD1.glb",
+      "vertices": 9799,
+      "triangles": 11074,
+      "dimensions": [
+        4.317719459533691,
+        4.046632766723633,
+        5.939101219177246
+      ],
+      "sourceBlendSha256": "37066f18c0d2e8d801e9441f6dad3182a03a32b039eae46ac5df32049c92d17b",
+      "sha256": "a0bbdb6d7e2b4eca07d453ae799a304e1826e5b2166ab5d79f8fd166af7403bc",
+      "geometryDecimated": false,
+      "authoredLod": 1,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "fir_sapling_medium_2k.blend",
+      "sourceObject": "fir_sapling_medium_c_LOD2",
+      "file": "fir_sapling_medium_c_LOD2.glb",
+      "vertices": 7561,
+      "triangles": 8393,
+      "dimensions": [
+        4.317638397216797,
+        4.043063163757324,
+        5.93764066696167
+      ],
+      "sourceBlendSha256": "37066f18c0d2e8d801e9441f6dad3182a03a32b039eae46ac5df32049c92d17b",
+      "sha256": "fd83efe8475b0afe5eb8977aa81260634511be3d3c88a810a57b9f81fb4c771e",
+      "geometryDecimated": false,
+      "authoredLod": 2,
+      "unityImported": false,
+      "sourceColorPackingRepaired": true
+    },
+    {
+      "sourceBlend": "grass_bermuda_01_2k.blend",
+      "sourceObject": "grass_bermuda_01_medium_d",
+      "file": "grass_bermuda_01_medium_d.glb",
+      "vertices": 13,
+      "triangles": 14,
+      "dimensions": [
+        0.05497361719608307,
+        0.016299284994602203,
+        0.10206569731235504
+      ],
+      "sourceBlendSha256": "3b2ec52390d293b9e810ec4e2a182d725ed2a858eb0912f5bb36909d9c5f5073",
+      "sha256": "395322eb88ec639c9be69fc18e9a6d726625ca8e462019ee0ceb5d03bd2395ab",
+      "geometryDecimated": false,
+      "authoredLod": 0,
+      "unityImported": false
+    },
+    {
+      "sourceBlend": "grass_bermuda_01_2k.blend",
+      "sourceObject": "grass_bermuda_01_seedling_d",
+      "file": "grass_bermuda_01_seedling_d.glb",
+      "vertices": 226,
+      "triangles": 268,
+      "dimensions": [
+        0.06964705884456635,
+        0.08313377946615219,
+        0.1521890014410019
+      ],
+      "sourceBlendSha256": "3b2ec52390d293b9e810ec4e2a182d725ed2a858eb0912f5bb36909d9c5f5073",
+      "sha256": "ab54390df71226acf05bce0b38d7c238482bd4158199c8fa7fa11929ec9347f9",
+      "geometryDecimated": false,
+      "authoredLod": 0,
+      "unityImported": false
+    }
+  ],
+  "complete": true,
+  "originalsUnchanged": true
+}

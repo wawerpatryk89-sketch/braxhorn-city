@@ -1,0 +1,234 @@
+name: Obóz — Unity 6 APK do testu
+
+on:
+  push:
+    branches: [gpt/oboz]
+    paths: [unity-tools/oboz/build-request.json]
+  workflow_dispatch:
+    inputs:
+      first_install:
+        description: Pierwszy APK obozu, bez wcześniejszego potwierdzonego podpisu
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: oboz-android-review
+  cancel-in-progress: false
+
+jobs:
+  android-oboz:
+    if: github.ref == 'refs/heads/gpt/oboz'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets/
+            unity-city/Packages/
+            unity-city/ProjectSettings/
+            unity-city/apk-warianty.txt
+            unity-tools/updates/
+            unity-tools/oboz/
+      - name: Jawne zlecenie buildu z gałęzi obozu
+        id: request
+        env:
+          EVENT: ${{ github.event_name }}
+          FIRST_INSTALL: ${{ inputs.first_install }}
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          first=os.environ['FIRST_INSTALL']=='true'
+          if os.environ['EVENT']=='push':
+              request=json.loads(Path('unity-tools/oboz/build-request.json').read_text())
+              actual=hashlib.sha256(Path('unity-tools/oboz/private-inputs.json').read_bytes()).hexdigest()
+              if request.get('privateInputsSha256')!=actual or type(request.get('firstInstall')) is not bool:
+                  raise ValueError('Zlecenie nie odpowiada bieżącej dostawie obozu')
+              first=request['firstInstall']
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('first_install='+str(first).lower()+'\n')
+          PY
+      - name: Sprawdzenie dostawy i sekretów przed importem Unity
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
+          LIC: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          test -n "$KS" || { echo 'Brak stałego klucza podpisu APK'; exit 1; }
+          test -n "$LIC" || { echo 'Brak licencji Unity'; exit 1; }
+          python3 unity-tools/oboz/assets.py preflight
+      - name: Poprzednia tożsamość APK i rosnący versionCode
+        env:
+          FIRST_INSTALL: ${{ steps.request.outputs.first_install }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq '.[].tag_name' > "$RUNNER_TEMP/release-tags.txt"
+          if rg -qx 'oboz-review-latest' "$RUNNER_TEMP/release-tags.txt"; then
+            gh release download oboz-review-latest --repo "$GITHUB_REPOSITORY" --pattern release-identity.json --dir "$RUNNER_TEMP/previous"
+            python3 unity-tools/oboz/release_identity.py prepare --previous "$RUNNER_TEMP/previous/release-identity.json" --output unity-city/braxhorn.versioncode
+          elif [ "$FIRST_INSTALL" = true ]; then
+            python3 unity-tools/oboz/release_identity.py prepare --allow-first-install --output unity-city/braxhorn.versioncode
+          else
+            echo 'Brak poprzedniego APK obozu. Pierwsza instalacja wymaga jawnego first_install.'
+            exit 1
+          fi
+      - name: Odszyfrowanie wyłącznie zasobów obozu i kontrola SHA-256
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/assets.py restore
+      - name: Profil pamięci obozu
+        id: profile
+        run: python3 unity-tools/updates/unity_cache.py profile --zone oboz
+      - name: Przywróć zaszyfrowaną Library obozu
+        id: cache
+        continue-on-error: true
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ${{ runner.temp }}/oboz-library.tar.zst.enc
+            ${{ runner.temp }}/oboz-library.tar.zst.enc.json
+          key: ${{ steps.profile.outputs.prefix }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ steps.profile.outputs.prefix }}
+      - name: Trwała kopia Library przy braku wpisu w cache
+        if: ${{ steps.cache.outputs.cache-matched-key == '' }}
+        continue-on-error: true
+        run: python3 unity-tools/updates/durable_cache.py download --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
+      - name: Sprawdź i odszyfruj cache
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          if [ -f "$RUNNER_TEMP/oboz-library.tar.zst.enc" ]; then
+            if ! python3 unity-tools/updates/unity_cache.py restore --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"; then
+              echo '::warning::Cache obozu odrzucony; nastąpi pełny import.'
+            fi
+          else
+            echo 'BRAXHORN_PAMIEC_LIBRARY oboz=nie — pierwsze uruchomienie lub brak kopii'
+          fi
+      - name: Przywróć trwałe sceny i GUID poprzedniego obozu
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re, subprocess, sys
+          from pathlib import Path
+          sys.path.insert(0, 'unity-tools/oboz')
+          from assets import digest
+          previous=Path(os.environ['RUNNER_TEMP'])/'previous/release-identity.json'
+          if not previous.exists():
+              print('BRAXHORN_OBOZ_SCENA brak poprzedniego eksportu')
+              sys.exit(0)
+          data=json.loads(previous.read_text())
+          if not data.get('worldSha256'):
+              print('BRAXHORN_OBOZ_SCENA brak wcześniejszej kopii scen')
+              sys.exit(0)
+          tag=data['releaseTag']
+          if not re.fullmatch(r'oboz-review-[0-9]+',tag): raise ValueError('Invalid prior release tag')
+          folder=Path(os.environ['RUNNER_TEMP'])/'previous'
+          subprocess.run(['gh','release','download',tag,'--repo',os.environ['GITHUB_REPOSITORY'],'--pattern','oboz-world.tar.gz.enc','--dir',str(folder)],check=True)
+          path=folder/'oboz-world.tar.gz.enc'
+          if digest(path)!=data['worldSha256']: raise ValueError('World checksum mismatch')
+          subprocess.run(['python3','unity-tools/oboz/world.py','restore','--archive',str(path)],check=True)
+          PY
+      - name: Stały podpis APK — bez wariantu debug
+        env:
+          KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
+          KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          umask 077
+          printf '%s' "$KS" | base64 -d > unity-city/braxhorn.keystore
+          printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+      - name: Generowanie sceny i kompilacja tylko obozu
+        id: unity
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxObozBuild.BuildAndroidReview
+          androidExportType: androidPackage
+          versioning: None
+          allowDirtyBuild: true
+      - name: Weryfikacja gotowego podpisu, pakietu i wersji APK
+        run: |
+          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -d "$SDK/build-tools"
+          AAPT=$(rg --files --hidden --no-ignore "$SDK/build-tools" -g aapt | sort -V | tail -1)
+          SIGNER=$(rg --files --hidden --no-ignore "$SDK/build-tools" -g apksigner | sort -V | tail -1)
+          VERSION=$(cat unity-city/braxhorn.versioncode)
+          PREVIOUS=(--allow-first-install)
+          if [ -f "$RUNNER_TEMP/previous/release-identity.json" ]; then PREVIOUS=(--previous "$RUNNER_TEMP/previous/release-identity.json"); fi
+          python3 unity-tools/oboz/release_identity.py verify "${PREVIOUS[@]}" --version "$VERSION" --apk build/ObozAndroid/braxhorn-oboz.apk --aapt "$AAPT" --apksigner "$SIGNER" --output build/ObozAndroid/release-identity.json
+      - name: Zaszyfrowany zapis scen obozu
+        id: world
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/world.py pack --archive "$RUNNER_TEMP/oboz-world.tar.gz.enc"
+      - name: Zapis APK do niezmiennego wydania testowego
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess, sys
+          from pathlib import Path
+          sys.path.insert(0,'unity-tools/oboz')
+          from assets import digest
+          folder=Path('build/ObozAndroid'); receipt=folder/'release-identity.json'
+          data=json.loads(receipt.read_text()); tag='oboz-review-'+str(data['versionCode'])
+          data['releaseTag']=tag; data['sourceCommit']=os.environ['GITHUB_SHA']; data['contentUpdatesReady']=False
+          world=Path(os.environ['RUNNER_TEMP'])/'oboz-world.tar.gz.enc'
+          if world.exists(): data['worldSha256']=digest(world)
+          receipt.write_text(json.dumps(data,indent=2)+'\n')
+          repo=os.environ['GITHUB_REPOSITORY']
+          subprocess.run(['gh','release','create',tag,'--repo',repo,'--draft','--target',os.environ['GITHUB_SHA'],'--title','Obóz — test Moniką '+str(data['versionCode']),'--notes','APK Unity 6 do pierwszego testu. Niepotwierdzone działanie na telefonie. Aktualizacje zawartości niewdrożone.'],check=True)
+          files=[str(p) for p in sorted(folder.glob('*')) if p.suffix in ('.apk','.json')]
+          if world.exists(): files.append(str(world))
+          subprocess.run(['gh','release','upload',tag,'--repo',repo,*files],check=True)
+          tags=Path(os.environ['RUNNER_TEMP'])/'release-tags.txt'
+          if 'oboz-review-latest' not in tags.read_text().splitlines():
+              subprocess.run(['gh','release','create','oboz-review-latest','--repo',repo,'--draft','--target',os.environ['GITHUB_SHA'],'--title','Obóz — ostatni potwierdzony podpis APK','--notes','Metadane ostatniego podpisanego APK; wcześniejsze APK pozostają w osobnych wydaniach.'],check=True)
+          subprocess.run(['gh','release','upload','oboz-review-latest','--repo',repo,'--clobber',str(receipt)],check=True)
+          PY
+      - name: Usuń lokalne dane podpisu
+        if: always()
+        run: |
+          rm -f unity-city/braxhorn.keystore unity-city/braxhorn.keystore.pass
+          sed -i -E '/^[[:space:]]*(AndroidKeystorePass|AndroidKeyaliasPass):/d' unity-city/ProjectSettings/ProjectSettings.asset 2>/dev/null || true
+      - name: Zapis pełnej zaszyfrowanej Library wraz z Bee
+        id: save_cache
+        if: ${{ !cancelled() && steps.unity.outcome != 'skipped' && steps.unity.outcome != '' }}
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/updates/unity_cache.py pack --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
+      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        if: ${{ !cancelled() && steps.save_cache.outputs.saved == 'true' }}
+        continue-on-error: true
+        with:
+          path: |
+            ${{ runner.temp }}/oboz-library.tar.zst.enc
+            ${{ runner.temp }}/oboz-library.tar.zst.enc.json
+          key: ${{ steps.profile.outputs.prefix }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Trwała kopia cache poza limitem Actions
+        if: ${{ !cancelled() && steps.save_cache.outputs.saved == 'true' }}
+        continue-on-error: true
+        run: python3 unity-tools/updates/durable_cache.py upload --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
+      - name: Raport i logi z tego uruchomienia
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oboz-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build/ObozAndroid/*.json
+            unity-city/Logs/
+          if-no-files-found: ignore
+          retention-days: 14

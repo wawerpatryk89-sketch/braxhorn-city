@@ -1,0 +1,988 @@
+[
+  {
+    "source": "fir_sapling_medium_a_LOD1.glb",
+    "sourceSha256": "8c299b5809a91d75e84dac274c1d79d611f126ec2f451b933638ed12d75dfe4d",
+    "derived": "fir_sapling_medium_a_LOD1__unity.glb",
+    "derivedSha256": "06f59080d8e13ae1a6163065ff37d0cc61dc5b79996346fe9b20ca9b890275cf",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa_Color.png",
+        "color": true,
+        "sha256": "b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 63482420,
+    "derivedBinaryBytes": 642672,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "7": 4,
+      "8": 5,
+      "9": 6,
+      "10": 7,
+      "14": 8,
+      "15": 9,
+      "16": 10,
+      "17": 11
+    }
+  },
+  {
+    "source": "fir_sapling_medium_a_LOD2.glb",
+    "sourceSha256": "41adab2c0cb7467cfa6d854389a1cb2da7d7fb7a0cc54fd1092bc5271034b00c",
+    "derived": "fir_sapling_medium_a_LOD2__unity.glb",
+    "derivedSha256": "525e5cc8bc2ddd32bff91f9cfa446c1ea5731ed372cbcf8dfa72c6df472b5369",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa_Color.png",
+        "color": true,
+        "sha256": "b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 63342980,
+    "derivedBinaryBytes": 503232,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "7": 4,
+      "8": 5,
+      "9": 6,
+      "10": 7,
+      "14": 8,
+      "15": 9,
+      "16": 10,
+      "17": 11
+    }
+  },
+  {
+    "source": "fir_sapling_medium_b_LOD1.glb",
+    "sourceSha256": "36dd71252d8392650c8b7c943d6250aeae8a5b2b2c760fc7f8fb0a238378718e",
+    "derived": "fir_sapling_medium_b_LOD1__unity.glb",
+    "derivedSha256": "d01d03893d2280fe98e7d9ac23521a6983016d2e6e5e700b7ac5abf2bae6a612",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa_Color.png",
+        "color": true,
+        "sha256": "b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 63261528,
+    "derivedBinaryBytes": 421780,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "7": 4,
+      "8": 5,
+      "9": 6,
+      "10": 7,
+      "14": 8,
+      "15": 9,
+      "16": 10,
+      "17": 11
+    }
+  },
+  {
+    "source": "fir_sapling_medium_b_LOD2.glb",
+    "sourceSha256": "7164560d380358a564a5c5a8a091448e8c3459e4080d486d135c3b088b2d22d3",
+    "derived": "fir_sapling_medium_b_LOD2__unity.glb",
+    "derivedSha256": "5e657f0206956bda6cda000a62552ed9677c650c09120fd49a3e71432191910f",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa_Color.png",
+        "color": true,
+        "sha256": "b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 63161660,
+    "derivedBinaryBytes": 321912,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "7": 4,
+      "8": 5,
+      "9": 6,
+      "10": 7,
+      "14": 8,
+      "15": 9,
+      "16": 10,
+      "17": 11
+    }
+  },
+  {
+    "source": "fir_sapling_medium_c_LOD1.glb",
+    "sourceSha256": "a0bbdb6d7e2b4eca07d453ae799a304e1826e5b2166ab5d79f8fd166af7403bc",
+    "derived": "fir_sapling_medium_c_LOD1__unity.glb",
+    "derivedSha256": "d7f523c03cf66432f554f586e88dd61d1b7a8bc10bc15503782649fea907bd86",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa_Color.png",
+        "color": true,
+        "sha256": "b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 63228720,
+    "derivedBinaryBytes": 388972,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "7": 4,
+      "8": 5,
+      "9": 6,
+      "10": 7,
+      "14": 8,
+      "15": 9,
+      "16": 10,
+      "17": 11
+    }
+  },
+  {
+    "source": "fir_sapling_medium_c_LOD2.glb",
+    "sourceSha256": "fd83efe8475b0afe5eb8977aa81260634511be3d3c88a810a57b9f81fb4c771e",
+    "derived": "fir_sapling_medium_c_LOD2__unity.glb",
+    "derivedSha256": "377ae3c996a253a1038aab1ec7f2865707e7fa78c68f64b3240876b816f950ac",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa_Color.png",
+        "color": true,
+        "sha256": "b6a2b292625f41aade302704716aafde09697c3921c914f6dd2ccd1b67c15dfa"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 63141020,
+    "derivedBinaryBytes": 301272,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "7": 4,
+      "8": 5,
+      "9": 6,
+      "10": 7,
+      "14": 8,
+      "15": 9,
+      "16": 10,
+      "17": 11
+    }
+  },
+  {
+    "source": "fir_tree_01_a_LOD1.glb",
+    "sourceSha256": "a7decf583183e4ef6f5095fd0b8e67ad42318f8f271653f719d15bd3cb978293",
+    "derived": "fir_tree_01_a_LOD1__unity.glb",
+    "derivedSha256": "86c98b531bc08e4bf3f71e45ba3173f5ef197c9bfc72876583ebaff5757b3a4c",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/108acc38dc02a664f7d4d97f1e0792782ce9b4c998348b9fc6301ca003af4809_data__lin.png",
+        "color": false,
+        "sha256": "108acc38dc02a664f7d4d97f1e0792782ce9b4c998348b9fc6301ca003af4809"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/5913b7176d9bebb50e5c85bf3aaf8d49d6aee5ff2d6620037b3a18298c397e7f_Color.png",
+        "color": true,
+        "sha256": "5913b7176d9bebb50e5c85bf3aaf8d49d6aee5ff2d6620037b3a18298c397e7f"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/cbad32512b9479a55e4712e70a8ea7d3807f73675b19d8640f8adb48d9eca63a_data__lin.png",
+        "color": false,
+        "sha256": "cbad32512b9479a55e4712e70a8ea7d3807f73675b19d8640f8adb48d9eca63a"
+      },
+      {
+        "imageIndex": 6,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 7,
+        "file": "vegetation_textures/646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539_Color.png",
+        "color": true,
+        "sha256": "646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539"
+      },
+      {
+        "imageIndex": 8,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 121477352,
+    "derivedBinaryBytes": 7649900,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "9": 6,
+      "10": 7,
+      "11": 8,
+      "12": 9,
+      "13": 10,
+      "14": 11,
+      "18": 12,
+      "19": 13,
+      "20": 14,
+      "21": 15,
+      "22": 16,
+      "23": 17,
+      "27": 18,
+      "28": 19,
+      "29": 20,
+      "30": 21,
+      "31": 22,
+      "32": 23
+    }
+  },
+  {
+    "source": "fir_tree_01_a_LOD2.glb",
+    "sourceSha256": "e62d868987e7e559dceba6348411bb9f2689455224f56135c2bb287ee2c1fd80",
+    "derived": "fir_tree_01_a_LOD2__unity.glb",
+    "derivedSha256": "16b00ecf88d8947334876d4ed27f7f57bc0955302e522da4e772504a94705005",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/108acc38dc02a664f7d4d97f1e0792782ce9b4c998348b9fc6301ca003af4809_data__lin.png",
+        "color": false,
+        "sha256": "108acc38dc02a664f7d4d97f1e0792782ce9b4c998348b9fc6301ca003af4809"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/5913b7176d9bebb50e5c85bf3aaf8d49d6aee5ff2d6620037b3a18298c397e7f_Color.png",
+        "color": true,
+        "sha256": "5913b7176d9bebb50e5c85bf3aaf8d49d6aee5ff2d6620037b3a18298c397e7f"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/cbad32512b9479a55e4712e70a8ea7d3807f73675b19d8640f8adb48d9eca63a_data__lin.png",
+        "color": false,
+        "sha256": "cbad32512b9479a55e4712e70a8ea7d3807f73675b19d8640f8adb48d9eca63a"
+      },
+      {
+        "imageIndex": 6,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 7,
+        "file": "vegetation_textures/646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539_Color.png",
+        "color": true,
+        "sha256": "646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539"
+      },
+      {
+        "imageIndex": 8,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 118501120,
+    "derivedBinaryBytes": 4673668,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "9": 6,
+      "10": 7,
+      "11": 8,
+      "12": 9,
+      "13": 10,
+      "14": 11,
+      "18": 12,
+      "19": 13,
+      "20": 14,
+      "21": 15,
+      "22": 16,
+      "23": 17,
+      "27": 18,
+      "28": 19,
+      "29": 20,
+      "30": 21,
+      "31": 22,
+      "32": 23
+    }
+  },
+  {
+    "source": "fir_tree_01_b_LOD1.glb",
+    "sourceSha256": "fddd35f741014d9d9837190d1b147f6ae2ee6df408790f19655d8d047215aff1",
+    "derived": "fir_tree_01_b_LOD1__unity.glb",
+    "derivedSha256": "1bc1af864256d30d88b5684d6bdf11ed60501f8649cc59d2c64dbf7601f96409",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/483384cf2a79f0818a2d7da02b2c03609d485df8f709a6b7960f0b5604f53403_data__lin.png",
+        "color": false,
+        "sha256": "483384cf2a79f0818a2d7da02b2c03609d485df8f709a6b7960f0b5604f53403"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/c075d3be47279820f3b56ec905eaa6dc064006930fd1a9a0db0aa246305a739c_Color.png",
+        "color": true,
+        "sha256": "c075d3be47279820f3b56ec905eaa6dc064006930fd1a9a0db0aa246305a739c"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/29a59405e7d5034c399d5ae0ade5739a519b2ad633bfcee6a5f1830ea7c63a73_data__lin.png",
+        "color": false,
+        "sha256": "29a59405e7d5034c399d5ae0ade5739a519b2ad633bfcee6a5f1830ea7c63a73"
+      },
+      {
+        "imageIndex": 6,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 7,
+        "file": "vegetation_textures/646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539_Color.png",
+        "color": true,
+        "sha256": "646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539"
+      },
+      {
+        "imageIndex": 8,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 117178040,
+    "derivedBinaryBytes": 4855656,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "9": 6,
+      "10": 7,
+      "11": 8,
+      "12": 9,
+      "13": 10,
+      "14": 11,
+      "18": 12,
+      "19": 13,
+      "20": 14,
+      "21": 15,
+      "22": 16,
+      "23": 17,
+      "27": 18,
+      "28": 19,
+      "29": 20,
+      "30": 21,
+      "31": 22,
+      "32": 23
+    }
+  },
+  {
+    "source": "fir_tree_01_b_LOD2.glb",
+    "sourceSha256": "e6e4f26fd32b87158514e44245258297104b8aaedb027509edc541241344524e",
+    "derived": "fir_tree_01_b_LOD2__unity.glb",
+    "derivedSha256": "8ecacf1c80e37a93cb7dc8bf9ad1e55c7edf903ec3375ead70d11c686c89624a",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/483384cf2a79f0818a2d7da02b2c03609d485df8f709a6b7960f0b5604f53403_data__lin.png",
+        "color": false,
+        "sha256": "483384cf2a79f0818a2d7da02b2c03609d485df8f709a6b7960f0b5604f53403"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/c075d3be47279820f3b56ec905eaa6dc064006930fd1a9a0db0aa246305a739c_Color.png",
+        "color": true,
+        "sha256": "c075d3be47279820f3b56ec905eaa6dc064006930fd1a9a0db0aa246305a739c"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/29a59405e7d5034c399d5ae0ade5739a519b2ad633bfcee6a5f1830ea7c63a73_data__lin.png",
+        "color": false,
+        "sha256": "29a59405e7d5034c399d5ae0ade5739a519b2ad633bfcee6a5f1830ea7c63a73"
+      },
+      {
+        "imageIndex": 6,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 7,
+        "file": "vegetation_textures/646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539_Color.png",
+        "color": true,
+        "sha256": "646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539"
+      },
+      {
+        "imageIndex": 8,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 115787916,
+    "derivedBinaryBytes": 3465532,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "9": 6,
+      "10": 7,
+      "11": 8,
+      "12": 9,
+      "13": 10,
+      "14": 11,
+      "18": 12,
+      "19": 13,
+      "20": 14,
+      "21": 15,
+      "22": 16,
+      "23": 17,
+      "27": 18,
+      "28": 19,
+      "29": 20,
+      "30": 21,
+      "31": 22,
+      "32": 23
+    }
+  },
+  {
+    "source": "fir_tree_01_c_LOD1.glb",
+    "sourceSha256": "3c2d7c397734058ff232fd8ccfeb4d9291e3d4670671375c6d50d198c12085e8",
+    "derived": "fir_tree_01_c_LOD1__unity.glb",
+    "derivedSha256": "e6b4d6ea80f6c66c97c0ab7f4cbf67a376ffcd05bc14a1f63263acd6e9a0846d",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539_Color.png",
+        "color": true,
+        "sha256": "646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 77505284,
+    "derivedBinaryBytes": 2182916,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "9": 6,
+      "10": 7,
+      "11": 8,
+      "12": 9,
+      "13": 10,
+      "14": 11,
+      "18": 12,
+      "19": 13,
+      "20": 14,
+      "21": 15,
+      "22": 16,
+      "23": 17,
+      "24": 18,
+      "25": 19,
+      "26": 20,
+      "27": 21,
+      "28": 22
+    }
+  },
+  {
+    "source": "fir_tree_01_c_LOD2.glb",
+    "sourceSha256": "34abf568e7d65b3b6f9c9d81e2e38bcb764a427b644e2e25d338f939f2c73b54",
+    "derived": "fir_tree_01_c_LOD2__unity.glb",
+    "derivedSha256": "a990723b86b3581cda13b7dc4b3e8cc8a984170a225528ed2bb900618d136f44",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+        "color": false,
+        "sha256": "32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+        "color": true,
+        "sha256": "733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332_data__lin.png",
+        "color": false,
+        "sha256": "ff09ac91017dc978e1814b643c51c1c81f2ddc83e9a6d9932187217cc216e332"
+      },
+      {
+        "imageIndex": 3,
+        "file": "vegetation_textures/03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a_data__lin.png",
+        "color": false,
+        "sha256": "03f6a70cebfe684ba61d84a6abbfab078a6a252ec52f6bbe8fcdb87de62add0a"
+      },
+      {
+        "imageIndex": 4,
+        "file": "vegetation_textures/646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539_Color.png",
+        "color": true,
+        "sha256": "646ac5d2367415363e6326293a2fb760a6b2381b04d258377b4c074fe277e539"
+      },
+      {
+        "imageIndex": 5,
+        "file": "vegetation_textures/7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee_data__lin.png",
+        "color": false,
+        "sha256": "7a98df0033a12d90483c8183da4e0796f66da93e1dcd2c455939246b8a629cee"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 76886160,
+    "derivedBinaryBytes": 1563792,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5,
+      "9": 6,
+      "10": 7,
+      "11": 8,
+      "12": 9,
+      "13": 10,
+      "14": 11,
+      "18": 12,
+      "19": 13,
+      "20": 14,
+      "21": 15,
+      "22": 16,
+      "23": 17,
+      "24": 18,
+      "25": 19,
+      "26": 20,
+      "27": 21,
+      "28": 22
+    }
+  },
+  {
+    "source": "grass_bermuda_01_medium_d.glb",
+    "sourceSha256": "395322eb88ec639c9be69fc18e9a6d726625ca8e462019ee0ceb5d03bd2395ab",
+    "derived": "grass_bermuda_01_medium_d__unity.glb",
+    "derivedSha256": "4eb6d30c9c4dad573d8eb5b31e3a804aa3a31f0e5fd5dbd5b12ae77f874e23f7",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/e65f4df1e3653cc8c90429cf4ce8c8b388e9a3bb6c60fabda5776e85a68135b2_data__lin.png",
+        "color": false,
+        "sha256": "e65f4df1e3653cc8c90429cf4ce8c8b388e9a3bb6c60fabda5776e85a68135b2"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/30183c203739dee9812b70f21916fcdcd88719dcfe4fa3270d8ce208369ec933_Color.jpg",
+        "color": true,
+        "sha256": "30183c203739dee9812b70f21916fcdcd88719dcfe4fa3270d8ce208369ec933"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ce2eec5be7d9b9d7f1049bc7ede9be9a970a8dd600f90181741baf8808b4a668_data__lin.png",
+        "color": false,
+        "sha256": "ce2eec5be7d9b9d7f1049bc7ede9be9a970a8dd600f90181741baf8808b4a668"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 16916332,
+    "derivedBinaryBytes": 500,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3
+    }
+  },
+  {
+    "source": "grass_bermuda_01_seedling_d.glb",
+    "sourceSha256": "ab54390df71226acf05bce0b38d7c238482bd4158199c8fa7fa11929ec9347f9",
+    "derived": "grass_bermuda_01_seedling_d__unity.glb",
+    "derivedSha256": "0467daf8faf719d145494a6b101c3b348d0f98cbb00ae6973acd2388e0a1a97f",
+    "binaryChunkUnchanged": false,
+    "sourceUnchanged": true,
+    "maps": [
+      {
+        "imageIndex": 0,
+        "file": "vegetation_textures/e65f4df1e3653cc8c90429cf4ce8c8b388e9a3bb6c60fabda5776e85a68135b2_data__lin.png",
+        "color": false,
+        "sha256": "e65f4df1e3653cc8c90429cf4ce8c8b388e9a3bb6c60fabda5776e85a68135b2"
+      },
+      {
+        "imageIndex": 1,
+        "file": "vegetation_textures/30183c203739dee9812b70f21916fcdcd88719dcfe4fa3270d8ce208369ec933_Color.jpg",
+        "color": true,
+        "sha256": "30183c203739dee9812b70f21916fcdcd88719dcfe4fa3270d8ce208369ec933"
+      },
+      {
+        "imageIndex": 2,
+        "file": "vegetation_textures/ce2eec5be7d9b9d7f1049bc7ede9be9a970a8dd600f90181741baf8808b4a668_data__lin.png",
+        "color": false,
+        "sha256": "ce2eec5be7d9b9d7f1049bc7ede9be9a970a8dd600f90181741baf8808b4a668"
+      }
+    ],
+    "unityImported": false,
+    "geometryBufferViewsByteExact": true,
+    "originalBinaryBytes": 16924672,
+    "derivedBinaryBytes": 8840,
+    "bufferViewRemap": {
+      "0": 0,
+      "1": 1,
+      "2": 2,
+      "3": 3
+    }
+  }
+]

@@ -1,0 +1,6 @@
+# Observed asset-conversion environment: CPython 3.11, Linux x86_64.
+# Unity remains the only target game engine; bpy is used solely for source assets.
+bpy==4.5.15
+numpy==1.26.4
+Pillow==13.0.0
+pypng==0.20220715.0

@@ -13,6 +13,8 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public Transform contactShadow;
     public string buildId;
     public bool ready;
+    // Read-only pause state for region-specific activities using these controls.
+    public bool Paused => paused;
     public BraxCityWorld cityWorld;
     public Vector3 worldSpawn=new Vector3(1.5f,.08f,2.8f);
     public int trainingHits;
@@ -25,6 +27,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private Vector2 move;
     private float yaw, pitch = 19f, distance = 5.8f, vertical, speed;
     private float actionEnd, hitAt, stateAt;
+    private float regionReactionLeft;
     private string action = "Idle";
     private float combatUntil;
     private bool hitPending, doorOpen, paused, runEnabled = true, soundEnabled = true;
@@ -126,7 +129,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(vessel){transform.SetParent(null,true);vessel=null;}
             if(seat){seat.Leave();}
             body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,180,0);body.enabled=true;
-            vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
+            vertical=0;speed=0;move=Vector2.zero;actionEnd=0;regionReactionLeft=0;hitPending=false;hitAt=0;
             yaw=0;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
             action="Idle";clips.Play("Idle");UpdateCamera(1f);Report();return;
         }
@@ -139,7 +142,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(door && Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f){doorOpen=!doorOpen;Report();}
             return;
         }
-        if(Time.time<actionEnd||vessel||seat||autoGracza)return;
+        if(Time.time<actionEnd||regionReactionLeft>0||vessel||seat||autoGracza)return;
         if(key=="punch")StartAction("Punch",1.25f,.43f);
         else if(key=="kick")StartAction("Kick",1.2f,.60f);
         else if(key=="jump" && body.isGrounded && !jumpPending){StartAction("Jump",1.35f,-1);jumpPending=true;jumpDeadline=Time.time+.30f;hipsPrevY=float.NaN;}
@@ -153,10 +156,22 @@ public sealed class BraxGymPlayer : MonoBehaviour
         actionEnd=Time.time+Mathf.Min(clips[name].length/rate,name=="Punch"?1.25f:name=="Kick"?1.1f:1.2f);
         hitAt=Time.time+contact/rate;hitPending=contact>=0;Report();
     }
+    // Optional regional reaction: existing city/estate callers are unaffected.
+    // The same action timer owns movement and animation, so a reaction cannot
+    // fight a second controller or leave a pending punch/jump behind it.
+    public bool PlayReaction(string name)
+    {
+        if(!ready||paused||!clips||clips[name]==null||seat||vessel||autoGracza)return false;
+        hitPending=false;jumpPending=false;hitAt=0;move=Vector2.zero;speed=0;
+        action=name;var state=clips[name];state.wrapMode=WrapMode.Once;state.speed=1;
+        regionReactionLeft=state.length;actionEnd=Time.time+state.length;
+        clips.CrossFade(name,.10f,PlayMode.StopAll);Report();return true;
+    }
     private void Update()
     {
         if(!ready||paused||(cityWorld&&cityWorld.loading))return;
         float dt=Mathf.Min(Time.deltaTime,.12f);
+        if(regionReactionLeft>0){regionReactionLeft=Mathf.Max(0,regionReactionLeft-dt);actionEnd=Time.time+regionReactionLeft;}
         simulationTime+=dt;
         if(autoGracza)
         {
@@ -369,7 +384,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(autoGracza)autoGracza.PrzedTeleportem();
         var a=text.Split(',');if(a.Length!=6)return;var v=new float[6];
         for(int i=0;i<6;i++)if(!float.TryParse(a[i],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out v[i])||float.IsNaN(v[i])||float.IsInfinity(v[i]))return;
-        move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";clips.Play("Idle");
+        move=Vector2.zero;speed=0;vertical=0;actionEnd=0;regionReactionLeft=0;hitPending=false;action="Idle";clips.Play("Idle");
         body.enabled=false;transform.position=new Vector3(v[0],v[1],v[2]);body.enabled=true;
         yaw=v[3];pitch=Mathf.Clamp(v[4],-32f,70f);distance=Mathf.Clamp(v[5],.8f,12f);
         cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);Report();
@@ -377,7 +392,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public void TravelTo(Vector3 position)
     {
         if(autoGracza)autoGracza.PrzedTeleportem();
-        move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";
+        move=Vector2.zero;speed=0;vertical=0;actionEnd=0;regionReactionLeft=0;hitPending=false;action="Idle";
         body.enabled=false;transform.position=position;body.enabled=true;clips.Play("Idle");
         cameraTarget=position+Vector3.up*1.65f;UpdateCamera(1f);Report();
     }

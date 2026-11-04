@@ -1,0 +1,1889 @@
+{
+  "schema": 1,
+  "worldScale": 1.294,
+  "unityVersion": "6000.0.58f2",
+  "characters": [
+    {
+      "id": "monika",
+      "name": "Monika",
+      "role": "player",
+      "archive": "Monika.zip",
+      "archiveSha256": "0e288bb938bed4b57ecb8aa50208b8f99a648724ffa030502e36ef146ee218fd",
+      "modelPath": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbx",
+      "colorPath": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Color.png",
+      "normalPath": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Normal.png",
+      "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Monika_roughness.PNG",
+      "metallicPath": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Monika_metallic.PNG",
+      "realHeight": 1.68,
+      "hasGloves": false,
+      "glovesVerified": true,
+      "files": [
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbx",
+          "sha256": "b817b4ed779a71f765c3a28909be43ff81cd663131479803ce216d10f17c9e88",
+          "bytes": 25849232
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Monika_roughness.PNG",
+          "sha256": "457f3934a3503d2ac5f51e978521a2903e0bc2f7576c60d866b1463a4dc455aa",
+          "bytes": 4896514,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Monika_metallic.PNG",
+          "sha256": "d5fe34d2af423a2a1c3a1fa66be636d0cddfe99d28ed8ca360a817f5ae17977f",
+          "bytes": 2348106,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Color.png",
+          "sha256": "55090bff449d7414dc5496689b0603140e080e517e8320381e0f2e1ce022a0e8",
+          "bytes": 11809510,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Normal.png",
+          "sha256": "d9e8ce54cbfb7740436561e1a55336c94946a10f05cecfcfa56115a86e4966c8",
+          "bytes": 5356602,
+          "width": 4096,
+          "height": 4096
+        }
+      ],
+      "sourceAudit": {
+        "fbx_version": 7200,
+        "bone_count": 65,
+        "bone_names": [
+          "mixamorig:Head",
+          "mixamorig:HeadTop_End",
+          "mixamorig:Hips",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:LeftHandIndex1",
+          "mixamorig:LeftHandIndex2",
+          "mixamorig:LeftHandIndex3",
+          "mixamorig:LeftHandIndex4",
+          "mixamorig:LeftHandMiddle1",
+          "mixamorig:LeftHandMiddle2",
+          "mixamorig:LeftHandMiddle3",
+          "mixamorig:LeftHandMiddle4",
+          "mixamorig:LeftHandPinky1",
+          "mixamorig:LeftHandPinky2",
+          "mixamorig:LeftHandPinky3",
+          "mixamorig:LeftHandPinky4",
+          "mixamorig:LeftHandRing1",
+          "mixamorig:LeftHandRing2",
+          "mixamorig:LeftHandRing3",
+          "mixamorig:LeftHandRing4",
+          "mixamorig:LeftHandThumb1",
+          "mixamorig:LeftHandThumb2",
+          "mixamorig:LeftHandThumb3",
+          "mixamorig:LeftHandThumb4",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftToeBase",
+          "mixamorig:LeftToe_End",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:Neck",
+          "mixamorig:RightArm",
+          "mixamorig:RightFoot",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:RightHandIndex1",
+          "mixamorig:RightHandIndex2",
+          "mixamorig:RightHandIndex3",
+          "mixamorig:RightHandIndex4",
+          "mixamorig:RightHandMiddle1",
+          "mixamorig:RightHandMiddle2",
+          "mixamorig:RightHandMiddle3",
+          "mixamorig:RightHandMiddle4",
+          "mixamorig:RightHandPinky1",
+          "mixamorig:RightHandPinky2",
+          "mixamorig:RightHandPinky3",
+          "mixamorig:RightHandPinky4",
+          "mixamorig:RightHandRing1",
+          "mixamorig:RightHandRing2",
+          "mixamorig:RightHandRing3",
+          "mixamorig:RightHandRing4",
+          "mixamorig:RightHandThumb1",
+          "mixamorig:RightHandThumb2",
+          "mixamorig:RightHandThumb3",
+          "mixamorig:RightHandThumb4",
+          "mixamorig:RightLeg",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightToeBase",
+          "mixamorig:RightToe_End",
+          "mixamorig:RightUpLeg",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2"
+        ],
+        "vertices": 14330,
+        "faces_by_size": {
+          "4": 14275,
+          "3": 19
+        },
+        "quads": 14275,
+        "triangles": 19,
+        "animation_stacks": [],
+        "t_pose_verified": true,
+        "skinning_verified": false,
+        "restArmAnglesDegrees": [
+          5.572197015995905,
+          5.572195702716747
+        ]
+      },
+      "sourceIssues": [],
+      "qualityExceptionApproved": false,
+      "appearanceApproved": false,
+      "runtimeVerified": false,
+      "clips": [
+        {
+          "name": "Idle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "CombatIdle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Fighting Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "krov"
+        },
+        {
+          "name": "Walk",
+          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "nyxa"
+        },
+        {
+          "name": "Run",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Punch",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jab Cross (1).fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Kick",
+          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Mma Kick (1).fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "nyxa"
+        },
+        {
+          "name": "Jump",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jump.fbx",
+          "loop": false,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "HeadHit",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Head Hit.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "HitToBody",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Hit To Body.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "GettingUp",
+          "path": "Assets/Source/Prywatne/Oboz/animations/vexa/Getting Up.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "vexa"
+        },
+        {
+          "name": "Block",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Center Block.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Dodge",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Dodging.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Training",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Boxing.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Taunt",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Taunt.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        }
+      ]
+    },
+    {
+      "id": "vorn",
+      "name": "VORN",
+      "role": "guard",
+      "archive": "Ochroniaz(1).zip",
+      "archiveSha256": "e6a0d2cf9263ca9728e7f6435f10da32cc32ba4dfb36b1d0e0c2fc5ead12fd09",
+      "modelPath": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbx",
+      "colorPath": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Color.png",
+      "normalPath": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Normal.png",
+      "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Ochroniaz_roughness.PNG",
+      "metallicPath": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Ochroniaz_metallic.PNG",
+      "realHeight": 0,
+      "hasGloves": false,
+      "glovesVerified": true,
+      "files": [
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbx",
+          "sha256": "81bf375a7db5329a15b1aac619950a9b2e2b185fc8c2668001ff890f93596d68",
+          "bytes": 25318304
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Ochroniaz_roughness.PNG",
+          "sha256": "bf6968fc525432bc8cfc004b8a2fb198b45a900c1a1c253aa38f16a797715982",
+          "bytes": 4783977,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Ochroniaz_metallic.PNG",
+          "sha256": "1a34a5d2e68996d1d2919079c30d2dfb81bc4d2b7a1f9c3447e8fb14e5247d25",
+          "bytes": 2572980,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Color.png",
+          "sha256": "53210a5c1d414be7475f0bec78e1a23ae434d351e18a23aefebd8ec4484ce78c",
+          "bytes": 11731850,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Normal.png",
+          "sha256": "3cc40a83b5ae4f3a5c25012a6de52e89b5b4184eef7b1d4258b4079fe05d4b99",
+          "bytes": 4826029,
+          "width": 4096,
+          "height": 4096
+        }
+      ],
+      "sourceAudit": {
+        "fbx_version": 7200,
+        "bone_count": 65,
+        "bone_names": [
+          "mixamorig:Head",
+          "mixamorig:HeadTop_End",
+          "mixamorig:Hips",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:LeftHandIndex1",
+          "mixamorig:LeftHandIndex2",
+          "mixamorig:LeftHandIndex3",
+          "mixamorig:LeftHandIndex4",
+          "mixamorig:LeftHandMiddle1",
+          "mixamorig:LeftHandMiddle2",
+          "mixamorig:LeftHandMiddle3",
+          "mixamorig:LeftHandMiddle4",
+          "mixamorig:LeftHandPinky1",
+          "mixamorig:LeftHandPinky2",
+          "mixamorig:LeftHandPinky3",
+          "mixamorig:LeftHandPinky4",
+          "mixamorig:LeftHandRing1",
+          "mixamorig:LeftHandRing2",
+          "mixamorig:LeftHandRing3",
+          "mixamorig:LeftHandRing4",
+          "mixamorig:LeftHandThumb1",
+          "mixamorig:LeftHandThumb2",
+          "mixamorig:LeftHandThumb3",
+          "mixamorig:LeftHandThumb4",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftToeBase",
+          "mixamorig:LeftToe_End",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:Neck",
+          "mixamorig:RightArm",
+          "mixamorig:RightFoot",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:RightHandIndex1",
+          "mixamorig:RightHandIndex2",
+          "mixamorig:RightHandIndex3",
+          "mixamorig:RightHandIndex4",
+          "mixamorig:RightHandMiddle1",
+          "mixamorig:RightHandMiddle2",
+          "mixamorig:RightHandMiddle3",
+          "mixamorig:RightHandMiddle4",
+          "mixamorig:RightHandPinky1",
+          "mixamorig:RightHandPinky2",
+          "mixamorig:RightHandPinky3",
+          "mixamorig:RightHandPinky4",
+          "mixamorig:RightHandRing1",
+          "mixamorig:RightHandRing2",
+          "mixamorig:RightHandRing3",
+          "mixamorig:RightHandRing4",
+          "mixamorig:RightHandThumb1",
+          "mixamorig:RightHandThumb2",
+          "mixamorig:RightHandThumb3",
+          "mixamorig:RightHandThumb4",
+          "mixamorig:RightLeg",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightToeBase",
+          "mixamorig:RightToe_End",
+          "mixamorig:RightUpLeg",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2"
+        ],
+        "vertices": 13567,
+        "faces_by_size": {
+          "4": 13558,
+          "3": 5
+        },
+        "quads": 13558,
+        "triangles": 5,
+        "animation_stacks": [],
+        "t_pose_verified": true,
+        "skinning_verified": false,
+        "restArmAnglesDegrees": [
+          5.040407570028785,
+          5.0403318803251285
+        ]
+      },
+      "sourceIssues": [
+        "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline"
+      ],
+      "qualityExceptionApproved": false,
+      "appearanceApproved": false,
+      "runtimeVerified": false,
+      "clips": [
+        {
+          "name": "Idle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "CombatIdle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Fighting Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "krov"
+        },
+        {
+          "name": "Walk",
+          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "nyxa"
+        },
+        {
+          "name": "Run",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Punch",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Hook Punch.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "krov"
+        },
+        {
+          "name": "Kick",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Mma Kick (1).fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Jump",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jump.fbx",
+          "loop": false,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "HeadHit",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Head Hit.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "HitToBody",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Hit To Body.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "GettingUp",
+          "path": "Assets/Source/Prywatne/Oboz/animations/vexa/Getting Up.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "vexa"
+        },
+        {
+          "name": "Block",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Center Block.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Dodge",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Dodging.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Training",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Punching Bag.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "krov"
+        },
+        {
+          "name": "Taunt",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Taunt.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        }
+      ],
+      "previewHeight": 1.8
+    },
+    {
+      "id": "zyro",
+      "name": "ZYRO",
+      "role": "fighter",
+      "archive": "doberman(1).zip",
+      "archiveSha256": "8f9be2d5490d672e3123842f39d906486718cc74d212dc4d1bee7a4f1b804a1b",
+      "modelPath": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbx",
+      "colorPath": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/Color.png",
+      "normalPath": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/Normal.png",
+      "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/anthropomorphic_dog_3d_model_roughness.PNG",
+      "metallicPath": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/anthropomorphic_dog_3d_model_metallic.PNG",
+      "realHeight": 0,
+      "hasGloves": true,
+      "glovesVerified": true,
+      "files": [
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbx",
+          "sha256": "9a0a188ba5ca7b3cdb4912c3d710da7b6619bd3e755c2985ad353b9b0dddcc6a",
+          "bytes": 33172624
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/anthropomorphic_dog_3d_model_metallic.PNG",
+          "sha256": "e377b8d4b0e427c63ca7b90c52a34986d71b925fa395516d50e92447ba9cd368",
+          "bytes": 3600526,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/Color.png",
+          "sha256": "e16d3c84cb0c6adfd241e3eb0a10cbd64d2d2b77952e17b6397d90c076336448",
+          "bytes": 14203696,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/anthropomorphic_dog_3d_model_roughness.PNG",
+          "sha256": "81f7e169232242766c5709b4dad9613c67c3f33230b5a3e3e41ecee4fb6da059",
+          "bytes": 7175331,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/Normal.png",
+          "sha256": "1ede0dc91aac151e08e4bff03eae76ea5560b1c0448b552400b1ec90930e01a2",
+          "bytes": 6511644,
+          "width": 4096,
+          "height": 4096
+        }
+      ],
+      "sourceAudit": {
+        "fbx_version": 7200,
+        "bone_count": 65,
+        "bone_names": [
+          "mixamorig:Head",
+          "mixamorig:HeadTop_End",
+          "mixamorig:Hips",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:LeftHandIndex1",
+          "mixamorig:LeftHandIndex2",
+          "mixamorig:LeftHandIndex3",
+          "mixamorig:LeftHandIndex4",
+          "mixamorig:LeftHandMiddle1",
+          "mixamorig:LeftHandMiddle2",
+          "mixamorig:LeftHandMiddle3",
+          "mixamorig:LeftHandMiddle4",
+          "mixamorig:LeftHandPinky1",
+          "mixamorig:LeftHandPinky2",
+          "mixamorig:LeftHandPinky3",
+          "mixamorig:LeftHandPinky4",
+          "mixamorig:LeftHandRing1",
+          "mixamorig:LeftHandRing2",
+          "mixamorig:LeftHandRing3",
+          "mixamorig:LeftHandRing4",
+          "mixamorig:LeftHandThumb1",
+          "mixamorig:LeftHandThumb2",
+          "mixamorig:LeftHandThumb3",
+          "mixamorig:LeftHandThumb4",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftToeBase",
+          "mixamorig:LeftToe_End",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:Neck",
+          "mixamorig:RightArm",
+          "mixamorig:RightFoot",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:RightHandIndex1",
+          "mixamorig:RightHandIndex2",
+          "mixamorig:RightHandIndex3",
+          "mixamorig:RightHandIndex4",
+          "mixamorig:RightHandMiddle1",
+          "mixamorig:RightHandMiddle2",
+          "mixamorig:RightHandMiddle3",
+          "mixamorig:RightHandMiddle4",
+          "mixamorig:RightHandPinky1",
+          "mixamorig:RightHandPinky2",
+          "mixamorig:RightHandPinky3",
+          "mixamorig:RightHandPinky4",
+          "mixamorig:RightHandRing1",
+          "mixamorig:RightHandRing2",
+          "mixamorig:RightHandRing3",
+          "mixamorig:RightHandRing4",
+          "mixamorig:RightHandThumb1",
+          "mixamorig:RightHandThumb2",
+          "mixamorig:RightHandThumb3",
+          "mixamorig:RightHandThumb4",
+          "mixamorig:RightLeg",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightToeBase",
+          "mixamorig:RightToe_End",
+          "mixamorig:RightUpLeg",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2"
+        ],
+        "vertices": 17460,
+        "faces_by_size": {
+          "4": 16153,
+          "5": 163,
+          "3": 970,
+          "6": 17,
+          "7": 3,
+          "8": 1
+        },
+        "quads": 16153,
+        "triangles": 970,
+        "animation_stacks": [],
+        "t_pose_verified": true,
+        "skinning_verified": false,
+        "restArmAnglesDegrees": [
+          4.897118122773121,
+          4.897066712036652
+        ]
+      },
+      "sourceIssues": [
+        "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline"
+      ],
+      "qualityExceptionApproved": false,
+      "appearanceApproved": false,
+      "runtimeVerified": false,
+      "clips": [
+        {
+          "name": "Idle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "CombatIdle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Fighting Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "krov"
+        },
+        {
+          "name": "Walk",
+          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "nyxa"
+        },
+        {
+          "name": "Run",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Punch",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jab Cross (1).fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Kick",
+          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Mma Kick (1).fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "nyxa"
+        },
+        {
+          "name": "Jump",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jump.fbx",
+          "loop": false,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "HeadHit",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Head Hit.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "HitToBody",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Hit To Body.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "GettingUp",
+          "path": "Assets/Source/Prywatne/Oboz/animations/vexa/Getting Up.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "vexa"
+        },
+        {
+          "name": "Block",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Center Block.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Dodge",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Dodging.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Training",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Boxing.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Taunt",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Taunt.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        }
+      ],
+      "previewHeight": 1.8
+    },
+    {
+      "id": "rakk",
+      "name": "RAKK",
+      "role": "fighter",
+      "archive": "pitbul.zip",
+      "archiveSha256": "5ad0658647a77b79f3d0e654d83e10e5f57d4cc1bd52a00eb43acb6292cd26ab",
+      "modelPath": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbx",
+      "colorPath": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/Color.png",
+      "normalPath": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/Normal.png",
+      "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/anthropomorphic_dog_3d_model_roughness.PNG",
+      "metallicPath": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/anthropomorphic_dog_3d_model_metallic.PNG",
+      "realHeight": 0,
+      "hasGloves": false,
+      "glovesVerified": true,
+      "files": [
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbx",
+          "sha256": "6523822cfaea158fcb7532c69d29b1f99b8c8d611bf70b3d0115ca179245436c",
+          "bytes": 37006080
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/anthropomorphic_dog_3d_model_metallic.PNG",
+          "sha256": "24e1c8b02aa42c1cb1187002071f432b5fd3597c2c55060e5781ea5af7e884f4",
+          "bytes": 2957445,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/Color.png",
+          "sha256": "63933bde0cd66a069b9e20f0b5d486c5cc9e7014c96317f0cb68395283a28e8e",
+          "bytes": 18304880,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/anthropomorphic_dog_3d_model_roughness.PNG",
+          "sha256": "d9d119c00eae21a711531319317b91345d55db9a074bc26418661f42f09404c1",
+          "bytes": 6857727,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/Normal.png",
+          "sha256": "f656aaf514f5041302e9b4607168d19c97b39b8eab2070f1b4d93c5dfd898b8f",
+          "bytes": 7372042,
+          "width": 4096,
+          "height": 4096
+        }
+      ],
+      "sourceAudit": {
+        "fbx_version": 7200,
+        "bone_count": 65,
+        "bone_names": [
+          "mixamorig:Head",
+          "mixamorig:HeadTop_End",
+          "mixamorig:Hips",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:LeftHandIndex1",
+          "mixamorig:LeftHandIndex2",
+          "mixamorig:LeftHandIndex3",
+          "mixamorig:LeftHandIndex4",
+          "mixamorig:LeftHandMiddle1",
+          "mixamorig:LeftHandMiddle2",
+          "mixamorig:LeftHandMiddle3",
+          "mixamorig:LeftHandMiddle4",
+          "mixamorig:LeftHandPinky1",
+          "mixamorig:LeftHandPinky2",
+          "mixamorig:LeftHandPinky3",
+          "mixamorig:LeftHandPinky4",
+          "mixamorig:LeftHandRing1",
+          "mixamorig:LeftHandRing2",
+          "mixamorig:LeftHandRing3",
+          "mixamorig:LeftHandRing4",
+          "mixamorig:LeftHandThumb1",
+          "mixamorig:LeftHandThumb2",
+          "mixamorig:LeftHandThumb3",
+          "mixamorig:LeftHandThumb4",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftToeBase",
+          "mixamorig:LeftToe_End",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:Neck",
+          "mixamorig:RightArm",
+          "mixamorig:RightFoot",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:RightHandIndex1",
+          "mixamorig:RightHandIndex2",
+          "mixamorig:RightHandIndex3",
+          "mixamorig:RightHandIndex4",
+          "mixamorig:RightHandMiddle1",
+          "mixamorig:RightHandMiddle2",
+          "mixamorig:RightHandMiddle3",
+          "mixamorig:RightHandMiddle4",
+          "mixamorig:RightHandPinky1",
+          "mixamorig:RightHandPinky2",
+          "mixamorig:RightHandPinky3",
+          "mixamorig:RightHandPinky4",
+          "mixamorig:RightHandRing1",
+          "mixamorig:RightHandRing2",
+          "mixamorig:RightHandRing3",
+          "mixamorig:RightHandRing4",
+          "mixamorig:RightHandThumb1",
+          "mixamorig:RightHandThumb2",
+          "mixamorig:RightHandThumb3",
+          "mixamorig:RightHandThumb4",
+          "mixamorig:RightLeg",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightToeBase",
+          "mixamorig:RightToe_End",
+          "mixamorig:RightUpLeg",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2"
+        ],
+        "vertices": 14623,
+        "faces_by_size": {
+          "4": 14341,
+          "3": 100,
+          "5": 17
+        },
+        "quads": 14341,
+        "triangles": 100,
+        "animation_stacks": [],
+        "t_pose_verified": true,
+        "skinning_verified": false,
+        "restArmAnglesDegrees": [
+          3.691408988486745,
+          3.6914126688390607
+        ]
+      },
+      "sourceIssues": [
+        "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline"
+      ],
+      "qualityExceptionApproved": false,
+      "appearanceApproved": false,
+      "runtimeVerified": false,
+      "clips": [
+        {
+          "name": "Idle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "CombatIdle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Fighting Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "krov"
+        },
+        {
+          "name": "Walk",
+          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "nyxa"
+        },
+        {
+          "name": "Run",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Punch",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Jab Cross.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "krov"
+        },
+        {
+          "name": "Kick",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Mma Kick.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "krov"
+        },
+        {
+          "name": "Jump",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jump.fbx",
+          "loop": false,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "HeadHit",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Head Hit.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "HitToBody",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Hit To Body.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "GettingUp",
+          "path": "Assets/Source/Prywatne/Oboz/animations/vexa/Getting Up.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "vexa"
+        },
+        {
+          "name": "Block",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Center Block.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Dodge",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Dodging.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Training",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Boxing.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Taunt",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Taunt.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        }
+      ],
+      "previewHeight": 1.8
+    },
+    {
+      "id": "kade",
+      "name": "KADE",
+      "role": "fighter",
+      "archive": "boxer 3d model.zip",
+      "archiveSha256": "da53854ef7610f6dfbb0e1271cc4e4a27f8f70b3c351f3feef7138f930d241c9",
+      "modelPath": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbx",
+      "colorPath": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/Color.png",
+      "normalPath": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/Normal.png",
+      "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/boxer_3d_model_roughness.PNG",
+      "metallicPath": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/boxer_3d_model_metallic.PNG",
+      "realHeight": 0,
+      "hasGloves": true,
+      "glovesVerified": true,
+      "files": [
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbx",
+          "sha256": "c5da865ff886817bfca632118a8caca2f8a971d1ca0467e8b6b3c9e6e99f9964",
+          "bytes": 29054224
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/Color.png",
+          "sha256": "9b024cb6a8194417ed8742ba54e91d3c224940ec4d018bbcefc4d0c1978be145",
+          "bytes": 12969489,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/boxer_3d_model_metallic.PNG",
+          "sha256": "d9b05827f835b222f61209820e22f1e518ca62177c35b58c6ffae43e2b4fa38d",
+          "bytes": 3597200,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/Normal.png",
+          "sha256": "8571b152f65c036155f6ec3fba0a2425fa680d3a01e34da9127d1b15aaf09584",
+          "bytes": 6128632,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/boxer_3d_model_roughness.PNG",
+          "sha256": "ef01dd57b566c3b8d156e77003b174734ef8f98ff40cbffc73f30d58f93bdc9d",
+          "bytes": 4873263,
+          "width": 4096,
+          "height": 4096
+        }
+      ],
+      "sourceAudit": {
+        "fbx_version": 7200,
+        "bone_count": 65,
+        "bone_names": [
+          "mixamorig:Head",
+          "mixamorig:HeadTop_End",
+          "mixamorig:Hips",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:LeftHandIndex1",
+          "mixamorig:LeftHandIndex2",
+          "mixamorig:LeftHandIndex3",
+          "mixamorig:LeftHandIndex4",
+          "mixamorig:LeftHandMiddle1",
+          "mixamorig:LeftHandMiddle2",
+          "mixamorig:LeftHandMiddle3",
+          "mixamorig:LeftHandMiddle4",
+          "mixamorig:LeftHandPinky1",
+          "mixamorig:LeftHandPinky2",
+          "mixamorig:LeftHandPinky3",
+          "mixamorig:LeftHandPinky4",
+          "mixamorig:LeftHandRing1",
+          "mixamorig:LeftHandRing2",
+          "mixamorig:LeftHandRing3",
+          "mixamorig:LeftHandRing4",
+          "mixamorig:LeftHandThumb1",
+          "mixamorig:LeftHandThumb2",
+          "mixamorig:LeftHandThumb3",
+          "mixamorig:LeftHandThumb4",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftToeBase",
+          "mixamorig:LeftToe_End",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:Neck",
+          "mixamorig:RightArm",
+          "mixamorig:RightFoot",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:RightHandIndex1",
+          "mixamorig:RightHandIndex2",
+          "mixamorig:RightHandIndex3",
+          "mixamorig:RightHandIndex4",
+          "mixamorig:RightHandMiddle1",
+          "mixamorig:RightHandMiddle2",
+          "mixamorig:RightHandMiddle3",
+          "mixamorig:RightHandMiddle4",
+          "mixamorig:RightHandPinky1",
+          "mixamorig:RightHandPinky2",
+          "mixamorig:RightHandPinky3",
+          "mixamorig:RightHandPinky4",
+          "mixamorig:RightHandRing1",
+          "mixamorig:RightHandRing2",
+          "mixamorig:RightHandRing3",
+          "mixamorig:RightHandRing4",
+          "mixamorig:RightHandThumb1",
+          "mixamorig:RightHandThumb2",
+          "mixamorig:RightHandThumb3",
+          "mixamorig:RightHandThumb4",
+          "mixamorig:RightLeg",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightToeBase",
+          "mixamorig:RightToe_End",
+          "mixamorig:RightUpLeg",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2"
+        ],
+        "vertices": 14263,
+        "faces_by_size": {
+          "4": 14029,
+          "3": 91,
+          "5": 34,
+          "6": 1
+        },
+        "quads": 14029,
+        "triangles": 91,
+        "animation_stacks": [],
+        "t_pose_verified": true,
+        "skinning_verified": false,
+        "restArmAnglesDegrees": [
+          4.0843672900641845,
+          4.080998980031243
+        ]
+      },
+      "sourceIssues": [
+        "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline"
+      ],
+      "qualityExceptionApproved": false,
+      "appearanceApproved": false,
+      "runtimeVerified": false,
+      "clips": [
+        {
+          "name": "Idle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "CombatIdle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Fighting Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "krov"
+        },
+        {
+          "name": "Walk",
+          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "nyxa"
+        },
+        {
+          "name": "Run",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Punch",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jab Cross (1).fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Kick",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Mma Kick (1).fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Jump",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jump.fbx",
+          "loop": false,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "HeadHit",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Head Hit.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "HitToBody",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Hit To Body.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "GettingUp",
+          "path": "Assets/Source/Prywatne/Oboz/animations/vexa/Getting Up.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "vexa"
+        },
+        {
+          "name": "Block",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Center Block.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Dodge",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Dodging.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Training",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Boxing.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Taunt",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Taunt.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        }
+      ],
+      "previewHeight": 1.8
+    },
+    {
+      "id": "gorr",
+      "name": "GORR",
+      "role": "fighter",
+      "archive": "gorilla 3d model.zip",
+      "archiveSha256": "791ba5b0a88a8ecb38c5ab78207210b404ffa46b99c72b61217877587f80e87b",
+      "modelPath": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbx",
+      "colorPath": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/Color.png",
+      "normalPath": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/Normal.png",
+      "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/gorilla_3d_model_roughness.PNG",
+      "metallicPath": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/gorilla_3d_model_metallic.PNG",
+      "realHeight": 0,
+      "hasGloves": false,
+      "glovesVerified": true,
+      "files": [
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbx",
+          "sha256": "d7374b62cfc481c75bc19a2ff2a2494cb78a6d2556669eb34c5ab7510d138c3a",
+          "bytes": 38050880
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/Color.png",
+          "sha256": "767228beb595b586258c156dd2c489a29c73791561981825393a4c7381217546",
+          "bytes": 17155532,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/gorilla_3d_model_metallic.PNG",
+          "sha256": "1c8982bf3bdbff91ca27bdbedbec1331fff480ef034c12effbf7a4e83d8207b1",
+          "bytes": 5327536,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/gorilla_3d_model_roughness.PNG",
+          "sha256": "b43e4e73ded8bf64084aed4e2c3dd440d9dcb2da838a7ba15dbce513fbf7c171",
+          "bytes": 6982672,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/Normal.png",
+          "sha256": "e023a0af2c93245341caf191837c23b81a3af5cc318fe32a770f4263360b763c",
+          "bytes": 7072682,
+          "width": 4096,
+          "height": 4096
+        }
+      ],
+      "sourceAudit": {
+        "fbx_version": 7200,
+        "bone_count": 65,
+        "bone_names": [
+          "mixamorig:Head",
+          "mixamorig:HeadTop_End",
+          "mixamorig:Hips",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:LeftHandIndex1",
+          "mixamorig:LeftHandIndex2",
+          "mixamorig:LeftHandIndex3",
+          "mixamorig:LeftHandIndex4",
+          "mixamorig:LeftHandMiddle1",
+          "mixamorig:LeftHandMiddle2",
+          "mixamorig:LeftHandMiddle3",
+          "mixamorig:LeftHandMiddle4",
+          "mixamorig:LeftHandPinky1",
+          "mixamorig:LeftHandPinky2",
+          "mixamorig:LeftHandPinky3",
+          "mixamorig:LeftHandPinky4",
+          "mixamorig:LeftHandRing1",
+          "mixamorig:LeftHandRing2",
+          "mixamorig:LeftHandRing3",
+          "mixamorig:LeftHandRing4",
+          "mixamorig:LeftHandThumb1",
+          "mixamorig:LeftHandThumb2",
+          "mixamorig:LeftHandThumb3",
+          "mixamorig:LeftHandThumb4",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftToeBase",
+          "mixamorig:LeftToe_End",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:Neck",
+          "mixamorig:RightArm",
+          "mixamorig:RightFoot",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:RightHandIndex1",
+          "mixamorig:RightHandIndex2",
+          "mixamorig:RightHandIndex3",
+          "mixamorig:RightHandIndex4",
+          "mixamorig:RightHandMiddle1",
+          "mixamorig:RightHandMiddle2",
+          "mixamorig:RightHandMiddle3",
+          "mixamorig:RightHandMiddle4",
+          "mixamorig:RightHandPinky1",
+          "mixamorig:RightHandPinky2",
+          "mixamorig:RightHandPinky3",
+          "mixamorig:RightHandPinky4",
+          "mixamorig:RightHandRing1",
+          "mixamorig:RightHandRing2",
+          "mixamorig:RightHandRing3",
+          "mixamorig:RightHandRing4",
+          "mixamorig:RightHandThumb1",
+          "mixamorig:RightHandThumb2",
+          "mixamorig:RightHandThumb3",
+          "mixamorig:RightHandThumb4",
+          "mixamorig:RightLeg",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightToeBase",
+          "mixamorig:RightToe_End",
+          "mixamorig:RightUpLeg",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2"
+        ],
+        "vertices": 15006,
+        "faces_by_size": {
+          "4": 14439,
+          "3": 196,
+          "5": 30,
+          "6": 8,
+          "9": 1
+        },
+        "quads": 14439,
+        "triangles": 196,
+        "animation_stacks": [],
+        "t_pose_verified": true,
+        "skinning_verified": false,
+        "restArmAnglesDegrees": [
+          12.71808035816557,
+          12.71808883090641
+        ]
+      },
+      "sourceIssues": [
+        "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline"
+      ],
+      "qualityExceptionApproved": false,
+      "appearanceApproved": false,
+      "runtimeVerified": false,
+      "clips": [
+        {
+          "name": "Idle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "CombatIdle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Fighting Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "krov"
+        },
+        {
+          "name": "Walk",
+          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "nyxa"
+        },
+        {
+          "name": "Run",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Punch",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Hook Punch.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "krov"
+        },
+        {
+          "name": "Kick",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Mma Kick.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "krov"
+        },
+        {
+          "name": "Jump",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jump.fbx",
+          "loop": false,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "HeadHit",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Head Hit.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "HitToBody",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Hit To Body.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "GettingUp",
+          "path": "Assets/Source/Prywatne/Oboz/animations/vexa/Getting Up.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "vexa"
+        },
+        {
+          "name": "Block",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Center Block.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Dodge",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Dodging.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Training",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Boxing.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Taunt",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Taunt.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        }
+      ],
+      "previewHeight": 1.8
+    },
+    {
+      "id": "mis",
+      "name": "Miś",
+      "role": "boss",
+      "archive": "anthropomorphic+bear+gi+3d+model.zip",
+      "archiveSha256": "222ef705d4f5fd9284663d555755f0a50d907655d1225b0eb20ae45aefe5f518",
+      "modelPath": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbx",
+      "colorPath": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/tripo_node_cd87740e_BaseColor.png",
+      "normalPath": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/tripo_node_cd87740e_Normal_Bake.png",
+      "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/anthropomorphic_bear_gi_3d_model_roughness.PNG",
+      "metallicPath": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/anthropomorphic_bear_gi_3d_model_metallic.PNG",
+      "realHeight": 0,
+      "hasGloves": true,
+      "glovesVerified": true,
+      "files": [
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbx",
+          "sha256": "df20486dcf05655417e1ef0ea33e8a1cdec459efae2d012c1213e71da3ea18cf",
+          "bytes": 35479392
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/tripo_node_cd87740e_BaseColor.png",
+          "sha256": "b314c8cbde8990eddc0de152334c379c205d113700c0897c03667421caf4ae59",
+          "bytes": 22237308,
+          "width": 4096,
+          "height": 4096
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/tripo_node_cd87740e_Normal_Bake.png",
+          "sha256": "d1b35f636b64c836882f9e71422b0ff4e8f6dd1c1a089f4efb4999cce2278c3a",
+          "bytes": 6585663,
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/anthropomorphic_bear_gi_3d_model_metallic.PNG",
+          "sha256": "4977a48563ab66e09c69df5bbe69d4cfc3aade6098dc11e47481d926d4180369",
+          "bytes": 3240839,
+          "width": 2048,
+          "height": 2048
+        },
+        {
+          "path": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/anthropomorphic_bear_gi_3d_model_roughness.PNG",
+          "sha256": "ebf6fa4f2a4b8df4233e6324cb90883e29c77119e60738c6a0cb24b874c8339e",
+          "bytes": 2342484,
+          "width": 2048,
+          "height": 2048
+        }
+      ],
+      "sourceAudit": {
+        "fbx_version": 7200,
+        "bone_count": 65,
+        "bone_names": [
+          "mixamorig:Head",
+          "mixamorig:HeadTop_End",
+          "mixamorig:Hips",
+          "mixamorig:LeftArm",
+          "mixamorig:LeftFoot",
+          "mixamorig:LeftForeArm",
+          "mixamorig:LeftHand",
+          "mixamorig:LeftHandIndex1",
+          "mixamorig:LeftHandIndex2",
+          "mixamorig:LeftHandIndex3",
+          "mixamorig:LeftHandIndex4",
+          "mixamorig:LeftHandMiddle1",
+          "mixamorig:LeftHandMiddle2",
+          "mixamorig:LeftHandMiddle3",
+          "mixamorig:LeftHandMiddle4",
+          "mixamorig:LeftHandPinky1",
+          "mixamorig:LeftHandPinky2",
+          "mixamorig:LeftHandPinky3",
+          "mixamorig:LeftHandPinky4",
+          "mixamorig:LeftHandRing1",
+          "mixamorig:LeftHandRing2",
+          "mixamorig:LeftHandRing3",
+          "mixamorig:LeftHandRing4",
+          "mixamorig:LeftHandThumb1",
+          "mixamorig:LeftHandThumb2",
+          "mixamorig:LeftHandThumb3",
+          "mixamorig:LeftHandThumb4",
+          "mixamorig:LeftLeg",
+          "mixamorig:LeftShoulder",
+          "mixamorig:LeftToeBase",
+          "mixamorig:LeftToe_End",
+          "mixamorig:LeftUpLeg",
+          "mixamorig:Neck",
+          "mixamorig:RightArm",
+          "mixamorig:RightFoot",
+          "mixamorig:RightForeArm",
+          "mixamorig:RightHand",
+          "mixamorig:RightHandIndex1",
+          "mixamorig:RightHandIndex2",
+          "mixamorig:RightHandIndex3",
+          "mixamorig:RightHandIndex4",
+          "mixamorig:RightHandMiddle1",
+          "mixamorig:RightHandMiddle2",
+          "mixamorig:RightHandMiddle3",
+          "mixamorig:RightHandMiddle4",
+          "mixamorig:RightHandPinky1",
+          "mixamorig:RightHandPinky2",
+          "mixamorig:RightHandPinky3",
+          "mixamorig:RightHandPinky4",
+          "mixamorig:RightHandRing1",
+          "mixamorig:RightHandRing2",
+          "mixamorig:RightHandRing3",
+          "mixamorig:RightHandRing4",
+          "mixamorig:RightHandThumb1",
+          "mixamorig:RightHandThumb2",
+          "mixamorig:RightHandThumb3",
+          "mixamorig:RightHandThumb4",
+          "mixamorig:RightLeg",
+          "mixamorig:RightShoulder",
+          "mixamorig:RightToeBase",
+          "mixamorig:RightToe_End",
+          "mixamorig:RightUpLeg",
+          "mixamorig:Spine",
+          "mixamorig:Spine1",
+          "mixamorig:Spine2"
+        ],
+        "vertices": 9261,
+        "faces_by_size": {
+          "4": 8773,
+          "3": 971
+        },
+        "quads": 8773,
+        "triangles": 971,
+        "animation_stacks": [],
+        "t_pose_verified": false,
+        "skinning_verified": false,
+        "restArmAnglesDegrees": [
+          64.02297229573531,
+          64.022914144774
+        ]
+      },
+      "sourceIssues": [
+        "Quads outside 14000–20000 plus 500 tolerance",
+        "normalPath source is below 4K",
+        "roughnessPath source is below 4K",
+        "metallicPath source is below 4K",
+        "FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline",
+        "Source is not T-pose: upper arms about 64 degrees below horizontal"
+      ],
+      "qualityExceptionApproved": false,
+      "appearanceApproved": false,
+      "runtimeVerified": false,
+      "clips": [
+        {
+          "name": "Idle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "CombatIdle",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Fighting Idle.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "krov"
+        },
+        {
+          "name": "Walk",
+          "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "nyxa"
+        },
+        {
+          "name": "Run",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Punch",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Hook Punch.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "krov"
+        },
+        {
+          "name": "Kick",
+          "path": "Assets/Source/Prywatne/Oboz/animations/krov/Mma Kick.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "krov"
+        },
+        {
+          "name": "Jump",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jump.fbx",
+          "loop": false,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "HeadHit",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Head Hit.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "HitToBody",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Hit To Body.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "GettingUp",
+          "path": "Assets/Source/Prywatne/Oboz/animations/vexa/Getting Up.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "vexa"
+        },
+        {
+          "name": "Block",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Center Block.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Dodge",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Dodging.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        },
+        {
+          "name": "Training",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Boxing.fbx",
+          "loop": true,
+          "inPlace": true,
+          "donor": "brax"
+        },
+        {
+          "name": "Taunt",
+          "path": "Assets/Source/Prywatne/Oboz/animations/brax/Taunt.fbx",
+          "loop": false,
+          "inPlace": false,
+          "donor": "brax"
+        }
+      ],
+      "previewHeight": 1.8
+    }
+  ],
+  "runtimeVerified": false,
+  "sameSourceBoneNames": true,
+  "animationSources": [
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Idle.fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "06386511bfbb9a9e5d909103935b8d55a5a9c705b0c1f1243149cc8c6ccdb3a8",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Running.fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "db240bccbe7f4098ea3a2de9991a785df1271f03777bd579173097c48335ae62",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jab Cross (1).fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "10e3f515e6fda1ced8c432af956a1967be59ce3e30ecad7eb8f2032a2ba33458",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Jump.fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "dbf1b89291b02066f3cebf58de820907d9e898d27355e2421c0d8c16beef2f8c",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Head Hit.fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "b340564eb55df48b6449500dfbd37e5486a00190e1ce49ed5494f4f695b84112",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Hit To Body.fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "5fe97f7e0e064f90a052d62fd16d8ac9281a79d432dc2c30296bb235712a59fe",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Center Block.fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "4777dadf415f113220e9b691070c399e90207ae280c930296715040210258e7c",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Dodging.fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "28b046c20fab6bb28f583504730d7602fdda2bc006b454edc268660a9f8f9f3a",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Boxing.fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "dc32e95cbc76cf9bb304c6a277f19bf29f73b77a9836cafaf0ffcc70b7a01b66",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Taunt.fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "c14044eb04428e110540b531b706282ca2307b08d25ffeeffd8bcfd0e0f13308",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/brax/Mma Kick (1).fbx",
+      "archive": "brax new (2)(1).zip",
+      "sha256": "4e9567a2566a5c0ac2fb179122865455caa2f2f7864d7c95e7440ed2b064c804",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Walking.fbx",
+      "archive": "nyxa.zip",
+      "sha256": "17cfc4d55efd5f247b8ac9576e7db7798cc9f87b3e796885faf06f9ec0437b3a",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/nyxa/Mma Kick (1).fbx",
+      "archive": "nyxa.zip",
+      "sha256": "23ef76b8ffcaa12a71c68f0914e812d77fa5aa5d945c253f48e9784dd95ae23d",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/vexa/Getting Up.fbx",
+      "archive": "vexa.zip",
+      "sha256": "6552275fb91788a9fc0453048bb3930055526ab93004a9fc188f833895e6df1d",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/krov/Fighting Idle.fbx",
+      "archive": "krov.zip",
+      "sha256": "1bb71a9ecf7fb3e310b916ea763313bf6e3d0b6af35a4bf364126a84ba638da8",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/krov/Hook Punch.fbx",
+      "archive": "krov.zip",
+      "sha256": "28fe76bfc522e68b42848794c4f5e3124e2bdb79c6251fad1e44598f8653104a",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/krov/Punching Bag.fbx",
+      "archive": "krov.zip",
+      "sha256": "c10a0ab1207be59e73baa913896691c94e60901f79fd8c1fa45ca5ea01fbadcb",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/krov/Jab Cross.fbx",
+      "archive": "krov.zip",
+      "sha256": "9b712ebd638edda889dfeeef17c992308c4eeb71abac5be123b7036d7c6fa7a5",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/animations/krov/Mma Kick.fbx",
+      "archive": "krov.zip",
+      "sha256": "5028513677997fec89bdd7292d4d060dd9f2d6f7d408ba7b653d920379d8dead",
+      "boneCount": 65,
+      "animations": [
+        "mixamo.com"
+      ]
+    }
+  ],
+  "motionSelectionStatus": "Provisional mappings; Unity baking and visual review not performed"
+}
