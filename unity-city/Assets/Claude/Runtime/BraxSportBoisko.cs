@@ -225,7 +225,8 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
         var p = gt.position; var dv = p - graczPoprz; dv.y = 0f;
         graczV = Mathf.Lerp(graczV, dv.magnitude / Mathf.Max(Time.deltaTime, 1e-4f), .25f); graczPoprz = p;
         var l = Lok(p);
-        bool na = Mathf.Abs(l.x) < strefa.x && Mathf.Abs(l.y) < strefa.y && Mathf.Abs(p.y - podloga) < 3f;
+        bool na = Mathf.Abs(l.x) < strefa.x && Mathf.Abs(l.y) < strefa.y && Mathf.Abs(p.y - podloga) < 3f
+            && !gracz.autoGracza && !gracz.seat && !gracz.vessel; // nie uruchamiaj sportu podczas jazdy i siedzenia
         Na = na;
         if (na) { var ak = BraxSport.Aktywne; if (!ak || ak == this || !ak.Na || Ostatnio > ak.Ostatnio) BraxSport.Aktywne = this; }
         else if (BraxSport.Aktywne == this) BraxSport.Aktywne = null;
@@ -333,7 +334,7 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
     {
         if (!trzyma) { if (BraxSport.PilkaWRekach == (pilki.Length > 0 && pilki[0] ? pilki[0].transform : null)) { BraxSport.PilkaWRekach = null; BraxSport.Kozluje = false; } return; }
         var l = Lok(gt.position);
-        if (Mathf.Abs(l.x) > strefa.x + 6f || Mathf.Abs(l.y) > strefa.y + 6f || gracz.seat || gracz.vessel) { Pusc(); return; }
+        if (Mathf.Abs(l.x) > strefa.x + 6f || Mathf.Abs(l.y) > strefa.y + 6f || gracz.seat || gracz.vessel || gracz.autoGracza) { Pusc(); return; }
         var b = pilki[0]; Vector3 F = Plasko(gt.forward), R = Vector3.Cross(Vector3.up, F), p = gt.position;
         float biodra = p.y + .98f * jednostkiNaMetr;
         kozBlend = Mathf.MoveTowards(kozBlend, graczV > .35f && BraxSport.RzutFaza < .05f ? 1f : 0f, Time.deltaTime * 4f);
@@ -497,7 +498,7 @@ public sealed class BraxSportBoisko : MonoBehaviour, IBraxInterakcja
     // ---------------- AKCJA ----------------
     public string Kontekst(Vector3 g)
     {
-        if (!gotowe || !aktywne || pilki.Length == 0) return "";
+        if (!gotowe || !aktywne || pilki.Length == 0 || !gracz || gracz.autoGracza || gracz.seat || gracz.vessel) return "";
         switch (gra)
         {
             case Gra.Kosz:
