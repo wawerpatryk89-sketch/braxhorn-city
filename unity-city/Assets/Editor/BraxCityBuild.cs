@@ -242,6 +242,8 @@ public static class BraxCityBuild
             throw new InvalidOperationException("Osiedle: brak sprawnego samochodu Patryka przy BRAXHORN ARENA (AKCJA/wsiadanie)");
         float odlAreny=Vector2.Distance(new Vector2(autoPatryka.transform.position.x,autoPatryka.transform.position.z),new Vector2(-86f,79f));
         if(odlAreny>40f) throw new InvalidOperationException("Osiedle: samochod Patryka za daleko od BRAXHORN ARENA ("+odlAreny.ToString("F1")+" m)");
+        // Po scaleniu #74 + #76: zweryfikuj także napęd, fotel i kolizję sportowego auta.
+        BraxClaudeOsiedle.AutoGraczaKontrola();
         Debug.Log("BRAXHORN_OSIEDLE_TEST sport=koszykówka/piłka_nożna/tenis, boiska="+boiska.Length+", prawdziwy_klip_Run, auto_przy_arenie="+odlAreny.ToString("F1")+"m, loze_premium=OK");
         {var zn=new GameObject("BRAXHORN znacznik dziennika startu");UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(zn,scene);zn.AddComponent<BraxStartZnacznik>();}
         try{BraxClaudeBezSwiecenia.Apply(scene,"osiedle");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: bez świecenia (osiedle): "+e);}

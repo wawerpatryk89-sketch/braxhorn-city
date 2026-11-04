@@ -126,6 +126,32 @@ public static class BraxKontrolaMigotania
         var wynik = Wytnij(w, spis);
         Physics.SyncTransforms();
         var po = Wykryj(scena, 60f);
+        int poPierwszym = po.lista.Count, drugiEtap = 0;
+        // Osiedle 4.11: po pierwszym cięciu mogą odsłonić się kolejne, głębsze
+        // stare warstwy. Wykonaj jeden dodatkowy etap TYLKO na tej samej,
+        // bezpiecznej zasadzie: wycinamy podkład, nie przesuwamy ani nie
+        // zasłaniamy materiałami. Powierzchnie z alfą, ruchome i chronione
+        // nadal zostaną nietknięte przez Wytnij().
+        if (!po.przerwane && po.lista.Count(p => p.pole > 1f) > 0)
+        {
+            var ponownie = Wytnij(po, spis);
+            if (ponownie.powierzchnie > 0)
+            {
+                drugiEtap = ponownie.powierzchnie;
+                wynik.pary += ponownie.pary;
+                wynik.powierzchnie += ponownie.powierzchnie;
+                wynik.trojkaty += ponownie.trojkaty;
+                wynik.pole += ponownie.pole;
+                wynik.opisy.AddRange(ponownie.opisy);
+                wynik.opisyAreny.AddRange(ponownie.opisyAreny);
+                foreach (var kv in ponownie.powody) wynik.powody[kv.Key] = kv.Value;
+                Physics.SyncTransforms();
+                po = Wykryj(scena, 60f);
+            }
+        }
+        Debug.Log("BRAXHORN_MIGOTANIE_ETAP2 po_pierwszym=" + poPierwszym +
+            " powierzchnie_wycięte=" + drugiEtap + " po_drugim=" + po.lista.Count +
+            " (bez ruszania materiałów z alfą, ruchu i oryginalnych siatek bazowych)");
         var sb = new StringBuilder("BRAXHORN_MIGOTANIE " + BraxKontrola.Obszar + ": pary=" + w.lista.Count + " wycięte_pary=" + wynik.pary + " pary_po=" + po.lista.Count
             + " pary_po_powyżej_1m²=" + po.lista.Count(p => p.pole > 1f) + " (wycięte powierzchnie " + wynik.powierzchnie + ", trójkątów ruszonych " + wynik.trojkaty
             + ", pole usunięte " + wynik.pole.ToString("F1") + " m², przesunięte 0 — zasada: dolna warstwa wycięta; renderery " + w.renderery + ", trójkąty osiowe " + w.trojkaty
