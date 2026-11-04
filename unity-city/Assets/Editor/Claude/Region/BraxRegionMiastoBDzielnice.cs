@@ -390,6 +390,9 @@ public static partial class BraxRegionMiastoB
                     foreach (var t in new[] { tb, td }) { if (!t) continue; t.SetParent(bud, false); t.localPosition = Vector3.zero; t.localRotation = Quaternion.identity; t.localScale = Vector3.one; }
                     bryla = tb.GetComponentsInChildren<Renderer>(true); dach = td ? td.GetComponentsInChildren<Renderer>(true) : new Renderer[0];
                 }
+                // Tylko RUSZTOWANIA po nazwie źródłowego węzła GLB, bez
+                // niszczenia elewacji, klatek, podwórek lub prawdziwych przejść.
+                NdUsunRusztowania(bud.gameObject);
                 BraxMiastoAssety.Przygotuj(bud.gameObject, true, true);
                 nSzklo += NdSzklo(bud.gameObject);
                 foreach (var r in dach) r.shadowCastingMode = ShadowCastingMode.Off;
@@ -423,6 +426,38 @@ public static partial class BraxRegionMiastoB
     // ≈ 0 nic nie odbija = czarna ściana; (b) szybą półprzezroczystą (CityGenGlass, alfa .25) przed pustą bryłą = czarna dziura.
     // Oba → szkło fasady refleksyjne jak wieżowce miasta (BraxSzyby.Refleksyjne: stalowo-niebieskie, odbicie nieba).
     // Okna malowane w teksturach elewacji zostają. Środki budynków nie są robione (właściciel: „środek nie musi być”).
+    // Nie tworzymy nowej fasady na rusztowaniu. Usuwamy wyłącznie
+    // jawnie oznaczone części konstrukcyjnego rusztowania z GLB.
+    // Jeśli model zawiera rusztowanie scalone z bryłą, raportujemy brak,
+    // bo automatyczne wycięcie zaszkodziłoby ścianom i szybom.
+    static void NdUsunRusztowania(GameObject bud)
+    {
+        int wyciete = 0;
+        foreach (var t in bud.GetComponentsInChildren<Transform>(true).Reverse().ToArray())
+        {
+            if (!t || t == bud.transform) continue;
+            string n = t.name.ToLowerInvariant();
+            if (!(n.Contains("scaffold") || n.Contains("rusztowan") ||
+                  n.Contains("construction_scaff"))) continue;
+            if (t.GetComponentsInChildren<Renderer>(true).Length == 0) continue;
+            // Jeżeli nazwa dotyczy całej sceny, a nie oddzielnego rusztowania,
+            // nie niszczymy budynku. Stosować wyłącznie do odseparowanych węzłów.
+            var b = BraxRegion.Bounds(t.gameObject);
+            if (b.size.x * b.size.z > 5000f)
+            {
+                Debug.LogError("BRAXHORN_MIASTO_RUSZTOWANIE_SCALONE " + t.name +
+                    " — wymaga naprawy źródłowego modelu, nie usuwamy fasady");
+                continue;
+            }
+            Debug.Log("BRAXHORN_MIASTO_RUSZTOWANIE_ZDJETE " + t.name +
+                " z " + bud.name + " (tylko osobna siatka)");
+            UnityEngine.Object.DestroyImmediate(t.gameObject);
+            wyciete++;
+        }
+        if (wyciete > 0)
+            NdLog("rusztowania usunięte z " + bud.name + ": " + wyciete);
+    }
+
     static Material ndSzklo;
     static int NdSzklo(GameObject o)
     {
@@ -443,10 +478,19 @@ public static partial class BraxRegionMiastoB
             for (int i = 0; i < ms.Length; i++)
             {
                 var m = ms[i]; if (!m || m == ndSzklo) continue;
-                bool szklo = m.name.IndexOf("glass", StringComparison.OrdinalIgnoreCase) >= 0;
-                bool ciemnyMetal = m.HasProperty("_Metallic") && m.GetFloat("_Metallic") >= .8f && m.HasProperty("_MainTex") && !m.GetTexture("_MainTex")
-                                   && m.HasProperty("_Color") && m.GetColor("_Color").grayscale < .2f;
-                if (szklo || ciemnyMetal) { ms[i] = ndSzklo; zm = true; n++; }
+                string nm = m.name.ToLowerInvariant(), rn = r.name.ToLowerInvariant();
+                bool szklo = nm.Contains("glass") || nm.Contains("glaz") ||
+                             nm.Contains("szyb") || nm.Contains("window");
+                bool oknoSiatka = rn.Contains("glass") || rn.Contains("glaz") ||
+                                  rn.Contains("window") || rn.Contains("okno");
+                bool bezTekstury = !m.HasProperty("_MainTex") || !m.GetTexture("_MainTex");
+                bool prawieCzarny = m.HasProperty("_Color") && m.GetColor("_Color").grayscale < .21f;
+                bool ciemnyMetal = m.HasProperty("_Metallic") && m.GetFloat("_Metallic") >= .8f &&
+                                   bezTekstury && prawieCzarny;
+                // Nie zamieniamy celowo czarnych kamiennych parterów na szyby.
+                bool pusteOkno = oknoSiatka && bezTekstury && prawieCzarny;
+                if (szklo || (oknoSiatka && ciemnyMetal) || pusteOkno)
+                { ms[i] = ndSzklo; zm = true; n++; }
             }
             if (zm) r.sharedMaterials = ms;
         }
