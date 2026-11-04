@@ -33,6 +33,28 @@ public static class BraxRegionSea
             try { boxes += BraxCityMeshCut.SubtractBoxColliders(physics, fl); }
             catch (Exception e) { BraxRegion.Note("morze: podłoga nad wodą: " + e.Message); }
         }
+        // Audyt po usunięciu: na wodzie nie wolno pozostawić kolizji "Original virtual floor".
+        // Badamy wyłącznie źródłowe podłoże, NIE pomosty ani jednostki wody.
+        Physics.SyncTransforms();
+        int podlogiPozostaly = 0;
+        foreach (float x in new[] { 96f, 125f, 160f, 205f, 260f })
+            foreach (float z in new[] { -45f, -5f, 35f, 75f, 95f })
+                foreach (var hit in Physics.RaycastAll(new Vector3(x, 1.5f, z), Vector3.down, 2.5f,
+                             ~0, QueryTriggerInteraction.Ignore))
+                {
+                    if (!hit.collider || !hit.collider.transform.IsChildOf(physics) || hit.point.y < -.1f) continue;
+                    string nazwa = hit.collider.name.ToLowerInvariant();
+                    if (!nazwa.Contains("virtual floor") && !nazwa.Contains("basefloor")) continue;
+                    podlogiPozostaly++;
+                    if (podlogiPozostaly <= 8)
+                        Debug.LogError("BRAXHORN_MORZE_BLEDNA_PODLOGA: " + hit.collider.name +
+                                       " nad wodą w " + hit.point.ToString("F1"));
+                }
+        if (podlogiPozostaly > 0)
+            BraxRegion.Note("morze: NIEWIDZIALNE PODLOGI NAD WODĄ PO WYCIĘCIU = " + podlogiPozostaly +
+                            " — scena NIEGOTOWA do publikacji");
+        else
+            Debug.Log("BRAXHORN_MORZE_PODLOGA w próbce portu i morza = 0 (25 punktów)");
         // 2) dno morza (głęboko; płycizny, plaża i wyspa mają własne kolizje terenu)
         var dno = new GameObject("CLAUDE morze: dno (kolizja)"); dno.transform.SetParent(root, false);
         var bc = dno.AddComponent<BoxCollider>(); bc.center = new Vector3(492f, -7.5f, -25f); bc.size = new Vector3(816f, 1f, 990f);
@@ -46,7 +68,14 @@ public static class BraxRegionSea
     }
 
     static Bounds Bx(float x0, float x1, float z0, float z1)
-    { var b = new Bounds(); b.SetMinMax(new Vector3(x0, -.45f, z0), new Vector3(x1, .02f, z1)); return b; }
+    {
+        // Poprzednio górna granica .02 m pozostawiała część źródłowej podłogi, jeśli
+        // jej wierzch leżał na wysokości chodnika .15 m. To dawało chodzenie po morzu.
+        // Usuwamy pozostałości TYLKO w masce morza (zachowując osobną chronioną łąkę).
+        var b = new Bounds();
+        b.SetMinMax(new Vector3(x0, -1.1f, z0), new Vector3(x1, .40f, z1));
+        return b;
+    }
 
     static int TreeBelt(Transform root)
     {
