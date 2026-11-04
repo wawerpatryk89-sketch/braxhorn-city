@@ -99,6 +99,7 @@ public static class BraxContentSmoke
             var result = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = new[] { "Assets/Smoke/Bootstrap.unity" },
                 target = BuildTarget.StandaloneLinux64, locationPathName = "../build/content-probe/Probe.x86_64", options = BuildOptions.Development });
             Check(result.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded, "Linux runtime probe player");
+            Check(BraxContentBuild.RuntimeId() == basis.runtimeId, "runtime identity stable after player build");
             File.Copy(zip, "../build/content-probe/update.zip", true);
         }
     }

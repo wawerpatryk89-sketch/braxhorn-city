@@ -30,7 +30,7 @@ Nie uruchamiać pełnego buildu dla każdej poprawki pliku content. Pierwszy baz
 {"baseId":"osiedle-<32 znaki identyfikatora z wydanej bazy>"}
 ```
 
-2. Zapisać **kumulatywną listę zmian względem tej bazy** w `unity-city/content-patch.json`. Poniższy przykład pokazuje format, nie polecenie zmiany wyglądu gry:
+2. Zapisać **trwałą, kumulatywną historię zmian** w `unity-city/content-patch.json`. Poniższy przykład pokazuje format, nie polecenie zmiany wyglądu gry:
 
 ```json
 {
@@ -44,6 +44,8 @@ Nie uruchamiać pełnego buildu dla każdej poprawki pliku content. Pierwszy baz
   }]
 }
 ```
+
+Historię rozszerzać przez dopisywanie operacji na końcu `edits`. Części już zapisanej w bazowym APK nie wolno przerabiać ani usuwać: poprawkę wprowadzić kolejną operacją. Nowa pełna baza stosuje historię po generowaniu i zapisuje już zastosowany prefiks; content build stosuje tylko pozostałe operacje. Dzięki temu późniejszy nowy APK nie gubi poprawek mapy. Nie odtwarzać równolegle tych samych dodatków w generatorze C# — historia content jest źródłem tych zmian. Przy poprawce samego pliku modelu/materiału lista może być pusta lub niezmieniona.
 
 `transform` ustawia pozycję, obrót i skalę lokalną. `add-prefab` wymaga pola `prefab` z istniejącą ścieżką `Assets/...prefab`, a `path` wskazuje rodzica. `delete` usuwa dokładnie wskazany obiekt. Nieistniejąca lub niejednoznaczna ścieżka przerywa build. Nowe pliki modeli/prefabów dodać razem z ich `.meta`. Aktualizacja nie dodaje nowej sceny strefy do istniejącej bazy; zmianę granic i listy scen należy osobno przygotować i przetestować.
 

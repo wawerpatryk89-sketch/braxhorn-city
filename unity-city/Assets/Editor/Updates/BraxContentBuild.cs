@@ -23,6 +23,7 @@ public static class BraxContentBuild
     {
         if (Directory.Exists(Base)) throw new InvalidOperationException("Baza już istnieje. Nie nadpisuj content state wydanego APK.");
         if (!BraxContentPackage.Safe(zone) || scenes.Length == 0 || scenes.Any(p => !File.Exists(p))) throw new ArgumentException("Nieprawidłowa strefa lub sceny.");
+        if (File.Exists("content-patch.json")) BraxContentEdits.ApplyFile("content-patch.json", scenes);
         string id = zone + "-" + Guid.NewGuid().ToString("N");
         Directory.CreateDirectory(Output);
         var settings = AddressableAssetSettingsDefaultObject.GetSettings(true);
@@ -58,6 +59,7 @@ public static class BraxContentBuild
         Check(result);
         var m = Inventory(zone, id, "base", scenes, RuntimeId());
         Directory.CreateDirectory(Base);
+        File.WriteAllText(Base + "/applied-patch.json", File.Exists("content-patch.json") ? File.ReadAllText("content-patch.json") : "{\"edits\":[]}");
         File.WriteAllText(Base + "/manifest.json", JsonUtility.ToJson(m, true));
         string state = ContentUpdateScript.GetContentStateDataPath(false, settings);
         if (!File.Exists(state)) throw new FileNotFoundException("Brak content state", state);
@@ -95,7 +97,7 @@ public static class BraxContentBuild
         foreach (var pair in scenePaths)
             if (pair.Length != 2 || AssetDatabase.AssetPathToGUID(pair[0]) != pair[1]) throw new InvalidOperationException("Zmieniono GUID sceny bazy.");
         // A patch edits saved scenes/assets. It never invokes the world generator.
-        BraxContentEdits.ApplyFile("content-patch.json");
+        BraxContentEdits.ApplyFile("content-patch.json", scenePaths.Select(p => p[0]).ToArray(), Base + "/applied-patch.json");
         AssetDatabase.SaveAssets();
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         if (settings == null) throw new InvalidOperationException("Przywróć ustawienia Addressables ze snapshotu bazy.");
@@ -151,7 +153,8 @@ public static class BraxContentBuild
         var paths = Directory.GetFiles("Assets", "*", SearchOption.AllDirectories)
             .Where(p => !p.Replace('\\', '/').Contains("/Editor/"))
             .Where(p => new[] { ".cs", ".asmdef", ".asmref", ".dll", ".so", ".aar", ".java", ".shader", ".compute" }.Contains(Path.GetExtension(p)) ||
-                (p.Replace('\\', '/').Contains("/Resources/") && p != Config && p != Config + ".meta" && !p.EndsWith(".meta")))
+                (p.Replace('\\', '/').Contains("/Resources/") && p != Config && p != Config + ".meta" && !p.EndsWith(".meta") &&
+                 !p.EndsWith("/PerformanceTestRunSettings.json") && !p.EndsWith("/PerformanceTestRunInfo.json")))
             .Concat(new[] { "Packages/manifest.json", "Packages/packages-lock.json" }.Where(File.Exists))
             .OrderBy(p => p, StringComparer.Ordinal);
         var text = new StringBuilder(Application.unityVersion + "\n" + EditorUserBuildSettings.activeBuildTarget + "\n" +

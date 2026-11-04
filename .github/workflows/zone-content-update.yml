@@ -42,7 +42,9 @@ jobs:
           value=os.environ.get('INPUT_BASE') or json.loads(Path('unity-city/content-update-request.json').read_text())['baseId']
           assert re.fullmatch(r'(osiedle|miasto|miastogl|oboz)-[a-f0-9]{32}',value), 'Invalid base ID'
           assert Path('unity-city/content-patch.json').is_file(), 'Missing content-patch.json'
-          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write('base='+value+'\nzone='+value.split('-')[0]+'\n')
+          zone=value.split('-')[0]
+          cache_zone='miasto' if zone=='miastogl' else zone
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f: f.write('base='+value+'\nzone='+cache_zone+'\n')
           PY
       - name: Free disk space
         run: sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
