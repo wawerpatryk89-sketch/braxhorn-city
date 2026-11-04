@@ -3,13 +3,13 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
   workflow_dispatch:
     inputs:
       rejon:
-        description: 'Rejon buildu: osiedle (bez miasta) | miasto (bez osiedla) | oba (jak przed buildem 14). Push: plik unity-city/rejon-buildu.txt'
+        description: 'Rejon buildu: osiedle (bez miasta) | miasto (bez osiedla) | oba (jak przed buildem 14). Uruchomienie wyłącznie ręczne za zgodą właściciela'
         type: choice
         options:
         - osiedle
         - miasto
         - oba
-        default: osiedle
+        default: miasto
       pamiec:
         description: 'Pamiec podreczna wygenerowanego rejonu (odznacz = wymus pelne generowanie)'
         type: boolean
@@ -22,10 +22,8 @@ env:
   # po pomiarze rozmiaru (krok „Rozmiar Library i swiata rejonu”) — limit 10 GB na repo, a Library zajmuje juz ~7-9 GB na job.
   PAMIEC_REJONOW: osiedle
 concurrency:
-  # Niebudujące commity na gałęzi napraw nie mogą blokować finalnego APK.
-  group: ${{ github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'CITY BUILD:') && 'claude-region-city-noop' || format('claude-region-{0}', github.ref) }}
-  # Tylko JAWNIE oznaczony CITY BUILD zastępuje poprzedni, nieaktualny test.
-  cancel-in-progress: ${{ github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:') }}
+  group: claude-region-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   source-imports:
     if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'CITY BUILD:')))))
