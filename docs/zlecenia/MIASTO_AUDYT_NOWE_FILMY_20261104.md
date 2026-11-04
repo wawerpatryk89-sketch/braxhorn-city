@@ -55,7 +55,7 @@ Nie mamy jeszcze kompilacji Unity ani testu rzeczywistego ruchu, drzwi CAF, pasa
 
 ## 4.11 — naprawy PREMIUM nowych budynków (bez ingerencji w osiedle / obóz)
 
-Użytkownik dodatkowo wymaga, aby wszystkie potrzebujące poprawek budynki nowej dzielnicy otrzymały wykończenie premium, **nie tylko usunięte rusztowania**. W źródłach Unity 6 nowa dzielnica obejmuje **21 modeli / segmentów** (LONDON, KINNAIRD, ATLANTA, 13 segmentów City5 i 4 segmenty City3). Potwierdzić ich rzeczywistą obecność po odszyfrowaniu paczek.
+Użytkownik dodatkowo wymaga, aby wszystkie potrzebujące poprawek budynki nowej dzielnicy otrzymały wykończenie premium, **nie tylko usunięte rusztowania**. W źródłach Unity 6 nowa dzielnica obejmuje **21 modeli / segmentów** (LONDON, KINNAIRD, ATLANTA, 14 segmentów City5 i 4 segmenty City3). Potwierdzić ich rzeczywistą obecność po odszyfrowaniu paczek.
 
 Wykonano w `BraxRegionMiastoBDzielnice.cs`:
 - Usunięto **podwójny przebieg** zdejmowania rusztowań. Pozostawiono jedno ostrożne czyszczenie oddzielnych węzłów `scaffold/rusztowanie`, bez usuwania całej elewacji przez nazwę. Jeżeli rusztowanie jest scalone z budynkiem, kod zgłasza błąd i wymaga korekty źródła modelu.
