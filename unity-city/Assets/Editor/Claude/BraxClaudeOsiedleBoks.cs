@@ -14,12 +14,57 @@ using UnityEngine.Rendering;
 // Lampy ForceVertex (nic nie świeci), zasięg kamery w zamkniętej sali (BraxClaudeZasiegWnetrza).
 public static partial class BraxClaudeOsiedle
 {
+    // Rzeczywista kontrola kapsułą po przebudowie osiedla.
+    public static void SalaBokserskaPrzejscieKontrola()
+    {
+        Physics.SyncTransforms();
+        const float y = .06f, x = 86f;
+        float r = Mathf.Clamp(WzrostPatrykaWGrze * .15f, .26f, .35f);
+        float h = WzrostPatrykaWGrze + .04f;
+        var blokady = new List<string>();
+        foreach (float z in new[] { 79.45f, 79.15f, 78.85f, 78.55f, 78.25f, 77.95f })
+        {
+            var low = new Vector3(x, y + r, z);
+            var high = new Vector3(x, y + h - r, z);
+            foreach (var c in Physics.OverlapCapsule(low, high, r,
+                         ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore))
+            {
+                if (!c || c.bounds.max.y < y + .4f || c.GetComponentInParent<BraxCityDoor>() != null) continue;
+                string opis = c.name + " z=" + z.ToString("F2");
+                if (!blokady.Contains(opis)) blokady.Add(opis);
+            }
+        }
+        if (blokady.Count > 0)
+            throw new System.InvalidOperationException("Sala bokserska — wejście zablokowane: " + string.Join("; ", blokady));
+        Debug.Log("BRAXHORN_BOKS_WEJSCIE_OK kapsuła=" + r.ToString("F2"));
+    }
+
     static void SalaBokserska(Transform estate, Transform physics)
     {
         group = "Osiedle A / sala bokserska"; bezCieni.Add(group);
         const float X0 = 66.18f, X1 = 105.82f, Z0 = 49.18f, Z1 = 78.82f, yF = .06f, yC = 6.8f;
         var cut = MinMax(X0 + .04f, X1 - .04f, .06f, 6.84f, Z0 + .04f, Z1 - .04f);
         CutVolumes(estate, physics, new List<Bounds> { cut });
+        // Przetnij tylko stare wysokie BoxCollider przecinające światło drzwi,
+        // bo zwykłe CutVolumes celowo pomija kolizje wyższe niż 2,2 m.
+        var otworyBoks = new List<Bounds> {
+            MinMax(84.05f, 87.95f, .08f, 3.1f, Z1 - .45f, Z1 + .45f),
+            MinMax(84.05f, 87.95f, .08f, 3.1f, Z0 - .45f, Z0 + .45f)
+        };
+        int wycieteZewn = 0;
+        foreach (var rodzic in new[] { estate, physics })
+        {
+            if (!rodzic) continue;
+            var stareKolizje = new List<BoxCollider>(rodzic.GetComponentsInChildren<BoxCollider>(true));
+            foreach (var c in stareKolizje)
+            {
+                if (!c || !c.enabled || c.isTrigger || c.bounds.size.y <= 2.2f) continue;
+                if (c.GetComponentInParent<BraxCityDoor>() != null) continue;
+                if (!c.bounds.Intersects(otworyBoks[0]) && !c.bounds.Intersects(otworyBoks[1])) continue;
+                if (BraxWycinanieSiatki.WytnijKolizje(c, otworyBoks)) wycieteZewn++;
+            }
+        }
+        Debug.Log("BRAXHORN_BOKS_WEJSCIA przycięte_wysokie_stare_kolizje=" + wycieteZewn);
         int off = 0;
         if (physics) { var e = cut; e.Expand(new Vector3(0f, .14f, 0f)); foreach (var c in physics.GetComponentsInChildren<Collider>(true)) if (c.enabled && e.Contains(c.bounds.min) && e.Contains(c.bounds.max)) { c.enabled = false; off++; } }
         var guma = Plain("sala bokserska posadzka guma czarna", new Color(.06f, .06f, .065f), .2f);

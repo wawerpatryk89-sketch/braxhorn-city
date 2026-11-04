@@ -847,12 +847,13 @@ public static partial class BraxClaudeOsiedle
         if (!SalonWlaczony) return;
         Physics.SyncTransforms();
         float x = (SDX0 + SDX1) * .5f;
-        float r = .31f, y = SYF;
+        float r = Mathf.Clamp(WzrostPatrykaWGrze * .15f, .26f, .35f), y = SYF;
+        float h = WzrostPatrykaWGrze + .04f;
         var przeszkody = new List<string>();
         foreach (float z in new[] { SBZ1 + .7f, SBZ1 + .22f, SBZ1 - .2f, SBZ1 - .7f, SBZ1 - 1.4f })
         {
-            var low = new Vector3(x, y + .48f, z);
-            var high = new Vector3(x, y + 1.85f, z);
+            var low = new Vector3(x, y + r, z);
+            var high = new Vector3(x, y + h - r, z);
             var trafienia = Physics.OverlapCapsule(low, high, r, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore);
             foreach (var c in trafienia)
             {
@@ -866,8 +867,8 @@ public static partial class BraxClaudeOsiedle
         // dla całej kapsuły Patryka (także po przebudowie wnętrza).
         for (float z = SBZ1 - 2.5f; z >= -46.9f; z -= .4f)
         {
-            var low = new Vector3(-42.05f, y + .48f, z);
-            var high = new Vector3(-42.05f, y + 1.85f, z);
+            var low = new Vector3(-42.05f, y + r, z);
+            var high = new Vector3(-42.05f, y + h - r, z);
             foreach (var col in Physics.OverlapCapsule(low, high, r, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore))
                 if (col && col.bounds.max.y >= y + .4f)
                     przeszkody.Add("przejście w głąb: " + col.name + " z=" + z.ToString("F2"));

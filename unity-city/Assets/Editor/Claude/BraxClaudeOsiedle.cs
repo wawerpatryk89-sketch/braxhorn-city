@@ -5850,6 +5850,8 @@ public static partial class BraxClaudeOsiedle
         Guard("drzwi bez ściany (manifest Codexa po przebudowie wnętrz) — usunięte", DrzwiBezSciany);
         Guard("posadzki — grunt wycięty pod posadzkami wszystkich lokali (posadzka nigdy nie leży na gruncie)", () => BraxKontrolaMigotania.Posadzki(UnityEngine.SceneManagement.SceneManager.GetActiveScene()));
         Guard("kontrole jakości: skala, umieszczenie, kolizje, migotanie, pomieszczenia, robot", () => BraxKontrola.Wszystko(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), "osiedle"));
+        Guard("salon: kontrola fizycznego przejścia kapsułą", SalonPrzejscieKontrola);
+        Guard("sala bokserska: kontrola wejścia kapsułą", SalaBokserskaPrzejscieKontrola);
         Guard("ludzie: przechodnie, obsada, kierowcy (Rocketbox)", LudzieNaOsiedlu);
         Guard("kasyno: gracze przy stołach i krupierzy (3.11)", KasynoGracze);   // build 14 „ludzie”: po wnętrzach, ławkach i autach
         Guard("stacja paliw: kasjer (E21)", StacjaKasjer);

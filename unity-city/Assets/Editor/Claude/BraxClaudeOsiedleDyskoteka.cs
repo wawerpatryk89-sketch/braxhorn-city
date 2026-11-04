@@ -446,113 +446,48 @@ public static partial class BraxClaudeOsiedle
         PointLamp(new Vector3(72.5f, 3.3f, 1.6f), 7f, .9f, new Color(1f, .8f, .55f));
         PointLamp(new Vector3(79.0f, 3.3f, 1.6f), 7f, .9f, new Color(1f, .8f, .55f));
 
-        // ================= LOŻE =================
-        var zestaw = BraxOsiedleAssety.ModelWnetrz("loze_chesterfield_moet");
-        var stolik = BraxOsiedleAssety.ModelWnetrz("loze_stolik_marmur_3dtech");
-        if (!zestaw || !stolik)
-            throw new InvalidOperationException("Dyskoteka: brak oryginalnej sofy Chesterfield lub stolika — bez zastępczych klocków");
-        float skalaZ = 1f; const int idxSofa = 0;
-        if (zestaw)
+        // ================= LOŻE: SOFY USUNIĘTE =================
+        // 4.11.2026: na polecenie właściciela usunięto 42 stare sofy,
+        // ich kolizje i punkty siedzenia. Zachowano 14 stolików.
+        // Nowe sofy wyłącznie z późniejszej paczki właściciela.
+        var stolikBezSof = BraxOsiedleAssety.ModelWnetrz("loze_stolik_marmur_3dtech");
+        int stolikiBezSof = 0;
+        void StolikBezSof(Vector3 sciana, Vector3 przod)
         {
-            try
+            stolikiBezSof++;
+            const float glS = .9f, gap = .4f, tR = .25f;
+            Vector3 ct = sciana + przod * ((glS + gap + tR) * K);
+            GameObject o = stolikBezSof ? BraxOsiedleAssety.Postaw(root, stolikBezSof,
+                "loża " + stolikiBezSof + ": stolik bez sof", ct + Vector3.up * yF, 0f, .5f, null) : null;
+            Bounds b;
+            if (o)
             {
-                var tmp = (GameObject)UnityEngine.Object.Instantiate(zestaw); tmp.transform.position = Vector3.zero; tmp.transform.rotation = zestaw.transform.localRotation;
-                var cz = BraxOsiedleAssety.Czesci(tmp);
-                if (cz.Count == 3)
-                {
-                    skalaZ = 1f; // każda pojedyncza siatka jest skalowana osobno w Czesc
-                }
-                else throw new InvalidOperationException("Nieprawidłowy zestaw Chesterfield");
-                BraxOsiedleAssety.Log("loże: zestaw chesterfield części=" + cz.Count + " — 3 całe sofy na lożę w U, bez wycinania drobnych fragmentów");
-                UnityEngine.Object.DestroyImmediate(tmp);
-            }
-            catch (Exception e) { BraxOsiedleAssety.Blad("loże: podział zestawu", e); throw; }
-        }
-        float sofaW = 2.0f * K, sofaD = .9f * K, armW = .9f * K, armD = .85f * K, tR = .25f * K, gap = .4f * K, seatH = .45f * K, tH = .5f * K;
-        var panel = Plain("klub panel tapicerowany bordo", new Color(.25f, .03f, .07f), .35f);
-        void SofaKod(Vector3 c, Vector3 f, float w, float d)
-        {
-            var r = Vector3.Cross(Vector3.up, f); float yaw = Quaternion.LookRotation(f).eulerAngles.y;
-            OBox(leatherK, c + Vector3.up * (yF + .2f * K), new Vector3(w, .3f * K, d), yaw);                                    // baza
-            OBox(leatherK, c + f * .06f * K + Vector3.up * (yF + .385f * K), new Vector3(w - .36f * K, .13f * K, d - .3f * K), yaw);  // poduchy
-            OBox(leatherK, c - f * (d * .5f - .11f * K) + Vector3.up * (yF + .5f * K), new Vector3(w, .66f * K, .22f * K), yaw);    // oparcie
-            foreach (int sgn in new[] { -1, 1 }) OBox(leatherK, c + r * sgn * (w * .5f - .09f * K) + Vector3.up * (yF + .36f * K), new Vector3(.18f * K, .48f * K, d), yaw); // boki
-            OBox(walnut, c + Vector3.up * (yF + .025f * K), new Vector3(w - .1f, .05f * K, d - .1f), yaw);                       // cokół
-        }
-        int lozeN = 0;
-        void Loza(Vector3 sciana, Vector3 f, bool panelSciana)
-        {
-            lozeN++;
-            var r = Vector3.Cross(Vector3.up, f); sciana.y = 0f;
-            var cs = sciana + f * (sofaD * .5f);
-            if (panelSciana) OBox(panel, sciana - f * .03f + Vector3.up * (yF + .6f * K + .55f), new Vector3(sofaW + .4f, 1.1f + .2f * K, .06f), Quaternion.LookRotation(f).eulerAngles.y);
-            // sofa
-            GameObject so = skalaZ > 0f ? Czesc(zestaw, idxSofa, "loża " + lozeN + ": sofa chesterfield", cs + Vector3.up * yF, f, skalaZ, 2f) : null;
-            Bounds bS;
-            float glS = sofaD;
-            if (so)
-            {
-                modeleUzyte++; bS = BraxOsiedleAssety.Granice(so);
-                glS = Mathf.Abs(Vector3.Dot(bS.size, new Vector3(Mathf.Abs(f.x), 0, Mathf.Abs(f.z))));
-                float tyl = Vector3.Dot(bS.center, f) - glS * .5f, cel = Vector3.Dot(sciana, f);   // oparcie przy ścianie / panelu
-                so.transform.position += f * (cel - tyl); bS = BraxOsiedleAssety.Granice(so); cs = sciana + f * (glS * .5f);
-            }
-            else throw new InvalidOperationException("Dyskoteka: brak głównej sofy premium w loży " + lozeN);
-            var ct = sciana + f * (glS + gap + tR);                                                   // stolik 0.4 m × K przed krawędzią siedziska
-            Collider(bS.center, new Vector3(bS.size.x * .96f, bS.size.y, bS.size.z * .96f)); Mebel("loża " + lozeN + " sofa", bS);
-            float yS = so ? bS.min.y + bS.size.y * .58f : yF + seatH;
-            foreach (int sgn in new[] { -1, 1 }) klub.siedziska.Add((cs + r * sgn * sofaW * .25f + f * .08f * K + Vector3.up * yS, f));
-            // Oba boki prawdziwych lóż: całe oryginalne sofy Chesterfield,
-            // ustawione w jednym U, siedziskami do stolika i oparciami na zewnątrz.
-            // Równe wymiary sof: 2.0 m; od końca sofy głównej zostaw ok. 8 cm,
-            // dzięki temu żadne oparcia ani kolizje nie przenikają przez siebie.
-            foreach (int sgn in new[] { -1, 1 })
-            {
-                Vector3 fa = -r * sgn;
-                var fo = Czesc(zestaw, idxSofa, "loża " + lozeN + ": sofa boczna Chesterfield",
-                    ct + Vector3.up * yF, fa, skalaZ, 2.0f);
-                if (!fo) throw new InvalidOperationException("Loża " + lozeN + ": brak bocznej sofy premium");
                 modeleUzyte++;
-                var bA = BraxOsiedleAssety.Granice(fo);
-                float glA = Mathf.Abs(fa.x) * bA.size.x + Mathf.Abs(fa.z) * bA.size.z;
-                float dlugoscBoku = Mathf.Abs(f.x) * bA.size.x + Mathf.Abs(f.z) * bA.size.z;
-                float odSciany = Mathf.Max(glS + gap + tR, glS + dlugoscBoku * .5f + .08f * K);
-                Vector3 celA = sciana + f * odSciany + r * sgn * (tR + gap + glA * .5f);
-                fo.transform.position += new Vector3(celA.x - bA.center.x, 0f, celA.z - bA.center.z);
-                bA = BraxOsiedleAssety.Granice(fo);
-                Collider(bA.center, bA.size * .96f);
-                Mebel("loża " + lozeN + " sofa boczna", bA);
-                float yA = bA.min.y + bA.size.y * .58f;
-                klub.siedziska.Add((new Vector3(bA.center.x, 0f, bA.center.z) + fa * .08f * K + Vector3.up * yA, fa));
+                b = BraxOsiedleAssety.Granice(o);
             }
-            // stolik marmurowy przed siedziskiem
-            GameObject to = stolik ? BraxOsiedleAssety.Postaw(root, stolik, "loża " + lozeN + ": stolik marmurowy", ct + Vector3.up * yF, 0f, .5f, null) : null;
-            Bounds bT;
-            if (to) { modeleUzyte++; bT = BraxOsiedleAssety.Granice(to); }
             else
             {
-                Cylinder(marbleK, ct + Vector3.up * (yF + tH - .03f * K), tR, .03f * K, 24, true, false);
-                Cylinder(chromeK, ct + Vector3.up * yF, .04f * K, tH - .03f * K, 10, false, false);
+                float h = .5f * K;
+                Cylinder(marbleK, ct + Vector3.up * (yF + h - .03f * K), tR * K, .03f * K, 24, true, false);
+                Cylinder(chromeK, ct + Vector3.up * yF, .04f * K, h - .03f * K, 10, false, false);
                 Cylinder(chromeK, ct + Vector3.up * yF, .2f * K, .02f * K, 20, true, false);
-                bT = new Bounds(ct + Vector3.up * (yF + tH * .5f), new Vector3(tR * 2f, tH, tR * 2f));
+                b = new Bounds(ct + Vector3.up * (yF + h * .5f), new Vector3(tR * K * 2f, h, tR * K * 2f));
             }
-            Collider(bT.center, bT.size * .9f); Mebel("loża " + lozeN + " stolik", bT);
-            // na stoliku: kubełek z szampanem i dwie szklanki (z kodu, scalone)
-            float yt = bT.max.y;
-            Cylinder(chromeK, ct + Vector3.up * yt - r * .08f * K, .07f * K, .17f * K, 12, true, false);
-            Cylinder(bottleCols[0], ct + Vector3.up * (yt + .06f * K) - r * .08f * K, .03f * K, .26f * K, 8, true, false);
-            foreach (int sgn in new[] { -1, 1 }) Cylinder(glassM, ct + Vector3.up * yt + r * .12f * K + f * sgn * .08f * K, .03f * K, .1f * K, 10, false, false);
+            Collider(b.center, b.size * .9f);
+            Mebel("loża " + stolikiBezSof + " stolik", b);
         }
         float xW = X0 + .09f;
-        // Zamiast trzech rozrzuconych stanowisk: równy rząd czterech lóż
-        // z czytelnymi przejściami (nie zmieniamy parkietu i komunikacji).
-        foreach (float z in new[] { 6.8f, 12.3f, 17.8f, 23.3f }) Loza(new Vector3(xW, 0, z), Vector3.right, true);
-        foreach (float x in new[] { 74f, 81f }) Loza(new Vector3(x, 0, Z1 - .09f), Vector3.back, true);
-        // 3.11 15:53 (właściciel): „żadnej ściany na dyskotece — loże w U, jedno U, drugie U, stoliki między”: ścianka wyspy usunięta,
-        // loże wyspy stoją oparciami do siebie (sofa + 2 fotele = U wokół stolika), 1.2 m × K przejścia między kolejnymi U
-        foreach (float z in new[] { 8.2f, 15.4f, 22.6f }) { Loza(new Vector3(76.3f, 0, z), Vector3.left, false); Loza(new Vector3(76.7f, 0, z), Vector3.right, false); }
-        foreach (float x in new[] { 91.5f, 99f }) Loza(new Vector3(x, 0, Z0 + .09f), Vector3.forward, false);
-        klub.loze = lozeN;
+        foreach (float z in new[] { 6.8f, 12.3f, 17.8f, 23.3f }) StolikBezSof(new Vector3(xW, 0, z), Vector3.right);
+        foreach (float x in new[] { 74f, 81f }) StolikBezSof(new Vector3(x, 0, Z1 - .09f), Vector3.back);
+        foreach (float z in new[] { 8.2f, 15.4f, 22.6f })
+        {
+            StolikBezSof(new Vector3(76.3f, 0, z), Vector3.left);
+            StolikBezSof(new Vector3(76.7f, 0, z), Vector3.right);
+        }
+        foreach (float x in new[] { 91.5f, 99f }) StolikBezSof(new Vector3(x, 0, Z0 + .09f), Vector3.forward);
+        klub.loze = 0;
+        klub.siedziska.Clear();
+        Debug.Log("BRAXHORN_DYSKOTEKA_SOFY usunięte=42 stare_chesterfield=0 nowe=oczekują stoliki=" + stolikiBezSof);
 
         // ================= DJ PREMIUM =================
         const float cx0 = 101.55f, cx1 = 102.45f, cz0 = 9.9f, cz1 = 14.1f;
