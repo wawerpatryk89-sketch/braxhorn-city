@@ -65,7 +65,13 @@ public static partial class BraxClaudeOsiedle
                 if(!fotel||!kab){kandydaci.Add((t,false,default,false,id+": brak fotela"));continue;}
                 var drzwi=DrzwiKierowcy(t.go,fotel,out var ob);
                 WynikKabiny w=new WynikKabiny { zapas=float.NegativeInfinity }; bool miesci=false;
-                foreach(var (odch,zagl,poch) in KabinaProby(kab.odchylenieBaza,42f,K))   // 3.11: Patryk 2.33 m (= Brax) — fotel sportowy do 42°
+                // Najpierw standardowe ustawienie. Dodatkowo badamy sportowe
+                // siedzenie do 4.5 cm nizej; skala i szkielet Patryka bez zmian.
+                // Log poprzedniego buildu: najblizszy pasujacy car_dc brak 3.1 cm.
+                var pozycje = KabinaProby(kab.odchylenieBaza,42f,K);
+                foreach (float z in new[]{.075f,.09f,.105f})
+                    pozycje.Add((42f,z*K,10f));
+                foreach(var (odch,zagl,poch) in pozycje)
                 {
                     var rot=fotel.rotation; player.transform.SetPositionAndRotation(fotel.position+fotel.up*(.08f*K-zagl)-rot*hipsOffset,rot);
                     anim.GetClip("CarIdle").SampleAnimation(anim.gameObject,0);
