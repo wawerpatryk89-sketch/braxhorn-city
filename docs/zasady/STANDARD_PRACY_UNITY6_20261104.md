@@ -62,6 +62,24 @@ Odczyt 2026-11-04 około 19:50 UTC. Statusy runów są chwilowe; każdy wykonawc
 
 Nie przenoś poprawki tramwaju do rejonu bez tramwaju ani importera obozu do innego generatora w ciemno. Przenoś rozwiązanie do odpowiadającej mu ścieżki wykonania po porównaniu aktualnego kodu i testach regresji. Wspólny standard jest obowiązkowy dla wszystkich, ale przyczyny powyższych awarii są różne.
 
+## Aktualizacja po zakończeniu miasta #90
+
+Późniejszy odczyt: #90 zakończył się błędem Unity C# **CS0136**, a nie błędem tramwaju. Log joba 126811323044 z 19:51:12 UTC wskazuje `BraxMiastoWyspaArena.cs:965`: `wc` jako pozycja misy w pętli koliduje z późniejszym `string wc` w zakresie nadrzędnym (wiersz 993). Ten sam kod był obecny w #89, lecz kompilacja nie została wtedy uruchomiona z powodu wcześniejszej bramki. To wyjaśnia ujawnienie kolejnego błędu po naprawieniu tramwaju.
+
+Poprawka miasta zmienia nazwę identyfikatora punktów na `wcId` oraz dwa jej użycia. Współrzędne, materiały, nazwy punktów i wygląd pozostają identyczne. W wersji Miasta Mistrzów ten konkretny konflikt nie występuje; osiedle i obóz nie zawierają tego pliku.
+
+Wspólna kontrola `unity-tools/validation/check_csharp_scopes.py` jest dodawana przed kosztownymi krokami Unity w workflow czterech rejonów (dla miasta i osiedla w obu wariantach). Kontroluje składnię i konflikty zwykłych zmiennych lokalnych/parametrów w zagnieżdżonych zakresach. Używa przypiętych parserów z `unity-tools/validation/requirements.txt`. Nie rozwiązuje typów ani API, nie analizuje wszystkich wzorców C# i pomija deklaracje objęte warunkową kompilacją; nadal wymaga kompilacji Unity.
+
+Dowód: na oryginalnym pliku z #90 wykrywa konflikt `wc` w wierszach 965/993; po poprawce nie wykrywa go. 14 testów obejmuje także legalne powtórzenia nazw w osobnych blokach, pętlach i funkcjach lambda. Odczytano dokładne źródła czterech gałęzi i zweryfikowano Git SHA każdego pliku: miasto 275, osiedle 245, obóz 275, Miasto Mistrzów 271. Kontrola przechodzi na tych źródłach po trzywierszowej poprawce miasta. To nie jest wynik nowej kompilacji Unity ani instalacji na telefonie. Nie uruchomiono ponownego buildu.
+
+Polecenia przed kolejnym zleceniem:
+
+```sh
+python3 -m pip install -r unity-tools/validation/requirements.txt
+python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+```
+
 ## 6. Dowód przy przekazaniu pracy
 
 Przekazanie ma zawierać: gałąź istniejącą zdalnie, pełne SHA, przyczynę z logu, zmienione pliki, polecenia i wyniki testów, pozostałe ryzyka oraz statusy osobno: źródła / kompilacja / APK / dostawa / telefon. Nowy wykonawca najpierw czyta ten dokument i aktualny AGENTS.md, następnie historię swojego rejonu. Nie deklarować „wszystko działa” ani „wszystkie błędy usunięte” bez odpowiednich dowodów.

@@ -57,6 +57,7 @@ jobs:
             unity-city/Prywatne/ruchy_brax.tar.gz.enc
             unity-city/Prywatne/ruchy_wlasciciela.tar.gz.enc
             unity-tools/mistrzowie
+            unity-tools/validation
             unity-tools/claude/prywatne.py
             unity-tools/claude/import_patryk_transfer.py
             unity-tools/claude/tekstury_b5.py
@@ -70,6 +71,11 @@ jobs:
           printf 'sha=%s\n' "$sha" >> "$GITHUB_OUTPUT"
           printf 'SOURCE_SHA=%s\n' "$sha" >> "$GITHUB_ENV"
           printf '## Miasto Mistrzów — wersja do zbudowania\n\nKod gry: `%s`\n\nWorkflow: `%s`\n' "$sha" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: C# syntax and local scopes before Unity (CS0136 regression)
+        run: |
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
       - name: Prepare runner disk and 12 GiB Unity swap
         run: |
           # Keep the host Android SDK: APK certificate/identity verification needs it.
