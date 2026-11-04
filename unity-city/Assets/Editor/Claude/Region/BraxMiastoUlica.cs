@@ -75,7 +75,7 @@ internal static class BraxMiastoUlica
             var hm = BraxRegion.Model("fire_hydrant"); if (hm) BraxRegion.Put(root, hm, "Hydrant", hp, polnoc ? 180f : 0f, 1f, true, .85f * K);
         }
         // tablice nazw ulic (polski standard) przy końcach i przy przejściu
-        foreach (var (p, polnoc, tekst) in new[] { (new Vector3(63.2f, 0, KrawPln + .45f), true, "ul. PORTOWA"), (new Vector3(63.2f, 0, KrawPld - .45f), false, "BULWAR NADMORSKI"), (new Vector3(-100.5f, 0, KrawPld - .45f), false, "ul. PORTOWA"), (new Vector3(10.5f, 0, KrawPld - .45f), false, "ul. PORTOWA") })
+        foreach (var (p, polnoc, tekst) in new[] { (new Vector3(59.7f, 0, KrawPln + .45f), true, "ul. PORTOWA"), (new Vector3(63.2f, 0, KrawPld - .45f), false, "BULWAR NADMORSKI"), (new Vector3(-100.5f, 0, KrawPld - .45f), false, "ul. PORTOWA"), (new Vector3(10.5f, 0, KrawPld - .45f), false, "ul. PORTOWA") })
         { var q = p; q.y = Grunt(q.x, q.z); TablicaUlicy(q, polnoc, tekst); }
         BraxUliceKit.UstawGrupe("Ulica: ekrany LED na wieżowcach");
         int ekr = Ekrany(cityRoot);
