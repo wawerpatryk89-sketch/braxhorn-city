@@ -55,6 +55,18 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'],'a') as output:
               output.write('first_install='+str(first).lower()+'\n')
           PY
+      - name: Sprawdź narzędzia Androida przed kompilacją
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -d "$SDK/build-tools"
+          AAPT=$(find "$SDK/build-tools" -type f -name aapt | sort -V | tail -1)
+          SIGNER=$(find "$SDK/build-tools" -type f -name apksigner | sort -V | tail -1)
+          test -n "$AAPT" && test -x "$AAPT"
+          test -n "$SIGNER" && test -x "$SIGNER"
+          "$AAPT" version
+          "$SIGNER" version
+          printf 'AAPT=%s\nSIGNER=%s\n' "$AAPT" "$SIGNER" >> "$GITHUB_ENV"
       - name: Sprawdzenie dostawy i sekretów przed importem Unity
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -69,7 +81,7 @@ jobs:
           FIRST_INSTALL: ${{ steps.request.outputs.first_install }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq '.[].tag_name' > "$RUNNER_TEMP/release-tags.txt"
-          if rg -qx 'oboz-review-latest' "$RUNNER_TEMP/release-tags.txt"; then
+          if grep -Fxq 'oboz-review-latest' "$RUNNER_TEMP/release-tags.txt"; then
             gh release download oboz-review-latest --repo "$GITHUB_REPOSITORY" --pattern release-identity.json --dir "$RUNNER_TEMP/previous"
             python3 unity-tools/oboz/release_identity.py prepare --previous "$RUNNER_TEMP/previous/release-identity.json" --output unity-city/braxhorn.versioncode
           elif [ "$FIRST_INSTALL" = true ]; then
@@ -161,10 +173,10 @@ jobs:
           allowDirtyBuild: true
       - name: Weryfikacja gotowego podpisu, pakietu i wersji APK
         run: |
-          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
-          test -d "$SDK/build-tools"
-          AAPT=$(rg --files --hidden --no-ignore "$SDK/build-tools" -g aapt | sort -V | tail -1)
-          SIGNER=$(rg --files --hidden --no-ignore "$SDK/build-tools" -g apksigner | sort -V | tail -1)
+          set -euo pipefail
+          test -x "$AAPT" && test -x "$SIGNER"
+          # Unity's container writes this output as root; the runner owns release verification.
+          sudo chown -R "$(id -u):$(id -g)" build/ObozAndroid
           VERSION=$(cat unity-city/braxhorn.versioncode)
           PREVIOUS=(--allow-first-install)
           if [ -f "$RUNNER_TEMP/previous/release-identity.json" ]; then PREVIOUS=(--previous "$RUNNER_TEMP/previous/release-identity.json"); fi
