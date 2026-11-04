@@ -11,3 +11,7 @@
 7. Raportować osobno: kod, preflight, kompilację, opublikowany APK oraz test na Androidzie. Dowód: link runu, SHA i logi. Bez testu nie deklarować, że działa.
 
 **Nadrzędna zasada:** „My decydujemy, kiedy build uruchamiamy i kiedy go naprawiamy”. Bez aktualnej zgody — **ZERO buildów i automatycznych ponowień**.
+
+## Aktualny etap miasta R1 — obowiązkowy przed wysyłką
+
+Dla gałęzi `codex/miasto-naprawy-filmow-20261104` obowiązuje [zakres i warunki zamknięcia R1](docs/audyty/MIASTO_R1_ETAP_DO_WYSLANIA_20261104.md). Miasto nie jest ukończone w całości: obecny etap obejmuje tylko istniejące sektory i 21 zadeklarowanych segmentów. Nie dodawać nowych kwartałów do zakresu tego testu. Przed jednym ręcznie zatwierdzonym buildem zweryfikować agregację błędów miasta B, kompletność budynków, kolizje T1, dojście do M1, referencje między scenami i prawidłowy package ID. **Zapis w repo nie oznacza pozytywnego odbioru Unity/Android.**
