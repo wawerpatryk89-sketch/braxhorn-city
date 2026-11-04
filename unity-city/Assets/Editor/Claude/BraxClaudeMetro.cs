@@ -1320,46 +1320,129 @@ public static class BraxClaudeMetro
     /// szyny. Kolizja pudła (bryła), drzwi zamknięte — pociąg stoi. Kierunek czoła z elementów czoła (reflektory / szyba czołowa).</summary>
     static bool PociagModel(GameObject zrodlo)
     {
-        var o = (GameObject)UnityEngine.Object.Instantiate(zrodlo);
-        o.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity); o.transform.localScale = Vector3.one;
-        var cale = Granice(o, null);
+        var probe = (GameObject)UnityEngine.Object.Instantiate(zrodlo);
+        probe.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+        probe.transform.localScale = Vector3.one;
+        var cale = Granice(probe, null);
         Func<Renderer, bool> pudlo = r => NazwyMat(r).Contains("side");
-        var bP = Granice(o, pudlo); if (bP.size.sqrMagnitude < 1e-6f) bP = cale;
+        var bP = Granice(probe, pudlo);
+        if (bP.size.sqrMagnitude < 1e-6f) bP = cale;
         bool dlZ = cale.size.z >= cale.size.x;
         float szerP = dlZ ? bP.size.x : bP.size.z, szerC = dlZ ? cale.size.x : cale.size.z;
-        // czoło: środek elementów czoła względem środka bryły wzdłuż długiej osi (domyślnie +z modelu)
-        var bC = Granice(o, r => { var n = NazwyMat(r); return n.Contains("mirror.001") || n.Contains("aistandardsurface"); });
+        var bC = Granice(probe, r => { var n = NazwyMat(r); return n.Contains("mirror.001") || n.Contains("aistandardsurface"); });
         float zn = dlZ ? bC.center.z - cale.center.z : bC.center.x - cale.center.x;
         bool czoloZnane = bC.size.sqrMagnitude > 1e-6f && Mathf.Abs(zn) > (dlZ ? cale.size.z : cale.size.x) * .25f;
-        var czolo = dlZ ? new Vector3(0f, 0f, czoloZnane ? Mathf.Sign(zn) : 1f) : new Vector3(czoloZnane ? Mathf.Sign(zn) : 1f, 0f, 0f);
-        UnityEngine.Object.DestroyImmediate(o);
+        var czolo = dlZ ? new Vector3(0f, 0f, czoloZnane ? Mathf.Sign(zn) : 1f)
+                        : new Vector3(czoloZnane ? Mathf.Sign(zn) : 1f, 0f, 0f);
+        UnityEngine.Object.DestroyImmediate(probe);
         if (szerP < 1e-4f || cale.size.y < 1e-4f) return false;
 
-        float s = Mathf.Min(2.8f * K / szerP, (2f * (zTn - zPN) - .12f) / szerC);
-        float L = (dlZ ? cale.size.z : cale.size.x) * s, gap = .9f;
+        // Używamy TEGO SAMEGO optymalizowanego modelu kane_sk06 z galerii właściciela.
+        // 208 MB oryginału -> 25 MB w repo (CREDITS.md: 383k -> 96k tris, tekstury 4K -> 1K).
+        float skala = Mathf.Min(2.8f * K / szerP, (2f * (zTn - zPN) - .12f) / szerC);
+        float dl = (dlZ ? cale.size.z : cale.size.x) * skala, gap = .9f;
         float yawCzola = Mathf.Atan2(czolo.x, czolo.z) * Mathf.Rad2Deg;
-        float xWsch = PX1 - 3f;                                      // czoło 3 m przed ścianą końcową hali
-        int n2 = 0; float gora = 0f, podloga = 0f;
+        float xWsch = PX1 - 3f;
+        var sklad = new GameObject("METRO M1 — pociąg kursujący kane_sk06 (2 wagony, 60 s)").transform;
+        sklad.SetParent(W.Grupa, false);
+        sklad.position = Vector3.zero;
+        var otwL = new List<Transform>();
+        var otwP = new List<Transform>();
+        var dojscia = new List<Vector3>();
+        bool boundsGotowe = false;
+        Bounds wszystkie = default;
+        var rd = mPudlo, ciemny = mCzarny;
         for (int i = 0; i < 2; i++)
         {
-            float cx = xWsch - L * .5f - i * (L + gap);
-            float yaw = (i == 0 ? 90f : -90f) - yawCzola;            // wagon 0 czołem na wschód (+x), wagon 1 na zachód
-            var w = (GameObject)UnityEngine.Object.Instantiate(zrodlo, W.Grupa, false);
-            w.name = "metro M1 — wagon " + (101 + i) + " (model metro_train, CC BY kane_sk06)";
-            w.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0f, yaw, 0f)); w.transform.localScale = Vector3.one * s;
-            var b = Granice(w, null); var bp = Granice(w, pudlo); if (bp.size.sqrMagnitude < 1e-6f) bp = b;
+            float cx = xWsch - dl * .5f - i * (dl + gap);
+            float yaw = (i == 0 ? 90f : -90f) - yawCzola;
+            var w = (GameObject)UnityEngine.Object.Instantiate(zrodlo, sklad, false);
+            w.name = "metro M1 — wagon " + (101 + i) + " (autentyczny model kane_sk06 CC BY)";
+            w.transform.SetPositionAndRotation(Vector3.zero, Quaternion.Euler(0f, yaw, 0f));
+            w.transform.localScale = Vector3.one * skala;
+            var b = Granice(w, null);
+            var bp = Granice(w, pudlo); if (bp.size.sqrMagnitude < 1e-6f) bp = b;
             w.transform.position = new Vector3(cx - b.center.x, yR - b.min.y, zTn - bp.center.z);
-            BraxMiastoAssety.Przygotuj(w, true, true);
-            b = Granice(w, null); bp = Granice(w, pudlo); if (bp.size.sqrMagnitude < 1e-6f) bp = b;
-            W.KolizjaMM(b.min.x + .1f, b.max.x - .1f, yR + .3f, bp.max.y, bp.min.z, bp.max.z);
-            gora = b.max.y; podloga = bp.min.y; n2++; rep.wagony++;
+            BraxMiastoAssety.Przygotuj(w, false, true);  // dynamiczny model — bez StaticBatching
+            foreach (var t in w.GetComponentsInChildren<Transform>(true))
+                GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
+            foreach (var c in w.GetComponentsInChildren<Collider>(true))
+                UnityEngine.Object.DestroyImmediate(c);  // collider całego wagonu należy do ruchomego składu
+            b = Granice(w, null);
+            bp = Granice(w, pudlo);
+            if (bp.size.sqrMagnitude < 1e-6f) bp = b;
+            var kol = new GameObject("M1: kolizja ruchomego wagonu " + (101 + i)).AddComponent<BoxCollider>();
+            kol.transform.SetParent(sklad, false);
+            kol.transform.position = b.center;
+            kol.size = new Vector3(Mathf.Max(.1f, b.size.x - .2f),
+                Mathf.Max(.1f, b.size.y - .15f),
+                Mathf.Max(.1f, bp.size.z - .15f));
+            // STARA W.KolizjaMM była statyczną ścianą na peronie, która
+            // zostawałaby niewidzialna po odjeździe wagonu. Usunięta.
+            if (!boundsGotowe) { wszystkie = b; boundsGotowe = true; }
+            else wszystkie.Encapsulate(b);
             if (b.min.x < PX0 + .5f || b.max.z > zN - .1f || b.min.z < zPN - .02f)
-                Debug.LogWarning("BRAXHORN_METRO_POCIAG wagon " + i + " poza skrajnią: " + b.min.ToString("F2") + "…" + b.max.ToString("F2"));
+                Debug.LogError("BRAXHORN_METRO_M1_SKRAJNIA wagon " + i + " wykracza poza skrajnię: " +
+                    b.min.ToString("F2") + "…" + b.max.ToString("F2"));
+            // Stara siatka ma płaskie zamknięte drzwi (GLB bez węzłów
+            // door_left/door_right, bez animacji). Tylko optyczne panele
+            // przesuwne tuż przy boku od peronu. Nie deformujemy modelu.
+            // Po otwarciu odsłania się zaciemniony portal wejścia, a NPC
+            // odgrywają dojście/odejście; to nie jest pełna kabina.
+            foreach (float offX in new[] { -.22f, .22f })
+            {
+                float xx = bp.center.x + offX * bp.size.x;
+                float zz = bp.min.z - .05f;
+                float yy = yP + 1.03f * K;
+                var otw = new GameObject("M1: wejście sceniczne do wagonu " + (101 + i)).transform;
+                otw.SetParent(sklad, false);
+                otw.position = new Vector3(xx, yy, zz);
+                void Klocek(string nazwa, Material mat, Vector3 pos, Vector3 size, List<Transform> kolekcja = null)
+                {
+                    var g = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    g.name = nazwa; g.transform.SetParent(otw, false);
+                    g.transform.localPosition = pos; g.transform.localScale = size;
+                    g.GetComponent<MeshRenderer>().sharedMaterial = mat;
+                    var c = g.GetComponent<Collider>(); if (c) UnityEngine.Object.DestroyImmediate(c);
+                    if (kolekcja != null) kolekcja.Add(g.transform);
+                }
+                float h = 1.95f * K, ww = 1.34f * K;
+                Klocek("M1: głębia w otworze", ciemny, new Vector3(0f, 0f, -.026f),
+                    new Vector3(ww, h, .025f));
+                Klocek("M1: skrzydło lewe", rd, new Vector3(-ww * .25f, 0f, -.065f),
+                    new Vector3(ww * .5f, h, .03f), otwL);
+                Klocek("M1: skrzydło prawe", rd, new Vector3(ww * .25f, 0f, -.065f),
+                    new Vector3(ww * .5f, h, .03f), otwP);
+                dojscia.Add(sklad.InverseTransformPoint(new Vector3(xx, yP, zPN - .1f)));
+            }
+            rep.wagony++;
         }
-        Debug.Log("BRAXHORN_METRO_POCIAG model=metro_train wagony=" + n2 + " skala=" + s.ToString("F4") + " dlugosc_m=" + L.ToString("F1")
-            + " szer_pudla_m=" + (szerP * s).ToString("F2") + " gora_nad_szyna_m=" + (gora - yR).ToString("F2") + " spod_pudla_nad_szyna_m=" + (podloga - yR).ToString("F2")
-            + " peron_nad_szyna_m=" + (yP - yR).ToString("F2") + " czolo=" + (czoloZnane ? "z modelu" : "domyslne +z") + " os_dluga=" + (dlZ ? "z" : "x"));
-        return n2 == 2;
+
+        if (rep.wagony < 2) { UnityEngine.Object.DestroyImmediate(sklad.gameObject); return false; }
+        // M1 przejeżdża tylko po istniejącym torze i znika w ciemnym tunelu.
+        // Dla długich wagonów wyjazd jest liczony od całej bryły, aby nie
+        // teleportować ich, gdy ogon składu stoi jeszcze przy peronie.
+        var rb = sklad.gameObject.AddComponent<Rigidbody>();
+        rb.isKinematic = true; rb.useGravity = false;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        var ruch = sklad.gameObject.AddComponent<BraxMetroM1Ruch>();
+        ruch.drzwiLewe = otwL.ToArray();
+        ruch.drzwiPrawe = otwP.ToArray();
+        ruch.punktyWejscia = dojscia.ToArray();
+        ruch.rozsuw = .58f * K;
+        ruch.wejscieOffsetX = Mathf.Max(60f, PX1 + 5f - wszystkie.min.x);
+        ruch.wyjazdOffsetX = Mathf.Min(-80f, PX0 - 6f - wszystkie.max.x);
+        var npc = sklad.gameObject.AddComponent<BraxMetroM1Pasazerowie>();
+        npc.pociag = ruch;
+        npc.poziomPeronu = yP;
+        npc.zPeron = zPN - .3f;
+        Debug.Log("BRAXHORN_METRO_M1_POCIAG_KURS: dwa autentyczne wagony, dlugosc=" +
+            wszystkie.size.x.ToString("F1") + "m, skala=" + skala.ToString("F4") +
+            ", par_drzwi_scenicznych=" + otwL.Count +
+            ", wjazd_offset=" + ruch.wejscieOffsetX.ToString("F1") +
+            ", wyjazd_offset=" + ruch.wyjazdOffsetX.ToString("F1") +
+            ", cykl≈60s, bez nowej stacji i bez statycznej kolizji pociągu");
+        return true;
     }
 
     static void PociagZKodu()
