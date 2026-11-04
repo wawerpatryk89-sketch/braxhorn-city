@@ -138,8 +138,14 @@ public static class BraxSzyby
     // szyba fasady bez wnętrza: ciemniejsze szkło refleksyjne (stalowo-niebieskie, prawie lustro nieba)
     static void Refleksyjne(Material m)
     {
-        m.SetColor("_Color", new Color(.30f, .37f, .42f, 1f));
-        m.SetFloat("_Roughness", .1f); m.SetFloat("_Metallic", .85f);
-        if (m.HasProperty("_ReflectionStrength")) m.SetFloat("_ReflectionStrength", .95f);
+        // Brak atlasu pokojów w dodatkowych wieżowcach nie może powodować
+        // niemal czarnych kwadratów. Tylko w tym awaryjnym wariancie użyj
+        // jaśniejszego refleksyjnego szkła; pozostałe zaakceptowane szyby bez zmian.
+        bool bezAtlasu = m.name.IndexOf("BRAK atlasu", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                          m.name.IndexOf("bez atlasu pokoi", StringComparison.OrdinalIgnoreCase) >= 0;
+        m.SetColor("_Color", bezAtlasu ? new Color(.49f, .58f, .65f, 1f) : new Color(.30f, .37f, .42f, 1f));
+        m.SetFloat("_Roughness", bezAtlasu ? .17f : .1f);
+        m.SetFloat("_Metallic", bezAtlasu ? .65f : .85f);
+        if (m.HasProperty("_ReflectionStrength")) m.SetFloat("_ReflectionStrength", bezAtlasu ? .75f : .95f);
     }
 }
