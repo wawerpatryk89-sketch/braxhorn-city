@@ -58,6 +58,15 @@ def image_channel(raw, image_id):
         return data.getchannel("R")
 
 
+def combine_channels(first_red, second_red):
+    from PIL import Image
+    if first_red.size != second_red.size:
+        raise ValueError("Cannot pack different map dimensions")
+    # No scaling, interpolation, gamma curve or colour transform.
+    return Image.merge("RGB", (first_red, second_red,
+                               Image.new("L", first_red.size, 255)))
+
+
 def make_meta(path, root):
     meta = path.with_name(path.name + ".meta")
     if not meta.exists():
@@ -97,7 +106,7 @@ def pack_pair(root, *, asset_id, role, first, second, known_shas):
     if a.size != b.size or a.width != 4096 or a.height != 4096:
         raise ValueError("Pilot expects two equal, genuine 4K maps: " + asset_id)
     # Input order is deliberate: MR=(metallic,roughness); RA=(roughness,AO).
-    packed = Image.merge("RGB", (a, b, Image.new("L", a.size, 255)))
+    packed = combine_channels(a, b)
     buffer = io.BytesIO()
     packed.save(buffer, format="PNG", optimize=True)
     packed_bytes = buffer.getvalue()
