@@ -42,6 +42,8 @@ public static partial class BraxClaudeOsiedle
     // Bez wszystkich trzech dyscyplin osiedle nie spełnia wymagań właściciela.
     public static void SportGryKontrola()
     {
+        try
+        {
         var boiska = UnityEngine.Object.FindObjectsByType<BraxSportBoisko>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (var gra in new[] { BraxSportBoisko.Gra.Kosz, BraxSportBoisko.Gra.Nozna, BraxSportBoisko.Gra.Tenis })
             if (!boiska.Any(b => b && b.gra == gra))
@@ -57,6 +59,12 @@ public static partial class BraxClaudeOsiedle
         Debug.Log("BRAXHORN_SPORT_GRY_OK boiska=" + boiska.Length +
             " koszykówka=tak piłka_nożna=tak tenis=tak sterowanie AKCJA/CIOS/KOP=tak, "+
             "RuchySport włącza się automatycznie przy boisku");
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
 
     // ---------------- koszykówka ----------------

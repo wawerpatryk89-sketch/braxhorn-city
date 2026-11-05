@@ -846,6 +846,8 @@ public static partial class BraxClaudeOsiedle
     // mogło zostać zablokowane przez starą kolizję bądź nieprzecięte szkło.
     public static void SalonPrzejscieKontrola()
     {
+        try
+        {
         if (!SalonWlaczony) return;
         Physics.SyncTransforms();
         float x = (SDX0 + SDX1) * .5f;
@@ -890,6 +892,12 @@ public static partial class BraxClaudeOsiedle
             throw new System.InvalidOperationException("Salon: fizycznie zablokowany korytarz od wejścia! " + string.Join("; ", przeszkody.Take(12)));
         Debug.Log("BRAXHORN_SALON_WEJSCIE_OK kapsuła gracza r=" + r.ToString("F2") + " m, 5 próbek dojścia, stopień=" +
                   rise.ToString("F2") + " m, szerokość schodów=" + szer.ToString("F2") + " m");
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
 
     // ---------------- auta (z etapu ruchu, Auta()) ----------------

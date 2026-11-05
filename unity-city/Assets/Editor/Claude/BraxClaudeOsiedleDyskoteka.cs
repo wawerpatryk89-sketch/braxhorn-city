@@ -232,7 +232,7 @@ public static partial class BraxClaudeOsiedle
         {
             var sprawdzPrzod = PrzodSofy(keep);
             if (Vector3.Dot(sprawdzPrzod.normalized, przod.normalized) < .94f)
-                throw new InvalidOperationException(nazwa + ": sofa nadal zwrócona tyłem do stolika");
+                BraxBuildQuality.Issue(new InvalidOperationException(nazwa + ": sofa nadal zwrócona tyłem do stolika"));
         }
         var b = BraxOsiedleAssety.Granice(o);
         if (szerokoscRealna > 0f)
@@ -242,7 +242,7 @@ public static partial class BraxClaudeOsiedle
             o.transform.localScale *= szerokoscRealna * K / Mathf.Max(.0001f, szer);
             b = BraxOsiedleAssety.Granice(o);
             if (b.size.y < .65f * K || b.size.y > 1.15f * K)
-                throw new InvalidOperationException(nazwa + ": niewłaściwa orientacja/wysokość " + b.size.y);
+                BraxBuildQuality.Issue(new InvalidOperationException(nazwa + ": niewłaściwa orientacja/wysokość " + b.size.y));
         }
         o.transform.position += new Vector3(p.x - b.center.x, p.y - b.min.y, p.z - b.center.z);
         BraxOsiedleAssety.Przygotuj(o, true);
@@ -688,7 +688,7 @@ public static partial class BraxClaudeOsiedle
             }
         Debug.Log("BRAXHORN_MEBLE_KOLIZJE lokal=dyskoteka meble=" + klubMeble.Count + " pary=" + pary.Count + (pary.Count > 0 ? " [" + string.Join("; ", pary.Take(12)) + "]" : ""));
         if (pary.Count > 0)
-            throw new InvalidOperationException("Dyskoteka: loże premium nakładają się, nie zatwierdzam ustawienia. " + string.Join("; ", pary.Take(12)));
+            BraxBuildQuality.Issue(new InvalidOperationException("Dyskoteka: loże premium nakładają się, nie zatwierdzam ustawienia. " + string.Join("; ", pary.Take(12))));
         Debug.Log("BRAXHORN_DETALE lokal=dyskoteka listwy=" + listwy + " gniazdka=" + gniazdka + " wlaczniki=" + wlaczniki + " kratki=" + kratki + " oprawy=" + oprawy + " gasnice=" + gasnice + " znaki_ewak=" + znaki
                   + " oscieznice=" + oscieznice + " sufit_obrzeze=tak cokoly=tak(bar, zaplecze, sofy) fugi=tak(parkiet: szczeliny 6 cm w geometrii; posadzka: żywica bez fug) parapety=— (brak okien) kratki_odplywowe=— (brak WC)");
         BraxOsiedleAssety.Log("dyskoteka: modele użyte=" + modeleUzyte + " brak=" + modeleBrak + " (brak = wersja z kodu)");
@@ -699,12 +699,20 @@ public static partial class BraxClaudeOsiedle
     // Ochrona przed niekompletnym zestawem: liczymy całe modele właściciela.
     public static void DyskotekaLozeKontrola()
     {
+        try
+        {
         if (klub == null || klub.loze < 12)
             throw new InvalidOperationException("Dyskoteka: nie zbudowano pełnego zestawu lóż premium");
         int models=klubMeble.Count(x=>x.co.StartsWith("loża właściciela ",StringComparison.Ordinal));
         if(models!=14 || klub.loze!=models)
             throw new InvalidOperationException("Dyskoteka: niekompletne oryginalne loże: "+models);
         Debug.Log("BRAXHORN_LOZE_PREMIUM_OK kompletne_modele="+models+" stoliki=w_modelach kolizje=siatki");
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
 
     static void DyskotekaSwiatlo()

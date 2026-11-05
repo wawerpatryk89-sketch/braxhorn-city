@@ -20,6 +20,8 @@ public static partial class BraxClaudeOsiedle
     // Krytyczny test: samo istnienie modelu nie daje graczowi możliwości jazdy.
     public static void AutoGraczaKontrola()
     {
+        try
+        {
         var auta = UnityEngine.Object.FindObjectsByType<BraxAutoGracza>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         if (auta.Length != 1)
             throw new InvalidOperationException("BRAXHORN_AUTO_GRACZA: oczekiwano 1 jezdnego auta Patryka przy arenie, znaleziono " + auta.Length);
@@ -33,6 +35,12 @@ public static partial class BraxClaudeOsiedle
         if (d > 40f) throw new InvalidOperationException("BRAXHORN_AUTO_GRACZA: samochód zbyt daleko od areny: " + d.ToString("F1") + " m");
         Debug.Log("BRAXHORN_AUTO_GRACZA_OK auto przy BRAXHORN ARENA, d=" + d.ToString("F1") +
             " m, fotel=tak, kolizja=tak, sterowanie=joystick, akcja=wsiądź / wysiądź");
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
 
     static bool CzescDrzwi(Transform t, Transform korzen)

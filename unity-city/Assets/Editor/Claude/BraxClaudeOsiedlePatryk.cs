@@ -179,17 +179,17 @@ public static partial class BraxClaudeOsiedle
                 // Tak duże odchylenie po retargetingu oznacza wadliwą
                 // animację — nie wydawaj APK z obróconymi butami.
                 if (!ok || w.klatki == 0)
-                    throw new InvalidOperationException("BRAXHORN_PATRYK_STOPY_BLOKADA klip=" + c.name +
+                    BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_PATRYK_STOPY_BLOKADA klip=" + c.name +
                         " stopa_max=" + w.stopaMax.ToString("F1") +
-                        "°. Ruch nie spełnia kontroli nóg; wstrzymano wadliwą animację.");
+                        "°. Ruch nie spełnia kontroli nóg; wstrzymano wadliwą animację."));
             }
-            if (bledy > 0) throw new InvalidOperationException("BRAXHORN_PATRYK_KOSCI: " + bledy + " błędów — " + raportTestu);
+            if (bledy > 0) BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_PATRYK_KOSCI: " + bledy + " błędów — " + raportTestu));
 
             var idleTest = anim.GetClip("Idle");
             idleTest.SampleAnimation(hero, 0f);
             float idleArms = PatrykKatRamion(kosci);
             if (idleArms > 30f)
-                throw new InvalidOperationException("Patryk: ramiona w spoczynku uniesione (" + idleArms.ToString("F1") + "°)");
+                BraxBuildQuality.Issue(new InvalidOperationException("Patryk: ramiona w spoczynku uniesione (" + idleArms.ToString("F1") + "°)"));
             PatrykSpoczynek(spoczynek);
             Debug.Log("BRAXHORN_PATRYK_IDLE ramiona=" + idleArms.ToString("F1") + "° od pionu (cel <30°)");
             anim.clip = idleTest; anim.Play("Idle"); anim.Sample();
@@ -262,7 +262,7 @@ public static partial class BraxClaudeOsiedle
         }
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(p);
         if (!texture || texture.width != limit || texture.height != limit)
-            throw new InvalidOperationException("Nieprawidłowa rozdzielczość tekstury Patryka: " + p + ", wymagane " + limit);
+            BraxBuildQuality.Issue(new InvalidOperationException("Nieprawidłowa rozdzielczość tekstury Patryka: " + p + ", wymagane " + limit));
         Debug.Log("BRAXHORN_PATRYK_TEKSTURA " + plik + " " + texture.width + "x" + texture.height + " Android ASTC 4x4 jakość 50");
         return texture;
     }

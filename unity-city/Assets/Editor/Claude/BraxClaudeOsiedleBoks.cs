@@ -17,6 +17,8 @@ public static partial class BraxClaudeOsiedle
     // Rzeczywista kontrola kapsułą po przebudowie osiedla.
     public static void SalaBokserskaPrzejscieKontrola()
     {
+        try
+        {
         Physics.SyncTransforms();
         const float y = .06f, x = 86f;
         float r = Mathf.Clamp(WzrostPatrykaWGrze * .15f, .26f, .35f);
@@ -37,6 +39,12 @@ public static partial class BraxClaudeOsiedle
         if (blokady.Count > 0)
             throw new System.InvalidOperationException("Sala bokserska — wejście zablokowane: " + string.Join("; ", blokady));
         Debug.Log("BRAXHORN_BOKS_WEJSCIE_OK kapsuła=" + r.ToString("F2"));
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
 
     static void SalaBokserska(Transform estate, Transform physics)

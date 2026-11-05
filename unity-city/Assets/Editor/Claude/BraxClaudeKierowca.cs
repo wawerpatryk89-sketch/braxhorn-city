@@ -130,9 +130,9 @@ public static partial class BraxClaudeOsiedle
             bool left=car.lewaReka.Ustaw(car.transform,1f),right=car.prawaReka.Ustaw(car.transform,1f);
             float Error(BraxRekaKierowcy r)=>Vector3.Distance(r.dlon.TransformPoint(r.srodekDloni),r.uchwyt.position);
             float error=Mathf.Max(Error(car.lewaReka),Error(car.prawaReka));
-            if(!left || !right || error>.025f)throw new InvalidOperationException("Patryk: kierownica poza zasięgiem dłoni, błąd="+error.ToString("F3"));
-            car.pozaZweryfikowana=true;
-            Debug.Log("BRAXHORN_KIEROWCA_OK clip=EnteringCar czas="+entry.length.ToString("F2")+" chwyty=geometria_kierownicy blad="+error.ToString("F4")+" skala_postaci=bez_zmian");
+            car.pozaZweryfikowana=left && right && error<=.025f;
+            if(!car.pozaZweryfikowana)BraxBuildQuality.Issue(new InvalidOperationException("Patryk: kierownica poza zasięgiem dłoni, błąd="+error.ToString("F3")));
+            Debug.Log("BRAXHORN_KIEROWCA verified="+car.pozaZweryfikowana+" clip=EnteringCar czas="+entry.length.ToString("F2")+" chwyty=geometria_kierownicy blad="+error.ToString("F4")+" skala_postaci=bez_zmian");
         }
         finally { anim.GetClip("Idle").SampleAnimation(anim.gameObject,0);player.transform.SetPositionAndRotation(oldPos,oldRot); }
     }

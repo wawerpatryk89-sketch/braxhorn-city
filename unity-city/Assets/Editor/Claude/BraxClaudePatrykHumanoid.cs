@@ -349,13 +349,13 @@ public static partial class BraxClaudeOsiedle
                     if (legs.klatki == 0 || legs.Kara != 0 || errors != 0)
                     {
                         attempts.Add(evidence);
-                        Debug.LogWarning("BRAXHORN_PATRYK_KANDYDAT ODRZUCONY " + evidence);
-                        continue;
+                        if (!BraxBuildQuality.Advisory) { Debug.LogWarning("BRAXHORN_PATRYK_KANDYDAT ODRZUCONY " + evidence); continue; }
+                        BraxBuildQuality.Warn("Patryk baked clip retained for manual APK review: " + evidence);
                     }
                     report = evidence;
                     ZapiszKlipPatryka(candidate);
                     candidate = null; // persisted or destroyed by ZapiszKlipPatryka
-                    Debug.Log("BRAXHORN_PATRYK_KANDYDAT PASS " + evidence);
+                    Debug.Log("BRAXHORN_PATRYK_KANDYDAT " + (legs.klatki > 0 && legs.Kara == 0 && errors == 0 ? "PASS " : "MANUAL_REVIEW_REQUIRED ") + evidence);
                     return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + spec.nazwa + ".anim");
                 }
                 catch (Exception e) { attempts.Add(relative + "/" + label + ": " + e.Message); }
