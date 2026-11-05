@@ -27,6 +27,35 @@ public static class BraxChampionsVIPSeats
         return bounds;
     }
 
+    static void VerifyImportedTextures(GameObject source)
+    {
+        int seen = 0;
+        foreach (var renderer in source.GetComponentsInChildren<Renderer>(true))
+            foreach (var material in renderer.sharedMaterials)
+            {
+                if (!material) continue;
+                foreach (string slot in new[] {
+                    "baseColorTexture", "normalTexture", "metallicRoughnessTexture",
+                    "occlusionTexture", "_MainTex", "_BumpMap", "_ARM" })
+                {
+                    if (!material.HasProperty(slot)) continue;
+                    var map = material.GetTexture(slot) as Texture2D;
+                    if (!map) continue;
+                    seen++;
+                    if (map.width > 2048 || map.height > 2048)
+                        throw new InvalidOperationException(
+                            "VIP GLB must use maximum 2K embedded PBR textures: " +
+                            map.name + " " + map.width + "x" + map.height);
+                    if (map.mipmapCount <= 1)
+                        throw new InvalidOperationException(
+                            "VIP GLB imported without mipmaps. Recheck glTFast texture import: " + map.name);
+                }
+            }
+        if (seen == 0)
+            throw new InvalidOperationException(
+                "VIP GLB imported but no PBR texture is bound to a mesh renderer");
+    }
+
     static void Place(Transform root, GameObject source, float x, float z, float cx, float cz, string label)
     {
         var spot = new GameObject(label).transform;
@@ -74,6 +103,7 @@ public static class BraxChampionsVIPSeats
                 " is not imported; existing VIP seats remain temporarily. Judge seats unchanged.");
             return 0;
         }
+        VerifyImportedTextures(source);
         // Existing reserved positions near jury/commentator area:
         // two rows behind cage-side service desks; one 6m central aisle stays open.
         // Four places per side per row; seat spacing 1.45m, row spacing 1.75m.
