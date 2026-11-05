@@ -177,6 +177,9 @@ jobs:
           printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
           python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
           python3 unity-tools/mistrzowie/apk_delivery.py preflight
+          # Identity from the signed, delivered Champions #14 APK. Fatal only
+          # on incompatible Android package/certificate/version, not aesthetics.
+          python3 unity-tools/mistrzowie/verify_previous_apk.py
       - name: C# syntax and local scopes before Unity (CS0136 regression)
         run: |
           python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
