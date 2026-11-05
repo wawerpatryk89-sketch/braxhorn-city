@@ -1,5 +1,6 @@
 name: Obóz BRAXHORN — jednorazowy preflight przed Unity (bez APK)
 # Jednorazowe, świadomie zlecone przez właściciela sprawdzenie obozu.
+# 06.11: ponowna kontrola kodu po naprawie CS1069 (Android JNI), BEZ Unity i APK.
 # Push-trigger ograniczony dokładnie do tego pliku i tej jednej gałęzi.
 on:
   push:
