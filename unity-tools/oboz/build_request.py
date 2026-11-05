@@ -10,7 +10,8 @@ import subprocess
 def validate(request, previous, *, event, ref, before_sha, parent_sha, private_sha,
              manual_first_install=False):
     original = ref == 'refs/heads/gpt/oboz'
-    review_branch = ref == 'refs/heads/codex/oboz-realny-kompaktowy-20261105'
+    review_branch = ref in ('refs/heads/codex/oboz-realny-kompaktowy-20261105',
+                            'refs/heads/codex/oboz-przebudowa-pbr-20261105')
     # Single owner-authorized one-off CI launch; never enabled on the source branch.
     one_off_push = ref == 'refs/heads/run/oboz-apk-20261105-0650' and event == 'push'
     if event not in ('push', 'workflow_dispatch') or not (original or review_branch and event == 'workflow_dispatch' or one_off_push):
