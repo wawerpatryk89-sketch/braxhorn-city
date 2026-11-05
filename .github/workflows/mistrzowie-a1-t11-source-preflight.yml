@@ -32,6 +32,10 @@ jobs:
             unity-tools/updates
             unity-tools/claude
             public/assets/cars-src/car_rev.glb
+            public/assets/chars/brax.glb.gz
+            public/assets/tex/brax_color.webp
+            public/assets/tex/brax_normal.webp
+            public/assets/tex/brax_orm.webp
       - name: Install offline parsing and unit test dependencies
         run: |
           python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
