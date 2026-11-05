@@ -80,11 +80,13 @@ class ContentUpdateContract(unittest.TestCase):
         self.assertIn("no APK",stage)
         self.assertIn("BraxContentPicker.jar",stage)
 
-    def test_legacy_standalone_workflow_explicitly_blocked_on_update_branch(self):
+    def test_legacy_standalone_job_skips_update_branch_without_runner(self):
         workflow=load(".github/workflows/oboz-unity-build.yml")
-        self.assertIn("Blokada osobnego APK na gałęzi aktualizacji obozu",workflow)
-        self.assertIn("exit 1",workflow)
-        self.assertIn("com.braxhorn.oboz",workflow)
+        for line in workflow.splitlines():
+            if line.lstrip().startswith("if: github.ref =="):
+                self.assertNotIn("codex/oboz-przebudowa-pbr-20261105",line)
+        self.assertIn("Use oboz-content-base.yml or oboz-content-update.yml",workflow)
+        self.assertIn("buildMethod: BraxObozBuild.BuildAndroidReview",workflow)
 
     def test_bunker_not_brought_back_by_update_integration(self):
         env=load("unity-city/Assets/Editor/Oboz/BraxObozEnvironment.cs")
