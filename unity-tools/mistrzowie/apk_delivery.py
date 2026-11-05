@@ -129,6 +129,7 @@ def signing_smoke_preflight(expected_cert):
         manifest = work / "AndroidManifest.xml"
         unsigned = work / "preflight-unsigned.apk"
         signed = work / "preflight-signed.apk"
+        resigned = work / "preflight-resigned.apk"
         manifest.write_text(
             '<manifest xmlns:android="http://schemas.android.com/apk/res/android" '
             'package="com.braxhorn.preflight" android:versionCode="1" android:versionName="1.0">'
@@ -148,7 +149,17 @@ def signing_smoke_preflight(expected_cert):
               + " actual_signers=" + (",".join(actual) or "NONE"))
         if actual != [expected_cert]:
             raise RuntimeError("Real apksigner smoke certificate mismatch before Unity build")
-        identity = parse_identity(command(aapt, "dump", "badging", str(signed)))
+        # Production stage re-signs an already packaged APK. Exercise that
+        # exact operation now using only the existing keystore as well.
+        command(apksigner, "sign", "--ks", str(keystore), "--ks-key-alias", "braxhorn",
+                "--ks-pass", "file:" + str(password), "--min-sdk-version", "24",
+                "--out", str(resigned), str(signed))
+        actual_resigned = signer_fingerprints(resigned)
+        print("BRAX_MISTRZOWIE_RE_SIGN_SMOKE expected_cert=" + expected_cert
+              + " actual_signers=" + (",".join(actual_resigned) or "NONE"))
+        if actual_resigned != [expected_cert]:
+            raise RuntimeError("Real apksigner re-sign certificate mismatch before Unity build")
+        identity = parse_identity(command(aapt, "dump", "badging", str(resigned)))
         if identity != ("com.braxhorn.preflight", 1):
             raise RuntimeError("Real apksigner smoke changed APK identity")
         return actual[0]
