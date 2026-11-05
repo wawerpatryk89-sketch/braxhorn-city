@@ -1,0 +1,38 @@
+name: Miasto Mistrzów A1+T11 — REALNY test scen Unity 6 (BEZ APK)
+run-name: A1+T11 — Unity 6.0.85f2 — realny test scen BEZ APK
+
+# Explicit user request, Nov 5: run Unity 6 scene generation/import
+# BEFORE any real Android APK build. This event is narrowly scoped to the
+# creation of THIS workflow only. Commits to game source do not re-run it.
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-unity6-smoke.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: mistrzowie-unity6-real-scenes-only
+  cancel-in-progress: false
+
+jobs:
+  unity6-validate-scenes-only:
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    # Reuse the exact same importer, pinned Unity 6.0.85f2 image, Android
+    # content material preparation, encrypted Library cache and A1/T11 branch
+    # as the existing production pipeline, but select ValidateScenes.
+    uses: ./.github/workflows/mistrzowie-apk.yml
+    with:
+      etap: sceny
+      kontrola_tras: false
+      zdjecia: false
+      recovery_run: ''
+      base_id: ''
+      commit: gpt/miasto-mistrzow-kasyno-t11-20261105
+      arena_assets_tag: champions-a1-20261105
+    secrets: inherit
