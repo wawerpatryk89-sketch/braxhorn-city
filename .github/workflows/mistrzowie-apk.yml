@@ -18,7 +18,7 @@ on:
       etap:
         description: 'apk = kompilacja APK; sceny = kontrola scen w Unity bez APK i bundles (też trwa)'
         type: choice
-        options: [apk, sceny]
+        options: [apk, sceny, aktualizacja]
         default: apk
       zdjecia:
         description: 'Opcjonalny dodatkowy player Linux i zdjęcia po dostarczeniu APK; wydłuża build'
@@ -30,6 +30,11 @@ on:
         type: string
         required: false
         default: ''
+      base_id:
+        description: 'Tylko dla etap=aktualizacja: identyfikator bazy mistrzowie-32hex z raportu pierwszego APK'
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: write
   actions: read
@@ -38,7 +43,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   exploration-apk:
-    if: ${{ inputs.recovery_run == '' }}
+    if: ${{ inputs.recovery_run == '' && inputs.etap != 'aktualizacja' }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     env:
@@ -444,3 +449,87 @@ jobs:
         run: |
           export APK_RELEASE_TAG="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
           python3 unity-tools/mistrzowie/apk_delivery.py verify
+
+  champions-content-update:
+    # A new APK is forbidden here. Save/load the signed base's original scene
+    # and Addressables state; changed assets only. Source C# changes are rejected.
+    if: ${{ inputs.recovery_run == '' && inputs.etap == 'aktualizacja' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    permissions:
+      contents: write
+      actions: read
+    env:
+      MISTRZOWIE_PIPELINE: "20261105"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets
+            unity-city/Packages
+            unity-city/ProjectSettings
+            unity-city/content-patch.json
+            unity-tools/updates
+            unity-tools/mistrzowie
+            unity-tools/validation
+      - name: Require exact immutable published Miasto Mistrzów base ID
+        id: content_request
+        env:
+          CHAMPIONS_BASE_ID: ${{ inputs.base_id }}
+        run: |
+          python3 - <<'PY'
+          import os,re
+          base=os.environ['CHAMPIONS_BASE_ID'].strip()
+          if not re.fullmatch(r'mistrzowie-[a-f0-9]{32}',base):
+              raise SystemExit('Wymagany base_id mistrzowie-32hex z poprzedniego bazowego APK')
+          if not os.path.isfile('unity-city/content-patch.json'):
+              raise SystemExit('Missing explicit cumulative content-patch.json')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              f.write('base='+base+'\n')
+          PY
+      - name: Restore immutable encrypted authoring scene and Addressables state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          BASE_ID: ${{ steps.content_request.outputs.base }}
+        run: |
+          python3 unity-tools/updates/content_snapshot.py restore-base --base "$BASE_ID"
+          test -s unity-city/BraxContentBuild/base/addressables_content_state.bin
+          test -s unity-city/BraxContentBuild/base/scene-guids.txt
+          test -s unity-city/Assets/Resources/BraxContentBase.json
+      - name: Rebuild deterministic Android update picker and preserve runtime fingerprint
+        run: |
+          sudo docker image prune --all --force
+          docker run --rm --entrypoint bash -v "$PWD:/project" \
+            unityci/editor:ubuntu-6000.0.85f2-android-3.2.2 \
+            /project/unity-tools/mistrzowie/build_content_picker.sh
+      - name: Cheap validation before Unity
+        run: |
+          python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: Build changed Addressables bundles ONLY - never Android APK
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.85f2
+          customImage: unityci/editor:ubuntu-6000.0.85f2-android-3.2.2
+          targetPlatform: Android
+          buildMethod: BraxContentBuild.UpdateFromBaseline
+          versioning: None
+          allowDirtyBuild: true
+      - name: Publish verified cumulative .braxupdate.zip to private base draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          BASE_ID: ${{ steps.content_request.outputs.base }}
+        run: |
+          test "$(find unity-city/BraxContentBuild -maxdepth 1 -name 'mistrzowie-*.braxupdate.zip' -type f | wc -l)" -eq 1
+          python3 unity-tools/updates/content_snapshot.py publish-update --base "$BASE_ID"
+          echo '### Miasto Mistrzów — gotowa prywatna paczka .braxupdate.zip (bez budowania APK)' >> "$GITHUB_STEP_SUMMARY"
