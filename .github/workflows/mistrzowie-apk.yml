@@ -12,9 +12,9 @@ on:
         required: false
         default: ''
       kontrola_tras:
-        description: 'Sprawdzaj przejścia metra i areny. Wyłącz tylko dla diagnostycznej próby APK.'
+        description: 'Opcjonalna dłuższa kontrola przejść metra i areny; kolizje fizyczne zawsze zostają.'
         type: boolean
-        default: true
+        default: false
       etap:
         description: 'apk = kompilacja APK; sceny = kontrola scen w Unity bez APK i bundles (też trwa)'
         type: choice
