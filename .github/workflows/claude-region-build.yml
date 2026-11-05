@@ -1,5 +1,11 @@
 name: Claude - region R1 na gotowo (TEST, bez publikacji)
 'on':
+  # Jednorazowy retry APK przy zatwierdzonej zmianie workflow. Zwykle pushe bez zmian workflow nie startują buildu.
+  push:
+    branches:
+      - codex/miasto-metro-apk-kontrola-20261105
+    paths:
+      - .github/workflows/claude-region-build.yml
   workflow_dispatch:
     inputs:
       rejon:
@@ -26,7 +32,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   source-imports:
-    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'))
+    if: (github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'))) || (github.event_name == 'push' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -49,7 +55,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'))
+    if: (github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'))) || (github.event_name == 'push' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -445,7 +451,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'))
+    if: (github.event_name == 'workflow_dispatch' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && ((github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/city62-report-permissions-20261104') || ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'))) || (github.event_name == 'push' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105')
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -622,7 +628,7 @@ jobs:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/wyspa/prepare_fighters.py
     - name: SOBCZAK i WAWER — wymus komplet oryginalnych szyldow i sprzet kawiarni przed Unity 6
-      if: (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'
+      if: ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch') || (github.event_name == 'push' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105')
       run: |
         set -euo pipefail
         python3 unity-tools/claude/check_signage.py
@@ -631,13 +637,13 @@ jobs:
         echo "SOBCZAK KAWIARNIA: sprawdzenie sprzetu i oryginalnych szyldow PASS"
 
     - name: Testy kontrolne miasta — raport ostrzeżeń (nie blokują APK)
-      if: (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'
+      if: ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch') || (github.event_name == 'push' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105')
       continue-on-error: true
       run: |
         set -euo pipefail
         python3 -m unittest discover -s unity-tools/claude -p 'test_check_*.py' -q
     - name: Sprawdź wymagane pliki źródłowe miasta (brak plików nadal blokuje APK)
-      if: (github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch'
+      if: ((github.ref == 'refs/heads/codex/miasto-naprawy-filmow-20261104' || github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105') && github.event_name == 'workflow_dispatch') || (github.event_name == 'push' && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/codex/miasto-metro-apk-kontrola-20261105')
       run: |
         set -euo pipefail
         python3 unity-tools/claude/check_city_assets.py
@@ -656,7 +662,7 @@ jobs:
     - name: Rejon buildu i klucz pamieci rejonu (PO wszystkich krokach przygotowujacych zasoby, PRZED Unity)
       id: rejon
       env:
-        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
+        WEJSCIE_REJON: ${{ github.event.inputs.rejon || 'miasto' }}
         WEJSCIE_PAMIEC: ${{ github.event.inputs.pamiec }}
         PAMIEC_REJONOW: osiedle miasto
       run: |
