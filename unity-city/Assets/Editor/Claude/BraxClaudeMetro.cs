@@ -1409,6 +1409,28 @@ public static class BraxClaudeMetro
             b = Granice(w, null);
             bp = Granice(w, pudlo);
             if (bp.size.sqrMagnitude < 1e-6f) bp = b;
+            // #94: po importowym przygotowaniu GLB wagon przekraczał krawędź
+            // peronu północnego o ~0.10 m (min z=34.08, próg z=34.18).
+            // Minimalnie ustaw cały wagon bliżej osi północnego toru,
+            // zachowując oryginalną skalę, pudło, koła i kolizję.
+            // Nigdy nie przesuwaj go przez przeciwległą ścianę tunelu.
+            float peronBezpiecznyZ = zPN + .03f;
+            if (b.min.z < peronBezpiecznyZ)
+            {
+                float przesuniecie = peronBezpiecznyZ - b.min.z;
+                if (b.max.z + przesuniecie > zN - .10f)
+                    throw new InvalidOperationException("BRAXHORN_METRO_M1_SKRAJNIA_SZEROKOSC_NIEGOTOWA: wagon "
+                        + i + " z=" + b.min.z.ToString("F2") + "…" + b.max.z.ToString("F2")
+                        + ", wymagane przesunięcie=" + przesuniecie.ToString("F2"));
+                w.transform.position += Vector3.forward * przesuniecie;
+                b = Granice(w, null);
+                bp = Granice(w, pudlo);
+                if (bp.size.sqrMagnitude < 1e-6f) bp = b;
+                Debug.Log("BRAXHORN_METRO_M1_KOREKTA_Z wagon=" + i
+                    + " przesuniecie_m=" + przesuniecie.ToString("F3")
+                    + " min_z=" + b.min.z.ToString("F3")
+                    + " max_z=" + b.max.z.ToString("F3"));
+            }
             var kol = new GameObject("M1: kolizja ruchomego wagonu " + (101 + i)).AddComponent<BoxCollider>();
             kol.transform.SetParent(sklad, false);
             kol.transform.position = b.center;
