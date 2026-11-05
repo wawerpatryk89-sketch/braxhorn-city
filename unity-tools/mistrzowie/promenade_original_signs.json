@@ -1,6 +1,6 @@
 {
   "schema": "BRAXHORN_CHAMPIONS_PROMENADE_ORIGINAL_SIGN_BINDINGS_V1",
-  "instruction": "Only verified unchanged original owner PNGs; NULL means NO matching artwork approved. No generated substitutes, recoloring, or re-lettering.",
+  "instruction": "Nowe K1-K12 promenady nie sa starymi K1-K12 kawiarni. Zadne generowane grafiki i zaden bledny odpowiednik. Przed Unity tylko 12 nowych, zweryfikowanych, zatwierdzonych oryginalow 2048x512.",
   "source_archive": "MIASTO_MISTRZOW_SZYLDY_148_I_MURALE_3.zip",
   "source_inner_zip_checksums": {
     "MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip": "fcce54bdf976c343fbbeffde614f385f8ef82f5819c64f70dac84c73b105efce",
@@ -10,9 +10,8 @@
     {
       "id": "K1",
       "required": "CAFÉ / KAWIARNIA",
-      "owner_path": "Assets/Source/Mistrzowie/CitySigns/02_LOKALE/C01_KAWIARNIA_KAWIARNIA.png",
-      "sha256": "4b3a3d35514d7cf2f0b5bba322431a205daaba2d894a726b360aa412518f2848",
-      "note": "Owner's already-supplied C01 KAWIARNIA artwork; original pixels unchanged; one matching service."
+      "owner_path": null,
+      "sha256": null
     },
     {
       "id": "K2",
@@ -78,8 +77,7 @@
       "id": "K12",
       "required": "INFORMACJA / TOUR",
       "owner_path": null,
-      "sha256": null,
-      "note": "MARINA_INFO_INFORMACJA is not an exact TOUR sign; do not assign without owner confirmation."
+      "sha256": null
     }
   ]
 }
