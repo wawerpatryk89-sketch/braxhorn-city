@@ -27,6 +27,14 @@ public sealed class BraxObozImport : AssetPostprocessor
     }
     void OnPreprocessTexture()
     {
+        // Generated, verified pilot PBR packs are linear data textures; never
+        // run the private GLB/character importer over these new outputs.
+        if (assetPath.StartsWith("Assets/PlayableGenerated/Oboz/PackedPbr/", StringComparison.Ordinal))
+        {
+            if (assetImporter is TextureImporter packed)
+                BraxObozPbrPack.ConfigureImporter(packed);
+            return;
+        }
         // Public PBR maps need the same explicit 2D shape on the first import
         // and after restoring old metadata. Do not rely on inferred defaults.
         if (assetPath.StartsWith("Assets/Source/Public/Oboz/", StringComparison.Ordinal))
@@ -64,6 +72,9 @@ public sealed class BraxObozImport : AssetPostprocessor
         a.format = billboard ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
         a.compressionQuality = 90;
         t.SetPlatformTextureSettings(a);
+        // Imported character/ordinary PBR maps retain 4K near the player;
+        // eligible 4K originals stream only one mip level at distance.
+        BraxObozMaterials.ConfigureStreaming(t, assetPath);
     }
 }
 
