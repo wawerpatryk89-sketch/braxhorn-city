@@ -68,7 +68,7 @@ public static class BraxObozBuild
             // Explicit scene list; build never falls back to a city or estate scene.
             started = DateTime.UtcNow;
             var built = BuildPipeline.BuildPlayer(new BuildPlayerOptions {
-                scenes = Scenes, target = BuildTarget.Android, locationPathName = apk, options = BuildOptions.None });
+                scenes = Scenes, target = BuildTarget.Android, locationPathName = apk, options = BuildOptions.CompressWithLz4 });
             receipt.buildSeconds = (DateTime.UtcNow - started).TotalSeconds;
             if (built.summary.result != BuildResult.Succeeded || !File.Exists(apk))
                 throw new InvalidOperationException("Build obozu nieudany: " + built.summary.result);
@@ -125,6 +125,19 @@ public static class BraxObozBuild
         EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.ASTC;
         EditorUserBuildSettings.overrideMaxTextureSize = 0;
         EditorUserBuildSettings.overrideTextureCompression = OverrideTextureCompression.NoOverride;
+        // OTOCZENIE: blisko maks. 2K, w oddali mniejsze mipmapy wg kamery.
+        // 256MB to punkt startowy do weryfikacji na docelowym Androidzie,
+        // nie deklaracja stalego zuzycia RAM/VRAM.
+        int previousQuality = QualitySettings.GetQualityLevel();
+        for (int i = 0; i < QualitySettings.names.Length; i++)
+        {
+            QualitySettings.SetQualityLevel(i, false);
+            QualitySettings.streamingMipmapsActive = true;
+            QualitySettings.streamingMipmapsMemoryBudget = 256;
+            QualitySettings.streamingMipmapsMaxLevelReduction = 3;
+            QualitySettings.streamingMipmapsAddAllCameras = true;
+        }
+        QualitySettings.SetQualityLevel(previousQuality, false);
         AssetDatabase.SaveAssets();
     }
     static void CreateStart()
