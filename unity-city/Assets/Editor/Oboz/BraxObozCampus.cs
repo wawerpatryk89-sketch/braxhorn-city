@@ -98,7 +98,7 @@ public static partial class BraxObozEnvironment
         }
         var mesh=new Mesh{name=name};
         mesh.vertices=vertices;mesh.uv=uv;mesh.triangles=triangles;
-        mesh.RecalculateNormals();mesh.RecalculateBounds();
+        mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
         mesh=SaveMesh(mesh);
         var go=Group(name,parent,Vector3.zero).gameObject;
         go.AddComponent<MeshFilter>().sharedMesh=mesh;
