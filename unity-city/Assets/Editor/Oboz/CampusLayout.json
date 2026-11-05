@@ -51,6 +51,13 @@
       "depth": 26
     },
     {
+      "id": "sanitary-wc",
+      "x": -92,
+      "z": -83,
+      "width": 15,
+      "depth": 13
+    },
+    {
       "id": "footpath",
       "x": 16,
       "z": -120,
@@ -163,6 +170,13 @@
       "z": -65,
       "width": 16,
       "depth": 14
+    },
+    {
+      "id": "sanitary-wc",
+      "x": -92,
+      "z": -83,
+      "width": 15,
+      "depth": 13
     },
     {
       "id": "showers",
