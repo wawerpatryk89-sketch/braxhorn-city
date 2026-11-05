@@ -158,11 +158,36 @@ jobs:
           python3 -m pip install --disable-pip-version-check Pillow==12.0.0
           python3 -m unittest discover -s unity-tools/oboz -p 'test_pbr_pack.py' -v
           python3 unity-tools/oboz/pbr_pack.py
-      - name: Zweryfikowane animacje ruchu Moniki
-        if: github.ref != 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+      # APK #18 restored the signed Idle/Walk/Run casual clips and owner's
+      # Walk/Run/Jump; APK #19 skipped this step only on the rebuild branch.
+      # CharacterManifest still references the original casual .anim files.
+      # Restore verified originals on EVERY camp branch, never disable checking.
+      - name: Przywroc animacje casual i Moniki (wymagane dla wszystkich 7 postaci)
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: python3 unity-tools/oboz/motion_candidates.py
+      - name: Sprawdz wszystkie klipy postaci PRZED uruchomieniem Unity
+        run: |
+          python3 - <<'PY_CLIPS'
+          import json
+          from pathlib import Path
+          root=Path('unity-city')
+          manifest=json.loads((root/'Assets/Editor/Oboz/CharacterManifest.json').read_text(encoding='utf-8'))
+          missing=[]
+          count=0
+          for person in manifest['characters']:
+              for clip in person.get('clips',[]):
+                  rel=clip.get('path','')
+                  p=root/rel if rel else root
+                  count+=1
+                  if not rel or not p.is_file() or p.stat().st_size==0:
+                      missing.append(person['id']+':'+clip.get('name','?')+' -> '+rel)
+          if missing:
+              for item in missing:
+                  print('::error::BRAXHORN_OBOZ_MISSING_ANIMATION '+item)
+              raise SystemExit(1)
+          print('BRAXHORN_OBOZ_ANIMATIONS_PREFLIGHT PASS characters='+str(len(manifest['characters']))+' clips='+str(count))
+          PY_CLIPS
       - name: Oryginalny autobus osiedla — kopia do zatoki obozu
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
