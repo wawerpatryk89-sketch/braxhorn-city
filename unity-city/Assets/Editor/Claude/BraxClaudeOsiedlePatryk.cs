@@ -126,15 +126,11 @@ public static partial class BraxClaudeOsiedle
             try
             {
                 tPoza = PatrykAwatarTPoza(wzor, avatar, model, out string opisTPozy);
-                string porownanie;
-                if (BraxBuildQuality.Advisory)
-                {
-                    awatarRuchu = tPoza ? tPoza : avatar;
-                    porownanie = "tryb ręcznej oceny — pomiar nóg i wybór na podstawie testów WYŁĄCZONY";
-                }
-                else
-                    awatarRuchu = PatrykWybierzAwatar(hero, avatar, tPoza, hips, kosci, spoczynek, out porownanie);
-                Debug.Log("BRAXHORN_PATRYK_RETARGET " + opisTPozy + " | " + porownanie);
+                // Avatar Humanoid pozostaje tylko dla ciosu, gardy i kopniecia
+                // z osobnej biblioteki. WLASNE sześć ruchow Patryka nie uzywa go.
+                awatarRuchu = tPoza ? tPoza : avatar;
+                Debug.Log("BRAXHORN_PATRYK_AVATAR_COMBAT " + opisTPozy +
+                    " | WLASNE SZESC RUCHOW = bez Humanoid, bez deformujacego retargetingu");
             }
             catch (Exception e)
             {
@@ -142,13 +138,16 @@ public static partial class BraxClaudeOsiedle
                 if (tPoza) { Object.DestroyImmediate(tPoza); tPoza = null; }
             }
             PatrykSpoczynek(spoczynek);
+            PatrykPrzygotujWlasneRuchy();
             foreach (var k in KlipyPatryka)
             {
                 AnimationClip gotowy = null;
-                if (k.nazwa == "Walk" || k.nazwa == "Run")
+                // Wszystkie szesc ruchow z archiwum "Patryk anima(2).zip" jest
+                // przypisanych po nazwach kosci bez dodatkowego retargetingu.
+                if (k.zrodla.Any(z => z.StartsWith("patryk_owner/", StringComparison.Ordinal)))
                 {
-                    gotowy = PatrykWybierzLokomocje(hero, avatar, tPoza, hips, kosci, spoczynek, k, out string wybor);
-                    opis.Add(wybor);
+                    gotowy = PatrykWlasnyFBX(hero, kosci, spoczynek, k, out string bezRetargetu);
+                    opis.Add(bezRetargetu);
                 }
                 else foreach (var z in k.zrodla)
                 {
