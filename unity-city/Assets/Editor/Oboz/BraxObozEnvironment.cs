@@ -86,6 +86,7 @@ public static partial class BraxObozEnvironment
             root = Group("Obóz Misia — odbudowa robocza, wymagany odbiór", null, Vector3.zero);
             var info = root.gameObject.AddComponent<BraxObozSceneInfo>();
             CampusMaterials(); Terrain(); Paths();
+            RunningTracks(); // profesjonalny czerwony owal i osobna bieznia 100 m
             // Main R3 anchors remain unchanged. Additional cabins/service areas
             // are reconstructed placements; appearance has not been approved.
             Cabin("Domek 1", -94, -20, 90); Cabin("Domek 2", -94, -40, 90);
@@ -94,13 +95,15 @@ public static partial class BraxObozEnvironment
             // Owner rejected the imported city gym. Replace its entire instance,
             // interior, doors and collision source with camp training facilities.
             TrainingCampus();
+            CoveredStrengthGym(); // wolne ciezary i silownia pod dachem
             // Total: four pavilion + eight roofed outdoor + twelve open = 24.
             Bags(-23, -40, true,4); Bags(23, -40, false,6);
             ServiceBuildings();
             CampusArrival();
             BraxObozParkedBus.Add(root);
             CampusPerimeter();
-            Bridge(72, -78); Bridge(72, 76);
+            // Strumien lezy ZA ogrodzeniem jako naturalne tlo.
+            // Nie stawiamy fikcyjnych mostow wewnatrz zamknietego obozu.
             // The source bunker is retained without changing its mesh, origins
             // or doors. Entrance/collider conversion remains a separate audit.
             SourceBunker(-75, 89);
@@ -109,7 +112,8 @@ public static partial class BraxObozEnvironment
             foreach (var a in new[] { ("Fort 3 na 3",88f,95f), ("Chata leśniczego i sklep",-78f,-95f), ("Tartak",100f,-85f), ("Kojce",39f,-94f), ("Bunkier bramy",-24f,-127f) })
                 Group(a.Item1, anchors, P(a.Item2, 0, a.Item3));
             var light = new GameObject("Popołudniowe słońce").AddComponent<Light>(); light.type = LightType.Directional;
-            light.transform.rotation = Quaternion.Euler(25, -35, 0); light.color = new Color(1, .886f, .69f); light.intensity = 1.1f;
+            light.transform.rotation = Quaternion.Euler(34, -35, 0);
+            light.color = new Color(1f, .975f, .94f); light.intensity = .93f; // neutralna skora Moniki, bez zoltego plastiku
             light.shadows = LightShadows.Soft; RenderSettings.sun = light;
             RenderSettings.fog = true; RenderSettings.fogMode = FogMode.ExponentialSquared; RenderSettings.fogDensity = .003f;
             RenderSettings.fogColor = new Color(.34f, .46f, .43f);
@@ -125,12 +129,12 @@ public static partial class BraxObozEnvironment
     static void Terrain()
     {
         var paths = PathRectangles();
-        const int n = 140; var vertices = new Vector3[(n + 1) * (n + 1)]; var uv = new Vector2[vertices.Length]; var tris = new int[n * n * 6];
+        const int n = 112; var vertices = new Vector3[(n + 1) * (n + 1)]; var uv = new Vector2[vertices.Length]; var tris = new int[n * n * 6];
         var colors = new Color[vertices.Length];
         for (int z = 0; z <= n; z++) for (int x = 0; x <= n; x++)
         {
-            float px = -210 + 420f * x / n, pz = -210 + 420f * z / n;
-            float channel = Mathf.Abs(px - 72); float y = channel < 3.5f ? -.9f : channel < 5.5f ? Mathf.Lerp(-.9f, 0, (channel - 3.5f) / 2) : 0;
+            float px = -140 + 280f * x / n, pz = -140 + 280f * z / n;
+            float channel = Mathf.Abs(px - 135); // naturalny strumien poza wschodnim ogrodzeniem float y = channel < 3.5f ? -.9f : channel < 5.5f ? Mathf.Lerp(-.9f, 0, (channel - 3.5f) / 2) : 0;
             int i = z * (n + 1) + x; vertices[i] = P(px, y, pz); uv[i] = new Vector2(px * K / 3, pz * K / 3);
             float distance = float.PositiveInfinity;
             foreach (var path in paths)
@@ -150,17 +154,17 @@ public static partial class BraxObozEnvironment
             colors[i] = new Color(Mathf.Max(shoulder,bank),lawn,0,1);
             if (x < n && z < n) { int t = (z * n + x) * 6; int j = i + n + 1; tris[t] = i; tris[t + 1] = j; tris[t + 2] = i + 1; tris[t + 3] = i + 1; tris[t + 4] = j; tris[t + 5] = j + 1; }
         }
-        var mesh = new Mesh { name = "Teren 420 m; pas strumienia" }; mesh.vertices = vertices; mesh.uv = uv; mesh.colors = colors; mesh.triangles = tris; mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
+        var mesh = new Mesh { name = "Teren kompaktowy 280 x 280 m; strumien zewnetrzny" }; mesh.vertices = vertices; mesh.uv = uv; mesh.colors = colors; mesh.triangles = tris; mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
         mesh = SaveMesh(mesh);
         var g = Group("Podłoże — trawnik, ściółka i żwirowe przejścia", root, Vector3.zero).gameObject;
         g.AddComponent<MeshFilter>().sharedMesh = mesh; g.AddComponent<MeshRenderer>().sharedMaterial = BraxObozMaterials.CampGround(ground,gravel); g.AddComponent<MeshCollider>().sharedMesh = mesh;
         // Short sections allow transparent sorting/culling along the stream.
         var water=BraxObozMaterials.Stream();
-        for(int section=0;section<21;section++)
+        for(int section=0;section<14;section++)
         {
-            float z=-210+section*20;
+            float z=-140+section*20;
             var surface=new Mesh{name="Odcinek strumienia"};
-            surface.vertices=new[]{P(69,-.41f,z),P(69,-.41f,z+20),P(75,-.41f,z),P(75,-.41f,z+20)};
+            surface.vertices=new[]{P(132,-.41f,z),P(132,-.41f,z+20),P(138,-.41f,z),P(138,-.41f,z+20)};
             surface.uv=new[]{Vector2.zero,Vector2.up*20,Vector2.right*6,new Vector2(6,20)};
             surface.triangles=new[]{0,1,2,2,1,3};surface.RecalculateNormals();surface.RecalculateTangents();surface.RecalculateBounds();
             var stream=Group("Strumień — płynąca tafla",root,Vector3.zero).gameObject;
@@ -179,7 +183,7 @@ public static partial class BraxObozEnvironment
     internal static List<Rect> PathRectangles()
     {
         var paths = new List<Rect> {
-            new Rect(-1.2f,-150,2.4f,300), new Rect(-101,-56.0f,101,2),
+            new Rect(-1.2f,-125,2.4f,240), new Rect(-101,-56.0f,101,2),
             new Rect(-101,-55,2,42), new Rect(-64,-55,2,42),
             new Rect(-123,-75,123,2), new Rect(-50,-100,50,2),
             new Rect(-75,75,145,2), new Rect(0,-79,70,2)
