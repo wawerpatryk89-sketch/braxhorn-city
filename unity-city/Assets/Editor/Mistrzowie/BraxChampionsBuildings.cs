@@ -68,7 +68,11 @@ public static class BraxChampionsBuildings
             }
             // Save local-space reusable prefab, then restore the approved world plot position.
             var at=root.position;root.position=Vector3.zero;
-            if(b.id=="A1")BraxChampionsArena.Generate(root);
+            if(b.id=="A1")
+            {
+                BraxChampionsArena.Generate(root);
+                BraxChampionsArenaArrival.Generate(root, materials);
+            }
             var prefab=PrefabUtility.SaveAsPrefabAssetAndConnect(root.gameObject,Out+"/Prefabs/"+b.id+"_Exterior.prefab",InteractionMode.AutomatedAction);
             root.position=at;if(!prefab)throw new IOException("Exterior prefab save failed: "+b.id);
         }
@@ -97,10 +101,13 @@ public static class BraxChampionsBuildings
         var roof=BraxChampionsFoundation.LibraryMetal("exterior_roof",new Color(.30f,.32f,.34f));
         var teak=BraxChampionsFoundation.SourceMaterial("exterior_teak","teak_veneer",1.8f,Color.white);
         var tile=BraxChampionsFoundation.SourceMaterial("pool_tile","granite_tile",.4f,new Color(.75f,.85f,.84f));
-        var glass=Surface("facade_glass",new Color(.30f,.37f,.42f),.10f,.85f);glass.SetFloat("_ReflectionStrength",.95f);
-        var clear=Surface("clear_glass",new Color(.08f,.13f,.17f,.36f),.08f,.05f);
-        clear.SetFloat("_Transparent",1);clear.SetFloat("_SrcBlend",(float)BlendMode.One);clear.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
-        clear.SetFloat("_ZWrite",0);clear.SetFloat("_Cull",0);clear.renderQueue=3000;clear.SetOverrideTag("RenderType","Transparent");
+        // The shader preserves alpha only with _Transparent=1 and SrcAlpha blending.
+        // The old facade_glass was OPAQUE: its dark RGB looked like black plastic from outside.
+        // Use transparent dielectrics (metallic 0) with modest tint: no fake black mirror panels.
+        var glass=Surface("facade_glass",new Color(.69f,.81f,.88f,.34f),.075f,0f);
+        ConfigureGlass(glass);
+        var clear=Surface("clear_glass",new Color(.78f,.88f,.93f,.19f),.065f,0f);
+        ConfigureGlass(clear);
         var spandrel=Surface("spandrel",new Color(.07f,.10f,.13f),.32f,.55f);
         var ivory=Surface("ivory",new Color(.91f,.88f,.80f),.7f,0);
         var light=Surface("light",new Color(.91f,.78f,.52f),.4f,0);light.SetColor("_EmissionColor",new Color(.45f,.31f,.14f));
@@ -113,6 +120,16 @@ public static class BraxChampionsBuildings
         return new Dictionary<string,Material>{{"stone",stone},{"dark_stone",dark},{"bronze",bronze},{"steel",steel},{"roof",roof},
             {"teak",teak},{"pool_tile",tile},{"pool_water",water},{"facade_glass",glass},{"clear_glass",clear},{"spandrel",spandrel},
             {"ivory",ivory},{"gold",gold},{"dark",bronze},{"accent",gold},{"light",light}};
+    }
+    static void ConfigureGlass(Material m)
+    {
+        m.SetFloat("_Transparent",1);
+        m.SetFloat("_SrcBlend",(float)BlendMode.SrcAlpha);
+        m.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
+        m.SetFloat("_ZWrite",0);
+        m.SetFloat("_Cull",2);
+        m.renderQueue=3000;
+        m.SetOverrideTag("RenderType","Transparent");
     }
     static Material Surface(string id,Color color,float roughness,float metallic)
     {
