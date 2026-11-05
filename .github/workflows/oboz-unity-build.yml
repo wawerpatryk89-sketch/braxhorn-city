@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   android-oboz:
-    if: github.ref == 'refs/heads/gpt/oboz'
+    if: github.ref == 'refs/heads/gpt/oboz' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-realny-kompaktowy-20261105')
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     env:
