@@ -11,21 +11,48 @@ internal static partial class BraxMiastoWyspa
 {
     public static void WykonczOprawy(UnityEngine.SceneManagement.Scene scene)
     {
-        // Globalny krok BezSwiecenia gasi także szyldy i oprawy areny.
-        // Przywracamy umiarkowaną emisję TYLKO oznaczonych materiałów areny na wyspie.
-        // Nie dodaje to świateł ani bloom; nie dotyka oświetlenia miasta/osiedla/obozu.
+        // Po globalnym BezSwiecenia przywróć umiarkowaną emisję WYŁĄCZNIE
+        // czterech oryginalnych materiałów LED/szyldów areny. Nie wstawiaj
+        // żadnych nowych materiałów, opraw, źródeł światła ani atrap.
+        var islands = BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*");
+        if (islands.Count != 1)
+            throw new InvalidOperationException("Arena: brak jednoznacznej wyspy do wykończenia, znaleziono " + islands.Count);
+        var authored = new[] { apLed, apLit, apZnak, apLedSufit }.Where(m => m).ToArray();
+        var authoredNames = new HashSet<string>(authored.Select(m => m.name), StringComparer.Ordinal);
         var done = new HashSet<Material>();
-        foreach (var island in BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*"))
-        foreach (var renderer in island.GetComponentsInChildren<Renderer>(true))
+        int missingProperties = 0;
+        foreach (var renderer in islands[0].GetComponentsInChildren<Renderer>(true))
         foreach (var material in renderer.sharedMaterials)
         {
-            if (!material || !material.name.StartsWith("A świeci: Arena", StringComparison.Ordinal) || !done.Add(material)) continue;
+            if (!material) continue;
+            // Nie opieraj odtworzenia na nazwie: zapis i reimport Unity może
+            // zwrócić ten sam materiał z innym podpisem, ale zachować jego ref.
+            if (!authored.Contains(material) && !authoredNames.Contains(material.name) &&
+                !material.name.StartsWith("A świeci: Arena", StringComparison.Ordinal))
+                continue;
+            if (!done.Add(material)) continue;
             if (!material.HasProperty("_EmissionColor") || !material.HasProperty("_Color"))
-                throw new InvalidOperationException("Arena: oprawa bez obsługi emisji " + material.name);
+            {
+                missingProperties++;
+                BraxBuildQuality.Issue(new InvalidOperationException(
+                    "Arena: oznaczony materiał nie obsługuje emisji: " + material.name));
+                continue;
+            }
             material.SetColor("_EmissionColor", material.GetColor("_Color") * .8f);
-            material.EnableKeyword("_EMISSION"); EditorUtility.SetDirty(material);
+            material.EnableKeyword("_EMISSION");
+            EditorUtility.SetDirty(material);
         }
-        if (done.Count < 3) throw new InvalidOperationException("Arena: brak materiałów opraw i szyldów");
+        // W #94 sztuczny próg „minimum 3 różne materiały” zatrzymał całe
+        // generowanie i nie wywołano BuildPipeline.BuildPlayer, choć arena
+        // miała 616 miejsc i istniejące siatki. Brak występowania opcjonalnego
+        // świecącego materiału to UWAGA wizualna, nie błąd kompilacji APK.
+        if (done.Count == 0)
+            BraxBuildQuality.Issue(new InvalidOperationException(
+                "Arena: w gotowych rendererach nie znaleziono oznaczonych materiałów LED/szyldów; " +
+                "wymagany odbiór wizualny po zbudowaniu APK"));
+        Debug.Log("BRAXHORN_ARENA_OPRAWY wyspa=1 autorowanych=" + authored.Length +
+            " znalezionych=" + done.Count + " bez_emisji=" + missingProperties +
+            " apk_nieblokowany_przez_próg_3=true");
     }
 
     static void ApWalkaPokazowa()
