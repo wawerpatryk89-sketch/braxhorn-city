@@ -105,6 +105,157 @@ public static partial class BraxClaudeOsiedle
         else AssetDatabase.CreateAsset(clip, path);
     }
 
+    // Ruchy pochodzą z sześciu FBX dostarczonych razem z MODELEM Patryka.
+    // Nie wykonujemy ponownego HumanPoseHandler/Animator retargetingu — to on
+    // produkował wykręcone kolana przy chodzeniu w #93. Kopie są prywatne, lokalne
+    // dla generowania osiedla; nie zmieniamy oryginalnych importów i innych postaci.
+    static readonly string PatrykBezRetargetu = PrywatneZrodla + "/patryk_owner_direct";
+    static readonly string[] PatrykRuchyWlasne =
+    {
+        "Strut Walking.fbx", "Fast Run.fbx", "Jump.fbx",
+        "Entering Car.fbx", "Goalkeeper Diving Save.fbx", "Goalkeeper Catch.fbx"
+    };
+
+    static void PatrykPrzygotujWlasneRuchy()
+    {
+        System.IO.Directory.CreateDirectory(PatrykBezRetargetu);
+        foreach (string name in PatrykRuchyWlasne)
+        {
+            string src = PatrykRuchy + "/patryk_owner/" + name;
+            string dst = PatrykBezRetargetu + "/" + name;
+            if (!System.IO.File.Exists(src))
+                throw new InvalidOperationException("Brak przeslanej animacji Patryka: " + src);
+            bool inne = !System.IO.File.Exists(dst);
+            if (!inne)
+            {
+                using (var sha = System.Security.Cryptography.SHA256.Create())
+                using (var s = System.IO.File.OpenRead(src))
+                using (var d = System.IO.File.OpenRead(dst))
+                    inne = !sha.ComputeHash(s).SequenceEqual(sha.ComputeHash(d));
+            }
+            if (inne) System.IO.File.Copy(src, dst, true);
+        }
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        foreach (string name in PatrykRuchyWlasne)
+        {
+            string path = PatrykBezRetargetu + "/" + name;
+            var importer = AssetImporter.GetAtPath(path) as ModelImporter;
+            if (importer == null)
+                throw new InvalidOperationException("Nie mozna zaimportowac FBX Patryka: " + path);
+            if (importer.animationType != ModelImporterAnimationType.Legacy || !importer.importAnimation)
+            {
+                importer.animationType = ModelImporterAnimationType.Legacy;
+                importer.importAnimation = true;
+                importer.SaveAndReimport();
+            }
+        }
+        Debug.Log("BRAXHORN_PATRYK_WLASNE_RUCHY: szesc oryginalnych FBX w trybie Legacy, bez Humanoid retargetingu");
+    }
+
+    static AnimationClip PatrykWlasnyFBX(GameObject hero, List<Transform> kosci,
+        List<PatrykStan> spoczynek, PatrykKlip spec, out string opis)
+    {
+        string rel = spec.zrodla.FirstOrDefault(s => s.StartsWith("patryk_owner/", StringComparison.Ordinal));
+        if (rel == null)
+            throw new InvalidOperationException("Nie zdefiniowano animacji wlasciciela dla " + spec.nazwa);
+        string path = PatrykBezRetargetu + "/" + System.IO.Path.GetFileName(rel);
+        // Legacy zachowuje lokalne krzywe kosci. Zrodlo ma nazwy mixamorig
+        // zgodne 1:1 z modelem (65 kosci); podmieniamy tylko sciezki transformow.
+        var sources = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
+            .Where(c => c && !c.name.StartsWith("__preview__", StringComparison.Ordinal) && c.length > 0f)
+            .OrderByDescending(c => AnimationUtility.GetCurveBindings(c).Count(b => b.type == typeof(Transform)))
+            .ThenByDescending(c => c.length).ToArray();
+        var source = sources.FirstOrDefault();
+        if (!source)
+            throw new InvalidOperationException("Brak animacji Legacy FBX po imporcie: " + path);
+
+        var targets = kosci.GroupBy(t => PatrykKosc(t.name), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+        var rest = spoczynek.ToDictionary(s => s.t, s => s.p);
+        var bindings = AnimationUtility.GetCurveBindings(source);
+        var clip = new AnimationClip { name = spec.nazwa, legacy = true,
+            frameRate = source.frameRate > 0f ? source.frameRate : 30f,
+            wrapMode = spec.petla ? WrapMode.Loop : WrapMode.Once };
+        var mapped = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        int curves = 0;
+        try
+        {
+            foreach (var binding in bindings)
+            {
+                if (binding.type != typeof(Transform)) continue;
+                string field = binding.propertyName;
+                bool rotation = field.IndexOf("Rotation", StringComparison.OrdinalIgnoreCase) >= 0
+                    || field.IndexOf("Euler", StringComparison.OrdinalIgnoreCase) >= 0;
+                bool position = field.IndexOf("Position", StringComparison.OrdinalIgnoreCase) >= 0;
+                if (!rotation && !position) continue;
+                string[] fragments = (binding.path ?? "").Split('/');
+                string rawBone = fragments.Length == 0 || string.IsNullOrEmpty(fragments[fragments.Length - 1])
+                    ? "Hips" : fragments[fragments.Length - 1];
+                string bone = PatrykKosc(rawBone);
+                if (!targets.TryGetValue(bone, out Transform target))
+                    throw new InvalidOperationException("Nieznana kosc animacji FBX " + rawBone +
+                        ", klip=" + spec.nazwa + ", path=" + binding.path);
+                // Zrodlo w ruchu ma tylko oryginalna poze; inne materialy
+                // i skale nie sa kopiowane ani modyfikowane.
+                if (position && !bone.Equals("Hips", StringComparison.OrdinalIgnoreCase))
+                    continue;
+                var curve = AnimationUtility.GetEditorCurve(source, binding);
+                if (curve == null) continue;
+                if (position)
+                {
+                    int dot = field.LastIndexOf('.');
+                    char axis = dot >= 0 && dot + 1 < field.Length ? char.ToLowerInvariant(field[dot + 1]) : ' ';
+                    int channel = axis == 'x' ? 0 : axis == 'y' ? 1 : axis == 'z' ? 2 : -1;
+                    if (channel < 0) continue;
+                    float original = rest[target][channel];
+                    if (spec.wMiejscu && axis != 'y')
+                    {
+                        // Gracza przesuwa CharacterController, nie transport bioder w pliku FBX.
+                        curve = AnimationCurve.Constant(0f, Mathf.Max(.01f, source.length), original);
+                    }
+                    else
+                    {
+                        float startValue = curve.Evaluate(0f);
+                        var keyframes = curve.keys;
+                        for (int i = 0; i < keyframes.Length; i++)
+                        {
+                            var key = keyframes[i];
+                            key.value += original - startValue;
+                            keyframes[i] = key;
+                        }
+                        curve = new AnimationCurve(keyframes) {
+                            preWrapMode = curve.preWrapMode, postWrapMode = curve.postWrapMode
+                        };
+                    }
+                }
+                var mappedBinding = binding;
+                mappedBinding.path = AnimationUtility.CalculateTransformPath(target, hero.transform);
+                AnimationUtility.SetEditorCurve(clip, mappedBinding, curve);
+                mapped.Add(bone);
+                curves++;
+            }
+            foreach (string required in new[] { "Hips", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg" })
+                if (!mapped.Contains(required))
+                    throw new InvalidOperationException("FBX " + spec.nazwa +
+                        " nie ma wymaganych krzywych kosci " + required);
+            if (mapped.Count < 25)
+                throw new InvalidOperationException("FBX " + spec.nazwa +
+                    " ma za malo zgodnych kosci: " + mapped.Count);
+            clip.EnsureQuaternionContinuity();
+            ZapiszKlipPatryka(clip);
+            clip = null;
+            opis = spec.nazwa + "←" + rel + " BEZ RETARGETINGU; kosci=" +
+                mapped.Count + " krzywe=" + curves;
+            Debug.Log("BRAXHORN_PATRYK_OWNER_DIRECT " + opis);
+            return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + spec.nazwa + ".anim");
+        }
+        finally
+        {
+            if (clip) Object.DestroyImmediate(clip);
+            PatrykSpoczynek(spoczynek);
+        }
+    }
+
     // Bake Unity's anatomical retargeting to the existing Legacy runtime. The avatar,
     // original hierarchy and bind matrices stay intact; no direction-only bone alignment.
     static AnimationClip PatrykHumanoid(GameObject hero, Avatar avatar, Transform hips,
