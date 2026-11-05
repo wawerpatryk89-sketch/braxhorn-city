@@ -127,15 +127,35 @@ jobs:
               echo "::error::Niepoprawny tag oryginalnych zasobow A1"
               exit 1
             fi
+            # The owner's already-published 20261105 release has the re-sent ZIP
+            # name. Both names contain the same SHA-256 pinned by the importer.
+            owner_pack=""
+            for candidate in ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip champions_arena_A1_unity_ready.zip; do
+              if gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
+                --pattern "$candidate" --dir "$RUNNER_TEMP" --clobber; then
+                owner_pack="$RUNNER_TEMP/$candidate"
+                break
+              fi
+            done
+            if [ -z "$owner_pack" ]; then
+              echo "::error::Arena A1 original models/signs ZIP missing in GitHub Release"
+              exit 1
+            fi
+            python3 unity-tools/mistrzowie/import_champion_assets.py "$owner_pack" --dry-run
+            python3 unity-tools/mistrzowie/import_champion_assets.py "$owner_pack"
+
+            # The THREE unaltered 1536x512 owner panoramas are a small ADD-ON
+            # to the very same release. Required before compiling the arena.
             gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-              --pattern champions_arena_A1_unity_ready.zip --dir "$RUNNER_TEMP" --clobber
-            python3 unity-tools/mistrzowie/import_champion_assets.py \
-              "$RUNNER_TEMP/champions_arena_A1_unity_ready.zip" --dry-run
-            python3 unity-tools/mistrzowie/import_champion_assets.py \
-              "$RUNNER_TEMP/champions_arena_A1_unity_ready.zip"
+              --pattern ARENA_A1_TRZY_MURALE_ORIGINALY.zip --dir "$RUNNER_TEMP" --clobber
+            python3 unity-tools/mistrzowie/import_arena_three_murals.py \
+              "$RUNNER_TEMP/ARENA_A1_TRZY_MURALE_ORIGINALY.zip" --dry-run
+            python3 unity-tools/mistrzowie/import_arena_three_murals.py \
+              "$RUNNER_TEMP/ARENA_A1_TRZY_MURALE_ORIGINALY.zip"
           fi
           python3 unity-tools/mistrzowie/verify_champion_assets.py
-          echo "CHAMPION_A1_ASSET_GATE PASS; required original sources verified"
+          python3 unity-tools/mistrzowie/verify_arena_three_murals.py
+          echo "CHAMPION_A1_ASSET_GATE PASS; original models, 4 signs, and all 3 murals verified"
 
       - name: Verify key and sign a real tiny APK before the expensive Unity build
         if: inputs.etap != 'sceny'
