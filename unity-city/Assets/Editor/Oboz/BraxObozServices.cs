@@ -37,7 +37,7 @@ public static class BraxObozServices
         glass.SetFloat("_Mode",3);glass.SetInt("_SrcBlend",(int)UnityEngine.Rendering.BlendMode.One);glass.SetInt("_DstBlend",(int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
         glass.SetInt("_ZWrite",0);glass.EnableKeyword("_ALPHAPREMULTIPLY_ON");glass.SetOverrideTag("RenderType","Transparent");glass.renderQueue=3000;mats["glass"]=glass;
         var lamp=BraxObozMaterials.Plain("zarowki",new Color(1,.7f,.32f));lamp.EnableKeyword("_EMISSION");lamp.SetColor("_EmissionColor",new Color(1,.7f,.32f)*2);mats["lamp"]=lamp;
-        foreach(var item in new[]{("canteen","Stołówka",-40f,-70f),("showers","Prysznice",-58f,-71f),("sauna","Sauna",-47f,-85f),("medical","Punkt medyczny",-25f,-85f),("storage","Magazyn",-25f,-67f)})
+        foreach(var item in new[]{("canteen","Stołówka",-40f,-70f),("sauna","Sauna",-47f,-85f),("medical","Punkt medyczny",-25f,-85f),("storage","Magazyn",-25f,-67f)})
             Add(item.Item1,item.Item2,parent,new Vector3(item.Item3,0,item.Item4),mats);
         // Osobny blok sanitarny obok istniejących pryszniców i sauny.
         // Nie zastępuje oryginalnych modeli, nie zamyka ich drzwi ani dojść.
@@ -111,6 +111,49 @@ public static class BraxObozServices
         g.GetComponent<Renderer>().sharedMaterial=material;
         return g;
     }
+    // Prywatne 3D wyposażenie sanitariatów — bez zastępowania siatek, UV i PBR.
+    // Jednorodna skala: wyłącznie dopasowanie do stanowiska w murowanym WC.
+    static GameObject OwnerFixture(Transform parent,string filename,
+        Vector3 bottomCenter,Vector3 maxLocalSize)
+    {
+        const string prefix="Assets/Source/Prywatne/Oboz/OwnerAssets/";
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(prefix+filename);
+        if(!source)throw new InvalidOperationException("Brak właścicielskiego modelu sanitariatu: "+filename);
+        var model=PrefabUtility.InstantiatePrefab(source) as GameObject;
+        if(!model)throw new InvalidOperationException("Błąd importu GLB sanitariatu: "+filename);
+        model.name="Właściciel / oryginalny "+filename;
+        model.transform.SetParent(parent,false);
+        var renderers=model.GetComponentsInChildren<Renderer>(true);
+        if(renderers.Length==0)throw new InvalidOperationException("Brak renderera "+filename);
+        Bounds bounds=renderers[0].bounds;
+        foreach(var rr in renderers.Skip(1))bounds.Encapsulate(rr.bounds);
+        if(bounds.size.x<=.0001f||bounds.size.y<=.0001f||bounds.size.z<=.0001f)
+            throw new InvalidOperationException("Zerowe wymiary modelu: "+filename);
+        float kx=maxLocalSize.x*K/bounds.size.x;
+        float ky=maxLocalSize.y*K/bounds.size.y;
+        float kz=maxLocalSize.z*K/bounds.size.z;
+        float uniform=Mathf.Min(kx,Mathf.Min(ky,kz));
+        if(uniform<=0f||float.IsNaN(uniform)||float.IsInfinity(uniform))
+            throw new InvalidOperationException("Błąd skalowania modelu: "+filename);
+        model.transform.localScale*=uniform;
+        bounds=renderers[0].bounds;
+        foreach(var rr in renderers.Skip(1))bounds.Encapsulate(rr.bounds);
+        var target=parent.TransformPoint(bottomCenter);
+        model.transform.position+=new Vector3(target.x-bounds.center.x,
+            target.y-bounds.min.y,target.z-bounds.center.z);
+        // Korpus jest nieruchomy: zachowujemy pojedynczy fizyczny hitbox
+        // odpowiadający siatce; nie wstawiamy kolizji przez drzwi.
+        if(!model.GetComponentInChildren<Collider>())
+        {
+            var box=model.AddComponent<BoxCollider>();
+            box.center=model.transform.InverseTransformPoint(bounds.center);
+            Vector3 lossy=model.transform.lossyScale;
+            box.size=new Vector3(bounds.size.x/Mathf.Abs(lossy.x),
+                bounds.size.y/Mathf.Abs(lossy.y),bounds.size.z/Mathf.Abs(lossy.z));
+        }
+        return model;
+    }
+
     static void SanitaryBlock(Transform parent,Dictionary<string,Material> mats)
     {
         const string label="BRAXHORN — WC / ŁAŹNIA / UMYWALNIA";
@@ -144,11 +187,8 @@ public static class BraxObozServices
         foreach(float x in new[]{-4.5f,-1.58f})
         {
             var cubicle=Node("Kabina WC — "+x,building,new Vector3(x,0,-2.95f));
-            FixtureBox(cubicle,"Miska z odpływem",new Vector3(0,.34f,0),new Vector3(.62f,.54f,.88f),porcelain);
-            FixtureCylinder(cubicle,"Siedzisko ceramiczne",new Vector3(0,.65f,.10f),.36f,.08f,porcelain);
-            FixtureCylinder(cubicle,"Wewnętrzny odpływ",new Vector3(0,.701f,.10f),.21f,.012f,dark);
-            FixtureBox(cubicle,"Spłuczka z przyciskiem",new Vector3(0,1.01f,-.39f),
-                new Vector3(.70f,.65f,.24f),porcelain);
+            OwnerFixture(cubicle,"close-coupled-toilet.glb",
+                new Vector3(0,.24f,0),new Vector3(.70f,1.10f,1.02f));
             FixtureBox(cubicle,"Przycisk spłukiwania",new Vector3(0,1.34f,-.24f),
                 new Vector3(.17f,.025f,.085f),metal,false);
             var flush=Node("SPŁUCZ TOALETĘ",cubicle,new Vector3(0,1.32f,-.15f))
@@ -175,8 +215,8 @@ public static class BraxObozServices
         foreach(float x in new[]{1.5f,4.52f})
         {
             var shower=Node("Kabina prysznicowa — "+x,building,new Vector3(x,0,-2.95f));
-            FixtureBox(shower,"Brodzik antypoślizgowy",new Vector3(0,.23f,0),
-                new Vector3(2.65f,.09f,3.30f),rubber);
+            OwnerFixture(shower,"shower-tray-square.glb",
+                new Vector3(0,.24f,0),new Vector3(1.65f,.14f,1.65f));
             FixtureCylinder(shower,"Odpływ prysznicowy",new Vector3(0,.29f,0),
                 .10f,.015f,metal);
             FixtureBox(shower,"Panel baterii",new Vector3(0,1.15f,-1.55f),
@@ -194,7 +234,7 @@ public static class BraxObozServices
         foreach(float x in new[]{-4.1f,4.1f})
         {
             var sink=Node("Umywalka z lustrem",building,new Vector3(x,0,3.4f));
-            FixtureBox(sink,"Misa porcelanowa",new Vector3(0,.89f,0),new Vector3(1.12f,.18f,.64f),porcelain);
+            OwnerFixture(sink,"trough-washbasin.glb",new Vector3(0,.70f,0),new Vector3(1.20f,.35f,.55f));
             FixtureBox(sink,"Syfon",new Vector3(0,.54f,-.13f),new Vector3(.18f,.5f,.14f),metal);
             FixtureBox(sink,"Bateria",new Vector3(0,1.04f,-.29f),new Vector3(.09f,.26f,.12f),metal);
             FixtureBox(sink,"Lustro",new Vector3(0,1.89f,.48f),new Vector3(1.25f,1.25f,.035f),mirror,false);
@@ -205,6 +245,10 @@ public static class BraxObozServices
             tap.kind=BraxObozFacility.Kind.Sink;
             tap.effect=Effect(sink,new Vector3(0,1.04f,-.15f),false,true);
         }
+        // Prawdziwe pisuary 3D na zachodniej ścianie; nie zastępuj ich bryłami.
+        foreach(float z in new[]{.2f,2.0f})
+            OwnerFixture(building,"wall-urinal.glb",new Vector3(-5.25f,.55f,z),
+                new Vector3(.52f,.95f,.38f));
         // Neutralne oprawy LED w sanitariatach: normalne światło do użytku,
         // aktywne jedynie blisko gracza (BraxObozLocalLight), bez ciężkich cieni.
         foreach(float x in new[]{-4f,0f,4f})
