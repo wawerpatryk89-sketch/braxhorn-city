@@ -365,8 +365,11 @@ public static class BraxChampionsPoolP1
         Box(details,"P1 entry canopy fascia gold",gold,0,4.9f,-33,19f,.11f,.12f,false);
         foreach(float x in new[]{-8.7f,8.7f})
             Box(details,"P1 entrance canopy column",frame,x,2.35f,-32.6f,.24f,4.7f,.24f);
-        Sign("BASEN MIEJSKI + SPA",new Vector3(0,6.48f,-28.23f),180,.30f);
-        Sign("BRAXHORN CITY",new Vector3(0,5.84f,-28.24f),180,.16f);
+        // Original artwork from the owner’s CitySigns release is the only approved
+        // exterior identity. No competing TextMesh lettering above the entry.
+        // If the verified BASEN PNG is not imported yet, the sign stays absent
+        // (with a named source socket) rather than showing a made-up substitute.
+        BraxChampionsPoolP1OriginalSign.Generate(root);
     }
     static void ConnectWings()
     {
