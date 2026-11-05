@@ -36,7 +36,7 @@ on:
         required: false
         default: ''
       arena_assets_tag:
-        description: 'Opcjonalny tag wydania GitHub z oryginalnymi zasobami A1 (ZIP); tylko przygotowanie areny'
+        description: 'Tag release (champions-a1-...) z gotowym ZIP A1, zawierającym modele, szyldy oraz stabilne GUID; gdy nie ma assetów w repo'
         type: string
         required: false
         default: ''
@@ -128,11 +128,11 @@ jobs:
               exit 1
             fi
             gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-              --pattern champions_arena_A1_full_import.zip --dir "$RUNNER_TEMP" --clobber
+              --pattern champions_arena_A1_unity_ready.zip --dir "$RUNNER_TEMP" --clobber
             python3 unity-tools/mistrzowie/import_champion_assets.py \
-              "$RUNNER_TEMP/champions_arena_A1_full_import.zip" --dry-run
+              "$RUNNER_TEMP/champions_arena_A1_unity_ready.zip" --dry-run
             python3 unity-tools/mistrzowie/import_champion_assets.py \
-              "$RUNNER_TEMP/champions_arena_A1_full_import.zip"
+              "$RUNNER_TEMP/champions_arena_A1_unity_ready.zip"
           fi
           python3 unity-tools/mistrzowie/verify_champion_assets.py
           echo "CHAMPION_A1_ASSET_GATE PASS; required original sources verified"
