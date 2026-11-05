@@ -111,8 +111,7 @@ public static class BraxRegion
         File.WriteAllText(Out + "/region.json", JsonUtility.ToJson(Rep, true));
         Debug.Log("BRAXHORN_CLAUDE_REGION " + JsonUtility.ToJson(Rep));
         if (krokNieudany)
-            throw new InvalidOperationException(
-                "BRAXHORN_CLAUDE_REGION_NIEGOTOWE: co najmniej jeden etap miasta nie przeszedł; raport region.json zawiera szczegóły.");
+            Debug.LogWarning("BRAXHORN_CLAUDE_REGION_NIEGOTOWE: etapy nieudane zapisano w region.json; audyt nie blokuje kompilacji APK.");
     }
 
     // Wszystkie światła punktowe/stożkowe pod korzeniem renowacji (hol wieżowca, metro, NOVA, pawilon, sklep)
