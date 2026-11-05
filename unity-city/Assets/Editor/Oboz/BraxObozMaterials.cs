@@ -93,17 +93,21 @@ public static class BraxObozMaterials
         bool color=kind=="Color",normal=kind=="NormalGL";
         var type=normal?TextureImporterType.NormalMap:TextureImporterType.Default;
         var android=importer.GetPlatformTextureSettings("Android");
+        // Tileable ground materials: original 4K sources retained on disk and
+        // visible in Editor; on Android sample only 1K, with trilinear mipmaps.
+        const int androidLimit = 1024;
+        var androidFormat = normal ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
         bool changed=importer.textureShape!=TextureImporterShape.Texture2D || importer.maxTextureSize!=4096 || !importer.mipmapEnabled || importer.anisoLevel!=8 ||
             importer.wrapMode!=TextureWrapMode.Repeat || importer.filterMode!=FilterMode.Trilinear ||
             importer.textureCompression!=TextureImporterCompression.CompressedHQ || importer.compressionQuality!=90 ||
             importer.sRGBTexture!=color || importer.textureType!=type || !android.overridden ||
-            android.maxTextureSize!=4096 || android.format!=TextureImporterFormat.ASTC_4x4 || android.compressionQuality!=90;
+            android.maxTextureSize!=androidLimit || android.format!=androidFormat || android.compressionQuality!=90;
         importer.textureShape=TextureImporterShape.Texture2D;
         importer.maxTextureSize=4096;importer.mipmapEnabled=true;importer.anisoLevel=8;
         importer.wrapMode=TextureWrapMode.Repeat;importer.filterMode=FilterMode.Trilinear;
         importer.textureCompression=TextureImporterCompression.CompressedHQ;
         importer.compressionQuality=90;importer.sRGBTexture=color;importer.textureType=type;
-        android.name="Android";android.overridden=true;android.maxTextureSize=4096;android.format=TextureImporterFormat.ASTC_4x4;
+        android.name="Android";android.overridden=true;android.maxTextureSize=androidLimit;android.format=androidFormat;
         android.compressionQuality=90;
         importer.SetPlatformTextureSettings(android);
         return ConfigureStreaming(importer, importer.assetPath) || changed;
@@ -199,7 +203,13 @@ public static class BraxObozMaterials
                 throw new InvalidOperationException("Błąd shadera materiału obozu: "+material.name);
             if(material.shader.name!="Braxhorn/ObozSurface")continue;
             foreach(string map in new[]{"_MainTex","_BumpMap","_RoughnessTex"})
+            {
+                // A verified R=roughness/G=AO atlas replaces two separate
+                // samplers, so missing legacy RoughnessTex is expected.
+                if (map=="_RoughnessTex" && material.IsKeywordEnabled("OBOZ_PACKED_RA") &&
+                    material.GetTexture("_PackedRA")) continue;
                 if(!material.GetTexture(map))throw new InvalidOperationException(material.name+": brak "+map);
+            }
             if(!material.IsKeywordEnabled("OBOZ_GROUND_BLEND"))continue;
             foreach(string map in new[]{"_GroundColor","_GroundNormal","_GroundRoughness",
                 "_LawnColor","_LawnNormal","_LawnRoughness","_LawnAO"})
