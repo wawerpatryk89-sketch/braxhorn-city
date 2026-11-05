@@ -184,7 +184,8 @@ public static class BraxChampionsBuild
         PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,false);
         PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,new[]{GraphicsDeviceType.OpenGLES3});
         EditorUserBuildSettings.buildAppBundle=false;
-        EditorUserBuildSettings.androidBuildSubtarget=MobileTextureSubtarget.ETC2;
+        // Match Champions PBR import overrides on modern ASTC-capable Android GPUs.
+        EditorUserBuildSettings.androidBuildSubtarget=MobileTextureSubtarget.ASTC;
 
         // Reuse the game's lightweight loader, then only the Champions exploration
         // scene. Its existing BraxTouchControls bootstrap supplies Android input.
