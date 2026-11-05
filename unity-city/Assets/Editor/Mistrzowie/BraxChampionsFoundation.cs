@@ -317,10 +317,19 @@ public static class BraxChampionsFoundation
 
     static Material FoamMaterial()
     {
-        string path="Assets/Editor/Mistrzowie/BraxChampionsBeachFoam.shader";
+        // Shader must live outside the Editor-only directory for Android:
+        // preserve the source template, publish one GUID-stable player shader.
+        string template="Assets/Editor/Mistrzowie/BraxChampionsBeachFoam.shader";
+        string path=Output+"/MistrzowieBeachFoam.shader";
+        if(!File.Exists(template))throw new FileNotFoundException("Beach foam source shader missing",template);
+        const string sourceName="Shader \"Braxhorn/MistrzowieBeachFoam\"";
+        string source=File.ReadAllText(template);
+        if(!source.Contains(sourceName))throw new InvalidOperationException("Beach foam source identity changed");
+        File.WriteAllText(path,source.Replace(sourceName,"Shader \"Braxhorn/MistrzowieBeachFoamMobile\""));
+        AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
         var shader=AssetDatabase.LoadAssetAtPath<Shader>(path);
         if(!shader||ShaderUtil.ShaderHasError(shader))
-            throw new InvalidOperationException("Curved beach foam shader source missing or invalid: "+path);
+            throw new InvalidOperationException("Generated Android beach foam shader failed import: "+path);
         var material=new Material(shader){name="Mistrzowie | natural shallow surf and foam",enableInstancing=true};
         material.SetColor("_FoamTint",new Color(.98f,.99f,.96f,1f));
         material.SetFloat("_WaveStrength",.72f);

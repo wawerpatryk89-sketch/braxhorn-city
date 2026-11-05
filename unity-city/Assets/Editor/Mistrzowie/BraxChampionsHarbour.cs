@@ -25,6 +25,19 @@ public static class BraxChampionsHarbour
     };
     static Material metal,rubber,power,redFlag;
 
+    static Material Save(Material material,string path)
+    {
+        var old=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(old)
+        {
+            EditorUtility.CopySerialized(material,old);
+            UnityEngine.Object.DestroyImmediate(material);
+            EditorUtility.SetDirty(old);
+            return old;
+        }
+        AssetDatabase.CreateAsset(material,path);
+        return material;
+    }
     static Material CreateSurface(string id,Color c,float roughness,float metallic)
     {
         var shader=Shader.Find(BraxCityMaterials.ShaderName);
@@ -33,8 +46,7 @@ public static class BraxChampionsHarbour
         m.SetColor("_Color",c);m.SetFloat("_Roughness",roughness);
         m.SetFloat("_Metallic",metallic);m.SetFloat("_VertexTint",0);
         m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
-        AssetDatabase.CreateAsset(m,Out+"/Materials/harbour_"+id+".mat");
-        return m;
+        return Save(m,Out+"/Materials/harbour_"+id+".mat");
     }
 
     static GameObject Primitive(Transform parent,string name,PrimitiveType shape,

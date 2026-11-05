@@ -118,6 +118,20 @@ public static class BraxChampionsHarbourSafety
         return pier;
     }
 
+    static T Save<T>(T asset,string path) where T:UnityEngine.Object
+    {
+        var old=AssetDatabase.LoadAssetAtPath<T>(path);
+        if(old)
+        {
+            EditorUtility.CopySerialized(asset,old);
+            UnityEngine.Object.DestroyImmediate(asset);
+            EditorUtility.SetDirty(old);
+            return old;
+        }
+        AssetDatabase.CreateAsset(asset,path);
+        return asset;
+    }
+
     static Material Material(string name,Color color,float rough,float metal)
     {
         var shader=Shader.Find(BraxCityMaterials.ShaderName);
@@ -126,8 +140,7 @@ public static class BraxChampionsHarbourSafety
         m.SetColor("_Color",color);m.SetFloat("_Roughness",rough);
         m.SetFloat("_Metallic",metal);m.SetFloat("_VertexTint",0);
         m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
-        AssetDatabase.CreateAsset(m,Output+"/Materials/harbour_"+name+".mat");
-        return m;
+        return Save(m,Output+"/Materials/harbour_"+name+".mat");
     }
 
     public static void Generate(Transform harbour,BraxChampionsFoundation.Pier[] approvedPiers)
@@ -216,11 +229,11 @@ public static class BraxChampionsHarbourSafety
         }
         var steelMesh=steel.Create("BRAXHORN marina reusable low-poly steel posts");
         var ropeMesh=rope.Create("BRAXHORN marina braided-look 3D safety ropes");
-        AssetDatabase.CreateAsset(steelMesh,Output+"/Meshes/harbour_safety_steel.asset");
-        AssetDatabase.CreateAsset(ropeMesh,Output+"/Meshes/harbour_safety_rope.asset");
+        var savedSteel=Save(steelMesh,Output+"/Meshes/harbour_safety_steel.asset");
+        var savedRope=Save(ropeMesh,Output+"/Meshes/harbour_safety_rope.asset");
         var steelMat=Material("safety_stainless",new Color(.49f,.52f,.55f,1f),.32f,.84f);
         var ropeMat=Material("safety_natural_rope",new Color(.70f,.60f,.43f,1f),.81f,.02f);
-        foreach(var item in new[]{(steelMesh,steelMat,"steel posts"),(ropeMesh,ropeMat,"sagging natural rope")})
+        foreach(var item in new[]{(savedSteel,steelMat,"steel posts"),(savedRope,ropeMat,"sagging natural rope")})
         {
             var o=new GameObject("Marina safety | "+item.Item3);
             o.transform.SetParent(owner,false);
