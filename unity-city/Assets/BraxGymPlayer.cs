@@ -271,6 +271,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private float lastLook=-99f,camSpeed,camNear=-1f;private Vector3 camPrevPos;private bool camPrevOk;
     private Vector3 bezpieczna;private bool bezpJest;private float bezpNast;   // siatka bezpieczeństwa (pkt 15c)
     private float joyRefYaw,joyStart=-99f;private bool joyHeld;
+    private readonly RaycastHit[] championsCarCameraHits = new RaycastHit[32];
     // Kamera za plecami (E22 z osiedla): wygładzenie powrotu za plecy — stała czasu 0.32 s, martwa strefa 4°, maks. 220°/s.
     public const float ZaPlecamiTau=.32f,ZaPlecamiMartwa=4f,ZaPlecamiMaks=220f;
     public static float KrokZaPlecy(float yaw,float cel,float dt)
@@ -287,7 +288,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         float v=dv.magnitude/dt;if(v<25f)camSpeed=Mathf.Lerp(camSpeed,v,1-Mathf.Exp(-dt*6f));   // teleport (> 25 m/s) pomijany
         if(!AutoCamera||reviewEnabled||paused||seat)return;
         float since=Time.unscaledTime-lastLook;
-        bool water=vessel;
+        bool water=vessel||championsCar;
         if(!water)
         {   // pieszo ZAWSZE za plecami — w ruchu yaw podąża za kierunkiem postaci (0.32 s, martwa strefa 4°); po rozejrzeniu
             // palcem powrót po 1.5 s bez ruchu kamery albo od razu, gdy postać rusza (joystick wciśnięty po rozejrzeniu).
@@ -301,7 +302,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         }
         if(since<AutoCameraDelay)return;
         if(camSpeed<(water?.8f:.6f))return;
-        Vector3 f=water?vessel.transform.forward:transform.forward;f.y=0;if(f.sqrMagnitude<.01f)return;
+        Vector3 f=championsCar?championsCar.transform.forward:vessel?vessel.transform.forward:transform.forward;f.y=0;if(f.sqrMagnitude<.01f)return;
         float wantYaw=Mathf.Atan2(-f.x,-f.z)*Mathf.Rad2Deg;   // kamera po przeciwnej stronie niż przód postaci
         float delta=Mathf.DeltaAngle(yaw,wantYaw);
         float w=water?1f:Mathf.Clamp01(Mathf.Cos(delta*Mathf.Deg2Rad));
@@ -317,11 +318,11 @@ public sealed class BraxGymPlayer : MonoBehaviour
     {
         bool snap=dt>=.5f;   // Start, reset, teleport: kamera od razu na miejscu
         AutoYaw(dt,snap);
-        Vector3 want=transform.position+Vector3.up*1.65f;
+        Vector3 want=championsCar?championsCar.transform.position+Vector3.up*1.75f:transform.position+Vector3.up*1.65f;
         cameraTarget=Vector3.Lerp(cameraTarget,want,1-Mathf.Exp(-dt*10f));   // build 14: lekkie opóźnienie za postacią (10/s)
         float ya=yaw*Mathf.Deg2Rad,pi=pitch*Mathf.Deg2Rad;
         // właściciel 3.11 10:39: na jachcie „kamera ze środka, za kierownicą” — blisko za głową sternika (najwyżej 2.2 m)
-        float dist=vessel&&vessel.label=="JACHT"?Mathf.Min(distance,2.2f):distance;
+        float dist=championsCar?8.4f:vessel&&vessel.label=="JACHT"?Mathf.Min(distance,2.2f):distance;
         Vector3 offset=new Vector3(Mathf.Sin(ya)*Mathf.Cos(pi),Mathf.Sin(pi),Mathf.Cos(ya)*Mathf.Cos(pi))*dist;
         Vector3 position=cameraTarget+offset;
         // Kamera (audyt filmów właściciela 1.11): nie wchodzi w ściany, szyby, korony drzew i lampy — kolidują z nią też
@@ -331,10 +332,32 @@ public sealed class BraxGymPlayer : MonoBehaviour
         // ściana boczna jest tuż przy kamerze (SphereCast nie widzi przeszkody, w której startuje — wąskie przejścia).
         const int mask=~(1<<8);Vector3 dir=offset.normalized;
         float near=dist;
-        if(Physics.SphereCast(cameraTarget,.26f,dir,out RaycastHit hit,dist,mask,QueryTriggerInteraction.Ignore))near=Mathf.Max(.35f,hit.distance-.12f);
+        if(championsCar)
+        {
+            // Existing chassis has real collision; never let the third-person
+            // camera shorten itself against the SAME car the player is driving.
+            int hits=Physics.SphereCastNonAlloc(cameraTarget,.26f,dir,
+                championsCarCameraHits,dist,mask,QueryTriggerInteraction.Ignore);
+            for(int i=0;i<hits;i++)
+            {
+                var candidate=championsCarCameraHits[i];
+                if(!candidate.collider ||
+                   candidate.collider.transform.IsChildOf(championsCar.transform))continue;
+                near=Mathf.Min(near,Mathf.Max(.35f,candidate.distance-.12f));
+            }
+        }
+        else if(Physics.SphereCast(cameraTarget,.26f,dir,out RaycastHit hit,dist,mask,QueryTriggerInteraction.Ignore))near=Mathf.Max(.35f,hit.distance-.12f);
         position=cameraTarget+dir*near;
-        if(Physics.Linecast(cameraTarget,position,out RaycastHit line,mask,QueryTriggerInteraction.Ignore)){near=Mathf.Min(near,Mathf.Max(.35f,line.distance-.2f));position=cameraTarget+dir*near;}
-        for(int k=0;k<4&&near>.36f&&Physics.CheckSphere(position,.22f,mask,QueryTriggerInteraction.Ignore);k++){near=Mathf.Max(.35f,near*.72f);position=cameraTarget+dir*near;}
+        if(Physics.Linecast(cameraTarget,position,out RaycastHit line,mask,QueryTriggerInteraction.Ignore)
+            && !(championsCar && line.collider &&
+                 line.collider.transform.IsChildOf(championsCar.transform)))
+        {
+            near=Mathf.Min(near,Mathf.Max(.35f,line.distance-.2f));
+            position=cameraTarget+dir*near;
+        }
+        // The vehicle's own visible collider must not be mistaken for a wall.
+        // Collision for walking/driving is unchanged; this affects the camera only.
+        if(!championsCar)for(int k=0;k<4&&near>.36f&&Physics.CheckSphere(position,.22f,mask,QueryTriggerInteraction.Ignore);k++){near=Mathf.Max(.35f,near*.72f);position=cameraTarget+dir*near;}
         // przeszkoda znika (minięty pień, róg) — kamera odjeżdża płynnie (3.5 m/s), a nie skokiem; do przeszkody — od razu
         if(snap||camNear<0f||near<camNear)camNear=near;else{camNear=Mathf.MoveTowards(camNear,near,dt*3.5f);near=camNear;position=cameraTarget+dir*near;}
         view.transform.position=position;view.transform.LookAt(cameraTarget);
@@ -391,6 +414,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         {
             string context=door&&Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f?(doorOpen?"ZAMKNIJ DRZWI":"OTWÓRZ DRZWI"):transform.position.z>18?"ULICA — KOLEJNY ETAP":"";
             if(cityWorld){if(!string.IsNullOrEmpty(cityWorld.Context))context=cityWorld.Context;else if(context=="ULICA — KOLEJNY ETAP")context="";}
+            if(championsCar)context=championsCar.Kontekst(transform.position);
             if(vessel)context="ZEJDŹ · "+vessel.label;
             if(seat)context="WSTAŃ";
             return context;
