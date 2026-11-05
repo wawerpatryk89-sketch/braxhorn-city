@@ -316,12 +316,18 @@ public static partial class BraxObozEnvironment
         RondoBull(rondo);
         Box(t,"Zatoka autobusu",new Vector3(21,.055f,-92),new Vector3(4,.11f,20),campusAsphalt);
         Box(t,"Połączenie zatoki",new Vector3(14,.05f,-94),new Vector3(12,.10f,24),campusAsphalt);
-        Box(t,"Dojście pasażerów",new Vector3(26,.08f,-94),new Vector3(2.8f,.16f,40),campusPaving);
+        Box(t,"Dojście pasażerów",new Vector3(26,.08f,-97.5f),new Vector3(2.8f,.16f,49),campusPaving);
         Box(t,"Dojście od furtki",new Vector3(16,.08f,-121),new Vector3(22,.16f,2.8f),campusPaving);
         Box(t,"Dojście piesze przed bramą",new Vector3(6.8f,.08f,-131),new Vector3(1.8f,.16f,18),campusPaving);
-        Box(t,"Dojście od przystanku",new Vector3(15,.06f,-77),new Vector3(25,.12f,2.8f),campusPaving);
+        Box(t,"Dojście od przystanku",new Vector3(13.5f,.06f,-77),new Vector3(27,.12f,2.8f),campusPaving);
         foreach(float x in new[]{-3.2f,3.2f})Box(t,"Linia krawędzi drogi",new Vector3(x,.092f,-126),new Vector3(.1f,.004f,28),campusMark,false);
         for(int i=0;i<8;i++)Box(t,"Pas przejścia",new Vector3(-2.8f+i*.8f,.098f,-115),new Vector3(.4f,.004f,2.8f),campusMark,false);
+        // Pełna pętla bieżni przecina przy bramie dojazd: ostrzeżenie i pasy
+        // przed skrzyżowaniem; dopiero test ruchu autobusu dopuści tę geometrię.
+        for(int i=0;i<8;i++)
+            Box(t,"Przejscie pieszych / biegaczy",new Vector3(-3.5f+i*1f,.166f,-117f),
+                new Vector3(.45f,.008f,2.3f),campusMark,false);
+        Sign(t,"UWAGA BIEZNIA · USTAP PIESZYM",new Vector3(6.0f,2f,-116f),6f);
         Sign(t,"BRAXHORN · PRZYJAZDY",new Vector3(26,2.1f,-84),5);
         foreach(float x in new[]{24f,28f})Box(t,"Podpora tablicy przyjazdów",new Vector3(x,1,-84),new Vector3(.08f,2,.08f),campusSteel);
         foreach(float z in new[]{-110f,-100f,-90f,-80f})Lamp(t,new Vector3(28,0,z));
