@@ -147,27 +147,30 @@ jobs:
             python3 unity-tools/mistrzowie/import_champion_assets.py "$owner_pack" --dry-run
             python3 unity-tools/mistrzowie/import_champion_assets.py "$owner_pack"
 
-            # The THREE unaltered 1536x512 owner panoramas are a small ADD-ON
-            # to the very same release. Required before compiling the arena.
+            # ONE uploaded owner archive carries all remaining originals:
+            # 148 city signs and THREE panoramic murals. Nested source ZIPs
+            # and original Unity GUIDs are preserved and SHA-verified.
             gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-              --pattern ARENA_A1_TRZY_MURALE_ORIGINALY.zip --dir "$RUNNER_TEMP" --clobber
-            python3 unity-tools/mistrzowie/import_arena_three_murals.py \
-              "$RUNNER_TEMP/ARENA_A1_TRZY_MURALE_ORIGINALY.zip" --dry-run
-            python3 unity-tools/mistrzowie/import_arena_three_murals.py \
-              "$RUNNER_TEMP/ARENA_A1_TRZY_MURALE_ORIGINALY.zip"
+              --pattern MIASTO_MISTRZOW_SZYLDY_148_I_MURALE_3.zip \
+              --dir "$RUNNER_TEMP" --clobber
+            python3 unity-tools/mistrzowie/unpack_owner_graphics.py \
+              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_148_I_MURALE_3.zip" \
+              "$RUNNER_TEMP/mistrzowie-owner-graphics" --dry-run
+            python3 unity-tools/mistrzowie/unpack_owner_graphics.py \
+              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_148_I_MURALE_3.zip" \
+              "$RUNNER_TEMP/mistrzowie-owner-graphics"
 
-            # Both ORIGINAL city-sign collections, including C1 KASYNO WAWER,
-            # TAXI and PARKING. The importer pins all 148 PNGs and their GUIDs.
-            for collection in MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip; do
-              gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-                --pattern "$collection" --dir "$RUNNER_TEMP" --clobber
-            done
+            python3 unity-tools/mistrzowie/import_arena_three_murals.py \
+              "$RUNNER_TEMP/mistrzowie-owner-graphics/ARENA_A1_TRZY_MURALE_ORIGINALY.zip" --dry-run
+            python3 unity-tools/mistrzowie/import_arena_three_murals.py \
+              "$RUNNER_TEMP/mistrzowie-owner-graphics/ARENA_A1_TRZY_MURALE_ORIGINALY.zip"
+
             python3 unity-tools/mistrzowie/import_city_signs.py \
-              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip" \
-              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip" --dry-run
+              "$RUNNER_TEMP/mistrzowie-owner-graphics/MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip" \
+              "$RUNNER_TEMP/mistrzowie-owner-graphics/MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip" --dry-run
             python3 unity-tools/mistrzowie/import_city_signs.py \
-              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip" \
-              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip"
+              "$RUNNER_TEMP/mistrzowie-owner-graphics/MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip" \
+              "$RUNNER_TEMP/mistrzowie-owner-graphics/MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip"
           fi
           python3 unity-tools/mistrzowie/verify_champion_assets.py
           python3 unity-tools/mistrzowie/verify_arena_three_murals.py
