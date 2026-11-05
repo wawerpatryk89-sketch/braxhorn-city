@@ -36,7 +36,7 @@ def shoreline(x):
         return -150.0
     blend=smoothstep((x-50)/37)*smoothstep((700-x)/49)
     deep=-248.0+8.4*math.sin(x*.013+0.4)+3.3*math.sin(x*.034+1.1)
-    return -150.0+(deep+150.0)*blend
+    return -163.0+(deep+163.0)*blend
 
 
 def beach_height(x,z):
