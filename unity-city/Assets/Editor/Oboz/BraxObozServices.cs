@@ -113,7 +113,7 @@ public static class BraxObozServices
     }
     // Prywatne 3D wyposażenie sanitariatów — bez zastępowania siatek, UV i PBR.
     // Jednorodna skala: wyłącznie dopasowanie do stanowiska w murowanym WC.
-    static GameObject OwnerFixture(Transform parent,string filename,
+    public static GameObject OwnerFixture(Transform parent,string filename,
         Vector3 bottomCenter,Vector3 maxLocalSize)
     {
         const string prefix="Assets/Source/Prywatne/Oboz/OwnerAssets/";
