@@ -223,8 +223,8 @@ public static class BraxChampionsFoundation
         if(!importer)throw new InvalidOperationException("Generated PBR importer missing: "+destination);
         var android=importer.GetPlatformTextureSettings("Android");
         var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(destination);
-        if(!texture||texture.width!=4096||texture.height!=4096||importer.textureType!=TextureImporterType.Default
-            ||importer.sRGBTexture!=(role=="color")||!android.overridden||android.maxTextureSize!=4096
+        if(!texture||texture.width!=2048||texture.height!=2048||importer.textureType!=TextureImporterType.Default
+            ||importer.sRGBTexture!=(role=="color")||!android.overridden||android.maxTextureSize!=2048
             ||android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=100)
             throw new InvalidOperationException("Generated PBR import contract failed: "+destination);
         return texture;
