@@ -10,6 +10,9 @@ on:
       - unity-tools/mistrzowie/test_promenade_no_overlays.py
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenadeStock.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPolyHaven2KImport.cs
+      - unity-tools/mistrzowie/promenade_polyhaven_models.json
       - unity-tools/mistrzowie/verify_promenade_original_signs.py
   workflow_dispatch:
 
@@ -35,6 +38,8 @@ jobs:
             unity-tools/validation/
             unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs
             unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenadeStock.cs
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsPolyHaven2KImport.cs
             unity-city/Assets/Editor/Mistrzowie/BraxChampionsTextureImport.cs
       - name: Install pinned shape tools; no Unity editor
         run: |
@@ -73,7 +78,9 @@ jobs:
           from check_csharp_scopes import check_source
           for filename in (
             'unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs',
-            'unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs'):
+            'unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs',
+            'unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenadeStock.cs',
+            'unity-city/Assets/Editor/Mistrzowie/BraxChampionsPolyHaven2KImport.cs'):
               path=Path(filename)
               errors=check_source(path.read_bytes(),str(path))
               if errors:raise SystemExit('\n'.join(errors))
