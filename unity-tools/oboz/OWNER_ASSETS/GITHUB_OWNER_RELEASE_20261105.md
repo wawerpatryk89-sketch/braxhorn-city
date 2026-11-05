@@ -43,3 +43,33 @@ Pozostawić poprzednie oryginalne BRAXHORN_MODELE_CZESC_02_Z_05.zip, CZESC_03, C
 W GitHub Releases uploadować małe ZIP-y **bez rozpakowania**, nie publikować wersji roboczej (DRAFT).
 
 owner_release_assets.py automatycznie wybiera tryb six_small, pobiera sześć małych ZIP-ów i istniejące części 02–05, odtwarza bajt-po-bajcie ZIP 01, weryfikuje SHA-256 i odczytuje oryginalnego byka GLB z małej paczki 01. Dalej uruchamia wspólny zweryfikowany importer pięciu części z deterministycznymi GUID-ami. Nie dotyka postaci i animacji.
+
+## Aktualny odbiór rzeczywistego wydania GitHub — 05.11.2026
+
+Wersja robocza DRAFT ID=435486352 znajduje się na poprawnej gałęzi
+`codex/oboz-przebudowa-pbr-20261105`.
+Potwierdzone z listy aktywnych załączników:
+- BRAXHORN_MODELE_CZESC_01_Z_05.zip — 84984137 B
+- BRAXHORN_MODELE_CZESC_02_Z_05.zip — 84997165 B
+- BRAXHORN_MODELE_CZESC_03_Z_05.zip — 84995158 B
+- BRAXHORN_MODELE_CZESC_04_Z_05.zip — 84985353 B
+- BRAXHORN_MODELE_CZESC_05_Z_05.zip — 5311312 B
+- A_charging_bull_statu_0725030443_refine.glb — 2232404 B
+
+Istnieje dodatkowa omyłkowa `CZESC_03_Z_05.2.zip`; importer jej nie używa.
+Oryginalny GLB byka jest poprawny: SHA256
+`05667f880b5beaf720dec95ac480ce32c0e91e1e2ab318a28d34f36e475f4cf0`.
+Jego sekcja BIN (geometria + oryginalna tekstura JPEG) jest identyczna z
+wariantem 4x. Model pozostaje oryginalny; w Unity skalowanie odbywa się przez
+Transform bez przepisywania pliku. Importer obsługuje obie nazwy i wymiary,
+preferując właścicielski oryginał.
+
+Pełna kontrola pięciu lokalnych ZIP: 31/31 plików, CRC poprawne, hash SHA-256
+każdego pliku zgodny z manifestem, bez braków i duplikatów. Lista GitHub potwierdza
+nazwy i rozmiary, ale **nie pozwala z niej sprawdzić zawartości załączników
+bajt po bajcie**. Workflow sprawdzi dokładne hashe po pobraniu i zatrzyma się
+przed Unity, gdy dane się nie zgodzą.
+
+Status: dostawa obecna w DRAFT, kod transportu poprawiony i zapisany.
+**Brak potwierdzenia kompilacji Unity/Android na tej gałęzi i brak nowego APK.**
+Publikacja release nie jest potrzebna; pozostawić jako DRAFT.
