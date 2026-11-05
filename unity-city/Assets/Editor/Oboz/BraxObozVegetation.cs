@@ -37,6 +37,7 @@ public static class BraxObozVegetation
             int placedTrees=0;
             foreach (var point in layout.trees)
             {
+                if (Mathf.Abs(point.x)>138f || Mathf.Abs(point.z)>138f) continue; // poza terenem 280x280
                 if(BraxObozCampusLayout.Reserved(point.x,point.z,3))continue;
                 if (point.prototype<0 || point.prototype>=prototypes.Length) throw new InvalidOperationException("Błędny wariant drzewa");
                 var tree=Object.Instantiate(prototypes[point.prototype],forest);
@@ -49,7 +50,7 @@ public static class BraxObozVegetation
                     trunk.height=3;trunk.center=new Vector3(0,1.5f,0);
                 }
             }
-            var grass=layout.grass.Where(p=>!BraxObozCampusLayout.Reserved(p.x,p.z,.5f)).ToList();
+            var grass=layout.grass.Where(p=>Mathf.Abs(p.x)<=138f&&Mathf.Abs(p.z)<=138f&&!BraxObozCampusLayout.Reserved(p.x,p.z,.5f)).ToList();
             int originalGrass=grass.Count;
             AddLawnGrass(grass);
             Grass(parent,grass.ToArray());
