@@ -113,6 +113,37 @@ public static class BraxObozMaterials
         importer.SetPlatformTextureSettings(android);
         return ConfigureStreaming(importer, importer.assetPath) || changed;
     }
+    // Prawdziwa, czerwona nawierzchnia z autorskiej paczki właściciela.
+    // Rozdzielczość bazowej mapy PBR w zbliżeniu = 2048x2048, nie 256px.
+    public static Material OwnerTrackPbr()
+    {
+        const string path="Assets/Source/Prywatne/Oboz/OwnerAssets/rubberized_track_2k/textures/";
+        string albedo=path+"rubberized_track_diff_2k.jpg";
+        string normal=path+"rubberized_track_nor_gl_2k.exr";
+        string roughness=path+"rubberized_track_rough_2k.exr";
+        if(!File.Exists(albedo)||!File.Exists(normal)||!File.Exists(roughness))
+            throw new InvalidOperationException("Brak oryginalnego rubberized_track_2k PBR. "+
+                "Wymagany prywatny import przed budowaniem obozu; 256px atrapy zabronione.");
+        var shader=Shader.Find("Braxhorn/ObozSurface");
+        if(!shader)throw new InvalidOperationException("Brak shadera PBR bieżni");
+        var material=new Material(shader){name="Obóz / rubberized_track 2K właściciela",
+            enableInstancing=true};
+        var color=Map(albedo,false,true);
+        var bump=Map(normal,true,false);
+        var rough=Map(roughness,false,false);
+        if(color.width<2048||color.height<2048||
+            bump.width<2048||bump.height<2048||
+            rough.width<2048||rough.height<2048)
+            throw new InvalidOperationException("Nawierzchnia bieżni musi mieć prawdziwe 2K w zbliżeniu");
+        material.SetTexture("_MainTex",color);
+        material.SetTexture("_BumpMap",bump);
+        material.SetTexture("_RoughnessTex",rough);
+        material.SetFloat("_MetallicFactor",0);
+        material.SetFloat("_RoughnessFactor",1);
+        material.mainTextureScale=new Vector2(2.4f,1f);
+        return Save(material,"owner-rubberized-track-2k");
+    }
+
     public static Material PublicPbr(string id,float widthMetres)
     {
         if (widthMetres <= 0 || float.IsNaN(widthMetres) || float.IsInfinity(widthMetres))
