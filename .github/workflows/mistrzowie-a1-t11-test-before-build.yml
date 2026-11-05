@@ -29,6 +29,9 @@ jobs:
             unity-city/Assets/Source/Mistrzowie/
             unity-city/Assets/Source/Claude/Metro/metro_train.glb
             public/assets/chars/brax.glb.gz
+            public/assets/tex/brax_color.webp
+            public/assets/tex/brax_normal.webp
+            public/assets/tex/brax_orm.webp
             unity-city/Packages/manifest.json
             unity-tools/mistrzowie/
             unity-tools/validation/
