@@ -69,7 +69,9 @@ def services(m,x,z,y,w,d,detail):
    for zz in np.linspace(z-.6,z+.6,6):m.box('spandrel',(xx,y+2.61,zz),(1.3,.04,.07))
 
 def arena(detail):
- m=Meshes();n=128 if detail else 64;path=ellipse(96,59,n);foot=Polygon(path)
+ # Keep the same facade segmentation in both LODs: otherwise a far-LOD entrance
+ # becomes twice as wide and leaves an unsealed hole above the public door.
+ m=Meshes();n=128;path=ellipse(96,59,n);foot=Polygon(path)
  # Plot apron ends flush with the shared sidewalk level; real slab thickness below it.
  m.slab('stone',box(-110,-75,110,75),.16,.41)
  m.slab('dark_stone',foot,.18,.6)
