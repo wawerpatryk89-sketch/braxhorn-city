@@ -1,0 +1,52 @@
+name: BRAXHORN - Miasto Metro 94 - jednorazowy start APK
+'on':
+  push:
+    branches:
+      - codex/miasto-metro-apk-kontrola-20261105
+    paths:
+      - .github/workflows/city-metro94-one-shot-20261105.yml
+permissions:
+  contents: read
+  actions: write
+jobs:
+  dispatch-city-apk:
+    # Only the single owner-requested bootstrap commit may trigger this job.
+    # This does not enable automatic Android builds for future game changes.
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.event.head_commit.message == 'city(metro94): owner-requested one-time Android build dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify #94 arena and Metro M1 repairs are on this exact branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            unity-city/Assets/Editor/Claude/BraxClaudeMetro.cs
+            unity-city/Assets/Editor/Claude/Region/BraxMiastoWyspaWykonczenie.cs
+      - name: Check targeted changes, no arena reconstruction and no metro mesh compression
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'BRAXHORN_METRO_M1_WYROWNANIE_SKRAJNI' unity-city/Assets/Editor/Claude/BraxClaudeMetro.cs
+          grep -Fq 'BraxBuildQuality.Issue' unity-city/Assets/Editor/Claude/Region/BraxMiastoWyspaWykonczenie.cs
+          grep -Fq 'apk_nieblokowany_przez_próg_3=true' unity-city/Assets/Editor/Claude/Region/BraxMiastoWyspaWykonczenie.cs
+          echo "BRAXHORN_METRO94_SOURCE_READY $GITHUB_SHA"
+      - name: Trigger the existing full Unity 6 Android build for city only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          status=$(curl --silent --show-error --output /tmp/metro94-dispatch-response --write-out '%{http_code}' \
+            --request POST \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/claude-region-build.yml/dispatches" \
+            --data '{"ref":"codex/miasto-metro-apk-kontrola-20261105","inputs":{"rejon":"miasto","pamiec":"true"}}')
+          if [ "$status" != 204 ]; then
+            echo "::error::Nie udalo sie uruchomic wyłącznie miasta: HTTP $status"
+            cat /tmp/metro94-dispatch-response
+            exit 1
+          fi
+          echo 'BRAXHORN_METRO94_APK_DISPATCHED=true rejon=miasto pamiec=true, podpis=staly'
