@@ -303,9 +303,9 @@ public static class BraxChampionsPromenade
         lamp.type=LightType.Point;lamp.range=5.5f*K;lamp.intensity=.5f;
         lamp.shadows=LightShadows.None;lamp.renderMode=LightRenderMode.ForceVertex;
         lamp.color=new Color(1f,.87f,.72f);
-        // Populate the prepared original shop shell ONLY with 2K source
-        // models from official Poly Haven. No NPC, staff, crowds or fake food.
-        BraxChampionsPromenadeGoods.Build(root,p.id,p.w,p.d);
+        // One shared import strategy for all kiosks. Inventory objects are
+        // added once after all twelve shells exist by PromenadeStock.Populate.
+        // Never duplicate props by also invoking PromenadeGoods.Build here.
         SignFace(root,p,Sign(p));
     }
 
