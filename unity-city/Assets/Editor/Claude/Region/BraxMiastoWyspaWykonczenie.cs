@@ -14,18 +14,40 @@ internal static partial class BraxMiastoWyspa
         // Globalny krok BezSwiecenia gasi także szyldy i oprawy areny.
         // Przywracamy umiarkowaną emisję TYLKO oznaczonych materiałów areny na wyspie.
         // Nie dodaje to świateł ani bloom; nie dotyka oświetlenia miasta/osiedla/obozu.
+        // The premium arena uses BOTH "Arena:" and "Arena premium:" source
+        // names. Check the four required lighting roles explicitly: a count of
+        // arbitrary emissive materials alone cannot prove the signs survived.
+        var required = new[] {
+            "A świeci: Arena: pas LED zielony (marka)",
+            "A świeci: Arena: litery szyldu (podświetlane)",
+            "A świeci: Arena premium: znak wyjścia (zielony)",
+            "A świeci: Arena premium: panel LED sufitowy"
+        };
+        var seen = new bool[required.Length];
         var done = new HashSet<Material>();
-        foreach (var island in BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*"))
+        var islands = BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*");
+        if (islands.Count != 1)
+            throw new InvalidOperationException("Arena: brak jednego źródłowego korzenia wyspy");
+        foreach (var island in islands)
         foreach (var renderer in island.GetComponentsInChildren<Renderer>(true))
         foreach (var material in renderer.sharedMaterials)
         {
-            if (!material || !material.name.StartsWith("A świeci: Arena", StringComparison.Ordinal) || !done.Add(material)) continue;
+            if (!material || !material.name.StartsWith("A świeci: Arena", StringComparison.Ordinal) || !done.Add(material))
+                continue;
             if (!material.HasProperty("_EmissionColor") || !material.HasProperty("_Color"))
                 throw new InvalidOperationException("Arena: oprawa bez obsługi emisji " + material.name);
+            for (int i = 0; i < required.Length; i++)
+                if (material.name.StartsWith(required[i], StringComparison.Ordinal)) seen[i] = true;
+            // Retain the earlier moderate arena-only glow. Do not affect any
+            // city, estate or camp material, and do not create extra lights.
             material.SetColor("_EmissionColor", material.GetColor("_Color") * .8f);
             material.EnableKeyword("_EMISSION"); EditorUtility.SetDirty(material);
         }
-        if (done.Count < 3) throw new InvalidOperationException("Arena: brak materiałów opraw i szyldów");
+        var missing = required.Where((name, i) => !seen[i]).ToArray();
+        if (missing.Length != 0)
+            throw new InvalidOperationException("Arena premium: brak konkretnych materiałów opraw i szyldów: " +
+                string.Join(", ", missing));
+        Debug.Log("BRAXHORN_ARENA_OPRAWY premium=4/4 wszystkie_emisyjne=" + done.Count);
     }
 
     static void ApWalkaPokazowa()
