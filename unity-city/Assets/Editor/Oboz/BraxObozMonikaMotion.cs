@@ -9,6 +9,124 @@ using Object = UnityEngine.Object;
 // Monika locomotion: calibrated avatar on a copy, original mesh and bind poses.
 public static partial class BraxObozCharacters
 {
+    const string MonikaOwnerSource = "Assets/Source/Prywatne/Oboz/animations/monika-owner/";
+    const string MonikaDirectSources = "Assets/PlayableGenerated/Oboz/MonikaOwnerDirect/";
+
+    // Tylko te trzy pliki Mixamo wykonano na szkielecie Moniki: 65 wspólnych
+    // nazw kości. Humanoid SetHumanPose powodował obroty kolan i stóp.
+    // Nie poprawiamy deformacji fałszywym skręcaniem kostek — zachowujemy
+    // bezpośrednie lokalne krzywe rotacji FBX.
+    static bool IsMonikaOwnerClip(ClipSpec spec)
+        => spec.path.StartsWith(MonikaOwnerSource,StringComparison.Ordinal) &&
+            new[]{"Brutal To Happy Walking.fbx","Running.fbx","Jump.fbx"}
+                .Contains(System.IO.Path.GetFileName(spec.path));
+
+    static AnimationClip BakeMonikaOwnRig(GameObject hero,Rest[] rest,ClipSpec spec)
+    {
+        if (!System.IO.File.Exists(spec.path))
+            throw new InvalidOperationException("Brak oryginalnego FBX Moniki: "+spec.path);
+        System.IO.Directory.CreateDirectory(MonikaDirectSources);
+        string imported=MonikaDirectSources+System.IO.Path.GetFileName(spec.path);
+        bool needsCopy=!System.IO.File.Exists(imported);
+        if(!needsCopy)
+        {
+            using(var sha=System.Security.Cryptography.SHA256.Create())
+            using(var a=System.IO.File.OpenRead(spec.path))
+            using(var b=System.IO.File.OpenRead(imported))
+                needsCopy=!sha.ComputeHash(a).SequenceEqual(sha.ComputeHash(b));
+        }
+        if(needsCopy)
+        {
+            System.IO.File.Copy(spec.path,imported,true);
+            AssetDatabase.ImportAsset(imported,ImportAssetOptions.ForceSynchronousImport);
+        }
+        var importer=AssetImporter.GetAtPath(imported) as ModelImporter;
+        if(!importer)throw new InvalidOperationException("Brak importera ruchu Moniki: "+imported);
+        if(importer.animationType!=ModelImporterAnimationType.Legacy || !importer.importAnimation)
+        {
+            importer.animationType=ModelImporterAnimationType.Legacy;
+            importer.importAnimation=true;
+            importer.materialImportMode=ModelImporterMaterialImportMode.None;
+            importer.SaveAndReimport();
+        }
+        var source=AssetDatabase.LoadAllAssetsAtPath(imported).OfType<AnimationClip>()
+            .Where(v=>v && !v.name.StartsWith("__preview__") && v.length>.01f)
+            .OrderByDescending(v=>AnimationUtility.GetCurveBindings(v).Length)
+            .ThenByDescending(v=>v.length).FirstOrDefault();
+        if(!source)
+            throw new InvalidOperationException("Monika: pusty FBX Legacy "+imported);
+        var bones=rest.GroupBy(r=>BoneName(r.t.name),StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.OrdinalIgnoreCase);
+        var clip=new AnimationClip {
+            name=spec.name,legacy=true,frameRate=source.frameRate>0?source.frameRate:30,
+            wrapMode=spec.loop?WrapMode.Loop:WrapMode.Once
+        };
+        var mapped=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        int curves=0;
+        try
+        {
+            foreach(var bind in AnimationUtility.GetCurveBindings(source))
+            {
+                if(bind.type!=typeof(Transform))continue;
+                string property=bind.propertyName;
+                bool rotation=property.IndexOf("Rotation",StringComparison.OrdinalIgnoreCase)>=0 ||
+                    property.IndexOf("Euler",StringComparison.OrdinalIgnoreCase)>=0;
+                bool position=property.IndexOf("Position",StringComparison.OrdinalIgnoreCase)>=0;
+                if(!rotation&&!position)continue;
+                string[] parts=(bind.path??"").Split('/');
+                string name=BoneName(parts.Length>0 && !string.IsNullOrEmpty(parts[parts.Length-1])
+                    ? parts[parts.Length-1] : "Hips");
+                if(!bones.TryGetValue(name,out Rest target))
+                    throw new InvalidOperationException("Monika: kość z animacji nie występuje w modelu: "+name+" / "+spec.name);
+                if(position&&!string.Equals(name,"Hips",StringComparison.OrdinalIgnoreCase))
+                    continue;
+                var curve=AnimationUtility.GetEditorCurve(source,bind);
+                if(curve==null)continue;
+                if(position)
+                {
+                    int dot=property.LastIndexOf('.');
+                    char axis=dot>=0 && dot+1<property.Length ? char.ToLowerInvariant(property[dot+1]) : ' ';
+                    int channel=axis=='x'?0:axis=='y'?1:axis=='z'?2:-1;
+                    if(channel<0)continue;
+                    float original=target.p[channel];
+                    if(spec.inPlace&&axis!='y')
+                        curve=AnimationCurve.Constant(0f,Mathf.Max(.01f,source.length),original);
+                    else
+                    {
+                        float first=curve.Evaluate(0f);
+                        var keys=curve.keys;
+                        for(int k=0;k<keys.Length;k++)
+                        {
+                            var value=keys[k];value.value+=original-first;keys[k]=value;
+                        }
+                        curve=new AnimationCurve(keys) {
+                            preWrapMode=curve.preWrapMode,postWrapMode=curve.postWrapMode
+                        };
+                    }
+                }
+                var dst=bind;
+                dst.path=AnimationUtility.CalculateTransformPath(target.t,hero.transform);
+                AnimationUtility.SetEditorCurve(clip,dst,curve);
+                mapped.Add(name);curves++;
+            }
+            foreach(string required in new[]{"Hips","LeftUpLeg","RightUpLeg","LeftLeg","RightLeg"})
+                if(!mapped.Contains(required))
+                    throw new InvalidOperationException("Monika: brak kości "+required+" w "+spec.name);
+            if(mapped.Count<25)throw new InvalidOperationException(
+                "Monika: za mało animowanych kości "+mapped.Count+" w "+spec.name);
+            clip.EnsureQuaternionContinuity();
+            Debug.Log("BRAXHORN_MONIKA_OWNER_DIRECT nazwa="+spec.name+
+                " kości="+mapped.Count+" krzywe="+curves+" źródło="+imported+
+                " BEZ retargetingu Humanoid, model i skóra niezmienione");
+            return clip;
+        }
+        catch
+        {
+            Object.DestroyImmediate(clip);
+            throw;
+        }
+    }
+
     static AnimationClip BakeDirectMotion(GameObject hero,Avatar avatar,Transform hips,Rest[] rest,ClipSpec spec)
     {
         var sourceClip=AssetDatabase.LoadAllAssetsAtPath(spec.path).OfType<AnimationClip>().Where(c=>!c.name.StartsWith("__preview__")).OrderByDescending(c=>c.length).First();
