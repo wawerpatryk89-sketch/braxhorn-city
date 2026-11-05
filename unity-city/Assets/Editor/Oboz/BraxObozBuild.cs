@@ -170,7 +170,7 @@ public static class BraxObozBuild
             foreach (var root in roots)
                 foreach (var t in root.GetComponentsInChildren<Transform>(true))
                     if (GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject) != 0)
-                        throw new InvalidOperationException("Brak skryptu: " + t.name);
+                        BraxBuildQuality.Issue(new InvalidOperationException("Brak skryptu w scenie testowej: " + t.name));
             if (roots.SelectMany(r => r.GetComponentsInChildren<BraxGymPlayer>(true)).Count() != 1 ||
                 roots.SelectMany(r => r.GetComponentsInChildren<Camera>(true)).Count() != 1)
                 BraxBuildQuality.Issue(new InvalidOperationException("Obóz wymaga jednego gracza i jednej kamery"));
