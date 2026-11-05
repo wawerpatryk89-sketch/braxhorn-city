@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[2]
-BRANCH = 'codex/miasto-mistrzow-20261104'
+BRANCH = 'gpt/miasto-mistrzow-arena-premium-20261105'
 REQUIRED = (
     'unity-tools/claude/prywatne.py',
     'unity-tools/claude/import_patryk_transfer.py',
