@@ -16,7 +16,7 @@ on:
         type: boolean
         default: false
       content_action:
-        description: "Obóz na TEJ gałęzi: preflight bez Unity lub export-candidate Addressables (BEZ APK)"
+        description: "Obóz: preflight, eksport bazy lub aktualizacja z istniejącej bazy — BEZ APK"
         type: choice
         required: true
         options:
@@ -47,7 +47,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       # This job is EXCLUDED on codex/oboz-przebudowa-pbr-20261105.
-      # Use oboz-content-base.yml or oboz-content-update.yml instead.
+      # Use the manual oboz-content-only or oboz-content-update job below instead.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 2
