@@ -10,7 +10,10 @@ using UnityEngine;
 public static class BraxChampionsArenaArrival
 {
     const string Out = "Assets/PlayableGenerated/Mistrzowie/Buildings/Materials/";
-    const string BeltAsset = "Assets/Source/Mistrzowie/Trophies/championship_belt_3d_model.fbx";
+    const string BeltRoot = "Assets/Source/Mistrzowie/Trophies/";
+    const string BeltName = "tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419";
+    const string BeltAsset = BeltRoot + BeltName + ".fbx";
+    const string BeltMaps = BeltRoot + BeltName + ".fbm/";
     static float K => BraxClaudeOsiedle.K;
 
     static GameObject Box(Transform parent, string name, Material material, Vector3 centre, Vector3 size, bool solid = true)
@@ -166,6 +169,17 @@ public static class BraxChampionsArenaArrival
                 new Vector3(-side * .23f, 1.32f, side * .11f),
                 new Vector3(.08f, .68f, .08f), false);
         }
+        // The exterior generator leaves a real 9.4m opening. Fill the sides
+        // with fixed transparent sidelights; the central 3.44m double door opens.
+        foreach (float side in new[] { -1f, 1f })
+        {
+            Box(root, "Framed fixed glass sidelight", glass,
+                new Vector3(side * 3.38f, 1.61f, 0),
+                new Vector3(2.98f, 3.22f, .09f));
+            Box(root, "Sidelight frame", metal,
+                new Vector3(side * 4.87f, 1.63f, 0),
+                new Vector3(.065f, 3.3f, .14f), false);
+        }
         var door = root.gameObject.AddComponent<BraxCityDoor>();
         door.id = id; door.label = label; door.leaves = hinges; door.sides = new[] { 1f, -1f };
     }
@@ -198,12 +212,39 @@ public static class BraxChampionsArenaArrival
         }
     }
 
+    static Material ChampionshipBeltPbr()
+    {
+        var color = AssetDatabase.LoadAssetAtPath<Texture2D>(BeltMaps + "Color.png");
+        var normal = AssetDatabase.LoadAssetAtPath<Texture2D>(BeltMaps + "Normal.png");
+        var arm = AssetDatabase.LoadAssetAtPath<Texture2D>(BeltRoot + "ChampionshipBelt_ARM.png");
+        if (!color || !normal || !arm)
+        {
+            Debug.LogWarning("CHAMPION_BELT_TEXTURES_MISSING: colour, normal and packed roughness/metallic must be restored without changing source");
+            return null;
+        }
+        var shader = Shader.Find(BraxCityMaterials.ShaderName);
+        if (!shader) throw new InvalidOperationException("Original city PBR shader missing");
+        var m = new Material(shader) { name = "Original world champion belt PBR", enableInstancing = true };
+        m.SetColor("_Color", Color.white);
+        m.SetTexture("_MainTex", color);
+        m.SetTexture("_BumpMap", normal);
+        m.SetTexture("_ARM", arm);
+        m.SetFloat("_NormalEncoding", 0);
+        m.SetFloat("_Roughness", 1);
+        m.SetFloat("_Metallic", 1);
+        m.SetFloat("_UseARMForAO", 0); // No AO data provided; channel R is neutral white.
+        m.SetFloat("_VertexTint", 0);
+        m.SetVector("_SunDirection", BraxCityMaterials.SunDirection);
+        AssetDatabase.CreateAsset(m, Out + "arena_championship_belt_pbr.mat");
+        return m;
+    }
+
     static bool Trophy(Transform parent, Material glass, Material metal, Material stone)
     {
         bool found = false;
         var source = AssetDatabase.LoadAssetAtPath<GameObject>(BeltAsset);
-        // Reusable world-class title-belt cabinets beside the spectator-to-stands circulation.
-        foreach (float x in new[] { -9f, 9f })
+        // One original belt, placed visibly beside the public route to the stands.
+        foreach (float x in new[] { 9f })
         {
             var cabinet = Group(parent, "Champion belt glass museum display", new Vector3(x, 0, -38.8f));
             Box(cabinet, "Museum stone plinth", stone,
@@ -219,7 +260,9 @@ public static class BraxChampionsArenaArrival
             }
             Box(cabinet, "Museum glass top", glass,
                 new Vector3(0, 2.50f, 0), new Vector3(2.75f, .06f, 1.43f));
-            if (!source) continue; // no fake belt mesh, zero invented replacement
+            if (!source) continue; // original owner-supplied FBX only, never fabricate a mesh
+            var beltMaterial = ChampionshipBeltPbr();
+            if (!beltMaterial) continue;
             var belt = PrefabUtility.InstantiatePrefab(source) as GameObject;
             if (!belt) continue;
             belt.name = "Owner supplied championship belt 3D - original";
@@ -230,10 +273,16 @@ public static class BraxChampionsArenaArrival
             foreach (var renderer in renderers.Skip(1)) bb.Encapsulate(renderer.bounds);
             float longest = Mathf.Max(bb.size.x, Mathf.Max(bb.size.y, bb.size.z));
             if (longest < 1e-6f) throw new InvalidOperationException("Champion belt FBX has invalid bounds");
-            belt.transform.localScale *= (1.85f * K / longest);
+            belt.transform.localScale *= (1.55f * K / longest);
             bb = renderers[0].bounds;
             foreach (var renderer in renderers.Skip(1)) bb.Encapsulate(renderer.bounds);
-            belt.transform.position += cabinet.TransformPoint(new Vector3(0, 1.28f, 0) * K) - bb.center;
+            belt.transform.position += cabinet.TransformPoint(new Vector3(0, 1.64f, 0) * K) - bb.center;
+            foreach (var renderer in renderers)
+            {
+                var mats = renderer.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++) mats[i] = beltMaterial;
+                renderer.sharedMaterials = mats;
+            }
             found = true;
         }
         if (!found) Debug.LogWarning("CHAMPION_BELT_ASSET_MISSING: place the owner's original FBX and maps at " + BeltAsset + " before claiming trophy-ready APK");
@@ -257,6 +306,20 @@ public static class BraxChampionsArenaArrival
         DressingRooms(root, sidewalk, exterior["dark_stone"], exterior["steel"]);
         Box(root, "Main lobby continuous carpet", rope,
             new Vector3(0, .239f, -47.3f), new Vector3(3.9f, .018f, 22.0f), false);
+        // Warm lobby lighting keeps the interior visible through the glazed curtain wall.
+        // Vertex lights are used, not shadow-casting dynamic lights per glass bay.
+        for (int i = -1; i <= 1; i++)
+        {
+            var lamp = new GameObject("Warm public lobby light " + i).AddComponent<Light>();
+            lamp.transform.SetParent(root, false);
+            lamp.transform.localPosition = new Vector3(i * 7f, 4.8f, -49f) * K;
+            lamp.type = LightType.Point;
+            lamp.range = 17f * K;
+            lamp.intensity = 1.35f;
+            lamp.color = new Color(1f, .89f, .72f);
+            lamp.shadows = LightShadows.None;
+            lamp.renderMode = LightRenderMode.ForceVertex;
+        }
         return Trophy(root, exterior["clear_glass"], exterior["bronze"], exterior["stone"]);
     }
 }
