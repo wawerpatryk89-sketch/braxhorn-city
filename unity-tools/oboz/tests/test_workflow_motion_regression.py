@@ -13,7 +13,7 @@ MANIFEST = ROOT / "unity-city/Assets/Editor/Oboz/CharacterManifest.json"
 
 class CampAnimationWorkflowRegression(unittest.TestCase):
     def test_motion_restore_is_unconditional_and_before_unity(self):
-        text = WORKFLOW.read_text(encoding="utf-8")
+        text = WORKFLOW.read_text(encoding="utf-8").split("  oboz-content-only:", 1)[0]
         name = "      - name: Przywroc animacje casual i Moniki (wymagane dla wszystkich 7 postaci)"
         self.assertEqual(text.count(name), 1)
         start = text.index(name)
@@ -26,7 +26,7 @@ class CampAnimationWorkflowRegression(unittest.TestCase):
         self.assertLess(start, text.index("Generowanie sceny i kompilacja tylko obozu"))
 
     def test_manifest_clips_have_cheap_non_skippable_preflight(self):
-        text = WORKFLOW.read_text(encoding="utf-8")
+        text = WORKFLOW.read_text(encoding="utf-8").split("  oboz-content-only:", 1)[0]
         name = "      - name: Sprawdz wszystkie klipy postaci PRZED uruchomieniem Unity"
         self.assertEqual(text.count(name), 1)
         begin = text.index(name)
