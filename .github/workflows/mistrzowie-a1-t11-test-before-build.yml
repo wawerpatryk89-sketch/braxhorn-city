@@ -21,6 +21,11 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             unity-city/Assets/BraxGymPlayer.cs
+            public/assets/chars/brax.glb.gz
+            public/assets/tex/brax_color.webp
+            public/assets/tex/brax_normal.webp
+            public/assets/tex/brax_orm.webp
+            public/assets/cars-src/car_rev.glb
             unity-city/Assets/Claude/
             unity-city/Assets/Editor/
             unity-city/Assets/City/
