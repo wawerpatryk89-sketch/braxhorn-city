@@ -1,0 +1,73 @@
+name: Miasto Mistrzów - 25 oryginalnych modeli Poly Haven 2K - BEZ APK
+on:
+  push:
+    branches:
+      - codex/miasto-mistrzow-promenada-k1-k12-20261105
+    paths:
+      - .github/workflows/champions-promenade-polyhaven-props.yml
+      - unity-tools/mistrzowie/prepare_promenade_props.py
+      - unity-tools/mistrzowie/promenade_polyhaven_models.json
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: champions-promenade-polyhaven-source-20261105
+  cancel-in-progress: false
+jobs:
+  official-cc0-model-source-only:
+    if: github.ref == 'refs/heads/codex/miasto-mistrzow-promenada-k1-k12-20261105'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 23
+    steps:
+      - name: Only verified source list and downloader; NO Unity
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/mistrzowie/prepare_promenade_props.py
+            unity-tools/mistrzowie/promenade_polyhaven_models.json
+      - name: Install real 2K image checker
+        run: python3 -m pip install --disable-pip-version-check Pillow==12.0.0
+      - name: Verify all 25 official Poly Haven 2K GLTF metadata
+        run: |
+          set -euo pipefail
+          python3 -m py_compile unity-tools/mistrzowie/prepare_promenade_props.py
+          python3 unity-tools/mistrzowie/prepare_promenade_props.py --metadata-only
+      - name: Download full 25 original models with all required material maps
+        run: |
+          set -euo pipefail
+          python3 unity-tools/mistrzowie/prepare_promenade_props.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path('mistrzowie-evidence/promenade-polyhaven-import.json').read_text())
+          assert report['assetCount']==25
+          assert report['status']=='POLYHAVEN_2K_OFFICIAL_SOURCE_VERIFIED'
+          assert all(m['files'] for m in report['models'])
+          assert all(m['file_count']>=3 for m in report['models'])
+          print('POLYHAVEN_25_2K_CHECKSUMS_PASS',report['totalOriginalBytes'])
+          PY
+      - name: Pack imported 2K originals and SHA report
+        run: |
+          set -euo pipefail
+          tar -C unity-city -czf mistrzowie-evidence/BRAXHORN_MISTRZOWIE_POLYHAVEN_25_MODELI_2K.tar.gz \
+            Assets/Source/Mistrzowie/PolyHaven
+          sha256sum mistrzowie-evidence/BRAXHORN_MISTRZOWIE_POLYHAVEN_25_MODELI_2K.tar.gz \
+            > mistrzowie-evidence/BRAXHORN_POLYHAVEN_25_ARCHIVE_SHA256.txt
+      - name: Save independently downloaded models - NOT AN APK
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: BRAXHORN_MISTRZOWIE_POLYHAVEN_25_ORIGINAL_2K
+          path: |
+            mistrzowie-evidence/BRAXHORN_MISTRZOWIE_POLYHAVEN_25_MODELI_2K.tar.gz
+            mistrzowie-evidence/promenade-polyhaven-import.json
+            mistrzowie-evidence/BRAXHORN_POLYHAVEN_25_ARCHIVE_SHA256.txt
+          retention-days: 7
+          if-no-files-found: error
+          compression-level: 0
+      - name: Report provenance and test boundary
+        if: success()
+        run: |
+          echo 'Poly Haven CC0 - 25 verified 2K models downloaded as original source artifact.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Unity NOT RUN; models not yet visually accepted; NO APK; old signage untouched.' >> "$GITHUB_STEP_SUMMARY"
