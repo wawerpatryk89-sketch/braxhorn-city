@@ -187,22 +187,31 @@ public static partial class BraxObozEnvironment
     internal static List<Rect> PathRectangles()
     {
         var paths = new List<Rect> {
-            new Rect(-1.2f,-125,2.4f,240), new Rect(-101,-56.0f,101,2),
-            new Rect(-101,-55,2,42), new Rect(-64,-55,2,42),
-            new Rect(-93.2f,-79f,2.4f,5f), // dojscie do nowej lazni i WC od glownego chodnika
-            new Rect(-123,-75,123,2), new Rect(-50,-100,50,2),
-            // Ciąg od istniejącej alei do otworu wejścia sanitariatów,
-            // przy zachowaniu oryginalnych współrzędnych innych budynków.
-            new Rect(-93.4f,-80f,2.8f,8f),
-            new Rect(-75,75,145,2), new Rect(0,-79,70,2)
+            // Dostęp pieszy od istniejącego ronda i przystanku — poza oktagonem.
+            new Rect(-1.2f,-77f,2.4f,54f),
+            new Rect(-1.2f,-25f,19.2f,2.4f),
+            new Rect(16.8f,-24f,2.4f,42f),
+            new Rect(-1.2f,15.6f,19.2f,2.4f),
+            new Rect(-1.2f,16f,2.4f,41f),
+            // Domki z dwiema rzędami wejść; łączenia do obecnej alei.
+            new Rect(-63f,-28f,63f,2.4f),
+            new Rect(-60f,-31.5f,2.2f,4f),new Rect(-42f,-31.5f,2.2f,4f),
+            new Rect(-60f,-26f,2.2f,4f),new Rect(-42f,-26f,2.2f,4f),
+            // Sanitariaty, kuchnia, medyczny i magazyn.
+            new Rect(-68f,-61f,68f,2.4f),
+            new Rect(-33f,-78f,33f,2.4f),
+            // Podejście do strefy siłowej i odcinka 100 m.
+            new Rect(18f,-4.5f,28f,2.4f),
+            new Rect(44f,-4.5f,2.4f,49f),
+            new Rect(0f,39f,18f,2.4f)
         };
-        foreach(var a in new[]{(-58f,-74f,5f),(-95f,-74f,6f),(-115f,-74f,6f),(-46f,-99f,6f),(-24f,-99f,6f)})
-            paths.Add(new Rect(a.Item1-.9f,a.Item2,1.8f,a.Item3));
-        // Cabin landings join the reduced-width paths without a soil gap.
-        foreach(float z in new[]{-20f,-40f}) {
-            paths.Add(new Rect(-100,z-.9f,1.9f,1.8f));
-            paths.Add(new Rect(-64.9f,z-.9f,1.9f,1.8f));
-        }
+        // Łączniki do drzwi usługowych, układ bez prowadzenia pieszych
+        // przez modele kuchni, łaźni i stołówki.
+        paths.Add(new Rect(-66f,-59.2f,2.4f,11.2f)); // wejście WC od strony północnej
+        paths.Add(new Rect(-42f,-65f,2.4f,6.4f));   // dojście do stołówki
+        paths.Add(new Rect(-58f,-65.6f,2.4f,7f));   // dojście do pryszniców
+        paths.Add(new Rect(-25f,-80.5f,2.4f,5f));   // medyczny
+        paths.Add(new Rect(-25f,-65f,2.4f,7f));     // magazyn
         return paths;
     }
     static void Cabin(string name, float x, float z, float yaw)
