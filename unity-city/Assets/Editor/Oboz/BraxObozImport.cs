@@ -83,6 +83,29 @@ public sealed class BraxObozImport : AssetPostprocessor
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
         if (!(assetImporter is TextureImporter t)) return;
         string n = System.IO.Path.GetFileName(assetPath).ToLowerInvariant();
+
+        // Skybox HDR Montorfano: zachowaj rzeczywiste 4096×2048 i liniowe HDR.
+        // Unity wybiera format HDR zgodny z targetem Android (ASTC_HDR jest
+        // opcjonalne sprzętowo); nie wymuszać niepoprawnego ASTC LDR.
+        if (assetPath.EndsWith("/OwnerAssets/Panoramy/montorfano_4k.hdr",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            t.textureShape = TextureImporterShape.Texture2D;
+            t.textureType = TextureImporterType.Default;
+            t.sRGBTexture = false;
+            t.mipmapEnabled = true;
+            t.filterMode = UnityEngine.FilterMode.Trilinear;
+            t.maxTextureSize = 4096;
+            t.isReadable = false;
+            var hdri = t.GetPlatformTextureSettings("Android");
+            hdri.name = "Android";
+            hdri.overridden = true;
+            hdri.maxTextureSize = 4096;
+            hdri.format = TextureImporterFormat.Automatic;
+            t.SetPlatformTextureSettings(hdri);
+            return;
+        }
+
         // Radiance HDRI 360 zachowuje liniowe dane HDR. Nie wolno przepakować
         // 4K panoramy jako zwykłego LDR ASTC 4x4 tylko dlatego, że jest w OwnerAssets.
         if(assetPath.StartsWith(Root+"OwnerAssets/Panoramy/",StringComparison.Ordinal) &&
