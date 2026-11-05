@@ -10,7 +10,7 @@ on:
       - unity-tools/mistrzowie/test_promenade_no_overlays.py
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs
-      - unity-tools/mistrzowie/prepare_promenade_signs.py
+      - unity-tools/mistrzowie/verify_promenade_original_signs.py
   workflow_dispatch:
 
 permissions:
@@ -50,16 +50,17 @@ jobs:
         run: |
           set -euo pipefail
           python3 unity-tools/mistrzowie/legacy_foundation.py
-          python3 unity-tools/mistrzowie/prepare_promenade_signs.py
+          # Do not fabricate shop signs. A previous collection K1-K12
+          # labels OLD cafes and cannot substitute these 12 new services.
+          python3 unity-tools/mistrzowie/verify_promenade_original_signs.py
           python3 - <<'PY'
+          import json
           from pathlib import Path
-          from PIL import Image
-          base=Path("unity-city/Assets/Source/Mistrzowie")
-          for i in range(1,13):
-              file=base/("prom_K"+str(i)+"_sign.png")
-              with Image.open(file) as im:
-                  assert im.size==(2048,512),file
-          print("CHAMPIONS_12_KIOSK_REFERENCE_SIGNS_2048x512_PASS")
+          f=Path("mistrzowie-evidence/promenade-owner-signs-status.json")
+          r=json.loads(f.read_text())
+          assert r["required"]==12 and r["neverGenerated"] is True
+          assert r["ready"] is False and r["verified"]==0
+          print("PROMENADE_OWNER_12_NEW_SIGNS_MISSING_FALSE_SIGNS_FORBIDDEN")
           PY
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_promenade_no_overlays.py' -v
       - name: C sharp source parser only — never game BuildPlayer
