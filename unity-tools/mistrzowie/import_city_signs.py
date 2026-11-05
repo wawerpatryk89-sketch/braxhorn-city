@@ -52,7 +52,7 @@ def inspect(path):
             raise ValueError("Original sign manifest does not match images")
         for row in catalog:
             png=row["path"];blob=archive.read(png)
-            if blob[:8]!=b"\\x89PNG\\r\\n\\x1a\\n" or struct.unpack(">II",blob[16:24])!=(2048,512):
+            if blob[:8]!=b"\x89PNG\r\n\x1a\n" or struct.unpack(">II",blob[16:24])!=(2048,512):
                 raise ValueError("Original graphic dimensions changed: "+png)
             if hashlib.sha256(blob).hexdigest()!=row["sha256"]:
                 raise ValueError("Original image digest mismatch: "+png)
