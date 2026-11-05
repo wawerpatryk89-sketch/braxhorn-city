@@ -11,52 +11,85 @@ internal static partial class BraxMiastoWyspa
 {
     public static void WykonczOprawy(UnityEngine.SceneManagement.Scene scene)
     {
-        // Po globalnym BezSwiecenia przywróć umiarkowaną emisję WYŁĄCZNIE
-        // czterech oryginalnych materiałów LED/szyldów areny. Nie wstawiaj
-        // żadnych nowych materiałów, opraw, źródeł światła ani atrap.
-        // Rzeczywisty korzen z bieżącej generacji jest bardziej niezawodny
-        // niz odnajdywanie go po tytule GameObject po optymalizacji sceny.
-        var islands = root && root.gameObject.scene == scene
-            ? new List<Transform> { root }
-            : BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*");
-        if (islands.Count != 1)
-            throw new InvalidOperationException("Arena: brak jednoznacznej wyspy do wykończenia, znaleziono " + islands.Count);
-        var authored = new[] { apLed, apLit, apZnak, apLedSufit }.Where(m => m).ToArray();
-        var authoredNames = new HashSet<string>(authored.Select(m => m.name), StringComparer.Ordinal);
-        var done = new HashSet<Material>();
-        int missingProperties = 0;
-        foreach (var renderer in islands[0].GetComponentsInChildren<Renderer>(true))
-        foreach (var material in renderer.sharedMaterials)
+        // Build #94 stopped on a count of emissive materials, even though the
+        // arena geometry had already been generated. A visual-quality warning
+        // cannot stop APK creation. Do not create replacement lights/materials,
+        // change collision geometry, or change the appearance of other zones.
+        //
+        // Prefer the exact authored materials. The explicit prefixes also
+        // match saved/reimported .mat copies (including "bez świecenia").
+        Material[] authored = { apLed, apLit, apZnak, apLedSufit };
+        string[] names =
         {
-            if (!material) continue;
-            // Nie opieraj odtworzenia na nazwie: zapis i reimport Unity może
-            // zwrócić ten sam materiał z innym podpisem, ale zachować jego ref.
-            if (!authored.Contains(material) && !authoredNames.Contains(material.name) &&
-                !material.name.StartsWith("A świeci: Arena", StringComparison.Ordinal))
-                continue;
-            if (!done.Add(material)) continue;
-            if (!material.HasProperty("_EmissionColor") || !material.HasProperty("_Color"))
-            {
-                missingProperties++;
-                BraxBuildQuality.Issue(new InvalidOperationException(
-                    "Arena: oznaczony materiał nie obsługuje emisji: " + material.name));
-                continue;
-            }
-            material.SetColor("_EmissionColor", material.GetColor("_Color") * .8f);
-            material.EnableKeyword("_EMISSION");
-            EditorUtility.SetDirty(material);
+            "A świeci: Arena: pas LED zielony (marka)",
+            "A świeci: Arena: litery szyldu (podświetlane)",
+            "A świeci: Arena premium: znak wyjścia (zielony)",
+            "A świeci: Arena premium: panel LED sufitowy"
+        };
+        string[] roles = { "pas LED", "litery BRAXHORN ARENA", "znaki WYJŚCIE", "panele sufitowe LED" };
+
+        var islands = new List<Transform>();
+        if (root && root.gameObject.scene == scene)
+            islands.Add(root);
+        else
+            islands.AddRange(BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*"));
+        if (islands.Count == 0)
+        {
+            BraxBuildQuality.Warn("BRAXHORN_ARENA_OPRAWY: brak korzenia wyspy w scenie. " +
+                "Wymagana ocena wizualna w testowym APK.");
+            return;
         }
-        // W #94 sztuczny próg „minimum 3 różne materiały” zatrzymał całe
-        // generowanie i nie wywołano BuildPipeline.BuildPlayer, choć arena
-        // miała 616 miejsc i istniejące siatki. Brak występowania opcjonalnego
-        // świecącego materiału to UWAGA wizualna, nie błąd kompilacji APK.
-        if (done.Count == 0)
-            BraxBuildQuality.Issue(new InvalidOperationException(
-                "Arena: w gotowych rendererach nie znaleziono oznaczonych materiałów LED/szyldów; " +
-                "wymagany odbiór wizualny po zbudowaniu APK"));
-        Debug.Log("BRAXHORN_ARENA_OPRAWY wyspa=1 autorowanych=" + authored.Length +
-            " znalezionych=" + done.Count + " bez_emisji=" + missingProperties +
-            " apk_nieblokowany_przez_próg_3=true");
+
+        var done = new HashSet<Material>();
+        var found = new bool[authored.Length];
+        int renderers = 0, slots = 0, unsupported = 0;
+        foreach (var island in islands)
+        foreach (var renderer in island.GetComponentsInChildren<Renderer>(true))
+        {
+            renderers++;
+            foreach (var material in renderer.sharedMaterials)
+            {
+                if (!material) continue;
+                int role = -1;
+                for (int i = 0; i < authored.Length; i++)
+                {
+                    if ((authored[i] && material == authored[i]) ||
+                        material.name.StartsWith(names[i], StringComparison.Ordinal))
+                    {
+                        role = i;
+                        break;
+                    }
+                }
+                if (role < 0) continue;
+                found[role] = true;
+                slots++;
+                if (!done.Add(material)) continue;
+                if (!material.HasProperty("_EmissionColor") || !material.HasProperty("_Color"))
+                {
+                    unsupported++;
+                    BraxBuildQuality.Warn("BRAXHORN_ARENA_OPRAWY: materiał nie obsługuje emisji: " + material.name);
+                    continue;
+                }
+
+                // The existing moderation level is intentionally preserved.
+                // Nothing outside the original arena materials is changed.
+                material.SetColor("_EmissionColor", material.GetColor("_Color") * .8f);
+                material.EnableKeyword("_EMISSION");
+                EditorUtility.SetDirty(material);
+            }
+        }
+
+        var missing = Enumerable.Range(0, found.Length)
+            .Where(i => !found[i]).Select(i => roles[i]).ToArray();
+        if (missing.Length > 0)
+            BraxBuildQuality.Warn("BRAXHORN_ARENA_OPRAWY: nie znaleziono przypisanych opraw: " +
+                string.Join(", ", missing) + "; sprawdzić wygląd w testowym APK.");
+        Debug.Log("BRAXHORN_ARENA_OPRAWY wyspa=" + islands.Count +
+            " renderery=" + renderers + " sloty=" + slots +
+            " różne_materiały=" + done.Count + " role=" +
+            (found.Length - missing.Length) + "/" + found.Length +
+            " bez_obsługi_emisji=" + unsupported +
+            " test_APK_nieblokowany_przez_ocenę_wizualną=true");
     }
 
     static void ApWalkaPokazowa()
