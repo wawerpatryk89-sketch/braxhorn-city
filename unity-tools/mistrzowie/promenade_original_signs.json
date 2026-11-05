@@ -1,0 +1,85 @@
+{
+  "schema": "BRAXHORN_CHAMPIONS_PROMENADE_ORIGINAL_SIGN_BINDINGS_V1",
+  "instruction": "Only verified unchanged original owner PNGs; NULL means NO matching artwork approved. No generated substitutes, recoloring, or re-lettering.",
+  "source_archive": "MIASTO_MISTRZOW_SZYLDY_148_I_MURALE_3.zip",
+  "source_inner_zip_checksums": {
+    "MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip": "fcce54bdf976c343fbbeffde614f385f8ef82f5819c64f70dac84c73b105efce",
+    "MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip": "e3691fc12d18c05ca42c71abfbf046a566d9af6764f49a30c41ca05a4f5eb5c7"
+  },
+  "entries": [
+    {
+      "id": "K1",
+      "required": "CAFÉ / KAWIARNIA",
+      "owner_path": "Assets/Source/Mistrzowie/CitySigns/02_LOKALE/C01_KAWIARNIA_KAWIARNIA.png",
+      "sha256": "4b3a3d35514d7cf2f0b5bba322431a205daaba2d894a726b360aa412518f2848",
+      "note": "Owner's already-supplied C01 KAWIARNIA artwork; original pixels unchanged; one matching service."
+    },
+    {
+      "id": "K2",
+      "required": "LODY / GOFRY",
+      "owner_path": null,
+      "sha256": null
+    },
+    {
+      "id": "K3",
+      "required": "RYBY NA WYNOS",
+      "owner_path": null,
+      "sha256": null
+    },
+    {
+      "id": "K4",
+      "required": "PIZZA / BISTRO",
+      "owner_path": null,
+      "sha256": null
+    },
+    {
+      "id": "K5",
+      "required": "BURGER",
+      "owner_path": null,
+      "sha256": null
+    },
+    {
+      "id": "K6",
+      "required": "SOKI / OWOCE",
+      "owner_path": null,
+      "sha256": null
+    },
+    {
+      "id": "K7",
+      "required": "SKLEPIK PLAŻOWY",
+      "owner_path": null,
+      "sha256": null
+    },
+    {
+      "id": "K8",
+      "required": "PAMIĄTKI",
+      "owner_path": null,
+      "sha256": null
+    },
+    {
+      "id": "K9",
+      "required": "BAR / DRINKI",
+      "owner_path": null,
+      "sha256": null
+    },
+    {
+      "id": "K10",
+      "required": "GRILL / BBQ",
+      "owner_path": null,
+      "sha256": null
+    },
+    {
+      "id": "K11",
+      "required": "WYNAJEM SPRZĘTU",
+      "owner_path": null,
+      "sha256": null
+    },
+    {
+      "id": "K12",
+      "required": "INFORMACJA / TOUR",
+      "owner_path": null,
+      "sha256": null,
+      "note": "MARINA_INFO_INFORMACJA is not an exact TOUR sign; do not assign without owner confirmation."
+    }
+  ]
+}
