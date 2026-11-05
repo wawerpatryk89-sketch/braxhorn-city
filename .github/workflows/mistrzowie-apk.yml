@@ -511,12 +511,13 @@ jobs:
           test -s unity-city/BraxContentBuild/base/addressables_content_state.bin
           test -s unity-city/BraxContentBuild/base/scene-guids.txt
           test -s unity-city/Assets/Resources/BraxContentBase.json
-      - name: Rebuild deterministic Android update picker and preserve runtime fingerprint
+      - name: Keep the exact Android picker from the immutable signed baseline
         run: |
-          sudo docker image prune --all --force
-          docker run --rm --entrypoint bash -v "$PWD:/project" \
-            unityci/editor:ubuntu-6000.0.85f2-android-3.2.2 \
-            /project/unity-tools/mistrzowie/build_content_picker.sh
+          # Never rebuild runtime Java code for an Addressables-only patch.
+          # The encrypted baseline contains the original JAR and original GUID.
+          test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar
+          test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar.meta
+          echo BRAX_MISTRZOWIE_PICKER_FROM_SIGNED_BASELINE
       - name: Restore encrypted previously-imported Unity Library for content updates
         id: content_library
         continue-on-error: true
@@ -553,6 +554,37 @@ jobs:
           buildMethod: BraxContentBuild.UpdateFromBaseline
           versioning: None
           allowDirtyBuild: true
+      - name: Verify bundle package identity before uploading
+        env:
+          BASE_ID: ${{ steps.content_request.outputs.base }}
+        run: |
+          python3 - <<'PY'
+          import json,os,zipfile
+          from pathlib import Path
+          packages=list(Path('unity-city/BraxContentBuild').glob('mistrzowie-u-*.braxupdate.zip'))
+          if len(packages)!=1: raise SystemExit('Exactly one cumulative update ZIP required')
+          package=packages[0]
+          if not 0<package.stat().st_size<2*1024**3:
+              raise SystemExit('Update exceeds private release size limit; split content bundles')
+          with zipfile.ZipFile(package) as archive:
+              entries=archive.namelist()
+              if len(entries)!=len(set(entries)) or 'manifest.json' not in entries:
+                  raise SystemExit('Bad or duplicate ZIP manifest entries')
+              manifest=json.loads(archive.read('manifest.json'))
+              if manifest.get('zone')!='mistrzowie' or manifest.get('baseId')!=os.environ['BASE_ID']:
+                  raise SystemExit('Wrong content zone or base')
+              if not manifest.get('catalog') or not manifest.get('files'):
+                  raise SystemExit('Invalid content catalog')
+          print('BRAX_MISTRZOWIE_DELTA_VERIFIED',package.name,package.stat().st_size,'APK_NOT_BUILT')
+          PY
+      - name: Save verified delta as a separate GitHub Actions artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mistrzowie-delta-${{ steps.content_request.outputs.base }}-${{ github.run_id }}
+          path: unity-city/BraxContentBuild/*.braxupdate.zip
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
       - name: Publish verified cumulative .braxupdate.zip to private base draft
         env:
           GH_TOKEN: ${{ github.token }}
