@@ -134,7 +134,11 @@ public static partial class BraxObozEnvironment
         for (int z = 0; z <= n; z++) for (int x = 0; x <= n; x++)
         {
             float px = -140 + 280f * x / n, pz = -140 + 280f * z / n;
-            float channel = Mathf.Abs(px - 135); // naturalny strumien poza wschodnim ogrodzeniem float y = channel < 3.5f ? -.9f : channel < 5.5f ? Mathf.Lerp(-.9f, 0, (channel - 3.5f) / 2) : 0;
+            // Strumień biegnie tuż poza wschodnim ogrodzeniem. Teren pozostaje
+            // niezależny od geometrii ogrodzenia i zachowuje ciągłość podłoża.
+            float channel = Mathf.Abs(px - 135);
+            float y = channel < 3.5f ? -.9f : channel < 5.5f
+                ? Mathf.Lerp(-.9f, 0, (channel - 3.5f) / 2) : 0;
             int i = z * (n + 1) + x; vertices[i] = P(px, y, pz); uv[i] = new Vector2(px * K / 3, pz * K / 3);
             float distance = float.PositiveInfinity;
             foreach (var path in paths)
