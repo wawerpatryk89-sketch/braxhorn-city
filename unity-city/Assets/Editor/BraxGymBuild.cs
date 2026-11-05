@@ -226,6 +226,10 @@ public static class BraxGymBuild
         if(renovation&&!osiedle)BraxNutritionShopBuild.ValidateSources();
         var tGym=DateTime.UtcNow;
         var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
+        // Fail in seconds on the city #97/#98 sector-reference regression,
+        // instead of generating the city for hours before the first split.
+        if (fullCity && renovation && !osiedle)
+            BraxClaudeObszary.SprawdzNiepodzielnoscSterownikow(scene);
         var gym=ImportModel("Assets/Source/braxhorn-original-gym.glb");
         var world=JsonUtility.FromJson<WorldData>(File.ReadAllText("Assets/Source/gym-collisions.json"));
         if(world.boxes.Length<40)throw new Exception("Incomplete original collisions");

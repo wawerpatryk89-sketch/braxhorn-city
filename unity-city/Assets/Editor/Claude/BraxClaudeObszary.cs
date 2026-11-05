@@ -52,12 +52,66 @@ public static class BraxClaudeObszary
             if (!b.Intersects(obszar)) return;
             // Build 8: 64 drzewa (Verdant, LOD) na granicy osiedla — pień przeniesiony do obszaru, korona została
             // (LODGroup traci odwołanie między scenami → korona wisi w powietrzu, dopóki obszar się nie wczyta).
-            // Obiekt z LODGroup jest niepodzielny: cały w obszarze albo cały zostaje.
-            if (t.GetComponent<LODGroup>()) return;
+            // LODGroup is atomic; so is ANY scripted controller with child
+            // renderers/colliders. Splitting its descendants between scenes
+            // destroys serialized Renderer/Transform references on SaveScene.
+            // City #97/#98: BraxSwiatloDrogowe at (-750,29) remained in
+            // BraxhornCity while three signal lenses moved to K_x-5_z0.
+            // Full subtree inside cell is moved as one unit by the clause above;
+            // otherwise leave it INTACT in the primary scene.
+            if (t.GetComponent<LODGroup>() || t.GetComponent<MonoBehaviour>()) return;
             foreach (Transform c in t) Zbierz(c);
         }
         foreach (var root in scene.GetRootGameObjects()) Zbierz(root.transform);
         return res;
+    }
+
+    /// <summary>
+    /// Early, real-Unity regression for the #97/#98 city failure. This creates
+    /// disposable traffic lights in the currently empty authoring scene,
+    /// without changing geometry, assets, scene names or final game visuals.
+    /// </summary>
+    public static void SprawdzNiepodzielnoscSterownikow(Scene scene)
+    {
+        if (!scene.IsValid() || !scene.isLoaded || scene.rootCount != 0)
+            throw new InvalidOperationException("BRAXHORN_STREAMING_TEST requires an empty authoring scene");
+        var root = new GameObject("__BRAXHORN_STREAMING_ATOMIC_TEST__");
+        try
+        {
+            var controller = root.AddComponent<BraxSwiatloDrogowe>();
+            var red = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            red.name = "szkla czerwone (test)";
+            red.transform.SetParent(root.transform, false);
+            red.transform.localPosition = Vector3.zero;
+            var green = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            green.name = "szkla zielone (test)";
+            green.transform.SetParent(root.transform, false);
+            green.transform.localPosition = new Vector3(9f, 0f, 0f);
+            controller.czerwoneA = red.GetComponent<Renderer>();
+            controller.zieloneA = green.GetComponent<Renderer>();
+            Physics.SyncTransforms();
+
+            // Red lens is wholly inside the cell, green lens outside.
+            // The controller spans the boundary, so NEVER split either lens.
+            var partial = WObszarze(scene,
+                new Bounds(Vector3.zero, new Vector3(4f, 6f, 6f)));
+            if (partial.Any(t => t == red.transform || t == green.transform || t == root.transform))
+                throw new InvalidOperationException("BRAXHORN_STREAMING_TEST_SPLIT_CONTROLLER");
+
+            // In a large cell, the complete scripted subtree must move together.
+            var full = WObszarze(scene,
+                new Bounds(new Vector3(4.5f, 0f, 0f), new Vector3(24f, 6f, 6f)));
+            if (full.Count != 1 || full[0] != root.transform
+                || controller.czerwoneA != red.GetComponent<Renderer>()
+                || controller.zieloneA != green.GetComponent<Renderer>())
+                throw new InvalidOperationException("BRAXHORN_STREAMING_TEST_LOST_REFERENCES");
+
+            Debug.Log("BRAXHORN_STREAMING_PREFLIGHT_PASS: traffic signal remains atomic across sector boundary");
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(root);
+        }
     }
 
     /// <summary>Przenosi węzły do nowej sceny (dodatkowej), zapisuje ją i dopisuje obszar do BraxObszary. Zwraca ścieżkę sceny albo null.</summary>
