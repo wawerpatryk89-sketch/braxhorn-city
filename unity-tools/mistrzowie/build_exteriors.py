@@ -31,6 +31,25 @@ def glazing(m,path,y0,y1,detail=True):
  if detail:
   for a in path[:-1]:m.box('bronze',(a[0],(y0+y1)/2,a[1]),(.10,y1-y0,.10))
 
+def arena_entry_panels(path):
+ """Split lower facade at +/-4.70m exactly, independent of tessellation.
+
+ Yields (start, end, is_opening). Only two entrances: south public,
+ north athletes. Used for both render LODs and permanent collision.
+ """
+ for a,b in zip(path,path[1:]):
+  cuts=[0.0,1.0]
+  if abs(a[1])>57.5 and abs(b[1])>57.5 and a[1]*b[1]>0 and abs(b[0]-a[0])>1e-9:
+   for edge in (-4.70,4.70):
+    t=(edge-a[0])/(b[0]-a[0])
+    if 1e-9<t<1-1e-9:cuts.append(t)
+  cuts=sorted(cuts)
+  for t0,t1 in zip(cuts,cuts[1:]):
+   p=a*(1-t0)+b*t0;q=a*(1-t1)+b*t1
+   mid=(p+q)*.5
+   opening=abs(mid[0])<4.70 and abs(mid[1])>57.5
+   yield p,q,opening
+
 def rectangle_path(x,z,w,d,step=3):
  corners=[(x-w/2,z-d/2),(x+w/2,z-d/2),(x+w/2,z+d/2),(x-w/2,z+d/2)]
  result=[]
@@ -75,21 +94,9 @@ def arena(detail):
  # Plot apron ends flush with the shared sidewalk level; real slab thickness below it.
  m.slab('stone',box(-110,-75,110,75),.16,.41)
  m.slab('dark_stone',foot,.18,.6)
- # Front and rear ground-level entry gaps have fixed +/-4.70m edges
- # INDEPENDENT OF LOD tessellation; low-detail collision uses the same gap.
- # Never infer door width from segment centres: n=64 vs n=128 changes it.
- for a,b in zip(path,path[1:]):
-  cuts=[0.0,1.0]
-  if abs(a[1])>57.5 and abs(b[1])>57.5 and a[1]*b[1]>0 and abs(b[0]-a[0])>1e-9:
-   for edge in (-4.70,4.70):
-    t=(edge-a[0])/(b[0]-a[0])
-    if 1e-9<t<1-1e-9:cuts.append(t)
-  cuts=sorted(cuts)
-  for t0,t1 in zip(cuts,cuts[1:]):
-   p=a*(1-t0)+b*t0;q=a*(1-t1)+b*t1
-   mid=(p+q)*.5
-   entry=abs(mid[0])<4.70 and abs(mid[1])>57.5
-   glazing(m,np.array([p,q]),4.5 if entry else .18,10.8,detail)
+ # Exact entrance geometry is shared by both LOD0 and collider LOD1.
+ for p,q,entry in arena_entry_panels(path):
+  glazing(m,np.array([p,q]),4.5 if entry else .18,10.8,detail)
  # Continuous pale stone belt carries the main signage, with bronze reveals.
  wall(m,'stone',path,10.8,18.2)
  for yy in [10.8,11.1,17.9,18.2]:ribbon(m,'bronze',path,0,.22,yy,.14)
