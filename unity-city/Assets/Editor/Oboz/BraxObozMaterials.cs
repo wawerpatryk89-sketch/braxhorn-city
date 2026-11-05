@@ -144,6 +144,26 @@ public static class BraxObozMaterials
         return Save(material,"owner-rubberized-track-2k");
     }
 
+    public static Material OwnerSlabTilesPbr()
+    {
+        const string p="Assets/Source/Prywatne/Oboz/OwnerAssets/slab_tiles_2k/textures/";
+        string colorPath=p+"slab_tiles_diff_2k.jpg",normalPath=p+"slab_tiles_nor_gl_2k.exr";
+        string roughPath=p+"slab_tiles_rough_2k.exr";
+        foreach(var file in new[]{colorPath,normalPath,roughPath})
+            if(!File.Exists(file)) throw new InvalidOperationException("Brak oryginalnego gresu 2K: "+file);
+        var shader=Shader.Find("Braxhorn/ObozSurface");
+        if(!shader) throw new InvalidOperationException("Brak shadera gresu PBR");
+        var color=Map(colorPath,false,true);var normal=Map(normalPath,true,false);
+        var rough=Map(roughPath,false,false);
+        if(color.width<2048||color.height<2048||normal.width<2048||normal.height<2048||
+            rough.width<2048||rough.height<2048)
+            throw new InvalidOperationException("Gres nie jest prawdziwym 2K");
+        var mat=new Material(shader){name="Obóz / ciemny gres oryginalny 2K",enableInstancing=true};
+        mat.SetTexture("_MainTex",color);mat.SetTexture("_BumpMap",normal);
+        mat.SetTexture("_RoughnessTex",rough);mat.SetFloat("_MetallicFactor",0);
+        return Save(mat,"owner-slab-tiles-2k");
+    }
+
     public static Material PublicPbr(string id,float widthMetres)
     {
         if (widthMetres <= 0 || float.IsNaN(widthMetres) || float.IsInfinity(widthMetres))
