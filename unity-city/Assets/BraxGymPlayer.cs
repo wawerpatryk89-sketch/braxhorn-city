@@ -14,6 +14,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public string buildId;
     public bool ready;
     public bool walkOnly, playFullActionClips;
+    public bool explorationOnly; // osiedle: bez ciosow i kopniec; inne sceny niezmienione
     public bool hideWhenCameraClose = true;
     public BraxCityWorld cityWorld;
     public Vector3 worldSpawn=new Vector3(1.5f,.08f,2.8f);
@@ -142,6 +143,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             return;
         }
         if(Time.time<actionEnd||vessel||seat||autoGracza)return;
+        if(explorationOnly && (key=="punch" || key=="kick"))return;
         if(key=="punch")StartAction("Punch",1.25f,.43f);
         else if(key=="kick")StartAction("Kick",1.2f,.60f);
         else if(key=="jump" && body.isGrounded && !jumpPending){StartAction("Jump",1.35f,-1);jumpPending=true;jumpDeadline=Time.time+.30f;hipsPrevY=float.NaN;}

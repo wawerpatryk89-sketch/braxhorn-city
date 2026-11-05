@@ -220,7 +220,7 @@ public static class BraxCityBuild
         RenderSettings.sun=sun;QualitySettings.shadows=ShadowQuality.All;QualitySettings.shadowDistance=42;QualitySettings.shadowResolution=ShadowResolution.Medium;QualitySettings.shadowCascades=2;
         var shadow=GameObject.CreatePrimitive(PrimitiveType.Quad);shadow.name="Original Brax contact shadow";UnityEngine.Object.DestroyImmediate(shadow.GetComponent<Collider>());shadow.transform.rotation=Quaternion.Euler(90,0,0);shadow.transform.localScale=new Vector3(1.6f,1.4f,1);shadow.GetComponent<Renderer>().sharedMaterial=AssetDatabase.LoadAssetAtPath<Material>(Generated+"/ContactShadow.mat");shadow.layer=8;
         var runtime=player.AddComponent<BraxGymPlayer>();runtime.visual=hero.transform;runtime.body=body;runtime.clips=animation;runtime.view=camera;runtime.contactShadow=shadow.transform;runtime.bags=Array.Empty<Transform>();runtime.buildId=commit;runtime.worldSpawn=player.transform.position;
-        runtime.walkOnly=false;runtime.playFullActionClips=true;runtime.hideWhenCameraClose=false; // osiedle: joystick chod/bieg z autentycznym klipem Run
+        runtime.walkOnly=false;runtime.playFullActionClips=true;runtime.hideWhenCameraClose=false;runtime.explorationOnly=true; // osiedle: zwiedzanie, chod, bieg, auto; bez walki
         AddArea("estate",runtime);
         // Estate-only visual pass: verified source textures on original roof meshes.
         BraxEstateR2ApprovedRoofs.Apply();

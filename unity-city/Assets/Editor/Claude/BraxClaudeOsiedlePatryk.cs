@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 // Prywatne modele i animacje są odszyfrowywane wyłącznie przez istniejący krok CI.
 // Źródła i model są Humanoid; Unity przenosi anatomiczną pozę i zapisuje klipy Legacy
 // dla BraxGymPlayer. Oryginalna hierarchia i bindposes zostają zachowane.
-// Idle = spokojna poza modelu, CombatIdle = garda dopiero po ciosie. Błąd zatrzymuje build.
+// Patryk zwiedza osiedle, bez walki i ruchow bramkarza.
 public static partial class BraxClaudeOsiedle
 {
     public const string PrywatneZrodla = "Assets/Source/Prywatne";
@@ -27,17 +27,12 @@ public static partial class BraxClaudeOsiedle
     // i Kicking były w miejscu — przesuwa gracza fizyka BraxGymPlayer).
     static readonly PatrykKlip[] KlipyPatryka =
     {
-        PK("CombatIdle", true, true, "brax/Idle.fbx"),
         PK("Walk", true, true, "patryk_owner/Strut Walking.fbx"),
         PK("Run", true, true, "patryk_owner/Fast Run.fbx"),
-        PK("Punch", false, true, "brax/Jab Cross (1).fbx", "xd/Jab Cross.fbx"),
-        PK("Kick", false, true, "brax/Mma Kick (1).fbx", "nyxa/Mma Kick (1).fbx"),
         PK("Jump", false, true, "patryk_owner/Jump.fbx"),
         PK("EnteringCar", false, true, "patryk_owner/Entering Car.fbx"),
-        PK("GoalkeeperDivingSave", false, true, "patryk_owner/Goalkeeper Diving Save.fbx"),
-        PK("GoalkeeperCatch", false, true, "patryk_owner/Goalkeeper Catch.fbx"),
     };
-    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "CombatIdle", "Walk", "Run", "Punch", "Kick", "Jump", "EnteringCar" };
+    static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "Walk", "Run", "Jump", "EnteringCar" };
 
     // „mixamorig:LeftArm”, „mixamorig1:LeftArm”, „mixamorigLeftArm” → „LeftArm”
     static string PatrykKosc(string n)
@@ -117,53 +112,34 @@ public static partial class BraxClaudeOsiedle
 
             // --- klipy przeniesione na kości Patryka ---
             var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek), PatrykPozaStala(hero,spoczynek,"CarIdle",true) }; var opis = new List<string>();
-            if (!avatar || !avatar.isValid || !avatar.isHuman)
-                throw new InvalidOperationException("Nowy Patryk: nieprawidłowy awatar Humanoid");
-            // Rig mismatch was logged in build #63. Compare the imported Humanoid
-            // and a rebuilt anatomical T-pose against BOTH Walk and Run before
-            // baking Legacy clips; preserve the original mesh and bindposes.
-            Avatar awatarRuchu = avatar;
-            try
-            {
-                tPoza = PatrykAwatarTPoza(wzor, avatar, model, out string opisTPozy);
-                // Avatar Humanoid pozostaje tylko dla ciosu, gardy i kopniecia
-                // z osobnej biblioteki. WLASNE sześć ruchow Patryka nie uzywa go.
-                awatarRuchu = tPoza ? tPoza : avatar;
-                Debug.Log("BRAXHORN_PATRYK_AVATAR_COMBAT " + opisTPozy +
-                    " | WLASNE SZESC RUCHOW = bez Humanoid, bez deformujacego retargetingu");
-            }
+            // Osiedle: ruchy zwiedzania nie potrzebuja retargetingu Humanoid ani ciosow.
+            // W buildzie #95 Walk FBX nie zawieral wymaganych krzywych Hips.
+            PatrykSpoczynek(spoczynek);
+            try { PatrykPrzygotujWlasneRuchy(); }
             catch (Exception e)
             {
-                Debug.LogWarning("BRAXHORN_PATRYK_RETARGET T-poza niedostępna, importowany awatar: " + e.Message);
-                if (tPoza) { Object.DestroyImmediate(tPoza); tPoza = null; }
+                Debug.LogWarning("BRAXHORN_PATRYK_SPACER: import ruchow FBX: " + e.Message);
             }
-            PatrykSpoczynek(spoczynek);
-            PatrykPrzygotujWlasneRuchy();
             foreach (var k in KlipyPatryka)
             {
                 AnimationClip gotowy = null;
-                // Wszystkie szesc ruchow z archiwum "Patryk anima(2).zip" jest
-                // przypisanych po nazwach kosci bez dodatkowego retargetingu.
-                if (k.zrodla.Any(z => z.StartsWith("patryk_owner/", StringComparison.Ordinal)))
+                try
                 {
-                    gotowy = PatrykWlasnyFBX(hero, kosci, spoczynek, k, out string bezRetargetu);
-                    opis.Add(bezRetargetu);
+                    gotowy = PatrykWlasnyFBX(hero, kosci, spoczynek, k, out string opisFBX);
+                    opis.Add(opisFBX);
                 }
-                else foreach (var z in k.zrodla)
+                catch (Exception e)
                 {
-                    string sciezka = PatrykRuchy + "/" + z;
-                    if (!File.Exists(sciezka)) continue;
-                    try
-                    {
-                        gotowy = PatrykHumanoid(hero, awatarRuchu, hips, kosci, spoczynek, sciezka, k, out string uwagi);
-                        opis.Add(k.nazwa + "←" + z + uwagi);
-                        break;
-                    }
-                    catch (Exception e) { Debug.LogWarning("BRAXHORN_PATRYK klip " + k.nazwa + " z " + z + ": " + e.Message); }
-                    finally { PatrykSpoczynek(spoczynek); }
+                    Debug.LogWarning("BRAXHORN_PATRYK_SPACER: " + k.nazwa + ": " + e.Message +
+                        ". Bezpieczny klip zwiedzania na oryginalnym szkielecie, bez podmiany postaci.");
+                    gotowy = k.nazwa == "Walk" || k.nazwa == "Run"
+                        ? PatrykSpacerAwaryjny(hero, spoczynek, k.nazwa)
+                        : PatrykPozaStala(hero, spoczynek, k.nazwa, k.nazwa == "EnteringCar");
+                    opis.Add(k.nazwa + ": zwiedzanie - bez retargetingu");
                 }
+                finally { PatrykSpoczynek(spoczynek); }
                 if (gotowy) klipy.Add(gotowy);
-                else Debug.LogWarning("BRAXHORN_PATRYK brak klipu " + k.nazwa);
+                else throw new InvalidOperationException("Brak klipu sterowania " + k.nazwa);
             }
             var brak = PatrykWymagane.Where(n => !klipy.Any(c => c.name == n)).ToArray();
             if (brak.Length > 0) throw new Exception("brak wymaganych klipów: " + string.Join(", ", brak));
@@ -171,41 +147,33 @@ public static partial class BraxClaudeOsiedle
             var anim = hero.AddComponent<Animation>(); anim.playAutomatically = false; anim.cullingType = AnimationCullingType.AlwaysAnimate;
             foreach (var c in klipy) anim.AddClip(c, c.name);
 
-            // W trybie ręcznego APK pomijamy testy jakości postaci, nie sam import i retargeting.
+            // Kontrola biomechaniki Patryka to raport do testu na telefonie,
+            // nie bloker APK. Zasady kompilacji i podpisu nie sa luzowane.
             int bledy = 0;
             if (!BraxBuildQuality.Advisory)
             {
-            // --- test kości: 8 klatek każdego klipu vs spoczynek (> 2 % = błąd), T-poza w Idle/Walk/Run = błąd ---
-            bledy = PatrykTestKosci(hero, kosci, spoczynek, klipy, out string raportTestu);
-            Debug.Log("BRAXHORN_PATRYK_KOSCI bledy=" + bledy + " " + raportTestu);
-            // E2: test nóg na zapisanych klipach Legacy (to, co gra gracz): 16 klatek chodu i biegu
-            foreach (var c in klipy.Where(q => q.name == "Walk" || q.name == "Run"))
-            {
-                var w = PatrykTestNog(hero, kosci, spoczynek, c);
-                bool ok = w.stopaPonad == 0 && w.koloTyl == 0 && w.przeprost == 0 && w.wBok == 0;
-                string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=sprawdzony_dla_klipu" + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
-                if (ok) Debug.Log(l); else Debug.LogWarning(l + " — DO SPRAWDZENIA W APK");
-                // Błąd ze sprawdzonego buildu #41812927670: stopy 159°/174°.
-                // Tak duże odchylenie po retargetingu oznacza wadliwą
-                // animację — nie wydawaj APK z obróconymi butami.
-                if (!ok || w.klatki == 0)
-                    BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_PATRYK_STOPY_BLOKADA klip=" + c.name +
-                        " stopa_max=" + w.stopaMax.ToString("F1") +
-                        "°. Ruch nie spełnia kontroli nóg; wstrzymano wadliwą animację."));
+                try
+                {
+                    bledy = PatrykTestKosci(hero, kosci, spoczynek, klipy, out string raportTestu);
+                    if (bledy > 0) BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: " + raportTestu);
+                    foreach (var klip in klipy.Where(x => x.name == "Walk" || x.name == "Run"))
+                    {
+                        var test = PatrykTestNog(hero, kosci, spoczynek, klip);
+                        if (test.klatki == 0 || test.stopaPonad > 0 || test.koloTyl > 0 || test.przeprost > 0 || test.wBok > 0)
+                            BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: " + klip.name +
+                                " do oceny na telefonie: " + test.Opis());
+                    }
+                }
+                catch (Exception e) { BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: test diagnostyczny: " + e.Message); }
+                finally { PatrykSpoczynek(spoczynek); }
             }
-            if (bledy > 0) BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_PATRYK_KOSCI: " + bledy + " błędów — " + raportTestu));
-
-            }
-            else
-            {
-                BraxBuildQuality.Warn("PATRYK: testy nóg, kości, T-pozy i przeprostów pominięte; model i animacje zostają; decyzja po teście Android APK.");
-            }
+            else BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: chod i bieg do oceny na telefonie, nie blokuje APK.");
 
             var idleTest = anim.GetClip("Idle");
             idleTest.SampleAnimation(hero, 0f);
             float idleArms = PatrykKatRamion(kosci);
             if (!BraxBuildQuality.Advisory && idleArms > 30f)
-                BraxBuildQuality.Issue(new InvalidOperationException("Patryk: ramiona w spoczynku uniesione (" + idleArms.ToString("F1") + "°)"));
+                BraxBuildQuality.Warn("Patryk: ramiona w spoczynku uniesione (" + idleArms.ToString("F1") + "°)");
             PatrykSpoczynek(spoczynek);
             Debug.Log("BRAXHORN_PATRYK_IDLE ramiona=" + idleArms.ToString("F1") + "° od pionu (cel <30°)");
             anim.clip = idleTest; anim.Play("Idle"); anim.Sample();

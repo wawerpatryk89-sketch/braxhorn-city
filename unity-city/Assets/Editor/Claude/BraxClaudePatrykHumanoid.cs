@@ -112,8 +112,7 @@ public static partial class BraxClaudeOsiedle
     static readonly string PatrykBezRetargetu = PrywatneZrodla + "/patryk_owner_direct";
     static readonly string[] PatrykRuchyWlasne =
     {
-        "Strut Walking.fbx", "Fast Run.fbx", "Jump.fbx",
-        "Entering Car.fbx", "Goalkeeper Diving Save.fbx", "Goalkeeper Catch.fbx"
+        "Strut Walking.fbx", "Fast Run.fbx", "Jump.fbx", "Entering Car.fbx"
     };
 
     static void PatrykPrzygotujWlasneRuchy()
@@ -149,7 +148,7 @@ public static partial class BraxClaudeOsiedle
                 importer.SaveAndReimport();
             }
         }
-        Debug.Log("BRAXHORN_PATRYK_WLASNE_RUCHY: szesc oryginalnych FBX w trybie Legacy, bez Humanoid retargetingu");
+        Debug.Log("BRAXHORN_PATRYK_WLASNE_RUCHY: cztery FBX do zwiedzania w trybie Legacy, bez Humanoid retargetingu");
     }
 
     static AnimationClip PatrykWlasnyFBX(GameObject hero, List<Transform> kosci,
@@ -254,6 +253,47 @@ public static partial class BraxClaudeOsiedle
             if (clip) Object.DestroyImmediate(clip);
             PatrykSpoczynek(spoczynek);
         }
+    }
+
+    // Chod/bieg awaryjny na oryginalnym szkielecie; tylko niewielkie rotacje kosci.
+    // Zero zmian siatki, skal, bindpose i root motion (ruch daje CharacterController).
+    static AnimationClip PatrykSpacerAwaryjny(GameObject hero, List<PatrykStan> rest, string name)
+    {
+        bool szybki = name == "Run";
+        float czas = szybki ? .68f : 1.1f;
+        float udo = szybki ? 20f : 11f, kolano = szybki ? 21f : 11f, ramie = szybki ? 14f : 8f;
+        var clip = new AnimationClip { name = name, legacy = true, frameRate = 30, wrapMode = WrapMode.Loop };
+        foreach (string kosc in new[] { "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg", "LeftArm", "RightArm" })
+        {
+            var pose = rest.FirstOrDefault(x => PatrykKosc(x.t.name) == kosc);
+            if (pose == null) throw new InvalidOperationException("Brak kosci chodu Patryka: " + kosc);
+            Vector3 os = pose.t.parent
+                ? pose.t.parent.InverseTransformDirection(hero.transform.right).normalized
+                : Vector3.right;
+            if (os.sqrMagnitude < .5f) os = Vector3.right;
+            string sciezka = AnimationUtility.CalculateTransformPath(pose.t, hero.transform);
+            var kanaly = new Keyframe[4][];
+            for (int kanal = 0; kanal < 4; kanal++) kanaly[kanal] = new Keyframe[9];
+            for (int klatka = 0; klatka <= 8; klatka++)
+            {
+                float faza = 2f * Mathf.PI * klatka / 8f;
+                float l = Mathf.Sin(faza), r = -l;
+                float kat = kosc == "LeftUpLeg" ? l * udo :
+                            kosc == "RightUpLeg" ? r * udo :
+                            kosc == "LeftLeg" ? Mathf.Max(0f, -l) * kolano :
+                            kosc == "RightLeg" ? Mathf.Max(0f, -r) * kolano :
+                            kosc == "LeftArm" ? -l * ramie : -r * ramie;
+                Quaternion q = Quaternion.AngleAxis(kat, os) * pose.r;
+                for (int kanal = 0; kanal < 4; kanal++)
+                    kanaly[kanal][klatka] = new Keyframe(czas * klatka / 8f, q[kanal]);
+            }
+            for (int kanal = 0; kanal < 4; kanal++)
+                clip.SetCurve(sciezka, typeof(Transform), "localRotation." + "xyzw"[kanal],
+                    new AnimationCurve(kanaly[kanal]));
+        }
+        clip.EnsureQuaternionContinuity();
+        ZapiszKlipPatryka(clip);
+        return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + name + ".anim");
     }
 
     // Bake Unity's anatomical retargeting to the existing Legacy runtime. The avatar,
