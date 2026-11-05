@@ -256,8 +256,11 @@ public static class BraxObozServices
             FixtureBox(sink,"Syfon",new Vector3(0,.54f,-.13f),new Vector3(.18f,.5f,.14f),metal);
             FixtureBox(sink,"Bateria",new Vector3(0,1.04f,-.29f),new Vector3(.09f,.26f,.12f),metal);
             FixtureBox(sink,"Lustro",new Vector3(0,1.89f,.48f),new Vector3(1.25f,1.25f,.035f),mirror,false);
-            FixtureBox(sink,"Wieszak na ręcznik",new Vector3(.63f,1.19f,.10f),
-                new Vector3(.04f,.06f,.47f),metal,false);
+            // Oryginalny wieszak i ręcznik GLB, bez proceduralnej atrapy.
+            var towel=OwnerFixture(sink,"towel-rail-with-towel.glb",
+                new Vector3(.63f,1.19f,.10f),new Vector3(.70f,.55f,.32f));
+            var towelCollider=towel.GetComponent<Collider>();
+            if(towelCollider)Object.DestroyImmediate(towelCollider);
             var tap=Node("UMYJ RĘCE — KRAN",sink,new Vector3(0,1.04f,-.19f))
                 .gameObject.AddComponent<BraxObozFacility>();
             tap.kind=BraxObozFacility.Kind.Sink;
