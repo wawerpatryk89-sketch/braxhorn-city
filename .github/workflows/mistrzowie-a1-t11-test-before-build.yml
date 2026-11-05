@@ -72,7 +72,7 @@ jobs:
         run: |
           set -euo pipefail
           files="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
-            --jq '.[] | select(.tag_name=="champions-a1-20261105") | .assets[].name')"
+            --jq '.[] | select(.tag_name=="champions-a1-t11-20261105") | .assets[].name')"
           printf '%s\n' "$files"
           failed=0
           # The production workflow expects one SHA-locked owner wrapper.
