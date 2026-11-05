@@ -16,6 +16,10 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
         description: 'Pamiec podreczna wygenerowanego rejonu (odznacz = wymus pelne generowanie)'
         type: boolean
         default: true
+      clean_player_cache:
+        description: 'Osiedle: czysty build APK po awarii IL2CPP 139; zachowuje zaimportowane tekstury i modele'
+        type: boolean
+        default: true
 permissions:
   contents: read
   actions: read
@@ -135,7 +139,7 @@ jobs:
       run: |
         set -euo pipefail
         grep -Fxq 'm_EditorVersion: 6000.0.85f2' unity-city/ProjectSettings/ProjectVersion.txt
-        docker manifest inspect unityci/editor:ubuntu-6000.0.85f2-android-3 >/dev/null
+        docker manifest inspect unityci/editor:ubuntu-6000.0.85f2-android-3.2.2 >/dev/null
         echo 'BRAXHORN_UNITY_PATCH verified=6000.0.85f2 image=available'
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
@@ -471,7 +475,7 @@ jobs:
       run: |
         set -euo pipefail
         grep -Fxq 'm_EditorVersion: 6000.0.85f2' unity-city/ProjectSettings/ProjectVersion.txt
-        docker manifest inspect unityci/editor:ubuntu-6000.0.85f2-android-3 >/dev/null
+        docker manifest inspect unityci/editor:ubuntu-6000.0.85f2-android-3.2.2 >/dev/null
         echo 'BRAXHORN_UNITY_PATCH verified=6000.0.85f2 image=available'
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
@@ -747,6 +751,18 @@ jobs:
         if [ "$ZONE" = osiedle ] && [ -f unity-city/content-enabled.txt ]; then
           printf 'baseline\n' > unity-city/content-mode.txt
         fi
+    - name: Przygotuj opcjonalny czysty build Player po SIGSEGV IL2CPP (bez usuwania Library)
+      env:
+        ZONE: ${{ inputs.rejon }}
+        CLEAN: ${{ inputs.clean_player_cache }}
+      run: |
+        rm -f unity-city/estate-clean-player-cache.txt
+        if [ "$ZONE" = osiedle ] && [ "$CLEAN" = true ]; then
+          printf 'owner-requested Unity clean Player cache after IL2CPP SIGSEGV 139\n' > unity-city/estate-clean-player-cache.txt
+          echo 'BRAXHORN_OSIEDLE_IL2CPP clean_player_cache=YES imported_assets_preserved=YES'
+        else
+          echo 'BRAXHORN_OSIEDLE_IL2CPP clean_player_cache=NO'
+        fi
     - name: Kompilacja aplikacji Android (APK) z tej samej sceny
       id: unity_android
       uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
@@ -757,6 +773,7 @@ jobs:
       with:
         projectPath: unity-city
         unityVersion: 6000.0.85f2
+        customImage: unityci/editor:ubuntu-6000.0.85f2-android-3.2.2
         targetPlatform: Android
         buildMethod: BraxGymBuild.BuildRenovationAndroid
         androidExportType: androidPackage
