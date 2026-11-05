@@ -67,7 +67,7 @@ public static class BraxObozPbrPack
                 !index.originalsPreserved || index.entries == null)
                 throw new InvalidOperationException("Untrusted packed-map index");
             var entry = index.entries.SingleOrDefault(e => e.id == id && e.role == role);
-            int expectedSize = role == "RA" || id == "monika" ? 4096 : 2048;
+            int expectedSize = role == "RA" ? 1024 : id == "monika" ? 4096 : 2048;
             if (entry == null || entry.first != first || entry.second != second ||
                 entry.width != expectedSize || entry.height != expectedSize ||
                 string.IsNullOrEmpty(entry.packedPath) ||
@@ -115,7 +115,7 @@ public static class BraxObozPbrPack
         t.mipmapEnabled = true;
         bool isMonika = t.assetPath.EndsWith("/monika-MR.png", StringComparison.Ordinal);
         bool isAsphalt = t.assetPath.EndsWith("/clean_asphalt-RA.png", StringComparison.Ordinal);
-        int targetSize = isMonika || isAsphalt ? 4096 : 2048;
+        int targetSize = isAsphalt ? 1024 : isMonika ? 4096 : 2048;
         t.streamingMipmaps = targetSize == 4096;
         t.streamingMipmapsPriority = isMonika ? 2 : 0;
         t.isReadable = false;
@@ -129,7 +129,7 @@ public static class BraxObozPbrPack
         android.name = "Android";
         android.overridden = true;
         android.maxTextureSize = targetSize;
-        android.format = TextureImporterFormat.ASTC_4x4;
+        android.format = isAsphalt ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
         android.compressionQuality = 90;
         t.SetPlatformTextureSettings(android);
     }
