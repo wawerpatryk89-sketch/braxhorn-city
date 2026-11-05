@@ -91,7 +91,7 @@ public static class BraxObozTrainingSetup
                 if(!onNav)BraxBuildQuality.Issue(new InvalidOperationException("Stanowisko poza trasą: "+i));
                 var placement = onNav ? hit.position : points[i];
                 routine.places[i].position=placement;
-                var npc=routine.participants[i];npc.transform.position=placement+Vector3.up*.06f;
+                var npc=routine.participants[i];npc.transform.position=placement+Vector3.up*(.015f*K); // 1.5 cm nad NavMesh; grawitacja CharacterController sprowadza na podłogę
                 npc.routine=routine;
                 var agent=npc.gameObject.AddComponent<NavMeshAgent>();agent.enabled=false;
                 agent.agentTypeID=settings.agentTypeID;agent.updatePosition=false;agent.updateRotation=false;
