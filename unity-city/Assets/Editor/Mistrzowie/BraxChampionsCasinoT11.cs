@@ -144,6 +144,18 @@ public static class BraxChampionsCasinoT11
             for(int bay=0;bay<6;bay++)
                 B(trim,"Side warm facade light",led,side*38.55f,5.1f,-19.6f+bay*8.9f,.10f,1.35f,.18f,false);
         }
+        // Reference drawing: two full-height graphite/black marble gateway
+        // pylons between the curved atrium and both ivory facade wings.
+        // These close the unsightly gaps at +/-17m, with real relief and gold LED.
+        foreach(float side in new[]{-1f,1f})
+        {
+            B(shell,"Full-height premium black granite entry pylon",graphite,
+                side*18.25f,7.10f,-28f,2.5f,14.1f,2.35f);
+            B(trim,"T11 champagne vertical entry reveal",gold,
+                side*18.25f,7.02f,-29.27f,.15f,13.8f,.13f,false);
+            B(trim,"T11 warm recessed vertical pylon LED",led,
+                side*18.25f,7.01f,-29.39f,.067f,13.6f,.08f,false);
+        }
         // Rear service wall in exactly the same ivory + graphite + gold palette.
         // Keep a real six-metre-wide DELIVERY OPENING at x=-23..-17.
         B(shell,"Rear cream stone wing left",cream,-30.5f,7.0f,28f,15f,13.8f,.7f);
