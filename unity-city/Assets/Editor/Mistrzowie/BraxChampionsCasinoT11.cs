@@ -448,6 +448,54 @@ public static class BraxChampionsCasinoT11
         }
     }
 
+    static void RoadsideOriginalSign(string id,string source,float x,float z,float yaw)
+    {
+        // Preserve the owner's original 2048 x 512 artwork, including typography,
+        // colour and bull logo; fit 4:1 without stretching, and use real posts.
+        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(source);
+        if(!texture || texture.width!=2048 || texture.height!=512)
+            throw new FileNotFoundException("Original city roadside sign missing/wrong size: "+source);
+        var shader=Shader.Find(BraxCityMaterials.ShaderName);
+        if(!shader)throw new InvalidOperationException("Original sign PBR shader missing");
+        var material=new Material(shader){name="T11 original roadside "+id,enableInstancing=true};
+        material.SetTexture("_MainTex",texture);
+        material.SetTexture("_EmissionMap",texture);
+        material.SetColor("_EmissionColor",new Color(.13f,.10f,.06f));
+        material.SetColor("_Color",Color.white);
+        material.SetFloat("_Roughness",.35f);
+        material.SetFloat("_Metallic",0);
+        material.SetFloat("_VertexTint",0);
+        material.SetFloat("_AlphaClip",1);material.SetFloat("_Cutoff",.08f);
+        material.SetOverrideTag("RenderType","TransparentCutout");
+        material.renderQueue=2450;
+        material.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        AssetDatabase.CreateAsset(material,output+"/Materials/T11_roadside_"+id+".mat");
+        var stand=Group(signRoot,"Approved "+id+" | original CitySigns 4x1");
+        stand.localPosition=new Vector3(x,0,z)*K;
+        stand.localRotation=Quaternion.Euler(0,yaw,0);
+        B(stand,"Premium matte-black sign carrier",graphite,0,2.55f,0,4.22f,1.20f,.30f);
+        B(stand,"Gold sign bottom relief",gold,0,1.95f,-.16f,4.27f,.095f,.09f,false);
+        foreach(float side in new[]{-1f,1f})
+            B(stand,"Champagne supporting sign column",gold,side*1.83f,1.05f,.025f,.12f,2.15f,.14f);
+        var quad=GameObject.CreatePrimitive(PrimitiveType.Quad);
+        quad.name=id+" | original owner sign texture 4:1";
+        quad.transform.SetParent(stand,false);
+        quad.transform.localPosition=new Vector3(0,2.55f,-.171f)*K;
+        quad.transform.localRotation=Quaternion.Euler(0,180,0);
+        quad.transform.localScale=new Vector3(4f,1f,1f)*K;
+        quad.GetComponent<MeshRenderer>().sharedMaterial=material;
+        UnityEngine.Object.DestroyImmediate(quad.GetComponent<Collider>());
+    }
+
+    static void RoadsideSigns()
+    {
+        // Real supplier signage: TAXI at the front-right drop-off, PARKING at
+        // the garage approach. Do NOT use the arena-only "ARENA VIP" sign here.
+        const string origin="Assets/Source/Mistrzowie/CitySigns/03_TRANSPORT_KURORT/";
+        RoadsideOriginalSign("TAXI",origin+"TAXI_TAXI.png",42f,-36.8f,0f);
+        RoadsideOriginalSign("PARKING",origin+"PARKING_PARKING.png",58f,17f,270f);
+    }
+
     static void MainSign()
     {
         // The only approved brand for plot T11 is C1_KASYNO_KASYNO_WAWER.
@@ -490,7 +538,7 @@ public static class BraxChampionsCasinoT11
         shell=Group(root,"T11 exterior shell, real entrances and site collisions");
         trim=Group(root,"Exterior gold and bronze details (distance LOD)");
         signRoot=Group(root,"T11 original owner sign (always visible)");
-        Site();ThreeMatchingFacades();RoofAndSkylight();CurvedFoyer();Tower();MainSign();PremiumExteriorLighting();
+        Site();ThreeMatchingFacades();RoofAndSkylight();CurvedFoyer();Tower();MainSign();RoadsideSigns();PremiumExteriorLighting();
         // Remove tiny gold detail in distance, keep WAWER sign always visible.
         var renderers=trim.GetComponentsInChildren<Renderer>(true);
         var lod=trim.gameObject.AddComponent<LODGroup>();
