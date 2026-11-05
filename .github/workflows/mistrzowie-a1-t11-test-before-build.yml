@@ -73,20 +73,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          files="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
-            --jq '.[] | select(.tag_name=="champions-a1-t11-20261105") | .assets[].name')"
-          printf '%s\n' "$files"
-          failed=0
-          # The production workflow expects one SHA-locked owner wrapper.
-          # Its originals stay unmodified; no separate art uploads required.
-          for wanted in "BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip"; do
-            if ! grep -Fxq "$wanted" <<<"$files"; then
-              echo "::error::MISSING ORIGINAL OWNER SOURCE: $wanted"
-              failed=1
-            fi
-          done
-          if ((failed)); then
-            echo "::warning::Do NOT build Android yet; sources are not delivered to the GitHub Release"
-            exit 1
-          fi
-          echo "A1_T11_OWNER_ASSETS_PRESENT — Unity still not tested"
+          # The real APK pins this exact DRAFT release ID. A different tag
+          # in the old static job wrongly reported the owner's files missing.
+          export CHAMPIONS_OWNER_RELEASE_JSON="$(gh api "repos/$GITHUB_REPOSITORY/releases/435656828")"
+          python3 - <<'PY_OWNER_RELEASE'
+          import json,os
+          data=json.loads(os.environ["CHAMPIONS_OWNER_RELEASE_JSON"])
+          expected={"id":435656828, "tag_name":"champions-a1-20261105",
+                    "target_commitish":"gpt/miasto-mistrzow-kasyno-t11-20261105",
+                    "draft":True}
+          for field,value in expected.items():
+              if data.get(field)!=value:
+                  raise SystemExit("A1/T11 owner release identity mismatch: "+field)
+          original="BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip"
+          assets=[a for a in data.get("assets",[]) if a.get("name")==original]
+          if len(assets)!=1 or assets[0].get("size",0)<=110000000:
+              raise SystemExit("MISSING ORIGINAL OWNER SOURCE: "+original)
+          print("A1_T11_OWNER_ASSETS_PRESENT pinned_draft_id=435656828 original="+original)
+          print("Only presence validated; actual SHA-256 verification remains in APK preflight")
+          PY_OWNER_RELEASE
