@@ -40,7 +40,8 @@ class CasinoT11UndergroundTests(unittest.TestCase):
         self.assertIn("Garage structural floor - real collider",self.casino)
         self.assertIn("Garage main entrance champagne beam",self.casino)
         self.assertIn("Garage bottom asphalt landing",self.casino)
-        self.assertIn("Garage west retaining wall",self.casino) if False else None
+        self.assertIn("Ramp west retaining wall",self.casino)
+        self.assertIn("Ramp east retaining wall",self.casino)
         # Basement is separate; casino and offices retain an EMPTY interior.
         self.assertIn("EMPTY interior",self.casino)
 
