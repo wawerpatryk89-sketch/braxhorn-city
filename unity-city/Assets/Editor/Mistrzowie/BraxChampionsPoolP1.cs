@@ -80,6 +80,7 @@ public static class BraxChampionsPoolP1
         foreach(var b in layout.basins)EmptyBlueBasin(b);
         FixturesAndFurniture();
         EstateAndParking();
+        OwnerEquipmentAnchors();
         NightAndInteriorLights();
 
         if(parked!=layout.parkingSpaces)
@@ -193,7 +194,7 @@ public static class BraxChampionsPoolP1
     static float RoofY(float x)
     {
         float t=Mathf.Clamp(x/36f,-1f,1f);
-        return 12.35f+3.65f*(1f-t*t);
+        return 14f+2f*(1f-t*t);
     }
     static void RoofQuad(float x0,float x1,float z0,float z1,Material mat,bool underside)
     {
@@ -482,17 +483,8 @@ public static class BraxChampionsPoolP1
     static void FixturesAndFurniture()
     {
         // Wet rooms and changing facilities: finished surfaces, proper fixtures.
-        for(int i=0;i<10;i++)
-        {
-            float x=-33.4f+i*1.4f;
-            Box(rooms,"Female lockers high-quality front",wood,x,1.35f,13.4f,1.12f,2.15f,.65f);
-            Box(rooms,"Lockers brushed lock rail",steel,x,1.45f,13.0f,.81f,.04f,.035f,false);
-        }
-        for(int i=0;i<8;i++)
-        {
-            float x=8.4f+i*1.10f;
-            Box(rooms,"Male changing lockers",wood,x,1.35f,14.2f,.90f,2.15f,.70f);
-        }
+        // Lockers are OWNER-SUPPLIED original 3D models, not wood-box stand-ins.
+        // Their real mounting positions are reserved in OwnerEquipmentAnchors().
         for(float x=-30;x<=-19;x+=3.5f)
             Box(rooms,"Real teak changing bench",wood,x,.62f,9.2f,2.8f,.38f,.55f);
         // Tiled shower stations with actual pipe, valves and drain.
@@ -512,14 +504,8 @@ public static class BraxChampionsPoolP1
                 Cylinder(rooms,"P1 cafe table leg",steel,x,.79f,z,.045f,1.05f);
                 Cylinder(rooms,"P1 cafe tabletop granite",stone,x,1.3f,z,.68f,.10f);
             }
-        // Sauna, tiled relaxation and seating.
-        foreach(float z in new[]{-25.2f,-23.8f,-22.4f})
-            Box(rooms,"P1 sauna actual teak seating tier",wood,12.2f,.65f+(-z-22.4f)*.24f,z,6.2f,.22f,.65f);
-        foreach(float x in new[]{7.8f,11.5f,15.2f})
-        {
-            Box(rooms,"P1 recliner teak support",wood,x,.60f,-11.2f,1.7f,.25f,4.0f);
-            Box(rooms,"P1 recliner upper rest",smallMosaic,x,.76f,-10.3f,1.5f,.16f,1.8f);
-        }
+        // The owner will provide actual sauna and loungers.
+        // Finished floor, walls and ceiling remain; no substitute furniture.
         // Accessible toilet cubicles beside family changing.
         for(int i=0;i<3;i++)
         {
@@ -538,6 +524,23 @@ public static class BraxChampionsPoolP1
             Box(rooms,"Technician control console",steel,31,1.0f,z,4.2f,1.35f,1.25f);
             Box(rooms,"Technician inspection board",floor,34,2.0f,z,.15f,1.8f,4.0f);
         }
+    }
+    static void OwnerEquipmentAnchors()
+    {
+        // These invisible mount points are intentional. Never produce fake
+        // substitutes for owner-selected models or assume model dimensions.
+        void At(string id,float x,float z,float y=Deck)
+        {
+            var t=Group(details,"OWNER_ASSET_PENDING | "+id);
+            t.localPosition=new Vector3(x,y,z)*K;
+        }
+        for(int i=0;i<10;i++)At("locker_female_"+(i+1),-33.4f+i*1.4f,13.4f);
+        for(int i=0;i<8;i++)At("locker_male_"+(i+1),8.4f+i*1.1f,14.2f);
+        At("sauna_premium_3d",12.4f,-22.5f);
+        for(int i=0;i<3;i++)At("spa_lounger_premium_"+(i+1),7.8f+i*3.7f,-11.2f);
+        At("jacuzzi_premium_3d",10f,-6.75f);
+        // Preview-only location; adjust after inspecting exact supplied slide FBX/GLB.
+        At("waterslide_curved_premium_3d_PROVISIONAL_ANCHOR",-55f,37f);
     }
     static void ArcPaint(Transform t,float x,float y,float z,float radius,Material material)
     {
