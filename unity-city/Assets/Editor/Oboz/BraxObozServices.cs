@@ -182,7 +182,25 @@ public static class BraxObozServices
         var dark=BraxObozMaterials.Plain("sanitariaty-spoiny",new Color(.15f,.18f,.20f),.22f);
         var mirror=BraxObozMaterials.Plain("sanitariaty-lustro",new Color(.54f,.68f,.71f),.88f,.06f);
         var rubber=mats["rubber"];var metal=mats["metal"];var wood=mats["wood"];
-        FixtureBox(building,"Płytki gresowe — podłoga",new Vector3(0,.12f,0),new Vector3(12,.24f,10),tile);
+        var darkTile=BraxObozMaterials.OwnerSlabTilesPbr();
+        var tileFloor=FixtureBox(building,"Oryginalny ciemny gres 2K — podłoga",
+            new Vector3(0,.12f,0),new Vector3(12,.24f,10),darkTile);
+        // Skala UV w metrach: kamienne płytki powtarzalne, bez rozciągnięcia
+        // jednej mapy 2K na całe 12 x 10 m.
+        var tileFilter=tileFloor.GetComponent<MeshFilter>();
+        var tileMesh=Object.Instantiate(tileFilter.sharedMesh);
+        var tileVertices=tileMesh.vertices;
+        var tileNormals=tileMesh.normals;
+        var tileUv=new Vector2[tileVertices.Length];
+        for(int i=0;i<tileVertices.Length;i++)
+        {
+            Vector3 p=Vector3.Scale(tileVertices[i],new Vector3(12,.24f,10));
+            Vector3 n=tileNormals[i];
+            tileUv[i]=Mathf.Abs(n.y)>.9f?new Vector2(p.x,p.z)*.5f:
+                Mathf.Abs(n.x)>.9f?new Vector2(p.z,p.y)*.5f:new Vector2(p.x,p.y)*.5f;
+        }
+        tileMesh.uv=tileUv;tileMesh.RecalculateTangents();
+        tileFilter.sharedMesh=BraxObozStableMesh.Save(tileMesh);
         FixtureBox(building,"Ściana południowa",new Vector3(0,1.70f,-5f),new Vector3(12,3.25f,.20f),tile);
         FixtureBox(building,"Ściana zachodnia",new Vector3(-6f,1.70f,0),new Vector3(.20f,3.25f,10),tile);
         FixtureBox(building,"Ściana wschodnia",new Vector3(6f,1.70f,0),new Vector3(.20f,3.25f,10),tile);
