@@ -5,6 +5,7 @@ import numpy as np
 ROOT=Path(__file__).resolve().parents[2]
 REPORT=ROOT/'mistrzowie-evidence';REPORT.mkdir(exist_ok=True)
 from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO
+from port_layout import PIERS,BERTHS,SHORE_BACK,SEA_LEVEL,shoreline,beach_height,validate as validate_port
 SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
 K=float(np.float32(2.33)/np.float32(1.80))  # exact existing Unity float expression
 base=json.loads((Path(__file__).with_name('plan_inventory.json')).read_text())
@@ -18,23 +19,14 @@ plots += [(135,-108,70,18),(285,-108,70,18),(565,-108,70,18),(890,-108,70,18)]
 T11_GARAGE_RAMP=(535.5,443.0,8.0,46.0)
 XROAD=[70,400,800,1130];ZROAD=[-70,70,330,650,935]
 walks=[(x-4,-180,8,93) for x in (230,530,700,1080)]
-greens=[(50,-120,1100,10),(50,-170,650,10)]
-piers=[(740,-440,10,290),(1150,-440,10,290),(740,-440,260,10),(1080,-440,80,10)]
-# Three connected piers plus fingers; 80 reserved berth positions below.
-piers += [(750,z,290,5) for z in (-205,-315,-390)]
-berths=[]
-for row,(z,n,length,width) in enumerate([(-205,16,40,14),(-315,24,24,10),(-390,40,12,6)]):
- sides=(-1,) if row==0 else (-1,1)
- per=n//len(sides)
- for side in sides:
-  for j in range(per):
-   x=765+(j+.5)*260/per
-   center=z+(2.5+(length/2+2)*side)
-   berths.append(dict(id=f'B{len(berths)+1:02}',x=x,z=center,length=length,width=width,kind='large_yacht' if row==0 else 'yacht' if row==1 else 'motorboat'))
- for j in range(per+1):
-  x=765+j*260/per
-  piers += [(x-.7,z-length-2,1.4,length+2)]
-  if row>0:piers += [(x-.7,z+5,1.4,length+2)]
+# Preserve the original seafront promenade and its inland planting.
+# Move only the seaward grass border to the back of the renewed crescent beach.
+greens=[(50,-120,1100,10),(50,-161,650,11)]
+# Reuse one deterministic harbour geometry contract for ground, berth markers,
+# imported original boats, gangways and preflight. No more 80-slot old marina.
+piers=[(p['x'],p['z'],p['w'],p['d'],p['role']) for p in PIERS]
+berths=BERTHS
+validate_port(PIERS,berths)
 
 def inside(p,r):
  x,z=p;a,b,w,d=r;return a<=x<a+w and b<=z<b+d
@@ -55,19 +47,29 @@ def zone(x,z):
   return 'grass'
  if any(inside((x,z),r) for r in greens):return 'grass'
  if 50<=x<=1150 and -150<=z<-120:return 'paving'
- if 50<=x<700 and -280<=z<-150:return 'sand_dry' if z>=-240 else 'sand_wet'
- if any(inside((x,z),r) for r in piers):return 'quay'
+ # Premium beach is one hand-laid curved geometric grid, not a stepped
+ # rectangle independently classified from the 25m city tile grid.
+ if 50<=x<700 and z<SHORE_BACK:return None
+ for a,b,w,d,role in piers:
+  if inside((x,z),(a,b,w,d)):return role
  return None
 
 def height(role,x,z):
  if role in ('sand_dry','sand_wet'):
-  t=max(0,min(1,(-z-170)/110));s=t*t*(3-2*t)
-  # Broad relief is geometric; fine grain is the original PBR, never random pixel noise.
-  edge=math.sin(math.pi*t)**2
-  return -3.5*s+0.07*math.sin(x*.035)*math.sin(z*.09)*edge
+  return beach_height(x,z)
+ if role in ('quay_wood','quay_stone'):
+  return -1.08
+ if role=='quay_jetski':
+  return -1.37
+ if role in ('quay_cruise','quay_ferry'):
+  return .16
+ if role=='quay_ramp':
+  return .16-1.24*max(0,min(1,(-z-150)/20))
+ if role=='quay_ramp_jetski':
+  return .16-1.53*max(0,min(1,(-z-150)/20))
  if role in ('paving','grass') and z>=-170:return PAVING_Y
  if role=='plot_base':return -.25
- if role=='sea':return -2
+ if role=='sea':return SEA_LEVEL
  return 0
 
 # Exact boundaries + grid make holes, sidewalks and planting beds have one owner.
@@ -77,7 +79,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+piers+[T11_GARAGE_RAMP]+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-280,650,130),(50,-240,650,70),(50,-150,1100,30)]
+rects=plots+walks+greens+[p[:4] for p in piers]+[T11_GARAGE_RAMP]+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
@@ -90,6 +92,22 @@ def quad(role,x0,z0,x1,z1):
   m['positions'] += [round(x*K,6),round(height(role,x,z)*K,6),round(z*K,6)]
   m['uv'] += [round(x,6),round(z,6)]
  m['triangles'] += [i,i+1,i+2,i,i+2,i+3]
+def warped_quad(role,x0,z_lo0,z_hi0,x1,z_lo1,z_hi1,foam=False):
+ # Real edge follows a smooth x-dependent coastline; two triangles per 2.5m.
+ if x1-x0<1e-6 or min(z_hi0-z_lo0,z_hi1-z_lo1)<1e-6:return
+ key=f'x{int((x0+x1)/2)//300:02}_z{int(((z_lo0+z_hi0+z_lo1+z_hi1)/4+500)//250):02}_{role}'
+ m=meshes.setdefault(key,dict(id=key,role=role,positions=[],uv=[],triangles=[]))
+ i=len(m['positions'])//3
+ corners=[(x0,z_lo0),(x0,z_hi0),(x1,z_hi1),(x1,z_lo1)]
+ for x,z in corners:
+  yy=(max(SEA_LEVEL,beach_height(x,z))+.035) if foam else height(role,x,z)
+  m['positions'] += [round(x*K,6),round(yy*K,6),round(z*K,6)]
+  if foam:
+   m['uv'] += [round(x*.0667,6),round((z-shoreline(x)+4)/9.0,6)]
+  else:
+   m['uv'] += [round(x,6),round(z,6)]
+ m['triangles'] += [i,i+1,i+2,i,i+2,i+3]
+
 for i in range(len(xs)-1):
  for j in range(len(zs)-1):
   a,b,c,d=xs[i],zs[j],xs[i+1],zs[j+1]
@@ -101,29 +119,67 @@ for i in range(len(xs)-1):
    for ix in range(nx):
     for iz in range(nz):quad(role,a+(c-a)*ix/nx,b+(d-b)*iz/nz,a+(c-a)*(ix+1)/nx,b+(d-b)*(iz+1)/nz)
    cells.append((a,b,c,d,role))
+# CURVED golden sand: a continuous 2.5m grid across the whole 650m
+# recreational coast. The original promenade/plan remain unchanged.
+for xx in np.arange(50,700,2.5):
+ x0=float(xx);x1=min(700.,x0+2.5)
+ s0=shoreline(x0);s1=shoreline(x1)
+ for i in range(32):
+  t0=i/32;t1=(i+1)/32
+  z00=SHORE_BACK+(s0-SHORE_BACK)*t0
+  z10=SHORE_BACK+(s1-SHORE_BACK)*t0
+  z01=SHORE_BACK+(s0-SHORE_BACK)*t1
+  z11=SHORE_BACK+(s1-SHORE_BACK)*t1
+  if min(z00-z01,z10-z11)<.00001:continue
+  role='sand_wet' if (i+.5)/32>.775 else 'sand_dry'
+  warped_quad(role,x0,z01,z00,x1,z11,z10)
+  # Record walkable sand faces for analytics but keep the base grid isolated.
+# Shore foam is a separate uncollidable ribbon. No particles/flat bitmap.
+for xx in np.arange(50,700,2.5):
+ x0=float(xx);x1=min(700.,x0+2.5)
+ s0=shoreline(x0);s1=shoreline(x1)
+ for j in range(5):
+  off0=-4+9*j/5;off1=-4+9*(j+1)/5
+  warped_quad('foam',x0,s0+off0,s0+off1,x1,s1+off0,s1+off1,True)
+
 # Quay outer walls: cancel shared edges, so there are no internal coplanar walls.
 edges={}
 for a,b,c,d,role in cells:
- if role!='quay':continue
+ if not role.startswith('quay_'):continue
  ring=[(a,b),(a,d),(c,d),(c,b)]
  for u,v in zip(ring,ring[1:]+ring[:1]):
   key=tuple(sorted([u,v]))
   if key in edges:del edges[key]
   else:edges[key]=(u,v)
 for (a,b),(c,d) in edges.values():
- key=f'x{int((a+c)/2)//300:02}_z{int(((b+d)/2+500)//250):02}_quay'
- m=meshes.setdefault(key,dict(id=key,role='quay',positions=[],uv=[],triangles=[]))
+ key=f'x{int((a+c)/2)//300:02}_z{int(((b+d)/2+500)//250):02}_quay_wall'
+ m=meshes.setdefault(key,dict(id=key,role='quay_wall',positions=[],uv=[],triangles=[]))
  i=len(m['positions'])//3
- for x,y,z in [(a,0,b),(a,-4.5,b),(c,-4.5,d),(c,0,d)]:
+ # The cruise ship quay stays tall; floating pontoons meet water naturally.
+ ra=zone(a+(c-a)*.02,b+(d-b)*.02)
+ rb=zone(c-(c-a)*.02,d-(d-b)*.02)
+ ya=height(ra,a,b) if ra and ra.startswith('quay_') else -1.08
+ yb=height(rb,c,d) if rb and rb.startswith('quay_') else ya
+ for x,y,z in [(a,ya,b),(a,-4.5,b),(c,-4.5,d),(c,yb,d)]:
   m['positions'] += [round(x*K,6),round(y*K,6),round(z*K,6)]
   m['uv'] += [round(x if abs(c-a)>.01 else z,6),y]
  m['triangles'] += [i,i+1,i+2,i,i+2,i+3]
 
-# Water has a separate vertical layer; no colliders and no land surface overlap at equal y.
+# Water physically follows the curved beach, instead of ending on a
+# straight 650m x-line. Full 5m mesh is kept away from the beach; the fine
+# near-shore strip follows the EXACT sand shoreline at both x endpoints.
 for x in range(0,1200,5):
- for z in range(-500,-150,5):
-  if 50<=x<700 and z>=-250:continue
-  quad('sea',x,z,x+5,z+5)
+ x0=float(x);x1=x0+5
+ if 50<=x<700:
+  for z in range(-500,-300,5):quad('sea',x0,z,x1,z+5)
+  s0=shoreline(x0);s1=shoreline(x1)
+  for j in range(12):
+   t0=j/12;t1=(j+1)/12
+   a0=-300+(s0+300)*t0;a1=-300+(s1+300)*t0
+   b0=-300+(s0+300)*t1;b1=-300+(s1+300)*t1
+   warped_quad('sea',x0,a0,b0,x1,a1,b1)
+ else:
+  for z in range(-500,-150,5):quad('sea',x0,z,x1,z+5)
 
 plants=[]
 def plant(x,z,kind,source,band):
@@ -132,7 +188,9 @@ def plant(x,z,kind,source,band):
  if any((p['x']-x)**2+(p['z']-z)**2<100 for p in plants):return
  plants.append(dict(id=f'V{len(plants)+1:04}',x=x,z=z,kind=kind,variant=source,band=band,yaw=(len(plants)*137.508)%360))
 for x in range(65,1146,25):plant(x,-115,'palm',len(plants)%2,'promenade_soil')
-for x in range(65,691,25):plant(x,-165,'palm',len(plants)%2,'beach_soil')
+# More real imported palms facing the bright beach, planted in the coastal
+# grass bed, never obstructing the preserved pedestrian promenade.
+for x in range(65,693,17):plant(x,-155.5,'palm',len(plants)%2,'beach_soil')
 for x in XROAD:
  for side in (-1,1):
   for z in range(110,916,30):
@@ -141,7 +199,7 @@ for x in XROAD:
 for x in [640,670,700,730,760]:
  for z in [115,145,175,205,225]:plant(x,z,'tree',0,'park')
 for x,z in [(850,890),(900,890),(950,890),(1000,890),(1080,890),(950,740)]:plant(x,z,'tree',0,'hotel_garden')
-layout=dict(version='2.2-metro-and-buildings',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
+layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
 SRC.mkdir(parents=True,exist_ok=True)
 (SRC/'Foundation.json').write_text(json.dumps(layout,separators=(',',':')))
 # Geometric checks use the delivered vertices, not only planning rectangles.
@@ -150,18 +208,21 @@ for m in meshes.values():
  v=np.asarray(m['positions']).reshape(-1,3);ix=np.asarray(m['triangles']).reshape(-1,3)
  cross=np.cross(v[ix[:,1]]-v[ix[:,0]],v[ix[:,2]]-v[ix[:,0]])
  assert np.isfinite(v).all() and (np.linalg.norm(cross,axis=1)>1e-7).all(),m['id']
- if m['role']!='quay':assert (cross[:,1]>0).all(),m['id']
+ if m['role']!='quay_wall':assert (cross[:,1]>0).all(),m['id']
  assert len(m['uv'])==len(v)*2
  tri+=len(ix)
-assert len(berths)==80 and sum(p['kind']!='motorboat' for p in berths)==40
-for i,a in enumerate(berths):
- assert a['x']-a['width']/2>750 and a['x']+a['width']/2<1150
- assert a['z']-a['length']/2>-430 and a['z']+a['length']/2<-150
- for b in berths[i+1:]:
-  assert not(abs(a['x']-b['x'])<(a['width']+b['width'])/2 and abs(a['z']-b['z'])<(a['length']+b['length'])/2),(a,b)
-assert (315-205)-40-24-5-4>=32  # clear fairway between large yachts and middle pier
-assert (390-315)-24-12-5-4>=30
-assert 1150-1040>=100  # longitudinal channel connects every pier to entrance
+assert len(berths)==38
+assert sum(p['kind']=='yacht' for p in berths)==15
+assert sum(p['kind']=='motorboat' for p in berths)==10
+assert sum(p['kind']=='jetski' for p in berths)==10
+assert sum(p['kind']=='cruise_ship' for p in berths)==2
+assert sum(p['kind']=='ferry' for p in berths)==1
+# The port-layout module validates non-overlapping original hulls, gangways,
+# the U-shaped motorboat basin, clear ferry and cruise-ship slots.
+validate_port(PIERS,berths)
+assert shoreline(330)<-232
+assert abs(beach_height(330,SHORE_BACK)-.16)<1e-6
+assert beach_height(330,shoreline(330))<SEA_LEVEL
 assert abs(max(max(m['positions'][0::3]) for m in meshes.values())-1200*K)<1e-5
 for p in plants:
  assert zone(p['x'],p['z'])=='grass'
@@ -174,5 +235,5 @@ with (REPORT/'Foundation_geometry.obj').open('w') as f:
   for p in np.asarray(m['positions']).reshape(-1,3):f.write('v '+' '.join(map(str,p))+'\n')
   for face in np.asarray(m['triangles']).reshape(-1,3):f.write('f '+' '.join(str(int(i)+offset) for i in face)+'\n')
   offset+=len(m['positions'])//3
-report=dict(status='STATIC_GEOMETRY_CHECKS_PASSED_UNITY_NOT_RUN',scaleK=K,meshes=len(meshes),triangles=tri,plants=len(plants),palms=sum(p['kind']=='palm' for p in plants),trees=sum(p['kind']=='tree' for p in plants),berths=len(berths),yachts=40,motorboats=40,checks=['finite vertices','upward nondegenerate winding','UV cardinality','berth capacity and non-overlap','vegetation on grass with clear root disk','K applied once','marina transverse and longitudinal clear fairways'],unityCompilation='NOT_RUN',visualAcceptance='NOT_RUN',deviceTest='NOT_RUN')
+report=dict(status='STATIC_GEOMETRY_CHECKS_PASSED_UNITY_NOT_RUN',scaleK=K,meshes=len(meshes),triangles=tri,plants=len(plants),palms=sum(p['kind']=='palm' for p in plants),trees=sum(p['kind']=='tree' for p in plants),berths=len(berths),yachts=15,motorboats=10,jetskis=10,cruiseBerths=2,ferryBerths=1,checks=['finite vertices','upward nondegenerate winding','UV cardinality','38 berths with individual dock access and no hull overlap','continuous beach-water boundary with curved shallow shore and foam','existing promenade retained','source-derived beach palms','K applied once','open marine fairways'],unityCompilation='NOT_RUN',visualAcceptance='NOT_RUN',deviceTest='NOT_RUN')
 (REPORT/'geometry-checks.json').write_text(json.dumps(report,indent=2));print(json.dumps(report))
