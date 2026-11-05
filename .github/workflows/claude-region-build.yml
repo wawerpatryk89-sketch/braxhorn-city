@@ -708,17 +708,21 @@ jobs:
         chmod +x "$RUNNER_TEMP/straznik.sh"
         nohup "$RUNNER_TEMP/straznik.sh" > "$RUNNER_TEMP/straznik.out" 2>&1 &
         echo "straznik uruchomiony"
-    - name: Wlasny klucz podpisu APK (aktualizacja bez odinstalowania; klucz tylko w sekretach repozytorium)
+    - name: Wymagany globalny podpis APK (nigdy debug, bez AAB)
       env:
         KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
         KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: |
-        if [ -n "$KS" ] && [ -n "$KP" ]; then
-          echo "$KS" | base64 -d > unity-city/braxhorn.keystore && printf '%s' "$KP" > unity-city/braxhorn.keystore.pass && echo "klucz podpisu: OK"
-        else
-          echo "klucz podpisu: brak sekretow BRAXHORN_KEYSTORE_B64 / BRAXHORN_KEYSTORE_PASS - podpis kluczem debug (trzeba odinstalowac przed instalacja)"
-        fi
-        echo "$GITHUB_RUN_NUMBER" > unity-city/braxhorn.versioncode
+        set -euo pipefail
+        umask 077
+        [ -n "$KS" ] && [ -n "$KP" ] || { echo '::error::BRAK STAŁEGO KLUCZA. APK debug ZABRONIONY.'; exit 1; }
+        printf '%s' "$KS" | base64 -d > unity-city/braxhorn.keystore
+        printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+        test -s unity-city/braxhorn.keystore
+        test -s unity-city/braxhorn.keystore.pass
+        test "$GITHUB_RUN_NUMBER" -gt 0
+        printf '%s' "$GITHUB_RUN_NUMBER" > unity-city/braxhorn.versioncode
+        echo 'BRAXHORN_PODPIS: staly certyfikat jest wymagany przed Unity; output APK'
     - name: Enable the private content baseline for the estate
       env:
         ZONE: ${{ steps.rejon.outputs.rejon }}
