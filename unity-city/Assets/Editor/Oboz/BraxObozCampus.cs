@@ -418,90 +418,223 @@ public static partial class BraxObozEnvironment
     }
     // Zachowany graficzny szyld właściciela; automatyczna maska usuwa tylko
     // białe tło łączące się z krawędzią JPEG. Źródłowy JPEG nie jest edytowany.
+    // Prawdziwy przestrzenny emblemat z oryginalnego JPEG. Kolor i litery
+    // pozostają na okleinie; ciemna blacha 26 cm jest wytłoczona w jej kontur.
+    // Żaden słupek nie może wejść w światło 8,4 m przesuwnej bramy.
     static void OwnerGateSign(Transform gate)
     {
-        const string sourcePath=
+        const string sourcePath =
             "Assets/Source/Prywatne/Oboz/OwnerAssets/Murale/44B8F5D6-7F27-4EF3-A804-9BC8C4F462D0.jpeg";
-        if(!System.IO.File.Exists(sourcePath))
-            throw new InvalidOperationException("Brak oryginalnego szyldu BRAXHORN: "+sourcePath);
-        var jpeg=new Texture2D(2,2,TextureFormat.RGBA32,false);
-        if(!ImageConversion.LoadImage(jpeg,System.IO.File.ReadAllBytes(sourcePath),false))
-            throw new InvalidOperationException("Oryginalny JPEG szyldu ma niepoprawne dane");
-        int width=jpeg.width,height=jpeg.height;
-        var pixels=jpeg.GetPixels32();
-        var outside=new bool[pixels.Length];
-        var queue=new Queue<int>();
-        bool IsBackground(int index)
+        if (!System.IO.File.Exists(sourcePath))
+            throw new InvalidOperationException("Brak oryginalnego szyldu BRAXHORN: " + sourcePath);
+        var jpeg = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        if (!ImageConversion.LoadImage(jpeg, System.IO.File.ReadAllBytes(sourcePath), false))
+            throw new InvalidOperationException("Nieczytelny oryginalny JPEG szyldu");
+        int width = jpeg.width, height = jpeg.height;
+        if (width < 512 || height < 200)
+            throw new InvalidOperationException("Szyld BRAXHORN: źródło ma błędne wymiary");
+        var pixels = jpeg.GetPixels32();
+        var outside = new bool[pixels.Length];
+        var queue = new Queue<int>();
+        bool IsBackground(int i)
         {
-            var p=pixels[index];
-            return p.r>=238&&p.g>=238&&p.b>=238;
+            var pixel = pixels[i];
+            return pixel.r >= 238 && pixel.g >= 238 && pixel.b >= 238;
         }
-        void Enqueue(int index)
+        void Visit(int i)
         {
-            if(index<0||index>=outside.Length||outside[index]||!IsBackground(index))return;
-            outside[index]=true;queue.Enqueue(index);
+            if (i < 0 || i >= outside.Length || outside[i] || !IsBackground(i)) return;
+            outside[i] = true;
+            queue.Enqueue(i);
         }
-        for(int x=0;x<width;x++) { Enqueue(x);Enqueue((height-1)*width+x); }
-        for(int y=0;y<height;y++) { Enqueue(y*width);Enqueue(y*width+width-1); }
-        while(queue.Count>0)
+        for (int x = 0; x < width; x++) { Visit(x); Visit((height - 1) * width + x); }
+        for (int y = 0; y < height; y++) { Visit(y * width); Visit(y * width + width - 1); }
+        while (queue.Count > 0)
         {
-            int i=queue.Dequeue(),x=i%width,y=i/width;
-            if(x>0)Enqueue(i-1);
-            if(x<width-1)Enqueue(i+1);
-            if(y>0)Enqueue(i-width);
-            if(y<height-1)Enqueue(i+width);
+            int i = queue.Dequeue(), x = i % width, y = i / width;
+            if (x > 0) Visit(i - 1);
+            if (x + 1 < width) Visit(i + 1);
+            if (y > 0) Visit(i - width);
+            if (y + 1 < height) Visit(i + width);
         }
-        for(int i=0;i<pixels.Length;i++)if(outside[i])pixels[i].a=0;
-        var alpha=new Texture2D(width,height,TextureFormat.RGBA32,false);
-        alpha.SetPixels32(pixels);alpha.Apply(false,false);
-        string alphaPath=Folder+"/OwnerGateSignAlpha.png";
-        var encoded=alpha.EncodeToPNG();
-        if(!System.IO.File.Exists(alphaPath) ||
+        for (int i = 0; i < pixels.Length; i++) if (outside[i]) pixels[i].a = 0;
+
+        // Zapisujemy tylko wygenerowaną okleinę PNG; oryginalny JPEG pozostaje nietknięty.
+        var alpha = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        alpha.SetPixels32(pixels);
+        alpha.Apply(false, false);
+        string alphaPath = Folder + "/OwnerGateSignAlpha.png";
+        var encoded = alpha.EncodeToPNG();
+        if (!System.IO.File.Exists(alphaPath) ||
             !System.IO.File.ReadAllBytes(alphaPath).SequenceEqual(encoded))
         {
-            System.IO.File.WriteAllBytes(alphaPath,encoded);
-            AssetDatabase.ImportAsset(alphaPath,ImportAssetOptions.ForceSynchronousImport);
+            System.IO.File.WriteAllBytes(alphaPath, encoded);
+            AssetDatabase.ImportAsset(alphaPath, ImportAssetOptions.ForceSynchronousImport);
         }
         Object.DestroyImmediate(alpha);
         Object.DestroyImmediate(jpeg);
-        var importer=AssetImporter.GetAtPath(alphaPath) as TextureImporter;
-        if(!importer)throw new InvalidOperationException("Nie da się zaimportować przezroczystego szyldu");
-        bool fix=!importer.alphaIsTransparency||importer.maxTextureSize<2048||
-            importer.filterMode!=FilterMode.Bilinear;
-        if(fix)
+        var importer = AssetImporter.GetAtPath(alphaPath) as TextureImporter;
+        if (!importer) throw new InvalidOperationException("Nie można zaimportować okleiny szyldu");
+        bool adjust = !importer.alphaIsTransparency ||
+            importer.maxTextureSize < 2048 ||
+            importer.filterMode != FilterMode.Trilinear ||
+            !importer.mipmapEnabled;
+        if (adjust)
         {
-            importer.alphaIsTransparency=true;
-            importer.alphaSource=TextureImporterAlphaSource.FromInput;
-            importer.sRGBTexture=true;
-            importer.maxTextureSize=2048;
-            importer.filterMode=FilterMode.Bilinear;
+            importer.alphaIsTransparency = true;
+            importer.alphaSource = TextureImporterAlphaSource.FromInput;
+            importer.sRGBTexture = true;
+            importer.maxTextureSize = 2048;
+            importer.mipmapEnabled = true;
+            importer.filterMode = FilterMode.Trilinear;
+            importer.wrapMode = TextureWrapMode.Clamp;
             importer.SaveAndReimport();
         }
-        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(alphaPath);
-        if(!texture)throw new InvalidOperationException("Nie można załadować PNG szyldu");
-        var shader=Shader.Find("Unlit/Transparent");
-        if(!shader)throw new InvalidOperationException("Brak shadera przezroczystego szyldu");
-        var material=new Material(shader){name="BRAXHORN — autorski szyld bez białego tła",
-            mainTexture=texture,enableInstancing=true};
-        string matPath=Folder+"/OwnerGateSign.mat";
-        var prev=AssetDatabase.LoadAssetAtPath<Material>(matPath);
-        if(prev)
+        var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(alphaPath);
+        var shader = Shader.Find("Unlit/Transparent");
+        if (!texture || !shader)
+            throw new InvalidOperationException("Brak tekstury lub shadera okleiny BRAXHORN");
+        var material = new Material(shader)
         {
-            EditorUtility.CopySerialized(material,prev);
+            name = "BRAXHORN — oryginalna okleina szyldu, bez zmiany liter",
+            mainTexture = texture,
+            enableInstancing = true
+        };
+        string materialPath = Folder + "/OwnerGateSign.mat";
+        var savedMaterial = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+        if (savedMaterial)
+        {
+            EditorUtility.CopySerialized(material, savedMaterial);
             Object.DestroyImmediate(material);
-            material=prev;
+            material = savedMaterial;
         }
-        else AssetDatabase.CreateAsset(material,matPath);
-        var quad=GameObject.CreatePrimitive(PrimitiveType.Quad);
-        quad.name="BRAXHORN Training Camp — oryginalny JPEG na wspornikach";
-        quad.transform.SetParent(gate,false);
-        quad.transform.localPosition=P(0,6.2f,-.28f);
-        quad.transform.localRotation=Quaternion.Euler(0,180,0);
-        quad.transform.localScale=new Vector3(8.4f*K,8.4f*K*height/width,1f);
-        quad.GetComponent<MeshRenderer>().sharedMaterial=material;
-        Object.DestroyImmediate(quad.GetComponent<Collider>());
-        Debug.Log("BRAXHORN_OBOZ_SIGN: oryginalny JPEG bez białego tła "+
-            width+"x"+height+" alpha wyłącznie zewnętrzny flood fill");
+        else AssetDatabase.CreateAsset(material, materialPath);
+
+        const float signWidth = 8.4f;
+        const float centreY = 6.2f;
+        const float faceZ = -0.14f;
+        const float backZ = 0.12f; // fizyczna grubość blachy = 26 cm
+        float signHeight = signWidth * height / (float)width;
+        const int columns = 128;
+        int rows = Mathf.Max(32, Mathf.RoundToInt(columns * height / (float)width));
+        var filled = new bool[columns, rows];
+        int filledCount = 0;
+        for (int y = 0; y < rows; y++)
+        for (int x = 0; x < columns; x++)
+        {
+            // Nadpróbkowanie zachowuje drobne krawędzie dekoracyjnego byka.
+            bool visible = false;
+            foreach (float fy in new[] { .25f, .5f, .75f })
+            foreach (float fx in new[] { .25f, .5f, .75f })
+            {
+                int sx = Mathf.Min(width - 1, Mathf.FloorToInt((x + fx) * width / columns));
+                int sy = Mathf.Min(height - 1, Mathf.FloorToInt((y + fy) * height / rows));
+                if (pixels[sy * width + sx].a >= 90) { visible = true; break; }
+            }
+            filled[x, y] = visible;
+            if (visible) filledCount++;
+        }
+        if (filledCount < columns * rows / 30)
+            throw new InvalidOperationException("Kontur okleiny szyldu jest pusty");
+        bool Has(int x, int y) =>
+            x >= 0 && x < columns && y >= 0 && y < rows && filled[x, y];
+
+        // Trwała siatka statyczna: front, tył i boki każdego pola konturu.
+        // Nie jest to płaski billboard ani prostokąt zakrywający ornamenty.
+        var vertices = new List<Vector3>(filledCount * 8);
+        var uv = new List<Vector2>(filledCount * 8);
+        var triangles = new List<int>(filledCount * 16);
+        void Face(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
+        {
+            int index = vertices.Count;
+            foreach (var v in new[] { a, b, c, d })
+            {
+                vertices.Add(P(v.x, v.y, v.z));
+                uv.Add(new Vector2(v.x, v.y));
+            }
+            triangles.Add(index); triangles.Add(index + 1); triangles.Add(index + 2);
+            triangles.Add(index); triangles.Add(index + 2); triangles.Add(index + 3);
+        }
+        for (int y = 0; y < rows; y++)
+        for (int x = 0; x < columns; x++)
+        {
+            if (!filled[x, y]) continue;
+            float x0 = signWidth * (x / (float)columns - .5f);
+            float x1 = signWidth * ((x + 1) / (float)columns - .5f);
+            float y0 = centreY + signHeight * (y / (float)rows - .5f);
+            float y1 = centreY + signHeight * ((y + 1) / (float)rows - .5f);
+            Face(new Vector3(x0,y0,faceZ),new Vector3(x0,y1,faceZ),
+                 new Vector3(x1,y1,faceZ),new Vector3(x1,y0,faceZ));
+            Face(new Vector3(x0,y0,backZ),new Vector3(x1,y0,backZ),
+                 new Vector3(x1,y1,backZ),new Vector3(x0,y1,backZ));
+            if (!Has(x-1,y))
+                Face(new Vector3(x0,y0,faceZ),new Vector3(x0,y0,backZ),
+                     new Vector3(x0,y1,backZ),new Vector3(x0,y1,faceZ));
+            if (!Has(x+1,y))
+                Face(new Vector3(x1,y0,backZ),new Vector3(x1,y0,faceZ),
+                     new Vector3(x1,y1,faceZ),new Vector3(x1,y1,backZ));
+            if (!Has(x,y-1))
+                Face(new Vector3(x0,y0,backZ),new Vector3(x0,y0,faceZ),
+                     new Vector3(x1,y0,faceZ),new Vector3(x1,y0,backZ));
+            if (!Has(x,y+1))
+                Face(new Vector3(x0,y1,faceZ),new Vector3(x0,y1,backZ),
+                     new Vector3(x1,y1,backZ),new Vector3(x1,y1,faceZ));
+        }
+        var solidMesh = new Mesh
+        {
+            name = "BRAXHORN — przestrzenny kontur metalowej bryły",
+            indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
+        };
+        solidMesh.SetVertices(vertices);
+        solidMesh.SetUVs(0, uv);
+        solidMesh.SetTriangles(triangles, 0);
+        solidMesh.RecalculateNormals();
+        solidMesh.RecalculateTangents();
+        solidMesh.RecalculateBounds();
+        var sign = Group("BRAXHORN TRAINING CAMP — oryginalny szyld 3D", gate, Vector3.zero);
+        var shell = Group("Metalowa bryła 26 cm — wytłoczona po kształcie grafiki", sign, Vector3.zero).gameObject;
+        shell.AddComponent<MeshFilter>().sharedMesh = SaveMesh(solidMesh);
+        shell.AddComponent<MeshRenderer>().sharedMaterial = campusSteel;
+        // Jeden uproszczony collider nad przejazdem, bez tysięcy kosztownych
+        // trójkątów fizyki odpowiadających konturowi liter.
+        var casingCollision = shell.AddComponent<BoxCollider>();
+        casingCollision.center = P(0, centreY, (faceZ + backZ) * .5f);
+        casingCollision.size = new Vector3(signWidth, signHeight, backZ-faceZ) * K;
+
+        // Okleina 1:1 ma swoje UV, dzięki czemu NIGDY nie odwraca liter.
+        // Przyklejona 1 cm przed metalową powierzchnią, bez z-fightingu.
+        var print = Group("Okleina — oryginalny JPEG na froncie bryły", sign, Vector3.zero).gameObject;
+        var printMesh = new Mesh { name = "BRAXHORN — okleina UV 1do1" };
+        float lo = centreY - signHeight * .5f, hi = centreY + signHeight * .5f;
+        float decalZ = faceZ - .012f;
+        printMesh.vertices = new [] {
+            P(-signWidth*.5f,lo,decalZ),P(-signWidth*.5f,hi,decalZ),
+            P(signWidth*.5f,hi,decalZ),P(signWidth*.5f,lo,decalZ)
+        };
+        printMesh.uv = new [] {
+            new Vector2(0,0),new Vector2(0,1),
+            new Vector2(1,1),new Vector2(1,0)
+        };
+        printMesh.triangles = new [] {0,1,2,0,2,3};
+        printMesh.RecalculateNormals();printMesh.RecalculateTangents();printMesh.RecalculateBounds();
+        print.AddComponent<MeshFilter>().sharedMesh = SaveMesh(printMesh);
+        var printed = print.AddComponent<MeshRenderer>();
+        printed.sharedMaterial = material;
+        printed.shadowCastingMode = ShadowCastingMode.Off;
+        printed.receiveShadows = false;
+
+        // Rygiel nad pojazdami i podpory na zewnątrz przejazdu: x=+-4,45,
+        // a nie w dawnych pozycjach +-3,7 wewnątrz światła bramy.
+        Box(gate,"Stalowy rygiel nad przejazdem 8,4 m",new Vector3(0,3.57f,.28f),
+            new Vector3(9.4f,.20f,.38f),campusSteel);
+        foreach (float x in new[] {-4.45f,4.45f})
+            Box(gate,"Podpora bryły poza światłem bramy",new Vector3(x,4.2f,.38f),
+                new Vector3(.18f,1.55f,.24f),campusSteel);
+        foreach (float x in new[] {-3.65f,3.65f})
+            Box(gate,"Tylny zastrzał szyldu",new Vector3(x,4.85f,.36f),
+                new Vector3(.14f,1.0f,.18f),campusSteel,false);
+        Debug.Log("BRAXHORN_OBOZ_SIGN_3D: source=" + width + "x" + height +
+            " metalDepth=0.26m stickerUV=1:1 supportX=+-4.45 opening=8.4m; test Unity wymagany");
     }
 
     static void CampusPerimeter()
@@ -537,11 +670,8 @@ public static partial class BraxObozEnvironment
             Box(gate,"Filar bramy",new Vector3(x,1.65f,0),new Vector3(.5f,3.3f,.65f),campusSteel);
             Box(gate,"Okładzina filara",new Vector3(x,1.6f,-.34f),new Vector3(.34f,2.8f,.06f),wood,false);
         }
-        // Logo 1:1 właściciela, na wysokości bezpiecznej dla autokaru.
+        // Szyld 3D z okleiną i podporami poza światłem przejazdu.
         OwnerGateSign(gate);
-        foreach(float x in new[]{-3.7f,3.7f})
-            Box(gate,"Pionowy wspornik oryginalnego szyldu",
-                new Vector3(x,4.35f,.5f),new Vector3(.18f,8.7f,.18f),campusSteel);
         var leaf=Group("Skrzydło bramy",gate,Vector3.zero);
         Box(leaf,"Rama bramy",new Vector3(0,1.15f,0),new Vector3(8.2f,2.3f,.12f),campusSteel);
         for(int i=0;i<54;i++)Box(leaf,"Lamele bramy",new Vector3(-4+i*.15f,1.2f,-.09f),new Vector3(.095f,2.1f,.07f),wood,false);

@@ -85,7 +85,7 @@ public static partial class BraxObozEnvironment
         {
             root = Group("Obóz Misia — odbudowa robocza, wymagany odbiór", null, Vector3.zero);
             var info = root.gameObject.AddComponent<BraxObozSceneInfo>();
-            CampusMaterials(); OwnerPanorama(); Terrain(); Paths(); MuralBoards();
+            CampusMaterials(); OwnerPanorama(); Terrain(); Paths();
             RunningTracks(); // profesjonalny czerwony owal i osobna bieznia 100 m
             // Main activity area retained at real scale. Additional cabins/service areas
             // are reconstructed placements; appearance has not been approved.
@@ -99,6 +99,7 @@ public static partial class BraxObozEnvironment
             // Total: four pavilion + eight roofed outdoor + twelve open = 24.
             Bags(-23, -40, true,4); Bags(23, -40, false,6);
             ServiceBuildings();
+            MuralBoards(); // Po budynkach: murale fizycznie na ścianach
             CampusArrival();
             BraxObozParkedBus.Add(root);
             CampusPerimeter();
@@ -166,9 +167,10 @@ public static partial class BraxObozEnvironment
         if(woodenBacking)
         {
             Box(board,"Drewniana ściana pod mural",new Vector3(0,0,-.03f),
-                new Vector3(width+.35f,height+.34f,.20f),wood,false);
+                new Vector3(width+.35f,height+.34f,.20f),wood,true);
             foreach(float side in new[]{-1f,1f})
-                Box(board,"Stabilny słup pod tablicą",new Vector3(side*(width*.5f+.08f),-at.y*.5f,0),
+                Box(board,"Stalowy słup od gruntu do szczytu muralu",
+                    new Vector3(side*(width*.5f+.08f),(height*.5f-at.y)*.5f,0),
                     new Vector3(.16f,at.y+height*.5f+.15f,.18f),metal,true);
         }
         var shader=Shader.Find("Unlit/Texture");
@@ -195,13 +197,25 @@ public static partial class BraxObozEnvironment
             " format 1:1, bez modyfikacji oryginalnego JPEG");
     }
 
+    // Właścicielskie murale są zamontowane na architekturze, a nie
+    // na przypadkowych wolnostojących tablicach.
     static void MuralBoards()
     {
-        // Wolne place poza ringiem, nawierzchnią biegową i wejściami do budynków.
-        OriginalMural(root,"WOJOWNIKOW","87405F34-A95B-4AD6-8637-A19599AADA61.jpeg",
-            new Vector3(28f,2.4f,43f),Quaternion.Euler(0,180,0),6f,true);
-        OriginalMural(root,"FIGHT_ZONE","35502A48-F7AB-4650-9874-3266881B2DF6.jpeg",
-            new Vector3(-23f,2.4f,24f),Quaternion.Euler(0,180,0),6f,true);
+        var buildings = root.GetComponentsInChildren<Transform>(true);
+        var cabin1 = buildings.FirstOrDefault(t => t.name == "Domek 1");
+        var pavilion = buildings.FirstOrDefault(t =>
+            t.name == "Pawilon treningowy — otwarty, bez starej siłowni");
+        if (!cabin1 || !pavilion)
+            throw new InvalidOperationException("Brak budynku pod oryginalny mural BRAXHORN");
+
+        OriginalMural(cabin1,"WOJOWNIKOW",
+            "87405F34-A95B-4AD6-8637-A19599AADA61.jpeg",
+            new Vector3(0,1.55f,4.17f),Quaternion.identity,4.6f,false);
+        // Fizyczna ściana na południowej krawędzi pawilonu: skierowana
+        // do Ring 2, bez zasłaniania schodów i wejść.
+        OriginalMural(pavilion,"FIGHT_ZONE",
+            "35502A48-F7AB-4650-9874-3266881B2DF6.jpeg",
+            new Vector3(-15f,2.7f,-7.5f),Quaternion.identity,8.8f,true);
     }
 
     static void Terrain()
