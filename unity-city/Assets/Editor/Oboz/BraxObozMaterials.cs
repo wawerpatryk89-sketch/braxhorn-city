@@ -58,8 +58,10 @@ public static class BraxObozMaterials
         if (!campAsset) return false; // Never change textures from city or estate.
         bool excluded = customSampling || path.Contains("/environment/forest-ground/") ||
             path.Contains("/environment/materials/gravel/") ||
-            path.Contains("/grass_bermuda_") ||
-            path.Contains("/vegetation/billboards/") || path.Contains("/Vegetation/Billboard-") ||
+            // GLB foliage uses its own UV transforms / alpha cutouts; its LOD
+            // hierarchy already reduces visible detail at distance.
+            path.Contains("/environment/vegetation/") || path.Contains("/grass_bermuda_") ||
+            path.Contains("/Vegetation/Billboard-") ||
             path.Contains("/Source/Public/Oboz/Grass001/");
         bool stream = false;
         if (!excluded && importer.mipmapEnabled && importer.textureShape == TextureImporterShape.Texture2D)
