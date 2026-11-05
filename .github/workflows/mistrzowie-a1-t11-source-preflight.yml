@@ -62,7 +62,9 @@ jobs:
           expected = 'Assets/Source/Mistrzowie/Brax/CarAnimations/'
           assert ('const string Source = "'+expected+'"') in source, 'Mixamo clip source directory mismatch'
           assert ('PREFIX = "'+expected+'"') in importer, 'Mixamo importer target mismatch'
-          assert workflow.count('unity-city/'+expected) == 3, 'Missing 3 FBX file validations'
+          assert 'import_brax_car_animations.py' in workflow, 'Missing SHA-locked Mixamo source import'
+          assert 'BRAXHORN_BRAX_3_ANIMACJE_MIXAMO_ORYGINALY.zip' in workflow, 'Missing 3-FBX owner archive'
+          assert 'prepare_champion_car.py --dry-run' in workflow, 'Missing unchanged estate car preflight'
           brax = (assets/'Editor/Mistrzowie/BraxChampionsBrax.cs').read_text()
           assert 'BraxChampionsCarClips.Attach(hero, animation)' in brax
           car = (assets/'Mistrzowie/BraxChampionsCar.cs').read_text()
