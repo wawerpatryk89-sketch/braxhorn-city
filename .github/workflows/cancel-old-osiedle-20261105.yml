@@ -1,0 +1,19 @@
+name: Cancel duplicate older estate APK run #99
+'on':
+  push:
+    branches: [run/osiedle-apk-20261105-1255]
+    paths: [.github/workflows/cancel-old-osiedle-20261105.yml]
+permissions:
+  contents: read
+  actions: write
+jobs:
+  cancel-old-duplicate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel only older estate run 99; preserve newer 100 and other projects
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/actions/runs/42031656242/cancel" >/dev/null
+          echo "Requested cancellation of older estate run 42031656242; newer run 42032292474 unchanged."
