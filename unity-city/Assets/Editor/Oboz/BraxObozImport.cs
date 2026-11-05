@@ -6,7 +6,7 @@ public sealed class BraxObozImport : AssetPostprocessor
 {
     const string Root = "Assets/Source/Prywatne/Oboz/";
     public override int GetPostprocessOrder() => 100;
-    public override uint GetVersion() => 4;
+    public override uint GetVersion() => 5;
     void OnPreprocessModel()
     {
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
@@ -55,10 +55,12 @@ public sealed class BraxObozImport : AssetPostprocessor
         bool surface = assetPath.Contains("/environment/materials/") || assetPath.Contains("/environment/forest-ground/");
         bool vegetation = assetPath.Contains("/environment/vegetation/");
         bool billboard = assetPath.Contains("/environment/vegetation/billboards/");
-        // Preserve source detail for every character and nearby object, not only
-        // Monika's colour map. A four-view atlas needs room for four 2K views.
-        // Upper limits do not invent detail in smaller source images.
-        int max = billboard ? 8192 : 4096;
+        // Owner-approved Android profile: Monika remains 4K, the six other
+        // camp characters use 2K. Original source pixels are not rewritten.
+        // The four-view tree atlas still needs its separate 8192 cap.
+        bool otherCharacter = assetPath.StartsWith(Root + "characters/", StringComparison.Ordinal) &&
+            !assetPath.StartsWith(Root + "characters/monika/", StringComparison.Ordinal);
+        int max = billboard ? 8192 : otherCharacter ? 2048 : 4096;
         t.textureShape = TextureImporterShape.Texture2D;
         t.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
         t.sRGBTexture = color; t.mipmapEnabled = true; t.anisoLevel = 8;
@@ -72,8 +74,8 @@ public sealed class BraxObozImport : AssetPostprocessor
         a.format = billboard ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
         a.compressionQuality = 90;
         t.SetPlatformTextureSettings(a);
-        // Imported character/ordinary PBR maps retain 4K near the player;
-        // eligible 4K originals stream only one mip level at distance.
+        // Monika's 4K PBR remains available close to the camera.
+        // Six 2K characters are not streamed below their requested 2K level.
         BraxObozMaterials.ConfigureStreaming(t, assetPath);
     }
 }
