@@ -85,7 +85,7 @@ public static partial class BraxObozEnvironment
         {
             root = Group("Obóz Misia — odbudowa robocza, wymagany odbiór", null, Vector3.zero);
             var info = root.gameObject.AddComponent<BraxObozSceneInfo>();
-            CampusMaterials(); OwnerPanorama(); Terrain(); Paths();
+            CampusMaterials(); OwnerPanorama(); Terrain(); Paths(); MuralBoards();
             RunningTracks(); // profesjonalny czerwony owal i osobna bieznia 100 m
             // Main activity area retained at real scale. Additional cabins/service areas
             // are reconstructed placements; appearance has not been approved.
@@ -152,6 +152,59 @@ public static partial class BraxObozEnvironment
         RenderSettings.skybox=material;
         // Światła i shadery postaci zostają bez zmian.
         Debug.Log("BRAXHORN_OBOZ_HDR panorama=montorfano_4k.hdr 360 4096x2048");
+    }
+
+    // 4 oryginalne murale: źródłowy JPEG pozostaje nietknięty, bez przycinania.
+    // Obraz na Quad ma dokładnie naturalną proporcję z JPEG, w tym liternictwo.
+    static void OriginalMural(Transform parent,string key,string filename,Vector3 at,
+        Quaternion facing,float width,bool woodenBacking)
+    {
+        string texturePath="Assets/Source/Prywatne/Oboz/OwnerAssets/Murale/"+filename;
+        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+        if(!texture || texture.width<512 || texture.height<256)
+            throw new InvalidOperationException("Brak oryginalnego muralu JPEG lub zła tekstura: "+texturePath);
+        float height=width*texture.height/(float)texture.width;
+        var board=Group("Oryginalny mural BRAXHORN — "+key,parent,P(at.x,at.y,at.z));
+        board.localRotation=facing;
+        if(woodenBacking)
+        {
+            Box(board,"Drewniana ściana pod mural",new Vector3(0,0,-.03f),
+                new Vector3(width+.35f,height+.34f,.20f),wood,false);
+            foreach(float side in new[]{-1f,1f})
+                Box(board,"Stabilny słup pod tablicą",new Vector3(side*(width*.5f+.08f),-at.y*.5f,0),
+                    new Vector3(.16f,at.y+height*.5f+.15f,.18f),metal,true);
+        }
+        var shader=Shader.Find("Unlit/Texture");
+        if(!shader)throw new InvalidOperationException("Brak shadera oryginalnego muralu");
+        var material=new Material(shader){name="BRAXHORN mural 1do1 — "+key,mainTexture=texture,
+            enableInstancing=true};
+        string path=Folder+"/Mural-"+key+".mat";
+        var previous=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(previous)
+        {
+            EditorUtility.CopySerialized(material,previous);
+            Object.DestroyImmediate(material);
+            material=previous;
+        }
+        else AssetDatabase.CreateAsset(material,path);
+        var quad=GameObject.CreatePrimitive(PrimitiveType.Quad);
+        quad.name="JPEG 1:1 — "+key;
+        quad.transform.SetParent(board,false);
+        quad.transform.localPosition=P(0,0,woodenBacking?.105f:.025f);
+        quad.transform.localScale=new Vector3(width*K,height*K,1f);
+        quad.GetComponent<MeshRenderer>().sharedMaterial=material;
+        Object.DestroyImmediate(quad.GetComponent<Collider>());
+        Debug.Log("BRAXHORN_OBOZ_MURAL: "+key+" piksele="+texture.width+"x"+texture.height+
+            " format 1:1, bez modyfikacji oryginalnego JPEG");
+    }
+
+    static void MuralBoards()
+    {
+        // Wolne place poza ringiem, nawierzchnią biegową i wejściami do budynków.
+        OriginalMural(root,"WOJOWNIKOW","87405F34-A95B-4AD6-8637-A19599AADA61.jpeg",
+            new Vector3(28f,2.4f,43f),Quaternion.Euler(0,180,0),6f,true);
+        OriginalMural(root,"FIGHT_ZONE","35502A48-F7AB-4650-9874-3266881B2DF6.jpeg",
+            new Vector3(-23f,2.4f,24f),Quaternion.Euler(0,180,0),6f,true);
     }
 
     static void Terrain()
@@ -262,6 +315,9 @@ public static partial class BraxObozEnvironment
             if(y>2.38f)Box(t,"Deska nad wejściem",new Vector3(0,y,-4),new Vector3(1.36f,.20f,.14f),wood,false);
         }
         CabinFinish(t);
+        if(name=="Domek 3")
+            OriginalMural(t,"DROGA_MISTRZA","6C3045DC-051D-4B53-8F6E-FEA579A0DE21.jpeg",
+                new Vector3(0,1.5f,4.14f),Quaternion.identity,4.1f,false);
         // Simple colliders follow the actual openings; decorative log cylinders do not each add physics work.
         foreach(float side in new[]{-1f,1f})
         {
