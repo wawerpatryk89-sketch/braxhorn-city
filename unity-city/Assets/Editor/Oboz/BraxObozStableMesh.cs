@@ -11,6 +11,17 @@ using Object = UnityEngine.Object;
 public static class BraxObozStableMesh
 {
     const string Folder = "Assets/PlayableGenerated/Oboz/Environment/StableMeshes";
+    static readonly HashSet<string> UvMetricsChecked = new HashSet<string>(StringComparer.Ordinal);
+
+    // Procedural geometry needs UV density metrics for camera-based mipmaps.
+    // This updates streaming metadata only, never changes vertices or UVs.
+    static void EnsureUvMetrics(Mesh mesh, string fingerprint)
+    {
+        if (!mesh || !UvMetricsChecked.Add(fingerprint)) return;
+        if (mesh.vertexCount == 0 || mesh.uv.Length != mesh.vertexCount) return;
+        mesh.RecalculateUVDistributionMetrics();
+        if (AssetDatabase.Contains(mesh)) EditorUtility.SetDirty(mesh);
+    }
 
     public static Mesh Save(Mesh mesh)
     {
@@ -21,6 +32,7 @@ public static class BraxObozStableMesh
         {
             if (Fingerprint(existing) != hash)
                 throw new InvalidOperationException("Zmieniono niezmienną siatkę obozu: " + path);
+            EnsureUvMetrics(existing, hash);
             Object.DestroyImmediate(mesh);
             return existing;
         }
@@ -29,6 +41,7 @@ public static class BraxObozStableMesh
             throw new IOException("Niejednoznaczny zapis siatki obozu: " + path);
         if (!Directory.Exists(Folder)) { Directory.CreateDirectory(Folder); AssetDatabase.Refresh(); }
         mesh.name = "ObozMesh-" + hash;
+        EnsureUvMetrics(mesh, hash);
         AssetDatabase.CreateAsset(mesh, path);
         return mesh;
     }
