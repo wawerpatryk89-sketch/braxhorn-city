@@ -152,6 +152,20 @@ jobs:
           python3 unity-tools/mistrzowie/audit_layout.py
           python3 unity-tools/mistrzowie/build_signs.py
           python3 unity-tools/mistrzowie/prepare_arena.py
+      - name: Prepare durable Addressables content baseline mode
+        if: ${{ inputs.etap != 'sceny' }}
+        run: |
+          # This runs ONLY for the next intentionally built base APK, not an update.
+          # It must finish recording stable GUIDs, catalog and content state.
+          printf 'baseline\n' > unity-city/content-mode.txt
+          printf '{"edits":[]}\n' > unity-city/content-patch.json
+      - name: Compile Android file picker for future content-only patches
+        if: ${{ inputs.etap != 'sceny' }}
+        run: |
+          docker run --rm --entrypoint bash -v "$PWD:/project" \
+            ${{ steps.preflight.outputs.androidImage }} \
+            /project/unity-tools/mistrzowie/build_content_picker.sh
+          test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar
       - name: Restore isolated encrypted Champions Library
         id: library
         continue-on-error: true
@@ -186,6 +200,18 @@ jobs:
           androidExportType: androidPackage
           versioning: None
           allowDirtyBuild: true
+      # Save the expensive Unity-generated scene and original content state
+      # independently of later signing, artifact upload or release errors.
+      - name: Archive immutable generated Champions scene and Addressables baseline
+        id: content_baseline
+        if: ${{ always() && !cancelled() && hashFiles('unity-city/BraxContentBuild/base/manifest.json') != '' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          python3 unity-tools/updates/content_snapshot.py publish-base
+          echo '### Miasto Mistrzów: wygenerowana scena zachowana do aktualizacji bez BuildPlayer' >> "$GITHUB_STEP_SUMMARY"
       - name: Validate APK identity and existing certificate; stage immutable output
         id: apk_stage
         if: always() && !cancelled() && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
@@ -327,6 +353,8 @@ jobs:
             unity-city/Logs/
             unity-city/Packages/packages-lock.json
             unity-city/ProjectSettings/ProjectVersion.txt
+            unity-city/BraxContentBuild/base/manifest.json
+            unity-city/BraxContentBuild/base/scene-guids.txt
           if-no-files-found: warn
           retention-days: 30
       - name: Pack encrypted imports after delivery attempts or failed Unity validation
