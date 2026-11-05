@@ -180,6 +180,12 @@ public static class BraxChampionsArenaArrival
                 new Vector3(side * 4.87f, 1.63f, 0),
                 new Vector3(.065f, 3.3f, .14f), false);
         }
+        // Exterior opening is 4.5m high; doors are 3.22m. Close the real
+        // remaining transom with glass, not an invisible wall or open air gap.
+        Box(root, "Fixed clear glass transom over double doors", glass,
+            new Vector3(0, 3.74f, 0), new Vector3(9.74f, 1.04f, .085f));
+        Box(root, "Slim metal transom beam", metal,
+            new Vector3(0, 3.23f, 0), new Vector3(9.74f, .075f, .12f), false);
         var door = root.gameObject.AddComponent<BraxCityDoor>();
         door.id = id; door.label = label; door.leaves = hinges; door.sides = new[] { 1f, -1f };
     }
