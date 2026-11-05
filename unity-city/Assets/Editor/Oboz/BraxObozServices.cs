@@ -37,7 +37,7 @@ public static class BraxObozServices
         glass.SetFloat("_Mode",3);glass.SetInt("_SrcBlend",(int)UnityEngine.Rendering.BlendMode.One);glass.SetInt("_DstBlend",(int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
         glass.SetInt("_ZWrite",0);glass.EnableKeyword("_ALPHAPREMULTIPLY_ON");glass.SetOverrideTag("RenderType","Transparent");glass.renderQueue=3000;mats["glass"]=glass;
         var lamp=BraxObozMaterials.Plain("zarowki",new Color(1,.7f,.32f));lamp.EnableKeyword("_EMISSION");lamp.SetColor("_EmissionColor",new Color(1,.7f,.32f)*2);mats["lamp"]=lamp;
-        foreach(var item in new[]{("canteen","Stołówka",-58f,-65f),("showers","Prysznice",-95f,-65f),("sauna","Sauna",-115f,-65f),("medical","Punkt medyczny",-46f,-90f),("storage","Magazyn",-24f,-90f)})
+        foreach(var item in new[]{("canteen","Stołówka",-40f,-70f),("showers","Prysznice",-58f,-71f),("sauna","Sauna",-47f,-85f),("medical","Punkt medyczny",-25f,-85f),("storage","Magazyn",-25f,-67f)})
             Add(item.Item1,item.Item2,parent,new Vector3(item.Item3,0,item.Item4),mats);
         // Osobny blok sanitarny obok istniejących pryszniców i sauny.
         // Nie zastępuje oryginalnych modeli, nie zamyka ich drzwi ani dojść.
@@ -114,7 +114,7 @@ public static class BraxObozServices
     static void SanitaryBlock(Transform parent,Dictionary<string,Material> mats)
     {
         const string label="BRAXHORN — WC / ŁAŹNIA / UMYWALNIA";
-        var building=Node(label,parent,new Vector3(-92,0,-83)*K);
+        var building=Node(label,parent,new Vector3(-66,0,-52)*K);
         building.localScale=Vector3.one*K;
         var tile=BraxObozMaterials.Plain("sanitariaty-ceramika",new Color(.86f,.89f,.87f),.65f);
         var porcelain=BraxObozMaterials.Plain("sanitariaty-porcelana",new Color(.94f,.95f,.92f),.70f);
