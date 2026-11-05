@@ -12,20 +12,57 @@ internal static partial class BraxMiastoWyspa
     public static void WykonczOprawy(UnityEngine.SceneManagement.Scene scene)
     {
         // Globalny krok BezSwiecenia gasi także szyldy i oprawy areny.
-        // Przywracamy umiarkowaną emisję TYLKO oznaczonych materiałów areny na wyspie.
-        // Nie dodaje to świateł ani bloom; nie dotyka oświetlenia miasta/osiedla/obozu.
+        // Przywracamy tę samą umiarkowaną emisję TYLKO rzeczywistym rendererom
+        // areny. W #94 wyszukiwanie po samej nazwie materiału dało <3 trafienia
+        // po konwersji/odchudzaniu sceny i zatrzymało tworzenie całego APK.
+        // Identyfikator materiału może zostać zmieniony podczas konwersji,
+        // ale renderery i oryginalne referencje ApMaterialy nadal istnieją.
+        var expected = new HashSet<Material>();
+        foreach (var material in new[] { apLed, apLit, apZnak, apLedSufit })
+            if (material) expected.Add(material);
+        if (expected.Count < 4)
+            throw new InvalidOperationException("Arena: brak źródłowych materiałów LED/szyld/wyjście/sufit");
+
+        var islands = new List<Transform>();
+        // Bezpośredni korzeń jest pewniejszy od wyszukiwania w hierarchii sceny
+        // po kosztownej przebudowie regionów. Nigdy nie przeszukuj innych stref.
+        if (root && root.gameObject.scene == scene) islands.Add(root);
+        else islands.AddRange(BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*"));
+        if (islands.Count == 0)
+            throw new InvalidOperationException("Arena: brak korzenia wyspy w bieżącej scenie");
+
         var done = new HashSet<Material>();
-        foreach (var island in BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*"))
+        int renderers = 0, matchedSlots = 0;
+        foreach (var island in islands)
         foreach (var renderer in island.GetComponentsInChildren<Renderer>(true))
-        foreach (var material in renderer.sharedMaterials)
         {
-            if (!material || !material.name.StartsWith("A świeci: Arena", StringComparison.Ordinal) || !done.Add(material)) continue;
-            if (!material.HasProperty("_EmissionColor") || !material.HasProperty("_Color"))
-                throw new InvalidOperationException("Arena: oprawa bez obsługi emisji " + material.name);
-            material.SetColor("_EmissionColor", material.GetColor("_Color") * .8f);
-            material.EnableKeyword("_EMISSION"); EditorUtility.SetDirty(material);
+            renderers++;
+            foreach (var material in renderer.sharedMaterials)
+            {
+                if (!material) continue;
+                // Najpierw tożsamość materiału z ApMaterialy. Gdy optymalizacja
+                // podmieniła instancję, zachowuje nazwę obiektu renderera.
+                bool tagged = material.name.StartsWith("A świeci: Arena", StringComparison.Ordinal)
+                    || renderer.name.StartsWith("A świeci: Arena", StringComparison.Ordinal);
+                if (!expected.Contains(material) && !tagged) continue;
+                matchedSlots++;
+                if (!done.Add(material)) continue;
+                if (!material.HasProperty("_EmissionColor") || !material.HasProperty("_Color"))
+                    throw new InvalidOperationException("Arena: oprawa nie obsługuje emisji " + material.name);
+                material.SetColor("_EmissionColor", material.GetColor("_Color") * .8f);
+                material.EnableKeyword("_EMISSION");
+                EditorUtility.SetDirty(material);
+            }
         }
-        if (done.Count < 3) throw new InvalidOperationException("Arena: brak materiałów opraw i szyldów");
+        Debug.Log("BRAXHORN_WYSPA_OPRAWY_ODBUDOWA islands=" + islands.Count
+            + " renderers=" + renderers + " slots=" + matchedSlots
+            + " restoredMaterials=" + done.Count);
+        // Nie zastępuj brakującej areny dekoracją i nie ukrywaj błędu:
+        // przed APK muszą istnieć co najmniej trzy prawdziwe oprawy.
+        if (done.Count < 3)
+            throw new InvalidOperationException("Arena: brak renderowanych materiałów opraw i szyldów"
+                + " (wyspa=" + islands.Count + ", renderery=" + renderers
+                + ", sloty=" + matchedSlots + ", materiały=" + done.Count + ")");
     }
 
     static void ApWalkaPokazowa()
