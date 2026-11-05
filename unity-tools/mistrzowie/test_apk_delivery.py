@@ -100,6 +100,25 @@ class ApkDeliveryTests(unittest.TestCase):
         with patch.object(delivery, "api", side_effect=[self.artifact(), RuntimeError("no release")]), self.assertRaisesRegex(RuntimeError, "SHA-256 differs"):
             self.verify()
 
+    def test_compressed_artifact_smaller_than_apk_can_still_verify(self):
+        # A ZIP's compressed size is not the same as the APK's real file size.
+        artifact = self.artifact()
+        artifact["size_in_bytes"] = 42
+        with patch.object(delivery, "api", side_effect=[artifact, RuntimeError("release missing")]):
+            report = self.verify()
+        self.assertIn("artifactId", report["delivery"])
+        self.assertEqual(report["warnings"], ["Release delivery: release missing"])
+
+    def test_signer_fingerprint_parser_rejects_wrong_or_missing_digests(self):
+        with patch.object(delivery, "sdk_tool", return_value="apksigner"), \
+             patch.object(delivery, "command", return_value=(
+                 "Verifies\nSigner #1 certificate SHA-256 digest: " + "AB" * 32 + "\n")):
+            self.assertEqual(delivery.signer_fingerprints(self.output / self.name),
+                             ["ab" * 32])
+        with patch.object(delivery, "sdk_tool", return_value="apksigner"), \
+             patch.object(delivery, "command", return_value="Verified using v2 scheme: true\n"):
+            self.assertEqual(delivery.signer_fingerprints(self.output / self.name), [])
+
     def test_missing_apk_in_large_artifact_is_not_delivery(self):
         self.remote_name = "diagnostics.log"
         with patch.object(delivery, "api", side_effect=[self.artifact(), RuntimeError("no release")]), self.assertRaisesRegex(RuntimeError, "APK missing"):

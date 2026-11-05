@@ -45,6 +45,20 @@ def sdk_tool(name):
     raise RuntimeError("Android SDK tool unavailable: " + name)
 
 
+
+def android_platform_jar():
+    """Use an installed SDK platform, not an arbitrary new download."""
+    roots = [os.environ.get("ANDROID_HOME"), os.environ.get("ANDROID_SDK_ROOT")]
+    jars = []
+    for root in filter(None, roots):
+        jars.extend((Path(root) / "platforms").glob("android-*/android.jar"))
+    jars = [jar for jar in jars if jar.is_file()]
+    if not jars:
+        raise RuntimeError("Android SDK platform android.jar missing before Unity build")
+    return max(jars, key=lambda jar: int(jar.parent.name.split("-")[-1])
+               if jar.parent.name.split("-")[-1].isdigit() else 0)
+
+
 def parse_identity(badging):
     match = re.search(r"^package: name='([^']+)' versionCode='(\d+)'", badging, re.M)
     if not match:
@@ -71,8 +85,11 @@ def preflight():
         command("keytool", "-certreq", "-alias", "braxhorn", "-keystore",
                 str(ROOT / "unity-city/braxhorn.keystore"), "-storepass:file", str(password),
                 "-keypass:file", str(password), "-file", str(Path(tmp)/"check.csr"))
-    report = dict(status="SIGNING_KEY_AND_HOST_TOOLS_PASS_APK_NOT_BUILT",
-                  certificateSha256=certificate_sha256(), tools=versions)
+    expected = certificate_sha256()
+    observed = signing_smoke_preflight(expected)
+    report = dict(status="SIGNING_KEY_AND_APKSIGNER_SMOKE_PASS_APK_NOT_BUILT",
+                  certificateSha256=expected, smokeApkCertificateSha256=observed,
+                  tools=versions)
     evidence = ROOT / "mistrzowie-evidence"
     evidence.mkdir(exist_ok=True)
     (evidence / "signing-preflight.json").write_text(json.dumps(report, indent=2) + "\n")
@@ -80,9 +97,61 @@ def preflight():
 
 
 def signer_fingerprints(apk):
+    # Only VERIFIED certificate output, never merely a successful sign command.
+    # Tolerate spacing and colon-separated hex in Android SDK tool versions.
     output = command(sdk_tool("apksigner"), "verify", "--print-certs", str(apk))
-    return [value.lower() for value in re.findall(
-        r"Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9]+)", output)]
+    digests = []
+    for line in output.splitlines():
+        match = re.search(r"Signer\s*#\s*\d+\s+certificate\s+SHA[-_\s]*256\s+digest\s*:\s*(.*)$",
+                          line, re.IGNORECASE)
+        if not match:
+            continue
+        value = re.sub(r"[^a-fA-F0-9]", "", match.group(1)).lower()
+        if len(value) != 64:
+            raise RuntimeError("apksigner printed a malformed certificate SHA-256 digest")
+        digests.append(value)
+    return digests
+
+
+def signing_smoke_preflight(expected_cert):
+    """Sign and verify a real minimal APK with the existing repository key.
+
+    No key creation, no changes to the owner keystore, no release or dispatch.
+    An APK-signing regression fails here BEFORE a 50-minute Unity build.
+    """
+    aapt = sdk_tool("aapt")
+    apksigner = sdk_tool("apksigner")
+    jar = android_platform_jar()
+    keystore = ROOT / "unity-city/braxhorn.keystore"
+    password = ROOT / "unity-city/braxhorn.keystore.pass"
+    with tempfile.TemporaryDirectory(prefix="champions-real-signing-preflight-") as directory:
+        work = Path(directory)
+        manifest = work / "AndroidManifest.xml"
+        unsigned = work / "preflight-unsigned.apk"
+        signed = work / "preflight-signed.apk"
+        manifest.write_text(
+            '<manifest xmlns:android="http://schemas.android.com/apk/res/android" '
+            'package="com.braxhorn.preflight" android:versionCode="1" android:versionName="1.0">'
+            '<uses-sdk android:minSdkVersion="24" android:targetSdkVersion="28"/>'
+            '<application android:hasCode="false" android:label="Preflight"/></manifest>',
+            encoding="utf-8")
+        command(aapt, "package", "-f", "-M", str(manifest), "-I", str(jar),
+                "-F", str(unsigned))
+        if not unsigned.is_file() or unsigned.stat().st_size < 1024:
+            raise RuntimeError("aapt failed to generate a real signing test APK")
+        # Single use of the one-line password file; no second --key-pass read.
+        command(apksigner, "sign", "--ks", str(keystore), "--ks-key-alias", "braxhorn",
+                "--ks-pass", "file:" + str(password), "--min-sdk-version", "24",
+                "--out", str(signed), str(unsigned))
+        actual = signer_fingerprints(signed)
+        print("BRAX_MISTRZOWIE_REAL_SIGNING_SMOKE expected_cert=" + expected_cert
+              + " actual_signers=" + (",".join(actual) or "NONE"))
+        if actual != [expected_cert]:
+            raise RuntimeError("Real apksigner smoke certificate mismatch before Unity build")
+        identity = parse_identity(command(aapt, "dump", "badging", str(signed)))
+        if identity != ("com.braxhorn.preflight", 1):
+            raise RuntimeError("Real apksigner smoke changed APK identity")
+        return actual[0]
 
 
 def resign_with_existing_key(source, identity, expected_cert):
@@ -108,8 +177,13 @@ def resign_with_existing_key(source, identity, expected_cert):
                 "--out", str(signed), str(source))
         if not signed.is_file() or signed.stat().st_size < 1024:
             raise RuntimeError("Existing-key signer did not produce an APK")
-        if signer_fingerprints(signed) != [expected_cert]:
-            raise RuntimeError("Re-signed APK still fails the repository certificate check")
+        signed_fingerprints = signer_fingerprints(signed)
+        print("BRAX_MISTRZOWIE_RE_SIGN_CERT expected=" + expected_cert
+              + " actual=" + (",".join(signed_fingerprints) or "NONE"))
+        if signed_fingerprints != [expected_cert]:
+            raise RuntimeError("Re-signed APK still fails repository certificate check: "
+                               + "expected=" + expected_cert
+                               + " actual=" + (",".join(signed_fingerprints) or "NONE"))
         signed_identity = parse_identity(command(sdk_tool("aapt"), "dump", "badging", str(signed)))
         if signed_identity != identity:
             raise RuntimeError("Re-signed APK changed applicationId/versionCode")
@@ -146,7 +220,9 @@ def stage():
         except subprocess.CalledProcessError:
             signers = []
         if signers != [expected_cert]:
-            print("BRAX_MISTRZOWIE_APK_SIGNATURE_MISMATCH; attempting existing-key correction")
+            print("BRAX_MISTRZOWIE_APK_SIGNATURE_MISMATCH expected=" + expected_cert
+                  + " actual=" + (",".join(signers) or "NONE")
+                  + "; attempting existing-key correction")
             resign_with_existing_key(target, (app_id, version), expected_cert)
         if signer_fingerprints(target) != [expected_cert]:
             raise RuntimeError("APK is not signed with the existing repository certificate")
@@ -195,8 +271,10 @@ def verify():
     if artifact_id.isdigit():
         try:
             artifact = api(f"repos/{repo}/actions/artifacts/{artifact_id}")
-            if artifact["expired"] or artifact["size_in_bytes"] < manifest["bytes"]:
-                raise RuntimeError("Artifact expired or incomplete")
+            # API size_in_bytes measures ZIP bytes, not the decompressed APK.
+            # A valid compressed artifact can be smaller than its APK.
+            if artifact["expired"] or artifact["size_in_bytes"] <= 0:
+                raise RuntimeError("Artifact expired or empty")
             if artifact["workflow_run"]["head_sha"] != manifest.get("workflowCommit", manifest["commit"]):
                 raise RuntimeError("Artifact belongs to a different commit")
             if str(artifact["workflow_run"]["id"]) != manifest["runId"]:

@@ -44,7 +44,9 @@ class SigningPreflightTests(unittest.TestCase):
                 return 'test tool version\n'
             return original(*args, **kwargs)
         with patch.object(delivery,'sdk_tool',side_effect=lambda n:'test-'+n), \
-             patch.object(delivery,'command',side_effect=command), contextlib.redirect_stdout(io.StringIO()):
+             patch.object(delivery,'command',side_effect=command), \
+             patch.object(delivery,'signing_smoke_preflight',return_value='test-certificate'), \
+             contextlib.redirect_stdout(io.StringIO()):
             delivery.preflight()
 
     def test_private_key_is_usable_and_keystore_bytes_unchanged(self):
@@ -84,6 +86,38 @@ class SigningPreflightTests(unittest.TestCase):
              patch.object(delivery,'command') as command, self.assertRaisesRegex(RuntimeError,'SDK tool'):
             delivery.preflight()
         command.assert_not_called()
+
+
+    def test_smoke_requires_real_matching_apk_certificate(self):
+        """Check the real-Apk tool choreography without using user secrets."""
+        apk_jar = self.root / "android.jar"
+        apk_jar.write_bytes(b"fixture")
+        expected = "a" * 64
+
+        def cmd(*args, **kwargs):
+            if args[1] == "package":
+                Path(args[args.index("-F") + 1]).write_bytes(b"unsigned APK" * 200)
+                return ""
+            if args[1] == "sign":
+                Path(args[args.index("--out") + 1]).write_bytes(b"signed APK" * 200)
+                self.assertNotIn("--key-pass", args)
+                return ""
+            if args[1:3] == ("dump", "badging"):
+                return "package: name='com.braxhorn.preflight' versionCode='1'"
+            raise AssertionError(args)
+
+        with patch.object(delivery, "android_platform_jar", return_value=apk_jar), \
+             patch.object(delivery, "sdk_tool", side_effect=lambda name: name), \
+             patch.object(delivery, "command", side_effect=cmd), \
+             patch.object(delivery, "signer_fingerprints", return_value=[expected]), \
+             contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(delivery.signing_smoke_preflight(expected), expected)
+        with patch.object(delivery, "android_platform_jar", return_value=apk_jar), \
+             patch.object(delivery, "sdk_tool", side_effect=lambda name: name), \
+             patch.object(delivery, "command", side_effect=cmd), \
+             patch.object(delivery, "signer_fingerprints", return_value=["b" * 64]), \
+             self.assertRaisesRegex(RuntimeError, "before Unity"):
+            delivery.signing_smoke_preflight(expected)
 
 
 if __name__ == '__main__':

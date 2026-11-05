@@ -92,7 +92,7 @@ jobs:
       - name: Verify source, workflow and pinned Unity configuration
         id: preflight
         run: python3 unity-tools/mistrzowie/pipeline.py
-      - name: Verify the existing signing key and Android tools before preparation
+      - name: Verify key and sign a real tiny APK before the expensive Unity build
         if: inputs.etap != 'sceny'
         env:
           KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
@@ -303,7 +303,7 @@ jobs:
           retention-days: 30
       - name: Pack encrypted imports after delivery attempts or failed Unity validation
         id: library_pack
-        if: always() && !cancelled() && !inputs.zdjecia && (steps.apk_delivery.outcome == 'success' || steps.unity_build.outcome == 'failure' || (inputs.etap == 'sceny' && steps.unity_build.outcome == 'success'))
+        if: always() && !cancelled() && !inputs.zdjecia && (steps.unity_build.outcome == 'success' || steps.unity_build.outcome == 'failure')
         continue-on-error: true
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
