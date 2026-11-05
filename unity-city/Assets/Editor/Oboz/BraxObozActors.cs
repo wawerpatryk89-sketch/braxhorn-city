@@ -88,8 +88,19 @@ public static class BraxObozActors
         float height=spec.realHeight>0?spec.realHeight*K:bounds.size.y;
         if(height<.8f*K||height>3*K)BraxBuildQuality.Issue(new InvalidOperationException(spec.name+": nieprawidłowa kapsuła"));
         body=root.AddComponent<CharacterController>();body.height=height;body.radius=.27f*K;
-        body.center=Vector3.up*height*.5f;body.stepOffset=.25f*K;body.skinWidth=.035f;
+        body.center=Vector3.up*height*.5f;body.stepOffset=.25f*K;body.skinWidth=.035f;body.slopeLimit=48f;
         root.transform.position=position*K;
+        // Ustaw stopy na rzeczywistej nawierzchni: podlodze hali,
+        // ringu, macie lub gruncie. Nie przesuwaj calego skinned mesh
+        // w kazdym Update; CharacterController ma pojedyncza wladze fizyki.
+        Physics.SyncTransforms();
+        var origin = root.transform.position + Vector3.up * (3.2f*K);
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit ground, 7f*K, ~(1<<8), QueryTriggerInteraction.Ignore))
+        {
+            var at = root.transform.position;
+            root.transform.position = new Vector3(at.x, ground.point.y + .025f*K, at.z);
+        }
+        else Debug.LogWarning("BRAXHORN_OBOZ_SPAWN bez podloza: " + spec.name);
         return root;
     }
 }
