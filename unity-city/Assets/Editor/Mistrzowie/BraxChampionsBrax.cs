@@ -70,6 +70,9 @@ public static class BraxChampionsBrax
             BraxZapisAssetu.Utworz(clip, Generated + "/" + pair.Key + ".anim");
             animation.AddClip(clip, pair.Key);
         }
+        // Three ORIGINAL owner Mixamo clips re-bound to Brax's existing skeleton.
+        // No changes to Idle/Walk/Run/Punch/Kick/Jump or model proportions.
+        BraxChampionsCarClips.Attach(hero, animation);
         animation.clip = animation.GetClip("Idle"); animation.Play("Idle"); animation.Sample();
         body.height = 2.25f; body.radius = .35f; body.center = new Vector3(0, 1.125f, 0);
         Debug.Log("BRAX_MISTRZOWIE_PLAYER Brax; city model/rig/clips; no Patryk retarget; device review pending");
