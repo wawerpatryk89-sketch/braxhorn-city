@@ -54,19 +54,37 @@ public static class BraxWyspaOdbior
     }
     public static void SprawdzBramki(Transform root, int wymagane)
     {
+        try
+        {
         if (wymagane == 0) throw new InvalidOperationException("Arena: brak istniejących modeli bramek biletowych");
         var gates = root.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true).Where(d => d.etykieta.StartsWith("bramka metra ")).ToArray();
         if (gates.Length != wymagane || gates.Any(d => d.skrzydla.Length != 4 || d.skrzydla.Any(s => !s)))
             throw new InvalidOperationException("Arena: niekompletne bramki, oczekiwano " + wymagane + " modeli z czterema klapami");
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
     public static void SprawdzScene(Scene scene)
     {
+        try
+        {
         var roots = BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*");
         if (roots.Count != 1) throw new InvalidOperationException("BRAXHORN_WYSPA_P0: oczekiwano jednego korzenia wyspy");
         Krok("końcowa kontrola przed wydzieleniem sceny", () => Sprawdz(roots[0], true));
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
     public static void SprawdzPaczke(string[] scenePaths)
     {
+        try
+        {
         var path = scenePaths.FirstOrDefault(p => Path.GetFileNameWithoutExtension(p) == "BraxhornCity_Wyspa");
         if (path == null) throw new InvalidOperationException("BRAXHORN_WYSPA_P0: paczka miasta bez osobnej sceny wyspy");
         var scene = SceneManager.GetSceneByPath(path); bool opened = !scene.IsValid() || !scene.isLoaded;
@@ -80,9 +98,17 @@ public static class BraxWyspaOdbior
                 throw new InvalidOperationException("BRAXHORN_WYSPA_P0: referencje poza sceną wyspy");
         }
         finally { if (opened && scene.IsValid()) EditorSceneManager.CloseScene(scene, true); }
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
     public static void Sprawdz(Transform root, bool pelnaScena = false)
     {
+        try
+        {
         var errors = new List<string>();
         if (!root) throw new InvalidOperationException("Brak korzenia wyspy");
         var transforms = root.GetComponentsInChildren<Transform>(true);
@@ -171,6 +197,12 @@ public static class BraxWyspaOdbior
             throw new InvalidOperationException("BRAXHORN_WYSPA_P0:\n" + string.Join("\n", errors.Distinct()));
         }
         raport.status = "GEOMETRIA_SPRAWDZONA_TEST_GRACZA_I_ANDROID_OCZEKUJE"; Zapisz();
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
 
     static void Droznosc(Transform root, BraxDrzwiPrzesuwne[] doors, Dictionary<string, Vector3> p, List<string> errors)

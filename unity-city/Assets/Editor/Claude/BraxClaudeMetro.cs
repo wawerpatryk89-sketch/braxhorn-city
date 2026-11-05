@@ -1395,7 +1395,7 @@ public static class BraxClaudeMetro
                 // pomiędzy rzeczywistymi czołami modeli, nie trzeci pojazd.
                 float szczelina = poprzedniWagon.min.x - b.max.x;
                 if (szczelina < -.20f || szczelina > .65f)
-                    throw new InvalidOperationException("BRAXHORN_METRO_M1_SPRZEG: nieprawidłowa szczelina " + szczelina.ToString("F2"));
+                    BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_METRO_M1_SPRZEG: nieprawidłowa szczelina " + szczelina.ToString("F2")));
                 var lacznik = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 lacznik.name = "M1: ciemny przegub i połączenie wagonów 101-102";
                 lacznik.transform.SetParent(sklad, false);
@@ -1465,7 +1465,7 @@ public static class BraxClaudeMetro
         float wyjazdMax = PX0 - 4f - wszystkie.max.x;
         float wyjazdMin = TW0 + 4f - wszystkie.min.x;
         if (wjazdMax < wjazdMin || wyjazdMin > wyjazdMax)
-            throw new InvalidOperationException("BRAXHORN_METRO_M1_TUNEL_ZA_KROTKI: skład nie mieści się w tunelu; nie wolno stawiać go na ulicy");
+            BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_METRO_M1_TUNEL_ZA_KROTKI: skład nie mieści się w tunelu; nie wolno stawiać go na ulicy"));
         ruch.wejscieOffsetX = wjazdMin;
         ruch.wyjazdOffsetX = wyjazdMax;
         Debug.Log("BRAXHORN_METRO_M1_SKLAD_W_TUNELU wjazd=" + ruch.wejscieOffsetX.ToString("F2") +

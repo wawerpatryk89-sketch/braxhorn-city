@@ -362,9 +362,9 @@ public static class BraxGymBuild
         // umieszczenie, kolizje, MIGOTANIE (rozsunięcie płaskich warstw), listy pomieszczeń, robot kolizji. Przed BezSwiecenia/Siatki (siatki do odczytu).
         // 3.11 (właściciel 13:39–13:46): SUPERMARKET BRAXHORN — jeden moduł, 2 kopie w mieście (druga lustrzana), przed kontrolami jakości
         if(fullCity&&!osiedle)try{BraxSupermarket.Wykonaj(scene,2);}catch(Exception e){throw new InvalidOperationException("BRAXHORN_SUPERMARKET_NIEGOTOWY",e);}
-        if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){throw new InvalidOperationException("BRAXHORN_KONTROLA_MIASTA_NIEGOTOWA",e);}
+        if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_KONTROLA_MIASTA_NIEGOTOWA",e));}
         // P0.1 (2.11 23:05, „metro nie do wejścia”): obce kolizje w przejściach stacji wyłączone + test przejścia obu wejść
-        if(fullCity&&!osiedle)try{BraxClaudeMetro.KontrolaPrzejscia();}catch(Exception e){throw new InvalidOperationException("BRAXHORN_METRO_PRZEJSCIE_NIEGOTOWE",e);}
+        if(fullCity&&!osiedle)try{BraxClaudeMetro.KontrolaPrzejscia();}catch(Exception e){BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_METRO_PRZEJSCIE_NIEGOTOWE",e));}
         // 3.11 (właściciel 10:53): trawnik w wycięciu nawierzchni przy każdym drzewie i palmie na chodniku / placu / asfalcie
         if(fullCity&&!osiedle)try{BraxMisyDrzew.Wykonaj(scene);}catch(Exception e){Debug.LogWarning("DO POPRAWKI: BRAXHORN_MISY_DRZEW: "+e);}
         // C4 (2.11, „szyby globalnie”): szkło bez mleka — przezroczyste z odbiciem nieba, fasady bez wnętrza refleksyjne (BRAXHORN_SZYBY)
@@ -374,7 +374,7 @@ public static class BraxGymBuild
         if(!osiedle)try{BraxClaudeSiatki.Apply(scene,fullCity?"miasto":"silownia");}catch(Exception e){Debug.LogWarning("DO POPRAWKI: siatki bez odczytu: "+e);}
         if(!osiedle)BraxRejonBuildu.Czas("obrobka_siatek",tObr,fullCity?"rejon=miasto":"rejon=silownia");
         // C1 (2.11, różowe jachty/żurawie/budka): kontrola końcowa — renderery z materiałem NULL / bez shadera (cel 0), przed zapisem.
-        if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pamiec(scene,"przed_zapisem_sceny");}catch(Exception e){throw new InvalidOperationException("BRAXHORN_MATERIALY_NIEGOTOWE",e);}
+        if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pamiec(scene,"przed_zapisem_sceny");}catch(Exception e){BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_MATERIALY_NIEGOTOWE",e));}
         if(fullCity&&!osiedle) BraxWyspaOdbior.SprawdzScene(scene);
         // Miasto na 2 obszary (właściciel 1.11): nabrzeże (port, plaża, las za plażą, marina, metro, wyspa) osobną sceną,
         // doczytywaną w tle 45 m przed granicą i zwalnianą 110 m od niej (BraxObszary). Scena startowa = centrum.
@@ -415,7 +415,7 @@ public static class BraxGymBuild
             catch(Exception e){throw new InvalidOperationException("BRAXHORN_KWADRATY_STREAMING_NIEGOTOWE",e);}
         }
         // C1: to samo na zapisanych plikach wszystkich scen miasta (po podziale na obszary i kwadraty) — odwołania do materiałów.
-        if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pliki(ScenyMiasta(scenePath),"pliki_scen_miasta");}catch(Exception e){throw new InvalidOperationException("BRAXHORN_SCENY_MATERIALY_NIEGOTOWE",e);}
+        if(fullCity&&!osiedle)try{BraxKontrolaBrakMaterialow.Pliki(ScenyMiasta(scenePath),"pliki_scen_miasta");}catch(Exception e){BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_SCENY_MATERIALY_NIEGOTOWE",e));}
         if(fullCity&&!osiedle)BraxRejonBuildu.Czas("generowanie",tMiasto,"rejon=miasto z_pamięci=nie");   // miasto + remont siłowni + obróbka + obszary
         string sourceCommit=runtime.buildId;
         // Estate review boots directly into the EXISTING city estate scene with the

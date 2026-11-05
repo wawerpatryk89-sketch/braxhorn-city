@@ -15,6 +15,8 @@ internal static class BraxMiastoOdbior
 
     public static void Wykonaj(Transform cityRoot)
     {
+        try
+        {
         bledy = 0;
         if (!cityRoot) throw new InvalidOperationException("BRAXHORN_MIASTO_ODBIOR brak korzenia miasta");
         Physics.SyncTransforms();
@@ -52,6 +54,12 @@ internal static class BraxMiastoOdbior
             throw new InvalidOperationException(
                 "BRAXHORN_MIASTO_ODBIOR_NIEGOTOWE blokery=" + bledy +
                 " — nie publikować APK bez korekty i powtórnego odbioru");
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
 
     static void SprawdzApteke(Transform cityRoot)

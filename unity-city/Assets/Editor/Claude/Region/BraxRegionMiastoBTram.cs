@@ -278,7 +278,7 @@ public static partial class BraxRegionMiastoB
     static void NdKontrolaT1Bryly(Vector3[] trasa, float dlugosc, float szerokosc)
     {
         if (trasa == null || trasa.Length < 20 || ndBudynki == null || ndBudynki.Count != NoweBudynki.Length)
-            throw new InvalidOperationException("BRAXHORN_TRAM_T1_KONTROLA_NIEGOTOWA: brak kompletnej trasy lub 21 budynków");
+            { BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_TRAM_T1_KONTROLA_NIEGOTOWA: brak kompletnej trasy lub 21 budynków")); return; }
         float polL = dlugosc * .5f + .3f, polW = szerokosc * .5f + .3f;
         var coll = new List<string>();
         int samples = 0;
@@ -327,8 +327,8 @@ public static partial class BraxRegionMiastoB
                   ", kolizje_z_budynkami=" + coll.Count +
                   (coll.Count > 0 ? " | " + string.Join(", ", coll) : " — OK"));
         if (coll.Count > 0)
-            throw new InvalidOperationException("BRAXHORN_TRAM_T1_BUDYNEK_KOLIZJA: " + coll.Count +
-                " budynków | " + string.Join(", ", coll) + " — poprawić trasę lub rozmieszczenie przed APK");
+            BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_TRAM_T1_BUDYNEK_KOLIZJA: " + coll.Count +
+                " budynków | " + string.Join(", ", coll) + " — poprawić trasę lub rozmieszczenie przed APK"));
     }
 
 }

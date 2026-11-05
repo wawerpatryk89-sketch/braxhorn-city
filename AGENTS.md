@@ -1,3 +1,10 @@
+# Aktualna decyzja właściciela — testowy APK bez blokad jakości
+
+Stosuj [APK do ręcznej oceny](docs/zasady/APK_RECZNA_OCENA_20261105.md).
+Kontrole jakości postaci, kolizji i przejść mają ostrzegać, nie blokować APK.
+Fizyczne kolizje pozostają. Kompilacja, generowanie, podpis i plik APK nadal muszą się udać.
+Ta nowsza decyzja zastępuje sprzeczne starsze bramki jakości. Bez uruchamiania buildów.
+
 # PILNE — APK FIRST (4.11.2026)
 
 **Polecenie właściciela dla wszystkich wykonawców włącznie z Miastem Mistrzów:** po pomyślnym buildzie natychmiast udostępnij i zabezpiecz APK przed backupem, cache i raportami. Późniejszy błąd nie może odebrać gotowego pliku. Pełna zasada: [APK FIRST](docs/zasady/APK_FIRST_DOSTAWA_20261104.md), [Issue #13](https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13). Nie uruchamiać buildów bez zgody właściciela.

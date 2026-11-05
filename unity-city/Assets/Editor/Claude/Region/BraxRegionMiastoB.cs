@@ -140,9 +140,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         Debug.Log("BRAXHORN_MIASTO_B_USUNIETE (" + usuniete.Count + "): " + string.Join(" | ", usuniete.Take(80)));
         var bledneKroki = kroki.Where(s => s.Contains(": BŁĄD ")).ToArray();
         if (bledneKroki.Length > 0 || ndBlokery.Count > 0)
-            throw new InvalidOperationException("BRAXHORN_MIASTO_B_NIEGOTOWE kroki=" + bledneKroki.Length +
+            BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_MIASTO_B_NIEGOTOWE kroki=" + bledneKroki.Length +
                 " podetapy=" + ndBlokery.Count + " | " +
-                string.Join(" | ", bledneKroki.Concat(ndBlokery).Take(30)));
+                string.Join(" | ", bledneKroki.Concat(ndBlokery).Take(30))));
     }
 
     static void UsunMaleTrawnikiZJezdni()

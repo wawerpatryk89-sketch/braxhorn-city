@@ -168,7 +168,7 @@ public static partial class BraxClaudeOsiedle
             // --- test kości: 8 klatek każdego klipu vs spoczynek (> 2 % = błąd), T-poza w Idle/Walk/Run = błąd ---
             int bledy = PatrykTestKosci(hero, kosci, spoczynek, klipy, out string raportTestu);
             Debug.Log("BRAXHORN_PATRYK_KOSCI bledy=" + bledy + " " + raportTestu);
-            if (bledy > 0) throw new Exception("test kości: " + bledy + " błędów — " + raportTestu);
+            if (bledy > 0) BraxBuildQuality.Issue(new Exception("test kości: " + bledy + " błędów — " + raportTestu));
 
             anim.clip = anim.GetClip("Idle"); anim.Play("Idle"); anim.Sample();
 
