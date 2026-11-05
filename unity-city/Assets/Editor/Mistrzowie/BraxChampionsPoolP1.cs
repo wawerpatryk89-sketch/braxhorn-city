@@ -285,9 +285,9 @@ public static class BraxChampionsPoolP1
             Box(details,"P1 ceiling truss satin steel",frame,-6,10.7f,zz,46f,.16f,.18f,false);
         }
         // Rear technical services: three accessible internal rooms, not opaque slab.
-        Room("POM. TECHNICZNE FILTRY",28.5f,41,13f,10f,3.8f,white);
-        Room("MAGAZYN I CHEMIA",28.5f,29,13f,10f,3.8f,white);
-        Room("POM. TECHNICZNE HVAC",28.5f,17,13f,10f,3.8f,white);
+        Room("POM. TECHNICZNE FILTRY",28.5f,42,13f,8f,3.8f,white);
+        Room("MAGAZYN I CHEMIA",28.5f,32,13f,8f,3.8f,white);
+        Room("POM. TECHNICZNE HVAC",28.5f,22,13f,8f,3.8f,white);
         // Changing facilities and pool-side rescue, as in the provided ground plan.
         Room("SZATNIE K", -27,12.0f,15,9,3.5f,white);
         Room("SZATNIE RODZINNE",-12.7f,12f,12,9,3.5f,white);
@@ -297,13 +297,14 @@ public static class BraxChampionsPoolP1
         for(float z=19f;z<=35f;z+=5.4f)
             Box(details,"Lane change equipment - not submerged",steel,-20.6f,.9f,z,.07f,1.2f,.07f,false);
     }
-    static void RectGlazing(float x,float z,float width,float height,bool alongX,float baseY=0f)
+    static void RectGlazing(float x,float z,float width,float height,bool alongX,float baseY=0f,float doorHalfWidth=0f)
     {
         if(alongX)
         {
             for(float left=-width*.5f;left<width*.5f-.01f;left+=2.8f)
             {
                 float span=Mathf.Min(2.8f,width*.5f-left);
+                if(doorHalfWidth>0f&&Mathf.Abs(left+span*.5f)<doorHalfWidth)continue;
                 Box(details,"P1 bright transparent glass",glass,x+left+span*.5f,baseY+height*.5f,z,
                     span-.10f,height,.09f,false);
                 Box(details,"P1 champagne anodized aluminium frame",frame,x+left,baseY+height*.5f,z,.12f,height,.15f,false);
@@ -314,6 +315,7 @@ public static class BraxChampionsPoolP1
             for(float a=-width*.5f;a<width*.5f-.01f;a+=2.8f)
             {
                 float span=Mathf.Min(2.8f,width*.5f-a);
+                if(doorHalfWidth>0f&&Mathf.Abs(a+span*.5f)<doorHalfWidth)continue;
                 Box(details,"P1 clear facade side",glass,x,baseY+height*.5f,z+a+span*.5f,
                     .09f,height,span-.10f,false);
                 Box(details,"P1 slender side frame",frame,x,baseY+height*.5f,z+a,.15f,height,.13f,false);
@@ -327,7 +329,7 @@ public static class BraxChampionsPoolP1
         for(float x=-69;x<=-41;x+=3.5f)
             Box(structure,"P1 recreation roof soffit",white,x+1.7f,8.55f,23,3.6f,.25f,22f,true);
         RectGlazing(-55,12,28,7.9f,true);RectGlazing(-55,34,28,7.9f,true);
-        RectGlazing(-69,23,22,7.9f,false);RectGlazing(-41,23,22,7.9f,false);
+        RectGlazing(-69,23,22,7.9f,false);RectGlazing(-41,23,22,7.9f,false,0f,3.3f);
         for(float x=-69;x<=-41;x+=7)
             Box(structure,"P1 family hall white structural column",white,x,4.3f,12,.45f,8.3f,.45f);
         Box(details,"P1 family area premium signage band",wood,-55,7.2f,11.8f,26,.70f,.28f,false);
@@ -344,16 +346,16 @@ public static class BraxChampionsPoolP1
         // Street-facing 36x24m SPA/reception wing, front is south (z=-28).
         DeckWithBasins("SPA / RECEPTION 36x24",-18,18,-28,-4);
         Box(structure,"P1 spa flat white roof",roofFinish,0,8.35f,-16,36.4f,.30f,24.4f);
-        RectGlazing(0,-28,25f,5.7f,true);
+        RectGlazing(0,-28,25f,5.7f,true,0f,3.5f);
         RectWall(structure,"P1 front wood facade left",wood,-15.2f,-28,5.6f,8.2f,true);
         RectWall(structure,"P1 front wood facade right",wood,15.2f,-28,5.6f,8.2f,true);
         RectGlazing(-18,-16,24,6.4f,false);RectGlazing(18,-16,24,6.4f,false);
-        RectGlazing(0,-4,24f,6.4f,true);
+        RectGlazing(0,-4,24f,6.4f,true,0f,6f);
         // Lobby, reception desk and independent tiled rooms on ground floor.
         Room("KAWIARNIA",-12,-12,10.5f,12,3.4f,white);
         Room("BIURO / OBSLUGA",-12,-23,10.5f,7,3.4f,white);
         Room("SAUNA",12.4f,-22.5f,8.9f,8f,3.4f,white);
-        Room("SPA RELAKS",12f,-12.8f,10.8f,7.8f,3.4f,white);
+        Room("SPA RELAKS",12f,-13.8f,10.8f,7.8f,3.4f,white);
         // The outdoor-facing main public entrance remains a genuine open aperture.
         Box(details,"P1 two-sided covered entrance awning",wood,0,5.0f,-30.5f,19f,.28f,4.7f,false);
         Box(details,"P1 entry canopy fascia gold",gold,0,4.9f,-33,19f,.11f,.12f,false);
