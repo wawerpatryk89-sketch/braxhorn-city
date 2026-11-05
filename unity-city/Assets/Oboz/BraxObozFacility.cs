@@ -5,13 +5,13 @@ using UnityEngine;
 // same Mixamo-compatible pose already used by the player elsewhere.
 public sealed class BraxObozFacility : MonoBehaviour, IBraxInterakcja
 {
-    public enum Kind { Drink, Shower, Sauna }
+    public enum Kind { Drink, Shower, Sauna, Toilet, Sink }
     public Kind kind;
     public BraxGymPlayer player;
     public ParticleSystem effect;
     public float range = 1.4f * 1.294f;
     bool active, paused;
-    float remaining;
+    float remaining, nextFlushTime;
     void OnEnable() => BraxInterakcje.Dodaj(this);
     void OnDisable() { BraxInterakcje.Usun(this); Stop(); }
     void Stop() { active=false;remaining=0;if(effect)effect.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear); }
@@ -29,14 +29,29 @@ public sealed class BraxObozFacility : MonoBehaviour, IBraxInterakcja
             var pose=BraxPose.Get(player);
             return player.seat || player.vessel || pose.mode!=BraxPose.Mode.None ? "" : "NAPIJ SIĘ WODY";
         }
+        if(kind==Kind.Toilet)return Time.time>=nextFlushTime?"SPŁUCZ TOALETĘ":"";
         if(!effect)return "";
+        if(kind==Kind.Sink)return active?"ZAKRĘĆ KRAN":"ODKRĘĆ KRAN";
         return kind==Kind.Shower ? active?"WYŁĄCZ PRYSZNIC":"WŁĄCZ PRYSZNIC" : active?"WYŁĄCZ PARĘ":"WŁĄCZ PARĘ";
     }
     public bool Wykonaj(Vector3 p)
     {
         if(string.IsNullOrEmpty(Kontekst(p)))return false;
         if(kind==Kind.Drink){BraxPose.Get(player).Drink();return true;}
-        if(active)Stop();else{active=true;remaining=kind==Kind.Shower?30:20;effect.Play(true);}
+        // Spłukiwanie jest akcją przy przycisku; bez imitowania fizjologii gracza.
+        if(kind==Kind.Toilet)
+        {
+            nextFlushTime=Time.time+3f;
+            BraxSport.Pokaz("WC · SPŁUKANO TOALETĘ",2f);
+            return true;
+        }
+        if(active)Stop();
+        else
+        {
+            active=true;
+            remaining=kind==Kind.Shower?30:kind==Kind.Sink?12:20;
+            effect.Play(true);
+        }
         return true;
     }
     void Update()
