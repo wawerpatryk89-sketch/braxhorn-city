@@ -164,6 +164,8 @@ class ApkDeliveryTests(unittest.TestCase):
                                  str(self.root / "unity-city/braxhorn.keystore"))
                 self.assertEqual(args[args.index("--ks-key-alias") + 1], "braxhorn")
                 self.assertTrue(args[args.index("--ks-pass") + 1].startswith("file:"))
+                # Regression: one-line repository password must not be consumed twice.
+                self.assertNotIn("--key-pass", args)
                 Path(args[args.index("--out") + 1]).write_bytes(b"signed APK" * 300)
                 return ""
             if args[1] == "verify":
