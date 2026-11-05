@@ -247,6 +247,27 @@
       "z": -83,
       "width": 13,
       "depth": 11
+    },
+    {
+      "id": "fort-przyszly",
+      "x": 105,
+      "z": 107,
+      "width": 16,
+      "depth": 12
+    },
+    {
+      "id": "tartak-przyszly",
+      "x": 76,
+      "z": -105,
+      "width": 20,
+      "depth": 16
+    },
+    {
+      "id": "bunkier-bramy",
+      "x": -24,
+      "z": -111,
+      "width": 18,
+      "depth": 12
     }
   ],
   "busDesignEnvelope": {
