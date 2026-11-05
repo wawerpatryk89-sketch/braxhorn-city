@@ -215,7 +215,7 @@ public static partial class BraxObozEnvironment
         // do Ring 2, bez zasłaniania schodów i wejść.
         OriginalMural(pavilion,"FIGHT_ZONE",
             "35502A48-F7AB-4650-9874-3266881B2DF6.jpeg",
-            new Vector3(-15f,2.7f,-7.5f),Quaternion.identity,8.8f,true);
+            new Vector3(-20.05f,2.7f,0),Quaternion.Euler(0,90,0),8.8f,true);
     }
 
     static void Terrain()

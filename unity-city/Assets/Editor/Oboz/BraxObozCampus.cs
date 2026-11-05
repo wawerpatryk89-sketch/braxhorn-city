@@ -683,8 +683,8 @@ public static partial class BraxObozEnvironment
         Box(footLeaf,"Furtka",new Vector3(0,1.1f,0),new Vector3(1.8f,2.2f,.1f),wood);
         var footController=foot.gameObject.AddComponent<BraxObozSlidingGate>();footController.leaf=footLeaf;
         footController.openOffset=Vector3.right*(2.1f*K);footController.detectionRadius=5*K;
-        // Road end is visibly closed; there is no collider across the main gate.
-        Box(root,"Bariera końca odcinka drogi",new Vector3(0,.5f,-138),new Vector3(7.5f,1,.35f),campusSteel);
+        // Droga do bramy pozostaje przejezdna; bez sztucznej zapory
+        // i bez niewidzialnego collidera blokującego wjazd spoza obozu.
     }
     static void FenceLine(Transform parent,Vector2 a,Vector2 b)
     {
