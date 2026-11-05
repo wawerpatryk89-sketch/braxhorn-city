@@ -116,7 +116,13 @@ public static class BraxGymBuild
                 playerScenes=new[]{start};
                 EditorBuildSettings.scenes=playerScenes.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();
             }
-            var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=playerScenes,target=BuildTarget.Android,locationPathName=Path.Combine(output,"braxhorn-"+v.tag+".apk"),options=BuildOptions.None});
+            // After native IL2CPP SIGSEGV #96, clean only the Player build cache.
+            // Unity retains imported models, textures and shader cache (unlike deleting Library).
+            // A workflow-controlled project marker enables this for an explicit diagnostic run.
+            bool cleanPlayerCache = rejon == "osiedle" && File.Exists("estate-clean-player-cache.txt");
+            var buildOptions = cleanPlayerCache ? BuildOptions.CleanBuildCache : BuildOptions.None;
+            Debug.Log("BRAXHORN_OSIEDLE_IL2CPP clean_player_cache=" + cleanPlayerCache + " imported_assets_preserved=true");
+            var r=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=playerScenes,target=BuildTarget.Android,locationPathName=Path.Combine(output,"braxhorn-"+v.tag+".apk"),options=buildOptions});
             BraxRejonBuildu.Czas("apk_"+v.tag,tApk);
             SizeReport(r);
             try{File.Copy(Path.Combine(Generated,"build-size.txt"),Path.Combine(Generated,"build-size-"+v.tag+".txt"),true);}catch{}
