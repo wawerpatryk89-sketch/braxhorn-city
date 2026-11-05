@@ -73,6 +73,23 @@ public static class BraxObozContentBase
                   "sceneGuid=" + sceneGuid + " baseManifest=" + manifest);
     }
 
+    // The Unity CI exporter is not an APK builder. game-ci uses manualExit
+    // for validation-only methods and requires an explicit Editor exit code.
+    public static void ExportInCI()
+    {
+        try
+        {
+            Export();
+            AssetDatabase.SaveAssets();
+            EditorApplication.Exit(0);
+        }
+        catch (Exception error)
+        {
+            Debug.LogException(error);
+            EditorApplication.Exit(1);
+        }
+    }
+
     static void SaveUntitledSessions()
     {
         for (int i = 0; i < SceneManager.sceneCount; i++)
