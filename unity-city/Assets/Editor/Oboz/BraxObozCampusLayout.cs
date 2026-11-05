@@ -54,7 +54,12 @@ public static class BraxObozCampusLayout
             if(Mathf.Abs(x-r.x)<=r.width*.5f+margin&&Mathf.Abs(z-r.z)<=r.depth*.5f+margin)return true;
         // Chroń pas przy nowym, eliptycznym ogrodzeniu; las poza ogrodzeniem
         // pozostaje możliwy jako naturalne tło HDR, bez kasowania prototypów.
-        return FenceDistance(x,z)<margin+1.5f ||
+        // Wolny pas pod pełną bieżnię: 4 tory, pobocze i fizyczne ogrodzenie.
+        // Za ogrodzeniem las zostaje możliwy, ale nie wolno sadzić go w płocie.
+        float norm=Mathf.Sqrt((x/PlotRadiusX)*(x/PlotRadiusX)+
+            ((z-PlotCenterZ)/PlotRadiusZ)*((z-PlotCenterZ)/PlotRadiusZ));
+        float radial=Mathf.Abs(norm-1f)*Mathf.Min(PlotRadiusX,PlotRadiusZ);
+        return (norm<=1f ? radial<10.5f+margin : radial<1.5f+margin) ||
             (Mathf.Abs(z-GateZ)<margin+2f&&Mathf.Abs(x)<12.5f+margin);
     }
 }
