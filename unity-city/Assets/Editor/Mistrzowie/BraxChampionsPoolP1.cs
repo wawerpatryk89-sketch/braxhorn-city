@@ -353,8 +353,8 @@ public static class BraxChampionsPoolP1
         RectGlazing(0,-4,24f,6.4f,true,0f,6f);
         // Lobby, reception desk and independent tiled rooms on ground floor.
         Room("KAWIARNIA",-12,-12,10.5f,12,3.4f,white);
-        Room("BIURO / OBSLUGA",-12,-23,10.5f,7,3.4f,white);
-        Room("SAUNA",12.4f,-22.5f,8.9f,8f,3.4f,white);
+        Room("BIURO / OBSLUGA",-12,-23,10.5f,7,3.4f,white,+1);
+        Room("SAUNA",12.4f,-22.5f,8.9f,8f,3.4f,white,-1);
         Room("SPA RELAKS",12f,-13.8f,10.8f,7.8f,3.4f,white);
         // The outdoor-facing main public entrance remains a genuine open aperture.
         Box(details,"P1 two-sided covered entrance awning",wood,0,5.0f,-30.5f,19f,.28f,4.7f,false);
@@ -383,25 +383,48 @@ public static class BraxChampionsPoolP1
         Box(rooms,"Public waiting seating upholstered base",wood,0,.64f,-10.6f,4.8f,.48f,1.0f);
     }
     // Room has four real walls, an OPEN door passage and a ceramic floor. No fake closed panel.
-    static void Room(string name,float x,float z,float w,float d,float h,Material wall)
+    static void Room(string name,float x,float z,float w,float d,float h,Material wall,int corridorSide=0)
     {
         var t=Group(rooms,name+" | FINISHED room / OPEN ENTRY");
         float a=x-w*.5f,b=x+w*.5f,n=z-d*.5f,s=z+d*.5f;
         Box(t,"P1 room ceramic floor",floor,x,Deck+.014f,z,w,.028f,d);
-        Box(t,"P1 west wall white real PBR",wall,a,h*.5f,z,.18f,h,d);
-        Box(t,"P1 east wall white real PBR",wall,b,h*.5f,z,.18f,h,d);
-        Box(t,"P1 north wall 2K",wall,x,h*.5f,s,w,h,.18f);
         float gap=Mathf.Min(2f,w*.35f);
-        Box(t,"P1 south wall left of door",wall,(a+x-gap*.5f)*.5f,h*.5f,n,
-            x-gap*.5f-a,h,.18f);
-        Box(t,"P1 south wall right of door",wall,(x+gap*.5f+b)*.5f,h*.5f,n,
-            b-x-gap*.5f,h,.18f);
-        Box(t,"P1 door header over OPEN entrance",wall,x,h-.20f,n,gap,.40f,.18f);
+        Box(t,"P1 north wall 2K",wall,x,h*.5f,s,w,h,.18f);
+        if(corridorSide==0)
+        {
+            // Accessible south-facing changing room / public room entrance.
+            Box(t,"P1 west wall white real PBR",wall,a,h*.5f,z,.18f,h,d);
+            Box(t,"P1 east wall white real PBR",wall,b,h*.5f,z,.18f,h,d);
+            Box(t,"P1 south wall left of door",wall,(a+x-gap*.5f)*.5f,h*.5f,n,
+                x-gap*.5f-a,h,.18f);
+            Box(t,"P1 south wall right of door",wall,(x+gap*.5f+b)*.5f,h*.5f,n,
+                b-x-gap*.5f,h,.18f);
+            Box(t,"P1 door header over OPEN entrance",wall,x,h-.20f,n,gap,.40f,.18f);
+            Box(t,"P1 premium brushed door upright L",steel,x-gap*.5f,1.12f,n-.08f,.08f,2.25f,.09f,false);
+            Box(t,"P1 premium brushed door upright R",steel,x+gap*.5f,1.12f,n-.08f,.08f,2.25f,.09f,false);
+            Sign(name,new Vector3(x,h-.63f,n-.17f),180,.10f);
+        }
+        else
+        {
+            // Office and sauna are entered from the CENTRAL lobby corridor, not from
+            // outside through the front curtain wall. All four sides still have true walls.
+            Box(t,"P1 south enclosed wall",wall,x,h*.5f,n,w,h,.18f);
+            float doorX=corridorSide>0?b:a;
+            float closedX=corridorSide>0?a:b;
+            Box(t,"P1 other long room wall",wall,closedX,h*.5f,z,.18f,h,d);
+            float passage=Mathf.Min(1.9f,d*.4f);
+            Box(t,"P1 corridor wall before door",wall,doorX,h*.5f,(n+z-passage*.5f)*.5f,
+                .18f,h,z-passage*.5f-n);
+            Box(t,"P1 corridor wall after door",wall,doorX,h*.5f,(z+passage*.5f+s)*.5f,
+                .18f,h,s-z-passage*.5f);
+            Box(t,"P1 corridor side door header",wall,doorX,h-.22f,z,.18f,.44f,passage);
+            foreach(float zz in new[]{z-passage*.5f,z+passage*.5f})
+                Box(t,"P1 brushed frame, lateral public door",steel,doorX,1.15f,zz,.10f,2.3f,.09f,false);
+            Sign(name,new Vector3(doorX+(corridorSide>0?.15f:-.15f),h-.65f,z),
+                corridorSide>0?90:270,.095f);
+        }
         Box(t,"P1 inside washed wall skirting",smallMosaic,x,.18f,s-.12f,w,.27f,.07f,false);
         Box(t,"P1 clean interior ceiling",roofFinish,x,h+.15f,z,w,.24f,d);
-        Box(t,"P1 premium brushed door upright L",steel,x-gap*.5f,1.12f,n-.08f,.08f,2.25f,.09f,false);
-        Box(t,"P1 premium brushed door upright R",steel,x+gap*.5f,1.12f,n-.08f,.08f,2.25f,.09f,false);
-        Sign(name,new Vector3(x,h-.63f,n-.17f),180,.10f);
     }
     static void EmptyBlueBasin(Basin b)
     {
