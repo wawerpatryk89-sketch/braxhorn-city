@@ -8,6 +8,7 @@ import hashlib
 import io
 import json
 import time
+import uuid
 import urllib.request
 from PIL import Image
 
@@ -24,6 +25,7 @@ SLUGS = (
 )
 MAPS = (("diff", "jpg"), ("nor_gl", "png"), ("arm", "png"))
 COLOUR_VARIANT = {"fabric_pattern_05": "col_01"}
+GUID_NAMESPACE=uuid.UUID("9f795603-5fbb-4c20-b394-8826537507a2")
 
 def fetch(url):
     last = None
@@ -59,8 +61,24 @@ def check(data, metadata, filename):
             raise ValueError("Only genuine 2048x2048 Poly Haven maps allowed: "+filename)
     return hashlib.sha256(data).hexdigest()
 
+def ensure_meta(path):
+    # Store stable GUIDs for incremental updates; refuse changing existing IDs.
+    relative=path.relative_to(ROOT/"unity-city").as_posix()
+    expected=uuid.uuid5(GUID_NAMESPACE,relative).hex
+    meta=Path(str(path)+".meta")
+    if meta.exists():
+        import re
+        previous=re.search(r"^guid:\\s*([0-9a-fA-F]{32})",meta.read_text(),re.M)
+        if not previous or previous.group(1).lower()!=expected:
+            raise ValueError("T11 original Unity GUID differs: "+str(meta))
+    else:
+        meta.write_text("fileFormatVersion: 2\\nguid: "+expected+"\\n",encoding="utf-8")
+
+
 def prepare():
     DEST.mkdir(parents=True,exist_ok=True)
+    ensure_meta(DEST.parent)
+    ensure_meta(DEST)
     rows=[]
     for slug in SLUGS:
         metadata=json.loads(fetch("https://api.polyhaven.com/files/"+slug))
@@ -77,13 +95,15 @@ def prepare():
                 temporary=destination.with_suffix(destination.suffix+".partial")
                 temporary.write_bytes(data)
                 temporary.replace(destination)
+            ensure_meta(destination)
             rows.append({"file":filename,"sha256":digest,"source":source["url"],"bytes":len(data),"pixels":[2048,2048]})
             print("T11_POLYHAVEN_NATIVE_2K "+filename,flush=True)
     manifest=DEST.parent/"t11-polyhaven-2k-manifest.json"
     manifest.write_text(json.dumps({"status":"2K_SOURCE_VERIFIED",
         "slugs":len(SLUGS),"maps":len(rows),"sourceResolution":"2k",
         "upscaled":False,"rows":rows},indent=2),encoding="utf-8")
-    print("T11_POLYHAVEN_2K_PASS maps="+str(len(rows))+" source=2048x2048")
+    ensure_meta(manifest)
+    print("T11_POLYHAVEN_2K_PASS maps="+str(len(rows))+" source=2048x2048 GUIDS=STABLE")
 
 if __name__=="__main__":
     prepare()
