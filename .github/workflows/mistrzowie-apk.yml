@@ -239,6 +239,8 @@ jobs:
         id: raw_checkpoint
         if: ${{ always() && !cancelled() && (steps.apk_stage.outcome == 'failure' || steps.content_baseline.outcome == 'failure') && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != '' }}
         continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: python3 unity-tools/mistrzowie/apk_rescue.py save
       - name: Save quarantined compiled APK for safe recovery without Unity
         if: ${{ always() && !cancelled() && steps.raw_checkpoint.outcome == 'success' }}
@@ -247,7 +249,7 @@ jobs:
         with:
           name: UNVERIFIED-mistrzowie-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.source.outputs.sha }}
           path: |
-            build/Android/braxhorn-mistrzowie.apk
+            mistrzowie-rescue/braxhorn-mistrzowie.apk.enc
             unity-city/braxhorn.versioncode
             unity-city/mistrzowie.source-commit
             mistrzowie-rescue/raw.json
@@ -423,6 +425,7 @@ jobs:
       - name: Verify quarantined APK provenance and restore exact bytes
         env:
           GH_TOKEN: ${{ github.token }}
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
           RECOVERY_RUN_ID: ${{ inputs.recovery_run }}
         run: |
           python3 unity-tools/mistrzowie/apk_rescue.py restore

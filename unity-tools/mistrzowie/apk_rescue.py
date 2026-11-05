@@ -15,6 +15,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 RAW_APK = ROOT / "build/Android/braxhorn-mistrzowie.apk"
 CHECKPOINT = ROOT / "mistrzowie-rescue/raw.json"
+ENCRYPTED_APK = ROOT / "mistrzowie-rescue/braxhorn-mistrzowie.apk.enc"
 VERSION = ROOT / "unity-city/braxhorn.versioncode"
 SOURCE = ROOT / "unity-city/mistrzowie.source-commit"
 WORKFLOW = ".github/workflows/mistrzowie-apk.yml"
@@ -55,7 +56,18 @@ def save():
         bytes=RAW_APK.stat().st_size,
         file="build/Android/braxhorn-mistrzowie.apk",
     )
+    secret = os.environ.get("KLUCZ", "")
+    if not secret:
+        raise RuntimeError("Missing encryption secret for private APK rescue backup")
     CHECKPOINT.parent.mkdir(parents=True, exist_ok=True)
+    if ENCRYPTED_APK.exists():
+        raise RuntimeError("Refusing to overwrite an existing encrypted rescue checkpoint")
+    subprocess.run(["openssl", "enc", "-aes-256-cbc", "-pbkdf2", "-salt",
+                    "-in", str(RAW_APK), "-out", str(ENCRYPTED_APK),
+                    "-pass", "env:KLUCZ"], check=True)
+    data["cipherSha256"] = sha256(ENCRYPTED_APK)
+    data["cipherBytes"] = ENCRYPTED_APK.stat().st_size
+    data["cipherFile"] = "mistrzowie-rescue/braxhorn-mistrzowie.apk.enc"
     CHECKPOINT.write_text(json.dumps(data, indent=2) + "\n")
     print("BRAX_MISTRZOWIE_RAW_APK_QUARANTINED " +
           json.dumps({key:data[key] for key in ("status", "runId", "sourceCommit", "bytes", "sha256")}))
@@ -90,7 +102,7 @@ def restore():
     if (str(artifact["workflow_run"]["id"]) != run_id
             or artifact["workflow_run"]["head_sha"] != original["head_sha"]):
         raise RuntimeError("Quarantine artifact does not belong to the selected run")
-    if RAW_APK.exists() or CHECKPOINT.exists():
+    if RAW_APK.exists() or CHECKPOINT.exists() or ENCRYPTED_APK.exists():
         raise RuntimeError("Restore target is not empty; refusing to overwrite existing APK")
     run_command("gh", "run", "download", run_id, "--repo", repo, "--name", name, "--dir", str(ROOT))
     record = json.loads(CHECKPOINT.read_text())
@@ -103,9 +115,27 @@ def restore():
     if (SOURCE.read_text().strip() != record["sourceCommit"]
             or VERSION.read_text().strip() != str(record["versionCode"])):
         raise RuntimeError("Recovered source commit or Android version differs from checkpoint")
-    if (not RAW_APK.is_file() or RAW_APK.stat().st_size != record["bytes"]
-            or sha256(RAW_APK) != record["sha256"]):
-        raise RuntimeError("Recovered APK SHA-256/size mismatch, abort before any signing")
+    if (record.get("cipherFile") != "mistrzowie-rescue/braxhorn-mistrzowie.apk.enc"
+            or not ENCRYPTED_APK.is_file()
+            or ENCRYPTED_APK.stat().st_size != record.get("cipherBytes")
+            or sha256(ENCRYPTED_APK) != record.get("cipherSha256")):
+        raise RuntimeError("Recovered encrypted APK artifact has invalid SHA-256/size")
+    if not os.environ.get("KLUCZ"):
+        raise RuntimeError("Missing encryption secret to restore private APK")
+    RAW_APK.parent.mkdir(parents=True, exist_ok=True)
+    partial = RAW_APK.with_suffix(".apk.partial")
+    if partial.exists():
+        raise RuntimeError("Refusing to replace a previous incomplete decryption")
+    try:
+        subprocess.run(["openssl", "enc", "-d", "-aes-256-cbc", "-pbkdf2",
+                        "-pass", "env:KLUCZ", "-in", str(ENCRYPTED_APK),
+                        "-out", str(partial)], check=True)
+        if (partial.stat().st_size != record["bytes"]
+                or sha256(partial) != record["sha256"]):
+            raise RuntimeError("Recovered decrypted APK SHA-256/size mismatch")
+        os.replace(partial, RAW_APK)
+    finally:
+        partial.unlink(missing_ok=True)
     print("BRAX_MISTRZOWIE_RECOVERED_UNVERIFIED_BYTES " +
           json.dumps({k:record[k] for k in ("sourceCommit", "runId", "bytes", "sha256")}))
     return record
