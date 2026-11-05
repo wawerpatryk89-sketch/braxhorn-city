@@ -434,7 +434,8 @@ public static partial class BraxObozEnvironment
             Box(gate,"Filar bramy",new Vector3(x,1.65f,0),new Vector3(.5f,3.3f,.65f),campusSteel);
             Box(gate,"Okładzina filara",new Vector3(x,1.6f,-.34f),new Vector3(.34f,2.8f,.06f),wood,false);
         }
-        Sign(gate,"BRAXHORN · OBÓZ TRENINGOWY",new Vector3(0,5.5f,0),10);
+        if(!GateOwnerSign(gate))
+            Sign(gate,"BRAXHORN · OBÓZ TRENINGOWY",new Vector3(0,5.5f,0),10);
         foreach(float x in new[]{-5.5f,5.5f})Box(gate,"Słup oznakowania",new Vector3(x,2.85f,.5f),new Vector3(.15f,5.7f,.15f),campusSteel);
         var leaf=Group("Skrzydło bramy",gate,Vector3.zero);
         Box(leaf,"Rama bramy",new Vector3(0,1.15f,0),new Vector3(8.2f,2.3f,.12f),campusSteel);
