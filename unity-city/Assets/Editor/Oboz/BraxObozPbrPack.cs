@@ -10,7 +10,8 @@ using UnityEngine;
 // The packed PNGs must first be built by unity-tools/oboz/pbr_pack.py.
 public static class BraxObozPbrPack
 {
-    const string IndexPath = "Assets/PlayableGenerated/Oboz/PackedPbr/pack-index.json";
+    public const string IndexPath = "Assets/PlayableGenerated/Oboz/PackedPbr/pack-index.json";
+    public const string MonikaPath = "Assets/PlayableGenerated/Oboz/PackedPbr/monika-MR.png";
     public const string EditorSource = "Assets/Editor/Oboz/BraxObozPbrPack.cs";
     [Serializable] sealed class Entry
     {
