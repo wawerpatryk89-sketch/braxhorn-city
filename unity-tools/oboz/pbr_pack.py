@@ -155,7 +155,7 @@ def run(root=ROOT):
                             first=prefix + "Roughness.jpg",
                             second=prefix + "AmbientOcclusion.jpg",
                             known_shas=sha, target_size=4096))
-    index = dict(schema=1, pilotOnly=True, originalsPreserved=True,
+    index = dict(schema=2, profile="monika-4k-npcs-2k", originalsPreserved=True,
                  unity="6000.0.58f2", character4K=[HERO_4K],
                  characters2K=list(OTHER_2K), entries=result)
     target = root / OUTPUT / "pack-index.json"
