@@ -201,10 +201,19 @@ public static class BraxChampionsArena
         foreach(float zz in new[]{cz-15,cz+15})
             foreach(float side in new[]{-12f,12f})
                 TierStairs(true,zz,zz<cz?1:-1,cx+side);
-        // fotele VIP przy klatce (2 rzędy po obu stronach chodnika, przodem do oktagonu)
-        foreach (float zr in new[] { 70.2f, 71.4f })
-            foreach (var (a0, a1) in new[] { (-94.6f, -88.9f), (-83.1f, -77.4f) })
-                for (float a = a0; a <= a1 + .01f; a += .7f) Seat(leather, true, a, zr, yF, -1f);
+        // Premium VIP lounge: replace the cheap, densely packed chairs next to
+        // the judges (on both sides of the central walkway). Desk and referee
+        // equipment at z=61..65 remain exactly where they were.
+        // Generous 1.35m pitch and 1.75m row separation: NO chair overlaps.
+        void VipSeat(float x,float z)
+        {
+            LuxuryVipArmchair(leather,new Vector3(x,yF,z),180f);
+            SeatCount++;
+        }
+        foreach(float zr in new[]{70.3f,72.05f})
+            foreach(var (a0,a1) in new[]{(-94.6f,-88.9f),(-83.1f,-77.4f)})
+                for(float x=a0+.9f;x<=a1-.25f;x+=1.35f)
+                    VipSeat(x,zr);
         // stół komentatorów (zachód, przodem do klatki) i stół sędziów (wschód)
         foreach (var (x0, x1, s) in new[] { (-94.0f, -93.3f, 1f), (-78.7f, -78.0f, -1f) })
         {
@@ -373,6 +382,34 @@ public static class BraxChampionsArena
         var l=o.AddComponent<Light>();l.type=LightType.Point;l.range=range*BraxClaudeOsiedle.K;l.intensity=intensity;l.color=color;
         l.shadows=LightShadows.None;l.renderMode=LightRenderMode.ForceVertex;
     }
+    static void LuxuryVipArmchair(Material upholstery,Vector3 p,float yaw)
+    {
+        // VIP-only chair: generously upholstered leather, high back, armrests,
+        // gold/brushed metal details. PBR Leather037 and Metal048A are restored
+        // by the existing source pipeline; no unverified model is substituted.
+        var q=Quaternion.Euler(0,yaw,0);
+        Vector3 P(float x,float y,float z)=>p+q*new Vector3(x,y,z);
+        var metal=Plain("VIP fotel metal szampańskie złoto",new Color(.66f,.51f,.30f),.62f,.82f);
+        var foot=Plain("VIP fotel podstawa czarna",new Color(.085f,.085f,.095f),.46f,.65f);
+
+        // Seat base with a floating but structurally supported profile.
+        W.Box(foot,P(0,.30f,0),new Vector3(1.04f,.18f,.82f));
+        foreach(float side in new[]{-.41f,.41f})
+        {
+            W.Box(foot,P(side,.145f,-.28f),new Vector3(.11f,.29f,.11f));
+            W.Box(foot,P(side,.145f,.28f),new Vector3(.11f,.29f,.11f));
+        }
+        Cushion(upholstery,P(0,.47f,.04f),new Vector3(.91f,.18f,.71f),q);
+        Cushion(upholstery,P(0,.92f,-.39f),new Vector3(.98f,.91f,.18f),q*Quaternion.Euler(-5f,0,0));
+        Cushion(upholstery,P(0,1.33f,-.36f),new Vector3(.70f,.22f,.19f),q);
+        foreach(float side in new[]{-.49f,.49f})
+        {
+            Cushion(upholstery,P(side,.71f,0),new Vector3(.17f,.22f,.77f),q);
+            W.Rura(metal,P(side,.69f,.32f),P(side,.69f,-.36f),.035f,8);
+            W.Rura(metal,P(side,.35f,-.39f),P(side,1.33f,-.39f),.027f,8);
+        }
+    }
+
     static void PremiumSeat(Material upholstery,Vector3 p,float yaw)
     {
         var q=Quaternion.Euler(0,yaw,0);Vector3 P(float x,float y,float z)=>p+q*new Vector3(x,y,z);
