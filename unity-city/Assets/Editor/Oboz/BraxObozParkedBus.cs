@@ -25,7 +25,7 @@ public static class BraxObozParkedBus
         bounds=BoundsOf(renderers);
         root.localScale*=12*K/Mathf.Max(.1f,bounds.size.z);bounds=BoundsOf(renderers);
         // Door side faces the existing passenger pavement at x=26.
-        root.position+=new Vector3(21*K-bounds.center.x,.115f*K-bounds.min.y,-113*K-bounds.center.z);
+        root.position+=new Vector3(21*K-bounds.center.x,.115f*K-bounds.min.y,-92*K-bounds.center.z);
         foreach(var collider in model.GetComponentsInChildren<Collider>(true))Object.DestroyImmediate(collider);
         var solid=root.gameObject.AddComponent<BoxCollider>();bounds=BoundsOf(renderers);
         // Root may be rotated/scaled: convert the eight world bounds corners to local coordinates.
@@ -63,13 +63,13 @@ public static class BraxObozParkedBus
             if(importer)
             {
                 var android=importer.GetPlatformTextureSettings("Android");
-                bool changed=importer.maxTextureSize!=4096||importer.compressionQuality!=90||
+                bool changed=importer.maxTextureSize!=2048||importer.compressionQuality!=90||
                     importer.textureCompression!=TextureImporterCompression.CompressedHQ||!importer.mipmapEnabled||
                     importer.filterMode!=FilterMode.Trilinear||importer.anisoLevel!=8||
-                    !android.overridden||android.maxTextureSize!=4096||android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=90;
-                importer.maxTextureSize=4096;importer.compressionQuality=90;importer.textureCompression=TextureImporterCompression.CompressedHQ;
+                    !android.overridden||android.maxTextureSize!=2048||android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=90;
+                importer.maxTextureSize=2048;importer.streamingMipmaps=true;importer.streamingMipmapsPriority=0;importer.compressionQuality=90;importer.textureCompression=TextureImporterCompression.CompressedHQ;
                 importer.mipmapEnabled=true;importer.filterMode=FilterMode.Trilinear;importer.anisoLevel=8;
-                android.name="Android";android.overridden=true;android.maxTextureSize=4096;
+                android.name="Android";android.overridden=true;android.maxTextureSize=2048;
                 android.format=TextureImporterFormat.ASTC_4x4;android.compressionQuality=90;importer.SetPlatformTextureSettings(android);
                 if(changed)importer.SaveAndReimport();
             }
