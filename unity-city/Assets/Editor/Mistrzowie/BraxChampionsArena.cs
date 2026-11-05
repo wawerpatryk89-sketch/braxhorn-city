@@ -24,6 +24,9 @@ public static class BraxChampionsArena
         // Import the owner's actual 2K PBR barrel chairs beside judges.
         // No procedural replacement is made when the original GLB is missing.
         SeatCount += BraxChampionsVIPSeats.Generate(root);
+        // One premium belt exhibit beside the actual judges, not at the public entrance.
+        // This uses the owner's original 3D FBX and original framed logo artwork.
+        BraxChampionsBeltShowcase.Generate(root);
         // Original full entrance wall mural with real central doorway cutout.
         BraxChampionsArenaMural.Generate(root);
         // Two additional owner originals on the actual 70m LEFT and RIGHT walls:
