@@ -18,7 +18,8 @@ public static class BraxChampionsBuild
         public bool visualAccepted=false,deviceTested=false,trafficEnabled=false,sceneReloadPassed=false;
         public bool walkChecksSkipped=false;
         public bool qualityGatesAdvisory=BraxBuildQuality.Advisory;
-        public int rendererCount,walkSamples,buildingExteriors,arenaSeats,sourceImportErrors;
+        public int rendererCount,walkSamples,buildingExteriors,arenaSeats,arenaVipSeats,sourceImportErrors;
+        public bool ownerVip2kSourcePresent=false;
         public bool foundationPassedBeforeBuildings=false;public string sculptedBull="SOURCE_MODEL_REQUIRED";
         public string playerSourceCommit=BraxChampionsExplorer.SourceCommit;
         public int playerClips;
@@ -80,6 +81,11 @@ public static class BraxChampionsBuild
             report.checks.Add("Foundation and metro structure checked; walking validation status is recorded separately");
             report.buildingExteriors=BraxChampionsBuildings.Generate();Physics.SyncTransforms();
             report.arenaSeats=BraxChampionsArena.SeatCount;
+            report.arenaVipSeats=BraxChampionsVIPSeats.SeatCount;
+            report.ownerVip2kSourcePresent=BraxChampionsVIPSeats.HasSource;
+            if(!report.ownerVip2kSourcePresent)
+                BraxBuildQuality.Issue(new InvalidOperationException(
+                    "The owner-supplied premium VIP 2K GLB must be imported before final arena acceptance: "+BraxChampionsVIPSeats.SourcePath));
             if(!skipWalkChecks)CheckExteriorAccess();CheckAssets(scene);AssetDatabase.SaveAssets();
             if(!EditorSceneManager.SaveScene(scene))throw new IOException("Scene save failed");
             // Reopen the actual serialized scene; live editor objects are not proof of saved references.
