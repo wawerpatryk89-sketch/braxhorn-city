@@ -57,7 +57,9 @@ class ArenaFinishTests(unittest.TestCase):
     def test_static_sources_keep_original_materials_and_judges(self):
         code = (ROOT / "unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs").read_text()
         arrival = (ROOT / "unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaArrival.cs").read_text()
-        self.assertIn("LuxuryVipArmchair(leather", code)
+        # Source GLB is mandatory: no procedural stand-ins are allowed.
+        self.assertIn("BraxChampionsVIPSeats.Generate(root)", code)
+        self.assertNotIn("LuxuryVipArmchair(", code)
         self.assertIn("new[] { (-94.0f, -93.3f, 1f), (-78.7f, -78.0f, -1f) }", code)
         self.assertIn('SourceMaterial("arena_parking_asphalt", "clean_asphalt"', arrival)
         self.assertIn('SourceMaterial("arena_arrival_paving", "concrete_pavement_02"', arrival)
