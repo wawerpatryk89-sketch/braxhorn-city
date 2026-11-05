@@ -26,8 +26,10 @@ public static class BraxChampionsCasinoT11
         granite=BraxChampionsCasinoPbr2K.Create(output,"t11_dark_granite","granite_tile",1.2f,new Color(.26f,.28f,.30f));
         paving=BraxChampionsCasinoPbr2K.Create(output,"t11_walkways","concrete_pavement_02",1.8f,new Color(.94f,.93f,.89f));
         asphalt=BraxChampionsCasinoPbr2K.Create(output,"t11_asphalt","clean_asphalt",2.1f,new Color(.9f,.9f,.9f));
-        gold=BraxChampionsFoundation.LibraryMetal("t11_bronze_champagne",new Color(.75f,.57f,.32f));
-        steel=BraxChampionsFoundation.LibraryMetal("t11_satin_steel",new Color(.32f,.34f,.37f));
+        gold=Surface("champagne_bronze",new Color(.75f,.57f,.32f),false,false);
+        gold.SetFloat("_Metallic",.88f);gold.SetFloat("_Roughness",.25f);
+        steel=Surface("satin_steel",new Color(.32f,.34f,.37f),false,false);
+        steel.SetFloat("_Metallic",.83f);steel.SetFloat("_Roughness",.38f);
         roof=BraxChampionsCasinoPbr2K.Create(output,"t11_roof","concrete_floor_02",2.1f,new Color(.27f,.29f,.32f));
         redCarpet=BraxChampionsCasinoPbr2K.Create(output,"t11_casino_red_carpet","fabric_pattern_05",.55f,new Color(.64f,.028f,.038f));
         parkingPaint=Surface("painted_parking_stripes",new Color(.97f,.97f,.93f),false,false);
