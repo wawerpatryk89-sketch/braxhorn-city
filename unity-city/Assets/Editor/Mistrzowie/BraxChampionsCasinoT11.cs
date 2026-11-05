@@ -185,6 +185,50 @@ public static class BraxChampionsCasinoT11
         }
     }
 
+    static void RotundaRoofCap()
+    {
+        // Real semicircular roof over the curved glass rotunda. The approved
+        // image shows a rounded canopy, not a rectangular box.
+        const int sides=48;
+        const float yTop=14.24f,yBottom=14.03f;
+        var verts=new System.Collections.Generic.List<Vector3>();
+        var uv=new System.Collections.Generic.List<Vector2>();
+        // Centre is on the chord where the rotunda meets the main podium.
+        for(int level=0;level<2;level++)
+        {
+            float y=level==0?yTop:yBottom;
+            verts.Add(new Vector3(0,y,-28)*K);
+            uv.Add(new Vector2(0,-28));
+            for(int i=0;i<=sides;i++)
+            {
+                float angle=-Mathf.PI*.5f + Mathf.PI*i/sides;
+                float x=17f*Mathf.Sin(angle),z=-28f-8f*Mathf.Cos(angle);
+                verts.Add(new Vector3(x,y,z)*K);
+                uv.Add(new Vector2(x,z));
+            }
+        }
+        var tris=new System.Collections.Generic.List<int>();
+        int bottomOffset=sides+2;
+        for(int i=0;i<sides;i++)
+        {
+            int a=i+1,next=a+1;
+            // Top faces upward; underside faces downward.
+            tris.Add(0);tris.Add(next);tris.Add(a);
+            tris.Add(bottomOffset);tris.Add(bottomOffset+a);tris.Add(bottomOffset+next);
+            tris.Add(a);tris.Add(next);tris.Add(bottomOffset+next);
+            tris.Add(a);tris.Add(bottomOffset+next);tris.Add(bottomOffset+a);
+        }
+        var mesh=new Mesh{name="T11 real curved rotunda roof"};
+        mesh.SetVertices(verts);mesh.SetUVs(0,uv);mesh.SetTriangles(tris,0);
+        mesh.RecalculateNormals();mesh.RecalculateBounds();
+        AssetDatabase.CreateAsset(mesh,output+"/Meshes/T11_Curved_Rotunda_Roof.asset");
+        var o=new GameObject("Real semicircular rotunda roof cap");
+        o.transform.SetParent(shell,false);
+        o.AddComponent<MeshFilter>().sharedMesh=mesh;
+        o.AddComponent<MeshRenderer>().sharedMaterial=roof;
+        o.AddComponent<MeshCollider>().sharedMesh=mesh;
+    }
+
     static void CurvedFoyer()
     {
         const int segments=48;
@@ -217,7 +261,7 @@ public static class BraxChampionsCasinoT11
                 fascia.transform.localRotation=yaw;
             }
         }
-        B(shell,"Curved atrium roof canopy",roof,0,14.10f,-27f,34f,.25f,18f,false,true);
+        RotundaRoofCap();
         foreach(float side in new[]{-1f,1f})
             for(int j=0;j<3;j++)
                 B(shell,"Entrance side granite stair",paving,side*(7.1f+j*.6f),.22f+j*.03f,-36.3f,5.3f,.14f+j*.07f,1.55f,true,true);
