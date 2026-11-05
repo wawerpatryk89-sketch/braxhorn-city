@@ -117,15 +117,14 @@ def pack_pair(root, *, asset_id, role, first, second, known_shas, target_size):
     packed.save(buffer, format="PNG", optimize=True)
     packed_bytes = buffer.getvalue()
     dest = root / OUTPUT / (asset_id + "-" + role + ".png")
-    changed = atomic_write(dest, packed_bytes)
+    atomic_write(dest, packed_bytes)
     make_meta(dest, root)
     unit = "Assets/PlayableGenerated/Oboz/PackedPbr/" + dest.name
     return dict(id=asset_id, role=role, first=first, second=second,
                 firstSha256=sha_a, secondSha256=sha_b,
                 packedPath=unit, packedSha256=digest(packed_bytes),
                 width=packed.width, height=packed.height,
-                sourceBytes=len(raw_a) + len(raw_b), packedBytes=len(packed_bytes),
-                generated=changed)
+                sourceBytes=len(raw_a) + len(raw_b), packedBytes=len(packed_bytes))
 
 
 def run(root=ROOT):
