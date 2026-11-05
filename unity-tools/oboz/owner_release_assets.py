@@ -24,9 +24,14 @@ import zipfile
 TAG = "oboz-owner-remodel-20261105"
 SOURCE = "BRAXHORN_OBOZ_WYKONAWCA_ZASOBY_20261105.zip"
 BULL = "BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb"
+ORIGINAL_BULL = "A_charging_bull_statu_0725030443_refine.glb"
 EXPECTED = {
     SOURCE: (345273037, "b7d1bd8dd2ed64a4e23b6fad8af2497d0355073b687ea16e48b03f045741d006"),
     BULL: (2232460, "425788876b8fe2dfaba90157d74c6631d231184f96659759cdafade794a5352f"),
+    # The owner's original uploaded from iPhone. Binary mesh + JPEG are
+    # identical to the scaled derivative. Scale is performed by Unity's
+    # RondoBull() Transform, preserving original source/UV/PBR bytes.
+    ORIGINAL_BULL: (2232404, "05667f880b5beaf720dec95ac480ce32c0e91e1e2ab318a28d34f36e475f4cf0"),
 }
 REQUIRED_PATHS = [
     "leather_punching_bag.glb",
@@ -119,7 +124,11 @@ def remote_preflight(repo: str) -> None:
     if release.get("isDraft") is not True:
         raise ValueError("Owner asset release must be a private DRAFT, never published")
     names = {item["name"]: item["size"] for item in release["assets"]}
-    bull_present = names.get(BULL) == EXPECTED[BULL][0]
+    original_uploaded = names.get(ORIGINAL_BULL) == EXPECTED[ORIGINAL_BULL][0]
+    scaled_uploaded = names.get(BULL) == EXPECTED[BULL][0]
+    # Prefer the original owner file; never demand replacement with renamed GLB.
+    bull_name = ORIGINAL_BULL if original_uploaded else BULL if scaled_uploaded else None
+    bull_present = bull_name is not None
     if bull_present and names.get(SOURCE) == EXPECTED[SOURCE][0]:
         mode = "full"
     elif bull_present and all(names.get(name) == expected[0] for name, expected in SPLIT_PARTS.items()):
@@ -137,18 +146,18 @@ def remote_preflight(repo: str) -> None:
                          " parts 02-05. Missing or wrong-size: " + ", ".join(missing))
     print("BRAXHORN_OWNER_RELEASE_PREFLIGHT=PASS mode=" + mode +
           " assets present in draft; no Unity started")
-    return mode
+    return mode, bull_name
 
 
 def restore(repo: str) -> None:
-    mode = remote_preflight(repo)
+    mode, bull_name = remote_preflight(repo)
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="brx-owner-delivery-") as tmp:
         temp = Path(tmp)
         if mode == "full":
-            source_names = [SOURCE, BULL]
+            source_names = [SOURCE, bull_name]
         elif mode == "five_parts":
-            source_names = [*SPLIT_PARTS, BULL]
+            source_names = [*SPLIT_PARTS, bull_name]
         else:
             # Four source ZIPs are already on the owner GitHub draft.
             # Upload only six small replacement files (bull inside first).
@@ -177,10 +186,13 @@ def restore(repo: str) -> None:
         subprocess.run([sys.executable, str(INTAKE), *inputs,
                         "--target", str(TARGET), "--apply"],
                        cwd=ROOT, check=True)
-        original = temp / BULL
-        dest = TARGET / BULL
+        # For six small ZIPs the bull is inside mini ZIP 01; for uploaded
+        # original/scaled models use the exact GitHub attachment filename.
+        selected_bull = bull_name if bull_name else BULL
+        original = temp / selected_bull
+        dest = TARGET / selected_bull
         if dest.exists():
-            if digest(dest) != EXPECTED[BULL][1]:
+            if digest(dest) != EXPECTED[selected_bull][1]:
                 raise ValueError("Existing original bull differs from owner SHA256")
         else:
             with dest.open("xb") as file:
@@ -189,12 +201,12 @@ def restore(repo: str) -> None:
         absent = [p for p in REQUIRED_PATHS if not (TARGET / p).is_file()]
         if absent:
             raise ValueError("Required original Unity assets absent after intake: " + ", ".join(absent))
-        if digest(dest) != EXPECTED[BULL][1]:
+        if digest(dest) != EXPECTED[selected_bull][1]:
             raise ValueError("Bull checksum corrupted on stage")
-        # Stable Unity GUID for the bull after verifying unchanged GLB bytes.
+        # Stable Unity GUID for whichever original owner file is actually used.
         from owner_assets_intake import ensure_stable_meta
-        ensure_stable_meta(TARGET, Path(BULL))
-    print("BRAXHORN_OWNER_RELEASE_RESTORE=PASS originalGLB=untouched guid=stable characterModels=untouched")
+        ensure_stable_meta(TARGET, Path(selected_bull))
+    print("BRAXHORN_OWNER_RELEASE_RESTORE=PASS originalGLB=untouched model="+selected_bull+" guid=stable characterModels=untouched")
 
 
 def main() -> int:
