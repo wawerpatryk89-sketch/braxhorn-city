@@ -83,6 +83,35 @@ public sealed class BraxObozImport : AssetPostprocessor
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
         if (!(assetImporter is TextureImporter t)) return;
         string n = System.IO.Path.GetFileName(assetPath).ToLowerInvariant();
+        // Nowy prywatny materiał bieżni: dotyczy wyłącznie OwnerAssets,
+        // postaci/animacji/importu dotychczasowych źródeł nie zmieniamy.
+        if (assetPath.Contains("/OwnerAssets/rubberized_track_2k/", StringComparison.Ordinal))
+        {
+            bool sourceNormal = n.Contains("_nor_gl_");
+            bool sourceColor = n.Contains("_diff_");
+            t.textureShape = TextureImporterShape.Texture2D;
+            t.textureType = sourceNormal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+            t.sRGBTexture = sourceColor;
+            t.mipmapEnabled = true;
+            t.streamingMipmaps = true; // zwykłe UV0 na torze, nie shader trawy
+            t.anisoLevel = 8;
+            t.filterMode = UnityEngine.FilterMode.Trilinear;
+            t.wrapMode = UnityEngine.TextureWrapMode.Repeat;
+            t.maxTextureSize = 4096;  // zachowaj bajty źródła (źródło ma 2K)
+            t.isReadable = false;
+            t.textureCompression = TextureImporterCompression.CompressedHQ;
+            t.compressionQuality = 90;
+            var mobile = t.GetPlatformTextureSettings("Android");
+            mobile.name = "Android";
+            mobile.overridden = true;
+            mobile.maxTextureSize = 2048;
+            mobile.format = sourceNormal ? TextureImporterFormat.ASTC_4x4 :
+                TextureImporterFormat.ASTC_6x6;
+            mobile.compressionQuality = 90;
+            t.SetPlatformTextureSettings(mobile);
+            return;
+        }
+
         bool normal = n.Contains("normal"), color = n.Contains("color") || n.Contains("diff");
         if (assetPath.Contains("/environment/forest-ground/")) { color = n == "image_0.jpg"; normal = n == "image_2.jpg"; }
         // glTFast reads XYZ normals from ordinary data textures, not Unity's
