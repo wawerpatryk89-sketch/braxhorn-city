@@ -2,6 +2,9 @@
 from pathlib import Path
 import json, math, hashlib, os
 import numpy as np
+from shapely import constrained_delaunay_triangles
+from shapely.geometry import box,Point,LineString,Polygon
+from shapely.ops import unary_union
 ROOT=Path(__file__).resolve().parents[2]
 REPORT=ROOT/'mistrzowie-evidence';REPORT.mkdir(exist_ok=True)
 from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO
@@ -38,9 +41,10 @@ def zone(x,z):
  if any(inside((x,z),r) for r in ENTRANCE_HOLES):return None
  if any(inside((x,z),r) for r in ENTRANCE_PATHS+BUILDING_ACCESS):return 'paving'
  if any(inside((x,z),p) for p in plots):return 'plot_base'
- # The existing continuous 1100m path is retained. Reclassify only a
- # precise 3.0m strip in the pavement, NO overlay causing z fighting.
- if PROM_X0<=x<PROM_X1 and CYCLE_Z0<=z<CYCLE_Z1:return 'cycle_lane'
+ # Cut the 3.0m cycling corridor completely out of the existing paving.
+ # The cycle lane + its white markings are separately triangulated
+ # DISJOINTLY below; no surfaces are stacked, even by one millimetre.
+ if PROM_X0<=x<PROM_X1 and CYCLE_Z0<=z<CYCLE_Z1:return None
  # Inland pavilion pads replace grass only in 12 footprint rectangles;
  # green palm beds and the entire pedestrian promenade stay intact.
  if any(inside((x,z),r) for r in PAVILION_PADS):return 'paving'
@@ -76,7 +80,7 @@ def height(role,x,z):
  if role=='quay_ramp_jetski':
   return .16-1.53*max(0,min(1,(-z-150)/20))
  if role in ('paving','grass','cycle_lane') and z>=-170:return PAVING_Y
- if role=='cycle_mark':return PAVING_Y+.011
+ if role=='cycle_mark':return PAVING_Y
  if role=='plot_base':return -.25
  if role=='sea':return SEA_LEVEL
  return 0
@@ -128,53 +132,72 @@ for i in range(len(xs)-1):
    for ix in range(nx):
     for iz in range(nz):quad(role,a+(c-a)*ix/nx,b+(d-b)*iz/nz,a+(c-a)*(ix+1)/nx,b+(d-b)*(iz+1)/nz)
    cells.append((a,b,c,d,role))
-# Flat white PBR lane markings, not text sprites or low-resolution bitmaps.
-# Each is offset only 1.1 cm above the existing red PBR lane surface.
-# Procedural geometry has NO low-resolution bitmap texture; its material is
-# mapped 2K from the existing verified Poly Haven paving library.
-for xx in np.arange(PROM_X0,PROM_X1,25.):
- x0=float(xx);x1=min(PROM_X1,x0+25.)
- quad('cycle_mark',x0,CYCLE_Z0+.07,x1,CYCLE_Z0+.12)
- quad('cycle_mark',x0,CYCLE_Z1-.12,x1,CYCLE_Z1-.07)
-# Bi-directional divider (broken) and accessible pedestrian crossing points.
+# Lane symbols and white boundary lines are PHYSICALLY INLAID.
+# Original paving was removed by the same zone() cutout above. The
+# red cycle asphalt is a polygon MINUS all the white marking polygons:
+# the flat surfaces meet edge-to-edge in exactly the same y plane.
+# This prevents z-fighting and duplicate colliders at every viewport.
+lane_full=box(PROM_X0,CYCLE_Z0,PROM_X1,CYCLE_Z1)
+white=[]
+white.append(box(PROM_X0,CYCLE_Z0+.07,PROM_X1,CYCLE_Z0+.12))
+white.append(box(PROM_X0,CYCLE_Z1-.12,PROM_X1,CYCLE_Z1-.07))
+# Two-way centre divider: short dashes. No fake raised paint on cobbles.
 for xx in np.arange(PROM_X0+4,PROM_X1-3,12.):
  x0=float(xx)
  if any(abs(x0-c)<6 for c in (230,530,700,1080)):continue
- quad('cycle_mark',x0,-147.04,min(x0+2.8,PROM_X1),-146.96)
-
-def mark_segment(role,ax,az,bx,bz,width):
- dx=bx-ax;dz=bz-az;length=math.hypot(dx,dz)
- if length<.001:return
- nx,nz=-dz/length*width*.5,dx/length*width*.5
- vertices=[(ax+nx,az+nz),(bx+nx,bz+nz),
-           (bx-nx,bz-nz),(ax-nx,az-nz)]
- midx=(ax+bx)*.5;midz=(az+bz)*.5
- key=f'x{int(midx)//300:02}_z{int((midz+500)//250):02}_{role}'
- m=meshes.setdefault(key,dict(id=key,role=role,positions=[],uv=[],triangles=[]))
- i=len(m['positions'])//3
- for x,z in vertices:
-  m['positions'] += [round(x*K,6),round(height(role,x,z)*K,6),round(z*K,6)]
-  m['uv'] += [round(x,6),round(z,6)]
- m['triangles'] += [i,i+1,i+2,i,i+2,i+3]
-
-# Readable bicycles every 95m, with two wheel rings and a frame — exact
-# geometry placed ON the bike lane, preserving 3.0m width and service access.
+ white.append(box(x0,-147.04,min(x0+2.8,PROM_X1),-146.96))
+# Bike symbols as intersecting filled wheel-annuli and slender frame strokes.
+# The union operation removes intersections within each symbol as well.
 for x in range(105,1140,95):
- z=-147.0
+ z=-147.
  for cx in (x-.48,x+.48):
-  for i in range(16):
-   a=2*math.pi*i/16;b=2*math.pi*(i+1)/16
-   mark_segment('cycle_mark',cx+.31*math.cos(a),z+.31*math.sin(a),
-                cx+.31*math.cos(b),z+.31*math.sin(b),.055)
- for xa,za,xb,zb in [(x-.48,z,x-.06,z+.35),
+  ring=Point(cx,z).buffer(.31,12).difference(Point(cx,z).buffer(.25,12))
+  white.append(ring)
+ for ax,az,bx,bz in [(x-.48,z,x-.06,z+.35),
                      (x-.06,z+.35,x+.48,z),
                      (x+.48,z,x-.48,z),
                      (x-.06,z+.35,x+.17,z+.35)]:
-  mark_segment('cycle_mark',xa,za,xb,zb,.055)
-# White zebra crossings across the cycling lane at public accesses.
+  white.append(LineString([(ax,az),(bx,bz)]).buffer(.027,cap_style=2,join_style=2))
+# Exactly four marked zebra crossings at existing perpendicular approaches.
 for cross in (230,530,700,1080):
  for d in range(-5,6,2):
-  quad('cycle_mark',cross+d,CYCLE_Z0+.35,cross+d+.75,CYCLE_Z1-.35)
+  white.append(box(cross+d,CYCLE_Z0+.35,cross+d+.75,CYCLE_Z1-.35))
+# Trim a single union to the approved lane before triangulating.
+mark_union=unary_union(white).intersection(lane_full)
+assert mark_union.is_valid and mark_union.area>1.0
+assert lane_full.contains(mark_union) or lane_full.covers(mark_union)
+
+def inlay_polygon(role,geom):
+ if geom.is_empty:return
+ polygons=[geom] if geom.geom_type=='Polygon' else [
+    p for p in geom.geoms if p.geom_type=='Polygon']
+ for poly in polygons:
+  for face in constrained_delaunay_triangles(poly).geoms:
+   if face.area<=1e-10:continue
+   corners=list(face.exterior.coords)[:3][::-1]
+   mid=face.centroid
+   key=f'x{int(mid.x)//300:02}_z{int((mid.y+500)//250):02}_{role}'
+   m=meshes.setdefault(key,dict(id=key,role=role,positions=[],uv=[],triangles=[]))
+   start=len(m['positions'])//3
+   for x,z in corners:
+    m['positions'] += [round(x*K,6),round(PAVING_Y*K,6),round(z*K,6)]
+    m['uv'] += [round(x,6),round(z,6)]
+   m['triangles'] += [start,start+1,start+2]
+
+# 50m chunks permit correct culling and a modest triangle budget on phones.
+cycle_area=0.;mark_area=0.
+for segment in range(int((PROM_X1-PROM_X0)/50)):
+ x0=PROM_X0+segment*50.;x1=min(PROM_X1,x0+50.)
+ clip=box(x0,CYCLE_Z0,x1,CYCLE_Z1)
+ marked=mark_union.intersection(clip)
+ asphalt=clip.difference(marked)
+ if not marked.is_valid or not asphalt.is_valid or marked.intersection(asphalt).area>1e-8:
+  raise RuntimeError("Red cycle asphalt and white inlays overlap")
+ inlay_polygon('cycle_lane',asphalt)
+ inlay_polygon('cycle_mark',marked)
+ cycle_area+=asphalt.area;mark_area+=marked.area
+assert abs(cycle_area+mark_area-3300.0)<.01
+assert cycle_area>3000. and mark_area>1.
 
 
 # CURVED golden sand: a continuous 2.5m grid across the whole 650m
