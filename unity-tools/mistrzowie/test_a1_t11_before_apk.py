@@ -40,17 +40,23 @@ class A1T11Preflight(unittest.TestCase):
         self.assertIn("Rigidbody",car)
         self.assertIn("Physics.",car)
     def test_owner_car_source_matches_pipeline(self):
-        prepare=source("unity-tools/mistrzowie/prepare_car_and_mixamo.py")
+        prepare=source("unity-tools/mistrzowie/prepare_champion_car.py")
+        importer=source("unity-tools/mistrzowie/import_brax_car_animations.py")
         clip=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarClips.cs")
         workflow=source(".github/workflows/mistrzowie-apk.yml")
         self.assertIn('public/assets/cars-src/car_rev.glb',prepare)
-        self.assertIn('CAR_GIT_BLOB = "78245d0968fbb91ee205af8cc5f88a981015933f"',prepare)
+        self.assertIn('GIT_BLOB_SHA1 = "78245d0968fbb91ee205af8cc5f88a981015933f"',prepare)
         self.assertIn('public/assets/cars-src/car_rev.glb',workflow,
                       "sparse checkout must include the real estate car")
-        self.assertIn('prepare_car_and_mixamo.py',workflow,
-                      "workflow must verify+import owner model and Mixamo before Unity")
-        self.assertIn('Assets/Source/Mistrzowie/Vehicles/Animations/',clip,
-                      "Mixamo clip paths must match prepare_car_and_mixamo.py")
+        self.assertIn('prepare_champion_car.py',workflow,
+                      "workflow must copy and verify the ORIGINAL owner car before Unity")
+        self.assertIn('import_brax_car_animations.py',workflow,
+                      "workflow must import the three original Mixamo animations")
+        self.assertIn('BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip',workflow,
+                      "one version-locked owner asset wrapper should supply all A1/T11 sources")
+        self.assertIn('Assets/Source/Mistrzowie/Brax/CarAnimations/',clip)
+        self.assertIn('Assets/Source/Mistrzowie/Brax/CarAnimations/',importer,
+                      "Animation importer and Brax runtime clip source must agree")
     def test_showcase_and_no_invisible_walls(self):
         exhibit=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeltShowcase.cs")
         arena=source("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs")
@@ -77,7 +83,8 @@ class A1T11Preflight(unittest.TestCase):
         self.assertNotIn("continue-on-error: true\n        run: python3 unity-tools/mistrzowie/apk_delivery.py preflight",w)
     def test_python_importer_compiles(self):
         paths=[
-            "unity-tools/mistrzowie/prepare_car_and_mixamo.py",
+            "unity-tools/mistrzowie/prepare_champion_car.py",
+            "unity-tools/mistrzowie/import_brax_car_animations.py",
             "unity-tools/mistrzowie/import_selected_a1_t11.py",
             "unity-tools/mistrzowie/verify_previous_apk.py"
         ]
