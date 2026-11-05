@@ -55,23 +55,36 @@ public sealed class BraxObozImport : AssetPostprocessor
         bool surface = assetPath.Contains("/environment/materials/") || assetPath.Contains("/environment/forest-ground/");
         bool vegetation = assetPath.Contains("/environment/vegetation/");
         bool billboard = assetPath.Contains("/environment/vegetation/billboards/");
-        // Owner-approved Android profile: Monika remains 4K, the six other
-        // camp characters use 2K. Original source pixels are not rewritten.
-        // The four-view tree atlas still needs its separate 8192 cap.
-        bool otherCharacter = assetPath.StartsWith(Root + "characters/", StringComparison.Ordinal) &&
-            !assetPath.StartsWith(Root + "characters/monika/", StringComparison.Ordinal);
-        int max = billboard ? 8192 : otherCharacter ? 2048 : 4096;
+        // Mobile quality policy. Source pixels stay unchanged; restrict only
+        // Android imported resolution. Preserve full-size 4-view billboards.
+        bool hero = assetPath.StartsWith(Root + "characters/monika/", StringComparison.Ordinal);
+        bool otherCharacter = assetPath.StartsWith(Root + "characters/", StringComparison.Ordinal) && !hero;
+        bool tiledGravel = assetPath.StartsWith(Root + "environment/materials/gravel/", StringComparison.Ordinal);
+        bool forestFloor = assetPath.StartsWith(Root + "environment/forest-ground/", StringComparison.Ordinal);
+        bool tiled = tiledGravel || forestFloor;
+        bool premiumSurface = assetPath.StartsWith(Root + "environment/materials/floor/", StringComparison.Ordinal) ||
+            assetPath.StartsWith(Root + "environment/materials/wood/", StringComparison.Ordinal) ||
+            assetPath.StartsWith(Root + "environment/materials/metal/", StringComparison.Ordinal) ||
+            assetPath.StartsWith(Root + "environment/materials/towel/", StringComparison.Ordinal);
+        bool vegetationMap = assetPath.StartsWith(Root + "environment/vegetation/vegetation_textures/", StringComparison.Ordinal);
+        // Unrecognized camp assets (bunker, gym, bus) retain their existing policy.
+        int editorMax = billboard ? 8192 : otherCharacter ? 2048 : 4096;
+        int androidMax = billboard ? 8192 : tiled ? 1024 :
+            otherCharacter || premiumSurface || vegetationMap ? 2048 : 4096;
+        bool background = tiled || vegetationMap;
+        var androidFormat = billboard || vegetationMap || tiled && !normal
+            ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
         t.textureShape = TextureImporterShape.Texture2D;
         t.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
         t.sRGBTexture = color; t.mipmapEnabled = true; t.anisoLevel = 8;
-        t.maxTextureSize = max; t.textureCompression = TextureImporterCompression.CompressedHQ;
+        t.maxTextureSize = editorMax; t.textureCompression = TextureImporterCompression.CompressedHQ;
         t.compressionQuality = 90; t.isReadable = false;
         t.filterMode = UnityEngine.FilterMode.Trilinear;
         if (surface) t.wrapMode = UnityEngine.TextureWrapMode.Repeat;
         if (vegetation && color) t.alphaIsTransparency = true;
         var a = t.GetPlatformTextureSettings("Android");
-        a.name = "Android"; a.overridden = true; a.maxTextureSize = max;
-        a.format = billboard ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
+        a.name = "Android"; a.overridden = true; a.maxTextureSize = androidMax;
+        a.format = androidFormat;
         a.compressionQuality = 90;
         t.SetPlatformTextureSettings(a);
         // Monika's 4K PBR remains available close to the camera.
