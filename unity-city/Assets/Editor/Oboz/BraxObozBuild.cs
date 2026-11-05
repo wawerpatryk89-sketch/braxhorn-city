@@ -68,7 +68,7 @@ public static class BraxObozBuild
             // Explicit scene list; build never falls back to a city or estate scene.
             started = DateTime.UtcNow;
             var built = BuildPipeline.BuildPlayer(new BuildPlayerOptions {
-                scenes = Scenes, target = BuildTarget.Android, locationPathName = apk, options = BuildOptions.None });
+                scenes = Scenes, target = BuildTarget.Android, locationPathName = apk, options = BuildOptions.CompressWithLz4 });
             receipt.buildSeconds = (DateTime.UtcNow - started).TotalSeconds;
             if (built.summary.result != BuildResult.Succeeded || !File.Exists(apk))
                 throw new InvalidOperationException("Build obozu nieudany: " + built.summary.result);
@@ -106,6 +106,11 @@ public static class BraxObozBuild
     {
         if (GraphicsSettings.currentRenderPipeline) throw new InvalidOperationException("Obóz wymaga Built-in RP");
         PlayerSettings.colorSpace = ColorSpace.Linear;
+        // Unity Android requires LZ4/LZ4HC data for asynchronous mip streaming.
+        // Keep all imported source detail; reduce at most one mip by distance.
+        QualitySettings.streamingMipmapsActive = true;
+        QualitySettings.streamingMipmapsAddAllCameras = true;
+        QualitySettings.streamingMipmapsMaxLevelReduction = 1;
         PlayerSettings.companyName = "Braxhorn"; PlayerSettings.productName = "Braxhorn Obóz";
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, Package);
         PlayerSettings.Android.bundleVersionCode = version; PlayerSettings.bundleVersion = "0.1." + version;
