@@ -145,8 +145,31 @@ jobs:
             # the user's three FBX animations. The source estate car is kept
             # byte-for-byte from tracked public/assets/cars-src/car_rev.glb.
             chosen="BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip"
-            gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-              --pattern "$chosen" --dir "$RUNNER_TEMP" --clobber
+            # This repository has TWO draft releases with the same pending
+            # tag. Pin the owner's CURRENT A1+T11 release ID, not the older A1
+            # release. Never guess or consume a wrong set of original assets.
+            owner_release_id=435656828
+            release=$(gh api "repos/$GITHUB_REPOSITORY/releases/$owner_release_id")
+            export CHAMPIONS_RELEASE_JSON="$release"
+            asset_id=$(python3 - <<'PYRELEASE'
+            import json,os
+            item=json.loads(os.environ['CHAMPIONS_RELEASE_JSON'])
+            if item.get('id')!=435656828 or item.get('tag_name')!=os.environ['A1_ASSET_TAG']:
+                raise SystemExit('Wrong A1+T11 source release; do not build')
+            if item.get('target_commitish')!='gpt/miasto-mistrzow-kasyno-t11-20261105':
+                raise SystemExit('A1+T11 release points to another branch')
+            assets=[a for a in item.get('assets',[]) if a.get('name')=='BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip']
+            if len(assets)!=1:raise SystemExit('One approved owner wrapper ZIP is required in the CURRENT A1+T11 release')
+            print(assets[0]['id'])
+            PYRELEASE
+            )
+            test -n "$asset_id"
+            curl --fail --location --silent --show-error --retry 2 \
+              --header "Accept: application/octet-stream" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" \
+              --output "$RUNNER_TEMP/$chosen"
             export CHAMPIONS_OWNER_ZIP="$RUNNER_TEMP/$chosen"
             python3 - <<'PYINPUT'
             import hashlib, os, pathlib, zipfile
