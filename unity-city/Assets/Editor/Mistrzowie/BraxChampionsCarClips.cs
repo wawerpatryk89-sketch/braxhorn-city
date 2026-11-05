@@ -10,7 +10,7 @@ using UnityEngine;
 // guessed bone orientation or root-motion teleport is allowed.
 public static class BraxChampionsCarClips
 {
-    const string Source = "Assets/Source/Mistrzowie/Brax/CarAnimations/";
+    const string Source = "Assets/Source/Mistrzowie/Vehicles/Animations/";
     const string Output = "Assets/PlayableGenerated/Mistrzowie/Brax/";
     static readonly (string fbx, string name, bool loop)[] Clips = {
         ("Entering Car.fbx", "EnteringCar", false),
@@ -100,7 +100,7 @@ public sealed class BraxChampionsMixamoCarImporter : AssetPostprocessor
 {
     void OnPreprocessModel()
     {
-        if (!assetPath.StartsWith("Assets/Source/Mistrzowie/Brax/CarAnimations/",
+        if (!assetPath.StartsWith("Assets/Source/Mistrzowie/Vehicles/Animations/",
                 StringComparison.Ordinal) || !assetPath.EndsWith(".fbx",
                 StringComparison.OrdinalIgnoreCase)) return;
         var model = assetImporter as ModelImporter;
