@@ -227,9 +227,10 @@ jobs:
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/prepare_brax.py
           python3 unity-tools/mistrzowie/prepare_signage.py
-          # Prepare K1-K12 exact 2048x512 signs before their Unity importer.
-          # On this next-release branch only; do not alter the active A1+T11 build.
-          python3 unity-tools/mistrzowie/prepare_promenade_signs.py
+          # STOP BEFORE UNITY: older K1..K12 signs belong to unrelated cafes.
+          # The owner forbids generated/altered/mismatched signage for the
+          # twelve new seafront outlets. Validate new originals first.
+          python3 unity-tools/mistrzowie/verify_promenade_original_signs.py --strict
           python3 unity-tools/mistrzowie/build_infrastructure.py
           python3 unity-tools/mistrzowie/prepare_landscape.py
           python3 unity-tools/mistrzowie/validate_contract.py
