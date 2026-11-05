@@ -153,8 +153,7 @@ class ApkDeliveryTests(unittest.TestCase):
             delivery.stage()
 
     def test_re_sign_uses_existing_keystore_and_checks_identity_before_replacement(self):
-        source = self.root / "build/Android/braxhorn-mistrzowie.apk"
-        source.parent.mkdir(parents=True, exist_ok=True)
+        source = self.output / "unverified-staged.apk"
         source.write_bytes(self.data)
         fingerprint = "b" * 64
         commands = []
@@ -179,9 +178,8 @@ class ApkDeliveryTests(unittest.TestCase):
         self.assertEqual(source.read_bytes(), b"signed APK" * 300)
         self.assertEqual([args[1] for args in commands], ["sign", "verify", "dump"])
 
-    def test_invalid_re_sign_keeps_original_compiled_apk(self):
-        source = self.root / "build/Android/braxhorn-mistrzowie.apk"
-        source.parent.mkdir(parents=True, exist_ok=True)
+    def test_invalid_re_sign_keeps_staged_apk_unmodified(self):
+        source = self.output / "unverified-staged.apk"
         source.write_bytes(self.data)
         def mocked(*args, **kwargs):
             if args[1] == "sign":
@@ -197,6 +195,70 @@ class ApkDeliveryTests(unittest.TestCase):
                 source, ("com.braxhorn.mistrzowie", 8501), "b" * 64)
         self.assertEqual(source.read_bytes(), self.data)
 
+
+    def test_re_sign_rejects_original_unity_apk(self):
+        source = self.root / "build/Android/braxhorn-mistrzowie.apk"
+        source.parent.mkdir(parents=True)
+        source.write_bytes(self.data)
+        with self.assertRaisesRegex(RuntimeError, "writable staged APK"):
+            delivery.resign_with_existing_key(
+                source, ("com.braxhorn.mistrzowie", 8501), "b" * 64)
+        self.assertEqual(source.read_bytes(), self.data)
+
+    def test_stage_resigns_inside_writable_staging_not_readonly_unity_directory(self):
+        apk = self.root / "build/Android/braxhorn-mistrzowie.apk"
+        apk.parent.mkdir(parents=True)
+        apk.write_bytes(self.data)
+        project = self.root / "unity-city"
+        project.mkdir()
+        config = json.loads(Path(__file__).with_name("unity-build.json").read_text())
+        config_path = self.root / "unity-tools/mistrzowie/unity-build.json"
+        config_path.parent.mkdir(parents=True)
+        config_path.write_text(json.dumps(config))
+        settings = project / "ProjectSettings"
+        settings.mkdir()
+        (settings / "ProjectVersion.txt").write_text(
+            f"m_EditorVersion: {config['unity']}\n"
+            f"m_EditorVersionWithRevision: {config['unity']} ({config['revision']})\n")
+        (project / "braxhorn.versioncode").write_text("8501")
+        (project / "mistrzowie.source-commit").write_text("c" * 40 + "\n")
+        signed = b"APK signed with original key" * 120
+        cert = b"synthetic certificate DER"
+        cert_sha = hashlib.sha256(cert).hexdigest()
+        badging = "package: name='com.braxhorn.mistrzowie' versionCode='8501'"
+        sign_calls = []
+
+        def fake_command(*args, **kwargs):
+            if args[0] == "keytool":
+                return cert
+            if args[0] == "aapt" and args[1:3] == ("dump", "badging"):
+                return badging
+            if args[:2] == ("apksigner", "verify"):
+                fingerprint = cert_sha if Path(args[-1]).read_bytes() == signed else "0" * 64
+                return "Signer #1 certificate SHA-256 digest: " + fingerprint
+            if args[:2] == ("apksigner", "sign"):
+                output = Path(args[args.index("--out") + 1])
+                self.assertEqual(output.parent.parent.resolve(), self.output.resolve())
+                self.assertEqual(args[args.index("--ks-key-alias") + 1], "braxhorn")
+                output.write_bytes(signed)
+                sign_calls.append(output)
+                return ""
+            raise AssertionError(args)
+
+        # A root-owned build directory cannot be used as a signing temp folder.
+        apk.parent.chmod(0o555)
+        try:
+            with patch.object(delivery, "sdk_tool", side_effect=lambda n: n), \
+                 patch.object(delivery, "command", side_effect=fake_command), \
+                 contextlib.redirect_stdout(io.StringIO()):
+                delivery.stage()
+        finally:
+            apk.parent.chmod(0o755)
+        self.assertEqual(len(sign_calls), 1)
+        self.assertEqual(apk.read_bytes(), self.data)
+        manifest = json.loads((self.output / "manifest.json").read_text())
+        self.assertEqual((self.output / manifest["file"]).read_bytes(), signed)
+        self.assertEqual(manifest["certificateSha256"], cert_sha)
 
 if __name__ == "__main__":
     unittest.main()
