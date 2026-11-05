@@ -16,6 +16,7 @@ public static class BraxObozMaterials
         bool changed = importer.textureShape != TextureImporterShape.Texture2D || importer.sRGBTexture != color || importer.textureType != (normal ? TextureImporterType.NormalMap : TextureImporterType.Default);
         importer.textureShape = TextureImporterShape.Texture2D;
         importer.sRGBTexture = color; importer.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+        if (ConfigureStreaming(importer, path)) changed = true;
         if (changed) importer.SaveAndReimport();
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         if (!texture) throw new InvalidOperationException("Nie zaimportowano mapy PBR jako Texture2D: " + path +
@@ -46,6 +47,41 @@ public static class BraxObozMaterials
         material.SetFloat("_PackedORM", 1); material.SetFloat("_RoughnessFactor", .7f); material.SetFloat("_MetallicFactor", 0);
         return Save(material, "forest-ground");
     }
+    // Camera-driven mip streaming for original 4K camp maps with conventional UV0.
+    // Keep all 2K sources at full resolution; never stream packed/rotated tree,
+    // billboard or multi-layer lawn/gravel textures (nonstandard UV transforms).
+    public static bool ConfigureStreaming(TextureImporter importer, string path)
+    {
+        bool character = path.StartsWith("Assets/Source/Prywatne/Oboz/characters/", StringComparison.Ordinal);
+        bool ordinary = path.StartsWith("Assets/Source/Prywatne/Oboz/environment/materials/", StringComparison.Ordinal) &&
+            !path.Contains("/gravel/");
+        bool publicPbr = path.StartsWith("Assets/Source/Public/Oboz/", StringComparison.Ordinal) &&
+            !path.Contains("/Grass001/");
+        if (!character && !ordinary && !publicPbr) return false;
+
+        bool stream = false;
+        if (importer.mipmapEnabled && importer.textureShape == TextureImporterShape.Texture2D)
+        {
+            try
+            {
+                importer.GetSourceTextureWidthAndHeight(out int w, out int h);
+                stream = w >= 4096 && h >= 4096;
+            }
+            catch (InvalidOperationException)
+            {
+                // During initial import, source dimensions may not be known yet.
+                // Keep the full original map instead of guessing.
+                stream = false;
+            }
+        }
+        int priority = character ? 2 : ordinary ? 1 : 0;
+        bool changed = importer.streamingMipmaps != stream ||
+            (stream && importer.streamingMipmapsPriority != priority);
+        importer.streamingMipmaps = stream;
+        if (stream) importer.streamingMipmapsPriority = priority;
+        return changed;
+    }
+
     // Shared by the postprocessor and material authoring: no conflicting reimports.
     public static bool ConfigurePublicMap(TextureImporter importer, string kind)
     {
@@ -65,7 +101,7 @@ public static class BraxObozMaterials
         android.name="Android";android.overridden=true;android.maxTextureSize=4096;android.format=TextureImporterFormat.ASTC_4x4;
         android.compressionQuality=90;
         importer.SetPlatformTextureSettings(android);
-        return changed;
+        return ConfigureStreaming(importer, importer.assetPath) || changed;
     }
     public static Material PublicPbr(string id,float widthMetres)
     {
@@ -81,6 +117,20 @@ public static class BraxObozMaterials
             if(ConfigurePublicMap(importer,pair.Item1))importer.SaveAndReimport();
             bool color=pair.Item1=="Color",normal=pair.Item1=="NormalGL";
             material.SetTexture(pair.Item2,Map(path,normal,color));
+        }
+        if (id == "clean_asphalt")
+        {
+            // One user-reviewed pilot surface. Keep PBR colour and normals 4K.
+            // R=original roughness.r, G=original AO.r, linear data.
+            var packedRA = BraxObozPbrPack.SurfaceRA(id,
+                folder + "Roughness.jpg", folder + "AmbientOcclusion.jpg");
+            if (packedRA)
+            {
+                material.SetTexture("_RoughnessTex", null);
+                material.SetTexture("_OcclusionTex", null);
+                material.SetTexture("_PackedRA", packedRA);
+                material.EnableKeyword("OBOZ_PACKED_RA");
+            }
         }
         material.SetFloat("_MetallicFactor",0);
         material.mainTextureScale=Vector2.one/widthMetres;
@@ -163,7 +213,7 @@ public static class BraxObozMaterials
     {
         public string asset,name,androidFormat;
         public int width,height,sourceWidth,sourceHeight,importLimit,androidLimit;
-        public bool sourceDimensionsKnown,sourceBelowRequestedDetail,alphaCoverage;
+        public bool sourceDimensionsKnown,sourceBelowRequestedDetail,alphaCoverage,streamingMipmaps;
         public long estimatedAndroidBytesWithMips;
     }
     [Serializable] sealed class TextureAudit
@@ -196,6 +246,7 @@ public static class BraxObozMaterials
                 record.importLimit=importer.maxTextureSize;record.androidLimit=android.overridden?android.maxTextureSize:importer.maxTextureSize;
                 record.androidFormat=android.overridden?android.format.ToString():"automatic";
                 record.alphaCoverage=importer.mipMapsPreserveCoverage;
+                record.streamingMipmaps=importer.streamingMipmaps;
                 bool atlas=path.Contains("/vegetation/billboards/")||path.Contains("/Vegetation/Billboard-");
                 record.sourceBelowRequestedDetail=record.sourceDimensionsKnown && (atlas
                     ? record.sourceWidth/4<2048 || record.sourceHeight<2048
@@ -223,7 +274,8 @@ public static class BraxObozMaterials
         Directory.CreateDirectory(output);File.WriteAllText(Path.Combine(output,"texture-audit.json"),JsonUtility.ToJson(report,true));
         Debug.Log("BRAXHORN_OBOZ_TEXTURES count="+records.Count+" source_below_requested_detail="+
             records.Count(r=>r.sourceBelowRequestedDetail)+" unknown_memory="+records.Count(r=>r.estimatedAndroidBytesWithMips<0)+
-            " estimated_android_bytes="+report.estimatedAndroidTextureBytesWithMips+" phone_measured=false");
+            " estimated_android_bytes="+report.estimatedAndroidTextureBytesWithMips+
+            " streamed_textures="+records.Count(r=>r.streamingMipmaps)+" phone_measured=false");
     }
     static Material Save(Material material, string id)
     {
