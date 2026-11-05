@@ -87,7 +87,7 @@ public static partial class BraxObozEnvironment
             var info = root.gameObject.AddComponent<BraxObozSceneInfo>();
             CampusMaterials(); Terrain(); Paths();
             RunningTracks(); // profesjonalny czerwony owal i osobna bieznia 100 m
-            // Main R3 anchors remain unchanged. Additional cabins/service areas
+            // Main activity area retained at real scale. Additional cabins/service areas
             // are reconstructed placements; appearance has not been approved.
             Cabin("Domek 1", -94, -20, 90); Cabin("Domek 2", -94, -40, 90);
             Cabin("Domek 3", -69, -20, -90); Cabin("Domek 4", -69, -40, -90);
@@ -109,7 +109,7 @@ public static partial class BraxObozEnvironment
             SourceBunker(-75, 89);
             BraxObozVegetation.Populate(root);
             var anchors = Group("Kotwice planu R3 — do połączenia z oryginalnymi modelami", root, Vector3.zero);
-            foreach (var a in new[] { ("Fort 3 na 3",88f,95f), ("Chata leśniczego i sklep",-78f,-95f), ("Tartak",100f,-85f), ("Kojce",39f,-94f), ("Bunkier bramy",-24f,-127f) })
+            foreach (var a in new[] { ("Fort 3 na 3",105f,107f), ("Chata leśniczego i sklep",-78f,-95f), ("Tartak",76f,-105f), ("Kojce",39f,-94f), ("Bunkier bramy",-24f,-111f) })
                 Group(a.Item1, anchors, P(a.Item2, 0, a.Item3));
             var light = new GameObject("Popołudniowe słońce").AddComponent<Light>(); light.type = LightType.Directional;
             light.transform.rotation = Quaternion.Euler(34, -35, 0);
