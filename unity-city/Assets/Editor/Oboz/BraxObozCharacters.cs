@@ -59,9 +59,8 @@ public static partial class BraxObozCharacters
         var dependencies = new[] { spec.modelPath, spec.colorPath, spec.normalPath, spec.roughnessPath, spec.metallicPath,
             "Assets/Editor/Oboz/BraxObozCharacters.cs", "Assets/Editor/Oboz/BraxObozImport.cs",
             BraxObozPbrPack.EditorSource, "Assets/Oboz/ObozCharacter.shader" }
-            .Concat(spec.id=="monika"
-                ? new[] { BraxObozPbrPack.IndexPath, BraxObozPbrPack.MonikaPath }.Where(File.Exists)
-                : Enumerable.Empty<string>())
+            .Concat(new[] { BraxObozPbrPack.IndexPath,
+                    BraxObozPbrPack.CharacterPath(spec.id) }.Where(File.Exists))
             .Concat(spec.clips.Any(c=>c.directCalibrated)?new[]{"Assets/Editor/Oboz/BraxObozMonikaMotion.cs"}:Array.Empty<string>())
             .Concat((spec.clips ?? Array.Empty<ClipSpec>()).Select(c => c.path)).Distinct().OrderBy(p => p);
         string input = Application.unityVersion + "|" + scale.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" + sourceReviewOnly + "|" + JsonUtility.ToJson(spec);
