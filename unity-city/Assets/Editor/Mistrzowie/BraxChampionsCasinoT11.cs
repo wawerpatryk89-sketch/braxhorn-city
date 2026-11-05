@@ -406,6 +406,62 @@ public static class BraxChampionsCasinoT11
         }
     }
 
+    static void PlaceNativePolyHaven(Transform parent,GameObject prefab,
+        string label,float x,float y,float z,float height,float width,int index)
+    {
+        var anchor=Group(parent,label);
+        anchor.localPosition=new Vector3(x,y,z)*K;
+        var planted=PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+        if(!planted)throw new InvalidOperationException("T11 original Poly Haven GLTF did not instantiate: "+label);
+        planted.transform.SetParent(anchor,false);
+        planted.transform.localPosition=Vector3.zero;
+        planted.transform.localRotation=Quaternion.Euler(0,(index*79)%360,0);
+        var renderer=planted.GetComponentsInChildren<Renderer>(true);
+        if(renderer.Length==0)throw new InvalidOperationException("Poly Haven GLTF has zero visible meshes: "+label);
+        Bounds bounds=renderer[0].bounds;
+        foreach(var r in renderer.Skip(1))bounds.Encapsulate(r.bounds);
+        float sourceHeight=bounds.size.y,sourceWidth=Mathf.Max(bounds.size.x,bounds.size.z);
+        if(sourceHeight<.001f||sourceWidth<.001f)
+            throw new InvalidOperationException("Invalid original Poly Haven GLTF bounds: "+label);
+        float factor=Mathf.Min(height*K/sourceHeight,width*K/sourceWidth);
+        planted.transform.localScale*=factor; // uniform; shape and original textures untouched
+        bounds=renderer[0].bounds;
+        foreach(var r in renderer.Skip(1))bounds.Encapsulate(r.bounds);
+        planted.transform.position+=anchor.position-new Vector3(bounds.center.x,bounds.min.y,bounds.center.z);
+        // Reuse one cheap trunk collider, never a collider for each leaf triangle.
+        foreach(var collider in planted.GetComponentsInChildren<Collider>(true))
+            UnityEngine.Object.DestroyImmediate(collider);
+        var trunk=anchor.gameObject.AddComponent<CapsuleCollider>();
+        trunk.center=Vector3.up*(height*K*.45f);
+        trunk.height=height*K*.9f;trunk.radius=width*K*.16f;
+        foreach(var r in renderer)
+            GameObjectUtility.SetStaticEditorFlags(r.gameObject,StaticEditorFlags.OccludeeStatic);
+    }
+
+    static void PolyHavenVegetation2K()
+    {
+        const string basePath="Assets/Source/Mistrzowie/CasinoT11/Vegetation2K/";
+        var shrub=AssetDatabase.LoadAssetAtPath<GameObject>(
+            basePath+"shrub_03/shrub_03_2k.gltf");
+        var tree=AssetDatabase.LoadAssetAtPath<GameObject>(
+            basePath+"quiver_tree_02/quiver_tree_02_2k.gltf");
+        if(!shrub||!tree)
+            throw new FileNotFoundException("T11 authentic native 2K Poly Haven greenery missing; run prepare_casino_vegetation_2k.py");
+        int count=0;
+        foreach(float side in new[]{-1f,1f})
+        foreach(float z in new[]{-32f,33f})
+        {
+            float x=side>0&&z<0?38f:side*43f;
+            PlaceNativePolyHaven(shell,shrub,"T11 original Poly Haven Shrub 03 (2K)",
+                x,.78f,z,1.55f,1.75f,count++);
+        }
+        // The two tree trunks are beyond the rear service door and outside
+        // the fire road / delivery bays. Do not replace the approved palms.
+        foreach(float x in new[]{-27f,27f})
+            PlaceNativePolyHaven(shell,tree,"T11 original Poly Haven Quiver Tree 02 (2K)",
+                x,.24f,38f,2.7f,2.9f,count++);
+    }
+
     static void Site()
     {
         // Exact 120 x 100 site; no synthetic second road system across city.
@@ -465,17 +521,8 @@ public static class BraxChampionsCasinoT11
             var instance=BraxMiastoAssety.Postaw(shell,palm,"T11 approved city palm",location,0f,1f,false,true);
             BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
         }
-        // Use existing realistic trees from the city's approved asset library
-        // for the four raised planters; no billboard vegetation or fake spheres.
-        var planterTree=BraxRegion.Model("drzewo_verdant");
-        if(!planterTree)throw new FileNotFoundException("Original city planter greenery missing");
-        foreach(float side in new[]{-1f,1f})
-            foreach(float z in new[]{-32f,33f})
-            {
-                var x=side>0&&z<0?38f:side*43f;
-                var at=shell.TransformPoint(new Vector3(x,.78f,z)*K);
-                BraxRegion.Put(shell,planterTree,"Casino authentic planted topiary",at,0f,1f,false,2.2f*K);
-            }
+        // Real original 2K Poly Haven vegetation, with existing palms intact.
+        PolyHavenVegetation2K();
         foreach(float side in new[]{-1f,1f})
             for(int i=0;i<6;i++)
                 B(trim,"Ground-level warm gold exterior bollard",led,side*48f,.62f,-25f+i*10f,.12f,.85f,.12f,false);
