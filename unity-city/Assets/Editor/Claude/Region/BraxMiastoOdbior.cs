@@ -194,7 +194,9 @@ internal static class BraxMiastoOdbior
             obrys.max.x + metro.wejscieOffsetX <= TW1 - 3.9f &&
             obrys.min.x + metro.wyjazdOffsetX >= TW0 + 3.9f &&
             obrys.max.x + metro.wyjazdOffsetX <= PX0 - 3.9f;
-        bool sklad = wagony.Length == 2 && lacznik != null && calyWtunelu;
+        // Dopuszczamy jeden autentyczny model GLB (bez sztucznego sprzęgu).
+        bool sklad = wagony.Length >= 1 && wagony.Length <= 2 &&
+                     (wagony.Length == 1 || lacznik != null) && calyWtunelu;
         bool czas = Mathf.Abs(metro.dojazdSekundy + metro.otwieranieSekundy +
                     metro.postojSekundy + metro.zamykanieSekundy +
                     metro.odjazdSekundy + metro.ciszaSekundy - 60f) < 3f;
