@@ -25,6 +25,11 @@ on:
         type: boolean
         required: false
         default: false
+      recovery_run:
+        description: 'Opcjonalnie ID nieudanego przebiegu z zapisanym APK (odzysk podpisu bez Unity); zostaw puste dla zwykłego buildu'
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: write
   actions: read
@@ -33,6 +38,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   exploration-apk:
+    if: ${{ inputs.recovery_run == '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     env:
@@ -184,6 +190,28 @@ jobs:
         id: apk_stage
         if: always() && !cancelled() && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
         run: python3 unity-tools/mistrzowie/apk_delivery.py stage
+      # BuildPlayer has completed, but final signing/publishing failed.
+      # Save the raw output WITHOUT any keystore. This is NOT a trusted installer.
+      # The owner can use recovery_run later to re-sign and publish without Unity.
+      - name: Record raw APK checkpoint after a failed signature validation
+        id: raw_checkpoint
+        if: ${{ always() && !cancelled() && steps.apk_stage.outcome == 'failure' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != '' }}
+        continue-on-error: true
+        run: python3 unity-tools/mistrzowie/apk_rescue.py save
+      - name: Save quarantined compiled APK for safe recovery without Unity
+        if: ${{ always() && !cancelled() && steps.raw_checkpoint.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: UNVERIFIED-mistrzowie-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.source.outputs.sha }}
+          path: |
+            build/Android/braxhorn-mistrzowie.apk
+            unity-city/braxhorn.versioncode
+            unity-city/mistrzowie.source-commit
+            mistrzowie-rescue/raw.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
       - name: Immediately save APK as Actions artifact
         if: always() && !cancelled() && steps.apk_stage.outcome == 'success'
         id: apk_artifact
@@ -323,3 +351,68 @@ jobs:
         with:
           path: ${{ runner.temp }}/champions-library.tar.zst.enc
           key: champions-library-android-${{ steps.preflight.outputs.unity }}-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+  recover-existing-apk:
+    # Explicit manual recovery only. No Unity compilation, no generated key,
+    # no unverified APK release. The original raw artifact is quarantined.
+    if: ${{ inputs.recovery_run != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: codex/miasto-mistrzow-20261104
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/mistrzowie
+            unity-city/Packages
+            unity-city/ProjectSettings
+      - name: Verify quarantined APK provenance and restore exact bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RECOVERY_RUN_ID: ${{ inputs.recovery_run }}
+        run: |
+          python3 unity-tools/mistrzowie/apk_rescue.py restore
+          echo "SOURCE_SHA=$(cat unity-city/mistrzowie.source-commit)" >> "$GITHUB_ENV"
+      - name: Verify existing key and real Android APK signing without Unity
+        env:
+          KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
+          KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          test -n "$KS" && test -n "$KP"
+          umask 077
+          printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
+          printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+          python3 unity-tools/mistrzowie/apk_delivery.py preflight
+      - name: Validate and sign recovered APK with the same release certificate
+        id: apk_stage
+        run: python3 unity-tools/mistrzowie/apk_delivery.py stage
+      - name: Save recovered and verified APK as Actions artifact
+        id: apk_artifact
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mistrzowie-apk-recovered-${{ github.run_id }}-${{ github.run_attempt }}
+          path: mistrzowie-apk/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - name: Publish recovered signed APK to unique test release
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
+          gh release create "$tag" mistrzowie-apk/*.apk mistrzowie-apk/manifest.json \
+            --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --prerelease \
+            --title "Miasto Mistrzów — APK odzysk ${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}" \
+            --notes "Ponownie zweryfikowany podpis istniejącym kluczem. APK odzyskany z poprzedniej kompilacji Unity; uruchomienie na telefonie nadal niepotwierdzone."
+      - name: Verify real uploaded APK digest and delivery
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APK_ARTIFACT_ID: ${{ steps.apk_artifact.outputs.artifact-id }}
+          APK_ARTIFACT_URL: ${{ steps.apk_artifact.outputs.artifact-url }}
+        run: |
+          export APK_RELEASE_TAG="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
+          python3 unity-tools/mistrzowie/apk_delivery.py verify
