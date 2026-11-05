@@ -157,21 +157,48 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
             if (impactLeft > 0) return;
             strikePending = false;
             Vector3 delta = to.transform.position - from.transform.position; delta.y = 0;
-            if (delta.sqrMagnitude < 2.4f * 2.4f && Vector3.Dot(from.transform.forward, delta.normalized) > .6f &&
-                !Physics.Linecast(from.transform.position + Vector3.up * 1.5f, to.transform.position + Vector3.up * 1.5f, ~(1 << 8), QueryTriggerInteraction.Ignore))
+            // Trafienie dopiero przy fizycznie osiagalnym dystansie oraz
+            // widocznosci miedzy klatkami piersiowymi (nie przez sciane).
+            float reach=1.60f*K;
+            bool range=delta.sqrMagnitude>0.0001f&&delta.sqrMagnitude<=reach*reach;
+            bool facing=range&&Vector3.Dot(from.transform.forward,delta.normalized)>.45f;
+            Vector3 hitFrom=from.transform.position+Vector3.up*(.95f*K);
+            Vector3 hitTo=to.transform.position+Vector3.up*(.95f*K);
+            bool clear=facing&&!Physics.Linecast(hitFrom,hitTo,~(1<<8),QueryTriggerInteraction.Ignore);
+            if (clear)
             {
-                bool blocked=SparringStrikes % 3 == 2;
-                to.React(blocked ? "Block" : "HeadHit"); SparringStrikes++;
+                bool blocked=SparringStrikes % 5 == 4;
+                bool kick=SparringStrikes % 4 == 3;
+                to.React(blocked?"Block":kick?"HitToBody":"HeadHit");
+                SparringStrikes++;
                 if(audio)audio.Contact(to,blocked);
+                Status=CurrentArena.label+(blocked?" · BLOK":kick?" · TRAFIENIE KOPNIECIEM":" · TRAFIENIE");
             }
+            else Debug.LogWarning("BRAXHORN_OBOZ_SPARING brak kontaktu: dystans="+Mathf.Sqrt(delta.sqrMagnitude).ToString("F2")+" kat="+
+                (range?Vector3.Dot(from.transform.forward,delta.normalized).ToString("F2"):"poza zasiegiem")+" przeszkoda="+(facing&&!clear));
             recovery = Mathf.Max(.8f, followThrough); attackWait = .8f; attacker = 1 - attacker; return;
         }
         if (first.Reacting || second.Reacting) return;
+        // W sztywnych pozycjach 1.8m od siebie ich piesci nie dosiegaly celu.
+        // Podchodza normalnie na nogach, ze zderzeniami CharacterController,
+        // a nie sa teleportowani ani przyciagani bez animacji.
+        Vector3 gap = to.transform.position - from.transform.position; gap.y = 0;
+        const float contactDistance = 1.18f;
+        if (gap.magnitude > contactDistance*K)
+        {
+            from.MoveTowards(to.transform.position, dt);
+            from.Face(to.transform.position, dt);
+            to.Face(from.transform.position, dt);
+            Status = CurrentArena.label + " · ZBLIZENIE DO SPARINGU";
+            return;
+        }
         first.Play("CombatIdle", true); second.Play("CombatIdle", true);
         attackWait -= dt;
         if (attackWait > 0) return;
-        float length = from.Play("Punch", false, true);
-        impactLeft = Mathf.Min(.43f, length * .55f); followThrough = Mathf.Max(0, length - impactLeft); strikePending = true;
+        // Mieszaj technike, uzywaj prawdziwych klipow Punch i Kick z manifestu.
+        bool kick = SparringStrikes % 4 == 3;
+        float length = from.Play(kick ? "Kick" : "Punch", false, true);
+        impactLeft = Mathf.Min(.40f, Mathf.Max(.12f,length * .50f)); followThrough = Mathf.Max(0, length - impactLeft); strikePending = true;
     }
     void TickOtherStations(float dt)
     {
