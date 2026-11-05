@@ -91,7 +91,7 @@ public static class BraxChampionsBuildings
         // It must NOT change the existing A1 or T01 meshes, prefabs or positions.
         BraxChampionsCasinoT11.Generate(Out);
         // P1 is a fully separate modular prefab on its reserved 160x120 plot.
-        // Four open, EMPTY blue-tiled basins; no water material/plane is placed.
+        // Three blue-tiled swimming pools with animated, transparent WATER. Jacuzzi awaits the supplied tub.
         BraxChampionsPoolP1.Generate();
         AssetDatabase.SaveAssets();
         return d.buildings.Length+2;
