@@ -221,7 +221,7 @@ public static class BraxChampionsCasinoT11
         foreach(float side in new[]{-1f,1f})
             for(int j=0;j<3;j++)
                 B(shell,"Entrance side granite stair",paving,side*(7.1f+j*.6f),.22f+j*.03f,-36.3f,5.3f,.14f+j*.07f,1.55f,true,true);
-        B(shell,"Unobstructed accessible middle ramp",paving,0,.19f,-40f,7.2f,.09f,7.7f,true,true);
+        B(shell,"Unobstructed accessible middle ramp",paving,0,.22f,-40f,7.2f,.08f,7.7f,true,true);
         Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f);
     }
 
@@ -277,14 +277,14 @@ public static class BraxChampionsCasinoT11
             B(trim,"VIP or taxi champagne curb",gold,side*27f,.34f,-36.4f,24f,.11f,.14f,false);
             for(int i=0;i<5;i++)
                 B(trim,"Parking stall marking",paving,side*(22f+i*4.2f),.28f,-44.5f,.10f,.014f,5.6f,false);
-            foreach(float z in new[]{-46f,33f})
+            foreach(float z in new[]{-32f,33f})
                 B(shell,"Champagne black granite planter",granite,side*43f,.48f,z,3.4f,.6f,3.3f,true);
         }
         B(shell,"Front VIP/TAXI circulating driveway",asphalt,0,.221f,-42.5f,105f,.055f,10f,true,true);
         // The approved road grid is on X=400. Its eastern sidewalk edge X=417,
         // exactly 18m west of the T11 plot edge X=435: connect without moving T11.
         B(shell,"T11 physical access from existing city road X400",asphalt,-69f,.224f,-42.5f,20f,.054f,7.4f,true,true);
-        B(shell,"Casino pedestrian main axis",granite,0,.275f,-43.7f,8.1f,.10f,11.7f,true,true);
+        B(shell,"Casino pedestrian main axis",granite,0,.22f,-43.7f,8.1f,.08f,11.7f,true,true);
         B(shell,"Rear service and deliveries",asphalt,0,.23f,46.7f,105f,.07f,5.4f,true,true);
         B(shell,"Delivery corridor to rear loading door",asphalt,-20f,.248f,36.6f,6.4f,.052f,17.5f,true,true);
         B(trim,"Rear loading bay white line",paving,-20f,.284f,46.7f,12f,.012f,.11f,false);
@@ -297,8 +297,8 @@ public static class BraxChampionsCasinoT11
         var palm=BraxMiastoAssety.Model("miasto_palmy","palma");
         if(!palm)throw new FileNotFoundException("T11 original city palms missing");
         foreach(var at in new[]{
-            new Vector2(-43,-46),new Vector2(43,-46),new Vector2(-45,46),
-            new Vector2(45,46),new Vector2(-41,-26),new Vector2(41,-26)
+            new Vector2(-43,-32),new Vector2(43,-32),new Vector2(-45,33),
+            new Vector2(45,33),new Vector2(-41,-26),new Vector2(41,-26)
         })
         {
             var location=shell.TransformPoint(new Vector3(at.x,.22f,at.y)*K);
