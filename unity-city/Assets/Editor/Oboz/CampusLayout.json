@@ -94,7 +94,7 @@
     },
     {
       "id": "silownia-zadaszona",
-      "x": -42,
+      "x": -35,
       "z": 76,
       "width": 30,
       "depth": 22
@@ -215,8 +215,8 @@
     },
     {
       "id": "forester-reserved",
-      "x": -78,
-      "z": -95,
+      "x": -105,
+      "z": -103,
       "width": 20,
       "depth": 20
     },
@@ -250,7 +250,7 @@
     },
     {
       "id": "silownia-zadaszona",
-      "x": -42,
+      "x": -35,
       "z": 76,
       "width": 30,
       "depth": 22
@@ -264,8 +264,8 @@
     },
     {
       "id": "fort-przyszly",
-      "x": 105,
-      "z": 107,
+      "x": 83,
+      "z": 25,
       "width": 16,
       "depth": 12
     },
