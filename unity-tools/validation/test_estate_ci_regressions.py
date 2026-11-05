@@ -32,6 +32,18 @@ class EstateCIRegressions(unittest.TestCase):
         old = profile(ROOT / "unity-city", "osiedle", "6000.0.58f2")
         self.assertNotEqual(current["key"], old["key"])
 
+    def test_estate_clean_player_cache_is_explicit_and_preserves_imports(self):
+        workflow = (ROOT / ".github/workflows/claude-region-build.yml").read_text()
+        build = (ROOT / "unity-city/Assets/Editor/BraxGymBuild.cs").read_text()
+        self.assertIn("clean_player_cache:", workflow)
+        self.assertIn("default: true", workflow)
+        self.assertIn("customImage: unityci/editor:ubuntu-6000.0.85f2-android-3.2.2", workflow)
+        self.assertIn('File.Exists("estate-clean-player-cache.txt")', build)
+        self.assertIn("BuildOptions.CleanBuildCache", build)
+        self.assertIn("imported_assets_preserved=true", build)
+        self.assertIn("BRAXHORN_OSIEDLE_IL2CPP", workflow)
+        self.assertNotIn("rm -rf unity-city/Library\\n", workflow)
+
     def test_failed_il2cpp_retains_verified_imports_without_bypassing_signing(self):
         workflow = (ROOT / ".github/workflows/claude-region-build.yml").read_text()
         self.assertIn("steps.unity_android.outcome == 'failure'", workflow)
