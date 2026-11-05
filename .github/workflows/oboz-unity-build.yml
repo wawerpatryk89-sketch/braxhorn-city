@@ -23,7 +23,13 @@ on:
           - none
           - preflight
           - export-candidate
+          - update-from-base
         default: none
+      base_id:
+        description: "Tylko update-from-base: oboz- plus 32 znaki z zatwierdzonego bazowego APK"
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -448,7 +454,7 @@ jobs:
     name: "Obóz — kontrola i baza Addressables, bez APK"
     # This workflow already exists on the repository's default branch, so
     # manual dispatch can select the owner remodel branch without merging.
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && inputs.content_action != 'none'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && (inputs.content_action == 'preflight' || inputs.content_action == 'export-candidate')
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     env:
@@ -563,3 +569,90 @@ jobs:
           path: unity-city/BraxContentBuild/content-candidate-review.json
           if-no-files-found: ignore
           retention-days: 14
+
+  oboz-content-update:
+    name: "Obóz — aktualizacja istniejącej bazy bez APK"
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && inputs.content_action == 'update-from-base'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Existing branch source only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/
+            unity-tools/updates/
+            unity-tools/oboz/
+      - name: No base = no update; require immutable released base and explicit scene-only patch
+        env:
+          BASE_ID: ${{ inputs.base_id }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,re
+          from pathlib import Path
+          base=os.environ.get("BASE_ID", "")
+          assert re.fullmatch(r"oboz-[a-f0-9]{32}",base), "No verified owner-approved oboz baseline ID"
+          p=Path("unity-city/content-patch.json")
+          assert p.is_file() and p.stat().st_size>10, "No explicit scene patch: never rebuild a full game"
+          print("BRAXHORN_OBOZ_PATCH_SOURCE base=" + base)
+          PY
+          test ! -f unity-city/content-mode.txt || test "$(cat unity-city/content-mode.txt)" != "baseline"
+      - name: Restore EXACT encrypted signed-base source and Addressables content state
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          BASE_ID: ${{ inputs.base_id }}
+        run: |
+          set -euo pipefail
+          test -n "$KLUCZ" || { echo "::error::Brak szyfrowania bazy"; exit 1; }
+          python3 unity-tools/updates/content_snapshot.py restore-base --base "$BASE_ID"
+          test -s unity-city/BraxContentBuild/base/addressables_content_state.bin
+          test -s unity-city/BraxContentBuild/base/scene-guids.txt
+      - name: Verify no C# / package mutation on a content-only update
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+          python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
+          test ! -f build/ObozAndroid/braxhorn-oboz.apk
+      - name: Unity 6 — update previous Addressables content state, never BuildPlayer
+        id: unity_update
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxObozContentBase.UpdateInCI
+          manualExit: true
+          versioning: None
+          allowDirtyBuild: true
+      - name: Confirm only one changed-content archive and stage it in private DRAFT
+        if: steps.unity_update.outcome == 'success'
+        env:
+          BASE_ID: ${{ inputs.base_id }}
+        run: |
+          set -euo pipefail
+          sudo chown -R "$(id -u):$(id -g)" unity-city/BraxContentBuild
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,os,zipfile
+          paths=list(Path("unity-city/BraxContentBuild").glob("*.braxupdate.zip"))
+          assert len(paths)==1 and 0<paths[0].stat().st_size<2*1024**3, "Need one small content update, not an APK"
+          with zipfile.ZipFile(paths[0]) as z:
+              assert z.testzip() is None and "manifest.json" in z.namelist()
+              m=json.loads(z.read("manifest.json"))
+              assert m["zone"]=="oboz" and m["baseId"]==os.environ["BASE_ID"]
+              assert m["firstScene"]=="BraxhornObozReview"
+          print("BRAXHORN_CONTENT_ONLY VERIFIED",paths[0].name,paths[0].stat().st_size)
+          PY
+          python3 unity-tools/updates/content_snapshot.py publish-update --base "$BASE_ID"
+          test ! -f build/ObozAndroid/braxhorn-oboz.apk
+          echo "BRAXHORN_OBOZ_CONTENT=private-draft-only APK=NOT_BUILT phone=NOT_TESTED" >> "$GITHUB_STEP_SUMMARY"
