@@ -16,6 +16,8 @@ spec.loader.exec_module(source)
 class NativeCasino2KTests(unittest.TestCase):
     def test_all_casino_textures_are_native_2k(self):
         self.assertEqual(len(source.SLUGS),7)
+        self.assertIn("concrete_brick_wall_001",source.SLUGS)
+        self.assertNotIn("rectangular_facade_tiles_02",source.SLUGS)
         self.assertEqual(source.MAPS,(("diff","jpg"),("nor_gl","png"),("arm","png")))
         self.assertEqual(source.DEST.parts[-2:],("CasinoT11","Textures2K"))
         self.assertTrue(all("4k" not in slug and "1k" not in slug for slug in source.SLUGS))
