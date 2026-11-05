@@ -318,8 +318,12 @@ public static partial class BraxRegionMiastoB
             if (trafiony)
             {
                 coll.Add(bud.name);
-                Debug.LogError("BRAXHORN_TRAM_T1_BUDYNEK_KOLIZJA " + bud.name +
-                               " (kontrola całej bryły wagonu; wymagane przesunięcie toru/budynku przed APK)");
+                // Przenikanie tramwaju przez budynek jest ostrzeżeniem jakości,
+                // nie błędem BuildPipeline. Fizyczne collidery pozostają aktywne.
+                string ostrzezenie = "BRAXHORN_TRAM_T1_BUDYNEK_KOLIZJA " + bud.name +
+                    " (kontrola bryły wagonu; do ręcznej oceny w APK)";
+                if (BraxBuildQuality.Advisory) BraxBuildQuality.Warn(ostrzezenie);
+                else Debug.LogError(ostrzezenie);
             }
         }
         Debug.Log("BRAXHORN_TRAM_T1_OBRYS bryla=" + dlugosc.ToString("F1") + "x" +
