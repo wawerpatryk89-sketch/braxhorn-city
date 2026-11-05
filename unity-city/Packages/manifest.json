@@ -1,6 +1,10 @@
 {
   "dependencies": {
     "com.unity.cloud.gltfast": "6.20.0",
+    "com.unity.addressables": "2.7.6",
+    "com.unity.modules.assetbundle": "1.0.0",
+    "com.unity.modules.unitywebrequestassetbundle": "1.0.0",
+    "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
     "com.unity.modules.physics": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

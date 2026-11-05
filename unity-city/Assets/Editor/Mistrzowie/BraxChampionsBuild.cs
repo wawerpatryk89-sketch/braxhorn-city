@@ -200,6 +200,12 @@ public static class BraxChampionsBuild
         EditorBuildSettings.scenes=scenes.Select(p=>new EditorBuildSettingsScene(p,true)).ToArray();
         string output=Path.GetFullPath("../build/Android"); Directory.CreateDirectory(output);
         AssetDatabase.SaveAssets();
+        // Immutable first baseline: the exploration scene (entire world + player)
+        // is delivered as a bundled scene. Future scene/material revisions build
+        // .braxupdate.zip against this saved state without BuildPlayer.
+        if (!BraxContentBuild.Requested)
+            throw new InvalidOperationException("Miasto Mistrzów wymaga nowego APK bazowego z Addressables: content-mode.txt=baseline");
+        BraxContentBuild.Baseline("mistrzowie", new[] { BraxChampionsExplorer.ScenePath });
         // Apply to every selectable quality tier of this separate APK, not to other region builders.
         int previousQuality=QualitySettings.GetQualityLevel();
         for(int i=0;i<QualitySettings.names.Length;i++)
@@ -211,7 +217,7 @@ public static class BraxChampionsBuild
             QualitySettings.streamingMipmapsAddAllCameras=true;
         }
         QualitySettings.SetQualityLevel(previousQuality,false);
-        var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenes,target=BuildTarget.Android,
+        var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=new[]{startPath},target=BuildTarget.Android,
             locationPathName=Path.Combine(output,"braxhorn-mistrzowie.apk"),options=BuildOptions.CompressWithLz4});
         if(result.summary.result!=BuildResult.Succeeded)
             throw new InvalidOperationException("APK Miasta Mistrzów: "+result.summary.result+"; błędów="+result.summary.totalErrors);
