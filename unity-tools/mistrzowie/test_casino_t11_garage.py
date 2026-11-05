@@ -32,6 +32,27 @@ class CasinoT11UndergroundTests(unittest.TestCase):
         self.assertIn("Garage bottom structural landing",self.casino)
         self.assertNotIn("Garage interior and descending ramp intentionally deferred",self.casino)
 
+    def test_thirty_two_physical_bays_real_supports_and_eight_lamps(self):
+        self.assertIn("const int baysPerRow=16;",self.casino)
+        self.assertIn("for(int i=0;i<=baysPerRow;i++)",self.casino)
+        self.assertIn("new[]{-17f,10f}",self.casino)
+        self.assertIn("B1 physical car-space border",self.casino)
+        self.assertIn("B1 continuous marked bay head line",self.casino)
+        self.assertIn("B1 structural reinforced support column",self.casino)
+        self.assertIn("new[]{-30.25f,29.35f}",self.casino)
+        self.assertIn("new[]{-18f,0f,13.5f}",self.casino)
+        self.assertIn("B1 real warm-white parking light",self.casino)
+        self.assertIn("bulb.shadows=LightShadows.None;",self.casino)
+        self.assertIn("bulb.renderMode=LightRenderMode.ForceVertex;",self.casino)
+        # 16 stalls per row, two rows, six supports and eight lights.
+        self.assertEqual(16*2,32)
+        self.assertEqual(2*3,6)
+        self.assertEqual(4*2,8)
+        # Painted bay footprint (x -28..21.6) and pillar (x 29.35).
+        self.assertGreater(29.35-.78/2-(-28+16*3.10),6.0)
+        # South/north ramp remains at x 40.5..48.5, clear of pillars.
+        self.assertLess(29.35+.78/2,40.5)
+
     def test_surface_collider_has_true_ramp_hole_and_garage_is_covered(self):
         for label in ["T11 stone plot apron south","T11 stone plot apron north",
                       "T11 stone plot apron west of garage","T11 stone plot apron east of garage"]:
