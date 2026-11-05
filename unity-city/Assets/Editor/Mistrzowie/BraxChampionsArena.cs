@@ -24,6 +24,8 @@ public static class BraxChampionsArena
         // Import the owner's actual 2K PBR barrel chairs beside judges.
         // No procedural replacement is made when the original GLB is missing.
         SeatCount += BraxChampionsVIPSeats.Generate(root);
+        // Owner's unaltered panoramic wall mural: 4.10m doorway gap stays free.
+        BraxChampionsArenaMural.Generate(root);
         // Source method uses nominal estate metres. Apply the game's K exactly once to this subtree.
         float k=BraxClaudeOsiedle.K;var rot=Quaternion.Euler(0,180,0);
         root.SetParent(building,false);root.localScale=Vector3.one*k;root.localRotation=rot;
