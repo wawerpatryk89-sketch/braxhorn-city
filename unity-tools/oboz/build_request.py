@@ -9,7 +9,11 @@ import subprocess
 
 def validate(request, previous, *, event, ref, before_sha, parent_sha, private_sha,
              manual_first_install=False):
-    if ref != 'refs/heads/gpt/oboz' or event not in ('push', 'workflow_dispatch'):
+    original = ref == 'refs/heads/gpt/oboz'
+    review_branch = ref == 'refs/heads/codex/oboz-realny-kompaktowy-20261105'
+    # Nowa galaz moze wystartowac tylko przez reczny workflow_dispatch.
+    # Push/build-request nie uruchamia kosztownego APK na galezi roboczej.
+    if event not in ('push', 'workflow_dispatch') or not (original or review_branch and event == 'workflow_dispatch'):
         raise ValueError('Build is restricted to an explicit camp request')
     if (request.get('ownerRequested') is not True
             or request.get('privateInputsSha256') != private_sha
