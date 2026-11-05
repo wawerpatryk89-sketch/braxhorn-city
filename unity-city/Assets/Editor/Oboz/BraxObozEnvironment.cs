@@ -190,7 +190,7 @@ public static partial class BraxObozEnvironment
         var quad=GameObject.CreatePrimitive(PrimitiveType.Quad);
         quad.name="JPEG 1:1 — "+key;
         quad.transform.SetParent(board,false);
-        quad.transform.localPosition=P(0,0,woodenBacking?.105f:.025f);
+        quad.transform.localPosition=P(0,0,woodenBacking ? 0.105f : 0.025f);
         quad.transform.localScale=new Vector3(width*K,height*K,1f);
         quad.GetComponent<MeshRenderer>().sharedMaterial=material;
         Object.DestroyImmediate(quad.GetComponent<Collider>());
