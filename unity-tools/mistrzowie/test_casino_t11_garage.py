@@ -38,6 +38,10 @@ class CasinoT11UndergroundTests(unittest.TestCase):
         self.assertIn("new[]{-17f,10f}",self.casino)
         self.assertIn("B1 physical car-space border",self.casino)
         self.assertIn("B1 continuous marked bay head line",self.casino)
+        self.assertIn("B1 WHITE dashed driving-aisle centre line",self.casino)
+        self.assertIn("for(int n=0;n<8;n++)",self.casino)
+        # Actual black wearing course has a working physics collider, not just paint.
+        self.assertIn("73f,.02f,53f,true,true",self.casino)
         self.assertIn("B1 structural reinforced WHITE support column",self.casino)
         self.assertIn("new[]{-30.25f,29.35f}",self.casino)
         self.assertIn("new[]{-18f,0f,13.5f}",self.casino)
