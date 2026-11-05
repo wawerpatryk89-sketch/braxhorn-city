@@ -6,7 +6,7 @@ public sealed class BraxObozImport : AssetPostprocessor
 {
     const string Root = "Assets/Source/Prywatne/Oboz/";
     public override int GetPostprocessOrder() => 100;
-    public override uint GetVersion() => 5;
+    public override uint GetVersion() => 6;
     void OnPreprocessModel()
     {
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
@@ -34,6 +34,43 @@ public sealed class BraxObozImport : AssetPostprocessor
             if (assetImporter is TextureImporter packed)
                 BraxObozPbrPack.ConfigureImporter(packed);
             return;
+        }
+        // Copies generated from foliage alpha-mask sources must not fall back
+        // to uncompressed Android RGBA. Keep original source and alpha cutoff,
+        // but import distant branches at 2K / ASTC 6x6. Four-view billboard
+        // atlases need their full 8192-wide source for four 2K views.
+        const string generatedFoliage = "Assets/PlayableGenerated/Oboz/Vegetation/";
+        if (assetPath.StartsWith(generatedFoliage, StringComparison.Ordinal))
+        {
+            string name = assetPath.Substring(generatedFoliage.Length);
+            bool isLeaf = name.StartsWith("Leaf-", StringComparison.Ordinal);
+            bool isBillboard = name.StartsWith("Billboard-", StringComparison.Ordinal);
+            if (isLeaf || isBillboard)
+            {
+                var tex = assetImporter as TextureImporter;
+                if (tex == null) throw new InvalidOperationException("Brak importera maski listow obozu");
+                tex.textureShape = TextureImporterShape.Texture2D;
+                tex.textureType = TextureImporterType.Default;
+                tex.sRGBTexture = true;
+                tex.alphaIsTransparency = true;
+                tex.mipMapsPreserveCoverage = true;
+                tex.mipmapEnabled = true;
+                tex.isReadable = false;
+                tex.maxTextureSize = isBillboard ? 8192 : 4096;
+                tex.textureCompression = TextureImporterCompression.CompressedHQ;
+                tex.compressionQuality = 90;
+                tex.filterMode = UnityEngine.FilterMode.Trilinear;
+                tex.anisoLevel = 4;
+                tex.streamingMipmaps = false; // Custom 4-view UVs / GPU instancing.
+                var androidFoliage = tex.GetPlatformTextureSettings("Android");
+                androidFoliage.name = "Android";
+                androidFoliage.overridden = true;
+                androidFoliage.maxTextureSize = isBillboard ? 8192 : 2048;
+                androidFoliage.format = TextureImporterFormat.ASTC_6x6;
+                androidFoliage.compressionQuality = 90;
+                tex.SetPlatformTextureSettings(androidFoliage);
+                return;
+            }
         }
         // Public PBR maps need the same explicit 2D shape on the first import
         // and after restoring old metadata. Do not rely on inferred defaults.
