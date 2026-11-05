@@ -90,9 +90,13 @@ def resign_with_existing_key(source, identity, expected_cert):
 
     The original compiled APK remains untouched if re-signing fails.
     """
+    # Re-sign only the runner-owned staged copy. Unity's original APK may
+    # belong to root (game-ci Docker) and must never be modified in place.
+    if source.parent.resolve() != OUT.resolve():
+        raise RuntimeError("Re-signing requires the writable staged APK, not Unity output")
     keystore = ROOT / "unity-city/braxhorn.keystore"
     password = ROOT / "unity-city/braxhorn.keystore.pass"
-    with tempfile.TemporaryDirectory(prefix="mistrzowie-resign-", dir=source.parent) as temporary:
+    with tempfile.TemporaryDirectory(prefix="mistrzowie-resign-", dir=OUT) as temporary:
         signed = Path(temporary) / "signed.apk"
         command(sdk_tool("apksigner"), "sign",
                 "--ks", str(keystore), "--ks-key-alias", "braxhorn",
@@ -119,17 +123,6 @@ def stage():
     if app_id != APP_ID or version != expected_version:
         raise RuntimeError("APK applicationId/versionCode mismatch")
     expected_cert = certificate_sha256()
-    # Unity succeeded but delivery #9 rejected its APK certificate.
-    # Do not suppress the check: re-sign with the original key and verify.
-    try:
-        signers = signer_fingerprints(source)
-    except subprocess.CalledProcessError:
-        signers = []
-    if signers != [expected_cert]:
-        print("BRAX_MISTRZOWIE_APK_SIGNATURE_MISMATCH; attempting existing-key correction")
-        resign_with_existing_key(source, (app_id, version), expected_cert)
-    if signer_fingerprints(source) != [expected_cert]:
-        raise RuntimeError("APK is not signed with the existing repository certificate")
     # The Actions entry may live on main while the game is checked out at a
     # separate, explicitly selected Champions commit. Keep both identities.
     workflow_sha = os.environ["GITHUB_SHA"]
@@ -139,9 +132,24 @@ def stage():
         raise RuntimeError("Invalid source/workflow commit receipt")
     run, attempt = os.environ["GITHUB_RUN_ID"], os.environ["GITHUB_RUN_ATTEMPT"]
     name = f"braxhorn-mistrzowie-{run}-{attempt}-{sha[:7]}.apk"
+    # game-ci Unity can leave build/Android owned by root. Never create a
+    # signing directory there: copy the completed APK to runner-owned staging.
     OUT.mkdir(exist_ok=True)
     target = OUT / name
     shutil.copyfile(source, target)
+    try:
+        try:
+            signers = signer_fingerprints(target)
+        except subprocess.CalledProcessError:
+            signers = []
+        if signers != [expected_cert]:
+            print("BRAX_MISTRZOWIE_APK_SIGNATURE_MISMATCH; attempting existing-key correction")
+            resign_with_existing_key(target, (app_id, version), expected_cert)
+        if signer_fingerprints(target) != [expected_cert]:
+            raise RuntimeError("APK is not signed with the existing repository certificate")
+    except Exception:
+        target.unlink(missing_ok=True)
+        raise
     manifest = dict(file=name, sha256=digest(target), bytes=target.stat().st_size,
                     applicationId=app_id, versionCode=version, certificateSha256=expected_cert,
                     commit=sha, workflowCommit=workflow_sha, runId=run, attempt=attempt, variant="mistrzowie-apk-arm64-gles3",
