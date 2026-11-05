@@ -8,7 +8,23 @@ BUS_STOPS=[('U01',70,240,'z'),('U02',70,500,'z'),('U03',70,845,'z'),('U04',685,9
 import numpy as np
 K=float(np.float32(2.33)/np.float32(1.80))
 PAVING_Y=.16
-METRO=[dict(id='M1',name='DWORZEC',x=400,z=359,axis='x'),dict(id='M2',name='CENTRUM',x=765,z=545,axis='z'),dict(id='M3',name='ARENY / HOTELE',x=765,z=800,axis='z')]
+# Five accessible station destinations. Keep the original three stations
+# exactly where the successful Champions APK placed them.
+METRO=[
+ dict(id='M1',name='DWORZEC',x=400,z=359,axis='x'),
+ dict(id='M2',name='CENTRUM',x=765,z=545,axis='z'),
+ dict(id='M3',name='ARENY / HOTELE',x=765,z=800,axis='z'),
+ dict(id='M4',name='SPORT ZACHÓD',x=235,z=645,axis='z'),
+ dict(id='M5',name='GALERIA WSCHODNIA',x=965,z=245,axis='x'),
+]
+# Physically continuous single route, not a claim of operating train service.
+# Platform tangents match all five reused station prefabs; no level crossings.
+# Order in the line: M5 -> M1 -> M4 -> M3 -> M2.
+METRO_LINE_WAYPOINTS=[
+ (1130,245),(235,245),(235,359),(560,359),(560,480),
+ (235,480),(235,950),(765,950),(765,380),
+]
+METRO_ROUTE_ORDER=('M5','M1','M4','M3','M2')
 def station_point(m,x,z):
  u,v=(x-22.5)/K,(z-28.5)/K
  return (m['x']+u,m['z']+v) if m['axis']=='x' else (m['x']-v,m['z']+u)
@@ -20,8 +36,16 @@ for m in METRO:
  a,b=min(p[0] for p in pts),min(p[1] for p in pts)
  w,d=max(p[0] for p in pts)-a,max(p[1] for p in pts)-b
  ENTRANCE_HOLES.append((a,b,w,d));ENTRANCE_PATHS.append((a-3,b-3,w+6,d+6))
- if m['axis']=='x':ENTRANCE_PATHS.append((417,b-3,a-417+1,d+6))
- else:ENTRANCE_PATHS.append((a-1,b-3,783-a+1,3))
+ # Connect the new stations to a nearby real street, not a 500m strip of
+ # paving through unrelated property reservations.
+ if m['id']=='M4':
+  ENTRANCE_PATHS.append((a-1,667,w+2,b-667+4))  # road Z650, north sidewalk
+ elif m['id']=='M5':
+  ENTRANCE_PATHS.append((a+w-1,b-.5,1113-(a+w-1),d+1))  # road X1130
+ elif m['axis']=='x':
+  ENTRANCE_PATHS.append((417,b-3,a-417+1,d+6))
+ else:
+  ENTRANCE_PATHS.append((a-1,b-3,783-a+1,3))
 METRO_PLATFORM_Y=(-11.2+PAVING_Y*K-.15)/K
 METRO_RAIL_Y=METRO_PLATFORM_Y-1.1
 METRO_TRACK_OFFSET=7.6/K

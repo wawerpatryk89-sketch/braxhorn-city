@@ -23,7 +23,7 @@ public static class BraxChampionsInfrastructure
     public static Data Generate()
     {
         var d=JsonUtility.FromJson<Data>(File.ReadAllText("Assets/Source/Mistrzowie/Infrastructure.json"));
-        if(d==null||Mathf.Abs(d.scaleK-K)>.00001f||d.metroStations.Length!=3)throw new InvalidOperationException("Invalid infrastructure layout/scale");
+        if(d==null||Mathf.Abs(d.scaleK-K)>.00001f||d.metroStations.Length!=5 || d.metroStations.Select(s=>s.id).Distinct().Count()!=5 || d.metroStations.Any(s=>s.axis!="x"&&s.axis!="z"))throw new InvalidOperationException("Invalid infrastructure layout/scale");
         Directory.CreateDirectory(Out+"/InfrastructureMeshes");Directory.CreateDirectory(Out+"/Materials");
         var materials=Materials();var root=new GameObject("Mistrzowie | streets and transit").transform;
         foreach(var m in d.meshes)
@@ -117,7 +117,11 @@ public static class BraxChampionsInfrastructure
     {
         var atlas=AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Source/Mistrzowie/metro_"+id+".png");
         if(!atlas)throw new FileNotFoundException("Missing station-specific atlas: "+id);
-        var colors=new[]{new Color(.86f,.87f,.89f),new Color(.76f,.82f,.84f),new Color(.91f,.86f,.76f)};
+        var colors=new[]{
+            new Color(.86f,.87f,.89f),new Color(.76f,.82f,.84f),
+            new Color(.91f,.86f,.76f),new Color(.78f,.82f,.77f),
+            new Color(.82f,.79f,.84f)
+        };
         var changed=new Dictionary<Material,Material>();
         foreach(var r in station.GetComponentsInChildren<Renderer>(true))
         {
