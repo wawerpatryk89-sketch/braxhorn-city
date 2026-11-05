@@ -1,0 +1,40 @@
+name: Miasto Mistrzów A1+T11 — podpisany APK aktualizacyjny
+run-name: Miasto Mistrzów A1+T11 — Unity 6 — Android APK UPDATE
+
+# User-authorized once: build APK UPDATE on the existing Champions app,
+# not a new application. Fail-fast Android signing/version preflight is
+# implemented by the called, single-source production workflow.
+# This file's creation is the sole push trigger; future game edits
+# do NOT launch another Android build automatically.
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-unity6-apk-update.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: champions-a1-t11-apk-update-once
+  cancel-in-progress: false
+
+jobs:
+  signed-champions-app-update:
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    # Exact same app, keystore, Android application ID, source and scene
+    # as the previous signed APK #14. The called pipeline refuses a
+    # mismatched signing certificate or non-increasing versionCode BEFORE Unity.
+    uses: ./.github/workflows/mistrzowie-apk.yml
+    with:
+      etap: apk
+      kontrola_tras: false
+      zdjecia: false
+      recovery_run: ''
+      base_id: ''
+      commit: gpt/miasto-mistrzow-kasyno-t11-20261105
+      arena_assets_tag: champions-a1-20261105
+    secrets: inherit
