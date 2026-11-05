@@ -83,6 +83,26 @@ public sealed class BraxObozImport : AssetPostprocessor
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
         if (!(assetImporter is TextureImporter t)) return;
         string n = System.IO.Path.GetFileName(assetPath).ToLowerInvariant();
+        // Radiance HDRI 360 zachowuje liniowe dane HDR. Nie wolno przepakować
+        // 4K panoramy jako zwykłego LDR ASTC 4x4 tylko dlatego, że jest w OwnerAssets.
+        if(assetPath.StartsWith(Root+"OwnerAssets/Panoramy/",StringComparison.Ordinal) &&
+            n.EndsWith(".hdr",StringComparison.Ordinal))
+        {
+            t.textureShape=TextureImporterShape.Texture2D;
+            t.textureType=TextureImporterType.Default;
+            t.sRGBTexture=false;
+            t.mipmapEnabled=true;
+            t.streamingMipmaps=false; // Skybox panoramiczny; nie zwykłe UV0
+            t.maxTextureSize=4096;
+            t.filterMode=UnityEngine.FilterMode.Trilinear;
+            t.wrapMode=UnityEngine.TextureWrapMode.Repeat;
+            t.isReadable=false;
+            var androidHdr=t.GetPlatformTextureSettings("Android");
+            androidHdr.name="Android";
+            androidHdr.overridden=false; // Unity samo wybiera format zgodny z HDR
+            t.SetPlatformTextureSettings(androidHdr);
+            return;
+        }
         // Nowy prywatny materiał bieżni: dotyczy wyłącznie OwnerAssets,
         // postaci/animacji/importu dotychczasowych źródeł nie zmieniamy.
         if (assetPath.Contains("/OwnerAssets/rubberized_track_2k/", StringComparison.Ordinal))
