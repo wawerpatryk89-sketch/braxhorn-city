@@ -31,6 +31,11 @@ jobs:
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: |
+            # These contract tests read the original workflow definitions
+            # and the shared encrypted-delivery tool, not just game sources.
+            .gitignore
+            .github/workflows/
+            unity-tools/claude/prywatne.py
             unity-city/Assets/
             unity-city/Packages/
             unity-city/ProjectSettings/
