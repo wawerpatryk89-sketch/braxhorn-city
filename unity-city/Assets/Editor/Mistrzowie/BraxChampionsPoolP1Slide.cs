@@ -95,9 +95,20 @@ public static class BraxChampionsPoolP1Slide
                     renderer.sharedMaterials=replacement;slideSurfaces++;
                 }
             }
-            if(n.StartsWith("stairs"))stairSurfaces++;
-            if(n.StartsWith("slide")||n.StartsWith("stairs")||
-                n.StartsWith("platform")||n.StartsWith("poolrim"))
+            if(n.StartsWith("stairs"))
+            {
+                // Preserve source in prefab for provenance/replacement, but do
+                // NOT render a low-poly staircase over the new 18 physical
+                // stone treads; coplanar doubles would flicker on Android.
+                stairSurfaces++;t.gameObject.SetActive(false);continue;
+            }
+            if(n.StartsWith("platform"))
+            {
+                // The complete new load-bearing platform/guardrails replace
+                // the toy source platform. No double floor or Z-fighting.
+                t.gameObject.SetActive(false);continue;
+            }
+            if(n.StartsWith("slide")||n.StartsWith("poolrim"))
             {
                 foreach(var filter in t.GetComponents<MeshFilter>())
                 {
