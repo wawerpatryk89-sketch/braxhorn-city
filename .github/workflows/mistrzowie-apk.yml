@@ -3,7 +3,12 @@ run-name: Miasto Mistrzów — ${{ inputs.etap || 'apk' }} — ${{ github.run_nu
 
 # Register this entry on main so GitHub displays a dedicated Run workflow form.
 # The game stays on its own branch; every run records the exact checked-out SHA.
+# One-shot CI launch on this isolated run branch; the real game branch
+# and the default branch are not modified by this trigger.
 on:
+  push:
+    branches:
+      - run/miasto-mistrzow-apk-20261105-0636
   workflow_dispatch:
     inputs:
       commit:
