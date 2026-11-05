@@ -52,17 +52,17 @@ public static class BraxObozMaterials
         bool color=kind=="Color",normal=kind=="NormalGL";
         var type=normal?TextureImporterType.NormalMap:TextureImporterType.Default;
         var android=importer.GetPlatformTextureSettings("Android");
-        bool changed=importer.textureShape!=TextureImporterShape.Texture2D || importer.maxTextureSize!=4096 || !importer.mipmapEnabled || importer.anisoLevel!=8 ||
+        bool changed=importer.textureShape!=TextureImporterShape.Texture2D || importer.maxTextureSize!=2048 || !importer.mipmapEnabled || !importer.streamingMipmaps || importer.anisoLevel!=8 ||
             importer.wrapMode!=TextureWrapMode.Repeat || importer.filterMode!=FilterMode.Trilinear ||
             importer.textureCompression!=TextureImporterCompression.CompressedHQ || importer.compressionQuality!=90 ||
             importer.sRGBTexture!=color || importer.textureType!=type || !android.overridden ||
-            android.maxTextureSize!=4096 || android.format!=TextureImporterFormat.ASTC_4x4 || android.compressionQuality!=90;
+            android.maxTextureSize!=2048 || android.format!=TextureImporterFormat.ASTC_4x4 || android.compressionQuality!=90;
         importer.textureShape=TextureImporterShape.Texture2D;
-        importer.maxTextureSize=4096;importer.mipmapEnabled=true;importer.anisoLevel=8;
+        importer.maxTextureSize=2048;importer.mipmapEnabled=true;importer.streamingMipmaps=true;importer.streamingMipmapsPriority=0;importer.anisoLevel=8;
         importer.wrapMode=TextureWrapMode.Repeat;importer.filterMode=FilterMode.Trilinear;
         importer.textureCompression=TextureImporterCompression.CompressedHQ;
         importer.compressionQuality=90;importer.sRGBTexture=color;importer.textureType=type;
-        android.name="Android";android.overridden=true;android.maxTextureSize=4096;android.format=TextureImporterFormat.ASTC_4x4;
+        android.name="Android";android.overridden=true;android.maxTextureSize=2048;android.format=TextureImporterFormat.ASTC_4x4;
         android.compressionQuality=90;
         importer.SetPlatformTextureSettings(android);
         return changed;
