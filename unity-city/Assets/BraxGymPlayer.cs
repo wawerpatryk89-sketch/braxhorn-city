@@ -22,6 +22,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public int trainingHits;
     public BraxVessel vessel;   // pojazd wodny, na którym siedzi gracz (BraxVessel.Board)
     public BraxSeat seat;       // sofa / ławka / hoker / łóżko (BraxSeat.Use)
+    public BraxChampionsCar championsCar; // only A1, original estate source car
     // Chwila trafienia CIOSU / KOPU (ta sama co trening na workach siłowni): pozycja gracza, kierunek, true = kopnięcie.
     // Słuchają worki, liny ringu i piłki osiedla (BraxWorek, BraxLina, BraxPilka) — bez zależności gracza od nich.
     public static event Action<Vector3,Vector3,bool> OnCios;
@@ -98,10 +99,11 @@ public sealed class BraxGymPlayer : MonoBehaviour
     }
     public void MoveInput(string values)
     {
-        if(paused){move=Vector2.zero;return;}
+        if(paused){move=Vector2.zero;if(championsCar)championsCar.Steer(move);return;}
         var p=values.Split(',');
         if(p.Length>=2 && float.TryParse(p[0],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float x) && float.TryParse(p[1],System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out float y))
             move=Vector2.ClampMagnitude(new Vector2(x,y),1);
+        if(championsCar)championsCar.Steer(move);
     }
     public void LookInput(string values)
     {
@@ -121,9 +123,10 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public void Command(string key)
     {
         if(!ready)return;
-        if(key=="pause"){paused=!paused;move=Vector2.zero;foreach(AnimationState st in clips)st.speed=paused?0:1;Report();return;}
+        if(key=="pause"){paused=!paused;move=Vector2.zero;if(championsCar)championsCar.Steer(move);foreach(AnimationState st in clips)st.speed=paused?0:1;Report();return;}
         if(key=="reset")
         {
+            if(championsCar) championsCar.EmergencyExit();
             if(vessel){transform.SetParent(null,true);vessel=null;}
             if(seat){seat.Leave();}
             body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,initialCameraYaw+180f,0);body.enabled=true;
@@ -140,7 +143,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(door && Vector3.Distance(transform.position,new Vector3(6,transform.position.y,11.4f))<2.6f){doorOpen=!doorOpen;Report();}
             return;
         }
-        if(Time.time<actionEnd||vessel||seat)return;
+        if(Time.time<actionEnd||vessel||seat||championsCar)return;
         if(key=="punch")StartAction("Punch",1.25f,.43f);
         else if(key=="kick")StartAction("Kick",1.2f,.60f);
         else if(key=="jump" && body.isGrounded && !jumpPending){StartAction("Jump",1.35f,-1);jumpPending=true;jumpDeadline=Time.time+.30f;hipsPrevY=float.NaN;}
@@ -170,6 +173,9 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(action!="Idle"){action="Idle";clips["Idle"].wrapMode=WrapMode.Loop;clips["Idle"].speed=1;clips.CrossFade("Idle",.16f,PlayMode.StopAll);}
             return;
         }
+        // The existing joystick and follow camera now control the ORIGINAL estate car.
+        // No player CharacterController motion while Brax is in a vehicle.
+        if(championsCar){if(!championsCar.Transitioning)championsCar.Steer(move);speed=0;vertical=0;return;}
         bool acting=Time.time<actionEnd;
         bool jumping=acting&&action=="Jump";   // w skoku: pęd zostaje, sterowanie lekkie
         float mag=move.magnitude;   // 1.11: chód przy lekkim wychyleniu (0.9–2.1 m/s), płynnie w bieg przy mocnym (do 5.2 m/s), bez przycisku BIEG
@@ -360,6 +366,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public void SnapKamera(){camPrevOk=false;cameraTarget=transform.position+Vector3.up*1.65f;UpdateCamera(1f);}
     public void TravelTo(Vector3 position)
     {
+        if(championsCar)championsCar.EmergencyExit();
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";
         body.enabled=false;transform.position=position;body.enabled=true;clips.Play("Idle");
         cameraTarget=position+Vector3.up*1.65f;UpdateCamera(1f);Report();
@@ -375,7 +382,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         foreach(var value in url.Query.TrimStart('?').Split('&'))if(value=="qa=1")return true;
         return false;
     }
-    private void OnApplicationFocus(bool focus){if(!focus)move=Vector2.zero;}
+    private void OnApplicationFocus(bool focus){if(!focus){move=Vector2.zero;if(championsCar)championsCar.Steer(move);}}
     // Napis przycisku akcji (strona WWW i sterowanie dotykowe w APK): drzwi siłowni, potem kontekst miasta (pojazdy,
     // siedziska, drzwi lokali, windy, przejście na osiedle), na końcu pojazd / siedzisko gracza.
     public string Context
