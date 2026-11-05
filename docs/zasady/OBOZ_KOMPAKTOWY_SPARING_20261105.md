@@ -56,3 +56,11 @@ Ponownie przesłane `Monika(1).zip` oraz `Monika anim(3).zip` są identyczne baj
 - Zweryfikowano w kodzie rynnowe ustawienie strumienia na wschód od granicy, dwa rodzaje bieżni, generowanie siłowni, podłączenia wc i kranów oraz import trzech własnych animacji Moniki bez dodatkowego Humanoid retargetingu.
 - Potwierdzono w planie JSON, że bieżnia owalna, prosta 100 m, siłownia, nowe WC, domki, prysznice, sauna i przystanek mieszczą się wewnątrz ogrodzenia o granicach X `[-126,126]`, Z `[-125,115]`.
 - Nie wykonano Unity Edit Mode, Play Mode, nowego APK ani pomiaru rozmiaru lub FPS; poprawności zachowania na telefonie nie wolno deklarować przed tymi testami.
+
+## Poprawka rozmieszczenia po kontroli geometrii
+- Siłownię przesunięto z `(-42, 76)` na `(-35, 76)` w nominalnych współrzędnych sceny: zapas od planowanego obrysu bunkra zwiększony z ok. 0,5 m do ok. 7,5 m.
+- Rezerwa pod leśniczówkę (jeszcze nie wybudowaną) przesunięta na `(-105, -103)`, aby nie nachodziła na nowe WC.
+- Rezerwa pod fort (jeszcze nie wybudowany) przeniesiona na `(83, 25)`, poza bieżnię owalną.
+- Punkty mapy gracza, generator sprzętu i pola wykluczenia roślinności zaktualizowano razem z położeniem siłowni.
+- Trzy neutralne światła LED w łaźni mają sterowanie odległością od gracza i cienie wyłączone, żeby nie obciążać GPU przy poruszaniu się daleko od pomieszczenia.
+- Kontrola statyczna: brak kolizji obrysów planowanych stref innych niż dwie rezerwacje dotyczące **tego samego budynku WC**. Nie zastępuje to sprawdzenia faktycznych siatek i colliderów w Unity.
