@@ -82,9 +82,9 @@ class ContentUpdateContract(unittest.TestCase):
 
     def test_legacy_standalone_job_skips_update_branch_without_runner(self):
         workflow=load(".github/workflows/oboz-unity-build.yml")
-        for line in workflow.splitlines():
-            if line.lstrip().startswith("if: github.ref =="):
-                self.assertNotIn("codex/oboz-przebudowa-pbr-20261105",line)
+        job_gate = next(line for line in workflow.splitlines()
+                        if line.startswith("    if: github.ref =="))
+        self.assertNotIn("codex/oboz-przebudowa-pbr-20261105",job_gate)
         self.assertIn("Use oboz-content-base.yml or oboz-content-update.yml",workflow)
         self.assertIn("buildMethod: BraxObozBuild.BuildAndroidReview",workflow)
 
