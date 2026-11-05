@@ -89,8 +89,8 @@ public static partial class BraxObozEnvironment
             RunningTracks(); // profesjonalny czerwony owal i osobna bieznia 100 m
             // Main activity area retained at real scale. Additional cabins/service areas
             // are reconstructed placements; appearance has not been approved.
-            Cabin("Domek 1", -60, -18, 90); Cabin("Domek 2", -60, -36, 90);
-            Cabin("Domek 3", -42, -18, -90); Cabin("Domek 4", -42, -36, -90);
+            Cabin("Domek 1", -60, -18, -90); Cabin("Domek 2", -60, -36, -90);
+            Cabin("Domek 3", -42, -18, 90); Cabin("Domek 4", -42, -36, 90);
             Ring("Ring 1", -23, 15); Octagon(0, -5);
             // Owner rejected the imported city gym. Replace its entire instance,
             // interior, doors and collision source with camp training facilities.
@@ -221,10 +221,12 @@ public static partial class BraxObozEnvironment
             new Rect(16.8f,-24f,2.4f,42f),
             new Rect(-1.2f,15.6f,19.2f,2.4f),
             new Rect(-1.2f,16f,2.4f,41f),
-            // Domki z dwiema rzędami wejść; łączenia do obecnej alei.
-            new Rect(-63f,-28f,63f,2.4f),
-            new Rect(-60f,-31.5f,2.2f,4f),new Rect(-42f,-31.5f,2.2f,4f),
-            new Rect(-60f,-26f,2.2f,4f),new Rect(-42f,-26f,2.2f,4f),
+            // Dziedziniec domków: wejścia naprzeciwko siebie, nie przez elewacje.
+            // Lewa kolumna x=-60 i prawa x=-42; obrócone drzwi na środek.
+            new Rect(-51.5f,-41f,2.5f,28f),
+            new Rect(-56.5f,-19.2f,11.5f,2.4f),
+            new Rect(-56.5f,-37.2f,11.5f,2.4f),
+            new Rect(-50.5f,-28f,50.5f,2.4f),
             // Sanitariaty, kuchnia, medyczny i magazyn.
             new Rect(-68f,-61f,68f,2.4f),
             new Rect(-33f,-78f,33f,2.4f),
