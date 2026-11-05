@@ -64,14 +64,15 @@ jobs:
           # ONE production source for a combined Arena A1 + Casino T11 APK.
           # Running this from the older Arena-only/main workflow must stop.
           combined = 'gpt/miasto-mistrzow-kasyno-t11-20261105'
+          pool = 'gpt/miasto-mistrzow-basen-p1-20261105'
           current = os.environ.get('GITHUB_REF', '').removeprefix('refs/heads/')
-          if current != combined:
-              raise SystemExit('Wybierz Run workflow -> Use workflow from: ' + combined +
-                               '. Nie buduj starszej osobnej areny ani main.')
+          if current not in (combined,pool):
+              raise SystemExit('Use workflow from: ' + pool +
+                               ' (or existing A1+T11). Do not build old main/arena branch.')
           sha = os.environ['GITHUB_SHA'].lower()
           selected = os.environ.get('SOURCE_COMMIT', '').strip()
-          if selected and selected not in (combined,sha):
-              raise SystemExit('Tylko wspolny aktualny commit A1+T11: ' + sha)
+          if selected and selected not in (current,sha):
+              raise SystemExit('Only current commit for chosen Champions branch: ' + sha)
           value = sha
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write('ref=' + value + '\n')
@@ -210,6 +211,12 @@ jobs:
         with:
           path: unity-city/Assets/Source/Mistrzowie/CasinoT11/Textures2K
           key: mistrzowie-casino-t11-2k-${{ hashFiles('unity-tools/mistrzowie/prepare_casino_textures_2k.py') }}
+      - name: Cache P1 provider-native Poly Haven 2K source maps
+        continue-on-error: true
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: unity-city/Assets/Source/Mistrzowie/PoolP1/Textures2K
+          key: mistrzowie-pool-p1-2k-${{ hashFiles('unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py') }}
       - name: Geometry and source preparation
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -224,6 +231,8 @@ jobs:
           # New T11 surfaces ONLY: fetch original Poly Haven native 2K, no 1K/4K.
           python3 unity-tools/mistrzowie/prepare_casino_textures_2k.py
           python3 unity-tools/mistrzowie/prepare_casino_vegetation_2k.py
+          # P1 only: genuine native 2048x2048 Poly Haven PBR; fail on missing sources.
+          python3 unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/prepare_brax.py
           python3 unity-tools/mistrzowie/prepare_signage.py
