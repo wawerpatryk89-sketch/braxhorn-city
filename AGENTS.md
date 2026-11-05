@@ -1,3 +1,10 @@
+# Aktualna decyzja właściciela — testowy APK bez blokad jakości
+
+Stosuj [APK do ręcznej oceny](docs/zasady/APK_RECZNA_OCENA_20261105.md).
+Kontrole jakości postaci, kolizji i przejść mają ostrzegać, nie blokować APK.
+Fizyczne kolizje pozostają. Kompilacja, generowanie, podpis i plik APK nadal muszą się udać.
+Ta nowsza decyzja zastępuje sprzeczne starsze bramki jakości. Bez uruchamiania buildów.
+
 ## Unity Essentials — obowiązek wszystkich wykonawców (5 listopada 2026, Europe/Zurich)
 
 **Decyzja właściciela: od teraz korzystamy z Unity Essentials przy każdej pracy nad grami Unity, w której jego procedury mają zastosowanie.** Dotyczy Codex, GPT, Work, Claude i innych wykonawców; BRAXHORN CITY, Miasta Mistrzów, osiedla, obozu oraz prac nad BRAXHORN ARENA. Każdy wykonawca ma zapoznać się z tą zasadą przed rozpoczęciem pracy. Zasadę należy przenosić do instrukcji kolejnych gałęzi i projektów w ramach zleconej pracy, bez nadpisywania cudzych zmian i bez samodzielnego zapisu na main.

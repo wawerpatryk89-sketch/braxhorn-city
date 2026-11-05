@@ -183,8 +183,8 @@ public static partial class BraxChampionsPatryk
                 // Tak duże odchylenie po retargetingu oznacza wadliwą
                 // animację — nie wydawaj APK z obróconymi butami.
                 if (w.Nieprawidlowy)
-                    throw new InvalidOperationException("BRAXHORN_PATRYK_STOPY_BLOKADA klip=" + c.name +
-                        " " + w.Opis() + ". Wstrzymano wadliwy retarget w buildzie.");
+                    BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_PATRYK_STOPY_BLOKADA klip=" + c.name +
+                        " " + w.Opis() + ". Wstrzymano wadliwy retarget w buildzie."));
             }
             if (bledy > 0) Debug.LogWarning("BRAXHORN_PATRYK_KOSCI DO SPRAWDZENIA: " + bledy + " błędów — " + raportTestu);
 
@@ -192,7 +192,7 @@ public static partial class BraxChampionsPatryk
             idleTest.SampleAnimation(hero, 0f);
             float idleArms = PatrykKatRamion(kosci);
             if (idleArms > 30f)
-                throw new InvalidOperationException("Patryk: ramiona w spoczynku uniesione (" + idleArms.ToString("F1") + "°)");
+                BraxBuildQuality.Issue(new InvalidOperationException("Patryk: ramiona w spoczynku uniesione (" + idleArms.ToString("F1") + "°)"));
             PatrykSpoczynek(spoczynek);
             Debug.Log("BRAXHORN_PATRYK_IDLE ramiona=" + idleArms.ToString("F1") + "° od pionu (cel <30°)");
             anim.clip = idleTest; anim.Play("Idle"); anim.Sample();
@@ -279,7 +279,7 @@ public static partial class BraxChampionsPatryk
         }
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(p);
         if (!texture || texture.width != limit || texture.height != limit)
-            throw new InvalidOperationException("Nieprawidłowa rozdzielczość tekstury Patryka: " + p + ", wymagane " + limit);
+            BraxBuildQuality.Issue(new InvalidOperationException("Nieprawidłowa rozdzielczość tekstury Patryka: " + p + ", wymagane " + limit));
         Debug.Log("BRAXHORN_PATRYK_TEKSTURA " + plik + " " + texture.width + "x" + texture.height + " Android ASTC 4x4 jakość 100");
         return texture;
     }

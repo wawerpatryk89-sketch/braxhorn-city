@@ -222,6 +222,14 @@ jobs:
         run: |
           export APK_RELEASE_TAG="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
           python3 unity-tools/mistrzowie/apk_delivery.py verify
+      - name: Raport jakości do ręcznej oceny (nie blokuje APK)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: quality-review-${{ github.job }}-${{ strategy.job-index }}-${{ github.run_attempt }}-182
+          path: build/QualityReview/
+          if-no-files-found: warn
       - name: Optional real player for visual review after APK delivery
         id: visual_player
         if: success() && inputs.zdjecia && steps.apk_delivery.outcome == 'success'
@@ -239,6 +247,14 @@ jobs:
           buildMethod: BraxChampionsBuild.BuildVisualReview
           versioning: None
           allowDirtyBuild: true
+      - name: Raport jakości do ręcznej oceny (nie blokuje APK)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: quality-review-${{ github.job }}-${{ strategy.job-index }}-${{ github.run_attempt }}-249
+          path: build/QualityReview/
+          if-no-files-found: warn
       - name: Capture the real running player
         if: success() && steps.visual_player.outcome == 'success'
         continue-on-error: true

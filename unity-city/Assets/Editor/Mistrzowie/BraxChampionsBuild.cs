@@ -17,6 +17,7 @@ public static class BraxChampionsBuild
         public string status="STARTED",sourceCommit,unity;
         public bool visualAccepted=false,deviceTested=false,trafficEnabled=false,sceneReloadPassed=false;
         public bool walkChecksSkipped=false;
+        public bool qualityGatesAdvisory=BraxBuildQuality.Advisory;
         public int rendererCount,walkSamples,buildingExteriors,arenaSeats,sourceImportErrors;
         public bool foundationPassedBeforeBuildings=false;public string sculptedBull="SOURCE_MODEL_REQUIRED";
         public string patrykSourceCommit=BraxChampionsExplorer.SourceCommit;
@@ -74,7 +75,7 @@ public static class BraxChampionsBuild
             var d=BraxChampionsInfrastructure.Generate();report.counts=d.counts;
             Physics.SyncTransforms();
             CheckStations(BraxChampionsInfrastructure.Stations,report);
-            CheckAssets(scene);report.foundationPassedBeforeBuildings=true;
+            report.foundationPassedBeforeBuildings=CheckAssets(scene)>=0;
             report.checks.Add("Foundation and metro structure checked; walking validation status is recorded separately");
             report.buildingExteriors=BraxChampionsBuildings.Generate();Physics.SyncTransforms();
             report.arenaSeats=BraxChampionsArena.SeatCount;
@@ -85,20 +86,20 @@ public static class BraxChampionsBuild
             scene=EditorSceneManager.OpenScene(BraxChampionsFoundation.ScenePath,OpenSceneMode.Single);
             Physics.SyncTransforms();
             var stations=scene.GetRootGameObjects().SelectMany(o=>o.GetComponentsInChildren<Transform>(true)).Where(t=>t.name.EndsWith("| reused city metro")).ToArray();
-            if(stations.Length!=3)throw new InvalidOperationException("Three saved metro stations required");
+            if(stations.Length!=3)BraxBuildQuality.Issue(new InvalidOperationException("Three saved metro stations required"));
             CheckStations(stations,report);
             if(!skipWalkChecks)CheckExteriorAccess();report.rendererCount=CheckAssets(scene);report.sceneReloadPassed=true;
-            report.checks.Add("Serialized scene reopened: meshes, scripts, colliders and materials present");
+            report.checks.Add("Serialized scene reopened; consult quality-review.json for inspection warnings");
             BraxChampionsExplorer.Generate(report.sourceCommit);
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
             scene=EditorSceneManager.OpenScene(BraxChampionsExplorer.ScenePath,OpenSceneMode.Single);
             Physics.SyncTransforms();
             report.patrykClips=BraxChampionsExplorer.Validate(scene);
             CheckAssets(scene);report.explorationSceneReloadPassed=true;
-            report.checks.Add("Exploration scene reopened: estate Patryk, 4K textures, saved animations, camera and clear spawn; PlayMode pending");
+            report.checks.Add("Exploration scene reopened; player quality and traversability require manual device review");
             if(validationOnly)
             {
-                report.status="UNITY_SCENES_VALIDATED_APK_NOT_BUILT_DEVICE_REVIEW_PENDING";
+                report.status="UNITY_SCENES_GENERATED_APK_NOT_BUILT_DEVICE_REVIEW_PENDING";
                 return;
             }
             if(apk)
@@ -121,7 +122,7 @@ public static class BraxChampionsBuild
             report.status="UNITY_SCENE_AND_ANDROID_BUNDLES_PASS_VISUAL_REVIEW_PENDING";
         }
         catch(Exception e){report.status="FAILED: "+e.Message;Debug.LogException(e);throw;}
-        finally {if(skipWalkChecks)report.status+="_WALK_CHECKS_SKIPPED";File.WriteAllText(reports+"/unity-validation.json",JsonUtility.ToJson(report,true));Debug.Log("BRAX_MISTRZOWIE_UNITY "+JsonUtility.ToJson(report));}
+        finally {if(BraxBuildQuality.Advisory)report.status+="_QUALITY_ADVISORY_MANUAL_REVIEW_REQUIRED";if(skipWalkChecks)report.status+="_WALK_CHECKS_SKIPPED";File.WriteAllText(reports+"/unity-validation.json",JsonUtility.ToJson(report,true));Debug.Log("BRAX_MISTRZOWIE_UNITY "+JsonUtility.ToJson(report));}
     }
 
     static int RecordSourceImportDiagnostics(string reports)
@@ -261,10 +262,12 @@ public static class BraxChampionsBuild
             try { report.walkSamples+=CheckWalk(station);report.checks.Add(station.name+": surface-to-platform path clear"); }
             catch(Exception e) { report.failures.Add(station.name+" walk: "+e.Message); }
         }
-        if(report.failures.Count>before)throw new InvalidOperationException(string.Join("\n",report.failures.Skip(before)));
+        if(report.failures.Count>before)BraxBuildQuality.Issue(new InvalidOperationException(string.Join("\n",report.failures.Skip(before))));
     }
     static void CheckExteriorAccess()
     {
+        try
+        {
         float k=BraxClaudeOsiedle.K;
         // Actual ground-to-door routes, including the arena approach and the hotel street crossing.
         foreach(var route in new[]{new[]{new Vector3(600,.16f,667),new Vector3(600,.16f,740.7f)},
@@ -291,9 +294,17 @@ public static class BraxChampionsBuild
                     throw new InvalidOperationException("Exterior approach obstructed at "+p);
             }
         }
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
     static int CheckAssets(Scene scene)
     {
+        try
+        {
         int renderers=0;
         foreach(var root in scene.GetRootGameObjects())
         {
@@ -315,6 +326,12 @@ public static class BraxChampionsBuild
         }
         if(renderers<100)throw new InvalidOperationException("Infrastructure scene is incomplete");
         return renderers;
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError); return -1;
+        }
     }
     static int CheckWalk(Transform station)
     {

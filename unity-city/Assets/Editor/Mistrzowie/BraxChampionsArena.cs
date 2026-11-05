@@ -29,7 +29,7 @@ public static class BraxChampionsArena
         // Building is temporarily local at zero while saving its reusable prefab.
         var centre=new Vector3(600*k,14*k,800*k);
         visibility.strefy=new[]{new Bounds(centre,new Vector3(180,60,135)*k)};
-        if(SeatCount<600)throw new InvalidOperationException("Arena seating fell below the source estate arena");
+        if(SeatCount<600)BraxBuildQuality.Issue(new InvalidOperationException("Arena seating fell below the source estate arena"));
         return SeatCount;
     }
     static void CopiedEstateArena()

@@ -97,8 +97,8 @@ public static class BraxChampionsExplorer
     static Vector3 Ground(Vector3 approximate)
     {
         if (!Physics.Raycast(approximate+Vector3.up,Vector3.down,out var hit,2f,GroundMask,QueryTriggerInteraction.Ignore))
-            throw new InvalidOperationException("Missing exploration floor: "+approximate);
-        if (Mathf.Abs(hit.point.y-approximate.y)>.45f) throw new InvalidOperationException("Unexpected exploration floor height: "+hit.collider.name);
+            { BraxBuildQuality.Issue(new InvalidOperationException("Missing exploration floor: "+approximate)); return approximate; }
+        if (Mathf.Abs(hit.point.y-approximate.y)>.45f) BraxBuildQuality.Issue(new InvalidOperationException("Unexpected exploration floor height: "+hit.collider.name));
         return hit.point;
     }
 
@@ -107,11 +107,13 @@ public static class BraxChampionsExplorer
         var a=feet+Vector3.up*(body.radius+body.skinWidth+.02f);
         var b=feet+Vector3.up*(body.height-body.radius);
         if (Physics.CheckCapsule(a,b,body.radius,GroundMask,QueryTriggerInteraction.Ignore))
-            throw new InvalidOperationException("Patryk spawn/approach is obstructed: "+feet);
+            BraxBuildQuality.Issue(new InvalidOperationException("Patryk spawn/approach is obstructed: "+feet));
     }
 
     public static int Validate(Scene scene)
     {
+        try
+        {
         var players=All<BraxGymPlayer>(scene); if(players.Length!=1) throw new InvalidOperationException("Exactly one Patryk required.");
         var p=players[0];
         if(!p.visual||p.visual.name!="Patryk"||!p.body||!p.clips||!p.view||!p.cityWorld||p.cityWorld.player!=p||p.cityWorld.area!="mistrzowie")
@@ -153,6 +155,12 @@ public static class BraxChampionsExplorer
         if((p.transform.position-p.worldSpawn).sqrMagnitude>.0001f)throw new InvalidOperationException("Reset spawn differs from initial spawn.");
         for(int i=0;i<=20;i++)ClearCapsule(Ground(new Vector3(600,.16f,700+i*.25f)*K),p.body);
         return RequiredClips.Length;
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError); return -1;
+        }
     }
 }
 

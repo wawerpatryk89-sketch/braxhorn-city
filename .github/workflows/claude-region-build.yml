@@ -143,6 +143,14 @@ jobs:
           androidExportType: androidPackage
           versioning: None
           allowDirtyBuild: true
+      - name: Raport jakości do ręcznej oceny (nie blokuje APK)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: quality-review-${{ github.job }}-${{ strategy.job-index }}-${{ github.run_attempt }}-145
+          path: build/QualityReview/
+          if-no-files-found: warn
       - name: Validate APK identity and existing certificate; stage immutable output
         id: apk_stage
         if: always() && !cancelled() && inputs.wariant == 'apk' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''

@@ -282,15 +282,17 @@ public static partial class BraxChampionsPatryk
                     maxPosition=Mathf.Max(maxPosition,Vector3.Distance(bones[b].localPosition,positions[b][i]));
                 }
             }
-            if(float.IsNaN(maxAngle)||float.IsNaN(maxPosition)||maxAngle>.2f||maxPosition>.0001f)
-                throw new InvalidOperationException("Legacy różni się od retargetu: "+spec.nazwa+" rotation="+maxAngle+" position="+maxPosition);
+            if(float.IsNaN(maxAngle)||float.IsNaN(maxPosition))
+                throw new InvalidOperationException("Non-finite baked clip: "+spec.nazwa);
+            if(maxAngle>.2f||maxPosition>.0001f)
+                BraxBuildQuality.Issue(new InvalidOperationException("Legacy różni się od retargetu: "+spec.nazwa+" rotation="+maxAngle+" position="+maxPosition));
             result.wrapMode=WrapMode.Loop;
             info=" target Animator + Foot IK → Legacy 60 Hz, "+count+" próbek; błąd zapisu="+maxAngle.ToString("F3")+"° / "+maxPosition.ToString("F6");
             if(!save){var trial=result;result=null;return trial;}
             var legs=PatrykTestNog(hero,bones,rest,result);
-            if(legs.Nieprawidlowy)throw new InvalidOperationException("Wadliwy retarget "+spec.nazwa+": "+legs.Opis());
+            if(legs.Nieprawidlowy)BraxBuildQuality.Issue(new InvalidOperationException("Wadliwy retarget "+spec.nazwa+": "+legs.Opis()));
             if(PatrykTestKosci(hero,bones,rest,new List<AnimationClip>{result},out var boneReport)>0)
-                throw new InvalidOperationException("Wadliwa długość kości/poza "+spec.nazwa+": "+boneReport);
+                BraxBuildQuality.Issue(new InvalidOperationException("Wadliwa długość kości/poza "+spec.nazwa+": "+boneReport));
             ZapiszKlipPatryka(result); result=null;
             Debug.Log("BRAXHORN_PATRYK_LOKOMOCJA "+spec.nazwa+info+" | "+legs.Opis());
             return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik+"/"+spec.nazwa+".anim");
