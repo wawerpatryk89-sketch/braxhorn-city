@@ -109,6 +109,9 @@ public static partial class BraxObozEnvironment
         {
             // Trzy stanowiska silowe: przysiad, wyciskanie, wolne ciezary.
             var rack=Group("Stalowa klatka do cwiczen "+x,gym,P(x,0,-3.4f));
+            var spot=rack.gameObject.AddComponent<BraxObozTrainingStation>();
+            spot.label=x<0?"PRZYSIADY":x>0?"WYCISKANIE":"TRENING SZTANGI";
+            spot.footprint=new Vector2(5f,5f)*K;
             foreach(float dx in new[]{-1.15f,1.15f})
             foreach(float dz in new[]{-1f,1f})
                 Box(rack,"Slup stojaka",new Vector3(dx,1.25f,dz),
