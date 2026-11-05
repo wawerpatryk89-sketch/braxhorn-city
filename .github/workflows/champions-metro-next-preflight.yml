@@ -5,6 +5,7 @@ on:
       - codex/miasto-mistrzow-metro-5-stacji-20261105
     paths:
       - .github/workflows/champions-metro-next-preflight.yml
+      - unity-tools/mistrzowie/build_infrastructure.py
   workflow_dispatch:
 
 permissions:
