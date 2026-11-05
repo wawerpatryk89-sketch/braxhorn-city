@@ -25,9 +25,19 @@ jobs:
             unity-city/Assets/Editor/
             unity-city/Assets/City/
             unity-city/Assets/Mistrzowie/
+            unity-city/Assets/Updates/
+            unity-city/Assets/Source/Mistrzowie/
+            unity-city/Packages/manifest.json
             unity-tools/mistrzowie/
             unity-tools/validation/
+            unity-tools/updates/
+            unity-tools/claude/
             .github/workflows/mistrzowie-apk.yml
+      - name: Install pinned dependencies for real source tests
+        run: |
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 -m pip install --disable-pip-version-check numpy==2.2.6 shapely==2.1.2 pillow==11.3.0
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/unity-tools/claude:$GITHUB_WORKSPACE/unity-tools/mistrzowie:$GITHUB_WORKSPACE/unity-tools/updates" >> "$GITHUB_ENV"
       - name: No-Unity static integration tests A1/T11
         run: python3 unity-tools/mistrzowie/test_a1_t11_before_apk.py
       - name: Python pipeline syntax
@@ -35,9 +45,7 @@ jobs:
           python3 -m compileall -q unity-tools/mistrzowie/
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
       - name: Pre-Unity C sharp syntax and local scopes
-        run: |
-          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
-          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+        run: python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
       - name: Evidence — source tests only
         if: always()
         run: |
