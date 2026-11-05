@@ -34,7 +34,10 @@ public sealed class BraxStart : MonoBehaviour
         wskazowka = BraxTeksty.Wskazowka(Random.Range(0, BraxTeksty.LiczbaWskazowek));
         problem = !string.IsNullOrEmpty(BraxStartLog.Poprzedni);
         BraxStartLog.Etap("1b ekran startowy");
-        string nazwa = SceneManager.sceneCountInBuildSettings >= 2 ? System.IO.Path.GetFileNameWithoutExtension(SceneUtility.GetScenePathByBuildIndex(1)) : "";
+        // Base APKs without a content manifest retain their original scene loading.
+        // A compatible BRAXHORN content baseline enables verified patch import.
+        yield return BraxContent.Initialize();
+        string nazwa = BraxContent.FirstScene;
         podtytul = !string.IsNullOrEmpty(regionTitle) ? regionTitle : nazwa.StartsWith("BraxhornEstate") ? BraxTeksty.T("start.osiedle") : nazwa.StartsWith("BraxhornCity") ? BraxTeksty.T("start.miasto") : "";
         Debug.Log("BRAXHORN_UI ekran wczytywania: scena " + nazwa + (problem ? " · poprzedni start NIEUDANY — diagnostyka widoczna, czeka na dotyk" : " · diagnostyka ukryta (przytrzymanie 3 s)") +
                   " · język " + BraxTeksty.Aktualny + " · " + urzadzenie);
@@ -47,13 +50,12 @@ public sealed class BraxStart : MonoBehaviour
             czekaNaDotyk = false;
         }
         else yield return new WaitForSecondsRealtime(.35f);
-        if (SceneManager.sceneCountInBuildSettings < 2) { status = BraxTeksty.T("start.brak_sceny"); yield break; }
+        if (!BraxContent.Available(nazwa)) { status = BraxTeksty.T("start.brak_sceny"); yield break; }
         status = podtytul.Length > 0 ? BraxTeksty.T("start.wczytywanie") : BraxTeksty.T("start.wczytywanie") + " · " + nazwa;   // nazwa rejonu jest już pod logo
         BraxStartLog.Etap("2a wczytywanie sceny " + nazwa);
         yield return Resources.UnloadUnusedAssets();
-        var op = SceneManager.LoadSceneAsync(1, LoadSceneMode.Single);
+        var op = BraxContent.Begin(nazwa, LoadSceneMode.Single, false);
         if (op == null) { status = BraxTeksty.F("start.blad_sceny", nazwa); yield break; }
-        op.allowSceneActivation = false;
         // ekran startowy (APK): obraz na pełny ekran + muzyka; scena gry wczytuje się w tle (bez włączania), START ją włącza
         if (Application.platform != RuntimePlatform.WebGLPlayer && BraxEkranStartowy.Zaladuj())
         {
@@ -62,7 +64,7 @@ public sealed class BraxStart : MonoBehaviour
             Debug.Log("BRAXHORN_START ekran startowy przed grą: pokazany, muzyka=" + (muzyka && muzyka.clip ? muzyka.clip.name : "brak"));
             while (ekranStartowy)
             {
-                if (op.progress < .9f) postep = op.progress / .9f * .92f;
+                if (op.Progress < .9f) postep = op.Progress / .9f * .92f;
                 yield return null;
             }
             BraxEkranStartowy.PokazanyNaStarcie = true; BraxEkranStartowy.Zwolnij();
@@ -70,13 +72,14 @@ public sealed class BraxStart : MonoBehaviour
         }
         // postęp co 10% do dziennika (build 9 pokazał tylko „2a” — widać, przy ilu procentach i przy jakiej pamięci pada)
         int zapisane = -1;
-        while (op.progress < .9f)
+        while (!op.Ready)
         {
-            postep = op.progress / .9f * .92f;
-            int dz = Mathf.FloorToInt(op.progress * 10f);
+            postep = op.Progress / .9f * .92f;
+            int dz = Mathf.FloorToInt(op.Progress * 10f);
             if (dz > zapisane) { zapisane = dz; BraxStartLog.Etap("2a postęp " + dz * 10 + "%"); }
             yield return null;
         }
+        if (op.Failed) { op.ReleaseFailure(); status = BraxTeksty.F("start.blad_sceny", nazwa); yield break; }
         postep = .95f;
         BraxStartLog.Etap("2b 90% dane wczytane: " + nazwa);
         status = BraxTeksty.T("start.uruchamianie");
@@ -84,8 +87,7 @@ public sealed class BraxStart : MonoBehaviour
         postep = 1f;
         if (muzyka) { for (float v = muzyka.volume; v > .01f; v -= Time.unscaledDeltaTime * 1.6f) { muzyka.volume = v; yield return null; } muzyka.Stop(); }
         BraxStartLog.Etap("2c włączanie sceny " + nazwa + " (allowSceneActivation)");
-        op.allowSceneActivation = true;
-        while (!op.isDone) yield return null;
+        yield return op.Activate();
     }
 
     void MuzykaStart()
@@ -162,7 +164,7 @@ public sealed class BraxStart : MonoBehaviour
             stTyt.normal.textColor = Color.white;
         }
         bool en = BraxTeksty.Aktualny == BraxTeksty.Jezyk.EN;
-        float panH = bh * 6.6f, x = (W - bw) * .5f, y = (H - panH) * .5f;
+        float panH = bh * (BraxContent.Enabled ? 7.8f : 6.6f), x = (W - bw) * .5f, y = (H - panH) * .5f;
         Color c0 = GUI.color; GUI.color = new Color(0f, 0f, 0f, .78f);
         GUI.DrawTexture(new Rect(x - bh * .4f, y - bh * .3f, bw + bh * .8f, panH + bh * .6f), Texture2D.whiteTexture); GUI.color = c0;
         GUI.Label(new Rect(x, y, bw, bh), en ? "SETTINGS" : "USTAWIENIA", stTyt); y += bh + gap;
@@ -181,6 +183,14 @@ public sealed class BraxStart : MonoBehaviour
         if (GUI.Button(new Rect(x, y, bw, bh), (en ? "LANGUAGE: ENGLISH" : "JĘZYK: POLSKI"), stPrz))
             BraxTeksty.Ustaw(en ? BraxTeksty.Jezyk.PL : BraxTeksty.Jezyk.EN);
         y += bh + gap;
+        if (BraxContent.Enabled)
+        {
+            GUI.enabled = !BraxContent.Importing;
+            if (GUI.Button(new Rect(x, y, bw, bh), en ? "IMPORT UPDATE" : "WCZYTAJ AKTUALIZACJĘ", stPrz))
+                BraxContent.ChooseUpdate();
+            GUI.enabled = true;
+            y += bh + gap;
+        }
         if (GUI.Button(new Rect(x, y, bw, bh), en ? "BACK" : "POWRÓT", stPrz)) { ustawienia = false; Debug.Log("BRAXHORN_START ustawienia: powrót"); }
     }
 
@@ -191,6 +201,8 @@ public sealed class BraxStart : MonoBehaviour
         {
             BraxEkranStartowy.RysujObraz(!ustawienia);
             if (ustawienia) PanelUstawien();
+            if (BraxContent.Enabled && !string.IsNullOrEmpty(BraxContent.Message))
+                GUI.Label(new Rect(16, Screen.height - 48, Screen.width - 32, 40), BraxContent.Message);
             return;
         }
         BraxEkranWczytywania.Rysuj(postep, status, podtytul, wskazowka, diag, pokazDiag, !problem);
