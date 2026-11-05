@@ -1409,6 +1409,29 @@ public static class BraxClaudeMetro
             b = Granice(w, null);
             bp = Granice(w, pudlo);
             if (bp.size.sqrMagnitude < 1e-6f) bp = b;
+            // #94: pudło było wycentrowane na torze, ale obrys całego
+            // autentycznego GLB (lusterka / detale) wystawał o 0.10 m
+            // na peron (min.z=34.08, próg=34.18). Przesuń całą bryłę
+            // minimalnie w stronę ściany, bez zgniatania siatki, UV,
+            // zmiany skali czy przenoszenia samej kolizji.
+            float zMinimum = zPN - .02f;
+            float zMaksimum = zN - .1f;
+            float korektaZ = Mathf.Max(0f, zMinimum + .01f - b.min.z);
+            if (korektaZ > 0f)
+            {
+                if (korektaZ > .25f || b.max.z + korektaZ > zMaksimum)
+                    throw new InvalidOperationException(
+                        "BRAXHORN_METRO_M1_SKRAJNIA_ZA_WASKA: bryla=" + b.ToString() +
+                        " korekta=" + korektaZ.ToString("F2") + "m, wolne=" +
+                        (zMaksimum - b.max.z).ToString("F2") + "m");
+                w.transform.position += Vector3.forward * korektaZ;
+                b = Granice(w, null);
+                bp = Granice(w, pudlo);
+                if (bp.size.sqrMagnitude < 1e-6f) bp = b;
+                Debug.Log("BRAXHORN_METRO_M1_WYROWNANIE_SKRAJNI wagon=" + i +
+                    " przesuniecie_z=" + korektaZ.ToString("F3") + "m granice=" +
+                    b.min.ToString("F2") + "…" + b.max.ToString("F2"));
+            }
             var kol = new GameObject("M1: kolizja ruchomego wagonu " + (101 + i)).AddComponent<BoxCollider>();
             kol.transform.SetParent(sklad, false);
             kol.transform.position = b.center;
