@@ -13,13 +13,13 @@
 - **Ekspozycja pasa:** przeszklona gablota w holu przy drodze na widownię. Ładowanie oryginalnego FBX i map 4K, z Androidowym limitem 2K/ASTC.
 - **Szyldy:** cztery wersje `CHAMPION ARENA`, rozmieszczane według ich oryginalnego projektu na zakrzywionej elewacji, bez podmieniania typografii. Przy braku źródeł w repo zostają istniejące litery z generatora (nie fałszywe nowe logo).
 
-## Zasoby: osobny pakiet binarny NIE JEST w tej gałęzi
-Pakiet `champions_asset_import.zip` jest przygotowany na podstawie materiałów użytkownika, ale GitHub Connector zapisuje tu tekst, nie duże pliki FBX/PNG. **Nie zakładać**, że pakiet trafił na GitHub.
+## Zasoby: pełny pakiet 108 MB — archiwum sprawdzone, binaria poza repo
+Jednolity pakiet `champions_arena_A1_full_import.zip` (107 782 665 B, SHA256 `453a5fa9cd637d6a2a733893c453faa12914dc2610f69bf73dd3d5f65fbfcef1`) zawiera:
+- FBX oryginalnego pasa + mapy Color, Normal, Roughness, Metallic + spakowane ARM;
+- cztery przycięte oryginalne grafiki CHAMPION ARENA w RGBA;
+- **oryginalny fotel VIP w zoptymalizowanej do Androida postaci GLB 2K**, bez zmiany siatek.
 
-- Archiwum SHA256: `2ffe2c891d505985691292714c7890a36d190c6a51da08e6835e6aef04751f75` (91 MB).
-- Zawartość w ZIP ma ścieżki od `Assets/Source/Mistrzowie/`; należy umieścić je pod `unity-city/` w projekcie Unity **przed** pakowaniem projektu. Prawdziwe źródło FBX: `Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbx`; obok `.fbm/` z Color/Normal/Metallic/Roughness oraz `ChampionshipBelt_ARM.png`.
-- `ArenaSigns/`: `champion_arena_red_front.png`, `champion_arena_gold_front.png`, `champion_arena_red_fight_night.png`, `champion_arena_gold_arena_walk.png`. Powstały przez wycięcie czterech oryginalnych wzorów z dwóch arkuszy użytkownika i usunięcie białego tła (bez modyfikowania napisów).
-- Wysokiej jakości oryginalne mapy pasa (4096×4096) zachowane, import Android ASTC do 2048. FBX ma w surowych danych 16 578 pozycji wierzchołków i 16 538 wielokątów (około 33 023 trójkątów po triangulacji), przed oceną importu przez Unity.
+Przeszedł CRC wszystkich plików i weryfikację SHA256 jedenastu zasobów z manifestu. ZIP jest pobieralnym artefaktem tej rozmowy, **ale GitHub Connector nie zapisał jego dużych binarnych zasobów w repo**. Import wymaga dostarczenia pliku do środowiska budowania i użycia `python3 unity-tools/mistrzowie/import_champion_assets.py /ścieżka/champions_arena_A1_full_import.zip --dry-run`, następnie bez `--dry-run`. Niczego nie oznaczać jako Unity-ready przed potwierdzeniem importu.
 
 ## Statyczne kontrole wykonane
 1. Punkty frontowych i tylnych otworów: od x=−4,70 do +4,70 m dla obu LOD n=64 i n=128, sprawdzone algorytmicznie.
@@ -34,7 +34,7 @@ Pakiet `champions_asset_import.zip` jest przygotowany na podstawie materiałów 
 - Poprawność materiałów, geometrii, drzwi, sterowania i kolizji w Unity Play Mode.
 - Wizualne i wydajnościowe działanie APK na telefonie, odczyt błędów, FPS i pamięci.
 - Ostateczna kontrola dojścia do obu pięter trybun oraz drzwi wewnętrznych.
-- Własny model fotela VIP `Assets/Source/Mistrzowie/VIP/free_luxurious_barrel_seat_2k.glb` nie znajduje się w pakiecie pasa/szyldów. Samo podłączenie kodu `BraxChampionsVIPSeats` nie potwierdza przeniesienia tego assetu do repo.
+- Własny model fotela VIP jest już w kompletnym 108 MB ZIP, lecz **nie został wprowadzony do repozytorium**. Sam kod `BraxChampionsVIPSeats` nie potwierdza jego importu.
 - Pozostałe 31 rezerwacji budynków w planie nie jest ukończoną zabudową; A2 jako druga arena nie była przedmiotem tej naprawy.
 
 **Tryb budowania:** zgodnie z `AGENTS.md` nie uruchamiać APK, Addressables, testów Unity ani ponowień bez osobnego polecenia właściciela. Zmiana gałęzi GitHub nie jest dowodem, że kod przeszedł na Androidzie. Nie scalać `main`.
