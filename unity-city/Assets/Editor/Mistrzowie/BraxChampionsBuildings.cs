@@ -87,7 +87,11 @@ public static class BraxChampionsBuildings
             var prefab=PrefabUtility.SaveAsPrefabAssetAndConnect(root.gameObject,Out+"/Prefabs/"+b.id+"_Exterior.prefab",InteractionMode.AutomatedAction);
             root.position=at;if(!prefab)throw new IOException("Exterior prefab save failed: "+b.id);
         }
-        AssetDatabase.SaveAssets();return d.buildings.Length;
+        // Approved T11/WAWER plot at (495,465) is a third independent exterior.
+        // It must NOT change the existing A1 or T01 meshes, prefabs or positions.
+        BraxChampionsCasinoT11.Generate(Out);
+        AssetDatabase.SaveAssets();
+        return d.buildings.Length+1;
     }
     static Renderer MeshObject(Transform parent,string id,BraxChampionsFoundation.MeshData d,Material material,bool collision)
     {
