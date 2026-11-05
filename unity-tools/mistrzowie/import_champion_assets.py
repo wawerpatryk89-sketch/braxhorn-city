@@ -1,6 +1,7 @@
 """Opt-in import of the owner-supplied original championship belt and four signs.
 
-The complete 108MB archive contains original belt, four signs and 2K original VIP GLB.
+The Unity-ready archive contains original belt, four signs, 2K original VIP GLB,
+and deterministic .meta GUID sidecars for all assets and four new folders.
 The binary remains a separate conversation artifact until explicitly imported.
 This script DOES NOT fetch, build, regenerate or alter original visual assets.
 """
@@ -11,7 +12,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 DESTINATION = ROOT / "unity-city"
-ARCHIVE_SHA256 = "453a5fa9cd637d6a2a733893c453faa12914dc2610f69bf73dd3d5f65fbfcef1"
+ARCHIVE_SHA256 = "c96e39cd218b2f884560be0e89d0f24b378e7a49512486830643f6934cdc4f71"
 BASE = "Assets/Source/Mistrzowie/"
 EXPECTED = {
     BASE + "ArenaSigns/champion_arena_red_front.png",
@@ -26,6 +27,16 @@ EXPECTED = {
     BASE + "Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbm/championship_belt_3d_model_metallic.PNG",
     BASE + "Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbm/championship_belt_3d_model_roughness.PNG",
 }
+# New folders have one stable GUID each. The root Mistrzowie folder keeps
+# its existing .meta from the repository; never regenerate it.
+FOLDERS = {
+    BASE + "ArenaSigns",
+    BASE + "VIP",
+    BASE + "Trophies",
+    BASE + "Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbm",
+}
+EXPECTED_META = {p + ".meta" for p in EXPECTED | FOLDERS}
+ALL_SOURCE_FILES = EXPECTED | EXPECTED_META
 
 
 def hash_file(path):
@@ -46,12 +57,12 @@ def install(archive: Path, dry_run: bool = False):
         if z.testzip():
             raise RuntimeError("Source archive CRC failed")
         names = set(z.namelist())
-        if not EXPECTED <= names:
-            raise RuntimeError(f"Missing original files: {sorted(EXPECTED-names)}")
-        if names - (EXPECTED | {"ASSET-MANIFEST.json", "IMPORT-README.md"}):
-            raise RuntimeError("Archive contains unexpected files: " + repr(sorted(names-EXPECTED)))
+        if not ALL_SOURCE_FILES <= names:
+            raise RuntimeError(f"Missing original files: {sorted(ALL_SOURCE_FILES-names)}")
+        if names - (ALL_SOURCE_FILES | {"ASSET-MANIFEST.json", "IMPORT-README.md"}):
+            raise RuntimeError("Archive contains unexpected files: " + repr(sorted(names-ALL_SOURCE_FILES)))
         verified = []
-        for name in sorted(EXPECTED):
+        for name in sorted(ALL_SOURCE_FILES):
             # Explicit fixed name allowlist prevents ZIP traversal.
             target = DESTINATION / name
             if target.exists():
@@ -63,7 +74,7 @@ def install(archive: Path, dry_run: bool = False):
                 verified.append(("DRY-RUN " if dry_run else "INSTALL ") + name)
         if dry_run:
             return verified
-        for name in sorted(EXPECTED):
+        for name in sorted(ALL_SOURCE_FILES):
             target = DESTINATION / name
             if target.exists():
                 continue
@@ -81,7 +92,7 @@ def install(archive: Path, dry_run: bool = False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("archive", type=Path, help="verified champions_arena_A1_full_import.zip with VIP chair")
+    parser.add_argument("archive", type=Path, help="verified champions_arena_A1_unity_ready.zip with VIP chair and pinned GUID metadata")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     for line in install(args.archive, args.dry_run):
