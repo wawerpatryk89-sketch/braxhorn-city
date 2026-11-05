@@ -64,6 +64,10 @@ jobs:
           printf 'A1/T11 preflight commit=%s\n' "$GITHUB_SHA"
           printf 'Android APK: NOT BUILT; signature: NO NEW SIGNATURE; phone: NOT TESTED.\n'
   source-release-preflight:
+    # Reading GitHub draft releases requires contents:write for this token.
+    # The job performs only GET requests; no release uploads or mutations.
+    permissions:
+      contents: write
     if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
