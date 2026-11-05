@@ -6,7 +6,7 @@ using UnityEngine;
 // The other Champions buildings keep their existing PBR materials unchanged.
 public static class BraxChampionsCasinoT11Pbr2K
 {
-    const string SourceRoot="Assets/Source/Mistrzowie/T11/Textures/";
+    const string SourceRoot="Assets/Source/Mistrzowie/CasinoT11/Textures2K/";
 
     static Texture2D Texture(string slug,string role,string extension)
     {
@@ -32,7 +32,7 @@ public static class BraxChampionsCasinoT11Pbr2K
         m.SetColor("_Color",tint);
         m.SetFloat("_VertexTint",0);
         m.SetTexture("_MainTex",Texture(slug,"diff","jpg"));
-        m.SetTexture("_BumpMap",Texture(slug,"nor_gl","exr"));
+        m.SetTexture("_BumpMap",Texture(slug,"nor_gl","png"));
         m.SetTexture("_ARM",Texture(slug,"arm","png"));
         m.SetFloat("_NormalEncoding",0);
         m.SetFloat("_UseARMForAO",1);
