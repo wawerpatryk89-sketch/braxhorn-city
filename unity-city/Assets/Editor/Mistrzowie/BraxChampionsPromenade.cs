@@ -303,6 +303,9 @@ public static class BraxChampionsPromenade
         lamp.type=LightType.Point;lamp.range=5.5f*K;lamp.intensity=.5f;
         lamp.shadows=LightShadows.None;lamp.renderMode=LightRenderMode.ForceVertex;
         lamp.color=new Color(1f,.87f,.72f);
+        // Populate the prepared original shop shell ONLY with 2K source
+        // models from official Poly Haven. No NPC, staff, crowds or fake food.
+        BraxChampionsPromenadeGoods.Build(root,p.id,p.w,p.d);
         SignFace(root,p,Sign(p));
     }
 
