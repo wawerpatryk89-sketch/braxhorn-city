@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 355
     env:
-      MISTRZOWIE_PIPELINE: "20261105"
+      MISTRZOWIE_PIPELINE: "20261105-A1"
     steps:
       - name: Resolve the selected Champions source
         id: selected
@@ -514,7 +514,7 @@ jobs:
       contents: write
       actions: read
     env:
-      MISTRZOWIE_PIPELINE: "20261105"
+      MISTRZOWIE_PIPELINE: "20261105-A1"
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
