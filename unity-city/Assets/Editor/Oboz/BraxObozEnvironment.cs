@@ -264,8 +264,8 @@ public static partial class BraxObozEnvironment
         var t=Group(name,root,P(x,0,z));
         // Ring nie stoi na chodniku: osobna elastyczna posadzka i krawedz sportowa.
         Box(t,"Czarna strefa bezpieczenstwa",new Vector3(0,.07f,0),new Vector3(13,.14f,13),dark,false);
-        foreach(float z in new[]{-6.3f,6.3f})
-            Box(t,"Granica strefy ringu",new Vector3(0,.147f,z),new Vector3(13,.015f,.11f),burgundy,false);
+        foreach(float borderZ in new[]{-6.3f,6.3f})
+            Box(t,"Granica strefy ringu",new Vector3(0,.147f,borderZ),new Vector3(13,.015f,.11f),burgundy,false);
         var platform=Box(t,"Podest drewniany",new Vector3(0,.24f,0),new Vector3(8.6f,.48f,8.6f),wood);
         Box(t,"Mata bez cudzych logo",new Vector3(0,.50f,0),new Vector3(8.2f,.04f,8.2f),burgundy);
         foreach(float dx in new[]{-4f,4f})foreach(float dz in new[]{-4f,4f}) {
