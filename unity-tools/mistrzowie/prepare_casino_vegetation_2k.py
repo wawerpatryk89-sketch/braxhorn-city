@@ -74,8 +74,8 @@ def prepare():
                 name.endswith(".bin") or name.endswith((".jpg",".png"))
             ):
                 raise ValueError("Unsafe Poly Haven linked file "+name)
-            if "/1k/" in ref.get("url","") or "/4k/" in ref.get("url","") and not name.endswith(".bin"):
-                raise ValueError("Wrong texture resolution "+name)
+            if not name.endswith(".bin") and "/2k/" not in ref.get("url",""):
+                raise ValueError("Only native Poly Haven 2K source textures allowed: "+name)
             if name.endswith((".jpg",".png")) and "_2k." not in name:
                 raise ValueError("Only 2K vegetation maps allowed "+name)
             filenames[name]=ref
