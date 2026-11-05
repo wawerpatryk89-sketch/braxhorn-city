@@ -31,18 +31,20 @@ public static partial class BraxObozEnvironment
             P(0,0,BraxObozCampusLayout.PlotCenterZ));
         // Obrys bieżni wewnątrz eliptycznego ogrodzenia. Pas bezpieczeństwa
         // 4 jednostki źródłowe między ostatnim torem i ogrodzeniem.
-        const float laneInside=87.2f, laneWidth=1.2f;
+        const float laneWidth=1.2f;
+        float innerX=BraxObozCampusLayout.PlotRadiusX-8.8f;
+        float innerZ=BraxObozCampusLayout.PlotRadiusZ-8.8f;
         for(int lane=0;lane<4;lane++)
         {
-            float inner=laneInside+lane*laneWidth;
+            float lx=innerX+lane*laneWidth,lz=innerZ+lane*laneWidth;
             TrackAnnulus(oval,"Pelna petla — czerwony tor "+(lane+1),
-                inner,inner,inner+laneWidth,inner+laneWidth,.135f,red,true);
+                lx,lz,lx+laneWidth,lz+laneWidth,.135f,red,true);
         }
         for(int lane=0;lane<=4;lane++)
         {
-            float radius=laneInside+lane*laneWidth;
+            float lx=innerX+lane*laneWidth,lz=innerZ+lane*laneWidth;
             TrackAnnulus(oval,"Biala linia petli "+lane,
-                radius-.025f,radius-.025f,radius+.025f,radius+.025f,
+                lx-.025f,lz-.025f,lx+.025f,lz+.025f,
                 .146f,white,false);
         }
         // Przy południowym wjeździe pełna pętla przecina drogę do bramy.
@@ -50,7 +52,7 @@ public static partial class BraxObozEnvironment
         Debug.LogWarning("BRAXHORN_OBOZ_TRACK_ENTRANCE_CHECK: ciagla petla przecina wjazd; " +
             "sprawdz oznaczenie przejscia i ruch autobusu przed odbiorem.");
 
-        var straight=Group("BIEZNIA · 100 metrow · cztery tory",root,P(60,0,-20));
+        var straight=Group("BIEZNIA · 100 metrow · cztery tory",root,P(68,0,-24));
         // Box() skaluje geometrię przez K=1.294. 100 jednostek źródłowych dałoby
         // 129.4 m po imporcie; dlatego cały tor i znaczniki liczymy przez 1/K.
         const float actualLengthMetres=100f;
@@ -132,7 +134,7 @@ public static partial class BraxObozEnvironment
 
     static void CoveredStrengthGym()
     {
-        var gym=Group("BRAXHORN · SILOWNIA POD DACHEM",root,P(-35,0,76));
+        var gym=Group("BRAXHORN · SILOWNIA POD DACHEM",root,P(-40,0,34));
         var mats=BraxObozMaterials.Plain("silownia-gumowa-podloga",
             new Color(.065f,.073f,.075f),.12f);
         var pads=BraxObozMaterials.Plain("silownia-czerwone-strefy",
