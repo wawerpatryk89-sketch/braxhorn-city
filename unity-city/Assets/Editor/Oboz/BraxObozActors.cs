@@ -71,9 +71,9 @@ public static class BraxObozActors
             }
             world.points = new[] {
                 Point("octagon","OKTAGON",0,-5), Point("rings","RINGI",0,15),
-                Point("cabins","DOMKI",-81,-30), Point("bags","WORKI",0,-40),
-                Point("gym","BRAXHORN GYM",-35,76), Point("wc","ŁAŹNIA I WC",-92,-83),
-                Point("oval","BIEŻNIA OWALNA",65,72), Point("sprint","BIEŻNIA 100 M",113,-35)
+                Point("cabins","DOMKI",-51,-27), Point("bags","WORKI",0,-40),
+                Point("gym","BRAXHORN GYM",-40,34), Point("wc","ŁAŹNIA I WC",-66,-52),
+                Point("oval","BIEŻNIA PĘTLA",0,-22), Point("sprint","BIEŻNIA 100 M",68,-24)
             };
             info.ownerAppearanceApproved=false; info.mobileRuntimeVerified=false;
             BraxObozMaterials.WriteTextureAudit(info.transform);
