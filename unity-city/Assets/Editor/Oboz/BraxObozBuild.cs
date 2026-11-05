@@ -111,6 +111,7 @@ public static class BraxObozBuild
         QualitySettings.streamingMipmapsActive = true;
         QualitySettings.streamingMipmapsAddAllCameras = true;
         QualitySettings.streamingMipmapsMaxLevelReduction = 1;
+        QualitySettings.globalTextureMipmapLimit = 0;
         PlayerSettings.companyName = "Braxhorn"; PlayerSettings.productName = "Braxhorn Obóz";
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, Package);
         PlayerSettings.Android.bundleVersionCode = version; PlayerSettings.bundleVersion = "0.1." + version;
