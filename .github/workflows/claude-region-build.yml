@@ -1,6 +1,8 @@
 name: Claude - region R1 na gotowo (TEST, bez publikacji)
 'on':
   # Właściciel zlecił 05.11.2026 ponowne uruchomienie APK Miasto/Metro po naprawie awarii #94. Jednorazowy push workflow; bez zmian geometrii i kolizji.
+  # 05.11.2026: jednorazowy test Androida po poprawce rozdzielenia sygnalizacji swietlnej w sektorze K_x-5_z0 (#98).
+  # Odpal tylko miasto R1 na aktualnym HEAD; nie zmieniaj materialow, geometrii ani osobnych buildow Mistrzow/osiedla.
   push:
     branches:
       - codex/miasto-metro-apk-kontrola-20261105
