@@ -3,6 +3,14 @@
 ## Zatwierdzony wygląd: elewacja nietknięta
 Budynek T11 pozostaje na oryginalnej działce planu Miasta Mistrzów: środek (495,465), parcela 120x100 m (w jednostkach nominalnych). Fasada zgodna z referencją właściciela: jasny kremowy kamień, grafitowe pylony, złote oprawy, szkło i duży oryginalny szyld C1 `KASYNO WAWER` 2048x512 (4:1). Nie malować zewnętrznych ścian na biało. Wnętrze kasyna i biur bez ścian działowych ani wyposażenia.
 
+## Wybrana przez właściciela okładzina kasyna (zastępuje wcześniejszą propozycję)
+- Materiał **Concrete Brick Wall 001** (oryginalny Poly Haven), dokładny slug `concrete_brick_wall_001`: https://polyhaven.com/a/concrete_brick_wall_001
+- Na **wszystkie istniejące jasne panele/pilastry elewacji zewnętrznej** T11, gdzie generator używa materiału `cream`; zachować pierwotne proporcje, wysokości, otwory drzwiowe i szklane fasady.
+- **Tylko natywne 2K (2048×2048)**: diffuse JPEG, normal GL PNG, ARM PNG. Żadnych nowych pobrań 1K/4K; wybór rozdzielczości jest wymuszany w `prepare_casino_textures_2k.py`, ASTC/mipmap streaming w imporcie Android.
+- Zastosować neutralny mnożnik `Color.white` dla jasnych paneli, aby **nie zmieniać barwy oryginalnie wybranej tekstury**. Materiał jest naturalnie jasnobeżowy i ma wyraźne dłutowane cegły, zatem jego faktura nie jest gładkim tynkiem.
+- Grafitowe części, metaliczne złote listwy, oświetlenie, duże okna, oryginalny szyld `C1_KASYNO_KASYNO_WAWER.png`, asfalt zewnętrzny i biały garaż B1 **bez zmian**.
+- Wcześniejsze `rectangular_facade_tiles_02` nie jest już pobierane ani nakładane jako jasna elewacja T11.
+
 ## B1 parking — docelowo
 - Tylko **w garażu**: osobny matowy biały materiał na istniejących ścianach i słupach, bez dodawania drugiego zestawu ścian.
 - Biały żelbetowy sufit, rzeczywiste poprzeczne i podłużne belki stropowe, 6 białych słupów dotykających stropu i podłogi.
