@@ -89,6 +89,7 @@ jobs:
             unity-city/ProjectSettings
             unity-city/Prywatne/miasto_palmy.tar.gz.enc
             unity-city/Prywatne/miasto_silownia_metro.tar.gz.enc
+            public/assets/cars-src/car_rev.glb
             public/assets/chars/brax.glb.gz
             public/assets/tex/brax_color.webp
             public/assets/tex/brax_normal.webp
@@ -114,6 +115,14 @@ jobs:
       - name: Verify source, workflow and pinned Unity configuration
         id: preflight
         run: python3 unity-tools/mistrzowie/pipeline.py
+      - name: Cheap static C# and Python preflight BEFORE importing bulky owner assets
+        run: |
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+          python3 -m py_compile unity-tools/mistrzowie/import_selected_a1_t11.py
+          python3 -m py_compile unity-tools/mistrzowie/prepare_car_and_mixamo.py
+          python3 -m py_compile unity-tools/mistrzowie/verify_previous_apk.py
       - name: Verify and import original A1 arena assets before any expensive Unity build
         if: ${{ hashFiles('unity-tools/mistrzowie/verify_champion_assets.py') != '' }}
         env:
@@ -158,12 +167,25 @@ jobs:
               "$RUNNER_TEMP/$selected" --dry-run
             python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
               "$RUNNER_TEMP/$selected"
+            # Owner's original three Mixamo car animations, intact and SHA-locked.
+            # A1 uses the estate's original car_rev.glb from this same repository.
+            car_zip="BRAX_MIXAMO_AUTO_3_ORIGINAL.zip"
+            gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
+              --pattern "$car_zip" --dir "$RUNNER_TEMP" --clobber
+            python3 unity-tools/mistrzowie/prepare_car_and_mixamo.py \
+              "$RUNNER_TEMP/$car_zip" --dry-run
+            python3 unity-tools/mistrzowie/prepare_car_and_mixamo.py \
+              "$RUNNER_TEMP/$car_zip"
           fi
           python3 unity-tools/mistrzowie/verify_champion_assets.py
           python3 unity-tools/mistrzowie/verify_arena_three_murals.py
           test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png
           test -s unity-city/Assets/Source/Mistrzowie/Trophies/BRAXHORN_ARENA_CASE_PLAQUE.jpg
-          echo "MISTRZOWIE_A1_T11_ASSET_GATE PASS; original belt/VIP + 3 murals + 3 relevant signs + 1 owner case image"
+          test -s unity-city/Assets/Source/Mistrzowie/Vehicles/car_rev.glb
+          test -s unity-city/Assets/Source/Mistrzowie/Vehicles/Animations/Entering\ Car.fbx
+          test -s unity-city/Assets/Source/Mistrzowie/Vehicles/Animations/Driving.fbx
+          test -s unity-city/Assets/Source/Mistrzowie/Vehicles/Animations/Exiting\ Car.fbx
+          echo "MISTRZOWIE_A1_T11_ASSET_GATE PASS; owner original belt/VIP/3 murals/3 signs/cabinet plaque/estate car/3 Mixamo clips"
 
       - name: Verify key and sign a real tiny APK before the expensive Unity build
         if: inputs.etap != 'sceny'
@@ -180,11 +202,6 @@ jobs:
           # Identity from the signed, delivered Champions #14 APK. Fatal only
           # on incompatible Android package/certificate/version, not aesthetics.
           python3 unity-tools/mistrzowie/verify_previous_apk.py
-      - name: C# syntax and local scopes before Unity (CS0136 regression)
-        run: |
-          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
-          python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
-          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
       - name: Prepare runner disk and 12 GiB Unity swap
         run: |
           # Keep the host Android SDK: APK certificate/identity verification needs it.
