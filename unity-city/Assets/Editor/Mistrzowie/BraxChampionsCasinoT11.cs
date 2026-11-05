@@ -16,7 +16,7 @@ public static class BraxChampionsCasinoT11
     static string output;
     static int serial;
     static Transform root,shell,trim,signRoot;
-    static Material cream,graphite,granite,asphalt,paving,gold,steel,glass,led,roof;
+    static Material cream,graphite,granite,asphalt,paving,gold,steel,glass,led,roof,redCarpet,parkingPaint;
 
     static void Setup(string directory)
     {
@@ -29,6 +29,8 @@ public static class BraxChampionsCasinoT11
         gold=BraxChampionsFoundation.LibraryMetal("t11_bronze_champagne",new Color(.75f,.57f,.32f));
         steel=BraxChampionsFoundation.LibraryMetal("t11_satin_steel",new Color(.32f,.34f,.37f));
         roof=BraxChampionsFoundation.SourceMaterial("t11_roof","concrete_floor_02",2.1f,new Color(.27f,.29f,.32f));
+        redCarpet=BraxChampionsFoundation.SourceMaterial("t11_casino_red_carpet","fabric_pattern_05",.55f,new Color(.64f,.028f,.038f));
+        parkingPaint=Surface("painted_parking_stripes",new Color(.97f,.97f,.93f),false,false);
         glass=Surface("clear_glass",new Color(.68f,.80f,.88f,.31f),true,false);
         led=Surface("warm_led",new Color(.92f,.78f,.57f),false,true);
     }
@@ -84,6 +86,8 @@ public static class BraxChampionsCasinoT11
         if(tiled || ((mat==cream || mat==graphite || mat==granite || mat==roof || mat==paving || mat==asphalt) && Mathf.Max(w,Mathf.Max(h,d))>3f))
             Tile(o,new Vector3(w,h,d));
         if(!solid)UnityEngine.Object.DestroyImmediate(o.GetComponent<Collider>());
+        if(mat!=glass && mat!=led)
+            GameObjectUtility.SetStaticEditorFlags(o,StaticEditorFlags.OccludeeStatic|StaticEditorFlags.BatchingStatic);
         return o;
     }
     static Transform Group(Transform parent,string name)
@@ -320,15 +324,42 @@ public static class BraxChampionsCasinoT11
             B(shell,side<0?"VIP arrival":"TAXI arrival",asphalt,side*27f,.235f,-41.9f,24f,.055f,9.7f,true,true);
             B(trim,"VIP or taxi champagne curb",gold,side*27f,.34f,-36.4f,24f,.11f,.14f,false);
             for(int i=0;i<5;i++)
-                B(trim,"Parking stall marking",paving,side*(22f+i*4.2f),.28f,-44.5f,.10f,.014f,5.6f,false);
+                B(trim,"Actual white painted asphalt parking bay line",parkingPaint,side*(22f+i*4.2f),.285f,-44.5f,.11f,.014f,5.6f,false);
             foreach(float z in new[]{-32f,33f})
                 B(shell,"Champagne black granite planter",granite,side*43f,.48f,z,3.4f,.6f,3.3f,true);
         }
         B(shell,"Front VIP/TAXI circulating driveway",asphalt,0,.221f,-42.5f,105f,.055f,10f,true,true);
+        // REAL ASPHALT SURFACE PARKING along both sides, separate from fire lanes.
+        // Building outside face x=+/-38; fire route begins |x|=49.5. Bays fit
+        // in the 11.5m strip without consuming the 7m fire-service road.
+        foreach(float side in new[]{-1f,1f})
+        {
+            B(shell,"T11 marked side car park on Poly Haven Clean Asphalt",asphalt,
+                side*45f,.252f,4f,6.2f,.06f,26f,true,true);
+            for(int i=0;i<=5;i++)
+            {
+                float row=-9f+i*5.2f;
+                B(trim,"Real white side parking bay border",parkingPaint,
+                    side*45f,.291f,row,5.95f,.012f,.115f,false);
+            }
+            B(trim,"Parking court outer curb",granite,side*48.35f,.30f,4f,.22f,.22f,26f);
+            B(shell,"Paved pedestrian walk alongside casino facade",paving,
+                side*39.95f,.255f,4f,2.6f,.07f,25.7f,true,true);
+        }
+        // Zebra crossing and separate spectator axis: no vehicle routes across
+        // the entrance doors, and no parking painted onto concrete sidewalks.
+        foreach(float x in new[]{-8.4f,-7.0f,-5.6f,5.6f,7.0f,8.4f})
+            B(trim,"White zebra marking on asphalt",parkingPaint,x,.287f,-41.5f,
+                .60f,.012f,5.5f,false);
         // The approved road grid is on X=400. Its eastern sidewalk edge X=417,
         // exactly 18m west of the T11 plot edge X=435: connect without moving T11.
         B(shell,"T11 physical access from existing city road X400",asphalt,-69f,.224f,-42.5f,20f,.054f,7.4f,true,true);
         B(shell,"Casino pedestrian main axis",granite,0,.22f,-43.7f,8.1f,.08f,11.7f,true,true);
+        B(trim,"Red carpet leading to the curved casino entrance",redCarpet,
+            0,.279f,-41.45f,5.8f,.016f,10.35f,false,true);
+        foreach(float side in new[]{-1f,1f})
+            B(trim,"Champagne bronze relief along red carpet",gold,
+                side*2.96f,.290f,-41.45f,.075f,.045f,10.35f,false);
         B(shell,"Rear service and deliveries",asphalt,0,.23f,46.7f,105f,.07f,5.4f,true,true);
         B(shell,"Delivery corridor to rear loading door",asphalt,-20f,.248f,36.6f,6.4f,.052f,17.5f,true,true);
         B(trim,"Rear loading bay white line",paving,-20f,.284f,46.7f,12f,.012f,.11f,false);
