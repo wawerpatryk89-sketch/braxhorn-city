@@ -36,10 +36,10 @@ on:
         required: false
         default: ''
       arena_assets_tag:
-        description: 'Tag release (champions-a1-...) z gotowym ZIP A1, zawierającym modele, szyldy oraz stabilne GUID; gdy nie ma assetów w repo'
+        description: 'Tag jednego wydania GitHub z arena A1 + murale + szyldy Miasta Mistrzow'
         type: string
         required: false
-        default: ''
+        default: 'champions-a1-20261105'
 permissions:
   contents: write
   actions: read
@@ -61,19 +61,18 @@ jobs:
         run: |
           python3 - <<'PYREF'
           import os, re
-          old = 'codex/miasto-mistrzow-20261104'
-          arena = 'gpt/miasto-mistrzow-arena-premium-20261105'
-          known = (old, arena)
-          value = os.environ.get('SOURCE_COMMIT', '').strip()
+          # ONE production source for a combined Arena A1 + Casino T11 APK.
+          # Running this from the older Arena-only/main workflow must stop.
+          combined = 'gpt/miasto-mistrzow-kasyno-t11-20261105'
           current = os.environ.get('GITHUB_REF', '').removeprefix('refs/heads/')
-          if not value:
-              value = os.environ['GITHUB_SHA'] if current in known else old
-          elif value in known:
-              value = os.environ['GITHUB_SHA'] if current == value else value
-          elif re.fullmatch('[0-9a-fA-F]{40}', value):
-              value = value.lower()
-          else:
-              raise SystemExit('Pole commit: zostaw puste, wybierz znana galaz Mistrzow albo pelne SHA')
+          if current != combined:
+              raise SystemExit('Wybierz Run workflow -> Use workflow from: ' + combined +
+                               '. Nie buduj starszej osobnej areny ani main.')
+          sha = os.environ['GITHUB_SHA'].lower()
+          selected = os.environ.get('SOURCE_COMMIT', '').strip()
+          if selected and selected not in (combined,sha):
+              raise SystemExit('Tylko wspolny aktualny commit A1+T11: ' + sha)
+          value = sha
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write('ref=' + value + '\n')
           PYREF
@@ -122,6 +121,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          if [ -z "$A1_ASSET_TAG" ]; then
+            echo "::error::Wspolny build A1+T11 wymaga wskazania wydania assetow"
+            exit 1
+          fi
           if [ -n "$A1_ASSET_TAG" ]; then
             if ! [[ "$A1_ASSET_TAG" =~ ^champions-a1-[a-zA-Z0-9._-]{1,80}$ ]]; then
               echo "::error::Niepoprawny tag oryginalnych zasobow A1"
