@@ -151,6 +151,17 @@ public static class BraxObozServices
                 new Vector3(.70f,.65f,.24f),porcelain);
             FixtureBox(cubicle,"Przycisk spłukiwania",new Vector3(0,1.34f,-.24f),
                 new Vector3(.17f,.025f,.085f),metal,false);
+            var flush=Node("SPŁUCZ TOALETĘ",cubicle,new Vector3(0,1.32f,-.15f))
+                .gameObject.AddComponent<BraxObozFacility>();
+            flush.kind=BraxObozFacility.Kind.Toilet;
+            // Ościeżnica i zamknięte boki kabiny; wejście ma faktyczne
+            // światło 1.72 m, bez niewidzialnej ściany na przejściu.
+            FixtureBox(cubicle,"Lewa ościeżnica WC",new Vector3(-1.21f,1.25f,1.48f),
+                new Vector3(.38f,2.15f,.12f),wood);
+            FixtureBox(cubicle,"Prawa ościeżnica WC",new Vector3(1.02f,1.25f,1.48f),
+                new Vector3(.65f,2.15f,.12f),wood);
+            FixtureBox(cubicle,"Nadproże kabiny WC",new Vector3(0,2.25f,1.48f),
+                new Vector3(2.78f,.25f,.12f),tile,false);
             var seat=Node("Usiądź — toaleta",cubicle,new Vector3(0,.69f,.10f)).gameObject.AddComponent<BraxSeat>();
             seat.label="TOALETA";seat.lie=false;seat.surfaceY=seat.transform.position.y;seat.hipsAboveRoot=.95f*K;
             // Drzwi każdej kabiny otwierają się, skrzydło ma własną kolizję.
@@ -174,6 +185,11 @@ public static class BraxObozServices
             var control=Node("Odkręć prysznic",shower,new Vector3(0,1.15f,-1.1f)).gameObject.AddComponent<BraxObozFacility>();
             control.kind=BraxObozFacility.Kind.Shower;
             control.effect=Effect(shower,new Vector3(0,2.37f,-1.28f),false);
+            // Ścianka przeciwbryzgowa, otwarte przejście 1.2 m.
+            FixtureBox(shower,"Szkło przy wejściu do prysznica",new Vector3(1.02f,1.23f,1.43f),
+                new Vector3(.72f,2.08f,.04f),mats["glass"],false);
+            FixtureBox(shower,"Profil szyby",new Vector3(.66f,1.23f,1.43f),
+                new Vector3(.055f,2.10f,.07f),metal,false);
         }
         foreach(float x in new[]{-4.1f,4.1f})
         {
@@ -184,19 +200,26 @@ public static class BraxObozServices
             FixtureBox(sink,"Lustro",new Vector3(0,1.89f,.48f),new Vector3(1.25f,1.25f,.035f),mirror,false);
             FixtureBox(sink,"Wieszak na ręcznik",new Vector3(.63f,1.19f,.10f),
                 new Vector3(.04f,.06f,.47f),metal,false);
+            var tap=Node("UMYJ RĘCE — KRAN",sink,new Vector3(0,1.04f,-.19f))
+                .gameObject.AddComponent<BraxObozFacility>();
+            tap.kind=BraxObozFacility.Kind.Sink;
+            tap.effect=Effect(sink,new Vector3(0,1.04f,-.15f),false,true);
         }
         Debug.Log("BRAXHORN_OBOZ_SANITARIATY dwa WC, dwie kabiny z prysznicem, umywalki; wymagany test przejścia i pozycji gracza");
     }
 
-    static ParticleSystem Effect(Transform parent,Vector3 position,bool steam)
+    static ParticleSystem Effect(Transform parent,Vector3 position,bool steam,bool faucet=false)
     {
-        var t=Node(steam?"Para przy piecu":"Strumień prysznica",parent,position);
+        var t=Node(steam?"Para przy piecu":faucet?"Woda z kranu":"Strumień prysznica",parent,position);
         t.localRotation=Quaternion.Euler(steam?-90:90,0,0);var particles=t.gameObject.AddComponent<ParticleSystem>();particles.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);
         var main=particles.main;main.playOnAwake=false;main.loop=true;main.maxParticles=steam?70:120;
-        main.startLifetime=steam?2.0f:.52f;main.startSpeed=steam?.35f:4.1f;main.startSize=steam?.22f:.018f;
+        main.startLifetime=steam?2.0f:faucet?.16f:.52f;
+        main.startSpeed=steam?.35f:faucet?1.1f:4.1f;
+        main.startSize=steam?.22f:faucet?.010f:.018f;
         main.simulationSpace=ParticleSystemSimulationSpace.Local;main.scalingMode=ParticleSystemScalingMode.Hierarchy;
-        var emission=particles.emission;emission.rateOverTime=steam?18:180;
-        var shape=particles.shape;shape.shapeType=ParticleSystemShapeType.Cone;shape.angle=steam?20:3;shape.radius=steam?.15f:.08f;
+        var emission=particles.emission;emission.rateOverTime=steam?18:faucet?45:180;
+        var shape=particles.shape;shape.shapeType=ParticleSystemShapeType.Cone;
+        shape.angle=steam?20:3;shape.radius=steam?.15f:faucet?.018f:.08f;
         var color=particles.colorOverLifetime;color.enabled=true;var gradient=new Gradient();
         gradient.SetKeys(new[]{new GradientColorKey(Color.white,0),new GradientColorKey(Color.white,1)},new[]{new GradientAlphaKey(0,0),new GradientAlphaKey(1,.12f),new GradientAlphaKey(0,1)});color.color=gradient;
         var shader=Shader.Find("Braxhorn/ObozWaterParticle");if(!shader)throw new InvalidOperationException("Brak shadera wody/pary");
