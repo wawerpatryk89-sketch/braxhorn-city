@@ -24,7 +24,7 @@ class ChampionsContentModeTests(unittest.TestCase):
         self.assertIn('BraxContentBuild.Baseline("mistrzowie", new[] { BraxChampionsExplorer.ScenePath })', builder)
         self.assertIn('scenes=new[]{startPath},target=BuildTarget.Android', builder)
         self.assertLess(builder.index('BraxContentBuild.Baseline("mistrzowie"'),
-                        builder.index('BuildPipeline.BuildPlayer(new BuildPlayerOptions'))
+                        builder.index('var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions'))
 
     def test_first_scene_loads_addressables_or_legacy_and_imports_zip(self):
         start = self.code("unity-city/Assets/Claude/BraxStart.cs")
