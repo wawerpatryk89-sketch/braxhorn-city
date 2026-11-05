@@ -23,9 +23,7 @@ public static partial class BraxObozEnvironment
     // oryginalna skala metrow. Geometryczne pasy na nawierzchni, nie billboard.
     static void RunningTracks()
     {
-        var red=BraxObozMaterials.Plain("bieznia-tartan-czerwien",new Color(.58f,.055f,.073f),.12f);
-        red.mainTexture=TartanGrain();
-        EditorUtility.SetDirty(red);
+        var red=BraxObozMaterials.OwnerTrackPbr();
         var white=BraxObozMaterials.Plain("bieznia-biale-linie",new Color(.95f,.95f,.91f),.18f);
         var oval=Group("BIEZNIA · pelna czerwona petla przy nowym plocie",root,
             P(0,0,BraxObozCampusLayout.PlotCenterZ));
@@ -78,30 +76,6 @@ public static partial class BraxObozEnvironment
             throw new InvalidOperationException("Bledna skala bieżni 100 m");
         Debug.Log("BRAXHORN_OBOZ_BIEZNIE owal=4-tory 100m=4-tory nawierzchnia=tartan z kolizja");
     }
-    static Texture2D TartanGrain()
-    {
-        const int size=256;
-        string dir=BraxObozCharacters.Generated+"/Materials";
-        System.IO.Directory.CreateDirectory(dir);
-        string path=dir+"/RedTartanGrain.asset";
-        var existing=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-        if(existing)return existing;
-        var tex=new Texture2D(size,size,TextureFormat.RGB24,true);
-        var pixels=new Color32[size*size];
-        // Drobny granulat: powtarzalna 256px mapa + tiling, zero nowych 4K.
-        for(int y=0;y<size;y++)for(int x=0;x<size;x++)
-        {
-            uint h=unchecked((uint)(x*374761393+y*668265263+20261105));
-            h^=h>>13; h=unchecked(h*1274126177u);h^=h>>16;
-            byte grain=(byte)(193+(h%49));
-            pixels[y*size+x]=new Color32(grain,grain,grain,255);
-        }
-        tex.SetPixels32(pixels);tex.wrapMode=TextureWrapMode.Repeat;
-        tex.filterMode=FilterMode.Trilinear;tex.Apply(true,true);
-        AssetDatabase.CreateAsset(tex,path);
-        return tex;
-    }
-
     static void TrackAnnulus(Transform parent,string name,float ax0,float az0,float ax1,float az1,
         float y,Material material,bool solid)
     {
