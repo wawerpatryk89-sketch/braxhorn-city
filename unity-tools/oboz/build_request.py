@@ -11,9 +11,9 @@ def validate(request, previous, *, event, ref, before_sha, parent_sha, private_s
              manual_first_install=False):
     original = ref == 'refs/heads/gpt/oboz'
     review_branch = ref == 'refs/heads/codex/oboz-realny-kompaktowy-20261105'
-    # Nowa galaz moze wystartowac tylko przez reczny workflow_dispatch.
-    # Push/build-request nie uruchamia kosztownego APK na galezi roboczej.
-    if event not in ('push', 'workflow_dispatch') or not (original or review_branch and event == 'workflow_dispatch'):
+    # Single owner-authorized one-off CI launch; never enabled on the source branch.
+    one_off_push = ref == 'refs/heads/run/oboz-apk-20261105-0650' and event == 'push'
+    if event not in ('push', 'workflow_dispatch') or not (original or review_branch and event == 'workflow_dispatch' or one_off_push):
         raise ValueError('Build is restricted to an explicit camp request')
     if (request.get('ownerRequested') is not True
             or request.get('privateInputsSha256') != private_sha
@@ -21,7 +21,7 @@ def validate(request, previous, *, event, ref, before_sha, parent_sha, private_s
             or not isinstance(request.get('request'), str)
             or not re.fullmatch(r'[a-z0-9-]{8,160}', request['request'])):
         raise ValueError('Missing owner request or mismatched camp inputs')
-    if event == 'workflow_dispatch':
+    if event == 'workflow_dispatch' or one_off_push:
         return manual_first_install
     # Only one new commit on the reviewed branch head can submit a request.
     # A repeated request, a branch creation, or a moved source base fails before Unity.
