@@ -17,6 +17,8 @@ public static class BraxChampionsCasinoT11
     static int serial;
     static Transform root,shell,trim,signRoot;
     static Material cream,graphite,granite,asphalt,paving,gold,steel,glass,skylightGlass,led,roof,redCarpet,parkingPaint;
+    // White finishes are GARAGE-ONLY. Do not repaint the owner-approved casino exterior.
+    static Material garageWhite,garageWhiteBeam,garageBlackAsphalt;
 
     static void Setup(string directory)
     {
@@ -32,7 +34,18 @@ public static class BraxChampionsCasinoT11
         steel.SetFloat("_Metallic",.83f);steel.SetFloat("_Roughness",.38f);
         roof=BraxChampionsCasinoPbr2K.Create(output,"t11_roof","concrete_floor_02",2.1f,new Color(.27f,.29f,.32f));
         redCarpet=BraxChampionsCasinoPbr2K.Create(output,"t11_casino_red_carpet","fabric_pattern_05",.55f,new Color(.64f,.028f,.038f));
-        parkingPaint=Surface("painted_parking_stripes",new Color(.97f,.97f,.93f),false,false);
+        parkingPaint=Surface("painted_parking_stripes",new Color(.99f,.99f,.99f),false,false);
+        // Washable matte white walls, white structural columns and a white
+        // reinforced ceiling ONLY below grade. The casino facade remains cream,
+        // dark graphite and champagne gold as in the owner's reference photo.
+        garageWhite=Surface("B1_clean_white_wall_and_columns",new Color(.975f,.978f,.965f),false,false);
+        garageWhite.SetFloat("_Roughness",.82f);
+        garageWhiteBeam=Surface("B1_white_structural_roof_beams",new Color(.92f,.93f,.92f),false,false);
+        garageWhiteBeam.SetFloat("_Roughness",.76f);
+        // Black, real original Poly Haven 2K asphalt. Separate material prevents
+        // the underground surface tint from darkening VIP/TAXI roads outside.
+        garageBlackAsphalt=BraxChampionsCasinoPbr2K.Create(output,"t11_B1_black_asphalt",
+            "clean_asphalt",2.1f,new Color(.40f,.40f,.41f));
         glass=Surface("clear_glass",new Color(.68f,.80f,.88f,.31f),true,false);
         // The reference drawing has a blue-violet translucent glazed roof lantern.
         skylightGlass=Surface("roof_skylight_glass",new Color(.48f,.56f,.76f,.38f),true,false);
@@ -344,36 +357,46 @@ public static class BraxChampionsCasinoT11
         var basement=Group(root,"T11 | UNDERGROUND CAR PARK - real ramp and bays");
         var floor=B(basement,"Garage structural floor - real collider",granite,
             4.5f,-4.20f,2.5f,73f,.16f,53f,true,true);
-        // Top of floor -4.12; asphalt ramp upper face exactly connects it.
-        B(basement,"Garage floor asphalt",asphalt,
-            4.5f,-4.112f,2.5f,73f,.015f,53f,false,true);
-        B(basement,"Garage solid west retaining wall",graphite,
+        // Continuous black ASPHALT wearing course across the full 73x53 m
+        // garage; under it remains a separate structural, colliding concrete slab.
+        B(basement,"Garage floor BLACK Poly Haven asphalt",garageBlackAsphalt,
+            4.5f,-4.108f,2.5f,73f,.02f,53f,false,true);
+        B(basement,"Garage solid west retaining wall WHITE",garageWhite,
             -32.05f,-2.2f,2.5f,.32f,4.2f,53f,true,true);
-        B(basement,"Garage north wall",graphite,
+        B(basement,"Garage north wall WHITE",garageWhite,
             4.5f,-2.2f,29.0f,73.3f,4.2f,.32f,true,true);
-        B(basement,"Garage south wall (no exit through front)",graphite,
+        B(basement,"Garage south wall WHITE (no exit through front)",garageWhite,
             4.5f,-2.2f,-24.0f,73.3f,4.2f,.32f,true,true);
         // East retaining wall is broken at z=19..27 to let vehicles enter.
-        B(basement,"Garage east solid wall before entry",graphite,
+        B(basement,"Garage east solid wall WHITE before entry",garageWhite,
             41.15f,-2.2f,-2.5f,.28f,4.2f,43f,true,true);
-        B(basement,"Garage east short wall after entry",graphite,
+        B(basement,"Garage east short wall WHITE after entry",garageWhite,
             41.15f,-2.2f,28f,.28f,4.2f,2f,true,true);
         // Real covered underground ceiling, below the existing plot grade.
-        B(basement,"Garage reinforced ceiling",roof,4.5f,-.58f,2.5f,
+        B(basement,"Garage WHITE reinforced ceiling",garageWhite,4.5f,-.58f,2.5f,
             73f,.20f,53f,true,true);
+        // The white ceiling has visible STRUCTURAL transverse/longitudinal
+        // beams, not a bare floating rectangle. Beam undersides are at -1.08 m;
+        // clear height above the asphalt is over 3.0 m (nominal).
+        foreach(float zz in new[]{-18f,-6f,6f,18f,27f})
+            B(basement,"B1 WHITE transverse roof beam",garageWhiteBeam,
+                4.5f,-.875f,zz,72f,.40f,.48f,true,true);
+        foreach(float xx in new[]{-29.0f,-12.5f,4.0f,20.5f,37.0f})
+            B(basement,"B1 WHITE longitudinal roof beam",garageWhiteBeam,
+                xx,-.875f,2.5f,.48f,.40f,51f,true,true);
         // Full-width turning area at the bottom of the descent: physically
         // joins the underground hall to the ramp, no void under vehicle wheels.
         B(basement,"Garage bottom structural landing",granite,
             44.5f,-4.20f,26f,7.7f,.16f,8f,true,true);
-        B(basement,"Garage bottom asphalt landing",asphalt,
+        B(basement,"Garage bottom BLACK asphalt landing",garageBlackAsphalt,
             44.5f,-4.112f,26f,7.7f,.015f,8f,false,true);
         // The OPEN surface ramp remains free of that ceiling.
-        var ramp=B(basement,"Underground garage driveable 9.5 percent ramp",asphalt,
+        var ramp=B(basement,"Underground garage driveable BLACK asphalt ramp 9.5 percent",garageBlackAsphalt,
             44.5f,-1.985f,1f,7.65f,.12f,46.208f,true,true);
         ramp.transform.localRotation=Quaternion.Euler(
             Mathf.Atan2(4.39f,46f)*Mathf.Rad2Deg,0,0);
-        B(basement,"Ramp west retaining wall",granite,40.45f,-1.88f,1f,.30f,4.84f,46f,true,true);
-        B(basement,"Ramp east retaining wall",granite,48.55f,-1.88f,1f,.30f,4.84f,46f,true,true);
+        B(basement,"Ramp west retaining wall WHITE",garageWhite,40.45f,-1.88f,1f,.30f,4.84f,46f,true,true);
+        B(basement,"Ramp east retaining wall WHITE",garageWhite,48.55f,-1.88f,1f,.30f,4.84f,46f,true,true);
         B(basement,"Garage entrance from VIP/TAXI circulation",asphalt,
             44.5f,.236f,-30f,7.6f,.055f,16f,true,true);
         B(basement,"Garage gate LEFT graphite pier",graphite,
@@ -406,9 +429,10 @@ public static class BraxChampionsCasinoT11
         foreach(float x in new[]{-30.25f,29.35f})
             foreach(float z in new[]{-18f,0f,13.5f})
             {
-                B(basement,"B1 structural reinforced support column",granite,
-                    x,-2.35f,z,.78f,3.45f,.78f,true,true);
-                B(basement,"B1 protective champagne column collar",gold,
+                // Bottom -4.12: meets the slab. Top -.68: meets the ceiling.
+                B(basement,"B1 structural reinforced WHITE support column",garageWhite,
+                    x,-2.4f,z,.78f,3.44f,.78f,true,true);
+                B(basement,"B1 WHITE column protective plinth",garageWhite,
                     x,-3.65f,z,1.0f,.18f,1.0f,false);
             }
 
@@ -420,10 +444,10 @@ public static class BraxChampionsCasinoT11
             foreach(float z in new[]{-13f,9f})
             {
                 B(basement,"B1 ceiling luminaire "+(++lightingId),led,
-                    x,-.735f,z,1.40f,.075f,.36f,false);
+                    x,-1.17f,z,1.40f,.075f,.36f,false);
                 var light=new GameObject("B1 real warm-white parking light "+lightingId);
                 light.transform.SetParent(basement,false);
-                light.transform.localPosition=new Vector3(x,-.81f,z)*K;
+                light.transform.localPosition=new Vector3(x,-1.22f,z)*K;
                 var bulb=light.AddComponent<Light>();
                 bulb.type=LightType.Point;
                 bulb.range=16f*K;
