@@ -16,7 +16,7 @@ public static class BraxChampionsCasinoT11
     static string output;
     static int serial;
     static Transform root,shell,trim,signRoot;
-    static Material cream,graphite,granite,asphalt,paving,gold,steel,glass,led,roof,redCarpet,parkingPaint;
+    static Material cream,graphite,granite,asphalt,paving,gold,steel,glass,skylightGlass,led,roof,redCarpet,parkingPaint;
 
     static void Setup(string directory)
     {
@@ -32,6 +32,8 @@ public static class BraxChampionsCasinoT11
         redCarpet=BraxChampionsFoundation.SourceMaterial("t11_casino_red_carpet","fabric_pattern_05",.55f,new Color(.64f,.028f,.038f));
         parkingPaint=Surface("painted_parking_stripes",new Color(.97f,.97f,.93f),false,false);
         glass=Surface("clear_glass",new Color(.68f,.80f,.88f,.31f),true,false);
+        // The reference drawing has a blue-violet translucent glazed roof lantern.
+        skylightGlass=Surface("roof_skylight_glass",new Color(.48f,.56f,.76f,.38f),true,false);
         led=Surface("warm_led",new Color(.92f,.78f,.57f),false,true);
     }
 
@@ -165,7 +167,7 @@ public static class BraxChampionsCasinoT11
         B(shell,"Podium roof east",roof,25f,14.05f,0,26f,.22f,56f,true,true);
         B(shell,"Skylight roof south",roof,0,14.05f,-19f,24f,.22f,18f,true,true);
         B(shell,"Skylight roof north",roof,0,14.05f,19f,24f,.22f,18f,true,true);
-        B(shell,"Actual transparent rooftop skylight",glass,0,14.14f,0,24f,.11f,20f,false);
+        B(shell,"Actual transparent blue-violet rooftop skylight",skylightGlass,0,14.14f,0,24f,.11f,20f,false);
         for(float x=-12f;x<=12f;x+=4f)
             B(trim,"Skylight champagne metal longitudinal rib",gold,x,14.24f,0,.12f,.13f,20f,false);
         for(float z=-10f;z<=10f;z+=5f)
@@ -270,6 +272,10 @@ public static class BraxChampionsCasinoT11
             for(int j=0;j<3;j++)
                 B(shell,"Entrance side granite stair",paving,side*(7.1f+j*.6f),.22f+j*.03f,-36.3f,5.3f,.14f+j*.07f,1.55f,true,true);
         B(shell,"Unobstructed accessible middle ramp",paving,0,.22f,-40f,7.2f,.08f,7.7f,true,true);
+        // Seal only the lintel gap above operable door leaves; keep a full
+        // unobstructed 5.6m public passage at human height.
+        B(shell,"Real clear fixed door transom glass",glass,0,3.75f,-36.13f,5.7f,.32f,.10f,false);
+        B(trim,"Gold entry transom horizontal frame",gold,0,3.59f,-36.19f,5.95f,.07f,.12f,false);
         Door("T11_CASINO_WAWER_PUBLIC","Public glass main entry",0,-36.28f,180f,5.6f);
     }
 
@@ -380,6 +386,16 @@ public static class BraxChampionsCasinoT11
             var instance=BraxMiastoAssety.Postaw(shell,palm,"T11 approved city palm",location,0f,1f,false,true);
             BraxMiastoAssety.LodyZWezlow(instance,new[]{.25f,.08f,.012f});
         }
+        // Use existing realistic trees from the city's approved asset library
+        // for the four raised planters; no billboard vegetation or fake spheres.
+        var planterTree=BraxRegion.Model("drzewo_verdant");
+        if(!planterTree)throw new FileNotFoundException("Original city planter greenery missing");
+        foreach(float side in new[]{-1f,1f})
+            foreach(float z in new[]{-32f,33f})
+            {
+                var at=shell.TransformPoint(new Vector3(side*43f,.78f,z)*K);
+                BraxRegion.Put(shell,planterTree,"Casino authentic planted topiary",at,0f,1f,false,2.2f*K);
+            }
         foreach(float side in new[]{-1f,1f})
             for(int i=0;i<6;i++)
                 B(trim,"Ground-level warm gold exterior bollard",led,side*48f,.62f,-25f+i*10f,.12f,.85f,.12f,false);
