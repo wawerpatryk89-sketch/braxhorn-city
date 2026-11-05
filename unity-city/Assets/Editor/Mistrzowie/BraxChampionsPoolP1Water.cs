@@ -58,6 +58,25 @@ public static class BraxChampionsPoolP1Water
         swimming.basinId=id;
     }
 
+    public static void SlideLanding(Transform parent,float x,float z,float width,float depth,float surfaceY)
+    {
+        // The source's opaque PoolWater is intentionally hidden by the slide
+        // installer. The original curved landing rim is preserved, with a
+        // real project-consistent animated surface inside.
+        if(width<=0||depth<=0)throw new ArgumentException("Slide landing dimensions");
+        var water=GameObject.CreatePrimitive(PrimitiveType.Quad);
+        water.name="P1 REAL slide landing pool WATER | moving azure, no source toy-water";
+        water.transform.SetParent(parent,false);
+        water.transform.localPosition=new Vector3(x,surfaceY,z)*K;
+        water.transform.localRotation=Quaternion.Euler(-90,0,0);
+        water.transform.localScale=new Vector3(width,depth,1f)*K;
+        var renderer=water.GetComponent<MeshRenderer>();
+        renderer.sharedMaterial=MaterialFor("SLIDE_LANDING",false);
+        renderer.shadowCastingMode=ShadowCastingMode.Off;
+        renderer.receiveShadows=false;
+        UnityEngine.Object.DestroyImmediate(water.GetComponent<Collider>());
+    }
+
     public static void Jacuzzi(Transform approvedModel,string sourceId,float rimHeightInMetres,float surfaceWidth,float surfaceDepth)
     {
         // Called after the actual owner jacuzzi FBX/GLB has been imported and
