@@ -25,19 +25,14 @@ concurrency:
 
 jobs:
   android-oboz:
-    if: github.ref == 'refs/heads/gpt/oboz' || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/codex/oboz-realny-kompaktowy-20261105' || github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105')) || (github.event_name == 'push' && github.ref == 'refs/heads/run/oboz-apk-20261105-0650')
+    if: github.ref == 'refs/heads/gpt/oboz' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-realny-kompaktowy-20261105') || (github.event_name == 'push' && github.ref == 'refs/heads/run/oboz-apk-20261105-0650')
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      # The remodel branch is exclusively for content updates of BRAXHORN CITY.
-      # Do not spend hours creating a separate com.braxhorn.oboz APK.
-      - name: Blokada osobnego APK na gałęzi aktualizacji obozu
-        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
-        run: |
-          echo '::error::Ta gałąź wymaga aktualizacji zawartości BRAXHORN CITY, nie nowego APK com.braxhorn.oboz. Wybierz wyłącznie workflow content-update po potwierdzeniu bazy.'
-          exit 1
+      # This job is EXCLUDED on codex/oboz-przebudowa-pbr-20261105.
+      # Use oboz-content-base.yml or oboz-content-update.yml instead.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 2
