@@ -6,7 +6,7 @@ public sealed class BraxObozImport : AssetPostprocessor
 {
     const string Root = "Assets/Source/Prywatne/Oboz/";
     public override int GetPostprocessOrder() => 100;
-    public override uint GetVersion() => 6;
+    public override uint GetVersion() => 7;
     void OnPreprocessModel()
     {
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
@@ -38,7 +38,7 @@ public sealed class BraxObozImport : AssetPostprocessor
         // Copies generated from foliage alpha-mask sources must not fall back
         // to uncompressed Android RGBA. Keep original source and alpha cutoff,
         // but import distant branches at 2K / ASTC 6x6. Four-view billboard
-        // atlases need their full 8192-wide source for four 2K views.
+        // atlases keep original 8K source; distant Android LOD uses a 4K copy.
         const string generatedFoliage = "Assets/PlayableGenerated/Oboz/Vegetation/";
         if (assetPath.StartsWith(generatedFoliage, StringComparison.Ordinal))
         {
@@ -65,7 +65,7 @@ public sealed class BraxObozImport : AssetPostprocessor
                 var androidFoliage = tex.GetPlatformTextureSettings("Android");
                 androidFoliage.name = "Android";
                 androidFoliage.overridden = true;
-                androidFoliage.maxTextureSize = isBillboard ? 8192 : 2048;
+                androidFoliage.maxTextureSize = isBillboard ? 4096 : 2048;
                 androidFoliage.format = TextureImporterFormat.ASTC_6x6;
                 androidFoliage.compressionQuality = 90;
                 tex.SetPlatformTextureSettings(androidFoliage);
@@ -93,7 +93,7 @@ public sealed class BraxObozImport : AssetPostprocessor
         bool vegetation = assetPath.Contains("/environment/vegetation/");
         bool billboard = assetPath.Contains("/environment/vegetation/billboards/");
         // Mobile quality policy. Source pixels stay unchanged; restrict only
-        // Android imported resolution. Preserve full-size 4-view billboards.
+        // Android imported resolution. Source 8K is preserved; distant LOD 4K.
         bool hero = assetPath.StartsWith(Root + "characters/monika/", StringComparison.Ordinal);
         bool otherCharacter = assetPath.StartsWith(Root + "characters/", StringComparison.Ordinal) && !hero;
         bool tiledGravel = assetPath.StartsWith(Root + "environment/materials/gravel/", StringComparison.Ordinal);
@@ -108,7 +108,7 @@ public sealed class BraxObozImport : AssetPostprocessor
         int editorMax = billboard ? 8192 : otherCharacter ? 2048 : 4096;
         // Tiled materials retain a sharp 2K near the camera; ordinary mipmaps
         // and selective streaming provide lower-detail versions at distance.
-        int androidMax = billboard ? 8192 :
+        int androidMax = billboard ? 4096 :
             tiled || otherCharacter || premiumSurface || vegetationMap ? 2048 : 4096;
         var androidFormat = billboard || vegetationMap || tiled && !normal
             ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
