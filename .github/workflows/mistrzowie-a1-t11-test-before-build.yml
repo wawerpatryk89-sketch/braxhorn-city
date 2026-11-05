@@ -27,6 +27,8 @@ jobs:
             unity-city/Assets/Mistrzowie/
             unity-city/Assets/Updates/
             unity-city/Assets/Source/Mistrzowie/
+            unity-city/Assets/Source/Claude/Metro/metro_train.glb
+            public/assets/chars/brax.glb.gz
             unity-city/Packages/manifest.json
             unity-tools/mistrzowie/
             unity-tools/validation/
@@ -65,9 +67,9 @@ jobs:
             --jq '.[] | select(.tag_name=="champions-a1-20261105") | .assets[].name')"
           printf '%s\n' "$files"
           failed=0
-          for wanted in "ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip" \
-                        "ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip" \
-                        "brax (2)(1).zip"; do
+          # The production workflow expects one SHA-locked owner wrapper.
+          # Its originals stay unmodified; no separate art uploads required.
+          for wanted in "BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip"; do
             if ! grep -Fxq "$wanted" <<<"$files"; then
               echo "::error::MISSING ORIGINAL OWNER SOURCE: $wanted"
               failed=1
