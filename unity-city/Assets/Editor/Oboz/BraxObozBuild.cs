@@ -134,7 +134,8 @@ public static class BraxObozBuild
             QualitySettings.SetQualityLevel(i, false);
             QualitySettings.streamingMipmapsActive = true;
             QualitySettings.streamingMipmapsMemoryBudget = 256;
-            QualitySettings.streamingMipmapsMaxLevelReduction = 3;
+            QualitySettings.streamingMipmapsMaxLevelReduction = 2;
+            QualitySettings.globalTextureMipmapLimit = 0;
             QualitySettings.streamingMipmapsAddAllCameras = true;
         }
         QualitySettings.SetQualityLevel(previousQuality, false);

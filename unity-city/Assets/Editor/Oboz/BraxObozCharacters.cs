@@ -57,7 +57,10 @@ public static partial class BraxObozCharacters
     public static GameObject CreateCached(CharacterSpec spec, float scale, bool sourceReviewOnly = false)
     {
         var dependencies = new[] { spec.modelPath, spec.colorPath, spec.normalPath, spec.roughnessPath, spec.metallicPath,
-            "Assets/Editor/Oboz/BraxObozCharacters.cs", "Assets/Editor/Oboz/BraxObozImport.cs", "Assets/Oboz/ObozCharacter.shader" }
+            "Assets/Editor/Oboz/BraxObozCharacters.cs", "Assets/Editor/Oboz/BraxObozImport.cs",
+            BraxObozPbrPack.EditorSource, "Assets/Oboz/ObozCharacter.shader" }
+            .Concat(new[] { BraxObozPbrPack.IndexPath,
+                    BraxObozPbrPack.CharacterPath(spec.id) }.Where(File.Exists))
             .Concat(spec.clips.Any(c=>c.directCalibrated)?new[]{"Assets/Editor/Oboz/BraxObozMonikaMotion.cs"}:Array.Empty<string>())
             .Concat((spec.clips ?? Array.Empty<ClipSpec>()).Select(c => c.path)).Distinct().OrderBy(p => p);
         string input = Application.unityVersion + "|" + scale.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" + sourceReviewOnly + "|" + JsonUtility.ToJson(spec);
@@ -192,11 +195,22 @@ public static partial class BraxObozCharacters
         mat.SetFloat("_DarkHands", c.id == "gorr" ? 1 : 0);
         var props = new[] { "_MainTex", "_BumpMap", "_RoughnessTex", "_MetallicTex" };
         var paths = new[] { c.colorPath, c.normalPath, c.roughnessPath, c.metallicPath };
+        // Keep all original source maps. Only the reviewed pilot Monika uses
+        // R=metallic / G=roughness in one linear, shared 4K texture.
+        // If packing was not generated or validated, retain both legacy maps.
+        var packedMR = BraxObozPbrPack.CharacterMR(c.id, c.metallicPath, c.roughnessPath);
         for (int i = 0; i < paths.Length; i++)
         {
+            if (packedMR && (props[i] == "_RoughnessTex" || props[i] == "_MetallicTex"))
+                continue;
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(paths[i]);
             if (!texture) { Object.DestroyImmediate(mat); throw new InvalidOperationException("Brak tekstury " + paths[i]); }
             mat.SetTexture(props[i], texture);
+        }
+        if (packedMR)
+        {
+            mat.SetTexture("_PackedMR", packedMR);
+            mat.EnableKeyword("OBOZ_PACKED_MR");
         }
         Save(mat, folder + "/Character.mat");
         return AssetDatabase.LoadAssetAtPath<Material>(folder + "/Character.mat");

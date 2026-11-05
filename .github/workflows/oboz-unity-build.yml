@@ -100,6 +100,14 @@ jobs:
         run: python3 unity-tools/oboz/assets.py restore
       - name: Zweryfikowane materiały Poly Haven dla obozu
         run: python3 unity-tools/oboz/public_materials.py
+      - name: Spakuj PBR postaci (Monika 4K, pozostali 2K) — oryginały bez zmian
+        # Packing is an optimization, not a compilation dependency. If this
+        # step fails, the Unity authoring shader keeps original source maps.
+        continue-on-error: true
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==12.0.0
+          python3 -m unittest discover -s unity-tools/oboz -p 'test_pbr_pack.py' -v
+          python3 unity-tools/oboz/pbr_pack.py
       - name: Zweryfikowane animacje ruchu Moniki
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}

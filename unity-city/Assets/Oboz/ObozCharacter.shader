@@ -5,6 +5,7 @@ Shader "Braxhorn/ObozCharacter"
   _BumpMap("Original normal",2D)="bump"{}
   _RoughnessTex("Original roughness",2D)="white"{}
   _MetallicTex("Original metallic",2D)="black"{}
+  _PackedMR("Pilot: R metallic, G roughness (linear 4K)",2D)="white"{}
   _BumpScale("Normal strength",Range(0,2))=.85
   _RoughnessFloor("Roughness floor",Range(0,1))=.42
   _MetallicScale("Metallic response",Range(0,1))=.30
@@ -15,7 +16,8 @@ Shader "Braxhorn/ObozCharacter"
   CGPROGRAM
   #pragma target 3.0
   #pragma surface surf Standard fullforwardshadows
-  sampler2D _MainTex,_BumpMap,_RoughnessTex,_MetallicTex;
+  #pragma shader_feature_local _ OBOZ_PACKED_MR
+  sampler2D _MainTex,_BumpMap,_RoughnessTex,_MetallicTex,_PackedMR;
   float _BumpScale,_RoughnessFloor,_MetallicScale,_DarkHands;
   struct Input {float2 uv_MainTex;float2 uv_BumpMap;float4 color:COLOR;};
   void surf(Input IN,inout SurfaceOutputStandard o) {
@@ -29,8 +31,16 @@ Shader "Braxhorn/ObozCharacter"
    o.Albedo=lerp(o.Albedo,charcoal.xxx,hand);
    float3 n=UnpackNormal(tex2D(_BumpMap,IN.uv_BumpMap));n.xy*=_BumpScale;
    o.Normal=normalize(n);
+   #if defined(OBOZ_PACKED_MR)
+   // The original metallic and roughness RED channels are packed as R and G.
+   // Identical UVs and original per-channel scalar factors are retained.
+   float2 mr = tex2D(_PackedMR,IN.uv_MainTex).rg;
+   o.Metallic=saturate(mr.r*_MetallicScale);
+   o.Smoothness=1-clamp(mr.g,_RoughnessFloor,.96);
+   #else
    o.Metallic=saturate(tex2D(_MetallicTex,IN.uv_MainTex).r*_MetallicScale);
    o.Smoothness=1-clamp(tex2D(_RoughnessTex,IN.uv_MainTex).r,_RoughnessFloor,.96);
+   #endif
    o.Metallic*=1-hand;o.Smoothness=lerp(o.Smoothness,.22,hand);
    o.Occlusion=1;o.Emission=0;o.Alpha=1;
   }
