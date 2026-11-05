@@ -21,7 +21,7 @@ Zachować skalę `K=BraxClaudeOsiedle.K=2.33/1.80`, modele grywalne, strukturę 
 - `build_exteriors.py`: frontowy i tylny otwór wejścia, usunięte atrapy zamkniętych drzwi; przestawiony kiosk serwisowy za areną, by nie przecinał tylnego wejścia.
 
 ## Pakiet wejściowy od właściciela — NIE MA POTWIERDZENIA IMPORTU DO REPO
-W rozmowie jest oryginalny ZIP z pasem oraz dwa arkusze szyldów; lokalnie przygotowano pełny `champions_arena_A1_full_import.zip` (ok. 108 MB) z:
+W rozmowie jest oryginalny ZIP z pasem oraz dwa arkusze szyldów; lokalnie przygotowano pełny `champions_arena_A1_unity_ready.zip` (ok. 108 MB) z:
 - `Assets/Source/Mistrzowie/Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbx` + oryginalne mapy w folderze .fbm
 - `Assets/Source/Mistrzowie/Trophies/ChampionshipBelt_ARM.png` (roughness/metallic spakowane z oryginalnych map)
 - czterema przyciętymi RGBA PNG w `Assets/Source/Mistrzowie/ArenaSigns/`:
@@ -49,12 +49,18 @@ W rozmowie jest oryginalny ZIP z pasem oraz dwa arkusze szyldów; lokalnie przyg
 - SHA256 przygotowanego GLB: `a8896bccfa939235579d0daf9cad294edd4a7c103ae79a1801c2bdc1366356f1`.
 - Docelowa ścieżka w repo: `unity-city/Assets/Source/Mistrzowie/VIP/free_luxurious_barrel_seat_2k.glb`.
 - `BraxChampionsVIPSeats.cs` generuje 16 foteli z oryginalnej siatki na dwóch stronach chodnika przy stanowiskach sędziowskich. Rozstaw 1,45 m w rzędzie, 1,75 m między rzędami, 0,96 m maks. obrys i prosta kolizja każdego fotela.
-- **Stoły sędziów, monitory, ich krzesła i funkcje pozostają bez zmian.** Tanie/przejściowe miejsca VIP nie są generowane, jeśli importowany model jest dostępny. Jeśli GLB nie istnieje w projekcie, obecny model tymczasowy pozostaje (bez fałszywego twierdzenia o ukończeniu wymiany).
+- **Stoły sędziów, monitory, ich krzesła i funkcje pozostają bez zmian.** Tanie/przejściowe miejsca VIP usunięto bezwarunkowo z kodu A1. Jeśli GLB nie istnieje w projekcie, nie używamy atrap — ręczny workflow ma przerwać proces przed kosztownym Unity.
 - Generator odrzuca mapy większe niż 2048 lub import bez faktycznych poziomów mip (mipmapCount). Filtr glTF minFilter=9987 żąda trilinear mipmapping; zachowanie w Unity wymaga sprawdzenia po imporcie.
 - Test statyczny `test_vip_owner_model.py` sprawdza ilość, rozstaw, materiał, warunek importu i nietknięte stanowiska sędziowskie.
-- Lokalny łączny ZIP: `champions_arena_A1_full_import.zip` (~107,8 MB) zawiera 11 plików źródłowych: pas, mapy, cztery szyldy oraz VIP GLB. ZIP sprawdzony przez `ZipFile.testzip()`. **Nie został automatycznie przesłany do GitHub**, co blokuje odbiór końcowy i render postaci na urządzeniu.
+- Lokalny łączny ZIP: `champions_arena_A1_unity_ready.zip` (~107,8 MB) zawiera 11 plików źródłowych: pas, mapy, cztery szyldy oraz VIP GLB. ZIP sprawdzony przez `ZipFile.testzip()`. **Nie został automatycznie przesłany do GitHub**, co blokuje odbiór końcowy i render postaci na urządzeniu.
 
 Status: kod na gałęzi, źródła binarne spakowane lokalnie, przed dopuszczeniem APK potrzebne rzeczywiste dodanie binariów do projektu, kompilacja Unity i test Android. Żadnego automatycznego buildu.
 
 ### Walidacja aktualnej pełnej paczki
-Archiwum `champions_arena_A1_full_import.zip`: 107 782 665 bajtów, SHA256 `453a5fa9cd637d6a2a733893c453faa12914dc2610f69bf73dd3d5f65fbfcef1`, 13 pozycji (11 zasobów + manifest + README). W lokalnej kontroli: ZIP CRC PASS; 11 x SHA256 PASS; oryginalny FBX bez zmiany bajtów; GLB 5 siatek i 14 węzłów bez zmian oraz 6 map PBR 2K. **Nie jest to test Unity.**
+Archiwum `champions_arena_A1_unity_ready.zip`: 107 780 275 bajtów, SHA256 `c96e39cd218b2f884560be0e89d0f24b378e7a49512486830643f6934cdc4f71`, 28 pozycji (11 zasobów + 15 plików .meta ze stałymi GUID + manifest + README). W lokalnej kontroli: ZIP CRC PASS; 11 x SHA256 PASS; oryginalny FBX bez zmiany bajtów; GLB 5 siatek i 14 węzłów bez zmian oraz 6 map PBR 2K. **Nie jest to test Unity.**
+
+### Weryfikacja gotowości na runnerze (po dodaniu źródeł)
+- `verify_champion_assets.py` wymaga 11 plików oryginalnych i 15 stałych metadanych GUID: **26/26 PASS** przed Unity.
+- Ostateczny ZIP: `champions_arena_A1_unity_ready.zip` (SHA256: `c96e39cd218b2f884560be0e89d0f24b378e7a49512486830643f6934cdc4f71`); nie ma jeszcze dowodu jego przesłania do GitHub Releases ani do repo.
+- Ręczny workflow `mistrzowie-apk.yml` na gałęzi `gpt/miasto-mistrzow-arena-premium-20261105` rozpoznaje tę gałąź i opcjonalny `arena_assets_tag` (release zawierający ZIP); źródła po pobraniu są weryfikowane przed kosztownym Unity.
+- Odbiór renderu, fizyka i Android nadal **NIEURUCHOMIONE**.
