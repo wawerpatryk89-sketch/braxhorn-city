@@ -79,6 +79,37 @@ def preflight():
     print(json.dumps(report))
 
 
+def signer_fingerprints(apk):
+    output = command(sdk_tool("apksigner"), "verify", "--print-certs", str(apk))
+    return [value.lower() for value in re.findall(
+        r"Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9]+)", output)]
+
+
+def resign_with_existing_key(source, identity, expected_cert):
+    """Use only the existing keystore; never publish without verification.
+
+    The original compiled APK remains untouched if re-signing fails.
+    """
+    keystore = ROOT / "unity-city/braxhorn.keystore"
+    password = ROOT / "unity-city/braxhorn.keystore.pass"
+    with tempfile.TemporaryDirectory(prefix="mistrzowie-resign-", dir=source.parent) as temporary:
+        signed = Path(temporary) / "signed.apk"
+        command(sdk_tool("apksigner"), "sign",
+                "--ks", str(keystore), "--ks-key-alias", "braxhorn",
+                "--ks-pass", "file:" + str(password),
+                "--key-pass", "file:" + str(password),
+                "--out", str(signed), str(source))
+        if not signed.is_file() or signed.stat().st_size < 1024:
+            raise RuntimeError("Existing-key signer did not produce an APK")
+        if signer_fingerprints(signed) != [expected_cert]:
+            raise RuntimeError("Re-signed APK still fails the repository certificate check")
+        signed_identity = parse_identity(command(sdk_tool("aapt"), "dump", "badging", str(signed)))
+        if signed_identity != identity:
+            raise RuntimeError("Re-signed APK changed applicationId/versionCode")
+        os.replace(signed, source)
+    print("BRAX_MISTRZOWIE_APK_RESIGNED_WITH_EXISTING_KEY_AND_VERIFIED")
+
+
 def stage():
     source = ROOT / "build/Android/braxhorn-mistrzowie.apk"
     if not source.is_file() or source.stat().st_size < 1024:
@@ -88,9 +119,16 @@ def stage():
     if app_id != APP_ID or version != expected_version:
         raise RuntimeError("APK applicationId/versionCode mismatch")
     expected_cert = certificate_sha256()
-    verification = command(sdk_tool("apksigner"), "verify", "--print-certs", str(source))
-    signers = re.findall(r"Signer #\d+ certificate SHA-256 digest:\s*([a-fA-F0-9]+)", verification)
-    if [s.lower() for s in signers] != [expected_cert]:
+    # Unity succeeded but delivery #9 rejected its APK certificate.
+    # Do not suppress the check: re-sign with the original key and verify.
+    try:
+        signers = signer_fingerprints(source)
+    except subprocess.CalledProcessError:
+        signers = []
+    if signers != [expected_cert]:
+        print("BRAX_MISTRZOWIE_APK_SIGNATURE_MISMATCH; attempting existing-key correction")
+        resign_with_existing_key(source, (app_id, version), expected_cert)
+    if signer_fingerprints(source) != [expected_cert]:
         raise RuntimeError("APK is not signed with the existing repository certificate")
     # The Actions entry may live on main while the game is checked out at a
     # separate, explicitly selected Champions commit. Keep both identities.
