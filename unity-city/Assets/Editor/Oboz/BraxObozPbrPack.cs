@@ -33,23 +33,24 @@ public static class BraxObozPbrPack
     [Serializable] sealed class Index
     {
         public int schema;
-        public bool pilotOnly, originalsPreserved;
+        public string profile;
+        public bool originalsPreserved;
         public Entry[] entries;
     }
 
     public static Texture2D CharacterMR(string id, string metallicPath, string roughnessPath)
     {
         CharacterPath(id); // Reject unexpected path IDs before resolving a file.
-        return LoadPilot(id, "MR", metallicPath, roughnessPath);
+        return LoadVerifiedPack(id, "MR", metallicPath, roughnessPath);
     }
 
     public static Texture2D SurfaceRA(string id, string roughnessPath, string aoPath)
     {
         if (id != "clean_asphalt") return null;
-        return LoadPilot("clean_asphalt", "RA", roughnessPath, aoPath);
+        return LoadVerifiedPack("clean_asphalt", "RA", roughnessPath, aoPath);
     }
 
-    static Texture2D LoadPilot(string id, string role, string first, string second)
+    static Texture2D LoadVerifiedPack(string id, string role, string first, string second)
     {
         // On missing or stale data, load the original two maps instead of
         // compromising visual correctness or blocking the requested APK.
@@ -61,7 +62,8 @@ public static class BraxObozPbrPack
                 return null;
             }
             var index = JsonUtility.FromJson<Index>(File.ReadAllText(IndexPath));
-            if (index == null || index.schema != 1 || !index.pilotOnly ||
+            if (index == null || index.schema != 2 ||
+                index.profile != "monika-4k-npcs-2k" ||
                 !index.originalsPreserved || index.entries == null)
                 throw new InvalidOperationException("Untrusted packed-map index");
             var entry = index.entries.SingleOrDefault(e => e.id == id && e.role == role);
