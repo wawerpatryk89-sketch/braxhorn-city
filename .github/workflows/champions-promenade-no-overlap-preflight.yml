@@ -1,0 +1,69 @@
+name: Miasto Mistrzów - promenada - nie nakładaj na kostkę (BEZ APK)
+on:
+  push:
+    branches:
+      - codex/miasto-mistrzow-promenada-k1-k12-20261105
+    paths:
+      - .github/workflows/champions-promenade-no-overlap-preflight.yml
+      - unity-tools/mistrzowie/legacy_foundation.py
+      - unity-tools/mistrzowie/promenade_layout.py
+      - unity-tools/mistrzowie/test_promenade_no_overlays.py
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: champions-promenade-source-only-20261105
+  cancel-in-progress: false
+
+jobs:
+  exact-no-cobblestone-overlap:
+    if: github.ref == 'refs/heads/codex/miasto-mistrzow-promenada-k1-k12-20261105'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout only future promenade source; no Unity, no APK
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/mistrzowie/
+            unity-tools/validation/
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsTextureImport.cs
+      - name: Install pinned shape tools; no Unity editor
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check numpy==2.3.5 shapely==2.1.2 pillow==12.0.0
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+      - name: Check no fake paving overlay and twelve source photo modules
+        run: |
+          set -euo pipefail
+          python3 -m compileall -q unity-tools/mistrzowie
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_promenade_no_overlays.py' -v
+      - name: Generate the actual ground (replaces original cobbles within lane)
+        run: |
+          set -euo pipefail
+          python3 unity-tools/mistrzowie/legacy_foundation.py
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_promenade_no_overlays.py' -v
+      - name: C sharp source parser only — never game BuildPlayer
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0,'unity-tools/validation')
+          from check_csharp_scopes import check_source
+          path=Path('unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs')
+          errors=check_source(path.read_bytes(),str(path))
+          if errors:raise SystemExit('\n'.join(errors))
+          print('PROMENADE_CSHARP_PARSE_PASS')
+          PY
+      - name: Evidence and limits
+        if: success()
+        run: |
+          echo 'PROMENADE_NO_COBBLE_OVERLAP_STATIC=PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Full 1100x3m base paving cut out; red asphalt/white paint disjoint physically on same plane; 12 land-side pavilion plots.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Unity NOT RUN; shaders NOT COMPILED; APK NOT BUILT; visual review PENDING.' >> "$GITHUB_STEP_SUMMARY"
