@@ -52,8 +52,8 @@
     },
     {
       "id": "sanitary-wc",
-      "x": -92,
-      "z": -83,
+      "x": -66,
+      "z": -52,
       "width": 15,
       "depth": 13
     },
@@ -79,60 +79,53 @@
       "depth": 4
     },
     {
-      "id": "bieznia-owalna",
-      "x": 65,
-      "z": 72,
-      "width": 94,
-      "depth": 59
-    },
-    {
       "id": "bieznia-100m",
-      "x": 113,
-      "z": -35,
-      "width": 15,
-      "depth": 110
+      "x": 68,
+      "z": -24,
+      "width": 7,
+      "depth": 79
     },
     {
       "id": "silownia-zadaszona",
-      "x": -35,
-      "z": 76,
-      "width": 30,
-      "depth": 22
+      "x": -40,
+      "z": 34,
+      "width": 31,
+      "depth": 23
     },
     {
       "id": "sanitary-entrance-path",
-      "x": -92,
-      "z": -76.5,
-      "width": 3,
-      "depth": 8
+      "x": -66,
+      "z": -43.5,
+      "width": 4,
+      "depth": 10
     }
   ],
   "lawnClearances": [
     {
       "id": "cabin-1",
-      "x": -94,
-      "z": -20,
+      "x": -60,
+      "z": -18,
       "width": 11,
       "depth": 9
     },
     {
       "id": "cabin-2",
-      "x": -94,
-      "z": -40,
+      "x": -60,
+      "z": -36,
       "width": 11,
       "depth": 9
     },
     {
       "id": "cabin-3",
-      "x": -69,
-      "z": -20,
+      "x": -42,
+      "z": -18,
       "width": 11,
       "depth": 9
     },
     {
       "id": "cabin-4",
-      "x": -69,
-      "z": -40,
+      "x": -42,
+      "z": -36,
       "width": 11,
       "depth": 9
     },
@@ -166,66 +159,52 @@
     },
     {
       "id": "canteen",
-      "x": -58,
-      "z": -65,
+      "x": -40,
+      "z": -70,
       "width": 16,
       "depth": 14
     },
     {
       "id": "sanitary-wc",
-      "x": -92,
-      "z": -83,
+      "x": -66,
+      "z": -52,
       "width": 15,
       "depth": 13
     },
     {
       "id": "showers",
-      "x": -95,
-      "z": -65,
+      "x": -58,
+      "z": -71,
       "width": 12,
       "depth": 11
     },
     {
       "id": "sauna",
-      "x": -115,
-      "z": -65,
+      "x": -47,
+      "z": -85,
       "width": 11,
       "depth": 11
     },
     {
       "id": "medical",
-      "x": -46,
-      "z": -90,
+      "x": -25,
+      "z": -85,
       "width": 12,
       "depth": 11
     },
     {
       "id": "storage",
-      "x": -24,
-      "z": -90,
+      "x": -25,
+      "z": -67,
       "width": 12,
       "depth": 11
     },
     {
       "id": "bunker-reserved",
-      "x": -75,
-      "z": 89,
+      "x": -54,
+      "z": 4,
       "width": 35,
       "depth": 30
-    },
-    {
-      "id": "forester-reserved",
-      "x": -105,
-      "z": -103,
-      "width": 20,
-      "depth": 20
-    },
-    {
-      "id": "kennels-reserved",
-      "x": 39,
-      "z": -94,
-      "width": 18,
-      "depth": 18
     },
     {
       "id": "bus-return-walkway",
@@ -235,53 +214,25 @@
       "depth": 3
     },
     {
-      "id": "bieznia-owalna",
-      "x": 65,
-      "z": 72,
-      "width": 94,
-      "depth": 59
-    },
-    {
       "id": "bieznia-100m",
-      "x": 113,
-      "z": -35,
-      "width": 15,
-      "depth": 110
+      "x": 68,
+      "z": -24,
+      "width": 7,
+      "depth": 79
     },
     {
       "id": "silownia-zadaszona",
-      "x": -35,
-      "z": 76,
-      "width": 30,
-      "depth": 22
+      "x": -40,
+      "z": 34,
+      "width": 31,
+      "depth": 23
     },
     {
       "id": "sanitary-bathrooms",
-      "x": -92,
-      "z": -83,
+      "x": -66,
+      "z": -52,
       "width": 13,
       "depth": 11
-    },
-    {
-      "id": "fort-przyszly",
-      "x": 83,
-      "z": 25,
-      "width": 16,
-      "depth": 12
-    },
-    {
-      "id": "tartak-przyszly",
-      "x": 76,
-      "z": -105,
-      "width": 20,
-      "depth": 16
-    },
-    {
-      "id": "bunkier-bramy",
-      "x": -24,
-      "z": -111,
-      "width": 18,
-      "depth": 12
     }
   ],
   "busDesignEnvelope": {
