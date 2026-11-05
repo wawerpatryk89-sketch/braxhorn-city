@@ -51,6 +51,8 @@ REQUIRED_PATHS = [
 ROOT = Path(__file__).resolve().parents[2]
 TARGET = ROOT / "unity-city/Assets/Source/Prywatne/Oboz/OwnerAssets"
 INTAKE = ROOT / "unity-tools/oboz/owner_assets_intake.py"
+from owner_assets_intake import SPLIT_PARTS
+
 
 
 def digest(path: Path) -> str:
@@ -71,26 +73,43 @@ def remote_preflight(repo: str) -> None:
     if release.get("isDraft") is not True:
         raise ValueError("Owner asset release must be a private DRAFT, never published")
     names = {item["name"]: item["size"] for item in release["assets"]}
-    for name, (size, _) in EXPECTED.items():
-        if names.get(name) != size:
-            raise ValueError(f"Owner delivery missing or wrong size: {name}, expected {size}")
-    print("BRAXHORN_OWNER_RELEASE_PREFLIGHT=PASS; all assets present in draft; no Unity started")
+    size, _ = EXPECTED[BULL]
+    if names.get(BULL) != size:
+        raise ValueError(f"Owner bull GLB missing or wrong size: {BULL}")
+    if names.get(SOURCE) == EXPECTED[SOURCE][0]:
+        mode = "full"
+    elif all(names.get(name) == expected[0] for name, expected in SPLIT_PARTS.items()):
+        mode = "five_parts"
+    else:
+        absent = [name for name, expected in SPLIT_PARTS.items()
+                  if names.get(name) != expected[0]]
+        raise ValueError(
+            "New camp source incomplete: upload the original full ZIP OR all "
+            "five small ZIPs: " + ", ".join(absent))
+    print("BRAXHORN_OWNER_RELEASE_PREFLIGHT=PASS mode=" + mode +
+          " assets present in draft; no Unity started")
+    return mode
 
 
 def restore(repo: str) -> None:
-    remote_preflight(repo)
+    mode = remote_preflight(repo)
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="brx-owner-delivery-") as tmp:
         temp = Path(tmp)
-        for name, (size, sha) in EXPECTED.items():
+        source_names = [SOURCE] if mode == "full" else list(SPLIT_PARTS)
+        for name in [*source_names, BULL]:
+            size, sha = EXPECTED[name] if name in EXPECTED else SPLIT_PARTS[name]
             subprocess.run(["gh", "release", "download", TAG, "--repo", repo,
                             "--pattern", name, "--dir", str(temp)],
                            check=True)
             source = temp / name
             if not source.is_file() or source.stat().st_size != size or digest(source) != sha:
                 raise ValueError("Owner asset failed SHA256/byte verification: " + name)
-        subprocess.run([sys.executable, str(INTAKE),
-                        "--package", str(temp / SOURCE),
+        if mode == "full":
+            inputs = ["--package", str(temp / SOURCE)]
+        else:
+            inputs = ["--parts", *(str(temp / n) for n in SPLIT_PARTS)]
+        subprocess.run([sys.executable, str(INTAKE), *inputs,
                         "--target", str(TARGET), "--apply"],
                        cwd=ROOT, check=True)
         original = temp / BULL
