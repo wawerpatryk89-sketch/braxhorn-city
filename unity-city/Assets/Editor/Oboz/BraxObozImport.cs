@@ -64,6 +64,9 @@ public sealed class BraxObozImport : AssetPostprocessor
         a.format = billboard ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
         a.compressionQuality = 90;
         t.SetPlatformTextureSettings(a);
+        // Texture detail remains 4K at close range; only known 4K camp maps
+        // may stream their top mip at distance. This does not resize sources.
+        BraxObozMaterials.ConfigureStreaming(t, assetPath);
     }
 }
 
