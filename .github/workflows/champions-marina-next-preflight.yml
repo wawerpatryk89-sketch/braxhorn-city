@@ -1,0 +1,89 @@
+name: Miasto Mistrzów - marina i plaza - testy BEZ Unity/APK
+on:
+  push:
+    branches:
+      - codex/miasto-mistrzow-marina-plaza-premium-20261105
+    paths:
+      - .github/workflows/champions-marina-next-preflight.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: champions-marina-next-preflight-20261105
+  cancel-in-progress: false
+
+jobs:
+  static-harbour-only:
+    if: github.ref == 'refs/heads/codex/miasto-mistrzow-marina-plaza-premium-20261105'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - name: Sparse checkout current port proposal (no old APK or Unity Library)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/mistrzowie/
+            unity-tools/validation/
+            unity-city/Assets/Editor/Mistrzowie/
+            unity-city/Assets/Editor/Claude/BraxClaudeMetro.cs
+            unity-city/Assets/Source/HarborBeach/asset-manifest.json
+      - name: Install pinned Python and C sharp syntax-check dependencies
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check numpy==2.3.5 shapely==2.1.2 pillow==12.0.0
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+      - name: Check 15 yachts, 10 boats, 10 jetskis, two excursion berths and 650m curved beach
+        run: |
+          set -euo pipefail
+          python3 -m compileall -q unity-tools/mistrzowie
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_premium_port_beach.py' -v
+      - name: Generate ONLY current clean marina foundation and check mesh boundaries
+        run: |
+          set -euo pipefail
+          python3 unity-tools/mistrzowie/legacy_foundation.py
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_premium_port_beach.py' -v
+          python3 - <<'PY'
+          import json
+          from collections import Counter
+          from pathlib import Path
+          p=Path('unity-city/Assets/Source/Mistrzowie/Foundation.json')
+          data=json.loads(p.read_text())
+          roles=Counter(mesh['role'] for mesh in data['meshes'])
+          assert len(data['berths'])==38
+          assert len(data['piers'])==55
+          assert roles.get('quay',0)==0, 'Old harbour pier mesh still included'
+          assert roles['foam']>0 and roles['sea']>0
+          assert roles['sand_dry']>0 and roles['sand_wet']>0
+          assert len(data['plants'])>200
+          print('CHAMPIONS_HARBOUR_CLEAN_REPLACEMENT=PASS',
+                'piers',len(data['piers']),'vessels',len(data['berths']),
+                'plants',len(data['plants']),
+                'foam_meshes',roles['foam'])
+          PY
+      - name: Validate C sharp source grammar, no APK
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0,'unity-tools/validation')
+          from check_csharp_scopes import check_source
+          for filename in (
+              'unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs',
+              'unity-city/Assets/Editor/Mistrzowie/BraxChampionsHarbour.cs',
+              'unity-city/Assets/Editor/Mistrzowie/BraxChampionsHarbourSafety.cs'):
+              path=Path(filename)
+              errors=check_source(path.read_bytes(),str(path))
+              if errors:raise SystemExit('\n'.join(errors))
+              print('CHAMPIONS_HARBOUR_CS_PARSE_PASS',filename)
+          PY
+      - name: Report limits, without pretending phone or visual acceptance
+        if: success()
+        run: |
+          echo 'CHAMPIONS_MARINA_STATIC_TESTS=PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'User-owned boats referenced, clean 38-berth plan, 650m curved beach, foam and pier ropes.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Unity scene NOT BUILT, visual acceptance NOT DONE, Android NOT TESTED, APK NOT BUILT.' >> "$GITHUB_STEP_SUMMARY"
