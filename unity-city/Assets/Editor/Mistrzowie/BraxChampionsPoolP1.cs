@@ -17,7 +17,7 @@ public static class BraxChampionsPoolP1
     const float LotX=520f, LotZ=180f, Deck=.26f;
     static float K=>BraxClaudeOsiedle.K;
     static Transform root,structure,rooms,outdoors,parking,roof,details;
-    static Material facade,white,stone,floor,blue,lightBlue,smallMosaic,paving,asphalt,wood,roofFinish;
+    static Material facade,white,stone,floor,blue,lightBlue,smallMosaic,paving,patternPaving,asphalt,wood,roofFinish;
     static Material glass,frame,steel,led,paint,azure,navy,gold,plants;
     static int meshSerial,parked;
     [Serializable] sealed class Data
@@ -109,7 +109,10 @@ public static class BraxChampionsPoolP1
         lightBlue=BraxChampionsPoolP1Pbr2K.Create(Output,"P1_kids_pool_blue_tiles","long_white_tiles",.42f,new Color(.32f,.78f,1f));
         smallMosaic=BraxChampionsPoolP1Pbr2K.Create(Output,"P1_spa_mosaic","marble_mosaic_tiles",.72f,new Color(.91f,.92f,.88f));
         paving=BraxChampionsPoolP1Pbr2K.Create(Output,"P1_paving","concrete_pavement_02",1.8f,new Color(.94f,.95f,.93f));
-        asphalt=BraxChampionsPoolP1Pbr2K.Create(Output,"P1_clean_asphalt","clean_asphalt",2.1f,new Color(.86f,.87f,.88f));
+        // A distinct warm-toned herringbone forecourt only on P1: keep the
+        // established large concrete pavement in secondary technical paths.
+        patternPaving=BraxChampionsPoolP1Pbr2K.Create(Output,"P1_warm_herringbone_paving","herringbone_brick_02",1.8f,new Color(.93f,.85f,.76f));
+        asphalt=BraxChampionsPoolP1Pbr2K.Create(Output,"P1_black_asphalt","clean_asphalt",2.1f,new Color(.40f,.40f,.41f));
         wood=BraxChampionsPoolP1Pbr2K.Create(Output,"P1_warm_teak_veneer","teak_veneer",1.5f,new Color(.95f,.82f,.64f));
         roofFinish=BraxChampionsPoolP1Pbr2K.Create(Output,"P1_roof","concrete_floor_02",2.8f,new Color(.92f,.95f,.98f));
         // Genuine clear glass: transparency is alpha-blended; never painted black/opaque.
@@ -554,8 +557,8 @@ public static class BraxChampionsPoolP1
         Box(parking,"P1 WEST asphalt parking surface 2K",asphalt,-44,.195f,-44,68,.13f,28);
         Box(parking,"P1 EAST asphalt parking surface 2K",asphalt,44,.195f,-44,68,.13f,28);
         Box(parking,"P1 SOUTH / MAIN DRIVE from existing Z70 street",asphalt,0,.195f,-78,12,.13f,70);
-        Box(outdoors,"P1 front entrance pedestrian piazza PBR",paving,0,.28f,-29f,40f,.15f,9f);
-        Box(outdoors,"P1 main pedestrian leading path",paving,0,.28f,-35.5f,8f,.13f,8f);
+        Box(outdoors,"P1 front entrance pedestrian piazza PBR HERRINGBONE",patternPaving,0,.28f,-29f,40f,.15f,9f);
+        Box(outdoors,"P1 main pedestrian leading path HERRINGBONE",patternPaving,0,.28f,-35.5f,8f,.13f,8f);
         // 4 rows of cars divided in two banks; one reserved bay stays clear -> 95.
         for(int bank=0;bank<2;bank++)
             for(int row=0;row<2;row++)
@@ -591,7 +594,7 @@ public static class BraxChampionsPoolP1
         Cylinder(outdoors,"P1 circular landscaped entry island PBR",stone,0,.49f,-42.7f,3.6f,.22f);
         Cylinder(outdoors,"P1 circular planted centre",plants,0,.63f,-42.7f,3.25f,.08f);
         // East café terrace, distinct from the public drop-off.
-        Box(outdoors,"P1 east recreation outdoor granite terrace",paving,58f,.28f,21f,40f,.16f,44f);
+        Box(outdoors,"P1 east recreation outdoor herringbone terrace",patternPaving,58f,.28f,21f,40f,.16f,44f);
         for(int i=0;i<8;i++)
         {
             float x=44+(i%4)*8f, z=8+(i/4)*20f;
