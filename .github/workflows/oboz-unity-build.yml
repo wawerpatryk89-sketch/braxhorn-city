@@ -55,6 +55,7 @@ jobs:
           python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
           python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+          python3 -m unittest discover -s unity-tools/oboz -p 'test_training_compile.py' -v
       - name: Sprawdź narzędzia Androida przed kompilacją
         run: |
           set -euo pipefail
