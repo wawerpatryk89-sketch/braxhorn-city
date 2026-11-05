@@ -180,6 +180,10 @@ public static partial class BraxObozEnvironment
         Box(gym,"Lustro do kontroli techniki",new Vector3(0,2.35f,9.63f),
             new Vector3(13f,2.4f,.035f),mirror,false);
         Sign(gym,"TRENUJ · WALCZ · ODPOCZYWAJ",new Vector3(0,2f,10),11);
+        // Oryginalny mural sali treningowej; zachowujemy wszystkie piksele/typografię.
+        OriginalMural(gym,"TRAINING_CAMP",
+            "6B6E1CA3-605A-47FB-BF0E-F23B1D2C3301(1).jpeg",
+            new Vector3(-13.85f,2.7f,0),Quaternion.Euler(0,-90,0),7f,true);
     }
 
     static void TrainingCampus()
