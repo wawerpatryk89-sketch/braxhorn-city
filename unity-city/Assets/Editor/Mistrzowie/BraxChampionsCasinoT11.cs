@@ -384,26 +384,55 @@ public static class BraxChampionsCasinoT11
             44.5f,4.95f,-22f,8.9f,.40f,.75f,true);
         B(basement,"Garage upper portal warm LED",led,
             44.5f,4.71f,-22.44f,8.6f,.10f,.12f,false);
-        // Parking lanes and 2.85m bays are below ground. The northern
-        // circulation strip z=16..27 remains clear of all stall markings.
-        for(int i=0;i<16;i++)
+        // 32 actual marked bays: two rows x sixteen, 3.10m wide x 5.25m
+        // long. Seventeen lines are necessary to enclose sixteen stalls.
+        // The broad middle lane and northern turning area remain unmarked.
+        const int baysPerRow=16;
+        const float bayWidth=3.10f;
+        for(int i=0;i<=baysPerRow;i++)
         {
-            float x=-27.8f+i*3.15f;
+            float x=-28f+i*bayWidth;
             foreach(float z in new[]{-17f,10f})
+                B(basement,"B1 physical car-space border white #"+i,parkingPaint,
+                    x,-4.099f,z,.095f,.008f,5.25f,false);
+        }
+        foreach(float z in new[]{-19.65f,12.65f})
+            B(basement,"B1 continuous marked bay head line",parkingPaint,
+                -3.2f,-4.099f,z,baysPerRow*bayWidth,.008f,.095f,false);
+
+        // Genuine interior supports reach BOTH foundation and ceiling.
+        // They are outside the bays, and no support enters the accessible
+        // 8m-wide underground ramp or the north turning zone.
+        foreach(float x in new[]{-30.25f,29.35f})
+            foreach(float z in new[]{-18f,0f,13.5f})
             {
-                B(basement,"Underground parking bay white divider",parkingPaint,
-                    x,-4.099f,z,.10f,.008f,5.25f,false);
+                B(basement,"B1 structural reinforced support column",granite,
+                    x,-2.35f,z,.78f,3.45f,.78f,true,true);
+                B(basement,"B1 protective champagne column collar",gold,
+                    x,-3.65f,z,1.0f,.18f,1.0f,false);
             }
-        }
-        foreach(float z in new[]{-20.0f,12.7f})
-            B(basement,"Underground stall head line",parkingPaint,
-                -4.3f,-4.10f,z,50.2f,.008f,.10f,false);
-        for(int i=0;i<8;i++)
-        {
-            float x=-29f+i*9.0f;
-            B(basement,"Carpark real warm ceiling LED",led,
-                x,-.705f,0f,1.2f,.08f,.34f,false);
-        }
+
+        // Eight real economical vertex lights, not emissive-only decorations:
+        // CityStaticPBR uses up to four local lights per object without
+        // additional shadow-casting passes on Android.
+        int lightingId=0;
+        foreach(float x in new[]{-24f,-8f,8f,24f})
+            foreach(float z in new[]{-13f,9f})
+            {
+                B(basement,"B1 ceiling luminaire "+(++lightingId),led,
+                    x,-.735f,z,1.40f,.075f,.36f,false);
+                var light=new GameObject("B1 real warm-white parking light "+lightingId);
+                light.transform.SetParent(basement,false);
+                light.transform.localPosition=new Vector3(x,-.81f,z)*K;
+                var bulb=light.AddComponent<Light>();
+                bulb.type=LightType.Point;
+                bulb.range=16f*K;
+                bulb.intensity=1.12f;
+                bulb.color=new Color(1f,.95f,.86f);
+                bulb.shadows=LightShadows.None;
+                bulb.renderMode=LightRenderMode.ForceVertex;
+            }
+        Debug.Log("T11_B1_UNDERGROUND_32_BAYS columns=6 vertexLights=8 floor=73x53");
     }
 
     static void PlaceNativePolyHaven(Transform parent,GameObject prefab,
