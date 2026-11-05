@@ -1415,10 +1415,8 @@ public static class BraxClaudeMetro
             kol.size = new Vector3(Mathf.Max(.1f, b.size.x - .2f),
                 Mathf.Max(.1f, b.size.y - .15f),
                 Mathf.Max(.1f, bp.size.z - .15f));
-            // Tymczasowy test Android: wyłączamy wyłącznie fizyczną kolizję pociągu,
-            // aby błędny collider nie zasłaniał drzwi TOWER ani nie blokował przejść.
-            // Inne kolizje miasta i stacji pozostają bez zmian.
-            kol.enabled = false;
+            // Collider pozostaje fizycznie aktywny: właściciel chce wyłączyć
+            // wyłącznie bramki kontrolne, nie możliwość zderzenia z wagonem.
             // STARA W.KolizjaMM była statyczną ścianą na peronie, która
             // zostawałaby niewidzialna po odjeździe wagonu. Usunięta.
             if (i == 1)
