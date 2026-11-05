@@ -45,7 +45,7 @@ class OwnerApprovedP1WaterAndSlideTests(unittest.TestCase):
         self.assertIn("_Time.y",shader)
         self.assertIn('_Bubbles ("Jacuzzi aeration 0-1"',shader)
         self.assertIn("if(_Bubbles>.01)",shader)
-        self.assertIn("PoolP1Water.Jacuzzi",WATER.read_text().replace("BraxChampionsPoolP1Water","PoolP1Water"))
+        self.assertIn("public static void Jacuzzi(Transform approvedModel",water)
 
     def test_swimming_applies_only_to_champions_region(self):
         v=SWIM.read_text()
@@ -83,7 +83,6 @@ class OwnerApprovedP1WaterAndSlideTests(unittest.TestCase):
         self.assertIn("PrefabUtility.InstantiatePrefab(source)",s)
         self.assertIn("const int treads=18;",s)
         self.assertIn('P1 engineered slide foundations',s)
-        self.assertIn('actual source stair',s.lower().replace('original source stair','actual source stair')) if False else None
         self.assertIn("BraxChampionsPoolP1Water.SlideLanding",s)
         self.assertIn('n.StartsWith("poolwater")',s)
         self.assertIn('t.gameObject.SetActive(false)',s)
