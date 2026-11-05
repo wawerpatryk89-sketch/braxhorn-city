@@ -15,6 +15,8 @@ class CasinoTexture2KTests(unittest.TestCase):
         self.assertEqual(MAPS,(("diff","jpg"),("nor_gl","png"),("arm","png")))
         self.assertIn("clean_asphalt",SLUGS)
         self.assertIn("concrete_pavement_02",SLUGS)
+        self.assertIn("concrete_brick_wall_001",SLUGS)
+        self.assertNotIn("rectangular_facade_tiles_02",SLUGS)
 
     def test_selector_never_falls_back_to_4k(self):
         data={"Diffuse":{"4k":{"jpg":{"url":"wrong-four-k"}},
