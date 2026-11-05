@@ -94,7 +94,7 @@ public static class BraxChampionsPoolP1
         root.position=at;
         if(!prefab)throw new IOException("P1 prefab serialization failed");
         AssetDatabase.SaveAssets();
-        Debug.Log("P1 BASEN READY_FOR_UNITY_VISUAL_REVIEW | 95 spaces | four EMPTY basins | no water | plot (520,180) | not phone tested");
+        Debug.Log("P1 BASEN SOURCE_AUTHORING_READY_FOR_UNITY_REVIEW | 95 spaces | three EMPTY swimming basins | original jacuzzi model pending | no water | original sign artwork required | plot (520,180) | Unity compile and phone test not run");
     }
     static Transform Group(Transform parent,string name)
     {
