@@ -141,7 +141,7 @@ public static class BraxChampionsArenaArrival
             Box(parent, "Car park - asphalt, real ground collider", asphalt,
                 new Vector3(x, .199f, -97f), new Vector3(70f, .078f, 24f));
             Box(parent, "Parking vehicle access lane", asphalt,
-                new Vector3(x, .195f, -121f), new Vector3(6.4f, .07f, 26f));
+                new Vector3(x, .195f, -121f), new Vector3(6.4f, .07f, 24f));
             // 5.2m marked bays, two opposed rows, 6.4m minimum centre manoeuvring zone.
             for (int row = 0; row < 2; row++)
             {
@@ -179,7 +179,7 @@ public static class BraxChampionsArenaArrival
         }
         // Main spectator route stays permanently clear between parking and entrance.
         Box(parent, "Arena public promenade", curb,
-            new Vector3(0, .183f, -105.5f), new Vector3(16f, .04f, 63f));
+            new Vector3(0, .183f, -104f), new Vector3(16f, .04f, 58f));
         for (float x = -7f; x <= 7f; x += 14f)
             Box(parent, "Public path edge line", paint,
                 new Vector3(x, .211f, -105.5f), new Vector3(.12f, .008f, 54f), false);
