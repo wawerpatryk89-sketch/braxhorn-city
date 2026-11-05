@@ -10,7 +10,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # Draft releases require a principal with repository push access.
+  # This job only READS release metadata and runs local static checks.
+  contents: write
 concurrency:
   group: oboz-owner-one-time-preflight-20261105
   cancel-in-progress: false

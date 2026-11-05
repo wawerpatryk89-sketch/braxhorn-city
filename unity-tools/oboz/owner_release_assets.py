@@ -22,6 +22,7 @@ import tempfile
 import zipfile
 
 TAG = "oboz-owner-remodel-20261105"
+RELEASE_ID = 435486352  # Existing owner draft; immutable release identity for this delivery
 SOURCE = "BRAXHORN_OBOZ_WYKONAWCA_ZASOBY_20261105.zip"
 BULL = "BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb"
 ORIGINAL_BULL = "A_charging_bull_statu_0725030443_refine.glb"
@@ -117,11 +118,21 @@ def digest(path: Path) -> str:
 def remote_preflight(repo: str) -> None:
     if not repo or "/" not in repo:
         raise ValueError("GITHUB_REPOSITORY must be owner/repo")
+    # The GitHub CLI GraphQL 'gh release view' is unreliable for Actions'
+    # installation GITHUB_TOKEN when the release is a private draft.
+    # Use the REST release ID instead; never bypass owner/draft validation.
+    endpoint = f"repos/{repo}/releases/{RELEASE_ID}"
     proc = subprocess.run(
-        ["gh", "release", "view", TAG, "--repo", repo, "--json", "isDraft,assets"],
-        check=True, capture_output=True, text=True)
+        ["gh", "api", endpoint],
+        check=False, capture_output=True, text=True)
+    if proc.returncode != 0:
+        detail = (proc.stderr or "").strip().splitlines()
+        message = detail[-1] if detail else "GitHub did not return a readable response"
+        raise ValueError(f"Cannot read owner draft release {RELEASE_ID}: {message}")
     release = json.loads(proc.stdout)
-    if release.get("isDraft") is not True:
+    if release.get("tag_name") != TAG or release.get("id") != RELEASE_ID:
+        raise ValueError("Owner draft release identity/tag mismatch")
+    if release.get("draft") is not True:
         raise ValueError("Owner asset release must be a private DRAFT, never published")
     names = {item["name"]: item["size"] for item in release["assets"]}
     original_uploaded = names.get(ORIGINAL_BULL) == EXPECTED[ORIGINAL_BULL][0]

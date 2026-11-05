@@ -28,11 +28,11 @@ class BullDeliveryTests(unittest.TestCase):
         if scaled:
             assets.append({"name":loader.BULL,
                            "size":loader.EXPECTED[loader.BULL][0]})
-        return json.dumps({"isDraft":True,"assets":assets})
+        return json.dumps({"draft":True,"tag_name":loader.TAG,"id":loader.RELEASE_ID,"assets":assets})
 
     def mock_gh(self, payload):
         return mock.patch.object(loader.subprocess,"run",
-                                 return_value=SimpleNamespace(stdout=payload))
+                                 return_value=SimpleNamespace(returncode=0, stdout=payload, stderr=""))
 
     def test_original_bull_five_parts_preflight_passes(self):
         self.assertEqual(loader.EXPECTED[loader.ORIGINAL_BULL],
@@ -58,10 +58,24 @@ class BullDeliveryTests(unittest.TestCase):
 
     def test_public_release_is_never_accepted(self):
         data=json.loads(self.make_release())
-        data["isDraft"]=False
+        data["draft"]=False
         with self.mock_gh(json.dumps(data)):
             with self.assertRaisesRegex(ValueError,"DRAFT"):
                 loader.remote_preflight("wawerpatryk89-sketch/braxhorn-city")
+
+    def test_mismatched_draft_release_identity_rejected(self):
+        data=json.loads(self.make_release())
+        data["id"]=99999999
+        with self.mock_gh(json.dumps(data)):
+            with self.assertRaisesRegex(ValueError,"identity/tag mismatch"):
+                loader.remote_preflight("wawerpatryk89-sketch/braxhorn-city")
+
+    def test_rest_release_endpoint_used_instead_of_graphql(self):
+        with mock.patch.object(loader.subprocess,"run",
+                return_value=SimpleNamespace(returncode=0,stdout=self.make_release(),stderr="")) as runner:
+            loader.remote_preflight("wawerpatryk89-sketch/braxhorn-city")
+        self.assertEqual(runner.call_args.args[0],
+            ["gh","api",f"repos/wawerpatryk89-sketch/braxhorn-city/releases/{loader.RELEASE_ID}"])
 
     def test_original_geometry_is_used_without_edit(self):
         source=SOURCE.read_text(encoding="utf-8")
