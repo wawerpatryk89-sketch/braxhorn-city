@@ -168,12 +168,20 @@ public static class BraxObozVegetation
         // Reuse the original blade model and Claude's local instancing on lawns
         // that the old forest-cluster layout left empty. Fixed cells preserve
         // deterministic scenes without touching Unity's global Random state.
-        const float spacing=1.25f;
+        // Spójna 3D murawa na całym mniejszym obozie, bez pustej wschodniej połowy.
+        // Kamera rysuje tylko pobliskie instancje (BraxClaudeTrawa), bez kopii GLB.
+        const float spacing=.90f;
         var occupied=new HashSet<long>();
         long Cell(int x,int z)=>((long)x<<32)^(uint)z;
         foreach(var p in points)occupied.Add(Cell(Mathf.FloorToInt(p.x/spacing),Mathf.FloorToInt(p.z/spacing)));
         var paths=BraxObozEnvironment.PathRectangles();
-        for(int iz=-82;iz<=66;iz++)for(int ix=-99;ix<=43;ix++)
+        int xMin=Mathf.FloorToInt(-BraxObozCampusLayout.PlotRadiusX/spacing)-2;
+        int xMax=Mathf.CeilToInt(BraxObozCampusLayout.PlotRadiusX/spacing)+2;
+        int zMin=Mathf.FloorToInt(
+            (BraxObozCampusLayout.PlotCenterZ-BraxObozCampusLayout.PlotRadiusZ)/spacing)-2;
+        int zMax=Mathf.CeilToInt(
+            (BraxObozCampusLayout.PlotCenterZ+BraxObozCampusLayout.PlotRadiusZ)/spacing)+2;
+        for(int iz=zMin;iz<=zMax;iz++)for(int ix=xMin;ix<=xMax;ix++)
         {
             if(occupied.Contains(Cell(ix,iz)))continue;
             uint h=unchecked((uint)(ix+1000)*73856093u^(uint)(iz+1000)*19349663u^20261104u);
@@ -181,7 +189,7 @@ public static class BraxObozVegetation
             if((h&255u)<38u)continue;
             float x=(ix+.15f+((h>>8)&255u)/255f*.7f)*spacing;
             float z=(iz+.15f+((h>>16)&255u)/255f*.7f)*spacing;
-            if(Mathf.Max(Mathf.Abs((x+35)/100),Mathf.Abs((z+10)/105))>.88f ||
+            if(!BraxObozCampusLayout.InsidePlot(x,z,11f) ||
                 BraxObozCampusLayout.ReservedLawn(x,z,.8f))continue;
             bool pathShoulder=false;
             foreach(var path in paths)
