@@ -30,3 +30,10 @@ Właściciel potwierdził, że dostarczy **prawdziwe modele zjeżdżalni, leżak
 
 ## Granice dowodów
 Stan: **kod źródłowy i kontrole statyczne**; nie jest to zapis z fizycznego telefonu ani odbiór wyglądu. Bez wyraźnej decyzji właściciela nie uruchamiamy kosztownej kompilacji Unity lub APK. Przed akceptacją: compile/reopen Unity 6, spacery po wnętrzu, widoczność przez fasadę, materiał asfaltu/kostki z bliska, geometrię niecek bez gruntu i bez wody, FPS/RAM na Androidzie i dopiero potem dostarczenie aktualizacji.
+
+## Oryginalny szyld basenu — zgodnie z poleceniem właściciela 5.11.2026
+- Front recepcji ma mieć **fizyczną bryłę szyldu**: kaseton z mocowaniami, aluminiową obwódką i wąską linią świetlną. Oryginalną grafikę właściciela naklejamy na front w proporcji **4:1** bez kadrowania, zmian koloru i bez sztucznie wygenerowanego napisu.
+- Kod: `unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1OriginalSign.cs`; kaseton 10,0 × 2,5 m, umieszczony nad frontowym wejściem, bez przecięcia z daszkiem ani dachem SPA. Obramowanie po wczytaniu PNG jest kolorystycznie wyprowadzane z **rzeczywistych pikseli obrzeża grafiki**, nie z odgórnie wymyślonej palety.
+- Wymagane źródło: jeden **oryginalny PNG BASEN z zatwierdzonego wydania GitHub Release**, importowany do `Assets/Source/Mistrzowie/CitySigns/`, oczekiwany rozmiar 2048 × 512 pikseli wraz z oryginalnym `.meta`/GUID. Mechanizm odrzuca rozmiar niezgodny z 4:1, a przy więcej niż jednym kandydacie nie zgaduje, który wybrać.
+- **Status źródła:** przegląd 24 dostępnych wydań repozytorium nie potwierdził osobnej grafiki BASEN P1 ani pełnego zestawu `MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip` / `MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip`. Dostępny jest pakiet A1/T11 z grafikami areny/kasyna, ale nie jest dowodem obecności szyldu P1. **Bez oryginalnego pliku moduł pozostawia niewidoczny punkt montażowy i raportuje brak — nigdy nie wyświetla wymyślonego szyldu.**
+- Wymagana dalsza akcja: ustalić prawidłowy identyfikator wydania GitHub i dokładny plik BASEN, pobrać oryginał i dopiero wtedy wizualnie zatwierdzić kolor oraz położenie kasetonu. Nie uruchamiać kompilacji Unity/APK bez polecenia właściciela.
