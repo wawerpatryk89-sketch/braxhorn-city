@@ -1,0 +1,4 @@
+<linker>
+  <!-- Scene types are used by downloaded bundles, not only bootstrap scenes. -->
+  <assembly fullname="Assembly-CSharp" preserve="all" />
+</linker>
