@@ -109,7 +109,7 @@ public static partial class BraxObozEnvironment
             SourceBunker(-75, 89);
             BraxObozVegetation.Populate(root);
             var anchors = Group("Kotwice planu R3 — do połączenia z oryginalnymi modelami", root, Vector3.zero);
-            foreach (var a in new[] { ("Fort 3 na 3",105f,107f), ("Chata leśniczego i sklep",-78f,-95f), ("Tartak",76f,-105f), ("Kojce",39f,-94f), ("Bunkier bramy",-24f,-111f) })
+            foreach (var a in new[] { ("Fort 3 na 3",83f,25f), ("Chata leśniczego i sklep",-105f,-103f), ("Tartak",76f,-105f), ("Kojce",39f,-94f), ("Bunkier bramy",-24f,-111f) })
                 Group(a.Item1, anchors, P(a.Item2, 0, a.Item3));
             var light = new GameObject("Popołudniowe słońce").AddComponent<Light>(); light.type = LightType.Directional;
             light.transform.rotation = Quaternion.Euler(34, -35, 0);
