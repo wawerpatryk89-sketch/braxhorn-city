@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Safe pilot PBR channel packing for Unity 6 Android.
 
-No original asset is edited, no scene/build is started. This intentionally
-packages ONE character (Monika) and ONE ordinary PBR surface (clean_asphalt).
-Other characters/materials keep the verified legacy PBR maps until visual
-comparison and explicit owner approval.
+No original asset is edited, no scene/build is started. Monika uses one 4K
+metallic/roughness pack, and the other six characters use one 2K pack each.
+The existing clean_asphalt 4K roughness/AO pilot remains. Imported source
+PBR maps are retained unmodified as a visual fallback.
 
 Packed MR: R = source metallic.r, G = source roughness.r, B = 255.
 Packed RA: R = source roughness.r, G = source occlusion.r, B = 255.
@@ -21,7 +21,8 @@ import re
 ROOT = Path(__file__).resolve().parents[2]
 PROJECT = Path("unity-city")
 OUTPUT = Path("unity-city/Assets/PlayableGenerated/Oboz/PackedPbr")
-PILOT_CHARACTER = "monika"
+HERO_4K = "monika"
+OTHER_2K = ("vorn", "zyro", "rakk", "kade", "gorr", "mis")
 PILOT_SURFACE = "clean_asphalt"
 SUPPORTED = {"RGB", "RGBA", "L", "LA", "P", "1"}
 
@@ -88,8 +89,8 @@ def atomic_write(path, data):
     return True
 
 
-def pack_pair(root, *, asset_id, role, first, second, known_shas):
-    """Pack two original red channels without scaling, resizing or re-encoding sources."""
+def pack_pair(root, *, asset_id, role, first, second, known_shas, target_size):
+    """Pack pinned original red channels at target size, never upscale the sources."""
     from PIL import Image
     if not re.fullmatch(r"[a-z0-9_-]{2,40}", asset_id):
         raise ValueError("Untrusted pack identifier")
@@ -103,8 +104,13 @@ def pack_pair(root, *, asset_id, role, first, second, known_shas):
         raise ValueError("Unpinned PBR source for " + asset_id)
     a = image_channel(raw_a, first)
     b = image_channel(raw_b, second)
-    if a.size != b.size or a.width != 4096 or a.height != 4096:
-        raise ValueError("Pilot expects two equal, genuine 4K maps: " + asset_id)
+    if a.size != b.size or target_size not in (2048, 4096):
+        raise ValueError("Unexpected source size/target for PBR: " + asset_id)
+    if a.width < target_size or a.height < target_size:
+        raise ValueError("Would artificially upscale low-detail PBR source: " + asset_id)
+    if a.size != (target_size, target_size):
+        a = a.resize((target_size, target_size), Image.Resampling.LANCZOS)
+        b = b.resize((target_size, target_size), Image.Resampling.LANCZOS)
     # Input order is deliberate: MR=(metallic,roughness); RA=(roughness,AO).
     packed = combine_channels(a, b)
     buffer = io.BytesIO()
@@ -126,7 +132,7 @@ def run(root=ROOT):
     manifest = json.loads((root / PROJECT /
         "Assets/Editor/Oboz/CharacterManifest.json").read_text())
     people = {c["id"]: c for c in manifest["characters"]}
-    char = people[PILOT_CHARACTER]
+    char = people[HERO_4K]
     private = json.loads((root / "unity-tools/oboz/private-inputs.json").read_text())
     public = json.loads((root / "unity-tools/oboz/public-materials.json").read_text())
     sha = {"Assets/Source/Prywatne/Oboz/" + f["path"]: f["sha256"]
@@ -136,20 +142,28 @@ def run(root=ROOT):
         # these two pilot source paths are listed as pinned standalone files.
         sha[f["path"].removeprefix("unity-city/")] = f["sha256"]
     result = []
-    result.append(pack_pair(root, asset_id="monika", role="MR",
+    result.append(pack_pair(root, asset_id=HERO_4K, role="MR",
                             first=char["metallicPath"], second=char["roughnessPath"],
-                            known_shas=sha))
+                            known_shas=sha, target_size=4096))
+    for character_id in OTHER_2K:
+        character = people[character_id]
+        result.append(pack_pair(root, asset_id=character_id, role="MR",
+                                first=character["metallicPath"],
+                                second=character["roughnessPath"],
+                                known_shas=sha, target_size=2048))
     prefix = "Assets/Source/Public/Oboz/" + PILOT_SURFACE + "/"
     result.append(pack_pair(root, asset_id=PILOT_SURFACE, role="RA",
                             first=prefix + "Roughness.jpg",
                             second=prefix + "AmbientOcclusion.jpg",
-                            known_shas=sha))
+                            known_shas=sha, target_size=4096))
     index = dict(schema=1, pilotOnly=True, originalsPreserved=True,
-                 unity="6000.0.58f2", entries=result)
+                 unity="6000.0.58f2", character4K=[HERO_4K],
+                 characters2K=list(OTHER_2K), entries=result)
     target = root / OUTPUT / "pack-index.json"
     atomic_write(target, (json.dumps(index, indent=2, ensure_ascii=False) + "\n").encode())
-    print("BRAXHORN_OBOZ_PBR_PACK pilot=2 packed=2 sources_preserved=true " +
-          "maps=" + ",".join(e["packedPath"] for e in result))
+    print("BRAXHORN_OBOZ_PBR_PACK hero4k=monika others2k=6 packed_maps=" +
+          str(len(result)) + " sources_preserved=true maps=" +
+          ",".join(e["packedPath"] for e in result))
     return index
 
 
