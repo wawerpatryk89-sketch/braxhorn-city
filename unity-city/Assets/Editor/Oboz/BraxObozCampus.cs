@@ -27,20 +27,30 @@ public static partial class BraxObozEnvironment
         red.mainTexture=TartanGrain();
         EditorUtility.SetDirty(red);
         var white=BraxObozMaterials.Plain("bieznia-biale-linie",new Color(.95f,.95f,.91f),.18f);
-        var oval=Group("BIEZNIA · owal 4 tory · BRAXHORN",root,P(65,0,72));
-        // Staly ring: wewnatrz 37x19, na zewnatrz 43x25 metrow.
-        // Szerokosc lane 1.5 m; 128 odcinkow na pas = plynny luk.
+        var oval=Group("BIEZNIA · pelna czerwona petla przy nowym plocie",root,
+            P(0,0,BraxObozCampusLayout.PlotCenterZ));
+        // Obrys bieżni wewnątrz eliptycznego ogrodzenia. Pas bezpieczeństwa
+        // 4 jednostki źródłowe między ostatnim torem i ogrodzeniem.
+        const float laneInside=87.2f, laneWidth=1.2f;
         for(int lane=0;lane<4;lane++)
-            TrackAnnulus(oval,"Czerwony tor "+(lane+1),37f+lane*1.5f,19f+lane*1.5f,
-                38.5f+lane*1.5f,20.5f+lane*1.5f,.135f,red,true);
+        {
+            float inner=laneInside+lane*laneWidth;
+            TrackAnnulus(oval,"Pelna petla — czerwony tor "+(lane+1),
+                inner,inner,inner+laneWidth,inner+laneWidth,.135f,red,true);
+        }
         for(int lane=0;lane<=4;lane++)
-            TrackAnnulus(oval,"Biala linia toru "+lane,37f+lane*1.5f-.025f,
-                19f+lane*1.5f-.025f,37f+lane*1.5f+.025f,
-                19f+lane*1.5f+.025f,.145f,white,false);
-        Box(oval,"Linia startu i mety owalu",new Vector3(0,.151f,22),
-            new Vector3(.09f,.011f,6.3f),white,false);
-        // Wewnatrz owalu zostaje otwarta murawa do rozgrzewki.
-        var straight=Group("BIEZNIA · 100 metrow · cztery tory",root,P(113,0,-35));
+        {
+            float radius=laneInside+lane*laneWidth;
+            TrackAnnulus(oval,"Biala linia petli "+lane,
+                radius-.025f,radius-.025f,radius+.025f,radius+.025f,
+                .146f,white,false);
+        }
+        // Przy południowym wjeździe pełna pętla przecina drogę do bramy.
+        // Skrzyżowanie biegaczy z autobusem wymaga osobnego odbioru bezpieczeństwa.
+        Debug.LogWarning("BRAXHORN_OBOZ_TRACK_ENTRANCE_CHECK: ciagla petla przecina wjazd; " +
+            "sprawdz oznaczenie przejscia i ruch autobusu przed odbiorem.");
+
+        var straight=Group("BIEZNIA · 100 metrow · cztery tory",root,P(60,0,-20));
         // Box() skaluje geometrię przez K=1.294. 100 jednostek źródłowych dałoby
         // 129.4 m po imporcie; dlatego cały tor i znaczniki liczymy przez 1/K.
         const float actualLengthMetres=100f;
@@ -386,12 +396,31 @@ public static partial class BraxObozEnvironment
     static void CampusPerimeter()
     {
         var fence=Group("Ogrodzenie całego obozu",root,Vector3.zero);
-        FenceLine(fence,new Vector2(-126,-125),new Vector2(-4.2f,-125));
-        FenceLine(fence,new Vector2(4.2f,-125),new Vector2(5.8f,-125));
-        FenceLine(fence,new Vector2(7.8f,-125),new Vector2(126,-125));
-        FenceLine(fence,new Vector2(126,-125),new Vector2(126,115));
-        FenceLine(fence,new Vector2(126,115),new Vector2(-126,115));
-        FenceLine(fence,new Vector2(-126,115),new Vector2(-126,-125));
+        const int curveSegments=160;
+        float radiusX=BraxObozCampusLayout.PlotRadiusX;
+        float radiusZ=BraxObozCampusLayout.PlotRadiusZ;
+        float centerZ=BraxObozCampusLayout.PlotCenterZ;
+        float delta=Mathf.Asin(12f/radiusX);
+        float start=-Mathf.PI*.5f+delta;
+        float sweep=Mathf.PI*2-2*delta;
+        Vector2 At(float a)=>new Vector2(radiusX*Mathf.Cos(a),centerZ+radiusZ*Mathf.Sin(a));
+        // Obwód zamknięty z wyjątkiem prawdziwej bramy i furtki.
+        // Wąski dolny łącznik utrzymuje oryginalny punkt bramy (0,-125).
+        Vector2 first=At(start),last=At(start+sweep);
+        for(int i=0;i<curveSegments;i++)
+        {
+            Vector2 p=At(start+sweep*i/curveSegments);
+            Vector2 q=At(start+sweep*(i+1)/curveSegments);
+            FenceLine(fence,p,q);
+        }
+        FenceLine(fence,new Vector2(12f,BraxObozCampusLayout.GateZ),first);
+        FenceLine(fence,last,new Vector2(-12f,BraxObozCampusLayout.GateZ));
+        FenceLine(fence,new Vector2(-12f,BraxObozCampusLayout.GateZ),
+            new Vector2(-4.2f,BraxObozCampusLayout.GateZ));
+        FenceLine(fence,new Vector2(4.2f,BraxObozCampusLayout.GateZ),
+            new Vector2(5.8f,BraxObozCampusLayout.GateZ));
+        FenceLine(fence,new Vector2(7.8f,BraxObozCampusLayout.GateZ),
+            new Vector2(12f,BraxObozCampusLayout.GateZ));
         var gate=Group("Brama przesuwna · 8,4 m światła",root,P(0,0,-125));
         foreach(float x in new[]{-4.5f,4.5f}){
             Box(gate,"Filar bramy",new Vector3(x,1.65f,0),new Vector3(.5f,3.3f,.65f),campusSteel);
