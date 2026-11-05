@@ -93,12 +93,14 @@ class SigningPreflightTests(unittest.TestCase):
         apk_jar = self.root / "android.jar"
         apk_jar.write_bytes(b"fixture")
         expected = "a" * 64
+        signing_calls = []
 
         def cmd(*args, **kwargs):
             if args[1] == "package":
                 Path(args[args.index("-F") + 1]).write_bytes(b"unsigned APK" * 200)
                 return ""
             if args[1] == "sign":
+                signing_calls.append(args)
                 Path(args[args.index("--out") + 1]).write_bytes(b"signed APK" * 200)
                 self.assertNotIn("--key-pass", args)
                 return ""
@@ -112,6 +114,8 @@ class SigningPreflightTests(unittest.TestCase):
              patch.object(delivery, "signer_fingerprints", return_value=[expected]), \
              contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(delivery.signing_smoke_preflight(expected), expected)
+        self.assertEqual(len(signing_calls), 2, "Must test initial and repeat signing")
+        self.assertIn("preflight-signed.apk", signing_calls[1][-1])
         with patch.object(delivery, "android_platform_jar", return_value=apk_jar), \
              patch.object(delivery, "sdk_tool", side_effect=lambda name: name), \
              patch.object(delivery, "command", side_effect=cmd), \
