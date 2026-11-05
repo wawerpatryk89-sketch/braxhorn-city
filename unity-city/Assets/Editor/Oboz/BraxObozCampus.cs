@@ -24,6 +24,8 @@ public static partial class BraxObozEnvironment
     static void RunningTracks()
     {
         var red=BraxObozMaterials.Plain("bieznia-tartan-czerwien",new Color(.58f,.055f,.073f),.12f);
+        red.mainTexture=TartanGrain();
+        EditorUtility.SetDirty(red);
         var white=BraxObozMaterials.Plain("bieznia-biale-linie",new Color(.95f,.95f,.91f),.18f);
         var oval=Group("BIEZNIA · owal 4 tory · BRAXHORN",root,P(65,0,72));
         // Staly ring: wewnatrz 37x19, na zewnatrz 43x25 metrow.
@@ -52,6 +54,30 @@ public static partial class BraxObozEnvironment
         Sign(straight,"BRAXHORN · 100 M",new Vector3(0,2f,-54),6);
         Debug.Log("BRAXHORN_OBOZ_BIEZNIE owal=4-tory 100m=4-tory nawierzchnia=tartan z kolizja");
     }
+    static Texture2D TartanGrain()
+    {
+        const int size=256;
+        string dir=BraxObozCharacters.Generated+"/Materials";
+        System.IO.Directory.CreateDirectory(dir);
+        string path=dir+"/RedTartanGrain.asset";
+        var existing=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if(existing)return existing;
+        var tex=new Texture2D(size,size,TextureFormat.RGB24,true);
+        var pixels=new Color32[size*size];
+        // Drobny granulat: powtarzalna 256px mapa + tiling, zero nowych 4K.
+        for(int y=0;y<size;y++)for(int x=0;x<size;x++)
+        {
+            uint h=unchecked((uint)(x*374761393+y*668265263+20261105));
+            h^=h>>13; h=unchecked(h*1274126177u);h^=h>>16;
+            byte grain=(byte)(193+(h%49));
+            pixels[y*size+x]=new Color32(grain,grain,grain,255);
+        }
+        tex.SetPixels32(pixels);tex.wrapMode=TextureWrapMode.Repeat;
+        tex.filterMode=FilterMode.Trilinear;tex.Apply(true,true);
+        AssetDatabase.CreateAsset(tex,path);
+        return tex;
+    }
+
     static void TrackAnnulus(Transform parent,string name,float ax0,float az0,float ax1,float az1,
         float y,Material material,bool solid)
     {
@@ -472,8 +498,15 @@ public static partial class BraxObozEnvironment
             Box(trim,"Szyba",new Vector3(side*3.07f,1.55f,0),new Vector3(.015f,.96f,2.14f),glass,false);
             Box(trim,"Parapet",new Vector3(side*3.12f,1.0f,0),new Vector3(.36f,.055f,2.4f),metal,false);
         }
-        foreach(float x in new[]{-.7f,.7f})Box(trim,"Ościeżnica",new Vector3(x,1.3f,-4.12f),new Vector3(.09f,2.4f,.12f),wood,false);
-        Box(trim,"Nadproże drzwi",new Vector3(0,2.52f,-4.12f),new Vector3(1.5f,.12f,.12f),wood,false);
+        foreach(float x in new[]{-.7f,.7f})
+        {
+            Box(trim,"Futryna zewnetrzna",new Vector3(x,1.3f,-4.17f),
+                new Vector3(.16f,2.52f,.16f),wood,false);
+            Box(trim,"Ciemna uszczelka futryny",new Vector3(x*.93f,1.25f,-4.18f),
+                new Vector3(.025f,2.33f,.025f),dark,false);
+        }
+        Box(trim,"Opaska gorna drzwi",new Vector3(0,2.53f,-4.17f),
+            new Vector3(1.53f,.14f,.16f),wood,false);
         CombineDecoration(trim);
     }
     public static void ReplaceServiceRoof(Transform sourceGroup,Transform model,float width,float depth)
