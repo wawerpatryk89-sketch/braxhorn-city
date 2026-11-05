@@ -1,0 +1,110 @@
+name: Miasto Mistrzów A1 T11 - preflight bez Unity
+run-name: A1 T11 - test kodu i APK 14 - BEZ BUILDU
+on:
+  push:
+    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
+    paths: [.github/workflows/mistrzowie-a1-t11-preflight-20261105.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: champions-a1-t11-preflight-only
+  cancel-in-progress: false
+jobs:
+  static-preflight:
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout Champions and source car - no Unity
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets
+            unity-city/Packages
+            unity-city/ProjectSettings
+            public/assets/cars-src/car_rev.glb
+            unity-tools/mistrzowie
+            unity-tools/updates
+            unity-tools/validation
+            .github/workflows/mistrzowie-apk.yml
+            .github/workflows/mistrzowie-a1-t11-preflight-20261105.yml
+      - name: Pin C sharp parser and offline test libraries
+        run: |
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 -m pip install --disable-pip-version-check numpy pillow shapely pyyaml
+      - name: Python syntax and exact original car bytes
+        run: |
+          python3 -m py_compile unity-tools/mistrzowie/*.py unity-tools/updates/*.py
+          python3 unity-tools/mistrzowie/prepare_champion_car.py --dry-run
+      - name: Fatal C sharp parsing and local name scope checks
+        run: |
+          python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: Assert A1 T11 source dependencies are connected
+        run: |
+          python3 - <<'PY'
+          import pathlib,yaml
+          root=pathlib.Path(".")
+          workflow=(root/".github/workflows/mistrzowie-apk.yml").read_text()
+          yaml.safe_load(workflow)
+          assert workflow.index("verify_previous_apk.py") < workflow.index("Unity 6 - Miasto Mistrzów")
+          assert "public/assets/cars-src/car_rev.glb" in workflow
+          assert "BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip" in workflow
+          assert "import_brax_car_animations.py" in workflow
+          assert "prepare_champion_car.py --dry-run" in workflow
+          runtime=(root/"unity-city/Assets/Mistrzowie/BraxChampionsCar.cs")
+          assert runtime.is_file() and "IBraxInterakcja" in runtime.read_text()
+          assert not (root/"unity-city/Assets/Claude/Runtime/BraxAutoGracza.cs").exists()
+          print("A1_T11_STATIC_SOURCE_WIRED owner car, Mixamo, premium case")
+          PY
+      - name: Detailed offline geometry and regressions - advisory only
+        continue-on-error: true
+        run: python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
+      - name: Verify signed APK number 14 receipt and higher versionCode
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/champions14"
+          gh run download 42028827233 --repo "$GITHUB_REPOSITORY" --name mistrzowie-validation-42028827233-1 --dir "$RUNNER_TEMP/champions14"
+          export PREVIOUS_DIR="$RUNNER_TEMP/champions14"
+          python3 - <<'PY'
+          import json,os,pathlib,sys
+          folder=pathlib.Path(os.environ["PREVIOUS_DIR"])/"mistrzowie-evidence"
+          previous=json.loads((folder/"apk-delivery.json").read_text())
+          signed=json.loads((folder/"signing-preflight.json").read_text())
+          check={"applicationId":"com.braxhorn.mistrzowie",
+            "versionCode":316045507,
+            "certificateSha256":"f3829d496e1bf4890ec64af78170c7e8b8696d1e49d4122df2b4fc1c80bd5ffe",
+            "sha256":"2ba08f7d6e4b6ad4e2bc2ed426bfb8570e578188d83093f0c476b5a617f7eee3"}
+          for key,want in check.items():
+            if previous.get(key)!=want:raise SystemExit("Prior APK identity mismatch: "+key)
+          if previous.get("status")!="APK_DELIVERED_RUNTIME_REVIEW_PENDING":
+            raise SystemExit("Previous APK was not delivered")
+          if signed.get("certificateSha256")!=check["certificateSha256"] or signed.get("smokeApkCertificateSha256")!=check["certificateSha256"]:
+            raise SystemExit("Prior signer does not match APK 14")
+          sys.path.insert(0,"unity-tools/mistrzowie")
+          from apk_version import version_code
+          now=version_code()
+          if now<=previous["versionCode"]:raise SystemExit("Update versionCode must increase")
+          print("SIGNED_CHAMPIONS_14_PASS applicationId="+previous["applicationId"]+
+                " oldVersion="+str(previous["versionCode"])+" next="+str(now)+" cert=PINNED")
+          PY
+      - name: Report owner ZIP availability - no build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view champions-a1-t11-20261105 --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>/dev/null | grep -Fxq 'BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip'; then
+            echo 'A1_T11_OWNER_ZIP_LISTED: full SHA validation happens at build preflight'
+          else
+            echo '::warning::A1_T11_OWNER_ZIP_PENDING; no Unity should start until the original signed inputs are present'
+          fi
+      - name: Read-only result
+        if: always()
+        run: |
+          echo '### A1+T11 quick preflight ONLY. UNITY_NOT_STARTED APK_NOT_BUILT.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Device visuals and physical paths require later owner review; never treated as phantom blockers.' >> "$GITHUB_STEP_SUMMARY"
