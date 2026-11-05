@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 
 // P1 BASEN MIEJSKI + SPA. The owner's plan is the dimensional authority.
 // Generates only P1 on the fixed master-plan plot (520,180), 160x120 nominal m.
-// The 4 basins have physical, EMPTY blue-tiled bottoms and walls. DO NOT add water.
+// Three real sunlit blue-tiled pools WITH WATER and swimming triggers per owner approval. Jacuzzi bubbles activate with original tub.
 // This module is isolated from Marina/Beach, A1, T01, T11 and their source assets.
 public static class BraxChampionsPoolP1
 {
@@ -23,7 +23,7 @@ public static class BraxChampionsPoolP1
     [Serializable] sealed class Data
     {
         public string schema;public Plot lot;public Basin[] basins;
-        public bool waterDeferred;public int parkingSpaces,texResolution;
+        public bool waterDeferred,waterReady;public int parkingSpaces,texResolution;
     }
     [Serializable] sealed class Plot
     {
@@ -41,7 +41,7 @@ public static class BraxChampionsPoolP1
         var d=JsonUtility.FromJson<Data>(File.ReadAllText(LayoutPath));
         if(d==null||d.lot==null||d.basins==null||d.basins.Length!=3
             ||d.lot.id!="P1"||d.lot.x!=LotX||d.lot.z!=LotZ||d.lot.w!=160f||d.lot.d!=120f
-            ||d.texResolution!=2048||d.parkingSpaces!=95||!d.waterDeferred)
+            ||d.texResolution!=2048||d.parkingSpaces!=95||d.waterDeferred||!d.waterReady)
             throw new InvalidOperationException("P1 plot, source resolution or empty-pool contract changed");
         var expected=new[]{"SPORT_25M","FAMILY","CHILDREN"};
         foreach(var id in expected)
@@ -64,7 +64,7 @@ public static class BraxChampionsPoolP1
         Directory.CreateDirectory(Output+"/Meshes");
         meshSerial=0;parked=0;
         SetupMaterials();
-        root=new GameObject("P1 | BASEN MIEJSKI + SPA | 160x120 | EMPTY BLUE BASINS").transform;
+        root=new GameObject("P1 | BASEN MIEJSKI + SPA | 160x120 | WATER FILLED SWIMMABLE POOLS").transform;
         root.position=new Vector3(LotX*K,0,LotZ*K);
         structure=Group(root,"P1 | halls, actual open rooms, walls and roofs");
         rooms=Group(root,"P1 | tiled interiors, changing rooms, reception and SPA");
@@ -77,7 +77,7 @@ public static class BraxChampionsPoolP1
         RecreationWing();
         SpaAndReception();
         ConnectWings();
-        foreach(var b in layout.basins)EmptyBlueBasin(b);
+        foreach(var b in layout.basins)BuildBlueBasin(b);
         FixturesAndFurniture();
         EstateAndParking();
         OwnerEquipmentAnchors();
@@ -94,7 +94,7 @@ public static class BraxChampionsPoolP1
         root.position=at;
         if(!prefab)throw new IOException("P1 prefab serialization failed");
         AssetDatabase.SaveAssets();
-        Debug.Log("P1 BASEN SOURCE_AUTHORING_READY_FOR_UNITY_REVIEW | 95 spaces | three EMPTY swimming basins | original jacuzzi model pending | no water | original sign artwork required | plot (520,180) | Unity compile and phone test not run");
+        Debug.Log("P1 BASEN SOURCE_AUTHORING_READY_FOR_UNITY_REVIEW | 95 spaces | three WATER-FILLED swimming/wading basins | original jacuzzi model pending | original sign artwork required | plot (520,180) | Unity compile and phone test not run");
     }
     static Transform Group(Transform parent,string name)
     {
@@ -433,10 +433,10 @@ public static class BraxChampionsPoolP1
         Box(t,"P1 inside washed wall skirting",smallMosaic,x,.18f,s-.12f,w,.27f,.07f,false);
         Box(t,"P1 clean interior ceiling",roofFinish,x,h+.15f,z,w,.24f,d);
     }
-    static void EmptyBlueBasin(Basin b)
+    static void BuildBlueBasin(Basin b)
     {
         float x=b.x-LotX,z=b.z-LotZ,w=b.w,d=b.d,depth=b.depth;
-        var t=Group(structure,"REAL EMPTY EXCAVATED BASIN | "+b.id+" | no water");
+        var t=Group(structure,"REAL BLUE TILED EXCAVATED BASIN WITH ANIMATED WATER | "+b.id);
         var m=b.id=="CHILDREN"?lightBlue:blue;
         float bottom=Deck-depth;
         // The underlying -0.25m foundation terrain is carved by legacy_foundation.py
@@ -466,6 +466,9 @@ public static class BraxChampionsPoolP1
                     Box(t,"P1 competition end T",navy,xx,bottom+.016f,zz,.08f,.013f,1.3f,false);
             }
         }
+        // Swimming water plane is not a solid collider. The real bottom and sidewalls
+        // remain collidable; a separate trigger provides buoyancy for deep basins.
+        BraxChampionsPoolP1Water.Basin(t,b.id,x,z,w,d,depth,b.id!="CHILDREN");
         // Simple robust real stainless steel ladder with two vertical rails, rungs.
         if(b.id!="CHILDREN")
         {
