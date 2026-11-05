@@ -210,6 +210,12 @@ jobs:
         with:
           path: unity-city/Assets/Source/Mistrzowie/CasinoT11/Textures2K
           key: mistrzowie-casino-t11-2k-${{ hashFiles('unity-tools/mistrzowie/prepare_casino_textures_2k.py') }}
+      - name: Cache user-selected real CC0 Poly Haven 2K promenade stock
+        continue-on-error: true
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: unity-city/Assets/Source/Mistrzowie/PolyHaven
+          key: mistrzowie-promenade-original-polyhaven-2k-${{ hashFiles('unity-tools/mistrzowie/promenade_polyhaven_models.json') }}
       - name: Geometry and source preparation
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -231,6 +237,10 @@ jobs:
           # The owner forbids generated/altered/mismatched signage for the
           # twelve new seafront outlets. Validate new originals first.
           python3 unity-tools/mistrzowie/verify_promenade_original_signs.py --strict
+          # Only after 12 user-original shop signs pass, download original
+          # vendor GLTF 2K + source map checksums. Never fake missing food.
+          # All stock scripts and staging are on THIS next-release branch.
+          python3 unity-tools/mistrzowie/prepare_promenade_props.py
           python3 unity-tools/mistrzowie/build_infrastructure.py
           python3 unity-tools/mistrzowie/prepare_landscape.py
           python3 unity-tools/mistrzowie/validate_contract.py
