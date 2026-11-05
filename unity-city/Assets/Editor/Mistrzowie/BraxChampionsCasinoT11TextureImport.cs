@@ -8,12 +8,15 @@ public sealed class BraxChampionsCasinoT11TextureImport : AssetPostprocessor
 {
     void OnPreprocessTexture()
     {
-        if(!assetPath.StartsWith("Assets/Source/Mistrzowie/CasinoT11/Textures2K/", StringComparison.Ordinal))
-            return;
+        bool casino=assetPath.StartsWith("Assets/Source/Mistrzowie/CasinoT11/Textures2K/",StringComparison.Ordinal);
+        bool vegetation=assetPath.StartsWith("Assets/Source/Mistrzowie/CasinoT11/Vegetation2K/",StringComparison.Ordinal);
+        if(!casino&&!vegetation)return;
         var importer=(TextureImporter)assetImporter;
         bool diffuse=assetPath.EndsWith("_diff_2k.jpg",StringComparison.Ordinal);
         bool linear=assetPath.EndsWith("_nor_gl_2k.png",StringComparison.Ordinal)
-                 ||assetPath.EndsWith("_arm_2k.png",StringComparison.Ordinal);
+                 ||assetPath.EndsWith("_arm_2k.png",StringComparison.Ordinal)
+                 ||assetPath.EndsWith("_nor_gl_2k.jpg",StringComparison.Ordinal)
+                 ||assetPath.EndsWith("_arm_2k.jpg",StringComparison.Ordinal);
         if(!diffuse && !linear)
             throw new InvalidOperationException("Unexpected T11 source map; only provider-native 2K diffuse/normal/ARM");
         importer.textureType=TextureImporterType.Default;
