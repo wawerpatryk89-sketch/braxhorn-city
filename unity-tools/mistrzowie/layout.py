@@ -21,8 +21,13 @@ METRO=[
 # Platform tangents match all five reused station prefabs; no level crossings.
 # Order in the line: M5 -> M1 -> M4 -> M3 -> M2.
 METRO_LINE_WAYPOINTS=[
- (1130,245),(235,245),(235,359),(560,359),(560,480),
- (235,480),(235,950),(765,950),(765,380),
+ # M5 gallery -> M1 dworzec: cross east-west via X800, outside G2, P1,
+ # T11 and their ground/basement reservations. Avoid the prior line through
+ # the underground casino garage at T11 (x=495,z=465).
+ (1130,245),(800,245),(800,359),(235,359),
+ # M4 west sports -> M3 and M2 north-east: all 90deg curves have
+ # clearance before each actual source metro portal.
+ (235,975),(765,975),(765,380),
 ]
 METRO_ROUTE_ORDER=('M5','M1','M4','M3','M2')
 def station_point(m,x,z):

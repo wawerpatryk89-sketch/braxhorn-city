@@ -54,6 +54,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 unity-tools/mistrzowie/build_infrastructure.py
+          python3 unity-tools/mistrzowie/audit_metro_network.py
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_metro_network_links.py' -v
           python3 - <<'PY'
           import json
           from pathlib import Path
