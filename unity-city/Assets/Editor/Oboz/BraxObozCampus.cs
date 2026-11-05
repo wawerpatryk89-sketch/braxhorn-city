@@ -110,7 +110,7 @@ public static partial class BraxObozEnvironment
 
     static void CoveredStrengthGym()
     {
-        var gym=Group("BRAXHORN · SILOWNIA POD DACHEM",root,P(-42,0,76));
+        var gym=Group("BRAXHORN · SILOWNIA POD DACHEM",root,P(-35,0,76));
         var mats=BraxObozMaterials.Plain("silownia-gumowa-podloga",
             new Color(.065f,.073f,.075f),.12f);
         var pads=BraxObozMaterials.Plain("silownia-czerwone-strefy",
