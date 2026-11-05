@@ -61,6 +61,8 @@ public static class BraxObozActors
             }
             info.npcs=npcs;
             BraxObozTrainingSetup.Configure(info);
+            foreach (var station in info.GetComponentsInChildren<BraxObozTrainingStation>(true))
+                station.player=player; // szesc plenerowych + trzy pod dachem
             foreach(var arena in info.arenas)
             {
                 arena.player=player; arena.progress=progress;
