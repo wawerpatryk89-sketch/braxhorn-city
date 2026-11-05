@@ -183,12 +183,24 @@ public static class BraxChampionsArena
         // Six long-side blocks and four end blocks; 2m aisles remain clear between blocks.
         foreach(var interval in new[]{new Vector2(cz-23,cz-9),new Vector2(cz-7,cz+7),new Vector2(cz+9,cz+23)})
         { Stand(false,cx-24,1,interval.x,interval.y,16);Stand(false,cx+24,-1,interval.x,interval.y,16); }
-        foreach(var interval in new[]{new Vector2(cx-22,cx-3),new Vector2(cx+3,cx+22)})
-        { Stand(true,cz-15,1,interval.x,interval.y,16);Stand(true,cz+15,-1,interval.x,interval.y,16); }
-        // Central aisle stair runs: each .4m tier is reached by two .2m steps.
-        foreach(float xx in new[]{cx-24,cx+24})foreach(float zz in new[]{cz-8,cz+8})
-            TierStairs(false,xx,xx<cx?1:-1,zz);
-        foreach(float zz in new[]{cz-15,cz+15})TierStairs(true,zz,zz<cz?1:-1,cx);
+        // Four end blocks leave a 6m central FRONT ENTRANCE AISLE all the way
+        // down to the octagon. Spectators enter at ground level (no front steps).
+        // Two 2m stair gaps are cut in the seating, one on either side.
+        foreach(var interval in new[]{
+            new Vector2(cx-22,cx-13),new Vector2(cx-11,cx-3),
+            new Vector2(cx+3,cx+11),new Vector2(cx+13,cx+22)})
+        {
+            Stand(true,cz-15,1,interval.x,interval.y,16);
+            Stand(true,cz+15,-1,interval.x,interval.y,16);
+        }
+        // Each stepped aisle is aligned with an actual gap in the seat blocks,
+        // not a staircase placed directly across the public entry.
+        foreach(float xx in new[]{cx-24,cx+24})
+            foreach(float zz in new[]{cz-8,cz+8})
+                TierStairs(false,xx,xx<cx?1:-1,zz);
+        foreach(float zz in new[]{cz-15,cz+15})
+            foreach(float side in new[]{-12f,12f})
+                TierStairs(true,zz,zz<cz?1:-1,cx+side);
         // fotele VIP przy klatce (2 rzędy po obu stronach chodnika, przodem do oktagonu)
         foreach (float zr in new[] { 70.2f, 71.4f })
             foreach (var (a0, a1) in new[] { (-94.6f, -88.9f), (-83.1f, -77.4f) })
