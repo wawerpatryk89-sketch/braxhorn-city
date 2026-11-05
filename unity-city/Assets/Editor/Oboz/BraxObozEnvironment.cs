@@ -281,6 +281,12 @@ public static partial class BraxObozEnvironment
             var bed=Group("Połóż się · "+name,t,P(side*2.05f,0,1.6f)).gameObject.AddComponent<BraxSeat>();
             bed.label=name+" · łóżko";bed.lie=true;bed.surfaceY=.69f*K;bed.hipsAboveRoot=.9f*K;
         }
+        // Osiem prawdziwych wojskowych szafek 3D, ze współdzieloną geometrią.
+        // Nie dotykaj oryginalnych łóżek/postaci ani tekstur źródłowych.
+        foreach(float side in new[]{-1f,1f})
+            BraxObozServices.OwnerFixture(t,"metal_cabinet_low_poly.glb",
+                new Vector3(side*2.2f,.16f,-2.4f),
+                new Vector3(1.15f,2.05f,.78f));
         Box(t,"Stół",new Vector3(1.9f,.8f,-1.7f),new Vector3(1.1f,.08f,.7f),wood);
         foreach(float dx in new[]{-.46f,.46f})foreach(float dz in new[]{-.26f,.26f})Box(t,"Noga stołu",new Vector3(1.9f+dx,.43f,-1.7f+dz),new Vector3(.07f,.7f,.07f),wood);
         CombineDecoration(t); // Static shell only; keep the door leaf movable.
