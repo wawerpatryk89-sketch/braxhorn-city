@@ -62,8 +62,9 @@
       "depth": 0.65
     }
   ],
-  "waterDeferred": true,
+  "waterDeferred": false,
   "parkingSpaces": 95,
   "texResolution": 2048,
-  "notes": "World nominal metres before K. The three sports/family/children swimming basins are REAL dry excavations with blue tiled walls. Jacuzzi is the owner-supplied original model, mounted on the finished SPA floor at (530,173.25) without excavation. Matching ground cutouts are read from this manifest."
+  "notes": "Three physical blue-tiled pools are filled with animated turquoise water at 0.18 nominal metres below the coping. Sports/family basins include Brax buoyancy/swimming triggers, children's shallow pool is for wading. Owner jacuzzi water/bubbles are prepared and attach only when real tub model is installed. No substitute jacuzzi.",
+  "waterReady": true
 }
