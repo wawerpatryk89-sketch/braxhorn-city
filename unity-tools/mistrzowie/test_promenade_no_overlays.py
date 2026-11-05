@@ -10,7 +10,7 @@ from shapely.geometry import box,Polygon
 from shapely.ops import unary_union
 from promenade_layout import (
     PAVILIONS,PAVILION_PADS,CYCLE_Z0,CYCLE_Z1,
-    X0,X1,CYCLE_WIDTH,PEDESTRIAN_CONNECTIONS,validate
+    X0,X1,CYCLE_WIDTH,PEDESTRIAN_CONNECTIONS,PAVILION_FOOTPRINTS,validate
 )
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -24,6 +24,7 @@ class PromenadeLaneNoZFight(unittest.TestCase):
         self.assertEqual(CYCLE_WIDTH,3.)
         self.assertEqual(X1-X0,1100.)
         self.assertEqual(len(PEDESTRIAN_CONNECTIONS),4)
+        self.assertEqual(len(PAVILION_FOOTPRINTS),12)
 
     def test_cycle_lane_code_actually_removes_old_paving_and_no_offset(self):
         source=(ROOT/"unity-tools/mistrzowie/legacy_foundation.py").read_text()
@@ -48,6 +49,37 @@ class PromenadeLaneNoZFight(unittest.TestCase):
         self.assertIn('materials["cycle_lane"].SetColor(',foundation)
         self.assertIn('materials["cycle_mark"].SetColor(',foundation)
         self.assertIn("2048",texture)
+
+    def test_12_shop_shells_and_original_2k_photo_signs(self):
+        builder=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs").read_text()
+        foundation=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs").read_text()
+        signs=(ROOT/"unity-tools/mistrzowie/prepare_promenade_signs.py").read_text()
+        self.assertIn('BraxChampionsPromenade.Build(root,d.promenade)',foundation)
+        self.assertIn('d.promenade.Length!=12',foundation)
+        self.assertIn('SignFace(root,p,Sign(p))',builder)
+        self.assertIn('imp.maxTextureSize=2048',builder)
+        self.assertIn('android.maxTextureSize!=2048',builder)
+        self.assertIn('ClearGlass()',builder)
+        self.assertIn('full 2K PBR shop shell',builder)
+        self.assertIn('SIZE=(2048,512)',signs)
+
+    def test_shop_slab_has_no_original_ground_below_it(self):
+        if not FOUND.is_file():self.skipTest("Generate physical foundation first")
+        data=json.loads(FOUND.read_text())
+        k=data["scaleK"]
+        pads=[box(a,b,a+w,b+d) for a,b,w,d in PAVILION_FOOTPRINTS]
+        covered=unary_union(pads)
+        ground=[]
+        for mesh in data["meshes"]:
+            if mesh["role"] not in ("paving","grass"):continue
+            v=np.asarray(mesh["positions"]).reshape(-1,3)/k
+            for triangle in np.asarray(mesh["triangles"]).reshape(-1,3):
+                coords=v[triangle][:,[0,2]]
+                if coords[:,1].min()>-110 or coords[:,1].max()<-120:continue
+                poly=Polygon(coords)
+                if poly.area>1e-9:ground.append(poly)
+        self.assertLess(unary_union(ground).intersection(covered).area,1e-4,
+                        "Previous grass/paving surface still hidden below kiosk floor")
 
     def test_generated_mesh_red_and_white_replace_cobbles_exactly(self):
         if not FOUND.is_file():
