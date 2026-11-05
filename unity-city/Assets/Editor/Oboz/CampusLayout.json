@@ -200,13 +200,6 @@
       "depth": 11
     },
     {
-      "id": "bunker-reserved",
-      "x": -54,
-      "z": 4,
-      "width": 35,
-      "depth": 30
-    },
-    {
       "id": "bus-return-walkway",
       "x": 15,
       "z": -98,
