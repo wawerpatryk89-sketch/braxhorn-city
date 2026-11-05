@@ -155,10 +155,24 @@ jobs:
               "$RUNNER_TEMP/ARENA_A1_TRZY_MURALE_ORIGINALY.zip" --dry-run
             python3 unity-tools/mistrzowie/import_arena_three_murals.py \
               "$RUNNER_TEMP/ARENA_A1_TRZY_MURALE_ORIGINALY.zip"
+
+            # Both ORIGINAL city-sign collections, including C1 KASYNO WAWER,
+            # TAXI and PARKING. The importer pins all 148 PNGs and their GUIDs.
+            for collection in MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip; do
+              gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
+                --pattern "$collection" --dir "$RUNNER_TEMP" --clobber
+            done
+            python3 unity-tools/mistrzowie/import_city_signs.py \
+              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip" \
+              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip" --dry-run
+            python3 unity-tools/mistrzowie/import_city_signs.py \
+              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip" \
+              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip"
           fi
           python3 unity-tools/mistrzowie/verify_champion_assets.py
           python3 unity-tools/mistrzowie/verify_arena_three_murals.py
-          echo "CHAMPION_A1_ASSET_GATE PASS; original models, 4 signs, and all 3 murals verified"
+          test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png
+          echo "MISTRZOWIE_A1_T11_ASSET_GATE PASS; arena belt/VIP + 3 murals + 148 original signs including casino"
 
       - name: Verify key and sign a real tiny APK before the expensive Unity build
         if: inputs.etap != 'sceny'
