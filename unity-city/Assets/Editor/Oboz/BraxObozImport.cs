@@ -84,28 +84,6 @@ public sealed class BraxObozImport : AssetPostprocessor
         if (!(assetImporter is TextureImporter t)) return;
         string n = System.IO.Path.GetFileName(assetPath).ToLowerInvariant();
 
-        // Skybox HDR Montorfano: zachowaj rzeczywiste 4096×2048 i liniowe HDR.
-        // Unity wybiera format HDR zgodny z targetem Android (ASTC_HDR jest
-        // opcjonalne sprzętowo); nie wymuszać niepoprawnego ASTC LDR.
-        if (assetPath.EndsWith("/OwnerAssets/Panoramy/montorfano_4k.hdr",
-            StringComparison.OrdinalIgnoreCase))
-        {
-            t.textureShape = TextureImporterShape.Texture2D;
-            t.textureType = TextureImporterType.Default;
-            t.sRGBTexture = false;
-            t.mipmapEnabled = true;
-            t.filterMode = UnityEngine.FilterMode.Trilinear;
-            t.maxTextureSize = 4096;
-            t.isReadable = false;
-            var hdri = t.GetPlatformTextureSettings("Android");
-            hdri.name = "Android";
-            hdri.overridden = true;
-            hdri.maxTextureSize = 4096;
-            hdri.format = TextureImporterFormat.Automatic;
-            t.SetPlatformTextureSettings(hdri);
-            return;
-        }
-
         // Radiance HDRI 360 zachowuje liniowe dane HDR. Nie wolno przepakować
         // 4K panoramy jako zwykłego LDR ASTC 4x4 tylko dlatego, że jest w OwnerAssets.
         if(assetPath.StartsWith(Root+"OwnerAssets/Panoramy/",StringComparison.Ordinal) &&
@@ -126,6 +104,67 @@ public sealed class BraxObozImport : AssetPostprocessor
             t.SetPlatformTextureSettings(androidHdr);
             return;
         }
+        // Właścicielskie murale, szyld i tekstura FBX to grafiki COLOR,
+        // nawet jeśli nazwa JPEG nie zawiera słowa 'Color'. Żadnej zmiany
+        // pliku źródłowego; poprawne sRGB jest konieczne, by nie zmienić barw.
+        bool ownerArtwork = assetPath.StartsWith(Root+"OwnerAssets/Murale/",StringComparison.Ordinal);
+        bool ownerShelterMap = assetPath.StartsWith(Root+"OwnerAssets/Przystanek/",StringComparison.Ordinal);
+        if(ownerArtwork||ownerShelterMap)
+        {
+            t.textureShape=TextureImporterShape.Texture2D;
+            t.textureType=TextureImporterType.Default;
+            t.sRGBTexture=true;
+            t.mipmapEnabled=true;
+            t.filterMode=UnityEngine.FilterMode.Trilinear;
+            t.anisoLevel=8;
+            t.maxTextureSize=4096;
+            t.isReadable=false;
+            t.textureCompression=TextureImporterCompression.CompressedHQ;
+            t.compressionQuality=90;
+            var androidArtwork=t.GetPlatformTextureSettings("Android");
+            androidArtwork.name="Android";
+            androidArtwork.overridden=true;
+            androidArtwork.maxTextureSize=4096; // nie obniżaj oryginalnej jakości
+            androidArtwork.format=TextureImporterFormat.ASTC_4x4;
+            androidArtwork.compressionQuality=90;
+            t.SetPlatformTextureSettings(androidArtwork);
+            return;
+        }
+
+        // Do przyszłego pełnego importu materiałów 2K/4K trawy, błota i płytek.
+        // Mapy normalnych w Poly Haven używają '_nor_gl_', nie '_normal'.
+        // Trzymaj oryginalne 4K, na Androidzie także bez ukrytej redukcji.
+        if(assetPath.StartsWith(Root+"OwnerAssets/",StringComparison.Ordinal) &&
+            assetPath.Contains("/textures/",StringComparison.Ordinal))
+        {
+            bool sourceNormal=n.Contains("_nor_gl_");
+            bool sourceColor=n.Contains("_diff_");
+            bool is4k=assetPath.Contains("_4k/",StringComparison.OrdinalIgnoreCase) ||
+                n.Contains("_4k.");
+            int limit=is4k?4096:2048;
+            t.textureShape=TextureImporterShape.Texture2D;
+            t.textureType=sourceNormal?TextureImporterType.NormalMap:TextureImporterType.Default;
+            t.sRGBTexture=sourceColor;
+            t.mipmapEnabled=true;
+            t.streamingMipmaps=false; // opcja dopiero po teście UV/shadera
+            t.anisoLevel=8;
+            t.filterMode=UnityEngine.FilterMode.Trilinear;
+            t.wrapMode=UnityEngine.TextureWrapMode.Repeat;
+            t.maxTextureSize=limit;
+            t.isReadable=false;
+            t.textureCompression=TextureImporterCompression.CompressedHQ;
+            t.compressionQuality=90;
+            var mobileSource=t.GetPlatformTextureSettings("Android");
+            mobileSource.name="Android";
+            mobileSource.overridden=true;
+            mobileSource.maxTextureSize=limit;
+            mobileSource.format=sourceNormal?TextureImporterFormat.ASTC_4x4:
+                TextureImporterFormat.ASTC_6x6;
+            mobileSource.compressionQuality=90;
+            t.SetPlatformTextureSettings(mobileSource);
+            return;
+        }
+
         // Nowy prywatny materiał bieżni: dotyczy wyłącznie OwnerAssets,
         // postaci/animacji/importu dotychczasowych źródeł nie zmieniamy.
         if (assetPath.Contains("/OwnerAssets/rubberized_track_2k/", StringComparison.Ordinal))
@@ -176,7 +215,7 @@ public sealed class BraxObozImport : AssetPostprocessor
             assetPath.StartsWith(Root + "environment/materials/metal/", StringComparison.Ordinal) ||
             assetPath.StartsWith(Root + "environment/materials/towel/", StringComparison.Ordinal);
         bool vegetationMap = assetPath.StartsWith(Root + "environment/vegetation/vegetation_textures/", StringComparison.Ordinal);
-        // Unrecognized camp assets (bunker, gym, bus) retain their existing policy.
+        // Pozostałe historyczne zasoby obozu zachowują dotychczasowy profil importu.
         int editorMax = billboard ? 8192 : otherCharacter ? 2048 : 4096;
         // Tiled materials retain a sharp 2K near the camera; ordinary mipmaps
         // and selective streaming provide lower-detail versions at distance.
