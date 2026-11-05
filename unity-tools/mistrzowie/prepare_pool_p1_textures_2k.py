@@ -20,6 +20,7 @@ SLUGS = (
     "granite_tile_03",
     "clean_asphalt",
     "concrete_pavement_02",
+    "herringbone_brick_02",  # approved distinct warm paving P1 forecourt; Poly Haven CC0
     "teak_veneer",
     "long_white_tiles",
     "marble_mosaic_tiles",
