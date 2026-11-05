@@ -201,6 +201,10 @@ public static class BraxChampionsArenaArrival
                 new Vector3(mid, .239f, 45.5f), new Vector3(15.8f, .018f, 14f), false);
             Box(parent, "Rear changing room exterior partition", dark,
                 new Vector3(mid, 1.9f, 52.5f), new Vector3(15.8f, 3.5f, .16f));
+            Box(parent, "Changing room front privacy partition", dark,
+                new Vector3(mid, 1.9f, 38.5f), new Vector3(15.8f, 3.5f, .16f));
+            Box(parent, "Changing room enclosed ceiling", dark,
+                new Vector3(mid, 3.62f, 45.5f), new Vector3(15.8f, .13f, 14f), false);
             Box(parent, "Changing room outer partition", dark,
                 new Vector3(outer, 1.9f, 45.5f), new Vector3(.16f, 3.5f, 14f));
             // Break the inward wall to leave a real 2.4m dressing-room entrance.
@@ -312,6 +316,8 @@ public static class BraxChampionsArenaArrival
         DressingRooms(root, sidewalk, exterior["dark_stone"], exterior["steel"]);
         Box(root, "Main lobby continuous carpet", rope,
             new Vector3(0, .239f, -47.3f), new Vector3(3.9f, .018f, 22.0f), false);
+        Box(root, "Separate red athlete walkway to cage", rope,
+            new Vector3(0, .239f, 47.2f), new Vector3(3.9f, .018f, 22.0f), false);
         // Warm lobby lighting keeps the interior visible through the glazed curtain wall.
         // Vertex lights are used, not shadow-casting dynamic lights per glass bay.
         for (int i = -1; i <= 1; i++)
