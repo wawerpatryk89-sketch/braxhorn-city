@@ -11,17 +11,19 @@ public sealed class BraxKlubSwiatlo : MonoBehaviour
     Renderer[] gracz; int[] warstwyGracza; LightProbeUsage[] probesGracza;
     MaterialPropertyBlock[] blokiGracza;
     bool wSrodku; float next;
-    readonly MaterialPropertyBlock block=new MaterialPropertyBlock();
+    MaterialPropertyBlock block;
     SphericalHarmonicsL2[] sh;
 
     void Awake()
     {
+        block = new MaterialPropertyBlock();
         sh=new SphericalHarmonicsL2[1];sh[0].AddAmbientLight(ambient);
         if(powierzchnie!=null)foreach(var r in powierzchnie)Apply(r);
     }
     void Apply(Renderer r)
     {
         if(!r)return;
+        if(block==null)block=new MaterialPropertyBlock();
         r.gameObject.layer=warstwa;r.lightProbeUsage=LightProbeUsage.CustomProvided;
         r.GetPropertyBlock(block);block.CopySHCoefficientArraysFrom(sh);
         // Imported models use CityStaticPBR: its authored sun/sky bypass Unity probes.
