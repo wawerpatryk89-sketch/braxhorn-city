@@ -285,6 +285,11 @@ public static partial class BraxObozEnvironment
         // envelope is a 12 x 2.6 m coach, not a claim of a tested driving model.
         Disc(t,"Plac zawracania",new Vector3(0,.095f,-94),18,campusAsphalt,true);
         Disc(t,"Wyspa centralna",new Vector3(0,.16f,-94),6,campusPaving,true);
+        // Biała obwodnica i pomnik pozostają wewnątrz wyspy, bez zmiany bramy.
+        var rondo = Group("Rondo BRAXHORN — biały obwód i wyspa",t,P(0,0,-94));
+        var whiteRondo = BraxObozMaterials.Plain("rondo-linia-biala",new Color(.96f,.96f,.94f),.06f);
+        TrackAnnulus(rondo,"Pełny biały obrys ronda",17.82f,17.82f,17.98f,17.98f,.149f,whiteRondo,false);
+        RondoBull(rondo);
         Box(t,"Zatoka autobusu",new Vector3(21,.055f,-92),new Vector3(4,.11f,20),campusAsphalt);
         Box(t,"Połączenie zatoki",new Vector3(14,.05f,-94),new Vector3(12,.10f,24),campusAsphalt);
         Box(t,"Dojście pasażerów",new Vector3(26,.08f,-94),new Vector3(2.8f,.16f,40),campusPaving);
@@ -316,6 +321,44 @@ public static partial class BraxObozEnvironment
             Group("Łuk "+i,route,P(Mathf.Sin(a)*12,0,-94+Mathf.Cos(a)*12));
         }
     }
+    // Model właściciela pozostaje w prywatnych assetach Unity, poza publicznym Git.
+    // Nieobecność GLB oznaczamy jako BRAK do odbioru, nigdy nie używamy atrapy.
+    static void RondoBull(Transform center)
+    {
+        const string sourcePath =
+            "Assets/Source/Prywatne/Oboz/OwnerAssets/BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb";
+        var source = AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
+        if (!source)
+        {
+            Debug.LogWarning("BRAXHORN_OBOZ_BULL_PENDING: Brak prywatnego GLB: " + sourcePath +
+                ". Nie wolno oznaczyc przebudowy ronda jako skonczonej.");
+            return;
+        }
+        var monument = Group("Pomnik byka BRAXHORN — model wlasciciela",center,Vector3.zero);
+        Box(monument,"Cokol kamienny PBR",new Vector3(0,.53f,0),
+            new Vector3(3.4f,.80f,5.4f),campusPaving);
+        var model = PrefabUtility.InstantiatePrefab(source) as GameObject;
+        if (!model) throw new InvalidOperationException("Nie mozna instancjonowac oryginalnego GLB byka");
+        model.name = "Oryginalny byk GLB — 100% tekstur i geometrii";
+        model.transform.SetParent(monument,false);
+        model.transform.localPosition = Vector3.zero;
+        model.transform.localRotation = Quaternion.identity;
+        var renderers = model.GetComponentsInChildren<Renderer>(true);
+        if (renderers.Length == 0) throw new InvalidOperationException("Model byka bez renderera");
+        Bounds b = renderers[0].bounds;
+        foreach (var renderer in renderers.Skip(1)) b.Encapsulate(renderer.bounds);
+        float longest = Mathf.Max(b.size.x,b.size.z);
+        if (longest < .0001f) throw new InvalidOperationException("Model byka ma zerowy rozmiar");
+        // Dopasowanie tylko przez Transform: UV/tekstury/szczegóły zostają bez zmian.
+        model.transform.localScale *= (4.8f*K)/longest;
+        b = renderers[0].bounds;
+        foreach (var renderer in renderers.Skip(1)) b.Encapsulate(renderer.bounds);
+        model.transform.position += new Vector3(monument.position.x-b.center.x,
+            monument.position.y+.93f*K-b.min.y,monument.position.z-b.center.z);
+        Debug.Log("BRAXHORN_OBOZ_BULL_IMPORT: obrys=" + b.size +
+            " asset=" + sourcePath + " PBR=oryginalny UV=oryginalne");
+    }
+
     static void Disc(Transform parent,string name,Vector3 center,float radius,Material mat,bool solid)
     {
         const int n=96;var vertices=new Vector3[n+1];var uv=new Vector2[n+1];var triangles=new int[n*3];
