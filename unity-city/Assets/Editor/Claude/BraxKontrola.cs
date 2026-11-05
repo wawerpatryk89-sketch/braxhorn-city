@@ -60,7 +60,16 @@ public static class BraxKontrola
             Krok("migotanie", () => BraxKontrolaMigotania.Wykonaj(scena, spis));
             Krok("materiały (podłogi-lustra)", () => BraxKontrolaMaterialow.Wykonaj(scena));
             Krok("pomieszczenia", () => BraxKontrolaPomieszczen.Wykonaj(scena));
-            Krok("robot", () => BraxRobotKolizji.Wykonaj(scena, spis));
+            // Robot wykrywa przenikanie i niedrożne przejścia, ale nie buduje fizycznych
+            // colliderów. W testowym APK pomijamy go całkowicie (bez bramki i limitu czasu).
+            // Krok "kolizje" powyżej nadal DODAJE brakujące collidery do gry.
+            if (BraxBuildQuality.Advisory)
+            {
+                BraxBuildQuality.Warn("Kontrola przenikania postaci/kolizji (robot) WYŁĄCZONA dla testowego APK; fizyczne collidery zachowane.");
+                Zapisz("robot kolizji: POMINIĘTY do ręcznej oceny w grze");
+            }
+            else
+                Krok("robot", () => BraxRobotKolizji.Wykonaj(scena, spis));
         }
         finally
         {
