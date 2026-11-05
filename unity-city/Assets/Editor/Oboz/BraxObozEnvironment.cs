@@ -189,6 +189,7 @@ public static partial class BraxObozEnvironment
         var paths = new List<Rect> {
             new Rect(-1.2f,-125,2.4f,240), new Rect(-101,-56.0f,101,2),
             new Rect(-101,-55,2,42), new Rect(-64,-55,2,42),
+            new Rect(-93.2f,-79f,2.4f,5f), // dojscie do nowej lazni i WC od glownego chodnika
             new Rect(-123,-75,123,2), new Rect(-50,-100,50,2),
             new Rect(-75,75,145,2), new Rect(0,-79,70,2)
         };
