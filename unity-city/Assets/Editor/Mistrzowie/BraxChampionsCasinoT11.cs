@@ -288,9 +288,10 @@ public static class BraxChampionsCasinoT11
         B(shell,"Rear service and deliveries",asphalt,0,.23f,46.7f,105f,.07f,5.4f,true,true);
         B(shell,"Delivery corridor to rear loading door",asphalt,-20f,.248f,36.6f,6.4f,.052f,17.5f,true,true);
         B(trim,"Rear loading bay white line",paving,-20f,.284f,46.7f,12f,.012f,.11f,false);
-        B(shell,"Garage portal west upright",graphite,54.5f,2.5f,4f,.85f,4.5f,1.0f,true);
-        B(shell,"Garage portal east upright",graphite,54.5f,2.5f,11.4f,.85f,4.5f,1.0f,true);
-        B(shell,"Garage above-entry champagne beam",gold,54.5f,4.9f,7.7f,.9f,.34f,8.8f,true);
+        B(shell,"Garage portal west upright",graphite,57.7f,2.5f,4f,.85f,4.5f,1.0f,true);
+        B(shell,"Garage portal east upright",graphite,57.7f,2.5f,11.4f,.85f,4.5f,1.0f,true);
+        B(shell,"Garage above-entry champagne beam",gold,57.7f,4.9f,7.7f,.9f,.34f,8.8f,true);
+        // Portal stands outside the 7m side fire route (x=49.5..56.5).
         // Garage interior and descending ramp intentionally deferred by owner.
         // Existing owned palm models (no fabricated vegetation).
         var palm=BraxMiastoAssety.Model("miasto_palmy","palma");
