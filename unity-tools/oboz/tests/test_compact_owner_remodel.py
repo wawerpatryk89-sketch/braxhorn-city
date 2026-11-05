@@ -99,6 +99,18 @@ class CompactOwnerRemodelTest(unittest.TestCase):
         self.assertIn("*.fbx",ignored)
         self.assertIn("*.zip",ignored)
 
+    def test_no_bunker_anywhere_in_camp(self):
+        """Właściciel odrzucił całkowicie bunkier; scenie nie wolno go odtwarzać."""
+        for old_token in ("SourceBunker(", "underground_bunker__unity.glb",
+                          "Bunkier bramy", "Bunkier dowodzenia"):
+            self.assertNotIn(old_token, self.env)
+        for region in ("clearances", "lawnClearances"):
+            self.assertFalse(
+                [zone["id"] for zone in self.zones[region]
+                 if "bunker" in zone["id"].lower() or "bunkier" in zone["id"].lower()],
+                "Bunkier nadal rezerwuje teren i blokuje nową roślinność"
+            )
+
     def test_clearance_data_inside_plot(self):
         rx=get_float(self.layout,"PlotRadiusX")-8.8
         rz=get_float(self.layout,"PlotRadiusZ")-8.8
