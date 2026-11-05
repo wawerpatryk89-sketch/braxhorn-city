@@ -172,6 +172,13 @@ jobs:
         with:
           path: unity-city/Assets/Source/Mistrzowie/Textures
           key: mistrzowie-pbr-4k-${{ hashFiles('unity-tools/mistrzowie/prepare_assets.py', 'unity-tools/mistrzowie/verified_textures.json') }}
+      - name: Cache T11 provider-native Poly Haven 2K source maps
+        if: ${{ hashFiles('unity-tools/mistrzowie/prepare_casino_textures_2k.py') != '' }}
+        continue-on-error: true
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: unity-city/Assets/Source/Mistrzowie/CasinoT11/Textures2K
+          key: mistrzowie-casino-t11-2k-${{ hashFiles('unity-tools/mistrzowie/prepare_casino_textures_2k.py') }}
       - name: Geometry and source preparation
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
