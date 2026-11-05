@@ -47,6 +47,12 @@ PAVILION_PADS=[
   p["w"]+2*PAVILION_PAD_MARGIN,p["d"]+2*PAVILION_PAD_MARGIN)
  for p in PAVILIONS
 ]
+# No original grass OR pad paving beneath a shop floor.
+# The outer 35cm apron remains a SINGLE continuous paved ring.
+PAVILION_FOOTPRINTS=[
+ (p["x"]-p["w"]/2,KIOSK_FRONT,p["w"],p["d"])
+ for p in PAVILIONS
+]
 
 def validate():
     assert X1-X0==1100. and Z1-Z0==30.0

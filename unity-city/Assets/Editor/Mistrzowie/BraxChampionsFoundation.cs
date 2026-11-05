@@ -28,11 +28,18 @@ public static class BraxChampionsFoundation
         public Stop[] tramStops, metroStations, busStops;
         public Berth[] berths;
         public Pier[] piers;
+        public Pavilion[] promenade;
     }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
     [Serializable] public sealed class Plant { public string id, kind, band; public float x,z,yaw; public int variant; }
     [Serializable] public sealed class Building { public string id,name; public float x,z,w,d,height; }
     [Serializable] public sealed class Stop { public float x,z; }
+    [Serializable] public sealed class Pavilion
+    {
+        public string id,name,sign,style;
+        public float x,z,w,d,h;
+        public bool walkIn;
+    }
     [Serializable] public sealed class Pier
     {
         public string id,role;
@@ -58,7 +65,7 @@ public static class BraxChampionsFoundation
         var d=JsonUtility.FromJson<Foundation>(File.ReadAllText(Source+"/Foundation.json"));
         if(d==null || d.regionId!="mistrzowie" || Mathf.Abs(d.scaleK-K)>.00001f)
             throw new InvalidOperationException("Region scale differs from BraxClaudeOsiedle.K; regenerate nominal geometry, never rescale imports twice.");
-        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=38 || d.piers==null || d.piers.Length!=56
+        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=38 || d.piers==null || d.piers.Length!=56 || d.promenade==null || d.promenade.Length!=12
             || d.berths.Count(b=>b.kind=="yacht")!=15
             || d.berths.Count(b=>b.kind=="motorboat")!=10
             || d.berths.Count(b=>b.kind=="jetski")!=10
@@ -238,6 +245,9 @@ public static class BraxChampionsFoundation
                 }
                 foreach(var r in o.GetComponentsInChildren<Renderer>(true))GameObjectUtility.SetStaticEditorFlags(r.gameObject,StaticEditorFlags.OccludeeStatic);
             }
+            // Instantiate 12 actual 2K-PBR premium shop shells on REMOVED
+            // inland lawn patches, with no duplicate floor under their slab.
+            BraxChampionsPromenade.Build(root,d.promenade);
             // Place the ORIGINAL user-library yacht, Riva and jetski models.
             // No fabricated cruise/ferry vessel is allowed without its source.
             int boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths,d.piers);

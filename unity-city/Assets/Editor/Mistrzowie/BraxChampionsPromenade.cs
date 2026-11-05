@@ -187,7 +187,7 @@ public static class BraxChampionsPromenade
         var timber=Pbr("prom_"+p.id+"_teak","teak_veneer",1.25f,
                        index%2==0?new Color(.76f,.59f,.42f):new Color(.54f,.45f,.37f));
         float w=p.w,d=p.d,h=p.h;
-        float wall=.18f,floorThick=.16f,roofThick=.19f;
+        float wall=.18f,floorThick=.164f,roofThick=.19f;
         float roofBase=h-roofThick;
         // The 12 pavilions have level floors, no duplicate paving slab:
         // the ground beneath is ALREADY replaced by a single unique pad.

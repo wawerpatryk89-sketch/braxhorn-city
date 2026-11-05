@@ -9,7 +9,7 @@ ROOT=Path(__file__).resolve().parents[2]
 REPORT=ROOT/'mistrzowie-evidence';REPORT.mkdir(exist_ok=True)
 from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO
 from port_layout import PIERS,BERTHS,SHORE_BACK,SEA_LEVEL,shoreline,beach_height,validate as validate_port
-from promenade_layout import PAVILIONS,PAVILION_PADS,CYCLE_Z0,CYCLE_Z1,CYCLE_WIDTH,X0 as PROM_X0,X1 as PROM_X1,validate as validate_promenade
+from promenade_layout import PAVILIONS,PAVILION_PADS,PAVILION_FOOTPRINTS,CYCLE_Z0,CYCLE_Z1,CYCLE_WIDTH,X0 as PROM_X0,X1 as PROM_X1,validate as validate_promenade
 SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
 K=float(np.float32(2.33)/np.float32(1.80))  # exact existing Unity float expression
 base=json.loads((Path(__file__).with_name('plan_inventory.json')).read_text())
@@ -47,6 +47,7 @@ def zone(x,z):
  if PROM_X0<=x<PROM_X1 and CYCLE_Z0<=z<CYCLE_Z1:return None
  # Inland pavilion pads replace grass only in 12 footprint rectangles;
  # green palm beds and the entire pedestrian promenade stay intact.
+ if any(inside((x,z),r) for r in PAVILION_FOOTPRINTS):return None
  if any(inside((x,z),r) for r in PAVILION_PADS):return 'paving'
  if any(inside((x,z),r) for r in walks) and (z>=-150 or x<740):return 'paving'
  if z>=-110:
@@ -92,7 +93,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP]+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
+rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP]+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
