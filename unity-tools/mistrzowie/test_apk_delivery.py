@@ -132,6 +132,7 @@ class ApkDeliveryTests(unittest.TestCase):
         cert = b"synthetic certificate DER"
         cert_sha = hashlib.sha256(cert).hexdigest()
         responses = ["package: name='com.braxhorn.mistrzowie' versionCode='8501'", cert,
+                     "Signer #1 certificate SHA-256 digest: " + cert_sha,
                      "Signer #1 certificate SHA-256 digest: " + cert_sha]
         with patch.object(delivery, "sdk_tool", side_effect=lambda n:n), patch.object(delivery, "command", side_effect=responses), contextlib.redirect_stdout(io.StringIO()):
             delivery.stage()
@@ -143,8 +144,58 @@ class ApkDeliveryTests(unittest.TestCase):
         self.assertIn("ccccccc", manifest["file"])
         self.assertEqual((self.output / manifest["file"]).read_bytes(), self.data)
         responses[2] = "Signer #1 certificate SHA-256 digest: " + "0" * 64
-        with patch.object(delivery, "sdk_tool", side_effect=lambda n:n), patch.object(delivery, "command", side_effect=responses), self.assertRaisesRegex(RuntimeError, "existing repository certificate"):
+        # Wrong signature must never pass without a successful correction.
+        with patch.object(delivery, "sdk_tool", side_effect=lambda n:n), \
+             patch.object(delivery, "command", side_effect=responses), \
+             patch.object(delivery, "resign_with_existing_key",
+                          side_effect=RuntimeError("existing key could not re-sign")), \
+             self.assertRaisesRegex(RuntimeError, "existing key could not re-sign"):
             delivery.stage()
+
+    def test_re_sign_uses_existing_keystore_and_checks_identity_before_replacement(self):
+        source = self.root / "build/Android/braxhorn-mistrzowie.apk"
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_bytes(self.data)
+        fingerprint = "b" * 64
+        commands = []
+        def mocked(*args, **kwargs):
+            commands.append(args)
+            if args[1] == "sign":
+                self.assertEqual(args[args.index("--ks") + 1],
+                                 str(self.root / "unity-city/braxhorn.keystore"))
+                self.assertEqual(args[args.index("--ks-key-alias") + 1], "braxhorn")
+                self.assertTrue(args[args.index("--ks-pass") + 1].startswith("file:"))
+                Path(args[args.index("--out") + 1]).write_bytes(b"signed APK" * 300)
+                return ""
+            if args[1] == "verify":
+                return "Signer #1 certificate SHA-256 digest: " + fingerprint
+            if args[1] == "dump":
+                return "package: name='com.braxhorn.mistrzowie' versionCode='8501'"
+            raise AssertionError(args)
+        with patch.object(delivery, "sdk_tool", side_effect=lambda n:n), \
+             patch.object(delivery, "command", side_effect=mocked):
+            delivery.resign_with_existing_key(
+                source, ("com.braxhorn.mistrzowie", 8501), fingerprint)
+        self.assertEqual(source.read_bytes(), b"signed APK" * 300)
+        self.assertEqual([args[1] for args in commands], ["sign", "verify", "dump"])
+
+    def test_invalid_re_sign_keeps_original_compiled_apk(self):
+        source = self.root / "build/Android/braxhorn-mistrzowie.apk"
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_bytes(self.data)
+        def mocked(*args, **kwargs):
+            if args[1] == "sign":
+                Path(args[args.index("--out") + 1]).write_bytes(b"signed APK" * 300)
+                return ""
+            if args[1] == "verify":
+                return "Signer #1 certificate SHA-256 digest: " + "0" * 64
+            raise AssertionError(args)
+        with patch.object(delivery, "sdk_tool", side_effect=lambda n:n), \
+             patch.object(delivery, "command", side_effect=mocked), \
+             self.assertRaisesRegex(RuntimeError, "still fails"):
+            delivery.resign_with_existing_key(
+                source, ("com.braxhorn.mistrzowie", 8501), "b" * 64)
+        self.assertEqual(source.read_bytes(), self.data)
 
 
 if __name__ == "__main__":
