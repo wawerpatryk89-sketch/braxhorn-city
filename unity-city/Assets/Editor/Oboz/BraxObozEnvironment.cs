@@ -104,12 +104,9 @@ public static partial class BraxObozEnvironment
             CampusPerimeter();
             // Strumien lezy ZA ogrodzeniem jako naturalne tlo.
             // Nie stawiamy fikcyjnych mostow wewnatrz zamknietego obozu.
-            // The source bunker is retained without changing its mesh, origins
-            // or doors. Entrance/collider conversion remains a separate audit.
-            SourceBunker(-54, 4);
             BraxObozVegetation.Populate(root);
             var anchors = Group("Kotwice planu R3 — do połączenia z oryginalnymi modelami", root, Vector3.zero);
-            foreach (var a in new[] { ("Fort 3 na 3",83f,25f), ("Chata leśniczego i sklep",-105f,-103f), ("Tartak",76f,-105f), ("Kojce",39f,-94f), ("Bunkier bramy",-24f,-111f) })
+            foreach (var a in new[] { ("Fort 3 na 3",83f,25f), ("Chata leśniczego i sklep",-105f,-103f), ("Tartak",76f,-105f), ("Kojce",39f,-94f) })
                 Group(a.Item1, anchors, P(a.Item2, 0, a.Item3));
             var light = new GameObject("Popołudniowe słońce").AddComponent<Light>(); light.type = LightType.Directional;
             light.transform.rotation = Quaternion.Euler(34, -35, 0);
@@ -121,7 +118,7 @@ public static partial class BraxObozEnvironment
             BraxObozMaterials.ValidateHierarchy(root);
             if (!EditorSceneManager.SaveScene(scene, ScenePath)) throw new IOException("Nie zapisano zabudowy obozu");
             File.WriteAllText(Folder + "/status.json", "{\"completeCamp\":false,\"runtimeVerified\":false,\"cabins\":4,\"bags\":24,\"coveredBags\":12,\"rings\":2,\"octagons\":1}");
-            Debug.Log("BRAXHORN_OBOZ zapisano roboczą zabudowę i rozmieszczenie lasu; fort, wnętrza, audyt bunkra i pełny odbiór nadal nieukończone");
+            Debug.Log("BRAXHORN_OBOZ zapisano roboczą zabudowę i rozmieszczenie lasu; fort, wnętrza i pełny odbiór nadal nieukończone");
         }
         finally { EditorSceneManager.CloseScene(scene, true); if (previous.IsValid()) SceneManager.SetActiveScene(previous); }
         AssetDatabase.SaveAssets();
@@ -583,13 +580,6 @@ public static partial class BraxObozEnvironment
             for(int i=0;i<7;i++)Cylinder(t,"Słupek kładki",new Vector3(-6+i*2,0,side),new Vector3(-6+i*2,1.2f,side),.055f,wood,true);
         }
     }
-    static void SourceBunker(float x,float z)
-    {
-        string path="Assets/Source/Prywatne/Oboz/environment/models/underground_bunker__unity.glb";
-        var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(path);
-        if(!prefab)throw new InvalidOperationException("Brak zaimportowanego oryginalnego bunkra");
-        var obj=(GameObject)PrefabUtility.InstantiatePrefab(prefab);obj.name="Bunkier dowodzenia — oryginał, wejście wymaga audytu";
-        obj.transform.SetParent(root,false);obj.transform.localPosition=P(x,0,z);obj.transform.localScale*=K;
-    }
+
 }
 
