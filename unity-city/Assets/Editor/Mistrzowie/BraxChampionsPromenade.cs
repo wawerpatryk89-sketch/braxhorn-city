@@ -331,6 +331,11 @@ public static class BraxChampionsPromenade
                 w=p.w,d=p.d,h=p.h,style=p.style,walkIn=p.walkIn
             },i,glass,roof,floor,metal);
         }
+        // Original verified food, dishes, shelves, goods and rental equipment;
+        // do not add a human, NPC, vendor, pose or animation at this stage.
+        int products=BraxChampionsPromenadeStock.Populate(baseObj.transform,approved);
+        if(products<45||products>62)
+            throw new InvalidOperationException("All 12 shop interiors must have verified original props");
         Debug.Log("CHAMPIONS_PROMENADE_K1_K12_FULL_2K_PBR ready=12 "
             +"front=sea side shop=land side sourceMat=PolyHaven verified 4K ASTC Android 2K "
             +"windows=transparent no duplicate ground plane no cyclist blockage");
