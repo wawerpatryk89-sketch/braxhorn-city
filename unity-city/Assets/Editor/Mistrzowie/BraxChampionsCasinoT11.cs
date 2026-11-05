@@ -361,6 +361,12 @@ public static class BraxChampionsCasinoT11
         // Real covered underground ceiling, below the existing plot grade.
         B(basement,"Garage reinforced ceiling",roof,4.5f,-.58f,2.5f,
             73f,.20f,53f,true,true);
+        // Full-width turning area at the bottom of the descent: physically
+        // joins the underground hall to the ramp, no void under vehicle wheels.
+        B(basement,"Garage bottom structural landing",granite,
+            44.5f,-4.20f,26f,7.7f,.16f,8f,true,true);
+        B(basement,"Garage bottom asphalt landing",asphalt,
+            44.5f,-4.112f,26f,7.7f,.015f,8f,false,true);
         // The OPEN surface ramp remains free of that ceiling.
         var ramp=B(basement,"Underground garage driveable 9.5 percent ramp",asphalt,
             44.5f,-1.985f,1f,7.65f,.12f,46.208f,true,true);
@@ -408,7 +414,7 @@ public static class BraxChampionsCasinoT11
         // z=-22..24. Four disjoint slabs preserve the rest of the approved plot.
         B(shell,"T11 stone plot apron south",paving,0,.18f,-35.875f,119.6f,.055f,27.75f,true,true);
         B(shell,"T11 stone plot apron north",paving,0,.18f,36.875f,119.6f,.055f,25.75f,true,true);
-        B(shell,"T11 stone plot apron west of garage",paving,-9.65f,.18f,1f,99.3f,.055f,46f,true,true);
+        B(shell,"T11 stone plot apron west of garage",paving,-9.65f,.18f,1f,100.3f,.055f,46f,true,true);
         B(shell,"T11 stone plot apron east of garage",paving,54.15f,.18f,1f,11.3f,.055f,46f,true,true);
         foreach(float side in new[]{-1f,1f})
         {
