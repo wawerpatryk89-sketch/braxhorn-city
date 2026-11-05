@@ -119,6 +119,40 @@ class ApkDeliveryTests(unittest.TestCase):
              patch.object(delivery, "command", return_value="Verified using v2 scheme: true\n"):
             self.assertEqual(delivery.signer_fingerprints(self.output / self.name), [])
 
+    def test_apksigner_android_37_v2_and_v3_certificate_labels(self):
+        cert = "ab" * 32
+        modern = (
+            "V2 Signer: certificate SHA-256 digest: " + cert + "\n"
+            "V3.0 Signer: certificate SHA-256 digest: " + cert + "\n"
+        )
+        with patch.object(delivery, "sdk_tool", return_value="apksigner"), \
+             patch.object(delivery, "command", return_value=modern):
+            self.assertEqual(delivery.signer_fingerprints(self.output / self.name), [cert])
+
+    def test_apksigner_legacy_and_sdk_rotation_certificate_labels(self):
+        cert = "cd" * 32
+        old_and_range = (
+            "Signer #1 certificate SHA-256 digest: " + cert + "\n"
+            "Signer (minSdkVersion=24, maxSdkVersion=32) certificate SHA-256 digest: " + cert + "\n"
+        )
+        with patch.object(delivery, "sdk_tool", return_value="apksigner"), \
+             patch.object(delivery, "command", return_value=old_and_range):
+            self.assertEqual(delivery.signer_fingerprints(self.output / self.name), [cert])
+
+    def test_apksigner_rejects_unknown_signer_format_instead_of_none(self):
+        unknown = "Different Label certificate SHA-256 digest: " + "ef" * 32
+        with patch.object(delivery, "sdk_tool", return_value="apksigner"), \
+             patch.object(delivery, "command", return_value=unknown), \
+             self.assertRaisesRegex(RuntimeError, "Unrecognized apksigner"):
+            delivery.signer_fingerprints(self.output / self.name)
+
+    def test_apksigner_ignores_source_stamp_certificate(self):
+        output = ("Signer #1 certificate SHA-256 digest: " + "a1" * 32 + "\n"
+                  "Source Stamp Signer certificate SHA-256 digest: " + "b2" * 32 + "\n")
+        with patch.object(delivery, "sdk_tool", return_value="apksigner"), \
+             patch.object(delivery, "command", return_value=output):
+            self.assertEqual(delivery.signer_fingerprints(self.output / self.name), ["a1" * 32])
+
     def test_missing_apk_in_large_artifact_is_not_delivery(self):
         self.remote_name = "diagnostics.log"
         with patch.object(delivery, "api", side_effect=[self.artifact(), RuntimeError("no release")]), self.assertRaisesRegex(RuntimeError, "APK missing"):

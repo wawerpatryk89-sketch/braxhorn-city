@@ -97,19 +97,38 @@ def preflight():
 
 
 def signer_fingerprints(apk):
-    # Only VERIFIED certificate output, never merely a successful sign command.
-    # Tolerate spacing and colon-separated hex in Android SDK tool versions.
+    """Return actual APK signer certificates; accept all verified SDK label formats.
+
+    Build Tools 37 prints 'V2 Signer:' or 'V3.0 Signer:', not just
+    'Signer #1'. Different schemes may repeat the same certificate.
+    A successful apksigner verify is required but is not sufficient:
+    one actual APK signer must match the EXISTING keystore certificate.
+    """
     output = command(sdk_tool("apksigner"), "verify", "--print-certs", str(apk))
+    label = re.compile(
+        r"^\s*(?:Signer(?:\s*#\s*\d+|\s*\([^)]*\))?"
+        r"|V\d+(?:\.\d+)?\s+Signer)\s*:?\s+certificate\s+"
+        r"SHA[-_\s]*256\s+digest\s*:\s*([a-fA-F0-9:\s]+)\s*$",
+        re.IGNORECASE)
     digests = []
+    unknown = []
     for line in output.splitlines():
-        match = re.search(r"Signer\s*#\s*\d+\s+certificate\s+SHA[-_\s]*256\s+digest\s*:\s*(.*)$",
-                          line, re.IGNORECASE)
-        if not match:
-            continue
-        value = re.sub(r"[^a-fA-F0-9]", "", match.group(1)).lower()
-        if len(value) != 64:
-            raise RuntimeError("apksigner printed a malformed certificate SHA-256 digest")
-        digests.append(value)
+        match = label.match(line)
+        if match:
+            digest = re.sub(r"[^a-fA-F0-9]", "", match.group(1)).lower()
+            if len(digest) != 64:
+                raise RuntimeError("apksigner returned a malformed certificate SHA-256")
+            if digest not in digests:
+                digests.append(digest)
+        elif (re.search(r"certificate\s+SHA[-_\s]*256\s+digest", line, re.IGNORECASE)
+              and not re.search(r"Source\s+Stamp\s+Signer", line, re.IGNORECASE)):
+            unknown.append(line.strip()[:180])
+    if unknown:
+        # Fail explicitly rather than turning an unexpected format into NONE.
+        raise RuntimeError("Unrecognized apksigner certificate line(s): " + repr(unknown[:4]))
+    if not digests:
+        print("BRAX_MISTRZOWIE_APKSIGNER_NO_APK_SIGNER; "
+              "verify_output_prefix=" + repr(output.splitlines()[:5]))
     return digests
 
 
