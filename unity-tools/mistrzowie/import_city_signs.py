@@ -1,118 +1,125 @@
-"""Import BOTH original sign libraries (01-06, 07-13) without resizing/retouching.
+"""Import all 148 original Mistrzowie signs, preserving pixels and Unity GUIDs.
 
-The SHA-pinned ZIPs contain 148 unique original 2048x512 PNG files and
-stable UUIDv5 Unity .meta files. Read-only dry-run; never overwrites edits.
-No network, no Unity invocation, no build.
+Requires the two separately supplied Unity-ready ZIPs, from runs 01-06 and
+07-13. No sign artwork is redrawn, recolored or replaced; this is an OFFLINE
+asset extraction step, not a Unity compile or build.
 """
 import argparse
 import hashlib
 import json
-import pathlib
+from pathlib import Path
+import re
 import struct
-import uuid
 import zipfile
 
-ROOT=pathlib.Path(__file__).resolve().parents[2]
-PROJECT=ROOT/"unity-city"
-BASE="Assets/Source/Mistrzowie/CitySigns/"
-ROOT_META=BASE.rstrip("/")+".meta"
-MAIN_CASINO=BASE+"01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png"
-MAIN_CASINO_SHA="78edc9f51c772d20cb84c43f0850716a63c5a772fa0b326a7aea15ccfe39bf1b"
-GUID_NAMESPACE=uuid.UUID("974b9566-b4e7-4a61-a616-27e03334f842")
-PACKS={
-    "fcce54bdf976c343fbbeffde614f385f8ef82f5819c64f70dac84c73b105efce":(70,73,145,"01-06"),
-    "e3691fc12d18c05ca42c71abfbf046a566d9af6764f49a30c41ca05a4f5eb5c7":(78,83,163,"07-13"),
+ROOT = Path(__file__).resolve().parents[2]
+DEST = ROOT / "unity-city"
+PREFIX = "Assets/Source/Mistrzowie/CitySigns/"
+CASINO = PREFIX + "01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png"
+PACKAGE_SHA = {
+    "MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip": ("fcce54bdf976c343fbbeffde614f385f8ef82f5819c64f70dac84c73b105efce",70),
+    "MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip": ("e3691fc12d18c05ca42c71abfbf046a566d9af6764f49a30c41ca05a4f5eb5c7",78),
 }
+NAMESPACE = "974b9566-b4e7-4a61-a616-27e03334f842"
 
-def digest(path):
-    h=hashlib.sha256()
-    with pathlib.Path(path).open("rb") as stream:
-        for chunk in iter(lambda:stream.read(1048576),b""):h.update(chunk)
-    return h.hexdigest()
+def digest_file(path):
+    hash_ = hashlib.sha256()
+    with Path(path).open("rb") as stream:
+        for part in iter(lambda:stream.read(1048576), b""):
+            hash_.update(part)
+    return hash_.hexdigest()
 
-def inspect(path):
-    checksum=digest(path)
-    if checksum not in PACKS:raise ValueError("Unknown/modified original sign archive SHA256: "+checksum)
-    expected_png,expected_meta,expected_all,part=PACKS[checksum]
+def safe_path(name):
+    from pathlib import PurePosixPath
+    p=PurePosixPath(name)
+    return not p.is_absolute() and ".." not in p.parts and "\\" not in name
+
+def png_dimensions(content):
+    if content[:8] != b"\x89PNG\r\n\x1a\n" or content[12:16] != b"IHDR":
+        raise ValueError("Owner sign is not a valid PNG header")
+    return struct.unpack(">II",content[16:24])
+
+def inspect_package(path):
+    path=Path(path)
+    if path.name not in PACKAGE_SHA:
+        raise ValueError("Unexpected source package name: "+path.name)
+    wanted,count=PACKAGE_SHA[path.name]
+    if digest_file(path)!=wanted:
+        raise ValueError("Unexpected owner ZIP content SHA256: "+path.name)
     with zipfile.ZipFile(path) as archive:
-        if archive.testzip() is not None:raise ValueError("Corrupted sign archive")
-        names=archive.namelist()
-        if len(names)!=len(set(names)) or len(names)!=expected_all:raise ValueError("Wrong entry count/duplicate sign path")
-        signs=[name for name in names if name.startswith(BASE) and name.endswith(".png")]
-        metas=[name for name in names if (name.startswith(BASE) or name==ROOT_META) and name.endswith(".meta")]
-        if len(signs)!=expected_png or len(metas)!=expected_meta:raise ValueError("Wrong original PNG or GUID count")
-        for name in names:
-            parts=pathlib.PurePosixPath(name).parts
-            if ".." in parts or name.startswith("/") or not (name.startswith(BASE) or name in (ROOT_META,"SIGN_LIBRARY_MANIFEST.json","IMPORT-README.txt")):
-                raise ValueError("Unexpected archive path: "+name)
+        bad=archive.testzip()
+        if bad:raise ValueError("Invalid ZIP CRC: "+bad)
+        entries=archive.namelist()
+        if len(set(entries))!=len(entries):
+            raise ValueError("Repeated ZIP entry names")
+        allowed_metadata={"SIGN_LIBRARY_MANIFEST.json","IMPORT-README.txt"}
+        if any(not safe_path(name) or
+               not(name.startswith(PREFIX) or name in allowed_metadata) for name in entries):
+            raise ValueError("Unexpected or unsafe ZIP entry")
         manifest=json.loads(archive.read("SIGN_LIBRARY_MANIFEST.json"))
-        if manifest["schema"]!="BRAXHORN_CITY_SIGNS_V1" or manifest["count"]!=expected_png:
-            raise ValueError("Original manifest mismatch")
-        catalog=manifest["assets"]
-        if len(catalog)!=expected_png or {r["path"] for r in catalog}!=set(signs):
-            raise ValueError("Original sign manifest does not match images")
-        for row in catalog:
-            png=row["path"];blob=archive.read(png)
-            if blob[:8]!=b"\x89PNG\r\n\x1a\n" or struct.unpack(">II",blob[16:24])!=(2048,512):
-                raise ValueError("Original graphic dimensions changed: "+png)
-            if hashlib.sha256(blob).hexdigest()!=row["sha256"]:
-                raise ValueError("Original image digest mismatch: "+png)
-            if row["unity_guid"]!=uuid.uuid5(GUID_NAMESPACE,png).hex:
-                raise ValueError("Original sign GUID changed: "+png)
-            if png+".meta" not in metas:raise ValueError("Missing sign GUID sidecar: "+png)
-        for meta in metas:
-            original=meta[:-5]
-            wanted=uuid.uuid5(GUID_NAMESPACE,original).hex
-            raw=archive.read(meta).decode("utf-8")
-            if ("guid: "+wanted) not in raw:raise ValueError("Different Unity GUID metadata: "+meta)
-        if part=="01-06":
-            if MAIN_CASINO not in signs or hashlib.sha256(archive.read(MAIN_CASINO)).hexdigest()!=MAIN_CASINO_SHA:
-                raise ValueError("Wrong C1 sign: expected owner-supplied KASYNO WAWER")
-        return sorted(name for name in names if name.startswith(BASE) or name==ROOT_META),part,expected_png
+        assets=manifest.get("assets",[])
+        if manifest.get("count")!=count or len(assets)!=count or manifest.get("asset_namespace")!=NAMESPACE:
+            raise ValueError("Owner manifest mismatch")
+        originals={}
+        for asset in assets:
+            name=asset["path"]
+            if not name.startswith(PREFIX) or not name.endswith(".png") or name not in entries:
+                raise ValueError("Source path missing: "+name)
+            raw=archive.read(name)
+            if hashlib.sha256(raw).hexdigest()!=asset["sha256"] or len(raw)!=asset["bytes"]:
+                raise ValueError("Changed original sign: "+name)
+            if png_dimensions(raw)!=(2048,512):
+                raise ValueError("Source dimensions must remain 2048x512: "+name)
+            meta=name+".meta"
+            if meta not in entries:
+                raise ValueError("Missing pinned Unity GUID: "+meta)
+            match=re.search(r"^guid:\s*([0-9a-fA-F]{32})\s*$",archive.read(meta).decode(),re.M)
+            if not match or match.group(1).lower()!=asset["unity_guid"]:
+                raise ValueError("Meta GUID differs from manifest: "+meta)
+            originals[name]=raw
+        images=[name for name in entries if name.endswith(".png")]
+        metas=[name for name in entries if name.endswith(".meta")]
+        if len(images)!=count or len(metas)!=count+(3 if count==70 else 5):
+            raise ValueError("Unexpected original graphic/metadata count")
+        if len(entries)!=len(images)+len(metas)+2:
+            raise ValueError("Unexpected files in collection")
+        data={name:archive.read(name) for name in entries if name.startswith(PREFIX)}
+        return data,originals
 
-def import_archive(path,dry_run=False):
-    path=pathlib.Path(path)
-    names,part,count=inspect(path)
-    with zipfile.ZipFile(path) as archive:
-        # Preflight every existing file before making a single write.
-        for name in names:
-            target=PROJECT/name
-            if target.is_file() and hashlib.sha256(target.read_bytes()).digest()!=hashlib.sha256(archive.read(name)).digest():
-                raise ValueError("Refusing overwrite of existing Unity source or GUID: "+name)
-        if not dry_run:
-            for name in names:
-                target=PROJECT/name
-                if target.is_file():continue
-                target.parent.mkdir(parents=True,exist_ok=True)
-                tmp=target.with_name(target.name+".tmp")
-                tmp.write_bytes(archive.read(name))
-                tmp.replace(target)
-    return {"status":"DRY_RUN_PASS" if dry_run else "PASS","part":part,"signs":count,"files":len(names),"sha256":digest(path)}
-
-def check_all():
-    directory=PROJECT/BASE
-    if not directory.is_dir():raise ValueError("No owner signs have been imported")
-    pngs=sorted(directory.rglob("*.png"))
-    if len(pngs)!=148:raise ValueError(f"Expected 148 owner's original signs, got {len(pngs)}")
-    if hashlib.sha256((PROJECT/MAIN_CASINO).read_bytes()).hexdigest()!=MAIN_CASINO_SHA:
-        raise ValueError("Missing or changed owner casino C1 sign")
-    for png in pngs:
-        rel=png.relative_to(PROJECT).as_posix()
-        meta=pathlib.Path(str(png)+".meta")
-        if not meta.is_file() or ("guid: "+uuid.uuid5(GUID_NAMESPACE,rel).hex) not in meta.read_text():
-            raise ValueError("Missing original Unity metadata "+rel)
-    return {"status":"PASS","unique_signs":len(pngs),"casino":"T11 WAWER original C1"}
+def install(packages, dry_run=False, destination=DEST):
+    if len(packages)!=2 or {Path(p).name for p in packages}!=set(PACKAGE_SHA):
+        raise ValueError("Both separate original ZIPs 01-06 and 07-13 are required")
+    merged={}
+    images={}
+    for package in packages:
+        data,signs=inspect_package(package)
+        if set(images)&set(signs):raise ValueError("Duplicated sign identity across packages")
+        images.update(signs)
+        for key,value in data.items():
+            if key in merged and merged[key]!=value:
+                raise ValueError("Conflicting pinned Unity GUID or source: "+key)
+            merged[key]=value
+    if len(images)!=148 or CASINO not in images:
+        raise ValueError("Must provide all 148 originals including C1 KASYNO WAWER")
+    for name,raw in merged.items():
+        dst=Path(destination)/name
+        if dst.exists() and hashlib.sha256(dst.read_bytes()).digest()!=hashlib.sha256(raw).digest():
+            raise ValueError("Refusing to overwrite changed original or GUID: "+str(dst))
+    if not dry_run:
+        for name,raw in sorted(merged.items()):
+            dst=Path(destination)/name
+            if dst.exists():continue
+            dst.parent.mkdir(parents=True,exist_ok=True)
+            temp=dst.with_name(dst.name+".partial")
+            temp.write_bytes(raw)
+            temp.replace(dst)
+    return {"status":"DRY_RUN_PASS" if dry_run else "IMPORTED",
+            "sourcePng":len(images),"files":len(merged),"casinoSign":CASINO,
+            "unchangedArtwork":True,"unityEditorCompiled":False}
 
 if __name__=="__main__":
     cli=argparse.ArgumentParser()
-    cli.add_argument("archives",nargs="*",help="01-06 ZIP and 07-13 ZIP")
+    cli.add_argument("archives",nargs=2,help="01_06_UNITY.zip 07_13_UNITY.zip")
     cli.add_argument("--dry-run",action="store_true")
-    cli.add_argument("--verify",action="store_true")
-    args=cli.parse_args()
-    if not args.verify:
-        if len(args.archives)!=2:cli.error("Both original library archives 01-06 and 07-13 are required")
-        outputs=[import_archive(p,args.dry_run) for p in args.archives]
-        if {x["part"] for x in outputs}!={"01-06","07-13"}:
-            raise ValueError("One half of the 13-part original sign library is missing")
-        for item in outputs:print(json.dumps(item,ensure_ascii=False))
-    if args.verify or not args.dry_run:print(json.dumps(check_all(),ensure_ascii=False))
+    a=cli.parse_args()
+    print(json.dumps(install(a.archives,a.dry_run),ensure_ascii=False))
