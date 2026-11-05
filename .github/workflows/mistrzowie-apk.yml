@@ -85,6 +85,7 @@ jobs:
             public/assets/tex/brax_normal.webp
             public/assets/tex/brax_orm.webp
             unity-tools/mistrzowie
+            unity-tools/updates
             unity-tools/validation
             unity-tools/claude/prywatne.py
             unity-tools/claude/import_patryk_transfer.py
@@ -145,6 +146,8 @@ jobs:
           python3 -m pip install numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
           test -f /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
+          python3 -m py_compile unity-tools/updates/content_snapshot.py
+          python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
           python3 unity-tools/mistrzowie/audit_metro.py
           python3 unity-tools/mistrzowie/prepare_assets.py
           python3 unity-tools/mistrzowie/restore_private.py
@@ -216,7 +219,15 @@ jobs:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: |
           python3 unity-tools/updates/content_snapshot.py publish-base
-          echo '### Miasto Mistrzów: wygenerowana scena zachowana do aktualizacji bez BuildPlayer' >> "$GITHUB_STEP_SUMMARY"
+          python3 - <<'PY'
+          import json,os,pathlib
+          manifest=json.loads(pathlib.Path('unity-city/BraxContentBuild/base/manifest.json').read_text())
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('### Miasto Mistrzów: niezmienna baza zawartości\n\n')
+              out.write('Base ID: `' + manifest['baseId'] + '`\n\n')
+              out.write('Adres prywatnej bazy: content-base-' + manifest['baseId'] + '\n\n')
+              out.write('Kolejne poprawki w trybie `aktualizacja` nie wykonują BuildPlayer.\n')
+          PY
       - name: Validate APK identity and existing certificate; stage immutable output
         id: apk_stage
         if: always() && !cancelled() && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
