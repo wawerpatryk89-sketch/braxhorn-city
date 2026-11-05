@@ -88,7 +88,25 @@ public static class BraxObozServices
             light.color=new Color(1,.82f,.60f);light.intensity=f.intensity;light.range=f.range*K;light.shadows=LightShadows.None;
             t.gameObject.AddComponent<BraxObozLocalLight>().source=light;
         }
+        if(id=="canteen")FurnishCanteen(group);
     }
+    // Zasoby stołówki są prawdziwymi GLB z dostarczonej paczki. Żaden
+    // detal kuchni ani mapy PBR nie jest redukowany; bez duplikatów modeli.
+    static void FurnishCanteen(Transform room)
+    {
+        // Przedni pas jest wolny na wejście i podejścia do stołów.
+        OwnerFixture(room,"kitchen_-_assets.glb",
+            new Vector3(-4.0f,.24f,2.6f),new Vector3(2.35f,2.30f,2.4f));
+        OwnerFixture(room,"glass-food-display-showcase-with-trays.glb",
+            new Vector3(3.35f,.24f,2.5f),new Vector3(2.05f,1.6f,1.2f));
+        OwnerFixture(room,"picnic_set_1.glb",
+            new Vector3(-2.45f,.24f,-1.2f),new Vector3(1.95f,.85f,2.35f));
+        OwnerFixture(room,"picnic_set_1.glb",
+            new Vector3(2.45f,.24f,-1.2f),new Vector3(1.95f,.85f,2.35f));
+        Debug.Log("BRAXHORN_OBOZ_CANTEEN: oryginalna kuchnia GLB, witryna i 2 komplety stołowe; "+
+            "przejścia i miejsca siedzące wymagają testu Unity Play Mode");
+    }
+
     // Rzeczywisty budynek WC: dwie kabiny, dwa stanowiska prysznicowe,
     // umywalki, lustra, wentylacja i dostępne dla gracza fizyczne wejście.
     // Wszystkie wymiary lokalne są w metrach; K stosuje wyłącznie rodzic.
