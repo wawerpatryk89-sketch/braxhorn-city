@@ -1,0 +1,89 @@
+name: Miasto Mistrzow A1 T11 - szybki preflight BEZ APK
+run-name: A1 T11 CSharp, car, signing and sources - ${{ github.run_number }} (NO UNITY)
+on:
+  push:
+    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
+    paths: [.github/workflows/mistrzowie-a1-t11-fast-preflight.yml]
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: mistrzowie-a1-t11-static-preflight
+  cancel-in-progress: false
+jobs:
+  source-and-signer:
+    name: Exact car, Mixamo, code and existing APK certificate - NO UNITY
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/workflows
+            unity-tools/mistrzowie
+            unity-tools/validation
+            unity-tools/updates
+            unity-city/Assets
+            unity-city/Packages
+            unity-city/ProjectSettings
+            public/assets/cars-src/car_rev.glb
+      - name: Estate original vehicle source identity
+        run: |
+          python3 unity-tools/mistrzowie/prepare_champion_car.py --dry-run
+          echo 'ORIGINAL CAR SHA: PASS'
+      - name: Python code and A1 T11 strict static regressions
+        run: |
+          python3 -m compileall -q unity-tools/mistrzowie
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_a1_t11_before_apk.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_owner_car_showcase_integration.py' -v
+      - name: Unity C sharp syntax and scope parser (not compilation)
+        run: |
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: Real existing-key signed APK smoke and Champions 14 identity
+        env:
+          KS: ${{ secrets.BRAXHORN_KEYSTORE_B64 }}
+          KP: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          test -n "$KS" || { echo '::error::Missing original signing key'; exit 1; }
+          test -n "$KP" || { echo '::error::Missing original signing password'; exit 1; }
+          export ANDROID_HOME="$ANDROID_HOME"
+          printf '%s' "$KS" | base64 --decode > unity-city/braxhorn.keystore
+          printf '%s' "$KP" > unity-city/braxhorn.keystore.pass
+          trap 'rm -f unity-city/braxhorn.keystore unity-city/braxhorn.keystore.pass' EXIT
+          python3 unity-tools/mistrzowie/apk_version.py > unity-city/braxhorn.versioncode
+          python3 unity-tools/mistrzowie/apk_delivery.py preflight
+          python3 unity-tools/mistrzowie/verify_previous_apk.py
+      - name: No Unity/APK executed
+        if: always()
+        run: |
+          echo 'PRE-FLIGHT ONLY; UNITY_NOT_STARTED; APK_NOT_BUILT' >> "$GITHUB_STEP_SUMMARY"
+  owner-source-assets:
+    name: Original user ZIP release readiness - NO UNITY
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Locate exact owner A1 T11 originals on GitHub Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" > "$RUNNER_TEMP/a1-releases.json"
+          python3 - "$RUNNER_TEMP/a1-releases.json" <<'PY'
+          import json,sys
+          releases=json.load(open(sys.argv[1]))
+          exact=[x for x in releases if x.get('tag_name')=='champions-a1-20261105'
+                 and x.get('target_commitish')=='gpt/miasto-mistrzow-kasyno-t11-20261105']
+          required='BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip'
+          matches=[x for x in exact if any(a.get('name')==required and a.get('size',0)>110000000 for a in x.get('assets',[]))]
+          if len(matches)!=1:
+              names=[a['name'] for x in exact for a in x.get('assets',[])]
+              raise SystemExit('MISSING OWNER ORIGINAL A1/T11 WRAPPER '+required+'; existing files='+repr(names)+'; UNITY NOT STARTED')
+          print('A1_T11_OWNER_ORIGINALS_PRESENT', matches[0]['id'], 'draft='+str(matches[0].get('draft')))
+          if matches[0].get('draft'):
+              print('CAUTION: release is draft; current main workflow downloads by tag; must verify this before launching Unity')
+          PY
