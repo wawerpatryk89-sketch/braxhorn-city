@@ -35,6 +35,11 @@ on:
         type: string
         required: false
         default: ''
+      arena_assets_tag:
+        description: 'Opcjonalny tag wydania GitHub z oryginalnymi zasobami A1 (ZIP); tylko przygotowanie areny'
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: write
   actions: read
@@ -56,14 +61,19 @@ jobs:
         run: |
           python3 - <<'PYREF'
           import os, re
-          branch = 'codex/miasto-mistrzow-20261104'
+          old = 'codex/miasto-mistrzow-20261104'
+          arena = 'gpt/miasto-mistrzow-arena-premium-20261105'
+          known = (old, arena)
           value = os.environ.get('SOURCE_COMMIT', '').strip()
-          if not value or value == branch:
-              value = os.environ['GITHUB_SHA'] if os.environ['GITHUB_REF'] == 'refs/heads/' + branch else branch
+          current = os.environ.get('GITHUB_REF', '').removeprefix('refs/heads/')
+          if not value:
+              value = os.environ['GITHUB_SHA'] if current in known else old
+          elif value in known:
+              value = os.environ['GITHUB_SHA'] if current == value else value
           elif re.fullmatch('[0-9a-fA-F]{40}', value):
               value = value.lower()
           else:
-              raise SystemExit('Pole commit: zostaw puste albo podaj pełne SHA lub gałąź ' + branch)
+              raise SystemExit('Pole commit: zostaw puste, wybierz znana galaz Mistrzow albo pelne SHA')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write('ref=' + value + '\n')
           PYREF
@@ -105,6 +115,28 @@ jobs:
       - name: Verify source, workflow and pinned Unity configuration
         id: preflight
         run: python3 unity-tools/mistrzowie/pipeline.py
+      - name: Verify and import original A1 arena assets before any expensive Unity build
+        if: ${{ hashFiles('unity-tools/mistrzowie/verify_champion_assets.py') != '' }}
+        env:
+          A1_ASSET_TAG: ${{ inputs.arena_assets_tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -n "$A1_ASSET_TAG" ]; then
+            if ! [[ "$A1_ASSET_TAG" =~ ^champions-a1-[a-zA-Z0-9._-]{1,80}$ ]]; then
+              echo "::error::Niepoprawny tag oryginalnych zasobow A1"
+              exit 1
+            fi
+            gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
+              --pattern champions_arena_A1_full_import.zip --dir "$RUNNER_TEMP" --clobber
+            python3 unity-tools/mistrzowie/import_champion_assets.py \
+              "$RUNNER_TEMP/champions_arena_A1_full_import.zip" --dry-run
+            python3 unity-tools/mistrzowie/import_champion_assets.py \
+              "$RUNNER_TEMP/champions_arena_A1_full_import.zip"
+          fi
+          python3 unity-tools/mistrzowie/verify_champion_assets.py
+          echo "CHAMPION_A1_ASSET_GATE PASS; required original sources verified"
+
       - name: Verify key and sign a real tiny APK before the expensive Unity build
         if: inputs.etap != 'sceny'
         env:
