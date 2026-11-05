@@ -258,9 +258,31 @@ public static class BraxChampionsArena
         }
         Sign("hala_walk", new Vector3(cx, 4.75f, Z0 + .06f), 9.6f, 1.8f, Vector3.forward, false);
         Sign("braxhorn_arena", new Vector3(cx, 4.9f, Z1 - .06f), 6f, 1.5f, Vector3.back, false);
-        // światło: 4 białe nad klatką, 8 ciepłych nad trybunami
+        // Four priority fixtures over the octagon. The built-in mobile CityStaticPBR
+        // shader shades up to four ForceVertex local lamps per object. Strengthen the
+        // EXISTING four rather than adding expensive shadow-casting spotlights.
+        // 13m covers the cage and nearby floor; 2.15 is deliberately below a
+        // harsh blown-out stadium floodlight. Check appearance on Android.
+        var ringLed = LedDiffuser();
         foreach (var o in new[] { new Vector2(-3.4f, -3.4f), new Vector2(3.4f, -3.4f), new Vector2(-3.4f, 3.4f), new Vector2(3.4f, 3.4f) })
-            PointLamp(new Vector3(cx + o.x, 5.3f, cz + o.y), 9f, 1.25f, new Color(1f, .97f, .92f));
+        {
+            var lx = cx + o.x; var lz = cz + o.y;
+            // Real visible fixture: dark steel housing + warm-white LED diffuser.
+            BoxMinMax(steel, lx - .52f, lx + .52f, 5.68f, 5.78f, lz - .52f, lz + .52f, false);
+            BoxMinMax(ringLed, lx - .42f, lx + .42f, 5.645f, 5.68f, lz - .42f, lz + .42f, false);
+            PointLamp(new Vector3(lx, 5.3f, lz), 13f, 2.15f,
+                new Color(1f, .96f, .90f), "Premium octagon overhead light");
+        }
+        // Architectural continuous light lines on the existing truss, emission-only:
+        // no additional real-time lamps, shadow maps or duplicate bright materials.
+        foreach (float side in new[] { -1f, 1f })
+        {
+            BoxMinMax(ringLed, cx - tr + .42f, cx + tr - .42f, 5.91f, 5.96f,
+                cz + side * (tr - .15f) - .075f, cz + side * (tr - .15f) + .075f, false);
+            BoxMinMax(ringLed, cx + side * (tr - .15f) - .075f,
+                cx + side * (tr - .15f) + .075f, 5.91f, 5.96f,
+                cz - tr + .42f, cz + tr - .42f, false);
+        }
         foreach (var p in new[] { new Vector3(-99f, 4.6f, 57f), new Vector3(-99f, 4.6f, 67f), new Vector3(-73f, 4.6f, 57f), new Vector3(-73f, 4.6f, 67f),
                                   new Vector3(-92f, 4.6f, 75.5f), new Vector3(-80f, 4.6f, 75.5f), new Vector3(-92f, 4.6f, 53.5f), new Vector3(-80f, 4.6f, 53.5f) })
             PointLamp(p, 9f, .8f, new Color(1f, .86f, .7f));
@@ -288,6 +310,26 @@ public static class BraxChampionsArena
         else m=BraxChampionsFoundation.SourceMaterial(id,"granite_tile_02",1.5f,color);
         materials.Add(name,m);return m;
     }
+    static Material LedDiffuser()
+    {
+        const string id="Premium octagon LED diffuser";
+        if(materials.TryGetValue(id,out var existing))return existing;
+        var shader=Shader.Find(BraxCityMaterials.ShaderName);
+        if(!shader)throw new InvalidOperationException("Original CityStaticPBR shader missing");
+        // An actual emissive luminaire, not a replacement for the real PBR
+        // surface maps of the arena (stone/metal/leather remain original).
+        var m=new Material(shader){name=id,enableInstancing=true};
+        m.SetColor("_Color",new Color(.83f,.88f,.92f));
+        m.SetColor("_EmissionColor",new Color(1.15f,1.05f,.90f));
+        m.SetFloat("_Roughness",.32f);
+        m.SetFloat("_Metallic",0);
+        m.SetFloat("_VertexTint",0);
+        m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
+        AssetDatabase.CreateAsset(m,Out+"/arena_led_diffuser.mat");
+        materials.Add(id,m);
+        return m;
+    }
+
     static Material TexMat(string id,float metres,float gloss=.2f)
     {
         if(materials.TryGetValue(id,out var m))return m;
@@ -325,9 +367,9 @@ public static class BraxChampionsArena
         var right=Vector3.Cross(Vector3.up,n)*width*.5f;var up=Vector3.up*height*.5f;
         QuadUV(TexMat(id,1),at-right-up,at+right-up,at+right+up,at-right+up,Vector2.zero,Vector2.right,Vector2.one,Vector2.up,n);
     }
-    static void PointLamp(Vector3 p,float range,float intensity,Color color)
+    static void PointLamp(Vector3 p,float range,float intensity,Color color,string name="Arena seating light")
     {
-        var o=new GameObject("Arena light");o.transform.SetParent(W.Grupa,false);o.transform.localPosition=p;
+        var o=new GameObject(name);o.transform.SetParent(W.Grupa,false);o.transform.localPosition=p;
         var l=o.AddComponent<Light>();l.type=LightType.Point;l.range=range*BraxClaudeOsiedle.K;l.intensity=intensity;l.color=color;
         l.shadows=LightShadows.None;l.renderMode=LightRenderMode.ForceVertex;
     }
