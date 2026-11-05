@@ -39,7 +39,7 @@ on:
         description: 'Tag jednego wydania GitHub z arena A1 + murale + szyldy Miasta Mistrzow'
         type: string
         required: false
-        default: 'champions-a1-20261105'
+        default: 'champions-a1-t11-20261105'
 permissions:
   contents: write
   actions: read
@@ -94,6 +94,7 @@ jobs:
             public/assets/tex/brax_color.webp
             public/assets/tex/brax_normal.webp
             public/assets/tex/brax_orm.webp
+            public/assets/cars-src/car_rev.glb
             unity-tools/mistrzowie
             unity-tools/updates
             unity-tools/validation
@@ -139,43 +140,59 @@ jobs:
               echo "::error::Niepoprawny tag oryginalnych zasobow A1"
               exit 1
             fi
-            # The owner's already-published 20261105 release has the re-sent ZIP
-            # name. Both names contain the same SHA-256 pinned by the importer.
-            owner_pack=""
-            for candidate in ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip champions_arena_A1_unity_ready.zip; do
-              if gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-                --pattern "$candidate" --dir "$RUNNER_TEMP" --clobber; then
-                owner_pack="$RUNNER_TEMP/$candidate"
-                break
-              fi
-            done
-            if [ -z "$owner_pack" ]; then
-              echo "::error::Arena A1 original models/signs ZIP missing in GitHub Release"
-              exit 1
-            fi
-            python3 unity-tools/mistrzowie/import_champion_assets.py "$owner_pack" --dry-run
-            python3 unity-tools/mistrzowie/import_champion_assets.py "$owner_pack"
-
-            # ONLY the 3 original A1 murals, the 3 signs in use by T11,
-            # and the owner's exact 1536x512 image for the 3-D belt cabinet.
-            # Remaining city signs are preserved for later, not required now.
-            # No image/model can be substituted or silently redrawn.
-            selected="ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip"
+            # Exactly one owner upload containing three ORIGINAL inner ZIPs.
+            # Pinned SHA256 prevents changing the approved visuals, VIPs or
+            # the user's three FBX animations. The source estate car is kept
+            # byte-for-byte from tracked public/assets/cars-src/car_rev.glb.
+            chosen="BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip"
             gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-              --pattern "$selected" --dir "$RUNNER_TEMP" --clobber
+              --pattern "$chosen" --dir "$RUNNER_TEMP" --clobber
+            export CHAMPIONS_OWNER_ZIP="$RUNNER_TEMP/$chosen"
+            python3 - <<'PYINPUT'
+            import hashlib, os, pathlib, zipfile
+            root=pathlib.Path(os.environ['RUNNER_TEMP'])
+            archive=pathlib.Path(os.environ['CHAMPIONS_OWNER_ZIP'])
+            expected={
+              "ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip":
+                "c96e39cd218b2f884560be0e89d0f24b378e7a49512486830643f6934cdc4f71",
+              "ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip":
+                "5d2c3bd341772c1f61d695a898a99c2d9e55b383bfa2bece0753cfaa9f502d55",
+              "BRAXHORN_BRAX_3_ANIMACJE_MIXAMO_ORYGINALY.zip":
+                "509a6379fad404edec798e2999f3cdff37776c5399e92839a16ef05687f65bd3",
+            }
+            def sha(path):
+              h=hashlib.sha256()
+              with path.open("rb") as f:
+                for chunk in iter(lambda:f.read(1024*1024),b""):h.update(chunk)
+              return h.hexdigest()
+            if sha(archive)!="43ea47f02a1f2e9e4f707bb75d16ec0a3fe79ec02762929ca591e317defa1088":
+              raise SystemExit("A1+T11 owner package checksum mismatch")
+            with zipfile.ZipFile(archive) as z:
+              if z.testzip() is not None:raise SystemExit("A1+T11 wrapper CRC failed")
+              if set(z.namelist())!=set(expected)|{"INPUTS-MANIFEST.json","INPUTS-SHA256SUMS.txt"}:
+                raise SystemExit("Unknown/missing/duplicate owner original inputs")
+              for name,digest in expected.items():
+                target=root/name
+                with z.open(name) as source,target.open("wb") as output:
+                  import shutil
+                  shutil.copyfileobj(source,output,1024*1024)
+                if sha(target)!=digest:raise SystemExit("Approved original changed: "+name)
+            print("CHAMPIONS_INPUTS_APPROVED: 11 arena assets + 3 murals + 3 signs + plaque + 3 Mixamo FBX")
+            PYINPUT
+            python3 unity-tools/mistrzowie/import_champion_assets.py \
+              "$RUNNER_TEMP/ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip" --dry-run
+            python3 unity-tools/mistrzowie/import_champion_assets.py \
+              "$RUNNER_TEMP/ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip"
             python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
-              "$RUNNER_TEMP/$selected" --dry-run
+              "$RUNNER_TEMP/ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip" --dry-run
             python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
-              "$RUNNER_TEMP/$selected"
-            # Owner's original three Mixamo car animations, intact and SHA-locked.
-            # A1 uses the estate's original car_rev.glb from this same repository.
-            car_zip="BRAX_MIXAMO_AUTO_3_ORIGINAL.zip"
-            gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-              --pattern "$car_zip" --dir "$RUNNER_TEMP" --clobber
-            python3 unity-tools/mistrzowie/prepare_car_and_mixamo.py \
-              "$RUNNER_TEMP/$car_zip" --dry-run
-            python3 unity-tools/mistrzowie/prepare_car_and_mixamo.py \
-              "$RUNNER_TEMP/$car_zip"
+              "$RUNNER_TEMP/ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip"
+            python3 unity-tools/mistrzowie/import_brax_car_animations.py \
+              "$RUNNER_TEMP/BRAXHORN_BRAX_3_ANIMACJE_MIXAMO_ORYGINALY.zip" --dry-run
+            python3 unity-tools/mistrzowie/import_brax_car_animations.py \
+              "$RUNNER_TEMP/BRAXHORN_BRAX_3_ANIMACJE_MIXAMO_ORYGINALY.zip"
+            python3 unity-tools/mistrzowie/prepare_champion_car.py --dry-run
+            python3 unity-tools/mistrzowie/prepare_champion_car.py
           fi
           python3 unity-tools/mistrzowie/verify_champion_assets.py
           python3 unity-tools/mistrzowie/verify_arena_three_murals.py
