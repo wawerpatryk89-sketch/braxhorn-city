@@ -69,10 +69,10 @@ jobs:
             unity-city/ProjectSettings
             unity-city/Prywatne/miasto_palmy.tar.gz.enc
             unity-city/Prywatne/miasto_silownia_metro.tar.gz.enc
-            unity-city/Prywatne/import-patryk-20261103
-            unity-city/Prywatne/import-patryk-animations-20261104
-            unity-city/Prywatne/ruchy_brax.tar.gz.enc
-            unity-city/Prywatne/ruchy_wlasciciela.tar.gz.enc
+            public/assets/chars/brax.glb.gz
+            public/assets/tex/brax_color.webp
+            public/assets/tex/brax_normal.webp
+            public/assets/tex/brax_orm.webp
             unity-tools/mistrzowie
             unity-tools/validation
             unity-tools/claude/prywatne.py
@@ -137,7 +137,7 @@ jobs:
           python3 unity-tools/mistrzowie/audit_metro.py
           python3 unity-tools/mistrzowie/prepare_assets.py
           python3 unity-tools/mistrzowie/restore_private.py
-          python3 unity-tools/mistrzowie/restore_player.py
+          python3 unity-tools/mistrzowie/prepare_brax.py
           python3 unity-tools/mistrzowie/prepare_signage.py
           python3 unity-tools/mistrzowie/build_infrastructure.py
           python3 unity-tools/mistrzowie/prepare_landscape.py
@@ -164,7 +164,7 @@ jobs:
         run: |
           rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
           df -h /
-      - name: Unity 6 - Miasto Mistrzów, Patryk i APK do zwiedzania
+      - name: Unity 6 - Miasto Mistrzów, Brax i APK do zwiedzania
         id: unity_build
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:

@@ -20,8 +20,9 @@ public static class BraxChampionsBuild
         public bool qualityGatesAdvisory=BraxBuildQuality.Advisory;
         public int rendererCount,walkSamples,buildingExteriors,arenaSeats,sourceImportErrors;
         public bool foundationPassedBeforeBuildings=false;public string sculptedBull="SOURCE_MODEL_REQUIRED";
-        public string patrykSourceCommit=BraxChampionsExplorer.SourceCommit;
-        public int patrykClips;
+        public string playerSourceCommit=BraxChampionsExplorer.SourceCommit;
+        public int playerClips;
+        public string playerCharacter="Brax";
         public bool explorationSceneReloadPassed=false,playerRuntimeTested=false;
         public BraxChampionsInfrastructure.Counts counts;
         public List<string> checks=new List<string>();
@@ -94,7 +95,7 @@ public static class BraxChampionsBuild
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
             scene=EditorSceneManager.OpenScene(BraxChampionsExplorer.ScenePath,OpenSceneMode.Single);
             Physics.SyncTransforms();
-            report.patrykClips=BraxChampionsExplorer.Validate(scene);
+            report.playerClips=BraxChampionsExplorer.Validate(scene);
             CheckAssets(scene);report.explorationSceneReloadPassed=true;
             report.checks.Add("Exploration scene reopened; player quality and traversability require manual device review");
             if(validationOnly)

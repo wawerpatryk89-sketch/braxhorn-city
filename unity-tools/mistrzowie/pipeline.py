@@ -12,7 +12,11 @@ REQUIRED = (
     'unity-tools/claude/import_patryk_animations.py',
     'unity-tools/claude/tekstury_b5.py',
     'unity-tools/mistrzowie/prepare_landscape.py',
-    'unity-city/Prywatne/import-patryk-animations-20261104/manifest.json',
+    'unity-tools/mistrzowie/prepare_brax.py',
+    'public/assets/chars/brax.glb.gz',
+    'public/assets/tex/brax_color.webp',
+    'public/assets/tex/brax_normal.webp',
+    'public/assets/tex/brax_orm.webp',
 )
 
 

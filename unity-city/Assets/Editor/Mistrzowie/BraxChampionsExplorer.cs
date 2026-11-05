@@ -12,10 +12,10 @@ using UnityEngine.SceneManagement;
 public static class BraxChampionsExplorer
 {
     public const string ScenePath = "Assets/PlayableGenerated/Mistrzowie/Mistrzowie_Explore.unity";
-    public const string SourceCommit = "e93d6c01f1c64fc5527987c9a0a7a2c57daf86e8";
+    public const string SourceCommit = "001322662fd87b4aefe3d12e65fef969a601932f";
     static float K => BraxClaudeOsiedle.K;
     const int GroundMask = ~((1 << 8) | (1 << 2) | (1 << 29) | (1 << 31));
-    static readonly string[] RequiredClips = { "Idle", "Walk", "Run", "Jump", "Punch", "Kick", "CombatIdle" };
+    static readonly string[] RequiredClips = { "Idle", "Walk", "Run", "Jump", "Punch", "Kick" };
 
     public static void Generate(string buildId)
     {
@@ -24,21 +24,21 @@ public static class BraxChampionsExplorer
         if (scene.path != BraxChampionsFoundation.ScenePath) throw new InvalidOperationException("Open the completed Champions foundation first.");
         if (All<BraxGymPlayer>(scene).Length != 0 || All<Camera>(scene).Length != 0)
             throw new InvalidOperationException("Region already contains a player/camera; do not duplicate it.");
-        var rig = new GameObject("Miasto Mistrzow | Patryk exploration rig");
+        var rig = new GameObject("Miasto Mistrzow | Brax exploration rig");
         var player = new GameObject("BraxhornPlayer"); player.transform.SetParent(rig.transform, false); player.layer = 8;
         var body = player.AddComponent<CharacterController>();
-        body.height = 2.37f; body.radius = .35f; body.center = new Vector3(0, 1.185f, 0);
+        body.height = 2.25f; body.radius = .35f; body.center = new Vector3(0, 1.125f, 0);
         body.stepOffset = .36f; body.slopeLimit = 48; body.skinWidth = .035f;
-        var hero = BraxChampionsPatryk.PatrykBohater(player.transform, body);
-        var animation = hero.GetComponent<Animation>();
-        if (!animation) throw new InvalidOperationException("Patryk has no original animations.");
-        var camera = new GameObject("Patryk exploration camera").AddComponent<Camera>();
+        var hero = BraxChampionsBrax.Create(player.transform, body);
+        var animation = hero.GetComponentInChildren<Animation>(true);
+        if (!animation) throw new InvalidOperationException("Brax has no original animations.");
+        var camera = new GameObject("Brax exploration camera").AddComponent<Camera>();
         camera.transform.SetParent(rig.transform, false); camera.tag = "MainCamera";
         camera.fieldOfView = 55; camera.nearClipPlane = .15f; camera.farClipPlane = 1800;
         camera.allowHDR = false; camera.allowMSAA = true;
         camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(.64f, .73f, .79f);
         camera.gameObject.AddComponent<AudioListener>(); camera.gameObject.AddComponent<BraxClaudeKamera>();
-        // Patryk receives the same world light as the surroundings. Camera-attached
+        // Brax receives the same world light as the surroundings. Camera-attached
         // portrait lights stacked three extra directional lights on his skin only.
         var runtime = player.AddComponent<BraxGymPlayer>();
         runtime.visual = hero.transform; runtime.clips = animation; runtime.body = body; runtime.view = camera;
@@ -107,19 +107,19 @@ public static class BraxChampionsExplorer
         var a=feet+Vector3.up*(body.radius+body.skinWidth+.02f);
         var b=feet+Vector3.up*(body.height-body.radius);
         if (Physics.CheckCapsule(a,b,body.radius,GroundMask,QueryTriggerInteraction.Ignore))
-            BraxBuildQuality.Issue(new InvalidOperationException("Patryk spawn/approach is obstructed: "+feet));
+            BraxBuildQuality.Issue(new InvalidOperationException("Brax spawn/approach is obstructed: "+feet));
     }
 
     public static int Validate(Scene scene)
     {
         try
         {
-        var players=All<BraxGymPlayer>(scene); if(players.Length!=1) throw new InvalidOperationException("Exactly one Patryk required.");
+        var players=All<BraxGymPlayer>(scene); if(players.Length!=1) throw new InvalidOperationException("Exactly one Brax required.");
         var p=players[0];
-        if(!p.visual||p.visual.name!="Patryk"||!p.body||!p.clips||!p.view||!p.cityWorld||p.cityWorld.player!=p||p.cityWorld.area!="mistrzowie")
-            throw new InvalidOperationException("Incomplete Patryk/world/camera references.");
-        if((p.transform.lossyScale-Vector3.one).sqrMagnitude>.000001f||Mathf.Abs(p.body.height-2.37f)>.001f)
-            throw new InvalidOperationException("Patryk has been scaled twice or capsule differs from estate.");
+        if(!p.visual||p.visual.name!="Brax"||!p.body||!p.clips||!p.view||!p.cityWorld||p.cityWorld.player!=p||p.cityWorld.area!="mistrzowie")
+            throw new InvalidOperationException("Incomplete Brax/world/camera references.");
+        if((p.transform.lossyScale-Vector3.one).sqrMagnitude>.000001f||Mathf.Abs(p.body.height-2.25f)>.001f)
+            throw new InvalidOperationException("Brax has been scaled twice or capsule differs from estate.");
         if(p.walkOnly||!p.playFullActionClips||p.initialCameraYaw!=180f||p.bags==null)
             throw new InvalidOperationException("Missing estate locomotion configuration.");
         if(All<Camera>(scene).Length!=1||All<AudioListener>(scene).Length!=1||!p.view.CompareTag("MainCamera")||!p.view.GetComponent<BraxClaudeKamera>())
@@ -128,17 +128,17 @@ public static class BraxChampionsExplorer
         var desktop=p.GetComponent<BraxChampionsDesktopInput>(); if(!desktop||desktop.player!=p) throw new InvalidOperationException("Desktop exploration input missing.");
         var skin=p.visual.GetComponentsInChildren<SkinnedMeshRenderer>(true);
         if(skin.Length==0||skin.Any(r=>!r.sharedMesh||r.bones==null||r.bones.Length==0||r.bones.Any(b=>!b)))
-            throw new InvalidOperationException("Original Patryk skin/bones missing.");
+            throw new InvalidOperationException("Original Brax skin/bones missing.");
         foreach(var r in skin)
         {
-            if(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(r.sharedMesh)))throw new InvalidOperationException("Unsaved Patryk mesh.");
+            if(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(r.sharedMesh)))throw new InvalidOperationException("Unsaved Brax mesh.");
             foreach(var m in r.sharedMaterials)
             {
-                if(!m||!m.shader||m.shader.name!="Braxhorn/ChampionsPatryk"||ShaderUtil.ShaderHasError(m.shader))throw new InvalidOperationException("Missing Patryk shader.");
+                if(!m||!m.shader||m.shader.name!="Braxhorn/HeroPremium"||ShaderUtil.ShaderHasError(m.shader))throw new InvalidOperationException("Missing Brax shader.");
                 foreach(var property in new[]{"_MainTex","_BumpMap","_Orm"})
                 {
-                    var texture=m.GetTexture(property);int size=4096;
-                    if(!texture||texture.width!=size||texture.height!=size)throw new InvalidOperationException("Missing source texture: "+property);
+                    var texture=m.GetTexture(property);
+                    if(!texture)throw new InvalidOperationException("Missing source texture: "+property);
                 }
             }
         }
@@ -146,7 +146,7 @@ public static class BraxChampionsExplorer
         {
             var clip=p.clips.GetClip(name);
             if(!clip||!clip.legacy||clip.length<=0||string.IsNullOrEmpty(AssetDatabase.GetAssetPath(clip)))
-                throw new InvalidOperationException("Missing saved Patryk animation: "+name);
+                throw new InvalidOperationException("Missing saved Brax animation: "+name);
         }
         if(p.clips.GetClip("Walk")==p.clips.GetClip("Run")) throw new InvalidOperationException("Run must use the real estate run clip.");
         var points=p.cityWorld.points;
