@@ -58,13 +58,23 @@ public static class BraxChampionsBuildings
                 if(!saved)throw new InvalidOperationException("Missing structural collision mesh: "+m.id);
                 o.AddComponent<MeshCollider>().sharedMesh=saved;
             }
-            var sign=signs.signs.Single(s=>s.id==b.sign);var sr=new GameObject(b.sign+" | cast 3D lettering").transform;sr.SetParent(root,false);
-            sr.localPosition=new Vector3(b.signAnchor[0],b.signAnchor[1],b.signAnchor[2])*K;sr.localRotation=Quaternion.Euler(0,b.signYaw,0);
-            foreach(var m in sign.meshes)MeshObject(sr,b.id+"_sign_"+m.id,m,materials[m.role],false);
-            if(sign.needsSculptedEmblem)
+            // Owner's sign artwork supersedes the original default A1 front lettering.
+            // If the source PNGs have not been imported, keep the old 3D lettering.
+            bool originalArenaGraphics=b.id=="A1"&&BraxChampionsArenaSigns.HasSources();
+            if(!originalArenaGraphics)
             {
-                var anchor=new GameObject("SOURCE_REQUIRED | approved BRAXHORN sculpted bull").transform;anchor.SetParent(sr,false);
-                anchor.localPosition=new Vector3(sign.emblemAnchor[0],sign.emblemAnchor[1],sign.emblemAnchor[2]);
+                var sign=signs.signs.Single(s=>s.id==b.sign);
+                var sr=new GameObject(b.sign+" | original generated 3D lettering").transform;
+                sr.SetParent(root,false);
+                sr.localPosition=new Vector3(b.signAnchor[0],b.signAnchor[1],b.signAnchor[2])*K;
+                sr.localRotation=Quaternion.Euler(0,b.signYaw,0);
+                foreach(var m in sign.meshes)MeshObject(sr,b.id+"_sign_"+m.id,m,materials[m.role],false);
+                if(sign.needsSculptedEmblem)
+                {
+                    var anchor=new GameObject("SOURCE_REQUIRED | approved BRAXHORN sculpted bull").transform;
+                    anchor.SetParent(sr,false);
+                    anchor.localPosition=new Vector3(sign.emblemAnchor[0],sign.emblemAnchor[1],sign.emblemAnchor[2]);
+                }
             }
             // Save local-space reusable prefab, then restore the approved world plot position.
             var at=root.position;root.position=Vector3.zero;
@@ -72,6 +82,7 @@ public static class BraxChampionsBuildings
             {
                 BraxChampionsArena.Generate(root);
                 BraxChampionsArenaArrival.Generate(root, materials);
+                BraxChampionsArenaSigns.Generate(root);
             }
             var prefab=PrefabUtility.SaveAsPrefabAssetAndConnect(root.gameObject,Out+"/Prefabs/"+b.id+"_Exterior.prefab",InteractionMode.AutomatedAction);
             root.position=at;if(!prefab)throw new IOException("Exterior prefab save failed: "+b.id);
