@@ -3,8 +3,8 @@ name: Obóz — Unity 6 APK do testu
 on:
   # Owner-requested start only; normal source commits do not build an APK.
   push:
-    branches: [gpt/oboz]
-    paths: [unity-tools/oboz/build-request.json]
+    branches: [gpt/oboz, run/oboz-apk-20261105-0650]
+    paths: [unity-tools/oboz/build-request.json, .github/workflows/oboz-unity-build.yml]
   workflow_dispatch:
     inputs:
       quality_review:
@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   android-oboz:
-    if: github.ref == 'refs/heads/gpt/oboz' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-realny-kompaktowy-20261105')
+    if: github.ref == 'refs/heads/gpt/oboz' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-realny-kompaktowy-20261105') || (github.event_name == 'push' && github.ref == 'refs/heads/run/oboz-apk-20261105-0650')
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     env:
