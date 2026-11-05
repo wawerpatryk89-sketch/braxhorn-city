@@ -513,6 +513,7 @@ jobs:
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: |
+            .github/workflows/
             unity-city/Assets/
             unity-city/Packages/
             unity-city/ProjectSettings/
