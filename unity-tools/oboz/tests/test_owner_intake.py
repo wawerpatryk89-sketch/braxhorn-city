@@ -84,6 +84,52 @@ class SourceTransferTests(unittest.TestCase):
             finally:
                 intake.MANIFEST = old_manifest
 
+    def test_five_mobile_zips_equal_original_source_files(self):
+        """The iPhone ZIPs are independent and preserve original source bytes."""
+        chunks = [
+            {"BRAXHORN_OBOZ/MODELE/leather_punching_bag.glb": b"GLB-SOURCE"},
+            {"BRAXHORN_OBOZ/PANORAMY/montorfano_4k.hdr": b"HDR-SOURCE"},
+            {"BRAXHORN_OBOZ/MURALE_I_SZYLD/banner.jpeg": b"JPEG-SOURCE"},
+            {"BRAXHORN_OBOZ/TEKSTURY_I_ZESTAWY/grass_medium_01_2k.blend.zip":
+                zip_bytes({"textures/grass_medium_01_diff_2k.jpg": b"TEXTURE-SOURCE"})},
+            {"BRAXHORN_OBOZ/MANIFEST_MATERIALOW.json": b"{}"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            target=Path(tmp)/"Unity"/"OwnerAssets"
+            source_manifest=Path(tmp)/"manifest.json"
+            all_files={k:v for part in chunks for k,v in part.items()}
+            source_manifest.write_text(json.dumps({"contents":[
+                {"path":key,"bytes":len(value),"sha256":intake.sha256(value)}
+                for key,value in all_files.items()
+            ]}),encoding="utf-8")
+            old_manifest,old_parts=intake.MANIFEST,intake.SPLIT_PARTS
+            zip_files=[]
+            known={}
+            try:
+                for index,entries in enumerate(chunks,1):
+                    name=f"BRAXHORN_MODELE_CZESC_{index:02d}_Z_05.zip"
+                    dest=Path(tmp)/name
+                    value=zip_bytes(entries)
+                    dest.write_bytes(value)
+                    zip_files.append(dest)
+                    known[name]=(len(value),intake.sha256(value))
+                intake.MANIFEST=source_manifest
+                intake.SPLIT_PARTS=known
+                checked=intake.run_parts(zip_files,target,apply=False)
+                self.assertEqual(checked["parts_verified"],5)
+                self.assertFalse(target.exists())
+                imported=intake.run_parts(zip_files,target,apply=True)
+                self.assertEqual(imported["source_count"],5)
+                self.assertEqual(imported["unity_files"],5)
+                self.assertTrue(imported["characters_untouched"])
+                self.assertEqual((target/"leather_punching_bag.glb").read_bytes(),b"GLB-SOURCE")
+                again=intake.run_parts(zip_files,target,apply=True)
+                self.assertEqual(again["new_files"],0)
+                self.assertEqual(again["existing_unchanged"],5)
+            finally:
+                intake.MANIFEST=old_manifest
+                intake.SPLIT_PARTS=old_parts
+
     def test_meta_refuses_broken_existing_guid(self):
         with tempfile.TemporaryDirectory() as tmp:
             dest = Path(tmp)
