@@ -19,9 +19,10 @@ internal static partial class BraxMiastoWyspa
         // nie znalazło opraw, mimo że generator ArenyPremium przeszedł poprawnie.
         // Obiekty z BraxCityMaterials są trwałymi assetami .mat — użyj bezpośrednich
         // referencji przypisanych podczas ApMaterialy, zamiast nazw plików/assetów.
-        var wyspy = BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*");
-        if (wyspy.Count != 1)
-            throw new InvalidOperationException("Arena: niejednoznaczny korzeń wyspy: " + wyspy.Count);
+        // Generator zapamiętuje rzeczywisty korzeń wyspy; nie szukaj go po
+        // tytule GameObject, który może zostać zmieniony w innych etapach CI.
+        if (!root || root.gameObject.scene != scene)
+            throw new InvalidOperationException("Arena: utracono korzeń wyspy lub przeniesiono go do innej sceny");
 
         var wymagane = new Dictionary<Material, string>();
         foreach (var para in new[]
@@ -41,8 +42,7 @@ internal static partial class BraxMiastoWyspa
 
         var znalezione = new HashSet<Material>();
         var odtworzone = new HashSet<Material>();
-        foreach (var wyspa in wyspy)
-        foreach (var renderer in wyspa.GetComponentsInChildren<Renderer>(true))
+        foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
         foreach (var material in renderer.sharedMaterials)
         {
             if (!material) continue;
