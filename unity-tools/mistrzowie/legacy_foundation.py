@@ -199,7 +199,7 @@ for x in XROAD:
 for x in [640,670,700,730,760]:
  for z in [115,145,175,205,225]:plant(x,z,'tree',0,'park')
 for x,z in [(850,890),(900,890),(950,890),(1000,890),(1080,890),(950,740)]:plant(x,z,'tree',0,'hotel_garden')
-layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
+layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,piers=PIERS,tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
 SRC.mkdir(parents=True,exist_ok=True)
 (SRC/'Foundation.json').write_text(json.dumps(layout,separators=(',',':')))
 # Geometric checks use the delivered vertices, not only planning rectangles.
@@ -220,7 +220,7 @@ assert sum(p['kind']=='ferry' for p in berths)==1
 # The port-layout module validates non-overlapping original hulls, gangways,
 # the U-shaped motorboat basin, clear ferry and cruise-ship slots.
 validate_port(PIERS,berths)
-assert shoreline(330)<-232
+assert -286<shoreline(330)<-276  # middle beach ~115-125m wide
 assert abs(beach_height(330,SHORE_BACK)-.16)<1e-6
 assert beach_height(330,shoreline(330))<SEA_LEVEL
 assert abs(max(max(m['positions'][0::3]) for m in meshes.values())-1200*K)<1e-5
