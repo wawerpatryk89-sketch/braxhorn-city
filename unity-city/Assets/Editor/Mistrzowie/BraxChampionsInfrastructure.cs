@@ -172,7 +172,7 @@ public static class BraxChampionsInfrastructure
                                    (skirting||ceiling)?trimColors[index]:floorColors[index];
                         if(m.HasProperty("_Color"))m.SetColor("_Color",tint);
                         if(m.HasProperty("_Roughness"))
-                            m.SetFloat("_Roughness",wall?.42f:skirting?.30f:ceiling?.40f:.62f);
+                            m.SetFloat("_Roughness",wall ? .42f : skirting ? .30f : ceiling ? .40f : .62f);
                         if(wall)
                         {
                             var tiling=new Vector2(new[]{.40f,.31f,.46f,.34f,.43f}[index],
@@ -188,11 +188,8 @@ public static class BraxChampionsInfrastructure
             }
             r.sharedMaterials=array;
         }
-        // Clear, repeated station identification on the actual entrance/root.
-        // The atlas handles maps, platform signs and destinations.
-        var identity=new GameObject(id+" "+station.name.Split('|')[1].Trim()+" | interior palette").transform;
-        identity.SetParent(station.transform,false);
-        identity.localPosition=Vector3.zero;
+        // Maps, name boards and platform destinations use each station's
+        // own 1024x1024 metro atlas with unchanged original sign UVs.
     }
     static void AddLabel(Transform parent,string text,Vector3 at,float yaw,float size)
     {
