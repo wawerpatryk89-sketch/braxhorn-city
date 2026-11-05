@@ -173,8 +173,15 @@ def inlay_polygon(role,geom):
     p for p in geom.geoms if p.geom_type=='Polygon']
  for poly in polygons:
   for face in constrained_delaunay_triangles(poly).geoms:
-   if face.area<=1e-10:continue
-   corners=list(face.exterior.coords)[:3][::-1]
+   if face.area<=1e-8:continue
+   corners=list(face.exterior.coords)[:3]
+   # Shapely does not guarantee the same triangle winding for constrained
+   # Delaunay output. Force upward-facing Unity mesh normals deterministically.
+   dx1=corners[1][0]-corners[0][0];dz1=corners[1][1]-corners[0][1]
+   dx2=corners[2][0]-corners[0][0];dz2=corners[2][1]-corners[0][1]
+   cross_y=dz1*dx2-dx1*dz2
+   if abs(cross_y)<1e-7:continue
+   if cross_y<0:corners=[corners[0],corners[2],corners[1]]
    mid=face.centroid
    key=f'x{int(mid.x)//300:02}_z{int((mid.y+500)//250):02}_{role}'
    m=meshes.setdefault(key,dict(id=key,role=role,positions=[],uv=[],triangles=[]))
