@@ -205,6 +205,20 @@ public static class BraxObozServices
             tap.kind=BraxObozFacility.Kind.Sink;
             tap.effect=Effect(sink,new Vector3(0,1.04f,-.15f),false,true);
         }
+        // Neutralne oprawy LED w sanitariatach: normalne światło do użytku,
+        // aktywne jedynie blisko gracza (BraxObozLocalLight), bez ciężkich cieni.
+        foreach(float x in new[]{-4f,0f,4f})
+        {
+            var fixture=Node("Oprawa LED — łazienka",building,new Vector3(x,3.04f,0.8f));
+            FixtureBox(fixture,"Mleczny klosz",Vector3.zero,
+                new Vector3(.72f,.065f,.72f),porcelain,false);
+            var lamp=fixture.gameObject.AddComponent<Light>();
+            lamp.type=LightType.Point;lamp.color=new Color(1f,.97f,.91f);
+            lamp.intensity=.92f;lamp.range=6f*K;lamp.shadows=LightShadows.None;
+            lamp.enabled=false;
+            var local=fixture.gameObject.AddComponent<BraxObozLocalLight>();
+            local.source=lamp;local.range=12f*K;
+        }
         Debug.Log("BRAXHORN_OBOZ_SANITARIATY dwa WC, dwie kabiny z prysznicem, umywalki; wymagany test przejścia i pozycji gracza");
     }
 
