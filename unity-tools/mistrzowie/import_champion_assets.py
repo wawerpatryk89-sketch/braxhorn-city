@@ -1,6 +1,7 @@
 """Opt-in import of the owner-supplied original championship belt and four signs.
 
-The 91MB archive is a separate conversation artifact, not committed to GitHub.
+The complete 108MB archive contains original belt, four signs and 2K original VIP GLB.
+The binary remains a separate conversation artifact until explicitly imported.
 This script DOES NOT fetch, build, regenerate or alter original visual assets.
 """
 import argparse
@@ -10,7 +11,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 DESTINATION = ROOT / "unity-city"
-ARCHIVE_SHA256 = "2ffe2c891d505985691292714c7890a36d190c6a51da08e6835e6aef04751f75"
+ARCHIVE_SHA256 = "453a5fa9cd637d6a2a733893c453faa12914dc2610f69bf73dd3d5f65fbfcef1"
 BASE = "Assets/Source/Mistrzowie/"
 EXPECTED = {
     BASE + "ArenaSigns/champion_arena_red_front.png",
@@ -19,6 +20,7 @@ EXPECTED = {
     BASE + "ArenaSigns/champion_arena_gold_arena_walk.png",
     BASE + "Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbx",
     BASE + "Trophies/ChampionshipBelt_ARM.png",
+    BASE + "VIP/free_luxurious_barrel_seat_2k.glb",
     BASE + "Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbm/Color.png",
     BASE + "Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbm/Normal.png",
     BASE + "Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbm/championship_belt_3d_model_metallic.PNG",
@@ -46,7 +48,7 @@ def install(archive: Path, dry_run: bool = False):
         names = set(z.namelist())
         if not EXPECTED <= names:
             raise RuntimeError(f"Missing original files: {sorted(EXPECTED-names)}")
-        if names - (EXPECTED | {"ASSET-MANIFEST.json"}):
+        if names - (EXPECTED | {"ASSET-MANIFEST.json", "IMPORT-README.md"}):
             raise RuntimeError("Archive contains unexpected files: " + repr(sorted(names-EXPECTED)))
         verified = []
         for name in sorted(EXPECTED):
@@ -79,7 +81,7 @@ def install(archive: Path, dry_run: bool = False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("archive", type=Path, help="exact user-supplied champions_asset_import.zip")
+    parser.add_argument("archive", type=Path, help="verified champions_arena_A1_full_import.zip with VIP chair")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     for line in install(args.archive, args.dry_run):
