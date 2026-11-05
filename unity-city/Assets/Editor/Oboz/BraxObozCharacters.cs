@@ -147,7 +147,8 @@ public static partial class BraxObozCharacters
                 rendererIndex++;
                 renderer.sharedMaterials = Enumerable.Repeat(material, Mathf.Max(1, renderer.sharedMesh.subMeshCount)).ToArray();
                 renderer.quality = SkinQuality.Bone4; renderer.updateWhenOffscreen = true;
-                renderer.shadowCastingMode = spec.id == "monika" ? ShadowCastingMode.On : ShadowCastingMode.Off;
+                renderer.shadowCastingMode = ShadowCastingMode.On; // światło zakotwicza także NPC na podłożu
+                renderer.receiveShadows = true;
             }
             var animation = hero.AddComponent<Animation>(); animation.playAutomatically = false;
             animation.cullingType = AnimationCullingType.AlwaysAnimate;
