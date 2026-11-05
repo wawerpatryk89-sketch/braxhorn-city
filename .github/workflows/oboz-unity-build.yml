@@ -523,6 +523,14 @@ jobs:
           df -h .
           sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/share/swift
           df -h .
+      - name: Compile actual Android SAF import picker; still no APK
+        if: inputs.content_action == 'export-candidate'
+        run: |
+          set -euo pipefail
+          docker run --rm --entrypoint bash -v "$PWD:/project" \
+            unityci/editor:ubuntu-6000.0.58f2-android-3 \
+            /project/unity-tools/oboz/build_content_picker.sh
+          test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar
       - name: Unity 6 — build only the immutable Obóz Addressables baseline, NOT Android APK
         id: unity
         if: inputs.content_action == 'export-candidate'
