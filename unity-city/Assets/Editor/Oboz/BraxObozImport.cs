@@ -135,7 +135,8 @@ public sealed class BraxObozImport : AssetPostprocessor
         // Mapy normalnych w Poly Haven używają '_nor_gl_', nie '_normal'.
         // Trzymaj oryginalne 4K, na Androidzie także bez ukrytej redukcji.
         if(assetPath.StartsWith(Root+"OwnerAssets/",StringComparison.Ordinal) &&
-            assetPath.Contains("/textures/",StringComparison.Ordinal))
+            assetPath.Contains("/textures/",StringComparison.Ordinal) &&
+            !assetPath.Contains("/OwnerAssets/rubberized_track_2k/",StringComparison.Ordinal))
         {
             bool sourceNormal=n.Contains("_nor_gl_");
             bool sourceColor=n.Contains("_diff_");
