@@ -40,3 +40,18 @@ W rozmowie jest oryginalny ZIP z pasem oraz dwa arkusze szyldów; lokalnie przyg
 - Szkło wymaga testu sortowania przezroczystości i kosztu overdraw na mobilnym GPU.
 - Drzwi działają przez istniejący `BraxCityDoor`; automatyczne otwieranie, kolizje zawiasów i prześwit wymagają testu w scenie.
 - Kolizje wszystkich nowych brył, schodów trybun oraz dojścia do gabloty: do testu w Unity.
+
+
+## Uzupełnienie: ekskluzywne miejsca VIP przy sędziach
+- Właściciel dostarczył `free_luxurious_barrel_seat.glb` (~50,5 MB) z pięcioma siatkami i sześcioma teksturami 4096×4096.
+- Zapisano nieinwazyjną pochodną `free_luxurious_barrel_seat_2k.glb` (~13,6 MB): sześć map 2048×2048, normalne po filtracji ponownie znormalizowane; wszystkie nieobrazowe buforowania geometrii zachowane bajt w bajt.
+- SHA256 oryginału: `81d407ca81d33b868ec3915a38d08d00533632ff21ed1a5782d5c57884121e33`.
+- SHA256 przygotowanego GLB: `a8896bccfa939235579d0daf9cad294edd4a7c103ae79a1801c2bdc1366356f1`.
+- Docelowa ścieżka w repo: `unity-city/Assets/Source/Mistrzowie/VIP/free_luxurious_barrel_seat_2k.glb`.
+- `BraxChampionsVIPSeats.cs` generuje 16 foteli z oryginalnej siatki na dwóch stronach chodnika przy stanowiskach sędziowskich. Rozstaw 1,45 m w rzędzie, 1,75 m między rzędami, 0,96 m maks. obrys i prosta kolizja każdego fotela.
+- **Stoły sędziów, monitory, ich krzesła i funkcje pozostają bez zmian.** Tanie/przejściowe miejsca VIP nie są generowane, jeśli importowany model jest dostępny. Jeśli GLB nie istnieje w projekcie, obecny model tymczasowy pozostaje (bez fałszywego twierdzenia o ukończeniu wymiany).
+- Generator odrzuca mapy większe niż 2048 lub import bez faktycznych poziomów mip (mipmapCount). Filtr glTF minFilter=9987 żąda trilinear mipmapping; zachowanie w Unity wymaga sprawdzenia po imporcie.
+- Test statyczny `test_vip_owner_model.py` sprawdza ilość, rozstaw, materiał, warunek importu i nietknięte stanowiska sędziowskie.
+- Lokalny łączny ZIP: `champions_arena_A1_full_import.zip` (~107,8 MB) zawiera 11 plików źródłowych: pas, mapy, cztery szyldy oraz VIP GLB. ZIP sprawdzony przez `ZipFile.testzip()`. **Nie został automatycznie przesłany do GitHub**, co blokuje odbiór końcowy i render postaci na urządzeniu.
+
+Status: kod na gałęzi, źródła binarne spakowane lokalnie, przed dopuszczeniem APK potrzebne rzeczywiste dodanie binariów do projektu, kompilacja Unity i test Android. Żadnego automatycznego buildu.
