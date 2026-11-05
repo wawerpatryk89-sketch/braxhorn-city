@@ -5,6 +5,9 @@ on:
       - codex/miasto-mistrzow-marina-plaza-premium-20261105
     paths:
       - .github/workflows/champions-marina-next-preflight.yml
+      - unity-tools/mistrzowie/test_premium_port_beach.py
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsHarbourSafety.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs
   workflow_dispatch:
 
 permissions:
@@ -54,7 +57,7 @@ jobs:
           data=json.loads(p.read_text())
           roles=Counter(mesh['role'] for mesh in data['meshes'])
           assert len(data['berths'])==38
-          assert len(data['piers'])==55
+          assert len(data['piers'])==56
           assert roles.get('quay',0)==0, 'Old harbour pier mesh still included'
           assert roles['foam']>0 and roles['sea']>0
           assert roles['sand_dry']>0 and roles['sand_wet']>0

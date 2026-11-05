@@ -15,13 +15,13 @@ EDITOR=ROOT/"unity-city/Assets/Editor/Mistrzowie"
 
 class PremiumPortBeach(unittest.TestCase):
     def test_compact_owner_vessel_numbers_and_all_individual_berths(self):
-        self.assertEqual(len(PIERS),55)
+        self.assertEqual(len(PIERS),56)
         self.assertEqual(len(BERTHS),38)
         self.assertEqual(Counter(b["kind"] for b in BERTHS),
                          Counter(yacht=15,motorboat=10,jetski=10,cruise_ship=2,ferry=1))
         self.assertTrue(validate(PIERS,BERTHS))
         self.assertEqual(len({b["id"] for b in BERTHS}),38)
-        self.assertEqual(len({p["id"] for p in PIERS}),55)
+        self.assertEqual(len({p["id"] for p in PIERS}),56)
         self.assertTrue(all(b["dock"] and -500<b["z"]<-150 for b in BERTHS))
 
     def test_one_yacht_spine_and_U_shaped_motorboat_basin(self):
@@ -99,7 +99,7 @@ class PremiumPortBeach(unittest.TestCase):
             self.skipTest("Foundation.json is generated only on CI preflight / Unity")
         data=json.loads(path.read_text())
         counts=Counter(b["kind"] for b in data["berths"])
-        self.assertEqual(len(data["piers"]),55)
+        self.assertEqual(len(data["piers"]),56)
         self.assertEqual(counts,Counter(yacht=15,motorboat=10,jetski=10,cruise_ship=2,ferry=1))
         roles={m["role"] for m in data["meshes"]}
         self.assertTrue({"sand_dry","sand_wet","sea","foam",

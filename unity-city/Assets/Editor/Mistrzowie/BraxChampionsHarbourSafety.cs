@@ -132,8 +132,8 @@ public static class BraxChampionsHarbourSafety
 
     public static void Generate(Transform harbour,BraxChampionsFoundation.Pier[] approvedPiers)
     {
-        if(!harbour||approvedPiers==null||approvedPiers.Length!=55)
-            throw new InvalidOperationException("Safety railings require the approved 55 pier pieces");
+        if(!harbour||approvedPiers==null||approvedPiers.Length!=56)
+            throw new InvalidOperationException("Safety railings require the approved 56 pier pieces");
         var p=approvedPiers.ToDictionary(x=>x.id);
         runs.Clear();
         // Main yacht walk: two rows of braided rope with open bays for 9
