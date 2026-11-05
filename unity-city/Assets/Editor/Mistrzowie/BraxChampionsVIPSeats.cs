@@ -76,11 +76,11 @@ public static class BraxChampionsVIPSeats
         }
         // Existing reserved positions near jury/commentator area:
         // two rows behind cage-side service desks; one 6m central aisle stays open.
-        // Four places per side per row; seat spacing 1.45m, row spacing 1.55m.
+        // Four places per side per row; seat spacing 1.45m, row spacing 1.75m.
         const float cx = -86f, cz = 63.3f;
         var xs = new[] { -94.0f, -92.55f, -91.10f, -89.65f,
                          -82.35f, -80.90f, -79.45f, -78.0f };
-        foreach (float z in new[] { 70.35f, 71.90f })
+        foreach (float z in new[] { 70.30f, 72.05f })
             foreach (float x in xs)
                 Place(interiorRoot, source, x, z, cx, cz,
                     "Reserved VIP | imported luxurious barrel seat");
