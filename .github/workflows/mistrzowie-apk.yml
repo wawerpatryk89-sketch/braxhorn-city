@@ -517,11 +517,29 @@ jobs:
           docker run --rm --entrypoint bash -v "$PWD:/project" \
             unityci/editor:ubuntu-6000.0.85f2-android-3.2.2 \
             /project/unity-tools/mistrzowie/build_content_picker.sh
+      - name: Restore encrypted previously-imported Unity Library for content updates
+        id: content_library
+        continue-on-error: true
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/champions-library.tar.zst.enc
+          key: champions-library-android-6000.0.85f2-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-content-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            champions-library-android-6000.0.85f2-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-
+      - name: Restore cached imports with stable GUIDs (optional)
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          bash unity-tools/mistrzowie/library_cache.sh restore unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
+          rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
+          du -sh unity-city/Library 2>/dev/null || echo 'Brak cache; Unity zaimportuje źródła jeszcze raz'
       - name: Cheap validation before Unity
         run: |
           python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
       - name: Build changed Addressables bundles ONLY - never Android APK
+        id: content_build
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -544,3 +562,20 @@ jobs:
           test "$(find unity-city/BraxContentBuild -maxdepth 1 -name 'mistrzowie-*.braxupdate.zip' -type f | wc -l)" -eq 1
           python3 unity-tools/updates/content_snapshot.py publish-update --base "$BASE_ID"
           echo '### Miasto Mistrzów — gotowa prywatna paczka .braxupdate.zip (bez budowania APK)' >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve encrypted Unity import cache after content build
+        id: content_cache_pack
+        if: ${{ always() && !cancelled() && (steps.content_build.outcome == 'success' || steps.content_build.outcome == 'failure') }}
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          test -d unity-city/Library
+          sudo chown -R "$(id -u):$(id -g)" unity-city/Library
+          bash unity-tools/mistrzowie/library_cache.sh save unity-city "$RUNNER_TEMP/champions-library.tar.zst.enc"
+      - name: Store encrypted import cache for subsequent content-only updates
+        if: ${{ always() && !cancelled() && steps.content_cache_pack.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/champions-library.tar.zst.enc
+          key: champions-library-android-6000.0.85f2-v2-${{ hashFiles('unity-city/Packages/manifest.json') }}-content-${{ github.run_id }}-${{ github.run_attempt }}
