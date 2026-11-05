@@ -26,6 +26,14 @@ Status: **ROZPOCZĘTA PRACA KODOWA, BEZ ODBIORU UNITY/APK**.
 - [ ] Cztery murale i szyld właściciela bez kadrowania, rozciągania, zmiany liter i redukcji jakości.
 - [ ] Raport licencji: repo publiczne; prywatnych GLB/BLEND nie publikować bez prawa redystrybucji.
 
+## Aktualne polecenie właściciela — bunkier usunąć całkowicie
+- [x] Nie tworzyć już modelu bunkra w generatorze sceny `BraxObozEnvironment.Prepare()`.
+- [x] Usunąć z generatora metodę `SourceBunker` i znacznik `Bunkier bramy`.
+- [x] Usunąć `bunker-reserved` i wszelkie inne strefy bunkra z `CampusLayout.json`, aby teren nie pozostawał pusty.
+- [ ] Po odtworzeniu w Unity potwierdzić na rzucie, że bunkier nie istnieje, teren jest dostępny, trawa i dojścia nie kolidują.
+- **Źródła archiwalne pozostają zabezpieczone; nie kasować prywatnej paczki ani modelu źródłowego.** To nie jest polecenie ich trwałego usuwania z biblioteki.
+- Test regresji: `test_no_bunker_anywhere_in_camp`.
+
 ## Inwentarz przekazania
 Archiwum źródeł: BRAXHORN_OBOZ_WYKONAWCA_ZASOBY_20261105.zip (345273037 bajtów; 17 GLB + 7 ZIP + 1 HDR + 5 JPEG + manifest).
 Archiwum referencji: BRAXHORN_OBOZ_REFERENCJE_20261105.zip (241667206 bajtów; 3 filmy + 10 zdjęć + dokumentacja).
