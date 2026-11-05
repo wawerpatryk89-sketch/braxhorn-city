@@ -36,7 +36,9 @@ public static class BraxObozValidation
             foreach (var b in scene.coveredBags) if (b && !scene.bags.Any(x => x && x.transform == b)) errors.Add("Zadaszony worek nie należy do grupy 24 worków");
             if (scene.cabinDoors.Length != 4 || scene.cabinDoors.Distinct().Count() != 4 || scene.cabinDoors.Any(d => !d || d.leaves == null || d.leaves.Length == 0)) errors.Add("Cztery domki potrzebują różnych działających drzwi");
             if (scene.arenas.Length != 3 || scene.arenas.Any(a => !a)) errors.Add("Wymagane dwa ringi i oktagon");
-            if(scene.GetComponentsInChildren<BraxObozTrainingStation>(true).Length!=6)errors.Add("Wymagane sześć nowych stanowisk treningowych");
+            var stations=scene.GetComponentsInChildren<BraxObozTrainingStation>(true);
+            if(stations.Length!=9||stations.Any(s=>!s.player))
+                errors.Add("Wymagane sześć stanowisk plenerowych i trzy aktywne stanowiska pod dachem");
             var buses=scene.GetComponentsInChildren<Transform>(true).Where(t=>t.name==BraxObozParkedBus.Name).ToArray();
             if(buses.Length!=1||!buses[0].GetComponent<BoxCollider>()||buses[0].GetComponentsInChildren<BraxAutobus>(true).Length!=0)
                 errors.Add("Wymagany jeden zaparkowany autobus z kolizją, bez sterownika jazdy");
