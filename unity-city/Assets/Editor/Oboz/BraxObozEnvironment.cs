@@ -239,7 +239,9 @@ public static partial class BraxObozEnvironment
         Box(t,"Stół",new Vector3(1.9f,.8f,-1.7f),new Vector3(1.1f,.08f,.7f),wood);
         foreach(float dx in new[]{-.46f,.46f})foreach(float dz in new[]{-.26f,.26f})Box(t,"Noga stołu",new Vector3(1.9f+dx,.43f,-1.7f+dz),new Vector3(.07f,.7f,.07f),wood);
         CombineDecoration(t); // Static shell only; keep the door leaf movable.
-        Door(t,name+" — drzwi",new Vector3(-.63f,.17f,-4.05f),1.26f,2.22f);
+        // Nie zostawiaj pionowej szpary na nadprozu ani pod skrzydlem.
+        Door(t,name+" — drzwi",new Vector3(-.63f,.17f,-4.05f),1.26f,2.29f);
+        Box(t,"Próg szczelny pod skrzydłem",new Vector3(0,.105f,-4.06f),new Vector3(1.35f,.14f,.26f),metal,false);
         Box(t,"Stopień wejścia",new Vector3(0,.05f,-4.5f),new Vector3(1.6f,.1f,.8f),wood);
     }
     static void ColliderBox(Transform parent,Vector3 pos,Vector3 size){var g=Group("Kolizja zgodna z otworem",parent,pos*K).gameObject;g.AddComponent<BoxCollider>().size=size*K;}
@@ -251,7 +253,12 @@ public static partial class BraxObozEnvironment
     }
     static void Ring(string name,float x,float z)
     {
-        var t=Group(name,root,P(x,0,z));Box(t,"Podest drewniany",new Vector3(0,.24f,0),new Vector3(8.6f,.48f,8.6f),wood);
+        var t=Group(name,root,P(x,0,z));
+        // Ring nie stoi na chodniku: osobna elastyczna posadzka i krawedz sportowa.
+        Box(t,"Czarna strefa bezpieczenstwa",new Vector3(0,.07f,0),new Vector3(13,.14f,13),dark,false);
+        foreach(float z in new[]{-6.3f,6.3f})
+            Box(t,"Granica strefy ringu",new Vector3(0,.147f,z),new Vector3(13,.015f,.11f),burgundy,false);
+        var platform=Box(t,"Podest drewniany",new Vector3(0,.24f,0),new Vector3(8.6f,.48f,8.6f),wood);
         Box(t,"Mata bez cudzych logo",new Vector3(0,.50f,0),new Vector3(8.2f,.04f,8.2f),burgundy);
         foreach(float dx in new[]{-4f,4f})foreach(float dz in new[]{-4f,4f}) {
             Cylinder(t,"Słupek ringu",new Vector3(dx,.48f,dz),new Vector3(dx,2.15f,dz),.09f,metal,true);
@@ -290,6 +297,7 @@ public static partial class BraxObozEnvironment
     static void Octagon(float x,float z)
     {
         var t=Group("Oktagon",root,P(x,0,z));const float radius=5.3f;
+        Box(t,"Odrębna czarna mata bezpieczeństwa",new Vector3(0,.07f,0),new Vector3(13,.14f,13),dark,false);
         var mesh=new Mesh();var v=new Vector3[9];var uv=new Vector2[9];var tris=new int[24];v[0]=P(0,.35f,0);
         for(int i=0;i<8;i++){float a=i*Mathf.PI/4;v[i+1]=P(Mathf.Sin(a)*radius,.35f,Mathf.Cos(a)*radius);uv[i+1]=new Vector2(v[i+1].x,v[i+1].z);tris[i*3]=0;tris[i*3+1]=i+1;tris[i*3+2]=(i+1)%8+1;}
         mesh.vertices=v;mesh.uv=uv;mesh.triangles=tris;mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
