@@ -5,6 +5,25 @@ using UnityEngine;
 public static class BraxObozCampusLayout
 {
     public const string Path="Assets/Editor/Oboz/CampusLayout.json";
+    // Fizyczna skala świata pozostaje K=1.294 w generatorze.
+    // Nowy obóz ma obrys eliptyczny, bramę zachowaną przy Z=-125.
+    // Pole: PI*96*96 = 28 953 jednostki kw. vs stare 252*240=60 480 (-52.1%).
+    public const float PlotRadiusX=96f;
+    public const float PlotRadiusZ=96f;
+    public const float PlotCenterZ=-29f;
+    public const float GateZ=-125f;
+    public static bool InsidePlot(float x,float z,float margin=0f)
+    {
+        float rx=PlotRadiusX-margin,rz=PlotRadiusZ-margin;
+        if(rx<=0f||rz<=0f)return false;
+        float a=x/rx,b=(z-PlotCenterZ)/rz;
+        return a*a+b*b<=1f;
+    }
+    public static float FenceDistance(float x,float z)
+    {
+        float a=x/PlotRadiusX,b=(z-PlotCenterZ)/PlotRadiusZ;
+        return Mathf.Abs(Mathf.Sqrt(a*a+b*b)-1f)*Mathf.Min(PlotRadiusX,PlotRadiusZ);
+    }
     [Serializable] public sealed class Zone { public string id; public float x,z,width,depth; }
     [Serializable] public sealed class Plan { public int schema; public Zone[] clearances,lawnClearances; }
     static Plan plan;
@@ -33,8 +52,9 @@ public static class BraxObozCampusLayout
         if(plan==null)Reload();
         foreach(var r in plan.clearances)
             if(Mathf.Abs(x-r.x)<=r.width*.5f+margin&&Mathf.Abs(z-r.z)<=r.depth*.5f+margin)return true;
-        // Keep foliage outside the fence and moving gate pockets.
-        // Zamknieta dzialka: ogrodzenie X +/-126, poludnie Z -125, polnoc Z 115.
-        return Mathf.Abs(Mathf.Abs(x)-126)<margin+1 || Mathf.Abs(z+125)<margin+1 || Mathf.Abs(z-115)<margin+1;
+        // Chroń pas przy nowym, eliptycznym ogrodzeniu; las poza ogrodzeniem
+        // pozostaje możliwy jako naturalne tło HDR, bez kasowania prototypów.
+        return FenceDistance(x,z)<margin+1.5f ||
+            (Mathf.Abs(z-GateZ)<margin+2f&&Mathf.Abs(x)<12.5f+margin);
     }
 }
