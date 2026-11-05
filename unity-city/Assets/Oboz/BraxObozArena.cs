@@ -9,7 +9,7 @@ public sealed class BraxObozArena : MonoBehaviour, IBraxInterakcja
     public BraxObozTrainingRoutine trainingRoutine;
     public BraxObozProgress progress;
     public Vector2 halfSize = new Vector2(4.5f, 4.5f);
-    public float roundSeconds = 90, hitRange = 2.1f, punchDamage = 8, kickDamage = 12;
+    public float roundSeconds = 90, hitRange = 1.65f * 1.294f, punchDamage = 8, kickDamage = 12;
     public bool Active { get; private set; }
     public string Status { get; private set; } = "";
     static BraxObozArena active;
@@ -82,8 +82,10 @@ public sealed class BraxObozArena : MonoBehaviour, IBraxInterakcja
                 recoverLeft = followThrough;
                 if (CanHit(opponent.transform.position, opponent.transform.forward, player.transform.position))
                 {
-                    playerHealth = Mathf.Max(0, playerHealth - punchDamage); npcScore++;
-                    player.PlayReaction("HeadHit");
+                    bool enemyKick=npcScore % 4 == 3;
+                    playerHealth = Mathf.Max(0, playerHealth - (enemyKick ? kickDamage : punchDamage)); npcScore++;
+                    player.PlayReaction(enemyKick ? "HitToBody" : "HeadHit");
+                    Status="MONIKA - TRAFIONA · HP "+Mathf.CeilToInt(playerHealth);
                     var audio=player.GetComponent<BraxObozContactAudio>();if(audio)audio.Contact(false);
                     if (playerHealth <= 0) { Finish(-1); return; }
                 }
@@ -91,9 +93,10 @@ public sealed class BraxObozArena : MonoBehaviour, IBraxInterakcja
             return;
         }
         attackWait -= dt;
-        if (delta.magnitude > hitRange * .85f) { opponent.MoveTowards(player.transform.position, dt); return; }
+        if (delta.magnitude > hitRange * .67f) { opponent.MoveTowards(player.transform.position, dt); return; }
         if (attackWait > 0) { opponent.Play("CombatIdle", true); return; }
-        float length = opponent.Play("Punch", false, true);
+        bool kick=npcScore%4==3;
+        float length = opponent.Play(kick?"Kick":"Punch", false, true);
         strikePending = true; strikeLeft = Mathf.Min(.43f, length * .65f);
         followThrough = Mathf.Max(0, length - strikeLeft);
         attackWait = Mathf.Max(1.15f, length + .35f);
@@ -112,6 +115,7 @@ public sealed class BraxObozArena : MonoBehaviour, IBraxInterakcja
         npcHealth = Mathf.Max(0, npcHealth - (kick ? kickDamage : punchDamage)); playerScore++;
         strikePending = false; attackWait = 1.1f;
         opponent.React(kick ? "HitToBody" : "HeadHit"); recoverLeft = .55f;
+        Status="MONIKA - TRAFIENIE · RYWAL HP "+Mathf.CeilToInt(npcHealth);
         var audio=opponent.GetComponent<BraxObozContactAudio>();if(audio)audio.Contact(false);
         if (npcHealth <= 0) Finish(1);
     }
