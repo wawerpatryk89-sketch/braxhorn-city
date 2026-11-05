@@ -106,8 +106,10 @@ public sealed class BraxObozImport : AssetPostprocessor
         bool vegetationMap = assetPath.StartsWith(Root + "environment/vegetation/vegetation_textures/", StringComparison.Ordinal);
         // Unrecognized camp assets (bunker, gym, bus) retain their existing policy.
         int editorMax = billboard ? 8192 : otherCharacter ? 2048 : 4096;
-        int androidMax = billboard ? 8192 : tiled ? 1024 :
-            otherCharacter || premiumSurface || vegetationMap ? 2048 : 4096;
+        // Tiled materials retain a sharp 2K near the camera; ordinary mipmaps
+        // and selective streaming provide lower-detail versions at distance.
+        int androidMax = billboard ? 8192 :
+            tiled || otherCharacter || premiumSurface || vegetationMap ? 2048 : 4096;
         var androidFormat = billboard || vegetationMap || tiled && !normal
             ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
         t.textureShape = TextureImporterShape.Texture2D;
@@ -124,7 +126,7 @@ public sealed class BraxObozImport : AssetPostprocessor
         a.compressionQuality = 90;
         t.SetPlatformTextureSettings(a);
         // Monika's 4K PBR remains available close to the camera.
-        // Six 2K characters are not streamed below their requested 2K level.
+        // All eligible 2K characters may release their highest mip in the distance.
         BraxObozMaterials.ConfigureStreaming(t, assetPath);
     }
 }
