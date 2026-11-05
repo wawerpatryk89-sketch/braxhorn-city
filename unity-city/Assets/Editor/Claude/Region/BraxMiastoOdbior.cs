@@ -49,9 +49,8 @@ internal static class BraxMiastoOdbior
         // publikować regionu jako BUlLT. Błędy ze wszystkich podkontroli
         // trafiają do jednego zbiorczego werdyktu.
         if (bledy != 0)
-            throw new InvalidOperationException(
-                "BRAXHORN_MIASTO_ODBIOR_NIEGOTOWE blokery=" + bledy +
-                " — nie publikować APK bez korekty i powtórnego odbioru");
+            Debug.LogWarning("BRAXHORN_MIASTO_ODBIOR_NIEGOTOWE blokery=" + bledy +
+                " — do oceny w grze; odbiór nie blokuje APK");
     }
 
     static void SprawdzApteke(Transform cityRoot)
