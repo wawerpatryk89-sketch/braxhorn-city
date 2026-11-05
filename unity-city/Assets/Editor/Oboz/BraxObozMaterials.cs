@@ -47,9 +47,10 @@ public static class BraxObozMaterials
         material.SetFloat("_PackedORM", 1); material.SetFloat("_RoughnessFactor", .7f); material.SetFloat("_MetallicFactor", 0);
         return Save(material, "forest-ground");
     }
-    // Camera-driven mip streaming for original 4K camp maps with conventional UV0.
-    // Keep all 2K sources at full resolution; never stream packed/rotated tree,
-    // billboard or multi-layer lawn/gravel textures (nonstandard UV transforms).
+    // Camera-driven mip streaming for conventional character and surface UV0.
+    // A 2K map stays sharp near and can unload its highest mip at distance.
+    // Grass/gravel/forest blended through custom shader UV transforms and tree
+    // billboards remain non-streamed; ordinary hardware mip sampling still works.
     public static bool ConfigureStreaming(TextureImporter importer, string path)
     {
         bool character = path.StartsWith("Assets/Source/Prywatne/Oboz/characters/", StringComparison.Ordinal);
@@ -67,10 +68,10 @@ public static class BraxObozMaterials
                 importer.GetSourceTextureWidthAndHeight(out int w, out int h);
                 var android = importer.GetPlatformTextureSettings("Android");
                 int effectiveLimit = android.overridden ? android.maxTextureSize : importer.maxTextureSize;
-                // A source 4K imported as 2K is still a 2K runtime texture:
-                // do not stream it further down to 1K.
-                stream = w >= 4096 && h >= 4096 && effectiveLimit >= 4096 &&
-                    importer.maxTextureSize >= 4096;
+                // Both 4K hero maps and 2K environment/NPC maps can stream
+                // one mip level at distance; never invent detail in low-res sources.
+                stream = w >= 2048 && h >= 2048 && effectiveLimit >= 2048 &&
+                    importer.maxTextureSize >= 2048;
             }
             catch (InvalidOperationException)
             {
@@ -79,7 +80,7 @@ public static class BraxObozMaterials
                 stream = false;
             }
         }
-        int priority = character ? 2 : ordinary ? 1 : 0;
+        int priority = character && path.Contains("/monika/") ? 2 : character || ordinary ? 1 : 0;
         bool changed = importer.streamingMipmaps != stream ||
             (stream && importer.streamingMipmapsPriority != priority);
         importer.streamingMipmaps = stream;
@@ -93,9 +94,9 @@ public static class BraxObozMaterials
         bool color=kind=="Color",normal=kind=="NormalGL";
         var type=normal?TextureImporterType.NormalMap:TextureImporterType.Default;
         var android=importer.GetPlatformTextureSettings("Android");
-        // Tileable ground materials: original 4K sources retained on disk and
-        // visible in Editor; on Android sample only 1K, with trilinear mipmaps.
-        const int androidLimit = 1024;
+        // Repeating asphalt/pavers/grass: preserve original source 4K on disk,
+        // import 2K on Android, and use trilinear mips for distant surfaces.
+        const int androidLimit = 2048;
         var androidFormat = normal ? TextureImporterFormat.ASTC_4x4 : TextureImporterFormat.ASTC_6x6;
         bool changed=importer.textureShape!=TextureImporterShape.Texture2D || importer.maxTextureSize!=4096 || !importer.mipmapEnabled || importer.anisoLevel!=8 ||
             importer.wrapMode!=TextureWrapMode.Repeat || importer.filterMode!=FilterMode.Trilinear ||
@@ -129,7 +130,7 @@ public static class BraxObozMaterials
         }
         if (id == "clean_asphalt")
         {
-            // One user-reviewed pilot surface. Keep PBR colour and normals 4K.
+            // Packed asphalt pilot: 2K colour, normal and RA at the camera.
             // R=original roughness.r, G=original AO.r, linear data.
             var packedRA = BraxObozPbrPack.SurfaceRA(id,
                 folder + "Roughness.jpg", folder + "AmbientOcclusion.jpg");
