@@ -585,11 +585,29 @@ jobs:
                   raise SystemExit('Invalid content catalog')
           print('BRAX_MISTRZOWIE_DELTA_VERIFIED',package.name,package.stat().st_size,'APK_NOT_BUILT')
           PY
-      - name: Save verified delta as a separate GitHub Actions artifact
+      # The repo is public and the owner-provided art can be private.
+      # GitHub Actions artifacts are NOT the private draft release.
+      # Retain only encrypted bytes here; keep the ZIP plaintext only inside
+      # this runner and the authenticated private draft release.
+      - name: Encrypt verified content delta for recoverable CI backup
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          test -n "$KLUCZ"
+          mkdir -p "$RUNNER_TEMP/mistrzowie-protected-delta"
+          package=$(find unity-city/BraxContentBuild -maxdepth 1 -type f -name 'mistrzowie-u-*.braxupdate.zip' -print -quit)
+          test -s "$package"
+          openssl enc -aes-256-cbc -pbkdf2 -salt -in "$package" \
+            -out "$RUNNER_TEMP/mistrzowie-protected-delta/delta.braxupdate.zip.enc" -pass env:KLUCZ
+          test -s "$RUNNER_TEMP/mistrzowie-protected-delta/delta.braxupdate.zip.enc"
+          sha256sum "$RUNNER_TEMP/mistrzowie-protected-delta/delta.braxupdate.zip.enc" \
+            > "$RUNNER_TEMP/mistrzowie-protected-delta/sha256.txt"
+      - name: Save encrypted delta checkpoint in GitHub Actions
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: mistrzowie-delta-${{ steps.content_request.outputs.base }}-${{ github.run_id }}
-          path: unity-city/BraxContentBuild/*.braxupdate.zip
+          name: mistrzowie-encrypted-delta-${{ steps.content_request.outputs.base }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/mistrzowie-protected-delta/
           compression-level: 0
           retention-days: 30
           if-no-files-found: error
