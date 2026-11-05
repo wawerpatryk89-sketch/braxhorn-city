@@ -80,13 +80,18 @@ class ContentUpdateContract(unittest.TestCase):
         self.assertIn("no APK",stage)
         self.assertIn("BraxContentPicker.jar",stage)
 
-    def test_legacy_standalone_job_skips_update_branch_without_runner(self):
+    def test_manual_signed_apk18_update_requires_prior_version(self):
         workflow=load(".github/workflows/oboz-unity-build.yml")
         job_gate = next(line for line in workflow.splitlines()
                         if line.startswith("    if: github.ref =="))
-        self.assertNotIn("codex/oboz-przebudowa-pbr-20261105",job_gate)
-        self.assertIn("Use the manual oboz-content-only or oboz-content-update job below instead.",workflow)
+        self.assertIn("codex/oboz-przebudowa-pbr-20261105",job_gate)
+        self.assertIn("github.event_name == 'workflow_dispatch'",job_gate)
+        self.assertIn("inputs.first_install != true",job_gate)
+        self.assertIn("inputs.content_action == 'none'",job_gate)
         self.assertIn("buildMethod: BraxObozBuild.BuildAndroidReview",workflow)
+        self.assertIn('info.get("versionCode")==216024998',workflow)
+        self.assertIn('info.get("sourceRun")==41983757537',workflow)
+        self.assertIn('int(Path("unity-city/braxhorn.versioncode").read_text())>216024998',workflow)
 
     def test_bunker_not_brought_back_by_update_integration(self):
         env=load("unity-city/Assets/Editor/Oboz/BraxObozEnvironment.cs")
