@@ -159,11 +159,11 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
             Vector3 delta = to.transform.position - from.transform.position; delta.y = 0;
             // Trafienie dopiero przy fizycznie osiagalnym dystansie oraz
             // widocznosci miedzy klatkami piersiowymi (nie przez sciane).
-            float reach=1.60f*K;
+            float reach=1.60f;
             bool range=delta.sqrMagnitude>0.0001f&&delta.sqrMagnitude<=reach*reach;
             bool facing=range&&Vector3.Dot(from.transform.forward,delta.normalized)>.45f;
-            Vector3 hitFrom=from.transform.position+Vector3.up*(.95f*K);
-            Vector3 hitTo=to.transform.position+Vector3.up*(.95f*K);
+            Vector3 hitFrom=from.transform.position+Vector3.up*.95f;
+            Vector3 hitTo=to.transform.position+Vector3.up*.95f;
             bool clear=facing&&!Physics.Linecast(hitFrom,hitTo,~(1<<8),QueryTriggerInteraction.Ignore);
             if (clear)
             {
@@ -184,7 +184,7 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
         // a nie sa teleportowani ani przyciagani bez animacji.
         Vector3 gap = to.transform.position - from.transform.position; gap.y = 0;
         const float contactDistance = 1.18f;
-        if (gap.magnitude > contactDistance*K)
+        if (gap.magnitude > contactDistance)
         {
             from.MoveTowards(to.transform.position, dt);
             from.Face(to.transform.position, dt);
