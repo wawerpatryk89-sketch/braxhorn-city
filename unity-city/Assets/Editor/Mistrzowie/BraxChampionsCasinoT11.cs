@@ -360,7 +360,7 @@ public static class BraxChampionsCasinoT11
         // Continuous black ASPHALT wearing course across the full 73x53 m
         // garage; under it remains a separate structural, colliding concrete slab.
         B(basement,"Garage floor BLACK Poly Haven asphalt",garageBlackAsphalt,
-            4.5f,-4.108f,2.5f,73f,.02f,53f,false,true);
+            4.5f,-4.108f,2.5f,73f,.02f,53f,true,true);
         B(basement,"Garage solid west retaining wall WHITE",garageWhite,
             -32.05f,-2.2f,2.5f,.32f,4.2f,53f,true,true);
         B(basement,"Garage north wall WHITE",garageWhite,
@@ -389,7 +389,7 @@ public static class BraxChampionsCasinoT11
         B(basement,"Garage bottom structural landing",granite,
             44.5f,-4.20f,26f,7.7f,.16f,8f,true,true);
         B(basement,"Garage bottom BLACK asphalt landing",garageBlackAsphalt,
-            44.5f,-4.112f,26f,7.7f,.015f,8f,false,true);
+            44.5f,-4.112f,26f,7.7f,.015f,8f,true,true);
         // The OPEN surface ramp remains free of that ceiling.
         var ramp=B(basement,"Underground garage driveable BLACK asphalt ramp 9.5 percent",garageBlackAsphalt,
             44.5f,-1.985f,1f,7.65f,.12f,46.208f,true,true);
@@ -422,6 +422,11 @@ public static class BraxChampionsCasinoT11
         foreach(float z in new[]{-19.65f,12.65f})
             B(basement,"B1 continuous marked bay head line",parkingPaint,
                 -3.2f,-4.099f,z,baysPerRow*bayWidth,.008f,.095f,false);
+        // Legible two-way drive aisle. Short WHITE centre dashes never
+        // obstruct parking slots; the full asphalt surface remains black.
+        for(int n=0;n<8;n++)
+            B(basement,"B1 WHITE dashed driving-aisle centre line",parkingPaint,
+                -23f+n*6.25f,-4.090f,-3.5f,3.0f,.008f,.095f,false);
 
         // Genuine interior supports reach BOTH foundation and ceiling.
         // They are outside the bays, and no support enters the accessible
