@@ -1,0 +1,84 @@
+{
+  "date": "2026-11-05",
+  "state": "documentation_only",
+  "base_commit": "e2ee759be31532fa283a3dd7e3f98acb12e9f256",
+  "models": [
+    {
+      "filename": "24-piece-cutlery-set.glb",
+      "sha256": "5aa781e87ceade89d204b2533a2eac65c169ba2d42fa9d54822ecdd0717c30e7",
+      "available_to_conversation": true,
+      "uploaded_to_public_repo": false,
+      "license_verified": false
+    },
+    {
+      "filename": "bath-towel.glb",
+      "sha256": "6473f45d262cc58ba35e27b08642a1c21e37a2064af01ffce2cd003b9960732e",
+      "available_to_conversation": true,
+      "uploaded_to_public_repo": false,
+      "license_verified": false
+    },
+    {
+      "filename": "food_tray.glb",
+      "sha256": "bc705171286e6b5e1b8d7b26b76d0ab5719cf5bd980ec9017ca902dcecf35c31",
+      "available_to_conversation": true,
+      "uploaded_to_public_repo": false,
+      "license_verified": false
+    },
+    {
+      "filename": "glass-food-display-showcase-with-trays.glb",
+      "sha256": "20f9f4e00fd84546162d2453ebdc546c623e5341c41225a5bb26804ba6099b1a",
+      "available_to_conversation": true,
+      "uploaded_to_public_repo": false,
+      "license_verified": false
+    },
+    {
+      "filename": "kitchen_-_assets.glb",
+      "sha256": "ce541b4319e04763d1eca1a5e10b07919ed8e4e481668f76557a54496147ca8b",
+      "available_to_conversation": true,
+      "uploaded_to_public_repo": false,
+      "license_verified": false
+    },
+    {
+      "filename": "model(1).glb",
+      "sha256": "b4dbcd2e00deba9ac8b75ee2120e725e4a14b4824da2f8b1ae56f095a6429d11",
+      "available_to_conversation": true,
+      "uploaded_to_public_repo": false,
+      "license_verified": false
+    },
+    {
+      "filename": "picnic_set_1.glb",
+      "sha256": "938e1b07096b94b649c71eb8ee0f314a3bf6d932b60c350154db68c37b30c6dd",
+      "available_to_conversation": true,
+      "uploaded_to_public_repo": false,
+      "license_verified": false
+    },
+    {
+      "filename": "rope-coil.glb",
+      "sha256": "90c9723ff83f7a1a228d423032e8b719ef112306666418969e3c27d0ef44d05c",
+      "available_to_conversation": true,
+      "uploaded_to_public_repo": false,
+      "license_verified": false
+    },
+    {
+      "filename": "stockpot.glb",
+      "sha256": "09ca27adc2511eda491fc35f7161cce5cbcfe4623f0cb71f5abfb7843fe128e",
+      "available_to_conversation": true,
+      "uploaded_to_public_repo": false,
+      "license_verified": false
+    },
+    {
+      "filename": "towel-rail-with-towel.glb",
+      "sha256": "b592e0cadec6f92f0c4ae38a1baba23fd1d5be03e45f2a9e795adaf941fb1f19",
+      "available_to_conversation": true,
+      "uploaded_to_public_repo": false,
+      "license_verified": false
+    }
+  ],
+  "counts": {
+    "glb": 10,
+    "murals": 4,
+    "photos": 10,
+    "videos": 3
+  },
+  "notes": "Binary assets remain in user-provided package; model licensing not yet verified. No game changes authorized."
+}
