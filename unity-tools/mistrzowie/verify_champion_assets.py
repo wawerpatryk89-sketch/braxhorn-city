@@ -41,7 +41,7 @@ def audit(root=ROOT/"unity-city"):
         if not meta.is_file():
             state="MISSING_META"
         else:
-            match=re.search(r"^guid:\\s*([a-fA-F0-9]{32})\\s*$",meta.read_text(),re.M)
+            match=re.search(r"^guid:\s*([a-fA-F0-9]{32})\s*$",meta.read_text(),re.M)
             state="PASS" if match and match.group(1).lower()==expected else "GUID_MISMATCH"
         results.append({"path":name+".meta","status":state})
     ok=all(x["status"]=="PASS" for x in results)
