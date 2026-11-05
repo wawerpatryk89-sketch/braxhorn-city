@@ -12,7 +12,7 @@ public static class BraxChampionsPoolP1OriginalSign
 {
     const string Signs="Assets/Source/Mistrzowie/CitySigns";
     const string Out="Assets/PlayableGenerated/Mistrzowie/Buildings/P1";
-    const float W=13.6f,H=3.4f; // exact 4:1, the source image aspect ratio
+    const float W=10.0f,H=2.5f; // exact 4:1, scaled to the SPA canopy/roof clearance
     static float K=>BraxClaudeOsiedle.K;
 
     public static string FindOriginal()
@@ -124,7 +124,7 @@ public static class BraxChampionsPoolP1OriginalSign
 
         var frame=new GameObject("P1 OWNER'S EXACT BASEN SIGN | 4:1 | actual 3D cladded carrier");
         frame.transform.SetParent(p1Root,false);
-        const float cy=6.52f,cz=-28.40f;
+        const float cy=6.95f,cz=-28.40f; // bottom clears 5.14m canopy, top below 8.5m roof
         // Casing centre and thickness: the artwork is on its outside, z<0.
         Part(frame.transform,"physical colour-matched 3D signage casing",
             matchingBody,0,cy,cz,W+.22f,H+.22f,.30f,true);
