@@ -1,0 +1,48 @@
+name: "Obóz #20 — jednorazowe uruchomienie APK po naprawie Idle"
+
+on:
+  push:
+    branches:
+      - codex/oboz-przebudowa-pbr-20261105
+    paths:
+      - .github/workflows/oboz-apk20-once-20261105.yml
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: oboz-apk20-dispatch-once
+  cancel-in-progress: false
+
+jobs:
+  dispatch-apk:
+    if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && contains(github.event.head_commit.message, '[oboz-apk20-once]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Confirm no duplicate APK run is active
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          active=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/oboz-unity-build.yml/runs?branch=codex%2Foboz-przebudowa-pbr-20261105&per_page=30" \
+            --jq '[.workflow_runs[] | select(.status == "in_progress" or .status == "queued" or .status == "waiting")] | length')
+          if [ "$active" != "0" ]; then
+            echo "An Obóz APK workflow already runs; no duplicate dispatch ($active)."
+            exit 0
+          fi
+      - name: Start signed existing-APK update on current repaired Obóz branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run oboz-unity-build.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref codex/oboz-przebudowa-pbr-20261105 \
+            -f quality_review=false \
+            -f first_install=false \
+            -f content_action=none
+          echo "BRAXHORN_OBOZ_APK20_DISPATCH=REQUESTED"
+          echo "Build branch: codex/oboz-przebudowa-pbr-20261105"
+          echo "Signed update: prior APK #18 baseline; first_install=false"
