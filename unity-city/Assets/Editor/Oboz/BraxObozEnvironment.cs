@@ -102,6 +102,7 @@ public static partial class BraxObozEnvironment
             CampusArrival();
             BraxObozParkedBus.Add(root);
             CampusPerimeter();
+            PlaceOwnerMurals(); // 4 oryginalne murale na prawdziwych ścianach
             // Strumien lezy ZA ogrodzeniem jako naturalne tlo.
             // Nie stawiamy fikcyjnych mostow wewnatrz zamknietego obozu.
             // The source bunker is retained without changing its mesh, origins
