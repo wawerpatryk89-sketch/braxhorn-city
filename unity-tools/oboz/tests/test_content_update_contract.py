@@ -64,7 +64,7 @@ class ContentUpdateContract(unittest.TestCase):
         self.assertIn("oboz-[0-9a-f]{32}",pipeline)
         self.assertIn("Assets/PlayableGenerated/Oboz/BraxhornObozReview.unity",pipeline)
         self.assertIn("content_snapshot.py restore-base",pipeline)
-        self.assertIn("BraxContentBuild.UpdateFromBaseline",pipeline)
+        self.assertIn("BraxObozContentBase.UpdateInCI",pipeline)
         self.assertIn("content_snapshot.py publish-update",pipeline)
         self.assertNotIn("BuildAndroidReview",pipeline)
         self.assertNotIn("BuildPipeline.BuildPlayer",pipeline)
@@ -74,7 +74,7 @@ class ContentUpdateContract(unittest.TestCase):
         self.assertIn("readyForContentUpdate = false",registry)
         self.assertIn("runtimeVerified = false",registry)
         stage=load(".github/workflows/oboz-content-base.yml")
-        self.assertIn("BraxObozContentBase.Export",stage)
+        self.assertIn("BraxObozContentBase.ExportInCI",stage)
         self.assertIn("BRAXHORN",stage)
         self.assertNotIn("BraxObozBuild.BuildAndroidReview",stage)
         self.assertIn("no APK",stage)
@@ -85,7 +85,7 @@ class ContentUpdateContract(unittest.TestCase):
         job_gate = next(line for line in workflow.splitlines()
                         if line.startswith("    if: github.ref =="))
         self.assertNotIn("codex/oboz-przebudowa-pbr-20261105",job_gate)
-        self.assertIn("Use oboz-content-base.yml or oboz-content-update.yml",workflow)
+        self.assertIn("Use the manual oboz-content-only or oboz-content-update job below instead.",workflow)
         self.assertIn("buildMethod: BraxObozBuild.BuildAndroidReview",workflow)
 
     def test_bunker_not_brought_back_by_update_integration(self):
