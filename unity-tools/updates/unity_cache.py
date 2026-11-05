@@ -21,6 +21,20 @@ SCHEMA = 2
 HEADER = "braxhorn-cache.json"
 
 
+def project_unity_version(project):
+    """Select the actual pinned Editor, never restore a cache from another Unity version."""
+    version_file = Path(project) / "ProjectSettings/ProjectVersion.txt"
+    if not version_file.is_file():
+        raise ValueError("Missing ProjectSettings/ProjectVersion.txt")
+    for line in version_file.read_text().splitlines():
+        if line.startswith("m_EditorVersion:"):
+            version = line.partition(":")[2].strip()
+            if not version:
+                break
+            return version
+    raise ValueError("Invalid pinned Unity Editor version")
+
+
 def digest(path):
     with Path(path).open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
@@ -236,12 +250,12 @@ def main():
     parser.add_argument("command", choices=("profile", "pack", "restore"))
     parser.add_argument("--project", type=Path, default=Path("unity-city"))
     parser.add_argument("--zone", required=True)
-    parser.add_argument("--unity", default="6000.0.58f2")
+    parser.add_argument("--unity", default=None)
     parser.add_argument("--variant", default="arm64-il2cpp")
     parser.add_argument("--archive", type=Path)
     parser.add_argument("--legacy", action="store_true")
     args = parser.parse_args()
-    expected = profile(args.project, args.zone, args.unity, variant=args.variant)
+    expected = profile(args.project, args.zone, args.unity or project_unity_version(args.project), variant=args.variant)
     if args.command == "profile":
         print(json.dumps(expected, sort_keys=True))
         output("prefix", expected["key"] + "-")
