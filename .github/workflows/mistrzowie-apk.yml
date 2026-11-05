@@ -192,6 +192,7 @@ jobs:
           python3 unity-tools/mistrzowie/prepare_assets.py
           # New T11 surfaces ONLY: fetch original Poly Haven native 2K, no 1K/4K.
           python3 unity-tools/mistrzowie/prepare_casino_textures_2k.py
+          python3 unity-tools/mistrzowie/prepare_casino_vegetation_2k.py
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/prepare_brax.py
           python3 unity-tools/mistrzowie/prepare_signage.py
