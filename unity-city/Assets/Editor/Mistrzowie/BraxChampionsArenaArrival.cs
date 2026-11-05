@@ -177,12 +177,41 @@ public static class BraxChampionsArenaArrival
             Box(parent, "Parking planting island / protective curb", dark,
                 new Vector3(x - 25f, .27f, -111.4f), new Vector3(4f, .15f, 1.0f));
         }
+        // Wheelchair-friendly pedestrian connections from both side car parks
+        // to the central public promenade, wholly behind the existing z=650 road.
+        // The 5m cross-link is flat, unblocked and separate from vehicle aisles.
+        foreach (float sx in new[] { -36.5f, 36.5f })
+            Box(parent, "Accessible parking-to-arena paved connector", curb,
+                new Vector3(sx, .190f, -79f), new Vector3(57f, .032f, 5f));
         // Main spectator route stays permanently clear between parking and entrance.
         Box(parent, "Arena public promenade", curb,
             new Vector3(0, .183f, -104f), new Vector3(16f, .04f, 58f));
         for (float x = -7f; x <= 7f; x += 14f)
             Box(parent, "Public path edge line", paint,
                 new Vector3(x, .211f, -105.5f), new Vector3(.12f, .008f, 54f), false);
+    }
+
+    static void ParkingLights(Transform parent, Material frame, Material led)
+    {
+        // Four architectural lamps on the OUTER edges of the courts.
+        // No pole crosses an actual stall, lane, spectator path or rope barrier.
+        foreach (float x in new[] { -104f, 104f })
+        foreach (float z in new[] { -109f, -86f })
+        {
+            Box(parent, "Premium parking steel lamp post", frame,
+                new Vector3(x, 3.18f, z), new Vector3(.19f, 6.0f, .19f));
+            Box(parent, "Premium parking LED luminaire", led,
+                new Vector3(x, 6.22f, z), new Vector3(1.35f, .10f, .55f), false);
+            var lamp=new GameObject("Championship parking - warm mobile light").AddComponent<Light>();
+            lamp.transform.SetParent(parent,false);
+            lamp.transform.localPosition=new Vector3(x, 6.0f, z)*K;
+            lamp.type=LightType.Point;
+            lamp.intensity=.95f;
+            lamp.range=23f*K;
+            lamp.color=new Color(1f,.91f,.78f);
+            lamp.shadows=LightShadows.None;
+            lamp.renderMode=LightRenderMode.ForceVertex;
+        }
     }
 
     static void Door(Transform parent, string id, string label, float z,
@@ -344,6 +373,7 @@ public static class BraxChampionsArenaArrival
             new Color(.62f, .025f, .045f));
         var paint = Paint("arena_parking_markings", new Color(.93f, .92f, .85f));
         Parking(root, asphalt, paint, sidewalk, exterior["dark_stone"]);
+        ParkingLights(root, exterior["steel"], exterior["light"]);
         Stanchions(root, exterior["bronze"], rope, rope);
         Door(root, "CHAMPIONS_A1_PUBLIC", "Main public entrance", -59.04f, exterior["clear_glass"], exterior["steel"]);
         Door(root, "CHAMPIONS_A1_ATHLETES", "Separate athlete rear entrance", 59.04f, exterior["clear_glass"], exterior["steel"]);
