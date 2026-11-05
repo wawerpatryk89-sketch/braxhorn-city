@@ -138,8 +138,11 @@ public static class BraxChampionsBuild
         // reportItems. Its normal Console message only says "see inspector".
         // Read the same data as its Inspector; do not reimport or alter models.
         var result=new ImportReport();int errors=0;
-        foreach(var path in AssetDatabase.GetAllAssetPaths().Where(p=>p.StartsWith("Assets/Source/")
-            &&(p.EndsWith(".glb",StringComparison.OrdinalIgnoreCase)||p.EndsWith(".gltf",StringComparison.OrdinalIgnoreCase))))
+        foreach(var path in AssetDatabase.GetAllAssetPaths().Where(p=>
+            // A1/T11 report only: main City and its HarborBeach port are a separate game zone.
+            (p.StartsWith("Assets/Source/Mistrzowie/",StringComparison.Ordinal) ||
+             p=="Assets/Source/Claude/Metro/metro_train.glb") &&
+            (p.EndsWith(".glb",StringComparison.OrdinalIgnoreCase)||p.EndsWith(".gltf",StringComparison.OrdinalIgnoreCase))))
         {
             var importer=AssetImporter.GetAtPath(path);
             if(!importer||importer.GetType().FullName!="GLTFast.Editor.GltfImporter")continue;
