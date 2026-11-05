@@ -1,0 +1,181 @@
+{
+  "package": "BRAXHORN_OBOZ_WYKONAWCA_ZASOBY_20261105.zip",
+  "purpose": "Delivery of owner-provided assets for future implementation; NOT implemented or imported",
+  "fileCount": 31,
+  "packageBytes": 345273037,
+  "packageSha256": "b7d1bd8dd2ed64a4e23b6fad8af2497d0355073b687ea16e48b03f045741d006",
+  "referencesPackage": "BRAXHORN_OBOZ_REFERENCJE_20261105.zip",
+  "referencesBytes": 241667206,
+  "referencesSha256": "1987452ef6b3d76959fbdd320db782e670b96e4ae26fe80a9bf7961c879feae9",
+  "libraryFolder": "/BRAXHORN_OBOZ_WYKONAWCA_20261105",
+  "libraryFileIds": {
+    "assets": "libfile_a23f0b7624f88191ac5e75e9562a7bc8",
+    "references": "libfile_3ff983483abc81919ec0a37d7de1c214"
+  },
+  "githubBranch": "plan/oboz-materialy-20261105",
+  "githubAssetsNotInRepository": true,
+  "githubRepoIsPublic": true,
+  "contents": [
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/24-piece-cutlery-set.glb",
+      "bytes": 3340948,
+      "sha256": "5aa781e87ceade89d204b2533a2eac65c169ba2d42fa9d54822ecdd0717c30e7"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MURALE_I_SZYLD/35502A48-F7AB-4650-9874-3266881B2DF6.jpeg",
+      "bytes": 661258,
+      "sha256": "46e87fa22c0607c2bbc1dc270c5350c92a4dde89f2ffb06048b244b22672006d"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MURALE_I_SZYLD/44B8F5D6-7F27-4EF3-A804-9BC8C4F462D0.jpeg",
+      "bytes": 372266,
+      "sha256": "bf35f8a665257e9e87cd8d12c11021112bedaee71566e39ed3eef830b54823e8"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MURALE_I_SZYLD/6B6E1CA3-605A-47FB-BF0E-F23B1D2C3301(1).jpeg",
+      "bytes": 705065,
+      "sha256": "33c2735826a961b68360dad49acbd16561b2545596dbfe6ee370ae50c549aa76"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MURALE_I_SZYLD/6C3045DC-051D-4B53-8F6E-FEA579A0DE21.jpeg",
+      "bytes": 785815,
+      "sha256": "c68270f89f7448b46f7f2b6a1c2f7e9882e66b7bbc9989e982ed0f1bbbdf9053"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MURALE_I_SZYLD/87405F34-A95B-4AD6-8637-A19599AADA61.jpeg",
+      "bytes": 754048,
+      "sha256": "2993d91deed03b25b3bf0a631f629d731432abf0de4eaba13ed45e1fbd12c3f7"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/bath-towel.glb",
+      "bytes": 1465044,
+      "sha256": "6473f45d262cc58ba35e27b08642a1c21e37a2064af01ffce2cd003b9960732e"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/boxing_headgear_helmet_low_poly.glb",
+      "bytes": 8865388,
+      "sha256": "2829c40ddf28fa936ba2b53a922779508093b353fa7754de853535820887a8a0"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/close-coupled-toilet.glb",
+      "bytes": 214560,
+      "sha256": "7630c2bde25d7bca493447243bff7a1f32f024bfdf76623461b4530bd179cd0a"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/TEKSTURY_I_ZESTAWY/drawer_cabinet_4k.blend.zip",
+      "bytes": 16497248,
+      "sha256": "e08b6d754ab2e44632d82421517f4bbbf59d7e9564940c95d22b60a8aeae4fb0"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/food_tray.glb",
+      "bytes": 116124,
+      "sha256": "bc705171286e6b5e1b8d7b26b76d0ab5719cf5bd980ec9017ca902dcecf35c31"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/glass-food-display-showcase-with-trays.glb",
+      "bytes": 36618300,
+      "sha256": "20f9f4e00fd84546162d2453ebdc546c623e5341c41225a5bb26804ba6099b1a"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/TEKSTURY_I_ZESTAWY/grass_medium_01_2k.blend.zip",
+      "bytes": 21250551,
+      "sha256": "7e621f8b86a6173fcfed426cbd98fb5a5d6479953e476d6a610df742d4e20117"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/TEKSTURY_I_ZESTAWY/grass_medium_02_2k.blend.zip",
+      "bytes": 5857133,
+      "sha256": "81e7344949c2592e2f2f6b739fee0078322ee01f6ea9b53fbc4cf7eb1e05d89f"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/kitchen_-_assets.glb",
+      "bytes": 82582212,
+      "sha256": "ce541b4319e04763d1eca1a5e10b07919ed8e4e481668f76557a54496147ca8b"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/leather_punching_bag.glb",
+      "bytes": 16097556,
+      "sha256": "09aa34aea1d750f5931a07def5bd6547fa29afac4cf4e921783c093fa9190f61"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/TEKSTURY_I_ZESTAWY/Meshy_AI_The_object_is_a_recta_1104160815_texture_fbx.zip",
+      "bytes": 14766083,
+      "sha256": "4b2e25675f06993576080f11dd62c5b32f699d6311c046d2d5cd43c0c1bc4554"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/metal_cabinet_low_poly.glb",
+      "bytes": 27179460,
+      "sha256": "0f19fbf70278e68b0e1250f062163c26c854dd3c6993a1282acf7764e4e8559c"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/model(1).glb",
+      "bytes": 144380,
+      "sha256": "b4dbcd2e00deba9ac8b75ee2120e725e4a14b4824da2f8b1ae56f095a6429d11"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/PANORAMY/montorfano_4k.hdr",
+      "bytes": 26746852,
+      "sha256": "d1627fcde19c3b4488b1c8e148738bc1c2f5baad4480cfcaddbd51bccc9b0835"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/TEKSTURY_I_ZESTAWY/mud_forest_2k.blend.zip",
+      "bytes": 25151201,
+      "sha256": "0a467efd59a59fbca9b0d94e76e94ab9dc3a084edd16a5f983e9b10b8c221328"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/picnic_set_1.glb",
+      "bytes": 8663704,
+      "sha256": "938e1b07096b94b649c71eb8ee0f314a3bf6d932b60c350154db68c37b30c6dd"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/rope-coil.glb",
+      "bytes": 1029560,
+      "sha256": "90c9723ff83f7a1a228d423032e8b719ef112306666418969e3c27d0ef44d05c"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/TEKSTURY_I_ZESTAWY/rubberized_track_2k.blend.zip",
+      "bytes": 22590293,
+      "sha256": "2e7cc5c4f16459d1b5d61596821e3c79f152a03405ee7ab1657282d26d95271a"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/shower-tray-square.glb",
+      "bytes": 231076,
+      "sha256": "6411db6c3d3727227b1642adeb7d692af6d29c0a44658bde3e965ca4db234f73"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/TEKSTURY_I_ZESTAWY/slab_tiles_2k.blend.zip",
+      "bytes": 17152422,
+      "sha256": "bb2735175b8e843950e8de0d04574b724c8fd77a66378cb4e796ca82c4b15081"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/stockpot.glb",
+      "bytes": 211864,
+      "sha256": "09ca27adc2511eda491fc35f7161cce5cbcfe4623f0fcb71f5abfb7843fe128e"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/towel-rail-with-towel.glb",
+      "bytes": 4222916,
+      "sha256": "b592e0cadec6f92f0c4ae38a1baba23fd1d5be03e45f2a9e795adaf941fb1f19"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/trough-washbasin.glb",
+      "bytes": 749964,
+      "sha256": "01736920b3eb5b4662dd66dad1c6f917b3e6322e116a5d69bac8fb6f5690a582"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MODELE/wall-urinal.glb",
+      "bytes": 238336,
+      "sha256": "6978dff7b014f4e83c149e445119e946393b2c85e774eaee2b2a1d5a26faac03"
+    },
+    {
+      "path": "BRAXHORN_OBOZ/MANIFEST_MATERIALOW.json",
+      "bytes": 5850,
+      "sha256": "f83eb6ac65d27da34808f907c382f72b2fead39ecfa86cabdaf2f5141b78914f"
+    }
+  ],
+  "notes": [
+    "Reference films (3) and screenshots (10) are in the separate references ZIP.",
+    "The owner wants only supplied assets for furniture and equipment; public CC0 can be used for finishes/vegetation.",
+    "Second brown punching bag and some named beds/chairs were not independently verified in supplied source archive.",
+    "No Unity scene or build should be modified before owner approves execution."
+  ]
+}
