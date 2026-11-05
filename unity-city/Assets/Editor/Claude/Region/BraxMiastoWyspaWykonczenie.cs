@@ -14,7 +14,11 @@ internal static partial class BraxMiastoWyspa
         // Po globalnym BezSwiecenia przywróć umiarkowaną emisję WYŁĄCZNIE
         // czterech oryginalnych materiałów LED/szyldów areny. Nie wstawiaj
         // żadnych nowych materiałów, opraw, źródeł światła ani atrap.
-        var islands = BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*");
+        // Rzeczywisty korzen z bieżącej generacji jest bardziej niezawodny
+        // niz odnajdywanie go po tytule GameObject po optymalizacji sceny.
+        var islands = root && root.gameObject.scene == scene
+            ? new List<Transform> { root }
+            : BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*");
         if (islands.Count != 1)
             throw new InvalidOperationException("Arena: brak jednoznacznej wyspy do wykończenia, znaleziono " + islands.Count);
         var authored = new[] { apLed, apLit, apZnak, apLedSufit }.Where(m => m).ToArray();
