@@ -11,21 +11,63 @@ internal static partial class BraxMiastoWyspa
 {
     public static void WykonczOprawy(UnityEngine.SceneManagement.Scene scene)
     {
-        // Globalny krok BezSwiecenia gasi także szyldy i oprawy areny.
-        // Przywracamy umiarkowaną emisję TYLKO oznaczonych materiałów areny na wyspie.
-        // Nie dodaje to świateł ani bloom; nie dotyka oświetlenia miasta/osiedla/obozu.
-        var done = new HashSet<Material>();
-        foreach (var island in BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*"))
-        foreach (var renderer in island.GetComponentsInChildren<Renderer>(true))
+        // BezSwiecenia działa globalnie. Po jego wykonaniu przywróć WYŁĄCZNIE
+        // wcześniej utworzone oprawy premium na wyspie; nie zmieniaj geometrii,
+        // kolizji, pozostałych materiałów miasta ani pierwotnej siły emisji.
+        //
+        // GitHub Actions #94: wyszukiwanie wyłącznie po prefiksie nazwy materiału
+        // nie znalazło opraw, mimo że generator ArenyPremium przeszedł poprawnie.
+        // Obiekty z BraxCityMaterials są trwałymi assetami .mat — użyj bezpośrednich
+        // referencji przypisanych podczas ApMaterialy, zamiast nazw plików/assetów.
+        var wyspy = BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*");
+        if (wyspy.Count != 1)
+            throw new InvalidOperationException("Arena: niejednoznaczny korzeń wyspy: " + wyspy.Count);
+
+        var wymagane = new Dictionary<Material, string>();
+        foreach (var para in new[]
+        {
+            (material: apLed, nazwa: "zielony pas LED"),
+            (material: apLit, nazwa: "podświetlane litery BRAXHORN ARENA"),
+            (material: apZnak, nazwa: "zielone oznaczenia wyjścia"),
+            (material: apLedSufit, nazwa: "panele sufitowe LED")
+        })
+        {
+            if (!para.material)
+                throw new InvalidOperationException("Arena: nie utworzono materiału " + para.nazwa);
+            if (wymagane.ContainsKey(para.material))
+                throw new InvalidOperationException("Arena: dwa rodzaje opraw współdzielą jeden materiał " + para.nazwa);
+            wymagane.Add(para.material, para.nazwa);
+        }
+
+        var znalezione = new HashSet<Material>();
+        var odtworzone = new HashSet<Material>();
+        foreach (var wyspa in wyspy)
+        foreach (var renderer in wyspa.GetComponentsInChildren<Renderer>(true))
         foreach (var material in renderer.sharedMaterials)
         {
-            if (!material || !material.name.StartsWith("A świeci: Arena", StringComparison.Ordinal) || !done.Add(material)) continue;
+            if (!material) continue;
+            bool materialAreny = wymagane.ContainsKey(material);
+            if (materialAreny) znalezione.Add(material);
+            // Zostaw zgodność ze starszymi materiałami wyspy, które nie są
+            // polami ApMaterialy. Główne cztery oprawy rozpoznaj po referencjach.
+            if (!materialAreny && !material.name.StartsWith("A świeci: Arena", StringComparison.Ordinal))
+                continue;
+            if (!odtworzone.Add(material)) continue;
             if (!material.HasProperty("_EmissionColor") || !material.HasProperty("_Color"))
                 throw new InvalidOperationException("Arena: oprawa bez obsługi emisji " + material.name);
             material.SetColor("_EmissionColor", material.GetColor("_Color") * .8f);
-            material.EnableKeyword("_EMISSION"); EditorUtility.SetDirty(material);
+            material.EnableKeyword("_EMISSION");
+            EditorUtility.SetDirty(material);
         }
-        if (done.Count < 3) throw new InvalidOperationException("Arena: brak materiałów opraw i szyldów");
+
+        var brak = wymagane.Where(p => !znalezione.Contains(p.Key))
+            .Select(p => p.Value).ToArray();
+        if (brak.Length != 0)
+            throw new InvalidOperationException("Arena: brak przypisanych materiałów opraw: " +
+                string.Join(", ", brak) + "; znaleziono " + znalezione.Count + "/" + wymagane.Count);
+        Debug.Log("BRAXHORN_WYSPA_OPRAWY przywrócone=" + odtworzone.Count +
+            " wymagane=" + znalezione.Count + "/" + wymagane.Count +
+            " bez zmian świateł i pozostałych materiałów");
     }
 
     static void ApWalkaPokazowa()
