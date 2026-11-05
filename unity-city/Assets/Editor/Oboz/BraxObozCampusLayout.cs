@@ -34,6 +34,7 @@ public static class BraxObozCampusLayout
         foreach(var r in plan.clearances)
             if(Mathf.Abs(x-r.x)<=r.width*.5f+margin&&Mathf.Abs(z-r.z)<=r.depth*.5f+margin)return true;
         // Keep foliage outside the fence and moving gate pockets.
-        return Mathf.Abs(Mathf.Abs(x)-150)<margin+1||Mathf.Abs(Mathf.Abs(z)-150)<margin+1;
+        // Zamknieta dzialka: ogrodzenie X +/-126, poludnie Z -125, polnoc Z 115.
+        return Mathf.Abs(Mathf.Abs(x)-126)<margin+1 || Mathf.Abs(z+125)<margin+1 || Mathf.Abs(z-115)<margin+1;
     }
 }
