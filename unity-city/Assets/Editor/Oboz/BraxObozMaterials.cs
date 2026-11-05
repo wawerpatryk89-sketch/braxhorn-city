@@ -65,7 +65,12 @@ public static class BraxObozMaterials
             try
             {
                 importer.GetSourceTextureWidthAndHeight(out int w, out int h);
-                stream = w >= 4096 && h >= 4096;
+                var android = importer.GetPlatformTextureSettings("Android");
+                int effectiveLimit = android.overridden ? android.maxTextureSize : importer.maxTextureSize;
+                // A source 4K imported as 2K is still a 2K runtime texture:
+                // do not stream it further down to 1K.
+                stream = w >= 4096 && h >= 4096 && effectiveLimit >= 4096 &&
+                    importer.maxTextureSize >= 4096;
             }
             catch (InvalidOperationException)
             {
