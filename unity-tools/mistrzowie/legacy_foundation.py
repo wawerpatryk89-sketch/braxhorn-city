@@ -12,6 +12,10 @@ buildings=base['buildings']
 # Surface rectangles are disjoint after priority subdivision. x,z,width,depth.
 plots=[(b['x']-b['w']/2,b['z']-b['d']/2,b['w'],b['d']) for b in buildings]
 plots += [(135,-108,70,18),(285,-108,70,18),(565,-108,70,18),(890,-108,70,18)]
+# T11 casino underground garage: a true hole in the existing terrain's
+# plot_base collider, not a visual ramp hidden beneath an unbroken ground mesh.
+# Nominal local x=40.5..48.5, z=-22..24 for the (495,465) approved plot.
+T11_GARAGE_RAMP=(535.5,443.0,8.0,46.0)
 XROAD=[70,400,800,1130];ZROAD=[-70,70,330,650,935]
 walks=[(x-4,-180,8,93) for x in (230,530,700,1080)]
 greens=[(50,-120,1100,10),(50,-170,650,10)]
@@ -36,6 +40,7 @@ def inside(p,r):
  x,z=p;a,b,w,d=r;return a<=x<a+w and b<=z<b+d
 
 def zone(x,z):
+ if inside((x,z),T11_GARAGE_RAMP):return None
  if any(inside((x,z),r) for r in ENTRANCE_HOLES):return None
  if any(inside((x,z),r) for r in ENTRANCE_PATHS+BUILDING_ACCESS):return 'paving'
  if any(inside((x,z),p) for p in plots):return 'plot_base'
@@ -72,7 +77,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+piers+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-280,650,130),(50,-240,650,70),(50,-150,1100,30)]
+rects=plots+walks+greens+piers+[T11_GARAGE_RAMP]+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-280,650,130),(50,-240,650,70),(50,-150,1100,30)]
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
