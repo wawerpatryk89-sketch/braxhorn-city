@@ -182,8 +182,8 @@ for connection in connections:
   ribbon(mesh,'metro_concrete',path,walkway,.72/K,METRO_RAIL_Y+.05/K,.4/K)
   for h in [1.0,1.4,1.8]:ribbon(mesh,'metro_steel',path,off+side*2.64/K,.22/K,METRO_RAIL_Y+h/K,.05/K)
   # 18m fixture pitch keeps the extended system affordable on Android;
-   # every other fixture has a real vertex light, without shadows.
-   for light_index,distance in enumerate(np.arange(4/K,distances[-1],18.0)):
+  # every other fixture has a real vertex light, without shadows.
+  for light_index,distance in enumerate(np.arange(4/K,distances[-1],18.0)):
    i=min(len(path)-2,max(0,np.searchsorted(distances,distance,side='right')-1))
    t=(distance-distances[i])/(distances[i+1]-distances[i]);n=normals[i]*(1-t)+normals[i+1]*t;n/=np.linalg.norm(n)
    q=path[i]*(1-t)+path[i+1]*t+n*(off+side*2.62/K);tangent=np.array([n[1],-n[0]])
