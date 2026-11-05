@@ -16,7 +16,7 @@ public static class BraxSharedResourceAudit
     public sealed class TextureEntry
     {
         public string path, sourceSha256, importerSignature;
-        public int width, height, rendererReferences;
+        public int width, height, materialTextureSlots;
         public long sourceFileBytes;
     }
 
@@ -36,7 +36,8 @@ public static class BraxSharedResourceAudit
         public string[] sceneNames;
         public int renderers, prefabInstances, materialReferences, uniqueMaterials;
         public int meshReferences, uniqueMeshes, textureReferences, uniqueTextures;
-        public int identicalSourceGroups, eligibleForReferenceReuseGroups, sourceBytesRepeated;
+        public int identicalSourceGroups, eligibleForReferenceReuseGroups;
+        public long sourceBytesRepeated;
         public TextureEntry[] textures;
         public DuplicateGroup[] identicalSourceCandidates;
         public string status = "READ_ONLY_AUDIT_NO_ASSETS_MODIFIED";
@@ -154,10 +155,16 @@ public static class BraxSharedResourceAudit
                 path = path,
                 width = texture.width,
                 height = texture.height,
-                rendererReferences = textureUses[texture.GetInstanceID()],
+                materialTextureSlots = textureUses[texture.GetInstanceID()],
                 importerSignature = ImportSignature(path)
             };
-            if (!string.IsNullOrEmpty(path) && path.StartsWith("Assets/", StringComparison.Ordinal))
+            // A .glb may contain several different Texture2D subassets with the
+            // same container file bytes. Hash only independent image files.
+            string extension = Path.GetExtension(path).ToLowerInvariant();
+            bool imageFile = extension == ".png" || extension == ".jpg" ||
+                extension == ".jpeg" || extension == ".tga" || extension == ".tif" ||
+                extension == ".tiff" || extension == ".exr" || extension == ".psd";
+            if (imageFile && !string.IsNullOrEmpty(path) && path.StartsWith("Assets/", StringComparison.Ordinal))
             {
                 string disk = Path.GetFullPath(Path.Combine(projectRoot, path));
                 if (File.Exists(disk))
@@ -197,8 +204,7 @@ public static class BraxSharedResourceAudit
             long smallest = members.Min(e => e.sourceFileBytes);
             // Raw redundant disk bytes only; NOT RAM or APK savings.
             long repeated = smallest * (members.Length - 1);
-            report.sourceBytesRepeated = (int)Math.Min(int.MaxValue,
-                (long)report.sourceBytesRepeated + repeated);
+            report.sourceBytesRepeated += repeated;
         }
         report.identicalSourceGroups = duplicates.Count;
         report.identicalSourceCandidates = duplicates.ToArray();
