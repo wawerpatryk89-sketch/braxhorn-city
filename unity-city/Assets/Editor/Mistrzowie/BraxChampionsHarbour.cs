@@ -133,7 +133,8 @@ public static class BraxChampionsHarbour
         return 1;
     }
 
-    public static int PlaceOriginalFleet(Transform foundation,BraxChampionsFoundation.Berth[] berths)
+    public static int PlaceOriginalFleet(Transform foundation,BraxChampionsFoundation.Berth[] berths,
+                                         BraxChampionsFoundation.Pier[] piers)
     {
         if(!foundation)throw new ArgumentNullException(nameof(foundation));
         if(berths==null||berths.Length!=38)throw new InvalidOperationException(
@@ -215,6 +216,10 @@ public static class BraxChampionsHarbour
         Label(details,"Jetski pontoon",
               "BRAXHORN WATERSPORTS | S01–S10",
               new Vector3(1055*K,.62f*K,-169*K),.28f*K);
+        // Marine safety ropes and rails follow the exact NEW dock layout.
+        // Openings at every yacht/motorboat/jetski finger or boarding gangway;
+        // no rail or collision across an approved boarding entrance.
+        BraxChampionsHarbourSafety.Generate(root,piers);
         AssetDatabase.SaveAssets();
         Debug.Log("CHAMPIONS_PORT_ORIGINAL_FLEET_35 yacht=15 motorboat=10 jetski=10 "
             +"ferryBerths=1 cruiseBerths=2 generatedMeshes=false fullBoatModels=owner_library originalGLBs");

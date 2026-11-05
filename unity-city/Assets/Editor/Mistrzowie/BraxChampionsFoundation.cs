@@ -27,11 +27,17 @@ public static class BraxChampionsFoundation
         public Building[] buildings;
         public Stop[] tramStops, metroStations, busStops;
         public Berth[] berths;
+        public Pier[] piers;
     }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
     [Serializable] public sealed class Plant { public string id, kind, band; public float x,z,yaw; public int variant; }
     [Serializable] public sealed class Building { public string id,name; public float x,z,w,d,height; }
     [Serializable] public sealed class Stop { public float x,z; }
+    [Serializable] public sealed class Pier
+    {
+        public string id,role;
+        public float x,z,w,d;
+    }
     [Serializable] public sealed class Berth
     {
         public string id,kind,dock;
@@ -52,7 +58,7 @@ public static class BraxChampionsFoundation
         var d=JsonUtility.FromJson<Foundation>(File.ReadAllText(Source+"/Foundation.json"));
         if(d==null || d.regionId!="mistrzowie" || Mathf.Abs(d.scaleK-K)>.00001f)
             throw new InvalidOperationException("Region scale differs from BraxClaudeOsiedle.K; regenerate nominal geometry, never rescale imports twice.");
-        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=38
+        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=38 || d.piers==null || d.piers.Length!=55
             || d.berths.Count(b=>b.kind=="yacht")!=15
             || d.berths.Count(b=>b.kind=="motorboat")!=10
             || d.berths.Count(b=>b.kind=="jetski")!=10
@@ -219,7 +225,7 @@ public static class BraxChampionsFoundation
             }
             // Place the ORIGINAL user-library yacht, Riva and jetski models.
             // No fabricated cruise/ferry vessel is allowed without its source.
-            int boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths);
+            int boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths,d.piers);
             if(boats!=35)throw new InvalidOperationException("Champions harbour must place 15 yachts + 10 Rivas + 10 jetskis, got "+boats);
             report.yachtsPlaced=true;
             var reserves=new GameObject("PLAN - działki, przystanki, miejsca promów i wycieczkowców").transform;reserves.SetParent(root,false);
