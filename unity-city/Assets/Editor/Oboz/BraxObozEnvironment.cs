@@ -342,6 +342,51 @@ public static partial class BraxObozEnvironment
         CombineDecoration(t);
         var arena=t.gameObject.AddComponent<BraxObozArena>();arena.label="OKTAGON";arena.halfSize=new Vector2(4.8f,4.8f)*K;arenas.Add(arena);
     }
+    // Oryginalny model 2K od właściciela (57 części, zawieszenie w GLB).
+    // Wszystkie 24 instancje współdzielą GLB, mesh, materiały i tekstury.
+    // Brak prywatnego źródła jest błędem, nie usprawiedliwia atrap.
+    static GameObject OwnerBagPrototype(int index)
+    {
+        const string rootPath="Assets/Source/Prywatne/Oboz/OwnerAssets/";
+        const string leather="leather_punching_bag.glb";
+        const string vintage="vintage_old_punching_bag.glb";
+        var first=AssetDatabase.LoadAssetAtPath<GameObject>(rootPath+leather);
+        if(!first)throw new InvalidOperationException("Brak właścicielskiego worka 2K: "+
+            rootPath+leather+"; wstrzymano import zamiast tworzyć atrapę.");
+        var second=AssetDatabase.LoadAssetAtPath<GameObject>(rootPath+vintage);
+        if(second && index%2==1)return second;
+        if(!second && index==0)Debug.LogWarning(
+            "BRAXHORN_OBOZ_BAG_VARIANT_PENDING: drugi rodzaj worka nie ma jeszcze "+
+            "potwierdzonego pliku GLB; wszystkie instancje otrzymają oryginalny Leather Punching Bag.");
+        return first;
+    }
+
+    static void OwnerBagMesh(Transform pivot,GameObject original)
+    {
+        var model=PrefabUtility.InstantiatePrefab(original) as GameObject;
+        if(!model)throw new InvalidOperationException("Nie udało się utworzyć skórzanego worka GLB");
+        model.name="Oryginalny worek skórzany — mesh/UV/PBR bez zmian";
+        model.transform.SetParent(pivot,false);
+        model.transform.localPosition=Vector3.zero;
+        var renderers=model.GetComponentsInChildren<Renderer>(true);
+        if(renderers.Length==0)throw new InvalidOperationException("Worek 3D nie zawiera renderera");
+        if(renderers.Any(x=>x.sharedMaterials.Any(m=>!m)))
+            throw new InvalidOperationException("Worek 3D ma brakujące materiały");
+        Bounds bound=renderers[0].bounds;
+        foreach(var renderer in renderers.Skip(1))bound.Encapsulate(renderer.bounds);
+        if(bound.size.y<=.001f)throw new InvalidOperationException("Worek ma niepoprawną wysokość");
+        // Źródło ma cały korpus i łańcuch. 2.1*K = wysokość całego zespołu,
+        // pasuje do istniejącego collidera korpusu 1.5*K i haka przy 3.25*K.
+        float targetHeight=2.1f*K;
+        model.transform.localScale*=targetHeight/bound.size.y;
+        bound=renderers[0].bounds;
+        foreach(var renderer in renderers.Skip(1))bound.Encapsulate(renderer.bounds);
+        model.transform.position+=new Vector3(pivot.position.x-bound.center.x,
+            pivot.position.y-2.2f*K-bound.min.y,
+            pivot.position.z-bound.center.z);
+        // Nie wolno wymieniać materiałów ani zmniejszać tekstur.
+    }
+
     static void Bags(float x,float z,bool roof,int columns)
     {
         var t=Group((columns*2)+(roof?" worków zadaszonych":" worków otwartych"),root,P(x,0,z));
@@ -354,13 +399,9 @@ public static partial class BraxObozEnvironment
         for(int row=0;row<2;row++)for(int col=0;col<columns;col++)
         {
             var pivot=Group("Worek "+(bags.Count+1),t,P(-(columns-1)*1.1f+col*2.2f,3.25f,row==0?-2:2));
-            BagSuspension(pivot);
-            Cylinder(pivot,"Korpus worka",new Vector3(0,-.7f,0),new Vector3(0,-2.2f,0),.28f,dark);
-            Cylinder(pivot,"Górne wzmocnienie",new Vector3(0,-.7f,0),new Vector3(0,-.84f,0),.285f,burgundy);
-            Cylinder(pivot,"Dolne wzmocnienie",new Vector3(0,-2.07f,0),new Vector3(0,-2.2f,0),.285f,burgundy);
-            // All decoration remains beneath the existing animated pivot.
-            Cylinder(pivot,"Szew boczny",new Vector3(.281f,-.86f,0),new Vector3(.281f,-2.05f,0),.004f,burgundy);
-            CombineDecoration(pivot);
+            // Wyłącznie oryginalny model; GLB już zawiera skórę i łańcuchy.
+            // Nie dubluj elementów proceduralnymi cylindrami ani UV.
+            OwnerBagMesh(pivot,OwnerBagPrototype(bags.Count));
             var collider=pivot.gameObject.AddComponent<CapsuleCollider>();collider.center=P(0,-1.45f,0);collider.height=1.5f*K;collider.radius=.28f*K;
             var bag=pivot.gameObject.AddComponent<BraxWorek>();bag.gora=.7f*K;bag.dol=2.2f*K;bag.dlugosc=1.45f*K;bag.promien=.28f*K;bags.Add(bag);if(roof)covered.Add(pivot);
         }
