@@ -155,7 +155,13 @@ public static partial class BraxObozCharacters
             if(spec.clips.Any(c=>c.directCalibrated))calibratedMotion=CalibratedMotionAvatar(hero,avatar);
             foreach (var clip in spec.clips)
             {
-                var baked = clip.directCalibrated?BakeDirectMotion(hero,calibratedMotion,hips,rest,clip):Bake(hero, avatar, hips, rest, clip);
+                // Owner Mixamo FBX Walk/Run/Jump: dokładnie ten sam rig Moniki,
+                // bez dodatkowego Humanoid retargetingu deformującego kolana.
+                var baked = spec.id == "monika" && IsMonikaOwnerClip(clip)
+                    ? BakeMonikaOwnRig(hero,rest,clip)
+                    : clip.directCalibrated
+                        ? BakeDirectMotion(hero,calibratedMotion,hips,rest,clip)
+                        : Bake(hero,avatar,hips,rest,clip);
                 Validate(hero, hips, rest, baked);
                 Save(baked, folder + "/" + clip.name + ".anim");
                 animation.AddClip(AssetDatabase.LoadAssetAtPath<AnimationClip>(folder + "/" + clip.name + ".anim"), clip.name);
