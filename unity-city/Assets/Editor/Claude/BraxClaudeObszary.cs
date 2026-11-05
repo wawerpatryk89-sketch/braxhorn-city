@@ -76,6 +76,7 @@ public static class BraxClaudeObszary
         if (!scene.IsValid() || !scene.isLoaded || scene.rootCount != 0)
             throw new InvalidOperationException("BRAXHORN_STREAMING_TEST requires an empty authoring scene");
         var root = new GameObject("__BRAXHORN_STREAMING_ATOMIC_TEST__");
+        GameObject ordinary = null;
         try
         {
             var controller = root.AddComponent<BraxSwiatloDrogowe>();
@@ -106,10 +107,28 @@ public static class BraxClaudeObszary
                 || controller.zieloneA != green.GetComponent<Renderer>())
                 throw new InvalidOperationException("BRAXHORN_STREAMING_TEST_LOST_REFERENCES");
 
-            Debug.Log("BRAXHORN_STREAMING_PREFLIGHT_PASS: traffic signal remains atomic across sector boundary");
+            // Non-scripted meshes must STILL partition normally: this fix
+            // cannot silently keep the entire city in the primary APK scene.
+            ordinary = new GameObject("__BRAXHORN_STREAMING_ORDINARY_TEST__");
+            var inCell = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            inCell.transform.SetParent(ordinary.transform, false);
+            inCell.transform.localPosition = Vector3.zero;
+            var outCell = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            outCell.transform.SetParent(ordinary.transform, false);
+            outCell.transform.localPosition = new Vector3(9f, 0f, 0f);
+            Physics.SyncTransforms();
+            var ordinaryParts = WObszarze(scene,
+                new Bounds(Vector3.zero, new Vector3(4f, 6f, 6f)));
+            if (!ordinaryParts.Contains(inCell.transform)
+                || ordinaryParts.Contains(outCell.transform)
+                || ordinaryParts.Contains(ordinary.transform))
+                throw new InvalidOperationException("BRAXHORN_STREAMING_TEST_DISABLED_ORDINARY_PARTITION");
+
+            Debug.Log("BRAXHORN_STREAMING_PREFLIGHT_PASS: scripted signals remain atomic; ordinary meshes still partition");
         }
         finally
         {
+            if (ordinary) UnityEngine.Object.DestroyImmediate(ordinary);
             UnityEngine.Object.DestroyImmediate(root);
         }
     }
