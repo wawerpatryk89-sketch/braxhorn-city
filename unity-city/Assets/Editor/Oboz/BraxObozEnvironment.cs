@@ -191,6 +191,9 @@ public static partial class BraxObozEnvironment
             new Rect(-101,-55,2,42), new Rect(-64,-55,2,42),
             new Rect(-93.2f,-79f,2.4f,5f), // dojscie do nowej lazni i WC od glownego chodnika
             new Rect(-123,-75,123,2), new Rect(-50,-100,50,2),
+            // Ciąg od istniejącej alei do otworu wejścia sanitariatów,
+            // przy zachowaniu oryginalnych współrzędnych innych budynków.
+            new Rect(-93.4f,-80f,2.8f,8f),
             new Rect(-75,75,145,2), new Rect(0,-79,70,2)
         };
         foreach(var a in new[]{(-58f,-74f,5f),(-95f,-74f,6f),(-115f,-74f,6f),(-46f,-99f,6f),(-24f,-99f,6f)})
