@@ -334,10 +334,82 @@ public static class BraxChampionsCasinoT11
         B(trim,"Tower crown amber LED",led,x,119.92f,z+d*.5f,w,.09f,.11f,false);
     }
 
+    static void UndergroundGarage()
+    {
+        // REAL accessible subterranean car park. No interior games, decoration,
+        // casino floors or casino partitions. Route: east side of T11, from
+        // z=-22 at pavement y=.27 down to the level y=-4.12 at z=+24.
+        // World nominal coordinates: plot centre (495,465), K applied once.
+        // 46m run / 4.39m descent -> 9.5% gradient (before Unity test).
+        var basement=Group(root,"T11 | UNDERGROUND CAR PARK - real ramp and bays");
+        var floor=B(basement,"Garage structural floor - real collider",granite,
+            4.5f,-4.20f,2.5f,73f,.16f,53f,true,true);
+        // Top of floor -4.12; asphalt ramp upper face exactly connects it.
+        B(basement,"Garage floor asphalt",asphalt,
+            4.5f,-4.112f,2.5f,73f,.015f,53f,false,true);
+        B(basement,"Garage solid west retaining wall",graphite,
+            -32.05f,-2.2f,2.5f,.32f,4.2f,53f,true,true);
+        B(basement,"Garage north wall",graphite,
+            4.5f,-2.2f,29.0f,73.3f,4.2f,.32f,true,true);
+        B(basement,"Garage south wall (no exit through front)",graphite,
+            4.5f,-2.2f,-24.0f,73.3f,4.2f,.32f,true,true);
+        // East retaining wall is broken at z=19..27 to let vehicles enter.
+        B(basement,"Garage east solid wall before entry",graphite,
+            41.15f,-2.2f,-2.5f,.28f,4.2f,43f,true,true);
+        B(basement,"Garage east short wall after entry",graphite,
+            41.15f,-2.2f,28f,.28f,4.2f,2f,true,true);
+        // Real covered underground ceiling, below the existing plot grade.
+        B(basement,"Garage reinforced ceiling",roof,4.5f,-.58f,2.5f,
+            73f,.20f,53f,true,true);
+        // The OPEN surface ramp remains free of that ceiling.
+        var ramp=B(basement,"Underground garage driveable 9.5 percent ramp",asphalt,
+            44.5f,-1.985f,1f,7.65f,.12f,46.208f,true,true);
+        ramp.transform.localRotation=Quaternion.Euler(
+            Mathf.Atan2(4.39f,46f)*Mathf.Rad2Deg,0,0);
+        B(basement,"Ramp west retaining wall",granite,40.45f,-1.88f,1f,.30f,4.84f,46f,true,true);
+        B(basement,"Ramp east retaining wall",granite,48.55f,-1.88f,1f,.30f,4.84f,46f,true,true);
+        B(basement,"Garage entrance from VIP/TAXI circulation",asphalt,
+            44.5f,.236f,-30f,7.6f,.055f,16f,true,true);
+        B(basement,"Garage gate LEFT graphite pier",graphite,
+            40.40f,2.52f,-22f,.65f,4.65f,.76f,true,true);
+        B(basement,"Garage gate RIGHT graphite pier",graphite,
+            48.60f,2.52f,-22f,.65f,4.65f,.76f,true,true);
+        B(basement,"Garage main entrance champagne beam",gold,
+            44.5f,4.95f,-22f,8.9f,.40f,.75f,true);
+        B(basement,"Garage upper portal warm LED",led,
+            44.5f,4.71f,-22.44f,8.6f,.10f,.12f,false);
+        // Parking lanes and 2.85m bays are below ground. The northern
+        // circulation strip z=16..27 remains clear of all stall markings.
+        for(int i=0;i<16;i++)
+        {
+            float x=-27.8f+i*3.15f;
+            foreach(float z in new[]{-17f,10f})
+            {
+                B(basement,"Underground parking bay white divider",parkingPaint,
+                    x,-4.099f,z,.10f,.008f,5.25f,false);
+            }
+        }
+        foreach(float z in new[]{-20.0f,12.7f})
+            B(basement,"Underground stall head line",parkingPaint,
+                -4.3f,-4.10f,z,50.2f,.008f,.10f,false);
+        for(int i=0;i<8;i++)
+        {
+            float x=-29f+i*9.0f;
+            B(basement,"Carpark real warm ceiling LED",led,
+                x,-.705f,0f,1.2f,.08f,.34f,false);
+        }
+    }
+
     static void Site()
     {
         // Exact 120 x 100 site; no synthetic second road system across city.
-        B(shell,"T11 plot stone/cobble apron",paving,0,.18f,0,119.6f,.055f,99.5f,true,true);
+        // Physically cut a 8 x 46m open ramp in BOTH patio and Foundation plot_base.
+        // The matching terrain cut lives in legacy_foundation.py, local x=40.5..48.5,
+        // z=-22..24. Four disjoint slabs preserve the rest of the approved plot.
+        B(shell,"T11 stone plot apron south",paving,0,.18f,-35.875f,119.6f,.055f,27.75f,true,true);
+        B(shell,"T11 stone plot apron north",paving,0,.18f,36.875f,119.6f,.055f,25.75f,true,true);
+        B(shell,"T11 stone plot apron west of garage",paving,-9.65f,.18f,1f,99.3f,.055f,46f,true,true);
+        B(shell,"T11 stone plot apron east of garage",paving,54.15f,.18f,1f,11.3f,.055f,46f,true,true);
         foreach(float side in new[]{-1f,1f})
         {
             B(shell,"Fire service route",asphalt,side*53f,.215f,0,7.0f,.055f,94f,true,true);
@@ -346,26 +418,15 @@ public static class BraxChampionsCasinoT11
             for(int i=0;i<5;i++)
                 B(trim,"Actual white painted asphalt parking bay line",parkingPaint,side*(22f+i*4.2f),.285f,-44.5f,.11f,.014f,5.6f,false);
             foreach(float z in new[]{-32f,33f})
-                B(shell,"Champagne black granite planter",granite,side*43f,.48f,z,3.4f,.6f,3.3f,true);
+                B(shell,"Champagne black granite planter",granite,
+                    side>0&&z<0?38f:side*43f,.48f,z,3.4f,.6f,3.3f,true);
         }
         B(shell,"Front VIP/TAXI circulating driveway",asphalt,0,.221f,-42.5f,105f,.055f,10f,true,true);
-        // REAL ASPHALT SURFACE PARKING along both sides, separate from fire lanes.
-        // Building outside face x=+/-38; fire route begins |x|=49.5. Bays fit
-        // in the 11.5m strip without consuming the 7m fire-service road.
-        foreach(float side in new[]{-1f,1f})
-        {
-            B(shell,"T11 marked side car park on Poly Haven Clean Asphalt",asphalt,
-                side*45f,.252f,4f,6.2f,.06f,26f,true,true);
-            for(int i=0;i<=5;i++)
-            {
-                float row=-9f+i*5.2f;
-                B(trim,"Real white side parking bay border",parkingPaint,
-                    side*45f,.291f,row,5.95f,.012f,.115f,false);
-            }
-            B(trim,"Parking court outer curb",granite,side*48.35f,.30f,4f,.22f,.22f,26f);
-            B(shell,"Paved pedestrian walk alongside casino facade",paving,
-                side*39.95f,.255f,4f,2.6f,.07f,25.7f,true,true);
-        }
+        // The 120x100 plan specifies UNDERGROUND parking, not two large surface
+        // parking lots. The east court is reserved for its real accessible ramp.
+        // Keep a pedestrian walkway on the WEST facade; east side remains a
+        // vehicle approach separated from the existing fire route at x=53.
+        B(shell,"T11 west pedestrian path",paving,-39.95f,.255f,4f,2.6f,.07f,25.7f,true,true);
         // Zebra crossing and separate spectator axis: no vehicle routes across
         // the entrance doors, and no parking painted onto concrete sidewalks.
         foreach(float x in new[]{-8.4f,-7.0f,-5.6f,5.6f,7.0f,8.4f})
@@ -383,17 +444,15 @@ public static class BraxChampionsCasinoT11
         B(shell,"Rear service and deliveries",asphalt,0,.23f,46.7f,105f,.07f,5.4f,true,true);
         B(shell,"Delivery corridor to rear loading door",asphalt,-20f,.248f,36.6f,6.4f,.052f,17.5f,true,true);
         B(trim,"Rear loading bay white line",paving,-20f,.284f,46.7f,12f,.012f,.11f,false);
-        B(shell,"Garage portal west upright",graphite,57.7f,2.5f,4f,.85f,4.5f,1.0f,true);
-        B(shell,"Garage portal east upright",graphite,57.7f,2.5f,11.4f,.85f,4.5f,1.0f,true);
-        B(shell,"Garage above-entry champagne beam",gold,57.7f,4.9f,7.7f,.9f,.34f,8.8f,true);
-        // Portal stands outside the 7m side fire route (x=49.5..56.5).
-        // Garage interior and descending ramp intentionally deferred by owner.
+        // Real underground garage is generated separately from the empty casino
+        // shell. Approach starts off the approved VIP/TAXI loop on the east side.
+        UndergroundGarage();
         // Existing owned palm models (no fabricated vegetation).
         var palm=BraxMiastoAssety.Model("miasto_palmy","palma");
         if(!palm)throw new FileNotFoundException("T11 original city palms missing");
         foreach(var at in new[]{
-            new Vector2(-43,-32),new Vector2(43,-32),new Vector2(-45,33),
-            new Vector2(45,33),new Vector2(-41,-26),new Vector2(41,-26)
+            new Vector2(-43,-32),new Vector2(35,-32),new Vector2(-45,33),
+            new Vector2(45,33),new Vector2(-41,-26),new Vector2(34,-26)
         })
         {
             var location=shell.TransformPoint(new Vector3(at.x,.22f,at.y)*K);
@@ -407,7 +466,8 @@ public static class BraxChampionsCasinoT11
         foreach(float side in new[]{-1f,1f})
             foreach(float z in new[]{-32f,33f})
             {
-                var at=shell.TransformPoint(new Vector3(side*43f,.78f,z)*K);
+                var x=side>0&&z<0?38f:side*43f;
+                var at=shell.TransformPoint(new Vector3(x,.78f,z)*K);
                 BraxRegion.Put(shell,planterTree,"Casino authentic planted topiary",at,0f,1f,false,2.2f*K);
             }
         foreach(float side in new[]{-1f,1f})
