@@ -1,0 +1,84 @@
+name: Miasto Mistrzow A1 T11 - preflight zrodel, BEZ Unity i APK
+
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-a1-t11-source-preflight.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-preflight:
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Read only checkout without Unity Library or secrets
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/workflows/mistrzowie-apk.yml
+            .github/workflows/mistrzowie-a1-t11-source-preflight.yml
+            unity-city/Assets
+            unity-city/Packages
+            unity-tools/mistrzowie
+            unity-tools/validation
+            unity-tools/updates
+            unity-tools/claude
+            public/assets/cars-src/car_rev.glb
+      - name: Install offline parsing and unit test dependencies
+        run: |
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 -m pip install --disable-pip-version-check pillow numpy matplotlib shapely
+      - name: Check all C-sharp files syntax, local scopes, names
+        run: python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: Run offline Python regression tests
+        run: |
+          python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
+          python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
+      - name: Check Python syntax
+        run: python3 -m compileall -q unity-tools/mistrzowie unity-tools/validation unity-tools/updates
+      - name: Verify original car_rev geometry and unchanged Git hash
+        run: python3 unity-tools/mistrzowie/prepare_champion_car.py --dry-run
+      - name: Check A1/T11 code and original Mixamo source paths before Unity
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          assets = Path('unity-city/Assets')
+          source = (assets/'Editor/Mistrzowie/BraxChampionsCarClips.cs').read_text()
+          importer = Path('unity-tools/mistrzowie/import_brax_car_animations.py').read_text()
+          workflow = Path('.github/workflows/mistrzowie-apk.yml').read_text()
+          expected = 'Assets/Source/Mistrzowie/Brax/CarAnimations/'
+          assert ('const string Source = "'+expected+'"') in source, 'Mixamo clip source directory mismatch'
+          assert ('PREFIX = "'+expected+'"') in importer, 'Mixamo importer target mismatch'
+          assert workflow.count('unity-city/'+expected) == 3, 'Missing 3 FBX file validations'
+          brax = (assets/'Editor/Mistrzowie/BraxChampionsBrax.cs').read_text()
+          assert 'BraxChampionsCarClips.Attach(hero, animation)' in brax
+          car = (assets/'Mistrzowie/BraxChampionsCar.cs').read_text()
+          for key in ('EnteringCar','Driving','ExitingCar','Physics.BoxCastNonAlloc'):
+              assert key in car, 'Brax car runtime lacks '+key
+          assert 'championsCar' in (assets/'BraxGymPlayer.cs').read_text()
+          explorer = (assets/'Editor/Mistrzowie/BraxChampionsExplorer.cs').read_text()
+          assert 'BraxChampionsCarBuilder.Generate(rig.transform)' in explorer
+          showcase = (assets/'Editor/Mistrzowie/BraxChampionsBeltShowcase.cs').read_text()
+          assert 'teak_veneer' in showcase and 'granite_tile' in showcase
+          assert 'BRAXHORN_ARENA_CASE_PLAQUE.jpg' in showcase
+          old = Path('unity-tools/mistrzowie/verify_previous_apk.py').read_text()
+          assert '316045507' in old
+          assert 'f3829d496e1bf4890ec64af78170c7e8b8696d1e49d4122df2b4fc1c80bd5ffe' in old
+          print('A1_T11_SOURCE_PREFLIGHT_PASS WITHOUT UNITY APK OR SIGNING')
+          PY
+      - name: Only report - no Unity, no APK and no physical collider changes
+        if: always()
+        run: |
+          echo "Miasto Mistrzow A1 T11 - source preflight" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source/static tests were run without Unity Editor or APK signing." >> "$GITHUB_STEP_SUMMARY"
+          echo "All visual, route, physics/collision checks are advisory and require owner device review." >> "$GITHUB_STEP_SUMMARY"
+          echo "The signed Android update identity must be checked before a real build." >> "$GITHUB_STEP_SUMMARY"
