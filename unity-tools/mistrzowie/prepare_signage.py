@@ -51,7 +51,7 @@ def render_all(source=SOURCE, destination=DEST):
     display = {s["id"]: s["name"] for s in METRO}
     summary = "MIASTO MISTRZÓW\n" + "\n".join(
         s["id"]+" "+s["name"] for s in METRO)
-    route = "    /    ".join(
+    route = "  •  ".join(
         sid+" "+display[sid] for sid in METRO_ROUTE_ORDER)
     results = []
     for station in METRO:

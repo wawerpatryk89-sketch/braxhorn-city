@@ -933,7 +933,10 @@ public static partial class BraxClaudeMetro
             pts.Add(new Vector3(xTopPlat, yH, zz)); pts.Add(new Vector3(xBotPlat, yHb, zz));
             for (int k = 0; k <= 6; k++) { float th = Mathf.Lerp(90f, -90f, k / 6f) * Mathf.Deg2Rad; pts.Add(new Vector3(xeB + sx * ra * Mathf.Cos(th), yHb - ra + ra * Mathf.Sin(th), zz)); }
             pts.Add(new Vector3(xeB - sx * .25f, yHb - 2f * ra, zz));
-            var por = BraxMiastoA.Obiekt(tasma, nazwa + ": poręcz ruchoma " + (s < 0 ? "lewa" : "prawa"), RuraUV(pts, .04f, 10, .5f, nazwa + " poręcz"), PoreczRuchoma());
+            // The steps translate and wrap every frame, but the handrail tube must NOT:
+            // only its UV conveyor scrolls. Parented to "tasma" the whole rubber
+            // handrail jumped physically at each step repetition.
+            var por = BraxMiastoA.Obiekt(W.Grupa, nazwa + ": poręcz ruchoma " + (s < 0 ? "lewa" : "prawa"), RuraUV(pts, .04f, 10, .5f, nazwa + " poręcz"), PoreczRuchoma());
             porecze.Add(por.GetComponent<Renderer>());
         }
         W.OBox(mStal, (pT + pB) * .5f + new Vector3(0, -.95f, 0), new Vector3(stepW + .5f, .1f, L), sk);   // spód kratownicy
