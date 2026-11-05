@@ -39,6 +39,9 @@ public static class BraxObozServices
         var lamp=BraxObozMaterials.Plain("zarowki",new Color(1,.7f,.32f));lamp.EnableKeyword("_EMISSION");lamp.SetColor("_EmissionColor",new Color(1,.7f,.32f)*2);mats["lamp"]=lamp;
         foreach(var item in new[]{("canteen","Stołówka",-58f,-65f),("showers","Prysznice",-95f,-65f),("sauna","Sauna",-115f,-65f),("medical","Punkt medyczny",-46f,-90f),("storage","Magazyn",-24f,-90f)})
             Add(item.Item1,item.Item2,parent,new Vector3(item.Item3,0,item.Item4),mats);
+        // Osobny blok sanitarny obok istniejących pryszniców i sauny.
+        // Nie zastępuje oryginalnych modeli, nie zamyka ich drzwi ani dojść.
+        SanitaryBlock(parent,mats);
     }
     static void Add(string id,string label,Transform parent,Vector3 position,Dictionary<string,Material> mats)
     {
@@ -86,6 +89,105 @@ public static class BraxObozServices
             t.gameObject.AddComponent<BraxObozLocalLight>().source=light;
         }
     }
+    // Rzeczywisty budynek WC: dwie kabiny, dwa stanowiska prysznicowe,
+    // umywalki, lustra, wentylacja i dostępne dla gracza fizyczne wejście.
+    // Wszystkie wymiary lokalne są w metrach; K stosuje wyłącznie rodzic.
+    static GameObject FixtureBox(Transform parent,string name,Vector3 position,Vector3 size,
+        Material material,bool solid=true)
+    {
+        var g=GameObject.CreatePrimitive(PrimitiveType.Cube);
+        g.name=name;g.transform.SetParent(parent,false);
+        g.transform.localPosition=position;g.transform.localScale=size;
+        g.GetComponent<Renderer>().sharedMaterial=material;
+        if(!solid)Object.DestroyImmediate(g.GetComponent<Collider>());
+        return g;
+    }
+    static GameObject FixtureCylinder(Transform parent,string name,Vector3 position,
+        float radius,float height,Material material)
+    {
+        var g=GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        g.name=name;g.transform.SetParent(parent,false);g.transform.localPosition=position;
+        g.transform.localScale=new Vector3(radius*2,height*.5f,radius*2);
+        g.GetComponent<Renderer>().sharedMaterial=material;
+        return g;
+    }
+    static void SanitaryBlock(Transform parent,Dictionary<string,Material> mats)
+    {
+        const string label="BRAXHORN — WC / ŁAŹNIA / UMYWALNIA";
+        var building=Node(label,parent,new Vector3(-92,0,-83)*K);
+        building.localScale=Vector3.one*K;
+        var tile=BraxObozMaterials.Plain("sanitariaty-ceramika",new Color(.86f,.89f,.87f),.65f);
+        var porcelain=BraxObozMaterials.Plain("sanitariaty-porcelana",new Color(.94f,.95f,.92f),.70f);
+        var dark=BraxObozMaterials.Plain("sanitariaty-spoiny",new Color(.15f,.18f,.20f),.22f);
+        var mirror=BraxObozMaterials.Plain("sanitariaty-lustro",new Color(.54f,.68f,.71f),.88f,.06f);
+        var rubber=mats["rubber"];var metal=mats["metal"];var wood=mats["wood"];
+        FixtureBox(building,"Płytki gresowe — podłoga",new Vector3(0,.12f,0),new Vector3(12,.24f,10),tile);
+        FixtureBox(building,"Ściana południowa",new Vector3(0,1.70f,-5f),new Vector3(12,3.25f,.20f),tile);
+        FixtureBox(building,"Ściana zachodnia",new Vector3(-6f,1.70f,0),new Vector3(.20f,3.25f,10),tile);
+        FixtureBox(building,"Ściana wschodnia",new Vector3(6f,1.70f,0),new Vector3(.20f,3.25f,10),tile);
+        // Prawdziwy otwór wejściowy 2.8m, bez niewidzialnego collidera.
+        foreach(float x in new[]{-3.7f,3.7f})
+            FixtureBox(building,"Ściana z wejściem",new Vector3(x,1.70f,5f),new Vector3(4.6f,3.25f,.20f),tile);
+        FixtureBox(building,"Nadproże wejścia",new Vector3(0,2.81f,5f),new Vector3(2.85f,.95f,.23f),tile);
+        FixtureBox(building,"Próg kamienny",new Vector3(0,.06f,5.12f),new Vector3(2.75f,.12f,.34f),tile);
+        FixtureBox(building,"Dach hydroizolowany",new Vector3(0,3.42f,0),new Vector3(12.6f,.23f,10.6f),dark);
+        foreach(float x in new[]{-5.75f,5.75f})
+            FixtureBox(building,"Obróbka dachu",new Vector3(x,3.53f,0),new Vector3(.18f,.25f,10.6f),metal,false);
+        // Oddzielna strefa WC (zachód) oraz pryszniców (wschód);
+        // korytarz od wejścia pozostaje szeroki i przechodni.
+        FixtureBox(building,"Ścianka pomiędzy strefami",new Vector3(0,1.45f,-2.0f),
+            new Vector3(.12f,2.65f,6.0f),tile);
+        FixtureBox(building,"Ścianka kabin WC",new Vector3(-3.05f,1.30f,-2.65f),
+            new Vector3(.10f,2.20f,4.25f),tile);
+        FixtureBox(building,"Ścianka kabin prysznicowych",new Vector3(3.02f,1.30f,-2.65f),
+            new Vector3(.10f,2.20f,4.25f),tile);
+        foreach(float x in new[]{-4.5f,-1.58f})
+        {
+            var cubicle=Node("Kabina WC — "+x,building,new Vector3(x,0,-2.95f));
+            FixtureBox(cubicle,"Miska z odpływem",new Vector3(0,.34f,0),new Vector3(.62f,.54f,.88f),porcelain);
+            FixtureCylinder(cubicle,"Siedzisko ceramiczne",new Vector3(0,.65f,.10f),.36f,.08f,porcelain);
+            FixtureCylinder(cubicle,"Wewnętrzny odpływ",new Vector3(0,.701f,.10f),.21f,.012f,dark);
+            FixtureBox(cubicle,"Spłuczka z przyciskiem",new Vector3(0,1.01f,-.39f),
+                new Vector3(.70f,.65f,.24f),porcelain);
+            FixtureBox(cubicle,"Przycisk spłukiwania",new Vector3(0,1.34f,-.24f),
+                new Vector3(.17f,.025f,.085f),metal,false);
+            var seat=Node("Usiądź — toaleta",cubicle,new Vector3(0,.69f,.10f)).gameObject.AddComponent<BraxSeat>();
+            seat.label="TOALETA";seat.lie=false;seat.surfaceY=seat.transform.position.y;seat.hipsAboveRoot=.95f*K;
+            // Drzwi każdej kabiny otwierają się, skrzydło ma własną kolizję.
+            var hinge=Node("Zawias drzwi kabiny",cubicle,new Vector3(-1.02f,.18f,1.48f));
+            FixtureBox(hinge,"Skrzydło kabiny",new Vector3(.86f,.95f,0),
+                new Vector3(1.72f,1.9f,.055f),wood);
+            var door=hinge.gameObject.AddComponent<BraxCityDoor>();
+            door.id="oboz-wc-"+(x< -3?"1":"2");door.label="KABINA WC";
+            door.leaves=new[]{hinge};door.sides=new[]{1f};
+        }
+        foreach(float x in new[]{1.5f,4.52f})
+        {
+            var shower=Node("Kabina prysznicowa — "+x,building,new Vector3(x,0,-2.95f));
+            FixtureBox(shower,"Brodzik antypoślizgowy",new Vector3(0,.23f,0),
+                new Vector3(2.65f,.09f,3.30f),rubber);
+            FixtureCylinder(shower,"Odpływ prysznicowy",new Vector3(0,.29f,0),
+                .10f,.015f,metal);
+            FixtureBox(shower,"Panel baterii",new Vector3(0,1.15f,-1.55f),
+                new Vector3(.27f,.48f,.10f),metal,false);
+            FixtureCylinder(shower,"Deszczownica",new Vector3(0,2.46f,-1.30f),.16f,.07f,metal);
+            var control=Node("Odkręć prysznic",shower,new Vector3(0,1.15f,-1.1f)).gameObject.AddComponent<BraxObozFacility>();
+            control.kind=BraxObozFacility.Kind.Shower;
+            control.effect=Effect(shower,new Vector3(0,2.37f,-1.28f),false);
+        }
+        foreach(float x in new[]{-4.1f,4.1f})
+        {
+            var sink=Node("Umywalka z lustrem",building,new Vector3(x,0,3.4f));
+            FixtureBox(sink,"Misa porcelanowa",new Vector3(0,.89f,0),new Vector3(1.12f,.18f,.64f),porcelain);
+            FixtureBox(sink,"Syfon",new Vector3(0,.54f,-.13f),new Vector3(.18f,.5f,.14f),metal);
+            FixtureBox(sink,"Bateria",new Vector3(0,1.04f,-.29f),new Vector3(.09f,.26f,.12f),metal);
+            FixtureBox(sink,"Lustro",new Vector3(0,1.89f,.48f),new Vector3(1.25f,1.25f,.035f),mirror,false);
+            FixtureBox(sink,"Wieszak na ręcznik",new Vector3(.63f,1.19f,.10f),
+                new Vector3(.04f,.06f,.47f),metal,false);
+        }
+        Debug.Log("BRAXHORN_OBOZ_SANITARIATY dwa WC, dwie kabiny z prysznicem, umywalki; wymagany test przejścia i pozycji gracza");
+    }
+
     static ParticleSystem Effect(Transform parent,Vector3 position,bool steam)
     {
         var t=Node(steam?"Para przy piecu":"Strumień prysznica",parent,position);
