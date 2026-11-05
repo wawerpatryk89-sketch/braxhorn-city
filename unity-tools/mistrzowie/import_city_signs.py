@@ -15,6 +15,7 @@ import zipfile
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 PROJECT=ROOT/"unity-city"
 BASE="Assets/Source/Mistrzowie/CitySigns/"
+ROOT_META=BASE.rstrip("/")+".meta"
 MAIN_CASINO=BASE+"01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png"
 MAIN_CASINO_SHA="78edc9f51c772d20cb84c43f0850716a63c5a772fa0b326a7aea15ccfe39bf1b"
 GUID_NAMESPACE=uuid.UUID("974b9566-b4e7-4a61-a616-27e03334f842")
@@ -38,11 +39,11 @@ def inspect(path):
         names=archive.namelist()
         if len(names)!=len(set(names)) or len(names)!=expected_all:raise ValueError("Wrong entry count/duplicate sign path")
         signs=[name for name in names if name.startswith(BASE) and name.endswith(".png")]
-        metas=[name for name in names if name.startswith(BASE) and name.endswith(".meta")]
+        metas=[name for name in names if (name.startswith(BASE) or name==ROOT_META) and name.endswith(".meta")]
         if len(signs)!=expected_png or len(metas)!=expected_meta:raise ValueError("Wrong original PNG or GUID count")
         for name in names:
             parts=pathlib.PurePosixPath(name).parts
-            if ".." in parts or name.startswith("/") or not (name.startswith(BASE) or name in ("SIGN_LIBRARY_MANIFEST.json","IMPORT-README.txt")):
+            if ".." in parts or name.startswith("/") or not (name.startswith(BASE) or name in (ROOT_META,"SIGN_LIBRARY_MANIFEST.json","IMPORT-README.txt")):
                 raise ValueError("Unexpected archive path: "+name)
         manifest=json.loads(archive.read("SIGN_LIBRARY_MANIFEST.json"))
         if manifest["schema"]!="BRAXHORN_CITY_SIGNS_V1" or manifest["count"]!=expected_png:
@@ -67,7 +68,7 @@ def inspect(path):
         if part=="01-06":
             if MAIN_CASINO not in signs or hashlib.sha256(archive.read(MAIN_CASINO)).hexdigest()!=MAIN_CASINO_SHA:
                 raise ValueError("Wrong C1 sign: expected owner-supplied KASYNO WAWER")
-        return sorted(name for name in names if name.startswith(BASE)),part,expected_png
+        return sorted(name for name in names if name.startswith(BASE) or name==ROOT_META),part,expected_png
 
 def import_archive(path,dry_run=False):
     path=pathlib.Path(path)
