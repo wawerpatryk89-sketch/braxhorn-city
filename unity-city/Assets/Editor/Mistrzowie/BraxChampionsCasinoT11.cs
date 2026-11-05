@@ -21,15 +21,15 @@ public static class BraxChampionsCasinoT11
     static void Setup(string directory)
     {
         output=directory;serial=0;
-        cream=BraxChampionsFoundation.SourceMaterial("t11_cream_facade","rectangular_facade_tiles_02",2.1f,new Color(.93f,.88f,.78f));
-        graphite=BraxChampionsFoundation.SourceMaterial("t11_graphite_facade","rectangular_facade_tiles",2.0f,new Color(.22f,.23f,.25f));
-        granite=BraxChampionsFoundation.SourceMaterial("t11_dark_granite","granite_tile",1.2f,new Color(.26f,.28f,.30f));
-        paving=BraxChampionsFoundation.SourceMaterial("t11_walkways","concrete_pavement_02",1.8f,new Color(.94f,.93f,.89f));
-        asphalt=BraxChampionsFoundation.SourceMaterial("t11_asphalt","clean_asphalt",2.1f,new Color(.9f,.9f,.9f));
+        cream=BraxChampionsCasinoPbr2K.Create(output,"t11_cream_facade","rectangular_facade_tiles_02",2.1f,new Color(.93f,.88f,.78f));
+        graphite=BraxChampionsCasinoPbr2K.Create(output,"t11_graphite_facade","rectangular_facade_tiles",2.0f,new Color(.22f,.23f,.25f));
+        granite=BraxChampionsCasinoPbr2K.Create(output,"t11_dark_granite","granite_tile",1.2f,new Color(.26f,.28f,.30f));
+        paving=BraxChampionsCasinoPbr2K.Create(output,"t11_walkways","concrete_pavement_02",1.8f,new Color(.94f,.93f,.89f));
+        asphalt=BraxChampionsCasinoPbr2K.Create(output,"t11_asphalt","clean_asphalt",2.1f,new Color(.9f,.9f,.9f));
         gold=BraxChampionsFoundation.LibraryMetal("t11_bronze_champagne",new Color(.75f,.57f,.32f));
         steel=BraxChampionsFoundation.LibraryMetal("t11_satin_steel",new Color(.32f,.34f,.37f));
-        roof=BraxChampionsFoundation.SourceMaterial("t11_roof","concrete_floor_02",2.1f,new Color(.27f,.29f,.32f));
-        redCarpet=BraxChampionsFoundation.SourceMaterial("t11_casino_red_carpet","fabric_pattern_05",.55f,new Color(.64f,.028f,.038f));
+        roof=BraxChampionsCasinoPbr2K.Create(output,"t11_roof","concrete_floor_02",2.1f,new Color(.27f,.29f,.32f));
+        redCarpet=BraxChampionsCasinoPbr2K.Create(output,"t11_casino_red_carpet","fabric_pattern_05",.55f,new Color(.64f,.028f,.038f));
         parkingPaint=Surface("painted_parking_stripes",new Color(.97f,.97f,.93f),false,false);
         glass=Surface("clear_glass",new Color(.68f,.80f,.88f,.31f),true,false);
         // The reference drawing has a blue-violet translucent glazed roof lantern.
