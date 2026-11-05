@@ -107,7 +107,7 @@ public static class BraxChampionsBuild
             {
                 BuildExplorationApk();
                 report.status="ANDROID_APK_COMPILED_DEVICE_AND_VISUAL_REVIEW_PENDING";
-                report.checks.Add("Signed ARM64 exploration APK compiled; delivery verification runs next in CI");
+                report.checks.Add("ARM64 exploration APK compiled; repository signing certificate verification is still required in CI");
                 return; // APK delivery precedes any optional export/cache work.
             }
             string payload=Path.GetFullPath("../mistrzowie-payload");Directory.CreateDirectory(payload+"/Android");
