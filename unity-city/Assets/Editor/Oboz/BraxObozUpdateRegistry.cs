@@ -76,10 +76,10 @@ public static class BraxObozUpdateRegistry
             entries = entries.OrderBy(e => e.address, StringComparer.Ordinal).ToArray(),
             files = paths.Select(Describe).ToArray(), packageDependencies = packages.ToArray(),
             blockers = new[] {
-                "Authoring scene has not yet been separated into stable streaming sectors",
-                "Shared Addressables tools and approved package version are not integrated",
-                "HTTPS hosting, baseline APK and addressables_content_state.bin are not configured",
-                "Phone update, offline, interruption, rollback and memory tests are not performed"
+                "Authoring scene has not yet been divided into independently streamed site sectors",
+                "Shared Addressables 2.7.6 sources are integrated but not yet Unity-compiled or accepted",
+                "A content baseline candidate is not an approved signed BRAXHORN CITY APK; content-state must come from the actual installed base",
+                "HTTPS/CDN hosting, phone import, offline, interruption, rollback and memory tests are not complete"
             }
         };
         Directory.CreateDirectory(Path.GetDirectoryName(Output));
