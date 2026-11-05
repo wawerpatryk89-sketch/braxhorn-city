@@ -271,7 +271,11 @@ public static class BraxClaudeMetro
             foreach (var c in hits)
             {
                 if (!c || c.name.Contains("blokada przejścia") || c.GetComponentInParent<BraxDrzwiPrzesuwne>() || c.GetComponentInParent<BraxCityDoor>() || c.GetComponentInParent<BraxGymPlayer>()) continue;
-                return c.name + " (" + (c.transform.parent ? c.transform.parent.name : "-") + ")";
+                // Nazwa "kolizja (kolizje)" nie określała elementu blokującego.
+                // W raporcie potrzebujemy rzeczywistego obrysu, żeby odróżnić
+                // ścianę szybu od posadzki i poprawić WYŁĄCZNIE winny obiekt.
+                return c.name + " (" + (c.transform.parent ? c.transform.parent.name : "-") +
+                    ") granice=" + c.bounds.min.ToString("F2") + "…" + c.bounds.max.ToString("F2");
             }
             return null;
         }
