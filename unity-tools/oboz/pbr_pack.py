@@ -3,7 +3,7 @@
 
 No original asset is edited, no scene/build is started. Monika uses one 4K
 metallic/roughness pack, and the other six characters use one 2K pack each.
-The clean_asphalt roughness/AO pack is 1K for tiled Android ground. Imported source
+The clean_asphalt roughness/AO pack is 2K for tiled Android ground. Imported source
 PBR maps are retained unmodified as a visual fallback.
 
 Packed MR: R = source metallic.r, G = source roughness.r, B = 255.
@@ -154,7 +154,7 @@ def run(root=ROOT):
     result.append(pack_pair(root, asset_id=PILOT_SURFACE, role="RA",
                             first=prefix + "Roughness.jpg",
                             second=prefix + "AmbientOcclusion.jpg",
-                            known_shas=sha, target_size=1024))
+                            known_shas=sha, target_size=2048))
     index = dict(schema=2, profile="monika-4k-npcs-2k", originalsPreserved=True,
                  unity="6000.0.58f2", character4K=[HERO_4K],
                  characters2K=list(OTHER_2K), entries=result)
