@@ -1,6 +1,7 @@
 name: Miasto Mistrzów A1+T11 — REALNY test scen Unity 6 (BEZ APK)
 run-name: A1+T11 — Unity 6.0.85f2 — realny test scen BEZ APK
 
+# Second scene-only attempt: correct YAML heredoc indentation verified.
 # Explicit user request, Nov 5: run Unity 6 scene generation/import
 # BEFORE any real Android APK build. This event is narrowly scoped to the
 # creation of THIS workflow only. Commits to game source do not re-run it.
