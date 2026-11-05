@@ -29,6 +29,18 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def sha256_file(path: Path, chunk_size: int = 8 * 1024 * 1024) -> str:
+    """Stałe zużycie pamięci przy paczce 345 MB, bez read_bytes całego ZIP."""
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        while True:
+            chunk = source.read(chunk_size)
+            if not chunk:
+                break
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def secure_name(name: str) -> PurePosixPath:
     p = PurePosixPath(name)
     if not name or p.is_absolute() or ".." in p.parts or "\\" in name:
@@ -96,7 +108,7 @@ def run(package: Path, target: Path, apply: bool) -> dict:
     manifest = json.loads(MANIFEST.read_text("utf-8"))
     if package.stat().st_size != manifest["packageBytes"]:
         raise ValueError("Nieprawidłowy rozmiar paczki")
-    if sha256(package.read_bytes()) != manifest["packageSha256"]:
+    if sha256_file(package) != manifest["packageSha256"]:
         raise ValueError("Błędny SHA-256 paczki; nie wolno importować")
     expected = {v["path"]: v for v in manifest["contents"]}
     with zipfile.ZipFile(package) as z:
