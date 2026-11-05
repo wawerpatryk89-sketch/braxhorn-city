@@ -1,8 +1,13 @@
 """Read-only SHA256 gate for all eleven original Champion A1 assets before Unity."""
-import hashlib,json
+import hashlib,json,re,uuid
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 BASE="Assets/Source/Mistrzowie/"
+GUID_NAMESPACE=uuid.UUID("af7d65e9-aeb5-4cb0-a8a8-e60c0c5fd3c5")
+FOLDERS=(
+"ArenaSigns","VIP","Trophies",
+"Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbm",
+)
 MAP={
 "Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbx":"38f40d9030d6ce832cf56877dd7adbd0f9adec6511bc97b7f4e9a0979e5fa649",
 "Trophies/ChampionshipBelt_ARM.png":"72d4d5a6e81a352d257b9d2b516601df8e842fcb75026387444cbc85f198995a",
@@ -27,8 +32,24 @@ def audit(root=ROOT/"unity-city"):
         with path.open("rb") as f:
             for chunk in iter(lambda:f.read(1048576),b""):h.update(chunk)
         results.append({"path":BASE+relative,"status":"PASS" if h.hexdigest()==expected else "WRONG_SOURCE"})
+    count_original=len(results)
+    # Stable .meta GUIDs are mandatory for future incremental Unity updates.
+    for relative in sorted((*MAP.keys(),*FOLDERS)):
+        name=BASE+relative
+        meta=Path(root)/(name+".meta")
+        expected=uuid.uuid5(GUID_NAMESPACE,name).hex
+        if not meta.is_file():
+            state="MISSING_META"
+        else:
+            match=re.search(r"^guid:\\s*([a-fA-F0-9]{32})\\s*$",meta.read_text(),re.M)
+            state="PASS" if match and match.group(1).lower()==expected else "GUID_MISMATCH"
+        results.append({"path":name+".meta","status":state})
     ok=all(x["status"]=="PASS" for x in results)
-    return {"status":"PASS" if ok else "BLOCKED","passed":sum(x["status"]=="PASS" for x in results),"count":len(results),"results":results,"unityTested":False}
+    return {"status":"PASS" if ok else "BLOCKED",
+            "originalAssetCount":count_original,
+            "guidSidecarCount":len(results)-count_original,
+            "passed":sum(x["status"]=="PASS" for x in results),
+            "count":len(results),"results":results,"unityTested":False}
 if __name__=="__main__":
     r=audit()
     out=ROOT/"mistrzowie-evidence/champion-arena-assets.json"
