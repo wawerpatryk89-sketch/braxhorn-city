@@ -50,15 +50,61 @@ public static class BraxObozVegetation
                     trunk.height=3;trunk.center=new Vector3(0,1.5f,0);
                 }
             }
+            // Dodatkowy pas prawdziwych drzew 3D tuż ZA zaokrąglonym płotem.
+            // Nie zmienia gotowych postaci i nie zasłania drogi/dojazdu.
+            int fenceTrees=AddFenceWoodland(forest,prototypes);
+            placedTrees+=fenceTrees;
             var grass=layout.grass.Where(p=>Mathf.Abs(p.x)<=138f&&Mathf.Abs(p.z)<=138f&&!BraxObozCampusLayout.Reserved(p.x,p.z,.5f)).ToList();
             int originalGrass=grass.Count;
             AddLawnGrass(grass);
             Grass(parent,grass.ToArray());
-            Debug.Log("BRAXHORN_OBOZ las: drzewa="+placedTrees+" kępy="+grass.Count+
+            Debug.Log("BRAXHORN_OBOZ las: drzewa="+placedTrees+" pas_zewnetrzny="+fenceTrees+" kępy="+grass.Count+
                 " nowe_kepy_trawnika="+(grass.Count-originalGrass)+"; test telefonu nadal wymagany");
         }
         finally { foreach(var p in prototypes)if(p)Object.DestroyImmediate(p); }
     }
+    // Istniejący layout lasu pochodził ze starego prostokąta. Po redukcji
+    // działki tylko część oryginalnych pozycji leży blisko nowego płotu.
+    // Ten deterministyczny pas używa WYŁĄCZNIE gotowych źródeł jodeł/sadzonek,
+    // bez atrap billboardów w zbliżeniu i bez importowania nowych modeli.
+    static int AddFenceWoodland(Transform forest,GameObject[] prototypes)
+    {
+        if(prototypes == null || prototypes.Length != 6)
+            throw new InvalidOperationException("Brak sześciu źródłowych wariantów drzew obozu");
+        const int ringSamples=160;
+        int placed=0;
+        for(int i=0;i<ringSamples;i++)
+        {
+            uint seed=unchecked((uint)(i+79)*2654435761u);
+            seed^=seed>>16;seed=unchecked(seed*2246822519u);seed^=seed>>13;
+            float a=(i+.17f)*Mathf.PI*2f/ringSamples;
+            float offset=5f+(seed&15u)*.45f;
+            float x=(BraxObozCampusLayout.PlotRadiusX+offset)*Mathf.Cos(a);
+            float z=BraxObozCampusLayout.PlotCenterZ+
+                    (BraxObozCampusLayout.PlotRadiusZ+offset)*Mathf.Sin(a);
+            // Nie sadzić poza mesh terenu, na bramie i przy dojeździe.
+            if(Mathf.Abs(x)>135f||Mathf.Abs(z)>135f)continue;
+            if(z < -105f && Mathf.Abs(x)<23f)continue;
+            if(BraxObozCampusLayout.Reserved(x,z,2f))continue;
+            int prototypeIndex=(int)((seed>>16)%(uint)prototypes.Length);
+            var tree=Object.Instantiate(prototypes[prototypeIndex],forest);
+            tree.name=prototypes[prototypeIndex].name+" — przy ogrodzeniu";
+            tree.transform.localPosition=new Vector3(x,0,z)*K;
+            tree.transform.localRotation=Quaternion.Euler(0,(seed%359u),0);
+            tree.transform.localScale=Vector3.one*((.74f+(seed%37u)*.012f)*K);
+            // Za płotem nie dodajemy zbędnych colliderów co kilka metrów.
+            // Minimalna liczba pni zachowuje podstawową fizykę dla dostępnego pasa.
+            if(i%7==0)
+            {
+                var trunk=tree.AddComponent<CapsuleCollider>();
+                trunk.direction=1;trunk.radius=prototypeIndex<3?.2f:.085f;
+                trunk.height=3;trunk.center=new Vector3(0,1.5f,0);
+            }
+            placed++;
+        }
+        return placed;
+    }
+
     static GameObject Prototype(string name,Atlas atlas)
     {
         var root=new GameObject(name);
