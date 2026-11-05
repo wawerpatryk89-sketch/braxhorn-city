@@ -1,7 +1,9 @@
 name: Claude - region R1 na gotowo (TEST, bez publikacji)
 'on':
-  # TYLKO RECZNIE: automatyczny push usuniety na zyczenie wlasciciela.
-  # Modyfikacja kodu nie uruchamia Unity ani Android APK.
+  # Explicit owner-authorized one-shot run on an isolated ref; source branches stay manual.
+  push:
+    branches: [run/osiedle-apk-20261105-1255]
+    paths: [.github/workflows/claude-region-build.yml]
   workflow_dispatch:
     inputs:
       rejon:
@@ -30,7 +32,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   source-imports:
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104' || (github.ref == 'refs/heads/codex/osiedle-drogi-klub-kierowca-20261104' && inputs.rejon == 'osiedle')) }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104' || ((github.ref == 'refs/heads/codex/osiedle-drogi-klub-kierowca-20261104' && inputs.rejon == 'osiedle') || (github.event_name == 'push' && github.ref == 'refs/heads/run/osiedle-apk-20261105-1255'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -53,7 +55,7 @@ jobs:
         retention-days: 3
         if-no-files-found: error
   cc0-assets:
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104' || (github.ref == 'refs/heads/codex/osiedle-drogi-klub-kierowca-20261104' && inputs.rejon == 'osiedle')) }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104' || ((github.ref == 'refs/heads/codex/osiedle-drogi-klub-kierowca-20261104' && inputs.rejon == 'osiedle') || (github.event_name == 'push' && github.ref == 'refs/heads/run/osiedle-apk-20261105-1255'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -90,7 +92,7 @@ jobs:
     outputs:
       rejon: ${{ steps.rejon.outputs.rejon }}
     # 3.11 18:40 (właściciel): BEZ ZDJĘĆ CI — „to tylko czas zajmuje”. Job (i shots) wyłączony.
-    if: false && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104' || (github.ref == 'refs/heads/codex/osiedle-drogi-klub-kierowca-20261104' && inputs.rejon == 'osiedle'))
+    if: false && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104' || ((github.ref == 'refs/heads/codex/osiedle-drogi-klub-kierowca-20261104' && inputs.rejon == 'osiedle') || (github.event_name == 'push' && github.ref == 'refs/heads/run/osiedle-apk-20261105-1255')))
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -244,7 +246,7 @@ jobs:
     - name: Prywatne zasoby wlasciciela - Patryk i ruchy Mixamo (paczki zaszyfrowane, klucz tylko w sekretach; bez klucza gra Brax)
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
-        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
+        WEJSCIE_REJON: ${{ github.ref == 'refs/heads/run/osiedle-apk-20261105-1255' && 'osiedle' || github.event.inputs.rejon }}
       run: python3 unity-tools/claude/prywatne.py
     - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
       run: |
@@ -261,7 +263,7 @@ jobs:
     - name: Rejon buildu i klucz pamieci rejonu (PO wszystkich krokach przygotowujacych zasoby, PRZED Unity)
       id: rejon
       env:
-        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
+        WEJSCIE_REJON: ${{ github.ref == 'refs/heads/run/osiedle-apk-20261105-1255' && 'osiedle' || github.event.inputs.rejon }}
         WEJSCIE_PAMIEC: ${{ github.event.inputs.pamiec }}
       run: |
         t=$(date +%s)
@@ -426,7 +428,7 @@ jobs:
     permissions:
       contents: write
       actions: read
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104' || (github.ref == 'refs/heads/codex/osiedle-drogi-klub-kierowca-20261104' && inputs.rejon == 'osiedle')) }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104' || ((github.ref == 'refs/heads/codex/osiedle-drogi-klub-kierowca-20261104' && inputs.rejon == 'osiedle') || (github.event_name == 'push' && github.ref == 'refs/heads/run/osiedle-apk-20261105-1255'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     steps:
@@ -580,7 +582,7 @@ jobs:
     - name: Prywatne zasoby wlasciciela - Patryk i ruchy Mixamo (paczki zaszyfrowane, klucz tylko w sekretach; bez klucza gra Brax)
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
-        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
+        WEJSCIE_REJON: ${{ github.ref == 'refs/heads/run/osiedle-apk-20261105-1255' && 'osiedle' || github.event.inputs.rejon }}
       run: python3 unity-tools/claude/prywatne.py
     - name: Ludzie - Microsoft Rocketbox (MIT, commit 0943055) - 24 postacie i animacje, tekstury 1024/512 z maska ubran
       run: |
@@ -597,7 +599,7 @@ jobs:
     - name: Rejon buildu i klucz pamieci rejonu (PO wszystkich krokach przygotowujacych zasoby, PRZED Unity)
       id: rejon
       env:
-        WEJSCIE_REJON: ${{ github.event.inputs.rejon }}
+        WEJSCIE_REJON: ${{ github.ref == 'refs/heads/run/osiedle-apk-20261105-1255' && 'osiedle' || github.event.inputs.rejon }}
         WEJSCIE_PAMIEC: ${{ github.event.inputs.pamiec }}
       run: |
         t=$(date +%s)
@@ -950,7 +952,7 @@ jobs:
 
   shots:
     needs: combined-unity6
-    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104' || (github.ref == 'refs/heads/codex/osiedle-drogi-klub-kierowca-20261104' && inputs.rejon == 'osiedle')) }}
+    if: ${{ !contains(github.event.head_commit.message, '[content-update]') && github.repository == 'wawerpatryk89-sketch/braxhorn-city' && (github.ref == 'refs/heads/claude/region-20261030' || github.ref == 'refs/heads/claude/miasto-opus-20261031' || github.ref == 'refs/heads/codex/estate-flicker-patryk-voices-20261102' || github.ref == 'refs/heads/claude/osiedle-42-poprawka' || github.ref == 'refs/heads/codex/osiedle-integracja-sport-migotanie-20261104' || github.ref == 'refs/heads/codex/osiedle-integracja-final-patryk-20261104' || ((github.ref == 'refs/heads/codex/osiedle-drogi-klub-kierowca-20261104' && inputs.rejon == 'osiedle') || (github.event_name == 'push' && github.ref == 'refs/heads/run/osiedle-apk-20261105-1255'))) }}
     runs-on: ubuntu-latest
     timeout-minutes: 100
     strategy:
