@@ -29,7 +29,13 @@ internal static partial class BraxMiastoWyspa
         string[] roles = { "pas LED", "litery BRAXHORN ARENA", "znaki WYJŚCIE", "panele sufitowe LED" };
 
         var islands = new List<Transform>();
-        if (root && root.gameObject.scene == scene)
+        // Po podziale świata na sceny regionów wyspa może zostać przeniesiona
+        // do sceny addytywnej. root nadal wskazuje jej oryginalne obiekty;
+        // sprawdzanie scene == main pomijało oprawy i powodowało fałszywe
+        // "brak materiałów" po zakończeniu generowania (#94).
+        // Nie obejmujemy innych regionów i nie modyfikujemy kolizji.
+        if (root && root.gameObject.scene.IsValid() && root.gameObject.scene.isLoaded &&
+            root.name.StartsWith("CLAUDE wyspa", StringComparison.Ordinal))
             islands.Add(root);
         else
             islands.AddRange(BraxClaudeObszary.PoNazwach(scene, "CLAUDE wyspa*"));
