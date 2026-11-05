@@ -89,8 +89,8 @@ public static partial class BraxObozEnvironment
             RunningTracks(); // profesjonalny czerwony owal i osobna bieznia 100 m
             // Main activity area retained at real scale. Additional cabins/service areas
             // are reconstructed placements; appearance has not been approved.
-            Cabin("Domek 1", -94, -20, 90); Cabin("Domek 2", -94, -40, 90);
-            Cabin("Domek 3", -69, -20, -90); Cabin("Domek 4", -69, -40, -90);
+            Cabin("Domek 1", -60, -18, 90); Cabin("Domek 2", -60, -36, 90);
+            Cabin("Domek 3", -42, -18, -90); Cabin("Domek 4", -42, -36, -90);
             Ring("Ring 1", -23, 15); Octagon(0, -5);
             // Owner rejected the imported city gym. Replace its entire instance,
             // interior, doors and collision source with camp training facilities.
@@ -106,7 +106,7 @@ public static partial class BraxObozEnvironment
             // Nie stawiamy fikcyjnych mostow wewnatrz zamknietego obozu.
             // The source bunker is retained without changing its mesh, origins
             // or doors. Entrance/collider conversion remains a separate audit.
-            SourceBunker(-75, 89);
+            SourceBunker(-54, 4);
             BraxObozVegetation.Populate(root);
             var anchors = Group("Kotwice planu R3 — do połączenia z oryginalnymi modelami", root, Vector3.zero);
             foreach (var a in new[] { ("Fort 3 na 3",83f,25f), ("Chata leśniczego i sklep",-105f,-103f), ("Tartak",76f,-105f), ("Kojce",39f,-94f), ("Bunkier bramy",-24f,-111f) })
