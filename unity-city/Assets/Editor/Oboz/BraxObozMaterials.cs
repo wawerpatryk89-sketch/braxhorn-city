@@ -57,6 +57,8 @@ public static class BraxObozMaterials
             path.StartsWith(BraxObozCharacters.Generated + "/", StringComparison.Ordinal);
         if (!campAsset) return false; // Never change textures from city or estate.
         bool excluded = customSampling || path.Contains("/environment/forest-ground/") ||
+            path.Contains("/environment/materials/gravel/") ||
+            path.Contains("/grass_bermuda_") ||
             path.Contains("/vegetation/billboards/") || path.Contains("/Vegetation/Billboard-") ||
             path.Contains("/Source/Public/Oboz/Grass001/");
         bool stream = false;
