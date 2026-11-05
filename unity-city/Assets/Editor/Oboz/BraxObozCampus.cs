@@ -41,17 +41,29 @@ public static partial class BraxObozEnvironment
             new Vector3(.09f,.011f,6.3f),white,false);
         // Wewnatrz owalu zostaje otwarta murawa do rozgrzewki.
         var straight=Group("BIEZNIA · 100 metrow · cztery tory",root,P(113,0,-35));
-        Box(straight,"Tartan 100 m",new Vector3(0,.106f,0),new Vector3(6f,.21f,100f),red);
+        // Box() skaluje geometrię przez K=1.294. 100 jednostek źródłowych dałoby
+        // 129.4 m po imporcie; dlatego cały tor i znaczniki liczymy przez 1/K.
+        const float actualLengthMetres=100f;
+        const float actualLaneWidthMetres=1.5f;
+        float sourceLength=actualLengthMetres/K;
+        float sourceHalf=sourceLength*.5f;
+        float sourceLane=actualLaneWidthMetres/K;
+        float sourceWidth=4f*sourceLane;
+        Box(straight,"Tartan — dokladnie 100 m po skali K",new Vector3(0,.106f,0),
+            new Vector3(sourceWidth,.21f,sourceLength),red);
         for(int lane=0;lane<=4;lane++)
-            Box(straight,"Linia oddzielajaca tor "+lane,new Vector3(-3f+1.5f*lane,.218f,0),
-                new Vector3(.055f,.009f,100f),white,false);
-        foreach(float z in new[]{-50f,50f})
+            Box(straight,"Linia oddzielajaca tor "+lane,
+                new Vector3(-sourceWidth*.5f+sourceLane*lane,.218f,0),
+                new Vector3(.055f/K,.009f,sourceLength),white,false);
+        foreach(float z in new[]{-sourceHalf,sourceHalf})
             Box(straight,z<0?"START 100 m":"META 100 m",new Vector3(0,.22f,z),
-                new Vector3(6f,.009f,.12f),white,false);
+                new Vector3(sourceWidth,.009f,.12f/K),white,false);
         for(int m=10;m<100;m+=10)
-            Box(straight,"Znacznik "+m+" m",new Vector3(3.08f,.218f,-50f+m),
-                new Vector3(.23f,.009f,.08f),white,false);
-        Sign(straight,"BRAXHORN · 100 M",new Vector3(0,2f,-54),6);
+            Box(straight,"Znacznik "+m+" m",new Vector3(sourceWidth*.5f+.08f,.218f,
+                -sourceHalf+m/K),new Vector3(.23f/K,.009f,.08f/K),white,false);
+        Sign(straight,"BRAXHORN · 100 M",new Vector3(0,2f,-sourceHalf-4f/K),sourceWidth);
+        if(Mathf.Abs(sourceLength*K-actualLengthMetres)>.0001f)
+            throw new InvalidOperationException("Bledna skala bieżni 100 m");
         Debug.Log("BRAXHORN_OBOZ_BIEZNIE owal=4-tory 100m=4-tory nawierzchnia=tartan z kolizja");
     }
     static Texture2D TartanGrain()
