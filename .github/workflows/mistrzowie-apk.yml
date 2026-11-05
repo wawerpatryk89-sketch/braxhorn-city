@@ -4,6 +4,38 @@ run-name: Miasto Mistrzów — ${{ inputs.etap || 'apk' }} — ${{ github.run_nu
 # Register this entry on main so GitHub displays a dedicated Run workflow form.
 # The game stays on its own branch; every run records the exact checked-out SHA.
 on:
+  # Dedicated, explicitly requested Unity 6 SCENE test reuses the same
+  # verified sources, geometry/cache and Editor as the real APK workflow.
+  # Called with etap=sceny only: NO Android BuildPlayer and NO APK delivery.
+  workflow_call:
+    inputs:
+      commit:
+        type: string
+        required: false
+        default: ''
+      kontrola_tras:
+        type: boolean
+        required: false
+        default: false
+      etap:
+        type: string
+        required: true
+      zdjecia:
+        type: boolean
+        required: false
+        default: false
+      recovery_run:
+        type: string
+        required: false
+        default: ''
+      base_id:
+        type: string
+        required: false
+        default: ''
+      arena_assets_tag:
+        type: string
+        required: false
+        default: 'champions-a1-20261105'
   workflow_dispatch:
     inputs:
       commit:
