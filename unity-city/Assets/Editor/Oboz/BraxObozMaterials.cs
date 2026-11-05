@@ -46,6 +46,45 @@ public static class BraxObozMaterials
         material.SetFloat("_PackedORM", 1); material.SetFloat("_RoughnessFactor", .7f); material.SetFloat("_MetallicFactor", 0);
         return Save(material, "forest-ground");
     }
+    // Only authored 4K+ maps with conventional Renderer UVs can shed their top
+    // mip at distance. The owner's 2K sources keep their full allocation; do not
+    // invent 4K details. The multi-layer camp ground, procedurally instanced
+    // grass and four-view billboards need special handling and stay resident.
+    public static bool ConfigureStreaming(TextureImporter importer, string path, bool customSampling = false)
+    {
+        bool campAsset = path.StartsWith("Assets/Source/Prywatne/Oboz/", StringComparison.Ordinal) ||
+            path.StartsWith("Assets/Source/Public/Oboz/", StringComparison.Ordinal) ||
+            path.StartsWith(BraxObozCharacters.Generated + "/", StringComparison.Ordinal);
+        if (!campAsset) return false; // Never change textures from city or estate.
+        bool excluded = customSampling || path.Contains("/environment/forest-ground/") ||
+            path.Contains("/vegetation/billboards/") || path.Contains("/Vegetation/Billboard-") ||
+            path.Contains("/Source/Public/Oboz/Grass001/");
+        bool stream = false;
+        if (!excluded && importer.mipmapEnabled && importer.textureShape == TextureImporterShape.Texture2D)
+        {
+            try
+            {
+                importer.GetSourceTextureWidthAndHeight(out int width, out int height);
+                // Both dimensions must contain real 4K pixels; a 2K source is
+                // not silently reduced below the owner's minimum 2K asset detail.
+                stream = width >= 4096 && height >= 4096;
+            }
+            catch (InvalidOperationException)
+            {
+                // Source dimensions may be unavailable during an initial import.
+                // Fail safely at full detail; the scene audit retries after import.
+                stream = false;
+            }
+        }
+        int priority = path.Contains("/characters/") ? 2 :
+            path.Contains("/environment/materials/") || path.Contains("/Source/Public/Oboz/") ? 1 : 0;
+        bool changed = importer.streamingMipmaps != stream ||
+            stream && importer.streamingMipmapsPriority != priority;
+        importer.streamingMipmaps = stream;
+        if (stream) importer.streamingMipmapsPriority = priority;
+        return changed;
+    }
+
     // Shared by the postprocessor and material authoring: no conflicting reimports.
     public static bool ConfigurePublicMap(TextureImporter importer, string kind)
     {
@@ -65,7 +104,7 @@ public static class BraxObozMaterials
         android.name="Android";android.overridden=true;android.maxTextureSize=4096;android.format=TextureImporterFormat.ASTC_4x4;
         android.compressionQuality=90;
         importer.SetPlatformTextureSettings(android);
-        return changed;
+        return ConfigureStreaming(importer, importer.assetPath) || changed;
     }
     public static Material PublicPbr(string id,float widthMetres)
     {
@@ -155,7 +194,8 @@ public static class BraxObozMaterials
     {
         public string asset,name,androidFormat;
         public int width,height,sourceWidth,sourceHeight,importLimit,androidLimit;
-        public bool sourceDimensionsKnown,sourceBelowRequestedDetail,alphaCoverage;
+        public bool sourceDimensionsKnown,sourceBelowRequestedDetail,alphaCoverage,streamingMipmaps;
+        public int streamingPriority;
         public long estimatedAndroidBytesWithMips;
     }
     [Serializable] sealed class TextureAudit
@@ -167,11 +207,22 @@ public static class BraxObozMaterials
     }
     public static void WriteTextureAudit(Transform root)
     {
+        var grasses = root.GetComponentsInChildren<BraxClaudeTrawa>(true);
         var materials=root.GetComponentsInChildren<Renderer>(true).SelectMany(r=>r.sharedMaterials)
-            .Concat(root.GetComponentsInChildren<BraxClaudeTrawa>(true).Select(g=>g.material))
-            .Where(m=>m).Distinct();
+            .Concat(grasses.Select(g=>g.material))
+            .Where(m=>m).Distinct().ToArray();
+        var protectedMaps = new HashSet<Texture2D>();
+        foreach (var material in materials)
+        {
+            bool custom = material.IsKeywordEnabled("OBOZ_GROUND_BLEND") ||
+                material.shader && material.shader.name == "Braxhorn/ObozTreeBillboard" ||
+                grasses.Any(g=>g.material == material);
+            if (!custom) continue;
+            foreach (var map in material.GetTexturePropertyNames().Select(material.GetTexture).OfType<Texture2D>())
+                protectedMaps.Add(map);
+        }
         var textures=materials.SelectMany(m=>m.GetTexturePropertyNames().Select(m.GetTexture))
-            .OfType<Texture2D>().Distinct().OrderBy(AssetDatabase.GetAssetPath);
+            .OfType<Texture2D>().Distinct().OrderBy(AssetDatabase.GetAssetPath).ToArray();
         var records=new List<TextureRecord>();
         foreach(var texture in textures)
         {
@@ -182,12 +233,18 @@ public static class BraxObozMaterials
                 androidFormat="unknown",estimatedAndroidBytesWithMips=-1};
             if(importer)
             {
+                // Refresh only camp-owned importers with known 4K source detail.
+                // Reimport on an actual settings change, never on every build.
+                if (ConfigureStreaming(importer, path, protectedMaps.Contains(texture)))
+                    importer.SaveAndReimport();
                 importer.GetSourceTextureWidthAndHeight(out record.sourceWidth,out record.sourceHeight);
                 record.sourceDimensionsKnown=record.sourceWidth>0&&record.sourceHeight>0;
                 var android=importer.GetPlatformTextureSettings("Android");
                 record.importLimit=importer.maxTextureSize;record.androidLimit=android.overridden?android.maxTextureSize:importer.maxTextureSize;
                 record.androidFormat=android.overridden?android.format.ToString():"automatic";
                 record.alphaCoverage=importer.mipMapsPreserveCoverage;
+                record.streamingMipmaps=importer.streamingMipmaps;
+                record.streamingPriority=importer.streamingMipmapsPriority;
                 bool atlas=path.Contains("/vegetation/billboards/")||path.Contains("/Vegetation/Billboard-");
                 record.sourceBelowRequestedDetail=record.sourceDimensionsKnown && (atlas
                     ? record.sourceWidth/4<2048 || record.sourceHeight<2048
@@ -215,7 +272,8 @@ public static class BraxObozMaterials
         Directory.CreateDirectory(output);File.WriteAllText(Path.Combine(output,"texture-audit.json"),JsonUtility.ToJson(report,true));
         Debug.Log("BRAXHORN_OBOZ_TEXTURES count="+records.Count+" source_below_requested_detail="+
             records.Count(r=>r.sourceBelowRequestedDetail)+" unknown_memory="+records.Count(r=>r.estimatedAndroidBytesWithMips<0)+
-            " estimated_android_bytes="+report.estimatedAndroidTextureBytesWithMips+" phone_measured=false");
+            " estimated_android_bytes="+report.estimatedAndroidTextureBytesWithMips+
+            " streamed_textures="+records.Count(r=>r.streamingMipmaps)+" phone_measured=false");
     }
     static Material Save(Material material, string id)
     {
