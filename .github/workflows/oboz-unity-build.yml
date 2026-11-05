@@ -61,7 +61,7 @@ jobs:
           python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
           python3 -m unittest discover -s unity-tools/oboz -p 'test_training_compile.py' -v
-          python3 -m unittest discover -s unity-tools/oboz/tests -p 'test_compact_owner_remodel.py' -v
+          python3 -m unittest discover -s unity-tools/oboz/tests -p 'test_*.py' -v
       - name: Sprawdź narzędzia Androida przed kompilacją
         run: |
           set -euo pipefail
