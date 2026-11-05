@@ -188,14 +188,108 @@ def run(package: Path, target: Path, apply: bool) -> dict:
     return result
 
 
+
+# Five independent ZIPs for mobile upload; every source entry is pinned in the
+# 31-file owner SHA-256 manifest. Splitting does NOT alter any original model.
+SPLIT_PARTS = {
+    "BRAXHORN_MODELE_CZESC_01_Z_05.zip": (84984137, "1207ac04b4bd2422a9b5e9870332887b42d110f3628bdf960b5f96174fa4e281"),
+    "BRAXHORN_MODELE_CZESC_02_Z_05.zip": (84997165, "01a33b3b93a01604e89bcf0ff0ba3d831d89d32f8ddb52e51051920342d24b8b"),
+    "BRAXHORN_MODELE_CZESC_03_Z_05.zip": (84995158, "399abced06451b1dc19a723a0578d7db24d6afb97d992dacd551f22cfcb42321"),
+    "BRAXHORN_MODELE_CZESC_04_Z_05.zip": (84985353, "f7a07cd18ef6ad800878d8b2964851ee0262d74ad5098de0b4bf2ca538b14f08"),
+    "BRAXHORN_MODELE_CZESC_05_Z_05.zip": (5311312, "59c048af6a84ca4cd5668498f369fbfc746cb2d23c12636e73ced40372bec1c6"),
+}
+
+
+def run_parts(parts: list[Path], target: Path, apply: bool) -> dict:
+    """Verify all five small ZIPs, then install original contents and stable GUIDs.
+
+    Each ZIP can be opened separately on iPhone. No re-zipping, re-compression,
+    resizing or change to original GLB/FBX/EXR/JPEG bytes is performed.
+    """
+    manifest = json.loads(MANIFEST.read_text("utf-8"))
+    expected = {entry["path"]: entry for entry in manifest["contents"]}
+    if len(expected) != len(manifest["contents"]) or len(parts) != 5:
+        raise ValueError("Five parts and unique source manifest records required")
+    by_name = {item.name: item for item in parts}
+    if len(by_name) != len(parts) or set(by_name) != set(SPLIT_PARTS):
+        raise ValueError("All five BRAXHORN_MODELE_CZESC_0x_Z_05.zip files are required")
+    contents: dict[str, bytes] = {}
+    for name, (size, checksum) in SPLIT_PARTS.items():
+        path = by_name[name]
+        if path.stat().st_size != size or sha256_file(path) != checksum:
+            raise ValueError("Damaged or substituted mobile ZIP part: " + name)
+        with zipfile.ZipFile(path) as z:
+            broken = z.testzip()
+            if broken is not None:
+                raise ValueError("Wrong CRC in " + name + ": " + broken)
+            names = z.namelist()
+            if len(names) != len(set(names)):
+                raise ValueError("Duplicated source within ZIP: " + name)
+            for info in z.infolist():
+                filename = str(secure_name(info.filename))
+                if info.is_dir() or (info.external_attr >> 16) & 0o170000 == 0o120000:
+                    raise ValueError("Unexpected directory or symlink in: " + name)
+                if filename not in expected or filename in contents:
+                    raise ValueError("Unknown/duplicated owner asset: " + filename)
+                item = expected[filename]
+                if info.file_size != item["bytes"]:
+                    raise ValueError("Wrong source byte length: " + filename)
+                raw = z.read(info.filename)
+                if len(raw) != item["bytes"] or sha256(raw) != item["sha256"]:
+                    raise ValueError("Original model source checksum mismatch: " + filename)
+                contents[filename] = raw
+    missing = sorted(set(expected) - set(contents))
+    if missing:
+        raise ValueError("Incomplete five-part mobile transfer: " + repr(missing))
+    class VerifiedArchive:
+        def namelist(self):
+            return list(contents)
+        def read(self, name):
+            return contents[name]
+    # Same mapping of unaltered originals as the big-archive importer.
+    files = unpack_plan(VerifiedArchive())
+    if any("character" in str(p).lower() or "animat" in str(p).lower() for p, _ in files):
+        raise ValueError("A source attempts to modify locked characters")
+    created = unchanged = 0
+    for rel, raw in files:
+        secure_name(rel.as_posix())
+        path = target / rel
+        if path.exists():
+            if sha256_file(path) != sha256(raw):
+                raise ValueError("Cannot overwrite different pre-existing source: " + str(path))
+            unchanged += 1
+        elif apply:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("xb") as output:
+                output.write(raw)
+            created += 1
+    metadata = stamp_unity_metadata(target, files) if apply else 0
+    return {
+        "status": "applied" if apply else "verified_only",
+        "source_count": len(expected), "parts_verified": 5,
+        "unity_files": len(files), "new_files": created,
+        "existing_unchanged": unchanged, "unity_guids_verified": metadata,
+        "characters_untouched": True, "source_originals_unchanged": True,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--package", required=True, type=Path)
+    parser.add_argument("--package", type=Path,
+                        help="Original 345MB ZIP, OR use --parts")
+    parser.add_argument("--parts", type=Path, nargs=5,
+                        help="Five unchanged small ZIPs downloaded on mobile")
     parser.add_argument("--target", type=Path, default=DEFAULT_TARGET)
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
     try:
-        result = run(args.package.resolve(), args.target.resolve(), args.apply)
+        if bool(args.package) == bool(args.parts):
+            raise ValueError("Provide exactly one input: --package OR --parts 01 02 03 04 05")
+        if args.parts:
+            result = run_parts([p.resolve() for p in args.parts],
+                               args.target.resolve(), args.apply)
+        else:
+            result = run(args.package.resolve(), args.target.resolve(), args.apply)
     except (OSError, ValueError, zipfile.BadZipFile, KeyError) as error:
         print("BRAXHORN_OWNER_IMPORT_FAIL:", str(error), file=sys.stderr)
         return 2
