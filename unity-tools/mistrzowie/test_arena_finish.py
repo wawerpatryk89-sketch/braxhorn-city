@@ -30,21 +30,15 @@ class ArenaFinishTests(unittest.TestCase):
         for direction in ("spectator_south", "fighter_north"):
             self.assertEqual(geometry[(64, direction)], geometry[(128, direction)])
 
-    def test_vip_leather_chairs_have_clear_width_and_preserve_judges_desks(self):
-        centres = []
-        for row_z in (70.3, 72.05):
-            for x0, x1 in ((-94.6, -88.9), (-83.1, -77.4)):
-                x = x0 + .9
-                while x <= x1 - .25:
-                    centres.append((x, row_z))
-                    x += 1.35
-        self.assertEqual(len(centres), 16)
-        left = max(x for x, _ in centres if x < -86)
-        right = min(x for x, _ in centres if x > -86)
-        self.assertGreater(right - left - 1.15, 6.0)
-        self.assertGreater(72.05 - 70.3 - .98, .70)
-        # The original judges' desk ends at z=65.6 and is left unchanged.
-        self.assertGreater(70.3 - .65 - 65.6, 4.0)
+    def test_vip_contract_uses_only_original_glb_not_standins(self):
+        arena = (ROOT / "unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs").read_text()
+        vip = (ROOT / "unity-city/Assets/Editor/Mistrzowie/BraxChampionsVIPSeats.cs").read_text()
+        self.assertIn("BraxChampionsVIPSeats.Generate(root)", arena)
+        self.assertNotIn("LuxuryVipArmchair(", arena)
+        self.assertIn("free_luxurious_barrel_seat_2k.glb", vip)
+        self.assertIn("SeatCount != 16", vip)
+        # Detailed footprint/aisle tests live in test_arena_vip.py.
+        self.assertIn("BoxMinMax(deskTop, x0 - .05f", arena)
 
     def test_parking_apron_stops_at_existing_southern_road_edge(self):
         # A1 approved centre (600,800); z=650 road+walk reaches z=667.
