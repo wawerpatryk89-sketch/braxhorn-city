@@ -21,6 +21,9 @@ public static class BraxChampionsArena
         var root=new GameObject("Champion Arena North | adapted estate bowl").transform;
         colliders=new GameObject("Arena structural collision").transform;colliders.SetParent(root,false);W.Start(root);
         CopiedEstateArena();W.Zapisz("mistrzowie_arena_estate_reuse");
+        // Import the owner's actual 2K PBR barrel chairs beside judges.
+        // With GLB available the low-quality/procedural VIP placeholders are not drawn.
+        SeatCount += BraxChampionsVIPSeats.Generate(root);
         // Source method uses nominal estate metres. Apply the game's K exactly once to this subtree.
         float k=BraxClaudeOsiedle.K;var rot=Quaternion.Euler(0,180,0);
         root.SetParent(building,false);root.localScale=Vector3.one*k;root.localRotation=rot;
@@ -201,19 +204,21 @@ public static class BraxChampionsArena
         foreach(float zz in new[]{cz-15,cz+15})
             foreach(float side in new[]{-12f,12f})
                 TierStairs(true,zz,zz<cz?1:-1,cx+side);
-        // Premium VIP lounge: replace the cheap, densely packed chairs next to
-        // the judges (on both sides of the central walkway). Desk and referee
-        // equipment at z=61..65 remain exactly where they were.
-        // Generous 1.35m pitch and 1.75m row separation: NO chair overlaps.
-        void VipSeat(float x,float z)
+        // Preserve the fallback VIP arrangement only while the actual owner's
+        // GLB has not been delivered to the Unity asset folder. Once present,
+        // the imported model completely replaces these temporary chairs.
+        if (!BraxChampionsVIPSeats.HasSource)
         {
-            LuxuryVipArmchair(leather,new Vector3(x,yF,z),180f);
-            SeatCount++;
+            void VipSeat(float x,float z)
+            {
+                LuxuryVipArmchair(leather,new Vector3(x,yF,z),180f);
+                SeatCount++;
+            }
+            foreach(float zr in new[]{70.3f,72.05f})
+                foreach(var (a0,a1) in new[]{(-94.6f,-88.9f),(-83.1f,-77.4f)})
+                    for(float x=a0+.9f;x<=a1-.25f;x+=1.35f)
+                        VipSeat(x,zr);
         }
-        foreach(float zr in new[]{70.3f,72.05f})
-            foreach(var (a0,a1) in new[]{(-94.6f,-88.9f),(-83.1f,-77.4f)})
-                for(float x=a0+.9f;x<=a1-.25f;x+=1.35f)
-                    VipSeat(x,zr);
         // stół komentatorów (zachód, przodem do klatki) i stół sędziów (wschód)
         foreach (var (x0, x1, s) in new[] { (-94.0f, -93.3f, 1f), (-78.7f, -78.0f, -1f) })
         {
