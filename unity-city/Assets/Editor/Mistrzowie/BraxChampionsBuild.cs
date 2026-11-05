@@ -205,13 +205,13 @@ public static class BraxChampionsBuild
         {
             QualitySettings.SetQualityLevel(i,false);
             QualitySettings.streamingMipmapsActive=true;
-            QualitySettings.streamingMipmapsMemoryBudget=512;
-            QualitySettings.streamingMipmapsMaxLevelReduction=1; // 4K source: lowest resident level 2K.
+            QualitySettings.streamingMipmapsMemoryBudget=256; // budzet testowy; pomiar GPU na telefonie wymagany
+            QualitySettings.streamingMipmapsMaxLevelReduction=3; // 2K blisko; do 256px przy ograniczonym budzecie i w oddali
             QualitySettings.streamingMipmapsAddAllCameras=true;
         }
         QualitySettings.SetQualityLevel(previousQuality,false);
         var result=BuildPipeline.BuildPlayer(new BuildPlayerOptions{scenes=scenes,target=BuildTarget.Android,
-            locationPathName=Path.Combine(output,"braxhorn-mistrzowie.apk"),options=BuildOptions.None});
+            locationPathName=Path.Combine(output,"braxhorn-mistrzowie.apk"),options=BuildOptions.CompressWithLz4});
         if(result.summary.result!=BuildResult.Succeeded)
             throw new InvalidOperationException("APK Miasta Mistrzów: "+result.summary.result+"; błędów="+result.summary.totalErrors);
         // Like the existing city builder: mark only a completed BuildPlayer output.
