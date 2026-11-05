@@ -159,15 +159,71 @@ def restore(project, archive, expected):
                         proc.stdout.close()
 
 
+def require_delivered_champions_base(index, expected):
+    """No content patch against a base whose signed APK was never delivered."""
+    if expected.get('zone') != 'mistrzowie':
+        return
+    delivery = index.get('publishedApk')
+    if (not isinstance(delivery, dict)
+            or delivery.get('status') != 'APK_DELIVERED'
+            or delivery.get('applicationId') != 'com.braxhorn.mistrzowie'
+            or not re.fullmatch(r'[0-9a-f]{64}', delivery.get('apkSha256', ''))
+            or not re.fullmatch(r'[0-9a-f]{64}', delivery.get('certificateSha256', ''))):
+        raise ValueError('Miasto Mistrzów: baza nie ma potwierdzonego podpisanego APK. '
+                         'Nie wolno wydać aktualizacji dla niewydanej bazy.')
+
+
+def approve_champions_base(project, repo, base=None):
+    """Promote private candidate snapshot only after real signed APK delivery."""
+    manifest = json.loads((project/'BraxContentBuild/base/manifest.json').read_text())
+    expected = identity(manifest)
+    if expected['zone'] != 'mistrzowie' or (base and base != expected['base']):
+        raise ValueError('Expected an existing Miasto Mistrzów content baseline')
+    receipt = json.loads((project.parent/'mistrzowie-evidence/apk-delivery.json').read_text())
+    if (receipt.get('status') != 'APK_DELIVERED_RUNTIME_REVIEW_PENDING'
+            or receipt.get('applicationId') != 'com.braxhorn.mistrzowie'
+            or receipt.get('commit') != os.environ.get('SOURCE_SHA')
+            or str(receipt.get('runId')) != os.environ.get('GITHUB_RUN_ID')
+            or not re.fullmatch(r'[0-9a-f]{64}', receipt.get('sha256', ''))
+            or not re.fullmatch(r'[0-9a-f]{64}', receipt.get('certificateSha256', ''))):
+        raise ValueError('Signed APK delivery receipt missing or does not belong to this build')
+    tag = 'content-base-' + expected['base']
+    release = view(repo, tag)
+    index = json.loads(release.get('body') or '{}')
+    if index.get('profile') != expected or not index.get('current'):
+        raise ValueError('Private encrypted candidate base missing or mismatched')
+    record = dict(status='APK_DELIVERED',
+                  applicationId=receipt['applicationId'],
+                  apkSha256=receipt['sha256'],
+                  certificateSha256=receipt['certificateSha256'],
+                  sourceCommit=receipt['commit'],
+                  runId=receipt['runId'],
+                  versionCode=receipt['versionCode'])
+    if index.get('publishedApk') and index['publishedApk'] != record:
+        raise ValueError('Refusing to replace an approved immutable baseline')
+    index['publishedApk'] = record
+    with tempfile.TemporaryDirectory(prefix='champions-base-approval-') as tmp:
+        notes = Path(tmp)/'release-index.json'
+        notes.write_text(json.dumps(index, indent=2))
+        gh('release','edit',tag,'--repo',repo,'--notes-file',str(notes))
+    reread = json.loads(view(repo, tag)['body'])
+    if reread.get('publishedApk') != record:
+        raise ValueError('Signed content baseline approval was not persisted')
+    print('BRAX_MISTRZOWIE_BASE_APPROVED', expected['base'],
+          'signed_apk_run', receipt['runId'])
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('publish-base','restore-base','publish-update'))
+    parser.add_argument('command', choices=('publish-base','approve-base','restore-base','publish-update'))
     parser.add_argument('--project', type=Path, default=Path('unity-city'))
     parser.add_argument('--base')
     args = parser.parse_args()
     project, repo = args.project, os.environ['GITHUB_REPOSITORY']
     archive = project.parent / 'content-baseline.tar.zst.enc'
-    if args.command == 'publish-base':
+    if args.command == 'approve-base':
+        approve_champions_base(project, repo, args.base)
+    elif args.command == 'publish-base':
         manifest = json.loads((project/'BraxContentBuild/base/manifest.json').read_text())
         expected = identity(manifest); tag = 'content-base-' + expected['base']
         try:
@@ -189,9 +245,11 @@ def main():
             raise ValueError('Explicit base ID required')
         tag = 'content-base-' + args.base
         data = view(repo, tag)
-        expected = json.loads(data['body'])['profile']
+        index = json.loads(data['body'])
+        expected = index['profile']
         if expected.get('base') != args.base or expected.get('key') != 'content-' + args.base:
             raise ValueError('Unexpected baseline release')
+        require_delivered_champions_base(index, expected)
         if args.command == 'restore-base':
             download(repo, tag, archive, expected)
             restore(project, archive, expected)
