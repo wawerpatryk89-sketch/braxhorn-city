@@ -137,6 +137,10 @@ public static class BraxObozBuild
             QualitySettings.streamingMipmapsMaxLevelReduction = 2;
             QualitySettings.globalTextureMipmapLimit = 0;
             QualitySettings.streamingMipmapsAddAllCameras = true;
+            // Oboz na telefon: lokalny cień kontaktowy, bez wysokich map cieni świata.
+            QualitySettings.shadows = ShadowQuality.All;
+            QualitySettings.shadowDistance = 30f;
+            QualitySettings.shadowResolution = ShadowResolution.Medium;
         }
         QualitySettings.SetQualityLevel(previousQuality, false);
         AssetDatabase.SaveAssets();
