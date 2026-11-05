@@ -187,7 +187,7 @@ public static class BraxChampionsBeachFurnishings
         root.SetParent(foundation,false);
         var tower=OriginalLifeguard(root);
         int number=0;
-        for(int n=0;n<16;n++)
+        for(int n=0;n<17;n++)
         {
             float x=132f+n*33f;
             if(Mathf.Abs(x-331f)<27f)continue; // emergency access to tower
@@ -195,6 +195,7 @@ public static class BraxChampionsBeachFurnishings
             BuildLounger(root,x-1.12f,-208f,number++);
             BuildLounger(root,x+1.12f,-208f,number++);
         }
+        if(number!=32)throw new InvalidOperationException("Expected exactly 32 original-size loungers");
         Debug.Log("CHAMPIONS_BEACH_ASSETS_SOURCE R1_LIFEGUARD=1 original_r1_chaise_dimensions=1.95x.65m"+
                   " occupied_by_people=0 actor_modifications=0 sea_waves_unchanged=1 Android2K=true");
     }

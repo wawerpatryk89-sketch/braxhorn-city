@@ -158,6 +158,11 @@ public static class BraxChampionsFoundation
     public static void VerifyInputs()
     {
         var d=Read();Sources();Palms();Tree();
+        // Source-only verification before creating expensive Unity scenes.
+        // Downloaded originals must include full 2K albedo/normal/ARM.
+        BraxChampionsPromenadeGoods.Verify25OriginalModels();
+        if(!File.Exists("Assets/Source/HarborBeach/Models/lifeguard_tower.glb"))
+            throw new FileNotFoundException("Missing owner R1 lifeguard tower; no substitute");
         if(!Shader.Find(BraxCityMaterials.ShaderName))throw new InvalidOperationException("Existing CityStaticPBR shader missing");
         if(!File.Exists(WaterTemplate))throw new FileNotFoundException("Existing harbour water shader source missing",WaterTemplate);
         Debug.Log("BRAX_MISTRZOWIE_INPUTS_OK geometry="+d.meshes.Length+" K="+K+"; visual acceptance pending");
@@ -248,6 +253,8 @@ public static class BraxChampionsFoundation
             // Instantiate 12 actual 2K-PBR premium shop shells on REMOVED
             // inland lawn patches, with no duplicate floor under their slab.
             BraxChampionsPromenade.Build(root,d.promenade);
+            // Original first-city tower and R1-size loungers. No staff/visitors.
+            BraxChampionsBeachFurnishings.Build(root);
             // Place the ORIGINAL user-library yacht, Riva and jetski models.
             // No fabricated cruise/ferry vessel is allowed without its source.
             int boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths,d.piers);
