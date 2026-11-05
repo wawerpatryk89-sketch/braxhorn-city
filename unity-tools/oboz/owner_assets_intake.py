@@ -104,6 +104,49 @@ def unpack_plan(raw_zip: zipfile.ZipFile) -> list[tuple[Path, bytes]]:
     return output
 
 
+def ensure_stable_meta(target: Path, relative: Path, folder: bool = False) -> None:
+    """Preserve valid existing Unity GUIDs, create deterministic GUID for new inputs.
+
+    Does not touch characters, animation imports, original model bytes or meshes.
+    """
+    asset = target / relative
+    if not asset.exists():
+        raise ValueError("Cannot create Unity GUID for missing file: " + str(asset))
+    meta = asset.with_name(asset.name + ".meta")
+    if meta.exists():
+        content = meta.read_text(encoding="utf-8")
+        import re
+        if not re.search(r"(?m)^guid: [0-9a-f]{32}$", content):
+            raise ValueError("Invalid pre-existing Unity GUID: " + str(meta))
+        return
+    source = relative.as_posix() + ("/" if folder else "")
+    guid = hashlib.sha256(("brx-owner-20261105:" + source).encode("utf-8")).hexdigest()[:32]
+    data = "fileFormatVersion: 2\n" + "guid: " + guid + "\n"
+    if folder:
+        data += "folderAsset: yes\nDefaultImporter:\n  externalObjects: {}\n  userData:\n  assetBundleName:\n  assetBundleVariant:\n"
+    with meta.open("x", encoding="utf-8") as file:
+        file.write(data)
+
+
+def stamp_unity_metadata(target: Path, files: list[tuple[Path, bytes]]) -> int:
+    """Writes only .meta files under OwnerAssets; keeps every existing GUID."""
+    if not target.is_dir():
+        raise ValueError("OwnerAssets target directory missing")
+    # OwnerAssets folder itself has its .meta file next to it, not inside.
+    ensure_stable_meta(target.parent, Path(target.name), folder=True)
+    folders: set[Path] = set()
+    for relative, _ in files:
+        current = relative.parent
+        while current != Path("."):
+            folders.add(current)
+            current = current.parent
+    for folder in sorted(folders, key=lambda item: (len(item.parts), item.as_posix())):
+        ensure_stable_meta(target, folder, folder=True)
+    for relative, _ in files:
+        ensure_stable_meta(target, relative)
+    return 1 + len(folders) + len(files)
+
+
 def run(package: Path, target: Path, apply: bool) -> dict:
     manifest = json.loads(MANIFEST.read_text("utf-8"))
     if package.stat().st_size != manifest["packageBytes"]:
@@ -135,9 +178,11 @@ def run(package: Path, target: Path, apply: bool) -> dict:
             with dst.open("xb") as handle:
                 handle.write(buf)
             created += 1
+    meta_count = stamp_unity_metadata(target, files) if apply else 0
     result = {"status": "applied" if apply else "verified_only",
               "source_count": len(expected), "unity_files": len(files),
               "new_files": created, "existing_unchanged": skipped,
+              "unity_guids_verified": meta_count,
               "characters_untouched": True,
               "source_originals_unchanged": True}
     return result
