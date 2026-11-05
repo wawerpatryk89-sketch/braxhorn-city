@@ -91,6 +91,13 @@
       "z": 76,
       "width": 30,
       "depth": 22
+    },
+    {
+      "id": "sanitary-entrance-path",
+      "x": -92,
+      "z": -76.5,
+      "width": 3,
+      "depth": 8
     }
   ],
   "lawnClearances": [
@@ -233,6 +240,13 @@
       "z": 76,
       "width": 30,
       "depth": 22
+    },
+    {
+      "id": "sanitary-bathrooms",
+      "x": -92,
+      "z": -83,
+      "width": 13,
+      "depth": 11
     }
   ],
   "busDesignEnvelope": {
