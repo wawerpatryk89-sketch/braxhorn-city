@@ -21,7 +21,17 @@ public sealed class BraxSeat : MonoBehaviour
     public static BraxSeat Nearest(Vector3 p, float max)
     {
         BraxSeat best = null; float bd = max;
-        foreach (var s in All) { if (!s || s.rider || s.tramOwner) continue; var d = s.transform.position - p; d.y = 0; if (d.magnitude < bd) { bd = d.magnitude; best = s; } }
+        foreach (var s in All)
+        {
+            if (!s || s.rider || s.tramOwner) continue;
+            var d = s.transform.position - p;
+            // R1 / NOVA: sofa na piętrze nie może być dostępna przez sufit z poziomu ulicy.
+            // Wysokość siedziska względem stóp gracza może wynosić ~1 m (hoker), lecz nie kilka metrów.
+            if (Mathf.Abs(d.y) > 1.4f) continue;
+            d.y = 0f;
+            var dist = d.magnitude;
+            if (dist < bd) { bd = dist; best = s; }
+        }
         return best;
     }
 
