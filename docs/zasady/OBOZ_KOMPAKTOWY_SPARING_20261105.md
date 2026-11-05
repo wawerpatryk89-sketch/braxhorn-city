@@ -40,3 +40,19 @@ Ponownie przesłane `Monika(1).zip` oraz `Monika anim(3).zip` są identyczne baj
 6. Brak zgody właściciela na automatyczny build, publikację i zmianę main. Manualny workflow jest do użycia wyłącznie na osobne polecenie.
 
 **Nie traktować statycznej zmiany C# jako potwierdzenia funkcjonalności na telefonie.**
+
+## Zaplecze sanitarne — kolejny etap przebudowy
+- Zachowano pięć istniejących modeli usługowych: stołówkę, prysznice, saunę, punkt medyczny i magazyn. Nie zastępowano ich pustymi atrapami.
+- Dodano wewnątrz ogrodzenia osobny blok **WC / łaźnia / umywalnia** w położeniu nominalnym `(-92, -83)`.
+- Dwie kabiny WC: fizyczne miski, spłuczki, przyciski **SPŁUCZ TOALETĘ**, futryny, osobne ruchome skrzydła drzwi oraz miejsca do siedzenia; celowo usunięto zdublowane, nakładające się powierzchnie futryn.
+- Dwie umywalki: ceramiczne misy, baterie, lustra i interakcje **ODKRĘĆ/ZAKRĘĆ KRAN** z krótkim efektem wody.
+- Dwie dodatkowe kabiny prysznicowe: brodziki, deszczownice, osłony szklane i istniejąca interakcja **WŁĄCZ/WYŁĄCZ PRYSZNIC**.
+- Doprowadzono chodnik do wejścia, a obrys budynku wpisano do stref wyłączonych z sadzenia drzew i trawy. Fizyczne otwory drzwi pozostają drożne — nie dodawano przez nie niewidocznych colliderów.
+- Kontrola sceny sprawdza dwie kabiny, działające interakcje WC i umywalek, co najmniej dwa prysznice z efektami oraz dwa niezależne skrzydła drzwi.
+- **Ograniczenie:** interakcja spłukiwania wyświetla potwierdzenie, nie symuluje instalacji hydraulicznej; animacja siedzenia i przejście przez każdą kabinę wymagają Play Mode.
+
+## Statyczna kontrola zmian
+- Sprawdzono bilans nawiasów/składni bloków w 17 zmienionych plikach C# (kontrola leksykalna, **nie kompilator Unity**).
+- Zweryfikowano w kodzie rynnowe ustawienie strumienia na wschód od granicy, dwa rodzaje bieżni, generowanie siłowni, podłączenia wc i kranów oraz import trzech własnych animacji Moniki bez dodatkowego Humanoid retargetingu.
+- Potwierdzono w planie JSON, że bieżnia owalna, prosta 100 m, siłownia, nowe WC, domki, prysznice, sauna i przystanek mieszczą się wewnątrz ogrodzenia o granicach X `[-126,126]`, Z `[-125,115]`.
+- Nie wykonano Unity Edit Mode, Play Mode, nowego APK ani pomiaru rozmiaru lub FPS; poprawności zachowania na telefonie nie wolno deklarować przed tymi testami.
