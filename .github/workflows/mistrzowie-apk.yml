@@ -147,35 +147,23 @@ jobs:
             python3 unity-tools/mistrzowie/import_champion_assets.py "$owner_pack" --dry-run
             python3 unity-tools/mistrzowie/import_champion_assets.py "$owner_pack"
 
-            # ONE uploaded owner archive carries all remaining originals:
-            # 148 city signs and THREE panoramic murals. Nested source ZIPs
-            # and original Unity GUIDs are preserved and SHA-verified.
+            # ONLY the 3 original A1 murals, the 3 signs in use by T11,
+            # and the owner's exact 1536x512 image for the 3-D belt cabinet.
+            # Remaining city signs are preserved for later, not required now.
+            # No image/model can be substituted or silently redrawn.
+            selected="ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip"
             gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-              --pattern MIASTO_MISTRZOW_SZYLDY_148_I_MURALE_3.zip \
-              --dir "$RUNNER_TEMP" --clobber
-            python3 unity-tools/mistrzowie/unpack_owner_graphics.py \
-              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_148_I_MURALE_3.zip" \
-              "$RUNNER_TEMP/mistrzowie-owner-graphics" --dry-run
-            python3 unity-tools/mistrzowie/unpack_owner_graphics.py \
-              "$RUNNER_TEMP/MIASTO_MISTRZOW_SZYLDY_148_I_MURALE_3.zip" \
-              "$RUNNER_TEMP/mistrzowie-owner-graphics"
-
-            python3 unity-tools/mistrzowie/import_arena_three_murals.py \
-              "$RUNNER_TEMP/mistrzowie-owner-graphics/ARENA_A1_TRZY_MURALE_ORIGINALY.zip" --dry-run
-            python3 unity-tools/mistrzowie/import_arena_three_murals.py \
-              "$RUNNER_TEMP/mistrzowie-owner-graphics/ARENA_A1_TRZY_MURALE_ORIGINALY.zip"
-
-            python3 unity-tools/mistrzowie/import_city_signs.py \
-              "$RUNNER_TEMP/mistrzowie-owner-graphics/MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip" \
-              "$RUNNER_TEMP/mistrzowie-owner-graphics/MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip" --dry-run
-            python3 unity-tools/mistrzowie/import_city_signs.py \
-              "$RUNNER_TEMP/mistrzowie-owner-graphics/MIASTO_MISTRZOW_SZYLDY_01_06_UNITY.zip" \
-              "$RUNNER_TEMP/mistrzowie-owner-graphics/MIASTO_MISTRZOW_SZYLDY_07_13_UNITY.zip"
+              --pattern "$selected" --dir "$RUNNER_TEMP" --clobber
+            python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
+              "$RUNNER_TEMP/$selected" --dry-run
+            python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
+              "$RUNNER_TEMP/$selected"
           fi
           python3 unity-tools/mistrzowie/verify_champion_assets.py
           python3 unity-tools/mistrzowie/verify_arena_three_murals.py
           test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png
-          echo "MISTRZOWIE_A1_T11_ASSET_GATE PASS; arena belt/VIP + 3 murals + 148 original signs including casino"
+          test -s unity-city/Assets/Source/Mistrzowie/Trophies/BRAXHORN_ARENA_CASE_PLAQUE.jpg
+          echo "MISTRZOWIE_A1_T11_ASSET_GATE PASS; original belt/VIP + 3 murals + 3 relevant signs + 1 owner case image"
 
       - name: Verify key and sign a real tiny APK before the expensive Unity build
         if: inputs.etap != 'sceny'
