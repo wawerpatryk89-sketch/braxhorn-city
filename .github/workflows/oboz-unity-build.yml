@@ -50,6 +50,11 @@ jobs:
           BEFORE_SHA: ${{ github.event.before }}
           FIRST_INSTALL: ${{ inputs.first_install }}
         run: python3 unity-tools/oboz/build_request.py
+      # Fails before downloading Unity cache or importing models when owner
+      # has not uploaded both original sources into the private DRAFT release.
+      - name: Sprawdź prywatną dostawę modeli i byka przed Unity
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: python3 unity-tools/oboz/owner_release_assets.py preflight
       - name: C# syntax and local scopes before Unity (CS0136 regression)
         run: |
           python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
@@ -69,11 +74,6 @@ jobs:
           "$AAPT" version
           "$SIGNER" version
           printf 'AAPT=%s\nSIGNER=%s\n' "$AAPT" "$SIGNER" >> "$GITHUB_ENV"
-      # Fails before downloading Unity cache or importing models when owner
-      # has not uploaded both original sources into the private DRAFT release.
-      - name: Sprawdź prywatną dostawę modeli i byka przed Unity
-        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
-        run: python3 unity-tools/oboz/owner_release_assets.py preflight
       - name: Sprawdzenie dostawy i sekretów przed importem Unity
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
