@@ -69,7 +69,12 @@ public static class BraxObozActors
                 string id=arena.label=="Ring 1"?"kade":arena.label=="Ring 2"?"zyro":"mis";
                 arena.opponent=npcs.Single(n=>n.characterId==id);
             }
-            world.points = new[] { Point("octagon","OKTAGON",0,-5),Point("rings","RINGI",0,15),Point("cabins","DOMKI",-81,-30),Point("bags","WORKI",0,-40) };
+            world.points = new[] {
+                Point("octagon","OKTAGON",0,-5), Point("rings","RINGI",0,15),
+                Point("cabins","DOMKI",-81,-30), Point("bags","WORKI",0,-40),
+                Point("gym","BRAXHORN GYM",-42,76), Point("wc","ŁAŹNIA I WC",-92,-83),
+                Point("oval","BIEŻNIA OWALNA",65,72), Point("sprint","BIEŻNIA 100 M",113,-35)
+            };
             info.ownerAppearanceApproved=false; info.mobileRuntimeVerified=false;
             BraxObozMaterials.WriteTextureAudit(info.transform);
             if(!EditorSceneManager.SaveScene(scene,ScenePath))throw new IOException("Nie zapisano podglądu obozu");
