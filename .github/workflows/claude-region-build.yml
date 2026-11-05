@@ -1,6 +1,6 @@
 name: Claude - region R1 na gotowo (TEST, bez publikacji)
 'on':
-  # Jednorazowy retry APK przy zatwierdzonej zmianie workflow. Zwykle pushe bez zmian workflow nie startują buildu.
+  # Właściciel zlecił 05.11.2026 ponowne uruchomienie APK Miasto/Metro po naprawie awarii #94. Jednorazowy push workflow; bez zmian geometrii i kolizji.
   push:
     branches:
       - codex/miasto-metro-apk-kontrola-20261105
