@@ -199,9 +199,9 @@ jobs:
           test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png
           test -s unity-city/Assets/Source/Mistrzowie/Trophies/BRAXHORN_ARENA_CASE_PLAQUE.jpg
           test -s unity-city/Assets/Source/Mistrzowie/Vehicles/car_rev.glb
-          test -s unity-city/Assets/Source/Mistrzowie/Vehicles/Animations/Entering\ Car.fbx
-          test -s unity-city/Assets/Source/Mistrzowie/Vehicles/Animations/Driving.fbx
-          test -s unity-city/Assets/Source/Mistrzowie/Vehicles/Animations/Exiting\ Car.fbx
+          test -s unity-city/Assets/Source/Mistrzowie/Brax/CarAnimations/Entering\ Car.fbx
+          test -s unity-city/Assets/Source/Mistrzowie/Brax/CarAnimations/Driving.fbx
+          test -s unity-city/Assets/Source/Mistrzowie/Brax/CarAnimations/Exiting\ Car.fbx
           echo "MISTRZOWIE_A1_T11_ASSET_GATE PASS; owner original belt/VIP/3 murals/3 signs/cabinet plaque/estate car/3 Mixamo clips"
 
       - name: Verify key and sign a real tiny APK before the expensive Unity build
