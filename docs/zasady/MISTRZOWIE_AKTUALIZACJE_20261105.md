@@ -21,10 +21,12 @@ przed wdrożeniem tego kodu.
 3. `BraxContentBuild.Baseline("mistrzowie", ...)` zapisuje oryginalne GUID-y,
    `addressables_content_state.bin` i `manifest.json`. Pierwsza scena
    aplikacji jest lekka, a miasto dostarczane w lokalnych bundle'ach w APK.
-4. CI zapisuje *zaszyfrowany* snapshot scen, zasobów, `.meta` i stanu
-   Addressables do prywatnego draft release `content-base-<baseId>`, **przed**
-   weryfikacją podpisu. Nie wolno publikować APK jako bazy aktualizacyjnej,
-   jeśli snapshot się nie zapisze.
+4. CI zapisuje *zaszyfrowany* snapshot scen, zasobów, `.meta`, oryginalnej
+   biblioteki Android `BraxContentPicker.jar` i stanu Addressables do prywatnego
+   draft release `content-base-<baseId>`, **przed** weryfikacją podpisu.
+   To na razie kandydat bazy — zapisane dane nie potwierdzają wydania APK.
+   Dopiero po weryfikacji i dostarczeniu podpisanego APK etap `approve-base`
+   zatwierdza bazę. Aktualizacje odrzucają bazę niezatwierdzoną.
 5. Dopiero potem APK podlega obowiązkowej kontroli starego klucza BRAXHORN.
    W razie błędu podpisu zachowywać wynik kompilacji jako niezweryfikowany
    artefakt do ręcznego odzyskania — nie generować ponownie świata.
@@ -43,7 +45,10 @@ telefonie. Adres paczki startowej jest w APK; nie trzeba pobierać jej osobno.
 3. Pipeline przywraca niezmienną bazę i nie uruchamia generatora Miasta Mistrzów.
    `BraxContentBuild.UpdateFromBaseline` buduje zmienione paczki Addressables
    i katalog, a następnie tworzy `*.braxupdate.zip`. Nie wykonuje BuildPlayer.
-4. Paczka trafia do prywatnego draft release tej samej bazy. Zalogowany
+4. Gotowa paczka najpierw trafia do artefaktu GitHub Actions z kontrolą
+   rozmiaru i `baseId`, następnie do prywatnego draft release **zatwierdzonej**
+   bazy. Podczas aktualizacji odtwarzany jest dokładny `BraxContentPicker.jar`
+   z zaszyfrowanej bazy — nie kompiluje się nowego kodu Java. Zalogowany
    właściciel pobiera ZIP, w aplikacji wybiera
    **USTAWIENIA → WCZYTAJ AKTUALIZACJĘ** i wskazuje plik.
 5. Po imporcie uruchom grę ponownie. Loader sprawdza zone/baseId/runtimeId,
