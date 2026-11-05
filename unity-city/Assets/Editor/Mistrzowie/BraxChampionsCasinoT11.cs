@@ -310,6 +310,41 @@ public static class BraxChampionsCasinoT11
                 B(trim,"Ground-level warm gold exterior bollard",led,side*48f,.62f,-25f+i*10f,.12f,.85f,.12f,false);
     }
 
+    static void PremiumExteriorLighting()
+    {
+        // Warm facade wash as on the owner's evening architectural reference.
+        // The existing CityStaticPBR mobile shader supports four ForceVertex
+        // local lights per rendered object. Keep them sparse, shadowless and
+        // outside the empty interior; LED trim remains material-emissive.
+        var fixtures=new[]
+        {
+            new Vector3(-14f,4.6f,-30.5f),
+            new Vector3(0f,5.4f,-34.3f),
+            new Vector3(14f,4.6f,-30.5f),
+            new Vector3(-37.2f,5.3f,0f),
+            new Vector3(37.2f,5.3f,0f),
+            new Vector3(0f,5.1f,28.7f)
+        };
+        for(int i=0;i<fixtures.Length;i++)
+        {
+            var p=fixtures[i];
+            B(trim,"Champagne facade sconce "+(i+1),gold,p.x,p.y,p.z,
+                .26f,.45f,.24f,false);
+            B(trim,"Warm LED luminaire diffuser "+(i+1),led,
+                p.x,p.y-.19f,p.z,.20f,.08f,.19f,false);
+            var lamp=new GameObject("T11 warm architectural facade light "+(i+1));
+            lamp.transform.SetParent(root,false);
+            lamp.transform.localPosition=(p+new Vector3(0,-.2f,0))*K;
+            var l=lamp.AddComponent<Light>();
+            l.type=LightType.Point;
+            l.range=14f*K;
+            l.intensity=1.45f;
+            l.color=new Color(1f,.87f,.70f);
+            l.shadows=LightShadows.None;
+            l.renderMode=LightRenderMode.ForceVertex;
+        }
+    }
+
     static void MainSign()
     {
         // The only approved brand for plot T11 is C1_KASYNO_KASYNO_WAWER.
@@ -352,7 +387,7 @@ public static class BraxChampionsCasinoT11
         shell=Group(root,"T11 exterior shell, real entrances and site collisions");
         trim=Group(root,"Exterior gold and bronze details (distance LOD)");
         signRoot=Group(root,"T11 original owner sign (always visible)");
-        Site();ThreeMatchingFacades();RoofAndSkylight();CurvedFoyer();Tower();MainSign();
+        Site();ThreeMatchingFacades();RoofAndSkylight();CurvedFoyer();Tower();MainSign();PremiumExteriorLighting();
         // Remove tiny gold detail in distance, keep WAWER sign always visible.
         var renderers=trim.GetComponentsInChildren<Renderer>(true);
         var lod=trim.gameObject.AddComponent<LODGroup>();
