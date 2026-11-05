@@ -27,6 +27,13 @@ jobs:
             unity-city/Packages
             unity-city/ProjectSettings
             public/assets/cars-src/car_rev.glb
+            public/assets/chars/brax.glb.gz
+            public/assets/tex/brax_color.webp
+            public/assets/tex/brax_normal.webp
+            public/assets/tex/brax_orm.webp
+            unity-tools/claude/prywatne.py
+            unity-tools/claude/import_patryk_transfer.py
+            unity-tools/claude/import_patryk_animations.py
             unity-tools/mistrzowie
             unity-tools/updates
             unity-tools/validation
@@ -63,7 +70,9 @@ jobs:
           PY
       - name: Detailed offline geometry and regressions - advisory only
         continue-on-error: true
-        run: python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
+        run: |
+          export PYTHONPATH="$PWD/unity-tools/claude:$PWD/unity-tools/mistrzowie:${PYTHONPATH:-}"
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
       - name: Verify signed APK number 14 receipt and higher versionCode
         env:
           GH_TOKEN: ${{ github.token }}
