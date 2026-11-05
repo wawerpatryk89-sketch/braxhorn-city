@@ -23,7 +23,29 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  source-preflight:
+    name: Verify correct A1/T11 scope and compressed original car before Unity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout only latest A1/T11 source and regression tests
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets/Editor/Mistrzowie/
+            unity-city/Assets/Editor/BraxBuildQuality.cs
+            unity-city/Packages/manifest.json
+            unity-tools/mistrzowie/test_regional_import_scope.py
+            unity-tools/mistrzowie/test_apk_quality_gate_regression.py
+      - name: Confirm no port diagnostics, original car decoder, VIP advisory and collision geometry
+        run: |
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_regional_import_scope.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_apk_quality_gate_regression.py' -v
+          echo 'A1_T11_PREUNITY=PASS, APKS_NOT_BUILT_IN_THIS_JOB=YES'
   signed-champions-app-update:
+    needs: source-preflight
     if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
     # Exact same app, keystore, Android application ID, source and scene
     # as the previous signed APK #14. The called pipeline refuses a
