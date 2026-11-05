@@ -68,8 +68,8 @@ class CampAnimationWorkflowRegression(unittest.TestCase):
         apk = APK_WORKFLOW.read_text(encoding="utf-8")
         content_only = apk.split("  oboz-content-only:", 1)[1]
         baseline = CONTENT_WORKFLOW.read_text(encoding="utf-8")
-        self.assertIn("            .github/workflows/\\n", content_only)
-        self.assertIn("            .github/workflows/\\n", baseline)
+        self.assertIn("            .github/workflows/\n", content_only)
+        self.assertIn("            .github/workflows/\n", baseline)
 
 
 if __name__ == "__main__":
