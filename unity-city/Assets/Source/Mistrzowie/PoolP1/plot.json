@@ -1,0 +1,77 @@
+{
+  "schema": "braxhorn-p1-2026-11-05",
+  "status": "source_geometry_requires_unity_validation",
+  "lot": {
+    "id": "P1",
+    "name": "BASEN MIEJSKI + SPA",
+    "x": 520,
+    "z": 180,
+    "w": 160,
+    "d": 120,
+    "maximumHeight": 16
+  },
+  "halls": [
+    {
+      "id": "SPORT",
+      "x": 520,
+      "z": 207,
+      "w": 72,
+      "d": 42,
+      "height": 16
+    },
+    {
+      "id": "RECREATION",
+      "x": 465,
+      "z": 203,
+      "w": 28,
+      "d": 22,
+      "height": 9
+    },
+    {
+      "id": "SPA_RECEPTION",
+      "x": 520,
+      "z": 164,
+      "w": 36,
+      "d": 24,
+      "height": 8
+    }
+  ],
+  "basins": [
+    {
+      "id": "SPORT_25M",
+      "x": 514,
+      "z": 207,
+      "w": 25,
+      "d": 17,
+      "depth": 2.15
+    },
+    {
+      "id": "FAMILY",
+      "x": 465,
+      "z": 206,
+      "w": 16,
+      "d": 9,
+      "depth": 1.45
+    },
+    {
+      "id": "CHILDREN",
+      "x": 465,
+      "z": 195,
+      "w": 5,
+      "d": 4,
+      "depth": 0.65
+    },
+    {
+      "id": "JACUZZI",
+      "x": 530,
+      "z": 172,
+      "w": 4,
+      "d": 4,
+      "depth": 0.85
+    }
+  ],
+  "waterDeferred": true,
+  "parkingSpaces": 95,
+  "texResolution": 2048,
+  "notes": "Coordinates are NOMINAL metres before game K. The four open voids must be cut out of the Foundation plot_base mesh before Unity creates the finished blue tiled empty basins."
+}
