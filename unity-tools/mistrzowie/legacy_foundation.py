@@ -21,7 +21,7 @@ T11_GARAGE_RAMP=(535.5,443.0,8.0,46.0)
 # verbatim with the Unity pool generator; no solid plot_base below blue basins.
 P1_LAYOUT=json.loads((ROOT/'unity-city/Assets/Source/Mistrzowie/PoolP1/plot.json').read_text())
 assert P1_LAYOUT['lot']['id']=='P1' and P1_LAYOUT['lot']['x']==520 and P1_LAYOUT['lot']['z']==180
-assert P1_LAYOUT['lot']['w']==160 and P1_LAYOUT['lot']['d']==120 and P1_LAYOUT['waterDeferred']
+assert P1_LAYOUT['lot']['w']==160 and P1_LAYOUT['lot']['d']==120 and not P1_LAYOUT['waterDeferred'] and P1_LAYOUT['waterReady']
 assert len(P1_LAYOUT['basins'])==3 and P1_LAYOUT['parkingSpaces']==95
 POOL_HOLES=[(b['x']-b['w']*.5,b['z']-b['d']*.5,b['w'],b['d']) for b in P1_LAYOUT['basins']]
 for x,z,w,d in POOL_HOLES:
