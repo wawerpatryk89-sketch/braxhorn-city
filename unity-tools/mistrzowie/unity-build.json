@@ -1,5 +1,5 @@
 {
-  "pipeline": "20261105-A1",
+  "pipeline": "20261105-A1-T11",
   "unity": "6000.0.85f2",
   "revision": "b028303d8e7d",
   "androidImage": "unityci/editor:ubuntu-6000.0.85f2-android-3.2.2",
