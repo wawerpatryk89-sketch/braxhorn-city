@@ -168,11 +168,11 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
             if (clear)
             {
                 bool blocked=SparringStrikes % 5 == 4;
-                bool kick=SparringStrikes % 4 == 3;
-                to.React(blocked?"Block":kick?"HitToBody":"HeadHit");
+                bool landedKick=SparringStrikes % 4 == 3;
+                to.React(blocked?"Block":landedKick?"HitToBody":"HeadHit");
                 SparringStrikes++;
                 if(audio)audio.Contact(to,blocked);
-                Status=CurrentArena.label+(blocked?" · BLOK":kick?" · TRAFIENIE KOPNIECIEM":" · TRAFIENIE");
+                Status=CurrentArena.label+(blocked?" · BLOK":landedKick?" · TRAFIENIE KOPNIECIEM":" · TRAFIENIE");
             }
             else Debug.LogWarning("BRAXHORN_OBOZ_SPARING brak kontaktu: dystans="+Mathf.Sqrt(delta.sqrMagnitude).ToString("F2")+" kat="+
                 (range?Vector3.Dot(from.transform.forward,delta.normalized).ToString("F2"):"poza zasiegiem")+" przeszkoda="+(facing&&!clear));
@@ -196,8 +196,8 @@ public sealed class BraxObozTrainingRoutine : MonoBehaviour
         attackWait -= dt;
         if (attackWait > 0) return;
         // Mieszaj technike, uzywaj prawdziwych klipow Punch i Kick z manifestu.
-        bool kick = SparringStrikes % 4 == 3;
-        float length = from.Play(kick ? "Kick" : "Punch", false, true);
+        bool attackKick = SparringStrikes % 4 == 3;
+        float length = from.Play(attackKick ? "Kick" : "Punch", false, true);
         impactLeft = Mathf.Min(.40f, Mathf.Max(.12f,length * .50f)); followThrough = Mathf.Max(0, length - impactLeft); strikePending = true;
     }
     void TickOtherStations(float dt)
