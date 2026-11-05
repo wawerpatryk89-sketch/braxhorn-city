@@ -251,26 +251,26 @@ public static partial class BraxObozEnvironment
     static void CampusArrival()
     {
         var t=Group("Dojazd i plac autobusowy",root,Vector3.zero);
-        Box(t,"Droga dojazdowa",new Vector3(0,.045f,-167),new Vector3(7,.09f,76),campusAsphalt);
+        Box(t,"Droga dojazdowa",new Vector3(0,.045f,-124),new Vector3(7,.09f,30),campusAsphalt);
         // Turning forecourt: outer radius 18 m, island radius 6 m; the design
         // envelope is a 12 x 2.6 m coach, not a claim of a tested driving model.
-        Disc(t,"Plac zawracania",new Vector3(0,.095f,-112),18,campusAsphalt,true);
-        Disc(t,"Wyspa centralna",new Vector3(0,.16f,-112),6,campusPaving,true);
-        Box(t,"Zatoka autobusu",new Vector3(21,.055f,-113),new Vector3(4,.11f,20),campusAsphalt);
-        Box(t,"Połączenie zatoki",new Vector3(14,.05f,-113),new Vector3(12,.10f,24),campusAsphalt);
-        Box(t,"Dojście pasażerów",new Vector3(26,.08f,-124),new Vector3(2.8f,.16f,52),campusPaving);
-        Box(t,"Dojście od furtki",new Vector3(16,.08f,-147),new Vector3(22,.16f,2.8f),campusPaving);
-        Box(t,"Dojście piesze przed bramą",new Vector3(6.8f,.08f,-162),new Vector3(1.8f,.16f,24),campusPaving);
-        Box(t,"Dojście od przystanku",new Vector3(15,.06f,-98),new Vector3(25,.12f,2.8f),campusPaving);
-        foreach(float x in new[]{-3.2f,3.2f})Box(t,"Linia krawędzi drogi",new Vector3(x,.092f,-169),new Vector3(.1f,.004f,70),campusMark,false);
-        for(int i=0;i<8;i++)Box(t,"Pas przejścia",new Vector3(-2.8f+i*.8f,.098f,-139),new Vector3(.4f,.004f,2.8f),campusMark,false);
-        Sign(t,"BRAXHORN · PRZYJAZDY",new Vector3(26,2.1f,-103),5);
-        foreach(float x in new[]{24f,28f})Box(t,"Podpora tablicy przyjazdów",new Vector3(x,1,-103),new Vector3(.08f,2,.08f),campusSteel);
-        foreach(float z in new[]{-146f,-134f,-122f,-110f})Lamp(t,new Vector3(28,0,z));
+        Disc(t,"Plac zawracania",new Vector3(0,.095f,-94),18,campusAsphalt,true);
+        Disc(t,"Wyspa centralna",new Vector3(0,.16f,-94),6,campusPaving,true);
+        Box(t,"Zatoka autobusu",new Vector3(21,.055f,-92),new Vector3(4,.11f,20),campusAsphalt);
+        Box(t,"Połączenie zatoki",new Vector3(14,.05f,-94),new Vector3(12,.10f,24),campusAsphalt);
+        Box(t,"Dojście pasażerów",new Vector3(26,.08f,-94),new Vector3(2.8f,.16f,40),campusPaving);
+        Box(t,"Dojście od furtki",new Vector3(16,.08f,-121),new Vector3(22,.16f,2.8f),campusPaving);
+        Box(t,"Dojście piesze przed bramą",new Vector3(6.8f,.08f,-131),new Vector3(1.8f,.16f,18),campusPaving);
+        Box(t,"Dojście od przystanku",new Vector3(15,.06f,-77),new Vector3(25,.12f,2.8f),campusPaving);
+        foreach(float x in new[]{-3.2f,3.2f})Box(t,"Linia krawędzi drogi",new Vector3(x,.092f,-126),new Vector3(.1f,.004f,28),campusMark,false);
+        for(int i=0;i<8;i++)Box(t,"Pas przejścia",new Vector3(-2.8f+i*.8f,.098f,-115),new Vector3(.4f,.004f,2.8f),campusMark,false);
+        Sign(t,"BRAXHORN · PRZYJAZDY",new Vector3(26,2.1f,-84),5);
+        foreach(float x in new[]{24f,28f})Box(t,"Podpora tablicy przyjazdów",new Vector3(x,1,-84),new Vector3(.08f,2,.08f),campusSteel);
+        foreach(float z in new[]{-110f,-100f,-90f,-80f})Lamp(t,new Vector3(28,0,z));
         // Footpath protection, leaving boarding openings at both coach doors.
-        foreach(float z in new[]{-120f,-114f,-106f})Cylinder(t,"Słupek ochronny",new Vector3(24,.08f,z),new Vector3(24,1.05f,z),.075f,campusSteel,true);
-        foreach(float z in new[]{-120f,-114f})Bench(t,new Vector3(27,0,z));
-        var shelter=Group("Wiata dla przyjeżdżających",t,P(27,0,-114));
+        foreach(float z in new[]{-99f,-93f,-86f})Cylinder(t,"Słupek ochronny",new Vector3(24,.08f,z),new Vector3(24,1.05f,z),.075f,campusSteel,true);
+        foreach(float z in new[]{-99f,-93f})Bench(t,new Vector3(27,0,z));
+        var shelter=Group("Wiata dla przyjeżdżających",t,P(27,0,-92));
         foreach(float x in new[]{-1.4f,1.4f})foreach(float z in new[]{-4f,4f})Box(shelter,"Słup wiaty",new Vector3(x,1.45f,z),new Vector3(.12f,2.9f,.12f),campusSteel);
         foreach(float x in new[]{-1.4f,1.4f}) {
             Box(shelter,"Oczep wiaty",new Vector3(x,2.76f,0),new Vector3(.16f,.22f,8.3f),wood,false);
@@ -281,10 +281,10 @@ public static partial class BraxObozEnvironment
         }
         MetalRoof(shelter,3.3f,8.6f,2.9f,.5f);
         var route=Group("Trasa kontrolna autobusu — bez automatycznej jazdy",t,Vector3.zero);
-        Group("Dojazd",route,P(0,0,-195));Group("Brama",route,P(0,0,-150));
+        Group("Dojazd",route,P(0,0,-138));Group("Brama",route,P(0,0,-125));
         for(int i=0;i<=32;i++){
             float a=Mathf.PI+i*Mathf.PI*2/32;
-            Group("Łuk "+i,route,P(Mathf.Sin(a)*12,0,-112+Mathf.Cos(a)*12));
+            Group("Łuk "+i,route,P(Mathf.Sin(a)*12,0,-94+Mathf.Cos(a)*12));
         }
     }
     static void Disc(Transform parent,string name,Vector3 center,float radius,Material mat,bool solid)
@@ -302,13 +302,13 @@ public static partial class BraxObozEnvironment
     static void CampusPerimeter()
     {
         var fence=Group("Ogrodzenie całego obozu",root,Vector3.zero);
-        FenceLine(fence,new Vector2(-150,-150),new Vector2(-4.2f,-150));
-        FenceLine(fence,new Vector2(4.2f,-150),new Vector2(5.8f,-150));
-        FenceLine(fence,new Vector2(7.8f,-150),new Vector2(150,-150));
-        FenceLine(fence,new Vector2(150,-150),new Vector2(150,150));
-        FenceLine(fence,new Vector2(150,150),new Vector2(-150,150));
-        FenceLine(fence,new Vector2(-150,150),new Vector2(-150,-150));
-        var gate=Group("Brama przesuwna · 8,4 m światła",root,P(0,0,-150));
+        FenceLine(fence,new Vector2(-126,-125),new Vector2(-4.2f,-125));
+        FenceLine(fence,new Vector2(4.2f,-125),new Vector2(5.8f,-125));
+        FenceLine(fence,new Vector2(7.8f,-125),new Vector2(126,-125));
+        FenceLine(fence,new Vector2(126,-125),new Vector2(126,115));
+        FenceLine(fence,new Vector2(126,115),new Vector2(-126,115));
+        FenceLine(fence,new Vector2(-126,115),new Vector2(-126,-125));
+        var gate=Group("Brama przesuwna · 8,4 m światła",root,P(0,0,-125));
         foreach(float x in new[]{-4.5f,4.5f}){
             Box(gate,"Filar bramy",new Vector3(x,1.65f,0),new Vector3(.5f,3.3f,.65f),campusSteel);
             Box(gate,"Okładzina filara",new Vector3(x,1.6f,-.34f),new Vector3(.34f,2.8f,.06f),wood,false);
@@ -321,13 +321,13 @@ public static partial class BraxObozEnvironment
         CombineDecoration(leaf);
         var controller=gate.gameObject.AddComponent<BraxObozSlidingGate>();controller.leaf=leaf;
         controller.openOffset=Vector3.left*(8.7f*K);controller.detectionRadius=24*K;
-        var foot=Group("Furtka piesza",root,P(6.8f,0,-150));
+        var foot=Group("Furtka piesza",root,P(6.8f,0,-125));
         var footLeaf=Group("Skrzydło furtki",foot,Vector3.zero);
         Box(footLeaf,"Furtka",new Vector3(0,1.1f,0),new Vector3(1.8f,2.2f,.1f),wood);
         var footController=foot.gameObject.AddComponent<BraxObozSlidingGate>();footController.leaf=footLeaf;
         footController.openOffset=Vector3.right*(2.1f*K);footController.detectionRadius=5*K;
         // Road end is visibly closed; there is no collider across the main gate.
-        Box(root,"Bariera końca odcinka drogi",new Vector3(0,.5f,-205),new Vector3(7.5f,1,.35f),campusSteel);
+        Box(root,"Bariera końca odcinka drogi",new Vector3(0,.5f,-138),new Vector3(7.5f,1,.35f),campusSteel);
     }
     static void FenceLine(Transform parent,Vector2 a,Vector2 b)
     {
