@@ -184,16 +184,16 @@ jobs:
             release=$(gh api "repos/$GITHUB_REPOSITORY/releases/$owner_release_id")
             export CHAMPIONS_RELEASE_JSON="$release"
             asset_id=$(python3 - <<'PYRELEASE'
-            import json,os
-            item=json.loads(os.environ['CHAMPIONS_RELEASE_JSON'])
-            if item.get('id')!=435656828 or item.get('tag_name')!=os.environ['A1_ASSET_TAG']:
-                raise SystemExit('Wrong A1+T11 source release; do not build')
-            if item.get('target_commitish')!='gpt/miasto-mistrzow-kasyno-t11-20261105':
-                raise SystemExit('A1+T11 release points to another branch')
-            assets=[a for a in item.get('assets',[]) if a.get('name')=='BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip']
-            if len(assets)!=1:raise SystemExit('One approved owner wrapper ZIP is required in the CURRENT A1+T11 release')
-            print(assets[0]['id'])
-            PYRELEASE
+          import json,os
+          item=json.loads(os.environ['CHAMPIONS_RELEASE_JSON'])
+          if item.get('id')!=435656828 or item.get('tag_name')!=os.environ['A1_ASSET_TAG']:
+              raise SystemExit('Wrong A1+T11 source release; do not build')
+          if item.get('target_commitish')!='gpt/miasto-mistrzow-kasyno-t11-20261105':
+              raise SystemExit('A1+T11 release points to another branch')
+          assets=[a for a in item.get('assets',[]) if a.get('name')=='BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip']
+          if len(assets)!=1:raise SystemExit('One approved owner wrapper ZIP is required in the CURRENT A1+T11 release')
+          print(assets[0]['id'])
+          PYRELEASE
             )
             test -n "$asset_id"
             curl --fail --location --silent --show-error --retry 2 \
@@ -204,36 +204,36 @@ jobs:
               --output "$RUNNER_TEMP/$chosen"
             export CHAMPIONS_OWNER_ZIP="$RUNNER_TEMP/$chosen"
             python3 - <<'PYINPUT'
-            import hashlib, os, pathlib, zipfile
-            root=pathlib.Path(os.environ['RUNNER_TEMP'])
-            archive=pathlib.Path(os.environ['CHAMPIONS_OWNER_ZIP'])
-            expected={
-              "ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip":
-                "c96e39cd218b2f884560be0e89d0f24b378e7a49512486830643f6934cdc4f71",
-              "ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip":
-                "5d2c3bd341772c1f61d695a898a99c2d9e55b383bfa2bece0753cfaa9f502d55",
-              "BRAXHORN_BRAX_3_ANIMACJE_MIXAMO_ORYGINALY.zip":
-                "509a6379fad404edec798e2999f3cdff37776c5399e92839a16ef05687f65bd3",
-            }
-            def sha(path):
-              h=hashlib.sha256()
-              with path.open("rb") as f:
-                for chunk in iter(lambda:f.read(1024*1024),b""):h.update(chunk)
-              return h.hexdigest()
-            if sha(archive)!="43ea47f02a1f2e9e4f707bb75d16ec0a3fe79ec02762929ca591e317defa1088":
-              raise SystemExit("A1+T11 owner package checksum mismatch")
-            with zipfile.ZipFile(archive) as z:
-              if z.testzip() is not None:raise SystemExit("A1+T11 wrapper CRC failed")
-              if set(z.namelist())!=set(expected)|{"INPUTS-MANIFEST.json","INPUTS-SHA256SUMS.txt"}:
-                raise SystemExit("Unknown/missing/duplicate owner original inputs")
-              for name,digest in expected.items():
-                target=root/name
-                with z.open(name) as source,target.open("wb") as output:
-                  import shutil
-                  shutil.copyfileobj(source,output,1024*1024)
-                if sha(target)!=digest:raise SystemExit("Approved original changed: "+name)
-            print("CHAMPIONS_INPUTS_APPROVED: 11 arena assets + 3 murals + 3 signs + plaque + 3 Mixamo FBX")
-            PYINPUT
+          import hashlib, os, pathlib, zipfile
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          archive=pathlib.Path(os.environ['CHAMPIONS_OWNER_ZIP'])
+          expected={
+            "ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip":
+              "c96e39cd218b2f884560be0e89d0f24b378e7a49512486830643f6934cdc4f71",
+            "ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip":
+              "5d2c3bd341772c1f61d695a898a99c2d9e55b383bfa2bece0753cfaa9f502d55",
+            "BRAXHORN_BRAX_3_ANIMACJE_MIXAMO_ORYGINALY.zip":
+              "509a6379fad404edec798e2999f3cdff37776c5399e92839a16ef05687f65bd3",
+          }
+          def sha(path):
+            h=hashlib.sha256()
+            with path.open("rb") as f:
+              for chunk in iter(lambda:f.read(1024*1024),b""):h.update(chunk)
+            return h.hexdigest()
+          if sha(archive)!="43ea47f02a1f2e9e4f707bb75d16ec0a3fe79ec02762929ca591e317defa1088":
+            raise SystemExit("A1+T11 owner package checksum mismatch")
+          with zipfile.ZipFile(archive) as z:
+            if z.testzip() is not None:raise SystemExit("A1+T11 wrapper CRC failed")
+            if set(z.namelist())!=set(expected)|{"INPUTS-MANIFEST.json","INPUTS-SHA256SUMS.txt"}:
+              raise SystemExit("Unknown/missing/duplicate owner original inputs")
+            for name,digest in expected.items():
+              target=root/name
+              with z.open(name) as source,target.open("wb") as output:
+                import shutil
+                shutil.copyfileobj(source,output,1024*1024)
+              if sha(target)!=digest:raise SystemExit("Approved original changed: "+name)
+          print("CHAMPIONS_INPUTS_APPROVED: 11 arena assets + 3 murals + 3 signs + plaque + 3 Mixamo FBX")
+          PYINPUT
             python3 unity-tools/mistrzowie/import_champion_assets.py \
               "$RUNNER_TEMP/ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip" --dry-run
             python3 unity-tools/mistrzowie/import_champion_assets.py \
