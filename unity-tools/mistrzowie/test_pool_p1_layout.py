@@ -32,7 +32,8 @@ class PoolP1LayoutTests(unittest.TestCase):
                          ("P1",520,180,160,120,16))
         self.assertEqual(self.data["parkingSpaces"],95)
         self.assertEqual(self.data["texResolution"],2048)
-        self.assertTrue(self.data["waterDeferred"])
+        self.assertFalse(self.data["waterDeferred"])
+        self.assertTrue(self.data["waterReady"])
 
     def test_real_excavations_are_disjoint_and_on_lot(self):
         outer=bounds(self.data["lot"])
@@ -55,16 +56,18 @@ class PoolP1LayoutTests(unittest.TestCase):
         self.assertNotIn('if(b.id=="JACUZZI")',unity)
         self.assertNotIn('SPA jacuzzi underwater tiled sitting ledge',unity)
 
-    def test_empty_pool_is_built_into_ground_not_over_it(self):
+    def test_pool_with_water_is_built_into_ground_not_over_it(self):
         source=LEGACY.read_text(encoding="utf-8")
         self.assertIn("POOL_HOLES=[",source)
         self.assertIn("if any(inside((x,z),r) for r in POOL_HOLES):return None",source)
         self.assertIn("[T11_GARAGE_RAMP]+POOL_HOLES+",source)
         unity=UNITY.read_text(encoding="utf-8")
         self.assertIn("DeckWithBasins",unity)
-        self.assertIn("EmptyBlueBasin",unity)
+        self.assertIn("BuildBlueBasin",unity)
+        self.assertIn("BraxChampionsPoolP1Water.Basin",unity)
+        self.assertIn("waterReady",unity)
         self.assertNotIn("water=SeaMaterial",unity)
-        self.assertIn("waterDeferred",unity)
+        self.assertIn("d.waterDeferred||!d.waterReady",unity)
         self.assertIn("RectGlazing(0,-28,25f,5.7f,true,0f,3.5f)",unity)
         self.assertIn("RectGlazing(-41,23,22,7.9f,false,0f,3.3f)",unity)
 
