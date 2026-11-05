@@ -20,7 +20,7 @@ Data projektu: 5.11.2026. Wzorzec wizualny: plansza właściciela „P1 — BASE
 - Szkło to prawdziwa przezroczystość shaderowa (alpha blending, metaliczność 0), bardzo jasny subtelny tint, bez paneli imitujących czarne lustro.
 
 ## Wyposażenie dostarczane przez właściciela
-Właściciel potwierdził, że dostarczy **prawdziwe modele zjeżdżalni, leżaków, szafek, sauny i jacuzzi** w paczce GitHub Release. Kod P1 rezerwuje puste punkty montażowe `OWNER_ASSET_PENDING`, zamiast podstawiać atrapę o przypadkowych wymiarach. Nie deklarować ich jako zamontowanych. Po udostępnieniu paczki należy skontrolować format, jednostki, rzeczywiste 2K/4K tekstury, koordynaty prefabów, spójność licencji i kolizje. Miejsca montażowe, zwłaszcza dużej zakręconej zjeżdżalni i jacuzzi, są prowizoryczne i wymagają wymiarów źródłowych.
+Właściciel przesłał w rozmowie paczkę Beach & Water Park z modelem zjeżdżalni, modele sauny, leżaków, drabinki, trampoliny, stołu do masażu i umywalki. **Model jacuzzi oraz oryginalna grafika szyldu P1 nadal nie zostały potwierdzone jako dostępne do importu z GitHub Release.** Kod P1 rezerwuje puste punkty montażowe `OWNER_ASSET_PENDING`, zamiast podstawiać atrapę o przypadkowych wymiarach. Nie deklarować ich jako zamontowanych. Po udostępnieniu paczki należy skontrolować format, jednostki, rzeczywiste 2K/4K tekstury, koordynaty prefabów, spójność licencji i kolizje. Miejsca montażowe, zwłaszcza dużej zakręconej zjeżdżalni i jacuzzi, są prowizoryczne i wymagają wymiarów źródłowych.
 
 ## Integracja / ochrona innych wykonawców
 - Gałąź: `gpt/miasto-mistrzow-basen-p1-20261105`.
@@ -45,3 +45,22 @@ Stan: **kod źródłowy i kontrole statyczne**; nie jest to zapis z fizycznego t
 - Efekt jacuzzi ma już gotowy tryb `_Bubbles=1` (krople/piana/poruszanie powierzchni), lecz **nie ma jeszcze oryginalnego modelu jacuzzi w tej rozmowie**. Przezroczystą wodę montuje się dopiero wewnątrz prawdziwej, dostarczonej wanny `BraxChampionsPoolP1Water.Jacuzzi(...)`, po sprawdzeniu rzeczywistych wymiarów i linii brzegowej. Nie tworzyć fałszywej wanny.
 - Animacja pływacka Braxa nie została dostarczona ani potwierdzona. Na dziś ruch i wyporność wykorzystują bazowe animacje `Walk`/`Idle` w wodzie; to **nie jest** zatwierdzona animacja pływacka.
 - Odbiór dopiero po udanym Unity 6: widok przez szkło (czy widać wodę), wejście do basenu, unoszenie postaci, wyjście, brak przechodzenia przez dno, brak migotania wody i podłogi; potem test Android FPS, pamięci i dotyku. Żadne budowanie APK nie zostało zlecone.
+
+## Zjeżdżalnia — wykonanie ze źródła właściciela
+- Źródło z przesłanego `beach-and-water-park.zip`: **`raft-slide-water-park.glb`**, 281288 bajtów, SHA-256 `e001b4e47c59e43c31155b8d4c8e2f3f3caa3ac9627de9753d10a02802cc7a8f`. Weryfikowane bezpośrednio na przesłanym pliku.
+- Oryginalny model pochodzi z [Shuriken Studio](https://shuriken.studio/models/props/raft-slide-water-park); licencja pozwala włączyć i modyfikować model w grze, nie pozwala rozdawać surowych modeli jako osobny pakiet. Dlatego **nie publikujemy źródłowego GLB jako samodzielnej biblioteki**. `prepare_pool_p1_slide.py` pobiera właściwy plik z oficjalnego adresu w etapie CI, sprawdza SHA-256 i stabilny Unity GUID.
+- `BraxChampionsPoolP1Slide.Generate` umieszcza element wyłącznie za skrzydłem rodzinnym P1: środek nominalny (X=-54,Z=47) względem działki, współczynnik modelu 0,18, wspólny `K` zastosowany raz. Rzeczywiste źródłowe wymiary 77,65 × 33,0 × 127,18 po przeskalowaniu dają ok. **14,0 × 5,94 × 22,9 m**. Granice modelu: lokalne X około -60,0..-46,0, Z około 36,25..59,14 — nie przecina hali rodzinnej i mieści się na działce.
+- Z GLB zachowujemy rzeczywiste koryto zjeżdżalni, podporę, bramkę startową i obrys zbiornika zjazdowego. Usuwamy importowane tło plażowe/palmy, dekoracyjne napisy i wodę niskiej jakości. Koryto otrzymuje odrębne wykończenie jasnego niebieskiego laminatu.
+- W miejscu zabawkowych schodów/podestu tworzymy **18 fizycznych stopni**, właściwy podest na podporach, poręcze, zabezpieczenia po bokach, dojście z nawierzchnią PBR; zmiany są oddzielone od oryginalnego prefabowego modelu, co umożliwia późniejszą podmianę bez prucia hali.
+- Zbiornik odbiorczy korzysta z projektu `Braxhorn/ChampionsP1PoolWater` (falująca turkusowa woda). Zmniejszono długość tylnej ścieżki i pominięto kolidujące donice, żeby uniknąć nachodzących powierzchni. `BraxChampionsPoolP1Water.SlideLanding` nie dodaje nieprawdziwej geometrrii zjeżdżalni.
+- **Granica:** brak przeprowadzonego testu interakcji i animacji zjazdu; fizyczne schody oraz koryto same w sobie nie oznaczają jeszcze, że Brax może wykonać animowany, sterowany zjazd. Weryfikacja po kompilacji Unity/Android; nie uruchamiać APK bez decyzji właściciela.
+
+## Nowe przesłane modele — audyt źródeł
+- `sauna_product_model.glb`: 6 osadzonych map 2048×2048 — dobry kandydat do finalnego montażu.
+- `pool-ladder.glb`: 3 mapy 2048×2048 — dobry kandydat do wymiany proceduralnych barierek przy nieckach.
+- `diving-board.glb`: 6 map 2048×2048 — możliwy montaż po sprawdzeniu bezpiecznego głębokiego miejsca.
+- `portable-massage-table.glb`: większość obrazów 128–512 px, więc nie deklarujemy jakości 2K. Wymaga wymiany map lub lepszego modelu przed odbiorem.
+- `double-bathroom-vanity.glb`: 9 map 1024×1024 — wymaga lepszego źródła/ponownego wykończenia 2K, inaczej nie spełni wymagania.
+- `Sun-lounger+FBX.zip`: zawiera FBX, bez odrębnych map źródłowych w archiwum; dopasować potwierdzone Poly Haven PBR 2K.
+- `luxury-modern-spa-interior-scene-sketchup.zip`: 93 MB, przede wszystkim scena `.skp` i obrazy, nie należy jej automatycznie wstawiać do Unity. Dopiero po ekstrakcji/konwersji i weryfikacji wnętrza.
+- Fizycznych plików przesłanych wyłącznie do rozmowy nie da się uznać za zaimportowane w GitHub CI; potrzebny jest rzeczywisty plik w pobieralnym, uprawnionym źródle. Podawane punkty montażowe nie są dowodem instalacji modeli.
