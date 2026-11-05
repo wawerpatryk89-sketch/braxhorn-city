@@ -40,8 +40,7 @@ public static class BraxChampionsArenaMural
         string name,float x0,float x1,float y0,float y1,bool extension)
     {
         if(x1<=x0||y1<=y0)throw new ArgumentOutOfRangeException(name);
-        float u0=extension&&x1<=ImageLeft?.002f:U(x0);
-        float u1=extension&&x0>=ImageRight?.998f:U(x1);
+        float u0=U(x0),u1=U(x1);
         // Sample exactly one edge column over the monochrome side extensions.
         // The original 82-metre artwork is not cropped, stretched, or recoloured.
         if(extension)
