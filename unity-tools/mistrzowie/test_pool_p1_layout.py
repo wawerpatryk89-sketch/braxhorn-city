@@ -38,7 +38,7 @@ class PoolP1LayoutTests(unittest.TestCase):
         outer=bounds(self.data["lot"])
         pools=self.data["basins"]
         self.assertEqual([p["id"] for p in pools],
-                         ["SPORT_25M","FAMILY","CHILDREN","JACUZZI"])
+                         ["SPORT_25M","FAMILY","CHILDREN"])
         for a in pools:
             amin,zmin,amax,zmax=bounds(a)
             self.assertTrue(outer[0]<=amin<amax<=outer[2])
@@ -47,6 +47,13 @@ class PoolP1LayoutTests(unittest.TestCase):
             for b in pools:
                 if b is not a:self.assertFalse(overlap(bounds(a),bounds(b)),
                     f"These excavations overlap: {a['id']} / {b['id']}")
+
+    def test_owner_jacuzzi_mount_is_not_an_excavation(self):
+        self.assertEqual(len(self.data["basins"]),3)
+        unity=UNITY.read_text(encoding="utf-8")
+        self.assertIn('At("jacuzzi_premium_3d",10f,-6.75f);',unity)
+        self.assertNotIn('if(b.id=="JACUZZI")',unity)
+        self.assertNotIn('SPA jacuzzi underwater tiled sitting ledge',unity)
 
     def test_empty_pool_is_built_into_ground_not_over_it(self):
         source=LEGACY.read_text(encoding="utf-8")
