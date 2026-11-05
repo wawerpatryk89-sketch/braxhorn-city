@@ -14,6 +14,10 @@ Najpierw owner_release_assets.py preflight (fail przed Unity, jeśli brak źród
 Następnie assets.py restore (stare paczki) oraz owner_release_assets.py restore (nowe modele), potem Unity.
 
 Wszystko trafia do ignorowanego katalogu Assets/Source/Prywatne/Oboz/OwnerAssets.
+
+Po zweryfikowanym rozpakowaniu 31 źródeł importer przygotowuje 52 pliki Unity; powiększony byk jest plikiem 53. Wszystkie otrzymują deterministyczne .meta/GUID, z zachowaniem istniejących poprawnych GUID, co zapobiega losowym referencjom po czystym imporcie. Wariant Grass Medium 01/02 zawiera .blend, a nie prefab GLB: pliki oryginalne pozostają zachowane, ale geometrii 3D nie deklarujemy jako wczytanej w Unity.
+
+Rzeczywisty audyt źródeł poza Unity (2026-11-05): 31/31 CRC i SHA256, 53 pliki przygotowane, 70 unikatowych GUID, 24 kluczowe ścieżki obecne, sześć tekstur potwierdzone jako 2K (2048x2048), żadne źródła postaci nie były modyfikowane. To **nie** zastępuje kompilacji Unity ani testu Androida.
 Nie publikować źródłowych GLB i ZIP w publicznym Gicie. Postacie i ich animacje są nienaruszalne.
 
 Pozostałe ograniczenia: brak osobnego zweryfikowanego drugiego GLB Vintage w nowym manifeście, Blender .blend z trawy nie jest automatycznie gotowym modelem Unity. Pełny odbiór Unity/Android nadal potrzebny.
