@@ -68,11 +68,11 @@ def ensure_meta(path):
     meta=Path(str(path)+".meta")
     if meta.exists():
         import re
-        previous=re.search(r"^guid:\\s*([0-9a-fA-F]{32})",meta.read_text(),re.M)
+        previous=re.search(r"^guid:\s*([0-9a-fA-F]{32})",meta.read_text(),re.M)
         if not previous or previous.group(1).lower()!=expected:
             raise ValueError("T11 original Unity GUID differs: "+str(meta))
     else:
-        meta.write_text("fileFormatVersion: 2\\nguid: "+expected+"\\n",encoding="utf-8")
+        meta.write_text("fileFormatVersion: 2\nguid: "+expected+"\n",encoding="utf-8")
 
 
 def prepare():
