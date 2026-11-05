@@ -78,6 +78,11 @@ class ContentSnapshotTests(unittest.TestCase):
             snap.restore(target,self.archive,self.expected)
         self.assertEqual(list(target.iterdir()),[])
 
+    def test_immutable_picker_jar_is_snapshot_only(self):
+        self.assertTrue(snap.allowed('Assets/Plugins/Android/BraxContentPicker.jar'))
+        self.assertFalse(snap.allowed('Assets/Plugins/Android/other.jar'))
+        self.assertFalse(snap.allowed('Assets/Source/custom.jar'))
+
     def test_unsafe_paths_and_code_are_rejected(self):
         for name in ('/etc/x','Assets/../../x','Assets\\x','Assets/Source/evil.cs','braxhorn.keystore','Library/secret'):
             self.assertFalse(snap.allowed(name),name)

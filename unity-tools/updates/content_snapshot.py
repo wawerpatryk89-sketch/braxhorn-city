@@ -37,6 +37,12 @@ def allowed(name):
         return False
     if name.startswith('Assets/StreamingAssets/BraxContent/'):
         return False  # Baseline bundles already live in the APK.
+    # This SINGLE reproducible jar is compiled into the first APK. Preserve
+    # its exact bytes in the private encrypted authoring snapshot, so later
+    # Addressables-only builds cannot change Java runtime code by accident.
+    # Never put it into the .braxupdate.zip package.
+    if name == 'Assets/Plugins/Android/BraxContentPicker.jar':
+        return True
     if name.startswith('Assets/'):
         return p.suffix not in CODE
     return name.startswith('BraxContentBuild/base/') or name.startswith('ProjectSettings/') or name == 'Packages/packages-lock.json'
