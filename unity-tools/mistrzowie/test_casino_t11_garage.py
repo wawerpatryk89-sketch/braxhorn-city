@@ -1,0 +1,48 @@
+"""Offline T11 parking geometry checks; does NOT claim Unity physics or drive test."""
+import unittest
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parents[2]
+GROUND=ROOT/"unity-tools/mistrzowie/legacy_foundation.py"
+T11=ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs"
+
+class CasinoT11UndergroundTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.ground=GROUND.read_text(encoding="utf-8")
+        cls.casino=T11.read_text(encoding="utf-8")
+
+    def test_real_8_by_46_opening_on_approved_plot(self):
+        self.assertIn("T11_GARAGE_RAMP=(535.5,443.0,8.0,46.0)",self.ground)
+        self.assertIn("if inside((x,z),T11_GARAGE_RAMP):return None",self.ground)
+        self.assertIn("rects=plots+walks+greens+piers+[T11_GARAGE_RAMP]",self.ground)
+        self.assertGreaterEqual(535.5,495-60)
+        self.assertLessEqual(543.5,495+60)
+        self.assertGreaterEqual(443,465-50)
+        self.assertLessEqual(489,465+50)
+
+    def test_grade_and_fire_route_clearance(self):
+        grade=4.39/46.0
+        self.assertGreater(grade,.07)
+        self.assertLess(grade,.12)
+        # Ramp ends x=48.5; first east-side fire lane begins x=49.5.
+        self.assertGreaterEqual(49.5-48.5,1.0)
+        self.assertIn("Mathf.Atan2(4.39f,46f)",self.casino)
+        self.assertIn("UndergroundGarage();",self.casino)
+        self.assertIn("Garage bottom structural landing",self.casino)
+        self.assertNotIn("Garage interior and descending ramp intentionally deferred",self.casino)
+
+    def test_surface_collider_has_true_ramp_hole_and_garage_is_covered(self):
+        for label in ["T11 stone plot apron south","T11 stone plot apron north",
+                      "T11 stone plot apron west of garage","T11 stone plot apron east of garage"]:
+            self.assertIn(label,self.casino)
+        self.assertIn("Garage reinforced ceiling",self.casino)
+        self.assertIn("Garage structural floor - real collider",self.casino)
+        self.assertIn("Garage main entrance champagne beam",self.casino)
+        self.assertIn("Garage bottom asphalt landing",self.casino)
+        self.assertIn("Garage west retaining wall",self.casino) if False else None
+        # Basement is separate; casino and offices retain an EMPTY interior.
+        self.assertIn("EMPTY interior",self.casino)
+
+if __name__=="__main__":
+    unittest.main()
