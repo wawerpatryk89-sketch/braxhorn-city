@@ -432,8 +432,9 @@ public static class BraxChampionsCasinoT11
                 // Bottom -4.12: meets the slab. Top -.68: meets the ceiling.
                 B(basement,"B1 structural reinforced WHITE support column",garageWhite,
                     x,-2.4f,z,.78f,3.44f,.78f,true,true);
+                // White column base is seated on the asphalt, not floating.
                 B(basement,"B1 WHITE column protective plinth",garageWhite,
-                    x,-3.65f,z,1.0f,.18f,1.0f,false);
+                    x,-4.015f,z,1.0f,.18f,1.0f,false);
             }
 
         // Eight real economical vertex lights, not emissive-only decorations:
