@@ -5,13 +5,24 @@ using System.Security.Cryptography;
 using UnityEditor;
 using UnityEngine;
 
-// SAFE PILOT ONLY: one character (Monika) and one surface (clean_asphalt).
+// Monika 4K packed MR; other six characters 2K packed MR. Asphalt RA is pilot.
 // Raw source maps are immutable, and existing shaders retain their fallback.
 // The packed PNGs must first be built by unity-tools/oboz/pbr_pack.py.
 public static class BraxObozPbrPack
 {
     public const string IndexPath = "Assets/PlayableGenerated/Oboz/PackedPbr/pack-index.json";
     public const string MonikaPath = "Assets/PlayableGenerated/Oboz/PackedPbr/monika-MR.png";
+    public static string CharacterPath(string id)
+    {
+        switch (id)
+        {
+            case "monika": case "vorn": case "zyro": case "rakk":
+            case "kade": case "gorr": case "mis":
+                return "Assets/PlayableGenerated/Oboz/PackedPbr/" + id + "-MR.png";
+            default:
+                throw new ArgumentOutOfRangeException(nameof(id), "Unknown camp character");
+        }
+    }
     public const string EditorSource = "Assets/Editor/Oboz/BraxObozPbrPack.cs";
     [Serializable] sealed class Entry
     {
@@ -28,8 +39,8 @@ public static class BraxObozPbrPack
 
     public static Texture2D CharacterMR(string id, string metallicPath, string roughnessPath)
     {
-        if (id != "monika") return null;
-        return LoadPilot("monika", "MR", metallicPath, roughnessPath);
+        CharacterPath(id); // Reject unexpected path IDs before resolving a file.
+        return LoadPilot(id, "MR", metallicPath, roughnessPath);
     }
 
     public static Texture2D SurfaceRA(string id, string roughnessPath, string aoPath)
@@ -54,8 +65,9 @@ public static class BraxObozPbrPack
                 !index.originalsPreserved || index.entries == null)
                 throw new InvalidOperationException("Untrusted packed-map index");
             var entry = index.entries.SingleOrDefault(e => e.id == id && e.role == role);
+            int expectedSize = role == "RA" || id == "monika" ? 4096 : 2048;
             if (entry == null || entry.first != first || entry.second != second ||
-                entry.width != 4096 || entry.height != 4096 ||
+                entry.width != expectedSize || entry.height != expectedSize ||
                 string.IsNullOrEmpty(entry.packedPath) ||
                 !entry.packedPath.StartsWith("Assets/PlayableGenerated/Oboz/PackedPbr/", StringComparison.Ordinal))
                 throw new InvalidOperationException("Index/input mismatch");
@@ -65,12 +77,13 @@ public static class BraxObozPbrPack
                 throw new InvalidOperationException("Outdated PBR pack; leave originals in place");
             var importer = AssetImporter.GetAtPath(entry.packedPath) as TextureImporter;
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(entry.packedPath);
-            if (!texture || !importer || texture.width != 4096 || texture.height != 4096 ||
+            if (!texture || !importer ||
+                texture.width != expectedSize || texture.height != expectedSize ||
                 importer.sRGBTexture || !importer.mipmapEnabled ||
                 importer.textureType != TextureImporterType.Default)
                 throw new InvalidOperationException("PBR pack importer is not ready");
             Debug.Log("BRAXHORN_PBR_PACK_ACTIVE id=" + id + " role=" + role +
-                " src4k=true output=" + entry.packedPath);
+                " size=" + expectedSize + " output=" + entry.packedPath);
             return texture;
         }
         catch (Exception e)
@@ -98,10 +111,13 @@ public static class BraxObozPbrPack
         t.sRGBTexture = false; // R/G store linear PBR numerical values.
         t.alphaSource = TextureImporterAlphaSource.None;
         t.mipmapEnabled = true;
-        t.streamingMipmaps = true;
-        t.streamingMipmapsPriority = 2;
+        bool isMonika = t.assetPath.EndsWith("/monika-MR.png", StringComparison.Ordinal);
+        bool isAsphalt = t.assetPath.EndsWith("/clean_asphalt-RA.png", StringComparison.Ordinal);
+        int targetSize = isMonika || isAsphalt ? 4096 : 2048;
+        t.streamingMipmaps = targetSize == 4096;
+        t.streamingMipmapsPriority = isMonika ? 2 : 0;
         t.isReadable = false;
-        t.maxTextureSize = 4096;
+        t.maxTextureSize = targetSize;
         t.npotScale = TextureImporterNPOTScale.None;
         t.anisoLevel = 8;
         t.filterMode = FilterMode.Trilinear;
@@ -110,7 +126,7 @@ public static class BraxObozPbrPack
         var android = t.GetPlatformTextureSettings("Android");
         android.name = "Android";
         android.overridden = true;
-        android.maxTextureSize = 4096;
+        android.maxTextureSize = targetSize;
         android.format = TextureImporterFormat.ASTC_4x4;
         android.compressionQuality = 90;
         t.SetPlatformTextureSettings(android);
