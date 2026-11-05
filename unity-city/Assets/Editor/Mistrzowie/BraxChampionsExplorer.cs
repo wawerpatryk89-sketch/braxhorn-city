@@ -61,6 +61,9 @@ public static class BraxChampionsExplorer
             points.Add(new BraxCityPoint { id="metro_"+station.name.Substring(0,2), label=station.name.Split('|')[0].Trim(),
                 position=Ground(station.TransformPoint(BraxClaudeMetro.ChampionsWalkingRoute()[0])) });
         world.points = points.ToArray();
+        // Functional copy of the same source sport car available to the estate.
+        // Single parked car near A1 west parking; no replacement meshes or roads.
+        BraxChampionsCarBuilder.Generate(rig.transform);
         // Existing Android HUD creates one persistent instance at runtime. Editor/PC uses the same player command API.
         player.AddComponent<BraxChampionsDesktopInput>().player = runtime;
         AddDaylight(rig.transform);
