@@ -19,7 +19,7 @@ public static class BraxClaudeBezSwiecenia
 
     [System.Serializable] sealed class Raport
     {
-        public string scena; public int materialy, zgaszone, kopie, lampy, lampyZmienione;
+        public string scena; public int materialy, zgaszone, kopie, lampy, lampyZmienione, oprawyArenyZachowane;
         public List<string> przyklady = new List<string>();
     }
 
@@ -38,6 +38,16 @@ public static class BraxClaudeBezSwiecenia
                 var m = mats[i]; if (!m) continue;
                 if (done.TryGetValue(m, out var d)) { if (d != m) { mats[i] = d; changed = true; } continue; }
                 rep.materialy++;
+                // Cztery oryginalne grupy LED i szyldow BRAXHORN ARENA
+                // zachowuja swoje assety PBR i emisje. Globalny audyt miasta
+                // nie moze ich wygaszac, by potem odtwarzac je po nazwie.
+                // Dotyczy tylko miasta i oznaczonych materialow z generatora areny.
+                if (label == "miasto" && m.name.StartsWith("A świeci: Arena", System.StringComparison.Ordinal))
+                {
+                    done[m] = m;
+                    rep.oprawyArenyZachowane++;
+                    continue;
+                }
                 if (!Glows(m)) { done[m] = m; continue; }
                 var target = m;
                 string path = AssetDatabase.GetAssetPath(m);
@@ -68,7 +78,7 @@ public static class BraxClaudeBezSwiecenia
         }
         AssetDatabase.SaveAssets();
         File.WriteAllText(Out + "/" + Safe(label) + ".json", JsonUtility.ToJson(rep, true));
-        Debug.Log("BRAXHORN_BEZ_SWIECENIA " + label + ": materiały " + rep.materialy + ", zgaszone " + rep.zgaszone + " (kopie " + rep.kopie + "), lampy " + rep.lampy + " (zmienione na ForceVertex " + rep.lampyZmienione + ")");
+        Debug.Log("BRAXHORN_BEZ_SWIECENIA " + label + ": materiały " + rep.materialy + ", zgaszone " + rep.zgaszone + " (kopie " + rep.kopie + "), oryginalne oprawy areny " + rep.oprawyArenyZachowane + ", lampy " + rep.lampy + " (zmienione na ForceVertex " + rep.lampyZmienione + ")");
     }
 
     static bool Glows(Material m)
