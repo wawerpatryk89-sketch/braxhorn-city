@@ -83,6 +83,32 @@ class PromenadeLaneNoZFight(unittest.TestCase):
         self.assertLess(unary_union(ground).intersection(covered).area,1e-4,
                         "Previous grass/paving surface still hidden below kiosk floor")
 
+    def test_all_12_shops_have_only_real_pbr_products_and_zero_human_actors(self):
+        cat=json.loads((ROOT/"unity-tools/mistrzowie/promenade_polyhaven_models.json").read_text())
+        assets=cat["assets"]
+        self.assertEqual(len(assets),25)
+        self.assertEqual(len({a["id"] for a in assets}),25)
+        counts={f"K{i}":0 for i in range(1,13)}
+        for a in assets:
+            for kiosk in a["kiosks"]:
+                counts[kiosk]+=1
+        self.assertTrue(all(n>=1 for n in counts.values()),counts)
+        self.assertGreaterEqual(sum(counts.values()),45)
+        stock=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenadeStock.cs").read_text()
+        promenade=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs").read_text()
+        importer=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPolyHaven2KImport.cs").read_text()
+        self.assertIn("BraxChampionsPromenadeStock.Populate(baseObj.transform,approved)",promenade)
+        self.assertIn('id+"_2k.gltf"',stock)
+        self.assertIn("BraxRegion.Bounds(instance)",stock)
+        self.assertIn("AssetDatabase.LoadAssetAtPath<GameObject>",stock)
+        self.assertIn('android.maxTextureSize=2048',importer)
+        self.assertIn('TextureImporterFormat.ASTC_4x4',importer)
+        self.assertIn("no invented product geometry",stock.lower())
+        for forbidden in ("BraxMieszkaniec","BraxGymPlayer","AnimatorController","NpcSpawner","StartCoroutine"):
+            self.assertNotIn(forbidden,stock)
+        self.assertNotIn("BraxMieszkaniec",promenade)
+        print("PROMENADE_K1_K12_GENUINE_STOCK_NO_NPCS",counts)
+
     def test_generated_mesh_red_and_white_replace_cobbles_exactly(self):
         if not FOUND.is_file():
             self.skipTest("Run legacy_foundation.py first; generated geometry is not committed")
