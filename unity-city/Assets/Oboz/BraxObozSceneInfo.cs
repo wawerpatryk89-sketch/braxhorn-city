@@ -14,7 +14,7 @@ public sealed class BraxObozSceneInfo : MonoBehaviour
     public string sourcePlan = "Oboz_Misia_plan_terenu_R3.png";
 
     bool streamingConfigured, previousStreaming, previousAllCameras;
-    int previousMaxReduction;
+    int previousMaxReduction, previousGlobalMipLimit;
 
     void Awake()
     {
@@ -27,14 +27,17 @@ public sealed class BraxObozSceneInfo : MonoBehaviour
         previousStreaming = QualitySettings.streamingMipmapsActive;
         previousAllCameras = QualitySettings.streamingMipmapsAddAllCameras;
         previousMaxReduction = QualitySettings.streamingMipmapsMaxLevelReduction;
+        previousGlobalMipLimit = QualitySettings.globalTextureMipmapLimit;
         QualitySettings.streamingMipmapsActive = true;
         QualitySettings.streamingMipmapsAddAllCameras = true;
         // Exactly one level may be discarded: 4K -> 2K. Imported 2K sources
         // remain non-streamed. Never lower the global texture resolution.
         QualitySettings.streamingMipmapsMaxLevelReduction = 1;
+        QualitySettings.globalTextureMipmapLimit = 0; // Allow source 4K when camera is close.
         streamingConfigured = true;
         Debug.Log("BRAXHORN_OBOZ_MIP active=" + QualitySettings.streamingMipmapsActive +
             " max_reduction=" + QualitySettings.streamingMipmapsMaxLevelReduction +
+            " global_mip_limit=" + QualitySettings.globalTextureMipmapLimit +
             " budget_mb=" + QualitySettings.streamingMipmapsMemoryBudget +
             " supported=" + SystemInfo.supportsMipStreaming);
     }
@@ -45,5 +48,6 @@ public sealed class BraxObozSceneInfo : MonoBehaviour
         QualitySettings.streamingMipmapsActive = previousStreaming;
         QualitySettings.streamingMipmapsAddAllCameras = previousAllCameras;
         QualitySettings.streamingMipmapsMaxLevelReduction = previousMaxReduction;
+        QualitySettings.globalTextureMipmapLimit = previousGlobalMipLimit;
     }
 }
