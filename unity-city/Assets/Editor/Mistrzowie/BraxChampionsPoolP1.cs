@@ -39,11 +39,11 @@ public static class BraxChampionsPoolP1
     {
         if(!File.Exists(LayoutPath))throw new FileNotFoundException("P1 approved layout missing",LayoutPath);
         var d=JsonUtility.FromJson<Data>(File.ReadAllText(LayoutPath));
-        if(d==null||d.lot==null||d.basins==null||d.basins.Length!=4
+        if(d==null||d.lot==null||d.basins==null||d.basins.Length!=3
             ||d.lot.id!="P1"||d.lot.x!=LotX||d.lot.z!=LotZ||d.lot.w!=160f||d.lot.d!=120f
             ||d.texResolution!=2048||d.parkingSpaces!=95||!d.waterDeferred)
             throw new InvalidOperationException("P1 plot, source resolution or empty-pool contract changed");
-        var expected=new[]{"SPORT_25M","FAMILY","CHILDREN","JACUZZI"};
+        var expected=new[]{"SPORT_25M","FAMILY","CHILDREN"};
         foreach(var id in expected)
             if(d.basins.Count(b=>b.id==id)!=1)throw new InvalidOperationException("Missing original P1 basin: "+id);
         foreach(var b in d.basins)
@@ -435,7 +435,6 @@ public static class BraxChampionsPoolP1
         float x=b.x-LotX,z=b.z-LotZ,w=b.w,d=b.d,depth=b.depth;
         var t=Group(structure,"REAL EMPTY EXCAVATED BASIN | "+b.id+" | no water");
         var m=b.id=="CHILDREN"?lightBlue:blue;
-        if(b.id=="JACUZZI")m=lightBlue;
         float bottom=Deck-depth;
         // The underlying -0.25m foundation terrain is carved by legacy_foundation.py
         // using EXACTLY these same plot.json rectangles before this hollow basin is built.
@@ -465,7 +464,7 @@ public static class BraxChampionsPoolP1
             }
         }
         // Simple robust real stainless steel ladder with two vertical rails, rungs.
-        if(b.id!="JACUZZI")
+        if(b.id!="CHILDREN")
         {
             float lx=x+w*.5f-.9f,lz=z-d*.5f+.15f;
             foreach(float sx in new[]{lx-.29f,lx+.29f})
@@ -473,12 +472,7 @@ public static class BraxChampionsPoolP1
             for(int i=0;i<5;i++)
                 Box(t,"Pool ladder anti-slip rung",steel,lx,Deck-.19f-i*.30f,lz,.70f,.055f,.07f,false);
         }
-        if(b.id=="JACUZZI")
-        {
-            foreach(float side in new[]{-1f,1f})
-                Box(t,"SPA jacuzzi underwater tiled sitting ledge",lightBlue,x+side*1.5f,
-                    bottom+.46f,z,.58f,.92f,d-.6f);
-        }
+
     }
     static void FixturesAndFurniture()
     {
