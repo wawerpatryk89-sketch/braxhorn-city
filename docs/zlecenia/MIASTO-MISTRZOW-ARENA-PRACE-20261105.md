@@ -21,13 +21,13 @@ Zachować skalę `K=BraxClaudeOsiedle.K=2.33/1.80`, modele grywalne, strukturę 
 - `build_exteriors.py`: frontowy i tylny otwór wejścia, usunięte atrapy zamkniętych drzwi; przestawiony kiosk serwisowy za areną, by nie przecinał tylnego wejścia.
 
 ## Pakiet wejściowy od właściciela — NIE MA POTWIERDZENIA IMPORTU DO REPO
-W rozmowie jest oryginalny ZIP z pasem oraz dwa arkusze szyldów; lokalnie przygotowano `champions_asset_import.zip` (ok. 91 MB) z:
+W rozmowie jest oryginalny ZIP z pasem oraz dwa arkusze szyldów; lokalnie przygotowano pełny `champions_arena_A1_full_import.zip` (ok. 108 MB) z:
 - `Assets/Source/Mistrzowie/Trophies/tripo_convert_3a821f58-4886-4294-9747-e2bf88b35419.fbx` + oryginalne mapy w folderze .fbm
 - `Assets/Source/Mistrzowie/Trophies/ChampionshipBelt_ARM.png` (roughness/metallic spakowane z oryginalnych map)
 - czterema przyciętymi RGBA PNG w `Assets/Source/Mistrzowie/ArenaSigns/`:
   `champion_arena_red_front.png`, `champion_arena_gold_front.png`, `champion_arena_red_fight_night.png`, `champion_arena_gold_arena_walk.png`.
 
-**Te pliki binarne nadal wymagają rzeczywistego dostarczenia do GitHub przed budową; ich ścieżki w generatorze nie oznaczają, że już są w repo.** Bez nich kod bezpiecznie pozostawia istniejący szyld i pustą szklaną gablotę, ale wymagana prezentacja pasa NIE jest ukończona.
+**Pełny ZIP zawiera dodatkowo `Assets/Source/Mistrzowie/VIP/free_luxurious_barrel_seat_2k.glb` (oryginalne siatki, tekstury 2K). Wszystkie pliki binarne nadal wymagają rzeczywistego dostarczenia do GitHub przed budową; ich ścieżki w generatorze nie oznaczają, że już są w repo.** Bez nich kod bezpiecznie pozostawia istniejący szyld i pustą szklaną gablotę, ale wymagana prezentacja pasa NIE jest ukończona.
 
 ## Dowody / status
 - Statycznie odczytano źródło C# oraz shader; potwierdzono cztery punkty, moc 2.15, 13 m zasięgu, brak dynamicznych cieni, shader emission, integrację A1 i poprawny typ alpha blend.
@@ -55,3 +55,6 @@ W rozmowie jest oryginalny ZIP z pasem oraz dwa arkusze szyldów; lokalnie przyg
 - Lokalny łączny ZIP: `champions_arena_A1_full_import.zip` (~107,8 MB) zawiera 11 plików źródłowych: pas, mapy, cztery szyldy oraz VIP GLB. ZIP sprawdzony przez `ZipFile.testzip()`. **Nie został automatycznie przesłany do GitHub**, co blokuje odbiór końcowy i render postaci na urządzeniu.
 
 Status: kod na gałęzi, źródła binarne spakowane lokalnie, przed dopuszczeniem APK potrzebne rzeczywiste dodanie binariów do projektu, kompilacja Unity i test Android. Żadnego automatycznego buildu.
+
+### Walidacja aktualnej pełnej paczki
+Archiwum `champions_arena_A1_full_import.zip`: 107 782 665 bajtów, SHA256 `453a5fa9cd637d6a2a733893c453faa12914dc2610f69bf73dd3d5f65fbfcef1`, 13 pozycji (11 zasobów + manifest + README). W lokalnej kontroli: ZIP CRC PASS; 11 x SHA256 PASS; oryginalny FBX bez zmiany bajtów; GLB 5 siatek i 14 węzłów bez zmian oraz 6 map PBR 2K. **Nie jest to test Unity.**
