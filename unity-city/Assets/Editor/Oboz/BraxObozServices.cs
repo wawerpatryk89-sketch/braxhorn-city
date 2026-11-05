@@ -171,14 +171,6 @@ public static class BraxObozServices
             var door=hinge.gameObject.AddComponent<BraxCityDoor>();
             door.id="oboz-wc-"+(x< -3?"1":"2");door.label="KABINA WC";
             door.leaves=new[]{hinge};door.sides=new[]{1f};
-            // Panele i nadproże domykają kabinę, zostawiając prawdziwy
-            // otwór szerokości skrzydła. Nie ma collidera w przejściu.
-            FixtureBox(cubicle,"Panel futryny lewy",new Vector3(-1.26f,1.32f,1.48f),
-                new Vector3(.36f,2.22f,.095f),tile);
-            FixtureBox(cubicle,"Panel futryny prawy",new Vector3(1.11f,1.32f,1.48f),
-                new Vector3(.58f,2.22f,.095f),tile);
-            FixtureBox(cubicle,"Nadproże drzwi WC",new Vector3(0,2.33f,1.48f),
-                new Vector3(2.9f,.18f,.095f),tile,false);
         }
         foreach(float x in new[]{1.5f,4.52f})
         {
