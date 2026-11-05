@@ -103,6 +103,7 @@ jobs:
       - name: Spakuj PBR postaci (Monika 4K, pozostali 2K) — oryginały bez zmian
         run: |
           python3 -m pip install --disable-pip-version-check Pillow==12.0.0
+          python3 -m unittest discover -s unity-tools/oboz -p 'test_pbr_pack.py' -v
           python3 unity-tools/oboz/pbr_pack.py
       - name: Zweryfikowane animacje ruchu Moniki
         env:
