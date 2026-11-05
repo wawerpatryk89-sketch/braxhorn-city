@@ -53,6 +53,34 @@ jobs:
         run: |
           set -euo pipefail
           python3 unity-tools/oboz/assets.py preflight
+      - name: Validate latest signed APK #18 baseline and exact signing certificate
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/oboz18"
+          gh release download oboz-review-latest --repo "$GITHUB_REPOSITORY" --pattern release-identity.json --dir "$RUNNER_TEMP/oboz18"
+          python3 - <<'PY'
+          import json,os,re,sys
+          from pathlib import Path
+          sys.path.insert(0,"unity-tools/oboz")
+          from recover_apk import CERTIFICATE
+          original=Path(os.environ["RUNNER_TEMP"])/"oboz18/release-identity.json"
+          info=json.loads(original.read_text())
+          expected={
+              "applicationId":"com.braxhorn.oboz",
+              "versionCode":216024998,
+              "sourceCommit":"e2ee759be31532fa283a3dd7e3f98acb12e9f256",
+              "sourceRun":41983757537,
+              "signingCertificateSha256":CERTIFICATE,
+          }
+          for key,want in expected.items():
+              if info.get(key)!=want:
+                  raise SystemExit(f"APK18 baseline mismatch: {key}: expected {want}, got {info.get(key)}")
+          if info.get("contentUpdatesReady") is not False:
+              raise SystemExit("Unexpected content updater claim on old APK18")
+          if not re.fullmatch(r"[a-f0-9]{64}",info.get("apkSha256","")):
+              raise SystemExit("Missing SHA256 of signed APK18")
+          print("BRAXHORN_OBOZ_APK18_BASE=PASS appid=original signer=original update=APK not content-only")
+          PY
       - name: Install pinned C sharp syntax parser, no Unity editor
         run: |
           set -euo pipefail
