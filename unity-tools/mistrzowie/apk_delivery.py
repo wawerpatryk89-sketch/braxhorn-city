@@ -98,10 +98,13 @@ def resign_with_existing_key(source, identity, expected_cert):
     password = ROOT / "unity-city/braxhorn.keystore.pass"
     with tempfile.TemporaryDirectory(prefix="mistrzowie-resign-", dir=OUT) as temporary:
         signed = Path(temporary) / "signed.apk"
+        # The existing key has the same key/store password (checked in
+        # preflight). apksigner consumes each file: password on a new line,
+        # so reading this one-line password file twice causes EOF on key-pass.
+        # Omitting key-pass makes apksigner reuse the verified store password.
         command(sdk_tool("apksigner"), "sign",
                 "--ks", str(keystore), "--ks-key-alias", "braxhorn",
                 "--ks-pass", "file:" + str(password),
-                "--key-pass", "file:" + str(password),
                 "--out", str(signed), str(source))
         if not signed.is_file() or signed.stat().st_size < 1024:
             raise RuntimeError("Existing-key signer did not produce an APK")
