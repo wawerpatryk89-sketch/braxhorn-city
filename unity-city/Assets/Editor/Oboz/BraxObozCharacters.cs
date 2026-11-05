@@ -147,7 +147,7 @@ public static partial class BraxObozCharacters
                 rendererIndex++;
                 renderer.sharedMaterials = Enumerable.Repeat(material, Mathf.Max(1, renderer.sharedMesh.subMeshCount)).ToArray();
                 renderer.quality = SkinQuality.Bone4; renderer.updateWhenOffscreen = true;
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
+                renderer.shadowCastingMode = spec.id == "monika" ? ShadowCastingMode.On : ShadowCastingMode.Off;
             }
             var animation = hero.AddComponent<Animation>(); animation.playAutomatically = false;
             animation.cullingType = AnimationCullingType.AlwaysAnimate;
@@ -193,6 +193,15 @@ public static partial class BraxObozCharacters
         if (!shader) throw new InvalidOperationException("Brak shadera postaci obozu");
         var mat = new Material(shader) { name = c.name + " — oryginalne mapy PBR" };
         mat.SetFloat("_DarkHands", c.id == "gorr" ? 1 : 0);
+        if (c.id == "monika")
+        {
+            // Oryginalne 4K Color/Normal/roughness zostaja bez zmian.
+            // Jej twarz i ubrania nie moga wygladac jak polerowany plastik:
+            // kontrolujemy fizyczna odpowiedz materialu, nie kolor modelu.
+            mat.SetFloat("_MetallicScale", .035f);
+            mat.SetFloat("_RoughnessFloor", .67f);
+            mat.SetFloat("_BumpScale", .78f);
+        }
         var props = new[] { "_MainTex", "_BumpMap", "_RoughnessTex", "_MetallicTex" };
         var paths = new[] { c.colorPath, c.normalPath, c.roughnessPath, c.metallicPath };
         // Keep all original source maps. Only the reviewed pilot Monika uses
