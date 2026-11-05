@@ -1,0 +1,19 @@
+# OBÓZ BRAXHORN — dostawa oryginalnych modeli do Unity
+
+Aktualny status: kod nowego obozu w GitHub; nowy ZIP 345 MB i byk GLB są zweryfikowane, ale nie zostały jeszcze przekazane do GitHub Releases.
+
+Tag draft release: oboz-owner-remodel-20261105 (DRAFT, nigdy publicznie published).
+Nowe zasoby nie należą do siedmiu starszych szyfrowanych paczek oboz-private-34114c7950bc.
+
+Wymagane pliki:
+- BRAXHORN_OBOZ_WYKONAWCA_ZASOBY_20261105.zip | 345273037 B | SHA256 b7d1bd8dd2ed64a4e23b6fad8af2497d0355073b687ea16e48b03f045741d006
+- BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb | 2232460 B | SHA256 425788876b8fe2dfaba90157d74c6631d231184f96659759cdafade794a5352f
+
+Workflow manual: Obóz — Unity 6 APK do testu, ref codex/oboz-przebudowa-pbr-20261105.
+Najpierw owner_release_assets.py preflight (fail przed Unity, jeśli brak źródeł).
+Następnie assets.py restore (stare paczki) oraz owner_release_assets.py restore (nowe modele), potem Unity.
+
+Wszystko trafia do ignorowanego katalogu Assets/Source/Prywatne/Oboz/OwnerAssets.
+Nie publikować źródłowych GLB i ZIP w publicznym Gicie. Postacie i ich animacje są nienaruszalne.
+
+Pozostałe ograniczenia: brak osobnego zweryfikowanego drugiego GLB Vintage w nowym manifeście, Blender .blend z trawy nie jest automatycznie gotowym modelem Unity. Pełny odbiór Unity/Android nadal potrzebny.
