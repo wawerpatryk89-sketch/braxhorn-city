@@ -27,3 +27,19 @@ Rzeczywisty audyt źródeł poza Unity (2026-11-05): 31/31 CRC i SHA256, 53 plik
 Nie publikować źródłowych GLB i ZIP w publicznym Gicie. Postacie i ich animacje są nienaruszalne.
 
 Pozostałe ograniczenia: brak osobnego zweryfikowanego drugiego GLB Vintage w nowym manifeście, Blender .blend z trawy nie jest automatycznie gotowym modelem Unity. Pełny odbiór Unity/Android nadal potrzebny.
+
+## Zastępstwo iPhone dla niedostępnej części 01 (05.11.2026)
+Jeśli nie da się pobrać 85 MB BRAXHORN_MODELE_CZESC_01_Z_05.zip, właściciel może dosłać **sześć osobnych mniejszych ZIP-ów** z tej samej oryginalnej zawartości. Nie są to modele zastępcze i nie zmieniają źródeł:
+- BRAXHORN_OBOZ_MALE_01_01_Z_06.zip — 16 396 829 B (zawiera także byka GLB 4×)
+- BRAXHORN_OBOZ_MALE_01_02_Z_06.zip — 14 164 201 B
+- BRAXHORN_OBOZ_MALE_01_03_Z_06.zip — 14 164 201 B
+- BRAXHORN_OBOZ_MALE_01_04_Z_06.zip — 14 164 201 B
+- BRAXHORN_OBOZ_MALE_01_05_Z_06.zip — 14 164 201 B
+- BRAXHORN_OBOZ_MALE_01_06_Z_06.zip — 14 164 200 B
+
+**W trybie sześciu małych ZIP-ów nie dosyłać osobno byka!** Jego oryginalny plik GLB znajduje się w małej paczce 01 i jest weryfikowany SHA-256 po rozpakowaniu.
+
+Pozostawić poprzednie oryginalne BRAXHORN_MODELE_CZESC_02_Z_05.zip, CZESC_03, CZESC_04 i CZESC_05 (już przesłane w DRAFT). Dodatkowa źle nazwana kopia CZESC_03_Z_05.2.zip jest ignorowana i nie blokuje importu.
+W GitHub Releases uploadować małe ZIP-y **bez rozpakowania**, nie publikować wersji roboczej (DRAFT).
+
+owner_release_assets.py automatycznie wybiera tryb six_small, pobiera sześć małych ZIP-ów i istniejące części 02–05, odtwarza bajt-po-bajcie ZIP 01, weryfikuje SHA-256 i odczytuje oryginalnego byka GLB z małej paczki 01. Dalej uruchamia wspólny zweryfikowany importer pięciu części z deterministycznymi GUID-ami. Nie dotyka postaci i animacji.
