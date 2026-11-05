@@ -70,7 +70,7 @@ jobs:
           projectPath: unity-city
           unityVersion: 6000.0.58f2
           targetPlatform: Android
-          buildMethod: BraxObozContentBase.Export
+          buildMethod: BraxObozContentBase.ExportInCI
           manualExit: true
           versioning: None
           allowDirtyBuild: true
