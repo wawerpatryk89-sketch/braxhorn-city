@@ -1400,7 +1400,20 @@ public static class BraxClaudeMetro
             w.transform.localScale = Vector3.one * skala;
             var b = Granice(w, null);
             var bp = Granice(w, pudlo); if (bp.size.sqrMagnitude < 1e-6f) bp = b;
-            w.transform.position = new Vector3(cx - b.center.x, yR - b.min.y, zTn - bp.center.z);
+            // In run #94 the side-material bounds were offset ~0.22 m from
+            // the full wagon. Aligning that subset put the whole wagon 0.12 m
+            // across the platform edge (b.min.z=34.08 < zPN-0.02).
+            // Centre the ENTIRE source wagon on the real rail axis, keeping
+            // mesh, dimensions, wheels and the active BoxCollider unchanged.
+            // The fail-closed clearance validation below remains in force.
+            float halfWagon = b.size.z * .5f;
+            if (zTn - halfWagon < zPN + .02f || zTn + halfWagon > zN - .10f)
+                throw new InvalidOperationException("BRAXHORN_METRO_M1_WAGON_ZA_SZEROKI: " +
+                    "szerokość=" + b.size.z.ToString("F2") +
+                    ", tor_z=" + zTn.ToString("F2") +
+                    ", peron_z=" + zPN.ToString("F2") +
+                    ", sciana_z=" + zN.ToString("F2"));
+            w.transform.position = new Vector3(cx - b.center.x, yR - b.min.y, zTn - b.center.z);
             BraxMiastoAssety.Przygotuj(w, false, true);  // dynamiczny model — bez StaticBatching
             foreach (var t in w.GetComponentsInChildren<Transform>(true))
                 GameObjectUtility.SetStaticEditorFlags(t.gameObject, 0);
