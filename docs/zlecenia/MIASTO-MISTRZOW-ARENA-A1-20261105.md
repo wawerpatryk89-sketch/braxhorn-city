@@ -4,7 +4,7 @@
 
 ## Zakres, stan kodu
 - **A1:** istniejąca hala z oktagonem i sędziami została zachowana; układ widowni rozdzielony w miejscach przejść; schody na sektory po bokach, wolny korytarz wejściowy.
-- **VIP przy sędziach:** 16 dużych foteli wykończonych PBR Leather037 i metalem Metal048A, 2 rzędy w dwóch grupach. Stanowiska sędziów i komentatorów oraz ich wyposażenie pozostawione.
+- **VIP przy sędziach:** 16 miejsc w dwóch rzędach i dwóch grupach. Moduł `BraxChampionsVIPSeats` używa docelowego fotela właściciela `free_luxurious_barrel_seat_2k.glb`, jeśli jest obecny; bez tego pliku w scenie pozostają tymczasowe, wyraźnie ulepszone fotele wygenerowane z PBR Leather037 i Metal048A. Stanowiska sędziów i komentatorów oraz ich wyposażenie pozostawione.
 - **Oświetlenie:** 4 istniejące punkty nad oktagonem przeniesione do odrębnej nazwy i zwiększone do zasięgu 13 m, intensywności 2.15, z oprawami LED i materiałem emisyjnym. Brak nowych shadow maps; istniejące lampy siedzeń bez zmian. Ocena jasności na telefonie oczekuje na APK.
 - **Elewacja:** `facade_glass` jest teraz rzeczywiście przezroczystym, niemetalicznym materiałem CityStaticPBR; `clear_glass` służy drzwiom i gablocie. Materiały i ich odbicia do weryfikacji na Androidzie.
 - **Wejścia:** na froncie drzwi dwuskrzydłowe publiczne, na północy osobne wejście zawodników. Środkowe otwory mają dokładnie 9,4 m niezależnie od LOD. Osobny korytarz prowadzi do zaplecza, dwa pomieszczenia z ławkami i szafkami. Drzwi korzystają z istniejącego `BraxCityDoor`.
@@ -34,6 +34,7 @@ Pakiet `champions_asset_import.zip` jest przygotowany na podstawie materiałów 
 - Poprawność materiałów, geometrii, drzwi, sterowania i kolizji w Unity Play Mode.
 - Wizualne i wydajnościowe działanie APK na telefonie, odczyt błędów, FPS i pamięci.
 - Ostateczna kontrola dojścia do obu pięter trybun oraz drzwi wewnętrznych.
+- Własny model fotela VIP `Assets/Source/Mistrzowie/VIP/free_luxurious_barrel_seat_2k.glb` nie znajduje się w pakiecie pasa/szyldów. Samo podłączenie kodu `BraxChampionsVIPSeats` nie potwierdza przeniesienia tego assetu do repo.
 - Pozostałe 31 rezerwacji budynków w planie nie jest ukończoną zabudową; A2 jako druga arena nie była przedmiotem tej naprawy.
 
 **Tryb budowania:** zgodnie z `AGENTS.md` nie uruchamiać APK, Addressables, testów Unity ani ponowień bez osobnego polecenia właściciela. Zmiana gałęzi GitHub nie jest dowodem, że kod przeszedł na Androidzie. Nie scalać `main`.
