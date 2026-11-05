@@ -24,7 +24,7 @@ jobs:
       ${{ github.repository == 'wawerpatryk89-sketch/braxhorn-city' &&
           github.event.workflow_run.id == 42028827233 &&
           github.event.workflow_run.run_attempt == 1 &&
-          github.event.workflow_run.conclusion == 'failure' &&
+          (github.event.workflow_run.conclusion == 'failure' || github.event.workflow_run.conclusion == 'timed_out') &&
           github.event.workflow_run.head_branch == 'codex/miasto-mistrzow-20261104' &&
           github.event.workflow_run.head_sha == '6eca26ef55cf1ff5f11ca98e4bcd3181122c0dbb' }}
     runs-on: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
           origin=$(gh api "repos/$REPO/actions/runs/$EXPECTED_ORIGIN_RUN")
           printf '%s' "$origin" | jq -e --arg branch "$TARGET_BRANCH" \
             --arg sha "6eca26ef55cf1ff5f11ca98e4bcd3181122c0dbb" \
-            '(.status == "completed") and (.conclusion == "failure") and
+            '(.status == "completed") and ((.conclusion == "failure") or (.conclusion == "timed_out")) and
              (.run_attempt == 1) and (.head_branch == $branch) and
              (.head_sha == $sha) and (.path == ".github/workflows/mistrzowie-apk.yml")' >/dev/null
           # This commit was deliberately pinned at arming time. No moving targets.
