@@ -129,6 +129,12 @@ jobs:
         python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
         python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
         python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+    - name: Verify pinned patched Unity 6 editor image before expensive asset imports
+      run: |
+        set -euo pipefail
+        grep -Fxq 'm_EditorVersion: 6000.0.85f2' unity-city/ProjectSettings/ProjectVersion.txt
+        docker manifest inspect unityci/editor:ubuntu-6000.0.85f2-android-3 >/dev/null
+        echo 'BRAXHORN_UNITY_PATCH verified=6000.0.85f2 image=available'
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py
@@ -257,7 +263,7 @@ jobs:
         WEJSCIE_PAMIEC: ${{ github.event.inputs.pamiec }}
       run: |
         t=$(date +%s)
-        python3 -I unity-tools/claude/rejon_buildu.py --platforma webgl --unity 6000.0.58f2
+        python3 -I unity-tools/claude/rejon_buildu.py --platforma webgl --unity 6000.0.85f2
         cat unity-city/rejon-ci.txt
         echo "BRAXHORN_CZAS etap=klucz_rejonu s=$(( $(date +%s) - t ))"
         echo "T_PAMIEC=$(date +%s)" >> "$GITHUB_ENV"
@@ -311,7 +317,7 @@ jobs:
         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
       with:
         projectPath: unity-city
-        unityVersion: 6000.0.58f2
+        unityVersion: 6000.0.85f2
         targetPlatform: WebGL
         buildMethod: BraxGymBuild.BuildRenovation
         versioning: None
@@ -332,7 +338,7 @@ jobs:
         import json,os,pathlib
         root=pathlib.Path('build/WebGL')
         identity=json.loads((root/'playable.json').read_text())
-        assert identity['commit']==os.environ['GITHUB_SHA'] and identity['unity']=='6000.0.58f2'
+        assert identity['commit']==os.environ['GITHUB_SHA'] and identity['unity']=='6000.0.85f2'
         for pattern in ('*.loader.js','*.data*','*.framework.js*','*.wasm*'):
             files=list((root/'Build').glob(pattern))
             assert len(files)==1 and files[0].stat().st_size>0,(pattern,files)
@@ -457,6 +463,12 @@ jobs:
         python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
         python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
         python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+    - name: Verify pinned patched Unity 6 editor image before expensive asset imports
+      run: |
+        set -euo pipefail
+        grep -Fxq 'm_EditorVersion: 6000.0.85f2' unity-city/ProjectSettings/ProjectVersion.txt
+        docker manifest inspect unityci/editor:ubuntu-6000.0.85f2-android-3 >/dev/null
+        echo 'BRAXHORN_UNITY_PATCH verified=6000.0.85f2 image=available'
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py
@@ -585,7 +597,7 @@ jobs:
         WEJSCIE_PAMIEC: ${{ github.event.inputs.pamiec }}
       run: |
         t=$(date +%s)
-        python3 -I unity-tools/claude/rejon_buildu.py --platforma android --unity 6000.0.58f2
+        python3 -I unity-tools/claude/rejon_buildu.py --platforma android --unity 6000.0.85f2
         cat unity-city/rejon-ci.txt
         echo "BRAXHORN_CZAS etap=klucz_rejonu s=$(( $(date +%s) - t ))"
         echo "T_PAMIEC=$(date +%s)" >> "$GITHUB_ENV"
@@ -674,7 +686,8 @@ jobs:
       run: |
         df -h / | tail -1
         # /swapfile (2 GB) już istnieje na runnerze GitHuba („Text file busy”), więc osobny plik.
-        sudo fallocate -l 12G /swapfile-unity && sudo chmod 600 /swapfile-unity && sudo mkswap /swapfile-unity && sudo swapon /swapfile-unity || echo 'brak miejsca na swap'
+        sudo fallocate -l 12G /swapfile-unity && sudo chmod 600 /swapfile-unity && sudo mkswap /swapfile-unity && sudo swapon /swapfile-unity
+        grep -q '/swapfile-unity' /proc/swaps || { echo '::error::Brak swapu przed ciężkim IL2CPP'; exit 1; }
         free -g
     - name: Straznik w tle - kazdy APK do wydania od razu po zbudowaniu (nie czeka na reszte wariantow)
       env:
@@ -739,7 +752,7 @@ jobs:
         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
       with:
         projectPath: unity-city
-        unityVersion: 6000.0.58f2
+        unityVersion: 6000.0.85f2
         targetPlatform: Android
         buildMethod: BraxGymBuild.BuildRenovationAndroid
         androidExportType: androidPackage
@@ -835,7 +848,7 @@ jobs:
           city-review/*.json
     - name: Sprawdz gotowy swiat niezaleznie od wyniku pakowania APK
       id: generation_checkpoint
-      if: ${{ !cancelled() && steps.apk_artifact.outcome == 'success' && steps.apk_release.outcome == 'success' && steps.rejon.outputs.pamiec == 'tak' && steps.pamiec.outputs.cache-hit != 'true' }}
+      if: ${{ !cancelled() && (steps.unity_android.outcome == 'success' || steps.unity_android.outcome == 'failure') && steps.rejon.outputs.pamiec == 'tak' && steps.pamiec.outputs.cache-hit != 'true' }}
       continue-on-error: true
       env:
         ZONE: ${{ steps.rejon.outputs.rejon }}
@@ -868,12 +881,18 @@ jobs:
         fi
     - name: Pamiec Library Unity dla Androida - pelny zapis z Bee
       id: library_pack
-      if: ${{ !cancelled() && steps.unity_android.outcome == 'success' && steps.apk_artifact.outcome == 'success' && steps.apk_release.outcome == 'success' }}
+      if: ${{ !cancelled() && (steps.unity_android.outcome == 'success' || steps.unity_android.outcome == 'failure') }}
       continue-on-error: true
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         ZONE: ${{ steps.rejon.outputs.rejon }}
+        UNITY_OUTCOME: ${{ steps.unity_android.outcome }}
       run: |
+        test -d unity-city/Library || { echo 'No imported Library to preserve'; exit 0; }
+        # Preserve successful imports after a compiler crash; discard only incomplete IL2CPP build outputs.
+        if [ "$UNITY_OUTCOME" = failure ]; then
+          sudo rm -rf unity-city/Library/Bee/artifacts/Android/il2cppOutput
+        fi
         sudo swapoff /swapfile-unity 2>/dev/null || true
         sudo rm -f /swapfile-unity || true
         sudo docker image prune --all --force >/dev/null 2>&1 || true
