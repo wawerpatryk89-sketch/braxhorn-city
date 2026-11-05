@@ -102,10 +102,11 @@ public static class BraxChampionsArenaSigns
         }
         var t=new GameObject("Owner's four CHAMPION ARENA signs").transform;
         t.SetParent(arenaRoot,false);
-        Curved(t,0,MakeMat(0),true,false,48f,11.12f,6.9f);
-        Curved(t,1,MakeMat(1),true,true,42f,11.65f,5.9f);
-        Curved(t,2,MakeMat(2),false,true,34f,11.7f,5.7f);
-        Curved(t,3,MakeMat(3),false,false,34f,11.7f,5.7f);
+        // Original 1536x256 artwork is 6:1; keep the exact ratio on every facade.
+        Curved(t,0,MakeMat(0),true,false,42f,11.12f,7f);
+        Curved(t,1,MakeMat(1),true,true,36f,11.42f,6f);
+        Curved(t,2,MakeMat(2),false,true,34f,11.7f,5.667f);
+        Curved(t,3,MakeMat(3),false,false,34f,11.7f,5.667f);
         return true;
     }
 }
