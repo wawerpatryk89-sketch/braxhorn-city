@@ -401,6 +401,94 @@ public static partial class BraxObozEnvironment
         var g=Group(name,parent,Vector3.zero).gameObject;mesh=SaveMesh(mesh);g.AddComponent<MeshFilter>().sharedMesh=mesh;g.AddComponent<MeshRenderer>().sharedMaterial=mat;
         if(solid)g.AddComponent<MeshCollider>().sharedMesh=mesh;
     }
+    // Zachowany graficzny szyld właściciela; automatyczna maska usuwa tylko
+    // białe tło łączące się z krawędzią JPEG. Źródłowy JPEG nie jest edytowany.
+    static void OwnerGateSign(Transform gate)
+    {
+        const string sourcePath=
+            "Assets/Source/Prywatne/Oboz/OwnerAssets/Murale/44B8F5D6-7F27-4EF3-A804-9BC8C4F462D0.jpeg";
+        if(!System.IO.File.Exists(sourcePath))
+            throw new InvalidOperationException("Brak oryginalnego szyldu BRAXHORN: "+sourcePath);
+        var jpeg=new Texture2D(2,2,TextureFormat.RGBA32,false);
+        if(!ImageConversion.LoadImage(jpeg,System.IO.File.ReadAllBytes(sourcePath),false))
+            throw new InvalidOperationException("Oryginalny JPEG szyldu ma niepoprawne dane");
+        int width=jpeg.width,height=jpeg.height;
+        var pixels=jpeg.GetPixels32();
+        var outside=new bool[pixels.Length];
+        var queue=new Queue<int>();
+        bool IsBackground(int index)
+        {
+            var p=pixels[index];
+            return p.r>=238&&p.g>=238&&p.b>=238;
+        }
+        void Enqueue(int index)
+        {
+            if(index<0||index>=outside.Length||outside[index]||!IsBackground(index))return;
+            outside[index]=true;queue.Enqueue(index);
+        }
+        for(int x=0;x<width;x++) { Enqueue(x);Enqueue((height-1)*width+x); }
+        for(int y=0;y<height;y++) { Enqueue(y*width);Enqueue(y*width+width-1); }
+        while(queue.Count>0)
+        {
+            int i=queue.Dequeue(),x=i%width,y=i/width;
+            if(x>0)Enqueue(i-1);
+            if(x<width-1)Enqueue(i+1);
+            if(y>0)Enqueue(i-width);
+            if(y<height-1)Enqueue(i+width);
+        }
+        for(int i=0;i<pixels.Length;i++)if(outside[i])pixels[i].a=0;
+        var alpha=new Texture2D(width,height,TextureFormat.RGBA32,false);
+        alpha.SetPixels32(pixels);alpha.Apply(false,false);
+        string alphaPath=Folder+"/OwnerGateSignAlpha.png";
+        var encoded=alpha.EncodeToPNG();
+        if(!System.IO.File.Exists(alphaPath) ||
+            !System.IO.File.ReadAllBytes(alphaPath).SequenceEqual(encoded))
+        {
+            System.IO.File.WriteAllBytes(alphaPath,encoded);
+            AssetDatabase.ImportAsset(alphaPath,ImportAssetOptions.ForceSynchronousImport);
+        }
+        Object.DestroyImmediate(alpha);
+        Object.DestroyImmediate(jpeg);
+        var importer=AssetImporter.GetAtPath(alphaPath) as TextureImporter;
+        if(!importer)throw new InvalidOperationException("Nie da się zaimportować przezroczystego szyldu");
+        bool fix=!importer.alphaIsTransparency||importer.maxTextureSize<2048||
+            importer.filterMode!=FilterMode.Bilinear;
+        if(fix)
+        {
+            importer.alphaIsTransparency=true;
+            importer.alphaSource=TextureImporterAlphaSource.FromInput;
+            importer.sRGBTexture=true;
+            importer.maxTextureSize=2048;
+            importer.filterMode=FilterMode.Bilinear;
+            importer.SaveAndReimport();
+        }
+        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(alphaPath);
+        if(!texture)throw new InvalidOperationException("Nie można załadować PNG szyldu");
+        var shader=Shader.Find("Unlit/Transparent");
+        if(!shader)throw new InvalidOperationException("Brak shadera przezroczystego szyldu");
+        var material=new Material(shader){name="BRAXHORN — autorski szyld bez białego tła",
+            mainTexture=texture,enableInstancing=true};
+        string matPath=Folder+"/OwnerGateSign.mat";
+        var prev=AssetDatabase.LoadAssetAtPath<Material>(matPath);
+        if(prev)
+        {
+            EditorUtility.CopySerialized(material,prev);
+            Object.DestroyImmediate(material);
+            material=prev;
+        }
+        else AssetDatabase.CreateAsset(material,matPath);
+        var quad=GameObject.CreatePrimitive(PrimitiveType.Quad);
+        quad.name="BRAXHORN Training Camp — oryginalny JPEG na wspornikach";
+        quad.transform.SetParent(gate,false);
+        quad.transform.localPosition=P(0,6.2f,-.28f);
+        quad.transform.localRotation=Quaternion.Euler(0,180,0);
+        quad.transform.localScale=new Vector3(8.4f*K,8.4f*K*height/width,1f);
+        quad.GetComponent<MeshRenderer>().sharedMaterial=material;
+        Object.DestroyImmediate(quad.GetComponent<Collider>());
+        Debug.Log("BRAXHORN_OBOZ_SIGN: oryginalny JPEG bez białego tła "+
+            width+"x"+height+" alpha wyłącznie zewnętrzny flood fill");
+    }
+
     static void CampusPerimeter()
     {
         var fence=Group("Ogrodzenie całego obozu",root,Vector3.zero);
@@ -434,8 +522,11 @@ public static partial class BraxObozEnvironment
             Box(gate,"Filar bramy",new Vector3(x,1.65f,0),new Vector3(.5f,3.3f,.65f),campusSteel);
             Box(gate,"Okładzina filara",new Vector3(x,1.6f,-.34f),new Vector3(.34f,2.8f,.06f),wood,false);
         }
-        Sign(gate,"BRAXHORN · OBÓZ TRENINGOWY",new Vector3(0,5.5f,0),10);
-        foreach(float x in new[]{-5.5f,5.5f})Box(gate,"Słup oznakowania",new Vector3(x,2.85f,.5f),new Vector3(.15f,5.7f,.15f),campusSteel);
+        // Logo 1:1 właściciela, na wysokości bezpiecznej dla autokaru.
+        OwnerGateSign(gate);
+        foreach(float x in new[]{-3.7f,3.7f})
+            Box(gate,"Pionowy wspornik oryginalnego szyldu",
+                new Vector3(x,4.35f,.5f),new Vector3(.18f,8.7f,.18f),campusSteel);
         var leaf=Group("Skrzydło bramy",gate,Vector3.zero);
         Box(leaf,"Rama bramy",new Vector3(0,1.15f,0),new Vector3(8.2f,2.3f,.12f),campusSteel);
         for(int i=0;i<54;i++)Box(leaf,"Lamele bramy",new Vector3(-4+i*.15f,1.2f,-.09f),new Vector3(.095f,2.1f,.07f),wood,false);
