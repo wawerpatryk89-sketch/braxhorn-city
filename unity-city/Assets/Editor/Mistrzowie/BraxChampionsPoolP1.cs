@@ -80,6 +80,7 @@ public static class BraxChampionsPoolP1
         foreach(var b in layout.basins)BuildBlueBasin(b);
         FixturesAndFurniture();
         EstateAndParking();
+        BraxChampionsPoolP1Slide.Generate(outdoors,paving,steel,blue);
         OwnerEquipmentAnchors();
         NightAndInteriorLights();
 
@@ -540,7 +541,7 @@ public static class BraxChampionsPoolP1
         for(int i=0;i<3;i++)At("spa_lounger_premium_"+(i+1),7.8f+i*3.7f,-11.2f);
         At("jacuzzi_premium_3d",10f,-6.75f);
         // Preview-only location; adjust after inspecting exact supplied slide FBX/GLB.
-        At("waterslide_curved_premium_3d_PROVISIONAL_ANCHOR",-55f,37f);
+        // The original raft slide is already installed as an independently replaceable module.
     }
     static void ArcPaint(Transform t,float x,float y,float z,float radius,Material material)
     {
@@ -607,10 +608,13 @@ public static class BraxChampionsPoolP1
                 Box(outdoors,"P1 east terrace teak bench",wood,x+s*1.8f,.57f,z,1.5f,.22f,.66f);
         }
         // Tree/planting buffer and service walk behind building, original approved world layout preserved.
-        Box(outdoors,"P1 rear service path with paving",paving,0,.28f,54.0f,110f,.14f,5.3f);
+        // Stop the original rear path before the slide's true water landing;
+        // otherwise paving would cut through its basin (Z-fighting).
+        Box(outdoors,"P1 rear service path with paving",paving,6.5f,.28f,54.0f,97f,.14f,5.3f);
         for(float x=-73;x<=73;x+=17.5f)
         {
-            if(Mathf.Abs(x)<8)continue;
+            // Preserve the clear original slide landing basin at x≈-54.
+            if(Mathf.Abs(x)<8 || (x>=-64f&&x<=-41f))continue;
             Box(outdoors,"P1 rear planted bed concrete coping",stone,x,.38f,57f,8.8f,.26f,2.5f);
             Box(outdoors,"P1 rear planted bed top",plants,x,.56f,57f,8.0f,.09f,2.0f);
         }
