@@ -21,6 +21,11 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public Vector3 worldSpawn=new Vector3(1.5f,.08f,2.8f);
     public int trainingHits;
     public BraxVessel vessel;   // pojazd wodny, na którym siedzi gracz (BraxVessel.Board)
+    // P1 swimming fields are set ONLY by BraxChampionsPoolSwimVolume in Miasto Mistrzow.
+    // Defaults preserve the existing behaviour of City, Estate, Arena and Camp.
+    [NonSerialized] public bool p1Swimming;
+    [NonSerialized] public float p1WaterSurfaceY;
+    [NonSerialized] public int p1WaterVolumeId;
     public BraxSeat seat;       // sofa / ławka / hoker / łóżko (BraxSeat.Use)
     // Chwila trafienia CIOSU / KOPU (ta sama co trening na workach siłowni): pozycja gracza, kierunek, true = kopnięcie.
     // Słuchają worki, liny ringu i piłki osiedla (BraxWorek, BraxLina, BraxPilka) — bez zależności gracza od nich.
@@ -128,6 +133,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(seat){seat.Leave();}
             body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,initialCameraYaw+180f,0);body.enabled=true;
             vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
+            p1Swimming=false;p1WaterVolumeId=0;
             yaw=initialCameraYaw;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
             action="Idle";clips.Play("Idle");UpdateCamera(1f);Report();return;
         }
@@ -174,7 +180,9 @@ public sealed class BraxGymPlayer : MonoBehaviour
         bool jumping=acting&&action=="Jump";   // w skoku: pęd zostaje, sterowanie lekkie
         float mag=move.magnitude;   // 1.11: chód przy lekkim wychyleniu (0.9–2.1 m/s), płynnie w bieg przy mocnym (do 5.2 m/s), bez przycisku BIEG
         float naJoy=mag<.12f?0f:mag<.7f?Mathf.Lerp(.9f,2.1f,(mag-.12f)/.58f):(!walkOnly&&runEnabled?Mathf.Lerp(2.1f,5.2f,Mathf.SmoothStep(0f,1f,(mag-.7f)/.22f)):2.1f);
-        float target=jumping?speed:!acting?naJoy:0;
+        // Pool buoyancy is active only in the separate Mistrzowie region.
+        bool swimNow=cityWorld!=null && cityWorld.area=="mistrzowie" && p1Swimming;
+        float target=jumping?speed:!acting?(swimNow?naJoy*.46f:naJoy):0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
         Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
         Vector3 forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
@@ -194,7 +202,21 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(hips)hipsPrevY=visual.InverseTransformPoint(hips.position).y;
             if(odbicie){jumpPending=false;if(body.isGrounded)vertical=6.2f;}
         }
-        if(body.isGrounded&&vertical<0)vertical=-2f;vertical-=18f*dt;
+        if(swimNow)
+        {
+            // Body's feet are intentionally below the plane, so Brax is visibly
+            // IN the water, not running on top of an invisible solid floor.
+            // Surface/basin have no solid collider; only the real tiled bottom.
+            jumpPending=false;
+            float targetFeet=p1WaterSurfaceY-body.height*.60f;
+            float error=targetFeet-transform.position.y;
+            vertical=Mathf.Clamp(error*2.8f,-2.0f,1.55f);
+        }
+        else
+        {
+            if(body.isGrounded&&vertical<0)vertical=-2f;
+            vertical-=18f*dt;
+        }
         Vector3 moveDir=jumping&&direction.sqrMagnitude<.01f?transform.forward:direction.normalized;
         Vector3 step=(moveDir*speed+Vector3.up*vertical)*dt;
         int n=Mathf.Max(1,Mathf.CeilToInt(step.magnitude/.16f));for(int i=0;i<n;i++)body.Move(step/n);
@@ -208,7 +230,12 @@ public sealed class BraxGymPlayer : MonoBehaviour
         if(hitPending&&Time.time>=hitAt){hitPending=false;HitBag();OnCios?.Invoke(transform.position,transform.forward,action=="Kick");}
         if(!acting)
         {
-            string next=speed>3f?"Run":speed>.12f?"Walk":Time.time<combatUntil && clips["CombatIdle"]!=null && !BraxSport.Aktywne?"CombatIdle":"Idle";
+            // Original Brax animation pack currently has no verified Swim clip.
+            // Keep source rig intact; water locomotion is implemented physically,
+            // while any future approved swim clip can replace the walk fallback.
+            string next=swimNow?(speed>.12f?"Walk":"Idle")
+                :speed>3f?"Run":speed>.12f?"Walk"
+                :Time.time<combatUntil && clips["CombatIdle"]!=null && !BraxSport.Aktywne?"CombatIdle":"Idle";
             if(action!=next){action=next;clips[next].wrapMode=WrapMode.Loop;clips[next].speed=1;clips.CrossFade(next,.16f,PlayMode.StopAll);}
             if(next=="Walk")clips[next].speed=Mathf.Max(.55f,speed/2f);
             if(next=="Run")clips[next].speed=Mathf.Max(.65f,speed/5f);
