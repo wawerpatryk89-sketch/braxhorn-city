@@ -1,0 +1,93 @@
+name: Miasto Mistrzów - metro 5 stacji - weryfikacja kodu BEZ APK
+on:
+  push:
+    branches:
+      - codex/miasto-mistrzow-metro-5-stacji-20261105
+    paths:
+      - .github/workflows/champions-metro-next-preflight.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: champions-metro-5-next-20261105
+  cancel-in-progress: false
+
+jobs:
+  source-validation-only:
+    if: github.ref == 'refs/heads/codex/miasto-mistrzow-metro-5-stacji-20261105'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Only next-release metro sources; no current A1+T11 game build
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/mistrzowie/
+            unity-tools/validation/
+            unity-city/Assets/Editor/Mistrzowie/
+            unity-city/Assets/Editor/Claude/BraxClaudeMetro.cs
+            unity-city/Assets/Claude/Runtime/BraxSchodyRuchomeJazda.cs
+            unity-city/Assets/Source/Claude/Wnetrza/metro_atlas.png
+      - name: Pin mesh and static compiler dependencies (no Unity)
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check numpy==2.3.5 shapely==2.1.2 pillow==12.0.0
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+      - name: Validate geometry, original station prefab, handrails and interior finishes
+        run: |
+          set -euo pipefail
+          python3 -m compileall -q unity-tools/mistrzowie
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_metro_five_stations.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_layout_audit.py' -v
+      - name: Generate all five signs from authentic owner metro atlas
+        run: |
+          set -euo pipefail
+          python3 unity-tools/mistrzowie/prepare_signage.py
+          for name in M1 M2 M3 M4 M5; do
+            test -s "unity-city/Assets/Source/Mistrzowie/metro_$name.png"
+          done
+      - name: Author two tracks with all five stops and validate physical geometry
+        run: |
+          set -euo pipefail
+          python3 unity-tools/mistrzowie/build_infrastructure.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('unity-city/Assets/Source/Mistrzowie')
+          infra=json.loads((p/'Infrastructure.json').read_text())
+          transit=json.loads((p/'Transit.json').read_text())
+          assert infra['counts']['metroStations']==5
+          assert infra['counts']['metroEntrances']==5
+          assert infra['counts']['metroTracks']==2
+          assert len(transit['metroRouteOrder'])==5
+          assert transit['trafficEnabled'] is False
+          assert transit['trainOperationVerified'] is False
+          print('BRAXHORN_METRO_5_GEOMETRY=PASS; moving train=NOT IMPLEMENTED; device=NOT TESTED')
+          PY
+      - name: Parse C sharp edits without entering the Unity editor
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0,'unity-tools/validation')
+          from check_csharp_scopes import check_source
+          for filename in (
+              'unity-city/Assets/Editor/Claude/BraxClaudeMetro.cs',
+              'unity-city/Assets/Editor/Mistrzowie/BraxChampionsInfrastructure.cs',
+              'unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs'):
+              path=Path(filename)
+              errors=check_source(path.read_bytes(),str(path))
+              if errors:
+                  raise SystemExit('\n'.join(errors))
+              print('CSHARP_METRO_PARSE_PASS',filename)
+          PY
+      - name: Mark precisely what was and was not tested
+        if: success()
+        run: |
+          echo 'METRO_5_NEXT_STATIC=PASS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Original physical station templates reused x5; five distinct atlases and interiors.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Unity=NOT_STARTED; APK=NOT_BUILT; phone=NOT_TESTED; trains=NOT_RUNNING.' >> "$GITHUB_STEP_SUMMARY"
