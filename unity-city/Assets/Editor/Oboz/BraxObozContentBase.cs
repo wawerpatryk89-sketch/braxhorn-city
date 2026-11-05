@@ -90,6 +90,31 @@ public static class BraxObozContentBase
         }
     }
 
+    // Only updates an existing owner-approved signed baseline. This method
+    // must NEVER regenerate the world or build another Android APK.
+    public static void UpdateInCI()
+    {
+        try
+        {
+            if (Application.unityVersion != EditorVersion ||
+                EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
+                throw new InvalidOperationException("Nieprawidłowy profil Unity Android dla obozu");
+            if (!File.Exists(Path.Combine(BraxContentBuild.Base, "manifest.json")) ||
+                !File.Exists(Path.Combine(BraxContentBuild.Base, "addressables_content_state.bin")))
+                throw new InvalidOperationException("Brak zaakceptowanej bazy BRAXHORN CITY — aktualizacja zabroniona");
+            if (!File.Exists("content-patch.json"))
+                throw new InvalidOperationException("Brak jawnej poprawki zawartości, nie uruchamiaj generatora");
+            BraxContentBuild.UpdateFromBaseline();
+            AssetDatabase.SaveAssets();
+            EditorApplication.Exit(0);
+        }
+        catch (Exception error)
+        {
+            Debug.LogException(error);
+            EditorApplication.Exit(1);
+        }
+    }
+
     static void SaveUntitledSessions()
     {
         for (int i = 0; i < SceneManager.sceneCount; i++)
