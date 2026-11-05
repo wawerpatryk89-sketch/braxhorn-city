@@ -107,7 +107,10 @@ def restore(repo: str) -> None:
             raise ValueError("Required original Unity assets absent after intake: " + ", ".join(absent))
         if digest(dest) != EXPECTED[BULL][1]:
             raise ValueError("Bull checksum corrupted on stage")
-    print("BRAXHORN_OWNER_RELEASE_RESTORE=PASS originalGLB=untouched characterModels=untouched")
+        # Stable Unity GUID for the bull after verifying unchanged GLB bytes.
+        from owner_assets_intake import ensure_stable_meta
+        ensure_stable_meta(TARGET, Path(BULL))
+    print("BRAXHORN_OWNER_RELEASE_RESTORE=PASS originalGLB=untouched guid=stable characterModels=untouched")
 
 
 def main() -> int:
