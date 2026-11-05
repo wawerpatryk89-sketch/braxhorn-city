@@ -1,10 +1,11 @@
-name: Miasto Mistrzów A1+T11 — REALNY test scen Unity 6 (BEZ APK)
-run-name: A1+T11 — Unity 6.0.85f2 — realny test scen BEZ APK
+name: Miasto Mistrzów A1+T11 — podpisany APK aktualizacyjny
+run-name: A1+T11 — Unity 6 Android APK — aktualizacja istniejącej aplikacji
 
-# Second scene-only attempt: correct YAML heredoc indentation verified.
-# Explicit user request, Nov 5: run Unity 6 scene generation/import
-# BEFORE any real Android APK build. This event is narrowly scoped to the
-# creation of THIS workflow only. Commits to game source do not re-run it.
+# Owner's explicit command 2026-11-05: STOP the long scene test and START
+# the signed Android APK update. This run cancels the prior scene-only run.
+# The reusable workflow performs pre-Unity checks for the ORIGINAL app ID,
+# ORIGINAL signing certificate and versionCode > Champions #14; it may
+# proceed to Unity only when those checks pass. Do not start a second app.
 on:
   push:
     branches:
@@ -17,19 +18,18 @@ permissions:
   contents: write
   actions: read
 
+# Same concurrency group as the existing scene-only job. A new APK run
+# MUST CANCEL the previous Unity-6 scene-only run rather than waste time.
 concurrency:
   group: mistrzowie-unity6-real-scenes-only
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
-  unity6-validate-scenes-only:
+  android-update-apk:
     if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
-    # Reuse the exact same importer, pinned Unity 6.0.85f2 image, Android
-    # content material preparation, encrypted Library cache and A1/T11 branch
-    # as the existing production pipeline, but select ValidateScenes.
     uses: ./.github/workflows/mistrzowie-apk.yml
     with:
-      etap: sceny
+      etap: apk
       kontrola_tras: false
       zdjecia: false
       recovery_run: ''
