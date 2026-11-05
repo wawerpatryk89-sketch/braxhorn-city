@@ -43,9 +43,17 @@ public static class BraxObozValidation
             if(sanitary.Length!=1) errors.Add("W obozie brakuje osobnych sanitariatów");
             var toilets=scene.GetComponentsInChildren<BraxSeat>(true).Count(s=>s.label=="TOALETA");
             if(toilets!=2) errors.Add("Wymagane dwie fizyczne kabiny WC");
-            var showerControls=scene.GetComponentsInChildren<BraxObozFacility>(true)
-                .Count(f=>f.kind==BraxObozFacility.Kind.Shower && f.effect);
+            var sanitaryControls=scene.GetComponentsInChildren<BraxObozFacility>(true);
+            var showerControls=sanitaryControls.Count(f=>f.kind==BraxObozFacility.Kind.Shower && f.effect);
             if(showerControls<2) errors.Add("Brakuje dwóch działających pryszniców w łaźni");
+            if(sanitaryControls.Count(f=>f.kind==BraxObozFacility.Kind.Toilet)!=2)
+                errors.Add("Dwa WC muszą posiadać działające przyciski spłukiwania");
+            if(sanitaryControls.Count(f=>f.kind==BraxObozFacility.Kind.Sink && f.effect)!=2)
+                errors.Add("Dwie umywalki muszą posiadać działające krany");
+            var wcDoors=scene.GetComponentsInChildren<BraxCityDoor>(true)
+                .Where(d=>!string.IsNullOrEmpty(d.id)&&d.id.StartsWith("oboz-wc-",StringComparison.Ordinal)).ToArray();
+            if(wcDoors.Length!=2||wcDoors.Any(d=>d.leaves==null||d.leaves.Length!=1||!d.leaves[0]))
+                errors.Add("Dwie kabiny WC muszą mieć oddzielne ruchome drzwi");
             var stations=scene.GetComponentsInChildren<BraxObozTrainingStation>(true);
             if(stations.Length!=9||stations.Any(s=>!s.player))
                 errors.Add("Wymagane sześć stanowisk plenerowych i trzy aktywne stanowiska pod dachem");
