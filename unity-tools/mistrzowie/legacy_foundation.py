@@ -6,6 +6,7 @@ ROOT=Path(__file__).resolve().parents[2]
 REPORT=ROOT/'mistrzowie-evidence';REPORT.mkdir(exist_ok=True)
 from layout import ENTRANCE_HOLES,ENTRANCE_PATHS,BUILDING_ACCESS,PAVING_Y,TRAM_STOPS,BUS_STOPS,METRO
 from port_layout import PIERS,BERTHS,SHORE_BACK,SEA_LEVEL,shoreline,beach_height,validate as validate_port
+from promenade_layout import PAVILIONS,PAVILION_PADS,CYCLE_Z0,CYCLE_Z1,CYCLE_WIDTH,X0 as PROM_X0,X1 as PROM_X1,validate as validate_promenade
 SRC=ROOT/'unity-city/Assets/Source/Mistrzowie'
 K=float(np.float32(2.33)/np.float32(1.80))  # exact existing Unity float expression
 base=json.loads((Path(__file__).with_name('plan_inventory.json')).read_text())
@@ -27,6 +28,7 @@ greens=[(50,-120,1100,10),(50,-161,650,11)]
 piers=[(p['x'],p['z'],p['w'],p['d'],p['role']) for p in PIERS]
 berths=BERTHS
 validate_port(PIERS,berths)
+validate_promenade()
 
 def inside(p,r):
  x,z=p;a,b,w,d=r;return a<=x<a+w and b<=z<b+d
@@ -36,6 +38,12 @@ def zone(x,z):
  if any(inside((x,z),r) for r in ENTRANCE_HOLES):return None
  if any(inside((x,z),r) for r in ENTRANCE_PATHS+BUILDING_ACCESS):return 'paving'
  if any(inside((x,z),p) for p in plots):return 'plot_base'
+ # The existing continuous 1100m path is retained. Reclassify only a
+ # precise 3.0m strip in the pavement, NO overlay causing z fighting.
+ if PROM_X0<=x<PROM_X1 and CYCLE_Z0<=z<CYCLE_Z1:return 'cycle_lane'
+ # Inland pavilion pads replace grass only in 12 footprint rectangles;
+ # green palm beds and the entire pedestrian promenade stay intact.
+ if any(inside((x,z),r) for r in PAVILION_PADS):return 'paving'
  if any(inside((x,z),r) for r in walks) and (z>=-150 or x<740):return 'paving'
  if z>=-110:
   v=min(abs(x-a) for a in XROAD) if -70<=z<=935 else 1e6
@@ -67,7 +75,8 @@ def height(role,x,z):
   return .16-1.24*max(0,min(1,(-z-150)/20))
  if role=='quay_ramp_jetski':
   return .16-1.53*max(0,min(1,(-z-150)/20))
- if role in ('paving','grass') and z>=-170:return PAVING_Y
+ if role in ('paving','grass','cycle_lane') and z>=-170:return PAVING_Y
+ if role=='cycle_mark':return PAVING_Y+.011
  if role=='plot_base':return -.25
  if role=='sea':return SEA_LEVEL
  return 0
@@ -79,7 +88,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+[p[:4] for p in piers]+[T11_GARAGE_RAMP]+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
+rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP]+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
@@ -119,6 +128,55 @@ for i in range(len(xs)-1):
    for ix in range(nx):
     for iz in range(nz):quad(role,a+(c-a)*ix/nx,b+(d-b)*iz/nz,a+(c-a)*(ix+1)/nx,b+(d-b)*(iz+1)/nz)
    cells.append((a,b,c,d,role))
+# Flat white PBR lane markings, not text sprites or low-resolution bitmaps.
+# Each is offset only 1.1 cm above the existing red PBR lane surface.
+# Procedural geometry has NO low-resolution bitmap texture; its material is
+# mapped 2K from the existing verified Poly Haven paving library.
+for xx in np.arange(PROM_X0,PROM_X1,25.):
+ x0=float(xx);x1=min(PROM_X1,x0+25.)
+ quad('cycle_mark',x0,CYCLE_Z0+.07,x1,CYCLE_Z0+.12)
+ quad('cycle_mark',x0,CYCLE_Z1-.12,x1,CYCLE_Z1-.07)
+# Bi-directional divider (broken) and accessible pedestrian crossing points.
+for xx in np.arange(PROM_X0+4,PROM_X1-3,12.):
+ x0=float(xx)
+ if any(abs(x0-c)<6 for c in (230,530,700,1080)):continue
+ quad('cycle_mark',x0,-147.04,min(x0+2.8,PROM_X1),-146.96)
+
+def mark_segment(role,ax,az,bx,bz,width):
+ dx=bx-ax;dz=bz-az;length=math.hypot(dx,dz)
+ if length<.001:return
+ nx,nz=-dz/length*width*.5,dx/length*width*.5
+ vertices=[(ax+nx,az+nz),(bx+nx,bz+nz),
+           (bx-nx,bz-nz),(ax-nx,az-nz)]
+ midx=(ax+bx)*.5;midz=(az+bz)*.5
+ key=f'x{int(midx)//300:02}_z{int((midz+500)//250):02}_{role}'
+ m=meshes.setdefault(key,dict(id=key,role=role,positions=[],uv=[],triangles=[]))
+ i=len(m['positions'])//3
+ for x,z in vertices:
+  m['positions'] += [round(x*K,6),round(height(role,x,z)*K,6),round(z*K,6)]
+  m['uv'] += [round(x,6),round(z,6)]
+ m['triangles'] += [i,i+1,i+2,i,i+2,i+3]
+
+# Readable bicycles every 95m, with two wheel rings and a frame — exact
+# geometry placed ON the bike lane, preserving 3.0m width and service access.
+for x in range(105,1140,95):
+ z=-147.0
+ for cx in (x-.48,x+.48):
+  for i in range(16):
+   a=2*math.pi*i/16;b=2*math.pi*(i+1)/16
+   mark_segment('cycle_mark',cx+.31*math.cos(a),z+.31*math.sin(a),
+                cx+.31*math.cos(b),z+.31*math.sin(b),.055)
+ for xa,za,xb,zb in [(x-.48,z,x-.06,z+.35),
+                     (x-.06,z+.35,x+.48,z),
+                     (x+.48,z,x-.48,z),
+                     (x-.06,z+.35,x+.17,z+.35)]:
+  mark_segment('cycle_mark',xa,za,xb,zb,.055)
+# White zebra crossings across the cycling lane at public accesses.
+for cross in (230,530,700,1080):
+ for d in range(-5,6,2):
+  quad('cycle_mark',cross+d,CYCLE_Z0+.35,cross+d+.75,CYCLE_Z1-.35)
+
+
 # CURVED golden sand: a continuous 2.5m grid across the whole 650m
 # recreational coast. The original promenade/plan remain unchanged.
 for xx in np.arange(50,700,2.5):
@@ -199,7 +257,7 @@ for x in XROAD:
 for x in [640,670,700,730,760]:
  for z in [115,145,175,205,225]:plant(x,z,'tree',0,'park')
 for x,z in [(850,890),(900,890),(950,890),(1000,890),(1080,890),(950,740)]:plant(x,z,'tree',0,'hotel_garden')
-layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,piers=PIERS,tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
+layout=dict(version='2.3-compact-premium-marina-curved-golden-beach',regionId='mistrzowie',sourceCommit=os.environ.get('GITHUB_SHA','local-source-uncommitted'),scaleK=K,coordinates='nominal metres; mesh positions already multiplied by K once',buildings=buildings,plots=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in plots],plants=plants,berths=berths,piers=PIERS,promenade=PAVILIONS,tramStops=[dict(x=x,z=z) for _,x,z,_ in TRAM_STOPS],metroStations=[dict(x=m['x'],z=m['z']) for m in METRO],busStops=[dict(x=x,z=z) for _,x,z,_ in BUS_STOPS],meshes=list(meshes.values()))
 SRC.mkdir(parents=True,exist_ok=True)
 (SRC/'Foundation.json').write_text(json.dumps(layout,separators=(',',':')))
 # Geometric checks use the delivered vertices, not only planning rectangles.
@@ -212,6 +270,8 @@ for m in meshes.values():
  assert len(m['uv'])==len(v)*2
  tri+=len(ix)
 assert len(berths)==38
+assert len(PAVILIONS)==12
+assert CYCLE_WIDTH==3.0
 assert sum(p['kind']=='yacht' for p in berths)==15
 assert sum(p['kind']=='motorboat' for p in berths)==10
 assert sum(p['kind']=='jetski' for p in berths)==10
@@ -235,5 +295,5 @@ with (REPORT/'Foundation_geometry.obj').open('w') as f:
   for p in np.asarray(m['positions']).reshape(-1,3):f.write('v '+' '.join(map(str,p))+'\n')
   for face in np.asarray(m['triangles']).reshape(-1,3):f.write('f '+' '.join(str(int(i)+offset) for i in face)+'\n')
   offset+=len(m['positions'])//3
-report=dict(status='STATIC_GEOMETRY_CHECKS_PASSED_UNITY_NOT_RUN',scaleK=K,meshes=len(meshes),triangles=tri,plants=len(plants),palms=sum(p['kind']=='palm' for p in plants),trees=sum(p['kind']=='tree' for p in plants),berths=len(berths),yachts=15,motorboats=10,jetskis=10,cruiseBerths=2,ferryBerths=1,checks=['finite vertices','upward nondegenerate winding','UV cardinality','38 berths with individual dock access and no hull overlap','continuous beach-water boundary with curved shallow shore and foam','existing promenade retained','source-derived beach palms','K applied once','open marine fairways'],unityCompilation='NOT_RUN',visualAcceptance='NOT_RUN',deviceTest='NOT_RUN')
+report=dict(status='STATIC_GEOMETRY_CHECKS_PASSED_UNITY_NOT_RUN',scaleK=K,meshes=len(meshes),triangles=tri,plants=len(plants),palms=sum(p['kind']=='palm' for p in plants),trees=sum(p['kind']=='tree' for p in plants),berths=len(berths),yachts=15,motorboats=10,jetskis=10,cruiseBerths=2,ferryBerths=1,checks=['finite vertices','upward nondegenerate winding','UV cardinality','38 berths with individual dock access and no hull overlap','continuous beach-water boundary with curved shallow shore and foam','existing promenade walk retained with 3m colour-mapped cycle lane and twelve inset kiosks','source-derived beach palms','K applied once','open marine fairways'],unityCompilation='NOT_RUN',visualAcceptance='NOT_RUN',deviceTest='NOT_RUN')
 (REPORT/'geometry-checks.json').write_text(json.dumps(report,indent=2));print(json.dumps(report))
