@@ -233,6 +233,8 @@ jobs:
           python3 unity-tools/mistrzowie/prepare_casino_vegetation_2k.py
           # P1 only: genuine native 2048x2048 Poly Haven PBR; fail on missing sources.
           python3 unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
+          # Original owner-supplied raft slide: direct publisher GLB, exact SHA256 and stable GUID.
+          python3 unity-tools/mistrzowie/prepare_pool_p1_slide.py
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/prepare_brax.py
           python3 unity-tools/mistrzowie/prepare_signage.py
