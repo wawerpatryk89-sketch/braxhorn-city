@@ -121,6 +121,17 @@ public static class BraxChampionsFoundation
             color=FileIn(tex,"concrete_wall_008_diff_4k.jpg"),
             normal=FileIn(tex,"concrete_wall_008_nor_gl_4k.exr"),
             arm=FileIn(tex,"concrete_wall_008_arm_4k.png"),tile=1.5f};
+        // The red asphalt replaces the original grey cobbles across the
+        // whole 3m width. The inset markings are a DIFFERENT adjoining mesh,
+        // not decals on top. Both use authentic >=2K Android PBR maps.
+        maps["cycle_lane"]=new MapSet{
+            color=FileIn(tex,"clean_asphalt_diff_4k.jpg"),
+            normal=FileIn(tex,"clean_asphalt_nor_gl_4k.exr"),
+            arm=FileIn(tex,"clean_asphalt_arm_4k.png"),tile=2.0f};
+        maps["cycle_mark"]=new MapSet{
+            color=FileIn(tex,"concrete_pavement_02_diff_4k.jpg"),
+            normal=FileIn(tex,"concrete_pavement_02_nor_gl_4k.exr"),
+            arm=FileIn(tex,"concrete_pavement_02_arm_4k.png"),tile=1.8f};
         maps["plot_base"]=maps["paving"];
         return maps;
     }
@@ -172,6 +183,10 @@ public static class BraxChampionsFoundation
         // Original Poly Haven coast_sand_02 and damp_sand maps retain their
         // real normals and ARM. Only the albedo tint is brought to the
         // requested very light golden beach, wet sand remains slightly darker.
+        materials["cycle_lane"].SetColor("_Color",new Color(.74f,.12f,.16f,1f)); // muted warm red cycle asphalt
+        materials["cycle_mark"].SetColor("_Color",new Color(.96f,.96f,.91f,1f)); // off-white paint, physically inlaid
+        EditorUtility.SetDirty(materials["cycle_lane"]);
+        EditorUtility.SetDirty(materials["cycle_mark"]);
         materials["sand_dry"].SetColor("_Color",new Color(1.52f,1.40f,1.12f,1f));
         materials["sand_wet"].SetColor("_Color",new Color(1.13f,1.06f,.88f,1f));
         materials["grass"]=BraxChampionsGrass.CreateMaterial(materials["grass"]);
