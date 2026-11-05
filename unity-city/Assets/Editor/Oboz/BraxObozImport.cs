@@ -6,7 +6,7 @@ public sealed class BraxObozImport : AssetPostprocessor
 {
     const string Root = "Assets/Source/Prywatne/Oboz/";
     public override int GetPostprocessOrder() => 100;
-    public override uint GetVersion() => 4;
+    public override uint GetVersion() => 5;
     void OnPreprocessModel()
     {
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
@@ -47,13 +47,18 @@ public sealed class BraxObozImport : AssetPostprocessor
         bool surface = assetPath.Contains("/environment/materials/") || assetPath.Contains("/environment/forest-ground/");
         bool vegetation = assetPath.Contains("/environment/vegetation/");
         bool billboard = assetPath.Contains("/environment/vegetation/billboards/");
-        // Preserve source detail for every character and nearby object, not only
-        // Monika's colour map. A four-view atlas needs room for four 2K views.
-        // Upper limits do not invent detail in smaller source images.
-        int max = billboard ? 8192 : 4096;
+        // 4K oryginalnych map zostaje w zasobach zrodlowych (bez zmiany UV).
+        // OTOCZENIE: asfalt, kostka, drewno, metal, trawa i sciany do 2K z bliska,
+        // dalszy szczegol przez streaming mipmap. Grywalna Monika bez redukcji.
+        // NPC w obozie (Vorn, Gorr itd.) do 2K. Czterowidokowe atlasy drzew
+        // zachowujemy w oryginalnej geometrii i limicie, by nie popsuc sylwetek.
+        bool hero = assetPath.StartsWith(Root + "characters/monika/", StringComparison.Ordinal);
+        int max = billboard ? 8192 : hero ? 4096 : 2048;
         t.textureShape = TextureImporterShape.Texture2D;
         t.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
         t.sRGBTexture = color; t.mipmapEnabled = true; t.anisoLevel = 8;
+        t.streamingMipmaps = !hero; // glowna grywalna Monika: pelna ostrosc; reszta wg kamery
+        if (!hero) t.streamingMipmapsPriority = 0;
         t.maxTextureSize = max; t.textureCompression = TextureImporterCompression.CompressedHQ;
         t.compressionQuality = 90; t.isReadable = false;
         t.filterMode = UnityEngine.FilterMode.Trilinear;
