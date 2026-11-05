@@ -36,6 +36,16 @@ public static class BraxObozValidation
             foreach (var b in scene.coveredBags) if (b && !scene.bags.Any(x => x && x.transform == b)) errors.Add("Zadaszony worek nie należy do grupy 24 worków");
             if (scene.cabinDoors.Length != 4 || scene.cabinDoors.Distinct().Count() != 4 || scene.cabinDoors.Any(d => !d || d.leaves == null || d.leaves.Length == 0)) errors.Add("Cztery domki potrzebują różnych działających drzwi");
             if (scene.arenas.Length != 3 || scene.arenas.Any(a => !a)) errors.Add("Wymagane dwa ringi i oktagon");
+            // Obowiązkowe zaplecze sanitarne: rzeczywiste kabiny i wyposażenie,
+            // osobne od modeli sauny i pryszniców otrzymanych od właściciela.
+            var sanitary=scene.GetComponentsInChildren<Transform>(true)
+                .Where(t=>t.name=="BRAXHORN — WC / ŁAŹNIA / UMYWALNIA").ToArray();
+            if(sanitary.Length!=1) errors.Add("W obozie brakuje osobnych sanitariatów");
+            var toilets=scene.GetComponentsInChildren<BraxSeat>(true).Count(s=>s.label=="TOALETA");
+            if(toilets!=2) errors.Add("Wymagane dwie fizyczne kabiny WC");
+            var showerControls=scene.GetComponentsInChildren<BraxObozFacility>(true)
+                .Count(f=>f.kind==BraxObozFacility.Kind.Shower && f.effect);
+            if(showerControls<2) errors.Add("Brakuje dwóch działających pryszniców w łaźni");
             var stations=scene.GetComponentsInChildren<BraxObozTrainingStation>(true);
             if(stations.Length!=9||stations.Any(s=>!s.player))
                 errors.Add("Wymagane sześć stanowisk plenerowych i trzy aktywne stanowiska pod dachem");
