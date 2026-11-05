@@ -327,6 +327,39 @@ public static partial class BraxClaudeOsiedle
     static AnimationClip PatrykWybierzLokomocje(GameObject hero, Avatar imported, Avatar tPose,
         Transform hips, List<Transform> bones, List<PatrykStan> rest, PatrykKlip spec, out string report)
     {
+        // APK do ręcznej oceny: sam retargeting musi się udać, ale ocena kąta kolan/stóp
+        // nie może zablokować kompilacji. Nie podmieniamy modelu ani animacji właściciela.
+        if (BraxBuildQuality.Advisory)
+        {
+            var awarie = new List<string>();
+            foreach (string relative in spec.zrodla)
+            {
+                string path = PatrykRuchy + "/" + relative;
+                if (!System.IO.File.Exists(path)) { awarie.Add(relative + ": brak pliku"); continue; }
+                foreach (var (avatar, label) in new[] { (tPose, "T-poza"), (imported, "import") })
+                {
+                    if (!avatar) continue;
+                    try
+                    {
+                        string info;
+                        var clip = PatrykHumanoid(hero, avatar, hips, bones, rest, path, spec, out info);
+                        if (!clip) { awarie.Add(relative + "/" + label + ": brak zapisanego klipu"); continue; }
+                        report = spec.nazwa + "←" + relative + " awatar=" + label + " " + info;
+                        BraxBuildQuality.Warn("PATRYK: zapisano " + report +
+                            " — kontrola nóg i kości wyłączona na żądanie właściciela; do oceny w APK");
+                        return clip;
+                    }
+                    catch (Exception e)
+                    {
+                        awarie.Add(relative + "/" + label + ": " + e.Message);
+                    }
+                    finally { PatrykSpoczynek(rest); }
+                }
+            }
+            // Brak klipu lub awatara to rzeczywisty brak zasobu, nie niezaliczona kontrola jakości.
+            throw new InvalidOperationException("BRAXHORN_PATRYK_BRAK_KLIPU " + spec.nazwa +
+                ": " + string.Join(" | ", awarie));
+        }
         var attempts = new List<string>();
         foreach (string relative in spec.zrodla)
         {
