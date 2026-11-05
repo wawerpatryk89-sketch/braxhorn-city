@@ -359,9 +359,20 @@ public static partial class BraxObozEnvironment
 
     static void RondoBull(Transform center)
     {
-        const string sourcePath =
+        // The user uploaded the ORIGINAL GLB under its original filename.
+        // Its geometry and embedded JPEG are byte-identical to the 4x edition;
+        // the transform below fits either asset to exactly the same 4.8m outline.
+        const string originalPath =
+            "Assets/Source/Prywatne/Oboz/OwnerAssets/A_charging_bull_statu_0725030443_refine.glb";
+        const string scaledPath =
             "Assets/Source/Prywatne/Oboz/OwnerAssets/BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb";
-        var source = AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
+        var source = AssetDatabase.LoadAssetAtPath<GameObject>(originalPath);
+        string sourcePath = originalPath;
+        if (!source)
+        {
+            source = AssetDatabase.LoadAssetAtPath<GameObject>(scaledPath);
+            sourcePath = scaledPath;
+        }
         if (!source)
         {
             Debug.LogWarning("BRAXHORN_OBOZ_BULL_PENDING: Brak prywatnego GLB: " + sourcePath +
