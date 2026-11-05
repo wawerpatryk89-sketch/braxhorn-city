@@ -18,7 +18,7 @@ public static class BraxChampionsCasinoT11
     static Transform root,shell,trim,signRoot;
     static Material cream,graphite,granite,asphalt,paving,gold,steel,glass,skylightGlass,led,roof,redCarpet,parkingPaint;
     // White finishes are GARAGE-ONLY. Do not repaint the owner-approved casino exterior.
-    static Material garageWhite,garageWhiteBeam,garageBlackAsphalt;
+    static Material garageWhite,garageWhiteBeam,garageBlackAsphalt,garageParkingPaint;
 
     static void Setup(string directory)
     {
@@ -34,7 +34,9 @@ public static class BraxChampionsCasinoT11
         steel.SetFloat("_Metallic",.83f);steel.SetFloat("_Roughness",.38f);
         roof=BraxChampionsCasinoPbr2K.Create(output,"t11_roof","concrete_floor_02",2.1f,new Color(.27f,.29f,.32f));
         redCarpet=BraxChampionsCasinoPbr2K.Create(output,"t11_casino_red_carpet","fabric_pattern_05",.55f,new Color(.64f,.028f,.038f));
-        parkingPaint=Surface("painted_parking_stripes",new Color(.99f,.99f,.99f),false,false);
+        parkingPaint=Surface("painted_parking_stripes",new Color(.97f,.97f,.93f),false,false);
+        garageParkingPaint=Surface("B1_brilliant_white_floor_stripes",new Color(.99f,.99f,.99f),false,false);
+        garageParkingPaint.SetFloat("_Roughness",.70f);
         // Washable matte white walls, white structural columns and a white
         // reinforced ceiling ONLY below grade. The casino facade remains cream,
         // dark graphite and champagne gold as in the owner's reference photo.
@@ -416,16 +418,16 @@ public static class BraxChampionsCasinoT11
         {
             float x=-28f+i*bayWidth;
             foreach(float z in new[]{-17f,10f})
-                B(basement,"B1 physical car-space border white #"+i,parkingPaint,
+                B(basement,"B1 physical car-space border white #"+i,garageParkingPaint,
                     x,-4.099f,z,.095f,.008f,5.25f,false);
         }
         foreach(float z in new[]{-19.65f,12.65f})
-            B(basement,"B1 continuous marked bay head line",parkingPaint,
+            B(basement,"B1 continuous marked bay head line",garageParkingPaint,
                 -3.2f,-4.099f,z,baysPerRow*bayWidth,.008f,.095f,false);
         // Legible two-way drive aisle. Short WHITE centre dashes never
         // obstruct parking slots; the full asphalt surface remains black.
         for(int n=0;n<8;n++)
-            B(basement,"B1 WHITE dashed driving-aisle centre line",parkingPaint,
+            B(basement,"B1 WHITE dashed driving-aisle centre line",garageParkingPaint,
                 -23f+n*6.25f,-4.090f,-3.5f,3.0f,.008f,.095f,false);
 
         // Genuine interior supports reach BOTH foundation and ceiling.
