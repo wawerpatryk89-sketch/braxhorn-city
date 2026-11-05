@@ -53,7 +53,7 @@ class PromenadeLaneNoZFight(unittest.TestCase):
     def test_12_shop_shells_and_original_2k_photo_signs(self):
         builder=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs").read_text()
         foundation=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs").read_text()
-        signs=(ROOT/"unity-tools/mistrzowie/prepare_promenade_signs.py").read_text()
+        signs=(ROOT/"unity-tools/mistrzowie/verify_promenade_original_signs.py").read_text()
         self.assertIn('BraxChampionsPromenade.Build(root,d.promenade)',foundation)
         self.assertIn('d.promenade.Length!=12',foundation)
         self.assertIn('SignFace(root,p,Sign(p))',builder)
@@ -61,7 +61,9 @@ class PromenadeLaneNoZFight(unittest.TestCase):
         self.assertIn('android.maxTextureSize!=2048',builder)
         self.assertIn('ClearGlass()',builder)
         self.assertIn('full 2K PBR shop shell',builder)
-        self.assertIn('SIZE=(2048,512)',signs)
+        self.assertIn("BLOCKED_UNMATCHED_OWNER_SIGNS",signs)
+        self.assertIn("No invented/fallback sign",builder)
+        self.assertFalse((ROOT/"unity-tools/mistrzowie/prepare_promenade_signs.py").exists())
 
     def test_shop_slab_has_no_original_ground_below_it(self):
         if not FOUND.is_file():self.skipTest("Generate physical foundation first")
