@@ -90,8 +90,11 @@ public static class BraxChampionsBuildings
         // Approved T11/WAWER plot at (495,465) is a third independent exterior.
         // It must NOT change the existing A1 or T01 meshes, prefabs or positions.
         BraxChampionsCasinoT11.Generate(Out);
+        // P1 is a fully separate modular prefab on its reserved 160x120 plot.
+        // Four open, EMPTY blue-tiled basins; no water material/plane is placed.
+        BraxChampionsPoolP1.Generate();
         AssetDatabase.SaveAssets();
-        return d.buildings.Length+1;
+        return d.buildings.Length+2;
     }
     static Renderer MeshObject(Transform parent,string id,BraxChampionsFoundation.MeshData d,Material material,bool collision)
     {
