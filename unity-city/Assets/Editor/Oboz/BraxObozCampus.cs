@@ -18,6 +18,143 @@ public static partial class BraxObozEnvironment
         campusRubber = BraxObozMaterials.Plain("campus-guma", new Color(.045f,.055f,.05f), .12f);
         campusMark = BraxObozMaterials.Plain("campus-oznaczenia", new Color(.88f,.86f,.72f), .15f);
     }
+
+    // Owal i 100 m na syntetycznym tartanie. Wspolne, tilowane materialy,
+    // oryginalna skala metrow. Geometryczne pasy na nawierzchni, nie billboard.
+    static void RunningTracks()
+    {
+        var red=BraxObozMaterials.Plain("bieznia-tartan-czerwien",new Color(.58f,.055f,.073f),.12f);
+        var white=BraxObozMaterials.Plain("bieznia-biale-linie",new Color(.95f,.95f,.91f),.18f);
+        var oval=Group("BIEZNIA · owal 4 tory · BRAXHORN",root,P(65,0,72));
+        // Staly ring: wewnatrz 37x19, na zewnatrz 43x25 metrow.
+        // Szerokosc lane 1.5 m; 128 odcinkow na pas = plynny luk.
+        for(int lane=0;lane<4;lane++)
+            TrackAnnulus(oval,"Czerwony tor "+(lane+1),37f+lane*1.5f,19f+lane*1.5f,
+                38.5f+lane*1.5f,20.5f+lane*1.5f,.135f,red,true);
+        for(int lane=0;lane<=4;lane++)
+            TrackAnnulus(oval,"Biala linia toru "+lane,37f+lane*1.5f-.025f,
+                19f+lane*1.5f-.025f,37f+lane*1.5f+.025f,
+                19f+lane*1.5f+.025f,.145f,white,false);
+        Box(oval,"Linia startu i mety owalu",new Vector3(0,.151f,22),
+            new Vector3(.09f,.011f,6.3f),white,false);
+        // Wewnatrz owalu zostaje otwarta murawa do rozgrzewki.
+        var straight=Group("BIEZNIA · 100 metrow · cztery tory",root,P(113,0,-35));
+        Box(straight,"Tartan 100 m",new Vector3(0,.106f,0),new Vector3(6f,.21f,100f),red);
+        for(int lane=0;lane<=4;lane++)
+            Box(straight,"Linia oddzielajaca tor "+lane,new Vector3(-3f+1.5f*lane,.218f,0),
+                new Vector3(.055f,.009f,100f),white,false);
+        foreach(float z in new[]{-50f,50f})
+            Box(straight,z<0?"START 100 m":"META 100 m",new Vector3(0,.22f,z),
+                new Vector3(6f,.009f,.12f),white,false);
+        for(int m=10;m<100;m+=10)
+            Box(straight,"Znacznik "+m+" m",new Vector3(3.08f,.218f,-50f+m),
+                new Vector3(.23f,.009f,.08f),white,false);
+        Sign(straight,"BRAXHORN · 100 M",new Vector3(0,2f,-54),6);
+        Debug.Log("BRAXHORN_OBOZ_BIEZNIE owal=4-tory 100m=4-tory nawierzchnia=tartan z kolizja");
+    }
+    static void TrackAnnulus(Transform parent,string name,float ax0,float az0,float ax1,float az1,
+        float y,Material material,bool solid)
+    {
+        const int steps=128;
+        var vertices=new Vector3[(steps+1)*2];
+        var uv=new Vector2[vertices.Length];
+        var triangles=new int[steps*6];
+        for(int i=0;i<=steps;i++)
+        {
+            float theta=(Mathf.PI*2*i)/steps;
+            float sin=Mathf.Sin(theta),cos=Mathf.Cos(theta);
+            vertices[2*i]=P(cos*ax0,y,sin*az0);
+            vertices[2*i+1]=P(cos*ax1,y,sin*az1);
+            uv[2*i]=new Vector2(i*.28f,0);
+            uv[2*i+1]=new Vector2(i*.28f,1);
+            if(i==steps)continue;
+            int t=i*6,v=i*2;
+            triangles[t]=v;triangles[t+1]=v+2;triangles[t+2]=v+1;
+            triangles[t+3]=v+1;triangles[t+4]=v+2;triangles[t+5]=v+3;
+        }
+        var mesh=new Mesh{name=name};
+        mesh.vertices=vertices;mesh.uv=uv;mesh.triangles=triangles;
+        mesh.RecalculateNormals();mesh.RecalculateBounds();
+        mesh=SaveMesh(mesh);
+        var go=Group(name,parent,Vector3.zero).gameObject;
+        go.AddComponent<MeshFilter>().sharedMesh=mesh;
+        go.AddComponent<MeshRenderer>().sharedMaterial=material;
+        if(solid)go.AddComponent<MeshCollider>().sharedMesh=mesh;
+    }
+
+    static void CoveredStrengthGym()
+    {
+        var gym=Group("BRAXHORN · SILOWNIA POD DACHEM",root,P(-42,0,76));
+        var mats=BraxObozMaterials.Plain("silownia-gumowa-podloga",
+            new Color(.065f,.073f,.075f),.12f);
+        var pads=BraxObozMaterials.Plain("silownia-czerwone-strefy",
+            new Color(.33f,.055f,.064f),.15f);
+        Box(gym,"Pelna podloga ze szczelna kolizja",new Vector3(0,.11f,0),
+            new Vector3(27f,.22f,19.5f),mats);
+        foreach(float z in new[]{-7.9f,7.9f})
+        foreach(float x in new[]{-12.4f,-6.2f,0,6.2f,12.4f})
+        {
+            Box(gym,"Stalowy slup hali",new Vector3(x,2.55f,z),new Vector3(.17f,5.1f,.17f),campusSteel);
+            Box(gym,"Stopa kotwiona",new Vector3(x,.20f,z),new Vector3(.4f,.16f,.4f),metal);
+        }
+        foreach(float z in new[]{-7.9f,7.9f})
+            Box(gym,"Belka dachu",new Vector3(0,5.13f,z),new Vector3(27f,.3f,.22f),campusSteel);
+        MetalRoof(gym,27.7f,20.2f,5.4f,1.25f);
+        Sign(gym,"BRAXHORN GYM · OBOZ",new Vector3(0,4.7f,-8.15f),19);
+
+        foreach(float x in new[]{-8.5f,0f,8.5f})
+            Box(gym,"Czerwona mata stanowiska",new Vector3(x,.235f,-3.5f),
+                new Vector3(6.7f,.025f,7.1f),pads,false);
+        foreach(float x in new[]{-8.5f,0f,8.5f})
+        {
+            // Trzy stanowiska silowe: przysiad, wyciskanie, wolne ciezary.
+            var rack=Group("Stalowa klatka do cwiczen "+x,gym,P(x,0,-3.4f));
+            foreach(float dx in new[]{-1.15f,1.15f})
+            foreach(float dz in new[]{-1f,1f})
+                Box(rack,"Slup stojaka",new Vector3(dx,1.25f,dz),
+                    new Vector3(.10f,2.5f,.10f),campusSteel);
+            foreach(float z in new[]{-1f,1f})
+                Box(rack,"Gorna poprzeczka",new Vector3(0,2.45f,z),
+                    new Vector3(2.4f,.10f,.12f),metal);
+            Cylinder(rack,"Gryf olimpijski",new Vector3(-1.65f,1.39f,0),
+                new Vector3(1.65f,1.39f,0),.027f,metal,true);
+            foreach(float side in new[]{-1f,1f})
+            for(int plate=0;plate<2;plate++)
+            {
+                float offset=1.19f+plate*.11f;
+                Cylinder(rack,"Talerz 20 kg",new Vector3(side*offset,1.39f,0),
+                    new Vector3(side*(offset+.085f),1.39f,0),.32f,campusRubber,true);
+            }
+        }
+        // Laweczka, stojak hantli i sprzet do rozgrzewki sa osobnymi
+        // fizycznymi obiektami, nie namalowanymi atrapami.
+        foreach(float x in new[]{-8.5f,0,8.5f})
+        {
+            var bench=Group("Lawka treningowa "+x,gym,P(x,0,3.35f));
+            Box(bench,"Tapicerowane siedzisko",new Vector3(0,.77f,0),
+                new Vector3(.70f,.15f,2.2f),mats);
+            foreach(float z in new[]{-0.8f,0.8f})
+                Box(bench,"Stalowa noga",new Vector3(0,.38f,z),
+                    new Vector3(.42f,.73f,.12f),campusSteel);
+        }
+        var dumb=Group("Stojak na hantle 4-24 kg",gym,P(0,0,7));
+        Box(dumb,"Stojak",new Vector3(0,.65f,0),new Vector3(9f,.14f,.65f),metal);
+        for(int i=0;i<12;i++)
+        {
+            float x=-4f+i*.72f;
+            Cylinder(dumb,"Hantel raczka",new Vector3(x-.19f,.80f,0),
+                new Vector3(x+.19f,.80f,0),.04f,metal,true);
+            foreach(float side in new[]{-1f,1f})
+                Cylinder(dumb,"Obciazenie hantla",new Vector3(x+side*.18f,.80f,0),
+                    new Vector3(x+side*.28f,.80f,0),.12f+i*.004f,campusRubber,true);
+        }
+        var mirror=BraxObozMaterials.Plain("silownia-lustro-satynowe",
+            new Color(.63f,.69f,.73f),.84f,.08f);
+        Box(gym,"Lustro do kontroli techniki",new Vector3(0,2.35f,9.63f),
+            new Vector3(13f,2.4f,.035f),mirror,false);
+        Sign(gym,"TRENUJ · WALCZ · ODPOCZYWAJ",new Vector3(0,2f,10),11);
+    }
+
     static void TrainingCampus()
     {
         var pavilion=Group("Pawilon treningowy — otwarty, bez starej siłowni",root,P(0,0,51));
