@@ -115,7 +115,7 @@ def arena(detail):
  door(m,0,59.04,0,detail,open_entry=True)
  # Maintenance enclosure stays below the overall 48m height, on a recessed north terrace.
  # External service kiosk at ground level, separate from the roof profile.
- services(m,0,65,.16,12,5,detail)
+ services(m,35,64,.16,12,5,detail)
  return m
 
 def hotel(detail):
