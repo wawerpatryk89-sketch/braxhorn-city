@@ -21,8 +21,16 @@ public sealed class BraxWyspaDaleko : MonoBehaviour
         var cam = Camera.main ? Camera.main.transform : gracz;
         if (!cam) return;
         var d = cam.position - srodek; d.y = 0f;
-        bool widac = d.sqrMagnitude > blizej * blizej;
-        if (widac && !string.IsNullOrEmpty(scena) && UnityEngine.SceneManagement.SceneManager.GetSceneByName(scena).isLoaded) widac = false;
-        foreach (var r in renderery) if (r && r.enabled != widac) r.enabled = widac;
+        // R1: nie wyłączaj zdalnej sylwetki według samego dystansu.
+        // Przy wolnym doczytywaniu na telefonie prowadziło to do pustego morza,
+        // po którym nagle pojawiała się pełna wyspa.
+        bool polaczonaScena = !string.IsNullOrEmpty(scena);
+        bool wczytana = polaczonaScena &&
+            UnityEngine.SceneManagement.SceneManager.GetSceneByName(scena).isLoaded;
+        // Dopóki realna scena wyspy nie jest gotowa, uproszczony brzeg pozostaje widoczny.
+        // Bez przypisanej sceny zachowujemy dawny próg, by nie dublować geometrii.
+        bool widac = polaczonaScena ? !wczytana : d.sqrMagnitude > blizej * blizej;
+        foreach (var r in renderery)
+            if (r && r.enabled != widac) r.enabled = widac;
     }
 }
