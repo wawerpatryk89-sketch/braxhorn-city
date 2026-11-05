@@ -1,0 +1,68 @@
+name: Obóz BRAXHORN — jednorazowy preflight przed Unity (bez APK)
+# Jednorazowe, świadomie zlecone przez właściciela sprawdzenie obozu.
+# Push-trigger ograniczony dokładnie do tego pliku i tej jednej gałęzi.
+on:
+  push:
+    branches:
+      - codex/oboz-przebudowa-pbr-20261105
+    paths:
+      - .github/workflows/oboz-authorized-preflight-20261105.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: oboz-owner-one-time-preflight-20261105
+  cancel-in-progress: false
+
+jobs:
+  read-only-preflight:
+    if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout only camp source, static tests and shared update tools
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets/
+            unity-city/Packages/
+            unity-city/ProjectSettings/
+            unity-city/apk-warianty.txt
+            unity-tools/oboz/
+            unity-tools/updates/
+            unity-tools/validation/
+      - name: Verify actual owner models already present in private draft (no download)
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/owner_release_assets.py preflight
+      - name: Verify existing encrypted legacy source delivery (no extraction)
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/assets.py preflight
+      - name: Install pinned C sharp syntax parser, no Unity editor
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+      - name: Guard regressions, source packaging and update contract
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s unity-tools/oboz/tests -p 'test_*.py' -v
+          python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
+          python3 -m unittest discover -s unity-tools/oboz -p 'test_training_compile.py' -v
+      - name: Parse Unity C sharp and check name scopes (not full Unity compile)
+        run: |
+          set -euo pipefail
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: Record result
+        if: success()
+        run: |
+          echo "BRAXHORN_OBOZ_PREFLIGHT=PASS" >> "$GITHUB_STEP_SUMMARY"
+          echo "Scope: source/static validation only; Unity editor=NOT_STARTED; APK=NOT_BUILT; phone=NOT_TESTED." >> "$GITHUB_STEP_SUMMARY"
+          echo "Characters, animation and control files=UNCHANGED_BY_THIS_WORKFLOW." >> "$GITHUB_STEP_SUMMARY"
