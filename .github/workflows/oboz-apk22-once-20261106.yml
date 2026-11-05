@@ -1,0 +1,64 @@
+name: "Obóz #22 — podpisany Android APK po poprawkach animacji i JNI"
+
+on:
+  push:
+    branches:
+      - codex/oboz-przebudowa-pbr-20261105
+    paths:
+      - .github/workflows/oboz-apk22-once-20261106.yml
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: oboz-apk22-once
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && contains(github.event.head_commit.message, '[oboz-apk22-once]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Read original project and pre-Unity regression tests
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets/Updates/BraxContent.cs
+            unity-city/Assets/Editor/Oboz/CharacterManifest.json
+            unity-city/Packages/manifest.json
+            unity-tools/oboz/tests/
+            .github/workflows/oboz-unity-build.yml
+            .github/workflows/oboz-content-base.yml
+      - name: Check Android JNI and original seven-character animation imports before APK
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s unity-tools/oboz/tests -p 'test_android_jni_dependency.py' -v
+          python3 -m unittest discover -s unity-tools/oboz/tests -p 'test_*workflow*regression.py' -v
+          echo 'OBOZ_PREUNITY=PASS; NO_UNITY_STARTED_IN_LAUNCHER'
+      - name: Abort duplicate APK requests on the same Obóz branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          active=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/oboz-unity-build.yml/runs?branch=codex%2Foboz-przebudowa-pbr-20261105&per_page=30" \
+            --jq '[.workflow_runs[] | select(.status == "in_progress" or .status == "queued" or .status == "waiting")] | length')
+          if [ "$active" != "0" ]; then
+            echo "Obóz APK already active, not dispatching another ($active)"
+            exit 0
+          fi
+      - name: Dispatch signed APK update from current repaired Obóz branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run oboz-unity-build.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref codex/oboz-przebudowa-pbr-20261105 \
+            -f quality_review=false \
+            -f first_install=false \
+            -f content_action=none
+          echo "OBOZ_22_DISPATCHED=YES"
