@@ -623,6 +623,29 @@ public static partial class BraxObozEnvironment
         printed.shadowCastingMode = ShadowCastingMode.Off;
         printed.receiveShadows = false;
 
+        // Tylna okleina jest również oryginalną grafiką, czytelną od środka
+        // obozu. UV lustrzane względem geometrii, ale litery NIE są odwrócone
+        // dla obserwatora stojącego po północnej stronie bramy.
+        var backPrint = Group("Okleina — oryginalny JPEG na tylnej ścianie bryły",
+            sign, Vector3.zero).gameObject;
+        var backMesh = new Mesh { name = "BRAXHORN — tylna okleina UV 1do1" };
+        float backDecalZ = backZ + .012f;
+        backMesh.vertices = new [] {
+            P(-signWidth*.5f,lo,backDecalZ),P(signWidth*.5f,lo,backDecalZ),
+            P(signWidth*.5f,hi,backDecalZ),P(-signWidth*.5f,hi,backDecalZ)
+        };
+        backMesh.uv = new [] {
+            new Vector2(1,0),new Vector2(0,0),
+            new Vector2(0,1),new Vector2(1,1)
+        };
+        backMesh.triangles = new [] {0,1,2,0,2,3};
+        backMesh.RecalculateNormals();backMesh.RecalculateTangents();backMesh.RecalculateBounds();
+        backPrint.AddComponent<MeshFilter>().sharedMesh = SaveMesh(backMesh);
+        var backRenderer = backPrint.AddComponent<MeshRenderer>();
+        backRenderer.sharedMaterial = material;
+        backRenderer.shadowCastingMode = ShadowCastingMode.Off;
+        backRenderer.receiveShadows = false;
+
         // Rygiel nad pojazdami i podpory na zewnątrz przejazdu: x=+-4,45,
         // a nie w dawnych pozycjach +-3,7 wewnątrz światła bramy.
         Box(gate,"Stalowy rygiel nad przejazdem 8,4 m",new Vector3(0,3.57f,.28f),

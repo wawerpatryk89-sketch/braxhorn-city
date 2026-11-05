@@ -22,6 +22,9 @@ class GateAndMuralsTest(unittest.TestCase):
         self.assertIn("44B8F5D6-7F27-4EF3-A804-9BC8C4F462D0.jpeg", CAMPUS)
         self.assertIn("GetPixels32()", CAMPUS)
         self.assertIn("CopySerialized(material, savedMaterial)", CAMPUS)
+        self.assertIn("Tylna okleina jest również oryginalną grafiką",CAMPUS)
+        self.assertIn("backRenderer.sharedMaterial = material;",CAMPUS)
+        self.assertIn("new Vector2(1,0),new Vector2(0,0)",CAMPUS)
 
     def test_no_support_inside_entrance(self):
         self.assertIn("new[] {-4.45f,4.45f}", CAMPUS)
