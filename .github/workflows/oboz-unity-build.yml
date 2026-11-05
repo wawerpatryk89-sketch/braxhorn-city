@@ -15,6 +15,15 @@ on:
         description: Pierwszy APK obozu, bez wcześniejszego potwierdzonego podpisu
         type: boolean
         default: false
+      content_action:
+        description: "Obóz na TEJ gałęzi: preflight bez Unity lub export-candidate Addressables (BEZ APK)"
+        type: choice
+        required: true
+        options:
+          - none
+          - preflight
+          - export-candidate
+        default: none
 
 permissions:
   contents: write
@@ -432,5 +441,125 @@ jobs:
           path: |
             build/ObozAndroid/*.json
             unity-city/Logs/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  oboz-content-only:
+    name: "Obóz — kontrola i baza Addressables, bez APK"
+    # This workflow already exists on the repository's default branch, so
+    # manual dispatch can select the owner remodel branch without merging.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && inputs.content_action != 'none'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Source checkout — immutable owner remodel branch only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets/
+            unity-city/Packages/
+            unity-city/ProjectSettings/
+            unity-city/apk-warianty.txt
+            unity-tools/oboz/
+            unity-tools/updates/
+            unity-tools/validation/
+      - name: Verify owner-delivered models before expensive Unity work
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/codex/oboz-przebudowa-pbr-20261105"
+          test -n "$KLUCZ" || { echo "::error::Brak klucza szyfrowania dostawy"; exit 1; }
+          python3 unity-tools/oboz/owner_release_assets.py preflight
+          python3 unity-tools/oboz/assets.py preflight
+          python3 -m unittest discover -s unity-tools/oboz/tests -p 'test_*.py' -v
+          python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
+          python3 -m py_compile unity-tools/oboz/owner_assets_intake.py unity-tools/oboz/owner_release_assets.py unity-tools/oboz/content_candidate.py
+      - name: Stop here for requested quick preflight
+        if: inputs.content_action == 'preflight'
+        run: |
+          echo "BRAXHORN_OBOZ_PREFLIGHT=PASS" >> "$GITHUB_STEP_SUMMARY"
+          echo "Unity nie uruchomione, APK nie budowano; zawartość z release nie została jeszcze odszyfrowana." >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify Unity source scripts and prevent accidental standalone Android build
+        if: inputs.content_action == 'export-candidate'
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+          test -f unity-city/Assets/Editor/Oboz/BraxObozContentBase.cs
+          test -f unity-city/Assets/Updates/BraxContent.cs
+          test -f unity-city/Assets/Editor/Updates/BraxContentBuild.cs
+          test ! -e unity-city/BraxContentBuild/base/manifest.json
+          test ! -e unity-city/Assets/Resources/BraxContentBase.json
+      - name: Restore only encrypted private camp sources and verify original content SHA256
+        if: inputs.content_action == 'export-candidate'
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/assets.py restore
+          python3 unity-tools/oboz/owner_release_assets.py restore
+          python3 unity-tools/oboz/public_materials.py
+          python3 unity-tools/oboz/shared_bus.py
+          python3 unity-tools/oboz/restore_dialogue.py
+      - name: Check Unity license and free runner space before importing assets
+        if: inputs.content_action == 'export-candidate'
+        env:
+          LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          set -euo pipefail
+          test -n "$LICENSE" || { echo "::error::Brak licencji Unity"; exit 1; }
+          df -h .
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/share/swift
+          df -h .
+      - name: Unity 6 — build only the immutable Obóz Addressables baseline, NOT Android APK
+        id: unity
+        if: inputs.content_action == 'export-candidate'
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxObozContentBase.ExportInCI
+          manualExit: true
+          versioning: None
+          allowDirtyBuild: true
+      - name: Check generated catalog, state and scene GUID; encrypt baseline candidate
+        if: inputs.content_action == 'export-candidate' && steps.unity.outcome == 'success'
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          sudo chown -R "$(id -u):$(id -g)" unity-city/BraxContentBuild unity-city/Assets/PlayableGenerated/Oboz unity-city/Assets/Resources unity-city/Assets/StreamingAssets/BraxContent unity-city/Assets/AddressableAssetsData
+          python3 unity-tools/oboz/content_candidate.py validate
+          python3 unity-tools/oboz/content_candidate.py seal --output "$RUNNER_TEMP/oboz-content-candidate.tar.zst.enc"
+          test ! -f build/ObozAndroid/braxhorn-oboz.apk
+          echo "BRAXHORN_OBOZ_CONTENT export=encrypted-candidate APK=NOT_BUILT phone=NOT_TESTED" >> "$GITHUB_STEP_SUMMARY"
+      - name: Save only encrypted source candidate, never plaintext private models
+        if: inputs.content_action == 'export-candidate' && steps.unity.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oboz-content-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/oboz-content-candidate.tar.zst.enc
+            ${{ runner.temp }}/oboz-content-candidate.tar.zst.enc.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+      - name: Non-sensitive content validation receipt for second reviewer
+        if: always() && inputs.content_action == 'export-candidate'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oboz-content-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: unity-city/BraxContentBuild/content-candidate-review.json
           if-no-files-found: ignore
           retention-days: 14
