@@ -81,7 +81,8 @@ public static class BraxChampionsCasinoT11
         var renderer=o.GetComponent<MeshRenderer>();
         renderer.sharedMaterial=mat;
         if(mat==glass){renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;}
-        if(tiled)Tile(o,new Vector3(w,h,d));
+        if(tiled || ((mat==cream || mat==graphite || mat==granite || mat==roof || mat==paving || mat==asphalt) && Mathf.Max(w,Mathf.Max(h,d))>3f))
+            Tile(o,new Vector3(w,h,d));
         if(!solid)UnityEngine.Object.DestroyImmediate(o.GetComponent<Collider>());
         return o;
     }
@@ -276,13 +277,17 @@ public static class BraxChampionsCasinoT11
             B(trim,"VIP or taxi champagne curb",gold,side*27f,.34f,-36.4f,24f,.11f,.14f,false);
             for(int i=0;i<5;i++)
                 B(trim,"Parking stall marking",paving,side*(22f+i*4.2f),.28f,-44.5f,.10f,.014f,5.6f,false);
-            foreach(float z in new[]{-46f,46f})
+            foreach(float z in new[]{-46f,33f})
                 B(shell,"Champagne black granite planter",granite,side*43f,.48f,z,3.4f,.6f,3.3f,true);
         }
         B(shell,"Front VIP/TAXI circulating driveway",asphalt,0,.221f,-42.5f,105f,.055f,10f,true,true);
+        // The approved road grid is on X=400. Its eastern sidewalk edge X=417,
+        // exactly 18m west of the T11 plot edge X=435: connect without moving T11.
+        B(shell,"T11 physical access from existing city road X400",asphalt,-69f,.224f,-42.5f,20f,.054f,7.4f,true,true);
         B(shell,"Casino pedestrian main axis",granite,0,.275f,-43.7f,8.1f,.10f,11.7f,true,true);
-        B(shell,"Rear service and deliveries",asphalt,0,.23f,42f,105f,.07f,8f,true,true);
-        B(trim,"Rear loading bay white line",paving,-20f,.279f,42f,12f,.012f,.11f,false);
+        B(shell,"Rear service and deliveries",asphalt,0,.23f,46.7f,105f,.07f,5.4f,true,true);
+        B(shell,"Delivery corridor to rear loading door",asphalt,-20f,.248f,36.6f,6.4f,.052f,17.5f,true,true);
+        B(trim,"Rear loading bay white line",paving,-20f,.284f,46.7f,12f,.012f,.11f,false);
         B(shell,"Garage portal west upright",graphite,54.5f,2.5f,4f,.85f,4.5f,1.0f,true);
         B(shell,"Garage portal east upright",graphite,54.5f,2.5f,11.4f,.85f,4.5f,1.0f,true);
         B(shell,"Garage above-entry champagne beam",gold,54.5f,4.9f,7.7f,.9f,.34f,8.8f,true);
