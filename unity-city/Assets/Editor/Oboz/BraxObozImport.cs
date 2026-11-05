@@ -71,7 +71,6 @@ public sealed class BraxObozImport : AssetPostprocessor
         int editorMax = billboard ? 8192 : otherCharacter ? 2048 : 4096;
         int androidMax = billboard ? 8192 : tiled ? 1024 :
             otherCharacter || premiumSurface || vegetationMap ? 2048 : 4096;
-        bool background = tiled || vegetationMap;
         var androidFormat = billboard || vegetationMap || tiled && !normal
             ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
         t.textureShape = TextureImporterShape.Texture2D;
