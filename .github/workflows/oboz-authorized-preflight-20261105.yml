@@ -53,6 +53,32 @@ jobs:
         run: |
           set -euo pipefail
           python3 unity-tools/oboz/assets.py preflight
+      # Cheap end-to-end check of the missing #19 Idle.anim dependency.
+      # No Unity editor, no APK and no modification of original source assets.
+      - name: Odzyskaj i zweryfikuj szesc oryginalnych animacji bez Unity
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/motion_candidates.py
+          python3 - <<'PY_MOTION'
+          import hashlib, json
+          from pathlib import Path
+          root = Path('unity-city/Assets/Source/Prywatne/Oboz')
+          folder = Path('unity-tools/oboz')
+          verified = []
+          for name in ('motion-candidates.json', 'monika-owner-motion.json'):
+              records = json.loads((folder/name).read_text(encoding='utf-8'))['files']
+              for record in records:
+                  path = root/record['path']
+                  if (not path.is_file() or path.stat().st_size != record['bytes'] or
+                      hashlib.sha256(path.read_bytes()).hexdigest() != record['sha256']):
+                      raise SystemExit('BRAXHORN_OBOZ_MOTION_MISSING_OR_CORRUPT '+record['path'])
+                  verified.append(record['path'])
+          if len(verified) != 6 or len(set(verified)) != 6:
+              raise SystemExit('BRAXHORN_OBOZ_MOTION_INCOMPLETE')
+          print('BRAXHORN_OBOZ_MOTION_PREFLIGHT=PASS files=6 Idle+Walk+Run+Monika owner')
+          PY_MOTION
       - name: Validate latest signed APK #18 baseline and exact signing certificate
         run: |
           set -euo pipefail
