@@ -29,6 +29,14 @@ Workflow `.github/workflows/mistrzowie-apk.yml` na tej gałęzi obsługuje równ
 
 **Stan blokady:** ZIP istnieje w artefaktach tej rozmowy, ale nie został umieszczony w GitHub Release ani zapisany jako duże pliki Git w repo. Samo przygotowanie kodu i paczki nie zwalnia z konieczności dostarczenia plików na runner. Żaden build nie został uruchomiony przez to zlecenie.
 
+## Drugi wariant przekazania plików — import bezpośrednio do Unity
+Dodatkowo przygotowano `BRAXHORN_CHAMPION_ARENA_A1_SOURCE.unitypackage` z tych samych 11 binarnych zasobów i ich 15 stałymi GUID (15 zasobów/folderów, 41 wpisów archiwum tar.gz):
+- rozmiar `107 772 893` bajty;
+- SHA256 `2a731682c241f7d0459d0dd8f1868dd1e8bc3053ffbb3f65ef924ac7c967521d`;
+- struktura archiwum i ścieżki GUID/przypisania assetów sprawdzone **poza Unity**.
+
+Po otwarciu tej gałęzi w Unity 6 wykonawca może wybrać `Assets → Import Package → Custom Package` i wskazać plik. Wykonanie takiego importu i kompilacja w edytorze **nie zostały przeprowadzone w tej sesji**; nie jest to paczka APK ani aktualizacja Addressables. W przypadku automatycznego CI należy użyć wersji ZIP i weryfikatora SHA/GUID, a nie deklarować, że pobiera ten plik z tej rozmowy samodzielnie.
+
 ## Statyczne kontrole wykonane
 1. Punkty frontowych i tylnych otworów: od x=−4,70 do +4,70 m dla obu LOD n=64 i n=128, sprawdzone algorytmicznie.
 2. VIP: przy zaimportowanym oryginalnym GLB 16 foteli, odstęp poziomy środek–środek 1,45 m, minimalny odstęp między obrysami około 0,49 m, dwa rzędy rozdzielone o 1,75 m. Nie ma już wariantu zastępczego bez modelu właściciela.
