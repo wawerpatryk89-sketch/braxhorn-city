@@ -95,7 +95,9 @@ class CompactOwnerRemodelTest(unittest.TestCase):
         ignored=(ROOT/".gitignore").read_text("utf8")
         self.assertIn('unity-city/Assets/Source/Prywatne/',ignored)
         self.assertIn('OwnerAssets/',self.env)
-        self.assertIn("No source", "No source")  # prevent empty tests without fetching private assets
+        self.assertIn("*.glb",ignored)
+        self.assertIn("*.fbx",ignored)
+        self.assertIn("*.zip",ignored)
 
     def test_clearance_data_inside_plot(self):
         rx=get_float(self.layout,"PlotRadiusX")-8.8
