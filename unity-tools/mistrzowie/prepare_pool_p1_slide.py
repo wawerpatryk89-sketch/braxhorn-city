@@ -38,7 +38,8 @@ def pin_meta(path: Path):
 
 def prepare():
     DEST.mkdir(parents=True,exist_ok=True)
-    pin_meta(DEST.parent)
+    # Parent PoolP1 has a pre-existing GUID owned by the layout importer.
+    # Never try to repin or rewrite that existing Unity .meta.
     pin_meta(DEST)
     target=DEST/NAME
     if target.exists():
