@@ -1,0 +1,97 @@
+name: Obóz BRAXHORN - kontrola bazy Addressables BEZ APK
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: oboz-content-base-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  export-content:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout only Unity project and Obóz tools
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets/
+            unity-city/Packages/
+            unity-city/ProjectSettings/
+            unity-tools/oboz/
+            unity-tools/updates/
+            unity-tools/validation/
+      - name: Verify all original private owner models before Unity
+        run: python3 unity-tools/oboz/owner_release_assets.py preflight
+      - name: Verify original encrypted legacy owner source delivery
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/assets.py preflight
+      - name: Offline regression including original bull, 5 ZIPs and GUIDs
+        run: |
+          python3 -m unittest discover -s unity-tools/oboz/tests -p 'test_*.py' -v
+          python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
+      - name: Restore legacy original camp assets
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/assets.py restore
+      - name: Restore five original owner ZIPs and original bull with SHA256
+        run: python3 unity-tools/oboz/owner_release_assets.py restore
+      - name: Verified public PBR and original district bus
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          python3 unity-tools/oboz/public_materials.py
+          python3 unity-tools/oboz/shared_bus.py
+          python3 unity-tools/oboz/restore_dialogue.py
+      - name: Reserve runner disk for Unity 6 imports
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+      - name: Build immutable Obóz Addressables baseline only - no BuildPlayer
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxObozContentBase.Export
+          manualExit: true
+          versioning: None
+          allowDirtyBuild: true
+      - name: Confirm baseline state and avoid legacy standalone APK
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" unity-city/BraxContentBuild unity-city/ObozUpdateExport 2>/dev/null || true
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('unity-city')
+          manifest=root/'BraxContentBuild/base/manifest.json'
+          state=root/'BraxContentBuild/base/addressables_content_state.bin'
+          assert manifest.is_file() and state.is_file() and state.stat().st_size>0
+          m=json.loads(manifest.read_text())
+          assert m['zone']=='oboz' and m['baseId'].startswith('oboz-')
+          assert len(m['runtimeId'])==64
+          assert (root/'Assets/Resources/BraxContentBase.json').is_file()
+          assert not Path('build/ObozAndroid/braxhorn-oboz.apk').exists()
+          print('OBOZ_CONTENT_BASE_STAGE_PASS; no APK; approval and BRAXHORN CITY base integration pending')
+          PY
+      - name: Save manifest and test report only (NO raw private GLB, no APK)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oboz-content-base-stage-${{ github.run_id }}
+          path: |
+            unity-city/BraxContentBuild/base/manifest.json
+            unity-city/BraxContentBuild/base/scene-guids.txt
+            unity-city/ObozUpdateExport/registry.json
+          if-no-files-found: error
+          retention-days: 14
