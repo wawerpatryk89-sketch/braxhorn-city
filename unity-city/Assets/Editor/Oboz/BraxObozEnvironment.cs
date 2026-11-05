@@ -85,7 +85,7 @@ public static partial class BraxObozEnvironment
         {
             root = Group("Obóz Misia — odbudowa robocza, wymagany odbiór", null, Vector3.zero);
             var info = root.gameObject.AddComponent<BraxObozSceneInfo>();
-            CampusMaterials(); Terrain(); Paths();
+            CampusMaterials(); OwnerPanorama(); Terrain(); Paths();
             RunningTracks(); // profesjonalny czerwony owal i osobna bieznia 100 m
             // Main activity area retained at real scale. Additional cabins/service areas
             // are reconstructed placements; appearance has not been approved.
@@ -126,6 +126,34 @@ public static partial class BraxObozEnvironment
         finally { EditorSceneManager.CloseScene(scene, true); if (previous.IsValid()) SceneManager.SetActiveScene(previous); }
         AssetDatabase.SaveAssets();
     }
+    // Prawdziwa, źródłowa 360 x 180 panorama HDR 4096x2048.
+    // Wyłącznie tło świata; brak sztucznych ścian panoramicznych za płotem.
+    static void OwnerPanorama()
+    {
+        const string source="Assets/Source/Prywatne/Oboz/OwnerAssets/Panoramy/montorfano_4k.hdr";
+        var panorama=AssetDatabase.LoadAssetAtPath<Texture2D>(source);
+        if(!panorama || panorama.width!=4096 || panorama.height!=2048)
+            throw new InvalidOperationException("Brak oryginalnej panoramy HDR 360 4096x2048: "+source);
+        var shader=Shader.Find("Skybox/Panoramic");
+        if(!shader)throw new InvalidOperationException("Brak shadera HDR Skybox/Panoramic");
+        var material=new Material(shader){name="Obóz — Montorfano HDR 360 oryginalne 4K"};
+        material.SetTexture("_MainTex",panorama);
+        material.SetFloat("_Exposure",1f);
+        material.SetFloat("_Rotation",0f);
+        string path=Folder+"/ObozMontorfano4K.mat";
+        var existing=AssetDatabase.LoadAssetAtPath<Material>(path);
+        if(existing)
+        {
+            EditorUtility.CopySerialized(material,existing);
+            Object.DestroyImmediate(material);
+            material=existing;
+        }
+        else AssetDatabase.CreateAsset(material,path);
+        RenderSettings.skybox=material;
+        // Światła i shadery postaci zostają bez zmian.
+        Debug.Log("BRAXHORN_OBOZ_HDR panorama=montorfano_4k.hdr 360 4096x2048");
+    }
+
     static void Terrain()
     {
         var paths = PathRectangles();
