@@ -1,0 +1,72 @@
+name: "Miasto Mistrzów A1+T11 — testy przed APK (BEZ UNITY)"
+# Never builds Android, never dispatches the actual game build, never changes
+# quality gates, never deploys, uploads assets or moves a branch.
+on:
+  push:
+    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
+    paths:
+      - '.github/workflows/mistrzowie-a1-t11-test-before-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  code-preflight:
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets/BraxGymPlayer.cs
+            unity-city/Assets/Claude/
+            unity-city/Assets/Editor/
+            unity-city/Assets/City/
+            unity-city/Assets/Mistrzowie/
+            unity-tools/mistrzowie/
+            unity-tools/validation/
+            .github/workflows/mistrzowie-apk.yml
+      - name: No-Unity static integration tests A1/T11
+        run: python3 unity-tools/mistrzowie/test_a1_t11_before_apk.py
+      - name: Python pipeline syntax
+        run: |
+          python3 -m compileall -q unity-tools/mistrzowie/
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
+      - name: Pre-Unity C sharp syntax and local scopes
+        run: |
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: Evidence — source tests only
+        if: always()
+        run: |
+          printf 'A1/T11 preflight commit=%s\n' "$GITHUB_SHA"
+          printf 'Android APK: NOT BUILT; signature: NO NEW SIGNATURE; phone: NOT TESTED.\n'
+  source-release-preflight:
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Verify original owner release assets exist (read-only)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          files="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --jq '.[] | select(.tag_name=="champions-a1-20261105") | .assets[].name')"
+          printf '%s\n' "$files"
+          failed=0
+          for wanted in "ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip" \
+                        "ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip" \
+                        "brax (2)(1).zip"; do
+            if ! grep -Fxq "$wanted" <<<"$files"; then
+              echo "::error::MISSING ORIGINAL OWNER SOURCE: $wanted"
+              failed=1
+            fi
+          done
+          if ((failed)); then
+            echo "::warning::Do NOT build Android yet; sources are not delivered to the GitHub Release"
+            exit 1
+          fi
+          echo "A1_T11_OWNER_ASSETS_PRESENT — Unity still not tested"
