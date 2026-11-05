@@ -1,68 +1,57 @@
-"""Static geometry regression for the A1 judge-side VIP seating.
-
-This verifies the authored spacing and preservation of the judges' equipment.
-It is NOT a Unity render, physics, or Android device test.
-"""
+"""No-Unity regression: actual supplied GLB VIP seating and preserved judges."""
+import itertools
 import re
 import unittest
 from pathlib import Path
 
-SOURCE = (Path(__file__).resolve().parents[2] /
-          "unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs")
-
+ROOT=Path(__file__).resolve().parents[2]
+VIP=ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsVIPSeats.cs"
+ARENA=ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs"
 
 class ChampionVipSeatsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.code = SOURCE.read_text(encoding="utf-8")
-        # Read current positions from the actual generator instead of guessing
-        # them from comments or copying fixed data into the test.
-        rows = re.search(r'foreach\(float zr in new\[\]\{([^}]+)\}\)', cls.code)
-        banks = re.search(r'foreach\(var \(a0,a1\) in new\[\]\{([^}]+)\}\)', cls.code)
-        rule = re.search(
-            r'for\(float x=a0\+([.0-9]+)f;x<=a1-([.0-9]+)f;x\+=([.0-9]+)f\)', cls.code)
-        if not rows or not banks or not rule:
-            raise AssertionError("VIP geometry layout missing or changed: review its regression tests")
-        cls.rows = [float(s.rstrip('f')) for s in rows.group(1).split(',')]
-        cls.banks = [(float(a), float(b)) for a, b in re.findall(
-            r'\((-?\d+(?:\.\d+)?)f,(-?\d+(?:\.\d+)?)f\)', banks.group(1))]
-        cls.start, cls.end, cls.pitch = (float(x) for x in rule.groups())
+        cls.vip=VIP.read_text(encoding="utf-8")
+        cls.arena=ARENA.read_text(encoding="utf-8")
+        x=re.search(r"var xs\s*=\s*new\[\]\s*\{([^}]*)\}",cls.vip,re.S)
+        z=re.search(r"foreach\s*\(float z in new\[\]\s*\{([^}]*)\}",cls.vip)
+        if not x or not z:
+            raise AssertionError("Actual VIP GLB placement coordinates missing")
+        cls.xs=[float(v) for v in re.findall(r"-?\d+(?:\.\d+)?(?=f)",x.group(1))]
+        cls.zs=[float(v) for v in re.findall(r"-?\d+(?:\.\d+)?(?=f)",z.group(1))]
 
-    def test_luxury_armchairs_are_vip_only_and_judges_keep_desks(self):
-        self.assertIn("LuxuryVipArmchair(leather,new Vector3(x,yF,z),180f)", self.code)
-        self.assertIn("SeatCount++;", self.code)
-        self.assertIn("BoxMinMax(deskTop, x0 - .05f, x1 + .05f", self.code)
-        self.assertIn("Seat(leather, false, z, s > 0 ? x0 - .75f : x1 + .75f, yF, s);", self.code)
-        self.assertIn("LibraryLeather", self.code)
-        self.assertIn("LibraryMetal", self.code)
+    def test_real_glb_is_used_and_fake_chairs_removed(self):
+        self.assertIn("BraxChampionsVIPSeats.Generate(root)",self.arena)
+        self.assertNotIn("LuxuryVipArmchair(",self.arena)
+        self.assertIn("free_luxurious_barrel_seat_2k.glb",self.vip)
+        self.assertIn("PrefabUtility.InstantiatePrefab(source)",self.vip)
+        self.assertIn("VerifyImportedTextures(source)",self.vip)
+        self.assertIn("map.mipmapCount <= 1",self.vip)
+        self.assertIn("map.width > 2048 || map.height > 2048",self.vip)
 
-    def test_seat_dimensions_do_not_overlap_and_center_aisle_is_open(self):
-        self.assertEqual(len(self.rows), 2)
-        self.assertEqual(len(self.banks), 2)
-        # Luxury armchairs have their widest left/right armrest at approx
-        # ±(.49 + .085) = ±0.575 nominal metres.
-        max_width = 2 * (.49 + .085)
-        max_depth = 1.04
-        self.assertGreater(self.pitch, max_width)
-        self.assertGreater(min(b - a for a, b in zip(self.rows, self.rows[1:])), max_depth)
-        positions = []
-        for row in self.rows:
-            for left, right in self.banks:
-                x = left + self.start
-                while x <= right - self.end + 0.0001:
-                    self.assertGreater(x - max_width/2, left)
-                    self.assertLess(x + max_width/2, right)
-                    self.assertTrue(x + max_width/2 < -87.55 or x - max_width/2 > -84.45,
-                                    "Seat blocks the red-carpet walk between the VIP banks")
-                    positions.append((x,row))
-                    x += self.pitch
-        self.assertEqual(len(positions), 16)
+    def test_16_original_seats_do_not_overlap_each_other_or_central_aisle(self):
+        self.assertEqual(len(self.xs),8)
+        self.assertEqual(len(self.zs),2)
+        self.assertEqual(len(set(self.xs)),8)
+        self.assertEqual(len(set(self.zs)),2)
+        # Source loader applies one simple .96m collider per VIP seat.
+        self.assertIn("new Vector3(.96f, 1.08f, .96f)",self.vip)
+        footprints=[(x,z) for x in self.xs for z in self.zs]
+        self.assertEqual(len(footprints),16)
+        for (x,z),(xx,zz) in itertools.combinations(footprints,2):
+            self.assertTrue(abs(x-xx)>=.96 or abs(z-zz)>=.96,
+                            "VIP collider footprints overlap")
+        for x,z in footprints:
+            self.assertTrue(x+.48 < -87.55 or x-.48 > -84.45,
+                            "Original VIP chair intersects centre carpet")
+            self.assertGreater(z-.48,65.7)
+        self.assertIn("SeatCount != 16",self.vip)
 
-    def test_judges_remain_separate_from_vip_seat_rows(self):
-        self.assertGreater(min(self.rows), 65.7 + .95)
-        self.assertIn("new[] { 61.8f, 63.3f, 64.8f }", self.code)
-        self.assertIn("s > 0 ? x1 + .02f : x0 - .02f", self.code)
+    def test_judges_and_commentators_unchanged(self):
+        self.assertIn("new[] { (-94.0f, -93.3f, 1f), (-78.7f, -78.0f, -1f) }",self.arena)
+        self.assertIn("BoxMinMax(deskTop, x0 - .05f, x1 + .05f",self.arena)
+        self.assertIn("Seat(leather, false, z, s > 0 ? x0 - .75f : x1 + .75f, yF, s);",self.arena)
+        self.assertIn("new[] { 61.8f, 63.3f, 64.8f }",self.arena)
 
-
-if __name__ == '__main__':
+if __name__=="__main__":
     unittest.main()
