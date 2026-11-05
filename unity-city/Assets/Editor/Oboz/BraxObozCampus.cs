@@ -308,16 +308,9 @@ public static partial class BraxObozEnvironment
         // Footpath protection, leaving boarding openings at both coach doors.
         foreach(float z in new[]{-99f,-93f,-86f})Cylinder(t,"Słupek ochronny",new Vector3(24,.08f,z),new Vector3(24,1.05f,z),.075f,campusSteel,true);
         foreach(float z in new[]{-99f,-93f})Bench(t,new Vector3(27,0,z));
-        var shelter=Group("Wiata dla przyjeżdżających",t,P(27,0,-92));
-        foreach(float x in new[]{-1.4f,1.4f})foreach(float z in new[]{-4f,4f})Box(shelter,"Słup wiaty",new Vector3(x,1.45f,z),new Vector3(.12f,2.9f,.12f),campusSteel);
-        foreach(float x in new[]{-1.4f,1.4f}) {
-            Box(shelter,"Oczep wiaty",new Vector3(x,2.76f,0),new Vector3(.16f,.22f,8.3f),wood,false);
-            foreach(float z in new[]{-4f,4f}) {
-                var brace=Box(shelter,"Miecz usztywniający",new Vector3(x,2.42f,z-Mathf.Sign(z)*.28f),new Vector3(.12f,.8f,.12f),wood,false);
-                brace.transform.localRotation=Quaternion.Euler(-Mathf.Sign(z)*45,0,0);
-            }
-        }
-        MetalRoof(shelter,3.3f,8.6f,2.9f,.5f);
+        // Nowy FBX Meshy od właściciela zastępuje starą wiatę, bez atrap.
+        var shelter=Group("Wlascicielska wiata 3D — przystanek obozowy",t,P(27,0,-92));
+        OwnerShelter(shelter);
         var route=Group("Trasa kontrolna autobusu — bez automatycznej jazdy",t,Vector3.zero);
         Group("Dojazd",route,P(0,0,-138));Group("Brama",route,P(0,0,-125));
         for(int i=0;i<=32;i++){
@@ -327,6 +320,39 @@ public static partial class BraxObozEnvironment
     }
     // Model właściciela pozostaje w prywatnych assetach Unity, poza publicznym Git.
     // Nieobecność GLB oznaczamy jako BRAK do odbioru, nigdy nie używamy atrapy.
+    // Blender/FBX z paczki właściciela: oryginalne UV, geometrii nie redukujemy.
+    static void OwnerShelter(Transform parent)
+    {
+        const string sourcePath=
+            "Assets/Source/Prywatne/Oboz/OwnerAssets/Przystanek/Meshy_AI_The_object_is_a_recta_1104160815_texture.fbx";
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
+        if(!source)throw new InvalidOperationException("Brak oryginalnego FBX wiaty, nie budować starej atrapy: "+sourcePath);
+        var model=PrefabUtility.InstantiatePrefab(source) as GameObject;
+        if(!model)throw new InvalidOperationException("Nie można zaimportować oryginalnego FBX wiaty");
+        model.name="Nowa wiata właściciela — FBX + tekstura 2K";
+        model.transform.SetParent(parent,false);
+        var renderers=model.GetComponentsInChildren<Renderer>(true);
+        if(renderers.Length==0)throw new InvalidOperationException("FBX wiaty nie zawiera renderera");
+        Bounds b=renderers[0].bounds;
+        foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
+        if(b.size.x<=.001f||b.size.y<=.001f||b.size.z<=.001f)
+            throw new InvalidOperationException("Wiata FBX ma niepoprawne wymiary");
+        if(b.size.x>b.size.z*1.3f)
+            model.transform.localRotation=Quaternion.Euler(0,90,0);
+        b=renderers[0].bounds;
+        foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
+        // Jednorodne skalowanie — nie wolno rozciągać siedzeń/UV/modelu.
+        float scale=Mathf.Min(3.4f*K/b.size.x,
+            Mathf.Min(3.2f*K/b.size.y,8.6f*K/b.size.z));
+        model.transform.localScale*=scale;
+        b=renderers[0].bounds;
+        foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
+        model.transform.position+=new Vector3(parent.position.x-b.center.x,
+            parent.position.y-b.min.y,parent.position.z-b.center.z);
+        Debug.Log("BRAXHORN_OBOZ_WIATA_3D: zrodlo=FBX 2K, wymiary="+b.size+
+            ", rzeczywisty uklad scian i ławek wymaga oględzin Unity");
+    }
+
     static void RondoBull(Transform center)
     {
         const string sourcePath =
