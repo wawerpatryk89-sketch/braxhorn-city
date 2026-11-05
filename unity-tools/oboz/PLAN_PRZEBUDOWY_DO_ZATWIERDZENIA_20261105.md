@@ -14,10 +14,10 @@ Repozytorium: wawerpatryk89-sketch/braxhorn-city. Podstawa: OBOZ #18, run 419837
 - 24 worki tworzone są programowo ze zwykłych brył; wymagają wymiany na właściwe brązowe modele 3D.
 
 ## 2. Proponowana zagęszczona działka
-Celem jest zmniejszenie obozu o około 50–60% powierzchni, bez usuwania istniejących funkcji. Roboczy wariant do testu rozmieszczenia: X od -87.5 do 87.5, Z od -80 do 80 przed K. Daje około 226 x 207 jednostek świata i około 4,7 hektara. To WARIANT, nie zatwierdzone ostateczne współrzędne. Dostosować po zwymiarowaniu bieżni, budynków, stref bezpieczeństwa i manewrów autobusu.
+Celem jest znaczne zmniejszenie obozu (orientacyjnie o 50–60% powierzchni) i ułożenie go w ZWARTY, ZAOKRĄGLONY/OKRĄGŁY PLAC, bez usuwania istniejących funkcji. GŁÓWNA BRAMA MA ZOSTAĆ W OBECNYM MIEJSCU (około X=0, Z=-125 przed K). Poprzedni roboczy wariant X -87.5..87.5 i Z -80..80 ODRZUCONO, ponieważ nie obejmuje istniejącej bramy. Nowe granice i obrys zaokrąglony należy wyznaczyć od zachowanej bramy, pozostawiając miejsce na trasę bieżni dookoła płotu, osobny odcinek 100 m, zawracanie autobusu i prawidłowe dojścia. Geometrię zaokrąglenia, promień i punkty styku z bramą przedstawić do oceny. Nie zmieniać położenia bramy przy przebudowie ogrodzenia.
 
 Układ od strony bramy:
-1. WEJŚCIE I PRZYJAZDY: główna brama oraz furtka na południu. Szyld PREMIUM nad bramą, dokładnie na szerokość bramy, wysoko zawieszony, bez rozciągania grafiki. Logo byka i BRAXHORN / OBÓZ TRENINGOWY. Bez kolizji ze skrzydłem.
+1. WEJŚCIE I PRZYJAZDY: GŁÓWNA BRAMA ZOSTAJE W DOTYCHCZASOWYM MIEJSCU (w #18 około X=0, Z=-125 w układzie generatora). Nie przenosić jej bez wyraźnej nowej dyspozycji. Zmniejszyć głównie pozostałą część terenu i zaprojektować zwarty, ZAOKRĄGLONY/OKRĄGŁY UKŁAD PLACU obozowego z logiczną komunikacją. Dostarczony szyld BRAXHORN TRAINING CAMP nad obecną bramą jako prawdziwa gruba bryła 3D na szerokość bramy, bez deformacji grafiki i kolizji z otwieraniem.
 2. RONDO: czytelna pełna BIAŁA linia obwodu na asfalcie, wyspa pośrodku. Docelowy realistyczny posąg byka na cokole (zatwierdzić konkretny model), nie wjeżdża w skrajnię pojazdów.
 3. AUTOBUS: zatoka poza główną osią pieszą. Wiata ze ścianami po bokach i z tyłu, tylko bok od wsiadania otwarty; realistyczny dach, lepsze ławki premium, oświetlenie. W pełni połączony chodnik z kostki od pasów do furtki i głównej alei. Nie stawiać autobusu wewnątrz wiaty lub na trawie obok chodnika.
 4. PIESI: jedna czytelna centralna alejka i prostopadłe odnogi do wejść budynków. Prawdziwa kostka, obrzeża, łączenia bez uskoków. Ring, słupy i ławeczki poza przejściem.
@@ -49,3 +49,9 @@ Pierwszy dostarczony worek: leather_punching_bag.glb, 16 097 556 bajtów, 26 950
 
 ## 6. Otwarte do dostarczenia
 Dodatkowe materiały użytkownika, drugi GLB worka Vintage/Old, druga panorama HDR, reszta zakupionego/pobranego wyposażenia domków, stołówki i sprzętu. Po dostarczeniu aktualizować wyłącznie inwentarz oraz plan.
+## Zastrzeżenie właściciela: korekta bramy i układu terenu (najnowsze ustalenie)
+- **Brama GŁÓWNA pozostaje w dotychczasowym położeniu.** Nie przesuwać ani nie wymieniać jej konstrukcji bez osobnego zatwierdzenia. Szyld 3D montować nad nią.
+- **Teren mocno zmniejszyć i nadać placowi zwarty, zaokrąglony/okrągły układ** wokół funkcji obozu; docelowy obrys dopasować do istniejącej bramy i realnych potrzeb.
+- Bieżnia czerwona z białymi liniami musi przebiegać pełną pętlą **przy nowym ogrodzeniu**, a odcinek 100 m ma mieć dokładnie 100 m i własny start/metę. Układ musi zmieścić komunikację, autobusy, ringi i siłownię poza chodnikami.
+- Ringi, oktagon, sprzęt i ławki: przebudować rozmieszczenie. Ring ani schodki nie mogą stać na chodniku; prowizoryczne urządzenia siłowni zastąpić realistycznymi modelami właściciela bez obniżania jakości.
+- **To wciąż dokumentacja planistyczna, nie polecenie wdrożenia.**
