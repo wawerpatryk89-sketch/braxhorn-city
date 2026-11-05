@@ -24,8 +24,12 @@ public static class BraxChampionsArena
         // Import the owner's actual 2K PBR barrel chairs beside judges.
         // No procedural replacement is made when the original GLB is missing.
         SeatCount += BraxChampionsVIPSeats.Generate(root);
-        // Owner's unaltered panoramic wall mural: 4.10m doorway gap stays free.
+        // Original full entrance wall mural with real central doorway cutout.
         BraxChampionsArenaMural.Generate(root);
+        // Two additional owner originals on the actual 70m LEFT and RIGHT walls:
+        // fighter lineup on the spectator's left; championship belt on right.
+        // The exterior public entrance, door, original wall and passage stay intact.
+        BraxChampionsArenaSideMurals.Generate(root);
         // Source method uses nominal estate metres. Apply the game's K exactly once to this subtree.
         float k=BraxClaudeOsiedle.K;var rot=Quaternion.Euler(0,180,0);
         root.SetParent(building,false);root.localScale=Vector3.one*k;root.localRotation=rot;
@@ -254,12 +258,9 @@ public static class BraxChampionsArena
         Cylinder(steel, new Vector3(cx, 6.0f, cz), .05f, yC - 6.0f, 8, false, false);
         foreach (var n in new[] { Vector3.forward, Vector3.back, Vector3.left, Vector3.right })
             Sign("braxhorn_arena", new Vector3(cx, 5.5f, cz) + n * 1.305f, 2.4f, .6f, n, false);
-        // banery na ścianach bocznych, szyld nad wyjściem zawodników, logo nad wejściem
-        foreach (float z in new[] { 40f, 52f, 64f, 76f, 88f })
-        {
-            Sign("baner_oktagon", new Vector3(X0 + .06f, 4.75f, z), 1.4f, 2.8f, Vector3.right, false);
-            Sign("baner_oktagon", new Vector3(X1 - .06f, 4.75f, z), 1.4f, 2.8f, Vector3.left, false);
-        }
+        // The owner has approved two full side-wall murals. Remove the ten
+        // tiny repeated banners that would cover the originals or z-fight
+        // against them. Preserve both the fighters' exit sign and entrance logo.
         Sign("hala_walk", new Vector3(cx, 4.75f, Z0 + .06f), 9.6f, 1.8f, Vector3.forward, false);
         Sign("braxhorn_arena", new Vector3(cx, 4.9f, Z1 - .06f), 6f, 1.5f, Vector3.back, false);
         // Four priority fixtures over the octagon. The built-in mobile CityStaticPBR
