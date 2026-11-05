@@ -60,18 +60,10 @@
       "w": 5,
       "d": 4,
       "depth": 0.65
-    },
-    {
-      "id": "JACUZZI",
-      "x": 530,
-      "z": 173.25,
-      "w": 4,
-      "d": 4,
-      "depth": 0.85
     }
   ],
   "waterDeferred": true,
   "parkingSpaces": 95,
   "texResolution": 2048,
-  "notes": "Coordinates are NOMINAL metres before game K. The four open voids must be cut out of the Foundation plot_base mesh before Unity creates the finished blue tiled empty basins."
+  "notes": "World nominal metres before K. The three sports/family/children swimming basins are REAL dry excavations with blue tiled walls. Jacuzzi is the owner-supplied original model, mounted on the finished SPA floor at (530,173.25) without excavation. Matching ground cutouts are read from this manifest."
 }
