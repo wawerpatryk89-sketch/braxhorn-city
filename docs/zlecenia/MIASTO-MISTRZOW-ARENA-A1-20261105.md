@@ -23,7 +23,7 @@ Przeszedł CRC wszystkich plików i weryfikację SHA256 jedenastu zasobów z man
 
 ## Statyczne kontrole wykonane
 1. Punkty frontowych i tylnych otworów: od x=−4,70 do +4,70 m dla obu LOD n=64 i n=128, sprawdzone algorytmicznie.
-2. VIP: 16 foteli, odstęp poziomy środek–środek 1,35 m; prześwit osi korytarza między strefami około 6,30 m po odjęciu gabarytów foteli; dwa rzędy rozdzielone o 1,75 m.
+2. VIP: przy zaimportowanym oryginalnym GLB 16 foteli, odstęp poziomy środek–środek 1,45 m, minimalny odstęp między obrysami około 0,49 m, dwa rzędy rozdzielone o 1,75 m. Dla tymczasowego wariantu bez GLB obowiązuje jego osobna geometria.
 3. Parking i dojścia: zachowanie granicy drogi z=667, brak wejścia nawierzchni pieszej w pas drogi przy opisanych współrzędnych.
 4. Zbilansowane nawiasy i klamry w odczytanych plikach C#; **to nie jest kompilacja**.
 5. Testy do CI: `unity-tools/mistrzowie/test_arena_finish.py` — wymagają uruchomienia i nie są deklarowane jako wykonane w Unity.
