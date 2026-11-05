@@ -43,6 +43,32 @@ jobs:
         run: python3 unity-tools/oboz/assets.py restore
       - name: Restore five original owner ZIPs and original bull with SHA256
         run: python3 unity-tools/oboz/owner_release_assets.py restore
+      - name: Przywroc animacje casual i Moniki (wymagane dla wszystkich 7 postaci)
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/motion_candidates.py
+      - name: Sprawdz wszystkie klipy postaci PRZED uruchomieniem Unity
+        run: |
+          python3 - <<'PY_CLIPS'
+          import json
+          from pathlib import Path
+          root=Path('unity-city')
+          manifest=json.loads((root/'Assets/Editor/Oboz/CharacterManifest.json').read_text(encoding='utf-8'))
+          missing=[]
+          count=0
+          for person in manifest['characters']:
+              for clip in person.get('clips',[]):
+                  rel=clip.get('path','')
+                  p=root/rel if rel else root
+                  count+=1
+                  if not rel or not p.is_file() or p.stat().st_size==0:
+                      missing.append(person['id']+':'+clip.get('name','?')+' -> '+rel)
+          if missing:
+              for item in missing:
+                  print('::error::BRAXHORN_OBOZ_MISSING_ANIMATION '+item)
+              raise SystemExit(1)
+          print('BRAXHORN_OBOZ_ANIMATIONS_PREFLIGHT PASS characters='+str(len(manifest['characters']))+' clips='+str(count))
+          PY_CLIPS
       - name: Verified public PBR and original district bus
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
