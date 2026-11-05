@@ -40,7 +40,8 @@ class CasinoTexture2KTests(unittest.TestCase):
         src=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs").read_text()
         helper=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoPbr2K.cs").read_text()
         self.assertNotIn('BraxChampionsFoundation.SourceMaterial("t11_',src)
-        self.assertEqual(src.count("BraxChampionsCasinoPbr2K.Create(output,"),7)
+        self.assertEqual(src.count("BraxChampionsCasinoPbr2K.Create(output,"),8)
+        self.assertIn('"clean_asphalt",2.1f,new Color(.40f,.40f,.41f)',src)
         self.assertIn('+"_2k."+extension',helper)
         self.assertIn("ASTC_4x4",helper)
 
