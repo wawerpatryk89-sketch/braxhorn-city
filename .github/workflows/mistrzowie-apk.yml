@@ -213,7 +213,6 @@ jobs:
       - name: Archive immutable generated Champions scene and Addressables baseline
         id: content_baseline
         if: ${{ always() && !cancelled() && hashFiles('unity-city/BraxContentBuild/base/manifest.json') != '' }}
-        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -230,14 +229,14 @@ jobs:
           PY
       - name: Validate APK identity and existing certificate; stage immutable output
         id: apk_stage
-        if: always() && !cancelled() && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
+        if: always() && !cancelled() && steps.content_baseline.outcome == 'success' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
         run: python3 unity-tools/mistrzowie/apk_delivery.py stage
       # BuildPlayer has completed, but final signing/publishing failed.
       # Save the raw output WITHOUT any keystore. This is NOT a trusted installer.
       # The owner can use recovery_run later to re-sign and publish without Unity.
       - name: Record raw APK checkpoint after a failed signature validation
         id: raw_checkpoint
-        if: ${{ always() && !cancelled() && steps.apk_stage.outcome == 'failure' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != '' }}
+        if: ${{ always() && !cancelled() && (steps.apk_stage.outcome == 'failure' || steps.content_baseline.outcome == 'failure') && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != '' }}
         continue-on-error: true
         run: python3 unity-tools/mistrzowie/apk_rescue.py save
       - name: Save quarantined compiled APK for safe recovery without Unity
