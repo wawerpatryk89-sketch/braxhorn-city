@@ -169,7 +169,7 @@ public static partial class BraxClaudeOsiedle
                 string l = "BRAXHORN_PATRYK_NOGI klip=" + c.name + " awatar=" + (avatar == tPoza ? "T-poza" : "import") + " " + w.Opis() + " cele: stopa<35°, kolano do przodu, przeprost≤10°, kolano w bok≤35° → " + (ok ? "spełnione" : "NIESPEŁNIONE");
                 if (ok) Debug.Log(l); else Debug.LogError(l + " — DO POPRAWKI");
             }
-            if (bledy > 0) throw new Exception("test kości: " + bledy + " błędów — " + raportTestu);
+            if (bledy > 0) BraxBuildQuality.Issue(new Exception("test kości: " + bledy + " błędów — " + raportTestu));
 
             anim.clip = anim.GetClip("Idle"); anim.Play("Idle"); anim.Sample();
 

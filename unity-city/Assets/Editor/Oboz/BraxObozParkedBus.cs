@@ -40,7 +40,7 @@ public static class BraxObozParkedBus
             renderer.shadowCastingMode=UnityEngine.Rendering.ShadowCastingMode.On;renderer.receiveShadows=true;
         }
         if(bounds.size.x>4*K||Mathf.Abs(bounds.size.z-12*K)>.02f)
-            throw new InvalidOperationException("Oryginalny autobus nie mieści się w zatoce");
+            BraxBuildQuality.Issue(new InvalidOperationException("Oryginalny autobus nie mieści się w zatoce"));
         AssetDatabase.SaveAssets();
         Debug.Log("BRAXHORN_CAMP_BUS parked=true length="+bounds.size.z+" width="+bounds.size.x+" source="+Source);
     }

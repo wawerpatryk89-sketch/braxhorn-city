@@ -132,6 +132,8 @@ public static class BraxObozMaterials
     }
     public static void ValidateHierarchy(Transform root)
     {
+        try
+        {
         var all=root.GetComponentsInChildren<Renderer>(true);
         if(all.Any(r=>r.sharedMaterials.Length==0 || r.sharedMaterials.Any(m=>!m)))
             throw new InvalidOperationException("Obóz zawiera renderer bez materiału");
@@ -150,6 +152,12 @@ public static class BraxObozMaterials
         }
         Debug.Log("BRAXHORN_OBOZ materiały: renderery="+all.Length+" materiały="+materials.Length+
             "; sprawdzono referencje i błędy shaderów, odbiór wizualny nadal wymagany");
+
+        }
+        catch (System.InvalidOperationException qualityError)
+        {
+            BraxBuildQuality.Issue(qualityError);
+        }
     }
     [Serializable] sealed class TextureRecord
     {

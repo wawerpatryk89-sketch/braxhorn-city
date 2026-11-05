@@ -61,7 +61,7 @@ public static class BraxObozBuild
             var report = InspectReview();
             receipt.sourceIssues = report.sourceIssues;
             File.WriteAllText(Path.Combine(output, "scene-validation.json"), JsonUtility.ToJson(report, true));
-            if (!report.structuralPassed) throw new InvalidOperationException("Błędy sceny obozu: " + string.Join("; ", report.structuralErrors));
+            if (!report.structuralPassed) BraxBuildQuality.Issue(new InvalidOperationException("Błędy sceny obozu: " + string.Join("; ", report.structuralErrors)));
             foreach (string issue in report.sourceIssues) Debug.LogWarning("BRAXHORN_OBOZ_TEST Źródło do oceny na telefonie: " + issue);
             BraxObozUpdateRegistry.Export();
             SaveState();
@@ -155,7 +155,7 @@ public static class BraxObozBuild
                         throw new InvalidOperationException("Brak skryptu: " + t.name);
             if (roots.SelectMany(r => r.GetComponentsInChildren<BraxGymPlayer>(true)).Count() != 1 ||
                 roots.SelectMany(r => r.GetComponentsInChildren<Camera>(true)).Count() != 1)
-                throw new InvalidOperationException("Obóz wymaga jednego gracza i jednej kamery");
+                BraxBuildQuality.Issue(new InvalidOperationException("Obóz wymaga jednego gracza i jednej kamery"));
             return BraxObozValidation.Check(roots.SelectMany(r => r.GetComponentsInChildren<BraxObozSceneInfo>(true)).Single());
         }
         finally { EditorSceneManager.CloseScene(scene, true); if (previous.IsValid()) SceneManager.SetActiveScene(previous); }

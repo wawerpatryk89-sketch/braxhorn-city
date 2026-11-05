@@ -316,6 +316,14 @@ jobs:
         buildMethod: BraxGymBuild.BuildRenovation
         versioning: None
         allowDirtyBuild: true
+    - name: Raport jakości do ręcznej oceny (nie blokuje APK)
+      if: always()
+      continue-on-error: true
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: quality-review-${{ github.job }}-${{ strategy.job-index }}-${{ github.run_attempt }}-318
+        path: build/QualityReview/
+        if-no-files-found: warn
     - name: Verify actual Unity player output and complete Nutrition receipt
       env:
         REJON: ${{ steps.rejon.outputs.rejon }}
@@ -696,6 +704,14 @@ jobs:
         androidExportType: androidPackage
         versioning: None
         allowDirtyBuild: true
+    - name: Raport jakości do ręcznej oceny (nie blokuje APK)
+      if: always()
+      continue-on-error: true
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: quality-review-${{ github.job }}-${{ strategy.job-index }}-${{ github.run_attempt }}-706
+        path: build/QualityReview/
+        if-no-files-found: warn
     - name: Rozmiar Library i swiata rejonu (do decyzji o pamieci podrecznej; limit 10 GB na repo)
       if: always()
       run: |

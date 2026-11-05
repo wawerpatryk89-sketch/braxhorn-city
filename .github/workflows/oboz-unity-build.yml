@@ -7,6 +7,10 @@ on:
     paths: [unity-tools/oboz/build-request.json]
   workflow_dispatch:
     inputs:
+      quality_review:
+        description: Opcjonalny test Play Mode przed APK (wynik nie blokuje kompilacji)
+        type: boolean
+        default: false
       first_install:
         description: Pierwszy APK obozu, bez wcześniejszego potwierdzonego podpisu
         type: boolean
@@ -180,6 +184,8 @@ jobs:
           PY
       - name: Rzeczywista scena, trasy i rotacja NPC bez APK
         id: life_review
+        if: inputs.quality_review == true
+        continue-on-error: true
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -194,7 +200,17 @@ jobs:
           versioning: None
           allowDirtyBuild: true
           enableGpu: true
+      - name: Raport jakości do ręcznej oceny (nie blokuje APK)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: quality-review-${{ github.job }}-${{ strategy.job-index }}-${{ github.run_attempt }}-202
+          path: build/QualityReview/
+          if-no-files-found: warn
       - name: Wynik ruchu, trafień, poleceń i pauzy
+        if: inputs.quality_review == true
+        continue-on-error: true
         run: |
           python3 - <<'PY_REVIEW'
           import json, os
@@ -288,6 +304,14 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
+      - name: Raport jakości do ręcznej oceny (nie blokuje APK)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: quality-review-${{ github.job }}-${{ strategy.job-index }}-${{ github.run_attempt }}-272
+          path: build/QualityReview/
+          if-no-files-found: warn
       - name: Przygotuj istniejący APK także po błędzie kompilacji lub weryfikacji
         id: apk_rescue
         if: ${{ always() && steps.unity.outcome != 'skipped' && steps.unity.outcome != '' && (steps.apk_identity.outcome != 'success' || steps.apk_backup.outcome != 'success') }}

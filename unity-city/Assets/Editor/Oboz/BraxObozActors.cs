@@ -86,7 +86,7 @@ public static class BraxObozActors
         var renderers=visual.GetComponentsInChildren<SkinnedMeshRenderer>();
         Bounds bounds=renderers[0].bounds;foreach(var r in renderers.Skip(1))bounds.Encapsulate(r.bounds);
         float height=spec.realHeight>0?spec.realHeight*K:bounds.size.y;
-        if(height<.8f*K||height>3*K)throw new InvalidOperationException(spec.name+": nieprawidłowa kapsuła");
+        if(height<.8f*K||height>3*K)BraxBuildQuality.Issue(new InvalidOperationException(spec.name+": nieprawidłowa kapsuła"));
         body=root.AddComponent<CharacterController>();body.height=height;body.radius=.27f*K;
         body.center=Vector3.up*height*.5f;body.stepOffset=.25f*K;body.skinWidth=.035f;
         root.transform.position=position*K;

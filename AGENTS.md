@@ -1,3 +1,10 @@
+# Aktualna decyzja właściciela — testowy APK bez blokad jakości
+
+Stosuj [APK do ręcznej oceny](docs/zasady/APK_RECZNA_OCENA_20261105.md).
+Kontrole jakości postaci, kolizji i przejść mają ostrzegać, nie blokować APK.
+Fizyczne kolizje pozostają. Kompilacja, generowanie, podpis i plik APK nadal muszą się udać.
+Ta nowsza decyzja zastępuje sprzeczne starsze bramki jakości. Bez uruchamiania buildów.
+
 # Aktualizacja właściciela — start obozu na polecenie, 4.11.2026
 
 Wymóg dostawy: jeżeli plik APK powstał, zachowaj go do pobrania również przy

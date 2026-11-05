@@ -88,7 +88,7 @@ public static partial class BraxObozCharacters
         if (spec.sourceIssues != null && spec.sourceIssues.Length != 0 && !spec.qualityExceptionApproved)
         {
             string issues = spec.name + ": rozbieżności źródła wymagają decyzji właściciela: " + string.Join("; ", spec.sourceIssues);
-            if (!sourceReviewOnly) throw new InvalidOperationException(issues);
+            if (!sourceReviewOnly) BraxBuildQuality.Issue(new InvalidOperationException(issues));
             Debug.LogWarning("TYLKO PODGLĄD ŹRÓDŁA, nie akceptacja do publikacji: " + issues);
         }
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(spec.modelPath);
@@ -110,7 +110,7 @@ public static partial class BraxObozCharacters
             foreach (var a in hero.GetComponentsInChildren<Animator>(true)) Object.DestroyImmediate(a);
             foreach (var a in hero.GetComponentsInChildren<Animation>(true)) Object.DestroyImmediate(a);
             var bones = hero.GetComponentsInChildren<Transform>(true).Where(t => t.name.StartsWith("mixamorig", StringComparison.OrdinalIgnoreCase)).ToArray();
-            if (bones.Length != 65) throw new InvalidOperationException(spec.name + ": oczekiwano 65 kości mixamorig, znaleziono " + bones.Length);
+            if (bones.Length != 65) BraxBuildQuality.Issue(new InvalidOperationException(spec.name + ": oczekiwano 65 kości mixamorig, znaleziono " + bones.Length));
             var rest = bones.Select(t => new Rest { t = t, p = t.localPosition, r = t.localRotation, s = t.localScale }).ToArray();
             var hips = bones.SingleOrDefault(t => BoneName(t.name) == "Hips");
             if (!hips) throw new InvalidOperationException("Brak Hips: " + spec.name);
@@ -135,7 +135,7 @@ public static partial class BraxObozCharacters
             // explicitly provisional baseline, never treat that as approval.
             float realHeight = spec.realHeight > 0f ? spec.realHeight : sourceReviewOnly && spec.previewHeight > 0f ? spec.previewHeight : 0;
             if (realHeight <= 0) throw new InvalidOperationException(spec.name + ": brak uzgodnionego wzrostu");
-            if (!(realHeight >= .8f && realHeight <= 3f)) throw new InvalidOperationException(spec.name + ": niejednoznaczne jednostki/wzrost źródła " + realHeight);
+            if (!(realHeight >= .8f && realHeight <= 3f)) BraxBuildQuality.Issue(new InvalidOperationException(spec.name + ": niejednoznaczne jednostki/wzrost źródła " + realHeight));
             var material = Material(spec, folder);
             int rendererIndex = 0;
             foreach (var renderer in skinned)
@@ -292,7 +292,7 @@ public static partial class BraxObozCharacters
                 {
                     var p = s.t.localPosition; var q = s.t.localRotation;
                     if (float.IsNaN(p.sqrMagnitude) || float.IsInfinity(p.sqrMagnitude) || float.IsNaN(q.x+q.y+q.z+q.w) || float.IsInfinity(q.x+q.y+q.z+q.w)) throw new InvalidOperationException("Nieprawidłowe liczby w " + clip.name);
-                    if (s.t != hips && (p - s.p).magnitude > Mathf.Max(.0001f, s.p.magnitude * .02f)) throw new InvalidOperationException("Zmieniona długość kości w " + clip.name);
+                    if (s.t != hips && (p - s.p).magnitude > Mathf.Max(.0001f, s.p.magnitude * .02f)) BraxBuildQuality.Issue(new InvalidOperationException("Zmieniona długość kości w " + clip.name));
                 }
             }
         }

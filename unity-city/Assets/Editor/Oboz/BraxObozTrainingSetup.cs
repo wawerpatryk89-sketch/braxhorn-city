@@ -33,7 +33,7 @@ public static class BraxObozTrainingSetup
         var bagCandidates = scene.bags.Where(b => b.transform.position.z < -30 * K && b.transform.position.z > -45 * K).ToArray();
         routine.trainingBags = new[] { -23f, 23f }.Select(x => bagCandidates.OrderBy(b =>
             (new Vector2(b.transform.position.x / K, b.transform.position.z / K) - new Vector2(x,-38)).sqrMagnitude).First()).ToArray();
-        if (routine.trainingBags[0] == routine.trainingBags[1]) throw new InvalidOperationException("Dwa zajęcia wymagają różnych worków");
+        if (routine.trainingBags[0] == routine.trainingBags[1]) BraxBuildQuality.Issue(new InvalidOperationException("Dwa zajęcia wymagają różnych worków"));
         var points = new[] { new Vector3(-.7f,.38f,-5)*K, new Vector3(.7f,.38f,-5)*K,
             BagPlace(routine.trainingBags[0]), BagPlace(routine.trainingBags[1]),
             new Vector3(-7,.06f,-20)*K, new Vector3(-4,.06f,-20)*K };
@@ -82,14 +82,16 @@ public static class BraxObozTrainingSetup
             foreach (var place in routine.sparringPlaces)
             {
                 if(!NavMesh.SamplePosition(place.position,out var arenaHit,.8f,NavMesh.AllAreas))
-                    throw new InvalidOperationException("Arena poza trasą: "+place.name);
-                place.position=arenaHit.position;
+                    BraxBuildQuality.Issue(new InvalidOperationException("Arena poza trasą: "+place.name));
+                else place.position=arenaHit.position;
             }
             for(int i=0;i<6;i++)
             {
-                if(!NavMesh.SamplePosition(points[i],out var hit,.8f,NavMesh.AllAreas))throw new InvalidOperationException("Stanowisko poza trasą: "+i);
-                routine.places[i].position=hit.position;
-                var npc=routine.participants[i];npc.transform.position=hit.position+Vector3.up*.06f;
+                bool onNav = NavMesh.SamplePosition(points[i],out var hit,.8f,NavMesh.AllAreas);
+                if(!onNav)BraxBuildQuality.Issue(new InvalidOperationException("Stanowisko poza trasą: "+i));
+                var placement = onNav ? hit.position : points[i];
+                routine.places[i].position=placement;
+                var npc=routine.participants[i];npc.transform.position=placement+Vector3.up*.06f;
                 npc.routine=routine;
                 var agent=npc.gameObject.AddComponent<NavMeshAgent>();agent.enabled=false;
                 agent.agentTypeID=settings.agentTypeID;agent.updatePosition=false;agent.updateRotation=false;
@@ -118,14 +120,14 @@ public static class BraxObozTrainingSetup
             if(!report.complete)
             {
                 var failed=report.routes.First(r=>!r.complete);
-                throw new InvalidOperationException("Brak przejścia: "+failed.from+" → "+failed.to+
-                    " ("+failed.start+" → "+failed.end+", "+failed.status+"); raport navigation-review.json");
+                BraxBuildQuality.Issue(new InvalidOperationException("Brak przejścia: "+failed.from+" → "+failed.to+
+                    " ("+failed.start+" → "+failed.end+", "+failed.status+"); raport navigation-review.json"));
             }
         }
         finally{if(instance.valid)instance.Remove();}
         BraxObozAudioSetup.Configure(scene,routine);
         AssetDatabase.SaveAssets();
-        Debug.Log("BRAXHORN_OBOZ plan=6_postaci_3_areny_2_worki_2_odpoczynek trasy=90_poprawnych runtime_niepotwierdzony");
+        Debug.Log("BRAXHORN_OBOZ plan=6_postaci_3_areny_2_worki_2_odpoczynek trasy=patrz_navigation-review.json runtime_niepotwierdzony");
     }
     static Vector3 BagPlace(BraxWorek bag)
     {var p=bag.transform.position;p.y=.06f*K;p.z+=K;return p;}
