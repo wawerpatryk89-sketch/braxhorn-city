@@ -15,6 +15,38 @@ public static class BraxChampionsArenaArrival
     const string BeltAsset = BeltRoot + BeltName + ".fbx";
     const string BeltMaps = BeltRoot + BeltName + ".fbm/";
     static float K => BraxClaudeOsiedle.K;
+    static int tiledMeshSerial;
+
+    static void MetreScaleUv(GameObject target, Vector3 nominalSize)
+    {
+        // Unity primitive cube UV are 0..1 on each face, which would stretch a
+        // 4K asphalt map over an entire 70m car park. Tile by REAL surface metres.
+        // The Poly Haven material's SourceMaterial repeat is applied on top.
+        if (Mathf.Max(nominalSize.x, nominalSize.z) < 6f) return;
+        var filter = target.GetComponent<MeshFilter>();
+        var original = filter.sharedMesh;
+        var tiled = UnityEngine.Object.Instantiate(original);
+        var vertices = tiled.vertices;
+        var normals = tiled.normals;
+        var uv = tiled.uv;
+        for (int i = 0; i < uv.Length; i++)
+        {
+            var p = vertices[i];
+            var n = normals[i];
+            if (Mathf.Abs(n.y) > .7f)
+                uv[i] = new Vector2((p.x + .5f) * nominalSize.x, (p.z + .5f) * nominalSize.z);
+            else if (Mathf.Abs(n.x) > .7f)
+                uv[i] = new Vector2((p.z + .5f) * nominalSize.z, (p.y + .5f) * nominalSize.y);
+            else
+                uv[i] = new Vector2((p.x + .5f) * nominalSize.x, (p.y + .5f) * nominalSize.y);
+        }
+        tiled.uv = uv;
+        tiled.name = "A1 tiled physical-scale surface " + tiledMeshSerial;
+        string path = "Assets/PlayableGenerated/Mistrzowie/Buildings/Meshes/A1_Tiled_"
+            + (tiledMeshSerial++) + ".asset";
+        AssetDatabase.CreateAsset(tiled, path);
+        filter.sharedMesh = tiled;
+    }
 
     static GameObject Box(Transform parent, string name, Material material, Vector3 centre, Vector3 size, bool solid = true)
     {
@@ -24,6 +56,7 @@ public static class BraxChampionsArenaArrival
         o.transform.localPosition = centre * K;
         o.transform.localScale = size * K;
         o.GetComponent<Renderer>().sharedMaterial = material;
+        MetreScaleUv(o, size);
         if (!solid) UnityEngine.Object.DestroyImmediate(o.GetComponent<Collider>());
         return o;
     }
@@ -301,6 +334,7 @@ public static class BraxChampionsArenaArrival
 
     public static bool Generate(Transform arenaRoot, Dictionary<string, Material> exterior)
     {
+        tiledMeshSerial = 0;
         var root = Group(arenaRoot, "A1 | arena entrance, parking, trophy and athlete facilities", Vector3.zero);
         var asphalt = BraxChampionsFoundation.SourceMaterial("arena_parking_asphalt", "clean_asphalt", 2.2f,
             new Color(.89f, .89f, .89f));
