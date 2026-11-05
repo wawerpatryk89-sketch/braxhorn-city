@@ -72,6 +72,7 @@ class PoolP1LayoutTests(unittest.TestCase):
         self.assertIn('"white_stucco_02"',source)
         self.assertIn('"marble_mosaic_tiles"',source)
         self.assertIn('"long_white_tiles"',source)
+        self.assertIn('"herringbone_brick_02"',source)
         self.assertIn('"https://api.polyhaven.com/files/"+slug',source)
         self.assertIn("image.size!=(2048,2048)",source)
         self.assertIn("hashlib.sha256",source)
@@ -80,6 +81,9 @@ class PoolP1LayoutTests(unittest.TestCase):
         self.assertIn('new Color(.90f,.965f,1f,.12f)',src)
         self.assertIn("BlendMode.SrcAlpha",src)
         self.assertIn("BlendMode.OneMinusSrcAlpha",src)
+        self.assertIn('P1_warm_herringbone_paving',src)
+        self.assertIn('"P1 front entrance pedestrian piazza PBR HERRINGBONE",patternPaving',src)
+        self.assertIn('new Color(.40f,.40f,.41f)',src)
 
 
 if __name__ == "__main__":
