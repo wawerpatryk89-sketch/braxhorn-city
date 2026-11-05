@@ -7,10 +7,10 @@ public static class BraxObozCampusLayout
     public const string Path="Assets/Editor/Oboz/CampusLayout.json";
     // Fizyczna skala świata pozostaje K=1.294 w generatorze.
     // Nowy obóz ma obrys eliptyczny, bramę zachowaną przy Z=-125.
-    // Pole: PI*96*96 = 28 953 jednostki kw. vs stare 252*240=60 480 (-52.1%).
-    public const float PlotRadiusX=96f;
-    public const float PlotRadiusZ=96f;
-    public const float PlotCenterZ=-29f;
+    // Pole: PI*90*103 = 29 123 jednostki kw. vs stare 252*240=60 480 (-51.8%).
+    public const float PlotRadiusX=90f;
+    public const float PlotRadiusZ=103f;
+    public const float PlotCenterZ=-22f;
     public const float GateZ=-125f;
     public static bool InsidePlot(float x,float z,float margin=0f)
     {
