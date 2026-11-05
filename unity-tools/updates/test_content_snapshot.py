@@ -54,6 +54,18 @@ class ContentSnapshotTests(unittest.TestCase):
         self.assertFalse((target/'Assets/StreamingAssets/BraxContent/base.bundle').exists())
         self.assertEqual((target/'BraxContentBuild/base/addressables_content_state.bin').read_text(),'original state')
 
+    def test_mistrzowie_base_requires_signed_apk_delivery_receipt(self):
+        expected = snap.identity(dict(baseId='mistrzowie-' + 'c' * 32,
+                                      zone='mistrzowie', runtimeId='b' * 64))
+        with self.assertRaisesRegex(ValueError, 'podpisanego APK'):
+            snap.require_delivered_champions_base(dict(profile=expected), expected)
+        record = dict(status='APK_DELIVERED', applicationId='com.braxhorn.mistrzowie',
+                      apkSha256='a' * 64, certificateSha256='c' * 64)
+        snap.require_delivered_champions_base(dict(publishedApk=record), expected)
+        with self.assertRaisesRegex(ValueError, 'podpisanego APK'):
+            snap.require_delivered_champions_base(
+                dict(publishedApk=dict(record, certificateSha256='')), expected)
+
     def test_mistrzowie_has_separate_immutable_baseline_identity(self):
         manifest = dict(self.manifest, baseId='mistrzowie-' + 'c' * 32, zone='mistrzowie')
         identity = snap.identity(manifest)

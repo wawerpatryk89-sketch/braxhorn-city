@@ -292,6 +292,14 @@ jobs:
         run: |
           export APK_RELEASE_TAG="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
           python3 unity-tools/mistrzowie/apk_delivery.py verify
+      - name: Activate immutable Addressables base only after signed APK delivery
+        if: ${{ always() && !cancelled() && steps.content_baseline.outcome == 'success' && steps.apk_delivery.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          python3 unity-tools/updates/content_snapshot.py approve-base
+          echo 'BRAXHORN: signed APK delivered and immutable content baseline approved' >> "$GITHUB_STEP_SUMMARY"
       - name: Raport jakości do ręcznej oceny (nie blokuje APK)
         if: always()
         continue-on-error: true
