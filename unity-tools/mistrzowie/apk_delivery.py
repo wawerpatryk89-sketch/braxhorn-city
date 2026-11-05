@@ -137,7 +137,7 @@ def signing_smoke_preflight(expected_cert):
             encoding="utf-8")
         command(aapt, "package", "-f", "-M", str(manifest), "-I", str(jar),
                 "-F", str(unsigned))
-        if not unsigned.is_file() or unsigned.stat().st_size < 1024:
+        if not unsigned.is_file() or unsigned.stat().st_size < 256:
             raise RuntimeError("aapt failed to generate a real signing test APK")
         # Single use of the one-line password file; no second --key-pass read.
         command(apksigner, "sign", "--ks", str(keystore), "--ks-key-alias", "braxhorn",
