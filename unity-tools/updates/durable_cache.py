@@ -15,7 +15,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from unity_cache import digest, output, profile
+from unity_cache import digest, output, profile, project_unity_version
 
 PART_BYTES = 1536 * 1024 * 1024
 PART_NAME = re.compile(r"cache-[0-9]+-[0-9]+-[0-9a-f]{12}-[0-9]{4}\.enc\Z")
@@ -178,7 +178,7 @@ def main():
     parser.add_argument("--zone", required=True)
     parser.add_argument("--archive", type=Path, required=True)
     args = parser.parse_args()
-    expected = profile(args.project, args.zone, "6000.0.58f2")
+    expected = profile(args.project, args.zone, project_unity_version(args.project))
     repo = os.environ["GITHUB_REPOSITORY"]
     tag = release_tag(expected, os.environ["GITHUB_REF"])
     (download if args.command == "download" else upload)(repo, tag, args.archive, expected)
