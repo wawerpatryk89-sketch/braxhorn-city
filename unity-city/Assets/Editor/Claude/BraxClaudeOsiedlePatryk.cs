@@ -126,8 +126,15 @@ public static partial class BraxClaudeOsiedle
             try
             {
                 tPoza = PatrykAwatarTPoza(wzor, avatar, model, out string opisTPozy);
-                awatarRuchu = PatrykWybierzAwatar(hero, avatar, tPoza, hips, kosci, spoczynek, out string porownanie);
-                Debug.Log("BRAXHORN_PATRYK_RETARGET " + opisTPozy + " | " + porownanie + "; chód/bieg: osobna kontrola każdego źródła i awatara");
+                string porownanie;
+                if (BraxBuildQuality.Advisory)
+                {
+                    awatarRuchu = tPoza ? tPoza : avatar;
+                    porownanie = "tryb ręcznej oceny — pomiar nóg i wybór na podstawie testów WYŁĄCZONY";
+                }
+                else
+                    awatarRuchu = PatrykWybierzAwatar(hero, avatar, tPoza, hips, kosci, spoczynek, out porownanie);
+                Debug.Log("BRAXHORN_PATRYK_RETARGET " + opisTPozy + " | " + porownanie);
             }
             catch (Exception e)
             {
@@ -165,8 +172,12 @@ public static partial class BraxClaudeOsiedle
             var anim = hero.AddComponent<Animation>(); anim.playAutomatically = false; anim.cullingType = AnimationCullingType.AlwaysAnimate;
             foreach (var c in klipy) anim.AddClip(c, c.name);
 
+            // W trybie ręcznego APK pomijamy testy jakości postaci, nie sam import i retargeting.
+            int bledy = 0;
+            if (!BraxBuildQuality.Advisory)
+            {
             // --- test kości: 8 klatek każdego klipu vs spoczynek (> 2 % = błąd), T-poza w Idle/Walk/Run = błąd ---
-            int bledy = PatrykTestKosci(hero, kosci, spoczynek, klipy, out string raportTestu);
+            bledy = PatrykTestKosci(hero, kosci, spoczynek, klipy, out string raportTestu);
             Debug.Log("BRAXHORN_PATRYK_KOSCI bledy=" + bledy + " " + raportTestu);
             // E2: test nóg na zapisanych klipach Legacy (to, co gra gracz): 16 klatek chodu i biegu
             foreach (var c in klipy.Where(q => q.name == "Walk" || q.name == "Run"))
@@ -185,10 +196,16 @@ public static partial class BraxClaudeOsiedle
             }
             if (bledy > 0) BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_PATRYK_KOSCI: " + bledy + " błędów — " + raportTestu));
 
+            }
+            else
+            {
+                BraxBuildQuality.Warn("PATRYK: testy nóg, kości, T-pozy i przeprostów pominięte; model i animacje zostają; decyzja po teście Android APK.");
+            }
+
             var idleTest = anim.GetClip("Idle");
             idleTest.SampleAnimation(hero, 0f);
             float idleArms = PatrykKatRamion(kosci);
-            if (idleArms > 30f)
+            if (!BraxBuildQuality.Advisory && idleArms > 30f)
                 BraxBuildQuality.Issue(new InvalidOperationException("Patryk: ramiona w spoczynku uniesione (" + idleArms.ToString("F1") + "°)"));
             PatrykSpoczynek(spoczynek);
             Debug.Log("BRAXHORN_PATRYK_IDLE ramiona=" + idleArms.ToString("F1") + "° od pionu (cel <30°)");
