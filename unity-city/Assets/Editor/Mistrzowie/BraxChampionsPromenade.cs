@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 // Exact owner design: 12 independent, realistically sized K1..K12 shop modules.
 // Uses ORIGINAL Poly Haven PBR 4K maps (2048px on Android) with zero placeholder
-// textures, own 2K fascia signage and fully separate side-of-land footprints.
+// textures, original owner-delivered 2K signs and land-side footprints.
 // The foundation cuts the existing vegetation to each reserved pavilion pad.
 // Never overlay original cobbles/cycle lane/footpath or alter promenade paving.
 public static class BraxChampionsPromenade
@@ -31,9 +32,19 @@ public static class BraxChampionsPromenade
         public string style;
         public bool walkIn;
     }
-    [Serializable] sealed class SourceManifest
+    [Serializable] sealed class OriginalOwnerSign
     {
-        public KioskRecord[] promenade;
+        public string id,path,sha256;
+    }
+    [Serializable] sealed class OriginalOwnerSigns
+    {
+        public OriginalOwnerSign[] signs;
+    }
+    static string Sha256(string file)
+    {
+        using(var hash=SHA256.Create())
+            return BitConverter.ToString(hash.ComputeHash(File.ReadAllBytes(file)))
+                .Replace("-","").ToLowerInvariant();
     }
 
     static GameObject Group(Transform parent,string name,Vector3 local)
@@ -91,18 +102,48 @@ public static class BraxChampionsPromenade
         return BraxChampionsFoundation.SourceMaterial(name,slug,tiling,tint);
     }
 
+    // NEVER generate storefront artwork. All 12 signs must come from the
+    // user's verified 148-PNG original packages (2048x512 with original GUID).
+    // A STRICT Python source gate runs before Unity, to avoid expensive failure.
+    // Copy original image BYTES into a generated work asset, so Unity Android
+    // import settings cannot alter owner source file, its pixels or .meta.
     static Material Sign(KioskRecord p)
     {
-        string full=Source+"/prom_"+p.id+"_sign.png";
-        if(!File.Exists(full))
+        string manifest=Source+"/PromenadeOriginalSignBinding.json";
+        if(!File.Exists(manifest))
             throw new FileNotFoundException(
-                "Missing original 2K owner reference sign for kiosk "+p.id,full);
+                "BLOCKED: owner's 12 accurately labelled promenade originals are not all verified. "+
+                "No invented/fallback sign may enter Unity.",manifest);
+        var binding=JsonUtility.FromJson<OriginalOwnerSigns>(File.ReadAllText(manifest));
+        if(binding==null||binding.signs==null||binding.signs.Length!=12)
+            throw new InvalidOperationException("Owner sign manifest must list exactly 12 verified originals");
+        var chosen=binding.signs.SingleOrDefault(x=>x.id==p.id);
+        if(chosen==null||string.IsNullOrEmpty(chosen.path)
+                ||string.IsNullOrEmpty(chosen.sha256)
+                ||!chosen.path.StartsWith(Source+"/CitySigns/",StringComparison.Ordinal)
+                ||chosen.path.Contains(".."))
+            throw new InvalidOperationException("Unverified original CitySigns for "+p.id);
+        var owner=chosen.path;
+        if(!File.Exists(owner)||!File.Exists(owner+".meta"))
+            throw new FileNotFoundException("Owner original PNG or pinned Unity GUID missing: "+p.id,owner);
+        if(Sha256(owner)!=chosen.sha256.ToLowerInvariant())
+            throw new InvalidOperationException("Owner original pixels do not match verified SHA: "+p.id);
+        string full=Output+"/Textures/prom_"+p.id+"_owner_exact_copy.png";
+        if(!File.Exists(full))
+        {
+            // No transformation, recompression or replacement of the PNG bytes.
+            File.Copy(owner,full);
+            AssetDatabase.ImportAsset(full,ImportAssetOptions.ForceSynchronousImport);
+        }
+        else if(Sha256(full)!=chosen.sha256.ToLowerInvariant())
+            throw new InvalidOperationException("Refusing to replace a changed staged sign: "+p.id);
         var imp=AssetImporter.GetAtPath(full) as TextureImporter;
-        if(!imp)throw new InvalidOperationException("Sign texture importer missing: "+full);
+        if(!imp)throw new InvalidOperationException("Staged original sign import missing: "+full);
         imp.textureType=TextureImporterType.Default;
         imp.sRGBTexture=true;
         imp.maxTextureSize=2048;
         imp.mipmapEnabled=true;
+        imp.isReadable=false;
         var android=imp.GetPlatformTextureSettings("Android");
         if(!android.overridden||android.maxTextureSize!=2048||
            android.format!=TextureImporterFormat.ASTC_4x4)
@@ -116,10 +157,10 @@ public static class BraxChampionsPromenade
         }
         var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(full);
         if(!tex||tex.width!=2048||tex.height!=512)
-            throw new InvalidOperationException("Kiosk sign must be original 2048x512 4:1: "+full);
+            throw new InvalidOperationException("Original kiosk sign must remain 2048x512 4:1: "+full);
         var shader=Shader.Find(BraxCityMaterials.ShaderName);
-        if(!shader)throw new InvalidOperationException("No CityStaticPBR shader for kiosk signage");
-        var mat=new Material(shader){name=p.id+" 2K owner-reference shop sign"};
+        if(!shader)throw new InvalidOperationException("No CityStaticPBR shader for owner signage");
+        var mat=new Material(shader){name=p.id+" | original owner's untouched 2K shop sign"};
         mat.SetTexture("_MainTex",tex);
         mat.SetColor("_Color",Color.white);
         mat.SetFloat("_Roughness",.32f);mat.SetFloat("_Metallic",.08f);
