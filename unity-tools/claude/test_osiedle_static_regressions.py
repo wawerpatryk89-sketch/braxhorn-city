@@ -86,6 +86,20 @@ class EstateSourceRegressions(unittest.TestCase):
             self.assertIn(function, estate)
         self.assertIn("BraxBuildQuality.Warn", source("BraxClaudeOsiedleKontrolaZlecenia.cs"))
 
+    def test_no_unmeasured_patryk_headroom_or_invalid_roof(self):
+        car = source("BraxClaudeAutoPatryka.cs")
+        roof = source("BraxClaudeKabiny.cs")
+        self.assertIn("skora.Count == 0", car)
+        self.assertIn("skora.Sum(s => s.v.Length) < 8", car)
+        self.assertIn("float.IsNaN(dach)", roof)
+        self.assertIn("wl.zapas = float.NegativeInfinity", roof)
+
+    def test_patryk_face_4k_import_not_silently_degraded(self):
+        player = source("BraxClaudeOsiedlePatryk.cs")
+        self.assertIn("if (!texture)", player)
+        self.assertIn("texture.width != limit || texture.height != limit", player)
+        self.assertIn("throw new InvalidOperationException(\"Patryk: nieprawidłowa tekstura", player)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
