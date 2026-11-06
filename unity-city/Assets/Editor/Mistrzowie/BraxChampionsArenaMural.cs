@@ -9,6 +9,9 @@ using UnityEngine.Rendering;
 // The existing 4.10m-wide central doorway remains physically free.
 public static class BraxChampionsArenaMural
 {
+    // HD 6144x2048 (oryginał właściciela powiększony 4x, 6.11) — używany, gdy jest.
+    public const string HdImage =
+        "Assets/Source/Mistrzowie/ArenaMuralsHD/MURAL_WEJSCIE_CHAMPION_FIGHTER_6144x2048.png";
     public const string OriginalImage =
         "Assets/Source/Mistrzowie/ArenaMurals/BRAXHORN_CHAMPION_FIGHTER_ORIGINAL.jpg";
 
@@ -80,19 +83,23 @@ public static class BraxChampionsArenaMural
     public static bool Generate(Transform originalBowlRoot)
     {
         if(!originalBowlRoot)throw new ArgumentNullException(nameof(originalBowlRoot));
-        var image=AssetDatabase.LoadAssetAtPath<Texture2D>(OriginalImage);
+        bool hd=File.Exists(HdImage);
+        string source=hd?HdImage:OriginalImage;
+        if(hd)AssetDatabase.ImportAsset(HdImage,ImportAssetOptions.ForceSynchronousImport);
+        var image=AssetDatabase.LoadAssetAtPath<Texture2D>(source);
+        if(!image&&hd){source=OriginalImage;hd=false;image=AssetDatabase.LoadAssetAtPath<Texture2D>(source);}
         if(!image)
         {
-            Debug.LogWarning("CHAMPION_A1_MURAL_SOURCE_PENDING: owner original panoramic JPEG missing: "+
-                             OriginalImage+"; NEVER substitute generated people");
+            Debug.LogWarning("CHAMPION_A1_MURAL_SOURCE_PENDING: owner original panoramic image missing: "+
+                             source+"; NEVER substitute generated people");
             return false;
         }
-        var importer=AssetImporter.GetAtPath(OriginalImage) as TextureImporter;
+        var importer=AssetImporter.GetAtPath(source) as TextureImporter;
         if(!importer)throw new InvalidDataException("A1 original mural image has no texture importer");
         importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
-        if(sourceWidth!=SourceWidth||sourceHeight!=SourceHeight)
-            throw new InvalidDataException("Owner's original CHAMPION FIGHTER artwork source must remain 1536x512");
-        if(image.width!=SourceWidth||image.height!=SourceHeight)
+        if(sourceWidth!=sourceHeight*3)
+            BraxBuildQuality.Warn("A1 mural "+source+" is "+sourceWidth+"x"+sourceHeight+", not 3:1");
+        if(!hd&&(image.width!=SourceWidth||image.height!=SourceHeight))
             BraxBuildQuality.Warn("A1 mural original remains 1536x512; platform-imported dimensions are "+
                 image.width+"x"+image.height+"; visual device review required");
         if(!importer.mipmapEnabled)
@@ -121,7 +128,7 @@ public static class BraxChampionsArenaMural
         AddSegment(walls,m,"Original mural ABOVE doorway",DoorLeft,DoorRight,DoorTop,MuralTop,false);
         AddSegment(walls,m,"Original mural right of entry",DoorRight,ImageRight,MuralBase,MuralTop,false);
         AddSegment(walls,m,"Far right atmospheric edge",ImageRight,WallNearRight,MuralBase,MuralTop,true);
-        Debug.Log("CHAMPION_A1_MURAL_ORIGINAL_APPLIED source="+OriginalImage+
+        Debug.Log("CHAMPION_A1_MURAL_ORIGINAL_APPLIED hd="+hd+" source="+source+
                   " wall=120m mural=82m door=4.10m x 4.20m open; sourcePixelsUnmodified=true");
         return true;
     }

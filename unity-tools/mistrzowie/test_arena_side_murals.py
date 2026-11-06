@@ -21,8 +21,8 @@ class ChampionSideMuralsTests(unittest.TestCase):
     def test_owner_photos_are_not_swapped_or_replaced(self):
         self.assertIn('BRAXHORN_A1_FIGHTERS_LEFT_ORIGINAL.jpg',self.m)
         self.assertIn('BRAXHORN_A1_BELT_RIGHT_ORIGINAL.jpg',self.m)
-        self.assertIn('Side(originalBowl, LeftFighters, "LEFT_FIGHTERS", true)',self.m)
-        self.assertIn('Side(originalBowl, RightBelt, "RIGHT_BELT", false)',self.m)
+        self.assertIn('Side(originalBowl, Pick(LeftFightersHd, LeftFighters), "LEFT_FIGHTERS", true)',self.m)
+        self.assertIn('Side(originalBowl, Pick(RightBeltHd, RightBelt), "RIGHT_BELT", false)',self.m)
         self.assertNotIn('Texture2D.EncodeTo',self.m)
 
     def test_both_side_walls_use_true_panorama_dimensions_and_face_the_aisle(self):

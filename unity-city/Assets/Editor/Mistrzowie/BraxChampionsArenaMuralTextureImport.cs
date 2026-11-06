@@ -11,6 +11,25 @@ public sealed class BraxChampionsArenaMuralTextureImport : AssetPostprocessor
         // Three separate owner-original JPEGs. Preserve exact pixels/colour
         // and do not change source import settings for any other image.
         const string root="Assets/Source/Mistrzowie/ArenaMurals/";
+        // Murale HD 6144x2048: pełna szerokość, ASTC 6x6 (ok. 7,5 MB z mipmapami każdy).
+        if(assetPath.StartsWith("Assets/Source/Mistrzowie/ArenaMuralsHD/",StringComparison.Ordinal)
+           &&assetPath.EndsWith(".png",StringComparison.OrdinalIgnoreCase))
+        {
+            var hd=(TextureImporter)assetImporter;
+            hd.textureType=TextureImporterType.Default;
+            hd.textureShape=TextureImporterShape.Texture2D;
+            hd.sRGBTexture=true;hd.maxTextureSize=8192;hd.isReadable=false;
+            hd.mipmapEnabled=true;hd.streamingMipmaps=true;
+            hd.wrapMode=TextureWrapMode.Clamp;hd.filterMode=FilterMode.Trilinear;hd.anisoLevel=4;
+            hd.npotScale=TextureImporterNPOTScale.None;
+            hd.alphaSource=TextureImporterAlphaSource.None;
+            hd.textureCompression=TextureImporterCompression.CompressedHQ;
+            var a=hd.GetPlatformTextureSettings("Android");
+            a.name="Android";a.overridden=true;a.maxTextureSize=8192;
+            a.format=TextureImporterFormat.ASTC_6x6;a.compressionQuality=100;
+            hd.SetPlatformTextureSettings(a);
+            return;
+        }
         if(assetPath!=root+"BRAXHORN_CHAMPION_FIGHTER_ORIGINAL.jpg"
            &&assetPath!=root+"BRAXHORN_A1_FIGHTERS_LEFT_ORIGINAL.jpg"
            &&assetPath!=root+"BRAXHORN_A1_BELT_RIGHT_ORIGINAL.jpg")return;

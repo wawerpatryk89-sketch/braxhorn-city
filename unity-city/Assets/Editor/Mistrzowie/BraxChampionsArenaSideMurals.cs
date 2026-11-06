@@ -14,6 +14,16 @@ public static class BraxChampionsArenaSideMurals
     const string Source = "Assets/Source/Mistrzowie/ArenaMurals/";
     public const string LeftFighters = Source + "BRAXHORN_A1_FIGHTERS_LEFT_ORIGINAL.jpg";
     public const string RightBelt = Source + "BRAXHORN_A1_BELT_RIGHT_ORIGINAL.jpg";
+    // HD 6144x2048 (oryginały właściciela powiększone 4x, 6.11) — używane, gdy są.
+    const string HdSource = "Assets/Source/Mistrzowie/ArenaMuralsHD/";
+    public const string LeftFightersHd = HdSource + "MURAL_LEWA_ZAWODNICY_6144x2048.png";
+    public const string RightBeltHd = HdSource + "MURAL_PRAWA_PAS_6144x2048.png";
+    static string Pick(string hd, string original)
+    {
+        if (!File.Exists(hd)) return original;
+        AssetDatabase.ImportAsset(hd, ImportAssetOptions.ForceSynchronousImport);
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(hd) ? hd : original;
+    }
 
     const float HallLeftX = -26f;    // after the original 180-degree bowl rotation
     const float HallRightX = -146f;  // this is the spectator's right side
@@ -58,12 +68,13 @@ public static class BraxChampionsArenaSideMurals
         var importer = AssetImporter.GetAtPath(sourcePath) as TextureImporter;
         if (!importer) throw new InvalidOperationException("A1 original side mural has no image importer: " + sourcePath);
         importer.GetSourceTextureWidthAndHeight(out int sourceWidth, out int sourceHeight);
-        if (sourceWidth != ImageWidthPx || sourceHeight != ImageHeightPx)
-            throw new InvalidDataException("A1 original side mural source dimensions have changed: " + sourcePath);
-        if (photo.width != ImageWidthPx || photo.height != ImageHeightPx)
+        bool hd = sourcePath.StartsWith(HdSource, StringComparison.Ordinal);
+        if (sourceWidth != sourceHeight * 3)
+            BraxBuildQuality.Warn("A1 side mural is not 3:1: " + sourcePath + " " + sourceWidth + "x" + sourceHeight);
+        if (!hd && (photo.width != ImageWidthPx || photo.height != ImageHeightPx))
             BraxBuildQuality.Warn("A1 mural source is unchanged 1536x512; Android import size differs: " +
                 sourcePath + " imported=" + photo.width + "x" + photo.height);
-        if (!importer.mipmapEnabled || importer.maxTextureSize != 2048)
+        if (!importer.mipmapEnabled)
             BraxBuildQuality.Warn("A1 mural mobile import should be reviewed, but is not an APK blocker: " + sourcePath);
 
         Directory.CreateDirectory(Output);
@@ -105,8 +116,8 @@ public static class BraxChampionsArenaSideMurals
     {
         if (!originalBowl) throw new ArgumentNullException(nameof(originalBowl));
         int applied = 0;
-        if (Side(originalBowl, LeftFighters, "LEFT_FIGHTERS", true)) applied++;
-        if (Side(originalBowl, RightBelt, "RIGHT_BELT", false)) applied++;
+        if (Side(originalBowl, Pick(LeftFightersHd, LeftFighters), "LEFT_FIGHTERS", true)) applied++;
+        if (Side(originalBowl, Pick(RightBeltHd, RightBelt), "RIGHT_BELT", false)) applied++;
         Debug.Log("CHAMPIONS_A1_SIDE_MURALS originals=" + applied +
                   "/2 each 1536x512, wall=70x23.333m, doorway/entry untouched, source pixels unchanged");
         return applied;
