@@ -84,7 +84,11 @@ public sealed class BraxPodroznyAuta : MonoBehaviour
             yield return Idz(drzwi);
             if (!doszedl)
             {
-                // Never start the seated animation if the resident has not reached the door.
+                // A blocked door may leave a resident halfway across a parking lane.
+                // Walk back safely rather than abandoning the character on the road.
+                yield return Idz(dom);
+                if (!doszedl)
+                    Debug.LogWarning("BRAXHORN_PODROZNI: powrót do domu zablokowany: " + name);
                 osoba.enabled = true;
                 osoba.anim.CrossFade(spokoj, .2f);
                 continue;
