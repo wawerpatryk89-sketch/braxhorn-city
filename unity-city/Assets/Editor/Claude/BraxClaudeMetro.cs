@@ -66,6 +66,14 @@ public static class BraxClaudeMetro
         var obr = Quaternion.Euler(0f, 90f, 0f);  // stare +X schodów staje się -Z, prostopadle do dawnego chodnika
         grupa.rotation = obr;
         grupa.position = new Vector3(PortX, 0f, PortZ) - obr * new Vector3(EX0, 0f, EZ[1] + EW * .5f);
+        // BraxSchodyRuchome przesuwa siatki w LOKALNEJ osi rodzica (obrót grupy wystarcza),
+        // lecz BraxSchodyRuchomeJazda zapisuje końce biegu w koordynatach ŚWIATA.
+        // Bez tej korekty gracz byłby nadal przewożony w starym miejscu przy chodniku.
+        foreach (var jazda in grupa.GetComponentsInChildren<BraxSchodyRuchomeJazda>(true))
+        {
+            jazda.gora = NaPort(jazda.gora);
+            jazda.dol = NaPort(jazda.dol);
+        }
     }
     const float TW0 = -70f, TW1 = 112f;                // końce tuneli
 
