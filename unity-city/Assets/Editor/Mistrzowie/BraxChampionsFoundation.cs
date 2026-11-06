@@ -223,10 +223,20 @@ public static class BraxChampionsFoundation
         if(!importer)throw new InvalidOperationException("Generated PBR importer missing: "+destination);
         var android=importer.GetPlatformTextureSettings("Android");
         var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(destination);
-        if(!texture||texture.width!=2048||texture.height!=2048||importer.textureType!=TextureImporterType.Default
+        if(!texture||importer.textureType!=TextureImporterType.Default
             ||importer.sRGBTexture!=(role=="color")||!android.overridden||android.maxTextureSize!=2048
             ||android.format!=TextureImporterFormat.ASTC_4x4||android.compressionQuality!=100)
             throw new InvalidOperationException("Generated PBR import contract failed: "+destination);
+        // The original provider file must remain genuine 4K. Android's
+        // compressed/imported Texture2D dimensions are not source dimensions.
+        importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
+        if(sourceWidth!=4096||sourceHeight!=4096)
+            throw new InvalidOperationException("Original 4K PBR source changed: "+destination+
+                " source="+sourceWidth+"x"+sourceHeight);
+        if(texture.width!=2048||texture.height!=2048)
+            BraxBuildQuality.Warn("Original PBR source remains 4K; Unity imported "+
+                texture.width+"x"+texture.height+" for "+destination+
+                ". Android ASTC override remains 2K; inspect on device.");
         return texture;
     }
     static readonly Dictionary<string,Material> textureSets=new Dictionary<string,Material>();
