@@ -193,8 +193,18 @@ public static partial class BraxClaudeOsiedle
     static void Autobusy()
     {
         autobusy.Clear();
+        // Reset stanu statycznego przed KAŻDYM nowym osiedlem.
+        // Poprzedni wybór modelu GLB nie może ominąć testu zakrętów.
+        busModel = "kod";
+        busSkala = 1f;
         BraxRuchAut[] tab = Object.FindObjectsByType<BraxRuchAut>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        var ra = tab.FirstOrDefault(); if (!ra || ra.trasy == null) { Debug.LogError("BRAXHORN_AUTOBUS DO POPRAWKI: brak tras ruchu"); return; }
+        var ra = tab.FirstOrDefault();
+        if (!ra || ra.trasy == null)
+        {
+            rep.notes.Add("DO POPRAWKI: autobus — brak tras ruchu, linie nie zostały utworzone");
+            Debug.LogError("BRAXHORN_AUTOBUS DO POPRAWKI: brak tras ruchu");
+            return;
+        }
         var rodzic = Group("Osiedle / autobusy");
         Vector3[] Sciezka(string nazwa, out bool petla)
         {
@@ -208,7 +218,13 @@ public static partial class BraxClaudeOsiedle
                                                       ("Autobus linii B (na wschód)", "B zachód → wschód", new Color(.75f, .1f, .1f)),
                                                       ("Autobus linii B (na zachód)", "B wschód → zachód", new Color(.75f, .1f, .1f)) })
         {
-            var pts = Sciezka(trasa, out bool petla); if (pts == null) { opis.Add(nazwa + ": brak trasy „" + trasa + "”"); continue; }
+            var pts = Sciezka(trasa, out bool petla);
+            if (pts == null)
+            {
+                opis.Add(nazwa + ": brak trasy „" + trasa + "”");
+                rep.notes.Add("DO POPRAWKI: autobus " + nazwa + " — brak trasy " + trasa);
+                continue;
+            }
             float[] odc = new float[pts.Length]; for (int i = 1; i < pts.Length; i++) odc[i] = odc[i - 1] + Vector3.Distance(pts[i - 1], pts[i]);
             var src = BraxOsiedleAssety.Model("miasto_pojazdy", "autobus");
             BraxAutobus bus = null;
@@ -220,7 +236,12 @@ public static partial class BraxClaudeOsiedle
                     var ptsA = tA.ile > 1 ? ra.punkty.Skip(tA.start).Take(tA.ile).ToArray() : pts;
                     busSkala = .7f; var proby = new List<string>();
                     { AutobusZmiesci(ptsA, 12f * K, 2.55f * K, out int pp); proby.Add("1.0:" + pp); busSkala = 1f;   // właściciel 3.11 02:42: autobus ZAWSZE pełny 12 m × K — nie pomniejszamy; łuki do poszerzenia
-                      if (pp > 0) Debug.LogWarning("BRAXHORN_AUTOBUS DO POPRAWKI łuki na trasie A za ciasne dla 12 m × K (próbki poza jezdnią: " + pp + ") — poszerzyć łuki krawężników na trasie autobusu (zlecenie GPT)"); }
+                      if (pp > 0)
+                      {
+                          string blad = "DO POPRAWKI: autobus 12 m × K nie mieści się na łukach trasy A: próbki=" + pp;
+                          rep.notes.Add(blad);
+                          Debug.LogWarning("BRAXHORN_AUTOBUS " + blad);
+                      } }
                     busModel = "glb"; Debug.Log("BRAXHORN_AUTOBUS skala_dopasowana=" + busSkala.ToString("F1") + " × (12 m × K) = " + (12f * K * busSkala).ToString("F2") + " m (próby skala:próbki_poza_jezdnią " + string.Join(", ", proby) + ")");
                 }
                 bus = AutobusZModelu(nazwa, rodzic, src, 12f * K * busSkala);
@@ -260,6 +281,11 @@ public static partial class BraxClaudeOsiedle
                   (busModel == "glb" ? " (miasto_pojazdy/autobus.glb, 12 m × K × " + busSkala.ToString("F1") + ", skrzydła drzwi z modelu: " + (b0 ? b0.skrzydla.Length : 0) + (b0 && b0.skrzydla.Length == 0 ? " — drzwi: postój + dźwięk" : "") + ")" : " (awaryjny z kodu: midi 8 × 2.4 × 2.9 m × K — brak paczki/klucza)") +
                   " [" + string.Join("; ", opis) + "] — linii A↔B brak: droga przez parki (E17) niezbudowana");
         Debug.Log("BRAXHORN_AUTOBUS_TRASA próbki=" + probki + " poza_jezdnią=" + poza);
+        if (poza > 0)
+            rep.notes.Add("DO POPRAWKI: autobus — " + poza +
+                " punktów osi trasy przebiega poza jezdnią (z " + probki + " próbek)");
+        if (autobusy.Count == 0)
+            rep.notes.Add("DO POPRAWKI: autobus — nie utworzono żadnej działającej linii");
     }
 
     // po kroku ludzi: czekający przy każdym przystanku linii (2) i wysiadający (1, ukryty do przyjazdu)
