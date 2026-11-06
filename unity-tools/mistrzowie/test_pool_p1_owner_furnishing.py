@@ -71,6 +71,22 @@ class OwnerFurnishingTests(unittest.TestCase):
         self.assertNotIn('"shower_cabin.glb"',self.remaining)
         self.assertNotIn('Lifeguard chair support',self.pool)
 
+    def test_structural_source_mesh_colliders_without_fake_room_blockers(self):
+        # Real jacuzzi shells, padded rims, SPA benches and massage tables
+        # must stop the reviewing player. The original shower glass door
+        # stays accessible: use tray+frame meshes, not a blocking AABB.
+        self.assertIn('static int PhysicalSourceColliders(GameObject instance,string file)',self.spa)
+        self.assertIn('int structuralColliders=PhysicalSourceColliders(instance,file);',self.spa)
+        self.assertIn('own.StartsWith("spa outer")',self.spa)
+        self.assertIn('own.StartsWith("spa access step")',self.spa)
+        self.assertIn('own.Contains("padded deck")',self.spa)
+        self.assertIn('own.StartsWith("basin")',self.spa)
+        self.assertIn('own=="object_2"||own=="object_6"',self.spa)
+        self.assertNotIn('own=="object_3"',self.spa)
+        self.assertIn('filter.gameObject.AddComponent<MeshCollider>()',self.spa)
+        self.assertIn('StaticMeshCollision(lookout)',self.remaining)
+        self.assertIn('StaticMeshCollision(chaise)',self.remaining)
+
     def test_real_arrival_driving_access_and_pedestrian_separation(self):
         self.assertIn('"P1 WEST parking access connected to roundabout"',self.pool)
         self.assertIn('"P1 EAST parking access connected to roundabout"',self.pool)
