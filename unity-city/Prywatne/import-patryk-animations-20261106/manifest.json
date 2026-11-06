@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "source": "Patryk anima(6).zip",
+  "zip_sha256": "033e5cacea9003ba05d8a05be744d55c3376c32c44e9bab894b1e43cc198685a",
+  "zip_bytes": 6172641,
+  "archive_compression": "lzma",
+  "cipher": "openssl aes-256-cbc with salt, pbkdf2, sha256, 200000 iterations",
+  "package_key": "RSA-OAEP-SHA256, existing CI KLUCZ",
+  "chunks": [
+    {
+      "file": "part-000.enc",
+      "bytes": 1048576,
+      "sha256": "cb083f5bbbbfeb6ceb8983593272aa20e92d1819bea8ad94400def96223a312c"
+    },
+    {
+      "file": "part-001.enc",
+      "bytes": 1048576,
+      "sha256": "b6f05b742800ca8e6ac6d09c6f09d8159f1e27929a8730cadce34232fba8343a"
+    },
+    {
+      "file": "part-002.enc",
+      "bytes": 1048576,
+      "sha256": "9442fbd7446cf4bcd6d270e8454ebff365a99731f26bb6a095b890d247895e4c"
+    },
+    {
+      "file": "part-003.enc",
+      "bytes": 1048576,
+      "sha256": "7a33152baf7ca118860d7f244384c6ec6605098ea871df3a75428d3ab9f55fc6"
+    },
+    {
+      "file": "part-004.enc",
+      "bytes": 1048576,
+      "sha256": "c7ada7ce3421a4dd61a8aca890ab082082817b092fd0052de44785476add0e3b"
+    },
+    {
+      "file": "part-005.enc",
+      "bytes": 901920,
+      "sha256": "b54e0dd828e4829069dccf1be4bf1db27494531204eac82719216e6d0ee6e996"
+    }
+  ],
+  "files": {
+    "Entering Car.fbx": "6434eb2b74763c6ff6f7b1a62073dd9f6894ce2dd2ee58c9552325e1dc5d04bb",
+    "Goalkeeper Diving Save.fbx": "1fc12271df529b15b399d2e696d38fdc04c87f11ccac4335f0675d3a01f3d09d",
+    "Goalkeeper Catch.fbx": "b3a5649e0dad2ef55b28e9999fce6a48929147d9b9753b0449949695e11aabf4",
+    "Jump.fbx": "eb7a754cadfe2fe2cd2af9c0ab75488a3b29a39fbee01eb1b7d9ac9da9a10776",
+    "Strut Walking.fbx": "a87c79f903222e09fc6b56ef11d7154715cb5d58825432d816f1b6061422cb67",
+    "Fast Run.fbx": "2bb5d20016a64fd95ea2c0733960b6133ccd7468870449cde8bc9200303f190f",
+    "Female Sitting Pose.fbx": "9239183ef24c1d6e034a95bf133de0961e98e41db89c42175f84e112bf2a87df",
+    "Male Sitting Pose.fbx": "f638b939b39fbc3a48b3910b3ae326b8a2cbf60941edab3b8d09e23e285cefea",
+    "Angry Gesture.fbx": "351118baa3a8b04138d4d86cff2ae96b3e55c8fa6c4d7c2b5ccce8316e20c2a2",
+    "Sit To Stand.fbx": "1d337c91ba86ee75600bc386874e7c6f6e90ee9a477a7aab2b5278ebc9d3bfc0",
+    "Sitting Disbelief.fbx": "cbc5c2788f6be3360ed8c4b474789300236c8efce03ff30c271e142aaac083d4",
+    "Sitting.fbx": "ef509c47a3379cd0efff273a9938ad0c4bed6b92c4bb86ca03de8e804621fe51",
+    "Typing.fbx": "3ab1ca71da703d155a2ed5e746abd354cd06cb01b36e8cfbf4b1638b0d2e358d",
+    "Drinking.fbx": "520bd16016b4ecfaf90019ed3ef926216ee6fc961a2a87b587a137d9e93bfe53",
+    "Dribble.fbx": "7cb078e63db839e478184eb3b9a69e94c3fd70953892e652cb3fa029d2065f09",
+    "Goalkeeper Placing Ball (1).fbx": "55751ccec9abaaf70505a2d48280172913dfe2b0796f71f45e0c8442c656b882",
+    "Header Soccerball.fbx": "ebdee23493920f90a6b686db99b0ee258a6086f63b1dcac54c69b1811dd10962",
+    "Goalkeeper Drop Kick.fbx": "4797374117d125536c109579a94ed5683303aab094e39aa4c9f30a003aa4ebc2",
+    "Stall Soccerball.fbx": "150bc0f27a16745667096e7700c12eb3bdeba3d7308f9e56b2a98947daa86eca",
+    "Goalkeeper Placing Ball.fbx": "37f0b3c305aa02335092ef9f68f152689b0a55786656245810c96466675f8812",
+    "Treading Water.fbx": "6a76f88ec663b7275810d912e1111b10838cd64c8e1e8e912530a5f2011797c1",
+    "Swimming.fbx": "ea2ea27438b4df87591ae285038b067da2551fa10b82714664d5af11b69d1771"
+  },
+  "encrypted_from": "owner-upload-on-estate-repair-branch"
+}
