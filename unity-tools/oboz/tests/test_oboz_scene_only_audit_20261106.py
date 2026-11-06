@@ -23,7 +23,10 @@ class SceneOnlyAuditContract(unittest.TestCase):
     def test_no_false_apk_bytes(self):
         self.assertIn("BAJTY ŹRÓDŁOWE, NIE ROZMIAR APK",self.audit)
         self.assertIn("apkBuilt=false,phoneVerified=false",self.audit)
-        self.assertIn('\\\"bags\\\":48',self.env)
+        self.assertIn('"cabins',self.env)
+        self.assertIn('bags.Count',self.env)
+        self.assertIn('covered.Count',self.env)
+        self.assertIn('completeCamp',self.env)
 
     def test_mobile_foliage_cap(self):
         self.assertIn("androidFoliage.maxTextureSize = 2048",self.imp)

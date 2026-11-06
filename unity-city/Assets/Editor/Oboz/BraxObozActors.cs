@@ -63,7 +63,31 @@ public static class BraxObozActors
                 npcs[i]=npc;
             }
             info.npcs=npcs;
-            BraxObozTrainingSetup.Configure(info);
+            // Brak opcjonalnego stanowiska/worka nie może skasować sceny
+            // z działającym graczem. Raportujemy całe źródło błędu.
+            var oldNodes=new System.Collections.Generic.HashSet<int>(
+                info.GetComponentsInChildren<Transform>(true)
+                    .Select(t=>t.gameObject.GetInstanceID()));
+            try { BraxObozTrainingSetup.Configure(info); }
+            catch(Exception ex)
+            {
+                var created=info.GetComponentsInChildren<Transform>(true)
+                    .Where(t=>t!=info.transform && !oldNodes.Contains(t.gameObject.GetInstanceID()) &&
+                        t.parent && oldNodes.Contains(t.parent.gameObject.GetInstanceID()))
+                    .ToArray();
+                foreach(var node in created)if(node)UnityEngine.Object.DestroyImmediate(node.gameObject);
+                foreach(var npc in npcs)
+                {
+                    if(!npc)continue;
+                    var agent=npc.GetComponent<UnityEngine.AI.NavMeshAgent>();
+                    if(agent)UnityEngine.Object.DestroyImmediate(agent);
+                    npc.routine=null;npc.navigation=null;
+                }
+                var routine=info.GetComponent<BraxObozTrainingRoutine>();
+                if(routine)UnityEngine.Object.DestroyImmediate(routine);
+                BraxBuildQuality.Warn("OBOZ_ROUTINE_SKIPPED — "+
+                    "brak zastępczego sprzętu lub fikcyjnej trasy: "+ex);
+            }
             // Ślady tylko w mokrej ziemi: wspólny limit 40, czas życia 20s.
             info.gameObject.AddComponent<BraxObozFootprintTrail>().Configure(player,npcs);
             foreach (var station in info.GetComponentsInChildren<BraxObozTrainingStation>(true))

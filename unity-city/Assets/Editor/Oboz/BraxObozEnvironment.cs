@@ -162,7 +162,13 @@ public static partial class BraxObozEnvironment
             catch(Exception ex) { BraxBuildQuality.Warn(
                 "OBÓZ PBR DO KONTROLI: "+ex.ToString()); }
             if (!EditorSceneManager.SaveScene(scene, ScenePath)) throw new IOException("Nie zapisano zabudowy obozu");
-            File.WriteAllText(Folder + "/status.json", "{\"completeCamp\":false,\"runtimeVerified\":false,\"cabins\":4,\"bags\":48,\"coveredBags\":24,\"rings\":2,\"octagons\":1}");
+            // Stan jest INWENTARZEM wyniku sceny, nie wpisaną na sztywno obietnicą.
+            File.WriteAllText(Folder+"/status.json",
+                "{\\\"completeCamp\\\":false,\\\"runtimeVerified\\\":false,"+
+                "\\\"cabins\\\":"+doors.Count+",\\\"bags\\\":"+bags.Count+
+                ",\\\"coveredBags\\\":"+covered.Count+
+                ",\\\"rings\\\":"+arenas.Count(r=>r && r.label.StartsWith("Ring",StringComparison.Ordinal))+
+                ",\\\"octagons\\\":"+arenas.Count(r=>r && r.label=="OKTAGON")+"}");
             Debug.Log("BRAXHORN_OBOZ zapisano roboczą zabudowę i rozmieszczenie lasu; fort, wnętrza i pełny odbiór nadal nieukończone");
         }
         finally { EditorSceneManager.CloseScene(scene, true); if (previous.IsValid()) SceneManager.SetActiveScene(previous); }
