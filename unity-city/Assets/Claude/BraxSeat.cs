@@ -30,7 +30,17 @@ public sealed class BraxSeat : MonoBehaviour
             if (Mathf.Abs(d.y) > 1.4f) continue;
             d.y = 0f;
             var dist = d.magnitude;
-            if (dist < bd) { bd = dist; best = s; }
+            if (dist >= bd) continue;
+            // R1/NOVA: siedzenie nie może zostać użyte przez zamknięte drzwi,
+            // witrynę lub ścianę. Odległość 1.6 m w planie nie oznacza
+            // fizycznej dostępności sofy.
+            var start = p + Vector3.up * 1.05f;
+            var end = new Vector3(s.transform.position.x, start.y, s.transform.position.z);
+            if (Physics.Linecast(start, end, out var hit,
+                    ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore) &&
+                (!s.transform.parent || !hit.collider.transform.IsChildOf(s.transform.parent)))
+                continue;
+            bd = dist; best = s;
         }
         return best;
     }
