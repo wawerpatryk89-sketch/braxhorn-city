@@ -497,6 +497,20 @@ public static class BraxRegionBraxFlat
     // Okna 1. piętra na elewacji od ulicy: trójkąty siatek „glass” pod „NOVA preserved interior upper storeys”, skupione w prostokąty.
     static List<Rect> FacadeWindows(Transform cityRoot, float x0, float x1, float y0, float y1)
     {
+        // Najpierw dokładne otwory z tej samej siatki i tego samego generatora,
+        // który wycina elewację NOVA. Dzięki temu szkło ma tę samą geometrię,
+        // nawet gdy Unity połączy trójkąty w batche lub zmieni nazwy materiałów.
+        var projekt = BraxUlicePierzeje.OknaMieszkaniaNOVA
+            .Where(w => w.xMin >= x0 && w.xMax <= x1 &&
+                        w.yMin >= y0 && w.yMax <= y1 &&
+                        w.width > .4f && w.height > .6f)
+            .OrderBy(w => w.xMin).ToList();
+        if (projekt.Count > 0)
+        {
+            Debug.Log("BRAXHORN_MIESZKANIE_BRAXA_OKNA_Z_ELEWACJI liczba=" + projekt.Count +
+                " (dokładne otwory z generatora, bez fikcyjnych okien)");
+            return projekt;
+        }
         var rects = new List<Rect>();
         foreach (var mf in cityRoot.GetComponentsInChildren<MeshFilter>(true))
         {
@@ -542,44 +556,10 @@ public static class BraxRegionBraxFlat
             w.yMin < Ceil - .6f && w.yMax > Fl + .8f).ToList();
         if (wynik.Count > 0) return wynik;
 
-        // R1: po CityArchitecture.Batch() szyby oryginalnego modułu są
-        // złączone materiałami i powyższa selekcja "glass" zwracała 0.
-        // NIE wymyślamy nowej elewacji. Czytamy oryginalne otwory okienne
-        // Z ISTNIEJĄCEGO "NOVA preserved interior upper storeys / Upper rear".
-        // BraxCityArchitecture.PlanarWall() potwierdza źródłową aperturę
-        // x=0.55..2.45, y=0.46..2.15 w module 3x3 m (bez zmiany UV).
-        var elewacja = cityRoot.GetComponentsInChildren<Transform>(true)
-            .FirstOrDefault(t => t && t.name == "NOVA preserved interior upper storeys");
-        var frontUlicy = elewacja ? elewacja.Find("Upper rear") : null;
-        if (!frontUlicy || !frontUlicy.GetComponentsInChildren<MeshRenderer>(true)
-                .Any(r => r && r.enabled))
-        {
-            Debug.LogWarning("BRAXHORN_MIESZKANIE_BRAXA_OKNA_NIEGOTOWE: brak oryginalnej fasady Upper rear; nie dodajemy fikcyjnych okien");
-            return wynik;
-        }
-
-        // Ta sama siatka i to samo skalowanie zatwierdzonego modułu, którego
-        // rzeczywiście używa BraxCityArchitecture.UpperExtension(NOVA, 32..52).
-        const float szerokoscNOVA = 20f;
-        int liczbaModulow = Mathf.Max(1, Mathf.RoundToInt(szerokoscNOVA / 3f));
-        float modul = szerokoscNOVA / liczbaModulow, kModulu = modul / 3f;
-        for (int i = 0; i < liczbaModulow; i++)
-        {
-            Vector3 a = frontUlicy.TransformPoint(new Vector3(
-                (i * modul) + .55f * kModulu, .15f + .46f, 0f));
-            Vector3 b = frontUlicy.TransformPoint(new Vector3(
-                (i * modul) + 2.45f * kModulu, .15f + 2.15f, 0f));
-            var otwor = Rect.MinMaxRect(
-                Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y),
-                Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
-            // Nie wycinamy poza mieszkaniem ani w miejscu bez okna na fasadzie.
-            if (otwor.xMin < x0 || otwor.xMax > x1 ||
-                otwor.yMin < y0 || otwor.yMax > y1 ||
-                otwor.yMin >= Ceil - .6f || otwor.yMax <= Fl + .8f) continue;
-            wynik.Add(otwor);
-        }
-        Debug.Log("BRAXHORN_MIESZKANIE_BRAXA_OKNA_Z_KITU liczba=" + wynik.Count +
-            " z oryginalnych otworów elewacji NOVA (bez nowego modelu)");
+        // Nie próbuj odtwarzać nieistniejącej "Upper rear" — generator pierzei
+        // usuwa tę starą fasadę przed budową mieszkania. Nie wolno wycinać
+        // ściany na podstawie fikcyjnych współrzędnych.
+        Debug.LogWarning("BRAXHORN_MIESZKANIE_BRAXA_OKNA_NIEGOTOWE: brak zarejestrowanych otworów w nowej elewacji NOVA; sprawdź generator pierzei");
         return wynik;
     }
 
