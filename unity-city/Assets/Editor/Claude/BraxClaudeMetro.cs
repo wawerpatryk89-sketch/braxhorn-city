@@ -1268,10 +1268,10 @@ public static class BraxClaudeMetro
                     float x = kier < 0 ? xb - i * 8f : xa + i * 8f;
                     W.MM(mKlosz, x - .15f, x + .15f, yR + 3.2f, yR + 3.35f, zl - .06f, zl + .06f);
                 }
-                // semafor przy wjeździe w tunel (czerwone i zielone światło) — tylko przy torze z pociągiem zielone
+                // Etap przygotowania infrastruktury R1: oba tory wyłączone z ruchu, sygnały stale czerwone.
                 float xs = kier < 0 ? xb - 2f : xa + 2f;
                 W.MM(mStalCiemna, xs - .15f, xs + .15f, yR + 1.8f, yR + 2.6f, zl - .12f, zl + .12f);
-                W.Kula(zt == zTn ? M.Ekran("metro semafor zielony", null, new Color(.15f, 1f, .45f)) : M.Ekran("metro semafor czerwony", null, new Color(1f, .12f, .08f)),
+                W.Kula(M.Ekran("metro semafor czerwony (brak kursów)", null, new Color(1f, .12f, .08f)),
                        new Vector3(xs, yR + 2.4f, zl + (zt < 28.5f ? -.13f : .13f)), .07f, 10, 6);
                 // koniec: czerń (tunel znika w ciemności)
                 float xe = kier < 0 ? xa : xb;
