@@ -123,7 +123,9 @@ public static partial class BraxClaudeOsiedle
             .Select(k=>(k.t,"sprawdzony zapas nad głową")).FirstOrDefault();
         if(wybor.t==null)wybor=ok.Where(k=>k.w.zapas>=-.06f).OrderByDescending(k=>k.w.zapas)
             .Select(k=>(k.t,"mała korekta wysokości fotela (do 6 cm)")).FirstOrDefault();
-        if(wybor.t==null){Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: brak sportowego modelu z bezpieczną kabiną — kandydaci: "+string.Join("; ",kandydaci.Select(k=>k.opis)));return;}
+        if (wybor.t == null)
+            throw new InvalidOperationException("BRAXHORN_AUTO_PATRYKA: nie znaleziono modelu, w którym Patryk mieści się za kierownicą. " +
+                string.Join("; ", kandydaci.Select(k => k.opis)));
         var template=wybor.t; var wybrany=kandydaci.First(k=>k.t==template);
         // Lower the seated character by the measured shortfall + 1.5 cm.
         // Do not change player scale, car dimensions or mesh proportions.
@@ -198,6 +200,8 @@ public static partial class BraxClaudeOsiedle
             rep.notes.Add("Auto Patryka przy ARENA BRAXHORN: "+template.id+", "+color+", "+spot.srodek+" ("+odl.ToString("F1")+" m od wejścia); wsiadanie AKCJA (drzwi: "+drzwiOpis+"), gaz/ster joystick, wyjście po zatrzymaniu. Bez dostępu NPC.");
             Physics.SyncTransforms();return;
         }
-        Debug.LogError("BRAXHORN_AUTO_PATRYKA DO POPRAWKI: brak wolnej zatoki do 40 m od ARENA BRAXHORN; sprawdzone="+sprawdzone+" za_małe="+zaMale+" kolizje="+zastawione+" dojścia_zablokowane="+wejscieZablokowane);
+        throw new InvalidOperationException("BRAXHORN_AUTO_PATRYKA: brak wolnego stanowiska pod areną. " +
+            "sprawdzone=" + sprawdzone + " za_małe=" + zaMale + " kolizje=" + zastawione +
+            " dojścia_zablokowane=" + wejscieZablokowane);
     }
 }
