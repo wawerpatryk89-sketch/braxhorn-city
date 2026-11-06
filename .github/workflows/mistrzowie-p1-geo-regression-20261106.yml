@@ -1,0 +1,64 @@
+name: Champions P1 + five metro + promenade geometry preflight (NO UNITY/APK)
+run-name: Champions integrated geometry and regression source check
+
+on:
+  push:
+    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
+    paths:
+      - .github/workflows/mistrzowie-p1-geo-regression-20261106.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: champions-p1-geo-static-20261106
+  cancel-in-progress: true
+
+jobs:
+  static-geometry:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Sparse checkout verified P1 source and shared city geometry
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/workflows/mistrzowie-apk.yml
+            unity-tools/mistrzowie
+            unity-city/Assets/Source/Mistrzowie/PoolP1
+            unity-city/Assets/Editor/Mistrzowie
+            unity-city/Assets/BraxGymPlayer.cs
+            unity-city/Assets/Claude/Runtime/BraxSwimmingZone.cs
+            unity-city/Assets/Mistrzowie
+      - name: Install mathematical geometry test dependencies only
+        run: python3 -m pip install -q numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
+      - name: Full P1 design-geometry regression without any Unity
+        run: python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_pool_p1_*.py' -v
+      - name: Generate and validate physical terrain holes, original 5 metros and P1 foundation
+        run: |
+          set -euo pipefail
+          python3 unity-tools/mistrzowie/legacy_foundation.py
+          python3 unity-tools/mistrzowie/build_infrastructure.py
+          python3 unity-tools/mistrzowie/validate_contract.py
+          test -s unity-city/Assets/Source/Mistrzowie/Foundation.json
+          test -s unity-city/Assets/Source/Mistrzowie/Infrastructure.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          foundation=json.loads(Path("unity-city/Assets/Source/Mistrzowie/Foundation.json").read_text())
+          metro=json.loads(Path("unity-city/Assets/Source/Mistrzowie/Infrastructure.json").read_text())
+          assert len(foundation["metroStations"])==5
+          assert "metroRoute" in metro
+          from sys import path
+          path.insert(0,"unity-tools/mistrzowie")
+          from layout import METRO,ENTRANCE_HOLES
+          assert len(METRO)==len(ENTRANCE_HOLES)==5
+          print("P1_T11_GROUND_AND_FIVE_METRO_GENERATION_PASS no Unity/APK")
+          PY
+      - name: Static-only QA summary
+        if: always()
+        run: echo 'Generated and verified Python city terrain only. This does NOT prove real Unity scene compilation, 3D visual match or Android APK.' >> "$GITHUB_STEP_SUMMARY"
