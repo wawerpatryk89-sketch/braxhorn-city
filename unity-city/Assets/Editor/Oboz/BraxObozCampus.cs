@@ -488,14 +488,16 @@ public static partial class BraxObozEnvironment
         model.transform.localRotation=Quaternion.Euler(0,180,0)*model.transform.localRotation;
         b=renderers[0].bounds;
         foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
-        // Jednorodne skalowanie — nie wolno rozciągać siedzeń/UV/modelu.
-        float scale=Mathf.Min(3.4f*K/b.size.x,
-            Mathf.Min(3.2f*K/b.size.y,8.6f*K/b.size.z));
-        model.transform.localScale*=scale;
-        b=renderers[0].bounds;
-        foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
-        model.transform.position+=new Vector3(parent.position.x-b.center.x,
-            parent.position.y-b.min.y,parent.position.z-b.center.z);
+        // Wiata: oryginalne realne metry z FBX * K, bez wpychania w pudełko.
+        // Nie znamy zatwierdzonego wymiaru konkretnej wiaty.
+        BraxObozPlacement.NativeMetres(model.transform,renderers,
+            "wiata FBX właściciela");
+        BraxObozPlacement.OnGround(model.transform,renderers,
+            parent.position,"wiata FBX właściciela");
+        b=BraxObozPlacement.Bounds(renderers);
+        if(b.size.x>8.6f*K || b.size.z>8.6f*K)
+            Debug.LogWarning("BRAXHORN_OBOZ_SHELTER_FOOTPRINT_REVIEW: "+
+                b.size+" — wiata może nachodzić na zatokę lub przejście");
         Debug.Log("BRAXHORN_OBOZ_WIATA_3D: zrodlo=FBX 2K + oryginalny PNG 2048, wymiary="+b.size+
             ", correctedYaw=180 względem APK22; wejście i ławki wymagają oględzin w Unity");
     }
@@ -539,12 +541,16 @@ public static partial class BraxObozEnvironment
         foreach (var renderer in renderers.Skip(1)) b.Encapsulate(renderer.bounds);
         float longest = Mathf.Max(b.size.x,b.size.z);
         if (longest < .0001f) throw new InvalidOperationException("Model byka ma zerowy rozmiar");
-        // Dopasowanie tylko przez Transform: UV/tekstury/szczegóły zostają bez zmian.
-        model.transform.localScale *= (4.8f*K)/longest;
-        b = renderers[0].bounds;
-        foreach (var renderer in renderers.Skip(1)) b.Encapsulate(renderer.bounds);
-        model.transform.position += new Vector3(monument.position.x-b.center.x,
-            monument.position.y+.93f*K-b.min.y,monument.position.z-b.center.z);
+        // BYK 4X: zachowaj oryginalną skalę modelu, bez zmniejszenia
+        // do wymyślonej koperty 4,8 m. Podstawa na górze cokołu.
+        BraxObozPlacement.NativeMetres(model.transform,renderers,
+            "oryginalny byk 4X");
+        BraxObozPlacement.OnGround(model.transform,renderers,
+            monument.TransformPoint(P(0,.93f,0)),"oryginalny byk 4X");
+        b=BraxObozPlacement.Bounds(renderers);
+        if(b.size.x>5.6f*K || b.size.z>5.6f*K)
+            Debug.LogWarning("BRAXHORN_OBOZ_BULL_CLEARANCE_REVIEW: "+
+                b.size+" — sprawdzić przejazd dookoła ronda");
         Debug.Log("BRAXHORN_OBOZ_BULL_IMPORT: obrys=" + b.size +
             " asset=" + sourcePath + " PBR=oryginalny UV=oryginalne");
     }
