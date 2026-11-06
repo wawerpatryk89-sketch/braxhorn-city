@@ -26,6 +26,7 @@ EXPECTED={
         "Case | horizontal panel","Basin | glazed ceramic bowl"),
     "pool-ladder.glb":("pool-ladder_body",),
     "lockers.glb":("Object_2",),
+    "locker_room_bench_free_model.glb":("Cube__0",),
 }
 
 def sha256(path):
@@ -73,7 +74,40 @@ def verify(path):
             if filename=="shower_cabin.glb":
                 if set(names)!={"Object_2","Object_3","Object_4","Object_5","Object_6"}:
                     raise ValueError("Owner shower glass/tray/metal geometry changed")
-            print("P1_OWNER_GEOMETRY_PASS",filename,"meshNodes",len(meshes),flush=True)
+            parents={index:n.get("name","").lower() for n in nodes
+                     for index in n.get("children",[])}
+            def is_solid(index,node):
+                name=node.get("name","").lower()
+                if filename=="hot-tub-original-exterior-model.glb":
+                    return name.startswith(("continuous spa basin liner","spa enclosed base",
+                        "spa outer","spa access step","spa interior seat","spa padded rim"))
+                if filename=="sauna_product_model.glb":
+                    return parents.get(index,"") in {"base","stand","metal"}
+                if filename=="portable-massage-table.glb":
+                    return any(token in name for token in (
+                        "table leg","padded deck","deck rail","face cradle"))
+                if filename=="double-bathroom-vanity.glb":
+                    return name.startswith(("case","basin","vanity | limestone counter"))
+                if filename=="shower_cabin.glb":
+                    return name in {"object_2","object_6"} # bottom and structural frame, NOT glass door
+                return True
+            count=sum(is_solid(index,node)
+                      for index,node in enumerate(nodes) if "mesh" in node)
+            minimum={
+                "hot-tub-original-exterior-model.glb":14,
+                "sauna_product_model.glb":3,
+                "portable-massage-table.glb":9,
+                "double-bathroom-vanity.glb":12,
+                "shower_cabin.glb":2,
+                "lockers.glb":6,
+                "locker_room_bench_free_model.glb":1,
+                "pool-ladder.glb":1,
+            }[filename]
+            if count<minimum:
+                raise ValueError("P1 physical collision parts vanished from source: "+
+                    filename+" got="+str(count)+" need="+str(minimum))
+            print("P1_OWNER_GEOMETRY_AND_COLLIDERS_PASS",filename,
+                  "meshNodes",len(meshes),"solidParts",count,flush=True)
     print("P1_OWNER_GEOMETRY_ALL_PASS",len(EXPECTED),
         "models | no rotations/scales/visual assets changed",flush=True)
 
