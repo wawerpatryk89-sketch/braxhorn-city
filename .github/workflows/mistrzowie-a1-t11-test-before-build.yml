@@ -1,5 +1,6 @@
 name: "Miasto Mistrzów A1+T11 — testy przed APK (BEZ UNITY)"
 # Audit 06.11: verify source/Android texture dimensions and lossless 2K Poly Haven vegetation GLB.
+# Audit repeated after LIVE 21-map/2-model Poly Haven source validation passed (without Unity).
 # Pre-Unity source readiness: source files, real 3D geometry, all owner signs and Mixamo clips.
 # Never builds Android, never dispatches the actual game build, never changes
 # quality gates, never deploys, uploads assets or moves a branch.
