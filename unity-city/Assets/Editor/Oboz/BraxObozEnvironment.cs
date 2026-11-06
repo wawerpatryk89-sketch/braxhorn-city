@@ -120,7 +120,7 @@ public static partial class BraxObozEnvironment
             info.bags = bags.ToArray(); info.coveredBags = covered.ToArray(); info.cabinDoors = doors.Take(4).ToArray(); info.arenas = arenas.ToArray();
             BraxObozMaterials.ValidateHierarchy(root);
             if (!EditorSceneManager.SaveScene(scene, ScenePath)) throw new IOException("Nie zapisano zabudowy obozu");
-            File.WriteAllText(Folder + "/status.json", "{\"completeCamp\":false,\"runtimeVerified\":false,\"cabins\":4,\"bags\":24,\"coveredBags\":12,\"rings\":2,\"octagons\":1}");
+            File.WriteAllText(Folder + "/status.json", "{\"completeCamp\":false,\"runtimeVerified\":false,\"cabins\":4,\"bags\":48,\"coveredBags\":24,\"rings\":2,\"octagons\":1}");
             Debug.Log("BRAXHORN_OBOZ zapisano roboczą zabudowę i rozmieszczenie lasu; fort, wnętrza i pełny odbiór nadal nieukończone");
         }
         finally { EditorSceneManager.CloseScene(scene, true); if (previous.IsValid()) SceneManager.SetActiveScene(previous); }

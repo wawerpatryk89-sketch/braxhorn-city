@@ -1004,7 +1004,7 @@ public static partial class BraxObozEnvironment
         // only on the final clipped pavement mesh, never over running tracks.
         CombineDecoration(t);
         foreach(var mf in t.GetComponentsInChildren<MeshFilter>())
-            if(mf.GetComponent<MeshRenderer>().sharedMaterial==campusPaving)
+            if(mf.GetComponent<MeshRenderer>().sharedMaterial==walkwayStone)
                 mf.gameObject.AddComponent<MeshCollider>().sharedMesh=mf.sharedMesh;
         Debug.Log("BRAXHORN_OBOZ_CHODNIKI_TRACK_CLIP created="+created+
             " rejectedBoundaryTiles="+omitted+" crossingTrack=false pendingUnityVisual=true");

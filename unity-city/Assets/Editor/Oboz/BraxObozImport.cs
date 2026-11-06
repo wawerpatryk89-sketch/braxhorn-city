@@ -35,6 +35,7 @@ public sealed class BraxObozImport : AssetPostprocessor
                 BraxObozPbrPack.ConfigureImporter(packed);
             return;
         }
+        // Nie przerywaj importu tekstury przez wyjątek: ostrzeżenie i dalej.
         // Copies generated from foliage alpha-mask sources must not fall back
         // to uncompressed Android RGBA. Keep original source and alpha cutoff,
         // but import distant branches at 2K / ASTC 6x6. Four-view billboard
@@ -48,7 +49,11 @@ public sealed class BraxObozImport : AssetPostprocessor
             if (isLeaf || isBillboard)
             {
                 var tex = assetImporter as TextureImporter;
-                if (tex == null) throw new InvalidOperationException("Brak importera maski listow obozu");
+                if (tex == null)
+                {
+                    UnityEngine.Debug.LogWarning("BRAXHORN_OBOZ_IMPORT: brak importera maski liści: "+assetPath);
+                    return;
+                }
                 tex.textureShape = TextureImporterShape.Texture2D;
                 tex.textureType = TextureImporterType.Default;
                 tex.sRGBTexture = true;
@@ -65,7 +70,7 @@ public sealed class BraxObozImport : AssetPostprocessor
                 var androidFoliage = tex.GetPlatformTextureSettings("Android");
                 androidFoliage.name = "Android";
                 androidFoliage.overridden = true;
-                androidFoliage.maxTextureSize = isBillboard ? 4096 : 2048;
+                androidFoliage.maxTextureSize = 2048; // odległe drzewa na Androidzie, nie 4K
                 androidFoliage.format = TextureImporterFormat.ASTC_6x6;
                 androidFoliage.compressionQuality = 90;
                 tex.SetPlatformTextureSettings(androidFoliage);
@@ -220,8 +225,7 @@ public sealed class BraxObozImport : AssetPostprocessor
         int editorMax = billboard ? 8192 : otherCharacter ? 2048 : 4096;
         // Tiled materials retain a sharp 2K near the camera; ordinary mipmaps
         // and selective streaming provide lower-detail versions at distance.
-        int androidMax = billboard ? 4096 :
-            tiled || otherCharacter || premiumSurface || vegetationMap ? 2048 : 4096;
+        int androidMax = hero ? 4096 : 2048; // mapa roślinności/świata 2K; 4K bohater
         var androidFormat = billboard || vegetationMap || tiled && !normal
             ? TextureImporterFormat.ASTC_6x6 : TextureImporterFormat.ASTC_4x4;
         t.textureShape = TextureImporterShape.Texture2D;
