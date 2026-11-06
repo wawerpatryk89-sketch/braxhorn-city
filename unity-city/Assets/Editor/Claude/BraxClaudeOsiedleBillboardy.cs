@@ -186,9 +186,25 @@ public static partial class BraxClaudeOsiedle
             { var p = st.c + st.ruch * dz; p.y = BillGrunt(p.x, p.z); if (!BillWolne(p, .9f, .35f, 2.6f, 0f)) continue; BillCitylight(Group(group), p, 0f, "08", "przystanek OSIEDLE A 1"); return; }
             billOpis.Add("08: brak miejsca przy wiacie OSIEDLE A 1");
         });
+        // Six exact owner's graphics, at six exact specified destinations.
+        // Five-of-six is NOT a pass; neither is a mounted empty frame.
+        var wymagane = new[] { "02", "04", "05", "13", "14", "08" };
+        bool Postawiony(string nr) => billOpis.Any(s =>
+            s.StartsWith(nr + " citylight ", StringComparison.Ordinal) ||
+            s.StartsWith(nr + " rama ", StringComparison.Ordinal) ||
+            s.StartsWith(nr + " tablica ", StringComparison.Ordinal));
+        var brakujace = wymagane.Where(n => !Postawiony(n)).ToArray();
         string l = "BRAXHORN_BILLBOARDY postawione=" + billPost + " brak_grafiki=" + billBrak + " (osiedle: 02, 04, 05, 13, 14, 08; mało, tylko na nośnikach) [" + string.Join("; ", billOpis) + "]";
-        if (billPost >= 5) Debug.Log(l); else Debug.LogWarning(l);
         rep.notes.Add(l.Replace("BRAXHORN_BILLBOARDY ", "billboardy: "));
+        if (brakujace.Length > 0 || billBrak > 0 || billPost != wymagane.Length)
+        {
+            string problem = "DO POPRAWKI: nośniki osiedla: " + billPost + "/" + wymagane.Length +
+                ", brak wymaganych miejsc: " + (brakujace.Length == 0 ? "0" : string.Join(", ", brakujace)) +
+                ", puste ramy bez grafiki: " + billBrak;
+            rep.notes.Add(problem);
+            Debug.LogWarning("BRAXHORN_BILLBOARDY " + problem + " " + l);
+        }
+        else Debug.Log(l);
         group = g0;
     }
 }
