@@ -1,0 +1,32 @@
+name: STOP LONG UNITY - owner cancellation 2026-11-06
+run-name: Cancel expensive Unity scene run 42211006438
+
+on:
+  push:
+    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
+    paths:
+      - .github/workflows/stop-long-unity-20261106.yml
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  stop-unity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Cancel owner-disallowed long Unity test
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: '42211006438'
+        run: |
+          set -euo pipefail
+          gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/cancel" || {
+            state="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq .status)"
+            if [ "$state" != "completed" ]; then
+              echo "::error::Cancellation was not accepted and target remains $state"
+              exit 1
+            fi
+          }
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq '{status:.status,conclusion:.conclusion,html_url:.html_url}'
