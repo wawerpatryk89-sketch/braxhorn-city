@@ -52,7 +52,13 @@ public static partial class BraxClaudeOsiedle
     {
         lakiery.Clear(); szablonSwiatla.Clear(); quadSwiatla = null; matStop = matMigacz = matDym = null; autoSiatki = 0;
         raportSkaliAut.Clear();
-        var modele = AutaModele(); if (modele.Count == 0) return;
+        var modele = AutaModele();
+        if (modele.Count == 0)
+        {
+            string brak = "BŁĄD w kroku auta: brak wszystkich importowanych GLB; bez aut i samochodu Patryka";
+            rep.notes.Add(brak); Debug.LogError("BRAXHORN_AUTA " + brak);
+            return;
+        }
         var tmp = new GameObject("auta — szablony (tymczasowe)").transform;
         var szablony = new List<AutoSzablon>();
         foreach (var src in modele)
