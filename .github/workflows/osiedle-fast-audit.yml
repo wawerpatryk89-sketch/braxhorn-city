@@ -13,6 +13,9 @@ on:
       - unity-city/Assets/Editor/Claude/**
       - unity-city/Assets/Editor/BraxCityBuild.cs
       - unity-city/Assets/Claude/Runtime/BraxAutoGracza.cs
+      - unity-city/Assets/Claude/Runtime/BraxRuchAut.cs
+      - unity-city/Assets/Claude/Runtime/BraxRuchAutSym.cs
+      - unity-city/Assets/Claude/Runtime/BraxPieszy.cs
       - unity-city/Assets/Claude/Runtime/BraxRuchySport.cs
       - unity-city/Assets/Claude/Runtime/BraxSportBoisko.cs
       - unity-city/Assets/BraxGymPlayer.cs
@@ -44,6 +47,9 @@ jobs:
             unity-city/Assets/Editor/Claude
             unity-city/Assets/Editor/BraxCityBuild.cs
             unity-city/Assets/Claude/Runtime/BraxAutoGracza.cs
+            unity-city/Assets/Claude/Runtime/BraxRuchAut.cs
+            unity-city/Assets/Claude/Runtime/BraxRuchAutSym.cs
+            unity-city/Assets/Claude/Runtime/BraxPieszy.cs
             unity-city/Assets/Claude/Runtime/BraxRuchySport.cs
             unity-city/Assets/Claude/Runtime/BraxSportBoisko.cs
             unity-city/Assets/BraxGymPlayer.cs
@@ -72,6 +78,9 @@ jobs:
           paths = [
               Path("unity-city/Assets/Editor/BraxCityBuild.cs"),
               Path("unity-city/Assets/Claude/Runtime/BraxAutoGracza.cs"),
+              Path("unity-city/Assets/Claude/Runtime/BraxRuchAut.cs"),
+              Path("unity-city/Assets/Claude/Runtime/BraxRuchAutSym.cs"),
+              Path("unity-city/Assets/Claude/Runtime/BraxPieszy.cs"),
               Path("unity-city/Assets/Claude/Runtime/BraxRuchySport.cs"),
               Path("unity-city/Assets/Claude/Runtime/BraxSportBoisko.cs"),
               Path("unity-city/Assets/BraxGymPlayer.cs"),
