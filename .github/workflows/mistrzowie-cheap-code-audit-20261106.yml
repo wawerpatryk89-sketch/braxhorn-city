@@ -11,6 +11,9 @@ on:
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoPbr2K.cs
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1Pbr2K.cs
       - unity-tools/mistrzowie/test_build18_recovery_and_delivery.py
+      - unity-tools/mistrzowie/test_pool_p1_towels_uv.py
+      - unity-tools/mistrzowie/repair_pool_p1_towels.py
+      - unity-tools/mistrzowie/import_pool_p1_owner_assets.py
   workflow_dispatch:
 
 permissions:
@@ -29,6 +32,9 @@ jobs:
           sparse-checkout: |
             unity-tools/validation
             unity-tools/mistrzowie/test_build18_recovery_and_delivery.py
+            unity-tools/mistrzowie/test_pool_p1_towels_uv.py
+            unity-tools/mistrzowie/repair_pool_p1_towels.py
+            unity-tools/mistrzowie/import_pool_p1_owner_assets.py
             unity-tools/mistrzowie/prepare_casino_textures_2k.py
             unity-city/Assets/Editor
             unity-city/Assets/Mistrzowie
@@ -54,6 +60,8 @@ jobs:
           python3 -m pip install -q -r unity-tools/validation/requirements.txt
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
       - name: Build 18 regression tests (source only, never Unity)
-        run: python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_build18_recovery_and_delivery.py' -v
+        run: |
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_build18_recovery_and_delivery.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_pool_p1_towels_uv.py' -v
       - name: Source-only report
         run: echo 'Szybka kontrola plików C# i .meta; nie wykonywano Unity, buildu APK ani testu telefonu.' >> "$GITHUB_STEP_SUMMARY"
