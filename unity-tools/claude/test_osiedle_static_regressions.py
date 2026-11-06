@@ -247,6 +247,20 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("if (m < 3.5f && a.PredkoscAktualna < .2f) continue;", people)
         self.assertNotIn("if (m < 3.5f || m > 16f) continue;", people)
 
+    def test_pedestrians_check_each_move_even_in_distant_lod(self):
+        pedestrian = (ROOT / "unity-city/Assets/Claude/Runtime/BraxPieszy.cs").read_text()
+        self.assertIn("if (Przeszkoda(dir, krok + .08f) || Zajete(p))", pedestrian)
+        self.assertIn("if (Przeszkoda(ds, kr + .08f) || Zajete(next))", pedestrian)
+        self.assertIn("Physics.RaycastNonAlloc(p + Vector3.up * 1.4f", pedestrian)
+        self.assertIn("hit.transform.IsChildOf(transform)", pedestrian)
+
+    def test_parked_car_residents_cannot_enter_without_reaching_door(self):
+        traveler = (ROOT / "unity-city/Assets/Claude/Runtime/BraxPodroznyAuta.cs").read_text()
+        self.assertIn("if (bezPostepu >= 4f)", traveler)
+        self.assertIn("if (!doszedl)", traveler)
+        self.assertIn("yield break;", traveler)
+        self.assertLess(traveler.index("if (!doszedl)"), traveler.index("kapsula.enabled=false;"))
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
