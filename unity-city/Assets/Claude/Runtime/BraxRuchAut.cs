@@ -52,6 +52,9 @@ public sealed class BraxRuchAut : MonoBehaviour
         // Do not initialize traffic until real obstacles have been registered.
         // OnEnable runs before Start for scene objects, including the player car and buses.
         OdswiezPrzeszkody();
+        // Generated parked cars and the player's car may have moved in edit mode
+        // without a physics step. Spawn checks must use their actual positions.
+        Physics.SyncTransforms();
         sym.UstawStart();
         for (int i = 0; i < auta.Length; i++) if (auta[i]) auta[i].Ustaw(sym.auta[i], 0f, 999f, true);
     }
@@ -94,6 +97,9 @@ public sealed class BraxRuchAut : MonoBehaviour
         sym.graczJest = gracz && graczKomponent && !graczKomponent.autoGracza && !graczKomponent.seat;
         if (gracz) sym.gracz = gracz.position;
         OdswiezPrzeszkody();
+        // NPC transforms are updated directly by their scripts; with Unity's
+        // autoSyncTransforms disabled, Physics queries otherwise see stale positions.
+        Physics.SyncTransforms();
         float dt = Mathf.Min(Time.deltaTime, .1f);
         sym.Krok(dt);
         Vector3 kp = kam ? kam.transform.position : new Vector3(1e6f, 0f, 1e6f);
