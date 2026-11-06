@@ -181,6 +181,16 @@ public static class BraxObozServices
         g.GetComponent<Renderer>().sharedMaterial=material;
         return g;
     }
+    // The cabins and open-air training stations have unscaled parent roots:
+    // their primitive geometry is authored in source metres and multiplied
+    // by K inside Box(). OwnerFixture() by contrast expects Unity LOCAL units.
+    // Convert just the placement to K here; do NOT rescale original GLB mesh.
+    public static GameObject OwnerFixtureSourceMetres(Transform parent,string filename,
+        Vector3 bottomCenterMetres,Vector3 maxSourceMetres)
+    {
+        return OwnerFixture(parent,filename,bottomCenterMetres*K,maxSourceMetres);
+    }
+
     // Prywatne 3D wyposażenie sanitariatów — bez zastępowania siatek, UV i PBR.
     // Jednorodna skala: wyłącznie dopasowanie do stanowiska w murowanym WC.
     public static GameObject OwnerFixture(Transform parent,string filename,
