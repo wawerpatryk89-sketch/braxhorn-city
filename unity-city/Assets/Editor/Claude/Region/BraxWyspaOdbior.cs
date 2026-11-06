@@ -198,7 +198,42 @@ public static class BraxWyspaOdbior
             int expected = markers ? markers.childCount : 0;
             int actual = people ? people.GetComponentsInChildren<BraxMieszkaniec>(true).Length : 0;
             if (expected == 0 || actual < expected) errors.Add("niepełna obsada wyspy: " + actual + "/" + expected + " NPC");
+            // Kontrola zadania: ubrani kibice siedzą i patrzą na walkę,
+            // plażowe modele pozostają na plaży. Same nazwy nie są
+            // dowodem koloru/ubrania — wymagana kontrola w APK.
+            var ludzie = people ? people.GetComponentsInChildren<BraxMieszkaniec>(true) :
+                new BraxMieszkaniec[0];
+            var widzowie = ludzie.Where(m => m && m.ogladaWalke).ToArray();
+            int zlyWidz = widzowie.Count(m => !m.siedzi ||
+                m.rola != "kibic ARENY ubrany" ||
+                m.klipy == null || m.klipy.Length == 0 ||
+                m.klipy.Any(k => k == null || !k.Contains("sit_chair")) ||
+                !m.anim || !m.GetComponentInChildren<SkinnedMeshRenderer>(true));
+            int strefyPlazy = ludzie.Count(m => m &&
+                m.rola == "plażowicz wyspy (strój kąpielowy)");
+            int plazowiNaWidowni = ludzie.Count(m => m && m.ogladaWalke &&
+                m.rola == "plażowicz wyspy (strój kąpielowy)");
+            if (zlyWidz > 0 || plazowiNaWidowni > 0)
+                errors.Add("WYSPA_R1_STROJE_OBSADA: nieprawidłowe klipy siedzenia/stroje widowni " + zlyWidz +
+                    " plażowicze na trybunach=" + plazowiNaWidowni);
+            if (widzowie.Length == 0 || strefyPlazy == 0)
+                errors.Add("WYSPA_R1_STROJE_OBSADA: brak ubranej widowni lub plażowiczów po obsadzeniu wyspy");
+            Debug.Log("WYSPA_R1_STROJE_OBSADA ubrani_widzowie=" + widzowie.Length +
+                " widzowie_bledni=" + zlyWidz + " plazowi=" + strefyPlazy +
+                " golizna_na_trybunach=zero_w_zalozeniu test_Android=OCZEKUJE");
+
         }
+        // Wyspa R1: właściciel usuwa PÓŁNOCNY ring po lewej stronie
+        // głównej areny. Po regeneracji nie ma już siatki, collidera, lin
+        // ani akcji #1; południowy ring #2 pozostaje bez zmian.
+        var rings = root.GetComponentsInChildren<Collider>(true)
+            .Where(c => c && c.name == "kolizja: ring plenerowy").ToArray();
+        if (rings.Any(c => c.transform.position.z > BraxMiastoWyspa.CZ + 2f))
+            errors.Add("nieusunięty północny/lewy ring plenerowy wraz z colliderem");
+        if (transforms.Any(t => t && t.name.Contains("wyspa_ring_1", StringComparison.Ordinal)))
+            errors.Add("nieusunięty punkt interakcji lewego ringu wyspa_ring_1");
+        if (rings.Length != 1)
+            errors.Add("wyspa: oczekiwano dokładnie jednego południowego ringu plenerowego, jest " + rings.Length);
         var seats = root.GetComponentsInChildren<BraxSeat>(true);
         if (seats.Length < 12) errors.Add("brak dostępnych siedzisk widowni");
         var doors = root.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true);
