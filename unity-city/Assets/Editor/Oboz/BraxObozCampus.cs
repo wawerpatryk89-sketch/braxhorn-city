@@ -364,7 +364,21 @@ public static partial class BraxObozEnvironment
         // Their mesh and curbs are cut against BOTH tracks instead of being
         // rendered as unbroken cubes through the red running surface.
         foreach(float x in new[]{-3.2f,3.2f})Box(t,"Linia krawędzi drogi",new Vector3(x,.092f,-126),new Vector3(.1f,.004f,28),campusMark,false);
-        for(int i=0;i<8;i++)Box(t,"Pas przejścia",new Vector3(-2.8f+i*.8f,.098f,-115),new Vector3(.4f,.004f,2.8f),campusMark,false);
+        // Eight legacy zebra stripes at Z=-115 touched the inner edge of
+        // the 4-lane red oval (at X~0: inner boundary Z=-116.2).
+        // Paint ONE road crossing on asphalt well inside the oval, away from
+        // the separate tartan-only pedestrian crossing by the bus shelter.
+        const float vehicleCrosswalkZ=-111f;
+        const float vehicleCrosswalkDepth=2.4f;
+        if(IntersectsRunningTrack(-3.10f,3.10f,
+                vehicleCrosswalkZ-vehicleCrosswalkDepth*.5f,
+                vehicleCrosswalkZ+vehicleCrosswalkDepth*.5f))
+            throw new InvalidOperationException(
+                "Przejście na asfalcie nachodzi na bieżnię: przerwij odbiór obozu");
+        for(int i=0;i<8;i++)
+            Box(t,"Pasy piesze — pojedyncze przejście na asfalcie",
+                new Vector3(-2.8f+i*.8f,.098f,vehicleCrosswalkZ),
+                new Vector3(.4f,.004f,vehicleCrosswalkDepth),campusMark,false);
         // Painted crossing directly on the existing owner rubberized track.
         // No concrete, paving collider, or raised curb may enter four red lanes.
         OwnerTrackPedestrianCrossing(t);
