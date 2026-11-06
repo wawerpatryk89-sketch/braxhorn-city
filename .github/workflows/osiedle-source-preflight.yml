@@ -1,0 +1,35 @@
+name: BRAXHORN OSIEDLE - source preflight (NO Unity/APK)
+on:
+  push:
+    branches:
+      - codex/osiedle-audyt-naprawa-20261106
+    paths:
+      - .github/workflows/osiedle-source-preflight.yml
+      - unity-tools/claude/test_estate_critical.py
+      - unity-tools/claude/test_patryk_owner_contract.py
+      - unity-city/Assets/Editor/Claude/**
+      - unity-city/Assets/Claude/Runtime/BraxRuchAutSym.cs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: estate-preflight-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source-contracts:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python syntax (no Unity editor)
+        run: python3 -m compileall -q unity-tools/claude
+      - name: Original Patryk owner-only regression tests
+        run: python3 -m unittest discover -s unity-tools/claude -p 'test_patryk_owner_contract.py' -v
+      - name: Entire estate critical defects checklist (source + encrypted metadata)
+        run: python3 -m unittest discover -s unity-tools/claude -p 'test_estate_critical.py' -v
+      - name: C# structural scope checker (does not compile the Unity engine)
+        run: python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
