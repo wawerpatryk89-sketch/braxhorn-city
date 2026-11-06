@@ -34,6 +34,22 @@ public static class BraxKontrolaKolizji
         return false;
     }
 
+    // Siatki proceduralne wyspy sa scalane per material z WIELU budynkow.
+    // Pudelko wokol takiego renderera moze zatkac jednoczesnie wejscia do
+    // wszystkich domkow, recepcji, sklepu i WC. Wlasciwe kolizje scian,
+    // podlog, schodow i mebli sa autorsko tworzone w BraxMiastoWyspa.
+    // Pomijamy wylacznie dokladnie rozpoznane siatki scalone; nie ruszamy
+    // kolizji ani odrebnych importowanych modeli / interakcji.
+    static bool AutorskaSiatkaWyspy(Renderer r)
+    {
+        if (!r) return false;
+        var mf = r.GetComponent<MeshFilter>();
+        var mesh = mf ? mf.sharedMesh : null;
+        if (!mesh) return false;
+        return mesh.name.StartsWith("scal Wyspa: przystań i plaża ", StringComparison.Ordinal) ||
+            mesh.name.StartsWith("wyspa / Wyspa: ", StringComparison.Ordinal);
+    }
+
     // Centralna oś wejścia NOVA (x=42, z=35.73..36.68, y do 2.4 m).
     // Nie dodajemy wtórnego pudełka kontroli przecinającego ten korytarz.
     // Oryginalne mury i rzeczywiste drzwi nie są tu wyłączane ani modyfikowane.
@@ -53,7 +69,7 @@ public static class BraxKontrolaKolizji
 
     public static void Wykonaj(BraxKontrola.Spis spis)
     {
-        int dodane = 0, maja = 0, nad = 0, male = 0, plaskie = 0, otwory = 0, schody = 0, chronione = 0;
+        int dodane = 0, maja = 0, nad = 0, male = 0, plaskie = 0, otwory = 0, schody = 0, chronione = 0, autorskieWyspy = 0;
         var dodaneTypy = new Dictionary<string, int>();
         Transform wspolny = null;
         Physics.SyncTransforms();
@@ -84,6 +100,13 @@ public static class BraxKontrolaKolizji
                 if (AutorskieKolizjeMetra(j.t) ||
                     (j.rs.Any() && j.rs.All(r => r && AutorskieKolizjeMetra(r.transform))))
                 { chronione++; continue; }
+                if (j.rs.Any() && j.rs.All(AutorskaSiatkaWyspy))
+                {
+                    // NIE dopisuj pojedynczego, ogromnego BoxCollidera dla
+                    // scalonego materialu: obudowa blokowalaby otwory drzwi.
+                    autorskieWyspy++;
+                    continue;
+                }
                 if (j.typ != null && (j.typ.nazwa == "drzwi" || j.typ.wisi)) continue;
                 if (j.rs.Any(r => r && (skrzydlaPrzes.Contains(r.transform) || r.GetComponentInParent<BraxDrzwiPrzesuwne>()))) { przyDrzwiach++; continue; }
                 if (j.rs.All(BraxKontrola.Roslina2)) continue;
@@ -147,7 +170,9 @@ public static class BraxKontrolaKolizji
         }
         Physics.SyncTransforms();
         Debug.Log("BRAXHORN_KOLIZJE " + BraxKontrola.Obszar + ": dodane=" + dodane + " (" + string.Join(", ", dodaneTypy.OrderByDescending(x => x.Value).Select(x => x.Key + " " + x.Value)) + ")" +
-                  ", już z kolizją " + maja + ", pominięte: nad 2.3 m " + nad + ", drobne " + male + ", płaskie " + plaskie + ", z otworem " + otwory + ", schody " + schody + ", chronione " + chronione + ", przy drzwiach (bez pudełka) " + przyDrzwiach);
+                  ", już z kolizją " + maja + ", pominięte: nad 2.3 m " + nad + ", drobne " + male + ", płaskie " + plaskie + ", z otworem " + otwory + ", schody " + schody + ", chronione " + chronione +
+                  ", wyspa autorska fizyka (bez wtornych pudelek) " + autorskieWyspy +
+                  ", przy drzwiach (bez pudełka) " + przyDrzwiach);
     }
 
     // kolizja własna (komponent w meblu) albo osobna kolizja pokrywająca ≥ 50 % obrysu pasu 0–2 m
