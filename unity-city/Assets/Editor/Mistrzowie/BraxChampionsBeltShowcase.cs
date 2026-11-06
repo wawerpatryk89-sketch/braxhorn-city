@@ -227,11 +227,22 @@ public static class BraxChampionsBeltShowcase
             BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_PENDING: use exact original photo " + OriginalPlaque);
             return;
         }
-        if (image.width != 1536 || image.height != 512)
+        var importer = AssetImporter.GetAtPath(OriginalPlaque) as TextureImporter;
+        if (!importer)
         {
-            BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_WRONG_SIZE: exact 1536x512 owner image needed");
+            BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_IMPORTER_MISSING: " + OriginalPlaque);
             return;
         }
+        importer.GetSourceTextureWidthAndHeight(out int sourceWidth, out int sourceHeight);
+        if (sourceWidth != 1536 || sourceHeight != 512)
+        {
+            BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_WRONG_SOURCE_SIZE: expected 1536x512, source="+
+                sourceWidth+"x"+sourceHeight+" "+OriginalPlaque);
+            return;
+        }
+        if (image.width != 1536 || image.height != 512)
+            BraxBuildQuality.Warn("A1_SHOWCASE_OWNER_IMAGE_ANDROID_IMPORT: original image remains 1536x512, "+
+                "imported="+image.width+"x"+image.height+". Keep the owner's original artwork on the plaque.");
         var shader = Shader.Find(BraxCityMaterials.ShaderName);
         if (!shader) throw new InvalidOperationException("A1 display plaque PBR shader missing");
         var material = new Material(shader) {
