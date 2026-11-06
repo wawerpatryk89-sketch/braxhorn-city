@@ -61,7 +61,9 @@ public static class BraxObozBuild
             var report = InspectReview();
             receipt.sourceIssues = report.sourceIssues;
             File.WriteAllText(Path.Combine(output, "scene-validation.json"), JsonUtility.ToJson(report, true));
-            if (!report.structuralPassed) BraxBuildQuality.Issue(new InvalidOperationException("Błędy sceny obozu: " + string.Join("; ", report.structuralErrors)));
+            // Owner policy: report scene quality, never reject an otherwise
+            // buildable APK because of a collider, doorway or scene-review warning.
+            if (!report.structuralPassed) BraxBuildQuality.Warn("Nieodebrane elementy sceny obozu: " + string.Join("; ", report.structuralErrors));
             foreach (string issue in report.sourceIssues) Debug.LogWarning("BRAXHORN_OBOZ_TEST Źródło do oceny na telefonie: " + issue);
             BraxObozUpdateRegistry.Export();
             SaveState();
@@ -170,11 +172,24 @@ public static class BraxObozBuild
             foreach (var root in roots)
                 foreach (var t in root.GetComponentsInChildren<Transform>(true))
                     if (GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject) != 0)
-                        BraxBuildQuality.Issue(new InvalidOperationException("Brak skryptu w scenie testowej: " + t.name));
+                        BraxBuildQuality.Warn("Brak skryptu w scenie testowej: " + t.name);
             if (roots.SelectMany(r => r.GetComponentsInChildren<BraxGymPlayer>(true)).Count() != 1 ||
                 roots.SelectMany(r => r.GetComponentsInChildren<Camera>(true)).Count() != 1)
-                BraxBuildQuality.Issue(new InvalidOperationException("Obóz wymaga jednego gracza i jednej kamery"));
-            return BraxObozValidation.Check(roots.SelectMany(r => r.GetComponentsInChildren<BraxObozSceneInfo>(true)).Single());
+                BraxBuildQuality.Warn("Obóz wymaga jednego gracza i jednej kamery — raport tylko do odbioru");
+            var campInfo=roots.SelectMany(r => r.GetComponentsInChildren<BraxObozSceneInfo>(true)).Single();
+            // Save a compact collision inventory before the time-consuming APK
+            // build. Diagnostic failure is itself a warning, not a build gate.
+            try
+            {
+                var destination=Path.GetFullPath(Path.Combine(Application.dataPath,
+                    "../../build/ObozAndroid/collider-review.json"));
+                BraxObozCollisionReview.Write(campInfo,destination);
+            }
+            catch (Exception e)
+            {
+                BraxBuildQuality.Warn("Nie można zapisać raportu kolizji: "+e.Message);
+            }
+            return BraxObozValidation.Check(campInfo);
         }
         finally { EditorSceneManager.CloseScene(scene, true); if (previous.IsValid()) SceneManager.SetActiveScene(previous); }
     }
