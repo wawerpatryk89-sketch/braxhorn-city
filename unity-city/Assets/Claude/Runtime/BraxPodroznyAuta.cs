@@ -33,27 +33,48 @@ public sealed class BraxPodroznyAuta : MonoBehaviour
         for(int i=0;i<n;i++)if(kontakty[i]&&!kontakty[i].transform.IsChildOf(transform))return false;
         return true;
     }
+    bool doszedl;
     IEnumerator Idz(Vector3 cel)
     {
-        osoba.enabled=false;osoba.anim.enabled=true;osoba.anim.CrossFade(chod,.2f);
-        while((transform.position-cel).sqrMagnitude>.01f)
+        doszedl = false;
+        osoba.enabled = false;
+        osoba.anim.enabled = true;
+        osoba.anim.CrossFade(chod, .2f);
+        float bezPostepu = 0f;
+        while ((transform.position - cel).sqrMagnitude > .01f)
         {
-            Vector3 d=cel-transform.position;d.y=0;
-            var next=Vector3.MoveTowards(transform.position,cel,Time.deltaTime*1.2f);
-            if(Wolne(next))
+            Vector3 d = cel - transform.position; d.y = 0f;
+            var next = Vector3.MoveTowards(transform.position, cel, Time.deltaTime * 1.2f);
+            if (Wolne(next))
             {
-                osoba.anim.CrossFade(chod,.2f);
-                if(d.sqrMagnitude>.001f)transform.rotation=Quaternion.RotateTowards(transform.rotation,Quaternion.LookRotation(d),Time.deltaTime*180f);
-                transform.position=next;
+                bezPostepu = 0f;
+                osoba.anim.CrossFade(chod, .2f);
+                if (d.sqrMagnitude > .001f)
+                    transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(d), Time.deltaTime * 180f);
+                transform.position = next;
             }
-            else osoba.anim.CrossFade(spokoj,.2f);
+            else
+            {
+                osoba.anim.CrossFade(spokoj, .2f);
+                bezPostepu += Time.deltaTime;
+                // A blocked parking door cannot leave the NPC walking in place forever.
+                // Abort the attempt; never teleport a resident through a parked car.
+                if (bezPostepu >= 4f)
+                {
+                    Debug.LogWarning("BRAXHORN_PODROZNI: dojście zablokowane, próba wycofana: " + name);
+                    yield break;
+                }
+            }
             yield return null;
         }
+        doszedl = true;
     }
     IEnumerator Start()
     {
         if(!osoba||!fotel||!samochod||samochod.GetComponent<BraxAutoGracza>())yield break;
-        kapsula=GetComponent<CapsuleCollider>();modelStoi=osoba.anim.transform.localPosition;rotStoi=transform.rotation;
+        kapsula=GetComponent<CapsuleCollider>();
+        if (!kapsula || !osoba.anim) { Debug.LogWarning("BRAXHORN_PODROZNI: brak kapsuły lub animacji: " + name); yield break; }
+        modelStoi=osoba.anim.transform.localPosition;rotStoi=transform.rotation;
         while(fotel&&samochod)
         {
             osoba.enabled=true;
@@ -61,6 +82,13 @@ public sealed class BraxPodroznyAuta : MonoBehaviour
             // Do not start a transition while the player or another car blocks the door.
             if(!Wolne(drzwi))continue;
             yield return Idz(drzwi);
+            if (!doszedl)
+            {
+                // Never start the seated animation if the resident has not reached the door.
+                osoba.enabled = true;
+                osoba.anim.CrossFade(spokoj, .2f);
+                continue;
+            }
             kapsula.enabled=false;osoba.anim.CrossFade(siedzi,.65f);
             Vector3 start=transform.position;Quaternion rotation=transform.rotation;
             for(float t=0;t<1;t+=Time.deltaTime/1.1f)
