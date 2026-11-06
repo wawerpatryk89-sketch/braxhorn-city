@@ -209,7 +209,8 @@ public static class BraxCityRebuild
         // steel supports. The first review uses two large signs, not a wall of ads.
         const string Brand="Assets/CityRebuild/Brand/";
         BraxCityArchitecture.Billboard(root,"nutrition-wide",new Vector3(45,9,21.2f),9,Brand+"brand-wide.png",0);
-        BraxCityArchitecture.Billboard(root,"training",new Vector3(39,39,20.05f),13,Brand+"training.png",0);
+        // R1 (6.11): nie tworzyć billboardu "training" wiszącego nad zabudową siłowni.
+        // Grafika Braxa/Nyxy na zewnątrz to mural 19 osadzany bezpośrednio na ścianie przez BraxMiastoBillboardy.
         if(WholeDistrict)
         {
             BraxCityArchitecture.Billboard(root,"brax",new Vector3(-18,16,21.2f),6,Brand+"brax-fighter.jpg",0);
