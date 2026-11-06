@@ -1,0 +1,44 @@
+name: 'Obóz — szybkie sprawdzenie Blendera 4.5, bez Unity/APK'
+
+'on':
+  push:
+    branches:
+      - codex/oboz-przebudowa-pbr-20261105
+    paths:
+      - .github/workflows/oboz-blender-source-check.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  official_blender:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Oficjalna suma SHA256 Blendera 4.5.15 — bez pobierania archiwum 378 MB
+        run: |
+          set -euo pipefail
+          BASE='https://download.blender.org/release/Blender4.5'
+          FILENAME='blender-4.5.15-linux-x64.tar.xz'
+          curl --fail --location --silent --show-error --retry 2 --connect-timeout 15 --max-time 70 \
+            --output blender-4.5.15.sha256 "$BASE/blender-4.5.15.sha256"
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          filename='blender-4.5.15-linux-x64.tar.xz'
+          found=[]
+          for line in Path('blender-4.5.15.sha256').read_text().splitlines():
+              p=line.split()
+              if len(p)>=2 and p[-1].lstrip('*').split('/')[-1]==filename and re.fullmatch('[0-9a-fA-F]{64}',p[0]):
+                  found.append(p[0])
+          if len(found)!=1:raise SystemExit('Brak oryginalnej sumy SHA-256 Blendera 4.5.15')
+          print('BLENDER_OWNER_VERSION_CHECK=PASS version=4.5.15 expectedSource=4.4 hash='+found[0])
+          PY
+      - name: Sprawdzenie oficjalnego URL archiwum bez pobrania 378 MB
+        run: |
+          set -euo pipefail
+          curl --head --fail --location --silent --show-error --retry 2 \
+            --connect-timeout 15 --max-time 70 \
+            'https://download.blender.org/release/Blender4.5/blender-4.5.15-linux-x64.tar.xz' > blender-response.headers
+          echo 'BLENDER_OWNER_OFFICIAL_ARCHIVE_URL=PASS; no archive downloaded; no Unity/APK'
