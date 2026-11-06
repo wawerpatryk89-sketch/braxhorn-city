@@ -316,7 +316,7 @@ public static partial class BraxObozEnvironment
         };
         // Łączniki do drzwi usługowych, układ bez prowadzenia pieszych
         // przez modele kuchni, łaźni i stołówki.
-        paths.Add(new Rect(-66f,-59.2f,2.4f,11.2f)); // wejście WC od strony północnej
+        paths.Add(new Rect(-67.2f,-59.2f,2.4f,12.7f)); // od magistrali do samego progu WC: x=-67.2..-64.8, z=-59.2..-46.5
         paths.Add(new Rect(-42f,-65f,2.4f,6.4f));   // dojście do stołówki
         paths.Add(new Rect(-58f,-65.6f,2.4f,7f));   // dojście do pryszniców
         paths.Add(new Rect(-25f,-80.5f,2.4f,5f));   // medyczny
