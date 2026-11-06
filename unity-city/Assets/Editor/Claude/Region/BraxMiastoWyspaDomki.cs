@@ -251,7 +251,7 @@ internal static partial class BraxMiastoWyspa
                 z[dach].Box(bazaPrzebieralni + Vector3.up * (h + .05f), new Vector3(s * 2f + .3f, .1f, s * 2f + .3f), rot);
                 BraxNabrzeze.Kol(kol, "Przebieralnia podloga", bazaPrzebieralni - Vector3.up * .04f,
                     new Vector3(s * 2f, .08f, s * 2f), rot.eulerAngles.y);
-                wejsciaDomkow.Add(("PRZEBIERALNIA " + nPrzebieralnie,
+                wejsciaDomkow.Add(("PRZEBIERALNIA " + (nPrzebieralnie + 1),
                     bazaPrzebieralni + fw * (s + .4f),
                     bazaPrzebieralni - fw * .35f));
                 Zajmij(p, 1.4f); nPrzebieralnie++;
@@ -701,8 +701,13 @@ internal static partial class BraxMiastoWyspa
                     z[okien].Box(skrzydloNaBoku, new Vector3(dw - .02f, dh - .01f, .05f), obrotSkrzydla);
                     BraxNabrzeze.KolRot(kol, "Domek " + tabliczka + " otwarte skrzydlo", skrzydloNaBoku,
                         new Vector3(dw - .02f, dh - .01f, .05f), obrotSkrzydla);
-                    z[m.stal].Rura(L(o.xMax - .12f, 1.02f * K, -.06f), L(o.xMax - .12f, 1.02f * K, .02f), .015f, 6);
-                    z[m.stal].Box(L(o.xMax - .18f, 1.02f * K, .025f), new Vector3(.14f, .02f, .02f), ro);
+                    // Klamka musi podazac za otwartym skrzydlem, a nie wisiec
+                    // w pustym osciezu przy dawnym zamknietym polozeniu drzwi.
+                    var klamkaNaSkrzydle = L(o.xMin + .04f, 1.02f * K, -.10f) + sc.N * (dw - .18f);
+                    z[m.stal].Rura(klamkaNaSkrzydle - sc.R * .06f,
+                        klamkaNaSkrzydle + sc.R * .07f, .015f, 6);
+                    z[m.stal].Box(klamkaNaSkrzydle + sc.R * .07f,
+                        new Vector3(.14f, .02f, .02f), obrotSkrzydla);
                     var lp = L(o.xMax + .35f, 2.15f * K, .06f);
                     z[m.stalCiemna].Box(lp, new Vector3(.14f, .22f, .12f), ro); z[BraxMiastoA.Mat("Wyspa: klosz lampy (mleczny)", new Color(.95f, .93f, .86f), .3f)].Box(lp + Vector3.down * .04f + sc.N * .02f, new Vector3(.1f, .12f, .08f), ro);
                     if (!string.IsNullOrEmpty(tabliczka))
