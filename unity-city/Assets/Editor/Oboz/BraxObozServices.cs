@@ -89,6 +89,17 @@ public static class BraxObozServices
             t.gameObject.AddComponent<BraxObozLocalLight>().source=light;
         }
         if(id=="canteen")FurnishCanteen(group);
+        // The owner also delivered a real 4K Blender drawer cabinet.
+        // Its restored GLB is kept separate from the military cabin lockers:
+        // one in the medical office, another in the storage building.
+        if(id=="medical"||id=="storage")
+        {
+            OwnerFixture(group,"drawer_cabinet_4k/drawer_cabinet_4k.glb",
+                new Vector3(2.25f,.24f,1.55f),
+                new Vector3(1.18f,1.68f,.78f));
+            Debug.Log("BRAXHORN_OWNER_DRAWER_CABINET_4K room="+id+
+                " sourceBlendOriginal=true visualValidationPending=true");
+        }
     }
     // Zasoby stołówki są prawdziwymi GLB z dostarczonej paczki. Żaden
     // detal kuchni ani mapy PBR nie jest redukowany; bez duplikatów modeli.
