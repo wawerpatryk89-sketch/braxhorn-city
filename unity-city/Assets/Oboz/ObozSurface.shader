@@ -20,6 +20,10 @@ Shader "Braxhorn/ObozSurface"
   _LawnRoughness("Lawn roughness",2D)="white"{}
   _LawnAO("Lawn occlusion",2D)="white"{}
   _LawnUVScale("Lawn relative tiling",Float)=2.142857
+  _MudColor("Owner mud forest 2K colour",2D)="white"{}
+  _MudNormal("Owner mud forest 2K normal",2D)="bump"{}
+  _MudRoughness("Owner mud forest 2K roughness",2D)="white"{}
+  _MudUVScale("Mud relative tiling",Float)=1
  }
  SubShader {
   Tags {"RenderType"="Opaque"}
@@ -35,6 +39,8 @@ Shader "Braxhorn/ObozSurface"
   float _GroundUVScale;
   sampler2D _LawnColor,_LawnNormal,_LawnRoughness,_LawnAO;
   float _LawnUVScale;
+  sampler2D _MudColor,_MudNormal,_MudRoughness;
+  float _MudUVScale;
   #endif
   struct Input {float2 uv_MainTex; float4 color : COLOR;};
   void surf(Input IN,inout SurfaceOutputStandard o) {
@@ -66,6 +72,13 @@ Shader "Braxhorn/ObozSurface"
    o.Normal=normalize(lerp(o.Normal,UnpackNormal(tex2D(_GroundNormal,gravelUV)),blend));
    o.Smoothness=lerp(o.Smoothness,1-tex2D(_GroundRoughness,gravelUV).r,blend);
    o.Occlusion=lerp(o.Occlusion,tex2D(_GroundAO,gravelUV).r,blend);
+   // Vertex-blue mask is authored only on naturally damp compacted soil
+   // at path shoulders and by the exterior stream. No fictitious mud on tracks.
+   float mud=saturate(IN.color.b);
+   float2 mudUV=IN.uv_MainTex*_MudUVScale;
+   o.Albedo=lerp(o.Albedo,tex2D(_MudColor,mudUV).rgb,mud);
+   o.Normal=normalize(lerp(o.Normal,UnpackNormal(tex2D(_MudNormal,mudUV)),mud));
+   o.Smoothness=lerp(o.Smoothness,1-tex2D(_MudRoughness,mudUV).r,mud);
    #else
    o.Metallic=tex2D(_MetallicTex,IN.uv_MainTex).r*_MetallicFactor;
    #if defined(OBOZ_PACKED_RA)
