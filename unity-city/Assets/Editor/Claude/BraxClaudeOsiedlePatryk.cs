@@ -22,9 +22,8 @@ public static partial class BraxClaudeOsiedle
 
     struct PatrykKlip { public string nazwa; public bool petla, wMiejscu; public string[] zrodla; }
     static PatrykKlip PK(string n, bool petla, bool wMiejscu, params string[] z) => new PatrykKlip { nazwa = n, petla = petla, wMiejscu = wMiejscu, zrodla = z };
-    // Kolejność kandydatów = pierwszeństwo (pierwszy = ten sam ruch co u Braxa). Pliki muszą być na liście RUCHY_DO_UNITY
-    // w unity-tools/claude/prywatne.py. wMiejscu = bez dryfu bioder w poziomie (Mixamo bez „In Place”; u Braxa chód, bieg
-    // i Kicking były w miejscu — przesuwa gracza fizyka BraxGymPlayer).
+    // Animacje tylko z oryginalnych FBX Patryka, nigdy od Braxa / Moniki.
+    // wMiejscu: CharacterController przesuwa postać, klip porusza oryginalnym szkieletem.
     static readonly PatrykKlip[] KlipyPatryka =
     {
         PK("Walk", true, true, "patryk_owner/Strut Walking.fbx"),
@@ -47,7 +46,29 @@ public static partial class BraxClaudeOsiedle
     {
         WzrostZModelu = float.NaN;
         GameObject hero = null;
-        try { hero = PatrykZbuduj(gracz, cialo); return hero; }
+        try
+        {
+            // Stara / zdublowana postać nie przechodzi do nowej sceny.
+            // Najpierw poprawnie generujemy ORYGINAŁ, dopiero potem usuwamy
+            // wadliwe instancje SCENY (nigdy FBX, tekstury ani paczki źródłowe).
+            hero = PatrykZbuduj(gracz, cialo);
+            var stare = UnityEngine.Object.FindObjectsByType<Transform>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Where(t => t && t != hero.transform && t.name == "Patryk"
+                    && t.gameObject.scene == gracz.gameObject.scene
+                    && t.GetComponentInChildren<SkinnedMeshRenderer>(true) != null)
+                .ToArray();
+            int usuniete = 0;
+            foreach (var stary in stare)
+            {
+                if (stary == gracz || stary.IsChildOf(hero.transform)) continue;
+                UnityEngine.Object.DestroyImmediate(stary.gameObject);
+                usuniete++;
+            }
+            Debug.Log("BRAXHORN_PATRYK_WYMIANA nowy model FBX SHA-256 potwierdzony; " +
+                "stare instancje wizualne w scenie usunięte=" + usuniete);
+            return hero;
+        }
         catch (Exception e)
         {
             Debug.LogError("BRAXHORN_PATRYK błąd: " + e);
@@ -96,7 +117,7 @@ public static partial class BraxClaudeOsiedle
             var spoczynek = kosci.Select(t => new PatrykStan { t = t, r = t.localRotation, p = t.localPosition }).ToList();
             float ramiona = PatrykKatRamion(kosci);
 
-            // --- materiał jak u Braxa (Braxhorn/HeroPremium, ORM) ---
+            // --- oryginalne mapy Patryka: Color/Normal 4K i ORM 2K na Androidzie ---
             if (!AssetDatabase.IsValidFolder(PatrykWynik))
             {
                 if (AssetDatabase.IsValidFolder("Assets/PlayableGenerated")) AssetDatabase.CreateFolder("Assets/PlayableGenerated", "Patryk");
