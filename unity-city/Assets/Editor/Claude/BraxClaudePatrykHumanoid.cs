@@ -130,46 +130,81 @@ public static partial class BraxClaudeOsiedle
     // produkował wykręcone kolana przy chodzeniu w #93. Kopie są prywatne, lokalne
     // dla generowania osiedla; nie zmieniamy oryginalnych importów i innych postaci.
     static readonly string PatrykBezRetargetu = PrywatneZrodla + "/patryk_owner_direct";
-    static readonly string[] PatrykRuchyWlasne =
+    // Bezwarunkowo 22 dokładne pliki FBX z Patryk anima(6).zip.
+    // SHA-256 chronią przed przypadkową podmianą na inny klip Mixamo.
+    static readonly Dictionary<string, string> Patryk22Hashes = new Dictionary<string, string>(StringComparer.Ordinal)
     {
-        "Strut Walking.fbx", "Fast Run.fbx", "Jump.fbx", "Entering Car.fbx",
-        "Goalkeeper Diving Save.fbx", "Goalkeeper Catch.fbx"
+        { "Entering Car.fbx", "6434eb2b74763c6ff6f7b1a62073dd9f6894ce2dd2ee58c9552325e1dc5d04bb" },
+        { "Goalkeeper Diving Save.fbx", "1fc12271df529b15b399d2e696d38fdc04c87f11ccac4335f0675d3a01f3d09d" },
+        { "Goalkeeper Catch.fbx", "b3a5649e0dad2ef55b28e9999fce6a48929147d9b9753b0449949695e11aabf4" },
+        { "Jump.fbx", "eb7a754cadfe2fe2cd2af9c0ab75488a3b29a39fbee01eb1b7d9ac9da9a10776" },
+        { "Strut Walking.fbx", "a87c79f903222e09fc6b56ef11d7154715cb5d58825432d816f1b6061422cb67" },
+        { "Fast Run.fbx", "2bb5d20016a64fd95ea2c0733960b6133ccd7468870449cde8bc9200303f190f" },
+        { "Female Sitting Pose.fbx", "9239183ef24c1d6e034a95bf133de0961e98e41db89c42175f84e112bf2a87df" },
+        { "Male Sitting Pose.fbx", "f638b939b39fbc3a48b3910b3ae326b8a2cbf60941edab3b8d09e23e285cefea" },
+        { "Angry Gesture.fbx", "351118baa3a8b04138d4d86cff2ae96b3e55c8fa6c4d7c2b5ccce8316e20c2a2" },
+        { "Sit To Stand.fbx", "1d337c91ba86ee75600bc386874e7c6f6e90ee9a477a7aab2b5278ebc9d3bfc0" },
+        { "Sitting Disbelief.fbx", "cbc5c2788f6be3360ed8c4b474789300236c8efce03ff30c271e142aaac083d4" },
+        { "Sitting.fbx", "ef509c47a3379cd0efff273a9938ad0c4bed6b92c4bb86ca03de8e804621fe51" },
+        { "Typing.fbx", "3ab1ca71da703d155a2ed5e746abd354cd06cb01b36e8cfbf4b1638b0d2e358d" },
+        { "Drinking.fbx", "520bd16016b4ecfaf90019ed3ef926216ee6fc961a2a87b587a137d9e93bfe53" },
+        { "Dribble.fbx", "7cb078e63db839e478184eb3b9a69e94c3fd70953892e652cb3fa029d2065f09" },
+        { "Goalkeeper Placing Ball (1).fbx", "55751ccec9abaaf70505a2d48280172913dfe2b0796f71f45e0c8442c656b882" },
+        { "Header Soccerball.fbx", "ebdee23493920f90a6b686db99b0ee258a6086f63b1dcac54c69b1811dd10962" },
+        { "Goalkeeper Drop Kick.fbx", "4797374117d125536c109579a94ed5683303aab094e39aa4c9f30a003aa4ebc2" },
+        { "Stall Soccerball.fbx", "150bc0f27a16745667096e7700c12eb3bdeba3d7308f9e56b2a98947daa86eca" },
+        { "Goalkeeper Placing Ball.fbx", "37f0b3c305aa02335092ef9f68f152689b0a55786656245810c96466675f8812" },
+        { "Treading Water.fbx", "6a76f88ec663b7275810d912e1111b10838cd64c8e1e8e912530a5f2011797c1" },
+        { "Swimming.fbx", "ea2ea27438b4df87591ae285038b067da2551fa10b82714664d5af11b69d1771" },
     };
 
     static void PatrykPrzygotujWlasneRuchy()
     {
+        var all = KlipyPatryka.Concat(DodatkoweKlipyPatryka)
+            .Select(k => System.IO.Path.GetFileName(k.zrodla.Single())).ToArray();
+        if (all.Length != 22 || all.Distinct(StringComparer.Ordinal).Count() != 22 ||
+            all.Any(name => !Patryk22Hashes.ContainsKey(name)))
+            throw new InvalidOperationException("PATRYK_OWNER_22: katalog animacji różni się od oryginalnej paczki 22 FBX");
+
+        // Pierwsza faza: sprawdzenie CAŁEGO zestawu przed jakąkolwiek podmianą.
+        // Nie dopuszczamy przypadkowego zmieszania paczek lub tylko sześciu plików.
+        foreach (string name in all)
+        {
+            string src = PatrykRuchy + "/patryk_owner/" + name;
+            if (!System.IO.File.Exists(src))
+                throw new InvalidOperationException("PATRYK_OWNER_22: brak oryginalnej animacji " + name);
+            using (var sha = System.Security.Cryptography.SHA256.Create())
+            using (var stream = System.IO.File.OpenRead(src))
+            {
+                string actual = BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+                if (actual != Patryk22Hashes[name])
+                    throw new InvalidOperationException("PATRYK_OWNER_22: plik został podmieniony: " + name);
+            }
+        }
         System.IO.Directory.CreateDirectory(PatrykBezRetargetu);
-        // Dodatkowe 16 FBX nie są jeszcze w prywatnym repo. Gdy zostaną
-        // bezpiecznie odszyfrowane, importer użyje WYŁĄCZNIE ich oryginalnych bajtów.
-        var dodatkowe = DodatkoweKlipyPatryka
-            .SelectMany(k => k.zrodla)
-            .Select(System.IO.Path.GetFileName)
-            .Where(name => System.IO.File.Exists(PatrykRuchy + "/patryk_owner/" + name));
-        var dostepne = PatrykRuchyWlasne.Concat(dodatkowe).Distinct(StringComparer.Ordinal).ToArray();
-        foreach (string name in dostepne)
+        foreach (string name in all)
         {
             string src = PatrykRuchy + "/patryk_owner/" + name;
             string dst = PatrykBezRetargetu + "/" + name;
-            if (!System.IO.File.Exists(src))
-                throw new InvalidOperationException("Brak przeslanej animacji Patryka: " + src);
-            bool inne = !System.IO.File.Exists(dst);
-            if (!inne)
+            bool changed = !System.IO.File.Exists(dst);
+            if (!changed)
             {
                 using (var sha = System.Security.Cryptography.SHA256.Create())
-                using (var s = System.IO.File.OpenRead(src))
-                using (var d = System.IO.File.OpenRead(dst))
-                    inne = !sha.ComputeHash(s).SequenceEqual(sha.ComputeHash(d));
+                using (var source = System.IO.File.OpenRead(src))
+                using (var dest = System.IO.File.OpenRead(dst))
+                    changed = !sha.ComputeHash(source).SequenceEqual(sha.ComputeHash(dest));
             }
-            if (inne) System.IO.File.Copy(src, dst, true);
+            if (changed) System.IO.File.Copy(src, dst, true);
         }
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        foreach (string name in dostepne)
+        foreach (string name in all)
         {
             string path = PatrykBezRetargetu + "/" + name;
             var importer = AssetImporter.GetAtPath(path) as ModelImporter;
-            if (importer == null)
-                throw new InvalidOperationException("Nie mozna zaimportowac FBX Patryka: " + path);
-            if (importer.animationType != ModelImporterAnimationType.Legacy || !importer.importAnimation)
+            if (!importer)
+                throw new InvalidOperationException("PATRYK_OWNER_22: nie można zaimportować FBX " + name);
+            if (importer.animationType != ModelImporterAnimationType.Legacy ||
+                !importer.importAnimation || importer.materialImportMode != ModelImporterMaterialImportMode.None)
             {
                 importer.animationType = ModelImporterAnimationType.Legacy;
                 importer.importAnimation = true;
@@ -177,16 +212,10 @@ public static partial class BraxClaudeOsiedle
                 importer.SaveAndReimport();
             }
         }
-        Debug.Log("BRAXHORN_PATRYK_WLASNE_RUCHY: import=" + dostepne.Length +
-            " oryginalnych FBX (Legacy, bezp. kości jak Monika); bez Humanoid i sztucznych klipów");
+        Debug.Log("BRAXHORN_PATRYK_OWNER_22: 22/22 oryginalnych plików z ostatniej paczki, " +
+            "SHA-256 PASS, Legacy, oryginalna siatka/kości nietknięte");
     }
 
-    // Uwaga: 22 oryginalne FBX mają dokładnie 65 nazw kości Mixamo, ale dwie
-    // odmienne pozy bazowe. Ostatnia grupa (sport / pływanie) ma także inne
-    // długości kości. Samo kopiowanie quaternionów 1:1 wykręca stawy.
-    // Przenosimy WYŁĄCZNIE dostarczony klip właściciela na oryginalny model:
-    // różnica lokalnej rotacji względem pozy bazowej DAWCY -> poza bazowa
-    // PATRYKA. Pozycje kończyn i bindposes modelu Patryka pozostają bez zmian.
     static AnimationClip PatrykWlasnyFBX(GameObject hero, List<Transform> kosci,
         List<PatrykStan> spoczynek, PatrykKlip spec, out string opis)
     {
