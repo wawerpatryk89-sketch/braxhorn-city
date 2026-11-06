@@ -95,7 +95,7 @@ public static class BraxObozServices
     static void FurnishCanteen(Transform room)
     {
         // Przedni pas jest wolny na wejście i podejścia do stołów.
-        OwnerFixture(room,"kitchen_-_assets.glb",
+        var kitchen=OwnerFixture(room,"kitchen_-_assets.glb",
             new Vector3(-4.0f,.24f,2.6f),new Vector3(2.35f,2.30f,2.4f));
         OwnerFixture(room,"glass-food-display-showcase-with-trays.glb",
             new Vector3(3.35f,.24f,2.5f),new Vector3(2.05f,1.6f,1.2f));
@@ -103,8 +103,37 @@ public static class BraxObozServices
             new Vector3(-2.45f,.24f,-1.2f),new Vector3(1.95f,.85f,2.35f));
         OwnerFixture(room,"picnic_set_1.glb",
             new Vector3(2.45f,.24f,-1.2f),new Vector3(1.95f,.85f,2.35f));
+        // Real owner cutlery, cookware and serving tray, positioned by
+        // the ORIGINAL surfaces of the kitchen model (not arbitrary float Y).
+        OwnerOnExistingSurface(room,kitchen,"CookingTable_Shelf",
+            "24-piece-cutlery-set.glb",new Vector3(.65f,.11f,.42f),
+            new Vector3(.34f,0,.12f));
+        OwnerOnExistingSurface(room,kitchen,"CookingTable_Shelf",
+            "food_tray.glb",new Vector3(.58f,.09f,.40f),
+            new Vector3(-.34f,0,-.13f));
+        OwnerOnExistingSurface(room,kitchen,"PortableStove_Grate_L",
+            "stockpot.glb",new Vector3(.43f,.37f,.43f),Vector3.zero);
         Debug.Log("BRAXHORN_OBOZ_CANTEEN: oryginalna kuchnia GLB, witryna i 2 komplety stołowe; "+
             "przejścia i miejsca siedzące wymagają testu Unity Play Mode");
+    }
+
+    // Place original owner models directly on a measured imported FBX/GLB
+    // surface. This avoids relying on a guessed world Y when the source scale
+    // changes. Requires a Unity render review for overlap/accessibility.
+    static void OwnerOnExistingSurface(Transform room,GameObject model,
+        string partPrefix,string filename,Vector3 maximumSize,Vector3 localOffset)
+    {
+        var part=model.GetComponentsInChildren<Transform>(true).FirstOrDefault(
+            t=>t.name.StartsWith(partPrefix,StringComparison.OrdinalIgnoreCase));
+        if(!part)throw new InvalidOperationException(
+            "Brak powierzchni oryginalnej kuchni dla "+filename+": "+partPrefix);
+        var r=part.GetComponentsInChildren<Renderer>(true);
+        if(r.Length==0)throw new InvalidOperationException(
+            "Brak mesha powierzchni oryginalnej kuchni: "+partPrefix);
+        Bounds b=r[0].bounds;foreach(var x in r.Skip(1))b.Encapsulate(x.bounds);
+        Vector3 topWorld=new Vector3(b.center.x,b.max.y+.012f*1.294f,b.center.z);
+        var local=room.InverseTransformPoint(topWorld)+localOffset;
+        OwnerFixture(room,filename,local,maximumSize);
     }
 
     // Rzeczywisty budynek WC: dwie kabiny, dwa stanowiska prysznicowe,
@@ -288,6 +317,12 @@ public static class BraxObozServices
         foreach(float z in new[]{.2f,2.0f})
             OwnerFixture(building,"wall-urinal.glb",new Vector3(-5.25f,.55f,z),
                 new Vector3(.52f,.95f,.38f));
+        // The owner's independent towel GLB rests on a physically modelled
+        // wall shelf; avoid another floating decorative sanitary object.
+        FixtureBox(building,"Półka na ręczniki — ściana łaźni",
+            new Vector3(-5f,1.47f,3.78f),new Vector3(.85f,.07f,.50f),metal);
+        OwnerFixture(building,"bath-towel.glb",
+            new Vector3(-5f,1.515f,3.78f),new Vector3(.72f,.25f,.43f));
         // Neutralne oprawy LED w sanitariatach: normalne światło do użytku,
         // aktywne jedynie blisko gracza (BraxObozLocalLight), bez ciężkich cieni.
         foreach(float x in new[]{-4f,0f,4f})
