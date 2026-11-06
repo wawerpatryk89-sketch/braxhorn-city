@@ -318,6 +318,9 @@ public sealed class BraxRuchAutSym
                 Poza(a, s, out var p, out var kk);
                 if (!DalekoOdWezlow(p, 14f)) continue;
                 if (Nachodzi(a, p, kk, .5f, 4f, null)) continue;
+                // Validate the same static obstacles, parked cars and external vehicles as at runtime.
+                // Otherwise a car can be spawned inside a wall or a parked vehicle on frame one.
+                if (ZajeteZewnetrznie(p, kk, a.szer * .5f + .35f, a.dl * .5f + .5f)) continue;
                 a.s = s; znalezione = true; break;
             }
             if (!znalezione) throw new InvalidOperationException("Brak bezkolizyjnego miejsca startowego auta " + a.id + " na trasie " + a.trasa);
