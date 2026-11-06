@@ -1,5 +1,5 @@
-name: Miasto Mistrzów — 44 krótkie testy, po kolei (BEZ APK)
-run-name: Champions A1/T11/P1 — 44 independent short source checks — no Unity
+name: Miasto Mistrzów — 45 krótkie testy, po kolei (BEZ APK)
+run-name: Champions A1/T11/P1 — 45 independent short source checks — no Unity
 
 on:
   push:
@@ -67,13 +67,13 @@ jobs:
         continue-on-error: true
         run: |
           python3 unity-tools/validation/check_unity_meta_guids.py --champions
-      - name: RUN ALL 44 TEST MODULES ONE BY ONE with individual timeout and evidence
+      - name: RUN ALL 45 TEST MODULES ONE BY ONE with individual timeout and evidence
         run: |
           python3 unity-tools/mistrzowie/audit_quick_sequential.py
       - name: Save every test log, even when errors are found
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540459e92b4886f43607fa02
         with:
           name: mistrzowie-sequential-source-qa-${{ github.run_id }}
           path: |
@@ -84,4 +84,4 @@ jobs:
       - name: Evidence scope
         if: always()
         run: |
-          echo '44 independent source tests, short timeout each; no Unity, no APK, no release, no scene replacement.' >> "$GITHUB_STEP_SUMMARY"
+          echo '45 independent source tests, short timeout each; no Unity, no APK, no release, no scene replacement.' >> "$GITHUB_STEP_SUMMARY"
