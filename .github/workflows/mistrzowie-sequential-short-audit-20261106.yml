@@ -1,4 +1,4 @@
-name: Miasto Mistrzów — 45 krótkie testy, po kolei (BEZ APK)
+name: Miasto Mistrzów — 45 krótkich testów, po kolei (BEZ APK)
 run-name: Champions A1/T11/P1 — 45 independent short source checks — no Unity
 
 on:
@@ -73,7 +73,7 @@ jobs:
       - name: Save every test log, even when errors are found
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@ea165f8d65b6e75b540459e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: mistrzowie-sequential-source-qa-${{ github.run_id }}
           path: |
