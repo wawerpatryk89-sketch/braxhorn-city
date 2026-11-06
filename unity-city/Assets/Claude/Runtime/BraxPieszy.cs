@@ -345,12 +345,20 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         }
         return false;
     }
-    bool Zajete(Vector3 p) => Physics.CheckCapsule(p + Vector3.up * .45f, p + Vector3.up * 1.5f, .24f, ~0, QueryTriggerInteraction.Ignore) && !TylkoJa(p);
-    bool TylkoJa(Vector3 p)
+    readonly Collider[] trafieniaKapsuly = new Collider[24];
+    bool Zajete(Vector3 p)
     {
-        foreach (var c in Physics.OverlapCapsule(p + Vector3.up * .45f, p + Vector3.up * 1.5f, .24f, ~0, QueryTriggerInteraction.Ignore))
-            if (!c.transform.IsChildOf(transform)) return false;
-        return true;
+        // One non-allocating physics query per step (instead of CheckCapsule
+        // followed by an allocating OverlapCapsule every frame on Android).
+        int n = Physics.OverlapCapsuleNonAlloc(p + Vector3.up * .45f, p + Vector3.up * 1.5f,
+            .24f, trafieniaKapsuly, ~0, QueryTriggerInteraction.Ignore);
+        if (n == trafieniaKapsuly.Length) return true;
+        for (int i = 0; i < n; i++)
+        {
+            var c = trafieniaKapsuly[i];
+            if (c && !c.transform.IsChildOf(transform)) return true;
+        }
+        return false;
     }
     readonly RaycastHit[] trafieniaGruntu = new RaycastHit[16];
     float Grunt(Vector3 p, float y)
