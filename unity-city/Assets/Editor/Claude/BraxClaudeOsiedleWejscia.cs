@@ -102,6 +102,10 @@ public static partial class BraxClaudeOsiedle
     }
     static void JednoWejscie()
     {
+        // Per-scene register. The only external entrance may be named "-rear"
+        // or "-hall"; without this register a later orphan-door cleanup could
+        // delete the sole usable entrance to a building.
+        JedyneWejscia.Clear();
         Physics.SyncTransforms();
         const int maska = ~((1 << 8) | (1 << 2));
         bool Przykryty(Vector3 p) =>
@@ -137,23 +141,45 @@ public static partial class BraxClaudeOsiedle
             return best;
         }
         int podwojnePrzed = 0, podwojnePo = 0, zamkniete = 0, cofniete = 0; var lista = new List<string>();
-        foreach (var grupa in Enumerable.Range(0, m).GroupBy(F).Where(g => g.Count() > 1))
+        var grupy = Enumerable.Range(0, m).GroupBy(F).ToList();
+        void ChronWejscie(BraxCityDoor drzwi)
+        {
+            if (!drzwi || string.IsNullOrEmpty(drzwi.id))
+            {
+                rep.notes.Add("DO POPRAWKI: zewnętrzne drzwi bez identyfikatora; ochrona wejścia wymaga odbioru");
+                return;
+            }
+            JedyneWejscia.Add(drzwi.id);
+        }
+        // Even a single public door must survive the subsequent orphan-door
+        // cleanup regardless of its name (for example, a lone "-rear" door).
+        foreach (var single in grupy.Where(g => g.Count() == 1))
+            ChronWejscie(zew[single.First()].d);
+        foreach (var grupa in grupy.Where(g => g.Count() > 1))
         {
             var g = grupa.ToList();
-            if (g.Any(i => Ma(zew[i].d, WejMieszkalne))) continue;   // dom/willa — nie budynek dla gości
+            if (g.Any(i => Ma(zew[i].d, WejMieszkalne)))
+            {
+                // Residential front/terrace access is intentionally not reduced.
+                foreach (var i in g) ChronWejscie(zew[i].d);
+                continue;
+            }
             podwojnePrzed++;
             var zKodu = g.Where(i => Klasa(zew[i].d.id) == KlasaDrzwi.Wejscie).ToList();
             if (zKodu.Count == 0 && g.Any(i => Ma(zew[i].d, WejBudynkiZListy)))
-            {   // budynek z listy (kasyno, dyskoteka, …) bez drzwi głównych rozpoznanych z kodu — nie zgaduję, nic nie zamykam
+            {   // Public building without explicitly mapped main entrance:
+                // preserve every existing exterior door rather than risking lockout.
+                foreach (var i in g) ChronWejscie(zew[i].d);
                 podwojnePo++; lista.Add("{budynek z listy bez wejścia z kodu — nie zamykam: " + string.Join(", ", g.Select(i => zew[i].d.id)) + "}"); continue;
             }
             int glowne = zKodu.Count > 0 ? zKodu[0] : g.OrderByDescending(i => Ma(zew[i].d, WejGlowne) ? 1 : 0).ThenBy(i => DoUlicy(zew[i].zewP)).First();
+            ChronWejscie(zew[glowne].d);
             int zostalo = 1; var nazwy = new List<string> { "główne=" + (zKodu.Count > 0 ? "kod" : "zgadnięte") + ": " + (zew[glowne].d.id ?? zew[glowne].d.label) };
             var zamknieteTu = new List<BraxCityDoor>();
             foreach (int i in g.Where(i => i != glowne))
             {
                 var d = zew[i].d;
-                if (Klasa(d.id) != KlasaDrzwi.Nieznane) { zostalo++; nazwy.Add("z kodu (" + Klasa(d.id) + ", nie zamykam): " + d.id); continue; }
+                if (Klasa(d.id) != KlasaDrzwi.Nieznane) { ChronWejscie(d); zostalo++; nazwy.Add("z kodu (" + Klasa(d.id) + ", nie zamykam): " + d.id); continue; }
                 if (Ma(d, WejChronione)) { zostalo++; nazwy.Add("chronione (test CI / zaplecze kasyna): " + (d.id ?? d.label)); continue; }
                 zamknieteTu.Add(d);
                 d.label = "ZAPLECZE / WYJŚCIE EWAKUACYJNE (zamknięte) — " + d.label; d.enabled = false; zamkniete++;
@@ -195,6 +221,11 @@ public static partial class BraxClaudeOsiedle
         string log = "BRAXHORN_WEJSCIA podwojne_przed=" + podwojnePrzed + " podwojne=" + podwojnePo + " zamkniete=" + zamkniete + " cofniete=" + cofniete + " drzwi=" + wszDrzwi.Count + " zewnętrzne=" + m +
                      " wewnętrzne=" + wewn + " nieokreślone=" + nieokr + " (budynki B: salon 1 wejście + zaplecze zamknięte, sklep stacji 1, biuro warsztatu 1; bramy aut to nie wejścia dla gości) [" + string.Join(" ", lista) + "]";
         Debug.Log(log); rep.notes.Add(log.Replace("BRAXHORN_WEJSCIA ", "wejścia: "));
+        rep.notes.Add("wejścia zachowane dla kontroli drzwi bez ściany: " + JedyneWejscia.Count +
+            " identyfikatorów (pojedyncze, mieszkalne, główne publiczne i istniejące z kodu)");
+        if (nieokr > 0)
+            rep.notes.Add("DO POPRAWKI: " + nieokr +
+                " drzwi bez jednoznacznej klasyfikacji zadaszenia; wymagają fizycznego odbioru");
         if (cofniete > 0)
             rep.notes.Add("DO POPRAWKI: " + cofniete +
                 " dodatkowych wejść przywrócono, bo fizyczna łączność budynku nie została potwierdzona");
