@@ -15,6 +15,10 @@ public sealed class BraxPose : MonoBehaviour
     public Transform anchor;         // obiekt, względem którego liczona jest poza (pojazd, siedzisko)
     public float weight;             // 0..1 — płynne wejście/wyjście z pozy
     public float drinkUntil;
+    // Celów nie przypinamy do kości ręki: oba pochodzą z nieruchomych punktów
+    // uchwytu w oryginalnym modelu jachtu / skutera / motorówki.
+    public Transform leftGrip, rightGrip;
+
 
     Transform visual, hips, spine, chest, head, lUp, lLeg, lFoot, rUp, rLeg, rFoot, lArm, lFore, lHand, rArm, rFore, rHand;
     GameObject shaker;
@@ -28,7 +32,14 @@ public sealed class BraxPose : MonoBehaviour
         return pose;
     }
 
-    public void Set(Mode m, Transform a) { mode = m; anchor = a; if (m == Mode.None) anchor = null; }
+    public void Set(Mode m, Transform a)
+    {
+        mode = m; anchor = m == Mode.None ? null : a;
+        if (m == Mode.None) SetGrips(null, null);
+    }
+    public void SetGrips(Transform left, Transform right)
+    { leftGrip = left; rightGrip = right; }
+
     public void Drink(float seconds = 2.6f) { if (mode != Mode.None) return; mode = Mode.Drink; drinkUntil = Time.time + seconds; }
 
     Transform Find(string key)
@@ -65,6 +76,37 @@ public sealed class BraxPose : MonoBehaviour
         if (cur.sqrMagnitude < 1e-8f) return;
         var q = Quaternion.FromToRotation(cur.normalized, want.normalized);
         bone.rotation = Quaternion.Slerp(Quaternion.identity, q, w) * bone.rotation;
+    }
+
+
+    // Krótki CCD na oryginalnych kościach; nie deformujemy siatki poprzez
+    // translację kości ani skalowanie szkieletu. Przy nieosiągalnej kierownicy
+    // cel jest ograniczony do naturalnej długości ramienia.
+    static void DlonNaUchwyt(Transform bark, Transform lokiec, Transform dlon, Transform uchwyt, float weight)
+    {
+        if (!bark || !lokiec || !dlon || !uchwyt || weight <= .001f) return;
+        float dl1 = Vector3.Distance(bark.position, lokiec.position);
+        float dl2 = Vector3.Distance(lokiec.position, dlon.position);
+        if (dl1 < .05f || dl2 < .04f) return;
+        Vector3 cel = uchwyt.position;
+        Vector3 doCel = cel - bark.position;
+        float maks = Mathf.Max(.1f, dl1 + dl2 - .025f);
+        if (doCel.magnitude > maks)
+            cel = bark.position + doCel.normalized * maks;
+        float w = Mathf.Clamp01(weight);
+        for (int iter = 0; iter < 3; iter++)
+        {
+            Vector3 odBarku = dlon.position - bark.position;
+            Vector3 kier = cel - bark.position;
+            if (odBarku.sqrMagnitude > .0001f && kier.sqrMagnitude > .0001f)
+                bark.rotation = Quaternion.Slerp(Quaternion.identity,
+                    Quaternion.FromToRotation(odBarku, kier), w * .60f) * bark.rotation;
+            Vector3 odLokcia = dlon.position - lokiec.position;
+            Vector3 kierL = cel - lokiec.position;
+            if (odLokcia.sqrMagnitude > .0001f && kierL.sqrMagnitude > .0001f)
+                lokiec.rotation = Quaternion.Slerp(Quaternion.identity,
+                    Quaternion.FromToRotation(odLokcia, kierL), w * .72f) * lokiec.rotation;
+        }
     }
 
     void LateUpdate()
@@ -135,6 +177,13 @@ public sealed class BraxPose : MonoBehaviour
                     }
                 }
                 break;
+        }
+        if (mode == Mode.Ride || mode == Mode.Ster)
+        {
+            // Oryginalny Mixamo rig, prawdziwe punkty na kierownicy:
+            // ręce poruszają się razem ze sterem przy przechyle na falach.
+            DlonNaUchwyt(lArm, lFore, lHand, leftGrip, w);
+            DlonNaUchwyt(rArm, rFore, rHand, rightGrip, w);
         }
         if (mode != Mode.Drink && shaker) { Destroy(shaker); shaker = null; }
     }
