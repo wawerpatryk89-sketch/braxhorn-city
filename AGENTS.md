@@ -1,3 +1,17 @@
+# BEZWZGLĘDNY ZAKAZ DŁUGICH TESTÓW — DECYZJA WŁAŚCICIELA 6.11.2026 (NAJWYŻSZY PRIORYTET)
+
+**DLA WSZYSTKICH WYKONAWCÓW AI (ChatGPT, Codex, Claude, Work i innych), WSZYSTKICH REJONÓW BRAXHORN.**
+
+1. **Nie uruchamiać żadnych długich, kosztownych ani kilkugodzinnych testów**: Unity Editor/PlayMode, generowania scen, pełnych testów scen, importu wszystkich assetów, Android, WebGL, IL2CPP, Unity CI, buildów lub testów tylko udających krótkie, lecz używających Unity. Nazwa „test”, „smoke”, „scene-only”, „QA”, „bez APK” nie oznacza, że procedura jest szybka.
+2. Bez osobnej, jednoznacznej zgody właściciela na dokładnie określony przebieg dopuszczalne są tylko **krótkie, tanie testy statyczne kodu i geometrii** (docelowo w kilkudziesięciu sekundach, bez uruchamiania edytora Unity, bez drogich pobrań i pełnego generowania świata). Gdy kontrola może być długa — NIE uruchamiać; najpierw przedstawić jej realny zakres i uzyskać zgodę. Nie mylić limitu 355 minut z krótkim testem.
+3. **Zakaz samoczynnych, ponawianych i równoległych długich testów.** Commit, push, PR, merge, zakończenie prac innego wykonawcy, błąd CI i prośba „sprawdź” nie są zgodą na długie testy ani buildy. Nie dodawać workflow uruchamiających Unity na push lub przez automatyczny dispatch. Build APK także tylko po osobnej, wyraźnej autoryzacji.
+4. Gdy właściciel każe anulować przebieg, **niezwłocznie przerwać uruchomioną pracę**, potwierdzić rzeczywisty status w GitHub i nie uruchamiać jej ponownie bez osobnej zgody. Jeśli przebieg już sam się zakończył, podać faktyczny wynik, a nie przedstawiać go jako anulowany.
+5. **Najpierw wynik szybkiej kontroli, potem decyzja właściciela.** Nie obiecywać, że krótki test zastępuje kompilację Unity; raportować jasno, czego faktycznie nie zweryfikowano. Priorytet: brak tracenia wielogodzinnego czasu, kolejki, limitów i zasobów.
+
+Ta decyzja jest późniejsza i nadrzędna wobec wszelkich starszych instrukcji zachęcających do długiego QA. Jej zapisanie nie jest zgodą na uruchomienie czegokolwiek. Bez osobnej zgody nie przepisywać na main.
+
+---
+
 # Standard tekstur TYLKO głównych postaci grywalnych (5.11.2026)
 
 Decyzja właściciela: **wyłącznie postacie, którymi użytkownik steruje osobiście** (np. Brax, Nyxa, Patryk, Monika w roli grywalnej). Głowa/twarz do 4K, ciało/ubranie do 2K, buty/akcesoria do 1K; **tylko gdy postać faktycznie ma oddzielne materiały i UV**. Zwykli NPC, przeciwnicy i przechodnie są wyłączeni z tej reguły. Nie zmieniać wyglądu, obecnych tekstur, podziału UV ani materiałów bez przeglądu modelu i osobnej decyzji właściciela. Dotychczasowe postacie nie są przez tę notatkę przerobione. Szczegóły: [Tekstury postaci grywalnych](docs/zasady/TEKSTURY_POSTACI_GRYWALNYCH_20261105.md). Zmiana dokumentacji nie uruchamia buildu.
