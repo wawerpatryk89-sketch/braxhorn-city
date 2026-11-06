@@ -414,6 +414,10 @@ internal static class BraxMiastoPort
         ramie.kolor = BraxUliceKit.Bialy;
         BraxUliceKit.Napis3D("PORT BRAXHORN · BRAMA 1", new Vector3((bx0 + bx1) * .5f, Y + bh + .15f, bz1 + .3f), Vector3.forward, .16f, .03f, BraxMiastoA.Mat("Port: litery białe", new Color(.95f, .95f, .93f), .5f), BraxMiastoA.Mat("Port: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f));
         BraxMiastoA.Akcja(root, "port_brama", "POROZMAWIAJ", "Strażnik: Wjazd tylko z przepustką. Wejście do metra znajduje się na dawnym placu biura portowego.", new Vector3(76.0f, Y, zf + .8f), 1.8f);
+        // Punkt zlecenia pozostaje funkcjonalny po usunięciu małego biura (nie traci się identyfikatora misji).
+        BraxMiastoA.Akcja(root, "port_biuro", "ZLECENIE",
+            "Odprawa przy bramie portu: odbiór kontenera ze statku, przepustka na trap i załadunek przy dźwigu.",
+            new Vector3(78.7f, Y, 16.8f), 1.25f);
     }
 
     static void Maszty()
