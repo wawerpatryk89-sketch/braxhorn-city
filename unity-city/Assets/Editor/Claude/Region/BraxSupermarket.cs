@@ -38,7 +38,24 @@ public static class BraxSupermarket
         var miejsca = new List<Vector3>(); var stoper = System.Diagnostics.Stopwatch.StartNew();
         for (int i = 0; i < ile; i++)
         {
-            if (!Szukaj(miejsca, out var c, out float yaw)) { Debug.LogWarning("BRAXHORN_SUPERMARKET kopia " + (i + 1) + ": brak wolnej działki — DO POPRAWKI (miejsce ręczne)"); break; }
+            Vector3 c; float yaw;
+            if (i == 0)
+            {
+                // R1 Android #64: to jest dokładnie supermarket ze zdjęcia,
+                // przy północnym dawnym rondzie (-126,104). Nie pozwalamy
+                // losowemu szukaniu działki przenieść istniejącego sklepu.
+                float y;
+                if (!Pasuje(new Vector2(-120f, 132f), 0f, out y))
+                    throw new InvalidOperationException(
+                        "BRAXHORN_SUPERMARKET_R1: zatwierdzona lokalizacja (-120,132) jest zablokowana; nie przesuwamy sklepu bez odbioru");
+                c = new Vector3(-120f, y, 132f); yaw = 0f;
+            }
+            else if (!Szukaj(miejsca, out c, out yaw))
+            {
+                Debug.LogWarning("BRAXHORN_SUPERMARKET kopia " + (i + 1) +
+                                 ": brak wolnej działki — DO POPRAWKI (miejsce ręczne)");
+                break;
+            }
             miejsca.Add(c);
             var t = new GameObject("SUPERMARKET BRAXHORN " + (i + 1)).transform; t.SetParent(root.transform, false);
             t.position = c; t.rotation = Quaternion.Euler(0f, yaw, 0f);
@@ -48,7 +65,9 @@ public static class BraxSupermarket
             // Wycinamy TYLKO szerokość ścieżki przed drzwiami, bez usuwania całego płotu.
             UdroznijWejscie(t, lustro, i + 1);
             Physics.SyncTransforms();
-            ParkingKlientow(t, i + 1);
+            // Sklep BRAXHORN przy pętli PÓŁNOC ma już stały parking 20 miejsc
+            // w BraxRegionMiastoB; drugi generator dublował asfalt i kolizje.
+            if (i != 0) ParkingKlientow(t, i + 1);
             Physics.SyncTransforms();
             Debug.Log("BRAXHORN_SUPERMARKET kopia " + (i + 1) + ": front (środek) " + c.ToString("F1") + ", obrót " + yaw + "°, hala " + W.ToString("F1") + " × " + D.ToString("F1") + " × " + H.ToString("F1") + " m"
                       + (lustro ? ", odbicie lustrzane (wejście i kasy po drugiej stronie)" : "") + ", towar modeli " + towar + ", szukanie " + stoper.ElapsedMilliseconds + " ms");
