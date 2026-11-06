@@ -31,7 +31,33 @@ def prepare(apply_runner_only=False):
     if raw[:4] != b"glTF":
         raise ValueError("Tracked original harbor crane is not GLB")
     original_doc, original_chunks = _parse_glb(raw)
-    derived, result = derive_safe_uv_import(raw)
+    try:
+        derived, result = derive_safe_uv_import(raw)
+    except UnsafeTowelUvConversion as error:
+        # Some original crane materials genuinely reference TEXCOORD_2+.
+        # Removing these coordinates changes material placement. Never do
+        # an unsafe automatic conversion or publish substituted geometry.
+        record = {
+            "status": "MANUAL_UV_MAPPING_REQUIRED_SOURCE_UNCHANGED",
+            "reason": str(error),
+            "originalSha256": sha256(raw),
+            "derivedSha256": sha256(raw),
+            "originalBytes": len(raw),
+            "derivedBytes": len(raw),
+            "removedUnusedUV": [],
+            "originalBinaryChunksPreserved": True,
+            "originalMaterialAndTextureDefinitionsPreserved": True,
+            "originalVisualAssetsNotReplaced": True,
+            "unityImporterTested": False,
+            "sourceImportCompatible": False,
+            "appliedToRunnerWorkspace": False,
+        }
+        REPORT.parent.mkdir(parents=True, exist_ok=True)
+        REPORT.write_text(json.dumps(record,indent=2,ensure_ascii=False)+"\\n",
+                          encoding="utf-8")
+        print("BRAX_CRANE_UV_ADVISORY " + json.dumps(record,ensure_ascii=False),
+              flush=True)
+        return record
     doc, chunks = _parse_glb(derived)
     # Format-only change: no visual source or material selectors modified.
     for field in ("asset", "materials", "nodes", "textures", "images",
