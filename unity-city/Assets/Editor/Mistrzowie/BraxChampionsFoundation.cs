@@ -160,6 +160,8 @@ public static class BraxChampionsFoundation
         var d=Read();Sources();Palms();Tree();
         // Source-only verification before creating expensive Unity scenes.
         // Downloaded originals must include full 2K albedo/normal/ARM.
+        // Fail before generating the world if the user-approved 12-sign PNG is missing.
+        BraxChampionsPromenade.VerifyAtlas();
         BraxChampionsPromenadeGoods.Verify25OriginalModels();
         if(!File.Exists("Assets/Source/HarborBeach/Models/lifeguard_tower.glb"))
             throw new FileNotFoundException("Missing owner R1 lifeguard tower; no substitute");
