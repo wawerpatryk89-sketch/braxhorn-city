@@ -40,6 +40,11 @@ on:
         type: string
         required: false
         default: 'champions-a1-20261105'
+      p1_assets_tag:
+        description: 'P1: tag prywatnego wydania z oryginalnym pakietem SPA (puste gdy P1 nie jest budowane)'
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: write
   actions: read
@@ -165,6 +170,41 @@ jobs:
           test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png
           test -s unity-city/Assets/Source/Mistrzowie/Trophies/BRAXHORN_ARENA_CASE_PLAQUE.jpg
           echo "MISTRZOWIE_A1_T11_ASSET_GATE PASS; original belt/VIP + 3 murals + 3 relevant signs + 1 owner case image"
+
+      - name: Restore original P1 equipment and both owner signs before Unity
+        if: ${{ hashFiles('unity-tools/mistrzowie/import_pool_p1_owner_assets.py') != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          P1_SOURCE_TAG: ${{ inputs.p1_assets_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          zip_name="P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip"
+          if [ -z "$P1_SOURCE_TAG" ]; then
+            echo "::error::P1 needs its owner ZIP in a private GitHub Release; set p1_assets_tag"
+            exit 1
+          fi
+          if ! [[ "$P1_SOURCE_TAG" =~ ^[A-Za-z0-9._-]{3,100}$ ]]; then
+            echo "::error::Invalid P1 private source release tag"
+            exit 1
+          fi
+          # Draft releases may give 404 for GET-by-tag; use authenticated list.
+          release_json="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")"
+          asset_id="$(printf '%s' "$release_json" | jq -r \
+            --arg tag "$P1_SOURCE_TAG" --arg file "$zip_name" \
+            '[.[] | select(.tag_name==$tag) | .assets[]? | select(.name==$file) | .id] | first // empty')"
+          if [ -z "$asset_id" ]; then
+            echo "::error::P1 original source ZIP not found in release $P1_SOURCE_TAG"
+            exit 1
+          fi
+          gh api -H "Accept: application/octet-stream" \
+            "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" > "$RUNNER_TEMP/$zip_name"
+          python3 unity-tools/mistrzowie/import_pool_p1_owner_assets.py "$RUNNER_TEMP/$zip_name" --dry-run
+          python3 unity-tools/mistrzowie/import_pool_p1_owner_assets.py "$RUNNER_TEMP/$zip_name"
+          test -s unity-city/Assets/Source/Mistrzowie/PoolP1/OwnerEquipment/hot-tub-original-exterior-model.glb
+          test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/P1_BASEN_BASEN_MIEJSKI.png
+          test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/P1_SPA_SPA_WELLNESS.png
+          echo "P1_OWNER_SOURCE_GATE PASS, original SPA and BASEN source assets installed"
 
       - name: Verify key and sign a real tiny APK before the expensive Unity build
         if: inputs.etap != 'sceny'
