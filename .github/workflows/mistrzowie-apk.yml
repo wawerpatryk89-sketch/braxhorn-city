@@ -41,10 +41,10 @@ on:
         required: false
         default: 'champions-a1-20261105'
       p1_assets_tag:
-        description: 'P1: tag prywatnego wydania z oryginalnym pakietem SPA (puste gdy P1 nie jest budowane)'
+        description: 'P1: tag szkicu GitHub Release z oryginalnym wyposażeniem BASEN+SPA'
         type: string
         required: false
-        default: ''
+        default: 'p1-basen-spa-20261106'
 permissions:
   contents: write
   actions: read
