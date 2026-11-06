@@ -44,12 +44,12 @@ class PoolP1OriginalSignTests(unittest.TestCase):
         self.assertIn('Steel rear wall mount',s)
         self.assertIn('Warm facade edge LED top',s)
         self.assertIn('Warm facade edge LED bottom',s)
-        self.assertIn('Build(root,"BASEN_MIEJSKI",PoolSign,0f,6.95f,-28.40f,10.0f)',s)
+        self.assertIn('Build(root,"BASEN_MIEJSKI",PoolSign,0f,6.80f,-28.40f,10.0f)',s)
         self.assertIn('Build(root,"SPA_WELLNESS",SpaSign,15.2f,5.37f,-28.40f,4.40f)',s)
         # Public front canopy top ~5.14m, P1 SPA roof starts ~8.2m.
-        basen_centre=6.95; basen_h=10./4
+        basen_centre=6.80; basen_h=10./4
         self.assertGreater(basen_centre-(basen_h+.18)/2,5.14)
-        self.assertLess(basen_centre+(basen_h+.18)/2,8.5)
+        self.assertLess(basen_centre+(basen_h+.18)/2,8.20)
         self.assertEqual(self.pool.count('BraxChampionsPoolP1OriginalSign.Generate(root);'),1)
 
     def test_sign_manifest_source_integrity_and_stable_meta(self):
