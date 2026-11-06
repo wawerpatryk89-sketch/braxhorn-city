@@ -997,7 +997,9 @@ public static partial class BraxClaudeOsiedle
         Debug.Log("BRAXHORN_SALON sprzedawcy=Patryk(" + patryk + "),Monika(" + monika + ") obsada=" + n + "/" + salonObsada.Count + " pasażer_schodów=" + pas + " (stanowiska Patryk i Monika na piętrze, kierownik, barista, doradca serwisu, klienci 2)");
     }
     static readonly Rola RolaMonikaZastepcza = new Rola { nazwa = "Monika (zastępcza)", postaci = new[] { "Business_Female", "Female_Adult" }, kolor = new Color(.08f, .1f, .2f) };
-    // Patryk przy biurku: kopia zbudowanego bohatera (prywatny model odszyfrowany w CI — w repo nic), klip Idle, warstwa domyślna.
+    // Dodatkowa rola Patryka w salonie była zamrożona na Idle (pojedyncza klatka)
+    // i wyglądała jak drugi nieruchomy bohater. W salonie tylko jego oryginalny
+    // FBX "Typing", bez proceduralnej animacji i zmian siatki lub tekstur.
     static GameObject SalonPatrykKopia(Transform miejsce)
     {
         var gracz = GameObject.Find("BraxhornPlayer"); var hero = gracz ? gracz.transform.Find("Patryk") : null;
@@ -1007,7 +1009,19 @@ public static partial class BraxClaudeOsiedle
         foreach (var t in k.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = 0;
         foreach (var r in k.GetComponentsInChildren<SkinnedMeshRenderer>(true)) { r.updateWhenOffscreen = false; r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On; }
         var an = k.GetComponent<Animation>();
-        if (an && an.GetClip("Idle")) { an.clip = an.GetClip("Idle"); an.playAutomatically = true; an.wrapMode = WrapMode.Loop; an.Play("Idle"); an.Sample(); an.cullingType = AnimationCullingType.BasedOnRenderers; }
+        if (!an || !an.GetClip("Typing"))
+        {
+            Object.DestroyImmediate(k);
+            throw new InvalidOperationException(
+                "Salon: postać Patryk przy biurku nie ma oryginalnego FBX Typing z paczki 22; " +
+                "nie stawiaj nieruchomej kopii w T-pose");
+        }
+        an.clip = an.GetClip("Typing");
+        an.playAutomatically = true;
+        an.wrapMode = WrapMode.Loop;
+        an.Play("Typing");
+        an.Sample();
+        an.cullingType = AnimationCullingType.BasedOnRenderers;
         // stopy na posadzce (lokalna pozycja bohatera = przesunięcie stóp względem kapsuły)
         k.transform.localPosition = Vector3.zero;
         var smr = k.GetComponentInChildren<SkinnedMeshRenderer>(true);
