@@ -141,16 +141,24 @@ public static class BraxObozServices
         if(!prefab)throw new InvalidOperationException("Nie można utworzyć kuchni źródłowej");
         try
         {
-            var original=prefab.GetComponentsInChildren<Transform>(true)
-                .FirstOrDefault(t=>t.name.StartsWith("CookingTable.001_",StringComparison.OrdinalIgnoreCase));
-            if(!original)throw new InvalidOperationException(
-                "Brak oryginalnego CookingTable w przekazanym zestawie polowym");
-            var full=room.worldToLocalMatrix*original.localToWorldMatrix;
-            var table=Object.Instantiate(original.gameObject,room,false);
-            table.name="Oryginalny stół polowy 3D — nie drewniana atrapa";
-            table.transform.localPosition=full.GetColumn(3);
-            table.transform.localRotation=full.rotation;
-            table.transform.localScale=full.lossyScale;
+            // The source table is a FIVE-PART assembly. Importing only
+            // CookingTable.001_ omits legs/bolts/shelf and looked unfinished.
+            var table=new GameObject("Oryginalny stół polowy 3D — kompletne nogi i półka");
+            table.transform.SetParent(room,false);
+            var components=prefab.GetComponentsInChildren<Transform>(true);
+            foreach(var prefix in new[]{"CookingTable.001_","CookingTable_Bolts1.001_",
+                "CookingTable_Bolts2.001_","CookingTable_Legs.001_","CookingTable_Shelf.001_"})
+            {
+                var original=components.FirstOrDefault(t=>
+                    t.name.StartsWith(prefix,StringComparison.OrdinalIgnoreCase));
+                if(!original)throw new InvalidOperationException(
+                    "Brak oryginalnej części CookingTable w stołówce: "+prefix);
+                var part=Object.Instantiate(original.gameObject,table.transform,false);
+                var full=table.transform.worldToLocalMatrix*original.localToWorldMatrix;
+                part.transform.localPosition=full.GetColumn(3);
+                part.transform.localRotation=full.rotation;
+                part.transform.localScale=full.lossyScale;
+            }
             var renderers=table.GetComponentsInChildren<Renderer>(true);
             if(renderers.Length==0)throw new InvalidOperationException("Oryginalny stół bez geometrii");
             Bounds Bounds()
