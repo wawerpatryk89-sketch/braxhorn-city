@@ -7,6 +7,7 @@ preprocessor conditionals (both alternatives are parsed, not compiled).
 Lambda/local-function declaration spaces are independent, as in Unity 6 C#.
 """
 import argparse
+import re
 from collections import defaultdict
 from pathlib import Path
 
@@ -26,6 +27,21 @@ SPACES = {'block', 'for_statement', 'foreach_statement', 'using_statement',
           'fixed_statement', 'catch_clause', 'switch_body'}
 LOCAL_PARENTS = {'local_declaration_statement', 'for_statement',
                  'using_statement', 'fixed_statement'}
+
+# Minimal symbol-resolution preflight for the exact Unity 6 compilation
+# failures observed in estate runs #42231496594 and #42236342801. The parser
+# ignores comments and string literals; this is NOT a complete C# type checker.
+USING_SYSTEM = re.compile(r'^\s*(?:global\s+)?using\s+System\s*;', re.MULTILINE)
+USING_UNITY = re.compile(r'^\s*(?:global\s+)?using\s+UnityEngine\s*;', re.MULTILINE)
+USING_DIAGNOSTICS = re.compile(r'^\s*(?:global\s+)?using\s+System\.Diagnostics\s*;', re.MULTILINE)
+SYSTEM_TYPES = {
+    'StringComparison': 'CS0103', 'InvalidOperationException': 'CS0246',
+    'ArgumentException': 'CS0246', 'ArgumentNullException': 'CS0246',
+    'NotSupportedException': 'CS0246', 'Exception': 'CS0246',
+    'StringComparer': 'CS0103', 'StringSplitOptions': 'CS0103',
+    'Guid': 'CS0246', 'TimeSpan': 'CS0246', 'DateTime': 'CS0246',
+    'BitConverter': 'CS0103', 'Convert': 'CS0103',
+}
 
 
 def walk(node):
@@ -85,6 +101,40 @@ def check_source(source, filename='<source>'):
                 if left[0] in right or right[0] in left:
                     code = 'CS0128/CS0136'
                     errors.append(f'{filename}:{line}: {code}: local {spelling!r} conflicts with declaration at line {other_line}')
+
+    # Unqualified types used without their System namespace, or conflicting
+    # UnityEngine / .NET names, previously escaped this preflight entirely.
+    source_text = data.decode('utf-8')
+    has_system = bool(USING_SYSTEM.search(source_text))
+    has_unity = bool(USING_UNITY.search(source_text))
+    has_diagnostics = bool(USING_DIAGNOSTICS.search(source_text))
+    aliases = set(re.findall(
+        r'^\s*(?:global\s+)?using\s+([A-Za-z_][A-Za-z_0-9]*)\s*=',
+        source_text, re.MULTILINE))
+    name_types = {'class_declaration', 'struct_declaration', 'enum_declaration',
+                  'interface_declaration', 'record_declaration'}
+    for node in walk(root):
+        if node.type != 'identifier':
+            continue
+        symbol = data[node.start_byte:node.end_byte].decode('utf-8')
+        if symbol in aliases:
+            continue
+        # E.g. System.InvalidOperationException and UnityEngine.Object do
+        # not need an imported namespace and are never ambiguous.
+        prefix = data[:node.start_byte].rstrip()
+        if prefix.endswith(b'.') or prefix.endswith(b'::'):
+            continue
+        if any(p.type in {'using_directive', 'comment', 'string_literal'} for p in parents(node)):
+            continue
+        if node.parent and node.parent.type in name_types and node.parent.child_by_field_name('name') == node:
+            continue
+        line = node.start_point.row + 1
+        if symbol in SYSTEM_TYPES and not has_system:
+            errors.append(f'{filename}:{line}: {SYSTEM_TYPES[symbol]}: unqualified {symbol} requires using System; or System.{symbol}')
+        if symbol in {'Object', 'Random'} and has_system and has_unity:
+            errors.append(f'{filename}:{line}: CS0104: {symbol} ambiguous between System and UnityEngine; use an explicit alias or fully qualified name')
+        if symbol == 'Debug' and has_diagnostics and has_unity:
+            errors.append(f'{filename}:{line}: CS0104: Debug ambiguous between System.Diagnostics and UnityEngine; use an explicit alias')
     return errors
 
 

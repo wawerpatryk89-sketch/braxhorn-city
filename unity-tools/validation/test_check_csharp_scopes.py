@@ -53,6 +53,29 @@ class ScopeTests(unittest.TestCase):
     def test_malformed_source_is_not_accepted(self):
         self.assertTrue(check_source('class A { void M( {'))
 
+    def test_unity_cs0104_object_collision_with_system(self):
+        broken = 'using System;\nusing UnityEngine;\nclass A { void M(){ Object.DestroyImmediate(x); } }'
+        messages = check_source(broken)
+        self.assertTrue(any('CS0104' in x and 'Object' in x for x in messages))
+        fixed = 'using System;\nusing UnityEngine;\nusing Object = UnityEngine.Object;\nclass A { void M(){ Object.DestroyImmediate(x); } }'
+        self.assertFalse(check_source(fixed))
+        qualified = 'using System;\nusing UnityEngine;\nclass A { void M(){ UnityEngine.Object.DestroyImmediate(x); } }'
+        self.assertFalse(check_source(qualified))
+
+    def test_unity_cs0103_and_cs0246_missing_system_import(self):
+        broken = 'using UnityEngine;\nclass A { void M(){ var t = StringComparison.Ordinal; throw new InvalidOperationException(); } }'
+        messages = check_source(broken)
+        self.assertTrue(any('StringComparison' in x for x in messages))
+        self.assertTrue(any('InvalidOperationException' in x for x in messages))
+        fixed = 'using System;\nusing UnityEngine;\nclass A { void M(){ var t = StringComparison.Ordinal; throw new InvalidOperationException(); } }'
+        self.assertFalse(check_source(fixed))
+        qualified = 'using UnityEngine;\nclass A { void M(){ var t = System.StringComparison.Ordinal; throw new System.InvalidOperationException(); } }'
+        self.assertFalse(check_source(qualified))
+
+    def test_namespace_checker_ignores_strings_and_comments(self):
+        program = 'using UnityEngine;\nclass A { void M(){ // InvalidOperationException\n string t = "StringComparison and Object"; } }'
+        self.assertFalse(check_source(program))
+
 
 if __name__ == '__main__':
     unittest.main()
