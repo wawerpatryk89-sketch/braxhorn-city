@@ -37,6 +37,7 @@ jobs:
             unity-tools/mistrzowie/prepare_pool_p1_slide.py
             unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
             unity-tools/mistrzowie/import_pool_p1_owner_assets.py
+            unity-tools/mistrzowie/verify_pool_p1_model_geometry.py
             unity-tools/mistrzowie/unpack_a1_t11_nested_release.py
             unity-tools/mistrzowie/import_champion_assets.py
             unity-tools/mistrzowie/import_selected_a1_t11.py
@@ -70,6 +71,7 @@ jobs:
           gh api -H "Accept: application/octet-stream" \
             "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" > "$RUNNER_TEMP/$asset_name"
           python3 unity-tools/mistrzowie/import_pool_p1_owner_assets.py "$RUNNER_TEMP/$asset_name" --dry-run
+          python3 unity-tools/mistrzowie/verify_pool_p1_model_geometry.py "$RUNNER_TEMP/$asset_name"
           echo "P1_ORIGINAL_OWNER_ZIP_SHA256_GUIDS_CRC_PASS - no import side effects"
       - name: Diagnose shared A1/T11 original release assets (metadata only)
         env:
