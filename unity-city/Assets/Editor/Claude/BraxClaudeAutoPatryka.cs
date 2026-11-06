@@ -77,6 +77,13 @@ public static partial class BraxClaudeOsiedle
         var hips=kosci.First(t=>PatrykKosc(t.name)=="Hips");
         var spine=kosci.FirstOrDefault(t=>PatrykKosc(t.name)=="Spine"); var head=kosci.FirstOrDefault(t=>PatrykKosc(t.name)=="Head");
         var skora=GlowaWierzcholki(player.visual.GetComponentsInChildren<SkinnedMeshRenderer>(true).Where(r=>r.sharedMesh),head);
+        // Bez rzeczywistych wierzchołków głowy ZapasPozy() nie ma czego
+        // mierzyć: zapas pozostaje +Infinity, więc wcześniej dopuszczał
+        // Patryka nawet z głową przebijającą dach samochodu.
+        if (skora.Count == 0 || skora.Sum(s => s.v.Length) < 8)
+            throw new InvalidOperationException(
+                "BRAXHORN_AUTO_PATRYKA: nie udało się zmierzyć rzeczywistej skóry głowy Patryka; " +
+                "zabronione dopasowanie auta z niezweryfikowanym prześwitem dachu");
         Vector3 hipsOffset;
         var kandydaci=new List<(AutoSzablon t,bool drzwi,WynikKabiny w,bool miesci,string opis)>();
         var dosuniecieFotela=new Dictionary<AutoSzablon,float>();
