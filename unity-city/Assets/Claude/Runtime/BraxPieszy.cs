@@ -296,11 +296,23 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         return false;
     }
 
+    readonly RaycastHit[] trafieniaPrzeszkod = new RaycastHit[16];
     bool Przeszkoda(Vector3 dir, float dl)
     {
-        if (!Physics.SphereCast(transform.position + Vector3.up * 1.0f, .22f, dir, out var hit, dl, ~0, QueryTriggerInteraction.Ignore)) return false;
-        if (gracz && hit.transform.IsChildOf(gracz)) return false;
-        return !hit.transform.IsChildOf(transform);
+        if (dir.sqrMagnitude < 1e-6f || dl <= 0f) return false;
+        // The closest cast hit can be the pedestrian's own collider or the player.
+        // Check EVERY hit so a wall behind either is not silently ignored.
+        int n = Physics.SphereCastNonAlloc(transform.position + Vector3.up, .22f, dir.normalized,
+            trafieniaPrzeszkod, dl, ~(1 << 29), QueryTriggerInteraction.Ignore);
+        if (n == trafieniaPrzeszkod.Length) return true; // saturated buffer: fail safely
+        for (int k = 0; k < n; k++)
+        {
+            var hit = trafieniaPrzeszkod[k].collider;
+            if (!hit || hit.transform.IsChildOf(transform)) continue;
+            if (gracz && hit.transform.IsChildOf(gracz)) continue;
+            return true;
+        }
+        return false;
     }
     bool Zajete(Vector3 p) => Physics.CheckCapsule(p + Vector3.up * .45f, p + Vector3.up * 1.5f, .24f, ~0, QueryTriggerInteraction.Ignore) && !TylkoJa(p);
     bool TylkoJa(Vector3 p)
@@ -371,10 +383,17 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         if (Time.time > nastObejrzenie) { patrzCel = patrzCel > .5f ? 0f : 1f; nastObejrzenie = Time.time + (patrzCel > .5f ? .6f : Random.Range(1.2f, 2.2f)); }
         if (gracz) patrzNa = gracz.position;
         Obroc(dir, dt, 7f);
-        var p = transform.position + transform.forward * predkoscUcieczki * dt;
-        if (Time.time > nastGrunt) { nastGrunt = Time.time + .3f; p.y = Grunt(p, p.y); } else p.y = transform.position.y;
-        transform.position = p;
-        Kroki(predkoscUcieczki * dt * .7f);
+        float droga = predkoscUcieczki * dt;
+        var p = transform.position + transform.forward * droga;
+        // Avoid crossing a thin wall between frames, or landing inside a car or another NPC.
+        // If blocked, try a fresh escape direction next frame rather than teleporting through it.
+        if (!Przeszkoda(transform.forward, droga + .2f) && !Zajete(p))
+        {
+            if (Time.time > nastGrunt) { nastGrunt = Time.time + .3f; p.y = Grunt(p, p.y); } else p.y = transform.position.y;
+            transform.position = p;
+            Kroki(droga * .7f);
+        }
+        else nastSprawdz = 0f;
         bool daleko = !gracz || od.magnitude > 20f;
         if (Time.time > doKiedy || daleko)
         {
