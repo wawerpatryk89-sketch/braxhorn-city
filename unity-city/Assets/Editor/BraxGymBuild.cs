@@ -378,6 +378,9 @@ public static class BraxGymBuild
             // Długa ulica R1 → rondo/Aleja Północna → supermarket:
             // tylko raport fizyki po globalnych kolizjach, bez blokowania APK.
             BraxMiastoOdbior.SprawdzGlownaUliceR1DoSklepu(regionNova);
+            // Każdy publiczny lokal ul. Portowej oraz Tower: wejście -> hol -> winda -> pokoje -> taras.
+            // Sondy po korekcie colliderów; wyłącznie raport, nigdy blokada APK.
+            BraxMiastoOdbior.SprawdzLokalePortowejITowerPoKolizjach(regionNova);
         }
         catch(Exception e){Debug.LogWarning("BRAXHORN_NOVA_R1_PO_KOLIZJACH AUDYT_DO_POPRAWKI "+e.Message);}
         // P0.1 (2.11 23:05, „metro nie do wejścia”): obce kolizje w przejściach stacji wyłączone + test przejścia obu wejść
