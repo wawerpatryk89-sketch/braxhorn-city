@@ -13,6 +13,7 @@ from pathlib import Path
 import re
 import struct
 import zipfile
+from repair_pool_p1_towels import UnsafeTowelUvConversion, derive_safe_uv_import, sha256 as towel_sha256
 
 ROOT=Path(__file__).resolve().parents[2]
 ARCHIVE_NAME="P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip"
@@ -21,6 +22,11 @@ MODEL_PREFIX="unity-city/Assets/Source/Mistrzowie/PoolP1/OwnerEquipment/"
 SIGN_PREFIX="unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/"
 ALLOWED_DIRS=(MODEL_PREFIX,SIGN_PREFIX)
 SOURCE_SIGN_NAMES=("P1_BASEN_BASEN_MIEJSKI.png","P1_SPA_SPA_WELLNESS.png")
+TOWEL_ASSET=MODEL_PREFIX+"stack_of_towels_2k.glb"
+# Outside Unity Assets: byte-for-byte owner original; only the safe copy is
+# exposed to glTFast inside Assets, with the original stable owner .meta GUID.
+TOWEL_BACKUP="unity-city/OriginalSources/Mistrzowie/PoolP1/stack_of_towels_2k.glb"
+TOWEL_REPORT="mistrzowie-evidence/p1-towels-uv-import.json"
 
 def sha(data):
     return hashlib.sha256(data).hexdigest()
@@ -71,19 +77,54 @@ def verify(archive:Path):
         return {name:z.read(name) for name in assets}
 
 def install(archive:Path,dry_run=False,destination=ROOT):
-    assets=verify(archive)
+    original_assets=verify(archive)
+    # Do not modify the signed owner ZIP or any original mesh/material/texture.
+    # The towel GLB is NOT placed in the mobile scene (94k triangles). However
+    # Unity pre-imports every file in Assets; unreferenced UV2/UV3 broke that
+    # import. Build a safe derived import with the owner's unchanged GUID.
+    assets=dict(original_assets)
+    original=original_assets.get(TOWEL_ASSET)
+    if original is None:
+        raise ValueError("P1 owner towel source absent from verified original ZIP")
+    try:
+        compatible,towel_report=derive_safe_uv_import(original)
+    except UnsafeTowelUvConversion as error:
+        # The asset is optional and not instantiated anywhere in P1. Do not
+        # destroy or visually downgrade it: report and leave its bytes intact.
+        compatible=original
+        towel_report={
+            "status":"MANUAL_UV_REVIEW_REQUIRED_ORIGINAL_IMPORT_RETAINED",
+            "warning":str(error),
+            "originalSha256":towel_sha256(original),
+            "importSha256":towel_sha256(original),
+            "originalBinaryChunksPreserved":True,
+            "originalTexturesPreserved":True,
+        }
+    assets[TOWEL_ASSET]=compatible
+    assets[TOWEL_BACKUP]=original
+    towel_report["placedInMobileScene"]=False
+    towel_report["ownerSourcePreservedOutsideUnityAssets"]=True
+    towel_report["unityTested"]=False
     pending=[]
-    for path,contents in sorted(assets.items()):
+    root=destination.resolve()
+    for path,contents in sorted(assets.items(),key=lambda x:(x[0]!=TOWEL_BACKUP,x[0])):
         file=(destination/path).resolve()
-        if not file.is_relative_to(destination.resolve()):
+        if not file.is_relative_to(root):
             raise ValueError("Unsafe P1 asset path")
         if file.exists():
-            if sha(file.read_bytes())!=sha(contents):
-                raise ValueError("Refuse to replace an existing Unity source/GUID: "+path)
-        else:pending.append((file,contents))
+            actual=sha(file.read_bytes())
+            if actual!=sha(contents):
+                # Permit ONLY the byte-for-byte owner original -> derived
+                # import transition after recording its separate original.
+                if path!=TOWEL_ASSET or actual!=sha(original):
+                    raise ValueError("Refuse to replace an existing Unity source/GUID: "+path)
+                pending.append((file,contents))
+        else:
+            pending.append((file,contents))
     if dry_run:
         print("P1_OWNER_ASSETS_DRY_RUN_PASS originals=16 pending="+str(len(pending))+
-              " signPng=2 sourceModelDataPreserved=yes")
+              " signPng=2 sourceModelDataPreserved=yes"+
+              " towelImport="+towel_report["status"])
         return
     for file,contents in pending:
         file.parent.mkdir(parents=True,exist_ok=True)
@@ -91,9 +132,14 @@ def install(archive:Path,dry_run=False,destination=ROOT):
         try:
             temporary.write_bytes(contents)
             os.replace(temporary,file)
-        finally:temporary.unlink(missing_ok=True)
+        finally:
+            temporary.unlink(missing_ok=True)
+    # Manifest is evidence, NOT a gate on geometry/visual quality.
+    report=(destination/TOWEL_REPORT)
+    report.parent.mkdir(parents=True,exist_ok=True)
+    report.write_text(json.dumps(towel_report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print("P1_OWNER_ASSETS_IMPORTED originals=16 installed="+str(len(pending))+
-          " verifiedOriginalSigns=2 UnityRun=no")
+          " verifiedOriginalSigns=2 UnityRun=no towelImport="+towel_report["status"])
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser(description=__doc__)
