@@ -409,6 +409,7 @@ jobs:
             build/ObozAndroid/release-identity.json
             build/ObozAndroid/build-receipt.json
             build/ObozAndroid/scene-validation.json
+            build/ObozAndroid/collider-review.json
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
@@ -467,6 +468,11 @@ jobs:
           compression-level: 0
           retention-days: 14
       - name: Zapis niezmiennych plików APK do istniejącego draft release
+        # The signed and verified APK is already saved as a downloadable
+        # workflow artifact; GitHub Release upload errors are not compile
+        # errors and must not fail the job after the long Unity build.
+        if: ${{ steps.apk_backup.outcome == 'success' }}
+        continue-on-error: true
         run: |
           python3 unity-tools/oboz/publish_apk.py \
             --folder build/ObozAndroid \
@@ -512,11 +518,14 @@ jobs:
         run: python3 unity-tools/updates/durable_cache.py upload --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
       - name: Raport i logi z tego uruchomienia
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: oboz-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             build/ObozAndroid/*.json
+            build/CampLifeReview/navigation-review.json
+            build/QualityReview/*.json
             unity-city/Logs/
           if-no-files-found: ignore
           retention-days: 14
