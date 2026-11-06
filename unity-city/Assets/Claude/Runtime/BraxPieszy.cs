@@ -290,8 +290,11 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         {
             if (!a) continue;
             var d = srodek - a.transform.position; d.y = 0f; float m = d.magnitude;
-            if (m < 3.5f || m > 16f) continue;                       // stoi tuż przed zebrą (czeka na pieszych) albo daleko
-            if (Vector3.Dot(a.transform.forward, d / m) > .55f) return true;   // jedzie w stronę przejścia
+            if (m > 16f) continue;
+            // A car within 3.5 m must be ignored ONLY if it has actually stopped to yield.
+            // Previously all cars this close were skipped, including moving ones.
+            if (m < 3.5f && a.PredkoscAktualna < .2f) continue;
+            if (m < .01f || Vector3.Dot(a.transform.forward, d / m) > .55f) return true;
         }
         return false;
     }
