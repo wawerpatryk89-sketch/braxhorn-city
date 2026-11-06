@@ -306,24 +306,70 @@ internal static class BraxMiastoBillboardy
         postawione++; opis.Add(nr + " citylight @" + p.ToString("F0") + " (" + gdzie + ")" + (mat == pusta ? " PUSTA RAMA" : ""));
     }
 
-    // Tylko billboard/mural nr 19 na ceglanym fragmencie obok szarej ściany.
-    // Usuwa starszą grupę wygenerowaną pod złą elewacją, NIE usuwa innych reklam.
+    // Tylko historyczna tablica z grafiką przy szarej ścianie: x=9.8..14.4.
+    // Może pochodzić zarówno z renowacji, jak i z oryginalnej siatki miasta.
+    // Nie kasujemy ceglanej ściany, witryn, drzwi ani żadnej innej reklamy.
     static int UsunBilbord19PrzySzarejScianie(Transform cityRoot)
     {
-        var kandydaci = cityRoot.GetComponentsInChildren<Transform>(true)
-            .Where(t => t && t != cityRoot &&
+        var korzenie = new[] { cityRoot, BraxClaudeGround.SourceCity }
+            .Where(t => t).Distinct().ToArray();
+        var widoczne = korzenie.SelectMany(t => t.GetComponentsInChildren<Renderer>(true))
+            .Where(r => r && r.enabled)
+            .Distinct().ToArray();
+        bool WObszarze(Renderer r)
+        {
+            var b = r.bounds;
+            return b.center.x >= 9.5f && b.center.x <= 14.8f &&
+                   Mathf.Abs(b.center.z - 20.6f) < .8f &&
+                   b.center.y < 6.5f && b.size.x > .65f && b.size.x < 5.5f &&
+                   b.size.y > .65f && b.size.y < 5.3f && b.size.z < .8f;
+        }
+        bool Reklama(Renderer r)
+        {
+            string name = r.name.ToLowerInvariant();
+            if (name == "mural_19" || name.Contains("billboard") ||
+                name.Contains("poster") || name.Contains("plakat") ||
+                name.Contains("artwork")) return true;
+            foreach (var mat in r.sharedMaterials)
+            {
+                if (!mat) continue;
+                string mn = mat.name.ToLowerInvariant();
+                string tn = mat.mainTexture ? mat.mainTexture.name.ToLowerInvariant() : "";
+                string path = mat.mainTexture ? AssetDatabase.GetAssetPath(mat.mainTexture).ToLowerInvariant() : "";
+                if (mn.Contains("billboard_19") || mn.Contains("mural_19") ||
+                    mn.Contains("original artwork") || tn == "19" ||
+                    tn.Contains("brand-poster") || tn.Contains("billboard") ||
+                    path.Contains("/billboardy/19.") || path.Contains("/brand-poster.")) return true;
+            }
+            return false;
+        }
+        // Stara grupa 19 miała własną ramę i lampy. Usuń całość, o ile zawiera
+        // panel właśnie w tej zatoce ceglanej; nie dotykaj innych grup sceny.
+        var grupy = korzenie.SelectMany(t => t.GetComponentsInChildren<Transform>(true))
+            .Where(t => t &&
                 (t.name.StartsWith("BRAXHORN mural 19 (", StringComparison.Ordinal) ||
-                 t.name == "mural_19" ||
                  t.name.StartsWith("BRAXHORN nośnik: billboard 19", StringComparison.Ordinal)))
-            .Where(t => t.GetComponentsInChildren<Renderer>(true).Any(r =>
-                r && r.bounds.center.x >= 9.5f && r.bounds.center.x <= 14.8f &&
-                Mathf.Abs(r.bounds.center.z - 20.6f) < .8f &&
-                r.bounds.center.y < 6.5f))
-            .ToList();
-        var minimalne = kandydaci.Where(t => !kandydaci.Any(p => p != t && t.IsChildOf(p))).ToArray();
-        foreach (var t in minimalne) if (t) UnityEngine.Object.DestroyImmediate(t.gameObject);
-        Debug.Log("BRAXHORN_MURAL_19 usuniety_stary_bilbord=" + minimalne.Length + " (ceglany fragment, pozostale reklamy bez zmian)");
-        return minimalne.Length;
+            .Where(t => t.GetComponentsInChildren<Renderer>(true).Any(WObszarze))
+            .Distinct().ToArray();
+        var glowne = grupy.Where(t => !grupy.Any(p => p != t && t.IsChildOf(p))).ToArray();
+        int usuniete = 0;
+        foreach (var t in glowne)
+            if (t) { UnityEngine.Object.DestroyImmediate(t.gameObject); usuniete++; }
+
+        // Osobne płaskie plakaty, których grupa nie miała historycznej nazwy.
+        // Ważne: wymagamy nazwy/materialu grafiki i wymiaru tablicy; nie wycinamy
+        // jakichkolwiek trójkątów zwykłej ceglanej elewacji.
+        foreach (var r in widoczne)
+        {
+            if (!r || !WObszarze(r) || !Reklama(r)) continue;
+            if (r.transform.GetComponentInChildren<MeshRenderer>(true) != r &&
+                r.GetComponent<MeshFilter>() == null) continue;
+            UnityEngine.Object.DestroyImmediate(r.gameObject);
+            usuniete++;
+        }
+        Debug.Log("BRAXHORN_MURAL_19 usuniete_plakaty_z_ceglanej_zatoki=" + usuniete +
+                  " (x=9.5..14.8, bez zmian poza ta sciana)");
+        return usuniete;
     }
 
     // ---------------- mural 19 NA ELEWACJI BRAXHORN GYM: bez tablicy, ramy i słupków ----------------
