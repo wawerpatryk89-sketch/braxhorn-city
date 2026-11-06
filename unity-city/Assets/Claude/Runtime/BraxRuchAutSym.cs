@@ -683,6 +683,12 @@ public sealed class BraxRuchAutSym
             float acc = (a.vCel - a.v) / (a.vCel < a.v ? .3f : .6f);   // hamowanie szybciej niż przyspieszanie
             acc = Mathf.Clamp(acc, -7.5f, a.v < 4f ? PrzyspDuze : PrzyspMale);
             float v = Mathf.Max(0f, a.v + acc * dt);
+            // The vehicle can enter a tighter curve between 0.1 s decision ticks.
+            // Enforce the authored corner cap at both ends of this movement step.
+            // This also avoids the old 30 overspeed samples in the 600 s QA route.
+            if (vZakret > 0f && (Krzywizna(a.trasa, a.s) > 1f / 25f
+                || Krzywizna(a.trasa, a.s + v * dt) > 1f / 25f))
+                v = Mathf.Min(v, vZakret);
             float ds = v * dt;
             if (ds > a.zapas) { ds = a.zapas; v = Mathf.Min(v, ds / dt); }
             if (ds > 1e-5f)
