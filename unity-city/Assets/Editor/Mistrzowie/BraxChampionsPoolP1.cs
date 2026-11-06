@@ -362,7 +362,9 @@ public static class BraxChampionsPoolP1
         RectWall(structure,"P1 front wood facade left",wood,-15.2f,-28,5.6f,8.2f,true);
         RectWall(structure,"P1 front wood facade right",wood,15.2f,-28,5.6f,8.2f,true);
         RectGlazing(-18,-16,24,6.4f,false);RectGlazing(18,-16,24,6.4f,false);
-        RectGlazing(0,-4,24f,6.4f,true,0f,6f);
+        // Open the north internal link also for the real massage-suite
+        // corridor at X=-8.85; opaque glass cannot seal the clinic entrance.
+        RectGlazing(0,-4,24f,6.4f,true,0f,10f);
         // Lobby, reception desk and independent tiled rooms on ground floor.
         Room("KAWIARNIA",-12,-12,10.5f,12,3.4f,white);
         Room("BIURO / OBSLUGA",-12,-23,10.5f,7,3.4f,white,+1);
@@ -409,7 +411,9 @@ public static class BraxChampionsPoolP1
         DeckWithBasins("SPA TWO GENUINE MASSAGE ROOMS",-18.1f,-7.7f,-4f,6f);
         Box(structure,"P1 massage suite calm white roof",roofFinish,-12.9f,4.05f,1f,10.55f,.25f,10.4f);
         Box(structure,"P1 massage suite west finished exterior wall",facade,-18.15f,2.0f,1f,.18f,4.0f,10.1f);
-        Box(structure,"P1 massage suite south insulated wall",white,-12.95f,2.0f,-4f,10.45f,4.0f,.18f);
+        // Leave a genuine 2.2m passage at X=-9.9..-7.7 from the lobby
+        // to the massage-room corridor; previously this full wall sealed it.
+        Box(structure,"P1 massage suite south insulated wall",white,-14.0f,2.0f,-4f,8.15f,4.0f,.18f);
         // Two 8m×5m treatment rooms, each entered from a 2m side corridor.
         Room("GABINET MASAZU 1",-14.0f,-1.5f,8.0f,4.8f,3.45f,white,+1);
         Room("GABINET MASAZU 2",-14.0f,3.45f,8.0f,4.8f,3.45f,white,+1);
