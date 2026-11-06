@@ -82,7 +82,11 @@ public static partial class BraxClaudeOsiedle
             Guard("warsztat: auto na podnośniku", () => WarsztatAuto(szablony));
             Guard("autobusy (E23): linie A i B, przystanki na trasie", Autobusy);
         }
-        else rep.notes.Add("DO POPRAWKI: żaden model auta nie przygotowany");
+        else
+        {
+            string brak = "BŁĄD w kroku auta: nie udało się przygotować żadnego modelu z prawdziwymi kołami";
+            rep.notes.Add(brak); Debug.LogError("BRAXHORN_AUTA " + brak);
+        }
         UnityEngine.Object.DestroyImmediate(tmp.gameObject);
     }
 
