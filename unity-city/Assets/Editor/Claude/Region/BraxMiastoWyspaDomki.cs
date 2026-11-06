@@ -232,11 +232,28 @@ internal static partial class BraxMiastoWyspa
                 var p = c + rg * k * 1.5f * K; float y0 = Mathf.Max(Y(p.x - .7f, p.z - .7f), Y(p.x + .7f, p.z + .7f), Y(p.x + .7f, p.z - .7f), Y(p.x - .7f, p.z + .7f)) + .12f;
                 float s = 1.25f * K * .5f, h = 2.2f * K;
                 z[legar].Box(new Vector3(p.x, y0 - .3f, p.z), new Vector3(s * 2f + .1f, .6f, s * 2f + .1f), rot);                       // podest (do piasku)
+                var bazaPrzebieralni = new Vector3(p.x, y0, p.z);
                 foreach (var (o, sz) in new[] { (new Vector3(-s, h * .5f, 0), new Vector3(.06f, h, s * 2f)), (new Vector3(s, h * .5f, 0), new Vector3(.06f, h, s * 2f)), (new Vector3(0, h * .5f, -s), new Vector3(s * 2f, h, .06f)) })
-                    z[drewno].Box(new Vector3(p.x, y0, p.z) + rot * o, sz, rot);
-                z[drzwi].Box(new Vector3(p.x, y0, p.z) + rot * new Vector3(0, .25f + (h - .5f) * .5f, s - .03f), new Vector3(s * 2f - .1f, h - .5f, .05f), rot);   // drzwiczki (prześwit 25 cm u dołu, jak w budkach)
-                z[dach].Box(new Vector3(p.x, y0, p.z) + rot * new Vector3(0, h + .05f, 0), new Vector3(s * 2f + .3f, .1f, s * 2f + .3f), rot);
-                BraxNabrzeze.Kol(kol, "Przebieralnia", new Vector3(p.x, y0 + h * .5f, p.z), new Vector3(s * 2f, h, s * 2f), rot.eulerAngles.y);
+                {
+                    var scianaP = bazaPrzebieralni + rot * o;
+                    z[drewno].Box(scianaP, sz, rot);
+                    BraxNabrzeze.Kol(kol, "Przebieralnia sciana", scianaP, sz, rot.eulerAngles.y);
+                }
+                // Uchylone na zewnatrz skrzydlo i prawdziwy otwor do srodka
+                // zamiast calej, niewidzialnej kolizji przez przebieralnie.
+                var zawiasP = bazaPrzebieralni - rg * (s - .05f) + fw * (s - .03f);
+                var skrzydloP = zawiasP + fw * (s - .05f);
+                var obrotP = Quaternion.LookRotation(rg, Vector3.up);
+                z[drzwi].Box(skrzydloP + Vector3.up * (h * .5f), new Vector3(s * 2f - .1f, h - .5f, .05f), obrotP);
+                BraxNabrzeze.KolRot(kol, "Przebieralnia otwarte drzwi",
+                    skrzydloP + Vector3.up * (h * .5f),
+                    new Vector3(s * 2f - .1f, h - .5f, .05f), obrotP);
+                z[dach].Box(bazaPrzebieralni + Vector3.up * (h + .05f), new Vector3(s * 2f + .3f, .1f, s * 2f + .3f), rot);
+                BraxNabrzeze.Kol(kol, "Przebieralnia podloga", bazaPrzebieralni - Vector3.up * .04f,
+                    new Vector3(s * 2f, .08f, s * 2f), rot.eulerAngles.y);
+                wejsciaDomkow.Add(("PRZEBIERALNIA " + nPrzebieralnie,
+                    bazaPrzebieralni + fw * (s + .4f),
+                    bazaPrzebieralni - fw * .35f));
                 Zajmij(p, 1.4f); nPrzebieralnie++;
             }
             BraxUliceKit.Napis3D("PRZEBIERALNIE", c + Vector3.up * (2.2f * K + .45f) + fw * (1.25f * K * .5f + .2f), fw, .18f, .02f, BraxMiastoA.Mat("Wyspa: litery białe", new Color(.95f, .95f, .93f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
@@ -250,15 +267,53 @@ internal static partial class BraxMiastoWyspa
             float y0 = W; for (float a = -1; a <= 1; a += 1) for (float b = -1; b <= 1; b += 1) { var q = c + rg * a * w * .5f + fw * b * d * .5f; y0 = Mathf.Max(y0, Y(q.x, q.z)); }
             y0 += .15f; float yMin = Mathf.Min(Y(c.x - w, c.z - d), Y(c.x + w, c.z + d), Y(c.x, c.z)) - .3f;
             z[BraxNabrzeze.Kolor("Wyspa: cokół WC (beton)", new Color(.6f, .6f, .58f), .9f)].Box(new Vector3(c.x, (yMin + y0) * .5f, c.z), new Vector3(w + .1f, y0 - yMin, d + .1f), rot);
-            z[tynk].Box(new Vector3(c.x, y0 + h * .5f, c.z), new Vector3(w, h, d), rot);
-            z[dach].Box(new Vector3(c.x, y0 + h + .08f, c.z), new Vector3(w + .6f, .16f, d + .6f), rot);
+            Vector3 Wc(float x, float y, float zz) => new Vector3(c.x, y0, c.z) + rg * x + Vector3.up * y + fw * zz;
+            void ScianaWC(string nazwa, Vector3 srodek, Vector3 rozmiar)
+            {
+                z[tynk].Box(srodek, rozmiar, rot);
+                BraxNabrzeze.Kol(kol, "WC plazy " + nazwa, srodek, rozmiar, rot.eulerAngles.y);
+            }
+            // Cztery realne sciany zamiast pelnej bryly. Dwa przejscia w scianie
+            // frontowej maja rzeczywiste oscieza, a nie tylko namalowane drzwi.
+            ScianaWC("tyl", Wc(0f, h * .5f, -d * .5f), new Vector3(w, h, .12f));
+            foreach (float o in new[] { -1f, 1f })
+                ScianaWC("bok", Wc(o * w * .5f, h * .5f, 0f), new Vector3(.12f, h, d));
+            float szerWC = .9f * K, wysWC = 2.1f * K, poczWC = -w * .5f;
+            foreach (float x in new[] { -w * .25f, w * .25f })
+            {
+                float x0 = x - szerWC * .5f, x1 = x + szerWC * .5f;
+                if (x0 > poczWC + .01f)
+                    ScianaWC("front", Wc((poczWC + x0) * .5f, h * .5f, d * .5f),
+                        new Vector3(x0 - poczWC, h, .12f));
+                ScianaWC("nad drzwiami", Wc(x, (wysWC + h) * .5f, d * .5f),
+                    new Vector3(szerWC, h - wysWC, .12f));
+                poczWC = x1;
+            }
+            if (poczWC < w * .5f - .01f)
+                ScianaWC("front", Wc((poczWC + w * .5f) * .5f, h * .5f, d * .5f),
+                    new Vector3(w * .5f - poczWC, h, .12f));
+            // Podloga obu pomieszczen, bez pudelkowego collidera zaslaniajacego drzwi.
+            z[tynk].Box(Wc(0f, .02f, 0f), new Vector3(w - .2f, .04f, d - .2f), rot);
+            BraxNabrzeze.Kol(kol, "WC plazy podloga", Wc(0f, 0f, 0f),
+                new Vector3(w, .08f, d), rot.eulerAngles.y);
+            ScianaWC("przegroda", Wc(0f, h * .5f, -.16f),
+                new Vector3(.10f, h, d - .32f));
+            z[dach].Box(Wc(0f, h + .08f, 0f), new Vector3(w + .6f, .16f, d + .6f), rot);
             foreach (float o in new[] { -1f, 1f })
             {
-                var dp = new Vector3(c.x, y0, c.z) + rg * o * w * .25f + fw * (d * .5f + .025f);
-                z[drzwi].Box(dp + Vector3.up * 1.05f * K, new Vector3(.9f * K, 2.1f * K, .05f), rot);
+                var dp = Wc(o * w * .25f, 0f, d * .5f + .025f);
+                var zawiasWC = dp - rg * (szerWC * .5f - .02f);
+                var otwarteWC = zawiasWC + fw * (szerWC * .5f);
+                var obrotWC = Quaternion.LookRotation(rg, Vector3.up);
+                z[drzwi].Box(otwarteWC + Vector3.up * (wysWC * .5f),
+                    new Vector3(szerWC, wysWC, .05f), obrotWC);
+                BraxNabrzeze.KolRot(kol, "WC plazy otwarte drzwi",
+                    otwarteWC + Vector3.up * (wysWC * .5f),
+                    new Vector3(szerWC, wysWC, .05f), obrotWC);
                 BraxUliceKit.Napis3D(o < 0 ? "WC DAMSKI" : "WC MĘSKI", dp + Vector3.up * (2.1f * K + .25f) + fw * .02f, fw, .16f, .015f, BraxMiastoA.Mat("Wyspa: litery granat", new Color(.1f, .16f, .3f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
+                wejsciaDomkow.Add((o < 0 ? "WC DAMSKI" : "WC MESKI",
+                    dp + fw * .7f, dp - fw * .85f));
             }
-            BraxNabrzeze.Kol(kol, "WC plaży", new Vector3(c.x, y0 + h * .5f, c.z), new Vector3(w, h, d), rot.eulerAngles.y);
             Zajmij(c, Mathf.Max(w, d) * .7f);
             Miejsca["wyspa_wc"] = c + fw * (d * .5f + 1.2f);
         }
