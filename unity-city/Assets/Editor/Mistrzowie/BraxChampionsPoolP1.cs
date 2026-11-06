@@ -557,6 +557,8 @@ public static class BraxChampionsPoolP1
         for(int i=0;i<n;i++)
         {
             float a=(i+.5f)*2*Mathf.PI/n;
+            // Two real curb-free parking entries at EAST and WEST.
+            if(Mathf.Abs(Mathf.Cos(a))>.92f)continue;
             var o=Box(t,"Roundabout curb stone segment",material,x+radius*Mathf.Cos(a),y,z+radius*Mathf.Sin(a),
                 .25f,.17f,1.4f,false);
             o.transform.localRotation=Quaternion.Euler(0,-a*Mathf.Rad2Deg,0);
@@ -569,6 +571,11 @@ public static class BraxChampionsPoolP1
         Box(parking,"P1 WEST asphalt parking surface 2K",asphalt,-44,.195f,-44,68,.13f,28);
         Box(parking,"P1 EAST asphalt parking surface 2K",asphalt,44,.195f,-44,68,.13f,28);
         Box(parking,"P1 SOUTH / MAIN DRIVE from existing Z70 street",asphalt,0,.195f,-78,12,.13f,70);
+        // Actual connected asphalt spurs: the 4m gaps between the south
+        // arrival road and the two parking banks previously made both lots
+        // physically inaccessible to a vehicle.
+        Box(parking,"P1 WEST parking access connected to roundabout",asphalt,-8f,.195f,-43f,4.2f,.13f,8f);
+        Box(parking,"P1 EAST parking access connected to roundabout",asphalt,8f,.195f,-43f,4.2f,.13f,8f);
         Box(outdoors,"P1 front entrance pedestrian piazza PBR HERRINGBONE",patternPaving,0,.28f,-29f,40f,.15f,9f);
         Box(outdoors,"P1 main pedestrian leading path HERRINGBONE",patternPaving,0,.28f,-35.5f,8f,.13f,8f);
         // 4 rows of cars divided in two banks; one reserved bay stays clear -> 95.
@@ -578,7 +585,9 @@ public static class BraxChampionsPoolP1
                 {
                     if(bank==1&&row==1&&i==23)continue;
                     float x=(bank==0?-73f:11f)+(i+.5f)*2.55f;
-                    float z=row==0?-50.5f:-35.5f;
+                    // Keep 1.7m separation from the pedestrian piazza;
+                    // maintain an 8.4m parking aisle between front/rear rows.
+                    float z=row==0?-52f:-38f;
                     float front=row==0?z+2.85f:z-2.85f;
                     Box(parking,"P1 marked stall "+(parked+1)+" left line",paint,x-1.22f,.278f,z,.075f,.015f,5.6f,false);
                     Box(parking,"P1 marked stall "+(parked+1)+" head line",paint,x,.280f,front,2.45f,.014f,.075f,false);
