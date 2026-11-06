@@ -31,6 +31,9 @@ public static class BraxObozActors
             player.clips = player.visual.GetComponent<Animation>(); player.body = monikaBody;
             player.bags = Array.Empty<Transform>(); player.cityWorld = world; player.worldSpawn = hero.transform.position;
             player.buildId = "OBOZ_RECOVERY_REVIEW_NOT_RELEASE"; world.player = player; info.player = player;
+            // Camp-only foot contact at Idle. No modification of Monika FBX,
+            // skeleton, baked clips, camera or CharacterController.
+            hero.AddComponent<BraxObozIdleFootContact>().player=player;
             BraxObozServices.BindPlayer(info);
             foreach(var gate in info.GetComponentsInChildren<BraxObozSlidingGate>(true)) gate.player=player;
             player.ConfigureCamera(3.5f, monikaBody.height*.62f);
@@ -105,7 +108,10 @@ public static class BraxObozActors
         if (Physics.Raycast(origin, Vector3.down, out RaycastHit ground, 7f*K, ~(1<<8), QueryTriggerInteraction.Ignore))
         {
             var at = root.transform.position;
-            root.transform.position = new Vector3(at.x, ground.point.y + .025f*K, at.z);
+            // Old 2.5 cm gap produced a visibly floating idle silhouette.
+            // Keep only 4 mm of capsule floor clearance; the visual-foot
+            // component corrects small animated mesh offsets separately.
+            root.transform.position = new Vector3(at.x, ground.point.y + .004f*K, at.z);
         }
         else Debug.LogWarning("BRAXHORN_OBOZ_SPAWN bez podloza: " + spec.name);
         return root;
