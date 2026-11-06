@@ -36,6 +36,10 @@ on:
         type: string
         required: false
         default: 'champions-a1-20261105'
+      p1_assets_tag:
+        type: string
+        required: false
+        default: 'p1-basen-spa-20261106'
   workflow_dispatch:
     inputs:
       commit:
@@ -72,6 +76,11 @@ on:
         type: string
         required: false
         default: 'champions-a1-20261105'
+      p1_assets_tag:
+        description: 'P1 BASEN+SPA: tag approved private owner asset Release'
+        type: string
+        required: false
+        default: 'p1-basen-spa-20261106'
 permissions:
   contents: write
   actions: read
@@ -97,12 +106,13 @@ jobs:
           # Running this from the older Arena-only/main workflow must stop.
           combined = 'gpt/miasto-mistrzow-kasyno-t11-20261105'
           current = os.environ.get('GITHUB_REF', '').removeprefix('refs/heads/')
-          if current != combined:
+          integrated = 'gpt/miasto-mistrzow-a1-t11-p1-integracja-20261106'
+          if current not in (combined, integrated):
               raise SystemExit('Wybierz Run workflow -> Use workflow from: ' + combined +
                                '. Nie buduj starszej osobnej areny ani main.')
           sha = os.environ['GITHUB_SHA'].lower()
           selected = os.environ.get('SOURCE_COMMIT', '').strip()
-          if selected and selected not in (combined,sha):
+          if selected and selected not in (current,sha):
               raise SystemExit('Tylko wspolny aktualny commit A1+T11: ' + sha)
           value = sha
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
@@ -131,6 +141,8 @@ jobs:
             unity-tools/updates
             unity-tools/validation
             .github/workflows/mistrzowie-apk.yml
+            .github/workflows/mistrzowie-unity6-smoke.yml
+            .github/workflows/mistrzowie-unity6-apk-update.yml
             unity-tools/claude/prywatne.py
             unity-tools/claude/import_patryk_transfer.py
             unity-tools/claude/import_patryk_animations.py
@@ -264,6 +276,33 @@ jobs:
         run: |
           python3 unity-tools/mistrzowie/prepare_promenade_atlas.py
 
+      - name: Import EXACT original P1 BASEN+SPA equipment and two owner signs (before Unity)
+        env:
+          P1_SOURCE_TAG: ${{ inputs.p1_assets_tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          zip_name="P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip"
+          if ! [[ "$P1_SOURCE_TAG" =~ ^[A-Za-z0-9._-]{3,100}$ ]]; then
+            echo "::error::Invalid/missing owner P1 asset release tag"
+            exit 1
+          fi
+          releases="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")"
+          asset_id="$(printf '%s' "$releases" | jq -r \
+            --arg tag "$P1_SOURCE_TAG" --arg file "$zip_name" \
+            '[.[]|select(.tag_name==$tag)|.assets[]?|select(.name==$file)|.id] | if length==1 then .[0] else empty end')"
+          if [ -z "$asset_id" ]; then
+            echo "::error::Exactly one owner-approved original P1 ZIP is required"
+            exit 1
+          fi
+          gh api -H "Accept: application/octet-stream" \
+            "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" > "$RUNNER_TEMP/$zip_name"
+          python3 unity-tools/mistrzowie/import_pool_p1_owner_assets.py "$RUNNER_TEMP/$zip_name" --dry-run
+          python3 unity-tools/mistrzowie/import_pool_p1_owner_assets.py "$RUNNER_TEMP/$zip_name"
+          test -s unity-city/Assets/Source/Mistrzowie/PoolP1/OwnerEquipment/hot-tub-original-exterior-model.glb
+          test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/P1_BASEN_BASEN_MIEJSKI.png
+          test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/P1_SPA_SPA_WELLNESS.png
+          echo "P1_ORIGINAL_ASSET_GATE PASS; no replacement GLBs, no changes to A1/T11/port"
       - name: Verify key and sign a real tiny APK before the expensive Unity build
         if: inputs.etap != 'sceny'
         env:
@@ -304,6 +343,12 @@ jobs:
         with:
           path: unity-city/Assets/Source/Mistrzowie/CasinoT11/Textures2K
           key: mistrzowie-casino-t11-2k-${{ hashFiles('unity-tools/mistrzowie/prepare_casino_textures_2k.py') }}
+      - name: Cache original P1 Poly Haven PBR 2K textures
+        continue-on-error: true
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: unity-city/Assets/Source/Mistrzowie/PoolP1/Textures2K
+          key: mistrzowie-pool-p1-2k-${{ hashFiles('unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py') }}
       - name: Cache original Poly Haven 2K promenade stock
         continue-on-error: true
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
@@ -321,6 +366,8 @@ jobs:
           python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
           python3 unity-tools/mistrzowie/audit_metro.py
           python3 unity-tools/mistrzowie/prepare_assets.py
+          python3 unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
+          python3 unity-tools/mistrzowie/prepare_pool_p1_slide.py
           # New T11 surfaces ONLY: fetch original Poly Haven native 2K, no 1K/4K.
           python3 unity-tools/mistrzowie/prepare_casino_textures_2k.py
           python3 unity-tools/mistrzowie/prepare_casino_vegetation_2k.py
