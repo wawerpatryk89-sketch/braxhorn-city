@@ -274,6 +274,9 @@ public static partial class BraxClaudeOsiedle
                 if (sb < 0f) continue;
                 lista.Add(new BraxAutobus.Przystanek { nazwa = p.nazwa, s = Mathf.Max(0f, sb - drzwiPrzod), wiata = p.c + Vector3.up * .14f });
             }
+            if (lista.Count == 0)
+                rep.notes.Add("DO POPRAWKI: " + nazwa +
+                    " nie ma żadnego przystanku na swojej trasie — brak funkcjonalnej komunikacji");
             bus.przystanki = lista.OrderBy(q => q.s).ToArray(); bus.s = 0f;
             var f0 = pts[1] - pts[0]; f0.y = 0f; bus.transform.position = pts[0]; if (f0.sqrMagnitude > 1e-6f) bus.transform.rotation = Quaternion.LookRotation(f0.normalized);
             // kontrola: środek autobusu i narożniki przodu na jezdni (próbki co 2 m, limit 2000)
