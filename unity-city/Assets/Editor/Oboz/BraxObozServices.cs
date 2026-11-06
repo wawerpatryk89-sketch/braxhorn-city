@@ -99,10 +99,14 @@ public static class BraxObozServices
             new Vector3(-4.0f,.24f,2.6f),new Vector3(2.35f,2.30f,2.4f));
         OwnerFixture(room,"glass-food-display-showcase-with-trays.glb",
             new Vector3(3.35f,.24f,2.5f),new Vector3(2.05f,1.6f,1.2f));
+        // picnic_set_1.glb is a BENCH (FNPC0101_Timber_bench),
+        // not a table. Pair genuine owner benches with cooking tables.
         OwnerFixture(room,"picnic_set_1.glb",
-            new Vector3(-2.45f,.24f,-1.2f),new Vector3(1.95f,.85f,2.35f));
+            new Vector3(-2.45f,.24f,-2.52f),new Vector3(1.95f,.85f,.64f));
         OwnerFixture(room,"picnic_set_1.glb",
-            new Vector3(2.45f,.24f,-1.2f),new Vector3(1.95f,.85f,2.35f));
+            new Vector3(2.45f,.24f,-2.52f),new Vector3(1.95f,.85f,.64f));
+        OwnerFieldDiningTable(room,new Vector3(-2.45f,.24f,-1.20f));
+        OwnerFieldDiningTable(room,new Vector3(2.45f,.24f,-1.20f));
         // Real owner cutlery, cookware and serving tray, positioned by
         // the ORIGINAL surfaces of the kitchen model (not arbitrary float Y).
         OwnerOnExistingSurface(room,kitchen,"CookingTable_Shelf",
@@ -113,8 +117,62 @@ public static class BraxObozServices
             new Vector3(-.34f,0,-.13f));
         OwnerOnExistingSurface(room,kitchen,"PortableStove_Grate_L",
             "stockpot.glb",new Vector3(.43f,.37f,.43f),Vector3.zero);
-        Debug.Log("BRAXHORN_OBOZ_CANTEEN: oryginalna kuchnia GLB, witryna i 2 komplety stołowe; "+
+        Debug.Log("BRAXHORN_OBOZ_CANTEEN: oryginalna kuchnia GLB, witryna, 2 prawdziwe stoły i 2 ławki GLB; "+
             "przejścia i miejsca siedzące wymagają testu Unity Play Mode");
+    }
+
+    static GameObject OwnerFieldDiningTable(Transform room,Vector3 bottomCenter)
+    {
+        const string path="Assets/Source/Prywatne/Oboz/OwnerAssets/kitchen_-_assets.glb";
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        if(!source)throw new InvalidOperationException("Brak właścicielskiego stołu polowego GLB");
+        var prefab=PrefabUtility.InstantiatePrefab(source) as GameObject;
+        if(!prefab)throw new InvalidOperationException("Nie można utworzyć kuchni źródłowej");
+        try
+        {
+            var original=prefab.GetComponentsInChildren<Transform>(true)
+                .FirstOrDefault(t=>t.name.StartsWith("CookingTable.001_",StringComparison.OrdinalIgnoreCase));
+            if(!original)throw new InvalidOperationException(
+                "Brak oryginalnego CookingTable w przekazanym zestawie polowym");
+            var full=room.worldToLocalMatrix*original.localToWorldMatrix;
+            var table=Object.Instantiate(original.gameObject,room,false);
+            table.name="Oryginalny stół polowy 3D — nie drewniana atrapa";
+            table.transform.localPosition=full.GetColumn(3);
+            table.transform.localRotation=full.rotation;
+            table.transform.localScale=full.lossyScale;
+            var renderers=table.GetComponentsInChildren<Renderer>(true);
+            if(renderers.Length==0)throw new InvalidOperationException("Oryginalny stół bez geometrii");
+            Bounds Bounds()
+            {
+                var b=renderers[0].bounds;
+                foreach(var r in renderers.Skip(1))b.Encapsulate(r.bounds);
+                return b;
+            }
+            var bounds=Bounds();
+            if(bounds.size.x<.0001f||bounds.size.y<.0001f||bounds.size.z<.0001f)
+                throw new InvalidOperationException("Zerowy rozmiar źródłowego stołu");
+            var targetSize=new Vector3(1.65f,.90f,.92f)*1.294f;
+            float uniform=Mathf.Min(targetSize.x/bounds.size.x,
+                Mathf.Min(targetSize.y/bounds.size.y,targetSize.z/bounds.size.z));
+            if(float.IsNaN(uniform)||uniform<=0)throw new InvalidOperationException("Niepoprawna skala stołu");
+            table.transform.localScale*=uniform;
+            bounds=Bounds();
+            var target=room.TransformPoint(bottomCenter);
+            table.transform.position+=new Vector3(
+                target.x-bounds.center.x,target.y-bounds.min.y,target.z-bounds.center.z);
+            if(!table.GetComponentInChildren<Collider>())
+            {
+                var body=table.AddComponent<BoxCollider>();
+                bounds=Bounds();
+                var scale=table.transform.lossyScale;
+                body.center=table.transform.InverseTransformPoint(bounds.center);
+                body.size=new Vector3(bounds.size.x/Mathf.Max(.001f,Mathf.Abs(scale.x)),
+                    bounds.size.y/Mathf.Max(.001f,Mathf.Abs(scale.y)),
+                    bounds.size.z/Mathf.Max(.001f,Mathf.Abs(scale.z)));
+            }
+            return table;
+        }
+        finally{ Object.DestroyImmediate(prefab); }
     }
 
     // Place original owner models directly on a measured imported FBX/GLB
