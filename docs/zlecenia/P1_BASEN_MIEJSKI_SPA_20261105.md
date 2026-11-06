@@ -40,10 +40,10 @@ Stan: **kod źródłowy i kontrole statyczne**; nie jest to zapis z fizycznego t
 
 ## Nowa decyzja właściciela — 5/6 listopada 2026: woda i pływanie
 - Poprzedni zakaz wody **został odwołany**. W basenie sportowym, rodzinnym i dziecięcym są animowane, niebieskie powierzchnie wody (`BraxChampionsPoolP1Water.Basin` i shader `Braxhorn/ChampionsP1PoolWater`).
-- Baseny 25m i rodzinny mają oddzielne **trigger volumes** i lokalną dla Miasta Mistrzów wyporność/ruch w `BraxGymPlayer`; brodzik płytki pozostaje do brodzenia. To implementacja w kodzie, **bez testu faktycznego pływania w Unity/Androidzie**.
+- Baseny 25m i rodzinny mają oddzielne **trigger volumes** z globalnym komponentem `BraxSwimmingZone` i wspólną obsługą w `BraxGymPlayer`. Brodzik płytki pozostaje do brodzenia. To źródłowa integracja P1, **bez testu działania w Unity/Androidzie**. Pozostałe rejony potrzebują podłączenia odpowiednich stref do swych akwenów.
 - Wizualna woda to cienka bezkolizyjna powierzchnia; dno i ściany zachowują fizyczne kolizje. Nie dodawać pełnej płaszczyzny wody poza obrysem niecki, bo zakryje posadzki i będzie migotała.
 - Efekt jacuzzi ma już gotowy tryb `_Bubbles=1` (krople/piana/poruszanie powierzchni), lecz **nie ma jeszcze oryginalnego modelu jacuzzi w tej rozmowie**. Przezroczystą wodę montuje się dopiero wewnątrz prawdziwej, dostarczonej wanny `BraxChampionsPoolP1Water.Jacuzzi(...)`, po sprawdzeniu rzeczywistych wymiarów i linii brzegowej. Nie tworzyć fałszywej wanny.
-- Animacja pływacka Braxa nie została dostarczona ani potwierdzona. Na dziś ruch i wyporność wykorzystują bazowe animacje `Walk`/`Idle` w wodzie; to **nie jest** zatwierdzona animacja pływacka.
+- **Nie tworzyć ani nie zmieniać animacji.** Oryginalne klipy, rig i sterowanie eksploracją pozostają bez zmian. Mechanika wejścia w wodę działa na poziomie wspólnego kontrolera; wykorzystanie istniejących klipów pływania właściciela wymaga osobnej weryfikacji źródeł, bez wymuszania nowych.
 - Odbiór dopiero po udanym Unity 6: widok przez szkło (czy widać wodę), wejście do basenu, unoszenie postaci, wyjście, brak przechodzenia przez dno, brak migotania wody i podłogi; potem test Android FPS, pamięci i dotyku. Żadne budowanie APK nie zostało zlecone.
 
 ## Zjeżdżalnia — wykonanie ze źródła właściciela
@@ -53,7 +53,7 @@ Stan: **kod źródłowy i kontrole statyczne**; nie jest to zapis z fizycznego t
 - Z GLB zachowujemy rzeczywiste koryto zjeżdżalni, podporę, bramkę startową i obrys zbiornika zjazdowego. Usuwamy importowane tło plażowe/palmy, dekoracyjne napisy i wodę niskiej jakości. Koryto otrzymuje odrębne wykończenie jasnego niebieskiego laminatu.
 - W miejscu zabawkowych schodów/podestu tworzymy **18 fizycznych stopni**, właściwy podest na podporach, poręcze, zabezpieczenia po bokach, dojście z nawierzchnią PBR; zmiany są oddzielone od oryginalnego prefabowego modelu, co umożliwia późniejszą podmianę bez prucia hali.
 - Zbiornik odbiorczy korzysta z projektu `Braxhorn/ChampionsP1PoolWater` (falująca turkusowa woda). Zmniejszono długość tylnej ścieżki i pominięto kolidujące donice, żeby uniknąć nachodzących powierzchni. `BraxChampionsPoolP1Water.SlideLanding` nie dodaje nieprawdziwej geometrrii zjeżdżalni.
-- **Granica:** brak przeprowadzonego testu interakcji i animacji zjazdu; fizyczne schody oraz koryto same w sobie nie oznaczają jeszcze, że Brax może wykonać animowany, sterowany zjazd. Weryfikacja po kompilacji Unity/Android; nie uruchamiać APK bez decyzji właściciela.
+- **Granica:** nie realizujemy animacji zjazdu ani logiki atrakcji na tym etapie; celem są poprawna architektura, dojście, podest i wykończenia. Weryfikacja konstrukcji po kompilacji Unity/Android; nie uruchamiać APK bez decyzji właściciela.
 
 ## Nowe przesłane modele — audyt źródeł
 - `sauna_product_model.glb`: 6 osadzonych map 2048×2048 — dobry kandydat do finalnego montażu.
@@ -64,3 +64,10 @@ Stan: **kod źródłowy i kontrole statyczne**; nie jest to zapis z fizycznego t
 - `Sun-lounger+FBX.zip`: zawiera FBX, bez odrębnych map źródłowych w archiwum; dopasować potwierdzone Poly Haven PBR 2K.
 - `luxury-modern-spa-interior-scene-sketchup.zip`: 93 MB, przede wszystkim scena `.skp` i obrazy, nie należy jej automatycznie wstawiać do Unity. Dopiero po ekstrakcji/konwersji i weryfikacji wnętrza.
 - Fizycznych plików przesłanych wyłącznie do rozmowy nie da się uznać za zaimportowane w GitHub CI; potrzebny jest rzeczywisty plik w pobieralnym, uprawnionym źródle. Podawane punkty montażowe nie są dowodem instalacji modeli.
+
+## GLOBALNE PŁYWANIE — dyspozycja właściciela z 5/6 listopada 2026
+- Pływanie jest **globalną funkcją sterowanej postaci** w całym BRAXHORN CITY, nie specyficzną animacją ani systemem basenu P1.
+- Wspólny `BraxGymPlayer` zawiera stan wejścia/wyjścia ze strefy wody i lekką wyporność. Każdy rejon może użyć `BraxSwimmingZone` na swojej wodzie (P1 wykorzystuje adapter `BraxChampionsPoolSwimVolume` z zachowanym GUID), bez kopiowania kontrolera lub animacji.
+- System **nie zmienia** istniejących klipów ruchu, wsiadania do samochodu, łodzi ani sterowania kamerą; wejście do strefy wody jest ignorowane podczas siedzenia/podróży łodzią.
+- Ten commit integruje strefy basenów P1. **Pozostałe akweny miasta, wysp i innych rejonów nie są jeszcze podłączone do globalnego systemu stref** — wymaga to ich oddzielnego audytu i montażu, nie deklarujemy działania pływania wszędzie przed testem.
+- Obowiązują obecne ustalenia: na tym etapie priorytet to teren, pełna geometria i wykończenia 3D. Animator i nowe klipy pozostają poza zakresem, kontroler ma służyć zwiedzaniu do wykrywania błędów. 
