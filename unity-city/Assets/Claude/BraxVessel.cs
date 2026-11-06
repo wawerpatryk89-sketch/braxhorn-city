@@ -26,10 +26,12 @@ public sealed class BraxVessel : MonoBehaviour
     public float sitLower = .95f;         // awaryjny offset gdy rig nie ma Hips
     public bool walkableDeck;             // jacht: etap wejścia na pokład przed sterowaniem
     public Vector3 deckEntry;            // lokalny punkt wejścia na pokład, nie woda
-    public Vector3 helmCameraLocal;      // kamera wewnętrzna za kołem sterowym
+    public Vector3 helmCameraLocal;      // kamera za kołem sterowym (jacht i motorówka)
+    public Transform leftGrip, rightGrip; // rzeczywiste uchwyty kierownicy / steru (dzieci modelu lub markery)
+    public Vector3 helmTargetLocal;       // oś fizycznej kierownicy do audytu pozy sternika
     public bool IsOnDeck => rider && walkableDeck && onDeck;
     public bool AtHelm => rider && (!walkableDeck || !onDeck);
-    public bool HasPilotCamera => rider && walkableDeck && !onDeck;
+    public bool HasPilotCamera => rider && AtHelm && label != "SKUTER";
     public Vector3 moor;                  // gdzie pojazd stoi zacumowany
     public float moorYaw;
     public Vector3 wejscie;               // miejsce wejścia (lokalnie): przy burcie od pomostu albo za rufą; zero = środek
@@ -108,8 +110,11 @@ public sealed class BraxVessel : MonoBehaviour
             player.clips.Play("Idle");
         }
         if (sit)
-            BraxPose.Get(player).Set(label == "SKUTER" ?
-                BraxPose.Mode.Ride : BraxPose.Mode.Ster, transform);
+        {
+            var pose = BraxPose.Get(player);
+            pose.Set(label == "SKUTER" ? BraxPose.Mode.Ride : BraxPose.Mode.Ster, transform);
+            pose.SetGrips(leftGrip, rightGrip);
+        }
         Debug.Log("BRAXHORN_LODZ_FOTEL " + label + " hip=" +
             hip.ToString("F2") + "m, siedzenie_local=" + seat.ToString("F2") +
             ", root_local=" + player.transform.localPosition.ToString("F2"));
@@ -131,6 +136,7 @@ public sealed class BraxVessel : MonoBehaviour
             player.transform.localPosition = deckEntry;
             player.transform.localRotation = Quaternion.identity;
             BraxPose.Get(player).Set(BraxPose.Mode.None, null);
+            BraxPose.Get(player).SetGrips(null, null);
             if (player.clips && player.clips["Idle"] != null)
             {
                 player.clips["Idle"].speed = 1f;
