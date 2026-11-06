@@ -1,6 +1,7 @@
 name: P1 BASEN + SPA - source/import smoke (no Unity/APK)
 
-# Runs ONCE on creation, or manually later. Other builds are not queued.
+# Runs on this narrow workflow-file change only. No APK/Unity minutes.
+# Rerun after fixing the CI-identified water-test NameError.
 on:
   push:
     branches:
