@@ -56,7 +56,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_pool_p1_*.py' -v
-          python3 -m py_compile unity-tools/mistrzowie/import_pool_p1_owner_assets.py unity-tools/mistrzowie/prepare_pool_p1_slide.py
+          python3 -m py_compile unity-tools/mistrzowie/import_pool_p1_owner_assets.py unity-tools/mistrzowie/prepare_pool_p1_slide.py unity-tools/mistrzowie/verify_pool_p1_model_geometry.py
           echo "P1_STATIC_CONTRACTS_PASS - no Unity Editor, no APK"
       - name: C# source syntax and local-variable scope audit (P1 only)
         run: |
