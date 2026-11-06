@@ -157,7 +157,7 @@ public static partial class BraxClaudeOsiedle
             }
 
             // --- klipy przeniesione na kości Patryka ---
-            var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek) };
+            var klipy = new List<AnimationClip>();
             var opis = new List<string>();
             // Osiedle: ruchy zwiedzania nie potrzebuja retargetingu Humanoid ani ciosow.
             // W buildzie #95 Walk FBX nie zawieral wymaganych krzywych Hips.
@@ -188,6 +188,10 @@ public static partial class BraxClaudeOsiedle
                     throw new InvalidOperationException("Patryk: brak prawidłowego klipu " + k.nazwa);
                 klipy.Add(gotowy);
             }
+            // Stałe Idle wyłącznie z jednej naturalnej klatki właściciela Walk.
+            // Nie używamy bind-pose/T-pose modelu (w poprzednim APK ramiona ~83°).
+            var wlascicielWalk = klipy.FirstOrDefault(c => c.name == "Walk");
+            klipy.Insert(0, PatrykSpokojny(hero, spoczynek, wlascicielWalk));
             // Cały ruch kierowcy pochodzi z FBX Patryka. Jego końcową pozę
             // wsiadania zachowujemy jako CarIdle, zamiast obracać kości ręcznie.
             var wejsciePatryka = klipy.FirstOrDefault(c => c.name == "EnteringCar");
