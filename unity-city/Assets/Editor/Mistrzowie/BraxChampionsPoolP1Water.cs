@@ -100,20 +100,29 @@ public static class BraxChampionsPoolP1Water
 
     public static void Jacuzzi(Transform approvedModel,string sourceId,float rimHeightInMetres,float surfaceWidth,float surfaceDepth)
     {
-        // Called after the actual owner jacuzzi FBX/GLB has been imported and
-        // measured. No 'floating water' on an absent bathtub. The existing
-        // SPA room receives this water when its model has passed validation.
         if(!approvedModel)throw new ArgumentNullException(nameof(approvedModel));
-        if(surfaceWidth<=.2f||surfaceDepth<=.2f)throw new ArgumentOutOfRangeException("jacuzzi water dimensions");
-        var water=GameObject.CreatePrimitive(PrimitiveType.Quad);
-        water.name=sourceId+" | owner jacuzzi water, animated splashes and foam";
-        water.transform.SetParent(approvedModel,false);
-        water.transform.localPosition=new Vector3(0,rimHeightInMetres-.14f,0);
-        water.transform.localRotation=Quaternion.Euler(-90,0,0);
-        water.transform.localScale=new Vector3(surfaceWidth,surfaceDepth,1f);
-        var renderer=water.GetComponent<MeshRenderer>();
-        renderer.sharedMaterial=MaterialFor("OWNER_JACUZZI_"+sourceId,true);
-        renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;
-        UnityEngine.Object.DestroyImmediate(water.GetComponent<Collider>());
-    }
-}
+        if(surfaceWidth<=.2f||surfaceDepth<=.2f)
+            throw new ArgumentOutOfRangeException(nameof(surfaceWidth));
+        // Use the water mesh that is ALREADY part of the owner's genuine
+        // jacuzzi GLB as the exact dimensional/positioning authority.
+        // Hide its original opaque water; otherwise it would draw over the
+        // turquoise animated project shader and cause Z-fighting.
+        Transform original=null;
+        foreach(var child in approvedModel.GetComponentsInChildren<Transform>(true))
+            if(child.name=="Spa water surface"){original=child;break;}
+        if(!original)throw new InvalidOperationException(
+            "Original owner jacuzzi has no named Spa water surface: "+approvedModel.name);
+        var sourceRenderer=original.GetComponent<Renderer>();
+        if(!sourceRenderer)throw new InvalidOperationException(
+            "Original owner jacuzzi has no water-surface renderer: "+approvedModel.name);
+        var measured=sourceRenderer.bounds;
+        var parent=approvedModel.parent;
+        if(!parent)throw new InvalidOperationException("Original jacuzzi placement needs a parent");
+        var local=parent.InverseTransformPoint(measured.center)/K;
+        var width=Mathf.Min(surfaceWidth,measured.size.x/K-.035f);
+        var depth=Mathf.Min(surfaceDepth,measured.size.z/K-.035f);
+        if(width<=.2f||depth<=.2f)throw new InvalidOperationException(
+            "Approved original jacuzzi source water bounds are invalid");
+        original.gameObject.SetActive(false);
+        Jacuzzi(parent,sourceId,local,new Vector2(width,depth));
+    }}
