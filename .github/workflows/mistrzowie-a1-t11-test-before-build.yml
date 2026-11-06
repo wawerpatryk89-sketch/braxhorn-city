@@ -4,7 +4,7 @@ name: "Miasto Mistrzów A1+T11 — testy przed APK (BEZ UNITY)"
 # Audit repeated after LIVE 21-map/2-model Poly Haven source validation passed (without Unity).
 # Pre-Unity source readiness: source files, real 3D geometry, all owner signs and Mixamo clips.
 # Post-audit check: all original murals preserve source dimensions; Android mipmaps advisory.
-# Integration-only source audit: port, beach, K1..K12 and user's 3x4 original atlas (no Unity).
+# Integration-only source audit: port, beach, K1..K12, owner atlas and five physical metro stations (no Unity).
 # Re-run after preserving the T11 physical garage cutout with the added marina and kiosk terrain.
 # Regression: Foundation 4K original maps are verified by SOURCE dimensions; Android Texture2D sizing is advisory.
 # Regression: A1 belt-case owner plaque source pixels remain 1536x512 across mobile importer overrides.
@@ -12,7 +12,7 @@ name: "Miasto Mistrzów A1+T11 — testy przed APK (BEZ UNITY)"
 # quality gates, never deploys, uploads assets or moves a branch.
 on:
   push:
-    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
+    branches: [gpt/miasto-mistrzow-metro5-final-20261106]
     paths:
       - '.github/workflows/mistrzowie-a1-t11-test-before-build.yml'
   workflow_dispatch:
@@ -20,7 +20,7 @@ permissions:
   contents: read
 jobs:
   code-preflight:
-    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-metro5-final-20261106'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -101,7 +101,7 @@ jobs:
     # The job performs only GET requests; no release uploads or mutations.
     permissions:
       contents: write
-    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-metro5-final-20261106'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
