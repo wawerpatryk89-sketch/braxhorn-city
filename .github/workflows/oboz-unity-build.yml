@@ -124,24 +124,38 @@ jobs:
             echo 'Brak poprzedniego APK obozu. Pierwsza instalacja wymaga jawnego first_install.'
             exit 1
           fi
-      - name: Zgodna baza poprzedniego APK obozu #18
+      - name: Zweryfikuj poprzednie APK obozu bez sztywnego przypisania do #18
         if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         env:
           PREVIOUS: ${{ runner.temp }}/previous/release-identity.json
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, os
+          import json, os, re
           from pathlib import Path
           old=Path(os.environ["PREVIOUS"])
-          assert old.is_file(), "Brak ostatniego APK #18"
+          if not old.is_file(): raise ValueError("Brak istniejącej tożsamości APK obozu — stop przed Unity")
           info=json.loads(old.read_text())
-          assert info.get("applicationId")=="com.braxhorn.oboz", "Zly identyfikator"
-          assert info.get("versionCode")==216024998, "Baza inna niz #18"
-          assert info.get("sourceCommit")=="e2ee759be31532fa283a3dd7e3f98acb12e9f256", "Inny commit"
-          assert info.get("sourceRun")==41983757537, "Inny run"
-          assert int(Path("unity-city/braxhorn.versioncode").read_text())>216024998, "Zbyt niska wersja"
-          print("BRAXHORN_OBOZ_APK18_BASE_CHECK=PASS; in-place signed APK update")
+          if info.get("applicationId")!="com.braxhorn.oboz":
+              raise ValueError("Niepoprawny identyfikator poprzedniego obozu")
+          code=info.get("versionCode")
+          if type(code) is not int or code<216024998:
+              raise ValueError("Poprzedni APK obozu starszy niż zaakceptowana baza #18")
+          certificate=info.get("signingCertificateSha256","")
+          if not re.fullmatch(r"[0-9a-fA-F]{64}",certificate):
+              raise ValueError("Brak niezmiennego certyfikatu podpisu bazowego APK")
+          commit=info.get("sourceCommit","")
+          if not re.fullmatch(r"[0-9a-fA-F]{40}",commit):
+              raise ValueError("Nieprawidłowy SHA źródła poprzedniego APK")
+          run=info.get("sourceRun")
+          if type(run) is not int or run<=0:
+              raise ValueError("Brak numeru oryginalnego runu poprzedniego APK")
+          next_version=int(Path("unity-city/braxhorn.versioncode").read_text().strip())
+          if next_version<=code:
+              raise ValueError("Nowa wersja APK nie zwiększa versionCode")
+          print("BRAXHORN_OBOZ_COMPATIBLE_BASE=PASS previousVersion="+str(code)+
+                " newVersion="+str(next_version)+" source="+commit+
+                " signedIdentity=present; APK signing match checked after compilation")
           PY
       - name: Odszyfrowanie wyłącznie zasobów obozu i kontrola SHA-256
         env:
