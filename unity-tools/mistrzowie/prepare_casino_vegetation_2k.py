@@ -90,7 +90,7 @@ def prepare():
         for name,ref in filenames.items():
             path=dest/name
             path.parent.mkdir(parents=True,exist_ok=True)
-             content=path.read_bytes() if path.exists() else get(ref["url"])
+            content=path.read_bytes() if path.exists() else get(ref["url"])
             checksum=verified(content,ref,name)
             if not path.exists():path.write_bytes(content)
             rows.append({"file":str(path.relative_to(ROOT/"unity-city")),"sha256":checksum,
