@@ -382,6 +382,22 @@ internal static class BraxMiastoOdbior
         else Debug.Log(raport + " KOD_GOTOWY_DO_TESTU");
     }
 
+    // Tylko kontrolowane, ruchome skrzydła mogą być pomijane podczas audytu.
+    // Inny collider pod automatem (np. pełne niewidzialne pudło z importu)
+    // musi być zgłoszony — samo znalezienie komponentu drzwi nie wystarcza.
+    static bool KontrolowaneSkrzydlo(Collider col)
+    {
+        if (!col) return false;
+        var d = col.GetComponentInParent<BraxDrzwiPrzesuwne>();
+        if (!d || d.skrzydla == null || d.blokady == null ||
+            d.przesuniecie == null || d.skrzydla.Length < 2 ||
+            d.blokady.Length != d.skrzydla.Length ||
+            d.przesuniecie.Length != d.skrzydla.Length ||
+            d.skrzydla.Any(t => !t) || d.blokady.Any(b => !b)) return false;
+        return d.blokady.Contains(col) &&
+            d.skrzydla.Any(t => col.transform == t || col.transform.IsChildOf(t));
+    }
+
     // R1 6.11: wyjątkowo krótka, nieblokująca kontrola PO dołożeniu
     // wtórnych colliderów przez BraxKontrola.Wszystko(). Starszy audyt
     // obejmował tylko 4 próbki samego progu, nie dojście do sali klubu.
@@ -441,7 +457,7 @@ internal static class BraxMiastoOdbior
                     if (!c || !c.enabled || c.isTrigger ||
                         c.GetComponentInParent<BraxGymPlayer>() ||
                         c.GetComponentInParent<BraxCityDoor>() ||
-                        c.GetComponentInParent<BraxDrzwiPrzesuwne>() ||
+                        KontrolowaneSkrzydlo(c) ||
                         c.GetComponentInParent<BraxDrzwiAutomatyczne>()) continue;
                     blokady++;
                     if (blokady <= 6) Debug.LogWarning(
@@ -508,7 +524,7 @@ internal static class BraxMiastoOdbior
                 if (!c || !c.enabled || c.isTrigger ||
                     c.GetComponentInParent<BraxGymPlayer>() ||
                     c.GetComponentInParent<BraxCityDoor>() ||
-                    c.GetComponentInParent<BraxDrzwiPrzesuwne>()) continue;
+                    KontrolowaneSkrzydlo(c)) continue;
                 przeszkody++;
                 if (przeszkody <= 12)
                     Debug.LogWarning("BRAXHORN_MIESZKANIE_BRAXA_TRASA PRZESZKODA " +
@@ -584,7 +600,7 @@ internal static class BraxMiastoOdbior
             {
                 if (!c || !c.enabled || c.isTrigger ||
                     c.GetComponentInParent<BraxGymPlayer>() ||
-                    c.GetComponentInParent<BraxDrzwiPrzesuwne>()) continue;
+                    KontrolowaneSkrzydlo(c)) continue;
                 // Zwykły zamknięty obiekt lub niewidzialna ściana blokuje przejście.
                 przeszkody++;
                 if (przeszkody <= 4)
@@ -613,7 +629,7 @@ internal static class BraxMiastoOdbior
             foreach (var col in Physics.OverlapCapsule(stopa + Vector3.up * .55f,
                          stopa + Vector3.up * 1.91f, .30f, ~0, QueryTriggerInteraction.Ignore))
             {
-                if (!col || !col.enabled || col.GetComponentInParent<BraxDrzwiPrzesuwne>() ||
+                if (!col || !col.enabled || KontrolowaneSkrzydlo(col) ||
                     col.GetComponentInParent<BraxDrzwiAutomatyczne>() ||
                     col.GetComponentInParent<BraxGymPlayer>()) continue;
                 var manualne = col.GetComponentInParent<BraxCityDoor>();
