@@ -21,16 +21,63 @@ internal static class BraxMiastoUlica
     static float K => BraxMiastoA.K;
     static Transform root, kol;
 
-    static bool Wolne(float x, bool polnoc)
+    // R1: źródła prawdziwych portali na OBU pierzejach — nie tylko ręcznie wpisane
+    // wyjątki NOVA / NUTRITION. Meble mają stać poza drzwiami i dojściem
+    // do nich; nie kasujemy dekoracji dopiero po wygenerowaniu chodnika.
+    static readonly List<(float x, bool polnoc, string nazwa)> portale = new List<(float, bool, string)>();
+
+    static void ZarejestrujWejscia(Transform cityRoot)
+    {
+        portale.Clear();
+        // Oryginalny moduł elewacji: faktyczna oś centralnego przęsła drzwi.
+        // Zachowanie obu punktów (źródłowy + aktualne drzwi) obejmuje zmiany
+        // frontu przez wykonawców bez zmieniania projektu ani siatek.
+        foreach (var b in BraxCityArchitecture.StreetBuildings)
+        {
+            int bays = Mathf.Max(1, Mathf.RoundToInt((b.x1 - b.x0) / 3f));
+            float bay = (b.x1 - b.x0) / bays;
+            float x = b.far ? b.x1 - (Mathf.Floor(bays / 2f) + .5f) * bay
+                            : b.x0 + (Mathf.Floor(bays / 2f) + .5f) * bay;
+            if (b.id == "quay_corner") x = (b.x0 + b.x1) * .5f;
+            portale.Add((x, b.far, b.id));
+        }
+        // Świat ma także ręcznie wymodelowane drzwi: NOVA, Nutrition,
+        // klatka Braxa i inne wejścia z komponentami aktywnymi w Unity.
+        void Dodaj(Transform t, string nazwa)
+        {
+            if (!t || t.position.y < -.15f || t.position.y > 2.5f ||
+                t.position.x < -104f || t.position.x > 66f) return;
+            bool polnoc = t.position.z >= 28.5f;
+            float front = polnoc ? 36.1f : 20.6f;
+            if (Mathf.Abs(t.position.z - front) > 1.5f) return;
+            portale.Add((t.position.x, polnoc, nazwa));
+        }
+        foreach (var d in cityRoot.GetComponentsInChildren<BraxCityDoor>(true))
+            if (d) Dodaj(d.transform, string.IsNullOrEmpty(d.label) ? d.name : d.label);
+        foreach (var d in cityRoot.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true))
+            if (d) Dodaj(d.transform, d.etykieta);
+        foreach (var d in cityRoot.GetComponentsInChildren<BraxDrzwiAutomatyczne>(true))
+            if (d) Dodaj(d.transform, d.nazwa);
+        Debug.Log("BRAXHORN_R1_ULICA portalow_do_ochrony=" + portale.Count +
+            " (aleja glowna x=-104..66, obie pierzeje)");
+    }
+
+    static bool Wolne(float x, bool polnoc, float polSzerokosci = .8f)
     {
         if (x > 48.5f && x < 55.5f) return false;                 // przejście z sygnalizacją
         if (x > -73f && x < -59f) return false;                   // wiadukt
         if (x > 64.5f || x < -102f) return false;                 // końce ulicy (metro, wylot)
-        if (polnoc && x > 1.5f && x < 18.5f) return false;        // brama podwórka
-        if (polnoc && x > 32.5f && x < 45.5f) return false;       // NOVA: kolejka i wejście
-        if (!polnoc && x > 18.8f && x < 23.2f) return false;      // Nutrition: drzwi
-        if (!polnoc && x > 2.5f && x < 9.5f) return false;        // siłownia: wyjście
-        foreach (float l in new[] { -98f, -82f, -66f, -50f, -34f, -2f, 14f, 30f, 46f, 62f }) if (Mathf.Abs(x - l) < 1.4f) return false;   // latarnie
+        if (polnoc && x > 1.5f && x < 18.5f) return false;       // brama podwórka
+        if (polnoc && x > 32.5f && x < 45.5f) return false;      // NOVA: kolejka i wejście
+        if (!polnoc && x > 18.8f && x < 23.2f) return false;     // Nutrition: drzwi
+        if (!polnoc && x > 2.5f && x < 9.5f) return false;       // siłownia: wyjście
+        foreach (float l in new[] { -98f, -82f, -66f, -50f, -34f, -2f, 14f, 30f, 46f, 62f })
+            if (Mathf.Abs(x - l) < polSzerokosci + 1.0f) return false;
+        // Rezerwa przed wejściem: połowa otworu ~1.15 m, boczny margines
+        // dla kapsuły Braxa 1.2 m oraz rzeczywista połowa drzewa/ławki.
+        foreach (var p in portale)
+            if (p.polnoc == polnoc && Mathf.Abs(p.x - x) < 2.35f + polSzerokosci)
+                return false;
         return true;
     }
     static float Grunt(float x, float z)
@@ -47,6 +94,7 @@ internal static class BraxMiastoUlica
         int stare = 0;
         foreach (var t in cityRoot.GetComponentsInChildren<Transform>(true).Where(t => t.name.StartsWith("BRAXHORN original artwork billboard")).ToArray())
             if (t) { BraxUliceKit.Usun(t.gameObject, "stara tablica reklamowa przed oknami elewacji"); stare++; }
+        ZarejestrujWejscia(cityRoot);
         root = BraxRegion.Root(cityRoot, "CLAUDE A: ulica główna — wyposażenie i reklamy");
         kol = new GameObject("kolizje").transform; kol.SetParent(root, false);
         Physics.SyncTransforms();
@@ -57,16 +105,18 @@ internal static class BraxMiastoUlica
             float zl = polnoc ? KrawPln + .95f : KrawPld - .95f;   // linia mebli 0.95 m od krawężnika
             foreach (float x in new[] { -90f, -74f, -42f, -26f, -10f, 6f, 22f, 38f, 58f })
             {
-                if (!Wolne(x, polnoc)) continue;
+                if (!Wolne(x, polnoc, .75f * K)) continue;
                 if (Drzewo(cityRoot, new Vector3(x, Grunt(x, zl), zl))) drzew++;
                 float xb = x + 2.6f;
-                if (Wolne(xb, polnoc) && Wolne(xb + 1.2f, polnoc)) { Lawka(new Vector3(xb + .6f, Grunt(xb + .6f, zl), zl), polnoc); lawek++; }
+                if (Wolne(xb + .6f, polnoc, .9f * K)) { Lawka(new Vector3(xb + .6f, Grunt(xb + .6f, zl), zl), polnoc); lawek++; }
                 float xk = x - 2.1f;
-                if (Wolne(xk, polnoc)) { Kosz(new Vector3(xk, Grunt(xk, zl), zl)); koszy++; }
+                if (Wolne(xk, polnoc, .24f * K)) { Kosz(new Vector3(xk, Grunt(xk, zl), zl)); koszy++; }
             }
             // stojaki rowerowe przy piekarni / delikatesach
             float xs = polnoc ? 24.5f : 30.5f;
-            if (Wolne(xs, polnoc)) for (int i = 0; i < 3; i++) Stojak(new Vector3(xs + i * .9f, Grunt(xs, zl), zl));
+            for (int i = 0; i < 3; i++)
+                if (Wolne(xs + i * .9f, polnoc, .35f * K))
+                    Stojak(new Vector3(xs + i * .9f, Grunt(xs + i * .9f, zl), zl));
             // słupki przy przejściu (narożniki, 0.5 m od krawężnika)
             foreach (float x in new[] { 48.2f, 55.8f }) foreach (float d in new[] { .5f, 1.4f })
                 { var p = new Vector3(x, 0, polnoc ? KrawPln + d : KrawPld - d); p.y = Grunt(p.x, p.z); Slupek(p); }
