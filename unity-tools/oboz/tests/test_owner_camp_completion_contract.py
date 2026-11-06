@@ -36,6 +36,20 @@ class OwnerCampCompletionContract(unittest.TestCase):
         self.assertLess(batch, cabin.index("OwnerCabinKitchenette(t)"))
         self.assertLess(batch, cabin.index("OwnerSingleBed(t,"))
 
+    def test_scene_quality_report_counts_original_owner_furniture(self):
+        validation = load(EDITOR/"BraxObozValidation.cs")
+        self.assertIn("IDANAS=\" + beds", validation)
+        self.assertIn("szafki=\" + lockers", validation)
+        self.assertIn("aneks=\" + kitchens", validation)
+        self.assertIn("zlew=\" + sinks", validation)
+        self.assertIn("kosz=\" + bins", validation)
+        self.assertIn("gym_environment FBX", validation)
+        self.assertIn("tractor_tire GLB", validation)
+        checks = validation.split("var sourceIssues = new List<string>();", 1)[1].split("var manifest =", 1)[0]
+        self.assertIn("sourceIssues.Add(", checks)
+        self.assertNotIn("structuralErrors =", checks)
+        self.assertNotIn("throw new", checks)
+
     def test_owner_bed_and_kitchen_in_every_cabin(self):
         for i in range(1,5):
             self.assertIn(f'Cabin("Domek {i}"',self.environment)
