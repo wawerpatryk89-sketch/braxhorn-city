@@ -33,3 +33,14 @@ Wymaga realnego uruchomienia Unity: import samochodu, obu roślin i animacji po 
 ## Decyzja produkcyjna
 
 Nie powtarzać starszych commitów z błędami VIP ani T11. Po pełnym statycznym audycie uruchomić JEDEN test generowania scen w Unity (bez APK); dopiero gdy przejdzie, uruchomić JEDEN podpisany APK. Obecny sukces testów źródłowych nie jest gotowym APK.
+
+## Uzupełnienie po anulowanym teście i weryfikacji CI — 6 listopada 2026
+
+- Długi test generowania scen [#42141022644](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42141022644) został **anulowany przez właściciela** 01:09:40 UTC podczas importu/kompilacji środowiska Unity. Log potwierdza przygotowanie 21 map 2K, lecz **nie** potwierdza wygenerowania ani zapisania scen. Nie oznaczać anulowania jako naprawy.
+- Krótka kontrola [#42141825354](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42141825354) zakończyła się sukcesem: oba joby, bez Unity, kompilowania Androida i wysyłki APK (01:08:46–01:09:08 UTC). To **kontrola statyczna**, a nie test scen.
+- Przebieg APK [#42129518172](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42129518172) potwierdza pobranie 21 map i zatrzymanie starego kodu walidacji `concrete_brick_wall_001_diff_2k.jpg`. Poprawka importera jest w źródłach, ale nie przeszła ponownie generatora Unity.
+- W rzeczywistej ścieżce `mistrzowie-apk.yml` po pobraniu źródeł wykonują się `verify_t11_real_sources.py` i `verify_native_vegetation_glb.py` **zanim wystartuje Unity**. Sprawdzają integralność 21 obrazów oraz oryginalne bufory i osadzone mapy obu GLB. Nie zmieniają materiałów, UV, geometrii, GUID, podpisu, kolizji ani rozdzielczości oryginalnych tekstur.
+- Nieaktualny `mistrzowie-scene-audit-once-20261106.yml`, który uruchamiał kosztowny test na `push`, został wycofany z gałęzi. Czasochłonne uruchomienia Unity/APK wymagają osobnej decyzji właściciela.
+- Poprzedni APK #14 nie stanowi gotowej bazy Addressables dla aktualizacji scen. Pierwszy poprawny APK z nowym loaderem musi być wydany raz jako nowa baza dla przyszłych `.braxupdate.zip`; nie przedstawiać go jako istniejącej małej paczki delta.
+
+**Wciąż NIEPOTWIERDZONE:** rzeczywisty import i kompilacja całego projektu w Unity 6000.0.85f2 po zmianach, modele w scenie, ponowny odczyt scen, IL2CPP ARM64, podpis i działanie na Androidzie. Nowego APK nie uruchomiono; baseny P1, promenada i plaża pozostają na osobnych gałęziach. Raport nie oznacza „zero błędów”.

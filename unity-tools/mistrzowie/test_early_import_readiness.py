@@ -40,5 +40,21 @@ class RealOriginalAssetReadiness(unittest.TestCase):
         self.assertIn("VerifyOriginalSigns()",casino)
         self.assertIn("shrub_03_2k_embedded.glb",casino)
 
+
+    def test_expensive_unity_starts_only_after_verifying_real_polyhaven_files(self):
+        workflow=read(".github/workflows/mistrzowie-apk.yml")
+        required=[
+            "python3 unity-tools/mistrzowie/prepare_casino_textures_2k.py",
+            "python3 unity-tools/mistrzowie/prepare_casino_vegetation_2k.py",
+            "python3 unity-tools/mistrzowie/verify_t11_real_sources.py",
+            "python3 unity-tools/mistrzowie/verify_native_vegetation_glb.py",
+            "name: Unity 6 - Miasto Mistrzów, Brax i APK do zwiedzania",
+        ]
+        for command in required:
+            self.assertIn(command,workflow)
+        for earlier,later in zip(required,required[1:]):
+            self.assertLess(workflow.index(earlier),workflow.index(later),
+                            "Source integrity must be checked before Unity: "+earlier)
+
 if __name__=="__main__":
     unittest.main()

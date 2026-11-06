@@ -313,6 +313,10 @@ jobs:
           # New T11 surfaces ONLY: fetch original Poly Haven native 2K, no 1K/4K.
           python3 unity-tools/mistrzowie/prepare_casino_textures_2k.py
           python3 unity-tools/mistrzowie/prepare_casino_vegetation_2k.py
+          # Verify genuine 2K images, linked GLTF buffers and both lossless
+          # embedded GLBs BEFORE expensive Unity Editor import/generation.
+          python3 unity-tools/mistrzowie/verify_t11_real_sources.py
+          python3 unity-tools/mistrzowie/verify_native_vegetation_glb.py
           python3 unity-tools/mistrzowie/restore_private.py
           python3 unity-tools/mistrzowie/prepare_brax.py
           python3 unity-tools/mistrzowie/prepare_signage.py
