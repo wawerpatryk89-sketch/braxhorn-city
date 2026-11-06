@@ -43,6 +43,7 @@ jobs:
             unity-city/Assets/Kickboxing
             unity-city/Assets/Nutrition
             unity-city/Assets/Updates
+            unity-city/Assets/Source/Claude/Metro/metro_train.glb
             unity-city/Assets/Source/Mistrzowie/PoolP1/plot.json
             unity-city/Assets/Source/Mistrzowie/PoolP1/plot.json.meta
             unity-city/Packages/manifest.json
