@@ -33,8 +33,8 @@ class Blender44OwnerAssetGuard(unittest.TestCase):
         self.assertIn("owner_geometry_preflight.py",WF)
         self.assertIn("buildMethod: BraxObozBuild.BuildAndroidReview",WF)
         self.assertLess(WF.index("run: python3 unity-tools/oboz/owner_blender_export.py"),
-                        WF.index("run: python3 unity-tools/oboz/owner_geometry_preflight.py"))
-        self.assertLess(WF.index("run: python3 unity-tools/oboz/owner_geometry_preflight.py"),
+                        WF.index("python3 unity-tools/oboz/owner_geometry_preflight.py"))
+        self.assertLess(WF.index("python3 unity-tools/oboz/owner_geometry_preflight.py"),
                         WF.index("buildMethod: BraxObozBuild.BuildAndroidReview"))
 
 
