@@ -1,0 +1,30 @@
+name: 'Obóz — jednorazowy autoryzowany restart APK po naprawie eksportu Blendera'
+'on':
+  push:
+    branches:
+      - codex/oboz-przebudowa-pbr-20261105
+    paths:
+      - .github/workflows/oboz-apk-restart-20261106.yml
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch-one-camp-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Zleć dokładnie jeden standardowy build APK Unity 6 z obecnej gałęzi obozu
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+          gh workflow run oboz-unity-build.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$GITHUB_REF_NAME" \
+            -f quality_review=false \
+            -f first_install=false \
+            -f content_action=none
+          echo "OBOZ_OWNER_REQUEST: dispatched signed Unity 6 Android APK from $GITHUB_REF_NAME; non-blocking quality review off" >> "$GITHUB_STEP_SUMMARY"
