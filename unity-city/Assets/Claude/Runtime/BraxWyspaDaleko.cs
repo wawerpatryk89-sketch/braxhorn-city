@@ -15,12 +15,12 @@ public sealed class BraxWyspaDaleko : MonoBehaviour
 
     float nast;
     bool proxyWidoczne = true;
-    int gotoweProbki;
+    // Wczytana scena przejmuje rysowanie natychmiast: zero klatek
+    // z dwoma nakładającymi się terenami.
 
     void OnEnable()
     {
         proxyWidoczne = true;
-        gotoweProbki = 0;
         UstawWidocznosc(true);
     }
 
@@ -43,11 +43,9 @@ public sealed class BraxWyspaDaleko : MonoBehaviour
                 }
             }
         }
-        // Dwie kolejne próbki po aktywacji zapobiegają błyśnięciu proxy
-        // w krótkiej fazie przełączania scen, a zarazem pozwalają wrócić
-        // do odległej sylwetki w pierwszej próbce po zwolnieniu wyspy.
-        gotoweProbki = gotowa ? Mathf.Min(2, gotoweProbki + 1) : 0;
-        bool maBycWidoczne = gotoweProbki < 2;
+        // W pełni aktywna scena zastępuje proxy w TEJ SAMEJ próbce.
+        // Żadnych dwóch nakładających się warstw terenu podczas przełączania.
+        bool maBycWidoczne = !gotowa;
         if (maBycWidoczne == proxyWidoczne) return;
         proxyWidoczne = maBycWidoczne;
         UstawWidocznosc(proxyWidoczne);
