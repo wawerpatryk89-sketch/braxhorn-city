@@ -30,7 +30,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     private float actionEnd, hitAt, stateAt;
     private string action = "Idle";
     private float combatUntil;
-    private bool hitPending, doorOpen, paused, runEnabled = true, soundEnabled = true;
+    private bool hitPending, actionIsKick, doorOpen, paused, runEnabled = true, soundEnabled = true;
     // SKOK (właściciel 1.11, 18:23: „skok zjebany, jakiś podwójny”): klip Jump sam podnosił biodra, a fizyka od razu wybijała
     // Braxa w górę — wychodziły dwa skoki naraz (z kucnięciem w powietrzu). Teraz: wybicie dopiero w chwili odbicia w klipie
     // (biodra ruszają w górę po przysiadzie, najpóźniej po 0.3 s), wysokość daje tylko fizyka (klip bez własnego unoszenia bioder),
@@ -143,7 +143,28 @@ public sealed class BraxGymPlayer : MonoBehaviour
             return;
         }
         if(Time.time<actionEnd||vessel||seat||autoGracza)return;
-        if(explorationOnly && (key=="punch" || key=="kick"))return;
+        // Osiedle: bez walki, ale gra na boisku MUSI reagować na CIOS/KOP.
+        // Patryk nie ma cudzych Punch/Kick: do rozgrywki używamy WYŁĄCZNIE
+        // oryginalnych klipów z jego ostatniej 22-elementowej paczki Mixamo.
+        if (explorationOnly && (key=="punch" || key=="kick"))
+        {
+            var boisko = BraxSport.Aktywne;
+            if (!boisko || !boisko.Na) return; // poza boiskiem brak gestów walki
+            bool kop = key == "kick";
+            string owner = kop ? "GoalkeeperDropKick" :
+                boisko.gra == BraxSportBoisko.Gra.Nozna ? "GoalkeeperPlacingBall" :
+                "GoalkeeperCatch";
+            var original = clips.GetClip(owner);
+            if (!original || original.length <= 0f)
+            {
+                Debug.LogError("BRAXHORN_PATRYK_SPORT: brak wymaganego własnego klipu " + owner);
+                return;
+            }
+            // Chwila kontaktu z piłką musi wypaść PRZED końcem oryginalnego FBX.
+            float kontakt = Mathf.Clamp(original.length * .55f, .08f, original.length * .85f);
+            StartAction(owner, 1f, kontakt);
+            return;
+        }
         if(key=="punch")StartAction("Punch",1.25f,.43f);
         else if(key=="kick")StartAction("Kick",1.2f,.60f);
         else if(key=="jump" && body.isGrounded && !jumpPending){StartAction("Jump",1.35f,-1);jumpPending=true;jumpDeadline=Time.time+.30f;hipsPrevY=float.NaN;}
@@ -155,6 +176,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         action=name;clips[name].wrapMode=WrapMode.Once;clips[name].speed=rate;
         clips.CrossFade(name,.10f,PlayMode.StopAll);
         actionEnd=Time.time+(playFullActionClips?clips[name].length/rate:Mathf.Min(clips[name].length/rate,name=="Punch"?1.25f:name=="Kick"?1.1f:1.2f));
+        actionIsKick = name == "Kick" || name == "GoalkeeperDropKick";
         hitAt=Time.time+contact/rate;hitPending=contact>=0;Report();
     }
     private void Update()
@@ -208,7 +230,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
         int n=Mathf.Max(1,Mathf.CeilToInt(step.magnitude/.16f));for(int i=0;i<n;i++)body.Move(step/n);
         if(transform.position.y<(cityWorld?-20f:-3f))Command("reset");
         if(!cityWorld&&transform.position.z>20.2f){body.enabled=false;var q=transform.position;q.z=20.2f;transform.position=q;body.enabled=true;}
-        if(hitPending&&Time.time>=hitAt){hitPending=false;HitBag();OnCios?.Invoke(transform.position,transform.forward,action=="Kick");}
+        if(hitPending&&Time.time>=hitAt){hitPending=false;HitBag();OnCios?.Invoke(transform.position,transform.forward,actionIsKick);}
         if(!acting)
         {
             string next=speed>3f?"Run":speed>.12f?"Walk":Time.time<combatUntil && clips["CombatIdle"]!=null && !BraxSport.Aktywne?"CombatIdle":"Idle";
