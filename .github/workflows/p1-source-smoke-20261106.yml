@@ -68,6 +68,40 @@ jobs:
             "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" > "$RUNNER_TEMP/$asset_name"
           python3 unity-tools/mistrzowie/import_pool_p1_owner_assets.py "$RUNNER_TEMP/$asset_name" --dry-run
           echo "P1_ORIGINAL_OWNER_ZIP_SHA256_GUIDS_CRC_PASS - no import side effects"
+      - name: Diagnose shared A1/T11 original release assets (metadata only)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_json="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")"
+          printf '%s' "$release_json" | jq -r \
+            '.[] | select(.tag_name=="champions-a1-20261105") |
+               "A1_T11_RELEASE id=\(.id) draft=\(.draft) assets=\([.assets[].name]|join(","))"'
+          source_zip="BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip"
+          asset_id="$(printf '%s' "$release_json" | jq -r \
+            --arg name "$source_zip" '[.[] | .assets[]? | select(.name==$name) | .id] | first // empty')"
+          if [ -z "$asset_id" ]; then
+            echo "A1_T11_SOURCE_ARCHIVE_NOT_IN_RELEASE; build preflight needs original owner archive"
+            exit 0
+          fi
+          gh api -H "Accept: application/octet-stream" \
+            "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" > "$RUNNER_TEMP/$source_zip"
+          python3 - "$RUNNER_TEMP/$source_zip" <<'PYSOURCE'
+          import sys,hashlib,zipfile
+          p=sys.argv[1]; raw=open(p,'rb').read()
+          actual=hashlib.sha256(raw).hexdigest()
+          print('A1_T11_SOURCE_ZIP_SHA256',actual,'size',len(raw))
+          if actual!='43ea47f02a1f2e9e4f707bb75d16ec0a3fe79ec02762929ca591e317defa1088':
+              raise SystemExit('A1_T11 original ZIP changed from user approved source')
+          with zipfile.ZipFile(p) as z:
+              names=z.namelist()
+              print('A1_T11_SOURCE_ENTRIES',len(names),'badCRC',z.testzip())
+              for n in names:
+                  if n.lower().endswith(('.jpg','.png','.meta','.json','.zip')):
+                      print('A1_T11_ENTRY',n,'bytes',z.getinfo(n).file_size)
+          PYSOURCE
+
       - name: Report source-only scope
         if: always()
         shell: bash
