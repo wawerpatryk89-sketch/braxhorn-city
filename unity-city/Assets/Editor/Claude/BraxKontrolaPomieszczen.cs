@@ -95,6 +95,15 @@ public static class BraxKontrolaPomieszczen
             string l = p.nazwa + " w „" + BraxKontrola.Sciezka(t) + "” (" + skad + (any ? ", " + BraxKontrola.F(b.center) : "") + "): " + (brak.Count == 0 ? "komplet" : "brak: " + string.Join(", ", brak));
             linie.Add(l); BraxKontrola.Zapisz("pomieszczenia: " + l);
         }
+        // An empty room inventory cannot be accepted as complete for the
+        // estate: it indicates a missing/empty generated interior or failed
+        // room recognition. Keep the issue advisory to signed APK delivery.
+        if (BraxKontrola.Obszar == "osiedle" && pokoje == 0)
+        {
+            const string brakPokoi = "pomieszczenia: ZGŁOSZONE audyt nie rozpoznał żadnego pokoju osiedla";
+            BraxKontrola.Zapisz(brakPokoi);
+            Debug.LogWarning("BRAXHORN_POMIESZCZENIA DO POPRAWKI: " + brakPokoi);
+        }
         var o = new StringBuilder("BRAXHORN_POMIESZCZENIA " + BraxKontrola.Obszar + ": braki=" + braki + " (pomieszczeń " + pokoje + ")");
         foreach (var l in linie.OrderByDescending(x => x.Length).Take(40)) o.Append("\n  ").Append(l);
         Debug.Log(o.ToString());

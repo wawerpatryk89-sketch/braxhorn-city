@@ -394,6 +394,14 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("d.enabled && haveBounds && problems.Count == 0", check)
         self.assertIn("city-review/osiedle-drzwi-wszystkie.txt", check)
 
+    def test_empty_estate_room_inventory_is_not_a_false_pass(self):
+        rooms = (ROOT / "unity-city/Assets/Editor/Claude/BraxKontrolaPomieszczen.cs").read_text()
+        quality = (ROOT / "unity-city/Assets/Editor/Claude/BraxKontrola.cs").read_text()
+        self.assertIn('BraxKontrola.Obszar == "osiedle" && pokoje == 0', rooms)
+        self.assertIn("pomieszczenia: ZGŁOSZONE audyt nie rozpoznał żadnego pokoju", rooms)
+        self.assertIn("BraxKontrola.Zapisz(brakPokoi);", rooms)
+        self.assertIn('s.IndexOf("ZGŁOSZONE", StringComparison.OrdinalIgnoreCase)', quality)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
