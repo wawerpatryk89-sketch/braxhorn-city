@@ -15,14 +15,14 @@ using M = BraxWnetrzaKit.Mat;
 //    tablice PERONY/WYJŚCIE) i stara stacja Claude (budowana dawniej w tym pliku). Teren po starym wykopie zamknięty nową
 //    nawierzchnią bulwaru i kolizją (bez dziury, bez niewidzialnych ścian).
 // 2) NOWA STACJA pod końcem ulicy głównej (oś z = 28.5), jak prawdziwa:
-//    • 2 wejścia z chodników ulicy głównej — przedłużenie chodnika północnego (z 32.6–36.0) i południowego (z 20.5–23.9)
+//    • obecnie JEDNO wejście z placu po biurze portowym (obrócone 90°); dawny chodnik bez zajęcia (z 32.6–36.0)
 //      na bulwar: zadaszone zejścia (szklana wiata na stalowej ramie), 2 biegi ze spocznikiem, poręcze po obu stronach,
 //      balustrady, pylon z „M” i nazwą stacji, oświetlenie;
 //    • hala biletowa (antresola −4.6) pod jezdnią: biletomaty, kasa z okienkiem, bramki z szybkami (otwierają się przed
 //      graczem), mapy linii, tablice odjazdów, kierunkowskazy, kamery, gaśnica, wyjścia ewakuacyjne;
 //    • schody stałe i ruchome (JADĄ w górę — BraxSchodyRuchome, A 2.11) z antresoli na peron wyspowy −11.2 (81 m, 2 tory);
 //    • peron: krawędź z granitu, żółta linia, ławki, kosze, tablice, mapy, reklamy, kamery, gaśnice, zegary, SOS;
-//    • POCIĄG ZAWSZE STOI przy peronie 1: pobrany model metro_train (2 wagony czołami na zewnątrz, drzwi zamknięte); bez modelu — wagony z kodu;
+//    • pociąg na POSTOJU TECHNICZNYM, bez automatycznych kursów, ruchu drzwi i pasażerów; model opcjonalny do dalszej rozbudowy;
 //    • tory w obie strony w tunele, które gasną w ciemności (bez świateł na końcu).
 // Skala Braxa k = 1.294: stopnie 0.16·k × 0.30·k, poręcze 0.9·k, drzwi wagonu 1.3·k × 1.95·k, siedziska 0.45·k…
 public static class BraxClaudeMetro
@@ -767,7 +767,7 @@ public static class BraxClaudeMetro
                 W.Box(mCzarny, new Vector3(x, yM + .55f * K, zf + n.z * (d + .01f)), new Vector3(.35f, .08f, .02f));          // odbiór reszty
                 Tab(new Vector3(x, yM + h + .22f, zf + n.z * (d * .5f + .02f)), n, w, w / 4f, aKasy);
                 nbil++;
-                W.Akcja("metro_biletomat_" + nbil, "KUP BILET", "Bilet 20 min — 4,00 zł. Skasowany, miłej podróży.", new Vector3(x, yM, zf + n.z * (d + .7f)), null, 1.2f);
+                W.Akcja("metro_biletomat_" + nbil, "SPRAWDŹ BILETOMAT", "Biletomat przygotowany. Sprzedaż biletów i kursy zostaną uruchomione w kolejnym etapie.", new Vector3(x, yM, zf + n.z * (d + .7f)), null, 1.2f);
             }
         // kasa biletowa (okienko) przy ścianie wschodniej: przeszklony front na zachód
         float kx0 = MX1 - 1.8f, kx1 = MX1, kz0 = 26.4f, kz1 = 30.6f;
@@ -781,7 +781,7 @@ public static class BraxClaudeMetro
         W.MM(mCzarny, kx0 + .25f, kx0 + .3f, yM + 1.05f * K + .05f, yM + 1.05f * K + .45f, 28.0f, 28.8f);   // monitor kasy
         W.MM(mCzarny, kx0 + .15f, kx0 + .4f, yM + 1.05f * K + .05f, yM + 1.05f * K + .08f, 27.2f, 27.7f);   // drukarka biletów
         var kasjer = W.Obsada("kasjer metra", new Vector3(kx0 + .95f, yM, 28.4f), 270f);
-        W.Akcja("metro_kasa", "POROZMAWIAJ", "Kasa biletowa: bilety 20 min, 75 min, 24 h i karta miejska. Pociąg do OSIEDLA stoi na peronie 1.", new Vector3(kx0 - .8f, yM, 28.4f), kasjer, 1.6f);
+        W.Akcja("metro_kasa", "POROZMAWIAJ", "Hala i perony są przygotowane. Przejazdy i sprzedaż biletów ruszą po rozbudowie linii M1.", new Vector3(kx0 - .8f, yM, 28.4f), kasjer, 1.6f);
         W.Lampa("metro: światło kasy", new Vector3(kx1 - .7f, yMc - .4f, 28.4f), .5f, 6f);
         // mapa linii i tablica odjazdów w strefie biletowej (na ścianach obudów)
         Tab(new Vector3(72.4f, yM + 1.75f * K, EZ[0] + EW + .26f), Vector3.forward, 2.4f, .9f, aMapa);
@@ -806,7 +806,7 @@ public static class BraxClaudeMetro
                 W.Lampa("metro: światło antresoli", new Vector3(x, yMc - .45f, zz), .55f, 9f);
         // miejsce obsady: pracownik ochrony metra przy bramkach
         W.Obsada("ochrona metra przy bramkach", new Vector3(GX + 1.4f, yM, 21.6f), 0f);
-        W.Akcja("metro_ochrona", "POROZMAWIAJ", "Ochrona metra: proszę skasować bilet przy bramce. Peron 1 — pociąg do OSIEDLA.", new Vector3(GX + 1.4f, yM, 22.6f), null, 1.4f);
+        W.Akcja("metro_ochrona", "POROZMAWIAJ", "Stacja M1: przejście na perony jest dostępne. Pociągi jeszcze nie kursują.", new Vector3(GX + 1.4f, yM, 22.6f), null, 1.4f);
     }
 
     static Mesh SkrzydloMesh(Vector3 s)
@@ -1277,7 +1277,7 @@ public static class BraxClaudeMetro
         W.MM(mCzarny, -14.9f, -14.1f, yP + 2.3f, yP + 2.8f, zPN - 1.25f, zPN - 1.15f);
         // miejsce obsady: dyżurny ruchu na peronie
         W.Obsada("dyżurny ruchu na peronie", new Vector3(40f, yP, 31.8f), 270f);
-        W.Akcja("metro_dyzurny", "POROZMAWIAJ", "Dyżurny: pociąg do OSIEDLA odjeżdża z peronu 1 za 2 minuty. Proszę wsiadać.", new Vector3(40f, yP, 31.0f), null, 1.4f);
+        W.Akcja("metro_dyzurny", "POROZMAWIAJ", "Dyżurny: peron i tory są przygotowane do przyszłego uruchomienia linii. Pociągi jeszcze nie kursują.", new Vector3(40f, yP, 31.0f), null, 1.4f);
     }
 
     static void Lawka(Vector3 at, Vector3 twarz)
@@ -1584,6 +1584,7 @@ public static class BraxClaudeMetro
         rb.isKinematic = true; rb.useGravity = false;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         var ruch = sklad.gameObject.AddComponent<BraxMetroM1Ruch>();
+        ruch.kursyWlaczone = false; // etap R1: nie uruchamiać jazdy bez decyzji właściciela
         ruch.drzwiLewe = otwL.ToArray();
         ruch.drzwiPrawe = otwP.ToArray();
         ruch.punktyWejscia = dojscia.ToArray();
@@ -1607,12 +1608,13 @@ public static class BraxClaudeMetro
         npc.pociag = ruch;
         npc.poziomPeronu = yP;
         npc.zPeron = zPN - .3f;
+        npc.enabled = false; // dopiero po uruchomieniu ruchu i rozbudowie sieci
         Debug.Log("BRAXHORN_METRO_M1_POCIAG_KURS: kolizja_pociagu=wylaczona_testowo, elementy=" + liczbaWagonow +
             ", dlugosc=" + wszystkie.size.x.ToString("F1") + "m, skala=" + skala.ToString("F4") +
             ", par_drzwi_scenicznych=" + otwL.Count +
             ", wjazd_offset=" + ruch.wejscieOffsetX.ToString("F1") +
             ", wyjazd_offset=" + ruch.wyjazdOffsetX.ToString("F1") +
-            ", cykl≈60s, bez nowej stacji i bez statycznej kolizji pociągu");
+            ", POSTOJ TECHNICZNY: zero kursów i pasażerów; bez nowej stacji i bez nieruchomej przeszkody po odjeździe");
         return true;
     }
 
