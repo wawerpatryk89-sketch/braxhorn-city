@@ -50,4 +50,15 @@ jobs:
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check -q -r unity-tools/validation/requirements.txt
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/Claude
-          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/BraxCityBuild.cs
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "unity-tools/validation")
+          from check_csharp_scopes import check_source
+          path = Path("unity-city/Assets/Editor/BraxCityBuild.cs")
+          errors = check_source(path.read_bytes(), str(path))
+          for error in errors:
+              print("::error::" + error)
+          print(f"CSHARP_SCOPE_CHECK extra_file=1 errors={len(errors)}; Unity compilation still required")
+          raise SystemExit(bool(errors))
+          PY
