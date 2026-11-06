@@ -279,6 +279,12 @@ public static partial class BraxObozEnvironment
     internal static List<Rect> PathRectangles()
     {
         var paths = new List<Rect> {
+            // Przystanek i brama: jedyne źródło powierzchni kostki.
+            // PavedPaths przytnie te prostokąty po geometrii obu bieżni.
+            new Rect(24.6f,-122f,2.8f,49f),   // zatoka / dojście pasażerów
+            new Rect(5f,-122.4f,22f,2.8f),    // furtka i plac przed bramą
+            new Rect(5.9f,-140f,1.8f,18f),    // piesi od drogi poza obozem
+            new Rect(0f,-78.4f,27f,2.8f),    // wiata -> główna alejka
             // Dostęp pieszy od istniejącego ronda i przystanku — poza oktagonem.
             new Rect(-1.2f,-77f,2.4f,54f),
             new Rect(-1.2f,-25f,19.2f,2.4f),
