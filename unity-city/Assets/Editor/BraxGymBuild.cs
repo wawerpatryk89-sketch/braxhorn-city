@@ -392,7 +392,7 @@ public static class BraxGymBuild
         {
             try{if(BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Wyspa",BraxClaudeObszary.PoNazwach(scene,"CLAUDE wyspa*"),200f,280f,Generated)==null)throw new InvalidOperationException("Brak sceny wyspy");}
             catch(Exception e){throw new InvalidOperationException("BRAXHORN_WYSPA_STREAMING_NIEGOTOWY",e);}
-            try{if(BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE"),45f,110f,Generated)==null)throw new InvalidOperationException("Brak sceny nabrzeża");}
+            try{if(BraxClaudeObszary.Wydziel(scene,"BraxhornCity_Nabrzeze",BraxClaudeObszary.PoNazwach(scene,"BRAXHORN PORT + BEACH [LIBRARY 3D UNITY6]","CLAUDE plaża*","CLAUDE las za plażą","CLAUDE stacja metra BRAXHORN NABRZEŻE","CLAUDE metro M1 — wejścia z ulicy (na zewnątrz)","CLAUDE metro M1 — stacja BRAXHORN NABRZEŻE (pod ziemią)"),45f,110f,Generated)==null)throw new InvalidOperationException("Brak sceny nabrzeża");}
             catch(Exception e){throw new InvalidOperationException("BRAXHORN_PORT_STREAMING_NIEGOTOWY",e);}
             // MIASTO W KWADRATACH (1.11, 19:00; decyzja właściciela „świat w kwadratach”): telefon padał w trakcie wczytywania
             // głównej sceny (828 MB, 68 tys. obiektów — dziennik startu: koniec na „2a wczytywanie”). Kwadraty 150 × 150 m poza
