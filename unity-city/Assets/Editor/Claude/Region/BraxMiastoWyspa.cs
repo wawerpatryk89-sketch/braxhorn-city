@@ -264,10 +264,15 @@ internal static partial class BraxMiastoWyspa
         for (float x = x1; x <= xa + .01f; x += 1f)
         {
             float mx = W; for (float dz = -hw; dz <= hw; dz += .8f) mx = Mathf.Max(mx, Y(x, pz + dz));
-            float y = Mathf.Max(mx + .25f, yPrev - .15f);
+            // Początek musi stykać się z pokładem przystani, nie 15 cm poniżej.
+            float y = prof.Count == 0 ? Mathf.Max(deck, mx + .12f)
+                                      : Mathf.Max(mx + .25f, yPrev - .12f);
             prof.Add(new Vector2(x, y)); yPrev = y;
         }
-        for (int i = prof.Count - 2; i >= 0; i--) prof[i] = new Vector2(prof[i].x, Mathf.Max(prof[i].y, prof[i + 1].y - .15f));
+        for (int i = prof.Count - 2; i >= 0; i--)
+            prof[i] = new Vector2(prof[i].x, Mathf.Max(prof[i].y, prof[i + 1].y - .12f));
+        if (prof.Count == 0 || Mathf.Abs(prof[0].y - deck) > .12f)
+            BraxBuildQuality.Warn("WYSPA_POMOST_STYK: początek deptaka ma różny poziom niż pokład (weryfikacja Unity), APK nieblokowane");
         foreach (var q in prof) deptak.Add(new Vector3(q.x, q.y, pz));
         for (int i = 0; i < prof.Count - 1; i++)
         {
