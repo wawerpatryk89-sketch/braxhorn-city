@@ -149,6 +149,29 @@ public static class BraxObozServices
         if(!solid)Object.DestroyImmediate(g.GetComponent<Collider>());
         return g;
     }
+    // PBR tiles use measured metre UV on EVERY face, not one stretched 2K
+    // image over an entire 12-metre bathroom wall. Source mesh is retained.
+    static GameObject PbrWall(Transform parent,string label,Vector3 pos,
+        Vector3 dimensions,Material source,bool solid=true)
+    {
+        var wall=FixtureBox(parent,label,pos,dimensions,source,solid);
+        var filter=wall.GetComponent<MeshFilter>();
+        var mesh=Object.Instantiate(filter.sharedMesh);
+        var verts=mesh.vertices;var normals=mesh.normals;
+        var uv=new Vector2[verts.Length];
+        for(int i=0;i<verts.Length;i++)
+        {
+            Vector3 metre=Vector3.Scale(verts[i],dimensions);
+            Vector3 n=normals[i];
+            uv[i]=Mathf.Abs(n.y)>.90f?new Vector2(metre.x,metre.z):
+                Mathf.Abs(n.x)>.90f?new Vector2(metre.z,metre.y):
+                new Vector2(metre.x,metre.y);
+        }
+        mesh.uv=uv;mesh.RecalculateTangents();
+        filter.sharedMesh=BraxObozStableMesh.Save(mesh);
+        return wall;
+    }
+
     static GameObject FixtureCylinder(Transform parent,string name,Vector3 position,
         float radius,float height,Material material)
     {
@@ -206,7 +229,10 @@ public static class BraxObozServices
         const string label="BRAXHORN — WC / ŁAŹNIA / UMYWALNIA";
         var building=Node(label,parent,new Vector3(-66,0,-52)*K);
         building.localScale=Vector3.one*K;
-        var tile=BraxObozMaterials.Plain("sanitariaty-ceramika",new Color(.86f,.89f,.87f),.65f);
+        // Real CC0 Poly Haven surfaces: white ceramic indoors, dark concrete
+        // cladding outside. Source textures must pass 2K MD5 verification.
+        var tile=BraxObozMaterials.PublicPbr("long_white_tiles",1.3f);
+        var facade=BraxObozMaterials.PublicPbr("rectangular_facade_tiles",2f);
         var porcelain=BraxObozMaterials.Plain("sanitariaty-porcelana",new Color(.94f,.95f,.92f),.70f);
         var dark=BraxObozMaterials.Plain("sanitariaty-spoiny",new Color(.15f,.18f,.20f),.22f);
         var mirror=BraxObozMaterials.Plain("sanitariaty-lustro",new Color(.54f,.68f,.71f),.88f,.06f);
@@ -230,24 +256,37 @@ public static class BraxObozServices
         }
         tileMesh.uv=tileUv;tileMesh.RecalculateTangents();
         tileFilter.sharedMesh=BraxObozStableMesh.Save(tileMesh);
-        FixtureBox(building,"Ściana południowa",new Vector3(0,1.70f,-5f),new Vector3(12,3.25f,.20f),tile);
-        FixtureBox(building,"Ściana zachodnia",new Vector3(-6f,1.70f,0),new Vector3(.20f,3.25f,10),tile);
-        FixtureBox(building,"Ściana wschodnia",new Vector3(6f,1.70f,0),new Vector3(.20f,3.25f,10),tile);
+        PbrWall(building,"Białe płytki ściany południowej 2K",new Vector3(0,1.70f,-5f),new Vector3(12,3.25f,.20f),tile);
+        PbrWall(building,"Białe płytki ściany zachodniej 2K",new Vector3(-6f,1.70f,0),new Vector3(.20f,3.25f,10),tile);
+        PbrWall(building,"Białe płytki ściany wschodniej 2K",new Vector3(6f,1.70f,0),new Vector3(.20f,3.25f,10),tile);
         // Prawdziwy otwór wejściowy 2.8m, bez niewidzialnego collidera.
         foreach(float x in new[]{-3.7f,3.7f})
-            FixtureBox(building,"Ściana z wejściem",new Vector3(x,1.70f,5f),new Vector3(4.6f,3.25f,.20f),tile);
-        FixtureBox(building,"Nadproże wejścia",new Vector3(0,2.81f,5f),new Vector3(2.85f,.95f,.23f),tile);
+            PbrWall(building,"Białe płytki przy wejściu",new Vector3(x,1.70f,5f),new Vector3(4.6f,3.25f,.20f),tile);
+        PbrWall(building,"Białe płytki nad wejściem",new Vector3(0,2.81f,5f),new Vector3(2.85f,.95f,.23f),tile);
+        // Thin noncolliding cladding OUTSIDE the existing solid wall. The
+        // owner's concrete building remains, door opening remains 2.8m.
+        PbrWall(building,"Ciemna elewacja Poly Haven — południe",
+            new Vector3(0,1.70f,-5.13f),new Vector3(12.25f,3.25f,.035f),facade,false);
+        PbrWall(building,"Ciemna elewacja Poly Haven — zachód",
+            new Vector3(-6.13f,1.70f,0),new Vector3(.035f,3.25f,10.25f),facade,false);
+        PbrWall(building,"Ciemna elewacja Poly Haven — wschód",
+            new Vector3(6.13f,1.70f,0),new Vector3(.035f,3.25f,10.25f),facade,false);
+        foreach(float x in new[]{-3.7f,3.7f})
+            PbrWall(building,"Ciemna elewacja Poly Haven — front i ościeże",
+                new Vector3(x,1.70f,5.13f),new Vector3(4.6f,3.25f,.035f),facade,false);
+        PbrWall(building,"Ciemny pas elewacji nad wejściem",
+            new Vector3(0,2.81f,5.14f),new Vector3(2.85f,.95f,.035f),facade,false);
         FixtureBox(building,"Próg kamienny",new Vector3(0,.06f,5.12f),new Vector3(2.75f,.12f,.34f),tile);
         FixtureBox(building,"Dach hydroizolowany",new Vector3(0,3.42f,0),new Vector3(12.6f,.23f,10.6f),dark);
         foreach(float x in new[]{-5.75f,5.75f})
             FixtureBox(building,"Obróbka dachu",new Vector3(x,3.53f,0),new Vector3(.18f,.25f,10.6f),metal,false);
         // Oddzielna strefa WC (zachód) oraz pryszniców (wschód);
         // korytarz od wejścia pozostaje szeroki i przechodni.
-        FixtureBox(building,"Ścianka pomiędzy strefami",new Vector3(0,1.45f,-2.0f),
+        PbrWall(building,"Białe płytki 2K — podział stref",new Vector3(0,1.45f,-2.0f),
             new Vector3(.12f,2.65f,6.0f),tile);
-        FixtureBox(building,"Ścianka kabin WC",new Vector3(-3.05f,1.30f,-2.65f),
+        PbrWall(building,"Białe płytki 2K — WC",new Vector3(-3.05f,1.30f,-2.65f),
             new Vector3(.10f,2.20f,4.25f),tile);
-        FixtureBox(building,"Ścianka kabin prysznicowych",new Vector3(3.02f,1.30f,-2.65f),
+        PbrWall(building,"Białe płytki 2K — prysznice",new Vector3(3.02f,1.30f,-2.65f),
             new Vector3(.10f,2.20f,4.25f),tile);
         foreach(float x in new[]{-4.5f,-1.58f})
         {
@@ -298,11 +337,19 @@ public static class BraxObozServices
         }
         foreach(float x in new[]{-4.1f,4.1f})
         {
-            var sink=Node("Umywalka z lustrem",building,new Vector3(x,0,3.4f));
+            // Sink rear must touch the north interior wall (z=4.90).
+            // Previous z=3.4 left a 1.2m gap, making basins look airborne.
+            var sink=Node("Umywalka z lustrem — przy ścianie",building,new Vector3(x,0,4.6f));
             OwnerFixture(sink,"trough-washbasin.glb",new Vector3(0,.70f,0),new Vector3(1.20f,.35f,.55f));
             FixtureBox(sink,"Syfon",new Vector3(0,.54f,-.13f),new Vector3(.18f,.5f,.14f),metal);
             FixtureBox(sink,"Bateria",new Vector3(0,1.04f,-.29f),new Vector3(.09f,.26f,.12f),metal);
-            FixtureBox(sink,"Lustro",new Vector3(0,1.89f,.48f),new Vector3(1.25f,1.25f,.035f),mirror,false);
+            FixtureBox(sink,"Lustro na ścianie",new Vector3(0,1.89f,.275f),new Vector3(1.25f,1.25f,.035f),mirror,false);
+            foreach(float bracket in new[]{-.43f,.43f}){
+                FixtureBox(sink,"Stalowy wspornik ścienny umywalki",
+                    new Vector3(bracket,.66f,.61f),new Vector3(.07f,.14f,.55f),metal);
+                FixtureBox(sink,"Kotwa do ściany pod umywalką",
+                    new Vector3(bracket,.65f,.895f),new Vector3(.14f,.42f,.06f),metal);
+            }
             // Oryginalny wieszak i ręcznik GLB, bez proceduralnej atrapy.
             var towel=OwnerFixture(sink,"towel-rail-with-towel.glb",
                 new Vector3(.63f,1.19f,.10f),new Vector3(.70f,.55f,.32f));
@@ -315,7 +362,7 @@ public static class BraxObozServices
         }
         // Prawdziwe pisuary 3D na zachodniej ścianie; nie zastępuj ich bryłami.
         foreach(float z in new[]{.2f,2.0f})
-            OwnerFixture(building,"wall-urinal.glb",new Vector3(-5.25f,.55f,z),
+            OwnerFixture(building,"wall-urinal.glb",new Vector3(-5.62f,.55f,z),
                 new Vector3(.52f,.95f,.38f));
         // The owner's independent towel GLB rests on a physically modelled
         // wall shelf; avoid another floating decorative sanitary object.
