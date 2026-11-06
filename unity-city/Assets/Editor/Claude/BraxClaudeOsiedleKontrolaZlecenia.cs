@@ -23,7 +23,15 @@ public static partial class BraxClaudeOsiedle
         System.IO.Directory.CreateDirectory("city-review");
         System.IO.File.WriteAllLines("city-review/osiedle-zlecenie-20261104.txt",errors.Count==0
             ?new[]{"PASS: kontrole generowania sceny; nadal wymagane Play Mode i telefon"}:errors.ToArray());
-        if(errors.Count>0)throw new WymaganeOsiedleException(string.Join("\n",errors));
+        if (errors.Count > 0)
+        {
+            // Właściciel: kontrole wizualne/jakościowe nie zatrzymują APK.
+            // Nie oznaczaj PASS. Raport zachowuje każdy błąd i jest widoczny
+            // po zakończeniu kompilacji. Strict może je blokować świadomie.
+            foreach (var error in errors) BraxBuildQuality.Warn("OSIEDLE_ZLECENIE: " + error);
+            if (!BraxBuildQuality.Advisory)
+                throw new WymaganeOsiedleException(string.Join("\n", errors));
+        }
     }
 
     static void DrogiZlecenieKontrola()
