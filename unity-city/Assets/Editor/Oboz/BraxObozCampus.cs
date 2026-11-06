@@ -360,10 +360,9 @@ public static partial class BraxObozEnvironment
         RondoBull(rondo);
         Box(t,"Zatoka autobusu",new Vector3(21,.055f,-92),new Vector3(4,.11f,20),campusAsphalt);
         Box(t,"Połączenie zatoki",new Vector3(14,.05f,-94),new Vector3(12,.10f,24),campusAsphalt);
-        Box(t,"Dojście pasażerów",new Vector3(26,.08f,-97.5f),new Vector3(2.8f,.16f,49),campusPaving);
-        Box(t,"Dojście od furtki",new Vector3(16,.08f,-121),new Vector3(22,.16f,2.8f),campusPaving);
-        Box(t,"Dojście piesze przed bramą",new Vector3(6.8f,.08f,-131),new Vector3(1.8f,.16f,18),campusPaving);
-        Box(t,"Dojście od przystanku",new Vector3(13.5f,.06f,-77),new Vector3(27,.12f,2.8f),campusPaving);
+        // Four arrival walkways are now authored by PavedPaths/PathRectangles.
+        // Their mesh and curbs are cut against BOTH tracks instead of being
+        // rendered as unbroken cubes through the red running surface.
         foreach(float x in new[]{-3.2f,3.2f})Box(t,"Linia krawędzi drogi",new Vector3(x,.092f,-126),new Vector3(.1f,.004f,28),campusMark,false);
         for(int i=0;i<8;i++)Box(t,"Pas przejścia",new Vector3(-2.8f+i*.8f,.098f,-115),new Vector3(.4f,.004f,2.8f),campusMark,false);
         // No raised white paving/zebra geometry over the red running surface.
@@ -859,33 +858,95 @@ public static partial class BraxObozEnvironment
         }
         for(int i=0;i<3;i++)Box(parent,"Deska oparcia",p+new Vector3(0,.65f+i*.14f,.27f),new Vector3(1.8f,.11f,.055f),wood,false);
     }
+    // Conservative source-metre AABB check for BOTH the full 4-lane oval
+    // and the separate 100 m straight. Even boundary tiles must not sit on
+    // the red tartan: no raised paving, decorative curb or invisible collider.
+    static bool IntersectsRunningTrack(float x0,float x1,float z0,float z1,float safety=.06f)
+    {
+        float cx=0,cz=BraxObozCampusLayout.PlotCenterZ;
+        float innerX=BraxObozCampusLayout.PlotRadiusX-8.8f;
+        float innerZ=BraxObozCampusLayout.PlotRadiusZ-8.8f;
+        float outerX=innerX+4*1.2f,outerZ=innerZ+4*1.2f;
+        float closestX=x0>cx?x0-cx:x1<cx?cx-x1:0;
+        float closestZ=z0>cz?z0-cz:z1<cz?cz-z1:0;
+        float farX=Mathf.Max(Mathf.Abs(x0-cx),Mathf.Abs(x1-cx));
+        float farZ=Mathf.Max(Mathf.Abs(z0-cz),Mathf.Abs(z1-cz));
+        float innerFar=(farX*farX)/((innerX-safety)*(innerX-safety))+
+            (farZ*farZ)/((innerZ-safety)*(innerZ-safety));
+        float outerNear=(closestX*closestX)/((outerX+safety)*(outerX+safety))+
+            (closestZ*closestZ)/((outerZ+safety)*(outerZ+safety));
+        bool oval=outerNear<=1f && innerFar>=1f;
+        float halfLength=50f/K,halfWidth=3f/K;
+        bool straight=x1>=68f-halfWidth-safety&&x0<=68f+halfWidth+safety&&
+            z1>=-24f-halfLength-safety&&z0<=-24f+halfLength+safety;
+        return oval||straight;
+    }
+
     static void PavedPaths(List<Rect> areas)
     {
-        var t=Group("Chodniki brukowane z obrzeżem",root,Vector3.zero);
+        var t=Group("Chodniki brukowane, z wycięciem obu bieżni",root,Vector3.zero);
         var xs=areas.SelectMany(r=>new[]{r.xMin,r.xMax}).Distinct().OrderBy(v=>v).ToArray();
         var zs=areas.SelectMany(r=>new[]{r.yMin,r.yMax}).Distinct().OrderBy(v=>v).ToArray();
         bool Inside(float x,float z)=>areas.Any(r=>r.Contains(new Vector2(x,z)));
-        for(int i=0;i<xs.Length-1;i++)for(int j=0;j<zs.Length-1;j++) {
+        int created=0,omitted=0;
+        void Paver(float x0,float x1,float z0,float z1,int depth)
+        {
+            float w=x1-x0,d=z1-z0;
+            if(w<=.001f||d<=.001f)return;
+            // Adaptive cut around ellipse: split long strips near tracks.
+            // Conservative AABB rejects every tile touching the red surface.
+            if(IntersectsRunningTrack(x0,x1,z0,z1))
+            {
+                if(depth<9 && (w>.36f||d>.36f))
+                {
+                    if(w>=d && w>.36f)
+                    {float m=(x0+x1)*.5f;Paver(x0,m,z0,z1,depth+1);Paver(m,x1,z0,z1,depth+1);}
+                    else if(d>.36f)
+                    {float m=(z0+z1)*.5f;Paver(x0,x1,z0,m,depth+1);Paver(x0,x1,m,z1,depth+1);}
+                    else omitted++;
+                }
+                else omitted++;
+                return;
+            }
+            float x=(x0+x1)*.5f,z=(z0+z1)*.5f;
+            var slab=Box(t,"Kostka poza bieżnią",new Vector3(x,.025f,z),
+                new Vector3(w,.05f,d),campusPaving,false);
+            var mf=slab.GetComponent<MeshFilter>();
+            var mesh=Object.Instantiate(mf.sharedMesh);
+            var uv=mesh.uv;
+            for(int v=0;v<uv.Length;v++)uv[v]+=new Vector2(x,z)*K;
+            mesh.uv=uv;mf.sharedMesh=SaveMesh(mesh);
+            created++;
+        }
+        void Curb(float x,float z,float w,float d)
+        {
+            if(!IntersectsRunningTrack(x-w*.5f,x+w*.5f,z-d*.5f,z+d*.5f))
+                Box(t,"Krawężnik tylko poza tartanem",new Vector3(x,.028f,z),
+                    new Vector3(w,.056f,d),gravel,false);
+        }
+        for(int i=0;i<xs.Length-1;i++)
+        for(int j=0;j<zs.Length-1;j++)
+        {
             float x=(xs[i]+xs[i+1])*.5f,z=(zs[j]+zs[j+1])*.5f;
             if(!Inside(x,z))continue;
             float w=xs[i+1]-xs[i],d=zs[j+1]-zs[j];
-            var slab=Box(t,"Kostka — ciągła skala i fuga",new Vector3(x,.025f,z),new Vector3(w,.05f,d),campusPaving,false);
-            // Absolute UV origin keeps the paving bond aligned across all cells.
-            var mf=slab.GetComponent<MeshFilter>();var mesh=Object.Instantiate(mf.sharedMesh);var uv=mesh.uv;
-            for(int v=0;v<uv.Length;v++)uv[v]+=new Vector2(x,z)*K;
-            mesh.uv=uv;mf.sharedMesh=SaveMesh(mesh);
-            if(!Inside(xs[i]-.001f,z))Box(t,"Obrzeże",new Vector3(xs[i]-.04f,.028f,z),new Vector3(.08f,.056f,d),gravel,false);
-            if(!Inside(xs[i+1]+.001f,z))Box(t,"Obrzeże",new Vector3(xs[i+1]+.04f,.028f,z),new Vector3(.08f,.056f,d),gravel,false);
-            if(!Inside(x,zs[j]-.001f))Box(t,"Obrzeże",new Vector3(x,.028f,zs[j]-.04f),new Vector3(w,.056f,.08f),gravel,false);
-            if(!Inside(x,zs[j+1]+.001f))Box(t,"Obrzeże",new Vector3(x,.028f,zs[j+1]+.04f),new Vector3(w,.056f,.08f),gravel,false);
+            Paver(xs[i],xs[i+1],zs[j],zs[j+1],0);
+            if(!Inside(xs[i]-.001f,z))Curb(xs[i]-.04f,z,.08f,d);
+            if(!Inside(xs[i+1]+.001f,z))Curb(xs[i+1]+.04f,z,.08f,d);
+            if(!Inside(x,zs[j]-.001f))Curb(x,zs[j]-.04f,w,.08f);
+            if(!Inside(x,zs[j+1]+.001f))Curb(x,zs[j+1]+.04f,w,.08f);
         }
-        // One renderer per material, with flush walkable surface over terrain.
+        if(created<10)throw new InvalidOperationException("Błąd cięcia chodników: za mało kostki");
+        // Combined static geometry keeps draw calls low. All physics is built
+        // only on the final clipped pavement mesh, never over running tracks.
         CombineDecoration(t);
-        // The slab is above the soil; physics must follow its visible top.
         foreach(var mf in t.GetComponentsInChildren<MeshFilter>())
             if(mf.GetComponent<MeshRenderer>().sharedMaterial==campusPaving)
                 mf.gameObject.AddComponent<MeshCollider>().sharedMesh=mf.sharedMesh;
+        Debug.Log("BRAXHORN_OBOZ_CHODNIKI_TRACK_CLIP created="+created+
+            " rejectedBoundaryTiles="+omitted+" crossingTrack=false pendingUnityVisual=true");
     }
+
     static void MetalRoof(Transform parent,float width,float depth,float eave,float rise)
     {
         var t=Group("Blacha na rąbek — dach, konstrukcja, odwodnienie",parent,Vector3.zero);
