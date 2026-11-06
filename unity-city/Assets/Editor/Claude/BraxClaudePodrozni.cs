@@ -91,6 +91,10 @@ public static partial class BraxClaudeOsiedle
             + " zły_prześwit_dachu=" + odrKabina;
         Debug.Log(log);
         rep.notes.Add(log + "; podejście, wsiadanie, siedzenie, wysiadanie, powrót. Prywatne auto Patryka pominięte.");
-        if (made == 0) Debug.LogError("BRAXHORN_PODROZNI DO POPRAWKI: 0 miejsc do wsiadania NPC — " + log);
+        if (made == 0)
+        {
+            rep.notes.Add("DO POPRAWKI: podróżni parkingów — 0 bezpiecznych miejsc do wsiadania NPC; " + log);
+            Debug.LogError("BRAXHORN_PODROZNI DO POPRAWKI: 0 miejsc do wsiadania NPC — " + log);
+        }
     }
 }
