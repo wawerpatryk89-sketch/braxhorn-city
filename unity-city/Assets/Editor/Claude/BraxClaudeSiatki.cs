@@ -18,6 +18,11 @@ public static class BraxClaudeSiatki
 {
     public static void Apply(Scene scene, string label)
     {
+        // MIASTO R1: ostatnie wykończenie wejścia NOVA, po wszystkich kontrolach
+        // kolizji z BraxGymBuild; musi poprzedzać odebranie odczytu siatkom.
+        if (label == "miasto")
+            try { BraxNovaEntranceFinish.Apply(scene); }
+            catch (System.Exception e) { Debug.LogWarning("DO POPRAWKI: BRAXHORN_NOVA_ENTRANCE: " + e); }
         var keep = new HashSet<Mesh>();
         var roots = scene.GetRootGameObjects();
         foreach (var root in roots)
