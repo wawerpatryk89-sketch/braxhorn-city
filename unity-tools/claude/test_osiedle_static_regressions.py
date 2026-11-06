@@ -338,6 +338,22 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn('wejście fizycznie zamknięte', scene)
         self.assertNotIn('throw new InvalidOperationException("wejście sklepów', scene)
 
+    def test_every_road_sign_is_registered_and_audited_before_apk(self):
+        signs = source("BraxClaudeOsiedleZnakiDrogowe.cs")
+        scene = source("BraxClaudeOsiedleAktualizacja.cs")
+        layout = source("BraxClaudeOsiedle.cs")
+        self.assertIn("static readonly List<ZnakRek> znakiRej", signs)
+        self.assertIn('typ = string.Join("+", typy)', signs)
+        self.assertIn('typ = "ULICA " + id', signs)
+        self.assertIn("static List<string> AudytZnakowDrogowych(", signs)
+        self.assertIn("if (OnRoad(z.p))", signs)
+        self.assertIn("słupek bezpośrednio przy drzwiach", signs)
+        self.assertIn("nałożony na inny słupek", signs)
+        self.assertIn("city-review/osiedle-znaki-drogowe.txt", signs)
+        self.assertIn("bledy.AddRange(AudytZnakowDrogowych(scene));", scene)
+        self.assertIn("znakiRej.Clear();", layout)
+        self.assertIn("DO POPRAWKI: znak", signs)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
