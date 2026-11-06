@@ -18,6 +18,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 BUNDLE = ROOT / "unity-city/Prywatne/BRAXHORN_PATRYK_EXTRA16_ENCRYPTED_20261106.zip"
+SHORT_BUNDLE = ROOT / "unity-city/Prywatne/Patryk16.zip"
 PRIVATE_KEY_ENCRYPTED = ROOT / "unity-city/Prywatne/import-patryk-20261103/import-private.pem.enc"
 ORIGINALS_MANIFEST = ROOT / "unity-tools/claude/patryk-owner-22-manifest.json"
 BUNDLE_SHA256 = "8c6b367f6e780780bd20b008b92b24a6c43ee11b282b68314198d06dd6f542e3"
@@ -58,11 +59,16 @@ def validate_originals(raw: bytes, manifest: dict, approved: dict) -> dict[str, 
 
 
 def install(destination: Path, bundle: Path = BUNDLE) -> list[Path]:
+    # The same verified encrypted archive is available with a short iPhone-friendly
+    # file name. Both names are byte-identical, verified by the same SHA256 below.
+    if not bundle.exists() and bundle == BUNDLE and SHORT_BUNDLE.exists():
+        bundle = SHORT_BUNDLE
     if not bundle.exists():
         raise FileNotFoundError(
             "Patryk: missing encrypted ORIGINAL 16 FBX package. Upload "
-            "BRAXHORN_PATRYK_EXTRA16_ENCRYPTED_20261106.zip to unity-city/Prywatne/ "
-            "on the estate repair branch. Do not substitute old/cross-character clips."
+            "Patryk16.zip (or BRAXHORN_PATRYK_EXTRA16_ENCRYPTED_20261106.zip) "
+            "to unity-city/Prywatne/ on the estate repair branch. "
+            "Do not substitute old/cross-character clips."
         )
     if sha256(bundle.read_bytes()) != BUNDLE_SHA256:
         raise ValueError("Patryk: encrypted import package is changed/corrupted")
