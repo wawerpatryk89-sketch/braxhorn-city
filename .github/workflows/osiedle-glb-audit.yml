@@ -1,0 +1,28 @@
+name: BRAXHORN estate - original car GLB structure audit (no Unity)
+on:
+  push:
+    branches: [codex/osiedle-audyt-naprawa-20261106]
+    paths:
+      - .github/workflows/osiedle-glb-audit.yml
+      - unity-tools/claude/audit_car_glb_sources.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan-original-cars:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            public/assets/cars-src
+            unity-tools/claude/audit_car_glb_sources.py
+      - name: Inspect glTF car mesh hierarchy and door/wheel parts
+        run: |
+          set -euo pipefail
+          python3 unity-tools/claude/audit_car_glb_sources.py
