@@ -16,7 +16,7 @@ public sealed class BraxRuchAut : MonoBehaviour
     public float promienWlaczeniaRonda=10.6f;
 
     BraxRuchAutSym sym;
-    Camera kam; Transform gracz; float szukaj;
+    Camera kam; Transform gracz; BraxGymPlayer graczKomponent; float szukaj;
     public BraxRuchAutSym Symulacja => sym;
     readonly Collider[] przeszkody = new Collider[64];
 
@@ -67,8 +67,16 @@ public sealed class BraxRuchAut : MonoBehaviour
     {
         if (sym == null) return;
         if (!kam) kam = Camera.main;
-        if (!gracz && Time.time > szukaj) { var p = FindAnyObjectByType<BraxGymPlayer>(); if (p) gracz = p.transform; szukaj = Time.time + 2f; }
-        sym.graczJest = gracz; if (gracz) sym.gracz = gracz.position;
+        if ((!gracz || !graczKomponent) && Time.time > szukaj)
+        {
+            var p = FindAnyObjectByType<BraxGymPlayer>();
+            if (p) { gracz = p.transform; graczKomponent = p; }
+            szukaj = Time.time + 2f;
+        }
+        // Gdy Patryk prowadzi samochód, przeszkodą dla AI jest obrys jego pojazdu;
+        // nie traktuj dodatkowo pasażera jako pieszego wymagającego klaksonu.
+        sym.graczJest = gracz && graczKomponent && !graczKomponent.autoGracza && !graczKomponent.seat;
+        if (gracz) sym.gracz = gracz.position;
         sym.zewnetrzne.Clear();
         foreach (var car in BraxAutoGracza.Wszystkie)
             if (car && car.obrys) sym.zewnetrzne.Add(new BraxRuchAutSym.ObrysZewnetrzny {
