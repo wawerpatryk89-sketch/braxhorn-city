@@ -39,6 +39,7 @@ class OwnerApprovedP1WaterAndSlideTests(unittest.TestCase):
 
     def test_true_translucent_mobile_animated_water(self):
         shader=SHADER.read_text()
+        water=WATER.read_text()
         self.assertIn('Shader "Braxhorn/ChampionsP1PoolWater"',shader)
         self.assertIn('"Queue"="Transparent"',shader)
         self.assertIn("ZWrite Off",shader)
