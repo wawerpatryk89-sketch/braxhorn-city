@@ -34,6 +34,8 @@ public static partial class BraxClaudeOsiedle
             if (string.IsNullOrEmpty(d.id)) problems.Add("brak identyfikatora");
             if (!d.enabled && Klasa(d.id) == KlasaDrzwi.Wejscie)
                 problems.Add("główne wejście jest wyłączone");
+            if (d.enabled && !d.gameObject.activeInHierarchy)
+                problems.Add("komponent drzwi jest w nieaktywnej gałęzi sceny");
             if (d.leaves == null || d.leaves.Length == 0 || d.leaves.All(t => !t))
                 problems.Add("brak skrzydła drzwi");
             Bounds bounds = default;
@@ -47,12 +49,18 @@ public static partial class BraxClaudeOsiedle
                 }
                 if (Vector3.Angle(leaf.up, Vector3.up) > 20f)
                     problems.Add("skrzydło przekrzywione względem pionu");
+                if (d.enabled && !leaf.gameObject.activeInHierarchy)
+                    problems.Add("aktywne drzwi mają niewidoczne lub nieaktywne skrzydło");
                 var box = leaf.GetComponent<BoxCollider>();
                 if (!box)
                 {
                     problems.Add("skrzydło bez własnego BoxCollider");
                     continue;
                 }
+                if (d.enabled && !box.enabled)
+                    problems.Add("aktywne skrzydło ma wyłączony collider");
+                if (box.size.x <= .001f || box.size.y <= .001f || box.size.z <= .001f)
+                    problems.Add("skrzydło ma zerowy obrys fizyczny");
                 if (!haveBounds) { bounds = box.bounds; haveBounds = true; }
                 else bounds.Encapsulate(box.bounds);
             }
@@ -89,8 +97,10 @@ public static partial class BraxClaudeOsiedle
             report.Add(id + " typ=" + Klasa(d.id) + " aktywne=" + d.enabled +
                 " skrzydła=" + (d.leaves == null ? 0 : d.leaves.Length) +
                 " pozycja=" + d.transform.position.ToString("F2") +
-                " status=" + (problems.Count == 0
-                    ? "SONDA OK — otwieranie wymaga Play Mode" : string.Join("; ", problems)));
+                " status=" + (!d.enabled
+                    ? "WYŁĄCZONE — przejście niedostępne, nie oznaczaj SONDA OK"
+                    : problems.Count == 0
+                        ? "SONDA OK — otwieranie wymaga Play Mode" : string.Join("; ", problems)));
             foreach (var problem in problems)
                 errors.Add("DO POPRAWKI: drzwi " + id + ": " + problem);
         }

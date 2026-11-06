@@ -383,6 +383,17 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("Wynik: ", scene)
         self.assertIn("if (bledy.Count > 0) Debug.LogWarning", scene)
 
+    def test_door_audit_does_not_falsely_pass_inactive_leaf_or_collider(self):
+        scene = source("BraxClaudeOsiedleAktualizacja.cs")
+        check = scene.split("static List<string> AudytWszystkichDrzwi(Scene scena)", 1)[1].split("static readonly List<string> raportSkaliAut", 1)[0]
+        self.assertIn("d.enabled && !d.gameObject.activeInHierarchy", check)
+        self.assertIn("d.enabled && !leaf.gameObject.activeInHierarchy", check)
+        self.assertIn("d.enabled && !box.enabled", check)
+        self.assertIn("skrzydło ma zerowy obrys fizyczny", check)
+        self.assertIn("WYŁĄCZONE — przejście niedostępne", check)
+        self.assertIn("d.enabled && haveBounds && problems.Count == 0", check)
+        self.assertIn("city-review/osiedle-drzwi-wszystkie.txt", check)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
