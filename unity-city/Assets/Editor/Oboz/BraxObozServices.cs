@@ -266,11 +266,55 @@ public static class BraxObozServices
             var faucet=originalSink.AddComponent<BraxObozFacility>();
             faucet.kind=BraxObozFacility.Kind.Sink;
             faucet.effect=Effect(region,new Vector3(2.1f,1.20f,-.78f)*1.294f,false,true);
+            CabinWasteBin(region);
             Debug.Log("BRAXHORN_OBOZ_CABIN_KITCHEN: cabin="+cabin.name+
                 " realOwnerCookingTable=true realOwnerStove=true realOwnerSink=true"+
                 " cookware=true corridorOpen=true playModeCheckPending=true");
         }
         finally { Object.DestroyImmediate(source); }
+    }
+
+    // One open-top metal waste receptacle in each cabin. Unlike a capped
+    // cylinder fake, this has real exterior/interior sidewalls, a solid bottom
+    // and a visible metal lip. The owner did not supply a separate bin GLB.
+    static void CabinWasteBin(Transform region)
+    {
+        const int sides=24;
+        const float K=1.294f;
+        float outer=.19f*K,inner=.168f*K,h=.46f*K,baseH=.027f*K;
+        var verts=new List<Vector3>(sides*16);
+        var triangles=new List<int>(sides*24);
+        void Quad(Vector3 a,Vector3 b,Vector3 c,Vector3 d)
+        {
+            int n=verts.Count;
+            verts.Add(a);verts.Add(b);verts.Add(c);verts.Add(d);
+            triangles.Add(n);triangles.Add(n+1);triangles.Add(n+2);
+            triangles.Add(n);triangles.Add(n+2);triangles.Add(n+3);
+        }
+        for(int i=0;i<sides;i++)
+        {
+            float a=2f*Mathf.PI*i/sides,b=2f*Mathf.PI*(i+1)/sides;
+            var o0=new Vector3(Mathf.Cos(a)*outer,0,Mathf.Sin(a)*outer);
+            var o1=new Vector3(Mathf.Cos(b)*outer,0,Mathf.Sin(b)*outer);
+            var i0=new Vector3(Mathf.Cos(a)*inner,baseH,Mathf.Sin(a)*inner);
+            var i1=new Vector3(Mathf.Cos(b)*inner,baseH,Mathf.Sin(b)*inner);
+            Quad(o0,o1,o1+Vector3.up*h,o0+Vector3.up*h); // outside
+            Quad(i1,i0,i0+Vector3.up*(h-baseH),i1+Vector3.up*(h-baseH)); // inside
+            Quad(o0+Vector3.up*h,o1+Vector3.up*h,i1+Vector3.up*(h-baseH),i0+Vector3.up*(h-baseH)); // rim
+            Quad(Vector3.zero,o1,o0,Vector3.zero); // bottom
+        }
+        var mesh=new Mesh {
+            name="Kosz metalowy z prawdziwym otwartym wnętrzem",
+            indexFormat=UnityEngine.Rendering.IndexFormat.UInt32
+        };
+        mesh.SetVertices(verts);mesh.SetTriangles(triangles,0);
+        mesh.RecalculateNormals();mesh.RecalculateBounds();
+        var node=Node("Kosz metalowy na odpady — 3D z otwartym wnętrzem",
+            region,new Vector3(2.40f,.16f,-1.55f)*K);
+        var go=node.gameObject;
+        go.AddComponent<MeshFilter>().sharedMesh=BraxObozStableMesh.Save(mesh);
+        go.AddComponent<MeshRenderer>().sharedMaterial=BraxObozMaterials.Pbr("metal");
+        go.AddComponent<MeshCollider>().sharedMesh=go.GetComponent<MeshFilter>().sharedMesh;
     }
 
     // The cabins and open-air training stations have unscaled parent roots:
