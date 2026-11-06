@@ -6,6 +6,8 @@ on:
     paths:
       - .github/workflows/osiedle-source-preflight.yml
       - unity-tools/claude/test_estate_critical.py
+      - unity-tools/validation/check_csharp_scopes.py
+      - unity-tools/validation/test_check_csharp_scopes.py
       - unity-tools/claude/test_patryk_owner_contract.py
       - unity-city/Assets/Editor/Claude/**
       - unity-city/Assets/Claude/Runtime/BraxRuchAutSym.cs
@@ -34,5 +36,7 @@ jobs:
         run: python3 -m unittest discover -s unity-tools/claude -p 'test_estate_critical.py' -v
       - name: Install pinned C# parser dependencies for structural check
         run: python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+      - name: Regression tests for missing System imports and conflicting Unity names
+        run: python3 -m unittest discover -s unity-tools/validation -p 'test_check_csharp_scopes.py' -v
       - name: C# structural scope checker (does not compile the Unity engine)
         run: python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets

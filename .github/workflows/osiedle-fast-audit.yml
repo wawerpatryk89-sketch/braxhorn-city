@@ -6,6 +6,8 @@ on:
     paths:
       - .github/workflows/osiedle-fast-audit.yml
       - unity-tools/claude/test_osiedle_static_regressions.py
+      - unity-tools/validation/check_csharp_scopes.py
+      - unity-tools/validation/test_check_csharp_scopes.py
       - unity-tools/claude/test_patryk_owner_contract.py
       - unity-tools/claude/test_patryk_extra16.py
       - unity-tools/claude/import_patryk_owner_22.py
@@ -71,6 +73,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check -q -r unity-tools/validation/requirements.txt
+          python3 -m unittest discover -s unity-tools/validation -p 'test_check_csharp_scopes.py' -v
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/Claude
           python3 - <<'PY'
           import sys
