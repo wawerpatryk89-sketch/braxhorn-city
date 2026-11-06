@@ -19,6 +19,10 @@ public static partial class BraxClaudeOsiedle
     static Material Ocynk => Plain("słupek ocynk", new Color(.62f, .64f, .66f), .45f, .7f);
     static float Ks => Mathf.Clamp(K, .85f, 1.25f);
     static int znakiPostawione;
+    // One record per road signpost / street-name assembly for the final
+    // all-signs location report. Never infer PASS from sign counts alone.
+    sealed class ZnakRek { public string typ; public Vector3 p, n; public float dol; }
+    static readonly List<ZnakRek> znakiRej = new List<ZnakRek>();
 
     static string GrupaZnakow(Vector3 p) => p.z < FenceA + .5f ? "Osiedle B / znaki drogowe" : "Osiedle A / znaki drogowe";
 
@@ -28,13 +32,20 @@ public static partial class BraxClaudeOsiedle
     // Znak(i) na słupku: p = podstawa słupka (y = 0), n = lico tarczy (w stronę kierowcy). typy od góry do dołu.
     static void ZnakPionowy(Vector3 p, Vector3 n, params string[] typy)
     {
-        n.y = 0f; if (n.sqrMagnitude < 1e-4f) return; n.Normalize();
+        n.y = 0f;
+        if (n.sqrMagnitude < 1e-4f || typy == null || typy.Length == 0)
+        {
+            rep.notes.Add("DO POPRAWKI: znak drogowy bez tarczy lub kierunku przy " + p);
+            return;
+        }
+        n.Normalize();
         var g = group; group = GrupaZnakow(p);
         float k = Ks, rr = .03f, gap = .06f * k;
         float y = 2.1f * k; var stos = new List<(string typ, float yc)>();
         for (int i = typy.Length - 1; i >= 0; i--) { float h = WysTarczy(typy[i]) * k; stos.Add((typy[i], y + h * .5f)); y += h + gap; }
         float top = y - gap + .05f * k;
         p.y = 0f;
+        znakiRej.Add(new ZnakRek { typ = string.Join("+", typy), p = p, n = n, dol = 2.1f * k });
         Cylinder(Ocynk, p, rr, top, 10, false, false);
         Cylinder(ZnCzarny, p + Vector3.up * top, rr + .004f, .02f, 10, true, false);       // zaślepka
         Collider(p + Vector3.up * (top * .5f), new Vector3(.1f, top, .1f));
@@ -156,6 +167,57 @@ public static partial class BraxClaudeOsiedle
         }
     }
 
+    // Fast QA when the scene is generated: one row for EVERY authored signpost.
+    // Neither the photos nor GPS/visual orientation are certified by this
+    // geometry-only probe; anomalies are warnings in the scene report, not
+    // build-stopping exceptions or automatic visual changes.
+    static List<string> AudytZnakowDrogowych(UnityEngine.SceneManagement.Scene scena)
+    {
+        var bledy = new List<string>();
+        var wiersze = new List<string> {
+            "OSIEDLE R2: wszystkie zarejestrowane znaki pionowe i tablice ulic; pomiar sceny, odbiór wizualny nadal wymagany"
+        };
+        var drzwi = scena.GetRootGameObjects()
+            .SelectMany(g => g.GetComponentsInChildren<BraxCityDoor>(true))
+            .Where(d => d && d.enabled).ToArray();
+        if (znakiRej.Count == 0)
+            bledy.Add("DO POPRAWKI: brak zarejestrowanych znaków drogowych osiedla");
+        for (int i = 0; i < znakiRej.Count; i++)
+        {
+            var z = znakiRej[i];
+            var uwagi = new List<string>();
+            if (float.IsNaN(z.p.x) || float.IsNaN(z.p.y) || float.IsNaN(z.p.z) ||
+                float.IsInfinity(z.p.x) || float.IsInfinity(z.p.y) || float.IsInfinity(z.p.z))
+                uwagi.Add("nieprawidłowa pozycja");
+            if (z.n.sqrMagnitude < .9f || Mathf.Abs(z.n.y) > .02f)
+                uwagi.Add("tarcza pochylona lub bez poprawnej orientacji");
+            if (z.dol < 2f * K - .02f)
+                uwagi.Add("dolna krawędź tarczy poniżej prześwitu 2 m");
+            if (OnRoad(z.p)) uwagi.Add("słupek stoi na obrysie jezdni");
+            if (drzwi.Any(d =>
+                Mathf.Abs(d.transform.position.y - z.p.y) < 1.5f &&
+                (new Vector2(d.transform.position.x - z.p.x,
+                    d.transform.position.z - z.p.z)).sqrMagnitude < 1.0f))
+                uwagi.Add("słupek bezpośrednio przy drzwiach");
+            for (int j = 0; j < i; j++)
+                if ((znakiRej[j].p - z.p).sqrMagnitude < .08f * .08f)
+                {
+                    uwagi.Add("nałożony na inny słupek: " + znakiRej[j].typ);
+                    break;
+                }
+            string status = uwagi.Count == 0 ? "SONDA OK; wymagany odbiór wizualny" : string.Join(", ", uwagi);
+            wiersze.Add(z.typ + " @" + z.p.ToString("F2") + " lico=" + z.n.ToString("F2") +
+                " dol=" + z.dol.ToString("F2") + " status=" + status);
+            foreach (var uwaga in uwagi)
+                bledy.Add("DO POPRAWKI: znak " + z.typ + " @" + z.p.ToString("F2") + ": " + uwaga);
+        }
+        System.IO.Directory.CreateDirectory("city-review");
+        System.IO.File.WriteAllLines("city-review/osiedle-znaki-drogowe.txt", wiersze);
+        Debug.Log("BRAXHORN_OSIEDLE_ZNAKI_AUDYT policzone=" + znakiRej.Count +
+            " błędy=" + bledy.Count + " (bez zmian geometrii; bez APK)");
+        return bledy;
+    }
+
     // Tablica z nazwą ulicy (polski wzór: granat, biały napis): dwie tarcze po obu stronach słupka (słupek ZA tablicą,
     // nic nie przechodzi przez napis), obejmy u góry i u dołu, słupek wystaje nad tablicę z zaślepką.
     static void TablicaUlicy(string id, Vector3 p, bool streetAlongX)
@@ -170,6 +232,8 @@ public static partial class BraxClaudeOsiedle
         Cylinder(ZnCzarny, p + Vector3.up * top, rr + .004f, .02f, 10, true, false);
         Collider(p + Vector3.up * (top * .5f), new Vector3(.1f, top, .1f));
         Vector3 n = streetAlongX ? Vector3.forward : Vector3.right;
+        znakiRej.Add(new ZnakRek { typ = "ULICA " + id, p = p, n = n,
+            dol = yc - h * .5f });
         float yaw = Mathf.Atan2(n.x, n.z) * Mathf.Rad2Deg;
         foreach (float s in new[] { 1f, -1f })
         {
