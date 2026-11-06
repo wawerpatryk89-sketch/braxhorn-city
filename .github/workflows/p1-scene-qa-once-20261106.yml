@@ -1,5 +1,6 @@
 name: P1 BASEN - one-shot Unity 6 SCENY only (NO APK)
 
+# Second scene-only QA after correcting two stale A1/T11 tests found in run 42174629053.
 # One-shot request from the owner to test finished P1 source in Unity.
 # Push trigger is restricted to THIS workflow file; subsequent model commits
 # will NOT automatically queue more Unity jobs. Can be re-run manually.
