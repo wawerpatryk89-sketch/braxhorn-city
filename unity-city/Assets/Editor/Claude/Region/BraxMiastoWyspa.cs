@@ -1332,14 +1332,18 @@ internal static partial class BraxMiastoWyspa
         BraxMiastoA.Log("WYSPA plac wejściowy areny: pylon, telebimów " + nT + ", brama z bramkami, flag " + nF + ", food trucków " + nTr);
     }
 
-    // ---------------- dwa ringi plenerowe na mniejsze walki (nie nasze) ----------------
+    // ---------------- jedyny zachowany ring plenerowy: południe, poza lewą stroną głównej areny ----------------
     static void Ringi()
     {
         var plotno = BraxMiastoA.Mat("Wyspa: ring plenerowy (płótno)", new Color(.85f, .2f, .16f), .8f);
         var fartuch = BraxMiastoA.Mat("Wyspa: ring fartuch", new Color(.08f, .08f, .09f), .8f);
         var lina = BraxMiastoA.Mat("Wyspa: liny ringu", new Color(.95f, .95f, .93f), .7f);
-        int n = 0;
-        foreach (var off in new[] { new Vector2(-8f, 30f), new Vector2(-8f, -30f) })
+        // Od strony przystani patrząc na arenę, lewy (północny) ring
+        // stał przy fasadzie i był zbędny. Nie generujemy jego brył, lin,
+        // colliderów ani interakcji wyspa_ring_1. Drugi, południowy ring
+        // pozostaje bez zmian geometrii oraz z dotychczasowym ID _2.
+        int n = 1;
+        foreach (var off in new[] { new Vector2(-8f, -30f) })
         {
             var c = new Vector3(CX + Plac.x + off.x, W + PlacH, CZ + Plac.y + off.y); float s = 5.5f * K * .5f, hp = .3f;
             BraxUliceKit.S(fartuch).Box(new Vector3(c.x - s, c.y, c.z - s), new Vector3(c.x + s, c.y + hp - .02f, c.z + s), 4);
