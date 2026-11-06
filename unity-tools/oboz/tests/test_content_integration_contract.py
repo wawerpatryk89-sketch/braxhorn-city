@@ -54,14 +54,20 @@ class CampContentIntegrationContract(unittest.TestCase):
         self.assertNotIn("BuildPipeline.BuildPlayer(", self.base)
         self.assertIn("EditorApplication.Exit(0);", self.base)
 
-    def test_manual_in_place_update_of_apk18(self):
+    def test_manual_in_place_update_from_latest_compatible_apk(self):
         legacy = self.workflow.split("  android-oboz:", 1)[1].split("    runs-on:", 1)[0]
         self.assertIn("codex/oboz-przebudowa-pbr-20261105", legacy)
         self.assertIn("github.event_name == 'workflow_dispatch'", legacy)
         self.assertIn("inputs.first_install != true", legacy)
         self.assertIn("inputs.content_action == 'none'", legacy)
-        self.assertIn('info.get("sourceRun")==41983757537', self.workflow)
-        self.assertIn('info.get("versionCode")==216024998', self.workflow)
+        # #22 already exists. Keep #18 as a minimum compatible baseline,
+        # never require an obsolete run/commit while preparing the next APK.
+        self.assertIn('code<216024998', self.workflow)
+        self.assertIn('info.get("applicationId")!="com.braxhorn.oboz"', self.workflow)
+        self.assertIn('signingCertificateSha256', self.workflow)
+        self.assertIn('next_version<=code', self.workflow)
+        self.assertNotIn('info.get("sourceRun")==41983757537', self.workflow)
+        self.assertNotIn('info.get("versionCode")==216024998', self.workflow)
         self.assertIn('unity-tools/claude/prywatne.py', self.workflow)
         self.assertIn("  oboz-content-only:", self.workflow)
         self.assertIn("  oboz-content-update:", self.workflow)
