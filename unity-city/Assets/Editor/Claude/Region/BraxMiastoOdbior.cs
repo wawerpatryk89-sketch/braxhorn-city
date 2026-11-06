@@ -163,57 +163,40 @@ internal static class BraxMiastoOdbior
 
     static void SprawdzMetroM1(Transform cityRoot)
     {
+        // Etap R1 = infrastruktura metra; pociąg ma NIE kursować.
+        // Odbiór wejścia, chodnika, schodów, bramek i peronu jest niezależny
+        // od istnienia składu, pasażerów, liczby drzwi lub minutowego kursu.
         var metro = cityRoot.GetComponentInChildren<BraxMetroM1Ruch>(true);
-        if (!metro)
+        if (metro)
         {
-            Blad("BRAXHORN_METRO_M1_NIEGOTOWE: zamiast kursującego modelu pociągu z repo jest stara atrapa lub brak GLB");
-            return;
+            bool model = metro.GetComponentsInChildren<Renderer>(true).Any(r => r && r.enabled);
+            bool wylaczony = !metro.kursyWlaczone;
+            bool wSkrajni = true;
+            Bounds obrys = default;
+            bool saGranice = false;
+            foreach (var r in metro.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!r || !r.enabled) continue;
+                if (!saGranice) { obrys = r.bounds; saGranice = true; }
+                else obrys.Encapsulate(r.bounds);
+            }
+            // Nawet nieruchomy model nie może wystawać ponad strop tunelu
+            // ani zachodzić na chodnik peronu (północny tor z = 36.1).
+            if (saGranice)
+                wSkrajni = obrys.min.y >= -12.83f &&
+                    obrys.max.y <= -5.25f &&
+                    obrys.min.z >= 34.18f &&
+                    obrys.max.z <= 38.80f;
+            string raport = "BRAXHORN_METRO_M1_REZERWA " +
+                "kursy_wylaczone=" + wylaczony +
+                " model_na_postoju=" + model +
+                " skrajnia_wagonu=" + wSkrajni +
+                " bez_symulacji_pasazerow=" + (metro.GetComponent<BraxMetroM1Pasazerowie>() == null || !metro.GetComponent<BraxMetroM1Pasazerowie>().enabled);
+            if (!wylaczony || (model && !wSkrajni))
+                Blad(raport + " NIEGOTOWE: brak zgody na uruchomienie kursów albo niebezpieczna skrajnia");
+            else Debug.Log(raport + " — infrastruktura będzie testowana osobno");
         }
-        var npc = metro.GetComponent<BraxMetroM1Pasazerowie>();
-        bool model = metro.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length > 0 ||
-                     metro.GetComponentsInChildren<MeshRenderer>(true).Length > 10;
-        // Nie wymagamy dawnego +40 m: duży offset wystawiał pociąg poza tunel.
-        // Zamiast tego sprawdzamy prawdziwe obrysy DWÓCH wagonów, łącznik
-        // i to, czy na obu krańcach kursu cały skład pozostaje pod ziemią.
-        var wagony = metro.GetComponentsInChildren<Transform>(true).Where(t => t &&
-            t.parent == metro.transform &&
-            t.name.StartsWith("metro M1 — wagon ", StringComparison.Ordinal)).ToArray();
-        var lacznik = metro.transform.Find("M1: ciemny przegub i połączenie wagonów 101-102");
-        Bounds obrys = default;
-        bool saGranice = false;
-        foreach (var wagon in wagony)
-            foreach (var renderer in wagon.GetComponentsInChildren<Renderer>(true))
-                if (renderer)
-                {
-                    if (!saGranice) { obrys = renderer.bounds; saGranice = true; }
-                    else obrys.Encapsulate(renderer.bounds);
-                }
-        const float PX0 = -18f, PX1 = 63f, TW0 = -70f, TW1 = 112f;
-        bool calyWtunelu = saGranice &&
-            metro.wejscieOffsetX > 0f && metro.wyjazdOffsetX < 0f &&
-            obrys.min.x + metro.wejscieOffsetX >= PX1 + 3.9f &&
-            obrys.max.x + metro.wejscieOffsetX <= TW1 - 3.9f &&
-            obrys.min.x + metro.wyjazdOffsetX >= TW0 + 3.9f &&
-            obrys.max.x + metro.wyjazdOffsetX <= PX0 - 3.9f;
-        // Dopuszczamy jeden autentyczny model GLB (bez sztucznego sprzęgu).
-        bool sklad = wagony.Length >= 1 && wagony.Length <= 2 &&
-                     (wagony.Length == 1 || lacznik != null) && calyWtunelu;
-        bool czas = Mathf.Abs(metro.dojazdSekundy + metro.otwieranieSekundy +
-                    metro.postojSekundy + metro.zamykanieSekundy +
-                    metro.odjazdSekundy + metro.ciszaSekundy - 60f) < 3f;
-        bool drzwi = metro.DrzwiLiczba >= 2;
-        string raport = "BRAXHORN_METRO_M1_KURS_BUDOWA model=" + model +
-              " drzwi_panele=" + metro.DrzwiLiczba + " npc=" + (npc != null) +
-              " kurs_okolo_minuty=" + czas +
-              " wagony=" + wagony.Length + " lacznik=" + (lacznik != null) +
-              " caly_sklad_w_tunelu=" + calyWtunelu +
-              " wjazd=" + metro.wejscieOffsetX.ToString("F1") +
-              " wyjazd=" + metro.wyjazdOffsetX.ToString("F1") +
-              " (wizualne drzwi sceniczne, nie oryginalne animowane drzwi GLB)";
-        if (!model || !npc || !drzwi || !sklad || !czas)
-            Blad(raport + " NIEGOTOWE");
-        else
-            Debug.Log(raport + " GOTOWE DO TESTU W APK");
+        else Debug.Log("BRAXHORN_METRO_M1_REZERWA brak pociągu — zgodnie z etapem bez kursów; testujemy samą stację");
 
         // R1 6.11: PORT zamiast zatkanego chodnika. Nie sprawdzać starego wejścia x=69,z=34.3.
         // Kontrola korytarza z portu jest w BraxClaudeMetro.KontrolaPrzejscia(), tu
