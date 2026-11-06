@@ -246,14 +246,25 @@ public static class BraxClaudeMetro
 
         // 5) widoczność (stacja rysowana tylko, gdy kamera/gracz pod ziemią albo przy wejściach) i zasięg kamery pod ziemią
         var wid = podziemie.gameObject.AddComponent<BraxWidocznoscWnetrza>(); wid.nazwa = "metro M1 NABRZEŻE";
-        wid.strefy = new[] { Bryla(TW0 - 5f, TW1 + 5f, -16f, -.55f, 14f, 43f), Bryla(56f, 90f, -.55f, 14f, 8f, 48f) };
+        // Wariant portowy: dolne schody kończą się przy z~6.4, korytarz
+        // zawraca przy z4.5. Stare strefy od z8 ukrywały jego część graczowi.
+        wid.strefy = new[] {
+            Bryla(TW0 - 5f, TW1 + 5f, -16f, -.55f, 14f, 43f),
+            Bryla(64f, 90f, -16f, 14f, 3.8f, 48f)
+        };
         var zw = new GameObject("zasięg kamery pod ziemią (BraxClaudeZasiegWnetrza)"); zw.transform.SetParent(podziemie, false);
-        var zc = zw.AddComponent<BraxClaudeZasiegWnetrza>(); zc.zasieg = 140f; zc.sale = new[] { Bryla(TW0 - 5f, TW1 + 5f, -16f, -1.2f, 14f, 43f) };
+        var zc = zw.AddComponent<BraxClaudeZasiegWnetrza>(); zc.zasieg = 140f;
+        zc.sale = new[] {
+            Bryla(TW0 - 5f, TW1 + 5f, -16f, -1.2f, 14f, 43f),
+            Bryla(66f, 85f, -16f, 3f, 3.8f, 24.5f)
+        };
 
         // 6) punkty misji (stare kotwice systemów przeniesione na nową stację) i raport
         W.Grupa = podziemie;
-        W.Punkt("metro_entry", "metro_entry", new Vector3(PortX, yS, PortZ + .7f));
-        W.Punkt("metro_stairs_bottom", "metro_stairs_bottom", new Vector3(PortX, yM, PortZ - (XKoniec - EX0) - .35f));
+        // Punkty akcji muszą leżeć na OSI schodów STAŁYCH, nie pomiędzy schodami
+        // a osłoną ruchomych. NaPort przelicza cały pierwotny bieg, łącznie z obrotem.
+        W.Punkt("metro_entry", "metro_entry", NaPort(new Vector3(EX0 - .72f, yS, ZcSchodow(EZ[1]))));
+        W.Punkt("metro_stairs_bottom", "metro_stairs_bottom", NaPort(new Vector3(XKoniec + .42f, yM, ZcSchodow(EZ[1]))));
         W.Punkt("metro_vestibule", "metro_vestibule", new Vector3(70.5f, yM, 28.25f));
         W.Punkt("metro_station_boundary", "metro_station_boundary", new Vector3(GX, yM, 28.5f));
         W.Punkt("metro_peron", "metro_peron", new Vector3(20f, yP, 28.5f));
