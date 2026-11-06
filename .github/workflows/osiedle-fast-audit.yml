@@ -16,6 +16,7 @@ on:
       - unity-city/Assets/Claude/Runtime/BraxRuchySport.cs
       - unity-city/Assets/Claude/Runtime/BraxSportBoisko.cs
       - unity-city/Assets/BraxGymPlayer.cs
+      - unity-city/Assets/Claude/BraxTouchControls.cs
   workflow_dispatch:
 
 permissions:
@@ -44,6 +45,7 @@ jobs:
             unity-city/Assets/Claude/Runtime/BraxRuchySport.cs
             unity-city/Assets/Claude/Runtime/BraxSportBoisko.cs
             unity-city/Assets/BraxGymPlayer.cs
+            unity-city/Assets/Claude/BraxTouchControls.cs
             unity-city/Prywatne/import-patryk-animations-20261106
             .github/workflows/osiedle-fast-audit.yml
       - name: Validate Python and original owner / estate regressions
@@ -69,6 +71,7 @@ jobs:
               Path("unity-city/Assets/Claude/Runtime/BraxRuchySport.cs"),
               Path("unity-city/Assets/Claude/Runtime/BraxSportBoisko.cs"),
               Path("unity-city/Assets/BraxGymPlayer.cs"),
+              Path("unity-city/Assets/Claude/BraxTouchControls.cs"),
           ]
           errors = []
           for path in paths:
