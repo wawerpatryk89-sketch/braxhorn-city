@@ -352,8 +352,11 @@ def patryk_i_ruchy():
         restore()
         from import_club_assets import install as install_club
         install_club(CEL / "Klub20261104")
-        from import_patryk_animations import install
-        install(CEL / "ruchy")
+        # Tylko 22 FBX z OSTATNIEJ paczki Patryk anima(6).zip.
+        # Brak pełnego zaszyfrowanego zestawu przerywa import osiedla;
+        # starsza paczka sześciu plików NIE jest już wejściem dla Patryka.
+        from import_patryk_owner_22 import install as install_patryk_owner_22
+        install_patryk_owner_22(CEL / "ruchy")
         # Wymagane jest dokładnie 22/22 oryginalnych FBX z najnowszego
         # Patryk anima(6).zip. Pierwsze 6 ma identyczne sumy SHA-256; następne
         # 16 pochodzi wyłącznie z dodatkowego prywatnego transferu.
