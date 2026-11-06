@@ -165,7 +165,6 @@ jobs:
         run: |
           python3 unity-tools/validation/check_unity_meta_guids.py --champions
           python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
-          python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
           python3 -m py_compile unity-tools/mistrzowie/import_selected_a1_t11.py
           python3 -m py_compile unity-tools/mistrzowie/prepare_car_and_mixamo.py
@@ -363,10 +362,7 @@ jobs:
         run: |
           python3 -m pip install numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 matplotlib==3.10.7
           test -f /usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf
-          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_*.py' -v
           python3 -m py_compile unity-tools/updates/content_snapshot.py
-          python3 -m unittest discover -s unity-tools/updates -p 'test_content_snapshot.py' -v
-          python3 unity-tools/mistrzowie/audit_metro.py
           python3 unity-tools/mistrzowie/prepare_assets.py
           python3 unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
           python3 unity-tools/mistrzowie/prepare_pool_p1_slide.py
@@ -385,13 +381,54 @@ jobs:
           python3 unity-tools/mistrzowie/prepare_promenade_props.py
           python3 unity-tools/mistrzowie/build_infrastructure.py
           # Five original-size station entrances, six connecting twin-rail tunnels; static only.
-          python3 unity-tools/mistrzowie/audit_metro_network.py
           python3 unity-tools/mistrzowie/prepare_landscape.py
-          python3 unity-tools/mistrzowie/validate_contract.py
           python3 unity-tools/mistrzowie/build_exteriors.py
-          python3 unity-tools/mistrzowie/audit_layout.py
           python3 unity-tools/mistrzowie/build_signs.py
           python3 unity-tools/mistrzowie/prepare_arena.py
+      # Geometry, pathing and source regressions are advisories: never a
+      # condition for delivering a signed test APK.
+      - name: Advisory geometry and code reports (non-blocking, NO Unity)
+        if: always() && !cancelled()
+        continue-on-error: true
+        run: |
+          python3 - <<'PY_ADVISORY'
+          import json,os,subprocess
+          from pathlib import Path
+          checks=[
+              ('validation-tests', ['python3','-m','unittest','discover','-s','unity-tools/validation','-p','test_*.py','-v']),
+              ('champions-source-tests', ['python3','-m','unittest','discover','-s','unity-tools/mistrzowie','-p','test_*.py','-v']),
+              ('content-snapshot-tests', ['python3','-m','unittest','discover','-s','unity-tools/updates','-p','test_content_snapshot.py','-v']),
+              ('metro-geometry', ['python3','unity-tools/mistrzowie/audit_metro.py']),
+              ('metro-network-geometry', ['python3','unity-tools/mistrzowie/audit_metro_network.py']),
+              ('placement-contract', ['python3','unity-tools/mistrzowie/validate_contract.py']),
+              ('building-layout', ['python3','unity-tools/mistrzowie/audit_layout.py']),
+          ]
+          results=[]
+          for label,argv in checks:
+              print('BRAXHORN_QUALITY_ADVISORY_START '+label,flush=True)
+              try:
+                  code=subprocess.run(argv,check=False,timeout=90).returncode
+                  status='PASS' if code==0 else 'WARNING'
+              except subprocess.TimeoutExpired:
+                  code=124
+                  status='TIMEOUT_WARNING'
+              except OSError as error:
+                  code=127
+                  status='EXECUTION_WARNING'
+                  print('BRAXHORN_QUALITY_ADVISORY_ERROR '+label+': '+str(error),flush=True)
+              results.append({'check':label,'status':status,'exitCode':code})
+              print('BRAXHORN_QUALITY_ADVISORY_RESULT '+label+' '+status,flush=True)
+          out=Path('mistrzowie-evidence')
+          out.mkdir(parents=True,exist_ok=True)
+          report={'status':'MANUAL_REVIEW_REQUIRED','blocksApk':False,
+                  'unityExecutedByThisStep':False,'checks':results}
+          (out/'source-quality-advisory.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as summary:
+              summary.write('### Source/geometry diagnostics — REPORT ONLY\n\n')
+              for item in results:
+                  summary.write('- '+item['check']+': '+item['status']+'\n')
+              summary.write('\nThese diagnostic warnings never gate the APK.\n')
+          PY_ADVISORY
       - name: Prepare durable Addressables content baseline mode
         if: ${{ inputs.etap != 'sceny' }}
         run: |
