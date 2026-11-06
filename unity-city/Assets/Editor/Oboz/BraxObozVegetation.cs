@@ -67,7 +67,8 @@ public static class BraxObozVegetation
             }
             var grass=layout.grass.Where(p=>Mathf.Abs(p.x)<=138f&&Mathf.Abs(p.z)<=138f&&
                 BraxObozCampusLayout.InsidePlot(p.x,p.z,11f)&&
-                !BraxObozCampusLayout.ReservedLawn(p.x,p.z,.8f)&&!OnWalkway(p)).ToList();
+                !BraxObozCampusLayout.ReservedLawn(p.x,p.z,.8f)&&
+                !FightCampBareGround(p.x,p.z)&&!OnWalkway(p)).ToList();
             int originalGrass=grass.Count;
             AddLawnGrass(grass);
             AddRondoGrass(grass);
@@ -224,6 +225,15 @@ public static class BraxObozVegetation
         if(!result)throw new InvalidOperationException("Nie zaimportowano maski liści: "+path);
         return result;
     }
+    // Nie sadzimy kęp na polanie walk, błotnistych stanowiskach ani w ciągu ruchu.
+    static bool FightCampBareGround(float x,float z)
+    {
+        foreach(var center in new[]{new Vector2(-23,15),new Vector2(23,15),
+            new Vector2(0,-5),new Vector2(-23,-40),new Vector2(23,-40),
+            new Vector2(-40,34)})
+            if(Vector2.Distance(new Vector2(x,z),center)<17f)return true;
+        return BraxObozCampusLayout.FenceDistance(x,z)>22f;
+    }
     static void AddLawnGrass(List<Item> points)
     {
         // Reuse the original blade model and Claude's local instancing on lawns
@@ -251,7 +261,8 @@ public static class BraxObozVegetation
             float x=(ix+.15f+((h>>8)&255u)/255f*.7f)*spacing;
             float z=(iz+.15f+((h>>16)&255u)/255f*.7f)*spacing;
             if(!BraxObozCampusLayout.InsidePlot(x,z,11f) ||
-                BraxObozCampusLayout.ReservedLawn(x,z,.8f))continue;
+                BraxObozCampusLayout.ReservedLawn(x,z,.8f) ||
+                FightCampBareGround(x,z))continue;
             bool pathShoulder=false;
             foreach(var path in paths)
             {

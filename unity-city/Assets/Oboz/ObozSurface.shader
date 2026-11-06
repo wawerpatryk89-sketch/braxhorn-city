@@ -72,8 +72,8 @@ Shader "Braxhorn/ObozSurface"
    o.Normal=normalize(lerp(o.Normal,UnpackNormal(tex2D(_GroundNormal,gravelUV)),blend));
    o.Smoothness=lerp(o.Smoothness,1-tex2D(_GroundRoughness,gravelUV).r,blend);
    o.Occlusion=lerp(o.Occlusion,tex2D(_GroundAO,gravelUV).r,blend);
-   // Vertex-blue mask is authored only on naturally damp compacted soil
-   // at path shoulders and by the exterior stream. No fictitious mud on tracks.
+   // Niebieska maska: ubity ziemny obóz, polana walk i rzeczywiste
+   // mokre błoto przy workach; czerwony tartan ma osobną geometrię.
    float mud=saturate(IN.color.b);
    float2 mudUV=IN.uv_MainTex*_MudUVScale;
    o.Albedo=lerp(o.Albedo,tex2D(_MudColor,mudUV).rgb,mud);

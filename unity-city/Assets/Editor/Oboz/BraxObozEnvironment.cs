@@ -244,19 +244,31 @@ public static partial class BraxObozEnvironment
             float noise = Mathf.PerlinNoise(px*.17f+123.4f,pz*.17f+456.7f);
             float shoulder = 1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.3f,3.2f+noise*1.8f,distance));
             float bank = 1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(3.5f,7+noise*2,channel));
-            // Managed lawns inside the camp fade into litter towards the forest.
-            float meadow = Mathf.Max(Mathf.Abs((px+35)/100),Mathf.Abs((pz+10)/105));
-            float lawn = 1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.75f,1.08f+(noise-.5f)*.12f,meadow));
-            // Owner's mud_forest_2k: local foot traffic wear and low damp
-            // ground near the OUTSIDE stream, not everywhere on the lawn.
-            float wearStart=Mathf.SmoothStep(0f,1f,Mathf.InverseLerp(.8f,2.4f,distance));
-            float wearEnd=1f-Mathf.SmoothStep(0f,1f,Mathf.InverseLerp(3.8f,7f,distance));
-            float trafficMud=wearStart*wearEnd*(.18f+.62f*noise);
+            // Fight camp: centrum jest UBITYM GRUNTEM i blotem.
+            // Trawa tylko na obwodzie i pod drzewami, nie plac miejski.
+            float fence=BraxObozCampusLayout.FenceDistance(px,pz);
+            float edgeLawn=Mathf.SmoothStep(0f,1f,
+                Mathf.InverseLerp(19f,8f,fence));
+            float lawn=Mathf.Clamp01(edgeLawn*(.45f+.32f*noise));
+            float wear=1f-Mathf.SmoothStep(0f,1f,
+                Mathf.InverseLerp(.9f,4.2f,distance));
+            float work=0f;
+            foreach(var station in new[]{new Vector2(-23,15),new Vector2(23,15),
+                new Vector2(0,-5),new Vector2(-23,-40),new Vector2(23,-40),
+                new Vector2(-40,34)})
+            {
+                float d=Vector2.Distance(new Vector2(px,pz),station);
+                work=Mathf.Max(work,1f-Mathf.SmoothStep(0f,1f,
+                    Mathf.InverseLerp(7f,19f,d)));
+            }
             float streamMud=(1f-Mathf.SmoothStep(0f,1f,
-                Mathf.InverseLerp(5.5f,11f,channel)))*(.22f+.24f*(1-noise));
-            float mud=Mathf.Clamp01((trafficMud+streamMud)*(1f-lawn*.62f));
-            colors[i] = new Color(Mathf.Max(shoulder,bank)*(1f-mud*.55f),
-                lawn*(1f-mud*.42f),mud,1f);
+                Mathf.InverseLerp(5.5f,11f,channel)))*(.28f+.18f*(1-noise));
+            float mud=Mathf.Clamp01(Mathf.Max(work*(.68f+.20f*noise),
+                wear*(.40f+.35f*noise))+streamMud);
+            // Kamienne ścieżki zachowują własny tilowany PBR, ich obrzeża
+            // pozostają ziemiste; wejścia i bieżnia nie dostają plam.
+            float gravel=Mathf.Max(shoulder,bank)*(1f-mud*.70f);
+            colors[i]=new Color(gravel,lawn*(1f-mud),mud,1f);
             if (x < n && z < n) { int t = (z * n + x) * 6; int j = i + n + 1; tris[t] = i; tris[t + 1] = j; tris[t + 2] = i + 1; tris[t + 3] = i + 1; tris[t + 4] = j; tris[t + 5] = j + 1; }
         }
         var mesh = new Mesh { name = "Teren kompaktowy 280 x 280 m; strumien zewnetrzny" }; mesh.vertices = vertices; mesh.uv = uv; mesh.colors = colors; mesh.triangles = tris; mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();

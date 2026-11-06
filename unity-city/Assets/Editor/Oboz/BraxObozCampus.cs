@@ -940,7 +940,8 @@ public static partial class BraxObozEnvironment
 
     static void PavedPaths(List<Rect> areas)
     {
-        var t=Group("Chodniki brukowane, z wycięciem obu bieżni",root,Vector3.zero);
+        var t=Group("Leśne dojścia na płytach z drewnianym obrzeżem",root,Vector3.zero);
+        var walkwayStone=BraxObozMaterials.OwnerSlabTilesPbr();
         var xs=areas.SelectMany(r=>new[]{r.xMin,r.xMax}).Distinct().OrderBy(v=>v).ToArray();
         var zs=areas.SelectMany(r=>new[]{r.yMin,r.yMax}).Distinct().OrderBy(v=>v).ToArray();
         bool Inside(float x,float z)=>areas.Any(r=>r.Contains(new Vector2(x,z)));
@@ -965,8 +966,8 @@ public static partial class BraxObozEnvironment
                 return;
             }
             float x=(x0+x1)*.5f,z=(z0+z1)*.5f;
-            var slab=Box(t,"Kostka poza bieżnią",new Vector3(x,.025f,z),
-                new Vector3(w,.05f,d),campusPaving,false);
+            var slab=Box(t,"Oryginalne płyty slab_tiles 2K",new Vector3(x,.008f,z),
+                new Vector3(w,.016f,d),walkwayStone,false);
             var mf=slab.GetComponent<MeshFilter>();
             var mesh=Object.Instantiate(mf.sharedMesh);
             var uv=mesh.uv;
@@ -994,8 +995,8 @@ public static partial class BraxObozEnvironment
                 }
                 return;
             }
-            Box(t,"Krawężnik poza bieżnią",new Vector3(x,.028f,z),
-                new Vector3(w,.056f,d),gravel,false);
+            Box(t,"Drewniane obrzeże ścieżki",new Vector3(x,.028f,z),
+                new Vector3(w,.056f,d),wood,false);
         }
         for(int i=0;i<xs.Length-1;i++)
         for(int j=0;j<zs.Length-1;j++)
