@@ -29,14 +29,18 @@ public static class BraxChampionsArenaMural
     const float DoorTop=4.20f;
     const float MuralBase=.20f;
     const float MuralTop=27.53333333f;
-    const float WallImageZ=98.215f; // inside the wall: no Z-fighting
+    // Public lobby is on local +Z. The existing wall/cladding ends at Z=98.3.
+    // Keep the printed surface on its LOBBY side, not hidden behind the cladding.
+    const float WallImageZ=98.33f; // 3cm nominal clearance; existing walls/colliders unchanged
     const int SourceWidth=1536;
     const int SourceHeight=512;
 
     // World scene image aspect stays 1536:512 (3:1) at 82:27.333 m.
     // The 19m peripheral sections extend the existing artwork's EDGE COLOUR
     // rather than stretching any fighter, emblem or lettering.
-    static float U(float x) => Mathf.Clamp01((x-ImageLeft)/(ImageRight-ImageLeft));
+    // From the lobby (looking toward local -Z), viewer-right is local -X.
+    // Reverse only the UV direction: the owner image must not read as a mirror.
+    static float U(float x) => Mathf.Clamp01((ImageRight-x)/(ImageRight-ImageLeft));
     static float V(float y) => Mathf.Clamp01((y-MuralBase)/(MuralTop-MuralBase));
 
     static void AddSegment(Transform parent,Material mural,
@@ -48,8 +52,8 @@ public static class BraxChampionsArenaMural
         // The original 82-metre artwork is not cropped, stretched, or recoloured.
         if(extension)
         {
-            if(x1<=ImageLeft)u0=u1=.002f;
-            else if(x0>=ImageRight)u0=u1=.998f;
+            if(x1<=ImageLeft)u0=u1=.998f;
+            else if(x0>=ImageRight)u0=u1=.002f;
         }
         var mesh=new Mesh{name=name+" | original panoramic UV panel"};
         mesh.vertices=new[]{
@@ -58,12 +62,12 @@ public static class BraxChampionsArenaMural
             new Vector3(x1,y1,WallImageZ),
             new Vector3(x1,y0,WallImageZ)
         };
-        // Winding faces the viewer from the public lobby toward the hall (-Z).
+        // Normal must face local +Z, toward the public lobby, before bowl rotation.
         mesh.uv=new[]{
             new Vector2(u0,V(y0)),new Vector2(u0,V(y1)),
             new Vector2(u1,V(y1)),new Vector2(u1,V(y0))
         };
-        mesh.triangles=new[]{0,1,2,0,2,3};
+        mesh.triangles=new[]{0,2,1,0,3,2};
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
         string safe=name.Replace(' ','_').Replace('|','_');
