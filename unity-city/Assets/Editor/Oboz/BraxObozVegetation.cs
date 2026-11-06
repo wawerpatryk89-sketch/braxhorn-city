@@ -54,11 +54,25 @@ public static class BraxObozVegetation
             // Nie zmienia gotowych postaci i nie zasłania drogi/dojazdu.
             int fenceTrees=AddFenceWoodland(forest,prototypes);
             placedTrees+=fenceTrees;
-            var grass=layout.grass.Where(p=>Mathf.Abs(p.x)<=138f&&Mathf.Abs(p.z)<=138f&&!BraxObozCampusLayout.Reserved(p.x,p.z,.5f)).ToList();
+            var pathRects=BraxObozEnvironment.PathRectangles();
+            bool OnWalkway(Item p)
+            {
+                foreach(var path in pathRects)
+                {
+                    float dx=Mathf.Max(path.xMin-p.x,0,p.x-path.xMax);
+                    float dz=Mathf.Max(path.yMin-p.z,0,p.z-path.yMax);
+                    if(dx*dx+dz*dz<2.25f)return true;
+                }
+                return false;
+            }
+            var grass=layout.grass.Where(p=>Mathf.Abs(p.x)<=138f&&Mathf.Abs(p.z)<=138f&&
+                BraxObozCampusLayout.InsidePlot(p.x,p.z,11f)&&
+                !BraxObozCampusLayout.ReservedLawn(p.x,p.z,.8f)&&!OnWalkway(p)).ToList();
             int originalGrass=grass.Count;
             AddLawnGrass(grass);
             Grass(parent,grass.ToArray());
-            Debug.Log("BRAXHORN_OBOZ las: drzewa="+placedTrees+" pas_zewnetrzny="+fenceTrees+" kępy="+grass.Count+
+            Debug.Log("BRAXHORN_OBOZ las: drzewa="+placedTrees+" pas_zewnetrzny="+fenceTrees+
+                " oryginalna_trawa=Grass_Medium_01_02_2K kępy="+grass.Count+
                 " nowe_kepy_trawnika="+(grass.Count-originalGrass)+"; test telefonu nadal wymagany");
         }
         finally { foreach(var p in prototypes)if(p)Object.DestroyImmediate(p); }
@@ -255,25 +269,83 @@ public static class BraxObozVegetation
     }
     static void Grass(Transform parent,Item[] points)
     {
-        var holder=new GameObject("Trawa — instancje oryginalnych źdźbeł");holder.transform.SetParent(parent,false);
-        var source=Model(Source+"grass_bermuda_01_seedling_d__unity.glb",null);
-        try
+        // Mandatory original owner geometry. No Bermuda seedlings, no impostor
+        // grass and no replacement blades procedurally generated from quads.
+        // The two decompressed .blend originals are exported to PRIVATE GLBs
+        // before the Unity scene is generated. Shared meshes + DrawMeshInstanced
+        // keep the mobile rendering cost independent of prefab duplication.
+        const string privateRoot="Assets/Source/Prywatne/Oboz/OwnerAssets/";
+        if(points==null || points.Length<100)
+            throw new InvalidOperationException("Za mało prawdziwej trawy na terenie obozu");
+        var holder=new GameObject("Oryginalna murawa 3D — Grass Medium 01 + 02");
+        holder.transform.SetParent(parent,false);
+        for(int variant=1;variant<=2;variant++)
         {
-            var filters=source.GetComponentsInChildren<MeshFilter>();
-            if(filters.Length!=1||filters[0].sharedMesh.subMeshCount!=1)throw new InvalidOperationException("Niejednoznaczna kępa źródłowa");
-            var filter=filters[0];var combine=new List<CombineInstance>();
-            for(int i=0;i<4;i++)
+            string id="grass_medium_0"+variant+"_2k";
+            string path=privateRoot+id+"/"+id+".glb";
+            var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if(!prefab)throw new InvalidOperationException(
+                "Brak oryginalnej wyeksportowanej siatki Grass Medium: "+path+
+                ". Nie uruchamiaj APK z dawnymi kępkami Bermuda.");
+            var original=Object.Instantiate(prefab);
+            original.name="Weryfikacja oryginału "+id;
+            try
             {
-                float angle=i*90;var offset=Quaternion.Euler(0,angle,0)*new Vector3(.045f,0,.025f);
-                combine.Add(new CombineInstance{mesh=filter.sharedMesh,transform=Matrix4x4.TRS(offset,Quaternion.Euler(0,angle,0),Vector3.one)*source.transform.worldToLocalMatrix*filter.transform.localToWorldMatrix});
+                var filters=original.GetComponentsInChildren<MeshFilter>(true)
+                    .Where(f=>f.sharedMesh!=null&&f.GetComponent<MeshRenderer>()!=null).ToArray();
+                if(filters.Length==0)
+                    throw new InvalidOperationException("Oryginalna Grass Medium nie ma siatek GLB: "+id);
+                var renderers=filters.Select(f=>f.GetComponent<MeshRenderer>()).ToArray();
+                var bounds=renderers[0].bounds;
+                foreach(var r in renderers.Skip(1))bounds.Encapsulate(r.bounds);
+                if(bounds.size.y<.001f || bounds.size.y>50f)
+                    throw new InvalidOperationException("Grass Medium: nieprawidłowa wysokość obrysu "+id);
+                var combine=new List<CombineInstance>();
+                var bottom=Matrix4x4.Translate(Vector3.down*bounds.min.y);
+                foreach(var filter in filters)
+                {
+                    for(int sub=0;sub<filter.sharedMesh.subMeshCount;sub++)
+                        combine.Add(new CombineInstance {
+                            mesh=filter.sharedMesh,
+                            subMeshIndex=sub,
+                            transform=bottom*original.transform.worldToLocalMatrix*
+                                filter.transform.localToWorldMatrix
+                        });
+                }
+                var mesh=new Mesh {
+                    name="ORYGINALNY Grass Medium "+variant+" — bez zmniejszania geometrii",
+                    indexFormat=IndexFormat.UInt32
+                };
+                mesh.CombineMeshes(combine.ToArray(),true,true);
+                mesh.RecalculateBounds();
+                if(mesh.vertexCount==0 || mesh.bounds.size.y<.001f)
+                    throw new InvalidOperationException("Nie można zbudować wspólnej siatki Grass Medium "+id);
+                // Split deterministic grass placements into original 01 and 02.
+                var selected=points.Where((p,i)=>(i&1)==(variant-1)).ToArray();
+                var data=ScriptableObject.CreateInstance<BraxClaudeTrawaDane>();
+                float targetHeight=.33f*K;
+                data.wysokosc=targetHeight/mesh.bounds.size.y;
+                data.granicaLaki=.17f*K;
+                data.kepy=selected.Select(p=>new Vector4(p.x*K,p.z*K,p.yaw,p.scale)).ToArray();
+                data.y=selected.Select(p=>.005f*K).ToArray();
+                var node=new GameObject("Grass Medium "+variant+" — tylko oryginalny GLB");
+                node.transform.SetParent(holder.transform,false);
+                var grass=node.AddComponent<BraxClaudeTrawa>();
+                grass.dane=Save(data,Output+id+"-GrassData.asset");
+                grass.siatka=Save(mesh,Output+id+"-GrassMesh.asset");
+                grass.material=BraxObozMaterials.OwnerGrassMediumPbr(variant);
+                grass.kawalek=9f*K;
+                grass.zasiegMurawy=25f*K;
+                grass.zasiegLaki=30f*K;
+                grass.zwolnijPo=45f*K;
+                Debug.Log("BRAXHORN_OBOZ_OWNER_GRASS_MESH variant="+variant+
+                    " source="+id+" vertices="+mesh.vertexCount+
+                    " instances="+selected.Length+" sourceTextures=2048x2048"+
+                    " ownerGeometryDecimation=false phoneFPSUnverified=true");
             }
-            var mesh=new Mesh{name="Cztery oryginalne źdźbła"};mesh.CombineMeshes(combine.ToArray(),true,true);
-            var data=ScriptableObject.CreateInstance<BraxClaudeTrawaDane>();data.wysokosc=K;data.granicaLaki=3*K;
-            data.kepy=points.Select(p=>new Vector4(p.x*K,p.z*K,p.yaw,p.scale)).ToArray();data.y=points.Select(_=>.005f*K).ToArray();
-            var grass=holder.AddComponent<BraxClaudeTrawa>();grass.dane=Save(data,Output+"GrassData.asset");grass.siatka=Save(mesh,Output+"GrassClump.asset");
-            grass.material=filter.GetComponent<MeshRenderer>().sharedMaterial;grass.kawalek=9*K;grass.zasiegMurawy=25*K;grass.zasiegLaki=30*K;grass.zwolnijPo=45*K;
+            finally { Object.DestroyImmediate(original); }
         }
-        finally { Object.DestroyImmediate(source); }
     }
+
 }
 
