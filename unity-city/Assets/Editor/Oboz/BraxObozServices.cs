@@ -38,10 +38,28 @@ public static class BraxObozServices
         glass.SetInt("_ZWrite",0);glass.EnableKeyword("_ALPHAPREMULTIPLY_ON");glass.SetOverrideTag("RenderType","Transparent");glass.renderQueue=3000;mats["glass"]=glass;
         var lamp=BraxObozMaterials.Plain("zarowki",new Color(1,.7f,.32f));lamp.EnableKeyword("_EMISSION");lamp.SetColor("_EmissionColor",new Color(1,.7f,.32f)*2);mats["lamp"]=lamp;
         foreach(var item in new[]{("canteen","Stołówka",-40f,-70f),("sauna","Sauna",-47f,-85f),("medical","Punkt medyczny",-25f,-85f),("storage","Magazyn",-25f,-67f)})
-            Add(item.Item1,item.Item2,parent,new Vector3(item.Item3,0,item.Item4),mats);
-        // Osobny blok sanitarny obok istniejących pryszniców i sauny.
-        // Nie zastępuje oryginalnych modeli, nie zamyka ich drzwi ani dojść.
-        SanitaryBlock(parent,mats);
+        {
+            var at=new Vector3(item.Item3,0,item.Item4);
+            OptionalBuilding(item.Item2,parent,()=>Add(item.Item1,item.Item2,parent,at,mats));
+        }
+        // Błąd jednej budowli nie usuwa istniejących ani pozostałych.
+        OptionalBuilding("Murowane WC/ŁAŹNIA/UMYWALNIA",parent,
+            ()=>SanitaryBlock(parent,mats));
+    }
+    static void OptionalBuilding(string label,Transform parent,Action action)
+    {
+        var before=Enumerable.Range(0,parent.childCount)
+            .Select(i=>parent.GetChild(i)).ToArray();
+        try { action(); }
+        catch(Exception ex)
+        {
+            for(int i=parent.childCount-1;i>=0;i--)
+            {
+                var child=parent.GetChild(i);
+                if(!before.Contains(child))Object.DestroyImmediate(child.gameObject);
+            }
+            BraxBuildQuality.Warn("OBÓZ NIEZBUDOWANE "+label+": "+ex.ToString());
+        }
     }
     static void Add(string id,string label,Transform parent,Vector3 position,Dictionary<string,Material> mats)
     {

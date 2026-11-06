@@ -66,6 +66,30 @@ public static partial class BraxObozEnvironment
     {
         return BraxObozStableMesh.Save(mesh);
     }
+
+    // Tylko sekcje opcjonalne; grunt podstawowy, postać i zapis sceny krytyczne.
+    // Zniszcz pół-utworzony obiekt, usuń jego rejestracje, zachowaj wcześniejsze.
+    static void Optional(string label,Action action)
+    {
+        var before=Enumerable.Range(0,root.childCount)
+            .Select(i=>root.GetChild(i)).ToArray();
+        int d=doors.Count,b=bags.Count,c=covered.Count,a=arenas.Count;
+        try { action(); }
+        catch(Exception ex)
+        {
+            for(int i=root.childCount-1;i>=0;i--)
+            {
+                var child=root.GetChild(i);
+                if(!before.Contains(child))Object.DestroyImmediate(child.gameObject);
+            }
+            if(doors.Count>d)doors.RemoveRange(d,doors.Count-d);
+            if(bags.Count>b)bags.RemoveRange(b,bags.Count-b);
+            if(covered.Count>c)covered.RemoveRange(c,covered.Count-c);
+            if(arenas.Count>a)arenas.RemoveRange(a,arenas.Count-a);
+            BraxBuildQuality.Warn("OBÓZ OPCJONALNE POMINIĘTE "+label+
+                " — "+ex.ToString());
+        }
+    }
     [MenuItem("BRAXHORN/Obóz/Odtwórz zabudowę roboczą (bez APK)")]
     public static void Prepare()
     {
@@ -87,29 +111,38 @@ public static partial class BraxObozEnvironment
         {
             root = Group("Obóz Misia — odbudowa robocza, wymagany odbiór", null, Vector3.zero);
             var info = root.gameObject.AddComponent<BraxObozSceneInfo>();
-            CampusMaterials(); OwnerPanorama(); Terrain(); Paths();
-            RunningTracks(); // profesjonalny czerwony owal i osobna bieznia 100 m
+            CampusMaterials();
+            Optional("panorama HDR",()=>{ OwnerPanorama(); });
+            Terrain(); // grunt jest kluczowy, brak terenu nadal zatrzymuje generator
+            Optional("leśne ścieżki",()=>{ Paths(); });
+            Optional("bieżnie",()=>{ RunningTracks(); });
             // Main activity area retained at real scale. Additional cabins/service areas
             // are reconstructed placements; appearance has not been approved.
-            Cabin("Domek 1", -60, -18, -90); Cabin("Domek 2", -60, -36, -90);
-            Cabin("Domek 3", -42, -18, 90); Cabin("Domek 4", -42, -36, 90);
-            Ring("Ring 1", -23, 15); Octagon(0, -5);
+            Optional("Domek 1",()=>{ Cabin("Domek 1", -60, -18, -90); });
+            Optional("Domek 2",()=>{ Cabin("Domek 2", -60, -36, -90); });
+            Optional("Domek 3",()=>{ Cabin("Domek 3", -42, -18, 90); });
+            Optional("Domek 4",()=>{ Cabin("Domek 4", -42, -36, 90); });
+            Optional("Ring 1",()=>{ Ring("Ring 1", -23, 15); });
+            Optional("Oktagon",()=>{ Octagon(0, -5); });
             // Owner rejected the imported city gym. Replace its entire instance,
             // interior, doors and collision source with camp training facilities.
-            TrainingCampus();
-            CoveredStrengthGym(); // wolne ciezary i silownia pod dachem
-            // Total: four pavilion + eight roofed outdoor + twelve open = 24.
-            Bags(-23, -40, true,10); Bags(23, -40, false,12);
-            ServiceBuildings();
-            CampfireFromOriginalRocks();
-            AssemblyGroundWithSchedule();
-            MuralBoards(); // Po budynkach: murale fizycznie na ścianach
-            CampusArrival();
-            BraxObozParkedBus.Add(root);
-            CampusPerimeter();
+            Optional("pawilon z Ringiem 2",()=>{ TrainingCampus(); });
+            Optional("siłownia pod dachem",()=>{ CoveredStrengthGym(); });
+            // 48: dwadzieścia zadaszonych przy belkach, cztery w pawilonie
+            // i dwadzieścia cztery otwarte — tylko prawdziwe modele.
+            Optional("20 worków zadaszonych",()=>{ Bags(-23, -40, true,10); });
+            Optional("24 worki otwarte",()=>{ Bags(23, -40, false,12); });
+            Optional("budynki usługowe",()=>{ ServiceBuildings(); });
+            Optional("ognisko",()=>{ CampfireFromOriginalRocks(); });
+            Optional("plac apelowy",()=>{ AssemblyGroundWithSchedule(); });
+            Optional("oryginalne murale",()=>{ MuralBoards(); // Po budynkach: murale fizycznie na ścianach
+            });
+            Optional("strefa przyjazdu",()=>{ CampusArrival(); });
+            Optional("autobus właściciela",()=>{ BraxObozParkedBus.Add(root); });
+            Optional("ogrodzenie i brama",()=>{ CampusPerimeter(); });
             // Strumien lezy ZA ogrodzeniem jako naturalne tlo.
             // Nie stawiamy fikcyjnych mostow wewnatrz zamknietego obozu.
-            BraxObozVegetation.Populate(root);
+            Optional("las i murawa",()=>{ BraxObozVegetation.Populate(root); });
             var anchors = Group("Kotwice planu R3 — do połączenia z oryginalnymi modelami", root, Vector3.zero);
             foreach (var a in new[] { ("Fort 3 na 3",83f,25f), ("Chata leśniczego i sklep",-105f,-103f), ("Tartak",76f,-105f), ("Kojce",39f,-94f) })
                 Group(a.Item1, anchors, P(a.Item2, 0, a.Item3));
@@ -120,7 +153,9 @@ public static partial class BraxObozEnvironment
             RenderSettings.fog = true; RenderSettings.fogMode = FogMode.ExponentialSquared; RenderSettings.fogDensity = .003f;
             RenderSettings.fogColor = new Color(.34f, .46f, .43f);
             info.bags = bags.ToArray(); info.coveredBags = covered.ToArray(); info.cabinDoors = doors.Take(4).ToArray(); info.arenas = arenas.ToArray();
-            BraxObozMaterials.ValidateHierarchy(root);
+            try { BraxObozMaterials.ValidateHierarchy(root); }
+            catch(Exception ex) { BraxBuildQuality.Warn(
+                "OBÓZ PBR DO KONTROLI: "+ex.ToString()); }
             if (!EditorSceneManager.SaveScene(scene, ScenePath)) throw new IOException("Nie zapisano zabudowy obozu");
             File.WriteAllText(Folder + "/status.json", "{\"completeCamp\":false,\"runtimeVerified\":false,\"cabins\":4,\"bags\":48,\"coveredBags\":24,\"rings\":2,\"octagons\":1}");
             Debug.Log("BRAXHORN_OBOZ zapisano roboczą zabudowę i rozmieszczenie lasu; fort, wnętrza i pełny odbiór nadal nieukończone");
