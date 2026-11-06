@@ -9,6 +9,7 @@ on:
       - unity-tools/claude/test_patryk_owner_contract.py
       - unity-city/Assets/Editor/Claude/**
       - unity-city/Assets/Claude/Runtime/BraxRuchAutSym.cs
+      - unity-city/Assets/Claude/Runtime/BraxAutoGracza.cs
   workflow_dispatch:
 
 permissions:
