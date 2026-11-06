@@ -103,13 +103,32 @@ public static partial class BraxClaudeOsiedle
             var siatkiPatryka = new HashSet<Mesh>(gracz.visual
                 .GetComponentsInChildren<SkinnedMeshRenderer>(true)
                 .Where(r => r.sharedMesh).Select(r => r.sharedMesh));
-            var kopiePoNazwieLubSiatce = roots
+            var kopie = roots
                 .SelectMany(g => g.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 .Where(r => r.sharedMesh && siatkiPatryka.Contains(r.sharedMesh)
                     && !r.transform.IsChildOf(gracz.visual)).ToArray();
-            if (kopiePoNazwieLubSiatce.Length > 0)
-                bledy.Add("Druga figura korzysta z oryginalnej siatki Patryka poza graczem: " +
-                    string.Join(", ", kopiePoNazwieLubSiatce.Select(r => r.name).Distinct().Take(8)));
+            // Salon ma zamówione przez właściciela stanowisko PATRYK (sprzedawca).
+            // Dopuszczamy TYLKO ten jeden nazwany egzemplarz, jeżeli odtwarza
+            // ORYGINALNY klip "Typing" z ostatniej paczki 22 FBX.
+            // Inne kopie siatki nadal są błędem, nawet pod zmienioną nazwą.
+            var stanowiska = kopie
+                .Select(r => r.transform.GetComponentsInParent<Transform>(true)
+                    .FirstOrDefault(t => t.name == "Patryk (sprzedawca)"))
+                .Where(t => t).Distinct().ToArray();
+            if (stanowiska.Length > 1)
+                bledy.Add("Patryk: więcej niż jedno oryginalne stanowisko sprzedawcy");
+            foreach (var stanowisko in stanowiska)
+            {
+                var animacja = stanowisko.GetComponent<Animation>();
+                if (!animacja || !animacja.GetClip("Typing"))
+                    bledy.Add("Patryk: stanowisko sprzedawcy stoi bez oryginalnego FBX Typing");
+            }
+            var niedozwolone = kopie.Where(r =>
+                !r.transform.GetComponentsInParent<Transform>(true)
+                    .Any(t => t.name == "Patryk (sprzedawca)")).ToArray();
+            if (niedozwolone.Length > 0)
+                bledy.Add("Nieautoryzowana dodatkowa kopia modelu Patryka: " +
+                    string.Join(", ", niedozwolone.Select(r => r.name).Distinct().Take(8)));
         }
         var samochodyGracza = roots.SelectMany(g => g.GetComponentsInChildren<BraxAutoGracza>(true)).ToArray();
         if (samochodyGracza.Length != 1)
