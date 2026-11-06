@@ -127,44 +127,42 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -z "$A1_ASSET_TAG" ]; then
-            echo "::error::Wspolny build A1+T11 wymaga wskazania wydania assetow"
+          if [ -z "$A1_ASSET_TAG" ] ||
+             ! [[ "$A1_ASSET_TAG" =~ ^champions-a1-[a-zA-Z0-9._-]{1,80}$ ]]; then
+            echo "::error::Invalid or missing A1/T11 owner source tag"
             exit 1
           fi
-          if [ -n "$A1_ASSET_TAG" ]; then
-            if ! [[ "$A1_ASSET_TAG" =~ ^champions-a1-[a-zA-Z0-9._-]{1,80}$ ]]; then
-              echo "::error::Niepoprawny tag oryginalnych zasobow A1"
-              exit 1
-            fi
-            # The owner's already-published 20261105 release has the re-sent ZIP
-            # name. Both names contain the same SHA-256 pinned by the importer.
-            owner_pack=""
-            for candidate in ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip champions_arena_A1_unity_ready.zip; do
-              if gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-                --pattern "$candidate" --dir "$RUNNER_TEMP" --clobber; then
-                owner_pack="$RUNNER_TEMP/$candidate"
-                break
-              fi
-            done
-            if [ -z "$owner_pack" ]; then
-              echo "::error::Arena A1 original models/signs ZIP missing in GitHub Release"
-              exit 1
-            fi
-            python3 unity-tools/mistrzowie/import_champion_assets.py "$owner_pack" --dry-run
-            python3 unity-tools/mistrzowie/import_champion_assets.py "$owner_pack"
-
-            # ONLY the 3 original A1 murals, the 3 signs in use by T11,
-            # and the owner's exact 1536x512 image for the 3-D belt cabinet.
-            # Remaining city signs are preserved for later, not required now.
-            # No image/model can be substituted or silently redrawn.
-            selected="ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip"
-            gh release download "$A1_ASSET_TAG" --repo "$GITHUB_REPOSITORY" \
-              --pattern "$selected" --dir "$RUNNER_TEMP" --clobber
-            python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
-              "$RUNNER_TEMP/$selected" --dry-run
-            python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
-              "$RUNNER_TEMP/$selected"
+          # There are two DRAFT releases with the SAME tag. The approved
+          # original A1 and T11 ZIPs are inside one SHA256-locked outer ZIP.
+          # 'gh release download TAG' cannot resolve this safely and may
+          # hide drafts. Query the authenticated release list by tag + name.
+          outer="BRAXHORN_MISTRZOWIE_A1_T11_ORIGINALY_DO_BUILD.zip"
+          releases="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")"
+          asset_id="$(printf '%s' "$releases" | jq -r \
+            --arg tag "$A1_ASSET_TAG" --arg name "$outer" \
+            '[.[]|select(.tag_name==$tag)|.assets[]?|select(.name==$name)|.id] |
+              if length==1 then .[0] else empty end')"
+          if [ -z "$asset_id" ]; then
+            echo "::error::Expected one original A1/T11 outer ZIP in draft releases"
+            exit 1
           fi
+          gh api -H "Accept: application/octet-stream" \
+            "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" \
+            > "$RUNNER_TEMP/$outer"
+          python3 unity-tools/mistrzowie/unpack_a1_t11_nested_release.py \
+            "$RUNNER_TEMP/$outer" "$RUNNER_TEMP" --dry-run
+          python3 unity-tools/mistrzowie/unpack_a1_t11_nested_release.py \
+            "$RUNNER_TEMP/$outer" "$RUNNER_TEMP"
+          # Both inner ZIPs are original and SHA256-pinned. Do not import
+          # other bundled character animations or alter existing GUIDs.
+          python3 unity-tools/mistrzowie/import_champion_assets.py \
+            "$RUNNER_TEMP/ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip" --dry-run
+          python3 unity-tools/mistrzowie/import_champion_assets.py \
+            "$RUNNER_TEMP/ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip"
+          python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
+            "$RUNNER_TEMP/ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip" --dry-run
+          python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
+            "$RUNNER_TEMP/ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip"
           python3 unity-tools/mistrzowie/verify_champion_assets.py
           python3 unity-tools/mistrzowie/verify_arena_three_murals.py
           test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png
