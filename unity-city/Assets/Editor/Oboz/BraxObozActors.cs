@@ -103,6 +103,7 @@ public static class BraxObozActors
                 Point("gym","BRAXHORN GYM",-40,34), Point("wc","ŁAŹNIA I WC",-66,-52),
                 Point("oval","BIEŻNIA PĘTLA",0,-22), Point("sprint","BIEŻNIA 100 M",68,-24)
             };
+            BraxObozLocomotionCalibration.ConfigureAll(info);
             info.ownerAppearanceApproved=false; info.mobileRuntimeVerified=false;
             BraxObozMaterials.WriteTextureAudit(info.transform);
             if(!EditorSceneManager.SaveScene(scene,ScenePath))throw new IOException("Nie zapisano podglądu obozu");

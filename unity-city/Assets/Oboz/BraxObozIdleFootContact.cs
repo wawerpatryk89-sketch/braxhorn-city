@@ -21,6 +21,10 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
     readonly List<SoleVertex> leftSole=new List<SoleVertex>();
     readonly List<SoleVertex> rightSole=new List<SoleVertex>();
     bool initialized, warned;
+    int leftFrame=-1,rightFrame=-1;
+    Vector3 lastLeft,lastRight;
+    Collider lastFloor;
+    BraxObozDeformableMat floorMat;
 
     struct Influence
     {
@@ -42,6 +46,7 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
         body=capsule;visual=model;clips=motion;
         if(visual){baselineLocalPosition=visual.localPosition;hasBaseline=true;}
         initialized=false;
+        leftFrame=rightFrame=-1;
         leftSole.Clear();rightSole.Clear();
     }
 
@@ -146,6 +151,8 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
     {
         world=Vector3.zero;
         if(!InitializeSoles())return false;
+        if(Application.isPlaying && (left?leftFrame:rightFrame)==Time.frameCount)
+        {world=left?lastLeft:lastRight;return true;}
         var points=left?leftSole:rightSole;
         float minY=float.PositiveInfinity;
         for(int i=0;i<points.Count;i++)
@@ -155,7 +162,13 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
             Vector3 at=point.World;
             if(at.y<minY){minY=at.y;world=at;}
         }
-        return !float.IsInfinity(minY) && !float.IsNaN(minY);
+        bool measured=!float.IsInfinity(minY) && !float.IsNaN(minY);
+        if(measured && Application.isPlaying)
+        {
+            if(left){leftFrame=Time.frameCount;lastLeft=world;}
+            else{rightFrame=Time.frameCount;lastRight=world;}
+        }
+        return measured;
     }
 
     public bool TryGetSoleHeight(out float worldY)
@@ -199,7 +212,21 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
     {
         if(!TryGetSoleHeight(out float soleY))return false;
         visual.localPosition=LocalAtCorrection(GroundedCorrection(groundY,soleY));
+        leftFrame=rightFrame=-1;
         return true;
+    }
+
+    float RenderedGroundHeight(RaycastHit ground)
+    {
+        if(lastFloor!=ground.collider)
+        {
+            lastFloor=ground.collider;
+            floorMat=lastFloor?lastFloor.GetComponent<BraxObozDeformableMat>():null;
+        }
+        if(!floorMat)return ground.point.y;
+        if(TryGetSolePosition(true,out var left) && TryGetSolePosition(false,out var right) &&
+            floorMat.TryGetSurfaceHeight(left.y<=right.y?left:right,out float atFoot))return atFoot;
+        return floorMat.TryGetSurfaceHeight(ground.point,out float atCapsule)?atCapsule:ground.point.y;
     }
 
     void LateUpdate()
@@ -213,17 +240,23 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
             if(Physics.Raycast(origin,Vector3.down,out var ground,3f*K,
                     ~(1<<8),QueryTriggerInteraction.Ignore) && ground.normal.y>.65f &&
                     TryGetSoleHeight(out float soleY))
-                targetCorrection=GroundedCorrection(ground.point.y,soleY);
+                targetCorrection=GroundedCorrection(RenderedGroundHeight(ground),soleY);
         }
         // Airborne characters return to their authored normalization pivot,
         // not to (0,0,0). World-space correction remains correct under a parent scale.
         float next=Mathf.MoveTowards(CurrentCorrection(),targetCorrection,
             Mathf.Max(0f,Time.deltaTime)*(.52f*K));
-        visual.localPosition=LocalAtCorrection(next);
+        Vector3 target=LocalAtCorrection(next);
+        if((visual.localPosition-target).sqrMagnitude>1e-12f)
+        {
+            visual.localPosition=target;
+            leftFrame=rightFrame=-1;
+        }
     }
 
     void OnDisable()
     {
         if(visual && hasBaseline)visual.localPosition=baselineLocalPosition;
+        leftFrame=rightFrame=-1;
     }
 }

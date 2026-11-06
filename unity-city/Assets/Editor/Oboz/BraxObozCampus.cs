@@ -320,9 +320,11 @@ public static partial class BraxObozEnvironment
     static void Station(string label,float x,float z,float width,float depth,Action<Transform> build)
     {
         var t=Group("Stanowisko · "+label,root,P(x,0,z));
-        Box(t,"Podkład",new Vector3(0,.035f,0),new Vector3(width,.07f,depth),campusPaving);
-        var mat=Box(t,"Nawierzchnia gumowa",new Vector3(0,.075f,0),
-            new Vector3(width-.3f,.01f,depth-.3f),campusRubber,false);
+        // The visible top stays at .08 m. A 3 cm depression must remain
+        // above the base, not disappear into its old .07 m top surface.
+        Box(t,"Podkład",new Vector3(0,.02f,0),new Vector3(width,.04f,depth),campusPaving);
+        var mat=Box(t,"Nawierzchnia gumowa",new Vector3(0,.06f,0),
+            new Vector3(width-.3f,.04f,depth-.3f),campusRubber,true);
         mat.AddComponent<BraxObozDeformableMat>().Configure(width-.3f,depth-.3f);
         build(t);
         float signWidth=Mathf.Min(width-1,8);

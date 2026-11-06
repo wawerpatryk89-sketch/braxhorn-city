@@ -1,11 +1,11 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-// OBÓZ: ugięcie istniejącego RENDERA maty, bez zmiany colliderów lub fizyki NPC.
-// 3 cm głębokości, promień 0,4 m przed skalą K=1,294.
-// Siatka wierzchołków budowana w Play Mode, nie edytuje źródła ani materiału PBR.
+// Camp rubber: a local runtime mesh, a fixed collision surface and measured soles.
+// Originals and collider meshes remain unchanged; the visual contact component
+// can query this same rendered surface after deformation.
+[DefaultExecutionOrder(600)]
 [RequireComponent(typeof(MeshFilter),typeof(MeshRenderer))]
 public sealed class BraxObozDeformableMat : MonoBehaviour
 {
@@ -15,11 +15,12 @@ public sealed class BraxObozDeformableMat : MonoBehaviour
     const float VisualTick=.06f;
     public float widthMetres=8f,depthMetres=8f;
 
-    Mesh dynamicMesh;
-    Vector3[] baseVertices;
-    Vector3[] liveVertices;
-    Transform[] feet=Array.Empty<Transform>();
-    int deformableCount;
+    MeshFilter filter;
+    Mesh originalMesh,dynamicMesh;
+    Vector3[] baseVertices,liveVertices;
+    BraxObozIdleFootContact[] contacts=Array.Empty<BraxObozIdleFootContact>();
+    Vector2[] activeFeet=Array.Empty<Vector2>();
+    int deformableCount,activeFootCount,nx,nz;
     bool wasDeformed;
     float nextTick;
 
@@ -31,30 +32,25 @@ public sealed class BraxObozDeformableMat : MonoBehaviour
 
     void Start()
     {
-        // Budowa geometryczna tylko podczas gry. Brak nowych tekstur 4K
-        // i brak podwójnego renderera pod deformowaną powierzchnią.
-        var filter=GetComponent<MeshFilter>();
-        dynamicMesh=BuildMesh();
-        filter.mesh=dynamicMesh;
+        filter=GetComponent<MeshFilter>();originalMesh=filter.sharedMesh;
+        dynamicMesh=BuildMesh();filter.sharedMesh=dynamicMesh;
         liveVertices=dynamicMesh.vertices;
         baseVertices=(Vector3[])liveVertices.Clone();
-        var p=FindObjectsByType<BraxGymPlayer>(FindObjectsSortMode.None)
-            .Where(x=>x && x.body).Select(x=>x.transform);
-        var n=FindObjectsByType<BraxObozNpc>(FindObjectsSortMode.None)
-            .Where(x=>x).Select(x=>x.transform);
-        feet=p.Concat(n).Distinct().ToArray();
+        // One lookup after the saved scene is loaded. No global search or LINQ
+        // allocation in the deformation loop; all seven actors use sole contacts.
+        contacts=FindObjectsByType<BraxObozIdleFootContact>(FindObjectsSortMode.None);
+        activeFeet=new Vector2[contacts.Length*2];
     }
 
     Mesh BuildMesh()
     {
         const float pitch=.20f;
-        int nx=Mathf.Clamp(Mathf.CeilToInt(widthMetres/pitch),6,160);
-        int nz=Mathf.Clamp(Mathf.CeilToInt(depthMetres/pitch),6,160);
-        var vertices=new List<Vector3>((nx+1)*(nz+1)+24);
-        var uv=new List<Vector2>((nx+1)*(nz+1)+24);
-        var indices=new List<int>(nx*nz*6+36);
-        // Cube jest skalowany przez generator. Zapis w jednostkach [-.5,.5]
-        // zachowuje rzeczywiste materiały i fizyczną szerokość powierzchni.
+        nx=Mathf.Clamp(Mathf.CeilToInt(widthMetres/pitch),6,160);
+        nz=Mathf.Clamp(Mathf.CeilToInt(depthMetres/pitch),6,160);
+        var vertices=new List<Vector3>((nx+1)*(nz+1)+20);
+        var uv=new List<Vector2>((nx+1)*(nz+1)+20);
+        var indices=new List<int>(nx*nz*6+30);
+        // Generator scales the box. This grid keeps its physical dimensions.
         for(int iz=0;iz<=nz;iz++)
         for(int ix=0;ix<=nx;ix++)
         {
@@ -67,7 +63,6 @@ public sealed class BraxObozDeformableMat : MonoBehaviour
         for(int x=0;x<nx;x++)
         {
             int i=z*(nx+1)+x,j=i+nx+1;
-            // Winding w górę — prawidłowa widoczność na Androidzie.
             indices.Add(i);indices.Add(j);indices.Add(i+1);
             indices.Add(i+1);indices.Add(j);indices.Add(j+1);
         }
@@ -75,80 +70,130 @@ public sealed class BraxObozDeformableMat : MonoBehaviour
         {
             int i=vertices.Count;
             vertices.Add(a);vertices.Add(b);vertices.Add(c);vertices.Add(d);
-            uv.Add(new Vector2(0,0));uv.Add(new Vector2(1,0));
-            uv.Add(new Vector2(1,1));uv.Add(new Vector2(0,1));
+            float u=transform.TransformVector(b-a).magnitude;
+            float v=transform.TransformVector(d-a).magnitude;
+            uv.Add(new Vector2(0,0));uv.Add(new Vector2(u,0));
+            uv.Add(new Vector2(u,v));uv.Add(new Vector2(0,v));
             indices.Add(i);indices.Add(i+1);indices.Add(i+2);
             indices.Add(i);indices.Add(i+2);indices.Add(i+3);
         }
+        // Outward winding on the sides and underside; the rim stays fixed.
+        Face(new Vector3(-.5f,-.5f,-.5f),new Vector3(-.5f,.5f,-.5f),
+            new Vector3(.5f,.5f,-.5f),new Vector3(.5f,-.5f,-.5f));
+        Face(new Vector3(.5f,-.5f,.5f),new Vector3(.5f,.5f,.5f),
+            new Vector3(-.5f,.5f,.5f),new Vector3(-.5f,-.5f,.5f));
+        Face(new Vector3(-.5f,-.5f,.5f),new Vector3(-.5f,.5f,.5f),
+            new Vector3(-.5f,.5f,-.5f),new Vector3(-.5f,-.5f,-.5f));
+        Face(new Vector3(.5f,-.5f,-.5f),new Vector3(.5f,.5f,-.5f),
+            new Vector3(.5f,.5f,.5f),new Vector3(.5f,-.5f,.5f));
         Face(new Vector3(-.5f,-.5f,-.5f),new Vector3(.5f,-.5f,-.5f),
-            new Vector3(.5f,.5f,-.5f),new Vector3(-.5f,.5f,-.5f));
-        Face(new Vector3(.5f,-.5f,.5f),new Vector3(-.5f,-.5f,.5f),
-            new Vector3(-.5f,.5f,.5f),new Vector3(.5f,.5f,.5f));
-        Face(new Vector3(-.5f,-.5f,.5f),new Vector3(-.5f,-.5f,-.5f),
-            new Vector3(-.5f,.5f,-.5f),new Vector3(-.5f,.5f,.5f));
-        Face(new Vector3(.5f,-.5f,-.5f),new Vector3(.5f,-.5f,.5f),
-            new Vector3(.5f,.5f,.5f),new Vector3(.5f,.5f,-.5f));
-        Face(new Vector3(-.5f,-.5f,.5f),new Vector3(.5f,-.5f,.5f),
-            new Vector3(.5f,-.5f,-.5f),new Vector3(-.5f,-.5f,-.5f));
+            new Vector3(.5f,-.5f,.5f),new Vector3(-.5f,-.5f,.5f));
         var mesh=new Mesh{name="OBÓZ — mata z ugięciem wierzchołków 0.4m/3cm"};
-        if(vertices.Count>65000)
-            mesh.indexFormat=UnityEngine.Rendering.IndexFormat.UInt32;
+        if(vertices.Count>65000)mesh.indexFormat=UnityEngine.Rendering.IndexFormat.UInt32;
         mesh.SetVertices(vertices);mesh.SetUVs(0,uv);mesh.SetTriangles(indices,0);
-        mesh.RecalculateNormals();mesh.RecalculateBounds();
+        mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
         mesh.MarkDynamic();
         return mesh;
     }
 
+    void AddContact(BraxObozIdleFootContact contact,bool left,float sizeX,float sizeY,float sizeZ)
+    {
+        if(!contact.TryGetSolePosition(left,out var world))return;
+        Vector3 local=transform.InverseTransformPoint(world);
+        float gap=(local.y-.5f)*sizeY;
+        if(gap< -MaxDepth-.03f*K || gap>.08f*K ||
+            Mathf.Abs(local.x)>.5f+ContactRadius/sizeX ||
+            Mathf.Abs(local.z)>.5f+ContactRadius/sizeZ)return;
+        activeFeet[activeFootCount++]=new Vector2(local.x,local.z);
+    }
+
+    float DepthAt(Vector3 local,float sizeX,float sizeZ)
+    {
+        float radius2=ContactRadius*ContactRadius;
+        float rim=Mathf.Clamp01(Mathf.Min(
+            (.5f-Mathf.Abs(local.x))*sizeX/(.08f*K),
+            (.5f-Mathf.Abs(local.z))*sizeZ/(.08f*K)));
+        float deepest=0f;
+        for(int j=0;j<activeFootCount;j++)
+        {
+            float dx=(local.x-activeFeet[j].x)*sizeX;
+            float dz=(local.z-activeFeet[j].y)*sizeZ;
+            float d2=dx*dx+dz*dz;
+            if(d2>=radius2)continue;
+            float falloff=1f-d2/radius2;
+            // Overlapping feet never add beyond the owner's 3 cm limit.
+            deepest=Mathf.Max(deepest,falloff*falloff*rim);
+        }
+        return deepest*MaxDepth;
+    }
+
     void LateUpdate()
     {
-        if(!dynamicMesh||feet.Length==0 || Time.time<nextTick)return;
+        if(!dynamicMesh || Time.time<nextTick)return;
         nextTick=Time.time+VisualTick;
-        Vector3 center=transform.position;
         float sizeX=Mathf.Abs(transform.lossyScale.x);
         float sizeY=Mathf.Abs(transform.lossyScale.y);
         float sizeZ=Mathf.Abs(transform.lossyScale.z);
-        if(sizeY<.0001f)return;
-        float top=transform.TransformPoint(new Vector3(0,.5f,0)).y;
-        var active=feet.Where(t=>t && t.gameObject.activeInHierarchy &&
-                Mathf.Abs(t.position.y-top)<.30f*K &&
-                Mathf.Abs(t.position.x-center.x)<sizeX*.5f+ContactRadius &&
-                Mathf.Abs(t.position.z-center.z)<sizeZ*.5f+ContactRadius)
-            .ToArray();
-        if(active.Length==0 && !wasDeformed)return;
+        if(sizeX<.0001f || sizeY<.0001f || sizeZ<.0001f)return;
+        activeFootCount=0;
+        foreach(var contact in contacts)
+        {
+            if(!contact || !contact.isActiveAndEnabled || !contact.body ||
+                !contact.body.isGrounded)continue;
+            AddContact(contact,true,sizeX,sizeY,sizeZ);
+            AddContact(contact,false,sizeX,sizeY,sizeZ);
+        }
+        ApplyDeformation(sizeX,sizeY,sizeZ);
+    }
+
+    void ApplyDeformation(float sizeX,float sizeY,float sizeZ)
+    {
+        if(activeFootCount==0 && !wasDeformed)return;
         bool any=false;
-        float radius2=ContactRadius*ContactRadius;
         for(int i=0;i<deformableCount;i++)
         {
-            var vertex=baseVertices[i];
-            var world=transform.TransformPoint(vertex);
-            float falloff=0f;
-            // 3cm zagłębienie tylko pod stopami, zero poza promieniem 0.4m.
-            // Dodatkowa obwódka zapobiega szczelinom między bokiem maty a górą.
-            float rim=Mathf.Min(1f,Mathf.Min(
-                (.5f-Mathf.Abs(vertex.x))*sizeX/.08f/K,
-                (.5f-Mathf.Abs(vertex.z))*sizeZ/.08f/K));
-            for(int j=0;j<active.Length;j++)
-            {
-                var foot=active[j].position;
-                float dx=world.x-foot.x,dz=world.z-foot.z;
-                float d2=dx*dx+dz*dz;
-                if(d2>=radius2)continue;
-                float depth=(1f-d2/radius2);
-                falloff=Mathf.Max(falloff,depth*depth*Mathf.Clamp01(rim));
-            }
-            liveVertices[i]=new Vector3(vertex.x,
-                vertex.y-falloff*MaxDepth/sizeY,vertex.z);
-            any|=falloff>.001f;
+            Vector3 vertex=baseVertices[i];
+            float depth=DepthAt(vertex,sizeX,sizeZ);
+            liveVertices[i]=new Vector3(vertex.x,vertex.y-depth/sizeY,vertex.z);
+            any|=depth>.00001f;
         }
-        if(!any&&!wasDeformed)return;
+        if(!any && !wasDeformed)return;
         dynamicMesh.vertices=liveVertices;
-        dynamicMesh.RecalculateNormals();
-        dynamicMesh.RecalculateBounds();
+        dynamicMesh.RecalculateNormals();dynamicMesh.RecalculateTangents();
+        // The undeformed box bounds already contain every depressed vertex.
         wasDeformed=any;
     }
 
+    // Exact interpolation on the currently rendered grid triangles, not on an
+    // unrendered analytic curve. This can keep soles on a depressed visual mat
+    // while preserving CharacterController/NavMesh ownership of physical motion.
+    public bool TryGetSurfaceHeight(Vector3 worldPosition,out float worldY)
+    {
+        worldY=0f;
+        if(!dynamicMesh || liveVertices==null)return false;
+        Vector3 local=transform.InverseTransformPoint(worldPosition);
+        if(Mathf.Abs(local.x)>.5f || Mathf.Abs(local.z)>.5f)return false;
+        float u=(local.x+.5f)*nx,v=(local.z+.5f)*nz;
+        int x=Mathf.Min(nx-1,Mathf.FloorToInt(u)),z=Mathf.Min(nz-1,Mathf.FloorToInt(v));
+        float fx=u-x,fz=v-z;int i=z*(nx+1)+x,j=i+nx+1;
+        float y=fx+fz<=1f
+            ? liveVertices[i].y*(1f-fx-fz)+liveVertices[i+1].y*fx+liveVertices[j].y*fz
+            : liveVertices[j+1].y*(fx+fz-1f)+liveVertices[i+1].y*(1f-fz)+liveVertices[j].y*(1f-fx);
+        worldY=transform.TransformPoint(new Vector3(local.x,y,local.z)).y;
+        return true;
+    }
+
+    void OnDisable()
+    {
+        if(!dynamicMesh || baseVertices==null)return;
+        Array.Copy(baseVertices,liveVertices,baseVertices.Length);
+        dynamicMesh.vertices=liveVertices;
+        dynamicMesh.RecalculateNormals();dynamicMesh.RecalculateTangents();
+        activeFootCount=0;wasDeformed=false;
+    }
     void OnDestroy()
     {
+        if(filter && filter.sharedMesh==dynamicMesh)filter.sharedMesh=originalMesh;
         if(dynamicMesh)Destroy(dynamicMesh);
     }
 }

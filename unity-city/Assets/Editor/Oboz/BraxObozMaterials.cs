@@ -218,6 +218,7 @@ public static class BraxObozMaterials
         mat.SetTexture("_BumpMap",normal);
         mat.SetTexture("_RoughnessTex",rough);
         mat.SetFloat("_Cutoff",.32f);
+        mat.SetFloat("_FadeStart",23f);mat.SetFloat("_FadeEnd",25f);
         return Save(mat,"owner-grass-medium-0"+variant+"-2k");
     }
 

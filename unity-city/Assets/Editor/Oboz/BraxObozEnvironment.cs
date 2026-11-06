@@ -138,6 +138,7 @@ public static partial class BraxObozEnvironment
             Optional("20 worków zadaszonych",()=>{ Bags(-23, -40, true,10); });
             Optional("24 worki otwarte",()=>{ Bags(23, -40, false,12); });
             Optional("budynki usługowe",()=>{ ServiceBuildings(); });
+            Optional("ciągłe dojścia do wejść",()=>{ EntranceApproaches(); });
             Optional("ognisko",()=>{ CampfireFromOriginalRocks(); });
             Optional("plac apelowy",()=>{ AssemblyGroundWithSchedule(); });
             Optional("oryginalne murale",()=>{ MuralBoards(); // Po budynkach: murale fizycznie na ścianach
@@ -332,7 +333,7 @@ public static partial class BraxObozEnvironment
             float wear=1f-Mathf.SmoothStep(0f,1f,
                 Mathf.InverseLerp(.9f,4.2f,distance));
             float work=0f;
-            foreach(var station in new[]{new Vector2(-23,15),new Vector2(23,15),
+            foreach(var station in new[]{new Vector2(-23,15),new Vector2(-12,51),new Vector2(12,51),
                 new Vector2(0,-5),new Vector2(-23,-40),new Vector2(23,-40),
                 new Vector2(-40,34)})
             {
@@ -399,19 +400,28 @@ public static partial class BraxObozEnvironment
             new Rect(-50.5f,-28f,50.5f,2.4f),
             // Sanitariaty, kuchnia, medyczny i magazyn.
             new Rect(-68f,-61f,68f,2.4f),
-            new Rect(-33f,-78f,33f,2.4f),
+            new Rect(-47f,-78f,47f,2.4f),
             // Podejście do strefy siłowej i odcinka 100 m.
             new Rect(18f,-4.5f,28f,2.4f),
             new Rect(44f,-4.5f,2.4f,49f),
-            new Rect(0f,39f,18f,2.4f)
+            new Rect(0f,39f,18f,2.4f),
+            new Rect(-26.5f,37.8f,26.5f,2.4f) // wejście do siłowni pod dachem
         };
         // Łączniki do drzwi usługowych, układ bez prowadzenia pieszych
         // przez modele kuchni, łaźni i stołówki.
-        paths.Add(new Rect(-67.2f,-59.2f,2.4f,12.7f)); // od magistrali do samego progu WC: x=-67.2..-64.8, z=-59.2..-46.5
-        paths.Add(new Rect(-42f,-65f,2.4f,6.4f));   // dojście do stołówki
-        paths.Add(new Rect(-58f,-65.6f,2.4f,7f));   // dojście do pryszniców
-        paths.Add(new Rect(-25f,-80.5f,2.4f,5f));   // medyczny
-        paths.Add(new Rect(-25f,-65f,2.4f,7f));     // magazyn
+        // The bathhouse opens NORTH. The previous x=-66 branch crossed its
+        // entire interior from the south. Approach around the east wall.
+        paths.Add(new Rect(-59.2f,-60f,2.4f,17.2f));
+        paths.Add(new Rect(-67.2f,-45.2f,10.4f,2.4f));
+        paths.Add(new Rect(-67.2f,-46.5f,2.4f,2.5f));
+        // Service GLBs open SOUTH (local z=-depth/2), not at their rear.
+        // A shared north/south lane passes between canteen and storage.
+        paths.Add(new Rect(-32.7f,-91.2f,2.4f,32.6f));
+        paths.Add(new Rect(-41.2f,-77f,2.4f,2.5f));   // stołówka, próg z=-74.5
+        paths.Add(new Rect(-26.2f,-77f,2.4f,7f));     // magazyn, próg z=-70
+        paths.Add(new Rect(-48.2f,-91.2f,24.4f,2.4f));
+        paths.Add(new Rect(-48.2f,-90f,2.4f,2f));    // sauna, próg z=-88
+        paths.Add(new Rect(-26.2f,-90f,2.4f,2f));    // medyczny, próg z=-88
         return paths;
     }
     static void Cabin(string name, float x, float z, float yaw)

@@ -765,6 +765,7 @@ jobs:
             audit/oboz-scena.md
             audit/oboz-wejscia-kolizje.json
             audit/oboz-regresje-jednostek.json
+            audit/oboz-krok-postaci.json
             audit/oboz-diagnostyka.json
             build/QualityReview/*.json
             unity-city/Logs/

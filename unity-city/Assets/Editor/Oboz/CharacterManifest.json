@@ -14,7 +14,7 @@
       "normalPath": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Normal.png",
       "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Monika_roughness.PNG",
       "metallicPath": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbm/Monika_metallic.PNG",
-      "realHeight": 1.68,
+      "realHeight": 1.8,
       "hasGloves": false,
       "glovesVerified": true,
       "files": [
@@ -257,7 +257,7 @@
       "normalPath": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Normal.png",
       "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Ochroniaz_roughness.PNG",
       "metallicPath": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbm/Ochroniaz_metallic.PNG",
-      "realHeight": 0,
+      "realHeight": 1.8,
       "hasGloves": false,
       "glovesVerified": true,
       "files": [
@@ -502,7 +502,7 @@
       "normalPath": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/Normal.png",
       "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/anthropomorphic_dog_3d_model_roughness.PNG",
       "metallicPath": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbm/anthropomorphic_dog_3d_model_metallic.PNG",
-      "realHeight": 0,
+      "realHeight": 1.8,
       "hasGloves": true,
       "glovesVerified": true,
       "files": [
@@ -751,7 +751,7 @@
       "normalPath": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/Normal.png",
       "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/anthropomorphic_dog_3d_model_roughness.PNG",
       "metallicPath": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbm/anthropomorphic_dog_3d_model_metallic.PNG",
-      "realHeight": 0,
+      "realHeight": 1.8,
       "hasGloves": false,
       "glovesVerified": true,
       "files": [
@@ -997,7 +997,7 @@
       "normalPath": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/Normal.png",
       "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/boxer_3d_model_roughness.PNG",
       "metallicPath": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbm/boxer_3d_model_metallic.PNG",
-      "realHeight": 0,
+      "realHeight": 1.8,
       "hasGloves": true,
       "glovesVerified": true,
       "files": [
@@ -1244,7 +1244,7 @@
       "normalPath": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/Normal.png",
       "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/gorilla_3d_model_roughness.PNG",
       "metallicPath": "Assets/Source/Prywatne/Oboz/characters/gorr/tripo_convert_de4bf3e9-750b-4cfb-8684-704d6dab089b.fbm/gorilla_3d_model_metallic.PNG",
-      "realHeight": 0,
+      "realHeight": 1.8,
       "hasGloves": false,
       "glovesVerified": true,
       "files": [
@@ -1492,7 +1492,7 @@
       "normalPath": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/tripo_node_cd87740e_Normal_Bake.png",
       "roughnessPath": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/anthropomorphic_bear_gi_3d_model_roughness.PNG",
       "metallicPath": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/anthropomorphic_bear_gi_3d_model_metallic.PNG",
-      "realHeight": 0,
+      "realHeight": 1.8,
       "hasGloves": true,
       "glovesVerified": true,
       "files": [

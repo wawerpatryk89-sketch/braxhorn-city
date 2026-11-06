@@ -10,6 +10,7 @@ import unittest
 ROOT=Path(__file__).resolve().parents[3]
 ENV=(ROOT/"unity-city/Assets/Editor/Oboz/BraxObozEnvironment.cs").read_text("utf-8")
 CAMPUS=(ROOT/"unity-city/Assets/Editor/Oboz/BraxObozCampus.cs").read_text("utf-8")
+APPROACHES=(ROOT/"unity-city/Assets/Editor/Oboz/BraxObozPaths.cs").read_text("utf-8")
 
 
 def authored_paths():
@@ -25,6 +26,12 @@ def touch(a,b):
     return a[0]<=b[2]+1e-4 and b[0]<=a[2]+1e-4 and a[1]<=b[3]+1e-4 and b[1]<=a[3]+1e-4
 
 
+def authored_approaches():
+    number=r"(-?\d+(?:\.\d+)?|-?\.\d+)f"
+    pattern=r'new EntranceApproach\("([^"]+)",'+r",".join([number]*6)+r'\)'
+    return re.findall(pattern,APPROACHES)
+
+
 def ellipse_south(x,rx,rz,cz=-22):
     if abs(x)>rx:raise ValueError("Outside actual track ellipse")
     return cz-rz*math.sqrt(1-(x/rx)**2)
@@ -35,7 +42,7 @@ class QuickCampWalkways(unittest.TestCase):
     def setUpClass(cls):
         cls.paths=authored_paths()
 
-    def test_all_23_source_walkways_are_connected(self):
+    def test_all_source_walkways_are_connected(self):
         paths=self.paths
         seen={0}
         while True:
@@ -48,8 +55,53 @@ class QuickCampWalkways(unittest.TestCase):
         # Bathroom at (-66,-52), north face z=-47; stone threshold at +5.12,
         # so 3D entrance z=-46.88. Tolerance includes 0.3 m stone step.
         door=(-66,-46.88)
-        self.assertTrue(any(p[0]<=door[0]<=p[2] and p[1]<=door[1]<=p[3] for p in self.paths),
+        surfaces=list(self.paths)
+        for name,ax,az,bx,bz,width,height in authored_approaches():
+            ax,az,bx,bz,width=map(float,(ax,az,bx,bz,width))
+            surfaces.append((min(ax,bx)-width/2 if ax==bx else min(ax,bx),
+                             min(az,bz)-width/2 if az==bz else min(az,bz),
+                             max(ax,bx)+width/2 if ax==bx else max(ax,bx),
+                             max(az,bz)+width/2 if az==bz else max(az,bz)))
+        self.assertTrue(any(p[0]<=door[0]<=p[2] and p[1]<=door[1]<=p[3] for p in surfaces),
             "Bathroom path does not reach the actual stone entrance threshold")
+
+    def test_walkways_reach_fronts_of_all_service_buildings(self):
+        # Independent footprints from the service generator: front=-depth/2.
+        # The old paths touched each rear wall and passed this much weaker
+        # centre-only connectivity test despite never reaching their doors.
+        for name,x,z,depth in (("canteen",-40,-70,9),("sauna",-47,-85,6),
+                               ("medical",-25,-85,6),("storage",-25,-67,6)):
+            door=(x,z-depth/2)
+            self.assertTrue(any(p[0]<=door[0]<=p[2] and p[1]<=door[1]<=p[3]
+                                for p in self.paths),name+" has no front approach")
+
+    def test_no_path_crosses_closed_service_interiors(self):
+        footprints=(("bathroom",-66,-52,12.3,10.3),
+                    ("canteen",-40,-70,12,9),("sauna",-47,-85,7,6),
+                    ("medical",-25,-85,8,6),("storage",-25,-67,8,6))
+        for name,x,z,w,d in footprints:
+            room=(x-w/2+.02,z-d/2+.02,x+w/2-.02,z+d/2-.02)
+            for path in self.paths:
+                overlap_x=min(room[2],path[2])-max(room[0],path[0])
+                overlap_z=min(room[3],path[3])-max(room[1],path[1])
+                self.assertFalse(overlap_x>0 and overlap_z>0,
+                    f"Walkway crosses {name}: {path}")
+
+    def test_ramps_start_on_network_and_end_at_real_floor(self):
+        entries=authored_approaches()
+        self.assertEqual(len(entries),10,"Four cabins and six other entrances")
+        for name,ax,az,bx,bz,width,height in entries:
+            ax,az,bx,bz,width,height=map(float,(ax,az,bx,bz,width,height))
+            self.assertTrue(any(p[0]<=ax<=p[2] and p[1]<=az<=p[3] for p in self.paths),name)
+            length=math.hypot(bx-ax,bz-az)
+            self.assertGreaterEqual(width,.9,name)
+            self.assertLess((height-.016)/length,.12,name+" has a steep threshold")
+        expected={"Stołówka":(-40,-74.5,.16),"Sauna":(-47,-88,.16),
+                  "Punkt medyczny":(-25,-88,.16),"Magazyn":(-25,-70,.16),
+                  "WC / ŁAŹNIA":(-66,-47,.24)}
+        for name,ax,az,bx,bz,width,height in entries:
+            if name in expected:
+                self.assertEqual(tuple(map(float,(bx,bz,height))),expected[name],name)
 
     def test_gate_zebra_does_not_touch_south_track(self):
         m=re.search(r"const float vehicleCrosswalkZ=(-?\d+(?:\.\d+)?)f;",CAMPUS)

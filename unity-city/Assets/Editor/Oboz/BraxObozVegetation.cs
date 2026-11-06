@@ -381,8 +381,10 @@ public static class BraxObozVegetation
                 grass.siatka=Save(mesh,Output+id+"-GrassMesh.asset");
                 grass.material=BraxObozMaterials.OwnerGrassMediumPbr(variant);
                 grass.kawalek=9f*K;
-                grass.zasiegMurawy=25f*K;
-                grass.zasiegLaki=30f*K;
+                // Culling distance is a camera budget in world metres, not a
+                // model dimension. Both variants fade to ground texture by 25 m.
+                grass.zasiegMurawy=25f;
+                grass.zasiegLaki=25f;
                 grass.zwolnijPo=45f*K;
                 Debug.Log("BRAXHORN_OBOZ_OWNER_GRASS_MESH variant="+variant+
                     " source="+id+" vertices="+mesh.vertexCount+

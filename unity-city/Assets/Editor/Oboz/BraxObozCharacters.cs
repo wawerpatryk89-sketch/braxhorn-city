@@ -131,11 +131,10 @@ public static partial class BraxObozCharacters
             }
             float sourceHeight = maxY - minY;
             if (!(sourceHeight > .05f) || float.IsInfinity(sourceHeight)) throw new InvalidOperationException("Nieprawidłowy wymiar modelu");
-            // Monika has an agreed height; other models retain their authored size
-            // after the FBX importer applies its unit conversion. Reject implausible units.
-            // The source FBX models are normalized to about one metre. They
-            // do not carry an agreed NPC height. Review-only previews use an
-            // explicitly provisional baseline, never treat that as approval.
+            // Owner's 6.11 A.1 table defines a person as 1.8 m before K.
+            // The manifest carries that target for every camp actor. Original
+            // mesh, rig and clip files remain unchanged; only the instance scale
+            // converts source units to the requested physical height.
             float realHeight = spec.realHeight > 0f ? spec.realHeight : sourceReviewOnly && spec.previewHeight > 0f ? spec.previewHeight : 0;
             if (realHeight <= 0) throw new InvalidOperationException(spec.name + ": brak uzgodnionego wzrostu");
             if (!(realHeight >= .8f && realHeight <= 3f)) BraxBuildQuality.Issue(new InvalidOperationException(spec.name + ": niejednoznaczne jednostki/wzrost źródła " + realHeight));

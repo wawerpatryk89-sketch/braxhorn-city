@@ -70,6 +70,7 @@ public static class BraxObozSceneAudit
         public PlacementItem[] placements;
         public CharacterItem[] characters;
         public BullItem bull;
+        public BraxObozGroundAudit.Result ground;
         public string[] muralFindings,scaleFindings,overlapFindings,bagFindings;
     }
 
@@ -341,6 +342,14 @@ public static class BraxObozSceneAudit
             if(platform)Check(platform.transform,platform.bounds.size.y,1f,"wysokość podestu");
             else results.Add("Nie odnaleziono drewnianego podestu: "+arena.label);
         }
+        foreach(var body in scene.GetRootGameObjects()
+            .SelectMany(g=>g.GetComponentsInChildren<CharacterController>(true)))
+        {
+            float height=body.height*Mathf.Abs(body.transform.lossyScale.y)/K;
+            if(Mathf.Abs(height-1.8f)>.01f)
+                results.Add("Wzrost postaci: "+PathOf(body.transform)+" kapsuła="+
+                    height.ToString("F3")+" m; tabela właściciela A.1=1.800 m");
+        }
         return results.ToArray();
     }
 
@@ -499,6 +508,7 @@ public static class BraxObozSceneAudit
             };
             report.placements=placements;report.characters=characters;
             report.bull=InspectBull(scene);
+            report.ground=BraxObozGroundAudit.Inspect(scene);
             report.checkedGroundObjects=placements.Count(x=>x.measured&&x.kind=="Ground");
             report.checkedWallObjects=placements.Count(x=>x.measured&&x.kind=="Wall");
             report.unmeasuredObjects=placements.Count(x=>!x.measured);
@@ -563,6 +573,11 @@ public static class BraxObozSceneAudit
             md.AppendLine("Wszystkie kontakty potwierdzone: "+report.allPlacementsVerified+
                 " — zero błędów nie oznacza odbioru elementów niezmierzonych.");
             md.AppendLine("Murale: "+report.presentMurals+"/4; zastrzeżenia: "+report.muralWarnings);
+            md.AppendLine("Grunt i dojścia: "+report.ground.approaches.Count(x=>x.continuous)+
+                "/"+report.ground.approaches.Length+" ciągłych podejść w raycast; maty z miejscem na 3 cm="+
+                report.ground.mats.Count(x=>x.roomForFullDepression)+"/"+report.ground.mats.Length+
+                "; zastrzeżenia="+report.ground.warnings+"; pomiar FPS/telefon: NIE");
+            foreach(var finding in report.ground.findings)md.AppendLine("- GRUNT: "+finding);
             md.AppendLine("Błędy skali: "+report.scaleWarnings+
                 "; kandydaci przenikania mebli >3cm: "+report.overlapCandidates);
             md.AppendLine("Worki: "+report.checkedBags+"/48; odstęp/korpus błędne: "+

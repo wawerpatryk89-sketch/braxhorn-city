@@ -70,6 +70,8 @@ public static class BraxObozPlacementRegression
             Object.DestroyImmediate(placed.gameObject);Object.DestroyImmediate(ground);
             foreach(var finding in BraxObozFootContactRegression.Run())
                 Check(finding.StartsWith("PASS ",StringComparison.Ordinal),finding.Substring(5));
+            foreach(var finding in BraxObozRuntimeRegression.Run())
+                Check(finding.StartsWith("PASS ",StringComparison.Ordinal),finding.Substring(5));
         }
         catch(Exception ex) {failed++;checks.Add("FAIL exception: "+ex);}
         finally
