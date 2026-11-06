@@ -81,6 +81,7 @@ class OwnerFurnishingTests(unittest.TestCase):
         self.assertIn('own.StartsWith("spa access step")',self.spa)
         self.assertIn('own.Contains("padded deck")',self.spa)
         self.assertIn('own.StartsWith("basin")',self.spa)
+        self.assertIn('own.StartsWith("vanity | limestone counter")',self.spa)
         self.assertIn('own=="object_2"||own=="object_6"',self.spa)
         self.assertNotIn('own=="object_3"',self.spa)
         self.assertIn('filter.gameObject.AddComponent<MeshCollider>()',self.spa)
