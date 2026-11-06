@@ -581,7 +581,8 @@ public static class BraxObozServices
         // Real CC0 Poly Haven surfaces: white ceramic indoors, dark concrete
         // cladding outside. Source textures must pass 2K MD5 verification.
         var tile=BraxObozMaterials.PublicPbr("long_white_tiles",1.3f);
-        var facade=BraxObozMaterials.PublicPbr("rectangular_facade_tiles",2f);
+        // Autentyczna cegła Poly Haven CC0 2K, poziome spoiny po obu osiach.
+        var facade=BraxObozMaterials.PublicPbr("red_brick_03",1f);
         var porcelain=BraxObozMaterials.Plain("sanitariaty-porcelana",new Color(.94f,.95f,.92f),.70f);
         var dark=BraxObozMaterials.Plain("sanitariaty-spoiny",new Color(.15f,.18f,.20f),.22f);
         var mirror=BraxObozMaterials.Plain("sanitariaty-lustro",new Color(.93f,.94f,.95f),.99f,1f);
@@ -614,16 +615,16 @@ public static class BraxObozServices
         PbrWall(building,"Białe płytki nad wejściem",new Vector3(0,2.81f,5f),new Vector3(2.85f,.95f,.23f),tile);
         // Thin noncolliding cladding OUTSIDE the existing solid wall. The
         // owner's concrete building remains, door opening remains 2.8m.
-        PbrWall(building,"Ciemna elewacja Poly Haven — południe",
+        PbrWall(building,"Ceglana elewacja PBR — południe",
             new Vector3(0,1.70f,-5.13f),new Vector3(12.25f,3.25f,.035f),facade,false);
-        PbrWall(building,"Ciemna elewacja Poly Haven — zachód",
+        PbrWall(building,"Ceglana elewacja PBR — zachód",
             new Vector3(-6.13f,1.70f,0),new Vector3(.035f,3.25f,10.25f),facade,false);
-        PbrWall(building,"Ciemna elewacja Poly Haven — wschód",
+        PbrWall(building,"Ceglana elewacja PBR — wschód",
             new Vector3(6.13f,1.70f,0),new Vector3(.035f,3.25f,10.25f),facade,false);
         foreach(float x in new[]{-3.7f,3.7f})
-            PbrWall(building,"Ciemna elewacja Poly Haven — front i ościeże",
+            PbrWall(building,"Ceglana elewacja PBR — front i ościeże",
                 new Vector3(x,1.70f,5.13f),new Vector3(4.6f,3.25f,.035f),facade,false);
-        PbrWall(building,"Ciemny pas elewacji nad wejściem",
+        PbrWall(building,"Ceglane nadproże elewacji",
             new Vector3(0,2.81f,5.14f),new Vector3(2.85f,.95f,.035f),facade,false);
         FixtureBox(building,"Próg kamienny",new Vector3(0,.06f,5.12f),new Vector3(2.75f,.12f,.34f),tile);
         FixtureBox(building,"Dach hydroizolowany",new Vector3(0,3.42f,0),new Vector3(12.6f,.23f,10.6f),dark);

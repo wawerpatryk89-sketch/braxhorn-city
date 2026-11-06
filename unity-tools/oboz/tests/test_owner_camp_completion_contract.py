@@ -102,7 +102,7 @@ class OwnerCampCompletionContract(unittest.TestCase):
         for model in ('close-coupled-toilet.glb','wall-urinal.glb',
                       'trough-washbasin.glb','shower-tray-square.glb'):
             self.assertIn(model,self.services)
-        self.assertIn('PublicPbr("rectangular_facade_tiles"',self.services)
+        self.assertIn('PublicPbr("red_brick_03",1f)',self.services)
         self.assertIn('PublicPbr("long_white_tiles"',self.services)
         self.assertIn('OwnerSlabTilesPbr()',self.services)
         self.assertIn('OwnerMudForestPbr()',self.materials)

@@ -18,7 +18,8 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / "unity-city/Assets/Source/Public/Oboz"
 ASSETS = {
-    "rectangular_facade_tiles": "dark concrete exterior cladding, owner requested",
+    "rectangular_facade_tiles": "previous owner-supplied exterior cladding, retained for compatibility",
+    "red_brick_03": "real red-brown brick courses for outdoor sanitary block, Poly Haven CC0 2K",
     "long_white_tiles": "white wall tiling inside WC/ŁAŹNIA/UMYWALNIA",
 }
 ROLES = {
