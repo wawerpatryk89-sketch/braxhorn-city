@@ -220,6 +220,17 @@ public static partial class BraxObozEnvironment
                 b.size.y/Mathf.Max(.001f,Mathf.Abs(loss.y)),
                 b.size.z/Mathf.Max(.001f,Mathf.Abs(loss.z)));
         }
+        // Original owner's boxing headgear must not remain an unused file:
+        // position it on a physically measured 3D bench surface.
+        var bench=visible.FirstOrDefault(r=>r.gameObject.name.StartsWith(
+            "weight_bench",StringComparison.OrdinalIgnoreCase));
+        if(!bench)throw new InvalidOperationException(
+            "Brak oryginalnej ławki do ustawienia kasku bokserskiego");
+        Bounds benchBounds=bench.bounds;
+        var helmetWorld=new Vector3(benchBounds.center.x,benchBounds.max.y+.013f*K,
+            benchBounds.center.z);
+        BraxObozServices.OwnerFixture(gym,"boxing_headgear_helmet_low_poly.glb",
+            gym.InverseTransformPoint(helmetWorld),new Vector3(.38f,.34f,.39f));
         Debug.Log("BRAXHORN_OBOZ_GYM_REAL_FB_X atlas=2048x2048 source="+sourcePath+
             " renderers="+visible.Length+" bounds="+Bounds().size+
             " ownerOriginal=unchanged duplicatedRingsAndBags=hidden phoneVisualReview=required");
