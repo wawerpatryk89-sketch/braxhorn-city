@@ -50,11 +50,20 @@ class CampStrideContract(unittest.TestCase):
     def test_unity_fixture_exercises_known_speed_and_serialized_pool(self):
         self.assertIn("BraxObozLocomotionCalibration.Measure",REG)
         self.assertIn("AnimationCurve.Linear(0,0,1,-2f)",REG)
-        self.assertIn("EditorJsonUtility.FromJsonOverwrite",REG)
+        self.assertIn("JsonUtility.FromJsonOverwrite",REG)
         self.assertIn('Call(trail,"Start")',REG)
         self.assertIn('Call(trail,"LateUpdate")',REG)
         self.assertIn('Call(mat,"ApplyDeformation"',REG)
         self.assertIn("Physics.Raycast",REG)
+
+    def test_scene_reference_roundtrips_use_same_session_serializer(self):
+        for name in ("BraxObozFootContactRegression.cs","BraxObozRuntimeRegression.cs"):
+            source=(EDITOR/name).read_text("utf8")
+            self.assertIn("JsonUtility.ToJson(",source)
+            self.assertIn("JsonUtility.FromJsonOverwrite(",source)
+            self.assertNotIn("EditorJsonUtility.ToJson(",source)
+            self.assertNotIn("EditorJsonUtility.FromJsonOverwrite(",source)
+            self.assertIn("same-session",source)
 
     def test_new_scripts_have_unique_stable_meta_guids(self):
         files=[EDITOR/"BraxObozLocomotionCalibration.cs",EDITOR/"BraxObozRuntimeRegression.cs",

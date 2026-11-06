@@ -78,6 +78,16 @@ Odbiór wizualny i nagranie właściciela pozostają wymagane. Żaden brakujący
 - Trwa osobny przebieg C-02 / A-03 nr 26, run `42310565856`, dokładny SHA `0173cb8cdd6dce3916ce7c2b019799dd874ab63d`. Etap D nie zostanie uruchomiony równolegle z nim.
 - D: Unity/nagranie **oczekują**; APK **nie budowano**. Żadnego wizualnego odbioru ani zera lewitacji nie zadeklarowano.
 
+## C-03 / D-02 — odczyt wyniku C i poprawa testów referencji
+
+- C nr 26 zakończył się **success**, bez APK. Generator: **54 ostrzeżenia, 0 błędów, brak fatalnego wyjątku**, scena zapisana. Poprawka UV ośmiu szczytów domków potwierdzona w rzeczywistym przebiegu.
+- Kontrole zachowania: **32 PASS, 3 FAIL**. Dwa niepowodzenia przywracania pivotu i jedno referencji śladów wynikają z użycia `EditorJsonUtility` w teście obiektów bieżącej sceny. To API zapisuje referencje zasobów, pomija referencje do obiektów sceny. W fixtures zastosowano `JsonUtility`, które używa InstanceID w tej samej sesji, i dodano ścisłe kontrole `body`, `visual`, `clips` oraz początkowego pivotu. Nie zmieniono kodu runtime, tolerancji ani wysokości stóp. Nie jest to dowód przetrwania restartu Unity.
+- Podstawa API: [Unity 6000.0 EditorJsonUtility.ToJson](https://docs.unity.com/en-us/engine/6000.0/script-reference/unityeditor/editorjsonutility/tojson) i [JsonUtility.ToJson](https://docs.unity.com/en-us/engine/6000.0/script-reference/unityengine/jsonutility/tojson). Naprawione kontrole zostaną wykonane w następnym, pojedynczym przebiegu D.
+- Pomiary C: 6104 renderery, surowe wskazania 3129 lewitujących / 488 zapadniętych / 65 bez gruntu, 3 z 4 murali, 8 ostrzeżeń skali. Są to pomiary SHA C sprzed opublikowanych zmian D. Pełnych obiektów 72 gruntowe + 17 ściennych; 7/7 postaci w tolerancji kontaktu. **Byk zachowuje dokładnie wcześniejszą skalę 4×**, bez zmiany któregokolwiek wymiaru wzorca.
+- Grunt: mieszanka błota i wszystkie podejścia zmierzone bez ostrzeżeń. Szczegóły oraz SHA256 artefaktu zapisano w `EVIDENCE/C-02-unity-scene-42310565856.json`.
+- Dokładny indeks C-03: **236 testów źródeł + 2 kontraktu treningu PASS**; kontrola zakresów C# 36 Editor + 17 runtime, 0 błędów. Unity poprawionych trzech kontroli oczekuje na przebieg D.
+- D-01 opublikowano jako `87a31b04346f8844e453af79211f83ebafd2765a`. C-03 jest małą korektą po wyniku C, przed uruchomieniem D; E/F pozostają oddzielne.
+
 ## Pozostałe etapy
 
 C → D → E → F → G będą publikowane i raportowane osobno. Lista H jest weryfikowana równolegle; nowe modele wymagają wskazanej przez właściciela akceptacji. Nie ma potwierdzenia limitu 400 MB dla nowej wersji, ponieważ nie uruchomiono APK.

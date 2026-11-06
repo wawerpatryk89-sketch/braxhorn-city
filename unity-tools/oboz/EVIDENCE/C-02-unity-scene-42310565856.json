@@ -1,0 +1,264 @@
+{
+  "title": "OBÓZ TRENINGOWY — C-02/A-03, rzeczywisty wynik Unity",
+  "runId": 42310565856,
+  "jobId": 128210671119,
+  "revision": "0173cb8cdd6dce3916ce7c2b019799dd874ab63d",
+  "artifactId": 13549267562,
+  "artifactSha256": "9e161016aaa7796b2335dc14909b582cdd35f39f64c4e60f2824b572a015a9d0",
+  "apkBuilt": false,
+  "phoneVerified": false,
+  "generationCompleted": true,
+  "generatorWarnings": 54,
+  "generatorErrors": 0,
+  "firstFatalException": "",
+  "regression": {
+    "revision": "0173cb8cdd6dce3916ce7c2b019799dd874ab63d",
+    "passed": 32,
+    "failed": 3,
+    "checks": [
+      "PASS bed yaw=0 parentScale=1 length=2.587891 width=1.164063",
+      "PASS bed yaw=0 parentScale=1.294 length=2.587891 width=1.164063",
+      "PASS bed yaw=90 parentScale=1 length=2.587891 width=1.164063",
+      "PASS bed yaw=90 parentScale=1.294 length=2.587891 width=1.164063",
+      "PASS bed yaw=-90 parentScale=1 length=2.587891 width=1.164063",
+      "PASS bed yaw=-90 parentScale=1.294 length=2.587891 width=1.164063",
+      "PASS bed yaw=37 parentScale=1 length=2.587115 width=1.164457",
+      "PASS bed yaw=37 parentScale=1.294 length=2.587115 width=1.164457",
+      "PASS ground contact excludes both model parent and mesh child colliders",
+      "PASS foot contact parentScale=1 reads weighted sole geometry instead of renderer bounds",
+      "PASS foot contact parentScale=1 world floor correction under rotated scaled parent",
+      "PASS foot contact parentScale=1 changed bone pose is measured, not cached renderer envelope",
+      "FAIL foot contact parentScale=1 serialized normalization pivot restored by explicit EditMode callback check",
+      "PASS foot contact parentScale=1.294 reads weighted sole geometry instead of renderer bounds",
+      "PASS foot contact parentScale=1.294 world floor correction under rotated scaled parent",
+      "PASS foot contact parentScale=1.294 changed bone pose is measured, not cached renderer envelope",
+      "FAIL foot contact parentScale=1.294 serialized normalization pivot restored by explicit EditMode callback check",
+      "FAIL footprint actor references survive Unity serialization roundtrip",
+      "PASS reloaded footprint effect rebuilds tracking and exactly 40 slots",
+      "PASS all footprint slots share one mesh and material and have no colliders",
+      "PASS footprint Resources shader imports without error and exposes fade tint",
+      "PASS 55 stamps reuse the same 40 GameObjects",
+      "PASS footprint alpha is one half after 10 seconds",
+      "PASS all footprint stamps expire after 20 seconds",
+      "PASS runtime mat mesh preserves real width times K",
+      "PASS mat records both measured soles, not an actor root",
+      "PASS mat depression is 3 cm times K at a planted sole",
+      "PASS mat has no depression just beyond the 0.4 metre contact radius",
+      "PASS actual mat vertices deform within the 3 cm limit",
+      "PASS mat surface API equals a raycast onto its actual deformed triangles",
+      "PASS sole follows depressed visual mat while physical collider height stays fixed",
+      "PASS 2 m/s stance yields 2*K world m/s; sideways source rotation is rejected",
+      "PASS measured stride matches actual root speed without a target speed change",
+      "PASS blocked movement produces zero walking playback rate",
+      "PASS unmeasured clips and paused/jumping/action/blended eligibility do not receive a rate"
+    ]
+  },
+  "sceneCounts": {
+    "unitySceneInspected": true,
+    "apkBuilt": false,
+    "phoneVerified": false,
+    "renderers": 6104,
+    "unclassified": 0,
+    "levitating": 3129,
+    "embedded": 488,
+    "missingGroundRay": 65,
+    "expectedMounted": 729,
+    "expectedMurals": 4,
+    "presentMurals": 3,
+    "muralWarnings": 4,
+    "scaleWarnings": 8,
+    "overlapCandidates": 0,
+    "checkedBags": 48,
+    "bagWarnings": 7,
+    "checkedGroundObjects": 72,
+    "checkedWallObjects": 17,
+    "unmeasuredObjects": 0,
+    "wallWarnings": 0,
+    "checkedCharacters": 7,
+    "characterWarnings": 0,
+    "allPlacementsVerified": false,
+    "dependentSourceBytes": 1893006109
+  },
+  "bull": {
+    "present": true,
+    "scalePreserved": true,
+    "source": "Assets/Source/Prywatne/Oboz/OwnerAssets/A_charging_bull_statu_0725030443_refine.glb",
+    "measuredWorldSize": {
+      "x": 2.4342453479766846,
+      "y": 3.9047646522521973,
+      "z": 6.201168060302734
+    },
+    "expectedWorldSize": {
+      "x": 2.4342448711395264,
+      "y": 3.9047648906707764,
+      "z": 6.201168060302734
+    }
+  },
+  "ground": {
+    "sceneGeometryMeasured": true,
+    "phoneVerified": false,
+    "warnings": 0,
+    "terrainVertices": 12769,
+    "muddyVertices": 2022,
+    "grassVertices": 2782,
+    "originalMudColor": true,
+    "originalMudNormal": true,
+    "originalMudRoughness": true,
+    "approaches": [
+      {
+        "name": "Domek 1",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.5095542355302314e-07,
+        "continuous": true
+      },
+      {
+        "name": "Domek 2",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.4654391950207355e-07,
+        "continuous": true
+      },
+      {
+        "name": "Domek 3",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 3.0853331622893165e-07,
+        "continuous": true
+      },
+      {
+        "name": "Domek 4",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 3.200488833954296e-07,
+        "continuous": true
+      },
+      {
+        "name": "Stołówka",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.0545789425341354e-07,
+        "continuous": true
+      },
+      {
+        "name": "Sauna",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.1697346141991147e-07,
+        "continuous": true
+      },
+      {
+        "name": "Punkt medyczny",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.1697346141991147e-07,
+        "continuous": true
+      },
+      {
+        "name": "Magazyn",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.1697346141991147e-07,
+        "continuous": true
+      },
+      {
+        "name": "WC / ŁAŹNIA",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 2.8608369007088186e-07,
+        "continuous": true
+      },
+      {
+        "name": "Siłownia pod dachem",
+        "samples": 33,
+        "hits": 33,
+        "maximumHeightErrorMetres": 1.312599664515801e-07,
+        "continuous": true
+      }
+    ],
+    "mats": [
+      {
+        "name": "Mata bez cudzych logo",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.00999996718019247
+      },
+      {
+        "name": "Mata bez cudzych logo",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.00999996718019247
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Nawierzchnia gumowa",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.03999999910593033,
+        "clearanceAfterDepressionMetres": 0.009999998845160007
+      },
+      {
+        "name": "Podłoga z kolizją",
+        "supportMeasured": true,
+        "hasCollider": true,
+        "roomForFullDepression": true,
+        "thicknessMetres": 0.2199999988079071,
+        "clearanceAfterDepressionMetres": 0.1899999976158142
+      }
+    ],
+    "findings": []
+  },
+  "interpretation": "Surowe liczniki rendererów nie rozróżniają jeszcze wszystkich części konstrukcji; lista pozostaje w oryginalnym artefakcie. Zero błędów generatora nie oznacza odbioru jakości. 3 testy JSON tracą referencje do obiektów sceny przez EditorJsonUtility; C-03 poprawia API fixture, bez zmiany runtime/tolerancji."
+}

@@ -50,12 +50,14 @@ public static class BraxObozRuntimeRegression
             var npcObject=new GameObject("temporary NPC");npcObject.transform.SetParent(source.transform,false);
             var player=playerObject.AddComponent<BraxGymPlayer>();var npc=npcObject.AddComponent<BraxObozNpc>();
             var configured=source.AddComponent<BraxObozFootprintTrail>();configured.Configure(player,new[]{npc});
-            string json=EditorJsonUtility.ToJson(configured);
+            // Same engine session: InstanceID references must survive. This
+            // does not claim persistence across reopening a scene or Unity.
+            string json=JsonUtility.ToJson(configured);
             loaded=new GameObject("temporary reloaded footprint effect");
-            trail=loaded.AddComponent<BraxObozFootprintTrail>();EditorJsonUtility.FromJsonOverwrite(json,trail);
+            trail=loaded.AddComponent<BraxObozFootprintTrail>();JsonUtility.FromJsonOverwrite(json,trail);
             var actors=(Transform[])Read(trail,"actors");
             Check(actors.Length==2 && actors[0]==player.transform && actors[1]==npc.transform,
-                "footprint actor references survive Unity serialization roundtrip");
+                "footprint actor references survive same-session JsonUtility InstanceID roundtrip");
             Call(trail,"Start");
             var pool=(Array)Read(trail,"pool");
             Check(pool!=null && pool.Length==40 && ((Vector3[])Read(trail,"previous")).Length==2,

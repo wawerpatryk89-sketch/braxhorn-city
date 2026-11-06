@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using Object=UnityEngine.Object;
 
-// Real Unity transforms, skin bindposes and serialized pivot state. These tiny
+// Real Unity transforms, skin bindposes and same-session JSON pivot state. These tiny
 // test meshes are destroyed; they never replace any object in the camp scene.
 public static class BraxObozFootContactRegression
 {
@@ -55,18 +55,26 @@ public static class BraxObozFootContactRegression
                 measured=contact.TryGetSoleHeight(out float posedY);
                 Check(measured && Mathf.Abs(posedY-placedY-.05f*parentScale)<.0001f,
                     label+" changed bone pose is measured, not cached renderer envelope");
-                string serialized=EditorJsonUtility.ToJson(contact);
+                // Same-session roundtrip only. JsonUtility retains scene
+                // references through InstanceID; EditorJsonUtility omits them.
+                string serialized=JsonUtility.ToJson(contact);
                 Object.DestroyImmediate(contact);
                 var restored=actor.AddComponent<BraxObozIdleFootContact>();
-                EditorJsonUtility.FromJsonOverwrite(serialized,restored);
-                restored.PlaceSolesOnSurface(ground);
+                JsonUtility.FromJsonOverwrite(serialized,restored);
+                var restoredState=new SerializedObject(restored);
+                Check(restored.body==body && restored.visual==visual && restored.clips==clips &&
+                    restoredState.FindProperty("hasBaseline").boolValue &&
+                    Vector3.Distance(restoredState.FindProperty("baselineLocalPosition").vector3Value,
+                        Vector3.up*.31f)<.0001f,
+                    label+" same-session JSON retains exact scene references and authored baseline");
+                bool replaced=restored.PlaceSolesOnSurface(ground);
                 // This is an isolated EditMode method check, not a simulated
                 // Unity lifecycle transition. SendMessage is forbidden by the
                 // engine for a behaviour outside the play/render loop here.
                 typeof(BraxObozIdleFootContact).GetMethod("OnDisable",
                     BindingFlags.Instance|BindingFlags.NonPublic).Invoke(restored,null);
-                Check(Vector3.Distance(visual.localPosition,Vector3.up*.31f)<.0001f,
-                    label+" serialized normalization pivot restored by explicit EditMode callback check");
+                Check(replaced && Vector3.Distance(visual.localPosition,Vector3.up*.31f)<.0001f,
+                    label+" same-session JSON normalization pivot restored by explicit EditMode callback check");
             }
             catch(Exception ex){results.Add("FAIL "+label+": "+ex);}
             finally
