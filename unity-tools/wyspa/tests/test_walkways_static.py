@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[3]
 DOMKI = ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoWyspaDomki.cs"
 WYSPA = ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoWyspa.cs"
 ARENA = ROOT / "unity-city/Assets/Editor/Claude/Region/BraxMiastoWyspaArena.cs"
+KOLIZJE = ROOT / "unity-city/Assets/Editor/Claude/BraxKontrolaKolizji.cs"
 
 
 class WholeIslandWalkwaysSourceTest(unittest.TestCase):
@@ -18,6 +19,7 @@ class WholeIslandWalkwaysSourceTest(unittest.TestCase):
         cls.domki = DOMKI.read_text(encoding="utf-8")
         cls.wyspa = WYSPA.read_text(encoding="utf-8")
         cls.arena = ARENA.read_text(encoding="utf-8")
+        cls.kolizje = KOLIZJE.read_text(encoding="utf-8")
 
     def test_resort_avenues_and_cottage_links_exist(self):
         for name in (
@@ -64,6 +66,25 @@ class WholeIslandWalkwaysSourceTest(unittest.TestCase):
         self.assertLess(self.wyspa.index("int palm = Palmy(), krz = Krzewy();"),
                         self.wyspa.index("AudytCalejWyspy(root)"))
         self.assertIn("BraxBuildQuality.Warn(wynik", self.domki)
+
+    def test_cottage_doors_open_into_real_interiors(self):
+        self.assertIn('SegmentSciany(xPoprzedni, otwor.xMin', self.domki)
+        self.assertIn('wejsciaDomkow.Add((tabliczka', self.domki)
+        self.assertIn('WYSPA_DOMKI_WEJSCIA', self.domki)
+        self.assertIn('Domek " + tabliczka + " podloga', self.domki)
+        self.assertNotIn('BraxNabrzeze.Kol(kol, "Domek " + tabliczka, P(0, h * .5f', self.domki)
+
+    def test_beach_wc_and_changing_rooms_no_longer_solid_boxes(self):
+        self.assertIn('Przebieralnia otwarte drzwi', self.domki)
+        self.assertIn('WC plazy otwarte drzwi', self.domki)
+        self.assertIn('WC plazy podloga', self.domki)
+        self.assertNotIn('BraxNabrzeze.Kol(kol, "WC plaży",', self.domki)
+        self.assertNotIn('BraxNabrzeze.Kol(kol, "Przebieralnia",', self.domki)
+
+    def test_procedural_island_meshes_do_not_gain_giant_colliders(self):
+        self.assertIn('j.rs.All(AutorskaSiatkaWyspy)', self.kolizje)
+        self.assertIn('scal Wyspa: przystań i plaża', self.kolizje)
+        self.assertIn('wyspa / Wyspa:', self.kolizje)
 
     def test_optional_entrance_plants_cannot_abort_apk(self):
         self.assertIn('BraxBuildQuality.Warn("BRAXHORN_WYSPA: brak oryginalnych roślin', self.arena)
