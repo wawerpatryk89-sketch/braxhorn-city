@@ -2,6 +2,7 @@ name: "Miasto Mistrzów A1+T11 — testy przed APK (BEZ UNITY)"
 # Audit 06.11: verify source/Android texture dimensions and lossless 2K Poly Haven vegetation GLB.
 # Audit repeated after LIVE 21-map/2-model Poly Haven source validation passed (without Unity).
 # Pre-Unity source readiness: source files, real 3D geometry, all owner signs and Mixamo clips.
+# Post-audit check: all original murals preserve source dimensions; Android mipmaps advisory.
 # Never builds Android, never dispatches the actual game build, never changes
 # quality gates, never deploys, uploads assets or moves a branch.
 on:
@@ -60,6 +61,7 @@ jobs:
           python3 -m py_compile unity-tools/mistrzowie/pack_casino_vegetation_glb.py unity-tools/mistrzowie/prepare_casino_vegetation_2k.py
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_native_vegetation_glb.py' -v
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_early_import_readiness.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_owner_mural_import_advisory.py' -v
       - name: Pre-Unity C sharp syntax, scope and test APK quality-gate regression
         run: |
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
