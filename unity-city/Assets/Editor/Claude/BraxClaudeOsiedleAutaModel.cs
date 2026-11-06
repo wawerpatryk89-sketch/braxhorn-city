@@ -284,7 +284,10 @@ public static partial class BraxClaudeOsiedle
                     materials[i] = BraxCityMaterials.Imported(materials[i]);
             renderer.sharedMaterials = materials;
         }
-        foreach (var smr in inst.GetComponentsInChildren<SkinnedMeshRenderer>(true)) smr.enabled = false;
+        // Nie ukrywaj całej karoserii, gdy źródło GLB używa SkinnedMeshRenderer.
+        // Bez poprawnego importu takiego modelu lepiej go odrzucić niż publikować pusty samochód.
+        if (inst.GetComponentsInChildren<SkinnedMeshRenderer>(true).Any(r => r.sharedMesh && r.sharedMesh.vertexCount > 0))
+            throw new InvalidOperationException("Auto " + src.name + ": model skinned wymaga osobnego importu, nie wyłączaj siatki");
         var A = AnalizujAuto(go.transform);
         if (A == null || A.S.x < 1e-5f) { UnityEngine.Object.DestroyImmediate(go); return null; }
         // 1) długa oś → z
@@ -311,6 +314,10 @@ public static partial class BraxClaudeOsiedle
         float ziemia = A.ileKol == 4 ? A.kola.Min(k => k.c.y - k.R) : A.mn.y;
         inst.transform.localPosition += new Vector3(-(A.mn.x + A.mx.x) * .5f, -ziemia, -(A.mn.z + A.mx.z) * .5f);
         A = AnalizujAuto(go.transform);
+        // Każdy dopuszczony do sceny model musi mieć cztery faktyczne koła.
+        // Wcześniej kod dopuszczał 0-3 koła, a w trybie czterech akceptował puste siatki.
+        if (A.ileKol != 4 || A.kola.Any(w => w == null))
+            throw new InvalidOperationException("Auto " + src.name + ": znaleziono " + A.ileKol + "/4 kół — model odrzucony, nie generuj auta bez kół");
         var sz = new AutoSzablon { id = src.name, go = go, dl = A.S.z, szer = A.S.x, szerNadw = Mathf.Min(A.S.x, A.szerNadw), wys = A.S.y, kol = A.ileKol, przod = OsSurowa(plusZ) + " " + pewn.ToString("F2") };
         sz.obrys = new Bounds((A.mn + A.mx) * .5f, A.S);
         // 5) koła → osobne siatki z osią w środku koła
@@ -328,9 +335,11 @@ public static partial class BraxClaudeOsiedle
                 var p = new GameObject("koło " + nazwy[i]).transform; p.SetParent(go.transform, false); p.localPosition = kolo.c;
                 var obr = new GameObject("obrót").transform; obr.SetParent(p, false);
                 piv[i] = p; spin[i] = obr;
-                if (tris.Count == 0) continue;
+                if (tris.Count < 6)
+                    throw new InvalidOperationException("Auto " + src.name + ": koło " + nazwy[i] + " ma za mało prawdziwych trójkątów (" + tris.Count + ")");
                 var mesh = SiatkaKola(A, tris, kolo.c, out var mats);
-                if (!mesh) continue;
+                if (!mesh || mesh.vertexCount < 12 || mesh.triangles.Length < 18 || mats.Length == 0)
+                    throw new InvalidOperationException("Auto " + src.name + ": koło " + nazwy[i] + " jest puste po wydzieleniu geometrii");
                 AssetDatabase.CreateAsset(mesh, Out + "/auto_" + Safe(src.name) + "_kolo_" + nazwy[i] + "_" + (autoSiatki++) + ".asset");
                 obr.gameObject.AddComponent<MeshFilter>().sharedMesh = mesh;
                 var r = obr.gameObject.AddComponent<MeshRenderer>(); r.sharedMaterials = mats; r.shadowCastingMode = ShadowCastingMode.On; r.receiveShadows = true;
