@@ -74,6 +74,28 @@ class Build18Regression(unittest.TestCase):
         self.assertIn("result.summary.result!=BuildResult.Succeeded", build)
         self.assertIn("BraxBuildQuality.Issue", build)
 
+    def test_all_geometry_and_walk_quality_reports_are_nonblocking(self):
+        wf = read(".github/workflows/mistrzowie-apk.yml")
+        preparation = wf[wf.index("      - name: Geometry and source preparation"):
+                         wf.index("      # Geometry, pathing and source regressions")]
+        self.assertIn("prepare_casino_textures_2k.py", preparation)
+        self.assertIn("build_infrastructure.py", preparation)
+        self.assertIn("build_exteriors.py", preparation)
+        for check in ("audit_metro.py", "audit_metro_network.py",
+                      "validate_contract.py", "audit_layout.py",
+                      "unittest discover"):
+            self.assertNotIn(check, preparation)
+        advisory = wf[wf.index("      - name: Advisory geometry and code reports"):
+                      wf.index("      - name: Prepare durable Addressables content baseline mode")]
+        self.assertIn("continue-on-error: true", advisory)
+        self.assertIn("'blocksApk':False", advisory)
+        for check in ("audit_metro.py", "audit_metro_network.py",
+                      "validate_contract.py", "audit_layout.py",
+                      "'champions-source-tests'", "'content-snapshot-tests'",
+                      "'validation-tests'"):
+            self.assertIn(check, advisory)
+        self.assertIn("status='PASS' if code==0 else 'WARNING'", advisory)
+
     def test_source_only_never_starts_unity_or_signing(self):
         wf = read(".github/workflows/mistrzowie-cheap-code-audit-20261106.yml")
         self.assertIn("BEZ UNITY", wf)
