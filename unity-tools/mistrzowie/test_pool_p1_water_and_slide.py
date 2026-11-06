@@ -102,7 +102,9 @@ class OwnerApprovedP1WaterAndSlideTests(unittest.TestCase):
         w=WATER.read_text()
         self.assertIn("public static void Jacuzzi(Transform approvedModel",w)
         self.assertIn("if(!approvedModel)throw new ArgumentNullException",w)
-        self.assertIn('MaterialFor("OWNER_JACUZZI_"+sourceId,true)',w)
+        self.assertIn('MaterialFor("ORIGINAL_"+sourceId,true)',w)
+        self.assertIn('original.gameObject.SetActive(false);',w)
+        self.assertIn('Spa water surface',w)
         self.assertNotIn('BraxChampionsPoolP1Water.Jacuzzi(null',POOL.read_text())
 
 
