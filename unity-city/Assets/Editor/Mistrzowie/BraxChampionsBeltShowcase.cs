@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 // A1: ONE owner-supplied championship belt, next to the JUDGES (not the lobby).
 // The parent arena uses nominal metres and applies the shared city scale K once.
 // This generator changes no fighters, seats, public doors, neighbouring buildings
-// or physics layers. Only the visible rhombus podium has physical collision.
+// or physics layers. Only the visible case plinth has physical collision.
 public static class BraxChampionsBeltShowcase
 {
     const string SourceBelt =
@@ -259,7 +259,8 @@ public static class BraxChampionsBeltShowcase
         sticker.name = "EXACT owner black-and-gold bull BRAXHORN ARENA artwork on gold rectangle";
         sticker.transform.SetParent(display, false);
         sticker.transform.localPosition = new Vector3(0, 1.075f, -.390f);
-        sticker.transform.localRotation = Quaternion.Euler(0, 180, 0);
+        // The case front is local -Z; the unrotated Unity quad faces that side.
+        sticker.transform.localRotation = Quaternion.identity;
         sticker.transform.localScale = new Vector3(2.13f, .71f, 1);
         sticker.GetComponent<MeshRenderer>().sharedMaterial = material;
         UnityEngine.Object.DestroyImmediate(sticker.GetComponent<Collider>());
@@ -286,15 +287,24 @@ public static class BraxChampionsBeltShowcase
 
         // WZÓR WŁAŚCICIELA 6.11: pionowa gablota ze szkła przed filarem z czarnego
         // marmuru, ciemne skórzane tło, złote ramy LED u góry i u dołu, złote uchwyty
-        // w narożnikach szkła, mosiężna tabliczka, brązowe lamele obok. Bez teku.
+        // w narożnikach szkła, mosiężna tabliczka, brązowe lamele obok.
+        // Doprecyzowanie właściciela: podstawa ma prawdziwe drewniane wykończenie.
         var marble = BraxChampionsFoundation.SourceMaterial(
             "A1_belt_showcase_black_marble", "granite_tile", .9f, new Color(.13f, .13f, .14f));
         var backing = BraxChampionsFoundation.LibraryLeather("A1_belt_showcase_black_leather",
             new Color(.10f, .095f, .09f));
-        // Cokół i filar z czarnego marmuru (cokół ma kolizję, reszta nie blokuje przejścia).
-        Cube(display, "Black marble plinth", marble,
+        // Reuse the existing native 2K teak PBR source; do not manufacture a
+        // flat brown substitute or change the owner's belt/plaque textures.
+        var wood = BraxChampionsPoolP1Pbr2K.Create(
+            "Assets/PlayableGenerated/Mistrzowie/Buildings", "A1_belt_showcase_wood_base",
+            "teak_veneer", 1.5f, Color.white);
+        wood.name = "A1 showcase | original teak veneer PBR | wood base";
+        EditorUtility.SetDirty(wood);
+        // Wood-finished structural plinth, original marble pillar and leather back.
+        // Keep the existing dimensions and one matching physical plinth collider.
+        Cube(display, "Wood veneer showcase plinth", wood,
             new Vector3(0, .30f, .05f), new Vector3(2.90f, .60f, 1.30f));
-        var plinthCollider = new GameObject("Black marble plinth collision").AddComponent<BoxCollider>();
+        var plinthCollider = new GameObject("Wood veneer showcase plinth collision").AddComponent<BoxCollider>();
         plinthCollider.transform.SetParent(display, false);
         plinthCollider.center = new Vector3(0, .30f, .05f);
         plinthCollider.size = new Vector3(2.90f, .60f, 1.30f);
@@ -302,7 +312,7 @@ public static class BraxChampionsBeltShowcase
             new Vector3(0, 2.45f, .78f), new Vector3(3.30f, 4.90f, .32f));
         Cube(display, "Black leather back panel", backing,
             new Vector3(0, 2.0f, .555f), new Vector3(2.52f, 2.74f, .06f));
-        Cube(display, "Black marble case base", marble,
+        Cube(display, "Wood veneer case base", wood,
             new Vector3(0, .63f, 0), new Vector3(2.66f, .06f, 1.16f));
         // Szkło z pięciu stron (front, boki, góra), bez kolizji.
         Cube(display, "Museum GLASS FRONT no invisible collider",
@@ -332,8 +342,14 @@ public static class BraxChampionsBeltShowcase
         // Pas i tabliczka z grafiką właściciela na ciemnym skórzanym tle.
         OriginalRectangleArtwork(display, gold, bronze);
         OriginalBelt(display);
-        Cube(display, "Visible gold LED roof diffuser", warm,
-            new Vector3(0, 3.326f, -.28f), new Vector3(1.93f, .052f, .10f));
+        // Four warm diffuser strips under the existing gold rectangle, as in
+        // the reference. They are emission geometry, not extra real-time lights.
+        foreach (float z in new[] { -.50f, .45f })
+            Cube(display, "Warm LED rectangle long diffuser", warm,
+                new Vector3(0, 3.262f, z), new Vector3(2.20f, .012f, .045f));
+        foreach (float x in new[] { -1.12f, 1.12f })
+            Cube(display, "Warm LED rectangle short diffuser", warm,
+                new Vector3(x, 3.262f, -.025f), new Vector3(.045f, .012f, .94f));
         Cube(display, "Visible gold LED base diffuser", warm,
             new Vector3(0, .67f, -.27f), new Vector3(1.84f, .043f, .085f));
         var lamp = new GameObject("Museum case warm mobile vertex light").AddComponent<Light>();
