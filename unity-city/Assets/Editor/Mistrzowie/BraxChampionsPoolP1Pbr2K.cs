@@ -14,17 +14,71 @@ public static class BraxChampionsPoolP1Pbr2K
         Texture2D Load(string kind,string extension,bool colour)
         {
             string path=Source+slug+"_"+kind+"_2k."+extension;
-            var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-            if(!texture || texture.width!=2048 || texture.height!=2048)
-                throw new FileNotFoundException("P1 requires native Poly Haven 2048x2048 PBR: "+path,path);
+            if(!File.Exists(path))
+                throw new FileNotFoundException("Missing ORIGINAL P1 Poly Haven 2K source: "+path,path);
             var importer=AssetImporter.GetAtPath(path) as TextureImporter;
-            if(!importer || importer.sRGBTexture!=colour || !importer.mipmapEnabled
-               || !importer.streamingMipmaps || importer.maxTextureSize!=2048)
-                throw new InvalidOperationException("Invalid P1 2K source import: "+path);
+            if(!importer)
+                throw new InvalidOperationException("Original P1 source importer unavailable: "+path);
+            // Check actual provider pixels, not an Editor/Android mipmap preview.
+            importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
+            if(sourceWidth!=2048 || sourceHeight!=2048)
+                throw new InvalidOperationException("P1 original is not native 2048x2048: "+path+
+                    " source="+sourceWidth+"x"+sourceHeight);
             var android=importer.GetPlatformTextureSettings("Android");
-            if(!android.overridden || android.maxTextureSize!=2048
+            bool invalidSettings=importer.textureType!=TextureImporterType.Default
+                || importer.sRGBTexture!=colour || !importer.mipmapEnabled
+                || !importer.streamingMipmaps || importer.maxTextureSize!=2048
+                || !android.overridden || android.maxTextureSize!=2048
+                || android.format!=TextureImporterFormat.ASTC_4x4;
+            if(invalidSettings)
+            {
+                // Repair metadata only. Original file bytes and asset GUID stay intact.
+                importer.textureType=TextureImporterType.Default;
+                importer.sRGBTexture=colour;importer.mipmapEnabled=true;
+                importer.streamingMipmaps=true;importer.maxTextureSize=2048;
+                android.name="Android";android.overridden=true;
+                android.maxTextureSize=2048;
+                android.format=TextureImporterFormat.ASTC_4x4;
+                android.compressionQuality=100;
+                importer.SetPlatformTextureSettings(android);
+                importer.SaveAndReimport();
+                importer=AssetImporter.GetAtPath(path) as TextureImporter;
+                if(!importer)
+                    throw new InvalidOperationException("P1 importer vanished after recovery: "+path);
+                Debug.LogWarning("BRAX_P1_IMPORT_RECOVERY restored source 2K ASTC settings: "+path);
+            }
+            var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if(!texture)
+            {
+                AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport |
+                    ImportAssetOptions.ForceUpdate);
+                texture=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+                if(!texture)
+                {
+                    AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                    texture=AssetDatabase.LoadMainAssetAtPath(path) as Texture2D;
+                }
+                if(texture)
+                    Debug.LogWarning("BRAX_P1_IMPORT_RECOVERY restored source Texture2D: "+path);
+            }
+            if(!texture)
+            {
+                var main=AssetDatabase.LoadMainAssetAtPath(path);
+                throw new InvalidOperationException("Unity could not import real original P1 2K Texture2D: "+path+
+                    " guid="+AssetDatabase.AssetPathToGUID(path)+
+                    " mainAssetType="+(main?main.GetType().FullName:"NULL")+
+                    " bytes="+new FileInfo(path).Length);
+            }
+            android=importer.GetPlatformTextureSettings("Android");
+            if(importer.sRGBTexture!=colour || !importer.mipmapEnabled
+               || !importer.streamingMipmaps || importer.maxTextureSize!=2048
+               || !android.overridden || android.maxTextureSize!=2048
                || android.format!=TextureImporterFormat.ASTC_4x4)
-                throw new InvalidOperationException("P1 Android ASTC 2K import missing: "+path);
+                throw new InvalidOperationException("P1 Android native 2K import remains invalid: "+path);
+            if(texture.width!=2048 || texture.height!=2048)
+                BraxBuildQuality.Warn("P1 Poly Haven source is native 2K but Unity preview is "+
+                    texture.width+"x"+texture.height+" at "+path+
+                    "; preserve originals and inspect actual Android ASTC.");
             return texture;
         }
         var diffuse=Load("diff","jpg",true);
