@@ -52,7 +52,12 @@ class PoolP1LayoutTests(unittest.TestCase):
     def test_owner_jacuzzi_mount_is_not_an_excavation(self):
         self.assertEqual(len(self.data["basins"]),3)
         unity=UNITY.read_text(encoding="utf-8")
-        self.assertIn('At("jacuzzi_premium_3d",10f,-6.75f);',unity)
+        self.assertIn("BraxChampionsPoolP1SpaFurnishing.Generate(",unity)
+        equip=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1SpaFurnishing.cs").read_text()
+        self.assertIn('hot-tub-original-exterior-model.glb',equip)
+        self.assertIn("foreach(float x in new[]{9.2f,14.7f})",equip)
+        self.assertIn("foreach(float z in new[]{-11.85f,-15.65f})",equip)
+        self.assertIn("BraxChampionsPoolP1Water.Jacuzzi(",equip)
         self.assertNotIn('if(b.id=="JACUZZI")',unity)
         self.assertNotIn('SPA jacuzzi underwater tiled sitting ledge',unity)
 
