@@ -17,10 +17,13 @@ internal static partial class BraxMiastoWyspa
     static int nDomki, nLatarnie, nLawki, nKosze, nPrzebieralnie, nKapiacy, nRowerki, nDeski, nKrawezniki, nLezaki;
     static float mChodnika, mDeptakuPlazy;
     static Vector3 recepcja, sklep, placZabaw;
+    // Jedna fizyczna sieć dojść: promenada plażowa łączy się z A2 ośrodka.
+    static readonly List<Vector3> plazaDeptak = new List<Vector3>();
     public static void StartC2()
     {
         wiezyczki.Clear(); nDomki = nLatarnie = nLawki = nKosze = nPrzebieralnie = nKapiacy = nRowerki = nDeski = nKrawezniki = nLezaki = 0;
         mChodnika = mDeptakuPlazy = 0; recepcja = sklep = placZabaw = Vector3.zero;
+        plazaDeptak.Clear();
     }
     /// <summary>Skała osadzona na terenie bez prześwitu: spód na najniższym punkcie terenu pod obrysem (część od strony stoku
     /// w ziemi), szerokość ≤ maxW, kolizja na bryle; zajęte miejsce zapisane (palmy i krzewy omijają). Null, gdy koliduje.</summary>
@@ -101,6 +104,7 @@ internal static partial class BraxMiastoWyspa
         }
         // wygładzenie wysokości (bez schodków)
         for (int it = 0; it < 3; it++) for (int i = 1; i < pts.Count - 1; i++) pts[i] = new Vector3(pts[i].x, Mathf.Max(pts[i].y, (pts[i - 1].y + pts[i + 1].y) * .5f), pts[i].z);
+        plazaDeptak.AddRange(pts);
         for (int i = 0; i + 1 < pts.Count; i++)
         {
             var a = pts[i]; var b = pts[i + 1]; var dir = b - a; float len = dir.magnitude; if (len < .1f || len > 6f) continue;
@@ -402,8 +406,18 @@ internal static partial class BraxMiastoWyspa
         for (int i = 0; i <= nProfil; i++) profil[i] = RawY(At(i * krok));
         for (int i = 1; i <= nProfil; i++)
             profil[i] = Mathf.Max(profil[i], profil[i - 1] - krok * .12f);
+        // Ostatnia płyta łącznika dochodzi do rzeczywistego poziomu
+        // drewnianej promenady, bez schodka na styku dwóch materiałów.
+        if (nazwa == "łącznik A2 do promenady plażowej" &&
+            Miejsca.TryGetValue("wyspa_polaczenie_plaza_a2", out var plazaKoniec))
+            profil[nProfil] = Mathf.Max(profil[nProfil], plazaKoniec.y);
         for (int i = nProfil - 1; i >= 0; i--)
             profil[i] = Mathf.Max(profil[i], profil[i + 1] - krok * .12f);
+        if (nazwa == "łącznik A2 do promenady plażowej" &&
+            Miejsca.TryGetValue("wyspa_polaczenie_plaza_a2", out var plazaY) &&
+            Mathf.Abs(profil[nProfil] - plazaY.y) > .12f)
+            BraxBuildQuality.Warn("WYSPA_POLACZENIE_PLAZA_A2 nierowny styk " +
+                Mathf.Abs(profil[nProfil] - plazaY.y).ToString("F2") + "m; kontrola Unity konieczna");
         float TopY(float t)
         {
             float pos = Mathf.Clamp(t / krok, 0f, nProfil);
@@ -773,6 +787,36 @@ internal static partial class BraxMiastoWyspa
         Planuj(new Vector2(45f, -92f), new Vector2(45f, 115f), szer, true, "aleja A2 (plaża ↔ domki)");
         Planuj(new Vector2(-30f, 85f), new Vector2(105f, 85f), szer, true, "aleja A3");
         Planuj(new Vector2(Plac.x, Plac.y + PlacR - 2f), A1a, szer, true, "łącznik z placu areny");
+        // Jawny łącznik: południowy koniec A2 → istniejąca promenada plaży.
+        // Bez tego obie promenady stanowiły dwa odrębne ciągi piesze.
+        var startPlaza = new Vector2(45f, -92f);
+        var mozliwe = plazaDeptak
+            .Where(q => Vector2.Distance(new Vector2(q.x - CX, q.z - CZ), startPlaza) < 65f)
+            .OrderBy(q => Vector2.Distance(new Vector2(q.x - CX, q.z - CZ), startPlaza))
+            .Take(35).ToArray();
+        Vector3 polaczenie = Vector3.zero;
+        foreach (var v in mozliwe)
+        {
+            var end = new Vector2(v.x - CX, v.z - CZ);
+            bool wolne = true; int n = Mathf.CeilToInt(Vector2.Distance(startPlaza, end) / .70f);
+            for (int k = 1; k < n; k++)
+            {
+                var q = Vector2.Lerp(startPlaza, end, k / (float)n);
+                if (!NaLadzie(q.x, q.y, .95f) || Zajete(CX + q.x, CZ + q.y, 1.1f))
+                { wolne = false; break; }
+            }
+            if (!wolne) continue;
+            polaczenie = v; break;
+        }
+        if (polaczenie != Vector3.zero)
+        {
+            var end = new Vector2(polaczenie.x - CX, polaczenie.z - CZ);
+            Planuj(startPlaza, end, 1.8f * K, false, "łącznik A2 do promenady plażowej");
+            Miejsca["wyspa_polaczenie_plaza_a2"] = polaczenie;
+            Debug.Log("WYSPA_POLACZENIE_PLAZA_A2 odleglosc=" +
+                Vector2.Distance(startPlaza, end).ToString("F1") + "m");
+        }
+        else BraxBuildQuality.Warn("WYSPA_POLACZENIE_PLAZA_A2: dojście od A2 do promenady nie ma wolnego korytarza; test APK nieblokowany");
         int glowne = plan.Count;
         // RECEPCJA (przy wejściu od placu), SKLEP (skrzyżowanie A1/A2), PLAC ZABAW (między A1 i A3)
         int pal = 0;
