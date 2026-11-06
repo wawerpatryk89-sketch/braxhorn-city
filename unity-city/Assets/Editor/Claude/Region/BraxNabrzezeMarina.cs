@@ -526,17 +526,73 @@ public static class BraxNabrzezeMarina
         // kalibruje przesunięcie kości Hips względem rzeczywistego rigu.
         vessel.seat = Siedzenie(go, v.transform, t);
         vessel.sitLower = .95f * K; // awaryjny offset tylko jeśli rig nie ma Hips
+        // Punkty steru ustalane z istniejącej siatki GLB (wheel, helm, guidon,
+        // kierownica, compteurs). Brak kierownicy zgłaszamy, bez domalowywania
+        // widocznego zamiennika i bez zmiany modelu właściciela.
+        var allHelms = go.GetComponentsInChildren<Transform>(true)
+            .Where(q => q && q != go.transform && (
+                q.name.IndexOf("steer", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                q.name.IndexOf("wheel", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                q.name.IndexOf("helm", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                q.name.IndexOf("volant", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                q.name.IndexOf("guidon", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                q.name.IndexOf("handlebar", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                q.name.IndexOf("kierown", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                q.name.IndexOf("compteurs", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                q.name.IndexOf("dashboard", StringComparison.OrdinalIgnoreCase) >= 0))
+            .Select(q => new { node = q, renderer = q.GetComponentInChildren<Renderer>(true) })
+            .Where(q => q.renderer)
+            .Select(q => new { q.node, local = v.transform.InverseTransformPoint(
+                BraxRegion.Bounds(q.node.gameObject).center) })
+            .Where(q => Mathf.Abs(q.local.z - vessel.seat.z) < 2.3f * K &&
+                        Mathf.Abs(q.local.y - vessel.seat.y) < 1.7f * K &&
+                        Mathf.Abs(q.local.x - vessel.seat.x) < 1.5f * K)
+            .OrderBy(q => Vector3.Distance(q.local, vessel.seat))
+            .ToList();
+        bool znalezionySter = allHelms.Count > 0;
+        Vector3 celSteru = znalezionySter ? allHelms[0].local :
+            vessel.seat + new Vector3(0f, (t.label == "SKUTER" ? .43f : .45f) * K,
+                (t.label == "SKUTER" ? .60f : .80f) * K);
+        // Jacht/motorówka — koło przed fotelem; skuter — dwie strony
+        // rzeczywistego drążka. Markery nie mają rendererów ani kolizji.
+        float gripHalfWidth = t.label == "SKUTER" ? .34f * K : .22f * K;
+        var uchwyty = new GameObject("BRAXHORN ster: punkty chwytu dłoni").transform;
+        uchwyty.SetParent(v.transform, false);
+        uchwyty.localPosition = celSteru;
+        Transform Uchwyt(string nazwa, float x)
+        {
+            var g = new GameObject(nazwa).transform;
+            g.SetParent(uchwyty, false);
+            g.localPosition = new Vector3(x, 0f, 0f);
+            return g;
+        }
+        vessel.leftGrip = Uchwyt("LEWA dłoń na kierownicy", -gripHalfWidth);
+        vessel.rightGrip = Uchwyt("PRAWA dłoń na kierownicy", gripHalfWidth);
+        vessel.helmTargetLocal = celSteru;
+        if (!znalezionySter)
+            Debug.LogWarning("BRAXHORN_STER_ZRODLO " + t.label +
+                " nie znaleziono koła/uchwytu w GLB; tymczasowe punkty przy realnym fotelu wymagają kontroli APK");
         if (t.label == "JACHT")
         {
-            // Dwa etapy: najpierw wejście na dostępny pokład, później ster.
-            // Płaska strefa chodzenia jest tylko w obrębie pokładu, bez
-            // doklejania kolejnych widocznych ścian/podłóg.
+            // Najpierw chodzenie po pokładzie, później sterowanie.
             vessel.walkableDeck = true;
             vessel.deckEntry = new Vector3(0f, vessel.seat.y - .13f * K,
                                               -.42f * vessel.length);
-            vessel.helmCameraLocal = vessel.seat +
-                new Vector3(0f, .70f * K, -.34f * K);
         }
+        if (t.label == "JACHT" || t.label == "MOTORÓWKA")
+        {
+            // Widok z miejsca sternika: za realnym sterem i ponad nim;
+            // jednocześnie w kokpicie, a nie za rufą ani wewnątrz modelu Braxa.
+            vessel.helmCameraLocal = new Vector3(
+                vessel.seat.x,
+                vessel.seat.y + (t.label == "JACHT" ? .95f : .82f) * K,
+                Mathf.Min(vessel.seat.z - .20f * K, celSteru.z - .65f * K));
+        }
+        Debug.Log("BRAXHORN_STER_KAMERA " + t.label +
+            " zrodlo=" + (znalezionySter ? allHelms[0].node.name : "NIE_ZWERYFIKOWANE") +
+            " seat=" + vessel.seat.ToString("F2") +
+            " ster=" + celSteru.ToString("F2") +
+            " kamera=" + vessel.helmCameraLocal.ToString("F2"));
         // miejsce wejścia (AKCJA „WSIĄDŹ”): przy burcie od pomostu (jacht) albo przy rufie (motorówka, skuter)
         vessel.wejscie = !float.IsNaN(burtaX) ? v.transform.InverseTransformPoint(new Vector3(zachod && burtaX > PomX1 + 1f ? burtaX + .9f : burtaX - .9f, W, cel.z - pol * .25f))
                                               : new Vector3(0, 0, -pol - .9f);
