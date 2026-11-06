@@ -1,0 +1,45 @@
+name: Miasto Mistrzów - krótki audyt metadanych i C# BEZ UNITY
+run-name: Miasto Mistrzów A1+T11+P1 - szybka kontrola źródeł
+
+# Owner forbids long tests. This job never calls Unity, Android, downloads assets,
+# scene generation, private releases, build or other workflows.
+on:
+  push:
+    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
+    paths:
+      - .github/workflows/mistrzowie-cheap-code-audit-20261106.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Sparse checkout scripts and metadata only
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/validation
+            unity-city/Assets/Editor
+            unity-city/Assets/Mistrzowie
+            unity-city/Assets/Claude/Runtime
+            unity-city/Assets/Source/Mistrzowie/PoolP1/plot.json
+            unity-city/Assets/Source/Mistrzowie/PoolP1/plot.json.meta
+            .github/workflows/mistrzowie-apk.yml
+      - name: Verify Python source syntax and ALL checked-out Unity GUIDs
+        run: |
+          python3 -m py_compile unity-tools/validation/check_unity_meta_guids.py
+          python3 unity-tools/validation/check_unity_meta_guids.py --champions
+      - name: CSharp parser / local shadowing (never the Unity editor)
+        run: |
+          python3 -m pip install -q -r unity-tools/validation/requirements.txt
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/Mistrzowie
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Mistrzowie
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Claude/Runtime
+      - name: Source-only report
+        run: echo 'Szybka kontrola plików C# i .meta; nie wykonywano Unity, buildu APK ani testu telefonu.' >> "$GITHUB_STEP_SUMMARY"
