@@ -4,10 +4,6 @@ name: Miasto Mistrzow A1+T11+P1 - ONE Unity 6 SCENES QA (NO APK)
 run-name: Champions arena, casino, Brax car, promenade, port, beach and P1 pool - Unity scenes
 
 on:
-  push:
-    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
-    paths:
-      - .github/workflows/mistrzowie-p1-unity-scenes-one-shot-20261106.yml
   workflow_dispatch:
 
 permissions:
