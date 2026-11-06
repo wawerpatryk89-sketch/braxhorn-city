@@ -97,9 +97,13 @@ public static partial class BraxClaudeOsiedle
                 bledy.Add("Auto Patryka jest dekoracją: brak fotela / kolizji / napędu");
         }
         var wszystkieAuta = roots.SelectMany(g => g.GetComponentsInChildren<Transform>(true))
-            .Where(t => (t.name.StartsWith("Auto w ruchu", StringComparison.Ordinal)
-                || t.name.StartsWith("Auto zaparkowane", StringComparison.Ordinal)
-                || t.name.StartsWith("Auto Patryka", StringComparison.Ordinal))
+            // Kontroluj tylko instancje samochodów, nie grupę
+            // "Auto Patryka / ARENA BRAXHORN". Kontener ma w dzieciach
+            // renderery, ale nie ma kół bezpośrednio pod sobą i generował
+            // cztery fałszywe błędy (LP/PP/LT/PT) przy każdym audycie.
+            .Where(t => (t.name.StartsWith("Auto w ruchu · ", StringComparison.Ordinal)
+                || t.name.StartsWith("Auto zaparkowane · ", StringComparison.Ordinal)
+                || t.name.StartsWith("Auto Patryka · ", StringComparison.Ordinal))
                 && t.GetComponentInChildren<MeshRenderer>(true))
             .ToArray();
         foreach (var auto in wszystkieAuta)
