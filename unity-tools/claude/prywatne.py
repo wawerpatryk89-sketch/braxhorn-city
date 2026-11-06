@@ -353,15 +353,14 @@ def patryk_i_ruchy():
         from import_club_assets import install as install_club
         install_club(CEL / "Klub20261104")
         # Tylko 22 FBX z OSTATNIEJ paczki Patryk anima(6).zip.
-        # Brak pełnego zaszyfrowanego zestawu przerywa import osiedla;
-        # starsza paczka sześciu plików NIE jest już wejściem dla Patryka.
+        # Jeśli kompletne archiwum było jawne, przyjmujemy wyłącznie jego
+        # bajty z SHA256 manifestu, do chwili automatycznej migracji do szyfru.
+        # Starsza paczka sześciu plików NIE jest źródłem dla Patryka.
         from import_patryk_owner_22 import install as install_patryk_owner_22
         install_patryk_owner_22(CEL / "ruchy")
-        # Wymagane jest dokładnie 22/22 oryginalnych FBX z najnowszego
-        # Patryk anima(6).zip. Pierwsze 6 ma identyczne sumy SHA-256; następne
-        # 16 pochodzi wyłącznie z dodatkowego prywatnego transferu.
-        from import_patryk_extra16 import install as install_extra16
-        install_extra16(CEL / "ruchy")
+        # Import jednorazowy: pełne 22 zweryfikowane oryginały.
+        # Nie wymagamy drugiej paczki "extra16" po pełnym imporcie 22/22.
+        # Zaszyfrowana wersja ma pierwszeństwo po zautomatyzowanym zapieczętowaniu.
         import json
         katalog = json.loads((ROOT / "unity-tools/claude/patryk-owner-22-manifest.json").read_text(encoding="utf-8"))
         clips = katalog["clips"]
