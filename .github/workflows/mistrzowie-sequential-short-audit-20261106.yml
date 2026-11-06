@@ -1,5 +1,5 @@
-name: Miasto Mistrzów — 45 krótkich testów, po kolei (BEZ APK)
-run-name: Champions A1/T11/P1 — 45 independent short source checks — no Unity
+name: Miasto Mistrzów — krótkie testy, po kolei (BEZ APK)
+run-name: Champions A1/T11/P1 — all independent short source checks — no Unity
 
 on:
   push:
@@ -7,6 +7,9 @@ on:
       - gpt/miasto-mistrzow-kasyno-t11-20261105
     paths:
       - .github/workflows/mistrzowie-sequential-short-audit-20261106.yml
+      - .github/workflows/mistrzowie-apk.yml
+      - unity-tools/mistrzowie/isolate_unused_glb_champions.py
+      - unity-tools/mistrzowie/test_champions_unused_glb_scope.py
   workflow_dispatch:
 
 permissions:
@@ -67,7 +70,7 @@ jobs:
         continue-on-error: true
         run: |
           python3 unity-tools/validation/check_unity_meta_guids.py --champions
-      - name: RUN ALL 45 TEST MODULES ONE BY ONE with individual timeout and evidence
+      - name: RUN ALL SOURCE TEST MODULES ONE BY ONE with individual timeout and evidence
         run: |
           python3 unity-tools/mistrzowie/audit_quick_sequential.py
       - name: Save every test log, even when errors are found
@@ -84,4 +87,4 @@ jobs:
       - name: Evidence scope
         if: always()
         run: |
-          echo '45 independent source tests, short timeout each; no Unity, no APK, no release, no scene replacement.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Every independent source test has a short timeout; no Unity, no APK, no release, no scene replacement.' >> "$GITHUB_STEP_SUMMARY"
