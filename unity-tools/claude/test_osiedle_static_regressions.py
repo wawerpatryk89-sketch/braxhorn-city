@@ -151,6 +151,36 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("DO POPRAWKI: rozmowy przechodniów", people)
         self.assertIn('rep.notes.Add("DO POPRAWKI: podróżni parkingów', travelers)
 
+    def test_sports_controls_use_only_latest_patryk_originals(self):
+        player = (ROOT / "unity-city/Assets/BraxGymPlayer.cs").read_text(encoding="utf-8")
+        rig = (ROOT / "unity-city/Assets/Claude/Runtime/BraxRuchySport.cs").read_text(encoding="utf-8")
+        sport = source("BraxClaudeOsiedleSport.cs")
+        court = (ROOT / "unity-city/Assets/Claude/Runtime/BraxSportBoisko.cs").read_text(encoding="utf-8")
+        self.assertIn("if (explorationOnly && (key==\"punch\" || key==\"kick\"))", player)
+        self.assertIn("!boisko || !boisko.Na", player)
+        for clip in ("GoalkeeperDropKick", "GoalkeeperPlacingBall", "GoalkeeperCatch"):
+            self.assertIn('"' + clip + '"', player)
+            self.assertIn('"' + clip + '"', sport)
+        self.assertIn('OnCios?.Invoke(transform.position,transform.forward,actionIsKick)', player)
+        self.assertIn('if (p.explorationOnly)', rig)
+        self.assertIn('BraxSport.Rakieta && rHand && rFore', rig)
+        self.assertIn('BraxGymPlayer.OnCios += Cios', court)
+        self.assertNotIn('gracz.clips.GetClip("Punch")', sport)
+        self.assertNotIn('gracz.clips.GetClip("Kick")', sport)
+
+    def test_owner_sports_and_required_facility_errors_reach_central_qa(self):
+        sources = (
+            source("BraxClaudeOsiedleSport.cs"),
+            source("BraxClaudeOsiedleSalon.cs"),
+            source("BraxClaudeOsiedleBoks.cs"),
+            source("BraxClaudeOsiedleDyskoteka.cs"),
+            source("BraxClaudeAutoPatryka.cs"),
+        )
+        for src in sources:
+            self.assertIn('rep.notes.Add("DO POPRAWKI:', src)
+            self.assertIn('BraxBuildQuality.Issue(qualityError)', src)
+        self.assertIn('BraxSportBoisko.Gra.Siatkowka', sources[0])
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
