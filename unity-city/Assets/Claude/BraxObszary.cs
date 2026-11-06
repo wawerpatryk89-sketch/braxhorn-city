@@ -32,6 +32,16 @@ public sealed class BraxObszary : MonoBehaviour
     void Start()
     {
         Application.backgroundLoadingPriority = ThreadPriority.Low;
+        // Korytarz R1: jedyny zarządca LOD dla boisk, portu i wyspy.
+        // Włączamy TYLKO w mieście mającym oba obszary doczytywane.
+        // Bez wpływu na osiedle i inne gałęzie wykonawców.
+        bool r1 = false;
+        foreach (var o in obszary)
+            if (o != null && (o.scena == "BraxhornCity_Wyspa" ||
+                              o.scena == "BraxhornCity_Nabrzeze"))
+                r1 = true;
+        if (r1 && !GetComponent<BraxZasiegDrobnych>())
+            gameObject.AddComponent<BraxZasiegDrobnych>();
         foreach (var o in obszary)
             if (o != null && !string.IsNullOrEmpty(o.scena))
                 o.wczytany = SceneManager.GetSceneByName(o.scena).isLoaded;
