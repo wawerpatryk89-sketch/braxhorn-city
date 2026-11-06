@@ -198,6 +198,16 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn('Nieautoryzowana dodatkowa kopia modelu Patryka', scene)
         self.assertIn('stanowisko sprzedawcy stoi bez oryginalnego FBX Typing', scene)
 
+    def test_estate_content_update_editor_matches_source_version(self):
+        project = (ROOT / "unity-city/ProjectSettings/ProjectVersion.txt").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github/workflows/zone-content-update.yml").read_text(encoding="utf-8")
+        self.assertIn("m_EditorVersion: 6000.0.85f2", project)
+        self.assertIn('if [ "$ZONE" = osiedle ]; then', workflow)
+        self.assertIn("test \"$UNITY\" = 6000.0.85f2", workflow)
+        self.assertIn("UNITY=6000.0.58f2", workflow)  # other regions unchanged
+        self.assertIn("unityVersion: ${{ steps.profile.outputs.unity_version }}", workflow)
+        self.assertIn('echo "unity_version=$UNITY" >> "$GITHUB_OUTPUT"', workflow)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
