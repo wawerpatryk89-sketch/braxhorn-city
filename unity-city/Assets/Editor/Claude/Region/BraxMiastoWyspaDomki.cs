@@ -872,6 +872,120 @@ internal static partial class BraxMiastoWyspa
         BraxMiastoA.Log("WYSPA ośrodek domków: domków " + nDomki + " (z recepcją i sklepem), chodników " + mChodnika.ToString("F0") + " m, krawężników " + nKrawezniki + " (odcinki 1 m z fugą), latarni " + nLatarnie + ", ławek " + nLawki + ", koszy " + nKosze + ", plac zabaw " + (placZabaw != Vector3.zero ? "tak" : "nie") + ", aut 0");
     }
 
+    // Kompletny odbiór osi dojść R1 po wygenerowaniu fizyki i wyposażenia.
+    // TYLKO raport do ręcznej oceny: bez kasowania colliderów i bez blokady APK.
+    internal static void AudytCalejWyspy(Transform wyspa)
+    {
+        if (!wyspa) { BraxBuildQuality.Warn("WYSPA_CALA_TRASA_AUDYT brak korzenia"); return; }
+        Physics.SyncTransforms();
+        const int maska = ~((1 << 8) | (1 << 29) | (1 << 31));
+        int probki = 0, brak = 0, przeszkody = 0, wysokosci = 0, przerwy = 0;
+        var raport = new List<string>();
+        void Punkt(Vector3 p, string wzorzec, string nazwa, ref float poprzednie, ref Vector3 poprzedniP)
+        {
+            probki++;
+            float yStart = Mathf.Max(p.y, Y(p.x, p.z)) + 4f;
+            var hit = Physics.RaycastAll(new Vector3(p.x, yStart, p.z),
+                    Vector3.down, 8f, maska, QueryTriggerInteraction.Ignore)
+                .Where(h => h.collider && h.normal.y > .65f &&
+                    (h.collider.transform == wyspa || h.collider.transform.IsChildOf(wyspa)) &&
+                    h.collider.name.Contains(wzorzec))
+                .OrderByDescending(h => h.point.y).FirstOrDefault();
+            if (!hit.collider)
+            {
+                brak++;
+                if (raport.Count < 35) raport.Add("BRAK " + nazwa + " @" + p.ToString("F1"));
+                poprzednie = float.NaN; poprzedniP = Vector3.zero; return;
+            }
+            float y = hit.point.y;
+            if (!float.IsNaN(poprzednie) && poprzedniP != Vector3.zero)
+            {
+                float dist = Vector2.Distance(new Vector2(p.x, p.z), new Vector2(poprzedniP.x, poprzedniP.z));
+                if (dist > .1f && Mathf.Abs(y - poprzednie) > .19f * dist)
+                {
+                    wysokosci++;
+                    if (raport.Count < 35)
+                        raport.Add("NIEROWNOSC " + nazwa + " " + Mathf.Abs(y - poprzednie).ToString("F2") + "m");
+                }
+            }
+            poprzednie = y; poprzedniP = p;
+            foreach (var c in Physics.OverlapCapsule(
+                new Vector3(p.x, y + .61f, p.z), new Vector3(p.x, y + 1.9f, p.z),
+                .31f, maska, QueryTriggerInteraction.Ignore))
+            {
+                if (!c || !c.enabled || c.isTrigger || c.bounds.max.y <= y + .24f ||
+                    !c.transform.IsChildOf(wyspa) ||
+                    c.GetComponentInParent<BraxMieszkaniec>() ||
+                    c.GetComponentInParent<BraxGymPlayer>()) continue;
+                if (c.name.Contains("Wyspa chodnik fizyka") ||
+                    c.name.Contains("Deptak plażowy") ||
+                    c.name.Contains("Wyspa kładka do ratownika") ||
+                    c.name.Contains("kolizja: deptak") ||
+                    c.name.Contains("kolizja: pochylnia deptaka") ||
+                    c.name.Contains("pomost wyspy")) continue;
+                przeszkody++;
+                if (raport.Count < 35) raport.Add("PRZESZKODA " + nazwa + ": " + c.name + " @" + p.ToString("F1"));
+                break;
+            }
+        }
+        void Linia(Vector3 a, Vector3 b, string wzorzec, string nazwa, float krok)
+        {
+            float przed = float.NaN; Vector3 pozycja = Vector3.zero;
+            int n = Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(a, b) / krok));
+            for (int i = 0; i <= n; i++)
+                Punkt(Vector3.Lerp(a, b, i / (float)n), wzorzec, nazwa, ref przed, ref pozycja);
+        }
+        foreach (var (a, b, szer, kraw, nazwa) in plan)
+            Linia(new Vector3(CX + a.x, 0, CZ + a.y), new Vector3(CX + b.x, 0, CZ + b.y),
+                "Wyspa chodnik fizyka", nazwa, 1.25f);
+        if (!Miejsca.ContainsKey("wyspa_polaczenie_plaza_a2"))
+        {
+            przerwy++;
+            raport.Add("ODCIETA promenada plaży od alei A2");
+        }
+        if (Miejsca.TryGetValue("wyspa_przystan", out var port))
+        {
+            float y = float.NaN; Vector3 pp = Vector3.zero;
+            Punkt(port, "pomost wyspy", "przystań", ref y, ref pp);
+        }
+        if (deptak.Count < 2) przerwy++;
+        for (int i = 1; i < deptak.Count - 1; i += 4)
+        {
+            float y = float.NaN; Vector3 pp = Vector3.zero;
+            Punkt(deptak[i], "kolizja: deptak", "pomost–arena", ref y, ref pp);
+        }
+        if (plazaDeptak.Count < 2) przerwy++;
+        float poprzednieY = float.NaN; Vector3 poprzedni = Vector3.zero;
+        for (int i = 0; i < plazaDeptak.Count; i++)
+        {
+            if (i > 0 && Vector3.Distance(plazaDeptak[i], plazaDeptak[i - 1]) > 5.8f)
+            {
+                przerwy++;
+                if (raport.Count < 35) raport.Add("PRZERWA promenada plaży odcinek " + i);
+                poprzednieY = float.NaN; poprzedni = Vector3.zero;
+            }
+            if (i % 4 == 1)
+                Punkt(plazaDeptak[i], "Deptak plażowy", "promenada plaży", ref poprzednieY, ref poprzedni);
+        }
+        foreach (var (_, wd) in wiezyczki)
+        {
+            float ang = Mathf.Atan2(wd.z, wd.x) * Mathf.Rad2Deg;
+            float rs = LiniaWody(ang);
+            var a = new Vector3(CX, 0f, CZ) + wd * (rs - 37f);
+            var b = new Vector3(CX, 0f, CZ) + wd * (rs - 16f);
+            Linia(a, b, "Wyspa kładka do ratownika", "kładka ratownika", 1.25f);
+        }
+        string wynik = "WYSPA_CALA_TRASA_AUDYT alejki=" + plan.Count +
+            " promenada_pts=" + plazaDeptak.Count + " kladki=" + wiezyczki.Count +
+            " probki=" + probki + " brak_podloza=" + brak +
+            " przeszkody=" + przeszkody + " nierownosci=" + wysokosci +
+            " przerwy=" + przerwy + " test_Android=nie [" +
+            string.Join("; ", raport.Take(35)) + "]";
+        if (brak + przeszkody + wysokosci + przerwy > 0)
+            BraxBuildQuality.Warn(wynik + " — do kontroli, bez blokowania APK");
+        else Debug.Log(wynik + " geometria_wstepnie_drozna, test_Android_wymagany");
+    }
+
     // tablica „WYSPA” na głowicy pomostu (widoczna z łodzi) i drogowskazy na placu
     static void TablicaWyspa(BraxNabrzeze.Zbior z, BraxNabrzezeMebel.Mat m)
     {
