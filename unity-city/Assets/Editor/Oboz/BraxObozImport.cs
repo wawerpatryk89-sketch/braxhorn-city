@@ -149,7 +149,9 @@ public sealed class BraxObozImport : AssetPostprocessor
             var androidArtwork=t.GetPlatformTextureSettings("Android");
             androidArtwork.name="Android";
             androidArtwork.overridden=true;
-            androidArtwork.maxTextureSize=4096; // nie obniżaj oryginalnej jakości
+            // Grafika muralu musi pozostać czytelna 4K.
+            // Atlas FBX przystanku to wyposażenie i na Androidzie max 2K.
+            androidArtwork.maxTextureSize=ownerArtwork?4096:2048;
             androidArtwork.format=TextureImporterFormat.ASTC_4x4;
             androidArtwork.compressionQuality=90;
             t.SetPlatformTextureSettings(androidArtwork);
@@ -158,7 +160,8 @@ public sealed class BraxObozImport : AssetPostprocessor
 
         // Do przyszłego pełnego importu materiałów 2K/4K trawy, błota i płytek.
         // Mapy normalnych w Poly Haven używają '_nor_gl_', nie '_normal'.
-        // Trzymaj oryginalne 4K, na Androidzie także bez ukrytej redukcji.
+        // Źródłowe 4K na dysku pozostają nietknięte; na Androidzie
+        // wyposażenie i teren max 2K. 4K wyłącznie postacie i grafiki murali.
         if(assetPath.StartsWith(Root+"OwnerAssets/",StringComparison.Ordinal) &&
             assetPath.Contains("/textures/",StringComparison.Ordinal) &&
             !assetPath.Contains("/OwnerAssets/rubberized_track_2k/",StringComparison.Ordinal))
@@ -183,7 +186,7 @@ public sealed class BraxObozImport : AssetPostprocessor
             var mobileSource=t.GetPlatformTextureSettings("Android");
             mobileSource.name="Android";
             mobileSource.overridden=true;
-            mobileSource.maxTextureSize=limit;
+            mobileSource.maxTextureSize=2048; // Android mobile-first bez źródłowej utraty 4K
             mobileSource.format=sourceNormal?TextureImporterFormat.ASTC_4x4:
                 TextureImporterFormat.ASTC_6x6;
             mobileSource.compressionQuality=90;
