@@ -22,22 +22,68 @@ public static class BraxChampionsCasinoPbr2K
         if(sourceWidth!=2048 || sourceHeight!=2048)
             throw new InvalidOperationException("T11 original is NOT native 2048x2048: "+path+
                 " actual="+sourceWidth+"x"+sourceHeight);
+        // Previously a stale Library/import artifact returned null from
+        // LoadAssetAtPath even though the real Poly Haven JPEG, GUID and
+        // 2048px source dimensions existed. Recover the importer in-place:
+        // no source bytes, GUIDs, material artwork or dimensions are replaced.
+        var android=importer.GetPlatformTextureSettings("Android");
+        bool invalidSettings=importer.textureType!=TextureImporterType.Default
+            || importer.sRGBTexture!=colour || !importer.mipmapEnabled
+            || !importer.streamingMipmaps || importer.maxTextureSize!=2048
+            || !android.overridden || android.maxTextureSize!=2048
+            || android.format!=TextureImporterFormat.ASTC_4x4;
+        if(invalidSettings)
+        {
+            importer.textureType=TextureImporterType.Default;
+            importer.sRGBTexture=colour;
+            importer.mipmapEnabled=true;
+            importer.streamingMipmaps=true;
+            importer.maxTextureSize=2048;
+            android.name="Android";
+            android.overridden=true;
+            android.maxTextureSize=2048;
+            android.format=TextureImporterFormat.ASTC_4x4;
+            android.compressionQuality=100;
+            importer.SetPlatformTextureSettings(android);
+            importer.SaveAndReimport();
+            importer=AssetImporter.GetAtPath(path) as TextureImporter;
+            if(!importer)
+                throw new InvalidOperationException("T11 importer vanished after reimport: "+path);
+            Debug.LogWarning("BRAX_T11_IMPORT_RECOVERY restored native 2K ASTC settings: "+path);
+        }
         var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         if(!texture)
         {
-            AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+            // ForceUpdate ignores stale import-cache freshness. A synchronous
+            // refresh then allows Unity to register the resulting main asset.
+            AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport |
+                ImportAssetOptions.ForceUpdate);
             texture=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if(!texture)
+            {
+                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                texture=AssetDatabase.LoadMainAssetAtPath(path) as Texture2D;
+            }
+            if(texture)
+                Debug.LogWarning("BRAX_T11_IMPORT_RECOVERY restored Texture2D: "+path);
         }
         if(!texture)
-            throw new InvalidOperationException("Unity could not load ORIGINAL 2K Texture2D after import: "+path+
-                " guid="+AssetDatabase.AssetPathToGUID(path));
+        {
+            var main=AssetDatabase.LoadMainAssetAtPath(path);
+            throw new InvalidOperationException(
+                "Unity could not load original native 2K Texture2D after forced import: "+path+
+                " guid="+AssetDatabase.AssetPathToGUID(path)+
+                " mainAssetType="+(main?main.GetType().FullName:"NULL")+
+                " importedFileBytes="+new FileInfo(path).Length+
+                ". Preserve original source; inspect Unity texture-import failure.");
+        }
+        // Source pixels and requested Android format must stay unchanged.
+        android=importer.GetPlatformTextureSettings("Android");
         if(importer.sRGBTexture!=colour || !importer.mipmapEnabled
-           || !importer.streamingMipmaps || importer.maxTextureSize!=2048)
-            throw new InvalidOperationException("Invalid T11 source texture import configuration: "+path);
-        var android=importer.GetPlatformTextureSettings("Android");
-        if(!android.overridden || android.maxTextureSize!=2048
+           || !importer.streamingMipmaps || importer.maxTextureSize!=2048
+           || !android.overridden || android.maxTextureSize!=2048
            || android.format!=TextureImporterFormat.ASTC_4x4)
-            throw new InvalidOperationException("Invalid T11 Android ASTC 2K texture import: "+path);
+            throw new InvalidOperationException("T11 native 2K Android importer remains invalid: "+path);
         if(texture.width!=2048 || texture.height!=2048)
             BraxBuildQuality.Warn("Original T11 source is native 2K, but Unity imported "+
                 texture.width+"x"+texture.height+" at "+path+
