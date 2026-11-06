@@ -20,7 +20,7 @@ using UnityEngine.Rendering;
 // PLAC i BRAXHORN ARENA (ośmiobok 48 m, szklane ściany z lizenami, pas LED, daszek, szyld „BRAXHORN ARENA”, kasy biletowe,
 // hol, trybuny w 6 sektorach dookoła klatki, klatka ośmiokątna na podeście z siatką, rampa świateł i telebim nad klatką,
 // tunel i szatnie zawodników — czerwony i niebieski narożnik); plaża z leżakami i parasolami w rzędach, ratownik, bar
-// plażowy, dwa ringi plenerowe na mniejsze walki (nie nasze), palmy, krzewy, skały. Punkty akcji pod misje.
+// plażowy, jeden południowy ring plenerowy; północny po lewej od areny usunięty wraz z fizyką, palmy, krzewy, skały.
 // Osobny obszar doczytywany (korzeń „CLAUDE wyspa…” → BraxClaudeObszary); w scenie głównej sylwetka z daleka.
 // C2 (właściciel 2.11: „wyspa za mała, źle zaprogramowana, nie premium… ma być DALEJ — trzeba do niej dopłynąć… pół wyspy
 // w plaży… reszta — domki letniskowe dla odwiedzających… chodniki, bez aut”): wyspa ~1 km od brzegu miasta (środek x 1200,
@@ -101,7 +101,7 @@ internal static partial class BraxMiastoWyspa
         // plac wejściowy ze starymi food truckami i budkami NIE wraca (właściciel 10:47 „tragedia”) — przed wejściem ławki, latarnie, zieleń
         if (ArenaWlaczona) { BraxUliceKit.UstawGrupe("Wyspa: arena BRAXHORN"); Arena(); }
         else { BraxMiastoA.Log("WYSPA arena: stara (bryły z kodu) WYŁĄCZONA — stawiam ARENĘ PREMIUM"); ArenaPremium(); }
-        BraxUliceKit.UstawGrupe("Wyspa: bar, ringi, punkt widokowy", 80f);
+        BraxUliceKit.UstawGrupe("Wyspa: bar, ring południowy, punkt widokowy", 80f);
         Plaze(z, m); BarPlazowy(); Ringi(); PunktWidokowy();
         // C2: plaża premium (deptak z desek, przebieralnie, WC, wypożyczalnia, bar na plaży, flagi ratowników, kąpiący się)
         // i ośrodek domków letniskowych (domki, chodniki z krawężnikami, latarnie, ławki, recepcja, sklep, plac zabaw) — każdy krok osobno
@@ -124,7 +124,7 @@ internal static partial class BraxMiastoWyspa
         kontrola.punkty = Miejsca.Select(p => new BraxWyspaKontrola.Punkt { nazwa = p.Key, pozycja = p.Value }).ToArray();
         BraxWyspaOdbior.Krok("raport geometrii", () => RaportWyspy(tris, palm));
         BraxWyspaOdbior.Krok("kontrola P0", () => BraxWyspaOdbior.Sprawdz(root));
-        BraxMiastoA.Log("WYSPA: teren " + tris + " trójkątów, przystań x " + xPomostu.ToString("F0") + ", palm " + palm + ", krzewów/skał " + krz + ", siatek " + siatek + "+" + nz + " (BRAXHORN ARENA z dachem membranowym, trybunami z przejściami i lożami VIP, szatnią Braxa i tunelem; plaże dookoła, 3 ratowników, bar, 2 ringi, punkt widokowy)");
+        BraxMiastoA.Log("WYSPA: teren " + tris + " trójkątów, przystań x " + xPomostu.ToString("F0") + ", palm " + palm + ", krzewów/skał " + krz + ", siatek " + siatek + "+" + nz + " (BRAXHORN ARENA z dachem membranowym, trybunami z przejściami i lożami VIP, szatnią Braxa i tunelem; plaże dookoła, 3 ratowników, bar, 1 ring południowy, punkt widokowy)");
     }
 
     // ---------------- teren: jedna siatka, plac w osobnej podsiatce (bez nakładania) ----------------
