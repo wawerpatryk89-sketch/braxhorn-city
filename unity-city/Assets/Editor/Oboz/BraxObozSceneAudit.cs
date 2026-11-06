@@ -19,6 +19,7 @@ public static class BraxObozSceneAudit
     [Serializable] public sealed class Item
     {
         public string name,path,classification,status,source;
+        public string[] materialSources;
         public float x,y,z,bottomY,gapMetres,widthMetres,heightMetres,depthMetres;
     }
     [Serializable] public sealed class SizeEntry { public string path; public long sourceBytes; }
@@ -28,10 +29,11 @@ public static class BraxObozSceneAudit
         public bool unitySceneInspected,apkBuilt,phoneVerified;
         public int renderers,unclassified,levitating,embedded,missingGroundRay,expectedMounted;
         public int expectedMurals=4,presentMurals,muralWarnings,scaleWarnings,overlapCandidates;
+        public int checkedBags,bagWarnings;
         public long dependentSourceBytes;
         public Item[] items;
         public SizeEntry[] largestSources;
-        public string[] muralFindings,scaleFindings,overlapFindings;
+        public string[] muralFindings,scaleFindings,overlapFindings,bagFindings;
     }
 
     static string PathOf(Transform transform)
@@ -61,6 +63,16 @@ public static class BraxObozSceneAudit
         return n.Contains("podłoże")||n.Contains("terrain")||n.Contains("grunt")||
             n.Contains("strumień");
     }
+    static string DescribeMaterial(Material material)
+    {
+        if(!material)return "MATERIAL_MISSING";
+        string shader=material.shader?material.shader.name:"SHADER_MISSING";
+        var maps=material.GetTexturePropertyNames().Where(key=>material.GetTexture(key))
+            .Select(key=>key+"="+AssetDatabase.GetAssetPath(material.GetTexture(key)));
+        return material.name+"; shader="+shader+"; imported="+
+            AssetDatabase.GetAssetPath(material)+"; textures="+string.Join(",",maps);
+    }
+
     static Item Inspect(Renderer r)
     {
         Bounds b=r.bounds;
@@ -71,7 +83,8 @@ public static class BraxObozSceneAudit
             x=b.center.x,y=b.center.y,z=b.center.z,
             bottomY=b.min.y,
             widthMetres=b.size.x/K,heightMetres=b.size.y/K,depthMetres=b.size.z/K,
-            source=AssetDatabase.GetAssetPath(r.sharedMaterial)
+            source=AssetDatabase.GetAssetPath(r.sharedMaterial),
+            materialSources=r.sharedMaterials.Select(DescribeMaterial).ToArray()
         };
         if(IsMounted(r)) {item.status="konstrukcja/montaż — nie podlega testowi gruntu";return item;}
         if(IsNaturalTerrain(r)) {item.status="grunt";return item;}
@@ -91,6 +104,14 @@ public static class BraxObozSceneAudit
         else item.status="kontakt w tolerancji 3 cm";
         return item;
     }
+    static long AllDependentSourceBytes()
+    {
+        if(!File.Exists(BraxObozActors.ScenePath))return 0;
+        return AssetDatabase.GetDependencies(BraxObozActors.ScenePath,true)
+            .Where(p=>!string.IsNullOrWhiteSpace(p) && File.Exists(p))
+            .Sum(p=>new FileInfo(p).Length);
+    }
+
     static SizeEntry[] LargestSources()
     {
         if(!File.Exists(BraxObozActors.ScenePath))return Array.Empty<SizeEntry>();
@@ -190,6 +211,41 @@ public static class BraxObozSceneAudit
         return results.ToArray();
     }
 
+    // WOREK: korpus 1,2 m; dół 0,6 m nad fizycznym podłożem,
+    // nie nad umownym y=0. Oryginalny GLB nadal pozostaje nietknięty.
+    static string[] ReviewRealBagClearance(Scene scene)
+    {
+        var bags=scene.GetRootGameObjects()
+            .SelectMany(g=>g.GetComponentsInChildren<BraxWorek>(true))
+            .Where(b=>b&&b.isActiveAndEnabled).ToArray();
+        var findings=new List<string>();
+        if(bags.Length!=48)
+            findings.Add("BAG_COUNT_MISMATCH: "+bags.Length+"/48");
+        foreach(var bag in bags)
+        {
+            float body=(bag.dol-bag.gora)/K;
+            if(Mathf.Abs(body-1.2f)>.03f)
+                findings.Add("Worek korpus !=1,2m: "+PathOf(bag.transform)+
+                    " measured="+body.ToString("F3"));
+            var origin=bag.transform.position+Vector3.up*.30f*K;
+            var support=Physics.RaycastAll(origin,Vector3.down,5f*K,
+                ~0,QueryTriggerInteraction.Ignore)
+                .Where(h=>h.collider && !h.collider.transform.IsChildOf(bag.transform)
+                    && h.normal.y>.65f && h.point.y<bag.transform.position.y)
+                .OrderByDescending(h=>h.point.y).FirstOrDefault();
+            if(!support.collider)
+            {
+                findings.Add("Worek bez podłoża: "+PathOf(bag.transform));
+                continue;
+            }
+            float clearance=(bag.transform.position.y-bag.dol-support.point.y)/K;
+            if(Mathf.Abs(clearance-.6f)>.03f)
+                findings.Add("Worek dół !=0,6m nad podłożem: "+
+                    PathOf(bag.transform)+" gap="+clearance.ToString("F3"));
+        }
+        return findings.ToArray();
+    }
+
     static string BuildingScope(Transform t)
     {
         for(var p=t;p;p=p.parent)
@@ -252,6 +308,7 @@ public static class BraxObozSceneAudit
             var muralIssues=ReviewOriginalMurals(renderers);
             var scaleIssues=ReviewDimensions(scene);
             var overlaps=ReviewFurnitureOverlaps(scene);
+            var bagIssues=ReviewRealBagClearance(scene);
             var report=new Report {
                 scene=BraxObozActors.ScenePath,
                 revision=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local",
@@ -264,7 +321,10 @@ public static class BraxObozSceneAudit
             report.expectedMounted=all.Count(x=>x.classification=="montowany");
             report.unclassified=all.Count(x=>x.status=="brak testu");
             report.largestSources=biggest;
-            report.dependentSourceBytes=biggest.Sum(x=>x.sourceBytes);
+            report.dependentSourceBytes=AllDependentSourceBytes();
+            report.checkedBags=scene.GetRootGameObjects()
+                .SelectMany(g=>g.GetComponentsInChildren<BraxWorek>(true)).Count();
+            report.bagFindings=bagIssues;report.bagWarnings=bagIssues.Length;
             report.presentMurals=renderers.Count(r=>r.name.StartsWith("JPEG 1:1 — "));
             report.muralFindings=muralIssues;report.muralWarnings=muralIssues.Length;
             report.scaleFindings=scaleIssues;report.scaleWarnings=scaleIssues.Length;
@@ -272,6 +332,18 @@ public static class BraxObozSceneAudit
             string folder=System.IO.Path.GetFullPath(
                 System.IO.Path.Combine(Application.dataPath,"../../audit"));
             Directory.CreateDirectory(folder);
+            try
+            {
+                var info=scene.GetRootGameObjects()
+                    .SelectMany(g=>g.GetComponentsInChildren<BraxObozSceneInfo>(true))
+                    .FirstOrDefault();
+                if(info)BraxObozCollisionReview.Write(info,
+                    System.IO.Path.Combine(folder,"oboz-wejscia-kolizje.json"));
+                else BraxBuildQuality.Warn("OBÓZ_SCENE_AUDIT_NO_SCENE_INFO");
+            }
+            catch(Exception ex) {
+                BraxBuildQuality.Warn("OBÓZ_SCENE_AUDIT_DOOR_REPORT_FAILED: "+ex);
+            }
             File.WriteAllText(System.IO.Path.Combine(folder,"oboz-scena.json"),
                 JsonUtility.ToJson(report,true));
             var md=new StringBuilder();
@@ -285,6 +357,10 @@ public static class BraxObozSceneAudit
             md.AppendLine("Murale: "+report.presentMurals+"/4; zastrzeżenia: "+report.muralWarnings);
             md.AppendLine("Błędy skali: "+report.scaleWarnings+
                 "; kandydaci przenikania mebli >3cm: "+report.overlapCandidates);
+            md.AppendLine("Worki: "+report.checkedBags+"/48; odstęp/korpus błędne: "+
+                report.bagWarnings);
+            md.AppendLine("Łączne bajty zależnych PLIKÓW ŹRÓDŁOWYCH, NIE APK: "+
+                report.dependentSourceBytes);
             md.AppendLine("Weryfikacja wizualna/telefon: NIE");
             md.AppendLine("20 największych zasobów zależnych — BAJTY ŹRÓDŁOWE, NIE ROZMIAR APK:");
             foreach(var x in biggest)md.AppendLine("- "+x.sourceBytes+" B — "+x.path);
@@ -292,6 +368,7 @@ public static class BraxObozSceneAudit
             foreach(var x in muralIssues.Take(10))md.AppendLine("- MURAL: "+x);
             foreach(var x in scaleIssues.Take(12))md.AppendLine("- SKALA: "+x);
             foreach(var x in overlaps.Take(12))md.AppendLine("- NACHODZENIE: "+x);
+            foreach(var x in bagIssues.Take(12))md.AppendLine("- WOREK: "+x);
             foreach(var x in all.Where(x=>x.status.Contains("3 cm")||
                 x.status=="brak powierzchni w raycast").Take(56))
                 md.AppendLine("- "+x.status+" "+x.path+" gap="+x.gapMetres.ToString("F3"));
@@ -300,6 +377,7 @@ public static class BraxObozSceneAudit
                 " float="+report.levitating+" embedded="+report.embedded+
                 " murals="+report.presentMurals+"/4 scale="+report.scaleWarnings+
                 " overlaps="+report.overlapCandidates+
+                " bagWarnings="+report.bagWarnings+
                 " withoutGround="+report.missingGroundRay+
                 " reports=audit/oboz-scena.json,audit/oboz-scena.md");
         }
