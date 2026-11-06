@@ -57,6 +57,12 @@ internal static class BraxMiastoNova
         raport.Add(BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(SX1 + .05f, HX1, .05f, 4.70f, 36.18f, 41.62f), "nova_przedsionek_wc", flat));
         raport.Add(BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(SX1 + .02f, 52.0f, .16f, 5.05f, 34.6f, 36.55f), "nova_front_klub", flat));
         raport.Add(BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(32.0f, SX1 + .02f, .16f, 5.05f, 34.6f, 36.2f), "nova_front_klatka", flat));
+        // R1, film właściciela: na fasadzie nadal wisi stary szyld "NOVA DYSKOTEKA"
+        // nad nowym "CLUB NOVA". Usuwamy tylko pas starego nośnika PRZED ścianą,
+        // nie górne mieszkanie (z >= 36.45) i nie nowy front (powstaje poniżej).
+        raport.Add(BraxMiastoA.Wyczysc(cityRoot,
+            BraxMiastoA.Obj(36.3f, 47.7f, 5.04f, 7.85f, 34.0f, 36.03f),
+            "nova_stary_szyld_nad_wejsciem", flat));
         int stare = 0; foreach (var t in stareKlub) if (t) { BraxUliceKit.Usun(t.gameObject, "stare wyposażenie NOVA"); stare++; }
         // 3.11 (właściciel: „dyskoteka… nie można wejść”): STARE wejście źródła (BraxCityVenueDoors „NOVA_SOURCE_ENTRY” + czarne
         // stalowe skrzydło z BraxClaudeVenues) stało na zawiasie z kolizją 2.1 × 2.7 m w osi nowych drzwi automatycznych (z 36.08
@@ -152,7 +158,15 @@ internal static class BraxMiastoNova
         lm.Box(new Vector3(38.36f, 3.58f, pz - .03f), new Vector3(45.64f, 3.62f, z)); lm.Box(new Vector3(38.36f, 4.86f, pz - .03f), new Vector3(45.64f, 4.90f, z));
         lm.Box(new Vector3(38.36f, 3.62f, pz - .03f), new Vector3(38.4f, 4.86f, z)); lm.Box(new Vector3(45.6f, 3.62f, pz - .03f), new Vector3(45.64f, 4.86f, z));
         float cap = .74f, w = BraxUliceKit.SzerokoscNapisu("CLUB NOVA", cap); if (w > 6.6f) cap *= 6.6f / w;
-        BraxUliceKit.Napis3D("CLUB NOVA", new Vector3(42f, 3.86f, pz), Vector3.back, cap, .12f, litery, boki);
+        // Pierwszeństwo: wyłącznie autentyczny szyld właściciela z importowanej paczki.
+        // Jeśli nie ma go w release/importerze, pozostawiamy JEDEN istniejący napis 3D.
+        string oryginalSzyld = new[] { "nova_dyskoteka", "club_nova", "nova" }
+            .FirstOrDefault(n => BraxMiastoBillboardy.ZnajdzOryginalnySzyld(n) != null);
+        if (oryginalSzyld == null ||
+            !BraxMiastoBillboardy.Mural(root, oryginalSzyld,
+                 new Vector3(42f, 4.20f, pz - .028f), Vector3.back, 6.5f, 1.08f))
+            BraxUliceKit.Napis3D("CLUB NOVA",
+                new Vector3(42f, 3.86f, pz), Vector3.back, cap, .12f, litery, boki);
         // pkt 48b (właściciel 01:01): plakaty i banery na klubie NOVA USUNIĘTE — reklama tylko na nośnikach (BraxMiastoBillboardy)
         // kinkiety przy wejściu
         foreach (float x in new[] { 40.25f, 43.75f })
