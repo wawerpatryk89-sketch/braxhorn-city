@@ -2690,6 +2690,9 @@ public static partial class BraxClaudeOsiedle
             // butik: lokal zamknięty do czasu prawdziwych modeli ubrań (zlecenie 31.10: kolorowe klocki zamiast ubrań = zakaz właściciela) —
             // szyby matowe (bielone), drzwi zamknięte z kolizją, na witrynie tabliczka WKRÓTCE OTWARCIE
             bool closed = shops[k] == "butik";
+            // This storefront has no BraxCityDoor component, so register the
+            // genuine opening for a final physical capsule probe.
+            wejsciaSklepow.Add((shops[k], new Vector3(d0 + .9f, PY, zf), Vector3.forward, closed));
             var win = closed ? Plain("szkło bielone (lokal w przygotowaniu)", new Color(.80f, .82f, .83f), .55f) : GlassClear;
             BoxMinMax(win, a + .6f, d0, .35f, 3.5f, zf - .03f, zf + .02f, false); BoxMinMax(win, d0 + 1.8f, b - .6f, .35f, 3.5f, zf - .03f, zf + .02f, false);
             // wejście 1.8 × 2.66 m (nadproże na 2.8; jedna miara drzwi ≥ 2.6 × 1.2 m — właściciel 16:36)
@@ -5677,7 +5680,7 @@ public static partial class BraxClaudeOsiedle
     // ---------------- główne ----------------
     public static void Apply()
     {
-        ruchZweryfikowany = false; bladRuchu = null;
+        ruchZweryfikowany = false; bladRuchu = null; wejsciaSklepow.Clear();
         try { BraxTestNaprawOsiedla.Wykonaj(); } catch (Exception e) { Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE DO POPRAWKI regresja: " + e.Message); }
         rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); WyczyscWspolne14(); WyczyscElewacje(); ZmierzBohatera(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
         pavedCells.Clear(); pavingSet = null; CodexPaving();
