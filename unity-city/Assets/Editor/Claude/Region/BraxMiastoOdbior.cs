@@ -381,6 +381,71 @@ internal static class BraxMiastoOdbior
         else Debug.Log(raport + " KOD_GOTOWY_DO_TESTU");
     }
 
+    // R1 6.11: wyjątkowo krótka, nieblokująca kontrola PO dołożeniu
+    // wtórnych colliderów przez BraxKontrola.Wszystko(). Starszy audyt
+    // obejmował tylko 4 próbki samego progu, nie dojście do sali klubu.
+    // Nie wyłącza ani nie kasuje żadnej istniejącej kolizji.
+    public static void SprawdzNovaPoKontroliKolizji(Transform cityRoot)
+    {
+        if (!cityRoot)
+        {
+            Debug.LogWarning("BRAXHORN_NOVA_R1_PO_KOLIZJACH NIEGOTOWE: brak korzenia miasta");
+            return;
+        }
+        Physics.SyncTransforms();
+        int bezPodlogi = 0, blokady = 0, próbki = 0;
+        const int maska = ~((1 << 29) | (1 << 31));
+        var trasa = new[] {
+            new Vector3(42f, .15f, 35.75f),  // chodnik przed wejściem
+            new Vector3(42f, .15f, 36.28f),  // drzwi rozsuwane
+            new Vector3(42f, .15f, 37.30f),  // przedsionek
+            new Vector3(42f, .15f, 39.90f),  // przejście przy szatni
+            new Vector3(42f, .15f, 41.85f),  // otwór do sali
+            new Vector3(42f, .15f, 43.25f),  // sala
+            new Vector3(42f, .15f, 46.00f)   // parkiet
+        };
+        for (int i = 0; i + 1 < trasa.Length; i++)
+        {
+            int kroki = Mathf.Max(1, Mathf.CeilToInt(
+                Vector3.Distance(trasa[i], trasa[i + 1]) / .35f));
+            for (int j = 0; j <= kroki; j++)
+            {
+                Vector3 p = Vector3.Lerp(trasa[i], trasa[i + 1], j / (float)kroki);
+                próbki++;
+                bool podloga = Physics.RaycastAll(p + Vector3.up * .9f,
+                    Vector3.down, 1.65f, maska, QueryTriggerInteraction.Ignore)
+                    .Any(h => h.collider && h.normal.y > .65f &&
+                        Mathf.Abs(h.point.y - p.y) <= .24f);
+                if (!podloga)
+                {
+                    bezPodlogi++;
+                    if (bezPodlogi <= 4) Debug.LogWarning(
+                        "BRAXHORN_NOVA_R1_PO_KOLIZJACH BRAK_PODLOGI @" + p.ToString("F2"));
+                }
+                foreach (var c in Physics.OverlapCapsule(p + Vector3.up * .55f,
+                    p + Vector3.up * 1.91f, .30f, maska, QueryTriggerInteraction.Ignore))
+                {
+                    if (!c || !c.enabled || c.isTrigger ||
+                        c.GetComponentInParent<BraxGymPlayer>() ||
+                        c.GetComponentInParent<BraxCityDoor>() ||
+                        c.GetComponentInParent<BraxDrzwiPrzesuwne>() ||
+                        c.GetComponentInParent<BraxDrzwiAutomatyczne>()) continue;
+                    blokady++;
+                    if (blokady <= 6) Debug.LogWarning(
+                        "BRAXHORN_NOVA_R1_PO_KOLIZJACH PRZESZKODA " +
+                        c.name + " @" + p.ToString("F2"));
+                }
+            }
+        }
+        var wynik = "BRAXHORN_NOVA_R1_PO_KOLIZJACH proby=" + próbki +
+            " brak_podlogi=" + bezPodlogi + " przeszkody=" + blokady +
+            " (bez automatycznej ingerencji; weryfikacja Android nadal konieczna)";
+        if (bezPodlogi != 0 || blokady != 0) Debug.LogWarning(wynik);
+        else Debug.Log(wynik);
+        // Kontrola klatki i mieszkania powtórzona po globalnym dodaniu kolizji.
+        SprawdzMieszkanieBraxa(cityRoot);
+    }
+
     // R1: krótki audyt rzeczywistej drożności klatki i pomieszczeń.
     // Sam model drzwi nie wystarcza: sprawdzamy pionową kapsułę Braxa i podłogę
     // także na spocznikach, przy wejściu do salonu, łazienki i sypialni.
