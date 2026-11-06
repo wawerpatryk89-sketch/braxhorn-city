@@ -153,6 +153,16 @@ public static partial class BraxClaudeOsiedle
         var root = new GameObject(nazwa); root.transform.SetParent(rodzic, false);
         var o = (GameObject)Object.Instantiate(src, root.transform, false); o.name = "model autobusu (miasto_pojazdy/autobus.glb)";
         o.transform.localRotation = Quaternion.identity; o.transform.localScale = Vector3.one;
+        // Ta sama konwersja map PBR jak dla samochodów. Materiały glTF/URP
+        // potrafią renderować się na Android Built-In jako jaskrawy róż.
+        // Dotykamy wyłącznie kopii w scenie, NIE materiałów źródłowego GLB.
+        foreach (var renderer in o.GetComponentsInChildren<Renderer>(true))
+        {
+            var materials = renderer.sharedMaterials;
+            for (int i = 0; i < materials.Length; i++)
+                materials[i] = MaterialAutaAndroid(materials[i]);
+            renderer.sharedMaterials = materials;
+        }
         var rs = o.GetComponentsInChildren<Renderer>(true); if (rs.Length == 0) { Object.DestroyImmediate(root); return null; }
         var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
         float dl0 = Mathf.Max(b.size.z, .1f); if (b.size.x > b.size.z * 1.5f) { o.transform.localRotation = Quaternion.Euler(0, 90f, 0); dl0 = b.size.x; }   // dłuższa oś = przód
