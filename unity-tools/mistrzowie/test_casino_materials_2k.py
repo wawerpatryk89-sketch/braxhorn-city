@@ -42,7 +42,10 @@ class NativeCasino2KTests(unittest.TestCase):
         self.assertIn('const string Source="Assets/Source/Mistrzowie/CasinoT11/Textures2K/"',pbr)
         self.assertIn('Load("nor_gl","png",false)',pbr)
         self.assertIn('Load("arm","png",false)',pbr)
-        self.assertIn('texture.width!=2048 || texture.height!=2048',pbr)
+        self.assertIn("importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight)",pbr)
+        self.assertIn("if(sourceWidth!=2048 || sourceHeight!=2048)",pbr)
+        self.assertIn("BraxBuildQuality.Warn(",pbr)
+        self.assertIn("VerifyOriginalSourceMaps()",pbr)
         self.assertIn("importer.streamingMipmaps=true",importer)
         self.assertIn("TextureImporterFormat.ASTC_4x4",importer)
 

@@ -69,6 +69,9 @@ public static class BraxChampionsBuild
             if(skipWalkChecks)
                 report.checks.Add("OWNER_REQUESTED_DIAGNOSTIC: metro and exterior walking checks SKIPPED; physical colliders unchanged; traversability NOT VALIDATED");
             report.sourceImportErrors=RecordSourceImportDiagnostics(reports);
+            // Fail fast on 21 original casino maps before generating the world.
+            BraxChampionsCasinoPbr2K.VerifyOriginalSourceMaps();
+            report.checks.Add("All 21 Poly Haven 2K source images verified before expensive scene generation");
             // Same linear lighting as the main game's Android build.
             PlayerSettings.colorSpace=ColorSpace.Linear;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
