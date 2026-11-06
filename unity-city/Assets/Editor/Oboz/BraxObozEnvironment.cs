@@ -99,6 +99,8 @@ public static partial class BraxObozEnvironment
             // Total: four pavilion + eight roofed outdoor + twelve open = 24.
             Bags(-23, -40, true,12); Bags(23, -40, false,10);
             ServiceBuildings();
+            CampfireFromOriginalRocks();
+            AssemblyGroundWithSchedule();
             MuralBoards(); // Po budynkach: murale fizycznie na ścianach
             CampusArrival();
             BraxObozParkedBus.Add(root);
@@ -686,6 +688,120 @@ public static partial class BraxObozEnvironment
     static void ServiceBuildings()
     {
         BraxObozServices.AddAll(root);
+    }
+
+    // Realne ognisko na leśnej polanie. Kamienie bierzemy z istniejącej
+    // biblioteki modeli 3D, nigdy z sześcianów imitujących skałę.
+    static void CampfireFromOriginalRocks()
+    {
+        var camp=Group("Ognisko leśne — oryginalne skały 3D i ławy z bali",
+            root,P(-67,0,-7));
+        const string rockPath="Assets/Source/Claude/Library/park_rock.glb";
+        var rockAsset=AssetDatabase.LoadAssetAtPath<GameObject>(rockPath);
+        if(rockAsset)
+        {
+            for(int i=0;i<12;i++)
+            {
+                float angle=i*Mathf.PI*2f/12f;
+                var rock=PrefabUtility.InstantiatePrefab(rockAsset) as GameObject;
+                if(!rock)continue;
+                rock.name="Naturalny kamień z biblioteki — krąg ogniska "+i;
+                rock.transform.SetParent(camp,false);
+                var visible=rock.GetComponentsInChildren<Renderer>(true);
+                if(visible.Length==0){Object.DestroyImmediate(rock);continue;}
+                BraxObozPlacement.RealDimension(rock.transform,visible,.33f,
+                    BraxObozPlacement.Axis.Y,rock.name);
+                rock.transform.localRotation=Quaternion.Euler(0,i*53f,0);
+                var at=camp.TransformPoint(P(Mathf.Cos(angle)*1.1f,.03f,
+                    Mathf.Sin(angle)*1.1f));
+                BraxObozPlacement.OnGround(rock.transform,visible,at,rock.name);
+            }
+        }
+        else Debug.LogWarning("BRAXHORN_OBOZ_FIRE_ROCK_MISSING "+rockPath+
+            " — nie twórz zastępczych kostek");
+        for(int i=0;i<5;i++)
+        {
+            float angle=i*Mathf.PI/5f;
+            Cylinder(camp,"Prawdziwy bal drewna opałowego",
+                new Vector3(-.65f*Mathf.Cos(angle),.18f,-.65f*Mathf.Sin(angle)),
+                new Vector3(.65f*Mathf.Cos(angle),.18f,.65f*Mathf.Sin(angle)),
+                .11f,wood,false);
+        }
+        for(int i=0;i<8;i++)
+        {
+            float a=i*Mathf.PI/4f;
+            Vector3 radial=new Vector3(Mathf.Cos(a),0,Mathf.Sin(a));
+            Vector3 tangent=new Vector3(-radial.z,0,radial.x);
+            var seat=radial*5f;
+            Cylinder(camp,"Ława wokół ogniska — okrągły bal",
+                seat-tangent*1.05f+Vector3.up*.45f,
+                seat+tangent*1.05f+Vector3.up*.45f,.20f,wood,true);
+            foreach(float end in new[]{-0.7f,0.7f})
+                Cylinder(camp,"Pień pod ławą",
+                    seat+tangent*end+Vector3.up*.04f,
+                    seat+tangent*end+Vector3.up*.35f,.16f,wood,true);
+        }
+        var flameObject=Group("Żywy ogień — drobne cząsteczki, bez ciężkich cieni",
+            camp,P(0,.27f,0)).gameObject;
+        var particles=flameObject.AddComponent<ParticleSystem>();
+        var main=particles.main;main.loop=true;main.maxParticles=90;
+        main.startLifetime=new ParticleSystem.MinMaxCurve(.35f,1.1f);
+        main.startSpeed=new ParticleSystem.MinMaxCurve(.4f,1.4f);
+        main.startSize=new ParticleSystem.MinMaxCurve(.10f,.35f);
+        main.startColor=new ParticleSystem.MinMaxGradient(
+            new Color(1f,.34f,.06f,.75f),new Color(1f,.71f,.24f,.85f));
+        var emission=particles.emission;emission.rateOverTime=48f;
+        var shape=particles.shape;shape.shapeType=ParticleSystemShapeType.Cone;
+        shape.angle=16f;shape.radius=.30f*K;
+        var shader=Shader.Find("Particles/Standard Unlit");
+        if(!shader)shader=Shader.Find("Legacy Shaders/Particles/Additive");
+        if(shader)
+        {
+            var flameMat=new Material(shader){name="Ognisko — płomień"};
+            if(flameMat.HasProperty("_TintColor"))
+                flameMat.SetColor("_TintColor",new Color(1,.47f,.09f,.68f));
+            string destination=Folder+"/ObozCampfireParticles.mat";
+            var existing=AssetDatabase.LoadAssetAtPath<Material>(destination);
+            if(existing)
+            {
+                EditorUtility.CopySerialized(flameMat,existing);
+                Object.DestroyImmediate(flameMat);
+                flameMat=existing;
+            }
+            else AssetDatabase.CreateAsset(flameMat,destination);
+            flameObject.GetComponent<ParticleSystemRenderer>().sharedMaterial=flameMat;
+        }
+        else Debug.LogWarning("BRAXHORN_OBOZ_FIRE_SHADER_MISSING: brak mobilnego shadera ognia");
+        var light=Group("Ciepły blask ogniska bez cieni",camp,P(0,1f,0))
+            .gameObject.AddComponent<Light>();
+        light.type=LightType.Point;light.color=new Color(1,.43f,.14f);
+        light.intensity=1.1f;light.range=9f*K;light.shadows=LightShadows.None;
+        light.enabled=false;
+        light.gameObject.AddComponent<BraxObozLocalLight>().source=light;
+    }
+
+    static void AssemblyGroundWithSchedule()
+    {
+        var plaza=Group("Plac apelowy przy wejściu — plan dnia i maszt",
+            root,P(-12,0,-69));
+        var board=Group("Drewniana tablica planu dnia",plaza,P(0,0,0));
+        foreach(float x in new[]{-1.75f,1.75f})
+            Cylinder(board,"Drewniany słup tablicy",
+                new Vector3(x,0,0),new Vector3(x,2.7f,0),.19f,wood,true);
+        Box(board,"Drewniany panel tablicy",
+            new Vector3(0,1.86f,0),new Vector3(4.0f,1.55f,.18f),wood,false);
+        var notice=Group("Plan dnia — informacja dla obozowiczów",
+            board,P(0,1.86f,-.11f)).gameObject.AddComponent<TextMesh>();
+        notice.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        notice.text="BRAXHORN — PLAN DNIA\n06:00 ROZGRZEWKA\n08:00 TRENING\n12:00 STOŁÓWKA\n16:00 SPARING";
+        notice.fontSize=54;notice.characterSize=.095f*K;
+        notice.anchor=TextAnchor.MiddleCenter;notice.alignment=TextAlignment.Center;
+        notice.color=new Color(.98f,.93f,.83f);
+        notice.GetComponent<MeshRenderer>().sharedMaterial=BraxObozMaterials.SignText(notice.font);
+        Cylinder(plaza,"Maszt flagowy — czeka na zatwierdzoną flagę 3D",
+            new Vector3(5f,0,0),new Vector3(5f,8f,0),.13f,wood,true);
+        Debug.LogWarning("BRAXHORN_OBOZ_OWNER_ASSETS_PENDING: flaga bordowa BRAXHORN "+
+            "oraz namioty wojskowe wymagają zatwierdzonych modeli; bez atrap");
     }
     static void Bridge(float x,float z)
     {
