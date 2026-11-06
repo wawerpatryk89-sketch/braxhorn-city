@@ -22,6 +22,7 @@ public sealed class BraxAuto : MonoBehaviour
     public float sStart, vmax = 8.5f;
     public Vector3[] trasa = new Vector3[0];       // punkty trasy co ~3 m (tylko do odczytu, np. MENU → UTKNĄŁEM szuka najbliższej drogi)
     public float dl = 4.6f, szer = 1.9f, rozstaw = 2.7f, osTyl = -1.3f, promienKola = .33f;
+    public float PredkoscAktualna { get; private set; } // current simulated speed, not the speed limit
     public Transform nadwozie;
     public Transform[] kola = new Transform[0];    // obracające się części kół (LP, PP, LT, PT)
     public Transform[] skret = new Transform[0];   // osie skrętu przednich kół
@@ -67,6 +68,7 @@ public sealed class BraxAuto : MonoBehaviour
     // Wywoływane przez BraxRuchAut co klatkę.
     public void Ustaw(BraxRuchAutSym.Auto st, float dt, float odl, bool skok)
     {
+        PredkoscAktualna = st.v;
         var rot = Quaternion.LookRotation(st.kier, Vector3.up);
         float zmianaKier = 0f;
         if (dt > 1e-4f && !skok) zmianaKier = Mathf.DeltaAngle(kierPoprz, rot.eulerAngles.y) / dt;   // [°/s], + = w prawo
