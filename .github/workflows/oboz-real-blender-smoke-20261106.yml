@@ -1,0 +1,68 @@
+name: 'Obóz — jednorazowy prawdziwy eksport 3 modeli Blender, bez Unity i APK'
+'on':
+  push:
+    branches:
+      - codex/oboz-przebudowa-pbr-20261105
+    paths:
+      - .github/workflows/oboz-real-blender-smoke-20261106.yml
+
+permissions:
+  contents: read
+
+jobs:
+  export-owner-originals:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Pobierz wyłącznie źródła obozu
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .gitignore
+            unity-tools/oboz/
+            unity-tools/claude/prywatne.py
+            unity-city/Assets/
+      - name: Oryginalny Blender 4.5.15 ze zweryfikowaną sumą producenta
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y zstd xz-utils libgl1 libxi6 libxrender1
+          VERSION=4.5.15
+          FILENAME="blender-${VERSION}-linux-x64.tar.xz"
+          BASE='https://download.blender.org/release/Blender4.5'
+          mkdir -p "$RUNNER_TEMP/oboz-blender"
+          cd "$RUNNER_TEMP/oboz-blender"
+          curl --fail --location --silent --show-error --retry 3 --connect-timeout 30 --max-time 120 -o "blender-${VERSION}.sha256" "$BASE/blender-${VERSION}.sha256"
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          name='blender-4.5.15-linux-x64.tar.xz'
+          expected='0d2b8bb2efe97e6c8eb57de6b7322f8800e1984e3125b60decca5f6771e4773e'
+          matches=[]
+          for line in Path('blender-4.5.15.sha256').read_text().splitlines():
+              parts=line.split()
+              if len(parts)>=2 and parts[-1].lstrip('*').split('/')[-1]==name and re.fullmatch('[0-9a-fA-F]{64}',parts[0]):
+                  matches.append(parts[0].lower())
+          if matches != [expected]:
+              raise SystemExit('Oficjalna suma Blender 4.5.15 niezgodna — bez importu prywatnych modeli')
+          Path('blender-check.sha256').write_text(expected+'  '+name+'\n')
+          PY
+          curl --fail --location --silent --show-error --retry 3 --connect-timeout 30 --max-time 1200 -o "$FILENAME" "$BASE/$FILENAME"
+          sha256sum -c blender-check.sha256
+          tar -xJf "$FILENAME"
+          test -x "$PWD/blender-${VERSION}-linux-x64/blender"
+          echo "$PWD/blender-${VERSION}-linux-x64" >> "$GITHUB_PATH"
+      - name: Odtwórz wyłącznie prywatne oryginały obozu z istniejącego draft release
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/owner_release_assets.py preflight
+          python3 unity-tools/oboz/owner_release_assets.py restore
+      - name: Rzeczywiście wyeksportuj Grass Medium 01 i 02 oraz szafkę 4K
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/owner_blender_export.py
+          echo 'OBOZ_REAL_BLENDER_EXPORT=PASS; originals=3; Unity=NOT_RUN; APK=NOT_BUILT; no sources published' >> "$GITHUB_STEP_SUMMARY"
