@@ -265,6 +265,14 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("yield return Idz(dom);", traveler)
         self.assertIn("powrót do domu zablokowany", traveler)
 
+    def test_parked_car_residents_use_swept_capsule_not_end_only(self):
+        traveler = (ROOT / "unity-city/Assets/Claude/Runtime/BraxPodroznyAuta.cs").read_text()
+        self.assertIn("Physics.CapsuleCastNonAlloc(", traveler)
+        self.assertIn("if (n == trafieniaDrogi.Length) return false;", traveler)
+        self.assertIn("if (PrzejscieWolne(next))", traveler)
+        self.assertNotIn("if (Wolne(next))", traveler)
+        self.assertIn("collider.transform.IsChildOf(transform)", traveler)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
