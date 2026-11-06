@@ -53,7 +53,7 @@ def prepare(apply_runner_only=False):
             "appliedToRunnerWorkspace": False,
         }
         REPORT.parent.mkdir(parents=True, exist_ok=True)
-        REPORT.write_text(json.dumps(record,indent=2,ensure_ascii=False)+"\\n",
+        REPORT.write_text(json.dumps(record,indent=2,ensure_ascii=False)+"\n",
                           encoding="utf-8")
         print("BRAX_CRANE_UV_ADVISORY " + json.dumps(record,ensure_ascii=False),
               flush=True)
