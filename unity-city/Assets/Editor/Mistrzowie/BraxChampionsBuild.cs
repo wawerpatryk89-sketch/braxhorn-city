@@ -113,6 +113,8 @@ public static class BraxChampionsBuild
             report.checks.Add("Exploration scene reopened; player quality and traversability require manual device review");
             if(validationOnly)
             {
+                // Read-only metrics only for explicitly requested scenes, never for APK.
+                BraxSceneAudit.Run(scene, report.sourceCommit);
                 report.status="UNITY_SCENES_GENERATED_APK_NOT_BUILT_DEVICE_REVIEW_PENDING";
                 return;
             }
