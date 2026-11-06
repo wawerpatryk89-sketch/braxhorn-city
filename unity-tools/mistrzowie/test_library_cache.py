@@ -53,6 +53,35 @@ class CacheTests(unittest.TestCase):
         self.assertEqual(self.run_cache('restore').returncode, 0)
         self.assertEqual((self.project / 'Assets/source.meta').read_text(), 'original-guid')
 
+    def test_unwritable_picker_metadata_cannot_cancel_library_restore(self):
+        # GitHub APK #19 failed here: Docker-owned Plugins/Android rejected
+        # cached BraxContentPicker.jar.meta, so Library restore never ran.
+        if hasattr(os, 'geteuid') and os.geteuid() == 0:
+            self.skipTest('Permission-denial regression needs a non-root runner')
+        self.put('Assets/Plugins/Android/BraxContentPicker.jar.meta', 'picker-guid')
+        self.assertEqual(self.run_cache('save').returncode, 0)
+        shutil.rmtree(self.project / 'Library')
+        plugin = self.project / 'Assets/Plugins/Android'
+        (plugin / 'BraxContentPicker.jar.meta').unlink()
+        plugin.chmod(0o500)
+        try:
+            result = self.run_cache('restore')
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn(b'Champions Library restored', result.stdout)
+            self.assertIn(b'skipped=1', result.stdout)
+            self.assertEqual((self.project/'Library/imported').read_text(), 'import-data')
+            self.assertFalse((plugin / 'BraxContentPicker.jar.meta').exists())
+        finally:
+            plugin.chmod(0o700)
+
+    def test_workflow_normalizes_picker_directory_permissions(self):
+        wf=(Path(__file__).resolve().parents[2] /
+            '.github/workflows/mistrzowie-apk.yml').read_text(encoding='utf-8')
+        marker='sudo chown -R "$(id -u):$(id -g)" unity-city/Assets/Plugins/Android'
+        self.assertIn(marker, wf)
+        self.assertLess(wf.index(marker),
+                        wf.index('      - name: Restore isolated encrypted Champions Library'))
+
     def test_corrupt_cache_does_not_change_project(self):
         self.archive.write_bytes(b'broken-cache')
         self.assertNotEqual(self.run_cache('restore').returncode, 0)
