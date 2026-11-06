@@ -336,10 +336,10 @@ internal static class BraxMiastoBillboardy
                 string mn = mat.name.ToLowerInvariant();
                 string tn = mat.mainTexture ? mat.mainTexture.name.ToLowerInvariant() : "";
                 string path = mat.mainTexture ? AssetDatabase.GetAssetPath(mat.mainTexture).ToLowerInvariant() : "";
-                if (mn.Contains("billboard_19") || mn.Contains("mural_19") ||
+                if (mn.Contains("billboard_") || mn.Contains("mural_19") ||
                     mn.Contains("original artwork") || tn == "19" ||
                     tn.Contains("brand-poster") || tn.Contains("poster") || tn.Contains("billboard") ||
-                    path.Contains("/billboardy/19.") || path.Contains("/brand-poster.")) return true;
+                    path.Contains("/billboardy/") || path.Contains("/brand-poster.")) return true;
             }
             return false;
         }
