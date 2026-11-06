@@ -181,10 +181,18 @@ internal static class BraxMiastoOdbior
             var pasazerowie = pojazd.GetComponent<BraxMetroM1Pasazerowie>();
             if (pasazerowie && pasazerowie.enabled)
                 Blad("BRAXHORN_METRO_M1_ETAP: symulacja pasazerow ma pozostac wylaczona");
-            var widoczne = pojazd.GetComponentsInChildren<Renderer>(true).Where(r => r);
+            // Skrajnia dotyczy oryginalnych siatek wagonu, a nie
+            // osobnych paneli scenicznych udających drzwi (dzieci korzenia pociągu).
+            // Panele wystają przed model i fałszywie zgłaszały kolizję z peronem.
+            var wagony = pojazd.GetComponentsInChildren<Transform>(true)
+                .Where(t => t && t.parent == pojazd.transform &&
+                    t.name.StartsWith("metro M1 — wagon ", StringComparison.Ordinal)).ToArray();
+            if (wagony.Length == 0)
+                Blad("BRAXHORN_METRO_M1_REZERWA: brak oryginalnego modelu wagonu na torze");
             Bounds? wagon = null;
-            foreach (var r in widoczne)
-                wagon = wagon.HasValue ? Scal(wagon.Value, r.bounds) : r.bounds;
+            foreach (var w in wagony)
+                foreach (var r in w.GetComponentsInChildren<Renderer>(true))
+                    if (r) wagon = wagon.HasValue ? Scal(wagon.Value, r.bounds) : r.bounds;
             if (wagon.HasValue &&
                 (wagon.Value.min.y < -12.83f || wagon.Value.max.y > -5.25f ||
                  wagon.Value.min.z < 34.18f || wagon.Value.max.z > 38.80f))
