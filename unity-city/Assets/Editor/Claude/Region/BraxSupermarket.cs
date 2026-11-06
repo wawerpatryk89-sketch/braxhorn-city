@@ -47,6 +47,7 @@ public static class BraxSupermarket
             // Film z 4.11: zewnętrzny płot parku przecina wejście do supermarketu.
             // Wycinamy TYLKO szerokość ścieżki przed drzwiami, bez usuwania całego płotu.
             UdroznijWejscie(t, lustro, i + 1);
+            Physics.SyncTransforms();
             ParkingKlientow(t, i + 1);
             Physics.SyncTransforms();
             Debug.Log("BRAXHORN_SUPERMARKET kopia " + (i + 1) + ": front (środek) " + c.ToString("F1") + ", obrót " + yaw + "°, hala " + W.ToString("F1") + " × " + D.ToString("F1") + " × " + H.ToString("F1") + " m"
@@ -151,6 +152,32 @@ public static class BraxSupermarket
                            ": brak miejsca bez konfliktu z jezdnią — parking wymaga przeniesienia przeszkód");
             return;
         }
+        // Ogrodzenie zasłaniające parking musi być fizycznie wycięte, nie tylko ukryte wizualnie.
+        // Celujemy w rozpoznane barierki, nie w elewacje, drzewa lub infrastrukturę ronda.
+        var corners = new[] { S(rlot.xMin, rlot.yMin), S(rlot.xMin, rlot.yMax),
+                              S(rlot.xMax, rlot.yMin), S(rlot.xMax, rlot.yMax) };
+        var removeArea = new Bounds(corners[0], Vector3.zero);
+        foreach (var p in corners) removeArea.Encapsulate(p);
+        removeArea.SetMinMax(new Vector3(removeArea.min.x, sklep.position.y + .25f, removeArea.min.z),
+                             new Vector3(removeArea.max.x, sklep.position.y + 2.8f, removeArea.max.z));
+        int clipped = 0;
+        foreach (var tr in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!tr || tr.IsChildOf(sklep) || sklep.IsChildOf(tr)) continue;
+            string name = tr.name.ToLowerInvariant();
+            if (!(name.Contains("fence") || name.Contains("płot") ||
+                  name.Contains("ogrodz") || name.Contains("barier"))) continue;
+            var rr = tr.GetComponent<Renderer>(); var cc = tr.GetComponent<Collider>();
+            if (!(rr && rr.bounds.Intersects(removeArea)) && !(cc && cc.bounds.Intersects(removeArea))) continue;
+            try
+            {
+                BraxCityMeshCut.Subtract(tr, removeArea, BraxRegion.Out + "/Cuts", "parking_ogrodzenie_" + nr);
+                BraxCityMeshCut.SubtractBoxColliders(tr, removeArea);
+                clipped++;
+            }
+            catch (Exception e) { Debug.LogWarning("BRAXHORN_SUPERMARKET_PARKING_PLOT " + tr.name + ": " + e.Message); }
+        }
+        Physics.SyncTransforms();
         var surf = new UlSiatka(); var lines = new UlSiatka();
         surf.Box(new Vector3(rlot.xMin, .024f, rlot.yMin),
                  new Vector3(rlot.xMax, .048f, rlot.yMax));
@@ -193,7 +220,8 @@ public static class BraxSupermarket
         BraxMiastoA.Obiekt(sklep, "Parking supermarketu nawierzchnia", surf, asphalt, false);
         BraxMiastoA.Obiekt(sklep, "Parking supermarketu linie", lines, white, false);
         Debug.Log("BRAXHORN_SUPERMARKET_PARKING sklep=" + nr + " miejsca=" + count +
-                  " wariant=" + side + " poza rondem, bez dodatkowych kolizji");
+                  " wariant=" + side + " wycięte_ogrodzenia=" + clipped +
+                  " poza rondem, bez dodatkowych kolizji");
     }
 
     // ---------------- miejsce ----------------
