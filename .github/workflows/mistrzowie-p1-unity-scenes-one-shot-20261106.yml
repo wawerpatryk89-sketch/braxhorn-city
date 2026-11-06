@@ -20,6 +20,7 @@ jobs:
     uses: ./.github/workflows/mistrzowie-apk.yml
     with:
       etap: sceny
+      zapisz_audyt: true
       kontrola_tras: false
       zdjecia: false
       arena_assets_tag: champions-a1-20261105

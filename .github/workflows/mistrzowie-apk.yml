@@ -40,6 +40,10 @@ on:
         type: string
         required: false
         default: 'p1-basen-spa-20261106'
+      zapisz_audyt:
+        type: boolean
+        required: false
+        default: false
   workflow_dispatch:
     inputs:
       commit:
@@ -81,6 +85,10 @@ on:
         type: string
         required: false
         default: 'p1-basen-spa-20261106'
+      zapisz_audyt:
+        description: 'Po manualnym etap=sceny zapisz audit JSON/MD do repo (zero APK)'
+        type: boolean
+        default: false
 permissions:
   contents: write
   actions: read
@@ -448,6 +456,25 @@ jobs:
           androidExportType: androidPackage
           versioning: None
           allowDirtyBuild: true
+      - name: Save generated scene audit JSON and Markdown as downloadable evidence
+        if: ${{ always() && inputs.etap == 'sceny' && inputs.zapisz_audyt }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mistrzowie-scena-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            audit/mistrzowie-scena.json
+            audit/mistrzowie-scena.md
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Commit both genuine scene reports in one commit (NO APK)
+        if: ${{ inputs.etap == 'sceny' && inputs.zapisz_audyt && steps.unity_build.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AUDIT_SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          sha="$(python3 unity-tools/mistrzowie/commit_scene_audit.py)"
+          echo "SCENE_AUDIT_COMMIT=$sha"
+          printf '\nScene audit commit: %s (source %s, APK NOT BUILT)\n' "$sha" "$AUDIT_SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
       - name: Validate APK identity and existing certificate; stage immutable output
         id: apk_stage
         if: always() && !cancelled() && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
