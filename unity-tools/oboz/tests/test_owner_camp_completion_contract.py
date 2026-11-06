@@ -25,6 +25,17 @@ class OwnerCampCompletionContract(unittest.TestCase):
         cls.delivery=load(TOOLS/"owner_extra_assets.py")
         cls.workflow=load(ROOT/".github/workflows/oboz-unity-build.yml")
 
+    def test_source_kitchen_and_lockers_are_not_baked_into_cabin_shell(self):
+        # CombineDecoration recursively removes MeshFilter and MeshRenderer from
+        # all descendants. It MUST run before adding the owner's imported GLBs.
+        cabin = self.environment.split("static void Cabin(string name,", 1)[1]
+        cabin = cabin.split("static void ColliderBox(", 1)[0]
+        self.assertEqual(cabin.count("CombineDecoration(t);"), 1)
+        batch = cabin.index("CombineDecoration(t);")
+        self.assertLess(batch, cabin.index("OwnerFixtureSourceMetres(t"))
+        self.assertLess(batch, cabin.index("OwnerCabinKitchenette(t)"))
+        self.assertLess(batch, cabin.index("OwnerSingleBed(t,"))
+
     def test_owner_bed_and_kitchen_in_every_cabin(self):
         for i in range(1,5):
             self.assertIn(f'Cabin("Domek {i}"',self.environment)
