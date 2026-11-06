@@ -112,6 +112,10 @@ internal static partial class BraxMiastoWyspa
         int nz = z.Emit(root, "Wyspa: przystań i plaża");
         int siatek = BraxUliceKit.Zapisz(root, "wyspa");
         int palm = Palmy(), krz = Krzewy();
+        // AUDYT R1 całej wyspy dopiero po nawierzchniach, domkach i zieleni.
+        // Raport drożności na podstawie fizyki Unity, nie blokada kosztownego APK.
+        try { AudytCalejWyspy(root); }
+        catch (System.Exception e) { BraxBuildQuality.Warn("WYSPA_CALA_TRASA_AUDYT nieudany test geometrii: " + e.Message); }
         try { Sylwetka(cityRoot); } catch (System.Exception e) { BraxMiastoA.Log("WYSPA DO POPRAWKI sylwetka: " + e); }
         BraxWyspaOdbior.Krok("morze i ambient", () => { MorzeOtwarte(cityRoot); AmbientWyspy(); });
         Punkty();
