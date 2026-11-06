@@ -12,7 +12,7 @@
   },
   "source_rule": "Exact original model and supplied FBX animations only. No borrowed Brax/Nyxa/Monika motion; no synthetic fallback. Bind-pose Idle is not presented as an owner-supplied FBX.",
   "verification_status": "File byte hashes verified from user upload; Unity rig sampling, body deformation and phone playback NOT yet verified.",
-  "secure_ci_status": "Six earlier clips already have an encrypted package in repo; remaining 16 from this new archive require separate encrypted transfer before activation.",
+  "secure_ci_status": "All 22 FBX verified from latest owner upload. Six identical files already encrypted in repo. Remaining sixteen encrypted separately into ONE verified 2.6 MB upload package; GitHub transfer pending. No Unity device test yet.",
   "clips": [
     {
       "action": "EnteringCar",
@@ -124,5 +124,16 @@
       "file": "Swimming.fbx",
       "sha256": "ea2ea27438b4df87591ae285038b067da2551fa10b82714664d5af11b69d1771"
     }
-  ]
+  ],
+  "extra16_encrypted_transfer": {
+    "filename": "BRAXHORN_PATRYK_EXTRA16_ENCRYPTED_20261106.zip",
+    "destination": "unity-city/Prywatne/BRAXHORN_PATRYK_EXTRA16_ENCRYPTED_20261106.zip",
+    "sha256": "8c6b367f6e780780bd20b008b92b24a6c43ee11b282b68314198d06dd6f542e3",
+    "bytes": 2616003,
+    "files": 16,
+    "encoding": "AES-256-CBC/PBKDF2 200k + RSA-OAEP-SHA256 wrapped password (existing encrypted CI private key)",
+    "source_only": true,
+    "uploaded_to_github": false,
+    "plaintext_in_repository": false
+  }
 }
