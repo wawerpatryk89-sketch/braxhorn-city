@@ -10,6 +10,8 @@ using UnityEngine;
 public static class BraxChampionsSourceReadiness
 {
     const string Base="Assets/Source/Mistrzowie/";
+    // Match the original Brax clip lookup, which tolerates punctuation in FBX labels.
+    static string ClipKey(string name) => new string((name ?? "").Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
 
     static GameObject RealModel(string path,string label)
     {
@@ -42,7 +44,7 @@ public static class BraxChampionsSourceReadiness
         var hero=RealModel(brax,"unchanged Brax");
         var clips=AssetDatabase.LoadAllAssetsAtPath(brax).OfType<AnimationClip>().ToArray();
         foreach(string clip in new[]{"Idle","Walking","Running","Jab Cross (1)","Mma Kick (1)","Jump"})
-            if(!clips.Any(c=>string.Equals(c.name,clip,StringComparison.OrdinalIgnoreCase)))
+            if(!clips.Any(c=>c && ClipKey(c.name)==ClipKey(clip)))
                 throw new InvalidOperationException("Champions Brax original missing animation: "+clip);
 
         foreach(string file in new[]{"Entering Car.fbx","Driving.fbx","Exiting Car.fbx"})
