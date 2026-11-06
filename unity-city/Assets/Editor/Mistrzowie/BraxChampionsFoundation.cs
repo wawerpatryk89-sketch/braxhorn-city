@@ -27,12 +27,29 @@ public static class BraxChampionsFoundation
         public Building[] buildings;
         public Stop[] tramStops, metroStations, busStops;
         public Berth[] berths;
+        public Pier[] piers;
+        public Pavilion[] promenade;
     }
     [Serializable] public sealed class MeshData { public string id, role; public float[] positions, uv; public int[] triangles; }
     [Serializable] public sealed class Plant { public string id, kind, band; public float x,z,yaw; public int variant; }
     [Serializable] public sealed class Building { public string id,name; public float x,z,w,d,height; }
     [Serializable] public sealed class Stop { public float x,z; }
-    [Serializable] public sealed class Berth { public string id,kind; public float x,z,length,width; }
+    [Serializable] public sealed class Pavilion
+    {
+        public string id,name,sign,style;
+        public float x,z,w,d,h;
+        public bool walkIn;
+    }
+    [Serializable] public sealed class Pier
+    {
+        public string id,role;
+        public float x,z,w,d;
+    }
+    [Serializable] public sealed class Berth
+    {
+        public string id,kind,dock;
+        public float x,z,length,width,accessX,accessZ,yaw;
+    }
     [Serializable] sealed class Report
     {
         public string status = "GENERATED_REQUIRES_VISUAL_AND_PHONE_REVIEW";
@@ -48,7 +65,12 @@ public static class BraxChampionsFoundation
         var d=JsonUtility.FromJson<Foundation>(File.ReadAllText(Source+"/Foundation.json"));
         if(d==null || d.regionId!="mistrzowie" || Mathf.Abs(d.scaleK-K)>.00001f)
             throw new InvalidOperationException("Region scale differs from BraxClaudeOsiedle.K; regenerate nominal geometry, never rescale imports twice.");
-        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=80)
+        if(d.meshes==null || d.meshes.Length==0 || d.plants==null || d.berths==null || d.berths.Length!=38 || d.piers==null || d.piers.Length!=56 || d.promenade==null || d.promenade.Length!=12
+            || d.berths.Count(b=>b.kind=="yacht")!=15
+            || d.berths.Count(b=>b.kind=="motorboat")!=10
+            || d.berths.Count(b=>b.kind=="jetski")!=10
+            || d.berths.Count(b=>b.kind=="cruise_ship")!=2
+            || d.berths.Count(b=>b.kind=="ferry")!=1)
             throw new InvalidOperationException("Incomplete foundation manifest");
         foreach(var m in d.meshes)
         {
@@ -88,7 +110,36 @@ public static class BraxChampionsFoundation
             var a=pair.Split('|');string slug=a[1];
             maps[a[0]]=new MapSet{color=FileIn(tex,slug+"_diff_4k.jpg"),normal=FileIn(tex,slug+"_nor_gl_4k.exr"),arm=FileIn(tex,slug+"_arm_4k.png"),tile=a[0]=="asphalt"?2.1f:1.8f};
         }
-        maps["quay"]=maps["paving"];maps["plot_base"]=maps["paving"];
+        // Real Poly Haven PBR for working docks: hard wearing timber on
+        // floating pontoons, granite on high passenger/cruise berths.
+        maps["quay_wood"]=new MapSet{
+            color=FileIn(tex,"teak_veneer_diff_4k.jpg"),
+            normal=FileIn(tex,"teak_veneer_nor_gl_4k.exr"),
+            arm=FileIn(tex,"teak_veneer_arm_4k.png"),tile=1.4f};
+        maps["quay_jetski"]=maps["quay_wood"];
+        maps["quay_ramp"]=maps["quay_wood"];
+        maps["quay_ramp_jetski"]=maps["quay_wood"];
+        maps["quay_cruise"]=new MapSet{
+            color=FileIn(tex,"granite_tile_diff_4k.jpg"),
+            normal=FileIn(tex,"granite_tile_nor_gl_4k.exr"),
+            arm=FileIn(tex,"granite_tile_arm_4k.png"),tile=1.7f};
+        maps["quay_ferry"]=maps["quay_cruise"];
+        maps["quay_wall"]=new MapSet{
+            color=FileIn(tex,"concrete_wall_008_diff_4k.jpg"),
+            normal=FileIn(tex,"concrete_wall_008_nor_gl_4k.exr"),
+            arm=FileIn(tex,"concrete_wall_008_arm_4k.png"),tile=1.5f};
+        // The red asphalt replaces the original grey cobbles across the
+        // whole 3m width. The inset markings are a DIFFERENT adjoining mesh,
+        // not decals on top. Both use authentic >=2K Android PBR maps.
+        maps["cycle_lane"]=new MapSet{
+            color=FileIn(tex,"clean_asphalt_diff_4k.jpg"),
+            normal=FileIn(tex,"clean_asphalt_nor_gl_4k.exr"),
+            arm=FileIn(tex,"clean_asphalt_arm_4k.png"),tile=2.0f};
+        maps["cycle_mark"]=new MapSet{
+            color=FileIn(tex,"concrete_pavement_02_diff_4k.jpg"),
+            normal=FileIn(tex,"concrete_pavement_02_nor_gl_4k.exr"),
+            arm=FileIn(tex,"concrete_pavement_02_arm_4k.png"),tile=1.8f};
+        maps["plot_base"]=maps["paving"];
         return maps;
     }
     static GameObject[] Palms()
@@ -107,6 +158,11 @@ public static class BraxChampionsFoundation
     public static void VerifyInputs()
     {
         var d=Read();Sources();Palms();Tree();
+        // Source-only verification before creating expensive Unity scenes.
+        // Downloaded originals must include full 2K albedo/normal/ARM.
+        BraxChampionsPromenadeGoods.Verify25OriginalModels();
+        if(!File.Exists("Assets/Source/HarborBeach/Models/lifeguard_tower.glb"))
+            throw new FileNotFoundException("Missing owner R1 lifeguard tower; no substitute");
         if(!Shader.Find(BraxCityMaterials.ShaderName))throw new InvalidOperationException("Existing CityStaticPBR shader missing");
         if(!File.Exists(WaterTemplate))throw new FileNotFoundException("Existing harbour water shader source missing",WaterTemplate);
         Debug.Log("BRAX_MISTRZOWIE_INPUTS_OK geometry="+d.meshes.Length+" K="+K+"; visual acceptance pending");
@@ -136,8 +192,18 @@ public static class BraxChampionsFoundation
             if(!shared.TryGetValue(pair.Value,out var material)){material=MaterialFor(pair.Key,pair.Value);shared.Add(pair.Value,material);}
             materials[pair.Key]=material;
         }
+        // Original Poly Haven coast_sand_02 and damp_sand maps retain their
+        // real normals and ARM. Only the albedo tint is brought to the
+        // requested very light golden beach, wet sand remains slightly darker.
+        materials["cycle_lane"].SetColor("_Color",new Color(.74f,.12f,.16f,1f)); // muted warm red cycle asphalt
+        materials["cycle_mark"].SetColor("_Color",new Color(.96f,.96f,.91f,1f)); // off-white paint, physically inlaid
+        EditorUtility.SetDirty(materials["cycle_lane"]);
+        EditorUtility.SetDirty(materials["cycle_mark"]);
+        materials["sand_dry"].SetColor("_Color",new Color(1.52f,1.40f,1.12f,1f));
+        materials["sand_wet"].SetColor("_Color",new Color(1.13f,1.06f,.88f,1f));
         materials["grass"]=BraxChampionsGrass.CreateMaterial(materials["grass"]);
         materials["sea"]=SeaMaterial();
+        materials["foam"]=FoamMaterial();
         var scene=reuseEmptyScene?previous:EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Additive);
         SceneManager.SetActiveScene(scene);
         var report=new Report{sourceCommit=d.sourceCommit,scaleK=K,berths=d.berths.Length};
@@ -151,11 +217,11 @@ public static class BraxChampionsFoundation
                 var v=new Vector3[m.positions.Length/3];var uv=new Vector2[v.Length];
                 for(int i=0;i<v.Length;i++){v[i]=new Vector3(m.positions[i*3],m.positions[i*3+1],m.positions[i*3+2]);uv[i]=new Vector2(m.uv[i*2],m.uv[i*2+1]);}
                 mesh.vertices=v;mesh.uv=uv;mesh.triangles=m.triangles;mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
-                if(m.role=="sea"){var b=mesh.bounds;b.Expand(new Vector3(0,.5f,0));mesh.bounds=b;}
+                if(m.role=="sea"||m.role=="foam"){var b=mesh.bounds;b.Expand(new Vector3(0,.5f,0));mesh.bounds=b;}
                 mesh=Save(mesh,Output+"/Meshes/"+m.id+".asset");
                 var o=new GameObject(m.id);o.transform.SetParent(root,false);o.AddComponent<MeshFilter>().sharedMesh=mesh;
                 var r=o.AddComponent<MeshRenderer>();r.sharedMaterial=materials[m.role];
-                if(m.role!="sea")o.AddComponent<MeshCollider>().sharedMesh=mesh;
+                if(m.role!="sea"&&m.role!="foam")o.AddComponent<MeshCollider>().sharedMesh=mesh;
                 else {r.shadowCastingMode=ShadowCastingMode.Off;r.receiveShadows=false;}
                 GameObjectUtility.SetStaticEditorFlags(o,StaticEditorFlags.OccludeeStatic);
                 report.meshes++;report.triangles+=m.triangles.Length/3;
@@ -184,9 +250,21 @@ public static class BraxChampionsFoundation
                 }
                 foreach(var r in o.GetComponentsInChildren<Renderer>(true))GameObjectUtility.SetStaticEditorFlags(r.gameObject,StaticEditorFlags.OccludeeStatic);
             }
-            var reserves=new GameObject("PLAN - działki, przystanki, miejsca jachtów (bez modeli)").transform;reserves.SetParent(root,false);
+            // Instantiate 12 actual 2K-PBR premium shop shells on REMOVED
+            // inland lawn patches, with no duplicate floor under their slab.
+            BraxChampionsPromenade.Build(root,d.promenade);
+            // Original first-city tower and R1-size loungers. No staff/visitors.
+            BraxChampionsBeachFurnishings.Build(root);
+            // Place the ORIGINAL user-library yacht, Riva and jetski models.
+            // No fabricated cruise/ferry vessel is allowed without its source.
+            int boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths,d.piers);
+            if(boats!=35)throw new InvalidOperationException("Champions harbour must place 15 yachts + 10 Rivas + 10 jetskis, got "+boats);
+            report.yachtsPlaced=true;
+            var reserves=new GameObject("PLAN - działki, przystanki, miejsca promów i wycieczkowców").transform;reserves.SetParent(root,false);
             foreach(var b in d.buildings)Marker(reserves,b.id+" "+b.name+" / exterior next",b.x,b.z);
-            foreach(var b in d.berths)Marker(reserves,b.id+" "+b.kind+" / berth "+b.length+"x"+b.width,b.x,b.z,-2);
+            foreach(var b in d.berths)
+                if(b.kind=="ferry"||b.kind=="cruise_ship")
+                    Marker(reserves,b.id+" "+b.kind+" / reserved berth "+b.length+"x"+b.width,b.x,b.z,-2);
             for(int i=0;i<d.tramStops.Length;i++)Marker(reserves,"TR"+(i+1),d.tramStops[i].x,d.tramStops[i].z);
             for(int i=0;i<d.busStops.Length;i++)Marker(reserves,"U"+(i+1),d.busStops[i].x,d.busStops[i].z);
             for(int i=0;i<d.metroStations.Length;i++)Marker(reserves,"M"+(i+1)+" underground reserve",d.metroStations[i].x,d.metroStations[i].z,-12);
@@ -279,6 +357,26 @@ public static class BraxChampionsFoundation
         m.SetColor("_Color",tint);EditorUtility.SetDirty(m);return m;
     }
 
+    static Material FoamMaterial()
+    {
+        // Shader must live outside the Editor-only directory for Android:
+        // preserve the source template, publish one GUID-stable player shader.
+        string template="Assets/Editor/Mistrzowie/BraxChampionsBeachFoam.shader";
+        string path=Output+"/MistrzowieBeachFoam.shader";
+        if(!File.Exists(template))throw new FileNotFoundException("Beach foam source shader missing",template);
+        const string sourceName="Shader \"Braxhorn/MistrzowieBeachFoam\"";
+        string source=File.ReadAllText(template);
+        if(!source.Contains(sourceName))throw new InvalidOperationException("Beach foam source identity changed");
+        File.WriteAllText(path,source.Replace(sourceName,"Shader \"Braxhorn/MistrzowieBeachFoamMobile\""));
+        AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+        var shader=AssetDatabase.LoadAssetAtPath<Shader>(path);
+        if(!shader||ShaderUtil.ShaderHasError(shader))
+            throw new InvalidOperationException("Generated Android beach foam shader failed import: "+path);
+        var material=new Material(shader){name="Mistrzowie | natural shallow surf and foam",enableInstancing=true};
+        material.SetColor("_FoamTint",new Color(.98f,.99f,.96f,1f));
+        material.SetFloat("_WaveStrength",.72f);
+        return Save(material,Output+"/Materials/beach_foam.mat");
+    }
     static Material SeaMaterial()
     {
         string path=Output+"/MistrzowieSea.shader";
@@ -291,7 +389,11 @@ public static class BraxChampionsFoundation
         if(!shader||ShaderUtil.ShaderHasError(shader))throw new InvalidOperationException("Mistrzowie sea shader import failed");
         var m=new Material(shader){name="Mistrzowie sea"};
         m.SetVector("_NearRectangle",new Vector4(0,-500*K,1200*K,-150*K));
-        m.SetFloat("_SwellStrength",.45f);m.SetFloat("_ReflectionStrength",.58f);
+        m.SetFloat("_SwellStrength",.72f);
+        m.SetFloat("_RippleStrength",.86f);
+        m.SetFloat("_ReflectionStrength",.55f);
+        if(m.HasProperty("_EdgeColor"))
+            m.SetColor("_EdgeColor",new Color(.12f,.25f,.27f,1f));
         m.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
         return Save(m,Output+"/Materials/sea.mat");
     }

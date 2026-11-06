@@ -1,0 +1,222 @@
+{
+  "schema": "BRAXHORN_POLY_HAVEN_REAL_2K_GLTF_V1",
+  "generatedFor": "Miasto Mistrzow premium 12 kiosk interiors",
+  "source": "https://api.polyhaven.com/assets?type=models ; https://api.polyhaven.com/files/{asset_id}",
+  "license": "CC0",
+  "provenance": "Only exact asset IDs confirmed by official Poly Haven API; no synthetic food or replacement for missing ice cream/pizza/fish.",
+  "resolution": "gltf 2k official bundle; original normal maps and ARM/roughness; never lower than 2048 max dimension",
+  "assets": [
+    {
+      "id": "croissant",
+      "polycount": 1990,
+      "kiosks": [
+        "K1",
+        "K2",
+        "K4"
+      ]
+    },
+    {
+      "id": "carrot_cake",
+      "polycount": 13790,
+      "kiosks": [
+        "K1",
+        "K2"
+      ]
+    },
+    {
+      "id": "strawberry_chocolate_cake",
+      "polycount": 27054,
+      "kiosks": [
+        "K1",
+        "K2"
+      ]
+    },
+    {
+      "id": "hamburger_buns",
+      "polycount": 11588,
+      "kiosks": [
+        "K5",
+        "K10"
+      ]
+    },
+    {
+      "id": "food_apple_01",
+      "polycount": 7012,
+      "kiosks": [
+        "K6",
+        "K7"
+      ]
+    },
+    {
+      "id": "bananas",
+      "polycount": 46868,
+      "kiosks": [
+        "K6"
+      ]
+    },
+    {
+      "id": "lemon",
+      "polycount": 4012,
+      "kiosks": [
+        "K6",
+        "K9"
+      ]
+    },
+    {
+      "id": "food_kiwi_01",
+      "polycount": 7748,
+      "kiosks": [
+        "K6"
+      ]
+    },
+    {
+      "id": "food_lime_01",
+      "polycount": 8100,
+      "kiosks": [
+        "K6",
+        "K9"
+      ]
+    },
+    {
+      "id": "food_pomegranate_01",
+      "polycount": 8142,
+      "kiosks": [
+        "K6"
+      ]
+    },
+    {
+      "id": "wooden_cutting_board",
+      "polycount": 3520,
+      "kiosks": [
+        "K3",
+        "K4",
+        "K5",
+        "K10"
+      ]
+    },
+    {
+      "id": "wooden_display_shelves_01",
+      "polycount": 3174,
+      "kiosks": [
+        "K7",
+        "K8",
+        "K11"
+      ]
+    },
+    {
+      "id": "painted_wooden_shelves",
+      "polycount": 524,
+      "kiosks": [
+        "K1",
+        "K2",
+        "K7"
+      ]
+    },
+    {
+      "id": "plastic_crate_02",
+      "polycount": 5840,
+      "kiosks": [
+        "K5",
+        "K6",
+        "K10"
+      ]
+    },
+    {
+      "id": "wicker_basket_02",
+      "polycount": 17850,
+      "kiosks": [
+        "K6",
+        "K8",
+        "K11"
+      ]
+    },
+    {
+      "id": "outdoor_table_chair_set_01",
+      "polycount": 9828,
+      "kiosks": [
+        "K1",
+        "K9",
+        "K12"
+      ]
+    },
+    {
+      "id": "metal_stool_03",
+      "polycount": 6576,
+      "kiosks": [
+        "K9",
+        "K10"
+      ]
+    },
+    {
+      "id": "life_jacket",
+      "polycount": 8968,
+      "kiosks": [
+        "K7",
+        "K11"
+      ]
+    },
+    {
+      "id": "binoculars",
+      "polycount": 19248,
+      "kiosks": [
+        "K8",
+        "K11",
+        "K12"
+      ]
+    },
+    {
+      "id": "long_life_food",
+      "polycount": 4712,
+      "kiosks": [
+        "K7",
+        "K8"
+      ]
+    },
+    {
+      "id": "wooden_bowl_02",
+      "polycount": 4666,
+      "kiosks": [
+        "K3",
+        "K6",
+        "K10"
+      ]
+    },
+    {
+      "id": "tea_set_01",
+      "polycount": 40296,
+      "kiosks": [
+        "K1",
+        "K9"
+      ]
+    },
+    {
+      "id": "brass_goblets",
+      "polycount": 9600,
+      "kiosks": [
+        "K8",
+        "K9"
+      ]
+    },
+    {
+      "id": "plastic_thermos",
+      "polycount": 5514,
+      "kiosks": [
+        "K11",
+        "K12"
+      ]
+    },
+    {
+      "id": "wooden_crate_02",
+      "polycount": 5176,
+      "kiosks": [
+        "K7",
+        "K11"
+      ]
+    }
+  ],
+  "excludedMissingProducts": [
+    "ice cream cones",
+    "pizza whole",
+    "cooked fish counter"
+  ]
+}
