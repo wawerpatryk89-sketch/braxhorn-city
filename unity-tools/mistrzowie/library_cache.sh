@@ -23,7 +23,26 @@ case "$mode" in
     # Decode completely before touching the project: corrupt cache cannot erase GUIDs.
     openssl enc -d -aes-256-cbc -pbkdf2 -pass env:KLUCZ -in "$archive" | zstd -d -T0 | tar -xf - -C "$tmp"
     test -d "$tmp/Library"
-    if [[ -d "$tmp/Assets" ]]; then cp -an "$tmp/Assets/." "$project/Assets/"; fi
+    # Cache sidecars are advisory and must never prevent restoring the expensive
+    # Unity Library. In earlier runs the Docker-built Android picker left a
+    # root-owned Plugins/Android folder, and cp -an failed before Library move.
+    # Restore ONLY missing .meta files. Existing owner metadata is untouched.
+    imported=0
+    denied=0
+    if [[ -d "$tmp/Assets" ]]; then
+      while IFS= read -r -d '' path; do
+        relative=${path#"$tmp/"}
+        destination="$project/$relative"
+        [[ -e "$destination" ]] && continue
+        if mkdir -p "$(dirname "$destination")" && cp -n "$path" "$destination"; then
+          imported=$((imported + 1))
+        else
+          denied=$((denied + 1))
+          echo "::warning::Cached meta not writable, retain current source: $relative" >&2
+        fi
+      done < <(find "$tmp/Assets" -type f -name '*.meta' -print0)
+    fi
+    echo "Champions cached GUID sidecars: restored=$imported skipped=$denied"
     rm -rf "$project/Library"
     mv "$tmp/Library" "$project/Library"
     echo 'Champions Library restored; existing source metadata retained.'
