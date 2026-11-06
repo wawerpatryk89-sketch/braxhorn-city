@@ -95,6 +95,21 @@ public static class BraxChampionsPoolP1Slide
                     renderer.sharedMaterials=replacement;slideSurfaces++;
                 }
             }
+            // Upgrade the real 5k-triangle owner slide structure without
+            // distorting its geometry. Reuse P1's existing authentic PBR
+            // stainless and stone assets instead of source toy paint.
+            if(n.StartsWith("slidesupports")||n=="gatepost"||n=="startgate"||n=="stairgate"||n=="poolrim")
+            {
+                var structureFinish=n=="poolrim"?stone:aluminium;
+                foreach(var renderer in renderers)
+                {
+                    var originalSlots=renderer.sharedMaterials;
+                    if(originalSlots.Length==0)continue;
+                    var replacements=new Material[originalSlots.Length];
+                    for(int slot=0;slot<replacements.Length;slot++)replacements[slot]=structureFinish;
+                    renderer.sharedMaterials=replacements;
+                }
+            }
             if(n.StartsWith("stairs"))
             {
                 // Preserve source in prefab for provenance/replacement, but do
