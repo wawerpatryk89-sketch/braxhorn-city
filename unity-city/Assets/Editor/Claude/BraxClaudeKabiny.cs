@@ -119,14 +119,15 @@ public static partial class BraxClaudeOsiedle
         return w;
     }
 
-    static void DopasujKabine(BraxMieszkaniec osoba, Transform fotel)
+    static bool DopasujKabine(BraxMieszkaniec osoba, Transform fotel)
     {
         var kab = fotel.GetComponent<BraxFotelAuta>();
-        if (!kab || !osoba.anim) return;
+        if (!kab || !osoba.anim) return false;
         var kosci = osoba.anim.GetComponentsInChildren<Transform>(true);
         Transform T(string n) => kosci.FirstOrDefault(t => t.name == n);
         var kreg = T("Bip01 Spine") ?? osoba.kregoslup; var glowa = osoba.glowa ? osoba.glowa : T("Bip01 Head");
         var skora = GlowaWierzcholki(osoba.GetComponentsInChildren<SkinnedMeshRenderer>(true).Where(r => r.sharedMesh), glowa);
+        if (skora.Count == 0) { Debug.LogError("BRAXHORN_KABINA: nie można zbadać głowy pasażera, pominięto niezweryfikowaną postać"); return false; }
         var akcesoria = glowa ? glowa.GetComponentsInChildren<Renderer>(true).Where(r => !(r is SkinnedMeshRenderer)).ToArray() : new Renderer[0];
         var start = osoba.transform.position;
         string nazwaAuta = "?";
@@ -161,6 +162,7 @@ public static partial class BraxClaudeOsiedle
             Debug.LogError(opis + " — DO POPRAWKI: model auta " + model + " (" + kab.kabina + ", prześwit nad biodrem " + kab.przeswit.ToString("F2")
                 + ") brakuje " + (-wynik.zapas * 100f).ToString("F1") + " cm przy maks. odchyleniu " + kab.odchylenieMax.ToString("F0") + "° — kabina źle zmierzona albo zła skala modelu auta");
         }
+        return miesci;
     }
 
     static string KabinyPodsumowanie()
