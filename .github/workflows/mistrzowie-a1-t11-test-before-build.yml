@@ -4,13 +4,14 @@ name: "Miasto Mistrzów A1+T11 — testy przed APK (BEZ UNITY)"
 # Audit repeated after LIVE 21-map/2-model Poly Haven source validation passed (without Unity).
 # Pre-Unity source readiness: source files, real 3D geometry, all owner signs and Mixamo clips.
 # Post-audit check: all original murals preserve source dimensions; Android mipmaps advisory.
+# Integration-only source audit: port, beach, K1..K12 and user's 3x4 original atlas (no Unity).
 # Regression: Foundation 4K original maps are verified by SOURCE dimensions; Android Texture2D sizing is advisory.
 # Regression: A1 belt-case owner plaque source pixels remain 1536x512 across mobile importer overrides.
 # Never builds Android, never dispatches the actual game build, never changes
 # quality gates, never deploys, uploads assets or moves a branch.
 on:
   push:
-    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
+    branches: [gpt/miasto-mistrzow-port-plaza-promenada-atlas-20261106]
     paths:
       - '.github/workflows/mistrzowie-a1-t11-test-before-build.yml'
   workflow_dispatch:
@@ -18,7 +19,7 @@ permissions:
   contents: read
 jobs:
   code-preflight:
-    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-port-plaza-promenada-atlas-20261106'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -81,7 +82,7 @@ jobs:
           code=[x for x in paths if x.endswith('.cs')]
           missing=[p for p in code if not Path(p).is_file()]
           print('CHAMPIONS_AUDIT_TRACKED_CSHARP',len(code),'AVAILABLE',len(code)-len(missing),'MISSING',len(missing))
-          if len(code)<296 or missing:
+          if len(code)<303 or missing:
               raise SystemExit('Incomplete C# audit checkout: '+', '.join(missing))
           PY_COMPLETE_CSHARP
       - name: Pre-Unity C sharp syntax, scope and test APK quality-gate regression
@@ -99,7 +100,7 @@ jobs:
     # The job performs only GET requests; no release uploads or mutations.
     permissions:
       contents: write
-    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-port-plaza-promenada-atlas-20261106'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -127,3 +128,14 @@ jobs:
           print("A1_T11_OWNER_ASSETS_PRESENT pinned_draft_id=435656828 original="+original)
           print("Only presence validated; actual SHA-256 verification remains in APK preflight")
           PY_OWNER_RELEASE
+      - name: Checkout pinned owner atlas verifier (no Unity)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/mistrzowie/prepare_promenade_atlas.py
+      - name: Verify actual owner-uploaded 3x4 atlas SHA256 and PNG header
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 unity-tools/mistrzowie/prepare_promenade_atlas.py
