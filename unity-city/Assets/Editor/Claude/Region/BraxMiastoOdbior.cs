@@ -39,6 +39,7 @@ internal static class BraxMiastoOdbior
         SprawdzWejscie("NOVA", 42.0f, .15f, 35.73f, 36.60f);
         SprawdzWejscie("TOWER", 59.0f, .15f, 35.83f, 36.88f);
         SprawdzWejscie("MIESZKANIE_BRAXA_KLATKA", 33.73f, .15f, 35.72f, 36.65f);
+        SprawdzSupermarketR1(cityRoot);
         SprawdzApteke(cityRoot);
         SprawdzTaras360(cityRoot);
         SprawdzTramT1(cityRoot);
@@ -52,6 +53,67 @@ internal static class BraxMiastoOdbior
             throw new InvalidOperationException(
                 "BRAXHORN_MIASTO_ODBIOR_NIEGOTOWE blokery=" + bledy +
                 " — nie publikować APK bez korekty i powtórnego odbioru");
+    }
+
+    // Audyt supermarketu BRAXHORN ze zdjęć i Android #64.
+    // Statyczna kontrola sceny NIE udaje testu sterowania na telefonie.
+    static void SprawdzSupermarketR1(Transform cityRoot)
+    {
+        var sklep = UnityEngine.Object.FindObjectsByType<Transform>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None)
+            .FirstOrDefault(t => t && t.name == "SUPERMARKET BRAXHORN 1");
+        int stanowiska = BraxRegionMiastoB.MiejscaParkingu.Count(p =>
+            Mathf.Abs(p.c.x + 126f) < 16f && p.c.z >= 82f && p.c.z <= 124.5f);
+        bool lokalizacja = sklep &&
+            Mathf.Abs(sklep.position.x + 120f) < 1.1f &&
+            Mathf.Abs(sklep.position.z - 132f) < 1.1f &&
+            Mathf.Abs(Mathf.DeltaAngle(sklep.eulerAngles.y, 0f)) < 1f;
+        var drzwi = sklep ? sklep.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true)
+            .FirstOrDefault(d => d && d.etykieta.Contains("SUPERMARKET")) : null;
+        var produkty = sklep ? sklep.GetComponentsInChildren<Renderer>(true)
+            .Count(r => r && r.enabled && r.sharedMaterial &&
+                (r.name.StartsWith("Towar:", StringComparison.OrdinalIgnoreCase) ||
+                 r.transform.parent && r.transform.parent.name.StartsWith("Towar:", StringComparison.OrdinalIgnoreCase))) : 0;
+        bool pas = true;
+        int blokery = 0;
+        // Otwarte dojście dla kapsuły Braxa: testujemy wyłącznie zewnętrzną
+        // strefę od parkingu do drzwi, bez zamkniętych szklanych skrzydeł.
+        for (float z = 125.8f; z <= 130.4f; z += .8f)
+        {
+            var from = new Vector3(-120f, .15f + .35f, z);
+            var to = new Vector3(-120f, .15f + 2.15f, z);
+            foreach (var c in Physics.OverlapCapsule(from, to, .34f,
+                         ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore))
+            {
+                if (!c || !c.enabled || (sklep && c.transform.IsChildOf(sklep)) ||
+                    c.bounds.max.y < .15f + .25f) continue;
+                pas = false; blokery++;
+                if (blokery < 5)
+                    Debug.LogWarning("BRAXHORN_SUPERMARKET_R1_WEJSCIE obcy collider " +
+                                     c.name + " @" + z.ToString("F1"));
+            }
+        }
+        bool parking = stanowiska >= 20;
+        bool dojazd = BraxRegionMiastoB.NaJezdni(new Vector3(-126f, .003f, 83f)) &&
+                       BraxRegionMiastoB.NaJezdni(new Vector3(-126f, .003f, 104f));
+        bool staraWyspa = cityRoot.GetComponentsInChildren<MeshRenderer>(true)
+            .Any(r => r && r.enabled &&
+               (r.name == "Pętla: trawnik wyspy" ||
+                r.name == "Pętla: krawężnik wyspy"));
+        string wynik = "BRAXHORN_SUPERMARKET_R1_ODBIOR " +
+            "oryginalna_lokalizacja=" + lokalizacja +
+            " automatyczne_drzwi=" + (drzwi != null) +
+            " przejscie_zewnetrzne=" + pas +
+            " obce_kolizje=" + blokery +
+            " miejsca_parkingowe=" + stanowiska +
+            " dojazd=" + dojazd +
+            " resztki_ronda=" + staraWyspa +
+            " widoczne_renderery_towaru=" + produkty +
+            " (PlayMode i Android nadal wymagane)";
+        if (!lokalizacja || drzwi == null || !pas || !parking || !dojazd || staraWyspa || produkty < 80)
+            Debug.LogError(wynik + " NIEGOTOWE");
+        else
+            Debug.Log(wynik + " MODEL_SCENY_OK");
     }
 
     static void SprawdzApteke(Transform cityRoot)
