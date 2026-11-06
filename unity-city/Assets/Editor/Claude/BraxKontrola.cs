@@ -37,13 +37,32 @@ public static class BraxKontrola
     public static string Obszar = "";
     static readonly List<string> raport = new List<string>();
     public static void Zapisz(string linia) { if (raport.Count < 4000) raport.Add(linia); }
+    // The full placement/room audit writes its own JSON report. Historically
+    // these warnings never reached aktualizacja-osiedla.txt, allowing a
+    // misleading central PASS despite overturned objects or missing fixtures.
+    static bool raportScenyZakonczony;
+    public static string[] DoPoprawkiDoRaportuOsiedla()
+    {
+        if (Obszar != "osiedle" || !raportScenyZakonczony)
+            return new[] { "DO POPRAWKI: pełny audyt przedmiotów i pomieszczeń osiedla nie został zapisany" };
+        return raport.Where(s => s.IndexOf("ZGŁOSZONE", StringComparison.OrdinalIgnoreCase) >= 0
+            || s.StartsWith("BŁĄD kroku", StringComparison.OrdinalIgnoreCase)
+            || s.StartsWith("skala poza normą:", StringComparison.OrdinalIgnoreCase)
+            || s.StartsWith("skala: błąd", StringComparison.OrdinalIgnoreCase)
+            || s.StartsWith("kolizje: błąd", StringComparison.OrdinalIgnoreCase)
+            || (s.StartsWith("pomieszczenia:", StringComparison.OrdinalIgnoreCase)
+                && s.IndexOf(": brak:", StringComparison.OrdinalIgnoreCase) >= 0))
+            .Select(s => "DO POPRAWKI: kontrola przedmiotów/pomieszczeń: " + s)
+            .Distinct(StringComparer.Ordinal).ToArray();
+    }
 
     [Serializable] sealed class Plik { public string obszar; public float wzrostBohatera, k, sekundy; public List<string> linie = new List<string>(); }
 
     // ---------------- wejście ----------------
     public static void Wszystko(Scene scena, string obszar)
     {
-        zegar = Stopwatch.StartNew(); Obszar = obszar; raport.Clear(); Wyczysc();
+        zegar = Stopwatch.StartNew(); Obszar = obszar; raport.Clear();
+        raportScenyZakonczony = false; Wyczysc();
         try { UstawStrefe(scena); } catch (Exception e) { JestStrefa = false; Debug.LogWarning("DO POPRAWKI: kontrola — strefa chroniona: " + e.Message); }
         try { BraxClaudeOsiedle.ZmierzBohatera(); } catch (Exception e) { Debug.LogWarning("DO POPRAWKI: kontrola — pomiar bohatera: " + e.Message); }
         Physics.SyncTransforms();                        // kolizje generatora ustawione po dodaniu — granice aktualne przed spisem
@@ -80,6 +99,7 @@ public static class BraxKontrola
             Directory.CreateDirectory("city-review");
             var p = new Plik { obszar = obszar, wzrostBohatera = H, k = K, sekundy = Sekundy, linie = new List<string>(raport) };
             File.WriteAllText("city-review/kontrola-" + obszar + ".json", JsonUtility.ToJson(p, true));
+            raportScenyZakonczony = true;
         });
         Wyczysc();
         Debug.Log("BRAXHORN_KONTROLA " + obszar + ": czas " + Sekundy.ToString("F1") + " s, jednostek " + spis.jednostki.Count +

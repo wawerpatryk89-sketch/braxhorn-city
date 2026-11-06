@@ -184,6 +184,10 @@ public static partial class BraxClaudeOsiedle
              || n.StartsWith("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase)
              || n.IndexOf("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase) >= 0))
             .Distinct(StringComparer.Ordinal));
+        // Do not discard overturned furniture, room deficiencies or missing
+        // item colliders from BraxKontrola.Wszystko's separate scene report.
+        // They remain advisory to APK production, never an extra build gate.
+        bledy.AddRange(BraxKontrola.DoPoprawkiDoRaportuOsiedla());
         bledy.AddRange(AudytWejscSklepow(scene));
         bledy.AddRange(AudytZnakowDrogowych(scene));
         bledy.AddRange(AudytWszystkichDrzwi(scene));

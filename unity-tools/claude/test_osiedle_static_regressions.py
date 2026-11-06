@@ -369,6 +369,20 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("city-review/osiedle-drzwi-wszystkie.txt", block)
         self.assertIn("bledy.AddRange(AudytWszystkichDrzwi(scene));", qa)
 
+    def test_central_scene_qa_includes_all_reported_room_and_object_defects(self):
+        qa = (ROOT / "unity-city/Assets/Editor/Claude/BraxKontrola.cs").read_text()
+        scene = source("BraxClaudeOsiedleAktualizacja.cs")
+        self.assertIn("public static string[] DoPoprawkiDoRaportuOsiedla()", qa)
+        self.assertIn("raportScenyZakonczony = false;", qa)
+        self.assertIn("raportScenyZakonczony = true;", qa)
+        for needle in ("ZGŁOSZONE", "BŁĄD kroku", "skala poza normą:",
+                       "kolizje: błąd", "pomieszczenia:", '": brak:"'):
+            self.assertIn(needle, qa)
+        self.assertIn("bledy.AddRange(BraxKontrola.DoPoprawkiDoRaportuOsiedla());", scene)
+        self.assertIn("DO POPRAWKI: pełny audyt przedmiotów", qa)
+        self.assertIn("Wynik: ", scene)
+        self.assertIn("if (bledy.Count > 0) Debug.LogWarning", scene)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
