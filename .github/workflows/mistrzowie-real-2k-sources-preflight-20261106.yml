@@ -1,0 +1,63 @@
+name: "Miasto Mistrzów — realne oryginały Poly Haven 2K (BEZ Unity/APK)"
+
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-real-2k-sources-preflight-20261106.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: champions-real-polyhaven-native-2k-preflight
+  cancel-in-progress: false
+
+jobs:
+  native-sources:
+    name: SHA checks and actual original 3D mesh/materials on 2K sources
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout only real-asset preparation and integrity verifier
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/mistrzowie/prepare_casino_textures_2k.py
+            unity-tools/mistrzowie/prepare_casino_vegetation_2k.py
+            unity-tools/mistrzowie/pack_casino_vegetation_glb.py
+            unity-tools/mistrzowie/verify_native_vegetation_glb.py
+      - name: Python syntax and original source validation dependency
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check Pillow==11.3.0
+          python3 -m py_compile unity-tools/mistrzowie/prepare_casino_textures_2k.py \
+            unity-tools/mistrzowie/prepare_casino_vegetation_2k.py \
+            unity-tools/mistrzowie/pack_casino_vegetation_glb.py \
+            unity-tools/mistrzowie/verify_native_vegetation_glb.py
+      - name: Download official original Poly Haven 2048px maps and vegetation
+        run: |
+          set -euo pipefail
+          python3 unity-tools/mistrzowie/prepare_casino_textures_2k.py
+          python3 unity-tools/mistrzowie/prepare_casino_vegetation_2k.py
+      - name: Verify real 3D geometry and all 2K images were preserved byte-for-byte
+        run: python3 unity-tools/mistrzowie/verify_native_vegetation_glb.py
+      - name: Preserve only audit reports, no Unity APK or modified owner models
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: champions-real-native-2k-source-audit
+          path: |
+            mistrzowie-evidence/t11-real-2k-source-audit.json
+            unity-city/OriginalSources/Mistrzowie/CasinoT11/Vegetation2K/source-vegetation-2k.json
+            unity-city/Assets/Source/Mistrzowie/CasinoT11/t11-polyhaven-2k-manifest.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Explain verification scope
+        if: always()
+        run: |
+          echo 'Only real original Poly Haven sources and derived byte-preserving GLB verified.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Unity: NOT_STARTED; APK: NOT_BUILT; device: NOT_TESTED.' >> "$GITHUB_STEP_SUMMARY"
