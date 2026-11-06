@@ -61,6 +61,10 @@ public static class BraxChampionsBuild
     static void BuildInternal(bool apk,bool validationOnly=false,bool skipWalkChecks=false)
     {
         string reports=Path.GetFullPath("../mistrzowie-evidence");Directory.CreateDirectory(reports);
+        // Fresh per-run log of EVERY nonblocking scene-material, collision
+        // mesh and missing-component problem; never stop after the first.
+        File.WriteAllText(Path.Combine(reports,"scene-asset-quality.txt"),
+            "BRAX MISTRZOWIE SCENE ASSET QUALITY (advisory only)"+Environment.NewLine);
         // The manual Actions launcher can live on main; record the checked-out game.
         var report=new Report{walkChecksSkipped=skipWalkChecks,unity=Application.unityVersion,sourceCommit=File.Exists("mistrzowie.source-commit")
             ?File.ReadAllText("mistrzowie.source-commit").Trim():Environment.GetEnvironmentVariable("GITHUB_SHA")??"local"};
@@ -329,35 +333,55 @@ public static class BraxChampionsBuild
     }
     static int CheckAssets(Scene scene)
     {
-        try
-        {
         int renderers=0;
+        var issues=new List<string>();
         foreach(var root in scene.GetRootGameObjects())
         {
             foreach(var t in root.GetComponentsInChildren<Transform>(true))
-                if(GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject)>0)throw new InvalidOperationException("Missing script: "+t.name);
+            {
+                int missing=GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject);
+                if(missing>0)
+                    issues.Add("MISSING_SCRIPT x"+missing+": "+
+                        AnimationUtility.CalculateTransformPath(t,root.transform));
+            }
             foreach(var r in root.GetComponentsInChildren<Renderer>(true))
             {
                 renderers++;
-                foreach(var m in r.sharedMaterials)
-                    if(!m||!m.shader||ShaderUtil.ShaderHasError(m.shader))throw new InvalidOperationException("Missing/invalid material or shader: "+r.name);
+                string path=AnimationUtility.CalculateTransformPath(r.transform,root.transform);
+                var materials=r.sharedMaterials;
+                if(materials.Length==0)issues.Add("NO_MATERIAL_SLOTS: "+path);
+                for(int i=0;i<materials.Length;i++)
+                    if(!materials[i]||!materials[i].shader||
+                        ShaderUtil.ShaderHasError(materials[i].shader))
+                        issues.Add("INVALID_SOURCE_MATERIAL slot="+i+": "+path);
             }
             foreach(var grass in root.GetComponentsInChildren<BraxClaudeTrawa>(true))
-                if(!grass.dane||!grass.siatka||!grass.material||!grass.material.enableInstancing||!grass.material.shader||
-                    ShaderUtil.ShaderHasError(grass.material.shader)||grass.dane.y.Length!=grass.dane.kepy.Length)
-                    throw new InvalidOperationException("Invalid saved grass instancing assets: "+grass.name);
+                if(!grass.dane||!grass.siatka||!grass.material||
+                    !grass.material.enableInstancing||!grass.material.shader||
+                    ShaderUtil.ShaderHasError(grass.material.shader)||
+                    grass.dane.y.Length!=grass.dane.kepy.Length)
+                    issues.Add("INVALID_GRASS_INSTANCING: "+grass.name);
             foreach(var f in root.GetComponentsInChildren<MeshFilter>(true))
-                if(!f.sharedMesh||f.sharedMesh.vertexCount==0||string.IsNullOrEmpty(AssetDatabase.GetAssetPath(f.sharedMesh)))throw new InvalidOperationException("Unsaved/empty mesh: "+f.name);
-            foreach(var c in root.GetComponentsInChildren<MeshCollider>(true))if(!c.sharedMesh)throw new InvalidOperationException("Empty collision mesh: "+c.name);
+                if(!f.sharedMesh||f.sharedMesh.vertexCount==0||
+                    string.IsNullOrEmpty(AssetDatabase.GetAssetPath(f.sharedMesh)))
+                    issues.Add("UNSAVED_OR_EMPTY_MESH: "+f.name);
+            foreach(var c in root.GetComponentsInChildren<MeshCollider>(true))
+                if(!c.sharedMesh)issues.Add("EMPTY_COLLISION_MESH: "+c.name);
         }
-        if(renderers<100)throw new InvalidOperationException("Infrastructure scene is incomplete");
-        return renderers;
-
-        }
-        catch (System.InvalidOperationException qualityError)
+        if(renderers<100)issues.Add("INCOMPLETE_SCENE_RENDERERS: "+renderers);
+        if(issues.Count>0)
         {
-            BraxBuildQuality.Issue(qualityError); return -1;
+            File.AppendAllLines(Path.GetFullPath("../mistrzowie-evidence/scene-asset-quality.txt"),
+                new[]{"SCENE="+scene.name+" QUALITY_ISSUES="+issues.Count}.Concat(issues));
+            // One concise warning in quality-review.json; the complete list
+            // is in the scene audit and the GitHub Actions editor log.
+            BraxBuildQuality.Warn("Miasto Mistrzów "+scene.name+": "+
+                issues.Count+" distinct scene quality issues; full list "+
+                "mistrzowie-evidence/scene-asset-quality.txt");
+            Debug.LogWarning("BRAX_MISTRZOWIE_ALL_SCENE_ISSUES\n"+string.Join("\n",issues));
+            return -1;
         }
+        return renderers;
     }
     static int CheckWalk(Transform station)
     {

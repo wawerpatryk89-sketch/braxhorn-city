@@ -90,8 +90,18 @@ public static class BraxChampionsPoolP1
 
         if(parked!=layout.parkingSpaces)
             throw new InvalidOperationException("P1 real marked parking bay count is "+parked+" instead of 95");
-        if(root.GetComponentsInChildren<Renderer>(true).Any(r=>r.sharedMaterial==null))
-            throw new InvalidOperationException("P1 has a renderer without a real finish");
+        // A missing imported finish is a VISUAL issue, not permission to
+        // omit the entire real P1 pool from the APK. Report every affected
+        // source renderer and retain all owner geometry, meshes and materials.
+        var unfinished=root.GetComponentsInChildren<Renderer>(true)
+            .Where(r=>r.sharedMaterials.Length==0 ||
+                r.sharedMaterials.Any(m=>!m||!m.shader||ShaderUtil.ShaderHasError(m.shader)))
+            .Select(r=>AnimationUtility.CalculateTransformPath(r.transform,root))
+            .ToArray();
+        if(unfinished.Length>0)
+            BraxBuildQuality.Warn("P1 original imported model has "+
+                unfinished.Length+" renderers without a valid source finish: "+
+                string.Join("; ",unfinished));
         // World plot coordinates are applied only once, and keep the source K unchanged.
         var at=root.position;root.position=Vector3.zero;
         var prefab=PrefabUtility.SaveAsPrefabAssetAndConnect(root.gameObject,

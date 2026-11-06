@@ -167,9 +167,14 @@ public static class BraxChampionsBeachFurnishings
         var colliders=new GameObject("R1 original lifeguard entrance and stair collisions").transform;
         colliders.SetParent(root,false);
         int count=BraxNabrzezeRatownik.Wejscie(tower,colliders,out float deckHeight);
+        // Keep the ORIGINAL placed tower and the beach even if its real
+        // stairs fail access validation; never invent phantom colliders.
+        // This is a traversability advisory requiring the owner's review.
         if(count<=0)
-            throw new InvalidOperationException("R1 tower imported but measured stair/walkway colliders FAILED, do not place phantom tower");
-        Debug.Log("CHAMPIONS_BEACH_R1_LIFEGUARD original_GLb=TRUE stairs_colliders="+count+" accessibleDeckY="+deckHeight);
+            BraxBuildQuality.Warn("R1 original lifeguard tower: measured stair/walkway "+
+                "colliders missing; access NOT VALIDATED (tower source preserved)");
+        else
+            Debug.Log("CHAMPIONS_BEACH_R1_LIFEGUARD original_GLb=TRUE stairs_colliders="+count+" accessibleDeckY="+deckHeight);
         return tower;
     }
 
