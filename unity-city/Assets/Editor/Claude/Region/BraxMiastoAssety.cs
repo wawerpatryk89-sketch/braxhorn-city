@@ -280,6 +280,11 @@ public static class BraxMiastoAssety
                 var o = Postaw(podziemie, m, "bramka biletowa " + (i + 1) + " (model)", p, 90f, 1f, false, false);
                 if (!o) throw new System.InvalidOperationException("Brak obiektu bramki");
                 utworzone.Add(o);
+                // Importowany model może zawierać niewidzialny, pełny collider
+                // zamykający przejście. Zostają dokładne kolizje obudów oraz
+                // blokada, którą BraxDrzwiPrzesuwne otwiera przed graczem.
+                foreach (var obcy in o.GetComponentsInChildren<Collider>(true))
+                    UnityEngine.Object.DestroyImmediate(obcy);
                 var b = BraxRegion.Bounds(o); o.transform.position += new Vector3(p.x - b.center.x, yM - b.min.y, p.z - b.center.z);
                 // klapy → skrzydła drzwi przesuwnych (chowają się do swojej obudowy: kierunek do środka obudowy, 0.27 m × K)
                 var drz = o.AddComponent<BraxDrzwiPrzesuwne>(); drz.etykieta = "bramka metra " + (i + 1); drz.promien = 1.9f; drz.czasRuchu = .35f;
