@@ -1,4 +1,4 @@
-"""Copy KADE and ZYRO from the pinned camp delivery; never restore camp scenery.
+"""Copy RAKK (owner's Pitbull) and ZYRO (owner's Doberman) from the pinned camp delivery; never restore camp scenery.
 
 No Unity invocation. Plaintext models/animations stay in ignored private Assets.
 Existing encrypted release inputs and hashes are reused without publishing assets.
@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT / 'unity-tools/oboz'))
 import assets
 import motion_candidates
 
-IDS = ('kade', 'zyro')
+IDS = ('rakk', 'zyro')
 
 
 def selection():
@@ -31,8 +31,13 @@ def selection():
     names = set()
     prefix = 'Assets/Source/Prywatne/Oboz/'
     for character in characters:
-        if not character['hasGloves'] or not character['glovesVerified']:
-            raise ValueError('Fighter gloves not verified: ' + character['id'])
+        # Owner's Pitbull (RAKK from pitbul.zip) has no gloves in the
+        # signed source manifest. Do not swap him for a different fighter or
+        # invent glove geometry. Doberman/ZYRO has confirmed gloves.
+        if not character['glovesVerified']:
+            raise ValueError('Fighter glove source review not complete: ' + character['id'])
+        if character['id'] == 'zyro' and not character['hasGloves']:
+            raise ValueError('Doberman model was expected to retain its own gloves')
         paths = [character[k] for k in ('modelPath', 'colorPath', 'normalPath', 'roughnessPath', 'metallicPath')]
         paths += [c['path'] for c in character['clips']]
         for path in paths:
@@ -94,7 +99,7 @@ def restore(local_source=None):
     data, motion, selected, chosen = selection()
     try:
         verify(selected, assets.PRIVATE)
-        print('BRAXHORN_WYSPA_FIGHTERS cached=verified characters=kade,zyro'); return
+        print('BRAXHORN_WYSPA_FIGHTERS cached=verified characters=rakk,zyro'); return
     except (ValueError, OSError):
         pass
     with tempfile.TemporaryDirectory(prefix='wyspa-fighters-') as tmp:
