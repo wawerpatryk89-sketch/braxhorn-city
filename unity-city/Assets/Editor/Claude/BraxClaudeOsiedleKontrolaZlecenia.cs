@@ -28,7 +28,14 @@ public static partial class BraxClaudeOsiedle
             // Właściciel: kontrole wizualne/jakościowe nie zatrzymują APK.
             // Nie oznaczaj PASS. Raport zachowuje każdy błąd i jest widoczny
             // po zakończeniu kompilacji. Strict może je blokować świadomie.
-            foreach (var error in errors) BraxBuildQuality.Warn("OSIEDLE_ZLECENIE: " + error);
+            foreach (var error in errors)
+            {
+                // Raport sceny też musi zobaczyć problem, nie tylko osobny
+                // QualityReview. W przeciwnym razie aktualizacja-osiedla.txt
+                // mogła pokazać PASS mimo uszkodzonej siłowni, sportu czy auta.
+                rep.notes.Add("BŁĄD w kroku kontrola zlecenia: " + error);
+                BraxBuildQuality.Warn("OSIEDLE_ZLECENIE: " + error);
+            }
             if (!BraxBuildQuality.Advisory)
                 throw new WymaganeOsiedleException(string.Join("\n", errors));
         }
