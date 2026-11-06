@@ -215,63 +215,66 @@ internal static class BraxMiastoOdbior
         else
             Debug.Log(raport + " GOTOWE DO TESTU W APK");
 
-        // Metra nie wolno osadzić przy ścianie ani na wodzie.
-        // Rzeczywiste przejście piesze z kamienicy do schodów i brak
-        // niebieskiej dziury muszą być potwierdzone wynikiem analizy kolizji.
-        const float wejX = 69f, yChod = .15f, zC = 34.3f;
+        // R1 6.11: PORT zamiast zatkanego chodnika. Nie sprawdzać starego wejścia x=69,z=34.3.
+        // Kontrola korytarza z portu jest w BraxClaudeMetro.KontrolaPrzejscia(), tu
+        // mierzymy dojście w terenie i dawne miejsce wejścia (musi być wolne).
+        const float wejX = 70.3f, yChod = .15f, zC = 17.25f;
         bool lad = BraxMiastoGranice.Lad(wejX, zC);
-        int przeszkody = 0;
-        for (float x = wejX - 4.0f; x <= wejX - .4f; x += .45f)
+        const int maska = ~((1 << 8) | (1 << 2) | (1 << 29) | (1 << 31));
+        bool Podloga(float x, float z)
+        {
+            return Physics.RaycastAll(new Vector3(x, yChod + 1.25f, z), Vector3.down, 2.1f,
+                maska, QueryTriggerInteraction.Ignore)
+                .Any(h => h.collider && h.normal.y > .65f &&
+                    Mathf.Abs(h.point.y - yChod) < .22f);
+        }
+        bool Przejscie(float x, float z)
+        {
             foreach (var c in Physics.OverlapCapsule(
-                new Vector3(x, yChod + .35f, zC),
-                new Vector3(x, yChod + 2.0f, zC),
-                .30f, ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore))
+                new Vector3(x, yChod + .39f, z),
+                new Vector3(x, yChod + 2.01f, z),
+                .30f, maska, QueryTriggerInteraction.Ignore))
             {
-                if (!c || !c.enabled || c.GetComponentInParent<BraxGymPlayer>() ||
-                    c.name.IndexOf("stairs", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    c.name.IndexOf("schod", StringComparison.OrdinalIgnoreCase) >= 0)
-                    continue;
-                // Tylko źródłowy budynek i obce przeszkody, bez balustrad metra.
-                if (c.transform.IsChildOf(metro.transform)) continue;
-                if (c.name.IndexOf("Building", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    c.name.IndexOf("ogrodzen", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    c.name.IndexOf("kamienica", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    przeszkody++;
-                    if (przeszkody < 5)
-                        Blad("BRAXHORN_METRO_M1_DOJSCIE obca przeszkoda " + c.name +
-                                       " przy x=" + x.ToString("F1"));
-                }
+                if (!c || !c.enabled || c.isTrigger ||
+                    c.GetComponentInParent<BraxGymPlayer>() ||
+                    c.GetComponentInParent<BraxCityDoor>() ||
+                    c.GetComponentInParent<BraxDrzwiPrzesuwne>()) continue;
+                return false;
             }
-        // Więcej niż samo "Lad" geograficzne: na starych nagraniach przez
-        // wycięty grunt prześwitywało niebieskie morze, mimo że collider
-        // sąsiedniego chodnika istniał. Test 3 pasów dojścia PRZED otworem.
-        int bezChodnika = 0;
-        for (float x = wejX - 5f; x < wejX - .4f; x += .55f)
-            foreach (float z in new[] { zC - .55f, zC, zC + .55f })
-            {
-                var p = new Vector3(x, yChod + 1.25f, z);
-                if (!Physics.Raycast(p, Vector3.down, out var hit, 2f,
-                    ~((1 << 8) | (1 << 29)), QueryTriggerInteraction.Ignore) ||
-                    hit.point.y < yChod - .22f)
+            return true;
+        }
+
+        int problemyDojscia = 0, problemyStaregoChodnika = 0;
+        // Publiczny plac od ulicy do nowego wejścia.
+        for (float z = 20.1f; z >= 17.2f; z -= .3f)
+            foreach (float x in new[] { wejX - .48f, wejX, wejX + .48f })
+                if (!Podloga(x, z) || !Przejscie(x, z))
                 {
-                    bezChodnika++;
-                    if (bezChodnika <= 7)
-                        Blad("BRAXHORN_METRO_M1_NIEBIESKA_DZIURA: brak podłogi przed wejściem @" +
+                    problemyDojscia++;
+                    if (problemyDojscia <= 5)
+                        Blad("BRAXHORN_METRO_PORT_DOJSCIE_NIEGOTOWE @" +
                             new Vector3(x, yChod, z).ToString("F2"));
                 }
-            }
-        Debug.Log((lad && przeszkody == 0 && bezChodnika == 0 ?
-            "BRAXHORN_METRO_M1_WEJSCIE_KOD_OK " :
-            "BRAXHORN_METRO_M1_WEJSCIE_NIEGOTOWE ") +
-              "odsuniete_x=69 (kamienica była ok. x66), na_ladzie=" + lad +
-              " przeszkody_kamienic=" + przeszkody +
-              " brak_podlogi_przed_wejsciem=" + bezChodnika +
-              " — wygląd nawierzchni i wody nadal wymaga odbioru na Androidzie");
-        if (!lad || przeszkody > 0 || bezChodnika > 0)
-            Blad("BRAXHORN_METRO_M1_WEJSCIE_NIEGOTOWE na_ladzie=" + lad +
-                " obce_przeszkody=" + przeszkody + " punkty_bez_podlogi=" + bezChodnika +
-                " — przejście musi być w całości drożne przed testem APK");
+
+        // Dawny chodnik od początku do końca wzdłuż ulicy: 2 pasy bez schodów i ścian.
+        for (float x = 67.2f; x <= 80.5f; x += .45f)
+            foreach (float z in new[] { 34.0f, 35.3f })
+                if (!Podloga(x, z) || !Przejscie(x, z))
+                {
+                    problemyStaregoChodnika++;
+                    if (problemyStaregoChodnika <= 5)
+                        Blad("BRAXHORN_METRO_STARY_CHODNIK_ZABLOKOWANY @" +
+                            new Vector3(x, yChod, z).ToString("F2"));
+                }
+
+        string wynik = "BRAXHORN_METRO_M1_WEJSCIE_PORT " +
+            "po_usunietym_biurze_x=70.3_z=16.5 na_ladzie=" + lad +
+            " blokery_dojscia=" + problemyDojscia +
+            " blokery_starego_chodnika=" + problemyStaregoChodnika +
+            " (schody i przejście do peronu muszą przejść test w APK)";
+        if (!lad || problemyDojscia != 0 || problemyStaregoChodnika != 0)
+            Blad(wynik + " NIEGOTOWE");
+        else Debug.Log(wynik + " KOD_GEOMETRII_OK");
     }
 
     // Odbiór modelowy Braxa w Marinie: nie dopuszczamy do starego zdjęcia
