@@ -7,8 +7,8 @@ VALIDATION=(ROOT/"unity-city/Assets/Editor/Oboz/BraxObozValidation.cs").read_tex
 
 class ArenaRequirements(unittest.TestCase):
     def test_48_owner_bags_and_24_covered(self):
-        self.assertIn("Bags(-23, -40, true,12)",ENV)
-        self.assertIn("Bags(23, -40, false,10)",ENV)
+        self.assertIn("Bags(-23, -40, true,10)",ENV)
+        self.assertIn("Bags(23, -40, false,12)",ENV)
         self.assertIn("Bags(12,51,false,2)",(ROOT/"unity-city/Assets/Editor/Oboz/BraxObozCampus.cs").read_text("utf-8"))
         self.assertIn("scene.bags.Length != 48",VALIDATION)
         self.assertIn("scene.coveredBags.Length != 24",VALIDATION)

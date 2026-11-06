@@ -97,7 +97,7 @@ public static partial class BraxObozEnvironment
             TrainingCampus();
             CoveredStrengthGym(); // wolne ciezary i silownia pod dachem
             // Total: four pavilion + eight roofed outdoor + twelve open = 24.
-            Bags(-23, -40, true,12); Bags(23, -40, false,10);
+            Bags(-23, -40, true,10); Bags(23, -40, false,12);
             ServiceBuildings();
             CampfireFromOriginalRocks();
             AssemblyGroundWithSchedule();
