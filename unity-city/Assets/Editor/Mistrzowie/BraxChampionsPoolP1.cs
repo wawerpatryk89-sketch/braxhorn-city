@@ -301,6 +301,9 @@ public static class BraxChampionsPoolP1
         Room("SZATNIE K", -27,12.0f,15,9,3.5f,white);
         Room("SZATNIE RODZINNE",-12.7f,12f,12,9,3.5f,white);
         Room("SZATNIE M",13.0f,12f,10,9,3.5f,white);
+        // Physically independent wet room: real source shower cabins belong
+        // here, not in the family locker room (keep a 2.5m clear entry aisle).
+        Room("PRYSZNICE PREMIUM",0f,12f,10.8f,8f,3.5f,white);
         Room("RATOWNICY",21f,12f,6,9,3.5f,white);
         // Stainless lane handrails along pool deck; the big basin stays empty.
         for(float z=19f;z<=35f;z+=5.4f)
