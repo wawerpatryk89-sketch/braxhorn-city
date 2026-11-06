@@ -31,7 +31,7 @@ public static partial class BraxClaudeOsiedle
     {
         if (!LadujRocketbox())
         {
-            rep.notes.Add("ludzie Rocketbox: brak paczki (unity-tools/claude/fetch_rocketbox.py) — zostają przechodnie z build 13");
+            rep.notes.Add("DO POPRAWKI: brak paczki Rocketbox — brak nowych przechodniów, obsady lokali i kierowców");
             Debug.Log("BRAXHORN_LUDZIE postacie=0 przechodnie=0 obsada=0 kierowcy=0 bledy_kosci=0 tpoza=0 (brak paczki Rocketbox)");
             return;
         }
@@ -78,7 +78,11 @@ public static partial class BraxClaudeOsiedle
                 + " przechodniów; obsługa wita zawsze, z limitem) cooldown=osoba " + BraxLudzie.CooldownOsoby + " s, globalny " + BraxLudzie.CooldownGlobalny + " s, nie gdy gracz > " + BraxLudzie.GraczBiegnie + " m/s albo w aucie"
                 + " | głośność: wyraźnie do " + BraxGlosPostaci.Wyraznie.ToString("F1") + " m, cisza od " + BraxGlosPostaci.Cisza.ToString("F1") + " m, rozmowa 1.0 / mijanie 0.7 / tło 0.45");
         }
-        catch (Exception e) { Debug.LogWarning("BRAXHORN_ROZMOWY DO POPRAWKI: " + e.Message); }
+        catch (Exception e)
+        {
+            rep.notes.Add("DO POPRAWKI: rozmowy przechodniów — " + e.Message);
+            Debug.LogWarning("BRAXHORN_ROZMOWY DO POPRAWKI: " + e.Message);
+        }
         Debug.Log("BRAXHORN_LUDZIE_REKWIZYTY plecaki=0 (klocek z 3 brył bez szelek wyłączony; pominięto " + rbPlecakiPominiete + " losowań) torby=zaokrąglone z paskiem, kubki/telefony/czapki/okulary bez zmian");
         Debug.Log("BRAXHORN_SKALA ludzie: k świata=" + K.ToString("F3") + " baza ludzi=" + WzrostBazaLudzi.ToString("F2") + " m (#44: 2.27) mężczyźni " + Stat(wzrostyM) + " kobiety " + Stat(wzrostyK)
             + " (oczekiwane: mężczyźni 2.202–2.270, kobiety 2.145–2.213)");
@@ -525,7 +529,11 @@ public static partial class BraxClaudeOsiedle
         // dyskoteka (build 45 runda 2): barmani przy stanowiskach nalewania, DJ w słuchawkach, ochrona, szatnia, goście przy
         // barze, w lożach i na parkiecie, rozmowy w przejściach — BraxClaudeOsiedleDyskoteka.DyskotekaLudzie
         try { DyskotekaLudzie(rnd, lada, stoi); }
-        catch (Exception e) { Debug.LogError("BRAXHORN_DYSKOTEKA DO POPRAWKI: ludzie — " + e.Message); }
+        catch (Exception e)
+        {
+            rep.notes.Add("DO POPRAWKI: obsada dyskoteki — " + e.Message);
+            Debug.LogError("BRAXHORN_DYSKOTEKA DO POPRAWKI: ludzie — " + e.Message);
+        }
     }
 
     // ---------------- kierowcy i pasażerowie ----------------
