@@ -111,7 +111,8 @@ public static partial class BraxClaudeOsiedle
             }
 
             // --- klipy przeniesione na kości Patryka ---
-            var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek), PatrykPozaStala(hero,spoczynek,"CarIdle",true) }; var opis = new List<string>();
+            var klipy = new List<AnimationClip> { PatrykSpokojny(hero, spoczynek) };
+            var opis = new List<string>();
             // Osiedle: ruchy zwiedzania nie potrzebuja retargetingu Humanoid ani ciosow.
             // W buildzie #95 Walk FBX nie zawieral wymaganych krzywych Hips.
             PatrykSpoczynek(spoczynek);
@@ -152,6 +153,11 @@ public static partial class BraxClaudeOsiedle
                     throw new InvalidOperationException("Patryk: brak prawidłowego klipu " + k.nazwa);
                 klipy.Add(gotowy);
             }
+            // Cały ruch kierowcy pochodzi z FBX Patryka. Jego końcową pozę
+            // wsiadania zachowujemy jako CarIdle, zamiast obracać kości ręcznie.
+            var wejsciePatryka = klipy.FirstOrDefault(c => c.name == "EnteringCar");
+            klipy.Add(PatrykCarIdleZWlasnegoWejscia(hero, spoczynek, wejsciePatryka));
+            PatrykSpoczynek(spoczynek);
             var brak = PatrykWymagane.Where(n => !klipy.Any(c => c.name == n)).ToArray();
             if (brak.Length > 0) throw new Exception("brak wymaganych klipów: " + string.Join(", ", brak));
 
