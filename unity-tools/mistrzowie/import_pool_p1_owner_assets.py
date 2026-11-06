@@ -28,7 +28,8 @@ def sha(data):
 def valid_name(name):
     path=Path(name)
     return (not path.is_absolute() and ".." not in path.parts and "\\" not in name
-        and name.startswith(ALLOWED_DIRS) and (name.endswith(".glb")
+        and (name.startswith(ALLOWED_DIRS) or name==MODEL_PREFIX.rstrip("/")+".meta")
+        and (name.endswith(".glb")
             or name.endswith(".fbx") or name.endswith(".png") or name.endswith(".meta")))
 
 def verify(archive:Path):
