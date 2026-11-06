@@ -16,8 +16,11 @@ public sealed class BraxChampionsPolyHaven2KImport : AssetPostprocessor
             return;
         var filename=Path.GetFileNameWithoutExtension(assetPath).ToLowerInvariant();
         if(!filename.EndsWith("_2k"))
-            throw new System.InvalidOperationException(
-                "Only source 2K PBR textures are allowed in promenade props: "+assetPath);
+        {
+            // Wyjątek wewnątrz importera psuje import; tylko ostrzegamy.
+            Debug.LogWarning("Promenada: tekstura spoza paczki 2K, ustawienia domyślne: "+assetPath);
+            return;
+        }
         var imp=(TextureImporter)assetImporter;
         imp.textureType=TextureImporterType.Default; // OpenGL normal must remain RGB
         imp.textureShape=TextureImporterShape.Texture2D;

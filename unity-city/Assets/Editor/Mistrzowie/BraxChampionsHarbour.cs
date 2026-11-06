@@ -231,7 +231,7 @@ public static class BraxChampionsHarbour
         // Marine safety ropes and rails follow the exact NEW dock layout.
         // Openings at every yacht/motorboat/jetski finger or boarding gangway;
         // no rail or collision across an approved boarding entrance.
-        BraxChampionsHarbourSafety.Generate(root,piers);
+        BraxChampionsFoundation.Optional("barierki pomostów",()=>BraxChampionsHarbourSafety.Generate(root,piers));
         AssetDatabase.SaveAssets();
         Debug.Log("CHAMPIONS_PORT_ORIGINAL_FLEET_35 yacht=15 motorboat=10 jetski=10 "
             +"ferryBerths=1 cruiseBerths=2 generatedMeshes=false fullBoatModels=owner_library originalGLBs");

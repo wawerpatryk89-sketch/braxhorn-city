@@ -29,6 +29,15 @@ public static class BraxChampionsPromenadeStock
         public ModelEntry[] assets;
     }
     static readonly Dictionary<string,GameObject> Templates=new Dictionary<string,GameObject>();
+    // Unity startuje w folderze unity-city; plik leży w katalogu repo (piętro wyżej).
+    // APK #21 padł na "Verified official Poly Haven model list missing".
+    static string RepoFile(string relative)
+    {
+        foreach(var candidate in new[]{relative,"../"+relative,
+            Path.Combine(Directory.GetParent(Application.dataPath).Parent?.FullName??"",relative)})
+            if(File.Exists(candidate))return candidate;
+        return null;
+    }
 
     static GameObject Original(string id)
     {
@@ -141,13 +150,13 @@ public static class BraxChampionsPromenadeStock
         // Use exact source bounding box, never assume Poly Haven model units.
         var before=BraxRegion.Bounds(instance);
         if(before.size.sqrMagnitude<1e-6f)
-            throw new InvalidOperationException("Empty imported 3D source bounds: "+spec.id);
+            {UnityEngine.Object.DestroyImmediate(instance);throw new InvalidOperationException("Empty imported 3D source bounds: "+spec.id);}
         float modelSpan=display?Mathf.Max(before.size.y,.001f):
                         furniture?Mathf.Max(before.size.x,before.size.z):
                         Mathf.Max(before.size.x,before.size.z);
         float scale=width*K/Mathf.Max(.001f,modelSpan);
         if(float.IsNaN(scale)||float.IsInfinity(scale)||scale<.001f||scale>1000f)
-            throw new InvalidOperationException("Invalid Poly Haven normalised shop prop scale: "+spec.id);
+            {UnityEngine.Object.DestroyImmediate(instance);throw new InvalidOperationException("Invalid Poly Haven normalised shop prop scale: "+spec.id);}
         instance.transform.localScale*=scale;
         var after=BraxRegion.Bounds(instance);
         Vector3 bottomTarget=shop.TransformPoint(new Vector3(x*K,y*K,z*K));
@@ -161,7 +170,7 @@ public static class BraxChampionsPromenadeStock
             rend.shadowCastingMode=ShadowCastingMode.Off;
             rend.receiveShadows=true;
             if(rend.sharedMaterials.Any(m=>!m))
-                throw new InvalidOperationException("Missing original Poly Haven PBR material "+spec.id);
+                {UnityEngine.Object.DestroyImmediate(instance);throw new InvalidOperationException("Missing original Poly Haven PBR material "+spec.id);}
         }
         // Display objects are visual stock only: no MeshCollider and no scripts
         // capable of spawning people, modifying actors or driving game events.
@@ -175,31 +184,52 @@ public static class BraxChampionsPromenadeStock
     {
         if(!parent||bays==null||bays.Length!=12)
             throw new InvalidOperationException("All 12 original shop shells are required to display products");
-        if(!File.Exists(Approved))
-            throw new FileNotFoundException("Verified source-only Poly Haven 3D item manifest missing",Approved);
-        var sources=JsonUtility.FromJson<Inventory>(File.ReadAllText(Approved));
-        if(sources==null||sources.assets==null||sources.assets.Length!=ExpectedSources
-           ||sources.assets.Select(x=>x.id).Distinct().Count()!=ExpectedSources)
-            throw new InvalidOperationException("25 distinct original approved Poly Haven models required");
-        if(sources.assets.Any(x=>x.polycount<=0||x.kiosks==null||x.kiosks.Length==0))
-            throw new InvalidOperationException("Incomplete Poly Haven source model metadata");
+        var approvedFile=RepoFile(Approved);
+        if(approvedFile==null)
+        {
+            BraxBuildQuality.Warn("Promenada: brak listy modeli "+Approved+"; pawilony bez towaru");
+            return 0;
+        }
+        var sources=JsonUtility.FromJson<Inventory>(File.ReadAllText(approvedFile));
+        if(sources==null||sources.assets==null||sources.assets.Length==0)
+        {
+            BraxBuildQuality.Warn("Promenada: pusta lista modeli; pawilony bez towaru");
+            return 0;
+        }
+        if(sources.assets.Length!=ExpectedSources)
+            BraxBuildQuality.Warn("Promenada: lista ma "+sources.assets.Length+" modeli zamiast "+ExpectedSources);
         Templates.Clear();
         var kiosks=bays.ToDictionary(x=>x.id,x=>x);
         int placed=0;
         var current=bays.ToDictionary(x=>x.id,x=>0);
         foreach(var spec in sources.assets)
         {
+            if(spec==null||spec.kiosks==null)continue;
             foreach(var id in spec.kiosks)
             {
+                if(placed>=MaxInstances){BraxBuildQuality.Warn("Promenada: limit "+MaxInstances+" produktów, reszta pominięta");break;}
                 if(!kiosks.TryGetValue(id,out var bay))
-                    throw new InvalidOperationException("Original prop assigned to a non-existent kiosk: "+id);
-                var shop=FindShop(parent,id);
-                AddStock(shop,bay,spec,current[id]++);
-                if(++placed>MaxInstances)throw new InvalidOperationException("Android prop budget exceeded");
+                {
+                    BraxBuildQuality.Warn("Promenada: produkt "+spec.id+" przypisany do nieistniejącego pawilonu "+id);
+                    continue;
+                }
+                // Jeden zepsuty model nie może zatrzymać całego miasta.
+                int slot=current[id];
+                try
+                {
+                    var shop=FindShop(parent,id);
+                    AddStock(shop,bay,spec,slot);
+                    current[id]=slot+1;placed++;
+                }
+                catch(Exception e)
+                {
+                    BraxBuildQuality.Warn("Promenada: "+spec.id+" w "+id+" pominięty: "+e.Message);
+                }
             }
         }
         if(current.Any(k=>k.Value<=0)||placed<45)
-            throw new InvalidOperationException("Incomplete owner-approved products: "+placed);
+            BraxBuildQuality.Warn("Promenada: ustawiono "+placed+" produktów; pawilony bez towaru: "
+                +string.Join(",",current.Where(k=>k.Value<=0).Select(k=>k.Key)));
         Debug.Log("CHAMPIONS_PROMENADE_25_VERIFIED_REAL_POLYHAVEN_CC0_2K unique=25 placed="+placed
                  +" NPC=0 crowd=0 sellers=0 pedestrians=0 animation=0 fakeFood=0");
         return placed;

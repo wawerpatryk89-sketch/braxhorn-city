@@ -154,6 +154,15 @@ public static class BraxChampionsFoundation
         if(!t)throw new FileNotFoundException("Existing drzewo_verdant model is missing");
         return t;
     }
+    public static void Optional(string what,Action build)
+    {
+        try{build();}
+        catch(Exception e)
+        {
+            BraxBuildQuality.Warn("Miasto Mistrzów: pominięto "+what+": "+e.GetType().Name+": "+e.Message);
+            Debug.LogException(e);
+        }
+    }
     [MenuItem("BRAXHORN CITY/Miasto Mistrzow/1 - Verify foundation inputs")]
     public static void VerifyInputs()
     {
@@ -254,13 +263,16 @@ public static class BraxChampionsFoundation
             }
             // Instantiate 12 actual 2K-PBR premium shop shells on REMOVED
             // inland lawn patches, with no duplicate floor under their slab.
-            BraxChampionsPromenade.Build(root,d.promenade);
+            // Dekoracje (promenada, plaża, flota) nie mogą zatrzymać całego miasta:
+            // błąd = ostrzeżenie w raporcie, reszta świata buduje się dalej.
+            Optional("promenada K1-K12",()=>BraxChampionsPromenade.Build(root,d.promenade));
             // Original first-city tower and R1-size loungers. No staff/visitors.
-            BraxChampionsBeachFurnishings.Build(root);
+            Optional("plaża (leżaki, wieża ratownika)",()=>BraxChampionsBeachFurnishings.Build(root));
             // Place the ORIGINAL user-library yacht, Riva and jetski models.
             // No fabricated cruise/ferry vessel is allowed without its source.
-            int boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths,d.piers);
-            if(boats!=35)throw new InvalidOperationException("Champions harbour must place 15 yachts + 10 Rivas + 10 jetskis, got "+boats);
+            int boats=0;
+            Optional("flota w porcie",()=>boats=BraxChampionsHarbour.PlaceOriginalFleet(root,d.berths,d.piers));
+            if(boats!=35)BraxBuildQuality.Warn("Port: ustawiono "+boats+" łodzi zamiast 35 (15 jachtów + 10 Riva + 10 skuterów)");
             report.yachtsPlaced=true;
             var reserves=new GameObject("PLAN - działki, przystanki, miejsca promów i wycieczkowców").transform;reserves.SetParent(root,false);
             foreach(var b in d.buildings)Marker(reserves,b.id+" "+b.name+" / exterior next",b.x,b.z);

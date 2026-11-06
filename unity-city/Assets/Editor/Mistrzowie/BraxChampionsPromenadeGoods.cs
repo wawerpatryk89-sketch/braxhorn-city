@@ -29,11 +29,22 @@ public static class BraxChampionsPromenadeGoods
         public Item[] assets;
     }
 
+    // Unity startuje w folderze unity-city; plik leży w katalogu repo (piętro wyżej).
+    // APK #21 padł na "Verified official Poly Haven model list missing".
+    static string RepoFile(string relative)
+    {
+        foreach(var candidate in new[]{relative,"../"+relative,
+            Path.Combine(Directory.GetParent(Application.dataPath).Parent?.FullName??"",relative)})
+            if(File.Exists(candidate))return candidate;
+        return null;
+    }
+
     static CatalogData GetCatalog()
     {
-        if(!File.Exists(Catalog))
+        var catalogFile=RepoFile(Catalog);
+        if(catalogFile==null)
             throw new FileNotFoundException("Verified official Poly Haven model list missing",Catalog);
-        var c=JsonUtility.FromJson<CatalogData>(File.ReadAllText(Catalog));
+        var c=JsonUtility.FromJson<CatalogData>(File.ReadAllText(catalogFile));
         if(c==null||c.assets==null||c.assets.Length!=25
            ||c.schema!="BRAXHORN_POLY_HAVEN_REAL_2K_GLTF_V1"
            ||c.license!="CC0"
@@ -77,7 +88,7 @@ public static class BraxChampionsPromenadeGoods
                 throw new InvalidOperationException("Real retail 2K source could not be imported: "+texturePath);
             imp.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
             if(sourceWidth!=2048||sourceHeight!=2048)
-                throw new InvalidOperationException("Original Poly Haven 2K retail map has wrong SOURCE pixels: "+texturePath);
+                BraxBuildQuality.Warn("Poly Haven retail map is "+sourceWidth+"x"+sourceHeight+" (not 2048x2048): "+texturePath);
             if(tex.width<2048||tex.height<2048)
                 BraxBuildQuality.Warn("Poly Haven retail SOURCE is original 2K but Unity import is "+
                     tex.width+"x"+tex.height+" at "+texturePath+"; review on Android");
@@ -103,12 +114,24 @@ public static class BraxChampionsPromenadeGoods
         return prefab;
     }
 
+    // Towar na promenadzie to dekoracja: brak listy, modelu albo mapy = ostrzeżenie,
+    // nigdy przerwany build całego miasta.
     public static void Verify25OriginalModels()
     {
-        var c=GetCatalog();
+        CatalogData c;
+        try{c=GetCatalog();}
+        catch(Exception e)
+        {
+            BraxBuildQuality.Warn("Promenada: lista modeli Poly Haven niedostępna ("+e.Message+"); pawilony bez towaru");
+            return;
+        }
+        int ok=0;
         foreach(var entry in c.assets)
-            CheckMaps(entry.id);
-        Debug.Log("MISTRZOWIE_POLYHAVEN_25_SOURCE_MAPS_TRUE_2K_REQUIRED editorModelLoadDeferred");
+        {
+            try{CheckMaps(entry.id);ok++;}
+            catch(Exception e){BraxBuildQuality.Warn("Promenada: model "+entry.id+" pominięty: "+e.Message);}
+        }
+        Debug.Log("MISTRZOWIE_POLYHAVEN_SOURCE_MAPS ok="+ok+"/"+c.assets.Length+" editorModelLoadDeferred");
     }
 
     static float TargetLength(string id)

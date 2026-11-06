@@ -41,7 +41,7 @@ class OriginalVipModelContract(unittest.TestCase):
             self.assertTrue(xx + .48 <= -87.55 or xx - .48 >= -84.45)
 
     def test_judge_workstations_are_unchanged_and_vip_only_switches_on_import(self):
-        self.assertIn("SeatCount += BraxChampionsVIPSeats.Generate(root);", self.arena)
+        self.assertIn("SeatCount += BraxChampionsVIPSeats.Generate(root)", self.arena)
         # The source guard belongs to the VIP importer itself, not the bowl.
         # Missing original GLB must return 0 and must not invent VIP replacements.
         self.assertIn("if (!source)", self.vip)

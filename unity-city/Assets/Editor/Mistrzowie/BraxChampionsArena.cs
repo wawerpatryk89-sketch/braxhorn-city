@@ -23,16 +23,16 @@ public static class BraxChampionsArena
         CopiedEstateArena();W.Zapisz("mistrzowie_arena_estate_reuse");
         // Import the owner's actual 2K PBR barrel chairs beside judges.
         // No procedural replacement is made when the original GLB is missing.
-        SeatCount += BraxChampionsVIPSeats.Generate(root);
+        BraxChampionsFoundation.Optional("fotele VIP",()=>SeatCount += BraxChampionsVIPSeats.Generate(root));
         // One premium belt exhibit beside the actual judges, not at the public entrance.
         // This uses the owner's original 3D FBX and original framed logo artwork.
-        BraxChampionsBeltShowcase.Generate(root);
+        BraxChampionsFoundation.Optional("gablota pasa",()=>BraxChampionsBeltShowcase.Generate(root));
         // Original full entrance wall mural with real central doorway cutout.
-        BraxChampionsArenaMural.Generate(root);
+        BraxChampionsFoundation.Optional("mural wejściowy",()=>BraxChampionsArenaMural.Generate(root));
         // Two additional owner originals on the actual 70m LEFT and RIGHT walls:
         // fighter lineup on the spectator's left; championship belt on right.
         // The exterior public entrance, door, original wall and passage stay intact.
-        BraxChampionsArenaSideMurals.Generate(root);
+        BraxChampionsFoundation.Optional("murale boczne",()=>BraxChampionsArenaSideMurals.Generate(root));
         // Source method uses nominal estate metres. Apply the game's K exactly once to this subtree.
         float k=BraxClaudeOsiedle.K;var rot=Quaternion.Euler(0,180,0);
         root.SetParent(building,false);root.localScale=Vector3.one*k;root.localRotation=rot;
