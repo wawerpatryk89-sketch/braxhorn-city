@@ -1,0 +1,58 @@
+name: Miasto Mistrzów — pojedynczy audyt GLB P1 i portu (BEZ APK)
+run-name: Champions 3D original GLB quick source/UV checks — no Unity
+
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-glb-quick-source-audit-20261106.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mistrzowie-glb-short-original-audit
+  cancel-in-progress: false
+
+jobs:
+  all-glbs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout original crane and read-only model scanner
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/mistrzowie/audit_owner_glb_geometry.py
+            unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb
+      - name: Download the pinned ORIGINAL owner P1 equipment only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api -H "Accept: application/octet-stream" \
+            "repos/$GITHUB_REPOSITORY/releases/assets/715496694" \
+            > "$RUNNER_TEMP/P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip"
+          test -s "$RUNNER_TEMP/P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip"
+          echo "Original owner ZIP fetched; no changes to visual assets"
+      - name: One original GLB at a time — geometry, materials, UV channels
+        run: |
+          python3 unity-tools/mistrzowie/audit_owner_glb_geometry.py \
+            --owner-zip "$RUNNER_TEMP/P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip" \
+            --harbor-glb unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb
+      - name: Preserve source integrity and compatibility report
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mistrzowie-glb-structural-audit-${{ github.run_id }}
+          path: mistrzowie-evidence/source-glb-audit.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Scope statement
+        if: always()
+        run: |
+          echo 'Original owner P1 and harbor crane GLB files checked read-only, one model at a time. No Unity, no APK, no asset rewrite.' >> "$GITHUB_STEP_SUMMARY"
