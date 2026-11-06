@@ -234,32 +234,37 @@ public static partial class BraxClaudeOsiedle
             var anim = hero.AddComponent<Animation>(); anim.playAutomatically = false; anim.cullingType = AnimationCullingType.AlwaysAnimate;
             foreach (var c in klipy) anim.AddClip(c, c.name);
 
-            // Kontrola biomechaniki Patryka to raport do testu na telefonie,
-            // nie bloker APK. Zasady kompilacji i podpisu nie sa luzowane.
+            // Quick visual-quality diagnostics must run even in normal (advisory)
+            // builds. Previously the default mode skipped all real bone/foot
+            // checks and merely printed an unverified "review on phone" warning.
+            // Inspect Idle, Walk and Run quickly in advisory mode; leave the
+            // complete 22-clip sample for explicitly requested strict review.
+            // Warnings never prevent compiling, signing or saving the Android APK.
             int bledy = 0;
-            if (!BraxBuildQuality.Advisory)
+            try
             {
-                try
+                var doKontroli = BraxBuildQuality.Advisory
+                    ? klipy.Where(x => x.name == "Idle" || x.name == "Walk" || x.name == "Run").ToList()
+                    : klipy;
+                bledy = PatrykTestKosci(hero, kosci, spoczynek, doKontroli, out string raportTestu);
+                if (bledy > 0) BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: " + raportTestu);
+                foreach (var klip in klipy.Where(x => x.name == "Walk" || x.name == "Run"))
                 {
-                    bledy = PatrykTestKosci(hero, kosci, spoczynek, klipy, out string raportTestu);
-                    if (bledy > 0) BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: " + raportTestu);
-                    foreach (var klip in klipy.Where(x => x.name == "Walk" || x.name == "Run"))
-                    {
-                        var test = PatrykTestNog(hero, kosci, spoczynek, klip);
-                        if (test.klatki == 0 || test.stopaPonad > 0 || test.koloTyl > 0 || test.przeprost > 0 || test.wBok > 0)
-                            BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: " + klip.name +
-                                " do oceny na telefonie: " + test.Opis());
-                    }
+                    var test = PatrykTestNog(hero, kosci, spoczynek, klip);
+                    if (test.klatki == 0 || test.stopaPonad > 0 || test.koloTyl > 0 || test.przeprost > 0 || test.wBok > 0)
+                        BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: " + klip.name +
+                            " do oceny na telefonie: " + test.Opis());
                 }
-                catch (Exception e) { BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: test diagnostyczny: " + e.Message); }
-                finally { PatrykSpoczynek(spoczynek); }
+                Debug.Log("BRAXHORN_PATRYK_DIAGNOSTYKA: klipy=" + doKontroli.Count +
+                    " bledy=" + bledy + " qualityGate=advisory APK_device_review_required=true");
             }
-            else BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: chod i bieg do oceny na telefonie, nie blokuje APK.");
+            catch (Exception e) { BraxBuildQuality.Warn("PATRYK ZWIEDZANIE: test diagnostyczny: " + e.Message); }
+            finally { PatrykSpoczynek(spoczynek); }
 
             var idleTest = anim.GetClip("Idle");
             idleTest.SampleAnimation(hero, 0f);
             float idleArms = PatrykKatRamion(kosci);
-            if (!BraxBuildQuality.Advisory && idleArms > 30f)
+            if (idleArms > 30f)
                 BraxBuildQuality.Warn("Patryk: ramiona w spoczynku uniesione (" + idleArms.ToString("F1") + "°)");
             PatrykSpoczynek(spoczynek);
             Debug.Log("BRAXHORN_PATRYK_IDLE ramiona=" + idleArms.ToString("F1") + "° od pionu (cel <30°)");
