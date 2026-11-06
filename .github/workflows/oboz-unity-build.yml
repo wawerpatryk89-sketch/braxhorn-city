@@ -75,6 +75,9 @@ jobs:
       - name: Sprawdź prywatną dostawę modeli i byka przed Unity
         if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         run: python3 unity-tools/oboz/owner_release_assets.py preflight
+      - name: Sprawdź prywatną paczkę oryginalnej siłowni 3D i opon PRZED Unity
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: python3 unity-tools/oboz/owner_extra_assets.py preflight
       - name: C# syntax and local scopes before Unity (CS0136 regression)
         run: |
           python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
@@ -147,6 +150,9 @@ jobs:
       - name: Zweryfikowany import nowej prywatnej paczki 30 modeli i byka
         if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         run: python3 unity-tools/oboz/owner_release_assets.py restore
+      - name: Przywróć prywatną siłownię 3D z atlasem 2K i opony właściciela
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: python3 unity-tools/oboz/owner_extra_assets.py restore
       - name: Zweryfikowane materiały Poly Haven dla obozu
         run: python3 unity-tools/oboz/public_materials.py
       - name: Spakuj PBR postaci (Monika 4K, pozostali 2K) — oryginały bez zmian
