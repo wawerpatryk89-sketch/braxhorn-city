@@ -106,8 +106,9 @@ jobs:
           # Running this from the older Arena-only/main workflow must stop.
           combined = 'gpt/miasto-mistrzow-kasyno-t11-20261105'
           current = os.environ.get('GITHUB_REF', '').removeprefix('refs/heads/')
-          integrated = 'gpt/miasto-mistrzow-a1-t11-p1-integracja-20261106'
-          if current not in (combined, integrated):
+          # P1 has already been merged here; the older integration snapshot
+          # must not be selected for an APK.
+          if current != combined:
               raise SystemExit('Wybierz Run workflow -> Use workflow from: ' + combined +
                                '. Nie buduj starszej osobnej areny ani main.')
           sha = os.environ['GITHUB_SHA'].lower()
