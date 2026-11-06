@@ -181,6 +181,23 @@ class EstateSourceRegressions(unittest.TestCase):
             self.assertIn('BraxBuildQuality.Issue(qualityError)', src)
         self.assertIn('BraxSportBoisko.Gra.Siatkowka', sources[0])
 
+    def test_owner_sport_buttons_are_available_on_mobile(self):
+        controls = (ROOT / "unity-city/Assets/Claude/BraxTouchControls.cs").read_text(encoding="utf-8")
+        self.assertIn('b == PCios ? "punch" : b == PKop ? "kick"', controls)
+        self.assertIn('BraxIkony.Piesc', controls)
+        self.assertIn('BraxIkony.But', controls)
+        self.assertIn("if (OnFoot)", controls)
+        self.assertIn('player && !player.vessel && !player.seat && !player.autoGracza', controls)
+
+    def test_showroom_does_not_freeze_duplicate_patryk(self):
+        salon = source("BraxClaudeOsiedleSalon.cs")
+        scene = source("BraxClaudeOsiedleAktualizacja.cs")
+        self.assertIn('an.GetClip("Typing")', salon)
+        self.assertIn('an.Play("Typing")', salon)
+        self.assertIn('Patryk (sprzedawca)', salon)
+        self.assertIn('Nieautoryzowana dodatkowa kopia modelu Patryka', scene)
+        self.assertIn('stanowisko sprzedawcy stoi bez oryginalnego FBX Typing', scene)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
