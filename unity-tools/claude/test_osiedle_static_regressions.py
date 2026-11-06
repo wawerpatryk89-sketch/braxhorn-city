@@ -354,6 +354,21 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("znakiRej.Clear();", layout)
         self.assertIn("DO POPRAWKI: znak", signs)
 
+    def test_all_generated_door_panels_are_listed_and_swept(self):
+        qa = source("BraxClaudeOsiedleAktualizacja.cs")
+        block = qa.split("static List<string> AudytWszystkichDrzwi(Scene scena)", 1)[1].split(
+            "static readonly List<string> raportSkaliAut", 1)[0]
+        self.assertIn("GetComponentsInChildren<BraxCityDoor>(true)", block)
+        self.assertIn("GroupBy(d => d.id, StringComparer.OrdinalIgnoreCase)", block)
+        self.assertIn("skrzydło przekrzywione", block)
+        self.assertIn("brak skrzydła drzwi", block)
+        self.assertIn("skrzydło bez własnego BoxCollider", block)
+        self.assertIn("główne wejście jest wyłączone", block)
+        self.assertIn("Physics.CapsuleCastNonAlloc", block)
+        self.assertIn("hit.transform.IsChildOf(d.transform)", block)
+        self.assertIn("city-review/osiedle-drzwi-wszystkie.txt", block)
+        self.assertIn("bledy.AddRange(AudytWszystkichDrzwi(scene));", qa)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
