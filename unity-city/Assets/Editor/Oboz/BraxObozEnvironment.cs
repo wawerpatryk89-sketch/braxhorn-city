@@ -371,10 +371,8 @@ public static partial class BraxObozEnvironment
             // private draft release; imported separately at verified SHA256.
             // Position and real-size envelope leave walls, the entrance and
             // the central walking passage free. Prefab stays independent.
-            var originalBed=BraxObozServices.OwnerFixtureSourceMetres(
-                t,"OwnerExtras/Bedroom/ikea_idanas_single_bed.glb",
-                new Vector3(side*2.05f,.16f,1.6f),
-                new Vector3(1.13f,1.20f,2.35f));
+            var originalBed=BraxObozServices.OwnerSingleBed(t,
+                new Vector3(side*2.05f,.16f,1.6f));
             originalBed.name="ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe "+(side<0?"A":"B");
             var bedSpot=Group("Połóż się — "+name+" / IDANAS "+(side<0?"A":"B"),
                 t,P(side*2.05f,0,1.6f)).gameObject.AddComponent<BraxSeat>();
