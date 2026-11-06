@@ -125,6 +125,18 @@ public sealed class BraxVessel : MonoBehaviour
         if (rider || !player) return;
         rider = player;
         riderScene = player.gameObject.scene;
+        // Rejs port -> wyspa: zajęta łódź NIE może być dzieckiem sceny
+        // Nabrzeża, która jest zwalniana po wypłynięciu na otwarte morze.
+        // Przenosimy tylko aktualnie używany pojazd do sceny gracza
+        // (bez kopiowania materiałów, całego portu ani wyspy).
+        if (riderScene.IsValid() && riderScene.isLoaded &&
+            gameObject.scene != riderScene)
+        {
+            transform.SetParent(null, true); // MoveGameObjectToScene wymaga korzenia
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(gameObject, riderScene);
+            Debug.Log("BRAXHORN_REJS_SCENA_ZACHOWANA: " + label +
+                " przeniesiony do " + riderScene.name + " (port może zwolnić RAM)");
+        }
         player.vessel = this;
         if (player.body) player.body.enabled = false;
         player.transform.SetParent(transform, true);
