@@ -29,7 +29,9 @@ class GateAndMuralsTest(unittest.TestCase):
     def test_no_support_inside_entrance(self):
         self.assertIn("new[] {-4.45f,4.45f}", CAMPUS)
         self.assertNotIn("new[]{-3.7f,3.7f}", CAMPUS)
-        self.assertIn("new Vector3(9.4f,.20f,.38f)", CAMPUS)
+        self.assertIn("Jednolity bal ponad bramą — 9,4 m", CAMPUS)
+        self.assertIn("Dwa grube pionowe słupy z bali", CAMPUS)
+        self.assertIn("new Vector3(-4.7f,3.67f,.28f)", CAMPUS)
         self.assertIn('P(0,0,-125)', CAMPUS)
         self.assertIn("gate.gameObject.AddComponent<BraxObozSlidingGate>()", CAMPUS)
 
