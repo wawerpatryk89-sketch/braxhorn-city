@@ -50,19 +50,28 @@ class PromenadeLaneNoZFight(unittest.TestCase):
         self.assertIn('materials["cycle_mark"].SetColor(',foundation)
         self.assertIn("2048",texture)
 
-    def test_12_shop_shells_and_original_2k_photo_signs(self):
+    def test_12_shop_shells_use_owner_verified_temporary_atlas(self):
         builder=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPromenade.cs").read_text()
         foundation=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs").read_text()
-        signs=(ROOT/"unity-tools/mistrzowie/verify_promenade_original_signs.py").read_text()
+        loader=(ROOT/"unity-tools/mistrzowie/prepare_promenade_atlas.py").read_text()
         self.assertIn('BraxChampionsPromenade.Build(root,d.promenade)',foundation)
+        self.assertIn('BraxChampionsPromenade.VerifyAtlas();',foundation)
         self.assertIn('d.promenade.Length!=12',foundation)
         self.assertIn('SignFace(root,p,Sign(p))',builder)
-        self.assertIn('imp.maxTextureSize=2048',builder)
+        self.assertIn('int atlasIndex=int.Parse(p.id.Substring(1))-1;',builder)
+        self.assertIn('int col=atlasIndex%3, row=atlasIndex/3;',builder)
+        self.assertIn('float v0=(3-row)/4f',builder)
+        self.assertIn('new Vector2(u0,v0),new Vector2(u1,v0)',builder)
+        self.assertIn('GetSourceTextureWidthAndHeight',builder)
         self.assertIn('android.maxTextureSize!=2048',builder)
+        self.assertIn('TextureImporterFormat.ASTC_4x4',builder)
         self.assertIn('ClearGlass()',builder)
         self.assertIn('full 2K PBR shop shell',builder)
-        self.assertIn("BLOCKED_UNMATCHED_OWNER_SIGNS",signs)
-        self.assertIn("No invented/fallback sign",builder)
+        self.assertIn('No invented/fallback sign',builder)
+        self.assertIn('RELEASE_ID=435656828',loader)
+        self.assertIn('ASSET_ID=715528115',loader)
+        self.assertIn('EXPECTED_WH=(2172,724)',loader)
+        self.assertIn('EXPECTED_SHA256="eac1e17f55d8b77340e7d2cca4c9f97ea72e256acaf8237286ff550012145886"',loader)
         self.assertFalse((ROOT/"unity-tools/mistrzowie/prepare_promenade_signs.py").exists())
 
     def test_shop_slab_has_no_original_ground_below_it(self):
