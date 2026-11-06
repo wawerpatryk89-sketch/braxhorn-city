@@ -197,6 +197,12 @@ def restore(repo: str) -> None:
         subprocess.run([sys.executable, str(INTAKE), *inputs,
                         "--target", str(TARGET), "--apply"],
                        cwd=ROOT, check=True)
+        # The owner provided the *real* Blender geometry inside compressed
+        # .blend-in-ZIP files. Do NOT skip it like the old texture-only importer.
+        # This step keeps originals outside Unity until proper export.
+        subprocess.run([sys.executable, str(ROOT /
+            "unity-tools/oboz/owner_blender_extract.py"), *inputs],
+            cwd=ROOT, check=True)
         # For six small ZIPs the bull is inside mini ZIP 01; for uploaded
         # original/scaled models use the exact GitHub attachment filename.
         selected_bull = bull_name if bull_name else BULL
