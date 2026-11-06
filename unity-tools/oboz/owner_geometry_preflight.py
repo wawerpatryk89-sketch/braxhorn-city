@@ -15,10 +15,20 @@ ROOT=Path(__file__).resolve().parents[2]
 SOURCE=ROOT/"unity-city/Assets/Source/Prywatne/Oboz/OwnerAssets"
 PUBLIC=ROOT/"unity-city/Assets/Source/Public/Oboz"
 
+# All required components are independent sibling nodes of the original
+# Sketchfab GLB. A bare tabletop/base/basin is NOT a finished facility.
+# Reject incomplete original geometry before invoking the Unity editor.
 KITCHEN_PARTS=(
-    "CookingTable.001_", "CookingTable_Shelf.001_", "PortableStove_Base.001_",
-    "PortableStove_Grate_L_LP.001_", "GasCylinder.001_", "PotRack.001_",
-    "Plate_Regular.001_", "Sink.001_",
+    "CookingTable.001_", "CookingTable_Bolts1.001_",
+    "CookingTable_Bolts2.001_", "CookingTable_Legs.001_",
+    "CookingTable_Shelf.001_", "PortableStove_Base.001_",
+    "PortableStove_Burners.001_", "PortableStove_Grate_L_LP.001_",
+    "PortableStove_Grate_R_LP.001_", "PortableStove_Tumbler_LP.001_",
+    "PortableStove_Wire.001_", "GasCylinder.001_",
+    "GasCylinder_Tap.001_", "PotRack.001_",
+    "PotRack_Hooks.001_", "PotRack_Rails.001_", "Plate_Regular.001_",
+    "Sink.001_", "Faucet_LP.001_", "Faucet_Tap_LP.001_",
+    "Sink_Drain_LP.001_", "Sink_Legs_LP.001_",
 )
 GYM_PARTS=("treadmill","weight_bench","weight_rack",
            "exercise_bike","dumbbell_1","kettlebell_1","pull_up_rack")
