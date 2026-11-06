@@ -1,3 +1,13 @@
+# PILNE P0 — 6.11.2026: TESTOWY APK BEZ BLOKAD PRZEZ KONTROLE KOLIZJI / JAKOŚCI
+
+**Globalna decyzja właściciela dla Claude, Codex, GPT, Work i pozostałych wykonawców, wszystkie gry/rejony BRAXHORN**. Pełny zapis: [Issue #13 — aktualizacja 6.11.2026](https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13).
+
+- Przy najbliższym **osobno autoryzowanym** buildzie APK: testy jakości/kolizji/przejść, schodów, drzwi, położenia mebli, modeli, materiałów, animacji i wyglądu = **OSTRZEŻENIE, nie przerwanie procesu**. Zachować raport z lokalizacją błędu; NIE raportować fałszywego „QA PASS”. Niezgodna ławka czy jedno przejście nie mogą skasować 5 godzin kompilacji.
+- **Nie usuwać faktycznych colliderów, nie wyłączać fizyki w aplikacji**. Wyłączyć wyłącznie blokujące bramki *oceny jakości* (`throw`, niepotrzebne `exit 1`, strict QA, `quality-strict.txt`, quality-only workflow). Tam, gdzie istnieje `BraxBuildQuality`, zastosować tryb `Advisory`; raport `build/QualityReview/`.
+- Błędy krytyczne technicznie (C#, generowanie/zapis wymaganych scen i assetów, build Android, podpis globalny, identyfikator/versionCode, rzeczywisty plik APK) **nadal muszą blokować** i być raportowane zgodnie z prawdą.
+- **APK FIRST**: jeśli powstało poprawne podpisane APK, zachowaj i udostępnij plik przed cache/backupem/raportem. Późniejszy błąd pomocniczy nie unieważnia istniejącego instalatora.
+- Bez aktualnej zgody właściciela **nie uruchamiać buildów ani automatycznych restartów**, nie scalać rejonów, nie modyfikować zatwierdzonej grafiki. Zasada dotyczy wszystkich gałęzi roboczych, także tych, na których nie ma jeszcze niniejszej notatki; wykonawcy muszą ją przejąć z centralnego Issue #13.
+
 # PILNE — APK FIRST (4.11.2026)
 
 **Polecenie właściciela dla wszystkich wykonawców włącznie z Miastem Mistrzów:** po pomyślnym buildzie natychmiast udostępnij i zabezpiecz APK przed backupem, cache i raportami. Późniejszy błąd nie może odebrać gotowego pliku. Pełna zasada: [APK FIRST](docs/zasady/APK_FIRST_DOSTAWA_20261104.md), [Issue #13](https://github.com/wawerpatryk89-sketch/braxhorn-city/issues/13). Nie uruchamiać buildów bez zgody właściciela.
