@@ -14,7 +14,7 @@ using UnityEngine.SceneManagement;
 // Przenikanie: fadeMode CrossFade + animateCrossFading (płynne tam, gdzie shader ma dithering LOD).
 public sealed class BraxZasiegDrobnych : MonoBehaviour
 {
-    sealed class Wpis { public LODGroup g; public float[] prog; public float rozmiar; public Material kepa; public bool wnetrze; }
+    sealed class Wpis { public LODGroup g; public float[] prog; public float rozmiar; public Material kepa; public bool wnetrze; public bool boisko; }
     readonly List<Wpis> wpisy = new List<Wpis>();
     // materiały kęp (trawa, kwiaty rabat): oryginalne gaśnięcie z buildu; NISKA ×0.75 (mniej rysowania na słabym telefonie)
     readonly Dictionary<Material, Vector2> gasniecie = new Dictionary<Material, Vector2>();
@@ -32,6 +32,18 @@ public sealed class BraxZasiegDrobnych : MonoBehaviour
         next = Time.unscaledTime + 1f;
         var cam = Camera.main; float f = cam ? cam.fieldOfView : 55f;
         if (Mathf.Abs(QualitySettings.lodBias - bias) > .001f || (int)BraxGrafika.Aktualny != tryb || Mathf.Abs(f - fov) > .5f) Zastosuj("tryb " + BraxGrafika.Nazwy[(int)BraxGrafika.Aktualny]);
+        // Wybór pełnej prawdziwej siatki ogrodzeń również przy niskiej jakości
+        // i na kilkaset metrów przed wejściem. Inne obiekty zachowują LOD.
+        int sport0 = 0;
+        foreach (var w in wpisy)
+        {
+            if (!w.g || !w.boisko) continue;
+            bool pokaz = cam && (cam.transform.position - w.g.transform.TransformPoint(w.g.localReferencePoint)).sqrMagnitude < 360f * 360f;
+            w.g.ForceLOD(pokaz ? 0 : -1);
+            if (pokaz) sport0++;
+        }
+        if (sport0 > 0 && Time.frameCount % 240 == 0)
+            Debug.Log("BRAXHORN_R1_BOISKA_SIATKA LOD0=" + sport0 + " dystans=360m");
     }
 
     void Zbierz()
@@ -57,7 +69,21 @@ public sealed class BraxZasiegDrobnych : MonoBehaviour
             // wnętrze: nad środkiem obiektu coś jest (strop, dach, płyta kamery) — zostaje próg z buildu
             Vector3 c = g.transform.TransformPoint(g.localReferencePoint);
             bool pod = fe <= 0f && Physics.Raycast(c + Vector3.up * .05f, Vector3.up, 40f, ~0, QueryTriggerInteraction.Ignore);
-            wpisy.Add(new Wpis { g = g, prog = p, rozmiar = g.size * sk, kepa = kepa, wnetrze = pod });
+            // R1: jeżeli oryginalny płot boiska ma LOD z pełną czarną płytą
+            // zamiast siatki, na 300-400 m pokazujemy prawdziwą siatkę LOD0.
+            // Tylko boiska na wyznaczonym obszarze R1, nie drzewa i nie lokale.
+            string rodzina = g.name.ToLowerInvariant();
+            for (var parent = g.transform.parent; parent && !rodzina.Contains("boisk");
+                 parent = parent.parent)
+                rodzina += " " + parent.name.ToLowerInvariant();
+            bool sport = (rodzina.Contains("boisk") || rodzina.Contains("court") ||
+                          rodzina.Contains("tennis") || rodzina.Contains("kort")) &&
+                         (rodzina.Contains("fence") || rodzina.Contains("siatk") ||
+                          rodzina.Contains("ogrodze") || rodzina.Contains("plot") ||
+                          rodzina.Contains("płot") || rodzina.Contains("boisk")) &&
+                         c.x > -165f && c.x < 210f && c.z > -180f && c.z < 215f;
+            wpisy.Add(new Wpis { g = g, prog = p, rozmiar = g.size * sk,
+                kepa = kepa, wnetrze = pod && !sport, boisko = sport });
         }
     }
 
