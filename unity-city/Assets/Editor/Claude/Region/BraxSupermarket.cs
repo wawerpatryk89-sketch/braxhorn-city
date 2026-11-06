@@ -47,6 +47,7 @@ public static class BraxSupermarket
             // Film z 4.11: zewnętrzny płot parku przecina wejście do supermarketu.
             // Wycinamy TYLKO szerokość ścieżki przed drzwiami, bez usuwania całego płotu.
             UdroznijWejscie(t, lustro, i + 1);
+            ParkingKlientow(t, i + 1);
             Physics.SyncTransforms();
             Debug.Log("BRAXHORN_SUPERMARKET kopia " + (i + 1) + ": front (środek) " + c.ToString("F1") + ", obrót " + yaw + "°, hala " + W.ToString("F1") + " × " + D.ToString("F1") + " × " + H.ToString("F1") + " m"
                       + (lustro ? ", odbicie lustrzane (wejście i kasy po drugiej stronie)" : "") + ", towar modeli " + towar + ", szukanie " + stoper.ElapsedMilliseconds + " ms");
@@ -106,6 +107,93 @@ public static class BraxSupermarket
                   " (tylko otwór przed drzwiami, bez nakładania nowych nawierzchni)");
         if (n == 0) Debug.LogWarning("BRAXHORN_SUPERMARKET_WEJSCIE nr=" + nr +
                     ": nie znaleziono segmentu ogrodzenia w aktualnej scenie; weryfikacja dojścia na Androidzie wymagana");
+    }
+
+
+    // R1: parking klientów przy supermarkecie, bez miejsc na jezdni ronda.
+    static void ParkingKlientow(Transform sklep, int nr)
+    {
+        float hw = W * .5f, slotW = 2.6f * K, slotD = 5f * K;
+        var place = new[]
+        {
+            (Rect.MinMaxRect(-hw + 1f, -15.4f, hw - 1f, -2.5f), 0),
+            (Rect.MinMaxRect(hw + 2f, -1f, hw + 17.5f, D - 1f), 1),
+            (Rect.MinMaxRect(-hw - 17.5f, -1f, -hw - 2f, D - 1f), -1)
+        };
+        Vector3 S(float x, float z) => sklep.TransformPoint(new Vector3(x, 0f, z));
+        bool Wolny(Rect r)
+        {
+            for (float x = r.xMin + .8f; x < r.xMax; x += 2.8f)
+            for (float z = r.yMin + .8f; z < r.yMax; z += 2.8f)
+            {
+                Vector3 p = S(x, z);
+                if (!BraxMiastoGranice.Lad(p.x, p.z) || BraxRegionMiastoB.NaJezdni(p)) return false;
+                if (!BraxRegion.Ground(p.x, p.z, -20f, 80f, out var floor) ||
+                    Mathf.Abs(floor.point.y - sklep.position.y) > .25f) return false;
+                foreach (var c in Physics.OverlapBox(p + Vector3.up, new Vector3(.55f, .65f, .55f)))
+                {
+                    if (!c || c.transform.IsChildOf(sklep) || c.bounds.max.y < floor.point.y + .3f) continue;
+                    string name = c.name.ToLowerInvariant();
+                    bool plot = name.Contains("fence") || name.Contains("płot") ||
+                                name.Contains("ogrodz") || name.Contains("barier");
+                    if (!plot) return false;
+                }
+            }
+            return true;
+        }
+        Rect rlot = default;
+        int side = 99;
+        foreach (var c in place)
+            if (Wolny(c.Item1)) { rlot = c.Item1; side = c.Item2; break; }
+        if (side == 99)
+        {
+            Debug.LogError("BRAXHORN_SUPERMARKET_PARKING_BLOKADA sklep " + nr +
+                           ": brak miejsca bez konfliktu z jezdnią — parking wymaga przeniesienia przeszkód");
+            return;
+        }
+        var surf = new UlSiatka(); var lines = new UlSiatka();
+        surf.Box(new Vector3(rlot.xMin, .024f, rlot.yMin),
+                 new Vector3(rlot.xMax, .048f, rlot.yMax));
+        int count = 0;
+        if (side == 0)
+        {
+            int limit = Mathf.FloorToInt((rlot.width - 1f) / slotW);
+            float start = rlot.xMin + (rlot.width - limit * slotW) * .5f;
+            float zBack = rlot.yMax - slotD;
+            for (int i = 0; i < limit; i++)
+            {
+                float x = start + (i + .5f) * slotW;
+                if (Mathf.Abs(x) < 2f * K) continue; // drożne dojście od ronda do drzwi
+                float a = start + i * slotW;
+                lines.Box(new Vector3(a, .052f, zBack),
+                          new Vector3(a + .07f, .058f, rlot.yMax));
+                BraxRegionMiastoB.MiejscaParkingu.Add((S(x, zBack + slotD * .5f),
+                                                       sklep.forward, new Vector2(slotW, slotD)));
+                count++;
+            }
+        }
+        else
+        {
+            int limit = Mathf.FloorToInt((rlot.height - 1f) / slotW);
+            float start = rlot.yMin + (rlot.height - limit * slotW) * .5f;
+            float a = side > 0 ? rlot.xMin : rlot.xMax - slotD;
+            for (int i = 0; i < limit; i++)
+            {
+                float z = start + (i + .5f) * slotW;
+                lines.Box(new Vector3(a, .052f, start + i * slotW),
+                          new Vector3(a + slotD, .058f, start + i * slotW + .07f));
+                BraxRegionMiastoB.MiejscaParkingu.Add((S(a + slotD * .5f, z),
+                          side > 0 ? -sklep.right : sklep.right, new Vector2(slotW, slotD)));
+                count++;
+            }
+        }
+        var asphalt = BraxNabrzeze.Mat("Parking supermarketu asfalt PBR", 2f,
+                         new Color(.29f, .30f, .31f), "asphalt_02", "asphalt_01", "asphalt");
+        var white = BraxUliceKit.Mat("Parking supermarketu farba", new Color(.94f, .94f, .92f), .85f);
+        BraxMiastoA.Obiekt(sklep, "Parking supermarketu nawierzchnia", surf, asphalt, false);
+        BraxMiastoA.Obiekt(sklep, "Parking supermarketu linie", lines, white, false);
+        Debug.Log("BRAXHORN_SUPERMARKET_PARKING sklep=" + nr + " miejsca=" + count +
+                  " wariant=" + side + " poza rondem, bez dodatkowych kolizji");
     }
 
     // ---------------- miejsce ----------------
