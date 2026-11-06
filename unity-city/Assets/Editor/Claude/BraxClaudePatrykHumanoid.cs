@@ -93,7 +93,6 @@ public static partial class BraxClaudeOsiedle
     // produkował wykręcone kolana przy chodzeniu w #93. Kopie są prywatne, lokalne
     // dla generowania osiedla; nie zmieniamy oryginalnych importów i innych postaci.
     static readonly string PatrykBezRetargetu = PrywatneZrodla + "/patryk_owner_direct";
-    static readonly string PatrykHumanoidOwner = PrywatneZrodla + "/patryk_owner_humanoid";
     static readonly string[] PatrykRuchyWlasne =
     {
         "Strut Walking.fbx", "Fast Run.fbx", "Jump.fbx", "Entering Car.fbx"
@@ -102,7 +101,6 @@ public static partial class BraxClaudeOsiedle
     static void PatrykPrzygotujWlasneRuchy()
     {
         System.IO.Directory.CreateDirectory(PatrykBezRetargetu);
-        System.IO.Directory.CreateDirectory(PatrykHumanoidOwner);
         foreach (string name in PatrykRuchyWlasne)
         {
             string src = PatrykRuchy + "/patryk_owner/" + name;
@@ -118,9 +116,6 @@ public static partial class BraxClaudeOsiedle
                     inne = !sha.ComputeHash(s).SequenceEqual(sha.ComputeHash(d));
             }
             if (inne) System.IO.File.Copy(src, dst, true);
-            string dstHumanoid = PatrykHumanoidOwner + "/" + name;
-            if (!System.IO.File.Exists(dstHumanoid) || inne)
-                System.IO.File.Copy(src, dstHumanoid, true);
         }
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         foreach (string name in PatrykRuchyWlasne)
@@ -133,28 +128,11 @@ public static partial class BraxClaudeOsiedle
             {
                 importer.animationType = ModelImporterAnimationType.Legacy;
                 importer.importAnimation = true;
+                importer.materialImportMode = ModelImporterMaterialImportMode.None;
                 importer.SaveAndReimport();
             }
         }
-        // Nie każdy FBX Mixamo eksponuje lokalne krzywe Hips w trybie Legacy.
-        // Druga kopia źródłowego FBX pozwala wtedy użyć Unity Humanoid do
-        // przeniesienia animacji NA TEN SAM oryginalny szkielet Patryka.
-        // Nie powstają żadne sztuczne ruchy, nie edytujemy oryginalnych modeli.
-        foreach (string name in PatrykRuchyWlasne)
-        {
-            string path = PatrykHumanoidOwner + "/" + name;
-            var importer = AssetImporter.GetAtPath(path) as ModelImporter;
-            if (importer == null)
-                throw new InvalidOperationException("Brak importera Humanoid: " + path);
-            if (importer.animationType != ModelImporterAnimationType.Human || !importer.importAnimation)
-            {
-                importer.animationType = ModelImporterAnimationType.Human;
-                importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
-                importer.importAnimation = true;
-                importer.SaveAndReimport();
-            }
-        }
-        Debug.Log("BRAXHORN_PATRYK_WLASNE_RUCHY: oryginalne 4 FBX w wariantach Legacy/Humanoid (bez animacji zastępczych)");
+        Debug.Log("BRAXHORN_PATRYK_WLASNE_RUCHY: tylko oryginalne FBX Legacy / bezp. kości jak Monika, bez Humanoid i sztucznych klipów");
     }
 
     static AnimationClip PatrykWlasnyFBX(GameObject hero, List<Transform> kosci,
