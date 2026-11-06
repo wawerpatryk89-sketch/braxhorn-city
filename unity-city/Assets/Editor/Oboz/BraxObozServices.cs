@@ -170,15 +170,12 @@ public static class BraxObozServices
             var bounds=Bounds();
             if(bounds.size.x<.0001f||bounds.size.y<.0001f||bounds.size.z<.0001f)
                 throw new InvalidOperationException("Zerowy rozmiar źródłowego stołu");
-            var targetSize=new Vector3(1.65f,.90f,.92f)*1.294f;
-            float uniform=Mathf.Min(targetSize.x/bounds.size.x,
-                Mathf.Min(targetSize.y/bounds.size.y,targetSize.z/bounds.size.z));
-            if(float.IsNaN(uniform)||uniform<=0)throw new InvalidOperationException("Niepoprawna skala stołu");
-            table.transform.localScale*=uniform;
+            // Wysokosc prawdziwego stolu: 0,75 m; zachowaj proporcje z oryginalnego GLB.
+            BraxObozPlacement.RealDimension(table.transform,renderers,.75f,
+                BraxObozPlacement.Axis.Y,"stół polowy stołówka");
             bounds=Bounds();
-            var target=room.TransformPoint(bottomCenter);
-            table.transform.position+=new Vector3(
-                target.x-bounds.center.x,target.y-bounds.min.y,target.z-bounds.center.z);
+            BraxObozPlacement.OnGround(table.transform,renderers,
+                room.TransformPoint(bottomCenter),"stół polowy stołówka");
             if(!table.GetComponentInChildren<Collider>())
             {
                 var body=table.AddComponent<BoxCollider>();
@@ -310,16 +307,28 @@ public static class BraxObozServices
                 var bounds=Bounds();
                 if(bounds.size.x<.0001f||bounds.size.y<.0001f||bounds.size.z<.0001f)
                     throw new InvalidOperationException("Zerowy obrys kompletnego modelu: "+label);
-                var max=envelopeMetres*1.294f;
-                float scale=Mathf.Min(max.x/bounds.size.x,
-                    Mathf.Min(max.y/bounds.size.y,max.z/bounds.size.z));
-                if(scale<=0f||float.IsNaN(scale)||float.IsInfinity(scale))
-                    throw new InvalidOperationException("Błędne skalowanie kompletnego modelu: "+label);
-                carrier.transform.localScale*=scale;
+                // Referencyjna wysokosc tylko dla elementow o podanych realnych wymiarach.
+                // Wymiary envelope sa wylacznie diagnostyczne, nie steruja skala.
+                if(label.StartsWith("Oryginalny stół polowy",StringComparison.Ordinal))
+                    BraxObozPlacement.RealDimension(carrier.transform,renderers,.75f,
+                        BraxObozPlacement.Axis.Y,label);
+                else if(label.StartsWith("Zlew polowy",StringComparison.Ordinal))
+                    BraxObozPlacement.RealDimension(carrier.transform,renderers,.85f,
+                        BraxObozPlacement.Axis.Y,label);
+                else
+                    BraxObozPlacement.NativeMetres(carrier.transform,renderers,label);
                 bounds=Bounds();
-                var target=cabin.TransformPoint(bottomMetres*1.294f);
-                carrier.transform.position+=new Vector3(
-                    target.x-bounds.center.x,target.y-bounds.min.y,target.z-bounds.center.z);
+                var target=cabin.TransformPoint(bottomMetres*K);
+                if(bottomMetres.y<=.25f)
+                    BraxObozPlacement.OnGround(carrier.transform,renderers,target,label);
+                else
+                    BraxObozPlacement.AtBottom(carrier.transform,renderers,target);
+                // Zle proporcje źródła sa ostrzezeniem, nie pretekstem do
+                // wyginania modelu lub przerywania całego generowania.
+                if(bounds.size.x > envelopeMetres.x*K*1.35f ||
+                   bounds.size.z > envelopeMetres.z*K*1.35f)
+                    Debug.LogWarning("BRAXHORN_OBOZ_KITCHEN_SOURCE_REVIEW "+label+
+                        " dimensions="+Bounds()+" reference-envelope="+envelopeMetres);
                 if(solid&&!carrier.GetComponentInChildren<Collider>())
                 {
                     var c=carrier.AddComponent<BoxCollider>();
@@ -473,17 +482,16 @@ public static class BraxObozServices
         if(bounds.size.x<.001f||bounds.size.y<.001f||bounds.size.z<.001f)
             throw new InvalidOperationException("Błędny rozmiar źródłowego łóżka IDANAS");
         // Cabin source metres are scaled exactly once by the game's K=1.294.
-        var max=new Vector3(1.16f,1.25f,2.30f)*K;
-        float uniform=Mathf.Min(max.x/bounds.size.x,
-            Mathf.Min(max.y/bounds.size.y,max.z/bounds.size.z));
-        if(uniform<=0f||float.IsNaN(uniform)||float.IsInfinity(uniform))
-            throw new InvalidOperationException("Nieprawidłowa skala łóżka IDANAS");
-        model.transform.localScale*=uniform;
+        // Jedna realna miara: dlugosc 2,0 m przed K, szerokosc 0,9 m do kontroli.
+        // Kalibruj wzgledem OSI lozka, a nie najwezszej strony pudelka.
+        BraxObozPlacement.RealDimension(model.transform,renderers,2f,
+            BraxObozPlacement.Axis.Z,"IKEA IDANAS");
         bounds=LocalBounds();
+        BraxObozPlacement.VerifyDimension(renderers,.9f,
+            BraxObozPlacement.Axis.X,"IKEA IDANAS szerokość");
         var centerSource=bottomCenterSourceMetres*K;
-        var shift=centerSource-
-            new Vector3(bounds.center.x,bounds.min.y,bounds.center.z);
-        model.transform.position+=cabin.TransformVector(shift);
+        BraxObozPlacement.OnGround(model.transform,renderers,
+            cabin.TransformPoint(centerSource),"IKEA IDANAS");
         bounds=LocalBounds();
         // Contact proxy for a single bed only; never block the doorway or
         // make an invisible collider spanning an entire cabin.
@@ -524,18 +532,34 @@ public static class BraxObozServices
         foreach(var rr in renderers.Skip(1))bounds.Encapsulate(rr.bounds);
         if(bounds.size.x<=.0001f||bounds.size.y<=.0001f||bounds.size.z<=.0001f)
             throw new InvalidOperationException("Zerowe wymiary modelu: "+filename);
-        float kx=maxLocalSize.x*K/bounds.size.x;
-        float ky=maxLocalSize.y*K/bounds.size.y;
-        float kz=maxLocalSize.z*K/bounds.size.z;
-        float uniform=Mathf.Min(kx,Mathf.Min(ky,kz));
-        if(uniform<=0f||float.IsNaN(uniform)||float.IsInfinity(uniform))
-            throw new InvalidOperationException("Błąd skalowania modelu: "+filename);
-        model.transform.localScale*=uniform;
-        bounds=renderers[0].bounds;
-        foreach(var rr in renderers.Skip(1))bounds.Encapsulate(rr.bounds);
+        // Parametr maxLocalSize jest tylko historyczna ramka diagnostyczna.
+        // Nie redukujemy siatki do tej ramki. Realne dane: szafa 2m, lawa 0,45m.
+        if(filename=="metal_cabinet_low_poly.glb")
+            BraxObozPlacement.RealDimension(model.transform,renderers,2f,
+                BraxObozPlacement.Axis.Y,filename);
+        else if(filename=="picnic_set_1.glb")
+            BraxObozPlacement.RealDimension(model.transform,renderers,.45f,
+                BraxObozPlacement.Axis.Y,filename);
+        else
+            BraxObozPlacement.NativeMetres(model.transform,renderers,filename);
+        bounds=BraxObozPlacement.Bounds(renderers);
         var target=parent.TransformPoint(bottomCenter);
-        model.transform.position+=new Vector3(target.x-bounds.center.x,
-            target.y-bounds.min.y,target.z-bounds.center.z);
+        if(filename=="wall-urinal.glb" || filename=="towel-rail-with-towel.glb")
+        {
+            BraxObozPlacement.AtBottom(model.transform,renderers,target);
+            Vector3 toward=filename=="wall-urinal.glb"?-parent.right:parent.forward;
+            BraxObozPlacement.ToWall(model.transform,renderers,
+                target+Vector3.up*(bounds.size.y*.5f),toward,filename);
+        }
+        else if(bottomCenter.y<=.30f*K || (parent.lossyScale.y > 1.10f && bottomCenter.y<=.30f))
+            BraxObozPlacement.OnGround(model.transform,renderers,target,filename);
+        else
+            BraxObozPlacement.AtBottom(model.transform,renderers,target);
+        bounds=BraxObozPlacement.Bounds(renderers);
+        // Weryfikujemy oryginalna proporcje, nie zmieniamy jej.
+        if(bounds.size.x>maxLocalSize.x*K*1.4f || bounds.size.z>maxLocalSize.z*K*1.4f)
+            Debug.LogWarning("BRAXHORN_OBOZ_FIXTURE_DIMENSION_REVIEW "+filename+
+                " rzeczywisty obrys="+bounds.size+" zalozony limit="+maxLocalSize);
         // Korpus jest nieruchomy: zachowujemy pojedynczy fizyczny hitbox
         // odpowiadający siatce; nie wstawiamy kolizji przez drzwi.
         if(!model.GetComponentInChildren<Collider>())

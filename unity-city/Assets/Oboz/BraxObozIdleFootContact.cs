@@ -10,7 +10,7 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
 {
     public BraxGymPlayer player;
     const float K=1.294f;
-    const float MaxCorrection=.08f*K;
+    const float MaxCorrection=.24f*K;
     const float DesiredClearance=.006f*K;
     SkinnedMeshRenderer[] skins;
     bool warned;
@@ -21,9 +21,10 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
         if(skins==null)skins=player.visual.GetComponentsInChildren<SkinnedMeshRenderer>(true);
         if(skins.Length==0)return;
         var visual=player.visual;
-        bool idle=player.body.isGrounded&&player.clips.IsPlaying("Idle");
+        // Kontakt z gruntem także podczas chodu i biegu, bez grzebania w szkielecie.
+        bool grounded=player.body.isGrounded;
         float targetOffset=0f;
-        if(idle)
+        if(grounded)
         {
             // CharacterController belongs to layer 8; exclude its collider.
             Vector3 origin=player.transform.position+Vector3.up*(.65f*K);
@@ -41,15 +42,15 @@ public sealed class BraxObozIdleFootContact : MonoBehaviour
                         -MaxCorrection,MaxCorrection);
                     if(!warned && Mathf.Abs(discrepancy)>.10f*K)
                     {
-                        Debug.LogWarning("BRAXHORN_MONIKA_FOOT_CONTACT: source idle pose exceeds " +
-                            "8 cm, inspect original animation/rig; no forced bone edit");
+                        Debug.LogWarning("BRAXHORN_MONIKA_FOOT_CONTACT: model >10 cm od ziemi " +
+                            "— korekta wizualna, sprawdzić rig i animacje w scenie");
                         warned=true;
                     }
                 }
             }
         }
-        // Do not change the player/capsule movement, root motion or rig. Return
-        // visual to zero at normal walking/jumping/attacking transitions.
+        // Nie naruszaj kapsuły, root motion ani oryginalnego szkieletu.
+        // W powietrzu korekta wygasa; ruch stóp po poziomie nadal wymaga Play Mode.
         var p=visual.localPosition;
         p.y=Mathf.MoveTowards(p.y,targetOffset,
             Mathf.Max(0f,Time.deltaTime)*(.52f*K));

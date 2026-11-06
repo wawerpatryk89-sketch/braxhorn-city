@@ -194,14 +194,16 @@ public static partial class BraxObozEnvironment
         var bounds=Bounds();
         if(bounds.size.x<.05f||bounds.size.y<.05f||bounds.size.z<.05f)
             throw new InvalidOperationException("Nieprawidłowe wymiary oryginalnej siłowni");
-        float scale=Mathf.Min(26f*K/bounds.size.x,
-            Mathf.Min(4.25f*K/bounds.size.y,18.5f*K/bounds.size.z));
-        if(float.IsNaN(scale)||float.IsInfinity(scale)||scale<=0)
-            throw new InvalidOperationException("Błędna skala FBX siłowni");
-        model.transform.localScale*=scale; bounds=Bounds();
-        var center=gym.TransformPoint(P(0,.24f,0));
-        model.transform.position+=new Vector3(
-            center.x-bounds.center.x,center.y-bounds.min.y,center.z-bounds.center.z);
+        // Zestaw FBX to zbior oryginalnych urzadzen, nie jedna skrzynia 26x4x18m.
+        // Zostaw proporcje i jednostki metrowe; kolizje i wyjscia raportuj.
+        BraxObozPlacement.NativeMetres(model.transform,visible,
+            "gym_environment.fbx zestaw urządzeń");
+        bounds=Bounds();
+        BraxObozPlacement.OnGround(model.transform,visible,
+            gym.TransformPoint(P(0,.24f,0)),"gym_environment.fbx");
+        if(bounds.size.x>26f*K || bounds.size.z>18.5f*K)
+            Debug.LogWarning("BRAXHORN_OBOZ_GYM_FOOTPRINT_REVIEW source="+bounds.size+
+                " trainingZone=26x18.5m; nie zmieniono siatek właściciela");
         // Local equipment hitboxes only. Never add a collider across the
         // whole room; that would block the player and NavMesh.
         foreach(var renderer in visible)
