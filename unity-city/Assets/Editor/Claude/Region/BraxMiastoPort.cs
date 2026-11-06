@@ -45,9 +45,11 @@ internal static class BraxMiastoPort
         // wygląda”; zasada: źle i nie da się porządnie → usunąć. Nabrzeże zostaje wolne (dźwig, polery), statek tylko z modelu.
         BraxMiastoA.Log("PORT: statek z kodu WYŁĄCZONY (właściciel 3.11 — klocki)");
         BraxUliceKit.UstawGrupe("Port: biuro, brama, ogrodzenie, maszty", 140f);
-        Biuro(); Brama(); Maszty(); Ciagniki();
+        // Zgoda właściciela 6.11: małe biuro portowe ustępuje nowemu wejściu metra.
+        // Brama, wartownia i pozostałe urządzenia portu zostają.
+        Brama(); Maszty(); Ciagniki();
         int siatek = BraxUliceKit.Zapisz(root, "port");
-        BraxMiastoA.Log("PORT: plac " + (QX - X0).ToString("F0") + "×" + (Z1 - Z0).ToString("F0") + " m, kontenerów " + kont + ", kontenerowiec 46×12 m przy nabrzeżu, biuro, brama, siatek " + siatek + "; zdjęte: " + usun);
+        BraxMiastoA.Log("PORT: plac " + (QX - X0).ToString("F0") + "×" + (Z1 - Z0).ToString("F0") + " m, kontenerów " + kont + ", kontenerowiec 46×12 m przy nabrzeżu, wejście metra zamiast biura, brama, siatek " + siatek + "; zdjęte: " + usun);
     }
 
     // ---------------- nawierzchnia z oznakowaniem W PŁASZCZYŹNIE (pola, nie naklejki) ----------------
@@ -77,7 +79,7 @@ internal static class BraxMiastoPort
         // pola stosów (obrys białą linią 12 cm)
         foreach (var b in Bloki()) { biale.Add(Rect.MinMaxRect(b.xMin - .25f, b.yMin - .25f, b.xMax + .25f, b.yMin - .13f)); biale.Add(Rect.MinMaxRect(b.xMin - .25f, b.yMax + .13f, b.xMax + .25f, b.yMax + .25f)); biale.Add(Rect.MinMaxRect(b.xMin - .25f, b.yMin - .13f, b.xMin - .13f, b.yMax + .13f)); biale.Add(Rect.MinMaxRect(b.xMax + .13f, b.yMin - .13f, b.xMax + .25f, b.yMax + .13f)); }
         var wszystkie = linie.Concat(biale).ToList();
-        var zDziurami = wszystkie.Concat(new[] { Rect.MinMaxRect(66.3f, 6.5f, 74.3f, 16.5f) }).ToList();   // pod biurem posadzka biura (nie płyta na płycie)
+        var zDziurami = wszystkie.ToList(); // po usunięciu biura przywrócić pełną nawierzchnię; metro wycina WYŁĄCZNIE własne zejście później
         Plaszczyzna(BraxUliceKit.S(beton), X0, 83.3f, Z0, Z1, Y, zDziurami);
         foreach (var r in linie) BraxUliceKit.S(zolty).Quad(new Vector3(r.xMin, Y, r.yMin), new Vector3(r.xMax, Y, r.yMin), new Vector3(r.xMax, Y, r.yMax), new Vector3(r.xMin, Y, r.yMax), Vector3.up);
         foreach (var r in biale) BraxUliceKit.S(bialy).Quad(new Vector3(r.xMin, Y, r.yMin), new Vector3(r.xMax, Y, r.yMin), new Vector3(r.xMax, Y, r.yMax), new Vector3(r.xMin, Y, r.yMax), Vector3.up);
@@ -411,7 +413,7 @@ internal static class BraxMiastoPort
         for (int i = 0; i < 6; i++) { ramie.kolor = i % 2 == 0 ? BraxUliceKit.C(.8f, .1f, .08f) : BraxUliceKit.C(.95f, .95f, .93f); var a = sl + Vector3.up * (1.0f + i * .9f); ramie.Rura(a, a + Vector3.up * .9f, .045f, 8); }
         ramie.kolor = BraxUliceKit.Bialy;
         BraxUliceKit.Napis3D("PORT BRAXHORN · BRAMA 1", new Vector3((bx0 + bx1) * .5f, Y + bh + .15f, bz1 + .3f), Vector3.forward, .16f, .03f, BraxMiastoA.Mat("Port: litery białe", new Color(.95f, .95f, .93f), .5f), BraxMiastoA.Mat("Port: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f));
-        BraxMiastoA.Akcja(root, "port_brama", "POROZMAWIAJ", "Strażnik: Wjazd tylko z przepustką. Biuro spedycji po lewej.", new Vector3(76.0f, Y, zf + .8f), 1.8f);
+        BraxMiastoA.Akcja(root, "port_brama", "POROZMAWIAJ", "Strażnik: Wjazd tylko z przepustką. Wejście do metra znajduje się na dawnym placu biura portowego.", new Vector3(76.0f, Y, zf + .8f), 1.8f);
     }
 
     static void Maszty()
@@ -433,7 +435,9 @@ internal static class BraxMiastoPort
         var czarny = BraxMiastoA.Mat("Port: opony i rama", new Color(.05f, .05f, .055f), .8f);
         var szyby = BraxMiastoA.Mat("Statek: szyby mostka", new Color(.08f, .12f, .15f), .1f, .6f);
         int n = 0;
-        foreach (var (p, zKont) in new[] { (new Vector3(80.6f, Y, -11f), true), (new Vector3(80.6f, Y, 4.5f), false) })
+        // Żółty kwadratowy ciągnik przy małym biurze (z=4.5) usunięty na zlecenie właściciela;
+        // drugi ciągnik przy kontenerach portowych zachowany.
+        foreach (var (p, zKont) in new[] { (new Vector3(80.6f, Y, -11f), true) })
         {
             // kabina (z przodu, na północ), rama naczepy, koła, kontener na naczepie (pod dźwigiem)
             var c = BraxUliceKit.S(zolty); var r = BraxUliceKit.S(czarny);
