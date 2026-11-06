@@ -325,6 +325,19 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn('"DO POPRAWKI: nośniki osiedla:', signs)
         self.assertIn('n.StartsWith("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase)', scene)
 
+    def test_every_shopfront_gets_separate_physical_access_probe(self):
+        layout = source("BraxClaudeOsiedle.cs")
+        scene = source("BraxClaudeOsiedleAktualizacja.cs")
+        self.assertIn('wejsciaSklepow.Clear();', layout)
+        self.assertIn('wejsciaSklepow.Add((shops[k], new Vector3(d0 + .9f, PY, zf), Vector3.forward, closed))', layout)
+        self.assertIn('static List<string> AudytWejscSklepow(Scene scena)', scene)
+        self.assertIn('if (wejsciaSklepow.Count != 5)', scene)
+        self.assertIn('Physics.CapsuleCastNonAlloc(', scene)
+        self.assertIn('bledy.AddRange(AudytWejscSklepow(scene));', scene)
+        self.assertIn('city-review/osiedle-wejscia-sklepow.txt', scene)
+        self.assertIn('wejście fizycznie zamknięte', scene)
+        self.assertNotIn('throw new InvalidOperationException("wejście sklepów', scene)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
