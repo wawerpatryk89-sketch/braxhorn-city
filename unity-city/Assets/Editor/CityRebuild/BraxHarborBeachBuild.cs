@@ -70,7 +70,7 @@ public static class BraxHarborBeachBuild
         Krok("plaża miejska", () => BraxNabrzezePlaza.Buduj(root));
         Krok("marina", () => BraxNabrzezeMarina.Buduj(root, cityRoot));
         Krok("porządki: PUNKT DOSTAW, garaże za murem, mur podwórka z cegły PBR (właściciel 3.11)", () => BraxNabrzezePorzadki.Apply(root));
-        Krok("A: port kontenerowy od nowa (nabrzeże, kontenerowiec, kontenery, biuro, brama)", () => BraxMiastoPort.Buduj(root, cityRoot));
+        Krok("A: port kontenerowy (kontenery, brama i punkt odprawy; dawne biuro ustąpiło wejściu metra)", () => BraxMiastoPort.Buduj(root, cityRoot));
         Krok("port: dźwig nad statkiem", () => Dzwig(root));
         Krok("punkty misji", () => Punkty(cityRoot));
         AssetDatabase.SaveAssets();
