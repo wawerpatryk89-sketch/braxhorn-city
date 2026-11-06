@@ -70,6 +70,7 @@ public static class BraxObozVegetation
                 !BraxObozCampusLayout.ReservedLawn(p.x,p.z,.8f)&&!OnWalkway(p)).ToList();
             int originalGrass=grass.Count;
             AddLawnGrass(grass);
+            AddRondoGrass(grass);
             Grass(parent,grass.ToArray());
             Debug.Log("BRAXHORN_OBOZ las: drzewa="+placedTrees+" pas_zewnetrzny="+fenceTrees+
                 " oryginalna_trawa=Grass_Medium_01_02_2K kępy="+grass.Count+
@@ -261,6 +262,30 @@ public static class BraxObozVegetation
             points.Add(new Item{x=x,z=z,yaw=(h&65535u)*360f/65535f,scale=.72f+((h>>24)&255u)/255f*.34f});
         }
     }
+    static void AddRondoGrass(List<Item> points)
+    {
+        // 3D grass matching the owner's GREEN central roundabout island.
+        // Avoid the real bull pedestal; never place leaves on road asphalt.
+        const float spacing=.70f;
+        for(int ix=-8;ix<=8;ix++)
+        for(int iz=-8;iz<=8;iz++)
+        {
+            float x=ix*spacing;
+            float localZ=iz*spacing;
+            float r2=x*x+localZ*localZ;
+            if(r2>5.55f*5.55f || r2<2.8f*2.8f)continue;
+            // The real bull's rectangular pedestal is 3.4 x 5.4.
+            if(Mathf.Abs(x)<1.85f&&Mathf.Abs(localZ)<2.88f)continue;
+            uint h=unchecked((uint)(ix+100)*73856093u^(uint)(iz+200)*19349663u);
+            points.Add(new Item {
+                x=x+.08f*Mathf.Sin(ix*1.7f),
+                z=-94f+localZ+.08f*Mathf.Cos(iz*1.7f),
+                yaw=(h%360u),
+                scale=.72f+(h%27u)*.011f
+            });
+        }
+    }
+
     static T Save<T>(T obj,string path) where T:Object
     {
         var old=AssetDatabase.LoadAssetAtPath<T>(path);
@@ -327,7 +352,13 @@ public static class BraxObozVegetation
                 data.wysokosc=targetHeight/mesh.bounds.size.y;
                 data.granicaLaki=.17f*K;
                 data.kepy=selected.Select(p=>new Vector4(p.x*K,p.z*K,p.yaw,p.scale)).ToArray();
-                data.y=selected.Select(p=>.005f*K).ToArray();
+                // The circular island sits 0.16 source metres above
+                // ordinary terrain. Grass grows FROM the disk, not under it.
+                data.y=selected.Select(p=>{
+                    float dx=p.x,dz=p.z+94f;
+                    bool island=dx*dx+dz*dz<5.8f*5.8f;
+                    return (island?.171f:.005f)*K;
+                }).ToArray();
                 var node=new GameObject("Grass Medium "+variant+" — tylko oryginalny GLB");
                 node.transform.SetParent(holder.transform,false);
                 var grass=node.AddComponent<BraxClaudeTrawa>();
