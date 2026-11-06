@@ -18,8 +18,10 @@ class PoolP1OriginalSignTests(unittest.TestCase):
     def test_only_original_owner_citysigns_and_exact_pixels(self):
         s=self.sign
         self.assertIn('const string Signs="Assets/Source/Mistrzowie/CitySigns"',s)
-        self.assertIn('IndexOf("BASEN"',s)
-        self.assertIn('candidates.Length!=1',s)
+        self.assertIn('P1_BASEN_BASEN_MIEJSKI.png',s)
+        self.assertIn('P1_SPA_SPA_WELLNESS.png',s)
+        self.assertNotIn('IndexOf("BASEN"',s)
+        self.assertNotIn('candidates.Length!=1',s)
         self.assertIn('sourceTexture.width!=2048 || sourceTexture.height!=512',s)
         self.assertIn('artMat.SetTexture("_MainTex",sourceTexture);',s)
         self.assertIn('ImageConversion.LoadImage',s)
