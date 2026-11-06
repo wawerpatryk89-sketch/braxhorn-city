@@ -67,7 +67,7 @@ public static class BraxChampionsPoolP1SpaFurnishing
             count++;
         }
         if(count==0)
-            Debug.LogWarning("P1 source equipment: no checked structural meshes for collider: "+file);
+            throw new InvalidOperationException("P1 original structural collider source missing; refuse pass-through real equipment: "+file);
         return count;
     }
 
