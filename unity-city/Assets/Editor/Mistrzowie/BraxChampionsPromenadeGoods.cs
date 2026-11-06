@@ -70,9 +70,17 @@ public static class BraxChampionsPromenadeGoods
         {
             AssetDatabase.ImportAsset(texturePath.Replace('\\','/'),
                                       ImportAssetOptions.ForceSynchronousImport);
-            var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath.Replace('\\','/'));
-            if(!tex||Mathf.Min(tex.width,tex.height)<2048)
-                throw new InvalidOperationException("Imported retail PBR texture below 2K: "+texturePath);
+            var assetPath=texturePath.Replace('\\','/');
+            var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+            var imp=AssetImporter.GetAtPath(assetPath) as TextureImporter;
+            if(!tex||!imp)
+                throw new InvalidOperationException("Real retail 2K source could not be imported: "+texturePath);
+            imp.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
+            if(sourceWidth!=2048||sourceHeight!=2048)
+                throw new InvalidOperationException("Original Poly Haven 2K retail map has wrong SOURCE pixels: "+texturePath);
+            if(tex.width<2048||tex.height<2048)
+                BraxBuildQuality.Warn("Poly Haven retail SOURCE is original 2K but Unity import is "+
+                    tex.width+"x"+tex.height+" at "+texturePath+"; review on Android");
         }
         CheckedSources.Add(id);
     }
