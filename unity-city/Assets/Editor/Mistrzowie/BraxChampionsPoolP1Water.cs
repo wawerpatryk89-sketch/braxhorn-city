@@ -77,6 +77,27 @@ public static class BraxChampionsPoolP1Water
         UnityEngine.Object.DestroyImmediate(water.GetComponent<Collider>());
     }
 
+    // Four actual, owner-supplied jacuzzi models provide the precise surface
+    // mesh position and dimensions. Mount a shader-water quad at that source
+    // location; never replace the owner basin, seats, jets or access steps.
+    public static void Jacuzzi(Transform p1Room,string sourceId,Vector3 sourceWaterCentre,Vector2 sourceWaterDimensions)
+    {
+        if(!p1Room)throw new ArgumentNullException(nameof(p1Room));
+        if(sourceWaterDimensions.x<.2f||sourceWaterDimensions.y<.2f)
+            throw new ArgumentOutOfRangeException(nameof(sourceWaterDimensions));
+        var water=GameObject.CreatePrimitive(PrimitiveType.Quad);
+        water.name="P1 "+sourceId+" | ORIGINAL basin + REAL animated jacuzzi water and foam";
+        water.transform.SetParent(p1Room,false);
+        water.transform.localPosition=sourceWaterCentre*K;
+        water.transform.localRotation=Quaternion.Euler(-90,0,0);
+        water.transform.localScale=new Vector3(sourceWaterDimensions.x,sourceWaterDimensions.y,1f)*K;
+        var renderer=water.GetComponent<MeshRenderer>();
+        renderer.sharedMaterial=MaterialFor("ORIGINAL_"+sourceId,true);
+        renderer.shadowCastingMode=ShadowCastingMode.Off;
+        renderer.receiveShadows=false;
+        UnityEngine.Object.DestroyImmediate(water.GetComponent<Collider>());
+    }
+
     public static void Jacuzzi(Transform approvedModel,string sourceId,float rimHeightInMetres,float surfaceWidth,float surfaceDepth)
     {
         // Called after the actual owner jacuzzi FBX/GLB has been imported and
