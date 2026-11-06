@@ -155,6 +155,9 @@ jobs:
         run: python3 unity-tools/oboz/owner_extra_assets.py restore
       - name: Zweryfikowane materiały Poly Haven dla obozu
         run: python3 unity-tools/oboz/public_materials.py
+      - name: Ciemna elewacja i białe kafelki murowanej łaźni — oryginalne Poly Haven 2K
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: python3 unity-tools/oboz/facility_public_materials.py
       - name: Spakuj PBR postaci (Monika 4K, pozostali 2K) — oryginały bez zmian
         if: github.ref != 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         # Packing is an optimization, not a compilation dependency. If this
