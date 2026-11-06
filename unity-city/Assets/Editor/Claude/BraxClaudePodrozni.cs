@@ -18,7 +18,7 @@ public static partial class BraxClaudeOsiedle
 
     static void PodrozniParkingow(System.Random rnd)
     {
-        int made = 0, nAut = 0, odrNaJezdni = 0, odrDrzwiZajete = 0, odrBrakDojscia = 0, odrBrakFotela = 0, odrKlipy = 0;
+        int made = 0, nAut = 0, odrNaJezdni = 0, odrDrzwiZajete = 0, odrBrakDojscia = 0, odrBrakFotela = 0, odrKlipy = 0, odrKabina = 0;
         List<BoxCollider> zaparkowane = UnityEngine.Object.FindObjectsByType<BoxCollider>(FindObjectsSortMode.None)
             .Where(b => b.name.StartsWith("Auto zaparkowane") && !b.GetComponent<BraxAutoGracza>())
             .OrderBy(b => b.transform.position.x).ThenBy(b => b.transform.position.z).ToList();
@@ -66,7 +66,15 @@ public static partial class BraxClaudeOsiedle
             var m = o.root.AddComponent<BraxMieszkaniec>(); m.anim = o.anim; m.klipy = new[] { sit }; m.rola = "przechodzień";
             m.wzrost = o.wzrost; m.glowa = o.glowa; m.szyja = o.szyja; m.kregoslup = o.kregoslup; m.ton = o.p.kobieta ? 1.35f : .95f;
             var korzen = o.root.transform.position;
-            DopasujKabine(m, seat);                                  // przesuwa korzeń o zagłębienie wzdłuż fotel.up
+            // Nie pozostawiaj podróżnego w kabinie, jeżeli skóra głowy przecina dach.
+            // Usuwamy tylko tę nieudaną instancję, zachowujemy wszystkie oryginalne modele.
+            if (!DopasujKabine(m, seat))
+            {
+                UnityEngine.Object.DestroyImmediate(o.root);
+                rbLudzie--;
+                odrKabina++;
+                continue;
+            }
             var sitting = o.model.transform.localPosition + o.root.transform.InverseTransformVector(o.root.transform.position - korzen);
             float odch = m.odchylenie, poch = m.pochylenieGlowy; var kreg = m.kregoslupDol;
             m.odchylenie = 0f; m.pochylenieGlowy = 0f; m.kregoslupDol = null; m.klipy = new[] { idle };
@@ -79,7 +87,8 @@ public static partial class BraxClaudeOsiedle
         }
         string log = "BRAXHORN_PODROZNI miejsca=" + made + " (maks. " + PodrozniMax + ") aut_sprawdzonych=" + nAut + " z " + zaparkowane.Count
             + " odrzucone: drzwi_na_jezdni=" + odrNaJezdni + " drzwi_zajęte=" + odrDrzwiZajete + " brak_dojścia=" + odrBrakDojscia
-            + " brak_fotela=" + odrBrakFotela + " brak_klipów=" + odrKlipy;
+            + " brak_fotela=" + odrBrakFotela + " brak_klipów=" + odrKlipy
+            + " zły_prześwit_dachu=" + odrKabina;
         Debug.Log(log);
         rep.notes.Add(log + "; podejście, wsiadanie, siedzenie, wysiadanie, powrót. Prywatne auto Patryka pominięte.");
         if (made == 0) Debug.LogError("BRAXHORN_PODROZNI DO POPRAWKI: 0 miejsc do wsiadania NPC — " + log);
