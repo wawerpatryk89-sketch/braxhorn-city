@@ -39,6 +39,7 @@ public static partial class BraxClaudeOsiedle
         }
         catch (System.InvalidOperationException qualityError)
         {
+            rep.notes.Add("DO POPRAWKI: auto Patryka pod areną — " + qualityError.Message);
             BraxBuildQuality.Issue(qualityError);
         }
     }
