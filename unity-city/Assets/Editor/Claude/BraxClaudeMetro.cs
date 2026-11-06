@@ -232,7 +232,10 @@ public static class BraxClaudeMetro
         Tunele();
         Wyposazenie();
         W.Komorka = 26f;
-        Pociag();
+        // Etap przygotowania infrastruktury: peron, tory, tunele i wejścia są budowane,
+        // ale nie tworzymy jeszcze składu ani automatycznych kursów.
+        // Oryginalny model i implementacja Pociag() zostają na późniejszy etap.
+        rep.uwagi.Add("Pociag M1 celowo wylaczony: infrastruktura gotowa do dalszej rozbudowy, bez kursow");
         rep.siatki += W.Zapisz("metro_stacja");
 
         // A 2.11 (właściciel: „NIC NIE NAKŁADAMY na nic”): oznakowanie, żółte linie, noski stopni, pasy i ramki leżały 2–12 mm
@@ -305,15 +308,23 @@ public static class BraxClaudeMetro
 
         string Przeszkoda(Vector3 stopa)
         {
-            foreach (var c in Physics.OverlapCapsule(stopa + Vector3.up * .39f,
-                stopa + Vector3.up * 2.01f, .32f, maska, QueryTriggerInteraction.Ignore))
+            // Dół kapsuły 0.17 m nad stopami, by nie zgłaszać własnej
+            // pochylonej rampy schodów jako niewidzialnej ściany.
+            foreach (var c in Physics.OverlapCapsule(stopa + Vector3.up * .48f,
+                stopa + Vector3.up * 1.96f, .31f, maska, QueryTriggerInteraction.Ignore))
             {
                 if (!c || !c.enabled || c.isTrigger ||
                     c.GetComponentInParent<BraxGymPlayer>() ||
-                    c.GetComponentInParent<BraxCityDoor>() ||
-                    c.GetComponentInParent<BraxDrzwiPrzesuwne>())
+                    c.GetComponentInParent<BraxCityDoor>()) continue;
+                // Nie ignoruj CAŁEGO modelu bramki. Tylko ruchome skrzydła
+                // i kontrolowaną blokadę, które otwierają się przy graczu.
+                var drzwi = c.GetComponentInParent<BraxDrzwiPrzesuwne>();
+                if (drzwi &&
+                    ((drzwi.blokady != null && drzwi.blokady.Contains(c)) ||
+                     (drzwi.skrzydla != null && drzwi.skrzydla.Any(t =>
+                         t && (c.transform == t || c.transform.IsChildOf(t))))))
                     continue;
-                return c.name + " @ " + c.bounds.center.ToString("F1");
+                return W.Sciezka(c.transform) + " @ " + c.bounds.center.ToString("F1");
             }
             return null;
         }
@@ -369,11 +380,57 @@ public static class BraxClaudeMetro
             new Vector3((TunX0 + TunX1) * .5f, yM, 5.55f),
             new Vector3((TunX0 + TunX1) * .5f, yM, 24.65f));
 
+        // Od 6.11 kontrola NIE może kończyć się w hali: sprawdzamy także
+        // prawdziwe bramki, oba biegi schodów na peron i sam peron.
+        var bramki = podziemie.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true)
+            .Where(d => d && d.etykieta != null &&
+                d.etykieta.StartsWith("bramka metra", StringComparison.OrdinalIgnoreCase)).ToArray();
+        bool bramkiSprawne = bramki.Length == 7 && bramki.All(d =>
+            d.skrzydla != null && d.skrzydla.Length >= 2 &&
+            d.przesuniecie != null && d.przesuniecie.Length == d.skrzydla.Length &&
+            d.skrzydla.All(t => t) && d.blokady != null && d.blokady.Length > 0 &&
+            d.blokady.All(k => k));
+        var centralna = bramki.OrderBy(d => Mathf.Abs(d.transform.position.z - 28.5f)).FirstOrDefault();
+        float bramkaZ = centralna ? centralna.transform.position.z : 28.05f;
+        float bramkaX = centralna ? centralna.transform.position.x : GX;
+        string bramkiStan = bramkiSprawne ? "BRAMKI_METRA OK 7/7 z otwieraniem" :
+            "BRAMKI_METRA NIEGOTOWE: komplet i ruchome skrzydla " + bramki.Length + "/7";
+        string hala = Odcinki("HALA_BILETOWA",
+            new Vector3((TunX0 + TunX1) * .5f, yM, 24.65f),
+            new Vector3((TunX0 + TunX1) * .5f, yM, bramkaZ),
+            new Vector3(bramkaX + 2f, yM, bramkaZ));
+        string przezBramke = Odcinki("PRZEJSCIE_PRZEZ_BRAMKE",
+            new Vector3(bramkaX + 2f, yM, bramkaZ),
+            new Vector3(bramkaX - 2f, yM, bramkaZ));
+        float schZ = 25.6f + 3.1f * .5f;
+        string dojscieNaPeron = Odcinki("DOJSCIE_DO_SCHODOW_PERONU",
+            new Vector3(bramkaX - 2f, yM, bramkaZ),
+            new Vector3(WX1 + .3f, yM, schZ),
+            new Vector3(WX1, yM, schZ));
+        float wzPeron = (yM - yP) / 32f;
+        var goraPeron = new Vector3(WX1, yM, schZ);
+        var polowaPeron = goraPeron + Vector3.left * (15f * st);
+        polowaPeron.y = yM - 16f * wzPeron;
+        var spocznikPeron = polowaPeron + Vector3.left * spocznik;
+        var dolPeron = spocznikPeron + Vector3.left * (15f * st);
+        dolPeron.y = yP;
+        string schodyPeron = Odcinki("STALE_SCHODY_NA_PERON",
+            goraPeron, polowaPeron, spocznikPeron, dolPeron);
+        string peron = Odcinki("PERON_PIESZO",
+            dolPeron, new Vector3(40f, yP, 26.4f),
+            new Vector3(20f, yP, 26.4f),
+            new Vector3(0f, yP, 26.4f));
+
         bool ok = staryChodnik.Contains(" OK ") && drugaLinia.Contains(" OK ") &&
-            dojscie.Contains(" OK ") && schody.Contains(" OK ") && podziemny.Contains(" OK ");
+            dojscie.Contains(" OK ") && schody.Contains(" OK ") && podziemny.Contains(" OK ") &&
+            bramkiSprawne && hala.Contains(" OK ") && przezBramke.Contains(" OK ") &&
+            dojscieNaPeron.Contains(" OK ") && schodyPeron.Contains(" OK ") &&
+            peron.Contains(" OK ");
         var log = "BRAXHORN_METRO_PORT_QA " + (ok ? "KOD_PRZEJSC_OK " : "NIEGOTOWE ") +
-            staryChodnik + " | " + drugaLinia + " | " + dojscie + " | " + schody + " | " + podziemny +
-            " | BRAMKI / PERON / PRAKTYCZNY RUCH nadal odbiera właściciel w APK";
+            staryChodnik + " | " + drugaLinia + " | " + dojscie + " | " + schody +
+            " | " + podziemny + " | " + bramkiStan + " | " + hala + " | " + przezBramke +
+            " | " + dojscieNaPeron + " | " + schodyPeron + " | " + peron +
+            " | FINALNY TEST NA TELEFONIE NADAL WYMAGANY";
         if (ok) Debug.Log(log); else Debug.LogWarning(log);
     }
 
