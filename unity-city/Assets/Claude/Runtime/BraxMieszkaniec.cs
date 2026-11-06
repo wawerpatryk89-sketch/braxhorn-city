@@ -19,6 +19,10 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
     public BraxMieszkaniec rozmowca;            // para rozmawiająca (lider = ten, który ma rozmowce i lider = true)
     public bool lider;
     public bool siedzi, wAucie, obsluga;
+    // Widzowie siedzący w BRAXHORN ARENA patrzą na prawdziwy środek klatki,
+    // nie obracają całej sylwetki ani nie wstają z zajętego krzesełka.
+    public bool ogladaWalke;
+    public Vector3 punktWalki;
     public string rola = "";                   // barman, recepcja, kasjer, ochrona, policja, lekarz, … — kwestie POGADAJ
     public Transform glowa, szyja, kregoslup, ramieL, ramieP;
     public float korektaRak;                   // stopnie: uniesienie ramion do przodu (kierowca)
@@ -80,6 +84,11 @@ public sealed class BraxMieszkaniec : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         }
         var gracz = BraxLudzie.Gracz;
         if (Time.time < doKiedyPatrzy) { patrzCel = 1f; }
+        else if (ogladaWalke && siedzi)
+        {
+            patrzCel = .72f;
+            patrzNa = punktWalki;
+        }
         else if (gracz && !wAucie && (obsluga || siedzi) && (gracz.position - transform.position).sqrMagnitude < 4f * 4f)
         {
             // obsługa i siedzący patrzą na gracza, który podchodzi; obsługa wita
