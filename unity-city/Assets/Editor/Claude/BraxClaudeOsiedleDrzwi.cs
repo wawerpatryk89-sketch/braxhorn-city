@@ -156,6 +156,9 @@ public static partial class BraxClaudeOsiedle
                   + " kolizje_dolozone=" + dolozone + " do_poprawki=" + doPoprawki.Count + " (wejścia i drzwi nieznanego typu nie są usuwane automatycznie)");
         foreach (var z in zostaly) Debug.Log("BRAXHORN_DRZWI " + z + " — norma: zwykłe 0.9–1.0 × 2.05–2.1 m × K (" + (.9f * K).ToString("F2") + "–" + (1f * K).ToString("F2") + " × " + (2.05f * K).ToString("F2") + "–" + (2.1f * K).ToString("F2") + "), publiczne 2 × 0.9 m × K");
         rep.notes.Add("drzwi bez ściany: sprawdzone " + sprawdzone + ", usunięte " + usuniete.Count + ", kolizje ścian dołożone " + dolozone + ", do poprawki " + doPoprawki.Count);
+        if (doPoprawki.Count > 0)
+            rep.notes.Add("DO POPRAWKI: " + doPoprawki.Count +
+                " wejść/drzwi nie ma ścian z obu stron — " + string.Join("; ", doPoprawki.Take(8)));
         try { KontrolaSkaliSwiata(); } catch (Exception e) { Debug.LogWarning("BRAXHORN_SKALA_KONTROLA DO POPRAWKI: " + e.Message); }
     }
 
