@@ -46,7 +46,7 @@ def main():
     if not executable:raise RuntimeError("Official Blender is not installed; cannot build from fake grass")
     info=subprocess.run([executable,"--version"],capture_output=True,text=True,
         check=True,timeout=45).stdout
-    match=re.search(r"Blender (\\d+)\\.(\\d+)",info)
+    match=re.search(r"Blender (\d+)\.(\d+)",info)
     if not match:raise ValueError("Unable to verify actual Blender executable version")
     blender_version=int(match.group(1))*100+int(match.group(2))
     if blender_version<404:
