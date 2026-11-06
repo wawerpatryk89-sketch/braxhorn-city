@@ -1,4 +1,4 @@
-name: "Obóz — 4 szybkie testy, bez Unity i APK"
+name: "Obóz — 5 szybkich testów, bez Unity i APK"
 
 on:
   push:
@@ -49,7 +49,7 @@ jobs:
             unity-tools/oboz/
             unity-city/Assets/Editor/Oboz/
             unity-city/Assets/Oboz/
-      - name: Zlecenie: oryginalne łóżka/kuchnie/trawa/24 worki/murale i preflight
+      - name: "Zlecenie: oryginalne łóżka/kuchnie/trawa/24 worki/murale i preflight"
         run: |
           set -euo pipefail
           python3 -m unittest -v unity-tools/oboz/tests/test_owner_camp_completion_contract.py
@@ -68,12 +68,12 @@ jobs:
           sparse-checkout: |
             unity-tools/oboz/
             unity-city/Assets/Editor/Oboz/
-      - name: Bez Unity: pięć testów połączeń i przejść
+      - name: "Bez Unity: pięć testów połączeń i przejść"
         run: |
           set -euo pipefail
           python3 -m unittest -v unity-tools/oboz/tests/test_oboz_walkways_quick.py
           echo "OBOZ_MICRO_WALKWAYS=PASS; UNITY_NAVMESH_UNVERIFIED"
-      - name: Bez Unity: błędne archiwum odrzucone, prawidłowe przyjęte
+      - name: "Bez Unity: błędne archiwum odrzucone, prawidłowe przyjęte"
         run: |
           set -euo pipefail
           python3 -m unittest -v unity-tools/oboz/tests/test_owner_blender_nested_zip.py
@@ -94,7 +94,7 @@ jobs:
             unity-city/Assets/
       - name: Zainstaluj WYŁĄCZNIE parser zakresów C#
         run: python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
-      - name: C# lokalne zmienne, kolizje nazw, weryfikacja składni
+      - name: "C# lokalne zmienne, kolizje nazw, weryfikacja składni"
         run: |
           set -euo pipefail
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
