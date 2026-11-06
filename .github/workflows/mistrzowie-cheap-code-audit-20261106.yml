@@ -8,6 +8,9 @@ on:
     branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
     paths:
       - .github/workflows/mistrzowie-cheap-code-audit-20261106.yml
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoPbr2K.cs
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1Pbr2K.cs
+      - unity-tools/mistrzowie/test_build18_recovery_and_delivery.py
   workflow_dispatch:
 
 permissions:
