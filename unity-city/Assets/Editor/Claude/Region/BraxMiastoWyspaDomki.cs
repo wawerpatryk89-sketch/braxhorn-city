@@ -264,53 +264,175 @@ internal static partial class BraxMiastoWyspa
     static void Chodnik(BraxNabrzeze.Zbior z, int ja)
     {
         var (a, b, szer, kraw, nazwa) = plan[ja];
-        var dir = (b - a); float L = dir.magnitude; if (L < .5f) return; dir /= L;
+        var delta = b - a; float L = delta.magnitude;
+        if (L < .5f) return;
+        var dir = delta / L;
         var bok = new Vector2(dir.y, -dir.x); float hw = szer * .5f;
         var top = z[matChodnik]; var cok = z[matKraw];
-        float TopY(Vector2 p) { float y = -99f; for (float o = -hw - .2f; o <= hw + .2f; o += hw * .5f) { var q = p + bok * o; y = Mathf.Max(y, H(q.x, q.y)); } return W + y + .09f; }
-        float MinY(Vector2 p) { float y = 99f; for (float o = -hw - .2f; o <= hw + .2f; o += hw * .5f) { var q = p + bok * o; y = Mathf.Min(y, H(q.x, q.y)); } return W + y - .35f; }
         Vector3 S3(Vector2 p, float y) => new Vector3(CX + p.x, y, CZ + p.y);
-        var bok3 = new Vector3(bok.x, 0, bok.y); var dir3 = new Vector3(dir.x, 0, dir.y);
-        bool wRun = false; Vector2 runStart = a; float yRunStart = 0;
+        var bok3 = new Vector3(bok.x, 0f, bok.y);
+        var dir3 = new Vector3(dir.x, 0f, dir.y);
+        Vector2 At(float t) => a + dir * Mathf.Clamp(t, 0f, L);
+
+        // Poprzedni profil oparty na osi obrotu każdego odcinka powodował
+        // różne poziomy na tym samym skrzyżowaniu. Jedna funkcja wysokości
+        // w osiach świata daje identyczną wysokość przy wspólnym punkcie.
+        float RawY(Vector2 p)
+        {
+            float y = -99f;
+            for (int ix = -1; ix <= 1; ix++)
+                for (int iz = -1; iz <= 1; iz++)
+                    y = Mathf.Max(y, H(p.x + ix * 1.6f, p.y + iz * 1.6f));
+            return W + y + .09f;
+        }
+        float MinY(Vector2 p)
+        {
+            float y = 99f;
+            foreach (float o in new[] { -hw - .2f, 0f, hw + .2f })
+            {
+                var q = p + bok * o;
+                y = Mathf.Min(y, H(q.x, q.y));
+            }
+            return W + y - .35f;
+        }
+        // Wyrównanie pochyłości (maksymalnie 12 cm na metr), bez obcinania
+        // wysokich punktów pod teren. Podnosimy niskie miejsca, a cokół
+        // dochodzi do gruntu; nie zmieniamy materiału ani przebiegu alei.
+        int nProfil = Mathf.CeilToInt(L * 2f);
+        float krok = L / Mathf.Max(1, nProfil);
+        var profil = new float[nProfil + 1];
+        for (int i = 0; i <= nProfil; i++) profil[i] = RawY(At(i * krok));
+        for (int i = 1; i <= nProfil; i++)
+            profil[i] = Mathf.Max(profil[i], profil[i - 1] - krok * .12f);
+        for (int i = nProfil - 1; i >= 0; i--)
+            profil[i] = Mathf.Max(profil[i], profil[i + 1] - krok * .12f);
+        float TopY(float t)
+        {
+            float pos = Mathf.Clamp(t / krok, 0f, nProfil);
+            int i = Mathf.Min(Mathf.FloorToInt(pos), nProfil - 1);
+            return Mathf.Lerp(profil[i], profil[i + 1], pos - i);
+        }
+
+        // UWAGA: dawne !WInnym(midpoint) usuwało CAŁY 1-metrowy kawałek.
+        // Przy skrzyżowaniu powstawały luki do ~1 m. Granice przecinającego
+        // chodnika wyznaczamy z dokładnością < 4 mm przez bisekcję.
+        bool Przykryte(float t) => WInnym(At(t), ja, 0f, true);
+        float Granica(float lo, float hi, bool stanNaLewo)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                float m = (lo + hi) * .5f;
+                if (Przykryte(m) == stanNaLewo) lo = m;
+                else hi = m;
+            }
+            return (lo + hi) * .5f;
+        }
+
+        bool otwarte = false; float koniec = 0f; int odcinki = 0, lukiTerenu = 0, zlacza = 0;
+        void Zamknij(float t)
+        {
+            if (!otwarte) return;
+            var p = At(t); float yt = TopY(t), ym = MinY(p);
+            Q(cok, S3(p - bok * hw, yt), S3(p + bok * hw, yt),
+                S3(p + bok * hw, ym), S3(p - bok * hw, ym), dir3);
+            otwarte = false;
+        }
+        void Fragment(float t0, float t1)
+        {
+            if (t1 - t0 < .005f) return;
+            var p0 = At(t0); var p1 = At(t1); var pm = (p0 + p1) * .5f;
+            if (!NaLadzie(pm.x, pm.y) ||
+                !NaLadzie((pm + bok * hw).x, (pm + bok * hw).y) ||
+                !NaLadzie((pm - bok * hw).x, (pm - bok * hw).y) ||
+                Vector2.Distance(pm, Plac) <= PlacR - .5f)
+            {
+                lukiTerenu++;
+                Zamknij(koniec);
+                return;
+            }
+            float y0 = TopY(t0), y1 = TopY(t1), m0 = MinY(p0), m1 = MinY(p1);
+            if (!otwarte || Mathf.Abs(koniec - t0) > .006f)
+            {
+                Zamknij(koniec);
+                Q(cok, S3(p0 - bok * hw, y0), S3(p0 + bok * hw, y0),
+                    S3(p0 + bok * hw, m0), S3(p0 - bok * hw, m0), -dir3);
+                otwarte = true;
+            }
+            Q(top, S3(p0 - bok * hw, y0), S3(p0 + bok * hw, y0),
+                S3(p1 + bok * hw, y1), S3(p1 - bok * hw, y1), Vector3.up);
+            Q(cok, S3(p0 + bok * hw, y0), S3(p1 + bok * hw, y1),
+                S3(p1 + bok * hw, m1), S3(p0 + bok * hw, m0), bok3);
+            Q(cok, S3(p0 - bok * hw, y0), S3(p1 - bok * hw, y1),
+                S3(p1 - bok * hw, m1), S3(p0 - bok * hw, m0), -bok3);
+            koniec = t1;
+            float len = t1 - t0;
+            mChodnika += len;
+            odcinki++;
+
+            // Poprzedni collider obejmował 4 metry, nawet gdy w środku
+            // brakowało nawierzchni. Teraz fizyka pokrywa TYLKO wykonany
+            // fragment; ten sam nachylony profil co widoczna płyta.
+            var A = S3(p0, y0); var B = S3(p1, y1); var v = B - A;
+            if (v.magnitude > .005f)
+                BraxNabrzeze.KolRot(kol, "Wyspa chodnik fizyka " + nazwa,
+                    (A + B) * .5f + Vector3.down * .15f,
+                    new Vector3(szer, .3f, v.magnitude + .012f),
+                    Quaternion.LookRotation(v.normalized, Vector3.up));
+
+            if (kraw)
+            {
+                float kw = .15f * K, kh = .3f;
+                foreach (float sg in new[] { -1f, 1f })
+                {
+                    var c0 = p0 + bok * sg * (hw + kw * .5f);
+                    var c1 = p1 + bok * sg * (hw + kw * .5f);
+                    if (WInnym((c0 + c1) * .5f, ja, kw, false)) continue;
+                    var u = S3(c0, y0 + .1f - kh * .5f);
+                    var v1 = S3(c1, y1 + .1f - kh * .5f);
+                    var d3 = v1 - u;
+                    if (d3.magnitude < .05f) continue;
+                    z[matKraw].Box((u + v1) * .5f,
+                        new Vector3(kw, kh, Mathf.Max(.02f, d3.magnitude - .006f)),
+                        Quaternion.LookRotation(d3.normalized, Vector3.up));
+                    nKrawezniki++;
+                }
+            }
+            // Pełna ochrona pasów pieszych przed późniejszymi palmami
+            // i krzewami. Rezerwacje przy każdej pełnej płycie, a nie co 4 m.
+            Zajmij(S3(pm, 0f), hw + .9f);
+        }
+
         int n = Mathf.CeilToInt(L);
         for (int i = 0; i < n; i++)
         {
-            var p0 = a + dir * i; var p1 = a + dir * Mathf.Min(L, i + 1);
-            var pm = (p0 + p1) * .5f;
-            bool ok = NaLadzie(pm.x, pm.y) && NaLadzie((pm + bok * hw).x, (pm + bok * hw).y) && NaLadzie((pm - bok * hw).x, (pm - bok * hw).y)
-                      && Vector2.Distance(pm, Plac) > PlacR - .5f && !WInnym(pm, ja, 0f, true);
-            if (!ok) { if (wRun) { Koniec(runStart, p0, yRunStart); wRun = false; } continue; }
-            float y0 = TopY(p0), y1 = TopY(p1), m0 = MinY(p0), m1 = MinY(p1);
-            if (!wRun) { wRun = true; runStart = p0; yRunStart = y0; Q(cok, S3(p0 - bok * hw, y0), S3(p0 + bok * hw, y0), S3(p0 + bok * hw, m0), S3(p0 - bok * hw, m0), -dir3); }
-            Q(top, S3(p0 - bok * hw, y0), S3(p0 + bok * hw, y0), S3(p1 + bok * hw, y1), S3(p1 - bok * hw, y1), Vector3.up);
-            Q(cok, S3(p0 + bok * hw, y0), S3(p1 + bok * hw, y1), S3(p1 + bok * hw, m1), S3(p0 + bok * hw, m0), bok3);
-            Q(cok, S3(p0 - bok * hw, y0), S3(p1 - bok * hw, y1), S3(p1 - bok * hw, m1), S3(p0 - bok * hw, m0), -bok3);
-            mChodnika += Vector2.Distance(p0, p1);
-            if (kraw)
-            {   // krawężniki 15 × 25 cm × k, odcinki 1 m z fugą 6 mm, wierzch 10 cm nad chodnikiem, pochylone wzdłuż spadku
-                float kw = .15f * K, kh = .3f;
-                foreach (float s in new[] { -1f, 1f })
-                {
-                    var c0 = p0 + bok * s * (hw + kw * .5f); var c1 = p1 + bok * s * (hw + kw * .5f);
-                    if (WInnym((c0 + c1) * .5f, ja, kw, false)) continue;                 // wejście innego chodnika — krawężnik przerwany
-                    var A = S3(c0, y0 + .1f - kh * .5f); var B = S3(c1, y1 + .1f - kh * .5f); var d3 = B - A; float l3 = d3.magnitude; if (l3 < .05f) continue;
-                    var rot = Quaternion.LookRotation(d3 / l3, Vector3.up);
-                    z[matKraw].Box((A + B) * .5f, new Vector3(kw, kh, l3 - .006f), rot); nKrawezniki++;
-                }
-            }
-            if (i % 4 == 0)
+            float ta = i, tb = Mathf.Min(i + 1f, L);
+            const int probes = 8;
+            float pocz = ta, prev = ta;
+            bool przykryte = Przykryte(ta);
+            for (int j = 1; j <= probes; j++)
             {
-                var A = S3(p0, y0); var B = S3(a + dir * Mathf.Min(L, i + 4), TopY(a + dir * Mathf.Min(L, i + 4))); var d3 = B - A; if (d3.magnitude > .5f)
-                    BraxNabrzeze.KolRot(kol, "Chodnik " + nazwa, (A + B) * .5f + Vector3.down * .15f, new Vector3(szer + (kraw ? .3f * K : 0f), .3f, d3.magnitude + .05f), Quaternion.LookRotation(d3.normalized, Vector3.up));
+                float teraz = Mathf.Lerp(ta, tb, j / (float)probes);
+                bool next = Przykryte(teraz);
+                if (next != przykryte)
+                {
+                    float zmiana = Granica(prev, teraz, przykryte);
+                    if (!przykryte) Fragment(pocz, zmiana);
+                    else { Zamknij(koniec); zlacza++; }
+                    pocz = zmiana;
+                    przykryte = next;
+                }
+                prev = teraz;
             }
-            if (i % 4 == 2) Zajmij(S3(pm, 0), hw + .8f);
+            if (!przykryte) Fragment(pocz, tb);
+            else Zamknij(koniec);
         }
-        if (wRun) Koniec(runStart, a + dir * L, yRunStart);
-        void Koniec(Vector2 s0, Vector2 e, float ys)
-        {
-            float ye = TopY(e), me = MinY(e);
-            Q(cok, S3(e - bok * hw, ye), S3(e + bok * hw, ye), S3(e + bok * hw, me), S3(e - bok * hw, me), dir3);
-        }
+        Zamknij(koniec);
+        string wynik = "WYSPA_CHODNIK_SPOJNOSC " + nazwa + " odcinki=" + odcinki +
+            " zlacza=" + zlacza + " luki_terenu=" + lukiTerenu +
+            " wykonane_m=" + mChodnika.ToString("F1") + " planowane_m=" + L.ToString("F1");
+        if (lukiTerenu > 0)
+            BraxBuildQuality.Warn(wynik + " — korytarz wymaga sprawdzenia w Unity; APK nie blokujemy");
+        else Debug.Log(wynik);
     }
 
     struct Paleta { public Color sciana, obrobki, dach, okiennice; }
