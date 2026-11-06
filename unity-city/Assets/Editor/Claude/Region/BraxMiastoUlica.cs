@@ -80,6 +80,11 @@ internal static class BraxMiastoUlica
                 return false;
         return true;
     }
+    // Wspólny filtr dla później generowanej zieleni: donice i hydranty
+    // nie mogą ominąć ochrony oryginalnych wejść do lokali R1.
+    internal static bool MiejsceWolneDlaDodatkow(float x, float z, float polSzerokosci)
+        => Wolne(x, z >= 28.5f, polSzerokosci);
+
     static float Grunt(float x, float z)
     {
         foreach (var h in Physics.RaycastAll(new Vector3(x, 6f, z), Vector3.down, 9f, ~0, QueryTriggerInteraction.Ignore).OrderBy(h => h.distance))
