@@ -89,7 +89,7 @@ internal static class BraxMiastoBillboardy
             }
             opis.Add("10: brak miejsca przy wiacie");
         });
-        Krok("19 mural GYM", () => MuralSilowni(g));
+        Krok("19 mural GYM", () => MuralSilowni(root, g));
 
         string linia = "BRAXHORN_BILLBOARDY postawione=" + postawione + " brak_grafiki=" + brak + " usuniete_stare=" + stare + " [" + string.Join("; ", opis) + "]";
         if (postawione >= 5) Debug.Log(linia); else Debug.LogWarning(linia);
@@ -306,12 +306,33 @@ internal static class BraxMiastoBillboardy
         postawione++; opis.Add(nr + " citylight @" + p.ToString("F0") + " (" + gdzie + ")" + (mat == pusta ? " PUSTA RAMA" : ""));
     }
 
+    // Tylko billboard/mural nr 19 na ceglanym fragmencie obok szarej ściany.
+    // Usuwa starszą grupę wygenerowaną pod złą elewacją, NIE usuwa innych reklam.
+    static int UsunBilbord19PrzySzarejScianie(Transform cityRoot)
+    {
+        var kandydaci = cityRoot.GetComponentsInChildren<Transform>(true)
+            .Where(t => t && t != cityRoot &&
+                (t.name.StartsWith("BRAXHORN mural 19 (", StringComparison.Ordinal) ||
+                 t.name == "mural_19" ||
+                 t.name.StartsWith("BRAXHORN nośnik: billboard 19", StringComparison.Ordinal)))
+            .Where(t => t.GetComponentsInChildren<Renderer>(true).Any(r =>
+                r && r.bounds.center.x >= 9.5f && r.bounds.center.x <= 14.8f &&
+                Mathf.Abs(r.bounds.center.z - 20.6f) < .8f &&
+                r.bounds.center.y < 6.5f))
+            .ToList();
+        var minimalne = kandydaci.Where(t => !kandydaci.Any(p => p != t && t.IsChildOf(p))).ToArray();
+        foreach (var t in minimalne) if (t) UnityEngine.Object.DestroyImmediate(t.gameObject);
+        Debug.Log("BRAXHORN_MURAL_19 usuniety_stary_bilbord=" + minimalne.Length + " (ceglany fragment, pozostale reklamy bez zmian)");
+        return minimalne.Length;
+    }
+
     // ---------------- mural 19 NA ELEWACJI BRAXHORN GYM: bez tablicy, ramy i słupków ----------------
     // Zgłoszenie właściciela 6.11: cała szara ściana, grafika 19 z jego paczki, otwór na drzwi.
     // UV są liczone od JEDNEJ powierzchni: trzy części wokół wejścia nie rozciągają
     // trzykrotnie zdjęcia. Nie stawiamy obrazu na billboardzie ani przed przejściem.
-    static void MuralSilowni(Transform rodzic)
+    static void MuralSilowni(Transform cityRoot, Transform rodzic)
     {
+        int usuniete = UsunBilbord19PrzySzarejScianie(cityRoot);
         var mat = Grafika("19", 1.5f, out float proporcja);
         if (mat == pusta || !mat.mainTexture)
         {
@@ -428,5 +449,4 @@ internal static class BraxMiastoBillboardy
         opis.Add(opis19);
         Debug.Log("BRAXHORN_MURAL_19 " + opis19);
     }
-}
 }
