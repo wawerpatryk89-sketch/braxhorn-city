@@ -102,7 +102,7 @@ for a in XROAD:
  xs.update([a-17,a-10,a,a+10,a+17])
 for a in ZROAD:
  zs.update([a-17,a-10,a,a+10,a+17])
-rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP]+POOL_HOLES+ENTRANCE_HOLESENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
+rects=plots+walks+greens+[p[:4] for p in piers]+PAVILION_PADS+PAVILION_FOOTPRINTS+[(PROM_X0,CYCLE_Z0,PROM_X1-PROM_X0,CYCLE_WIDTH)]+[T11_GARAGE_RAMP]+POOL_HOLES+ENTRANCE_HOLES+ENTRANCE_PATHS+BUILDING_ACCESS+[(50,-150,1100,30)]
 for x,z,w,d in rects:xs.update([x,x+w]);zs.update([z,z+d])
 xs=sorted(x for x in xs if 0<=x<=1200);zs=sorted(z for z in zs if -500<=z<=1000)
 meshes={};cells=[]
