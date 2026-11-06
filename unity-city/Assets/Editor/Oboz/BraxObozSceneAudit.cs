@@ -27,9 +27,11 @@ public static class BraxObozSceneAudit
         public string scene,revision;
         public bool unitySceneInspected,apkBuilt,phoneVerified;
         public int renderers,unclassified,levitating,embedded,missingGroundRay,expectedMounted;
+        public int expectedMurals=4,presentMurals,muralWarnings,scaleWarnings,overlapCandidates;
         public long dependentSourceBytes;
         public Item[] items;
         public SizeEntry[] largestSources;
+        public string[] muralFindings,scaleFindings,overlapFindings;
     }
 
     static string PathOf(Transform transform)
@@ -97,6 +99,143 @@ public static class BraxObozSceneAudit
             .Select(p=>new SizeEntry{path=p,sourceBytes=new FileInfo(p).Length})
             .OrderByDescending(x=>x.sourceBytes).Take(20).ToArray();
     }
+
+    static Bounds RenderedBounds(Transform t)
+    {
+        var renderers=t.GetComponentsInChildren<Renderer>(true)
+            .Where(r=>r && r.enabled && r.gameObject.activeInHierarchy).ToArray();
+        if(renderers.Length==0)return new Bounds(t.position,Vector3.zero);
+        var b=renderers[0].bounds;
+        foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
+        return b;
+    }
+
+    static string[] ReviewDimensions(Scene scene)
+    {
+        var results=new List<string>();
+        var transforms=scene.GetRootGameObjects()
+            .SelectMany(g=>g.GetComponentsInChildren<Transform>(true)).ToArray();
+        void Check(Transform t,float measured,float metres,string which)
+        {
+            if(measured<=.0001f || Mathf.Abs(measured-metres*K)>.15f*metres*K)
+                results.Add("Skala: "+PathOf(t)+" "+which+
+                    " zmierzono="+(measured/K).ToString("F3")+
+                    " m; oczekiwano="+metres.ToString("F2")+"m");
+        }
+        foreach(var t in transforms)
+        {
+            var n=t.name;
+            if(n.StartsWith("ORYGINAŁ IKEA IDANAS — łóżko",StringComparison.Ordinal))
+            {
+                var bounds=RenderedBounds(t);
+                Check(t,Mathf.Max(bounds.size.x,bounds.size.z),2f,"długość łóżka");
+                Check(t,Mathf.Min(bounds.size.x,bounds.size.z),.9f,"szerokość łóżka");
+            }
+            else if(n=="Właściciel / oryginalny metal_cabinet_low_poly.glb")
+                Check(t,RenderedBounds(t).size.y,2f,"wysokość szafy");
+            else if(n.StartsWith("Oryginalny stół polowy 3D",StringComparison.Ordinal))
+                Check(t,RenderedBounds(t).size.y,.75f,"wysokość stołu");
+        }
+        foreach(var arena in scene.GetRootGameObjects()
+            .SelectMany(g=>g.GetComponentsInChildren<BraxObozArena>(true))
+            .Where(x=>x&&x.label.StartsWith("Ring",StringComparison.Ordinal)))
+        {
+            var platform=arena.GetComponentsInChildren<Renderer>(true)
+                .FirstOrDefault(x=>x.name=="Podest drewniany");
+            if(platform)Check(platform.transform,platform.bounds.size.y,1f,"wysokość podestu");
+            else results.Add("Nie odnaleziono drewnianego podestu: "+arena.label);
+        }
+        return results.ToArray();
+    }
+
+    static string[] ReviewOriginalMurals(Renderer[] renderers)
+    {
+        var results=new List<string>();
+        var murals=renderers.Where(x=>x.name.StartsWith("JPEG 1:1 — ",StringComparison.Ordinal))
+            .ToArray();
+        if(murals.Length!=4)
+            results.Add("Niezgodna liczba oryginalnych murali: "+murals.Length+"; wymagane 4");
+        foreach(var r in murals)
+        {
+            string key=r.name;
+            var source=r.sharedMaterial?r.sharedMaterial.mainTexture as Texture2D:null;
+            if(!source)
+            {
+                results.Add("Mural bez oryginalnej tekstury: "+key);
+                continue;
+            }
+            float actual=Mathf.Abs(r.transform.lossyScale.x)/
+                Mathf.Max(.0001f,Mathf.Abs(r.transform.lossyScale.y));
+            float expected=source.width/(float)source.height;
+            if(Mathf.Abs(actual-expected)>.02f)
+                results.Add("Mural rozciągnięty: "+key+
+                    " siatka="+actual+" oryginał="+expected);
+            var importer=AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(source))
+                as TextureImporter;
+            if(importer)
+            {
+                importer.GetSourceTextureWidthAndHeight(out int w,out int h);
+                if(w<4096)
+                    results.Add("Mural za mały (<4096px szer.): "+key+" "+w+"x"+h);
+            }
+            var facing=r.transform.forward;
+            var from=r.bounds.center+facing*(.4f*K);
+            var walls=Physics.RaycastAll(from,-facing,1.25f*K,~0,
+                QueryTriggerInteraction.Ignore).Where(h=>h.collider &&
+                    !h.collider.transform.IsChildOf(r.transform) &&
+                    Vector3.Dot(h.normal,facing)>.55f).ToArray();
+            if(walls.Length==0)
+                results.Add("Mural bez potwierdzonego styku ze ścianą: "+key);
+        }
+        return results.ToArray();
+    }
+
+    static string BuildingScope(Transform t)
+    {
+        for(var p=t;p;p=p.parent)
+        {
+            if(p.name.StartsWith("Domek ",StringComparison.Ordinal) ||
+                p.name=="Stołówka" || p.name=="Magazyn" ||
+                p.name=="Punkt medyczny" || p.name.Contains("ŁAŹNIA"))
+                return PathOf(p);
+        }
+        return null;
+    }
+
+    static string[] ReviewFurnitureOverlaps(Scene scene)
+    {
+        var candidates=scene.GetRootGameObjects()
+            .SelectMany(x=>x.GetComponentsInChildren<Transform>(true))
+            .Where(t=>t && (t.name.StartsWith("ORYGINAŁ IKEA IDANAS — łóżko") ||
+                t.name=="Właściciel / oryginalny metal_cabinet_low_poly.glb" ||
+                t.name.StartsWith("Oryginalny stół polowy 3D") ||
+                t.name.Contains("drawer_cabinet_4k") ||
+                t.name.Contains("picnic_set_1.glb")))
+            .Select(t=>new {transform=t,scope=BuildingScope(t),bounds=RenderedBounds(t)})
+            .Where(x=>x.scope!=null && x.bounds.size.sqrMagnitude>.01f)
+            .ToArray();
+        var results=new List<string>();
+        for(int i=0;i<candidates.Length;i++)
+        for(int j=i+1;j<candidates.Length;j++)
+        {
+            var a=candidates[i];var c=candidates[j];
+            if(a.scope!=c.scope || a.transform.IsChildOf(c.transform) ||
+                c.transform.IsChildOf(a.transform) ||
+                !a.bounds.Intersects(c.bounds))continue;
+            float ox=Mathf.Min(a.bounds.max.x,c.bounds.max.x)-
+                     Mathf.Max(a.bounds.min.x,c.bounds.min.x);
+            float oy=Mathf.Min(a.bounds.max.y,c.bounds.max.y)-
+                     Mathf.Max(a.bounds.min.y,c.bounds.min.y);
+            float oz=Mathf.Min(a.bounds.max.z,c.bounds.max.z)-
+                     Mathf.Max(a.bounds.min.z,c.bounds.min.z);
+            if(Mathf.Min(ox,Mathf.Min(oy,oz))<=Tolerance)continue;
+            results.Add("Kandydat nachodzenia (>3cm AABB): "+
+                PathOf(a.transform)+" vs "+PathOf(c.transform)+
+                "; przenikanie="+(Mathf.Min(ox,Mathf.Min(oy,oz))/K).ToString("F3")+"m");
+        }
+        return results.ToArray();
+    }
+
     [MenuItem("BRAXHORN/Obóz/Pełny audyt sceny — bez APK")]
     public static void Run()
     {
@@ -110,6 +249,9 @@ public static class BraxObozSceneAudit
                 .ToArray();
             var all=renderers.Select(Inspect).ToArray();
             var biggest=LargestSources();
+            var muralIssues=ReviewOriginalMurals(renderers);
+            var scaleIssues=ReviewDimensions(scene);
+            var overlaps=ReviewFurnitureOverlaps(scene);
             var report=new Report {
                 scene=BraxObozActors.ScenePath,
                 revision=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local",
@@ -123,6 +265,10 @@ public static class BraxObozSceneAudit
             report.unclassified=all.Count(x=>x.status=="brak testu");
             report.largestSources=biggest;
             report.dependentSourceBytes=biggest.Sum(x=>x.sourceBytes);
+            report.presentMurals=renderers.Count(r=>r.name.StartsWith("JPEG 1:1 — "));
+            report.muralFindings=muralIssues;report.muralWarnings=muralIssues.Length;
+            report.scaleFindings=scaleIssues;report.scaleWarnings=scaleIssues.Length;
+            report.overlapFindings=overlaps;report.overlapCandidates=overlaps.Length;
             string folder=System.IO.Path.GetFullPath(
                 System.IO.Path.Combine(Application.dataPath,"../../audit"));
             Directory.CreateDirectory(folder);
@@ -136,16 +282,24 @@ public static class BraxObozSceneAudit
             md.AppendLine("Zapadnięte >3 cm: "+report.embedded);
             md.AppendLine("Bez podłoża do raycast: "+report.missingGroundRay);
             md.AppendLine("Montażowe/podwieszone (sprawdzić wizualnie): "+report.expectedMounted);
+            md.AppendLine("Murale: "+report.presentMurals+"/4; zastrzeżenia: "+report.muralWarnings);
+            md.AppendLine("Błędy skali: "+report.scaleWarnings+
+                "; kandydaci przenikania mebli >3cm: "+report.overlapCandidates);
             md.AppendLine("Weryfikacja wizualna/telefon: NIE");
             md.AppendLine("20 największych zasobów zależnych — BAJTY ŹRÓDŁOWE, NIE ROZMIAR APK:");
             foreach(var x in biggest)md.AppendLine("- "+x.sourceBytes+" B — "+x.path);
             md.AppendLine("Przykładowe niezgodności (pełny wykaz w JSON):");
+            foreach(var x in muralIssues.Take(10))md.AppendLine("- MURAL: "+x);
+            foreach(var x in scaleIssues.Take(12))md.AppendLine("- SKALA: "+x);
+            foreach(var x in overlaps.Take(12))md.AppendLine("- NACHODZENIE: "+x);
             foreach(var x in all.Where(x=>x.status.Contains("3 cm")||
-                x.status=="brak powierzchni w raycast").Take(90))
+                x.status=="brak powierzchni w raycast").Take(56))
                 md.AppendLine("- "+x.status+" "+x.path+" gap="+x.gapMetres.ToString("F3"));
             File.WriteAllText(System.IO.Path.Combine(folder,"oboz-scena.md"),md.ToString());
             Debug.LogWarning("BRAXHORN_OBOZ_SCENE_AUDIT renderers="+report.renderers+
                 " float="+report.levitating+" embedded="+report.embedded+
+                " murals="+report.presentMurals+"/4 scale="+report.scaleWarnings+
+                " overlaps="+report.overlapCandidates+
                 " withoutGround="+report.missingGroundRay+
                 " reports=audit/oboz-scena.json,audit/oboz-scena.md");
         }
