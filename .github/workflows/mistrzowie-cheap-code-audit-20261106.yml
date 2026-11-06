@@ -25,6 +25,8 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             unity-tools/validation
+            unity-tools/mistrzowie/test_build18_recovery_and_delivery.py
+            unity-tools/mistrzowie/prepare_casino_textures_2k.py
             unity-city/Assets/Editor
             unity-city/Assets/Mistrzowie
             unity-city/Assets/BraxGymPlayer.cs
@@ -39,6 +41,7 @@ jobs:
             unity-city/Assets/Source/Mistrzowie/PoolP1/plot.json
             unity-city/Assets/Source/Mistrzowie/PoolP1/plot.json.meta
             .github/workflows/mistrzowie-apk.yml
+            .github/workflows/mistrzowie-cheap-code-audit-20261106.yml
       - name: Verify Python source syntax and ALL checked-out Unity GUIDs
         run: |
           python3 -m py_compile unity-tools/validation/check_unity_meta_guids.py
@@ -47,5 +50,7 @@ jobs:
         run: |
           python3 -m pip install -q -r unity-tools/validation/requirements.txt
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: Build 18 regression tests (source only, never Unity)
+        run: python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_build18_recovery_and_delivery.py' -v
       - name: Source-only report
         run: echo 'Szybka kontrola plików C# i .meta; nie wykonywano Unity, buildu APK ani testu telefonu.' >> "$GITHUB_STEP_SUMMARY"
