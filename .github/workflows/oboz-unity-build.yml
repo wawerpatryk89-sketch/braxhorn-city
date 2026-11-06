@@ -147,9 +147,19 @@ jobs:
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: python3 unity-tools/oboz/assets.py restore
+      - name: Zainstaluj Blender i zstd do oryginalnych siatek Grass Medium/4K
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y blender zstd
+          blender --version | head -2
       - name: Zweryfikowany import nowej prywatnej paczki 30 modeli i byka
         if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         run: python3 unity-tools/oboz/owner_release_assets.py restore
+      - name: Eksport oryginalnych siatek Grass Medium 01/02 i szafki 4K — BEZ decymacji
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: python3 unity-tools/oboz/owner_blender_export.py
       - name: Przywróć prywatną siłownię 3D z atlasem 2K i opony właściciela
         if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         run: python3 unity-tools/oboz/owner_extra_assets.py restore
