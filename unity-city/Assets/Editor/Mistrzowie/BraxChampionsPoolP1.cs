@@ -82,7 +82,8 @@ public static class BraxChampionsPoolP1
         FixturesAndFurniture();
         EstateAndParking();
         BraxChampionsPoolP1Slide.Generate(outdoors,paving,steel,blue);
-        OwnerEquipmentAnchors();
+        // Original SPA prefabs are mounted only from real owner source assets.
+        // Any still-unimported model is reported by the furnishing module.
         BraxChampionsPoolP1SpaFurnishing.Generate(rooms,details,smallMosaic,steel);
         NightAndInteriorLights();
 
@@ -547,23 +548,6 @@ public static class BraxChampionsPoolP1
             Box(rooms,"Technician control console",steel,31,1.0f,z,4.2f,1.35f,1.25f);
             Box(rooms,"Technician inspection board",floor,34,2.0f,z,.15f,1.8f,4.0f);
         }
-    }
-    static void OwnerEquipmentAnchors()
-    {
-        // These invisible mount points are intentional. Never produce fake
-        // substitutes for owner-selected models or assume model dimensions.
-        void At(string id,float x,float z,float y=Deck)
-        {
-            var t=Group(details,"OWNER_ASSET_PENDING | "+id);
-            t.localPosition=new Vector3(x,y,z)*K;
-        }
-        for(int i=0;i<10;i++)At("locker_female_"+(i+1),-33.4f+i*1.4f,13.4f);
-        for(int i=0;i<8;i++)At("locker_male_"+(i+1),8.4f+i*1.1f,14.2f);
-        At("sauna_premium_3d",12.4f,-22.5f);
-        for(int i=0;i<3;i++)At("spa_lounger_premium_"+(i+1),7.8f+i*3.7f,-11.2f);
-        At("jacuzzi_premium_3d",10f,-6.75f);
-        // Preview-only location; adjust after inspecting exact supplied slide FBX/GLB.
-        // The original raft slide is already installed as an independently replaceable module.
     }
     static void ArcPaint(Transform t,float x,float y,float z,float radius,Material material)
     {
