@@ -47,9 +47,12 @@ public sealed class BraxRuchAut : MonoBehaviour
         foreach (var a in auta) if (a) { szer = Mathf.Max(szer, a.szer); dl = Mathf.Max(dl, a.dl); }
         sym = new BraxRuchAutSym(punkty, trasy, zdarzenia, wezly, ziarno, szer, dl, vZakret);
         foreach (var a in auta) if (a) sym.Dodaj(a.trasaNr, a.sStart, a.dl, a.szer, a.rozstaw, a.osTyl, a.vmax); else sym.Dodaj(0, 0f, 4.5f, 1.9f, 2.7f, -1.3f, 8f);
-        sym.UstawStart();
         sym.widoczne = Widoczne;
         sym.przeszkodaSceny = PrzeszkodaSceny;
+        // Do not initialize traffic until real obstacles have been registered.
+        // OnEnable runs before Start for scene objects, including the player car and buses.
+        OdswiezPrzeszkody();
+        sym.UstawStart();
         for (int i = 0; i < auta.Length; i++) if (auta[i]) auta[i].Ustaw(sym.auta[i], 0f, 999f, true);
     }
 
@@ -61,6 +64,19 @@ public sealed class BraxRuchAut : MonoBehaviour
         if (d.sqrMagnitude > 170f * 170f) return false;
         var v = kam.WorldToViewportPoint(p);
         return v.z > 0f && v.x > -.15f && v.x < 1.15f && v.y > -.2f && v.y < 1.2f;
+    }
+
+    void OdswiezPrzeszkody()
+    {
+        sym.zewnetrzne.Clear();
+        foreach (var car in BraxAutoGracza.Wszystkie)
+            if (car && car.obrys) sym.zewnetrzne.Add(new BraxRuchAutSym.ObrysZewnetrzny {
+                srodek=car.transform.TransformPoint(car.obrys.center), przod=car.transform.forward,
+                polSzer=car.obrys.size.x*Mathf.Abs(car.obrys.transform.lossyScale.x)*.5f, polDl=car.obrys.size.z*Mathf.Abs(car.obrys.transform.lossyScale.z)*.5f });
+        foreach (var bus in BraxAutobus.Wszystkie)   // runda 6 (E23): autobus jako przeszkoda dla aut AI
+            if (bus && bus.obrys) sym.zewnetrzne.Add(new BraxRuchAutSym.ObrysZewnetrzny {
+                srodek=bus.transform.TransformPoint(bus.obrys.center), przod=bus.transform.forward,
+                polSzer=bus.obrys.size.x*Mathf.Abs(bus.obrys.transform.lossyScale.x)*.5f, polDl=bus.obrys.size.z*Mathf.Abs(bus.obrys.transform.lossyScale.z)*.5f });
     }
 
     void Update()
@@ -77,15 +93,7 @@ public sealed class BraxRuchAut : MonoBehaviour
         // nie traktuj dodatkowo pasażera jako pieszego wymagającego klaksonu.
         sym.graczJest = gracz && graczKomponent && !graczKomponent.autoGracza && !graczKomponent.seat;
         if (gracz) sym.gracz = gracz.position;
-        sym.zewnetrzne.Clear();
-        foreach (var car in BraxAutoGracza.Wszystkie)
-            if (car && car.obrys) sym.zewnetrzne.Add(new BraxRuchAutSym.ObrysZewnetrzny {
-                srodek=car.transform.TransformPoint(car.obrys.center), przod=car.transform.forward,
-                polSzer=car.obrys.size.x*Mathf.Abs(car.obrys.transform.lossyScale.x)*.5f, polDl=car.obrys.size.z*Mathf.Abs(car.obrys.transform.lossyScale.z)*.5f });
-        foreach (var bus in BraxAutobus.Wszystkie)   // runda 6 (E23): autobus jako przeszkoda dla aut AI
-            if (bus && bus.obrys) sym.zewnetrzne.Add(new BraxRuchAutSym.ObrysZewnetrzny {
-                srodek=bus.transform.TransformPoint(bus.obrys.center), przod=bus.transform.forward,
-                polSzer=bus.obrys.size.x*Mathf.Abs(bus.obrys.transform.lossyScale.x)*.5f, polDl=bus.obrys.size.z*Mathf.Abs(bus.obrys.transform.lossyScale.z)*.5f });
+        OdswiezPrzeszkody();
         float dt = Mathf.Min(Time.deltaTime, .1f);
         sym.Krok(dt);
         Vector3 kp = kam ? kam.transform.position : new Vector3(1e6f, 0f, 1e6f);
