@@ -538,7 +538,49 @@ public static class BraxRegionBraxFlat
                 }
         }
         // tylko okna tego piętra (dół szyby nad podłogą, góra pod sufitem) i sensownej wielkości
-        return rects.Where(w => w.width > .4f && w.height > .6f && w.yMin < Ceil - .6f && w.yMax > Fl + .8f).ToList();
+        var wynik = rects.Where(w => w.width > .4f && w.height > .6f &&
+            w.yMin < Ceil - .6f && w.yMax > Fl + .8f).ToList();
+        if (wynik.Count > 0) return wynik;
+
+        // R1: po CityArchitecture.Batch() szyby oryginalnego modułu są
+        // złączone materiałami i powyższa selekcja "glass" zwracała 0.
+        // NIE wymyślamy nowej elewacji. Czytamy oryginalne otwory okienne
+        // Z ISTNIEJĄCEGO "NOVA preserved interior upper storeys / Upper rear".
+        // BraxCityArchitecture.PlanarWall() potwierdza źródłową aperturę
+        // x=0.55..2.45, y=0.46..2.15 w module 3x3 m (bez zmiany UV).
+        var elewacja = cityRoot.GetComponentsInChildren<Transform>(true)
+            .FirstOrDefault(t => t && t.name == "NOVA preserved interior upper storeys");
+        var frontUlicy = elewacja ? elewacja.Find("Upper rear") : null;
+        if (!frontUlicy || !frontUlicy.GetComponentsInChildren<MeshRenderer>(true)
+                .Any(r => r && r.enabled))
+        {
+            Debug.LogWarning("BRAXHORN_MIESZKANIE_BRAXA_OKNA_NIEGOTOWE: brak oryginalnej fasady Upper rear; nie dodajemy fikcyjnych okien");
+            return wynik;
+        }
+
+        // Ta sama siatka i to samo skalowanie zatwierdzonego modułu, którego
+        // rzeczywiście używa BraxCityArchitecture.UpperExtension(NOVA, 32..52).
+        const float szerokoscNOVA = 20f;
+        int liczbaModulow = Mathf.Max(1, Mathf.RoundToInt(szerokoscNOVA / 3f));
+        float modul = szerokoscNOVA / liczbaModulow, kModulu = modul / 3f;
+        for (int i = 0; i < liczbaModulow; i++)
+        {
+            Vector3 a = frontUlicy.TransformPoint(new Vector3(
+                (i * modul) + .55f * kModulu, .15f + .46f, 0f));
+            Vector3 b = frontUlicy.TransformPoint(new Vector3(
+                (i * modul) + 2.45f * kModulu, .15f + 2.15f, 0f));
+            var otwor = Rect.MinMaxRect(
+                Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y),
+                Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+            // Nie wycinamy poza mieszkaniem ani w miejscu bez okna na fasadzie.
+            if (otwor.xMin < x0 || otwor.xMax > x1 ||
+                otwor.yMin < y0 || otwor.yMax > y1 ||
+                otwor.yMin >= Ceil - .6f || otwor.yMax <= Fl + .8f) continue;
+            wynik.Add(otwor);
+        }
+        Debug.Log("BRAXHORN_MIESZKANIE_BRAXA_OKNA_Z_KITU liczba=" + wynik.Count +
+            " z oryginalnych otworów elewacji NOVA (bez nowego modelu)");
+        return wynik;
     }
 
     // Kolizje renowacji (front NOVA z kodu: panel, pilastry) — przycięcie jak w BraxCityMeshCut, tylko w zadanej bryle.
