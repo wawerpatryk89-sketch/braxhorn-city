@@ -95,13 +95,21 @@ public static partial class BraxClaudeOsiedle
     static readonly string PatrykBezRetargetu = PrywatneZrodla + "/patryk_owner_direct";
     static readonly string[] PatrykRuchyWlasne =
     {
-        "Strut Walking.fbx", "Fast Run.fbx", "Jump.fbx", "Entering Car.fbx"
+        "Strut Walking.fbx", "Fast Run.fbx", "Jump.fbx", "Entering Car.fbx",
+        "Goalkeeper Diving Save.fbx", "Goalkeeper Catch.fbx"
     };
 
     static void PatrykPrzygotujWlasneRuchy()
     {
         System.IO.Directory.CreateDirectory(PatrykBezRetargetu);
-        foreach (string name in PatrykRuchyWlasne)
+        // Dodatkowe 16 FBX nie są jeszcze w prywatnym repo. Gdy zostaną
+        // bezpiecznie odszyfrowane, importer użyje WYŁĄCZNIE ich oryginalnych bajtów.
+        var dodatkowe = DodatkoweKlipyPatryka
+            .SelectMany(k => k.zrodla)
+            .Select(System.IO.Path.GetFileName)
+            .Where(name => System.IO.File.Exists(PatrykRuchy + "/patryk_owner/" + name));
+        var dostepne = PatrykRuchyWlasne.Concat(dodatkowe).Distinct(StringComparer.Ordinal).ToArray();
+        foreach (string name in dostepne)
         {
             string src = PatrykRuchy + "/patryk_owner/" + name;
             string dst = PatrykBezRetargetu + "/" + name;
@@ -118,7 +126,7 @@ public static partial class BraxClaudeOsiedle
             if (inne) System.IO.File.Copy(src, dst, true);
         }
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        foreach (string name in PatrykRuchyWlasne)
+        foreach (string name in dostepne)
         {
             string path = PatrykBezRetargetu + "/" + name;
             var importer = AssetImporter.GetAtPath(path) as ModelImporter;
@@ -132,7 +140,8 @@ public static partial class BraxClaudeOsiedle
                 importer.SaveAndReimport();
             }
         }
-        Debug.Log("BRAXHORN_PATRYK_WLASNE_RUCHY: tylko oryginalne FBX Legacy / bezp. kości jak Monika, bez Humanoid i sztucznych klipów");
+        Debug.Log("BRAXHORN_PATRYK_WLASNE_RUCHY: import=" + dostepne.Length +
+            " oryginalnych FBX (Legacy, bezp. kości jak Monika); bez Humanoid i sztucznych klipów");
     }
 
     static AnimationClip PatrykWlasnyFBX(GameObject hero, List<Transform> kosci,
