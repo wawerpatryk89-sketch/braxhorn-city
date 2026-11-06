@@ -7,6 +7,11 @@ on:
     paths: [unity-tools/oboz/build-request.json, .github/workflows/oboz-unity-build.yml]
   workflow_dispatch:
     inputs:
+      expected_sha:
+        description: "Dokładny 40-znakowy SHA do kontroli sceny; sprawdzany przed pobraniem zasobów"
+        type: string
+        required: false
+        default: ""
       quality_review:
         description: "Na gałęzi obozu przebudowy: SAM TEST SCENY bez APK (true); false to zwykły tryb APK po osobnym poleceniu"
         type: boolean
@@ -587,10 +592,13 @@ jobs:
       - name: Pobierz wyłącznie źródła obozu z dokładnego SHA
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: ${{ inputs.expected_sha || github.sha }}
           fetch-depth: 2
           sparse-checkout-cone-mode: false
           sparse-checkout: |
+            .gitignore
             .github/workflows/
+            tools/
             unity-city/Assets/
             unity-city/Packages/
             unity-city/ProjectSettings/
@@ -602,9 +610,20 @@ jobs:
       - name: Sprawdź oryginalne zasoby, bez kompilacji APK
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
         run: |
           set -euo pipefail
           test "$GITHUB_REF" = "refs/heads/codex/oboz-przebudowa-pbr-20261105"
+          python3 - <<'PY_REVISION'
+          import os,re,subprocess
+          expected=os.environ.get('EXPECTED_SHA','')
+          actual=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          if not re.fullmatch(r'[0-9a-f]{40}',expected):
+              raise SystemExit('OBÓZ: tryb sceny wymaga dokładnego expected_sha')
+          if actual!=expected or os.environ['GITHUB_SHA']!=expected:
+              raise SystemExit('OBÓZ: SHA gałęzi zmienił się; scena nie zostanie uruchomiona')
+          print('OBÓZ TRENINGOWY — dokładna rewizja sceny: '+actual)
+          PY_REVISION
           python3 unity-tools/oboz/assets.py preflight
           python3 unity-tools/oboz/owner_release_assets.py preflight
           python3 unity-tools/oboz/owner_extra_assets.py preflight
@@ -704,7 +723,9 @@ jobs:
           unityVersion: 6000.0.58f2
           targetPlatform: Android
           buildMethod: BraxObozSceneAudit.GenerateWithoutApk
-          manualExit: true
+          # Synchronous generation returns normally; keep -quit or the editor
+          # waits until the four-hour timeout after writing a valid report.
+          manualExit: false
           versioning: None
           allowDirtyBuild: true
       - name: Raport pełnej sceny, bez APK — jakość tylko ostrzega
@@ -713,6 +734,7 @@ jobs:
           set -euo pipefail
           test -s audit/oboz-scena.json
           test -s audit/oboz-scena.md
+          test -s audit/oboz-diagnostyka.json
           test ! -e build/ObozAndroid/braxhorn-oboz.apk
           python3 - <<'PY_SCENE'
           import json,os
@@ -721,13 +743,16 @@ jobs:
           assert r['revision']==os.environ['GITHUB_SHA']
           assert r['unitySceneInspected'] and not r['apkBuilt'] and not r['phoneVerified']
           counts={k:r[k] for k in ('renderers','levitating','embedded','missingGroundRay','expectedMounted')}
+          diagnostics=json.loads(Path('audit/oboz-diagnostyka.json').read_text(encoding='utf-8'))
           print("OBÓZ TRENINGOWY — scene-only:", counts)
+          print('Ostrzeżenia generatora:',diagnostics['warningCount'],'; błędy:',diagnostics['errorCount'])
           for k in ('levitating','embedded','missingGroundRay'):
               if counts[k]:print("::warning::OBÓZ SCENA %s=%s (pełna lista w JSON)"%(k,counts[k]))
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as f:
               f.write("# OBÓZ TRENINGOWY — SCENA, bez APK\n")
               f.write("SHA: "+r["revision"]+"\n\n")
               f.write("Kontrola Unity: "+str(counts)+"\n\n")
+              f.write('Ostrzeżenia generatora: '+str(diagnostics['warningCount'])+'; błędy: '+str(diagnostics['errorCount'])+'\n\n')
               f.write("APK=NOT_BUILT; PHONE=NOT_TESTED; OWNER_APPROVAL=PENDING\n")
           PY_SCENE
       - name: Tylko tekstowe dowody kontroli obozu — bez zdjęć i APK
@@ -738,6 +763,11 @@ jobs:
           path: |
             audit/oboz-scena.json
             audit/oboz-scena.md
+            audit/oboz-wejscia-kolizje.json
+            audit/oboz-regresje-jednostek.json
+            audit/oboz-diagnostyka.json
+            build/QualityReview/*.json
+            unity-city/Logs/
             build/CampLifeReview/navigation-review.json
           if-no-files-found: warn
           retention-days: 14
@@ -758,7 +788,10 @@ jobs:
           persist-credentials: false
           sparse-checkout-cone-mode: false
           sparse-checkout: |
+            .gitignore
             .github/workflows/
+            tools/
+            unity-tools/claude/prywatne.py
             unity-city/Assets/
             unity-city/Packages/
             unity-city/ProjectSettings/

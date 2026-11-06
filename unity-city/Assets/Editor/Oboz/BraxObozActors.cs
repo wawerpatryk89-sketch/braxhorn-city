@@ -31,9 +31,8 @@ public static class BraxObozActors
             player.clips = player.visual.GetComponent<Animation>(); player.body = monikaBody;
             player.bags = Array.Empty<Transform>(); player.cityWorld = world; player.worldSpawn = hero.transform.position;
             player.buildId = "OBOZ_RECOVERY_REVIEW_NOT_RELEASE"; world.player = player; info.player = player;
-            // Camp-only foot contact at Idle. No modification of Monika FBX,
-            // skeleton, baked clips, camera or CharacterController.
-            hero.AddComponent<BraxObozIdleFootContact>().player=player;
+            // Actor() binds the same measured sole contact for Monika and all NPCs.
+            hero.GetComponent<BraxObozIdleFootContact>().player=player;
             BraxObozServices.BindPlayer(info);
             foreach(var gate in info.GetComponentsInChildren<BraxObozSlidingGate>(true)) gate.player=player;
             player.ConfigureCamera(3.5f, monikaBody.height*.62f);
@@ -121,10 +120,15 @@ public static class BraxObozActors
         var visual=BraxObozCharacters.CreateCached(spec,K,sourceReviewOnly:true);visual.transform.SetParent(root.transform,false);
         var renderers=visual.GetComponentsInChildren<SkinnedMeshRenderer>();
         Bounds bounds=renderers[0].bounds;foreach(var r in renderers.Skip(1))bounds.Encapsulate(r.bounds);
-        float height=spec.realHeight>0?spec.realHeight*K:bounds.size.y;
+        // Match the same measured/preview height used by CreateCached.
+        // Animated renderer envelopes are not a physical capsule dimension.
+        float height=spec.realHeight>0?spec.realHeight*K:
+            spec.previewHeight>0?spec.previewHeight*K:bounds.size.y;
         if(height<.8f*K||height>3*K)BraxBuildQuality.Issue(new InvalidOperationException(spec.name+": nieprawidłowa kapsuła"));
         body=root.AddComponent<CharacterController>();body.height=height;body.radius=.27f*K;
         body.center=Vector3.up*height*.5f;body.stepOffset=.25f*K;body.skinWidth=.035f;body.slopeLimit=48f;
+        var contact=root.AddComponent<BraxObozIdleFootContact>();
+        contact.Configure(body,visual.transform,visual.GetComponent<Animation>());
         root.transform.position=position*K;
         // Ustaw stopy na rzeczywistej nawierzchni: podlodze hali,
         // ringu, macie lub gruncie. Nie przesuwaj calego skinned mesh
@@ -138,6 +142,7 @@ public static class BraxObozActors
             // Keep only 4 mm of capsule floor clearance; the visual-foot
             // component corrects small animated mesh offsets separately.
             root.transform.position = new Vector3(at.x, ground.point.y + .004f*K, at.z);
+            contact.PlaceSolesOnSurface(ground.point.y);
         }
         else Debug.LogWarning("BRAXHORN_OBOZ_SPAWN bez podloza: " + spec.name);
         return root;

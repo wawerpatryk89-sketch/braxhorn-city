@@ -37,7 +37,11 @@ class BeforeFiveHourBuildTests(unittest.TestCase):
             self.assertIn(item,ASSET)
             self.assertIn(item,SERVICES)
         self.assertIn('var originalSink=Assembly(new[]{',SERVICES)
-        self.assertIn('foreach(var prefix in new[]{"CookingTable.001_"',SERVICES)
+        self.assertIn('CloneOriginalParts(prefab,table.transform,new[]{"CookingTable.001_"',SERVICES)
+        self.assertIn('CloneOriginalParts(source,carrier.transform,prefixes)',SERVICES)
+        # Required fittings are nested under their source roots. Copying a
+        # parent and its child independently duplicated legs, bolts and taps.
+        self.assertIn('other!=t && t.IsChildOf(other)',SERVICES)
 
     def test_cabin_sinks_not_falsely_counted_as_bathhouse_sinks(self):
         self.assertIn('var sanitaryControls=sanitary.Length==1',VALIDATION)

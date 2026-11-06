@@ -8,6 +8,8 @@ name: BRAXHORN Obóz - szybkie testy źródeł (bez Unity i APK)
     paths:
       - '.github/workflows/oboz-fast-source-20261106.yml'
       - 'unity-city/Assets/Editor/Oboz/**'
+      - 'unity-city/Assets/Oboz/**'
+      - '.github/workflows/oboz-unity-build.yml'
       - 'unity-city/Assets/Claude/Runtime/BraxOboz*.cs'
       - 'unity-city/Packages/manifest.json'
       - 'unity-tools/oboz/**'

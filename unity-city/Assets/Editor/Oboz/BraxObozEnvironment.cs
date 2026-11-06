@@ -438,11 +438,11 @@ public static partial class BraxObozEnvironment
                 else Cylinder(t,"Bal bocznej ściany — okrągły",
                     new Vector3(side*3,y,-4.1f),new Vector3(side*3,y,4.1f),.108f,bark,false);
                 Cylinder(t,"Bal obok drzwi",
-                    new Vector3(side<0?-3.1f:.68f,y,-4f),
-                    new Vector3(side<0?-.68f:3.1f,y,-4f),.108f,bark,false);
+                    new Vector3(side<0?-3.1f:.60f,y,-4f),
+                    new Vector3(side<0?-.60f:3.1f,y,-4f),.108f,bark,false);
             }
-            if(y>2.38f)Cylinder(t,"Bal nad wejściem",
-                new Vector3(-.68f,y,-4),new Vector3(.68f,y,-4),.108f,bark,false);
+            if(y-.108f>=.17f+2.1f)Cylinder(t,"Bal nad wejściem",
+                new Vector3(-.60f,y,-4),new Vector3(.60f,y,-4),.108f,bark,false);
         }
         CabinFinish(t);
         if(name=="Domek 3")
@@ -451,12 +451,14 @@ public static partial class BraxObozEnvironment
         // Simple colliders follow the actual openings; decorative log cylinders do not each add physics work.
         foreach(float side in new[]{-1f,1f})
         {
-            ColliderBox(t,new Vector3(side*1.85f,1.45f,-4),new Vector3(2.3f,2.7f,.22f));
+            ColliderBox(t,new Vector3(side*1.815f,1.45f,-4),new Vector3(2.37f,2.7f,.22f));
+            ColliderBox(t,new Vector3(side*.55f,1.295f,-4.17f),new Vector3(.16f,2.27f,.16f));
             ColliderBox(t,new Vector3(side*3,.55f,0),new Vector3(.22f,.95f,8));
             ColliderBox(t,new Vector3(side*3,2.43f,0),new Vector3(.22f,.7f,8));
             foreach(float end in new[]{-1f,1f})ColliderBox(t,new Vector3(side*3,1.55f,end*2.55f),new Vector3(.22f,1.05f,2.9f));
         }
-        ColliderBox(t,new Vector3(0,1.45f,4),new Vector3(6,2.7f,.22f)); ColliderBox(t,new Vector3(0,2.6f,-4),new Vector3(1.4f,.4f,.22f));
+        ColliderBox(t,new Vector3(0,1.45f,4),new Vector3(6,2.7f,.22f));
+        ColliderBox(t,new Vector3(0,2.535f,-4),new Vector3(1.26f,.53f,.22f));
         // Batch ONLY the immobile cabin shell before placing the original
         // equipment. Previously batching stripped the imported GLB renderers
         // from all four kitchens and eight lockers.
@@ -491,8 +493,8 @@ public static partial class BraxObozEnvironment
             bedSpot.hipsAboveRoot=.9f*K;
         }
         // Nie zostawiaj pionowej szpary na nadprozu ani pod skrzydlem.
-        Door(t,name+" — drzwi",new Vector3(-.63f,.17f,-4.05f),1.26f,2.29f);
-        Box(t,"Próg szczelny pod skrzydłem",new Vector3(0,.105f,-4.06f),new Vector3(1.35f,.14f,.26f),metal,false);
+        Door(t,name+" — drzwi",new Vector3(-.45f,.17f,-4.05f),.90f,2.10f);
+        Box(t,"Próg szczelny pod skrzydłem",new Vector3(0,.105f,-4.06f),new Vector3(1.10f,.14f,.26f),metal,false);
         Box(t,"Stopień wejścia",new Vector3(0,.05f,-4.5f),new Vector3(1.6f,.1f,.8f),wood);
     }
     static void ColliderBox(Transform parent,Vector3 pos,Vector3 size){var g=Group("Kolizja zgodna z otworem",parent,pos*K).gameObject;g.AddComponent<BoxCollider>().size=size*K;}

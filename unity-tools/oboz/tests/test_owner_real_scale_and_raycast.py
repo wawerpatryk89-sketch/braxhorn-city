@@ -25,7 +25,10 @@ class RealPlacementContract(unittest.TestCase):
     def test_true_references_and_ground_rays(self):
         self.assertIn("RealDimension(model.transform,renderers,2f", self.services)
         self.assertIn("RealDimension(table.transform,renderers,.75f", self.services)
-        self.assertIn("RealDimension(carrier.transform,renderers,.85f", self.services)
+        # A sink is measured to its basin; the original faucet remains above
+        # it. Measuring the complete GLB height would shorten its legs/body.
+        self.assertIn("StandingSurfaceHeight(carrier.transform,renderers,", self.services)
+        self.assertIn('SourceBody(carrier,"Sink.001_"),.85f,label)', self.services)
         self.assertIn("Physics.RaycastAll", self.place)
         self.assertIn("OnGround(", self.services)
         self.assertIn("ToWall(", self.services)
@@ -33,6 +36,9 @@ class RealPlacementContract(unittest.TestCase):
         self.assertIn("BRAXHORN_OBOZ_NO_WALL_RAYCAST", self.place)
 
     def test_monika_contact_when_grounded(self):
-        self.assertIn("bool grounded=player.body.isGrounded;", self.player)
+        self.assertIn("bool grounded=body.isGrounded;", self.player)
         self.assertIn("if(grounded)", self.player)
+        self.assertIn("TryGetSoleHeight", self.player)
+        self.assertIn("baselineLocalPosition", self.player)
+        self.assertNotIn("skin.bounds.min.y", self.player)
         self.assertNotIn('IsPlaying("Idle")', self.player)

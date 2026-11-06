@@ -15,6 +15,14 @@ public static class BraxObozSceneAudit
 {
     const float K=1.294f;
     const float Tolerance=.03f*K;
+    [Serializable] sealed class LogEntry { public string level,message,stackTrace; }
+    [Serializable] sealed class Diagnostics
+    {
+        public string revision,firstFatalException;
+        public bool generationCompleted;
+        public int warningCount,errorCount;
+        public List<LogEntry> entries=new List<LogEntry>();
+    }
 
     [Serializable] public sealed class Item
     {
@@ -23,6 +31,29 @@ public static class BraxObozSceneAudit
         public float x,y,z,bottomY,gapMetres,widthMetres,heightMetres,depthMetres;
     }
     [Serializable] public sealed class SizeEntry { public string path; public long sourceBytes; }
+    [Serializable] public sealed class PlacementItem
+    {
+        public string path,label,kind,status,supportPath;
+        public bool measured;
+        public float gapMetres;
+        public bool heightMeasured;
+        public float expectedHeightMetres=-1f,actualHeightMetres,heightErrorMetres;
+    }
+    [Serializable] public sealed class CharacterItem
+    {
+        public string path,status;
+        public bool feetMeasured,groundMeasured;
+        public float soleY,groundY,footGapMetres,capsuleGapMetres;
+    }
+    [Serializable] public sealed class BullItem
+    {
+        public bool present,scalePreserved;
+        public string source;
+        public Vector3 measuredWorldSize;
+        // Actual original owner's 4X mesh bounds * K, measured independently
+        // from the two delivered GLBs. Never used to rescale the statue.
+        public Vector3 expectedWorldSize=new Vector3(2.4342448f,3.9047648f,6.2011680f);
+    }
     [Serializable] public sealed class Report
     {
         public string scene,revision;
@@ -30,9 +61,15 @@ public static class BraxObozSceneAudit
         public int renderers,unclassified,levitating,embedded,missingGroundRay,expectedMounted;
         public int expectedMurals=4,presentMurals,muralWarnings,scaleWarnings,overlapCandidates;
         public int checkedBags,bagWarnings;
+        public int checkedGroundObjects,checkedWallObjects,unmeasuredObjects,wallWarnings;
+        public int checkedCharacters,characterWarnings;
+        public bool allPlacementsVerified;
         public long dependentSourceBytes;
         public Item[] items;
         public SizeEntry[] largestSources;
+        public PlacementItem[] placements;
+        public CharacterItem[] characters;
+        public BullItem bull;
         public string[] muralFindings,scaleFindings,overlapFindings,bagFindings;
     }
 
@@ -47,14 +84,15 @@ public static class BraxObozSceneAudit
     {
         // Ściany, dachy, łancuchy i podwieszone worki NIE dotykają gruntu
         // celowo; nadal są w JSON, ale nie liczymy ich jako lewitującą podłogę.
-        string name=PathOf(r.transform).ToLowerInvariant();
+        // Only the actual part name may classify construction. A furniture
+        // child of a roof/cabin, Monika or NPC is never exempt by ancestry.
+        string name=r.name.ToLowerInvariant();
         return new[]{"ściana","szyld","mural","dach","połać","rynna",
             "ściana","okno","szyba","futryna","wspornik","belka","poręcz",
             "lampa","kabel","żarów","łańcuch","worek","flaga","maszt",
             "oświetl","latarnia","drzwi","wiata","kalenic","szn","górn",
             "ścien","słup","siatka","lina","krokiew","fartuch","lustro",
-            "parapet","półka","bateria","wieszak","animac","lud","ręk",
-            "głowa","charact","monika","npcs","gracz","liście","korona",
+            "parapet","bateria","wieszak","liście","korona",
             "gałąź","billboard","tree_","fir_tree","pine_tree"}.Any(name.Contains);
     }
     static bool IsNaturalTerrain(Renderer r)
@@ -86,6 +124,18 @@ public static class BraxObozSceneAudit
             source=AssetDatabase.GetAssetPath(r.sharedMaterial),
             materialSources=r.sharedMaterials.Select(DescribeMaterial).ToArray()
         };
+        if(r.GetComponentInParent<BraxObozPlacementRecord>())
+        {
+            item.classification="część zarejestrowanego modelu";
+            item.status="pomiar całego modelu w placements";
+            return item;
+        }
+        if(r.GetComponentInParent<CharacterController>())
+        {
+            item.classification="postać";
+            item.status="pomiar podeszew i kapsuły w characters";
+            return item;
+        }
         if(IsMounted(r)) {item.status="konstrukcja/montaż — nie podlega testowi gruntu";return item;}
         if(IsNaturalTerrain(r)) {item.status="grunt";return item;}
         Physics.SyncTransforms();
@@ -94,7 +144,9 @@ public static class BraxObozSceneAudit
         var origin=new Vector3(b.center.x,b.min.y+.50f*K,b.center.z);
         var hits=Physics.RaycastAll(origin,Vector3.down,10f*K,
             ~0,QueryTriggerInteraction.Ignore)
-            .Where(h=>h.collider && !h.collider.transform.IsChildOf(r.transform) &&
+            .Where(h=>h.collider && h.collider.gameObject.scene==r.gameObject.scene &&
+                      !h.collider.transform.IsChildOf(r.transform) &&
+                      !r.transform.IsChildOf(h.collider.transform) &&
                       h.normal.y>.65f && h.point.y<=b.min.y+.35f*K)
             .OrderByDescending(h=>h.point.y).ToArray();
         if(hits.Length==0){item.status="brak powierzchni w raycast";return item;}
@@ -103,6 +155,111 @@ public static class BraxObozSceneAudit
         else if(item.gapMetres<-.03f)item.status="ZAPADNIĘTE > 3 cm";
         else item.status="kontakt w tolerancji 3 cm";
         return item;
+    }
+
+    static PlacementItem InspectPlacement(BraxObozPlacementRecord record)
+    {
+        var item=new PlacementItem {path=PathOf(record.transform),label=record.label,
+            kind=record.support.ToString(),status="niezmierzony"};
+        var renderers=record.GetComponentsInChildren<Renderer>(true)
+            .Where(r=>r&&r.enabled&&r.gameObject.activeInHierarchy).ToArray();
+        if(renderers.Length==0) {item.status="brak aktywnej geometrii";return item;}
+        var bounds=RenderedBounds(record.transform);
+        item.expectedHeightMetres=record.heightAboveFloorMetres;
+        if(record.heightAboveFloorMetres>=0)
+        {
+            var origin=new Vector3(bounds.center.x,bounds.min.y+.15f*K,bounds.center.z);
+            var floor=Physics.RaycastAll(origin,Vector3.down,5f*K,~0,
+                QueryTriggerInteraction.Ignore)
+                .Where(h=>h.collider && h.collider.gameObject.scene==record.gameObject.scene &&
+                    !h.collider.transform.IsChildOf(record.transform) && h.normal.y>.65f &&
+                    (!record.verticalSupport||h.collider==record.verticalSupport))
+                .OrderByDescending(h=>h.point.y).FirstOrDefault();
+            item.heightMeasured=floor.collider;
+            if(floor.collider)
+            {
+                var measuredBounds=record.heightRenderers!=null&&record.heightRenderers.Length>0
+                    ? BraxObozPlacement.Bounds(record.heightRenderers):bounds;
+                float reference=record.heightReference==0?measuredBounds.min.y:
+                    record.heightReference==1?measuredBounds.center.y:measuredBounds.max.y;
+                item.actualHeightMetres=(reference-floor.point.y)/K;
+                item.heightErrorMetres=item.actualHeightMetres-record.heightAboveFloorMetres;
+            }
+        }
+        if(record.support==BraxObozPlacementRecord.SupportKind.Ground)
+        {
+            // Cast from above the complete object and reject its entire
+            // hierarchy, including a parent collider of any mesh child.
+            var origin=new Vector3(bounds.center.x,bounds.max.y+.5f*K,bounds.center.z);
+            var hit=Physics.RaycastAll(origin,Vector3.down,bounds.size.y+10f*K,~0,
+                QueryTriggerInteraction.Ignore)
+                .Where(h=>h.collider && h.collider.gameObject.scene==record.gameObject.scene &&
+                    !h.collider.transform.IsChildOf(record.transform) && h.normal.y>.65f &&
+                    (!record.verticalSupport||h.collider==record.verticalSupport) &&
+                    h.point.y<=bounds.min.y+.35f*K)
+                .OrderByDescending(h=>h.point.y).FirstOrDefault();
+            if(!hit.collider){item.status="brak podłoża";return item;}
+            item.measured=true;item.supportPath=PathOf(hit.collider.transform);
+            item.gapMetres=(bounds.min.y-hit.point.y)/K;
+        }
+        else if(record.support==BraxObozPlacementRecord.SupportKind.Wall)
+        {
+            var d=record.wallDirection.normalized;
+            if(d.sqrMagnitude<.9f){item.status="brak kierunku montażu";return item;}
+            float extent=Vector3.Dot(bounds.extents,
+                new Vector3(Mathf.Abs(d.x),Mathf.Abs(d.y),Mathf.Abs(d.z)));
+            var rear=bounds.center+d*extent;
+            var origin=bounds.center-d*(extent+.25f*K);
+            var hit=Physics.RaycastAll(origin,d,extent*2f+2.5f*K,~0,
+                QueryTriggerInteraction.Ignore)
+                .Where(h=>h.collider && h.collider.gameObject.scene==record.gameObject.scene &&
+                    !h.collider.transform.IsChildOf(record.transform) &&
+                    Vector3.Dot(h.normal,-d)>.65f)
+                .OrderBy(h=>h.distance).FirstOrDefault();
+            if(!hit.collider){item.status="brak ściany";return item;}
+            item.measured=true;item.supportPath=PathOf(hit.collider.transform);
+            item.gapMetres=Vector3.Dot(hit.point-rear,d)/K;
+        }
+        else {item.status="brak zadeklarowanego podparcia — wymaga pomiaru";return item;}
+        item.status=item.gapMetres>.03f?"LEWITUJE > 3 cm":
+            item.gapMetres<-.03f?"ZAPADNIĘTE > 3 cm":"kontakt w tolerancji 3 cm";
+        return item;
+    }
+
+    static CharacterItem InspectCharacter(CharacterController body)
+    {
+        var item=new CharacterItem{path=PathOf(body.transform),status="brak pomiaru stóp"};
+        var feet=body.GetComponent<BraxObozIdleFootContact>();
+        item.feetMeasured=feet && feet.TryGetSoleHeight(out item.soleY);
+        var origin=body.transform.position+Vector3.up*(.6f*K);
+        var hit=Physics.RaycastAll(origin,Vector3.down,3f*K,~(1<<8),
+            QueryTriggerInteraction.Ignore)
+            .Where(h=>h.collider && h.collider.gameObject.scene==body.gameObject.scene &&
+                !h.collider.transform.IsChildOf(body.transform) && h.normal.y>.65f)
+            .OrderByDescending(h=>h.point.y).FirstOrDefault();
+        item.groundMeasured=hit.collider;
+        if(!item.groundMeasured){item.status="brak podłoża postaci";return item;}
+        item.groundY=hit.point.y;
+        item.capsuleGapMetres=(body.bounds.min.y-hit.point.y)/K;
+        if(!item.feetMeasured)return item;
+        item.footGapMetres=(item.soleY-hit.point.y)/K;
+        item.status=Mathf.Abs(item.footGapMetres)>.03f?"stopy poza tolerancją 3 cm":
+            "kontakt w tolerancji 3 cm; poślizg w ruchu wymaga Play Mode";
+        return item;
+    }
+
+    static BullItem InspectBull(Scene scene)
+    {
+        var result=new BullItem();
+        var bull=scene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<Transform>(true))
+            .FirstOrDefault(t=>t.name=="Oryginalny byk GLB — 100% tekstur i geometrii");
+        if(!bull)return result;
+        result.present=true;
+        result.source=PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(bull.gameObject);
+        result.measuredWorldSize=RenderedBounds(bull).size;
+        var delta=result.measuredWorldSize-result.expectedWorldSize;
+        result.scalePreserved=Mathf.Abs(delta.x)<.003f&&Mathf.Abs(delta.y)<.003f&&Mathf.Abs(delta.z)<.003f;
+        return result;
     }
     static long AllDependentSourceBytes()
     {
@@ -156,6 +313,24 @@ public static class BraxObozSceneAudit
                 Check(t,RenderedBounds(t).size.y,2f,"wysokość szafy");
             else if(n.StartsWith("Oryginalny stół polowy 3D",StringComparison.Ordinal))
                 Check(t,RenderedBounds(t).size.y,.75f,"wysokość stołu");
+        }
+        foreach(var record in transforms.Select(t=>t.GetComponent<BraxObozPlacementRecord>())
+            .Where(r=>r&&r.expectedDimensionMetres>0))
+        {
+            var geometry=record.GetComponentsInChildren<Renderer>(true);
+            if(geometry.Length==0) {results.Add("Brak geometrii: "+PathOf(record.transform));continue;}
+            float measured=BraxObozPlacement.Dimension(geometry,
+                (BraxObozPlacement.Axis)record.dimensionAxis,record.dimensionFrame);
+            Check(record.transform,measured,record.expectedDimensionMetres,record.label);
+        }
+        foreach(var door in transforms.Select(t=>t.GetComponent<BraxCityDoor>())
+            .Where(d=>d&&d.name.StartsWith("Domek ",StringComparison.Ordinal)))
+        {
+            var leaf=door.GetComponentsInChildren<Renderer>(true)
+                .Where(r=>r.name=="Skrzydło drewniane").ToArray();
+            if(leaf.Length==0){results.Add("Brak skrzydła drzwi: "+PathOf(door.transform));continue;}
+            Check(door.transform,BraxObozPlacement.Dimension(leaf,BraxObozPlacement.Axis.X,door.transform),.9f,"szerokość drzwi");
+            Check(door.transform,BraxObozPlacement.Dimension(leaf,BraxObozPlacement.Axis.Y,door.transform),2.1f,"wysokość drzwi");
         }
         foreach(var arena in scene.GetRootGameObjects()
             .SelectMany(g=>g.GetComponentsInChildren<BraxObozArena>(true))
@@ -304,6 +479,13 @@ public static class BraxObozSceneAudit
                 .Where(r=>r && r.enabled && r.gameObject.activeInHierarchy)
                 .ToArray();
             var all=renderers.Select(Inspect).ToArray();
+            Physics.SyncTransforms();
+            var placements=scene.GetRootGameObjects()
+                .SelectMany(g=>g.GetComponentsInChildren<BraxObozPlacementRecord>(true))
+                .Where(r=>r&&r.gameObject.activeInHierarchy).Select(InspectPlacement).ToArray();
+            var characters=scene.GetRootGameObjects()
+                .SelectMany(g=>g.GetComponentsInChildren<CharacterController>(true))
+                .Where(c=>c&&c.gameObject.activeInHierarchy).Select(InspectCharacter).ToArray();
             var biggest=LargestSources();
             var muralIssues=ReviewOriginalMurals(renderers);
             var scaleIssues=ReviewDimensions(scene);
@@ -315,8 +497,21 @@ public static class BraxObozSceneAudit
                 unitySceneInspected=true,apkBuilt=false,phoneVerified=false,
                 renderers=all.Length,items=all
             };
-            report.levitating=all.Count(x=>x.status=="LEWITUJE > 3 cm");
-            report.embedded=all.Count(x=>x.status=="ZAPADNIĘTE > 3 cm");
+            report.placements=placements;report.characters=characters;
+            report.bull=InspectBull(scene);
+            report.checkedGroundObjects=placements.Count(x=>x.measured&&x.kind=="Ground");
+            report.checkedWallObjects=placements.Count(x=>x.measured&&x.kind=="Wall");
+            report.unmeasuredObjects=placements.Count(x=>!x.measured);
+            report.wallWarnings=placements.Count(x=>x.kind=="Wall"&&
+                (!x.measured||Mathf.Abs(x.gapMetres)>.03f||
+                 (x.expectedHeightMetres>=0&&(!x.heightMeasured||Mathf.Abs(x.heightErrorMetres)>.03f))));
+            report.checkedCharacters=characters.Count(x=>x.feetMeasured&&x.groundMeasured);
+            report.characterWarnings=characters.Count(x=>!x.feetMeasured||!x.groundMeasured||
+                Mathf.Abs(x.footGapMetres)>.03f);
+            report.levitating=all.Count(x=>x.status=="LEWITUJE > 3 cm")+
+                placements.Count(x=>x.measured&&x.gapMetres>.03f);
+            report.embedded=all.Count(x=>x.status=="ZAPADNIĘTE > 3 cm")+
+                placements.Count(x=>x.measured&&x.gapMetres<-.03f);
             report.missingGroundRay=all.Count(x=>x.status=="brak powierzchni w raycast");
             report.expectedMounted=all.Count(x=>x.classification=="montowany");
             report.unclassified=all.Count(x=>x.status=="brak testu");
@@ -329,6 +524,10 @@ public static class BraxObozSceneAudit
             report.muralFindings=muralIssues;report.muralWarnings=muralIssues.Length;
             report.scaleFindings=scaleIssues;report.scaleWarnings=scaleIssues.Length;
             report.overlapFindings=overlaps;report.overlapCandidates=overlaps.Length;
+            report.allPlacementsVerified=report.levitating==0&&report.embedded==0&&
+                report.missingGroundRay==0&&report.unmeasuredObjects==0&&
+                report.characterWarnings==0&&report.wallWarnings==0&&
+                report.overlapCandidates==0&&report.expectedMounted==0;
             string folder=System.IO.Path.GetFullPath(
                 System.IO.Path.Combine(Application.dataPath,"../../audit"));
             Directory.CreateDirectory(folder);
@@ -354,6 +553,15 @@ public static class BraxObozSceneAudit
             md.AppendLine("Zapadnięte >3 cm: "+report.embedded);
             md.AppendLine("Bez podłoża do raycast: "+report.missingGroundRay);
             md.AppendLine("Montażowe/podwieszone (sprawdzić wizualnie): "+report.expectedMounted);
+            md.AppendLine("Całe modele zmierzone: grunt="+report.checkedGroundObjects+
+                "; ściana="+report.checkedWallObjects+"; niezmierzone="+report.unmeasuredObjects);
+            md.AppendLine("Postacie z pomiarem podeszwy: "+report.checkedCharacters+
+                "; zastrzeżenia="+report.characterWarnings+"; poślizg w ruchu: NIEZBADANY");
+            md.AppendLine("Byk — zachowana własna skala 4×: "+report.bull.scalePreserved+
+                "; zmierzone="+report.bull.measuredWorldSize.ToString("F6")+
+                "; wzorzec="+report.bull.expectedWorldSize.ToString("F6"));
+            md.AppendLine("Wszystkie kontakty potwierdzone: "+report.allPlacementsVerified+
+                " — zero błędów nie oznacza odbioru elementów niezmierzonych.");
             md.AppendLine("Murale: "+report.presentMurals+"/4; zastrzeżenia: "+report.muralWarnings);
             md.AppendLine("Błędy skali: "+report.scaleWarnings+
                 "; kandydaci przenikania mebli >3cm: "+report.overlapCandidates);
@@ -369,6 +577,10 @@ public static class BraxObozSceneAudit
             foreach(var x in scaleIssues.Take(12))md.AppendLine("- SKALA: "+x);
             foreach(var x in overlaps.Take(12))md.AppendLine("- NACHODZENIE: "+x);
             foreach(var x in bagIssues.Take(12))md.AppendLine("- WOREK: "+x);
+            foreach(var x in placements.Where(x=>!x.measured||Mathf.Abs(x.gapMetres)>.03f))
+                md.AppendLine("- MODEL: "+x.path+"; "+x.status+"; gap="+x.gapMetres.ToString("F3"));
+            foreach(var x in characters)
+                md.AppendLine("- POSTAĆ: "+x.path+"; "+x.status+"; gap="+x.footGapMetres.ToString("F3"));
             foreach(var x in all.Where(x=>x.status.Contains("3 cm")||
                 x.status=="brak powierzchni w raycast").Take(56))
                 md.AppendLine("- "+x.status+" "+x.path+" gap="+x.gapMetres.ToString("F3"));
@@ -407,9 +619,32 @@ public static class BraxObozSceneAudit
     [MenuItem("BRAXHORN/Obóz/Generuj i audytuj scenę — bez APK")]
     public static void GenerateWithoutApk()
     {
-        SaveUntitledSceneInBatch();
-        BraxObozEnvironment.Prepare();
-        BraxObozActors.Assemble();
-        Run();
+        var diagnostics=new Diagnostics {
+            revision=Environment.GetEnvironmentVariable("GITHUB_SHA")??"local"};
+        void Capture(string message,string stackTrace,LogType type)
+        {
+            if(type==LogType.Warning)diagnostics.warningCount++;
+            else if(type==LogType.Error||type==LogType.Exception||type==LogType.Assert)diagnostics.errorCount++;
+            else return;
+            diagnostics.entries.Add(new LogEntry {level=type.ToString(),message=message,stackTrace=stackTrace});
+        }
+        Application.logMessageReceived+=Capture;
+        try
+        {
+            SaveUntitledSceneInBatch();
+            BraxObozPlacementRegression.Run();
+            BraxObozEnvironment.Prepare();
+            BraxObozActors.Assemble();
+            Run();
+            diagnostics.generationCompleted=true;
+        }
+        catch(Exception ex) {diagnostics.firstFatalException=ex.ToString();throw;}
+        finally
+        {
+            Application.logMessageReceived-=Capture;
+            string folder=System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,"../../audit"));
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(System.IO.Path.Combine(folder,"oboz-diagnostyka.json"),JsonUtility.ToJson(diagnostics,true));
+        }
     }
 }

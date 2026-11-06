@@ -13,6 +13,7 @@ class SceneOnlyDispatchContract(unittest.TestCase):
         scene=W.split("  oboz-scene-only:",1)[1].split("  oboz-content-only:",1)[0]
         self.assertNotIn("buildMethod: BraxObozBuild.BuildAndroidReview",scene)
         self.assertNotIn("BuildPipeline.BuildPlayer",scene)
+        self.assertIn("manualExit: false",scene)
         self.assertIn("test ! -e build/ObozAndroid/braxhorn-oboz.apk",scene)
     def test_saved_batch_editor_scene_and_text_only_artifacts(self):
         self.assertIn("SaveUntitledSceneInBatch();",AUDIT)

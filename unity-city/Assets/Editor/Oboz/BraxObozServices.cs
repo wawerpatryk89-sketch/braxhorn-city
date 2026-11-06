@@ -25,6 +25,60 @@ public static class BraxObozServices
     {
         var t=new GameObject(name).transform;t.SetParent(parent,false);t.localPosition=position;return t;
     }
+    static void CloneOriginalParts(GameObject source,Transform destination,string[] prefixes)
+    {
+        var all=source.GetComponentsInChildren<Transform>(true);
+        var selected=prefixes.Select(prefix=>all.FirstOrDefault(t=>
+            t.name.StartsWith(prefix,StringComparison.OrdinalIgnoreCase))).ToArray();
+        for(int i=0;i<selected.Length;i++)
+            if(!selected[i])throw new InvalidOperationException(
+                "Brak wymaganej części oryginalnego GLB: "+prefixes[i]);
+        // In the actual owner GLB legs/bolts are CHILDREN of CookingTable,
+        // stove fittings are CHILDREN of PortableStove_Base, and the faucet
+        // is a CHILD of Sink. Copy each source branch exactly once.
+        var sourceRoot=Matrix4x4.TRS(Vector3.zero,source.transform.localRotation,
+            source.transform.localScale);
+        foreach(var original in selected.Where(t=>!selected.Any(other=>
+            other!=t && t.IsChildOf(other))))
+        {
+            var part=Object.Instantiate(original.gameObject,destination,false);
+            // Source geometry is independent of the destination's location,
+            // rotation and K. Do not cancel the cabin transform here.
+            var relative=sourceRoot*source.transform.worldToLocalMatrix*original.localToWorldMatrix;
+            part.transform.localPosition=relative.GetColumn(3);
+            part.transform.localRotation=relative.rotation;
+            part.transform.localScale=relative.lossyScale;
+        }
+    }
+    static void ContactBox(GameObject model,Renderer[] renderers)
+    {
+        if(model.GetComponentInChildren<Collider>())return;
+        var local=BraxObozPlacement.BoundsInFrame(model.transform,renderers);
+        var collider=model.AddComponent<BoxCollider>();
+        collider.center=local.center;
+        collider.size=local.size;
+    }
+    static Renderer[] SourceBody(GameObject model,string prefix)
+    {
+        var part=model.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>
+            t.name.StartsWith(prefix,StringComparison.OrdinalIgnoreCase));
+        if(!part)throw new InvalidOperationException("Brak korpusu modelu: "+prefix);
+        // glTFast may attach the renderer to the named node or to its direct
+        // mesh child. Exclude nested faucet/handles from the basin reference.
+        var visible=part.GetComponentsInChildren<Renderer>(true).Where(r=>
+            r.transform==part || r.transform.parent==part).ToArray();
+        if(visible.Length==0)throw new InvalidOperationException("Brak geometrii korpusu: "+prefix);
+        return visible;
+    }
+    static void SourceSurfaceColliders(Transform surface)
+    {
+        foreach(var filter in surface.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if(!filter.sharedMesh || filter.GetComponent<Collider>())continue;
+            filter.gameObject.AddComponent<MeshCollider>().sharedMesh=filter.sharedMesh;
+        }
+        Physics.SyncTransforms();
+    }
     public static void AddAll(Transform parent)
     {
         var mats=new Dictionary<string,Material>{
@@ -163,20 +217,8 @@ public static class BraxObozServices
             // CookingTable.001_ omits legs/bolts/shelf and looked unfinished.
             var table=new GameObject("Oryginalny stół polowy 3D — kompletne nogi i półka");
             table.transform.SetParent(room,false);
-            var components=prefab.GetComponentsInChildren<Transform>(true);
-            foreach(var prefix in new[]{"CookingTable.001_","CookingTable_Bolts1.001_",
-                "CookingTable_Bolts2.001_","CookingTable_Legs.001_","CookingTable_Shelf.001_"})
-            {
-                var original=components.FirstOrDefault(t=>
-                    t.name.StartsWith(prefix,StringComparison.OrdinalIgnoreCase));
-                if(!original)throw new InvalidOperationException(
-                    "Brak oryginalnej części CookingTable w stołówce: "+prefix);
-                var part=Object.Instantiate(original.gameObject,table.transform,false);
-                var full=table.transform.worldToLocalMatrix*original.localToWorldMatrix;
-                part.transform.localPosition=full.GetColumn(3);
-                part.transform.localRotation=full.rotation;
-                part.transform.localScale=full.lossyScale;
-            }
+            CloneOriginalParts(prefab,table.transform,new[]{"CookingTable.001_","CookingTable_Bolts1.001_",
+                "CookingTable_Bolts2.001_","CookingTable_Legs.001_","CookingTable_Shelf.001_"});
             var renderers=table.GetComponentsInChildren<Renderer>(true);
             if(renderers.Length==0)throw new InvalidOperationException("Oryginalny stół bez geometrii");
             Bounds Bounds()
@@ -194,16 +236,7 @@ public static class BraxObozServices
             bounds=Bounds();
             BraxObozPlacement.OnGround(table.transform,renderers,
                 room.TransformPoint(bottomCenter),"stół polowy stołówka");
-            if(!table.GetComponentInChildren<Collider>())
-            {
-                var body=table.AddComponent<BoxCollider>();
-                bounds=Bounds();
-                var scale=table.transform.lossyScale;
-                body.center=table.transform.InverseTransformPoint(bounds.center);
-                body.size=new Vector3(bounds.size.x/Mathf.Max(.001f,Mathf.Abs(scale.x)),
-                    bounds.size.y/Mathf.Max(.001f,Mathf.Abs(scale.y)),
-                    bounds.size.z/Mathf.Max(.001f,Mathf.Abs(scale.z)));
-            }
+            ContactBox(table,renderers);
             return table;
         }
         finally{ Object.DestroyImmediate(prefab); }
@@ -223,9 +256,12 @@ public static class BraxObozServices
         if(r.Length==0)throw new InvalidOperationException(
             "Brak mesha powierzchni oryginalnej kuchni: "+partPrefix);
         Bounds b=r[0].bounds;foreach(var x in r.Skip(1))b.Encapsulate(x.bounds);
-        Vector3 topWorld=new Vector3(b.center.x,b.max.y+.012f*1.294f,b.center.z);
+        Vector3 topWorld=new Vector3(b.center.x,b.max.y,b.center.z);
         var local=room.InverseTransformPoint(topWorld)+localOffset;
-        OwnerFixture(room,filename,local,maximumSize);
+        var item=OwnerFixture(room,filename,local,maximumSize);
+        SourceSurfaceColliders(part);
+        BraxObozPlacement.OnSupport(item.transform,item.GetComponentsInChildren<Renderer>(true),
+            part,room.TransformPoint(local),filename);
     }
 
     // Rzeczywisty budynek WC: dwie kabiny, dwa stanowiska prysznicowe,
@@ -298,20 +334,7 @@ public static class BraxObozServices
             {
                 var carrier=new GameObject(label+" — kompletne oryginalne części GLB");
                 carrier.transform.SetParent(region,false);
-                var transforms=source.GetComponentsInChildren<Transform>(true);
-                foreach(string sourcePrefix in prefixes)
-                {
-                    var asset=transforms.FirstOrDefault(t=>
-                        t.name.StartsWith(sourcePrefix,StringComparison.OrdinalIgnoreCase));
-                    if(!asset)throw new InvalidOperationException(
-                        "Brakuje części oryginalnej kuchni: "+sourcePrefix);
-                    var part=Object.Instantiate(asset.gameObject,carrier.transform,false);
-                    var relative=carrier.transform.worldToLocalMatrix*asset.localToWorldMatrix;
-                    part.transform.localPosition=relative.GetColumn(3);
-                    part.transform.localRotation=relative.rotation;
-                    part.transform.localScale=relative.lossyScale;
-                    part.name=asset.name+" — oryginalna siatka GLB";
-                }
+                CloneOriginalParts(source,carrier.transform,prefixes);
                 var renderers=carrier.GetComponentsInChildren<Renderer>(true);
                 if(renderers.Length<prefixes.Length)
                     throw new InvalidOperationException(
@@ -327,36 +350,24 @@ public static class BraxObozServices
                     throw new InvalidOperationException("Zerowy obrys kompletnego modelu: "+label);
                 // Referencyjna wysokosc tylko dla elementow o podanych realnych wymiarach.
                 // Wymiary envelope sa wylacznie diagnostyczne, nie steruja skala.
-                if(label.StartsWith("Oryginalny stół polowy",StringComparison.Ordinal))
-                    BraxObozPlacement.RealDimension(carrier.transform,renderers,.75f,
-                        BraxObozPlacement.Axis.Y,label);
-                else if(label.StartsWith("Zlew polowy",StringComparison.Ordinal))
-                    BraxObozPlacement.RealDimension(carrier.transform,renderers,.85f,
-                        BraxObozPlacement.Axis.Y,label);
-                else
-                    BraxObozPlacement.NativeMetres(carrier.transform,renderers,label);
+                BraxObozPlacement.NativeMetres(carrier.transform,renderers,label);
+                if(label.StartsWith("Zlew polowy",StringComparison.Ordinal))
+                    BraxObozPlacement.StandingSurfaceHeight(carrier.transform,renderers,
+                        SourceBody(carrier,"Sink.001_"),.85f,label);
                 bounds=Bounds();
                 var target=cabin.TransformPoint(bottomMetres*K);
                 if(bottomMetres.y<=.25f)
                     BraxObozPlacement.OnGround(carrier.transform,renderers,target,label);
                 else
                     BraxObozPlacement.AtBottom(carrier.transform,renderers,target);
+                bounds=Bounds();
                 // Zle proporcje źródła sa ostrzezeniem, nie pretekstem do
                 // wyginania modelu lub przerywania całego generowania.
                 if(bounds.size.x > envelopeMetres.x*K*1.35f ||
                    bounds.size.z > envelopeMetres.z*K*1.35f)
                     Debug.LogWarning("BRAXHORN_OBOZ_KITCHEN_SOURCE_REVIEW "+label+
                         " dimensions="+Bounds()+" reference-envelope="+envelopeMetres);
-                if(solid&&!carrier.GetComponentInChildren<Collider>())
-                {
-                    var c=carrier.AddComponent<BoxCollider>();
-                    c.center=carrier.transform.InverseTransformPoint(bounds.center);
-                    var loss=carrier.transform.lossyScale;
-                    c.size=new Vector3(
-                        bounds.size.x/Mathf.Max(.0001f,Mathf.Abs(loss.x)),
-                        bounds.size.y/Mathf.Max(.0001f,Mathf.Abs(loss.y)),
-                        bounds.size.z/Mathf.Max(.0001f,Mathf.Abs(loss.z)));
-                }
+                if(solid)ContactBox(carrier,renderers);
                 return carrier;
             }
             GameObject Part(string prefix,string label,Vector3 bottom,Vector3 envelope,bool solid)
@@ -366,31 +377,69 @@ public static class BraxObozServices
 
             // The group bounds are measured AFTER assembling the real
             // Sketchfab siblings. Keep the central corridor/entrance open.
-            Assembly(new[]{
+            var cookingTable=Assembly(new[]{
                 "CookingTable.001_","CookingTable_Bolts1.001_",
                 "CookingTable_Bolts2.001_","CookingTable_Legs.001_",
                 "CookingTable_Shelf.001_"
             },"Oryginalny stół polowy z nogami i półką",
                 new Vector3(-2f,.16f,-.82f),new Vector3(1.45f,.91f,.78f),true);
-            Assembly(new[]{
+            var stove=Assembly(new[]{
                 "PortableStove_Base.001_","PortableStove_Burners.001_",
                 "PortableStove_Grate_L_LP.001_","PortableStove_Grate_R_LP.001_",
                 "PortableStove_Tumbler_LP.001_","PortableStove_Wire.001_"
             },"Oryginalna kuchenka polowa z palnikami i rusztami",
-                new Vector3(-2f,1.07f,-.82f),new Vector3(.55f,.24f,.40f),false);
+                new Vector3(-2f,.16f,-.82f),new Vector3(.65f,.24f,.60f),false);
+            var plate=Part("Plate_Regular.001_","Talerz z oryginalnego kompletu",
+                new Vector3(-2f,.16f,-.82f),new Vector3(.26f,.07f,.26f),false);
+            var tableRenderers=cookingTable.GetComponentsInChildren<Renderer>(true);
+            var tableBounds=BraxObozPlacement.BoundsInFrame(cabin,tableRenderers);
+            var stoveRenderers=stove.GetComponentsInChildren<Renderer>(true);
+            var plateRenderers=plate.GetComponentsInChildren<Renderer>(true);
+            // The source table is longer along Z. Its genuine 0.598 m width
+            // supports the genuine 0.578 m stove. Preserve their common scale;
+            // shrinking only the table to a dining-table height made it too narrow.
+            var stoveBounds=BraxObozPlacement.BoundsInFrame(cabin,stoveRenderers);
+            var plateBounds=BraxObozPlacement.BoundsInFrame(cabin,plateRenderers);
+            var stoveAt=new Vector3(tableBounds.center.x,tableBounds.max.y,
+                tableBounds.min.z+stoveBounds.extents.z+.01f*K);
+            var plateAt=new Vector3(tableBounds.center.x,tableBounds.max.y,
+                tableBounds.max.z-plateBounds.extents.z-.01f*K);
+            BraxObozPlacement.OnSupport(stove.transform,stoveRenderers,
+                cookingTable.transform,cabin.TransformPoint(stoveAt),"kuchenka na blacie");
+            BraxObozPlacement.OnSupport(plate.transform,plateRenderers,
+                cookingTable.transform,cabin.TransformPoint(plateAt),"talerz na blacie");
+            var counter=Node("Aneks — wysokość gotowania 0,90 m",region,Vector3.zero);
+            cookingTable.transform.SetParent(counter,true);
+            stove.transform.SetParent(counter,true);
+            plate.transform.SetParent(counter,true);
+            var counterRenderers=counter.GetComponentsInChildren<Renderer>(true);
+            BraxObozPlacement.RealDimension(counter,counterRenderers,.9f,
+                BraxObozPlacement.Axis.Y,"kuchenka z oryginalnym blatem",cabin);
+            BraxObozPlacement.OnGround(counter,counterRenderers,
+                cabin.TransformPoint(new Vector3(-2f,.16f,-.82f)*K),"aneks na podłodze");
             Assembly(new[]{"GasCylinder.001_","GasCylinder_Tap.001_"},
                 "Oryginalna butla z zaworem",
                 new Vector3(-2.40f,.16f,-1.40f),new Vector3(.30f,.65f,.30f),true);
-            Assembly(new[]{"PotRack.001_","PotRack_Hooks.001_","PotRack_Rails.001_"},
+            var rack=Assembly(new[]{"PotRack.001_","PotRack_Hooks.001_","PotRack_Rails.001_"},
                 "Oryginalny stojak z hakami i poręczami",
-                new Vector3(-2f,1.58f,-.72f),new Vector3(1.04f,.54f,.36f),false);
-            Part("Plate_Regular.001_","Talerz z oryginalnego kompletu",
-                new Vector3(-1.70f,1.08f,-.71f),new Vector3(.26f,.07f,.26f),false);
+                new Vector3(-2f,2.08f,-.72f),new Vector3(1.04f,.75f,.85f),false);
+            // The original wall rails are on +X after glTFast's X mirroring.
+            // Turn the complete rack so that this back faces the cabin's west
+            // wall, ABOVE the actual window opening (which ends at y=2.02 m).
+            rack.transform.localRotation=Quaternion.Euler(0,180,0)*rack.transform.localRotation;
+            var rackRenderers=rack.GetComponentsInChildren<Renderer>(true);
+            BraxObozPlacement.AtBottom(rack.transform,rackRenderers,
+                cabin.TransformPoint(new Vector3(-2f,2.08f,-.72f)*K));
+            BraxObozPlacement.ToWall(rack.transform,rackRenderers,
+                BraxObozPlacement.Bounds(rackRenderers).center,-cabin.right,"stojak na garnki na ścianie");
             var originalSink=Assembly(new[]{
                 "Sink.001_","Faucet_LP.001_","Faucet_Tap_LP.001_",
                 "Sink_Drain_LP.001_","Sink_Legs_LP.001_"
             },"Zlew polowy z oryginalną baterią i odpływem",
                 new Vector3(2.10f,.16f,-.78f),new Vector3(.92f,1.12f,.64f),true);
+            var sinkRenderers=originalSink.GetComponentsInChildren<Renderer>(true);
+            BraxObozPlacement.ToWall(originalSink.transform,sinkRenderers,
+                BraxObozPlacement.Bounds(sinkRenderers).center,cabin.right,"zlew polowy przy ścianie");
             var faucet=originalSink.AddComponent<BraxObozFacility>();
             faucet.kind=BraxObozFacility.Kind.Sink;
             faucet.effect=Effect(region,new Vector3(2.1f,1.20f,-.78f)*1.294f,false,true);
@@ -473,24 +522,7 @@ public static class BraxObozServices
         var renderers=model.GetComponentsInChildren<Renderer>(true);
         if(renderers.Length==0)throw new InvalidOperationException("Łóżko GLB nie ma renderera");
 
-        Bounds LocalBounds()
-        {
-            Bounds result=new Bounds();bool first=true;
-            foreach(var renderer in renderers)
-            {
-                Bounds b=renderer.bounds;
-                for(int ix=-1;ix<=1;ix+=2)
-                for(int iy=-1;iy<=1;iy+=2)
-                for(int iz=-1;iz<=1;iz+=2)
-                {
-                    var local=cabin.InverseTransformPoint(b.center+
-                        Vector3.Scale(b.extents,new Vector3(ix,iy,iz)));
-                    if(first){result=new Bounds(local,Vector3.zero);first=false;}
-                    else result.Encapsulate(local);
-                }
-            }
-            return result;
-        }
+        Bounds LocalBounds() { return BraxObozPlacement.BoundsInFrame(cabin,renderers); }
         var bounds=LocalBounds();
         if(bounds.size.x>.001f&&bounds.size.z>.001f && bounds.size.x>bounds.size.z*1.10f)
         {
@@ -503,10 +535,10 @@ public static class BraxObozServices
         // Jedna realna miara: dlugosc 2,0 m przed K, szerokosc 0,9 m do kontroli.
         // Kalibruj wzgledem OSI lozka, a nie najwezszej strony pudelka.
         BraxObozPlacement.RealDimension(model.transform,renderers,2f,
-            BraxObozPlacement.Axis.Z,"IKEA IDANAS");
+            BraxObozPlacement.Axis.Z,"IKEA IDANAS",cabin);
         bounds=LocalBounds();
         BraxObozPlacement.VerifyDimension(renderers,.9f,
-            BraxObozPlacement.Axis.X,"IKEA IDANAS szerokość");
+            BraxObozPlacement.Axis.X,"IKEA IDANAS szerokość",axisFrame:cabin);
         var centerSource=bottomCenterSourceMetres*K;
         BraxObozPlacement.OnGround(model.transform,renderers,
             cabin.TransformPoint(centerSource),"IKEA IDANAS");
@@ -516,15 +548,11 @@ public static class BraxObozServices
         if(!model.GetComponentInChildren<Collider>())
         {
             var collider=model.AddComponent<BoxCollider>();
-            var localCenter=new Vector3(bounds.center.x,
-                bounds.min.y+Mathf.Min(bounds.size.y*.53f,.78f*K)*.5f,
-                bounds.center.z);
-            collider.center=model.transform.InverseTransformPoint(cabin.TransformPoint(localCenter));
-            var lo=model.transform.lossyScale;
-            collider.size=new Vector3(
-                bounds.size.x/Mathf.Max(.001f,Mathf.Abs(lo.x)),
-                Mathf.Min(bounds.size.y*.53f,.78f*K)/Mathf.Max(.001f,Mathf.Abs(lo.y)),
-                bounds.size.z/Mathf.Max(.001f,Mathf.Abs(lo.z)));
+            var local=BraxObozPlacement.BoundsInFrame(model.transform,renderers);
+            float unit=model.transform.TransformVector(Vector3.up).magnitude;
+            float bodyHeight=Mathf.Min(local.size.y*.53f,.78f*K/Mathf.Max(.001f,unit));
+            collider.center=new Vector3(local.center.x,local.min.y+bodyHeight*.5f,local.center.z);
+            collider.size=new Vector3(local.size.x,bodyHeight,local.size.z);
         }
         Debug.Log("BRAXHORN_OBOZ_OWNER_BED: "+filename+
             " worldScale=K cabin="+cabin.name+" footprintLocal="+bounds.size+
@@ -544,6 +572,10 @@ public static class BraxObozServices
         if(!model)throw new InvalidOperationException("Błąd importu GLB sanitariatu: "+filename);
         model.name="Właściciel / oryginalny "+filename;
         model.transform.SetParent(parent,false);
+        // Verified original source backs face -Z (basin's rear tap deck and
+        // urinal inlet). Face those backs toward their actual bathroom walls.
+        if(filename=="wall-urinal.glb")model.transform.localRotation=Quaternion.Euler(0,90,0)*model.transform.localRotation;
+        if(filename=="trough-washbasin.glb")model.transform.localRotation=Quaternion.Euler(0,180,0)*model.transform.localRotation;
         var renderers=model.GetComponentsInChildren<Renderer>(true);
         if(renderers.Length==0)throw new InvalidOperationException("Brak renderera "+filename);
         Bounds bounds=renderers[0].bounds;
@@ -562,12 +594,20 @@ public static class BraxObozServices
             BraxObozPlacement.NativeMetres(model.transform,renderers,filename);
         bounds=BraxObozPlacement.Bounds(renderers);
         var target=parent.TransformPoint(bottomCenter);
-        if(filename=="wall-urinal.glb" || filename=="towel-rail-with-towel.glb")
+        if(filename=="wall-urinal.glb" || filename=="trough-washbasin.glb" || filename=="towel-rail-with-towel.glb")
         {
-            BraxObozPlacement.AtBottom(model.transform,renderers,target);
+            if(filename=="wall-urinal.glb")
+                BraxObozPlacement.AtHeightAboveGround(model.transform,renderers,
+                    parent.TransformPoint(new Vector3(bottomCenter.x,.24f,bottomCenter.z)),.55f,
+                    BraxObozPlacement.HeightReference.Bottom,filename);
+            else if(filename=="trough-washbasin.glb")
+                BraxObozPlacement.AtHeightAboveGround(model.transform,renderers,
+                    parent.TransformPoint(new Vector3(bottomCenter.x,.24f,bottomCenter.z)),.85f,
+                    BraxObozPlacement.HeightReference.Top,filename,SourceBody(model,"Trough | shared stone basin"));
+            else BraxObozPlacement.AtBottom(model.transform,renderers,target);
             Vector3 toward=filename=="wall-urinal.glb"?-parent.right:parent.forward;
             BraxObozPlacement.ToWall(model.transform,renderers,
-                target+Vector3.up*(bounds.size.y*.5f),toward,filename);
+                BraxObozPlacement.Bounds(renderers).center,toward,filename);
         }
         else if(bottomCenter.y<=.30f*K || (parent.lossyScale.y > 1.10f && bottomCenter.y<=.30f))
             BraxObozPlacement.OnGround(model.transform,renderers,target,filename);
@@ -580,14 +620,7 @@ public static class BraxObozServices
                 " rzeczywisty obrys="+bounds.size+" zalozony limit="+maxLocalSize);
         // Korpus jest nieruchomy: zachowujemy pojedynczy fizyczny hitbox
         // odpowiadający siatce; nie wstawiamy kolizji przez drzwi.
-        if(!model.GetComponentInChildren<Collider>())
-        {
-            var box=model.AddComponent<BoxCollider>();
-            box.center=model.transform.InverseTransformPoint(bounds.center);
-            Vector3 lossy=model.transform.lossyScale;
-            box.size=new Vector3(bounds.size.x/Mathf.Abs(lossy.x),
-                bounds.size.y/Mathf.Abs(lossy.y),bounds.size.z/Mathf.Abs(lossy.z));
-        }
+        ContactBox(model,renderers);
         return model;
     }
 
@@ -708,11 +741,21 @@ public static class BraxObozServices
             // Sink rear must touch the north interior wall (z=4.90).
             // Previous z=3.4 left a 1.2m gap, making basins look airborne.
             var sink=Node("Umywalka z lustrem — przy ścianie",building,new Vector3(x,0,4.6f));
-            OwnerFixture(sink,"trough-washbasin.glb",new Vector3(0,.70f,0),new Vector3(1.20f,.35f,.55f));
-            FixtureBox(sink,"Syfon",new Vector3(0,.54f,-.13f),new Vector3(.18f,.5f,.14f),metal);
-            FixtureBox(sink,"Bateria",new Vector3(0,1.04f,-.29f),new Vector3(.09f,.26f,.12f),metal);
+            var basin=OwnerFixture(sink,"trough-washbasin.glb",new Vector3(0,.70f,0),new Vector3(1.20f,.35f,.55f));
+            var basinBounds=BraxObozPlacement.BoundsInFrame(sink,
+                SourceBody(basin,"Trough | shared stone basin"));
+            float pipeHeight=basinBounds.min.y-.24f;
+            FixtureBox(sink,"Syfon",new Vector3(0,.24f+pipeHeight*.5f,basinBounds.center.z),
+                new Vector3(.10f,pipeHeight,.10f),metal);
+            // Two real faucets are already part of the supplied GLB.
             var mirrorSurface=FixtureBox(sink,"Lustro na ścianie — ReflectionProbe",
                 new Vector3(0,1.89f,.275f),new Vector3(1.25f,1.25f,.035f),mirror,false);
+            var mirrorRenderers=mirrorSurface.GetComponentsInChildren<Renderer>();
+            BraxObozPlacement.AtHeightAboveGround(mirrorSurface.transform,mirrorRenderers,
+                sink.TransformPoint(new Vector3(0,.24f,.275f)),1.6f,
+                BraxObozPlacement.HeightReference.Centre,"lustro nad umywalką");
+            BraxObozPlacement.ToWall(mirrorSurface.transform,mirrorRenderers,
+                BraxObozPlacement.Bounds(mirrorRenderers).center,sink.forward,"lustro na ścianie");
             var probe=mirrorSurface.AddComponent<ReflectionProbe>();
             probe.mode=UnityEngine.Rendering.ReflectionProbeMode.Baked;
             probe.refreshMode=UnityEngine.Rendering.ReflectionProbeRefreshMode.ViaScripting;
@@ -720,19 +763,22 @@ public static class BraxObozServices
             probe.boxProjection=true;
             foreach(float bracket in new[]{-.43f,.43f}){
                 FixtureBox(sink,"Stalowy wspornik ścienny umywalki",
-                    new Vector3(bracket,.66f,.61f),new Vector3(.07f,.14f,.55f),metal);
+                    new Vector3(bracket,basinBounds.min.y-.07f,basinBounds.center.z),
+                    new Vector3(.07f,.14f,basinBounds.size.z),metal);
                 FixtureBox(sink,"Kotwa do ściany pod umywalką",
-                    new Vector3(bracket,.65f,.895f),new Vector3(.14f,.42f,.06f),metal);
+                    new Vector3(bracket,basinBounds.min.y-.15f,.275f),new Vector3(.14f,.30f,.04f),metal);
             }
             // Oryginalny wieszak i ręcznik GLB, bez proceduralnej atrapy.
             var towel=OwnerFixture(sink,"towel-rail-with-towel.glb",
                 new Vector3(.63f,1.19f,.10f),new Vector3(.70f,.55f,.32f));
             var towelCollider=towel.GetComponent<Collider>();
             if(towelCollider)Object.DestroyImmediate(towelCollider);
-            var tap=Node("UMYJ RĘCE — KRAN",sink,new Vector3(0,1.04f,-.19f))
+            var outlet=BraxObozPlacement.Bounds(SourceBody(basin,"Mixer | aerator outlet")).center;
+            var tapAt=sink.InverseTransformPoint(outlet);
+            var tap=Node("UMYJ RĘCE — KRAN",sink,tapAt)
                 .gameObject.AddComponent<BraxObozFacility>();
             tap.kind=BraxObozFacility.Kind.Sink;
-            tap.effect=Effect(sink,new Vector3(0,1.04f,-.15f),false,true);
+            tap.effect=Effect(sink,tapAt,false,true);
         }
         // Prawdziwe pisuary 3D na zachodniej ścianie; nie zastępuj ich bryłami.
         foreach(float z in new[]{.2f,2.0f})
@@ -740,10 +786,17 @@ public static class BraxObozServices
                 new Vector3(.52f,.95f,.38f));
         // The owner's independent towel GLB rests on a physically modelled
         // wall shelf; avoid another floating decorative sanitary object.
-        FixtureBox(building,"Półka na ręczniki — ściana łaźni",
-            new Vector3(-5f,1.47f,3.78f),new Vector3(.85f,.07f,.50f),metal);
-        OwnerFixture(building,"bath-towel.glb",
-            new Vector3(-5f,1.515f,3.78f),new Vector3(.72f,.25f,.43f));
+        var shelf=FixtureBox(building,"Półka na ręczniki — ściana łaźni",
+            new Vector3(-5.3f,1.47f,3.78f),new Vector3(.85f,.07f,.50f),metal);
+        var shelfRenderers=shelf.GetComponentsInChildren<Renderer>();
+        BraxObozPlacement.ToWall(shelf.transform,shelfRenderers,
+            BraxObozPlacement.Bounds(shelfRenderers).center,building.forward,"półka na ręczniki");
+        var shelfBounds=BraxObozPlacement.Bounds(shelfRenderers);
+        var towelAt=new Vector3(shelfBounds.center.x,shelfBounds.max.y,shelfBounds.center.z);
+        var foldedTowel=OwnerFixture(building,"bath-towel.glb",
+            building.InverseTransformPoint(towelAt),new Vector3(.72f,.25f,.43f));
+        BraxObozPlacement.OnSupport(foldedTowel.transform,foldedTowel.GetComponentsInChildren<Renderer>(),
+            shelf.transform,towelAt,"ręcznik na półce");
         // Neutralne oprawy LED w sanitariatach: normalne światło do użytku,
         // aktywne jedynie blisko gracza (BraxObozLocalLight), bez ciężkich cieni.
         foreach(float x in new[]{-4f,0f,4f})

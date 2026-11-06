@@ -1071,7 +1071,7 @@ public static partial class BraxObozEnvironment
         var trim=Group("Wykończenie domku",cabin,Vector3.zero);
         MetalRoof(trim,7.1f,9.1f,2.85f,1.15f);
         Box(trim,"Cokół fundamentowy",new Vector3(0,-.035f,0),new Vector3(6.3f,.15f,8.3f),gravel,false);
-        // Ganek z deskami i prawdziwa balustradą, drzwi 1.26m pozostają drożne.
+        // Ganek z deskami i balustradą; skrzydło 0,90 × 2,10 m przed K.
         var ganek=Group("GANek z bali i poręczą",trim,Vector3.zero);
         Box(ganek,"Deski pomostu wejściowego",new Vector3(0,.065f,-5.1f),
             new Vector3(3.4f,.13f,2.1f),floor);
@@ -1112,15 +1112,15 @@ public static partial class BraxObozEnvironment
             Box(trim,"Szyba",new Vector3(side*3.07f,1.55f,0),new Vector3(.015f,.96f,2.14f),glass,false);
             Box(trim,"Parapet",new Vector3(side*3.12f,1.0f,0),new Vector3(.36f,.055f,2.4f),metal,false);
         }
-        foreach(float x in new[]{-.7f,.7f})
+        foreach(float x in new[]{-.55f,.55f})
         {
-            Box(trim,"Futryna zewnetrzna",new Vector3(x,1.3f,-4.17f),
-                new Vector3(.16f,2.52f,.16f),wood,false);
-            Box(trim,"Ciemna uszczelka futryny",new Vector3(x*.93f,1.25f,-4.18f),
-                new Vector3(.025f,2.33f,.025f),dark,false);
+            Box(trim,"Futryna zewnetrzna",new Vector3(x,1.295f,-4.17f),
+                new Vector3(.16f,2.27f,.16f),wood,false);
+            Box(trim,"Ciemna uszczelka futryny",new Vector3(Mathf.Sign(x)*.4625f,1.22f,-4.18f),
+                new Vector3(.025f,2.10f,.025f),dark,false);
         }
-        Box(trim,"Opaska gorna drzwi",new Vector3(0,2.53f,-4.17f),
-            new Vector3(1.53f,.14f,.16f),wood,false);
+        Box(trim,"Opaska gorna drzwi",new Vector3(0,2.35f,-4.17f),
+            new Vector3(1.26f,.16f,.16f),wood,false);
         CombineDecoration(trim);
     }
     public static void ReplaceServiceRoof(Transform sourceGroup,Transform model,float width,float depth)
