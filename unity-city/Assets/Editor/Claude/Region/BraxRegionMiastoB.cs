@@ -856,8 +856,13 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
             signs.Add(Rect.MinMaxRect(leftOuter, z - paintHalf, leftInner, z + paintHalf));
             signs.Add(Rect.MinMaxRect(rightInner, z - paintHalf, rightOuter, z + paintHalf));
         }
+        // Przejście piesze na końcu osi manewrowej: białe pasy są
+        // wycięciami w asfalcie (nie nakładką) i prowadzą do luki w ogrodzeniu.
+        // Zakres z=120..124.4 znajduje się za końcem stanowisk (118.7).
+        for (float z = 120.15f; z < 124.3f; z += .75f)
+            signs.Add(Rect.MinMaxRect(-129.1f, z, -119.7f, Mathf.Min(124.4f, z + .36f)));
         // Linie końcowe zatok: wyłącznie w miejscach postojowych,
-        // bez malowania przejścia pieszego i pasa manewrowego.
+        // bez blokowania przejścia pieszego.
         signs.Add(Rect.MinMaxRect(leftOuter - paintHalf, startZ, leftOuter + paintHalf,
                                   startZ + slotsPerRow * spacingZ));
         signs.Add(Rect.MinMaxRect(rightOuter - paintHalf, startZ, rightOuter + paintHalf,
@@ -891,21 +896,30 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         Trawa("Parking supermarketu: pas zieleni zachodni", -147.8f, -140.2f, 82.1f, 124.8f, true);
         Trawa("Parking supermarketu: pas zieleni wschodni", -111.8f, -104.2f, 82.1f, 124.8f, true);
 
-        // Proste stalowe ogrodzenie z realną kolizją, estetyczna symetria.
-        // Przerwa 6 m na osi wejścia, ZERO słupków na ciągu pieszym.
+        // Proste stalowe ogrodzenie: luka 10 m, od osi alejki (x=-126)
+        // aż do drzwi (x=-120). Chodnik i przejście mają swobodny dostęp.
         var plot = new BraxRegionMeble.Bud();
         void Bar(Vector3 a, Vector3 b) => BraxRegionMeble.Barierka(root, plot, a, b);
-        Bar(new Vector3(-140f, YC, 125f), new Vector3(-123.2f, YC, 125f));
-        Bar(new Vector3(-116.8f, YC, 125f), new Vector3(-104f, YC, 125f));
+        Bar(new Vector3(-140f, YC, 125f), new Vector3(-127.4f, YC, 125f));
+        Bar(new Vector3(-116.6f, YC, 125f), new Vector3(-104f, YC, 125f));
         Bar(new Vector3(-140f, YC, 86f), new Vector3(-140f, YC, 123f));
         Bar(new Vector3(-112f, YC, 86f), new Vector3(-112f, YC, 123f));
         plot.Obiekt("Parking SUPERMARKET BRAXHORN: ogrodzenie równe (brama piesza)", root, stal, false, false);
+        // Dwie symetryczne latarnie poza stanowiskami oraz znak przy wjeździe.
+        Pozniej("latarnia parkingu supermarketu lewa", () =>
+        {
+            LatarniaTeraz(NaPodlozu(new Vector3(-145.0f, YC, 117.0f)), Vector3.right, 2.2f);
+        });
+        Pozniej("latarnia parkingu supermarketu prawa", () =>
+        {
+            LatarniaTeraz(NaPodlozu(new Vector3(-107.0f, YC, 117.0f)), Vector3.left, 2.2f);
+        });
         Pozniej("znak parkingu supermarketu", () =>
             ZnakParking(NaPodlozu(new Vector3(-139.5f, YC, 82.8f))));
         Debug.Log("BRAXHORN_PARKING_SUPERMARKET_R1 pole=" + lot.ToString() +
                   " stanowisk=" + miejsca +
                   " wjazd=Aleja Północna, chodnik_do_wejścia=125..132," +
-                  " plot_gap_x=-123.2..-116.8, bez ronda i drzewa na środku");
+                  " plot_gap_x=-127.4..-116.6, przejscie_piesze=120.15..124.4, bez ronda i drzewa na środku");
     }
 
     static void AlejaPoludniowa()
