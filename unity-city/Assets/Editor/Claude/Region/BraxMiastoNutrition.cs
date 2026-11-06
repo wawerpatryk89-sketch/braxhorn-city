@@ -10,8 +10,8 @@ using UnityEngine;
 // drzwi z modułu); krok BraxRegionInteriors.NutritionShop wyłączony.
 // NOWE (× k, podłoga = chodnik, wejście bez progu): fasada premium (antracyt, stal szczotkowana, witryny z prawdziwym szkłem,
 // drzwi automatyczne, daszek, szyld z liter przestrzennych z zielonym podświetleniem marki, logo-kaseton), wnętrze: MURAL
-// z bykiem NA ŚCIANIE tylnej (w płaszczyźnie ściany — otwór w tynku), ściana produktów z podświetlanymi półkami (puszki
-// białka, gainery, kreatyna, przedtreningówki, batony, shakery), napisy działów NA ŚCIANIE nad regałami, lodówki
+// z bykiem NA ŚCIANIE tylnej (osobny otwór w wykończeniu), ta sama płytka na czterech ścianach;
+// bez długich białych półek na ścianie zachodniej (polecenie właściciela 6.11). Lodówki
 // z napojami, lada z kasą i SHAKE BAR (blendery, kubki, menu), podesty ekspozycyjne, sufit z liniami LED, rośliny,
 // punkty akcji (kup, zamów shake).
 internal static class BraxMiastoNutrition
@@ -24,6 +24,8 @@ internal static class BraxMiastoNutrition
 
     public static void Apply(Transform cityRoot)
     {
+        var sciany = PlytkaZIstniejacejSciany();
+        if (!sciany) return; // bez wzorca nie niszczymy istniejącego sklepu
         BraxUliceKit.Start();
         var r1 = BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(X0 - .05f, X1 + .1f, .05f, 4.9f, Z0 - .05f, Z1 + .15f), "nutrition_wnetrze");
         var r2 = BraxMiastoA.Wyczysc(cityRoot, BraxMiastoA.Obj(14.5f, 25.97f, .16f, 5.05f, Z1 + .15f, 21.9f), "nutrition_front");
@@ -32,7 +34,7 @@ internal static class BraxMiastoNutrition
         BraxUliceKit.UstawGrupe("Nutrition fasada");
         Fasada();
         BraxUliceKit.UstawGrupe("Nutrition wnętrze", 50f);
-        Wnetrze();
+        Wnetrze(sciany);
         int siatek = BraxUliceKit.Zapisz(root, "nutrition");
         BraxRegion.Rep.nutrition = true;
         BraxMiastoA.Log("NUTRITION: fasada + wnętrze " + (X1 - X0).ToString("F1") + "×" + (Z1 - Z0).ToString("F1") + " m, mural na ścianie, siatek " + siatek + "; zdjęte: " + r1 + " | " + r2);
@@ -98,10 +100,9 @@ internal static class BraxMiastoNutrition
     // prostokąt otworu w układzie „od lewej” → w układzie ściany zaczynającej się od x 26 (oś −x)
     static Rect Mirror(Rect r, float W) => Rect.MinMaxRect(W - r.xMax, r.yMin, W - r.xMin, r.yMax);
 
-    static void Wnetrze()
+    static void Wnetrze(Material sciany)
     {
         var posadzka = BraxMiastoA.Tex("Nutrition: posadzka beton jasny", 2.0f, new Color(.80f, .80f, .79f), new Color(.62f, .62f, .60f), .6f, "concrete_floor_02");
-        var tynk = BraxMiastoA.Tex("Nutrition: tynk biały", 2.4f, new Color(.95f, .95f, .94f), new Color(.9f, .9f, .89f), .9f, "white_plaster_02");
         var sufit = BraxMiastoA.Mat("Nutrition: sufit biały", new Color(.93f, .93f, .92f), .9f);
         var czern = BraxMiastoA.Mat("Nutrition: regały czarny lakier", new Color(.05f, .05f, .055f), .35f, .2f);
         var polka = BraxMiastoA.Mat("Nutrition: półki białe połysk", new Color(.95f, .95f, .95f), .25f);
@@ -114,13 +115,13 @@ internal static class BraxMiastoNutrition
         var boki = BraxMiastoA.Mat("Nutrition: boki liter (grafit)", new Color(.05f, .05f, .06f), .45f, .6f);
         var stal = BraxMiastoA.Mat("Nutrition: stal szczotkowana", new Color(.60f, .62f, .64f), .3f, .9f);
         var lodowka = BraxMiastoA.Swieci("Nutrition: lodówka (wnętrze podświetlone)", new Color(.85f, .92f, 1f), new Color(.45f, .55f, .65f));
-        // MURAL na ścianie tylnej: otwór w tynku i obraz DOKŁADNIE w płaszczyźnie ściany (żadnej tablicy, żadnej nakładki)
+        // MURAL na ścianie tylnej: otwór w płytce i obraz DOKŁADNIE w płaszczyźnie ściany (żadnej tablicy, żadnej nakładki)
         float mw = 5.6f, mh = mw * 941f / 1672f, mx0 = (X0 + X1) * .5f - mw * .5f, my0 = .45f;
         // ściana tylna (z0) widziana od środka: s rośnie od x1 w stronę x0
         var otwMural = Rect.MinMaxRect(X1 - (mx0 + mw), my0, X1 - mx0, my0 + mh);
         // ściana frontowa (z1) widziana od środka: s rośnie od x0 w stronę x1 (Pokoj: start x0, oś +x)
         var otwFrontOdSrodka = new[] { Rect.MinMaxRect(DX0 - X0, F, DX1 - X0, F + 2.85f), Rect.MinMaxRect(15.25f - X0, .62f, 19.35f - X0, 3.35f), Rect.MinMaxRect(22.65f - X0, .62f, 25.4f - X0, 3.35f) };
-        BraxMiastoA.Pokoj(posadzka, tynk, sufit, X0, X1, Z0, Z1, F, C, new[] { new[] { otwMural }, null, otwFrontOdSrodka, null });
+        BraxMiastoA.Pokoj(posadzka, sciany, sufit, X0, X1, Z0, Z1, F, C, new[] { new[] { otwMural }, null, otwFrontOdSrodka, null });
         BraxMiastoA.Obraz(root, "MURAL BRAXHORN (byk) na ścianie", "Assets/CityRebuild/Brand/nutrition-mural.jpg", new Vector3(mx0, my0, Z0), Vector3.right, mw, mh, Vector3.forward, 0f, .85f);
         // posadzka pod drzwiami do lica fasady (wejście równo z chodnikiem)
         BraxUliceKit.S(posadzka).Quad(new Vector3(DX0, F, Z1), new Vector3(DX1, F, Z1), new Vector3(DX1, F, Front), new Vector3(DX0, F, Front), Vector3.up);   // do linii zabudowy — dalej chodnik
@@ -133,46 +134,12 @@ internal static class BraxMiastoNutrition
         for (float x = X0 + 1.4f; x < X1 - 1f; x += 2.3f) BraxUliceKit.S(led).Box(new Vector3(x - .03f, C - .05f, Z0 + 1.0f), new Vector3(x + .03f, C - .02f, Z1 - .8f));
         BraxUliceKit.S(ledZ).Box(new Vector3(mx0, my0 + mh + .15f, Z0 + .02f), new Vector3(mx0 + mw, my0 + mh + .19f, Z0 + .06f));
         BraxUliceKit.S(ledZ).Box(new Vector3(mx0, my0 - .2f, Z0 + .02f), new Vector3(mx0 + mw, my0 - .16f, Z0 + .06f));
-        // ŚCIANA PRODUKTÓW (zachód): regał na całą długość, 5 półek z listwami LED, towar marki
+        // 6.11: usunięty wyłącznie długi regał na ścianie z płytką (półki, LED, plecy,
+        // towar i jego kolizja). Lodówki po bokach muralu, wyspy i shake bar pozostają.
         var rng = new System.Random(2011);
         Color32[] marka = { BraxUliceKit.C(.05f, .05f, .055f), BraxUliceKit.C(.95f, .95f, .95f), BraxUliceKit.C(.25f, .75f, .15f), BraxUliceKit.C(.12f, .12f, .13f), BraxUliceKit.C(.85f, .2f, .15f), BraxUliceKit.C(.95f, .75f, .15f) };
-        var tw = BraxUliceKit.S(towar); var cz = BraxUliceKit.S(czern); var pl = BraxUliceKit.S(polka);
-        float rd = .5f, rz0 = Z0 + .25f, rz1 = Z1 - .55f, rh = 2.35f * K;
-        cz.Box(new Vector3(X0, F, rz0), new Vector3(X0 + .04f, F + rh, rz1), 1);                 // plecy (przy ścianie)
-        cz.Box(new Vector3(X0, F, rz0 - .04f), new Vector3(X0 + rd, F + rh, rz0), 1); cz.Box(new Vector3(X0, F, rz1), new Vector3(X0 + rd, F + rh, rz1 + .04f), 1);
-        cz.Box(new Vector3(X0, F, rz0), new Vector3(X0 + rd, F + .12f, rz1), 1 | 4);             // cokół regału
-        string[] dzialy = { "BIAŁKO", "KREATYNA", "PRZEDTRENINGÓWKI", "BATONY", "AKCESORIA" };
-        // 3.11 14:17: prawdziwe odżywki BRAXHORN SPORT NUTRITION z etykiet właściciela (kubły, worki gainera) zamiast walców z kolorów
-        bool odzywki = BraxMiastoAssety.Jest("miasto_sklepy"); var twN = odzywki ? BraxSklepyTowar.Korzen(root, "BRAXHORN NUTRITION — ściana produktów") : null;
-        for (int p = 0; p < 5; p++)
-        {
-            float y = F + .12f + p * (rh - .3f) / 4f;
-            pl.Box(new Vector3(X0 + .04f, y - .03f, rz0), new Vector3(X0 + rd, y, rz1), 1);
-            BraxUliceKit.S(led).Box(new Vector3(X0 + rd - .04f, y - .05f, rz0), new Vector3(X0 + rd - .01f, y - .03f, rz1));
-            if (p == 4) break;
-            if (odzywki) { BraxSklepyTowar.Polka(p == 0 ? "odz_dol" : p == 3 ? "odz_gora" : "odz_polka", twN, new Vector3(X0 + .27f, y + .004f, rz0 + .1f), Vector3.forward, Vector3.left, rz1 - rz0 - .25f, rng, (rh - .3f) / 4f - .02f); continue; }
-            for (float zq = rz0 + .1f; zq < rz1 - .15f;)
-            {
-                int typ = (p + (int)((zq - rz0) / 2.4f)) % 4;
-                float r = typ == 0 ? .1f * K : typ == 1 ? .085f * K : typ == 2 ? .055f * K : .045f * K;
-                float h = typ == 0 ? .28f * K : typ == 1 ? .2f * K : typ == 2 ? .18f * K : .22f * K;
-                if (p == 3 && typ < 2) { r = .045f * K; h = .22f * K; }
-                var c = new Vector3(X0 + .27f, y, zq + r);
-                if (typ == 3 && p != 3) { tw.kolor = marka[rng.Next(marka.Length)]; tw.Box(new Vector3(X0 + .1f, y, zq), new Vector3(X0 + .4f, y + .06f * K, zq + .2f * K)); zq += .22f * K; continue; }   // batony w kartonikach
-                var kol0 = marka[rng.Next(3)]; var pas = marka[2 + rng.Next(4)];
-                tw.kolor = kol0; tw.Rura(c, c + Vector3.up * h * .35f, r, 10, true);
-                tw.kolor = pas; tw.Rura(c + Vector3.up * h * .35f, c + Vector3.up * h * .7f, r, 10, false);
-                tw.kolor = kol0; tw.Rura(c + Vector3.up * h * .7f, c + Vector3.up * h, r, 10, true);
-                zq += r * 2f + .025f;
-            }
-        }
-        tw.kolor = BraxUliceKit.Bialy;
-        if (odzywki) BraxSklepyTowar.Zakoncz(twN, "BRAXHORN NUTRITION");
-        BraxMiastoA.Kol(kol, "ściana produktów", new Vector3(X0, F, rz0 - .04f), new Vector3(X0 + rd, F + rh, rz1 + .04f));
-        // napisy działów NA ŚCIANIE nad regałem (litery przestrzenne na tynku, nie w powietrzu)
-        float seg = (rz1 - rz0) / 3f;
-        for (int i = 0; i < 3; i++)
-            BraxUliceKit.Napis3D(new[] { "BIAŁKO", "KREATYNA", "BATONY" }[i], new Vector3(X0, F + rh + .25f, rz0 + seg * (i + .5f)), Vector3.right, .2f, .04f, zielone, boki);
+        var tw = BraxUliceKit.S(towar); var cz = BraxUliceKit.S(czern);
+        bool odzywki = BraxMiastoAssety.Jest("miasto_sklepy");
         // LODÓWKI z napojami (ściana tylna, po bokach muralu)
         foreach (float xa in new[] { X0 + .65f, X1 - 2.35f })
         {
@@ -249,5 +216,96 @@ internal static class BraxMiastoNutrition
         BraxRegion.Warm(root, "Nutrition światło", new Vector3(23f, 3.5f, 15f), 1.3f, 9f);
         BraxMiastoA.Akcja(root, "nutrition_lada", "KUP", "Sprzedawca: Białko, kreatyna, przedtreningówka — co dziś bierzesz?", new Vector3(lx0 - .6f, F, (lz0 + lz1) * .5f), 1.7f);
         BraxMiastoA.Akcja(root, "nutrition_shake", "ZAMÓW SHAKE", "Shake bar: Wanilia, czekolada albo truskawka — 30 g białka.", new Vector3(lx0 - .6f, F, lz1 + .4f), 1.4f);
+    }
+
+    // 6.11: kopia materiału ISTNIEJĄCEJ zachodniej ściany, nie podobna tekstura z katalogu.
+    // Oryginalny SHOP: x1=-14.5, grubość muru=.3; po konwersji glTF lico wnętrza x=14.8.
+    // Geometrię czytamy z niezmienionego importu, materiał z odpowiadającego mu obiektu sceny.
+    // Wcześniejsze cięcia sceny nie mogą usunąć wzorca. Żaden wspólny materiał nie jest edytowany.
+    static Material PlytkaZIstniejacejSciany()
+    {
+        try
+        {
+            var imported = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Source/City/braxhorn-city.gltf");
+            var liveRoot = BraxClaudeGround.SourceCity;
+            if (!imported || !liveRoot) return BrakPlytki("brak oryginalnego importu miasta lub korzenia sceny");
+            var samples = new Dictionary<Material, (float area, Vector2 scale, Vector2 offset, string mesh)>();
+            foreach (var sourceRenderer in imported.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                var path = new Stack<string>();
+                for (var t = sourceRenderer.transform; t && t != imported.transform; t = t.parent) path.Push(t.name);
+                var live = path.Count == 0 ? liveRoot : liveRoot.Find(string.Join("/", path));
+                var liveRenderer = live ? live.GetComponent<MeshRenderer>() : null;
+                var filter = sourceRenderer.GetComponent<MeshFilter>();
+                var mesh = filter ? filter.sharedMesh : null;
+                if (!liveRenderer || !mesh || !mesh.isReadable) continue;
+                var positions = mesh.vertices; var uvs = mesh.uv;
+                if (uvs.Length != positions.Length) continue;
+                var matrix = live.localToWorldMatrix; var materials = liveRenderer.sharedMaterials;
+                for (int sub = 0; sub < mesh.subMeshCount && sub < materials.Length; sub++)
+                {
+                    var material = materials[sub];
+                    if (!material || !material.HasProperty("_MainTex") || !material.GetTexture("_MainTex")) continue;
+                    var triangles = mesh.GetTriangles(sub);
+                    for (int j = 0; j + 2 < triangles.Length; j += 3)
+                    {
+                        int ia = triangles[j], ib = triangles[j + 1], ic = triangles[j + 2];
+                        var a = matrix.MultiplyPoint3x4(positions[ia]);
+                        var b = matrix.MultiplyPoint3x4(positions[ib]);
+                        var c = matrix.MultiplyPoint3x4(positions[ic]);
+                        // Tylko lico wskazanej ściany. Nie półki, podłoga, sufit, mural ani elewacja.
+                        if (Mathf.Abs(a.x - 14.8f) > .006f || Mathf.Abs(b.x - 14.8f) > .006f || Mathf.Abs(c.x - 14.8f) > .006f) continue;
+                        var center = (a + b + c) / 3f;
+                        if (center.y < F + .2f || center.y > C - .15f || center.z < Z0 + .2f || center.z > Z1 - .2f) continue;
+                        var cross = Vector3.Cross(b - a, c - a);
+                        if (cross.magnitude < .00001f || cross.normalized.x < .99f) continue;
+                        var e1 = b - a; var e2 = c - a; var t1 = uvs[ib] - uvs[ia]; var t2 = uvs[ic] - uvs[ia];
+                        float det = e1.z * e2.y - e2.z * e1.y;
+                        if (Mathf.Abs(det) < .00001f) continue;
+                        var along = (t1 * e2.y - t2 * e1.y) / det;
+                        var up = (t2 * e1.z - t1 * e2.z) / det;
+                        // UV w metrach, bez zgadywania wielkości płytki ani obracania wzoru.
+                        if (Mathf.Abs(along.y) > .001f || Mathf.Abs(up.x) > .001f || Mathf.Abs(along.x) < .00001f || Mathf.Abs(up.y) < .00001f) continue;
+                        var scale = new Vector2(along.x, up.y);
+                        var offset = uvs[ia] - along * a.z - up * a.y;
+                        float area = cross.magnitude * .5f;
+                        if (samples.TryGetValue(material, out var previous))
+                        {
+                            if ((previous.scale - scale).sqrMagnitude > .00001f) return BrakPlytki("niespójna skala UV wzorcowej ściany");
+                            samples[material] = (previous.area + area, previous.scale, previous.offset, previous.mesh);
+                        }
+                        else samples[material] = (area, scale, offset, sourceRenderer.name);
+                    }
+                }
+            }
+            var ordered = samples.OrderByDescending(s => s.Value.area).ToArray();
+            if (ordered.Length == 0 || ordered[0].Value.area < 2f) return BrakPlytki("nie znaleziono jednoznacznego materiału ściany z płytką");
+            if (ordered.Length > 1 && ordered[1].Value.area > ordered[0].Value.area * .2f) return BrakPlytki("więcej niż jeden materiał na wzorcowym licu; nie wybieram przypadkowej płytki");
+            var original = ordered[0].Key; var sample = ordered[0].Value;
+            var tile = new Material(original) { name = "Nutrition: ta sama płytka dookoła (" + original.name + ")" };
+            // Te same referencje tekstur, kolor, shader i parametry PBR. Zmienia się tylko
+            // przeliczenie źródłowego UV na metry UlSiatka, osobno dla każdej mapy 2D.
+            foreach (var property in tile.GetTexturePropertyNames())
+            {
+                if (!(tile.GetTexture(property) is Texture2D)) continue;
+                var scale = original.GetTextureScale(property); var offset = original.GetTextureOffset(property);
+                tile.SetTextureScale(property, Vector2.Scale(scale, sample.scale));
+                tile.SetTextureOffset(property, offset + Vector2.Scale(scale, sample.offset));
+            }
+            string directory = BraxMiastoA.Out + "/Materialy";
+            System.IO.Directory.CreateDirectory(directory);
+            BraxZapisAssetu.Utworz(tile, directory + "/nutrition-owner-wall-tile.mat");
+            Debug.Log("BRAXHORN_NUTRITION_SCIANY source_mesh=" + sample.mesh + " source_material=" + original.name +
+                " source_texture=" + original.GetTexture("_MainTex").name + " source_area=" + sample.area.ToString("F2") +
+                " uv_per_m=" + sample.scale + " original_maps=true mural_opening=preserved long_white_shelves=removed");
+            return tile;
+        }
+        catch (System.Exception e) { return BrakPlytki(e.ToString()); }
+    }
+
+    static Material BrakPlytki(string reason)
+    {
+        Debug.LogWarning("BRAXHORN_NUTRITION_SCIANY DO POPRAWKI: " + reason + ". Nie stosuję zamiennika; istniejący sklep zostaje bez przebudowy.");
+        return null;
     }
 }
