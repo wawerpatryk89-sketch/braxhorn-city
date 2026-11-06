@@ -3,7 +3,10 @@ name: Miasto Mistrzów A1+T11+P1 - audyt źródeł (BEZ Unity/APK)
 on:
   push:
     branches: [gpt/miasto-mistrzow-a1-t11-p1-integracja-20261106]
-    paths: [.github/workflows/champions-a1-t11-p1-source-audit.yml]
+    paths:
+      - .github/workflows/champions-a1-t11-p1-source-audit.yml
+      - unity-tools/mistrzowie/legacy_foundation.py
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1*.cs
   workflow_dispatch:
 
 permissions:
