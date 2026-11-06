@@ -53,6 +53,20 @@ public static class BraxClaudeMetro
     // Pas płd. (z 20.5–23.9) zamknięty: chodnik nad nim nie jest cięty (wraca cały), pod nim pełny grunt (hala go omija ciągłą ścianą).
     static readonly float[] WEJSCIA = { 32.6f };
     static bool Wejscie(float z0) => Array.IndexOf(WEJSCIA, z0) >= 0;
+    // R1, 6.11: obrócone wejście na dawnym placu biura portowego (film IMG_0239).
+    // Zachowujemy oryginalną geometrię schodów, ale OBRACAMY CAŁĄ grupę o 90 stopni
+    // i przenosimy z pełnej szerokości chodnika z=32.6..36 na działkę x=66.3..74.3, z=6.5..16.5.
+    const float PortX = 70.3f, PortZ = 16.5f;
+    const float TunX0 = 74.25f, TunX1 = 77.35f, TunZ0 = 4.5f, TunZ1 = 20.5f;
+    static Transform portoweWejscie;
+    static Vector3 NaPort(Vector3 p) =>
+        new Vector3(PortX + p.z - (EZ[1] + EW * .5f), p.y, PortZ - (p.x - EX0));
+    static void ObrocWejsciePortowe(Transform grupa)
+    {
+        var obr = Quaternion.Euler(0f, 90f, 0f);  // stare +X schodów staje się -Z, prostopadle do dawnego chodnika
+        grupa.rotation = obr;
+        grupa.position = new Vector3(PortX, 0f, PortZ) - obr * new Vector3(EX0, 0f, EZ[1] + EW * .5f);
+    }
     const float TW0 = -70f, TW1 = 112f;                // końce tuneli
 
     [Serializable] sealed class Raport
@@ -165,36 +179,44 @@ public static class BraxClaudeMetro
         // 2) teren po starym wykopie (bulwar x 75–80.7, z 34.8–49.8) i po starych pustkach G5 — zamknięty
         ZamknijStaryWykop(cityRoot);
 
-        // 3) otwory w chodniku (zejścia) + uprzątnięcie drobnych rzeczy z miejsca budowy + kolizje pod ziemią
-        foreach (float z0 in WEJSCIA)
-        {
-            var otw = new Bounds(new Vector3((EX0 + XKoniec + .1f) * .5f, -.15f, z0 + EW * .5f), new Vector3(XKoniec + .1f - EX0, 1.5f, EW));
-            rep.otwory += W.Otwor(cityRoot, otw, "metro_zejscie_" + z0.ToString("F1"), zewnatrz);
-            var wiata = new Bounds(new Vector3((EX0 - 1.6f + XKoniec + .7f) * .5f, 3f, z0 + EW * .5f), new Vector3(XKoniec - EX0 + 2.3f, 6f, EW + .6f));   // + głowica schodów ruchomych na chodniku
-            rep.uprzatniete.AddRange(W.Uprzatnij(cityRoot, wiata, zewnatrz));
-        }
+        // 3) TYLKO nowy otwór w miejscu usuniętego biura portu, NIE w dawnym chodniku.
+        // Wycinamy grunt portowy na ślad schodów i tunel POD ziemią; nie usuwamy sąsiednich lamp,
+        // białej budki ochrony, barier i pozostałych urządzeń portowych.
+        var portN = NaPort(new Vector3(EX0, yS, EZ[1]));
+        var portS = NaPort(new Vector3(XKoniec + .25f, yS, EZ[1] + EW));
+        var otworPort = Bryla(Mathf.Min(portN.x, portS.x), Mathf.Max(portN.x, portS.x),
+            -.90f, .60f, Mathf.Min(portN.z, portS.z), Mathf.Max(portN.z, portS.z));
+        rep.otwory += W.Otwor(cityRoot, otworPort, "metro_zejscie_na_terenie_biura_portu", zewnatrz);
+        // U-kształtny łącznik: dół nowych schodów -> na wschód pod placem -> na północ do starej antresoli.
+        // Jego STROP jest pod istniejącym gruntem (y=-0.75), a ciąg pieszy na zewnątrz pozostaje cały.
+        foreach (var b in new[] {
+            Bryla(69.4f, TunX1, yM - .50f, yMc + .05f, TunZ0, 6.65f),
+            Bryla(TunX0, TunX1, yM - .50f, yMc + .05f, 6.65f, TunZ1)
+        })
+            rep.otwory += W.Otwor(cityRoot, b, "metro_korytarz_pod_portem", zewnatrz);
         foreach (var b in new[] {
             Bryla(MX0 - .5f, MX1 + .5f, yM - .45f, -.8f, MZ0 - .3f, MZ1 + .05f),          // antresola
             Bryla(PX0 - .5f, PX1 + .5f, yR - 1f, yHc, zS - .5f, zN + .5f),                // hala peronowa
             Bryla(TW0, PX0, yR - 1f, -6.4f, zS - .5f, zN + .5f), Bryla(PX1, TW1, yR - 1f, -6.4f, zS - .5f, zN + .5f) })   // tunele
             rep.otwory += W.Otwor(cityRoot, b, "metro_podziemie", zewnatrz);
 
-        // 3b) W istniejącym APK #64 dojście z ulicy blokowała donica wieżowca w x≈63, z≈35.
-        // Zdjąć drobne dekoracje na dojściu (model i kolizję), NIE wyłączać fasady
-        // ani całej kolizji budynku. Strefa dotyczy tylko 4.6×3.0 m przed wejściem.
-        var dojscie = Bryla(EX0 - 4.5f, EX0 + .1f, -.35f, 3.4f, EZ[1] + .3f, EZ[1] + EW - .2f);
-        var dekoracjeDojscia = W.Uprzatnij(cityRoot, dojscie, zewnatrz, 2.5f);
-        rep.uprzatniete.AddRange(dekoracjeDojscia.Select(x => "dojście metro: " + x));
-        Debug.Log("BRAXHORN_METRO_DOJSCIE usuniętych drobnych przeszkód=" + dekoracjeDojscia.Count);
+        // 3b) Stary chodnik przy x=69, z=34.3 jest NIEZMIENIONY. Zamiast masowego
+        // wyłączania kolizji sprzątamy tylko dwa obiekty AUTORYZOWANE w BraxMiastoPort:
+        // małe biuro portowe i żółty ciągnik (z=4.5).
 
-        // 4) budowa
-        W.Start(zewnatrz); W.Wnetrze = false; W.Komorka = 12f;
+        // 4) Budowa z niezmienioną geometrią stopni, ale w OSOBNEJ obracanej grupie.
+        portoweWejscie = new GameObject("METRO M1 — wejście na placu po biurze portu (obrócone 90°)").transform;
+        portoweWejscie.SetParent(zewnatrz, false);
+        W.Start(portoweWejscie); W.Wnetrze = false; W.Komorka = 12f;
         foreach (float z0 in WEJSCIA) Wejscie(z0, z0 > 28f);
         W.Wnetrze = true;
-        foreach (float z0 in WEJSCIA) ZejscieWnetrze(z0, z0 > 28f);       // ściany szybu schodów poniżej terenu (wnętrze)
-        rep.siatki += W.Zapisz("metro_wejscia");
+        foreach (float z0 in WEJSCIA) ZejscieWnetrze(z0, z0 > 28f);
+        rep.siatki += W.Zapisz("metro_wejscie_portowe");
+        ObrocWejsciePortowe(portoweWejscie);
+        Physics.SyncTransforms();
 
         W.Start(podziemie); W.Komorka = 14f;
+        KorytarzPortowy();
         Antresola();
         SchodyNaPeron();
         Hala();
@@ -222,8 +244,8 @@ public static class BraxClaudeMetro
 
         // 6) punkty misji (stare kotwice systemów przeniesione na nową stację) i raport
         W.Grupa = podziemie;
-        W.Punkt("metro_entry", "metro_entry", new Vector3(EX0 - .6f, yS, EZ[1] + EW * .5f));
-        W.Punkt("metro_stairs_bottom", "metro_stairs_bottom", new Vector3(XKoniec + 1.0f, yM, EZ[1] + EW * .5f));
+        W.Punkt("metro_entry", "metro_entry", new Vector3(PortX, yS, PortZ + .7f));
+        W.Punkt("metro_stairs_bottom", "metro_stairs_bottom", new Vector3(PortX, yM, PortZ - (XKoniec - EX0) - .35f));
         W.Punkt("metro_vestibule", "metro_vestibule", new Vector3(70.5f, yM, 28.25f));
         W.Punkt("metro_station_boundary", "metro_station_boundary", new Vector3(GX, yM, 28.5f));
         W.Punkt("metro_peron", "metro_peron", new Vector3(20f, yP, 28.5f));
@@ -234,7 +256,7 @@ public static class BraxClaudeMetro
         rep.siedziska = podziemie.GetComponentsInChildren<BraxSeat>(true).Length;
         rep.punktyAkcji = podziemie.GetComponentsInChildren<BraxPunktAkcji>(true).Length;
         rep.peron = "x " + PX0 + "…" + PX1 + ", z " + zPS + "…" + zPN + ", y " + yP;
-        rep.wejscia = "płn. x " + EX0 + "…" + XKoniec.ToString("F1") + " z " + EZ[1] + "…" + (EZ[1] + EW) + " (jedyne); płd. z " + EZ[0] + "…" + (EZ[0] + EW) + " zamknięte — chodnik cały, pod nim grunt, ściana hali ciągła";
+        rep.wejscia = "PORT: jedno wejście obrócone 90 stopni, x 68.6…72.0, z 6.2…16.5; w miejscu małego biura portowego; stary chodnik z 32.6…36 wolny. Korytarz podziemny przez x 74.25…77.35 do antresoli.";
     }
 
     // ---------------- P0.1: TEST PRZEJŚCIA (właściciel 23:05: „schody kończą się ślepym podestem”, a w logu BUILT) ----------------
@@ -368,6 +390,9 @@ public static class BraxClaudeMetro
         // stary wykop x 75–80.7, z 34.8–49.8, bez części w nowym zejściu północnym (x < 76.7, z < 36.0)
         foreach (var r in new[] {
             // Zamykanie starego wykopu NIE może zakleić nowego otworu schodów!
+            // Dawne zejście nie istnieje: wypełniamy także zachodni fragment
+            // starego wykopu, który wcześniej był pusty pod nową wiatą.
+            new Rect(75f, 34.8f, 4.5f, 1.2f),
             new Rect(79.5f, 34.8f, 1.2f, 1.2f),
             new Rect(75f, 36.0f, 5.7f, 13.8f)
         })
@@ -561,6 +586,31 @@ public static class BraxClaudeMetro
         Wiszaca(new Vector3(XKoniec + 1.0f, yMc - .55f, zH), Vector3.left, 2.4f, .3f, polnoc ? aWyjN : aWyjS, polnoc ? aWyjN : aWyjS, yMc);
     }
 
+
+    // Korytarz od dolnego podestu nowego zejścia (x~70.3, z~6.2)
+    // pod dawnym placem portowym do istniejącej antresoli (z>=20.5).
+    // Nie przebiega pod schodami (zachód), tylko obiega je od strony morza.
+    static void KorytarzPortowy()
+    {
+        // Łącznik poziomy z dolnego podestu do załamania tunelu.
+        W.MM(mPosadzka, 69.4f, TunX0, yM - .35f, yM, TunZ0, 6.65f, true);
+        W.MM(mSciana, 69.4f, TunX0, yM, yMc, TunZ0, TunZ0 + .12f, true);
+        // Tylko ściana od zewnętrznej strony szybu: w osi x 69.4..72.05 jest swobodne przejście.
+        W.MM(mSciana, 72.05f, TunX0, yM, yMc, 6.53f, 6.65f, true);
+        W.MM(mSufit, 72.05f, TunX0, yMc, yMc + .06f, TunZ0, 6.65f);
+        // Tunel w kierunku hali, w pełni POD ziemią, poza szerokością publicznego chodnika.
+        W.MM(mPosadzka, TunX0, TunX1, yM - .35f, yM, TunZ0, TunZ1, true);
+        W.MM(mSciana, TunX0, TunX0 + .12f, yM, yMc, 6.65f, TunZ1, true);
+        W.MM(mSciana, TunX1 - .12f, TunX1, yM, yMc, TunZ0, TunZ1, true);
+        W.MM(mSufit, TunX0, TunX1, yMc, yMc + .06f, TunZ0, TunZ1);
+        // Połączenie ma tę samą posadzkę co hala; nie duplikować jej ponad z=20.5.
+        for (float z = 8.5f; z < 21f; z += 3.7f)
+            W.Lampa("METRO port: oświetlenie korytarza", new Vector3((TunX0 + TunX1) * .5f, yMc - .32f, z), .65f, 7f);
+        W.Napis("PERONY", new Vector3(TunX1 - .14f, yM + 2.15f, 20.9f), Vector3.left, .23f, Color.white);
+        Debug.Log("BRAXHORN_METRO_PORT korytarz=U x " + TunX0 + ".." + TunX1 +
+            " z " + TunZ0 + ".." + (EZ[0] + EW) + "; wejście w miejscu usuniętego biura; bez zwężania starego chodnika");
+    }
+
     // ---------------- antresola (hala biletowa) ----------------
     static void Antresola()
     {
@@ -599,11 +649,18 @@ public static class BraxClaudeMetro
         W.MM(mSciana, MX0, EX0 - .3f, yM, yMc, MZ0 - .3f, MZ0, true);
         // ściany obudowy zejść od strony hali (pod biegami schodów jest zamknięta przestrzeń techniczna)
         float xEnd = EX0 + (12 - 1 + 11 - 1) * .30f * K + 1.5f * K;
-        W.MM(mSciana, EX0 - .3f, xEnd, yM, yMc, EZ[0] + EW, EZ[0] + EW + .25f, true);
+        // Przejście z NOWEGO korytarza portowego do hali: zachować ścianę,
+        // ale wyciąć realny otwór o świetle 3.10 m i wysokości 2.60 m.
+        W.MM(mSciana, EX0 - .3f, TunX0, yM, yMc, EZ[0] + EW, EZ[0] + EW + .25f, true);
+        W.MM(mSciana, TunX1, xEnd, yM, yMc, EZ[0] + EW, EZ[0] + EW + .25f, true);
+        W.MM(mSciana, TunX0, TunX1, yM + 2.60f, yMc, EZ[0] + EW, EZ[0] + EW + .25f, true);
         W.MM(mSciana, EX0 - .3f, xEnd, yM, yMc, EZ[1] - .25f, EZ[1], true);
         foreach (float zf in new[] { EZ[0] + EW + .25f, EZ[1] - .25f })
             W.MM(mLamperia, EX0 - .3f, xEnd, yM, yM + .3f, zf - .02f, zf + .02f);
+        // Dawny południowy szyb ma ciągły chodnik NAD SOBĄ, ale niżej jest korytarz
+        // na nowy portowy portal. Zamykamy końce dawnego szybu; środek to przejście.
         foreach (float z0 in EZ) if (!Wejscie(z0)) PasZamkniety(z0, xEnd, z0 > 28f);
+        W.MM(mSufit, TunX0, TunX1, yMc, yMc + .05f, EZ[0], EZ[0] + EW);
         // cokół na ścianach zewnętrznych
         W.MM(mLamperia, MX0, EX0, yM, yM + .3f, MZ1 - .02f, MZ1);
         W.MM(mLamperia, MX0, EX0, yM, yM + .3f, MZ0, MZ0 + .02f);
