@@ -32,6 +32,31 @@ public static partial class BraxClaudeOsiedle
         PK("EnteringCar", false, true, "patryk_owner/Entering Car.fbx"),
     };
     static readonly string[] PatrykWymagane = { "Idle", "CarIdle", "Walk", "Run", "Jump", "EnteringCar" };
+    // Pełny spis 22 animacji właściciela. Sześć pierwszych FBX jest już
+    // w zaszyfrowanej paczce CI; pozostałe aktywujemy dopiero po bezpiecznym
+    // imporcie oryginalnych plików (nie tworzymy udawanych klipów).
+    static readonly PatrykKlip[] DodatkoweKlipyPatryka =
+    {
+        PK("GoalkeeperDivingSave", false, true, "patryk_owner/Goalkeeper Diving Save.fbx"),
+        PK("GoalkeeperCatch", false, true, "patryk_owner/Goalkeeper Catch.fbx"),
+        PK("FemaleSittingPose", true, true, "patryk_owner/Female Sitting Pose.fbx"),
+        PK("MaleSittingPose", true, true, "patryk_owner/Male Sitting Pose.fbx"),
+        PK("AngryGesture", false, true, "patryk_owner/Angry Gesture.fbx"),
+        PK("SitToStand", false, true, "patryk_owner/Sit To Stand.fbx"),
+        PK("SittingDisbelief", false, true, "patryk_owner/Sitting Disbelief.fbx"),
+        PK("Sitting", true, true, "patryk_owner/Sitting.fbx"),
+        PK("Typing", true, true, "patryk_owner/Typing.fbx"),
+        PK("Drinking", false, true, "patryk_owner/Drinking.fbx"),
+        PK("Dribble", true, true, "patryk_owner/Dribble.fbx"),
+        PK("GoalkeeperPlacingBallAlt", false, true, "patryk_owner/Goalkeeper Placing Ball (1).fbx"),
+        PK("HeaderSoccerball", false, true, "patryk_owner/Header Soccerball.fbx"),
+        PK("GoalkeeperDropKick", false, true, "patryk_owner/Goalkeeper Drop Kick.fbx"),
+        PK("StallSoccerball", false, true, "patryk_owner/Stall Soccerball.fbx"),
+        PK("GoalkeeperPlacingBall", false, true, "patryk_owner/Goalkeeper Placing Ball.fbx"),
+        PK("TreadingWater", true, true, "patryk_owner/Treading Water.fbx"),
+        PK("Swimming", true, true, "patryk_owner/Swimming.fbx"),
+    };
+
 
     // „mixamorig:LeftArm”, „mixamorig1:LeftArm”, „mixamorigLeftArm” → „LeftArm”
     static string PatrykKosc(string n)
@@ -168,6 +193,36 @@ public static partial class BraxClaudeOsiedle
             var wejsciePatryka = klipy.FirstOrDefault(c => c.name == "EnteringCar");
             klipy.Add(PatrykCarIdleZWlasnegoWejscia(hero, spoczynek, wejsciePatryka));
             PatrykSpoczynek(spoczynek);
+            int additionalReady = 0, additionalMissing = 0;
+            foreach (var k in DodatkoweKlipyPatryka)
+            {
+                string zrodlo = PatrykRuchy + "/" + k.zrodla[0];
+                if (!File.Exists(zrodlo))
+                {
+                    // Nie ma zaszyfrowanej paczki tych 16 plików w obecnym CI.
+                    // Zgłoszenie jest jawne; nie udajemy, że akcja istnieje.
+                    additionalMissing++;
+                    continue;
+                }
+                AnimationClip dodatkowy;
+                try
+                {
+                    dodatkowy = PatrykWlasnyFBX(hero, kosci, spoczynek, k, out string info);
+                    opis.Add(info);
+                }
+                catch (Exception e)
+                {
+                    throw new InvalidOperationException("Patryk: błędny oryginalny FBX akcji " + k.nazwa, e);
+                }
+                finally { PatrykSpoczynek(spoczynek); }
+                if (!dodatkowy || dodatkowy.length <= 0f)
+                    throw new InvalidOperationException("Patryk: pusty własny klip " + k.nazwa);
+                klipy.Add(dodatkowy);
+                additionalReady++;
+            }
+            Debug.Log("BRAXHORN_PATRYK_22 właściciel=22, dodatkowe_zaimportowane=" +
+                additionalReady + ", dodatkowe_brakujace_w_CI=" + additionalMissing +
+                " (brakujące nie są udawane ani zastępowane cudzym ruchem)");
             var brak = PatrykWymagane.Where(n => !klipy.Any(c => c.name == n)).ToArray();
             if (brak.Length > 0) throw new Exception("brak wymaganych klipów: " + string.Join(", ", brak));
 
