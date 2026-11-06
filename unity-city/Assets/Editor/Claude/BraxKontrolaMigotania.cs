@@ -51,7 +51,9 @@ public static class BraxKontrolaMigotania
                                            (new Vector3(-50f, -.5f, -22f), new Vector3(-16f, 34f, 26f)),      // lewa kamienica przy BRAXHORN GYM
                                            (new Vector3(-121f, -.5f, 44f), new Vector3(-90f, 40f, 76f)),   // alejka przy BANKU
                                            (new Vector3(-168f, -2f, -138f), new Vector3(72f, 40f, 108f)),    // sklep spożywczy -> wulkanizacja i boiska
-                                           (new Vector3(63f, -3f, -140f), new Vector3(187f, 28f, 185f)) })  // port + plaża; prawdziwa wyspa ma własną siatkę i proxy
+                                           (new Vector3(63f, -3f, -140f), new Vector3(187f, 28f, 185f)),  // port + plaza
+                                           (new Vector3(BraxMiastoWyspa.CX - 242f, -30f, BraxMiastoWyspa.CZ - 242f),
+                                            new Vector3(BraxMiastoWyspa.CX + 242f, 55f, BraxMiastoWyspa.CZ + 242f)) }) // cala wyspa: bez sztucznych przesuniec warstw
             { var x = new Bounds(); x.SetMinMax(a, b); l.Add(x); }
         return l.ToArray();
     }
@@ -66,7 +68,10 @@ public static class BraxKontrolaMigotania
         float t0 = BraxKontrola.Sekundy;
         lody.Clear();
         strefa = StrefaSilowni(); strefy = Strefy(); tylkoStrefa = false;
-        var W = Wykryj(scena, 60f);
+        // Pelny rejon R1 to tez wyspa (x~1200), nie tylko ulica i port.
+        // Limit dotyczy czasu analizy w edytorze, a kazde niedomkniecie
+        // MUSI byc oznaczone w raporcie zamiast deklaracji "zero migotania".
+        var W = Wykryj(scena, BraxKontrola.Obszar == "miasto" ? 105f : 60f);
         var pows = W.pows; var pls = W.pls; var lista = W.lista;
         // naprawa
         var ruch = new Dictionary<Renderer, (int os, float delta)>();
@@ -249,7 +254,8 @@ public static class BraxKontrolaMigotania
         var przed = W.lista.Where(p => W.pows[p.a].silownia && W.pows[p.b].silownia && WStrefie(p.gdzie)).ToList();
         int wStrefach = przed.Count;
         if (reszta != null) { var juz = new HashSet<Para>(przed); foreach (var p in reszta) if (juz.Add(p)) przed.Add(p); }
-        var stoper = System.Diagnostics.Stopwatch.StartNew(); int pominieteBudzet = 0;
+        var stoper = System.Diagnostics.Stopwatch.StartNew();
+        int pominieteBudzet = 0, pominieteCiezkie = 0, pominieteBezSiatki = 0;
         var powody = new Dictionary<(Renderer, Renderer), string>();
         var zadania = new Dictionary<(Renderer, int, int, int, int), (float d, List<Vector2[]> gorne, HashSet<string> nad)>();
         int paryCiete = 0;
@@ -302,14 +308,16 @@ public static class BraxKontrolaMigotania
         int powierzchnie = 0, trojkaty = 0; float pole = 0; var opisy = new List<string>();
         foreach (var grupa in zadania.GroupBy(kv => kv.Key.Item1))
         {
-            // Szybkie wycinanie R1: maks. 32 s i 120 siatek — jakość ma
-            // RAPORTOWAĆ, nie blokować wielogodzinnego APK. Pozostałe pary
-            // idą do dziennika odbioru, nie są maskowane kolejną płytą.
-            int limitS = BraxKontrola.Obszar == "miasto" ? 32 : 240;
-            int limitMesh = BraxKontrola.Obszar == "miasto" ? 120 : 600;
+            // Wycina STARA geometrie spod NOWEJ, nigdy nie doklada
+            // drugiej plyty. Rejon R1 obejmuje tez cala wyspe i ma
+            // powiekszony limit czasu; kosztowne przypadki sa raportowane.
+            // Bledy wizualne pozostaja ostrzezeniami, bez przerywania APK.
+            int limitS = BraxKontrola.Obszar == "miasto" ? 90 : 240;
+            int limitMesh = BraxKontrola.Obszar == "miasto" ? 320 : 600;
             if (stoper.Elapsed.TotalSeconds > limitS || powierzchnie >= limitMesh) { pominieteBudzet++; continue; }
-            var r = grupa.Key; var mf = r ? r.GetComponent<MeshFilter>() : null; if (!mf || !mf.sharedMesh) continue;
-            if (mf.sharedMesh.vertexCount > 65000 || grupa.Sum(kv => kv.Value.gorne.Count) > 6000) { pominieteBudzet++; continue; }
+            var r = grupa.Key; var mf = r ? r.GetComponent<MeshFilter>() : null;
+            if (!mf || !mf.sharedMesh) { pominieteBezSiatki++; continue; }
+            if (mf.sharedMesh.vertexCount > 65000 || grupa.Sum(kv => kv.Value.gorne.Count) > 6000) { pominieteCiezkie++; continue; }
             var oryginal = mf.sharedMesh; var mesh = oryginal; int zmian = 0; float usuniete = 0; var nad = new HashSet<string>();
             try
             {
@@ -336,10 +344,10 @@ public static class BraxKontrolaMigotania
         Physics.SyncTransforms();
         // po: ponowne wykrycie tylko w strefie siłowni
         tylkoStrefa = true; Wykrycie po;
-        try { po = Wykryj(scena, 30f); } finally { tylkoStrefa = false; }
+        try { po = Wykryj(scena, BraxKontrola.Obszar == "miasto" ? 75f : 30f); } finally { tylkoStrefa = false; }
         var zostaly = po.lista.Where(p => po.pows[p.a].silownia && po.pows[p.b].silownia && WStrefie(p.gdzie)).ToList();
         var sb = new StringBuilder("BRAXHORN_SILOWNIA_MIGOTANIE pary_przed=" + przed.Count + " pary_po=" + zostaly.Count + " pary_po_powyżej_0.1m²=" + zostaly.Count(p => p.pole > .1f)
-            + " wycięte_pary=" + paryCiete + " powierzchnie=" + powierzchnie + " trójkątów=" + trojkaty + " pole_usunięte=" + pole.ToString("F2") + " m² przesunięte=0 pary_w_strefach=" + wStrefach + " pary_poza_strefami=" + (przed.Count - wStrefach) + " pominięte_budżet=" + pominieteBudzet + " czas_cięcia=" + stoper.Elapsed.TotalSeconds.ToString("F0") + " s stref_ciecia=" + strefy.Length + " (strefa siłowni " + BraxKontrola.F(strefa.min) + " … " + BraxKontrola.F(strefa.max) + ")");
+            + " wycięte_pary=" + paryCiete + " powierzchnie=" + powierzchnie + " trójkątów=" + trojkaty + " pole_usunięte=" + pole.ToString("F2") + " m² przesunięte=0 pary_w_strefach=" + wStrefach + " pary_poza_strefami=" + (przed.Count - wStrefach) + " pominięte_budżet=" + pominieteBudzet + " pominięte_duze=" + pominieteCiezkie + " pominięte_bez_siatki=" + pominieteBezSiatki + " skan_niepelny=" + (W.przerwane || po.przerwane) + " czas_cięcia=" + stoper.Elapsed.TotalSeconds.ToString("F0") + " s stref_ciecia=" + strefy.Length + " (strefa siłowni " + BraxKontrola.F(strefa.min) + " … " + BraxKontrola.F(strefa.max) + ")");
         sb.Append("\n  PRZED (największe):");
         foreach (var p in przed.Take(25)) sb.Append("\n    ").Append(W.pows[p.a].nazwa + " ↔ " + W.pows[p.b].nazwa + " odstęp " + (p.dd * 100f).ToString("F1") + " cm, " + p.pole.ToString("F2") + " m² " + BraxKontrola.F(p.gdzie));
         sb.Append("\n  WYCIĘTE:");
@@ -349,7 +357,13 @@ public static class BraxKontrolaMigotania
             sb.Append("\n    ").Append(po.pows[p.a].nazwa + " ↔ " + po.pows[p.b].nazwa + " odstęp " + (p.dd * 100f).ToString("F1") + " cm, " + p.pole.ToString("F2") + " m² " + BraxKontrola.F(p.gdzie)
                 + (powody.TryGetValue(Klucz2(po.pows[p.a].r, po.pows[p.b].r), out var pw) ? " — " + pw : ""));
         foreach (var l in opisy.Take(200)) BraxKontrola.Zapisz("migotanie siłowni: " + l);
-        if (zostaly.Count(p => p.pole > .1f) > 0) Debug.LogWarning(sb.ToString()); else Debug.Log(sb.ToString());
+        bool niedomkniete = zostaly.Count(p => p.pole > .1f) > 0 ||
+            pominieteBudzet > 0 || pominieteCiezkie > 0 || pominieteBezSiatki > 0 ||
+            W.przerwane || po.przerwane;
+        // Uzytkownik ocenia migotanie w APK. Raport nie moze oglaszac
+        // sukcesu przy niedokonczonym skanie lub pominietych siatkach.
+        if (niedomkniete) Debug.LogWarning("BRAXHORN_R1_NAWIERZCHNIE_WYMAGA_TESTU " + sb);
+        else Debug.Log("BRAXHORN_R1_NAWIERZCHNIE_KOD_PO_CIECIU " + sb);
     }
 
     static float Pozycja(Pl p) => p.znak == 1 ? p.d : -p.d;                 // położenie wzdłuż normalnej (przód = większe)
