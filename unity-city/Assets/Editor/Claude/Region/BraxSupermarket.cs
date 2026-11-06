@@ -55,13 +55,14 @@ public static class BraxSupermarket
 
     static void UdroznijWejscie(Transform sklep, bool lustro, int nr)
     {
-        const float dlugosc = 5.8f;
-        float x = (lustro ? -1f : 1f) * (W * .5f - 5f * K);
+        const float dlugosc = 8f;
+        // R1: dojście od ronda trafia w środek fasady, nie w daleki boczny portal.
+        float x = 0f;
         Vector3 wejscie = sklep.TransformPoint(new Vector3(x, .85f * K, -2.8f * K));
         // Prostokąt 3.2 m szerokości prowadzi od drzwi do chodnika.
         // AABB obejmuje dowolny kąt obrotu całego modułu (0/90/180/270).
         var f = sklep.forward * (dlugosc * .5f * K);
-        var side = sklep.right * (1.6f * K);
+        var side = sklep.right * (2.3f * K);
         Vector3 z = wejscie - f;
         var corners = new[] { z + side + f, z + side - f, z - side + f, z - side - f };
         var cut = new Bounds(corners[0], Vector3.zero);
@@ -74,12 +75,23 @@ public static class BraxSupermarket
         {
             if (!tr || tr.IsChildOf(sklep) || sklep.IsChildOf(tr)) continue;
             string nazwa = tr.name.ToLowerInvariant();
-            if (!(nazwa.Contains("fence") || nazwa.Contains("płot") ||
-                  nazwa.Contains("plot ") || nazwa.Contains("ogrodzen") ||
-                  nazwa.Contains("ogrodze"))) continue;
             var r = tr.GetComponent<Renderer>();
             var c = tr.GetComponent<Collider>();
             if (!((r && r.bounds.Intersects(cut)) || (c && c.bounds.Intersects(cut)))) continue;
+            bool namedFence = nazwa.Contains("fence") || nazwa.Contains("płot") ||
+                              nazwa.Contains("plot ") || nazwa.Contains("ogrodzen") ||
+                              nazwa.Contains("ogrodze") || nazwa.Contains("barier") ||
+                              nazwa.Contains("rail");
+            // Eksport R1 łączy pręty płotu w siatki o ogólnych nazwach.
+            // Rozpoznaj również długie niskie poprzeczki / wąskie słupki,
+            // ale NIGDY nie wycinaj ściany budynku, jezdni ani całego terenu.
+            Bounds b = c ? c.bounds : r.bounds;
+            float poziomyDlugi = Mathf.Max(b.size.x, b.size.z);
+            float poziomyWaski = Mathf.Min(b.size.x, b.size.z);
+            bool rail = b.size.y < 3.3f && b.max.y > sklep.position.y + .35f &&
+                        ((poziomyDlugi > 1.4f && poziomyWaski < .65f) ||
+                         (poziomyDlugi < .65f && b.size.y > .9f));
+            if (!namedFence && !rail) continue;
             try
             {
                 mesh += BraxCityMeshCut.Subtract(tr, cut, BraxRegion.Out + "/Cuts",
@@ -148,7 +160,8 @@ public static class BraxSupermarket
     static int Zbuduj(Transform t, bool lustro, int nr)
     {
         float L(float x) => lustro ? -x : x;
-        float hw = W * .5f, xe = L(hw - 5f * K), wd = 2.4f * K, hd = 2.6f * K, yC = .5f * K, yS = 3.4f * K, yA = H + 1.4f * K;
+        // R1: centralne prawdziwe wejście, dostępne bez omijania całej witryny.
+        float hw = W * .5f, xe = 0f, wd = 3.0f * K, hd = 2.6f * K, yC = .5f * K, yS = 3.4f * K, yA = H + 1.4f * K;
         Vector3 Swiat(float x, float y, float z) => t.TransformPoint(new Vector3(x, y, z));
         var rng = new System.Random(4421 * nr);
 
