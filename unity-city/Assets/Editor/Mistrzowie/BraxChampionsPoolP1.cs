@@ -85,6 +85,7 @@ public static class BraxChampionsPoolP1
         // Original SPA prefabs are mounted only from real owner source assets.
         // Any still-unimported model is reported by the furnishing module.
         BraxChampionsPoolP1SpaFurnishing.Generate(rooms,details,smallMosaic,steel);
+        BraxChampionsPoolP1Equipment.InstallRemaining(rooms,outdoors);
         NightAndInteriorLights();
 
         if(parked!=layout.parkingSpaces)
@@ -363,7 +364,9 @@ public static class BraxChampionsPoolP1
         Room("KAWIARNIA",-12,-12,10.5f,12,3.4f,white);
         Room("BIURO / OBSLUGA",-12,-23,10.5f,7,3.4f,white,+1);
         Room("SAUNA",12.4f,-22.5f,8.9f,8f,3.4f,white,-1);
-        Room("SPA RELAKS",12f,-13.8f,10.8f,7.8f,3.4f,white);
+        // Guest SPA entrance faces the spacious CENTRAL corridor, not the
+        // narrow 0.8m strip between SAUNA north wall and jacuzzi room.
+        Room("SPA RELAKS",12f,-13.8f,10.8f,7.8f,3.4f,white,-1);
         // The outdoor-facing main public entrance remains a genuine open aperture.
         Box(details,"P1 two-sided covered entrance awning",wood,0,5.0f,-30.5f,19f,.28f,4.7f,false);
         Box(details,"P1 entry canopy fascia gold",gold,0,4.9f,-33,19f,.11f,.12f,false);
@@ -493,15 +496,8 @@ public static class BraxChampionsPoolP1
         // Swimming water plane is not a solid collider. The real bottom and sidewalls
         // remain collidable; a separate trigger provides buoyancy for deep basins.
         BraxChampionsPoolP1Water.Basin(t,b.id,x,z,w,d,depth,b.id!="CHILDREN");
-        // Simple robust real stainless steel ladder with two vertical rails, rungs.
-        if(b.id!="CHILDREN")
-        {
-            float lx=x+w*.5f-.9f,lz=z-d*.5f+.15f;
-            foreach(float sx in new[]{lx-.29f,lx+.29f})
-                Box(t,"Pool ladder upright steel",steel,sx,Deck-.3f,lz,.06f,1.7f,.06f,false);
-            for(int i=0;i<5;i++)
-                Box(t,"Pool ladder anti-slip rung",steel,lx,Deck-.19f-i*.30f,lz,.70f,.055f,.07f,false);
-        }
+        // Two real owner steel ladder models mounted separately,
+        // with source mesh collision, no procedural duplicates.
 
     }
     static void FixturesAndFurniture()
@@ -539,9 +535,8 @@ public static class BraxChampionsPoolP1
             Cylinder(rooms,"White PBR washbasin",floor,x,1.03f,10.6f,.38f,.15f);
             Cylinder(rooms,"Chrome basin mixer",steel,x,1.17f,10.9f,.045f,.26f);
         }
-        // Lifeguard observation station near accessible deck.
-        Box(rooms,"Lifeguard high chair support",steel,18.8f,1.28f,17.5f,.76f,2.0f,.68f);
-        Box(rooms,"Lifeguard chair seat",wood,18.8f,2.38f,17.5f,.97f,.22f,.98f);
+        // The supplied real lifeguard high-chair is installed once near
+        // the water by BraxChampionsPoolP1Equipment.
         // SPA staff supplies shelving, filtration equipment boxes, real doors kept passable.
         for(float z=14;z<=45;z+=12)
         {
