@@ -34,6 +34,12 @@ jobs:
             .github/workflows/mistrzowie-apk.yml
             .github/workflows/p1-source-smoke-20261106.yml
             unity-tools/mistrzowie/test_pool_p1_*.py
+            unity-tools/mistrzowie/test_casino_t11_garage.py
+            unity-tools/mistrzowie/test_vip_owner_model.py
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11.cs
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsArena.cs
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsVIPSeats.cs
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs
             unity-tools/mistrzowie/prepare_pool_p1_slide.py
             unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
             unity-tools/mistrzowie/import_pool_p1_owner_assets.py
@@ -56,6 +62,10 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_pool_p1_*.py' -v
+          # These two previously stale A1/T11 regression contracts blocked
+          # the first P1 Unity scene test before any Unity compilation.
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_casino_t11_garage.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_vip_owner_model.py' -v
           python3 -m py_compile unity-tools/mistrzowie/import_pool_p1_owner_assets.py unity-tools/mistrzowie/prepare_pool_p1_slide.py unity-tools/mistrzowie/verify_pool_p1_model_geometry.py
           echo "P1_STATIC_CONTRACTS_PASS - no Unity Editor, no APK"
       - name: C# source syntax and local-variable scope audit (P1 only)
