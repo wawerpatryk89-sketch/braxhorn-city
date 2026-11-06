@@ -197,6 +197,32 @@ public static class BraxObozMaterials
         material.mainTextureScale=Vector2.one/widthMetres;
         return Save(material,"polyhaven-"+id);
     }
+    public static Material OwnerMudForestPbr()
+    {
+        // The owner's SOURCE maps, not a tinted gravel stand-in.
+        const string prefix="Assets/Source/Prywatne/Oboz/OwnerAssets/mud_forest_2k/textures/";
+        string diffuse=prefix+"mud_forest_diff_2k.jpg";
+        string normal=prefix+"mud_forest_nor_gl_2k.exr";
+        string rough=prefix+"mud_forest_rough_2k.exr";
+        foreach(var file in new[]{diffuse,normal,rough})
+            if(!File.Exists(file)) throw new InvalidOperationException(
+                "Brak oryginalnej mapy błota forest PBR 2K: "+file);
+        var shader=Shader.Find("Braxhorn/ObozSurface");
+        if(!shader)throw new InvalidOperationException("Brak shadera błota PBR");
+        var colorMap=Map(diffuse,false,true);
+        var normalMap=Map(normal,true,false);
+        var roughMap=Map(rough,false,false);
+        if(colorMap.width<2048||colorMap.height<2048||
+            normalMap.width<2048||normalMap.height<2048||
+            roughMap.width<2048||roughMap.height<2048)
+            throw new InvalidOperationException("Wymagane rzeczywiste mapy właścicielskiego błota 2048");
+        var mud=new Material(shader){name="Obóz / oryginalne mokre błoto właściciela 2K",
+            enableInstancing=true};
+        mud.SetTexture("_MainTex",colorMap);mud.SetTexture("_BumpMap",normalMap);
+        mud.SetTexture("_RoughnessTex",roughMap);mud.SetFloat("_MetallicFactor",0);
+        return Save(mud,"owner-mud-forest-2k");
+    }
+
     public static Material CampGround(Material forest, Material aggregate)
     {
         if (!forest || !aggregate) throw new InvalidOperationException("Brak map podłoża obozu");
@@ -214,6 +240,13 @@ public static class BraxObozMaterials
         foreach (var pair in new[]{("_MainTex","_LawnColor"),("_BumpMap","_LawnNormal"),
             ("_RoughnessTex","_LawnRoughness"),("_OcclusionTex","_LawnAO")})
             material.SetTexture(pair.Item2,lawn.GetTexture(pair.Item1));
+        // 3-way ground PBR uses the owner's 2K mud only where the vertex-blue
+        // terrain wear mask indicates wet soil, not across the whole camp.
+        var ownerMud=OwnerMudForestPbr();
+        material.SetTexture("_MudColor",ownerMud.GetTexture("_MainTex"));
+        material.SetTexture("_MudNormal",ownerMud.GetTexture("_BumpMap"));
+        material.SetTexture("_MudRoughness",ownerMud.GetTexture("_RoughnessTex"));
+        material.SetFloat("_MudUVScale",1.5f);
         material.mainTextureScale = Vector2.one;
         material.SetFloat("_GroundUVScale", 2);
         material.SetFloat("_LawnUVScale", 3f/1.4f);
