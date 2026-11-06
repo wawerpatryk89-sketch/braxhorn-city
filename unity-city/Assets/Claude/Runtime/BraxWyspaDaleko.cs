@@ -18,39 +18,59 @@ public sealed class BraxWyspaDaleko : MonoBehaviour
     // Wczytana scena przejmuje rysowanie natychmiast: zero klatek
     // z dwoma nakładającymi się terenami.
 
+    bool CzyPrawdziwaWyspa()
+    {
+        if (string.IsNullOrEmpty(scena)) return false;
+        var target = SceneManager.GetSceneByName(scena);
+        if (!target.IsValid() || !target.isLoaded) return false;
+        var roots = target.GetRootGameObjects();
+        for (int i = 0; i < roots.Length; i++)
+            if (roots[i] && roots[i].activeInHierarchy &&
+                roots[i].name.StartsWith("CLAUDE wyspa", System.StringComparison.Ordinal))
+                return true;
+        return false;
+    }
+
+    void Synchronizuj(string powod)
+    {
+        bool gotowa = CzyPrawdziwaWyspa();
+        bool widac = !gotowa;
+        if (proxyWidoczne != widac)
+        {
+            proxyWidoczne = widac;
+            Debug.Log("BRAXHORN_WYSPA_WIDOCZNOSC " + powod +
+                " proxy=" + widac + " real_scene=" + gotowa);
+        }
+        UstawWidocznosc(widac);
+    }
+
     void OnEnable()
     {
-        proxyWidoczne = true;
-        UstawWidocznosc(true);
+        SceneManager.sceneLoaded += Wczytano;
+        SceneManager.sceneUnloaded += Zwolniono;
+        Synchronizuj("aktywacja");
+    }
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= Wczytano;
+        SceneManager.sceneUnloaded -= Zwolniono;
+    }
+    void Wczytano(Scene s, LoadSceneMode mode)
+    {
+        if (s.name == scena) Synchronizuj("wczytano");
+    }
+    void Zwolniono(Scene s)
+    {
+        if (s.name == scena) Synchronizuj("zwolniono");
     }
 
     void Update()
     {
         if (Time.unscaledTime < nast) return;
-        nast = Time.unscaledTime + .20f;
-        bool gotowa = false;
-        if (!string.IsNullOrEmpty(scena))
-        {
-            var target = SceneManager.GetSceneByName(scena);
-            if (target.IsValid() && target.isLoaded)
-            {
-                var roots = target.GetRootGameObjects();
-                for (int i = 0; i < roots.Length; i++)
-                {
-                    if (roots[i] && roots[i].activeInHierarchy &&
-                        roots[i].name.StartsWith("CLAUDE wyspa", System.StringComparison.Ordinal))
-                    { gotowa = true; break; }
-                }
-            }
-        }
-        // W pełni aktywna scena zastępuje proxy w TEJ SAMEJ próbce.
-        // Żadnych dwóch nakładających się warstw terenu podczas przełączania.
-        bool maBycWidoczne = !gotowa;
-        if (maBycWidoczne == proxyWidoczne) return;
-        proxyWidoczne = maBycWidoczne;
-        UstawWidocznosc(proxyWidoczne);
-        Debug.Log("BRAXHORN_WYSPA_WIDOCZNOSC proxy=" + proxyWidoczne +
-            " real_scene=" + gotowa + " (bez znikania przy samym progu odleglosci)");
+        nast = Time.unscaledTime + .5f;
+        // Wydarzenie SceneManager wyłącza proxy w tej samej ramce,
+        // a ten lekki fallback chroni przed nietypowym porządkiem aktywacji.
+        Synchronizuj("stan");
     }
 
     void UstawWidocznosc(bool widac)
