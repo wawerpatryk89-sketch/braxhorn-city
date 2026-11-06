@@ -21,6 +21,25 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public Vector3 worldSpawn=new Vector3(1.5f,.08f,2.8f);
     public int trainingHits;
     public BraxVessel vessel;   // pojazd wodny, na którym siedzi gracz (BraxVessel.Board)
+    // Swimming is shared by every region using BraxGymPlayer; water volumes
+    // can live in any city/estate/island/pool scene. No animation edits.
+    private int swimmingZoneId;
+    private float swimmingSurfaceY;
+    public bool Swimming => swimmingZoneId!=0 && !vessel && !seat;
+    public void EnterSwimmingZone(int zoneId,float surfaceY)
+    {
+        if(zoneId==0 || float.IsNaN(surfaceY) || float.IsInfinity(surfaceY) || vessel || seat)return;
+        swimmingZoneId=zoneId;swimmingSurfaceY=surfaceY;
+    }
+    public void ExitSwimmingZone(int zoneId)
+    {
+        if(zoneId!=swimmingZoneId)return;
+        swimmingZoneId=0;swimmingSurfaceY=0;
+    }
+    void ClearSwimming()
+    {
+        swimmingZoneId=0;swimmingSurfaceY=0;
+    }
     public BraxSeat seat;       // sofa / ławka / hoker / łóżko (BraxSeat.Use)
     // Chwila trafienia CIOSU / KOPU (ta sama co trening na workach siłowni): pozycja gracza, kierunek, true = kopnięcie.
     // Słuchają worki, liny ringu i piłki osiedla (BraxWorek, BraxLina, BraxPilka) — bez zależności gracza od nich.
@@ -128,6 +147,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(seat){seat.Leave();}
             body.enabled=false;transform.position=cityWorld?worldSpawn:Spawn;transform.rotation=Quaternion.Euler(0,initialCameraYaw+180f,0);body.enabled=true;
             vertical=0;speed=0;move=Vector2.zero;actionEnd=0;hitPending=false;hitAt=0;
+            ClearSwimming();
             yaw=initialCameraYaw;pitch=19;distance=5.8f;cameraTarget=transform.position+Vector3.up*1.65f;
             action="Idle";clips.Play("Idle");UpdateCamera(1f);Report();return;
         }
@@ -174,7 +194,10 @@ public sealed class BraxGymPlayer : MonoBehaviour
         bool jumping=acting&&action=="Jump";   // w skoku: pęd zostaje, sterowanie lekkie
         float mag=move.magnitude;   // 1.11: chód przy lekkim wychyleniu (0.9–2.1 m/s), płynnie w bieg przy mocnym (do 5.2 m/s), bez przycisku BIEG
         float naJoy=mag<.12f?0f:mag<.7f?Mathf.Lerp(.9f,2.1f,(mag-.12f)/.58f):(!walkOnly&&runEnabled?Mathf.Lerp(2.1f,5.2f,Mathf.SmoothStep(0f,1f,(mag-.7f)/.22f)):2.1f);
-        float target=jumping?speed:!acting?naJoy:0;
+        // In ANY region, valid swimming zones dampen walking speed while
+        // preserving joystick, camera, animations and vehicle behaviour.
+        bool swimNow=Swimming;
+        float target=jumping?speed:!acting?(swimNow?naJoy*.48f:naJoy):0;
         speed=Mathf.MoveTowards(speed,target,dt*15f);
         Vector3 right=Vector3.ProjectOnPlane(view.transform.right,Vector3.up).normalized;
         Vector3 forward=Vector3.ProjectOnPlane(view.transform.forward,Vector3.up).normalized;
@@ -194,7 +217,18 @@ public sealed class BraxGymPlayer : MonoBehaviour
             if(hips)hipsPrevY=visual.InverseTransformPoint(hips.position).y;
             if(odbicie){jumpPending=false;if(body.isGrounded)vertical=6.2f;}
         }
-        if(body.isGrounded&&vertical<0)vertical=-2f;vertical-=18f*dt;
+        if(swimNow)
+        {
+            // Gentle buoyancy only in authored swimming volumes.
+            // The actual tiled floor stays collidable; water is not a ceiling.
+            float targetFeet=swimmingSurfaceY-body.height*.60f;
+            vertical=Mathf.Clamp((targetFeet-transform.position.y)*2.8f,-1.6f,1.6f);
+        }
+        else
+        {
+            if(body.isGrounded&&vertical<0)vertical=-2f;
+            vertical-=18f*dt;
+        }
         Vector3 moveDir=jumping&&direction.sqrMagnitude<.01f?transform.forward:direction.normalized;
         Vector3 step=(moveDir*speed+Vector3.up*vertical)*dt;
         int n=Mathf.Max(1,Mathf.CeilToInt(step.magnitude/.16f));for(int i=0;i<n;i++)body.Move(step/n);
@@ -361,6 +395,7 @@ public sealed class BraxGymPlayer : MonoBehaviour
     public void TravelTo(Vector3 position)
     {
         move=Vector2.zero;speed=0;vertical=0;actionEnd=0;hitPending=false;action="Idle";
+        ClearSwimming(); // travelling between districts cannot retain an old water zone
         body.enabled=false;transform.position=position;body.enabled=true;clips.Play("Idle");
         cameraTarget=position+Vector3.up*1.65f;UpdateCamera(1f);Report();
     }
