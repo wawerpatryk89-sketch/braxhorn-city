@@ -1,3 +1,9 @@
+## AKTUALNA INSTRUKCJA WŁAŚCICIELA — 06.11.2026
+
+**REJON: OBÓZ.** Każdą odpowiedź zacznij od `OBÓZ —`. **Zanim rozpoczniesz pracę, odczytaj cały [AGENTS.md](AGENTS.md), od pierwszej linijki.** Znajduje się tam pełna globalna instrukcja z 06.11.2026, aktualna lista czterech gałęzi, kolejność prac, zasady jakości i bezpieczeństwa buildów. Jest ona nadrzędna względem sprzecznych wcześniejszych zapisów poniżej (w szczególności starszych wyjątków uruchamiania buildu przez zmianę pliku zlecenia). APK wolno uruchomić **tylko po wyraźnej decyzji właściciela, pojedynczo przez `workflow_dispatch`**. Sam zapis instrukcji/commit/push **nie jest zgodą na build**. Nie modyfikuj `main`, nie mieszaj rejonów i nie usuwaj niczego bez wcześniejszej listy oraz akceptacji właściciela.
+
+---
+
 # Instrukcja dla Claude / Braxhorn City
 
 Aktualizacja obozu: właściciel nakazał wykonawcy samodzielny start po każdym
