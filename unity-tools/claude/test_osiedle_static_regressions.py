@@ -315,6 +315,16 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn('rep.notes.Add("DO POPRAWKI: SZYLD ZASŁONIĘTY:', signs)
         self.assertIn('n.StartsWith("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase)', scene)
 
+    def test_every_owner_billboard_placement_and_texture_reported(self):
+        signs = source("BraxClaudeOsiedleBillboardy.cs")
+        scene = source("BraxClaudeOsiedleAktualizacja.cs")
+        self.assertIn('var wymagane = new[] { "02", "04", "05", "13", "14", "08" };', signs)
+        self.assertIn("brakujace = wymagane.Where(n => !Postawiony(n))", signs)
+        self.assertIn("billBrak > 0 || billPost != wymagane.Length", signs)
+        self.assertIn('rep.notes.Add(problem);', signs)
+        self.assertIn('"DO POPRAWKI: nośniki osiedla:', signs)
+        self.assertIn('n.StartsWith("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase)', scene)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
