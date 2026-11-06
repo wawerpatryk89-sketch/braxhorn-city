@@ -44,14 +44,19 @@ public static partial class BraxClaudeOsiedle
         foreach (var d in tab) if (d && d.enabled && Klasa(d.id) == KlasaDrzwi.Wewnetrzne && drzwiBud.Any(q => Vector3.Distance(q, d.transform.position) < 15f)) cele.Add((d.id, d.transform.position));
         BraxCityWorld[] swiaty = Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (var w in swiaty) if (w.points != null) foreach (var pt in w.points) if (pt != null && drzwiBud.Any(q => Vector3.Distance(q, pt.position) < 15f)) cele.Add(("punkt " + pt.id, pt.position));
-        nCele = cele.Count;
+        // This is a single-floor 2D flood fill. Previously, only upstairs
+        // targets counted as non-empty, then were skipped at the end, giving
+        // a false PASS and permitting a potentially unsafe door closure.
+        // Require at least one actual reachable target on this SAME floor.
+        var celeNaPoziomie = cele.Where(c => Mathf.Abs(c.p.y - y) <= 2f).ToList();
+        nCele = celeNaPoziomie.Count;
         int nx = Mathf.CeilToInt(b.size.x / h), nz = Mathf.CeilToInt(b.size.z / h);
         // Poprzednio duży budynek lub brak celów zwracał PUSTĄ listę,
         // czyli fałszywe PASS. W takiej sytuacji nie wolno zamknąć drzwi.
         if (nx <= 0 || nz <= 0 || (long)nx * nz > 40000)
             return new List<string> { "obszar poza limitem wiarygodnego testu przejścia" };
-        if (cele.Count == 0)
-            return new List<string> { "brak celów pozwalających zweryfikować dostęp do wnętrza" };
+        if (celeNaPoziomie.Count == 0)
+            return new List<string> { "brak celów na poziomie wejścia pozwalających zweryfikować dostęp do wnętrza" };
         var wolne = new sbyte[nx * nz]; var odw = new bool[nx * nz];
         var buforKolizji = new Collider[64];
         Vector3 P(int ix, int iz) => new Vector3(b.min.x + (ix + .5f) * h, y, b.min.z + (iz + .5f) * h);
@@ -87,9 +92,8 @@ public static partial class BraxClaudeOsiedle
             }
         }
         var brak = new List<string>();
-        foreach (var (n, p) in cele)
+        foreach (var (n, p) in celeNaPoziomie)
         {
-            if (Mathf.Abs(p.y - y) > 2f) continue;   // inne piętro — poza siatką (nie blokuje)
             int ix = Mathf.Clamp((int)((p.x - b.min.x) / h), 0, nx - 1), iz = Mathf.Clamp((int)((p.z - b.min.z) / h), 0, nz - 1); bool ok = false;
             for (int ddx = -2; ddx <= 2 && !ok; ddx++) for (int ddz = -2; ddz <= 2 && !ok; ddz++) { int jx = ix + ddx, jz = iz + ddz; if (jx >= 0 && jz >= 0 && jx < nx && jz < nz && odw[jz * nx + jx]) ok = true; }
             if (!ok) brak.Add(n);
