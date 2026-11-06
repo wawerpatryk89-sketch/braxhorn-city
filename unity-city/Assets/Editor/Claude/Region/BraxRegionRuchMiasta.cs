@@ -320,6 +320,59 @@ public static partial class BraxClaudeOsiedle
     // animowane, dalsze w pozie (budżet BraxLudzie.Animuj). Poza „leży” — brak klipu: osoba siedzi na leżaku.
     static readonly Rola RolaRatownik = new Rola { nazwa = "ratownik", postaci = new[] { "Sports", "Male_Adult" }, kolor = new Color(.78f, .08f, .07f) };
     static readonly Rola RolaSport = new Rola { nazwa = "zawodnik / trener", postaci = new[] { "Sports" } };
+    // OBSADA R1 — jawny podział: normalnie ubrani widzowie na widowni,
+    // plażowicze/kąpiący się w strojach plażowych wyłącznie na wybrzeżu.
+    // Nie zastępujemy materiałów użytkownika sztuczną teksturą skóry.
+    static readonly Rola RolaWidowniaWyspy = new Rola
+    {
+        nazwa = "kibic ARENY ubrany",
+        postaci = new[] { "Business_", "Male_Adult", "Female_Adult", "Female_Party" },
+        odcien = false, okulary = .08f
+    };
+    static readonly Rola RolaPlazowiczWyspy = new Rola
+    {
+        nazwa = "plażowicz wyspy (strój kąpielowy)",
+        postaci = new[] { "Sports", "Male_Adult", "Female_Adult" },
+        odcien = false, okulary = .12f
+    };
+    static int strojeWyspaPlaza, strojeWyspaArena, strojeWyspaBrak;
+    static RbPostac WyspaPostacDoStrefy(bool plazowy, System.Random rnd)
+    {
+        if (rbPostacie == null || rbPostacie.Count == 0) return null;
+        var pool = rbPostacie.Where(p => p.prefab &&
+            (plazowy ? p.nazwa.StartsWith("Sports", StringComparison.Ordinal) ||
+                       p.nazwa.StartsWith("Male_Adult", StringComparison.Ordinal) ||
+                       p.nazwa.StartsWith("Female_Adult", StringComparison.Ordinal)
+                     : p.nazwa.StartsWith("Business_", StringComparison.Ordinal) ||
+                       p.nazwa.StartsWith("Male_Adult", StringComparison.Ordinal) ||
+                       p.nazwa.StartsWith("Female_Adult", StringComparison.Ordinal) ||
+                       p.nazwa.StartsWith("Female_Party", StringComparison.Ordinal)))
+            .Where(p => p.skora >= 0f &&
+                (plazowy ? p.skora > ProgSkory : p.skora <= ProgSkory))
+            .OrderBy(p => p.nazwa).ToList();
+        if (!plazowy && pool.Count == 0)
+        {
+            // Profesjonalny model Business nosi uniform nawet gdy obraz nie
+            // ma maski alfa do obliczenia procentu skóry.
+            pool = rbPostacie.Where(p => p.prefab &&
+                p.nazwa.StartsWith("Business_", StringComparison.Ordinal) &&
+                p.skora <= ProgSkory).OrderBy(p => p.nazwa).ToList();
+        }
+        if (plazowy && pool.Count == 0)
+        {
+            // W oryginalnej bibliotece może brakować modelu z widoczną skórą
+            // >45%. Wtedy wybieramy najbardziej plażową postać sportową
+            // i jawnie raportujemy brak potwierdzonego stroju kąpielowego.
+            pool = rbPostacie.Where(p => p.prefab && p.nazwa.StartsWith("Sports", StringComparison.Ordinal))
+                .OrderByDescending(p => p.skora).Take(4).ToList();
+            if (pool.Count > 0 && strojeWyspaBrak++ == 0)
+                Debug.LogWarning("WYSPA_STROJ_PLAZA: brak potwierdzonych modeli w stroju kąpielowym (skóra >45%); źródło Sports wymaga kontroli wizualnej");
+        }
+        if (pool.Count == 0) return null;
+        int n = plazowy ? strojeWyspaPlaza++ : strojeWyspaArena++;
+        return pool[(n + rnd.Next(2)) % pool.Count];
+    }
+
     static Rola RolaDla(string r)
     {
         r = r.ToLowerInvariant();
@@ -334,7 +387,8 @@ public static partial class BraxClaudeOsiedle
     {
         string[] stoi = { "idle_neutral_01", "idle_neutral_02", "idle_look_around_01" };
         string[] siedzi = { "sit_chair_breathe_01", "sit_chair_idle_neutral_02" };
-        int kibice = 0, inni = 0, obsada = 0, pominiete = 0;
+        int kibice = 0, inni = 0, obsada = 0, pominiete = 0, plazowi = 0, arenaUbrani = 0;
+        strojeWyspaArena = strojeWyspaPlaza = strojeWyspaBrak = 0;
         var wyspa = cityRoot.Cast<Transform>().FirstOrDefault(t => t.name.StartsWith("CLAUDE wyspa", StringComparison.Ordinal));
         var miejsca = wyspa ? wyspa.Cast<Transform>().FirstOrDefault(t => t.name.StartsWith("Wyspa: miejsca ludzi", StringComparison.Ordinal)) : null;
         if (miejsca)
@@ -349,11 +403,52 @@ public static partial class BraxClaudeOsiedle
                 string poza = cz[0], rola = cz[1], gdzie = cz[2];
                 bool kib = rola == "kibic" && poza == "siedzi";
                 if (kib && (iKib++ % krokKib) != 0) continue;
-                var R = RolaDla(rola);
+                bool widownia = kib || (poza == "siedzi" &&
+                    (gdzie == "Loża VIP" || gdzie == "Stół komentatorów" || gdzie == "Stół sędziów"));
+                // Ratownik musi mieć swój czerwony mundur. Plażowe stroje
+                // przypisujemy tylko kąpiącym się, plażowiczom i gościom baru.
+                bool plazowy = (gdzie == "Plaża wyspy" && rola == "plażowicz") ||
+                    (gdzie == "Woda przy plaży" && rola.Contains("kąpiący")) ||
+                    (gdzie == "Brzeg plaży" && rola.Contains("strój plażowy")) ||
+                    (gdzie == "Bar plażowy" && rola == "gość baru");
+                var R = widownia ? RolaWidowniaWyspy : plazowy ? RolaPlazowiczWyspy : RolaDla(rola);
+                RbPostac wybrany = null;
+                if (widownia || plazowy)
+                {
+                    wybrany = WyspaPostacDoStrefy(plazowy, rnd);
+                    if (wybrany == null)
+                    {
+                        pominiete++; strojeWyspaBrak++;
+                        if (strojeWyspaBrak < 8)
+                            Debug.LogWarning("WYSPA_POSTAC_STROJ: brak zgodnego modelu dla " +
+                                gdzie + " / " + rola + "; nie stawiam złego stroju");
+                        continue;
+                    }
+                }
+                // Na trybunach NIE odtwarzamy klipu wstawania ani stojącej
+                // celebracji: oryginalne siedzenie i delikatny oddech.
+                var klipyStoj = stoi;
+                var klipySiedz = siedzi;
                 BraxMieszkaniec m = null;
-                if (poza == "siedzi" || poza == "leży") m = Siedzacy(R, gW, gdzie + " — " + rola, t.position, t.forward, rnd, siedzi);
-                else m = NowyMieszkaniec(R, gW, gdzie + " — " + rola, t.position, t.eulerAngles.y, rnd, stoi);
+                if (poza == "siedzi" || poza == "leży")
+                    m = Siedzacy(R, gW, gdzie + " — " + rola,
+                        t.position, t.forward, rnd, klipySiedz, false, wybrany);
+                else
+                    m = NowyMieszkaniec(R, gW, gdzie + " — " + rola,
+                        t.position, t.eulerAngles.y, rnd, klipyStoj,
+                        wymus: wybrany);
                 if (!m) { pominiete++; continue; }
+                if (widownia)
+                {
+                    arenaUbrani++;
+                    // Łączymy wzrok kibica z prawdziwym centrum klatki,
+                    // bez obracania całego siedzącego modelu na krzesełku.
+                    m.ogladaWalke = true;
+                    m.punktWalki = BraxMiastoWyspa.Miejsca.TryGetValue("arena_srodek", out var centrum)
+                        ? centrum : new Vector3(BraxMiastoWyspa.CX - 40f, t.position.y, BraxMiastoWyspa.CZ + 2f);
+                    m.zmianaMin = 8f; m.zmianaMax = 15f;
+                }
+                if (plazowy) plazowi++;
                 if (kib) kibice++; else inni++;
             }
         }
@@ -366,7 +461,7 @@ public static partial class BraxClaudeOsiedle
                                           : NowyMieszkaniec(RolaDla(rola), gO, rola, t.position, t.eulerAngles.y, rnd, stoi);
             if (m) obsada++; else pominiete++;
         }
-        Debug.Log("BRAXHORN_LUDZIE_WYSPA kibice=" + kibice + " inni=" + inni + " obsada_wnetrz=" + obsada + " pominiete=" + pominiete + (miejsca ? "" : " (brak miejsc wyspy)"));
+        Debug.Log("BRAXHORN_LUDZIE_WYSPA kibice=" + kibice + " ubrani_na_widowni=" + arenaUbrani + " plazowi=" + plazowi + " braki_strojow=" + strojeWyspaBrak + " inni=" + inni + " obsada_wnetrz=" + obsada + " pominiete=" + pominiete + (miejsca ? "" : " (brak miejsc wyspy)"));
     }
 
     // ---- AUDYT WYSPY (właściciel: „sprawdź ją 10 razy”): lista kontrolna z nazw obiektów i materiałów pod korzeniem wyspy ----
