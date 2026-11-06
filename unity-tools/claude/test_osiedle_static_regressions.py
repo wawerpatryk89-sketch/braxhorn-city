@@ -239,6 +239,14 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertEqual(adapter.count("Physics.SyncTransforms();"), 2)
         self.assertIn("sym.UstawStart();", adapter)
 
+    def test_crossing_never_ignores_a_nearby_moving_car(self):
+        people = (ROOT / "unity-city/Assets/Claude/Runtime/BraxPieszy.cs").read_text()
+        car = (ROOT / "unity-city/Assets/Claude/Runtime/BraxAuto.cs").read_text()
+        self.assertIn("public float PredkoscAktualna { get; private set; }", car)
+        self.assertIn("PredkoscAktualna = st.v;", car)
+        self.assertIn("if (m < 3.5f && a.PredkoscAktualna < .2f) continue;", people)
+        self.assertNotIn("if (m < 3.5f || m > 16f) continue;", people)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
