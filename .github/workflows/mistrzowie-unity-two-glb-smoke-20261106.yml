@@ -1,0 +1,139 @@
+name: Miasto Mistrzów — Unity 6 import 2 GLB bez APK
+run-name: Champions — REAL Unity 6 glTFast towel and crane import check — NO APK
+
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-unity-two-glb-smoke-20261106.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mistrzowie-real-glb-two-model-smoke
+  cancel-in-progress: false
+
+jobs:
+  original-glb-import:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact unchanged original harbor model and Unity version
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb
+            unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb.meta
+            unity-city/ProjectSettings/ProjectVersion.txt
+            unity-tools/mistrzowie/UnityTwoGlbImportSmoke.cs
+
+      - name: Download only the exact approved P1 owner ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api -H "Accept: application/octet-stream" \
+            "repos/$GITHUB_REPOSITORY/releases/assets/715496694" \
+            > "$RUNNER_TEMP/P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip"
+          python3 - <<'PY'
+          import hashlib,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip'
+          assert hashlib.sha256(p.read_bytes()).hexdigest()=='5dd31e8422b2bddc046a0692448ce8522f7a22aae3a5fa617e9a0d74a74f1263', 'Wrong owner ZIP'
+          print('P1_ORIGINAL_OWNER_ZIP_SHA256_PASS',p.stat().st_size,flush=True)
+          PY
+
+      - name: Stage only 2 original models into an isolated Unity project
+        run: |
+          set -euo pipefail
+          mkdir -p glb-smoke/Assets/Editor glb-smoke/Packages glb-smoke/ProjectSettings
+          cp unity-city/ProjectSettings/ProjectVersion.txt glb-smoke/ProjectSettings/ProjectVersion.txt
+          cp unity-tools/mistrzowie/UnityTwoGlbImportSmoke.cs glb-smoke/Assets/Editor/
+          cat > glb-smoke/Packages/manifest.json <<'JSON'
+          {
+            "dependencies": {
+              "com.unity.cloud.gltfast": "6.20.0",
+              "com.unity.cloud.ktx": "3.6.3",
+              "com.unity.meshopt.decompress": "0.2.0-exp.1",
+              "com.unity.modules.imageconversion": "1.0.0",
+              "com.unity.modules.physics": "1.0.0",
+              "com.unity.modules.animation": "1.0.0"
+            }
+          }
+          JSON
+          python3 - <<'PY'
+          import os,zipfile
+          from pathlib import Path
+          source=Path(os.environ['RUNNER_TEMP'])/'P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip'
+          relative='unity-city/Assets/Source/Mistrzowie/PoolP1/OwnerEquipment/stack_of_towels_2k.glb'
+          with zipfile.ZipFile(source) as z:
+              assert z.testzip() is None,'Damaged owner source'
+              for suffix in ('','.meta'):
+                  filename=relative+suffix
+                  target=Path('glb-smoke')/'Assets/Source/Mistrzowie/PoolP1/OwnerEquipment'/('stack_of_towels_2k.glb'+suffix)
+                  target.parent.mkdir(parents=True,exist_ok=True)
+                  target.write_bytes(z.read(filename))
+                  print('ORIGINAL_TOWEL_STAGED',suffix or 'GLB',target.stat().st_size,flush=True)
+          PY
+          mkdir -p glb-smoke/Assets/Source/HarborBeach/Models
+          cp unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb glb-smoke/Assets/Source/HarborBeach/Models/
+          if [ -f unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb.meta ]; then
+            cp unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb.meta glb-smoke/Assets/Source/HarborBeach/Models/
+          fi
+          echo 'Two original 3D files staged without changes; source models never published'
+
+      - name: Real Unity 6 glTFast importer — only 2 original GLB files
+        id: real_unity
+        continue-on-error: true
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: glb-smoke
+          unityVersion: 6000.0.85f2
+          customImage: unityci/editor:ubuntu-6000.0.85f2-android-3.2.2
+          targetPlatform: Android
+          buildMethod: UnityTwoGlbImportSmoke.Run
+          versioning: None
+          allowDirtyBuild: true
+
+      - name: Report exact Unity importer findings, not a gameplay build
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('mistrzowie-glb-unity-evidence/unity2-glb-import-report.json')
+          if not p.exists():
+              raise SystemExit('UNITY_IMPORT_NO_RESULT; check Unity output, not an accepted model')
+          d=json.loads(p.read_text())
+          print('MISTRZOWIE_REAL_GLTF_IMPORTED',d['accepted'],'/',d['expected'])
+          for item in d['models']:
+              print('MISTRZOWIE_GLTF_DETAIL',item['path'],item['state'],
+                    'meshes=',item['meshes'],'errors=',item['errors'])
+              for detail in item['messages'][:6]:
+                  print('MISTRZOWIE_GLTF_MESSAGE',detail[:500])
+          if d['status']!='UNITY_2_GLB_IMPORT_PASS':
+              raise SystemExit('GLTF importer reported unresolved model issues — original art not changed')
+          PY
+
+      - name: Preserve JSON findings only (no owner model files or APK)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mistrzowie-real-unity-two-glb-${{ github.run_id }}
+          path: mistrzowie-glb-unity-evidence/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Explicit scope and cost
+        if: always()
+        run: |
+          echo 'Exactly two original GLB files tested in real Unity 6 glTFast; original assets preserved. No APK, no city scene, no screenshot or installation.' >> "$GITHUB_STEP_SUMMARY"
