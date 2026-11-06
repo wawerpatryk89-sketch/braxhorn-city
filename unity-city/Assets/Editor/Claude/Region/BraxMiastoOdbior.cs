@@ -620,6 +620,135 @@ internal static class BraxMiastoOdbior
         else Debug.Log(raport + " KOD_SCENY_OK");
     }
 
+    // R1, ulica Portowa do supermarketu: lekki ODBIÓR GEOMETRII po dodaniu
+    // wszystkich przedmiotów i wtórnych colliderów. Samo źródło kodu nie jest
+    // dowodem przejścia postaci w APK. Raport tylko ostrzega: owner quality advisory.
+    public static void SprawdzGlownaUliceR1DoSklepu(Transform cityRoot)
+    {
+        if (!cityRoot)
+        {
+            Debug.LogWarning("BRAXHORN_R1_ULICA_DO_SKLEPU NIEGOTOWE: brak korzenia renowacji");
+            return;
+        }
+        Physics.SyncTransforms();
+        const int maska = ~((1 << 29) | (1 << 31));
+        int prob = 0, blokad = 0, dziur = 0, drzwi = 0, sklep = 0;
+        var przyk = new System.Collections.Generic.List<string>();
+        var powtorzenia = new System.Collections.Generic.HashSet<string>();
+        bool RuchomeSkrzydlo(Collider c)
+        {
+            if (KontrolowaneSkrzydlo(c)) return true;
+            var d = c.GetComponentInParent<BraxCityDoor>();
+            return d && d.leaves != null &&
+                d.leaves.Any(t => t && (c.transform == t || c.transform.IsChildOf(t)));
+        }
+        void Proba(Vector3 p, string etap, bool sprawdzPodloze = true)
+        {
+            prob++;
+            if (sprawdzPodloze)
+            {
+                bool pod = Physics.RaycastAll(p + Vector3.up * .85f, Vector3.down, 1.5f,
+                    maska, QueryTriggerInteraction.Ignore)
+                    .Any(h => h.collider && h.normal.y > .65f &&
+                              Mathf.Abs(h.point.y - p.y) < .26f);
+                if (!pod)
+                {
+                    dziur++;
+                    if (przyk.Count < 24) przyk.Add("PODLOZE " + etap + " " + p.ToString("F2"));
+                }
+            }
+            foreach (var c in Physics.OverlapCapsule(
+                p + Vector3.up * .55f, p + Vector3.up * 1.91f,
+                .30f, maska, QueryTriggerInteraction.Ignore))
+            {
+                if (!c || !c.enabled || c.isTrigger ||
+                    c.GetComponentInParent<BraxGymPlayer>() ||
+                    RuchomeSkrzydlo(c) ||
+                    c.GetComponentInParent<BraxDrzwiAutomatyczne>()) continue;
+                if (c.bounds.max.y <= p.y + .23f) continue; // płyta/posadzka
+                string id = etap + " " + c.name;
+                if (!powtorzenia.Add(id)) continue;
+                blokad++;
+                if (przyk.Count < 24)
+                    przyk.Add("BLOKADA " + etap + " " + c.name + " " + p.ToString("F2"));
+            }
+        }
+        void Odcinek(Vector3 a, Vector3 b, string nazwa)
+        {
+            float odleglosc = Vector3.Distance(a, b);
+            int kroki = Mathf.Max(1, Mathf.CeilToInt(odleglosc / 1.15f));
+            for (int i = 0; i <= kroki; i++)
+                Proba(Vector3.Lerp(a, b, i / (float)kroki), nazwa);
+        }
+        // Rzeczywiste chodniki oryginału: południe z=20.60..23.755,
+        // północ z=33.245..36.10. Linie ruchu z dala od pasa drzew i ławek.
+        Odcinek(new Vector3(63.0f, .15f, 21.35f),
+                new Vector3(-103.0f, .15f, 21.35f), "PORTOWA_POLUDNIE");
+        Odcinek(new Vector3(63.0f, .15f, 35.55f),
+                new Vector3(-103.0f, .15f, 35.55f), "PORTOWA_POLNOC");
+        // Dalszy odcinek w kierunku sklepu po Alej Północnej (2 chodniki 5 m
+        // za pasem zieleni). Rondo i pętla mają inną geometrię, nie udajemy
+        // płaskiego połączenia wprost przez ich środek.
+        float xE = BraxRegionMiastoB.AX + BraxRegionMiastoB.AH +
+                   BraxRegionMiastoB.Kr + BraxRegionMiastoB.Ziel + 2.5f;
+        float xW = BraxRegionMiastoB.AX - BraxRegionMiastoB.AH -
+                   BraxRegionMiastoB.Kr - BraxRegionMiastoB.Ziel - 2.5f;
+        Odcinek(new Vector3(xE, .15f, 51.0f), new Vector3(xE, .15f, 81.0f),
+                "ALEJA_POLNOCNA_WSCHOD");
+        Odcinek(new Vector3(xW, .15f, 51.0f), new Vector3(xW, .15f, 81.0f),
+                "ALEJA_POLNOCNA_ZACHOD");
+        // Każdy lokal przy długiej ulicy: także wejścia źródłowe,
+        // Nutrition, NOVA i inne drzwi z silnika. Nie wyłączamy ich colliderów.
+        foreach (var d in cityRoot.GetComponentsInChildren<BraxCityDoor>(true))
+        {
+            if (!d || d.transform.position.y < -.1f ||
+                d.transform.position.y > 1.4f ||
+                d.transform.position.x < -104f || d.transform.position.x > 66f) continue;
+            bool pn = d.transform.position.z > 28.5f;
+            if (Mathf.Abs(d.transform.position.z - (pn ? 36.1f : 20.6f)) > 1.5f) continue;
+            var a = new Vector3(d.transform.position.x, .15f, pn ? 35.55f : 21.35f);
+            var b = new Vector3(d.transform.position.x, .15f, d.transform.position.z);
+            Odcinek(a, b, "LOKAL_" + d.id);
+            drzwi++;
+        }
+        foreach (var d in cityRoot.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true))
+        {
+            if (!d || d.transform.position.y < -.1f ||
+                d.transform.position.y > 1.4f ||
+                d.transform.position.x < -104f || d.transform.position.x > 66f) continue;
+            bool pn = d.transform.position.z > 28.5f;
+            if (Mathf.Abs(d.transform.position.z - (pn ? 36.1f : 20.6f)) > 1.5f) continue;
+            Odcinek(new Vector3(d.transform.position.x, .15f, pn ? 35.55f : 21.35f),
+                new Vector3(d.transform.position.x, .15f, d.transform.position.z),
+                "WEJSCIE_" + d.etykieta);
+            drzwi++;
+        }
+        // Supermarket jest osobnym korzeniem sceny (po BraxRegion.Apply).
+        // Sprawdzamy jego rzeczywiste drzwi, bez zgadywania adresu generatora.
+        foreach (var d in UnityEngine.Object.FindObjectsByType<BraxDrzwiPrzesuwne>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (!d || string.IsNullOrEmpty(d.etykieta) ||
+                !d.etykieta.StartsWith("SUPERMARKET BRAXHORN", StringComparison.Ordinal))
+                continue;
+            var p = d.transform.position;
+            var dir = d.transform.forward;
+            dir.y = 0f; dir.Normalize();
+            for (int i = -8; i <= 2; i++)
+                Proba(new Vector3(p.x, p.y, p.z) + dir * (i * .40f),
+                      "SUPERMARKET_WEJSCIE_" + d.etykieta);
+            sklep++;
+        }
+        string wynik = "BRAXHORN_R1_ULICA_DO_SKLEPU probki=" + prob +
+            " blokady=" + blokad + " brak_podloza=" + dziur +
+            " wejscia_lokali=" + drzwi + " supermarkety=" + sklep +
+            " android_test=nie ["
+            + string.Join("; ", przyk) + "]";
+        if (blokad > 0 || dziur > 0 || drzwi < 8 || sklep == 0)
+            Debug.LogWarning(wynik + " DO_POPRAWKI (QA nie blokuje APK)");
+        else Debug.Log(wynik + " KOD_SCENY_DROZNY (wymaga testu Android)");
+    }
+
     static void SprawdzWejscie(string nazwa, float x, float y, float zA, float zB)
     {
         int przeszkody = 0;
