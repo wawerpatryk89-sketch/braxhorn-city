@@ -8,7 +8,7 @@ ROOT=Path(__file__).resolve().parents[2]
 d=json.loads((ROOT/'unity-city/Assets/Source/Mistrzowie/Infrastructure.json').read_text())
 f=json.loads((ROOT/'unity-city/Assets/Source/Mistrzowie/Foundation.json').read_text())
 line=LineString(d['metroRoute']);checks=[]
-assert len(METRO)==3 and len(ENTRANCE_HOLES)==3
+assert len(METRO)==5 and len(ENTRANCE_HOLES)==5
 assert math.isclose(METRO_TRACK_OFFSET*K,7.6,abs_tol=1e-6)
 assert math.isclose(METRO_RAIL_Y*K,-11.2-1.1*K+.16*K-.15,abs_tol=1e-6)
 checks.append('city station world dimensions retained; same rail height, centres and gauge')
@@ -19,7 +19,7 @@ for m in METRO:
   # A complete straight source tunnel must not cross the route bend.
   p2=station_point(m,sx-1 if sx==-70 else sx+1,28.5)
   assert line.distance(Point(p2))<1e-6,(m,p2)
-checks.append('all six source tunnel connectors lie on straight approaches, no closed station caps')
+checks.append('all ten source metro station portal connectors lie on straight approaches, no closed station caps')
 holes=[box(x,z,x+w,z+h) for x,z,w,h in ENTRANCE_HOLES]
 for mesh in f['meshes']:
  if mesh['role']=='sea':continue
@@ -29,7 +29,7 @@ for mesh in f['meshes']:
   if p.area<1e-8:continue
   for hole in holes:
    assert not p.intersects(hole) or p.intersection(hole).area<1e-5,mesh['id']
-checks.append('three actual openings through all surface geometry, not painted entrance markers')
+checks.append('five actual openings through all surface geometry, not painted entrance markers')
 # Reserved plots must not claim new metro access courts or underground station corridors.
 conflicts=[]
 for b in f['buildings']:

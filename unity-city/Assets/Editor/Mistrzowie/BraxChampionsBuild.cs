@@ -99,7 +99,7 @@ public static class BraxChampionsBuild
             scene=EditorSceneManager.OpenScene(BraxChampionsFoundation.ScenePath,OpenSceneMode.Single);
             Physics.SyncTransforms();
             var stations=scene.GetRootGameObjects().SelectMany(o=>o.GetComponentsInChildren<Transform>(true)).Where(t=>t.name.EndsWith("| reused city metro")).ToArray();
-            if(stations.Length!=3)BraxBuildQuality.Issue(new InvalidOperationException("Three saved metro stations required"));
+            if(stations.Length!=5)BraxBuildQuality.Issue(new InvalidOperationException("Five saved metro stations required"));
             CheckStations(stations,report);
             if(!skipWalkChecks)CheckExteriorAccess();report.rendererCount=CheckAssets(scene);report.sceneReloadPassed=true;
             report.checks.Add("Serialized scene reopened; consult quality-review.json for inspection warnings");

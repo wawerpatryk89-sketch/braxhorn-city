@@ -3,7 +3,7 @@ import gzip,json,itertools
 from pathlib import Path
 import numpy as np
 from shapely.geometry import box,Point
-from layout import X_ROADS,Z_ROADS,ENTRANCE_HOLES,METRO,TRAM_STOPS,BUS_STOPS,K
+from layout import X_ROADS,Z_ROADS,ENTRANCE_HOLES,ENTRANCE_PATHS,METRO,TRAM_STOPS,BUS_STOPS,K
 ROOT=Path(__file__).resolve().parents[2]
 
 
@@ -20,6 +20,8 @@ def audit(buildings):
             if shapes[b['id']].intersection(box(70,z-17,1130,z+17)).area>1e-6:errors.append('Road/sidewalk Z: '+b['id'])
         for x,z,w,d in ENTRANCE_HOLES:
             if shapes[b['id']].intersection(box(x,z,x+w,z+d)).area>1e-6:errors.append('Metro opening: '+b['id'])
+        for x,z,w,d in ENTRANCE_PATHS:
+            if shapes[b['id']].intersection(box(x,z,x+w,z+d)).area>1e-6:errors.append('Metro access path: '+b['id'])
     ids={b['id']:b for b in buildings}
     for west,east in [('H1','H2'),('H3','H4'),('A2','A1'),('T01','T02')]:
         if ids[west]['x']>=ids[east]['x']:errors.append('Plan ordering: '+west+'/'+east)

@@ -147,9 +147,10 @@ for id,name,x,z in [('WAY_A1','CHAMPION ARENA / PÓŁNOC',777,803),('WAY_A2','CH
  mesh.box('sign',(x,2.95,z),(4.8,.62,.10))
  label(id,name,(x,2.95,z-.056),'x',.22)
 
-# Reuse complete city stations INCLUDING their existing straight tunnels and tracks.
-# Only the connecting civil route is generated here, with the exact city cross section.
-metro=rounded_route([(0,359),(765,359),(765,1000)],100,2.0,False)
+# Reuse all five existing-city-style stations with original full-size escalators.
+# The connected route is a single, non-self-crossing civil alignment, with
+# curves outside platform footprints. No simulated service is advertised.
+metro=rounded_route(METRO_LINE_WAYPOINTS,60,3.0,False)
 station_boxes=[]
 for m in METRO:
  pts=[station_point(m,x,z) for x in (-70,112) for z in (17,40)]
@@ -180,7 +181,9 @@ for connection in connections:
   walkway=off+side*2.36/K
   ribbon(mesh,'metro_concrete',path,walkway,.72/K,METRO_RAIL_Y+.05/K,.4/K)
   for h in [1.0,1.4,1.8]:ribbon(mesh,'metro_steel',path,off+side*2.64/K,.22/K,METRO_RAIL_Y+h/K,.05/K)
-  for light_index,distance in enumerate(np.arange(4/K,distances[-1],8/K)):
+  # 18m fixture pitch keeps the extended system affordable on Android;
+  # every other fixture has a real vertex light, without shadows.
+  for light_index,distance in enumerate(np.arange(4/K,distances[-1],18.0)):
    i=min(len(path)-2,max(0,np.searchsorted(distances,distance,side='right')-1))
    t=(distance-distances[i])/(distances[i+1]-distances[i]);n=normals[i]*(1-t)+normals[i+1]*t;n/=np.linalg.norm(n)
    q=path[i]*(1-t)+path[i+1]*t+n*(off+side*2.62/K);tangent=np.array([n[1],-n[0]])
@@ -195,7 +198,7 @@ for connection in connections:
   for rail_side in [-1,1]:ribbon(mesh,'metro_rail',path,off+rail_side*GAUGE/2,.16/K,METRO_RAIL_Y-.16/K,.03/K)
   third=off+side*(GAUGE/2+.75/K)
   ribbon(mesh,'metro_third',path,third,.24/K,METRO_RAIL_Y+.1/K,.04/K)
-# Region boundary closures only; never a cap between the three stations.
+# Terminal closures only. Never add a wall between ANY of the five stations.
 for p,n in [(metro[0],path_frames(metro)[0]),(metro[-1],path_frames(metro)[-1])]:
  for side in [-1,1]:
   c=p+n*side*METRO_TRACK_OFFSET
@@ -222,10 +225,12 @@ ground.layout['entranceHoles']=[dict(x=x,z=z,w=w,d=d) for x,z,w,d in ENTRANCE_HO
 (SRC/'Foundation.json').write_text(json.dumps(ground.layout,separators=(',',':')))
 data=dict(version='2.2-complete-metro-exteriors',scaleK=K,meshes=mesh.export(),labels=labels,objects=objects,walkChecks=walk_checks,metroLights=metro_lights,
  tramRoute=tram.tolist(),metroRoute=metro.tolist(),metroStations=METRO,tramStops=TRAM_STOPS,busStops=BUS_STOPS,
- counts=dict(metroStations=3,metroEntrances=3,metroTracks=2,tramTracks=2,tramPlatforms=10,busPlatforms=32,crossings=len(crossings),curbstones=curb_count))
+ counts=dict(metroStations=len(METRO),metroEntrances=len(ENTRANCE_HOLES),metroTracks=2,tramTracks=2,tramPlatforms=len(TRAM_STOPS),busPlatforms=len(BUS_STOPS)*2,crossings=len(crossings),curbstones=curb_count))
 (SRC/'Infrastructure.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':')))
 transit={k:data[k] for k in ['version','scaleK','tramRoute','metroRoute','metroStations','tramStops','busStops','counts']}
+transit['metroRouteOrder']=list(METRO_ROUTE_ORDER)
 transit['trafficEnabled']=False
+transit['trainOperationVerified']=False
 transit['routeCoordinates']='nominal metres; apply scaleK once; station source geometry is already world units'
 (SRC/'Transit.json').write_text(json.dumps(transit,ensure_ascii=False,separators=(',',':')))
 triangles=0
@@ -237,6 +242,8 @@ for m in data['meshes']:
 for m in METRO:
  assert abs(Point(m['hallX'],m['hallZ']).distance(LineString(metro)))<.01
 assert all(LineString(tram).distance(Point(x,z))<.01 for _,x,z,_ in TRAM_STOPS)
-report=dict(status='GEOMETRY_CHECKS_PASS_UNITY_PENDING',counts=data['counts'],infrastructureMeshes=len(data['meshes']),triangles=triangles,tramMetres=round(LineString(tram).length,2),metroMetres=round(LineString(metro).length,2),checks=['continuous closed tram route','connections match existing city station track centres and height','10 tram platforms on track centreline','3 terrain openings for actual stairs','paving removed under curb ramps','asphalt cut out for rail grooves','finite nondegenerate meshes and UVs','one shared game scale'],unity='NOT_RUN',visualQuality='PENDING_UNITY_REVIEW')
+assert LineString(metro).is_simple, "Metro track cannot cross itself at grade"
+assert len(METRO)==5 and len({m['id'] for m in METRO})==5
+report=dict(status='GEOMETRY_CHECKS_PASS_UNITY_PENDING',counts=data['counts'],infrastructureMeshes=len(data['meshes']),triangles=triangles,tramMetres=round(LineString(tram).length,2),metroMetres=round(LineString(metro).length,2),checks=['continuous closed tram route','connections match existing city station track centres and height','10 tram platforms on track centreline','5 station centres on one connected non-self-crossing metro line','5 terrain openings for actual stairs','paving removed under curb ramps','asphalt cut out for rail grooves','finite nondegenerate meshes and UVs','one shared game scale'],unity='NOT_RUN',visualQuality='PENDING_UNITY_REVIEW')
 (REPORT/'infrastructure-checks.json').write_text(json.dumps(report,indent=2))
 print(json.dumps(report))

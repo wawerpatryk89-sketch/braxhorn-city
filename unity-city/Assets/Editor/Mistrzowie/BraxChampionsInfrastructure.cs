@@ -23,7 +23,7 @@ public static class BraxChampionsInfrastructure
     public static Data Generate()
     {
         var d=JsonUtility.FromJson<Data>(File.ReadAllText("Assets/Source/Mistrzowie/Infrastructure.json"));
-        if(d==null||Mathf.Abs(d.scaleK-K)>.00001f||d.metroStations.Length!=3)throw new InvalidOperationException("Invalid infrastructure layout/scale");
+        if(d==null||Mathf.Abs(d.scaleK-K)>.00001f||d.metroStations.Length!=5 || d.metroStations.Select(s=>s.id).Distinct().Count()!=5 || d.metroStations.Any(s=>s.axis!="x"&&s.axis!="z"))throw new InvalidOperationException("Invalid infrastructure layout/scale");
         Directory.CreateDirectory(Out+"/InfrastructureMeshes");Directory.CreateDirectory(Out+"/Materials");
         var materials=Materials();var root=new GameObject("Mistrzowie | streets and transit").transform;
         foreach(var m in d.meshes)
@@ -117,27 +117,79 @@ public static class BraxChampionsInfrastructure
     {
         var atlas=AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Source/Mistrzowie/metro_"+id+".png");
         if(!atlas)throw new FileNotFoundException("Missing station-specific atlas: "+id);
-        var colors=new[]{new Color(.86f,.87f,.89f),new Color(.76f,.82f,.84f),new Color(.91f,.86f,.76f)};
+        // Five visibly distinct, realistic interior finishes, NOT five identical
+        // tunnels with only a different name. Reuse the actual city prefab and its
+        // approved PBR maps; tint, tiling, roughness and trim are per-station
+        // materials. Keep yellow warning strips, emergency signs and glass intact.
+        var wallColors=new[]{
+            new Color(.91f,.91f,.90f), // M1: silver granite terminal
+            new Color(.53f,.62f,.68f), // M2: blue-grey financial centre
+            new Color(.93f,.84f,.69f), // M3: champagne stone arena/hotels
+            new Color(.59f,.72f,.64f), // M4: green-grey sports district
+            new Color(.73f,.67f,.77f)  // M5: graphite-violet retail district
+        };
+        var floorColors=new[]{
+            new Color(.87f,.88f,.88f),
+            new Color(.66f,.72f,.77f),
+            new Color(.94f,.85f,.73f),
+            new Color(.64f,.70f,.66f),
+            new Color(.75f,.72f,.79f)
+        };
+        var trimColors=new[]{
+            new Color(.30f,.32f,.34f),
+            new Color(.22f,.34f,.43f),
+            new Color(.50f,.38f,.25f),
+            new Color(.24f,.38f,.32f),
+            new Color(.39f,.31f,.46f)
+        };
+        if(index<0||index>=5)throw new InvalidOperationException("Unknown metro station finish: "+id);
         var changed=new Dictionary<Material,Material>();
         foreach(var r in station.GetComponentsInChildren<Renderer>(true))
         {
             var array=r.sharedMaterials;
             for(int j=0;j<array.Length;j++)
             {
-                var old=array[j];if(!old)continue;string name=old.name.ToLowerInvariant();
-                bool signage=name.Contains("oznakowanie")&&name.Contains("atlas");bool wall=name=="mistrzowie metro_wall";
-                if(!signage&&!wall)continue;
+                var old=array[j];if(!old)continue;
+                string name=old.name.ToLowerInvariant();
+                bool signage=name.Contains("oznakowanie")&&name.Contains("atlas");
+                bool wall=name=="mistrzowie metro_wall";
+                bool floor=name=="mistrzowie metro_floor"||name=="mistrzowie metro_edge";
+                bool skirting=name=="mistrzowie metro_skirting";
+                bool stairs=name=="mistrzowie metro_stairs";
+                bool ceiling=name.Contains("metro sufit")||name.Contains("metro belki");
+                if(!signage&&!wall&&!floor&&!skirting&&!stairs&&!ceiling)continue;
                 if(!changed.TryGetValue(old,out var m))
                 {
-                    m=new Material(old){name=id+" "+old.name};
-                    if(signage){m.mainTexture=atlas;if(m.HasProperty("_EmissionMap"))m.SetTexture("_EmissionMap",atlas);}
-                    if(wall)m.SetColor("_Color",colors[index]);
-                    AssetDatabase.CreateAsset(m,Out+"/Materials/"+id+"_variant_"+changed.Count+".mat");changed.Add(old,m);
+                    m=new Material(old){name=id+" "+old.name,enableInstancing=true};
+                    if(signage)
+                    {
+                        m.mainTexture=atlas;
+                        if(m.HasProperty("_EmissionMap"))m.SetTexture("_EmissionMap",atlas);
+                    }
+                    else
+                    {
+                        Color tint=wall?wallColors[index]:
+                                   (skirting||ceiling)?trimColors[index]:floorColors[index];
+                        if(m.HasProperty("_Color"))m.SetColor("_Color",tint);
+                        if(m.HasProperty("_Roughness"))
+                            m.SetFloat("_Roughness",wall ? .42f : skirting ? .30f : ceiling ? .40f : .62f);
+                        if(wall)
+                        {
+                            var tiling=new Vector2(new[]{.40f,.31f,.46f,.34f,.43f}[index],
+                                                   new[]{.40f,.31f,.46f,.34f,.43f}[index]);
+                            foreach(string prop in new[]{"_MainTex","_BumpMap","_ARM"})
+                                if(m.HasProperty(prop))m.SetTextureScale(prop,tiling);
+                        }
+                    }
+                    AssetDatabase.CreateAsset(m,Out+"/Materials/"+id+"_variant_"+changed.Count+".mat");
+                    changed.Add(old,m);
                 }
                 array[j]=m;
             }
             r.sharedMaterials=array;
         }
+        // Maps, name boards and platform destinations use each station's
+        // own 1024x1024 metro atlas with unchanged original sign UVs.
     }
     static void AddLabel(Transform parent,string text,Vector3 at,float yaw,float size)
     {

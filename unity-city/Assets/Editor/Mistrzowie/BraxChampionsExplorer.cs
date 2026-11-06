@@ -153,7 +153,7 @@ public static class BraxChampionsExplorer
         }
         if(p.clips.GetClip("Walk")==p.clips.GetClip("Run")) throw new InvalidOperationException("Run must use the real estate run clip.");
         var points=p.cityWorld.points;
-        if(points==null||points.Length!=5||points.Select(x=>x.id).Distinct().Count()!=5)throw new InvalidOperationException("Five unique exploration points required.");
+        if(points==null||points.Length!=7||points.Select(x=>x.id).Distinct().Count()!=7)throw new InvalidOperationException("Seven unique exploration points required for arena, hotel and five metro stations.");
         foreach(var point in points)ClearCapsule(Ground(point.position),p.body);
         if((p.transform.position-p.worldSpawn).sqrMagnitude>.0001f)throw new InvalidOperationException("Reset spawn differs from initial spawn.");
         for(int i=0;i<=20;i++)ClearCapsule(Ground(new Vector3(600,.16f,700+i*.25f)*K),p.body);

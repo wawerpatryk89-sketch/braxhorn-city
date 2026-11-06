@@ -335,6 +335,8 @@ jobs:
           # Download 25 true CC0 Poly Haven 2K original 3D models for shops.
           python3 unity-tools/mistrzowie/prepare_promenade_props.py
           python3 unity-tools/mistrzowie/build_infrastructure.py
+          # Five original-size station entrances, six connecting twin-rail tunnels; static only.
+          python3 unity-tools/mistrzowie/audit_metro_network.py
           python3 unity-tools/mistrzowie/prepare_landscape.py
           python3 unity-tools/mistrzowie/validate_contract.py
           python3 unity-tools/mistrzowie/build_exteriors.py
