@@ -12,6 +12,7 @@ on:
       - unity-tools/claude/prywatne.py
       - unity-city/Assets/Editor/Claude/**
       - unity-city/Assets/Editor/BraxCityBuild.cs
+      - unity-city/Assets/Claude/Runtime/BraxAutoGracza.cs
   workflow_dispatch:
 
 permissions:
@@ -36,6 +37,7 @@ jobs:
             unity-tools/validation
             unity-city/Assets/Editor/Claude
             unity-city/Assets/Editor/BraxCityBuild.cs
+            unity-city/Assets/Claude/Runtime/BraxAutoGracza.cs
             unity-city/Prywatne/import-patryk-animations-20261106
             .github/workflows/osiedle-fast-audit.yml
       - name: Validate Python and original owner / estate regressions
@@ -55,10 +57,15 @@ jobs:
           from pathlib import Path
           sys.path.insert(0, "unity-tools/validation")
           from check_csharp_scopes import check_source
-          path = Path("unity-city/Assets/Editor/BraxCityBuild.cs")
-          errors = check_source(path.read_bytes(), str(path))
+          paths = [
+              Path("unity-city/Assets/Editor/BraxCityBuild.cs"),
+              Path("unity-city/Assets/Claude/Runtime/BraxAutoGracza.cs"),
+          ]
+          errors = []
+          for path in paths:
+              errors.extend(check_source(path.read_bytes(), str(path)))
           for error in errors:
               print("::error::" + error)
-          print(f"CSHARP_SCOPE_CHECK extra_file=1 errors={len(errors)}; Unity compilation still required")
+          print(f"CSHARP_SCOPE_CHECK extra_files={len(paths)} errors={len(errors)}; Unity compilation still required")
           raise SystemExit(bool(errors))
           PY
