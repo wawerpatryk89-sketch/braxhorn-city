@@ -507,6 +507,10 @@ jobs:
         python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
         python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
         python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+    - name: R1 viz + rejs przed Unity — RAPORT, bez blokady APK
+      if: github.event.inputs.rejon == 'miasto' || github.event.inputs.rejon == 'oba'
+      continue-on-error: true
+      run: python3 unity-tools/claude/check_r1_visuals_report.py || true
     - name: Verify project WebGL bridge providers before the expensive Unity build
       run: |
         python3 unity-tools/check_webgl_bridges.py
