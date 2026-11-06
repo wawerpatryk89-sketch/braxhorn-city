@@ -41,6 +41,7 @@ internal static class BraxMiastoOdbior
         // Stopy gracza: promień 0.30 m, wysokość 2.21 m, przejście przez całe światło drzwi.
         // Pomijamy skrzydła zamknięte w trybie edycji; inne statyczne przeszkody są usterką.
         SprawdzWejscie("NOVA", 42.0f, .15f, 35.73f, 36.60f);
+        SprawdzNovaWejscieISzyld(cityRoot);
         SprawdzWejscie("TOWER", 59.0f, .15f, 35.83f, 36.88f);
         SprawdzWejscie("MIESZKANIE_BRAXA_KLATKA", 33.73f, .15f, 35.72f, 36.65f);
         SprawdzMieszkanieBraxa(cityRoot);
@@ -507,6 +508,88 @@ internal static class BraxMiastoOdbior
             " (bez automatycznego usuwania kolizji; wymagany odbiór Android)";
         if (brakPodlogi > 0 || przeszkody > 0) Debug.LogWarning(wynik);
         else Debug.Log(wynik);
+    }
+
+    // R1 NOVA: bez nowego renderu, nie modyfikujemy niczego w scenie.
+    // Krótka kontrola (szyld, prawdziwe drzwi, kapsuła w przedsionku i sali)
+    // zamiast samego testu jednego metra przed fasadą.
+    static void SprawdzNovaWejscieISzyld(Transform cityRoot)
+    {
+        var klub = cityRoot.GetComponentsInChildren<Transform>(true)
+            .FirstOrDefault(t => t && t.name.StartsWith("CLAUDE A: CLUB NOVA", StringComparison.Ordinal));
+        if (!klub)
+        {
+            Blad("BRAXHORN_NOVA_R1_NIEGOTOWE: brak wygenerowanego klubu NOVA");
+            return;
+        }
+        bool SzyldWlasciciela(Transform t) =>
+            t && (t.name == "NOVA SZYLD ORYGINALNY WŁAŚCICIELA (szyld_nova)" ||
+                  t.name == "mural club_nova" || t.name == "mural nova_club" ||
+                  t.name == "mural nova");
+        // Jeden widoczny nośnik właściciela, a nie dwie warstwy.
+        var szyldy = klub.GetComponentsInChildren<Transform>(true)
+            .Where(t => SzyldWlasciciela(t)).ToArray();
+        int aktywne = szyldy.Count(t => t.gameObject.activeInHierarchy &&
+            t.GetComponentsInChildren<Renderer>(true).Any(r => r && r.enabled));
+        var stare = cityRoot.GetComponentsInChildren<Renderer>(true).Where(r =>
+        {
+            if (!r || !r.enabled) return false;
+            var b = r.bounds;
+            if (b.max.x < 36f || b.min.x > 48f ||
+                b.max.y < 3.2f || b.min.y > 8.0f ||
+                b.max.z < 33.5f || b.min.z > 36.2f) return false;
+            string n = r.name.ToUpperInvariant();
+            string mat = r.sharedMaterial ? r.sharedMaterial.name.ToUpperInvariant() : "";
+            return n.Contains("NOVA DYSKOTEKA") || n.Contains("NOVA DVSKOTEKA") ||
+                mat.Contains("NOVA DYSKOTEKA") || mat.Contains("NOVA DVSKOTEKA");
+        }).Take(3).ToArray();
+        bool staryManualny = UnityEngine.Object.FindObjectsByType<BraxCityDoor>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None)
+            .Any(d => d && d.id == "NOVA_SOURCE_ENTRY");
+        var drzwi = klub.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true)
+            .Where(d => d && d.etykieta == "CLUB NOVA — wejście").ToArray();
+        bool drzwiSprawne = drzwi.Length == 1 &&
+            drzwi[0].skrzydla != null && drzwi[0].skrzydla.Length == 2 &&
+            drzwi[0].blokady != null && drzwi[0].blokady.Length == 2 &&
+            drzwi[0].blokady.All(c => c) && drzwi[0].skrzydla.All(t => t) &&
+            drzwi[0].promien >= 2.4f;
+        int dziury = 0, przeszkody = 0, probki = 0;
+        // Oś drzwi x=42.0, a wejście do sali w osi x=40...44 (z=41.6).
+        // Odcinek obejmuje przejście przez przedsionek, drugi portal i parkiet.
+        for (float z = 36.65f; z <= 46.6f; z += .42f)
+        {
+            probki++;
+            var stopa = new Vector3(42f, .15f, z);
+            bool podloga = Physics.RaycastAll(stopa + Vector3.up * .85f,
+                Vector3.down, 1.6f, ~((1 << 29) | (1 << 31)),
+                QueryTriggerInteraction.Ignore).Any(h => h.collider &&
+                h.normal.y > .65f && Mathf.Abs(h.point.y - stopa.y) < .23f);
+            if (!podloga) { dziury++; if (dziury <= 3)
+                Debug.LogWarning("BRAXHORN_NOVA_R1 BRAK_PODLOGI @ " + stopa.ToString("F2")); }
+            foreach (var c in Physics.OverlapCapsule(stopa + Vector3.up * .55f,
+                stopa + Vector3.up * 1.91f, .30f,
+                ~((1 << 29) | (1 << 31)), QueryTriggerInteraction.Ignore))
+            {
+                if (!c || !c.enabled || c.isTrigger ||
+                    c.GetComponentInParent<BraxGymPlayer>() ||
+                    c.GetComponentInParent<BraxDrzwiPrzesuwne>()) continue;
+                // Zwykły zamknięty obiekt lub niewidzialna ściana blokuje przejście.
+                przeszkody++;
+                if (przeszkody <= 4)
+                    Debug.LogWarning("BRAXHORN_NOVA_R1 PRZESZKODA " + c.name +
+                        " @ " + stopa.ToString("F2"));
+            }
+        }
+        string raport = "BRAXHORN_NOVA_R1_ODBIOR szyldy_oryginalne=" + aktywne +
+            " stare_nazwane=" + stare.Length + " stare_drzwi=" + staryManualny +
+            " drzwi_automatyczne=" + drzwiSprawne +
+            " wejscie_sala_probki=" + probki +
+            " brak_podlogi=" + dziury + " przeszkody=" + przeszkody +
+            " (test sceny Unity, nie potwierdzona gra na telefonie)";
+        if (aktywne != 1 || stare.Length > 0 || staryManualny || !drzwiSprawne ||
+            dziury > 0 || przeszkody > 0)
+            Blad(raport + " NIEGOTOWE");
+        else Debug.Log(raport + " KOD_SCENY_OK");
     }
 
     static void SprawdzWejscie(string nazwa, float x, float y, float zA, float zB)
