@@ -9,6 +9,15 @@ public sealed class BraxObozImport : AssetPostprocessor
     public override uint GetVersion() => 7;
     void OnPreprocessModel()
     {
+        try { ApplyCampModelSettings(); }
+        catch(Exception ex)
+        {
+            UnityEngine.Debug.LogWarning("BRAXHORN_OBOZ_MODEL_IMPORT_WARNING "+
+                assetPath+": "+ex);
+        }
+    }
+    void ApplyCampModelSettings()
+    {
         if (!assetPath.StartsWith(Root, StringComparison.Ordinal)) return;
         if (!(assetImporter is ModelImporter m)) return;
         if (!assetPath.StartsWith(Root + "characters/", StringComparison.Ordinal) &&
@@ -26,6 +35,17 @@ public sealed class BraxObozImport : AssetPostprocessor
         m.animationCompression = ModelImporterAnimationCompression.Off;
     }
     void OnPreprocessTexture()
+    {
+        try { ApplyCampTextureSettings(); }
+        catch(Exception ex)
+        {
+            // JAKOŚĆ: importer zgłasza ostrzeżenie. Brak tekstury wymaganej
+            // do gry zostanie wykryty później przy rzeczywistym użyciu.
+            UnityEngine.Debug.LogWarning("BRAXHORN_OBOZ_TEXTURE_IMPORT_WARNING "+
+                assetPath+": "+ex);
+        }
+    }
+    void ApplyCampTextureSettings()
     {
         // Generated, verified pilot PBR packs are linear data textures; never
         // run the private GLB/character importer over these new outputs.
