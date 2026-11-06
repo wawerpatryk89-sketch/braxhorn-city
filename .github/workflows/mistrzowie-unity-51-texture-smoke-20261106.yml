@@ -1,0 +1,106 @@
+name: Miasto Mistrzów — szybki Unity 6 import 51 tekstur (NO APK)
+run-name: Champions 51 original 2K textures — REAL UNITY 6 EDITOR SMOKE
+
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-unity-51-texture-smoke-20261106.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: champions-isolated-unity-51-textures-once
+  cancel-in-progress: false
+
+jobs:
+  import-51-textures:
+    name: Import 51 native 2K maps in actual Unity 6 Editor, NO GAME BUILD
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    steps:
+      - name: Checkout exact source importers and Poly Haven source fetchers
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11TextureImport.cs
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1TextureImport.cs
+            unity-city/ProjectSettings/ProjectVersion.txt
+            unity-tools/mistrzowie/prepare_casino_textures_2k.py
+            unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
+            unity-tools/mistrzowie/Unity51TextureSmoke.cs
+
+      - name: Verify exact source pixels before any Unity launch
+        run: |
+          set -euo pipefail
+          python3 -m pip install -q --disable-pip-version-check Pillow==11.3.0
+          python3 unity-tools/mistrzowie/prepare_casino_textures_2k.py
+          python3 unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('unity-city/Assets/Source/Mistrzowie')
+          for zone,wanted in (('CasinoT11',21),('PoolP1',30)):
+              folder=root/zone/'Textures2K'
+              maps=[p for p in folder.iterdir() if p.suffix in ('.jpg','.png')]
+              assert len(maps)==wanted,(zone,len(maps),wanted)
+              assert all(p.with_suffix(p.suffix+'.meta').is_file() for p in maps)
+              print('NATIVE_SOURCE_2K_PASS',zone,len(maps),flush=True)
+          PY
+
+      - name: Stage minimal isolated Unity 6 test project, not whole game
+        run: |
+          set -euo pipefail
+          mkdir -p texture-smoke/Assets/Editor texture-smoke/Packages texture-smoke/ProjectSettings
+          cp unity-city/ProjectSettings/ProjectVersion.txt texture-smoke/ProjectSettings/ProjectVersion.txt
+          printf '%s\n' '{"dependencies":{"com.unity.modules.imageconversion":"1.0.0"}}' > texture-smoke/Packages/manifest.json
+          cp unity-city/Assets/Editor/Mistrzowie/BraxChampionsCasinoT11TextureImport.cs texture-smoke/Assets/Editor/
+          cp unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1TextureImport.cs texture-smoke/Assets/Editor/
+          cp unity-tools/mistrzowie/Unity51TextureSmoke.cs texture-smoke/Assets/Editor/
+          for zone in CasinoT11 PoolP1; do
+            mkdir -p "texture-smoke/Assets/Source/Mistrzowie/$zone/Textures2K"
+            cp -a "unity-city/Assets/Source/Mistrzowie/$zone/Textures2K/." "texture-smoke/Assets/Source/Mistrzowie/$zone/Textures2K/"
+          done
+          test "$(find texture-smoke/Assets/Source/Mistrzowie -type f \( -name '*.jpg' -o -name '*.png' \) | wc -l)" -eq 51
+          echo "UNITY_SMOKE_SOURCE_51_READY no scenes, no game assets, no APK"
+
+      - name: REAL Unity 6 Editor imports every PBR map on Android
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: texture-smoke
+          unityVersion: 6000.0.85f2
+          customImage: unityci/editor:ubuntu-6000.0.85f2-android-3.2.2
+          targetPlatform: Android
+          buildMethod: Unity51TextureSmoke.Run
+          versioning: None
+          allowDirtyBuild: true
+
+      - name: Confirm actual imported Texture2D count
+        run: |
+          test -s texture-smoke-evidence/unity51-texture-import-report.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('texture-smoke-evidence/unity51-texture-import-report.json').read_text())
+          assert r['status']=='UNITY_51_TEXTURE_IMPORT_PASS',r
+          assert (r['pass'],r['inspected'],r['expected'])==(51,51,51),r
+          assert not r['failures'],r
+          print('UNITY_51_REAL_TEXTURE_IMPORT_PASS; NO APK; no full city project validated')
+          PY
+
+      - name: Save actual Unity editor import report (non-blocking upload)
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mistrzowie-unity-51-textures-${{ github.run_id }}
+          path: texture-smoke-evidence/
+          if-no-files-found: warn
+          retention-days: 7
