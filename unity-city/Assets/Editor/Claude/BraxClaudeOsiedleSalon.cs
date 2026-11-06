@@ -896,6 +896,7 @@ public static partial class BraxClaudeOsiedle
         }
         catch (System.InvalidOperationException qualityError)
         {
+            rep.notes.Add("DO POPRAWKI: przejście salonu samochodowego — " + qualityError.Message);
             BraxBuildQuality.Issue(qualityError);
         }
     }
