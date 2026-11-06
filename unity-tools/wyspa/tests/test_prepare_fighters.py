@@ -16,11 +16,11 @@ class FighterDelivery(unittest.TestCase):
     def test_selected_sources_are_two_camp_models_and_animations(self):
         _, _, selected, packs = module.selection()
         models = [n for n in selected if n.startswith('characters/') and n.endswith('.fbx')]
-        self.assertEqual({n.split('/')[1] for n in models}, {'kade', 'zyro'})
+        self.assertEqual({n.split('/')[1] for n in models}, {'rakk', 'zyro'})
         self.assertEqual(len(models), 2)
-        self.assertTrue(all(n.startswith(('characters/kade/', 'characters/zyro/', 'animations/')) for n in selected))
+        self.assertTrue(all(n.startswith(('characters/rakk/', 'characters/zyro/', 'animations/')) for n in selected))
         self.assertTrue(all(any(r['path'] in selected for r in group) for _, group in packs))
-        self.assertEqual(len(packs), 2)
+        self.assertEqual(len(packs), 3)
 
     def archive(self, folder, entries):
         path = folder / 'inputs.tar.gz'
