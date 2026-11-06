@@ -163,40 +163,65 @@ internal static class BraxMiastoOdbior
 
     static void SprawdzMetroM1(Transform cityRoot)
     {
-        // Etap R1 = infrastruktura metra; pociąg ma NIE kursować.
-        // Odbiór wejścia, chodnika, schodów, bramek i peronu jest niezależny
-        // od istnienia składu, pasażerów, liczby drzwi lub minutowego kursu.
-        var metro = cityRoot.GetComponentInChildren<BraxMetroM1Ruch>(true);
-        if (metro)
+        // Zakres właściciela 6.11: metro pieszo, peron i dwa tory do dalszej
+        // rozbudowy. Pociąg nie kursuje i nie jest wymagany na tym etapie.
+        var stacja = cityRoot.GetComponentsInChildren<BraxWidocznoscWnetrza>(true)
+            .FirstOrDefault(s => s && s.nazwa == "metro M1 NABRZEŻE");
+        if (!stacja)
         {
-            bool model = metro.GetComponentsInChildren<Renderer>(true).Any(r => r && r.enabled);
-            bool wylaczony = !metro.kursyWlaczone;
-            bool wSkrajni = true;
-            Bounds obrys = default;
-            bool saGranice = false;
-            foreach (var r in metro.GetComponentsInChildren<Renderer>(true))
-            {
-                if (!r || !r.enabled) continue;
-                if (!saGranice) { obrys = r.bounds; saGranice = true; }
-                else obrys.Encapsulate(r.bounds);
-            }
-            // Nawet nieruchomy model nie może wystawać ponad strop tunelu
-            // ani zachodzić na chodnik peronu (północny tor z = 36.1).
-            if (saGranice)
-                wSkrajni = obrys.min.y >= -12.83f &&
-                    obrys.max.y <= -5.25f &&
-                    obrys.min.z >= 34.18f &&
-                    obrys.max.z <= 38.80f;
-            string raport = "BRAXHORN_METRO_M1_REZERWA " +
-                "kursy_wylaczone=" + wylaczony +
-                " model_na_postoju=" + model +
-                " skrajnia_wagonu=" + wSkrajni +
-                " bez_symulacji_pasazerow=" + (metro.GetComponent<BraxMetroM1Pasazerowie>() == null || !metro.GetComponent<BraxMetroM1Pasazerowie>().enabled);
-            if (!wylaczony || (model && !wSkrajni))
-                Blad(raport + " NIEGOTOWE: brak zgody na uruchomienie kursów albo niebezpieczna skrajnia");
-            else Debug.Log(raport + " — infrastruktura będzie testowana osobno");
+            Blad("BRAXHORN_METRO_M1_NIEGOTOWE: brak podziemnej stacji M1");
+            return;
         }
-        else Debug.Log("BRAXHORN_METRO_M1_REZERWA brak pociągu — zgodnie z etapem bez kursów; testujemy samą stację");
+        if (cityRoot.GetComponentInChildren<BraxMetroM1Ruch>(true))
+            Blad("BRAXHORN_METRO_M1_ETAP: niezamówiony aktywny kontroler kursu pociągu");
+
+        var renderery = stacja.GetComponentsInChildren<MeshRenderer>(true);
+        bool MaMaterial(string nazwa) => renderery.Any(r => r && r.sharedMaterial &&
+            r.sharedMaterial.name.IndexOf(nazwa, StringComparison.OrdinalIgnoreCase) >= 0);
+        bool peronSiatka = MaMaterial("metro posadzka granit") &&
+                          MaMaterial("metro krawędź peronu");
+        bool torySiatka = MaMaterial("metro szyna") &&
+                         MaMaterial("metro podkłady betonowe");
+        var szyny = renderery.Where(r => r && r.sharedMaterial &&
+            r.sharedMaterial.name.IndexOf("metro szyna", StringComparison.OrdinalIgnoreCase) >= 0)
+            .Select(r => r.bounds).ToArray();
+        bool ZasiegSzyn(float x, float z) => szyny.Any(b =>
+            b.min.x <= x + .1f && b.max.x >= x - .1f &&
+            b.min.z <= z + .1f && b.max.z >= z - .1f);
+        // Sprawdzenie obecności geometrii obu torów także w obu kierunkach
+        // tuneli. Bounds jest kontrolą statyczną, nie próbą przejazdu.
+        bool toryKontynuacja = new[] { -40f, 0f, 40f, 80f }
+            .All(x => ZasiegSzyn(x, 20.9f) && ZasiegSzyn(x, 36.1f));
+        bool PodlogaPeronu(float x, float z)
+        {
+            return Physics.RaycastAll(new Vector3(x, -10.05f, z), Vector3.down,
+                2.4f, ~0, QueryTriggerInteraction.Ignore)
+                .Any(h => h.collider && h.normal.y > .65f &&
+                    Mathf.Abs(h.point.y - (-11.2f)) < .22f);
+        }
+        int probyPodlogi = 0, brakPodlogi = 0;
+        foreach (float x in new[] { -14f, 0f, 20f, 40f })
+            foreach (float z in new[] { 26.4f, 30.6f })
+            {
+                probyPodlogi++;
+                if (!PodlogaPeronu(x, z)) brakPodlogi++;
+            }
+        var bramki = stacja.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true)
+            .Where(d => d && d.etykieta != null &&
+                d.etykieta.StartsWith("bramka metra", StringComparison.OrdinalIgnoreCase)).ToArray();
+        bool bramkiRuch = bramki.Length == 7 && bramki.All(d =>
+            d.skrzydla != null && d.skrzydla.Length >= 2 &&
+            d.przesuniecie != null && d.przesuniecie.Length == d.skrzydla.Length &&
+            d.blokady != null && d.blokady.Length > 0);
+        var log = "BRAXHORN_METRO_M1_INFRASTRUKTURA peron=" + peronSiatka +
+            " podloga_peronu=" + (probyPodlogi - brakPodlogi) + "/" + probyPodlogi +
+            " tory=" + torySiatka + " ciaglosc_2_torow=" + toryKontynuacja +
+            " bramki=" + bramki.Length + "/7" + " bramki_ruch=" + bramkiRuch +
+            " pociag=CELOWO_WYLACZONY; sprawdzic wejscie i przejscie na telefonie";
+        if (!peronSiatka || !torySiatka || !toryKontynuacja ||
+            brakPodlogi > 0 || !bramkiRuch)
+            Blad(log + " NIEGOTOWE");
+        else Debug.Log(log + " KOD_GEOMETRII_OK");
 
         // R1 6.11: PORT zamiast zatkanego chodnika. Nie sprawdzać starego wejścia x=69,z=34.3.
         // Kontrola korytarza z portu jest w BraxClaudeMetro.KontrolaPrzejscia(), tu
