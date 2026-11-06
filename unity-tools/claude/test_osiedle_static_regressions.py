@@ -273,6 +273,17 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertNotIn("if (Wolne(next))", traveler)
         self.assertIn("collider.transform.IsChildOf(transform)", traveler)
 
+    def test_patryk_idle_walk_run_biomechanics_report_in_advisory_build(self):
+        player = source("BraxClaudeOsiedlePatryk.cs")
+        sample = player.split("// Quick visual-quality diagnostics", 1)[1].split("var idleTest =", 1)[0]
+        self.assertIn("var doKontroli = BraxBuildQuality.Advisory", sample)
+        self.assertIn('x.name == "Idle" || x.name == "Walk" || x.name == "Run"', sample)
+        self.assertIn("PatrykTestKosci(hero, kosci, spoczynek, doKontroli", sample)
+        self.assertIn('x.name == "Walk" || x.name == "Run"', sample)
+        self.assertIn("PatrykTestNog(hero, kosci, spoczynek, klip)", sample)
+        self.assertNotIn("if (!BraxBuildQuality.Advisory)", sample)
+        self.assertIn("finally { PatrykSpoczynek(spoczynek); }", sample)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
