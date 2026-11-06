@@ -402,6 +402,17 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("BraxKontrola.Zapisz(brakPokoi);", rooms)
         self.assertIn('s.IndexOf("ZGŁOSZONE", StringComparison.OrdinalIgnoreCase)', quality)
 
+    def test_exact_unity_compile_cs0103_and_cs0246_regressions(self):
+        # Unity actually failed on these unqualified .NET types during the
+        # first signed estate APK attempt (#42231496594). Source-only scope
+        # parsing had not caught missing 'using System;' directives.
+        billboards = source("BraxClaudeOsiedleBillboardy.cs")
+        salon = source("BraxClaudeOsiedleSalon.cs")
+        self.assertIn("using System;", billboards.split("public static partial class")[0])
+        self.assertIn("using System;", salon.split("public static partial class")[0])
+        self.assertIn("StringComparison.Ordinal", billboards)
+        self.assertIn("throw new InvalidOperationException(", salon)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
