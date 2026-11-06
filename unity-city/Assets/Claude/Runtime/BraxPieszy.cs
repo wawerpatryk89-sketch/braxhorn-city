@@ -230,6 +230,20 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         Obroc(dir, dt, 6f);
         float krok = Mathf.Min(v * dt, d.magnitude);
         var p = transform.position + dir * krok;
+        // Check the final step even in distant LOD. Periodic look-ahead alone
+        // previously allowed pedestrians to pass through parked cars and walls.
+        if (Przeszkoda(dir, krok + .08f) || Zajete(p))
+        {
+            if (++zablokowany >= 4)
+            {
+                zablokowany = 0;
+                objazd = objazd >= 0f ? -.8f : .8f;
+                objazdDo = Time.time + 1.4f;
+            }
+            Postoj(.5f);
+            return;
+        }
+        zablokowany = 0;
         if (wraca && Time.time > nastGrunt) { nastGrunt = Time.time + .3f; p.y = Grunt(p, p.y); }
         else if (!wraca) p.y = Mathf.Lerp(p.y, cel.y, Mathf.Clamp01(dt * 4f));
         transform.position = p;
@@ -272,7 +286,21 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
         if (slotCel != Vector3.zero)
         {
             var ds = slotCel - transform.position; ds.y = 0f;
-            if (ds.magnitude > .08f) { float kr = Mathf.Min(ds.magnitude, predkosc * .8f * dt); transform.position += ds.normalized * kr; Graj(ds.magnitude > .25f ? chod : stoi, .25f, .6f); return; }
+            if (ds.magnitude > .08f)
+            {
+                float kr = Mathf.Min(ds.magnitude, predkosc * .8f * dt);
+                var next = transform.position + ds.normalized * kr;
+                if (Przeszkoda(ds, kr + .08f) || Zajete(next))
+                {
+                    ZwolnijSlot();
+                    slotCel = Vector3.zero;
+                    nastSprawdz = Time.time + .35f;
+                    return;
+                }
+                transform.position = next;
+                Graj(ds.magnitude > .25f ? chod : stoi, .25f, .6f);
+                return;
+            }
         }
         if (Time.time < doKiedy || Time.time < nastSprawdz) return;
         nastSprawdz = Time.time + .3f;
@@ -324,10 +352,24 @@ public sealed class BraxPieszy : MonoBehaviour, IBraxInterakcja, IBraxOsoba
             if (!c.transform.IsChildOf(transform)) return false;
         return true;
     }
+    readonly RaycastHit[] trafieniaGruntu = new RaycastHit[16];
     float Grunt(Vector3 p, float y)
     {
-        if (Physics.Raycast(p + Vector3.up * 1.4f, Vector3.down, out var h, 3f, ~0, QueryTriggerInteraction.Ignore) && !h.transform.IsChildOf(transform)) return h.point.y;
-        return y;
+        // A single Raycast may hit the pedestrian's own capsule before the floor.
+        int n = Physics.RaycastNonAlloc(p + Vector3.up * 1.4f, Vector3.down,
+            trafieniaGruntu, 3f, ~0, QueryTriggerInteraction.Ignore);
+        if (n == trafieniaGruntu.Length) return y;
+        float best = float.PositiveInfinity, ground = y;
+        for (int k = 0; k < n; k++)
+        {
+            var hit = trafieniaGruntu[k];
+            if (!hit.collider || hit.transform.IsChildOf(transform)
+                || hit.normal.y < .65f || Mathf.Abs(hit.point.y - y) > .75f
+                || hit.distance >= best) continue;
+            best = hit.distance;
+            ground = hit.point.y;
+        }
+        return ground;
     }
 
     // ---------------- ciosy ----------------
