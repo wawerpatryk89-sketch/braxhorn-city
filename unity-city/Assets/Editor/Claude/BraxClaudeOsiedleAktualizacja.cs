@@ -91,6 +91,7 @@ public static partial class BraxClaudeOsiedle
              || n.IndexOf("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase) >= 0))
             .Distinct(StringComparer.Ordinal));
         bledy.AddRange(AudytWejscSklepow(scene));
+        bledy.AddRange(AudytZnakowDrogowych(scene));
         var renderery = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Renderer>(true)).ToArray();
         int szyldy = 0;
         foreach (var r in renderery)
