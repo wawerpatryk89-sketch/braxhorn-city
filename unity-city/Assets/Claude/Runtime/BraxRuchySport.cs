@@ -68,6 +68,34 @@ public sealed class BraxRuchySport : MonoBehaviour
         if (!p) p = GetComponent<BraxGymPlayer>();
         if (!p) return;
         if (!szukane) Szukaj();
+        if (p.explorationOnly)
+        {
+            // PATRYK: 22 FBX nagrane na JEGO oryginalnym rigu. Zakaz
+            // proceduralnych korekt FromToRotation (Braxowy "Aim" wykręcał
+            // ręce/nogi Patryka nawet gdy gra odtwarzała jego własny klip).
+            // Rakieta jest tylko rekwizytem podążającym za prawdziwą dłonią,
+            // bez żadnego obrotu lub przesuwania kości postaci.
+            BraxSport.RzutFaza = 0f;
+            ruch = BraxRuch.Brak; bylo = false; wTrzym = 0f; wKoz = 0f;
+            bool mozna = BraxSport.Rakieta && rHand && rFore &&
+                !p.seat && !p.vessel && !p.autoGracza;
+            if (!mozna)
+            {
+                if (rakieta && rakieta.activeSelf) rakieta.SetActive(false);
+                return;
+            }
+            if (!rakieta) rakieta = Rakieta();
+            if (!rakieta.activeSelf) rakieta.SetActive(true);
+            Vector3 kier = rHand.position - rFore.position;
+            if (kier.sqrMagnitude < 1e-7f) kier = p.transform.forward;
+            kier.Normalize();
+            Vector3 gora = Vector3.ProjectOnPlane(p.transform.up, kier);
+            if (gora.sqrMagnitude < 1e-6f) gora = Vector3.ProjectOnPlane(p.transform.forward, kier);
+            if (gora.sqrMagnitude < 1e-6f) gora = Vector3.up;
+            rakieta.transform.SetPositionAndRotation(rHand.position + kier * .025f,
+                Quaternion.LookRotation(kier, gora.normalized));
+            return;
+        }
         bool zajety = p.seat || p.vessel || p.autoGracza; // bez gestów i rakiety w kabinie auta
         if (!rArm || !rFore || !rHand || !lArm || !lFore || !lHand || zajety)
         {
