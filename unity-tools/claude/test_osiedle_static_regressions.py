@@ -231,6 +231,14 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("if (!Przeszkoda(transform.forward, droga + .2f) && !Zajete(p))", people)
         self.assertIn("else nastSprawdz = 0f;", people)
 
+    def test_traffic_uses_synced_colliders_and_corner_speed_limit(self):
+        traffic = (ROOT / "unity-city/Assets/Claude/Runtime/BraxRuchAutSym.cs").read_text()
+        adapter = (ROOT / "unity-city/Assets/Claude/Runtime/BraxRuchAut.cs").read_text()
+        self.assertIn("Krzywizna(a.trasa, a.s + v * dt)", traffic)
+        self.assertIn("v = Mathf.Min(v, vZakret);", traffic)
+        self.assertEqual(adapter.count("Physics.SyncTransforms();"), 2)
+        self.assertIn("sym.UstawStart();", adapter)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
