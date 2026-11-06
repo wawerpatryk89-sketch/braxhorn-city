@@ -17,6 +17,12 @@ Stan na 2026-11-06, obszar: wyłącznie **BRAXHORN OBÓZ TRENINGOWY**, Unity 600
 4. Kolizje, NavMesh, ścieżki i wygląd pozostają **włączone w grze** i oceniane za pomocą raportów `collider-review.json`, `navigation-review.json`, `scene-validation.json`, `quality-review.json`. Nie traktować ostrzeżeń jakościowych jako twardego FAIL. Prawdziwe błędy Unity/importu/podpisu nadal blokują.
 5. **APK FIRST:** po udanym podpisie pakiet jest zabezpieczany w GitHub Actions; dodatkowe przekazanie do draft Release/backup i zapis cache nie mogą unieważnić prawidłowego pliku.
 
+## Dodatkowa naprawa P0 — źródłowy Blender 4.4 kontra systemowy Blender 4.0.2
+
+- Z oryginalnych zdekompresowanych źródeł potwierdzono nagłówki `BLENDER-v404` (Grass Medium 01 i 02, Blender **4.4**) oraz `BLENDER-v293` (szafka). Standardowy Ubuntu 24.04 `apt install blender` udostępnia **4.0.2**, więc jest starszy od rzeczywistych materiałów źródłowych.
+- Workflow obozu pobiera teraz **oficjalny Blender 4.5.15 LTS**, nie wersję 4.0.2 z apt, i weryfikuje oryginalny SHA256 archiwum `blender-4.5.15-linux-x64.tar.xz`: `0d2b8bb2efe97e6c8eb57de6b7322f8800e1984e3125b60decca5f6771e4773e`, przed rozpakowaniem. Eksporter porównuje wersję programu z prawdziwą wersją w nagłówku każdego `.blend`; bez dopasowania kończy się przed uruchomieniem Unity.
+- Krótki GitHub test źródła/checksum i URL bez pobierania Blendera: [42229825752](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42229825752) — **PASS**. Krótka kontrola kodu po wszystkich poprawkach: [42230206356](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42230206356) — **162 testy Python + 2 treningowe PASS, 27 zakresów C#, 0 błędów**.
+- **Pozostaje:** pełne faktyczne pobranie archiwum ~378 MB i eksport siatek Blender nie zostały przeprowadzone w krótkim teście. Ten krok wykona się przed Unity w osobno autoryzowanym workflow buildu; nie deklarować importu jako przetestowanego.
 ## Stan odbioru i ryzyko
 
 - **ZROBIONE/ZWERYFIKOWANE:** zgodność źródłowych 30 plików i manifestu, obecność dodatkowego ZIP, oryginalne podzespoły GLB, statyczne testy C#/Python, aktualizacja bazowego warunku APK, odblokowany tryb jakości raportowej.
