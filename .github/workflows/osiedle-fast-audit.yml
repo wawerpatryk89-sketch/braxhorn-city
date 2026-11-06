@@ -1,0 +1,52 @@
+name: BRAXHORN estate - quick source regression (no Unity, no APK)
+on:
+  push:
+    branches:
+      - codex/osiedle-audyt-naprawa-20261106
+    paths:
+      - .github/workflows/osiedle-fast-audit.yml
+      - unity-tools/claude/test_osiedle_static_regressions.py
+      - unity-tools/claude/test_patryk_owner_contract.py
+      - unity-tools/claude/test_patryk_extra16.py
+      - unity-tools/claude/import_patryk_owner_22.py
+      - unity-tools/claude/prywatne.py
+      - unity-city/Assets/Editor/Claude/**
+      - unity-city/Assets/Editor/BraxCityBuild.cs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: osiedle-quick-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source-static-audit:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - name: Sparse checkout source and encrypted metadata only
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            unity-tools/claude
+            unity-tools/validation
+            unity-city/Assets/Editor/Claude
+            unity-city/Assets/Editor/BraxCityBuild.cs
+            unity-city/Prywatne/import-patryk-animations-20261106
+            .github/workflows/osiedle-fast-audit.yml
+      - name: Validate Python and original owner / estate regressions
+        run: |
+          set -euo pipefail
+          python3 -m compileall -q unity-tools/claude
+          python3 -m unittest discover -s unity-tools/claude -p 'test_patryk_owner_contract.py' -v
+          python3 -m unittest discover -s unity-tools/claude -p 'test_patryk_extra16.py' -v
+          python3 -m unittest discover -s unity-tools/claude -p 'test_osiedle_static_regressions.py' -v
+      - name: Parse every estate C# file for syntax and illegal local-variable conflicts
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -q -r unity-tools/validation/requirements.txt
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/Claude unity-city/Assets/Editor/BraxCityBuild.cs
