@@ -9,7 +9,9 @@ on:
       - .github/workflows/mistrzowie-glb-quick-source-audit-20261106.yml
 
 permissions:
-  contents: read
+  # Draft private owner release asset requires the same scoped token permission
+  # as the existing Mistrzowie APK workflow. All steps below are read-only.
+  contents: write
 
 concurrency:
   group: mistrzowie-glb-short-original-audit
