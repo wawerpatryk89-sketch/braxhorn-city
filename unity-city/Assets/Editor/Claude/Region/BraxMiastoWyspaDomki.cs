@@ -19,11 +19,15 @@ internal static partial class BraxMiastoWyspa
     static Vector3 recepcja, sklep, placZabaw;
     // Jedna fizyczna sieć dojść: promenada plażowa łączy się z A2 ośrodka.
     static readonly List<Vector3> plazaDeptak = new List<Vector3>();
+    // Kazdy zbudowany domek (rowniez recepcja i sklep) wymaga fizycznie droznego wejscia.
+    // Dane do audytu z rzeczywistej pozycji drzwi, bez zgadywania wspolrzednych.
+    static readonly List<(string nazwa, Vector3 zewn, Vector3 wewn)> wejsciaDomkow =
+        new List<(string nazwa, Vector3 zewn, Vector3 wewn)>();
     public static void StartC2()
     {
         wiezyczki.Clear(); nDomki = nLatarnie = nLawki = nKosze = nPrzebieralnie = nKapiacy = nRowerki = nDeski = nKrawezniki = nLezaki = 0;
         mChodnika = mDeptakuPlazy = 0; recepcja = sklep = placZabaw = Vector3.zero;
-        plazaDeptak.Clear();
+        plazaDeptak.Clear(); wejsciaDomkow.Clear();
     }
     /// <summary>Skała osadzona na terenie bez prześwitu: spód na najniższym punkcie terenu pod obrysem (część od strony stoku
     /// w ziemi), szerokość ≤ maxW, kolizja na bryle; zajęte miejsce zapisane (palmy i krzewy omijają). Null, gdy koliduje.</summary>
@@ -604,14 +608,44 @@ internal static partial class BraxMiastoWyspa
         foreach (var sc in sciany)
         {
             BraxMiastoA.Sciana(s, sc.A, sc.R, sc.N, sc.W, 0f, h, sc.o, .14f, so);
+            // Zamiast jednej kolizji calego budynku: fizyczne sciany, ale otwor
+            // drzwiowy rzeczywiscie pusty. Okna pozostaja chronione kolizja sciany.
+            float yawSciany = Quaternion.LookRotation(sc.N, Vector3.up).eulerAngles.y;
+            var wejscia = sc.o.Where(o => o.yMin < .01f).ToArray();
+            void SegmentSciany(float x0, float x1, float y0c, float y1c)
+            {
+                if (x1 - x0 < .015f || y1c - y0c < .015f) return;
+                BraxNabrzeze.Kol(kol, "Domek " + tabliczka + " sciana",
+                    sc.A + sc.R * ((x0 + x1) * .5f) + Vector3.up * ((y0c + y1c) * .5f),
+                    new Vector3(x1 - x0, y1c - y0c, .14f), yawSciany);
+            }
+            if (wejscia.Length == 0) SegmentSciany(0f, sc.W, 0f, h);
+            else
+            {
+                float xPoprzedni = 0f;
+                foreach (var otwor in wejscia.OrderBy(o => o.xMin))
+                {
+                    SegmentSciany(xPoprzedni, otwor.xMin, 0f, h);
+                    SegmentSciany(otwor.xMin, otwor.xMax, otwor.yMax, h);
+                    xPoprzedni = Mathf.Max(xPoprzedni, otwor.xMax);
+                }
+                SegmentSciany(xPoprzedni, sc.W, 0f, h);
+            }
             foreach (var o in sc.o)
             {
                 bool drzwi = o.yMin < .01f;
                 Vector3 L(float a, float y, float dd) => sc.A + sc.R * a + Vector3.up * y + sc.N * dd;
                 var ro = Quaternion.LookRotation(sc.N, Vector3.up);
                 if (drzwi)
-                {   // skrzydło drzwi (zamknięte) w głębi ościeża, klamka, tabliczka, lampa
-                    z[okien].Box(L(o.center.x, o.yMin + dh * .5f, -.1f), new Vector3(dw - .02f, dh - .01f, .05f), ro);
+                {   // Drzwi faktycznie otwarte na zewnatrz: skrzydlo stoi przy zawiasie,
+                    // a otwor w scianie pozostaje drozny. Nie maskujemy pelnego collidera.
+                    // Ten sam material i wymiary skrzydla, bez zmiany kolorystyki domku.
+                    var zawias = L(o.xMin + .04f, o.yMin + dh * .5f, -.10f);
+                    var skrzydloNaBoku = zawias + sc.N * ((dw - .02f) * .5f);
+                    var obrotSkrzydla = Quaternion.LookRotation(sc.R, Vector3.up);
+                    z[okien].Box(skrzydloNaBoku, new Vector3(dw - .02f, dh - .01f, .05f), obrotSkrzydla);
+                    BraxNabrzeze.KolRot(kol, "Domek " + tabliczka + " otwarte skrzydlo", skrzydloNaBoku,
+                        new Vector3(dw - .02f, dh - .01f, .05f), obrotSkrzydla);
                     z[m.stal].Rura(L(o.xMax - .12f, 1.02f * K, -.06f), L(o.xMax - .12f, 1.02f * K, .02f), .015f, 6);
                     z[m.stal].Box(L(o.xMax - .18f, 1.02f * K, .025f), new Vector3(.14f, .02f, .02f), ro);
                     var lp = L(o.xMax + .35f, 2.15f * K, .06f);
@@ -712,9 +746,14 @@ internal static partial class BraxMiastoWyspa
             Czlowiek("Sklep ośrodka", "sprzedawca (obsługa)", "stoi", P(-2.6f, 0f, lz + .75f), fw, KlStoi);
             Czlowiek("Sklep ośrodka", "klient", "stoi", P(-2.3f, 0f, lz + 2.05f), -fw, KlStoi);
         }
-        // 5) kolizje bryły i tarasu
-        BraxNabrzeze.Kol(kol, "Domek " + tabliczka, P(0, h * .5f + .02f, 0), new Vector3(w, h + .04f, d), rot.eulerAngles.y);
+        // 5) prawdziwa podloga i wejscie (bez pelnego BoxCollidera przez srodek
+        // domku). Fizyka scian z zachowanym przejsciem powstala powyzej.
+        z[deskaT].Box(P(0, .02f, 0), new Vector3(w - .30f, .04f, d - .30f), rot);
+        BraxNabrzeze.Kol(kol, "Domek " + tabliczka + " podloga", P(0, 0f, 0),
+            new Vector3(w, .08f, d), rot.eulerAngles.y);
         BraxNabrzeze.Kol(kol, "Taras domku " + tabliczka, P(0, -.25f, d * .5f + tD * .5f), new Vector3(w, .5f, tD), rot.eulerAngles.y);
+        var osDrzwi = P(0f, .04f, d * .5f);
+        wejsciaDomkow.Add((tabliczka, osDrzwi + fw * .75f, osDrzwi - fw * .85f));
         BraxNabrzeze.Kol(kol, "Dach domku " + tabliczka, P(0, h + hr * .5f, 0), new Vector3(w + ovG, hr, d * .8f), rot.eulerAngles.y);
         if (!string.IsNullOrEmpty(szyld))
             BraxUliceKit.Napis3D(szyld, P(0, h + .05f - ovE * Mathf.Tan(kat) - .25f, d * .5f + .02f), fw, .3f, .03f, BraxMiastoA.Mat("Wyspa: litery szyldu (granat)", new Color(.08f, .14f, .26f), .5f), BraxMiastoA.Mat("Wyspa: litery boki", new Color(.2f, .2f, .2f), .6f));
@@ -999,6 +1038,45 @@ internal static partial class BraxMiastoWyspa
             var b = new Vector3(CX, 0f, CZ) + wd * (rs - 16f);
             Linia(a, b, "Wyspa kładka do ratownika", "kładka ratownika", 1.25f);
         }
+        // Odbior kazdego rzeczywiscie utworzonego domku, recepcji i sklepu.
+        // Pelna kolizja bryly dawniej zaslaniala wszystkie drzwi — sondy w osi
+        // portalu wykrywaja jej nawrot bez wylaczania fizyki w gotowej grze.
+        int wejsciaProby = 0, wejsciaBlokady = 0, wejsciaBezPodlogi = 0;
+        var wejsciaRaport = new List<string>();
+        foreach (var wejscie in wejsciaDomkow)
+        {
+            int kolizjeWejscia = 0, brakPosadzki = 0;
+            for (int i = 0; i <= 8; i++)
+            {
+                var p = Vector3.Lerp(wejscie.zewn, wejscie.wewn, i / 8f);
+                wejsciaProby++;
+                bool podloga = Physics.RaycastAll(p + Vector3.up * 1.4f, Vector3.down, 2.2f,
+                    maska, QueryTriggerInteraction.Ignore)
+                    .Any(hit => hit.collider && hit.normal.y > .65f &&
+                        (hit.collider.transform == wyspa || hit.collider.transform.IsChildOf(wyspa)) &&
+                        Mathf.Abs(hit.point.y - p.y) < .25f);
+                if (!podloga) { brakPosadzki++; wejsciaBezPodlogi++; }
+                foreach (var c in Physics.OverlapCapsule(p + Vector3.up * .60f,
+                    p + Vector3.up * 1.88f, .30f, maska, QueryTriggerInteraction.Ignore))
+                {
+                    if (!c || !c.enabled || c.isTrigger || c.bounds.max.y <= p.y + .24f ||
+                        (!c.transform.IsChildOf(wyspa) && c.transform != wyspa) ||
+                        c.GetComponentInParent<BraxGymPlayer>() ||
+                        c.GetComponentInParent<BraxMieszkaniec>()) continue;
+                    kolizjeWejscia++; wejsciaBlokady++; break;
+                }
+            }
+            if ((kolizjeWejscia > 0 || brakPosadzki > 0) && wejsciaRaport.Count < 30)
+                wejsciaRaport.Add(wejscie.nazwa + ": przeszkody=" + kolizjeWejscia +
+                    " brak_podlogi=" + brakPosadzki);
+        }
+        string wejsciaWynik = "WYSPA_DOMKI_WEJSCIA domkow_i_lokali=" + wejsciaDomkow.Count +
+            " proby=" + wejsciaProby + " przeszkody=" + wejsciaBlokady +
+            " brak_podlogi=" + wejsciaBezPodlogi +
+            " test_Android=nie [" + string.Join("; ", wejsciaRaport) + "]";
+        if (wejsciaBlokady + wejsciaBezPodlogi > 0)
+            BraxBuildQuality.Warn(wejsciaWynik + " — RAPORT, bez blokowania APK");
+        else Debug.Log(wejsciaWynik + " — statyczna fizyka Unity drozna, Android do sprawdzenia");
         string wynik = "WYSPA_CALA_TRASA_AUDYT alejki=" + plan.Count +
             " promenada_pts=" + plazaDeptak.Count + " kladki=" + wiezyczki.Count +
             " probki=" + probki + " brak_podloza=" + brak +
