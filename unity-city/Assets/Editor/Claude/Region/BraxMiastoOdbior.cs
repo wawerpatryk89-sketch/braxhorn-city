@@ -749,6 +749,193 @@ internal static class BraxMiastoOdbior
         else Debug.Log(wynik + " KOD_SCENY_DROZNY (wymaga testu Android)");
     }
 
+    // R1 6.11 — pełny spis drzwi na ul. PORTOWEJ + dojście w Tower.
+    // Uruchamia się po BraxKontrola.Wszystko: NIE buduje APK, NIE zmienia
+    // grafiki, NIE wyłącza kolizji; QA jest wyłącznie ostrzeżeniem.
+    // Pomijamy tylko fizyczne skrzydła, które otworzą się w runtime,
+    // NIGDY całą gałąź drzwi (mogłaby zawierać zamurowaną framugę).
+    public static void SprawdzLokalePortowejITowerPoKolizjach(Transform cityRoot)
+    {
+        if (!cityRoot)
+        {
+            Debug.LogWarning("BRAXHORN_R1_WEJSCIA_TOWER NIEGOTOWE: brak korzenia renowacji");
+            return;
+        }
+        Physics.SyncTransforms();
+        const int maska = ~((1 << 29) | (1 << 31));
+        int lokale = 0, brakDrzwi = 0, brakiPodlog = 0, przeszkody = 0, punkty = 0, towerProblemy = 0;
+        var opis = new System.Collections.Generic.List<string>();
+        var raporty = new System.Collections.Generic.List<string>();
+        bool SkrzydloOtwieralne(Collider c)
+        {
+            if (KontrolowaneSkrzydlo(c)) return true;
+            var manualne = c.GetComponentInParent<BraxCityDoor>();
+            if (manualne && manualne.leaves != null &&
+                manualne.leaves.Any(t => t && (c.transform == t || c.transform.IsChildOf(t))))
+                return true;
+            var automat = c.GetComponentInParent<BraxDrzwiAutomatyczne>();
+            if (automat && ((automat.skrzydloL &&
+                    (c.transform == automat.skrzydloL || c.transform.IsChildOf(automat.skrzydloL))) ||
+                   (automat.skrzydloP &&
+                    (c.transform == automat.skrzydloP || c.transform.IsChildOf(automat.skrzydloP)))))
+                return true;
+            var winda = c.GetComponentInParent<BraxWinda>();
+            if (winda)
+            {
+                if ((winda.kabinaL && (c.transform == winda.kabinaL || c.transform.IsChildOf(winda.kabinaL))) ||
+                    (winda.kabinaP && (c.transform == winda.kabinaP || c.transform.IsChildOf(winda.kabinaP))))
+                    return true;
+                foreach (var skr in (winda.przystanekL ?? new Transform[0]).Concat(winda.przystanekP ?? new Transform[0]))
+                    if (skr && (c.transform == skr || c.transform.IsChildOf(skr))) return true;
+            }
+            return false;
+        }
+        void Punkt(float x, float y, float z, string gdzie)
+        {
+            punkty++;
+            var p = new Vector3(x, y, z);
+            bool podloga = Physics.RaycastAll(p + Vector3.up * .80f, Vector3.down, 1.4f,
+                    maska, QueryTriggerInteraction.Ignore)
+                .Any(h => h.collider && h.normal.y > .65f &&
+                          Mathf.Abs(h.point.y - y) < .25f);
+            if (!podloga)
+            {
+                brakiPodlog++;
+                if (opis.Count < 45) opis.Add("PODLOGA " + gdzie + " " + p.ToString("F2"));
+            }
+            foreach (var c in Physics.OverlapCapsule(p + Vector3.up * .55f,
+                p + Vector3.up * 1.91f, .30f, maska, QueryTriggerInteraction.Ignore))
+            {
+                if (!c || !c.enabled || c.isTrigger || c.bounds.max.y <= y + .24f ||
+                    c.GetComponentInParent<BraxGymPlayer>() || SkrzydloOtwieralne(c))
+                    continue;
+                przeszkody++;
+                if (opis.Count < 45)
+                    opis.Add("KOLIZJA " + gdzie + " " + c.name + " @" + p.ToString("F2"));
+            }
+        }
+        void Trasa(Vector3 od, Vector3 do_, string gdzie)
+        {
+            int n = Mathf.Max(1, Mathf.CeilToInt(Vector3.Distance(od, do_) / .45f));
+            for (int k = 0; k <= n; k++)
+            {
+                var p = Vector3.Lerp(od, do_, k / (float)n);
+                Punkt(p.x, p.y, p.z, gdzie);
+            }
+        }
+
+        // Jeden obowiązkowy, oryginalny ruchomy portal na każdy lokal.
+        // Sprawdzamy realną pozycję z obiektu, nie zakładamy, że oś
+        // fasady po ostatnich zmianach wykonawców pozostała taka sama.
+        foreach (var b in BraxCityArchitecture.StreetBuildings)
+        {
+            if (b.id == "quay_corner") continue; // Tower ma automat zamiast drzwi ręcznych
+            lokale++;
+            var bud = cityRoot.Find("Building " + b.id);
+            var d = bud ? bud.GetComponentsInChildren<BraxCityDoor>(true)
+                .FirstOrDefault(q => q && q.id == "R1_PUBLIC_DOOR_" + b.id) : null;
+            bool poprawne = d && d.gameObject.activeInHierarchy &&
+                d.leaves != null && d.leaves.Length == 2 &&
+                d.sides != null && d.sides.Length == 2 &&
+                d.leaves.All(l => l && l.GetComponentInChildren<Collider>(true)) &&
+                Mathf.Abs(d.transform.position.z - (b.far ? b.z0 : b.z1)) < .30f &&
+                d.transform.position.x >= b.x0 + .8f &&
+                d.transform.position.x <= b.x1 - .8f;
+            if (!poprawne)
+            {
+                brakDrzwi++;
+                raporty.Add(b.id + "=DRZWI_NIEGOTOWE");
+                continue;
+            }
+            float x = d.transform.position.x, y = .15f, front = b.far ? b.z0 : b.z1;
+            // Przy wejściu z chodnika oraz w holu/sklepie (3.5 m w głąb).
+            Trasa(new Vector3(x, y, b.far ? 34.55f : 22.65f),
+                  new Vector3(x, y, front + (b.far ? 3.6f : -3.6f)),
+                  "LOKAL_" + b.id);
+            raporty.Add(b.id + "=DRZWI_ZAPISANE");
+        }
+
+        // Tower x59 przy NOVA. Sprawdzamy nie tylko próg, ale całą oś
+        // od chodnika (z35.4) do realnego stanowiska wywołania windy (z~50.5).
+        var automatTower = cityRoot.GetComponentsInChildren<BraxDrzwiAutomatyczne>(true)
+            .Where(a => a && a.nazwa == "BRAXHORN TOWER").ToArray();
+        if (automatTower.Length != 1 || !automatTower[0].isActiveAndEnabled ||
+            !automatTower[0].skrzydloL || !automatTower[0].skrzydloP ||
+            !automatTower[0].skrzydloL.GetComponent<Collider>() ||
+            !automatTower[0].skrzydloP.GetComponent<Collider>() ||
+            automatTower[0].zasieg < 2.6f)
+        {
+            towerProblemy++;
+            raporty.Add("TOWER_AUTOMAT=DRZWI_NIEGOTOWE");
+        }
+        else raporty.Add("TOWER_AUTOMAT=KOMPONENT_OK");
+        var w = cityRoot.GetComponentsInChildren<BraxWinda>(true)
+            .FirstOrDefault(t => t && t.nazwa == "BRAXHORN TOWER");
+        bool pietra = w && w.isActiveAndEnabled && w.kabina &&
+            w.pietraY != null && w.pietraY.Length > 36 &&
+            w.uzytkowe != null && w.uzytkowe.Length > 36 &&
+            w.uzytkowe[0] && w.uzytkowe[20] && w.uzytkowe[36] &&
+            w.przystanekL != null && w.przystanekP != null &&
+            w.przystanekL.Length > 36 && w.przystanekP.Length > 36 &&
+            new[] { 0, 20, 36 }.All(i => w.przystanekL[i] && w.przystanekP[i]);
+        if (!pietra)
+        {
+            towerProblemy++;
+            raporty.Add("TOWER_WINDA=PIETRA_NIEGOTOWE");
+        }
+        else raporty.Add("TOWER_WINDA=0_20_36_SKRZYDLA_OK");
+
+        Trasa(new Vector3(59f, .15f, 35.45f), new Vector3(59f, .15f, 50.45f),
+              "TOWER_CHODNIK_HOL_WINDA");
+
+        // Apartament: po przyjeździe na piętro 20 dojście do obu
+        // pomieszczeń i ich działające skrzydła.
+        var pokoje = new[] {
+            (id: "TOWER_APT_SYPIALNIA", x: 55f),
+            (id: "TOWER_APT_LAZIENKA", x: 63.6f)
+        };
+        foreach (var pokoj in pokoje)
+        {
+            var d = cityRoot.GetComponentsInChildren<BraxCityDoor>(true)
+                .FirstOrDefault(v => v && v.id == pokoj.id);
+            if (!d || !d.gameObject.activeInHierarchy ||
+                d.leaves == null || d.leaves.Length != 1 ||
+                !d.leaves[0] || !d.leaves[0].GetComponent<Collider>())
+            {
+                towerProblemy++;
+                raporty.Add(pokoj.id + "=BRAK_DRZWI");
+            }
+            else raporty.Add(pokoj.id + "=SKRZYDLO_OK");
+            if (pietra)
+            {
+                float y = w.pietraY[20];
+                Trasa(new Vector3(59f, y, 50.45f), new Vector3(pokoj.x, y, 53.2f),
+                      pokoj.id + "_DOJSCIE");
+                Trasa(new Vector3(pokoj.x, y, 53.2f),
+                      new Vector3(pokoj.x, y, 56.2f), pokoj.id + "_PROG");
+            }
+        }
+        if (pietra)
+        {
+            float y = w.pietraY[36];
+            Trasa(new Vector3(59f, y, 50.45f),
+                  new Vector3(59f, y, 46.6f), "TOWER_TARAS_36");
+        }
+        bool stareLobby = cityRoot.GetComponentsInChildren<Transform>(true)
+            .Any(t => t && t.name == "R1_TOWER accessible premium lobby lift and roof");
+        if (stareLobby) { towerProblemy++; raporty.Add("TOWER_PODWOJNE_STARE_LOBBY"); }
+
+        string wynik = "BRAXHORN_R1_WEJSCIA_TOWER lokale=" + lokale +
+            " drzwi_braki=" + brakDrzwi + " tower_problemy=" + towerProblemy +
+            " punkty=" + punkty + " kolizje=" + przeszkody +
+            " brak_podlogi=" + brakiPodlog +
+            " android_test=NIE [" + string.Join("; ", raporty) + "] [" +
+            string.Join("; ", opis) + "]";
+        if (brakDrzwi != 0 || towerProblemy != 0 || przeszkody != 0 || brakiPodlog != 0)
+            Debug.LogWarning(wynik + " DO_POPRAWKI_BEZ_BLOKOWANIA_APK");
+        else Debug.Log(wynik + " GEOMETRIA_WSTEPNA_OK_TEST_ANDROID_WYMAGANY");
+    }
+
     static void SprawdzWejscie(string nazwa, float x, float y, float zA, float zB)
     {
         int przeszkody = 0;
