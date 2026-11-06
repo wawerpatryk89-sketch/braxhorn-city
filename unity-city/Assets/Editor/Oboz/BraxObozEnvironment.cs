@@ -19,7 +19,7 @@ public static partial class BraxObozEnvironment
     static readonly List<BraxWorek> bags = new List<BraxWorek>();
     static readonly List<Transform> covered = new List<Transform>();
     static readonly List<BraxObozArena> arenas = new List<BraxObozArena>();
-    static Material wood, floor, metal, gravel, ground, burgundy, dark, rope, fabric;
+    static Material wood, bark, floor, metal, gravel, ground, burgundy, dark, rope, fabric;
     static Transform root;
     static Vector3 P(float x, float y, float z) => new Vector3(x, y, z) * K;
     static Transform Group(string name, Transform parent, Vector3 local)
@@ -73,7 +73,9 @@ public static partial class BraxObozEnvironment
         BraxObozCharacters.ReadManifest();
         Directory.CreateDirectory(Folder); AssetDatabase.Refresh();
         doors.Clear(); bags.Clear(); covered.Clear(); arenas.Clear();
-        wood = BraxObozMaterials.Pbr("wood"); floor = BraxObozMaterials.Pbr("floor"); metal = BraxObozMaterials.Pbr("metal");
+        wood = BraxObozMaterials.Pbr("wood");
+        bark = BraxObozMaterials.PublicPbr("bark_brown_01",1f); // naturalna kora 2K CC0
+        floor = BraxObozMaterials.Pbr("floor"); metal = BraxObozMaterials.Pbr("metal");
         gravel = BraxObozMaterials.Pbr("gravel"); ground = BraxObozMaterials.ForestGround();
         burgundy = BraxObozMaterials.Plain("bordo", new Color(.478f, .118f, .118f));
         dark = BraxObozMaterials.Plain("grafit", new Color(.09f, .10f, .11f), .4f);
@@ -376,25 +378,25 @@ public static partial class BraxObozEnvironment
             // Realne B A L E: walcowe przekroje, nie głęboki płaski box.
             // Podłużne modele używają istniejącego PBR drewna, bez naciągania 2K.
             Cylinder(t,"Bal tylnej elewacji — okrągły",
-                new Vector3(-3.1f,y,4),new Vector3(3.1f,y,4),.108f,wood,false);
+                new Vector3(-3.1f,y,4),new Vector3(3.1f,y,4),.108f,bark,false);
             foreach(float side in new[]{-1f,1f})
             {
                 // Otwarte okna pozostają faktycznie puste pomiędzy balami.
                 if(y>1.05f&&y<2.02f)
                 {
                     Cylinder(t,"Bal boczny przed oknem",
-                        new Vector3(side*3,y,-4.1f),new Vector3(side*3,y,-1.1f),.108f,wood,false);
+                        new Vector3(side*3,y,-4.1f),new Vector3(side*3,y,-1.1f),.108f,bark,false);
                     Cylinder(t,"Bal boczny za oknem",
-                        new Vector3(side*3,y,1.1f),new Vector3(side*3,y,4.1f),.108f,wood,false);
+                        new Vector3(side*3,y,1.1f),new Vector3(side*3,y,4.1f),.108f,bark,false);
                 }
                 else Cylinder(t,"Bal bocznej ściany — okrągły",
-                    new Vector3(side*3,y,-4.1f),new Vector3(side*3,y,4.1f),.108f,wood,false);
+                    new Vector3(side*3,y,-4.1f),new Vector3(side*3,y,4.1f),.108f,bark,false);
                 Cylinder(t,"Bal obok drzwi",
                     new Vector3(side<0?-3.1f:.68f,y,-4f),
-                    new Vector3(side<0?-.68f:3.1f,y,-4f),.108f,wood,false);
+                    new Vector3(side<0?-.68f:3.1f,y,-4f),.108f,bark,false);
             }
             if(y>2.38f)Cylinder(t,"Bal nad wejściem",
-                new Vector3(-.68f,y,-4),new Vector3(.68f,y,-4),.108f,wood,false);
+                new Vector3(-.68f,y,-4),new Vector3(.68f,y,-4),.108f,bark,false);
         }
         CabinFinish(t);
         if(name=="Domek 3")

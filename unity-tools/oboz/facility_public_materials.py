@@ -20,6 +20,7 @@ BASE = ROOT / "unity-city/Assets/Source/Public/Oboz"
 ASSETS = {
     "rectangular_facade_tiles": "previous owner-supplied exterior cladding, retained for compatibility",
     "red_brick_03": "real red-brown brick courses for outdoor sanitary block, Poly Haven CC0 2K",
+    "bark_brown_01": "weathered brown natural bark for original 4 camp cabins, Poly Haven CC0 2K",
     "long_white_tiles": "white wall tiling inside WC/ŁAŹNIA/UMYWALNIA",
 }
 ROLES = {
