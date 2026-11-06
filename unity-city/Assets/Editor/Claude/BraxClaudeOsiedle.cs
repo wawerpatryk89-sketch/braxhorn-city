@@ -5680,7 +5680,7 @@ public static partial class BraxClaudeOsiedle
     // ---------------- główne ----------------
     public static void Apply()
     {
-        ruchZweryfikowany = false; bladRuchu = null; wejsciaSklepow.Clear();
+        ruchZweryfikowany = false; bladRuchu = null; wejsciaSklepow.Clear(); znakiRej.Clear();
         try { BraxTestNaprawOsiedla.Wykonaj(); } catch (Exception e) { Debug.LogError("BRAXHORN_CLAUDE_OSIEDLE DO POPRAWKI regresja: " + e.Message); }
         rep = new Report(); gymHall = default; mats.Clear(); tile.Clear(); batches.Clear(); groups.Clear(); group = "osiedle"; saleDoors.Clear(); treeSpots.Clear(); trees.Clear(); roofBounds.Clear(); spodyStropow.Clear(); WyczyscWspolne14(); WyczyscElewacje(); ZmierzBohatera(); kepyKand.Clear(); lakaKand.Clear(); tennisFence = default; tennisLotX = default; soil = null; soilTex = null; grassMeanLin = Vector3.zero; grassLin = Vector4.one;
         pavedCells.Clear(); pavingSet = null; CodexPaving();
