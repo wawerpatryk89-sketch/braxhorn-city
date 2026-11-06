@@ -28,7 +28,7 @@ class CampAdvisoryQualityContract(unittest.TestCase):
         self.assertIn("BraxBuildQuality.Warn(",self.build)
         self.assertNotIn("if (!report.structuralPassed) BraxBuildQuality.Issue",self.build)
         self.assertIn('File.WriteAllText(Path.Combine(output, "scene-validation.json")',self.build)
-        self.assertIn('"review-assembly.json"',read(EDITOR/"BraxObozActors.cs"))
+        self.assertIn('/review-assembly.json',read(EDITOR/"BraxObozActors.cs"))
 
     def test_navigation_quality_report_not_build_gate(self):
         self.assertIn('navigation-review.json',self.training)
