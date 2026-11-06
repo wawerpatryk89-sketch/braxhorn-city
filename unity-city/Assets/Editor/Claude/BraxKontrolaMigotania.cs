@@ -49,7 +49,9 @@ public static class BraxKontrolaMigotania
         if (BraxKontrola.Obszar == "miasto") // scena w CI może nie być aktywną BraxhornCity podczas audytu; obszar jest ustawiany jawnie przez BraxGymBuild
             foreach (var (a, b) in new[] { (new Vector3(12f, -.5f, 4f), new Vector3(50f, 34f, 46f)),          // kamienica z BRAXHORN NUTRITION i sąsiednie
                                            (new Vector3(-50f, -.5f, -22f), new Vector3(-16f, 34f, 26f)),      // lewa kamienica przy BRAXHORN GYM
-                                           (new Vector3(-121f, -.5f, 44f), new Vector3(-90f, 40f, 76f)) })   // alejka przy BANKU (Aleja Północna 1)
+                                           (new Vector3(-121f, -.5f, 44f), new Vector3(-90f, 40f, 76f)),   // alejka przy BANKU
+                                           (new Vector3(-168f, -2f, -138f), new Vector3(72f, 40f, 108f)),    // sklep spożywczy -> wulkanizacja i boiska
+                                           (new Vector3(63f, -3f, -140f), new Vector3(187f, 28f, 185f)) })  // port + plaża; prawdziwa wyspa ma własną siatkę i proxy
             { var x = new Bounds(); x.SetMinMax(a, b); l.Add(x); }
         return l.ToArray();
     }
@@ -262,15 +264,22 @@ public static class BraxKontrolaMigotania
                 if (pa.tri == null || pb.tri == null) continue;
                 float ea = Pozycja(pa), eb = Pozycja(pb);
                 Pow ciety, gorny; Pl plC, plG;
+                bool aStary = BraxClaudeGround.SourceCity &&
+                    (A.r.transform == BraxClaudeGround.SourceCity ||
+                     A.r.transform.IsChildOf(BraxClaudeGround.SourceCity));
+                bool bStary = BraxClaudeGround.SourceCity &&
+                    (B.r.transform == BraxClaudeGround.SourceCity ||
+                     B.r.transform.IsChildOf(BraxClaudeGround.SourceCity));
                 if (Mathf.Abs(ea - eb) < .001f)
-                {   // ta sama płaszczyzna: podkład (większy, np. ściana) wycięty pod nakładką (mniejszą, np. futryna, lizena)
-                    bool aPodklad = A.pole >= B.pole;
+                {   // NOWA nawierzchnia pozostaje, oryginalną wycinamy pod
+                    // nią bez względu na wielkość starego scalonego mesha.
+                    bool aPodklad = aStary != bStary ? aStary : A.pole >= B.pole;
                     (ciety, plC, gorny, plG) = aPodklad ? (A, pa, B, pb) : (B, pb, A, pa);
                     if (Przezroczysty(gorny.mat)) { powod = "nakładka z alfą w tej samej płaszczyźnie (" + gorny.nazwa + ")"; continue; }
                 }
                 else
                 {   // różne płaszczyzny (< 2 cm): tylna wycięta pod przednią
-                    bool aPrzod = ea > eb;
+                    bool aPrzod = aStary != bStary ? bStary : ea > eb;
                     (gorny, plG, ciety, plC) = aPrzod ? (A, pa, B, pb) : (B, pb, A, pa);
                     if (Przezroczysty(gorny.mat))
                     {
@@ -293,8 +302,12 @@ public static class BraxKontrolaMigotania
         int powierzchnie = 0, trojkaty = 0; float pole = 0; var opisy = new List<string>();
         foreach (var grupa in zadania.GroupBy(kv => kv.Key.Item1))
         {
-            // budżet (OOM osiedla 2.11 — wycinanie bez limitu): najwyżej 240 s i 600 nowych siatek; reszta zostaje z logiem
-            if (stoper.Elapsed.TotalSeconds > 240 || powierzchnie >= 600) { pominieteBudzet++; continue; }
+            // Szybkie wycinanie R1: maks. 32 s i 120 siatek — jakość ma
+            // RAPORTOWAĆ, nie blokować wielogodzinnego APK. Pozostałe pary
+            // idą do dziennika odbioru, nie są maskowane kolejną płytą.
+            int limitS = BraxKontrola.Obszar == "miasto" ? 32 : 240;
+            int limitMesh = BraxKontrola.Obszar == "miasto" ? 120 : 600;
+            if (stoper.Elapsed.TotalSeconds > limitS || powierzchnie >= limitMesh) { pominieteBudzet++; continue; }
             var r = grupa.Key; var mf = r ? r.GetComponent<MeshFilter>() : null; if (!mf || !mf.sharedMesh) continue;
             if (mf.sharedMesh.vertexCount > 65000 || grupa.Sum(kv => kv.Value.gorne.Count) > 6000) { pominieteBudzet++; continue; }
             var oryginal = mf.sharedMesh; var mesh = oryginal; int zmian = 0; float usuniete = 0; var nad = new HashSet<string>();
@@ -313,7 +326,10 @@ public static class BraxKontrolaMigotania
             if (mesh == oryginal) continue;
             mesh.name = oryginal.name + " (bez nakładania)";
             BraxZapisAssetu.Utworz(mesh, Folder + "/silownia_" + Bezpieczna(r.name) + "_" + (zapisane++) + ".asset");
-            mf.sharedMesh = mesh;                                   // tylko ten renderer (siatka bywa wspólna); kolizje bez zmian
+            mf.sharedMesh = mesh; // tylko stary renderer. Zachowujemy korektę w fizyce:
+            // wycięta stara posadzka nie może zostać jako niewidzialna ściana.
+            foreach (var c in mf.GetComponents<MeshCollider>())
+                if (c && c.sharedMesh == oryginal) c.sharedMesh = mesh;
             powierzchnie++; trojkaty += zmian; pole += usuniete;
             opisy.Add(r.name + ": wycięte " + usuniete.ToString("F2") + " m² (" + zmian + " trójkątów) pod: " + string.Join(", ", nad.Take(4)) + (nad.Count > 4 ? " …" : "") + " " + BraxKontrola.F(r.bounds.center));
         }
