@@ -1,0 +1,44 @@
+name: "Miasto Mistrzów T11 — sprawdzenie prawdziwych źródeł Poly Haven BEZ Unity"
+on:
+  push:
+    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
+    paths: [.github/workflows/mistrzowie-t11-live-source-check-20261106.yml]
+permissions:
+  contents: read
+jobs:
+  real-originals:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/mistrzowie/prepare_casino_textures_2k.py
+            unity-tools/mistrzowie/prepare_casino_vegetation_2k.py
+            unity-tools/mistrzowie/pack_casino_vegetation_glb.py
+            unity-tools/mistrzowie/verify_t11_real_sources.py
+      - name: Python syntax and image library
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check pillow==11.3.0
+          python3 -m py_compile unity-tools/mistrzowie/*.py
+      - name: Download provider-original 21 maps and 2 vegetation sources
+        run: |
+          set -euo pipefail
+          python3 unity-tools/mistrzowie/prepare_casino_textures_2k.py
+          python3 unity-tools/mistrzowie/prepare_casino_vegetation_2k.py
+      - name: SHA-256, native 2K dimensions, GLB geometry and image audit
+        run: |
+          set -euo pipefail
+          python3 unity-tools/mistrzowie/verify_t11_real_sources.py
+          echo "Original source validation passed; no Unity or APK built." >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve small source-integrity report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: champions-t11-live-sources-${{ github.run_id }}
+          path: t11-source-audit.json
+          if-no-files-found: warn
+          retention-days: 14
