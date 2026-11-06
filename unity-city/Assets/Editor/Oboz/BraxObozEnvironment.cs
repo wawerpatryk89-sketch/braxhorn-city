@@ -793,7 +793,7 @@ public static partial class BraxObozEnvironment
         var notice=Group("Plan dnia — informacja dla obozowiczów",
             board,P(0,1.86f,-.11f)).gameObject.AddComponent<TextMesh>();
         notice.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        notice.text="BRAXHORN — PLAN DNIA\n06:00 ROZGRZEWKA\n08:00 TRENING\n12:00 STOŁÓWKA\n16:00 SPARING";
+        notice.text="BRAXHORN — PLAN DNIA\nROZGRZEWKA\nTRENING\nSTOŁÓWKA\nSPARING\nGODZINY DO ZATWIERDZENIA";
         notice.fontSize=54;notice.characterSize=.095f*K;
         notice.anchor=TextAnchor.MiddleCenter;notice.alignment=TextAlignment.Center;
         notice.color=new Color(.98f,.93f,.83f);
