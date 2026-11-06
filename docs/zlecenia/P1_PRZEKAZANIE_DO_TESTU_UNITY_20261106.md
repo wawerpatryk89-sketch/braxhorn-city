@@ -35,3 +35,12 @@ Status: **ŹRÓDŁA I IMPORTY ZWERYFIKOWANE; KOMPILACJA UNITY NIEPRZEPROWADZONA*
 - Licencje modeli CC BY wymagają odpowiednich kredytów przed publiczną publikacją (rejestr `P1_ZRODLA_I_KREDYTY_20261106.md`).
 
 **Wynik:** źródła, paczki i integracja tekstowa są przygotowane **do uruchomienia scenowego testu Unity 6**. Nie oznaczać jako gotowego APK ani opublikowanej aktualizacji bez dalszego dowodu.
+
+
+## Audyt po ostatnim zleceniu — dodatkowe dowody źródłowe z 6.11.2026
+- [GitHub Actions **42174251170**](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42174251170): **SUCCESS**. Zreprodukowane **32/32** testy P1; `CSHARP_SCOPE_CHECK files=10 errors=0` z parserem C#; sprawdzenie archiwum P1 121,3 MB (16 oryginałów i pliki .meta); prawidłowe CRC oraz sumy; **8 modeli GLB** z rzeczywiście występującymi częściami kolizji; prawdziwy import prywatnych paczek A1/T11 i P1 do checkoutu GitHub runnera.
+- Sprawdzone nazwy i liczby **źródłowych siatek konstrukcyjnych**: jacuzzi **14**, sauna **3**, kabina prysznicowa **2** (brodzik + konstrukcja, bez pełnego kolidera szklanych drzwi), stół do masażu **9**, podwójna umywalka **12**, drabinka basenu **1**, szafki **6**, ławka do szatni **1**. Liczby są kontraktem statycznym źródła, **nie** fizycznym testem kolizji na Androidzie.
+- Nowy plik `unity-tools/mistrzowie/verify_pool_p1_model_geometry.py` odczytuje *rzeczywiste* źródłowe GLB z dokładnego, haszowanego ZIP-a. Sprawdza m.in. część `Spa water surface` oryginalnego jacuzzi i nazwane siatki sauny/pryszniców oraz to, że oryginały nie zostały zdeformowane.
+- Poprawka `BraxChampionsPoolP1SpaFurnishing.cs`: brak wymaganej bryły kolizyjnej zatrzymuje generowanie P1 zamiast zostawiać mebel pozbawiony kolizji; dodano kolizję do **oryginalnego kamiennego blatu** umywalki. Poprawka zachowuje originalną geometrię i wszystkie materiały.
+- Ostatnia wersja bazowa przetestowana powyżej: commit `b17296b6c78fec8a88cd9eb3409fdc29e78067b4`; dopisanie tego protokołu nie modyfikuje modeli ani kodu generatorów.
+- **Nie wykonano nadal:** Unity Editor compilation, `etap=sceny`, PlayMode, APK, test telefonu, merge ani delta release. Źródłowe testy przygotowują do tych etapów, nie zastępują ich. Kolejna właściwa czynność to **`etap=sceny` na gałęzi P1**, a nie pełny build APK.
