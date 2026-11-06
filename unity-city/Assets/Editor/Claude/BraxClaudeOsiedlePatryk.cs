@@ -115,14 +115,12 @@ public static partial class BraxClaudeOsiedle
             // Osiedle: ruchy zwiedzania nie potrzebuja retargetingu Humanoid ani ciosow.
             // W buildzie #95 Walk FBX nie zawieral wymaganych krzywych Hips.
             PatrykSpoczynek(spoczynek);
-            try { PatrykPrzygotujWlasneRuchy(); }
-            catch (Exception e)
-            {
-                Debug.LogWarning("BRAXHORN_PATRYK_SPACER: import ruchow FBX: " + e.Message);
-            }
+            // Tylko oryginalne FBX właściciela. Brak dowolnego klipu to błąd danych,
+            // nie zgoda na wymyśloną animację ani nieruchomą pozę.
+            PatrykPrzygotujWlasneRuchy();
             foreach (var k in KlipyPatryka)
             {
-                AnimationClip gotowy = null;
+                AnimationClip gotowy;
                 try
                 {
                     gotowy = PatrykWlasnyFBX(hero, kosci, spoczynek, k, out string opisFBX);
@@ -130,16 +128,14 @@ public static partial class BraxClaudeOsiedle
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning("BRAXHORN_PATRYK_SPACER: " + k.nazwa + ": " + e.Message +
-                        ". Bezpieczny klip zwiedzania na oryginalnym szkielecie, bez podmiany postaci.");
-                    gotowy = k.nazwa == "Walk" || k.nazwa == "Run"
-                        ? PatrykSpacerAwaryjny(hero, spoczynek, k.nazwa)
-                        : PatrykPozaStala(hero, spoczynek, k.nazwa, k.nazwa == "EnteringCar");
-                    opis.Add(k.nazwa + ": zwiedzanie - bez retargetingu");
+                    throw new InvalidOperationException(
+                        "Patryk: oryginalny ruch " + k.nazwa + " nie został poprawnie podłączony; " +
+                        "nie wolno zastąpić go sztucznym spacerem/T-pozą. Sprawdź FBX, kości i krzywe.", e);
                 }
                 finally { PatrykSpoczynek(spoczynek); }
-                if (gotowy) klipy.Add(gotowy);
-                else throw new InvalidOperationException("Brak klipu sterowania " + k.nazwa);
+                if (!gotowy || gotowy.length <= 0f)
+                    throw new InvalidOperationException("Patryk: brak prawidłowego klipu " + k.nazwa);
+                klipy.Add(gotowy);
             }
             var brak = PatrykWymagane.Where(n => !klipy.Any(c => c.name == n)).ToArray();
             if (brak.Length > 0) throw new Exception("brak wymaganych klipów: " + string.Join(", ", brak));
