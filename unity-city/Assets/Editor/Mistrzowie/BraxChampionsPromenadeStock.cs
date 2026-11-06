@@ -119,15 +119,19 @@ public static class BraxChampionsPromenadeStock
         {
             x=offset;
             z=bay.d/2f-.65f;
-            y=.98f;
+            // Blat lady zaplecza: środek .52 + połowa wysokości .55 = .795.
+            // Wcześniej .98 -> skrzynki i kosze wisiały ok. 18 cm nad blatem.
+            y=.80f;
         }
         else
         {
             // Food products arranged on ACTUAL existing three timber shelves,
             // not lying on a colliding overlay floor in the pedestrian path.
+            // Pozycja na półce (index%3) i numer półki (index/3) są niezależne:
+            // wcześniej oba = index%3, więc produkt 4 stał w miejscu produktu 1.
             x=offset;
             z=bay.d/2f-.34f;
-            y=1.31f+(index%3)*.43f;
+            y=1.31f+((index/3)%3)*.43f;
         }
 
         var prefab=Original(spec.id);

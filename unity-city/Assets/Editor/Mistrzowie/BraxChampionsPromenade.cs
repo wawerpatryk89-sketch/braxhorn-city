@@ -107,29 +107,45 @@ public static class BraxChampionsPromenade
 
     // The owner provided a single 3-column x 4-row PNG for K1..K12.
     // The original file remains byte-identical in the private GitHub release.
-    // No invented/fallback sign is generated and no physical sign is cropped.
+    // Gdy atlasu brak lub nie wczytuje się jako Texture2D: generowany szyld z nazwą (TextSign).
+    // APK #20 padł tutaj: atlas był zaimportowany, ale nie dał się wczytać jako
+    // Texture2D. Szyldy NIE mogą wywracać całego buildu: brak atlasu = ostrzeżenie
+    // i generowany szyld z nazwą sklepu (BuildOne -> TextSign).
+    static bool atlasChecked,atlasOk;
     public static void VerifyAtlas()
     {
-        if(!File.Exists(AtlasSource))
-            throw new FileNotFoundException("Owner-approved temporary promenade atlas missing",AtlasSource);
-        if(Sha256(AtlasSource)!=AtlasSha256)
-            throw new InvalidOperationException("Owner-approved promenade atlas changed: "+AtlasSource);
-        var imp=AssetImporter.GetAtPath(AtlasSource) as TextureImporter;
-        if(!imp)
-            throw new InvalidOperationException("Promenade atlas TextureImporter unavailable: "+AtlasSource);
-        imp.GetSourceTextureWidthAndHeight(out int width,out int height);
-        if(width!=2172||height!=724)
-            throw new InvalidOperationException("Promenade source atlas must remain exactly 2172x724");
-        if(!AssetDatabase.LoadAssetAtPath<Texture2D>(AtlasSource))
-            throw new InvalidOperationException("Unity did not import original promenade atlas: "+AtlasSource);
+        if(!AtlasReady(out string why))
+            BraxBuildQuality.Warn("Promenada: atlas szyldów niedostępny ("+why
+                +"); K1-K12 dostają generowane szyldy z nazwą sklepu");
     }
 
-    static Material Sign(KioskRecord p)
+    static bool AtlasReady(out string why)
     {
-        VerifyAtlas();
-        var imp=(TextureImporter)AssetImporter.GetAtPath(AtlasSource);
+        why="";
+        if(atlasChecked){if(!atlasOk)why="odrzucony wcześniej";return atlasOk;}
+        atlasChecked=true;
+        if(!File.Exists(AtlasSource)){why="brak pliku "+AtlasSource;return false;}
+        if(Sha256(AtlasSource)!=AtlasSha256){why="inna zawartość pliku";return false;}
+        AssetDatabase.ImportAsset(AtlasSource,ImportAssetOptions.ForceSynchronousImport);
+        var imp=AssetImporter.GetAtPath(AtlasSource) as TextureImporter;
+        if(!imp){why="brak TextureImporter";return false;}
+        imp.GetSourceTextureWidthAndHeight(out int width,out int height);
+        if(width!=2172||height!=724){why="wymiary "+width+"x"+height;return false;}
+        // Najpierw wymuszamy płaski obrazek 2D, dopiero potem wczytujemy.
+        ConfigureAtlasImporter(imp);
+        if(!AssetDatabase.LoadAssetAtPath<Texture2D>(AtlasSource))
+        {
+            why="Unity nie wczytało jako Texture2D, typ="+AssetDatabase.GetMainAssetTypeAtPath(AtlasSource);
+            return false;
+        }
+        atlasOk=true;return true;
+    }
+
+    static void ConfigureAtlasImporter(TextureImporter imp)
+    {
         var android=imp.GetPlatformTextureSettings("Android");
         bool needsImport=imp.textureType!=TextureImporterType.Default
+            ||imp.textureShape!=TextureImporterShape.Texture2D
             ||!imp.sRGBTexture||!imp.mipmapEnabled||imp.maxTextureSize!=4096
             ||imp.npotScale!=TextureImporterNPOTScale.None
             ||imp.wrapMode!=TextureWrapMode.Clamp
@@ -138,6 +154,7 @@ public static class BraxChampionsPromenade
         if(needsImport)
         {
             imp.textureType=TextureImporterType.Default;
+            imp.textureShape=TextureImporterShape.Texture2D;
             imp.sRGBTexture=true;imp.mipmapEnabled=true;
             imp.maxTextureSize=4096;imp.npotScale=TextureImporterNPOTScale.None;
             imp.alphaIsTransparency=true;imp.isReadable=false;
@@ -152,8 +169,14 @@ public static class BraxChampionsPromenade
             imp.SetPlatformTextureSettings(android);
             imp.SaveAndReimport();
         }
+    }
+
+    // null = atlas niedostępny, pawilon dostaje generowany szyld z nazwą.
+    static Material Sign(KioskRecord p)
+    {
+        if(!AtlasReady(out _))return null;
         var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(AtlasSource);
-        if(!tex)throw new InvalidOperationException("Atlas could not load as Unity Texture2D");
+        if(!tex)return null;
         // Atlas cells are 724x181 source pixels, NOT a separate 2K sign.
         // Source fidelity is preserved. Mobile mip/ASTC size needs device review.
         if(tex.width<2048)
@@ -181,10 +204,14 @@ public static class BraxChampionsPromenade
         return mat;
     }
 
+    // Szyld siedzi na pasie nad witryną (od górnej krawędzi szyby h-.69 do
+    // h-.22 pod dachem), PRZED drewnianym fryzem (fryz kończy się na -d/2-.1275),
+    // więc nie zasłania szyby i nie jest przecięty belką.
+    const float SignFront=.145f;
     static void SignFace(Transform root,KioskRecord p,Material sign)
     {
-        float w=Mathf.Min(4.2f,p.w-.56f),h=w/4f;
-        float bottom=p.h-.22f-h,front=-p.d*.5f-.115f;
+        float h=.46f,w=Mathf.Min(4f*h,p.w-.56f);
+        float bottom=p.h-.22f-h,front=-p.d*.5f-SignFront;
         var mesh=new Mesh{name=p.id+" 2K frontage sign quad"};
         mesh.vertices=new[]{
             new Vector3(-w*.5f,bottom,front)*K,
@@ -220,6 +247,52 @@ public static class BraxChampionsPromenade
         go.transform.SetParent(root,false);
         go.AddComponent<MeshFilter>().sharedMesh=mesh;
         go.AddComponent<MeshRenderer>().sharedMaterial=sign;
+    }
+
+    // Generowany szyld, gdy atlasu nie ma: ciemna tablica na pasie nad witryną
+    // + nazwa sklepu tekstem z testem głębi (Braxhorn/CitySignText).
+    static Material signText;
+    static void TextSign(Transform root,KioskRecord p,Material board)
+    {
+        float h=.46f,w=Mathf.Min(p.w-.56f,3.6f);
+        float centerY=p.h-.22f-h*.5f,front=-p.d*.5f-SignFront;
+        B(root,p.id+" generowany szyld - tablica",board,0,centerY,front+.02f,w,h,.04f,false);
+        string label=string.IsNullOrWhiteSpace(p.sign)?p.name:p.sign;
+        if(string.IsNullOrWhiteSpace(label))label=p.id;
+        label=label.Trim().ToUpperInvariant();
+        float size=Mathf.Min(.30f,(w-.2f)/(.62f*Mathf.Max(1,label.Length)));
+        var g=new GameObject(p.id+" | generowany szyld z nazwą: "+label);
+        g.transform.SetParent(root,false);
+        g.transform.localPosition=new Vector3(0,centerY,front-.005f)*K;
+        var text=g.AddComponent<TextMesh>();
+        text.text=label;text.fontSize=64;text.characterSize=size*K*10f/64f;
+        text.anchor=TextAnchor.MiddleCenter;text.alignment=TextAlignment.Center;
+        text.color=new Color(1f,.95f,.86f);
+        text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var renderer=g.GetComponent<MeshRenderer>();
+        var shader=Shader.Find("Braxhorn/CitySignText");
+        if(shader)
+        {
+            if(!signText)
+            {
+                string path=Output+"/Materials/prom_generated_sign_text.mat";
+                signText=AssetDatabase.LoadAssetAtPath<Material>(path);
+                if(!signText)
+                {
+                    signText=new Material(shader){name="PROMENADA | generated sign text",
+                        mainTexture=text.font.material.mainTexture};
+                    AssetDatabase.CreateAsset(signText,path);
+                }
+            }
+            renderer.sharedMaterial=signText;
+            g.AddComponent<BraxCitySignText>();
+        }
+        else
+        {
+            BraxBuildQuality.Warn("Promenada: brak shadera Braxhorn/CitySignText, szyld "+p.id+" na materiale fontu");
+            renderer.sharedMaterial=text.font.material;
+        }
+        renderer.shadowCastingMode=ShadowCastingMode.Off;
     }
 
     static void BuildOne(Transform parent,KioskRecord p,int index,Material glass,Material roof,
@@ -316,7 +389,9 @@ public static class BraxChampionsPromenade
         // One shared import strategy for all kiosks. Inventory objects are
         // added once after all twelve shells exist by PromenadeStock.Populate.
         // Never duplicate props by also invoking PromenadeGoods.Build here.
-        SignFace(root,p,Sign(p));
+        var sign=Sign(p);
+        if(sign)SignFace(root,p,sign);
+        else TextSign(root,p,roof);
     }
 
     public static void Build(Transform foundation,BraxChampionsFoundation.Pavilion[] approved)
@@ -328,6 +403,7 @@ public static class BraxChampionsPromenade
         if(!approved.Select(x=>x.id).SequenceEqual(names))
             throw new InvalidOperationException("Promenade K1..K12 order is inconsistent with owner's reference");
         Directory.CreateDirectory(Output+"/Meshes");Directory.CreateDirectory(Output+"/Materials");
+        atlasChecked=false;atlasOk=false;signText=null;
         var glass=ClearGlass();
         var roof=Pbr("prom_common_roof","granite_tile_02",1.4f,new Color(.33f,.35f,.36f));
         var floor=Pbr("prom_common_floor","granite_tile",1.6f,new Color(.90f,.91f,.86f));
