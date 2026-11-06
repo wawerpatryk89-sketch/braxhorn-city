@@ -19,6 +19,7 @@ public sealed class BraxChampionsPoolP1TextureImport : AssetPostprocessor
         if(!diffuse && !linear)
             throw new InvalidOperationException("Unexpected P1 source map; only provider-native 2K diffuse/normal/ARM");
         importer.textureType=TextureImporterType.Default;
+        importer.textureShape=TextureImporterShape.Texture2D;
         importer.sRGBTexture=diffuse;
         importer.mipmapEnabled=true;
         importer.streamingMipmaps=true;

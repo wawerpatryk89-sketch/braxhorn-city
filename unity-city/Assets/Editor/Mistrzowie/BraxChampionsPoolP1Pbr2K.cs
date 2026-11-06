@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -8,11 +9,8 @@ using UnityEngine;
 public static class BraxChampionsPoolP1Pbr2K
 {
     const string Source="Assets/Source/Mistrzowie/PoolP1/Textures2K/";
-    public static Material Create(string output,string id,string slug,float metres,Color tint)
+    static Texture2D OriginalMap(string slug,string kind,string extension,bool colour)
     {
-        if(metres<=0f)throw new ArgumentOutOfRangeException(nameof(metres));
-        Texture2D Load(string kind,string extension,bool colour)
-        {
             string path=Source+slug+"_"+kind+"_2k."+extension;
             if(!File.Exists(path))
                 throw new FileNotFoundException("Missing ORIGINAL P1 Poly Haven 2K source: "+path,path);
@@ -26,6 +24,7 @@ public static class BraxChampionsPoolP1Pbr2K
                     " source="+sourceWidth+"x"+sourceHeight);
             var android=importer.GetPlatformTextureSettings("Android");
             bool invalidSettings=importer.textureType!=TextureImporterType.Default
+                || importer.textureShape!=TextureImporterShape.Texture2D
                 || importer.sRGBTexture!=colour || !importer.mipmapEnabled
                 || !importer.streamingMipmaps || importer.maxTextureSize!=2048
                 || !android.overridden || android.maxTextureSize!=2048
@@ -34,6 +33,7 @@ public static class BraxChampionsPoolP1Pbr2K
             {
                 // Repair metadata only. Original file bytes and asset GUID stay intact.
                 importer.textureType=TextureImporterType.Default;
+                importer.textureShape=TextureImporterShape.Texture2D;
                 importer.sRGBTexture=colour;importer.mipmapEnabled=true;
                 importer.streamingMipmaps=true;importer.maxTextureSize=2048;
                 android.name="Android";android.overridden=true;
@@ -70,7 +70,8 @@ public static class BraxChampionsPoolP1Pbr2K
                     " bytes="+new FileInfo(path).Length);
             }
             android=importer.GetPlatformTextureSettings("Android");
-            if(importer.sRGBTexture!=colour || !importer.mipmapEnabled
+            if(importer.textureShape!=TextureImporterShape.Texture2D ||
+               importer.sRGBTexture!=colour || !importer.mipmapEnabled
                || !importer.streamingMipmaps || importer.maxTextureSize!=2048
                || !android.overridden || android.maxTextureSize!=2048
                || android.format!=TextureImporterFormat.ASTC_4x4)
@@ -80,10 +81,41 @@ public static class BraxChampionsPoolP1Pbr2K
                     texture.width+"x"+texture.height+" at "+path+
                     "; preserve originals and inspect actual Android ASTC.");
             return texture;
+    }
+
+    public static void VerifyOriginalSourceMaps()
+    {
+        // One pass for ALL 30 source maps before expensive world generation.
+        var failures=new List<string>();
+        foreach(var slug in new[]{
+            "white_stucco_02","rectangular_facade_tiles","granite_tile_03",
+            "clean_asphalt","concrete_pavement_02","herringbone_brick_02",
+            "teak_veneer","long_white_tiles","marble_mosaic_tiles","concrete_floor_02"})
+        {
+            foreach(var kind in new[]{"diff","nor_gl","arm"})
+            {
+                string extension=kind=="diff"?"jpg":"png";
+                try { OriginalMap(slug,kind,extension,kind=="diff"); }
+                catch(Exception ex)
+                {
+                    string issue=slug+"_"+kind+": "+ex.Message;
+                    failures.Add(issue);
+                    Debug.LogWarning("CHAMPIONS_P1_TEXTURE_IMPORT_ISSUE "+issue);
+                }
+            }
         }
-        var diffuse=Load("diff","jpg",true);
-        var normal=Load("nor_gl","png",false);
-        var arm=Load("arm","png",false);
+        if(failures.Count>0)
+            throw new InvalidOperationException("P1 source textures invalid ("
+                +failures.Count+"/30): "+string.Join(" | ",failures));
+        Debug.Log("CHAMPIONS_P1_NATIVE_2K_SOURCE_PREFLIGHT_PASS maps=30 shape=Texture2D");
+    }
+
+    public static Material Create(string output,string id,string slug,float metres,Color tint)
+    {
+        if(metres<=0f)throw new ArgumentOutOfRangeException(nameof(metres));
+        var diffuse=OriginalMap(slug,"diff","jpg",true);
+        var normal=OriginalMap(slug,"nor_gl","png",false);
+        var arm=OriginalMap(slug,"arm","png",false);
         var shader=Shader.Find(BraxCityMaterials.ShaderName);
         if(!shader)throw new InvalidOperationException("CityStaticPBR shader missing");
         var material=new Material(shader){name="P1 Native Poly Haven 2K - "+slug,enableInstancing=true};

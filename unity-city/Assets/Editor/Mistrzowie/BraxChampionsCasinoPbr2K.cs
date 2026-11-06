@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -28,6 +29,7 @@ public static class BraxChampionsCasinoPbr2K
         // no source bytes, GUIDs, material artwork or dimensions are replaced.
         var android=importer.GetPlatformTextureSettings("Android");
         bool invalidSettings=importer.textureType!=TextureImporterType.Default
+            || importer.textureShape!=TextureImporterShape.Texture2D
             || importer.sRGBTexture!=colour || !importer.mipmapEnabled
             || !importer.streamingMipmaps || importer.maxTextureSize!=2048
             || !android.overridden || android.maxTextureSize!=2048
@@ -35,6 +37,7 @@ public static class BraxChampionsCasinoPbr2K
         if(invalidSettings)
         {
             importer.textureType=TextureImporterType.Default;
+            importer.textureShape=TextureImporterShape.Texture2D;
             importer.sRGBTexture=colour;
             importer.mipmapEnabled=true;
             importer.streamingMipmaps=true;
@@ -79,7 +82,8 @@ public static class BraxChampionsCasinoPbr2K
         }
         // Source pixels and requested Android format must stay unchanged.
         android=importer.GetPlatformTextureSettings("Android");
-        if(importer.sRGBTexture!=colour || !importer.mipmapEnabled
+        if(importer.textureShape!=TextureImporterShape.Texture2D ||
+           importer.sRGBTexture!=colour || !importer.mipmapEnabled
            || !importer.streamingMipmaps || importer.maxTextureSize!=2048
            || !android.overridden || android.maxTextureSize!=2048
            || android.format!=TextureImporterFormat.ASTC_4x4)
@@ -92,15 +96,28 @@ public static class BraxChampionsCasinoPbr2K
     }
     public static void VerifyOriginalSourceMaps()
     {
+        // Check ALL 21 source maps in one Unity pass; never change source image bytes.
+        var failures=new List<string>();
         foreach(var slug in new[]{
             "concrete_brick_wall_001","rectangular_facade_tiles","granite_tile",
             "clean_asphalt","concrete_pavement_02","concrete_floor_02","fabric_pattern_05"})
         {
-            OriginalMap(slug,"diff","jpg",true);
-            OriginalMap(slug,"nor_gl","png",false);
-            OriginalMap(slug,"arm","png",false);
+            foreach(var kind in new[]{"diff","nor_gl","arm"})
+            {
+                string extension=kind=="diff"?"jpg":"png";
+                try { OriginalMap(slug,kind,extension,kind=="diff"); }
+                catch(Exception ex)
+                {
+                    string issue=slug+"_"+kind+": "+ex.Message;
+                    failures.Add(issue);
+                    Debug.LogWarning("CHAMPIONS_T11_TEXTURE_IMPORT_ISSUE "+issue);
+                }
+            }
         }
-        Debug.Log("CHAMPIONS_T11_NATIVE_2K_SOURCE_PREFLIGHT_PASS maps=21");
+        if(failures.Count>0)
+            throw new InvalidOperationException("T11 source textures invalid ("
+                +failures.Count+"/21): "+string.Join(" | ",failures));
+        Debug.Log("CHAMPIONS_T11_NATIVE_2K_SOURCE_PREFLIGHT_PASS maps=21 shape=Texture2D");
     }
 
     public static Material Create(string output,string id,string slug,float metres,Color tint)

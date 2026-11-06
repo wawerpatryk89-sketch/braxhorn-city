@@ -16,6 +16,7 @@ public sealed class BraxChampionsArenaMuralTextureImport : AssetPostprocessor
            &&assetPath!=root+"BRAXHORN_A1_BELT_RIGHT_ORIGINAL.jpg")return;
         var settings=(TextureImporter)assetImporter;
         settings.textureType=TextureImporterType.Default;
+        settings.textureShape=TextureImporterShape.Texture2D;
         settings.sRGBTexture=true;
         settings.maxTextureSize=2048; // original 1536x512; never enlarge or downscale source
         settings.isReadable=false;

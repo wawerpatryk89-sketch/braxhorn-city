@@ -71,10 +71,11 @@ public static class BraxChampionsBuild
             report.sourceImportErrors=RecordSourceImportDiagnostics(reports);
             // Fail fast on 21 original casino maps before generating the world.
             BraxChampionsCasinoPbr2K.VerifyOriginalSourceMaps();
+            BraxChampionsPoolP1Pbr2K.VerifyOriginalSourceMaps();
             BraxChampionsCasinoT11.VerifyOriginalSigns();
             BraxChampionsSourceReadiness.VerifyBeforeScene();
             report.checks.Add("Original car, 2 vegetation GLBs, Brax rig, 6 clips, 3 Mixamo FBXs and owner signage verified");
-            report.checks.Add("All 21 Poly Haven 2K source images verified before expensive scene generation");
+            report.checks.Add("All 51 T11/P1 Poly Haven 2K source images verified as Texture2D before expensive scene generation");
             // Same linear lighting as the main game's Android build.
             PlayerSettings.colorSpace=ColorSpace.Linear;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);

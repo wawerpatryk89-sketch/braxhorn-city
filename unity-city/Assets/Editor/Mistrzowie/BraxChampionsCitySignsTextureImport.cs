@@ -11,6 +11,7 @@ public sealed class BraxChampionsCitySignsTextureImport : AssetPostprocessor
             "Assets/Source/Mistrzowie/CitySigns/",StringComparison.Ordinal))return;
         var t=(TextureImporter)assetImporter;
         t.textureType=TextureImporterType.Default;
+        t.textureShape=TextureImporterShape.Texture2D;
         t.sRGBTexture=true;
         t.mipmapEnabled=true;
         t.streamingMipmaps=true;

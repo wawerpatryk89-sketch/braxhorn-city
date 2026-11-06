@@ -15,6 +15,7 @@ public sealed class BraxChampionsArenaTextureImport : AssetPostprocessor
         var importer=(TextureImporter)assetImporter;
         bool colour=signs||path.EndsWith("Color.png",StringComparison.OrdinalIgnoreCase);
         importer.textureType=TextureImporterType.Default;
+        importer.textureShape=TextureImporterShape.Texture2D;
         importer.sRGBTexture=colour;
         importer.mipmapEnabled=true;
         importer.streamingMipmaps=true;

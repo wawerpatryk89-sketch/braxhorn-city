@@ -16,7 +16,8 @@ public sealed class BraxChampionsTextureImport : AssetPostprocessor
         if(!color&&!normal&&!arm)return;
         var importer=(TextureImporter)assetImporter;
         // CityStaticPBR reads the original RGB GL normal, not Unity's packed normal.
-        importer.textureType=TextureImporterType.Default;importer.sRGBTexture=color;
+        importer.textureType=TextureImporterType.Default;importer.textureShape=TextureImporterShape.Texture2D;
+        importer.sRGBTexture=color;
         importer.mipmapEnabled=true;importer.npotScale=TextureImporterNPOTScale.None;
         // Oryginalne mapy z biblioteki zachowują 4K na dysku. Android otrzymuje
         // do 2K na najbliższych nawierzchniach; tiling materiałów pozostaje.

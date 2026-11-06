@@ -20,6 +20,7 @@ public sealed class BraxChampionsPolyHaven2KImport : AssetPostprocessor
                 "Only source 2K PBR textures are allowed in promenade props: "+assetPath);
         var imp=(TextureImporter)assetImporter;
         imp.textureType=TextureImporterType.Default; // OpenGL normal must remain RGB
+        imp.textureShape=TextureImporterShape.Texture2D;
         imp.sRGBTexture=filename.Contains("_diff_")||filename.Contains("_col_");
         imp.maxTextureSize=2048;
         imp.npotScale=TextureImporterNPOTScale.None;
