@@ -353,6 +353,10 @@ public static partial class BraxObozEnvironment
             foreach(float end in new[]{-1f,1f})ColliderBox(t,new Vector3(side*3,1.55f,end*2.55f),new Vector3(.22f,1.05f,2.9f));
         }
         ColliderBox(t,new Vector3(0,1.45f,4),new Vector3(6,2.7f,.22f)); ColliderBox(t,new Vector3(0,2.6f,-4),new Vector3(1.4f,.4f,.22f));
+        // Batch ONLY the immobile cabin shell before placing the original
+        // equipment. Previously batching stripped the imported GLB renderers
+        // from all four kitchens and eight lockers.
+        CombineDecoration(t);
         // IKEA IDANAS: original owner GLB; two SINGLE beds per cabin.
         // No old box-frame/mattress/pillow fakery. Do NOT merge their source
         // mesh renderers with the decorative cabin shell.
@@ -366,7 +370,6 @@ public static partial class BraxObozEnvironment
         // portable field stove, gas cylinder, cookware rack, plates and sink.
         // This runs on all FOUR cabins; the central doorway stays clear.
         BraxObozServices.OwnerCabinKitchenette(t);
-        CombineDecoration(t); // Static shell only; keep the door leaf movable.
         foreach(float side in new[]{-1f,1f})
         {
             // Owner uploaded the complete original single-bed GLB to the
