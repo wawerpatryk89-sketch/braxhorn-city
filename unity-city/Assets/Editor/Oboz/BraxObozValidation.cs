@@ -84,6 +84,40 @@ public static class BraxObozValidation
         }
         var structuralErrors = errors.ToArray();
         var sourceIssues = new List<string>();
+        // Owner's four real cabins, original gym and tyre stations must be
+        // present independently in the resulting Unity scene. A missing
+        // mesh is reported for device review, never hidden behind a green
+        // source preflight or used to abort an otherwise buildable APK.
+        if (scene)
+        {
+            var nodes = scene.GetComponentsInChildren<Transform>(true);
+            for (int i = 1; i <= 4; i++)
+            {
+                string cabinName = "Domek " + i;
+                var cabins = nodes.Where(t => t.name == cabinName).ToArray();
+                if (cabins.Length != 1)
+                {
+                    sourceIssues.Add(cabinName + ": brak dokładnie jednego domku w scenie");
+                    continue;
+                }
+                var items = cabins[0].GetComponentsInChildren<Transform>(true);
+                int beds = items.Count(t => t.name.StartsWith("ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe ", StringComparison.Ordinal));
+                int lockers = items.Count(t => t.name == "Właściciel / oryginalny metal_cabinet_low_poly.glb");
+                int kitchens = items.Count(t => t.name == "ANEKS POLOWY — oryginalne źródłowe modele kuchni");
+                int sinks = items.Count(t => t.name.StartsWith("Zlew polowy z oryginalną baterią", StringComparison.Ordinal));
+                int bins = items.Count(t => t.name == "Kosz metalowy na odpady — 3D z otwartym wnętrzem");
+                if (beds != 2 || lockers != 2 || kitchens != 1 || sinks != 1 || bins != 1)
+                    sourceIssues.Add(cabinName + ": wyposażenie do oceny: IDANAS=" + beds +
+                        "/2 szafki=" + lockers + "/2 aneks=" + kitchens + "/1 zlew=" + sinks + "/1 kosz=" + bins + "/1");
+                foreach (var model in items.Where(t => t.name.StartsWith("ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe ", StringComparison.Ordinal)))
+                    if (!model.GetComponentsInChildren<Renderer>(true).Any(r => r && r.enabled))
+                        sourceIssues.Add(cabinName + ": oryginalne łóżko nie ma aktywnej geometrii");
+            }
+            int gyms = nodes.Count(t => t.name.StartsWith("57 oryginalnych obiektów siłowni FBX", StringComparison.Ordinal));
+            int tyres = nodes.Count(t => t.name == "Właściciel / oryginalny OwnerExtras/tractor_tire.glb");
+            if (gyms != 1) sourceIssues.Add("Siłownia: wymagany jeden oryginalny gym_environment FBX, znaleziono " + gyms);
+            if (tyres != 2) sourceIssues.Add("Trening opon: wymagane dwa oryginalne tractor_tire GLB, znaleziono " + tyres);
+        }
         var manifest = BraxObozCharacters.ReadManifest();
         foreach (var c in manifest.characters)
         {
