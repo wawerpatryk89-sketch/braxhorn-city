@@ -18,11 +18,54 @@ public static class BraxChampionsCarClips
         ("Exiting Car.fbx", "ExitingCar", false)
     };
 
+    // Unity glTFast often imports Mixamo nodes as "mixamorigHips", while
+    // source FBX animation curves use "mixamorig:Hips". Both are the same
+    // ORIGINAL bone; normalize only its namespace, never the actual rig.
     static string Bone(string full)
     {
-        int colon = full.LastIndexOf(':');
-        string s = colon >= 0 ? full.Substring(colon + 1) : full;
-        return s.Trim();
+        string s = (full ?? "").Replace('\\', '/');
+        int slash = s.LastIndexOf('/');
+        if (slash >= 0) s = s.Substring(slash + 1);
+        int pipe = s.LastIndexOf('|');
+        if (pipe >= 0) s = s.Substring(pipe + 1);
+        int colon = s.LastIndexOf(':');
+        if (colon >= 0) s = s.Substring(colon + 1);
+        s = s.Trim();
+        if (s.StartsWith("mixamorig", StringComparison.OrdinalIgnoreCase))
+        {
+            s = s.Substring("mixamorig".Length).TrimStart(':', '_', '-', '.', ' ');
+            while (s.Length > 0 && char.IsDigit(s[0])) s = s.Substring(1);
+            s = s.TrimStart(':', '_', '-', '.', ' ');
+        }
+        return s;
+    }
+
+    static readonly string[] RequiredBones = { "Hips", "Spine", "LeftUpLeg",
+        "RightUpLeg", "LeftLeg", "RightLeg", "LeftArm", "RightArm" };
+
+    static Dictionary<string, Transform> RigBones(Transform root)
+    {
+        var targets = new Dictionary<string, Transform>(StringComparer.OrdinalIgnoreCase);
+        foreach (var t in root.GetComponentsInChildren<Transform>(true))
+        {
+            string key = Bone(t.name);
+            if (!targets.ContainsKey(key)) targets.Add(key, t);
+        }
+        return targets;
+    }
+
+    // Run on the imported ORIGINAL Brax prefab in the cheap, early Unity
+    // source preflight: fail before building hundreds of city objects.
+    public static void VerifyRig(GameObject originalBrax)
+    {
+        if (!originalBrax) throw new InvalidOperationException("Original Brax GLB not loaded");
+        var targets = RigBones(originalBrax.transform);
+        var missing = RequiredBones.Where(b => !targets.ContainsKey(b)).ToArray();
+        if (missing.Length > 0)
+            throw new InvalidOperationException("Original Brax Mixamo bones absent: " +
+                string.Join(", ", missing) + "; original GLB nodes: " +
+                string.Join(", ", originalBrax.GetComponentsInChildren<Transform>(true)
+                    .Select(t => t.name).Take(65).ToArray()));
     }
 
     public static void Attach(GameObject originalBrax, Animation animation)
@@ -30,16 +73,14 @@ public static class BraxChampionsCarClips
         if (!originalBrax || !animation)
             throw new InvalidOperationException("Original Brax rig/legacy Animation is required");
         // Do not touch Patryk's skeleton or any existing basic Brax clips.
-        var targets = new Dictionary<string, Transform>(StringComparer.OrdinalIgnoreCase);
-        foreach (var t in animation.GetComponentsInChildren<Transform>(true))
-        {
-            string key = Bone(t.name);
-            if (!targets.ContainsKey(key)) targets.Add(key, t);
-        }
-        foreach (string required in new[] { "Hips", "Spine", "LeftUpLeg",
-                     "RightUpLeg", "LeftLeg", "RightLeg", "LeftArm", "RightArm" })
+        VerifyRig(originalBrax);
+        var targets = RigBones(animation.transform);
+        foreach (string required in RequiredBones)
             if (!targets.ContainsKey(required))
-                throw new InvalidOperationException("Original Brax Mixamo bone missing: " + required);
+                throw new InvalidOperationException("Original Brax Animation subtree bone missing: " +
+                    required + "; animationRoot=" + animation.transform.name +
+                    "; normalized subtree nodes=" +
+                    string.Join(", ", targets.Keys.OrderBy(k => k).Take(65).ToArray()));
 
         foreach (var spec in Clips)
         {

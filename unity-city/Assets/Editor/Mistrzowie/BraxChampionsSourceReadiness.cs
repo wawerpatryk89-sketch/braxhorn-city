@@ -42,6 +42,7 @@ public static class BraxChampionsSourceReadiness
 
         var brax=Base+"Brax/BraxOriginal.glb";
         var hero=RealModel(brax,"unchanged Brax");
+        BraxChampionsCarClips.VerifyRig(hero);
         var clips=AssetDatabase.LoadAllAssetsAtPath(brax).OfType<AnimationClip>().ToArray();
         foreach(string clip in new[]{"Idle","Walking","Running","Jab Cross (1)","Mma Kick (1)","Jump"})
             if(!clips.Any(c=>c && ClipKey(c.name)==ClipKey(clip)))

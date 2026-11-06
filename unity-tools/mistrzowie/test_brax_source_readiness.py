@@ -18,6 +18,16 @@ class BraxSourceReadinessTests(unittest.TestCase):
         self.assertIn('Clean(c.name) == Clean(pair.Value)',prod)
         self.assertIn('BraxChampionsSourceReadiness.VerifyBeforeScene()',(
             ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs").read_text(encoding="utf-8"))
+    def test_mixamo_namespace_fix_is_preflighted_before_city_generation(self):
+        clips=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsCarClips.cs").read_text(encoding="utf-8")
+        readiness=READINESS.read_text(encoding="utf-8")
+        self.assertIn('StartsWith("mixamorig", StringComparison.OrdinalIgnoreCase)',clips)
+        self.assertIn('RigBones(animation.transform)',clips)
+        self.assertIn('VerifyRig(originalBrax)',clips)
+        self.assertIn('BraxChampionsCarClips.VerifyRig(hero)',readiness)
+        self.assertIn('mappedBones.Count < 35',clips)
+        self.assertIn('Original Brax Mixamo bones absent:',clips)
+
     def test_original_brax_assets_still_required(self):
         source=READINESS.read_text(encoding="utf-8")
         self.assertIn('RealModel(brax,"unchanged Brax")',source)
