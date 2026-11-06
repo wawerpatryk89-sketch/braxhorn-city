@@ -52,6 +52,11 @@ public static partial class BraxClaudeOsiedle
     {
         lakiery.Clear(); szablonSwiatla.Clear(); quadSwiatla = null; matStop = matMigacz = matDym = null; autoSiatki = 0;
         raportSkaliAut.Clear();
+        // Generowanie kolejnej sceny w tym samym procesie Unity nie może
+        // odziedziczyć PASS z poprzedniego testu ruchu. Wcześniej przy braku
+        // modeli/tras raport mógł błędnie pokazywać wynik z poprzedniego buildu.
+        ruchZweryfikowany = false;
+        bladRuchu = null;
         var modele = AutaModele();
         if (modele.Count == 0)
         {
