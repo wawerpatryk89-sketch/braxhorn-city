@@ -33,68 +33,51 @@ public static partial class BraxClaudeOsiedle
     }
 
     // Keep the model's relaxed bind pose. No fighting clip is used before an attack.
+    // Wzorzec Moniki: identyczna oryginalna hierarchia, siatka i bindposes.
+    // Idle = pozycja spoczynkowa WŁASNEGO MODELU Patryka, bez obracania
+    // ramion, dłoni, stóp lub kręgosłupa przez kod (brak klipu Idle w paczce).
     static AnimationClip PatrykSpokojny(GameObject hero, List<PatrykStan> rest)
-        => PatrykPozaStala(hero, rest, "Idle", false);
-
-    static AnimationClip PatrykPozaStala(GameObject hero, List<PatrykStan> rest, string name, bool driving)
     {
         PatrykSpoczynek(rest);
-        Transform Bone(string n) => PatrykZnajdz(rest.Select(s=>s.t),n);
-        void Aim(string a, string b, Vector3 target)
+        return PatrykZapiszWlasnaPoze(hero, rest, "Idle");
+    }
+
+    // Kierowca: ostatnia poza z ORYGINALNEGO FBX "Entering Car" Patryka.
+    // Nie generuj sztucznego siadu przez Aim()/obroty kości. Należy
+    // osobno skontrolować na filmie, że końcowa poza odpowiada fotelowi.
+    static AnimationClip PatrykCarIdleZWlasnegoWejscia(GameObject hero,
+        List<PatrykStan> rest, AnimationClip wejscie)
+    {
+        if (!wejscie || wejscie.length <= 0f)
+            throw new InvalidOperationException("Patryk: brak oryginalnego Entering Car dla CarIdle");
+        PatrykSpoczynek(rest);
+        try
         {
-            var from=Bone(a);var to=Bone(b);
-            if(!from||!to)throw new InvalidOperationException("Brak kości pozy: "+a+" / "+b);
-            from.rotation=Quaternion.FromToRotation(to.position-from.position,target)*from.rotation;
+            wejscie.SampleAnimation(hero, Mathf.Max(0f, wejscie.length - 1f / 60f));
+            var result = PatrykZapiszWlasnaPoze(hero, rest, "CarIdle");
+            Debug.Log("BRAXHORN_PATRYK_CAR_IDLE: ostatnia poza oryginalnego Entering Car, bez sztucznego Aim/retargetu");
+            return result;
         }
-        if (driving)
-        {
-            // Bake rotations once in the original hierarchy. Bone translations and lengths are unchanged.
-            Aim("Spine","Spine1",new Vector3(0,.98f,.16f));
-            foreach(var side in new[]{"Left","Right"})
-            {
-                float x=side=="Left"?-.08f:.08f;
-                Aim(side+"UpLeg",side+"Leg",new Vector3(x,-.25f,.95f));
-                Aim(side+"Leg",side+"Foot",new Vector3(0,-.86f,.48f));
-                Aim(side+"Arm",side+"ForeArm",new Vector3(x,-.65f,.65f));
-                Aim(side+"ForeArm",side+"Hand",new Vector3(0,.12f,.98f));
-                var foot=Bone(side+"Foot");var toe=Bone(side+"ToeBase");
-                if(foot&&toe)Aim(side+"Foot",side+"ToeBase",Vector3.forward);
-            }
-        }
-        else
-        {
-            var left=Bone("LeftArm"); var right=Bone("RightArm");
-            if(!left||!right)throw new InvalidOperationException("Brak ramion nowego Patryka");
-            Vector3 rightAxis=Vector3.ProjectOnPlane(right.position-left.position,Vector3.up).normalized;
-            Vector3 forward=PatrykPrzodStop(rest.Select(s=>s.t).ToList());
-            foreach(var side in new[]{"Left","Right"})
-            {
-                Vector3 outward=rightAxis*(side=="Right"?1f:-1f);
-                // Natural standing posture: arms beside the torso, modest elbow
-                // flex, no guard. Bone lengths and wrist bind rotations untouched.
-                Aim(side+"Arm",side+"ForeArm",Vector3.down+outward*.22f+forward*.045f);
-                Aim(side+"ForeArm",side+"Hand",Vector3.down+outward*.11f+forward*.18f);
-                // In T-pose fingers point sideways; restore natural hanging hands.
-                if(Bone(side+"HandMiddle1"))
-                    Aim(side+"Hand",side+"HandMiddle1",Vector3.down+outward*.06f+forward*.12f);
-                // Flat feet with a small anatomical toe-out in idle.
-                if(Bone(side+"Foot")&&Bone(side+"ToeBase"))
-                    Aim(side+"Foot",side+"ToeBase",forward+outward*.07f);
-            }
-        }
+        finally { PatrykSpoczynek(rest); }
+    }
+
+    static AnimationClip PatrykZapiszWlasnaPoze(GameObject hero,
+        List<PatrykStan> rest, string name)
+    {
         var clip = new AnimationClip { name = name, legacy = true, frameRate = 30, wrapMode = WrapMode.Loop };
         foreach (var s in rest)
         {
             string path = AnimationUtility.CalculateTransformPath(s.t, hero.transform);
             for (int axis = 0; axis < 4; axis++)
-                clip.SetCurve(path, typeof(Transform), "localRotation." + "xyzw"[axis], AnimationCurve.Constant(0, 2, s.t.localRotation[axis]));
+                clip.SetCurve(path, typeof(Transform), "localRotation." + "xyzw"[axis],
+                    AnimationCurve.Constant(0f, 2f, s.t.localRotation[axis]));
             for (int axis = 0; axis < 3; axis++)
-                clip.SetCurve(path, typeof(Transform), "localPosition." + "xyz"[axis], AnimationCurve.Constant(0, 2, s.p[axis]));
+                clip.SetCurve(path, typeof(Transform), "localPosition." + "xyz"[axis],
+                    AnimationCurve.Constant(0f, 2f, s.t.localPosition[axis]));
         }
         clip.EnsureQuaternionContinuity();
         ZapiszKlipPatryka(clip);
-        PatrykSpoczynek(rest);
-        return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/"+name+".anim");
+        return AssetDatabase.LoadAssetAtPath<AnimationClip>(PatrykWynik + "/" + name + ".anim");
     }
 
     static void ZapiszKlipPatryka(AnimationClip clip)
