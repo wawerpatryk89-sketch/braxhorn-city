@@ -153,10 +153,6 @@ public static partial class BraxClaudeOsiedle
                 if (Ma(d, WejChronione)) { zostalo++; nazwy.Add("chronione (test CI / zaplecze kasyna): " + (d.id ?? d.label)); continue; }
                 zamknieteTu.Add(d);
                 d.label = "ZAPLECZE / WYJŚCIE EWAKUACYJNE (zamknięte) — " + d.label; d.enabled = false; zamkniete++;
-                var w = zew[i].wew; var dn = d.transform.position; var kier = (w - dn); kier.y = 0; kier.Normalize();
-                var znak = StSwiatlo("znak wyjścia", new Color(.05f, .7f, .25f)); var c = dn + kier * .12f + Vector3.up * (2.35f);
-                var pr = Vector3.Cross(Vector3.up, kier) * .4f;
-                Quad(znak, c - pr, c + pr, c + pr + Vector3.up * .22f, c - pr + Vector3.up * .22f, kier);
                 nazwy.Add("zamknięte: " + (d.id ?? "?"));
             }
             // łączność po zamknięciu: od głównego wejścia do każdego pomieszczenia z kontekstem w okolicy
@@ -168,7 +164,26 @@ public static partial class BraxClaudeOsiedle
                     foreach (var d in zamknieteTu) { d.enabled = true; d.label = d.label.Replace("ZAPLECZE / WYJŚCIE EWAKUACYJNE (zamknięte) — ", ""); zamkniete--; cofniete++; zostalo++; nazwy.Add("cofnięte (łączność): " + d.id); }
                     nazwy.Add("nieosiągalne po zamknięciu: " + string.Join(", ", brak.Take(4)));
                 }
-                else nazwy.Add("łączność ok (" + cele + " celów)");
+                else
+                {
+                    // Zielone znaki należą tylko do drzwi faktycznie zamkniętych.
+                    // Poprzednio rysowano je PRZED testem łączności i pozostały
+                    // nawet wtedy, gdy zamknięcie cofnięto z powodu blokady.
+                    var znak = StSwiatlo("znak wyjścia", new Color(.05f, .7f, .25f));
+                    foreach (var d in zamknieteTu)
+                    {
+                        var wejscie = zew.First(k => k.d == d);
+                        var dn = d.transform.position;
+                        var kier = wejscie.wew - dn; kier.y = 0;
+                        if (kier.sqrMagnitude < 1e-6f) kier = d.transform.forward;
+                        kier.y = 0; kier.Normalize();
+                        var c = dn + kier * .12f + Vector3.up * 2.35f;
+                        var pr = Vector3.Cross(Vector3.up, kier) * .4f;
+                        Quad(znak, c - pr, c + pr, c + pr + Vector3.up * .22f,
+                            c - pr + Vector3.up * .22f, kier);
+                    }
+                    nazwy.Add("łączność ok (" + cele + " celów)");
+                }
             }
             if (zostalo > 1) podwojnePo++;
             lista.Add("{" + string.Join(", ", nazwy) + "}");
@@ -176,5 +191,8 @@ public static partial class BraxClaudeOsiedle
         string log = "BRAXHORN_WEJSCIA podwojne_przed=" + podwojnePrzed + " podwojne=" + podwojnePo + " zamkniete=" + zamkniete + " cofniete=" + cofniete + " drzwi=" + wszDrzwi.Count + " zewnętrzne=" + m +
                      " wewnętrzne=" + wewn + " nieokreślone=" + nieokr + " (budynki B: salon 1 wejście + zaplecze zamknięte, sklep stacji 1, biuro warsztatu 1; bramy aut to nie wejścia dla gości) [" + string.Join(" ", lista) + "]";
         Debug.Log(log); rep.notes.Add(log.Replace("BRAXHORN_WEJSCIA ", "wejścia: "));
+        if (cofniete > 0)
+            rep.notes.Add("DO POPRAWKI: " + cofniete +
+                " dodatkowych wejść przywrócono, bo fizyczna łączność budynku nie została potwierdzona");
     }
 }
