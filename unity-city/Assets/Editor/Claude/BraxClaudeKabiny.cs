@@ -77,6 +77,15 @@ public static partial class BraxClaudeOsiedle
         {
             var d = p - o; float x = Vector3.Dot(d, R), y = Vector3.Dot(d, U), z = Vector3.Dot(d, F);
             float dach = kab.Dach(x, z), zap = dach - y;
+            // Zła mapa dachu lub nieprawidłowy skinning potrafią dać NaN,
+            // który nigdy nie obniża +Infinity i udaje nieograniczony prześwit.
+            if (float.IsNaN(dach) || float.IsInfinity(dach) ||
+                float.IsNaN(y) || float.IsInfinity(y) ||
+                float.IsNaN(zap) || float.IsInfinity(zap))
+            {
+                wl.zapas = float.NegativeInfinity;
+                return;
+            }
             if (zap < wl.zapas) { wl.zapas = zap; wl.glowa = y; wl.dach = dach; }
         }
         foreach (var s in skora)
