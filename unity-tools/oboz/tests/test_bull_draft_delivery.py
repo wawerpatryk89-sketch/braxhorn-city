@@ -81,7 +81,9 @@ class BullDeliveryTests(unittest.TestCase):
         source=SOURCE.read_text(encoding="utf-8")
         self.assertIn('A_charging_bull_statu_0725030443_refine.glb',source)
         self.assertIn('BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb',source)
-        self.assertIn('model.transform.localScale *= (4.8f*K)/longest;',source)
+        self.assertIn('BraxObozPlacement.NativeMetres(model.transform,renderers,',source)
+        self.assertIn('BRAXHORN_OBOZ_BULL_CLEARANCE_REVIEW',source)
+        self.assertNotIn('model.transform.localScale *= (4.8f*K)/longest;',source)
         self.assertIn('PrefabUtility.InstantiatePrefab(source)',source)
 
 
