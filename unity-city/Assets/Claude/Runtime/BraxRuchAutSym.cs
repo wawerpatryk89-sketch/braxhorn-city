@@ -44,6 +44,7 @@ public sealed class BraxRuchAutSym
         public float tStrefa; public bool zolte;
         public bool uprawnione, hamuje, klakson, przestawiony, wTunelu;
         public float tStoi, tCzeka, tGracz, tKlakson, tRez;
+        public bool klaksonUzytyPrzyBlokadzie;  // jedno ostrzeżenie na zdarzenie, nie pętla co 6 sekund
         internal float vPrev;
     }
 
@@ -571,8 +572,24 @@ public sealed class BraxRuchAutSym
             float wolne = tr[a.trasa].dl - .5f - sF;
             if (wolne < 40f) Przeszkoda(Mathf.Max(0f, wolne), .2f, P_KONIEC, true, 0f);
         }
-        if (powod == P_GRACZ && a.v < .5f) { a.tGracz += t; if (a.tGracz > 1.2f && czas > a.tKlakson) { a.klakson = true; a.tKlakson = czas + 6f; } }
-        else a.tGracz = 0f;
+        // Nie trąb bez końca na tego samego gracza / na samochód gracza.
+        // Maks. jedno krótkie ostrzeżenie podczas pojedynczej blokady; ponowienie
+        // dopiero po opuszczeniu pasa ruchu i co najmniej 30 s od poprzedniego.
+        if (powod == P_GRACZ && a.v < .5f)
+        {
+            a.tGracz += t;
+            if (a.tGracz > 3f && !a.klaksonUzytyPrzyBlokadzie && czas >= a.tKlakson)
+            {
+                a.klakson = true;
+                a.klaksonUzytyPrzyBlokadzie = true;
+                a.tKlakson = czas + 30f;
+            }
+        }
+        else
+        {
+            a.tGracz = 0f;
+            a.klaksonUzytyPrzyBlokadzie = false;
+        }
         a.vCel = Mathf.Min(vc, vO); a.zapas = Mathf.Max(0f, twardo); a.powod = powod; a.uprawnione = upr;
         // kierunkowskaz
         a.migacz = 0;
