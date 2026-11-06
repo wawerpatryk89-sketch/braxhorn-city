@@ -127,6 +127,25 @@ internal static partial class BraxMiastoWyspa
         BraxMiastoA.Log("WYSPA: teren " + tris + " trójkątów, przystań x " + xPomostu.ToString("F0") + ", palm " + palm + ", krzewów/skał " + krz + ", siatek " + siatek + "+" + nz + " (BRAXHORN ARENA z dachem membranowym, trybunami z przejściami i lożami VIP, szatnią Braxa i tunelem; plaże dookoła, 3 ratowników, bar, 1 ring południowy, punkt widokowy)");
     }
 
+    // Ten SAM algorytm malowania dla prawdziwej wyspy i sylwetki widocznej
+    // podczas rejsu. Używa 4 wag materiału, nie białego Standard shadera.
+    static Material wyspaMaterialTerenu;
+    static Color WagiTerenu(float x, float zz, float h, float steep)
+    {
+        float b1 = Fbm(x * .03f, zz * .03f, 3, .5f),
+              b2 = Fbm(x * .008f, zz * .008f, 2, .5f);
+        float sand = Mathf.Max(.02f, Mathf.Clamp01((7f - h) / 5f) * Mathf.Clamp01((30f - steep) / 12f));
+        float d = (h + .2f) / 1.9f, damp = Mathf.Exp(-d * d) * 2f;
+        float grass = Mathf.Clamp01((h - 2f) / 3f) * Mathf.Clamp01((41f - steep) / 13f) *
+            Mathf.Clamp01(b1 * 1.2f + b2 * .7f + 1.25f) * 6f;
+        float rock = Mathf.Max(Mathf.Clamp01((steep - 24f) / 12f), Mathf.Clamp01((h - 26f) / 10f));
+        rock = rock * Mathf.Clamp01(b1 * 1.2f + 1.05f) * 3f;
+        float poludnie = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((-zz - 10f) / 40f));
+        grass *= 1f - .9f * poludnie * Mathf.Clamp01((3.4f - h) / 1.2f);
+        float total = Mathf.Max(.001f, sand + damp + grass + rock);
+        return new Color(sand / total, damp / total, grass / total, rock / total);
+    }
+
     // ---------------- teren: jedna siatka, plac w osobnej podsiatce (bez nakładania) ----------------
     static int Teren()
     {
@@ -140,17 +159,8 @@ internal static partial class BraxMiastoWyspa
                 float x = -ext + i * step, zz = -ext + j * step;
                 float hx = Hh[Mathf.Min(i + 1, n - 1), j] - Hh[Mathf.Max(i - 1, 0), j], hz = Hh[i, Mathf.Min(j + 1, n - 1)] - Hh[i, Mathf.Max(j - 1, 0)];
                 float steep = Mathf.Atan(Mathf.Sqrt(hx * hx + hz * hz) / (2f * step)) * Mathf.Rad2Deg;
-                float b1 = Fbm(x * .03f, zz * .03f, 3, .5f), b2 = Fbm(x * .008f, zz * .008f, 2, .5f);
-                float sand = Mathf.Max(.02f, Mathf.Clamp01((7f - h) / 5f) * Mathf.Clamp01((30f - steep) / 12f));
-                float d = (h + .2f) / 1.9f, damp = Mathf.Exp(-d * d) * 2f;
-                float grass = Mathf.Clamp01((h - 2f) / 3f) * Mathf.Clamp01((41f - steep) / 13f) * Mathf.Clamp01(b1 * 1.2f + b2 * .7f + 1.25f) * 6f;
-                float rock = Mathf.Max(Mathf.Clamp01((steep - 24f) / 12f), Mathf.Clamp01((h - 26f) / 10f));
-                rock = rock * Mathf.Clamp01(b1 * 1.2f + 1.05f) * 3f;
-                float poludnie = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((-zz - 10f) / 40f));   // C2: plaża na południu — piasek, nie trawa
-                grass *= 1f - .9f * poludnie * Mathf.Clamp01((3.4f - h) / 1.2f);
-                float tot = sand + damp + grass + rock;
                 idx[i, j] = v.Count; v.Add(new Vector3(CX + x, W + h, CZ + zz));
-                col.Add(new Color(sand / tot, damp / tot, grass / tot, rock / tot));
+                col.Add(WagiTerenu(x, zz, h, steep));
                 uv2.Add(new Vector2(Mathf.Clamp01((steep - 20f) / 25f), 0));
             }
         var tT = new List<int>(); var tP = new List<int>(); int quads = 0;
@@ -171,6 +181,7 @@ internal static partial class BraxMiastoWyspa
         mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
         BraxZapisAssetu.Utworz(mesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/teren.asset"));
         var mT = BraxNabrzeze.Teren("Wyspa: teren (piasek, mokry piasek, roślinność, skała)", new Color(.62f, .78f, .45f), 2.2f);
+        wyspaMaterialTerenu = mT; // zapisany PBR współdzielony przez sylwetkę w scenie głównej
         BraxWyspaOdbior.TeksturyTerenu(mT);
         var mP = BraxMiastoA.Tex("Wyspa: plac areny (płyty granitowe)", 2.0f, new Color(.88f, .86f, .82f), new Color(.66f, .64f, .6f), .7f, "granite_tile_02", "granite_tile", "concrete_floor_02");
         var g = new GameObject("Wyspa: teren"); g.transform.SetParent(root, false);
@@ -1558,20 +1569,43 @@ internal static partial class BraxMiastoWyspa
     static void Sylwetka(Transform cityRoot)
     {
         var sr = BraxRegion.Root(cityRoot, "CLAUDE A: wyspa z daleka (sylwetka)");
-        const float step = 10f, ext = 200f; int n = Mathf.RoundToInt(ext * 2 / step) + 1;
+        // Lekka siatka odległa: 10 m krok, TE SAME maski PBR co na plaży i
+        // wzgórzach po doczytaniu; nie ma osobnego "złego" malowania.
+        const float step = 10f, ext = 200f;
+        int n = Mathf.RoundToInt(ext * 2f / step) + 1;
         var s = new UlSiatka(); var idx = new int[n, n];
-        for (int i = 0; i < n; i++) for (int j = 0; j < n; j++)
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
             {
                 float x = -ext + i * step, zz = -ext + j * step, h = H(x, zz);
-                float sand = Mathf.Clamp01((7f - h) / 5f), rock = Mathf.Clamp01((h - 24f) / 8f);
-                s.kolor = h < 3f ? BraxUliceKit.C(.84f, .76f, .6f) : rock > .5f ? BraxUliceKit.C(.5f, .48f, .44f) : BraxUliceKit.C(.22f, .38f, .14f);
-                idx[i, j] = s.Wierzcholki; s.v.Add(new Vector3(CX + x * .975f, W + h - 1.6f, CZ + zz * .975f));   // C2/M10: pod prawdziwym terenem (gdyby oba były naraz) s.n.Add(Vector3.up); s.t.Add(new Vector4(1, 0, 0, 1)); s.uv.Add(new Vector2(x, zz)); s.c.Add(s.kolor);
+                float dx = H(x + step, zz) - H(x - step, zz),
+                      dz = H(x, zz + step) - H(x, zz - step);
+                float steep = Mathf.Atan(Mathf.Sqrt(dx * dx + dz * dz) / (2f * step)) * Mathf.Rad2Deg;
+                s.kolor = (Color32)WagiTerenu(x, zz, h, steep);
+                idx[i, j] = s.Wierzcholki;
+                // 1.6m poniżej rzeczywistego gruntu: zapobiega nakładaniu
+                // się dwóch równych płaszczyzn, zanim proxy zostanie ukryte.
+                s.v.Add(new Vector3(CX + x * .975f, W + h - 1.6f, CZ + zz * .975f));
+                s.n.Add(Vector3.up); s.t.Add(new Vector4(1, 0, 0, 1));
+                s.uv.Add(new Vector2(CX + x * .975f, CZ + zz * .975f));
+                s.c.Add(s.kolor);
             }
-        for (int i = 0; i < n - 1; i++) for (int j = 0; j < n - 1; j++) { s.i.AddRange(new[] { idx[i, j], idx[i, j + 1], idx[i + 1, j + 1], idx[i, j], idx[i + 1, j + 1], idx[i + 1, j] }); }
-        var mesh = s.Zbuduj("A: wyspa z daleka"); mesh.RecalculateNormals();
+        for (int i = 0; i < n - 1; i++)
+            for (int j = 0; j < n - 1; j++)
+                s.i.AddRange(new[] {
+                    idx[i, j], idx[i, j + 1], idx[i + 1, j + 1],
+                    idx[i, j], idx[i + 1, j + 1], idx[i + 1, j]
+                });
+        var mesh = s.Zbuduj("A: wyspa z daleka (maski PBR jak oryginal)");
+        mesh.RecalculateNormals();
         BraxZapisAssetu.Utworz(mesh, AssetDatabase.GenerateUniqueAssetPath(BraxMiastoA.Out + "/Wyspa/sylwetka.asset"));
-        var g = new GameObject("Wyspa z daleka: teren"); g.transform.SetParent(sr, false); g.AddComponent<MeshFilter>().sharedMesh = mesh;
-        var r = g.AddComponent<MeshRenderer>(); r.sharedMaterial = BraxMiastoA.Mat("Wyspa z daleka (kolory z wierzchołków)", Color.white, .9f); r.shadowCastingMode = ShadowCastingMode.Off;
+        var g = new GameObject("Wyspa z daleka: teren");
+        g.transform.SetParent(sr, false);
+        g.AddComponent<MeshFilter>().sharedMesh = mesh;
+        var r = g.AddComponent<MeshRenderer>();
+        if (!wyspaMaterialTerenu) throw new System.InvalidOperationException("WYSPA_MALOWANIE: brak oryginalnego materiału terenu przed sylwetką");
+        r.sharedMaterial = wyspaMaterialTerenu;
+        r.shadowCastingMode = ShadowCastingMode.Off;
         var a = new UlSiatka(); var c = AC; a.kolor = BraxUliceKit.C(.75f, .78f, .8f);
         for (int i = 0; i < 8; i++) { float a0 = i * Mathf.PI / 4f, a1 = (i + 1) * Mathf.PI / 4f; var p0 = c + new Vector3(Mathf.Cos(a0), 0, Mathf.Sin(a0)) * (ArenaR - 1f); var p1 = c + new Vector3(Mathf.Cos(a1), 0, Mathf.Sin(a1)) * (ArenaR - 1f); a.Quad(p0, p1, p1 + Vector3.up * 12.5f, p0 + Vector3.up * 12.5f, (p0 + p1 - 2 * c).normalized); a.kolor = BraxUliceKit.C(.93f, .93f, .91f); a.Tri(c + Vector3.up * 16.5f, p1 + Vector3.up * 12.5f, p0 + Vector3.up * 12.5f, Vector3.up); a.kolor = BraxUliceKit.C(.75f, .78f, .8f); }   // dach membranowy (stożek)
         var ga = BraxMiastoA.Obiekt(sr, "Wyspa z daleka: arena", a, BraxMiastoA.Mat("Wyspa z daleka (kolory z wierzchołków)", Color.white, .9f));
