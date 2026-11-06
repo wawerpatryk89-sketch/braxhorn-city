@@ -353,18 +353,9 @@ public static partial class BraxObozEnvironment
             foreach(float end in new[]{-1f,1f})ColliderBox(t,new Vector3(side*3,1.55f,end*2.55f),new Vector3(.22f,1.05f,2.9f));
         }
         ColliderBox(t,new Vector3(0,1.45f,4),new Vector3(6,2.7f,.22f)); ColliderBox(t,new Vector3(0,2.6f,-4),new Vector3(1.4f,.4f,.22f));
-        foreach(float side in new[]{-1f,1f})
-        {
-
-            for(int k=0;k<4;k++)Box(t,"Łóżko — noga",new Vector3(side*2.05f+(k%2-.5f)*.72f,.32f,1.6f+(k/2-.5f)*1.8f),new Vector3(.09f,.5f,.09f),wood);
-            Box(t,"Łóżko — rama",new Vector3(side*2.05f,.48f,1.6f),new Vector3(1.05f,.15f,2.1f),wood);
-            Box(t,"Materac z tkaniną",new Vector3(side*2.05f,.61f,1.6f),new Vector3(.99f,.16f,2.02f),fabric);
-            Box(t,"Poduszka",new Vector3(side*2.05f,.75f,2.32f),new Vector3(.73f,.12f,.42f),fabric,false);
-            Box(t,"Złożony koc",new Vector3(side*2.05f,.715f,.95f),new Vector3(.98f,.05f,.65f),burgundy,false);
-            Box(t,"Wezgłowie",new Vector3(side*2.05f,.64f,2.68f),new Vector3(1.05f,.48f,.08f),wood,false);
-            var bed=Group("Połóż się · "+name,t,P(side*2.05f,0,1.6f)).gameObject.AddComponent<BraxSeat>();
-            bed.label=name+" · łóżko";bed.lie=true;bed.surfaceY=.69f*K;bed.hipsAboveRoot=.9f*K;
-        }
+        // IKEA IDANAS: original owner GLB; two SINGLE beds per cabin.
+        // No old box-frame/mattress/pillow fakery. Do NOT merge their source
+        // mesh renderers with the decorative cabin shell.
         // Osiem prawdziwych wojskowych szafek 3D, ze współdzieloną geometrią.
         // Nie dotykaj oryginalnych łóżek/postaci ani tekstur źródłowych.
         foreach(float side in new[]{-1f,1f})
@@ -374,6 +365,24 @@ public static partial class BraxObozEnvironment
         Box(t,"Stół",new Vector3(1.9f,.8f,-1.7f),new Vector3(1.1f,.08f,.7f),wood);
         foreach(float dx in new[]{-.46f,.46f})foreach(float dz in new[]{-.26f,.26f})Box(t,"Noga stołu",new Vector3(1.9f+dx,.43f,-1.7f+dz),new Vector3(.07f,.7f,.07f),wood);
         CombineDecoration(t); // Static shell only; keep the door leaf movable.
+        foreach(float side in new[]{-1f,1f})
+        {
+            // Owner uploaded the complete original single-bed GLB to the
+            // private draft release; imported separately at verified SHA256.
+            // Position and real-size envelope leave walls, the entrance and
+            // the central walking passage free. Prefab stays independent.
+            var originalBed=BraxObozServices.OwnerFixtureSourceMetres(
+                t,"OwnerExtras/Bedroom/ikea_idanas_single_bed.glb",
+                new Vector3(side*2.05f,.16f,1.6f),
+                new Vector3(1.13f,1.20f,2.35f));
+            originalBed.name="ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe "+(side<0?"A":"B");
+            var bedSpot=Group("Połóż się — "+name+" / IDANAS "+(side<0?"A":"B"),
+                t,P(side*2.05f,0,1.6f)).gameObject.AddComponent<BraxSeat>();
+            bedSpot.label=name+" · oryginalne łóżko IDANAS";
+            bedSpot.lie=true;
+            bedSpot.surfaceY=.69f*K;
+            bedSpot.hipsAboveRoot=.9f*K;
+        }
         // Nie zostawiaj pionowej szpary na nadprozu ani pod skrzydlem.
         Door(t,name+" — drzwi",new Vector3(-.63f,.17f,-4.05f),1.26f,2.29f);
         Box(t,"Próg szczelny pod skrzydłem",new Vector3(0,.105f,-4.06f),new Vector3(1.35f,.14f,.26f),metal,false);
