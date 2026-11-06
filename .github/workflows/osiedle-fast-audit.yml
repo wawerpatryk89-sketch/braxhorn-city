@@ -49,4 +49,5 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check -q -r unity-tools/validation/requirements.txt
-          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/Claude unity-city/Assets/Editor/BraxCityBuild.cs
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/Claude
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/BraxCityBuild.cs
