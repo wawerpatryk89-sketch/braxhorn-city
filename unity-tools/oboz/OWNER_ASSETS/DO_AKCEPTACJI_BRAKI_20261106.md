@@ -23,7 +23,7 @@ Brak opublikowanego rozmiaru = **nieznany**, nie zaokrąglać ani nie zgadywać.
 | Beczki | [Wine Barrel 01](https://polyhaven.com/a/wine_barrel_01) | CC0 | ~11 000 | 25,42 MB | Wymaga zaakceptowania rustykalnej wersji |
 | Gong | BRAK zweryfikowanego, odpowiedniego do fight camp modelu w Poly Haven lub Sketchfab | — | nieznane | nieznany | Bez atrap |
 | Druga panorama | [Schachen Forest HDRI](https://polyhaven.com/a/schachen_forest) | CC0 | nie dotyczy HDRI | 28,97 MB wariantu widocznego na stronie | Las, światło miękkie, **inna pora niż późne popołudnie**; wybrać świadomie lub zachować montorfano_4k |
-| Byk 4X | Nie mam wiarygodnego źródła dokładnie modelu **4X**. | — | nieznane | nieznany | Nie podstawiać innego byka, nie generować |
+| Byk 4X | **Istnieje nazwa oczekiwanego modelu w generatorze:** `BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb` (prywatne OwnerAssets) | oryginał właściciela, licencja z przekazania | niezweryfikowane | niezweryfikowany w aktualnym imporcie | Nie szukać innego byka; sprawdzić prywatny Release i import 1:1 do Unity |
 
 **Priorytet przed pobieraniem:** dla każdego modelu najpierw zobaczyć, czy
 znajduje się już w OwnerAssets, paczce Private Release lub w istniejącej
