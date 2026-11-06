@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / "unity-tools/claude/patryk-owner-22-manifest.json"
 TRANSFER = ROOT / "unity-city/Prywatne/import-patryk-animations-20261106"
 DESTINATION = ROOT / "unity-city/Assets/Source/Prywatne/ruchy"
+OWNER_UPLOAD = ROOT / "unity-city/Prywatne/Patryk_22_oryginalne_ruchy.zip"  # original owner upload; remove after encrypted transfer
 OPENSSL = ["openssl", "enc", "-aes-256-cbc", "-pbkdf2", "-iter", "200000", "-md", "sha256"]
 
 
@@ -95,8 +96,18 @@ def decrypt_transfer(folder):
 
 
 def install(destination=DESTINATION, transfer=TRANSFER, owner_zip=None):
-    # Never fall back to older six-clip package or any other character's motions.
-    raw = Path(owner_zip).read_bytes() if owner_zip is not None else decrypt_transfer(transfer)
+    # Only the latest owner's 22-byte-identical FBX. The verified original
+    # uploaded to GitHub is temporarily accepted until CI seals it to the
+    # encrypted transfer. Never use old six-clip packages or borrowed motions.
+    if owner_zip is not None:
+        raw = Path(owner_zip).read_bytes()
+    elif Path(transfer, "manifest.json").is_file():
+        raw = decrypt_transfer(transfer)
+    elif OWNER_UPLOAD.is_file():
+        raw = OWNER_UPLOAD.read_bytes()
+        print("BRAXHORN_PATRYK_OWNER_22: WARNING raw user upload present in PUBLIC repo; seal via dedicated workflow")
+    else:
+        raise FileNotFoundError("Patryk: no verified encrypted 22-FBX transfer or latest exact owner ZIP")
     verified = verified_files(raw)
     destination = Path(destination) / "patryk_owner"
     destination.mkdir(parents=True, exist_ok=True)
