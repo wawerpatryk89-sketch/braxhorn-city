@@ -134,6 +134,23 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn('foreach (var d in zamknieteTu)', doors)
         self.assertIn('if (cofniete > 0)', doors)
 
+    def test_bus_line_quality_and_mobile_pbr_are_verified(self):
+        bus = source("BraxClaudeOsiedleAutobus.cs")
+        self.assertIn('busModel = "kod";', bus)
+        self.assertIn('busSkala = 1f;', bus)
+        self.assertIn('materials[i] = MaterialAutaAndroid(materials[i])', bus)
+        self.assertIn('" punktów osi trasy przebiega poza jezdnią', bus)
+        self.assertIn('if (lista.Count == 0)', bus)
+        self.assertIn('rep.notes.Add("DO POPRAWKI: autobus', bus)
+
+    def test_missing_npc_and_parking_passengers_are_reported(self):
+        people = source("BraxClaudeOsiedleLudzieMiejsca.cs")
+        travelers = source("BraxClaudePodrozni.cs")
+        self.assertIn("DO POPRAWKI: brak paczki Rocketbox", people)
+        self.assertIn("DO POPRAWKI: obsada dyskoteki", people)
+        self.assertIn("DO POPRAWKI: rozmowy przechodniów", people)
+        self.assertIn('rep.notes.Add("DO POPRAWKI: podróżni parkingów', travelers)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
