@@ -71,7 +71,7 @@ on:
         description: 'Tag jednego wydania GitHub z arena A1 + murale + szyldy Miasta Mistrzow'
         type: string
         required: false
-        default: 'champions-a1-t11-20261105'
+        default: 'champions-a1-20261105'
 permissions:
   contents: write
   actions: read

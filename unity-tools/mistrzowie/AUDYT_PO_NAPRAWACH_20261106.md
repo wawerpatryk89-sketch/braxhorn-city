@@ -44,3 +44,9 @@ Nie powtarzać starszych commitów z błędami VIP ani T11. Po pełnym statyczny
 - Poprzedni APK #14 nie stanowi gotowej bazy Addressables dla aktualizacji scen. Pierwszy poprawny APK z nowym loaderem musi być wydany raz jako nowa baza dla przyszłych `.braxupdate.zip`; nie przedstawiać go jako istniejącej małej paczki delta.
 
 **Wciąż NIEPOTWIERDZONE:** rzeczywisty import i kompilacja całego projektu w Unity 6000.0.85f2 po zmianach, modele w scenie, ponowny odczyt scen, IL2CPP ARM64, podpis i działanie na Androidzie. Nowego APK nie uruchomiono; baseny P1, promenada i plaża pozostają na osobnych gałęziach. Raport nie oznacza „zero błędów”.
+
+## Korekta ręcznego startu i wyłączników automatycznego APK
+
+- W `mistrzowie-apk.yml` domyślny `arena_assets_tag` dla `workflow_dispatch` nie zgadzał się z tagiem przypiętego wydania GitHub `435656828`. Usunięto błędną domyślną wartość `champions-a1-t11-20261105` i ustawiono prawdziwy, potwierdzony tag `champions-a1-20261105`. Bez zmiany artów; ten błąd mógłby zatrzymać następny ręczny start przed Unity.
+- Ze starszych launcherów `mistrzowie-unity6-smoke.yml` i `mistrzowie-unity6-apk-update.yml` usunięto wyzwalacze `push`; zachowano tylko `workflow_dispatch`. Nie uruchamiają automatycznie Unity ani APK przy commicie.
+- Do krótkiego zestawu regresji dołączono kontrolę spójności domyślnego tagu wydania oraz braku automatycznych wyzwalaczy pełnego APK. Rzeczywista instalacja i render na telefonie nadal wymagają osobnego przebiegu.

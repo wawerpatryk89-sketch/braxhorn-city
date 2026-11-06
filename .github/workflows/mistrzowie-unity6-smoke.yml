@@ -1,17 +1,12 @@
 name: Miasto Mistrzów A1+T11 — podpisany APK aktualizacyjny
 run-name: A1+T11 — Unity 6 Android APK — aktualizacja istniejącej aplikacji
 
-# Owner's explicit command 2026-11-05: STOP the long scene test and START
-# the signed Android APK update. This run cancels the prior scene-only run.
+# Historical owner-authorized APK workflow. After 2026-11-06 manual start only;
+# never launch the Unity build on push or because a static preflight passed.
 # The reusable workflow performs pre-Unity checks for the ORIGINAL app ID,
 # ORIGINAL signing certificate and versionCode > Champions #14; it may
 # proceed to Unity only when those checks pass. Do not start a second app.
 on:
-  push:
-    branches:
-      - gpt/miasto-mistrzow-kasyno-t11-20261105
-    paths:
-      - .github/workflows/mistrzowie-unity6-smoke.yml
   workflow_dispatch:
 
 permissions:

@@ -53,6 +53,8 @@ jobs:
             unity-tools/updates/
             unity-tools/claude/
             .github/workflows/mistrzowie-apk.yml
+            .github/workflows/mistrzowie-unity6-smoke.yml
+            .github/workflows/mistrzowie-unity6-apk-update.yml
       - name: Install pinned dependencies for real source tests
         run: |
           python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt

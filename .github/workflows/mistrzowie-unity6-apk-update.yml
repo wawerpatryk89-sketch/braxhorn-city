@@ -4,14 +4,8 @@ run-name: Miasto Mistrzów A1+T11 — Unity 6 — Android APK UPDATE
 # User-authorized once: build APK UPDATE on the existing Champions app,
 # not a new application. Fail-fast Android signing/version preflight is
 # implemented by the called, single-source production workflow.
-# This file's creation is the sole push trigger; future game edits
-# do NOT launch another Android build automatically.
+# Manual start ONLY: no push can launch an expensive Unity/Android build.
 on:
-  push:
-    branches:
-      - gpt/miasto-mistrzow-kasyno-t11-20261105
-    paths:
-      - .github/workflows/mistrzowie-unity6-apk-update.yml
   workflow_dispatch:
 
 permissions:

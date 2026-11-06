@@ -56,5 +56,19 @@ class RealOriginalAssetReadiness(unittest.TestCase):
             self.assertLess(workflow.index(earlier),workflow.index(later),
                             "Source integrity must be checked before Unity: "+earlier)
 
+    def test_manual_dispatch_tag_matches_actual_owner_release(self):
+        workflow=read(".github/workflows/mistrzowie-apk.yml")
+        self.assertIn("default: 'champions-a1-20261105'",workflow)
+        self.assertNotIn("default: 'champions-a1-t11-20261105'",workflow)
+        self.assertIn("owner_release_id=435656828",workflow)
+
+    def test_signed_apk_launchers_require_manual_dispatch(self):
+        for filename in ("mistrzowie-unity6-smoke.yml","mistrzowie-unity6-apk-update.yml"):
+            with self.subTest(workflow=filename):
+                workflow=read(".github/workflows/"+filename)
+                events=workflow.split("\npermissions:")[0]
+                self.assertIn("  workflow_dispatch:",events)
+                self.assertNotIn("  push:",events)
+
 if __name__=="__main__":
     unittest.main()
