@@ -77,11 +77,16 @@ public static class BraxUlicePierzeje
 
     static Styl[] style;
     static int nOkien, nWitryn, nLokali, nBokow;
+    // Dokładne otwory okien powstałe z własnego generatora elewacji NOVA.
+    // To geometria źródłowa, bez domyślania się okien na podstawie materiału GLB.
+    static readonly List<Rect> oknaMieszkaniaNOVA = new List<Rect>();
+    public static Rect[] OknaMieszkaniaNOVA => oknaMieszkaniaNOVA.ToArray();
 
     public static void Apply(Transform cityRoot)
     {
         BraxUliceKit.Start(); BraxUliceKit.WyczyscOkna(); BraxUliceKit.Usuniete.Clear();
         nOkien = nWitryn = nLokali = nBokow = 0;
+        oknaMieszkaniaNOVA.Clear();
         var root = BraxRegion.Root(cityRoot, "CLAUDE ulice: pierzeje (elewacje od nowa)");
         // Grafiki WAWER / SOBCZAK muszą należeć do miasta. Dawniej kontener
         // tworzył się przy korzeniu sceny i mógł wypaść z paczki obszaru.
@@ -463,7 +468,17 @@ public static class BraxUlicePierzeje
         {
             if (o.drzwi) continue;
             if (o.witryna) { Witryna(f, o, szybaSklep, aluminium); nWitryn++; continue; }
-            Okno(f, o, f.szkloOkien.width > 0f && f.szkloOkien.Contains(o.r.center) ? szkloMieszkania : szybaPokoj, !f.front && o.r.yMax < Parter); nOkien++;
+            bool oknoNOVA = f.gora && f.b.id == "nadbudowa_NOVA" &&
+                f.szkloOkien.width > 0f && f.szkloOkien.Contains(o.r.center);
+            if (oknoNOVA)
+            {
+                var a = f.P(o.r.xMin, o.r.yMin, -o.gleb + .04f);
+                var b = f.P(o.r.xMax, o.r.yMax, -o.gleb + .04f);
+                oknaMieszkaniaNOVA.Add(Rect.MinMaxRect(
+                    Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y),
+                    Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y)));
+            }
+            Okno(f, o, oknoNOVA ? szkloMieszkania : szybaPokoj, !f.front && o.r.yMax < Parter); nOkien++;
         }
         // --- detale wzorca (właściciel 15:20: „od razu DETALE wszędzie”): klimatyzatory, schody pożarowe, kominy i anteny ---
         Detale(f, otwory);
