@@ -1,0 +1,60 @@
+name: BRAXHORN Obóz - szybkie testy źródeł (bez Unity i APK)
+# Obóz only. Runs after small source changes, with no Unity license,
+# no content release publishing, no Android APK and no scene visual changes.
+'on':
+  push:
+    branches:
+      - codex/oboz-przebudowa-pbr-20261105
+    paths:
+      - '.github/workflows/oboz-fast-source-20261106.yml'
+      - 'unity-city/Assets/Editor/Oboz/**'
+      - 'unity-city/Assets/Claude/Runtime/BraxOboz*.cs'
+      - 'unity-city/Packages/manifest.json'
+      - 'unity-tools/oboz/**'
+      - 'tools/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oboz-fast-source-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-camp:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout source and tests only - never Unity asset binaries
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .gitignore
+            .github/workflows/
+            tools/
+            unity-city/Assets/
+            unity-city/Packages/
+            unity-city/ProjectSettings/
+            unity-city/apk-warianty.txt
+            unity-tools/oboz/
+            unity-tools/updates/
+            unity-tools/validation/
+            unity-tools/claude/prywatne.py
+      - name: Python camp source regressions - no GLB download, no APK
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s unity-tools/oboz/tests -p 'test_*.py' -v
+          python3 -m unittest discover -s unity-tools/oboz -p 'test_training_compile.py' -v
+      - name: Validate C sharp syntax and local scopes, not Unity compile
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/Oboz
+      - name: Explain exactly what passed
+        if: success()
+        run: |
+          echo "OBOZ_FAST_SOURCE=PASS; Unity=NOT_RUN; APK=NOT_BUILT; Android=NOT_TESTED" >> "$GITHUB_STEP_SUMMARY"
+          echo "No collider, character, texture, asset, signature or game scene was changed by this workflow." >> "$GITHUB_STEP_SUMMARY"
