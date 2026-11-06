@@ -232,10 +232,11 @@ public static class BraxClaudeMetro
         Tunele();
         Wyposazenie();
         W.Komorka = 26f;
-        // Etap przygotowania infrastruktury: peron, tory, tunele i wejścia są budowane,
-        // ale nie tworzymy jeszcze składu ani automatycznych kursów.
-        // Oryginalny model i implementacja Pociag() zostają na późniejszy etap.
-        rep.uwagi.Add("Pociag M1 celowo wylaczony: infrastruktura gotowa do dalszej rozbudowy, bez kursow");
+        // Etap przygotowania infrastruktury: istniejący model jest wyłącznie
+        // na postoju technicznym. BraxMetroM1Ruch.kursyWlaczone = false,
+        // pasażerowie i odjazdy wyłączone; torowisko i peron bez zmian.
+        Pociag();
+        rep.uwagi.Add("Pociag M1: postoj techniczny bez kursow, model zachowany do przyszlej rozbudowy");
         rep.siatki += W.Zapisz("metro_stacja");
 
         // A 2.11 (właściciel: „NIC NIE NAKŁADAMY na nic”): oznakowanie, żółte linie, noski stopni, pasy i ramki leżały 2–12 mm
