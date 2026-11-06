@@ -248,8 +248,29 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
         Efekt(BraxDzwiekiAuta.DrzwiOtwKlip,.7f);
         yield return Drzwi(0f,1f,.5f);                                          // E9: drzwi otwierają się przed wyjściem
         p.transform.SetParent(null,true);
-        p.clips.CrossFade("Idle",.65f);
-        for(float t=0;t<1;t+=Time.deltaTime/.7f){float u=Mathf.SmoothStep(0,1,t);wagaPozy=1f-u;p.transform.position=Vector3.Lerp(from,point,u);yield return null;}
+        // Wysiadanie: wyłącznie oryginalny FBX właściciela Patryka.
+        // Poprzednio postać ślizgała się na zewnątrz w nieruchomym Idle.
+        // Pozostałe strefy mogą nie mieć tego klipu, więc nie zmieniamy
+        // ich zestawów animacji ani schematu wejścia do samochodu.
+        var wstawanie = p.clips ? p.clips.GetClip("SitToStand") : null;
+        float czasWyjscia = wstawanie ? Mathf.Clamp(wstawanie.length, .55f, 2.2f) : .7f;
+        if (wstawanie)
+        {
+            var state = p.clips["SitToStand"];
+            state.wrapMode = WrapMode.ClampForever;
+            state.speed = 1f;
+            state.time = 0f;
+            p.clips.CrossFade("SitToStand", .15f);
+        }
+        else p.clips.CrossFade("Idle", .2f);
+        for (float t=0; t<1f; t+=Time.deltaTime/Mathf.Max(.1f,czasWyjscia))
+        {
+            if (!p) yield break;
+            float u=Mathf.SmoothStep(0f,1f,t);
+            wagaPozy=1f-u;
+            p.transform.position=Vector3.Lerp(from,point,u);
+            yield return null;
+        }
         wagaPozy=0f;
         Odlacz(point);
         yield return Drzwi(1f,0f,.5f);                                          // i zamykają się za graczem
