@@ -280,6 +280,14 @@ public static partial class BraxObozEnvironment
                 for(int j=0;j<3;j++)Cylinder(t,"Obciążenie sań",new Vector3(x,.3f+j*.09f,-8.8f),new Vector3(x,.37f+j*.09f,-8.8f),.28f,campusRubber);
             }
         });
+        Station("Opony do przewracania — ORYGINALNY MODEL 3D",35,-45,12,10,t=>{
+            // Both meshes refer to the SAME original tractor_tire.glb from
+            // the owner's Library. Never use a generated torus or fake tyre.
+            foreach(float x in new[]{-2.5f,2.5f})
+                BraxObozServices.OwnerFixture(t,"OwnerExtras/tractor_tire.glb",
+                    new Vector3(x,.105f,0),new Vector3(1.90f,.95f,1.90f));
+            Debug.LogWarning("BRAXHORN_OBOZ_TIRE_TRAINING: oryginalne opony GLB są na placu; interakcja przewracania i pozycja obrotu do testu Play Mode");
+        });
         Station("Liny treningowe",12,28,12,10,t=>{
             // Remove the artificial cylindrical rope strokes rejected by the owner.
             // The delivered rope-coil GLB is REAL coiled rope, not an animated
