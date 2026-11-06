@@ -9,6 +9,9 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public sealed class BraxMetroM1Ruch : MonoBehaviour
 {
+    // Etap R1: stacja i tory gotowe do rozbudowy, ale pociąg NIE kursuje.
+    // Uruchomienie kursów wymaga osobnej decyzji właściciela i testów Unity/APK.
+    public bool kursyWlaczone = false;
     public float dojazdSekundy = 10f;
     public float otwieranieSekundy = 1.4f;
     public float postojSekundy = 15f;
@@ -22,8 +25,8 @@ public sealed class BraxMetroM1Ruch : MonoBehaviour
     public Vector3[] punktyWejscia = Array.Empty<Vector3>(); // lokalne do korzenia składu
     public float rozsuw = .65f;
 
-    public bool DrzwiOtwarte => etap == Etap.Postoj && rozwarcie >= .97f;
-    public bool NaPeronie => etap == Etap.Otwieranie || etap == Etap.Postoj || etap == Etap.Zamykanie;
+    public bool DrzwiOtwarte => kursyWlaczone && etap == Etap.Postoj && rozwarcie >= .97f;
+    public bool NaPeronie => !kursyWlaczone || etap == Etap.Otwieranie || etap == Etap.Postoj || etap == Etap.Zamykanie;
     public int NumerKursu => numerKursu;
     public int DrzwiLiczba => Mathf.Min(drzwiLewe.Length, drzwiPrawe.Length);
     public Vector3 DrzwiSwiat(int i)
@@ -65,6 +68,15 @@ public sealed class BraxMetroM1Ruch : MonoBehaviour
         {
             Debug.LogError("BRAXHORN_METRO_M1_NIEGOTOWY brak scenicznych par drzwi lub rendererów");
             enabled = false;
+            return;
+        }
+        if (!kursyWlaczone)
+        {
+            // Postój techniczny przy peronie: brak automatycznych przemieszczeń,
+            // otwierania scenicznych drzwi, odjazdu i automatycznego resetu kursu.
+            rb.position = centrum;
+            numerKursu = 0;
+            Debug.Log("BRAXHORN_METRO_M1_REZERWA_BEZ_KURSOW: model stoi przy peronie, tory i tunele zachowane; jazda wyłączona");
             return;
         }
         rb.position = centrum + Vector3.right * wejscieOffsetX;
@@ -110,7 +122,7 @@ public sealed class BraxMetroM1Ruch : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!rb || !enabled) return;
+        if (!kursyWlaczone || !rb || !enabled) return;
         czas += Time.fixedDeltaTime;
         float x = 0f;
         switch (etap)
@@ -144,6 +156,7 @@ public sealed class BraxMetroM1Ruch : MonoBehaviour
 
     void Update()
     {
+        if (!kursyWlaczone) return;
         float cel = etap == Etap.Postoj || etap == Etap.Otwieranie ? 1f : 0f;
         float dt = Mathf.Max(.01f, cel > rozwarcie ? otwieranieSekundy : zamykanieSekundy);
         rozwarcie = Mathf.MoveTowards(rozwarcie, cel, Time.deltaTime / dt);
