@@ -1446,7 +1446,7 @@ public static class BraxClaudeMetro
         }
         catch (Exception e)
         {
-            Debug.LogError("BRAXHORN_METRO_M1_NIEGOTOWY: " + e);
+            Debug.LogWarning("BRAXHORN_METRO_M1_MODEL_OPCJONALNY: " + e.Message);
             throw;
         }
     }
