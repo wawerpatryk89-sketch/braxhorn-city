@@ -115,14 +115,21 @@ public static partial class BraxClaudeOsiedle
                 ZapasPozy(skora, akcesoria, fotel, kab, ref w); klatki++;
             }
         }
-        if (klatki == 0) w.zapas = 0f;
+        // Brak próbek NIE oznacza bezpiecznego prześwitu 0 cm.
+        // Wcześniej pozwalał wstawić nieanimowaną osobę z głową w dachu.
+        if (klatki == 0) w.zapas = float.NegativeInfinity;
         return w;
     }
 
     static bool DopasujKabine(BraxMieszkaniec osoba, Transform fotel)
     {
         var kab = fotel.GetComponent<BraxFotelAuta>();
-        if (!kab || !osoba.anim) return false;
+        if (!kab || !osoba.anim || osoba.klipy == null || osoba.klipy.Length == 0
+            || !osoba.klipy.Any(name => osoba.anim.GetClip(name)))
+        {
+            Debug.LogWarning("BRAXHORN_KABINA: brak prawdziwej animacji siedzenia, pasażer pominięty");
+            return false;
+        }
         var kosci = osoba.anim.GetComponentsInChildren<Transform>(true);
         Transform T(string n) => kosci.FirstOrDefault(t => t.name == n);
         var kreg = T("Bip01 Spine") ?? osoba.kregoslup; var glowa = osoba.glowa ? osoba.glowa : T("Bip01 Head");
