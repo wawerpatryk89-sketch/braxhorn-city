@@ -22,6 +22,10 @@
 8. **Autobusy** — zerowanie starych parametrów, kontrola braku przystanków i zejścia z drogi, kompatybilny shader przy importowanych autobusach.
 9. **Centralny raport** — jawne `DO POPRAWKI` z generowania aut, salonu, sportu, boksu, dyskoteki, obsady NPC, wejść, pasażerów i autobusów trafia do `city-review/aktualizacja-osiedla.txt`.
 
+## Wdrożenie na telefon — warunek podpisu i nowej bazy
+
+Dokument `unity-tools/updates/CONTENT-UPDATES.md` jednoznacznie mówi, że `[content-update]` przesyła zapisane sceny, prefaby i materiały, ale **nie zmienia skompilowanego kodu IL2CPP**. Naprawy `Assets/BraxGymPlayer.cs`, `Assets/Claude/Runtime/BraxAutoGracza.cs`, `Assets/Claude/Runtime/BraxRuchySport.cs` i pozostałe zmiany w kodzie wymagają jednego nowego, globalnie podpisanego bazowego APK. Nie oszukiwać właściciela obietnicą, że wystarczy sama paczka `.braxupdate.zip`. Pełna kompilacja Android NIE była jeszcze uruchomiona, a urządzenie NIE zostało przetestowane.
+
 ## Otwarte, wymagające Unity Play Mode / Android
 
 - Odtwarzanie 22 FBX na realnym szkielecie Patryka: stopy, barki, ręce, kontakt, brak wykręconych kości; Idle i CarIdle.
