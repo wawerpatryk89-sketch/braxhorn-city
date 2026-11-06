@@ -40,7 +40,8 @@ class BraxTransferTests(unittest.TestCase):
         def bone(value):
             value=value.replace("\\\\","/").rsplit("/",1)[-1].rsplit("|",1)[-1]
             value=value.rsplit(":",1)[-1].strip()
-            return re.sub(r"^mixamorig[0-9]*[:_.\\- ]*","",value,flags=re.I).lower()
+            value=re.sub(r"^mixamorig[0-9]*","",value,flags=re.I)
+            return value.lstrip(":_.- ").lower()
         normalized={bone(name) for name in names}
         required=("Hips","Spine","LeftUpLeg","RightUpLeg",
                   "LeftLeg","RightLeg","LeftArm","RightArm")
