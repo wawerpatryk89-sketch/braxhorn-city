@@ -93,7 +93,13 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
             int count=Physics.CapsuleCastNonAlloc(player.transform.position+Vector3.up*(radius+.08f),
                 player.transform.position+Vector3.up*(height-radius),radius,approach.normalized,hits,approach.magnitude,Mask,QueryTriggerInteraction.Ignore);
             if(count==hits.Length)return false;
-            for(int i=0;i<count;i++)if(hits[i].collider&&!hits[i].collider.transform.IsChildOf(player.transform))return false;
+            // Samochód, do którego Patryk wsiada, nie jest przeszkodą:
+            // kapsuła może dotknąć jego własnego progu albo otwartych drzwi.
+            // Blokują wyłącznie inne obiekty świata, nie własne auto/gracz.
+            for (int i=0;i<count;i++)
+                if (hits[i].collider
+                    && !hits[i].collider.transform.IsChildOf(player.transform)
+                    && !hits[i].collider.transform.IsChildOf(transform)) return false;
         }
         gracz=player; scenaGracza=player.gameObject.scene; startWejscia=player.transform.position;
         BraxPose.Get(player).Set(BraxPose.Mode.None,null);
@@ -236,7 +242,11 @@ public sealed class BraxAutoGracza : MonoBehaviour, IBraxInterakcja
             var p=Drzwi(side); if(!Grunt(p,out float y))continue; p.y=y+.05f;
             float radius=gracz.body.radius, height=gracz.body.height;
             int n=Physics.OverlapCapsuleNonAlloc(p+Vector3.up*(radius+.04f),p+Vector3.up*(height-radius),radius,overlaps,Mask,QueryTriggerInteraction.Ignore);
-            bool free=n<overlaps.Length;for(int i=0;i<n;i++)if(overlaps[i] && !overlaps[i].transform.IsChildOf(gracz.transform))free=false;
+            bool free = n < overlaps.Length;
+            for (int i=0;i<n;i++)
+                if (Obcy(overlaps[i])) { free = false; break; }
+            // Wyjście wciąż jest blokowane przez ściany, inne samochody
+            // i przechodniów. Nie blokuje go bryła WŁASNEGO auta.
             if(free){point=p;return true;}
         }
         point=default; return false;
