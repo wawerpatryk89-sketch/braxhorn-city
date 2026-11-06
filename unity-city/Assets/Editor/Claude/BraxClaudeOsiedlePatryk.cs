@@ -332,8 +332,13 @@ public static partial class BraxClaudeOsiedle
             imp.SaveAndReimport();
         }
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(p);
-        if (!texture || texture.width != limit || texture.height != limit)
-            BraxBuildQuality.Issue(new InvalidOperationException("Nieprawidłowa rozdzielczość tekstury Patryka: " + p + ", wymagane " + limit));
+        if (!texture)
+            throw new InvalidOperationException("Patryk: nie zaimportowano oryginalnej tekstury " + p);
+        // Rozdzielczość oryginałów jest kontraktem źródłowym (4K Color/Normal,
+        // 2K wygenerowane ORM), nie oceną wizualną do zignorowania przy imporcie.
+        if (texture.width != limit || texture.height != limit)
+            throw new InvalidOperationException("Patryk: nieprawidłowa tekstura " + p +
+                " (" + texture.width + "x" + texture.height + "), wymagane " + limit + "x" + limit);
         Debug.Log("BRAXHORN_PATRYK_TEKSTURA " + plik + " " + texture.width + "x" + texture.height + " Android ASTC 4x4 jakość 50");
         return texture;
     }
