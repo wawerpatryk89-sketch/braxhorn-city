@@ -103,18 +103,24 @@ internal static partial class BraxMiastoWyspa
         // Właściciel: kopiujemy zawodników Z OBOZU. Te same źródła, importer, PBR,
         // most Humanoid→Legacy i skala. Nie uruchamiamy ani nie zmieniamy sceny obozu.
         var manifest = BraxObozCharacters.ReadManifest();
-        var holder = new GameObject("BRAXHORN ARENA: walka pokazowa KADE / ZYRO"); holder.transform.SetParent(root, false);
+        var holder = new GameObject("BRAXHORN ARENA: walka pokazowa PITBULL (RAKK) / DOBERMAN (ZYRO)"); holder.transform.SetParent(root, false);
         var pokaz = holder.AddComponent<BraxArenaPokaz>();
         pokaz.srodek = apC + Vector3.up * (apF + .9f * K);
         pokaz.promienBezpieczny = 4.55f * K - 1.3f;
-        var ids = new[] { "kade", "zyro" };
-        var sourceNames = new[] { "CombatIdle", "Walk", "Punch", "Dodge", "HeadHit" };
-        var showNames = new[] { "Garda", "Krok", "Kombinacja", "Unik", "Trafienie" };
+        var ids = new[] { "rakk", "zyro" };
+        var sourceNames = new[] { "CombatIdle", "Walk", "Punch", "Dodge", "HeadHit", "Kick", "Block", "HitToBody", "GettingUp", "Taunt" };
+        var showNames = new[] { "Garda", "Krok", "Kombinacja", "Unik", "Trafienie", "Kopniecie", "Blok", "TrafienieKorpus", "Wstanie", "Zaczepka" };
         for (int i = 0; i < ids.Length; i++)
         {
             var spec = manifest.characters.Single(c => c.id == ids[i]);
-            if (!spec.hasGloves || !spec.glovesVerified) throw new InvalidOperationException("Pokaz: niepotwierdzone rękawice " + spec.name);
-            var fighter = new GameObject("Pokaz: " + spec.name); fighter.transform.SetParent(holder.transform, false);
+            if (!spec.glovesVerified) throw new InvalidOperationException("Pokaz: brak weryfikacji źródła rękawic " + spec.name);
+            if (spec.id == "zyro" && !spec.hasGloves)
+                throw new InvalidOperationException("Pokaz: Doberman stracił oryginalne rękawice");
+            // Pitbull/RAKK nie ma rękawic w źródłowym ZIP: nie zastępujemy go
+            // KADE ani nie generujemy nieoryginalnych rękawic.
+            if (spec.id == "rakk" && !spec.hasGloves)
+                Debug.LogWarning("BRAXHORN_WYSPA_PITBULL RAKK: oryginalny model bez rękawic; do oceny wizualnej");
+            var fighter = new GameObject(i == 0 ? "Pokaz: PITBULL (RAKK)" : "Pokaz: DOBERMAN (ZYRO)"); fighter.transform.SetParent(holder.transform, false);
             fighter.transform.position = pokaz.srodek + Vector3.forward * (i == 0 ? -.95f : .95f);
             fighter.transform.rotation = Quaternion.Euler(0, i == 0 ? 0 : 180, 0);
             // Dokładnie ten sam tryb i wzrost co obecne instancje NPC w obozie.
@@ -130,7 +136,8 @@ internal static partial class BraxMiastoWyspa
                 if (!source) throw new InvalidOperationException("Pokaz: " + spec.name + " bez " + sourceNames[j]);
                 clips[j] = KlipPokazu(visual, source, showNames[j], spec.id);
             }
-            // W scenie wyspy potrzebnych jest pięć klipów, nie cały repertuar obozu.
+            // W scenie wyspy dziesięć rzeczywistych klipów: chód, garda, ciosy, kopnięcie,
+            // blok, unik, reakcje na głowę i korpus, wstawanie, zaczepka.
             foreach (string name in anim.Cast<AnimationState>().Select(s => s.name).ToArray()) anim.RemoveClip(name);
             for (int j = 0; j < clips.Length; j++) anim.AddClip(clips[j], showNames[j]);
             anim.clip = clips[0]; anim.playAutomatically = true; anim.cullingType = AnimationCullingType.AlwaysAnimate;
