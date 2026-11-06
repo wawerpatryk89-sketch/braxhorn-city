@@ -70,5 +70,16 @@ class RealOriginalAssetReadiness(unittest.TestCase):
                 self.assertIn("  workflow_dispatch:",events)
                 self.assertNotIn("  push:",events)
 
+
+    def test_foundation_uses_original_4k_dimensions_not_android_texture_size(self):
+        code=read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsFoundation.cs")
+        source_check=code[code.index("static Texture2D CopyMap("):code.index("static readonly Dictionary<string,Material> textureSets")]
+        self.assertIn("importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight)",source_check)
+        self.assertIn("if(sourceWidth!=4096||sourceHeight!=4096)",source_check)
+        self.assertIn("BraxBuildQuality.Warn(",source_check)
+        self.assertNotIn("!texture||texture.width!=2048",source_check)
+        self.assertIn("android.maxTextureSize!=2048",source_check)
+        self.assertIn("android.format!=TextureImporterFormat.ASTC_4x4",source_check)
+
 if __name__=="__main__":
     unittest.main()
