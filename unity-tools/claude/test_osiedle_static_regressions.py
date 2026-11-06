@@ -100,6 +100,40 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("texture.width != limit || texture.height != limit", player)
         self.assertIn("throw new InvalidOperationException(\"Patryk: nieprawidłowa tekstura", player)
 
+    def test_player_car_does_not_block_its_own_doors(self):
+        runtime = (ROOT / "unity-city/Assets/Claude/Runtime/BraxAutoGracza.cs").read_text()
+        self.assertIn('!hits[i].collider.transform.IsChildOf(transform)', runtime)
+        self.assertIn('if (Obcy(overlaps[i]))', runtime)
+        self.assertIn('Physics.OverlapCapsuleNonAlloc', runtime)
+
+    def test_parking_dimensions_and_traffic_qa_reset(self):
+        vehicles = source("BraxClaudeOsiedleAuta.cs")
+        scene = source("BraxClaudeOsiedleAktualizacja.cs")
+        self.assertIn('miejsca.Add((m.p, -doSciany, 5f * K, 3f * K, true))', vehicles)
+        self.assertIn('if (nrM++ % 2 != 0)', vehicles)
+        self.assertNotIn('if (nrM++ % 3 != 0)', vehicles)
+        self.assertIn('ruchZweryfikowany = false;', vehicles)
+        self.assertIn('bladRuchu = null;', vehicles)
+        self.assertIn('MiejscaParkingowe.Count == 0', scene)
+
+    def test_all_missing_resources_reach_scene_qa(self):
+        scene = source("BraxClaudeOsiedleAktualizacja.cs")
+        contractual = source("BraxClaudeOsiedleKontrolaZlecenia.cs")
+        doors = source("BraxClaudeOsiedleDrzwi.cs")
+        self.assertIn('n.StartsWith("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase)', scene)
+        self.assertIn('rep.notes.Add("BŁĄD w kroku kontrola zlecenia: " + error)', contractual)
+        self.assertIn('if (doPoprawki.Count > 0)', doors)
+
+    def test_guest_door_connectivity_never_ignores_solid_wall(self):
+        doors = source("BraxClaudeOsiedleWejscia.cs")
+        self.assertIn('var kolideryDrzwi = new HashSet<Collider>', doors)
+        self.assertIn('!kolideryDrzwi.Contains(buforKolizji[i])', doors)
+        self.assertIn('if (!Wolne(sx, sz))', doors)
+        self.assertIn('obszar poza limitem wiarygodnego testu przejścia', doors)
+        self.assertIn('brak celów pozwalających zweryfikować dostęp', doors)
+        self.assertIn('foreach (var d in zamknieteTu)', doors)
+        self.assertIn('if (cofniete > 0)', doors)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
