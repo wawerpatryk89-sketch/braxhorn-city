@@ -367,6 +367,16 @@ public static class BraxGymBuild
         // 3.11 (właściciel 13:39–13:46): SUPERMARKET BRAXHORN — jeden moduł, 2 kopie w mieście (druga lustrzana), przed kontrolami jakości
         if(fullCity&&!osiedle)try{BraxSupermarket.Wykonaj(scene,2);}catch(Exception e){throw new InvalidOperationException("BRAXHORN_SUPERMARKET_NIEGOTOWY",e);}
         if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_KONTROLA_MIASTA_NIEGOTOWA",e));}
+        // NOVA + mieszkanie: 40–60 krótkich próbek kapsuły PO kontroli kolizji.
+        // Nie uruchamia dodatkowej sceny ani buildu i nie blokuje publikacji.
+        if(fullCity&&!osiedle)try
+        {
+            var regionNova=scene.GetRootGameObjects()
+                .Select(g=>g.transform)
+                .FirstOrDefault(t=>t && t.name=="BRAXHORN CITY reference renovation");
+            BraxMiastoOdbior.SprawdzNovaPoKontroliKolizji(regionNova);
+        }
+        catch(Exception e){Debug.LogWarning("BRAXHORN_NOVA_R1_PO_KOLIZJACH AUDYT_DO_POPRAWKI "+e.Message);}
         // P0.1 (2.11 23:05, „metro nie do wejścia”): obce kolizje w przejściach stacji wyłączone + test przejścia obu wejść
         if(fullCity&&!osiedle)try{BraxClaudeMetro.KontrolaPrzejscia();}catch(Exception e){BraxBuildQuality.Issue(new InvalidOperationException("BRAXHORN_METRO_PRZEJSCIE_NIEGOTOWE",e));}
         // 3.11 (właściciel 10:53): trawnik w wycięciu nawierzchni przy każdym drzewie i palmie na chodniku / placu / asfalcie
