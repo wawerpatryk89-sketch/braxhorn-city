@@ -148,26 +148,15 @@ public static partial class BraxClaudeOsiedle
                     gotowy = PatrykWlasnyFBX(hero, kosci, spoczynek, k, out string opisFBX);
                     opis.Add(opisFBX);
                 }
-                catch (Exception directError)
+                catch (Exception originalError)
                 {
-                    // Mixamo FBX bywa pozbawiony transformowych krzywych Hips w trybie Legacy.
-                    // Zamiast ręcznie wymyślać ruch przenosimy TEN SAM oryginalny klip
-                    // przez Humanoid, zachowując model, kości, bindpose i materiały.
-                    try
-                    {
-                        string source = PatrykHumanoidOwner + "/" + Path.GetFileName(k.zrodla[0]);
-                        gotowy = PatrykHumanoid(hero, avatar, hips, kosci, spoczynek,
-                            source, k, out string retargetInfo);
-                        opis.Add(k.nazwa + "←" + k.zrodla[0] + retargetInfo);
-                        Debug.Log("BRAXHORN_PATRYK_OWNER_HUMANOID " + k.nazwa + " " + retargetInfo);
-                    }
-                    catch (Exception humanoidError)
-                    {
-                        throw new InvalidOperationException(
-                            "Patryk: oryginalny FBX " + k.nazwa + " nie działa ani jako Legacy, ani jako Humanoid; " +
-                            "zabronione wstawianie sztucznych animacji.",
-                            new AggregateException(directError, humanoidError));
-                    }
+                    // Ten sam tryb co sprawdzona Monika: bezpośrednie lokalne krzywe
+                    // z oryginalnego FBX na oryginalne kości, bez Humanoid fallback.
+                    throw new InvalidOperationException(
+                        "PATRYK: oryginalna animacja " + k.nazwa +
+                        " nie pasuje do jego kości. Import musi być naprawiony; " +
+                        "zabroniony retarget Humanoid i sztuczny ruch zastępczy.",
+                        originalError);
                 }
                 finally { PatrykSpoczynek(spoczynek); }
                 if (!gotowy || gotowy.length <= 0f)
