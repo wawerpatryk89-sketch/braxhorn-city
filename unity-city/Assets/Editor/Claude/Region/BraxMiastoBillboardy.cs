@@ -321,11 +321,12 @@ internal static class BraxMiastoBillboardy
         }
 
         // Odcinek pełnej szarej elewacji między sąsiadującymi lokalami.
-        // Ściana w planie: z=20.6; nie dotykamy ceglanej fasady Nutrition (x>=14.5).
+        // Ściana w planie: z=20.6, x=-0.8..9.5; stara tablica stała na sąsiednim
+        // ceglanym odcinku x=9.8..14.4. Nie nanosimy muralu na tę ceglaną fasadę.
         // Korygujemy lico z pomiarów kolizji; pojedynczy brak trafienia nie usuwa muralu.
-        const float x0 = 2.35f, x1 = 14.43f, y0 = .15f, y1 = 6.85f, planZ = 20.60f;
+        const float x0 = -.80f, x1 = 9.50f, y0 = .15f, y1 = 6.85f, planZ = 20.60f;
         var samples = new List<float>();
-        foreach (float x in new[] { 3.0f, 4.2f, 9.7f, 11.4f, 13.4f })
+        foreach (float x in new[] { -.20f, 1.0f, 2.1f, 4.2f, 8.9f })
             foreach (float y in new[] { 1.1f, 2.35f, 3.5f, 5.0f })
                 foreach (var h in Physics.RaycastAll(new Vector3(x, y, 23.2f), Vector3.back, 4.2f,
                              ~0, QueryTriggerInteraction.Ignore))
@@ -366,7 +367,7 @@ internal static class BraxMiastoBillboardy
                 if (!(n.Contains("door") || n.Contains("drzwi") || n.Contains("wejście") ||
                       n.Contains("entrance"))) return false;
                 var b = r.bounds;
-                return b.center.x > 4.2f && b.center.x < 10.0f &&
+                return b.center.x > 1.5f && b.center.x < 9.2f &&
                        Mathf.Abs(b.center.z - (z - .012f)) < .65f &&
                        b.min.y < .75f && b.max.y > 1.9f && b.max.y < 4.3f &&
                        b.size.x > .65f && b.size.x < 3.4f;
