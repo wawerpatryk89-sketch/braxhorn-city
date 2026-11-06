@@ -138,7 +138,7 @@ def restore(local_source=None):
         for name in selected:
             target = assets.safe(assets.PRIVATE, name); target.parent.mkdir(parents=True, exist_ok=True)
             os.replace(assets.safe(stage, name), target)
-    print('BRAXHORN_WYSPA_FIGHTERS characters=kade,zyro verified=' + str(len(selected)))
+    print('BRAXHORN_WYSPA_FIGHTERS characters=rakk,zyro verified=' + str(len(selected)))
 
 
 if __name__ == '__main__':
