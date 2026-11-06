@@ -79,13 +79,16 @@ public static class BraxSupermarket
         const float dlugosc = 8f;
         // R1: dojście od ronda trafia w środek fasady, nie w daleki boczny portal.
         float x = 0f;
-        Vector3 wejscie = sklep.TransformPoint(new Vector3(x, .85f * K, -2.8f * K));
-        // Prostokąt 3.2 m szerokości prowadzi od drzwi do chodnika.
-        // AABB obejmuje dowolny kąt obrotu całego modułu (0/90/180/270).
-        var f = sklep.forward * (dlugosc * .5f * K);
+        // Korytarz wyznaczamy od SAMYCH DRZWI (nie 3.6 m przed nimi).
+        // Poprzedni fragment cięcia kończył się na z≈128.4, zostawiając
+        // płot między chodnikiem a drzwiami supermarketu na z≈132.
+        // Rzut ukośny obsługuje również drugi, obrócony supermarket.
+        Vector3 drzwi = sklep.TransformPoint(new Vector3(x, .85f * K, -.08f));
+        Vector3 front = sklep.forward * .28f;
+        Vector3 wjazd = sklep.forward * (-dlugosc * K);
         var side = sklep.right * (2.3f * K);
-        Vector3 z = wejscie - f;
-        var corners = new[] { z + side + f, z + side - f, z - side + f, z - side - f };
+        var corners = new[] { drzwi + front + side, drzwi + front - side,
+                              drzwi + wjazd + side, drzwi + wjazd - side };
         var cut = new Bounds(corners[0], Vector3.zero);
         foreach (var p in corners) cut.Encapsulate(p);
         cut.Expand(new Vector3(.15f, 3.0f * K, .15f));
