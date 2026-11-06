@@ -247,12 +247,21 @@ public static partial class BraxObozEnvironment
             // Managed lawns inside the camp fade into litter towards the forest.
             float meadow = Mathf.Max(Mathf.Abs((px+35)/100),Mathf.Abs((pz+10)/105));
             float lawn = 1-Mathf.SmoothStep(0,1,Mathf.InverseLerp(.75f,1.08f+(noise-.5f)*.12f,meadow));
-            colors[i] = new Color(Mathf.Max(shoulder,bank),lawn,0,1);
+            // Owner's mud_forest_2k: local foot traffic wear and low damp
+            // ground near the OUTSIDE stream, not everywhere on the lawn.
+            float wearStart=Mathf.SmoothStep(0f,1f,Mathf.InverseLerp(.8f,2.4f,distance));
+            float wearEnd=1f-Mathf.SmoothStep(0f,1f,Mathf.InverseLerp(3.8f,7f,distance));
+            float trafficMud=wearStart*wearEnd*(.18f+.62f*noise);
+            float streamMud=(1f-Mathf.SmoothStep(0f,1f,
+                Mathf.InverseLerp(5.5f,11f,channel)))*(.22f+.24f*(1-noise));
+            float mud=Mathf.Clamp01((trafficMud+streamMud)*(1f-lawn*.62f));
+            colors[i] = new Color(Mathf.Max(shoulder,bank)*(1f-mud*.55f),
+                lawn*(1f-mud*.42f),mud,1f);
             if (x < n && z < n) { int t = (z * n + x) * 6; int j = i + n + 1; tris[t] = i; tris[t + 1] = j; tris[t + 2] = i + 1; tris[t + 3] = i + 1; tris[t + 4] = j; tris[t + 5] = j + 1; }
         }
         var mesh = new Mesh { name = "Teren kompaktowy 280 x 280 m; strumien zewnetrzny" }; mesh.vertices = vertices; mesh.uv = uv; mesh.colors = colors; mesh.triangles = tris; mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
         mesh = SaveMesh(mesh);
-        var g = Group("Podłoże — trawnik, ściółka i żwirowe przejścia", root, Vector3.zero).gameObject;
+        var g = Group("Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia", root, Vector3.zero).gameObject;
         g.AddComponent<MeshFilter>().sharedMesh = mesh; g.AddComponent<MeshRenderer>().sharedMaterial = BraxObozMaterials.CampGround(ground,gravel); g.AddComponent<MeshCollider>().sharedMesh = mesh;
         // Short sections allow transparent sorting/culling along the stream.
         var water=BraxObozMaterials.Stream();
