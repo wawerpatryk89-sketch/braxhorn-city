@@ -24,5 +24,17 @@ class MuralsReviewNotBuildGates(unittest.TestCase):
         self.assertIn("RightBelt",side)
         self.assertIn("no collider",side)
 
+
+    def test_original_belt_case_plaque_survives_android_import_resize(self):
+        source=(ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsBeltShowcase.cs").read_text()
+        self.assertIn("importer.GetSourceTextureWidthAndHeight(out int sourceWidth, out int sourceHeight)",source)
+        self.assertIn("if (sourceWidth != 1536 || sourceHeight != 512)",source)
+        self.assertIn("A1_SHOWCASE_OWNER_IMAGE_ANDROID_IMPORT",source)
+        # Wrong original bytes may be rejected, but a resized Unity import must
+        # not make the owner-approved plaque disappear.
+        start=source.index("if (image.width != 1536 || image.height != 512)")
+        end=source.index("var shader = Shader.Find",start)
+        self.assertNotIn("return;",source[start:end])
+
 if __name__=="__main__":
     unittest.main()
