@@ -507,19 +507,24 @@ public static partial class BraxObozEnvironment
 
     static void RondoBull(Transform center)
     {
-        // The user uploaded the ORIGINAL GLB under its original filename.
-        // Its geometry and embedded JPEG are byte-identical to the 4x edition;
-        // the transform below fits either asset to exactly the same 4.8m outline.
+        // Najpierw dokładny oryginał właściciela 4X, nigdy 4X podwójnie.
+        // Gdy dostępne jest tylko źródło 1X, zastosuj DOKŁADNIE x4
+        // na transformacji tego samego modelu, bez zmiany siatki/UV/tekstur.
+        // W raporcie wyraźnie oznacz wariant źródłowy zamiast udawać plik 4X.
         const string originalPath =
             "Assets/Source/Prywatne/Oboz/OwnerAssets/A_charging_bull_statu_0725030443_refine.glb";
         const string scaledPath =
             "Assets/Source/Prywatne/Oboz/OwnerAssets/BRAXHORN_BULL_RONDO_4X_ORYGINALNE_TEKSTURY.glb";
-        var source = AssetDatabase.LoadAssetAtPath<GameObject>(originalPath);
-        string sourcePath = originalPath;
-        if (!source)
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(scaledPath);
+        bool scaledOwnerAsset=source;
+        string sourcePath=scaledPath;
+        if(!source)
         {
-            source = AssetDatabase.LoadAssetAtPath<GameObject>(scaledPath);
-            sourcePath = scaledPath;
+            source=AssetDatabase.LoadAssetAtPath<GameObject>(originalPath);
+            sourcePath=originalPath;
+            if(source)BraxBuildQuality.Warn("OBOZ_BULL_4X_SOURCE_PENDING: "+
+                "w prywatnej dostawie jest tylko oryginał 1X; wykonano dokładne "+
+                "powiększenie x4 Transform, sprawdzić wizualnie przed odbiorem.");
         }
         if (!source)
         {
@@ -548,6 +553,7 @@ public static partial class BraxObozEnvironment
         // do wymyślonej koperty 4,8 m. Podstawa na górze cokołu.
         BraxObozPlacement.NativeMetres(model.transform,renderers,
             "oryginalny byk 4X");
+        if(!scaledOwnerAsset)model.transform.localScale*=4f;
         BraxObozPlacement.OnGround(model.transform,renderers,
             monument.TransformPoint(P(0,.93f,0)),"oryginalny byk 4X");
         b=BraxObozPlacement.Bounds(renderers);
