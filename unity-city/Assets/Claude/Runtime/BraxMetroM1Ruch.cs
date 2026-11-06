@@ -64,7 +64,7 @@ public sealed class BraxMetroM1Ruch : MonoBehaviour
         kolizje = GetComponentsInChildren<Collider>(true);
         rendereryPoczatkowo = Array.ConvertAll(renderery, x => x && x.enabled);
         kolizjePoczatkowo = Array.ConvertAll(kolizje, x => x && x.enabled);
-        if (DrzwiLiczba == 0 || renderery.Length == 0)
+        if (renderery.Length == 0 || (kursyWlaczone && DrzwiLiczba == 0))
         {
             Debug.LogError("BRAXHORN_METRO_M1_NIEGOTOWY brak scenicznych par drzwi lub rendererów");
             enabled = false;
