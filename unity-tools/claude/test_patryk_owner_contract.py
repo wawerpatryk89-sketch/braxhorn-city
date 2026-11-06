@@ -51,7 +51,7 @@ class PatrykOwnerContract(unittest.TestCase):
             self.assertNotIn("/monika/", s.lower())
 
     def test_no_substitute_animation_and_original_idle(self):
-        self.assertIn("PatrykSpokojny(hero, spoczynek)", self.player)
+        self.assertIn("PatrykSpokojny(hero, spoczynek, wlascicielWalk)", self.player)
         self.assertIn('PatrykCarIdleZWlasnegoWejscia(hero, spoczynek, wejsciePatryka)', self.player)
         self.assertIn('wejscie.SampleAnimation(hero', self.motion)
         self.assertIn("PatrykWlasnyFBX(hero, kosci, spoczynek, k", self.player)
@@ -76,6 +76,17 @@ class PatrykOwnerContract(unittest.TestCase):
         self.assertIn('2048', self.player)
         self.assertIn('patryki.Length != 1', self.scene)
         self.assertIn('samochodyGracza.Length != 1', self.scene)
+
+    def test_no_partial_owner_zip_and_no_old_six_file_fallback(self):
+        installer = (ROOT / "unity-tools/claude/import_patryk_owner_22.py").read_text(encoding="utf-8")
+        self.assertIn("from import_patryk_owner_22 import install as install_patryk_owner_22", self.original)
+        self.assertIn("Patryk anima(6).zip", installer)
+        self.assertIn("if len(actual) != 22", installer)
+        self.assertIn('if (KlipyPatryka.Length + additionalReady != 22)', self.player)
+        self.assertNotIn("additionalMissing++", self.player)
+        self.assertIn("if (all.Length != 22", self.motion)
+        self.assertIn("actual != Patryk22Hashes[name]", self.motion)
+        self.assertNotIn("from import_patryk_animations import install", self.original)
 
     def test_missing_cabin_or_car_not_silently_accepted(self):
         self.assertIn("brak wolnego stanowiska pod areną", self.car)
