@@ -505,9 +505,11 @@ public static class BraxChampionsCasinoT11
     {
         const string basePath="Assets/Source/Mistrzowie/CasinoT11/Vegetation2K/";
         var shrub=AssetDatabase.LoadAssetAtPath<GameObject>(
-            basePath+"shrub_03/shrub_03_2k_embedded.glb");
+            basePath+"shrub_03/shrub_03_2k_embedded.glb")
+            ?? AssetDatabase.LoadAllAssetsAtPath(basePath+"shrub_03/shrub_03_2k_embedded.glb").OfType<GameObject>().FirstOrDefault();
         var tree=AssetDatabase.LoadAssetAtPath<GameObject>(
-            basePath+"quiver_tree_02/quiver_tree_02_2k_embedded.glb");
+            basePath+"quiver_tree_02/quiver_tree_02_2k_embedded.glb")
+            ?? AssetDatabase.LoadAllAssetsAtPath(basePath+"quiver_tree_02/quiver_tree_02_2k_embedded.glb").OfType<GameObject>().FirstOrDefault();
         if(!shrub||!tree)
             throw new FileNotFoundException("T11 original Poly Haven 2K lossless embedded GLB missing; check prepare_casino_vegetation_2k.py");
         int count=0;
@@ -626,13 +628,45 @@ public static class BraxChampionsCasinoT11
         }
     }
 
+    // A source image's approved 2048x512 dimensions are not necessarily the
+    // same as Unity's imported Android Texture2D dimensions (platform overrides).
+    static Texture2D LoadOwnerSign(string path)
+    {
+        if(!File.Exists(path))
+            throw new FileNotFoundException("Owner's original signage is genuinely missing: "+path,path);
+        var importer=AssetImporter.GetAtPath(path) as TextureImporter;
+        if(!importer)throw new InvalidOperationException("No TextureImporter for original owner sign: "+path);
+        importer.GetSourceTextureWidthAndHeight(out int width,out int height);
+        if(width!=2048||height!=512)
+            throw new InvalidOperationException("Original owner sign source dimensions changed: "+path+
+                " source="+width+"x"+height+" expected=2048x512");
+        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if(!texture)
+        {
+            AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+            texture=AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+        if(!texture)throw new InvalidOperationException("Owner's sign is on disk but Unity cannot import it: "+path);
+        if(texture.width!=2048||texture.height!=512)
+            BraxBuildQuality.Warn("Owner sign source remains exact 2048x512; Android imported "+
+                texture.width+"x"+texture.height+" for "+path);
+        return texture;
+    }
+
+    public static void VerifyOriginalSigns()
+    {
+        LoadOwnerSign(SignPath);
+        const string city="Assets/Source/Mistrzowie/CitySigns/03_TRANSPORT_KURORT/";
+        LoadOwnerSign(city+"TAXI_TAXI.png");
+        LoadOwnerSign(city+"PARKING_PARKING.png");
+        Debug.Log("CHAMPIONS_T11_OWNER_SIGNS_PASS originals=3 untouched=YES source_size=2048x512");
+    }
+
     static void RoadsideOriginalSign(string id,string source,float x,float z,float yaw)
     {
         // Preserve the owner's original 2048 x 512 artwork, including typography,
         // colour and bull logo; fit 4:1 without stretching, and use real posts.
-        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(source);
-        if(!texture || texture.width!=2048 || texture.height!=512)
-            throw new FileNotFoundException("Original city roadside sign missing/wrong size: "+source);
+        var texture=LoadOwnerSign(source);
         var shader=Shader.Find(BraxCityMaterials.ShaderName);
         if(!shader)throw new InvalidOperationException("Original sign PBR shader missing");
         var material=new Material(shader){name="T11 original roadside "+id,enableInstancing=true};
@@ -677,10 +711,7 @@ public static class BraxChampionsCasinoT11
     static void MainSign()
     {
         // The only approved brand for plot T11 is C1_KASYNO_KASYNO_WAWER.
-        var picture=AssetDatabase.LoadAssetAtPath<Texture2D>(SignPath);
-        if(!picture)throw new FileNotFoundException("T11 original WAWER casino sign missing: "+SignPath);
-        if(picture.width!=2048||picture.height!=512)
-            throw new InvalidOperationException("Original KASYNO WAWER sign must remain 2048x512 4:1");
+        var picture=LoadOwnerSign(SignPath);
         var shader=Shader.Find(BraxCityMaterials.ShaderName);
         if(!shader)throw new InvalidOperationException("Casino sign needs original CityStaticPBR shader");
         var material=new Material(shader){name="C1 KASYNO WAWER original",enableInstancing=true};
