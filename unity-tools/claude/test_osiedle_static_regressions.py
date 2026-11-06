@@ -253,6 +253,8 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("if (Przeszkoda(ds, kr + .08f) || Zajete(next))", pedestrian)
         self.assertIn("Physics.RaycastNonAlloc(p + Vector3.up * 1.4f", pedestrian)
         self.assertIn("hit.transform.IsChildOf(transform)", pedestrian)
+        self.assertIn("Physics.OverlapCapsuleNonAlloc(p + Vector3.up * .45f", pedestrian)
+        self.assertNotIn("Physics.OverlapCapsule(p + Vector3.up * .45f", pedestrian)
 
     def test_parked_car_residents_cannot_enter_without_reaching_door(self):
         traveler = (ROOT / "unity-city/Assets/Claude/Runtime/BraxPodroznyAuta.cs").read_text()
