@@ -244,7 +244,7 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
-    - name: Wyspa — KADE i ZYRO z obozu, tylko potrzebne zaszyfrowane źródła
+    - name: Wyspa — PITBULL/RAKK i DOBERMAN/ZYRO, oryginalne źródła z obozu, tylko potrzebne zaszyfrowane źródła
       if: github.event.inputs.rejon != 'osiedle'
       env:
         GH_TOKEN: ${{ github.token }}
@@ -621,7 +621,7 @@ jobs:
       env:
         KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
       run: python3 unity-tools/claude/prywatne.py
-    - name: Wyspa — KADE i ZYRO z obozu, tylko potrzebne zaszyfrowane źródła
+    - name: Wyspa — PITBULL/RAKK i DOBERMAN/ZYRO, oryginalne źródła z obozu, tylko potrzebne zaszyfrowane źródła
       if: github.event.inputs.rejon != 'osiedle'
       env:
         GH_TOKEN: ${{ github.token }}
