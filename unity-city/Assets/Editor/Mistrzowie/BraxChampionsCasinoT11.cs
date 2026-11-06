@@ -23,9 +23,10 @@ public static class BraxChampionsCasinoT11
     static void Setup(string directory)
     {
         output=directory;serial=0;
-        // Owner-selected exterior: original Concrete Brick Wall 001 Poly Haven PBR in native 2K.
-        // Neutral tint preserves the source texture rather than recolouring the bricks.
-        cream=BraxChampionsCasinoPbr2K.Create(output,"t11_cream_facade","concrete_brick_wall_001",3.0f,Color.white);
+        // Plansza właściciela „KASYNO (T11)”, 6.11: jasna elewacja = Rectangular Facade
+        // Tiles (jasny krem), duże płyty — NIE cegła. Te same pobrane mapy co grafit,
+        // kremowy odcień jak pas kamienny areny.
+        cream=BraxChampionsCasinoPbr2K.Create(output,"t11_cream_facade","rectangular_facade_tiles",2.0f,new Color(.93f,.89f,.80f));
         graphite=BraxChampionsCasinoPbr2K.Create(output,"t11_graphite_facade","rectangular_facade_tiles",2.0f,new Color(.22f,.23f,.25f));
         granite=BraxChampionsCasinoPbr2K.Create(output,"t11_dark_granite","granite_tile",1.2f,new Color(.26f,.28f,.30f));
         paving=BraxChampionsCasinoPbr2K.Create(output,"t11_walkways","concrete_pavement_02",1.8f,new Color(.94f,.93f,.89f));

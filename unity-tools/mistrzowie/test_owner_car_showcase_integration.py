@@ -73,7 +73,7 @@ class ChampionOwnerCarShowcaseTests(unittest.TestCase):
         arrival = read("unity-city/Assets/Editor/Mistrzowie/BraxChampionsArenaArrival.cs")
         self.assertIn("BraxChampionsBeltShowcase.Generate(root)", arena)
         self.assertNotIn('return Trophy(root,', arrival)
-        for value in ("granite_tile", "teak_veneer", "BRAXHORN_ARENA_CASE_PLAQUE.jpg",
+        for value in ("granite_tile", "Black marble pillar behind the showcase", "Gold LED top frame long", "Bronze vertical slat ", "BRAXHORN_ARENA_CASE_PLAQUE.jpg",
                       "A1_RealRhombus_GraniteStone", "MeshCollider",
                       "OriginalBelt(display)", "OriginalRectangleArtwork(display"):
             self.assertIn(value, box)

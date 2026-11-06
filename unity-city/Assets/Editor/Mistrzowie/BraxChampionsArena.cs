@@ -315,6 +315,16 @@ public static class BraxChampionsArena
         if(name.Contains("krzesełko")||name.Contains("skóra")||name.Contains("winyl"))m=BraxChampionsFoundation.LibraryLeather(id,color);
         else if(metal>.1f||name.Contains("aluminium"))m=BraxChampionsFoundation.LibraryMetal(id,color);
         else if(name.Contains("chodnik")||name.Contains("aksamit")||name.Contains("akustyczne"))m=BraxChampionsFoundation.SourceMaterial(id,"fabric_pattern_05",.55f,color);
+        // Premium: każda powierzchnia ma własny materiał zamiast jednego granitu.
+        // Tylko źródła już pobierane do buildu (BRAX_MISTRZOWIE_PBR_SOURCE).
+        else if(name.Contains("posadzka")||name.Contains("schody"))
+            m=BraxChampionsFoundation.SourceMaterial(id,"concrete_floor_02",2.2f,Color.Lerp(color,Color.white,.25f));
+        else if(name.Contains("trybuny")||name.Contains("sufit"))
+            m=BraxChampionsFoundation.SourceMaterial(id,"concrete_wall_008",2.4f,color);
+        else if(name.Contains("ściana"))
+            m=BraxChampionsFoundation.SourceMaterial(id,"rectangular_facade_tiles",2.0f,color);
+        else if(name.Contains("marmur"))
+            m=BraxChampionsFoundation.SourceMaterial(id,"granite_tile",1.1f,color);
         else m=BraxChampionsFoundation.SourceMaterial(id,"granite_tile_02",1.5f,color);
         materials.Add(name,m);return m;
     }

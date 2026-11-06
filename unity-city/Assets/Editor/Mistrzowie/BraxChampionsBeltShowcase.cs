@@ -273,10 +273,6 @@ public static class BraxChampionsBeltShowcase
         var display = Group(arenaInterior, "A1 PREMIUM museum showcase | JUDGES | one 3D belt");
         display.localPosition = new Vector3(-73.9f, 0, 63.3f);
         display.localRotation = Quaternion.Euler(0, 90, 0); // front faces cage/judges
-        var granite = BraxChampionsFoundation.SourceMaterial(
-            "A1_belt_showcase_PolyHaven_granite_tile", "granite_tile", 1.1f, Color.white);
-        var teak = BraxChampionsFoundation.SourceMaterial(
-            "A1_belt_showcase_PolyHaven_teak_veneer", "teak_veneer", 1.15f, Color.white);
         var gold = BraxChampionsFoundation.LibraryMetal("A1_belt_showcase_gold",
             new Color(.96f, .72f, .24f));
         var bronze = BraxChampionsFoundation.LibraryMetal("A1_belt_showcase_bronze",
@@ -288,26 +284,52 @@ public static class BraxChampionsBeltShowcase
         if (!glass || glass.renderQueue < 3000 || !warm)
             throw new InvalidOperationException("A1 showroom requires the existing TRUE transparent glass and warm light materials");
 
-        Podium(display, granite, gold);
-        // Native Poly Haven teak wood: backboard, bottom shelf, structural edges.
-        Cube(display, "Teak PBR cabinet bottom shelf",
-            teak, new Vector3(0, .535f, 0), new Vector3(2.64f, .20f, 1.12f));
-        Cube(display, "Teak PBR solid museum back panel",
-            teak, new Vector3(0, 1.98f, .555f), new Vector3(2.61f, 2.79f, .11f));
-        Cube(display, "Teak cabinet crown",
-            teak, new Vector3(0, 3.46f, 0), new Vector3(2.72f, .19f, 1.18f));
-        foreach (float x in new[] { -1.32f, 1.32f })
-            foreach (float z in new[] { -.55f, .55f })
-                Cube(display, "True teak frame upright", teak,
-                    new Vector3(x, 2.0f, z), new Vector3(.095f, 2.81f, .095f));
-        // Continuous real visible GLASS, but NO phantom collision boxes.
+        // WZÓR WŁAŚCICIELA 6.11: pionowa gablota ze szkła przed filarem z czarnego
+        // marmuru, ciemne skórzane tło, złote ramy LED u góry i u dołu, złote uchwyty
+        // w narożnikach szkła, mosiężna tabliczka, brązowe lamele obok. Bez teku.
+        var marble = BraxChampionsFoundation.SourceMaterial(
+            "A1_belt_showcase_black_marble", "granite_tile", .9f, new Color(.13f, .13f, .14f));
+        var backing = BraxChampionsFoundation.LibraryLeather("A1_belt_showcase_black_leather",
+            new Color(.10f, .095f, .09f));
+        // Cokół i filar z czarnego marmuru (cokół ma kolizję, reszta nie blokuje przejścia).
+        Cube(display, "Black marble plinth", marble,
+            new Vector3(0, .30f, .05f), new Vector3(2.90f, .60f, 1.30f));
+        var plinthCollider = new GameObject("Black marble plinth collision").AddComponent<BoxCollider>();
+        plinthCollider.transform.SetParent(display, false);
+        plinthCollider.center = new Vector3(0, .30f, .05f);
+        plinthCollider.size = new Vector3(2.90f, .60f, 1.30f);
+        Cube(display, "Black marble pillar behind the showcase", marble,
+            new Vector3(0, 2.45f, .78f), new Vector3(3.30f, 4.90f, .32f));
+        Cube(display, "Black leather back panel", backing,
+            new Vector3(0, 2.0f, .555f), new Vector3(2.52f, 2.74f, .06f));
+        Cube(display, "Black marble case base", marble,
+            new Vector3(0, .63f, 0), new Vector3(2.66f, .06f, 1.16f));
+        // Szkło z pięciu stron (front, boki, góra), bez kolizji.
         Cube(display, "Museum GLASS FRONT no invisible collider",
-            glass, new Vector3(0, 2.0f, -.593f), new Vector3(2.57f, 2.79f, .045f));
+            glass, new Vector3(0, 2.0f, -.593f), new Vector3(2.57f, 2.79f, .03f));
         foreach (float x in new[] { -1.302f, 1.302f })
             Cube(display, "Museum GLASS SIDE no invisible collider",
-                glass, new Vector3(x, 2.0f, 0),
-                new Vector3(.045f, 2.79f, 1.06f));
-        // Do not put an opaque glass back across the wood-backed belt.
+                glass, new Vector3(x, 2.0f, 0), new Vector3(.03f, 2.79f, 1.16f));
+        Cube(display, "Museum GLASS TOP", glass,
+            new Vector3(0, 3.41f, 0), new Vector3(2.60f, .03f, 1.19f));
+        // Złota rama LED u góry (prostokąt) i świecący pas u dołu.
+        foreach (float z in new[] { -.50f, .45f })
+            Cube(display, "Gold LED top frame long", gold,
+                new Vector3(0, 3.30f, z), new Vector3(2.30f, .06f, .07f));
+        foreach (float x in new[] { -1.12f, 1.12f })
+            Cube(display, "Gold LED top frame short", gold,
+                new Vector3(x, 3.30f, -.025f), new Vector3(.07f, .06f, 1.02f));
+        // Złote uchwyty szkła w ośmiu narożnikach.
+        foreach (float x in new[] { -1.30f, 1.30f })
+            foreach (float y in new[] { .70f, 3.36f })
+                foreach (float z in new[] { -.59f, .55f })
+                    Cube(display, "Gold glass corner bracket", gold,
+                        new Vector3(x, y, z), new Vector3(.13f, .13f, .13f));
+        // Brązowe pionowe lamele po prawej stronie filara.
+        for (int i = 0; i < 7; i++)
+            Cube(display, "Bronze vertical slat " + (i + 1), bronze,
+                new Vector3(1.85f + i * .13f, 2.45f, .82f), new Vector3(.06f, 4.90f, .10f));
+        // Pas i tabliczka z grafiką właściciela na ciemnym skórzanym tle.
         OriginalRectangleArtwork(display, gold, bronze);
         OriginalBelt(display);
         Cube(display, "Visible gold LED roof diffuser", warm,
