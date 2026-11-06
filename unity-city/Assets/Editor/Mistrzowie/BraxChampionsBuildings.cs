@@ -89,9 +89,11 @@ public static class BraxChampionsBuildings
         }
         // Approved T11/WAWER plot at (495,465) is a third independent exterior.
         // It must NOT change the existing A1 or T01 meshes, prefabs or positions.
-        BraxChampionsCasinoT11.Generate(Out);
+        // Kasyno i basen nigdy nie przeszły pełnego Unity w tej gałęzi: błąd = ostrzeżenie
+        // z pełnym wyjątkiem w logu, reszta miasta i APK budują się dalej.
+        BraxChampionsFoundation.Optional("kasyno T11",()=>BraxChampionsCasinoT11.Generate(Out));
         // P1 source is a separate modular facade/SPA prefab on its reserved plot.
-        BraxChampionsPoolP1.Generate();
+        BraxChampionsFoundation.Optional("basen P1",()=>BraxChampionsPoolP1.Generate());
         AssetDatabase.SaveAssets();
         return d.buildings.Length+2;
     }

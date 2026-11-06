@@ -78,9 +78,9 @@ class PoolP1LayoutTests(unittest.TestCase):
 
     def test_isolated_buildings_integration(self):
         build=INTEGRATION.read_text(encoding="utf-8")
-        self.assertEqual(build.count("BraxChampionsPoolP1.Generate();"),1)
+        self.assertEqual(build.count("BraxChampionsPoolP1.Generate()"),1)
         self.assertIn("return d.buildings.Length+2;",build)
-        self.assertIn("BraxChampionsCasinoT11.Generate(Out);",build)
+        self.assertIn("BraxChampionsCasinoT11.Generate(Out)",build)
 
     def test_polyhaven_real_2k_and_import(self):
         source=MATERIALS.read_text(encoding="utf-8")
