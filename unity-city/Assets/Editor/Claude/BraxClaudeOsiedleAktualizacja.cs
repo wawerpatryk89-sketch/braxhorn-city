@@ -8,6 +8,56 @@ using UnityEngine.SceneManagement;
 public static partial class BraxClaudeOsiedle
 {
     static readonly List<string> raportSkaliAut = new List<string>();
+    // Five shopfronts are open cut-outs, not BraxCityDoor components.
+    // Track them explicitly: a door-only audit would miss a bricked-up market.
+    static readonly List<(string nazwa, Vector3 prog, Vector3 doSrodka, bool zamkniete)> wejsciaSklepow =
+        new List<(string, Vector3, Vector3, bool)>();
+
+    // Cheap editor-scene probe. Reports actual openings and any obstruction;
+    // never modifies scene objects or blocks Android compilation.
+    static List<string> AudytWejscSklepow(Scene scena)
+    {
+        Physics.SyncTransforms();
+        var bledy = new List<string>();
+        var wiersze = new List<string> { "OSIEDLE B — 5 wejść pierzei, kontrola kapsułą bez renderu; odbiór telefonu nadal wymagany" };
+        if (wejsciaSklepow.Count != 5)
+            bledy.Add("DO POPRAWKI: wejścia sklepów B: zarejestrowano " + wejsciaSklepow.Count + "/5 lokali");
+        var trafienia = new RaycastHit[32];
+        const int mask = ~((1 << 8) | (1 << 2) | (1 << 29) | (1 << 31));
+        foreach (var w in wejsciaSklepow)
+        {
+            var problem = new List<string>();
+            if (w.zamkniete) problem.Add("wejście fizycznie zamknięte (brak zatwierdzonej paczki towaru)");
+            if (w.doSrodka.sqrMagnitude < .9f || Mathf.Abs(w.doSrodka.y) > .01f)
+                problem.Add("błędny kierunek wejścia");
+            if (!w.zamkniete && problem.Count == 0)
+            {
+                var dir = w.doSrodka.normalized;
+                var start = w.prog - dir * 1.25f;
+                int count = Physics.CapsuleCastNonAlloc(start + Vector3.up * .42f,
+                    start + Vector3.up * 1.6f, .28f, dir, trafienia, 2.5f,
+                    mask, QueryTriggerInteraction.Ignore);
+                if (count == trafienia.Length) problem.Add("przepełnienie sondy przejścia");
+                else for (int i = 0; i < count; i++)
+                {
+                    var c = trafienia[i].collider;
+                    if (!c || c.gameObject.scene != scena || c.GetComponentInParent<BraxMieszkaniec>()
+                        || c.GetComponentInParent<BraxPieszy>()) continue;
+                    problem.Add("kapsuła uderza w: " + c.name);
+                    if (problem.Count >= 3) break;
+                }
+            }
+            string wynik = w.nazwa + " próg=" + w.prog.ToString("F2") + " wynik=" +
+                (problem.Count == 0 ? "SONDA WOLNA (wymaga Play Mode)" : string.Join("; ", problem));
+            wiersze.Add(wynik);
+            foreach (var p in problem) bledy.Add("DO POPRAWKI: lokal " + w.nazwa + ": " + p);
+        }
+        System.IO.Directory.CreateDirectory("city-review");
+        System.IO.File.WriteAllLines("city-review/osiedle-wejscia-sklepow.txt", wiersze);
+        Debug.Log("BRAXHORN_OSIEDLE_SKLEPY_WEJSCIA sprawdzone=" + wejsciaSklepow.Count +
+            " bledy=" + bledy.Count + " (sonda geometrii, nie test telefonu)");
+        return bledy;
+    }
     static void RaportSkaliAut(List<AutoSzablon> auta)
     {
         raportSkaliAut.Clear();
@@ -40,6 +90,7 @@ public static partial class BraxClaudeOsiedle
              || n.StartsWith("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase)
              || n.IndexOf("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase) >= 0))
             .Distinct(StringComparer.Ordinal));
+        bledy.AddRange(AudytWejscSklepow(scene));
         var renderery = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Renderer>(true)).ToArray();
         int szyldy = 0;
         foreach (var r in renderery)
