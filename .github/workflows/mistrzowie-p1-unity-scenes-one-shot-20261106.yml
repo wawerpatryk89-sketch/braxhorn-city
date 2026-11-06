@@ -1,0 +1,29 @@
+name: Miasto Mistrzow A1+T11+P1 - ONE Unity 6 SCENES QA (NO APK)
+run-name: Champions arena, casino, Brax car, promenade, port, beach and P1 pool - Unity scenes
+
+on:
+  push:
+    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
+    paths:
+      - .github/workflows/mistrzowie-p1-unity-scenes-one-shot-20261106.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: champions-a1-t11-p1-scene-qa-once
+  cancel-in-progress: false
+
+jobs:
+  real-unity6-scene-check:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
+    uses: ./.github/workflows/mistrzowie-apk.yml
+    with:
+      etap: sceny
+      kontrola_tras: false
+      zdjecia: false
+      arena_assets_tag: champions-a1-20261105
+      p1_assets_tag: p1-basen-spa-20261106
+    secrets: inherit
