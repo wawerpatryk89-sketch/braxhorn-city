@@ -301,11 +301,11 @@ public static partial class BraxClaudeOsiedle
             foreach (var m in MiejscaParkingowe)
             {
                 var f = m.przod; f.y = 0f; if (f.sqrMagnitude < 1e-4f) continue;
-                miejsca.Add((m.srodek, f.normalized, m.rozmiar.y > 1f ? m.rozmiar.y : 5f, m.rozmiar.x > 1f ? m.rozmiar.x : 2.5f, m.przyScianie));
+                miejsca.Add((m.srodek, f.normalized, m.rozmiar.y > 1f ? m.rozmiar.y : 5f * K, m.rozmiar.x > 1f ? m.rozmiar.x : 3f * K, m.przyScianie));
             }
         else
             // (DrogiA bazy 14: yaw miejsca = kierunek do krawędzi/ściany → auto przodem do alejki = odwrotnie)
-            foreach (var m in miejscaA) { var doSciany = Quaternion.Euler(0f, m.yaw, 0f) * Vector3.forward; miejsca.Add((m.p, -doSciany, 5f, 2.5f, true)); }
+            foreach (var m in miejscaA) { var doSciany = Quaternion.Euler(0f, m.yaw, 0f) * Vector3.forward; miejsca.Add((m.p, -doSciany, 5f * K, 3f * K, true)); }
         Physics.SyncTransforms();
         var rnd = new System.Random(1402); var pula = PulaAut(szablony);
         var stoja = new List<(Vector3 c, Vector3 f, float hw, float hl)>();
@@ -314,8 +314,8 @@ public static partial class BraxClaudeOsiedle
         foreach (var m in miejsca)
         {
             // 3.11 15:11 („między samochodami ma być przejście, wszędzie, na każdym parkingu”): zajęte co trzecie miejsce —
-            // każde auto ma obok wolną zatokę (przejście do drzwi), także auto Patryka stawiane później na wolnym miejscu
-            if (nrM++ % 3 != 0) { wolne++; continue; }   // ok. 45 % miejsc wolnych = zajętość ~55 % (audyt 1.11: 40–60 %, parkingi były przepełnione; mniej ciężkich modeli dla telefonu)
+            // co druga zatoka zostaje wolna (dojście do drzwi); auto Patryka powstaje WCZEŚNIEJ i jest sprawdzane kolizją
+            if (nrM++ % 2 != 0) { wolne++; continue; }   // co druga zatoka wolna: docelowa zajętość <=50%; inne kolizje mogą zmniejszyć rzeczywistą
             AutoSzablon sz = null; Vector3 c = default;
             for (int proba = 0; proba < 8 && sz == null; proba++)
             {
