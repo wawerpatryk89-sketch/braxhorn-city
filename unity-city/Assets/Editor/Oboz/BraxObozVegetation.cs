@@ -326,7 +326,11 @@ public static class BraxObozVegetation
                 if(bounds.size.y<.001f || bounds.size.y>50f)
                     throw new InvalidOperationException("Grass Medium: nieprawidłowa wysokość obrysu "+id);
                 var combine=new List<CombineInstance>();
-                var bottom=Matrix4x4.Translate(Vector3.down*bounds.min.y);
+                // Imported Sketchfab/Blender pivots may be far from geometry.
+                // Centre XY footprint and ground Y without altering any
+                // ORIGINAL vertex inside the private GLB source.
+                var bottom=Matrix4x4.Translate(
+                    new Vector3(-bounds.center.x,-bounds.min.y,-bounds.center.z));
                 foreach(var filter in filters)
                 {
                     for(int sub=0;sub<filter.sharedMesh.subMeshCount;sub++)
