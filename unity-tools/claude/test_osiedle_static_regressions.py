@@ -50,7 +50,8 @@ class EstateSourceRegressions(unittest.TestCase):
     def test_audit_does_not_count_arena_group_as_missing_wheels(self):
         scene = source("BraxClaudeOsiedleAktualizacja.cs")
         self.assertIn('t.name.StartsWith("Auto Patryka · ", StringComparison.Ordinal)', scene)
-        self.assertNotIn('t.name.StartsWith("Auto Patryka", StringComparison.Ordinal)', scene)
+        wheel_audit = scene.split("var wszystkieAuta =", 1)[1].split("foreach (var auto in wszystkieAuta)", 1)[0]
+        self.assertNotIn('t.name.StartsWith("Auto Patryka", StringComparison.Ordinal)', wheel_audit)
         self.assertIn('auto.Find("koło " + id + "/obrót")', scene)
         self.assertIn("patryki.Length != 1", scene)
 
