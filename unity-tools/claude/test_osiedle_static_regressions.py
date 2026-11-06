@@ -294,6 +294,21 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("foreach (var (n, p) in celeNaPoziomie)", check)
         self.assertNotIn("nCele = cele.Count;", check)
 
+    def test_all_recognized_sole_and_public_exterior_doors_survive_cleanup(self):
+        doors = source("BraxClaudeOsiedleWejscia.cs")
+        cleanup = source("BraxClaudeOsiedleDrzwi.cs")
+        build = source("BraxClaudeOsiedle.cs")
+        block = doors.split("static void JednoWejscie()", 1)[1]
+        self.assertIn("JedyneWejscia.Clear();", block)
+        self.assertIn("var grupy = Enumerable.Range(0, m).GroupBy(F).ToList();", block)
+        self.assertIn("foreach (var single in grupy.Where(g => g.Count() == 1))", block)
+        self.assertIn("ChronWejscie(zew[single.First()].d);", block)
+        self.assertIn("foreach (var i in g) ChronWejscie(zew[i].d);", block)
+        self.assertIn("ChronWejscie(zew[glowne].d);", block)
+        self.assertIn("ChronWejscie(d); zostalo++;", block)
+        self.assertIn("JedyneWejscia.Contains(id)", cleanup)
+        self.assertLess(build.index('", JednoWejscie);'), build.index('", DrzwiBezSciany);'))
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
