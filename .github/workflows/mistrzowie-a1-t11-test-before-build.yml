@@ -4,6 +4,7 @@ name: "Miasto Mistrzów A1+T11 — testy przed APK (BEZ UNITY)"
 # Audit repeated after LIVE 21-map/2-model Poly Haven source validation passed (without Unity).
 # Pre-Unity source readiness: source files, real 3D geometry, all owner signs and Mixamo clips.
 # Post-audit check: all original murals preserve source dimensions; Android mipmaps advisory.
+# Regression: Foundation 4K original maps are verified by SOURCE dimensions; Android Texture2D sizing is advisory.
 # Never builds Android, never dispatches the actual game build, never changes
 # quality gates, never deploys, uploads assets or moves a branch.
 on:
