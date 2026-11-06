@@ -39,7 +39,8 @@ internal static class BraxMiastoOdbior
         SprawdzWejscie("NOVA", 42.0f, .15f, 35.73f, 36.60f);
         SprawdzWejscie("TOWER", 59.0f, .15f, 35.83f, 36.88f);
         SprawdzWejscie("MIESZKANIE_BRAXA_KLATKA", 33.73f, .15f, 35.72f, 36.65f);
-        SprawdzSupermarketR1(cityRoot);
+        // Supermarket jest generowany dopiero PO zakończeniu BraxRegion.Apply.
+        // Odbiór jego wejścia i parkingu przeniesiono na koniec BraxGymBuild.
         SprawdzApteke(cityRoot);
         SprawdzTaras360(cityRoot);
         SprawdzTramT1(cityRoot);
@@ -57,7 +58,7 @@ internal static class BraxMiastoOdbior
 
     // Audyt supermarketu BRAXHORN ze zdjęć i Android #64.
     // Statyczna kontrola sceny NIE udaje testu sterowania na telefonie.
-    static void SprawdzSupermarketR1(Transform cityRoot)
+    public static void SprawdzSupermarketR1()
     {
         var sklep = UnityEngine.Object.FindObjectsByType<Transform>(
             FindObjectsInactive.Include, FindObjectsSortMode.None)
@@ -78,7 +79,7 @@ internal static class BraxMiastoOdbior
         int blokery = 0;
         // Otwarte dojście dla kapsuły Braxa: testujemy wyłącznie zewnętrzną
         // strefę od parkingu do drzwi, bez zamkniętych szklanych skrzydeł.
-        for (float z = 125.8f; z <= 130.4f; z += .8f)
+        for (float z = 125.8f; z <= 131.45f; z += .65f)
         {
             var from = new Vector3(-120f, .15f + .35f, z);
             var to = new Vector3(-120f, .15f + 2.15f, z);
@@ -96,7 +97,8 @@ internal static class BraxMiastoOdbior
         bool parking = stanowiska >= 20;
         bool dojazd = BraxRegionMiastoB.NaJezdni(new Vector3(-126f, .003f, 83f)) &&
                        BraxRegionMiastoB.NaJezdni(new Vector3(-126f, .003f, 104f));
-        bool staraWyspa = cityRoot.GetComponentsInChildren<MeshRenderer>(true)
+        bool staraWyspa = UnityEngine.Object.FindObjectsByType<MeshRenderer>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None)
             .Any(r => r && r.enabled &&
                (r.name == "Pętla: trawnik wyspy" ||
                 r.name == "Pętla: krawężnik wyspy"));
