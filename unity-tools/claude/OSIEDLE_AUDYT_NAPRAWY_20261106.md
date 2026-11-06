@@ -7,7 +7,7 @@
 ## Potwierdzone w GitHub Actions
 
 - [Bezpieczny import Patryka 22/22](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42149847404) — oryginalne SHA-256, kompletny zaszyfrowany transfer `unity-city/Prywatne/import-patryk-animations-20261106`; brak jawnego ZIP w bieżącym drzewie (UWAGA: historia Gita zawiera wcześniejszy jawny commit).
-- [Szybkie testy osiedla](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42176327818) — 31/31 statycznych testów Python, skaner 112 plików C# bez wykrytych błędów **składniowych**. To NIE jest kompilacja Unity ani akceptacja grafiki na Androidzie.
+- [Najnowsze szybkie testy osiedla](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42177190005) — 32/32 testy statyczne Python i skaner 112 plików C# bez błędów **składniowych**. To NIE jest kompilacja Unity ani akceptacja grafiki na Androidzie.
 - [Audyt oryginalnych aut GLB](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42173173037) — 10 modeli, 2 z nazwanymi oddzielnymi drzwiami, 2 bez jawnych nazw koła (nie mylić z fizycznym brakiem geometrii).
 
 ## Zapisane poprawki źródłowe
@@ -21,6 +21,9 @@
 7. **Drzwi i wejścia** — kontrola fizycznej drożności, bez fałszywego ignorowania ścian; zielone znaki wyjścia dopiero po pozytywnym teście łączności; błędy zgłaszane do raportu.
 8. **Autobusy** — zerowanie starych parametrów, kontrola braku przystanków i zejścia z drogi, kompatybilny shader przy importowanych autobusach.
 9. **Centralny raport** — jawne `DO POPRAWKI` z generowania aut, salonu, sportu, boksu, dyskoteki, obsady NPC, wejść, pasażerów i autobusów trafia do `city-review/aktualizacja-osiedla.txt`.
+10. **Kontroler gry** — osiedle (explorationOnly) przyjmuje CIOS/KOP wyłącznie w granicach boisk, używa wyłącznie `GoalkeeperCatch` / `GoalkeeperPlacingBall` / `GoalkeeperDropKick` Patryka, uruchamia zdarzenia piłki; fora Braxa i jego IK nie obracają już kończyn Patryka. Interfejs Android ma rzeczywiste przyciski.
+11. **Przesyłanie małych aktualizacji** — `.github/workflows/zone-content-update.yml` wybiera projektowe Unity `6000.0.85f2` tylko dla osiedla; profil innych stref pozostaje bez zmian. Nadal nie zastępuje nowego podpisanego APK dla zmian C#.
+12. **Personel salonu** — właścicielskie stanowisko „Patryk (sprzedawca)” ma klip `Typing` z ostatniej paczki i nie tworzy już nieruchomej figury Idle. Osobne, niezlecone kopie nadal trafiają do raportu.
 
 ## Wdrożenie na telefon — warunek podpisu i nowej bazy
 
