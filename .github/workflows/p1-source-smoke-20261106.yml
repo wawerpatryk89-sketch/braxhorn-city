@@ -38,6 +38,8 @@ jobs:
             unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
             unity-tools/mistrzowie/import_pool_p1_owner_assets.py
             unity-tools/mistrzowie/verify_pool_p1_model_geometry.py
+            unity-tools/validation/check_csharp_scopes.py
+            unity-tools/validation/requirements.txt
             unity-tools/mistrzowie/unpack_a1_t11_nested_release.py
             unity-tools/mistrzowie/import_champion_assets.py
             unity-tools/mistrzowie/import_selected_a1_t11.py
@@ -56,6 +58,12 @@ jobs:
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_pool_p1_*.py' -v
           python3 -m py_compile unity-tools/mistrzowie/import_pool_p1_owner_assets.py unity-tools/mistrzowie/prepare_pool_p1_slide.py
           echo "P1_STATIC_CONTRACTS_PASS - no Unity Editor, no APK"
+      - name: C# source syntax and local-variable scope audit (P1 only)
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -q -r unity-tools/validation/requirements.txt
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets/Editor/Mistrzowie
+          echo "P1_CSHARP_SYNTAX_SCOPE_PASS; Unity type/API compilation still required"
       - name: Read owner private draft Release and verify ZIP archive
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
