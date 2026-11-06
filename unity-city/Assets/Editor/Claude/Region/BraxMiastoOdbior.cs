@@ -172,8 +172,26 @@ internal static class BraxMiastoOdbior
             Blad("BRAXHORN_METRO_M1_NIEGOTOWE: brak podziemnej stacji M1");
             return;
         }
-        if (cityRoot.GetComponentInChildren<BraxMetroM1Ruch>(true))
-            Blad("BRAXHORN_METRO_M1_ETAP: niezamówiony aktywny kontroler kursu pociągu");
+        Bounds Scal(Bounds a, Bounds b) { a.Encapsulate(b); return a; }
+        var pojazd = cityRoot.GetComponentInChildren<BraxMetroM1Ruch>(true);
+        if (pojazd)
+        {
+            if (pojazd.kursyWlaczone)
+                Blad("BRAXHORN_METRO_M1_ETAP: zakaz uruchamiania kursow bez decyzji wlasciciela");
+            var pasazerowie = pojazd.GetComponent<BraxMetroM1Pasazerowie>();
+            if (pasazerowie && pasazerowie.enabled)
+                Blad("BRAXHORN_METRO_M1_ETAP: symulacja pasazerow ma pozostac wylaczona");
+            var widoczne = pojazd.GetComponentsInChildren<Renderer>(true).Where(r => r);
+            Bounds? wagon = null;
+            foreach (var r in widoczne)
+                wagon = wagon.HasValue ? Scal(wagon.Value, r.bounds) : r.bounds;
+            if (wagon.HasValue &&
+                (wagon.Value.min.y < -12.83f || wagon.Value.max.y > -5.25f ||
+                 wagon.Value.min.z < 34.18f || wagon.Value.max.z > 38.80f))
+                Blad("BRAXHORN_METRO_M1_SKRAJNIA: nieruchomy model wystaje poza tunel lub na peron");
+            Debug.Log("BRAXHORN_METRO_M1_POSTOJ_TECHNICZNY kursy=" + pojazd.kursyWlaczone +
+                " pasazerowie=" + (pasazerowie && pasazerowie.enabled));
+        }
 
         var renderery = stacja.GetComponentsInChildren<MeshRenderer>(true);
         bool MaMaterial(string nazwa) => renderery.Any(r => r && r.sharedMaterial &&
@@ -217,7 +235,7 @@ internal static class BraxMiastoOdbior
             " podloga_peronu=" + (probyPodlogi - brakPodlogi) + "/" + probyPodlogi +
             " tory=" + torySiatka + " ciaglosc_2_torow=" + toryKontynuacja +
             " bramki=" + bramki.Length + "/7" + " bramki_ruch=" + bramkiRuch +
-            " pociag=CELOWO_WYLACZONY; sprawdzic wejscie i przejscie na telefonie";
+            " kursy=CELOWO_WYLACZONE; sprawdzic wejscie i przejscie na telefonie";
         if (!peronSiatka || !torySiatka || !toryKontynuacja ||
             brakPodlogi > 0 || !bramkiRuch)
             Blad(log + " NIEGOTOWE");
