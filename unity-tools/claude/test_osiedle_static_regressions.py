@@ -208,6 +208,29 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("unityVersion: ${{ steps.profile.outputs.unity_version }}", workflow)
         self.assertIn('echo "unity_version=$UNITY" >> "$GITHUB_OUTPUT"', workflow)
 
+    def test_ai_spawn_checks_scene_obstacles_before_placing_cars(self):
+        sim = (ROOT / "unity-city/Assets/Claude/Runtime/BraxRuchAutSym.cs").read_text()
+        adapter = (ROOT / "unity-city/Assets/Claude/Runtime/BraxRuchAut.cs").read_text()
+        spawn = sim.split("public void UstawStart()", 1)[1].split("bool DalekoOdWezlow", 1)[0]
+        self.assertIn("if (Nachodzi(a, p, kk, .5f, 4f, null)) continue;", spawn)
+        self.assertIn("if (ZajeteZewnetrznie(p, kk", spawn)
+        initial = adapter.split("void Start()", 1)[1].split("bool Widoczne", 1)[0]
+        self.assertLess(initial.index("sym.przeszkodaSceny = PrzeszkodaSceny;"),
+                        initial.index("OdswiezPrzeszkody();"))
+        self.assertLess(initial.index("OdswiezPrzeszkody();"),
+                        initial.index("sym.UstawStart();"))
+        self.assertIn("sym.zewnetrzne.Clear();", adapter)
+        self.assertIn("BraxAutoGracza.Wszystkie", adapter)
+        self.assertIn("BraxAutobus.Wszystkie", adapter)
+
+    def test_pedestrian_escape_rejects_walls_and_occupied_destinations(self):
+        people = (ROOT / "unity-city/Assets/Claude/Runtime/BraxPieszy.cs").read_text()
+        self.assertIn("Physics.SphereCastNonAlloc", people)
+        self.assertIn("if (n == trafieniaPrzeszkod.Length) return true;", people)
+        self.assertIn("if (gracz && hit.transform.IsChildOf(gracz)) continue;", people)
+        self.assertIn("if (!Przeszkoda(transform.forward, droga + .2f) && !Zajete(p))", people)
+        self.assertIn("else nastSprawdz = 0f;", people)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
