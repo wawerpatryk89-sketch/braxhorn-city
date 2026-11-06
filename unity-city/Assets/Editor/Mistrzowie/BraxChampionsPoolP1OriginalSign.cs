@@ -15,24 +15,24 @@ public static class BraxChampionsPoolP1OriginalSign
     const float W=10.0f,H=2.5f; // exact 4:1, scaled to the SPA canopy/roof clearance
     static float K=>BraxClaudeOsiedle.K;
 
+    // Exact original owner files from the 148-sign Unity ZIP (01_GLOWNE).
+    // Other BASEN signs exist (TR10 and rooftop); selecting by keyword
+    // silently fails or attaches another building's artwork.
+    public const string BasenSign=Signs+"/01_GLOWNE/P1_BASEN_BASEN_MIEJSKI.png";
+    public const string SpaSign=Signs+"/01_GLOWNE/P1_SPA_SPA_WELLNESS.png";
+
     public static string FindOriginal()
     {
-        if(!AssetDatabase.IsValidFolder(Signs))return null;
-        var candidates=AssetDatabase.FindAssets("t:Texture2D",new[]{Signs})
-            .Select(AssetDatabase.GUIDToAssetPath)
-            .Where(p=>p.EndsWith(".png",StringComparison.OrdinalIgnoreCase)
-                && Path.GetFileNameWithoutExtension(p).IndexOf("BASEN",StringComparison.OrdinalIgnoreCase)>=0)
-            .OrderBy(p=>p,StringComparer.Ordinal).ToArray();
-        // If multiple assets have BASEN in their names, do not guess which
-        // one the owner approved for P1. Refuse to replace his artwork.
-        if(candidates.Length!=1)
+        var graphic=AssetDatabase.LoadAssetAtPath<Texture2D>(BasenSign);
+        if(!graphic)
         {
-            Debug.LogWarning("P1 OWNER SIGN NOT VERIFIED: expected exactly one original BASEN PNG in "+
-                Signs+"; candidates="+candidates.Length+" ["+string.Join(", ",candidates)+
-                "]. The front stays unsigned rather than displaying an invented logo.");
+            Debug.LogWarning("P1 owner's exact BASEN sign not imported: "+BasenSign+
+                " | leave source socket; no generated substitute.");
             return null;
         }
-        return candidates[0];
+        if(graphic.width!=2048 || graphic.height!=512)
+            throw new InvalidDataException("P1 BASEN owner original must be 2048x512: "+BasenSign);
+        return BasenSign;
     }
 
     static Color EdgeFromSource(string path)
