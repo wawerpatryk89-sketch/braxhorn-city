@@ -17,7 +17,7 @@ class CasinoT11UndergroundTests(unittest.TestCase):
         self.assertIn("if inside((x,z),T11_GARAGE_RAMP):return None",self.ground)
         # Keep the original T11 garage cutout even as port/promenade rectangles
         # are added to the same subdivision; exact old list order is irrelevant.
-        self.assertRegex(self.ground,r"(?m)^rects=.*\\+\\[T11_GARAGE_RAMP\\]")
+        self.assertTrue(any(line.startswith("rects=") and "+[T11_GARAGE_RAMP]" in line for line in self.ground.splitlines()),"Integrated geometry omitted the T11 8x46m garage ramp cutout")
         self.assertGreaterEqual(535.5,495-60)
         self.assertLessEqual(543.5,495+60)
         self.assertGreaterEqual(443,465-50)
