@@ -33,6 +33,29 @@ public sealed class BraxPodroznyAuta : MonoBehaviour
         for(int i=0;i<n;i++)if(kontakty[i]&&!kontakty[i].transform.IsChildOf(transform))return false;
         return true;
     }
+    // End-position checks alone do not prevent tunnelling through narrow
+    // fences, car doors or bollards on low-FPS Android frames. Cast the actual
+    // step using the same NPC capsule, with zero heap allocation per step.
+    readonly RaycastHit[] trafieniaDrogi = new RaycastHit[24];
+    bool PrzejscieWolne(Vector3 next)
+    {
+        if (!Wolne(next)) return false;
+        Vector3 delta = next - transform.position;
+        float distance = delta.magnitude;
+        if (distance <= .0001f) return true;
+        int n = Physics.CapsuleCastNonAlloc(
+            transform.position + Vector3.up * .35f,
+            transform.position + Vector3.up * (osoba.wzrost - .3f),
+            .28f, delta / distance, trafieniaDrogi, distance, Mask,
+            QueryTriggerInteraction.Ignore);
+        if (n == trafieniaDrogi.Length) return false; // saturated: fail safely
+        for (int i = 0; i < n; i++)
+        {
+            var collider = trafieniaDrogi[i].collider;
+            if (collider && !collider.transform.IsChildOf(transform)) return false;
+        }
+        return true;
+    }
     bool doszedl;
     IEnumerator Idz(Vector3 cel)
     {
@@ -45,7 +68,7 @@ public sealed class BraxPodroznyAuta : MonoBehaviour
         {
             Vector3 d = cel - transform.position; d.y = 0f;
             var next = Vector3.MoveTowards(transform.position, cel, Time.deltaTime * 1.2f);
-            if (Wolne(next))
+            if (PrzejscieWolne(next))
             {
                 bezPostepu = 0f;
                 osoba.anim.CrossFade(chod, .2f);
