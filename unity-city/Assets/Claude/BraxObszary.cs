@@ -121,6 +121,16 @@ public sealed class BraxObszary : MonoBehaviour
         double startWyspy = Time.realtimeSinceStartupAsDouble;
         var sc = SceneManager.GetSceneByName(o.scena);
         if (!sc.isLoaded) { o.wczytany = false; yield break; }
+        // Ostatnia osłona: gdyby Unity nie przeniosło jachtu do trwałej
+        // sceny gracza, NIE wolno rozładować sceny spod zajętej łodzi.
+        // Kosztem RAM, ale nigdy utraty pojazdu i Braxa na otwartym morzu.
+        foreach (var v in BraxVessel.All)
+            if (v && v.Occupied && v.gameObject.scene == sc)
+            {
+                Debug.LogWarning("BRAXHORN_REJS_STREAM_OCHRONA: odłożono zwolnienie " +
+                    o.scena + " — zajęty " + v.label + " nadal należy do sceny");
+                yield break;
+            }
         zajety = true; Laduje++;
         try
         {
