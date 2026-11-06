@@ -43,7 +43,7 @@ public static class BraxChampionsBuild
     // Explicit owner-requested diagnostic build; scene colliders remain unchanged.
     public static void BuildAndroidWithoutWalkChecks() => BuildInternal(true,false,true);
     // Explicit manual validation: generate/reopen/check scenes without player or bundles.
-    public static void ValidateScenes() => BuildInternal(false,true);
+    public static void ValidateScenes() => BuildInternal(false,true,true);
 
     // Called only by the optional, manual review step AFTER APK delivery.
     public static void BuildVisualReview()
