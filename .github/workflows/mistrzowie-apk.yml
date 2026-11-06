@@ -440,35 +440,16 @@ jobs:
           androidExportType: androidPackage
           versioning: None
           allowDirtyBuild: true
-      # Save the expensive Unity-generated scene and original content state
-      # independently of later signing, artifact upload or release errors.
-      - name: Archive immutable generated Champions scene and Addressables baseline
-        id: content_baseline
-        if: ${{ always() && !cancelled() && hashFiles('unity-city/BraxContentBuild/base/manifest.json') != '' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
-        run: |
-          python3 unity-tools/updates/content_snapshot.py publish-base
-          python3 - <<'PY'
-          import json,os,pathlib
-          manifest=json.loads(pathlib.Path('unity-city/BraxContentBuild/base/manifest.json').read_text())
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
-              out.write('### Miasto Mistrzów: niezmienna baza zawartości\n\n')
-              out.write('Base ID: `' + manifest['baseId'] + '`\n\n')
-              out.write('Adres prywatnej bazy: content-base-' + manifest['baseId'] + '\n\n')
-              out.write('Kolejne poprawki w trybie `aktualizacja` nie wykonują BuildPlayer.\n')
-          PY
       - name: Validate APK identity and existing certificate; stage immutable output
         id: apk_stage
-        if: always() && !cancelled() && steps.content_baseline.outcome == 'success' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
+        if: always() && !cancelled() && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != ''
         run: python3 unity-tools/mistrzowie/apk_delivery.py stage
       # BuildPlayer has completed, but final signing/publishing failed.
       # Save the raw output WITHOUT any keystore. This is NOT a trusted installer.
       # The owner can use recovery_run later to re-sign and publish without Unity.
       - name: Record raw APK checkpoint after a failed signature validation
         id: raw_checkpoint
-        if: ${{ always() && !cancelled() && (steps.apk_stage.outcome == 'failure' || steps.content_baseline.outcome == 'failure') && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != '' }}
+        if: ${{ always() && !cancelled() && steps.apk_stage.outcome == 'failure' && hashFiles('build/Android/braxhorn-mistrzowie.gotowe') != '' }}
         continue-on-error: true
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
@@ -525,7 +506,28 @@ jobs:
         run: |
           export APK_RELEASE_TAG="mistrzowie-apk-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SOURCE_SHA:0:7}"
           python3 unity-tools/mistrzowie/apk_delivery.py verify
+      # OPTIONAL content baseline publication strictly AFTER verified APK delivery.
+      # Never let a failed optional cache/baseline prevent download of an APK.
+      - name: Archive immutable generated Champions scene and Addressables baseline
+        id: content_baseline
+        continue-on-error: true
+        if: ${{ always() && !cancelled() && steps.apk_delivery.outcome == 'success' && hashFiles('unity-city/BraxContentBuild/base/manifest.json') != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          python3 unity-tools/updates/content_snapshot.py publish-base
+          python3 - <<'PY'
+          import json,os,pathlib
+          manifest=json.loads(pathlib.Path('unity-city/BraxContentBuild/base/manifest.json').read_text())
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('### Miasto Mistrzów: niezmienna baza zawartości\n\n')
+              out.write('Base ID: `' + manifest['baseId'] + '`\n\n')
+              out.write('Adres prywatnej bazy: content-base-' + manifest['baseId'] + '\n\n')
+              out.write('Kolejne poprawki w trybie `aktualizacja` nie wykonują BuildPlayer.\n')
+          PY
       - name: Activate immutable Addressables base only after signed APK delivery
+        continue-on-error: true
         if: ${{ always() && !cancelled() && steps.content_baseline.outcome == 'success' && steps.apk_delivery.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
