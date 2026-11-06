@@ -10,10 +10,12 @@ VAL=(ROOT/"unity-city/Assets/Editor/Oboz/BraxObozValidation.cs").read_text("utf-
 
 class CanopyCount(unittest.TestCase):
     def test_48_bags_24_under_actual_roofs(self):
-        main=re.search(r"Bags\(-23,\s*-40,\s*true,(\d+)\);\s*Bags\(23,\s*-40,\s*false,(\d+)\);",ENV)
-        self.assertIsNotNone(main)
-        main_covered=2*int(main.group(1))
-        main_open=2*int(main.group(2))
+        covered=re.search(r"Bags\(-23,\s*-40,\s*true,\s*(\d+)\)",ENV)
+        open_air=re.search(r"Bags\(23,\s*-40,\s*false,\s*(\d+)\)",ENV)
+        self.assertIsNotNone(covered)
+        self.assertIsNotNone(open_air)
+        main_covered=2*int(covered.group(1))
+        main_open=2*int(open_air.group(1))
         pavilion=re.search(r"Bags\(12,51,false,(\d+)\);",CAMP)
         self.assertIsNotNone(pavilion)
         pavilion_covered=2*int(pavilion.group(1))

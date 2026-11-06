@@ -13,7 +13,7 @@ class OptionalBuilderContract(unittest.TestCase):
             'Ring 1','las i murawa','oryginalne murale'):
             self.assertIn('Optional("'+item+'"',E)
         self.assertIn("Terrain(); // grunt jest kluczowy",E)
-        self.assertIn("if(!EditorSceneManager.SaveScene",E)
+        self.assertRegex(E,r'if\s*\(\s*!\s*EditorSceneManager\.SaveScene\(scene,\s*ScenePath\)\s*\)')
     def test_per_building_cleanup_without_ignoring_failure(self):
         self.assertIn("static void OptionalBuilding(string label,Transform parent,Action action)",S)
         self.assertIn("OptionalBuilding(item.Item2,parent",S)

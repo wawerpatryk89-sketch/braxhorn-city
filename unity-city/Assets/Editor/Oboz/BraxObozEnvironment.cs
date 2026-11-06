@@ -71,17 +71,22 @@ public static partial class BraxObozEnvironment
     // Zniszcz pół-utworzony obiekt, usuń jego rejestracje, zachowaj wcześniejsze.
     static void Optional(string label,Action action)
     {
-        var before=Enumerable.Range(0,root.childCount)
-            .Select(i=>root.GetChild(i)).ToArray();
+        // Snapshot CAŁEJ istniejącej hierarchii. Mural lub wyposażenie
+        // może dopinać nowe obiekty POD już istniejącym domkiem.
+        var before=new HashSet<int>(root.GetComponentsInChildren<Transform>(true)
+            .Select(x=>x.gameObject.GetInstanceID()));
         int d=doors.Count,b=bags.Count,c=covered.Count,a=arenas.Count;
         try { action(); }
         catch(Exception ex)
         {
-            for(int i=root.childCount-1;i>=0;i--)
-            {
-                var child=root.GetChild(i);
-                if(!before.Contains(child))Object.DestroyImmediate(child.gameObject);
-            }
+            // Najwyższe nowe korzenie kasują również swoje nowe dzieci.
+            // Istniejących wcześniej renderów/murali/obiektów NIE usuwaj.
+            var added=root.GetComponentsInChildren<Transform>(true)
+                .Where(x=>x!=root && !before.Contains(x.gameObject.GetInstanceID()) &&
+                    x.parent && before.Contains(x.parent.gameObject.GetInstanceID()))
+                .ToArray();
+            foreach(var child in added)
+                if(child)Object.DestroyImmediate(child.gameObject);
             if(doors.Count>d)doors.RemoveRange(d,doors.Count-d);
             if(bags.Count>b)bags.RemoveRange(b,bags.Count-b);
             if(covered.Count>c)covered.RemoveRange(c,covered.Count-c);
