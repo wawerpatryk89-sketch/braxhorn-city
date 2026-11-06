@@ -886,7 +886,7 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         // Przed wejściem sklepu: wyraźny, równy chodnik; szerokość 6 m,
         // światło wejścia x=-120 bez schodka. Część przed witryną
         // to płyty, a nie parking dla aut.
-        Chodnik("Supermarket BRAXHORN: przedpole i wejście", -140f, -102f, 125f, 132f);
+        Chodnik("Supermarket BRAXHORN: przedpole i wejście", -140f, -104.2f, 124.5f, 132f);
         // Po bokach parkingu rabaty zamiast centralnego trawnika/wyspy.
         Trawa("Parking supermarketu: pas zieleni zachodni", -147.8f, -140.2f, 82.1f, 124.8f, true);
         Trawa("Parking supermarketu: pas zieleni wschodni", -111.8f, -104.2f, 82.1f, 124.8f, true);
