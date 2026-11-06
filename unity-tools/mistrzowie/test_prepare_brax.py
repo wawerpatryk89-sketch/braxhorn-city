@@ -34,6 +34,25 @@ class BraxTransferTests(unittest.TestCase):
         self.assertEqual(len(expected),6)
         self.assertFalse(self.report['retargeted'])
 
+    def test_original_glb_has_mixamo_car_rig_bones(self):
+        import re
+        names=[n.get("name","") for n in self.source.get("nodes",[])]
+        def bone(value):
+            value=value.replace("\\\\","/").rsplit("/",1)[-1].rsplit("|",1)[-1]
+            value=value.rsplit(":",1)[-1].strip()
+            return re.sub(r"^mixamorig[0-9]*[:_.\\- ]*","",value,flags=re.I).lower()
+        normalized={bone(name) for name in names}
+        required=("Hips","Spine","LeftUpLeg","RightUpLeg",
+                  "LeftLeg","RightLeg","LeftArm","RightArm")
+        missing=[name for name in required if name.lower() not in normalized]
+        print("BRAX_SOURCE_RIG_DIAGNOSTIC skinCount=",len(self.source.get("skins",[])),
+              "nodeCount=",len(names),"missingMixamo=",missing,
+              "originalNodeNames=",names[:90])
+        self.assertTrue(self.source.get("skins"),
+                        "Brax original GLB has NO skinned rig; cannot rebind real car FBX")
+        self.assertFalse(missing,"Original Brax GLB missing Mixamo bones: "+
+                         repr(missing)+"; names="+repr(names[:90]))
+
     def test_missing_run_is_found_before_writing_output(self):
         broken=copy.deepcopy(self.source)
         broken['animations']=[a for a in broken['animations'] if a.get('name')!='Running']

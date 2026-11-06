@@ -18,6 +18,7 @@ on:
       - unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuild.cs
       - unity-tools/mistrzowie/test_brax_source_readiness.py
       - unity-tools/mistrzowie/test_build23_quality_diagnostics.py
+      - unity-tools/mistrzowie/test_prepare_brax.py
   workflow_dispatch:
 
 permissions:
