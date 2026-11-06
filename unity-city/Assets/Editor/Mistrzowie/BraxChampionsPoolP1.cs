@@ -77,11 +77,13 @@ public static class BraxChampionsPoolP1
         RecreationWing();
         SpaAndReception();
         ConnectWings();
+        SpaMassageRooms();
         foreach(var b in layout.basins)BuildBlueBasin(b);
         FixturesAndFurniture();
         EstateAndParking();
         BraxChampionsPoolP1Slide.Generate(outdoors,paving,steel,blue);
         OwnerEquipmentAnchors();
+        BraxChampionsPoolP1SpaFurnishing.Generate(rooms,details,smallMosaic,steel);
         NightAndInteriorLights();
 
         if(parked!=layout.parkingSpaces)
@@ -377,7 +379,8 @@ public static class BraxChampionsPoolP1
         // Two actual walkable, glass-sided internal links; not blocked by glass sheets.
         DeckWithBasins("SPORT <-> SPA OPEN PASSAGE",-7.75f,7.75f,-4f,6f);
         Box(structure,"P1 spa-sports link roof",roofFinish,0,6.5f,1f,15.7f,.24f,10f);
-        RectGlazing(-7.75f,1f,10f,6.2f,false);
+        // The west glass wall leaves a genuine doorway into two SPA massage rooms.
+        RectGlazing(-7.75f,1f,10f,6.2f,false,0f,1.35f);
         RectGlazing(7.75f,1f,10f,6.2f,false);
         DeckWithBasins("SPORT <-> FAMILY LINK",-41f,-36f,20f,27.8f);
         Box(structure,"P1 family link roof",white,-38.5f,7.8f,23.9f,5f,.21f,7.8f);
@@ -390,6 +393,25 @@ public static class BraxChampionsPoolP1
             Box(rooms,"Lobby ceiling pendant",led,x,3.8f,-19,.65f,.10f,.65f,false);
         Box(rooms,"Public waiting seating upholstered base",wood,0,.64f,-10.6f,4.8f,.48f,1.0f);
     }
+    // Treatment suites have an independent functional entrance from the
+    // main SPA<->sports glass link. The owner's street-facing glazed facade,
+    // existing sauna, cafe, pools and entrance remain exactly where they are.
+    // Two separate lockable rooms, not massage beds scattered in the lobby.
+    static void SpaMassageRooms()
+    {
+        DeckWithBasins("SPA TWO GENUINE MASSAGE ROOMS",-18.1f,-7.7f,-4f,6f);
+        Box(structure,"P1 massage suite calm white roof",roofFinish,-12.9f,4.05f,1f,10.55f,.25f,10.4f);
+        Box(structure,"P1 massage suite west finished exterior wall",facade,-18.15f,2.0f,1f,.18f,4.0f,10.1f);
+        Box(structure,"P1 massage suite south insulated wall",white,-12.95f,2.0f,-4f,10.45f,4.0f,.18f);
+        // Two 8m×5m treatment rooms, each entered from a 2m side corridor.
+        Room("GABINET MASAZU 1",-14.0f,-1.5f,8.0f,4.8f,3.45f,white,+1);
+        Room("GABINET MASAZU 2",-14.0f,3.45f,8.0f,4.8f,3.45f,white,+1);
+        Box(rooms,"P1 massage suite clean central corridor PBR",floor,-8.85f,Deck+.013f,1f,2.05f,.026f,9.7f,false);
+        Box(details,"P1 massage corridor header with no blocked opening",steel,-7.78f,3.95f,1f,.12f,.13f,2.75f,false);
+        for(float z=-1.5f;z<=3.5f;z+=5f)
+            Box(details,"P1 massage room warm clinical ceiling LED",led,-14.0f,3.0f,z,3.8f,.06f,.38f,false);
+    }
+
     // Room has four real walls, an OPEN door passage and a ceramic floor. No fake closed panel.
     static void Room(string name,float x,float z,float w,float d,float h,Material wall,int corridorSide=0)
     {
