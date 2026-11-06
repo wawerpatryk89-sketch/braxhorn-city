@@ -16,6 +16,9 @@ public static class BraxChampionsPromenade
 {
     const string Source="Assets/Source/Mistrzowie";
     const string Output="Assets/PlayableGenerated/Mistrzowie";
+    // One owner-approved TEMPORARY 3x4 atlas; source PNG bytes stay unchanged.
+    const string AtlasSource="Assets/Source/Mistrzowie/Promenade/BRAXHORN_PROMENADA_K1_K12_ATLAS.png";
+    const string AtlasSha256="eac1e17f55d8b77340e7d2cca4c9f97ea72e256acaf8237286ff550012145886";
     static float K=>BraxClaudeOsiedle.K;
     static readonly Color[] WallTints={
         new Color(.91f,.82f,.65f),new Color(.96f,.85f,.90f),
@@ -102,52 +105,46 @@ public static class BraxChampionsPromenade
         return BraxChampionsFoundation.SourceMaterial(name,slug,tiling,tint);
     }
 
-    // NEVER generate storefront artwork. All 12 signs must come from the
-    // user's verified 148-PNG original packages (2048x512 with original GUID).
-    // A STRICT Python source gate runs before Unity, to avoid expensive failure.
-    // Copy original image BYTES into a generated work asset, so Unity Android
-    // import settings cannot alter owner source file, its pixels or .meta.
+    // The owner provided a single 3-column x 4-row PNG for K1..K12.
+    // The original file remains byte-identical in the private GitHub release.
+    // No invented/fallback sign is generated and no physical sign is cropped.
+    public static void VerifyAtlas()
+    {
+        if(!File.Exists(AtlasSource))
+            throw new FileNotFoundException("Owner-approved temporary promenade atlas missing",AtlasSource);
+        if(Sha256(AtlasSource)!=AtlasSha256)
+            throw new InvalidOperationException("Owner-approved promenade atlas changed: "+AtlasSource);
+        var imp=AssetImporter.GetAtPath(AtlasSource) as TextureImporter;
+        if(!imp)
+            throw new InvalidOperationException("Promenade atlas TextureImporter unavailable: "+AtlasSource);
+        imp.GetSourceTextureWidthAndHeight(out int width,out int height);
+        if(width!=2172||height!=724)
+            throw new InvalidOperationException("Promenade source atlas must remain exactly 2172x724");
+        if(!AssetDatabase.LoadAssetAtPath<Texture2D>(AtlasSource))
+            throw new InvalidOperationException("Unity did not import original promenade atlas: "+AtlasSource);
+    }
+
     static Material Sign(KioskRecord p)
     {
-        string manifest=Source+"/PromenadeOriginalSignBinding.json";
-        if(!File.Exists(manifest))
-            throw new FileNotFoundException(
-                "BLOCKED: owner's 12 accurately labelled promenade originals are not all verified. "+
-                "No invented/fallback sign may enter Unity.",manifest);
-        var binding=JsonUtility.FromJson<OriginalOwnerSigns>(File.ReadAllText(manifest));
-        if(binding==null||binding.signs==null||binding.signs.Length!=12)
-            throw new InvalidOperationException("Owner sign manifest must list exactly 12 verified originals");
-        var chosen=binding.signs.SingleOrDefault(x=>x.id==p.id);
-        if(chosen==null||string.IsNullOrEmpty(chosen.path)
-                ||string.IsNullOrEmpty(chosen.sha256)
-                ||!chosen.path.StartsWith(Source+"/CitySigns/",StringComparison.Ordinal)
-                ||chosen.path.Contains(".."))
-            throw new InvalidOperationException("Unverified original CitySigns for "+p.id);
-        var owner=chosen.path;
-        if(!File.Exists(owner)||!File.Exists(owner+".meta"))
-            throw new FileNotFoundException("Owner original PNG or pinned Unity GUID missing: "+p.id,owner);
-        if(Sha256(owner)!=chosen.sha256.ToLowerInvariant())
-            throw new InvalidOperationException("Owner original pixels do not match verified SHA: "+p.id);
-        string full=Output+"/Textures/prom_"+p.id+"_owner_exact_copy.png";
-        if(!File.Exists(full))
-        {
-            // No transformation, recompression or replacement of the PNG bytes.
-            File.Copy(owner,full);
-            AssetDatabase.ImportAsset(full,ImportAssetOptions.ForceSynchronousImport);
-        }
-        else if(Sha256(full)!=chosen.sha256.ToLowerInvariant())
-            throw new InvalidOperationException("Refusing to replace a changed staged sign: "+p.id);
-        var imp=AssetImporter.GetAtPath(full) as TextureImporter;
-        if(!imp)throw new InvalidOperationException("Staged original sign import missing: "+full);
-        imp.textureType=TextureImporterType.Default;
-        imp.sRGBTexture=true;
-        imp.maxTextureSize=2048;
-        imp.mipmapEnabled=true;
-        imp.isReadable=false;
+        VerifyAtlas();
+        var imp=(TextureImporter)AssetImporter.GetAtPath(AtlasSource);
         var android=imp.GetPlatformTextureSettings("Android");
-        if(!android.overridden||android.maxTextureSize!=2048||
-           android.format!=TextureImporterFormat.ASTC_4x4)
+        bool needsImport=imp.textureType!=TextureImporterType.Default
+            ||!imp.sRGBTexture||!imp.mipmapEnabled||imp.maxTextureSize!=4096
+            ||imp.npotScale!=TextureImporterNPOTScale.None
+            ||imp.wrapMode!=TextureWrapMode.Clamp
+            ||!imp.alphaIsTransparency||!android.overridden
+            ||android.maxTextureSize!=2048||android.format!=TextureImporterFormat.ASTC_4x4;
+        if(needsImport)
         {
+            imp.textureType=TextureImporterType.Default;
+            imp.sRGBTexture=true;imp.mipmapEnabled=true;
+            imp.maxTextureSize=4096;imp.npotScale=TextureImporterNPOTScale.None;
+            imp.alphaIsTransparency=true;imp.isReadable=false;
+            imp.streamingMipmaps=true;
+            imp.wrapMode=TextureWrapMode.Clamp;
+            imp.filterMode=FilterMode.Trilinear;
+            imp.textureCompression=TextureImporterCompression.CompressedHQ;
             android.name="Android";android.overridden=true;
             android.maxTextureSize=2048;
             android.format=TextureImporterFormat.ASTC_4x4;
@@ -155,18 +152,23 @@ public static class BraxChampionsPromenade
             imp.SetPlatformTextureSettings(android);
             imp.SaveAndReimport();
         }
-        var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(full);
-        if(!tex||tex.width!=2048||tex.height!=512)
-            throw new InvalidOperationException("Original kiosk sign must remain 2048x512 4:1: "+full);
+        var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(AtlasSource);
+        if(!tex)throw new InvalidOperationException("Atlas could not load as Unity Texture2D");
+        // Atlas cells are 724x181 source pixels, NOT a separate 2K sign.
+        // Source fidelity is preserved. Mobile mip/ASTC size needs device review.
+        if(tex.width<2048)
+            BraxBuildQuality.Warn("Owner 3x4 promenade atlas imported below 2048px; provisional visual review required");
         var shader=Shader.Find(BraxCityMaterials.ShaderName);
-        if(!shader)throw new InvalidOperationException("No CityStaticPBR shader for owner signage");
-        var mat=new Material(shader){name=p.id+" | original owner's untouched 2K shop sign"};
+        if(!shader)throw new InvalidOperationException("No CityStaticPBR shader for owner's atlas");
+        var mat=new Material(shader){name=p.id+" | original owner provisional atlas sign"};
         mat.SetTexture("_MainTex",tex);
         mat.SetColor("_Color",Color.white);
         mat.SetFloat("_Roughness",.32f);mat.SetFloat("_Metallic",.08f);
         mat.SetFloat("_VertexTint",0);
+        mat.SetFloat("_AlphaClip",1);mat.SetFloat("_Cutoff",.08f);
+        mat.SetOverrideTag("RenderType","TransparentCutout");mat.renderQueue=2450;
         mat.SetVector("_SunDirection",BraxCityMaterials.SunDirection);
-        var path=Output+"/Materials/prom_"+p.id+"_sign.mat";
+        string path=Output+"/Materials/prom_"+p.id+"_sign.mat";
         var old=AssetDatabase.LoadAssetAtPath<Material>(path);
         if(old)
         {
@@ -190,9 +192,17 @@ public static class BraxChampionsPromenade
             new Vector3(w*.5f,bottom+h,front)*K,
             new Vector3(-w*.5f,bottom+h,front)*K
         };
+        // Row-major K1..K12: 3 columns, 4 rows, top row first.
+        // Two original-source pixels inset prevents neighbour bleeding.
+        int atlasIndex=int.Parse(p.id.Substring(1))-1;
+        if(atlasIndex<0||atlasIndex>=12)
+            throw new InvalidOperationException("Invalid K1..K12 atlas cell: "+p.id);
+        int col=atlasIndex%3, row=atlasIndex/3;
+        float u0=col/3f+2f/2172f,u1=(col+1)/3f-2f/2172f;
+        float v0=(3-row)/4f+2f/724f,v1=(4-row)/4f-2f/724f;
         mesh.uv=new[]{
-            new Vector2(0,0),new Vector2(1,0),
-            new Vector2(1,1),new Vector2(0,1)
+            new Vector2(u0,v0),new Vector2(u1,v0),
+            new Vector2(u1,v1),new Vector2(u0,v1)
         };
         // Quads look out to the seaward side (-Z), never reverse facing.
         mesh.triangles=new[]{0,2,1,0,3,2};
@@ -206,7 +216,7 @@ public static class BraxChampionsPromenade
             EditorUtility.SetDirty(old);
         }
         else AssetDatabase.CreateAsset(mesh,meshPath);
-        var go=new GameObject(p.id+" | 2048x512 owner shop sign facing pedestrians");
+        var go=new GameObject(p.id+" | temporary original 3x4 atlas shop sign facing pedestrians");
         go.transform.SetParent(root,false);
         go.AddComponent<MeshFilter>().sharedMesh=mesh;
         go.AddComponent<MeshRenderer>().sharedMaterial=sign;
