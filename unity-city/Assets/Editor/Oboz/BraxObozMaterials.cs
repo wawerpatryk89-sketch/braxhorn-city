@@ -197,6 +197,30 @@ public static class BraxObozMaterials
         material.mainTextureScale=Vector2.one/widthMetres;
         return Save(material,"polyhaven-"+id);
     }
+    public static Material OwnerGrassMediumPbr(int variant)
+    {
+        if(variant!=1 && variant!=2)throw new ArgumentOutOfRangeException(nameof(variant));
+        string name="grass_medium_0"+variant+"_2k";
+        string prefix="Assets/Source/Prywatne/Oboz/OwnerAssets/"+name+"/textures/";
+        var color=Map(prefix+name.Replace("_2k","_diff_2k")+".jpg",false,true);
+        var alpha=Map(prefix+name.Replace("_2k","_alpha_2k")+".png",false,false);
+        var normal=Map(prefix+name.Replace("_2k","_nor_gl_2k")+".exr",true,false);
+        var rough=Map(prefix+name.Replace("_2k","_rough_2k")+".exr",false,false);
+        foreach(var tex in new[]{color,alpha,normal,rough})
+            if(!tex || tex.width!=2048 || tex.height!=2048)
+                throw new InvalidOperationException("Owner Grass Medium atlas is not real 2K: "+name);
+        var shader=Shader.Find("Braxhorn/ObozGrassMedium");
+        if(!shader)throw new InvalidOperationException("Grass Medium original PBR shader missing");
+        var mat=new Material(shader){name="BRAXHORN / oryginalna Grass Medium "+variant+
+            " / 2K UV alpha",enableInstancing=true};
+        mat.SetTexture("_MainTex",color);
+        mat.SetTexture("_AlphaTex",alpha);
+        mat.SetTexture("_BumpMap",normal);
+        mat.SetTexture("_RoughnessTex",rough);
+        mat.SetFloat("_Cutoff",.32f);
+        return Save(mat,"owner-grass-medium-0"+variant+"-2k");
+    }
+
     public static Material OwnerMudForestPbr()
     {
         // The owner's SOURCE maps, not a tinted gravel stand-in.
