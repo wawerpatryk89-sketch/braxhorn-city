@@ -64,6 +64,8 @@ public static class BraxObozActors
             }
             info.npcs=npcs;
             BraxObozTrainingSetup.Configure(info);
+            // Ślady tylko w mokrej ziemi: wspólny limit 40, czas życia 20s.
+            info.gameObject.AddComponent<BraxObozFootprintTrail>().Configure(player,npcs);
             foreach (var station in info.GetComponentsInChildren<BraxObozTrainingStation>(true))
                 station.player=player; // szesc plenerowych + trzy pod dachem
             foreach(var arena in info.arenas)
