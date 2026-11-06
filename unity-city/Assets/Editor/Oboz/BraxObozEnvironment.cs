@@ -465,8 +465,9 @@ public static partial class BraxObozEnvironment
         // Podest rzeczywisty 1 m, liny otaczają wewnętrzny kwadrat 6x6 m.
         var platform=Box(t,"Podest drewniany",new Vector3(0,.50f,0),
             new Vector3(8.0f,1.0f,8.0f),wood);
-        Box(t,"Mata bez cudzych logo",new Vector3(0,1.02f,0),
+        var ringMat=Box(t,"Mata bez cudzych logo",new Vector3(0,1.02f,0),
             new Vector3(7.8f,.04f,7.8f),burgundy);
+        ringMat.AddComponent<BraxObozDeformableMat>().Configure(7.8f,7.8f);
         foreach(float dx in new[]{-3f,3f})foreach(float dz in new[]{-3f,3f}) {
             Cylinder(t,"Słupek ringu",new Vector3(dx,1.0f,dz),new Vector3(dx,2.55f,dz),.09f,metal,true);
             Cylinder(t,"Ochraniacz narożnika",

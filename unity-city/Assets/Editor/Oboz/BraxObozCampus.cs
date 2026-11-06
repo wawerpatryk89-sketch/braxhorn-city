@@ -114,8 +114,9 @@ public static partial class BraxObozEnvironment
         var gym=Group("BRAXHORN · SIŁOWNIA 3D WŁAŚCICIELA",root,P(-40,0,34));
         var rubberFloor=BraxObozMaterials.Plain("silownia-gumowa-podloga",
             new Color(.065f,.073f,.075f),.12f);
-        Box(gym,"Podłoga z kolizją",new Vector3(0,.11f,0),
+        var gymMat=Box(gym,"Podłoga z kolizją",new Vector3(0,.11f,0),
             new Vector3(27f,.22f,19.5f),rubberFloor);
+        gymMat.AddComponent<BraxObozDeformableMat>().Configure(27f,19.5f);
         foreach(float z in new[]{-7.9f,7.9f})
         foreach(float x in new[]{-12.4f,-6.2f,0f,6.2f,12.4f})
         {
@@ -320,7 +321,9 @@ public static partial class BraxObozEnvironment
     {
         var t=Group("Stanowisko · "+label,root,P(x,0,z));
         Box(t,"Podkład",new Vector3(0,.035f,0),new Vector3(width,.07f,depth),campusPaving);
-        Box(t,"Nawierzchnia gumowa",new Vector3(0,.075f,0),new Vector3(width-.3f,.01f,depth-.3f),campusRubber,false);
+        var mat=Box(t,"Nawierzchnia gumowa",new Vector3(0,.075f,0),
+            new Vector3(width-.3f,.01f,depth-.3f),campusRubber,false);
+        mat.AddComponent<BraxObozDeformableMat>().Configure(width-.3f,depth-.3f);
         build(t);
         float signWidth=Mathf.Min(width-1,8);
         foreach(float side in new[]{-1f,1f})
