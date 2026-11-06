@@ -58,9 +58,46 @@ public static partial class BraxClaudeOsiedle
         var loze = renderery.SelectMany(r=>r.transform.GetComponentsInParent<Transform>(true))
             .Where(t=>t.name.StartsWith("loża właściciela ",StringComparison.Ordinal)).Distinct().ToArray();
         if (loze.Length != 14) bledy.Add("Niekompletny układ oryginalnych lóż Puls: " + loze.Length + "/14");
-        var gracz = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<BraxGymPlayer>(true)).FirstOrDefault();
-        if (!gracz || !gracz.visual || gracz.visual.name != "Patryk") bledy.Add("Brak nowego Patryka");
-        if (!scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<BraxAutoGracza>(true)).Any()) bledy.Add("Brak dostępnego auta Patryka");
+        // Weryfikacja WYMANY Patryka: dokładnie jeden model na scenie, jeden
+        // kontroler i prawdziwe koła także w autach zaparkowanych.
+        // Kontrola jest tania (bez renderowania / bez APK) i zapisuje błędy do raportu.
+        var roots = scene.GetRootGameObjects();
+        var gracze = roots.SelectMany(g => g.GetComponentsInChildren<BraxGymPlayer>(true)).ToArray();
+        if (gracze.Length != 1) bledy.Add("Liczba graczy=" + gracze.Length + " (wymagany dokładnie jeden)");
+        var gracz = gracze.FirstOrDefault();
+        if (!gracz || !gracz.visual || gracz.visual.name != "Patryk")
+            bledy.Add("Brak oryginalnego modelu Patryk przypisanego do gracza");
+        var patryki = roots.SelectMany(g => g.GetComponentsInChildren<Transform>(true))
+            .Where(t => t.name == "Patryk" && t.GetComponentInChildren<SkinnedMeshRenderer>(true))
+            .ToArray();
+        if (patryki.Length != 1)
+            bledy.Add("Model Patryk: " + patryki.Length + " instancji (wymagana jedna, bez drugiego posągu)");
+        var samochodyGracza = roots.SelectMany(g => g.GetComponentsInChildren<BraxAutoGracza>(true)).ToArray();
+        if (samochodyGracza.Length != 1)
+            bledy.Add("Auto Patryka pod areną: " + samochodyGracza.Length + " zamiast jednego");
+        foreach (var car in samochodyGracza)
+        {
+            if (!car.fotel || !car.obrys || !car.GetComponent<Rigidbody>())
+                bledy.Add("Auto Patryka jest dekoracją: brak fotela / kolizji / napędu");
+        }
+        var wszystkieAuta = roots.SelectMany(g => g.GetComponentsInChildren<Transform>(true))
+            .Where(t => (t.name.StartsWith("Auto w ruchu", StringComparison.Ordinal)
+                || t.name.StartsWith("Auto zaparkowane", StringComparison.Ordinal)
+                || t.name.StartsWith("Auto Patryka", StringComparison.Ordinal))
+                && t.GetComponentInChildren<MeshRenderer>(true))
+            .ToArray();
+        foreach (var auto in wszystkieAuta)
+            foreach (string id in new[] { "LP", "PP", "LT", "PT" })
+            {
+                var wheel = auto.Find("koło " + id + "/obrót");
+                var mf = wheel ? wheel.GetComponent<MeshFilter>() : null;
+                var mr = wheel ? wheel.GetComponent<MeshRenderer>() : null;
+                if (!mf || !mf.sharedMesh || mf.sharedMesh.vertexCount < 12 || !mr
+                    || mr.sharedMaterials.Length == 0 || mr.sharedMaterials.Any(m => !m || !m.shader))
+                    bledy.Add("Auto " + auto.name + ": brak prawidłowej siatki/materiału koła " + id);
+            }
+        Debug.Log("BRAXHORN_OSIEDLE_POSTAC_AUTA Patryk=" + patryki.Length
+            + " auta_gracza=" + samochodyGracza.Length + " auta_widoczne=" + wszystkieAuta.Length);
         foreach (var m in MiejscaParkingowe)
             if (m.rozmiar.x < 3f * K - .001f || m.rozmiar.y < 5f * K - .001f) bledy.Add("Za mała zatoka " + m.srodek);
         try { TestTozsamosciMaterialu(); } catch (Exception e) { bledy.Add("Regresja materiału: " + e.Message); }
