@@ -417,6 +417,17 @@ jobs:
         run: |
           rm -f "$RUNNER_TEMP/champions-library.tar.zst.enc"
           df -h /
+      # Two original GLBs request 3-4 UV channels that glTFast cannot
+      # reproduce. Neither is instantiated by the Champions scene. Keep
+      # BOTH byte-identical originals outside Assets in THIS TEMPORARY RUNNER
+      # so they do not trigger unrelated import errors. No tracked asset
+      # is changed, no visual replacement is generated, no other zone affected.
+      # This is a diagnostic/compatibility step, NOT a build-stopping gate.
+      - name: Advisory - isolate only unused UV-incompatible GLBs in temporary runner
+        continue-on-error: true
+        run: |
+          python3 unity-tools/mistrzowie/isolate_unused_glb_champions.py --apply-runner-only
+          echo 'Unused P1 towels and HarborBeach crane original GLBs preserved outside Unity Assets in this runner; visual source unchanged.' >> "$GITHUB_STEP_SUMMARY"
       - name: Unity 6 - Miasto Mistrzów, Brax i APK do zwiedzania
         id: unity_build
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
