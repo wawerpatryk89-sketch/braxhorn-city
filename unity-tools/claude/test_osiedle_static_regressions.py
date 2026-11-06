@@ -309,6 +309,12 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("JedyneWejscia.Contains(id)", cleanup)
         self.assertLess(build.index('", JednoWejscie);'), build.index('", DrzwiBezSciany);'))
 
+    def test_obscured_premium_sign_reaches_final_scene_quality_report(self):
+        signs = source("BraxClaudeOsiedleSzyldy.cs")
+        scene = source("BraxClaudeOsiedleAktualizacja.cs")
+        self.assertIn('rep.notes.Add("DO POPRAWKI: SZYLD ZASŁONIĘTY:', signs)
+        self.assertIn('n.StartsWith("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase)', scene)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
