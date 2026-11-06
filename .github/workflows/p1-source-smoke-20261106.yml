@@ -38,6 +38,8 @@ jobs:
             unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
             unity-tools/mistrzowie/import_pool_p1_owner_assets.py
             unity-tools/mistrzowie/unpack_a1_t11_nested_release.py
+            unity-tools/mistrzowie/import_champion_assets.py
+            unity-tools/mistrzowie/import_selected_a1_t11.py
             unity-tools/mistrzowie/legacy_foundation.py
             unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1*.cs
             unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuildings.cs
@@ -105,6 +107,24 @@ jobs:
           python3 unity-tools/mistrzowie/unpack_a1_t11_nested_release.py \
             "$RUNNER_TEMP/$source_zip" "$RUNNER_TEMP" --dry-run
           echo "A1_T11_ORIGINAL_NESTED_SOURCE_HASHES_PASS"
+          # Real, local-only source installation into ephemeral checkout,
+          # exactly as the production build will do. No Unity Editor/APK.
+          python3 unity-tools/mistrzowie/unpack_a1_t11_nested_release.py \
+            "$RUNNER_TEMP/$source_zip" "$RUNNER_TEMP"
+          python3 unity-tools/mistrzowie/import_champion_assets.py \
+            "$RUNNER_TEMP/ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip" --dry-run
+          python3 unity-tools/mistrzowie/import_champion_assets.py \
+            "$RUNNER_TEMP/ARENA_A1_DO_GITHUB_POBIERZ_PONOWNIE.zip"
+          python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
+            "$RUNNER_TEMP/ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip" --dry-run
+          python3 unity-tools/mistrzowie/import_selected_a1_t11.py \
+            "$RUNNER_TEMP/ARENA_A1_KASYNO_T11_ORYGINALY_Z_GABLOTA.zip"
+          python3 unity-tools/mistrzowie/import_pool_p1_owner_assets.py \
+            "$RUNNER_TEMP/P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip"
+          test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/C1_KASYNO_KASYNO_WAWER.png
+          test -s unity-city/Assets/Source/Mistrzowie/CitySigns/01_GLOWNE/P1_BASEN_BASEN_MIEJSKI.png
+          test -s unity-city/Assets/Source/Mistrzowie/PoolP1/OwnerEquipment/hot-tub-original-exterior-model.glb
+          echo "A1_T11_AND_P1_REAL_SOURCE_INSTALL_PASS no Unity/APK execution"
 
       - name: Report source-only scope
         if: always()
