@@ -311,11 +311,11 @@ internal static class BraxMiastoBillboardy
     // Nie kasujemy ceglanej ściany, witryn, drzwi ani żadnej innej reklamy.
     static int UsunBilbord19PrzySzarejScianie(Transform cityRoot)
     {
-        var korzenie = new[] { cityRoot, BraxClaudeGround.SourceCity }
-            .Where(t => t).Distinct().ToArray();
-        var widoczne = korzenie.SelectMany(t => t.GetComponentsInChildren<Renderer>(true))
-            .Where(r => r && r.enabled)
-            .Distinct().ToArray();
+        // Obejmuje też importowany oryginalny gym, który nie jest dzieckiem
+        // korzenia miasta. Lokalizacja i identyfikacja grafiki ograniczają usuwanie.
+        var widoczne = UnityEngine.Object.FindObjectsByType<Renderer>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None)
+            .Where(r => r && r.enabled).ToArray();
         bool WObszarze(Renderer r)
         {
             var b = r.bounds;
@@ -338,14 +338,15 @@ internal static class BraxMiastoBillboardy
                 string path = mat.mainTexture ? AssetDatabase.GetAssetPath(mat.mainTexture).ToLowerInvariant() : "";
                 if (mn.Contains("billboard_19") || mn.Contains("mural_19") ||
                     mn.Contains("original artwork") || tn == "19" ||
-                    tn.Contains("brand-poster") || tn.Contains("billboard") ||
+                    tn.Contains("brand-poster") || tn.Contains("poster") || tn.Contains("billboard") ||
                     path.Contains("/billboardy/19.") || path.Contains("/brand-poster.")) return true;
             }
             return false;
         }
         // Stara grupa 19 miała własną ramę i lampy. Usuń całość, o ile zawiera
         // panel właśnie w tej zatoce ceglanej; nie dotykaj innych grup sceny.
-        var grupy = korzenie.SelectMany(t => t.GetComponentsInChildren<Transform>(true))
+        var grupy = UnityEngine.Object.FindObjectsByType<Transform>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None)
             .Where(t => t &&
                 (t.name.StartsWith("BRAXHORN mural 19 (", StringComparison.Ordinal) ||
                  t.name.StartsWith("BRAXHORN nośnik: billboard 19", StringComparison.Ordinal)))
@@ -366,6 +367,12 @@ internal static class BraxMiastoBillboardy
                 r.GetComponent<MeshFilter>() == null) continue;
             UnityEngine.Object.DestroyImmediate(r.gameObject);
             usuniete++;
+        }
+        if (usuniete == 0)
+        {
+            string kandydaci = string.Join("; ", widoczne.Where(WObszarze).Take(8)
+                .Select(r => r.name + " [" + string.Join(",", r.sharedMaterials.Where(m => m).Select(m => m.name)) + "]"));
+            Debug.LogWarning("BRAXHORN_MURAL_19 NIE POTWIERDZONO USUNIECIA STAREGO BILLBOARDU; obiekty w zatoce: " + kandydaci);
         }
         Debug.Log("BRAXHORN_MURAL_19 usuniete_plakaty_z_ceglanej_zatoki=" + usuniete +
                   " (x=9.5..14.8, bez zmian poza ta sciana)");
