@@ -271,12 +271,15 @@ public static class BraxMiastoAssety
         float krok = pb.size.z + .01f; UnityEngine.Object.DestroyImmediate(probny);
         zA = srodekZ - krok * przejsc * .5f; zB = srodekZ + krok * przejsc * .5f;
         int ok = 0;
+        var utworzone = new List<GameObject>(); // rollback całego rzędu, jeśli choć jedna bramka nie działa
         for (int i = 0; i < przejsc; i++)
         {
             try
             {
                 var p = new Vector3(gx, yM, zA + krok * (i + .5f));
                 var o = Postaw(podziemie, m, "bramka biletowa " + (i + 1) + " (model)", p, 90f, 1f, false, false);
+                if (!o) throw new System.InvalidOperationException("Brak obiektu bramki");
+                utworzone.Add(o);
                 var b = BraxRegion.Bounds(o); o.transform.position += new Vector3(p.x - b.center.x, yM - b.min.y, p.z - b.center.z);
                 // klapy → skrzydła drzwi przesuwnych (chowają się do swojej obudowy: kierunek do środka obudowy, 0.27 m × K)
                 var drz = o.AddComponent<BraxDrzwiPrzesuwne>(); drz.etykieta = "bramka metra " + (i + 1); drz.promien = 1.9f; drz.czasRuchu = .35f;
@@ -301,14 +304,25 @@ public static class BraxMiastoAssety
                 {
                     var t = Znajdz(o.transform, nm); var r = t ? t.GetComponentInChildren<Renderer>() : null; if (!r) continue;
                     var c = new GameObject("kolizja obudowy").AddComponent<BoxCollider>(); c.transform.SetParent(podziemie, false);
+                    utworzone.Add(c.gameObject);
                     c.transform.position = r.bounds.center; c.size = r.bounds.size;
                 }
-                if (sk.Count == 4) ok++;
+                if (sk.Count == 4 && drz.blokady.Length == 1) ok++;
+                else Log("METRO: bramka " + (i + 1) + " ma niekompletne skrzydła — wymagana przebudowa całego rzędu");
             }
             catch (Exception e) { Blad("METRO bramka " + (i + 1), e); }
         }
+        // Dotąd nawet 1/7 sprawnych modeli ukrywało cały zestaw bramek z kodu.
+        // Pozostałe przejścia mogły kończyć się niewidzialną blokadą.
+        if (ok != przejsc)
+        {
+            foreach (var o in utworzone) if (o) UnityEngine.Object.DestroyImmediate(o);
+            Log("METRO: modelowe bramki " + ok + "/" + przejsc + " — wycofano CAŁY niekompletny rząd; stosowane bramki z kodu");
+            zA = zB = 0f;
+            return false;
+        }
         Log("METRO: bramki biletowe (model) " + ok + "/" + przejsc + " z klapami w BraxDrzwiPrzesuwne, rząd z " + zA.ToString("0.00") + "…" + zB.ToString("0.00") + " — stare obudowy i szybki z kodu NIE zbudowane");
-        return ok > 0;
+        return true;
     }
 
     // =====================================================================================================================
