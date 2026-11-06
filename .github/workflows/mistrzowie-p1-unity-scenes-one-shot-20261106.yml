@@ -1,3 +1,5 @@
+# Second owner-requested scene validation after fixing P1 terrain NameError.
+# Real no-Unity geometry preflight PASS: https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42210773955
 name: Miasto Mistrzow A1+T11+P1 - ONE Unity 6 SCENES QA (NO APK)
 run-name: Champions arena, casino, Brax car, promenade, port, beach and P1 pool - Unity scenes
 
