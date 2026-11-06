@@ -161,13 +161,43 @@ jobs:
         env:
           KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
         run: python3 unity-tools/oboz/assets.py restore
-      - name: Zainstaluj Blender i zstd do oryginalnych siatek Grass Medium/4K
+      - name: Oryginalny Blender 4.5 LTS z oficjalnym SHA256 — wymagany przez Grass Medium 4.4
         if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         run: |
           set -euo pipefail
+          # Ubuntu 24.04 apt blender = 4.0.2. Owner Grass Medium originals have
+          # BLENDER-v404 headers, i.e. Blender 4.4. Never open their real mesh
+          # with an older forward-incompatible Blender and silently drop data.
           sudo apt-get update -qq
-          sudo apt-get install --no-install-recommends -y blender zstd
-          blender --version | head -2
+          sudo apt-get install --no-install-recommends -y zstd xz-utils libgl1 libxi6 libxrender1
+          VERSION=4.5.15
+          ARCHIVE="blender-${VERSION}-linux-x64.tar.xz"
+          BASE="https://download.blender.org/release/Blender4.5"
+          mkdir -p "$RUNNER_TEMP/oboz-blender"
+          cd "$RUNNER_TEMP/oboz-blender"
+          curl --fail --location --silent --show-error --retry 3 --connect-timeout 30 \
+            --max-time 120 --output "blender-${VERSION}.sha256" "$BASE/blender-${VERSION}.sha256"
+          python3 - <<'PY_SHA'
+          from pathlib import Path
+          import re
+          filename="blender-4.5.15-linux-x64.tar.xz"
+          records=Path("blender-4.5.15.sha256").read_text().splitlines()
+          matches=[]
+          for line in records:
+              fields=line.split()
+              if len(fields)>=2 and fields[-1].lstrip("*").split("/")[-1]==filename and re.fullmatch("[0-9a-fA-F]{64}",fields[0]):
+                  matches.append(fields[0].lower())
+          if len(matches)!=1:raise ValueError("Brak dokładnie jednej oficjalnej sumy SHA256 archiwum "+filename)
+          Path("blender-linux.sha256").write_text(matches[0]+"  "+filename+"\n")
+          print("BRAXHORN_OBOZ_OFFICIAL_BLENDER_HASH_METADATA=PASS")
+          PY_SHA
+          curl --fail --location --silent --show-error --retry 3 --connect-timeout 30 \
+            --max-time 1200 --output "$ARCHIVE" "$BASE/$ARCHIVE"
+          sha256sum --check blender-linux.sha256
+          tar -xJf "$ARCHIVE"
+          test -x "$PWD/blender-${VERSION}-linux-x64/blender"
+          "$PWD/blender-${VERSION}-linux-x64/blender" --version | head -2
+          echo "$PWD/blender-${VERSION}-linux-x64" >> "$GITHUB_PATH"
       - name: Zweryfikowany import nowej prywatnej paczki 30 modeli i byka
         if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         run: python3 unity-tools/oboz/owner_release_assets.py restore
