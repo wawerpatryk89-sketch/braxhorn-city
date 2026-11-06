@@ -30,6 +30,47 @@ public static class BraxChampionsPoolP1SpaFurnishing
         return b;
     }
 
+    // Use colliders on ACTUAL source geometry, not fake enclosing cubes.
+    // The shower's glass door is deliberately not a full-box obstacle:
+    // the owner must be able to inspect/enter the cabin while walking.
+    static int PhysicalSourceColliders(GameObject instance,string file)
+    {
+        int count=0;
+        foreach(var filter in instance.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if(!filter||!filter.sharedMesh||!filter.gameObject.activeInHierarchy)continue;
+            var own=filter.name.ToLowerInvariant();
+            var parent=filter.transform.parent?
+                filter.transform.parent.name.ToLowerInvariant():string.Empty;
+            bool solid=false;
+            if(file=="hot-tub-original-exterior-model.glb")
+                solid=own.StartsWith("continuous spa basin liner")
+                    ||own.StartsWith("spa enclosed base")
+                    ||own.StartsWith("spa outer")
+                    ||own.StartsWith("spa access step")
+                    ||own.StartsWith("spa interior seat")
+                    ||own.StartsWith("spa padded rim");
+            else if(file=="sauna_product_model.glb")
+                solid=parent=="base"||parent=="stand"||parent=="metal";
+            else if(file=="portable-massage-table.glb")
+                solid=own.Contains("table leg")||own.Contains("padded deck")
+                    ||own.Contains("deck rail")||own.Contains("face cradle");
+            else if(file=="double-bathroom-vanity.glb")
+                solid=own.StartsWith("case")||own.StartsWith("basin");
+            else if(file=="shower_cabin.glb")
+                solid=own=="object_2"||own=="object_6";
+            else if(file=="lockers.glb"||file=="locker_room_bench_free_model.glb")
+                solid=true;
+            if(!solid||filter.GetComponent<Collider>())continue;
+            var collider=filter.gameObject.AddComponent<MeshCollider>();
+            collider.sharedMesh=filter.sharedMesh;
+            count++;
+        }
+        if(count==0)
+            Debug.LogWarning("P1 source equipment: no checked structural meshes for collider: "+file);
+        return count;
+    }
+
     static GameObject Install(Transform parent,string file,string label,
         float x,float z,float maxW,float maxD,float maxH,float turn=0f)
     {
@@ -60,8 +101,10 @@ public static class BraxChampionsPoolP1SpaFurnishing
         var actual=RenderingBounds(instance).size/K;
         if(actual.x>maxW+.02f||actual.y>maxH+.02f||actual.z>maxD+.02f)
             throw new InvalidOperationException("P1 fitted owner model exceeds allocated dimensions: "+file);
+        int structuralColliders=PhysicalSourceColliders(instance,file);
         Debug.Log("P1 SPA REAL MODEL INSTALLED "+label+" | dims_nominal_m="+
-            actual.ToString("F2")+" | uniform_scale="+factor+" | not Unity playmode-tested");
+            actual.ToString("F2")+" | uniform_scale="+factor+
+            " | source structural mesh colliders="+structuralColliders+" | not Unity playmode-tested");
         return instance;
     }
 
