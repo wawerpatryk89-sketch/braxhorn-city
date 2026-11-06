@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import re
 import shutil
 import struct
 import subprocess
@@ -43,12 +44,28 @@ def check_glb(path):
 def main():
     executable=shutil.which("blender")
     if not executable:raise RuntimeError("Official Blender is not installed; cannot build from fake grass")
+    info=subprocess.run([executable,"--version"],capture_output=True,text=True,
+        check=True,timeout=45).stdout
+    match=re.search(r"Blender (\\d+)\\.(\\d+)",info)
+    if not match:raise ValueError("Unable to verify actual Blender executable version")
+    blender_version=int(match.group(1))*100+int(match.group(2))
+    if blender_version<404:
+        raise ValueError("Owner Grass Medium was saved in Blender 4.4. "+
+                         "Installed Blender "+match.group(0)+" is too old; "+
+                         "use the SHA256-verified official Blender 4.5 LTS.")
     from owner_assets_intake import ensure_stable_meta
     audit=[]
     for name,digest in LOCKED.items():
         source=STAGE/(name+".blend")
         if not source.is_file() or sha(source)!=digest:
             raise ValueError("Missing/unverified owner Blender original: "+name)
+        with source.open("rb") as stream:header=stream.read(12)
+        if len(header)!=12 or not header.startswith(b"BLENDER-") or not header[9:12].isdigit():
+            raise ValueError("Invalid original Blender header: "+name)
+        source_version=int(header[9:12])
+        if source_version>blender_version:
+            raise ValueError("Older Blender executable than original "+name+
+                             ": source="+str(source_version)+" exporter="+str(blender_version))
         textures=TARGET/name/"textures"
         if not textures.is_dir() or len(list(textures.iterdir()))<3:
             raise ValueError("Owner original PBR textures missing: "+name)
