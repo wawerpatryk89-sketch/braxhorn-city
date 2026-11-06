@@ -10,8 +10,10 @@ on:
       - .github/workflows/p1-source-smoke-20261106.yml
   workflow_dispatch:
 
+# Draft GitHub Releases require the repository-scoped workflow token to have write permission.
+# The job remains read-only in practice and never publishes/replaces assets.
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: p1-smoke-source-${{ github.ref }}
