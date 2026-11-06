@@ -143,13 +143,39 @@ public static class BraxWyspaOdbior
         if (!terrain || !terrain.GetComponent<MeshCollider>() || !terrain.GetComponent<BraxPiasekPowierzchnia>()) errors.Add("brak terenu/kolizji/maski piasku");
         else TeksturyTerenu(terrain.GetComponent<Renderer>().sharedMaterials[0]);
         var show = root.GetComponentInChildren<BraxArenaPokaz>(true);
-        if (!show || !show.zawodnikA || !show.zawodnikB || !show.animacjaA || !show.animacjaB) errors.Add("brak kompletnej walki pokazowej");
+        if (!show || !show.zawodnikA || !show.zawodnikB || !show.animacjaA || !show.animacjaB)
+            errors.Add("brak kompletnej walki pokazowej PITBULL / DOBERMAN");
         else
         {
+            // Nie wolno podstawić KADE zamiast oryginalnego Pitbulla RAKK.
+            if (show.zawodnikA.name != "Pokaz: PITBULL (RAKK)" ||
+                show.zawodnikB.name != "Pokaz: DOBERMAN (ZYRO)")
+                errors.Add("niewłaściwi zawodnicy: oczekiwano PITBULL/RAKK i DOBERMAN/ZYRO");
+            var wymaganeRuchy = new[]
+            {
+                "Garda", "Krok", "Kombinacja", "Unik", "Trafienie",
+                "Kopniecie", "Blok", "TrafienieKorpus", "Wstanie", "Zaczepka"
+            };
             foreach (var anim in new[] { show.animacjaA, show.animacjaB })
-                foreach (string clip in new[] { "Garda", "Krok", "Kombinacja", "Unik", "Trafienie" })
-                    if (!anim.GetClip(clip)) errors.Add("brak klipu pokazu " + clip);
-            if (!show.zawodnikA.IsChildOf(root) || !show.zawodnikB.IsChildOf(root)) errors.Add("zawodnicy poza sceną wyspy");
+            {
+                foreach (string clip in wymaganeRuchy)
+                    if (!anim.GetClip(clip)) errors.Add("brak klipu areny " + anim.name + ": " + clip);
+                if (!anim.GetComponentInChildren<SkinnedMeshRenderer>(true))
+                    errors.Add("brak realnego modelu 3D animowanego zawodnika " + anim.name);
+            }
+            if (!show.zawodnikA.IsChildOf(root) || !show.zawodnikB.IsChildOf(root))
+                errors.Add("zawodnicy poza sceną wyspy");
+            foreach (var fighter in new[] { show.zawodnikA, show.zawodnikB })
+            {
+                var c = fighter.GetComponent<CapsuleCollider>();
+                var rb = fighter.GetComponent<Rigidbody>();
+                if (!c || c.height < 1.4f || !rb || !rb.isKinematic)
+                    errors.Add("zawodnik bez bezpiecznej kapsuły/kinematycznego ciała: " + fighter.name);
+            }
+            // Stan testu runtime jest jawny: same klipy nie potwierdzają kontaktu.
+            Debug.Log("BRAXHORN_WYSPA_PITBULL_DOBERMAN modelA=" + show.zawodnikA.name +
+                " modelB=" + show.zawodnikB.name + " klipy=" + wymaganeRuchy.Length +
+                " kontakt_dłonie_stopy_głowa_korpus=do_testu_Unity test_APK=nie");
         }
         var ambient = root.GetComponentInChildren<BraxWyspaAmbient>(true);
         if (!ambient || !ambient.morze || !ambient.wiatr || !ambient.kibice || !ambient.morze.clip || !ambient.wiatr.clip || !ambient.kibice.clip)
