@@ -320,10 +320,34 @@ public static partial class BraxClaudeOsiedle
                 materials[i] = MaterialAutaAndroid(materials[i]);
             renderer.sharedMaterials = materials;
         }
-        // Nie ukrywaj całej karoserii, gdy źródło GLB używa SkinnedMeshRenderer.
-        // Bez poprawnego importu takiego modelu lepiej go odrzucić niż publikować pusty samochód.
-        if (inst.GetComponentsInChildren<SkinnedMeshRenderer>(true).Any(r => r.sharedMesh && r.sharedMesh.vertexCount > 0))
-            throw new InvalidOperationException("Auto " + src.name + ": model skinned wymaga osobnego importu, nie wyłączaj siatki");
+        // GLB może mieć część karoserii / kół jako SkinnedMeshRenderer.
+        // Poprzedni kod wyłączał WSZYSTKIE te części, dlatego znikały koła
+        // lub całe nadwozie. Wypiekamy pozę bazową do osobnej siatki Unity,
+        // zachowując jej materiały i położenie; źródłowy GLB pozostaje nietknięty.
+        foreach (var sk in inst.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            if (!sk.sharedMesh || sk.sharedMesh.vertexCount == 0) continue;
+            var baked = new Mesh { name = src.name + " (oryginalna poza ze skórą)" };
+            sk.BakeMesh(baked);
+            if (baked.vertexCount < 12 || baked.subMeshCount == 0)
+            {
+                UnityEngine.Object.DestroyImmediate(baked);
+                throw new InvalidOperationException("Auto " + src.name + ": BakeMesh zwrócił pustą siatkę " + sk.name);
+            }
+            string asset = Out + "/auto_" + Safe(src.name) + "_skinned_bake_" + (autoSiatki++) + ".asset";
+            AssetDatabase.CreateAsset(baked, asset);
+            var geometry = sk.gameObject.AddComponent<MeshFilter>();
+            geometry.sharedMesh = baked;
+            var view = sk.gameObject.AddComponent<MeshRenderer>();
+            var materials = sk.sharedMaterials;
+            for (int i = 0; i < materials.Length; i++) materials[i] = MaterialAutaAndroid(materials[i]);
+            view.sharedMaterials = materials;
+            view.shadowCastingMode = ShadowCastingMode.On;
+            view.receiveShadows = true;
+            UnityEngine.Object.DestroyImmediate(sk);
+            Debug.Log("BRAXHORN_AUTO_SKIN_BAKE " + src.name + " vertices=" + baked.vertexCount +
+                " model źródłowy bez zmian");
+        }
         var A = AnalizujAuto(go.transform);
         if (A == null || A.S.x < 1e-5f) { UnityEngine.Object.DestroyImmediate(go); return null; }
         // 1) długa oś → z
