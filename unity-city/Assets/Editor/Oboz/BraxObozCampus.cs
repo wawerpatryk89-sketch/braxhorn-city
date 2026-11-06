@@ -106,84 +106,123 @@ public static partial class BraxObozEnvironment
         if(solid)go.AddComponent<MeshCollider>().sharedMesh=mesh;
     }
 
+    // Private owner gym_environment FBX: 57 authored objects, one 2048x2048
+    // colour atlas. Never substitute primitive weights/benches/machines.
+    // The imported gym is a PROP collection, not the old city gym shell.
     static void CoveredStrengthGym()
     {
-        var gym=Group("BRAXHORN · SILOWNIA POD DACHEM",root,P(-40,0,34));
-        var mats=BraxObozMaterials.Plain("silownia-gumowa-podloga",
+        var gym=Group("BRAXHORN · SIŁOWNIA 3D WŁAŚCICIELA",root,P(-40,0,34));
+        var rubberFloor=BraxObozMaterials.Plain("silownia-gumowa-podloga",
             new Color(.065f,.073f,.075f),.12f);
-        var pads=BraxObozMaterials.Plain("silownia-czerwone-strefy",
-            new Color(.33f,.055f,.064f),.15f);
-        Box(gym,"Pelna podloga ze szczelna kolizja",new Vector3(0,.11f,0),
-            new Vector3(27f,.22f,19.5f),mats);
+        Box(gym,"Podłoga z kolizją",new Vector3(0,.11f,0),
+            new Vector3(27f,.22f,19.5f),rubberFloor);
         foreach(float z in new[]{-7.9f,7.9f})
-        foreach(float x in new[]{-12.4f,-6.2f,0,6.2f,12.4f})
+        foreach(float x in new[]{-12.4f,-6.2f,0f,6.2f,12.4f})
         {
-            Box(gym,"Stalowy slup hali",new Vector3(x,2.55f,z),new Vector3(.17f,5.1f,.17f),campusSteel);
-            Box(gym,"Stopa kotwiona",new Vector3(x,.20f,z),new Vector3(.4f,.16f,.4f),metal);
+            Box(gym,"Słup konstrukcji dachu",new Vector3(x,2.55f,z),
+                new Vector3(.17f,5.1f,.17f),campusSteel);
+            Box(gym,"Kotwa słupa",new Vector3(x,.20f,z),
+                new Vector3(.4f,.16f,.4f),metal);
         }
         foreach(float z in new[]{-7.9f,7.9f})
-            Box(gym,"Belka dachu",new Vector3(0,5.13f,z),new Vector3(27f,.3f,.22f),campusSteel);
+            Box(gym,"Belka nośna",new Vector3(0,5.13f,z),
+                new Vector3(27f,.3f,.22f),campusSteel);
         MetalRoof(gym,27.7f,20.2f,5.4f,1.25f);
-        Sign(gym,"BRAXHORN GYM · OBOZ",new Vector3(0,4.7f,-8.15f),19);
-
-        foreach(float x in new[]{-8.5f,0f,8.5f})
-            Box(gym,"Czerwona mata stanowiska",new Vector3(x,.235f,-3.5f),
-                new Vector3(6.7f,.025f,7.1f),pads,false);
-        foreach(float x in new[]{-8.5f,0f,8.5f})
-        {
-            // Trzy stanowiska silowe: przysiad, wyciskanie, wolne ciezary.
-            var rack=Group("Stalowa klatka do cwiczen "+x,gym,P(x,0,-3.4f));
-            var spot=rack.gameObject.AddComponent<BraxObozTrainingStation>();
-            spot.label=x<0?"PRZYSIADY":x>0?"WYCISKANIE":"TRENING SZTANGI";
-            spot.footprint=new Vector2(5f,5f)*K;
-            foreach(float dx in new[]{-1.15f,1.15f})
-            foreach(float dz in new[]{-1f,1f})
-                Box(rack,"Slup stojaka",new Vector3(dx,1.25f,dz),
-                    new Vector3(.10f,2.5f,.10f),campusSteel);
-            foreach(float z in new[]{-1f,1f})
-                Box(rack,"Gorna poprzeczka",new Vector3(0,2.45f,z),
-                    new Vector3(2.4f,.10f,.12f),metal);
-            Cylinder(rack,"Gryf olimpijski",new Vector3(-1.65f,1.39f,0),
-                new Vector3(1.65f,1.39f,0),.027f,metal,true);
-            foreach(float side in new[]{-1f,1f})
-            for(int plate=0;plate<2;plate++)
-            {
-                float offset=1.19f+plate*.11f;
-                Cylinder(rack,"Talerz 20 kg",new Vector3(side*offset,1.39f,0),
-                    new Vector3(side*(offset+.085f),1.39f,0),.32f,campusRubber,true);
-            }
-        }
-        // Laweczka, stojak hantli i sprzet do rozgrzewki sa osobnymi
-        // fizycznymi obiektami, nie namalowanymi atrapami.
-        foreach(float x in new[]{-8.5f,0,8.5f})
-        {
-            var bench=Group("Lawka treningowa "+x,gym,P(x,0,3.35f));
-            Box(bench,"Tapicerowane siedzisko",new Vector3(0,.77f,0),
-                new Vector3(.70f,.15f,2.2f),mats);
-            foreach(float z in new[]{-0.8f,0.8f})
-                Box(bench,"Stalowa noga",new Vector3(0,.38f,z),
-                    new Vector3(.42f,.73f,.12f),campusSteel);
-        }
-        var dumb=Group("Stojak na hantle 4-24 kg",gym,P(0,0,7));
-        Box(dumb,"Stojak",new Vector3(0,.65f,0),new Vector3(9f,.14f,.65f),metal);
-        for(int i=0;i<12;i++)
-        {
-            float x=-4f+i*.72f;
-            Cylinder(dumb,"Hantel raczka",new Vector3(x-.19f,.80f,0),
-                new Vector3(x+.19f,.80f,0),.04f,metal,true);
-            foreach(float side in new[]{-1f,1f})
-                Cylinder(dumb,"Obciazenie hantla",new Vector3(x+side*.18f,.80f,0),
-                    new Vector3(x+side*.28f,.80f,0),.12f+i*.004f,campusRubber,true);
-        }
-        var mirror=BraxObozMaterials.Plain("silownia-lustro-satynowe",
-            new Color(.63f,.69f,.73f),.84f,.08f);
-        Box(gym,"Lustro do kontroli techniki",new Vector3(0,2.35f,9.63f),
-            new Vector3(13f,2.4f,.035f),mirror,false);
-        Sign(gym,"TRENUJ · WALCZ · ODPOCZYWAJ",new Vector3(0,2f,10),11);
-        // Oryginalny mural sali treningowej; zachowujemy wszystkie piksele/typografię.
+        Sign(gym,"BRAXHORN GYM · OBÓZ",new Vector3(0,4.7f,-8.15f),19f);
+        OwnerStrengthEquipment(gym);
         OriginalMural(gym,"TRAINING_CAMP",
             "6B6E1CA3-605A-47FB-BF0E-F23B1D2C3301(1).jpeg",
             new Vector3(-13.85f,2.7f,0),Quaternion.Euler(0,-90,0),7f,true);
+    }
+
+    static void OwnerStrengthEquipment(Transform gym)
+    {
+        const string sourcePath="Assets/Source/Prywatne/Oboz/OwnerAssets/OwnerExtras/Gym/gym_environment.fbx";
+        const string atlasPath="Assets/Source/Prywatne/Oboz/OwnerAssets/OwnerExtras/Gym/gym_environment.png";
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
+        var atlas=AssetDatabase.LoadAssetAtPath<Texture2D>(atlasPath);
+        if(!source || !atlas || atlas.width!=2048 || atlas.height!=2048)
+            throw new InvalidOperationException(
+                "Nie dostarczono oryginalnego gym_environment.fbx i atlasu 2K z prywatnej biblioteki. "+
+                "Nie wolno budować siłowni z zastępczych brył. Wymagane OwnerExtras/Gym.");
+        var shader=Shader.Find("Standard");
+        if(!shader)throw new InvalidOperationException("Brak shadera PBR dla siłowni właściciela");
+        var temp=new Material(shader){name="Siłownia właściciela / gym_environment atlas 2K",
+            mainTexture=atlas,enableInstancing=true};
+        temp.SetFloat("_Glossiness",.28f);
+        var materialPath=Folder+"/OwnerGymAtlas2K.mat";
+        var material=AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+        if(material){EditorUtility.CopySerialized(temp,material);Object.DestroyImmediate(temp);}
+        else{material=temp;AssetDatabase.CreateAsset(material,materialPath);}
+        var model=PrefabUtility.InstantiatePrefab(source) as GameObject;
+        if(!model)throw new InvalidOperationException("Import oryginalnej siłowni FBX nieudany");
+        model.name="57 oryginalnych obiektów siłowni FBX — bez ringów i worków zdublowanych";
+        model.transform.SetParent(gym,false);
+        bool Duplicate(Transform node)
+        {
+            for(var t=node;t && t!=model.transform;t=t.parent)
+            {
+                string n=t.name.ToLowerInvariant();
+                if(n.StartsWith("boxing_ring_") || n.StartsWith("punching_bag_") ||
+                    n.StartsWith("punching_bag_stand_"))return true;
+            }
+            return false;
+        }
+        var renderers=model.GetComponentsInChildren<MeshRenderer>(true);
+        if(renderers.Length<20)
+            throw new InvalidOperationException("Niepełny import oryginalnego FBX siłowni: "+renderers.Length);
+        foreach(var renderer in renderers)
+        {
+            renderer.enabled=!Duplicate(renderer.transform);
+            if(renderer.enabled)
+                renderer.sharedMaterials=renderer.sharedMaterials.Select(_=>material).ToArray();
+        }
+        var visible=renderers.Where(r=>r.enabled).ToArray();
+        string[] essential={"treadmill","weight_bench","weight_rack","exercise_bike",
+            "dumbbell_1","kettlebell_1","pull_up_rack"};
+        var modelNames=model.GetComponentsInChildren<Transform>(true)
+            .Select(t=>t.name.ToLowerInvariant()).ToArray();
+        foreach(string name in essential)
+            if(!modelNames.Any(n=>n.StartsWith(name)))
+                throw new InvalidOperationException("Siłownia właściciela nie zawiera modelu: "+name);
+        Bounds Bounds()
+        {
+            var b=visible[0].bounds;
+            foreach(var renderer in visible.Skip(1))b.Encapsulate(renderer.bounds);
+            return b;
+        }
+        var bounds=Bounds();
+        if(bounds.size.x<.05f||bounds.size.y<.05f||bounds.size.z<.05f)
+            throw new InvalidOperationException("Nieprawidłowe wymiary oryginalnej siłowni");
+        float scale=Mathf.Min(26f*K/bounds.size.x,
+            Mathf.Min(4.25f*K/bounds.size.y,18.5f*K/bounds.size.z));
+        if(float.IsNaN(scale)||float.IsInfinity(scale)||scale<=0)
+            throw new InvalidOperationException("Błędna skala FBX siłowni");
+        model.transform.localScale*=scale; bounds=Bounds();
+        var center=gym.TransformPoint(P(0,.24f,0));
+        model.transform.position+=new Vector3(
+            center.x-bounds.center.x,center.y-bounds.min.y,center.z-bounds.center.z);
+        // Local equipment hitboxes only. Never add a collider across the
+        // whole room; that would block the player and NavMesh.
+        foreach(var renderer in visible)
+        {
+            string n=renderer.gameObject.name.ToLowerInvariant();
+            bool bulky=n.Contains("treadmill")||n.Contains("exercise_bike")||
+                n.Contains("weight_bench")||n.Contains("weight_rack")||
+                n.Contains("pull_up_rack")||n.Contains("parallel_bars")||
+                n.Contains("abdominal_bench");
+            if(!bulky||renderer.GetComponent<Collider>())continue;
+            var b=renderer.bounds;
+            var collider=renderer.gameObject.AddComponent<BoxCollider>();
+            collider.center=renderer.transform.InverseTransformPoint(b.center);
+            Vector3 loss=renderer.transform.lossyScale;
+            collider.size=new Vector3(b.size.x/Mathf.Max(.001f,Mathf.Abs(loss.x)),
+                b.size.y/Mathf.Max(.001f,Mathf.Abs(loss.y)),
+                b.size.z/Mathf.Max(.001f,Mathf.Abs(loss.z)));
+        }
+        Debug.Log("BRAXHORN_OBOZ_GYM_REAL_FB_X atlas=2048x2048 source="+sourcePath+
+            " renderers="+visible.Length+" bounds="+Bounds().size+
+            " ownerOriginal=unchanged duplicatedRingsAndBags=hidden phoneVisualReview=required");
     }
 
     static void TrainingCampus()
