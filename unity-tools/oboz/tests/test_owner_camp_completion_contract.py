@@ -84,8 +84,8 @@ class OwnerCampCompletionContract(unittest.TestCase):
         self.assertIn('Disc(t,"Zielona wyspa centralna',self.campus)
 
     def test_training_24_original_bags_and_2_tracks(self):
-        self.assertIn('Bags(-23, -40, true,4)',self.environment)
-        self.assertIn('Bags(23, -40, false,6)',self.environment)
+        self.assertIn('Bags(-23, -40, true,12)',self.environment)
+        self.assertIn('Bags(23, -40, false,10)',self.environment)
         self.assertIn('Bags(12,51,false,2)',self.campus)
         self.assertIn('OwnerBagMesh(pivot,OwnerBagPrototype(bags.Count))',self.environment)
         self.assertIn('const float actualLengthMetres=100f;',self.campus)

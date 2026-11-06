@@ -97,7 +97,7 @@ public static partial class BraxObozEnvironment
             TrainingCampus();
             CoveredStrengthGym(); // wolne ciezary i silownia pod dachem
             // Total: four pavilion + eight roofed outdoor + twelve open = 24.
-            Bags(-23, -40, true,4); Bags(23, -40, false,6);
+            Bags(-23, -40, true,12); Bags(23, -40, false,10);
             ServiceBuildings();
             MuralBoards(); // Po budynkach: murale fizycznie na ścianach
             CampusArrival();
@@ -456,43 +456,55 @@ public static partial class BraxObozEnvironment
     {
         var t=Group(name,root,P(x,0,z));
         // Ring nie stoi na chodniku: osobna elastyczna posadzka i krawedz sportowa.
-        Box(t,"Czarna strefa bezpieczenstwa",new Vector3(0,.07f,0),new Vector3(13,.14f,13),dark,false);
+        Box(t,"Odrębna strefa bezpieczeństwa z ubitej ziemi",
+            new Vector3(0,.012f,0),new Vector3(12,.024f,12),ground,false);
         foreach(float borderZ in new[]{-6.3f,6.3f})
             Box(t,"Granica strefy ringu",new Vector3(0,.147f,borderZ),new Vector3(13,.015f,.11f),burgundy,false);
-        var platform=Box(t,"Podest drewniany",new Vector3(0,.24f,0),new Vector3(8.6f,.48f,8.6f),wood);
-        Box(t,"Mata bez cudzych logo",new Vector3(0,.50f,0),new Vector3(8.2f,.04f,8.2f),burgundy);
-        foreach(float dx in new[]{-4f,4f})foreach(float dz in new[]{-4f,4f}) {
-            Cylinder(t,"Słupek ringu",new Vector3(dx,.48f,dz),new Vector3(dx,2.15f,dz),.09f,metal,true);
-            Cylinder(t,"Ochraniacz narożnika",new Vector3(dx*.97f,.72f,dz*.97f),new Vector3(dx*.97f,2.10f,dz*.97f),.16f,burgundy);
+        // Podest rzeczywisty 1 m, liny otaczają wewnętrzny kwadrat 6x6 m.
+        var platform=Box(t,"Podest drewniany",new Vector3(0,.50f,0),
+            new Vector3(8.0f,1.0f,8.0f),wood);
+        Box(t,"Mata bez cudzych logo",new Vector3(0,1.02f,0),
+            new Vector3(7.8f,.04f,7.8f),burgundy);
+        foreach(float dx in new[]{-3f,3f})foreach(float dz in new[]{-3f,3f}) {
+            Cylinder(t,"Słupek ringu",new Vector3(dx,1.0f,dz),new Vector3(dx,2.55f,dz),.09f,metal,true);
+            Cylinder(t,"Ochraniacz narożnika",
+                new Vector3(dx*.98f,1.23f,dz*.98f),
+                new Vector3(dx*.98f,2.50f,dz*.98f),.16f,burgundy);
         }
         foreach(float side in new[]{-1f,1f}) {
-            Box(t,"Fartuch ringu",new Vector3(side*4.32f,.26f,0),new Vector3(.025f,.42f,8.6f),burgundy,false);
-            Box(t,"Fartuch ringu",new Vector3(0,.26f,side*4.32f),new Vector3(8.6f,.42f,.025f),burgundy,false);
+            Box(t,"Fartuch ringu",new Vector3(side*4.01f,.50f,0),
+                new Vector3(.025f,1.0f,8f),burgundy,false);
+            Box(t,"Fartuch ringu",new Vector3(0,.50f,side*4.01f),
+                new Vector3(8f,1f,.025f),burgundy,false);
         }
         // A physical entrance gap stays open; the other sides use shared rope physics.
-        DynamicRopes(x,z,new Vector3(-4,0,-4),new Vector3(-4,0,4),Vector3.left);
-        DynamicRopes(x,z,new Vector3(4,0,-4),new Vector3(4,0,4),Vector3.right);
-        DynamicRopes(x,z,new Vector3(-4,0,4),new Vector3(4,0,4),Vector3.forward);
-        DynamicRopes(x,z,new Vector3(-4,0,-4),new Vector3(-.7f,0,-4),Vector3.back);
-        DynamicRopes(x,z,new Vector3(.7f,0,-4),new Vector3(4,0,-4),Vector3.back);
-        ColliderBox(t,new Vector3(-4,1.3f,0),new Vector3(.1f,1.6f,8));ColliderBox(t,new Vector3(4,1.3f,0),new Vector3(.1f,1.6f,8));
-        ColliderBox(t,new Vector3(0,1.3f,4),new Vector3(8,1.6f,.1f));
-        ColliderBox(t,new Vector3(-2.35f,1.3f,-4),new Vector3(3.3f,1.6f,.1f));ColliderBox(t,new Vector3(2.35f,1.3f,-4),new Vector3(3.3f,1.6f,.1f));
+        DynamicRopes(x,z,new Vector3(-3,0,-3),new Vector3(-3,0,3),Vector3.left);
+        DynamicRopes(x,z,new Vector3(3,0,-3),new Vector3(3,0,3),Vector3.right);
+        DynamicRopes(x,z,new Vector3(-3,0,3),new Vector3(3,0,3),Vector3.forward);
+        DynamicRopes(x,z,new Vector3(-3,0,-3),new Vector3(-.7f,0,-3),Vector3.back);
+        DynamicRopes(x,z,new Vector3(.7f,0,-3),new Vector3(3,0,-3),Vector3.back);
+        ColliderBox(t,new Vector3(-3,1.75f,0),new Vector3(.1f,1.45f,6));
+        ColliderBox(t,new Vector3(3,1.75f,0),new Vector3(.1f,1.45f,6));
+        ColliderBox(t,new Vector3(0,1.75f,3),new Vector3(6,1.45f,.1f));
+        ColliderBox(t,new Vector3(-1.85f,1.75f,-3),new Vector3(2.3f,1.45f,.1f));
+        ColliderBox(t,new Vector3(1.85f,1.75f,-3),new Vector3(2.3f,1.45f,.1f));
         // Keep the first two treads and the front edge of the top tread unchanged.
         // The old top tread ended at -4.425, leaving a 0.125*K gap before
         // the platform edge (-4.3). Extend its back into the platform so
         // navigation cannot see a drop to the pavilion floor between them.
-        for(int i=0;i<3;i++)Box(t,"Schodek",
-            new Vector3(0,.08f*(i+1),i==2?-4.45f:-5.2f+i*.3f),
-            new Vector3(1.4f,.16f*(i+1),i==2?.65f:.35f),wood);
-        var aComp=t.gameObject.AddComponent<BraxObozArena>();aComp.label=name;aComp.halfSize=new Vector2(3.9f,3.9f)*K;arenas.Add(aComp);
+        // Cztery stopnie 25cm do podestu 1m, z boku i poza ciągami komunikacji.
+        for(int i=0;i<4;i++)Box(t,"Schodek z desek",
+            new Vector3(-3.1f,.125f*(i+1),-5.4f+i*.38f),
+            new Vector3(1.15f,.25f*(i+1),.48f),wood);
+        var aComp=t.gameObject.AddComponent<BraxObozArena>();aComp.label=name;
+        aComp.halfSize=new Vector2(2.95f,2.95f)*K;arenas.Add(aComp);
     }
     static void DynamicRopes(float x,float z,Vector3 a,Vector3 b,Vector3 outward)
     {
         var g=Group("Liny ringu — wspólna fizyka",root,Vector3.zero).gameObject;
         g.AddComponent<MeshRenderer>().sharedMaterial=rope;
         var line=g.AddComponent<BraxLina>();line.a=(a+new Vector3(x,0,z))*K;line.b=(b+new Vector3(x,0,z))*K;
-        line.wysokosci=new[]{.9f*K,1.27f*K,1.64f*K,2.01f*K};line.promien=.025f*K;line.naZewnatrz=outward;
+        line.wysokosci=new[]{1.35f*K,1.70f*K,2.05f*K,2.40f*K};line.promien=.025f*K;line.naZewnatrz=outward;
         line.Zbuduj();var mf=g.GetComponent<MeshFilter>();mf.sharedMesh=SaveMesh(UnityEngine.Object.Instantiate(mf.sharedMesh));
     }
     static void Octagon(float x,float z)
@@ -559,14 +571,14 @@ public static partial class BraxObozEnvironment
         Bounds bound=renderers[0].bounds;
         foreach(var renderer in renderers.Skip(1))bound.Encapsulate(renderer.bounds);
         if(bound.size.y<=.001f)throw new InvalidOperationException("Worek ma niepoprawną wysokość");
-        // Źródło ma cały korpus i łańcuch. 2.1*K = wysokość całego zespołu,
-        // pasuje do istniejącego collidera korpusu 1.5*K i haka przy 3.25*K.
-        float targetHeight=2.1f*K;
+        // Cały oryginalny zespół: łańcuch plus korpus.
+        // Hak 3,25 m, dół worka 0,6 m nad ziemią; zachowujemy proporcje siatki.
+        float targetHeight=2.65f*K;
         model.transform.localScale*=targetHeight/bound.size.y;
         bound=renderers[0].bounds;
         foreach(var renderer in renderers.Skip(1))bound.Encapsulate(renderer.bounds);
         model.transform.position+=new Vector3(pivot.position.x-bound.center.x,
-            pivot.position.y-2.2f*K-bound.min.y,
+            pivot.position.y-2.65f*K-bound.min.y,
             pivot.position.z-bound.center.z);
         // Nie wolno wymieniać materiałów ani zmniejszać tekstur.
     }
@@ -574,20 +586,30 @@ public static partial class BraxObozEnvironment
     static void Bags(float x,float z,bool roof,int columns)
     {
         var t=Group((columns*2)+(roof?" worków zadaszonych":" worków otwartych"),root,P(x,0,z));
+        // 40-60 worków bez przycinania belki po zwiększeniu liczby rzędów.
+        float halfBeam=(columns-1)*1.1f+1.8f;
         foreach(float side in new[]{-1f,1f})
         {
-            Cylinder(t,"Belka nośna",new Vector3(-7,3.4f,side*2),new Vector3(7,3.4f,side*2),.12f,wood);
-            foreach(float end in new[]{-7f,7f})Cylinder(t,"Słup",new Vector3(end,0,side*2),new Vector3(end,3.4f,side*2),.13f,wood,true);
+            Cylinder(t,"Belka nośna z bali",
+                new Vector3(-halfBeam,3.4f,side*2),
+                new Vector3(halfBeam,3.4f,side*2),.18f,wood);
+            foreach(float end in new[]{-halfBeam,halfBeam})
+                Cylinder(t,"Gruby drewniany słup",
+                    new Vector3(end,0,side*2),new Vector3(end,3.4f,side*2),
+                    .22f,wood,true);
         }
-        if(roof)MetalRoof(t,15,6,3.63f,.65f);
+        if(roof)MetalRoof(t,halfBeam*2+1.2f,6,3.63f,.65f);
         for(int row=0;row<2;row++)for(int col=0;col<columns;col++)
         {
             var pivot=Group("Worek "+(bags.Count+1),t,P(-(columns-1)*1.1f+col*2.2f,3.25f,row==0?-2:2));
             // Wyłącznie oryginalny model; GLB już zawiera skórę i łańcuchy.
             // Nie dubluj elementów proceduralnymi cylindrami ani UV.
             OwnerBagMesh(pivot,OwnerBagPrototype(bags.Count));
-            var collider=pivot.gameObject.AddComponent<CapsuleCollider>();collider.center=P(0,-1.45f,0);collider.height=1.5f*K;collider.radius=.28f*K;
-            var bag=pivot.gameObject.AddComponent<BraxWorek>();bag.gora=.7f*K;bag.dol=2.2f*K;bag.dlugosc=1.45f*K;bag.promien=.28f*K;bags.Add(bag);if(roof)covered.Add(pivot);
+            var collider=pivot.gameObject.AddComponent<CapsuleCollider>();
+            collider.center=P(0,-2.05f,0);collider.height=1.2f*K;collider.radius=.28f*K;
+            var bag=pivot.gameObject.AddComponent<BraxWorek>();
+            bag.gora=1.45f*K;bag.dol=2.65f*K;bag.dlugosc=2.05f*K;
+            bag.promien=.28f*K;bags.Add(bag);if(roof)covered.Add(pivot);
         }
     }
     // One mesh per panel/suspension, rather than a GameObject per wire/link.

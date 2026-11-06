@@ -31,9 +31,9 @@ public static class BraxObozValidation
             var actual = UnityEngine.Object.FindObjectsByType<BraxObozNpc>(FindObjectsInactive.Include, FindObjectsSortMode.None)
                 .Where(n => n.gameObject.scene == scene.gameObject.scene).ToArray();
             if (actual.Length != 6) errors.Add("W scenie jest inna liczba NPC niż sześć");
-            if (scene.bags.Length != 24 || scene.bags.Any(b => !b) || scene.bags.Distinct().Count() != 24) errors.Add("Wymagane 24 różne worki");
-            if (scene.coveredBags.Length != 12 || scene.coveredBags.Any(b => !b) || scene.coveredBags.Distinct().Count() != 12) errors.Add("Wymagane 12 różnych worków pod zadaszeniem");
-            foreach (var b in scene.coveredBags) if (b && !scene.bags.Any(x => x && x.transform == b)) errors.Add("Zadaszony worek nie należy do grupy 24 worków");
+            if (scene.bags.Length != 48 || scene.bags.Any(b => !b) || scene.bags.Distinct().Count() != 48) errors.Add("Wymagane 48 różnych worków");
+            if (scene.coveredBags.Length != 24 || scene.coveredBags.Any(b => !b) || scene.coveredBags.Distinct().Count() != 24) errors.Add("Wymagane 24 różne worki pod zadaszeniem");
+            foreach (var b in scene.coveredBags) if (b && !scene.bags.Any(x => x && x.transform == b)) errors.Add("Zadaszony worek nie należy do grupy 48 worków");
             if (scene.cabinDoors.Length != 4 || scene.cabinDoors.Distinct().Count() != 4 || scene.cabinDoors.Any(d => !d || d.leaves == null || d.leaves.Length == 0)) errors.Add("Cztery domki potrzebują różnych działających drzwi");
             if (scene.arenas.Length != 3 || scene.arenas.Any(a => !a)) errors.Add("Wymagane dwa ringi i oktagon");
             // Obowiązkowe zaplecze sanitarne: rzeczywiste kabiny i wyposażenie,
