@@ -58,6 +58,35 @@ def main():
             print("BRAXHORN_SZYLD_OK", title, "->", f)
         else:
             print("::error::BRAXHORN_SZYLD_NIEGOTOWY", title, "— brak oryginalnej grafiki", stem)
+    # NOVA: użytkownik wymaga oryginalnego szyldu z paczki, nie tekstowej
+    # atrapy. Import do Unity działa na osobnym GLB szyld_nova.glb albo
+    # dedykowanej grafice JPG/PNG/JPEG — sprawdzamy przed drogim buildem.
+    nazwy_nova = ("club_nova", "nova_club", "nova")
+    model_nova = ROOT / "Miasto" / "miasto_sklepy" / "szyld_nova.glb"
+    grafika_nova = next((p for stem in nazwy_nova
+        for p in [
+            ROOT / "Grafiki" / "szyldy" / (stem + ext)
+            for ext in (".jpg", ".png", ".jpeg")
+        ] + [
+            ROOT / "Grafiki" / (stem + ext)
+            for ext in (".jpg", ".png", ".jpeg")
+        ] + [
+            ROOT / "Miasto" / "miasto_sklepy" / "szyldy" / (stem + ext)
+            for ext in (".jpg", ".png", ".jpeg")
+        ] + [
+            ROOT / "Miasto" / "miasto_sklepy" / "grafiki" / (stem + ext)
+            for ext in (".jpg", ".png", ".jpeg")
+        ] if p.is_file() and p.stat().st_size > 1000), None)
+    oryginal_nova = (model_nova if model_nova.is_file() and model_nova.stat().st_size > 1000
+                     else grafika_nova)
+    result["NOVA CLUB — oryginalny szyld właściciela"] = {
+        "jest": bool(oryginal_nova), "sciezka": str(oryginal_nova) if oryginal_nova else None
+    }
+    if oryginal_nova:
+        print("BRAXHORN_SZYLD_OK NOVA CLUB — oryginal z paczki ->", oryginal_nova)
+    else:
+        print("::error::BRAXHORN_NOVA_SZYLD_BRAK_ORYGINALU — wymagana paczka miasto_sklepy/szyld_nova.glb lub osobna grafika club_nova/nova_club/nova")
+    
     # Mural właściciela: numer 19 jest dedykowany tylko BRAXHORN GYM.
     gyms = [
         ROOT / "Grafiki" / "billboardy" / "19.jpg",
