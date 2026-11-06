@@ -1,0 +1,43 @@
+name: "Miasto Mistrzów — jednorazowy start APK na wyraźne polecenie"
+run-name: "Miasto Mistrzów — ONE APK request — latest A1 T11 P1"
+
+# User explicitly requested one full Android APK following short tests.
+# This one-shot launcher is inert on later changes outside this exact file.
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-kasyno-t11-20261105
+    paths:
+      - .github/workflows/mistrzowie-apk-dispatch-once-20261106.yml
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: champions-single-dispatch-20261106
+  cancel-in-progress: false
+
+jobs:
+  dispatch-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch ONE production APK on exact current Champions branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = "gpt/miasto-mistrzow-kasyno-t11-20261105"
+          # Never rerun older #19 SHA. Let the existing production workflow
+          # verify original source archives, Unity and existing signing key.
+          gh api --method POST \
+            "repos/$GITHUB_REPOSITORY/actions/workflows/mistrzowie-apk.yml/dispatches" \
+            -f ref="$GITHUB_REF_NAME" \
+            -f "inputs[commit]=$GITHUB_SHA" \
+            -f "inputs[etap]=apk" \
+            -f "inputs[kontrola_tras]=false" \
+            -f "inputs[zdjecia]=false" \
+            -f "inputs[arena_assets_tag]=champions-a1-20261105" \
+            -f "inputs[p1_assets_tag]=p1-basen-spa-20261106"
+          printf 'Dispatched ONE APK on branch %s at SHA %s. No extra scene or screenshot run.\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
