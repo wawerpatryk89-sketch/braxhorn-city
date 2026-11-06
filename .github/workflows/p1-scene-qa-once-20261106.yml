@@ -1,0 +1,38 @@
+name: P1 BASEN - one-shot Unity 6 SCENY only (NO APK)
+
+# One-shot request from the owner to test finished P1 source in Unity.
+# Push trigger is restricted to THIS workflow file; subsequent model commits
+# will NOT automatically queue more Unity jobs. Can be re-run manually.
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-basen-p1-20261105
+    paths:
+      - .github/workflows/p1-scene-qa-once-20261106.yml
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch-scene-validation:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city' && github.ref == 'refs/heads/gpt/miasto-mistrzow-basen-p1-20261105'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch actual Unity editor P1 SCENY test, never APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh workflow run mistrzowie-apk.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "gpt/miasto-mistrzow-basen-p1-20261105" \
+            --raw-field etap=sceny \
+            --raw-field arena_assets_tag=champions-a1-20261105 \
+            --raw-field p1_assets_tag=p1-basen-spa-20261106 \
+            --raw-field kontrola_tras=false \
+            --raw-field zdjecia=false
+          echo "P1_UNITY_SCENES_DISPATCHED; no Android APK or addressables update requested"
+          printf 'Requested Unity 6 scene QA only on P1 branch; no APK release.\n' >> "$GITHUB_STEP_SUMMARY"
