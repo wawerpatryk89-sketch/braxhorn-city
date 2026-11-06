@@ -7,6 +7,100 @@ using UnityEngine.SceneManagement;
 
 public static partial class BraxClaudeOsiedle
 {
+    // Exhaustive door inventory in the actual generated Unity scene.
+    // Door panels must remain intact and functional. A geometric probe
+    // cannot replace opening each door in Play Mode or on Android.
+    static List<string> AudytWszystkichDrzwi(Scene scena)
+    {
+        Physics.SyncTransforms();
+        var errors = new List<string>();
+        var report = new List<string> {
+            "OSIEDLE R2 / WSZYSTKIE DRZWI: statyczna kontrola Unity, bez Play Mode i APK"
+        };
+        var doors = scena.GetRootGameObjects()
+            .SelectMany(g => g.GetComponentsInChildren<BraxCityDoor>(true)).Where(d => d).ToArray();
+        if (doors.Length == 0)
+            errors.Add("DO POPRAWKI: brak jakichkolwiek drzwi w wygenerowanej scenie osiedla");
+        foreach (var duplicates in doors.Where(d => !string.IsNullOrEmpty(d.id))
+            .GroupBy(d => d.id, StringComparer.OrdinalIgnoreCase).Where(g => g.Count() > 1))
+            errors.Add("DO POPRAWKI: powtórzony identyfikator drzwi " + duplicates.Key +
+                " — " + duplicates.Count() + " obiektów");
+        var casts = new RaycastHit[32];
+        const int maska = ~((1 << 8) | (1 << 2) | (1 << 29) | (1 << 31));
+        foreach (var d in doors)
+        {
+            string id = string.IsNullOrEmpty(d.id) ? "(brak id)" : d.id;
+            var problems = new List<string>();
+            if (string.IsNullOrEmpty(d.id)) problems.Add("brak identyfikatora");
+            if (!d.enabled && Klasa(d.id) == KlasaDrzwi.Wejscie)
+                problems.Add("główne wejście jest wyłączone");
+            if (d.leaves == null || d.leaves.Length == 0 || d.leaves.All(t => !t))
+                problems.Add("brak skrzydła drzwi");
+            Bounds bounds = default;
+            bool haveBounds = false;
+            if (d.leaves != null) foreach (var leaf in d.leaves)
+            {
+                if (!leaf)
+                {
+                    problems.Add("puste odwołanie do skrzydła");
+                    continue;
+                }
+                if (Vector3.Angle(leaf.up, Vector3.up) > 20f)
+                    problems.Add("skrzydło przekrzywione względem pionu");
+                var box = leaf.GetComponent<BoxCollider>();
+                if (!box)
+                {
+                    problems.Add("skrzydło bez własnego BoxCollider");
+                    continue;
+                }
+                if (!haveBounds) { bounds = box.bounds; haveBounds = true; }
+                else bounds.Encapsulate(box.bounds);
+            }
+            // Sweep an adult-sized capsule across the doorway. Ignore the
+            // door's OWN closed panels; any other blocking solid is suspect.
+            // This is advisory only: functional door animation is a Play Mode task.
+            if (d.enabled && haveBounds && problems.Count == 0)
+            {
+                Vector3 normal = d.transform.forward;
+                normal.y = 0f;
+                if (normal.sqrMagnitude < .5f) problems.Add("nieokreślony kierunek drzwi");
+                else
+                {
+                    normal.Normalize();
+                    var floor = new Vector3(bounds.center.x, bounds.min.y + .02f, bounds.center.z);
+                    Vector3 start = floor - normal * 1.15f;
+                    int n = Physics.CapsuleCastNonAlloc(start + Vector3.up * .42f,
+                        start + Vector3.up * 1.65f, .28f, normal, casts, 2.3f,
+                        maska, QueryTriggerInteraction.Ignore);
+                    if (n == casts.Length) problems.Add("przepełniony bufor pomiaru przejścia");
+                    else
+                        for (int i = 0; i < n; i++)
+                        {
+                            var hit = casts[i].collider;
+                            if (!hit || hit.gameObject.scene != scena ||
+                                hit.transform.IsChildOf(d.transform) ||
+                                hit.GetComponentInParent<BraxMieszkaniec>() ||
+                                hit.GetComponentInParent<BraxPieszy>()) continue;
+                            problems.Add("przejście blokuje " + hit.name);
+                            if (problems.Count >= 3) break;
+                        }
+                }
+            }
+            report.Add(id + " typ=" + Klasa(d.id) + " aktywne=" + d.enabled +
+                " skrzydła=" + (d.leaves == null ? 0 : d.leaves.Length) +
+                " pozycja=" + d.transform.position.ToString("F2") +
+                " status=" + (problems.Count == 0
+                    ? "SONDA OK — otwieranie wymaga Play Mode" : string.Join("; ", problems)));
+            foreach (var problem in problems)
+                errors.Add("DO POPRAWKI: drzwi " + id + ": " + problem);
+        }
+        System.IO.Directory.CreateDirectory("city-review");
+        System.IO.File.WriteAllLines("city-review/osiedle-drzwi-wszystkie.txt", report);
+        Debug.Log("BRAXHORN_OSIEDLE_DRZWI_AUDYT sprawdzone=" + doors.Length +
+            " zgloszone=" + errors.Count + " bez PlayMode=TAK");
+        return errors;
+    }
+
     static readonly List<string> raportSkaliAut = new List<string>();
     // Five shopfronts are open cut-outs, not BraxCityDoor components.
     // Track them explicitly: a door-only audit would miss a bricked-up market.
@@ -92,6 +186,7 @@ public static partial class BraxClaudeOsiedle
             .Distinct(StringComparer.Ordinal));
         bledy.AddRange(AudytWejscSklepow(scene));
         bledy.AddRange(AudytZnakowDrogowych(scene));
+        bledy.AddRange(AudytWszystkichDrzwi(scene));
         var renderery = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Renderer>(true)).ToArray();
         int szyldy = 0;
         foreach (var r in renderery)
