@@ -140,8 +140,8 @@ public static class BraxChampionsPoolP1OriginalSign
     public static bool Generate(Transform root)
     {
         if(!root)throw new ArgumentNullException(nameof(root));
-        // Front lobby centred; 10m case sits between awning and white roof.
-        bool basen=Build(root,"BASEN_MIEJSKI",PoolSign,0f,6.95f,-28.40f,10.0f);
+        // Front lobby centred; 10m case top ~8.14m stays BELOW actual roof underside 8.20m, bottom ~5.46m above canopy top 5.14m.
+        bool basen=Build(root,"BASEN_MIEJSKI",PoolSign,0f,6.80f,-28.40f,10.0f);
         // Second owner-approved SPA sign on the existing right solid wood
         // wing, not across the clear glass nor overlapping the lobby plaque.
         bool spa=Build(root,"SPA_WELLNESS",SpaSign,15.2f,5.37f,-28.40f,4.40f);
