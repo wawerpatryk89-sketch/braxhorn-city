@@ -544,13 +544,13 @@ jobs:
 
         python3 -m compileall -q unity-tools
 
-        python3 -m unittest discover -s unity-tools/kickboxing/tests -p test_fetch_retry.py -v || echo '::warning::R1_JAKOSC: test pomocniczy kickboxingu — raporcik, bez stopowania APK'
+        python3 -m unittest discover -s unity-tools/kickboxing/tests -p test_fetch_retry.py -v || echo "::warning::R1_JAKOSC: test pomocniczy kickboxingu — raport, bez stopowania APK"
 
-        python3 -m unittest discover -s unity-tools/wyspa/tests -v || echo '::warning::R1_JAKOSC: testy statyczne wyspy — raport, nie blokada APK'
+        python3 -m unittest discover -s unity-tools/wyspa/tests -v || echo "::warning::R1_JAKOSC: testy statyczne wyspy — raport, nie blokada APK"
 
         python3 unity-tools/wyspa/prepare_fighters.py --check
 
-        python3 unity-tools/nutrition/audit_assets.py || echo '::warning::R1_JAKOSC: kontrola suplementow — raport, nie blokada APK'
+        python3 unity-tools/nutrition/audit_assets.py || echo "::warning::R1_JAKOSC: kontrola suplementow — raport, nie blokada APK"
 
         node --check unity-tools/kickboxing/check.mjs
 
