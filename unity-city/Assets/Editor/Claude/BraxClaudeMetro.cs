@@ -346,23 +346,34 @@ public static class BraxClaudeMetro
         string drugaLinia = Odcinki("STARY_CHODNIK_DRUGI_PAS",
             new Vector3(67.3f, yS, 35.35f), new Vector3(80.3f, yS, 35.35f));
 
-        // Dojście przez plac, z publicznego chodnika do nowego portalu.
+        // Dojście przez plac do osi schodów STAŁYCH (nie w separację schodów ruchomych).
+        var osSchodow = ZcSchodow(EZ[1]);
+        var poczatek = NaPort(new Vector3(EX0, yS, osSchodow));
         string dojscie = Odcinki("NOWE_DOJSCIE_PORT",
-            new Vector3(70.3f, yS, 20.2f), new Vector3(70.3f, yS, 18.2f),
-            new Vector3(PortX, yS, PortZ + .75f));
+            new Vector3(70.3f, yS, 20.2f), new Vector3(70.1f, yS, 18.2f),
+            NaPort(new Vector3(EX0 - .65f, yS, osSchodow)), poczatek);
 
-        // Stopy po zejściu po schodach; odtąd korytarz idzie pod portem,
-        // a nie pod powierzchnią chodnika. Sam bieg schodów wymaga testu na telefonie.
+        // Po obróceniu biegu o 90° każdy odcinek musi mieć prawidłową wysokość;
+        // testujemy też stopnie i spocznik, nie tylko dojście do drzwi.
+        float wz = (yS - yM) / 23f, st = .30f * K, spocznik = 1.5f * K;
+        var poPierwszym = new Vector3(EX0 + 11f * st, yS - 12f * wz, osSchodow);
+        var poSpoczniku = poPierwszym + Vector3.right * spocznik;
+        var poDrugim = new Vector3(XKoniec, yM, osSchodow);
+        string schody = Odcinki("STALE_SCHODY_PORT",
+            poczatek, NaPort(poPierwszym), NaPort(poSpoczniku), NaPort(poDrugim));
+
+        // Po wyjściu ze schodów skręt na wschód i potem na północ do dawnej antresoli.
         string podziemny = Odcinki("PODZIEMNY_LACZNIK_PORT",
-            new Vector3(PortX, yM, 6.0f), new Vector3(PortX, yM, 5.55f),
+            NaPort(new Vector3(XKoniec + .40f, yM, osSchodow)),
+            new Vector3(69.5f, yM, 5.55f),
             new Vector3((TunX0 + TunX1) * .5f, yM, 5.55f),
             new Vector3((TunX0 + TunX1) * .5f, yM, 24.65f));
 
         bool ok = staryChodnik.Contains(" OK ") && drugaLinia.Contains(" OK ") &&
-            dojscie.Contains(" OK ") && podziemny.Contains(" OK ");
+            dojscie.Contains(" OK ") && schody.Contains(" OK ") && podziemny.Contains(" OK ");
         var log = "BRAXHORN_METRO_PORT_QA " + (ok ? "KOD_PRZEJSC_OK " : "NIEGOTOWE ") +
-            staryChodnik + " | " + drugaLinia + " | " + dojscie + " | " + podziemny +
-            " | SCHODY / WEJSCIE / BRAMKI / PERON nadal odbiera właściciel w APK";
+            staryChodnik + " | " + drugaLinia + " | " + dojscie + " | " + schody + " | " + podziemny +
+            " | BRAMKI / PERON / PRAKTYCZNY RUCH nadal odbiera właściciel w APK";
         if (ok) Debug.Log(log); else Debug.LogWarning(log);
     }
 
