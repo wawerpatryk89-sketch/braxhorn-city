@@ -207,6 +207,10 @@ public static partial class BraxObozEnvironment
         Sign(pavilion,"BRAXHORN · OBÓZ TRENINGOWY",new Vector3(0,4.85f,-7.7f),12);
         Station("Rozgrzewka i mobilność",-12,30,14,8,t=>{
             for(int i=0;i<6;i++)Box(t,"Mata treningowa",new Vector3(-5+i*2,.10f,0),new Vector3(1.4f,.04f,2.2f),burgundy);
+            // model(1).glb was verified to be the owner's medicine-ball rack,
+            // not a boxing bag. Restore the actual 3D model to the training zone.
+            BraxObozServices.OwnerFixture(t,"model(1).glb",
+                new Vector3(5.35f,.10f,2.05f),new Vector3(1.55f,1.60f,1.50f));
         });
         Station("Drążki",35,34,12,10,t=>{
             for(int i=0;i<3;i++){
@@ -238,14 +242,16 @@ public static partial class BraxObozEnvironment
             }
         });
         Station("Liny treningowe",12,28,12,10,t=>{
-            for(int lane=0;lane<2;lane++)foreach(float side in new[]{-.2f,.2f}){
-                float x=-3+lane*6+side;
-                for(int j=0;j<16;j++){
-                    float z=-3+j*.4f,next=z+.4f;
-                    Cylinder(t,"Lina",new Vector3(x+Mathf.Sin(j*.7f)*.12f,.12f,z),new Vector3(x+Mathf.Sin((j+1)*.7f)*.12f,.12f,next),.025f,rope);
-                }
-                Box(t,"Kotwa lin",new Vector3(x,.25f,3.5f),new Vector3(.18f,.5f,.18f),campusSteel);
+            // Remove the artificial cylindrical rope strokes rejected by the owner.
+            // The delivered rope-coil GLB is REAL coiled rope, not an animated
+            // battle-rope mesh: use it as stored equipment, never fake its function.
+            foreach(float x in new[]{-3f,3f}){
+                BraxObozServices.OwnerFixture(t,"rope-coil.glb",
+                    new Vector3(x,.10f,.3f),new Vector3(2.15f,.85f,2.15f));
+                Box(t,"Kotwa i miejsce rozwinięcia liny",
+                    new Vector3(x,.25f,3.5f),new Vector3(.18f,.5f,.18f),campusSteel);
             }
+            Debug.LogWarning("BRAXHORN_OBOZ_BATTLE_ROPE_NEEDS_REAL_LONG_MODEL: oryginalne zwoje GLB wstawione, animowanych długich lin NIE deklarować jako gotowych");
         });
     }
     static void Station(string label,float x,float z,float width,float depth,Action<Transform> build)
@@ -300,18 +306,15 @@ public static partial class BraxObozEnvironment
         Box(t,"Dojście od przystanku",new Vector3(13.5f,.06f,-77),new Vector3(27,.12f,2.8f),campusPaving);
         foreach(float x in new[]{-3.2f,3.2f})Box(t,"Linia krawędzi drogi",new Vector3(x,.092f,-126),new Vector3(.1f,.004f,28),campusMark,false);
         for(int i=0;i<8;i++)Box(t,"Pas przejścia",new Vector3(-2.8f+i*.8f,.098f,-115),new Vector3(.4f,.004f,2.8f),campusMark,false);
-        // Pełna pętla bieżni przecina przy bramie dojazd: ostrzeżenie i pasy
-        // przed skrzyżowaniem; dopiero test ruchu autobusu dopuści tę geometrię.
-        for(int i=0;i<8;i++)
-            Box(t,"Przejscie pieszych / biegaczy",new Vector3(-3.5f+i*1f,.166f,-117f),
-                new Vector3(.45f,.008f,2.3f),campusMark,false);
+        // No raised white paving/zebra geometry over the red running surface.
+        // The four tartan lanes remain continuous; crossing priority and bus safety still need Play Mode approval.
         Sign(t,"UWAGA BIEZNIA · USTAP PIESZYM",new Vector3(6.0f,2f,-116f),6f);
         Sign(t,"BRAXHORN · PRZYJAZDY",new Vector3(26,2.1f,-84),5);
         foreach(float x in new[]{24f,28f})Box(t,"Podpora tablicy przyjazdów",new Vector3(x,1,-84),new Vector3(.08f,2,.08f),campusSteel);
         foreach(float z in new[]{-110f,-100f,-90f,-80f})Lamp(t,new Vector3(28,0,z));
         // Footpath protection, leaving boarding openings at both coach doors.
         foreach(float z in new[]{-99f,-93f,-86f})Cylinder(t,"Słupek ochronny",new Vector3(24,.08f,z),new Vector3(24,1.05f,z),.075f,campusSteel,true);
-        foreach(float z in new[]{-99f,-93f})Bench(t,new Vector3(27,0,z));
+        // The owner's FBX contains its own seating. Never duplicate fake standalone benches outside its shelter.
         // Nowy FBX Meshy od właściciela zastępuje starą wiatę, bez atrap.
         var shelter=Group("Wlascicielska wiata 3D — przystanek obozowy",t,P(27,0,-92));
         OwnerShelter(shelter);
@@ -333,16 +336,41 @@ public static partial class BraxObozEnvironment
         if(!source)throw new InvalidOperationException("Brak oryginalnego FBX wiaty, nie budować starej atrapy: "+sourcePath);
         var model=PrefabUtility.InstantiatePrefab(source) as GameObject;
         if(!model)throw new InvalidOperationException("Nie można zaimportować oryginalnego FBX wiaty");
-        model.name="Nowa wiata właściciela — FBX + tekstura 2K";
+        model.name="Nowa wiata właściciela — FBX + oryginalny atlas 2K";
         model.transform.SetParent(parent,false);
+        const string texturePath=
+            "Assets/Source/Prywatne/Oboz/OwnerAssets/Przystanek/Meshy_AI_The_object_is_a_recta_1104160815_texture.png";
+        var ownerAtlas=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+        if(!ownerAtlas || ownerAtlas.width!=2048 || ownerAtlas.height!=2048)
+            throw new InvalidOperationException("Brak oryginalnej kolorowej tekstury 2048x2048 wiaty: "+texturePath);
+        var ownerShader=Shader.Find("Standard");
+        if(!ownerShader)throw new InvalidOperationException("Brak shadera PBR dla oryginalnej wiaty");
+        var newMaterial=new Material(ownerShader){
+            name="Wiata właściciela — oryginalna tekstura FBX 2K",
+            mainTexture=ownerAtlas,enableInstancing=true
+        };
+        newMaterial.SetFloat("_Glossiness",.18f);
+        newMaterial.SetFloat("_Metallic",.10f);
+        string ownerMaterialPath=Folder+"/OwnerShelterOriginal2K.mat";
+        var savedMaterial=AssetDatabase.LoadAssetAtPath<Material>(ownerMaterialPath);
+        if(savedMaterial){
+            EditorUtility.CopySerialized(newMaterial,savedMaterial);
+            Object.DestroyImmediate(newMaterial);
+            newMaterial=savedMaterial;
+        }else AssetDatabase.CreateAsset(newMaterial,ownerMaterialPath);
         var renderers=model.GetComponentsInChildren<Renderer>(true);
         if(renderers.Length==0)throw new InvalidOperationException("FBX wiaty nie zawiera renderera");
+        foreach(var meshRenderer in renderers)
+            meshRenderer.sharedMaterials=meshRenderer.sharedMaterials.Select(_=>newMaterial).ToArray();
         Bounds b=renderers[0].bounds;
         foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
         if(b.size.x<=.001f||b.size.y<=.001f||b.size.z<=.001f)
             throw new InvalidOperationException("Wiata FBX ma niepoprawne wymiary");
         if(b.size.x>b.size.z*1.3f)
             model.transform.localRotation=Quaternion.Euler(0,90,0);
+        // Owner's review: the APK #22 shelter faces backwards. Turn the imported
+        // FBX itself (not the pavement or bus) 180 degrees towards the boarding bay.
+        model.transform.localRotation=Quaternion.Euler(0,180,0)*model.transform.localRotation;
         b=renderers[0].bounds;
         foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
         // Jednorodne skalowanie — nie wolno rozciągać siedzeń/UV/modelu.
@@ -353,8 +381,8 @@ public static partial class BraxObozEnvironment
         foreach(var renderer in renderers.Skip(1))b.Encapsulate(renderer.bounds);
         model.transform.position+=new Vector3(parent.position.x-b.center.x,
             parent.position.y-b.min.y,parent.position.z-b.center.z);
-        Debug.Log("BRAXHORN_OBOZ_WIATA_3D: zrodlo=FBX 2K, wymiary="+b.size+
-            ", rzeczywisty uklad scian i ławek wymaga oględzin Unity");
+        Debug.Log("BRAXHORN_OBOZ_WIATA_3D: zrodlo=FBX 2K + oryginalny PNG 2048, wymiary="+b.size+
+            ", correctedYaw=180 względem APK22; wejście i ławki wymagają oględzin w Unity");
     }
 
     static void RondoBull(Transform center)
@@ -387,7 +415,9 @@ public static partial class BraxObozEnvironment
         model.name = "Oryginalny byk GLB — 100% tekstur i geometrii";
         model.transform.SetParent(monument,false);
         model.transform.localPosition = Vector3.zero;
-        model.transform.localRotation = Quaternion.identity;
+        // Owner's review: the charging bull was facing away from the entry.
+        // Turn the original GLB 180 degrees while preserving mesh, UV and JPEG.
+        model.transform.localRotation = Quaternion.Euler(0f,180f,0f);
         var renderers = model.GetComponentsInChildren<Renderer>(true);
         if (renderers.Length == 0) throw new InvalidOperationException("Model byka bez renderera");
         Bounds b = renderers[0].bounds;
@@ -518,7 +548,7 @@ public static partial class BraxObozEnvironment
         const int columns = 128;
         int rows = Mathf.Max(32, Mathf.RoundToInt(columns * height / (float)width));
         var filled = new bool[columns, rows];
-        int filledCount = 0;
+        int filledCount = 0, firstVisibleRow=rows;
         for (int y = 0; y < rows; y++)
         for (int x = 0; x < columns; x++)
         {
@@ -532,10 +562,13 @@ public static partial class BraxObozEnvironment
                 if (pixels[sy * width + sx].a >= 90) { visible = true; break; }
             }
             filled[x, y] = visible;
-            if (visible) filledCount++;
+            if (visible) { filledCount++; firstVisibleRow=Mathf.Min(firstVisibleRow,y); }
         }
         if (filledCount < columns * rows / 30)
             throw new InvalidOperationException("Kontur okleiny szyldu jest pusty");
+        // The JPEG has a white margin which becomes transparent; mount the
+        // lowest VISIBLE pixel, not the bottom edge of the original JPEG.
+        float visibleSignBottom=centreY+signHeight*(firstVisibleRow/(float)rows-.5f);
         bool Has(int x, int y) =>
             x >= 0 && x < columns && y >= 0 && y < rows && filled[x, y];
 
@@ -656,7 +689,18 @@ public static partial class BraxObozEnvironment
         foreach (float x in new[] {-3.65f,3.65f})
             Box(gate,"Tylny zastrzał szyldu",new Vector3(x,4.85f,.36f),
                 new Vector3(.14f,1.0f,.18f),campusSteel,false);
-        Debug.Log("BRAXHORN_OBOZ_SIGN_3D: source=" + width + "x" + height +
+        // Continuous physical carrier reaches the actual rendered silhouette.
+        // It is behind the original artwork and does not obstruct the 8.4 m opening.
+        const float beamTop=3.67f;
+        float carrierHeight=Mathf.Max(.15f,visibleSignBottom-beamTop);
+        foreach(float x in new[]{-3.8f,-1.9f,1.9f,3.8f})
+            Box(gate,"Stalowy wspornik do widocznej krawędzi szyldu",
+                new Vector3(x,beamTop+carrierHeight*.5f,.29f),
+                new Vector3(.16f,carrierHeight,.20f),campusSteel);
+        Box(gate,"Ciągła belka mocowania pod widocznym szyldem",
+            new Vector3(0f,visibleSignBottom-.075f,.28f),
+            new Vector3(signWidth,.15f,.24f),campusSteel);
+        Debug.Log("BRAXHORN_OBOZ_SIGN_3D: visibleBottom="+visibleSignBottom+" source=" + width + "x" + height +
             " metalDepth=0.26m stickerUV=1:1 supportX=+-4.45 opening=8.4m; test Unity wymagany");
     }
 
