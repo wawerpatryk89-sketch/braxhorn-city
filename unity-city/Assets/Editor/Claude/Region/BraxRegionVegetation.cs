@@ -155,7 +155,10 @@ public static class BraxRegionVegetation
         if (planter)
             for (float x = -96f; x < 62f; x += 24f)
             {
-                float z = ((int)((x + 96f) / 24f)) % 2 == 0 ? 22.1f : 34.6f;   // środek chodnika (20.6..23.6 i 33.4..36.1)
+                // Od strony jezdni, z bezpiecznym odsunięciem od krawężnika:
+                // 1.5+ m przejścia przy fasadach, bez donic na osi drzwi.
+                float z = ((int)((x + 96f) / 24f)) % 2 == 0 ? 23.0f : 34.0f;
+                if (!BraxMiastoUlica.MiejsceWolneDlaDodatkow(x, z, .8f)) continue;
                 RaycastHit h;
                 if (!BraxRegion.Ground(x, z, -.5f, 1.0f, out h)) continue;
                 if (!BraxRegion.Free(h.point + Vector3.up * .5f, new Vector3(1.6f, 1f, 1.2f))) continue;
@@ -169,7 +172,9 @@ public static class BraxRegionVegetation
         if (hydrant)
         {
             RaycastHit h;
-            if (BraxRegion.Ground(27.5f, 22.3f, -.5f, 1f, out h) && BraxRegion.Free(h.point + Vector3.up * .55f, new Vector3(.7f, .9f, .7f)))
+            if (BraxMiastoUlica.MiejsceWolneDlaDodatkow(27.5f, 23.0f, .40f) &&
+                BraxRegion.Ground(27.5f, 23.0f, -.5f, 1f, out h) &&
+                BraxRegion.Free(h.point + Vector3.up * .55f, new Vector3(.7f, .9f, .7f)))
                 if (BraxRegion.Put(root, hydrant, "Ulica: hydrant", h.point, 0f, 1f, true, .9f)) streetN++;
         }
 
