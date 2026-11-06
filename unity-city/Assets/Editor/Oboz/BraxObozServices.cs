@@ -266,71 +266,95 @@ public static class BraxObozServices
         region.SetParent(cabin,false);
         try
         {
-            GameObject Part(string sourcePrefix,string label,Vector3 bottomMetres,
+            // The source GLB splits ONE piece of equipment into several
+            // sibling nodes. Never import the tabletop without legs, the
+            // burner base without grates, or a sink without its faucet.
+            // The original mesh/UV/material of EVERY sibling remains intact.
+            GameObject Assembly(string[] prefixes,string label,Vector3 bottomMetres,
                 Vector3 envelopeMetres,bool solid)
             {
-                var asset=source.GetComponentsInChildren<Transform>(true).FirstOrDefault(
-                    t=>t.name.StartsWith(sourcePrefix,StringComparison.OrdinalIgnoreCase));
-                if(!asset)throw new InvalidOperationException(
-                    "Brakuje części oryginalnej kuchni: "+sourcePrefix);
-                // Preserve the COMPLETE imported GLB parent-axis transform,
-                // not only the child local pose. The Sketchfab source contains
-                // a rotated GLTF_SceneRootNode, otherwise taps/plates float.
-                var originalWorld=asset.localToWorldMatrix;
-                var part=Object.Instantiate(asset.gameObject,region,false);
-                var relative=region.worldToLocalMatrix*originalWorld;
-                part.transform.localPosition=relative.GetColumn(3);
-                part.transform.localRotation=relative.rotation;
-                part.transform.localScale=relative.lossyScale;
-                part.name=label+" — bez zmian siatki/UV/materiałów";
-                var renderers=part.GetComponentsInChildren<Renderer>(true);
-                if(renderers.Length==0)throw new InvalidOperationException(
-                    "Nie ma prawdziwej geometrii w części kuchennej: "+label);
+                var carrier=new GameObject(label+" — kompletne oryginalne części GLB");
+                carrier.transform.SetParent(region,false);
+                var transforms=source.GetComponentsInChildren<Transform>(true);
+                foreach(string sourcePrefix in prefixes)
+                {
+                    var asset=transforms.FirstOrDefault(t=>
+                        t.name.StartsWith(sourcePrefix,StringComparison.OrdinalIgnoreCase));
+                    if(!asset)throw new InvalidOperationException(
+                        "Brakuje części oryginalnej kuchni: "+sourcePrefix);
+                    var part=Object.Instantiate(asset.gameObject,carrier.transform,false);
+                    var relative=carrier.transform.worldToLocalMatrix*asset.localToWorldMatrix;
+                    part.transform.localPosition=relative.GetColumn(3);
+                    part.transform.localRotation=relative.rotation;
+                    part.transform.localScale=relative.lossyScale;
+                    part.name=asset.name+" — oryginalna siatka GLB";
+                }
+                var renderers=carrier.GetComponentsInChildren<Renderer>(true);
+                if(renderers.Length<prefixes.Length)
+                    throw new InvalidOperationException(
+                        "Brak pełnej geometrii w oryginalnym komplecie: "+label);
                 Bounds Bounds()
                 {
-                    var b=renderers[0].bounds;
+                    Bounds b=renderers[0].bounds;
                     foreach(var rr in renderers.Skip(1))b.Encapsulate(rr.bounds);
                     return b;
                 }
                 var bounds=Bounds();
                 if(bounds.size.x<.0001f||bounds.size.y<.0001f||bounds.size.z<.0001f)
-                    throw new InvalidOperationException("Zerowe wymiary wyposażenia domku: "+label);
+                    throw new InvalidOperationException("Zerowy obrys kompletnego modelu: "+label);
                 var max=envelopeMetres*1.294f;
                 float scale=Mathf.Min(max.x/bounds.size.x,
                     Mathf.Min(max.y/bounds.size.y,max.z/bounds.size.z));
                 if(scale<=0f||float.IsNaN(scale)||float.IsInfinity(scale))
-                    throw new InvalidOperationException("Błędna skala wyposażenia domku: "+label);
-                part.transform.localScale*=scale;
+                    throw new InvalidOperationException("Błędne skalowanie kompletnego modelu: "+label);
+                carrier.transform.localScale*=scale;
                 bounds=Bounds();
                 var target=cabin.TransformPoint(bottomMetres*1.294f);
-                part.transform.position+=new Vector3(
+                carrier.transform.position+=new Vector3(
                     target.x-bounds.center.x,target.y-bounds.min.y,target.z-bounds.center.z);
-                if(solid&&!part.GetComponentInChildren<Collider>())
+                if(solid&&!carrier.GetComponentInChildren<Collider>())
                 {
-                    var c=part.AddComponent<BoxCollider>();
-                    c.center=part.transform.InverseTransformPoint(bounds.center);
-                    var loss=part.transform.lossyScale;
+                    var c=carrier.AddComponent<BoxCollider>();
+                    c.center=carrier.transform.InverseTransformPoint(bounds.center);
+                    var loss=carrier.transform.lossyScale;
                     c.size=new Vector3(
                         bounds.size.x/Mathf.Max(.0001f,Mathf.Abs(loss.x)),
                         bounds.size.y/Mathf.Max(.0001f,Mathf.Abs(loss.y)),
                         bounds.size.z/Mathf.Max(.0001f,Mathf.Abs(loss.z)));
                 }
-                return part;
+                return carrier;
+            }
+            GameObject Part(string prefix,string label,Vector3 bottom,Vector3 envelope,bool solid)
+            {
+                return Assembly(new[]{prefix},label,bottom,envelope,solid);
             }
 
-            // Left side of cabin: table/stove/rack; right: source field sink.
-            // The central x=-0.8..+1.25 passage and front door stay empty.
-            Part("CookingTable.001_","Oryginalny stół kuchni polowej",
+            // The group bounds are measured AFTER assembling the real
+            // Sketchfab siblings. Keep the central corridor/entrance open.
+            Assembly(new[]{
+                "CookingTable.001_","CookingTable_Bolts1.001_",
+                "CookingTable_Bolts2.001_","CookingTable_Legs.001_",
+                "CookingTable_Shelf.001_"
+            },"Oryginalny stół polowy z nogami i półką",
                 new Vector3(-2f,.16f,-.82f),new Vector3(1.45f,.91f,.78f),true);
-            Part("PortableStove_Base.001_","Prawdziwa kuchenka turystyczna z palnikami",
+            Assembly(new[]{
+                "PortableStove_Base.001_","PortableStove_Burners.001_",
+                "PortableStove_Grate_L_LP.001_","PortableStove_Grate_R_LP.001_",
+                "PortableStove_Tumbler_LP.001_","PortableStove_Wire.001_"
+            },"Oryginalna kuchenka polowa z palnikami i rusztami",
                 new Vector3(-2f,1.07f,-.82f),new Vector3(.55f,.24f,.40f),false);
-            Part("GasCylinder.001_","Butla gazowa obok stołu",
+            Assembly(new[]{"GasCylinder.001_","GasCylinder_Tap.001_"},
+                "Oryginalna butla z zaworem",
                 new Vector3(-2.40f,.16f,-1.40f),new Vector3(.30f,.65f,.30f),true);
-            Part("PotRack.001_","Oryginalna półka na naczynia",
+            Assembly(new[]{"PotRack.001_","PotRack_Hooks.001_","PotRack_Rails.001_"},
+                "Oryginalny stojak z hakami i poręczami",
                 new Vector3(-2f,1.58f,-.72f),new Vector3(1.04f,.54f,.36f),false);
-            Part("Plate_Regular.001_","Talerz na wyposażeniu kuchni",
+            Part("Plate_Regular.001_","Talerz z oryginalnego kompletu",
                 new Vector3(-1.70f,1.08f,-.71f),new Vector3(.26f,.07f,.26f),false);
-            var originalSink=Part("Sink.001_","Zlew polowy z oryginalną baterią",
+            var originalSink=Assembly(new[]{
+                "Sink.001_","Faucet_LP.001_","Faucet_Tap_LP.001_",
+                "Sink_Drain_LP.001_","Sink_Legs_LP.001_"
+            },"Zlew polowy z oryginalną baterią i odpływem",
                 new Vector3(2.10f,.16f,-.78f),new Vector3(.92f,1.12f,.64f),true);
             var faucet=originalSink.AddComponent<BraxObozFacility>();
             faucet.kind=BraxObozFacility.Kind.Sink;
