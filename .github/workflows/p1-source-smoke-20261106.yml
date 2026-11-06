@@ -1,0 +1,74 @@
+name: P1 BASEN + SPA - source/import smoke (no Unity/APK)
+
+# Runs ONCE on creation, or manually later. Other builds are not queued.
+on:
+  push:
+    branches:
+      - gpt/miasto-mistrzow-basen-p1-20261105
+    paths:
+      - .github/workflows/p1-source-smoke-20261106.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p1-smoke-source-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify-p1:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout only P1 source/test paths
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/workflows/mistrzowie-apk.yml
+            .github/workflows/p1-source-smoke-20261106.yml
+            unity-tools/mistrzowie/test_pool_p1_*.py
+            unity-tools/mistrzowie/prepare_pool_p1_slide.py
+            unity-tools/mistrzowie/prepare_pool_p1_textures_2k.py
+            unity-tools/mistrzowie/import_pool_p1_owner_assets.py
+            unity-tools/mistrzowie/legacy_foundation.py
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1*.cs
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuildings.cs
+            unity-city/Assets/Editor/Mistrzowie/BraxChampionsCitySignsTextureImport.cs
+            unity-city/Assets/BraxGymPlayer.cs
+            unity-city/Assets/Claude/Runtime/BraxSwimmingZone.cs
+            unity-city/Assets/Mistrzowie/BraxChampionsPoolSwimVolume.cs
+            unity-city/Assets/Mistrzowie/BraxChampionsPoolWater.shader
+            unity-city/Assets/Source/Mistrzowie/PoolP1/plot.json
+      - name: P1 source-contract unit tests
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_pool_p1_*.py' -v
+          python3 -m py_compile unity-tools/mistrzowie/import_pool_p1_owner_assets.py unity-tools/mistrzowie/prepare_pool_p1_slide.py
+          echo "P1_STATIC_CONTRACTS_PASS - no Unity Editor, no APK"
+      - name: Read owner private draft Release and verify ZIP archive
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          asset_name="P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip"
+          release_json="$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100")"
+          asset_id="$(printf '%s' "$release_json" | jq -r \
+            --arg tag "p1-basen-spa-20261106" --arg file "$asset_name" \
+            '[.[] | select(.tag_name==$tag) | .assets[]? | select(.name==$file) | .id] | first // empty')"
+          test -n "$asset_id" || { echo "::error::Expected P1 private draft source release missing";exit 1; }
+          gh api -H "Accept: application/octet-stream" \
+            "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" > "$RUNNER_TEMP/$asset_name"
+          python3 unity-tools/mistrzowie/import_pool_p1_owner_assets.py "$RUNNER_TEMP/$asset_name" --dry-run
+          echo "P1_ORIGINAL_OWNER_ZIP_SHA256_GUIDS_CRC_PASS - no import side effects"
+      - name: Report source-only scope
+        if: always()
+        shell: bash
+        run: |
+          printf '### P1 source/import preflight\n\n' >> "$GITHUB_STEP_SUMMARY"
+          printf 'Branch: %s\n\nCommit: %s\n\n' "$GITHUB_REF_NAME" "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          printf 'This is lightweight source + asset validation. No Unity compilation, PlayMode, Android test or APK was executed.\n' >> "$GITHUB_STEP_SUMMARY"
