@@ -15,7 +15,9 @@ class CasinoT11UndergroundTests(unittest.TestCase):
     def test_real_8_by_46_opening_on_approved_plot(self):
         self.assertIn("T11_GARAGE_RAMP=(535.5,443.0,8.0,46.0)",self.ground)
         self.assertIn("if inside((x,z),T11_GARAGE_RAMP):return None",self.ground)
-        self.assertIn("rects=plots+walks+greens+piers+[T11_GARAGE_RAMP]",self.ground)
+        # Keep the original T11 garage cutout even as port/promenade rectangles
+        # are added to the same subdivision; exact old list order is irrelevant.
+        self.assertRegex(self.ground,r"(?m)^rects=.*\\+\\[T11_GARAGE_RAMP\\]")
         self.assertGreaterEqual(535.5,495-60)
         self.assertLessEqual(543.5,495+60)
         self.assertGreaterEqual(443,465-50)
