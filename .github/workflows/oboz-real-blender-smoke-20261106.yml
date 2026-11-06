@@ -7,7 +7,7 @@ name: 'Obóz — jednorazowy prawdziwy eksport 3 modeli Blender, bez Unity i APK
       - .github/workflows/oboz-real-blender-smoke-20261106.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   export-owner-originals:
