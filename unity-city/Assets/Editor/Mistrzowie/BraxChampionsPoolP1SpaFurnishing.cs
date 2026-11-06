@@ -56,7 +56,8 @@ public static class BraxChampionsPoolP1SpaFurnishing
                 solid=own.Contains("table leg")||own.Contains("padded deck")
                     ||own.Contains("deck rail")||own.Contains("face cradle");
             else if(file=="double-bathroom-vanity.glb")
-                solid=own.StartsWith("case")||own.StartsWith("basin");
+                solid=own.StartsWith("case")||own.StartsWith("basin")
+                    ||own.StartsWith("vanity | limestone counter");
             else if(file=="shower_cabin.glb")
                 solid=own=="object_2"||own=="object_6";
             else if(file=="lockers.glb"||file=="locker_room_bench_free_model.glb")
