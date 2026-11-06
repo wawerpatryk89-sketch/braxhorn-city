@@ -412,7 +412,7 @@ internal static class BraxMiastoBillboardy
         var g = new GameObject("BRAXHORN GYM - MURAL na całej szarej ścianie (otwór drzwi)");
         g.transform.SetParent(rodzic, false);
         g.transform.position = Vector3.zero;
-        BraxMiastoA.Obiekt(g.transform, "malatura mural_19 (bez nośnika)", mesh, mat);
+        BraxMiastoA.Obiekt(g.transform, "mural_19", mesh, mat); // nazwa wymagana przez BraxMiastoOdbior.Mural
         postawione++;
         opis.Add("19: MURAL NA CAŁEJ ŚCIANIE " + (xMax - xMin).ToString("F2") + "×" + (yMax - yMin).ToString("F2") +
                   " m, wycięcie drzwi x=" + otwor.xMin.ToString("F2") + "..." + otwor.xMax.ToString("F2") +
