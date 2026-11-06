@@ -284,6 +284,16 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertNotIn("if (!BraxBuildQuality.Advisory)", sample)
         self.assertIn("finally { PatrykSpoczynek(spoczynek); }", sample)
 
+    def test_entrance_access_cannot_pass_using_only_upstairs_targets(self):
+        entrances = source("BraxClaudeOsiedleWejscia.cs")
+        check = entrances.split("static List<string> Lacznosc(", 1)[1].split("static void JednoWejscie()", 1)[0]
+        self.assertIn("var celeNaPoziomie = cele.Where(c =>", check)
+        self.assertIn("Mathf.Abs(c.p.y - y) <= 2f", check)
+        self.assertIn("nCele = celeNaPoziomie.Count;", check)
+        self.assertIn("if (celeNaPoziomie.Count == 0)", check)
+        self.assertIn("foreach (var (n, p) in celeNaPoziomie)", check)
+        self.assertNotIn("nCele = cele.Count;", check)
+
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
         motion = source("BraxClaudePatrykHumanoid.cs")
