@@ -394,6 +394,18 @@ internal static class BraxMiastoOdbior
             return;
         }
         Physics.SyncTransforms();
+        // Po wycięciu dawnego napisu NOVA DYSKOTEKA na fasadzie ma zostać
+        // dokładnie JEDEN oryginalny szyld z importu właściciela.
+        var klub = cityRoot.GetComponentsInChildren<Transform>(true)
+            .FirstOrDefault(t => t && t.name == "CLAUDE A: CLUB NOVA (od nowa)");
+        int oryginalne = klub ? klub.GetComponentsInChildren<Transform>(true)
+            .Count(t => t && (t.name == "NOVA SZYLD ORYGINALNY WŁAŚCICIELA (szyld_nova)" ||
+                 t.name == "mural club_nova" || t.name == "mural nova_club" ||
+                 t.name == "mural nova")) : 0;
+        if (oryginalne != 1)
+            Debug.LogWarning("BRAXHORN_NOVA_R1_SZYLD_NIEGOTOWY liczba_oryginalnych=" + oryginalne +
+                " (wymagany dokładnie jeden, brak tekstowych zamienników)");
+        else Debug.Log("BRAXHORN_NOVA_R1_SZYLD_Z_PACZKI liczba_oryginalnych=1");
         int bezPodlogi = 0, blokady = 0, próbki = 0;
         const int maska = ~((1 << 29) | (1 << 31));
         var trasa = new[] {
