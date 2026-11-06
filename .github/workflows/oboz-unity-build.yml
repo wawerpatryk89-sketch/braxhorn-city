@@ -168,6 +168,11 @@ jobs:
       - name: Ciemna elewacja i białe kafelki murowanej łaźni — oryginalne Poly Haven 2K
         if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         run: python3 unity-tools/oboz/facility_public_materials.py
+      - name: Kontrola prawdziwych modeli GLB, FBX i PBR przed Unity — bez APK
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/owner_geometry_preflight.py
       - name: Spakuj PBR postaci (Monika 4K, pozostali 2K) — oryginały bez zmian
         if: github.ref != 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         # Packing is an optimization, not a compilation dependency. If this
