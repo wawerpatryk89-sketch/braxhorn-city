@@ -1,0 +1,107 @@
+name: Miasto Mistrzów A1+T11+P1 - audyt źródeł (BEZ Unity/APK)
+
+on:
+  push:
+    branches: [gpt/miasto-mistrzow-a1-t11-p1-integracja-20261106]
+    paths:
+      - .github/workflows/champions-a1-t11-p1-source-audit.yml
+      - unity-tools/mistrzowie/legacy_foundation.py
+      - unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1*.cs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: champions-a1-t11-p1-source-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    if: github.repository == 'wawerpatryk89-sketch/braxhorn-city'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout only Champions source needed for verification
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/workflows/mistrzowie-apk.yml
+            .github/workflows/mistrzowie-unity6-smoke.yml
+            .github/workflows/mistrzowie-unity6-apk-update.yml
+            .github/workflows/champions-a1-t11-p1-source-audit.yml
+            unity-city/Assets
+            unity-city/Packages
+            unity-city/ProjectSettings
+            unity-tools/mistrzowie
+            unity-tools/updates
+            unity-tools/validation
+            public/assets/chars/brax.glb.gz
+            public/assets/tex/brax_color.webp
+            public/assets/tex/brax_normal.webp
+            public/assets/tex/brax_orm.webp
+            public/assets/cars-src/car_rev.glb
+      - name: Python syntax and C# parse/scopes
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -q numpy==2.2.6 shapely==2.1.2 pillow==11.3.0 -r unity-tools/validation/requirements.txt
+          python3 -m compileall -q unity-tools/mistrzowie
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+          echo "C_SHARP_PARSE_SCOPE_SOURCE_PASS; not Unity type checking"
+      - name: Exact P1, A1, T11 and 5-station contracts
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_pool_p1_*.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_casino_t11_garage.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_a1_t11_before_apk.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_early_import_readiness.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_metro_five_stations.py' -v
+          echo "CHAMPIONS_A1_T11_P1_FIVE_METRO_STATIC_PASS; Unity not run"
+      - name: Generate integrated civil terrain and infrastructure - no Unity
+        run: |
+          set -euo pipefail
+          python3 unity-tools/mistrzowie/legacy_foundation.py
+          python3 unity-tools/mistrzowie/build_infrastructure.py
+          python3 unity-tools/mistrzowie/validate_contract.py
+          echo "CHAMPIONS_P1_POOL_CUTOUTS_T11_GARAGE_FIVE_METRO_STATIC_PASS"
+      - name: Assert real promenade, port and beach contracts after integration
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_premium_port_beach.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_promenade_no_overlays.py' -v
+          echo "CHAMPIONS_PROMENADE_PORT_BEACH_STATIC_PASS"
+      - name: P1 project scope assertions and truthful result
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path(".")
+          p=json.loads((root/"unity-city/Assets/Source/Mistrzowie/PoolP1/plot.json").read_text())
+          assert (p["lot"]["x"],p["lot"]["z"],p["lot"]["w"],p["lot"]["d"])==(520,180,160,120)
+          assert p["parkingSpaces"]==95 and p["waterReady"] and len(p["basins"])==3
+          b=(root/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsBuildings.cs").read_text()
+          assert b.count("BraxChampionsCasinoT11.Generate(Out);")==1
+          assert b.count("BraxChampionsPoolP1.Generate();")==1
+          player=(root/"unity-city/Assets/BraxGymPlayer.cs").read_text()
+          for t in ("championsCar.Steer(move)","championsCar.EmergencyExit()","EnterSwimmingZone","ClearSwimming()"):
+              assert t in player,t
+          ground=(root/"unity-tools/mistrzowie/legacy_foundation.py").read_text()
+          for t in ("POOL_HOLES","T11_GARAGE_RAMP","PAVILION_FOOTPRINTS","cycle_lane"):
+              assert t in ground,t
+          print("P1_PROJECT_SOURCE_AND_EXISTING_ARENA_T11_CAR_PROMENADE_PRESERVED_PASS")
+          print("IMPORTANT: VISUAL FIDELITY/UNITY COMPILE/FPS/ANDROID ARE NOT TESTED")
+          PY
+      - name: Evidence only, NO game compilation
+        if: always()
+        run: |
+          {
+            echo "### Champions A1+T11+P1 — source audit"
+            echo
+            echo "Commit: $GITHUB_SHA"
+            echo
+            echo "This test did NOT open Unity, create APK, modify source or deploy Android updates."
+            echo "Passing source checks do NOT establish accurate 3D visuals or working phone controls."
+          } >> "$GITHUB_STEP_SUMMARY"
