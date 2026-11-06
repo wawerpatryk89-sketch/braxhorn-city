@@ -165,11 +165,13 @@ public static class BraxObozSceneAudit
         var renderers=record.GetComponentsInChildren<Renderer>(true)
             .Where(r=>r&&r.enabled&&r.gameObject.activeInHierarchy).ToArray();
         if(renderers.Length==0) {item.status="brak aktywnej geometrii";return item;}
-        var bounds=RenderedBounds(record.transform);
+        var bounds=record.contactRenderers!=null&&record.contactRenderers.Length>0
+            ? BraxObozPlacement.Bounds(record.contactRenderers):RenderedBounds(record.transform);
+        var contact=record.contactPoint?record.contactPoint.position:bounds.center;
         item.expectedHeightMetres=record.heightAboveFloorMetres;
         if(record.heightAboveFloorMetres>=0)
         {
-            var origin=new Vector3(bounds.center.x,bounds.min.y+.15f*K,bounds.center.z);
+            var origin=new Vector3(contact.x,bounds.min.y+.15f*K,contact.z);
             var floor=Physics.RaycastAll(origin,Vector3.down,5f*K,~0,
                 QueryTriggerInteraction.Ignore)
                 .Where(h=>h.collider && h.collider.gameObject.scene==record.gameObject.scene &&
@@ -191,7 +193,7 @@ public static class BraxObozSceneAudit
         {
             // Cast from above the complete object and reject its entire
             // hierarchy, including a parent collider of any mesh child.
-            var origin=new Vector3(bounds.center.x,bounds.max.y+.5f*K,bounds.center.z);
+            var origin=new Vector3(contact.x,bounds.max.y+.5f*K,contact.z);
             var hit=Physics.RaycastAll(origin,Vector3.down,bounds.size.y+10f*K,~0,
                 QueryTriggerInteraction.Ignore)
                 .Where(h=>h.collider && h.collider.gameObject.scene==record.gameObject.scene &&
@@ -220,6 +222,18 @@ public static class BraxObozSceneAudit
             if(!hit.collider){item.status="brak ściany";return item;}
             item.measured=true;item.supportPath=PathOf(hit.collider.transform);
             item.gapMetres=Vector3.Dot(hit.point-rear,d)/K;
+        }
+        else if(record.support==BraxObozPlacementRecord.SupportKind.Suspended)
+        {
+            if(!record.suspensionPoint||!record.suspensionSupport)
+            {item.status="brak geometrii zaczepu lub podpory";return item;}
+            var point=record.suspensionPoint.position;
+            var support=record.suspensionSupport;
+            if(!support.enabled||!support.gameObject.activeInHierarchy||support.isTrigger||
+                support.gameObject.scene!=record.gameObject.scene)
+            {item.status="nieaktywna podpora podwieszenia";return item;}
+            item.measured=true;item.supportPath=PathOf(support.transform);
+            item.gapMetres=Vector3.Distance(point,support.ClosestPoint(point))/K;
         }
         else {item.status="brak zadeklarowanego podparcia — wymaga pomiaru";return item;}
         item.status=item.gapMetres>.03f?"LEWITUJE > 3 cm":
@@ -308,7 +322,22 @@ public static class BraxObozSceneAudit
             {
                 var bounds=RenderedBounds(t);
                 Check(t,Mathf.Max(bounds.size.x,bounds.size.z),2f,"długość łóżka");
-                Check(t,Mathf.Min(bounds.size.x,bounds.size.z),.9f,"szerokość łóżka");
+                // The delivered bed's blanket overhang is 1.262567 m wide.
+                // Its actual mattress is 0.927123 m, 0.895771 m after the
+                // uniform 2/2.07 length calibration. Never squash the blanket
+                // or misreport that full visual envelope as mattress width.
+                var mattress=t.GetComponentsInChildren<Renderer>(true)
+                    .Where(r=>r&&r.name=="Mesh21_Color_M03_0").ToArray();
+                if(mattress.Length==0)results.Add("Brak pomiaru oryginalnego materaca: "+PathOf(t));
+                else
+                {
+                    Check(t,BraxObozPlacement.Dimension(mattress,BraxObozPlacement.Axis.X,t.parent),
+                        .9f,"szerokość materaca IDANAS");
+                    float top=(BraxObozPlacement.Bounds(mattress).max.y-bounds.min.y)/K;
+                    if(Mathf.Abs(top-.45f)>.03f)
+                        results.Add("Oryginalny IDANAS: powierzchnia materaca "+top.ToString("F4")+
+                            " m, tabela 0.45 m; zachowano proporcje oryginału: "+PathOf(t));
+                }
             }
             else if(n=="Właściciel / oryginalny metal_cabinet_low_poly.glb")
                 Check(t,RenderedBounds(t).size.y,2f,"wysokość szafy");
@@ -383,7 +412,14 @@ public static class BraxObozSceneAudit
                 if(w<4096)
                     results.Add("Mural za mały (<4096px szer.): "+key+" "+w+"x"+h);
             }
-            var facing=r.transform.forward;
+            var filter=r.GetComponent<MeshFilter>();
+            if(!filter || !filter.sharedMesh || !filter.sharedMesh.isReadable ||
+                filter.sharedMesh.normals.Length==0)
+            {results.Add("Mural bez geometrii normalnej: "+key);continue;}
+            // Actual visible face of the Quad, not Transform.forward. Unity's
+            // primitive has local -Z normals; an unturned image faces the wall.
+            var facing=r.localToWorldMatrix.inverse.transpose
+                .MultiplyVector(filter.sharedMesh.normals[0]).normalized;
             var from=r.bounds.center+facing*(.4f*K);
             var walls=Physics.RaycastAll(from,-facing,1.25f*K,~0,
                 QueryTriggerInteraction.Ignore).Where(h=>h.collider &&
@@ -391,6 +427,13 @@ public static class BraxObozSceneAudit
                     Vector3.Dot(h.normal,facing)>.55f).ToArray();
             if(walls.Length==0)
                 results.Add("Mural bez potwierdzonego styku ze ścianą: "+key);
+            else
+            {
+                var wall=walls.OrderBy(h=>h.distance).First();
+                float gap=Vector3.Dot(r.bounds.center-wall.point,facing)/K;
+                if(gap<-.003f||gap>.03f)
+                    results.Add("Mural odsunięty lub wbity: "+key+" odstęp="+gap.ToString("F4")+" m");
+            }
         }
         return results.ToArray();
     }

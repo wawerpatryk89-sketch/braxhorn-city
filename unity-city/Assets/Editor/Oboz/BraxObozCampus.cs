@@ -131,9 +131,6 @@ public static partial class BraxObozEnvironment
         MetalRoof(gym,27.7f,20.2f,5.4f,1.25f);
         Sign(gym,"BRAXHORN GYM · OBÓZ",new Vector3(0,4.7f,-8.15f),19f);
         OwnerStrengthEquipment(gym);
-        OriginalMural(gym,"TRAINING_CAMP",
-            "6B6E1CA3-605A-47FB-BF0E-F23B1D2C3301(1).jpeg",
-            new Vector3(-13.85f,2.7f,0),Quaternion.Euler(0,-90,0),7f,true);
     }
 
     static void OwnerStrengthEquipment(Transform gym)
@@ -328,8 +325,6 @@ public static partial class BraxObozEnvironment
         mat.AddComponent<BraxObozDeformableMat>().Configure(width-.3f,depth-.3f);
         build(t);
         float signWidth=Mathf.Min(width-1,8);
-        foreach(float side in new[]{-1f,1f})
-            Box(t,"Podpora tablicy",new Vector3(side*signWidth*.42f,.7f,depth*.5f),new Vector3(.065f,1.4f,.065f),campusSteel);
         Sign(t,label,new Vector3(0,1.6f,depth*.5f),signWidth);
         // This marker records geometry only. Exercise animations are not implemented.
         var station=t.gameObject.AddComponent<BraxObozTrainingStation>();station.label=label;
@@ -337,8 +332,35 @@ public static partial class BraxObozEnvironment
     }
     static void Sign(Transform parent,string label,Vector3 p,float width)
     {
-        Box(parent,"Tablica · "+label,p,new Vector3(width,.65f,.08f),campusSteel,false);
-        var text=Group("Napis · "+label,parent,(p+new Vector3(0,0,-.046f))*K).gameObject.AddComponent<TextMesh>();
+        var board=Group("Drewniana tablica · "+label,parent,p*K);
+        // These are actual planks and grounded log supports. Several previous
+        // signs had a floating panel or posts ending below its lower edge.
+        for(int row=0;row<4;row++)
+            Box(board,"Deska tablicy",new Vector3(0,-.24375f+row*.1625f,0),
+                new Vector3(width,.1595f,.12f),wood,false);
+        ColliderBox(board,Vector3.zero,new Vector3(width,.65f,.12f));
+        Physics.SyncTransforms();
+        foreach(float side in new[]{-1f,1f})
+        {
+            float px=p.x+side*width*.42f,pz=p.z+.08f;
+            var proposed=parent.TransformPoint(P(px,0,pz));
+            var hit=Physics.RaycastAll(proposed+Vector3.up*(1.5f*K),Vector3.down,
+                3f*K,~0,QueryTriggerInteraction.Ignore)
+                .Where(h=>h.collider && !h.collider.transform.IsChildOf(board) &&
+                    h.normal.y>.7f && h.point.y<=proposed.y+.35f*K)
+                .OrderByDescending(h=>h.point.y).FirstOrDefault();
+            float baseY=hit.collider?parent.InverseTransformPoint(hit.point).y/K:0f;
+            if(!hit.collider)BraxBuildQuality.Warn("OBÓZ TABLICA — brak podłoża: "+label);
+            var post=Cylinder(parent,"Słup z bali pod tablicą · "+label,
+                new Vector3(px,baseY,pz),new Vector3(px,p.y+.26f,pz),.12f,wood,true);
+            if(hit.collider)
+            {
+                var record=BraxObozPlacementRecord.For(post.transform);
+                record.support=BraxObozPlacementRecord.SupportKind.Ground;
+                record.verticalSupport=hit.collider;record.label="słup tablicy "+label;
+            }
+        }
+        var text=Group("Napis · "+label,board,P(0,0,-.065f)).gameObject.AddComponent<TextMesh>();
         text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         text.text=label;text.anchor=TextAnchor.MiddleCenter;text.alignment=TextAlignment.Center;text.fontSize=72;
         text.characterSize=.38f*K*10/72;text.color=new Color(.9f,.87f,.73f);
@@ -347,10 +369,12 @@ public static partial class BraxObozEnvironment
         foreach(char c in label)if(text.font.GetCharacterInfo(c,out var glyph,text.fontSize,text.fontStyle))advance+=glyph.advance;
         float measured=advance*text.characterSize/10;
         if(measured>(width-.3f)*K)text.characterSize*=((width-.3f)*K)/measured;
-        text.GetComponent<MeshRenderer>().sharedMaterial=BraxObozMaterials.SignText(text.font);
+        var renderer=text.GetComponent<MeshRenderer>();
+        renderer.sharedMaterial=BraxObozMaterials.SignText(text.font);
         text.gameObject.AddComponent<BraxCitySignText>();
-        // Lettering sits on the south face; local +X stays left-to-right there.
         text.transform.localRotation=Quaternion.identity;
+        BraxObozPlacement.ToWall(text.transform,new Renderer[]{renderer},
+            board.position-board.forward*(.3f*K),board.forward,"napis "+label);
     }
     static void CampusArrival()
     {
@@ -374,27 +398,9 @@ public static partial class BraxObozEnvironment
         // Four arrival walkways are now authored by PavedPaths/PathRectangles.
         // Their mesh and curbs are cut against BOTH tracks instead of being
         // rendered as unbroken cubes through the red running surface.
-        foreach(float x in new[]{-3.2f,3.2f})Box(t,"Linia krawędzi drogi",new Vector3(x,.092f,-126),new Vector3(.1f,.004f,28),campusMark,false);
-        // Eight legacy zebra stripes at Z=-115 touched the inner edge of
-        // the 4-lane red oval (at X~0: inner boundary Z=-116.2).
-        // Paint ONE road crossing on asphalt well inside the oval, away from
-        // the separate tartan-only pedestrian crossing by the bus shelter.
-        const float vehicleCrosswalkZ=-111f;
-        const float vehicleCrosswalkDepth=2.4f;
-        // Geometry reviewed in source metres against the exact current
-        // four-lane ellipse: zebra x=-3.1..3.1, z=-112.2..-109.8,
-        // innermost oval starts near z=-116.2; >=3.9 m clear.
-        // No build-aborting visual-placement guard on road markings.
-        for(int i=0;i<8;i++)
-            Box(t,"Pasy piesze — pojedyncze przejście na asfalcie",
-                new Vector3(-2.8f+i*.8f,.098f,vehicleCrosswalkZ),
-                new Vector3(.4f,.004f,vehicleCrosswalkDepth),campusMark,false);
-        // Painted crossing directly on the existing owner rubberized track.
-        // No concrete, paving collider, or raised curb may enter four red lanes.
-        OwnerTrackPedestrianCrossing(t);
-        Sign(t,"UWAGA BIEZNIA · USTAP PIESZYM",new Vector3(6.0f,2f,-116f),6f);
+        // Owner's 6 November follow-up: remove the unnecessary road stripes
+        // beside the entrance. Track lane markings remain part of the track.
         Sign(t,"BRAXHORN · PRZYJAZDY",new Vector3(26,2.1f,-84),5);
-        foreach(float x in new[]{24f,28f})Box(t,"Podpora tablicy przyjazdów",new Vector3(x,1,-84),new Vector3(.08f,2,.08f),campusSteel);
         foreach(float z in new[]{-110f,-100f,-90f,-80f})Lamp(t,new Vector3(28,0,z));
         // Footpath protection, leaving boarding openings at both coach doors.
         foreach(float z in new[]{-99f,-93f,-86f})Cylinder(t,"Słupek ochronny",new Vector3(24,.08f,z),new Vector3(24,1.05f,z),.075f,campusSteel,true);
@@ -409,45 +415,6 @@ public static partial class BraxObozEnvironment
             Group("Łuk "+i,route,P(Mathf.Sin(a)*12,0,-94+Mathf.Cos(a)*12));
         }
     }
-    static void OwnerTrackPedestrianCrossing(Transform arrival)
-    {
-        var cross=Group("Przejście piesze przez tartan — tylko oznaczenia malowane",arrival,Vector3.zero);
-        float innerX=BraxObozCampusLayout.PlotRadiusX-8.8f;
-        float innerZ=BraxObozCampusLayout.PlotRadiusZ-8.8f;
-        float outerX=innerX+4*1.2f,outerZ=innerZ+4*1.2f;
-        float south=0f,north=0f;
-        float Boundary(float x,float rx,float rz)
-        {
-            float fraction=Mathf.Clamp01(1f-(x*x)/(rx*rx));
-            return BraxObozCampusLayout.PlotCenterZ-rz*Mathf.Sqrt(fraction);
-        }
-        // Align with the paved footpath x=24.6..27.4 beside the boarding bay.
-        // Sides are calculated from the real elliptical track geometry.
-        foreach(float x in new[]{24.85f,27.15f})
-        {
-            float start=Boundary(x,outerX,outerZ)+.12f;
-            float end=Boundary(x,innerX,innerZ)-.12f;
-            // Four-lane track span follows the known ellipses, calculated
-            // directly rather than depending on a build-stopping check.
-            Box(cross,"Biała malowana krawędź przejścia bez kolizji",
-                new Vector3(x,.150f,(start+end)*.5f),
-                new Vector3(.07f,.002f,end-start),campusMark,false);
-            south+=start*.5f;north+=end*.5f;
-        }
-        for(int i=0;i<4;i++)
-        {
-            float z=Mathf.Lerp(south+.25f,north-.25f,i/3f);
-            Box(cross,"Malowany znacznik przejścia na tartanie",
-                new Vector3(26f,.150f,z),new Vector3(2.1f,.002f,.065f),campusMark,false);
-        }
-        CombineDecoration(cross);
-        Debug.Log("BRAXHORN_OBOZ_PIESI_CROSSING: footpath x=24.6..27.4, sourceZ="+
-            south+".."+north+" paintedOnTrack=true pavingOnTrack=false; Play Mode and bus priority still to verify");
-    }
-
-    // Model właściciela pozostaje w prywatnych assetach Unity, poza publicznym Git.
-    // Nieobecność GLB oznaczamy jako BRAK do odbioru, nigdy nie używamy atrapy.
-    // Blender/FBX z paczki właściciela: oryginalne UV, geometrii nie redukujemy.
     static void OwnerShelter(Transform parent)
     {
         const string sourcePath=
@@ -638,11 +605,17 @@ public static partial class BraxObozEnvironment
         var importer = AssetImporter.GetAtPath(alphaPath) as TextureImporter;
         if (!importer) throw new InvalidOperationException("Nie można zaimportować okleiny szyldu");
         bool adjust = !importer.alphaIsTransparency ||
-            importer.maxTextureSize < 2048 ||
+            importer.maxTextureSize != 2048 ||
+            importer.textureType != TextureImporterType.Default ||
+            importer.textureShape != TextureImporterShape.Texture2D ||
+            importer.npotScale != TextureImporterNPOTScale.None ||
             importer.filterMode != FilterMode.Trilinear ||
             !importer.mipmapEnabled;
         if (adjust)
         {
+            importer.textureType = TextureImporterType.Default;
+            importer.textureShape = TextureImporterShape.Texture2D;
+            importer.npotScale = TextureImporterNPOTScale.None;
             importer.alphaIsTransparency = true;
             importer.alphaSource = TextureImporterAlphaSource.FromInput;
             importer.sRGBTexture = true;
@@ -652,6 +625,7 @@ public static partial class BraxObozEnvironment
             importer.wrapMode = TextureWrapMode.Clamp;
             importer.SaveAndReimport();
         }
+        AssetDatabase.ImportAsset(alphaPath,ImportAssetOptions.ForceSynchronousImport);
         var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(alphaPath);
         var shader = Shader.Find("Unlit/Transparent");
         if (!texture || !shader)
@@ -759,12 +733,13 @@ public static partial class BraxObozEnvironment
         var sign = Group("BRAXHORN TRAINING CAMP — oryginalny szyld 3D", gate, Vector3.zero);
         var shell = Group("Metalowa bryła 26 cm — wytłoczona po kształcie grafiki", sign, Vector3.zero).gameObject;
         shell.AddComponent<MeshFilter>().sharedMesh = SaveMesh(solidMesh);
-        shell.AddComponent<MeshRenderer>().sharedMaterial = campusSteel;
+        var shellRenderer=shell.AddComponent<MeshRenderer>();
+        shellRenderer.sharedMaterial = campusSteel;
         // Jeden uproszczony collider nad przejazdem, bez tysięcy kosztownych
         // trójkątów fizyki odpowiadających konturowi liter.
         var casingCollision = shell.AddComponent<BoxCollider>();
-        casingCollision.center = P(0, centreY, (faceZ + backZ) * .5f);
-        casingCollision.size = new Vector3(signWidth, signHeight, backZ-faceZ) * K;
+        casingCollision.center = solidMesh.bounds.center;
+        casingCollision.size = solidMesh.bounds.size;
 
         // Okleina 1:1 ma swoje UV, dzięki czemu NIGDY nie odwraca liter.
         // Przyklejona 1 cm przed metalową powierzchnią, bez z-fightingu.
@@ -815,14 +790,46 @@ public static partial class BraxObozEnvironment
         // a nie w dawnych pozycjach +-3,7 wewnątrz światła bramy.
         // Jedna gruba DREWNIANA belka na pełnej szerokości bramy.
         // Nie ma podpór z cienkich metalowych patyków wewnątrz przejazdu.
-        Cylinder(gate,"Jednolity bal ponad bramą — 9,4 m",
-            new Vector3(-4.7f,3.67f,.28f),new Vector3(4.7f,3.67f,.28f),
+        // Keep the real vehicle scale. Establish headroom from its measured
+        // height and the road ray, instead of lowering the sign into traffic.
+        float beamCentre=3.67f;
+        var bus=root.GetComponentsInChildren<Transform>(true)
+            .FirstOrDefault(t=>t.name==BraxObozParkedBus.Name);
+        var roadOrigin=gate.TransformPoint(P(0,1,.28f));
+        var road=Physics.RaycastAll(roadOrigin,Vector3.down,2f*K,~0,
+            QueryTriggerInteraction.Ignore).Where(h=>h.collider&&h.normal.y>.7f&&
+                !h.collider.transform.IsChildOf(gate))
+            .OrderByDescending(h=>h.point.y).FirstOrDefault();
+        if(bus&&road.collider)
+        {
+            var busBounds=BraxObozPlacement.Bounds(bus.GetComponentsInChildren<Renderer>(true));
+            float roadY=gate.InverseTransformPoint(road.point).y/K;
+            beamCentre=Mathf.Max(beamCentre,roadY+busBounds.size.y/K+.30f+.29f);
+        }
+        var beam=Cylinder(gate,"Jednolity bal ponad bramą — 9,4 m",
+            new Vector3(-4.7f,beamCentre,.28f),new Vector3(4.7f,beamCentre,.28f),
             .29f,wood,true);
         foreach (float x in new[] {-4.45f,4.45f})
-            Cylinder(gate,"Dwa grube pionowe słupy z bali",
-                new Vector3(x,0,.28f),new Vector3(x,visibleSignBottom+1.6f,.28f),
+        {
+            var post=Cylinder(gate,"Dwa grube pionowe słupy z bali",
+                new Vector3(x,0,.28f),new Vector3(x,beamCentre,.28f),
                 .34f,wood,true);
-        Debug.Log("BRAXHORN_OBOZ_SIGN_3D: visibleBottom="+visibleSignBottom+" source=" + width + "x" + height +
+            BraxObozPlacement.OnGround(post.transform,post.GetComponentsInChildren<Renderer>(),
+                gate.TransformPoint(P(x,0,.28f)),"słup bramy "+x);
+        }
+        // The old canvas centre (6.2 m) did not establish a physical join to
+        // the beam. Mount the lowest vertex of the visible metal contour on
+        // the beam's actual collider. Transparent JPEG margins are not feet.
+        var beamBounds=beam.GetComponent<Renderer>().bounds;
+        var contactGeometry=new Renderer[]{shellRenderer};
+        bool supported=BraxObozPlacement.OnSupport(sign,contactGeometry,beam.transform,
+            new Vector3(beamBounds.center.x,beamBounds.max.y,beamBounds.center.z),
+            "oryginalny szyld na belce bramy");
+        var placement=BraxObozPlacementRecord.For(sign);
+        placement.contactRenderers=contactGeometry;
+        float mountedBottom=gate.InverseTransformPoint(shellRenderer.bounds.min).y/K;
+        Debug.Log("BRAXHORN_OBOZ_SIGN_3D: originalVisibleBottom="+visibleSignBottom+
+            " mountedVisibleBottom="+mountedBottom+" supportRay="+supported+" source=" + width + "x" + height +
             " metalDepth=0.26m stickerUV=1:1 supportX=+-4.45 opening=8.4m; test Unity wymagany");
     }
 
@@ -892,7 +899,10 @@ public static partial class BraxObozEnvironment
     }
     static void CombineDecoration(Transform parent)
     {
-        var filters=parent.GetComponentsInChildren<MeshFilter>().Where(f=>f.GetComponent<MeshRenderer>()).ToArray();
+        var filters=parent.GetComponentsInChildren<MeshFilter>()
+            .Where(f=>f.GetComponent<MeshRenderer>() &&
+                !f.GetComponentInParent<BraxObozPlacementRecord>() &&
+                !f.name.StartsWith("JPEG 1:1 — ",StringComparison.Ordinal)).ToArray();
         foreach(var group in filters.GroupBy(f=>f.GetComponent<MeshRenderer>().sharedMaterial)){
             var mesh=new Mesh{name="Geometria zbiorcza",indexFormat=IndexFormat.UInt32};
             mesh.CombineMeshes(group.Select(f=>new CombineInstance{mesh=f.sharedMesh,transform=parent.worldToLocalMatrix*f.transform.localToWorldMatrix}).ToArray());
@@ -1079,20 +1089,22 @@ public static partial class BraxObozEnvironment
             new Vector3(3.4f,.13f,2.1f),floor);
         foreach(float x in new[]{-1.65f,1.65f})
         {
+            float postHeight=x<0?2.18f:1.03f;
             Cylinder(ganek,"Słup balustrady",
-                new Vector3(x,.14f,-5.92f),new Vector3(x,1.03f,-5.92f),
+                new Vector3(x,.14f,-5.92f),new Vector3(x,postHeight,-5.92f),
                 .10f,wood,true);
             Cylinder(ganek,"Słup balustrady przy domu",
-                new Vector3(x,.14f,-4.22f),new Vector3(x,1.03f,-4.22f),
+                new Vector3(x,.14f,-4.22f),new Vector3(x,postHeight,-4.22f),
                 .10f,wood,true);
             Cylinder(ganek,"Pochwyt boczny z drewna",
                 new Vector3(x,1.02f,-5.92f),new Vector3(x,1.02f,-4.22f),
                 .08f,wood,false);
         }
-        // Sznur na ręczniki między rzeczywistymi słupkami, bez brył-ręczników.
+        // Both anchors are inside full-height posts. The line runs along the
+        // side of the porch, leaving the whole doorway and approach clear.
         Cylinder(ganek,"Sznur na ręczniki",
-            new Vector3(-1.65f,1.88f,-4.20f),new Vector3(1.65f,1.88f,-4.20f),
-            .012f,rope,false);
+            new Vector3(-1.65f,2.05f,-5.92f),new Vector3(-1.65f,2.05f,-4.22f),
+            .012f,rope,true);
         foreach(float x in new[]{-3.13f,3.13f})foreach(float z in new[]{-4.13f,4.13f})
             Box(trim,"Deska narożna",new Vector3(x,1.5f,z),new Vector3(.17f,2.7f,.17f),wood,false);
         foreach(float z in new[]{-4.05f,4.05f}) {

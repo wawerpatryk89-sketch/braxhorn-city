@@ -158,6 +158,9 @@ public static partial class BraxObozEnvironment
             light.shadows = LightShadows.Soft; RenderSettings.sun = light;
             RenderSettings.fog = true; RenderSettings.fogMode = FogMode.ExponentialSquared; RenderSettings.fogDensity = .003f;
             RenderSettings.fogColor = new Color(.34f, .46f, .43f);
+            Optional("wypalenie odbić luster łaźni",()=>{
+                BraxObozServices.BakeBathroomReflections(root);
+            });
             info.bags = bags.ToArray(); info.coveredBags = covered.ToArray(); info.cabinDoors = doors.Take(4).ToArray(); info.arenas = arenas.ToArray();
             try { BraxObozMaterials.ValidateHierarchy(root); }
             catch(Exception ex) { BraxBuildQuality.Warn(
@@ -180,9 +183,24 @@ public static partial class BraxObozEnvironment
     static void OwnerPanorama()
     {
         const string source="Assets/Source/Prywatne/Oboz/OwnerAssets/Panoramy/montorfano_4k.hdr";
+        var importer=AssetImporter.GetAtPath(source) as TextureImporter;
+        if(!importer)throw new InvalidOperationException("Brak oryginalnej panoramy HDR: "+source);
+        if(importer.textureType!=TextureImporterType.Default ||
+            importer.textureShape!=TextureImporterShape.Texture2D ||
+            importer.npotScale!=TextureImporterNPOTScale.None)
+        {
+            importer.textureType=TextureImporterType.Default;
+            importer.textureShape=TextureImporterShape.Texture2D;
+            importer.npotScale=TextureImporterNPOTScale.None;
+            importer.SaveAndReimport();
+        }
+        AssetDatabase.ImportAsset(source,ImportAssetOptions.ForceSynchronousImport);
+        importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
+        if(sourceWidth!=4096 || sourceHeight!=2048)
+            BraxBuildQuality.Warn("OBÓZ PANORAMA — źródło Montorfano ma "+
+                sourceWidth+"x"+sourceHeight+", oczekiwano 4096x2048");
         var panorama=AssetDatabase.LoadAssetAtPath<Texture2D>(source);
-        if(!panorama || panorama.width!=4096 || panorama.height!=2048)
-            throw new InvalidOperationException("Brak oryginalnej panoramy HDR 360 4096x2048: "+source);
+        if(!panorama)throw new InvalidOperationException("Nie wczytano panoramy HDR: "+source);
         var shader=Shader.Find("Skybox/Panoramic");
         if(!shader)throw new InvalidOperationException("Brak shadera HDR Skybox/Panoramic");
         var material=new Material(shader){name="Obóz — Montorfano HDR 360 oryginalne 4K"};
@@ -209,34 +227,66 @@ public static partial class BraxObozEnvironment
         Quaternion facing,float width,bool woodenBacking)
     {
         string texturePath="Assets/Source/Prywatne/Oboz/OwnerAssets/Murale/"+filename;
-        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
-        if(!texture)
+        var importer=AssetImporter.GetAtPath(texturePath) as TextureImporter;
+        if(!importer)
         {
             Debug.LogWarning("BRAXHORN_OBOZ_MURAL_MISSING "+texturePath+
                 " — raport zamiast zatrzymania generowania sceny");
             return;
         }
-        var importer=AssetImporter.GetAtPath(texturePath) as TextureImporter;
-        if(importer)
+        // An artwork must stay a 2D image with its native aspect ratio. Configure
+        // the importer before loading, including non-power-of-two source art.
+        if(importer.textureType!=TextureImporterType.Default ||
+            importer.textureShape!=TextureImporterShape.Texture2D ||
+            importer.npotScale!=TextureImporterNPOTScale.None)
         {
-            importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
-            if(sourceWidth<4096)
-                Debug.LogWarning("BRAXHORN_OBOZ_MURAL_LOW_SOURCE_RESOLUTION "+
-                    texturePath+" szerokosc="+sourceWidth+" — wymagane min 4096 px");
+            importer.textureType=TextureImporterType.Default;
+            importer.textureShape=TextureImporterShape.Texture2D;
+            importer.npotScale=TextureImporterNPOTScale.None;
+            importer.SaveAndReimport();
         }
-        float height=width*texture.height/(float)texture.width;
+        AssetDatabase.ImportAsset(texturePath,ImportAssetOptions.ForceSynchronousImport);
+        importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
+        if(sourceWidth<4096)
+            Debug.LogWarning("BRAXHORN_OBOZ_MURAL_LOW_SOURCE_RESOLUTION "+
+                texturePath+" szerokosc="+sourceWidth+" — wymagane min 4096 px");
+        var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+        if(!texture || sourceWidth<=0 || sourceHeight<=0)
+        {
+            Debug.LogWarning("BRAXHORN_OBOZ_MURAL_MISSING "+texturePath);
+            return;
+        }
+        // Artwork size may be chosen for the available wall, but it is never
+        // stretched: one physical width and the original source proportion.
+        float aspect=sourceWidth/(float)sourceHeight;
+        width=Mathf.Min(width,(woodenBacking?3.8f:2.35f)*aspect);
+        float height=width/aspect;
         var board=Group("Oryginalny mural BRAXHORN — "+key,parent,P(at.x,at.y,at.z));
         board.localRotation=facing;
         if(woodenBacking)
         {
-            Box(board,"Drewniana ściana pod mural",new Vector3(0,0,-.03f),
-                new Vector3(width+.35f,height+.34f,.20f),wood,true);
-            // Murale na pełnej ścianie pawilonu, bez wolnostojących stalowych tablic.
+            // A genuine part of the building, sibling of the painting. Its
+            // collider must not be excluded with the painting's own hierarchy.
+            var wall=Group("Drewniana ściana budynku — mural "+key,parent,P(at.x,at.y,at.z));
+            wall.localRotation=facing;
+            float wallHeight=parent.name.Contains("SIŁOWNIA")?5.1f:5.45f;
+            float wallWidth=width+.35f;
+            int planks=Mathf.CeilToInt(wallWidth/.18f);
+            for(int i=0;i<planks;i++)
+                Box(wall,"Deska ściany 18 cm",
+                    new Vector3(-wallWidth*.5f+(i+.5f)*wallWidth/planks,wallHeight*.5f-at.y,-.06f),
+                    new Vector3(wallWidth/planks-.004f,wallHeight,.12f),wood,false);
+            ColliderBox(wall,new Vector3(0,wallHeight*.5f-at.y,-.06f),
+                new Vector3(wallWidth,wallHeight,.12f));
             foreach(float side in new[]{-1f,1f})
-                Cylinder(board,"Belka konstrukcyjna ściany pod mural",
-                    new Vector3(side*(width*.5f+.08f),-at.y,0),
-                    new Vector3(side*(width*.5f+.08f),height*.5f,0),
+                Cylinder(wall,"Słup z bali przy ścianie budynku",
+                    new Vector3(side*(wallWidth*.5f+.12f),-at.y,-.06f),
+                    new Vector3(side*(wallWidth*.5f+.12f),wallHeight-at.y,-.06f),
                     .16f,wood,true);
+            Cylinder(wall,"Oczep ściany budynku",
+                new Vector3(-wallWidth*.5f-.12f,wallHeight-at.y,-.06f),
+                new Vector3(wallWidth*.5f+.12f,wallHeight-at.y,-.06f),.16f,wood,false);
+            CombineDecoration(wall);
         }
         var shader=Shader.Find("Unlit/Texture");
         if(!shader)throw new InvalidOperationException("Brak shadera oryginalnego muralu");
@@ -254,6 +304,12 @@ public static partial class BraxObozEnvironment
         var quad=GameObject.CreatePrimitive(PrimitiveType.Quad);
         quad.name="JPEG 1:1 — "+key;
         quad.transform.SetParent(board,false);
+        // Unity's primitive Quad faces local -Z. Turn its visible face toward
+        // the board's outward +Z; this also keeps the lettering readable.
+        quad.transform.localRotation=Quaternion.Euler(0,180,0);
+        quad.transform.localScale=new Vector3(width*K,height*K,1f);
+        quad.GetComponent<MeshRenderer>().sharedMaterial=material;
+        Object.DestroyImmediate(quad.GetComponent<Collider>());
         // Raycast poziomy przez najbliższą, faktyczną ścianę budynku.
         // Sztuczny tylny wspornik nie udaje znalezionej architektury.
         Physics.SyncTransforms();
@@ -265,14 +321,16 @@ public static partial class BraxObozEnvironment
                       Vector3.Dot(h.normal,board.forward)>.55f)
             .OrderBy(h=>h.distance).ToArray();
         if(hits.Length>0)
-            board.position=hits[0].point+board.forward*(.015f*K);
+            BraxObozPlacement.ToWall(board,quad.GetComponentsInChildren<Renderer>(),
+                board.position,towardWall,"mural "+key);
         else
             Debug.LogWarning("BRAXHORN_OBOZ_MURAL_NO_WALL "+key+
                 " — geometria wymaga kontroli montażu, nie oznaczaj jako gotowe");
-        quad.transform.localPosition=P(0,0,woodenBacking ? 0.105f : 0.025f);
-        quad.transform.localScale=new Vector3(width*K,height*K,1f);
-        quad.GetComponent<MeshRenderer>().sharedMaterial=material;
-        Object.DestroyImmediate(quad.GetComponent<Collider>());
+        var placement=BraxObozPlacementRecord.For(board);
+        placement.support=BraxObozPlacementRecord.SupportKind.Wall;
+        placement.wallDirection=towardWall;placement.label="mural "+key;
+        placement.expectedDimensionMetres=width;
+        placement.dimensionAxis=(int)BraxObozPlacement.Axis.X;placement.dimensionFrame=board;
         Debug.Log("BRAXHORN_OBOZ_MURAL: "+key+" piksele="+texture.width+"x"+texture.height+
             " format 1:1, bez modyfikacji oryginalnego JPEG");
     }
@@ -282,20 +340,33 @@ public static partial class BraxObozEnvironment
     static void MuralBoards()
     {
         var buildings = root.GetComponentsInChildren<Transform>(true);
-        var cabin1 = buildings.FirstOrDefault(t => t.name == "Domek 1");
+        var cabin3 = buildings.FirstOrDefault(t => t.name == "Domek 3");
         var pavilion = buildings.FirstOrDefault(t =>
             t.name == "Pawilon treningowy — otwarty, bez starej siłowni");
-        if (!cabin1 || !pavilion)
-            throw new InvalidOperationException("Brak budynku pod oryginalny mural BRAXHORN");
-
-        OriginalMural(cabin1,"WOJOWNIKOW",
-            "87405F34-A95B-4AD6-8637-A19599AADA61.jpeg",
-            new Vector3(0,1.55f,4.17f),Quaternion.identity,4.6f,false);
+        var gym=buildings.FirstOrDefault(t=>t.name=="BRAXHORN · SIŁOWNIA 3D WŁAŚCICIELA");
+        // Each mural is independent; a missing optional building does not
+        // erase murals successfully installed on the other buildings.
+        if(cabin3)Optional("mural DROGA MISTRZA",()=>OriginalMural(cabin3,"DROGA_MISTRZA",
+            "6C3045DC-051D-4B53-8F6E-FEA579A0DE21.jpeg",
+            new Vector3(0,1.5f,4.14f),Quaternion.identity,4.1f,false));
+        else BraxBuildQuality.Warn("OBÓZ MURAL DROGA MISTRZA — brak Domku 3");
         // Fizyczna ściana na południowej krawędzi pawilonu: skierowana
         // do Ring 2, bez zasłaniania schodów i wejść.
-        OriginalMural(pavilion,"FIGHT_ZONE",
-            "35502A48-F7AB-4650-9874-3266881B2DF6.jpeg",
-            new Vector3(-20.05f,2.7f,0),Quaternion.Euler(0,90,0),8.8f,true);
+        if(pavilion)
+        {
+            Optional("mural FIGHT ZONE",()=>OriginalMural(pavilion,"FIGHT_ZONE",
+                "35502A48-F7AB-4650-9874-3266881B2DF6.jpeg",
+                new Vector3(-20.05f,2.7f,0),Quaternion.Euler(0,90,0),8.8f,true));
+            // East elevation faces the obstacle/strength exercise stations.
+            Optional("mural OBÓZ WOJOWNIKÓW",()=>OriginalMural(pavilion,"WOJOWNIKOW",
+                "87405F34-A95B-4AD6-8637-A19599AADA61.jpeg",
+                new Vector3(20.05f,2.7f,0),Quaternion.Euler(0,90,0),4.6f,true));
+        }
+        else BraxBuildQuality.Warn("OBÓZ MURALE FIGHT ZONE/WOJOWNIKÓW — brak budynku treningowego");
+        if(gym)Optional("mural TRAINING CAMP",()=>OriginalMural(gym,"TRAINING_CAMP",
+            "6B6E1CA3-605A-47FB-BF0E-F23B1D2C3301(1).jpeg",
+            new Vector3(13.85f,2.7f,0),Quaternion.Euler(0,90,0),7f,true));
+        else BraxBuildQuality.Warn("OBÓZ MURAL TRAINING CAMP — brak budynku siłowni");
     }
 
     static void Terrain()
@@ -455,9 +526,6 @@ public static partial class BraxObozEnvironment
                 new Vector3(-.60f,y,-4),new Vector3(.60f,y,-4),.108f,bark,false);
         }
         CabinFinish(t);
-        if(name=="Domek 3")
-            OriginalMural(t,"DROGA_MISTRZA","6C3045DC-051D-4B53-8F6E-FEA579A0DE21.jpeg",
-                new Vector3(0,1.5f,4.14f),Quaternion.identity,4.1f,false);
         // Simple colliders follow the actual openings; decorative log cylinders do not each add physics work.
         foreach(float side in new[]{-1f,1f})
         {
@@ -473,6 +541,9 @@ public static partial class BraxObozEnvironment
         // equipment. Previously batching stripped the imported GLB renderers
         // from all four kitchens and eight lockers.
         CombineDecoration(t);
+        var porchRope=t.GetComponentsInChildren<Collider>(true)
+            .FirstOrDefault(c=>c.name=="Sznur na ręczniki");
+        BraxObozServices.OwnerPorchTowel(t,new Vector3(-1.65f,2.05f,-5.1f),porchRope);
         // IKEA IDANAS: original owner GLB; two SINGLE beds per cabin.
         // No old box-frame/mattress/pillow fakery. Do NOT merge their source
         // mesh renderers with the decorative cabin shell.

@@ -8,14 +8,20 @@ using Object = UnityEngine.Object;
 
 public static class BraxObozServices
 {
-    const string Root="Assets/Source/Prywatne/Oboz/environment/services/";
+    // Rebuilt from our existing board-building source. Owner GLBs stay intact
+    // in Assets/Source/Prywatne/Oboz/OwnerAssets and are instantiated separately.
+    const string Root="Assets/PlayableGenerated/Oboz/ServiceModels/";
+    const string OwnerRoot="Assets/Source/Prywatne/Oboz/OwnerAssets/";
+    const string KitchenFile="kitchen_-_assets.glb";
+    const string ReflectionFolder="Assets/PlayableGenerated/Oboz/Environment/Reflections";
     const float K=1.294f;
     [Serializable] public sealed class Box { public float[] position,size;public float yaw; }
     [Serializable] public sealed class Door { public string pivot;public float[] position,colliderCenter,colliderSize; }
     [Serializable] public sealed class Seat { public string name;public float[] position;public float yaw;public bool lie; }
     [Serializable] public sealed class Facility { public string kind,name;public float[] position,effectPosition; }
     [Serializable] public sealed class Fixture { public float[] position;public float range,intensity; }
-    [Serializable] public sealed class Model { public string id;public float worldScale;public Box[] colliders;public Door[] doors;public Seat[] seats;public Facility[] facilities;public Fixture[] lights; }
+    [Serializable] public sealed class Furniture { public string node,kind,label;public float[] position,size;public float height; }
+    [Serializable] public sealed class Model { public string id;public int revision;public float worldScale,floorHeight;public Box[] colliders;public Door[] doors;public Furniture[] furniture;public Seat[] seats;public Facility[] facilities;public Fixture[] lights;public string[] missingModels; }
     static Vector3 V(float[] a)
     {
         if(a==null||a.Length!=3||a.Any(x=>float.IsNaN(x)||float.IsInfinity(x)))throw new InvalidOperationException("Błędne współrzędne wyposażenia");
@@ -118,7 +124,9 @@ public static class BraxObozServices
     static void Add(string id,string label,Transform parent,Vector3 position,Dictionary<string,Material> mats)
     {
         var data=JsonUtility.FromJson<Model>(File.ReadAllText(Root+id+".json"));
-        if(data.id!=id||Mathf.Abs(data.worldScale-K)>.00001f||data.doors.Length!=1)throw new InvalidOperationException("Nieprawidłowa zabudowa: "+id);
+        if(data.id!=id||data.revision!=2||Mathf.Abs(data.worldScale-K)>.00001f||
+           Mathf.Abs(data.floorHeight-.16f)>.00001f||data.doors.Length!=1)
+            throw new InvalidOperationException("Nieprawidłowa zabudowa usług — wymagany generator revision=2: "+id);
         var asset=AssetDatabase.LoadAssetAtPath<GameObject>(Root+id+".glb");if(!asset)throw new InvalidOperationException("Brak modelu "+id);
         var group=Node(label,parent,position*K);group.localScale=Vector3.one*K;
         var model=(GameObject)PrefabUtility.InstantiatePrefab(asset);model.transform.SetParent(group,false);
@@ -140,6 +148,28 @@ public static class BraxObozServices
             var controller=Node("Drzwi — "+label,group,V(d.position)).gameObject.AddComponent<BraxCityDoor>();
             controller.id="oboz-"+id;controller.label=label;controller.leaves=new[]{pivot};controller.sides=new[]{1f};
             var collider=pivot.gameObject.AddComponent<BoxCollider>();collider.center=V(d.colliderCenter);collider.size=V(d.colliderSize);
+            var leaf=pivot.GetComponentsInChildren<Renderer>(true);
+            BraxObozPlacement.VerifyDimension(leaf,.90f,BraxObozPlacement.Axis.X,
+                "drzwi "+label+" szerokość",.01f,group);
+            BraxObozPlacement.VerifyDimension(leaf,2.10f,BraxObozPlacement.Axis.Y,
+                "drzwi "+label+" wysokość",.01f,group);
+            var record=BraxObozPlacementRecord.For(pivot);
+            record.label="drzwi "+label+" — skrzydło na zawiasie";
+            record.support=BraxObozPlacementRecord.SupportKind.Suspended;
+            record.expectedDimensionMetres=2.10f;
+            record.dimensionAxis=(int)BraxObozPlacement.Axis.Y;
+            record.dimensionFrame=group;
+        }
+        // Furniture is a separate original board assembly in revision 2.
+        // Calibrate and place it before adding its own collider or any dishes.
+        foreach(var item in data.furniture ?? Array.Empty<Furniture>())
+        {
+            var part=model.GetComponentsInChildren<Transform>(true).Single(t=>t.name==item.node);
+            var visible=part.GetComponentsInChildren<Renderer>(true);
+            BraxObozPlacement.RealDimension(part,visible,item.height,
+                BraxObozPlacement.Axis.Y,item.label,group);
+            BraxObozPlacement.OnGround(part,visible,group.TransformPoint(V(item.position)),item.label);
+            ContactBox(part.gameObject,visible);
         }
         foreach(var s in data.seats)
         {
@@ -160,108 +190,368 @@ public static class BraxObozServices
             light.color=new Color(1,.82f,.60f);light.intensity=f.intensity;light.range=f.range*K;light.shadows=LightShadows.None;
             t.gameObject.AddComponent<BraxObozLocalLight>().source=light;
         }
+        foreach(var missing in data.missingModels ?? Array.Empty<string>())
+            BraxBuildQuality.Warn("OBÓZ BRAK MODELU — H: "+missing+
+                "; budynek="+label+"; wymagany model i akceptacja właściciela; bez zastępstwa");
         if(id=="canteen")FurnishCanteen(group);
+        if(id=="medical")FurnishMedical(group);
         // The owner also delivered a real 4K Blender drawer cabinet.
         // Its restored GLB is kept separate from the military cabin lockers:
         // one in the medical office, another in the storage building.
         if(id=="medical"||id=="storage")
         {
-            OwnerFixture(group,"drawer_cabinet_4k/drawer_cabinet_4k.glb",
-                new Vector3(2.25f,.24f,1.55f),
-                new Vector3(1.18f,1.68f,.78f));
-            Debug.Log("BRAXHORN_OWNER_DRAWER_CABINET_4K room="+id+
-                " sourceBlendOriginal=true visualValidationPending=true");
+            OptionalBuilding("oryginalna szafka "+label,group,()=>{
+                OwnerFixture(group,"drawer_cabinet_4k/drawer_cabinet_4k.glb",
+                    new Vector3(id=="medical"?2.4f:0f,.16f,2.5f),new Vector3(1.18f,1.90f,.50f));
+                Debug.Log("BRAXHORN_OWNER_DRAWER_CABINET_4K room="+id+
+                    " sourceBlendOriginal=true visualValidationPending=true");
+            });
         }
     }
-    // Zasoby stołówki są prawdziwymi GLB z dostarczonej paczki. Żaden
-    // detal kuchni ani mapy PBR nie jest redukowany; bez duplikatów modeli.
+    static void FurnishMedical(Transform room)
+    {
+        foreach(float x in new[]{-2.4f,2.4f})
+            OptionalBuilding("oryginalne łóżko punktu medycznego "+x,room,()=>{
+                var bed=OwnerSingleBed(room,new Vector3(x,.16f,.7f));
+                bed.name="ORYGINAŁ IKEA IDANAS — punkt medyczny "+x;
+                var bounds=BraxObozPlacement.Bounds(bed.GetComponentsInChildren<Renderer>(true));
+                // Measure the original visible mattress/blanket at the bed's
+                // centre. A headboard's maximum Y is not a lying surface.
+                var temporary=new List<MeshCollider>();float? surface=null;
+                try
+                {
+                    var colliders=new List<MeshCollider>();
+                    foreach(var filter in bed.GetComponentsInChildren<MeshFilter>(true))
+                    {
+                        if(!filter.sharedMesh)continue;
+                        var collider=filter.GetComponent<MeshCollider>();
+                        if(!collider){collider=filter.gameObject.AddComponent<MeshCollider>();
+                            collider.sharedMesh=filter.sharedMesh;temporary.Add(collider);}
+                        colliders.Add(collider);
+                    }
+                    Physics.SyncTransforms();
+                    var ray=new Ray(new Vector3(bounds.center.x,bounds.max.y+.2f*K,bounds.center.z),Vector3.down);
+                    foreach(var collider in colliders)
+                        if(collider.Raycast(ray,out var hit,bounds.size.y+.5f*K) && hit.normal.y>.7f &&
+                           (!surface.HasValue || hit.point.y>surface.Value))surface=hit.point.y;
+                }
+                finally {foreach(var collider in temporary)Object.DestroyImmediate(collider);}
+                if(!surface.HasValue)
+                {
+                    BraxBuildQuality.Warn("OBÓZ PUNKT MEDYCZNY: brak pomiaru powierzchni oryginalnego łóżka; bez fikcyjnego miejsca leżenia");return;
+                }
+                var seatPoint=new Vector3(bounds.center.x,surface.Value,bounds.center.z);
+                var seat=Node("LEŻANKA — oryginalna powierzchnia IDANAS",room,room.InverseTransformPoint(seatPoint))
+                    .gameObject.AddComponent<BraxSeat>();
+                seat.label="LEŻANKA";seat.lie=true;seat.surfaceY=surface.Value;seat.hipsAboveRoot=.95f*K;
+            });
+        OptionalBuilding("oryginalna metalowa szafa punktu medycznego",room,()=>
+            OwnerFixture(room,"metal_cabinet_low_poly.glb",new Vector3(0,.16f,2.5f),new Vector3(1.6f,2f,.65f)));
+    }
+
+    // Called after the cabin's static decoration has been combined. Only the
+    // owner's hanging cloth is copied; no rail, quad or generated towel mesh.
+    public static void OwnerPorchTowel(Transform cabin,Vector3 linePointSourceMetres,Collider ropeCollider)
+    {
+        OptionalBuilding("oryginalny ręcznik na lince ganku",cabin,()=>{
+            GameObject source=null,referenceRail=null;
+            try
+            {
+                source=OwnerPrototype("towel-rail-with-towel.glb");
+                var cloth=OwnerAssembly(source,cabin,"Oryginalny ręcznik — lewa linka ganku",
+                    new[]{"Bath towel"},90);
+                // The source rail is symmetric about its bar Y. Measure the
+                // source frame with the same import transforms as the cloth.
+                referenceRail=OwnerAssembly(source,cabin,"Pomiar oryginalnej osi ręcznika",
+                    new[]{"Towel rail"},90);
+                var rail=BraxObozPlacement.BoundsInFrame(cloth.transform,
+                    referenceRail.GetComponentsInChildren<Renderer>(true));
+                // Delivered bar's front radius is 0.012803 source metres.
+                var foldAxis=new Vector3(rail.center.x,rail.center.y,rail.max.z-.012803f);
+                float units=K/Mathf.Max(.0001f,Mathf.Abs(cabin.lossyScale.y));
+                var target=cabin.TransformPoint(linePointSourceMetres*units);
+                cloth.transform.position+=target-cloth.transform.TransformPoint(foldAxis);
+                RecordNativeDimension(cloth,.47f,BraxObozPlacement.Axis.Z,cabin,"oryginalny ręcznik na lince");
+                var record=BraxObozPlacementRecord.For(cloth.transform);
+                record.support=BraxObozPlacementRecord.SupportKind.Suspended;
+                record.suspensionSupport=ropeCollider;
+                // Record a real vertex on the original cloth fold, rather
+                // than reporting its pivot or the empty rail centre as cloth.
+                Vector3? foldVertex=null;float closest=float.PositiveInfinity;
+                foreach(var filter in cloth.GetComponentsInChildren<MeshFilter>(true))
+                {
+                    if(!filter.sharedMesh || !filter.sharedMesh.isReadable)continue;
+                    foreach(var vertex in filter.sharedMesh.vertices)
+                    {
+                        var local=cloth.transform.InverseTransformPoint(filter.transform.TransformPoint(vertex));
+                        if(local.y<foldAxis.y)continue;
+                        float distance=(local-foldAxis).sqrMagnitude;
+                        if(distance<closest){closest=distance;foldVertex=local;}
+                    }
+                }
+                if(foldVertex.HasValue)
+                    record.suspensionPoint=Node("Pomiar prawdziwego fałdu ręcznika",cloth.transform,foldVertex.Value);
+                else BraxBuildQuality.Warn("OBÓZ RĘCZNIK: nie zmierzono fałdu źródłowej siatki; punkt zawieszenia niezweryfikowany");
+                Debug.Log("BRAXHORN_OBOZ_PORCH_TOWEL originalNode=Bath towel source=towel-rail-with-towel.glb"+
+                    " railNotCopied=true foldAxisWorld="+target+" sourceWidth=.47 visualReview=pending");
+            }
+            finally
+            {
+                if(referenceRail)Object.DestroyImmediate(referenceRail);
+                if(source)Object.DestroyImmediate(source);
+            }
+        });
+    }
+    static GameObject OwnerPrototype(string filename)
+    {
+        var asset=AssetDatabase.LoadAssetAtPath<GameObject>(OwnerRoot+filename);
+        if(!asset)throw new InvalidOperationException("Brak oryginalnego modelu właściciela: "+filename);
+        var instance=(GameObject)PrefabUtility.InstantiatePrefab(asset);
+        instance.SetActive(false);
+        return instance;
+    }
+
+    static GameObject OwnerAssembly(GameObject source,Transform parent,string label,
+        string[] prefixes,float yaw=0)
+    {
+        var item=Node(label,parent,Vector3.zero).gameObject;
+        CloneOriginalParts(source,item.transform,prefixes);
+        item.transform.localRotation=Quaternion.Euler(0,yaw,0);
+        BraxObozPlacement.NativeMetres(item.transform,item.GetComponentsInChildren<Renderer>(true),label);
+        return item;
+    }
+
+    static Transform SourcePart(GameObject item,string prefix)
+    {
+        var part=item.GetComponentsInChildren<Transform>(true).FirstOrDefault(t=>
+            t.name.StartsWith(prefix,StringComparison.OrdinalIgnoreCase));
+        if(!part)throw new InvalidOperationException("Brak oryginalnej części: "+prefix);
+        return part;
+    }
+
+    static void RecordNativeDimension(GameObject item,float metres,BraxObozPlacement.Axis axis,
+        Transform frame,string label)
+    {
+        // Measurements of the delivered meshes, not a request to resize them.
+        var record=BraxObozPlacementRecord.For(item.transform);
+        record.expectedDimensionMetres=metres;record.dimensionAxis=(int)axis;
+        record.dimensionFrame=frame;record.label=label;
+    }
+
+    // A grate and a tray are not solid boxes. Sample the real supporting
+    // surface under the object's base; the highest contact carries the item.
+    // Fixed grid samples alone miss the original grate's 2 mm top ridges, so
+    // include centroids of real upward triangles inside the contact footprint.
+    internal static bool PlaceOnOwnerSurface(GameObject item,Transform support,
+        Vector3 bottomWorld,string label,Renderer[] baseRenderers=null)
+    {
+        var visible=item.GetComponentsInChildren<Renderer>(true);
+        BraxObozPlacement.AtBottom(item.transform,visible,bottomWorld);
+        SourceSurfaceColliders(support);
+        var full=BraxObozPlacement.Bounds(visible);
+        var contact=BraxObozPlacement.Bounds(baseRenderers ?? visible);
+        var samples=new[]{Vector2.zero,new Vector2(-.9f,0),new Vector2(.9f,0),
+            new Vector2(0,-.9f),new Vector2(0,.9f),new Vector2(-.63f,-.63f),
+            new Vector2(-.63f,.63f),new Vector2(.63f,-.63f),new Vector2(.63f,.63f)};
+        var points=samples.Select(sample=>new Vector2(contact.center.x+sample.x*contact.extents.x,
+            contact.center.z+sample.y*contact.extents.z)).ToList();
+        foreach(var filter in support.GetComponentsInChildren<MeshFilter>(true))
+        {
+            var mesh=filter.sharedMesh;if(!mesh || !mesh.isReadable)continue;
+            var vertices=mesh.vertices;var indices=mesh.triangles;var matrix=filter.transform.localToWorldMatrix;
+            for(int i=0;i<indices.Length;i+=3)
+            {
+                var a=matrix.MultiplyPoint3x4(vertices[indices[i]]);
+                var b=matrix.MultiplyPoint3x4(vertices[indices[i+1]]);
+                var c=matrix.MultiplyPoint3x4(vertices[indices[i+2]]);
+                if(Vector3.Cross(b-a,c-a).normalized.y<=.7f)continue;
+                var point=(a+b+c)/3f;
+                float x=(point.x-contact.center.x)/Mathf.Max(.0001f,contact.extents.x);
+                float z=(point.z-contact.center.z)/Mathf.Max(.0001f,contact.extents.z);
+                if(x*x+z*z<=1f)points.Add(new Vector2(point.x,point.z));
+            }
+        }
+        RaycastHit? highest=null;
+        foreach(var point in points)
+        {
+            var origin=new Vector3(point.x,full.max.y+.35f*K,point.y);
+            foreach(var hit in Physics.RaycastAll(origin,Vector3.down,full.size.y+2f*K,
+                ~0,QueryTriggerInteraction.Ignore))
+                if(hit.collider && hit.collider.transform.IsChildOf(support) &&
+                   !hit.collider.transform.IsChildOf(item.transform) && hit.normal.y>.7f &&
+                   (!highest.HasValue || hit.point.y>highest.Value.point.y))highest=hit;
+        }
+        var record=BraxObozPlacementRecord.For(item.transform);
+        record.support=BraxObozPlacementRecord.SupportKind.Ground;record.label=label;
+        if(!highest.HasValue)
+        {
+            BraxBuildQuality.Warn("OBÓZ BRAK PODPARCIA — "+label+"; powierzchnia="+support.name);
+            return false;
+        }
+        record.verticalSupport=highest.Value.collider;
+        item.transform.position+=Vector3.up*(highest.Value.point.y-full.min.y);
+        Physics.SyncTransforms();
+        return true;
+    }
+
+    static bool PlaceOrRemove(GameObject item,Transform support,Vector3 bottomWorld,
+        string label,Renderer[] baseRenderers=null)
+    {
+        if(PlaceOnOwnerSurface(item,support,bottomWorld,label,baseRenderers))return true;
+        Object.DestroyImmediate(item);return false;
+    }
+
+    internal static void UseOriginalContactSurface(GameObject item)
+    {
+        // A box over a concave tray spans empty air above its actual floor.
+        foreach(var proxy in item.GetComponentsInChildren<BoxCollider>(true))Object.DestroyImmediate(proxy);
+        SourceSurfaceColliders(item.transform);
+    }
+
+    static void CheckInsideCanteen(Transform room,GameObject item)
+    {
+        var b=BraxObozPlacement.BoundsInFrame(room,item.GetComponentsInChildren<Renderer>(true));
+        if(b.min.x< -5.94f-.005f || b.max.x>5.94f+.005f ||
+           b.min.z< -4.44f-.005f || b.max.z>4.44f+.005f)
+            throw new InvalidOperationException("Oryginalny model poza ścianami stołówki: "+
+                item.name+" localBounds="+b);
+    }
+
+    // Four tables and eight benches already come from the rebuilt board
+    // building. Never add another set over their meshes/colliders/seats.
     static void FurnishCanteen(Transform room)
     {
-        // Przedni pas jest wolny na wejście i podejścia do stołów.
-        var kitchen=OwnerFixture(room,"kitchen_-_assets.glb",
-            new Vector3(-4.0f,.24f,2.6f),new Vector3(2.35f,2.30f,2.4f));
-        OwnerFixture(room,"glass-food-display-showcase-with-trays.glb",
-            new Vector3(3.35f,.24f,2.5f),new Vector3(2.05f,1.6f,1.2f));
-        // picnic_set_1.glb is a BENCH (FNPC0101_Timber_bench),
-        // not a table. Pair genuine owner benches with cooking tables.
-        OwnerFixture(room,"picnic_set_1.glb",
-            new Vector3(-2.45f,.24f,-2.52f),new Vector3(1.95f,.85f,.64f));
-        OwnerFixture(room,"picnic_set_1.glb",
-            new Vector3(2.45f,.24f,-2.52f),new Vector3(1.95f,.85f,.64f));
-        OwnerFieldDiningTable(room,new Vector3(-2.45f,.24f,-1.20f));
-        OwnerFieldDiningTable(room,new Vector3(2.45f,.24f,-1.20f));
-        // Real owner cutlery, cookware and serving tray, positioned by
-        // the ORIGINAL surfaces of the kitchen model (not arbitrary float Y).
-        OwnerOnExistingSurface(room,kitchen,"CookingTable_Shelf",
-            "24-piece-cutlery-set.glb",new Vector3(.65f,.11f,.42f),
-            new Vector3(.34f,0,.12f));
-        OwnerOnExistingSurface(room,kitchen,"CookingTable_Shelf",
-            "food_tray.glb",new Vector3(.58f,.09f,.40f),
-            new Vector3(-.34f,0,-.13f));
-        OwnerOnExistingSurface(room,kitchen,"PortableStove_Grate_L",
-            "stockpot.glb",new Vector3(.43f,.37f,.43f),Vector3.zero);
-        Debug.Log("BRAXHORN_OBOZ_CANTEEN: oryginalna kuchnia GLB, witryna, 2 prawdziwe stoły i 2 ławki GLB; "+
-            "przejścia i miejsca siedzące wymagają testu Unity Play Mode");
+        OptionalBuilding("oryginalna kuchnia stołówki",room,()=>OwnerCanteenKitchen(room));
+        OptionalBuilding("oryginalna witryna stołówki",room,()=>{
+            var display=OwnerFixture(room,"glass-food-display-showcase-with-trays.glb",
+                new Vector3(3.35f,.16f,3.85f),new Vector3(1.502f,1.3185f,.869f));
+            RecordNativeDimension(display,1.502f,BraxObozPlacement.Axis.X,room,"witryna właściciela");
+            CheckInsideCanteen(room,display);
+        });
+        var tables=room.GetComponentsInChildren<Transform>(true)
+            .Where(t=>t.name.StartsWith("Table_",StringComparison.Ordinal) &&
+                t.GetComponent<BraxObozPlacementRecord>()!=null)
+            .OrderBy(t=>t.name,StringComparer.Ordinal).ToArray();
+        if(tables.Length!=4)
+            BraxBuildQuality.Warn("OBÓZ STOŁÓWKA: stoły z desek="+tables.Length+"; oczekiwano 4; bez duplikowania");
+        int set=0,completeSets=0;
+        for(int i=0;i<tables.Length && set<6;i++)
+        {
+            var table=tables[i];var b=BraxObozPlacement.BoundsInFrame(room,table.GetComponentsInChildren<Renderer>(true));
+            var offsets=i<2?new[]{-.9f,.9f}:new[]{0f};
+            foreach(float offset in offsets)
+            {
+                int sourceSet=++set;
+                var at=new Vector3(b.center.x+offset,b.max.y,b.center.z);
+                OptionalBuilding("oryginalna zastawa "+sourceSet,room,
+                    ()=>{if(DiningPlaceSetting(room,table,at,sourceSet))completeSets++;});
+            }
+        }
+        Debug.Log("BRAXHORN_OBOZ_CANTEEN: generatedPlankTables="+tables.Length+
+            " attemptedSets="+set+" completeOwnerCutlerySets="+completeSets+
+            " tableHeightAboveFloor=.75 benchHeightAboveFloor=.45"+
+            " originalKitchen=true originalPlates=true originalTrays=true visualReview=pending");
     }
 
-    static GameObject OwnerFieldDiningTable(Transform room,Vector3 bottomCenter)
+    static bool DiningPlaceSetting(Transform room,Transform table,Vector3 centre,int sourceSet)
     {
-        const string path="Assets/Source/Prywatne/Oboz/OwnerAssets/kitchen_-_assets.glb";
-        var source=AssetDatabase.LoadAssetAtPath<GameObject>(path);
-        if(!source)throw new InvalidOperationException("Brak właścicielskiego stołu polowego GLB");
-        var prefab=PrefabUtility.InstantiatePrefab(source) as GameObject;
-        if(!prefab)throw new InvalidOperationException("Nie można utworzyć kuchni źródłowej");
+        GameObject kitchen=null,cutlery=null;
         try
         {
-            // The source table is a FIVE-PART assembly. Importing only
-            // CookingTable.001_ omits legs/bolts/shelf and looked unfinished.
-            var table=new GameObject("Oryginalny stół polowy 3D — kompletne nogi i półka");
-            table.transform.SetParent(room,false);
-            CloneOriginalParts(prefab,table.transform,new[]{"CookingTable.001_","CookingTable_Bolts1.001_",
-                "CookingTable_Bolts2.001_","CookingTable_Legs.001_","CookingTable_Shelf.001_"});
-            var renderers=table.GetComponentsInChildren<Renderer>(true);
-            if(renderers.Length==0)throw new InvalidOperationException("Oryginalny stół bez geometrii");
-            Bounds Bounds()
+            kitchen=OwnerPrototype(KitchenFile);cutlery=OwnerPrototype("24-piece-cutlery-set.glb");
+            // 0.55 m is the explicit camp design dimension; the author's GLB
+            // is 2.2 source units wide. This is not a three-axis box fitting.
+            var tray=OwnerFixture(room,"food_tray.glb",centre+new Vector3(.13f,0,0),
+                new Vector3(.55f,.021875f,.425f));
+            UseOriginalContactSurface(tray);
+            if(!PlaceOrRemove(tray,table,room.TransformPoint(centre+new Vector3(.13f,0,0)),"taca na stole"))return false;
+            SourceSurfaceColliders(tray.transform);
+            var plate=OwnerAssembly(kitchen,room,"Talerz właściciela — komplet "+sourceSet,
+                new[]{"Plate_Regular.001_"});
+            RecordNativeDimension(plate,.21617f,BraxObozPlacement.Axis.X,room,"talerz właściciela");
+            bool complete=PlaceOrRemove(plate,table,room.TransformPoint(centre+new Vector3(-.27f,0,0)),"talerz na stole");
+            var trayBounds=BraxObozPlacement.BoundsInFrame(room,tray.GetComponentsInChildren<Renderer>(true));
+            string[] kinds={"Dinner fork ","Dinner knife ","Dinner spoon ","Teaspoon "};
+            float[] lengths={.19996f,.23545f,.19988f,.14991f};
+            for(int i=0;i<kinds.Length;i++)
             {
-                var b=renderers[0].bounds;
-                foreach(var r in renderers.Skip(1))b.Encapsulate(r.bounds);
-                return b;
+                var utensil=OwnerAssembly(cutlery,room,"Sztućce właściciela "+sourceSet+" / "+kinds[i],
+                    new[]{kinds[i]+sourceSet+","});
+                RecordNativeDimension(utensil,lengths[i],BraxObozPlacement.Axis.Z,room,kinds[i]+sourceSet);
+                var at=new Vector3(trayBounds.center.x+(i-1.5f)*.075f,
+                    trayBounds.max.y,trayBounds.center.z);
+                if(!PlaceOrRemove(utensil,tray.transform,room.TransformPoint(at),"sztućce na dnie tacy"))complete=false;
             }
-            var bounds=Bounds();
-            if(bounds.size.x<.0001f||bounds.size.y<.0001f||bounds.size.z<.0001f)
-                throw new InvalidOperationException("Zerowy rozmiar źródłowego stołu");
-            // Wysokosc prawdziwego stolu: 0,75 m; zachowaj proporcje z oryginalnego GLB.
-            BraxObozPlacement.RealDimension(table.transform,renderers,.75f,
-                BraxObozPlacement.Axis.Y,"stół polowy stołówka");
-            bounds=Bounds();
-            BraxObozPlacement.OnGround(table.transform,renderers,
-                room.TransformPoint(bottomCenter),"stół polowy stołówka");
-            ContactBox(table,renderers);
-            return table;
+            CheckInsideCanteen(room,tray);
+            return complete;
         }
-        finally{ Object.DestroyImmediate(prefab); }
+        finally
+        {
+            if(kitchen)Object.DestroyImmediate(kitchen);
+            if(cutlery)Object.DestroyImmediate(cutlery);
+        }
     }
 
-    // Place original owner models directly on a measured imported FBX/GLB
-    // surface. This avoids relying on a guessed world Y when the source scale
-    // changes. Requires a Unity render review for overlap/accessibility.
-    static void OwnerOnExistingSurface(Transform room,GameObject model,
-        string partPrefix,string filename,Vector3 maximumSize,Vector3 localOffset)
+    static void OwnerCanteenKitchen(Transform room)
     {
-        var part=model.GetComponentsInChildren<Transform>(true).FirstOrDefault(
-            t=>t.name.StartsWith(partPrefix,StringComparison.OrdinalIgnoreCase));
-        if(!part)throw new InvalidOperationException(
-            "Brak powierzchni oryginalnej kuchni dla "+filename+": "+partPrefix);
-        var r=part.GetComponentsInChildren<Renderer>(true);
-        if(r.Length==0)throw new InvalidOperationException(
-            "Brak mesha powierzchni oryginalnej kuchni: "+partPrefix);
-        Bounds b=r[0].bounds;foreach(var x in r.Skip(1))b.Encapsulate(x.bounds);
-        Vector3 topWorld=new Vector3(b.center.x,b.max.y,b.center.z);
-        var local=room.InverseTransformPoint(topWorld)+localOffset;
-        var item=OwnerFixture(room,filename,local,maximumSize);
-        SourceSurfaceColliders(part);
-        BraxObozPlacement.OnSupport(item.transform,item.GetComponentsInChildren<Renderer>(true),
-            part,room.TransformPoint(local),filename);
+        var source=OwnerPrototype(KitchenFile);
+        try
+        {
+            var group=Node("Oryginalna kuchnia właściciela — zachodnia ściana",room,Vector3.zero);
+            // Source back -X becomes +X in glTFast. Rotate to put it on the
+            // west wall; controls and sink fronts then face the room (+X).
+            var counter=OwnerAssembly(source,group,"Kuchenka z oryginalnym blatem — 0,90 m",
+                new[]{"CookingTable.001_","CookingTable_Shelf.001_","PortableStove_Base.001_"},180);
+            var counterRenderers=counter.GetComponentsInChildren<Renderer>(true);
+            BraxObozPlacement.RealDimension(counter.transform,counterRenderers,.9f,
+                BraxObozPlacement.Axis.Y,"kuchenka stołówki",room);
+            BraxObozPlacement.OnGround(counter.transform,counterRenderers,
+                room.TransformPoint(new Vector3(-5.55f,.16f,2.25f)),"kuchenka stołówki na podłodze");
+            BraxObozPlacement.ToWall(counter.transform,counterRenderers,
+                BraxObozPlacement.Bounds(counterRenderers).center,-room.right,"kuchenka stołówki przy ścianie");
+            ContactBox(counter,counterRenderers);CheckInsideCanteen(room,counter);
+
+            var sink=OwnerAssembly(source,group,"Zlew stołówki z oryginalną baterią — 0,85 m",
+                new[]{"Sink.001_"},180);
+            var sinkRenderers=sink.GetComponentsInChildren<Renderer>(true);
+            BraxObozPlacement.StandingSurfaceHeight(sink.transform,sinkRenderers,
+                SourceBody(sink,"Sink.001_"),.85f,"zlew stołówki");
+            BraxObozPlacement.OnGround(sink.transform,sinkRenderers,
+                room.TransformPoint(new Vector3(-5.55f,.16f,3.45f)),"zlew stołówki na podłodze");
+            BraxObozPlacement.ToWall(sink.transform,sinkRenderers,
+                BraxObozPlacement.Bounds(sinkRenderers).center,-room.right,"zlew stołówki przy ścianie");
+            ContactBox(sink,sinkRenderers);CheckInsideCanteen(room,sink);
+
+            var rack=OwnerAssembly(source,group,"Oryginalna półka, garnki i zapasy kuchni",new[]{
+                "PotRack.001_","Kitchenware_Pot.001_","Kitchenware_Pan_IronCast.001_",
+                "CannedFood_Flat.001_","CannedFood_Flat.002_","CannedFood_Flat.003_","CannedFood_Flat.004_",
+                "CannedFood_Tall.001_","CannedFood_Tall.002_","CannedFood_Tall.003_","CannedFood_Tall.004_","CannedFood_Tall.005_",
+                "Food_CardboardPackage_Thick.001_","Package_Smooth.001_","Package_Smooth.002_",
+                "TinCan.001_","GlassJar.001_","FlowerBag.001_"},180);
+            var rackRenderers=rack.GetComponentsInChildren<Renderer>(true);
+            BraxObozPlacement.AtHeightAboveGround(rack.transform,rackRenderers,
+                room.TransformPoint(new Vector3(-5.55f,.16f,2.25f)),1.20f,
+                BraxObozPlacement.HeightReference.Bottom,"półka i wiszące garnki stołówki");
+            BraxObozPlacement.ToWall(rack.transform,rackRenderers,
+                BraxObozPlacement.Bounds(rackRenderers).center,-room.right,"półka stołówki na ścianie");
+            CheckInsideCanteen(room,rack);
+
+            var cylinder=OwnerAssembly(source,group,"Oryginalna butla kuchenki stołówki",
+                new[]{"GasCylinder.001_"});
+            var cylinderRenderers=cylinder.GetComponentsInChildren<Renderer>(true);
+            BraxObozPlacement.OnGround(cylinder.transform,cylinderRenderers,
+                room.TransformPoint(new Vector3(-5.55f,.16f,1.55f)),"butla stołówki na podłodze");
+            ContactBox(cylinder,cylinderRenderers);CheckInsideCanteen(room,cylinder);
+
+            var grate=SourcePart(counter,"PortableStove_Grate_L_LP.001_");
+            var grateBounds=BraxObozPlacement.Bounds(grate.GetComponentsInChildren<Renderer>(true));
+            var pot=OwnerFixture(group,"stockpot.glb",group.InverseTransformPoint(grateBounds.center),
+                new Vector3(.438f,.2805f,.29f));
+            RecordNativeDimension(pot,.438f,BraxObozPlacement.Axis.X,room,"garnek właściciela");
+            PlaceOrRemove(pot,grate,new Vector3(grateBounds.center.x,grateBounds.max.y,grateBounds.center.z),
+                "garnek na rzeczywistym ruszcie",SourceBody(pot,"Layered pan base"));
+        }
+        finally { Object.DestroyImmediate(source); }
     }
 
     // Rzeczywisty budynek WC: dwie kabiny, dwa stanowiska prysznicowe,
@@ -537,25 +827,39 @@ public static class BraxObozServices
         BraxObozPlacement.RealDimension(model.transform,renderers,2f,
             BraxObozPlacement.Axis.Z,"IKEA IDANAS",cabin);
         bounds=LocalBounds();
-        BraxObozPlacement.VerifyDimension(renderers,.9f,
-            BraxObozPlacement.Axis.X,"IKEA IDANAS szerokość",axisFrame:cabin);
-        var centerSource=bottomCenterSourceMetres*K;
+        // Nominal bed width refers to the mattress. The supplied blanket
+        // overhang makes the full footprint 1.219871 m at this unchanged scale.
+        // Keep that full footprint for clearance/collision and report both.
+        var mattress=SourceBody(model,"Mesh21_Color_M03_0");
+        BraxObozPlacement.VerifyDimension(mattress,.9f,
+            BraxObozPlacement.Axis.X,"IKEA IDANAS szerokość materaca",axisFrame:cabin);
+        // Cabin roots have scale 1; authored service roots already have K.
+        // The public API always accepts metres, so apply K exactly once.
+        float placementUnits=K/Mathf.Max(.0001f,Mathf.Abs(cabin.lossyScale.y));
+        var centerSource=bottomCenterSourceMetres*placementUnits;
         BraxObozPlacement.OnGround(model.transform,renderers,
             cabin.TransformPoint(centerSource),"IKEA IDANAS");
         bounds=LocalBounds();
+        var mattressBounds=BraxObozPlacement.BoundsInFrame(cabin,mattress);
+        float parentUnit=Mathf.Abs(cabin.lossyScale.y)/K;
+        float mattressTop=(mattressBounds.max.y-bounds.min.y)*parentUnit;
+        if(Mathf.Abs(mattressTop-.45f)>.03f)
+            BraxBuildQuality.Warn("OBÓZ WYMIAR ŹRÓDŁA — IDANAS: góra materaca="+mattressTop.ToString("F6")+
+                " m nad stopami łóżka; tabela=.45 m; jednolita skala długości2m zachowana, bez deformacji");
         // Contact proxy for a single bed only; never block the doorway or
         // make an invisible collider spanning an entire cabin.
         if(!model.GetComponentInChildren<Collider>())
         {
             var collider=model.AddComponent<BoxCollider>();
             var local=BraxObozPlacement.BoundsInFrame(model.transform,renderers);
-            float unit=model.transform.TransformVector(Vector3.up).magnitude;
-            float bodyHeight=Mathf.Min(local.size.y*.53f,.78f*K/Mathf.Max(.001f,unit));
+            var mattressLocal=BraxObozPlacement.BoundsInFrame(model.transform,mattress);
+            float bodyHeight=mattressLocal.max.y-local.min.y;
             collider.center=new Vector3(local.center.x,local.min.y+bodyHeight*.5f,local.center.z);
             collider.size=new Vector3(local.size.x,bodyHeight,local.size.z);
         }
         Debug.Log("BRAXHORN_OBOZ_OWNER_BED: "+filename+
             " worldScale=K cabin="+cabin.name+" footprintLocal="+bounds.size+
+            " mattressWidthMetres="+(mattressBounds.size.x*parentUnit)+" mattressTopMetres="+mattressTop+
             " visualDeviceReview=pending");
         return model;
     }
@@ -590,6 +894,10 @@ public static class BraxObozServices
         else if(filename=="picnic_set_1.glb")
             BraxObozPlacement.RealDimension(model.transform,renderers,.45f,
                 BraxObozPlacement.Axis.Y,filename);
+        else if(filename=="food_tray.glb")
+            // Camp design width, not a claim that the author's source is metres.
+            BraxObozPlacement.RealDimension(model.transform,renderers,.55f,
+                BraxObozPlacement.Axis.X,"taca — docelowa szerokość obozu 0,55 m");
         else
             BraxObozPlacement.NativeMetres(model.transform,renderers,filename);
         bounds=BraxObozPlacement.Bounds(renderers);
@@ -691,6 +999,7 @@ public static class BraxObozServices
             new Vector3(.10f,2.20f,4.25f),tile);
         foreach(float x in new[]{-4.5f,-1.58f})
         {
+            OptionalBuilding("wyposażenie kabiny WC "+x,building,()=>{
             var cubicle=Node("Kabina WC — "+x,building,new Vector3(x,0,-2.95f));
             OwnerFixture(cubicle,"close-coupled-toilet.glb",
                 new Vector3(0,.24f,0),new Vector3(.70f,1.10f,1.02f));
@@ -699,26 +1008,35 @@ public static class BraxObozServices
             var flush=Node("SPŁUCZ TOALETĘ",cubicle,new Vector3(0,1.32f,-.15f))
                 .gameObject.AddComponent<BraxObozFacility>();
             flush.kind=BraxObozFacility.Kind.Toilet;
-            // Ościeżnica i zamknięte boki kabiny; wejście ma faktyczne
-            // światło 1.72 m, bez niewidzialnej ściany na przejściu.
-            FixtureBox(cubicle,"Lewa ościeżnica WC",new Vector3(-1.21f,1.25f,1.48f),
-                new Vector3(.38f,2.15f,.12f),wood);
-            FixtureBox(cubicle,"Prawa ościeżnica WC",new Vector3(1.02f,1.25f,1.48f),
-                new Vector3(.65f,2.15f,.12f),wood);
-            FixtureBox(cubicle,"Nadproże kabiny WC",new Vector3(0,2.25f,1.48f),
+            // The 0.90 x 2.10 m door starts at the actual 0.24 m bathroom
+            // floor. Jamb colliders stop exactly at the opening, x=+/-0.45.
+            PbrWall(cubicle,"Lewa ościeżnica WC",new Vector3(-.92f,1.29f,1.48f),
+                new Vector3(.94f,2.10f,.12f),wood);
+            PbrWall(cubicle,"Prawa ościeżnica WC",new Vector3(.92f,1.29f,1.48f),
+                new Vector3(.94f,2.10f,.12f),wood);
+            FixtureBox(cubicle,"Nadproże kabiny WC",new Vector3(0,2.465f,1.48f),
                 new Vector3(2.78f,.25f,.12f),tile,false);
             var seat=Node("Usiądź — toaleta",cubicle,new Vector3(0,.69f,.10f)).gameObject.AddComponent<BraxSeat>();
             seat.label="TOALETA";seat.lie=false;seat.surfaceY=seat.transform.position.y;seat.hipsAboveRoot=.95f*K;
             // Drzwi każdej kabiny otwierają się, skrzydło ma własną kolizję.
-            var hinge=Node("Zawias drzwi kabiny",cubicle,new Vector3(-1.02f,.18f,1.48f));
-            FixtureBox(hinge,"Skrzydło kabiny",new Vector3(.86f,.95f,0),
-                new Vector3(1.72f,1.9f,.055f),wood);
+            var hinge=Node("Zawias drzwi kabiny",cubicle,new Vector3(-.45f,.24f,1.48f));
+            for(int plank=0;plank<6;plank++)
+            {
+                float left=plank*.15f+(plank==0?0:.002f);
+                float right=(plank+1)*.15f-(plank==5?0:.002f);
+                PbrWall(hinge,"Deska skrzydła WC",new Vector3((left+right)*.5f,1.05f,0),
+                    new Vector3(right-left,2.10f,.055f),wood,false);
+            }
+            var leafCollider=hinge.gameObject.AddComponent<BoxCollider>();
+            leafCollider.center=new Vector3(.45f,1.05f,0);leafCollider.size=new Vector3(.9f,2.1f,.055f);
             var door=hinge.gameObject.AddComponent<BraxCityDoor>();
             door.id="oboz-wc-"+(x< -3?"1":"2");door.label="KABINA WC";
             door.leaves=new[]{hinge};door.sides=new[]{1f};
+            });
         }
         foreach(float x in new[]{1.5f,4.52f})
         {
+            OptionalBuilding("wyposażenie prysznica "+x,building,()=>{
             var shower=Node("Kabina prysznicowa — "+x,building,new Vector3(x,0,-2.95f));
             OwnerFixture(shower,"shower-tray-square.glb",
                 new Vector3(0,.24f,0),new Vector3(1.65f,.14f,1.65f));
@@ -735,9 +1053,11 @@ public static class BraxObozServices
                 new Vector3(.72f,2.08f,.04f),mats["glass"],false);
             FixtureBox(shower,"Profil szyby",new Vector3(.66f,1.23f,1.43f),
                 new Vector3(.055f,2.10f,.07f),metal,false);
+            });
         }
         foreach(float x in new[]{-4.1f,4.1f})
         {
+            OptionalBuilding("umywalka i lustro "+x,building,()=>{
             // Sink rear must touch the north interior wall (z=4.90).
             // Previous z=3.4 left a 1.2m gap, making basins look airborne.
             var sink=Node("Umywalka z lustrem — przy ścianie",building,new Vector3(x,0,4.6f));
@@ -756,11 +1076,8 @@ public static class BraxObozServices
                 BraxObozPlacement.HeightReference.Centre,"lustro nad umywalką");
             BraxObozPlacement.ToWall(mirrorSurface.transform,mirrorRenderers,
                 BraxObozPlacement.Bounds(mirrorRenderers).center,sink.forward,"lustro na ścianie");
-            var probe=mirrorSurface.AddComponent<ReflectionProbe>();
-            probe.mode=UnityEngine.Rendering.ReflectionProbeMode.Baked;
-            probe.refreshMode=UnityEngine.Rendering.ReflectionProbeRefreshMode.ViaScripting;
-            probe.size=new Vector3(3.5f,2.7f,3.5f);
-            probe.boxProjection=true;
+            BathroomReflectionProbe(building,mirrorSurface.GetComponent<Renderer>(),sink.forward,
+                x<0?"01":"02");
             foreach(float bracket in new[]{-.43f,.43f}){
                 FixtureBox(sink,"Stalowy wspornik ścienny umywalki",
                     new Vector3(bracket,basinBounds.min.y-.07f,basinBounds.center.z),
@@ -779,11 +1096,13 @@ public static class BraxObozServices
                 .gameObject.AddComponent<BraxObozFacility>();
             tap.kind=BraxObozFacility.Kind.Sink;
             tap.effect=Effect(sink,tapAt,false,true);
+            });
         }
         // Prawdziwe pisuary 3D na zachodniej ścianie; nie zastępuj ich bryłami.
         foreach(float z in new[]{.2f,2.0f})
-            OwnerFixture(building,"wall-urinal.glb",new Vector3(-5.62f,.55f,z),
-                new Vector3(.52f,.95f,.38f));
+            OptionalBuilding("oryginalny pisuar "+z,building,()=>
+                OwnerFixture(building,"wall-urinal.glb",new Vector3(-5.62f,.55f,z),
+                    new Vector3(.52f,.95f,.38f)));
         // The owner's independent towel GLB rests on a physically modelled
         // wall shelf; avoid another floating decorative sanitary object.
         var shelf=FixtureBox(building,"Półka na ręczniki — ściana łaźni",
@@ -793,25 +1112,110 @@ public static class BraxObozServices
             BraxObozPlacement.Bounds(shelfRenderers).center,building.forward,"półka na ręczniki");
         var shelfBounds=BraxObozPlacement.Bounds(shelfRenderers);
         var towelAt=new Vector3(shelfBounds.center.x,shelfBounds.max.y,shelfBounds.center.z);
-        var foldedTowel=OwnerFixture(building,"bath-towel.glb",
-            building.InverseTransformPoint(towelAt),new Vector3(.72f,.25f,.43f));
-        BraxObozPlacement.OnSupport(foldedTowel.transform,foldedTowel.GetComponentsInChildren<Renderer>(),
-            shelf.transform,towelAt,"ręcznik na półce");
-        // Neutralne oprawy LED w sanitariatach: normalne światło do użytku,
-        // aktywne jedynie blisko gracza (BraxObozLocalLight), bez ciężkich cieni.
-        foreach(float x in new[]{-4f,0f,4f})
-        {
-            var fixture=Node("Oprawa LED — łazienka",building,new Vector3(x,3.04f,0.8f));
-            FixtureBox(fixture,"Mleczny klosz",Vector3.zero,
-                new Vector3(.72f,.065f,.72f),porcelain,false);
-            var lamp=fixture.gameObject.AddComponent<Light>();
-            lamp.type=LightType.Point;lamp.color=new Color(1f,.97f,.91f);
-            lamp.intensity=.92f;lamp.range=6f*K;lamp.shadows=LightShadows.None;
-            lamp.enabled=false;
-            var local=fixture.gameObject.AddComponent<BraxObozLocalLight>();
-            local.source=lamp;local.range=12f*K;
-        }
+        OptionalBuilding("oryginalny ręcznik na półce",building,()=>{
+            var foldedTowel=OwnerFixture(building,"bath-towel.glb",
+                building.InverseTransformPoint(towelAt),new Vector3(.72f,.25f,.43f));
+            PlaceOrRemove(foldedTowel,shelf.transform,towelAt,"ręcznik na półce");
+        });
+        BraxBuildQuality.Warn("OBÓZ BRAK MODELU — H: interior-lamps; budynek=łaźnia; bez prowizorycznych opraw");
+        // A Baked probe includes only ReflectionProbeStatic contributors.
+        // These bathroom meshes are fixed; particles are excluded deliberately.
+        foreach(var visible in building.GetComponentsInChildren<MeshRenderer>(true))
+            GameObjectUtility.SetStaticEditorFlags(visible.gameObject,
+                GameObjectUtility.GetStaticEditorFlags(visible.gameObject)|StaticEditorFlags.ReflectionProbeStatic);
         Debug.Log("BRAXHORN_OBOZ_SANITARIATY dwa WC, dwie kabiny z prysznicem, umywalki; wymagany test przejścia i pozycji gracza");
+    }
+
+    static void BathroomReflectionProbe(Transform building,Renderer mirror,Vector3 towardWall,string suffix)
+    {
+        // Keep the capture outside the mirror and independent of its very thin
+        // nonuniform visual transform. Probe box dimensions below are WORLD units.
+        var node=new GameObject("Sonda lustra — "+suffix);
+        node.transform.SetParent(building,true);
+        node.transform.position=mirror.bounds.center-towardWall*.15f*K;
+        node.transform.rotation=Quaternion.identity;
+        var probe=node.AddComponent<ReflectionProbe>();
+        probe.mode=UnityEngine.Rendering.ReflectionProbeMode.Baked;
+        probe.refreshMode=UnityEngine.Rendering.ReflectionProbeRefreshMode.ViaScripting;
+        probe.resolution=256;probe.nearClipPlane=.02f*K;probe.farClipPlane=14f*K;
+        probe.size=new Vector3(3.5f,2.9f,4f)*K;
+        probe.center=new Vector3(0,-.3f,-1.7f)*K;
+        probe.boxProjection=true;probe.importance=10;probe.blendDistance=.1f*K;
+        mirror.probeAnchor=node.transform;
+        mirror.reflectionProbeUsage=UnityEngine.Rendering.ReflectionProbeUsage.Simple;
+    }
+
+    // Root calls this AFTER lighting and all geometry, BEFORE saving the scene.
+    // It produces real cubemap assets; merely adding a ReflectionProbe is not a bake.
+    public static void BakeBathroomReflections(Transform camp)
+    {
+        var probes=camp.GetComponentsInChildren<ReflectionProbe>(true)
+            .Where(p=>p.name.StartsWith("Sonda lustra — ",StringComparison.Ordinal))
+            .OrderBy(p=>p.name,StringComparer.Ordinal).ToArray();
+        if(probes.Length==0)
+        {
+            BraxBuildQuality.Warn("OBÓZ LUSTRA: brak sond łazienki do wypalenia");return;
+        }
+        if(probes.Length!=2)BraxBuildQuality.Warn("OBÓZ LUSTRA: sondy="+probes.Length+"; oczekiwano 2");
+        if(SystemInfo.graphicsDeviceType==UnityEngine.Rendering.GraphicsDeviceType.Null)
+        {
+            BraxBuildQuality.Warn("OBÓZ LUSTRA: brak urządzenia graficznego; sondy NIE zostały wypalone");return;
+        }
+        Directory.CreateDirectory(ReflectionFolder);AssetDatabase.Refresh();
+        var allMirrors=camp.GetComponentsInChildren<Renderer>(true)
+            .Where(r=>r.probeAnchor && probes.Any(p=>p.transform==r.probeAnchor)).ToArray();
+        var mirrorEnabled=allMirrors.Select(r=>r.enabled).ToArray();
+        // Interior lamps are normally distance-gated at runtime. Capture their
+        // intended light once, then restore each exact enabled state.
+        var lamps=probes.SelectMany(p=>p.transform.parent.GetComponentsInChildren<Light>(true))
+            .Where(l=>l.type!=LightType.Directional).Distinct().ToArray();
+        var lampEnabled=lamps.Select(l=>l.enabled).ToArray();
+        try
+        {
+            foreach(var mirror in allMirrors)mirror.enabled=false;
+            foreach(var lamp in lamps)lamp.enabled=true;
+            for(int i=0;i<probes.Length;i++)
+            {
+                var probe=probes[i];string suffix=probe.name.EndsWith("01",StringComparison.Ordinal)?"01":"02";
+                string path=ReflectionFolder+"/bathroom-mirror-"+suffix+".exr";
+                probe.bakedTexture=null;
+                try
+                {
+                    // Unity can remove an orphan .meta before the first bake.
+                    // Recreate the same checked-in identity immediately before import.
+                    if(!File.Exists(path+".meta"))
+                    {
+                        using(var hash=System.Security.Cryptography.SHA256.Create())
+                        {
+                            var bytes=System.Text.Encoding.UTF8.GetBytes("braxhorn-camp-D-20261106/"+path);
+                            string guid=BitConverter.ToString(hash.ComputeHash(bytes)).Replace("-","").ToLowerInvariant().Substring(0,32);
+                            File.WriteAllText(path+".meta","fileFormatVersion: 2\nguid: "+guid+"\n");
+                        }
+                    }
+                    bool baked=Lightmapping.BakeReflectionProbe(probe,path);
+                    if(!baked || !File.Exists(path))
+                    {
+                        BraxBuildQuality.Warn("OBÓZ LUSTRA: BakeReflectionProbe nie zapisał cubemapy "+path);continue;
+                    }
+                    AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
+                    var cube=AssetDatabase.LoadAssetAtPath<Cubemap>(path);
+                    if(!cube)
+                    {
+                        BraxBuildQuality.Warn("OBÓZ LUSTRA: zapis istnieje, ale nie zaimportowano Cubemap "+path);continue;
+                    }
+                    probe.bakedTexture=cube;EditorUtility.SetDirty(probe);
+                    Debug.Log("BRAXHORN_OBOZ_REFLECTION_BAKE path="+path+" resolution="+cube.width+
+                        " bytes="+new FileInfo(path).Length+" bakedTextureAssigned=true");
+                }
+                catch(Exception ex){BraxBuildQuality.Warn("OBÓZ LUSTRA NIE WYPALONE: "+ex.ToString());}
+            }
+        }
+        finally
+        {
+            for(int i=0;i<allMirrors.Length;i++)allMirrors[i].enabled=mirrorEnabled[i];
+            for(int i=0;i<lamps.Length;i++)lamps[i].enabled=lampEnabled[i];
+        }
+        AssetDatabase.SaveAssets();
     }
 
     static ParticleSystem Effect(Transform parent,Vector3 position,bool steam,bool faucet=false)

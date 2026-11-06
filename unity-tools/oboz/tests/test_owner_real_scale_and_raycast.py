@@ -24,7 +24,9 @@ class RealPlacementContract(unittest.TestCase):
 
     def test_true_references_and_ground_rays(self):
         self.assertIn("RealDimension(model.transform,renderers,2f", self.services)
-        self.assertIn("RealDimension(table.transform,renderers,.75f", self.services)
+        # .75/.45 above the floor are exercised by the actual building recipe
+        # in test_service_building_geometry; Unity binds its measured assemblies.
+        self.assertIn("RealDimension(part,visible,item.height", self.services)
         # A sink is measured to its basin; the original faucet remains above
         # it. Measuring the complete GLB height would shorten its legs/body.
         self.assertIn("StandingSurfaceHeight(carrier.transform,renderers,", self.services)

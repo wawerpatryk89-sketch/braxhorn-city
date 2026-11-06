@@ -60,6 +60,7 @@ jobs:
           sparse-checkout: |
             .gitignore
             .github/workflows/
+            tools/build_oboz_service_models.py
             unity-tools/claude/prywatne.py
             unity-city/Assets/
             unity-city/Packages/
@@ -214,6 +215,12 @@ jobs:
       - name: Przywróć prywatną siłownię 3D z atlasem 2K i opony właściciela
         if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
         run: python3 unity-tools/oboz/owner_extra_assets.py restore
+      - name: Zabudowa obozu z desek i rzeczywistych wymiarów — bez atrap wyposażenia
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: |
+          if ! blender --background --factory-startup --python tools/build_oboz_service_models.py -- --output unity-city/Assets/PlayableGenerated/Oboz/ServiceModels; then
+            echo '::warning::OBÓZ: modele zabudowy nie zostały wygenerowane; brakujące obiekty trafią do raportu sceny'
+          fi
       - name: Zweryfikowane materiały Poly Haven dla obozu
         run: python3 unity-tools/oboz/public_materials.py
       - name: Ciemna elewacja i białe kafelki murowanej łaźni — oryginalne Poly Haven 2K
@@ -679,6 +686,9 @@ jobs:
           python3 unity-tools/oboz/owner_release_assets.py restore
           python3 unity-tools/oboz/owner_blender_export.py
           python3 unity-tools/oboz/owner_extra_assets.py restore
+          if ! blender --background --factory-startup --python tools/build_oboz_service_models.py -- --output unity-city/Assets/PlayableGenerated/Oboz/ServiceModels; then
+            echo '::warning::OBÓZ: modele zabudowy nie zostały wygenerowane; brakujące obiekty trafią do raportu sceny'
+          fi
           python3 unity-tools/oboz/public_materials.py
           python3 unity-tools/oboz/facility_public_materials.py
           python3 unity-tools/oboz/motion_candidates.py

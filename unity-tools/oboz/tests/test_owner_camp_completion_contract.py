@@ -67,12 +67,16 @@ class OwnerCampCompletionContract(unittest.TestCase):
         self.assertIn('CabinWasteBin(region)',self.services)
 
     def test_canteen_source_tables_and_original_crockery(self):
-        self.assertIn('OwnerFieldDiningTable(room,',self.services)
-        self.assertEqual(self.services.count('OwnerFieldDiningTable(room,new Vector3('),2)
+        self.assertNotIn('OwnerFieldDiningTable(room,',self.services)
+        self.assertIn('Assets/PlayableGenerated/Oboz/ServiceModels/',self.services)
+        self.assertIn('data.furniture',self.services)
+        self.assertIn('DiningPlaceSetting(room,table,at,sourceSet)',self.services)
+        self.assertIn('UseOriginalContactSurface(tray)',self.services)
+        self.assertIn('PlaceOrRemove(utensil,tray.transform',self.services)
         self.assertIn('"24-piece-cutlery-set.glb"',self.services)
         self.assertIn('"food_tray.glb"',self.services)
         self.assertIn('"stockpot.glb"',self.services)
-        self.assertIn('"picnic_set_1.glb"',self.services)
+        self.assertIn('"Plate_Regular.001_"',self.services)
 
     def test_real_grass_01_02_and_green_roundabout(self):
         self.assertNotIn('Model(Source+"grass_bermuda_01_seedling_d__unity.glb"',self.vegetation)
@@ -91,14 +95,14 @@ class OwnerCampCompletionContract(unittest.TestCase):
         self.assertIn('const float actualLengthMetres=100f;',self.campus)
         self.assertIn('OwnerTrackPbr()',self.campus)
         self.assertIn('IntersectsRunningTrack(',self.campus)
-        self.assertIn('OwnerTrackPedestrianCrossing(t);',self.campus)
-        self.assertIn('const float vehicleCrosswalkZ=-111f;',self.campus)
+        self.assertNotIn('OwnerTrackPedestrianCrossing(t);',self.campus)
+        self.assertNotIn('vehicleCrosswalkZ',self.campus)
 
     def test_original_murals_and_bathroom(self):
-        self.assertIn('OriginalMural(cabin1,"WOJOWNIKOW"',self.environment)
+        self.assertIn('OriginalMural(pavilion,"WOJOWNIKOW"',self.environment)
         self.assertIn('OriginalMural(pavilion,"FIGHT_ZONE"',self.environment)
-        self.assertIn('OriginalMural(t,"DROGA_MISTRZA"',self.environment)
-        self.assertIn('OriginalMural(gym,"TRAINING_CAMP"',self.campus)
+        self.assertIn('OriginalMural(cabin3,"DROGA_MISTRZA"',self.environment)
+        self.assertIn('OriginalMural(gym,"TRAINING_CAMP"',self.environment)
         for model in ('close-coupled-toilet.glb','wall-urinal.glb',
                       'trough-washbasin.glb','shower-tray-square.glb'):
             self.assertIn(model,self.services)

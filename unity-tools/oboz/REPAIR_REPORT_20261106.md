@@ -57,6 +57,27 @@ Odbiór wizualny i nagranie właściciela pozostają wymagane. Żaden brakujący
 - Tryb sceny odczytuje istniejącą zgodną, zaszyfrowaną kopię trwałą, jeśli Actions nie ma wpisu. Po udanym przebiegu zapisuje osobny zaszyfrowany wpis importów dla dokładnego SHA. Nie dodaje kroku APK ani usuwania starych kopii.
 - Profil cache i jego integralność nadal weryfikuje istniejący mechanizm projektu. Błąd cache pozostaje ostrzeżeniem; nie zastępuje kompilacji ani audytu sceny.
 
+## D-01 — budynki, wyposażenie i fizyczny montaż oznaczeń
+
+- Zachowano pozycje czterech domków, bramy, ronda, zatoki oraz bieżni. Według najnowszego zgłoszenia właściciela „koło bramy szły pasy jakieś niepotrzebne” usunięto dodatkowe pasy wzdłuż dojazdu, zebrę na asfalcie i namalowane przejście przez tartan. Oryginalne oznaczenia sportowe bieżni zostają.
+- Szyld używa oryginalnego JPEG i jego przestrzennego konturu. Dolna krawędź widocznej bryły opiera się raycastem na belce z bala o długości 9,4 m i średnicy 58 cm. Dwa słupy mają średnicę 68 cm. Wysokość belki uwzględnia zmierzoną wysokość oryginalnego autobusu, nawierzchnię i 30 cm zapasu; nie zmniejsza autobusu ani byka.
+- Cztery murale są montowane po powstaniu budynków i ich colliderów. Oryginalna płaszczyzna ma poprawiony kierunek przedniej strony, zachowane proporcje, odstęp 5 mm od zmierzonej ściany. Scalanie konstrukcji nie usuwa już renderera DROGA MISTRZA.
+- Wszystkie istniejące wolnostojące tablice mają deski i pełne słupy z bali trafiające w rzeczywisty grunt. Tekst przylega do panelu. Nie przywrócono zbędnych znaków ani pasów przy bramie.
+- Ręcznik na każdym ganku pochodzi z dostarczonego `towel-rail-with-towel.glb`, wyłącznie węzeł `Bath towel`, bez metalowego wieszaka. Linka przebiega po boku ganku między dwoma pełnymi słupami. Pomiar podwieszenia korzysta z rzeczywistego wierzchołka fałdu i collidera linki.
+- Stołówka ma jeden komplet czterech stołów z desek (75 cm) oraz ośmiu ław (45 cm), 24 miejsca. Tace, sztućce i talerze pochodzą z oryginalnych modeli. Kontakt naczyń korzysta z faktycznych siatek i promieni pod obrysem, nie pełnego pudełka tacy. Usunięto podwójne komplety stołów.
+- Wyposażenie kuchni korzysta z osobnych oryginalnych części; kuchenki i garnki mają własne powierzchnie podparcia. Przedmioty na stołach i półkach są rozmieszczone oddzielnie. Model witryny zachowuje oryginalne proporcje.
+- Cztery modele budynków usługowych są generowane z istniejącego źródła konstrukcji, z jawnymi wymiarami i metadanymi. Drzwi mają 0,90 × 2,10 m, podłoga 0,16 m. W magazynie pozostają prawdziwe półki z desek; atrapy skrzyń usunięto. Punkt medyczny korzysta z oryginalnych IDANAS i metalowej szafy, bez pudełek udających łóżka i apteczkę. Brakujące lampy, skrzynie, piec i balia trafiają do H.
+- Lustra łaźni mają sondy wypalane po całej geometrii i oświetleniu, przed zapisem sceny. Kod potwierdza utworzenie tekstury odbicia; brak urządzenia graficznego lub nieudany bake jest jawnie zgłaszany. Wynik tego pomiaru Unity jeszcze oczekuje.
+- Oryginalny IDANAS zweryfikowano z pojedynczego dostarczonego GLB (SHA256 `26efbc9f32157c909d1cd9bde9b1692e4734728a0dcde7466739fe2ce5ff449a`). 1,220 m to obrys zwisającego koca; materac po jednolitej kalibracji długości ma szerokość 0,895771 m. Zachowano geometrię i proporcje. Jego powierzchnia ma wysokość 0,483092 m, czyli 3,31 cm ponad wymóg 0,45 m; rozbieżność pozostaje w raporcie, bez deformowania oryginału.
+
+### Dowody D-01
+
+- **235 testów źródeł + 2 testy kontraktu treningu PASS**; kontrola C# 36 Editor + 17 runtime, 0 błędów składni/zakresów. `git diff --check` bez uwag. To nie zastępuje kompilacji Unity.
+- Zmierzone wierzchołki czterech wygenerowanych GLB: **24 kontrole wymiarów PASS** w lokalnym Blenderze 4.3.2. Wersja Blendera CI pozostaje 4.5.15; Unity pozostaje 6000.0.58f2.
+- Do regresji Unity dołączono pomiar importowanej jadalni i oryginalnej tacy/sztućców. Zaczepy ręczników, podstawy tablic i montaż szyldu będą sprawdzane z zapisanej sceny.
+- Trwa osobny przebieg C-02 / A-03 nr 26, run `42310565856`, dokładny SHA `0173cb8cdd6dce3916ce7c2b019799dd874ab63d`. Etap D nie zostanie uruchomiony równolegle z nim.
+- D: Unity/nagranie **oczekują**; APK **nie budowano**. Żadnego wizualnego odbioru ani zera lewitacji nie zadeklarowano.
+
 ## Pozostałe etapy
 
 C → D → E → F → G będą publikowane i raportowane osobno. Lista H jest weryfikowana równolegle; nowe modele wymagają wskazanej przez właściciela akceptacji. Nie ma potwierdzenia limitu 400 MB dla nowej wersji, ponieważ nie uruchomiono APK.

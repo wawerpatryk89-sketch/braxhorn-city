@@ -37,7 +37,9 @@ class BeforeFiveHourBuildTests(unittest.TestCase):
             self.assertIn(item,ASSET)
             self.assertIn(item,SERVICES)
         self.assertIn('var originalSink=Assembly(new[]{',SERVICES)
-        self.assertIn('CloneOriginalParts(prefab,table.transform,new[]{"CookingTable.001_"',SERVICES)
+        # Dining tables now come from the separately measured plank-building
+        # recipe. Owner kitchen assemblies still use the complete source helper.
+        self.assertIn('CloneOriginalParts(source,item.transform,prefixes)',SERVICES)
         self.assertIn('CloneOriginalParts(source,carrier.transform,prefixes)',SERVICES)
         # Required fittings are nested under their source roots. Copying a
         # parent and its child independently duplicated legs, bolts and taps.

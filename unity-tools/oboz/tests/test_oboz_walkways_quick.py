@@ -103,21 +103,16 @@ class QuickCampWalkways(unittest.TestCase):
             if name in expected:
                 self.assertEqual(tuple(map(float,(bx,bz,height))),expected[name],name)
 
-    def test_gate_zebra_does_not_touch_south_track(self):
-        m=re.search(r"const float vehicleCrosswalkZ=(-?\d+(?:\.\d+)?)f;",CAMPUS)
-        self.assertIsNotNone(m,"Road zebra has no measured source-Z constant")
-        z=float(m.group(1))
-        half_depth=2.4/2
-        for x in (-3.1,0,3.1):
-            south_inner=ellipse_south(x,81.2,94.2)
-            south_outer=ellipse_south(x,86,99)
-            self.assertGreater(z-half_depth,south_inner+0.06,
-                f"Road zebra clips running oval at x={x}; south edges {south_outer},{south_inner}")
+    def test_owner_requested_removal_of_unnecessary_entrance_stripes(self):
+        arrival=CAMPUS.split("static void CampusArrival()",1)[1].split("static void ",1)[0]
+        for removed in ("Linia krawędzi drogi", "Pasy piesze", "vehicleCrosswalkZ",
+                        "OwnerTrackPedestrianCrossing", "UWAGA BIEZNIA"):
+            self.assertNotIn(removed,arrival)
+        self.assertIn('TrackAnnulus(rondo,"Pełny biały obrys ronda"',arrival)
+        self.assertIn('RondoBull(rondo);',arrival)
 
-    def test_bus_crossing_is_paint_not_stone(self):
-        self.assertIn("OwnerTrackPedestrianCrossing(t);",CAMPUS)
-        self.assertIn("Malowany znacznik przejścia na tartanie",CAMPUS)
-        self.assertIn("new Vector3(2.1f,.002f,.065f),campusMark,false",CAMPUS)
+    def test_paving_still_does_not_cover_running_track(self):
+        self.assertNotIn("Malowany znacznik przejścia na tartanie",CAMPUS)
         self.assertIn("if(IntersectsRunningTrack(x0,x1,z0,z1))",CAMPUS)
         self.assertIn("if(IntersectsRunningTrack(x-w*.5f,x+w*.5f,z-d*.5f,z+d*.5f))",CAMPUS)
 
