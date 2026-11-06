@@ -365,8 +365,9 @@ public static partial class BraxObozEnvironment
         // rendered as unbroken cubes through the red running surface.
         foreach(float x in new[]{-3.2f,3.2f})Box(t,"Linia krawędzi drogi",new Vector3(x,.092f,-126),new Vector3(.1f,.004f,28),campusMark,false);
         for(int i=0;i<8;i++)Box(t,"Pas przejścia",new Vector3(-2.8f+i*.8f,.098f,-115),new Vector3(.4f,.004f,2.8f),campusMark,false);
-        // No raised white paving/zebra geometry over the red running surface.
-        // The four tartan lanes remain continuous; crossing priority and bus safety still need Play Mode approval.
+        // Painted crossing directly on the existing owner rubberized track.
+        // No concrete, paving collider, or raised curb may enter four red lanes.
+        OwnerTrackPedestrianCrossing(t);
         Sign(t,"UWAGA BIEZNIA · USTAP PIESZYM",new Vector3(6.0f,2f,-116f),6f);
         Sign(t,"BRAXHORN · PRZYJAZDY",new Vector3(26,2.1f,-84),5);
         foreach(float x in new[]{24f,28f})Box(t,"Podpora tablicy przyjazdów",new Vector3(x,1,-84),new Vector3(.08f,2,.08f),campusSteel);
@@ -384,6 +385,41 @@ public static partial class BraxObozEnvironment
             Group("Łuk "+i,route,P(Mathf.Sin(a)*12,0,-94+Mathf.Cos(a)*12));
         }
     }
+    static void OwnerTrackPedestrianCrossing(Transform arrival)
+    {
+        var cross=Group("Przejście piesze przez tartan — tylko oznaczenia malowane",arrival,Vector3.zero);
+        float innerX=BraxObozCampusLayout.PlotRadiusX-8.8f;
+        float innerZ=BraxObozCampusLayout.PlotRadiusZ-8.8f;
+        float outerX=innerX+4*1.2f,outerZ=innerZ+4*1.2f;
+        float south=0f,north=0f;
+        float Boundary(float x,float rx,float rz)
+        {
+            float fraction=Mathf.Clamp01(1f-(x*x)/(rx*rx));
+            return BraxObozCampusLayout.PlotCenterZ-rz*Mathf.Sqrt(fraction);
+        }
+        // Align with the paved footpath x=24.6..27.4 beside the boarding bay.
+        // Sides are calculated from the real elliptical track geometry.
+        foreach(float x in new[]{24.85f,27.15f})
+        {
+            float start=Boundary(x,outerX,outerZ)+.12f;
+            float end=Boundary(x,innerX,innerZ)-.12f;
+            if(end<=start)throw new InvalidOperationException("Nieprawidłowa szerokość przejścia po bieżni");
+            Box(cross,"Biała malowana krawędź przejścia bez kolizji",
+                new Vector3(x,.150f,(start+end)*.5f),
+                new Vector3(.07f,.002f,end-start),campusMark,false);
+            south+=start*.5f;north+=end*.5f;
+        }
+        for(int i=0;i<4;i++)
+        {
+            float z=Mathf.Lerp(south+.25f,north-.25f,i/3f);
+            Box(cross,"Malowany znacznik przejścia na tartanie",
+                new Vector3(26f,.150f,z),new Vector3(2.1f,.002f,.065f),campusMark,false);
+        }
+        CombineDecoration(cross);
+        Debug.Log("BRAXHORN_OBOZ_PIESI_CROSSING: footpath x=24.6..27.4, sourceZ="+
+            south+".."+north+" paintedOnTrack=true pavingOnTrack=false; Play Mode and bus priority still to verify");
+    }
+
     // Model właściciela pozostaje w prywatnych assetach Unity, poza publicznym Git.
     // Nieobecność GLB oznaczamy jako BRAK do odbioru, nigdy nie używamy atrapy.
     // Blender/FBX z paczki właściciela: oryginalne UV, geometrii nie redukujemy.
@@ -918,11 +954,28 @@ public static partial class BraxObozEnvironment
             mesh.uv=uv;mf.sharedMesh=SaveMesh(mesh);
             created++;
         }
-        void Curb(float x,float z,float w,float d)
+        void Curb(float x,float z,float w,float d,int depth=0)
         {
-            if(!IntersectsRunningTrack(x-w*.5f,x+w*.5f,z-d*.5f,z+d*.5f))
-                Box(t,"Krawężnik tylko poza tartanem",new Vector3(x,.028f,z),
-                    new Vector3(w,.056f,d),gravel,false);
+            if(IntersectsRunningTrack(x-w*.5f,x+w*.5f,z-d*.5f,z+d*.5f))
+            {
+                // Previously any crossing dropped an ENTIRE long curb.
+                // Recursively subdivide the boundary so only the segment
+                // touching tartan is removed, not its entire remaining edge.
+                if(depth>=9 || Mathf.Max(w,d)<.18f)return;
+                if(w>=d)
+                {
+                    Curb(x-w*.25f,z,w*.5f,d,depth+1);
+                    Curb(x+w*.25f,z,w*.5f,d,depth+1);
+                }
+                else
+                {
+                    Curb(x,z-d*.25f,w,d*.5f,depth+1);
+                    Curb(x,z+d*.25f,w,d*.5f,depth+1);
+                }
+                return;
+            }
+            Box(t,"Krawężnik poza bieżnią",new Vector3(x,.028f,z),
+                new Vector3(w,.056f,d),gravel,false);
         }
         for(int i=0;i<xs.Length-1;i++)
         for(int j=0;j<zs.Length-1;j++)
