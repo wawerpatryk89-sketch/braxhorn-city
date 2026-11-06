@@ -232,11 +232,23 @@ public static class BraxClaudeMetro
         Tunele();
         Wyposazenie();
         W.Komorka = 26f;
-        // Etap przygotowania infrastruktury: istniejący model jest wyłącznie
-        // na postoju technicznym. BraxMetroM1Ruch.kursyWlaczone = false,
-        // pasażerowie i odjazdy wyłączone; torowisko i peron bez zmian.
-        Pociag();
-        rep.uwagi.Add("Pociag M1: postoj techniczny bez kursow, model zachowany do przyszlej rozbudowy");
+        // W etapie infrastruktury pociąg jest OPCJONALNY i nieruchomy.
+        // Błąd importu GLB nie może zatrzymać budowy wejścia, schodów, peronu ani torów.
+        try
+        {
+            Pociag();
+            rep.uwagi.Add("Pociag M1: postoj techniczny bez kursow, model zachowany do przyszlej rozbudowy");
+        }
+        catch (Exception e)
+        {
+            // Nie zostawiamy uszkodzonej, częściowo wygenerowanej bryły wagonu
+            // jako niewidzialnej przeszkody przy peronie lub w tunelu.
+            foreach (var t in podziemie.GetComponentsInChildren<Transform>(true)
+                .Where(t => t && t.name.StartsWith("METRO M1 — pociąg kursujący", StringComparison.Ordinal)).ToArray())
+                UnityEngine.Object.DestroyImmediate(t.gameObject);
+            rep.uwagi.Add("Pociag M1: model opcjonalny niedostepny; peron i tory zostaja do rozbudowy. " + e.Message);
+            Debug.LogWarning("BRAXHORN_METRO_M1_POSTOJ_BEZ_MODELU: stacja i tory bez kursow; " + e.Message);
+        }
         rep.siatki += W.Zapisz("metro_stacja");
 
         // A 2.11 (właściciel: „NIC NIE NAKŁADAMY na nic”): oznakowanie, żółte linie, noski stopni, pasy i ramki leżały 2–12 mm
