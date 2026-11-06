@@ -158,15 +158,66 @@ internal static class BraxMiastoNova
         lm.Box(new Vector3(38.36f, 3.58f, pz - .03f), new Vector3(45.64f, 3.62f, z)); lm.Box(new Vector3(38.36f, 4.86f, pz - .03f), new Vector3(45.64f, 4.90f, z));
         lm.Box(new Vector3(38.36f, 3.62f, pz - .03f), new Vector3(38.4f, 4.86f, z)); lm.Box(new Vector3(45.6f, 3.62f, pz - .03f), new Vector3(45.64f, 4.86f, z));
         float cap = .74f, w = BraxUliceKit.SzerokoscNapisu("CLUB NOVA", cap); if (w > 6.6f) cap *= 6.6f / w;
-        // Pierwszeństwo: wyłącznie autentyczny szyld właściciela z importowanej paczki.
-        // Jeśli nie ma go w release/importerze, pozostawiamy JEDEN istniejący napis 3D.
-        string oryginalSzyld = new[] { "nova_dyskoteka", "club_nova", "nova" }
-            .FirstOrDefault(n => BraxMiastoBillboardy.ZnajdzOryginalnySzyld(n) != null);
-        if (oryginalSzyld == null ||
-            !BraxMiastoBillboardy.Mural(root, oryginalSzyld,
-                 new Vector3(42f, 4.20f, pz - .028f), Vector3.back, 6.5f, 1.08f))
-            BraxUliceKit.Napis3D("CLUB NOVA",
-                new Vector3(42f, 3.86f, pz), Vector3.back, cap, .12f, litery, boki);
+        // NOVA R1: dokładnie JEDEN szyld z oryginalnej paczki właściciela.
+        // Nie sięgamy po stare "nova_dyskoteka", które tworzyło podwójny napis.
+        // Zasób 2D ma pierwszeństwo, a przy jego braku używamy oryginalnego
+        // modelu szyld_nova.glb z paczki miasto_sklepy (bez zmian siatki/UV).
+        bool szyldWlasciciela = false;
+        foreach (string nazwa in new[] { "club_nova", "nova_club", "nova" })
+        {
+            if (BraxMiastoBillboardy.ZnajdzOryginalnySzyld(nazwa) == null) continue;
+            if (!BraxMiastoBillboardy.Mural(root, nazwa,
+                new Vector3(42f, 4.20f, pz - .028f), Vector3.back, 6.5f, 1.08f)) continue;
+            szyldWlasciciela = true;
+            Debug.Log("BRAXHORN_NOVA_SZYLD_ORYGINALNY obraz=" + nazwa);
+            break;
+        }
+        if (!szyldWlasciciela)
+        {
+            // Oryginalny asset był widoczny w logu importu R1 nr 101:
+            // Miasto/miasto_sklepy/_tekstury/szyld_nova/szyld_nova_00.jpg.
+            var zrodloSzyldu = BraxMiastoAssety.Model("miasto_sklepy", "szyld_nova");
+            if (zrodloSzyldu)
+            {
+                var napisZPaczki = (GameObject)Object.Instantiate(zrodloSzyldu, root, false);
+                napisZPaczki.name = "NOVA SZYLD ORYGINALNY WŁAŚCICIELA (szyld_nova)";
+                // Import zachowuje oryginalną orientację i geometrię GLB.
+                // Skala jednolita — żadnego rozciągania wzoru ani UV.
+                var br = BraxRegion.Bounds(napisZPaczki);
+                if (br.size.x > .05f && br.size.y > .05f)
+                {
+                    if (br.size.z > br.size.x * 1.5f)
+                    {
+                        napisZPaczki.transform.rotation =
+                            Quaternion.Euler(0f, 90f, 0f) * napisZPaczki.transform.rotation;
+                        br = BraxRegion.Bounds(napisZPaczki);
+                    }
+                    float skala = Mathf.Min(6.5f / br.size.x, 1.08f / br.size.y);
+                    if (skala > .0001f && skala < 10000f)
+                    {
+                        napisZPaczki.transform.localScale *= skala;
+                        br = BraxRegion.Bounds(napisZPaczki);
+                        napisZPaczki.transform.position +=
+                            new Vector3(42f, 4.20f, pz - .085f) - br.center;
+                        // Niewidzialny collider źródłowego GLB nie może blokować ulicy i wejścia.
+                        foreach (var c in napisZPaczki.GetComponentsInChildren<Collider>(true))
+                            Object.DestroyImmediate(c);
+                        BraxMiastoAssety.Przygotuj(napisZPaczki, false, false);
+                        szyldWlasciciela = true;
+                        Debug.Log("BRAXHORN_NOVA_SZYLD_ORYGINALNY model=miasto_sklepy/szyld_nova.glb skala=" +
+                            skala.ToString("F4") + " rozmiar=" + br.size.ToString("F2"));
+                    }
+                }
+                if (!szyldWlasciciela) Object.DestroyImmediate(napisZPaczki);
+            }
+        }
+        if (!szyldWlasciciela)
+        {
+            // Brak autoryzowanego oryginału: zgłoś błąd, NIE podstawiaj
+            // liter 3D, innego logo ani "NOVA DYSKOTEKA".
+            throw new System.InvalidOperationException(
+                "BRAXHORN_NOVA_SZYLD_BRAK_ORYGINALU: wymagana paczka miasto_sklepy/szyld_nova.glb lub club_nova/nova_club/nova JPG/PNG");
+        }
         // pkt 48b (właściciel 01:01): plakaty i banery na klubie NOVA USUNIĘTE — reklama tylko na nośnikach (BraxMiastoBillboardy)
         // kinkiety przy wejściu
         foreach (float x in new[] { 40.25f, 43.75f })
