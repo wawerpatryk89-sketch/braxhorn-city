@@ -33,6 +33,8 @@ def main():
     pose = source("Claude/BraxPose.cs")
     flicker = source("Editor/Claude/BraxKontrolaMigotania.cs")
     ground = source("Editor/Claude/Region/BraxNabrzezePlaza.cs")
+    domki = source("Editor/Claude/Region/BraxMiastoWyspaDomki.cs")
+    collision = source("Editor/Claude/BraxKontrolaKolizji.cs")
 
     probes = {
         "R1.port_beach_prefetch_175m": check(
@@ -53,7 +55,27 @@ def main():
         "R1.old_mesh_collider_kept_in_sync": check(
             flicker, r"c.sharedMesh == oryginal\) c.sharedMesh = mesh"),
         "R1.quality_cut_bounded_nonblocking": check(
-            flicker, r"miasto\" \? 32 : 240"),
+            flicker, r"miasto\" \? 90 : 240") and
+            check(flicker, r"miasto\" \? 320 : 600"),
+        "R1.island_in_full_cut_scope": check(
+            flicker, r"BraxMiastoWyspa\.CX - 242f") and
+            check(flicker, r"BraxMiastoWyspa\.CZ \+ 242f"),
+        "R1.no_false_zero_flicker": check(
+            flicker, r"BRAXHORN_R1_NAWIERZCHNIE_WYMAGA_TESTU") and
+            check(flicker, r"pominieteCiezkie"),
+        "R1.cottages_physical_openings_not_solid": check(
+            domki, r"SegmentSciany\(xPoprzedni, otwor\.xMin") and
+            check(domki, r"wejsciaDomkow\.Add\(\(tabliczka") and
+            not check(domki, r'BraxNabrzeze\.Kol\(kol, "Domek " \+ tabliczka, P\(0, h \* \.5f'),
+        "R1.each_cottage_physically_audited": check(
+            domki, r"WYSPA_DOMKI_WEJSCIA") and
+            check(domki, r"foreach \(var wejscie in wejsciaDomkow\)"),
+        "R1.beach_wc_and_changing_open": check(
+            domki, r"WC plazy otwarte drzwi") and
+            check(domki, r"Przebieralnia otwarte drzwi") and
+            not check(domki, r'BraxNabrzeze\.Kol\(kol, "WC plaży",'),
+        "R1.island_no_synthetic_box_over_doors": check(
+            collision, r"j\.rs\.All\(AutorskaSiatkaWyspy\)"),
         "R1.courts_keep_original_LOD0_visible": check(
             lod, r"ForceLOD\(pokaz \? 0 : -1\)"),
         "R1.courts_LOD_activated_in_city_only": check(
