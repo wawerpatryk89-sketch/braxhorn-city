@@ -204,7 +204,15 @@ public static class BraxObozServices
                     t=>t.name.StartsWith(sourcePrefix,StringComparison.OrdinalIgnoreCase));
                 if(!asset)throw new InvalidOperationException(
                     "Brakuje części oryginalnej kuchni: "+sourcePrefix);
+                // Preserve the COMPLETE imported GLB parent-axis transform,
+                // not only the child local pose. The Sketchfab source contains
+                // a rotated GLTF_SceneRootNode, otherwise taps/plates float.
+                var originalWorld=asset.localToWorldMatrix;
                 var part=Object.Instantiate(asset.gameObject,region,false);
+                var relative=region.worldToLocalMatrix*originalWorld;
+                part.transform.localPosition=relative.GetColumn(3);
+                part.transform.localRotation=relative.rotation;
+                part.transform.localScale=relative.lossyScale;
                 part.name=label+" — bez zmian siatki/UV/materiałów";
                 var renderers=part.GetComponentsInChildren<Renderer>(true);
                 if(renderers.Length==0)throw new InvalidOperationException(
