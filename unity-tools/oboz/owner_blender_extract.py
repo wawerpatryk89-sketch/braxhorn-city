@@ -44,10 +44,28 @@ def retrieve(archive_paths):
                 if key in source_files:raise ValueError("Duplicate original Blender source "+key)
                 raw=z.read(member)
                 with zipfile.ZipFile(io.BytesIO(raw)) as inner:
-                    expected={key+".blend"}
-                    if set(inner.namelist())!=expected or inner.testzip() is not None:
-                        raise ValueError("Unexpected original Blender archive "+key)
-                    packed=inner.read(key+".blend")
+                    # Every owner's real .blend.zip ALSO contains the
+                    # original 2K/4K PBR textures. The old single-file check
+                    # rejected all three valid archives before Unity.
+                    expected_blend=key+".blend"
+                    entries=inner.infolist()
+                    names=[entry.filename for entry in entries]
+                    if len(names)!=len(set(names)) or names.count(expected_blend)!=1:
+                        raise ValueError("Duplicate/missing owner Blender source "+key)
+                    if inner.testzip() is not None:
+                        raise ValueError("Bad CRC in original Blender archive "+key)
+                    for entry in entries:
+                        name=entry.filename
+                        path=Path(name)
+                        if (entry.is_dir() or path.is_absolute() or
+                            ".." in path.parts or
+                            (entry.external_attr>>16)&0o170000==0o120000):
+                            raise ValueError("Unsafe owner Blender archive path "+name)
+                        if name != expected_blend and not (
+                            len(path.parts)==2 and path.parts[0]=="textures" and
+                            path.suffix.lower() in (".jpg",".jpeg",".png",".exr")):
+                            raise ValueError("Unexpected owner Blender archive member "+name)
+                    packed=inner.read(expected_blend)
                 decoded=decode(packed)
                 size,digest=HASHES[key]
                 if len(decoded)!=size or sha(decoded)!=digest or not decoded.startswith(b"BLENDER-"):
