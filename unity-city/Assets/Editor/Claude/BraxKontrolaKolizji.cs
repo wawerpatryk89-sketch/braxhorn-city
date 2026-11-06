@@ -22,6 +22,18 @@ public static class BraxKontrolaKolizji
     static readonly Collider[] bufor = new Collider[64];
     static readonly RaycastHit[] bufR = new RaycastHit[32];
 
+    // M1 posiada własne, precyzyjne kolizje podłóg, schodów, poręczy i mebli
+    // dodawane w BraxWnetrzaKit. Nie wolno zamieniać scalonych siatek dekoracyjnych
+    // (szkło wiaty, atlas oznakowania, listwy) w wielkie blokujące BoxCollider.
+    // Potwierdzono w logu APK R1 #98: „BRAXHORN kolizja (kontrola)” blokowała
+    // wejście i schody — mimo że oryginalne kolizje stacji były poprawne.
+    static bool AutorskieKolizjeMetra(Transform t)
+    {
+        for (var p = t; p; p = p.parent)
+            if (p.name.StartsWith("CLAUDE metro M1", StringComparison.Ordinal)) return true;
+        return false;
+    }
+
     public static void Wykonaj(BraxKontrola.Spis spis)
     {
         int dodane = 0, maja = 0, nad = 0, male = 0, plaskie = 0, otwory = 0, schody = 0, chronione = 0;
@@ -49,6 +61,12 @@ public static class BraxKontrolaKolizji
             try
             {
                 if (j.chroniony) { chronione++; continue; }
+                // R1: żadnych sztucznych kolizji w metrze M1. Obiekty w pełni
+                // należące do stacji mają fizykę authored; pozostałe obszary
+                // (NOVA, miasto, port) przechodzą przez dotychczasowy audyt.
+                if (AutorskieKolizjeMetra(j.t) ||
+                    (j.rs.Any() && j.rs.All(r => r && AutorskieKolizjeMetra(r.transform))))
+                { chronione++; continue; }
                 if (j.typ != null && (j.typ.nazwa == "drzwi" || j.typ.wisi)) continue;
                 if (j.rs.Any(r => r && (skrzydlaPrzes.Contains(r.transform) || r.GetComponentInParent<BraxDrzwiPrzesuwne>()))) { przyDrzwiach++; continue; }
                 if (j.rs.All(BraxKontrola.Roslina2)) continue;
