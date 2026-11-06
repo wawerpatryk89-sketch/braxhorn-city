@@ -181,6 +181,90 @@ public static class BraxObozServices
         g.GetComponent<Renderer>().sharedMaterial=material;
         return g;
     }
+    // True owner's MILITARY/KITCHEN field equipment, extracted directly from
+    // kitchen_-_assets.glb. A separate working kitchenette is installed in
+    // EACH of the four two-person cabins without placing the whole 48-mesh
+    // commercial kitchen inside a 6.2 x 8.2 m room.
+    public static void OwnerCabinKitchenette(Transform cabin)
+    {
+        const string path="Assets/Source/Prywatne/Oboz/OwnerAssets/kitchen_-_assets.glb";
+        var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        if(!prefab)throw new InvalidOperationException(
+            "Brak oryginalnego właścicielskiego zestawu kuchennego dla domków: "+path);
+        var source=PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+        if(!source)throw new InvalidOperationException("Nie można zaimportować źródłowej kuchni GLB");
+        var region=new GameObject("ANEKS POLOWY — oryginalne źródłowe modele kuchni").transform;
+        region.SetParent(cabin,false);
+        try
+        {
+            GameObject Part(string sourcePrefix,string label,Vector3 bottomMetres,
+                Vector3 envelopeMetres,bool solid)
+            {
+                var asset=source.GetComponentsInChildren<Transform>(true).FirstOrDefault(
+                    t=>t.name.StartsWith(sourcePrefix,StringComparison.OrdinalIgnoreCase));
+                if(!asset)throw new InvalidOperationException(
+                    "Brakuje części oryginalnej kuchni: "+sourcePrefix);
+                var part=Object.Instantiate(asset.gameObject,region,false);
+                part.name=label+" — bez zmian siatki/UV/materiałów";
+                var renderers=part.GetComponentsInChildren<Renderer>(true);
+                if(renderers.Length==0)throw new InvalidOperationException(
+                    "Nie ma prawdziwej geometrii w części kuchennej: "+label);
+                Bounds Bounds()
+                {
+                    var b=renderers[0].bounds;
+                    foreach(var rr in renderers.Skip(1))b.Encapsulate(rr.bounds);
+                    return b;
+                }
+                var bounds=Bounds();
+                if(bounds.size.x<.0001f||bounds.size.y<.0001f||bounds.size.z<.0001f)
+                    throw new InvalidOperationException("Zerowe wymiary wyposażenia domku: "+label);
+                var max=envelopeMetres*1.294f;
+                float scale=Mathf.Min(max.x/bounds.size.x,
+                    Mathf.Min(max.y/bounds.size.y,max.z/bounds.size.z));
+                if(scale<=0f||float.IsNaN(scale)||float.IsInfinity(scale))
+                    throw new InvalidOperationException("Błędna skala wyposażenia domku: "+label);
+                part.transform.localScale*=scale;
+                bounds=Bounds();
+                var target=cabin.TransformPoint(bottomMetres*1.294f);
+                part.transform.position+=new Vector3(
+                    target.x-bounds.center.x,target.y-bounds.min.y,target.z-bounds.center.z);
+                if(solid&&!part.GetComponentInChildren<Collider>())
+                {
+                    var c=part.AddComponent<BoxCollider>();
+                    c.center=part.transform.InverseTransformPoint(bounds.center);
+                    var loss=part.transform.lossyScale;
+                    c.size=new Vector3(
+                        bounds.size.x/Mathf.Max(.0001f,Mathf.Abs(loss.x)),
+                        bounds.size.y/Mathf.Max(.0001f,Mathf.Abs(loss.y)),
+                        bounds.size.z/Mathf.Max(.0001f,Mathf.Abs(loss.z)));
+                }
+                return part;
+            }
+
+            // Left side of cabin: table/stove/rack; right: source field sink.
+            // The central x=-0.8..+1.25 passage and front door stay empty.
+            Part("CookingTable.001_","Oryginalny stół kuchni polowej",
+                new Vector3(-2f,.16f,-.82f),new Vector3(1.45f,.91f,.78f),true);
+            Part("PortableStove_Base.001_","Prawdziwa kuchenka turystyczna z palnikami",
+                new Vector3(-2f,1.07f,-.82f),new Vector3(.55f,.24f,.40f),false);
+            Part("GasCylinder.001_","Butla gazowa obok stołu",
+                new Vector3(-2.40f,.16f,-1.40f),new Vector3(.30f,.65f,.30f),true);
+            Part("PotRack.001_","Oryginalna półka na naczynia",
+                new Vector3(-2f,1.58f,-.72f),new Vector3(1.04f,.54f,.36f),false);
+            Part("Plate_Regular.001_","Talerz na wyposażeniu kuchni",
+                new Vector3(-1.70f,1.08f,-.71f),new Vector3(.26f,.07f,.26f),false);
+            var originalSink=Part("Sink.001_","Zlew polowy z oryginalną baterią",
+                new Vector3(2.10f,.16f,-.78f),new Vector3(.92f,1.12f,.64f),true);
+            var faucet=originalSink.AddComponent<BraxObozFacility>();
+            faucet.kind=BraxObozFacility.Kind.Sink;
+            faucet.effect=Effect(region,new Vector3(2.1f,1.20f,-.78f)*1.294f,false,true);
+            Debug.Log("BRAXHORN_OBOZ_CABIN_KITCHEN: cabin="+cabin.name+
+                " realOwnerCookingTable=true realOwnerStove=true realOwnerSink=true"+
+                " cookware=true corridorOpen=true playModeCheckPending=true");
+        }
+        finally { Object.DestroyImmediate(source); }
+    }
+
     // The cabins and open-air training stations have unscaled parent roots:
     // their primitive geometry is authored in source metres and multiplied
     // by K inside Box(). OwnerFixture() by contrast expects Unity LOCAL units.
