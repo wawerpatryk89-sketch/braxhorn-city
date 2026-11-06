@@ -533,7 +533,7 @@ public static partial class BraxClaudeOsiedle
     {
         var fotele = UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
             .Where(t => t.name == FotelKierowcy || t.name == FotelPasazera).OrderBy(t => t.position.x).ThenBy(t => t.position.z).ToList();
-        int pas = 0, stoja = 0;
+        int pas = 0, stoja = 0, kabinyOdrzucone = 0;
         foreach (var f in fotele)
         {
             bool kier = f.name == FotelKierowcy;
@@ -543,13 +543,20 @@ public static partial class BraxClaudeOsiedle
                              kier ? new[] { "sit_table_breathe_01" } : new[] { "sit_chair_breathe_01", "sit_chair_idle_neutral_02" }, wAucie: true);
             if (!m) continue;
             m.transform.SetParent(f, true);
-            DopasujKabine(m, f);
+            if (!DopasujKabine(m, f))
+            {
+                // Nie zostawiaj osoby przebijającej głową dach. Model i jego skala
+                // pozostają niezmienione; rezygnujemy jedynie z obsady wadliwej kabiny.
+                UnityEngine.Object.DestroyImmediate(m.gameObject);
+                rbSiedzacy--; rbLudzie--; kabinyOdrzucone++;
+                continue;
+            }
             // ramiona: kierowca do kierownicy (16°) + oddanie odchylenia tułowia (ręce zostają przy kierownicy), pasażer — oddanie odchylenia
             if (kier) { m.korektaRak = 16f + m.odchylenie; rbKierowcy++; } else { m.korektaRak = m.odchylenie; pas++; }
             rbSiedzacy--;
             foreach (var c in m.GetComponentsInChildren<Collider>(true)) UnityEngine.Object.DestroyImmediate(c);
             foreach (var rb in m.GetComponentsInChildren<Rigidbody>(true)) UnityEngine.Object.DestroyImmediate(rb);
         }
-        rep.notes.Add("ludzie: foteli " + fotele.Count() + ", kierowców " + rbKierowcy + ", pasażerów " + pas + ", foteli w autach zaparkowanych (puste) " + stoja + (fotele.Count() == 0 ? " (auta bez foteli — etap aut)" : ""));
+        rep.notes.Add("ludzie: foteli " + fotele.Count + ", kierowców " + rbKierowcy + ", pasażerów " + pas + ", odrzuconych wadliwych kabin " + kabinyOdrzucone + ", foteli w autach zaparkowanych (puste) " + stoja + (fotele.Count == 0 ? " (auta bez foteli — etap aut)" : ""));
     }
 }
