@@ -12,7 +12,7 @@ name: "Miasto Mistrzów A1+T11 — testy przed APK (BEZ UNITY)"
 # quality gates, never deploys, uploads assets or moves a branch.
 on:
   push:
-    branches: [gpt/miasto-mistrzow-port-plaza-promenada-atlas-20261106]
+    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
     paths:
       - '.github/workflows/mistrzowie-a1-t11-test-before-build.yml'
   workflow_dispatch:
@@ -20,7 +20,7 @@ permissions:
   contents: read
 jobs:
   code-preflight:
-    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-port-plaza-promenada-atlas-20261106'
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -101,7 +101,7 @@ jobs:
     # The job performs only GET requests; no release uploads or mutations.
     permissions:
       contents: write
-    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-port-plaza-promenada-atlas-20261106'
+    if: github.ref == 'refs/heads/gpt/miasto-mistrzow-kasyno-t11-20261105'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
