@@ -256,6 +256,28 @@ public static partial class BraxClaudeOsiedle
                 mapped.Add(bone);
                 curves++;
             }
+            // Pliki Mixamo mogą przekazywać ruch korzenia bez osobnej krzywej
+            // Transform Hips. Nie odrzucaj z tego powodu oryginalnych ruchów nóg:
+            // brakujące Hips pozostają w oryginalnej pozie szkieletu Patryka.
+            if (!mapped.Contains("Hips"))
+            {
+                var hips = kosci.FirstOrDefault(t => PatrykKosc(t.name) == "Hips");
+                if (!hips) throw new InvalidOperationException("Patryk: brak Hips w oryginalnym szkielecie");
+                var pose = spoczynek.First(t => t.t == hips);
+                string hipsPath = AnimationUtility.CalculateTransformPath(hips, hero.transform);
+                float duration = Mathf.Max(.01f, source.length);
+                for (int axis = 0; axis < 4; axis++)
+                    AnimationUtility.SetEditorCurve(clip,
+                        EditorCurveBinding.FloatCurve(hipsPath, typeof(Transform), "localRotation." + "xyzw"[axis]),
+                        AnimationCurve.Constant(0f, duration, pose.r[axis]));
+                for (int axis = 0; axis < 3; axis++)
+                    AnimationUtility.SetEditorCurve(clip,
+                        EditorCurveBinding.FloatCurve(hipsPath, typeof(Transform), "localPosition." + "xyz"[axis]),
+                        AnimationCurve.Constant(0f, duration, pose.p[axis]));
+                mapped.Add("Hips");
+                Debug.LogWarning("BRAXHORN_PATRYK_OWNER: Hips bez krzywych w FBX " + spec.nazwa +
+                    ", zachowana oryginalna pozycja Hips modelu; animację sprawdzić w Unity");
+            }
             foreach (string required in new[] { "Hips", "LeftUpLeg", "RightUpLeg", "LeftLeg", "RightLeg" })
                 if (!mapped.Contains(required))
                     throw new InvalidOperationException("FBX " + spec.nazwa +
