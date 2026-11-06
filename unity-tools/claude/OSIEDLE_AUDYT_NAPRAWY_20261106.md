@@ -38,4 +38,44 @@ Dokument `unity-tools/updates/CONTENT-UPDATES.md` jednoznacznie mówi, że `[con
 - 10-minutowy test ruchu sceny, przejazd pełnowymiarowego autobusu 12 m × K i brak zatorów, weryfikacja wyglądu kół / materiałów.
 - Działanie małych aktualizacji bez pełnego APK na telefonie (mechanizm osobny; nie oznaczać jako potwierdzony).
 
-**Decyzja:** NIE ogłaszać „wszystkie błędy naprawione”. Stan: źródła poprawione, szybkie testy PASS, urządzenie i kompilacja Unity bez testu. Nie wysyłać pełnego buildu na podstawie samych kontroli składniowych. 
+**Decyzja:** NIE ogłaszać „wszystkie błędy naprawione”. Stan: źródła poprawione, szybkie testy PASS, urządzenie i kompilacja Unity bez testu. Nie wysyłać pełnego buildu na podstawie samych kontroli składniowych.
+
+## Audyt uzupełniający: kolizje ruchu i bezpieczeństwo pieszych (6.11.2026)
+
+**Zakres:** przegląd rzeczywistych skryptów generatora sceny i runtime, historii zmian, logów ostatniego APK z 5.11.2026 oraz niezależnego workflow statycznego. Nie wykonano nowego Play Mode, kompilacji Unity ani testu telefonu. Żadnego automatycznego scalania, przebudowy wizualnej lub nowego APK.
+
+### Dowód: poprzedni APK, nie bieżący kod
+
+[GitHub Actions 42032292474, SHA `c012f167e10f0f722cf081dd990b133981deb519`](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42032292474):
+- `BRAXHORN_RUCH_TEST`: 20 aut, 600 s symulacji, **30 zakleszczeń**, 0 przecięć, 0 wyjazdów poza drogę, 30 próbek powyżej limitu skrętu (z 38 830).
+- `BRAXHORN_AUTA_PARKING`: pierwszy przebieg 49 miejsc / 16 aut, następny przebieg 49 miejsc / **0 aut** (124 odrzucenia z powodu przeszkody). Nie przypisywać przyczyny drugiego przebiegu bez odtworzenia sceny.
+- `BRAXHORN_KABINA`: 65 prób, **45 niedopasowanych** do dachu; źródłowy mechanizm w bieżącej gałęzi odrzuca pasażerów bez potwierdzonego prześwitu.
+- `BRAXHORN_AKTUALIZACJA_SCENA FAIL`: **362 wpisy**, w tym powtarzające się błędy siatek i materiałów. To sygnały, nie liczba 362 unikalnych przyczyn. Samo `BuildPipeline.BuildPlayer: Succeeded` nie świadczy o poprawności sceny.
+- Starszy APK z 4.11 zgłaszał 69 zakleszczeń, ale porównanie z nim nie dowodzi rozwiązania obecnego problemu.
+
+### Poprawki źródłowe wpisane na bieżącą gałąź
+
+- `BraxRuchAutSym.UstawStart`: kontrola przeszkód statycznych, zaparkowanych samochodów, busów i auta gracza **przed** akceptacją startu pojazdu AI.
+- `BraxRuchAut.Start/Update`: callback fizyki sceny i obrysy zewnętrznych pojazdów rejestrowane przed rozstawieniem AI; `Physics.SyncTransforms` weryfikuje pozycje koliderów. Wymagana ocena kosztu na Androidzie.
+- `BraxPieszy.Przeszkoda/KrokUcieka`: kontrola wielu trafień `SphereCastNonAlloc` i końcowej kapsuły celu, żeby nie wykonywać ruchu ucieczki przez ścianę lub inne postaci.
+- `BraxPieszy.AutoBlisko` + `BraxAuto.PredkoscAktualna`: nie ignorować samochodu jadącego tuż przed przejściem (wcześniej warunek `m < 3.5f` ignorował również poruszające się pojazdy).
+- `BraxRuchAutSym.Ruch`: limit prędkości przed ciasnym zakrętem i w nim także między tyknięciami decyzji AI. Ten warunek nie dowodzi braku zatorów.
+
+### Kontrola źródeł po poprawkach
+
+[GitHub Actions 42212717956](https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42212717956), commit `95d0e7528cbb286a5de29c39e77085b92539bce3`:
+- **36/36 testów statycznych PASS**: 6 kontraktu Patryka, 5 dostawy oryginalnych klipów, 25 regresji osiedla.
+- **116 plików C#** przeszło kontrolę strukturalną: 106 plików modułu Editor/Claude oraz 10 plików dodatkowych, 0 wykrytych błędów.
+- Żaden z tych testów nie kompiluje IL2CPP ani nie uruchamia sceny Unity.
+
+### Otwarty odbiór funkcjonalny — wymagane po bieżących zmianach
+
+1. **Ruch samochodowy:** nowa symulacja sceny 600 s; zapisać `zakleszczenia`, `nachodzenia`, `poza_droga`, `za_szybkoWZakrecie`, minimalne odstępy, korki przy rondzie i skrzyżowaniach, pojazdy obce/parkowane i autobusy. Cel: zero kolizji, zero wyjazdów z dróg i zero zakleszczeń. Stare 30 pozostaje **niezweryfikowane po poprawkach**.
+2. **Parkingi:** wyjaśnić 16 aut przy pierwszym przebiegu i 0 przy następnym, zweryfikować ponowne generowanie, docelowe zajęcie, pełny prześwit i nieblokowane drzwi.
+3. **Pasażerowie:** na rzeczywistym szkielecie i klipach sprawdzić każdy model kabiny i brak głów ponad dachem, w tym samochód Patryka.
+4. **Postać Patryk:** 22 oryginalne FBX — Idle/Walk/Run/CarIdle, kolana, stopy, barki, animacje wsiadania i wysiadania; bez retargetu cudzych animacji.
+5. **Piesi:** wszystkie zebry oraz 10 minut ruchu NPC — brak przenikania w auta, ściany i ludzi; brak pustych/zakleszczonych odcinków.
+6. **Scena:** usunąć rzeczywiste przyczyny błędów siatek/materiałów z 362 wpisów, przetestować wejścia i schody, wnętrza, boiska, dyskotekę, drzwi i oznaczenia; rozróżnić duplikaty diagnostyczne.
+7. **Android:** nowa globalnie podpisana baza APK jest niezbędna dla zmian C#/IL2CPP; zwykła paczka content delta nie zaktualizuje logiki samochodów. Bez testu na telefonie nie zatwierdzać wydania.
+
+**Wniosek audytu:** poprawki w kodzie i statyczne testy przeszły; ruch, kolizje, animacje i jakość sceny pozostają do odbioru na nowej wersji Unity 6000.0.85f2. Nie przedstawiać starego APK jako potwierdzenia nowego kodu.
