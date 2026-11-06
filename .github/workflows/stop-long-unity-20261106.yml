@@ -2,10 +2,7 @@ name: STOP LONG UNITY - owner cancellation 2026-11-06
 run-name: Cancel expensive Unity scene run 42211006438
 
 on:
-  push:
-    branches: [gpt/miasto-mistrzow-kasyno-t11-20261105]
-    paths:
-      - .github/workflows/stop-long-unity-20261106.yml
+  workflow_dispatch:
 
 permissions:
   contents: read
