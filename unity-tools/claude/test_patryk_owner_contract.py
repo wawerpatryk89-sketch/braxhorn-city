@@ -32,7 +32,11 @@ class PatrykOwnerContract(unittest.TestCase):
     def test_idle_is_original_model_car_idle_original_clip(self):
         source = PATRYK.read_text(encoding="utf-8")
         motion = MOTION.read_text(encoding="utf-8")
-        self.assertIn("PatrykSpokojny(hero, spoczynek)", source)
+        self.assertIn("PatrykSpokojny(hero, spoczynek, wlascicielWalk)", source)
+        self.assertIn('klipy.FirstOrDefault(c => c.name == "Walk")', source)
+        self.assertIn('wlascicielWalk.SampleAnimation(hero, time)', motion)
+        self.assertIn('if (bestArms > 45f || bestLegs > 48f)', motion)
+        self.assertNotIn("PatrykSpokojny(hero, spoczynek)", source)
         self.assertIn("PatrykCarIdleZWlasnegoWejscia(hero, spoczynek, wejsciePatryka)", source)
         self.assertIn('wejscie.SampleAnimation(hero', motion)
         self.assertNotIn("PatrykPozaStala(", source + motion)
