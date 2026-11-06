@@ -3,7 +3,7 @@ name: Claude - region R1 na gotowo (TEST, bez publikacji)
   # Authorized, one-time estate Android APK: only a workflow-file push with the
   # [estate-apk-authorized-20261106] commit marker may start this branch.
   # No automatic APK builds after ordinary source changes.
-  # Retry authorized after fixing C# CS0103 / CS0246; preserve Unity cache and quality reports.
+  # Retry with early CS0103/CS0246/CS0104 namespace checks verified on all 252 C# files; preserve Unity cache and quality reports.
   push:
     branches: [run/osiedle-apk-20261105-1255, codex/osiedle-audyt-naprawa-20261106]
     paths: [.github/workflows/claude-region-build.yml]
