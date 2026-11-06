@@ -155,9 +155,27 @@ public static class BraxObozSceneAudit
             if(previous.IsValid())SceneManager.SetActiveScene(previous);
         }
     }
+    static void SaveUntitledSceneInBatch()
+    {
+        // Unity uruchomione w CI ma zwykle niezapisaną scenę wstępną.
+        // Additive NewScene/OpenScene nie może jej po cichu odrzucić.
+        if(!Application.isBatchMode)return;
+        Directory.CreateDirectory("Assets/PlayableGenerated/Oboz");
+        AssetDatabase.Refresh();
+        for(int i=0;i<SceneManager.sceneCount;i++)
+        {
+            var scene=SceneManager.GetSceneAt(i);
+            if(!scene.isLoaded || !string.IsNullOrEmpty(scene.path))continue;
+            string path=AssetDatabase.GenerateUniqueAssetPath(
+                "Assets/PlayableGenerated/Oboz/SceneOnlySession.unity");
+            if(!EditorSceneManager.SaveScene(scene,path))
+                throw new IOException("Nie można zapisać sceny początkowej CI");
+        }
+    }
     [MenuItem("BRAXHORN/Obóz/Generuj i audytuj scenę — bez APK")]
     public static void GenerateWithoutApk()
     {
+        SaveUntitledSceneInBatch();
         BraxObozEnvironment.Prepare();
         BraxObozActors.Assemble();
         Run();

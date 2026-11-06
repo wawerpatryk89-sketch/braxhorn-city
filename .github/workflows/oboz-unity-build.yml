@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       quality_review:
-        description: Opcjonalny test Play Mode przed APK (wynik nie blokuje kompilacji)
+        description: "Na gałęzi obozu przebudowy: SAM TEST SCENY bez APK (true); false to zwykły tryb APK po osobnym poleceniu"
         type: boolean
         default: false
       first_install:
@@ -40,7 +40,7 @@ concurrency:
 
 jobs:
   android-oboz:
-    if: github.ref == 'refs/heads/gpt/oboz' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-realny-kompaktowy-20261105') || (github.event_name == 'push' && github.ref == 'refs/heads/run/oboz-apk-20261105-0650') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && inputs.first_install != true && (inputs.content_action == 'none' || inputs.content_action == ''))
+    if: github.ref == 'refs/heads/gpt/oboz' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-realny-kompaktowy-20261105') || (github.event_name == 'push' && github.ref == 'refs/heads/run/oboz-apk-20261105-0650') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && inputs.first_install != true && inputs.quality_review != true && (inputs.content_action == 'none' || inputs.content_action == ''))
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     env:
@@ -574,6 +574,172 @@ jobs:
             build/QualityReview/*.json
             unity-city/Logs/
           if-no-files-found: ignore
+          retention-days: 14
+
+  oboz-scene-only:
+    name: "OBÓZ TRENINGOWY — pełna scena Unity 6 bez APK"
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105' && inputs.quality_review == true && (inputs.content_action == 'none' || inputs.content_action == '')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Pobierz wyłącznie źródła obozu z dokładnego SHA
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/workflows/
+            unity-city/Assets/
+            unity-city/Packages/
+            unity-city/ProjectSettings/
+            unity-city/apk-warianty.txt
+            unity-tools/claude/prywatne.py
+            unity-tools/updates/
+            unity-tools/validation/
+            unity-tools/oboz/
+      - name: Sprawdź oryginalne zasoby, bez kompilacji APK
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/codex/oboz-przebudowa-pbr-20261105"
+          python3 unity-tools/oboz/assets.py preflight
+          python3 unity-tools/oboz/owner_release_assets.py preflight
+          python3 unity-tools/oboz/owner_extra_assets.py preflight
+          python3 -m unittest discover -s unity-tools/oboz/tests -p 'test_*.py' -q
+      - name: Odszyfruj i zweryfikuj tylko oryginalne źródła obozu
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/oboz/assets.py restore
+      - name: Oryginalny Blender 4.5 LTS z oficjalnym SHA256 — wymagany przez Grass Medium 4.4
+        if: github.ref == 'refs/heads/codex/oboz-przebudowa-pbr-20261105'
+        run: |
+          set -euo pipefail
+          # Ubuntu 24.04 apt blender = 4.0.2. Owner Grass Medium originals have
+          # BLENDER-v404 headers, i.e. Blender 4.4. Never open their real mesh
+          # with an older forward-incompatible Blender and silently drop data.
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y zstd xz-utils libgl1 libxi6 libxrender1
+          VERSION=4.5.15
+          ARCHIVE="blender-${VERSION}-linux-x64.tar.xz"
+          BASE="https://download.blender.org/release/Blender4.5"
+          mkdir -p "$RUNNER_TEMP/oboz-blender"
+          cd "$RUNNER_TEMP/oboz-blender"
+          curl --fail --location --silent --show-error --retry 3 --connect-timeout 30 \
+            --max-time 120 --output "blender-${VERSION}.sha256" "$BASE/blender-${VERSION}.sha256"
+          python3 - <<'PY_SHA'
+          from pathlib import Path
+          import re
+          filename="blender-4.5.15-linux-x64.tar.xz"
+          records=Path("blender-4.5.15.sha256").read_text().splitlines()
+          matches=[]
+          for line in records:
+              fields=line.split()
+              if len(fields)>=2 and fields[-1].lstrip("*").split("/")[-1]==filename and re.fullmatch("[0-9a-fA-F]{64}",fields[0]):
+                  matches.append(fields[0].lower())
+          if len(matches)!=1:raise ValueError("Brak dokładnie jednej oficjalnej sumy SHA256 archiwum "+filename)
+          if matches[0].lower()!="0d2b8bb2efe97e6c8eb57de6b7322f8800e1984e3125b60decca5f6771e4773e":
+              raise ValueError("Oficjalny Blender 4.5.15 SHA256 niezgodny ze sprawdzoną wersją; stop przed Unity")
+          Path("blender-linux.sha256").write_text(matches[0]+"  "+filename+"\n")
+          print("BRAXHORN_OBOZ_OFFICIAL_BLENDER_HASH_METADATA=PASS")
+          PY_SHA
+          curl --fail --location --silent --show-error --retry 3 --connect-timeout 30 \
+            --max-time 1200 --output "$ARCHIVE" "$BASE/$ARCHIVE"
+          sha256sum --check blender-linux.sha256
+          tar -xJf "$ARCHIVE"
+          test -x "$PWD/blender-${VERSION}-linux-x64/blender"
+          "$PWD/blender-${VERSION}-linux-x64/blender" --version | head -2
+          echo "$PWD/blender-${VERSION}-linux-x64" >> "$GITHUB_PATH"
+      - name: Oryginalne GLB, roślinność, kuchnia i siłownia
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/owner_release_assets.py restore
+          python3 unity-tools/oboz/owner_blender_export.py
+          python3 unity-tools/oboz/owner_extra_assets.py restore
+          python3 unity-tools/oboz/public_materials.py
+          python3 unity-tools/oboz/facility_public_materials.py
+          python3 unity-tools/oboz/motion_candidates.py
+          python3 unity-tools/oboz/shared_bus.py
+          python3 unity-tools/oboz/restore_dialogue.py
+          python3 unity-tools/oboz/owner_geometry_preflight.py
+      - name: Zweryfikuj C# przed Unity
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+      - name: Profil zaszyfrowanego cache Unity obozu
+        id: profile
+        run: python3 unity-tools/updates/unity_cache.py profile --zone oboz
+      - name: Odczytaj cache obozu, jeśli istnieje
+        id: cache
+        continue-on-error: true
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ${{ runner.temp }}/oboz-library.tar.zst.enc
+            ${{ runner.temp }}/oboz-library.tar.zst.enc.json
+          key: ${{ steps.profile.outputs.prefix }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: ${{ steps.profile.outputs.prefix }}
+      - name: Odszyfruj zgodne cache, jeśli występuje
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: |
+          if [ -f "$RUNNER_TEMP/oboz-library.tar.zst.enc" ]; then
+            python3 unity-tools/updates/unity_cache.py restore --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
+          fi
+      - name: Unity 6 — wygeneruj i sprawdź scenę BEZ BuildPlayer
+        id: scene
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity-city
+          unityVersion: 6000.0.58f2
+          targetPlatform: Android
+          buildMethod: BraxObozSceneAudit.GenerateWithoutApk
+          manualExit: true
+          versioning: None
+          allowDirtyBuild: true
+      - name: Raport pełnej sceny, bez APK — jakość tylko ostrzega
+        if: steps.scene.outcome == 'success'
+        run: |
+          set -euo pipefail
+          test -s audit/oboz-scena.json
+          test -s audit/oboz-scena.md
+          test ! -e build/ObozAndroid/braxhorn-oboz.apk
+          python3 - <<'PY_SCENE'
+          import json,os
+          from pathlib import Path
+          r=json.loads(Path("audit/oboz-scena.json").read_text(encoding="utf-8"))
+          assert r['revision']==os.environ['GITHUB_SHA']
+          assert r['unitySceneInspected'] and not r['apkBuilt'] and not r['phoneVerified']
+          counts={k:r[k] for k in ('renderers','levitating','embedded','missingGroundRay','expectedMounted')}
+          print("OBÓZ TRENINGOWY — scene-only:", counts)
+          for k in ('levitating','embedded','missingGroundRay'):
+              if counts[k]:print("::warning::OBÓZ SCENA %s=%s (pełna lista w JSON)"%(k,counts[k]))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as f:
+              f.write("# OBÓZ TRENINGOWY — SCENA, bez APK\n")
+              f.write("SHA: "+r["revision"]+"\n\n")
+              f.write("Kontrola Unity: "+str(counts)+"\n\n")
+              f.write("APK=NOT_BUILT; PHONE=NOT_TESTED; OWNER_APPROVAL=PENDING\n")
+          PY_SCENE
+      - name: Tylko tekstowe dowody kontroli obozu — bez zdjęć i APK
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: oboz-scena-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            audit/oboz-scena.json
+            audit/oboz-scena.md
+            build/CampLifeReview/navigation-review.json
+          if-no-files-found: warn
           retention-days: 14
 
   oboz-content-only:
