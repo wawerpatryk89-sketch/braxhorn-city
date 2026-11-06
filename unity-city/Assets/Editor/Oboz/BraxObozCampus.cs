@@ -261,7 +261,7 @@ public static partial class BraxObozEnvironment
             for(int i=0;i<6;i++)Box(t,"Mata treningowa",new Vector3(-5+i*2,.10f,0),new Vector3(1.4f,.04f,2.2f),burgundy);
             // model(1).glb was verified to be the owner's medicine-ball rack,
             // not a boxing bag. Restore the actual 3D model to the training zone.
-            BraxObozServices.OwnerFixture(t,"model(1).glb",
+            BraxObozServices.OwnerFixtureSourceMetres(t,"model(1).glb",
                 new Vector3(5.35f,.10f,2.05f),new Vector3(1.55f,1.60f,1.50f));
         });
         Station("Drążki",35,34,12,10,t=>{
@@ -297,7 +297,7 @@ public static partial class BraxObozEnvironment
             // Both meshes refer to the SAME original tractor_tire.glb from
             // the owner's Library. Never use a generated torus or fake tyre.
             foreach(float x in new[]{-2.5f,2.5f})
-                BraxObozServices.OwnerFixture(t,"OwnerExtras/tractor_tire.glb",
+                BraxObozServices.OwnerFixtureSourceMetres(t,"OwnerExtras/tractor_tire.glb",
                     new Vector3(x,.105f,0),new Vector3(1.90f,.95f,1.90f));
             Debug.LogWarning("BRAXHORN_OBOZ_TIRE_TRAINING: oryginalne opony GLB są na placu; interakcja przewracania i pozycja obrotu do testu Play Mode");
         });
@@ -306,7 +306,7 @@ public static partial class BraxObozEnvironment
             // The delivered rope-coil GLB is REAL coiled rope, not an animated
             // battle-rope mesh: use it as stored equipment, never fake its function.
             foreach(float x in new[]{-3f,3f}){
-                BraxObozServices.OwnerFixture(t,"rope-coil.glb",
+                BraxObozServices.OwnerFixtureSourceMetres(t,"rope-coil.glb",
                     new Vector3(x,.10f,.3f),new Vector3(2.15f,.85f,2.15f));
                 Box(t,"Kotwa i miejsce rozwinięcia liny",
                     new Vector3(x,.25f,3.5f),new Vector3(.18f,.5f,.18f),campusSteel);
