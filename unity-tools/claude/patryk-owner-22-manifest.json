@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "owner": "BRAXHORN City / Patryk",
+  "model_archive": {
+    "name": "Patryk(4).zip",
+    "sha256": "52d7f58de8ea38f269a3d5c2b24b9667c6c8a7eb36d3784ad0366f0f3ac44b47"
+  },
+  "animation_archive": {
+    "name": "Patryk anima(6).zip",
+    "sha256": "033e5cacea9003ba05d8a05be744d55c3376c32c44e9bab894b1e43cc198685a",
+    "file_count": 22
+  },
+  "source_rule": "Exact original model and supplied FBX animations only. No borrowed Brax/Nyxa/Monika motion; no synthetic fallback. Bind-pose Idle is not presented as an owner-supplied FBX.",
+  "verification_status": "File byte hashes verified from user upload; Unity rig sampling, body deformation and phone playback NOT yet verified.",
+  "secure_ci_status": "Six earlier clips already have an encrypted package in repo; remaining 16 from this new archive require separate encrypted transfer before activation.",
+  "clips": [
+    {
+      "action": "EnteringCar",
+      "file": "Entering Car.fbx",
+      "sha256": "6434eb2b74763c6ff6f7b1a62073dd9f6894ce2dd2ee58c9552325e1dc5d04bb"
+    },
+    {
+      "action": "GoalkeeperDivingSave",
+      "file": "Goalkeeper Diving Save.fbx",
+      "sha256": "1fc12271df529b15b399d2e696d38fdc04c87f11ccac4335f0675d3a01f3d09d"
+    },
+    {
+      "action": "GoalkeeperCatch",
+      "file": "Goalkeeper Catch.fbx",
+      "sha256": "b3a5649e0dad2ef55b28e9999fce6a48929147d9b9753b0449949695e11aabf4"
+    },
+    {
+      "action": "Jump",
+      "file": "Jump.fbx",
+      "sha256": "eb7a754cadfe2fe2cd2af9c0ab75488a3b29a39fbee01eb1b7d9ac9da9a10776"
+    },
+    {
+      "action": "Walk",
+      "file": "Strut Walking.fbx",
+      "sha256": "a87c79f903222e09fc6b56ef11d7154715cb5d58825432d816f1b6061422cb67"
+    },
+    {
+      "action": "Run",
+      "file": "Fast Run.fbx",
+      "sha256": "2bb5d20016a64fd95ea2c0733960b6133ccd7468870449cde8bc9200303f190f"
+    },
+    {
+      "action": "FemaleSittingPose",
+      "file": "Female Sitting Pose.fbx",
+      "sha256": "9239183ef24c1d6e034a95bf133de0961e98e41db89c42175f84e112bf2a87df"
+    },
+    {
+      "action": "MaleSittingPose",
+      "file": "Male Sitting Pose.fbx",
+      "sha256": "f638b939b39fbc3a48b3910b3ae326b8a2cbf60941edab3b8d09e23e285cefea"
+    },
+    {
+      "action": "AngryGesture",
+      "file": "Angry Gesture.fbx",
+      "sha256": "351118baa3a8b04138d4d86cff2ae96b3e55c8fa6c4d7c2b5ccce8316e20c2a2"
+    },
+    {
+      "action": "SitToStand",
+      "file": "Sit To Stand.fbx",
+      "sha256": "1d337c91ba86ee75600bc386874e7c6f6e90ee9a477a7aab2b5278ebc9d3bfc0"
+    },
+    {
+      "action": "SittingDisbelief",
+      "file": "Sitting Disbelief.fbx",
+      "sha256": "cbc5c2788f6be3360ed8c4b474789300236c8efce03ff30c271e142aaac083d4"
+    },
+    {
+      "action": "Sitting",
+      "file": "Sitting.fbx",
+      "sha256": "ef509c47a3379cd0efff273a9938ad0c4bed6b92c4bb86ca03de8e804621fe51"
+    },
+    {
+      "action": "Typing",
+      "file": "Typing.fbx",
+      "sha256": "3ab1ca71da703d155a2ed5e746abd354cd06cb01b36e8cfbf4b1638b0d2e358d"
+    },
+    {
+      "action": "Drinking",
+      "file": "Drinking.fbx",
+      "sha256": "520bd16016b4ecfaf90019ed3ef926216ee6fc961a2a87b587a137d9e93bfe53"
+    },
+    {
+      "action": "Dribble",
+      "file": "Dribble.fbx",
+      "sha256": "7cb078e63db839e478184eb3b9a69e94c3fd70953892e652cb3fa029d2065f09"
+    },
+    {
+      "action": "GoalkeeperPlacingBallAlt",
+      "file": "Goalkeeper Placing Ball (1).fbx",
+      "sha256": "55751ccec9abaaf70505a2d48280172913dfe2b0796f71f45e0c8442c656b882"
+    },
+    {
+      "action": "HeaderSoccerball",
+      "file": "Header Soccerball.fbx",
+      "sha256": "ebdee23493920f90a6b686db99b0ee258a6086f63b1dcac54c69b1811dd10962"
+    },
+    {
+      "action": "GoalkeeperDropKick",
+      "file": "Goalkeeper Drop Kick.fbx",
+      "sha256": "4797374117d125536c109579a94ed5683303aab094e39aa4c9f30a003aa4ebc2"
+    },
+    {
+      "action": "StallSoccerball",
+      "file": "Stall Soccerball.fbx",
+      "sha256": "150bc0f27a16745667096e7700c12eb3bdeba3d7308f9e56b2a98947daa86eca"
+    },
+    {
+      "action": "GoalkeeperPlacingBall",
+      "file": "Goalkeeper Placing Ball.fbx",
+      "sha256": "37f0b3c305aa02335092ef9f68f152689b0a55786656245810c96466675f8812"
+    },
+    {
+      "action": "TreadingWater",
+      "file": "Treading Water.fbx",
+      "sha256": "6a76f88ec663b7275810d912e1111b10838cd64c8e1e8e912530a5f2011797c1"
+    },
+    {
+      "action": "Swimming",
+      "file": "Swimming.fbx",
+      "sha256": "ea2ea27438b4df87591ae285038b067da2551fa10b82714664d5af11b69d1771"
+    }
+  ]
+}
