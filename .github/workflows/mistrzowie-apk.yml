@@ -399,6 +399,10 @@ jobs:
             ${{ steps.preflight.outputs.androidImage }} \
             /project/unity-tools/mistrzowie/build_content_picker.sh
           test -s unity-city/Assets/Plugins/Android/BraxContentPicker.jar
+          # Docker creates this directory as root. APK #19 lost its entire
+          # reusable Library because cp of a GUID .meta returned EACCES.
+          # Ownership only: no changes to JAR bytes, GUIDs or game artwork.
+          sudo chown -R "$(id -u):$(id -g)" unity-city/Assets/Plugins/Android
       - name: Restore isolated encrypted Champions Library
         id: library
         continue-on-error: true
