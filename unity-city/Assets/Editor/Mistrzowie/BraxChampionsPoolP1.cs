@@ -42,7 +42,7 @@ public static class BraxChampionsPoolP1
         if(d==null||d.lot==null||d.basins==null||d.basins.Length!=3
             ||d.lot.id!="P1"||d.lot.x!=LotX||d.lot.z!=LotZ||d.lot.w!=160f||d.lot.d!=120f
             ||d.texResolution!=2048||d.parkingSpaces!=95||d.waterDeferred||!d.waterReady)
-            throw new InvalidOperationException("P1 plot, source resolution or empty-pool contract changed");
+            throw new InvalidOperationException("P1 plot, PBR 2K specification or approved filled-water contract changed");
         var expected=new[]{"SPORT_25M","FAMILY","CHILDREN"};
         foreach(var id in expected)
             if(d.basins.Count(b=>b.id==id)!=1)throw new InvalidOperationException("Missing original P1 basin: "+id);
@@ -99,7 +99,7 @@ public static class BraxChampionsPoolP1
         root.position=at;
         if(!prefab)throw new IOException("P1 prefab serialization failed");
         AssetDatabase.SaveAssets();
-        Debug.Log("P1 BASEN SOURCE_AUTHORING_READY_FOR_UNITY_REVIEW | 95 spaces | three WATER-FILLED swimming/wading basins | original jacuzzi model pending | original sign artwork required | plot (520,180) | Unity compile and phone test not run");
+        Debug.Log("P1 BASEN SOURCE_AUTHORING_READY_FOR_UNITY_REVIEW | 95 spaces | three WATER-FILLED swimming/wading basins | 4 owner jacuzzi with water, approved BASEN + SPA PNG signs and source furniture; verify in Unity | plot (520,180) | Unity compile and phone test not run");
     }
     static Transform Group(Transform parent,string name)
     {
@@ -381,7 +381,11 @@ public static class BraxChampionsPoolP1
         // exterior identity. No competing TextMesh lettering above the entry.
         // If the verified BASEN PNG is not imported yet, the sign stays absent
         // (with a named source socket) rather than showing a made-up substitute.
-        BraxChampionsPoolP1OriginalSign.Generate(root);
+        // Both approved 4:1 original owner PNGs must exist when P1 is generated.
+        // Do not accept an unsigned building or silently paint a substitute.
+        bool signsReady=BraxChampionsPoolP1OriginalSign.Generate(root);
+        if(!signsReady)throw new FileNotFoundException(
+            "P1 needs BOTH original BASEN and SPA PNGs from owner Release p1-basen-spa-20261106");
     }
     static void ConnectWings()
     {
@@ -511,7 +515,7 @@ public static class BraxChampionsPoolP1
     {
         // Wet rooms and changing facilities: finished surfaces, proper fixtures.
         // Lockers are OWNER-SUPPLIED original 3D models, not wood-box stand-ins.
-        // Their real mounting positions are reserved in OwnerEquipmentAnchors().
+        // All owner source models are imported through the strict P1 release asset gate.
         for(float x=-30;x<=-19;x+=3.5f)
             Box(rooms,"Real teak changing bench",wood,x,.62f,9.2f,2.8f,.38f,.55f);
         // Tiled shower stations with actual pipe, valves and drain.
@@ -531,7 +535,7 @@ public static class BraxChampionsPoolP1
                 Cylinder(rooms,"P1 cafe table leg",steel,x,.79f,z,.045f,1.05f);
                 Cylinder(rooms,"P1 cafe tabletop granite",stone,x,1.3f,z,.68f,.10f);
             }
-        // The owner will provide actual sauna and loungers.
+        // The owner has supplied sauna and loungers; originals are installed by dedicated modules.
         // Finished floor, walls and ceiling remain; no substitute furniture.
         // Accessible toilet cubicles beside family changing.
         for(int i=0;i<3;i++)
