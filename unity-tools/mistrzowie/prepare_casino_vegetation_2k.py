@@ -14,9 +14,13 @@ import urllib.request
 import uuid
 
 from PIL import Image
+from pack_casino_vegetation_glb import pack_embedded_original
 
 ROOT=Path(__file__).resolve().parents[2]
-DEST=ROOT/"unity-city/Assets/Source/Mistrzowie/CasinoT11/Vegetation2K"
+# Keep original external .gltf, binary and image bytes outside Unity Assets:
+# glTFast fails to resolve their relative URLs in GitHub Actions Unity batchmode.
+DEST=ROOT/"unity-city/OriginalSources/Mistrzowie/CasinoT11/Vegetation2K"
+UNITY_DEST=ROOT/"unity-city/Assets/Source/Mistrzowie/CasinoT11/Vegetation2K"
 SLUGS=("shrub_03","quiver_tree_02")
 NAMESPACE=uuid.UUID("05de1a0a-7662-4828-bc5a-449716c626a4")
 
@@ -57,8 +61,10 @@ def meta(path):
 
 def prepare():
     DEST.mkdir(parents=True,exist_ok=True)
-    meta(DEST)
+    UNITY_DEST.mkdir(parents=True,exist_ok=True)
+    meta(UNITY_DEST)
     rows=[]
+    packed=[]
     for slug in SLUGS:
         data=json.loads(get("https://api.polyhaven.com/files/"+slug))
         item=data.get("gltf",{}).get("2k",{}).get("gltf")
@@ -66,7 +72,9 @@ def prepare():
             raise ValueError("No original native 2K glTF for "+slug)
         dest=DEST/slug
         dest.mkdir(exist_ok=True)
-        meta(dest)
+        unity_slug=UNITY_DEST/slug
+        unity_slug.mkdir(exist_ok=True)
+        meta(unity_slug)
         filenames={slug+"_2k.gltf":item}
         for name,ref in item.get("include",{}).items():
             pure=PurePosixPath(name)
@@ -82,16 +90,15 @@ def prepare():
         for name,ref in filenames.items():
             path=dest/name
             path.parent.mkdir(parents=True,exist_ok=True)
-            if path.parent!=dest:
-                meta(path.parent)
-            content=path.read_bytes() if path.exists() else get(ref["url"])
+             content=path.read_bytes() if path.exists() else get(ref["url"])
             checksum=verified(content,ref,name)
             if not path.exists():path.write_bytes(content)
-            meta(path)
             rows.append({"file":str(path.relative_to(ROOT/"unity-city")),"sha256":checksum,
                          "bytes":len(content),"url":ref["url"],"textureResolution":"2k"})
+        embedded=unity_slug/(slug+"_2k_embedded.glb")
+        packed.append(pack_embedded_original(dest/(slug+"_2k.gltf"),embedded))
+        meta(embedded)
     manifest=DEST/"source-vegetation-2k.json"
-    manifest.write_text(json.dumps(rows,indent=2),encoding="utf-8")
-    meta(manifest)
-    print("CHAMPIONS_T11_ORIGINAL_POLYHAVEN_VEGETATION_2K_OK models=2 files="+str(len(rows)))
+    manifest.write_text(json.dumps({"originalSourceFiles":rows,"losslessEmbeddedModels":packed},indent=2),encoding="utf-8")
+    print("CHAMPIONS_T11_ORIGINAL_POLYHAVEN_VEGETATION_2K_OK models=2 files="+str(len(rows))+" lossless_glb=2")
 if __name__=="__main__":prepare()

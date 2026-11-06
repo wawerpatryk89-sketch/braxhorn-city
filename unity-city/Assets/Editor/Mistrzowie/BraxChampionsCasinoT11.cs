@@ -505,11 +505,11 @@ public static class BraxChampionsCasinoT11
     {
         const string basePath="Assets/Source/Mistrzowie/CasinoT11/Vegetation2K/";
         var shrub=AssetDatabase.LoadAssetAtPath<GameObject>(
-            basePath+"shrub_03/shrub_03_2k.gltf");
+            basePath+"shrub_03/shrub_03_2k_embedded.glb");
         var tree=AssetDatabase.LoadAssetAtPath<GameObject>(
-            basePath+"quiver_tree_02/quiver_tree_02_2k.gltf");
+            basePath+"quiver_tree_02/quiver_tree_02_2k_embedded.glb");
         if(!shrub||!tree)
-            throw new FileNotFoundException("T11 authentic native 2K Poly Haven greenery missing; run prepare_casino_vegetation_2k.py");
+            throw new FileNotFoundException("T11 original Poly Haven 2K lossless embedded GLB missing; check prepare_casino_vegetation_2k.py");
         int count=0;
         foreach(float side in new[]{-1f,1f})
         foreach(float z in new[]{-32f,33f})
