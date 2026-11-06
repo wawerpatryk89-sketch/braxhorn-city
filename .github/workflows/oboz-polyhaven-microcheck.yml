@@ -1,0 +1,28 @@
+name: "Obóz — szybka kontrola Poly Haven, bez Unity"
+'on':
+  push:
+    branches: [codex/oboz-przebudowa-pbr-20261105]
+    paths:
+      - .github/workflows/oboz-polyhaven-microcheck.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  material_sources:
+    name: "Oficjalne 2K PBR — 8 oryginalnych map"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/oboz/public_facility_preflight.py
+            unity-tools/oboz/facility_public_materials.py
+            unity-tools/oboz/public_materials.py
+      - name: "Oficjalne API Poly Haven — tylko metadane, bez plików tekstur"
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/public_facility_preflight.py
+          echo "OBOZ_POLYHAVEN_TEST=PASS; UNITY_NOT_RUN" >> "$GITHUB_STEP_SUMMARY"
