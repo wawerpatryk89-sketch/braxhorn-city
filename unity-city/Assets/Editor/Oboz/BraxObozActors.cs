@@ -44,7 +44,7 @@ public static class BraxObozActors
             player.view = camera.AddComponent<Camera>(); player.view.nearClipPlane = .1f; player.view.farClipPlane = 600; player.view.fieldOfView = 58;
             camera.AddComponent<AudioListener>();
             var ids = new[] { "vorn", "zyro", "rakk", "kade", "gorr", "mis" };
-            var places = new[] { new Vector3(27,.18f,-127), new Vector3(-12,.56f,51), new Vector3(20,.06f,-22), new Vector3(-24,.56f,15), new Vector3(-20,.06f,-22), new Vector3(0,.40f,-4) };
+            var places = new[] { new Vector3(27,.18f,-127), new Vector3(-12,1.04f,51), new Vector3(20,.06f,-22), new Vector3(-24,1.04f,15), new Vector3(-20,.06f,-22), new Vector3(0,.40f,-4) };
             var npcs = new BraxObozNpc[ids.Length];
             for (int i=0;i<ids.Length;i++)
             {

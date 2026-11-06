@@ -51,7 +51,7 @@ public static class BraxObozTrainingSetup
             var arena = routine.sparringArenas[i/2];
             var node = new GameObject(arena.label + " — miejsce pary " + (i%2)).transform;
             node.SetParent(scene.transform,false);
-            node.position = arena.transform.position + new Vector3(i%2==0?-.7f:.7f, i<2?.38f:.56f, 0)*K;
+            node.position = arena.transform.position + new Vector3(i%2==0?-.7f:.7f, i<2?.38f:1.04f, 0)*K;
             routine.sparringPlaces[i] = node; arena.trainingRoutine = routine;
         }
         foreach(var bag in scene.bags)bag.pauseWith=scene.player;
