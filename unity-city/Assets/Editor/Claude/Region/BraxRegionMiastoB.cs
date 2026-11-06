@@ -1466,7 +1466,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         }
         var cR = new Vector3(RX, YA, RZ); var cP = new Vector3(AX, YA, PetlaZ);
         foreach (var (dir, hj) in RamionaRonda) { ZebraBezSwiatel(cR + dir * (RPlac + 3f), dir, hj); Wlot(cR, dir, hj); }
-        ZebraBezSwiatel(cP + Vector3.back * (PetlaPlac + 3f), Vector3.back, AH); Wlot(cP, Vector3.back, AH);
+        // Pętla PÓŁNOC jest parkingiem supermarketu. Zostawiamy zebrę przed wjazdem,
+        // ale bez strefy "ustąp ruchowi okrężnemu" dla nieistniejącego ronda.
+        ZebraBezSwiatel(cP + Vector3.back * (PetlaPlac + 3f), Vector3.back, AH);
         var cWz = new Vector3(PetlaZX, YA, RZ);
         ZebraBezSwiatel(cWz + Vector3.right * (PetlaPlac + 3f), Vector3.right, AH); Wlot(cWz, Vector3.right, AH);
         var gz = new GameObject("Strefy zatrzymania: przejścia bez świateł i wloty ronda/pętli"); gz.transform.SetParent(root, false);
@@ -1481,7 +1483,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
         }
         // 3.11 (właściciel: „znaki normalne prawdziwe na drogach”): wloty obu pętli też jak rondo (A-7 + C-12), a przy każdym
         // przejściu bez świateł D-6 po prawej stronie jadących w obu kierunkach (lico do nadjeżdżających), tuż przed pasami
-        foreach (var (cc, dir, hj) in new[] { (cP + Vector3.back * (PetlaPlac + 3f), Vector3.back, AH), (cWz + Vector3.right * (PetlaPlac + 3f), Vector3.right, AH) })
+        // Przy parkingu BRAXHORN pozostaje tylko znak P i przejście piesze;
+        // znaki A-7 + C-12 są wyłącznie przy rzeczywistych rondach.
+        foreach (var (cc, dir, hj) in new[] { (cWz + Vector3.right * (PetlaPlac + 3f), Vector3.right, AH) })
             ZnakRonda(NaPodlozu(cc - Vector3.Cross(Vector3.up, dir) * (hj + Kr + .5f) + dir * 4f + Vector3.up * YC), dir);
         int nD6 = 0;
         for (int i = 0; i < zs.Count; i++)
@@ -1700,7 +1704,9 @@ public static partial class BraxRegionMiastoB   // partial: nowe dzielnice ze Sk
     static void RejestracjaRuchu()
     {
         void J(string id, Vector3 a, Vector3 b, float pol) => BraxClaudeOsiedle.OsieJezdni.Add(new BraxClaudeOsiedle.OsJezdni { id = id, a = a, b = b, polowaJezdni = pol });
-        J("MIASTO Aleja Północna; chodniki " + Chod + " " + Chod, new Vector3(AX, YA, RZ + RJezdnia), new Vector3(AX, YA, PetlaZ - PetlaR), AH);
+        J("MIASTO Aleja Północna; chodniki " + Chod + " " + Chod,
+            new Vector3(AX, YA, RZ + RJezdnia),
+            new Vector3(AX, YA, PetlaZ - PetlaPlac), AH);
         J("MIASTO Aleja Południowa; chodniki " + Chod + " " + Chod + "; ukryty B", new Vector3(AX, YA, RZ - RJezdnia), new Vector3(AX, YA, AS1 - 18f), AH);
         J("MIASTO Główna (do ronda); chodniki 3.1 3.4", new Vector3(-104f, YA, GZ), new Vector3(RX + RJezdnia, YA, GZ), GH);
         J("MIASTO Wiaduktowa; chodniki 1.55 1.55", new Vector3(WX, YA, GZ), new Vector3(WX, YA, SZ), WH);
