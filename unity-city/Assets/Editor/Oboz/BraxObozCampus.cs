@@ -352,7 +352,11 @@ public static partial class BraxObozEnvironment
         // Turning forecourt: outer radius 18 m, island radius 6 m; the design
         // envelope is a 12 x 2.6 m coach, not a claim of a tested driving model.
         Disc(t,"Plac zawracania",new Vector3(0,.095f,-94),18,campusAsphalt,true);
-        Disc(t,"Wyspa centralna",new Vector3(0,.16f,-94),6,campusPaving,true);
+        // The owner specified a GREEN central island, not a paved disk.
+        // Keep the road asphalt and original bull pedestal unchanged.
+        var islandGrass=BraxObozMaterials.PublicPbr("Grass001",1.4f);
+        Disc(t,"Zielona wyspa centralna z oryginalną murawą 3D",
+            new Vector3(0,.16f,-94),6f,islandGrass,true);
         // Biała obwodnica i pomnik pozostają wewnątrz wyspy, bez zmiany bramy.
         var rondo = Group("Rondo BRAXHORN — biały obwód i wyspa",t,P(0,0,-94));
         var whiteRondo = BraxObozMaterials.Plain("rondo-linia-biala",new Color(.96f,.96f,.94f),.06f);
