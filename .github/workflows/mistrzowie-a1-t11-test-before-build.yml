@@ -33,6 +33,11 @@ jobs:
             unity-city/Assets/Claude/
             unity-city/Assets/Editor/
             unity-city/Assets/City/
+            # Include every tracked C# script, not just the subset used by the old A1/T11 smoke test.
+            unity-city/Assets/CityAudio/
+            unity-city/Assets/CityRebuild/
+            unity-city/Assets/Kickboxing/
+            unity-city/Assets/Nutrition/
             unity-city/Assets/Mistrzowie/
             unity-city/Assets/Updates/
             unity-city/Assets/Source/Mistrzowie/
