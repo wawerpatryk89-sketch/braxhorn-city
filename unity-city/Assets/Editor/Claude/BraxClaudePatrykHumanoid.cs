@@ -32,14 +32,51 @@ public static partial class BraxClaudeOsiedle
         return f.normalized;
     }
 
-    // Keep the model's relaxed bind pose. No fighting clip is used before an attack.
-    // Wzorzec Moniki: identyczna oryginalna hierarchia, siatka i bindposes.
-    // Idle = pozycja spoczynkowa WŁASNEGO MODELU Patryka, bez obracania
-    // ramion, dłoni, stóp lub kręgosłupa przez kod (brak klipu Idle w paczce).
-    static AnimationClip PatrykSpokojny(GameObject hero, List<PatrykStan> rest)
+    // Patryk w źródłowym FBX ma T-pose (~83° od pionu) — nie używaj jej
+    // jako Idle, bo wygląda jak nieruchomy posąg. Oryginalny klip chodu
+    // właściciela dostarcza naturalne pozy; wybieramy jej najspokojniejszą
+    // klatkę (bez retargetu, bez edycji siatki/kości i bez cudzych animacji).
+    static AnimationClip PatrykSpokojny(GameObject hero, List<PatrykStan> rest, AnimationClip wlascicielWalk)
     {
+        if (!wlascicielWalk || wlascicielWalk.length <= 0f)
+            throw new InvalidOperationException("Patryk Idle: brak oryginalnego Strut Walking właściciela");
+        var bones = rest.Select(x => x.t).ToList();
+        Transform B(string name) => PatrykZnajdz(bones, name);
+        var lu=B("LeftUpLeg"); var ll=B("LeftLeg"); var lf=B("LeftFoot");
+        var ru=B("RightUpLeg");var rl=B("RightLeg");var rf=B("RightFoot");
+        if (!lu||!ll||!lf||!ru||!rl||!rf)
+            throw new InvalidOperationException("Patryk Idle: niekompletny oryginalny szkielet nóg");
+        float best = float.PositiveInfinity, time = 0f;
+        float bestArms = float.PositiveInfinity, bestLegs = float.PositiveInfinity;
+        for (int i=0; i<60; i++)
+        {
+            PatrykSpoczynek(rest);
+            float t = wlascicielWalk.length * i / 60f;
+            wlascicielWalk.SampleAnimation(hero, t);
+            float arms = PatrykKatRamion(bones);
+            float legs = (Vector3.Angle(ll.position-lu.position,Vector3.down)
+                         +Vector3.Angle(lf.position-ll.position,Vector3.down)
+                         +Vector3.Angle(rl.position-ru.position,Vector3.down)
+                         +Vector3.Angle(rf.position-rl.position,Vector3.down))*.25f;
+            float feet = Mathf.Abs(lf.position.y-rf.position.y);
+            float score = arms*1.3f + legs*.7f + feet*75f;
+            if (score < best) { best=score; time=t; bestArms=arms; bestLegs=legs; }
+        }
+        // Gdy żaden fragment własnego chodu nie daje spokojnej pozycji,
+        // naprawić klip — nie wystawiać z powrotem T-pose.
+        if (bestArms > 45f || bestLegs > 48f)
+            throw new InvalidOperationException("Patryk Idle: oryginalny Walk nie daje naturalnej pozy, " +
+                "ramiona=" + bestArms.ToString("F1") + "°, nogi=" + bestLegs.ToString("F1") + "°");
         PatrykSpoczynek(rest);
-        return PatrykZapiszWlasnaPoze(hero, rest, "Idle");
+        wlascicielWalk.SampleAnimation(hero, time);
+        try
+        {
+            var idle = PatrykZapiszWlasnaPoze(hero,rest,"Idle");
+            Debug.Log("BRAXHORN_PATRYK_IDLE_OWNER: nieruchoma klatka z oryginalnego Strut Walking t="+
+                time.ToString("F3") + " ramiona="+bestArms.ToString("F1")+"° nogi="+bestLegs.ToString("F1")+"°");
+            return idle;
+        }
+        finally { PatrykSpoczynek(rest); }
     }
 
     // Kierowca: ostatnia poza z ORYGINALNEGO FBX "Entering Car" Patryka.
