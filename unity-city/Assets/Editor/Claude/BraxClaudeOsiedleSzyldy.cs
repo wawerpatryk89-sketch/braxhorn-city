@@ -463,7 +463,7 @@ public static partial class BraxClaudeOsiedle
         foreach (var s in szyldyRej)
         {
             var co = CoZaslania(s, sceny);
-            if (co != null) { zasl++; rep.notes.Add("SZYLD ZASŁONIĘTY: " + s.nazwa + " ← " + co); Debug.LogWarning("BRAXHORN_SZYLDY zasłonięty: " + s.nazwa + " ← " + co); }
+            if (co != null) { zasl++; rep.notes.Add("DO POPRAWKI: SZYLD ZASŁONIĘTY: " + s.nazwa + " ← " + co); Debug.LogWarning("BRAXHORN_SZYLDY DO POPRAWKI: zasłonięty: " + s.nazwa + " ← " + co); }
         }
         // kolizje ponad 2.3 m w bryłach szyldów i daszków (kamera): wyłączone i policzone
         int kol = 0;
