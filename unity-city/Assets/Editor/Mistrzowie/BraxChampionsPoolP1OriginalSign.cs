@@ -146,8 +146,51 @@ public static class BraxChampionsPoolP1OriginalSign
         quad.transform.localScale=new Vector3(W,H,1f)*K;
         quad.GetComponent<MeshRenderer>().sharedMaterial=artMat;
         UnityEngine.Object.DestroyImmediate(quad.GetComponent<Collider>());
+        BuildSpaSign(p1Root);
         Debug.Log("P1 OWNER SIGN: ORIGINAL CitySigns graphic used unchanged "+source+
             " (2048x512), casing matched to original edge pixels, aspect 4:1.");
         return true;
+    }
+
+    static void BuildSpaSign(Transform p1Root)
+    {
+        var picture=AssetDatabase.LoadAssetAtPath<Texture2D>(SpaSign);
+        if(!picture)
+        {
+            var pending=new GameObject("P1 ORIGINAL SPA WELLNESS SIGN | OWNER PNG NOT IMPORTED");
+            pending.transform.SetParent(p1Root,false);
+            pending.transform.localPosition=new Vector3(15.2f,5.9f,-28.5f)*K;
+            Debug.LogWarning("P1 original SPA sign source not imported: "+SpaSign);
+            return;
+        }
+        if(picture.width!=2048||picture.height!=512)
+            throw new InvalidDataException("Original P1 SPA artwork must be 2048x512: "+SpaSign);
+        var edge=CreateMaterial("P1_SPA_SIGN_MATCHED_CASING",EdgeFromSource(SpaSign),.48f,.33f);
+        var trim=CreateMaterial("P1_SPA_SIGN_BRUSHED_TRIM",new Color(.74f,.76f,.78f),.75f,.32f);
+        var graphic=CreateMaterial("P1_SPA_SIGN_ORIGINAL_GRAPHIC",Color.white,0f,.32f);
+        graphic.SetTexture("_MainTex",picture);
+        graphic.SetFloat("_Transparent",1f);
+        graphic.SetFloat("_SrcBlend",(float)BlendMode.SrcAlpha);
+        graphic.SetFloat("_DstBlend",(float)BlendMode.OneMinusSrcAlpha);
+        graphic.SetFloat("_ZWrite",0f);
+        graphic.SetOverrideTag("RenderType","Transparent");
+        graphic.renderQueue=3000;
+        EditorUtility.SetDirty(graphic);
+        var sign=new GameObject("P1 SPA WELLNESS | owner ORIGINAL sign on physical right facade casing");
+        sign.transform.SetParent(p1Root,false);
+        const float cx=15.2f,cy=5.9f,cz=-28.4f,sw=4.2f,sh=1.05f;
+        Part(sign.transform,"SPA original artwork colour-matched case",edge,cx,cy,cz,sw+.15f,sh+.16f,.28f,true);
+        Part(sign.transform,"SPA original metal upper extrusion",trim,cx,cy+sh*.5f+.07f,cz-.07f,sw+.25f,.09f,.40f);
+        Part(sign.transform,"SPA original metal lower extrusion",trim,cx,cy-sh*.5f-.07f,cz-.07f,sw+.25f,.09f,.40f);
+        foreach(float side in new[]{-1f,1f})
+            Part(sign.transform,"SPA vertical metal extrusion",trim,cx+side*(sw*.5f+.08f),cy,cz-.07f,.08f,sh+.16f,.40f);
+        var print=GameObject.CreatePrimitive(PrimitiveType.Quad);
+        print.name="SPA WELLNESS ORIGINAL 2048x512 | 4 to 1 without crop";
+        print.transform.SetParent(sign.transform,false);
+        print.transform.localPosition=new Vector3(cx,cy,cz-.17f)*K;
+        print.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+        print.transform.localScale=new Vector3(sw,sh,1f)*K;
+        print.GetComponent<MeshRenderer>().sharedMaterial=graphic;
+        UnityEngine.Object.DestroyImmediate(print.GetComponent<Collider>());
     }
 }
