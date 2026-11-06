@@ -56,7 +56,7 @@ public static partial class BraxClaudeOsiedle
         if (nx <= 0 || nz <= 0 || (long)nx * nz > 40000)
             return new List<string> { "obszar poza limitem wiarygodnego testu przejścia" };
         if (celeNaPoziomie.Count == 0)
-            return new List<string> { "brak celów na poziomie wejścia pozwalających zweryfikować dostęp do wnętrza" };
+            return new List<string> { "brak celów pozwalających zweryfikować dostęp do wnętrza na poziomie wejścia" };
         var wolne = new sbyte[nx * nz]; var odw = new bool[nx * nz];
         var buforKolizji = new Collider[64];
         Vector3 P(int ix, int iz) => new Vector3(b.min.x + (ix + .5f) * h, y, b.min.z + (iz + .5f) * h);
