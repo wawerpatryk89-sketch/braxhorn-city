@@ -22,6 +22,26 @@ class FighterDelivery(unittest.TestCase):
         self.assertTrue(all(any(r['path'] in selected for r in group) for _, group in packs))
         self.assertEqual(len(packs), 3)
 
+    def test_owner_pitbull_doberman_identity_and_real_combat_clips(self):
+        import json
+        manifest = json.loads((module.ROOT / 'unity-city/Assets/Editor/Oboz/CharacterManifest.json').read_text())
+        fighters = {c['id']: c for c in manifest['characters'] if c['id'] in {'rakk', 'zyro'}}
+        self.assertEqual({k: v['archive'] for k, v in fighters.items()}, {
+            'rakk': 'pitbul.zip', 'zyro': 'doberman(1).zip',
+        })
+        for fighter in fighters.values():
+            self.assertTrue({'Punch', 'Kick', 'CombatIdle', 'Walk', 'HeadHit', 'HitToBody',
+                             'GettingUp', 'Block', 'Dodge', 'Taunt'} <=
+                            {clip['name'] for clip in fighter['clips']})
+        authored = (module.ROOT / 'unity-city/Assets/Editor/Claude/Region/BraxMiastoWyspaWykonczenie.cs').read_text()
+        runtime = (module.ROOT / 'unity-city/Assets/Claude/Runtime/BraxArenaPokaz.cs').read_text()
+        self.assertIn('var ids = new[] { "rakk", "zyro" };', authored)
+        self.assertNotIn('var ids = new[] { "kade", "zyro" };', authored)
+        self.assertIn('"HitToBody"', authored)
+        self.assertIn('"Kick"', authored)
+        self.assertIn('Trafienie(Animation anim', runtime)
+        self.assertIn('BRAXHORN_ARENA_TRAFIENIE', runtime)
+
     def archive(self, folder, entries):
         path = folder / 'inputs.tar.gz'
         with tarfile.open(path, 'w:gz') as archive:
