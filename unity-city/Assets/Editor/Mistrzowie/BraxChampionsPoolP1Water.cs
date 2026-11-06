@@ -125,4 +125,5 @@ public static class BraxChampionsPoolP1Water
             "Approved original jacuzzi source water bounds are invalid");
         original.gameObject.SetActive(false);
         Jacuzzi(parent,sourceId,local,new Vector2(width,depth));
-    }}
+    }
+}
