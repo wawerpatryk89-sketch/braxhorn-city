@@ -43,6 +43,7 @@ internal static class BraxMiastoOdbior
         SprawdzWejscie("NOVA", 42.0f, .15f, 35.73f, 36.60f);
         SprawdzWejscie("TOWER", 59.0f, .15f, 35.83f, 36.88f);
         SprawdzWejscie("MIESZKANIE_BRAXA_KLATKA", 33.73f, .15f, 35.72f, 36.65f);
+        SprawdzMieszkanieBraxa(cityRoot);
         SprawdzApteke(cityRoot);
         SprawdzTaras360(cityRoot);
         SprawdzTramT1(cityRoot);
@@ -378,6 +379,69 @@ internal static class BraxMiastoOdbior
             poklady < jachty.Length || motory.Length < 1 || skutery.Length < 1 || jachty.Length < 3)
             Blad(raport + " NIEGOTOWE");
         else Debug.Log(raport + " KOD_GOTOWY_DO_TESTU");
+    }
+
+    // R1: krótki audyt rzeczywistej drożności klatki i pomieszczeń.
+    // Sam model drzwi nie wystarcza: sprawdzamy pionową kapsułę Braxa i podłogę
+    // także na spocznikach, przy wejściu do salonu, łazienki i sypialni.
+    // To pomiar geometrii w czasie generowania Unity, NIE test chodzenia Android.
+    static void SprawdzMieszkanieBraxa(Transform cityRoot)
+    {
+        var flat = cityRoot.GetComponentsInChildren<Transform>(true)
+            .FirstOrDefault(t => t && t.name.StartsWith("CLAUDE mieszkanie Braxa nad NOVA", StringComparison.Ordinal));
+        if (!flat)
+        {
+            Blad("BRAXHORN_MIESZKANIE_BRAXA_TRASA NIEGOTOWE: brak klatki i mieszkania");
+            return;
+        }
+        var proby = new[] {
+            ("ULICA", new Vector3(33.73f, .15f, 36.85f)),
+            ("KLATKA_PARTER", new Vector3(33.20f, .15f, 37.44f)),
+            ("SCHODY_BIEG_1", new Vector3(33.20f, 1.29f, 38.80f)),
+            ("SPOCZNIK", new Vector3(33.20f, 2.625f, 40.80f)),
+            ("SCHODY_BIEG_2", new Vector3(34.85f, 3.76f, 39.20f)),
+            ("PIETRO_PODEST", new Vector3(35.60f, 5.10f, 37.25f)),
+            ("DRZWI_MIESZKANIA", new Vector3(38.05f, 5.10f, 37.40f)),
+            ("PRZEJSCIE_SALON", new Vector3(40.95f, 5.10f, 37.80f)),
+            ("SALON", new Vector3(44.50f, 5.10f, 40.30f)),
+            ("LAZIENKA", new Vector3(39.20f, 5.10f, 40.20f)),
+            ("ANEKS", new Vector3(44.00f, 5.10f, 42.20f)),
+            ("SYPIALNIA", new Vector3(48.40f, 5.10f, 41.55f))
+        };
+        int brakPodlogi = 0, przeszkody = 0, liczba = 0;
+        foreach (var (nazwa, p) in proby)
+        {
+            liczba++;
+            bool podloga = Physics.RaycastAll(p + Vector3.up * .85f,
+                    Vector3.down, 1.6f, ~((1 << 29) | (1 << 31)),
+                    QueryTriggerInteraction.Ignore)
+                .Any(h => h.collider && h.normal.y > .65f &&
+                          Mathf.Abs(h.point.y - p.y) < .26f);
+            if (!podloga)
+            {
+                brakPodlogi++;
+                Debug.LogWarning("BRAXHORN_MIESZKANIE_BRAXA_TRASA BRAK_PODLOGI " + nazwa +
+                    " @" + p.ToString("F2"));
+            }
+            foreach (var c in Physics.OverlapCapsule(p + Vector3.up * .5f,
+                p + Vector3.up * 1.91f, .30f,
+                ~((1 << 29) | (1 << 31)), QueryTriggerInteraction.Ignore))
+            {
+                if (!c || !c.enabled || c.isTrigger ||
+                    c.GetComponentInParent<BraxGymPlayer>() ||
+                    c.GetComponentInParent<BraxCityDoor>() ||
+                    c.GetComponentInParent<BraxDrzwiPrzesuwne>()) continue;
+                przeszkody++;
+                if (przeszkody <= 12)
+                    Debug.LogWarning("BRAXHORN_MIESZKANIE_BRAXA_TRASA PRZESZKODA " +
+                        nazwa + " " + c.name + " @" + p.ToString("F2"));
+            }
+        }
+        string wynik = "BRAXHORN_MIESZKANIE_BRAXA_TRASA proby=" + liczba +
+            " brak_podlogi=" + brakPodlogi + " przeszkody=" + przeszkody +
+            " (bez automatycznego usuwania kolizji; wymagany odbiór Android)";
+        if (brakPodlogi > 0 || przeszkody > 0) Debug.LogWarning(wynik);
+        else Debug.Log(wynik);
     }
 
     static void SprawdzWejscie(string nazwa, float x, float y, float zA, float zB)
