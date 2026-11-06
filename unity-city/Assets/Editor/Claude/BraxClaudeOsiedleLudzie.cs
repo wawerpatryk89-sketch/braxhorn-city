@@ -74,10 +74,21 @@ public static partial class BraxClaudeOsiedle
     // ---- pkt 19 / 52 (właściciel: „golasy w mieście — ZERO”): tylko w scenach miasta (BraxhornCity*), osiedle bez zmian ----
     // a) odcienie ubrań podobne do skóry (beż, łosoś, brąz, musztarda) dawały wrażenie nagości — w mieście pomijane;
     // b) postać z dużym udziałem skóry w teksturze ciała (stroje kąpielowe / sportowe skąpe) poza plażą → zamiana na ubraną,
-    //    a gdy brak ubranej w roli — osoba nie powstaje. Plaża: przy porcie (x 84…190, z 100…178) i wyspa (x > 900).
+    //    a gdy brak ubranej w roli — osoba nie powstaje. Plaża: pas brzegu portu
+    //    i prawdziwa PLAŻA wyspy, NIE cała wyspa wraz z krytą areną.
     const float ProgSkory = .45f;
     static bool WMiescie => UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.StartsWith("BraxhornCity", StringComparison.Ordinal);
-    static bool NaPlazy(Vector3 p) => (p.x > 84f && p.x < 190f && p.z > 100f && p.z < 178f) || p.x > 900f;
+    static bool NaPlazy(Vector3 p)
+    {
+        if (p.x > 84f && p.x < 190f && p.z > 100f && p.z < 178f) return true;
+        if (p.x < 900f) return false;
+        float lx = p.x - BraxMiastoWyspa.CX, lz = p.z - BraxMiastoWyspa.CZ;
+        float r = Mathf.Sqrt(lx * lx + lz * lz);
+        // Plaża na południowym brzegu, a nie arena (x≈1160,z≈42),
+        // ośrodek domków, recepcja ani sklep. Wcześniej p.x>900
+        // wyłączało kontrolę ubioru w CAŁEJ krytej arenie.
+        return r >= 90f && lz < -8f && BraxMiastoWyspa.H(lx, lz) <= 6f;
+    }
     static int strojeZamienione, strojeUsuniete, strojePoza, odcienieSkory, miastoOsob; static float miastoWzrost;
     static readonly HashSet<string> skapoUbrane = new HashSet<string>();
     static bool PodobnyDoSkory(Color c)
@@ -367,7 +378,9 @@ public static partial class BraxClaudeOsiedle
     static Osoba NowaOsoba(Rola rola, Transform parent, string nazwa, Vector3 pos, float yaw, System.Random rnd, RbPostac wymus = null)
     {
         var p = wymus ?? WybierzPostac(rola, rnd); if (p == null) return null;
-        bool miasto = WMiescie;
+        // Scena wyspy bywa przygotowywana addytywnie, kiedy aktywna scena
+        // nie nosi nazwy BraxhornCity — rygor ubioru musi działać także wtedy.
+        bool miasto = WMiescie || pos.x > 900f;
         if (miasto && !NaPlazy(pos) && p.skora > ProgSkory)
         {
             skapoUbrane.Add(p.nazwa);
@@ -694,11 +707,11 @@ public static partial class BraxClaudeOsiedle
 
     // Siedząca osoba: korzeń w punkcie siedziska (wysokość powierzchni), przodem w stronę „przod”. Model przesunięty tak,
     // żeby miednica w klipie siedzenia wypadła ok. 12 cm (× skala) nad siedziskiem, nad jego środkiem.
-    static BraxMieszkaniec Siedzacy(Rola rola, Transform parent, string nazwa, Vector3 siedzisko, Vector3 przod, System.Random rnd, string[] bazy, bool wAucie = false)
+    static BraxMieszkaniec Siedzacy(Rola rola, Transform parent, string nazwa, Vector3 siedzisko, Vector3 przod, System.Random rnd, string[] bazy, bool wAucie = false, RbPostac wymus = null)
     {
         przod.y = 0f; if (przod.sqrMagnitude < 1e-4f) przod = Vector3.forward;
         float yaw = Quaternion.LookRotation(przod).eulerAngles.y;
-        var m = NowyMieszkaniec(rola, parent, nazwa, siedzisko, yaw, rnd, bazy, siedzi: true);
+        var m = NowyMieszkaniec(rola, parent, nazwa, siedzisko, yaw, rnd, bazy, siedzi: true, wymus: wymus);
         if (!m) return null;
         var model = m.anim.gameObject; var pel = model.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == "Bip01 Pelvis");
         if (pel)
