@@ -191,6 +191,84 @@ public static class BraxObozServices
         return OwnerFixture(parent,filename,bottomCenterMetres*K,maxSourceMetres);
     }
 
+    // Model łóżka IKEA IDANAS — dokładnie dostarczony przez właściciela GLB,
+    // nie generować nóg, materaca, poduszki ani koca z brył zastępczych.
+    // Kabiny mają obrót +/-90°, więc wszystkie wymiary mierzymy w ich
+    // lokalnym układzie, a nie względem osi globalnych.
+    public static GameObject OwnerSingleBed(Transform cabin,Vector3 bottomCenterSourceMetres)
+    {
+        const string filename="OwnerExtras/Bedroom/ikea_idanas_single_bed.glb";
+        const string sourcePath="Assets/Source/Prywatne/Oboz/OwnerAssets/"+filename;
+        var source=AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
+        if(!source)throw new InvalidOperationException(
+            "Brak oryginalnego łóżka jednoosobowego IKEA IDANAS — przerwij generowanie obozu: "+sourcePath);
+        var model=PrefabUtility.InstantiatePrefab(source) as GameObject;
+        if(!model)throw new InvalidOperationException("Nie można instancjonować oryginalnego łóżka: "+sourcePath);
+        model.name="Łóżko 3D właściciela — IKEA IDANAS — oryginalny GLB";
+        model.transform.SetParent(cabin,false);
+        var renderers=model.GetComponentsInChildren<Renderer>(true);
+        if(renderers.Length==0)throw new InvalidOperationException("Łóżko GLB nie ma renderera");
+
+        Bounds LocalBounds()
+        {
+            Bounds result=new Bounds();bool first=true;
+            foreach(var renderer in renderers)
+            {
+                Bounds b=renderer.bounds;
+                for(int ix=-1;ix<=1;ix+=2)
+                for(int iy=-1;iy<=1;iy+=2)
+                for(int iz=-1;iz<=1;iz+=2)
+                {
+                    var local=cabin.InverseTransformPoint(b.center+
+                        Vector3.Scale(b.extents,new Vector3(ix,iy,iz)));
+                    if(first){result=new Bounds(local,Vector3.zero);first=false;}
+                    else result.Encapsulate(local);
+                }
+            }
+            return result;
+        }
+        var bounds=LocalBounds();
+        if(bounds.size.x>.001f&&bounds.size.z>.001f && bounds.size.x>bounds.size.z*1.10f)
+        {
+            model.transform.localRotation=Quaternion.Euler(0,90,0)*model.transform.localRotation;
+            bounds=LocalBounds();
+        }
+        if(bounds.size.x<.001f||bounds.size.y<.001f||bounds.size.z<.001f)
+            throw new InvalidOperationException("Błędny rozmiar źródłowego łóżka IDANAS");
+        // Cabin source metres are scaled exactly once by the game's K=1.294.
+        var max=new Vector3(1.16f,1.25f,2.30f)*K;
+        float uniform=Mathf.Min(max.x/bounds.size.x,
+            Mathf.Min(max.y/bounds.size.y,max.z/bounds.size.z));
+        if(uniform<=0f||float.IsNaN(uniform)||float.IsInfinity(uniform))
+            throw new InvalidOperationException("Nieprawidłowa skala łóżka IDANAS");
+        model.transform.localScale*=uniform;
+        bounds=LocalBounds();
+        var centerSource=bottomCenterSourceMetres*K;
+        var shift=centerSource-
+            new Vector3(bounds.center.x,bounds.min.y,bounds.center.z);
+        model.transform.position+=cabin.TransformVector(shift);
+        bounds=LocalBounds();
+        // Contact proxy for a single bed only; never block the doorway or
+        // make an invisible collider spanning an entire cabin.
+        if(!model.GetComponentInChildren<Collider>())
+        {
+            var collider=model.AddComponent<BoxCollider>();
+            var localCenter=new Vector3(bounds.center.x,
+                bounds.min.y+Mathf.Min(bounds.size.y*.53f,.78f*K)*.5f,
+                bounds.center.z);
+            collider.center=model.transform.InverseTransformPoint(cabin.TransformPoint(localCenter));
+            var lo=model.transform.lossyScale;
+            collider.size=new Vector3(
+                bounds.size.x/Mathf.Max(.001f,Mathf.Abs(lo.x)),
+                Mathf.Min(bounds.size.y*.53f,.78f*K)/Mathf.Max(.001f,Mathf.Abs(lo.y)),
+                bounds.size.z/Mathf.Max(.001f,Mathf.Abs(lo.z)));
+        }
+        Debug.Log("BRAXHORN_OBOZ_OWNER_BED: "+filename+
+            " worldScale=K cabin="+cabin.name+" footprintLocal="+bounds.size+
+            " visualDeviceReview=pending");
+        return model;
+    }
+
     // Prywatne 3D wyposażenie sanitariatów — bez zastępowania siatek, UV i PBR.
     // Jednorodna skala: wyłącznie dopasowanie do stanowiska w murowanym WC.
     public static GameObject OwnerFixture(Transform parent,string filename,
