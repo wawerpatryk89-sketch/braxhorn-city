@@ -391,27 +391,16 @@ internal static class BraxMiastoBillboardy
             }
             var mat = Grafika("19", 1.5f, out float asp);
             if (mat == pusta) { opis.Add("19: brak tekstury właściciela — nie montujemy pustej ramy"); return; }
-            float w = Mathf.Min(x1 - x0 - .6f, 4.5f), h2 = w / asp; if (h2 > 3.0f) { h2 = 3.0f; w = h2 * asp; }
-            float xc = (x0 + x1) * .5f, yb = .15f + .7f;
-            var g = new GameObject("BRAXHORN mural 19 (szara ściana przy wejściu do BRAXHORN GYM)").transform; g.SetParent(rodzic, true); g.position = Vector3.zero;
+            // MURAL, nie billboard: oryginalna grafika właściciela 19 bez ramy,
+            // nośnika, słupów ani kinkietów. Pokrywa niemal pełną szerokość ślepej ściany,
+            // bez rozciągania obrazu (oryginalny stosunek boków pozostaje zachowany).
+            float w = x1 - x0 - .08f, h2 = w / asp;
+            if (h2 > 3.4f) { h2 = 3.4f; w = h2 * asp; }
+            float xc = (x0 + x1) * .5f, yb = .15f + .42f;
+            var g = new GameObject("BRAXHORN mural 19 (pełne lico ściany GYM, bez billboardu)").transform;
+            g.SetParent(rodzic, true); g.position = Vector3.zero;
             W.Start(g); W.Wnetrze = false;
-            Plakat(g, "mural_19", new Vector3(xc, yb + h2 * .5f, zw + .05f), Vector3.forward, w, h2, mat);
-            // rama stalowa na kotwach (8 cm od muru), kotwy w narożach i w połowie
-            float zf = zw + .02f;
-            W.MM(grafit, xc - w * .5f - .08f, xc + w * .5f + .08f, yb - .08f, yb, zf, zf + .07f); W.MM(grafit, xc - w * .5f - .08f, xc + w * .5f + .08f, yb + h2, yb + h2 + .08f, zf, zf + .07f);
-            W.MM(grafit, xc - w * .5f - .08f, xc - w * .5f, yb, yb + h2, zf, zf + .07f); W.MM(grafit, xc + w * .5f, xc + w * .5f + .08f, yb, yb + h2, zf, zf + .07f);
-            foreach (float x in new[] { xc - w * .5f - .04f, xc, xc + w * .5f + .04f })
-                foreach (float y in new[] { yb - .04f, yb + h2 + .04f }) W.Rura(stal, new Vector3(x, y, zw), new Vector3(x, y, zf), .02f, 6);
-            // 4 kinkiety nad muralem (płytka, wysięgnik, oprawa świecąca w dół na mural)
-            for (int i = 0; i < 4; i++)
-            {
-                float x = xc - w * .5f + w * (i + .5f) / 4f, y = yb + h2 + .35f;
-                W.MM(grafit, x - .07f, x + .07f, y - .07f, y + .07f, zw, zw + .02f);
-                W.Rura(grafit, new Vector3(x, y, zw + .02f), new Vector3(x, y + .1f, zw + .5f), .015f, 6);
-                W.OBox(grafit, new Vector3(x, y + .1f, zw + .55f), new Vector3(.22f, .08f, .14f), Quaternion.Euler(-30f, 0f, 0f));
-                W.OBox(led, new Vector3(x, y + .065f, zw + .54f), new Vector3(.18f, .01f, .1f), Quaternion.Euler(-30f, 0f, 0f));
-            }
-            W.Lampa("mural 19: kinkiety", new Vector3(xc, yb + h2 * .6f, zw + 1.2f), .6f, w + 2f);
+            Plakat(g, "mural_19", new Vector3(xc, yb + h2 * .5f, zw + .015f), Vector3.forward, w, h2, mat);
             W.Zapisz("mural_19_silownia");
             postawione++; opis.Add("19 mural " + w.ToString("F2") + "×" + h2.ToString("F2") + " m na licu z " + zw.ToString("F2") + " x " + x0 + "…" + x1 + (mat == pusta ? " PUSTA RAMA" : ""));
             return;
