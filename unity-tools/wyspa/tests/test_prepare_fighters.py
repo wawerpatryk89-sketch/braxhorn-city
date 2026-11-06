@@ -36,7 +36,7 @@ class FighterDelivery(unittest.TestCase):
     def test_unselected_camp_environment_is_not_extracted(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp); stage = root/'stage'; stage.mkdir()
-            a = self.record('characters/kade/model.fbx', b'fighter')
+            a = self.record('characters/rakk/model.fbx', b'fighter')
             b = self.record('environment/forest.glb', b'forest')
             archive = self.archive(root, [(a['path'], b'fighter'), (b['path'], b'forest')])
             seen = set(); module.extract_selected(archive, stage, [a,b], {a['path']:a}, seen)
