@@ -88,6 +88,22 @@ public static partial class BraxClaudeOsiedle
             .ToArray();
         if (patryki.Length != 1)
             bledy.Add("Model Patryk: " + patryki.Length + " instancji (wymagana jedna, bez drugiego posągu)");
+        // Druga figura może mieć zmienioną nazwę (np. "obsada", "statysta").
+        // Zlicz również dokładne kopie siatki źródłowego Patryka, nie
+        // myląc ich z innymi postaciami Rocketbox.
+        if (gracz && gracz.visual)
+        {
+            var siatkiPatryka = new HashSet<Mesh>(gracz.visual
+                .GetComponentsInChildren<SkinnedMeshRenderer>(true)
+                .Where(r => r.sharedMesh).Select(r => r.sharedMesh));
+            var kopiePoNazwieLubSiatce = roots
+                .SelectMany(g => g.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                .Where(r => r.sharedMesh && siatkiPatryka.Contains(r.sharedMesh)
+                    && !r.transform.IsChildOf(gracz.visual)).ToArray();
+            if (kopiePoNazwieLubSiatce.Length > 0)
+                bledy.Add("Druga figura korzysta z oryginalnej siatki Patryka poza graczem: " +
+                    string.Join(", ", kopiePoNazwieLubSiatce.Select(r => r.name).Distinct().Take(8)));
+        }
         var samochodyGracza = roots.SelectMany(g => g.GetComponentsInChildren<BraxAutoGracza>(true)).ToArray();
         if (samochodyGracza.Length != 1)
             bledy.Add("Auto Patryka pod areną: " + samochodyGracza.Length + " zamiast jednego");
