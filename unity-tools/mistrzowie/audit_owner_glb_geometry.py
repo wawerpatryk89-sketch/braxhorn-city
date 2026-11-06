@@ -97,6 +97,40 @@ def parse_glb(raw: bytes, name: str) -> dict:
             for value in obj: walk(value)
     walk(material)
     record["materialUVs"]=sorted(set(record["materialUVs"]))
+    def texture_uvs(one_material):
+        selected=[]
+        def search(container):
+            if isinstance(container,dict):
+                for label,obj in container.items():
+                    if label.endswith("Texture") and isinstance(obj,dict) and "index" in obj:
+                        uv=obj.get("texCoord",0)
+                        trans=obj.get("extensions",{}).get("KHR_texture_transform",{})
+                        if "texCoord" in trans: uv=trans["texCoord"]
+                        if isinstance(uv,int) and not isinstance(uv,bool): selected.append(uv)
+                    if isinstance(obj,(list,dict)): search(obj)
+            elif isinstance(container,list):
+                for obj in container: search(obj)
+        search(one_material)
+        return sorted(set(selected))
+    material_uv=[texture_uvs(m) for m in material]
+    record["perMaterialUVs"]=material_uv
+    needs=[]
+    for mi,m in enumerate(mesh):
+        for pi,p in enumerate(m.get("primitives",[])):
+            material_id=p.get("material")
+            if isinstance(material_id,int) and 0<=material_id<len(material_uv):
+                uv=material_uv[material_id]
+            else:
+                uv=[]
+            provided=sorted(int(s[len("TEXCOORD_"):])
+                for s in p.get("attributes",{}) if s.startswith("TEXCOORD_")
+                and s[len("TEXCOORD_"):].isdigit())
+            if uv or any(x>=2 for x in provided):
+                needs.append(dict(mesh=mi,primitive=pi,material=material_id,
+                    requiredUV=uv,providedUV=provided,
+                    exactRemapIntoTwoChannelsPossible=(len(uv)<=2
+                        and all(x in provided for x in uv))))
+    record["perPrimitiveUV"]=needs
     if record["extraUVs"]:
         values=sorted(set(x["uv"] for x in record["extraUVs"]))
         if any(x>=2 for x in record["materialUVs"]):
@@ -147,8 +181,19 @@ def main() -> int:
         raise FileNotFoundError("Harbor crane original missing: "+str(harbor))
     report=parse_glb(harbor.read_bytes(),str(harbor))
     reports.append(report)
-    print("BRAX_REAL_GLB HARBOR "+report["state"]+" "
-          +str(report["extensionsRequired"]),flush=True)
+    print("BRAX_REAL_GLB HARBOR "+report["state"]+
+          " materialUV="+str(report["materialUVs"])+
+          " perMaterialUV="+str(report["perMaterialUVs"])+
+          " exactRemapCandidates="+str(sum(p["exactRemapIntoTwoChannelsPossible"]
+            for p in report["perPrimitiveUV"]))+
+          "/"+str(len(report["perPrimitiveUV"])),flush=True)
+    for issue in reports:
+        if issue["extraUVs"]:
+            print("BRAX_UV_PROBLEM_DETAIL "+json.dumps({
+                "name":issue["name"],"perMaterialUVs":issue["perMaterialUVs"],
+                "perPrimitiveUV":issue["perPrimitiveUV"][:35],
+                "primitiveCount":issue["primitives"],
+                "warnings":issue["warnings"]},ensure_ascii=False),flush=True)
     summary={
         "status":"SOURCE_STRUCTURE_PASS" if all(not r["errors"] for r in reports)
                 else "SOURCE_STRUCTURE_ERRORS",
