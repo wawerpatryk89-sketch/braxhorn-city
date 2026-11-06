@@ -262,6 +262,8 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("if (!doszedl)", traveler)
         self.assertIn("yield break;", traveler)
         self.assertLess(traveler.index("if (!doszedl)"), traveler.index("kapsula.enabled=false;"))
+        self.assertIn("yield return Idz(dom);", traveler)
+        self.assertIn("powrót do domu zablokowany", traveler)
 
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
