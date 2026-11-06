@@ -206,11 +206,12 @@ public static partial class BraxObozEnvironment
         // whole room; that would block the player and NavMesh.
         foreach(var renderer in visible)
         {
-            string n=renderer.gameObject.name.ToLowerInvariant();
-            bool bulky=n.Contains("treadmill")||n.Contains("exercise_bike")||
-                n.Contains("weight_bench")||n.Contains("weight_rack")||
-                n.Contains("pull_up_rack")||n.Contains("parallel_bars")||
-                n.Contains("abdominal_bench");
+            var ancestors=renderer.GetComponentsInParent<Transform>(true)
+                .Select(t=>t.name.ToLowerInvariant()).ToArray();
+            bool bulky=ancestors.Any(n=>n.Contains("treadmill")||
+                n.Contains("exercise_bike")||n.Contains("weight_bench")||
+                n.Contains("weight_rack")||n.Contains("pull_up_rack")||
+                n.Contains("parallel_bars")||n.Contains("abdominal_bench"));
             if(!bulky||renderer.GetComponent<Collider>())continue;
             var b=renderer.bounds;
             var collider=renderer.gameObject.AddComponent<BoxCollider>();
@@ -222,8 +223,9 @@ public static partial class BraxObozEnvironment
         }
         // Original owner's boxing headgear must not remain an unused file:
         // position it on a physically measured 3D bench surface.
-        var bench=visible.FirstOrDefault(r=>r.gameObject.name.StartsWith(
-            "weight_bench",StringComparison.OrdinalIgnoreCase));
+        var bench=visible.FirstOrDefault(r=>
+            r.GetComponentsInParent<Transform>(true).Any(t=>t.name.StartsWith(
+                "weight_bench",StringComparison.OrdinalIgnoreCase)));
         if(!bench)throw new InvalidOperationException(
             "Brak oryginalnej ławki do ustawienia kasku bokserskiego");
         Bounds benchBounds=bench.bounds;
