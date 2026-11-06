@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using Object=UnityEngine.Object;
@@ -59,9 +60,13 @@ public static class BraxObozFootContactRegression
                 var restored=actor.AddComponent<BraxObozIdleFootContact>();
                 EditorJsonUtility.FromJsonOverwrite(serialized,restored);
                 restored.PlaceSolesOnSurface(ground);
-                restored.SendMessage("OnDisable",SendMessageOptions.RequireReceiver);
+                // This is an isolated EditMode method check, not a simulated
+                // Unity lifecycle transition. SendMessage is forbidden by the
+                // engine for a behaviour outside the play/render loop here.
+                typeof(BraxObozIdleFootContact).GetMethod("OnDisable",
+                    BindingFlags.Instance|BindingFlags.NonPublic).Invoke(restored,null);
                 Check(Vector3.Distance(visual.localPosition,Vector3.up*.31f)<.0001f,
-                    label+" serialized normalization pivot restored by disable callback");
+                    label+" serialized normalization pivot restored by explicit EditMode callback check");
             }
             catch(Exception ex){results.Add("FAIL "+label+": "+ex);}
             finally

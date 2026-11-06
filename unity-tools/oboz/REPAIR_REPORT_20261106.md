@@ -44,6 +44,19 @@ Odbiór wizualny i nagranie właściciela pozostają wymagane. Żaden brakujący
 - Weryfikacja przed publikacją C: **226 testów źródeł + 2 testy kontraktu treningu PASS**, C# **35 plików Editor i 17 runtime, 0 błędów składni/zakresów**; `git diff --check` bez uwag.
 - Lokalnie dostępne są testy źródeł i analiza C#. **Unity i fizyka sceny wymagają przebiegu C na opublikowanym SHA.** Nagranie telefonu i FPS pozostają niezweryfikowane; aktualnego rozmiaru APK nie ma.
 
+## C-02 / A-03 — błędy wykryte w scenie i zachowanie importów
+
+- C-01 opublikowano jako `03662ea8eee8ee212b40bf6f5451f75888360a5f`; test źródeł GitHub run `42307210061` zakończył się wynikiem **success**.
+- Przebieg A-01 nr 25 zakończył generowanie i zapis sceny (**workflow success**, bez APK). Raport wykazał **54 ostrzeżenia, 10 komunikatów błędów, brak fatalnego wyjątku**. Kompilacja C# przeszła; zielony workflow nie jest potwierdzeniem jakości.
+- Pierwszy błąd: `Assertion failed on expression: ShouldRunBehaviour()` w `BraxObozFootContactRegression.Run`, wywołanie `SendMessage("OnDisable")` w EditMode. Dwa takie wywołania dały dwie nieudane kontrole. Pozostałe osiem błędów to `Mesh.uv is out of bounds` w `CabinFinish`: zmiana liczby wierzchołków unieważniała UV, zanim skopiowano ich drugą stronę. Naprawa przechowuje oba pełne zestawy danych przed przypisaniem do Mesh.
+- Pomiary A: 6094 renderery, 89 pełnych obiektów z deklaracją podparcia, 7 postaci, 48 worków. Postacie: **7/7 kontaktów stóp bez ostrzeżeń**. Byk: **4× zachowane**, zmierzony światowy obrys 2,434245 × 3,904765 × 6,201168.
+- Pełne obiekty wymagające poprawy kontaktu: taca wisiała 35,18 cm nad podporą, sztućce przenikały jej zastępczy collider o 8,75 cm. W D są zastępowane kontaktem oryginalnych powierzchni.
+- Surowe wskazania per-renderer: **3153 lewitujące, 480 zapadniętych, 65 bez gruntu**. Ten licznik zawiera m.in. osobne ogniwa zawieszonych worków, słupki/łaty połączonej konstrukcji i widoki LOD drzew. Nie jest liczbą źle postawionych mebli. Pełna lista pozostaje w artefakcie; wymaga odrębnego sprawdzenia geometrii i podparcia zespołów, bez automatycznego uznania ich za poprawne.
+- Murale: 3/4 widoczne; dostarczone źródła 1536×864, co nie spełnia minimum 4096 px. Łóżka IDANAS: długość 2 m, obrys szerokości 1,220 m zamiast 0,9 m — trwa weryfikacja oryginalnej geometrii, bez ściskania modelu. Siedem worków miało niezgodny odstęp od lokalnej nawierzchni; cały zespół worek/łańcuch otrzymuje pomiar korpusu w E.
+- Log potwierdził brak katalogu Library, czyli pełny import źródeł. Zmiana C-02 przywraca wykorzystanie zgodnego cache.
+- Tryb sceny odczytuje istniejącą zgodną, zaszyfrowaną kopię trwałą, jeśli Actions nie ma wpisu. Po udanym przebiegu zapisuje osobny zaszyfrowany wpis importów dla dokładnego SHA. Nie dodaje kroku APK ani usuwania starych kopii.
+- Profil cache i jego integralność nadal weryfikuje istniejący mechanizm projektu. Błąd cache pozostaje ostrzeżeniem; nie zastępuje kompilacji ani audytu sceny.
+
 ## Pozostałe etapy
 
 C → D → E → F → G będą publikowane i raportowane osobno. Lista H jest weryfikowana równolegle; nowe modele wymagają wskazanej przez właściciela akceptacji. Nie ma potwierdzenia limitu 400 MB dla nowej wersji, ponieważ nie uruchomiono APK.

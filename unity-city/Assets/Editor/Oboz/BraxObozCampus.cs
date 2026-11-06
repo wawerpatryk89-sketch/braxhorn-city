@@ -1097,9 +1097,12 @@ public static partial class BraxObozEnvironment
             Box(trim,"Deska narożna",new Vector3(x,1.5f,z),new Vector3(.17f,2.7f,.17f),wood,false);
         foreach(float z in new[]{-4.05f,4.05f}) {
             var mesh=new Mesh{name="Zamknięty szczyt"};
-            mesh.vertices=new[]{P(-3.15f,2.78f,z),P(3.15f,2.78f,z),P(3.15f,2.985f,z),P(0,4,z),P(-3.15f,2.985f,z)};
-            mesh.uv=mesh.vertices.Select(v=>new Vector2(v.x,v.y)).ToArray();
-            mesh.vertices=mesh.vertices.Concat(mesh.vertices).ToArray();mesh.uv=mesh.uv.Concat(mesh.uv).ToArray();
+            var frontVertices=new[]{P(-3.15f,2.78f,z),P(3.15f,2.78f,z),P(3.15f,2.985f,z),P(0,4,z),P(-3.15f,2.985f,z)};
+            var frontUv=frontVertices.Select(v=>new Vector2(v.x,v.y)).ToArray();
+            // Changing vertex count invalidates existing Mesh UV arrays.
+            // Assemble both complete arrays before assigning either one.
+            mesh.vertices=frontVertices.Concat(frontVertices).ToArray();
+            mesh.uv=frontUv.Concat(frontUv).ToArray();
             mesh.triangles=new[]{0,2,1,0,3,2,0,4,3,5,6,7,5,7,8,5,8,9};mesh.RecalculateNormals();mesh.RecalculateTangents();mesh.RecalculateBounds();
             var g=Group("Szczyt z desek",trim,Vector3.zero).gameObject;
             g.AddComponent<MeshFilter>().sharedMesh=SaveMesh(mesh);g.AddComponent<MeshRenderer>().sharedMaterial=wood;

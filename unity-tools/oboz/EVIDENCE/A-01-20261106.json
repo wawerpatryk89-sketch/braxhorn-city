@@ -1,0 +1,1742 @@
+{
+  "scene": "Assets/PlayableGenerated/Oboz/BraxhornObozReview.unity",
+  "revision": "005e76cde0c979cb6ffad44545e7dcf98ed09519",
+  "unitySceneInspected": true,
+  "apkBuilt": false,
+  "phoneVerified": false,
+  "renderers": 6094,
+  "unclassified": 0,
+  "levitating": 3153,
+  "embedded": 480,
+  "missingGroundRay": 65,
+  "expectedMounted": 729,
+  "expectedMurals": 4,
+  "presentMurals": 3,
+  "muralWarnings": 4,
+  "scaleWarnings": 8,
+  "overlapCandidates": 0,
+  "checkedBags": 48,
+  "bagWarnings": 7,
+  "checkedGroundObjects": 72,
+  "checkedWallObjects": 17,
+  "unmeasuredObjects": 0,
+  "wallWarnings": 0,
+  "checkedCharacters": 7,
+  "characterWarnings": 0,
+  "allPlacementsVerified": false,
+  "dependentSourceBytes": 1892096108,
+  "largestSources": [
+    {
+      "path": "Assets/Source/Prywatne/Oboz/OwnerAssets/kitchen_-_assets.glb",
+      "sourceBytes": 82582212
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/OwnerAssets/drawer_cabinet_4k/drawer_cabinet_4k.glb",
+      "sourceBytes": 52757644
+    },
+    {
+      "path": "Assets/Source/Public/Oboz/Grass001/NormalGL.jpg",
+      "sourceBytes": 41310481
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/characters/rakk/tripo_convert_db87aab0-cbe7-4e15-b1e3-0b3c457aafa8.fbx",
+      "sourceBytes": 37006080
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/OwnerAssets/glass-food-display-showcase-with-trays.glb",
+      "sourceBytes": 36618300
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbx",
+      "sourceBytes": 35479392
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/environment/materials/gravel/Ground111_4K-JPG_NormalGL.jpg",
+      "sourceBytes": 34251749
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/environment/materials/towel/Fabric084_4K-JPG_NormalGL.jpg",
+      "sourceBytes": 34127596
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/characters/zyro/tripo_convert_e7a58c1c-4856-4275-a910-034ffa741610.fbx",
+      "sourceBytes": 33172624
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/environment/materials/gravel/Ground111_4K-JPG_Color.jpg",
+      "sourceBytes": 29809251
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/characters/kade/tripo_convert_93a25607-1daf-4eca-a00c-9c795f43e8dc.fbx",
+      "sourceBytes": 29054224
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/environment/materials/wood/Wood049_4K-JPG_NormalGL.jpg",
+      "sourceBytes": 27434909
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/OwnerAssets/metal_cabinet_low_poly.glb",
+      "sourceBytes": 27179460
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/OwnerAssets/Panoramy/montorfano_4k.hdr",
+      "sourceBytes": 26746852
+    },
+    {
+      "path": "Assets/Source/Public/Oboz/Grass001/Color.jpg",
+      "sourceBytes": 26284782
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/characters/monika/tripo_convert_62b55dd8-50c7-46aa-a594-c7d965e226d0.fbx",
+      "sourceBytes": 25849232
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/characters/vorn/tripo_convert_d54d80b8-233f-4ea5-ad70-0b274493ca98.fbx",
+      "sourceBytes": 25318304
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/environment/vegetation/vegetation_textures/32940b0be3a6f9ce10ec9579d2057fac2e7b639f279a37f623467ec12a58e836_data__lin.png",
+      "sourceBytes": 22422527
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/characters/mis/tripo_convert_171406aa-1d25-420d-92f1-ec2084b4bd54.fbm/tripo_node_cd87740e_BaseColor.png",
+      "sourceBytes": 22237308
+    },
+    {
+      "path": "Assets/Source/Prywatne/Oboz/environment/vegetation/vegetation_textures/733bfdd255dd468886a68487d5ddc990384ce92f10646af92076e86d789f79b9_Color.png",
+      "sourceBytes": 22203773
+    }
+  ],
+  "placements": [
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Właściciel / oryginalny metal_cabinet_low_poly.glb",
+      "label": "metal_cabinet_low_poly.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Właściciel / oryginalny metal_cabinet_low_poly.glb",
+      "label": "metal_cabinet_low_poly.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m",
+      "label": "aneks na podłodze",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "label": "Oryginalny stół polowy z nogami i półką",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalna kuchenka polowa z palnikami i rusztami — kompletne oryginalne części GLB",
+      "label": "kuchenka na blacie",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Talerz z oryginalnego kompletu — kompletne oryginalne części GLB",
+      "label": "talerz na blacie",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "measured": true,
+      "gapMetres": 9.212464391339381e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Oryginalna butla z zaworem — kompletne oryginalne części GLB",
+      "label": "Oryginalna butla z zaworem",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Podłoga z desek",
+      "measured": true,
+      "gapMetres": -1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Oryginalny stojak z hakami i poręczami — kompletne oryginalne części GLB",
+      "label": "stojak na garnki na ścianie",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.00500126276165247,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Zlew polowy z oryginalną baterią i odpływem — kompletne oryginalne części GLB",
+      "label": "zlew polowy przy ścianie",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.00500126276165247,
+      "heightMeasured": true,
+      "expectedHeightMetres": 0.8500000238418579,
+      "actualHeightMetres": 0.8500000238418579,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A",
+      "label": "IKEA IDANAS",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B",
+      "label": "IKEA IDANAS",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Właściciel / oryginalny metal_cabinet_low_poly.glb",
+      "label": "metal_cabinet_low_poly.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Właściciel / oryginalny metal_cabinet_low_poly.glb",
+      "label": "metal_cabinet_low_poly.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m",
+      "label": "aneks na podłodze",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "label": "Oryginalny stół polowy z nogami i półką",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalna kuchenka polowa z palnikami i rusztami — kompletne oryginalne części GLB",
+      "label": "kuchenka na blacie",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Talerz z oryginalnego kompletu — kompletne oryginalne części GLB",
+      "label": "talerz na blacie",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "measured": true,
+      "gapMetres": 9.212464391339381e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Oryginalna butla z zaworem — kompletne oryginalne części GLB",
+      "label": "Oryginalna butla z zaworem",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Podłoga z desek",
+      "measured": true,
+      "gapMetres": -1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Oryginalny stojak z hakami i poręczami — kompletne oryginalne części GLB",
+      "label": "stojak na garnki na ścianie",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.005002736579626799,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Zlew polowy z oryginalną baterią i odpływem — kompletne oryginalne części GLB",
+      "label": "zlew polowy przy ścianie",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.004996840376406908,
+      "heightMeasured": true,
+      "expectedHeightMetres": 0.8500000238418579,
+      "actualHeightMetres": 0.8500000238418579,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A",
+      "label": "IKEA IDANAS",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B",
+      "label": "IKEA IDANAS",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Właściciel / oryginalny metal_cabinet_low_poly.glb",
+      "label": "metal_cabinet_low_poly.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Właściciel / oryginalny metal_cabinet_low_poly.glb",
+      "label": "metal_cabinet_low_poly.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m",
+      "label": "aneks na podłodze",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "label": "Oryginalny stół polowy z nogami i półką",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalna kuchenka polowa z palnikami i rusztami — kompletne oryginalne części GLB",
+      "label": "kuchenka na blacie",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Talerz z oryginalnego kompletu — kompletne oryginalne części GLB",
+      "label": "talerz na blacie",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "measured": true,
+      "gapMetres": 9.212464391339381e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Oryginalna butla z zaworem — kompletne oryginalne części GLB",
+      "label": "Oryginalna butla z zaworem",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Podłoga z desek",
+      "measured": true,
+      "gapMetres": -1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Oryginalny stojak z hakami i poręczami — kompletne oryginalne części GLB",
+      "label": "stojak na garnki na ścianie",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.004999788478016853,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Zlew polowy z oryginalną baterią i odpływem — kompletne oryginalne części GLB",
+      "label": "zlew polowy przy ścianie",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.00500126276165247,
+      "heightMeasured": true,
+      "expectedHeightMetres": 0.8500000238418579,
+      "actualHeightMetres": 0.8500000238418579,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A",
+      "label": "IKEA IDANAS",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B",
+      "label": "IKEA IDANAS",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Właściciel / oryginalny metal_cabinet_low_poly.glb",
+      "label": "metal_cabinet_low_poly.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Właściciel / oryginalny metal_cabinet_low_poly.glb",
+      "label": "metal_cabinet_low_poly.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m",
+      "label": "aneks na podłodze",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "label": "Oryginalny stół polowy z nogami i półką",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalna kuchenka polowa z palnikami i rusztami — kompletne oryginalne części GLB",
+      "label": "kuchenka na blacie",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Talerz z oryginalnego kompletu — kompletne oryginalne części GLB",
+      "label": "talerz na blacie",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Aneks — wysokość gotowania 0,90 m/Oryginalny stół polowy z nogami i półką — kompletne oryginalne części GLB",
+      "measured": true,
+      "gapMetres": 9.212464391339381e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Oryginalna butla z zaworem — kompletne oryginalne części GLB",
+      "label": "Oryginalna butla z zaworem",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Podłoga z desek",
+      "measured": true,
+      "gapMetres": -1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Oryginalny stojak z hakami i poręczami — kompletne oryginalne części GLB",
+      "label": "stojak na garnki na ścianie",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.004999788478016853,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ANEKS POLOWY — oryginalne źródłowe modele kuchni/Zlew polowy z oryginalną baterią i odpływem — kompletne oryginalne części GLB",
+      "label": "zlew polowy przy ścianie",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Kolizja zgodna z otworem",
+      "measured": true,
+      "gapMetres": 0.004996840376406908,
+      "heightMeasured": true,
+      "expectedHeightMetres": 0.8500000238418579,
+      "actualHeightMetres": 0.8500000238418579,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A",
+      "label": "IKEA IDANAS",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B",
+      "label": "IKEA IDANAS",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/Podłoga z desek",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stanowisko · Rozgrzewka i mobilność/Właściciel / oryginalny model(1).glb",
+      "label": "model(1).glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stanowisko · Rozgrzewka i mobilność/Podkład",
+      "measured": true,
+      "gapMetres": -1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stanowisko · Opony do przewracania — ORYGINALNY MODEL 3D/Właściciel / oryginalny OwnerExtras/tractor_tire.glb",
+      "label": "OwnerExtras/tractor_tire.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stanowisko · Opony do przewracania — ORYGINALNY MODEL 3D/Podkład",
+      "measured": true,
+      "gapMetres": -1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stanowisko · Opony do przewracania — ORYGINALNY MODEL 3D/Właściciel / oryginalny OwnerExtras/tractor_tire.glb",
+      "label": "OwnerExtras/tractor_tire.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stanowisko · Opony do przewracania — ORYGINALNY MODEL 3D/Podkład",
+      "measured": true,
+      "gapMetres": -1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stanowisko · Liny treningowe/Właściciel / oryginalny rope-coil.glb",
+      "label": "rope-coil.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stanowisko · Liny treningowe/Podkład",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stanowisko · Liny treningowe/Właściciel / oryginalny rope-coil.glb",
+      "label": "rope-coil.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stanowisko · Liny treningowe/Podkład",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN · SIŁOWNIA 3D WŁAŚCICIELA/57 oryginalnych obiektów siłowni FBX — bez ringów i worków zdublowanych",
+      "label": "gym_environment.fbx",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN · SIŁOWNIA 3D WŁAŚCICIELA/Podłoga z kolizją",
+      "measured": true,
+      "gapMetres": -9.212464391339381e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Właściciel / oryginalny kitchen_-_assets.glb",
+      "label": "kitchen_-_assets.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Kolizja zgodna z otworami",
+      "measured": true,
+      "gapMetres": -3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Właściciel / oryginalny glass-food-display-showcase-with-trays.glb",
+      "label": "glass-food-display-showcase-with-trays.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Kolizja zgodna z otworami",
+      "measured": true,
+      "gapMetres": -3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Właściciel / oryginalny picnic_set_1.glb",
+      "label": "picnic_set_1.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Kolizja zgodna z otworami",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Właściciel / oryginalny picnic_set_1.glb",
+      "label": "picnic_set_1.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Kolizja zgodna z otworami",
+      "measured": true,
+      "gapMetres": 3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Oryginalny stół polowy 3D — kompletne nogi i półka",
+      "label": "stół polowy stołówka",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Kolizja zgodna z otworami",
+      "measured": true,
+      "gapMetres": -3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Oryginalny stół polowy 3D — kompletne nogi i półka",
+      "label": "stół polowy stołówka",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Kolizja zgodna z otworami",
+      "measured": true,
+      "gapMetres": -3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Właściciel / oryginalny 24-piece-cutlery-set.glb",
+      "label": "24-piece-cutlery-set.glb",
+      "kind": "Ground",
+      "status": "ZAPADNIĘTE > 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Właściciel / oryginalny food_tray.glb",
+      "measured": true,
+      "gapMetres": -0.08750030398368835,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Właściciel / oryginalny food_tray.glb",
+      "label": "food_tray.glb",
+      "kind": "Ground",
+      "status": "LEWITUJE > 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Kolizja zgodna z otworami",
+      "measured": true,
+      "gapMetres": 0.3518069386482239,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Właściciel / oryginalny stockpot.glb",
+      "label": "stockpot.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Stołówka/Właściciel / oryginalny kitchen_-_assets.glb/root/GLTF_SceneRootNode/PortableStove_Base.001_42/PortableStove_Grate_L_LP.001_38/Object_82",
+      "measured": true,
+      "gapMetres": -9.212464391339381e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Punkt medyczny/Właściciel / oryginalny drawer_cabinet_4k/drawer_cabinet_4k.glb",
+      "label": "drawer_cabinet_4k/drawer_cabinet_4k.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Punkt medyczny/Kolizja zgodna z otworami",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Magazyn/Właściciel / oryginalny drawer_cabinet_4k/drawer_cabinet_4k.glb",
+      "label": "drawer_cabinet_4k/drawer_cabinet_4k.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Magazyn/Kolizja zgodna z otworami",
+      "measured": true,
+      "gapMetres": -3.454674057934426e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Kabina WC — -4.5/Właściciel / oryginalny close-coupled-toilet.glb",
+      "label": "close-coupled-toilet.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Oryginalny ciemny gres 2K — podłoga",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Kabina WC — -1.58/Właściciel / oryginalny close-coupled-toilet.glb",
+      "label": "close-coupled-toilet.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Oryginalny ciemny gres 2K — podłoga",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Kabina prysznicowa — 1.5/Właściciel / oryginalny shower-tray-square.glb",
+      "label": "shower-tray-square.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Oryginalny ciemny gres 2K — podłoga",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Kabina prysznicowa — 4.52/Właściciel / oryginalny shower-tray-square.glb",
+      "label": "shower-tray-square.glb",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Oryginalny ciemny gres 2K — podłoga",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Umywalka z lustrem — przy ścianie/Właściciel / oryginalny trough-washbasin.glb",
+      "label": "trough-washbasin.glb",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Białe płytki przy wejściu",
+      "measured": true,
+      "gapMetres": 0.005002736579626799,
+      "heightMeasured": true,
+      "expectedHeightMetres": 0.8500000238418579,
+      "actualHeightMetres": 0.8499999642372131,
+      "heightErrorMetres": -5.960464477539063e-08
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Umywalka z lustrem — przy ścianie/Lustro na ścianie — ReflectionProbe",
+      "label": "lustro na ścianie",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Białe płytki przy wejściu",
+      "measured": true,
+      "gapMetres": 0.004999788478016853,
+      "heightMeasured": true,
+      "expectedHeightMetres": 1.600000023841858,
+      "actualHeightMetres": 1.5999999046325684,
+      "heightErrorMetres": -1.1920928955078125e-07
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Umywalka z lustrem — przy ścianie/Właściciel / oryginalny towel-rail-with-towel.glb",
+      "label": "towel-rail-with-towel.glb",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Białe płytki przy wejściu",
+      "measured": true,
+      "gapMetres": 0.005002736579626799,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Umywalka z lustrem — przy ścianie/Właściciel / oryginalny trough-washbasin.glb",
+      "label": "trough-washbasin.glb",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Białe płytki przy wejściu",
+      "measured": true,
+      "gapMetres": 0.005002736579626799,
+      "heightMeasured": true,
+      "expectedHeightMetres": 0.8500000238418579,
+      "actualHeightMetres": 0.8499999642372131,
+      "heightErrorMetres": -5.960464477539063e-08
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Umywalka z lustrem — przy ścianie/Lustro na ścianie — ReflectionProbe",
+      "label": "lustro na ścianie",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Białe płytki przy wejściu",
+      "measured": true,
+      "gapMetres": 0.004999788478016853,
+      "heightMeasured": true,
+      "expectedHeightMetres": 1.600000023841858,
+      "actualHeightMetres": 1.5999999046325684,
+      "heightErrorMetres": -1.1920928955078125e-07
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Umywalka z lustrem — przy ścianie/Właściciel / oryginalny towel-rail-with-towel.glb",
+      "label": "towel-rail-with-towel.glb",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Białe płytki przy wejściu",
+      "measured": true,
+      "gapMetres": 0.005002736579626799,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Właściciel / oryginalny wall-urinal.glb",
+      "label": "wall-urinal.glb",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Białe płytki ściany zachodniej 2K",
+      "measured": true,
+      "gapMetres": 0.00499389274045825,
+      "heightMeasured": true,
+      "expectedHeightMetres": 0.550000011920929,
+      "actualHeightMetres": 0.5500001311302185,
+      "heightErrorMetres": 1.1920928955078125e-07
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Właściciel / oryginalny wall-urinal.glb",
+      "label": "wall-urinal.glb",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Białe płytki ściany zachodniej 2K",
+      "measured": true,
+      "gapMetres": 0.00499389274045825,
+      "heightMeasured": true,
+      "expectedHeightMetres": 0.550000011920929,
+      "actualHeightMetres": 0.5500001311302185,
+      "heightErrorMetres": 1.1920928955078125e-07
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Półka na ręczniki — ściana łaźni",
+      "label": "półka na ręczniki",
+      "kind": "Wall",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Białe płytki przy wejściu",
+      "measured": true,
+      "gapMetres": 0.004999788478016853,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Właściciel / oryginalny bath-towel.glb",
+      "label": "ręcznik na półce",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/BRAXHORN — WC / ŁAŹNIA / UMYWALNIA/Półka na ręczniki — ściana łaźni",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 0",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 0",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 1",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 1",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 2",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 2",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 3",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 3",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 4",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 4",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 5",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 5",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 6",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 6",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 7",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 7",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 8",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 8",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 9",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 9",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 10",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 10",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Ognisko leśne — oryginalne skały 3D i ławy z bali/Naturalny kamień z biblioteki — krąg ogniska 11",
+      "label": "Naturalny kamień z biblioteki — krąg ogniska 11",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Podłoże — trawnik, ściółka, oryginalne błoto 2K i żwirowe przejścia",
+      "measured": true,
+      "gapMetres": 1.1515580489174226e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Dojazd i plac autobusowy/Rondo BRAXHORN — biały obwód i wyspa/Pomnik byka BRAXHORN — model wlasciciela/Oryginalny byk GLB — 100% tekstur i geometrii",
+      "label": "oryginalny byk 4X",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Dojazd i plac autobusowy/Rondo BRAXHORN — biały obwód i wyspa/Pomnik byka BRAXHORN — model wlasciciela/Cokol kamienny PBR",
+      "measured": true,
+      "gapMetres": 0.0,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Dojazd i plac autobusowy/Wlascicielska wiata 3D — przystanek obozowy/Nowa wiata właściciela — FBX + oryginalny atlas 2K",
+      "label": "wiata FBX właściciela",
+      "kind": "Ground",
+      "status": "kontakt w tolerancji 3 cm",
+      "supportPath": "Obóz Misia — odbudowa robocza, wymagany odbiór/Leśne dojścia na płytach z drewnianym obrzeżem/Geometria · owner-slab-tiles-2k",
+      "measured": true,
+      "gapMetres": 2.3031160978348453e-08,
+      "heightMeasured": false,
+      "expectedHeightMetres": -1.0,
+      "actualHeightMetres": 0.0,
+      "heightErrorMetres": 0.0
+    }
+  ],
+  "characters": [
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Monika",
+      "status": "kontakt w tolerancji 3 cm; poślizg w ruchu wymaga Play Mode",
+      "feetMeasured": true,
+      "groundMeasured": true,
+      "soleY": 0.007763999048620462,
+      "groundY": 0.0,
+      "footGapMetres": 0.0059999991208314896,
+      "capsuleGapMetres": 0.0039999596774578094
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/VORN",
+      "status": "kontakt w tolerancji 3 cm; poślizg w ruchu wymaga Play Mode",
+      "feetMeasured": true,
+      "groundMeasured": true,
+      "soleY": 0.027398061007261276,
+      "groundY": 0.0,
+      "footGapMetres": 0.021173153072595596,
+      "capsuleGapMetres": 0.019173163920640945
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/ZYRO",
+      "status": "kontakt w tolerancji 3 cm; poślizg w ruchu wymaga Play Mode",
+      "feetMeasured": true,
+      "groundMeasured": true,
+      "soleY": 0.47739818692207336,
+      "groundY": 0.4528999924659729,
+      "footGapMetres": 0.018932143226265907,
+      "capsuleGapMetres": 0.01693209446966648
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/RAKK",
+      "status": "kontakt w tolerancji 3 cm; poślizg w ruchu wymaga Play Mode",
+      "feetMeasured": true,
+      "groundMeasured": true,
+      "soleY": 0.0329449363052845,
+      "groundY": 0.0,
+      "footGapMetres": 0.025459764525294304,
+      "capsuleGapMetres": 0.023459725081920624
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/KADE",
+      "status": "kontakt w tolerancji 3 cm; poślizg w ruchu wymaga Play Mode",
+      "feetMeasured": true,
+      "groundMeasured": true,
+      "soleY": 0.4773981273174286,
+      "groundY": 0.4529000222682953,
+      "footGapMetres": 0.018932074308395386,
+      "capsuleGapMetres": 0.01693207211792469
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/GORR",
+      "status": "kontakt w tolerancji 3 cm; poślizg w ruchu wymaga Play Mode",
+      "feetMeasured": true,
+      "groundMeasured": true,
+      "soleY": 0.027398062869906425,
+      "groundY": 0.0,
+      "footGapMetres": 0.021173154935240746,
+      "capsuleGapMetres": 0.019173163920640945
+    },
+    {
+      "path": "Obóz Misia — odbudowa robocza, wymagany odbiór/Miś",
+      "status": "kontakt w tolerancji 3 cm; poślizg w ruchu wymaga Play Mode",
+      "feetMeasured": true,
+      "groundMeasured": true,
+      "soleY": 0.032944925129413605,
+      "groundY": 0.0,
+      "footGapMetres": 0.025459755212068558,
+      "capsuleGapMetres": 0.023459725081920624
+    }
+  ],
+  "bull": {
+    "present": true,
+    "scalePreserved": true,
+    "source": "Assets/Source/Prywatne/Oboz/OwnerAssets/A_charging_bull_statu_0725030443_refine.glb",
+    "measuredWorldSize": {
+      "x": 2.4342453479766846,
+      "y": 3.9047646522521973,
+      "z": 6.201168060302734
+    },
+    "expectedWorldSize": {
+      "x": 2.4342448711395264,
+      "y": 3.9047648906707764,
+      "z": 6.201168060302734
+    }
+  },
+  "muralFindings": [
+    "Niezgodna liczba oryginalnych murali: 3; wymagane 4",
+    "Mural za mały (<4096px szer.): JPEG 1:1 — WOJOWNIKOW 1536x864",
+    "Mural za mały (<4096px szer.): JPEG 1:1 — FIGHT_ZONE 1536x864",
+    "Mural za mały (<4096px szer.): JPEG 1:1 — TRAINING_CAMP 1536x864"
+  ],
+  "scaleFindings": [
+    "Skala: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A szerokość łóżka zmierzono=1.220 m; oczekiwano=0.90m",
+    "Skala: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 1/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B szerokość łóżka zmierzono=1.220 m; oczekiwano=0.90m",
+    "Skala: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A szerokość łóżka zmierzono=1.220 m; oczekiwano=0.90m",
+    "Skala: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 2/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B szerokość łóżka zmierzono=1.220 m; oczekiwano=0.90m",
+    "Skala: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A szerokość łóżka zmierzono=1.220 m; oczekiwano=0.90m",
+    "Skala: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 3/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B szerokość łóżka zmierzono=1.220 m; oczekiwano=0.90m",
+    "Skala: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe A szerokość łóżka zmierzono=1.220 m; oczekiwano=0.90m",
+    "Skala: Obóz Misia — odbudowa robocza, wymagany odbiór/Domek 4/ORYGINAŁ IKEA IDANAS — łóżko jednoosobowe B szerokość łóżka zmierzono=1.220 m; oczekiwano=0.90m"
+  ],
+  "overlapFindings": [],
+  "bagFindings": [
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/4 worków otwartych/Worek 1 gap=0.490",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/4 worków otwartych/Worek 2 gap=0.490",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/4 worków otwartych/Worek 3 gap=0.490",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/4 worków otwartych/Worek 4 gap=0.490",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/24 worków otwartych/Worek 34 gap=0.530",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/24 worków otwartych/Worek 35 gap=0.530",
+    "Worek dół !=0,6m nad podłożem: Obóz Misia — odbudowa robocza, wymagany odbiór/24 worków otwartych/Worek 36 gap=0.530"
+  ],
+  "rawArtifact": {
+    "run": 42304823334,
+    "artifact": 13547271827,
+    "sha256": "f112d25e4eb3c937459df631dff735fb34d4b17415ac5a1b1ed86b9b19bbe1a6",
+    "url": "https://github.com/wawerpatryk89-sketch/braxhorn-city/actions/runs/42304823334",
+    "contents": "Full 6094 renderer inventory remains in the original text-only artifact."
+  },
+  "diagnostics": {
+    "revision": "005e76cde0c979cb6ffad44545e7dcf98ed09519",
+    "firstFatalException": "",
+    "generationCompleted": true,
+    "warningCount": 54,
+    "errorCount": 10,
+    "entries": [
+      {
+        "level": "Assert",
+        "message": "Assertion failed on expression: 'ShouldRunBehaviour()'",
+        "stackTrace": "UnityEngine.Component:SendMessage (string,UnityEngine.SendMessageOptions)\nBraxObozFootContactRegression:Run () (at Assets/Editor/Oboz/BraxObozFootContactRegression.cs:62)\nBraxObozPlacementRegression:Run () (at Assets/Editor/Oboz/BraxObozPlacementRegression.cs:71)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:635)\n"
+      },
+      {
+        "level": "Assert",
+        "message": "Assertion failed on expression: 'ShouldRunBehaviour()'",
+        "stackTrace": "UnityEngine.Component:SendMessage (string,UnityEngine.SendMessageOptions)\nBraxObozFootContactRegression:Run () (at Assets/Editor/Oboz/BraxObozFootContactRegression.cs:62)\nBraxObozPlacementRegression:Run () (at Assets/Editor/Oboz/BraxObozPlacementRegression.cs:71)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:635)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_QUALITY_ADVISORY: OBÓZ REGRESJA STAWIANIA — PASS bed yaw=0 parentScale=1 length=2.587891 width=1.164063; PASS bed yaw=0 parentScale=1.294 length=2.587891 width=1.164063; PASS bed yaw=90 parentScale=1 length=2.587891 width=1.164063; PASS bed yaw=90 parentScale=1.294 length=2.587891 width=1.164063; PASS bed yaw=-90 parentScale=1 length=2.587891 width=1.164063; PASS bed yaw=-90 parentScale=1.294 length=2.587891 width=1.164063; PASS bed yaw=37 parentScale=1 length=2.587115 width=1.164457; PASS bed yaw=37 parentScale=1.294 length=2.587115 width=1.164457; PASS ground contact excludes both model parent and mesh child colliders; PASS foot contact parentScale=1 reads weighted sole geometry instead of renderer bounds; PASS foot contact parentScale=1 world floor correction under rotated scaled parent; PASS foot contact parentScale=1 changed bone pose is measured, not cached renderer envelope; FAIL foot contact parentScale=1 serialized normalization pivot restored by disable callback; PASS foot contact parentScale=1.294 reads weighted sole geometry instead of renderer bounds; PASS foot contact parentScale=1.294 world floor correction under rotated scaled parent; PASS foot contact parentScale=1.294 changed bone pose is measured, not cached renderer envelope; FAIL foot contact parentScale=1.294 serialized normalization pivot restored by disable callback",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxBuildQuality:Warn (string) (at Assets/Editor/BraxBuildQuality.cs:24)\nBraxObozPlacementRegression:Run () (at Assets/Editor/Oboz/BraxObozPlacementRegression.cs:86)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:635)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_PBR_PACK_FALLBACK clean_asphalt index_missing",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPbrPack:LoadVerifiedPack (string,string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:61)\nBraxObozPbrPack:SurfaceRA (string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:50)\nBraxObozMaterials:PublicPbr (string,single) (at Assets/Editor/Oboz/BraxObozMaterials.cs:186)\nBraxObozEnvironment:CampusMaterials () (at Assets/Editor/Oboz/BraxObozCampus.cs:15)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:119)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_TRACK_ENTRANCE_CHECK: ciagla petla przecina wjazd; sprawdz oznaczenie przejscia i ruch autobusu przed odbiorem.",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:RunningTracks () (at Assets/Editor/Oboz/BraxObozCampus.cs:50)\nBraxObozEnvironment/<>c:<Prepare>b__53_2 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:123)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:123)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Error",
+        "message": "Mesh.uv is out of bounds. The supplied array needs to be the same size as the Mesh.vertices array.",
+        "stackTrace": "UnityEngine.Mesh:set_uv (UnityEngine.Vector2[])\nBraxObozEnvironment:CabinFinish (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:1100)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:447)\nBraxObozEnvironment/<>c:<Prepare>b__53_3 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:126)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:126)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Error",
+        "message": "Mesh.uv is out of bounds. The supplied array needs to be the same size as the Mesh.vertices array.",
+        "stackTrace": "UnityEngine.Mesh:set_uv (UnityEngine.Vector2[])\nBraxObozEnvironment:CabinFinish (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:1100)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:447)\nBraxObozEnvironment/<>c:<Prepare>b__53_3 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:126)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:126)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_PROPORTIONS_REVIEW IKEA IDANAS szerokość X actual=1.578514 expected=1.1646",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:VerifyDimension (UnityEngine.Renderer[],single,BraxObozPlacement/Axis,string,single,UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozPlacement.cs:102)\nBraxObozServices:OwnerSingleBed (UnityEngine.Transform,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:540)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:485)\nBraxObozEnvironment/<>c:<Prepare>b__53_3 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:126)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:126)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_PROPORTIONS_REVIEW IKEA IDANAS szerokość X actual=1.578514 expected=1.1646",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:VerifyDimension (UnityEngine.Renderer[],single,BraxObozPlacement/Axis,string,single,UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozPlacement.cs:102)\nBraxObozServices:OwnerSingleBed (UnityEngine.Transform,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:540)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:485)\nBraxObozEnvironment/<>c:<Prepare>b__53_3 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:126)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:126)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Error",
+        "message": "Mesh.uv is out of bounds. The supplied array needs to be the same size as the Mesh.vertices array.",
+        "stackTrace": "UnityEngine.Mesh:set_uv (UnityEngine.Vector2[])\nBraxObozEnvironment:CabinFinish (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:1100)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:447)\nBraxObozEnvironment/<>c:<Prepare>b__53_4 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:127)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:127)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Error",
+        "message": "Mesh.uv is out of bounds. The supplied array needs to be the same size as the Mesh.vertices array.",
+        "stackTrace": "UnityEngine.Mesh:set_uv (UnityEngine.Vector2[])\nBraxObozEnvironment:CabinFinish (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:1100)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:447)\nBraxObozEnvironment/<>c:<Prepare>b__53_4 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:127)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:127)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_PROPORTIONS_REVIEW IKEA IDANAS szerokość X actual=1.578514 expected=1.1646",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:VerifyDimension (UnityEngine.Renderer[],single,BraxObozPlacement/Axis,string,single,UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozPlacement.cs:102)\nBraxObozServices:OwnerSingleBed (UnityEngine.Transform,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:540)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:485)\nBraxObozEnvironment/<>c:<Prepare>b__53_4 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:127)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:127)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_PROPORTIONS_REVIEW IKEA IDANAS szerokość X actual=1.578514 expected=1.1646",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:VerifyDimension (UnityEngine.Renderer[],single,BraxObozPlacement/Axis,string,single,UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozPlacement.cs:102)\nBraxObozServices:OwnerSingleBed (UnityEngine.Transform,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:540)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:485)\nBraxObozEnvironment/<>c:<Prepare>b__53_4 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:127)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:127)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Error",
+        "message": "Mesh.uv is out of bounds. The supplied array needs to be the same size as the Mesh.vertices array.",
+        "stackTrace": "UnityEngine.Mesh:set_uv (UnityEngine.Vector2[])\nBraxObozEnvironment:CabinFinish (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:1100)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:447)\nBraxObozEnvironment/<>c:<Prepare>b__53_5 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Error",
+        "message": "Mesh.uv is out of bounds. The supplied array needs to be the same size as the Mesh.vertices array.",
+        "stackTrace": "UnityEngine.Mesh:set_uv (UnityEngine.Vector2[])\nBraxObozEnvironment:CabinFinish (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:1100)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:447)\nBraxObozEnvironment/<>c:<Prepare>b__53_5 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_MURAL_LOW_SOURCE_RESOLUTION Assets/Source/Prywatne/Oboz/OwnerAssets/Murale/6C3045DC-051D-4B53-8F6E-FEA579A0DE21.jpeg szerokosc=1536 — wymagane min 4096 px",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:OriginalMural (UnityEngine.Transform,string,string,UnityEngine.Vector3,UnityEngine.Quaternion,single,bool) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:223)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:449)\nBraxObozEnvironment/<>c:<Prepare>b__53_5 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_MURAL_NO_WALL DROGA_MISTRZA — geometria wymaga kontroli montażu, nie oznaczaj jako gotowe",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:OriginalMural (UnityEngine.Transform,string,string,UnityEngine.Vector3,UnityEngine.Quaternion,single,bool) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:269)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:449)\nBraxObozEnvironment/<>c:<Prepare>b__53_5 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_PROPORTIONS_REVIEW IKEA IDANAS szerokość X actual=1.578514 expected=1.1646",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:VerifyDimension (UnityEngine.Renderer[],single,BraxObozPlacement/Axis,string,single,UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozPlacement.cs:102)\nBraxObozServices:OwnerSingleBed (UnityEngine.Transform,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:540)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:485)\nBraxObozEnvironment/<>c:<Prepare>b__53_5 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_PROPORTIONS_REVIEW IKEA IDANAS szerokość X actual=1.578514 expected=1.1646",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:VerifyDimension (UnityEngine.Renderer[],single,BraxObozPlacement/Axis,string,single,UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozPlacement.cs:102)\nBraxObozServices:OwnerSingleBed (UnityEngine.Transform,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:540)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:485)\nBraxObozEnvironment/<>c:<Prepare>b__53_5 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:128)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Error",
+        "message": "Mesh.uv is out of bounds. The supplied array needs to be the same size as the Mesh.vertices array.",
+        "stackTrace": "UnityEngine.Mesh:set_uv (UnityEngine.Vector2[])\nBraxObozEnvironment:CabinFinish (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:1100)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:447)\nBraxObozEnvironment/<>c:<Prepare>b__53_6 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:129)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:129)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Error",
+        "message": "Mesh.uv is out of bounds. The supplied array needs to be the same size as the Mesh.vertices array.",
+        "stackTrace": "UnityEngine.Mesh:set_uv (UnityEngine.Vector2[])\nBraxObozEnvironment:CabinFinish (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:1100)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:447)\nBraxObozEnvironment/<>c:<Prepare>b__53_6 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:129)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:129)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_PROPORTIONS_REVIEW IKEA IDANAS szerokość X actual=1.578513 expected=1.1646",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:VerifyDimension (UnityEngine.Renderer[],single,BraxObozPlacement/Axis,string,single,UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozPlacement.cs:102)\nBraxObozServices:OwnerSingleBed (UnityEngine.Transform,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:540)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:485)\nBraxObozEnvironment/<>c:<Prepare>b__53_6 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:129)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:129)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_PROPORTIONS_REVIEW IKEA IDANAS szerokość X actual=1.578513 expected=1.1646",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:VerifyDimension (UnityEngine.Renderer[],single,BraxObozPlacement/Axis,string,single,UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozPlacement.cs:102)\nBraxObozServices:OwnerSingleBed (UnityEngine.Transform,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:540)\nBraxObozEnvironment:Cabin (string,single,single,single) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:485)\nBraxObozEnvironment/<>c:<Prepare>b__53_6 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:129)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:129)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_BAG_VARIANT_PENDING: drugi rodzaj worka nie ma jeszcze potwierdzonego pliku GLB; wszystkie instancje otrzymają oryginalny Leather Punching Bag.",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:OwnerBagPrototype (int) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:607)\nBraxObozEnvironment:Bags (single,single,bool,int) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:660)\nBraxObozEnvironment:TrainingCampus () (at Assets/Editor/Oboz/BraxObozCampus.cs:260)\nBraxObozEnvironment/<>c:<Prepare>b__53_9 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:134)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:134)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_TIRE_TRAINING: oryginalne opony GLB są na placu; interakcja przewracania i pozycja obrotu do testu Play Mode",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment/<>c:<TrainingCampus>b__10_5 (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:305)\nBraxObozEnvironment:Station (string,single,single,single,single,System.Action`1<UnityEngine.Transform>) (at Assets/Editor/Oboz/BraxObozCampus.cs:327)\nBraxObozEnvironment:TrainingCampus () (at Assets/Editor/Oboz/BraxObozCampus.cs:299)\nBraxObozEnvironment/<>c:<Prepare>b__53_9 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:134)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:134)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_BATTLE_ROPE_NEEDS_REAL_LONG_MODEL: oryginalne zwoje GLB wstawione, animowanych długich lin NIE deklarować jako gotowych",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment/<>c:<TrainingCampus>b__10_6 (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:317)\nBraxObozEnvironment:Station (string,single,single,single,single,System.Action`1<UnityEngine.Transform>) (at Assets/Editor/Oboz/BraxObozCampus.cs:327)\nBraxObozEnvironment:TrainingCampus () (at Assets/Editor/Oboz/BraxObozCampus.cs:307)\nBraxObozEnvironment/<>c:<Prepare>b__53_9 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:134)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:134)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_ORIGINAL_SCALE_REVIEW gym_environment.fbx zestaw urządzeń źródło bez zatwierdzonego wymiaru referencyjnego: (5.40, 4.53, 30.39)",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:NativeMetres (UnityEngine.Transform,UnityEngine.Renderer[],string) (at Assets/Editor/Oboz/BraxObozPlacement.cs:93)\nBraxObozEnvironment:OwnerStrengthEquipment (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:200)\nBraxObozEnvironment:CoveredStrengthGym () (at Assets/Editor/Oboz/BraxObozCampus.cs:133)\nBraxObozEnvironment/<>c:<Prepare>b__53_10 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:135)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:135)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_GYM_FOOTPRINT_REVIEW source=(5.40, 4.53, 30.39) trainingZone=26x18.5m; nie zmieniono siatek właściciela",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:OwnerStrengthEquipment (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:206)\nBraxObozEnvironment:CoveredStrengthGym () (at Assets/Editor/Oboz/BraxObozCampus.cs:133)\nBraxObozEnvironment/<>c:<Prepare>b__53_10 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:135)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:135)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_MURAL_LOW_SOURCE_RESOLUTION Assets/Source/Prywatne/Oboz/OwnerAssets/Murale/6B6E1CA3-605A-47FB-BF0E-F23B1D2C3301(1).jpeg szerokosc=1536 — wymagane min 4096 px",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:OriginalMural (UnityEngine.Transform,string,string,UnityEngine.Vector3,UnityEngine.Quaternion,single,bool) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:223)\nBraxObozEnvironment:CoveredStrengthGym () (at Assets/Editor/Oboz/BraxObozCampus.cs:134)\nBraxObozEnvironment/<>c:<Prepare>b__53_10 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:135)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:135)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_MURAL_NO_WALL TRAINING_CAMP — geometria wymaga kontroli montażu, nie oznaczaj jako gotowe",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:OriginalMural (UnityEngine.Transform,string,string,UnityEngine.Vector3,UnityEngine.Quaternion,single,bool) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:269)\nBraxObozEnvironment:CoveredStrengthGym () (at Assets/Editor/Oboz/BraxObozCampus.cs:134)\nBraxObozEnvironment/<>c:<Prepare>b__53_10 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:135)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:135)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_FIXTURE_DIMENSION_REVIEW picnic_set_1.glb rzeczywisty obrys=(1.34, 0.58, 1.60) zalozony limit=(1.95, 0.85, 0.64)",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozServices:OwnerFixture (UnityEngine.Transform,string,UnityEngine.Vector3,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:619)\nBraxObozServices:FurnishCanteen (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozServices.cs:187)\nBraxObozServices:Add (string,string,UnityEngine.Transform,UnityEngine.Vector3,System.Collections.Generic.Dictionary`2<string, UnityEngine.Material>) (at Assets/Editor/Oboz/BraxObozServices.cs:163)\nBraxObozServices/<>c__DisplayClass14_1:<AddAll>b__1 () (at Assets/Editor/Oboz/BraxObozServices.cs:97)\nBraxObozServices:OptionalBuilding (string,UnityEngine.Transform,System.Action) (at Assets/Editor/Oboz/BraxObozServices.cs:107)\nBraxObozServices:AddAll (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozServices.cs:97)\nBraxObozEnvironment:ServiceBuildings () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:741)\nBraxObozEnvironment/<>c:<Prepare>b__53_13 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:140)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:140)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_FIXTURE_DIMENSION_REVIEW picnic_set_1.glb rzeczywisty obrys=(1.34, 0.58, 1.60) zalozony limit=(1.95, 0.85, 0.64)",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozServices:OwnerFixture (UnityEngine.Transform,string,UnityEngine.Vector3,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:619)\nBraxObozServices:FurnishCanteen (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozServices.cs:189)\nBraxObozServices:Add (string,string,UnityEngine.Transform,UnityEngine.Vector3,System.Collections.Generic.Dictionary`2<string, UnityEngine.Material>) (at Assets/Editor/Oboz/BraxObozServices.cs:163)\nBraxObozServices/<>c__DisplayClass14_1:<AddAll>b__1 () (at Assets/Editor/Oboz/BraxObozServices.cs:97)\nBraxObozServices:OptionalBuilding (string,UnityEngine.Transform,System.Action) (at Assets/Editor/Oboz/BraxObozServices.cs:107)\nBraxObozServices:AddAll (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozServices.cs:97)\nBraxObozEnvironment:ServiceBuildings () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:741)\nBraxObozEnvironment/<>c:<Prepare>b__53_13 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:140)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:140)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_NO_SUPPORT_RAYCAST 24-piece-cutlery-set.glb support=CookingTable_Shelf.001_4 — brak trafienia w powierzchnię źródłową",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:OnSupport (UnityEngine.Transform,UnityEngine.Renderer[],UnityEngine.Transform,UnityEngine.Vector3,string) (at Assets/Editor/Oboz/BraxObozPlacement.cs:197)\nBraxObozServices:OwnerOnExistingSurface (UnityEngine.Transform,UnityEngine.GameObject,string,string,UnityEngine.Vector3,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:263)\nBraxObozServices:FurnishCanteen (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozServices.cs:195)\nBraxObozServices:Add (string,string,UnityEngine.Transform,UnityEngine.Vector3,System.Collections.Generic.Dictionary`2<string, UnityEngine.Material>) (at Assets/Editor/Oboz/BraxObozServices.cs:163)\nBraxObozServices/<>c__DisplayClass14_1:<AddAll>b__1 () (at Assets/Editor/Oboz/BraxObozServices.cs:97)\nBraxObozServices:OptionalBuilding (string,UnityEngine.Transform,System.Action) (at Assets/Editor/Oboz/BraxObozServices.cs:107)\nBraxObozServices:AddAll (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozServices.cs:97)\nBraxObozEnvironment:ServiceBuildings () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:741)\nBraxObozEnvironment/<>c:<Prepare>b__53_13 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:140)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:140)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_FIXTURE_DIMENSION_REVIEW food_tray.glb rzeczywisty obrys=(2.85, 0.11, 2.20) zalozony limit=(0.58, 0.09, 0.40)",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozServices:OwnerFixture (UnityEngine.Transform,string,UnityEngine.Vector3,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:619)\nBraxObozServices:OwnerOnExistingSurface (UnityEngine.Transform,UnityEngine.GameObject,string,string,UnityEngine.Vector3,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:261)\nBraxObozServices:FurnishCanteen (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozServices.cs:198)\nBraxObozServices:Add (string,string,UnityEngine.Transform,UnityEngine.Vector3,System.Collections.Generic.Dictionary`2<string, UnityEngine.Material>) (at Assets/Editor/Oboz/BraxObozServices.cs:163)\nBraxObozServices/<>c__DisplayClass14_1:<AddAll>b__1 () (at Assets/Editor/Oboz/BraxObozServices.cs:97)\nBraxObozServices:OptionalBuilding (string,UnityEngine.Transform,System.Action) (at Assets/Editor/Oboz/BraxObozServices.cs:107)\nBraxObozServices:AddAll (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozServices.cs:97)\nBraxObozEnvironment:ServiceBuildings () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:741)\nBraxObozEnvironment/<>c:<Prepare>b__53_13 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:140)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:140)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_NO_SUPPORT_RAYCAST food_tray.glb support=CookingTable_Shelf.001_4 — brak trafienia w powierzchnię źródłową",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPlacement:OnSupport (UnityEngine.Transform,UnityEngine.Renderer[],UnityEngine.Transform,UnityEngine.Vector3,string) (at Assets/Editor/Oboz/BraxObozPlacement.cs:197)\nBraxObozServices:OwnerOnExistingSurface (UnityEngine.Transform,UnityEngine.GameObject,string,string,UnityEngine.Vector3,UnityEngine.Vector3) (at Assets/Editor/Oboz/BraxObozServices.cs:263)\nBraxObozServices:FurnishCanteen (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozServices.cs:198)\nBraxObozServices:Add (string,string,UnityEngine.Transform,UnityEngine.Vector3,System.Collections.Generic.Dictionary`2<string, UnityEngine.Material>) (at Assets/Editor/Oboz/BraxObozServices.cs:163)\nBraxObozServices/<>c__DisplayClass14_1:<AddAll>b__1 () (at Assets/Editor/Oboz/BraxObozServices.cs:97)\nBraxObozServices:OptionalBuilding (string,UnityEngine.Transform,System.Action) (at Assets/Editor/Oboz/BraxObozServices.cs:107)\nBraxObozServices:AddAll (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozServices.cs:97)\nBraxObozEnvironment:ServiceBuildings () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:741)\nBraxObozEnvironment/<>c:<Prepare>b__53_13 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:140)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:140)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_OWNER_ASSETS_PENDING: flaga bordowa BRAXHORN oraz namioty wojskowe wymagają zatwierdzonych modeli; bez atrap",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:AssemblyGroundWithSchedule () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:854)\nBraxObozEnvironment/<>c:<Prepare>b__53_15 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:142)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:142)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_MURAL_LOW_SOURCE_RESOLUTION Assets/Source/Prywatne/Oboz/OwnerAssets/Murale/87405F34-A95B-4AD6-8637-A19599AADA61.jpeg szerokosc=1536 — wymagane min 4096 px",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:OriginalMural (UnityEngine.Transform,string,string,UnityEngine.Vector3,UnityEngine.Quaternion,single,bool) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:223)\nBraxObozEnvironment:MuralBoards () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:290)\nBraxObozEnvironment/<>c:<Prepare>b__53_16 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:143)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:143)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_MURAL_LOW_SOURCE_RESOLUTION Assets/Source/Prywatne/Oboz/OwnerAssets/Murale/35502A48-F7AB-4650-9874-3266881B2DF6.jpeg szerokosc=1536 — wymagane min 4096 px",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:OriginalMural (UnityEngine.Transform,string,string,UnityEngine.Vector3,UnityEngine.Quaternion,single,bool) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:223)\nBraxObozEnvironment:MuralBoards () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:295)\nBraxObozEnvironment/<>c:<Prepare>b__53_16 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:143)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:143)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_MURAL_NO_WALL FIGHT_ZONE — geometria wymaga kontroli montażu, nie oznaczaj jako gotowe",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozEnvironment:OriginalMural (UnityEngine.Transform,string,string,UnityEngine.Vector3,UnityEngine.Quaternion,single,bool) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:269)\nBraxObozEnvironment:MuralBoards () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:295)\nBraxObozEnvironment/<>c:<Prepare>b__53_16 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:143)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:143)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_QUALITY_ADVISORY: OBOZ_BULL_4X_SOURCE_PENDING: w prywatnej dostawie jest tylko oryginał 1X; wykonano dokładne powiększenie x4 Transform, sprawdzić wizualnie przed odbiorem.",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxBuildQuality:Warn (string) (at Assets/Editor/BraxBuildQuality.cs:24)\nBraxObozEnvironment:RondoBull (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozCampus.cs:525)\nBraxObozEnvironment:CampusArrival () (at Assets/Editor/Oboz/BraxObozCampus.cs:369)\nBraxObozEnvironment/<>c:<Prepare>b__53_17 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:145)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:145)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "Main Object Name 'Obóz / publiczne PBR / Grass001' does not match filename 'polyhaven-Grass001'",
+        "stackTrace": "UnityEditor.AssetDatabase:CopyAsset (string,string)\nBraxCityMaterials:CityTexture (UnityEngine.Texture,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:191)\nBraxCityMaterials:CopyMap (UnityEngine.Material,UnityEngine.Material,string,string,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:132)\nBraxCityMaterials:Imported (UnityEngine.Material) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:87)\nBraxObozParkedBus:CampMaterial (UnityEngine.Material) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:52)\nSystem.Linq.Enumerable:ToArray<UnityEngine.Material> (System.Collections.Generic.IEnumerable`1<UnityEngine.Material>)\nBraxObozParkedBus:Add (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:39)\nBraxObozEnvironment/<>c:<Prepare>b__53_18 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "Main Object Name 'Obóz / bordo' does not match filename 'bordo'",
+        "stackTrace": "UnityEditor.AssetDatabase:CopyAsset (string,string)\nBraxCityMaterials:CityTexture (UnityEngine.Texture,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:191)\nBraxCityMaterials:CopyMap (UnityEngine.Material,UnityEngine.Material,string,string,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:132)\nBraxCityMaterials:Imported (UnityEngine.Material) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:87)\nBraxObozParkedBus:CampMaterial (UnityEngine.Material) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:52)\nSystem.Linq.Enumerable:ToArray<UnityEngine.Material> (System.Collections.Generic.IEnumerable`1<UnityEngine.Material>)\nBraxObozParkedBus:Add (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:39)\nBraxObozEnvironment/<>c:<Prepare>b__53_18 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "Main Object Name 'Obóz / ciemny gres oryginalny 2K' does not match filename 'owner-slab-tiles-2k'",
+        "stackTrace": "UnityEditor.AssetDatabase:CopyAsset (string,string)\nBraxCityMaterials:CityTexture (UnityEngine.Texture,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:191)\nBraxCityMaterials:CopyMap (UnityEngine.Material,UnityEngine.Material,string,string,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:132)\nBraxCityMaterials:Imported (UnityEngine.Material) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:87)\nBraxObozParkedBus:CampMaterial (UnityEngine.Material) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:52)\nSystem.Linq.Enumerable:ToArray<UnityEngine.Material> (System.Collections.Generic.IEnumerable`1<UnityEngine.Material>)\nBraxObozParkedBus:Add (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:39)\nBraxObozEnvironment/<>c:<Prepare>b__53_18 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "Main Object Name 'Obóz / napisy' does not match filename 'campus-napisy'",
+        "stackTrace": "UnityEditor.AssetDatabase:CopyAsset (string,string)\nBraxCityMaterials:CityTexture (UnityEngine.Texture,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:191)\nBraxCityMaterials:CopyMap (UnityEngine.Material,UnityEngine.Material,string,string,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:132)\nBraxCityMaterials:Imported (UnityEngine.Material) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:87)\nBraxObozParkedBus:CampMaterial (UnityEngine.Material) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:52)\nSystem.Linq.Enumerable:ToArray<UnityEngine.Material> (System.Collections.Generic.IEnumerable`1<UnityEngine.Material>)\nBraxObozParkedBus:Add (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:39)\nBraxObozEnvironment/<>c:<Prepare>b__53_18 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "Main Object Name 'Obóz / towel' does not match filename 'towel'",
+        "stackTrace": "UnityEditor.AssetDatabase:CopyAsset (string,string)\nBraxCityMaterials:CityTexture (UnityEngine.Texture,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:191)\nBraxCityMaterials:CopyMap (UnityEngine.Material,UnityEngine.Material,string,string,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:132)\nBraxCityMaterials:Imported (UnityEngine.Material) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:87)\nBraxObozParkedBus:CampMaterial (UnityEngine.Material) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:52)\nSystem.Linq.Enumerable:ToArray<UnityEngine.Material> (System.Collections.Generic.IEnumerable`1<UnityEngine.Material>)\nBraxObozParkedBus:Add (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:39)\nBraxObozEnvironment/<>c:<Prepare>b__53_18 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "Main Object Name 'Obóz / floor' does not match filename 'floor'",
+        "stackTrace": "UnityEditor.AssetDatabase:CopyAsset (string,string)\nBraxCityMaterials:CityTexture (UnityEngine.Texture,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:191)\nBraxCityMaterials:CopyMap (UnityEngine.Material,UnityEngine.Material,string,string,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:132)\nBraxCityMaterials:Imported (UnityEngine.Material) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:87)\nBraxObozParkedBus:CampMaterial (UnityEngine.Material) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:52)\nSystem.Linq.Enumerable:ToArray<UnityEngine.Material> (System.Collections.Generic.IEnumerable`1<UnityEngine.Material>)\nBraxObozParkedBus:Add (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:39)\nBraxObozEnvironment/<>c:<Prepare>b__53_18 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "Main Object Name 'Obóz / wood' does not match filename 'wood'",
+        "stackTrace": "UnityEditor.AssetDatabase:CopyAsset (string,string)\nBraxCityMaterials:CityTexture (UnityEngine.Texture,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:191)\nBraxCityMaterials:CopyMap (UnityEngine.Material,UnityEngine.Material,string,string,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:132)\nBraxCityMaterials:Imported (UnityEngine.Material) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:87)\nBraxObozParkedBus:CampMaterial (UnityEngine.Material) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:52)\nSystem.Linq.Enumerable:ToArray<UnityEngine.Material> (System.Collections.Generic.IEnumerable`1<UnityEngine.Material>)\nBraxObozParkedBus:Add (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:39)\nBraxObozEnvironment/<>c:<Prepare>b__53_18 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "Main Object Name 'Obóz / metal' does not match filename 'metal'",
+        "stackTrace": "UnityEditor.AssetDatabase:CopyAsset (string,string)\nBraxCityMaterials:CityTexture (UnityEngine.Texture,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:191)\nBraxCityMaterials:CopyMap (UnityEngine.Material,UnityEngine.Material,string,string,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:132)\nBraxCityMaterials:Imported (UnityEngine.Material) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:87)\nBraxObozParkedBus:CampMaterial (UnityEngine.Material) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:52)\nSystem.Linq.Enumerable:ToArray<UnityEngine.Material> (System.Collections.Generic.IEnumerable`1<UnityEngine.Material>)\nBraxObozParkedBus:Add (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:39)\nBraxObozEnvironment/<>c:<Prepare>b__53_18 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "Main Object Name 'Obóz / szyby-domkow' does not match filename 'szyby-domkow'",
+        "stackTrace": "UnityEditor.AssetDatabase:CopyAsset (string,string)\nBraxCityMaterials:CityTexture (UnityEngine.Texture,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:191)\nBraxCityMaterials:CopyMap (UnityEngine.Material,UnityEngine.Material,string,string,string) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:132)\nBraxCityMaterials:Imported (UnityEngine.Material) (at Assets/Editor/CityRebuild/Materials/BraxCityMaterials.cs:87)\nBraxObozParkedBus:CampMaterial (UnityEngine.Material) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:52)\nSystem.Linq.Enumerable:ToArray<UnityEngine.Material> (System.Collections.Generic.IEnumerable`1<UnityEngine.Material>)\nBraxObozParkedBus:Add (UnityEngine.Transform) (at Assets/Editor/Oboz/BraxObozParkedBus.cs:39)\nBraxObozEnvironment/<>c:<Prepare>b__53_18 () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozEnvironment:Optional (string,System.Action) (at Assets/Editor/Oboz/BraxObozEnvironment.cs:79)\nBraxObozEnvironment:Prepare () (at Assets/Editor/Oboz/BraxObozEnvironment.cs:146)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:636)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_PBR_PACK_FALLBACK monika index_missing",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPbrPack:LoadVerifiedPack (string,string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:61)\nBraxObozPbrPack:CharacterMR (string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:44)\nBraxObozCharacters:Material (BraxObozCharacters/CharacterSpec,string) (at Assets/Editor/Oboz/BraxObozCharacters.cs:217)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:142)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:29)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "TYLKO PODGLĄD ŹRÓDŁA, nie akceptacja do publikacji: VORN: rozbieżności źródła wymagają decyzji właściciela: FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:95)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_PBR_PACK_FALLBACK vorn index_missing",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPbrPack:LoadVerifiedPack (string,string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:61)\nBraxObozPbrPack:CharacterMR (string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:44)\nBraxObozCharacters:Material (BraxObozCharacters/CharacterSpec,string) (at Assets/Editor/Oboz/BraxObozCharacters.cs:217)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:142)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "TYLKO PODGLĄD ŹRÓDŁA, nie akceptacja do publikacji: ZYRO: rozbieżności źródła wymagają decyzji właściciela: FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:95)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_PBR_PACK_FALLBACK zyro index_missing",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPbrPack:LoadVerifiedPack (string,string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:61)\nBraxObozPbrPack:CharacterMR (string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:44)\nBraxObozCharacters:Material (BraxObozCharacters/CharacterSpec,string) (at Assets/Editor/Oboz/BraxObozCharacters.cs:217)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:142)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "TYLKO PODGLĄD ŹRÓDŁA, nie akceptacja do publikacji: RAKK: rozbieżności źródła wymagają decyzji właściciela: FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:95)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_PBR_PACK_FALLBACK rakk index_missing",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPbrPack:LoadVerifiedPack (string,string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:61)\nBraxObozPbrPack:CharacterMR (string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:44)\nBraxObozCharacters:Material (BraxObozCharacters/CharacterSpec,string) (at Assets/Editor/Oboz/BraxObozCharacters.cs:217)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:142)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "TYLKO PODGLĄD ŹRÓDŁA, nie akceptacja do publikacji: KADE: rozbieżności źródła wymagają decyzji właściciela: FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:95)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_PBR_PACK_FALLBACK kade index_missing",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPbrPack:LoadVerifiedPack (string,string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:61)\nBraxObozPbrPack:CharacterMR (string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:44)\nBraxObozCharacters:Material (BraxObozCharacters/CharacterSpec,string) (at Assets/Editor/Oboz/BraxObozCharacters.cs:217)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:142)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "TYLKO PODGLĄD ŹRÓDŁA, nie akceptacja do publikacji: GORR: rozbieżności źródła wymagają decyzji właściciela: FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:95)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_PBR_PACK_FALLBACK gorr index_missing",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPbrPack:LoadVerifiedPack (string,string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:61)\nBraxObozPbrPack:CharacterMR (string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:44)\nBraxObozCharacters:Material (BraxObozCharacters/CharacterSpec,string) (at Assets/Editor/Oboz/BraxObozCharacters.cs:217)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:142)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "TYLKO PODGLĄD ŹRÓDŁA, nie akceptacja do publikacji: Miś: rozbieżności źródła wymagają decyzji właściciela: Quads outside 14000–20000 plus 500 tolerance; normalPath source is below 4K; roughnessPath source is below 4K; metallicPath source is below 4K; FBX normalized near 1 metre: real NPC height not agreed; 1.80 m review-only baseline; Source is not T-pose: upper arms about 64 degrees below horizontal",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:95)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_PBR_PACK_FALLBACK mis index_missing",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozPbrPack:LoadVerifiedPack (string,string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:61)\nBraxObozPbrPack:CharacterMR (string,string,string) (at Assets/Editor/Oboz/BraxObozPbrPack.cs:44)\nBraxObozCharacters:Material (BraxObozCharacters/CharacterSpec,string) (at Assets/Editor/Oboz/BraxObozCharacters.cs:217)\nBraxObozCharacters:Create (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:142)\nBraxObozCharacters:CreateCached (BraxObozCharacters/CharacterSpec,single,bool) (at Assets/Editor/Oboz/BraxObozCharacters.cs:79)\nBraxObozActors:Actor (BraxObozCharacters/CharacterSpec,UnityEngine.Vector3,UnityEngine.Transform,UnityEngine.CharacterController&) (at Assets/Editor/Oboz/BraxObozActors.cs:120)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:51)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_QUALITY_ADVISORY: Brak przejścia: Miejsce worka 2 → Ring 1 — miejsce pary 0 ((-31.19, 0.01, -47.88) → (-30.67, 1.36, 19.41), PathPartial); raport navigation-review.json",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxBuildQuality:Warn (string) (at Assets/Editor/BraxBuildQuality.cs:24)\nBraxObozTrainingSetup:Configure (BraxObozSceneInfo) (at Assets/Editor/Oboz/BraxObozTrainingSetup.cs:134)\nBraxObozActors:Assemble () (at Assets/Editor/Oboz/BraxObozActors.cs:70)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:637)\n"
+      },
+      {
+        "level": "Warning",
+        "message": "BRAXHORN_OBOZ_SCENE_AUDIT renderers=6094 float=3153 embedded=480 murals=3/4 scale=8 overlaps=0 bagWarnings=7 withoutGround=65 reports=audit/oboz-scena.json,audit/oboz-scena.md",
+        "stackTrace": "UnityEngine.Debug:LogWarning (object)\nBraxObozSceneAudit:Run () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:588)\nBraxObozSceneAudit:GenerateWithoutApk () (at Assets/Editor/Oboz/BraxObozSceneAudit.cs:638)\n"
+      }
+    ]
+  },
+  "regressions": {
+    "revision": "005e76cde0c979cb6ffad44545e7dcf98ed09519",
+    "passed": 15,
+    "failed": 2,
+    "checks": [
+      "PASS bed yaw=0 parentScale=1 length=2.587891 width=1.164063",
+      "PASS bed yaw=0 parentScale=1.294 length=2.587891 width=1.164063",
+      "PASS bed yaw=90 parentScale=1 length=2.587891 width=1.164063",
+      "PASS bed yaw=90 parentScale=1.294 length=2.587891 width=1.164063",
+      "PASS bed yaw=-90 parentScale=1 length=2.587891 width=1.164063",
+      "PASS bed yaw=-90 parentScale=1.294 length=2.587891 width=1.164063",
+      "PASS bed yaw=37 parentScale=1 length=2.587115 width=1.164457",
+      "PASS bed yaw=37 parentScale=1.294 length=2.587115 width=1.164457",
+      "PASS ground contact excludes both model parent and mesh child colliders",
+      "PASS foot contact parentScale=1 reads weighted sole geometry instead of renderer bounds",
+      "PASS foot contact parentScale=1 world floor correction under rotated scaled parent",
+      "PASS foot contact parentScale=1 changed bone pose is measured, not cached renderer envelope",
+      "FAIL foot contact parentScale=1 serialized normalization pivot restored by disable callback",
+      "PASS foot contact parentScale=1.294 reads weighted sole geometry instead of renderer bounds",
+      "PASS foot contact parentScale=1.294 world floor correction under rotated scaled parent",
+      "PASS foot contact parentScale=1.294 changed bone pose is measured, not cached renderer envelope",
+      "FAIL foot contact parentScale=1.294 serialized normalization pivot restored by disable callback"
+    ]
+  }
+}

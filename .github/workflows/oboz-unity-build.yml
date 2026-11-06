@@ -703,6 +703,10 @@ jobs:
             ${{ runner.temp }}/oboz-library.tar.zst.enc.json
           key: ${{ steps.profile.outputs.prefix }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: ${{ steps.profile.outputs.prefix }}
+      - name: Odczytaj zgodną trwałą kopię importów obozu, gdy Actions nie ma wpisu
+        if: ${{ steps.cache.outputs.cache-matched-key == '' }}
+        continue-on-error: true
+        run: python3 unity-tools/updates/durable_cache.py download --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
       - name: Odszyfruj zgodne cache, jeśli występuje
         continue-on-error: true
         env:
@@ -755,6 +759,22 @@ jobs:
               f.write('Ostrzeżenia generatora: '+str(diagnostics['warningCount'])+'; błędy: '+str(diagnostics['errorCount'])+'\n\n')
               f.write("APK=NOT_BUILT; PHONE=NOT_TESTED; OWNER_APPROVAL=PENDING\n")
           PY_SCENE
+      - name: Zapisz zaszyfrowane importy po przebiegu sceny
+        id: save_scene_cache
+        if: ${{ !cancelled() && steps.scene.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          KLUCZ: ${{ secrets.BRAXHORN_KEYSTORE_PASS }}
+        run: python3 unity-tools/updates/unity_cache.py pack --zone oboz --archive "$RUNNER_TEMP/oboz-library.tar.zst.enc"
+      - name: Zachowaj nowy wpis pamięci sceny obozu
+        if: ${{ !cancelled() && steps.save_scene_cache.outputs.saved == 'true' }}
+        continue-on-error: true
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ${{ runner.temp }}/oboz-library.tar.zst.enc
+            ${{ runner.temp }}/oboz-library.tar.zst.enc.json
+          key: ${{ steps.profile.outputs.prefix }}${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Tylko tekstowe dowody kontroli obozu — bez zdjęć i APK
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
