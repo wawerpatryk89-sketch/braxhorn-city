@@ -42,8 +42,24 @@ public static partial class BraxClaudeOsiedle
             if (mf && !mf.sharedMesh) bledy.Add("Brak siatki: " + r.name);
             bool maSiatke = mf && mf.sharedMesh || r is SkinnedMeshRenderer;
             if (!maSiatke) continue;
-            if (r.sharedMaterials.Length == 0 || r.sharedMaterials.Any(m => !m || !m.shader || m.shader.name == "Hidden/InternalErrorShader"))
-                bledy.Add("Brak materiału/shadera: " + r.name);
+            if (r.sharedMaterials.Length == 0 || r.sharedMaterials.Any(m => !m || !m.shader
+                || m.shader.name == "Hidden/InternalErrorShader" || !m.shader.isSupported))
+                bledy.Add("Brak materiału albo shader nieobsługiwany: " + r.name);
+            // Wideo osiedla: jaskraworóżowe auta. W Built-In nie można
+            // pozostawić glTF/URP/ShaderGraph na żadnej części widocznego auta.
+            if (r.transform.GetComponentsInParent<Transform>(true)
+                .Any(t => t.name.StartsWith("Auto w ruchu", StringComparison.Ordinal)
+                    || t.name.StartsWith("Auto zaparkowane", StringComparison.Ordinal)
+                    || t.name.StartsWith("Auto Patryka", StringComparison.Ordinal)))
+                foreach (var material in r.sharedMaterials)
+                {
+                    string shader = material && material.shader ? material.shader.name : "";
+                    if (shader.IndexOf("gltf", StringComparison.OrdinalIgnoreCase) >= 0
+                        || shader.IndexOf("Universal Render Pipeline", StringComparison.OrdinalIgnoreCase) >= 0
+                        || shader.IndexOf("Shader Graphs/", StringComparison.OrdinalIgnoreCase) >= 0)
+                        bledy.Add("Auto z shaderem powodującym różowy materiał: "
+                            + r.name + " / " + shader);
+                }
             if (r.name.StartsWith("szyld "))
             {
                 szyldy++;
