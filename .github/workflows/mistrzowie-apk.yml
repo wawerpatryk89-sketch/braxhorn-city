@@ -162,6 +162,7 @@ jobs:
         run: python3 unity-tools/mistrzowie/pipeline.py
       - name: Cheap static C# and Python preflight BEFORE importing bulky owner assets
         run: |
+          python3 unity-tools/validation/check_unity_meta_guids.py --champions
           python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
           python3 -m unittest discover -s unity-tools/validation -p 'test_*.py' -v
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
