@@ -855,6 +855,53 @@ internal static class BraxMiastoOdbior
             raporty.Add(b.id + "=DRZWI_ZAPISANE");
         }
 
+        // Oprócz 17 standardowych portali są osobne, zaprojektowane wejścia
+        // NOVA, Nutrition i klatki Braxa. Test po realnym położeniu skrzydeł
+        // obejmuje wszystkie specjalne drzwi na obu stronach Portowej.
+        int specjalne = 0;
+        foreach (var d in cityRoot.GetComponentsInChildren<BraxDrzwiPrzesuwne>(true))
+        {
+            if (!d || d.transform.position.y < -.20f || d.transform.position.y > 2f ||
+                d.transform.position.x < -104f || d.transform.position.x > 66f) continue;
+            bool pn = d.transform.position.z > 28.5f;
+            if (Mathf.Abs(d.transform.position.z - (pn ? 36.1f : 20.6f)) > 1.4f) continue;
+            bool maSkrzydla = d.skrzydla != null && d.blokady != null &&
+                d.skrzydla.Length >= 2 && d.blokady.Length == d.skrzydla.Length &&
+                d.skrzydla.All(t => t) && d.blokady.All(c => c);
+            if (!maSkrzydla)
+            {
+                brakDrzwi++;
+                raporty.Add("SPECJALNE_PRZESUWNE_" + d.name + "=BRAK_SKRZYDEL");
+            }
+            else raporty.Add("SPECJALNE_PRZESUWNE_" + d.name + "=DRZWI_ZAPISANE");
+            float x = d.transform.position.x, y = .15f, z = d.transform.position.z;
+            Trasa(new Vector3(x, y, pn ? 34.55f : 22.65f),
+                new Vector3(x, y, z + (pn ? 3.6f : -3.6f)), "SPECJALNE_" + d.name);
+            specjalne++;
+        }
+        // Dodatkowe drzwi ręczne projektowane indywidualnie w mieszkaniach
+        // oraz lokalach (nie dublujemy 17 już sprawdzonych).
+        foreach (var d in cityRoot.GetComponentsInChildren<BraxCityDoor>(true))
+        {
+            if (!d || (d.id != null && d.id.StartsWith("R1_PUBLIC_DOOR_", StringComparison.Ordinal)) ||
+                d.transform.position.y < -.20f || d.transform.position.y > 2f ||
+                d.transform.position.x < -104f || d.transform.position.x > 66f) continue;
+            bool pn = d.transform.position.z > 28.5f;
+            if (Mathf.Abs(d.transform.position.z - (pn ? 36.1f : 20.6f)) > 1.4f) continue;
+            if (d.leaves == null || d.leaves.Length == 0 ||
+                d.leaves.Any(t => !t || !t.GetComponentInChildren<Collider>(true)))
+            {
+                brakDrzwi++;
+                raporty.Add("SPECJALNE_RECZNE_" + d.id + "=BRAK_SKRZYDEL");
+            }
+            float x = d.transform.position.x;
+            Trasa(new Vector3(x, .15f, pn ? 34.55f : 22.65f),
+                  new Vector3(x, .15f, d.transform.position.z + (pn ? 3.6f : -3.6f)),
+                  "SPECJALNE_RECZNE_" + d.id);
+            specjalne++;
+        }
+        raporty.Add("SPECJALNE_KONTROLOWANE=" + specjalne);
+
         // Tower x59 przy NOVA. Sprawdzamy nie tylko próg, ale całą oś
         // od chodnika (z35.4) do realnego stanowiska wywołania windy (z~50.5).
         var automatTower = cityRoot.GetComponentsInChildren<BraxDrzwiAutomatyczne>(true)
