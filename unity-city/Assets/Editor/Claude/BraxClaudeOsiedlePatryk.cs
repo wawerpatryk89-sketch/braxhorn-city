@@ -197,17 +197,16 @@ public static partial class BraxClaudeOsiedle
             var wejsciePatryka = klipy.FirstOrDefault(c => c.name == "EnteringCar");
             klipy.Add(PatrykCarIdleZWlasnegoWejscia(hero, spoczynek, wejsciePatryka));
             PatrykSpoczynek(spoczynek);
-            int additionalReady = 0, additionalMissing = 0;
+            int additionalReady = 0;
+            // Wszystkie 22 ruchy są WYMAGANE z przesłanej paczki użytkownika.
+            // Bez kompletu niczego nie publikujemy, nie ukrywamy błędu i
+            // nie wstawiamy żadnego ruchu od innej postaci.
             foreach (var k in DodatkoweKlipyPatryka)
             {
                 string zrodlo = PatrykRuchy + "/" + k.zrodla[0];
                 if (!File.Exists(zrodlo))
-                {
-                    // Nie ma zaszyfrowanej paczki tych 16 plików w obecnym CI.
-                    // Zgłoszenie jest jawne; nie udajemy, że akcja istnieje.
-                    additionalMissing++;
-                    continue;
-                }
+                    throw new InvalidOperationException("PATRYK_OWNER_22: brak wymaganego oryginalnego FBX " +
+                        k.zrodla[0] + ". Nie wolno publikować osiedla z niepełnym zestawem.");
                 AnimationClip dodatkowy;
                 try
                 {
@@ -224,9 +223,11 @@ public static partial class BraxClaudeOsiedle
                 klipy.Add(dodatkowy);
                 additionalReady++;
             }
-            Debug.Log("BRAXHORN_PATRYK_22 właściciel=22, dodatkowe_zaimportowane=" +
-                additionalReady + ", dodatkowe_brakujace_w_CI=" + additionalMissing +
-                " (brakujące nie są udawane ani zastępowane cudzym ruchem)");
+            if (KlipyPatryka.Length + additionalReady != 22)
+                throw new InvalidOperationException("PATRYK_OWNER_22: zaimportowano " +
+                    (KlipyPatryka.Length + additionalReady) + "/22 oryginalnych animacji");
+            Debug.Log("BRAXHORN_PATRYK_22: wszystkie 22 animacje wyłącznie z Patryk anima(6).zip, " +
+                "bez ruchów zastępczych; oryginalny model i szkielet bez zmian");
             var brak = PatrykWymagane.Where(n => !klipy.Any(c => c.name == n)).ToArray();
             if (brak.Length > 0) throw new Exception("brak wymaganych klipów: " + string.Join(", ", brak));
 
