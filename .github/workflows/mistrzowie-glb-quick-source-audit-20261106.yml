@@ -29,6 +29,8 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             unity-tools/mistrzowie/audit_owner_glb_geometry.py
+            unity-tools/mistrzowie/prepare_harbor_crane_compat.py
+            unity-tools/mistrzowie/repair_pool_p1_towels.py
             unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb
       - name: Download the pinned ORIGINAL owner P1 equipment only
         env:
@@ -45,13 +47,32 @@ jobs:
           python3 unity-tools/mistrzowie/audit_owner_glb_geometry.py \
             --owner-zip "$RUNNER_TEMP/P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip" \
             --harbor-glb unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb
+      - name: Prove harbor crane lossless import-only UV conversion
+        run: |
+          python3 unity-tools/mistrzowie/prepare_harbor_crane_compat.py
+          python3 unity-tools/mistrzowie/prepare_harbor_crane_compat.py --apply-runner-only
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,hashlib
+          report=json.loads(Path('mistrzowie-evidence/harbor-crane-uv-compat.json').read_text())
+          old=Path('unity-city/OriginalSources/HarborBeach/harbor_crane.glb').read_bytes()
+          new=Path('unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb').read_bytes()
+          assert hashlib.sha256(old).hexdigest()==report['originalSha256']
+          assert hashlib.sha256(new).hexdigest()==report['derivedSha256']
+          assert report['originalBinaryChunksPreserved']
+          assert report['originalMaterialAndTextureDefinitionsPreserved']
+          assert report['appliedToRunnerWorkspace']
+          print('BRAX_CRANE_IMPORT_COPY_SAFE - tracked owner original preserved in runner, no source commit')
+          PY
       - name: Preserve source integrity and compatibility report
         if: always()
         continue-on-error: true
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: mistrzowie-glb-structural-audit-${{ github.run_id }}
-          path: mistrzowie-evidence/source-glb-audit.json
+          path: |
+            mistrzowie-evidence/source-glb-audit.json
+            mistrzowie-evidence/harbor-crane-uv-compat.json
           if-no-files-found: warn
           retention-days: 14
       - name: Scope statement
