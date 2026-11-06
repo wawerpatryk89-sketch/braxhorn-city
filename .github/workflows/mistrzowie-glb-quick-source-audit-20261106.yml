@@ -10,7 +10,7 @@ on:
 
 permissions:
   # Draft private owner release asset requires the same scoped token permission
-  # as the existing Mistrzowie APK workflow. All steps below are read-only.
+  # as the existing Mistrzowie APK workflow. No GitHub writes are executed.
   contents: write
 
 concurrency:
@@ -29,7 +29,10 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             unity-tools/mistrzowie/audit_owner_glb_geometry.py
-            unity-tools/mistrzowie/prepare_harbor_crane_compat.py
+            unity-tools/mistrzowie/isolate_unused_glb_champions.py
+            unity-tools/mistrzowie/import_pool_p1_owner_assets.py
+            unity-city/Assets/Editor/Mistrzowie
+            unity-city/Assets/Mistrzowie
             unity-tools/mistrzowie/repair_pool_p1_towels.py
             unity-city/Assets/Source/HarborBeach/Models/harbor_crane.glb
       - name: Download the pinned ORIGINAL owner P1 equipment only
@@ -61,6 +64,25 @@ jobs:
                         'sourceNotModified',True,flush=True)
           print('No visual asset substitutions or unsafe UV stripping performed')
           PY
+      - name: Short runner-only proof — no referenced model is removed from game
+        env:
+          MISTRZOWIE_PIPELINE: "20261105-A1-T11"
+        run: |
+          python3 unity-tools/mistrzowie/import_pool_p1_owner_assets.py \
+            "$RUNNER_TEMP/P1_BASEN_SPA_ORIGINALNE_WYPOSAZENIE_20261106.zip"
+          python3 unity-tools/mistrzowie/isolate_unused_glb_champions.py
+          python3 unity-tools/mistrzowie/isolate_unused_glb_champions.py --apply-runner-only
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          v=json.loads(Path("mistrzowie-evidence/isolated-unused-uv-glb.json").read_text())
+          assert v["status"]=="UNUSED_UV_SOURCES_ISOLATED_IN_RUNNER"
+          for m in v["models"]:
+              assert not Path(m["workingPath"]).exists(),m
+              backup=Path(m["preservedPath"])
+              assert backup.is_file() and hashlib.sha256(backup.read_bytes()).hexdigest()==m["sha256"]
+          print("CHAMPIONS_SAFE_UNUSED_GLB_IMPORT_SCOPE_TEST_PASS 2/2")
+          PY
       - name: Preserve source integrity and compatibility report
         if: always()
         continue-on-error: true
@@ -69,6 +91,7 @@ jobs:
           name: mistrzowie-glb-structural-audit-${{ github.run_id }}
           path: |
             mistrzowie-evidence/source-glb-audit.json
+            mistrzowie-evidence/isolated-unused-uv-glb.json
           if-no-files-found: warn
           retention-days: 14
       - name: Scope statement
