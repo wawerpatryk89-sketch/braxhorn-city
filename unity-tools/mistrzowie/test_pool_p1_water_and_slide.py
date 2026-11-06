@@ -13,7 +13,8 @@ POOL=ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1.cs"
 PLAYER=ROOT/"unity-city/Assets/BraxGymPlayer.cs"
 WATER=ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1Water.cs"
 SHADER=ROOT/"unity-city/Assets/Mistrzowie/BraxChampionsPoolWater.shader"
-SWIM=ROOT/"unity-city/Assets/Mistrzowie/BraxChampionsPoolSwimVolume.cs"
+SWIM=ROOT/"unity-city/Assets/Claude/Runtime/BraxSwimmingZone.cs"
+P1_ADAPTER=ROOT/"unity-city/Assets/Mistrzowie/BraxChampionsPoolSwimVolume.cs"
 SLIDE=ROOT/"unity-city/Assets/Editor/Mistrzowie/BraxChampionsPoolP1Slide.cs"
 DOWNLOAD=ROOT/"unity-tools/mistrzowie/prepare_pool_p1_slide.py"
 WORKFLOW=ROOT/".github/workflows/mistrzowie-apk.yml"
@@ -47,16 +48,22 @@ class OwnerApprovedP1WaterAndSlideTests(unittest.TestCase):
         self.assertIn("if(_Bubbles>.01)",shader)
         self.assertIn("public static void Jacuzzi(Transform approvedModel",water)
 
-    def test_swimming_applies_only_to_champions_region(self):
+    def test_swimming_is_shared_by_entire_game_without_anim_edits(self):
         v=SWIM.read_text()
-        self.assertIn('p.cityWorld.area!="mistrzowie"',v)
-        self.assertIn('p.p1Swimming=allowsSwimming;',v)
-        self.assertIn('void OnTriggerExit(Collider other)',v)
+        self.assertIn('public class BraxSwimmingZone : MonoBehaviour',v)
+        self.assertIn('p.EnterSwimmingZone(GetInstanceID(), waterSurface.position.y);',v)
+        self.assertIn('p.ExitSwimmingZone(GetInstanceID());',v)
+        self.assertIn('if (p.vessel || p.seat) return;',v)
+        self.assertNotIn('p.cityWorld.area!="mistrzowie"',v)
+        self.assertIn('public sealed class BraxChampionsPoolSwimVolume : BraxSwimmingZone',
+                      P1_ADAPTER.read_text())
         player=PLAYER.read_text()
-        self.assertIn('cityWorld.area=="mistrzowie" && p1Swimming',player)
-        self.assertIn('float targetFeet=p1WaterSurfaceY-body.height*.60f;',player)
-        self.assertIn('vertical=Mathf.Clamp(error*2.8f,-2.0f,1.55f);',player)
-        self.assertIn('p1Swimming=false;p1WaterVolumeId=0;',player)
+        self.assertIn('public bool Swimming => swimmingZoneId!=0 && !vessel && !seat;',player)
+        self.assertIn('float targetFeet=swimmingSurfaceY-body.height*.60f;',player)
+        self.assertIn('ClearSwimming(); // travelling between districts cannot retain an old water zone',player)
+        self.assertIn('string next=speed>3f?"Run"',player)
+        self.assertNotIn('p1Swimming',player)
+
 
     def test_original_owner_model_fidelity_and_legal_source(self):
         source=DOWNLOAD.read_text()
