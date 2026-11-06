@@ -412,6 +412,9 @@ class EstateSourceRegressions(unittest.TestCase):
         self.assertIn("using System;", salon.split("public static partial class")[0])
         self.assertIn("StringComparison.Ordinal", billboards)
         self.assertIn("throw new InvalidOperationException(", salon)
+        self.assertIn("using Object = UnityEngine.Object;", salon)
+        self.assertIn("Object.Instantiate(hero.gameObject)", salon)
+        self.assertIn("Object.DestroyImmediate(k)", salon)
 
     def test_no_fake_static_player_substitution(self):
         player = source("BraxClaudeOsiedlePatryk.cs")
