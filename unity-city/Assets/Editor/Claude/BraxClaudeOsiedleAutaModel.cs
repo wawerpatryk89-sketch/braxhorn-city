@@ -267,6 +267,43 @@ public static partial class BraxClaudeOsiedle
         matDym = m; return m;
     }
 
+    // Naprawa różowych aut na Androidzie. Tekstury i tint materiału źródłowego
+    // pozostają bez zmian; zamieniany jest tylko shader niezgodny z projektem Built-In.
+    static Material MaterialAutaAndroid(Material source)
+    {
+        if (!source) throw new InvalidOperationException("Auto ma pusty materiał GLB");
+        if (BraxCityMaterials.IsCityMaterial(source)) return source;
+        if (source.HasProperty("baseColorFactor") && source.HasProperty("roughnessFactor") && source.HasProperty("metallicFactor"))
+            return BraxCityMaterials.Imported(source);
+        string shader = source.shader ? source.shader.name : "";
+        bool niezgodny = !source.shader || !source.shader.isSupported
+            || shader.IndexOf("gltf", StringComparison.OrdinalIgnoreCase) >= 0
+            || shader.IndexOf("Universal Render Pipeline", StringComparison.OrdinalIgnoreCase) >= 0
+            || shader.IndexOf("Shader Graphs/", StringComparison.OrdinalIgnoreCase) >= 0;
+        if (!niezgodny) return source;
+        Texture Tex(params string[] names)
+        {
+            foreach (string key in names)
+                if (source.HasProperty(key) && source.GetTexture(key)) return source.GetTexture(key);
+            return null;
+        }
+        Color baseColor = source.HasProperty("baseColorFactor") ? source.GetColor("baseColorFactor")
+            : source.HasProperty("_BaseColor") ? source.GetColor("_BaseColor")
+            : source.HasProperty("_Color") ? source.GetColor("_Color") : Color.white;
+        float rough = source.HasProperty("roughnessFactor") ? source.GetFloat("roughnessFactor") : .7f;
+        float metallic = source.HasProperty("metallicFactor") ? source.GetFloat("metallicFactor") : 0f;
+        var albedo = Tex("baseColorTexture", "_BaseMap", "_MainTex");
+        var normal = Tex("normalTexture", "_BumpMap");
+        var arm = Tex("metallicRoughnessTexture", "_ARM", "_MetallicGlossMap");
+        var converted = albedo
+            ? BraxCityMaterials.Textured("Auto Android / " + source.name, albedo, normal, arm)
+            : BraxCityMaterials.Surface("Auto Android / " + source.name, baseColor, rough, metallic);
+        if (albedo && converted.HasProperty("_Color")) converted.SetColor("_Color", baseColor);
+        Debug.Log("BRAXHORN_AUTO_MATERIAL naprawiony shader " + shader + " -> " + BraxCityMaterials.ShaderName
+            + " materiał=" + source.name + " albedo=" + (albedo ? albedo.name : "brak"));
+        return converted;
+    }
+
     static int autoSiatki;
     static AutoSzablon PrzygotujAuto(GameObject src, Transform rodzic)
     {
@@ -280,8 +317,7 @@ public static partial class BraxClaudeOsiedle
         {
             var materials = renderer.sharedMaterials;
             for (int i = 0; i < materials.Length; i++)
-                if (materials[i] && materials[i].HasProperty("baseColorFactor") && materials[i].HasProperty("roughnessFactor"))
-                    materials[i] = BraxCityMaterials.Imported(materials[i]);
+                materials[i] = MaterialAutaAndroid(materials[i]);
             renderer.sharedMaterials = materials;
         }
         // Nie ukrywaj całej karoserii, gdy źródło GLB używa SkinnedMeshRenderer.
