@@ -1,0 +1,126 @@
+name: "Obóz — 4 szybkie testy, bez Unity i APK"
+
+on:
+  push:
+    branches:
+      - codex/oboz-przebudowa-pbr-20261105
+    paths:
+      - .github/workflows/oboz-microchecks-no-unity.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oboz-microchecks-no-unity
+  cancel-in-progress: true
+
+jobs:
+  scripts:
+    name: "01 / składnia importerów Python"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/oboz/
+            unity-tools/validation/
+      - name: Tylko sprawdzenie parsowania Python, bez pobierania modeli
+        run: |
+          set -euo pipefail
+          python3 -m compileall -q unity-tools/oboz unity-tools/validation
+          echo "OBOZ_MICRO_PYTHON_SYNTAX=PASS"
+
+  owner_contract:
+    name: "02 / właścicielskie modele i zlecenie: testy kodu"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .gitignore
+            .github/workflows/
+            unity-tools/oboz/
+            unity-city/Assets/Editor/Oboz/
+            unity-city/Assets/Oboz/
+      - name: Zlecenie: oryginalne łóżka/kuchnie/trawa/24 worki/murale i preflight
+        run: |
+          set -euo pipefail
+          python3 -m unittest -v unity-tools/oboz/tests/test_owner_camp_completion_contract.py
+          python3 -m unittest -v unity-tools/oboz/tests/test_compact_owner_remodel.py
+          echo "OBOZ_MICRO_OWNER_CONTRACT=PASS; NOT_A_UNITY_RENDER_TEST"
+
+  walkways_and_archives:
+    name: "03 / chodniki, bieżnie, archiwa Blender"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/oboz/
+            unity-city/Assets/Editor/Oboz/
+      - name: Bez Unity: pięć testów połączeń i przejść
+        run: |
+          set -euo pipefail
+          python3 -m unittest -v unity-tools/oboz/tests/test_oboz_walkways_quick.py
+          echo "OBOZ_MICRO_WALKWAYS=PASS; UNITY_NAVMESH_UNVERIFIED"
+      - name: Bez Unity: błędne archiwum odrzucone, prawidłowe przyjęte
+        run: |
+          set -euo pipefail
+          python3 -m unittest -v unity-tools/oboz/tests/test_owner_blender_nested_zip.py
+          echo "OBOZ_MICRO_NESTED_OWNER_ZIPS=PASS"
+
+  csharp:
+    name: "04 / statyczny parser C#, bez Unity"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .gitignore
+            unity-tools/validation/
+            unity-city/Assets/
+      - name: Zainstaluj WYŁĄCZNIE parser zakresów C#
+        run: python3 -m pip install --disable-pip-version-check -r unity-tools/validation/requirements.txt
+      - name: C# lokalne zmienne, kolizje nazw, weryfikacja składni
+        run: |
+          set -euo pipefail
+          python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
+          echo "OBOZ_MICRO_CSHARP=PASS; UNITY_COMPILATION_NOT_RUN"
+
+  draft_sources:
+    name: "05 / prywatny GitHub Release: brakujące oryginały"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            unity-tools/oboz/
+      - name: Tylko metadane prywatnego wydania, bez pobierania 345 MB
+        run: |
+          set -euo pipefail
+          python3 unity-tools/oboz/owner_release_assets.py preflight
+          python3 unity-tools/oboz/owner_extra_assets.py preflight
+          echo "OBOZ_MICRO_PRIVATE_RELEASE=PASS; APK_NOT_STARTED"
+
+# This workflow never invokes game-ci/unity-builder, Unity Editor, APK or AAB.
