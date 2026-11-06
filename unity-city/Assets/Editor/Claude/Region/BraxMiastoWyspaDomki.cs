@@ -67,6 +67,28 @@ internal static partial class BraxMiastoWyspa
         var deski = BraxNabrzeze.Mat("Wyspa: deski deptaku plażowego", 1.5f, new Color(.86f, .76f, .62f), "wood_planks_grey", "wooden_planks", "wood_planks");
         var legar = BraxNabrzeze.Kolor("Wyspa: legary deptaku (impregnat)", new Color(.32f, .25f, .18f), .9f);
         float hw = 1.5f * K;   // deptak plażowy 3 m × k
+        // Rezerwujemy korytarze ratowników ZANIM postawimy ławki, kosze
+        // i latarnie. Zdarzały się przecięcia z później dodanymi kładkami.
+        bool KladkaZajmuje(Vector3 punkt, float polRozmiaru)
+        {
+            var pos = new Vector2(punkt.x, punkt.z);
+            var center = new Vector2(CX, CZ);
+            foreach (var (_, wd) in wiezyczki)
+            {
+                var direction = new Vector2(wd.x, wd.z).normalized;
+                if (direction.sqrMagnitude < .9f) continue;
+                float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                float r = LiniaWody(angle);
+                var pocz = center + direction * (r - 39f);
+                var kon = center + direction * (r - 15f);
+                var length = (kon - pocz).magnitude;
+                float along = Vector2.Dot(pos - pocz, direction);
+                if (along < -polRozmiaru || along > length + polRozmiaru) continue;
+                var nearest = pocz + direction * Mathf.Clamp(along, 0f, length);
+                if (Vector2.Distance(pos, nearest) < .9f * K + polRozmiaru + .3f) return true;
+            }
+            return false;
+        }
         // 1) DEPTAK Z DESEK wzdłuż plaży, ~38 m od wody (za rzędami leżaków), na legarach 25 cm nad piaskiem
         var pts = new List<Vector3>();
         for (float a = PlazaOd + 4f; a <= PlazaDo - 4f; a += .9f)
@@ -88,28 +110,104 @@ internal static partial class BraxMiastoWyspa
             foreach (float o in new[] { -hw + .25f, hw - .25f }) { var pp = a + rot * new Vector3(o, 0, 0); z[legar].Rura(new Vector3(pp.x, Y(pp.x, pp.z) - .4f, pp.z), pp + Vector3.down * .2f, .07f, 6); }
             BraxNabrzeze.KolRot(kol, "Deptak plażowy", (a + b) * .5f + Vector3.down * .1f, new Vector3(hw * 2f, .2f, len + .03f), rot);
             mDeptakuPlazy += len;
-            if (i % 20 == 5) { var lp = a + rot * new Vector3(-hw - .5f, 0, 0); lp.y = Y(lp.x, lp.z); BraxNabrzezeMebel.Latarnia(z, str, m, lp, rot.eulerAngles.y); nLatarnie++; Zajmij(lp, .6f); }
+            if (i % 20 == 5)
+            {
+                var lp = a + rot * new Vector3(-hw - .5f, 0, 0);
+                lp.y = Y(lp.x, lp.z);
+                if (!KladkaZajmuje(lp, .6f) && !Zajete(lp.x, lp.z, .6f))
+                {
+                    BraxNabrzezeMebel.Latarnia(z, str, m, lp, rot.eulerAngles.y);
+                    nLatarnie++; Zajmij(lp, .6f);
+                }
+            }
             if (i % 26 == 12)
             {
                 var lp = a + rot * new Vector3(hw + .9f, 0, 0); lp.y = Y(lp.x, lp.z);
                 float yaw = Quaternion.LookRotation(rot * Vector3.right).eulerAngles.y;      // ławka przodem do morza
-                BraxNabrzezeMebel.Lawka(z, str, m, lp, yaw, "Ławka deptaku plażowego"); nLawki++; Zajmij(lp, 1.4f);
-                var kp = lp + rot * new Vector3(0, 0, 1.6f * K); kp.y = Y(kp.x, kp.z); BraxNabrzezeMebel.Kosz(z, str, m, kp); nKosze++;
+                if (!KladkaZajmuje(lp, 1.4f) && !Zajete(lp.x, lp.z, 1.4f))
+                {
+                    BraxNabrzezeMebel.Lawka(z, str, m, lp, yaw, "Ławka deptaku plażowego");
+                    nLawki++; Zajmij(lp, 1.4f);
+                    var kp = lp + rot * new Vector3(0, 0, 1.6f * K);
+                    kp.y = Y(kp.x, kp.z);
+                    if (!KladkaZajmuje(kp, .45f) && !Zajete(kp.x, kp.z, .45f))
+                    {
+                        BraxNabrzezeMebel.Kosz(z, str, m, kp);
+                        nKosze++; Zajmij(kp, .45f);
+                    }
+                }
             }
         }
-        // 2) KŁADKI z deptaku do każdej wieżyczki ratownika (po piasku, 1.8 m × k)
+        // 2) KŁADKI do ratowników: deski i KOLIZJA tej samej geometrii.
+        // Wcześniej deski miały wizualne ułożenie na piasku, ale BEZ collidera
+        // postać stąpała poniżej desek. Złącze z promenadą wyrównane.
+        int kladki = 0, laczeniaDoSprawdzenia = 0, segmentyFizyki = 0;
         foreach (var (wp, wd) in wiezyczki)
         {
-            float ang = Mathf.Atan2(wd.z, wd.x) * Mathf.Rad2Deg; float rs = LiniaWody(ang);
-            var a = new Vector3(CX, 0, CZ) + wd * (rs - 37f); var b = new Vector3(CX, 0, CZ) + wd * (rs - 16f);
-            var dir = (b - a); float len = dir.magnitude; var rot = Quaternion.LookRotation(dir / len, Vector3.up);
-            for (float s = 0; s < len; s += .16f)
+            float ang = Mathf.Atan2(wd.z, wd.x) * Mathf.Rad2Deg;
+            float rs = LiniaWody(ang);
+            var a = new Vector3(CX, 0, CZ) + wd * (rs - 37f);
+            var b = new Vector3(CX, 0, CZ) + wd * (rs - 16f);
+            Vector3 dir = (b - a).normalized;
+            float len = Vector3.Distance(a, b);
+            if (len < 1f) { laczeniaDoSprawdzenia++; continue; }
+            var rot = Quaternion.LookRotation(dir, Vector3.up);
+            // Początek kładki zachodzi wewnątrz promenady. Jej rzeczywista
+            // wysokość w tej osi stanowi poziom połączenia.
+            float nearest = float.PositiveInfinity, promenadeY = Y(a.x, a.z) + .12f;
+            foreach (var v in pts)
             {
-                var p = a + dir / len * (s + .075f); p.y = Y(p.x, p.z) + .1f;
-                z[deski].Box(p, new Vector3(.9f * K * 2f, .05f, .14f), rot);
-                if (((int)(s / .16f)) % 6 == 0) foreach (float o in new[] { -.7f * K, .7f * K }) z[legar].Box(p + rot * new Vector3(o, -.16f, 0), new Vector3(.1f, .24f, 1.0f), rot);   // legary w piasku (deski nie wiszą)
+                float d = (new Vector2(v.x - a.x, v.z - a.z)).sqrMagnitude;
+                if (d < nearest) { nearest = d; promenadeY = v.y; }
             }
+            if (nearest > 4f * 4f) { laczeniaDoSprawdzenia++; promenadeY = Y(a.x, a.z) + .12f; }
+            int n = Mathf.CeilToInt(len);
+            float step = len / n;
+            var height = new float[n + 1];
+            for (int i = 0; i <= n; i++)
+            {
+                var p = a + dir * (i * step);
+                height[i] = Y(p.x, p.z) + .12f;
+            }
+            height[0] = Mathf.Max(height[0], promenadeY);
+            // Nie dopuszczamy lokalnych skoków większych niż 12 cm / m.
+            for (int i = 1; i <= n; i++)
+                height[i] = Mathf.Max(height[i], height[i - 1] - .12f * step);
+            for (int i = n - 1; i >= 0; i--)
+                height[i] = Mathf.Max(height[i], height[i + 1] - .12f * step);
+            if (Mathf.Abs(height[0] - promenadeY) > .16f) laczeniaDoSprawdzenia++;
+            for (int i = 0; i < n; i++)
+            {
+                var p0 = a + dir * (i * step); p0.y = height[i];
+                var p1 = a + dir * ((i + 1) * step); p1.y = height[i + 1];
+                var v = p1 - p0;
+                var rot3 = Quaternion.LookRotation(v.normalized, Vector3.up);
+                for (float t = 0f; t < step - .001f; t += .16f)
+                {
+                    float sample = Mathf.Min(step, t + .075f) / step;
+                    var q = Vector3.Lerp(p0, p1, sample);
+                    z[deski].Box(q - Vector3.up * .025f,
+                        new Vector3(.9f * K * 2f, .05f, .14f), rot3);
+                }
+                foreach (float side in new[] { -.7f * K, .7f * K })
+                    {
+                        var q = p0 + rot * Vector3.right * side;
+                        z[legar].Rura(new Vector3(q.x, Y(q.x, q.z) - .24f, q.z),
+                            q + Vector3.down * .10f, .06f, 6);
+                    }
+                BraxNabrzeze.KolRot(kol, "Wyspa kładka do ratownika (fizyka)",
+                    (p0 + p1) * .5f - Vector3.up * .10f,
+                    new Vector3(1.8f * K, .20f, v.magnitude + .012f), rot3);
+                segmentyFizyki++;
+                Zajmij((p0 + p1) * .5f, .9f * K + .35f);
+            }
+            kladki++;
         }
+        string wynikKladki = "WYSPA_KLADKI_SPOJNOSC kladki=" + kladki +
+            " segmenty_kolizji=" + segmentyFizyki +
+            " złącza_do_sprawdzenia=" + laczeniaDoSprawdzenia;
+        if (laczeniaDoSprawdzenia > 0) BraxBuildQuality.Warn(wynikKladki + " — ostrzeżenie bez blokowania APK");
+        else Debug.Log(wynikKladki);
         // 3) ZAPLECZE PLAŻY za deptakiem: przebieralnie, WC, wypożyczalnia, bar na plaży
         var drewno = BraxMiastoA.Tex("Wyspa: deskowanie budek plażowych", 1.2f, new Color(.95f, .93f, .88f), new Color(.85f, .82f, .76f), .8f, "wood_plank_wall", "wood_planks_grey");
         var tynk = BraxMiastoA.Tex("Wyspa: tynk biały (WC)", 2f, new Color(.95f, .95f, .93f), new Color(.92f, .92f, .9f), .85f, "white_plaster_02", "concrete_wall_008");
