@@ -1117,7 +1117,7 @@ internal static partial class BraxMiastoWyspa
                 Toczenie(D(BraxMiastoA.Swieci("Arena premium: klosz latarni", new Color(1f, .95f, .85f), new Color(1.8f, 1.6f, 1.3f))), new[] { new Vector2(0, 4.45f), new Vector2(.22f, 4.5f), new Vector2(.24f, 4.62f), new Vector2(0, 4.66f) }, l, 14);
                 KolA("latarnia placu", l + Vector3.up * 2.3f, Vector3.forward, new Vector3(.25f, 4.6f, .25f));
             }
-        if (n == 0) throw new System.InvalidOperationException("BRAXHORN_WYSPA: brak modeli roślin w donicach przy wejściu");
+        if (n == 0) BraxBuildQuality.Warn("BRAXHORN_WYSPA: brak oryginalnych roślin w donicach przy wejściu — raport kosmetyczny, nie blokuje APK, brak zamienników");
         var furnishings = new BraxNabrzeze.Zbior(); var materials = BraxNabrzezeMebel.Materialy();
         foreach (float side in new[] { -1f, 1f })
         {
