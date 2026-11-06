@@ -336,15 +336,20 @@ public static partial class BraxClaudeOsiedle
             }
             string asset = Out + "/auto_" + Safe(src.name) + "_skinned_bake_" + (autoSiatki++) + ".asset";
             AssetDatabase.CreateAsset(baked, asset);
-            var geometry = sk.gameObject.AddComponent<MeshFilter>();
-            geometry.sharedMesh = baked;
-            var view = sk.gameObject.AddComponent<MeshRenderer>();
+            var host = sk.gameObject;
             var materials = sk.sharedMaterials;
             for (int i = 0; i < materials.Length; i++) materials[i] = MaterialAutaAndroid(materials[i]);
+            // Nie dodawaj MeshRenderer, kiedy SkinnedMeshRenderer nadal działa
+            // na tym samym obiekcie (dwie implementacje Renderer naraz).
+            UnityEngine.Object.DestroyImmediate(sk);
+            var geometry = host.GetComponent<MeshFilter>();
+            if (!geometry) geometry = host.AddComponent<MeshFilter>();
+            geometry.sharedMesh = baked;
+            var view = host.GetComponent<MeshRenderer>();
+            if (!view) view = host.AddComponent<MeshRenderer>();
             view.sharedMaterials = materials;
             view.shadowCastingMode = ShadowCastingMode.On;
             view.receiveShadows = true;
-            UnityEngine.Object.DestroyImmediate(sk);
             Debug.Log("BRAXHORN_AUTO_SKIN_BAKE " + src.name + " vertices=" + baked.vertexCount +
                 " model źródłowy bez zmian");
         }
