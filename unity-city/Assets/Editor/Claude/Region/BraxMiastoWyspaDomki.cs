@@ -564,6 +564,9 @@ internal static partial class BraxMiastoWyspa
     /// spustową, kalenica, lampa przy drzwiach, ścieżka do chodnika. Zwraca stopę schodów (lokalnie) albo null, gdy teren zły.</summary>
     static Vector2? Domek(BraxNabrzeze.Zbior z, BraxNabrzezeMebel.Mat m, Vector2 c, Vector2 fw2, float w, float d, int paleta, string tabliczka, string szyld = null)
     {
+        // Nie stawiamy domku NA zaplanowanej alei (drogi budowane są
+        // dopiero po budynkach, więc zwykła fizyka nie wykrywa tego konfliktu).
+        if (WInnym(c, -1, Mathf.Max(w, d) * .55f + .4f, false)) return null;
         var fw = new Vector3(fw2.x, 0, fw2.y).normalized; var rg = Vector3.Cross(Vector3.up, fw);
         float tD = 2.2f * K, h = 2.6f * K;
         // teren pod bryłą i tarasem
@@ -859,7 +862,16 @@ internal static partial class BraxMiastoWyspa
                 {
                     var lp = a + dir * (t + 5f) + bk * (hw + .2f * K + 1.0f); if (!NaLadzie(lp.x, lp.y, 1.2f) || WInnym(lp, -1, 1.2f, false) || Zajete(CX + lp.x, CZ + lp.y, 1.2f)) continue;
                     var l3 = Sw(lp.x, lp.y); BraxNabrzezeMebel.Lawka(z, root, m, l3, Quaternion.LookRotation(new Vector3(-bk.x, 0, -bk.y)).eulerAngles.y, "Ławka alei ośrodka"); nLawki++; Zajmij(l3, 1.4f);
-                    var kp = a + dir * (t + 6.6f) + bk * (hw + .2f * K + .7f); var k3 = Sw(kp.x, kp.y); BraxNabrzezeMebel.Kosz(z, root, m, k3); nKosze++;
+                    var kp = a + dir * (t + 6.6f) + bk * (hw + .2f * K + .7f);
+                    // Kosz miał pozycję niezależną od chodników poprzecznych.
+                    if (NaLadzie(kp.x, kp.y, 1.2f) &&
+                        !WInnym(kp, -1, .65f, false) &&
+                        !Zajete(CX + kp.x, CZ + kp.y, .5f))
+                    {
+                        var k3 = Sw(kp.x, kp.y);
+                        BraxNabrzezeMebel.Kosz(z, root, m, k3);
+                        nKosze++; Zajmij(k3, .5f);
+                    }
                 }
             }
         }
@@ -936,8 +948,20 @@ internal static partial class BraxMiastoWyspa
                 Punkt(Vector3.Lerp(a, b, i / (float)n), wzorzec, nazwa, ref przed, ref pozycja);
         }
         foreach (var (a, b, szer, kraw, nazwa) in plan)
-            Linia(new Vector3(CX + a.x, 0, CZ + a.y), new Vector3(CX + b.x, 0, CZ + b.y),
-                "Wyspa chodnik fizyka", nazwa, 1.25f);
+        {
+            var start = a; var dx = b - a;
+            // Łącznik startuje na płaskiej płycie placu ARENY, a własny
+            // chodnik dopiero na krawędzi placu. Nie zgłaszamy tej części
+            // jako dziury tylko dlatego, że podłoże jest z terenu placu.
+            if (nazwa == "łącznik z placu areny" && dx.sqrMagnitude > .01f)
+            {
+                float odKrawedzi = Mathf.Max(0f, PlacR - Vector2.Distance(a, Plac) + .12f);
+                start = a + dx.normalized * Mathf.Min(dx.magnitude, odKrawedzi);
+            }
+            Linia(new Vector3(CX + start.x, 0, CZ + start.y),
+                  new Vector3(CX + b.x, 0, CZ + b.y),
+                  "Wyspa chodnik fizyka", nazwa, 1.25f);
+        }
         if (!Miejsca.ContainsKey("wyspa_polaczenie_plaza_a2"))
         {
             przerwy++;
