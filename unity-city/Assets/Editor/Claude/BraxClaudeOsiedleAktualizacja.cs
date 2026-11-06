@@ -32,7 +32,14 @@ public static partial class BraxClaudeOsiedle
         var bledy = new List<string>();
         if (!ruchZweryfikowany) bledy.Add("Nie wykonano testu ruchu");
         if (bladRuchu != null) bledy.Add(bladRuchu);
-        bledy.AddRange(rep.notes.Where(n => n.StartsWith("BŁĄD w kroku")));
+        // Nie maskuj niedostępnych modeli, shaderów, klipów ani pomieszczeń.
+        // Dotąd zbierano wyłącznie "BŁĄD w kroku", pomijając wszystkie
+        // jawne "DO POPRAWKI: ..." z wielu generatorów (auta, NPC, drzwi).
+        bledy.AddRange(rep.notes.Where(n => !string.IsNullOrEmpty(n) &&
+            (n.StartsWith("BŁĄD w kroku", StringComparison.OrdinalIgnoreCase)
+             || n.StartsWith("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase)
+             || n.IndexOf("DO POPRAWKI:", StringComparison.OrdinalIgnoreCase) >= 0))
+            .Distinct(StringComparer.Ordinal));
         var renderery = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Renderer>(true)).ToArray();
         int szyldy = 0;
         foreach (var r in renderery)
@@ -134,6 +141,8 @@ public static partial class BraxClaudeOsiedle
             }
         Debug.Log("BRAXHORN_OSIEDLE_POSTAC_AUTA Patryk=" + patryki.Length
             + " auta_gracza=" + samochodyGracza.Length + " auta_widoczne=" + wszystkieAuta.Length);
+        if (MiejscaParkingowe.Count == 0)
+            bledy.Add("Brak wyznaczonych zatok parkingowych — nie można potwierdzić parkowania i auta Patryka");
         foreach (var m in MiejscaParkingowe)
             if (m.rozmiar.x < 3f * K - .001f || m.rozmiar.y < 5f * K - .001f) bledy.Add("Za mała zatoka " + m.srodek);
         try { TestTozsamosciMaterialu(); } catch (Exception e) { bledy.Add("Regresja materiału: " + e.Message); }
