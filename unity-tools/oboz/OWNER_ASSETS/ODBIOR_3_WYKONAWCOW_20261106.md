@@ -19,7 +19,7 @@ Zakres: TYLKO obóz w Unity 6000.0.58f2, Android mobile-first. Jedna aplikacja B
 - [ ] Długie liny treningowe: aktualne `rope-coil.glb` to zwoje, a nie pełne liny aktywne; brak akceptacji oznacza NIEGOTOWE.
 - [ ] 24 oryginalne worki skórzane, nie proste cylindry; zawieszenie, kolizje i odgłos trafienia.
 - [ ] Cztery oryginalne murale na właściwych budynkach, bez pustych tablic i przycinania obrazu; szyld bramy mocowany fizycznie.
-- [ ] Trawa: Grass Medium 01 + 02 2K jako rzeczywista gęsta murawa. Obecny kod `BraxObozVegetation.Grass` wciąż tworzy instancje `grass_bermuda_01_seedling_d__unity.glb`; wymaga odrębnej przebudowy i pomiaru FPS.
+- [ ] Trawa: Grass Medium 01 + 02 2K jako rzeczywista gęsta murawa. Nowy kod `BraxObozVegetation.Grass` zastępuje Bermuda oryginalnymi GLB Grass Medium 01/02 z atlasami PBR 2K; eksport Blendera i prawidłowe zagęszczenie wymagają sprawdzenia w Unity i pomiaru FPS.
 - [ ] Błoto `mud_forest_2k`, zagłębienia, pobocza, poprawne UV/Normal/Roughness/Height; nie rozlewać błota po trawniku i trasach.
 - [ ] Elewacja łaźni od zewnątrz ciemne PBR zgodnie z najnowszym poleceniem właściciela; w środku jasne białe cieniowane płytki PBR z Poly Haven. Poprzedni dokument podawał jasną elewację i ciemną podłogę: pierwszeństwo ma Nowsze polecenie użytkownika.
 - [ ] Nie zmieniać postaci ani ich oryginalnych FBX.
@@ -29,14 +29,14 @@ Zakres: TYLKO obóz w Unity 6000.0.58f2, Android mobile-first. Jedna aplikacja B
 - [ ] Byk: oryginalny model, front do wjazdu (odwrócony o 180° w kodzie), stabilny cokół bez kolizji z autobusem.
 - [ ] Szyld: przylega do belki i wsporników nad bramą, brak wizualnego wiszenia, pełne światło bramy, nieodwrócone napisy, całe logo.
 - [ ] Bieżnia pełna wokół nowego ogrodzenia + odrębna prosta dokładnie 100 metrów, białe linie. Chodniki i kostka NIE przecinają czerwonej nawierzchni. Samo usunięcie pasów geometrycznych nie rozwiązuje kolizji głównych ścieżek.
-- [ ] Wszystkie 4 domki dwuosobowe, **kod już instancjonuje dwa oryginalne `ikea_idanas_single_bed.glb` na domek (8 sztuk)** zamiast łóżek z brył; oryginalny GLB jest zweryfikowany w prywatnym Release. Nadal wymagany odbiór w Unity: orientacja, skala, wysokość materaca, kolizje i komfort wejścia. Osobno: wojskowe szafki, kuchnia polowa, umywalka, kosze, pełne dojścia i drzwi.
-- [ ] Stołówka: rzeczywisty `kitchen_-_assets.glb`, witryna, sztućce, garnki, tace, stoły bez blokowania korytarzy. `picnic_set_1.glb` zweryfikować: to drewniana ławka, nie kompletny stół.
+- [ ] Wszystkie 4 domki dwuosobowe: kod instancjonuje **8 oryginalnych IKEA IDANAS**, **8 metalowych szafek**, oryginalną kuchenkę polową + butlę, półkę, stół polowy, talerz i zlew z baterią oraz metalowy kosz 3D na domek. Nadal wymagany odbiór w Unity: wysokości, obrót, kolizje, przejścia do wejść, woda, łóżka i wyposażenie.
+- [ ] Stołówka: kod instancjonuje rzeczywisty `kitchen_-_assets.glb`, witrynę, sztućce, garnki, tace oraz **2 oryginalne CookingTable z GLB** i 2 drewniane ławki `picnic_set_1.glb`; brak odbioru dostępu do stołów, kolizji i wysokości naczyń.
 - [ ] Łaźnia betonowa: wymienić białą prowizoryczną elewację. Pisuary, WC, brodziki, umywalki i baterie muszą stykać się z posadzką/ścianami; spłukiwanie, krany, prysznice i drzwi działają. Bez wiszących ceramik.
 - [ ] Układ sanitariatów bez nakładania koliderów na drzwi; test przejścia, kamery, NavMesh.
 - [ ] Ogrodzenie zamknięte, główna brama pozostaje w ustalonym miejscu, przestrzenie niepuste, wszystkie chodniki mają obrzeża.
 
 ## Kontrola C — UNITY / ANDROID / WYDANIE
-- [ ] Unity Edit Mode: import 3 dodatkowych oryginalnych modeli, kontrola GUID, materiałów, rozdzielczości PBR, prefabów i pozycji world bounds.
+- [ ] Unity Edit Mode: import GLB łóżka, siłowni/opon, Grass Medium 01/02, szafki 4K, oryginalnej kuchni; kontrola GUID, materiałów, rozdzielczości PBR, prefabów i pozycji world bounds. **Dodano `owner_geometry_preflight.py`, który w workflow sprawdza rzeczywistą zawartość źródłowych GLB i FBX oraz obecność wszystkich PBR przed Unity**. To jest test struktury assetów, nie odbiór wyglądu.
 - [ ] Unity Play Mode: stanowiska, wejścia, kolizje, ścieżki NPC, przystanek, schodki ringów, działa fizyka worków.
 - [ ] Monika: użytkownik zgłasza delikatne unoszenie i kołysanie podczas Idle. Sprawdzić controller capsule, punkt styku stopy z terenem, root motion i bezruch kamery. Nie zmieniać rigów/źródłowych animacji bez zgody.
 - [ ] Rzeczywisty podpis, package ID i zgodność z główną aplikacją BRAXHORN CITY; brak udawania aktualizacji przez osobne `com.braxhorn.oboz`.
@@ -46,4 +46,4 @@ Zakres: TYLKO obóz w Unity 6000.0.58f2, Android mobile-first. Jedna aplikacja B
 ## Wymagany wynik trzech niezależnych kontroli
 Każdy audytor oddaje: SHA commita, listę faktycznych źródeł i SHA plików, zdjęcia wszystkich stref z telefonu, raport porównania z czterema filmami użytkownika, jawne testy PASS/FAIL oraz problemy blokujące. Odbiór dopiero po zgodnych trzech raportach oraz akceptacji właściciela. Zielony GitHub Actions = skompilowane, nie = wizualnie ukończone.
 
-**Nieukończone na dziś:** łóżka IDANAS i siłownia/opony są już dostarczone i podłączone w kodzie, lecz nie są zatwierdzone wizualnie ani przetestowane w Unity; Grass Medium 3D; końcowy odbiór ciemnej elewacji i białych płytek łaźni; pełny test rozmieszczenia; Monika Idle; aktualizacja .braxupdate na telefonie. Nie zatajać tych blokad.
+**Nieodebrane na dziś:** łóżka, kuchnie polowe, kosze, siłownia/opony, Grass Medium GLB, zielone rondo, ciemna elewacja i białe płytki łaźni nie mają testu w Unity ani na Androidzie; drugi zatwierdzony model skórzanego worka nie został znaleziony, długie aktywne liny nie zostały potwierdzone; pełny test rozmieszczenia, przejść, Monika Idle i aktualizacja .braxupdate także pozostają otwarte. ŻADNEGO ogłoszenia gotowości na podstawie samych commitów lub pozytywnych statycznych testów.
