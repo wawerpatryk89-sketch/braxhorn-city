@@ -27,10 +27,27 @@ def main():
     if not meshes:meshes=[o for o in bpy.data.objects if o.type=='MESH']
     if not meshes:raise RuntimeError("No original mesh objects in owner .blend: "+str(input_file))
     # Do not change vertices, faces, UVs, armatures or modifiers.
-    # Blender exporter evaluates the original scene without decimation.
+    # Some original .blend meshes live in collections outside the active
+    # ViewLayer. Merely calling select_set() raises RuntimeError in Blender 4.5.
+    # Link the SAME source objects and their transform parents to a temporary,
+    # visible collection in the current scene. Never save the source .blend.
+    staging=bpy.data.collections.new("BRAXHORN_TEMP_SOURCE_EXPORT")
+    bpy.context.scene.collection.children.link(staging)
+    for obj in meshes:
+        node=obj
+        while node is not None:
+            if staging.objects.get(node.name) is None:
+                staging.objects.link(node)
+            node=node.parent
+    bpy.context.view_layer.update()
     bpy.ops.object.select_all(action='DESELECT')
     for obj in meshes:
+        # Visibility/selection changes exist only in the unsaved Blender session.
+        obj.hide_viewport=False
+        obj.hide_select=False
         obj.hide_set(False)
+        if bpy.context.view_layer.objects.get(obj.name) is None:
+            raise RuntimeError("Owner mesh absent from export ViewLayer: "+obj.name)
         obj.select_set(True)
     bpy.context.view_layer.objects.active=meshes[0]
     target=output_file.resolve()
