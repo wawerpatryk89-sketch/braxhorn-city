@@ -66,6 +66,7 @@ jobs:
         run: |
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_apk_quality_gate_regression.py' -v
+          python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_brax_source_readiness.py' -v
       - name: Evidence — source tests only
         if: always()
         run: |
