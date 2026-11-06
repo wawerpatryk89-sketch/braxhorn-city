@@ -67,6 +67,18 @@ jobs:
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_native_vegetation_glb.py' -v
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_early_import_readiness.py' -v
           python3 -m unittest discover -s unity-tools/mistrzowie -p 'test_owner_mural_import_advisory.py' -v
+      - name: Ensure all tracked C-sharp sources are present; never claim full audit from sparse checkout
+        run: |
+          python3 - <<'PY_COMPLETE_CSHARP'
+          from pathlib import Path
+          import subprocess
+          paths=subprocess.check_output(['git','ls-files','unity-city/Assets'],text=True).splitlines()
+          code=[x for x in paths if x.endswith('.cs')]
+          missing=[p for p in code if not Path(p).is_file()]
+          print('CHAMPIONS_AUDIT_TRACKED_CSHARP',len(code),'AVAILABLE',len(code)-len(missing),'MISSING',len(missing))
+          if len(code)<296 or missing:
+              raise SystemExit('Incomplete C# audit checkout: '+', '.join(missing))
+          PY_COMPLETE_CSHARP
       - name: Pre-Unity C sharp syntax, scope and test APK quality-gate regression
         run: |
           python3 unity-tools/validation/check_csharp_scopes.py unity-city/Assets
