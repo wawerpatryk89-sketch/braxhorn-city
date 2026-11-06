@@ -32,24 +32,50 @@ public static partial class BraxClaudeOsiedle
         var b = new Bounds(start, Vector3.zero); foreach (var p in drzwiBud) b.Encapsulate(p); b.Expand(new Vector3(30f, 0f, 30f));
         float y = start.y < .5f ? .1f : start.y;
         BraxCityDoor[] tab = Object.FindObjectsByType<BraxCityDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        var otwieralne = tab.Where(d => d && d.enabled && b.Contains(new Vector3(d.transform.position.x, b.center.y, d.transform.position.z))).Select(d => d.transform.position).ToList();
+        var aktywneDrzwi = tab.Where(d => d && d.enabled).ToArray();
+        var otwieralne = aktywneDrzwi
+            .Where(d => b.Contains(new Vector3(d.transform.position.x, b.center.y, d.transform.position.z)))
+            .Select(d => d.transform.position).ToList();
+        // Zwolnione są wyłącznie KOLIDERY AKTYWNYCH DRZWI.
+        // Nigdy ściana, półka albo podłoga stojąca w tym samym miejscu.
+        var kolideryDrzwi = new HashSet<Collider>(
+            aktywneDrzwi.SelectMany(d => d.GetComponentsInChildren<Collider>(true)));
         var cele = new List<(string n, Vector3 p)>();
         foreach (var d in tab) if (d && d.enabled && Klasa(d.id) == KlasaDrzwi.Wewnetrzne && drzwiBud.Any(q => Vector3.Distance(q, d.transform.position) < 15f)) cele.Add((d.id, d.transform.position));
         BraxCityWorld[] swiaty = Object.FindObjectsByType<BraxCityWorld>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (var w in swiaty) if (w.points != null) foreach (var pt in w.points) if (pt != null && drzwiBud.Any(q => Vector3.Distance(q, pt.position) < 15f)) cele.Add(("punkt " + pt.id, pt.position));
         nCele = cele.Count;
         int nx = Mathf.CeilToInt(b.size.x / h), nz = Mathf.CeilToInt(b.size.z / h);
-        if (nx * nz > 40000 || cele.Count == 0) return new List<string>();
+        // Poprzednio duży budynek lub brak celów zwracał PUSTĄ listę,
+        // czyli fałszywe PASS. W takiej sytuacji nie wolno zamknąć drzwi.
+        if (nx <= 0 || nz <= 0 || (long)nx * nz > 40000)
+            return new List<string> { "obszar poza limitem wiarygodnego testu przejścia" };
+        if (cele.Count == 0)
+            return new List<string> { "brak celów pozwalających zweryfikować dostęp do wnętrza" };
         var wolne = new sbyte[nx * nz]; var odw = new bool[nx * nz];
+        var buforKolizji = new Collider[64];
         Vector3 P(int ix, int iz) => new Vector3(b.min.x + (ix + .5f) * h, y, b.min.z + (iz + .5f) * h);
         bool Wolne(int ix, int iz)
         {
             int k = iz * nx + ix; if (wolne[k] != 0) return wolne[k] > 0;
-            var p = P(ix, iz); bool w = otwieralne.Any(q => (new Vector2(q.x - p.x, q.z - p.z)).sqrMagnitude < .64f) ||
-                !Physics.CheckCapsule(p + Vector3.up * .35f, p + Vector3.up * 1.6f, .25f, maska, QueryTriggerInteraction.Ignore);
+            var p = P(ix, iz);
+            var bot = p + Vector3.up * .35f;
+            var top = p + Vector3.up * 1.6f;
+            bool w = !Physics.CheckCapsule(bot, top, .25f, maska, QueryTriggerInteraction.Ignore);
+            if (!w && otwieralne.Any(q => (new Vector2(q.x - p.x, q.z - p.z)).sqrMagnitude < .64f))
+            {
+                int count = Physics.OverlapCapsuleNonAlloc(
+                    bot, top, .25f, buforKolizji, maska, QueryTriggerInteraction.Ignore);
+                // Przepełnienie bufora = wynik niepewny, więc blokujemy.
+                w = count < buforKolizji.Length;
+                for (int i = 0; i < count && w; i++)
+                    if (buforKolizji[i] && !kolideryDrzwi.Contains(buforKolizji[i])) w = false;
+            }
             wolne[k] = (sbyte)(w ? 1 : -1); return w;
         }
         int sx = Mathf.Clamp((int)((start.x - b.min.x) / h), 0, nx - 1), sz = Mathf.Clamp((int)((start.z - b.min.z) / h), 0, nz - 1);
+        if (!Wolne(sx, sz))
+            return new List<string> { "próg głównego wejścia jest fizycznie zablokowany" };
         var kol = new Queue<int>(); kol.Enqueue(sz * nx + sx); odw[sz * nx + sx] = true;
         while (kol.Count > 0)
         {
@@ -103,7 +129,7 @@ public static partial class BraxClaudeOsiedle
         float DoUlicy(Vector3 p)
         {
             float best = Mathf.Abs(p.z - StreetZ);
-            if (ulice != null) foreach (var u in ulice) best = Mathf.Min(best, u.alongX ? (p.x >= u.a0 && p.x <= u.a1 ? Mathf.Abs(p.z - u.c) : 999f) : (p.z >= Mathf.Min(u.a0, u.a1) && p.z <= Mathf.Max(u.a0, u.a1) ? Mathf.Abs(p.x - u.c) : 999f));
+            if (ulice != null) foreach (var u in ulice) best = Mathf.Min(best, u.alongX ? (p.x >= Mathf.Min(u.a0, u.a1) && p.x <= Mathf.Max(u.a0, u.a1) ? Mathf.Abs(p.z - u.c) : 999f) : (p.z >= Mathf.Min(u.a0, u.a1) && p.z <= Mathf.Max(u.a0, u.a1) ? Mathf.Abs(p.x - u.c) : 999f));
             return best;
         }
         int podwojnePrzed = 0, podwojnePo = 0, zamkniete = 0, cofniete = 0; var lista = new List<string>();
