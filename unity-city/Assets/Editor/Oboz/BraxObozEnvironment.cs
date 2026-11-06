@@ -159,8 +159,20 @@ public static partial class BraxObozEnvironment
     {
         string texturePath="Assets/Source/Prywatne/Oboz/OwnerAssets/Murale/"+filename;
         var texture=AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
-        if(!texture || texture.width<512 || texture.height<256)
-            throw new InvalidOperationException("Brak oryginalnego muralu JPEG lub zła tekstura: "+texturePath);
+        if(!texture)
+        {
+            Debug.LogWarning("BRAXHORN_OBOZ_MURAL_MISSING "+texturePath+
+                " — raport zamiast zatrzymania generowania sceny");
+            return;
+        }
+        var importer=AssetImporter.GetAtPath(texturePath) as TextureImporter;
+        if(importer)
+        {
+            importer.GetSourceTextureWidthAndHeight(out int sourceWidth,out int sourceHeight);
+            if(sourceWidth<4096)
+                Debug.LogWarning("BRAXHORN_OBOZ_MURAL_LOW_SOURCE_RESOLUTION "+
+                    texturePath+" szerokosc="+sourceWidth+" — wymagane min 4096 px");
+        }
         float height=width*texture.height/(float)texture.width;
         var board=Group("Oryginalny mural BRAXHORN — "+key,parent,P(at.x,at.y,at.z));
         board.localRotation=facing;
@@ -168,10 +180,12 @@ public static partial class BraxObozEnvironment
         {
             Box(board,"Drewniana ściana pod mural",new Vector3(0,0,-.03f),
                 new Vector3(width+.35f,height+.34f,.20f),wood,true);
+            // Murale na pełnej ścianie pawilonu, bez wolnostojących stalowych tablic.
             foreach(float side in new[]{-1f,1f})
-                Box(board,"Stalowy słup od gruntu do szczytu muralu",
-                    new Vector3(side*(width*.5f+.08f),(height*.5f-at.y)*.5f,0),
-                    new Vector3(.16f,at.y+height*.5f+.15f,.18f),metal,true);
+                Cylinder(board,"Belka konstrukcyjna ściany pod mural",
+                    new Vector3(side*(width*.5f+.08f),-at.y,0),
+                    new Vector3(side*(width*.5f+.08f),height*.5f,0),
+                    .16f,wood,true);
         }
         var shader=Shader.Find("Unlit/Texture");
         if(!shader)throw new InvalidOperationException("Brak shadera oryginalnego muralu");
@@ -189,6 +203,21 @@ public static partial class BraxObozEnvironment
         var quad=GameObject.CreatePrimitive(PrimitiveType.Quad);
         quad.name="JPEG 1:1 — "+key;
         quad.transform.SetParent(board,false);
+        // Raycast poziomy przez najbliższą, faktyczną ścianę budynku.
+        // Sztuczny tylny wspornik nie udaje znalezionej architektury.
+        Physics.SyncTransforms();
+        var origin=board.position+board.forward*(.35f*K);
+        var towardWall=-board.forward;
+        var hits=Physics.RaycastAll(origin,towardWall,1.25f*K,
+            ~0,QueryTriggerInteraction.Ignore)
+            .Where(h=>h.collider && !h.collider.transform.IsChildOf(board) &&
+                      Vector3.Dot(h.normal,board.forward)>.55f)
+            .OrderBy(h=>h.distance).ToArray();
+        if(hits.Length>0)
+            board.position=hits[0].point+board.forward*(.015f*K);
+        else
+            Debug.LogWarning("BRAXHORN_OBOZ_MURAL_NO_WALL "+key+
+                " — geometria wymaga kontroli montażu, nie oznaczaj jako gotowe");
         quad.transform.localPosition=P(0,0,woodenBacking ? 0.105f : 0.025f);
         quad.transform.localScale=new Vector3(width*K,height*K,1f);
         quad.GetComponent<MeshRenderer>().sharedMaterial=material;
@@ -342,15 +371,28 @@ public static partial class BraxObozEnvironment
         for(int row=0;row<14;row++)
         {
             float y=.25f+row*.19f;
-            Box(t,"Deska tylnej elewacji",new Vector3(0,y,4),new Vector3(6.2f,.20f,.14f),wood,false);
+            // Realne B A L E: walcowe przekroje, nie głęboki płaski box.
+            // Podłużne modele używają istniejącego PBR drewna, bez naciągania 2K.
+            Cylinder(t,"Bal tylnej elewacji — okrągły",
+                new Vector3(-3.1f,y,4),new Vector3(3.1f,y,4),.108f,wood,false);
             foreach(float side in new[]{-1f,1f})
             {
-                // The window is a real opening; no invisible solid wall behind it.
-                if(y>1.05f&&y<2.02f){foreach(float end in new[]{-1f,1f})Box(t,"Deska przy oknie",new Vector3(side*3,y,end*2.6f),new Vector3(.14f,.20f,3),wood,false);}
-                else Box(t,"Deska bocznej elewacji",new Vector3(side*3,y,0),new Vector3(.14f,.20f,8.2f),wood,false);
-                Box(t,"Deska przy wejściu",new Vector3(side*1.89f,y,-4),new Vector3(2.42f,.20f,.14f),wood,false);
+                // Otwarte okna pozostają faktycznie puste pomiędzy balami.
+                if(y>1.05f&&y<2.02f)
+                {
+                    Cylinder(t,"Bal boczny przed oknem",
+                        new Vector3(side*3,y,-4.1f),new Vector3(side*3,y,-1.1f),.108f,wood,false);
+                    Cylinder(t,"Bal boczny za oknem",
+                        new Vector3(side*3,y,1.1f),new Vector3(side*3,y,4.1f),.108f,wood,false);
+                }
+                else Cylinder(t,"Bal bocznej ściany — okrągły",
+                    new Vector3(side*3,y,-4.1f),new Vector3(side*3,y,4.1f),.108f,wood,false);
+                Cylinder(t,"Bal obok drzwi",
+                    new Vector3(side<0?-3.1f:.68f,y,-4f),
+                    new Vector3(side<0?-.68f:3.1f,y,-4f),.108f,wood,false);
             }
-            if(y>2.38f)Box(t,"Deska nad wejściem",new Vector3(0,y,-4),new Vector3(1.36f,.20f,.14f),wood,false);
+            if(y>2.38f)Cylinder(t,"Bal nad wejściem",
+                new Vector3(-.68f,y,-4),new Vector3(.68f,y,-4),.108f,wood,false);
         }
         CabinFinish(t);
         if(name=="Domek 3")

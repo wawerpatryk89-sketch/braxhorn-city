@@ -796,25 +796,15 @@ public static partial class BraxObozEnvironment
 
         // Rygiel nad pojazdami i podpory na zewnątrz przejazdu: x=+-4,45,
         // a nie w dawnych pozycjach +-3,7 wewnątrz światła bramy.
-        Box(gate,"Stalowy rygiel nad przejazdem 8,4 m",new Vector3(0,3.57f,.28f),
-            new Vector3(9.4f,.20f,.38f),campusSteel);
+        // Jedna gruba DREWNIANA belka na pełnej szerokości bramy.
+        // Nie ma podpór z cienkich metalowych patyków wewnątrz przejazdu.
+        Cylinder(gate,"Jednolity bal ponad bramą — 9,4 m",
+            new Vector3(-4.7f,3.67f,.28f),new Vector3(4.7f,3.67f,.28f),
+            .29f,wood,true);
         foreach (float x in new[] {-4.45f,4.45f})
-            Box(gate,"Podpora bryły poza światłem bramy",new Vector3(x,4.2f,.38f),
-                new Vector3(.18f,1.55f,.24f),campusSteel);
-        foreach (float x in new[] {-3.65f,3.65f})
-            Box(gate,"Tylny zastrzał szyldu",new Vector3(x,4.85f,.36f),
-                new Vector3(.14f,1.0f,.18f),campusSteel,false);
-        // Continuous physical carrier reaches the actual rendered silhouette.
-        // It is behind the original artwork and does not obstruct the 8.4 m opening.
-        const float beamTop=3.67f;
-        float carrierHeight=Mathf.Max(.15f,visibleSignBottom-beamTop);
-        foreach(float x in new[]{-3.8f,-1.9f,1.9f,3.8f})
-            Box(gate,"Stalowy wspornik do widocznej krawędzi szyldu",
-                new Vector3(x,beamTop+carrierHeight*.5f,.29f),
-                new Vector3(.16f,carrierHeight,.20f),campusSteel);
-        Box(gate,"Ciągła belka mocowania pod widocznym szyldem",
-            new Vector3(0f,visibleSignBottom-.075f,.28f),
-            new Vector3(signWidth,.15f,.24f),campusSteel);
+            Cylinder(gate,"Dwa grube pionowe słupy z bali",
+                new Vector3(x,0,.28f),new Vector3(x,visibleSignBottom+1.6f,.28f),
+                .34f,wood,true);
         Debug.Log("BRAXHORN_OBOZ_SIGN_3D: visibleBottom="+visibleSignBottom+" source=" + width + "x" + height +
             " metalDepth=0.26m stickerUV=1:1 supportX=+-4.45 opening=8.4m; test Unity wymagany");
     }
@@ -848,10 +838,8 @@ public static partial class BraxObozEnvironment
         FenceLine(fence,new Vector2(7.8f,BraxObozCampusLayout.GateZ),
             new Vector2(12f,BraxObozCampusLayout.GateZ));
         var gate=Group("Brama przesuwna · 8,4 m światła",root,P(0,0,-125));
-        foreach(float x in new[]{-4.5f,4.5f}){
-            Box(gate,"Filar bramy",new Vector3(x,1.65f,0),new Vector3(.5f,3.3f,.65f),campusSteel);
-            Box(gate,"Okładzina filara",new Vector3(x,1.6f,-.34f),new Vector3(.34f,2.8f,.06f),wood,false);
-        }
+        // Filarow nie dublujemy: dwa prawdziwe słupy drewniane
+        // są integralną częścią OwnerGateSign i zachowują przejazd 8,4m.
         // Szyld 3D z okleiną i podporami poza światłem przejazdu.
         OwnerGateSign(gate);
         var leaf=Group("Skrzydło bramy",gate,Vector3.zero);
@@ -1068,6 +1056,26 @@ public static partial class BraxObozEnvironment
         var trim=Group("Wykończenie domku",cabin,Vector3.zero);
         MetalRoof(trim,7.1f,9.1f,2.85f,1.15f);
         Box(trim,"Cokół fundamentowy",new Vector3(0,-.035f,0),new Vector3(6.3f,.15f,8.3f),gravel,false);
+        // Ganek z deskami i prawdziwa balustradą, drzwi 1.26m pozostają drożne.
+        var ganek=Group("GANek z bali i poręczą",trim,Vector3.zero);
+        Box(ganek,"Deski pomostu wejściowego",new Vector3(0,.065f,-5.1f),
+            new Vector3(3.4f,.13f,2.1f),floor);
+        foreach(float x in new[]{-1.65f,1.65f})
+        {
+            Cylinder(ganek,"Słup balustrady",
+                new Vector3(x,.14f,-5.92f),new Vector3(x,1.03f,-5.92f),
+                .10f,wood,true);
+            Cylinder(ganek,"Słup balustrady przy domu",
+                new Vector3(x,.14f,-4.22f),new Vector3(x,1.03f,-4.22f),
+                .10f,wood,true);
+            Cylinder(ganek,"Pochwyt boczny z drewna",
+                new Vector3(x,1.02f,-5.92f),new Vector3(x,1.02f,-4.22f),
+                .08f,wood,false);
+        }
+        // Sznur na ręczniki między rzeczywistymi słupkami, bez brył-ręczników.
+        Cylinder(ganek,"Sznur na ręczniki",
+            new Vector3(-1.65f,1.88f,-4.20f),new Vector3(1.65f,1.88f,-4.20f),
+            .012f,rope,false);
         foreach(float x in new[]{-3.13f,3.13f})foreach(float z in new[]{-4.13f,4.13f})
             Box(trim,"Deska narożna",new Vector3(x,1.5f,z),new Vector3(.17f,2.7f,.17f),wood,false);
         foreach(float z in new[]{-4.05f,4.05f}) {

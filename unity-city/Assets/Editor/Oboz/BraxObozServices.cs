@@ -584,7 +584,7 @@ public static class BraxObozServices
         var facade=BraxObozMaterials.PublicPbr("rectangular_facade_tiles",2f);
         var porcelain=BraxObozMaterials.Plain("sanitariaty-porcelana",new Color(.94f,.95f,.92f),.70f);
         var dark=BraxObozMaterials.Plain("sanitariaty-spoiny",new Color(.15f,.18f,.20f),.22f);
-        var mirror=BraxObozMaterials.Plain("sanitariaty-lustro",new Color(.54f,.68f,.71f),.88f,.06f);
+        var mirror=BraxObozMaterials.Plain("sanitariaty-lustro",new Color(.93f,.94f,.95f),.99f,1f);
         var rubber=mats["rubber"];var metal=mats["metal"];var wood=mats["wood"];
         var darkTile=BraxObozMaterials.OwnerSlabTilesPbr();
         var tileFloor=FixtureBox(building,"Oryginalny ciemny gres 2K — podłoga",
@@ -692,7 +692,13 @@ public static class BraxObozServices
             OwnerFixture(sink,"trough-washbasin.glb",new Vector3(0,.70f,0),new Vector3(1.20f,.35f,.55f));
             FixtureBox(sink,"Syfon",new Vector3(0,.54f,-.13f),new Vector3(.18f,.5f,.14f),metal);
             FixtureBox(sink,"Bateria",new Vector3(0,1.04f,-.29f),new Vector3(.09f,.26f,.12f),metal);
-            FixtureBox(sink,"Lustro na ścianie",new Vector3(0,1.89f,.275f),new Vector3(1.25f,1.25f,.035f),mirror,false);
+            var mirrorSurface=FixtureBox(sink,"Lustro na ścianie — ReflectionProbe",
+                new Vector3(0,1.89f,.275f),new Vector3(1.25f,1.25f,.035f),mirror,false);
+            var probe=mirrorSurface.AddComponent<ReflectionProbe>();
+            probe.mode=UnityEngine.Rendering.ReflectionProbeMode.Baked;
+            probe.refreshMode=UnityEngine.Rendering.ReflectionProbeRefreshMode.ViaScripting;
+            probe.size=new Vector3(3.5f,2.7f,3.5f);
+            probe.boxProjection=true;
             foreach(float bracket in new[]{-.43f,.43f}){
                 FixtureBox(sink,"Stalowy wspornik ścienny umywalki",
                     new Vector3(bracket,.66f,.61f),new Vector3(.07f,.14f,.55f),metal);
