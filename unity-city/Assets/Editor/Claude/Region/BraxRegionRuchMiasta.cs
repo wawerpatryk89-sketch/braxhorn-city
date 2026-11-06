@@ -118,22 +118,23 @@ public static partial class BraxClaudeOsiedle
         var A = new BraxTrasyAut.Ulica { id = "MIASTO Aleje", wzdluzX = false, c = ax, a0 = sz - 30f, a1 = pz, cw = ah, half = ah + kr + BraxRegionMiastoB.Ziel + BraxRegionMiastoB.Chod };
         var Wd = new BraxTrasyAut.Ulica { id = "MIASTO Wiaduktowa", wzdluzX = false, c = wx, a0 = sz, a1 = rz, cw = BraxRegionMiastoB.WH, half = BraxRegionMiastoB.WH + kr + 1.55f };
         var Ws = new BraxTrasyAut.Ulica { id = "MIASTO Warsztatowa", wzdluzX = true, c = sz, a0 = ax, a1 = BraxRegionMiastoB.SX1, cw = BraxRegionMiastoB.SH, half = BraxRegionMiastoB.SH + kr + 2.5f };
-        var Pd = new BraxTrasyAut.Ulica { id = "MIASTO pętla (umowna oś x)", wzdluzX = true, c = pz, a0 = ax - 1f, a1 = ax + 1f, cw = ah, half = ah };
+        // Pętla PÓŁNOC zamieniona na parking supermarketu, brak sztucznej osi ronda.
         var Pw = new BraxTrasyAut.Ulica { id = "MIASTO pętla ZACHÓD (umowna oś z)", wzdluzX = false, c = BraxRegionMiastoB.PetlaZX, a0 = rz - 1f, a1 = rz + 1f, cw = ah, half = ah };
-        var ul = new List<BraxTrasyAut.Ulica> { G, A, Wd, Ws, Pd, Pw };
+        var ul = new List<BraxTrasyAut.Ulica> { G, A, Wd, Ws, Pw };
         var RONDO = new BraxTrasyAut.Wezel { x = rx, z = rz, rondo = true, ux = G, uz = A };
-        var PETLA = new BraxTrasyAut.Wezel { x = ax, z = pz, rondo = true, ux = Pd, uz = A };
+        // Nie wolno planować automatycznych przejazdów przez miejsca parkingowe.
         var J1 = new BraxTrasyAut.Wezel { x = wx, z = rz, ux = G, uz = Wd, rodzaj = 2 };
         var J2 = new BraxTrasyAut.Wezel { x = ax, z = sz, ux = Ws, uz = A, rodzaj = 2 };
         var W = new BraxTrasyAut.Wezel { x = wx, z = sz, ux = Ws, uz = Wd };
         var PETLA_W = new BraxTrasyAut.Wezel { x = BraxRegionMiastoB.PetlaZX, z = rz, rondo = true, ux = G, uz = Pw };
-        var wz = new List<BraxTrasyAut.Wezel> { RONDO, PETLA, J1, J2, W, PETLA_W };
+        var wz = new List<BraxTrasyAut.Wezel> { RONDO, J1, J2, W, PETLA_W };
         Vector2 P(BraxTrasyAut.Wezel w) => new Vector2(w.x, w.z);
         var defs = new List<BraxTrasyAut.Definicja>
         {
             new BraxTrasyAut.Definicja { nazwa = "M pętla Wiaduktowa–Warsztatowa (w lewo)", petla = true, y = YA, punkty = new[] { P(RONDO), P(J2), P(W), P(J1) } },
             new BraxTrasyAut.Definicja { nazwa = "M pętla Wiaduktowa–Warsztatowa (w prawo)", petla = true, y = YA, punkty = new[] { P(RONDO), P(J1), P(W), P(J2) } },
-            new BraxTrasyAut.Definicja { nazwa = "M pętla przez Aleję Północną (zawracanie na rondzie PÓŁNOC)", petla = true, y = YA, punkty = new[] { P(RONDO), P(PETLA), P(RONDO), P(J1), P(W), P(J2) } },
+            // Usunięto trasę zawracania po pętli PÓŁNOC:
+            // zjazd na parking przy sklepie nie jest trasą tranzytową.
             new BraxTrasyAut.Definicja { nazwa = "M pętla przez ul. Zachodnią (zawracanie na pętli ZACHÓD)", petla = true, y = YA, punkty = new[] { P(RONDO), P(PETLA_W), P(RONDO), P(J2), P(W), P(J1) } },
         };
         // WŁAŚCICIEL 3.11 10:15 („gdzie ruch na ulicy?”) — NOWE DZIELNICE: siatka ulic z buildu (log „nawierzchnie: aleja 4 odcinki,
