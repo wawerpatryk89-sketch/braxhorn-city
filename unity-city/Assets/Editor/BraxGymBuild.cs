@@ -362,6 +362,9 @@ public static class BraxGymBuild
         // umieszczenie, kolizje, MIGOTANIE (rozsunięcie płaskich warstw), listy pomieszczeń, robot kolizji. Przed BezSwiecenia/Siatki (siatki do odczytu).
         // 3.11 (właściciel 13:39–13:46): SUPERMARKET BRAXHORN — jeden moduł, 2 kopie w mieście (druga lustrzana), przed kontrolami jakości
         if(fullCity&&!osiedle)try{BraxSupermarket.Wykonaj(scene,2);}catch(Exception e){throw new InvalidOperationException("BRAXHORN_SUPERMARKET_NIEGOTOWY",e);}
+        // Supermarket i jego parking powstają PO BraxRegion.Apply; kontrola wcześniej
+        // błędnie raportowała brak sklepu, mimo że generator jeszcze się nie wykonał.
+        if(fullCity&&!osiedle) BraxMiastoOdbior.SprawdzSupermarketR1();
         if(fullCity&&!osiedle)try{BraxKontrola.Wszystko(scene,"miasto");}catch(Exception e){throw new InvalidOperationException("BRAXHORN_KONTROLA_MIASTA_NIEGOTOWA",e);}
         // P0.1 (2.11 23:05, „metro nie do wejścia”): obce kolizje w przejściach stacji wyłączone + test przejścia obu wejść
         if(fullCity&&!osiedle)try{BraxClaudeMetro.KontrolaPrzejscia();}catch(Exception e){throw new InvalidOperationException("BRAXHORN_METRO_PRZEJSCIE_NIEGOTOWE",e);}
