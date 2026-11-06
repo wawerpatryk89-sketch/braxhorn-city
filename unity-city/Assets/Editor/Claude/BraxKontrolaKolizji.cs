@@ -34,6 +34,23 @@ public static class BraxKontrolaKolizji
         return false;
     }
 
+    // Centralna oś wejścia NOVA (x=42, z=35.73..36.68, y do 2.4 m).
+    // Nie dodajemy wtórnego pudełka kontroli przecinającego ten korytarz.
+    // Oryginalne mury i rzeczywiste drzwi nie są tu wyłączane ani modyfikowane.
+    static bool ZajmujePortalNova(Vector2 c, float kat, float dl, float sz, float y0, float y1)
+    {
+        if (y0 > 2.4f || y1 < .25f) return false;
+        var odwrot = Quaternion.Inverse(Quaternion.Euler(0f, kat, 0f));
+        for (float z = 35.73f; z <= 36.70f; z += .24f)
+        {
+            var d = odwrot * new Vector3(42.0f - c.x, 0f, z - c.y);
+            if (Mathf.Abs(d.x) <= dl * .5f + .34f &&
+                Mathf.Abs(d.z) <= sz * .5f + .34f)
+                return true;
+        }
+        return false;
+    }
+
     public static void Wykonaj(BraxKontrola.Spis spis)
     {
         int dodane = 0, maja = 0, nad = 0, male = 0, plaskie = 0, otwory = 0, schody = 0, chronione = 0;
@@ -104,6 +121,12 @@ public static class BraxKontrolaKolizji
                 { float pr = Mathf.Max(dl, sz) * .5f + 1.2f; bool blok = false;
                   foreach (var dp in drzwiPkt) { if (Mathf.Abs(dp.y - (ymin + ymax) * .5f) > 3f) continue; var dd = new Vector2(dp.x - c.x, dp.z - c.y); if (dd.sqrMagnitude < pr * pr) { blok = true; break; } }
                   if (blok) { przyDrzwiach++; BraxKontrola.Zapisz("kolizje: pominięta przy drzwiach " + j.opis + " " + BraxKontrola.F(j.Podstawa)); continue; } }
+                if (ZajmujePortalNova(c, kat, dl, sz, ymin, ymax))
+                {
+                    przyDrzwiach++;
+                    BraxKontrola.Zapisz("kolizje: NOVA zachowany prześwit wejścia — bez pudełka kontroli " + j.opis);
+                    continue;
+                }
                 // nowa kolizja: dziecko mebla (jedzie z nim przy podziale sceny), przy niejednolitej skali rodzica — wspólny korzeń
                 var g = new GameObject("BRAXHORN kolizja (kontrola)");
                 var ls = j.t.lossyScale; float s = (Mathf.Abs(ls.x) + Mathf.Abs(ls.y) + Mathf.Abs(ls.z)) / 3f;
