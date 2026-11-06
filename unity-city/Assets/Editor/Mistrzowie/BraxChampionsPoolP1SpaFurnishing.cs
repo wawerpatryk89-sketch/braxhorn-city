@@ -34,7 +34,9 @@ public static class BraxChampionsPoolP1SpaFurnishing
         float x,float z,float maxW,float maxD,float maxH,float turn=0f)
     {
         var source=AssetDatabase.LoadAssetAtPath<GameObject>(Src+file);
-        if(!source) {Pending(parent,file,x,z);return null;}
+        if(!source)throw new System.IO.FileNotFoundException(
+            "P1 owner SPA asset missing; the verified private release must be imported before any prefab is generated: "+Src+file,
+            Src+file);
         var instance=PrefabUtility.InstantiatePrefab(source) as GameObject;
         if(!instance)throw new InvalidOperationException("P1 owner model importer failed for "+file);
         instance.name="P1 REAL OWNER MODEL | "+label+" | "+file;
@@ -85,8 +87,8 @@ public static class BraxChampionsPoolP1SpaFurnishing
 
         // Four owner tubs (2.23x2.85m including entrance step) in the
         // existing SPA RELAKS room: X=[6.6,17.4], Z=[-17.7,-9.9].
-        // 3.27m central access aisle between columns and 0.95m between
-        // rows. The south door at X=12 remains fully clear.
+        // The central aisle between jacuzzi columns is 3.2m; the WEST
+        // entrance at X=6.6, Z=-13.8 and its circulation stay open.
         foreach(float x in new[]{9.2f,14.7f})
             foreach(float z in new[]{-11.85f,-15.65f})
             {
@@ -112,11 +114,14 @@ public static class BraxChampionsPoolP1SpaFurnishing
                 (x.name=="Shower chrome riser"||x.name=="Shower circular head"||
                  x.name=="Shower wet-floor drain")).ToArray();
             foreach(var obj in old)UnityEngine.Object.DestroyImmediate(obj.gameObject);
-            foreach(float x in new[]{-16f,-13.6f,-11.2f,-8.8f})
+            // All four real 2K shower cabins are now inside the dedicated
+            // 10.8x8m shower room at X=-5.4..5.4, Z=8..16.
+            // The south-facing room entrance at (0,8) remains clear.
+            foreach(float x in new[]{-3.6f,-1.2f,1.2f,3.6f})
                 Install(rooms,"shower_cabin.glb","PREMIUM CABIN SHOWER "+x,
-                    x,9.5f,1.38f,1.16f,2.35f);
+                    x,12.4f,1.38f,1.16f,2.35f);
         }
-        else Pending(details,"shower_cabin.glb",-12f,9.5f);
+        else throw new System.IO.FileNotFoundException("The owner premium shower model is required: "+Src+"shower_cabin.glb");
 
         // Actual owner locker banks (source 2.88x2.01x0.67m), not 18
         // separately cloned heavy texture collections. Two banks keep 2K
